@@ -11,24 +11,24 @@ public import TauCeti.Geometry.Manifold.Boundary.Collar.Global
 /-!
 # The unit sphere is collared in the closed unit ball
 
-In a real normed space `E`, the closed unit ball with its centre removed is homeomorphic to
-`S × [0, 1)`, `S` the unit sphere, through `(z, t) ↦ (1 - t) • z`
-(`homeomorphUnitSphereProdIco`). So the inclusion of the unit sphere into the
-closed unit ball is collared in the sense of Tau Ceti (`TauCeti.IsCollared`). In any
-pseudometric space, the open ball is the complement of the sphere in the closed ball, as ranges
-of inclusions (`Metric.range_inclusion_ball_eq_compl`). Together these put the closed unit ball
-in the setting of Tau Ceti's relative fundamental class.
+In a real normed space `E`, with `S` the unit sphere, the map `(z, t) ↦ (1 + c t) • z` is a
+homeomorphism of `S × [0, 1)` onto the shell `{w | (‖w‖ - 1) / c ∈ [0, 1)}`, for every `c ≠ 0`
+with `-1 ≤ c` (`homeomorphUnitSphereProdIco`). It is Mathlib's polar coordinates
+`homeomorphUnitSphereProd` restricted to a range of radii, written out directly.
 
-On the outer side of the sphere, for `δ > 0`, the annulus `1 ≤ ‖w‖ < 1 + δ` is homeomorphic to
-`S × [0, 1)` through `(z, t) ↦ (1 + δ t) • z` (`homeomorphUnitSphereProdIcoAnnulus`). This
-collars the boundary circle of a disc removed from a surface.
+For `c = -1` the shell is the closed unit ball minus its centre, so the inclusion of the unit
+sphere into the closed unit ball is collared in the sense of Tau Ceti (`TauCeti.IsCollared`). In
+any pseudometric space, the open ball is the complement of the sphere in the closed ball, as
+ranges of inclusions (`Metric.range_inclusion_ball_eq_compl`). Together these put the closed unit
+ball in the setting of Tau Ceti's relative fundamental class.
+
+For `c = δ > 0` the shell is the annulus `1 ≤ ‖w‖ < 1 + δ` outside the unit sphere. This collars
+the boundary circle of a disc removed from a surface.
 
 ## Main results
 
-* `homeomorphUnitSphereProdIco`: the homeomorphism from `S × [0, 1)` onto the
-  closed unit ball minus its centre.
-* `homeomorphUnitSphereProdIcoAnnulus`: the homeomorphism from `S × [0, 1)` onto the annulus
-  `1 ≤ ‖w‖ < 1 + δ` outside the unit sphere.
+* `homeomorphUnitSphereProdIco`: the homeomorphism from `S × [0, 1)` onto the shell
+  `(‖w‖ - 1) / c ∈ [0, 1)` around the unit sphere.
 * `Metric.isCollared_inclusion_sphere_closedBall`: the unit sphere is collared in
   the closed unit ball.
 * `Metric.range_inclusion_ball_eq_compl`: the open ball is the complement of the sphere in the
@@ -59,104 +59,80 @@ theorem range_inclusion_ball_eq_compl {α : Type*} [PseudoMetricSpace α] (x : �
 
 end Metric
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+/-- For `c > 0`, `(a - 1) / c ∈ [0, 1)` exactly when `1 ≤ a < 1 + c`. -/
+theorem sub_div_mem_Ico_iff_of_pos {a c : ℝ} (hc : 0 < c) :
+    (a - 1) / c ∈ Ico (0 : ℝ) 1 ↔ 1 ≤ a ∧ a < 1 + c := by
+  rw [mem_Ico, le_div_iff₀ hc, div_lt_one hc]
+  constructor <;> rintro ⟨h₁, h₂⟩ <;> constructor <;> linarith
 
-/-- The closed unit ball with its centre removed is `S × [0, 1)`, `S` the unit sphere, through
-`(z, t) ↦ (1 - t) • z`. -/
-def homeomorphUnitSphereProdIco :
-    sphere (0 : E) 1 × Ico (0 : ℝ) 1 ≃ₜ ({w | (w : E) ≠ 0} : Set (closedBall (0 : E) 1)) where
-  toFun p := ⟨⟨(1 - (p.2 : ℝ)) • (p.1 : E), by
-      rw [mem_closedBall_zero_iff, norm_smul, norm_eq_of_mem_sphere p.1, mul_one,
-        Real.norm_of_nonneg (by linarith [p.2.property.2])]
-      linarith [p.2.property.1]⟩, by
-    simp only [mem_ofPred_eq, ne_eq, smul_eq_zero, not_or]
-    exact ⟨by linarith [p.2.property.2], ne_zero_of_mem_unit_sphere p.1⟩⟩
-  invFun w := (⟨‖(w.val : E)‖⁻¹ • (w.val : E), by
-      rw [mem_sphere_zero_iff_norm, norm_smul, norm_inv, norm_norm,
-        inv_mul_cancel₀ (norm_ne_zero_iff.2 w.property)]⟩,
-    ⟨1 - ‖(w.val : E)‖, by linarith [mem_closedBall_zero_iff.1 w.val.property],
-      by linarith [norm_pos_iff.2 w.property]⟩)
-  left_inv p := by
-    have ht : 0 < 1 - (p.2 : ℝ) := by linarith [p.2.property.2]
-    have hn : ‖(1 - (p.2 : ℝ)) • (p.1 : E)‖ = 1 - p.2 := by
-      rw [norm_smul, norm_eq_of_mem_sphere p.1, mul_one, Real.norm_of_nonneg ht.le]
-    ext
-    · simp only [hn, smul_smul, inv_mul_cancel₀ ht.ne', one_smul]
-    · simp only [hn, sub_sub_cancel]
-  right_inv w := by
-    ext
-    simp only [sub_sub_cancel, smul_smul, mul_inv_cancel₀ (norm_ne_zero_iff.2 w.property), one_smul]
-  continuous_toFun := by fun_prop
-  continuous_invFun := by
-    have hn : Continuous fun w : ({w | (w : E) ≠ 0} : Set (closedBall (0 : E) 1)) ↦
-        ‖(w.val : E)‖ := by fun_prop
-    exact (((hn.inv₀ fun w ↦ norm_ne_zero_iff.2 w.property).smul (by fun_prop)).subtype_mk _).prodMk
-      ((continuous_const.sub hn).subtype_mk _)
+/-- For `c < 0`, `(a - 1) / c ∈ [0, 1)` exactly when `1 + c < a ≤ 1`. -/
+theorem sub_div_mem_Ico_iff_of_neg {a c : ℝ} (hc : c < 0) :
+    (a - 1) / c ∈ Ico (0 : ℝ) 1 ↔ 1 + c < a ∧ a ≤ 1 := by
+  rw [mem_Ico, le_div_iff_of_neg hc, div_lt_one_of_neg hc]
+  constructor <;> rintro ⟨h₁, h₂⟩ <;> constructor <;> linarith
 
-@[simp]
-theorem coe_homeomorphUnitSphereProdIco_apply (p : sphere (0 : E) 1 × Ico (0 : ℝ) 1) :
-    ((homeomorphUnitSphereProdIco p : closedBall (0 : E) 1) : E) = (1 - (p.2 : ℝ)) • (p.1 : E) :=
-  (rfl)
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {c : ℝ}
 
-@[simp]
-theorem coe_homeomorphUnitSphereProdIco_symm_apply_fst
-    (w : ({w | (w : E) ≠ 0} : Set (closedBall (0 : E) 1))) :
-    ((homeomorphUnitSphereProdIco.symm w).1 : E) = ‖(w.val : E)‖⁻¹ • (w.val : E) :=
-  (rfl)
+/-- For `-1 ≤ c` and `t ∈ [0, 1)`, the radius `1 + c t` is positive. -/
+private lemma one_add_mul_pos (hc : -1 ≤ c) {t : ℝ} (ht : t ∈ Ico (0 : ℝ) 1) : 0 < 1 + c * t := by
+  nlinarith [ht.1, ht.2]
 
-@[simp]
-theorem coe_homeomorphUnitSphereProdIco_symm_apply_snd
-    (w : ({w | (w : E) ≠ 0} : Set (closedBall (0 : E) 1))) :
-    ((homeomorphUnitSphereProdIco.symm w).2 : ℝ) = 1 - ‖(w.val : E)‖ :=
-  (rfl)
+omit [NormedSpace ℝ E] in
+/-- A point of the shell `(‖w‖ - 1) / c ∈ [0, 1)`, for `-1 ≤ c` and `c ≠ 0`, is not the
+centre. -/
+private lemma norm_pos_of_div_mem_Ico (hc : -1 ≤ c) (hc₀ : c ≠ 0) {w : E}
+    (hw : (‖w‖ - 1) / c ∈ Ico (0 : ℝ) 1) : 0 < ‖w‖ := by
+  have h := one_add_mul_pos hc hw
+  rwa [mul_div_cancel₀ _ hc₀, add_sub_cancel] at h
 
-/-- The annulus `1 ≤ ‖w‖ < 1 + δ` outside the unit sphere is `S × [0, 1)`, `S` the unit sphere,
-through `(z, t) ↦ (1 + δ t) • z`, for `δ > 0`. -/
-def homeomorphUnitSphereProdIcoAnnulus {δ : ℝ} (hδ : 0 < δ) :
-    sphere (0 : E) 1 × Ico (0 : ℝ) 1 ≃ₜ {w : E | 1 ≤ ‖w‖ ∧ ‖w‖ < 1 + δ} where
-  toFun p := ⟨(1 + δ * p.2) • (p.1 : E), by
-    have h0 : 0 ≤ δ * p.2 := mul_nonneg hδ.le p.2.property.1
+/-- The shell `(‖w‖ - 1) / c ∈ [0, 1)` around the unit sphere is `S × [0, 1)`, `S` the unit
+sphere, through `(z, t) ↦ (1 + c t) • z`, for `-1 ≤ c` and `c ≠ 0`. For `c = -1` the shell is
+the closed unit ball minus its centre; for `c > 0` it is the annulus `1 ≤ ‖w‖ < 1 + c`. -/
+def homeomorphUnitSphereProdIco (hc : -1 ≤ c) (hc₀ : c ≠ 0) :
+    sphere (0 : E) 1 × Ico (0 : ℝ) 1 ≃ₜ {w : E | (‖w‖ - 1) / c ∈ Ico (0 : ℝ) 1} where
+  toFun p := ⟨(1 + c * p.2) • (p.1 : E), by
     rw [mem_ofPred_eq, norm_smul, norm_eq_of_mem_sphere p.1, mul_one,
-      Real.norm_of_nonneg (by linarith)]
-    constructor <;> nlinarith [p.2.property.2]⟩
+      Real.norm_of_nonneg (one_add_mul_pos hc p.2.property).le, add_sub_cancel_left,
+      mul_div_cancel_left₀ _ hc₀]
+    exact p.2.property⟩
   invFun w := (⟨‖(w : E)‖⁻¹ • (w : E), by
       rw [mem_sphere_zero_iff_norm, norm_smul, norm_inv, norm_norm,
-        inv_mul_cancel₀ (by linarith [w.property.1])]⟩,
-    ⟨(‖(w : E)‖ - 1) / δ, div_nonneg (by linarith [w.property.1]) hδ.le,
-      (div_lt_one hδ).2 (by linarith [w.property.2])⟩)
+        inv_mul_cancel₀ (norm_pos_of_div_mem_Ico hc hc₀ w.property).ne']⟩,
+    ⟨(‖(w : E)‖ - 1) / c, w.property⟩)
   left_inv p := by
-    have ht : 0 < 1 + δ * p.2 := by nlinarith [p.2.property.1]
-    have hn : ‖(1 + δ * p.2) • (p.1 : E)‖ = 1 + δ * p.2 := by
+    have ht := one_add_mul_pos hc p.2.property
+    have hn : ‖(1 + c * p.2) • (p.1 : E)‖ = 1 + c * p.2 := by
       rw [norm_smul, norm_eq_of_mem_sphere p.1, mul_one, Real.norm_of_nonneg ht.le]
     ext
     · simp only [hn, smul_smul, inv_mul_cancel₀ ht.ne', one_smul]
-    · simp only [hn, add_sub_cancel_left, mul_div_cancel_left₀ _ hδ.ne']
+    · simp only [hn, add_sub_cancel_left, mul_div_cancel_left₀ _ hc₀]
   right_inv w := by
     ext
-    simp only [mul_div_cancel₀ _ hδ.ne', add_sub_cancel, smul_smul,
-      mul_inv_cancel₀ (show ‖(w : E)‖ ≠ 0 by linarith [w.property.1]), one_smul]
+    simp only [mul_div_cancel₀ _ hc₀, add_sub_cancel, smul_smul,
+      mul_inv_cancel₀ (norm_pos_of_div_mem_Ico hc hc₀ w.property).ne', one_smul]
   continuous_toFun := by fun_prop
   continuous_invFun := by
-    have hn : Continuous fun w : {w : E | 1 ≤ ‖w‖ ∧ ‖w‖ < 1 + δ} ↦ ‖(w : E)‖ := by fun_prop
-    exact (((hn.inv₀ fun w ↦ by linarith [w.property.1]).smul (by fun_prop)).subtype_mk _).prodMk
-      (((hn.sub continuous_const).div_const δ).subtype_mk _)
+    have hn : Continuous fun w : {w : E | (‖w‖ - 1) / c ∈ Ico (0 : ℝ) 1} ↦ ‖(w : E)‖ := by
+      fun_prop
+    exact (((hn.inv₀ fun w ↦ (norm_pos_of_div_mem_Ico hc hc₀ w.property).ne').smul
+      (by fun_prop)).subtype_mk _).prodMk (((hn.sub continuous_const).div_const c).subtype_mk _)
 
 @[simp]
-theorem coe_homeomorphUnitSphereProdIcoAnnulus_apply {δ : ℝ} (hδ : 0 < δ)
+theorem coe_homeomorphUnitSphereProdIco_apply (hc : -1 ≤ c) (hc₀ : c ≠ 0)
     (p : sphere (0 : E) 1 × Ico (0 : ℝ) 1) :
-    (homeomorphUnitSphereProdIcoAnnulus hδ p : E) = (1 + δ * p.2) • (p.1 : E) :=
+    (homeomorphUnitSphereProdIco hc hc₀ p : E) = (1 + c * p.2) • (p.1 : E) :=
   (rfl)
 
 @[simp]
-theorem coe_homeomorphUnitSphereProdIcoAnnulus_symm_apply_fst {δ : ℝ} (hδ : 0 < δ)
-    (w : {w : E | 1 ≤ ‖w‖ ∧ ‖w‖ < 1 + δ}) :
-    (((homeomorphUnitSphereProdIcoAnnulus hδ).symm w).1 : E) = ‖(w : E)‖⁻¹ • (w : E) :=
+theorem coe_homeomorphUnitSphereProdIco_symm_apply_fst (hc : -1 ≤ c) (hc₀ : c ≠ 0)
+    (w : {w : E | (‖w‖ - 1) / c ∈ Ico (0 : ℝ) 1}) :
+    (((homeomorphUnitSphereProdIco hc hc₀).symm w).1 : E) = ‖(w : E)‖⁻¹ • (w : E) :=
   (rfl)
 
 @[simp]
-theorem coe_homeomorphUnitSphereProdIcoAnnulus_symm_apply_snd {δ : ℝ} (hδ : 0 < δ)
-    (w : {w : E | 1 ≤ ‖w‖ ∧ ‖w‖ < 1 + δ}) :
-    (((homeomorphUnitSphereProdIcoAnnulus hδ).symm w).2 : ℝ) = (‖(w : E)‖ - 1) / δ :=
+theorem coe_homeomorphUnitSphereProdIco_symm_apply_snd (hc : -1 ≤ c) (hc₀ : c ≠ 0)
+    (w : {w : E | (‖w‖ - 1) / c ∈ Ico (0 : ℝ) 1}) :
+    (((homeomorphUnitSphereProdIco hc hc₀).symm w).2 : ℝ) = (‖(w : E)‖ - 1) / c :=
   (rfl)
 
 namespace Metric
@@ -164,11 +140,21 @@ namespace Metric
 /-- **The unit sphere is collared in the closed unit ball**, by `(z, t) ↦ (1 - t) • z`. -/
 theorem isCollared_inclusion_sphere_closedBall :
     TauCeti.IsCollared
-      (inclusion (sphere_subset_closedBall : sphere (0 : E) 1 ⊆ closedBall 0 1)) :=
-  TauCeti.isCollared_iff.2 ⟨fun p ↦ (homeomorphUnitSphereProdIco p).val,
-    ⟨(isOpen_compl_singleton.preimage continuous_subtypeVal).isOpenEmbedding_subtypeVal.comp
-      homeomorphUnitSphereProdIco.isOpenEmbedding, fun z ↦ by
-        ext
-        simp⟩⟩
+      (inclusion (sphere_subset_closedBall : sphere (0 : E) 1 ⊆ closedBall 0 1)) := by
+  have hc₀ : (-1 : ℝ) ≠ 0 := by norm_num
+  have hsub : {w : E | (‖w‖ - 1) / -1 ∈ Ico (0 : ℝ) 1} ⊆ closedBall 0 1 := fun w hw ↦
+    mem_closedBall_zero_iff.2 ((sub_div_mem_Ico_iff_of_neg neg_one_lt_zero).1 hw).2
+  have hopen : IsOpen (((↑) : closedBall (0 : E) 1 → E) ⁻¹'
+      {w | (‖w‖ - 1) / -1 ∈ Ico (0 : ℝ) 1}) := by
+    convert (isOpen_compl_singleton (x := (0 : E))).preimage continuous_subtypeVal using 1
+    ext w
+    rw [mem_preimage, mem_ofPred_eq, sub_div_mem_Ico_iff_of_neg neg_one_lt_zero, mem_preimage,
+      mem_compl_singleton_iff, ← norm_pos_iff, add_neg_cancel]
+    exact and_iff_left (mem_closedBall_zero_iff.1 w.property)
+  refine TauCeti.isCollared_iff.2 ⟨inclusion hsub ∘ homeomorphUnitSphereProdIco le_rfl hc₀,
+    (IsOpenEmbedding.inclusion hsub hopen).comp (homeomorphUnitSphereProdIco _ _).isOpenEmbedding,
+    fun z ↦ ?_⟩
+  ext
+  simp
 
 end Metric

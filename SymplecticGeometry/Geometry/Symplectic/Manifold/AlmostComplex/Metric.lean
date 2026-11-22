@@ -44,6 +44,9 @@ identifications `SymplecticGeometry.Bundle.ContMDiffTwoForm.tangentEquiv` of two
 * `TauCeti.SmoothAlmostComplexStructure.kahlerTwoForm_eq_compatibleFormEquiv`: Tau Ceti's Kähler
   form `TauCeti.SmoothAlmostComplexStructure.kahlerTwoForm` of the ambient `RiemannianBundle`
   metric is the form under the bijection of a compatible metric `g` that agrees with it.
+* `TauCeti.SmoothTwoForm.val_eq_alternatingFormEquiv_kahlerForm`: if the `RiemannianBundle`
+  metric is `⟪u, v⟫ = σ(u, J v)`, then at each point `σ` is the Kähler form
+  `TauCeti.AlmostComplexStructure.kahlerForm` of `J`, read as an alternating form.
 
 ## References
 
@@ -193,6 +196,28 @@ theorem kahlerTwoForm_eq_compatibleFormEquiv [RiemannianBundle (fun x : M ↦ Ta
   rw [compatibleFormEquiv_apply_eval₂, SmoothBundleForm.eval₂_apply, kahlerTwoForm_apply_two, hg]
 
 end SmoothAlmostComplexStructure
+
+/-! ### A metric with `⟪u, v⟫ = σ(u, J v)` -/
+
+variable [RiemannianBundle (fun x : M ↦ TangentSpace I x)] {σ : SmoothTwoForm I M}
+  {J : SmoothAlmostComplexStructure I M}
+
+/-- If the metric is `⟪v, w⟫ = σ(v, J w)`, then at each point `σ` is the Kähler form
+`σ(v, w) = ⟪J v, w⟫` of `J x`, the form of the Kähler two-vector
+`TauCeti.AlmostComplexStructure.kahlerForm`. -/
+theorem SmoothTwoForm.val_eq_alternatingFormEquiv_kahlerForm
+    (hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = σ.val x ![v, J x w]) (x : M) :
+    σ.val x =
+      (letI : FiniteDimensional ℝ (TangentSpace I x) :=
+        VectorBundle.finiteDimensional ℝ E (TangentSpace I) x
+       alternatingFormEquiv (TangentSpace I x) 2 (J.almostComplexStructureAt x).kahlerForm) := by
+  let _ : FiniteDimensional ℝ (TangentSpace I x) :=
+    VectorBundle.finiteDimensional ℝ E (TangentSpace I) x
+  rw [AlmostComplexStructure.kahlerForm_eq_of_inner_eq
+      (F := (alternatingFormEquiv _ 2).symm (σ.val x))
+      fun u v ↦ by rw [inner_alternatingFormEquiv_symm_ιMulti, hg,
+        SmoothAlmostComplexStructure.almostComplexStructureAt_apply],
+    LinearEquiv.apply_symm_apply]
 
 end TauCeti
 
