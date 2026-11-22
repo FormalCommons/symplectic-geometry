@@ -8,39 +8,35 @@ module
 public import Mathlib.Geometry.Manifold.Instances.Sphere
 
 /-!
-# Maps into the unit circle that are smooth on an open set
+# Maps into a unit sphere that are smooth on an open set
 
-Mathlib's `ContMDiff.codRestrict_sphere` says that a map into the unit circle is smooth when its
-composite with the inclusion `Circle → ℂ` is. This file gives the version on an open set of a
-manifold, `ContMDiffOn.of_coe_circle`, obtained from Mathlib's lemma on the open set as a
-manifold of its own (`contMDiffAt_subtype_iff`).
+Mathlib's `ContMDiff.codRestrict_sphere` says that a map into the unit sphere of a real inner
+product space `E` is smooth when its composite with the inclusion `sphere 0 1 → E` is. This file
+gives the version on an open set of a manifold, `ContMDiffOn.of_coe_sphere`, obtained from
+Mathlib's lemma on the open set as a manifold of its own (`contMDiffAt_subtype_iff`). For
+`E = ℂ` it applies to maps into `Circle`.
 -/
 
 public section
 
-open Set TopologicalSpace
+open Set TopologicalSpace Metric Module
 open scoped Manifold ContDiff
 
-variable {m : ℕ∞ω} {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+variable {m : ℕ∞ω} {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+  {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ EM H}
   {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I m M]
 
-attribute [local instance] finrank_real_complex_fact'
-
-/-- A map into `Circle` is `C^m` on an open set if its composite with the inclusion `Circle → ℂ`
-is `C^m` there. -/
-theorem ContMDiffOn.of_coe_circle {f : M → Circle} {s : Set M} (hs : IsOpen s)
-    (hf : ContMDiffOn I 𝓘(ℝ, ℂ) m (fun x ↦ (f x : ℂ)) s) :
-    ContMDiffOn I (𝓡 1) m f s := by
+/-- A map into the unit sphere of `E` is `C^m` on an open set if its composite with the inclusion
+`sphere 0 1 → E` is `C^m` there. -/
+theorem ContMDiffOn.of_coe_sphere {n : ℕ} [Fact (finrank ℝ E = n + 1)]
+    {f : M → sphere (0 : E) 1} {s : Set M} (hs : IsOpen s)
+    (hf : ContMDiffOn I 𝓘(ℝ, E) m (fun x ↦ (f x : E)) s) :
+    ContMDiffOn I (𝓡 n) m f s := by
   intro x hx
   let U : Opens M := ⟨s, hs⟩
-  have hU : ContMDiff I 𝓘(ℝ, ℂ) m fun y : U ↦ (f y : ℂ) := fun y ↦
+  have hU : ContMDiff I 𝓘(ℝ, E) m fun y : U ↦ (f y : E) := fun y ↦
     contMDiffAt_subtype_iff.2 ((hf y y.property).contMDiffAt (hs.mem_nhds y.property))
-  have h : ContMDiff I (𝓡 1) m fun y : U ↦ f y :=
-    hU.codRestrict_sphere (f := fun y : U ↦ (f y : ℂ)) fun y ↦ (f y).property
+  have h : ContMDiff I (𝓡 n) m fun y : U ↦ f y :=
+    hU.codRestrict_sphere (f := fun y : U ↦ (f y : E)) fun y ↦ (f y).property
   exact (contMDiffAt_subtype_iff (U := U) (x := ⟨x, hx⟩)).1 (h ⟨x, hx⟩) |>.contMDiffWithinAt
-
-omit [IsManifold I m M] in
-/-- The inclusion `Circle → ℂ` is `C^m`. -/
-theorem contMDiff_coe_circle : ContMDiff (𝓡 1) 𝓘(ℝ, ℂ) m fun z : Circle ↦ (z : ℂ) :=
-  contMDiff_coe_sphere (E := ℂ) (n := 1)

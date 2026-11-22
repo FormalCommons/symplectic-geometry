@@ -733,12 +733,15 @@ issues, in an order where each issue's blockers come before it.
    what issue 4 applies to this bundle. No later issue needs the projection
    from the submanifold subtype as a submersion, so the design adds no named
    specialization for it.
-   Two general lemmas that the proofs use have files of their own:
-   `Geometry/Manifold/Instances/Sphere.lean` (`ContMDiffOn.of_coe_circle`,
-   smoothness on an open set of a map into `Circle`, and
-   `contMDiff_coe_circle`) and `Geometry/Manifold/VectorBundle/Riemannian/Hermitian.lean`
+   General lemmas that the proofs use have files of their own:
+   `Geometry/Manifold/Instances/Sphere.lean` (`ContMDiffOn.of_coe_sphere`,
+   smoothness on an open set of a map into a unit sphere, used for
+   `Circle`), `Geometry/Manifold/VectorBundle/Riemannian/Hermitian.lean`
    (`Bundle.ContMDiffRiemannianMetric.contMDiffOn_hermitianPairing`, Tau
-   Ceti's `contMDiff_hermitianPairing` on a set), at the places of the Mathlib
+   Ceti's `contMDiff_hermitianPairing` on a set) and
+   `Geometry/Manifold/VectorBundle/Riemannian/Norm.lean`
+   (`ContMDiffOn.norm_bundle`, smoothness of the norm of a nowhere-zero
+   section of a smooth Riemannian bundle), at the places of the Mathlib
    and Tau Ceti files of the same names.
    Blocked by the issue from #57 for the circle bundle. Done when these are
    proved.
