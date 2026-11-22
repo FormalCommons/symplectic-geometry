@@ -182,6 +182,8 @@ Further choices:
 | `Geometry/Manifold/DifferentialForm/Continuity.lean` | continuity in the parameter of the pullbacks of a form along the slices of a `C¹` map on a product, for the collar of `Filling.lean`, beside Tau Ceti's file of that path | 7 |
 | `Geometry/Manifold/Boundary/Collar/Local.lean` | smoothness of Tau Ceti's normal ray of the half-line on `[0, ∞)`, and the ray on `(-∞, 1)` as a depth map into `normalIioOpens 1`, for the collars of `Flow/Basic.lean` and `Filling.lean` and the end of `End.lean`, beside Tau Ceti's file of that path | 7 |
 | `Geometry/Manifold/ModelTransport/InteriorModel.lean` | a manifold without boundary points, modelled on the model vector space (`SymplecticGeometry.InteriorModel`), and its diffeomorphism with the manifold; used in `Scaling.lean` and `End.lean` | — |
+| `Geometry/Manifold/ModelTransport/Remodel.lean` | a manifold re-modelled along a diffeomorphism of model spaces (`SymplecticGeometry.Remodel`), and its diffeomorphism with the manifold; used in `End.lean` and `Gluing/CapDiscs/Basic.lean` | — |
+| `Geometry/Manifold/Boundary/Collar/Interior.lean` | interior collar points, and the collar coordinates on the part of the interior covered by the collar (`SmoothCollar.interiorModelCoord`); used in `End.lean` and `Gluing/CapDiscs/Basic.lean` | — |
 | `Geometry/Manifold/Boundary/Collar/End.lean` | attaching the end `[0, ∞) × ∂W` along a smooth collar | 8 |
 | `Geometry/Symplectic/Liouville/Completion.lean` | $\widehat\omega$, $\widehat Y$, $\widehat\lambda$; third milestone | 9, 10 |
 | `Geometry/Symplectic/Liouville/Domain.lean` | the completion of a Liouville domain is a Tau Ceti completion | 11 |
@@ -529,9 +531,10 @@ instance and `isClosedEmbedding_inclusion`. This is differential topology, with 
   Tau Ceti's `Geometry/Manifold/Gluing/GlueData.lean`; the second piece is
   re-modelled by a linear equivalence
   `ℝ × EuclideanSpace ℝ (Fin n) ≃L[ℝ] EuclideanSpace ℝ (Fin (n + 1))`
-  through `Diffeomorph.isManifold_chartedSpaceComp`
-  (`ModelTransport/Diffeomorph.lean`). The pieces, overlaps and their atlases
-  are private. Instances: `TopologicalSpace`, `T2Space` (for `T2Space W`),
+  as `SymplecticGeometry.Remodel` (`ModelTransport/Remodel.lean`). The pieces,
+  overlaps and their atlases are private, except the interior overlap and its
+  collar coordinates, `c.interiorModelRange` and `c.interiorModelCoord` of
+  `Boundary/Collar/Interior.lean`. Instances: `TopologicalSpace`, `T2Space` (for `T2Space W`),
   `ChartedSpace (EuclideanSpace ℝ (Fin (n + 1)))` (`c.chartedSpaceWithEnd`),
   `IsManifold (𝓡 (n + 1)) ∞`, with no compactness or countability
   hypothesis.
