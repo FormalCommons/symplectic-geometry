@@ -75,6 +75,15 @@ theorem coe_remodelHomeomorph : ⇑(remodelHomeomorph Φ M) = id := (rfl)
 /-- The inverse homeomorphism sends each point of the copy to the same point of `M`. -/
 theorem coe_remodelHomeomorph_symm : ⇑(remodelHomeomorph Φ M).symm = id := (rfl)
 
+/-- The homeomorphism sends a point `x` of `M` to `x`, as a point of the copy. -/
+@[simp]
+theorem remodelHomeomorph_apply (x : M) : remodelHomeomorph Φ M x = (x : Remodel Φ M) := (rfl)
+
+/-- The inverse homeomorphism sends a point `x` of the copy to `x`, as a point of `M`. -/
+@[simp]
+theorem remodelHomeomorph_symm_apply (x : Remodel Φ M) :
+    (remodelHomeomorph Φ M).symm x = (x : M) := (rfl)
+
 variable [ChartedSpace H M]
 
 /-- The identity of `M`, as a `C^n` diffeomorphism from `M`, modelled on `I`, to `Remodel Φ M`,

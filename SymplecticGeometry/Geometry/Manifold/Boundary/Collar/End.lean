@@ -170,17 +170,6 @@ variable (n W) in
 private abbrev EndPiece : Type u :=
   Remodel (endModelDiffeomorph n) (endInterval × (𝓡∂ (n + 1)).boundary W)
 
-/-- The identity of `(-1, ∞) × ∂W`, from the product model to the model `ℝⁿ⁺¹`. -/
-private abbrev endPieceDiffeomorph :
-    (endInterval × (𝓡∂ (n + 1)).boundary W) ≃ₘ^∞⟮𝓘(ℝ).prod (𝓡 n), 𝓡 (n + 1)⟯ EndPiece n W :=
-  remodelDiffeomorph _ _
-
-omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
-/-- The identity of `(-1, ∞) × ∂W` onto the end piece sends each point to itself. -/
-@[simp] private theorem endPieceDiffeomorph_apply (q : endInterval × (𝓡∂ (n + 1)).boundary W) :
-    endPieceDiffeomorph q = (q : EndPiece n W) := by
-  rw [coe_remodelDiffeomorph, coe_remodelHomeomorph, id]
-
 variable (c : SmoothCollar n ∞ W)
 
 section
@@ -366,10 +355,12 @@ private theorem isLocalDiffeomorph_interiorToEndPt :
     IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.interiorToEndPt := fun q ↦ by
   have h := ((c.isLocalDiffeomorph_interiorModelCoord q).comp
     (hg := isLocalDiffeomorphAt_collarToEnd (c.interiorModelCoord_snd_pos q))).comp
-    (hg := endPieceDiffeomorph.isLocalDiffeomorph _)
+    (hg := (remodelDiffeomorph (endModelDiffeomorph n)
+      (endInterval × (𝓡∂ (n + 1)).boundary W)).isLocalDiffeomorph _)
   convert h using 1
   funext q
-  rw [comp_apply, endPieceDiffeomorph_apply, interiorToEndPt_def, comp_apply]
+  rw [comp_apply, coe_remodelDiffeomorph, remodelHomeomorph_apply, interiorToEndPt_def,
+    comp_apply]
 
 private theorem isLocalDiffeomorph_interiorToEnd :
     IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.interiorToEnd := fun q ↦
@@ -594,14 +585,14 @@ end WithEnd
 private theorem isImmersionAt_endIncl_collarToEnd
     (q : ↥((𝓡∂ (n + 1)).boundary W) × normalIioOpens 1) :
     IsImmersionAt ((𝓡 n).prod (𝓡∂ 1)) (𝓡 (n + 1)) ∞
-      (fun p ↦ c.endIncl (endPieceDiffeomorph (collarToEnd p))) q := by
+      (fun p ↦ c.endIncl (remodelDiffeomorph (endModelDiffeomorph n) _ (collarToEnd p))) q := by
   have h₁ : IsImmersionAt ((𝓡 n).prod (𝓡∂ 1)) ((𝓡 n).prod 𝓘(ℝ)) ∞
       (Prod.map id negNormalCoord) q :=
     ((IsImmersion.id (I := 𝓡 n) (n := ∞)
       (M := ↥((𝓡∂ (n + 1)).boundary W))).isImmersionAt q.1).prodMap
       (isImmersionAt_negNormalCoord q.2)
   let e := (Diffeomorph.prodComm (𝓡 n) 𝓘(ℝ) ↥((𝓡∂ (n + 1)).boundary W) endInterval ∞).trans
-    (endPieceDiffeomorph (n := n) (W := W))
+    (remodelDiffeomorph (endModelDiffeomorph n) (endInterval × (𝓡∂ (n + 1)).boundary W))
   have hB : ((ContinuousLinearEquiv.prodComm ℝ (EuclideanSpace ℝ (Fin n)) ℝ).trans
       (endModelEquiv n)) '' range ((𝓡 n).prod 𝓘(ℝ)) = range (𝓡 (n + 1)) := by
     simp
@@ -611,8 +602,10 @@ private theorem isImmersionAt_endIncl_collarToEnd
 namespace WithEnd
 
 private theorem inclusion_comp_collar :
-    inclusion c ∘ c = fun p ↦ c.endIncl (endPieceDiffeomorph (collarToEnd p)) :=
-  funext fun p ↦ by rw [endPieceDiffeomorph_apply]; exact inclusion_apply_collar c p
+    inclusion c ∘ c =
+      fun p ↦ c.endIncl (remodelDiffeomorph (endModelDiffeomorph n) _ (collarToEnd p)) :=
+  funext fun p ↦ by
+    rw [coe_remodelDiffeomorph, remodelHomeomorph_apply]; exact inclusion_apply_collar c p
 
 private theorem inclusion_comp_subtypeVal :
     inclusion c ∘ Subtype.val =
@@ -709,9 +702,9 @@ private theorem isLocalDiffeomorph_endIntervalVal :
 
 private theorem endMap_comp_endIntervalVal :
     endMap c ∘ (Prod.map Subtype.val id : endInterval × (𝓡∂ (n + 1)).boundary W → _) =
-      fun q ↦ c.endIncl (endPieceDiffeomorph q) := by
+      fun q ↦ c.endIncl (remodelDiffeomorph (endModelDiffeomorph n) _ q) := by
   funext ⟨s, x⟩
-  rw [endPieceDiffeomorph_apply]
+  rw [coe_remodelDiffeomorph, remodelHomeomorph_apply]
   exact endMap_of_lt c s.property x
 
 /-- On `(-1, ∞) × ∂W`, `endMap` is a local diffeomorphism. -/
@@ -722,7 +715,7 @@ theorem isLocalDiffeomorphOn_endMap :
       (endMap c ∘ (Prod.map Subtype.val id : endInterval × (𝓡∂ (n + 1)).boundary W → _))
       (⟨s, hs⟩, x) := by
     rw [endMap_comp_endIntervalVal]
-    exact (endPieceDiffeomorph.isLocalDiffeomorph _).comp
+    exact ((remodelDiffeomorph (endModelDiffeomorph n) _).isLocalDiffeomorph _).comp
       (hg := c.isLocalDiffeomorph_endIncl _)
   exact h.of_comp_right (isLocalDiffeomorph_endIntervalVal _)
 
