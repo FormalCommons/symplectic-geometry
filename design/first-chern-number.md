@@ -197,10 +197,12 @@ core of prerequisite 1:
   `h : finrank ℂ (Fin D.rank → ℂ) = 0 + 1` comes from
   `FiniteRankBundleCore.rank_det` (`D.rank` is `1` only through that
   lemma, not by definition); and `firstChernClass_def` by `(rfl)`.
-- `firstChernClass_pullback (f : C(B', B))`: the class of `f *ᵖ E` is the
-  pull-back of the class of `E`, from the pull-back equality of
-  prerequisite 1 and
-  `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`.
+- `firstChernClass_pullback (f : K)`, for any `[ContinuousMapClass K B' B]`:
+  the class of `f *ᵖ E` is the pull-back of the class of `E`, from the
+  pull-back equality of prerequisite 1 and
+  `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise`, and
+  `firstChernClass_congr` along the identity of each fibre, since the
+  instances on `f *ᵖ E` depend on the type of `f`.
 - `firstChernClass_congr`: a complex-linear fibrewise isomorphism, continuous
   on total spaces, preserves the class. Prerequisite 1 turns it into one of
   the determinants, and `TauCeti.complexEulerClass_eq_of_fiberwise` applies.
@@ -1071,7 +1073,9 @@ issues, in an order where each issue's blockers come before it.
    of the complement, shows that a class of `H₁(ι × Circle)`, `ι` finite and
    discrete, is determined by its images under the maps
    `Circle.prodRetraction i` that keep the `i`-th circle and send the
-   others to `1` (`Circle.singularHomologyOne_prod_ext`).
+   others to `1` (`Circle.singularHomologyOne_prod_ext`). It imports
+   `DiscreteProd.lean` and derives this from its sum decomposition, with
+   `X = Circle`, degree 1 and coefficients `ULift ℤ`.
    `AlgebraicTopology/Singular/Nullhomotopic.lean`, for the homology of
    the boundary circles: a nullhomotopic map induces zero on singular
    homology in positive degree
