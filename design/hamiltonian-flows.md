@@ -234,9 +234,12 @@ These settle the questions that `DESIGN.md` leaves to this file.
    guarantees a flow becomes
    `exists_isCompactlySupportedHamiltonian`: a smooth $H$ on
    `M × unitInterval` vanishing off a compact $K$ generates a diffeotopy,
-   which fixes every point off $K$. It applies
-   `exists_interior_velocity_eq` to the form $dH$ on `unitInterval × M`;
-   that lemma takes `TauCeti.timeDependentFlowDiffeotopy` of the fields
+   which fixes every point off $K$. It is the case $\beta=0$ of
+   `exists_interior_velocity_eq_add_mextDeriv`, which applies
+   `exists_interior_velocity_eq` to the form $\beta+dH$ on
+   `unitInterval × M`, for $\beta$ with closed slices vanishing off a
+   compact set; `exists_interior_velocity_eq` takes
+   `TauCeti.timeDependentFlowDiffeotopy` of the fields
    $(\sigma^\flat)^{-1}\alpha_u$, for an extension $\alpha$ of the form to
    `ℝ × M`, which is complete by
    `isCompleteVectorField_timeDependentSuspensionField`.
@@ -530,7 +533,8 @@ In `TauCeti.Diffeotopy`, for any two-form `σ` unless said:
   `hσ : σ.IsSymplectic`: for `G : M × I → ℝ` smooth and `K` compact with
   `G p = 0` whenever `p.1 ∉ K`, there is `Φ` such that `G` generates `Φ`,
   `Φ.IsCompactlySupportedHamiltonian σ`, and `Φ (t, x) = x` for `x ∉ K`.
-  Proof as in Decision 6: `exists_interior_velocity_eq` for `Ω = dG`, and
+  Proof as in Decision 6: `exists_interior_velocity_eq_add_mextDeriv` for
+  `β = 0`, and
   `isHamiltonianVectorField_iff_interior_eq`. It is also the example of the
   new predicate.
 
