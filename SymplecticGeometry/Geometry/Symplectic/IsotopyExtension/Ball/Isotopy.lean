@@ -8,9 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Flow
 import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
-import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 
 /-!
 # Hamiltonian extension of families of symplectic balls
@@ -27,11 +25,11 @@ The proof:
 
 1. The slices of `e` are injective immersions along `B(r)`
    (`SymplecticGeometry.IsSymplecticBallEmbedding.injective_mfderiv`), hence smooth embeddings of
-   an open neighbourhood `V` of `B(r)` (`TauCeti.exists_isOpen_forall_isSmoothEmbedding_of_injOn`),
-   and so of every open `P ⊆ V`. Thus `e` is a smooth isotopy of each such `P`
-   (`TauCeti.SmoothIsotopy.ofForallIsSmoothEmbedding`;
+   an open neighbourhood `V` of `B(r)` (`TauCeti.exists_isOpen_forall_isSmoothEmbedding_of_injOn`).
+   Thus `e` is a smooth isotopy of `V` (`TauCeti.SmoothIsotopy.ofForallIsSmoothEmbedding`;
    `SymplecticGeometry.IsSymplecticBallFamily.exists_smoothIsotopy`). For `ρ < ρ' < r`, take for
-   `k` the isotopy of the open ball `P = ball 0 ρ'`; it is symplectic.
+   `k` its restriction to the open ball `P = ball 0 ρ'` (`TauCeti.SmoothIsotopy.restrict`); it is
+   symplectic.
 2. The velocity forms of `k` are closed
    (`TauCeti.SmoothIsotopy.IsSymplectic.mextDeriv_mpullback_prodMk_velocityForm`). Since `P` is
    convex, it is smoothly contractible (`Convex.isSmoothlyContractible`), and the forms have a
@@ -43,8 +41,7 @@ The proof:
 ## Main results
 
 * `SymplecticGeometry.IsSymplecticBallFamily.exists_smoothIsotopy`: for `0 < r`, a smooth family
-  of symplectic embeddings of `B(r)` is a smooth isotopy of every open set inside some open
-  neighbourhood of `B(r)`.
+  of symplectic embeddings of `B(r)` is a smooth isotopy of some open neighbourhood of `B(r)`.
 * `SymplecticGeometry.IsSymplecticBallFamily.exists_hasHamiltonian_forall_apply_eq`: a smooth
   family of symplectic embeddings of `B(r)` is, on `B(ρ)` for `0 ≤ ρ < r`, the restriction of a
   compactly supported Hamiltonian diffeotopy.
@@ -71,35 +68,23 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
   {n : ℕ} {σ : SmoothTwoForm I M}
 
 /-- A smooth family of symplectic embeddings of `B(r)`, `0 < r`, is a smooth isotopy near
-`B(r)`: there is an open neighbourhood `V` of `B(r)` such that on every open set `P ⊆ V` the
-family `e` is a smooth isotopy `k` of `P` into `M`, with `k (t, z) = e (t, z)`. -/
+`B(r)`: there is an open neighbourhood `V` of `B(r)` on which the family `e` is a smooth isotopy
+`k` of `V` into `M`, with `k (t, z) = e (t, z)`. -/
 theorem IsSymplecticBallFamily.exists_smoothIsotopy [FiniteDimensional ℝ E] [I.Boundaryless]
     [T2Space M] {r : ℝ} (hr : 0 < r)
     {e : unitInterval × StdSpace (Fin n) → M} (he : IsSymplecticBallFamily σ r e) :
     ∃ V : TopologicalSpace.Opens (StdSpace (Fin n)),
       closedBall 0 r ⊆ (V : Set (StdSpace (Fin n))) ∧
-      ∀ P : TopologicalSpace.Opens (StdSpace (Fin n)), (P : Set (StdSpace (Fin n))) ⊆ V →
-        ∃ (f₀ f₁ : C^∞⟮𝓘(ℝ, StdSpace (Fin n)), P; I, M⟯) (k : SmoothIsotopy f₀ f₁),
-          ∀ p, k p = e (p.1, p.2) := by
+      ∃ (f₀ f₁ : C^∞⟮𝓘(ℝ, StdSpace (Fin n)), V; I, M⟯) (k : SmoothIsotopy f₀ f₁),
+        ∀ p, k p = e (p.1, p.2) := by
   obtain ⟨U, hUo, hrU, heU⟩ := he.exists_contMDiffOn
   -- The slices of `e` are smooth embeddings of a neighbourhood `V` of `B(r)`.
   obtain ⟨V, hrV, hVU, hV⟩ := exists_isOpen_forall_isSmoothEmbedding_of_injOn hUo heU
     (isCompact_closedBall 0 r) hrU (fun t ↦ (he.isSymplecticBallEmbedding t).injOn)
     fun t z hz ↦ (he.isSymplecticBallEmbedding t).injective_mfderiv hr hz
-  refine ⟨V, hrV, fun P hPV ↦ ?_⟩
-  have heP : ContMDiffOn ((𝓡∂ 1).prod 𝓘(ℝ, StdSpace (Fin n))) I ∞ e
-      (univ ×ˢ (P : Set (StdSpace (Fin n)))) :=
-    heU.mono (prod_mono subset_rfl (hPV.trans hVU))
-  -- Restricted to `P ⊆ V`, the slices are still smooth embeddings.
-  have hemb (t : unitInterval) :
-      Manifold.IsSmoothEmbedding 𝓘(ℝ, StdSpace (Fin n)) I ∞ (fun z : P ↦ e (t, z)) :=
-    isSmoothEmbedding_comp_isLocalDiffeomorph (f := fun z : V ↦ e (t, z))
-      (isLocalDiffeomorph_inclusion hPV) (Topology.IsEmbedding.inclusion hPV) (hV t)
-  have hslice (t : unitInterval) :
-      ContMDiff 𝓘(ℝ, StdSpace (Fin n)) I ∞ (fun z : P ↦ e (t, z)) :=
-    (hemb t).isImmersion.contMDiff
-  exact ⟨⟨_, hslice 0⟩, ⟨_, hslice 1⟩, SmoothIsotopy.ofForallIsSmoothEmbedding heP hemb
-    (fun _ ↦ rfl) fun _ ↦ rfl, SmoothIsotopy.ofForallIsSmoothEmbedding_apply _ _ _ _⟩
+  exact ⟨V, hrV, ⟨_, (hV 0).isImmersion.contMDiff⟩, ⟨_, (hV 1).isImmersion.contMDiff⟩,
+    SmoothIsotopy.ofForallIsSmoothEmbedding (heU.mono (prod_mono subset_rfl hVU)) hV
+      (fun _ ↦ rfl) fun _ ↦ rfl, SmoothIsotopy.ofForallIsSmoothEmbedding_apply _ _ _ _⟩
 
 /-- **Hamiltonian extension of a family of symplectic balls.** Let `σ` be a symplectic form on a
 Hausdorff, σ-compact, boundaryless manifold `M` of dimension `2n`, and `e` a smooth family over
@@ -118,12 +103,14 @@ theorem IsSymplecticBallFamily.exists_hasHamiltonian_forall_apply_eq [FiniteDime
   obtain ⟨ρ', hρρ', hρ'r⟩ := exists_between hρr
   have hr : 0 < r := by linarith
   obtain ⟨U, hUo, hrU, heU⟩ := he.exists_contMDiffOn
-  obtain ⟨V, hrV, hV⟩ := he.exists_smoothIsotopy hr
-  -- On the open ball `P = ball 0 ρ'`, the family `e` is a smooth isotopy `k`.
+  obtain ⟨V, hrV, f₀, f₁, kV, hkV⟩ := he.exists_smoothIsotopy hr
+  -- On the open ball `P = ball 0 ρ'`, the family `e` is the restriction `k` of `kV`.
   let P : TopologicalSpace.Opens (StdSpace (Fin n)) := ⟨ball 0 ρ', isOpen_ball⟩
   have hPr : (P : Set (StdSpace (Fin n))) ⊆ closedBall 0 r :=
     ball_subset_closedBall.trans (closedBall_subset_closedBall hρ'r.le)
-  obtain ⟨f₀, f₁, k, hk⟩ := hV P (hPr.trans hrV)
+  let k := kV.restrict (V := P) (hPr.trans hrV)
+  have hk (p : unitInterval × P) : k p = e (p.1, p.2) :=
+    (SmoothIsotopy.restrict_apply _ _ p).trans (hkV _)
   -- `k` is symplectic, so its velocity forms are closed.
   have hks : k.IsSymplectic (SmoothForm.mpullback (Subtype.val : P → StdSpace (Fin n))
       contMDiff_subtypeVal (stdForm (Fin n)).constSmooth) σ := by
@@ -147,7 +134,7 @@ theorem IsSymplecticBallFamily.exists_hasHamiltonian_forall_apply_eq [FiniteDime
   obtain ⟨h, hh, hdh⟩ :=
     (Convex.isSmoothlyContractible (convex_ball 0 ρ') ⟨0, mem_ball_self (by linarith)⟩
       ).exists_contMDiff_mextDeriv_eq_of_forall_mem_closedForms
-      (isSmoothFamily_def.2 ⟨k.velocityForm σ, fun _ ↦ rfl⟩) hcl
+      (isSmoothFamily_mpullback_prodMk _) hcl
   -- The compact set `B(ρ)`, seen in `P`.
   have hLP : closedBall (0 : StdSpace (Fin n)) ρ ⊆ P := closedBall_subset_ball hρρ'
   obtain ⟨Φ, F, K, hK, hΦ, hF, hFK, hΦK, happly⟩ :=

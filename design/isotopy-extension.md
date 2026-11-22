@@ -920,10 +920,7 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Geometry/Manifold/Flow/TimeDependent.lean` for
   `TauCeti.contMDiff_timeDependentFlowOf_param`, a lemma this part adds
   there. `Extension.lean` imports `Diffeotopy/Real.lean` too, to restrict
-  its family over `ℝ` to a `Diffeotopy`. `Ball/Isotopy.lean` imports
-  `Geometry/Manifold/LocalDiffeomorph/OpenSubset.lean`, for
-  `TauCeti.isLocalDiffeomorph_inclusion` (restricting the slice embeddings
-  to a smaller open set).
+  its family over `ℝ` to a `Diffeotopy`.
 - *Hamiltonian flows*: in `DeRham/FamilyPrimitive.lean`, the smooth primitive of a
   smooth family of exact one-forms over $[0,1]$, which that part's design
   (`design/hamiltonian-flows.md`, Decision 4) builds on chart balls and glues
