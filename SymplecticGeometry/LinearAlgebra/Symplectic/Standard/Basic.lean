@@ -63,7 +63,8 @@ the `x`-coordinates, onto the isotropic subspace `{y = 0}` (`range_ofX`, `stdFor
 Likewise `StdSpace.stdInr k m` includes `StdSpace (Fin m)` as the last `m` pairs, `ω₀`-orthogonal
 to the first `k` (`stdForm_stdInl_add_stdInr`). Together with `ofX`, they parametrize the
 coisotropic subspace `{yⱼ = 0 for j < k}` (`range_stdInl_ofX_add_stdInr`), whose `ω₀`-orthogonal
-is the span of the first `k` vectors `∂/∂xⱼ` (`forall_stdForm_eq_zero_iff`).
+is the span of the first `k` vectors `∂/∂xⱼ`
+(`forall_stdForm_eq_zero_iff_y_eq_zero_and_x_eq_zero`).
 
 The sign conventions are those of McDuff–Salamon, Section 2.1.
 
@@ -730,19 +731,6 @@ end StdSpace
 
 open StdSpace
 
-/-- `stdInl k m` pulls the standard form of `StdSpace (Fin (k + m))` back to that of
-`StdSpace (Fin k)`. -/
-theorem stdForm_stdInl {k m : ℕ} (z w : StdSpace (Fin k)) :
-    stdForm (Fin (k + m)) (stdInl k m z) (stdInl k m w) = stdForm (Fin k) z w := by
-  have h (v : StdSpace (Fin k)) : stdInl k m v =
-      (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ
-          (finSumFinEquiv.sumCongr finSumFinEquiv)).toLinearEquiv
-        ((sumEquiv (Fin k) (Fin m)).toLinearEquiv.symm (v, 0)) := by
-    simp [stdInl_def]
-  rw [h, h, (isSymplectomorphism_piLpCongrLeft_sumCongr _).apply,
-    isSymplectomorphism_sumEquiv.symm.apply]
-  simp
-
 /-- The first `k` and the last `m` coordinate pairs of `StdSpace (Fin (k + m))` are
 `ω₀`-orthogonal, and `ω₀` restricts to the standard form on each:
 `ω₀(z + w, z' + w') = ω₀(z, z') + ω₀(w, w')` along `stdInl k m` and `stdInr k m`. -/
@@ -759,6 +747,12 @@ theorem stdForm_stdInl_add_stdInr {k m : ℕ} (z z' : StdSpace (Fin k)) (w w' : 
     isSymplectomorphism_sumEquiv.symm.apply]
   simp
 
+/-- `stdInl k m` pulls the standard form of `StdSpace (Fin (k + m))` back to that of
+`StdSpace (Fin k)`. -/
+theorem stdForm_stdInl {k m : ℕ} (z w : StdSpace (Fin k)) :
+    stdForm (Fin (k + m)) (stdInl k m z) (stdInl k m w) = stdForm (Fin k) z w := by
+  simpa using stdForm_stdInl_add_stdInr (m := m) z w 0 0
+
 /-- `stdInr k m` pulls the standard form of `StdSpace (Fin (k + m))` back to that of
 `StdSpace (Fin m)`. -/
 theorem stdForm_stdInr {k m : ℕ} (w w' : StdSpace (Fin m)) :
@@ -768,7 +762,7 @@ theorem stdForm_stdInr {k m : ℕ} (w w' : StdSpace (Fin m)) :
 /-- The `ω₀`-orthogonal of the coisotropic subspace `{yⱼ = 0 for j < k}` of `StdSpace (Fin n)` is
 the span of the first `k` vectors `∂/∂xⱼ`: a point `v` is `ω₀`-orthogonal to every point of that
 subspace exactly when `y = 0` and `xⱼ = 0` for all `j ≥ k`. -/
-theorem forall_stdForm_eq_zero_iff {n : ℕ} (k : ℕ) (v : StdSpace (Fin n)) :
+theorem forall_stdForm_eq_zero_iff_y_eq_zero_and_x_eq_zero {n : ℕ} (k : ℕ) (v : StdSpace (Fin n)) :
     (∀ z : StdSpace (Fin n), (∀ j : Fin n, (j : ℕ) < k → z.y j = 0) → stdForm (Fin n) z v = 0) ↔
       v.y = 0 ∧ ∀ j : Fin n, k ≤ (j : ℕ) → v.x j = 0 := by
   constructor
