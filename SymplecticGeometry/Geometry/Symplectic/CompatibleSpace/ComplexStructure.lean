@@ -28,7 +28,7 @@ identity (`tangentCoordChange_of_chartAt_eq`), so this constant section is smoot
 In Cayley coordinates `J = J₀ (1 + C) (1 - C)⁻¹` the differential of the inclusion
 into `V →L[ℝ] V` is `Ċ ↦ 2 J₀ (1 - C)⁻¹ Ċ (1 - C)⁻¹`, and because `C` anticommutes with `J₀`
 it carries `-J₀ Ċ` to `-J` times the image of `Ċ`: this is
-`mfderiv_compatibleCLM_compatibleSpaceComplexStructure`. The global chart is then a chart in
+`mvfderiv_compatibleCLM_compatibleSpaceComplexStructure`. The global chart is then a chart in
 which the structure is constant, so the structure is integrable in the sense of
 `TauCeti.SmoothAlmostComplexStructure.IsIntegrable`, and its Nijenhuis tensor vanishes. The
 diffeomorphisms `J ↦ Ψ J Ψ⁻¹` of linear symplectomorphisms `Ψ` are pseudoholomorphic.
@@ -39,7 +39,7 @@ diffeomorphisms `J ↦ Ψ J Ψ⁻¹` of linear symplectomorphisms `Ψ` are pseud
   `C ↦ -J₀ C` of the model.
 * `TauCeti.SymplecticForm.compatibleSpaceComplexStructure`: the smooth almost complex structure
   of `𝒥 ω`, the constant structure of the model in the global chart.
-* `TauCeti.SymplecticForm.mfderiv_compatibleCLM_compatibleSpaceComplexStructure`: read in
+* `TauCeti.SymplecticForm.mvfderiv_compatibleCLM_compatibleSpaceComplexStructure`: read in
   `V →L[ℝ] V`, the structure at `J` is `Ĵ ↦ -J Ĵ`.
 * `TauCeti.SymplecticForm.chartPushforward_compatibleSpaceComplexStructure`: in the global chart
   the structure is constant.
@@ -103,7 +103,7 @@ variable (ω) in
 /-- The almost complex structure of the manifold of `ω`-compatible complex structures: the
 constant structure `compatibleModelComplexStructure` of the model, read in the global chart. Its
 value at `J` on a tangent vector with ambient reading `Ĵ` has ambient reading `-J Ĵ`
-(`mfderiv_compatibleCLM_compatibleSpaceComplexStructure`). -/
+(`mvfderiv_compatibleCLM_compatibleSpaceComplexStructure`). -/
 noncomputable def compatibleSpaceComplexStructure :
     SmoothAlmostComplexStructure 𝓘(ℝ, ω.compatibleModel) 𝒥 :=
   -- The continuous linear map is built against the expected type, so that the topology of the
@@ -136,19 +136,18 @@ theorem compatibleSpaceComplexStructure_apply (J : 𝒥)
 
 /-- **The complex structure in ambient readings.** At `J`, the almost complex structure sends a
 tangent vector with ambient reading `Ĵ` to the tangent vector with ambient reading `-J Ĵ`. -/
-theorem mfderiv_compatibleCLM_compatibleSpaceComplexStructure (J : 𝒥)
+theorem mvfderiv_compatibleCLM_compatibleSpaceComplexStructure (J : 𝒥)
     (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
-    mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J
-        (ω.compatibleSpaceComplexStructure J a) =
-      -(ω.compatibleCLM J ∘L
-        mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a) := by
+    mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J (ω.compatibleSpaceComplexStructure J a) =
+      -(ω.compatibleCLM J * mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J a) := by
+  rw [mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply]
   -- The tangent space at `J` is the model space; the computation reads `a` in the model.
   revert a
   intro (a : ω.compatibleModel)
   -- Name the ambient reading of `a`, an element of `V →L[ℝ] V`.
   obtain ⟨d, hd⟩ : ∃ d : V →L[ℝ] V,
       mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a = d := ⟨_, rfl⟩
-  rw [hd, ← ContinuousLinearMap.mul_def]
+  rw [hd]
   have hd' : d = (2 : ℝ) • (ω.compatibleCLM ω.compatibleBase *
       Ring.inverse (1 - (ω.cayleyChart J : V →L[ℝ] V)) * (a : V →L[ℝ] V) *
         Ring.inverse (1 - (ω.cayleyChart J : V →L[ℝ] V))) :=
@@ -222,10 +221,13 @@ theorem isPseudoholomorphic_compatibleTransport {Ψ : V ≃L[ℝ] V}
   refine isPseudoholomorphicAt_iff_mfderiv.2
     ⟨(ω.compatibleTransport hΨ).mdifferentiable (by simp) J, fun a => ?_⟩
   apply injective_mfderiv_compatibleCLM
-  refine (mfderiv_compatibleCLM_compatibleTransport hΨ J _).trans
-    ((congrArg (Ψ.arrowCongr Ψ) (mfderiv_compatibleCLM_compatibleSpaceComplexStructure J a)).trans
-      (Eq.trans ?_ (mfderiv_compatibleCLM_compatibleSpaceComplexStructure _ _).symm))
-  rw [mfderiv_compatibleCLM_compatibleTransport, compatibleCLM_compatibleTransport]
+  rw [mfderiv_compatibleCLM_compatibleTransport,
+    ← mvfderiv_apply_eq_mfderiv_apply ω.compatibleCLM J,
+    ← mvfderiv_apply_eq_mfderiv_apply ω.compatibleCLM (ω.compatibleTransport hΨ J),
+    mvfderiv_compatibleCLM_compatibleSpaceComplexStructure,
+    mvfderiv_compatibleCLM_compatibleSpaceComplexStructure, mvfderiv_apply_eq_mfderiv_apply,
+    mvfderiv_apply_eq_mfderiv_apply, mfderiv_compatibleCLM_compatibleTransport,
+    compatibleCLM_compatibleTransport]
   -- Name the ambient reading of `a`, an element of `V →L[ℝ] V`.
   obtain ⟨d, hd⟩ : ∃ d : V →L[ℝ] V,
       mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a = d := ⟨_, rfl⟩

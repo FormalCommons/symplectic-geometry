@@ -226,9 +226,8 @@ variable (R S T : C)
 the coefficient associator and the associator of the spaces, is the first iterated shuffle map
 of the spaces followed by the projection to the relative chains. -/
 private theorem singularChainComplexπ_tensorHom_shufflePair_assoc_left :
-    (((TopPair.ofSubset A).singularChainComplexπ R ⊗ₘ
-        (TopPair.ofSubset B).singularChainComplexπ S) ⊗ₘ
-          (TopPair.ofSubset D).singularChainComplexπ T) ≫
+    ((TopPair.singularChainComplexπOfSubset R A ⊗ₘ TopPair.singularChainComplexπOfSubset S B) ⊗ₘ
+          TopPair.singularChainComplexπOfSubset T D) ≫
       (shufflePair X Y A B R S ▷ (TopPair.ofSubset D).singularChainComplex T) ≫
         shufflePair (X ⊗ Y) Z (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B) D (R ⊗ S) T ≫
           ((SSetPair.chainComplexFunctor C).map (α_ R S T).hom).app (TopPair.toSSetPair.obj
@@ -239,69 +238,21 @@ private theorem singularChainComplexπ_tensorHom_shufflePair_assoc_left :
       ((shuffle X Y R S ▷ (toSSet.obj Z).chainComplex T) ≫ shuffle (X ⊗ Y) Z (R ⊗ S) T ≫
         ((SSet.chainComplexFunctor C).map (α_ R S T).hom).app (toSSet.obj ((X ⊗ Y) ⊗ Z)) ≫
           SSet.chainComplexMap (toSSet.map (α_ X Y Z).hom) (R ⊗ (S ⊗ T))) ≫
-        (TopPair.ofSubset (fst X (Y ⊗ Z) ⁻¹' A ∪
-          snd X (Y ⊗ Z) ⁻¹' (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D))).singularChainComplexπ
-            (R ⊗ (S ⊗ T)) := by
-  have h₁ := singularChainComplexπ_tensorHom_singularChainComplexπ_shufflePair X Y A B R S
-  have h₂ := singularChainComplexπ_tensorHom_singularChainComplexπ_shufflePair (X ⊗ Y) Z
-    (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B) D (R ⊗ S) T
-  have h₃ := TopPair.singularChainComplexπ_coefficient_naturality
-    (TopPair.ofSubset (fst (X ⊗ Y) Z ⁻¹' (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B) ∪
-      snd (X ⊗ Y) Z ⁻¹' D)) (α_ R S T).hom
-  have h₄ := TopPair.singularChainComplexπ_pair_naturality (TopPair.ofSubsetMap (α_ X Y Z).hom
-    (mapsTo_associator_hom_preimage_union X Y Z A B D)) (R ⊗ (S ⊗ T))
-  rw [TopPair.ofSubsetMap_fst] at h₄
-  rw [tensorHom_comp_whiskerRight_assoc, h₁]
-  refine (congrArg (· ≫ _) (whiskerRight_comp_tensorHom _ _ _).symm).trans ?_
-  -- the ambient chains of a pair are the chains of its space only up to unfolding, so the
-  -- remaining composites are reassociated by hand
-  have key : ((TopPair.ofSubset (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B)).singularChainComplexπ (R ⊗ S) ⊗ₘ
-        (TopPair.ofSubset D).singularChainComplexπ T) ≫
-      shufflePair (X ⊗ Y) Z (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B) D (R ⊗ S) T ≫
-        ((SSetPair.chainComplexFunctor C).map (α_ R S T).hom).app (TopPair.toSSetPair.obj
-          (TopPair.ofSubset (fst (X ⊗ Y) Z ⁻¹' (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B) ∪
-            snd (X ⊗ Y) Z ⁻¹' D))) ≫
-          TopPair.singularChainComplexMap (TopPair.ofSubsetMap (α_ X Y Z).hom
-            (mapsTo_associator_hom_preimage_union X Y Z A B D)) (R ⊗ (S ⊗ T)) =
-      shuffle (X ⊗ Y) Z (R ⊗ S) T ≫
-        ((SSet.chainComplexFunctor C).map (α_ R S T).hom).app (toSSet.obj ((X ⊗ Y) ⊗ Z)) ≫
-          SSet.chainComplexMap (toSSet.map (α_ X Y Z).hom) (R ⊗ (S ⊗ T)) ≫
-            (TopPair.ofSubset (fst X (Y ⊗ Z) ⁻¹' A ∪
-              snd X (Y ⊗ Z) ⁻¹' (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D))).singularChainComplexπ
-                (R ⊗ (S ⊗ T)) := by
-    have h₃' : (TopPair.ofSubset (fst (X ⊗ Y) Z ⁻¹' (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B) ∪
-          snd (X ⊗ Y) Z ⁻¹' D)).singularChainComplexπ ((R ⊗ S) ⊗ T) ≫
-        ((SSetPair.chainComplexFunctor C).map (α_ R S T).hom).app (TopPair.toSSetPair.obj
-          (TopPair.ofSubset (fst (X ⊗ Y) Z ⁻¹' (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B) ∪
-            snd (X ⊗ Y) Z ⁻¹' D))) =
-        ((SSet.chainComplexFunctor C).map (α_ R S T).hom).app (toSSet.obj ((X ⊗ Y) ⊗ Z)) ≫
-          (TopPair.ofSubset (fst (X ⊗ Y) Z ⁻¹' (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B) ∪
-            snd (X ⊗ Y) Z ⁻¹' D)).singularChainComplexπ (R ⊗ (S ⊗ T)) := h₃.symm
-    have h₄' : (TopPair.ofSubset (fst (X ⊗ Y) Z ⁻¹' (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B) ∪
-          snd (X ⊗ Y) Z ⁻¹' D)).singularChainComplexπ (R ⊗ (S ⊗ T)) ≫
-        TopPair.singularChainComplexMap (TopPair.ofSubsetMap (α_ X Y Z).hom
-          (mapsTo_associator_hom_preimage_union X Y Z A B D)) (R ⊗ (S ⊗ T)) =
-        SSet.chainComplexMap (toSSet.map (α_ X Y Z).hom) (R ⊗ (S ⊗ T)) ≫
-          (TopPair.ofSubset (fst X (Y ⊗ Z) ⁻¹' A ∪
-            snd X (Y ⊗ Z) ⁻¹' (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D))).singularChainComplexπ
-              (R ⊗ (S ⊗ T)) := h₄.symm
-    exact (Category.assoc _ _ _).symm.trans <| (congrArg (· ≫ _) h₂).trans <|
-      (Category.assoc _ _ _).trans <| congrArg (shuffle (X ⊗ Y) Z (R ⊗ S) T ≫ ·) <|
-        (Category.assoc _ _ _).symm.trans <| (congrArg (· ≫ _) h₃').trans <|
-          (Category.assoc _ _ _).trans <| congrArg
-            (((SSet.chainComplexFunctor C).map (α_ R S T).hom).app
-              (toSSet.obj ((X ⊗ Y) ⊗ Z)) ≫ ·) h₄'
-  refine (Category.assoc _ _ _).trans <|
-    (congrArg (shuffle X Y R S ▷ (toSSet.obj Z).chainComplex T ≫ ·) key).trans ?_
-  exact ((Category.assoc _ _ _).trans <| congrArg (_ ≫ ·) <| (Category.assoc _ _ _).trans <|
-    congrArg (_ ≫ ·) (Category.assoc _ _ _)).symm
+        TopPair.singularChainComplexπOfSubset (R ⊗ (S ⊗ T))
+          (fst X (Y ⊗ Z) ⁻¹' A ∪ snd X (Y ⊗ Z) ⁻¹' (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D)) := by
+  rw [tensorHom_comp_whiskerRight_assoc,
+    singularChainComplexπOfSubset_tensorHom_singularChainComplexπOfSubset_shufflePair,
+    ← whiskerRight_comp_tensorHom_assoc,
+    singularChainComplexπOfSubset_tensorHom_singularChainComplexπOfSubset_shufflePair_assoc,
+    ← TopPair.singularChainComplexπOfSubset_coefficient_naturality_assoc,
+    ← TopPair.singularChainComplexπOfSubset_naturality]
+  simp only [Category.assoc]
 
 /-- On `(C(X; R) ⊗ C(Y; S)) ⊗ C(Z; T)`, the second iterated shuffle map of the pairs is the second
 iterated shuffle map of the spaces followed by the projection to the relative chains. -/
 private theorem singularChainComplexπ_tensorHom_shufflePair_assoc_right :
-    (((TopPair.ofSubset A).singularChainComplexπ R ⊗ₘ
-        (TopPair.ofSubset B).singularChainComplexπ S) ⊗ₘ
-          (TopPair.ofSubset D).singularChainComplexπ T) ≫
+    ((TopPair.singularChainComplexπOfSubset R A ⊗ₘ TopPair.singularChainComplexπOfSubset S B) ⊗ₘ
+          TopPair.singularChainComplexπOfSubset T D) ≫
       (α_ ((TopPair.ofSubset A).singularChainComplex R)
         ((TopPair.ofSubset B).singularChainComplex S)
         ((TopPair.ofSubset D).singularChainComplex T)).hom ≫
@@ -310,20 +261,13 @@ private theorem singularChainComplexπ_tensorHom_shufflePair_assoc_right :
       ((α_ ((toSSet.obj X).chainComplex R) ((toSSet.obj Y).chainComplex S)
           ((toSSet.obj Z).chainComplex T)).hom ≫
         ((toSSet.obj X).chainComplex R ◁ shuffle Y Z S T) ≫ shuffle X (Y ⊗ Z) R (S ⊗ T)) ≫
-        (TopPair.ofSubset (fst X (Y ⊗ Z) ⁻¹' A ∪
-          snd X (Y ⊗ Z) ⁻¹' (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D))).singularChainComplexπ
-            (R ⊗ (S ⊗ T)) := by
-  have h₁ := singularChainComplexπ_tensorHom_singularChainComplexπ_shufflePair Y Z B D S T
-  have h₂ := singularChainComplexπ_tensorHom_singularChainComplexπ_shufflePair X (Y ⊗ Z) A
-    (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D) R (S ⊗ T)
-  rw [associator_naturality_assoc, tensorHom_comp_whiskerLeft_assoc, h₁]
-  -- the ambient chains of a pair are the chains of its space only up to unfolding, so the
-  -- composites are reassociated by hand
-  refine (congrArg (fun φ ↦ (α_ _ _ _).hom ≫ φ ≫
-    shufflePair X (Y ⊗ Z) A (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D) R (S ⊗ T))
-      (whiskerLeft_comp_tensorHom _ _ _).symm).trans ?_
-  exact (congrArg (_ ≫ ·) ((Category.assoc _ _ _).trans (congrArg (_ ≫ ·) h₂))).trans
-    ((Category.assoc _ _ _).trans (congrArg (_ ≫ ·) (Category.assoc _ _ _))).symm
+        TopPair.singularChainComplexπOfSubset (R ⊗ (S ⊗ T))
+          (fst X (Y ⊗ Z) ⁻¹' A ∪ snd X (Y ⊗ Z) ⁻¹' (fst Y Z ⁻¹' B ∪ snd Y Z ⁻¹' D)) := by
+  rw [associator_naturality_assoc, tensorHom_comp_whiskerLeft_assoc,
+    singularChainComplexπOfSubset_tensorHom_singularChainComplexπOfSubset_shufflePair,
+    ← whiskerLeft_comp_tensorHom_assoc,
+    singularChainComplexπOfSubset_tensorHom_singularChainComplexπOfSubset_shufflePair]
+  simp only [Category.assoc]
 
 /-- The homotopy `TopCat.shuffleAssocHomotopy`, followed by the projection to the relative chains
 of the product of the three pairs, vanishes on the chains of `X' × (Y' × Z')` for maps `f`, `g`,
