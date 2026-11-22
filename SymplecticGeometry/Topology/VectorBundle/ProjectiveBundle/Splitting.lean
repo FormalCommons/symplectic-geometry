@@ -5,12 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.InnerProductSpace.PiL2
-public import TauCeti.Topology.VectorBundle.TrivialEmbedding
+public import TauCeti.Analysis.InnerProductSpace.RangeProjection
 public import TauCeti.Topology.VectorBundle.Trivialization
 public import SymplecticGeometry.Analysis.InnerProductSpace.Projection.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Complement
 public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Tautological
+public import SymplecticGeometry.Topology.VectorBundle.TrivialEmbedding
 
 /-!
 # The splitting of the pull-back of a vector bundle to its projective bundle
@@ -25,8 +25,9 @@ induction on the rank.
 
 The complement is orthogonal for a Hermitian metric pulled back from a trivial bundle. Tau Ceti's
 `TauCeti.exists_continuous_injective_fin_of_compactSpace` gives a fibrewise injection of `E` into
-some `𝕜ᴺ`, continuous on the total space; `SymplecticGeometry.Bundle.trivialEmbedding` is a choice
-of one, read in `EuclideanSpace 𝕜 (Fin N)`. For a line `p ⊆ E b`, write `P_{j(E)}` and `P_{j(S)}`
+some `𝕜ᴺ`, continuous on the total space; `SymplecticGeometry.Bundle.trivialEmbedding`, defined in
+`SymplecticGeometry.Topology.VectorBundle.TrivialEmbedding`, is a choice of one, read in
+`EuclideanSpace 𝕜 (Fin N)`. For a line `p ⊆ E b`, write `P_{j(E)}` and `P_{j(S)}`
 for the orthogonal projections onto the images of `E b` and of `p`. Their difference
 `ProjectiveBundle.tautologicalComplementProjection` is the orthogonal projection onto the
 orthogonal complement of the image of `p` in that of `E b`
@@ -46,8 +47,6 @@ spaces.
 
 ## Main definitions
 
-* `SymplecticGeometry.Bundle.trivialEmbedding 𝕜 G E`: a chosen fibrewise injection of `E` into
-  `EuclideanSpace 𝕜 (Fin (trivialEmbeddingDim 𝕜 G E))`, continuous on the total space.
 * `ProjectiveBundle.tautologicalComplementProjection 𝕜 G E p`: the projection `P_{j(E)} - P_{j(S)}`.
 * `ProjectiveBundle.tautologicalComplement 𝕜 G E`: the complement of the tautological line, with its
   `FiberBundle` and `VectorBundle` instances, of model fibre `Fin (finrank 𝕜 G - 1) → 𝕜`.
@@ -86,44 +85,6 @@ variable {𝕜 : Type*} [RCLike 𝕜] {B : Type*} [TopologicalSpace B] [CompactS
   {G : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G] [FiniteDimensional 𝕜 G]
   {E : B → Type*} [∀ b, AddCommGroup (E b)] [∀ b, Module 𝕜 (E b)] [∀ b, TopologicalSpace (E b)]
   [TopologicalSpace (TotalSpace G E)] [FiberBundle G E] [VectorBundle 𝕜 G E]
-
-/-! ### A chosen embedding into a trivial bundle -/
-
-variable (𝕜 G E) in
-/-- The dimension `N` of the Euclidean space `EuclideanSpace 𝕜 (Fin N)` into which
-`trivialEmbedding` embeds the fibres of a vector bundle over a compact normal base. -/
-def trivialEmbeddingDim : ℕ :=
-  (TauCeti.exists_continuous_injective_fin_of_compactSpace (𝕜 := 𝕜) (F := G) (E := E)).choose
-
-variable (𝕜 G E) in
-/-- A chosen fibrewise injection of a vector bundle `E` over a compact normal base into a
-Euclidean space `EuclideanSpace 𝕜 (Fin N)`, continuous on the total space: Tau Ceti's
-`TauCeti.exists_continuous_injective_fin_of_compactSpace`, read in the Euclidean structure. -/
-def trivialEmbedding (b : B) : E b →L[𝕜] EuclideanSpace 𝕜 (Fin (trivialEmbeddingDim 𝕜 G E)) :=
-  (EuclideanSpace.equiv _ 𝕜).symm.toContinuousLinearMap ∘L
-    (TauCeti.exists_continuous_injective_fin_of_compactSpace (𝕜 := 𝕜) (F := G)
-      (E := E)).choose_spec.choose b
-
-variable (𝕜 G E) in
-/-- The chosen embedding `trivialEmbedding` is continuous on the total space of `E`. -/
-theorem continuous_trivialEmbedding :
-    Continuous fun v : TotalSpace G E ↦ trivialEmbedding 𝕜 G E v.proj v.snd :=
-  (EuclideanSpace.equiv _ 𝕜).symm.continuous.comp
-    (TauCeti.exists_continuous_injective_fin_of_compactSpace (𝕜 := 𝕜) (F := G)
-      (E := E)).choose_spec.choose_spec.1
-
-variable (𝕜 G E) in
-/-- The chosen embedding `trivialEmbedding` is injective on each fibre. -/
-theorem injective_trivialEmbedding (b : B) : Injective (trivialEmbedding 𝕜 G E b) :=
-  (EuclideanSpace.equiv _ 𝕜).symm.injective.comp
-    ((TauCeti.exists_continuous_injective_fin_of_compactSpace (𝕜 := 𝕜) (F := G)
-      (E := E)).choose_spec.choose_spec.2 b)
-
-/-- The orthogonal projection onto the image of `E b` fixes the image of each vector of `E b`. -/
-theorem starProjection_range_trivialEmbedding (b : B) (v : E b) :
-    (trivialEmbedding 𝕜 G E b).range.starProjection (trivialEmbedding 𝕜 G E b v) =
-      trivialEmbedding 𝕜 G E b v :=
-  Submodule.starProjection_eq_self_iff.2 (LinearMap.mem_range_self _ v)
 
 /-! ### The complement of the tautological line -/
 
@@ -196,8 +157,8 @@ theorem finrank_range_tautologicalComplementProjection (p : ProjectiveBundle �
       (injective_trivialEmbedding 𝕜 G E p.proj)
       p.snd.submodule).finrank_eq.symm.trans (Projectivization.finrank_submodule _)
   have hE : finrank 𝕜 (trivialEmbedding 𝕜 G E p.proj).toLinearMap.range = finrank 𝕜 G :=
-    (LinearEquiv.ofInjective _ (injective_trivialEmbedding 𝕜 G E p.proj)).finrank_eq.symm.trans
-      (VectorBundle.continuousLinearEquivAt 𝕜 G E p.proj).toLinearEquiv.finrank_eq
+    (LinearMap.finrank_range_of_inj (injective_trivialEmbedding 𝕜 G E p.proj)).trans
+      (VectorBundle.finrank_eq 𝕜 G E p.proj)
   have hle := Submodule.finrank_mono
     (LinearMap.map_le_range (f := (trivialEmbedding 𝕜 G E p.proj).toLinearMap)
     (p := p.snd.submodule))
@@ -292,7 +253,7 @@ private theorem leftInverse_starProjection_mem (p : ProjectiveBundle 𝕜 G E) (
   convert hs
   refine injective_trivialEmbedding 𝕜 G E p.proj ?_
   rw [trivialEmbedding_leftInverse, ← hsu, ContinuousLinearMap.coe_coe,
-    starProjection_range_trivialEmbedding]
+    ContinuousLinearMap.starProjection_range_apply]
 
 /-- The component in the line `p` of a vector of `E b`. -/
 private def tautologicalPart (p : ProjectiveBundle 𝕜 G E) : E p.proj →L[𝕜] p.snd.submodule :=
@@ -328,23 +289,24 @@ private def splitting (p : ProjectiveBundle 𝕜 G E) :
   (tautologicalPart p).prod
     ((tautologicalComplementProjection 𝕜 G E p).rangeRestrict ∘L trivialEmbedding 𝕜 G E p.proj)
 
-private theorem bijective_splitting (p : ProjectiveBundle 𝕜 G E) : Bijective (splitting p) := by
+private theorem injective_splitting (p : ProjectiveBundle 𝕜 G E) : Injective (splitting p) := by
+  refine (injective_iff_map_eq_zero _).2 fun v hv ↦ injective_trivialEmbedding 𝕜 G E p.proj ?_
+  have h₁ : (tautologicalPart p v : E p.proj) = 0 := congrArg (fun x ↦ (x.1 : E p.proj)) hv
+  have h₂ : tautologicalComplementProjection 𝕜 G E p (trivialEmbedding 𝕜 G E p.proj v) = 0 :=
+    congrArg (fun x ↦ (x.2 : EuclideanSpace 𝕜 (Fin (trivialEmbeddingDim 𝕜 G E)))) hv
+  calc trivialEmbedding 𝕜 G E p.proj v
+      = (trivialEmbedding 𝕜 G E p.proj).range.starProjection (trivialEmbedding 𝕜 G E p.proj v) :=
+        (ContinuousLinearMap.starProjection_range_apply _ v).symm
+    _ = tautologicalComplementProjection 𝕜 G E p (trivialEmbedding 𝕜 G E p.proj v) +
+        trivialEmbedding 𝕜 G E p.proj (tautologicalPart p v : E p.proj) := by
+        rw [trivialEmbedding_tautologicalPart, tautologicalComplementProjection_def,
+          sub_apply, sub_add_cancel]
+    _ = trivialEmbedding 𝕜 G E p.proj 0 := by rw [h₁, h₂, zero_add]
+
+private theorem finrank_eq_finrank_prod (p : ProjectiveBundle 𝕜 G E) :
+    finrank 𝕜 (E p.proj) = finrank 𝕜 (p.snd.submodule × tautologicalComplement 𝕜 G E p) := by
   have := VectorBundle.finiteDimensional 𝕜 G E p.proj
-  have hinj : Injective (splitting p) := by
-    refine (injective_iff_map_eq_zero _).2 fun v hv ↦ injective_trivialEmbedding 𝕜 G E p.proj ?_
-    have h₁ : (tautologicalPart p v : E p.proj) = 0 := congrArg (fun x ↦ (x.1 : E p.proj)) hv
-    have h₂ : tautologicalComplementProjection 𝕜 G E p (trivialEmbedding 𝕜 G E p.proj v) = 0 :=
-      congrArg (fun x ↦ (x.2 : EuclideanSpace 𝕜 (Fin (trivialEmbeddingDim 𝕜 G E)))) hv
-    calc trivialEmbedding 𝕜 G E p.proj v
-        = (trivialEmbedding 𝕜 G E p.proj).range.starProjection (trivialEmbedding 𝕜 G E p.proj v) :=
-          (starProjection_range_trivialEmbedding _ v).symm
-      _ = tautologicalComplementProjection 𝕜 G E p (trivialEmbedding 𝕜 G E p.proj v) +
-          trivialEmbedding 𝕜 G E p.proj (tautologicalPart p v : E p.proj) := by
-          rw [trivialEmbedding_tautologicalPart, tautologicalComplementProjection_def,
-            sub_apply, sub_add_cancel]
-      _ = trivialEmbedding 𝕜 G E p.proj 0 := by rw [h₁, h₂, zero_add]
-  refine ⟨hinj, (LinearMap.injective_iff_surjective_of_finrank_eq_finrank ?_).1 hinj⟩
-  have hE := (VectorBundle.continuousLinearEquivAt 𝕜 G E p.proj).toLinearEquiv.finrank_eq
+  have hE := VectorBundle.finrank_eq 𝕜 G E p.proj
   have hl := Submodule.finrank_le p.snd.submodule
   rw [Projectivization.finrank_submodule, hE] at hl
   rw [finrank_prod, Projectivization.finrank_submodule,
@@ -362,8 +324,8 @@ def pullbackEquivTautologicalProdComplement (p : ProjectiveBundle 𝕜 G E) :
   have : ∀ b, ContinuousSMul 𝕜 (E b) := VectorBundle.continuousSMul 𝕜 G E
   have := VectorBundle.finiteDimensional 𝕜 G E p.proj
   have := FiberBundle.t2Space G E p.proj
-  (LinearEquiv.ofBijective (splitting p).toLinearMap
-    (bijective_splitting p)).toContinuousLinearEquiv
+  ((splitting p).toLinearMap.linearEquivOfInjective (injective_splitting p)
+    (finrank_eq_finrank_prod p)).toContinuousLinearEquiv
 
 private theorem pullbackEquivTautologicalProdComplement_apply (p : ProjectiveBundle 𝕜 G E)
     (v : E p.proj) : pullbackEquivTautologicalProdComplement 𝕜 G E p v = splitting p v :=
@@ -378,6 +340,7 @@ private theorem coe_pullbackEquivTautologicalProdComplement_fst (p : ProjectiveB
 
 /-- The first component of `pullbackEquivTautologicalProdComplement` is the vector of the line `p`
 whose image is the projection of the image of `v` onto the image of `p`. -/
+@[simp]
 theorem trivialEmbedding_pullbackEquivTautologicalProdComplement_fst (p : ProjectiveBundle 𝕜 G E)
     (v : E p.proj) :
     trivialEmbedding 𝕜 G E p.proj (pullbackEquivTautologicalProdComplement 𝕜 G E p v).1 =
@@ -388,6 +351,7 @@ theorem trivialEmbedding_pullbackEquivTautologicalProdComplement_fst (p : Projec
 
 /-- The second component of `pullbackEquivTautologicalProdComplement` is the projection of the
 image of `v` onto the complement of the line. -/
+@[simp]
 theorem coe_pullbackEquivTautologicalProdComplement_snd (p : ProjectiveBundle 𝕜 G E)
     (v : E p.proj) :
     ((pullbackEquivTautologicalProdComplement 𝕜 G E p v).2 :
@@ -397,6 +361,7 @@ theorem coe_pullbackEquivTautologicalProdComplement_snd (p : ProjectiveBundle �
 
 /-- The inverse of `pullbackEquivTautologicalProdComplement` adds the two components, read in the
 Euclidean space of `trivialEmbedding`. -/
+@[simp]
 theorem trivialEmbedding_pullbackEquivTautologicalProdComplement_symm (p : ProjectiveBundle 𝕜 G E)
     (x : (Tautological 𝕜 G E ×ᵇ tautologicalComplement 𝕜 G E) p) :
     trivialEmbedding 𝕜 G E p.proj ((pullbackEquivTautologicalProdComplement 𝕜 G E p).symm x) =
@@ -407,10 +372,11 @@ theorem trivialEmbedding_pullbackEquivTautologicalProdComplement_symm (p : Proje
     ((pullbackEquivTautologicalProdComplement 𝕜 G E p).symm x)
   rw [ContinuousLinearEquiv.apply_symm_apply] at h₁ h₂
   rw [h₁, h₂, starProjection_map_add_tautologicalComplementProjection]
-  exact (starProjection_range_trivialEmbedding p.proj _).symm
+  exact (ContinuousLinearMap.starProjection_range_apply _ _).symm
 
 /-- On the line `p` itself, `pullbackEquivTautologicalProdComplement` is the inclusion of the
 first summand. -/
+@[simp]
 theorem pullbackEquivTautologicalProdComplement_apply_coe (p : ProjectiveBundle 𝕜 G E)
     (v : p.snd.submodule) :
     pullbackEquivTautologicalProdComplement 𝕜 G E p (v : E p.proj) = (v, 0) := by
@@ -419,7 +385,8 @@ theorem pullbackEquivTautologicalProdComplement_apply_coe (p : ProjectiveBundle 
     Submodule.mem_map_of_mem v.property
   have h₀ : tautologicalComplementProjection 𝕜 G E p (trivialEmbedding 𝕜 G E p.proj v) = 0 := by
     rw [tautologicalComplementProjection_def, sub_apply,
-      Submodule.starProjection_eq_self_iff.2 hv, starProjection_range_trivialEmbedding, sub_self]
+      Submodule.starProjection_eq_self_iff.2 hv, ContinuousLinearMap.starProjection_range_apply,
+      sub_self]
   refine Prod.ext (Subtype.ext (injective_trivialEmbedding 𝕜 G E p.proj ?_))
     (Subtype.ext ((coe_pullbackEquivTautologicalProdComplement_snd p v).trans h₀))
   rw [trivialEmbedding_pullbackEquivTautologicalProdComplement_fst,
