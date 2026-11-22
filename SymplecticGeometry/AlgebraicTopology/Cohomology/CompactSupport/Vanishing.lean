@@ -9,6 +9,7 @@ public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.DirectedUnion
 public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.MayerVietoris
 public import TauCeti.AlgebraicTopology.Cohomology.Point
 public import SymplecticGeometry.Topology.Sets.Opens
+public import SymplecticGeometry.Topology.Sets.Opens.Comap
 
 /-!
 # Invariance and vanishing of cohomology with compact supports
@@ -30,6 +31,13 @@ member of a directed open cover, `Hᵐ_c(X)` also vanishes once it vanishes on e
   `U ∩ V` to `U ∪ V`.
 * `TopCat.isZero_compactSupportCohomology_of_iSup_eq_top`: vanishing of `Hᵐ_c` passes from the
   members of a directed open cover to the whole space.
+
+## Implementation notes
+
+For open sets `W ≤ Y` of `X`, `TopCat.isZero_compactSupportCohomology_comap_iff` compares `W` with
+`W` read as an open set of `Y` through Mathlib's homeomorphism
+`Topology.IsEmbedding.homeomorphOfSubsetRange`. The cover of `U ⊔ V` by `U` and `V`, read as open
+sets of `U ⊔ V`, is `TopologicalSpace.Opens.comap_val_sup_comap_val_eq_top`.
 
 ## References
 
@@ -132,12 +140,8 @@ theorem isZero_compactSupportCohomology_comap_iff {Y W : Opens X} (hWY : W ≤ Y
       IsZero ((of W).compactSupportCohomology R k N m) :=
   isZero_compactSupportCohomology_iff_of_homeomorph R k N
     (X := of ↥(Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ W : Opens Y)) (Y := of W)
-    { toFun x := ⟨x.val.val, x.property⟩
-      invFun y := ⟨⟨y.val, hWY y.property⟩, y.property⟩
-      left_inv _ := rfl
-      right_inv _ := rfl
-      continuous_toFun := by fun_prop
-      continuous_invFun := by fun_prop } m
+    (IsEmbedding.subtypeVal.homeomorphOfSubsetRange
+      (Subtype.range_coe.symm ▸ SetLike.coe_subset_coe.2 hWY)) m
 
 /-- **Vanishing of cohomology with compact supports for a union of two open sets.** For open sets
 `U` and `V` of a Hausdorff space with `Hᵐ_c(U) = 0`, `Hᵐ_c(V) = 0` and `Hᵐ⁺¹_c(U ∩ V) = 0`, also
@@ -152,8 +156,7 @@ theorem isZero_compactSupportCohomology_sup [T2Space X] {U V : Opens X} {m : ℕ
     (X := of ↥(U ⊔ V)) (U := Opens.comap i U) (V := Opens.comap i V) ?_
     ((isZero_compactSupportCohomology_comap_iff R k N le_sup_left m).2 hU)
     ((isZero_compactSupportCohomology_comap_iff R k N le_sup_right m).2 hV) ?_
-  · rw [← map_sup, eq_top_iff]
-    exact fun x _ ↦ x.property
+  · exact Opens.comap_val_sup_comap_val_eq_top U V
   · rw [← map_inf]
     exact (isZero_compactSupportCohomology_comap_iff R k N
       (inf_le_left.trans le_sup_left) (m + 1)).2 hW
