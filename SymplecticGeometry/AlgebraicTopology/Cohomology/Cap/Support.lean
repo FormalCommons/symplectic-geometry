@@ -439,7 +439,7 @@ def capIntoHomology (φ : Q⁎[A].cycles p) :
     (by rw [← Category.assoc, toCycles_capIntoCycles, Category.assoc,
         HomologicalComplex.toCycles_comp_homologyπ, comp_zero])).val
 
-@[reassoc (attr := simp), elementwise]
+@[reassoc (attr := simp), elementwise (attr := simp)]
 lemma homologyπ_capIntoHomology (φ : Q⁎[A].cycles p) :
     R[A].homologyπ n ≫ capIntoHomology L S U A hS p q n h φ =
       capIntoCycles L S U A hS p q n h φ ≫
