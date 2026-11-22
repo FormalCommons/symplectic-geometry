@@ -758,7 +758,10 @@ issues, in an order where each issue's blockers come before it.
    Done when this API is proved and applied to the circle bundle of 3.
 5. **Coordinate discs.**
    `AlgebraicTopology/Singular/LocalHomology/CoordinateDisc.lean`, beside
-   Tau Ceti's homological orientations and winding numbers:
+   Tau Ceti's homological orientations and winding numbers, with
+   `Geometry/Manifold/Complex/FundamentalClass.lean`, beside Tau Ceti's file
+   of that name, for the reversal of `TauCeti.complexHomologicalOrientation`
+   by conjugation that `CoordinateDisc.reverse` uses:
    `structure SymplecticGeometry.CoordinateDisc (o : TauCeti.HomologicalOrientation M E 2)`,
    an open embedding `CoordinateDisc.ball → M`, from the ball
    `Metric.ball (0 : ℂ) 2` as `TopologicalSpace.Opens ℂ` (so that it carries

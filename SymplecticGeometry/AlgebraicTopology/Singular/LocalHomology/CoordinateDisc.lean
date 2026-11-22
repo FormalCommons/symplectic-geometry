@@ -5,10 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Analysis.Complex.Determinant
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.OpenEmbedding
 public import TauCeti.Geometry.Manifold.Complex.FundamentalClass
 public import TauCeti.Topology.Circle.Loop
+public import SymplecticGeometry.Geometry.Manifold.Complex.FundamentalClass
 
 /-!
 # Coordinate discs of homologically oriented surfaces
@@ -27,14 +27,10 @@ A coordinate disc has a closed disc `φ.disc = φ(B̄₁)`, which is compact, in
 `φ.openDisc = φ(B₁)`, which is open, and a boundary circle `t ↦ φ(e^{2πit})`, which runs
 counterclockwise in the chart, so that it is oriented as the boundary of the closed disc.
 
-Complex conjugation reverses the canonical orientation of `ℂ`, and of every open set of `ℂ` that
-it maps to itself, since its real derivative `Complex.conjCLE` has determinant `-1`. So a
-coordinate disc `φ` for `o` gives a coordinate disc `φ.reverse = φ ∘ conj` for `-o`, with the same
-discs and with the boundary loop run backwards. The proof that conjugation reverses the
-orientation of `ℂ` reads it in the chart `OpenPartialHomeomorph.refl`, through Tau Ceti's
-`OpenPartialHomeomorph.localHomologyMap_restrict_localOrientationOfOrientedChart`, and passes
-from the restriction to `univ` back to the map itself as the proof of
-`OpenPartialHomeomorph.localHomologyMap_localOrientationOfOrientedChart` does.
+Complex conjugation maps the ball to itself and reverses its canonical orientation
+(`TauCeti.comap_conj_complexHomologicalOrientation`). So a coordinate disc `φ` for `o` gives a
+coordinate disc `φ.reverse = φ ∘ conj` for `-o`, with the same discs and with the boundary loop
+run backwards.
 
 ## Main definitions
 
@@ -56,8 +52,6 @@ from the restriction to `univ` back to the map itself as the proof of
   `SymplecticGeometry.CoordinateDisc.openDisc_subset_disc`.
 * `SymplecticGeometry.CoordinateDisc.disc_diff_openDisc`: the closed disc minus the open disc is
   the boundary circle.
-* `TauCeti.comap_conj_complexHomologicalOrientation`: conjugation reverses the canonical
-  orientation of an open set of `ℂ` that it maps to itself.
 * `SymplecticGeometry.CoordinateDisc.disc_reverse`,
   `SymplecticGeometry.CoordinateDisc.openDisc_reverse`,
   `SymplecticGeometry.CoordinateDisc.boundaryLoop_reverse`: reversal keeps the discs and reverses
@@ -78,61 +72,6 @@ public section
 noncomputable section
 
 open Topology TauCeti ComplexConjugate
-
-/-! ### Complex conjugation reverses the canonical orientation -/
-
-namespace TauCeti
-
-open CategoryTheory
-
-/-- Complex conjugation reverses the canonical homological orientation of `ℂ`: pulling it back
-along `conj` gives its negation. -/
-theorem comap_conjCLE_complexHomologicalOrientation :
-    (complexHomologicalOrientation ℂ).comap Complex.conjCLE.toHomeomorph.isOpenEmbedding =
-      -complexHomologicalOrientation ℂ := by
-  ext x : 1
-  apply (Complex.conjCLE.toHomeomorph.isOpenEmbedding.localOrientationEquiv x 2).injective
-  rw [HomologicalOrientation.localOrientationEquiv_comap_apply, HomologicalOrientation.neg_apply,
-    IsOpenEmbedding.localOrientationEquiv_neg, ← neg_eq_iff_eq_neg, eq_comm]
-  apply Subtype.ext
-  rw [complexHomologicalOrientation_apply, complexHomologicalOrientation_apply,
-    IsOpenEmbedding.coe_localOrientationEquiv, localHomologyIsoOfIsOpenEmbedding_hom,
-    LocalOrientation.coe_neg]
-  simp only [chartAt_self_eq]
-  -- In the chart `refl`, conjugation has derivative `conjCLE`, of determinant `-1`.
-  have hf : HasFDerivAt (OpenPartialHomeomorph.refl ℂ ∘ Complex.conjCLE.toHomeomorph ∘
-      (OpenPartialHomeomorph.refl ℂ).symm) (Complex.conjCLE : ℂ →L[ℝ] ℂ) x := by
-    simpa using Complex.conjCLE.hasFDerivAt
-  have key :=
-    (OpenPartialHomeomorph.refl ℂ).localHomologyMap_restrict_localOrientationOfOrientedChart
-      Complex.orientation Complex.finrank_real_complex (OpenPartialHomeomorph.refl ℂ)
-      ⟨_, Complex.conjCLE.toHomeomorph.continuous⟩ (Set.mem_univ x) (Set.mem_univ _) isOpen_univ
-      (Set.mem_univ x) (fun _ _ h ↦ Complex.conjCLE.injective h) hf
-      (by rw [Complex.det_conjCLE]; norm_num)
-  rw [Complex.det_conjCLE, sign_neg (by norm_num : (-1 : ℝ) < 0), SignType.coe_neg_one,
-    neg_one_zsmul] at key
-  -- Conjugation restricted to `univ` is conjugation after the inclusion of `univ`.
-  have h' := isOpen_univ.isOpenEmbedding_subtypeVal.localHomologyMap_localOrientationEquiv_symm
-    ⟨x, Set.mem_univ x⟩ ((OpenPartialHomeomorph.refl ℂ).localOrientationOfOrientedChart
-      (Set.mem_univ x) Complex.orientation Complex.finrank_real_complex) fun _ hz ↦ Subtype.ext hz
-  rw [← h', ← ConcreteCategory.comp_apply]
-  exact (ConcreteCategory.congr_hom (localHomologyMap_comp _ _ _ _ _ 2) _).trans key
-
-/-- Complex conjugation reverses the canonical homological orientation of every open set `U` of
-`ℂ` that it maps to itself: pulling it back along an open embedding `f : U → U` that acts as
-`conj` gives its negation. -/
-theorem comap_conj_complexHomologicalOrientation {U : TopologicalSpace.Opens ℂ} {f : U → U}
-    (hf : IsOpenEmbedding f) (hfc : ∀ z, (f z : ℂ) = conj (z : ℂ)) :
-    (complexHomologicalOrientation U).comap hf = -complexHomologicalOrientation U := by
-  have hU : IsOpenEmbedding (Subtype.val : U → ℂ) := U.isOpen.isOpenEmbedding_subtypeVal
-  conv_lhs => rw [← comap_subtypeVal_complexHomologicalOrientation hU]
-  rw [HomologicalOrientation.comap_comap_of_comp_eq _ hU hf
-      (Complex.conjCLE.toHomeomorph.isOpenEmbedding.comp hU) (funext hfc),
-    ← HomologicalOrientation.comap_comap _ Complex.conjCLE.toHomeomorph.isOpenEmbedding hU,
-    comap_conjCLE_complexHomologicalOrientation, HomologicalOrientation.comap_neg,
-    comap_subtypeVal_complexHomologicalOrientation]
-
-end TauCeti
 
 namespace SymplecticGeometry
 
@@ -168,6 +107,10 @@ theorem coe_conjBall_apply (z : ball) : (conjBall z : ℂ) = conj (z : ℂ) :=
 @[simp]
 theorem conjBall_conjBall (z : ball) : conjBall (conjBall z) = z :=
   Subtype.ext (by simp)
+
+@[simp]
+theorem symm_conjBall : conjBall.symm = conjBall :=
+  Homeomorph.ext fun z ↦ conjBall.symm_apply_eq.2 (conjBall_conjBall z).symm
 
 end CoordinateDisc
 
