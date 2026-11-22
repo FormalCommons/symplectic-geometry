@@ -249,9 +249,11 @@ as above with `Y` Liouville on `U` and transverse along `i`, and `α` with
 `hα : α.val = -mpullback J I i (RoughForm.interior Y ω.val)` (a hypothesis,
 since `Y` is smooth only on `U`):
 
-- `IsLiouvilleCollar ω Y i α Φ φ`, a `Prop`-valued structure, for
+- `IsLiouvilleCollar ω Y i α Φ φ`, in `SymplecticGeometry`, a `Prop`-valued
+  structure, for
   `Φ : D ≃ₘ⟮𝓘(ℝ).prod J, I⟯ V` with `D : Opens (ℝ × Q)`, `V : Opens W`, and
-  `φ : ℝ × Q → W`: its fields are `range_subset : range i ⊆ V`,
+  `φ : ℝ × Q → W`: its fields are `zero_mem : ∀ q, (0, q) ∈ D`,
+  `mem_of_mem : ∀ p ∈ D, ∀ s ∈ uIcc 0 p.1, (s, p.2) ∈ D`,
   `coe_apply : Φ p = φ p`, `apply_zero : φ (0, q) = i q`,
   `isMIntegralCurveOn` (each `t ↦ φ (t, q)` an integral curve of `Y` on the
   slice of `D`), `mpullback_eq`:
@@ -259,8 +261,9 @@ since `Y` is smooth only on `U`):
   that is $\Phi^*\omega=-d(e^s\alpha)$, and `mpullback_interior_eq`:
   `mpullback _ I Φ (RoughForm.interior Y ω.val) = (symplectization (-α)).val|D`,
   that is $\Phi^*\lambda=e^s\alpha$; both are pullbacks of rough forms to `D`.
-- `SmoothEmbedding.exists_liouvilleCollar`: there are `D : Opens (ℝ × Q)`
-  with `{0} ×ˢ univ ⊆ D`, `V : Opens W` with `V ⊆ U`,
+  `range_subset : range i ⊆ V` is a theorem.
+- `SmoothEmbedding.exists_liouvilleCollar`: there are `D : Opens (ℝ × Q)`,
+  `V : Opens W` with `V ⊆ U`,
   `Φ : D ≃ₘ⟮𝓘(ℝ).prod J, I⟯ V` and `φ : ℝ × Q → W` with
   `IsLiouvilleCollar ω Y i α Φ φ`.
   From Tau

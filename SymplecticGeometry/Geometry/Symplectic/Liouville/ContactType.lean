@@ -317,9 +317,9 @@ theorem mextDeriv_mpullback_subtypeVal_interior {U : Opens M} {σ : SmoothTwoFor
       mpullback I I Subtype.val σ.val := by
   funext x
   have hZx := hZ.contMDiffAt (U.isOpen.mem_nhds x.property)
-  rw [← mpullback_mextDeriv_at ((contMDiff_subtypeVal x).of_le le_top)
+  rw [mextDeriv_mpullback_subtype_val_apply
     ((RoughForm.contMDiffAt_interior hZx (σ.contMDiff x)).of_le (by simp)),
-    mpullback_subtype_val_apply, mpullback_subtype_val_apply,
+    mpullback_subtype_val_apply,
     ← mlieDerivForm_eq_mextDeriv_interior_apply
       (σ.isSmoothForm.contMDiff.mdifferentiable (by simp) x)
       (hZx.mdifferentiableAt (by simp))

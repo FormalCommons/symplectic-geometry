@@ -43,16 +43,17 @@ resulting injective local diffeomorphism is made a diffeomorphism onto its image
 
 ## Main definitions
 
-* `TauCeti.IsLiouvilleCollar σ Y i α Φ φ`: the diffeomorphism `Φ : D ≃ₘ V`, given by `φ`, is a
-  Liouville collar of `i` for `σ`, `Y` and `α`: `V` contains the image of `i`, `φ (0, q) = i q`,
-  the lines of `φ` are integral curves of `Y`, and `Φ` pulls `σ` and `ι_Y σ` back to
-  `d(eˢ (-α))` and `eˢ (-α)`, both stated as pullbacks of rough forms to `D`.
+* `SymplecticGeometry.IsLiouvilleCollar σ Y i α Φ φ`: the diffeomorphism `Φ : D ≃ₘ V`, given by
+  `φ`, is a Liouville collar of `i` for `σ`, `Y` and `α`: `D` contains `{0} × Q` and its slices are
+  intervals around `0`, `φ (0, q) = i q`, the lines of `φ` are integral curves of `Y`, and `Φ`
+  pulls `σ` and `ι_Y σ` back to `d(eˢ (-α))` and `eˢ (-α)`, both stated as pullbacks of rough
+  forms to `D`.
 
 ## Main results
 
 * `TauCeti.SmoothEmbedding.exists_pos_forall_liouvilleCollar`: there is a positive continuous
-  width `ε` on `Q` such that every open `D` with `{0} × Q ⊆ D ⊆ {|t| < ε q}` is the domain of a
-  Liouville collar.
+  width `ε` on `Q` such that every open `D` with `{0} × Q ⊆ D ⊆ {|t| < ε q}`, with slices
+  intervals around `0`, is the domain of a Liouville collar.
 * `TauCeti.SmoothEmbedding.exists_liouvilleCollar`: a Liouville collar of variable width.
 * `TauCeti.SmoothEmbedding.exists_liouvilleCollar_of_compactSpace`: for compact `Q`, a Liouville
   collar on a strip `(-ε, ε) × Q`.
@@ -69,10 +70,8 @@ resulting injective local diffeomorphism is made a diffeomorphism onto its image
 
 public section
 
-open Bundle Module Set Function TopologicalSpace SymplecticGeometry
+open Bundle Module Set Function TopologicalSpace SymplecticGeometry TauCeti
 open scoped Manifold ContDiff
-
-namespace TauCeti
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless] [TopologicalSpace M]
@@ -82,17 +81,23 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   [ChartedSpace H' Q] [IsManifold J ∞ Q]
   {σ : SmoothTwoForm I M} {U : Set M} {Y : (x : M) → TangentSpace I x}
 
+namespace SymplecticGeometry
+
 /-- A **Liouville collar** of `i : Q → M` for the two-form `σ`, the vector field `Y` and the
-one-form `α` on `Q`: a diffeomorphism `Φ` from an open set `D ⊆ ℝ × Q` onto an open set `V ⊆ M`
-containing the image of `i`, which agrees on `D` with a map `φ : ℝ × Q → M` such that
+one-form `α` on `Q`: a diffeomorphism `Φ` from an open set `D ⊆ ℝ × Q` onto an open set `V ⊆ M`,
+where `D` contains `{0} × Q` and each slice `{t | (t, q) ∈ D}` contains the closed interval from
+`0` to each of its points, which agrees on `D` with a map `φ : ℝ × Q → M` such that
 `φ (0, q) = i q` and each `t ↦ φ (t, q)` is an integral curve of `Y` on the slice of `D` over `q`,
-and which pulls `σ` back to `d(eˢ (-α))` and `ι_Y σ` back to `eˢ (-α)` on `D`. In McDuff–Salamon's
-signs, with the primitive `λ = -ι_Y σ`, these say `Φ^*σ = -d(eˢ α)` and `Φ^*λ = eˢ α`. -/
+and which pulls `σ` back to `d(eˢ (-α))` and `ι_Y σ` back to `eˢ (-α)` on `D`. Thus on each slice
+`Φ` is the flow of `Y` from the point `i q`. In McDuff–Salamon's signs, with the primitive
+`λ = -ι_Y σ`, the two identities say `Φ^*σ = -d(eˢ α)` and `Φ^*λ = eˢ α`. -/
 structure IsLiouvilleCollar (σ : SmoothTwoForm I M) (Y : (x : M) → TangentSpace I x)
     (i : Q → M) (α : SmoothForm J Q ℝ 1) {D : Opens (ℝ × Q)} {V : Opens M}
     (Φ : D ≃ₘ⟮𝓘(ℝ).prod J, I⟯ V) (φ : ℝ × Q → M) : Prop where
-  /-- The open set `V` contains the image of `i`. -/
-  range_subset : range i ⊆ V
+  /-- The domain `D` contains `{0} × Q`. -/
+  zero_mem : ∀ q, ((0 : ℝ), q) ∈ D
+  /-- Each slice of `D` contains the closed interval from `0` to each of its points. -/
+  mem_of_mem : ∀ p ∈ D, ∀ s ∈ uIcc 0 p.1, (s, p.2) ∈ D
   /-- On `D`, the collar is given by `φ`. -/
   coe_apply : ∀ p, (Φ p : M) = φ p
   /-- The map `φ` starts on the hypersurface. -/
@@ -109,11 +114,37 @@ structure IsLiouvilleCollar (σ : SmoothTwoForm I M) (Y : (x : M) → TangentSpa
       mpullback (𝓘(ℝ).prod J) (𝓘(ℝ).prod J) (Subtype.val : D → ℝ × Q)
         (-α).symplectization.val
 
+namespace IsLiouvilleCollar
+
+variable {i : Q → M} {α : SmoothForm J Q ℝ 1} {D : Opens (ℝ × Q)} {V : Opens M}
+  {Φ : D ≃ₘ⟮𝓘(ℝ).prod J, I⟯ V} {φ : ℝ × Q → M}
+
+omit [FiniteDimensional ℝ E] [I.Boundaryless] [T2Space M] [FiniteDimensional ℝ E']
+  [J.Boundaryless] in
+/-- A Liouville collar sends `(0, q)` to `i q`. -/
+theorem coe_apply_mk_zero (h : IsLiouvilleCollar σ Y i α Φ φ) (q : Q) :
+    (Φ ⟨(0, q), h.zero_mem q⟩ : M) = i q :=
+  (h.coe_apply _).trans (h.apply_zero q)
+
+omit [FiniteDimensional ℝ E] [I.Boundaryless] [T2Space M] [FiniteDimensional ℝ E']
+  [J.Boundaryless] in
+/-- The image of a Liouville collar contains the image of the hypersurface. -/
+theorem range_subset (h : IsLiouvilleCollar σ Y i α Φ φ) : range i ⊆ V := by
+  rintro _ ⟨q, rfl⟩
+  rw [← h.coe_apply_mk_zero q]
+  exact (Φ _).property
+
+end IsLiouvilleCollar
+
+end SymplecticGeometry
+
+namespace TauCeti
+
 omit [FiniteDimensional ℝ E'] [J.Boundaryless] in
 /-- The assembly of the collar from Tau Ceti's local Liouville flow on an open submanifold `U'`:
 if the flow map `Ψ(t, q) = φₜ(ι q)` of the restricted field `Z` is injective and a local
-diffeomorphism on an open `D ⊇ {0} × Q` inside its domain, then `Ψ`, read in `M`, is a Liouville
-collar on `D`. -/
+diffeomorphism on an open `D ⊇ {0} × Q` inside its domain whose slices contain the interval
+from `0` to each of their points, then `Ψ`, read in `M`, is a Liouville collar on `D`. -/
 private theorem liouvilleCollar_of_injOn {U' : Opens M}
     {Z : (x : U') → TangentSpace I x} (hZ : ContMDiff I I.tangent ∞ (T% Z))
     (hZY : ∀ x, mfderiv I I Subtype.val x (Z x) = Y x) {β : SmoothForm I U' ℝ 1}
@@ -122,7 +153,7 @@ private theorem liouvilleCollar_of_injOn {U' : Opens M}
     (hZβ : (mextDeriv β.val).interior Z = β.val) {i : Q → M} {ι : Q → U'}
     (hι : ContMDiff J I ∞ ι) (hιi : ∀ q, (ι q : M) = i q) {α : SmoothForm J Q ℝ 1}
     (hια : SmoothForm.mpullback ι hι β = -α) (D : Opens (ℝ × Q))
-    (hD0 : ({0} ×ˢ univ : Set (ℝ × Q)) ⊆ D)
+    (hD0 : ∀ q, ((0 : ℝ), q) ∈ D) (hDs : ∀ p ∈ D, ∀ s ∈ uIcc 0 p.1, (s, p.2) ∈ D)
     (hDZ : (D : Set (ℝ × Q)) ⊆ {p | (p.1, ι p.2) ∈ flowDomain Z})
     (hinj : InjOn (fun p : ℝ × Q ↦ flowOf Z p.1 (ι p.2)) D)
     (hloc : IsLocalDiffeomorphOn (𝓘(ℝ).prod J) I ∞ (fun p : ℝ × Q ↦ flowOf Z p.1 (ι p.2)) D) :
@@ -155,11 +186,9 @@ private theorem liouvilleCollar_of_injOn {U' : Opens M}
       mpullback (𝓘(ℝ).prod J) (𝓘(ℝ).prod J) (Subtype.val : D → ℝ × Q) γ p = γ p.val :=
     mpullback_subtype_val_apply γ p
   refine ⟨hf.image, hf.diffeomorphOfInjective hfinj, fun p ↦ (Ψ p : M), ?_,
-    ⟨?_, hf.coe_diffeomorphOfInjective_apply hfinj, fun q ↦ ?_, fun q ↦ ?_, ?_, ?_⟩⟩
+    ⟨hD0, hDs, hf.coe_diffeomorphOfInjective_apply hfinj, fun q ↦ ?_, fun q ↦ ?_, ?_, ?_⟩⟩
   · rintro _ ⟨p, rfl⟩
     exact (g p).property
-  · rintro _ ⟨q, rfl⟩
-    exact ⟨⟨(0, q), hD0 ⟨rfl, mem_univ q⟩⟩, by simp [g, Ψ, hιi]⟩
   · simp [Ψ, hιi]
   · exact ((isMIntegralCurveOn_flowOf (hZ.of_le (by simp)) (ι q)).mono
       fun t ht ↦ hDZ ht).map_of_mfderiv_eq
@@ -175,16 +204,18 @@ private theorem liouvilleCollar_of_injOn {U' : Opens M}
 smooth embedding of codimension one, `Y` a vector field, smooth and Liouville (`L_Y σ = σ`) on an
 open neighbourhood `U` of the image of `i` and transverse along `i`, and `α = -i^*(ι_Y σ)` the
 induced contact form. Then there is a positive continuous function `ε` on `Q` such that every open
-`D` with `{0} × Q ⊆ D ⊆ {(t, q) | |t| < ε q}` is the domain of a Liouville collar
-(`TauCeti.IsLiouvilleCollar`) of `i` for `σ`, `Y` and `α`, given by the flow of `Y` out of the
-hypersurface, onto an open set `V ⊆ U`. -/
+`D` with `{0} × Q ⊆ D ⊆ {(t, q) | |t| < ε q}`, whose slices `{t | (t, q) ∈ D}` contain the
+interval from `0` to each of their points, is the domain of a Liouville collar
+(`SymplecticGeometry.IsLiouvilleCollar`) of `i` for `σ`, `Y` and `α`, given by the flow of `Y` out
+of the hypersurface, onto an open set `V ⊆ U`. -/
 theorem SmoothEmbedding.exists_pos_forall_liouvilleCollar [SecondCountableTopology M]
     (hσ : σ.IsSymplectic) (i : SmoothEmbedding J I ∞ Q M) (hdim : finrank ℝ E' + 1 = finrank ℝ E)
     (hU : IsOpen U) (hiU : range i ⊆ U) (hY : ContMDiffOn I I.tangent (⊤ : ℕ∞) (T% Y) U)
     (hYσ : ∀ x ∈ U, mlieDerivForm Y σ.val x = σ.val x) (hYi : IsTransverseAlong J Y i)
     {α : SmoothForm J Q ℝ 1} (hα : α.val = -mpullback J I i (RoughForm.interior Y σ.val)) :
     ∃ ε : C(Q, ℝ), (∀ q, 0 < ε q) ∧ ∀ D : Opens (ℝ × Q),
-      ({0} ×ˢ univ : Set (ℝ × Q)) ⊆ D → (D : Set (ℝ × Q)) ⊆ {p | |p.1| < ε p.2} →
+      (∀ q, ((0 : ℝ), q) ∈ D) → (∀ p ∈ D, ∀ s ∈ uIcc 0 p.1, (s, p.2) ∈ D) →
+      (D : Set (ℝ × Q)) ⊆ {p | |p.1| < ε p.2} →
       ∃ (V : Opens M) (Φ : D ≃ₘ⟮𝓘(ℝ).prod J, I⟯ V) (φ : ℝ × Q → M),
         (V : Set M) ⊆ U ∧ IsLiouvilleCollar σ Y i α Φ φ := by
   set U' : Opens M := ⟨U, hU⟩
@@ -222,32 +253,31 @@ theorem SmoothEmbedding.exists_pos_forall_liouvilleCollar [SecondCountableTopolo
   have : PseudoMetrizableSpace Q := i.isEmbedding.isInducing.pseudoMetrizableSpace
   obtain ⟨ε, hε, hεD, hinj, hloc⟩ := exists_continuous_pos_injOn_flowOf_comp hZ hι hdim hZβ
     hcontact (i.isEmbedding.isInducing.codRestrict _)
-  refine ⟨ε, hε, fun D hD0 hDε ↦ ?_⟩
+  refine ⟨ε, hε, fun D hD0 hDs hDε ↦ ?_⟩
   exact liouvilleCollar_of_injOn hZ (VectorField.mfderiv_subtypeVal_mpullback_subtypeVal Y) hβ
-    hdβ hZβ hι (fun _ ↦ rfl) hια D hD0 (hDε.trans hεD) (hinj.mono hDε)
+    hdβ hZβ hι (fun _ ↦ rfl) hια D hD0 hDs (hDε.trans hεD) (hinj.mono hDε)
     fun p ↦ hloc ⟨p, hDε p.property⟩
 
 /-- **The Liouville collar of a hypersurface.** Let `σ` be a symplectic form on `M`, `i : Q → M` a
 smooth embedding of codimension one, `Y` a vector field, smooth and Liouville (`L_Y σ = σ`) on an
 open neighbourhood `U` of the image of `i` and transverse along `i`, and `α = -i^*(ι_Y σ)` the
-induced contact form. Then some open neighbourhood `D` of `{0} × Q` in `ℝ × Q` is the domain of a
-Liouville collar (`TauCeti.IsLiouvilleCollar`) of `i` for `σ`, `Y` and `α` onto an open set
-`V ⊆ U`. -/
+induced contact form. Then some open set `D` of `ℝ × Q` is the domain of a Liouville collar
+(`SymplecticGeometry.IsLiouvilleCollar`) of `i` for `σ`, `Y` and `α`, given by the flow of `Y`
+out of the hypersurface, onto an open set `V ⊆ U`. -/
 theorem SmoothEmbedding.exists_liouvilleCollar [SecondCountableTopology M]
     (hσ : σ.IsSymplectic) (i : SmoothEmbedding J I ∞ Q M) (hdim : finrank ℝ E' + 1 = finrank ℝ E)
     (hU : IsOpen U) (hiU : range i ⊆ U) (hY : ContMDiffOn I I.tangent (⊤ : ℕ∞) (T% Y) U)
     (hYσ : ∀ x ∈ U, mlieDerivForm Y σ.val x = σ.val x) (hYi : IsTransverseAlong J Y i)
     {α : SmoothForm J Q ℝ 1} (hα : α.val = -mpullback J I i (RoughForm.interior Y σ.val)) :
-    ∃ D : Opens (ℝ × Q), ({0} ×ˢ univ : Set (ℝ × Q)) ⊆ D ∧
-      ∃ (V : Opens M) (Φ : D ≃ₘ⟮𝓘(ℝ).prod J, I⟯ V) (φ : ℝ × Q → M),
-        (V : Set M) ⊆ U ∧ IsLiouvilleCollar σ Y i α Φ φ := by
+    ∃ (D : Opens (ℝ × Q)) (V : Opens M) (Φ : D ≃ₘ⟮𝓘(ℝ).prod J, I⟯ V) (φ : ℝ × Q → M),
+      (V : Set M) ⊆ U ∧ IsLiouvilleCollar σ Y i α Φ φ := by
   obtain ⟨ε, hε, h⟩ := i.exists_pos_forall_liouvilleCollar hσ hdim hU hiU hY hYσ hYi hα
   let D : Opens (ℝ × Q) := ⟨{p | |p.1| < ε p.2},
     isOpen_lt (continuous_abs.comp continuous_fst) (ε.continuous.comp continuous_snd)⟩
-  have hD0 : ({0} ×ˢ univ : Set (ℝ × Q)) ⊆ D := by
-    rintro ⟨_, q⟩ ⟨rfl, -⟩
-    simpa [D] using hε q
-  exact ⟨D, hD0, h D hD0 subset_rfl⟩
+  refine ⟨D, h D (fun q ↦ by simpa [D] using hε q) (fun p hp s hs ↦ ?_) subset_rfl⟩
+  have := abs_sub_left_of_mem_uIcc hs
+  simp only [sub_zero] at this
+  exact this.trans_lt hp
 
 /-- **The Liouville collar of a compact hypersurface.** In the setting of
 `TauCeti.SmoothEmbedding.exists_liouvilleCollar`, for compact `Q` the domain of the collar may be
@@ -264,9 +294,10 @@ theorem SmoothEmbedding.exists_liouvilleCollar_of_compactSpace [SecondCountableT
   let D : Opens (ℝ × Q) := ⟨{p | |p.1| < ε p.2},
     isOpen_lt (continuous_abs.comp continuous_fst) (ε.continuous.comp continuous_snd)⟩
   obtain ⟨δ, hδ, hδD⟩ := exists_symmStrip_le (U := D) fun q ↦ by simpa [D] using hε q
-  refine ⟨δ, hδ, h _ ?_ hδD⟩
-  rintro ⟨_, q⟩ ⟨rfl, -⟩
-  exact zero_mk_mem_symmStrip hδ q
+  refine ⟨δ, hδ, h _ (zero_mk_mem_symmStrip hδ) (fun p hp s hs ↦ ?_) hδD⟩
+  have := abs_sub_left_of_mem_uIcc hs
+  simp only [sub_zero] at this
+  exact mem_symmStrip_iff.2 (this.trans_lt (mem_symmStrip_iff.1 hp))
 
 /-- **Contact type through Liouville fields.** Let `σ` be a symplectic form on `M` and `i : Q → M`
 a smooth embedding of codimension one. Then `Q` carries a contact form `α` with `dα = -i^*σ` if and
@@ -296,8 +327,8 @@ theorem SmoothEmbedding.exists_isContactForm_iff_exists_liouville [SecondCountab
 `i : Q → M` a smooth embedding of codimension one, and `α` a contact form on `Q` with
 `dα = -i^*σ`. Then there are an open neighbourhood `U` of the image of `i` and a vector field `Y`,
 smooth and Liouville (`L_Y σ = σ`) on `U` and transverse along `i`, with `-i^*(ι_Y σ) = α`, whose
-flow gives a Liouville collar (`TauCeti.IsLiouvilleCollar`) of `i` for `σ`, `Y` and `α`, from an
-open neighbourhood `D` of `{0} × Q` onto an open set `V ⊆ U`. If `Q` is compact, `D` may be taken
+flow gives a Liouville collar (`SymplecticGeometry.IsLiouvilleCollar`) of `i` for `σ`, `Y` and `α`,
+from an open set `D` of `ℝ × Q` onto an open set `V ⊆ U`. If `Q` is compact, `D` may be taken
 to be a strip `(-ε, ε) × Q`.
 
 Milestone: *Contact-type hypersurfaces and Liouville collars*. -/
@@ -309,9 +340,8 @@ theorem SmoothEmbedding.exists_liouvilleCollar_of_isContactForm [SecondCountable
       ContMDiffOn I I.tangent (⊤ : ℕ∞) (T% Y) U ∧
       (∀ x ∈ U, mlieDerivForm Y σ.val x = σ.val x) ∧ IsTransverseAlong J Y i ∧
       -mpullback J I i (RoughForm.interior Y σ.val) = α.val ∧
-      (∃ D : Opens (ℝ × Q), ({0} ×ˢ univ : Set (ℝ × Q)) ⊆ D ∧
-        ∃ (V : Opens M) (Φ : D ≃ₘ⟮𝓘(ℝ).prod J, I⟯ V) (φ : ℝ × Q → M),
-          (V : Set M) ⊆ U ∧ IsLiouvilleCollar σ Y i α Φ φ) ∧
+      (∃ (D : Opens (ℝ × Q)) (V : Opens M) (Φ : D ≃ₘ⟮𝓘(ℝ).prod J, I⟯ V) (φ : ℝ × Q → M),
+        (V : Set M) ⊆ U ∧ IsLiouvilleCollar σ Y i α Φ φ) ∧
       (CompactSpace Q → ∃ ε > 0,
         ∃ (V : Opens M) (Φ : symmStrip Q ε ≃ₘ⟮𝓘(ℝ).prod J, I⟯ V) (φ : ℝ × Q → M),
           (V : Set M) ⊆ U ∧ IsLiouvilleCollar σ Y i α Φ φ) := by
