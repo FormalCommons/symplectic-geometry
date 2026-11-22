@@ -212,9 +212,16 @@ $X$ on the projective line $\{\ell_1=\dots=\ell_n=0\}$. Then:
   at infinity, Mathlib's `IsAlgClosed.card_roots_eq_natDegree` and
   `Polynomial.nodup_roots`).
 
-For `n = 0`, where Tau Ceti has no fundamental class, part 2 of the
-milestone says that $X$ consists of $d$ points; issue 9 proves exactly this,
-`Nat.card X = d`, which is also the case $n=0$ of part 4.
+For `n = 0`, Tau Ceti's fundamental classes need positive dimension, so
+the pairing with $[X]$ is read as a count of points: part 2 of the milestone
+says that $X$ consists of $d$ points, and issue 9 proves `Nat.card X = d`.
+Part 4 for `n = 0` is a statement about $\chi(X)$, so issue 9 also proves
+`TauCeti.eulerChar X = d`. $X$ is a compact manifold of dimension $0$,
+hence finite and discrete; its `FiniteCWType` instance is Tau Ceti's
+`TauCeti.ComplexManifold.finiteCWType`
+(`Geometry/Manifold/Complex/FiniteCWType.lean`), and Tau Ceti's
+`TauCeti.eulerChar_of_discreteTopology` turns `Nat.card X = d` into
+$\chi(X)=d$.
 
 ### Where the signature theorem enters
 
@@ -419,11 +426,12 @@ Namespace `SymplecticGeometry.SmoothProjectiveHypersurface`.
 For a compact Hausdorff complex manifold `M` modelled on `𝓘(ℂ, E)` with
 `finrank ℂ E = r + 1`, `M : Type`.
 
-- `TauCeti.ComplexManifold.tangentTotalSpaceHomeomorph`: the identity of
-  total spaces is a homeomorphism from the real tangent bundle
-  `TangentSpace 𝓘(ℝ, E)` to the complex one `TangentSpace 𝓘(ℂ, E)`, linear
-  on fibres (the coordinate changes are the real and complex derivatives of
-  the same holomorphic maps); and that it carries the complex orientation
+- No new homeomorphism of tangent bundles: Tau Ceti's
+  `(TangentBundle.restrictScalarsHomeomorph ℝ M).symm`
+  (`Geometry/Manifold/VectorBundle/Tangent/RestrictScalars.lean`) is the
+  identity of total spaces from the real tangent bundle to the complex one,
+  linear on fibres by its `_apply` and `_symm_apply` lemmas. The new
+  statement is that it carries the complex orientation
   `VectorBundleOrientation.complex` to
   `(complexManifoldOrientation E M).toVectorBundleOrientation`, pointwise by
   Tau Ceti's `orientationAt_complexManifoldOrientation_eq_complexOrientation`.
@@ -439,9 +447,16 @@ For a compact Hausdorff complex manifold `M` modelled on `𝓘(ℂ, E)` with
 - `card_inter_line`: if `u`, `w` are independent and the line they span is
   transverse to `X` at every common point, it meets `X` in exactly `d`
   points. The binary form `t ↦ poly (s • u + t • w)` argument above.
-- `card_eq` (**milestone, parts 2 and 4 for `n = 0`**, finitely many points
+- `card_eq` (**milestone, part 2 for `n = 0`**, finitely many points
   of $\mathbb CP^1$): `Nat.card X = d`, the line being all of $\mathbb CP^1$.
-  Its docstring ends with the milestone line.
+  For `n = 0` the pairing with $[X]$ is read as this count of points, since
+  Tau Ceti's fundamental classes need positive dimension. Its docstring ends
+  with the milestone line.
+- `eulerChar_eq_of_dim_zero` (**milestone, part 4 for `n = 0`**):
+  `TauCeti.eulerChar X = d`, with the instance
+  `TauCeti.ComplexManifold.finiteCWType` on `X`, from `card_eq` and
+  Tau Ceti's `TauCeti.eulerChar_of_discreteTopology`. Its docstring ends
+  with the milestone line.
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/Degree.lean`
 
@@ -612,7 +627,7 @@ waits for another part.
 | 6 | Chern classes on projective space (part 1) | `Projectivization/ChernClass.lean` | 2, 3; #1037, #1038, #1040, #1043 | 250 |
 | 7 | The Euler characteristic of a compact complex manifold | `Complex/EulerCharacteristic.lean` | #1043, #1045 | 250 |
 | 8 | Chern classes of a hypersurface (parts 2 and 3) | `Hypersurface/ChernClass.lean` | 4, 5, 6 | 250 |
-| 9 | Transverse lines meet a hypersurface in $d$ points | `Hypersurface/Line.lean` | 1 | 300 |
+| 9 | Transverse lines meet a hypersurface in $d$ points; the case `n = 0` of parts 2 and 4 | `Hypersurface/Line.lean` | 1 | 300 |
 | 10 | The degree $\langle\iota^*h^n,[X]\rangle=d$ | `Hypersurface/Degree.lean` | 6, 8, 9 | 400 |
 | 11 | The Euler characteristic of a hypersurface (part 4) | `Hypersurface/EulerCharacteristic.lean` | 7, 8, 10 | 150 |
 | 12 | The Lefschetz theorems for hypersurfaces | `Hypersurface/Veronese.lean`, `Hypersurface/Lefschetz.lean` | 1 | 500 |
