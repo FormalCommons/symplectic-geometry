@@ -328,9 +328,9 @@ Proof, in four steps.
    input is `h₁.sub h₀`. The pullback `f^*(σ₁ - σ₀)` vanishes by `heq`.
 2. *Nondegeneracy region.* `N := W ∩ {x | ∀ s ∈ Icc 0 1, …}` is open by
    `isOpen_setOf_forall_mem_Icc_nondegenerate`. It contains `range f`,
-   because along `f(Q)` every point of the segment is `σ₀`. (Tau Ceti
-   proves this pointwise fact in its private
-   `bilinFormAt_add_smul_sub_of_eq`; restate it here as a step.) Work on the
+   because along `f(Q)` every point of the segment is `σ₀`
+   (`nondegenerate_bilinFormAt_add_smul_sub_of_eq`, in
+   `Manifold/Family.lean`). Work on the
    open submanifold `N`, with the forms restricted along `Subtype.val`.
 3. *Moser flow.* With `c = Real.smoothTransition`, let
    `σ := SmoothForm.lineMapFamily σ₀ σ₁ c.contDiff` on `ℝ × N`. Its slices
