@@ -37,7 +37,7 @@ variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Abelian C] (R : C)
 
 /-- If the ambient space of a pair is contractible, its connecting morphism
 `Hₘ₊₁(X, A) ⟶ Hₘ(A)` is a monomorphism. -/
-theorem mono_singularHomologyδ_of_contractibleSpace (P : TopPair.{w}) [ContractibleSpace P.fst]
+instance mono_singularHomologyδ_of_contractibleSpace (P : TopPair.{w}) [ContractibleSpace P.fst]
     (m : ℕ) : Mono (P.singularHomologyδ R (m + 1) m) :=
   (P.singularHomology_exact_relative R (m + 1) m).mono_g
     ((TauCeti.isZero_singularHomologyFunctor_of_contractibleSpace R P.fst

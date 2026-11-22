@@ -214,10 +214,9 @@ private theorem mono_singularHomologyδ_interPair_comp {X Y : TopCat.{w}} (A A' 
     Mono ((TopPair.interPair A A').singularHomologyδ R (m + 1) m ≫
       SSet.homologyMap (TopCat.toSSet.map e.hom) R m) := by
   have : ContractibleSpace (TopPair.interPair A A').fst := ‹ContractibleSpace A›
-  have hδ := TopPair.mono_singularHomologyδ_of_contractibleSpace R (TopPair.interPair A A') m
   have hi : IsIso (SSet.homologyMap (TopCat.toSSet.map e.hom) R m) :=
     inferInstanceAs (IsIso (((singularHomologyFunctor C m).obj R).mapIso e).hom)
-  exact @mono_comp _ _ _ _ _ _ hδ _ (@IsIso.mono_of_iso _ _ _ _ _ hi)
+  exact @mono_comp _ _ _ _ _ _ _ _ (@IsIso.mono_of_iso _ _ _ _ _ hi)
 
 /-- The excision preimage in `(complRay p, complRay p ∩ complRay (-p))` of the image of a class
 `gE ≫ δ` of `E ∖ {0}` is the image of a class `gG` of `(ℝ ∙ p)ᗮ` under the sheet at `-1`, as soon
