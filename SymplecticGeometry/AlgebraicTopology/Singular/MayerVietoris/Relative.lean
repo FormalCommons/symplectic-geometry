@@ -7,7 +7,6 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.PairMap
 public import SymplecticGeometry.Topology.Category.TopCat.CodRestrict
-public import TauCeti.AlgebraicTopology.Singular.AlexanderWhitney.RelativeCup
 public import TauCeti.AlgebraicTopology.Singular.MayerVietoris.Relative
 
 /-!
@@ -27,10 +26,8 @@ of maps into `X` then reassociate by `rw`.
   relative to the small chains.
 * `TopCat.chainComplexMap_comp_smallSingularSubcomplexπ`: a map into `X` whose image lies in a
   member of `U` sends chains to zero there.
-* `TopCat.smallSingularSubcomplexπ_comp_chainComplexMap_smallSingularSubcomplexPairToUnion` and
-  `TopCat.smallSingularSubcomplexπ_relativeAlexanderWhitneyDiagonal`: Tau Ceti's
-  `TopCat.chainComplexπ_smallSingularSubcomplexPairToUnion` and
-  `TopCat.chainComplexπ_relativeAlexanderWhitneyDiagonal`, restated through
+* `TopCat.smallSingularSubcomplexπ_comp_chainComplexMap_smallSingularSubcomplexPairToUnion`:
+  Tau Ceti's `TopCat.chainComplexπ_smallSingularSubcomplexPairToUnion`, restated through
   `TopCat.smallSingularSubcomplexπ` and `TopPair.singularChainComplexπOfSubset`.
 
 ## References
@@ -43,7 +40,7 @@ public section
 
 noncomputable section
 
-open CategoryTheory MonoidalCategory Limits
+open CategoryTheory Limits
 
 universe w v u
 
@@ -115,19 +112,6 @@ theorem smallSingularSubcomplexπ_comp_chainComplexMap_smallSingularSubcomplexPa
         SSetPair.chainComplexMap (smallSingularSubcomplexPairToUnion U V) R =
       TopPair.singularChainComplexπOfSubset R (U ∪ V) :=
   chainComplexπ_smallSingularSubcomplexPairToUnion _ _ _
-
-attribute [local instance] hasFiniteCoproducts_of_hasCoproducts in
-attribute [local instance] HasFiniteBiproducts.of_hasFiniteCoproducts in
-/-- `TopCat.chainComplexπ_relativeAlexanderWhitneyDiagonal`, with the quotient maps written as
-`TopCat.smallSingularSubcomplexπ` and `TopPair.singularChainComplexπOfSubset`, whose sources are
-the chains of `X`. -/
-@[reassoc]
-theorem smallSingularSubcomplexπ_relativeAlexanderWhitneyDiagonal [MonoidalCategory C]
-    [MonoidalPreadditive C] {X : TopCat.{w}} (U V : Set X) {R S T : C} (u : T ⟶ R ⊗ S) :
-    smallSingularSubcomplexπ ![U, V] T ≫ relativeAlexanderWhitneyDiagonal U V u =
-      X.alexanderWhitneyDiagonal u ≫
-        (TopPair.singularChainComplexπOfSubset R U ⊗ₘ TopPair.singularChainComplexπOfSubset S V) :=
-  chainComplexπ_relativeAlexanderWhitneyDiagonal U V u
 
 end TopCat
 

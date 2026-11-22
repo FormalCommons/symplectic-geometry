@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.Pair
-public import SymplecticGeometry.AlgebraicTopology.Singular.MayerVietoris.Relative
+public import SymplecticGeometry.AlgebraicTopology.Singular.AlexanderWhitney.RelativeCup
 public import TauCeti.AlgebraicTopology.Singular.CrossProduct
 public import TauCeti.Algebra.Homology.Homotopy
 public import TauCeti.AlgebraicTopology.SimplicialSet.EilenbergZilber

@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.AlgebraicTopology.Singular.AlexanderWhitney.RelativeCup
 public import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.RelativePair
 public import TauCeti.AlgebraicTopology.Cohomology.Local.Cross
 

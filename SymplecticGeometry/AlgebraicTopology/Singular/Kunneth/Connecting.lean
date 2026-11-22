@@ -246,8 +246,11 @@ theorem singularHomologyCrossRelPair_comp_singularHomologyδ_comp_singularHomolo
     Category.assoc, ← hδ, ← Category.assoc, hc, Preadditive.zsmul_comp, ComplexShape.ε_down_ℕ,
     Category.assoc, e]
   push_cast
-  -- `hS.δ` is the connecting morphism of `(Y, B)` by the definition of `SSetPair.homologyδ`, for
-  -- which there is no lemma to rewrite with
+  unfold TopPair.singularHomologyδ
+  rw [SSetPair.homologyδ]
+  -- the short exact sequence `hS` of `TopPair.ofSubset B` is the one of its underlying `SSetPair`,
+  -- `(toSSetPair.obj (TopPair.ofSubset B)).shortExact_chainComplexShortComplex`, only by the
+  -- definitions of `TopPair.singularChainComplexShortComplex` and its exactness lemma
   rfl
 
 end TopCat
