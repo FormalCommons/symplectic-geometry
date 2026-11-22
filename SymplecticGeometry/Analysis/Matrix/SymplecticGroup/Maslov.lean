@@ -70,7 +70,9 @@ move.
   `ℝ²ⁿ = ℂⁿ` complex-linearly is its normalized complex determinant.
 * `TauCeti.GLSymplectic.maslovIndex_eq_iff_homotopic`,
   `TauCeti.GLSymplectic.homotopicWith_iff_maslovIndex_eq`: the Maslov index classifies loops up
-  to homotopy with fixed ends and up to free homotopy.
+  to homotopy with fixed ends and up to free homotopy; in particular a loop on the circle of
+  Maslov index `0` is null-homotopic
+  (`TauCeti.GLSymplectic.nullhomotopic_of_maslovIndex_toBasedLoop_eq_zero`).
 * `SymplecticGeometry.isMaslovIndex_maslovIndex`: Tau Ceti's `maslovIndex` satisfies the axioms.
 * `SymplecticGeometry.isMaslovIndex_iff`: existence, uniqueness and the formula `μ = deg(ρ ∘ Ψ)`.
 
@@ -231,6 +233,14 @@ theorem homotopicWith_iff_maslovIndex_eq {A B : GLSymplectic ι ℝ} (γ : Path 
   have hγ : γ.Homotopic ((χ.trans γ').trans χ.symm) :=
     maslovIndex_eq_iff_homotopic.1 (h.trans (maslovIndex_eq_of_homotopicWith hχ).symm)
   exact hγ.homotopicWith.trans hχ
+
+/-- A loop of symplectic matrices on the circle whose based loop has Maslov index `0` is
+null-homotopic. -/
+theorem nullhomotopic_of_maslovIndex_toBasedLoop_eq_zero {f : C(Circle, GLSymplectic ι ℝ)}
+    (hf : maslovIndex f.toBasedLoop = 0) : f.Nullhomotopic := by
+  have h := (maslovIndex_eq_iff_homotopic (γ' := Path.refl _)).1
+    (hf.trans (maslovIndex_refl _).symm)
+  simpa using h.nullhomotopic_toCircle
 
 /-- A loop on which `ρ` is `t ↦ e^{2πikt}` has Maslov index `k`. -/
 theorem maslovIndex_eq_of_maslovPhase_apply {A : GLSymplectic ι ℝ} (γ : Path A A) (k : ℤ)

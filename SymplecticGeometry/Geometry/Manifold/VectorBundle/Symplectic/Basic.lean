@@ -848,6 +848,20 @@ theorem precomp {W' : Type*} [NormedAddCommGroup W'] [NormedSpace ℝ W']
     h.map_bilinFormAt x hx]
   exact he.apply v w
 
+/-- Precomposing a symplectic frame for `σ` with linear symplectomorphisms `P x` of `(W, σ)` that
+depend `C^n` on the point `x` of `U` gives a symplectic frame for `σ`. -/
+theorem precomp_of_contMDiffOn (h : ω.IsSymplecticFrameOn σ U Φ) {P : M → W ≃L[ℝ] W}
+    (hP : ContMDiffOn I 𝓘(ℝ, W →L[ℝ] W) n (fun x ↦ (P x : W →L[ℝ] W)) U)
+    (hPσ : ∀ x ∈ U, σ.IsSymplectomorphism σ (P x).toLinearEquiv) :
+    ω.IsSymplecticFrameOn σ U fun x ↦ (P x).trans (Φ x) := by
+  refine ⟨h.contMDiffOn.comp (contMDiff_fst.contMDiffOn.prodMk
+    ((hP.comp contMDiff_fst.contMDiffOn fun (p : M × W) (hp : p ∈ U ×ˢ Set.univ) ↦ hp.1).clm_apply
+      contMDiff_snd.contMDiffOn))
+    fun p hp ↦ ⟨hp.1, Set.mem_univ _⟩, fun x hx v w ↦ ?_⟩
+  rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
+    h.map_bilinFormAt x hx]
+  exact (hPσ x hx).apply v w
+
 end IsSymplecticFrameOn
 
 /-- On the trivial bundle with fibre `W'` and the constant form of `ω'`, a linear symplectomorphism

@@ -132,8 +132,9 @@ source: the inverse of Tau Ceti's oriented coordinate ball, restricted to a smal
   ball.
 * `SymplecticGeometry.CoordinateDisc.ofChart_apply`,
   `SymplecticGeometry.CoordinateDisc.ofChart_apply_zero`: the formula of `ofChart`, and its centre.
-* `SymplecticGeometry.CoordinateDisc.contMDiffOn_coord_ofChart`: for a chart of the maximal atlas,
-  the coordinate of `ofChart` is smooth on its range.
+* `SymplecticGeometry.CoordinateDisc.contMDiffOn_coord_ofChart`,
+  `SymplecticGeometry.CoordinateDisc.contMDiffOn_ofChart`: for a chart of the maximal atlas,
+  the coordinate of `ofChart` is smooth on its range, and `ofChart` is smooth on the ball.
 * `SymplecticGeometry.CoordinateDisc.disc_ofChart`,
   `SymplecticGeometry.CoordinateDisc.openDisc_ofChart`: the closed and the open disc of `ofChart`
   are the images under `e.symm` of the closed and the open ball of radius `r / 2` about `c`.
@@ -1028,6 +1029,25 @@ theorem contMDiffOn_coord_ofChart {n : WithTop ℕ∞} [IsManifold (𝓡 2) n M]
   · rintro _ ⟨z, rfl⟩
     rw [coord_apply, Function.comp_apply, ofChart_apply_eq,
       e.right_inv (hc (ofChartHomeomorph_mem_ball hr z)), Homeomorph.symm_apply_apply]
+
+omit [T2Space M] [IsManifold (𝓡 2) 1 M] in
+/-- For a chart `e` of the maximal `Cⁿ` atlas, the map `z ↦ e.symm (c + (r / 2) (re z, im z))`,
+which is the coordinate disc `ofChart e hr hc he` on the ball (`ofChart_apply`), is `Cⁿ` on the
+ball of radius `2` of `ℂ`. -/
+theorem contMDiffOn_ofChart {n : WithTop ℕ∞} [IsManifold (𝓡 2) n M]
+    (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2))) {c : EuclideanSpace ℝ (Fin 2)}
+    {r : ℝ} (hr : 0 < r) (hc : Metric.ball c r ⊆ e.target)
+    (he' : e ∈ IsManifold.maximalAtlas (𝓡 2) n M) :
+    ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 2) n
+      (fun z : ℂ ↦ e.symm (c + (r / 2) • Complex.orthonormalBasisOneI.repr z))
+      (Metric.ball 0 2) := by
+  refine (contMDiffOn_symm_of_mem_maximalAtlas he').comp ?_ fun z hz ↦ hc ?_
+  · exact (contDiff_const.add ((contDiff_const_smul (r / 2)).comp
+      Complex.orthonormalBasisOneI.repr.contDiff)).contMDiff.contMDiffOn
+  · rw [Metric.mem_ball, dist_eq_norm, add_sub_cancel_left, norm_smul,
+      LinearIsometryEquiv.norm_map, Real.norm_of_nonneg (by linarith)]
+    have := mem_ball_zero_iff.1 hz
+    nlinarith
 
 /-- The centre of the coordinate disc of a chart is `e.symm c`. -/
 theorem ofChart_apply_zero (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2)))
