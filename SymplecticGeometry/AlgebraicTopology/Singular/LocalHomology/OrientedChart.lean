@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Linear
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Chart
-public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Linear
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 
 /-!
@@ -19,9 +19,7 @@ This file computes its image under the connecting morphism of the pair `(E, E �
 radial projection about `p` onto the unit sphere: it is the generator of the reduced homology of
 the unit sphere selected by `o` (`TauCeti.reducedSingularHomologySphereIsoOfOrientation`).
 
-At the origin, the local orientation of the identity chart is the local orientation
-`Orientation.localOrientation` that Tau Ceti attaches to `o` through a linear equivalence with the
-Euclidean model. Consequently, for a chart `φ` of a space `M` with values in `E`, the map
+It then centers charts at a point. For a chart `φ` of a space `M` with values in `E`, the map
 `x ↦ φ x - φ z` on the source of `φ` carries the local orientation of `M` at `z` selected by `φ`
 and `o` to `o.localOrientation`. This is the form in which Tau Ceti's computation of the local
 index of a section at a transverse zero
@@ -33,28 +31,23 @@ of its chart.
 * `OpenPartialHomeomorph.map_reducedSingularHomologyδ_localOrientationOfOrientedChart_refl`: the
   local orientation of the identity chart, sent through the connecting morphism and radial
   projection, is the oriented generator of the unit sphere.
-* `Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl`: at the origin, the local
-  orientation of the identity chart is `Orientation.localOrientation`.
 * `OpenPartialHomeomorph.localHomologyMap_sub_localOrientationOfOrientedChart`: the chart `φ`,
   translated so that `φ z` is the origin, carries the local orientation that it selects at `z` to
   `Orientation.localOrientation`.
 
 ## Implementation notes
 
-The last two proofs follow the pattern of Tau Ceti's
+The proof of `OpenPartialHomeomorph.localHomologyMap_sub_localOrientationOfOrientedChart`
+follows the pattern of Tau Ceti's
 `OpenPartialHomeomorph.localHomologyMap_localOrientationOfOrientedChart`: a map whose expression in
 two charts has derivative of determinant one carries the local orientation of the first chart to
-that of the second, and an open set is removed through the excision isomorphism.
+that of the second, and an open set is removed through the excision isomorphism. At the origin it
+then uses `Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl`, from
+`SymplecticGeometry/AlgebraicTopology/Singular/LocalHomology/Orientation/Linear.lean`.
 
-Tau Ceti's main branch proves both results at commit 55525ca, in
-`TauCeti/AlgebraicTopology/Singular/LocalHomology/Orientation/Linear.lean`. The pinned version
-of Tau Ceti does not have that commit. There,
-`Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl` has the same name and
-statement, without the membership hypothesis `h0`. Its proof follows the same steps as ours:
-`Orientation.localOrientation_map` along a linear isometry with the Euclidean model,
-`Orientation.localOrientation_euclideanSpace`, and then the injectivity of the map induced by
-`ContinuousLinearEquiv.complZeroPairIso`. Our middle step uses chart naturality where Tau Ceti
-uses `LinearIsometryEquiv.localHomologyMap_localOrientationOfOrientedChart_refl`.
+Tau Ceti's main branch, at commit 55525ca, which the pinned version of Tau Ceti does not have,
+proves a more general result in
+`TauCeti/AlgebraicTopology/Singular/LocalHomology/Orientation/Linear.lean`:
 `OpenPartialHomeomorph.localHomologyMap_chart_localOrientationOfOrientedChart` adds a linear
 equivalence `L` after the centered chart. With `L` the identity it is
 `OpenPartialHomeomorph.localHomologyMap_sub_localOrientationOfOrientedChart`.
@@ -107,59 +100,6 @@ theorem map_reducedSingularHomologyδ_localOrientationOfOrientedChart_refl {p : 
 
 
 /-! ### The identity chart at the origin and translated charts -/
-
-/-- **The local orientation of an oriented inner product space at the origin** is the one
-selected by the identity chart: Tau Ceti's `Orientation.localOrientation`, defined through a
-linear equivalence with the Euclidean model, agrees with
-`OpenPartialHomeomorph.localOrientationOfOrientedChart` of the identity chart. -/
-theorem _root_.Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl
-    {F : Type w} [NormedAddCommGroup F] [InnerProductSpace ℝ F] {n : ℕ}
-    (ω : Orientation ℝ F (Fin (n + 1))) (hF : finrank ℝ F = n + 1)
-    (h0 : (0 : F) ∈ (OpenPartialHomeomorph.refl F).source) :
-    ω.localOrientation hF =
-      (OpenPartialHomeomorph.refl F).localOrientationOfOrientedChart h0 ω hF := by
-  have := FiniteDimensional.of_finrank_eq_succ hF
-  have hM : finrank ℝ (EuclideanSpace ℝ (ULift.{w} (Fin (n + 1)))) = n + 1 :=
-    finrank_euclideanSpace_ulift_fin (n + 1)
-  -- An oriented isometry `e` of `F` with the Euclidean model, along which both sides are compared
-  -- with the identity chart of the model.
-  let e : F ≃ₗᵢ[ℝ] EuclideanSpace ℝ (ULift.{w} (Fin (n + 1))) :=
-    ((ω.finOrthonormalBasis (Nat.succ_pos n) hF).reindex Equiv.ulift.symm).repr
-  have h₁ := Orientation.localOrientation_map e.toContinuousLinearEquiv ω hF hM
-  rw [Orientation.localOrientation_euclideanSpace] at h₁
-  have h₂ := (OpenPartialHomeomorph.refl F)
-    |>.localOrientationOfOrientedChart_transHomeomorph_linearIsometryEquiv
-    (mem_univ 0) ω hF e hM
-  -- The continuous map underlying `e`, written as `complZeroPairIso_hom` writes it.
-  set eC : C(F, EuclideanSpace ℝ (ULift.{w} (Fin (n + 1)))) :=
-    ((e.toContinuousLinearEquiv : F →L[ℝ] EuclideanSpace ℝ (ULift.{w} (Fin (n + 1)))) :
-      C(F, EuclideanSpace ℝ (ULift.{w} (Fin (n + 1)))))
-  -- Naturality of chart orientations along `e`, at the image `e 0` of the origin, which is the
-  -- origin only up to `map_zero`.
-  have key : ∀ (p : EuclideanSpace ℝ (ULift.{w} (Fin (n + 1))))
-      (hp : p ∈ (OpenPartialHomeomorph.refl _).source) (h : eC ⁻¹' {p} ⊆ {0}),
-      eC 0 = p →
-      localHomologyMap (ModuleCat.of ℤ (ULift.{w} ℤ)) eC h (n + 1)
-        (((OpenPartialHomeomorph.refl F).transHomeomorph
-          e.toHomeomorph).localOrientationOfOrientedChart (by simp)
-          (ω.map (Fin (n + 1)) e.toLinearEquiv) hM).val =
-      ((OpenPartialHomeomorph.refl _).localOrientationOfOrientedChart hp
-        (ω.map (Fin (n + 1)) e.toLinearEquiv) hM).val := by
-    rintro p hp h rfl
-    have h₃ := ((OpenPartialHomeomorph.refl F).transHomeomorph
-      e.toHomeomorph).localHomologyMap_localOrientationOfOrientedChart
-      (ω.map (Fin (n + 1)) e.toLinearEquiv) hM eC (OpenPartialHomeomorph.refl _)
-      (a := 0) (by simp) hp (Filter.Eventually.of_forall fun _ ↦ rfl) h
-    exact h₃
-  have h₄ := key 0 (mem_univ 0) (fun x hx ↦ by simpa [eC] using hx)
-    (by simp [eC])
-  rw [h₂] at h₄
-  apply Subtype.ext
-  apply (ConcreteCategory.bijective_of_isIso (TopPair.singularHomologyMap
-    e.toContinuousLinearEquiv.complZeroPairIso.hom (ModuleCat.of ℤ (ULift.{w} ℤ)) (n + 1))).1
-  rw [← LocalOrientation.coe_map, ← h₁, ContinuousLinearEquiv.complZeroPairIso_hom]
-  rw [← localHomologyMap_def]
-  exact h₄.symm
 
 /-- **Centering a chart at a point.** Fix an orientation `ω` of an inner product space `F` of
 dimension `n + 1`, a chart `φ : M → F`, and a point `z` of the source of `φ`. Restrict the
@@ -230,8 +170,7 @@ theorem localHomologyMap_sub_localOrientationOfOrientedChart
     exact key
   have h₅ := key' 0 (mem_univ 0) (fun y hy ↦ Subtype.ext (hU y.val (mem_univ _)
     (hy.trans (sub_self (φ z)).symm))) (sub_self (φ z))
-  rw [← Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl ω hF (mem_univ 0)]
-    at h₅
+  rw [← Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl ω hF] at h₅
   -- Remove the open set `univ` through its excision isomorphism.
   have h' := (isOpen_univ (X := s)).isOpenEmbedding_subtypeVal
     |>.localHomologyMap_localOrientationEquiv_symm
