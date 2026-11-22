@@ -9,16 +9,20 @@ public import Mathlib.Analysis.InnerProductSpace.Completion
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Chart
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
 public import TauCeti.Analysis.InnerProductSpace.AlternatingForm
+public import TauCeti.Geometry.Manifold.Riemannian.Gradient.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.TopForm
 public import TauCeti.Geometry.Manifold.Riemannian.VolumeDensity.ChangeOfVariables
 public import TauCeti.Geometry.Manifold.Riemannian.VolumeDensity.Volume
 public import TauCeti.Geometry.Manifold.Riemannian.VolumeForm
+import SymplecticGeometry.Analysis.InnerProductSpace.AlternatingForm
 import SymplecticGeometry.Analysis.InnerProductSpace.Comass
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Regularity
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph
 import TauCeti.Analysis.InnerProductSpace.Comass
 import TauCeti.Geometry.Manifold.Riemannian.Codifferential
+import TauCeti.Geometry.Manifold.Riemannian.DivergenceTheorem
 import TauCeti.Geometry.Manifold.Riemannian.FormMetric
 import TauCeti.Geometry.Manifold.Riemannian.VolumeDensity.Support
 import TauCeti.Geometry.Manifold.Riemannian.VolumeForm.Measure
@@ -84,6 +88,12 @@ carries this convergence back to `L2Form o k`.
   `l2Inner_sub_left`, …), with `l2Inner_self_nonneg` and `l2Inner_self_eq_zero_iff`. On a closed
   manifold the Hodge Laplacian is symmetric and nonnegative for it
   (`l2Inner_hodgeLaplacian_eq_l2Inner_hodgeLaplacian`, `l2Inner_hodgeLaplacian_self_nonneg`).
+  On `0`-forms, read as the functions `a = (x ↦ α x 0)`, it is `∫ a b dV`
+  (`l2Inner_zero_eq_integral`, from Tau Ceti's `alternatingFormInner_zero_apply`), and when the
+  model has no boundary, `⟪Δα, β⟫ = ∫ ⟪∇a, ∇b⟫ dV`
+  (`l2Inner_hodgeLaplacian_zero_eq_integral_inner_mgradient`, from Tau Ceti's
+  `SmoothForm.hodgeLaplacian_eq_ofFunction_neg_laplaceBeltrami` and Green's identity
+  `Manifold.integral_mul_laplaceBeltrami`).
 * `SymplecticGeometry.L2Form o k`: the Hilbert space of `L²` `k`-forms, with
   `L2Form.ofSmooth`, `L2Form.inner_ofSmooth`, `L2Form.norm_ofSmooth_sq`,
   `L2Form.ofSmooth_injective`, `L2Form.denseRange_ofSmooth` and `L2Form.induction_on`.
@@ -251,6 +261,13 @@ theorem l2Inner_eq_integral [MeasurableSpace M] [BorelSpace M]
   integralTopForm_smul_riemannianVolumeForm o (continuous_alternatingFormInner α β)
     (HasCompactSupport.of_compactSpace _)
 
+/-- On a compact manifold, the `L²` inner product of two smooth `0`-forms is the integral of the
+product of their underlying functions `x ↦ α x 0` against the Riemannian volume measure. -/
+theorem l2Inner_zero_eq_integral [MeasurableSpace M] [BorelSpace M]
+    (o : Manifold.Orientation I M (Fin m)) (α β : SmoothForm I M ℝ 0) :
+    l2Inner o α β = ∫ x, α.val x 0 * β.val x 0 ∂riemannianVolume I M := by
+  simp only [l2Inner_eq_integral, alternatingFormInner_zero_apply _ _ 0]
+
 /-- The `L²` inner product is additive in its first argument. -/
 theorem l2Inner_add_left (o : Manifold.Orientation I M (Fin m)) (α β γ : SmoothForm I M ℝ k) :
     l2Inner o (α + β) γ = l2Inner o α γ + l2Inner o β γ := by
@@ -317,8 +334,33 @@ theorem l2Inner_hodgeLaplacian_self_nonneg (o : Manifold.Orientation I M (Fin m)
   rw [l2Inner_def]
   exact integralTopForm_inner_hodgeLaplacian_self_nonneg o hkl
     (by simp [compactlySupportedForms_eq_top])
-
 end Laplacian
+
+section DegreeZero
+
+variable [I.Boundaryless] [T2Space M] {l : ℕ}
+
+/-- On a compact oriented Riemannian manifold whose model has no boundary, the `L²` pairing
+`⟪Δa, b⟫` of the Hodge Laplacian of a smooth function `a` with a smooth function `b`, both read
+as `0`-forms, is the Dirichlet integral `∫ ⟪∇a, ∇b⟫ dV`. -/
+theorem l2Inner_hodgeLaplacian_zero_eq_integral_inner_mgradient [MeasurableSpace M]
+    [BorelSpace M] (o : Manifold.Orientation I M (Fin m)) (hl : 0 + l = m)
+    (α β : SmoothForm I M ℝ 0) :
+    l2Inner o (hodgeLaplacian o hl α) β =
+      ∫ x, ⟪Manifold.mgradient I (fun y ↦ α.val y 0) x,
+        Manifold.mgradient I (fun y ↦ β.val y 0) x⟫_ℝ ∂riemannianVolume I M := by
+  -- `Δa = -div grad a` (Tau Ceti), then Green's first identity.
+  have ha := (contMDiff_apply_zero α).of_le (n := ∞) (m := 2) (by simp)
+  have hb := (contMDiff_apply_zero β).of_le (n := ∞) (m := 1) (by simp)
+  have hΔ (x : M) : (hodgeLaplacian o hl α).val x 0 * β.val x 0 =
+      -(β.val x 0 * Manifold.laplaceBeltrami I (fun y ↦ α.val y 0) x) := by
+    rw [hodgeLaplacian_eq_ofFunction_neg_laplaceBeltrami, RoughForm.ofFunction_apply,
+      Pi.neg_apply, neg_mul, mul_comm]
+  simp_rw [l2Inner_zero_eq_integral, hΔ, integral_neg,
+    Manifold.integral_mul_laplaceBeltrami hb (HasCompactSupport.of_compactSpace _) ha, neg_neg,
+    real_inner_comm (Manifold.mgradient I (fun y ↦ α.val y 0) _)]
+
+end DegreeZero
 
 end TauCeti.SmoothForm
 
