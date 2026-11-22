@@ -10,13 +10,20 @@ public import Mathlib.Topology.VectorBundle.Basic
 public import TauCeti.Analysis.Normed.Module.ContinuousInverse
 
 /-!
-# A frame along a map read in a trivialization
+# Transition maps of frames of a vector bundle
+
+For two frames `Φ Φ' : ∀ x, W ≃L[R] V x` of a bundle `V` with model fibre `W`, over any semiring
+`R`, `SymplecticGeometry.Bundle.frameTransition Φ Φ' x : W ≃L[R] W` is the transition map
+`(Φ' x)⁻¹ ∘ Φ x`, in the order of Mathlib's `Bundle.Trivialization.coordChangeL`. It is the
+identity from a frame to itself, transition maps compose, and inverting one swaps the two frames.
 
 Let `E` be a vector bundle over `X` with model fibre `F`, let `f : B → X` be a map and let
 `ψ y : F ≃L[R] E (f y)` be a frame of `E` along `f`. Given a linear trivialization `e` of `E`,
 `Bundle.Trivialization.frameTransition e ψ y : F ≃L[R] F` is the frame `ψ y` followed by the
 fibre equivalence of `e` at `f y`, at the points where `f y` lies in the base set of `e`, and
-the identity elsewhere.
+the identity elsewhere. Over the base set it is the transition map from `ψ` to any frame whose
+value at `y` is the inverse of the fibre equivalence of `e`
+(`Bundle.Trivialization.frameTransition_eq_frameTransition`).
 
 When the frame is continuous, as a map `B × F → TotalSpace F E`, and `F` is finite-dimensional,
 the transition and its inverse are continuous on the preimage of the base set
@@ -36,6 +43,53 @@ public section
 noncomputable section
 
 open Bundle
+
+namespace SymplecticGeometry.Bundle
+
+/-! ### Transition maps between two frames -/
+
+section FrameTransition
+
+variable {R : Type*} [Semiring R] {M W : Type*} [AddCommMonoid W] [Module R W] [TopologicalSpace W]
+  {V : M → Type*} [∀ x, AddCommMonoid (V x)] [∀ x, Module R (V x)] [∀ x, TopologicalSpace (V x)]
+  (Φ Φ' Φ'' : ∀ x, W ≃L[R] V x) (x : M)
+
+/-- The transition map `Φ'ₓ⁻¹ ∘ Φₓ` at the point `x` from a frame `Φ` of a bundle with model fibre
+`W` to a frame `Φ'`. As a map it is in the order of Mathlib's `Trivialization.coordChangeL`. -/
+def frameTransition : W ≃L[R] W :=
+  (Φ x).trans (Φ' x).symm
+
+/-- The transition map is the composite of `Φ x` with the inverse of `Φ' x`. -/
+theorem frameTransition_def : frameTransition Φ Φ' x = (Φ x).trans (Φ' x).symm :=
+  (rfl)
+
+/-- The transition map sends `v` to `Φ'ₓ⁻¹ (Φₓ v)`. -/
+@[simp]
+theorem frameTransition_apply (v : W) : frameTransition Φ Φ' x v = (Φ' x).symm (Φ x v) :=
+  (rfl)
+
+/-- The transition map from a frame to itself is the identity. -/
+@[simp]
+theorem frameTransition_self : frameTransition Φ Φ x = ContinuousLinearEquiv.refl R W := by
+  ext v
+  simp
+
+/-- Transition maps compose: going from `Φ` to `Φ'` and then to `Φ''` is going from `Φ` to
+`Φ''`. -/
+theorem frameTransition_trans :
+    (frameTransition Φ Φ' x).trans (frameTransition Φ' Φ'' x) = frameTransition Φ Φ'' x := by
+  ext v
+  simp
+
+/-- The inverse of the transition map from `Φ` to `Φ'` is the transition map from `Φ'` to `Φ`. -/
+@[simp]
+theorem frameTransition_symm : (frameTransition Φ Φ' x).symm = frameTransition Φ' Φ x := by
+  ext v
+  simp [frameTransition_def, ContinuousLinearEquiv.symm_trans_apply]
+
+end FrameTransition
+
+end SymplecticGeometry.Bundle
 
 namespace Bundle.Trivialization
 
@@ -68,6 +122,15 @@ vector `ψ y v`. -/
 theorem frameTransition_apply_of_mem {y : B} (h : f y ∈ e.baseSet) (v : F) :
     e.frameTransition ψ y v = (e ⟨f y, ψ y v⟩).2 := by
   simp [frameTransition_of_mem h]
+
+/-- Over the base set, the transition of the frame `ψ` in `e` is the transition map from `ψ` to
+any frame `Φ'` along `f` whose value at `y` is the inverse of the fibre equivalence of `e` at
+`f y`. -/
+theorem frameTransition_eq_frameTransition {y : B} (h : f y ∈ e.baseSet)
+    {Φ' : ∀ y, F ≃L[R] E (f y)} (hΦ' : Φ' y = (e.continuousLinearEquivAt R (f y) h).symm) :
+    e.frameTransition ψ y = SymplecticGeometry.Bundle.frameTransition ψ Φ' y := by
+  rw [frameTransition_of_mem h, SymplecticGeometry.Bundle.frameTransition_def, hΦ',
+    ContinuousLinearEquiv.symm_symm]
 
 variable [CompleteSpace R] [TopologicalSpace B] [FiniteDimensional R F]
   (hψ : Continuous fun q : B × F ↦ TotalSpace.mk' F (f q.1) (ψ q.1 q.2))
