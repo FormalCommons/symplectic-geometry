@@ -79,7 +79,7 @@ theorem singularCohomologyValueMap_comp (X : TopCat.{w}) (R : C) (k : Type*) [Ri
   simp [singularCohomologyValueMap, homologyMap_comp]
 
 /-- The change of cochain values commutes with the maps induced by continuous maps. -/
-@[reassoc]
+@[reassoc, elementwise]
 theorem singularCohomologyValueMap_naturality {X Y : TopCat.{w}} (f : X ⟶ Y) (R : C)
     (k : Type*) [Ring k] [Linear k C] (g : M ⟶ M') (n : ℕ) :
     TopCat.singularCohomologyMap f n ≫ X.singularCohomologyValueMap R k g n =
