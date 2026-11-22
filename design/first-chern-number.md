@@ -489,6 +489,25 @@ Bundles from clutching data, and isomorphisms from homotopies.
   discs, where the integral is computed in polar coordinates: $-2\pi k_j$
   for each disc (`TauCeti.integralTopForm_eq_chartIntegral`), so the
   right-hand side is $\sum_j k_j$, the Chern number by the clutching formula.
+- **Which homological orientation.** The statement uses
+  `o.toHomologicalOrientation hn`, not the opposite one that Decision 6 of
+  `design/pseudoholomorphic-energy.md` calls correctly signed ($s=-1$). The
+  sign $s$ compares Tau Ceti's local orientations with the class of a
+  positively oriented singular simplex, so only a comparison through
+  singular chains meets it, such as
+  `integralTopForm_eq_singularHomologyPeriod`. This proof forms no singular
+  chain. The integral is computed in polar coordinates in charts positive
+  for `o`. The Chern number is computed by the clutching formula, whose
+  signs come from Tau Ceti's local indices for `o.toHomologicalOrientation`
+  (`sectionIndex_eq_sign_det_of_hasFDerivAt`, as in
+  `chernNumber_eq_sum_sign_of_transverse`). The discs join the two
+  computations: they are taken as `CoordinateDisc.ofChart` of charts
+  positive for `o`, which are coordinate discs for
+  `o.toHomologicalOrientation`. Check on $S^2$ with the orientation of its
+  complex structure: the Chern number of $TS^2$ for
+  `o.toHomologicalOrientation` is $\chi(S^2)=2$ by the Euler-number
+  milestone, and the integral side is $2$ by the computation in
+  *Conventions*. With the opposite orientation the left side would be $-2$.
 - `exists_isCircleConnectionForm_curvature_eq`: if `M` is connected, every smooth
   real 2-form `σ` with `TauCeti.integralTopForm o σ = -2π * chernNumber
   o.toHomologicalOrientation ℂ L` is the curvature of a
@@ -830,7 +849,9 @@ issues, in an order where each issue's blockers come before it.
    image. The step uses
    `Topology/Sets/Opens/Comap.lean`,
    `TopologicalSpace.Opens.range_val_comp_val_comap`, to read an open set of
-   `M` as one of `U ∪ V`, and `Algebra/Category/ModuleCat/Basic.lean`,
+   `M` as one of `U ∪ V`, and `comap_val_sup_comap_val_eq_top`, for the
+   cover of `U ∪ V` by `U` and `V` so read, and
+   `Algebra/Category/ModuleCat/Basic.lean`,
    `ModuleCat.bijective_zsmul_iff`, for the sign of the connecting square.
    Duality for every open subset of a finite-dimensional real normed space
    `F` is the library's
@@ -1052,13 +1073,23 @@ issues, in an order where each issue's blockers come before it.
      the local orientation of the identity chart of an oriented inner
      product space, through the connecting morphism and radial projection,
      is the oriented generator of the unit sphere.
+   - `Topology/OpenPartialHomeomorph/Basic.lean`, used by
+     `LocalHomology/System.lean` and `Orientation/Chart.lean`: from Tau
+     Ceti's main branch, `OpenPartialHomeomorph.sourceRestrict`, an open
+     partial homeomorphism restricted to its source, and
+     `OpenPartialHomeomorph.mem_refl_source`.
+   - `AlgebraicTopology/Singular/LocalHomology/System.lean`, used by
+     `Orientation/Chart.lean`: from Tau Ceti's main branch,
+     `TauCeti.localHomologyMap_subtypeVal_comp_singularHomologyComplSingletonIsoOfChart_hom`,
+     the local homology isomorphism of a chart is the map induced by its
+     source restriction.
    - `AlgebraicTopology/Singular/LocalHomology/Orientation/Chart.lean`, used
      by `Orientation/Linear.lean`: from Tau Ceti's main branch, which the
      pinned version lags,
      `LinearIsometryEquiv.snd_ofSubsetMap_comp_complSingletonHomotopyEquivSphere`,
      linear isometries commute with radial projection.
    - `AlgebraicTopology/Singular/LocalHomology/Orientation/Linear.lean`, used
-     by `Complex.lean`: from Tau Ceti's main branch,
+     by `Complex.lean` and `EulerNumber.lean`: from Tau Ceti's main branch,
      `Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl`,
      on an inner product space the local orientation that an orientation
      selects is the one of the identity chart.
@@ -1165,7 +1196,8 @@ issues, in an order where each issue's blockers come before it.
 8. **Capping a surface with boundary.**
    `Geometry/Manifold/Gluing/CapDiscs/`, a folder of its own beside Tau
    Ceti's `Geometry/Manifold/Gluing/`, whose gluing it uses, with the
-   glued smooth surface in `Basic.lean`: a compact
+   glued smooth surface in `Basic.lean` and its point-set topology
+   (Hausdorff, compact, connected) in `Topology.lean`: a compact
    oriented surface with boundary, in the representation of *Symplectic
    vector bundles*, with its boundary circles parametrized by
    orientation-reversing loops, glued to discs along them, is a closed
