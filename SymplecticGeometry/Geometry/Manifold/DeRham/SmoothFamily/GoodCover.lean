@@ -66,15 +66,6 @@ open scoped Manifold ContDiff
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
 
-namespace TauCeti.SmoothForm
-
-/-- On an empty manifold there is only one form, the zero form. -/
-instance instSubsingletonOfIsEmpty [IsManifold I 1 M] [IsEmpty M] {F : Type*}
-    [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ} : Subsingleton (SmoothForm I M F k) :=
-  ⟨fun _ _ ↦ SmoothBundleForm.ext fun x ↦ isEmptyElim x⟩
-
-end TauCeti.SmoothForm
-
 namespace SymplecticGeometry
 
 open TauCeti
@@ -208,6 +199,7 @@ theorem contMDiff_repr_mk_of_hasFiniteGoodCover (hM : HasFiniteGoodCover I M) {k
     ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ (fun t ↦ b.repr (deRhamCohomology.mk I k (z t)) i) :=
   hM.nonempty_smoothCohomologySplitting.some.contMDiff_repr_mk b hz i
 
+omit [SigmaCompactSpace M] in
 /-- **De Rham cohomology of a compact manifold is finite-dimensional.** On a compact Hausdorff
 boundaryless manifold, modelled on a finite-dimensional space, the de Rham cohomology is
 finite-dimensional in every degree. -/

@@ -272,16 +272,6 @@ variable {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [Topologic
   {I' : ModelWithCorners ℝ E' H'} {M' : Type*} [TopologicalSpace M'] [ChartedSpace H' M']
   [IsManifold I' ∞ M']
 
-/-- Pulling closed forms back along a smooth map and then applying a map that preserves smooth
-families preserves smooth families. -/
-theorem _root_.SymplecticGeometry.PreservesSmoothFamilies.comp_closedForms_mpullback {k l : ℕ}
-    {S : closedForms I M k →ₗ[ℝ] SmoothForm I' M' ℝ l} (hS : PreservesSmoothFamilies S)
-    (f : M → M') (hf : ContMDiff I I' ∞ f) :
-    PreservesSmoothFamilies (S ∘ₗ closedForms.mpullback f hf k) :=
-  preservesSmoothFamilies_def.mpr fun α hα ↦
-    preservesSmoothFamilies_def.mp hS (fun t ↦ closedForms.mpullback f hf k (α t))
-      (by simpa using hα.mpullback f hf)
-
 variable (Φ : M ≃ₘ⟮I, I'⟯ M') (τ : SmoothCohomologySplitting I' M')
 
 /-- **Transport along a diffeomorphism.** A splitting `τ` of `M'` and a diffeomorphism
@@ -312,24 +302,44 @@ def ofDiffeomorph : SmoothCohomologySplitting I M where
       (by simpa using hex)
     simp only [closedForms.coe_mpullback, SmoothForm.mpullback_symm_mpullback] at h
     rw [τ.eq_zero_of_mem_exactForms k hs h, map_zero]
-  preservesSmoothFamilies_proj k :=
-    ((τ.preservesSmoothFamilies_proj k).mpullback Φ Φ.contMDiff).comp_closedForms_mpullback _ _
-  preservesSmoothFamilies_primitive k :=
-    ((τ.preservesSmoothFamilies_primitive k).mpullback Φ Φ.contMDiff).comp_closedForms_mpullback
-      _ _
+  preservesSmoothFamilies_proj k := by
+    -- `closedForms.mpullback` is the codomain restriction of the pullback of forms, but its
+    -- body is not exposed, so the two are identified through `closedForms.coe_mpullback`.
+    convert ((τ.preservesSmoothFamilies_proj k).mpullback Φ Φ.contMDiff).comp
+      (preservesSmoothFamilies_subtype.mpullback _ Φ.symm.contMDiff)
+      (fun z ↦ by simpa using (closedForms.mpullback Φ.symm Φ.symm.contMDiff k z).property)
+      using 1
+    refine LinearMap.ext fun z ↦ ?_
+    simp only [LinearMap.comp_apply]
+    congr 2
+    ext1
+    simp
+  preservesSmoothFamilies_primitive k := by
+    convert ((τ.preservesSmoothFamilies_primitive k).mpullback Φ Φ.contMDiff).comp
+      (preservesSmoothFamilies_subtype.mpullback _ Φ.symm.contMDiff)
+      (fun z ↦ by simpa using (closedForms.mpullback Φ.symm Φ.symm.contMDiff (k + 1) z).property)
+      using 1
+    refine LinearMap.ext fun z ↦ ?_
+    simp only [LinearMap.comp_apply]
+    congr 2
+    ext1
+    simp
 
 /-- The spaces of `ofDiffeomorph Φ τ` are the pullbacks along `Φ` of those of `τ`. -/
+@[simp]
 theorem space_ofDiffeomorph (k : ℕ) :
     (τ.ofDiffeomorph Φ).space k = (τ.space k).map (SmoothForm.mpullback Φ Φ.contMDiff) :=
   (rfl)
 
 /-- The projection of `ofDiffeomorph Φ τ` is `z ↦ Φ^* (τ.proj k ((Φ⁻¹)^* z))`. -/
+@[simp]
 theorem proj_ofDiffeomorph_apply (k : ℕ) (z : closedForms I M k) :
     (τ.ofDiffeomorph Φ).proj k z = SmoothForm.mpullback Φ Φ.contMDiff
       (τ.proj k (closedForms.mpullback Φ.symm Φ.symm.contMDiff k z)) :=
   (rfl)
 
 /-- The primitive of `ofDiffeomorph Φ τ` is `z ↦ Φ^* (τ.primitive k ((Φ⁻¹)^* z))`. -/
+@[simp]
 theorem primitive_ofDiffeomorph_apply (k : ℕ) (z : closedForms I M (k + 1)) :
     (τ.ofDiffeomorph Φ).primitive k z = SmoothForm.mpullback Φ Φ.contMDiff
       (τ.primitive k (closedForms.mpullback Φ.symm Φ.symm.contMDiff (k + 1) z)) :=
