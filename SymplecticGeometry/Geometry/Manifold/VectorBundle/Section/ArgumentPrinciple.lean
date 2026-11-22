@@ -40,7 +40,7 @@ small regular value of it (Sard's theorem, `TauCeti.dense_isRegularValue`), whos
 with `s` along `C`, this gives a continuous section `t` of `L` over `M` with finitely many zeros,
 all in `{g < 0}` (`SymplecticGeometry.exists_section_eq_finite_setOf_eq_zero`).
 
-The Euler number is the sum of the local indices of `t`
+Adding up the local indices of `t` at its zeros gives the Euler number
 (`TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`). The
 argument principle on `Σ₁`
 (`TauCeti.VectorBundleOrientation.sum_sectionIndex_eq_boundaryDegree`) identifies the sum of the
@@ -293,7 +293,7 @@ theorem evalFundamentalClass_eulerClass_eq_boundaryDegree
   -- A section `t` extending `s`, with finitely many zeros, all in `{g < 0}`.
   obtain ⟨t, ht, ht₂, hZ, hZneg⟩ :=
     SymplecticGeometry.exists_section_eq_finite_setOf_eq_zero hn hg.continuous hτ hs hs0
-  -- The Euler number is the sum of the local indices of `t`.
+  -- Adding up the local indices of `t` at its zeros gives the Euler number.
   rw [evalFundamentalClass_eulerClass_eq_sum_sectionIndex oL hF oM ht hn hZ]
   -- The argument principle on `{g ≤ 0}`, for the frame `τ` and the restriction of `t`.
   have hτo' (x : g ⁻¹' Iic 0) :
