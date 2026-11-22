@@ -6,6 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Dolbeault.DC
+public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 
 /-!
 # Real potentials and `∂∂bar`
@@ -29,6 +31,9 @@ In the namespace `TauCeti.SmoothAlmostComplexStructure`:
 * `del_delBar_mapCoeff_ofReal_of_nijenhuis_eq_zero`,
   `del_delBar_mapCoeff_ofReal_ofComplexManifold`: the same when `N_J = 0`, and on a complex
   manifold.
+* `mpullback_covectorComplexStructure`: `a ↦ -a ∘ J` commutes with pull-back along
+  pseudoholomorphic maps, so a potential `f` of `(1/4) d (J* df)` pulls back to the potential
+  `f ∘ φ` of the pulled-back form.
 
 These follow the pattern of Tau Ceti's `Dolbeault/DC.lean`, whose
 `mextDerivₗ_dC_of_mextDerivₗ_eq_del_add_delBar` (`ddᶜ = 2i ∂∂bar`) they use, with hypotheses
@@ -103,6 +108,28 @@ theorem del_delBar_mapCoeff_ofReal_of_nijenhuis_eq_zero [FiniteDimensional ℝ E
   del_delBar_mapCoeff_ofReal_of_mextDerivₗ_eq_del_add_delBar
     (J.mextDerivₗ_eq_del_add_delBar_of_nijenhuis_eq_zero hJ) f
 
+
+section Pullback
+
+variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M'] [ChartedSpace H' M'] [IsManifold I' ∞ M']
+  {J' : SmoothAlmostComplexStructure I' M'}
+
+/-- The almost complex structure `a ↦ -a ∘ J` on real one-forms is natural for pseudoholomorphic
+maps: if `f` intertwines `J` and `J'`, the pull-back of `J'.covectorComplexStructure a` is
+`J.covectorComplexStructure` of the pull-back of `a`. -/
+theorem mpullback_covectorComplexStructure {f : M → M'} (hf : ContMDiff I I' ∞ f)
+    (hJ : IsPseudoholomorphic J J' f) (a : SmoothForm I' M' ℝ 1) :
+    SmoothForm.mpullback f hf (J'.covectorComplexStructure a) =
+      J.covectorComplexStructure (SmoothForm.mpullback f hf a) := by
+  refine Subtype.ext <| funext fun x ↦ ?_
+  refine sub_eq_zero.1 <| (ContinuousAlternatingMap.eq_zero_iff_forall_apply_fin_one _).2
+    fun v ↦ ?_
+  rw [ContinuousAlternatingMap.sub_apply, sub_eq_zero, SmoothForm.mpullback_apply_one,
+    covectorComplexStructure_apply_vec, covectorComplexStructure_apply_vec,
+    SmoothForm.mpullback_apply_one, (hJ.isPseudoholomorphicAt x).mfderiv_apply_commute]
+
+end Pullback
 end SmoothAlmostComplexStructure
 
 section ComplexManifold

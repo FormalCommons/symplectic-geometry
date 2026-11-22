@@ -38,6 +38,7 @@ target of `Λ`, not only at `x`.
   is. It is the left-hand partner of Tau Ceti's `IsLocalDiffeomorphAt.comp_iff_right`, and
   combines Tau Ceti's `IsLocalDiffeomorphAt.of_comp_left` with Mathlib's
   `IsLocalDiffeomorphAt.comp`.
+* `isLocalDiffeomorph_id`: the identity of a manifold is a local diffeomorphism.
 * `IsLocalDiffeomorphAt.congr_of_eventuallyEq`: being a local diffeomorphism at `x` depends only
   on the germ of the map at `x`.
 * `PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`: a partial diffeomorphism of
@@ -111,6 +112,11 @@ theorem comp_iff_left {F' : Type*} [NormedAddCommGroup F'] [NormedSpace 𝕜 F']
   ⟨fun h ↦ h.of_comp_left hg hf, fun h ↦ h.comp (hg := hg)⟩
 
 end IsLocalDiffeomorphAt
+
+/-- The identity of a manifold is a `C^n` local diffeomorphism. -/
+theorem isLocalDiffeomorph_id : IsLocalDiffeomorph I I n (id : M → M) := by
+  rw [← Diffeomorph.coe_refl I M n]
+  exact Diffeomorph.isLocalDiffeomorph _
 
 /-- A map that agrees near `x` with a local diffeomorphism at `x` is a local diffeomorphism at
 `x`. -/
