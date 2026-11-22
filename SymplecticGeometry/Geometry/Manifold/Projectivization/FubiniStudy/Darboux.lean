@@ -333,8 +333,9 @@ private theorem eval₂_fubiniStudyForm_mfderiv_darbouxChart_symm (j : Fin (n + 
 
 /-- **Darboux charts of the Fubini–Study form.** The Darboux chart `ψ` of `j` pulls the standard
 form back to the Fubini–Study form: at every point `x` of its source `affineOpen j`,
-`ω_FS(v, w) = ω₀(dψ_x v, dψ_x w)` for all tangent vectors `v`, `w`. So `ψ` is a symplectomorphism
-from `(affineOpen j, ω_FS)` onto the open unit ball of `(StdSpace (Fin n), stdForm (Fin n))`. -/
+`ω_FS(v, w) = ω₀(dψ_x v, dψ_x w)` for all tangent vectors `v`, `w`. With
+`fubiniStudyDarbouxChart_target`, this makes `ψ` a symplectomorphism from `(affineOpen j, ω_FS)`
+onto the open unit ball of `(StdSpace (Fin n), stdForm (Fin n))`. -/
 theorem eval₂_fubiniStudyForm_eq_stdForm_mvfderiv_darbouxChart (j : Fin (n + 1))
     {x : ℙ ℂ (Fin (n + 1) → ℂ)} (hx : x ∈ (fubiniStudyDarbouxChart n j).source)
     (v w : TangentSpace 𝓘(ℝ, Fin n → ℂ) x) :
