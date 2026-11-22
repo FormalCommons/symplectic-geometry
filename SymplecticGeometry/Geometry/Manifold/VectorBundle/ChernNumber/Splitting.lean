@@ -294,7 +294,7 @@ theorem chernNumber_eq_boundaryDegree_normalizedDet
       (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryDegree hn
         (isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
         (range_inclusion_preimage_Iio hg.continuous)
-        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0).1 u := by
+        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0) u := by
   let i₁ : C(g ⁻¹' Iic 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
   let i₂ : C(g ⁻¹' Ici 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
   let j₁ : C(↥(sublevelBoundary hg.continuous), g ⁻¹' Iic 0) :=
