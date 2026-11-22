@@ -74,26 +74,57 @@ public section
 
 open scoped Manifold RealInnerProductSpace
 
-/-! ### The trace two-form of the continuous endomorphisms -/
-
 namespace ContinuousLinearMap
 
 variable (V : Type*) [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
+
+/-! ### The trace form of the continuous endomorphisms -/
+
+section TraceForm
+
+/-- The trace form `(P, Q) ↦ ½ tr (P Q)` of `V →L[ℝ] V`, a symmetric continuous bilinear form.
+It is positive definite on the maps that are self-adjoint for an inner product on `V`, but not on
+all of `V →L[ℝ] V`. The metric of the manifold of compatible complex structures is its pull-back
+(`TauCeti.SymplecticForm.inner_compatibleSpace_eq_traceForm`). -/
+noncomputable def traceForm : (V →L[ℝ] V) →L[ℝ] (V →L[ℝ] V) →L[ℝ] ℝ :=
+  (2⁻¹ : ℝ) • (ContinuousLinearMap.compL ℝ (V →L[ℝ] V) (V →L[ℝ] V) ℝ (TauCeti.traceCLM ℝ V) ∘L
+    ContinuousLinearMap.mul ℝ (V →L[ℝ] V))
+
+variable {V}
+
+theorem traceForm_def :
+    traceForm V = (2⁻¹ : ℝ) • (ContinuousLinearMap.compL ℝ (V →L[ℝ] V) (V →L[ℝ] V) ℝ
+      (TauCeti.traceCLM ℝ V) ∘L ContinuousLinearMap.mul ℝ (V →L[ℝ] V)) :=
+  (rfl)
+
+/-- The trace form at `(P, Q)` is `½ tr (P Q)`. -/
+theorem traceForm_apply (P Q : V →L[ℝ] V) :
+    traceForm V P Q = 2⁻¹ * LinearMap.trace ℝ V ↑(P ∘L Q) := by
+  simp [traceForm_def, ContinuousLinearMap.mul_def]
+
+/-- The trace form is symmetric. -/
+theorem traceForm_comm (P Q : V →L[ℝ] V) : traceForm V P Q = traceForm V Q P := by
+  simp only [traceForm_def, smul_apply, comp_apply, compL_apply, mul_apply', mul_def]
+  rw [traceCLM_comp_comm P Q]
+
+end TraceForm
+
+/-! ### The trace two-form of the continuous endomorphisms -/
 
 /-- The value of `traceTwoForm` at `A`, as a continuous linear function of `A`: the alternating
 form `(X, Y) ↦ ¼ (tr (X A Y) - tr (Y A X))`. -/
 noncomputable def traceTwoFormCLM :
     (V →L[ℝ] V) →L[ℝ] (V →L[ℝ] V) [⋀^Fin 2]→L[ℝ] ℝ :=
-  (4⁻¹ : ℝ) • (TauCeti.ContinuousAlternatingMap.alternatizeBilinCLM ℝ (V →L[ℝ] V) ℝ ∘L
-    ContinuousLinearMap.compL ℝ (V →L[ℝ] V) (V →L[ℝ] V) ((V →L[ℝ] V) →L[ℝ] ℝ)
-      (ContinuousLinearMap.compL ℝ (V →L[ℝ] V) (V →L[ℝ] V) ℝ (TauCeti.traceCLM ℝ V) ∘L
-        ContinuousLinearMap.mul ℝ (V →L[ℝ] V)) ∘L
+  (2⁻¹ : ℝ) • (TauCeti.ContinuousAlternatingMap.alternatizeBilinCLM ℝ (V →L[ℝ] V) ℝ ∘L
+    ContinuousLinearMap.compL ℝ (V →L[ℝ] V) (V →L[ℝ] V) ((V →L[ℝ] V) →L[ℝ] ℝ) (traceForm V) ∘L
     (ContinuousLinearMap.mul ℝ (V →L[ℝ] V)).flip)
 
 theorem traceTwoFormCLM_apply (A : V →L[ℝ] V) (v : Fin 2 → V →L[ℝ] V) :
     traceTwoFormCLM V A v = 4⁻¹ * (LinearMap.trace ℝ V ↑(v 0 * A * v 1) -
       LinearMap.trace ℝ V ↑(v 1 * A * v 0)) := by
-  simp [traceTwoFormCLM]
+  simp [traceTwoFormCLM, TauCeti.ContinuousAlternatingMap.alternatizeBilinCLM_apply,
+    traceForm_apply, mul_def]
+  ring
 
 /-- The two-form of `V →L[ℝ] V` whose value at `A` is
 `(X, Y) ↦ ¼ (tr (X A Y) - tr (Y A X))`. Its pull-back to the manifold of compatible complex
@@ -147,32 +178,6 @@ theorem traceTwoForm_conj (Ψ : V ≃L[ℝ] V) (A X Y : V →L[ℝ] V) :
       simp
     rw [h, ← TauCeti.traceCLM_apply, ← TauCeti.traceCLM_apply, Ψ.traceCLM_comp_comp_symm]
   rw [traceTwoForm_apply, traceTwoForm_apply, hm, hm, hc, hc]
-
-/-! ### The trace form of the continuous endomorphisms -/
-
-variable (V) in
-/-- The trace form `(P, Q) ↦ ½ tr (P Q)` of `V →L[ℝ] V`, a symmetric continuous bilinear form.
-It is positive definite on the maps that are self-adjoint for an inner product on `V`, but not on
-all of `V →L[ℝ] V`. The metric of the manifold of compatible complex structures is its pull-back
-(`TauCeti.SymplecticForm.inner_compatibleSpace_eq_traceForm`). -/
-noncomputable def traceForm : (V →L[ℝ] V) →L[ℝ] (V →L[ℝ] V) →L[ℝ] ℝ :=
-  (2⁻¹ : ℝ) • (ContinuousLinearMap.compL ℝ (V →L[ℝ] V) (V →L[ℝ] V) ℝ (TauCeti.traceCLM ℝ V) ∘L
-    ContinuousLinearMap.mul ℝ (V →L[ℝ] V))
-
-theorem traceForm_def :
-    traceForm V = (2⁻¹ : ℝ) • (ContinuousLinearMap.compL ℝ (V →L[ℝ] V) (V →L[ℝ] V) ℝ
-      (TauCeti.traceCLM ℝ V) ∘L ContinuousLinearMap.mul ℝ (V →L[ℝ] V)) :=
-  (rfl)
-
-/-- The trace form at `(P, Q)` is `½ tr (P Q)`. -/
-theorem traceForm_apply (P Q : V →L[ℝ] V) :
-    traceForm V P Q = 2⁻¹ * LinearMap.trace ℝ V ↑(P ∘L Q) := by
-  simp [traceForm_def, ContinuousLinearMap.mul_def]
-
-/-- The trace form is symmetric. -/
-theorem traceForm_comm (P Q : V →L[ℝ] V) : traceForm V P Q = traceForm V Q P := by
-  simp only [traceForm_def, smul_apply, comp_apply, compL_apply, mul_apply', mul_def]
-  rw [traceCLM_comp_comm P Q]
 
 end ContinuousLinearMap
 
