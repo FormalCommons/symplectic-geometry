@@ -24,7 +24,9 @@ The proof of `TauCeti.isImmersion_comp_diffeomorph_of_boundaryless` follows that
 `Diffeomorph.isImmersion_comp`, which composes on the other side, with Tau Ceti's
 `Diffeomorph.mfderiv_comp_diffeomorph_injective_iff` in place of the chain rule. The
 bundled `TauCeti.SmoothEmbedding.compDiffeomorphOfBoundaryless` and its lemmas follow Tau Ceti's
-`TauCeti.SmoothEmbedding.compDiffeomorph` and its lemmas.
+`TauCeti.SmoothEmbedding.compDiffeomorph` and its lemmas; its differential and the range of that
+differential come from Tau Ceti's `Diffeomorph.mfderiv_comp_diffeomorph` and
+`Diffeomorph.range_mfderiv_comp_diffeomorph`.
 
 ## Main results
 
@@ -110,6 +112,25 @@ theorem range_compDiffeomorphOfBoundaryless (f : SmoothEmbedding I J n M N)
     range (f.compDiffeomorphOfBoundaryless e hn) = range f := by
   rw [coe_compDiffeomorphOfBoundaryless]
   exact (EquivLike.surjective e).range_comp _
+
+/-- **Chain rule for reparametrisation across two models.** The differential of
+`f.compDiffeomorphOfBoundaryless e hn` at `x` is that of `f` at `e x` after that of `e` at `x`. -/
+theorem mfderiv_compDiffeomorphOfBoundaryless (f : SmoothEmbedding I J n M N)
+    (e : M' ≃ₘ^n⟮I', I⟯ M) (hn : 1 ≤ n) (x : M') :
+    mfderiv I' J (f.compDiffeomorphOfBoundaryless e hn) x =
+      (mfderiv I J f (e x)).comp (mfderiv I' I e x) := by
+  rw [coe_compDiffeomorphOfBoundaryless]
+  exact e.mfderiv_comp_diffeomorph (by rintro rfl; simp at hn) f x
+
+/-- Reparametrisation across two models does not move the tangent image: the range of the
+differential of `f.compDiffeomorphOfBoundaryless e hn` at `x` is that of the differential of `f`
+at `e x`. -/
+theorem range_mfderiv_compDiffeomorphOfBoundaryless (f : SmoothEmbedding I J n M N)
+    (e : M' ≃ₘ^n⟮I', I⟯ M) (hn : 1 ≤ n) (x : M') :
+    (mfderiv I' J (f.compDiffeomorphOfBoundaryless e hn) x).range =
+      (mfderiv I J f (e x)).range := by
+  rw [coe_compDiffeomorphOfBoundaryless]
+  exact e.range_mfderiv_comp_diffeomorph (by rintro rfl; simp at hn) f x
 
 /-- On a single boundaryless model, reparametrisation across two models is Tau Ceti's
 `SmoothEmbedding.compDiffeomorph`. -/

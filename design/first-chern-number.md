@@ -870,6 +870,20 @@ issues, in an order where each issue's blockers come before it.
    induction is `InfClosed.finset_sup_induction`, in `Order/SupClosed.lean`,
    Tau Ceti's `TauCeti.finset_sup_of_inf_closed` for a finite set of members
    of the family.
+   Duality for a manifold is the library's
+   `AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`:
+   `TauCeti.HomologicalOrientation.bijective_dualityMap`, for every
+   homologically oriented manifold, compact or not, and for compact `M` its
+   form for capping with the fundamental class,
+   `bijective_singularCap_fundamentalClass`. It imports
+   `AlgebraicTopology/Cohomology/CompactSupport/Manifold.lean`, which proves
+   `TopCat.isZero_compactSupportCohomology_of_chartedSpace`, `Hᵐ_c(M) = 0`
+   above the dimension, which the Mayer–Vietoris step needs for the
+   intersections. Both run the induction above over the open sets lying in
+   one chart instead of those with convex image; that family comes from
+   `Geometry/Manifold/ChartedSpace.lean`:
+   `TopologicalSpace.Opens.infClosed_setOf_subset_chartAt_source` and
+   `TopologicalSpace.Opens.iSup_finset_sup_subset_chartAt_source_eq_top`.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a
