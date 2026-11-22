@@ -738,9 +738,8 @@ theorem contMDiffOn_totalSpaceMk_symm_trans {F₂ : Type*} [NormedAddCommGroup F
       (TotalSpace.proj ⁻¹' U) := by
   intro p hp
   -- The fibre `F` is `W` through the frame and the trivialization at `p.proj`.
-  have : FiniteDimensional ℝ F := LinearEquiv.finiteDimensional ((Φ p.proj).trans
-    ((trivializationAt F V p.proj).continuousLinearEquivAt ℝ p.proj
-      (FiberBundle.mem_baseSet_trivializationAt' p.proj))).toLinearEquiv
+  have : FiniteDimensional ℝ F :=
+    ((Φ p.proj).trans (VectorBundle.continuousLinearEquivAt ℝ F V p.proj)).finiteDimensional
   have hΦx := (contMDiffAt_hom_trivial_iff (fun y ↦ (Φ y : W →L[ℝ] V y)) p.proj).2 fun v ↦
     hΦ.contMDiffAt ((hU.prod isOpen_univ).mem_nhds ⟨hp, Set.mem_univ v⟩)
   have hΨx := (contMDiffAt_hom_trivial_iff (fun y ↦ (Ψ y : W →L[ℝ] V₂ y)) p.proj).2 fun v ↦
@@ -906,9 +905,8 @@ theorem exists_pushforward_eq_of_frameTransition_eq
         (fun p : TotalSpace F V ↦ TotalSpace.mk' F₂ p.proj (Ψ p.proj p.snd))
         (TotalSpace.proj ⁻¹' U₀) := fun p hp ↦ by
     -- The model fibre `W` is `F` through the frame and the trivialization at `p.proj`.
-    have : FiniteDimensional ℝ W := LinearEquiv.finiteDimensional ((A p.proj).trans
-      ((trivializationAt F V p.proj).continuousLinearEquivAt ℝ p.proj
-        (FiberBundle.mem_baseSet_trivializationAt' p.proj))).toLinearEquiv.symm
+    have : FiniteDimensional ℝ W :=
+      ((A p.proj).trans (VectorBundle.continuousLinearEquivAt ℝ F V p.proj)).symm.finiteDimensional
     exact ((Bundle.contMDiffOn_totalSpaceMk_symm_trans hA.contMDiffOn hB.contMDiffOn hU₀).congr
       fun q hq ↦ by rw [hΨ₀ _ hq]) p hp
   have hΨ : ContMDiff (I.prod 𝓘(ℝ, F)) (I.prod 𝓘(ℝ, F₂)) n
