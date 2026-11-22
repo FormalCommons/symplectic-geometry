@@ -132,13 +132,13 @@ theorem integralTopForm_mpullback_ofChart (he' : e ∈ IsManifold.maximalAtlas (
     (isOrientationPreservingAt_ofChart e hr hc he he') hf
 
 include hc he in
-/-- **The integral of a model curvature form in a coordinate disc.** Let `β` be smooth, `0` on
+/-- **The integral of a model curvature form in a coordinate disc.** Let `β` be `C¹`, `0` on
 `(-∞, a]` and `1` on `[b, ∞)`, with `0 < a` and `b < 2`. Let `f` be a `2`-form on `M` supported in
 the image of the coordinate disc `φ = ofChart e hr hc he` of a smooth chart `e` that preserves
 orientation on its source, such that `φ^* f = k • d(β(‖z‖) dθ)` on the ball of radius `2`. Then
 `∫_M f = 2πk`. -/
 theorem integralTopForm_eq_of_mpullback_ofChart_eq
-    (he' : e ∈ IsManifold.maximalAtlas (𝓡 2) 1 M) {β : ℝ → ℝ} {a b : ℝ} (hβ : ContDiff ℝ ∞ β)
+    (he' : e ∈ IsManifold.maximalAtlas (𝓡 2) 1 M) {β : ℝ → ℝ} {a b : ℝ} (hβ : ContDiff ℝ 1 β)
     (ha : 0 < a) (hb : b < 2) (hβa : ∀ t ≤ a, β t = 0) (hβb : ∀ t ≥ b, β t = 1)
     {f : RoughForm (𝓡 2) M ℝ 2}
     (hf : _root_.tsupport (α := EuclideanSpace ℝ (Fin 2) [⋀^Fin 2]→L[ℝ] ℝ) f ⊆

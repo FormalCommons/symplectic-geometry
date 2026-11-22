@@ -8,7 +8,8 @@ module
 public import TauCeti.Geometry.Manifold.DeRham.Circle
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
 public import Mathlib.LinearAlgebra.Complex.Orientation
-import Mathlib.Analysis.InnerProductSpace.Calculus
+import SymplecticGeometry.Analysis.Calculus.Deriv.EventuallyConst
+import TauCeti.Analysis.InnerProductSpace.NormPow
 import Mathlib.MeasureTheory.Constructions.HaarToSphere
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
@@ -19,8 +20,8 @@ import TauCeti.MeasureTheory.Measure.Haar.OfBasis
 
 For a function `β : ℝ → ℝ`, the `1`-form `β(‖z‖) dθ` on the plane `ℂ`, where
 `dθ = ‖z‖⁻² (x dy - y dx)` is the angular form of the punctured plane, is
-`SymplecticGeometry.radialAngularForm β`. If `β` is smooth and vanishes on `(-∞, a]` for some
-`a > 0`, the form is smooth on all of `ℂ`. Its exterior derivative is
+`SymplecticGeometry.radialAngularForm β`. If `β` is `C^n` and vanishes on `(-∞, a]` for some
+`a > 0`, the form is `C^n` on all of `ℂ`. Its exterior derivative is
 `β'(r) dr ∧ dθ = β'(‖z‖) / ‖z‖ · dx ∧ dy`. If moreover `β = 1` on `[b, ∞)`, this `2`-form is
 supported in the closed annulus `a ≤ ‖z‖ ≤ b`, and its integral over `ℂ`, for the standard
 orientation in which `(1, i)` is positive, is `2π ∫ β' = 2π`.
@@ -40,21 +41,22 @@ indexed by `Fin (2 * finrank ℂ ℂ)`, which is not `Fin 2` by definition, so i
 ## Main declarations
 
 * `SymplecticGeometry.radialAngularForm β`: the `1`-form `β(‖z‖) dθ` on `ℂ`.
-* `SymplecticGeometry.isSmoothForm_radialAngularForm`: it is smooth when `β` is and vanishes near
+* `SymplecticGeometry.isSmoothForm_radialAngularForm`: it is `C^n` when `β` is and vanishes near
   `0`.
-* `SymplecticGeometry.mextDeriv_radialAngularForm_apply`: `d(β(‖z‖) dθ) = β'(‖z‖)/‖z‖ dx ∧ dy`.
+* `SymplecticGeometry.mextDeriv_radialAngularForm_apply_of_ne_zero`: away from the origin,
+  `d(β(‖z‖) dθ) = β'(‖z‖)/‖z‖ dx ∧ dy` for any `β` differentiable at `‖z‖`.
+* `SymplecticGeometry.mextDeriv_radialAngularForm_apply`: the same on all of `ℂ` when `β` vanishes
+  near `0`.
 * `SymplecticGeometry.tsupport_mextDeriv_radialAngularForm_subset`: its exterior derivative is
   supported in the annulus `a ≤ ‖z‖ ≤ b`.
 * `SymplecticGeometry.integralTopForm_mextDeriv_radialAngularForm`: `∫_ℂ d(β(‖z‖) dθ) = 2π`.
-* `deriv_eq_zero_of_notMem_Icc`: a function constant on `(-∞, a]` and on `[b, ∞)` has derivative
-  zero outside `[a, b]`.
 
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
   §2.7 (the first Chern number as the integral of a curvature form).
-* R. Bott and L. W. Tu, *Differential Forms in Algebraic Topology*, GTM 82, Springer, 1982,
-  §6 (the angular form and the global angular form of a circle bundle).
+* [R. Bott, L. W. Tu, *Differential Forms in Algebraic Topology*][BottTu1982], §6 (the angular
+  form and the global angular form of a circle bundle).
 -/
 
 public section
@@ -102,53 +104,61 @@ private theorem contDiff_planeAngularForm :
     ContDiff ℝ (E := ℂ) (F := ℂ [⋀^Fin 1]→L[ℝ] ℝ) ∞ planeAngularForm :=
   isSmoothForm_modelSpace_iff.1 isSmoothForm_planeAngularForm
 
-/-- **Smoothness of `β(‖z‖) dθ`.** If `β` is smooth and vanishes on `(-∞, a]` with `a > 0`, the
-form `β(‖z‖) dθ` is smooth on all of `ℂ`. -/
-theorem isSmoothForm_radialAngularForm (hβ : ContDiff ℝ ∞ β) (ha : 0 < a)
-    (hβa : ∀ t ≤ a, β t = 0) : IsSmoothForm 𝓘(ℝ, ℂ) ∞ (radialAngularForm β) := by
+/-- **Smoothness of `β(‖z‖) dθ`.** If `β` is `C^n` and vanishes on `(-∞, a]` with `a > 0`, the
+form `β(‖z‖) dθ` is `C^n` on all of `ℂ`. -/
+theorem isSmoothForm_radialAngularForm {n : WithTop ℕ∞} (hn : n ≤ ∞) (hβ : ContDiff ℝ n β)
+    (ha : 0 < a) (hβa : ∀ t ≤ a, β t = 0) : IsSmoothForm 𝓘(ℝ, ℂ) n (radialAngularForm β) := by
   rw [isSmoothForm_modelSpace_iff]
   refine contDiff_iff_contDiffAt.2 fun z ↦ ?_
   rcases eq_or_ne z 0 with rfl | hz
   · exact contDiffAt_const.congr_of_eventuallyEq (radialAngularForm_eventuallyEq_zero ha hβa)
   · rw [radialAngularForm_def]
-    exact ((hβ.contDiffAt.comp z (contDiffAt_norm ℝ hz)).div ((contDiffAt_norm ℝ hz).pow 2)
-      (by positivity)).smul contDiff_planeAngularForm.contDiffAt
+    exact ((hβ.contDiffAt.comp z ((contDiffAt_norm ℝ hz).of_le hn)).div
+      (((contDiffAt_norm ℝ hz).of_le hn).pow 2) (by positivity)).smul
+      (contDiff_planeAngularForm.of_le hn).contDiffAt
 
-/-- The exterior derivative of `β(‖z‖) dθ` at a point `z ≠ 0` where `β` is differentiable at
-`‖z‖`. -/
-private theorem mextDeriv_radialAngularForm_apply_of_ne_zero {z : ℂ} (hz : z ≠ 0)
+/-- The derivative at `z ≠ 0` of the coefficient `y ↦ β ‖y‖ / ‖y‖ ^ 2` of `β(‖y‖) dθ`, for `β`
+differentiable at `‖z‖`. -/
+private theorem hasFDerivAt_radialCoeff {z : ℂ} (hz : z ≠ 0) (hβ : DifferentiableAt ℝ β ‖z‖) :
+    HasFDerivAt (fun y : ℂ ↦ β ‖y‖ / ‖y‖ ^ 2)
+      (((deriv β ‖z‖ * ‖z‖ ^ 2 - β ‖z‖ * (2 * ‖z‖)) / (‖z‖ ^ 2) ^ 2) • ‖z‖⁻¹ • innerSL ℝ z)
+      z := by
+  have h := (hβ.hasDerivAt.div (hasDerivAt_pow 2 ‖z‖)
+    (pow_ne_zero 2 (norm_ne_zero_iff.2 hz))).comp_hasFDerivAt z (hasFDerivAt_norm_of_ne hz)
+  exact h.congr_fderiv (by simp)
+
+/-- The derivative at `z ≠ 0` of the coefficient `y ↦ β(‖y‖) dθ_y(w)` of `β(‖y‖) dθ` on a fixed
+vector `w`, for `β` differentiable at `‖z‖`. -/
+private theorem hasFDerivAt_radialAngularForm_apply {z : ℂ} (hz : z ≠ 0)
+    (hβ : DifferentiableAt ℝ β ‖z‖) (w : ℂ) :
+    HasFDerivAt (fun y : ℂ ↦ radialAngularForm β y ![w])
+      ((β ‖z‖ / ‖z‖ ^ 2) • (w.im • Complex.reCLM - w.re • Complex.imCLM) +
+        (z.re * w.im - z.im * w.re) •
+          ((deriv β ‖z‖ * ‖z‖ ^ 2 - β ‖z‖ * (2 * ‖z‖)) / (‖z‖ ^ 2) ^ 2) •
+            ‖z‖⁻¹ • innerSL ℝ z) z := by
+  have hl : HasFDerivAt (fun y : ℂ ↦ y.re * w.im - y.im * w.re)
+      (w.im • Complex.reCLM - w.re • Complex.imCLM) z := by
+    convert (Complex.reCLM.hasFDerivAt (x := z) |>.mul_const w.im).sub
+      (Complex.imCLM.hasFDerivAt.mul_const w.re) using 1
+    ext
+    simp [mul_comm]
+  have he : (fun y : ℂ ↦ radialAngularForm β y ![w]) =
+      fun y ↦ β ‖y‖ / ‖y‖ ^ 2 * (y.re * w.im - y.im * w.re) :=
+    funext fun y ↦ radialAngularForm_apply β y ![w]
+  rw [he]
+  exact (hasFDerivAt_radialCoeff hz hβ).mul hl
+
+/-- **The exterior derivative of `β(‖z‖) dθ` away from the origin.** At a point `z ≠ 0` where
+`β` is differentiable at `‖z‖`, the exterior derivative of `β(‖z‖) dθ` is
+`β'(‖z‖) / ‖z‖ dx ∧ dy`. -/
+theorem mextDeriv_radialAngularForm_apply_of_ne_zero {z : ℂ} (hz : z ≠ 0)
     (hβ : DifferentiableAt ℝ β ‖z‖) (v : Fin 2 → ℂ) :
     mextDeriv (radialAngularForm β) z v =
       deriv β ‖z‖ / ‖z‖ * ((v 0).re * (v 1).im - (v 0).im * (v 1).re) := by
-  have hr : ‖z‖ ≠ 0 := norm_ne_zero_iff.2 hz
-  -- The norm is differentiable away from `0`, with derivative `‖z‖⁻¹ ⟪z, ·⟫`.
-  have hn : HasFDerivAt (fun y : ℂ ↦ ‖y‖) (‖z‖⁻¹ • innerSL ℝ z) z := by
-    have h := (hasStrictFDerivAt_norm_sq z).hasFDerivAt.sqrt (by positivity)
-    simp only [Real.sqrt_sq (norm_nonneg _)] at h
-    convert h using 1
-    ext v
-    simp
-    field_simp
-  have hg := (hβ.hasDerivAt.div (hasDerivAt_pow 2 ‖z‖) (pow_ne_zero 2 hr)).comp_hasFDerivAt z hn
-  set c := (deriv β ‖z‖ * ‖z‖ ^ 2 - β ‖z‖ * (↑2 * ‖z‖ ^ (2 - 1))) / (‖z‖ ^ 2) ^ 2
-  -- The derivative of the coefficient of the form on a fixed vector `w`.
-  have hw (w : ℂ) : HasFDerivAt (fun y : ℂ ↦ radialAngularForm β y ![w])
-      ((β ‖z‖ / ‖z‖ ^ 2) • (w.im • Complex.reCLM - w.re • Complex.imCLM) +
-        (z.re * w.im - z.im * w.re) • c • ‖z‖⁻¹ • innerSL ℝ z) z := by
-    have hl : HasFDerivAt (fun y : ℂ ↦ y.re * w.im - y.im * w.re)
-        (w.im • Complex.reCLM - w.re • Complex.imCLM) z := by
-      convert (Complex.reCLM.hasFDerivAt (x := z) |>.mul_const w.im).sub
-        (Complex.imCLM.hasFDerivAt.mul_const w.re) using 1
-      ext
-      simp [mul_comm]
-    have he : (fun y : ℂ ↦ radialAngularForm β y ![w]) =
-        fun y ↦ β ‖y‖ / ‖y‖ ^ 2 * (y.re * w.im - y.im * w.re) :=
-      funext fun y ↦ radialAngularForm_apply β y ![w]
-    rw [he]
-    exact hg.mul hl
   have hd : DifferentiableAt ℝ (E := ℂ) (F := ℂ [⋀^Fin 1]→L[ℝ] ℝ) (radialAngularForm β) z := by
     rw [radialAngularForm_def]
-    exact hg.differentiableAt.smul (contDiff_planeAngularForm.differentiable (by simp) z)
+    exact (hasFDerivAt_radialCoeff hz hβ).differentiableAt.smul
+      (contDiff_planeAngularForm.differentiable (by simp) z)
   have e0 : Fin.removeNth 0 v = ![v 1] := by
     ext i
     fin_cases i
@@ -159,17 +169,14 @@ private theorem mextDeriv_radialAngularForm_apply_of_ne_zero {z : ℂ} (hz : z �
     rfl
   rw [mextDeriv_eq_extDeriv]
   refine (extDeriv_apply hd v).trans ?_
-  rw [Fin.sum_univ_two]
-  simp only [e0, e1]
+  rw [Fin.sum_univ_two, e0, e1]
   -- The coefficient functions are stated on `ℂ`, the form on the tangent spaces of `ℂ`.
-  erw [(hw (v 1)).fderiv, (hw (v 0)).fderiv]
-  simp only [Int.reduceNeg, Nat.reduceAdd, Fin.isValue, Fin.coe_ofNat_eq_mod, Nat.zero_mod,
-    pow_zero, Nat.add_one_sub_one, pow_one, add_apply,
-    smul_apply, sub_apply, Complex.reCLM_apply, smul_eq_mul,
-    Complex.imCLM_apply, coe_innerSL_apply, Complex.inner, Complex.mul_re, Complex.conj_re,
-    Complex.conj_im, mul_neg, sub_neg_eq_add, smul_add, one_smul, Nat.mod_succ, neg_smul, c]
+  erw [(hasFDerivAt_radialAngularForm_apply hz hβ (v 1)).fderiv,
+    (hasFDerivAt_radialAngularForm_apply hz hβ (v 0)).fderiv]
+  have hr : ‖z‖ ≠ 0 := norm_ne_zero_iff.2 hz
   have hn2 : ‖z‖ ^ 2 = z.re * z.re + z.im * z.im := by
     rw [← Complex.normSq_apply, Complex.normSq_eq_norm_sq]
+  simp [Complex.inner]
   field_simp
   linear_combination (2 * β ‖z‖ - ‖z‖ * deriv β ‖z‖) *
     ((v 1).im * (v 0).re - (v 1).re * (v 0).im) * hn2
@@ -188,19 +195,6 @@ theorem mextDeriv_radialAngularForm_apply (hβ : Differentiable ℝ β) (ha : 0 
     -- The zero alternating map, applied to vectors of the tangent space of `ℂ` at `0`.
     rfl
   · exact mextDeriv_radialAngularForm_apply_of_ne_zero hz (hβ _) v
-
-/-- A function of a real variable that is constant on `(-∞, a]` and on `[b, ∞)` has derivative
-zero outside `[a, b]`. -/
-theorem _root_.deriv_eq_zero_of_notMem_Icc {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
-    {f : ℝ → F} {u w : F} (hfa : ∀ t ≤ a, f t = u) (hfb : ∀ t ≥ b, f t = w) {t : ℝ}
-    (ht : t ∉ Icc a b) : deriv f t = 0 := by
-  rcases not_and_or.1 ht with h | h
-  · have : f =ᶠ[𝓝 t] fun _ ↦ u :=
-      (eventually_lt_nhds (not_le.1 h)).mono fun s hs ↦ hfa s hs.le
-    rw [this.deriv_eq, deriv_const]
-  · have : f =ᶠ[𝓝 t] fun _ ↦ w :=
-      (eventually_gt_nhds (not_le.1 h)).mono fun s hs ↦ hfb s hs.le
-    rw [this.deriv_eq, deriv_const]
 
 /-- **Support of `d(β(‖z‖) dθ)`.** If `β` is differentiable, `0` on `(-∞, a]` and `1` on
 `[b, ∞)`, with `a > 0`, the exterior derivative of `β(‖z‖) dθ` is supported in the closed
@@ -224,10 +218,10 @@ private theorem mextDeriv_radialAngularForm_basisOneI (hβ : Differentiable ℝ 
   rw [mextDeriv_radialAngularForm_apply hβ ha hβa]
   simp
 
-/-- **The integral of `d(β(‖z‖) dθ)`.** If `β` is smooth, `0` on `(-∞, a]` and `1` on `[b, ∞)`,
+/-- **The integral of `d(β(‖z‖) dθ)`.** If `β` is `C¹`, `0` on `(-∞, a]` and `1` on `[b, ∞)`,
 with `0 < a`, then the integral of `d(β(‖z‖) dθ)` over `ℂ`, for the standard orientation in which
 `(1, i)` is positive, is `2π`. -/
-theorem integralTopForm_mextDeriv_radialAngularForm (hβ : ContDiff ℝ ∞ β) (ha : 0 < a)
+theorem integralTopForm_mextDeriv_radialAngularForm (hβ : ContDiff ℝ 1 β) (ha : 0 < a)
     (hβa : ∀ t ≤ a, β t = 0) (hβb : ∀ t ≥ b, β t = 1) :
     integralTopForm (Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp))
       (mextDeriv (radialAngularForm β)) = 2 * π := by
@@ -239,7 +233,7 @@ theorem integralTopForm_mextDeriv_radialAngularForm (hβ : ContDiff ℝ ∞ β) 
     exact one_ne_zero this
   -- The form is smooth with compact support, hence integrable.
   have hint : IntegrableTopForm (mextDeriv (radialAngularForm β)) :=
-    (isSmoothForm_mextDeriv (isSmoothForm_radialAngularForm hβ ha hβa) (n := 0)
+    (isSmoothForm_mextDeriv (isSmoothForm_radialAngularForm (by simp) hβ ha hβa) (n := 0)
       (by simp)).integrableTopForm
       ((isCompact_closedBall (0 : ℂ) b).of_isClosed_subset (isClosed_tsupport _)
         ((tsupport_mextDeriv_radialAngularForm_subset hβd ha hβa hβb).trans
