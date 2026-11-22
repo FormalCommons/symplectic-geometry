@@ -589,19 +589,12 @@ theorem bijective_singularCapLinearMap_fundamentalClass [CompactSpace M] {p q : 
     (h : p + q = n) :
     Function.Bijective ((TopCat.of M).singularCapLinearMap ℚ h
       ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn))) := by
-  have hbij := o.bijective_dualityMap hn (ModuleCat.of ℤ ℚ) h
-  refine ⟨fun α β hαβ ↦ ?_, fun y ↦ ?_⟩
-  · exact (ConcreteCategory.bijective_of_isIso ((TopCat.of M).singularCohomologyRatIso p).hom).1
-      ((ConcreteCategory.bijective_of_isIso
-        (TopCat.compactSupportCohomologyIsoOfCompactSpace p).inv).1
-          (hbij.1 (by simp only [← o.singularHomologyRatIso_hom_singularCapLinearMap hn h, hαβ])))
-  obtain ⟨c, hc⟩ := hbij.2 (((TopCat.of M).singularHomologyRatIso q).hom y)
-  obtain ⟨α, rfl⟩ := (ConcreteCategory.bijective_of_isIso
-    (((TopCat.of M).singularCohomologyRatIso p).hom ≫
-      (TopCat.compactSupportCohomologyIsoOfCompactSpace p).inv)).2 c
-  refine ⟨α, (ConcreteCategory.bijective_of_isIso ((TopCat.of M).singularHomologyRatIso q).hom).1
-    ((o.singularHomologyRatIso_hom_singularCapLinearMap hn h α).trans ?_)⟩
-  simpa using hc
+  refine (Function.Bijective.of_comp_iff'
+    (ConcreteCategory.bijective_of_isIso ((TopCat.of M).singularHomologyRatIso q).hom) _).1 ?_
+  refine (funext (o.singularHomologyRatIso_hom_singularCapLinearMap hn h (p := p)) :
+    _ ∘ _ = _ ∘ _ ∘ _) ▸ ?_
+  exact (o.bijective_dualityMap hn (ModuleCat.of ℤ ℚ) h).comp
+    ((ConcreteCategory.bijective_of_isIso _).comp (ConcreteCategory.bijective_of_isIso _))
 
 include o hn in
 /-- **Poincaré duality for rational Betti numbers.** For a compact homologically oriented
