@@ -244,6 +244,15 @@ lemmas about Tau Ceti's `TauCeti.collaredSmoothTransition`, which are in `TauCet
 Named like Tau Ceti's file. `HasFTaylorSeriesUpToOn.union`, for sets each
 closed relative to their union.
 
+### `Analysis/Calculus/ContDiff/Concat.lean`
+
+`SymplecticGeometry.curveTrans Z₁ Z₂`, for `Z₁ Z₂ : ℝ → E`, equal to
+`Z₁ (2 * s)` for `s ≤ 1 / 2` and `Z₂ (2 * s - 1)` after, the parametrization
+of `Path.trans`, with `ContDiff.curveTrans` (`C^n` when `Z₁` is constant
+near `1`, `Z₂` near `0`, and `Z₁ 1 = Z₂ 0`). Tau Ceti's
+`TauCeti.curveConcat` uses `3 * s` and `3 * s - 2` instead. *Maslov index*
+uses it in `Maslov/Path/Regular.lean`.
+
 ### `Analysis/Normed/Group/FunctionSeries.lean`
 
 Named like Mathlib's file. `tendstoUniformlyOn_finsetSum_of_hasSum`, the
