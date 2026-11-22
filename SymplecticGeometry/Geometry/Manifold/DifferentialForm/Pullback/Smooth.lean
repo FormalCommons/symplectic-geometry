@@ -8,13 +8,17 @@ module
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
-# Pullback of smooth forms along a constant map
+# Pullback of forms: negation and constant maps
+
+Pulling a form back commutes with negation (`TauCeti.mpullback_neg`), as Tau Ceti's
+`TauCeti.mpullback_sub` says for subtraction.
 
 The differential of a constant map is zero, so pulling a smooth form of positive degree back
 along a constant map gives the zero form (`TauCeti.SmoothForm.mpullback_const`).
 
 ## Main results
 
+* `TauCeti.mpullback_neg`: the pullback of `-φ` is minus the pullback of `φ`.
 * `TauCeti.SmoothForm.mpullback_const`: the pullback of a smooth `(k + 1)`-form along a constant
   map is `0`.
 -/
@@ -25,15 +29,24 @@ open scoped Manifold ContDiff
 
 namespace TauCeti
 
-namespace SmoothForm
-
 variable {E H M E' H' M' F : Type*}
   [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   [TopologicalSpace M] [ChartedSpace H M] {I : ModelWithCorners ℝ E H}
   [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   [TopologicalSpace M'] [ChartedSpace H' M'] {I' : ModelWithCorners ℝ E' H'}
-  [NormedAddCommGroup F] [NormedSpace ℝ F]
-  [IsManifold I 1 M] [IsManifold I' 1 M'] {k : ℕ}
+  [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
+
+/-- Pullback commutes with negation. -/
+@[simp]
+theorem mpullback_neg (f : M → M') (φ : RoughForm I' M' F k) :
+    mpullback I I' f (-φ) = -mpullback I I' f φ := by
+  funext x
+  ext v
+  simp [mpullback_apply]
+
+namespace SmoothForm
+
+variable [IsManifold I 1 M] [IsManifold I' 1 M']
 
 /-- The pullback of a smooth form of positive degree along a constant map is zero. -/
 @[simp]
