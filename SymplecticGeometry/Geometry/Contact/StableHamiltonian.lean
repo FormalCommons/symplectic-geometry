@@ -763,7 +763,7 @@ theorem val_symmStripMk_zero_eq_stableHamiltonianModel (hε : 0 < ε)
   rw [coe_mpullback_subtype_val_apply]
   refine ContinuousAlternatingMap.ext fun v ↦ ?_
   obtain ⟨a, b, rfl⟩ : ∃ a b, v = ![a, b] :=
-    ⟨v 0, v 1, funext fun i ↦ by fin_cases i <;> rfl⟩
+    ⟨v 0, v 1, (FinVec.etaExpand_eq _).symm⟩
   set B : LinearMap.BilinForm ℝ (ℝ × E) := σ.bilinFormAt z
   have halt : B.IsAlt := isAlt_bilinFormAt σ z
   have hsplit (c : ℝ × E) : c = c.1 • ((1 : ℝ), (0 : E)) + ((0 : ℝ), c.2) :=

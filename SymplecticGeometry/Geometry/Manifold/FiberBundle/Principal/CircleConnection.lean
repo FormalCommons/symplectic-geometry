@@ -172,9 +172,7 @@ private theorem IsCircleConnectionForm.mextDeriv_apply_eq_zero_of_vertical
     mextDeriv α.val x v = 0 := by
   set ξ := rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x
   obtain ⟨c, hc⟩ := exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero hv
-  have hv01 : v = ![v 0, v 1] := by
-    funext i
-    fin_cases i <;> rfl
+  have hv01 : v = ![v 0, v 1] := (FinVec.etaExpand_eq _).symm
   have hfirst (w : TangentSpace (IB.prod (𝓡 1)) x) : mextDeriv α.val x ![c • ξ, w] = 0 := by
     rw [ContinuousAlternatingMap.vecCons_smul, hα.mextDeriv_apply_rightFundamentalVectorField,
       smul_zero]
