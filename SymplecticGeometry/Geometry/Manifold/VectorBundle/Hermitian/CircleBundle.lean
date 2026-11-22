@@ -11,6 +11,13 @@ public import TauCeti.Topology.VectorBundle.Smul
 public import SymplecticGeometry.Analysis.CStarAlgebra.Unitary.ContinuousLinearMap
 public import SymplecticGeometry.Analysis.Normed.Operator.SpanSingleton
 public import SymplecticGeometry.Topology.FiberBundle.Principal.ChangeGroup
+public import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Norm
+public import TauCeti.Geometry.Manifold.FiberBundle.Principal
+public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Sphere
+import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 
 /-!
 # The circle bundle of a Hermitian line bundle
@@ -40,9 +47,32 @@ base:
   by changing the structure group along that isomorphism
   (`TauCeti.PrincipalBundle.changeGroup`); its trivializations are those of Tau Ceti's bundle
   followed by the isomorphism on the fibre coordinate
-  (`Bundle.Trivialization.changeModelFiber`).
+  (`Bundle.Trivialization.changeModelFiber`). Such a trivialization reads a frame `φ` as the
+  inner product `⟪σ 1, φ 1⟫` with the unit vector of the local frame `σ`
+  (`Bundle.Trivialization.coe_snd_changeModelFiber_orthonormalFrameBundleFiber`), so its
+  transition functions are the inner products `⟪σ' 1, σ 1⟫`
+  (`Bundle.Trivialization.coe_coordChange_changeModelFiber_orthonormalFrameBundleFiber`).
 
 The rank-one condition is the instance `Fact (Module.finrank ℂ F = 1)`.
+
+The last section adds the smooth structure, for a Hermitian line bundle `(g, hI)` over a manifold:
+a smooth complex line bundle `V` with a smooth `i`-invariant real metric `g`, whose fibres get
+their norms and Hermitian products from `g` through three local instances (written with `letI` in
+the statements). The unit vector `σ 1` of a local unitary frame is then a smooth local section
+(`Bundle.Trivialization.contMDiffOn_orthonormalFrameAt_one`: in rank one it is a constant
+multiple of `u / ‖u‖` for a smooth nowhere-zero local section `u`, and `ContMDiffOn.norm_bundle`
+makes `‖u‖` smooth), so the transition functions above are smooth. By Tau Ceti's
+`TauCeti.PrincipalBundle.contMDiffFiberBundle_iff`, the unitary frames thus form a smooth
+principal `Circle`-bundle (`SymplecticGeometry.Bundle.contMDiffFiberBundle_circleFiber`), charted
+through the fibre as `TauCeti.ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)`; Tau Ceti's
+`TauCeti.ManifoldTotalSpace.isSubmersion_proj` applies to its projection. For a
+finite-dimensional base without boundary, `circleBundleHomeomorph` is a diffeomorphism onto the
+unit vectors with the smooth structure of a regular level set that Tau Ceti's
+`sphereBundleChartedSpace` gives them (`SymplecticGeometry.Bundle.circleBundleDiffeomorph`),
+equivariant fibre by fibre (`SymplecticGeometry.Bundle.circleBundleDiffeomorph_op_smul`). It
+and its inverse are computed by `SymplecticGeometry.Bundle.circleBundleDiffeomorph_homeomorph`,
+`SymplecticGeometry.Bundle.coe_circleBundleDiffeomorph_homeomorph` and
+`SymplecticGeometry.Bundle.circleBundleDiffeomorph_symm_apply`.
 
 ## Main definitions
 
@@ -51,6 +81,10 @@ The rank-one condition is the instance `Fact (Module.finrank ℂ F = 1)`.
 * `SymplecticGeometry.Bundle.instFiberBundleCircleFiber`,
   `SymplecticGeometry.Bundle.instPrincipalBundleCircleFiber`: the unitary frame bundle as a
   principal `Circle`-bundle.
+* `SymplecticGeometry.Bundle.contMDiffFiberBundle_circleFiber`: for a smooth Hermitian line
+  bundle, it is a smooth principal `Circle`-bundle.
+* `SymplecticGeometry.Bundle.circleBundleDiffeomorph`: `circleBundleHomeomorph` as a
+  diffeomorphism onto the unit vectors with their regular-level smooth structure.
 
 ## References
 
@@ -65,6 +99,7 @@ public section
 noncomputable section
 
 open Bundle MulOpposite Module TauCeti TauCeti.OrthonormalFrameBundle
+open scoped Manifold ContDiff InnerProductSpace
 
 namespace SymplecticGeometry.Bundle
 
@@ -290,5 +325,406 @@ instance instPrincipalBundleCircleFiber : PrincipalBundle Circle (Fiber ℂ F E 
 end Principal
 
 end SymplecticGeometry.Bundle
+
+/-! ### The trivializations of the principal `Circle`-bundle -/
+
+namespace Bundle.Trivialization
+
+open SymplecticGeometry.Bundle
+
+variable {B F : Type*} {E : B → Type*} [∀ x, NormedAddCommGroup (E x)]
+  [∀ x, InnerProductSpace ℂ (E x)] [TopologicalSpace (TotalSpace F E)] [TopologicalSpace B]
+  [NormedAddCommGroup F] [NormedSpace ℂ F] [FiberBundle F E] [VectorBundle ℂ F E]
+  [ContinuousFiberNorm F E] (e : Trivialization F (π F E)) [e.IsLinear ℂ]
+  {ι : Type*} [Fintype ι] [LinearOrder ι] [LocallyFiniteOrderBot ι] (c : Basis ι ℂ F)
+  (b : OrthonormalBasis ι ℂ ℂ)
+
+/-- The trivialization of the principal `Circle`-bundle given by the Gram–Schmidt trivialization of
+the unitary frame bundle over `e` reads a frame `φ` over the base set of `e` as the inner product
+`⟪σ 1, φ 1⟫` of the unit vectors given by `φ` and by the local frame `σ = e.orthonormalFrameAt c b`.
+-/
+theorem coe_snd_changeModelFiber_orthonormalFrameBundleFiber
+    (p : TotalSpace Circle (Fiber ℂ F E ℂ)) (hp : p.proj ∈ e.baseSet) :
+    (((e.orthonormalFrameBundle c b).orthonormalFrameBundleFiber.changeModelFiber
+      (Unitary.continuousLinearMapCircleEquiv : _ ≃ₜ Circle) ⟨rfl⟩ p).2 : ℂ) =
+      ⟪e.orthonormalFrameAt c b p.proj 1, p.snd.frame 1⟫_ℂ := by
+  rw [changeModelFiber_apply, orthonormalFrameBundleFiber_apply, totalSpaceEquiv_apply,
+    orthonormalFrameBundle_apply_mk e c b ⟨_, hp⟩]
+  simp only [e.orthonormalFrameAt_of_mem c b hp]
+  rw [LinearIsometryEquiv.inner_map_eq_flip]
+  simp
+
+/-- The inverse of the trivialization of `coe_snd_changeModelFiber_orthonormalFrameBundleFiber`
+sends `(y, z)`, for `y` in the base set of `e`, to a frame over `y` whose unit vector is `z • σ 1`,
+for the local frame `σ = e.orthonormalFrameAt c b` at `y`. -/
+theorem frame_changeModelFiber_orthonormalFrameBundleFiber_symm_one {y : B} (hy : y ∈ e.baseSet)
+    (z : Circle) :
+    (⟨_, (((e.orthonormalFrameBundle c b).orthonormalFrameBundleFiber.changeModelFiber
+      (Unitary.continuousLinearMapCircleEquiv : _ ≃ₜ Circle) ⟨rfl⟩).toOpenPartialHomeomorph.symm
+        (y, z)).snd.frame 1⟩ : TotalSpace F E) = ⟨y, (z : ℂ) • e.orthonormalFrameAt c b y 1⟩ := by
+  rw [changeModelFiber_symm_apply, orthonormalFrameBundleFiber_symm_apply,
+    e.orthonormalFrameBundle_symm_apply c b ⟨y, hy⟩, TotalSpace.modelFiberEquiv_symm_apply,
+    totalSpaceEquiv_symm_apply]
+  simp only [OrthonormalFrameBundle.proj_smul, OrthonormalFrameBundle.frame_smul_apply,
+    unop_op, ContinuousMulEquiv.coe_toHomeomorph_symm, e.orthonormalFrameAt_of_mem c b hy]
+  have hz : (((Unitary.continuousLinearMapCircleEquiv.symm : Circle ≃ₜ _) z :
+      unitary (ℂ →L[ℂ] ℂ)) : ℂ →L[ℂ] ℂ) 1 = z :=
+    (Unitary.continuousLinearMapCircleEquiv_symm_apply z 1).trans (mul_one _)
+  rw [hz]
+  exact congrArg (TotalSpace.mk y)
+    (by simpa using (e.orthonormalFrame c b ⟨y, hy⟩).map_smul (z : ℂ) 1)
+
+/-- The transition function between two of the trivializations of
+`coe_snd_changeModelFiber_orthonormalFrameBundleFiber` is the inner product `⟪σ' 1, σ 1⟫` of the
+unit vectors of their local frames. -/
+theorem coe_coordChange_changeModelFiber_orthonormalFrameBundleFiber
+    (e' : Trivialization F (π F E)) [e'.IsLinear ℂ] (c' : Basis ι ℂ F)
+    (b' : OrthonormalBasis ι ℂ ℂ) {y : B} (hy : y ∈ e.baseSet) (hy' : y ∈ e'.baseSet) :
+    (((e.orthonormalFrameBundle c b).orthonormalFrameBundleFiber.changeModelFiber
+      (Unitary.continuousLinearMapCircleEquiv : _ ≃ₜ Circle) ⟨rfl⟩).coordChange
+        ((e'.orthonormalFrameBundle c' b').orthonormalFrameBundleFiber.changeModelFiber
+          (Unitary.continuousLinearMapCircleEquiv : _ ≃ₜ Circle) ⟨rfl⟩) y 1 : ℂ) =
+      ⟪e'.orthonormalFrameAt c' b' y 1, e.orthonormalFrameAt c b y 1⟫_ℂ := by
+  have key (q : TotalSpace F E) (hq : q = ⟨y, ((1 : Circle) : ℂ) • e.orthonormalFrameAt c b y 1⟩) :
+      ⟪e'.orthonormalFrameAt c' b' q.proj 1, q.snd⟫_ℂ =
+        ⟪e'.orthonormalFrameAt c' b' y 1, e.orthonormalFrameAt c b y 1⟫_ℂ := by
+    subst hq
+    rw [Circle.coe_one, one_smul]
+  rw [coordChange]
+  refine (e'.coe_snd_changeModelFiber_orthonormalFrameBundleFiber c' b' _ ?_).trans
+    (key _ (e.frame_changeModelFiber_orthonormalFrameBundleFiber_symm_one c b hy 1))
+  convert hy'
+  exact proj_symm_apply' _ (by simpa using hy)
+
+end Bundle.Trivialization
+
+/-! ### The smooth structure -/
+
+section Smooth
+
+variable {EB HB B F : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
+  {I : ModelWithCorners ℝ EB HB} [TopologicalSpace B] [ChartedSpace HB B]
+  [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace ℂ F] [IsScalarTower ℝ ℂ F]
+  {V : B → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)] [∀ x, Module ℂ (V x)]
+  [∀ x, IsScalarTower ℝ ℂ (V x)] [∀ x, TopologicalSpace (V x)]
+  [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
+  [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V]
+  {n : ℕ∞ω}
+
+attribute [local instance] finrank_real_complex_fact'
+
+local instance instVectorBundleRealCircleBundle : VectorBundle ℝ F V :=
+  VectorBundle.restrictScalars ℝ ℂ F V
+
+variable [ContMDiffVectorBundle n F V I] (g : ContMDiffRiemannianMetric I n F V)
+  (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w)
+
+/-- For a smooth Hermitian metric on a complex line bundle, the unit vector `σ 1` of the local
+unitary frame `σ = e.orthonormalFrameAt c b` of a trivialization `e` of the atlas is a smooth
+section over the base set of `e`. -/
+theorem Bundle.Trivialization.contMDiffOn_orthonormalFrameAt_one
+    (e : Trivialization F (π F V)) [MemTrivializationAtlas e]
+    {ι : Type*} [Fintype ι] [LinearOrder ι] [LocallyFiniteOrderBot ι] (c : Basis ι ℂ F)
+    (b : OrthonormalBasis ι ℂ ℂ) :
+    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+    ContMDiffOn I (I.prod 𝓘(ℝ, F)) n
+      (fun y ↦ (⟨y, e.orthonormalFrameAt c b y 1⟩ : TotalSpace F V)) e.baseSet := by
+  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  -- In rank one, `σ 1` is a multiple of the normalized vector `u / ‖u‖`, for `u = e⁻¹ (c i)`.
+  obtain ⟨i, hi⟩ := Fintype.card_eq_one_iff.1 <| by
+    rw [← finrank_eq_card_basis b.toBasis, finrank_self]
+  set u : ∀ y, V y := fun y ↦ e.symm y (c i)
+  have hu : ContMDiffOn I (I.prod 𝓘(ℝ, F)) n (fun y ↦ (⟨y, u y⟩ : TotalSpace F V)) e.baseSet :=
+    (e.contMDiffOn_symm.comp (contMDiffOn_id.prodMk (contMDiffOn_const (c := c i)))
+      fun y hy ↦ e.mem_target.2 hy).congr fun y hy ↦ e.mk_symm hy (c i)
+  have hu₀ (y : B) (hy : y ∈ e.baseSet) : u y ≠ 0 := by
+    have h : u y = (e.continuousLinearEquivAt ℂ y hy).symm (c i) := by
+      rw [e.symm_continuousLinearEquivAt_eq hy, e.symmL_apply (R := ℂ) hy]
+    rw [h, ne_eq, map_eq_zero_iff _ (e.continuousLinearEquivAt ℂ y hy).symm.injective]
+    exact c.ne_zero i
+  have hc : ContMDiffOn I 𝓘(ℝ, ℂ) n (fun y ↦ ((‖u y‖⁻¹ : ℝ) : ℂ)) e.baseSet :=
+    Complex.ofRealCLM.contMDiff.comp_contMDiffOn
+      ((hu.norm_bundle hu₀).inv₀ fun y hy ↦ norm_ne_zero_iff.2 (hu₀ y hy))
+  have hIio : Finset.Iio i = ∅ := by ext j; simp [hi j]
+  refine ((contMDiffOn_const (c := ⟪b i, 1⟫_ℂ)).smul_totalSpace
+    (hc.smul_totalSpace hu)).congr fun y hy ↦ ?_
+  rw [orthonormalFrameAt_of_mem e c b hy, orthonormalFrame_apply,
+    Fintype.sum_eq_single i fun j hj ↦ (hj (hi j)).elim, orthonormalBasis_apply,
+    InnerProductSpace.gramSchmidtNormed, InnerProductSpace.gramSchmidt_def, hIio,
+    Finset.sum_empty, sub_zero, e.symmL_apply (R := ℂ) hy, Complex.ofReal_inv]
+  rfl
+
+namespace SymplecticGeometry.Bundle
+
+variable [Fact (finrank ℂ F = 1)]
+
+local instance : FiniteDimensional ℂ F := .of_fact_finrank_eq_succ 0
+
+local instance : Fact (finrank ℂ ℂ = finrank ℂ F) :=
+  ⟨by rw [finrank_self, Fact.out (p := finrank ℂ F = 1)]⟩
+
+local instance : FiniteDimensional ℝ F := Module.Finite.trans ℂ F
+
+/-- **The unitary frames of a smooth Hermitian line bundle form a smooth principal
+`Circle`-bundle.** For a smooth `i`-invariant metric `g` on a smooth complex line bundle `V`, the
+principal `Circle`-bundle `instPrincipalBundleCircleFiber` of its unitary frames is a `C^n` fibre
+bundle: its transition functions, the inner products `⟪σ' 1, σ 1⟫` of the unit vectors of two
+local unitary frames, are `C^n`. So `TauCeti.ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)` is a
+`C^n` manifold on which Tau Ceti's smooth principal-bundle API applies. -/
+theorem contMDiffFiberBundle_circleFiber [IsManifold I n B] :
+    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+    letI : IsContinuousRiemannianBundle F V :=
+      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+    ContMDiffFiberBundle n Circle (Fiber ℂ F V ℂ) I (𝓡 1) := by
+  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  let : IsContinuousRiemannianBundle F V :=
+    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  refine (PrincipalBundle.contMDiffFiberBundle_iff (n := n) (G := Circle)
+    (P := Fiber ℂ F V ℂ) (IB := I) (IG := 𝓡 1)).2 fun t₁ t₂ h₁ h₂ ↦ ?_
+  obtain ⟨s₁, hs₁, rfl⟩ :=
+    FiberBundle.exists_eq_changeModelFiber_of_memTrivializationAtlas _ _ t₁ h₁
+  obtain ⟨s₂, hs₂, rfl⟩ :=
+    FiberBundle.exists_eq_changeModelFiber_of_memTrivializationAtlas _ _ t₂ h₂
+  obtain ⟨e₁, he₁, c₁, b₁, rfl⟩ :=
+    (Trivialization.memTrivializationAtlas_orthonormalFrameBundleFiber_iff s₁).1 hs₁
+  obtain ⟨e₂, he₂, c₂, b₂, rfl⟩ :=
+    (Trivialization.memTrivializationAtlas_orthonormalFrameBundleFiber_iff s₂).1 hs₂
+  simp only [Trivialization.baseSet_changeModelFiber,
+    Trivialization.baseSet_orthonormalFrameBundleFiber,
+    Trivialization.baseSet_orthonormalFrameBundle]
+  refine ContMDiffOn.of_coe_sphere (E := ℂ) (e₁.open_baseSet.inter e₂.open_baseSet) ?_
+  exact (g.contMDiffOn_hermitianPairing hI (b := id)
+    ((e₂.contMDiffOn_orthonormalFrameAt_one g hI c₂ b₂).mono Set.inter_subset_right)
+    ((e₁.contMDiffOn_orthonormalFrameAt_one g hI c₁ b₁).mono Set.inter_subset_left)).congr
+    fun y hy ↦ e₁.coe_coordChange_changeModelFiber_orthonormalFrameBundleFiber c₁ b₁ e₂ c₂ b₂
+      hy.1 hy.2
+
+variable [IsManifold I n B]
+
+/-- The map `φ ↦ ⟨x, φ 1⟩` from the unitary frames to the total space is `C^n`. -/
+private theorem contMDiff_frame_one :
+    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+    letI : IsContinuousRiemannianBundle F V :=
+      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+    ContMDiff (I.prod (𝓡 1)) (I.prod 𝓘(ℝ, F)) n fun x : ManifoldTotalSpace Circle (Fiber ℂ F V ℂ) ↦
+      (⟨((ManifoldTotalSpace.homeomorph _ _).symm x).proj,
+        ((ManifoldTotalSpace.homeomorph _ _).symm x).snd.frame 1⟩ : TotalSpace F V) := by
+  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  let : IsContinuousRiemannianBundle F V :=
+    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  have := contMDiffFiberBundle_circleFiber g hI
+  intro x₀
+  set h := ManifoldTotalSpace.homeomorph Circle (Fiber ℂ F V ℂ)
+  have ht := trivialization_mem_atlas Circle (Fiber ℂ F V ℂ) (h.symm x₀).proj
+  obtain ⟨s, hs, hst⟩ :=
+    FiberBundle.exists_eq_changeModelFiber_of_memTrivializationAtlas _ _ _ ⟨ht⟩
+  obtain ⟨e, he, c, b, rfl⟩ :=
+    (Trivialization.memTrivializationAtlas_orthonormalFrameBundleFiber_iff s).1 hs
+  set t := trivializationAt Circle (Fiber ℂ F V ℂ) (h.symm x₀).proj
+  have hx₀ : x₀ ∈ h.symm ⁻¹' t.source :=
+    t.mem_source.2 (mem_baseSet_trivializationAt Circle (Fiber ℂ F V ℂ) _)
+  have hU : IsOpen (h.symm ⁻¹' t.source) := t.open_source.preimage h.symm.continuous
+  -- In the trivialization `t`, the map is `(y, z) ↦ ⟨y, z • σ 1⟩`.
+  have hG : ContMDiffOn (I.prod (𝓡 1)) (I.prod 𝓘(ℝ, F)) n
+      (fun q : B × Circle ↦ (⟨q.1, (q.2 : ℂ) • e.orthonormalFrameAt c b q.1 1⟩ : TotalSpace F V))
+      (e.baseSet ×ˢ Set.univ) :=
+    (contMDiff_coe_sphere.comp contMDiff_snd).contMDiffOn.smul_totalSpace
+      ((e.contMDiffOn_orthonormalFrameAt_one g hI c b).comp contMDiff_fst.contMDiffOn
+        fun q (hq : q ∈ e.baseSet ×ˢ Set.univ) ↦ hq.1)
+  have hb : t.baseSet = e.baseSet := by rw [hst]; simp
+  refine ((hG.comp (ManifoldTotalSpace.contMDiffOn_trivialization t) fun x hx ↦ ?_).contMDiffAt
+    (hU.mem_nhds hx₀)).congr_of_eventuallyEq ?_
+  · rw [← hb, ← t.target_eq]
+    exact t.map_source hx
+  · filter_upwards [hU.mem_nhds hx₀] with x hx
+    have hq : (t (h.symm x)).1 ∈ e.baseSet := by
+      have h' := t.map_source hx
+      rw [t.target_eq, hb] at h'
+      exact h'.1
+    rw [Set.mem_preimage, hst] at hx
+    rw [hst] at hq
+    simp only [Function.comp_apply, hst]
+    conv_lhs => rw [← (Trivialization.toOpenPartialHomeomorph _).left_inv hx]
+    exact e.frame_changeModelFiber_orthonormalFrameBundleFiber_symm_one c b hq _
+variable [I.Boundaryless] [FiniteDimensional ℝ EB]
+
+/-- The inverse of `circleBundleHomeomorph`, from the unit vectors with the regular-level charts
+of Tau Ceti's `sphereBundleChartedSpace` to the unitary frames, is `C^n`. -/
+private theorem contMDiff_circleBundleHomeomorph_symm (hn : 1 ≤ n) :
+    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+    letI : IsContinuousRiemannianBundle F V :=
+      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+    letI : IsContMDiffRiemannianBundle I n F V := ⟨g.inner, g.contMDiff, fun _ _ _ ↦ rfl⟩
+    letI := sphereBundleChartedSpace (F := F) (V := V) (contMDiff_const (I := I) (c := (1 : ℝ)))
+      hn fun _ ↦ one_pos
+    ContMDiff 𝓘(ℝ, Fin (finrank ℝ (EB × F) - 1) → ℝ) (I.prod (𝓡 1)) n
+      fun p : {p : TotalSpace F V // ‖p.snd‖ = 1} ↦ ManifoldTotalSpace.homeomorph _ _
+        (⟨(circleBundleHomeomorph.symm p).proj, (circleBundleHomeomorph.symm p).snd⟩ :
+          TotalSpace Circle (Fiber ℂ F V ℂ)) := by
+  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  let : IsContinuousRiemannianBundle F V :=
+    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  let : IsContMDiffRiemannianBundle I n F V := ⟨g.inner, g.contMDiff, fun _ _ _ ↦ rfl⟩
+  let := sphereBundleChartedSpace (F := F) (V := V) (contMDiff_const (I := I) (c := (1 : ℝ)))
+    hn fun _ ↦ one_pos
+  have := isManifold_sphereBundle (F := F) (V := V) (contMDiff_const (I := I) (c := (1 : ℝ)))
+    hn fun _ ↦ one_pos
+  have hval := (isSmoothEmbedding_coe_sphereBundle (F := F) (V := V)
+    (contMDiff_const (I := I) (c := (1 : ℝ))) hn fun _ ↦ one_pos).contMDiff
+  have hproj : ContMDiff 𝓘(ℝ, Fin (finrank ℝ (EB × F) - 1) → ℝ) I n
+      fun p : {p : TotalSpace F V // ‖p.snd‖ = 1} ↦ p.val.proj :=
+    (Bundle.contMDiff_proj V).comp hval
+  intro p₀
+  refine ManifoldTotalSpace.contMDiffAt_iff.2 ⟨hproj p₀, ?_⟩
+  have ht := trivialization_mem_atlas Circle (Fiber ℂ F V ℂ) p₀.val.proj
+  obtain ⟨s, hs, hst⟩ :=
+    FiberBundle.exists_eq_changeModelFiber_of_memTrivializationAtlas _ _ _ ⟨ht⟩
+  obtain ⟨e, he, c, b, rfl⟩ :=
+    (Trivialization.memTrivializationAtlas_orthonormalFrameBundleFiber_iff s).1 hs
+  have hb : (trivializationAt Circle (Fiber ℂ F V ℂ) p₀.val.proj).baseSet = e.baseSet := by
+    rw [hst]; simp
+  have hW : IsOpen {p : {p : TotalSpace F V // ‖p.snd‖ = 1} | p.val.proj ∈ e.baseSet} :=
+    e.open_baseSet.preimage hproj.continuous
+  have hp₀ : p₀.val.proj ∈ e.baseSet :=
+    hb ▸ mem_baseSet_trivializationAt Circle (Fiber ℂ F V ℂ) p₀.val.proj
+  -- Over the base set of `e`, the fibre coordinate of the frame of `v` is `⟪σ 1, v⟫`.
+  refine (ContMDiffOn.of_coe_sphere (E := ℂ) hW ((g.contMDiffOn_hermitianPairing hI
+    (b := fun p : {p : TotalSpace F V // ‖p.snd‖ = 1} ↦ p.val.proj)
+    ((e.contMDiffOn_orthonormalFrameAt_one g hI c b).comp hproj.contMDiffOn fun p hp ↦ hp)
+    hval.contMDiffOn).congr fun p hp ↦ ?_)).contMDiffAt (hW.mem_nhds hp₀)
+  have key := e.coe_snd_changeModelFiber_orthonormalFrameBundleFiber c b
+    (⟨(circleBundleHomeomorph.symm p).proj, (circleBundleHomeomorph.symm p).snd⟩ :
+          TotalSpace Circle (Fiber ℂ F V ℂ)) hp
+  rw [← hst] at key
+  have h1 := circleBundleHomeomorph_symm_apply_frame (F := F) p 1
+  rw [one_smul] at h1
+  exact key.trans (congrArg _ (TotalSpace.mk_inj.1 h1))
+
+/-- **The unitary frames of a smooth Hermitian line bundle are diffeomorphic to its unit
+vectors.** For `n ≥ 1`, `circleBundleHomeomorph`, `φ ↦ φ 1`, is a `C^n` diffeomorphism from the
+smooth principal `Circle`-bundle of `contMDiffFiberBundle_circleFiber` onto the unit vectors with
+the smooth structure of a regular level set, Tau Ceti's `sphereBundleChartedSpace` of radius `1`.
+-/
+def circleBundleDiffeomorph (hn : 1 ≤ n) :
+    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+    letI : IsContinuousRiemannianBundle F V :=
+      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+    letI : IsContMDiffRiemannianBundle I n F V := ⟨g.inner, g.contMDiff, fun _ _ _ ↦ rfl⟩
+    letI := sphereBundleChartedSpace (F := F) (V := V) (contMDiff_const (I := I) (c := (1 : ℝ)))
+      hn fun _ ↦ one_pos
+    ManifoldTotalSpace Circle (Fiber ℂ F V ℂ) ≃ₘ^n⟮I.prod (𝓡 1),
+      𝓘(ℝ, Fin (finrank ℝ (EB × F) - 1) → ℝ)⟯ {p : TotalSpace F V // ‖p.snd‖ = 1} :=
+  letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+  letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  letI : IsContinuousRiemannianBundle F V :=
+    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  letI : IsContMDiffRiemannianBundle I n F V := ⟨g.inner, g.contMDiff, fun _ _ _ ↦ rfl⟩
+  letI := sphereBundleChartedSpace (F := F) (V := V) (contMDiff_const (I := I) (c := (1 : ℝ)))
+    hn fun _ ↦ one_pos
+  { toEquiv := (((ManifoldTotalSpace.homeomorph Circle (Fiber ℂ F V ℂ)).symm.trans
+      (TotalSpace.modelFiberHomeomorph ⟨rfl⟩)).trans circleBundleHomeomorph).toEquiv
+    contMDiff_toFun := (isSmoothEmbedding_coe_sphereBundle (F := F) (V := V)
+      (contMDiff_const (I := I) (c := (1 : ℝ))) hn fun _ ↦ one_pos).contMDiff_iff_comp.2
+        ((contMDiff_frame_one g hI).congr fun x ↦ by
+          simp [TotalSpace.coe_modelFiberHomeomorph, TotalSpace.modelFiberEquiv_apply])
+    contMDiff_invFun := (contMDiff_circleBundleHomeomorph_symm g hI hn).congr fun p ↦ by
+      simp [TotalSpace.coe_modelFiberHomeomorph_symm, TotalSpace.modelFiberEquiv_symm_apply] }
+
+/-- `circleBundleDiffeomorph` is `circleBundleHomeomorph`, read through the identification of the
+total space of the unitary frame bundle with model fibre `Circle` with
+`TauCeti.ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)`. -/
+theorem circleBundleDiffeomorph_homeomorph (hn : 1 ≤ n) :
+    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+    letI : IsContinuousRiemannianBundle F V :=
+      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+    ∀ p : TotalSpace Circle (Fiber ℂ F V ℂ),
+      circleBundleDiffeomorph g hI hn (ManifoldTotalSpace.homeomorph _ _ p) =
+        circleBundleHomeomorph ⟨p.proj, p.snd⟩ := by
+  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  let : IsContinuousRiemannianBundle F V :=
+    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  intro p
+  -- `circleBundleDiffeomorph` is defined as `circleBundleHomeomorph` after the change of model
+  -- fibre, and this is the statement of that definition.
+  change circleBundleHomeomorph (TotalSpace.modelFiberHomeomorph ⟨rfl⟩
+    ((ManifoldTotalSpace.homeomorph _ _).symm (ManifoldTotalSpace.homeomorph _ _ p))) = _
+  rw [Homeomorph.symm_apply_apply, TotalSpace.coe_modelFiberHomeomorph,
+    TotalSpace.modelFiberEquiv_apply]
+
+/-- `circleBundleDiffeomorph` sends a frame `φ` of `V x` to the unit vector `φ 1`. -/
+@[simp]
+theorem coe_circleBundleDiffeomorph_homeomorph (hn : 1 ≤ n) :
+    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+    letI : IsContinuousRiemannianBundle F V :=
+      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+    ∀ p : TotalSpace Circle (Fiber ℂ F V ℂ),
+      (circleBundleDiffeomorph g hI hn (ManifoldTotalSpace.homeomorph _ _ p) : TotalSpace F V) =
+        ⟨p.proj, p.snd.frame 1⟩ := by
+  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  let : IsContinuousRiemannianBundle F V :=
+    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  intro p
+  rw [circleBundleDiffeomorph_homeomorph, circleBundleHomeomorph_apply]
+
+/-- The inverse of `circleBundleDiffeomorph` sends a unit vector `p` to the frame
+`circleBundleHomeomorph.symm p`, read in `TauCeti.ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)`. -/
+@[simp]
+theorem circleBundleDiffeomorph_symm_apply (hn : 1 ≤ n) :
+    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+    letI : IsContinuousRiemannianBundle F V :=
+      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+    letI : IsContMDiffRiemannianBundle I n F V := ⟨g.inner, g.contMDiff, fun _ _ _ ↦ rfl⟩
+    letI := sphereBundleChartedSpace (F := F) (V := V) (contMDiff_const (I := I) (c := (1 : ℝ)))
+      hn fun _ ↦ one_pos
+    ∀ p : {p : TotalSpace F V // ‖p.snd‖ = 1},
+      (circleBundleDiffeomorph g hI hn).symm p = ManifoldTotalSpace.homeomorph _ _
+        ⟨(circleBundleHomeomorph.symm p).proj, (circleBundleHomeomorph.symm p).snd⟩ := by
+  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  let : IsContinuousRiemannianBundle F V :=
+    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  let : IsContMDiffRiemannianBundle I n F V := ⟨g.inner, g.contMDiff, fun _ _ _ ↦ rfl⟩
+  let := sphereBundleChartedSpace (F := F) (V := V) (contMDiff_const (I := I) (c := (1 : ℝ)))
+    hn fun _ ↦ one_pos
+  intro p
+  rw [← (circleBundleDiffeomorph g hI hn).symm_apply_apply (ManifoldTotalSpace.homeomorph _ _ _),
+    circleBundleDiffeomorph_homeomorph]
+  exact congrArg _ (circleBundleHomeomorph.apply_symm_apply p).symm
+
+/-- **`circleBundleDiffeomorph` is `Circle`-equivariant**, fibre by fibre: it turns the right action
+of `Circle` on the frames of `V x` into its action on unit vectors. -/
+theorem circleBundleDiffeomorph_op_smul (hn : 1 ≤ n) :
+    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+    letI : IsContinuousRiemannianBundle F V :=
+      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+    ∀ (z : Circle) {x : B} (φ : Fiber ℂ F V ℂ x),
+      circleBundleDiffeomorph g hI hn (ManifoldTotalSpace.homeomorph _ _ ⟨x, op z • φ⟩) =
+        z • circleBundleDiffeomorph g hI hn (ManifoldTotalSpace.homeomorph _ _ ⟨x, φ⟩) := by
+  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  let : IsContinuousRiemannianBundle F V :=
+    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  intro z x φ
+  rw [circleBundleDiffeomorph_homeomorph, circleBundleDiffeomorph_homeomorph]
+  exact circleBundleHomeomorph_op_circle_smul z φ
+
+end SymplecticGeometry.Bundle
+
+end Smooth
 
 end

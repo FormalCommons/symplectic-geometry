@@ -10,7 +10,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
-import TauCeti.Geometry.Manifold.Immersion.Basic
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Basic
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 
 /-!
@@ -57,7 +57,7 @@ theorem isSmoothEmbedding_symmStripMk_zero {n : WithTop ℕ∞} [IsManifold I n 
     Manifold.IsSmoothEmbedding I (𝓘(ℝ).prod I) n
       (symmStripMk (X := M) (abs_zero.trans_lt hε)) := by
   have h : Manifold.IsSmoothEmbedding I (𝓘(ℝ).prod I) n (Prod.mk (0 : ℝ) : M → ℝ × M) :=
-    ⟨TauCeti.isImmersion_prodMkRight_of_extChartAt_eq_zero (by simp), isEmbedding_prodMkRight 0⟩
+    TauCeti.isSmoothEmbedding_prodMkRight_of_extChartAt_eq_zero (by simp)
   convert h.codRestrict (symmStrip M ε) (zero_mk_mem_symmStrip hε) using 1
   exact funext fun x ↦ Subtype.ext (coe_symmStripMk _ x)
 

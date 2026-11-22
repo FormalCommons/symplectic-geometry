@@ -734,6 +734,16 @@ issues, in an order where each issue's blockers come before it.
    what issue 4 applies to this bundle. No later issue needs the projection
    from the submanifold subtype as a submersion, so the design adds no named
    specialization for it.
+   General lemmas that the proofs use have files of their own:
+   `Geometry/Manifold/Instances/Sphere.lean` (`ContMDiffOn.of_coe_sphere`,
+   smoothness on an open set of a map into a unit sphere, used for
+   `Circle`), `Geometry/Manifold/VectorBundle/Riemannian/Hermitian.lean`
+   (`Bundle.ContMDiffRiemannianMetric.contMDiffOn_hermitianPairing`, Tau
+   Ceti's `contMDiff_hermitianPairing` on a set) and
+   `Geometry/Manifold/VectorBundle/Riemannian/Norm.lean`
+   (`ContMDiffOn.norm_bundle`, smoothness of the norm of a nowhere-zero
+   section of a smooth Riemannian bundle), at the places of the Mathlib
+   and Tau Ceti files of the same names.
    Blocked by the issue from #57 for the circle bundle. Done when these are
    proved.
 4. **Connection forms on principal circle bundles.**
@@ -807,8 +817,21 @@ issues, in an order where each issue's blockers come before it.
    boundary.** The setting is that of `RelativeFundamentalClass.lean`: `X`
    compact Hausdorff, `ι : M → X` an open embedding of a surface with
    `o : HomologicalOrientation M E 2`, and `f : N → X` collared with image
-   `∂X`, the complement of `ι(M)`. Four files, two topological and two
-   smooth, so that no Topology file imports Geometry:
+   `∂X`, the complement of `ι(M)`. The topological files are kept apart
+   from the smooth ones, so that no Topology file imports Geometry:
+   - `AlgebraicTopology/Singular/CircleMap.lean`, needed by
+     `BoundaryDegree.lean`: maps `Y → Circle` act additively on first
+     homology, `(u * v)_* = u_* + v_*`
+     (`ContinuousMap.singularHomologyFunctor_map_mul`), a self-map of the
+     circle acts on `H₁(S¹)` by its `circleDegree`, and so `u` sends the class
+     of a free loop `ℓ` to the degree of `u ∘ ℓ`
+     (`ContinuousMap.singularHomologyOneIso_hom_map_map_inv_one`). These give
+     `boundaryDegree_mul` and `boundaryDegree_eq_sum_degree`.
+   - `AlgebraicTopology/Singular/ModuleChains.lean`, needed by
+     `CircleMap.lean`: with coefficients `k`, Mathlib's
+     `singularHomologyFunctor` induces Tau Ceti's
+     `ContinuousMap.singularHomologyMap`
+     (`AlgebraicTopology.singularHomologyFunctor_obj_map_ofHom_hom`).
    - `AlgebraicTopology/Singular/LocalHomology/BoundaryDegree.lean`: the
      definition `TauCeti.HomologicalOrientation.boundaryDegree o hn hι hιf hf
      (u : C(∂X, Circle)) : ℤ`, the image of the boundary class
