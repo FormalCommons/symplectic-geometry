@@ -166,9 +166,9 @@ end
   definition that other files must compute with, by `rfl` or `decide`.
 - Cite sources in the module docstring's `## References`, with the key that
   the plan's `references.bib` gives the source. In a file taken from Tau
-  Ceti, the rule for such files wins for the entries copied from Tau Ceti's
-  file: they stay as Tau Ceti wrote them, without keys. An entry that the
-  copy adds cites with the key, if `references.bib` has one.
+  Ceti, the entries copied from Tau Ceti's file stay as they are (see
+  *Files*); an entry that the copy adds cites with the `references.bib` key,
+  if there is one.
 
 ## Rules for the source
 
