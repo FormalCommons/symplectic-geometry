@@ -82,7 +82,9 @@ the time derivative of `σ`.
   for a reparametrization `c` of time, and `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap`
   its case `c = id`.
 * `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_mpullback_prodMap`: the same for the time
-  derivative, `ι_t^* ∂_t ((id × f)^* α) = f^* ι_t^* ∂_t α`.
+  derivative, `ι_t^* ∂_t ((id × f)^* α) = f^* ι_t^* ∂_t α`, and
+  `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_mpullback_prodMap'` for a reparametrization `c`
+  of time, `ι_t^* ∂_t ((c × f)^* α) = c'(t) f^* ι_{c t}^* ∂_t α`.
 * `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily`: the velocity of the segment
   `α₀ + c(t) (α₁ - α₀)` at time `t` is `c'(t) (α₁ - α₀)`.
 * `TauCeti.SmoothForm.timeInterior`: the contraction `ι_{∂_t} σ` with the time field.
@@ -357,6 +359,46 @@ theorem mpullback_prodMk_timeDeriv_mpullback_prodMap (f : M → N) (hf : ContMDi
   have hs (u : ℝ) := congrArg (fun γ ↦ γ.val x) (mpullback_prodMk_mpullback_prodMap f hf α u)
   simp only [hs, hx] at h₁ ⊢
   exact h₁.unique h₂
+
+/-- The time derivative of a family reparametrized in time: for a smooth `c : ℝ → ℝ`, the slice at
+time `t` of `∂_t ((c × f)^* α)` is `c'(t)` times the pullback along `f` of the slice of `∂_t α` at
+time `c t`. -/
+theorem mpullback_prodMk_timeDeriv_mpullback_prodMap' {c : ℝ → ℝ}
+    (hc : ContMDiff 𝓘(ℝ) 𝓘(ℝ) ∞ c) (f : M → N) (hf : ContMDiff I J ∞ f)
+    (α : SmoothForm (𝓘(ℝ, ℝ).prod J) (ℝ × N) F k) (t : ℝ) :
+    mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
+        (mpullback (Prod.map c f) (hc.prodMap hf) α).timeDeriv =
+      deriv c t • mpullback f hf
+        (mpullback (Prod.mk (c t)) (contMDiff_const.prodMk contMDiff_id) α.timeDeriv) := by
+  apply Subtype.ext
+  funext x
+  -- Both sides at `x` are the velocity at `t` of `u ↦ (f^* α_{c(u)})ₓ`.
+  have h₁ := hasDerivAt_mpullback_prodMk_timeDeriv
+    (mpullback (Prod.map c f) (hc.prodMap hf) α) t x
+  have h₃ : HasDerivAt
+      (fun u ↦ @id (E' [⋀^Fin k]→L[ℝ] F)
+        ((mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) α).val (f x)))
+      (@id (E' [⋀^Fin k]→L[ℝ] F)
+        ((mpullback (Prod.mk (c t)) (contMDiff_const.prodMk contMDiff_id)
+          α.timeDeriv).val (f x))) (c t) :=
+    α.hasDerivAt_mpullback_prodMk_timeDeriv (c t) (f x)
+  have hct : HasDerivAt c (deriv c t) t :=
+    ((contMDiff_iff_contDiff.1 hc).differentiable (by simp) t).hasDerivAt
+  have h₂ := ((ContinuousAlternatingMap.compContinuousLinearMapCLM
+    (mfderiv I J f x : E →L[ℝ] E') :
+      (E' [⋀^Fin k]→L[ℝ] F) →L[ℝ] E [⋀^Fin k]→L[ℝ] F)).hasFDerivAt.comp_hasDerivAt t
+        (h₃.scomp t hct)
+  have hx (γ : SmoothForm J N F k) : (mpullback f hf γ).val x =
+      ContinuousAlternatingMap.compContinuousLinearMapCLM (ι := Fin k) (F := F)
+        (mfderiv I J f x : E →L[ℝ] E') (γ.val (f x)) := by
+    rw [coe_mpullback, TauCeti.mpullback_apply_eq_compContinuousLinearMapCLM]
+  have hs (u : ℝ) := congrArg (fun γ ↦ γ.val x) (mpullback_prodMk_mpullback_prodMap' hc f hf α u)
+  simp only [hs, hx, Submodule.coe_smul, Pi.smul_apply] at h₁ h₂ ⊢
+  refine h₁.unique ?_
+  convert h₂ using 1
+  · rw [map_smul, ContinuousAlternatingMap.compContinuousLinearMapCLM_apply]
+    -- The two functions differ only by `Function.comp` and `id`, which unfold.
+    exact Iff.rfl
 
 /-! ### The velocity of a reparametrized segment -/
 

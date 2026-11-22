@@ -627,7 +627,8 @@ Expected size: 400 lines, in two issues (G1 and G2).
 
 Nothing in it is about contact geometry, so it sits with Tau Ceti's
 diffeotopies rather than in `Gray.lean`, and imports only Tau Ceti's
-`Diffeotopy/Basic.lean`. Any smooth manifold, any smoothness `n`.
+`Diffeotopy/Basic.lean` and, for the differential of an inverse,
+`Manifold/Diffeomorph/Basic.lean`. Any smooth manifold, any smoothness `n`.
 
 - `TauCeti.Diffeotopy.Transports (Φ : Diffeotopy I n M) (ξ : unitInterval → Π x, Submodule ℝ (TangentSpace I x)) : Prop`,
   `∀ t x, ξ 0 x = (ξ t (Φ (t, x))).comap (mfderiv I I (Φ.timeSlice t) x).toLinearMap`,
@@ -767,7 +768,9 @@ Expected size: 650 lines, in two issues (L1 and L2).
   `Geometry/Manifold/Flow/TimeDependent.lean`, for the flow of a field
   restricted to an open subset (in `Gray.lean`).
 - *Hamiltonian flows*: `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean`,
-  for `velocity_timeDependentFlowDiffeotopy` (in `Gray.lean`).
+  for `velocity_timeDependentFlowDiffeotopy` (in `Gray.lean`), and
+  `Geometry/Diffeomorphism/Diffeotopy/Basic.lean`, for
+  `apply_mk_symm_apply` (in `Gray.lean`).
 - *Symplectic neighbourhoods* (#475, #476): the Lagrangian neighbourhood
   theorem of `Geometry/Symplectic/Neighborhood/Lagrangian.lean`, for a
   Lagrangian embedding into a symplectic manifold, with model
