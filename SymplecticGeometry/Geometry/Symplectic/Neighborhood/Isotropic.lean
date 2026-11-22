@@ -234,9 +234,8 @@ theorem IsIsotropicMap.exists_symplectomorphism_opens
     have h₁' := h₁.finrank_reducedSpace_orthogonal_add
       (f₁.isImmersion.mfderiv_injective (by simp) (φ q₀))
     have := (Φ q₀).finrank_eq
-    -- `dφ` identifies the tangent spaces of `Q₀` and `Q₁`.
-    have hQ := (φ.mfderivToContinuousLinearEquiv (by simp) q₀).toLinearEquiv.finrank_eq
-    rw [finrank_tangentSpace, finrank_tangentSpace] at hQ
+    -- The diffeomorphism `φ` forces `Q₀` and `Q₁` to have models of equal dimension.
+    have hQ := (φ.isLocalDiffeomorph q₀).finrank_eq (by simp)
     omega
   obtain ⟨U₀, U₁, ψ, hψ, hψω⟩ :=
     h₀.exists_symplectomorphism_opens_of_finrank_eq hω₀ hω₁ h₁ φ hdim L hLs hL hLω

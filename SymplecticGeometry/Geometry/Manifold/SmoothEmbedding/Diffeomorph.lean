@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.Immersion.Differential
 import TauCeti.Geometry.Manifold.Diffeomorph.Basic
-public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 
 /-!
 # Reparametrising immersions and smooth embeddings across two models
@@ -22,7 +22,9 @@ immersion is a condition on the differential alone, and the differential of `f �
 
 The proof of `TauCeti.isImmersion_comp_diffeomorph_of_boundaryless` follows that of Tau Ceti's
 `Diffeomorph.isImmersion_comp`, which composes on the other side, with Tau Ceti's
-`Diffeomorph.mfderiv_comp_diffeomorph_injective_iff` in place of the chain rule.
+`Diffeomorph.mfderiv_comp_diffeomorph_injective_iff` in place of the chain rule. The
+bundled `TauCeti.SmoothEmbedding.compDiffeomorphOfBoundaryless` and its lemmas follow Tau Ceti's
+`TauCeti.SmoothEmbedding.compDiffeomorph` and its lemmas.
 
 ## Main results
 
@@ -108,6 +110,27 @@ theorem range_compDiffeomorphOfBoundaryless (f : SmoothEmbedding I J n M N)
     range (f.compDiffeomorphOfBoundaryless e hn) = range f := by
   rw [coe_compDiffeomorphOfBoundaryless]
   exact (EquivLike.surjective e).range_comp _
+
+/-- On a single boundaryless model, reparametrisation across two models is Tau Ceti's
+`SmoothEmbedding.compDiffeomorph`. -/
+theorem compDiffeomorphOfBoundaryless_eq_compDiffeomorph {X : Type*} [TopologicalSpace X]
+    [ChartedSpace H X] [I.Boundaryless] [IsManifold I n X]
+    (f : SmoothEmbedding I J n M N) (e : X ≃ₘ^n⟮I, I⟯ M) (hn : 1 ≤ n) :
+    f.compDiffeomorphOfBoundaryless e hn = f.compDiffeomorph e :=
+  SmoothEmbedding.ext fun x ↦ by simp
+
+/-- Reparametrising twice across two models is reparametrising by the composite
+diffeomorphism. -/
+@[simp]
+theorem compDiffeomorphOfBoundaryless_compDiffeomorphOfBoundaryless
+    {F H'' M'' : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] [TopologicalSpace H'']
+    {I'' : ModelWithCorners 𝕜 F H''} [I''.Boundaryless]
+    [TopologicalSpace M''] [ChartedSpace H'' M''] [IsManifold I'' n M'']
+    (f : SmoothEmbedding I J n M N) (e : M' ≃ₘ^n⟮I', I⟯ M) (e' : M'' ≃ₘ^n⟮I'', I'⟯ M')
+    (hn : 1 ≤ n) :
+    (f.compDiffeomorphOfBoundaryless e hn).compDiffeomorphOfBoundaryless e' hn =
+      f.compDiffeomorphOfBoundaryless (e'.trans e) hn :=
+  SmoothEmbedding.ext fun x ↦ by simp
 
 end SmoothEmbedding
 
