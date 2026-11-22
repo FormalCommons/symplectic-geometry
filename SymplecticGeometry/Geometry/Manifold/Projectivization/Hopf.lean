@@ -13,7 +13,7 @@ public import TauCeti.Geometry.Manifold.Submersion.Split
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import Mathlib.Analysis.Calculus.Deriv.Inv
 import TauCeti.Analysis.InnerProductSpace.RadialRescale
-import TauCeti.Geometry.Manifold.ContMDiff.RestrictScalars
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.Instances.Sphere
 import TauCeti.Geometry.Manifold.MFDeriv.Basic
@@ -35,8 +35,8 @@ underlying real manifolds, using Tau Ceti's affine charts of `ℙ 𝕜 (Fin (n +
   since `mkNonzero` is constant along that line and the dimensions agree.
 * For the same real structures, the map of projective spaces induced by an injective linear map
   and the inverse of each affine chart are smooth of every order
-  (`contMDiff_map_restrictScalars`, `contMDiff_affineChart_symm_restrictScalars`), by Tau Ceti's
-  `ContMDiff.restrictScalars` applied to `contMDiff_map` and `contMDiff_affineChart_symm`.
+  (`contMDiff_map_restrictScalars`, `contMDiff_affineChart_symm_restrictScalars`), by
+  `ContMDiff.restrictScalars'` applied to `contMDiff_map` and `contMDiff_affineChart_symm`.
 * `SymplecticGeometry.sphereHopf n` is the Hopf map `S²ⁿ⁺¹ → ℂPⁿ` from the unit sphere of
   `StdSpace (Fin (n + 1))`, sending `x` to the complex line through
   `(TauCeti.complexToRealEuclidean _)⁻¹ x`. It is `mkNonzero ℂ n` after the inclusion
@@ -111,20 +111,20 @@ variable (𝕜 n) in
 /-- The projection from the nonzero vectors onto projective space is `C^r` for the underlying real
 manifold structures, for every `r`. -/
 theorem contMDiff_mkNonzero (r : ℕ∞ω) :
-    ContMDiff 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) r (mkNonzero 𝕜 n) := by
-  simpa using (contMDiff_mkNonzero_self (𝕜 := 𝕜) (n := n) r).restrictScalars ℝ
+    ContMDiff 𝓘(ℝ, Fin (n + 1) → 𝕜) 𝓘(ℝ, Fin n → 𝕜) r (mkNonzero 𝕜 n) :=
+  (contMDiff_mkNonzero_self (𝕜 := 𝕜) (n := n) r).restrictScalars' ℝ
 
 /-- The map of projective spaces induced by an injective linear map is `C^r` for the underlying
 real manifold structures. -/
 theorem contMDiff_map_restrictScalars {m : ℕ} (f : (Fin (m + 1) → 𝕜) →ₗ[𝕜] Fin (n + 1) → 𝕜)
     (hf : Injective f) (r : ℕ∞ω) :
-    ContMDiff 𝓘(ℝ, Fin m → 𝕜) 𝓘(ℝ, Fin n → 𝕜) r (map f hf) := by
-  simpa using (contMDiff_map f hf r).restrictScalars ℝ
+    ContMDiff 𝓘(ℝ, Fin m → 𝕜) 𝓘(ℝ, Fin n → 𝕜) r (map f hf) :=
+  (contMDiff_map f hf r).restrictScalars' ℝ
 
 /-- The inverse of an affine chart is `C^r` for the underlying real manifold structures. -/
 theorem contMDiff_affineChart_symm_restrictScalars (j : Fin (n + 1)) (r : ℕ∞ω) :
-    ContMDiff 𝓘(ℝ, Fin n → 𝕜) 𝓘(ℝ, Fin n → 𝕜) r (affineChart (K := 𝕜) j).symm := by
-  simpa using (contMDiff_affineChart_symm (𝕜 := 𝕜) j r).restrictScalars ℝ
+    ContMDiff 𝓘(ℝ, Fin n → 𝕜) 𝓘(ℝ, Fin n → 𝕜) r (affineChart (K := 𝕜) j).symm :=
+  (contMDiff_affineChart_symm (𝕜 := 𝕜) j r).restrictScalars' ℝ
 
 /-- Near `v`, the projection `mkNonzero` has the local section
 `y ↦ v j • Fin.insertNth j 1 (affineChart j y)` through `v`, for a coordinate `j` with `v j ≠ 0`,
@@ -145,8 +145,7 @@ private theorem surjective_mfderiv_mkNonzero (v : TauCeti.puncturedSpace (Fin (n
     have h := (((contDiff_const_smul ((v : Fin (n + 1) → 𝕜) j)).contMDiff).comp_contMDiffOn
       (contMDiffOn_insertNth_affineChart j 1)).contMDiffAt ((isOpen_affineOpen j).mem_nhds hx)
     exact ((TauCeti.ContMDiffAt.subtypeVal_comp_iff (n := 1) _ s _).1
-      (by have h' := h.restrictScalars ℝ; rw [modelWithCornersSelf_restrictScalars,
-        modelWithCornersSelf_restrictScalars] at h'; exact h')).mdifferentiableAt
+      (h.restrictScalars' ℝ)).mdifferentiableAt
         one_ne_zero
   have hid : mkNonzero 𝕜 n ∘ s =ᶠ[𝓝 (mkNonzero 𝕜 n v)] id := by
     filter_upwards [(isOpen_affineOpen j).mem_nhds hx] with y hy

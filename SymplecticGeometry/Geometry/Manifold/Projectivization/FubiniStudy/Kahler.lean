@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.Projectivization.Map
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
 import Mathlib.Analysis.InnerProductSpace.Calculus
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import TauCeti.Analysis.Calculus.ContDiff.FinInsertNth
 
@@ -334,8 +335,8 @@ private theorem contMDiff_affineLift_self (j : Fin (n + 1)) :
     (ContDiff.finInsertNth (F := fun _ ↦ ℂ) j contDiff_const contDiff_id).contMDiff
 
 private theorem contMDiff_affineLift (j : Fin (n + 1)) :
-    ContMDiff 𝓘(ℝ, Fin n → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (affineLift j) := by
-  simpa using (contMDiff_affineLift_self j).restrictScalars ℝ
+    ContMDiff 𝓘(ℝ, Fin n → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) ∞ (affineLift j) :=
+  (contMDiff_affineLift_self j).restrictScalars' ℝ
 
 private theorem mkNonzero_comp_affineLift (j : Fin (n + 1)) :
     mkNonzero ℂ n ∘ affineLift j = (affineChart (K := ℂ) j).symm :=

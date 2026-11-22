@@ -293,6 +293,22 @@ real `0`-form, complexified by `SmoothForm.mapCoeff Complex.ofRealCLM`):
 
 Reference: Huybrechts, *Complex Geometry*, §§1.3 and 3.1.
 
+### `Geometry/Manifold/ContMDiff/RestrictScalars.lean`
+
+`ContMDiffWithinAt.restrictScalars'`, `ContMDiffAt.restrictScalars'`,
+`ContMDiffOn.restrictScalars'` and `ContMDiff.restrictScalars'`: Tau Ceti's
+`….restrictScalars` stated for `𝓘(𝕜, E)` and `𝓘(𝕜, E')` rather than for
+`𝓘(𝕜', E).restrictScalars 𝕜`, so that `OnePoint.lean`, `Hopf.lean` and
+`Kahler.lean` need no cast by `modelWithCornersSelf_restrictScalars`.
+
+### `Geometry/Manifold/Diffeomorph/RestrictScalars.lean`
+
+`Diffeomorph.restrictScalars'`, a diffeomorphism over `𝓘(𝕜', E)` and
+`𝓘(𝕜', E')` as one over `𝓘(𝕜, E)` and `𝓘(𝕜, E')`, with
+`coe_restrictScalars'` and its `_refl`, `_symm` and `_trans` lemmas, at the
+path of Tau Ceti's file whose `Diffeomorph.restrictScalars` it restates for
+the trivial models.
+
 ### `Geometry/Manifold/Instances/OnePoint.lean`
 
 In namespace `OnePoint`, for the Riemann sphere read as a real surface:
