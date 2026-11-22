@@ -37,7 +37,10 @@ chains of `TopPair.toSSetPair.obj P`, which are the chains of `P.fst` only up to
 of `P.fst`. The abbreviations `TopPair.singularChainComplexπFst`,
 `TopPair.singularHomologyπFst` and `TopPair.singularChainComplexπOfSubset` are the same maps
 with their sources written as the chains (or homology) of the ambient space, and the lemmas
-stated with them reassociate by `rw`.
+stated with them reassociate by `rw`. In the same way, `TopPair.ιOfSubset` is the embedding
+`(TopPair.ofSubset B).map` with its target written as `X`, and
+`TopPair.singularHomologyπ_ofSubset_eq_homologyMap` writes the map from the homology of `X` to
+the relative homology of `(X, A)` as the map induced by `TopPair.singularChainComplexπOfSubset`.
 
 ## Main definitions
 
@@ -45,6 +48,7 @@ stated with them reassociate by `rw`.
   chains and homology of `P.fst` to the relative ones of `P`.
 * `TopPair.singularChainComplexπOfSubset`: the map from the singular chains of `X` to the
   relative ones of `(X, A)`.
+* `TopPair.ιOfSubset`: the embedding of a subset `B` into `X`.
 * `TopPair.interPairSndHomeomorph A B`: the homeomorphism from the subspace of
   `TopPair.interPair A B` onto `A ∩ B`, and `TopPair.interPairSndIso`, the same as an isomorphism
   of `TopCat`.
@@ -158,6 +162,15 @@ lemma codRestrict_comp_ofSubset_map {Z : TopCat.{w}} (f : Z ⟶ X) (h : ∀ z, f
     TopCat.codRestrict f A h ≫ (ofSubset A).map = f :=
   (congrArg (TopCat.codRestrict f A h ≫ ·) (ofSubset_map A)).trans
     (TopCat.codRestrict_comp_ofHom_subtypeVal f A h)
+
+/-- The embedding of the subset `B` into `X`: the map `(TopPair.ofSubset B).map`, with its target
+written as `X` rather than as the ambient space of the pair, so that the chain maps it induces
+compose by `rw` with maps out of the chains of `X`. -/
+abbrev ιOfSubset : (ofSubset B).snd ⟶ X :=
+  (ofSubset B).map
+
+lemma ιOfSubset_eq : ιOfSubset B = (ofSubset B).map :=
+  (rfl)
 
 end Subsets
 
@@ -323,6 +336,21 @@ lemma homologyMap_singularChainComplexπFst (n : ℕ) :
   (rfl)
 
 end Fst
+
+section OfSubset
+
+variable {X : TopCat.{w}} (A : Set X)
+
+/-- The map from the singular homology of `X` to the relative singular homology of `(X, A)` is
+the map induced on homology by `TopPair.singularChainComplexπOfSubset`. The right side has its
+source written as the homology of the chains of `X`, so rewriting with this lemma lets composites
+with maps on the homology of `X` reassociate by `rw`. -/
+lemma singularHomologyπ_ofSubset_eq_homologyMap (n : ℕ) :
+    (ofSubset A).singularHomologyπ R n =
+      HomologicalComplex.homologyMap (singularChainComplexπOfSubset R A) n :=
+  (rfl)
+
+end OfSubset
 
 /-- Let `e : P ⟶ Q` be a map of pairs that induces an isomorphism in degree `n`, and `g` a chain
 map from the chains of `K` to the relative chains of `P` that `e` sends to the image of the chains
