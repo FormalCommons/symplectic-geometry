@@ -63,7 +63,7 @@ variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
 /-- The phase `ρ = maslovPhase : Sp(2n) → S¹`, the complex determinant of the unitary polar
 factor, as a bundled continuous map. -/
-@[expose] noncomputable def maslovPhaseMap : C(GLSymplectic ι ℝ, Circle) :=
+noncomputable def maslovPhaseMap : C(GLSymplectic ι ℝ, Circle) :=
   ⟨maslovPhase, continuous_maslovPhase⟩
 
 @[simp]
@@ -88,7 +88,7 @@ variable [Nonempty ι]
 homotopy group `π_ 1` at every base point. -/
 theorem bijective_homotopyGroupMap_maslovPhase (A : GLSymplectic ι ℝ) :
     Function.Bijective (HomotopyGroup.map (N := Fin 1) maslovPhaseMap
-      (rfl : maslovPhase A = maslovPhase A)) := by
+      (rfl : maslovPhaseMap A = maslovPhaseMap A)) := by
   have hf := (ofUnitaryHomotopyEquiv (n := ι)).isWeakHomotopyEquivalence
   have hg := ContinuousMap.IsWeakHomotopyEquivalence.id (X := Circle)
   exact ⟨(hf.forall_injective_map_iff_of_comp_eq hg comp_detCircle_eq (Fin 1)).2
@@ -100,7 +100,6 @@ theorem bijective_homotopyGroupMap_maslovPhase (A : GLSymplectic ι ℝ) :
 groups `π₁(Sp(2n), A) → π₁(S¹, maslovPhase A)` at every base point. -/
 theorem bijective_fundamentalGroupMap_maslovPhase (A : GLSymplectic ι ℝ) :
     Function.Bijective (FundamentalGroup.map maslovPhaseMap A) := by
-  -- `maslovPhaseMap A` is `maslovPhase A` by definition, so `mapOfEq` along `rfl` is `map`.
   rw [← FundamentalGroup.mapOfEq_rfl]
   exact (HomotopyGroup.bijective_map_iff_bijective_mapOfEq _ _).1
     (bijective_homotopyGroupMap_maslovPhase A)
@@ -109,7 +108,7 @@ variable (ι) in
 /-- For a nonempty index type, the isomorphism `π₁(Sp(2n), A) ≃* π₁(S¹, maslovPhase A)` induced
 by `maslovPhase`. -/
 noncomputable def fundamentalGroupMulEquivCircle (A : GLSymplectic ι ℝ) :
-    FundamentalGroup (GLSymplectic ι ℝ) A ≃* FundamentalGroup Circle (maslovPhase A) :=
+    FundamentalGroup (GLSymplectic ι ℝ) A ≃* FundamentalGroup Circle (maslovPhaseMap A) :=
   MulEquiv.ofBijective _ (bijective_fundamentalGroupMap_maslovPhase A)
 
 @[simp]
