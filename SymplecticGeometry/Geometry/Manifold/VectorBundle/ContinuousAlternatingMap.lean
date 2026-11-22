@@ -12,6 +12,7 @@ public import TauCeti.Analysis.Normed.Module.Alternating.Curry
 public import TauCeti.Geometry.Manifold.ContMDiff.ContinuousAlternatingMap
 public import TauCeti.LinearAlgebra.BilinearMap.Multilinear
 public import TauCeti.Topology.Algebra.Module.FiniteDimension
+public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 
 /-!
 # Precomposition, flat maps and bilinear maps in bundles of continuous alternating maps
@@ -135,18 +136,15 @@ noncomputable def flatAt {x : M} (α : V x [⋀^Fin 2]→L[𝕜] Trivial M G x) 
     V x →L[𝕜] V x →L[𝕜] G :=
   let e := (trivializationAt F V x).continuousLinearEquivAt 𝕜 x
     (FiberBundle.mem_baseSet_trivializationAt F V x)
-  (e.arrowCongr (e.arrowCongr (ContinuousLinearEquiv.refl 𝕜 G))).symm
-    (ContinuousAlternatingMap.flatL 𝕜 F G (α.compContinuousLinearMap e.symm))
+  e.symm.bilinearCongr (ContinuousAlternatingMap.flatL 𝕜 F G (α.compContinuousLinearMap e.symm))
 
 /-- The flat map evaluates as the form: `α♭ v w = α ![v, w]`. -/
 @[simp]
 theorem flatAt_apply {x : M} (α : V x [⋀^Fin 2]→L[𝕜] Trivial M G x) (v w : V x) :
     flatAt F α v w = α ![v, w] := by
-  simp only [flatAt, ContinuousLinearEquiv.arrowCongr,
-    ContinuousLinearEquiv.arrowCongrSL_symm_apply, ContinuousLinearMap.comp_apply,
-    ContinuousLinearEquiv.coe_coe, ContinuousAlternatingMap.flatL_apply_apply,
-    ContinuousAlternatingMap.compContinuousLinearMap_apply, ContinuousLinearEquiv.refl_symm,
-    ContinuousLinearEquiv.coe_refl, ContinuousLinearMap.id_apply]
+  simp only [flatAt, ContinuousLinearEquiv.bilinearCongr_apply, ContinuousLinearEquiv.symm_symm,
+    ContinuousAlternatingMap.flatL_apply_apply,
+    ContinuousAlternatingMap.compContinuousLinearMap_apply]
   congr 1
   ext i
   fin_cases i <;> simp [Trivialization.symm_apply_apply_mk _

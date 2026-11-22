@@ -757,11 +757,11 @@ the part adds no signature function.
   where the forms
   $-\langle Yu,X'u\rangle$ on $\ker X(t)$ are nondegenerate. Then the index of
   `γ` is the `∑ᶠ t ∈ Ico 0 1` of their signatures. Proof:
-  `ℒ.pathMaslovIndex_eq_crossing_sum` with `V = V₁` and
+  `ℒ.pathMaslovIndex_eq_crossing_sum_Ico` with `V = V₁` and
   `ℒ.pathMaslovIndex_eq_maslovIndex`. At `1` the frame is `Z 0 * g` with
   derivative `Z' 0 * g`, so by frame independence (constant `g`) the forms at
-  `0` and at `1` have the same signature, and the two half weights add up to
-  one. A periodic frame is the case `g = 1`, but a loop of odd index has none:
+  `0` and at `1` have the same signature, and the correction term, half their
+  difference, vanishes. A periodic frame is the case `g = 1`, but a loop of odd index has none:
   on the half-turn of `ℒ (Fin 1)` every real frame is
   $r(t)(\cos\pi t,\sin\pi t)$ with $r$ real, continuous and never zero, so
   that `Z 1 = Z 0 * g` with `g = -r 1 / r 0`, and `g = 1` would make $r$
