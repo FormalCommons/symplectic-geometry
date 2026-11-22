@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily
 public import TauCeti.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.DeRham.Map
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Regularity
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
@@ -101,9 +102,7 @@ theorem IsSmoothlyContractible.exists_contMDiff_mextDeriv_eq_of_forall_mem_close
     fun t ↦ (mem_closedForms_iff_mextDerivₗ_eq_zero I _).1 (hcl t)
   obtain ⟨Ω, hΩ⟩ := isSmoothFamily_def.1 hβ
   refine ⟨fun p ↦ Ω.val p 0, ?_, fun t ↦ ?_⟩
-  · have hΩs := Ω.isSmoothForm
-    rw [RoughForm.eq_ofFunction Ω.val, isSmoothForm_ofFunction_iff] at hΩs
-    exact hΩs
+  · exact Ω.contMDiff_apply_zero
   have hslice : RoughForm.ofFunction I (fun x ↦ Ω.val (t, x) 0) = (β t).val := by
     rw [← hΩ t, SmoothForm.coe_mpullback]
     conv_rhs => rw [RoughForm.eq_ofFunction Ω.val, mpullback_ofFunction]
