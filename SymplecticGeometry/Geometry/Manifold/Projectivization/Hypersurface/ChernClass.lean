@@ -28,7 +28,7 @@ class `1 + d ι^* h` is invertible, and solving for `c(TX)` gives each Chern cla
   `H²(X; ℤ)`.
 * `SymplecticGeometry.SmoothProjectiveHypersurface.chernClass_one_normalSpace`:
   `c₁(ν) = d ι^* h`.
-* `SymplecticGeometry.SmoothProjectiveHypersurface.totalChernClass_mul`:
+* `SymplecticGeometry.SmoothProjectiveHypersurface.totalChernClass_tangentSpace_mul`:
   `c(TX) (1 + d ι^* h) = (1 + ι^* h) ^ (n + 2)`.
 * `SymplecticGeometry.SmoothProjectiveHypersurface.chernClass_tangentSpace`: for every `k`,
   `c_k(TX) = (∑_{j ≤ k} (n + 2).choose (k - j) (-d) ^ j) (ι^* h) ^ k`, and
@@ -110,7 +110,7 @@ theorem totalChernClass_normalSpace :
 `d`, `c(TX) (1 + d ι^* h) = (1 + ι^* h) ^ (n + 2)` in the even integral cohomology ring of `X`.
 
 Milestone: *Chern classes of projective hypersurfaces*. -/
-theorem totalChernClass_mul :
+theorem totalChernClass_tangentSpace_mul :
     totalChernClass (Fin (n + 1 - Fintype.card Unit) → ℂ)
         (TangentSpace 𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) → ℂ) : X → Type) *
         (1 + d • (TopCat.of X).evenIntegralCohomologyOf 1 X.hyperplaneClass) =
@@ -154,11 +154,13 @@ private theorem totalChernClass_eq_aeval {N : ℕ} (hN : n + 2 ≤ N) :
     smul_zero, mul_zero, sub_zero, sub_neg_eq_add] at hinv
   simp only [tangentPoly, map_mul, map_sum, map_pow, map_add, map_one, Polynomial.aeval_X,
     map_neg, map_nsmul, eq_intCast, Int.cast_natCast, neg_mul, ← nsmul_eq_mul]
-  rw [← X.totalChernClass_mul, mul_comm, mul_assoc, mul_comm (1 + d • a), hinv, mul_one]
+  rw [← X.totalChernClass_tangentSpace_mul, mul_comm, mul_assoc, mul_comm (1 + d • a), hinv,
+    mul_one]
 
 /-- **The Chern classes of a hypersurface.** For a smooth hypersurface `X ⊆ ℂℙⁿ⁺¹` of degree `d`
 and every `k`, `c_k(TX) = (∑_{j ≤ k} (n + 2).choose (k - j) (-d) ^ j) (ι^* h) ^ k`, where
-`(ι^* h) ^ k` is read in `H^{2k}(X; ℤ)`. This solves `totalChernClass_mul` for `c(TX)`.
+`(ι^* h) ^ k` is read in `H^{2k}(X; ℤ)`. This solves `totalChernClass_tangentSpace_mul` for
+`c(TX)`.
 
 Milestone: *Chern classes of projective hypersurfaces*. -/
 theorem chernClass_tangentSpace (k : ℕ) :
