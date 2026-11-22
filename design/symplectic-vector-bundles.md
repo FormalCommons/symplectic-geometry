@@ -1449,7 +1449,7 @@ on complex structures are in `ContMDiffComplexStructure` and in
   any semiring `R`, the definition `frameTransition Φ Φ' x : W ≃L[R] W` is
   `(Φ x).trans (Φ' x).symm`, with `frameTransition_def` (by `(rfl)`),
   `@[simp] frameTransition_apply` (`(Φ' x).symm (Φ x v)`),
-  `@[simp] frameTransition_self` (the identity), `frameTransition_trans`
+  `@[simp] frameTransition_self` (the identity), `@[simp] frameTransition_trans`
   (`(frameTransition Φ Φ' x).trans (frameTransition Φ' Φ'' x) =
   frameTransition Φ Φ'' x`) and `@[simp] frameTransition_symm`
   (`(frameTransition Φ Φ' x).symm = frameTransition Φ' Φ x`, the analogue of
@@ -1600,7 +1600,8 @@ For a map `f : K` with `[FunLike K N M] [ContinuousMapClass K N M]` and
   transition maps of pulled-back frames are
   `@[simp] frameTransition_pullback`: `frameTransition (fun y ↦ Φ (f y))
   (fun y ↦ Φ' (f y)) y = frameTransition Φ Φ' (f y)`, for any map
-  `f : N → M`, by `frameTransition_apply`.
+  `f : N → M`, by `(rfl)`. It uses no form, so it is stated over any
+  semiring `R` in `Topology/VectorBundle/Frame.lean`.
 - Along the derivative: for `f : K` with `[FunLike K N M]
   [ContinuousMapClass K N M]` and `hf : ContMDiff I' I ∞ f`,
   `ContMDiffTwoForm.compMFDeriv f hf ω : ContMDiffTwoForm I' ⊤ EN
@@ -2360,8 +2361,8 @@ of *Constructions* for *First Chern number*.
 21. **Pull-backs of symplectic bundles.** `Symplectic/Pullback.lean`:
     `ContMDiffTwoForm.pullback` with its API, `Tames.pullback`,
     `Compatible.pullback`, `pullback_pushforward`, `pushforward_pullback_id`,
-    `pushforward_pullback_comp`, `IsSymplecticFrameOn.pullback`,
-    `frameTransition_pullback`. Blockers:
+    `pushforward_pullback_comp`, `IsSymplecticFrameOn.pullback`; and
+    `Topology/VectorBundle/Frame.lean`: `frameTransition_pullback`. Blockers:
     5, 18, 19, 20.
 22. **Direct sums of symplectic bundles.** `Symplectic/Prod.lean`, with
     `Bundle.Prod.contMDiff_prodMap`, `Bundle.Prod.contMDiff_swap` and their

@@ -56,9 +56,9 @@ that it is compatible with the rest of the structure that `Symplectic/Basic.lean
   `IsNondegenerate.symplecticFormAt_pullback_comp_pullback_apply` evaluate the symplectic form
   of three pull-backs, of a pull-back along `g.comp f`, and of that pull-back pulled back along
   `e`, so that `simp` does so also for a sum, a difference, a negative or a multiple.
-* `IsSymplecticFrameOn.pullback` and `frameTransition_pullback`: a symplectic frame `Φ` over `U`
-  pulls back to the symplectic frame `y ↦ Φ (f y)` over `f ⁻¹' U`, with transition maps those of
-  `Φ` at `f y`.
+* `IsSymplecticFrameOn.pullback`: a symplectic frame `Φ` over `U` pulls back to the symplectic
+  frame `y ↦ Φ (f y)` over `f ⁻¹' U`. Its transition maps are those of `Φ` at `f y`, by
+  `frameTransition_pullback` in `Topology/VectorBundle/Frame.lean`.
 * `IsSymplecticFrameOn.of_pullback_subtypeVal`: conversely, for a subset `S` of `M` with a `C^n`
   inclusion, a symplectic frame of the pull-back of `ω` to `S` gives one of `ω` over each open
   subset of `M` in `S` whose inclusion into `S` is `C^n`.
@@ -158,24 +158,6 @@ open _root_.Bundle
 open scoped Manifold
 
 namespace SymplecticGeometry.Bundle
-
-/-! ### Transition maps of pulled-back frames -/
-
-section FrameTransition
-
-variable {M N W : Type*} [AddCommGroup W] [Module ℝ W] [TopologicalSpace W]
-  {V : M → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)] [∀ x, TopologicalSpace (V x)]
-
-/-- The transition map between the pull-backs `y ↦ Φ (f y)` and `y ↦ Φ' (f y)` of two frames along
-a map `f` is the transition map between `Φ` and `Φ'` at `f y`. -/
-@[simp]
-theorem frameTransition_pullback (Φ Φ' : ∀ x, W ≃L[ℝ] V x) (f : N → M) (y : N) :
-    frameTransition (V := f *ᵖ V) (fun y ↦ Φ (f y)) (fun y ↦ Φ' (f y)) y =
-      frameTransition Φ Φ' (f y) := by
-  ext v
-  exact (frameTransition_apply _ _ y v).trans (frameTransition_apply Φ Φ' (f y) v).symm
-
-end FrameTransition
 
 variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
   [TopologicalSpace HB] {I : ModelWithCorners ℝ EB HB}
