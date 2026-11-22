@@ -43,10 +43,10 @@ slices and a smooth family of primitives of its velocity.
    `SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_of_isOpen`) gives the closed form
    `(c × id)^* τ`, all of whose slices are symplectic.
 4. The time derivative of a closed form on `ℝ × M` is exact
-   (`TauCeti.SmoothForm.IsClosed.exists_timeDeriv_eq_mextDerivₗ`), which is the hypothesis on the
-   velocity in Tau Ceti's theorem. So a closed form on `ℝ × M` with symplectic slices has a Moser
-   isotopy (`TauCeti.SmoothForm.IsClosed.exists_isotopy_mpullback_eq`), and the isotopy over `ℝ`
-   of `(c × id)^* τ` restricts to a diffeotopy (`TauCeti.Diffeotopy.ofReal`).
+   (`TauCeti.SmoothForm.mextDerivₗ_timeInterior`: `∂_t ρ = d (ι_{∂_t} ρ)`), which is the
+   hypothesis on the velocity in Tau Ceti's theorem. So a closed form on `ℝ × M` with symplectic
+   slices has a Moser isotopy (`TauCeti.SmoothForm.IsClosed.exists_isotopy_mpullback_eq`), and the
+   isotopy over `ℝ` of `(c × id)^* τ` restricts to a diffeotopy (`TauCeti.Diffeotopy.ofReal`).
 
 ## Main results
 
@@ -88,14 +88,16 @@ theorem exists_isotopy_mpullback_eq {ρ : SmoothForm (𝓘(ℝ, ℝ).prod I) (�
       ∀ t, SmoothForm.mpullback (ψ t) (ψ t).contMDiff
           (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) ρ) =
         SmoothForm.mpullback (Prod.mk 0) (contMDiff_const.prodMk contMDiff_id) ρ := by
-  obtain ⟨α, hα⟩ := hρc.exists_timeDeriv_eq_mextDerivₗ
+  have hα := (SmoothForm.mextDerivₗ_timeInterior hρc).symm
   have hvel (t : ℝ) : TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t)
         (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) ρ.val) =
-      mextDeriv (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).val := by
+      mextDeriv (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
+        ρ.timeInterior).val := by
     have h := congrArg Subtype.val
       (congrArg (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)) hα)
     simpa [← SmoothForm.mextDerivₗ_mpullback] using h
-  obtain ⟨ψ, hψ, hψ₀, -, hψρ⟩ := TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq ρ α hρ hvel
+  obtain ⟨ψ, hψ, hψ₀, -, hψρ⟩ :=
+    TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq ρ ρ.timeInterior hρ hvel
   exact ⟨ψ, hψ, hψ₀, hψρ⟩
 
 end TauCeti.SmoothForm.IsClosed
