@@ -8,13 +8,13 @@ module
 public import Mathlib.Topology.LocalAtTarget
 public import Mathlib.Topology.VectorBundle.Constructions
 public import TauCeti.Topology.Algebra.Projectivization
-public import TauCeti.Topology.FiberBundle.Proper
 public import TauCeti.Topology.FiberBundle.Pullback
 public import TauCeti.Topology.FiberBundle.Separation
 public import TauCeti.Topology.Homotopy.DeformationRetract
 public import TauCeti.Topology.VectorBundle.Hom
 public import TauCeti.Topology.VectorBundle.Pullback
 public import TauCeti.Topology.VectorBundle.Smul
+public import SymplecticGeometry.Topology.FiberBundle.Compact
 public import SymplecticGeometry.Topology.VectorBundle.ZeroSet
 
 /-!
@@ -25,9 +25,9 @@ Let `E → B` be a topological vector bundle with model fibre `G` over a nontriv
 space `ℙ 𝕜 (E b)` of lines of `E b` as fibre over `b`, and model fibre `ℙ 𝕜 G`. A linear
 trivialization `e` of `E` induces a pretrivialization, sending a line `ℓ ⊆ E b` over the base set
 of `e` to `(b, e_b ℓ)`; its coordinate changes are continuous because those of `E` are, and the
-map of projective spaces induced by a linear equivalence depends jointly continuously on the
-equivalence and the point (`ContinuousOn.mapProjectivization`). Mathlib's `FiberPrebundle` turns
-these into the topology and the `FiberBundle (ℙ 𝕜 G)` structure of the projective bundle.
+map of projective spaces induced by a linear map depends jointly continuously on the map and the
+point (Tau Ceti's `Projectivization.continuousAt_linearProjection`). Mathlib's `FiberPrebundle`
+turns these into the topology and the `FiberBundle (ℙ 𝕜 G)` structure of the projective bundle.
 
 The map `ProjectiveBundle.mk'` sending a nonzero vector of `E` to the line it spans is an open
 quotient map onto the projective bundle (`ProjectiveBundle.isOpenQuotientMap_mk'`), as
@@ -36,9 +36,9 @@ continuous as soon as it is continuous on nonzero vectors (`ProjectiveBundle.con
 this gives the continuity of all the maps below.
 
 Over `ℝ` or `ℂ` and in finite rank the fibre `ℙ 𝕜 G` is compact Hausdorff, so the projective bundle
-is compact over a compact base, the projection being proper, and Hausdorff over a Hausdorff base
-by Tau Ceti's instance `TauCeti.FiberBundle.t2Space_totalSpace`, which this file imports for its
-users.
+is compact over a compact base by the instance `FiberBundle.compactSpace_totalSpace`, and
+Hausdorff over a Hausdorff base by Tau Ceti's instance `TauCeti.FiberBundle.t2Space_totalSpace`;
+this file imports both for its users.
 
 For a direct sum `E₁ ×ᵇ E₂`, the projective bundles of `E₁` and of `E₂` embed as disjoint closed
 subspaces through `v₁ ↦ (v₁, 0)` and `v₂ ↦ (0, v₂)`. The complement of the second one retracts onto
@@ -67,8 +67,8 @@ complement is a homotopy equivalence.
 ## Main results
 
 * `ProjectiveBundle.isOpenQuotientMap_mk'`: lines spanned by nonzero vectors form an open quotient.
-* `ProjectiveBundle.instCompactSpace`: over `ℝ` or `ℂ`, in finite rank, the projective bundle
-  over a compact base is compact.
+* `ProjectiveBundle.continuous_mapProjectivization_of_continuous`: a fibrewise linear equivalence
+  that is continuous on total spaces induces a continuous map of projective bundles.
 * `ProjectiveBundle.isClosedEmbedding_inl`, `ProjectiveBundle.isClosedEmbedding_inr`,
   `ProjectiveBundle.disjoint_range_inl_inr`: the projective bundles of the summands are disjoint
   closed subspaces of that of the direct sum.
@@ -80,8 +80,8 @@ complement is a homotopy equivalence.
 The continuous projection is named `ProjectiveBundle.projection` rather than
 `ProjectiveBundle.proj`: since `ProjectiveBundle` is an abbreviation, a declaration
 `ProjectiveBundle.proj` would take over the field notation `p.proj` for every point `p` of a
-projective bundle. The proof of `ContinuousOn.mapProjectivization` lifts the map through a product
-of open quotient maps, as the proof of Tau Ceti's `Projectivization.instContinuousSMul` does.
+projective bundle. The coordinate changes of the projective bundle are continuous by Tau Ceti's
+`Projectivization.continuousAt_linearProjection`, applied to the coordinate changes of `E`.
 
 ## References
 
@@ -98,47 +98,6 @@ noncomputable section
 
 open Bundle Set Topology
 open scoped LinearAlgebra.Projectivization
-
-/-! ### Linear maps of projective spaces depending continuously on a parameter -/
-
-section MapProjectivization
-
-variable {𝕜 T V W : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace T]
-  [NormedAddCommGroup V] [NormedSpace 𝕜 V] [NormedAddCommGroup W] [NormedSpace 𝕜 W]
-
-/-- For a family `L t` of continuous linear equivalences which depends continuously on `t ∈ s` as a
-family of operators, the induced maps of projective spaces depend jointly continuously on `t ∈ s`
-and on the point. -/
-theorem ContinuousOn.mapProjectivization {L : T → V ≃L[𝕜] W} {s : Set T}
-    (hL : ContinuousOn (fun t ↦ (L t : V →L[𝕜] W)) s) :
-    ContinuousOn (fun p : T × ℙ 𝕜 V ↦ (L p.1).mapProjectivization p.2) (s ×ˢ univ) := by
-  have hg : Continuous fun p : s × ℙ 𝕜 V ↦ (L p.1).mapProjectivization p.2 := by
-    rw [(IsOpenQuotientMap.id.prodMap
-      Projectivization.isOpenQuotientMap_mk').isQuotientMap.continuous_iff]
-    refine (Projectivization.continuous_mk ((hL.domRestrict.comp continuous_fst).clm_apply
-      (continuous_subtypeVal.comp continuous_snd)) fun p ↦ ?_).congr fun p ↦ ?_
-    · exact (map_ne_zero_iff _ (L p.1).injective).2 p.2.property
-    · simp [Projectivization.mk'_eq_mk]
-  rw [continuousOn_iff_continuous_domRestrict]
-  exact hg.comp (f := fun p : ↥(s ×ˢ (univ : Set (ℙ 𝕜 V))) ↦
-    ((⟨p.val.1, p.property.1⟩ : s), p.val.2)) (by fun_prop)
-
-end MapProjectivization
-
-namespace Projectivization
-
-variable {K V W : Type*} [DivisionRing K] [AddCommGroup V] [Module K V] [AddCommGroup W]
-  [Module K W]
-
-/-- The line spanned by the image of a vector under a linear map depends only on the line spanned
-by the vector, where the image is nonzero. -/
-theorem mk_apply_eq_of_mk_eq (f : V →ₗ[K] W) {v w : V} {hv : v ≠ 0} {hw : w ≠ 0}
-    (h : mk K v hv = mk K w hw) (hfv : f v ≠ 0) (hfw : f w ≠ 0) :
-    mk K (f v) hfv = mk K (f w) hfw := by
-  obtain ⟨a, rfl⟩ := (mk_eq_mk_iff K v w hv hw).1 h
-  exact (mk_eq_mk_iff K _ _ _ _).2 ⟨a, by simp [Units.smul_def]⟩
-
-end Projectivization
 
 namespace SymplecticGeometry.Bundle
 
@@ -171,6 +130,17 @@ theorem mk_def (v : TotalSpace G E) (hv : v.snd ≠ 0) :
     mk 𝕜 v hv = ⟨v.proj, Projectivization.mk 𝕜 v.snd hv⟩ :=
   (rfl)
 
+@[simp]
+theorem mk_mk (b : B) (v : E b) (hv : v ≠ 0) :
+    mk 𝕜 (TotalSpace.mk' G b v) hv = ⟨b, Projectivization.mk 𝕜 v hv⟩ :=
+  (rfl)
+
+/-- Two nonzero vectors of the same fibre span the same line exactly when one is a unit multiple of
+the other. -/
+theorem mk_eq_mk_iff {b : B} {v w : E b} (hv : v ≠ 0) (hw : w ≠ 0) :
+    mk 𝕜 (TotalSpace.mk' G b v) hv = mk 𝕜 (TotalSpace.mk' G b w) hw ↔ ∃ a : 𝕜ˣ, a • w = v := by
+  rw [mk_mk, mk_mk, TotalSpace.mk_inj, Projectivization.mk_eq_mk_iff]
+
 variable (𝕜 G E) in
 /-- The line spanned by a nonzero vector of `E`, as a map from the nonzero vectors of `E` onto the
 projective bundle. -/
@@ -180,10 +150,8 @@ def mk' (v : {v : TotalSpace G E // v.snd ≠ 0}) : ProjectiveBundle 𝕜 G E :=
 theorem mk'_eq_mk (v : {v : TotalSpace G E // v.snd ≠ 0}) : mk' 𝕜 G E v = mk 𝕜 v.val v.property :=
   (rfl)
 
-@[simp]
 theorem mk_rep (p : ProjectiveBundle 𝕜 G E) : mk 𝕜 ⟨p.proj, p.snd.rep⟩ p.snd.rep_ne_zero = p := by
-  rw [mk_def]
-  exact congrArg (TotalSpace.mk p.proj) p.snd.mk_rep
+  rw [mk_mk, Projectivization.mk_rep]
 
 theorem mk'_surjective : Function.Surjective (mk' 𝕜 G E) := fun p ↦
   ⟨⟨⟨p.proj, p.snd.rep⟩, p.snd.rep_ne_zero⟩, mk_rep p⟩
@@ -278,8 +246,30 @@ def fiberPrebundle : FiberPrebundle (ℙ 𝕜 G) fun b ↦ ℙ 𝕜 (E b) where
       simp only [mem_inter_iff, mem_preimage, proj_pretrivialization_symm, mem_prod, mem_univ,
         and_true, pretrivialization_target, pretrivialization_source]
     rw [hs]
-    refine (continuous_fst.continuousOn.prodMk
-      ((continuousOn_coordChange 𝕜 e' e).mapProjectivization)).congr fun q hq ↦ ?_
+    refine (continuous_fst.continuousOn.prodMk (g := fun q : B × ℙ 𝕜 G ↦
+      (e'.coordChangeL 𝕜 e q.1).mapProjectivization q.2) ?_).congr fun q hq ↦ ?_
+    · -- The maps of `ℙ 𝕜 G` induced by the coordinate changes of `E` depend jointly continuously
+      -- on the base point and the line, by Tau Ceti's `continuousAt_linearProjection`.
+      rcases isEmpty_or_nonempty (ℙ 𝕜 G) with hG | hG
+      · exact fun q _ ↦ isEmptyElim q.2
+      let s := e'.baseSet ∩ e.baseSet
+      let L (t : s) : G →ₗ[𝕜] G := (e'.coordChangeL 𝕜 e t : G →L[𝕜] G)
+      have hL : Continuous fun p : s × G ↦ L p.1 p.2 :=
+        ((continuousOn_coordChange 𝕜 e' e).domRestrict.comp continuous_fst).clm_apply continuous_snd
+      have hg : Continuous fun p : s × ℙ 𝕜 G ↦
+          (e'.coordChangeL 𝕜 e p.1).mapProjectivization p.2 := by
+        refine (continuous_iff_continuousAt.2 fun p ↦ Projectivization.continuousAt_linearProjection
+          hL ?_).congr fun p ↦ ?_
+        · rw [Projectivization.mem_linearProjectionDomain_iff]
+          exact (map_ne_zero_iff _ (e'.coordChangeL 𝕜 e p.1).injective).2 p.2.rep_ne_zero
+        · obtain ⟨t, y⟩ := p
+          induction y using Projectivization.ind with | h v hv =>
+          exact (Projectivization.linearProjection_mk (L t) hv
+            ((map_ne_zero_iff _ (e'.coordChangeL 𝕜 e t).injective).2 hv)).trans
+            (ContinuousLinearEquiv.mapProjectivization_mk _ v hv).symm
+      rw [continuousOn_iff_continuous_domRestrict]
+      exact hg.comp (f := fun p : ↥(s ×ˢ (univ : Set (ℙ 𝕜 G))) ↦
+        ((⟨p.val.1, p.property.1⟩ : s), p.val.2)) (by fun_prop)
     obtain ⟨⟨hq', hq⟩, -⟩ := hq
     rw [Function.comp_apply, pretrivialization_symm_apply e' hq',
       pretrivialization_apply e _ hq]
@@ -436,9 +426,9 @@ variable {G' : Type*} [NormedAddCommGroup G'] [NormedSpace 𝕜 G'] {E' : B → 
   [∀ b, AddCommGroup (E' b)] [∀ b, Module 𝕜 (E' b)] [TopologicalSpace (TotalSpace G' E')]
   [∀ b, TopologicalSpace (E' b)] [FiberBundle G' E'] [VectorBundle 𝕜 G' E']
 
-/-- A fibrewise linear equivalence which is continuous on total spaces induces a continuous map of
-projective bundles. -/
-private theorem continuous_map_aux {φ : ∀ b, E b ≃L[𝕜] E' b}
+/-- A fibrewise continuous linear equivalence `φ b : E b ≃L[𝕜] E' b` which is continuous on total
+spaces induces a continuous map of projective bundles, sending a line `ℓ ⊆ E b` to `φ b ℓ`. -/
+theorem continuous_mapProjectivization_of_continuous {φ : ∀ b, E b ≃L[𝕜] E' b}
     (hφ : Continuous fun v : TotalSpace G E ↦ TotalSpace.mk' G' v.proj (φ v.proj v.snd)) :
     Continuous fun p : ProjectiveBundle 𝕜 G E ↦
       (⟨p.proj, (φ p.proj).mapProjectivization p.snd⟩ : ProjectiveBundle 𝕜 G' E') := by
@@ -460,9 +450,9 @@ def map [CompleteSpace 𝕜] [FiniteDimensional 𝕜 G] (φ : ∀ b, E b ≃L[�
   invFun p := ⟨p.proj, (φ p.proj).symm.mapProjectivization p.snd⟩
   left_inv p := by simp
   right_inv p := by simp
-  continuous_toFun := continuous_map_aux hφ
-  continuous_invFun := 
-    continuous_map_aux (φ := fun b ↦ (φ b).symm) (TauCeti.continuous_bundle_symm φ hφ)
+  continuous_toFun := continuous_mapProjectivization_of_continuous hφ
+  continuous_invFun := continuous_mapProjectivization_of_continuous (φ := fun b ↦ (φ b).symm)
+    (TauCeti.continuous_bundle_symm φ hφ)
 
 variable [CompleteSpace 𝕜] [FiniteDimensional 𝕜 G] {φ : ∀ b, E b ≃L[𝕜] E' b}
   (hφ : Continuous fun v : TotalSpace G E ↦ TotalSpace.mk' G' v.proj (φ v.proj v.snd))
@@ -485,7 +475,7 @@ theorem map_mk (v : TotalSpace G E) (hv : v.snd ≠ 0) :
       mk 𝕜 (TotalSpace.mk' G' v.proj (φ v.proj v.snd)) ((map_ne_zero_iff _ (φ _).injective).2 hv) :=
   by
   obtain ⟨b, x⟩ := v
-  simp only [map_apply, mk_def, ContinuousLinearEquiv.mapProjectivization_mk]
+  simp
 
 end Map
 
@@ -540,8 +530,7 @@ def pullbackHomeomorph :
     · filter_upwards [hN] with ⟨b', x⟩ hy
       have hcle : (trivializationAt G (f *ᵖ E) z.proj).continuousLinearEquivAt 𝕜 b' hy =
           e.continuousLinearEquivAt 𝕜 (f b') hy :=
-        ContinuousLinearEquiv.ext (funext fun v ↦
-          Pullback.trivializationAt_snd (F := G) (E := E) f z.proj ⟨b', v⟩)
+        Trivialization.continuousLinearEquivAt_pullback (𝕜 := 𝕜) e f b' hy
       -- The families `f *ᵖ fun b ↦ ℙ 𝕜 (E b)` and `fun b' ↦ ℙ 𝕜 ((f *ᵖ E) b')` have the same fibres
       -- by definition of `Bundle.Pullback`; `change` reads `x` as a point of the second one.
       change (eP ⟨f b', x⟩).2 = (trivializationAt (ℙ 𝕜 G) (fun b ↦ ℙ 𝕜 ((f *ᵖ E) b)) z.proj
@@ -549,6 +538,16 @@ def pullbackHomeomorph :
       rw [trivializationAt_apply (E := E) ⟨f b', x⟩ hy,
         trivializationAt_apply (E := f *ᵖ E) ⟨b', x⟩ hy, hcle]
       rfl
+
+@[simp]
+theorem pullbackHomeomorph_apply (p : ProjectiveBundle 𝕜 G (f *ᵖ E)) :
+    pullbackHomeomorph 𝕜 G E f p = ⟨p.proj, p.snd⟩ :=
+  (rfl)
+
+@[simp]
+theorem pullbackHomeomorph_symm_apply (p : TotalSpace (ℙ 𝕜 G) (f *ᵖ fun b ↦ ℙ 𝕜 (E b))) :
+    (pullbackHomeomorph 𝕜 G E f).symm p = ⟨p.proj, p.snd⟩ :=
+  (rfl)
 
 end Pullback
 
@@ -612,30 +611,29 @@ theorem inr_apply (p : ProjectiveBundle 𝕜 G₂ E₂) :
 theorem inl_mk (v : TotalSpace G₁ E₁) (hv : v.snd ≠ 0) :
     inl G₂ E₂ (mk 𝕜 v hv) =
       mk 𝕜 (TotalSpace.mk' (G₁ × G₂) (E := E₁ ×ᵇ E₂) v.proj (v.snd, 0)) (by simpa using hv) := by
-  rw [mk_def, mk_def, inl_apply]
+  obtain ⟨b, x⟩ := v
   simp [Projectivization.map_mk]
 
 theorem inr_mk (v : TotalSpace G₂ E₂) (hv : v.snd ≠ 0) :
     inr G₁ E₁ (mk 𝕜 v hv) =
       mk 𝕜 (TotalSpace.mk' (G₁ × G₂) (E := E₁ ×ᵇ E₂) v.proj (0, v.snd)) (by simpa using hv) := by
-  rw [mk_def, mk_def, inr_apply]
+  obtain ⟨b, x⟩ := v
   simp [Projectivization.map_mk]
 
 theorem mk_mem_range_inl_iff (v : TotalSpace (G₁ × G₂) (E₁ ×ᵇ E₂)) (hv : v.snd ≠ 0) :
     mk 𝕜 v hv ∈ range (inl G₂ E₂) ↔ v.snd.2 = 0 := by
   obtain ⟨b, v₁, v₂⟩ := v
   refine ⟨?_, fun h ↦ ?_⟩
-  · rintro ⟨⟨b', y⟩, h⟩
-    rw [inl_apply, mk_def, TotalSpace.mk.injEq] at h
-    obtain ⟨rfl, h⟩ := h
-    induction y using Projectivization.ind with | h y hy =>
-    rw [Projectivization.map_mk] at h
-    obtain ⟨a, ha⟩ := (Projectivization.mk_eq_mk_iff 𝕜 _ _ _ _).1 (eq_of_heq h).symm
-    simpa using (congrArg Prod.snd ha).symm
+  · rintro ⟨p, h⟩
+    obtain ⟨⟨⟨b', y⟩, hy⟩, rfl⟩ := mk'_surjective p
+    rw [mk'_eq_mk, inl_mk] at h
+    obtain rfl : b' = b := congrArg TotalSpace.proj h
+    obtain ⟨a, ha⟩ := (mk_eq_mk_iff _ _).1 h
+    simpa [Units.smul_def] using congrArg Prod.snd ha
   · have h : v₂ = 0 := h
     have hv₁ : v₁ ≠ 0 := fun h₁ ↦ hv (by simp [h, h₁])
     refine ⟨mk 𝕜 ⟨b, v₁⟩ hv₁, ?_⟩
-    rw [inl_mk, mk_def, mk_def]
+    rw [inl_mk, mk_mk, mk_mk]
     congr 2
     exact Prod.ext rfl h.symm
 
@@ -643,17 +641,16 @@ theorem mk_mem_range_inr_iff (v : TotalSpace (G₁ × G₂) (E₁ ×ᵇ E₂)) (
     mk 𝕜 v hv ∈ range (inr G₁ E₁) ↔ v.snd.1 = 0 := by
   obtain ⟨b, v₁, v₂⟩ := v
   refine ⟨?_, fun h ↦ ?_⟩
-  · rintro ⟨⟨b', y⟩, h⟩
-    rw [inr_apply, mk_def, TotalSpace.mk.injEq] at h
-    obtain ⟨rfl, h⟩ := h
-    induction y using Projectivization.ind with | h y hy =>
-    rw [Projectivization.map_mk] at h
-    obtain ⟨a, ha⟩ := (Projectivization.mk_eq_mk_iff 𝕜 _ _ _ _).1 (eq_of_heq h).symm
-    simpa using (congrArg Prod.fst ha).symm
+  · rintro ⟨p, h⟩
+    obtain ⟨⟨⟨b', y⟩, hy⟩, rfl⟩ := mk'_surjective p
+    rw [mk'_eq_mk, inr_mk] at h
+    obtain rfl : b' = b := congrArg TotalSpace.proj h
+    obtain ⟨a, ha⟩ := (mk_eq_mk_iff _ _).1 h
+    simpa [Units.smul_def] using congrArg Prod.fst ha
   · have h : v₁ = 0 := h
     have hv₂ : v₂ ≠ 0 := fun h₂ ↦ hv (by simp [h, h₂])
     refine ⟨mk 𝕜 ⟨b, v₂⟩ hv₂, ?_⟩
-    rw [inr_mk, mk_def, mk_def]
+    rw [inr_mk, mk_mk, mk_mk]
     congr 2
     exact Prod.ext h.symm rfl
 
@@ -686,10 +683,14 @@ def inlRetraction :
         (continuous_subtypeVal.comp continuous_subtypeVal))
       fun v ↦ (mk_mem_range_inr_iff _ v.val.property).not.1 v.property).congr fun v ↦ ?_
     obtain ⟨⟨⟨b, w⟩, hw⟩, hv⟩ := v
+    have hw₁ : LinearMap.fst 𝕜 (E₁ b) (E₂ b) w ≠ 0 := (mk_mem_range_inr_iff _ hw).not.1 hv
+    have : Nonempty (ℙ 𝕜 (E₁ b)) := ⟨Projectivization.mk 𝕜 _ hw₁⟩
     simp only [Function.comp_apply, restrictPreimage_mk, mk_def]
     congr 1
-    exact Projectivization.mk_apply_eq_of_mk_eq (LinearMap.fst 𝕜 (E₁ b) (E₂ b))
-      (Projectivization.mk_rep _).symm _ _
+    -- The line spanned by the first component of a vector depends only on the line of the vector.
+    exact (Projectivization.linearProjection_mk _ hw hw₁).symm.trans
+      ((congrArg _ (Projectivization.mk_rep _).symm).trans
+        (Projectivization.linearProjection_mk _ _ (fst_rep_ne_zero_of_notMem_range_inr hv)))
 
 @[simp]
 theorem inlRetraction_apply
@@ -703,10 +704,13 @@ theorem inlRetraction_mk (v : TotalSpace (G₁ × G₂) (E₁ ×ᵇ E₂)) (hv :
     inlRetraction ⟨mk 𝕜 v hv, h⟩ =
       mk 𝕜 ⟨v.proj, v.snd.1⟩ ((mk_mem_range_inr_iff _ hv).not.1 h) := by
   obtain ⟨b, w⟩ := v
-  simp only [inlRetraction_apply, mk_def]
+  have hw₁ : LinearMap.fst 𝕜 (E₁ b) (E₂ b) w ≠ 0 := (mk_mem_range_inr_iff _ hv).not.1 h
+  have : Nonempty (ℙ 𝕜 (E₁ b)) := ⟨Projectivization.mk 𝕜 _ hw₁⟩
+  simp only [inlRetraction_apply, mk_mk]
   congr 1
-  exact Projectivization.mk_apply_eq_of_mk_eq (LinearMap.fst 𝕜 (E₁ b) (E₂ b))
-    (Projectivization.mk_rep _) _ _
+  exact (Projectivization.linearProjection_mk _ _
+    (fst_rep_ne_zero_of_notMem_range_inr h)).symm.trans
+    ((congrArg _ (Projectivization.mk_rep _)).trans (Projectivization.linearProjection_mk _ hv hw₁))
 
 variable (G₂ E₂) in
 /-- The embedding `inl` of the projective bundle of `E₁`, as a map into the complement of the
@@ -766,13 +770,13 @@ def prodComm :
   right_inv := by
     rintro ⟨b, x⟩
     induction x using Projectivization.ind with | h x hx => simp
-  continuous_toFun := continuous_map_aux
+  continuous_toFun := continuous_mapProjectivization_of_continuous
     (φ := fun b ↦ ContinuousLinearEquiv.prodComm 𝕜 (E₁ b) (E₂ b)) (by
     simp only [ContinuousLinearEquiv.prodComm_apply, Prod.swap]
     exact (FiberBundle.Prod.isInducing_diag G₂ E₂ G₁ E₁).continuous_iff.2
       ((continuous_snd.comp (FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous).prodMk
         (continuous_fst.comp (FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous)))
-  continuous_invFun := continuous_map_aux
+  continuous_invFun := continuous_mapProjectivization_of_continuous
     (φ := fun b ↦ ContinuousLinearEquiv.prodComm 𝕜 (E₂ b) (E₁ b)) (by
     simp only [ContinuousLinearEquiv.prodComm_apply, Prod.swap]
     exact (FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous_iff.2
@@ -792,12 +796,12 @@ theorem prodComm_symm :
 
 theorem prodComm_inl (p : ProjectiveBundle 𝕜 G₁ E₁) : prodComm (inl G₂ E₂ p) = inr G₂ E₂ p := by
   obtain ⟨⟨⟨b, v⟩, hv⟩, rfl⟩ := mk'_surjective p
-  rw [mk'_eq_mk, inl_mk, inr_mk, prodComm_apply, mk_def, mk_def]
+  rw [mk'_eq_mk, inl_mk, inr_mk]
   simp
 
 theorem prodComm_inr (p : ProjectiveBundle 𝕜 G₂ E₂) : prodComm (inr G₁ E₁ p) = inl G₁ E₁ p := by
   obtain ⟨⟨⟨b, v⟩, hv⟩, rfl⟩ := mk'_surjective p
-  rw [mk'_eq_mk, inl_mk, inr_mk, prodComm_apply, mk_def, mk_def]
+  rw [mk'_eq_mk, inl_mk, inr_mk]
   simp
 
 /-- The projective bundle of `E₂` embeds into that of `E₁ ×ᵇ E₂` as a closed subspace. -/
@@ -852,12 +856,18 @@ theorem homotopic_inlCompl_comp_inlRetraction :
         exact (mk_mem_range_inr_iff _ x.2.val.property).not.1 x.2.property).congr
       fun x ↦ Subtype.ext ?_
     obtain ⟨t, ⟨⟨b, w⟩, hw⟩, hx⟩ := x
+    have hw₁ : L t b w ≠ 0 := hL t ((mk_mem_range_inr_iff _ hw).not.1 hx)
+    have : Nonempty (ℙ 𝕜 (E₁ b × E₂ b)) := ⟨Projectivization.mk 𝕜 _ hw₁⟩
     simp only [H, Function.comp_apply, Prod.map_apply, id_eq, restrictPreimage_mk, mk_def]
     congr 1
-    exact Projectivization.mk_apply_eq_of_mk_eq (L t b) (Projectivization.mk_rep _).symm _ _
+    -- The line spanned by `L t b w` depends only on the line spanned by `w`.
+    exact (Projectivization.linearProjection_mk (L t b) hw hw₁).symm.trans
+      ((congrArg (Projectivization.linearProjection (L t b)) (Projectivization.mk_rep _).symm).trans
+        (Projectivization.linearProjection_mk (L t b) _
+          (hL t (fst_rep_ne_zero_of_notMem_range_inr hx))))
   refine ⟨⟨⟨H, hH⟩, fun p ↦ ?_, fun p ↦ ?_⟩⟩
   · refine Subtype.ext ?_
-    simp [H, L, -inl_apply, inl_mk]
+    simp [H, L, Projectivization.map_mk]
   · refine Subtype.ext ?_
     simp [H, L]
 
@@ -869,6 +879,19 @@ def inlHomotopyEquiv :
   ContinuousMap.HomotopyEquiv.ofDeformationRetraction (inlCompl G₂ E₂) inlRetraction
     inlRetraction_inlCompl homotopic_inlCompl_comp_inlRetraction
 
+@[simp]
+theorem inlHomotopyEquiv_toFun :
+    (inlHomotopyEquiv : ContinuousMap.HomotopyEquiv (ProjectiveBundle 𝕜 G₁ E₁) _).toFun =
+      inlCompl G₂ E₂ :=
+  ContinuousMap.HomotopyEquiv.ofDeformationRetraction_toFun ..
+
+@[simp]
+theorem inlHomotopyEquiv_invFun :
+    (inlHomotopyEquiv : ContinuousMap.HomotopyEquiv (ProjectiveBundle 𝕜 G₁ E₁)
+      ((range (inr G₁ E₁))ᶜ : Set (ProjectiveBundle 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂)))).invFun =
+      inlRetraction :=
+  ContinuousMap.HomotopyEquiv.ofDeformationRetraction_invFun ..
+
 end Homotopy
 
 end Prod
@@ -876,21 +899,5 @@ end Prod
 end ProjectiveBundle
 
 end SymplecticGeometry.Bundle
-
-namespace SymplecticGeometry.Bundle.ProjectiveBundle
-
-variable {𝕜 B G : Type*} [RCLike 𝕜] [TopologicalSpace B] [NormedAddCommGroup G] [NormedSpace 𝕜 G]
-  [FiniteDimensional 𝕜 G] {E : B → Type*} [∀ b, AddCommGroup (E b)] [∀ b, Module 𝕜 (E b)]
-  [TopologicalSpace (TotalSpace G E)] [∀ b, TopologicalSpace (E b)] [FiberBundle G E]
-  [VectorBundle 𝕜 G E]
-
-/-- The projective bundle of a real or complex vector bundle of finite rank over a compact base is
-compact, since its fibre `ℙ 𝕜 G` is. -/
-instance instCompactSpace [CompactSpace B] : CompactSpace (ProjectiveBundle 𝕜 G E) where
-  isCompact_univ := by
-    simpa using (FiberBundle.isProperMap_proj (ℙ 𝕜 G) fun b ↦ ℙ 𝕜 (E b)).isCompact_preimage
-      (isCompact_univ (X := B))
-
-end SymplecticGeometry.Bundle.ProjectiveBundle
 
 end

@@ -287,13 +287,13 @@ classes at no cost):
   trivialization `e` of `E` sends a line `ℓ ⊆ E b` to `(b, e_b ℓ)`
   (`Projectivization.map`), and its transitions are continuous since the
   coordinate changes of `E` are, and the action of linear maps on `ℙ 𝕜 G` is
-  jointly continuous (`ContinuousOn.mapProjectivization`, through the
-  quotient map from the nonzero vectors, as in Tau Ceti's
-  `Topology/Algebra/Projectivization/Action.lean`).
+  jointly continuous (Tau Ceti's
+  `Projectivization.continuousAt_linearProjection`).
 - `ProjectiveBundle.projection`, the projection as a continuous map (a
   declaration named `ProjectiveBundle.proj` would take over the field
-  notation `p.proj`), with a `CompactSpace` instance over a compact base
-  for `RCLike 𝕜` and finite-dimensional `G`; `T2Space` over a Hausdorff base
+  notation `p.proj`); over a compact base, for `RCLike 𝕜` and
+  finite-dimensional `G`, `CompactSpace` is the instance
+  `FiberBundle.compactSpace_totalSpace`; `T2Space` over a Hausdorff base
   is Tau Ceti's instance `TauCeti.FiberBundle.t2Space_totalSpace` (the
   fibre is compact Hausdorff, Tau Ceti's
   `Topology/Algebra/Projectivization.lean`).
@@ -313,6 +313,10 @@ classes at no cost):
 
 The file imports *Symplectic vector bundles*'
 `Topology/VectorBundle/ZeroSet.lean`, for the closedness of zero sets.
+
+The instance `FiberBundle.compactSpace_totalSpace`, compactness of the total
+space of a fibre bundle with compact fibre over a compact base, is in a file
+of its own, `Topology/FiberBundle/Compact.lean`, which this file imports.
 
 ### `Topology/VectorBundle/ProjectiveBundle/Tautological.lean`
 
