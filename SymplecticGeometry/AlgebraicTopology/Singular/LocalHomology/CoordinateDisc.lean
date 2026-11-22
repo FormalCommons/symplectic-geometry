@@ -372,12 +372,12 @@ theorem coe_reverse : ⇑φ.reverse = φ ∘ conjBall :=
   (rfl)
 
 @[simp]
-theorem reverse_apply (z : ball) : φ.reverse z = φ ⟨conj (z : ℂ), conj_mem_ball z.property⟩ :=
+theorem reverse_apply (z : ball) : φ.reverse z = φ (conjBall z) :=
   (rfl)
 
 /-- The reverse of a coordinate disc has the same centre. -/
 theorem reverse_apply_zero : φ.reverse 0 = φ 0 := by
-  rw [coe_reverse, Function.comp_apply, conjBall_zero]
+  simp
 
 /-- Reversing a coordinate disc twice gives back its map. The discs themselves cannot be compared
 by `=`, since they lie in `CoordinateDisc (-(-o))` and in `CoordinateDisc o`. -/
@@ -407,7 +407,10 @@ theorem openDisc_reverse : φ.reverse.openDisc = φ.openDisc :=
 @[simp]
 theorem boundaryCircle_reverse_apply (z : Circle) :
     φ.reverse.boundaryCircle z = φ.boundaryCircle z⁻¹ := by
-  simp only [boundaryCircle_apply, reverse_apply, Circle.coe_inv_eq_conj]
+  rw [boundaryCircle_apply, boundaryCircle_apply, reverse_apply]
+  congr 1
+  ext
+  simp only [coe_conjBall_apply, Circle.coe_inv_eq_conj]
 
 theorem boundaryCircle_reverse_one : φ.reverse.boundaryCircle 1 = φ.boundaryCircle 1 := by
   simp
@@ -746,7 +749,7 @@ theorem exists_coordinateDisc (hE : finrank ℝ E = 2) (o : HomologicalOrientati
   · -- Reversing a coordinate disc for `-o` gives one for `-(-o) = o`, with the same centre and
     -- image.
     rw [← neg_neg o]
-    refine ⟨φ.reverse, (reverse_apply_zero φ).trans hfx, ?_⟩
+    refine ⟨φ.reverse, by simpa using hfx, ?_⟩
     rw [coe_reverse, Set.range_comp, conjBall.surjective.range_eq, Set.image_univ]
     exact hfU
 
