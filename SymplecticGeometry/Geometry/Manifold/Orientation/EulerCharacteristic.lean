@@ -5,14 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
 public import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.Manifold
 public import TauCeti.Geometry.Manifold.Morse.Generic.Basic
 public import TauCeti.Geometry.Manifold.Morse.PoincareHopf
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
 public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Degree
-import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 
 /-!
@@ -28,9 +26,6 @@ zero, Tau Ceti's `TauCeti.VectorBundleOrientation.sectionIndex`.
   of a vector field `X` differentiable at `z`, where the chart derivative
   `TauCeti.vectorFieldChartDerivative I X z` is invertible, the local index of `X` is the sign of
   the determinant of the chart derivative.
-* `TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation`: in the chart `φ` of
-  `M` at `z` with values in `E`, the map `x ↦ φ x - φ z` carries the local orientation of `M` at
-  `z` to the local orientation of `E` at the origin that `o` gives at `z`.
 * `TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_sum_finrank_singularHomology`:
   for `M` compact and smooth, the Euler class of the tangent bundle evaluated on the fundamental
   class is `∑ᵢ (-1)ⁱ dim Hᵢ(M; k)` over any division ring `k`, the sum running over `i ≤ m + 1`.
@@ -48,12 +43,9 @@ of the tangent bundle at `z` and the chart at `z` followed by the model embeddin
 reads as its coordinate field
 (`VectorField.trivializationAt_snd_eventuallyEq_mpullbackWithin_extChartAt_symm`), so that the
 derivative is the chart derivative. The chart hypothesis of that theorem is
-`localHomologyMap_sub_toHomologicalOrientation`: since `E` need not be an inner product space, it
-is obtained from
-`OpenPartialHomeomorph.localHomologyMap_sub_localOrientationOfOrientedChart` for the chart
-composed with a linear identification of `E` with a Euclidean space, carried back by
-`Orientation.localOrientation_map`. The overall shape of the argument follows
-`SymplecticGeometry.Bundle.chernNumber_eq_sum_sign_of_transverse`.
+`TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation`, from
+`SymplecticGeometry/AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`. The overall
+shape of the argument follows `SymplecticGeometry.Bundle.chernNumber_eq_sum_sign_of_transverse`.
 
 For the Euler number, take a Morse function `f` (`TauCeti.exists_isMorse`) and a `C¹` Riemannian
 metric (`TauCeti.nonempty_contMDiffRiemannianMetric`). Adding up the local indices of the
@@ -90,83 +82,6 @@ variable {E H : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensio
 section Index
 
 variable [IsManifold I 1 M]
-
-/-- In the chart `φ` of `M` at `z` with values in the model `E`, the map `x ↦ φ x - φ z` carries
-the local orientation of `M` at `z` given by `o` to the local orientation of `E` at the origin
-given by `o` at `z`, read in the trivialization of the tangent bundle at `z`. -/
-theorem localHomologyMap_sub_toHomologicalOrientation (z : M) :
-    localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-        (⟨fun x : ((chartAt H z).transHomeomorph I.toHomeomorph).source ↦
-            (chartAt H z).transHomeomorph I.toHomeomorph x -
-              (chartAt H z).transHomeomorph I.toHomeomorph z,
-          ((chartAt H z).transHomeomorph I.toHomeomorph).continuousOn.domRestrict.sub
-            continuous_const⟩ :
-          C(((chartAt H z).transHomeomorph I.toHomeomorph).source, E))
-        (S := {⟨z, by simp⟩}) (T := {0})
-        (by
-          rintro x hx
-          exact Subtype.ext (((chartAt H z).transHomeomorph I.toHomeomorph).injOn x.property
-            (by simp) (sub_eq_zero.1 hx))) (m + 1)
-        ((((chartAt H z).transHomeomorph I.toHomeomorph).open_source.isOpenEmbedding_subtypeVal
-          |>.localOrientationEquiv ⟨z, by simp⟩ (m + 1)).symm
-          (o.toHomologicalOrientation hE z)).val =
-      (((trivializationAt E (TangentSpace I) z).mapOrientation (Fin (m + 1))
-        (FiberBundle.mem_baseSet_trivializationAt' z)
-        (o.toVectorBundleOrientation z)).localOrientation hE).val := by
-  set φ : OpenPartialHomeomorph M E := (chartAt H z).transHomeomorph I.toHomeomorph
-  have hz : z ∈ φ.source := by simp [φ]
-  set ν := (trivializationAt E (TangentSpace I) z).mapOrientation (Fin (m + 1))
-    (FiberBundle.mem_baseSet_trivializationAt' z) (o.toVectorBundleOrientation z)
-  -- A linear identification `L` of `E` with a Euclidean space, and the chart `φ'` it gives.
-  have hF : finrank ℝ (EuclideanSpace ℝ (Fin (m + 1))) = m + 1 := finrank_euclideanSpace_fin
-  let L : E ≃L[ℝ] EuclideanSpace ℝ (Fin (m + 1)) :=
-    ContinuousLinearEquiv.ofFinrankEq (hE.trans hF.symm)
-  set φ' : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin (m + 1))) :=
-    φ.transHomeomorph L.toHomeomorph
-  have hz' : z ∈ φ'.source := hz
-  set ν' := ν.map (Fin (m + 1)) L.toLinearEquiv
-  have hν : (o.orientationAt z).map (Fin (m + 1)) L.toLinearEquiv = ν' := by
-    simp only [ν', ν, Trivialization.mapOrientation_apply, toVectorBundleOrientation_apply,
-      ← Orientation.map_trans]
-    congr 2
-    refine LinearEquiv.ext fun v ↦ ?_
-    have hid : ∀ v : TangentSpace I z, (trivializationAt E (TangentSpace I) z).linearEquivAt ℝ z
-        (FiberBundle.mem_baseSet_trivializationAt' z) v = v := fun v ↦ by
-      rw [Trivialization.linearEquivAt_apply,
-        TangentBundle.trivializationAt_apply_tangentCoordChange]
-      exact tangentCoordChange_self (I := I) (v := v) (mem_extChartAt_source z)
-    exact congrArg L (hid v).symm
-  have h₁ : o.toHomologicalOrientation hE z = φ'.localOrientationOfOrientedChart hz' ν' hF := by
-    refine toHomologicalOrientation_apply_eq_localOrientationOfOrientedChart hE o hF φ' hz' L ?_
-      hν
-    refine L.hasFDerivAt.congr_of_eventuallyEq ?_
-    filter_upwards [extChartAt_target_mem_nhds (I := I) z] with y hy
-    have h := (extChartAt I z).right_inv hy
-    simp only [extChartAt, OpenPartialHomeomorph.extend, PartialEquiv.coe_trans,
-      PartialEquiv.coe_trans_symm] at h
-    simpa [φ', φ] using congrArg L h
-  have h₂ := φ'.localHomologyMap_sub_localOrientationOfOrientedChart hz' ν' hF
-  rw [← h₁] at h₂
-  -- Carry `h₂` back to `E` by `L⁻¹`.
-  have hL : (L.symm : C(EuclideanSpace ℝ (Fin (m + 1)), E)) ⁻¹' {0} ⊆ {0} := fun y hy ↦ by
-    simpa using hy
-  have h₄ : localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ))
-      (L.symm : C(EuclideanSpace ℝ (Fin (m + 1)), E)) hL (m + 1) (ν'.localOrientation hF).val =
-      (ν.localOrientation hE).val := by
-    have hmap := Orientation.localOrientation_map L.symm ν' hF hE
-    have hν'' : ν'.map (Fin (m + 1)) L.symm.toLinearEquiv = ν :=
-      Orientation.map_symm_map L.toLinearEquiv ν
-    rw [hν''] at hmap
-    rw [hmap, LocalOrientation.coe_map, ContinuousLinearEquiv.complZeroPairIso_hom,
-      localHomologyMap_def]
-    -- The two sides differ only in how `L.symm` is coerced to a continuous map.
-    rfl
-  rw [← h₄, ← h₂, ← ConcreteCategory.comp_apply, localHomologyMap_comp]
-  congr 3
-  ext x
-  -- Unfold the composite of the continuous maps to its values.
-  change φ x - φ z = L.symm (L (φ x) - L (φ z))
-  rw [← map_sub, ContinuousLinearEquiv.symm_apply_apply]
 
 /-- **The local index of a nondegenerate zero of a vector field.** Let `X` be a continuous vector
 field on `M`, differentiable at a zero `z` whose chart derivative

@@ -559,6 +559,10 @@ dimensions are included (both sides vanish).
   `firstChernClass_trivial` and `firstChernClass_eq_complexEulerClass`
   (#784), only in `ChernClass/FirstChernClass.lean`; `detCore` from the merged
   `Topology/VectorBundle/Determinant.lean`.
+- From *First Chern number*: its file
+  `AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`, only in
+  `Geometry/Manifold/Orientation/EulerCharacteristic.lean`, for
+  `TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation`.
 - From Tau Ceti: integral cohomology and cup products
   (`AlgebraicTopology/Cohomology/IntegralCup.lean`, `Cup/Relative.lean`),
   the isomorphism `uliftIntIso` of `ULift ℤ` with `ℤ`, the multiplication
