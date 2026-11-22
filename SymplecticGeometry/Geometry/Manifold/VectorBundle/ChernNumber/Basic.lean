@@ -211,13 +211,13 @@ theorem symplecticChernNumber_pullback [PreconnectedSpace M]
     [ChartedSpace EM' M'] (o' : HomologicalOrientation M' EM' 2) (hn' : finrank ℝ EM' = 2)
     {ω : ContMDiffTwoForm 𝓘(ℝ, EM) n F V} (hω : ω.IsNondegenerate)
     (f : C^n⟮𝓘(ℝ, EM'), M'; 𝓘(ℝ, EM), M⟯) :
-    symplecticChernNumber o' hn' G (ω.pullback f) =
+    symplecticChernNumber o' hn' G (ω.pullback f f.contMDiff) =
       o'.degree o hn' (f : C(M', M)) * symplecticChernNumber o hn G ω := by
   obtain ⟨J, hJ⟩ := hω.exists_compatible
-  rw [symplecticChernNumber_eq_chernNumber o' hn' G (hJ.tames.pullback f),
+  rw [symplecticChernNumber_eq_chernNumber o' hn' G (hJ.tames.pullback f f.contMDiff),
     symplecticChernNumber_eq_chernNumber o hn G hJ.tames,
     ← chernNumber_pullback o hn G J.toContinuousComplexStructure.Fiber o' hn' (f : C(M', M)),
-    chernNumber_def, chernNumber_def, J.firstChernClass_pullback G f,
+    chernNumber_def, chernNumber_def, J.firstChernClass_pullback G f f.contMDiff,
     SymplecticGeometry.Bundle.firstChernClass_pullback]
 
 end Symplectic

@@ -82,16 +82,6 @@ theorem firstChernClass_def :
     firstChernClass G E = complexEulerClass (r := 0) (Fin (detCore ℂ G E).rank → ℂ)
       (detCore ℂ G E).core.Fiber (finrank_detCore ℂ G E) := (rfl)
 
-/-- **Naturality of the first Chern class**: `c₁(f* E) = f* c₁(E)` for a continuous map
-`f : X → B`. -/
-theorem firstChernClass_pullback {X : Type} [TopologicalSpace X] (f : C(X, B)) :
-    firstChernClass G ((⇑f) *ᵖ E) =
-      TopCat.singularCohomologyMap (TopCat.ofHom f) 2 (firstChernClass G E) := by
-  rw [firstChernClass_def, firstChernClass_def]
-  have h := detCore_pullback ℂ G E f
-  rw [← complexEulerClass_pullback (detCore ℂ G E) f (finrank_detCore ℂ G E)]
-  exact complexEulerClass_eq_of_iso (eqToIso h) _ _
-
 variable {G E} in
 /-- **Isomorphic complex bundles have the same first Chern class.** The isomorphism is a family
 of complex-linear equivalences of the fibres, continuous on total spaces; the two models may
@@ -113,6 +103,20 @@ theorem firstChernClass_congr
       ((trivializationAt G' E' (Classical.arbitrary B)).continuousLinearEquivAt ℂ _
       (mem_baseSet_trivializationAt G' E' _)))).toLinearEquiv.finrank_eq.symm
   exact (complexEulerClass_eq_of_iso (detCoreMap hG Φ hΦ) _ _).symm
+
+/-- **Naturality of the first Chern class**: `c₁(f* E) = f* c₁(E)` for a continuous map
+`f : X → B`, of any type `K` with `[ContinuousMapClass K X B]`. -/
+theorem firstChernClass_pullback {X : Type} [TopologicalSpace X] {K : Type*} [FunLike K X B]
+    [ContinuousMapClass K X B] (f : K) :
+    firstChernClass G ((⇑f) *ᵖ E) =
+      TopCat.singularCohomologyMap (TopCat.ofHom (f : C(X, B))) 2 (firstChernClass G E) := by
+  -- The instances on `f *ᵖ E` depend on the type of `f`: pass to `(f : C(X, B))` through the
+  -- identity of each fibre.
+  rw [firstChernClass_congr (E := ⇑(f : C(X, B)) *ᵖ E) (E' := (⇑f) *ᵖ E)
+    (fun _ ↦ ContinuousLinearEquiv.refl ℂ _)
+    (continuous_id.congr fun _ ↦ rfl), firstChernClass_def, firstChernClass_def,
+    ← complexEulerClass_pullback (detCore ℂ G E) (f : C(X, B)) (finrank_detCore ℂ G E)]
+  exact complexEulerClass_eq_of_iso (eqToIso (detCore_pullback ℂ G E (f : C(X, B)))) _ _
 
 /-- **The first Chern class of a complex structure does not depend on the complex model.** For a
 continuous complex structure `J` on a real vector bundle `V`, the complex bundle `J.Fiber` has the
@@ -236,7 +240,7 @@ theorem chernNumber_pullback [PreconnectedSpace M]
     chernNumber o' hn' G ((⇑f) *ᵖ E) = o'.degree o hn' f * chernNumber o hn G E := by
   rw [chernNumber_def, chernNumber_def, firstChernClass_pullback,
     HomologicalOrientation.evalFundamentalClass_id_singularCohomologyMap_eq_degree_smul o' hn' _
-      o hn, ULift.smul_down, smul_eq_mul]
+      o hn f, ULift.smul_down, smul_eq_mul]
 
 end Number
 
