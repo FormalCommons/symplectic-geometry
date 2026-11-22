@@ -24,7 +24,7 @@ of a smooth almost complex structure `J`, which with Mathlib's bracket `mlieBrac
   the pullback `h^* J` is the pullback of the Nijenhuis tensor of `J`. Lie brackets commute with
   pullbacks along diffeomorphisms (Mathlib's `VectorField.mpullback_mlieBracket`), and `h^* J`
   maps pullbacks of vector fields to pullbacks;
-* naturality for related vector fields: if a smooth map `f : M → N` intertwines `J` with `K` near
+* naturality for related vector fields: if a `C²` map `f : M → N` intertwines `J` with `K` near
   `x`, `df ∘ J = K ∘ df`, and the fields `X, Y` on `M` are `f`-related near `x` to fields `V, W`
   on `N`, then `df_x (N_J(X, Y) x) = N_K(V, W) (f x)`. The differential of `f` need not be
   invertible: each bracket is handled by Tau Ceti's
@@ -45,7 +45,7 @@ of a smooth almost complex structure `J`, which with Mathlib's bracket `mlieBrac
 * `TauCeti.SmoothAlmostComplexStructure.nijenhuis_mpullback`: the same on vector fields,
   `N_{h^* J}(h^* X, h^* Y) = h^* N_J(X, Y)`.
 * `TauCeti.SmoothAlmostComplexStructure.mfderiv_nijenhuis_of_eventually_related`: naturality for
-  related vector fields along any smooth map intertwining two structures.
+  related vector fields along any `C²` map intertwining two structures.
 * `TauCeti.SmoothAlmostComplexStructure.nijenhuis_eq_hom_toEndomorphism`: the formula of `N_J`
   through a torsion-free covariant derivative.
 * `TauCeti.SmoothAlmostComplexStructure.nijenhuis_tensor`: the properties of the Nijenhuis
@@ -143,13 +143,13 @@ theorem nijenhuis_mpullback (h : M ≃ₘ⟮I, I'⟯ N) (J : SmoothAlmostComplex
   simp only [nijenhuis_pullback, VectorField.mpullback_apply]
   rw [hinv.self_apply_inverse, hinv.self_apply_inverse]
 
-/-- **Naturality of the Nijenhuis tensor for related vector fields.** Let `f : M → N` be smooth at
+/-- **Naturality of the Nijenhuis tensor for related vector fields.** Let `f : M → N` be `C²` at
 `x` and intertwine `J` on `M` with `K` on `N` near `x`, `df_z ∘ J_z = K_{f z} ∘ df_z`. If the vector
 fields `X, Y` on `M`, differentiable at `x`, are `f`-related near `x` to vector fields `V, W` on
 `N`, differentiable at `f x`, then `df_x (N_J(X, Y) x) = N_K(V, W) (f x)`. The differential of `f`
 need not be invertible. -/
 theorem mfderiv_nijenhuis_of_eventually_related (K : SmoothAlmostComplexStructure I' N) {f : M → N}
-    {x : M} (hf : ContMDiffAt I I' ∞ f x)
+    {x : M} (hf : ContMDiffAt I I' 2 f x)
     (hJK : ∀ᶠ z in 𝓝 x, ∀ v : TangentSpace I z,
       mfderiv I I' f z (J z v) = K (f z) (mfderiv I I' f z v))
     {X Y : Π z : M, TangentSpace I z} {V W : Π y : N, TangentSpace I' y}

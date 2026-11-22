@@ -203,7 +203,8 @@ theorem mfderiv_nijenhuis_restrict (x : N) (v w : TangentSpace I' x) :
     (by simp) v
   obtain ⟨Y, W, hY, hW, hYw, hYW⟩ := hf.exists_vectorField_mfderiv_eventuallyEq (m := 1)
     (by simp) w
-  have h := (J.restrict f hJ).mfderiv_nijenhuis_of_eventually_related J (f.contMDiff x)
+  have h := (J.restrict f hJ).mfderiv_nijenhuis_of_eventually_related J
+    ((f.contMDiff x).of_le (by simp))
     (.of_forall fun z u ↦ mfderiv_restrict_apply hJ z u) (hX.mdifferentiableAt one_ne_zero)
     (hY.mdifferentiableAt one_ne_zero) (hV.mdifferentiableAt one_ne_zero)
     (hW.mdifferentiableAt one_ne_zero) hXV hYW

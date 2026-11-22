@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Geometry.Manifold.Immersion
 public import Mathlib.Geometry.Manifold.VectorField.Pullback
+public import SymplecticGeometry.Geometry.Manifold.Immersion.Chart
 public import TauCeti.Geometry.Manifold.VectorField.Immersion
 
 /-!
@@ -15,7 +15,8 @@ public import TauCeti.Geometry.Manifold.VectorField.Immersion
 Let `f : M → N` be a `C^n` immersion at `x`. Read in its normal-form charts `φ` on `M` and `ψ`
 on `N`, `f` is the inclusion `u ↦ L (u, 0)` of `E` into `E''`, through a linear equivalence
 `L : E × F ≃ E''`; so `dψ ∘ df = L (·, 0) ∘ dφ` on the source of `φ`
-(`Manifold.IsImmersionAtOfComplement.mfderiv_extend_comp_mfderiv`).
+(`Manifold.IsImmersionAtOfComplement.mfderiv_extend_comp_mfderiv`, in
+`SymplecticGeometry.Geometry.Manifold.Immersion.Chart`).
 
 Hence the constant field `L (a, 0)` of `E''`, pulled back to `N` by `ψ`, is a `C^m` vector field
 on `N` (for `m + 1 ≤ n`) whose values at the points `f z`, `z` near `x`, are tangent to `f`. With
@@ -28,14 +29,8 @@ related to near `x`. So every tangent vector `v` at `x` is the value of a `C^m` 
 statements for tensors built from Lie brackets, such as the Nijenhuis tensor, need along an
 immersion.
 
-The derivative formula follows Tau Ceti's
-`TauCeti.Manifold.IsSubmersionAtOfComplement.mfderiv_extend_comp_mfderiv`, its analogue for
-submersions.
-
 ## Main results
 
-* `Manifold.IsImmersionAtOfComplement.mfderiv_extend_comp_mfderiv`: the derivative of an
-  immersion in its normal-form charts.
 * `Manifold.IsImmersionAtOfComplement.exists_vectorField_eventually_mem_range_mfderiv`: an
   ambient `C^m` vector field, tangent to `f` near `x`, through a given tangent image at `f x`.
 * `Manifold.IsImmersionAt.exists_vectorField_mfderiv_eventuallyEq`: every tangent vector at `x`
@@ -69,39 +64,11 @@ namespace Manifold.IsImmersionAtOfComplement
 variable (h : IsImmersionAtOfComplement F I J n f x)
 include h
 
-/-- **The derivative of an immersion in its normal-form charts.** On the source of the domain
-chart `φ`, the derivative of `f` followed by the derivative of the codomain chart `ψ` is the
-derivative of `φ` followed by the inclusion `u ↦ L (u, 0)`, where `L = h.equiv`. -/
-theorem mfderiv_extend_comp_mfderiv (hn : n ≠ 0) {y : M} (hy : y ∈ h.domChart.source) :
-    (mfderiv J 𝓘(𝕜, E'') (h.codChart.extend J) (f y)).comp (mfderiv I J f y) =
-      ((h.equiv : E × F →L[𝕜] E'').comp (ContinuousLinearMap.inl 𝕜 E F)).comp
-        (mfderiv I 𝓘(𝕜, E) (h.domChart.extend I) y) := by
-  have hfy : f y ∈ h.codChart.source := h.source_subset_preimage_source hy
-  have hψ : MDifferentiableAt J 𝓘(𝕜, E'') (h.codChart.extend J) (f y) :=
-    (h.codChart.contMDiffAt_extend h.codChart_mem_maximalAtlas hfy).mdifferentiableAt hn
-  have hφ : MDifferentiableAt I 𝓘(𝕜, E) (h.domChart.extend I) y :=
-    (h.domChart.contMDiffAt_extend h.domChart_mem_maximalAtlas hy).mdifferentiableAt hn
-  have hf : MDifferentiableAt I J f y :=
-    ((h.contMDiffOn y hy).contMDiffAt (h.domChart.open_source.mem_nhds hy)).mdifferentiableAt hn
-  -- On the source of `φ`, `ψ ∘ f` is `L (·, 0) ∘ φ`.
-  have heq : h.codChart.extend J ∘ f =ᶠ[𝓝 y]
-      ((h.equiv : E × F →L[𝕜] E'').comp (ContinuousLinearMap.inl 𝕜 E F)) ∘
-        h.domChart.extend I := by
-    refine eventually_of_mem (h.domChart.open_source.mem_nhds hy) fun z hz ↦ ?_
-    have hz' : z ∈ (h.domChart.extend I).source := by rwa [OpenPartialHomeomorph.extend_source]
-    have := h.writtenInCharts ((h.domChart.extend I).map_source hz')
-    simpa only [comp_apply, (h.domChart.extend I).left_inv hz', ContinuousLinearMap.comp_apply,
-      ContinuousLinearMap.inl_apply, ContinuousLinearEquiv.coe_coe] using this
-  exact hasMFDerivAt_unique (hψ.hasMFDerivAt.comp y hf.hasMFDerivAt)
-    ((ContinuousLinearMap.hasMFDerivAt _).comp y hφ.hasMFDerivAt |>.congr_of_eventuallyEq_abuse
-      heq)
-
 /-- **Tangent extensions.** Let `f` be a `C^n` immersion at `x` and `m + 1 ≤ n`. Every tangent
 image `df_x v` is the value at `f x` of a vector field `V` on `N` that is `C^m` at `f x` and
 tangent to `f` near `x`: `V (f z)` lies in the range of `df_z` for `z` near `x`. -/
-theorem exists_vectorField_eventually_mem_range_mfderiv [IsManifold I n M] [IsManifold J n N]
-    [IsManifold J 1 N] [CompleteSpace E''] (hmn : m + 1 ≤ n)
-    (v : TangentSpace I x) :
+theorem exists_vectorField_eventually_mem_range_mfderiv [IsManifold J 1 N] [CompleteSpace E'']
+    (hmn : m + 1 ≤ n) (v : TangentSpace I x) :
     ∃ V : Π y : N, TangentSpace J y, ContMDiffAt J J.tangent m (T% V) (f x) ∧
       (∀ᶠ z in 𝓝 x, V (f z) ∈ LinearMap.range (mfderiv I J f z).toLinearMap) ∧
       V (f x) = mfderiv I J f x v := by
@@ -144,8 +111,7 @@ end Manifold.IsImmersionAtOfComplement
 
 namespace Manifold.IsImmersionAt
 
-variable [CompleteSpace E] [CompleteSpace E''] [IsManifold I n M] [IsManifold J n N]
-  [IsManifold I 1 M] [IsManifold J 1 N]
+variable [CompleteSpace E] [CompleteSpace E''] [IsManifold I 1 M] [IsManifold J 1 N]
 
 /-- **Related extensions of a tangent vector.** Let `f` be a `C^n` immersion at `x` and
 `m + 1 ≤ n`. Every tangent vector `v` at `x` is the value at `x` of a vector field `X` on `M`,
