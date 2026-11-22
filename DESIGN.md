@@ -2269,8 +2269,9 @@ has either; Tau Ceti's extension across a boundary,
   metrics compatible with $J$ and nondegenerate forms compatible with $J$,
   through part 12's `compatibleForm`, with its two evaluation lemmas).
 - **Builds on:** *Symplectic vector bundles* (only the merged
-  `Symplectic/ComplexStructure/Basic.lean` and `Contractible.lean`); Tau
-  Ceti.
+  `Symplectic/ComplexStructure/Basic.lean` and `Contractible.lean`, and
+  `Geometry/Manifold/VectorBundle/ComplexStructure.lean` for `tangentEquiv`
+  and `tangentHomeomorph`); Tau Ceti.
 - **Milestones:** *Compatible and tame almost complex structures on
   manifolds*, over a Hausdorff σ-compact manifold, in the compact-open
   $C^\infty$ topology, as part 12 states the bundle milestone. The part needs
@@ -2384,7 +2385,9 @@ has either; Tau Ceti's extension across a boundary,
   which treats one-forms, in Mathlib's namespace `CovariantDerivative`),
   `Geometry/Symplectic/Manifold/AlmostComplex/LeviCivita.lean` (for
   $J\in\mathcal J(M,\omega)$ and the Levi-Civita connection of $g_J$: the
-  four identities, the fourth for closed $\omega$) and
+  four identities, the fourth for closed $\omega$),
+  `LinearAlgebra/ComplexStructure/Trilinear.lean` (the linear algebra
+  behind the fourth identity) and
   `Geometry/Symplectic/Manifold/Kahler.lean` (named like Tau Ceti's file:
   the identity expressing $\langle N_J(X,Y),Z\rangle$ through $d\omega$ and
   $\nabla J$, and $\nabla J=0$ if and only if $d\omega=0$ and $N_J=0$, that
@@ -2480,19 +2483,20 @@ has either; Tau Ceti's extension across a boundary,
 - **Files:** in `Geometry/Symplectic/JHolomorphic/Energy/` (beside Tau Ceti's
   folder of the same name): `Density.lean` (the norm of a linear map from a
   tangent plane of $\Sigma$, measured by $\mathrm{dvol}_\Sigma(\cdot,j\cdot)$,
-  to a tangent space with $g_J$, its value on a frame $(e,je)$, the
-  operator $\bar\partial_J$, and the pointwise identity, by Tau Ceti's
+  to a tangent space, its value on a frame $(e,je)$, and the pointwise
+  identity, by Tau Ceti's
   `TauCeti.SmoothTwoForm.Invariant.stdComplexLineEnergyDensity_sub_two_mul_twoForm`
-  on each tangent plane), `Surface.lean` (the energy as an integral over
+  on each tangent plane, with $\bar\partial_J$ Tau Ceti's
+  `TauCeti.complexAntilinearPart`), `Metric.lean` (that norm read in
+  $g_J$), `Surface.lean` (the energy as an integral over
   the closed surface, Tau Ceti's `integralTopForm`, the integrated
-  identity, independence of the area form, and the $J$-holomorphic case)
+  identity, independence of the area form, the $J$-holomorphic case and
+  positivity)
   and `Homology.lean` (for closed $\omega$, $\int_\Sigma u^*\omega$ as the
-  pairing of $[\omega]$ with $u_*[\Sigma]$, from Tau Ceti's
-  `deRhamCohomology.integration`, its smoothing theorem
-  `TauCeti.smoothSingularChainHomotopyEquiv` and
-  `TauCeti.SmoothSimplex.integral_eq_integralTopForm`, if Tau Ceti has not
-  proved the comparison by then; and positivity, by Tau Ceti's
-  `TauCeti.integralTopForm_mpullback_nonneg`).
+  pairing of $[\omega]$ with $u_*[\Sigma]$, and the milestone), with the
+  comparison of `integralTopForm` with fundamental classes of closed
+  oriented surfaces, which Tau Ceti does not have, in files outside
+  the folder that the design file lists.
 - **Builds on:** *Almost complex manifolds* (only `Metric.lean`); Tau Ceti's
   `IsPseudoholomorphic`, energy densities, integration of top forms and
   smooth singular chains.
@@ -2522,24 +2526,24 @@ has either; Tau Ceti's extension across a boundary,
 
 ### 32. Adjunction (needs `design/adjunction.md`)
 
-- **Files:** `Geometry/Manifold/Complex/Adjunction.lean` (for a compact
-  connected surface $\Sigma$ embedded in an almost complex four-manifold
-  with $J$-invariant tangent planes: the normal bundle is Tau Ceti's
-  intrinsic normal bundle of the embedding,
-  `TauCeti.SmoothEmbedding.NormalSpace` with its vector bundle structure,
-  and since $T\Sigma$ is $J$-invariant, $J$ descends to its fibres and makes
-  it a complex line bundle, with no metric; the self-intersection
-  number as the Euler number of that normal bundle, with the orientation of
-  its complex structure; the splitting of $TX|_\Sigma$ as a direct sum of
-  complex bundles, through Tau Ceti's orthogonal representatives
-  (`NormalSpace/VectorBundle/Riemannian.lean`) for a $J$-invariant metric;
-  and the formula, with Tau Ceti's `TauCeti.surfaceGenus`).
-- **Builds on:** *First Chern number* (`ChernNumber/Axioms.lean` for
-  additivity, #788, and `ChernNumber/EulerNumber.lean` for $c_1(T\Sigma)$,
-  #785); *Almost complex manifolds* (only `Metric.lean`, for a
-  $J$-invariant metric in the splitting); *Symplectic vector bundles*
-  (direct sums and pull-backs, merged); Tau Ceti's normal bundles of smooth
-  embeddings (`Geometry/Manifold/SmoothEmbedding/NormalSpace/`).
+- **Files:** `Geometry/Manifold/SmoothEmbedding/NormalSpace/ComplexStructure.lean`
+  (since $T\Sigma$ is $J$-invariant, $J$ descends to the fibres of Tau
+  Ceti's intrinsic normal bundle `TauCeti.SmoothEmbedding.NormalSpace` and
+  makes it a smooth complex bundle, with no metric), and in
+  `Geometry/Symplectic/Manifold/AlmostComplex/`: `NormalSplitting.lean`
+  (the splitting of $TX|_\Sigma$ as a direct sum of symplectic bundles, over
+  the surface, through a compatible form on the pulled-back tangent bundle
+  and its symplectic complement of $T\Sigma$), `SelfIntersection.lean` (the
+  self-intersection number as the Euler number of the normal bundle, with
+  the orientation of its complex structure) and `AdjunctionFormula.lean`
+  (the formula, with Tau Ceti's `TauCeti.surfaceGenus`).
+  `design/adjunction.md` gives the details.
+- **Builds on:** *First Chern number* (`FirstChernClass.lean` and
+  `ChernNumber/Basic.lean`, #784, and `ChernNumber/Axioms.lean` for
+  additivity and $c_1(T\Sigma)$, #788); *Symplectic vector bundles*
+  (complex structures, direct sums and pull-backs, merged); Tau Ceti's
+  normal bundles of smooth embeddings
+  (`Geometry/Manifold/SmoothEmbedding/NormalSpace/`).
 - **Milestones:** *Adjunction formula*, with the self-intersection number
   defined as the page defines it, so that no Poincaré duality is needed;
   the equality with $Q_X([\Sigma],[\Sigma])$ for closed $X$ is not part of
@@ -2609,7 +2613,7 @@ that file, and the notes here may fall behind it.
 | 0 | *Smooth families* | — (`Diffeotopy/Real.lean` imports `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` of *Hamiltonian flows*, which is merged and imports no file of *Smooth families*) |
 | 0 | *Cotangent bundles* | — |
 | 0 | *Liouville structures* | — (it imports `Analysis/Calculus/ContDiff/Seeley/Extension.lean`, `Geometry/Manifold/LocalDiffeomorph/Basic.lean` and `Geometry/Manifold/MFDeriv/Chart.lean` of *Smooth families*, in `Geometry/Manifold/Boundary/Collar/Flow/Local.lean`, which are merged, `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of *Symplectic vector bundles*, which is merged, `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy*, which imports only Tau Ceti and is merged, and `Geometry/Symplectic/Manifold/Family.lean` of *Moser isotopy* and `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*, in `StableHamiltonian.lean`, which are merged) |
-| 0 | *Almost complex manifolds* | — (it uses only merged files of *Symplectic vector bundles*: `Symplectic/ComplexStructure/Basic.lean` and `Contractible.lean`) |
+| 0 | *Almost complex manifolds* | — (it uses only merged files of *Symplectic vector bundles*: `Symplectic/ComplexStructure/Basic.lean`, `Contractible.lean` and `ComplexStructure.lean`) |
 | 0 | *Nijenhuis tensor* | — |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
 | 1 | *Symplectic vector spaces* | *Standard model*, *Symplectic group* |
@@ -2634,7 +2638,7 @@ that file, and the notes here may fall behind it.
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); *Moser isotopy* (only `Darboux/Strict.lean`, through `LocalDiffeomorph/MFDeriv.lean`, merged); the other files of the part can start at once |
 | 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles* |
-| 4 | *Adjunction* | *First Chern number* (only `ChernNumber/Axioms.lean` and `ChernNumber/EulerNumber.lean`), *Almost complex manifolds* (only `Metric.lean`) |
+| 4 | *Adjunction* | *First Chern number* (only `FirstChernClass.lean`, `ChernNumber/Basic.lean` and `ChernNumber/Axioms.lean`); `NormalSpace/ComplexStructure.lean` and `NormalSplitting.lean` can start at once |
 | 4 | *Chern classes* | *First Chern number* (only `FirstChernClass.lean` and the Poincaré duality prerequisites); the cohomology ring of $\mathbb CP^n$ can start at once |
 | 5 | *Projective hypersurfaces* | *Chern classes*, *First Chern number* (only `ChernNumber/EulerNumber.lean`); the bundle isomorphisms on $\mathbb CP^{n+1}$ can start at once |
 

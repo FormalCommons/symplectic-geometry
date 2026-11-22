@@ -45,6 +45,13 @@ module structure on the fibres: the file of `smul_eq` gives the fibres a second 
 `Bundle.Pullback.instSMul`, and importing it here would change the action that
 `c • v` elaborates to in every file that imports this one.
 
+Since `Bundle.Pullback` is not reducible, instance search also does not find an
+`IsNormableSpace` instance of `E (f y)` on the fibre `(f *ᵖ E) y`.
+`Bundle.Pullback.instIsNormableSpace` gives it, next to Tau Ceti's instances on these fibres
+such as `Bundle.Pullback.instNormedSpace`. Together with `TangentSpace.instIsNormableSpace` of
+`SymplecticGeometry/Geometry/Manifold/IsManifold/Basic.lean`, it covers the fibres
+`(f *ᵖ TangentSpace I) q`.
+
 ## References
 
 * D. Husemoller, *Fibre Bundles*, 3rd ed., Graduate Texts in Mathematics 20, Springer, 1994,
@@ -186,6 +193,13 @@ theorem smul_pullback (c : R) (v : E (f y)) :
     @Eq (E (f y)) (@HSMul.hSMul R ((f *ᵖ E) y) ((f *ᵖ E) y) _ c v) (c • v) := (rfl)
 
 end Module
+
+/-- A fibre of the pull-back `f *ᵖ E` is normable over `𝕜` when the fibres of `E` are: it is
+`E (f y)`, with the same topology and module structure. -/
+instance instIsNormableSpace {𝕜 : Type*} [NormedField 𝕜] [∀ b, AddCommGroup (E b)]
+    [∀ b, Module 𝕜 (E b)] [∀ b, TopologicalSpace (E b)] [∀ b, IsNormableSpace 𝕜 (E b)] :
+    IsNormableSpace 𝕜 ((f *ᵖ E) y) :=
+  inferInstanceAs (IsNormableSpace 𝕜 (E (f y)))
 
 end Bundle.Pullback
 
