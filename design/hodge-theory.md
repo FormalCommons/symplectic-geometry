@@ -288,7 +288,15 @@ codifferential in a chart `ψ`:
   $\pm S\,d(S\,b)$, with $S$ the star in the chart, $b$ the expression of
   $\beta$, and the sign of Tau Ceti's definition of `codifferential`.
 
+### `LinearAlgebra/BilinearForm/Gram.lean`
+
+- `LinearMap.BilinForm.apply_sum_inv_toMatrix_smul`: if the Gram matrix
+  $G$ of a bilinear form `B` in a basis `b` has a unit determinant, then
+  `B` sends $\sum_{ij}(G^{-1})_{ij}\,\xi(b_i)\,b_j$ to the linear form $\xi$.
+
 ### `Geometry/Manifold/DeRham/Hodge/LocalLaplacian.lean`
+
+`LocalLaplacian.lean` imports `LinearAlgebra/BilinearForm/Gram.lean`.
 
 - `exists_mpullback_symm_hodgeLaplacian_eq`: for a chart `ψ` and a basis `b` of
   `E`, there are smooth `B : Fin n → E → Λ →L[ℝ] Λ` and `C : E → Λ →L[ℝ] Λ`,

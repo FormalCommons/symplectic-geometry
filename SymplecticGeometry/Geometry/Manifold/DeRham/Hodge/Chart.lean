@@ -178,6 +178,14 @@ def hodgeStarInChart (hkl : k + l = m) (y : E) :
       ContinuousAlternatingMap.compContinuousLinearMapCLM
         (mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] E)
 
+theorem hodgeStarInChart_def (hkl : k + l = m) (y : E) :
+    hodgeStarInChart o ψ hkl y =
+      ContinuousAlternatingMap.compContinuousLinearMapCLM (mfderiv 𝓘(ℝ, E) I ψ.symm y) ∘L
+        formHodgeStarCLM o hkl (ψ.symm y) ∘L
+          ContinuousAlternatingMap.compContinuousLinearMapCLM
+            (mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) : TangentSpace I (ψ.symm y) →L[ℝ] E) :=
+  (rfl)
+
 theorem hodgeStarInChart_apply (hkl : k + l = m) (y : E)
     (a : E [⋀^Fin k]→L[ℝ] ℝ) (w : Fin l → E) :
     hodgeStarInChart o ψ hkl y a w = formHodgeStarCLM o hkl (ψ.symm y)
