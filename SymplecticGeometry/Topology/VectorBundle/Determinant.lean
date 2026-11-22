@@ -64,7 +64,7 @@ times the determinant of `Ψ y ∘ (Φ y)⁻¹` (`detCoreFrameSection_eq_det_smu
 rule follows Tau Ceti's `TauCeti.clutchingFunction_eq_mul_normalizedDet_inv`, which compares the
 clutching functions of two frames through the automorphism `(φ y)⁻¹ ∘ ψ y` of the model fibre.
 The same factor is the determinant of `(Φ y)⁻¹ ∘ Ψ y` on the model `G`
-(`ContinuousLinearEquiv.det_trans_symm`), and it depends continuously on `y`
+(`ContinuousLinearEquiv.det_coe_trans_symm`), and it depends continuously on `y`
 (`continuous_det_trans_symm`), since it is the coordinate of the change of trivialization
 `detCoreFrameIso f Ψ hΨ ≪≫ (detCoreFrameIso f Φ hΦ).symm` of the trivial line.
 
@@ -527,7 +527,7 @@ theorem continuous_det_trans_symm :
     (continuous_trivial_iff.1 (continuous_isoFiberEquiv_const _ _)).2
   refine ((continuous_apply (⟨0, by simp⟩ : Fin (trivial 𝕜 X 1).rank)).comp h).congr fun y ↦ ?_
   rw [Function.comp_apply, isoFiberEquiv_apply, fiberMap_detCoreFrameIso_trans_symm_hom,
-    ← ContinuousLinearEquiv.det_trans_symm]
+    ← ContinuousLinearEquiv.det_coe_trans_symm]
   simp
 
 /-- **The determinant section of a frame in coordinates.** The value at `y` of the determinant
@@ -577,7 +577,7 @@ theorem detCoreFrameSection_apply_eq_det (y : X) (i : Fin ((detCore 𝕜 G E).pu
     detCoreFrameSection f Φ hΦ y i =
       LinearMap.det ((Φ y).trans (VectorBundle.continuousLinearEquivAt 𝕜 G E (f y)) :
         G →ₗ[𝕜] G) := by
-  rw [detCoreFrameSection_apply, ← ContinuousLinearEquiv.det_symm_trans_trans
+  rw [detCoreFrameSection_apply, ← ContinuousLinearEquiv.det_coe_symm_trans_trans
     (ContinuousLinearEquiv.ofFinrankEq (finrank_fin_fun 𝕜).symm)]
   simp only [ContinuousLinearMap.exteriorPowerCoords_self, ContinuousLinearMap.det,
     ContinuousLinearEquiv.toLinearMap_toContinuousLinearMap,
