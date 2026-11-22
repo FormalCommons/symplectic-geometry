@@ -276,6 +276,15 @@ own milestone line.
 
 ## Files and declarations
 
+### `Analysis/Matrix/LDL.lean`
+
+In namespace `Matrix`: `exists_isUpperTriangular_conjTranspose_mul_mul_self_eq_one`,
+a rectangular matrix `F` with injective `mulVec` becomes one with
+orthonormal columns, `F * P`, for an upper triangular `P` with injective
+`mulVec`; from Tau Ceti's
+`Matrix.PosDef.exists_isUpperTriangular_conjTranspose_mul_mul_eq_one`.
+`Normalization.lean` imports it.
+
 ### `Geometry/Manifold/DifferentialForm/Dolbeault/Potential.lean`
 
 In namespace `TauCeti.SmoothAlmostComplexStructure`, for a manifold with a
@@ -309,6 +318,14 @@ orientations on both sides). In namespace `SymplecticGeometry`: `northPole`,
 `equatorIsometry` and their lemmas, and
 `mpullback_diffeomorphSphere_sphereVolumeForm` (the round area form pulls
 back to `(4 * Real.pi) • OnePoint.fubiniStudyForm`) with its `_symm_` form.
+`Normalization.lean` imports it.
+
+### `Geometry/Manifold/Orientation/Preserving/FromTauCeti.lean`
+
+Taken from Tau Ceti's main branch, with Tau Ceti's header, as *Files* in
+`AGENTS.md` says, in the sibling `FromTauCeti.lean` of the library's own
+`Orientation/Preserving.lean`: `TauCeti.Manifold.Orientation.IsOrientationPreservingAt.reindex`,
+which the pinned version lacks, for the reindexed orientation `oCP1`.
 `Normalization.lean` imports it.
 
 ### `Geometry/Manifold/Orientation/Sphere.lean`
