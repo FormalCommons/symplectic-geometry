@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Analysis.Calculus.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.VectorField.Prod
+import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
 /-!
@@ -138,8 +139,7 @@ theorem mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero
       Y i q = mfderiv J (K.prod J) (Prod.mk q.1) q.2 (V i q.2) := by
     rw [mfderiv_prod_right]
     -- `inr w` is `(0, w)` by definition.
-    exact Prod.ext (by simp only [Y, Manifold.prodVectorField_fst]; rfl)
-      (by simp only [Y, Manifold.prodVectorField_snd]; rfl)
+    exact (Manifold.prodVectorField_apply _ _ q).trans rfl
   have hYv : (Y · (t, x)) = fun i ↦ mfderiv J (K.prod J) (Prod.mk t) x (v i) := by
     funext i
     rw [hι (t, x) i]

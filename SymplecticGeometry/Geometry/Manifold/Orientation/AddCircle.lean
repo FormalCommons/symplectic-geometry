@@ -8,7 +8,9 @@ module
 public import Mathlib.Analysis.SpecialFunctions.Complex.Circle
 public import Mathlib.LinearAlgebra.Complex.Orientation
 public import TauCeti.Geometry.Manifold.Orientation.AddCircle
+public import TauCeti.Geometry.Manifold.Orientation.Euclidean
 import SymplecticGeometry.Geometry.Manifold.Instances.AddCircle
+import SymplecticGeometry.LinearAlgebra.Complex.Orientation
 
 /-!
 # Polar coordinates on `AddCircle p × ℝ` and the orientation of `ℂ`
@@ -31,6 +33,11 @@ the factors: the angular direction comes first, and `(i z, z)` is a negative bas
 `r = 0` the derivative kills the angular direction, so it is not invertible and the map does
 neither.
 
+The identification `z ↦ (re z, im z)` of `ℂ` with `ℝ²` carries `Complex.orientation` to the
+standard orientation of `ℝ²` (`Complex.orientation_map_orthonormalBasisOneI_repr`), so, as a map
+of manifolds, it preserves orientation at every point
+(`Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr`).
+
 `AddCircle.orientationAt_orientation_prod_real` adapts the proof of Tau Ceti's
 `AddCircle.orientationAt_orientation_prod_orientation`, in
 `TauCeti.Geometry.Manifold.Orientation.AddCircle`, from the torus to `AddCircle p × ℝ`.
@@ -47,6 +54,8 @@ neither.
   orientation at positive radii.
 * `AddCircle.isOrientationPreservingAt_ofReal_mul_toCircle`: polar coordinates preserve
   orientation at negative radii.
+* `Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr`: the identification
+  `z ↦ (re z, im z)` of `ℂ` with `ℝ²` preserves orientation.
 
 ## References
 
@@ -173,3 +182,16 @@ theorem isOrientationReversingAt_ofReal_mul_toCircle (θ : AddCircle p) {r : ℝ
   (isOrientationReversingAt_ofReal_mul_toCircle_iff θ r).2 hr
 
 end AddCircle
+
+/-- The identification `z ↦ (re z, im z)` of `ℂ` with `ℝ²` (`Complex.orthonormalBasisOneI.repr`)
+preserves orientation at every point, from the standard orientation of `ℂ` to the standard
+orientation of `ℝ²`. -/
+theorem Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr (z : ℂ) :
+    IsOrientationPreservingAt
+      (Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp))
+      (Manifold.Orientation.euclideanSpace 2) Complex.orthonormalBasisOneI.repr z := by
+  refine (isOrientationPreservingAt_iff_of_coe_eq _ _ _ z
+    Complex.orthonormalBasisOneI.repr.toContinuousLinearEquiv
+    (Complex.orthonormalBasisOneI.repr.toContinuousLinearEquiv.mfderiv_eq (x := z)).symm).2 ?_
+  rw [orientationAt_model, orientationAt_euclideanSpace]
+  exact Complex.orientation_map_orthonormalBasisOneI_repr

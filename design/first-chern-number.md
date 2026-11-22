@@ -835,11 +835,15 @@ issues, in an order where each issue's blockers come before it.
    `AlgebraicTopology/Cohomology/CompactSupport/Duality/Union.lean`, not a
    file of Tau Ceti's: `TauCeti.HomologicalOrientation.bijective_dualityMap_of_sup_eq_top`
    for a cover by two open sets, and `bijective_dualityMap_comap_sup` for two
-   open sets of `M`. Besides duality in every degree for `U`, `V` and
-   `U ∩ V`, both assume `Hⁿ⁺¹_c(U ∩ V; L) = 0`, which injectivity needs in
-   the top degree; `TopCat.isZero_compactSupportCohomology_sup`, in the
+   open sets of `M`. Both assume only duality in every degree for `U`, `V`
+   and `U ∩ V`: the vanishing of `Hⁿ⁺¹_c(U ∩ V; L)`, which injectivity
+   needs in the top degree, holds for every open set of `M`
+   (`TopCat.isZero_compactSupportCohomology_of_chartedSpace_int`, in the
+   library's `AlgebraicTopology/Cohomology/CompactSupport/Manifold.lean`,
+   applied to the open set as a manifold).
+   `TopCat.isZero_compactSupportCohomology_sup`, in the
    library's `AlgebraicTopology/Cohomology/CompactSupport/Vanishing.lean`,
-   passes that vanishing on to `U ∪ V`, and
+   passes such a vanishing on to `U ∪ V`, and
    `TopCat.isZero_compactSupportCohomology_of_iSup_eq_top`, in the same
    file, to a directed union of open sets. The vanishing starts from
    `AlgebraicTopology/Cohomology/CompactSupport/Euclidean/Basic.lean`,
@@ -1063,7 +1067,24 @@ issues, in an order where each issue's blockers come before it.
    `SymplecticGeometry.range_inclusion_discComplementInterior`,
    `SymplecticGeometry.isCollared_discComplementBoundary`) and
    `ArgumentPrinciple.lean` imports. This is the half of the book's Lemma 2.7.3 needed for discs.
+   `AlgebraicTopology/Singular/DisjointCircles.lean`, for the boundary class
+   of the complement, shows that a class of `H₁(ι × Circle)`, `ι` finite and
+   discrete, is determined by its images under the maps
+   `Circle.prodRetraction i` that keep the `i`-th circle and send the
+   others to `1` (`Circle.singularHomologyOne_prod_ext`).
    Blocked by 5 and 7.
+   `AlgebraicTopology/Singular/DiscreteProd.lean`, for the boundary of the
+   complement, which is a product `ι × Circle`: for discrete `ι`, singular
+   homology in each degree sends `ι ⊗ X` to the coproduct of copies of that
+   of `X` along the fibre inclusions
+   (`TopCat.isColimitCofanSingularHomologyProd`), and for finite `ι`, in
+   positive degree, the maps induced by retracting onto one fibre and
+   including it again sum to the identity
+   (`TopCat.sum_singularHomologyFunctor_map_prodFiberRetraction_comp`).
+   `Topology/Category/TopCat/Monoidal.lean`, imported by `DiscreteProd.lean`:
+   for discrete `ι`, a point `x₀ : X` and `i : ι`, the retraction
+   `TopCat.prodFiberRetraction ι x₀ i : ι ⊗ X ⟶ X` onto the fibre over `i`,
+   a left inverse of Tau Ceti's `TopCat.prodFiberInclusion ι X i`.
 7. **Boundary degree and the argument principle on a surface with
    boundary.** The setting is that of `RelativeFundamentalClass.lean`: `X`
    compact Hausdorff, `ι : M → X` an open embedding of a surface with
@@ -1178,6 +1199,17 @@ issues, in an order where each issue's blockers come before it.
      (when the components of `∂X` are parametrized by loops whose classes add
      up to the boundary class, it is the sum of `Circle.degree` of `u` along
      them).
+   - `AlgebraicTopology/Singular/LocalHomology/HolomorphicZero.lean`, beside
+     `BoundaryDegree.lean`, which it imports with `CoordinateDisc.lean`, for
+     the local step of item 6:
+     `SymplecticGeometry.boundaryDegree_eq_one_of_hasDerivAt`, a map
+     `G : X → ℂ` whose only zero lies in a coordinate disc `ψ` of `M`, where
+     `G ∘ ι ∘ ψ` is complex differentiable with nonzero derivative, has
+     boundary degree $1$. Its step
+     `SymplecticGeometry.CoordinateDisc.localHomologyMap_orientation_of_hasDerivAt`
+     says that such a map sends the local orientation of `o` there to that
+     of `ℂ`, from Tau Ceti's
+     `TauCeti.HomologicalOrientation.localIndex_comap_eq_one_of_hasDerivAt`.
    - `Topology/VectorBundle/Orientation/SectionIndex/FiberwiseEquiv.lean`,
      used by `ArgumentPrinciple.lean`, beside Tau Ceti's `SectionIndex`
      files: `TauCeti.VectorBundleOrientation.sectionIndex_eq_of_fiberwise`,
@@ -1242,16 +1274,21 @@ issues, in an order where each issue's blockers come before it.
    `Geometry/Manifold/Gluing/CapDiscs/`, a folder of its own beside Tau
    Ceti's `Geometry/Manifold/Gluing/`, whose gluing it uses, with the
    glued smooth surface in `Basic.lean` and its point-set topology
-   (Hausdorff, compact, connected) in `Topology.lean`: a compact
-   oriented surface with boundary, in the representation of *Symplectic
-   vector bundles*, with its boundary circles parametrized by
+   (Hausdorff, compact, connected) in `Topology.lean`, and its
+   orientation and the caps as coordinate discs in `Orientation.lean`: a
+   compact oriented surface with boundary, in the representation of
+   *Symplectic vector bundles*, with its boundary circles parametrized by
    orientation-reversing loops, glued to discs along them, is a closed
    oriented surface. The main definition is `SymplecticGeometry.capDiscs`,
-   the closed surface with its orientation, with
+   the closed surface, with its orientation
+   `SymplecticGeometry.capDiscs.orientation` (for loops `γ i` that reverse
+   orientation from `AddCircle.orientation 1` to
+   `TauCeti.boundaryOrientation o`), with
    `SymplecticGeometry.isOpenEmbedding_capDiscs_inl` (the interior of the
    surface sits in it as an open subset) and the data
    `SymplecticGeometry.capDiscs.coordinateDisc`, the caps as coordinate
-   discs. Blocked by the issue of *Symplectic vector bundles*
+   discs, whose map is `capDiscs.inr i`. Blocked by the issue of
+   *Symplectic vector bundles*
    that fixes that representation, and by 5. The tangent orientation of
    a restricted orientation `TauCeti.Manifold.Orientation.restrict` at a
    point of an open subset is that of the ambient orientation there

@@ -46,6 +46,8 @@ form, reading `H₁(S¹)` in `ℤ` through
   its degree.
 * `ContinuousMap.singularHomologyOneIso_hom_map_map_inv_one`: the image under `u` of the class of a
   free loop `ℓ` is the degree of `u ∘ ℓ`.
+* `Circle.eq_zsmul_singularHomologyOneIso_inv_one`: every class of `H₁(S¹)` is the integer that
+  `Circle.singularHomologyOneIso` gives it times the generator.
 
 ## References
 
@@ -219,5 +221,23 @@ theorem singularHomologyOneIso_hom_map_map_inv_one (ℓ : C(Circle, Y)) (u : C(Y
   simp
 
 end ContinuousMap
+
+namespace Circle
+
+/-- A class `x` of `H₁(Circle)` is `n • g`, for `g` the generator and `n` the integer that
+`Circle.singularHomologyOneIso` gives to `x`. -/
+theorem eq_zsmul_singularHomologyOneIso_inv_one
+    (x : ((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).obj
+      (TopCat.of Circle)) :
+    x = ((singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).hom.hom x).down •
+      (singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).inv.hom (ULift.up 1) := by
+  have h : (singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).hom.hom x =
+      ((singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).hom.hom x).down • ULift.up 1 := by
+    ext
+    simp
+  rw [← map_zsmul, ← h]
+  simp
+
+end Circle
 
 end

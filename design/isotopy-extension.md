@@ -142,9 +142,12 @@ submanifold theorem raises a third.
   $d\gamma_t$, with $\gamma_t$ the pull-back by $G_t$ of the contraction of
   $\omega$ with the velocity field of $G_t$. On $Q$, $i^*\gamma_t$ is the
   velocity form of $e_t$, which is closed because $e_t^*\omega$ does not
-  depend on $t$. Its pull-back by a smooth retraction $r$ of a tubular
-  neighbourhood onto $Q$ is therefore closed too, so subtracting it leaves a
-  primitive of $\partial_t\omega_t$, and this one vanishes on $TQ$.
+  depend on $t$. Moser's argument needs the primitive near $[0,1]$ in time,
+  where $i^*\gamma_t$ need not be closed. So, with a smooth retraction $r$
+  of a tubular neighbourhood $W$ onto $Q$, the family on $W$ becomes
+  $G_t^*\omega-(G_t\circ i\circ r)^*\omega+(i\circ r)^*\omega$ at every
+  real time. It is $G_t^*\omega$ for $t\in[0,1]$, and its contraction with
+  $\partial_t$ is a primitive of its time derivative that vanishes on $TQ$.
   The relative Moser theorem along a family (`Moser/Family.lean` below)
   then gives $\chi_t$ fixing $Q$ with
   $\chi_t^*\omega_t=\omega$ near $Q$, and $F_t=G_t\circ\chi_t$ is the wanted
@@ -203,6 +206,7 @@ Further choices of this design:
 | `AlgebraicTopology/Singular/NDRPair.lean` | the homological shrinking lemma for the subset of an NDR pair |
 | `Analysis/CStarAlgebra/Exponential.lean` | smoothness of `t ↦ selfAdjoint.expUnitary (t • a)` (named like Mathlib's file) |
 | `Analysis/Matrix/SymplecticGroup/Connected.lean` | smooth paths in `Matrix.symplecticGroup` (named like Tau Ceti's file) |
+| `LinearAlgebra/Symplectic/Standard/Frame.lean` | smooth paths of frames trivializing a path of forms on `StdSpace ι`, from the identity to a given frame (step 1 of `Ball/Isotopy.lean` for radius `0`) |
 | `Analysis/Matrix/L2OpNorm.lean` | `ContDiff` of matrix-valued maps under the ℓ² operator norm, entrywise and against the entrywise norm (named like Tau Ceti's `Analysis/Matrix/L2OpNorm.lean`) |
 | `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/ExpLog.lean` | smoothness of `t ↦ a ^ t` for strictly positive `a` (named like Tau Ceti's file) |
 | `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean` | embeddings near a compact set, uniformly in a compact parameter |
@@ -231,6 +235,10 @@ by #551 (see *What the part uses*). Where a Tau Ceti file has the same
 name (`Extension.lean`, `Connected.lean`, `Poincare.lean`), the two merge upstream, as
 `DESIGN.md`'s *Principles* allow. No folder of this part has the name of a
 Tau Ceti file.
+
+`Standard/Frame.lean` is a file of this part in the folder of *Standard
+model*: its statement is linear algebra on `StdSpace` with `stdForm`, and it
+sits beside the matrix dictionary `Standard/Matrix.lean` that its proof uses.
 
 ### `AlgebraicTopology/Singular/NDRPair.lean`
 
@@ -763,26 +771,27 @@ Expected size: 450 lines.
 
 ```lean
 theorem TauCeti.SmoothIsotopy.exists_diffeotopy_mem_diffeomorphStabilizer_eqOn
-    {M : Type} … [CompactSpace M] (hω : ω.IsSymplectic) {Q : Set M} (hQ : IsCompact Q)
+    {M : Type} … [CompactSpace M] (hσ : σ.IsSymplectic) {Q : Set M} (hQ : IsCompact Q)
     (hQr : Nonempty (NDRPair Q)) {U : Opens M} (hQU : Q ⊆ U)
     {f₀ f₁ : C^∞⟮I, U; I, M⟯} (φ : SmoothIsotopy f₀ f₁) (hf₀ : ∀ x, f₀ x = x)
-    (hφ : φ.IsSymplectic (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal ω) ω)
+    (hφ : φ.IsSymplectic (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) σ)
     (hsurj : ∀ f : H₁ Q →+ ℝ, ∃ c : deRhamCohomology I M 1,
       (deRhamCohomology.homologyPeriod c).comp
         (ContinuousMap.singularHomologyMap ℤ 1
           (⟨Subtype.val, continuous_subtypeVal⟩ : C(Q, M))).toAddMonoidHom = f) :
     ∃ N : Opens M, Q ⊆ N ∧ N ≤ U ∧ ∃ Ψ : Diffeotopy I ∞ M,
-      (∀ t, Ψ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer ω) ∧
+      (∀ t, Ψ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) ∧
       ∀ t, ∀ x : U, (x : M) ∈ N → Ψ (t, x) = φ (t, x)
 
 theorem TauCeti.SmoothIsotopy.exists_hasHamiltonian_eqOn
-    {M : Type} … [T2Space M] [SigmaCompactSpace M] (hω : ω.IsSymplectic) {Q : Set M}
+    {M : Type} … [T2Space M] [SigmaCompactSpace M] (hσ : σ.IsSymplectic) {Q : Set M}
     (hQ : IsCompact Q) (hQr : Nonempty (NDRPair Q)) {U : Opens M} (hQU : Q ⊆ U)
     {f₀ f₁ : C^∞⟮I, U; I, M⟯} (φ : SmoothIsotopy f₀ f₁) (hf₀ : ∀ x, f₀ x = x)
-    (hφ : φ.IsSymplectic (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal ω) ω)
+    (hφ : φ.IsSymplectic (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) σ)
     (hQ1 : Subsingleton (H₁ Q →+ ℝ)) :
     ∃ N : Opens M, Q ⊆ N ∧ N ≤ U ∧ ∃ (Ψ : Diffeotopy I ∞ M) (F : M × unitInterval → ℝ)
-      (K : Set M), IsCompact K ∧ Ψ.HasHamiltonian ω F ∧ (∀ p, p.1 ∉ K → F p = 0) ∧
+      (K : Set M), IsCompact K ∧ Ψ.IsCompactlySupportedHamiltonian σ ∧
+      Ψ.HasHamiltonian σ F ∧ (∀ p, p.1 ∉ K → F p = 0) ∧
       (∀ t, ∀ y ∉ K, Ψ (t, y) = y) ∧ ∀ t, ∀ x : U, (x : M) ∈ N → Ψ (t, x) = φ (t, x)
 ```
 
@@ -791,7 +800,9 @@ Both start `φ` at a variable `f₀` equal to the inclusion, as
 `⟨Subtype.val, contMDiff_subtypeVal⟩` Lean finds no coercion of `φ` to a
 function and `φ (t, x)` does not elaborate.
 The first is `Flow.lean`'s symplectic theorem with `K` a compact neighbourhood
-of `Q` in `V`, and `β`, `h` from `Primitive.lean`. The second takes `β = 0`.
+of `Q` in `V`, and `β`, `h` from `Primitive.lean`, applied to the restriction of
+`φ` to `V`, `SmoothIsotopy.restrict`, which `Velocity.lean` defines with the
+slices of its velocity form. The second takes `β = 0`.
 Its periods vanish by `hQ1`, so it needs no compactness of `M`, only the
 compact support that `Flow.lean`'s Hamiltonian theorem provides. The
 milestone is the conjunction, under the plan's hypotheses (compact `M`):
@@ -819,17 +830,20 @@ theorem TauCeti.SmoothIsotopy.exists_isSymplectic_extension_of_mpullback_eq
 
 The start `g₀` of `F` is the inclusion of `U`, given by its equation for the
 same reason as in `Cohomological/Basic.lean`.
-The route is the third decision: `Extension.lean` gives `G` with
-$G_t\circ i=e_t$. The family $\omega_t=G_t^*\omega$ has velocity $d\gamma_t$,
-with $\gamma_t$ the velocity form of the restriction of `G` to the identity
-(`Velocity.lean`).
-The form $\gamma_t-r^*(i^*\gamma_t)$, for the retraction `r` of
-`TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`, vanishes on `TQ`.
-The relative Moser theorem along a family of `Moser/Family.lean`, applied to
-the extensions of $\omega_t$ and of this primitive past both ends, gives
-$\chi_t$, and
-$F_t=G_t\circ\chi_t$ on the neighbourhood it provides. Expected size: 350
-lines.
+The route is the third decision. `Extension.lean`'s
+`TauCeti.SmoothIsotopy.exists_contMDiff_diffeomorph_forall_apply_eq` gives a
+jointly smooth family $G_t$ of diffeomorphisms over all real times with
+$G_0=\mathrm{id}$ and $G_t\circ i=e_t$ for $t\in[0,1]$. On the open set $W$
+of the retraction `r` of `TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`,
+the closed form $S=A^*\omega-B^*\omega+C^*\omega$ on $\mathbb R\times W$, for
+$A(t,w)=G_t w$, $B(t,w)=G_t(i(r w))$ and $C(t,w)=i(r w)$, has the slices
+$G_t^*\omega$ for $t\in[0,1]$. Its contraction with $\partial_t$
+(`SmoothForm.timeInterior`) is a primitive of its time derivative, and it
+pulls back to $0$ on $\mathbb R\times Q$ because $A$ and $B$ agree there. The
+relative Moser theorem along a family of `Moser/Family.lean`, on the manifold
+$W$, gives $\chi_t$, and $F_t=G_t\circ\chi_t$ on the neighbourhood it
+provides. The velocity forms of `Velocity.lean` are not needed. Expected
+size: 350 lines.
 
 ## Milestones
 
@@ -868,9 +882,11 @@ this design already follows. `Ball/Isotopy.lean` cites
 ## What the part uses
 
 - *Standard model* (merged): `StdSpace`, `stdForm`, the Euclidean norm of
-  `StdSpace` for the balls.
+  `StdSpace` for the balls; the matrix dictionary
+  `LinearAlgebra/Symplectic/Standard/Matrix.lean`, which
+  `Standard/Frame.lean` imports.
 - *Linear Moser* (merged): `Geometry/Symplectic/LinearMoser.lean`, for the
-  frames along a path of centres.
+  frames along a path of centres (`Standard/Frame.lean`).
 - *Smooth families* (`design/smooth-families.md`, merged): Seeley's
   extension in the time variable, of maps in
   `Geometry/Manifold/ContMDiff/TimeExtension.lean` (used by `Extension.lean`)
@@ -895,12 +911,16 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Cohomological/Primitive.lean`, which also imports `Geometry/Manifold/DeRham/Map.lean`
   for `TauCeti.SmoothForm.mpullback_mem_closedForms`). The part does not use the splittings and
   `contMDiff_repr_mk_of_hasFiniteGoodCover`: the periods are smooth in `t`
-  as line integrals. Its flows are Tau Ceti's `timeDependentFlowDiffeotopy`,
+  as line integrals. `IsotopyExtension/Velocity.lean` imports its
+  `Geometry/Manifold/LocalDiffeomorph/OpenSubset.lean`, for the inclusion of one
+  open set in another as a local diffeomorphism (`SmoothIsotopy.restrict`).
+  The part's flows are Tau Ceti's `timeDependentFlowDiffeotopy`,
   already a `Diffeotopy`, except in `Moser/Family.lean`, which imports the
   bridge `Diffeotopy/Real.lean` for `TauCeti.Diffeotopy.ofReal` and
   `Geometry/Manifold/Flow/TimeDependent.lean` for
   `TauCeti.contMDiff_timeDependentFlowOf_param`, a lemma this part adds
-  there. `Ball/Isotopy.lean` imports
+  there. `Extension.lean` imports `Diffeotopy/Real.lean` too, to restrict
+  its family over `ℝ` to a `Diffeotopy`. `Ball/Isotopy.lean` imports
   `Geometry/Manifold/LocalDiffeomorph/OpenSubset.lean`, for
   `TauCeti.isLocalDiffeomorph_inclusion` (restricting the slice embeddings
   to a smaller open set).
@@ -937,6 +957,10 @@ this design already follows. `Ball/Isotopy.lean` cites
   forms, and `Geometry/Manifold/DifferentialForm/Flow/Family.lean`, whose
   `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily`
   `Moser/Family.lean` uses for the velocity of a segment of forms.
+  `IsotopyExtension/Submanifold.lean` imports it for the contraction
+  `TauCeti.SmoothForm.timeInterior` with the time field, with
+  `mpullback_prodMap_timeInterior` and `timeInterior_mpullback_snd`, which
+  its pull request adds there.
 - *Moser isotopy*: `Moser/Field.lean`, whose `moserField` (#506) is
   the cut-off Moser field of both theorems of `Moser/Family.lean`. That
   design planned it for the linear segment between two forms with a fixed
@@ -962,6 +986,9 @@ this design already follows. `Ball/Isotopy.lean` cites
   `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_add_smul_sub_of_eq` (the
   segment between two forms that agree at a point is constant there), which
   that pull request also adds.
+- *Liouville structures*: `Geometry/Manifold/VectorField/Prod.lean`, which
+  imports only Tau Ceti, for `TauCeti.Manifold.prodVectorField_apply` (the
+  value of the unit time field in `IsotopyExtension/Velocity.lean`).
 - Tau Ceti, besides the declarations named above:
   `TauCeti.SmoothIsotopy` with `timeSlice`, `ContMDiffMap.smoothIsotopyRefl`;
   `TauCeti.Diffeotopy` with `timeSlice`, `final`, `trans`, `symm`,

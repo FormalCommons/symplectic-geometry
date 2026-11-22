@@ -56,30 +56,6 @@ public section
 open Function Metric Matrix TauCeti Projectivization OpenPartialHomeomorph
 open scoped Manifold ContDiff InnerProductSpace LinearAlgebra.Projectivization Topology
 
-namespace Fin
-
-/-- The conjugate of a tuple with an entry inserted at `j` is the conjugate tuple with the
-conjugate entry inserted at `j`. -/
-theorem star_insertNth {R : Type*} [Star R] {m : ℕ} (j : Fin (m + 1)) (c : R) (x : Fin m → R) :
-    star (Fin.insertNth (α := fun _ ↦ R) j c x) =
-      Fin.insertNth (α := fun _ ↦ R) j (star c) (star x) := by
-  funext i
-  rcases Fin.eq_self_or_eq_succAbove j i with rfl | ⟨k, rfl⟩ <;> simp
-
-end Fin
-
-namespace Matrix
-
-/-- The dot product of two vectors with an entry inserted at the same position `j` is the
-product of these entries plus the dot product of the remaining vectors. -/
-theorem insertNth_dotProduct_insertNth {R : Type*} [AddCommMonoid R] [Mul R] {m : ℕ}
-    (j : Fin (m + 1)) (a b : R) (x y : Fin m → R) :
-    Fin.insertNth (α := fun _ ↦ R) j a x ⬝ᵥ Fin.insertNth (α := fun _ ↦ R) j b y =
-      a * b + x ⬝ᵥ y := by
-  simp [dotProduct, Fin.sum_univ_succAbove _ j]
-
-end Matrix
-
 namespace Metric
 
 /-- A point `x` of the open unit ball has `0 < 1 - ‖x‖²`. -/

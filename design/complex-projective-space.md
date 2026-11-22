@@ -302,6 +302,22 @@ real `0`-form, complexified by `SmoothForm.mapCoeff Complex.ofRealCLM`):
 
 Reference: Huybrechts, *Complex Geometry*, §§1.3 and 3.1.
 
+### `Geometry/Manifold/ContMDiff/RestrictScalars.lean`
+
+`ContMDiffWithinAt.restrictScalars'`, `ContMDiffAt.restrictScalars'`,
+`ContMDiffOn.restrictScalars'` and `ContMDiff.restrictScalars'`: Tau Ceti's
+`….restrictScalars` stated for `𝓘(𝕜, E)` and `𝓘(𝕜, E')` rather than for
+`𝓘(𝕜', E).restrictScalars 𝕜`, so that `OnePoint.lean` and `Hopf.lean`
+need no cast by `modelWithCornersSelf_restrictScalars`.
+
+### `Geometry/Manifold/Diffeomorph/RestrictScalars.lean`
+
+`Diffeomorph.restrictScalars'`, a diffeomorphism over `𝓘(𝕜', E)` and
+`𝓘(𝕜', E')` as one over `𝓘(𝕜, E)` and `𝓘(𝕜, E')`, with
+`coe_restrictScalars'` and its `_refl`, `_symm` and `_trans` lemmas, at the
+path of Tau Ceti's file whose `Diffeomorph.restrictScalars` it restates for
+the trivial models.
+
 ### `Geometry/Manifold/Instances/OnePoint.lean`
 
 In namespace `OnePoint`, for the Riemann sphere read as a real surface:
@@ -436,9 +452,12 @@ which has `Matrix.mulVec_injective_of_isUnit`.
 
 ### `LinearAlgebra/Matrix/DotProduct.lean`
 
-A general matrix fact that `Kahler.lean` uses, in namespace `Matrix`:
+General dot-product facts, in namespace `Matrix` unless noted:
 `star_mulVec_dotProduct_mulVec` (a matrix with `Aᴴ * A = 1` preserves
-`star z ⬝ᵥ v`).
+`star z ⬝ᵥ v`), which `Kahler.lean` uses, and
+`insertNth_dotProduct_insertNth` with `Fin.star_insertNth` (an entry
+inserted by `Fin.insertNth` splits off the dot product), which
+`Darboux.lean` uses.
 
 ### `LinearAlgebra/Matrix/ToLin.lean`
 

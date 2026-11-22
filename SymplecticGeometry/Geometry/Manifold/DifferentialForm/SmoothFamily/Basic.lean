@@ -53,6 +53,8 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
   on fixed tangent vectors, are smooth in the parameter.
 * `SymplecticGeometry.IsSmoothFamily.ext_on`: two smooth families that agree on a dense set of
   parameters are equal.
+* `SymplecticGeometry.isSmoothFamily_mpullback_prodMk`: the slices of a form on `N × M` are a
+  smooth family.
 * `SymplecticGeometry.isSmoothFamily_const` and the closure lemmas `IsSmoothFamily.add`, `.neg`,
   `.sub`, `.smul`, `.fun_smul`, `.funSMul`, `.sum`, `.mpullback`, `.mpullback_family`,
   `.mextDeriv`, `.extendByZero_smul` and `.comp`.
@@ -416,6 +418,12 @@ end IsSmoothFamily
 the projection `N × M → M`. -/
 theorem isSmoothFamily_const (α : SmoothForm I M F k) : IsSmoothFamily J (fun _ : N ↦ α) :=
   ⟨_, fun t ↦ SmoothForm.mpullback_prodMk_mpullback_snd t α⟩
+
+/-- The slices `t ↦ Ω (t, ·)` of a smooth form `Ω` on `N × M` form a smooth family. -/
+theorem isSmoothFamily_mpullback_prodMk (Ω : SmoothForm (J.prod I) (N × M) F k) :
+    IsSmoothFamily J fun t ↦
+      SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) Ω :=
+  ⟨Ω, fun _ ↦ rfl⟩
 
 namespace IsSmoothFamily
 

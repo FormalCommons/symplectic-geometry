@@ -173,8 +173,9 @@ diffeomorphism. No Mathlib or Tau Ceti notion is redefined.
    pair, $g(a,b)=\Omega(a,J b)$, which is the page's and `DESIGN.md`'s
    convention $g_J(v,w)=\omega(v,Jw)$; the trace formula is a lemma. It is
    installed as a global `RiemannianBundle` instance on the tangent bundle
-   of `𝒥 ω`, as Tau Ceti does for its model geometries (`Riemannian/Nil/`,
-   `Riemannian/SL2Tilde/`), because it is the canonical metric of the space
+   of `𝒥 ω`, as Tau Ceti does for its model geometries
+   (`Geometry/Manifold/Riemannian/Nil/`,
+   `Geometry/Manifold/Riemannian/SL2Tilde/`), because it is the canonical metric of the space
    and Tau Ceti's geodesic API reads the Levi-Civita connection from that
    instance. `DESIGN.md`'s rule of local instances concerns the metric $g_J$
    of a pair on an arbitrary manifold, and is unaffected; §28 of `DESIGN.md`
@@ -487,12 +488,17 @@ notation of the file):
   Mathlib's operator space, with `traceTwoForm_apply` (the value
   $\tfrac14(\operatorname{tr}(XAY)-\operatorname{tr}(YAX))$ at `A`),
   `mextDeriv_traceTwoForm_apply` (the formula of decision 6), and
-  `traceTwoForm_conj`: invariance under `A ↦ Ψ A Ψ⁻¹` for any `Ψ : V ≃L[ℝ] V`.
+  `traceTwoForm_conj`: invariance under `A ↦ Ψ A Ψ⁻¹` for any `Ψ : V ≃L[ℝ] V`,
+  stated on values: at `Ψ A Ψ⁻¹` on `Ψ X Ψ⁻¹` and `Ψ Y Ψ⁻¹` the form is its value
+  at `A` on `X` and `Y`.
 - `ω.compatibleSpaceForm : SmoothTwoForm 𝓘 (𝒥 ω)`, the pull-back of
   `traceTwoForm V` along `compatibleCLM` (Tau Ceti's `SmoothForm.mpullback`),
   with `compatibleSpaceForm_apply`:
-  $\Omega_J(a,b)=\tfrac12\operatorname{tr}(\hat a J\hat b)$ (as the
-  `bilinFormAt` of the form).
+  $\Omega_J(a,b)=\tfrac12\operatorname{tr}(\hat a J\hat b)$, as the
+  `bilinFormAt` of the form: `Ω.bilinFormAt J a b =
+  2⁻¹ * trace ↑(d J a ∘L ω.compatibleCLM J ∘L d J b)`. The products of
+  ambient readings are written with `∘L`, since `d J a` has type
+  `TangentSpace 𝓘(ℝ, V →L[ℝ] V) _`, on which `*` does not elaborate.
 - `isClosed_compatibleSpaceForm`, by Tau Ceti's naturality of `mextDeriv`
   under pull-back (`Geometry/Manifold/DifferentialForm/Naturality.lean`) and
   `trace_mul_eq_zero_of_mem_tangentSpace`.
@@ -504,10 +510,11 @@ notation of the file):
   `instance : RiemannianBundle (fun J : 𝒥 ω ↦ TangentSpace 𝓘 J)` from it,
   with its `IsContMDiffRiemannianBundle` and `IsContinuousRiemannianBundle`
   instances, and `inner_compatibleSpace (a b : TangentSpace 𝓘 J) :
-  ⟪a, b⟫_ℝ = 2⁻¹ * trace (d J a * d J b)`.
+  ⟪a, b⟫ = 2⁻¹ * trace ↑(d J a ∘L d J b)`.
 - `mpullback_compatibleTransport_compatibleSpaceForm` (`Ω` is invariant) and
   `ω.compatibleTransportIsometry (hΨ) : RiemannianIsometry 𝓘 𝓘 (𝒥 ω) (𝒥 ω)`,
-  with `MulAction.IsPretransitive (Isom 𝓘 (𝒥 ω)) (𝒥 ω)`.
+  with the instance `isPretransitive_isom_compatibleSpace :
+  MulAction.IsPretransitive (Isom 𝓘 (𝒥 ω)) (𝒥 ω)`.
 
 ### `Geometry/Symplectic/CompatibleSpace/LeviCivita.lean`
 
@@ -597,8 +604,8 @@ theorem compatibleSpace_properties (ω : SymplecticForm V) {n : ℕ}
     (∀ J, LinearMap.range (d J) = ω.compatibleTangentSpaceCLM J) ∧
     (∀ J a, d J (j J a) = -(ω.compatibleCLM J ∘L d J a)) ∧
     (∀ J a b, Ω.bilinFormAt J a b =
-      2⁻¹ * LinearMap.trace ℝ V (d J a * ω.compatibleCLM J * d J b)) ∧
-    (∀ J (a b : TangentSpace 𝓘 J), ⟪a, b⟫_ℝ = 2⁻¹ * LinearMap.trace ℝ V (d J a * d J b)) ∧
+      2⁻¹ * LinearMap.trace ℝ V ↑(d J a ∘L ω.compatibleCLM J ∘L d J b)) ∧
+    (∀ J (a b : TangentSpace 𝓘 J), ⟪a, b⟫ = 2⁻¹ * LinearMap.trace ℝ V ↑(d J a ∘L d J b)) ∧
     Ω.IsKahler j ∧ j.IsIntegrable ∧
     (∀ (Ψ : V ≃L[ℝ] V) (hΨ : ω.IsSymplectomorphism ω Ψ.toLinearEquiv),
       IsPseudoholomorphic j j (ω.compatibleTransport hΨ) ∧
