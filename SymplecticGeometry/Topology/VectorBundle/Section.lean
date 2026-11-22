@@ -21,8 +21,10 @@ fibrewise operations on maps `X → TotalSpace F E` preserve continuity at a poi
   multiplication, `TauCeti.VectorBundle.continuous_smul`.
 * `ContinuousAt.sum_totalSpace`: a finite fibrewise sum of maps over a common base map, each
   continuous at a point, is continuous there, provided the base map is (for the empty sum, which
-  is the zero section along the base map). It follows from Tau Ceti's
-  `ContinuousAt.add_totalSpace` by induction on the finite set.
+  is the zero section along the base map). Its proof is adapted from Tau Ceti's
+  `ContinuousAt.sum_section`, generalised from sections over the base itself to maps over a base
+  map `b`: the same induction on the finite set, with the zero section along `b` in the empty
+  case and Tau Ceti's `ContinuousAt.add_totalSpace` in the insert case.
 -/
 
 public section
