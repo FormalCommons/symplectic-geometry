@@ -78,6 +78,8 @@ for `o`. Finitely many distinct points have pairwise disjoint open neighbourhood
 * `SymplecticGeometry.CoordinateDisc.boundaryLoop`: the loop `t ↦ φ(e^{2πit})`.
 * `SymplecticGeometry.CoordinateDisc.discContraction`: the radial contraction
   `(s, t) ↦ φ((1 - s) e^{2πit})` of the boundary loop inside the closed disc.
+* `SymplecticGeometry.CoordinateDisc.coord`: the inverse of a coordinate disc on its range, as a
+  map to `ℂ`.
 * `SymplecticGeometry.CoordinateDisc.reverse`: the coordinate disc `φ ∘ conj` for `-o`.
 * `SymplecticGeometry.CoordinateDisc.affineBall`: the map `z ↦ a + r z` of the ball into itself.
 * `SymplecticGeometry.CoordinateDisc.comp`: a coordinate disc precomposed with an
@@ -107,6 +109,8 @@ for `o`. Finitely many distinct points have pairwise disjoint open neighbourhood
   ball.
 * `SymplecticGeometry.CoordinateDisc.ofChart_apply`,
   `SymplecticGeometry.CoordinateDisc.ofChart_apply_zero`: the formula of `ofChart`, and its centre.
+* `SymplecticGeometry.CoordinateDisc.contMDiffOn_coord_ofChart`: for a chart of the maximal atlas,
+  the coordinate of `ofChart` is smooth on its range.
 * `SymplecticGeometry.CoordinateDisc.disc_ofChart`,
   `SymplecticGeometry.CoordinateDisc.openDisc_ofChart`: the closed and the open disc of `ofChart`
   are the images under `e.symm` of the closed and the open ball of radius `r / 2` about `c`.
@@ -323,6 +327,23 @@ theorem openDisc_subset_disc : φ.openDisc ⊆ φ.disc :=
 
 theorem disc_subset_range : φ.disc ⊆ Set.range φ :=
   Set.image_subset_range _ _
+
+/-! ### The coordinate of a coordinate disc -/
+
+/-- The coordinate of a coordinate disc: the inverse of `φ` on its range, as a map to `ℂ`, so
+that `φ.coord (φ z) = z` (`coord_apply`). Its values off the range of `φ` are unspecified. -/
+def coord : M → ℂ :=
+  fun x ↦ ((φ.isOpenEmbedding.toOpenPartialHomeomorph φ).symm x : ℂ)
+
+@[simp]
+theorem coord_apply (z : ball) : φ.coord (φ z) = z :=
+  congrArg Subtype.val (φ.isOpenEmbedding.toOpenPartialHomeomorph_left_inv φ)
+
+/-- The coordinate of a coordinate disc is continuous on the range of `φ`. -/
+theorem continuousOn_coord : ContinuousOn φ.coord (Set.range φ) :=
+  continuous_subtypeVal.comp_continuousOn
+    ((φ.isOpenEmbedding.toOpenPartialHomeomorph φ).continuousOn_symm.mono
+      (by simp [IsOpenEmbedding.toOpenPartialHomeomorph_target]))
 
 /-! ### The boundary circle -/
 
@@ -784,6 +805,26 @@ theorem ofChart_apply (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2)))
       o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x) (z : ball) :
     ofChart e hr hc he z = e.symm (c + (r / 2) • Complex.orthonormalBasisOneI.repr z) :=
   (ofChart_apply_eq e hr hc he z).trans (congrArg e.symm (ofChartHomeomorph_apply c hr z))
+
+/-- The coordinate of the coordinate disc of a chart `e` of the maximal `Cⁿ` atlas is `Cⁿ` on its
+range: there it is `e` followed by an affine map. -/
+theorem contMDiffOn_coord_ofChart {n : WithTop ℕ∞} [IsManifold (𝓡 2) n M]
+    (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2))) {c : EuclideanSpace ℝ (Fin 2)}
+    {r : ℝ} (hr : 0 < r) (hc : Metric.ball c r ⊆ e.target)
+    (he : ∀ x ∈ e.source,
+      o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x)
+    (he' : e ∈ IsManifold.maximalAtlas (𝓡 2) n M) :
+    ContMDiffOn (𝓡 2) 𝓘(ℝ, ℂ) n (ofChart e hr hc he).coord (Set.range (ofChart e hr hc he)) := by
+  -- By definition of `ofChartHomeomorph`, its inverse is the affine map `y ↦ L⁻¹ (-c + y)`.
+  have hL : ContDiff ℝ n (ofChartHomeomorph c hr).symm :=
+    (ofChartLinearEquiv hr).symm.contDiff.comp (contDiff_const.add contDiff_id)
+  refine ((hL.contMDiff.comp_contMDiffOn (contMDiffOn_of_mem_maximalAtlas he')).mono ?_).congr ?_
+  · rintro _ ⟨z, rfl⟩
+    rw [ofChart_apply_eq]
+    exact e.map_target (hc (ofChartHomeomorph_mem_ball hr z))
+  · rintro _ ⟨z, rfl⟩
+    rw [coord_apply, Function.comp_apply, ofChart_apply_eq,
+      e.right_inv (hc (ofChartHomeomorph_mem_ball hr z)), Homeomorph.symm_apply_apply]
 
 /-- The centre of the coordinate disc of a chart is `e.symm c`. -/
 theorem ofChart_apply_zero (e : OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2)))
