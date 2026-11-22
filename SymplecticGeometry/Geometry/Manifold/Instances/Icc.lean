@@ -9,7 +9,11 @@ public import Mathlib.Geometry.Manifold.Instances.Icc
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 
 /-!
-# The unit vector field of a closed interval
+# The inclusion and the unit vector field of a closed interval
+
+The inclusion `Icc x y → ℝ` of a closed interval, `x < y`, is differentiable everywhere, ends
+included (`mdifferentiable_subtypeVal_Icc`, `mdifferentiableAt_subtypeVal_Icc`), by Mathlib's
+`contMDiff_subtypeVal_Icc`.
 
 A closed interval `[x, y]`, `x < y`, with its manifold-with-boundary structure, carries the unit
 tangent vector `1` of Mathlib's `oneTangentSpaceIcc` at every point. This file shows that the
@@ -25,6 +29,17 @@ open Set
 open scoped Manifold ContDiff
 
 variable {x y : ℝ} [Fact (x < y)] {n : WithTop ℕ∞}
+
+/-- The inclusion `Icc x y → ℝ` of a closed interval is differentiable, up to both ends. -/
+theorem mdifferentiable_subtypeVal_Icc :
+    MDifferentiable (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc x y → ℝ) :=
+  (contMDiff_subtypeVal_Icc (n := 1)).mdifferentiable one_ne_zero
+
+/-- The inclusion `Icc x y → ℝ` of a closed interval is differentiable at each point, ends
+included. -/
+theorem mdifferentiableAt_subtypeVal_Icc (z : Icc x y) :
+    MDifferentiableAt (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc x y → ℝ) z :=
+  mdifferentiable_subtypeVal_Icc z
 
 /-- The unit vector field `z ↦ 1` of a closed interval is smooth, up to both ends. -/
 theorem contMDiff_totalSpaceMk_one_Icc :

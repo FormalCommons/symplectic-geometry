@@ -2324,8 +2324,8 @@ has either; Tau Ceti's extension across a boundary,
 
 - **Files:** `Geometry/Manifold/Complex/Isothermal.lean` (named like Tau
   Ceti's file: every smooth almost complex structure on a surface modelled
-  on `𝓘(ℝ, ℂ)` has isothermal charts, an instance of Tau Ceti's
-  `HasIsothermalCharts`, from Tau Ceti's planar
+  on `𝓘(ℝ, ℂ)` has smooth isothermal charts, with no instance of Tau
+  Ceti's `HasIsothermalCharts`, from Tau Ceti's planar
   `TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt` read through the
   charts of the surface and made smooth by
   `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp` with the regularity
@@ -2505,9 +2505,8 @@ has either; Tau Ceti's extension across a boundary,
   folder of the same name): `Density.lean` (the norm of a linear map from a
   tangent plane of $\Sigma$, measured by $\mathrm{dvol}_\Sigma(\cdot,j\cdot)$,
   to a tangent space, its value on a frame $(e,je)$, and the pointwise
-  identity, by Tau Ceti's
-  `TauCeti.SmoothTwoForm.Invariant.stdComplexLineEnergyDensity_sub_two_mul_twoForm`
-  on each tangent plane, with $\bar\partial_J$ Tau Ceti's
+  identity, read on each tangent plane from their vector-space versions,
+  with $\bar\partial_J$ Tau Ceti's
   `TauCeti.complexAntilinearPart`), `Metric.lean` (that norm read in
   $g_J$), `Surface.lean` (the energy as an integral over
   the closed surface, Tau Ceti's `integralTopForm`, the integrated
@@ -2610,17 +2609,22 @@ has either; Tau Ceti's extension across a boundary,
   complex submanifold): the tangent bundle of $\mathbb CP^{n+1}$ plus a
   trivial line as $H^{\oplus(n+2)}$, with $H$ Tau Ceti's
   `Projectivization.twistCore 1`; the normal bundle of a hypersurface of
-  degree $d$, Tau Ceti's `TauCeti.SmoothEmbedding.NormalSpace` bundle as in
-  *Adjunction*, as the restriction of $H^{\otimes d}$, through the derivative
+  degree $d$, Tau Ceti's `TauCeti.SmoothEmbedding.NormalSpace` bundle over
+  `ℂ`, as the restriction of $H^{\otimes d}$, through the derivative
   of the polynomial; $\langle\iota^*h^n,[M]\rangle=d$; then the total Chern class
   and $c_1$ of $M$; the Euler characteristic; the numbers for surfaces in
   $\mathbb CP^3$ and threefolds in $\mathbb CP^4$, with Tau Ceti's Lefschetz
   theorems for the Betti numbers; and the genus of a smooth plane curve,
-  from $c_1(T\Sigma)=(3-d)\,\iota^*h$ and *First Chern number*'s Euler
-  number milestone.
-- **Builds on:** *Chern classes*; *First Chern number* (`EulerNumber.lean`,
-  #785, and Poincaré duality, #810); Tau Ceti's projective space, line
-  bundles, zero loci and Lefschetz theorems.
+  from its Euler characteristic $d(3-d)$. The bundles on projective space,
+  a splitting along an embedding and the Euler characteristic of a compact
+  complex manifold are in files outside that folder, which
+  `design/projective-hypersurfaces.md` lists.
+- **Builds on:** *Chern classes*; *First Chern number* (only Poincaré
+  duality, #810); Tau Ceti's projective space, line bundles, zero loci,
+  Veronese maps and Lefschetz theorems, and its normal bundles and tubular
+  neighbourhoods of smooth embeddings
+  (`Geometry/Manifold/SmoothEmbedding/NormalSpace/`,
+  `Geometry/Manifold/TubularNeighborhood/`).
 - **Milestones:** *Chern classes of projective hypersurfaces*, and the
   example of *Adjunction formula*. Tau Ceti's Lefschetz theorems assume a
   neighbourhood of the hyperplane section that retracts onto it; the design
@@ -2673,7 +2677,7 @@ that file, and the notes here may fall behind it.
 | 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles* |
 | 4 | *Adjunction* | *First Chern number* (only `FirstChernClass.lean`, `ChernNumber/Basic.lean` and `ChernNumber/Axioms.lean`); `NormalSpace/ComplexStructure.lean` and `NormalSplitting.lean` can start at once |
 | 4 | *Chern classes* | *First Chern number* (only `FirstChernClass.lean`, for the comparison of $c_1$); the other issues of its design file can start at once |
-| 5 | *Projective hypersurfaces* | *Chern classes*, *First Chern number* (only `ChernNumber/EulerNumber.lean`); the bundle isomorphisms on $\mathbb CP^{n+1}$ can start at once |
+| 5 | *Projective hypersurfaces* | *Chern classes*, *First Chern number* (only Poincaré duality, #810); the bundle isomorphisms on $\mathbb CP^{n+1}$, the normal bundle and the Lefschetz theorems can start at once |
 
 The design issues of the parts marked as needing one can start at once, in
 parallel with the level-0 parts.
@@ -2784,14 +2788,14 @@ manifolds and characteristic classes*).
 | *Levi-Civita derivative of a compatible almost complex structure* | *Almost Kähler geometry*. Existing inputs: Mathlib's `CovariantDerivative.leviCivitaConnection`, Tau Ceti's `CovariantDerivative.hom` and `TauCeti.SmoothForm.mextDeriv_apply_two`. |
 | *Nijenhuis tensor* | *Nijenhuis tensor*. Existing parts: `TauCeti.SmoothAlmostComplexStructure.nijenhuis`, `nijenhuis_apply`, `nijenhuis_antisymm`, `nijenhuis_self`, `nijenhuis_apply_left`, `nijenhuis_apply_right`, `nijenhuis_eq_zero_of_finrank_eq_two`, `nijenhuis_const`, `isInvolutiveComplexDistribution_eigenspace_I_iff`. |
 | *Parallel almost complex structures and the Kähler condition* | *Almost Kähler geometry*, with $N_J=0$ in condition 2, as the page asks. |
-| *Integrability of almost complex structures on surfaces* | *Isothermal coordinates*. Existing inputs: `TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt` ($C^1$ charts only), `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp` (which assumes $C^m$ charts for every $m$), `TauCeti.SmoothAlmostComplexStructure.HasIsothermalCharts`. Missing: isothermal charts of class $C^m$ for smooth $J$, built by the part. |
+| *Integrability of almost complex structures on surfaces* | *Isothermal coordinates*. Existing inputs: `TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt` ($C^1$ charts only), `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp` (which assumes $C^m$ charts for every $m$). Missing: isothermal charts of class $C^m$ for smooth $J$, built by the part. |
 | *Fubini–Study form on complex projective space* | *Complex projective space*. Existing inputs: Tau Ceti's complex manifold `ℙ ℂ (Fin (n + 1) → ℂ)`, `TauCeti.SmoothTwoForm.existsUnique_isSymplectic_mpullback_eq`, `OnePoint.fubiniStudyForm`. |
 | *Complex submanifolds of Kähler manifolds* | *Complex submanifolds*; its last sentence *Complex projective space*. Existing input: the linear `TauCeti.SymplecticForm.Compatible.restrict`. |
 | *Kähler structure on the space of compatible linear complex structures* | *Space of compatible complex structures*. Existing inputs: `TauCeti.SymplecticForm.compatibleTangentSpace`, `TauCeti.SymplecticForm.Compatible.compatibleCayleyEquiv`, and the bijection with $\mathcal S_n$ of *Siegel upper half space*. |
 | *Hodge decomposition on closed Kähler manifolds* | *Hodge theory*. Existing inputs: `TauCeti.harmonicForms` and its orthogonality results, `TauCeti.complexDeRhamCohomology`, `TauCeti.dolbeaultCohomology`, Tau Ceti's interior elliptic regularity. |
 | *Adjunction formula* | *Adjunction*; the example of plane curves *Projective hypersurfaces*. |
 | *Chern classes of projective hypersurfaces* | *Projective hypersurfaces*, on *Chern classes*. Existing inputs: `TauCeti.isManifold_complexProjectiveZeroLocus`, `Projectivization.twistCore`, Tau Ceti's Lefschetz theorems in `Geometry/Manifold/Projectivization/Lefschetz.lean`. |
-| *Energy identity for J-holomorphic curves* | *Energy of pseudoholomorphic curves*. Existing inputs: Tau Ceti's pointwise identity `TauCeti.SmoothTwoForm.Invariant.stdComplexLineEnergyDensity_sub_two_mul_twoForm`, `TauCeti.integralTopForm_mpullback_nonneg`. |
+| *Energy identity for J-holomorphic curves* | *Energy of pseudoholomorphic curves*. Existing input: `TauCeti.integralTopForm_mpullback_nonneg`. |
 
 The results that the page quotes rather than proves are handled as follows.
 The integral first Chern class is *First Chern number*'s, the Euler class of

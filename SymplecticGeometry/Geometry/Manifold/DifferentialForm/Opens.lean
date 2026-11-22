@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # Differential forms restricted to open subsets
@@ -30,10 +31,15 @@ and the pull-back of restricted forms along a partial diffeomorphism of open sub
   (`TauCeti.isSmoothForm_mpullback_subtype_val_of_contMDiffOn`).
 * For a form `γ` and a vector field `Z` that are both `C^n` on `U`, the restriction of `ι_Z γ`
   to `U` is a `C^n` form (`TauCeti.isSmoothForm_mpullback_subtypeVal_interior`), although
+<<<<<<< HEAD
+  `ι_Z γ` need not be smooth on all of `M`. For a smooth form `γ`, this restriction is the smooth
+  form `TauCeti.SmoothForm.restrictInterior γ Z hZ`.
+=======
   `ι_Z γ` need not be smooth on all of `M`.
 * A smooth map `ψ` between open subsets that pulls the restriction of a two-form `σ'` back to the
   restriction of a two-form `σ` preserves the forms on tangent vectors at each point
   (`TauCeti.SmoothForm.eval₂_mfderiv_eq_of_mpullback_subtype_val_eq`).
+>>>>>>> origin/main
 * Restriction commutes with the exterior derivative, with no regularity assumption
   (`TauCeti.mpullback_subtype_val_mextDeriv`), since near every point of `U` the coordinate
   expressions of a form and of its restriction agree
@@ -120,6 +126,24 @@ theorem isSmoothForm_mpullback_subtypeVal_interior {U : Opens M} {n : WithTop �
     (RoughForm.contMDiffAt_interior (hZ.contMDiffAt (U.isOpen.mem_nhds hx))
       (hγ.contMDiffAt (U.isOpen.mem_nhds hx))).contMDiffWithinAt
 
+/-- For a smooth `(k + 1)`-form `γ` on `M` and a vector field `Z` on `M` that is smooth on an open
+subset `U`, the restriction to `U` of the interior product `ι_Z γ`, as a smooth `k`-form on `U`.
+The field `Z` need not be smooth outside `U`. -/
+noncomputable def SmoothForm.restrictInterior (γ : SmoothForm I M F (k + 1))
+    (Z : (x : M) → TangentSpace I x) {U : Opens M} (hZ : ContMDiffOn I I.tangent ∞ (T% Z) U) :
+    SmoothForm I U F k :=
+  ⟨TauCeti.mpullback (F := F) (k := k) I I (Subtype.val : U → M)
+      (RoughForm.interior Z γ.val),
+    (isSmoothForm_mpullback_subtypeVal_interior γ.contMDiff.contMDiffOn hZ).mem_smoothBundleForms⟩
+
+@[simp]
+theorem SmoothForm.coe_restrictInterior (γ : SmoothForm I M F (k + 1))
+    (Z : (x : M) → TangentSpace I x) {U : Opens M} (hZ : ContMDiffOn I I.tangent ∞ (T% Z) U) :
+    (γ.restrictInterior Z hZ : RoughForm I U F k) =
+      TauCeti.mpullback (F := F) (k := k) I I (Subtype.val : U → M)
+        (RoughForm.interior Z γ.val) :=
+  (rfl)
+
 /-- Near the chart image of a point of an open subset `U`, the coordinate expression of the
 restriction to `U` of a form on `M` agrees with that of the form itself. -/
 theorem RoughForm.inChartAt_mpullback_subtype_val_eventuallyEq {U : Opens M}
@@ -135,7 +159,7 @@ theorem RoughForm.inChartAt_mpullback_subtype_val_eventuallyEq {U : Opens M}
   have hmf : mfderivWithin 𝓘(ℝ, E) I (Subtype.val ∘ (extChartAt I x).symm) (range I) z =
       mfderivWithin 𝓘(ℝ, E) I (extChartAt I (x : M)).symm (range I) z :=
     hev.symm.mfderivWithin_eq h0
-  rw [inChartAt_mpullback γ _ x hz (contMDiff_subtypeVal.mdifferentiableAt one_ne_zero), hmf,
+  rw [inChartAt_mpullback γ _ x hz mdifferentiableAt_subtypeVal, hmf,
     ← Function.comp_apply (f := Subtype.val), h0]
   ext v
   exact (inChartAt_apply γ (x : M) z v).symm
@@ -206,12 +230,10 @@ theorem mpullback_toDiffeomorphSourceTarget_liftOpens {U : Opens M} {V : Opens M
     Φ.liftOpens_source hU hV ▸ z.property
   have hφz : MDifferentiableAt I I' φ z := φ.contMDiff.mdifferentiableAt (by simp)
   have hΨz : MDifferentiableAt I I' Ψ z := Ψ.mdifferentiableAt (by simp) z.property
-  have hval {N : Opens M'} (x : N) : MDifferentiableAt I' I' (Subtype.val : N → M') x :=
-    (contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero
   rw [TauCeti.SmoothForm.coe_mpullback_subtype_val_apply τ z, TauCeti.SmoothForm.coe_mpullback,
-    TauCeti.SmoothForm.coe_mpullback, ← TauCeti.mpullback_comp_at hφz (hval _), hφΨ,
-    TauCeti.mpullback_comp_at ((contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero)
-      hΨz, TauCeti.mpullback_subtype_val_apply, ← hyz,
+    TauCeti.SmoothForm.coe_mpullback, ← TauCeti.mpullback_comp_at hφz mdifferentiableAt_subtypeVal,
+    hφΨ, TauCeti.mpullback_comp_at mdifferentiableAt_subtypeVal hΨz,
+    TauCeti.mpullback_subtype_val_apply, ← hyz,
     TauCeti.mpullback_liftOpens_apply_coe Φ (by simp) hU hV _ hy, h y hy]
 
 end PartialDiffeomorph
