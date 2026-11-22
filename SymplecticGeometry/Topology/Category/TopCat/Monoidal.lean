@@ -98,12 +98,17 @@ lemma prodHomeomorphTensorObj_symm_apply (X Y : Type w) [TopologicalSpace X]
     (prodHomeomorphTensorObj X Y).symm p = (p.1, p.2) :=
   (rfl)
 
-/-- The retraction onto the fibre over `i`, evaluated at a point of `ι × X`. -/
+/-- The retraction onto the fibre over `i`, evaluated at a point of `ι × X`.
+
+The retraction is read as a map in `C(↑(TopCat.of ι ⊗ TopCat.of X), X)`, with codomain `X` and not
+`↑(TopCat.of X)`: this is how the coercion appears in goals, so `simp` can use the lemma there. -/
 @[simp]
 lemma prodFiberRetraction_prodHomeomorphTensorObj (ι : Type w) [TopologicalSpace ι]
     [DiscreteTopology ι] [DecidableEq ι] {X : Type w} [TopologicalSpace X] (x₀ : X) (i : ι)
     (p : ι × X) :
-    prodFiberRetraction (TopCat.of ι) (X := TopCat.of X) x₀ i (prodHomeomorphTensorObj ι X p) =
+    DFunLike.coe (F := C(↑(TopCat.of ι ⊗ TopCat.of X), X))
+        (prodFiberRetraction (TopCat.of ι) (X := TopCat.of X) x₀ i).hom
+        (prodHomeomorphTensorObj ι X p) =
       if p.1 = i then p.2 else x₀ := by
   rw [prodFiberRetraction_apply, fst_prodHomeomorphTensorObj, snd_prodHomeomorphTensorObj]
 
