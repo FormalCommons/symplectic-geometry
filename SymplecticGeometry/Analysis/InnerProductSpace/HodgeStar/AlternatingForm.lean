@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Normed.Module.Alternating.Uncurry.Fin
+public import SymplecticGeometry.Analysis.Normed.Module.Alternating.Uncurry.Fin
 public import TauCeti.Algebra.Lie.ExteriorPower
 public import SymplecticGeometry.Analysis.Normed.Module.Alternating.Derivation
 public import TauCeti.Analysis.InnerProductSpace.HodgeStar.AlternatingForm
@@ -71,13 +71,11 @@ theorem alternatizeUncurryFin_eq_sum_innerSL_smulRight (b : OrthonormalBasis ι 
     (f : E →L[𝕜] E [⋀^Fin n]→L[𝕜] F) :
     alternatizeUncurryFin f =
       ∑ i, alternatizeUncurryFin ((innerSL 𝕜 (b i)).smulRight (f (b i))) := by
-  conv_lhs => rw [← f.comp_id, ← b.sum_rankOne_eq_id, ContinuousLinearMap.comp_finsetSum]
-  rw [← alternatizeUncurryFinCLM_apply, _root_.map_sum]
-  refine Finset.sum_congr rfl fun i _ ↦ ?_
-  rw [alternatizeUncurryFinCLM_apply]
-  congr 1
-  ext v
-  simp
+  have : FiniteDimensional 𝕜 E := b.toBasis.finiteDimensional_of_finite
+  have hb (i : ι) : LinearMap.toContinuousLinearMap (b.toBasis.coord i) = innerSL 𝕜 (b i) := by
+    ext v
+    simp [OrthonormalBasis.coe_toBasis_repr_apply, OrthonormalBasis.repr_apply_apply]
+  simpa [hb] using alternatizeUncurryFin_eq_sum_coord_smulRight b.toBasis f
 
 end ContinuousAlternatingMap
 
