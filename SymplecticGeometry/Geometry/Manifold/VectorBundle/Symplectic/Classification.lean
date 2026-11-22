@@ -92,8 +92,7 @@ variable {ω : ContMDiffTwoForm I n F V} {J J' : ContMDiffComplexStructure I m F
 Tau Ceti's `TauCeti.SymplecticForm.Tames.isUnit_one_sub_mul` on the fibre. -/
 private theorem Tames.isUnit_one_sub (h : ω.Tames J) (h' : ω.Tames J') (x : M) :
     IsUnit (1 - J' x * J x) := by
-  have := LinearEquiv.finiteDimensional ((trivializationAt F V x).continuousLinearEquivAt ℝ x
-    (mem_baseSet_trivializationAt F V x)).toLinearEquiv.symm
+  have := (VectorBundle.continuousLinearEquivAt ℝ F V x).symm.finiteDimensional
   have hn := h.isNondegenerate
   have hu := TauCeti.SymplecticForm.Tames.isUnit_one_sub_mul (hn.tames_iff.1 h' x)
     (hn.tames_iff.1 h x)

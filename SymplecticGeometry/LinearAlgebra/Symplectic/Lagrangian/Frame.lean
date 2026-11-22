@@ -369,10 +369,10 @@ theorem _root_.Matrix.range_toEuclideanLin_mul_of_isUnit {m : Type*}
     (Z : Matrix m ι ℝ) {g : Matrix ι ι ℝ} (hg : IsUnit g) :
     LinearMap.range (toEuclideanLin (Z * g)) = LinearMap.range (toEuclideanLin Z) := by
   rw [toLpLin_mul_same]
-  refine LinearMap.range_comp_of_range_eq_top _ (LinearMap.range_eq_top.2 fun v ↦ ?_)
-  obtain ⟨u, rfl⟩ := hg
-  refine ⟨toEuclideanLin (u⁻¹ : (Matrix ι ι ℝ)ˣ).val v, ?_⟩
-  rw [← LinearMap.comp_apply, ← toLpLin_mul_same, Units.mul_inv, toLpLin_one, LinearMap.id_apply]
+  refine LinearMap.range_comp_of_range_eq_top _ (LinearMap.range_eq_top.2 fun v ↦
+    ⟨toEuclideanLin g⁻¹ v, ?_⟩)
+  simpa using toEuclideanCLM_apply_toEuclideanCLM_nonsing_inv_apply
+    ((isUnit_iff_isUnit_det g).1 hg).ne_zero v
 
 /-- The `x`-coordinates of `fromRows X Y` applied to `u` are `X u`. -/
 @[simp]
