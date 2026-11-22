@@ -31,17 +31,17 @@ operator times the identity, in two forms.
   open set `U` of a finite-dimensional real space `E` with a basis `b`. Let
   `P a = -∑ i j, A i j ∂_{b j} ∂_{b i} a + ∑ i, B i (∂_{b i} a) + C a` act on maps `a : E → F`,
   with `A i j : E → ℝ` and `B i, C : E → F →L[ℝ] F` smooth on `U`, and the quadratic form
-  `∑ i j, A i j y ξ i ξ j` nondegenerate at every `y ∈ U`. If `w : E → F →L[ℝ] ℝ` is locally
-  integrable on `U`, `h` is smooth on `U`, and `∫ w (P a) dμ = ∫ h a dμ` for every smooth `a` with
-  compact support in `U`, for an additive Haar measure `μ`, then `w` agrees almost everywhere on
-  `U` with a function smooth on `U`. This is the operator of
+  `∑ i j, A i j y ξ i ξ j` nonzero at every `ξ ≠ 0`, for every `y ∈ U`. If `w : E → F →L[ℝ] ℝ`
+  is locally integrable on `U`, `h` is smooth on `U`, and `∫ w (P a) dμ = ∫ h a dμ` for every
+  smooth `a` with compact support in `U`, for an additive Haar measure `μ`, then `w` agrees almost
+  everywhere on `U` with a function smooth on `U`. This is the operator of
   `SymplecticGeometry.exists_mpullback_symm_hodgeLaplacian_eq`, the Hodge Laplacian in a chart.
 
 For the weak form, near each point of `U` the coefficients are extended to the whole space by a
 cutoff and read in coordinates `e : E ≃L[ℝ] CoordinateSpace n`. Pairing the weak equation with
 `a = (φ ∘ e) • f k`, for a test function `φ` and a basis `f` of `F`, shows that the coordinate
-distributions of `w` (`Distribution.coordOfFun`, in the dual basis) solve a system of the first
-kind whose right sides are the coordinate distributions of `h`, which are smooth. The regular
+distributions of `w` (`Distribution.coordOfFun`, in the dual basis) solve a system of the form
+above whose right sides are the coordinate distributions of `h`, which are smooth. The regular
 representatives (`Distribution.exists_contDiffOn_ae_eq_of_singularSupport_coordOfFun_eq_empty`)
 are glued by Tau Ceti's `TauCeti.exists_contDiffOn_ae_eq_of_locally`.
 
