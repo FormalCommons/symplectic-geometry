@@ -2532,12 +2532,18 @@ has either; Tau Ceti's extension across a boundary,
   the class of every compatible and every taming $J$, since two structures
   taming one form give isomorphic complex bundles, by the merged
   classification of *Symplectic vector bundles*; and it is constant along a
-  smooth family $\omega_t$ over $[0,1]$, by pulling the tangent bundle back
-  to $M\times[0,1]$ with the structures $J_{g,\omega_t}$, whose classes at
-  the two ends agree since the two inclusions are homotopic).
+  smooth family $\omega_t$ over $[0,1]$, the slices of a two-form on
+  $\mathbb R\times M$, by pulling the tangent bundle back to
+  $\mathbb R\times M$ with a structure compatible with the slices, whose
+  classes at the two ends agree since the two inclusions are homotopic),
+  and `Geometry/Manifold/VectorBundle/Symplectic/FirstChernClass.lean` (the
+  classes of pull-backs and transports of complex structures on a vector
+  bundle, and of two structures tamed by one form).
 - **Builds on:** *First Chern number* (only
   `Topology/VectorBundle/Complex/FirstChernClass.lean`, #784); the merged
-  `Symplectic/Classification.lean` and `Symplectic/ComplexStructure/Basic.lean`
+  `Symplectic/Classification.lean`, `Symplectic/ComplexStructure/Basic.lean`
+  and `Symplectic/Pullback.lean`, and
+  `Geometry/Manifold/VectorBundle/Pullback.lean`,
   of *Symplectic vector bundles*.
 - **Milestones:** *First Chern class of a nondegenerate two-form*, on a
   Hausdorff σ-compact manifold (for the existence of a compatible $J$). The
