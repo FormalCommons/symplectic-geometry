@@ -186,9 +186,8 @@ theorem isPseudoholomorphic_compatibleDiffeomorph :
   have hI := congrArg Subtype.val
     (SmoothAlmostComplexStructure.ofComplexManifold_apply (E := 𝒮 ι) Z dZ) |>.trans
       (Submodule.coe_smul_of_tower Complex.I (show 𝒮 ι from dZ))
-  apply SymplecticForm.injective_mfderiv_compatibleCLM
-  rw [← mvfderiv_apply_eq_mfderiv_apply, ← mvfderiv_apply_eq_mfderiv_apply,
-    SymplecticForm.mvfderiv_compatibleCLM_compatibleSpaceComplexStructure,
+  apply SymplecticForm.injective_mvfderiv_compatibleCLM
+  rw [SymplecticForm.mvfderiv_compatibleCLM_compatibleSpaceComplexStructure,
     mvfderiv_compatibleCLM_mfderiv_compatibleDiffeomorph,
     mvfderiv_compatibleCLM_mfderiv_compatibleDiffeomorph, hI,
     complexStructureMatrixDeriv_I_smul (isUnit_det_map_im Z), map_neg, map_mul,
