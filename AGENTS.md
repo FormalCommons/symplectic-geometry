@@ -142,7 +142,9 @@ end
     from, says that the file is a part of it, and says each change you made
     to Tau Ceti's code or text. Keep what Tau Ceti's file says of where a
     declaration you take comes from, in its module docstring or in a
-    comment ("Adapted from …", "Ported from …", its references).
+    comment ("Adapted from …", "Ported from …", its references). Copy
+    every entry of its `## References` section as it is, even one that
+    cites a source for the whole file rather than for what you take.
   - Take only what the library needs, and keep Tau Ceti's text as well as
     its code. Apart from the module docstring, change nothing, docstrings
     and comments included, beyond what the pinned version requires and the
