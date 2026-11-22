@@ -5,13 +5,18 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.Distribution.Coordinates
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.L2
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.LocalLaplacian
+public import TauCeti.Analysis.Calculus.CoordinateDeriv
+public import TauCeti.Analysis.Distribution.WaveFrontSet.Sobolev.SingularSupport
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Matrix
+import SymplecticGeometry.Analysis.Calculus.LineDeriv.Transpose
 import SymplecticGeometry.Analysis.Distribution.SecondOrderSystem
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.ChartCover
 import SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph
 import Mathlib.Geometry.Manifold.PartitionOfUnity
+import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
 import TauCeti.MeasureTheory.Function.LocallyIntegrable
 
 /-!
@@ -21,7 +26,9 @@ Let `M` be a closed oriented Riemannian manifold and `Δ` its Hodge Laplacian on
 An `L²` form `u` is a weak solution of `Δu = f` if `⟪u, Δφ⟫ = ⟪f, φ⟫` for every smooth `k`-form
 `φ` (`SymplecticGeometry.L2Form.IsWeakSolution`). This file shows that a weak solution with a
 smooth right side `f` is a smooth form `α` with `Δα = f`
-(`SymplecticGeometry.L2Form.exists_eq_ofSmooth_of_isWeakSolution`).
+(`SymplecticGeometry.L2Form.exists_eq_ofSmooth_of_isWeakSolution`), and that an `L²` form whose
+pairing with Laplacians is bounded in the Hodge `H¹` norm, `|⟪u, Δφ⟫| ≤ C * √(‖φ‖ ^ 2 + ⟪Δφ, φ⟫)`,
+is `H¹` in every chart (`SymplecticGeometry.L2Form.isLocallySobolev_one_of_forall_inner`).
 
 The argument is local. In a chart `ψ` with a cutoff `χ` supported in its source, the `L²` inner
 product of `u` with a smooth form `β` supported where `χ = 1` is the integral over `E` of the
@@ -50,6 +57,19 @@ because the Hodge Laplacian is formally self-adjoint
 (`SymplecticGeometry.L2Form.isWeakSolution_ofSmooth_iff`, from Tau Ceti's
 `TauCeti.SmoothForm.integralTopForm_inner_hodgeLaplacian_eq_inner_hodgeLaplacian`).
 
+For the `H^{-1}` case, the weak equation in a chart again reads `⟪u, Δφ⟫` as `∫ w (P a)`. For `φ`
+the extension by zero of `a`, `‖φ‖` is bounded by the `L²` norm of `a`
+(`SymplecticGeometry.L2Form.exists_norm_ofSmooth_extendByZeroAlong_le`), and `⟪Δφ, φ⟫`, read in
+the chart as `∫ D ⟨a, P a⟩`, by the square of its `W^{1,2}` norm
+(`SymplecticGeometry.exists_abs_integral_sum_mul_apply_le`, one integration by parts). So the
+hypothesis bounds `∫ w (P a)` by the `W^{1,2}` norm of `a`, and
+`SymplecticGeometry.isLocallySobolevAt_one_coordOfFun_of_abs_integral_le` makes the coordinate
+distributions of `w` `H¹`. Near each point the coordinates of the localization of `u` are those
+of `w` times smooth functions, through the inverse Gram matrix of the inner product in the chart
+(`Distribution.coordOfFun_eq_sum_smulLeftCLM`). For a general cutoff `χ`, the localization with
+`χ` is that with a cutoff `θ = 1` near the support of `χ` multiplied by `χ ∘ ψ.symm`, and it
+vanishes away from the image of the support of `χ`.
+
 ## Main definitions and results
 
 * `SymplecticGeometry.L2Form.IsWeakSolution o hkl u f`: `u` is a weak solution of `Δu = f`, with
@@ -62,6 +82,8 @@ because the Hodge Laplacian is formally self-adjoint
   chart.
 * `SymplecticGeometry.L2Form.exists_eq_ofSmooth_of_isWeakSolution`: weak solutions of `Δu = f`
   with smooth `f` are smooth.
+* `SymplecticGeometry.L2Form.isLocallySobolev_one_of_forall_inner`: the `H^{-1}` case, `H¹`
+  regularity in every chart.
 
 ## References
 
@@ -414,6 +436,319 @@ theorem L2Form.IsWeakSolution.exists_contDiff_ae_eq_localize {u : L2Form o k}
     · -- Fold the indicator back into `r`, which vanishes off `V`.
       change r y • _ = r y • g y
       rw [hr0 y hy, zero_smul, zero_smul]
+
+/-- **The Dirichlet pairing in a chart.** Let `ψ` be a chart, `θ` a smooth cutoff supported in its
+source, and `K` a compact subset of `ψ.target` on which `θ ∘ ψ.symm = 1`. There is `c` such that
+for every smooth flat form `a` supported in `K`, with extension by zero `φ` along `ψ`,
+`⟪Δφ, φ⟫ ≤ c * (‖a‖_{L²} + ∑ᵢ ‖∂_{b i} a‖_{L²}) ^ 2`. -/
+private theorem exists_inner_hodgeLaplacian_extendByZeroAlong_le
+    (hkl : k + l = m) (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (b : Module.Basis (Fin m) ℝ E)
+    {B : Fin m → E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin k]→L[ℝ] ℝ}
+    {C : E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin k]→L[ℝ] ℝ}
+    (hB : ∀ i, ContDiffOn ℝ ∞ (B i) ψ.target) (hC : ContDiffOn ℝ ∞ C ψ.target)
+    (hΔ : ∀ (α : SmoothForm I M ℝ k), ∀ y ∈ ψ.target,
+        (mpullback 𝓘(ℝ, E) I ψ.symm (SmoothForm.hodgeLaplacian o hkl α).val y :
+            E [⋀^Fin k]→L[ℝ] ℝ) =
+          -∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+              fderiv ℝ (F := E [⋀^Fin k]→L[ℝ] ℝ) (fun z ↦ fderiv ℝ
+                (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) z (b i)) y (b j) +
+            ∑ i, B i y (fderiv ℝ (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) y
+              (b i)) +
+            C y (mpullback 𝓘(ℝ, E) I ψ.symm α.val y : E [⋀^Fin k]→L[ℝ] ℝ))
+    (θ : C^∞⟮I, M; ℝ⟯) (hθ : tsupport θ ⊆ ψ.source) {K : Set E} (hK : IsCompact K)
+    (hKt : K ⊆ ψ.target) (hKθ : ∀ y ∈ K, θ (ψ.symm y) = 1) :
+    ∃ c, ∀ (a : E → E [⋀^Fin k]→L[ℝ] ℝ) (ha : ContDiff ℝ ∞ a) (hac : HasCompactSupport a)
+      (hat : tsupport a ⊆ ψ.target), tsupport a ⊆ K →
+      ⟪(L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl
+          (SmoothForm.extendByZeroAlong ψ a ha hac hat)) : L2Form o k),
+        L2Form.ofSmooth (SmoothForm.extendByZeroAlong ψ a ha hac hat)⟫_ℝ ≤
+        c * ((eLpNorm a 2 volume).toReal +
+          ∑ i, (eLpNorm (fun y ↦ fderiv ℝ a y (b i)) 2 volume).toReal) ^ 2 := by
+  classical
+  set D : E → ℝ := fun y ↦ (b.addHaar.addHaarScalarFactor volume : ℝ) *
+    riemannianJacobian (I := I) b ψ.symm y
+  have hD : ContDiffOn ℝ ∞ D ψ.target :=
+    contDiffOn_const.mul (ψ.contDiffOn_riemannianJacobian_symm b)
+  let e := Module.finBasis ℝ (E [⋀^Fin k]→L[ℝ] ℝ)
+  obtain ⟨c, hc⟩ := exists_abs_integral_sum_mul_apply_le (μ := volume) ψ.open_target b
+    (A := fun i j y ↦ -(Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j) (B := B) (C := C)
+    (fun i j ↦ (contDiffOn_inv_gramInChart_apply ψ b i j).neg.of_le (by simp))
+    (fun i ↦ (hB i).continuousOn) hC.continuousOn
+    (φ := fun q y ↦ D y • formInnerInChart ψ y (e q))
+    (fun q ↦ (contDiffOn_clm_apply.2 fun γ ↦ (hD.mul (contDiffOn_formInnerInChart_apply ψ (e q)
+      γ)).congr fun y _ ↦ by rw [_root_.smul_apply, smul_eq_mul]).of_le (by simp))
+    (fun q ↦ (e.coord q).toContinuousLinearMap) hK hKt
+  refine ⟨c, fun a ha hac hat haK ↦ ?_⟩
+  have haθ (y : E) (hy : y ∈ tsupport a) : θ (ψ.symm y) = 1 := hKθ y (haK hy)
+  rw [real_inner_comm, L2Form.inner_ofSmooth_hodgeLaplacian_extendByZeroAlong_eq_integral hkl ψ b
+    hΔ θ hθ ha hac hat haθ]
+  refine (le_abs_self _).trans (le_of_eq_of_le (congrArg _ ?_) (hc a (ha.of_le (by simp)) haK))
+  refine integral_congr_ae ?_
+  filter_upwards [L2Form.localize_ofSmooth ψ θ hθ (SmoothForm.extendByZeroAlong ψ a ha hac hat)]
+    with y hy
+  -- Expand the first argument of the inner product in the basis `e`.
+  have key (β γ : E [⋀^Fin k]→L[ℝ] ℝ) : D y * formInnerInChart ψ y β γ =
+      ∑ q, (e.coord q).toContinuousLinearMap β * (D y • formInnerInChart ψ y (e q)) γ := by
+    conv_lhs => rw [← e.sum_repr β]
+    simp only [map_sum, map_smul, _root_.sum_apply, _root_.smul_apply, smul_eq_mul,
+      Finset.mul_sum, LinearMap.coe_toContinuousLinearMap', Module.Basis.coord_apply]
+    exact Finset.sum_congr rfl fun q _ ↦ by ring
+  rw [hy, SmoothForm.localize_extendByZeroAlong ψ ha hac hat haθ, key]
+  simp only [neg_smul, Finset.sum_neg_distrib]
+
+/-- **The `H^{-1}` case in a chart.** Let `u` be an `L²` form with
+`|⟪u, Δφ⟫| ≤ C₀ * √(‖φ‖ ^ 2 + ⟪Δφ, φ⟫)` for every smooth `k`-form `φ`, `ψ` a chart, `θ` a smooth
+cutoff supported in its source, and `V` an open subset of `ψ.target` on which `θ ∘ ψ.symm = 1`.
+Then, in coordinates `e : E ≃L[ℝ] CoordinateSpace n` on any open `Ω` with `e⁻¹ '' Ω ⊆ V`, the
+coordinate distributions of the localization of `u` with the cutoff `θ` are `H¹` near every
+point of `Ω`. -/
+private theorem isLocallySobolevAt_one_coordOfFun_localize_of_eq_one {u : L2Form o k} {C₀ : ℝ}
+    (hu : ∀ φ : SmoothForm I M ℝ k,
+      |⟪u, L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ)⟫_ℝ| ≤
+        C₀ * √(‖(L2Form.ofSmooth φ : L2Form o k)‖ ^ 2 +
+          ⟪(L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ) : L2Form o k),
+            L2Form.ofSmooth φ⟫_ℝ))
+    (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (θ : C^∞⟮I, M; ℝ⟯) (hθ : tsupport θ ⊆ ψ.source)
+    {V : TopologicalSpace.Opens E} (hVt : (V : Set E) ⊆ ψ.target)
+    (hVθ : ∀ y ∈ V, θ (ψ.symm y) = 1) {n : ℕ} (e : E ≃L[ℝ] CoordinateSpace n)
+    {Ω : TopologicalSpace.Opens (CoordinateSpace n)} (hΩ : MapsTo e.symm Ω V) {κ : Type*}
+    [Finite κ] (bΛ : Module.Basis κ ℝ (E [⋀^Fin k]→L[ℝ] ℝ)) (p : κ) {z : CoordinateSpace n}
+    (hz : z ∈ Ω) :
+    (Distribution.coordOfFun e hΩ bΛ (L2Form.localize ψ θ hθ u) volume p).IsLocallySobolevAt 1
+      z := by
+  classical
+  have := Fintype.ofFinite κ
+  have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
+  set y₀ := e.symm z
+  have hy₀ : y₀ ∈ V := hΩ hz
+  have hm := o.fact_finrank_tangentSpace (ψ.symm y₀)
+  let b : Module.Basis (Fin m) ℝ E := Module.finBasisOfFinrankEq ℝ E hm.out
+  obtain ⟨B, C, hB, hC, hΔ⟩ := exists_mpullback_symm_hodgeLaplacian_eq o ψ hkl b
+  -- The density of the Riemannian volume read in the chart, for `volume`.
+  set D : E → ℝ := fun y ↦ (b.addHaar.addHaarScalarFactor volume : ℝ) *
+    riemannianJacobian (I := I) b ψ.symm y
+  have hD : ContDiffOn ℝ ∞ D ψ.target :=
+    contDiffOn_const.mul (ψ.contDiffOn_riemannianJacobian_symm b)
+  have hDpos (y : E) (hy : y ∈ ψ.target) : 0 < D y :=
+    mul_pos (NNReal.coe_pos.2 (Measure.addHaarScalarFactor_pos_of_isAddHaarMeasure _ _))
+      (ψ.riemannianJacobian_symm_pos hn b hy)
+  let U : E → E [⋀^Fin k]→L[ℝ] ℝ := ⇑(L2Form.localize ψ θ hθ u)
+  have hUloc (s : Set E) : LocallyIntegrableOn U s volume :=
+    ((Lp.memLp (L2Form.localize ψ θ hθ u)).locallyIntegrable one_le_two).locallyIntegrableOn s
+  let L (q : κ) : (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] ℝ := LinearMap.toContinuousLinearMap (bΛ.coord q)
+  -- The unknown `w = D • formInnerInChart ψ · U` of the weak equation, written in the basis `bΛ`.
+  let w : E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] ℝ := fun y ↦
+    ∑ q, L q (U y) • (D y • formInnerInChart ψ y (bΛ q))
+  have hw (y : E) (γ : E [⋀^Fin k]→L[ℝ] ℝ) : w y γ = D y * formInnerInChart ψ y (U y) γ := by
+    conv_rhs => rw [← bΛ.sum_repr (U y)]
+    simp only [w, L, map_sum, map_smul, _root_.sum_apply, _root_.smul_apply, smul_eq_mul,
+      LinearMap.coe_toContinuousLinearMap', Module.Basis.coord_apply, Finset.mul_sum]
+    exact Finset.sum_congr rfl fun q _ ↦ by ring
+  have hLU (q : κ) : LocallyIntegrableOn (fun y ↦ L q (U y)) V volume :=
+    (((L q).comp_memLp' (Lp.memLp (L2Form.localize ψ θ hθ u))).locallyIntegrable
+      one_le_two).locallyIntegrableOn V
+  have hwV : LocallyIntegrableOn w V volume := by
+    -- Instance search does not find this one through `NormedSpace`.
+    have : IsBoundedSMul ℝ ((E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] ℝ) :=
+      ContinuousLinearMap.toNormedSpace.toIsBoundedSMul
+    refine locallyIntegrableOn_finsetSum Finset.univ
+      (f := fun q y ↦ L q (U y) • (D y • formInnerInChart ψ y (bΛ q))) fun q _ ↦ ?_
+    exact (hLU q).smul_continuousOn V.isOpen.isLocallyClosed
+      (continuousOn_clm_apply.2 fun γ ↦ ((hD.mul (contDiffOn_formInnerInChart_apply ψ (bΛ q)
+        γ)).mono hVt).continuousOn)
+  -- The hypothesis bounds the weak equation in the chart by the `W^{1,2}` norm of test forms.
+  have hwP (K : Set E) (hK : IsCompact K) (hKV : K ⊆ V) : ∃ c : ℝ,
+      ∀ a : E → E [⋀^Fin k]→L[ℝ] ℝ, ContDiff ℝ ∞ a → tsupport a ⊆ K →
+      |∫ y, w y (-∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+          fderiv ℝ (fun z ↦ fderiv ℝ a z (b i)) y (b j) +
+        ∑ i, B i y (fderiv ℝ a y (b i)) + C y (a y))| ≤
+        c * ((eLpNorm a 2 volume).toReal +
+          ∑ i, (eLpNorm (fun y ↦ fderiv ℝ a y (b i)) 2 volume).toReal) := by
+    have hKt : K ⊆ ψ.target := hKV.trans hVt
+    obtain ⟨c₁, hc₁⟩ := exists_inner_hodgeLaplacian_extendByZeroAlong_le (o := o) hkl ψ b hB hC
+      hΔ θ hθ hK hKt fun y hy ↦ hVθ y (hKV hy)
+    obtain ⟨c₂, hc₂, hc₂'⟩ := L2Form.exists_norm_ofSmooth_extendByZeroAlong_le (k := k) ψ o hK hKt
+    refine ⟨max C₀ 0 * √(c₂ ^ 2 + max c₁ 0), fun a ha haK ↦ ?_⟩
+    have hac : HasCompactSupport a := hK.of_isClosed_subset (isClosed_tsupport a) haK
+    have hat : tsupport a ⊆ ψ.target := haK.trans hKt
+    have haθ (y : E) (hy : y ∈ tsupport a) : θ (ψ.symm y) = 1 := hVθ y (hKV (haK hy))
+    set X := (eLpNorm a 2 volume).toReal +
+      ∑ i, (eLpNorm (fun y ↦ fderiv ℝ a y (b i)) 2 volume).toReal
+    have hX : (eLpNorm a 2 volume).toReal ≤ X :=
+      le_add_of_nonneg_right (Finset.sum_nonneg fun _ _ ↦ ENNReal.toReal_nonneg)
+    have hX0 : 0 ≤ X := ENNReal.toReal_nonneg.trans hX
+    set φ := SmoothForm.extendByZeroAlong ψ a ha hac hat
+    rw [show ∫ y, w y (-∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+          fderiv ℝ (fun z ↦ fderiv ℝ a z (b i)) y (b j) +
+        ∑ i, B i y (fderiv ℝ a y (b i)) + C y (a y)) =
+        ⟪u, L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ)⟫_ℝ by
+      rw [L2Form.inner_ofSmooth_hodgeLaplacian_extendByZeroAlong_eq_integral hkl ψ b hΔ θ hθ ha
+        hac hat haθ u]
+      simp only [hw, U, D]]
+    have h₁ : ‖(L2Form.ofSmooth φ : L2Form o k)‖ ^ 2 ≤ c₂ ^ 2 * X ^ 2 := by
+      rw [← mul_pow]
+      exact pow_le_pow_left₀ (norm_nonneg _)
+        ((hc₂' a ha hac hat haK).trans (mul_le_mul_of_nonneg_left hX hc₂)) 2
+    have h₂ := (hc₁ a ha hac hat haK).trans
+      (mul_le_mul_of_nonneg_right (le_max_left c₁ 0) (sq_nonneg X))
+    have hs : √(‖(L2Form.ofSmooth φ : L2Form o k)‖ ^ 2 +
+        ⟪(L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ) : L2Form o k),
+          L2Form.ofSmooth φ⟫_ℝ) ≤ √(c₂ ^ 2 + max c₁ 0) * X := by
+      rw [← Real.sqrt_sq hX0, ← Real.sqrt_mul (by positivity)]
+      exact Real.sqrt_le_sqrt (by nlinarith)
+    calc _ ≤ _ := hu φ
+      _ ≤ max C₀ 0 * (√(c₂ ^ 2 + max c₁ 0) * X) :=
+          mul_le_mul (le_max_left _ _) hs (Real.sqrt_nonneg _) (le_max_right _ _)
+      _ = _ := by ring
+  -- So the coordinate distributions of `w`, in the basis dual to `bΛ`, are `H¹`.
+  let bD : Module.Basis κ ℝ ((E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] ℝ) :=
+    bΛ.dualBasis.map LinearMap.toContinuousLinearMap
+  have hbD (Λ' : (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] ℝ) (q : κ) : bD.repr Λ' q = Λ' (bΛ q) := by
+    simp [bD]
+  have hell (y : E) (hy : y ∈ V) (ξ : Fin m → ℝ) (hξ : ξ ≠ 0) :
+      ∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j * ξ i * ξ j ≠ 0 := by
+    have := (posDef_gramInChart ψ b (hVt hy)).inv.dotProduct_mulVec_pos hξ
+    refine ne_of_gt ?_
+    convert this using 1
+    simp only [dotProduct, Matrix.mulVec, star_trivial, Finset.mul_sum]
+    exact Finset.sum_congr rfl fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ by ring
+  have hwH {U' : TopologicalSpace.Opens E} (hU' : (U' : Set E) ⊆ V)
+      {Ω' : TopologicalSpace.Opens (CoordinateSpace n)} (hΩ' : MapsTo e.symm Ω' U') (q : κ)
+      {z' : CoordinateSpace n} (hz' : z' ∈ Ω') :
+      (Distribution.coordOfFun e hΩ' bD w volume q).IsLocallySobolevAt 1 z' :=
+    isLocallySobolevAt_one_coordOfFun_of_abs_integral_le (μ := volume) (U := U') b
+      (A := fun i j y ↦ (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j) (B := B) (C := C)
+      (fun i j ↦ (contDiffOn_inv_gramInChart_apply ψ b i j).mono (hU'.trans hVt))
+      (fun i ↦ (hB i).mono (hU'.trans hVt)) (hC.mono (hU'.trans hVt))
+      (fun y hy ↦ hell y (hU' hy)) (hwV.mono_set hU')
+      (fun K hK hKU' ↦ hwP K hK (hKU'.trans hU')) e hΩ' bΛ bD hbD q hz'
+  -- Near `y₀`, the coordinates of the localization are those of `w` times smooth functions,
+  -- through the inverse Gram matrix of `bΛ` for the inner product in the chart.
+  obtain ⟨ε, hε, hεV⟩ := Metric.nhds_basis_closedBall.mem_iff.1 (V.isOpen.mem_nhds hy₀)
+  let β : ContDiffBump y₀ := ⟨ε / 2, ε, by positivity, by linarith⟩
+  set N : TopologicalSpace.Opens E := ⟨Metric.ball y₀ β.rIn, Metric.isOpen_ball⟩
+  have hβs : tsupport β ⊆ V := β.tsupport_eq.trans_subset hεV
+  have hNV : (N : Set E) ⊆ V := fun y hy ↦ hβs (by
+    rw [β.tsupport_eq]
+    exact Metric.closedBall_subset_closedBall β.rIn_lt_rOut.le (Metric.ball_subset_closedBall hy))
+  set G : E → Matrix κ κ ℝ := fun y ↦ Matrix.of fun p q ↦ formInnerInChart ψ y (bΛ p) (bΛ q)
+  have hG (q : κ) : ContDiffOn ℝ ∞ (fun y ↦ (G y)⁻¹ p q / D y) V :=
+    (ContDiffOn.matrix_inv_apply (fun p q ↦ (contDiffOn_formInnerInChart_apply ψ (bΛ p)
+      (bΛ q)).mono hVt) (fun y hy ↦ (posDef_formInnerInChart ψ bΛ (hVt hy)).det_pos.ne') p
+        q).div (hD.mono hVt) fun y hy ↦ (hDpos y (hVt hy)).ne'
+  have hc (q : κ) : ContDiff ℝ ∞ fun x : CoordinateSpace n ↦
+      β (e.symm x) • ((G (e.symm x))⁻¹ p q / D (e.symm x)) :=
+    ((hG q).contDiff_smul_of_tsupport_subset V.isOpen β.contDiff.contDiffOn hβs).comp
+      e.symm.contDiff
+  set Ω' : TopologicalSpace.Opens (CoordinateSpace n) :=
+    Ω ⊓ ⟨e.symm ⁻¹' N, N.isOpen.preimage e.symm.continuous⟩
+  have hΩ' : MapsTo e.symm Ω' N := fun _ h ↦ h.2
+  have hz' : z ∈ Ω' := ⟨hz, Metric.mem_ball_self β.rIn_pos⟩
+  rw [← Distribution.isLocallySobolevAt_restrictCLM_iff (inf_le_left : Ω' ≤ Ω) hz',
+    Distribution.restrictCLM_coordOfFun e hΩ bΛ hΩ' inf_le_left (hUloc V) (hUloc N),
+    Distribution.coordOfFun_eq_sum_smulLeftCLM (w' := w) e hΩ' bΛ bD (hwV.mono_set hNV) hc p ?_]
+  · exact Distribution.IsLocallySobolevAt.sum hz' fun q _ ↦
+      (hwH hNV hΩ' q hz').smulLeftCLM (hc q)
+  refine (ae_restrict_iff' N.isOpen.measurableSet).2 (Filter.Eventually.of_forall fun y hy ↦ ?_)
+  have hyt : y ∈ ψ.target := hVt (hNV hy)
+  have hβ1 : β y = 1 := β.one_of_mem_closedBall (Metric.ball_subset_closedBall hy)
+  simp only [ContinuousLinearEquiv.symm_apply_apply, hβ1, one_smul, hbD, hw]
+  conv_lhs => rw [eq_sum_inv_mulVec_formInnerInChart ψ bΛ hyt (U y)]
+  rw [bΛ.repr_sum_self]
+  simp only [Matrix.mulVec, dotProduct]
+  refine Finset.sum_congr rfl fun q _ ↦ ?_
+  field_simp [(hDpos y hyt).ne']
+  exact mul_comm _ _
+
+/-- **Regularity with a right side in `H^{-1}`.** On a closed oriented Riemannian manifold, let
+`u` be an `L²` `k`-form whose pairing with Laplacians is bounded in the Hodge `H¹` norm: for some
+`C`, `|⟪u, Δφ⟫| ≤ C * √(‖φ‖ ^ 2 + ⟪Δφ, φ⟫)` for every smooth `k`-form `φ`. Let `ψ` be a chart
+and `χ` a smooth cutoff supported in its source. Then, in any basis `bΛ` of the forms on `E` and
+in coordinates `e : E ≃L[ℝ] CoordinateSpace n` on an open `Ω` with `e⁻¹ '' Ω ⊆ U`, the
+coordinate distributions of the localization of `u` with the cutoff `χ` are `H¹` near every
+point of `Ω`. -/
+theorem L2Form.isLocallySobolev_one_of_forall_inner {u : L2Form o k} {C : ℝ}
+    (hu : ∀ φ : SmoothForm I M ℝ k,
+      |⟪u, L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ)⟫_ℝ| ≤
+        C * √(‖(L2Form.ofSmooth φ : L2Form o k)‖ ^ 2 +
+          ⟪(L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ) : L2Form o k),
+            L2Form.ofSmooth φ⟫_ℝ))
+    (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (χ : C^∞⟮I, M; ℝ⟯) (hχ : tsupport χ ⊆ ψ.source)
+    {n : ℕ} (e : E ≃L[ℝ] CoordinateSpace n) {U : TopologicalSpace.Opens E}
+    {Ω : TopologicalSpace.Opens (CoordinateSpace n)} (hΩ : MapsTo e.symm Ω U) {κ : Type*}
+    [Finite κ] (bΛ : Module.Basis κ ℝ (E [⋀^Fin k]→L[ℝ] ℝ)) (p : κ) {z : CoordinateSpace n}
+    (hz : z ∈ Ω) :
+    (Distribution.coordOfFun e hΩ bΛ (L2Form.localize ψ χ hχ u) volume p).IsLocallySobolevAt 1
+      z := by
+  -- A cutoff `θ` equal to `1` on an open `U₁ ⊇ tsupport χ` and supported in `ψ.source`.
+  obtain ⟨U₂, hU₂, hχU₂, hU₂s⟩ := normal_exists_closure_subset (isClosed_tsupport _)
+    ψ.open_source hχ
+  obtain ⟨U₁, hU₁, hχU₁, hU₁₂⟩ := normal_exists_closure_subset (isClosed_tsupport _) hU₂
+    hχU₂
+  obtain ⟨θ, hθ0, hθ1, -⟩ := exists_contMDiffMap_zero_one_of_isClosed I (n := ⊤)
+    hU₂.isClosed_compl isClosed_closure (Set.disjoint_compl_left_iff_subset.2 hU₁₂)
+  have hθ : tsupport θ ⊆ ψ.source :=
+    (closure_mono (Function.support_subset_iff'.2 fun x hx ↦ hθ0 hx)).trans hU₂s
+  have hχθ (x : M) (hx : x ∈ tsupport χ) : θ x = 1 := hθ1 (subset_closure (hχU₁ hx))
+  -- The open set of the chart where `θ ∘ ψ.symm = 1`, and the compact image of `tsupport χ`.
+  set V : TopologicalSpace.Opens E := ⟨ψ.target ∩ ψ.symm ⁻¹' U₁,
+    ψ.contMDiffOn_invFun.continuousOn.isOpen_inter_preimage ψ.open_target hU₁⟩
+  have hVθ (y : E) (hy : y ∈ V) : θ (ψ.symm y) = 1 := hθ1 (subset_closure hy.2)
+  set K := ψ '' tsupport χ
+  have hK : IsCompact K := (isClosed_tsupport _).isCompact.image_of_continuousOn
+    (ψ.contMDiffOn.continuousOn.mono hχ)
+  have hKV : K ⊆ V := by
+    rintro _ ⟨x, hx, rfl⟩
+    exact ⟨ψ.map_source (hχ hx), by simpa [ψ.left_inv (hχ hx)] using hχU₁ hx⟩
+  -- The cutoff `χ` read in the chart, extended by `0`, is smooth.
+  set r : E → ℝ := ψ.target.indicator fun y ↦ χ (ψ.symm y)
+  have hrK (y : E) (hy : y ∉ K) : r y = 0 :=
+    Function.notMem_support.1 fun h ↦ hy (ψ.support_indicator_comp_symm_subset χ h)
+  have hr : ContDiff ℝ ∞ r := by
+    refine contDiff_iff_contDiffAt.2 fun y ↦ ?_
+    by_cases hy : y ∈ V
+    · have hχψ : ContDiffOn ℝ ∞ (fun y ↦ χ (ψ.symm y)) V :=
+        contMDiffOn_iff_contDiffOn.1 ((χ.contMDiff.comp_contMDiffOn ψ.symm.contMDiffOn).mono
+          Set.inter_subset_left)
+      exact (hχψ.congr fun y hy ↦ Set.indicator_of_mem hy.1 _).contDiffAt
+        (V.isOpen.mem_nhds hy)
+    · exact contDiffAt_const.congr_of_eventuallyEq (Filter.eventually_of_mem
+        (hK.isClosed.isOpen_compl.mem_nhds fun h ↦ hy (hKV h)) hrK)
+  have hloc := L2Form.localize_ae_eq_indicator_smul_localize ψ hχ hθ hχθ u
+  have hUloc (s : Set E) : LocallyIntegrableOn (L2Form.localize ψ θ hθ u) s volume :=
+    ((Lp.memLp (L2Form.localize ψ θ hθ u)).locallyIntegrable one_le_two).locallyIntegrableOn s
+  have hχloc (s : Set E) : LocallyIntegrableOn (L2Form.localize ψ χ hχ u) s volume :=
+    ((Lp.memLp (L2Form.localize ψ χ hχ u)).locallyIntegrable one_le_two).locallyIntegrableOn s
+  by_cases hzK : e.symm z ∈ K
+  · -- Near `z`, the localization with `χ` is that with `θ` times the smooth function `r`.
+    set Ω' : TopologicalSpace.Opens (CoordinateSpace n) :=
+      Ω ⊓ ⟨e.symm ⁻¹' V, V.isOpen.preimage e.symm.continuous⟩
+    have hΩ' : MapsTo e.symm Ω' (U ⊓ V : TopologicalSpace.Opens E) := fun _ h ↦ ⟨hΩ h.1, h.2⟩
+    have hz' : z ∈ Ω' := ⟨hz, hKV hzK⟩
+    have hg : ContDiff ℝ ∞ (r ∘ e.symm) := hr.comp e.symm.contDiff
+    rw [← Distribution.isLocallySobolevAt_restrictCLM_iff (inf_le_left : Ω' ≤ Ω) hz',
+      Distribution.restrictCLM_coordOfFun e hΩ bΛ hΩ' inf_le_left (hχloc U) (hχloc _),
+      Distribution.coordOfFun_congr_ae e hΩ' bΛ (w' := fun y ↦ (r ∘ e.symm) (e y) •
+        L2Form.localize ψ θ hθ u y) (ae_restrict_of_ae (hloc.mono fun y hy ↦ by simp [hy, r])),
+      ← Distribution.smulLeftCLM_coordOfFun e hΩ' bΛ hg (hUloc _)]
+    exact (isLocallySobolevAt_one_coordOfFun_localize_of_eq_one hu ψ θ hθ (V := U ⊓ V)
+      (fun y hy ↦ hy.2.1)
+      (fun y hy ↦ hVθ y hy.2) e hΩ' bΛ p hz').smulLeftCLM hg
+  · -- Away from `K`, the localization with `χ` vanishes.
+    set Ω' : TopologicalSpace.Opens (CoordinateSpace n) :=
+      Ω ⊓ ⟨e.symm ⁻¹' Kᶜ, hK.isClosed.isOpen_compl.preimage e.symm.continuous⟩
+    set W : TopologicalSpace.Opens E := U ⊓ ⟨Kᶜ, hK.isClosed.isOpen_compl⟩
+    have hΩ' : MapsTo e.symm Ω' W := fun _ h ↦ ⟨hΩ h.1, h.2⟩
+    have hz' : z ∈ Ω' := ⟨hz, hzK⟩
+    rw [← Distribution.isLocallySobolevAt_restrictCLM_iff (inf_le_left : Ω' ≤ Ω) hz',
+      Distribution.restrictCLM_coordOfFun e hΩ bΛ hΩ' inf_le_left (hχloc U) (hχloc _),
+      Distribution.coordOfFun_congr_ae e hΩ' bΛ (w' := 0), Distribution.coordOfFun_zero]
+    · exact Distribution.isLocallySobolevAt_zero_iff.2 hz'
+    refine (ae_restrict_iff' W.isOpen.measurableSet).2 (hloc.mono fun y hy hyW ↦ ?_)
+    rw [hy]
+    -- Fold the indicator back into `r`, which vanishes off `K`.
+    change r y • _ = 0
+    rw [hrK y hyW.2, zero_smul]
 
 omit [MeasureSpace E] [BorelSpace E] [(volume : Measure E).IsAddHaarMeasure] in
 /-- **Weak solutions of `Δu = f` with smooth `f` are smooth.** On a closed oriented Riemannian

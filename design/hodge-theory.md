@@ -472,9 +472,12 @@ Named like Tau Ceti's file; used by `L2.lean`.
   `singularSupport_eq_empty_of_ellipticSystem` applies, and
   `eq_ofSmooth_of_localize` glues.
 - `L2Form.isLocallySobolev_one_of_forall_inner`: the $H^{-1}$ case. If
-  $\langle u,\Delta\varphi\rangle$ is bounded by a constant times the norm
-  of $\varphi$ in the Hodge $H^1$ norm, every localization of `u` is $H^1$
-  near every point.
+  `|⟪u, ofSmooth (Δ φ)⟫| ≤ C * √(‖ofSmooth φ‖ ^ 2 + ⟪ofSmooth (Δ φ), ofSmooth φ⟫)`
+  for every smooth `k`-form $\varphi$, then for every chart `ψ`, cutoff
+  `χ` with `hχ : tsupport χ ⊆ ψ.source`, basis of `E [⋀^Fin k]→L[ℝ] ℝ`
+  and `e : E ≃L[ℝ] CoordinateSpace n`, the coordinate distributions
+  `Distribution.coordOfFun` of `localize ψ χ hχ u` on any open `Ω` are
+  `IsLocallySobolevAt 1` at every point of `Ω`.
 
 ### `Geometry/Manifold/DeRham/Hodge/Sobolev.lean`
 

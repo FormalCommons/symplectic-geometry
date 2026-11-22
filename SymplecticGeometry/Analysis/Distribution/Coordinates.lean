@@ -41,6 +41,9 @@ the interior regularity of elliptic systems applies.
   along `m` is that of `x ↦ iteratedFDeriv ℝ k w x (e⁻¹ ∘ m)`.
 * `Distribution.smulLeftCLM_coordOfFun`: multiplying by a smooth function `g` on `E'` multiplies
   `w` by `g ∘ e`.
+* `Distribution.coordOfFun_eq_sum_smulLeftCLM`: if a coordinate of `w` is, almost everywhere on
+  `U`, a combination of the coordinates of another function `w'` with smooth coefficients read
+  through `e`, the coordinate distribution of `w` is the same combination of those of `w'`.
 * `Distribution.singularSupport_coordOfFun_eq_empty`: the coordinate distributions of a function
   smooth on `U` have empty singular support.
 * `Distribution.exists_contDiffOn_ae_eq_of_singularSupport_coordOfFun_eq_empty`: if `e` maps `U`
@@ -230,6 +233,29 @@ theorem smulLeftCLM_coordOfFun [FiniteDimensional ℝ E] {g : E' → ℝ} (hg : 
   congr 2
   ext x
   simp [Complex.real_smul]
+
+omit [FiniteDimensional ℝ F] in
+/-- **Changing coordinates.** If, almost everywhere on `U`, the `i`-th coordinate of `w` in `b` is
+`∑ j, c j (e x) * b'.repr (w' x) j` for smooth functions `c j` on `E'` and a function `w'`
+locally integrable on `U`, then the `i`-th coordinate distribution of `w` is the sum over `j`
+of the coordinate distributions `coordOfFun e hΩ b' w' μ j` multiplied by `c j`. -/
+theorem coordOfFun_eq_sum_smulLeftCLM [FiniteDimensional ℝ E] {F' ι' : Type*}
+    [NormedAddCommGroup F'] [NormedSpace ℝ F'] [FiniteDimensional ℝ F'] [Fintype ι']
+    (b' : Module.Basis ι' ℝ F')
+    {w' : E → F'} (hw' : LocallyIntegrableOn w' U μ) {c : ι' → E' → ℝ}
+    (hc : ∀ j, ContDiff ℝ ∞ (c j)) (i : ι)
+    (h : ∀ᵐ x ∂μ.restrict U, b.repr (w x) i = ∑ j, c j (e x) * b'.repr (w' x) j) :
+    coordOfFun e hΩ b w μ i = ∑ j, smulLeftCLM (hc j) (coordOfFun e hΩ b' w' μ j) := by
+  set f : ι' → E → ℂ := fun j x ↦ (b'.repr (c j (e x) • w' x) j : ℂ)
+  have hf (j : ι') : LocallyIntegrableOn (f j) U μ :=
+    (hw'.continuousOn_smul U.isOpen.isLocallyClosed
+      ((hc j).continuous.comp e.continuous).continuousOn).ofReal_basis_repr b' j
+  simp only [smulLeftCLM_coordOfFun e hΩ b' (hc _) hw']
+  simp only [coordOfFun_def, ← map_sum]
+  rw [← ofFun_sum _ fun j _ ↦ hf j]
+  congr 1
+  refine ofFun_congr_ae (h.mono fun x hx ↦ ?_)
+  simp [f, hx]
 
 end NormedSpace
 

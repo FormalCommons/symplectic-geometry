@@ -27,6 +27,8 @@ For a function `f` on an open set `Ω`, Mathlib's `Distribution.ofFun Ω f μ` i
   derivative of `f` is a weak one.
 * `Distribution.smulLeftCLM_ofFun`: if `f` is locally integrable on `Ω`, the product of its
   distribution with a smooth function `g` is the distribution of `g • f`.
+* `Distribution.ofFun_sum`: the distribution of a finite sum of locally integrable functions is
+  the sum of their distributions.
 * `Distribution.ofFun_smul_measure`: multiplying the measure by `c : ℝ≥0` multiplies the
   distribution by `c`.
 
@@ -75,6 +77,19 @@ theorem smulLeftCLM_ofFun [FiniteDimensional ℝ E] {n : ℕ∞} {g : E → ℝ}
     hf.continuousOn_smul Ω.isOpen.isLocallyClosed hg.continuous.continuousOn
   rw [smulLeftCLM_apply, ofFun_apply hf, ofFun_apply hgf]
   simp [TestFunction.smulLeftCLM_apply, smul_smul, mul_comm]
+
+/-- The distribution of a finite sum of functions locally integrable on `Ω` is the sum of their
+distributions. -/
+theorem ofFun_sum {ι : Type*} {n : ℕ∞} (s : Finset ι) {f : ι → E → F}
+    (hf : ∀ i ∈ s, LocallyIntegrableOn (f i) Ω μ) :
+    ofFun Ω (fun x ↦ ∑ i ∈ s, f i x) μ n = ∑ i ∈ s, ofFun Ω (f i) μ n := by
+  induction s using Finset.cons_induction with
+  | empty => exact ofFun_zero
+  | cons j s hj ih =>
+    rw [Finset.forall_mem_cons] at hf
+    rw [Finset.sum_cons, ← ih hf.2, ← ofFun_add hf.1 (locallyIntegrableOn_finsetSum s hf.2)]
+    congr 1 with x
+    simp
 
 /-- The distribution of `f` for the measure `c • μ` is `c` times its distribution for `μ`. -/
 @[simp]
