@@ -11,6 +11,7 @@ public import Mathlib.Topology.VectorBundle.Constructions
 public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Pi
 public import TauCeti.Geometry.Manifold.Projectivization.LineBundle
 public import TauCeti.Topology.VectorBundle.Core.Trivial
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.RestrictScalars
 public import TauCeti.Topology.VectorBundle.Hom
 public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
 
@@ -34,7 +35,11 @@ polynomials that express sections of `𝒪(d)` in the standard charts.
 * `Projectivization.twistPiCore k ι`: the bundle `𝒪(k) ⊗ 𝕜^ι`, the direct sum of `ι` copies of
   `𝒪(k)`, as a vector bundle core with model fibre `ι → 𝕜`, with the charts of `𝒪(k)` and
   transitions `twistTransition k i j • id`. It is analytic
-  (`Projectivization.isContMDiff_twistPiCore`).
+  (`Projectivization.isContMDiff_twistPiCore`), and a section of it is `C^r` exactly when its
+  coordinates in the standard charts are (`Projectivization.contMDiff_section_twistPiCore_iff`).
+  For `𝕜 = ℂ`, it is also a smooth real vector bundle over the underlying real manifold, by
+  restriction of scalars (Tau Ceti's `VectorBundle.restrictScalars` and the library's
+  `ContMDiffVectorBundle.restrictScalars`).
 * `Projectivization.twistPiCoreOptionEquiv k ι x`: the splitting
   `𝒪(k) ⊗ 𝕜^{Option ι} ≅ 𝒪(k) ⊕ (𝒪(k) ⊗ 𝕜^ι)` into Mathlib's direct sum `×ᵇ` of bundles,
   continuous on total spaces in both directions, so that, by induction on `r`, `𝒪(k)^{⊕ r}` is
@@ -61,7 +66,9 @@ The proof of `HasMFDerivAt.eval_affineChart_dehomogenize` adapts that of Tau Cet
 
 The core `twistPiCore`, its base sets and its smoothness instance follow Tau Ceti's
 `Projectivization.twistCore` and `Projectivization.isContMDiff_twistCore`, with the scalar
-multiplication `lsmul` replaced by a scalar multiple of the identity of `ι → 𝕜`.
+multiplication `lsmul` replaced by a scalar multiple of the identity of `ι → 𝕜`;
+`contMDiff_section_twistPiCore_iff` follows the proof of Tau Ceti's
+`Projectivization.contMDiff_section_twistCore_iff`.
 
 The fibres of a vector bundle core are its model fibre under the name `VectorBundleCore.Fiber`,
 and the body of `twistCore` is not visible here. The fibrewise maps are therefore built on the
@@ -223,6 +230,26 @@ instance isContMDiff_twistPiCore :
     (twistPiCore (𝕜 := 𝕜) (n := n) k ι).IsContMDiff 𝓘(𝕜, Fin n → 𝕜) ω where
   contMDiffOn_coordChange i j :=
     ContMDiffOn.smul (contMDiffOn_twistTransition k i j ω) contMDiffOn_const
+
+/-- **Sections of `𝒪(k) ⊗ 𝕜^ι` in the standard charts.** A section `s` of `𝒪(k) ⊗ 𝕜^ι` is `C^r`
+exactly when, for every `j`, its coordinates
+`x ↦ fun a ↦ twistTransition k ((twistCore k).indexAt x) j x * s x a` in the frame of the chart
+`j` are `C^r` on the standard affine open `U_j`. -/
+theorem contMDiff_section_twistPiCore_iff {r : ℕ∞ω}
+    (s : ∀ x : ℙ 𝕜 (Fin (n + 1) → 𝕜), (twistPiCore k ι).Fiber x) :
+    ContMDiff 𝓘(𝕜, Fin n → 𝕜) (𝓘(𝕜, Fin n → 𝕜).prod 𝓘(𝕜, ι → 𝕜)) r
+        (fun x ↦ TotalSpace.mk' (ι → 𝕜) x (s x)) ↔
+      ∀ j, ContMDiffOn 𝓘(𝕜, Fin n → 𝕜) 𝓘(𝕜, ι → 𝕜) r
+        (fun x a ↦ twistTransition k ((twistCore k).indexAt x) j x * s x a) (affineOpen j) := by
+  have key (j : Fin (n + 1)) := by
+    haveI : MemTrivializationAtlas ((twistPiCore (𝕜 := 𝕜) (n := n) k ι).localTriv j) :=
+      ⟨⟨j, rfl⟩⟩
+    exact ((twistPiCore (𝕜 := 𝕜) (n := n) k ι).localTriv j).contMDiffOn_section_iff
+      (IB := 𝓘(𝕜, Fin n → 𝕜)) (n := r) (s := s) (a := affineOpen j) (isOpen_affineOpen j)
+      fun _ hx ↦ hx
+  rw [← contMDiffOn_univ, ← iUnion_affineOpen,
+    contMDiffOn_iUnion_iff_of_isOpen fun j ↦ isOpen_affineOpen j]
+  exact forall_congr' key
 
 /-- The fibrewise splitting `𝒪(k) ⊗ 𝕜^{Option ι} ≅ 𝒪(k) ⊕ (𝒪(k) ⊗ 𝕜^ι)`, which takes the
 `none` coordinate to the first summand and the others to the second. It is continuous on total
@@ -403,6 +430,26 @@ theorem continuous_twistPiCoreCongr {ι' : Type*} [Fintype ι'] (e : ι ≃ ι')
           (mem_affineOpen_twistCore_indexAt k p₀.proj))))
 
 end Pi
+
+section RestrictScalars
+
+variable (k : ℤ) (ι : Type*) [Fintype ι]
+
+/-- `𝒪(k) ⊗ ℂ^ι` on complex projective space is a real vector bundle, by restriction of
+scalars. -/
+instance : VectorBundle ℝ (ι → ℂ) (twistPiCore (𝕜 := ℂ) (n := n) k ι).Fiber :=
+  VectorBundle.restrictScalars ℝ ℂ _ _
+
+/-- `𝒪(k) ⊗ ℂ^ι` on complex projective space is a smooth real vector bundle over the underlying
+real manifold. -/
+instance :
+    ContMDiffVectorBundle ∞ (ι → ℂ) (twistPiCore (𝕜 := ℂ) (n := n) k ι).Fiber 𝓘(ℝ, Fin n → ℂ) :=
+  have : ContMDiffVectorBundle ∞ (ι → ℂ) (twistPiCore (𝕜 := ℂ) (n := n) k ι).Fiber
+      𝓘(ℂ, Fin n → ℂ) :=
+    ContMDiffVectorBundle.of_le le_top
+  ContMDiffVectorBundle.restrictScalars (𝕜' := ℂ) ℝ _ _
+
+end RestrictScalars
 
 /-! ### `𝒪(0)` is trivial -/
 
