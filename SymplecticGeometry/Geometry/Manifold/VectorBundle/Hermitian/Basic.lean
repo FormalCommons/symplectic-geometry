@@ -77,11 +77,9 @@ include hI
 `Complex.I` is `ω_x(v, w) = g_x(i v, w)`. -/
 theorem compatibleForm_ofComplexModule_apply (x : M) (v w : V x) :
     (ofComplexModule I n F V).compatibleForm g x ![v, w] = g.inner x (Complex.I • v) w := by
-  have h : g.inner x v (Complex.I • w) = -g.inner x (Complex.I • v) w := by
-    rw [← hI x v (Complex.I • w), smul_smul, Complex.I_mul_I, neg_one_smul, map_neg]
-  simp only [compatibleForm_apply, Matrix.cons_val_zero, Matrix.cons_val_one,
-    ofComplexModule_apply, h]
-  ring
+  simpa only [ofComplexModule_apply] using
+    compatibleForm_apply_of_invariant (g := g) (J := ofComplexModule I n F V)
+      (by simpa only [ofComplexModule_apply] using hI) x v w
 
 /-- For a metric invariant under `Complex.I`, the form `ω_{g,J}` of `g` and of multiplication by
 `Complex.I` is `ω_x(v, i w) = g_x(v, w)`. -/
