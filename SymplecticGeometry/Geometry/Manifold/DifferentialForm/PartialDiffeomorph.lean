@@ -411,7 +411,7 @@ theorem tsupport_extendByZeroAlong_subset [T2Space M]
     tsupport (α := E [⋀^Fin k]→L[ℝ] F) (extendByZeroAlong ψ a) ⊆
       ψ.symm '' tsupport a := by
   have hK : IsCompact (ψ.symm '' tsupport a) :=
-    hc.image_of_continuousOn (ψ.contMDiffOn_invFun.continuousOn.mono hs)
+    ψ.symm.isCompact_image_of_subset_source hc hs
   refine closure_minimal (fun x hx ↦ ?_) hK.isClosed
   by_contra h
   exact hx (extendByZeroAlong_apply_of_notMem_image a h)
@@ -422,7 +422,7 @@ theorem isCompact_tsupport_extendByZeroAlong [T2Space M]
     (hc : HasCompactSupport a)
     (hs : tsupport a ⊆ ψ.target) :
     IsCompact (tsupport (α := E [⋀^Fin k]→L[ℝ] F) (extendByZeroAlong ψ a)) :=
-  (hc.image_of_continuousOn (ψ.contMDiffOn_invFun.continuousOn.mono hs)).of_isClosed_subset
+  (ψ.symm.isCompact_image_of_subset_source hc hs).of_isClosed_subset
     (isClosed_tsupport _) (tsupport_extendByZeroAlong_subset a hc hs)
 
 end RoughForm
@@ -456,7 +456,7 @@ theorem IsSmoothForm.extendByZeroAlong [T2Space M] [IsManifold I ∞ M]
     filter_upwards [ψ.open_source.mem_nhds hx] with z hz
     rw [RoughForm.extendByZeroAlong_apply_of_mem a hz]
   · have hK : IsClosed (ψ.symm '' tsupport a) :=
-      (hc.image_of_continuousOn (ψ.contMDiffOn_invFun.continuousOn.mono hs)).isClosed
+      (ψ.symm.isCompact_image_of_subset_source hc hs).isClosed
     have hxK : x ∉ ψ.symm '' tsupport a := by
       rintro ⟨z, hz, rfl⟩
       exact hx (ψ.map_target (hs hz))

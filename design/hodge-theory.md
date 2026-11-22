@@ -330,8 +330,8 @@ compatibility with $d$ (`mpullback_mextDeriv_on`) and with the wedge product
 
 ### `Geometry/Manifold/DeRham/Hodge/Chart.lean`
 
-`Chart.lean` imports `Analysis/Calculus/ContDiff/Matrix.lean` and
-`Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean`.
+`Chart.lean` imports `Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean` and
+`Geometry/Manifold/Riemannian/PartialDiffeomorph.lean`.
 
 The coordinate expressions of the Hodge star and the codifferential in a
 chart `ψ`, in terms of the metric in the chart `gramInChart ψ`
