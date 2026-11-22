@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Adjoint
 public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Frames
+public import SymplecticGeometry.LinearAlgebra.Range
 
 /-!
 # The linear symplectic extension along a submanifold
@@ -204,8 +205,8 @@ variable (f₀ f₁) in
 `f₁`. -/
 noncomputable def mfderivRangeEquiv (q : Q) :
     (mfderiv J I₀ f₀ q).range ≃ₗ[ℝ] (mfderiv J I₁ f₁ q).range :=
-  (LinearEquiv.ofInjective _ (f₀.isImmersion.mfderiv_injective (by simp) q)).symm.trans
-    (LinearEquiv.ofInjective _ (f₁.isImmersion.mfderiv_injective (by simp) q))
+  LinearEquiv.ofInjectiveRange _ _ (f₀.isImmersion.mfderiv_injective (by simp) q)
+    (f₁.isImmersion.mfderiv_injective (by simp) q)
 
 omit [FiniteDimensional ℝ E₀] [FiniteDimensional ℝ E₁] [IsManifold I₀ ∞ M₀] [IsManifold I₁ ∞ M₁]
   [IsManifold J ∞ Q] in
@@ -214,20 +215,17 @@ omit [FiniteDimensional ℝ E₀] [FiniteDimensional ℝ E₁] [IsManifold I₀ 
 theorem mfderivRangeEquiv_apply_mfderiv (q : Q) (v : TangentSpace J q) :
     (mfderivRangeEquiv f₀ f₁ q ⟨mfderiv J I₀ f₀ q v, LinearMap.mem_range_self _ v⟩ :
       TangentSpace I₁ (f₁ q)) = mfderiv J I₁ f₁ q v := by
-  -- The vector `⟨df₀ v, _⟩` of the range is the image of `v` under `LinearEquiv.ofInjective`.
-  have h : (⟨mfderiv J I₀ f₀ q v, LinearMap.mem_range_self _ v⟩ : (mfderiv J I₀ f₀ q).range) =
-      LinearEquiv.ofInjective _ (f₀.isImmersion.mfderiv_injective (by simp) q) v := rfl
-  rw [mfderivRangeEquiv, h, LinearEquiv.trans_apply, LinearEquiv.symm_apply_apply,
-    LinearEquiv.ofInjective_apply, ContinuousLinearMap.coe_coe]
+  rw [mfderivRangeEquiv]
+  simpa using congrArg Subtype.val (LinearEquiv.ofInjectiveRange_apply _ _
+    (f₀.isImmersion.mfderiv_injective (by simp) q) (f₁.isImmersion.mfderiv_injective (by simp) q) v
+    (LinearMap.mem_range_self _ v))
 
 omit [FiniteDimensional ℝ E₀] [FiniteDimensional ℝ E₁] [IsManifold I₀ ∞ M₀] [IsManifold I₁ ∞ M₁]
   [IsManifold J ∞ Q] in
 /-- The inverse of `df₁ ∘ df₀⁻¹` is `df₀ ∘ df₁⁻¹`. -/
 theorem mfderivRangeEquiv_symm (q : Q) :
     (mfderivRangeEquiv f₀ f₁ q).symm = mfderivRangeEquiv f₁ f₀ q := by
-  ext w
-  rw [mfderivRangeEquiv, mfderivRangeEquiv, LinearEquiv.symm_trans_apply, LinearEquiv.symm_symm,
-    LinearEquiv.trans_apply]
+  rw [mfderivRangeEquiv, mfderivRangeEquiv, LinearEquiv.ofInjectiveRange_symm]
 
 omit [FiniteDimensional ℝ E₀] [FiniteDimensional ℝ E₁] [IsManifold I₀ ∞ M₀] [IsManifold I₁ ∞ M₁]
   [IsManifold J ∞ Q] in
