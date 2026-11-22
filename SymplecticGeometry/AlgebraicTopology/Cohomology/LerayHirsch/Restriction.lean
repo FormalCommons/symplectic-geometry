@@ -5,9 +5,9 @@ Authors: The Tau Ceti contributors
 -/
 module
 
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.Empty
 public import TauCeti.AlgebraicTopology.Cohomology.DegreeZero
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.LerayHirsch.Defs
-public import TauCeti.AlgebraicTopology.Cohomology.Point
 public import TauCeti.Topology.Category.TopCat.Monoidal
 
 /-!
@@ -79,13 +79,6 @@ variable {E B : TopCat.{w}} (p : E ⟶ B) (n : ℕ) {ι : ℕ → Type u} [∀ d
 /-- The Leray–Hirsch map over an empty base is bijective: its source and target vanish. -/
 lemma lerayHirsch_bijective_of_isEmpty [IsEmpty B] : Function.Bijective (lerayHirsch p n e) := by
   have : IsEmpty E := Function.isEmpty p
-  have := ModuleCat.subsingleton_of_isZero
-    (TauCeti.isZero_singularCohomology_of_isEmpty (𝟙_ (ModuleCat.{w} k)) k
-      (𝟙_ (ModuleCat.{w} k)) E n)
-  have (j : Σ pq : {pq : ℕ × ℕ // pq.1 + pq.2 = n}, ι pq.val.1) :=
-    ModuleCat.subsingleton_of_isZero
-      (TauCeti.isZero_singularCohomology_of_isEmpty (𝟙_ (ModuleCat.{w} k)) k
-        (𝟙_ (ModuleCat.{w} k)) B j.1.val.2)
   exact ⟨fun _ _ _ ↦ Subsingleton.elim _ _, fun _ ↦ ⟨0, Subsingleton.elim _ _⟩⟩
 
 end Empty

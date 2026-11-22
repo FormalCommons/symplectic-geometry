@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.Empty
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.LerayHirsch.Bundle
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
 
@@ -221,9 +222,6 @@ theorem bijective_integralLerayHirsch_projectiveBundle [CompactSpace B] [FiniteD
   · -- In rank zero there are no powers `xⁱ`, and `P(E)` is empty.
     have := ProjectiveBundle.isEmpty_of_finrank_eq_zero (E := E) hG
     have : IsEmpty (Fin (finrank ℂ G)) := ⟨fun i ↦ by have := i.isLt; omega⟩
-    have := ModuleCat.subsingleton_of_isZero
-      (isZero_singularCohomology_of_isEmpty (TopCat.of (ProjectiveBundle ℂ G E))
-        (R := ModuleCat.of ℤ (ULift.{0} ℤ)) (k := ℤ) (M := ModuleCat.of ℤ ℤ) n)
     exact ⟨fun x y _ ↦ DFinsupp.ext fun j ↦ isEmptyElim j.2.val,
       fun y ↦ ⟨0, Subsingleton.elim _ _⟩⟩
   obtain ⟨m, hm⟩ : ∃ m, finrank ℂ G = m + 1 := ⟨_, (Nat.succ_pred_eq_of_pos hG).symm⟩
@@ -414,10 +412,7 @@ theorem sum_mul_projectiveBundleClass_pow_eq_zero_iff
     refine ⟨fun _ k hk ↦ ?_, fun _ ↦ DFinsupp.ext fun k ↦ ?_⟩
     · obtain rfl : k = 0 := by omega
       rw [ha, chernClass_zero]
-    · have := ModuleCat.subsingleton_of_isZero
-        (isZero_singularCohomology_of_isEmpty (TopCat.of (ProjectiveBundle ℂ G E))
-          (R := ModuleCat.of ℤ (ULift.{0} ℤ)) (k := ℤ) (M := ModuleCat.of ℤ ℤ) (2 * k))
-      exact Subsingleton.elim _ _
+    · exact Subsingleton.elim _ _
   have hbij := bijective_integralLerayHirsch_projectiveBundle G E (2 * finrank ℂ G)
   -- The Chern classes are the coefficients of the decomposition of `-xⁿ`.
   have hc (k : Fin (finrank ℂ G)) : (AddEquiv.ofBijective _ hbij).symm
