@@ -30,13 +30,19 @@ This file expresses the exterior derivative through it:
   torsion vanishes, `dσ` is the cyclic sum of `∇σ`.
 
 These are the two-form analogues of Tau Ceti's `CovariantDerivative.mextDeriv_ofSubsingleton`
-and `CovariantDerivative.mextDeriv_ofSubsingleton_of_torsion_eq_zero` for one-forms. The proof
-follows the steps of Tau Ceti's `CovariantDerivative.exteriorCovariantDerivativeTwo_apply` and of
-its private lemma `hom_twoFormTensor_apply` (in
+and `CovariantDerivative.mextDeriv_ofSubsingleton_of_torsion_eq_zero` for one-forms, and their
+proofs adapt those two proofs (in
+`TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.ExteriorDerivative`) from one-forms to
+two-forms: extend the tangent vectors to smooth vector fields, expand both sides through the
+fields and the torsion, compare with the invariant formula
+`TauCeti.SmoothForm.mextDeriv_apply_two`, and for the torsion-free case drop the torsion terms.
+The general proof finishes as Tau Ceti's private `exteriorTwoValue_apply`, behind
+`CovariantDerivative.exteriorCovariantDerivativeTwo_apply`, does: it swaps the arguments of the
+terms `σ(·, ∇·)` and collects terms. It also follows the steps of
+`CovariantDerivative.exteriorCovariantDerivativeTwo_apply` and of its private lemma
+`hom_twoFormTensor_apply` (in
 `TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Exterior.Two`), here for scalar
-two-forms and the ordinary exterior derivative: extend the tangent vectors to smooth vector
-fields, expand both sides through the fields, and compare with the invariant formula
-`TauCeti.SmoothForm.mextDeriv_apply_two`.
+two-forms and the ordinary exterior derivative.
 
 ## References
 
