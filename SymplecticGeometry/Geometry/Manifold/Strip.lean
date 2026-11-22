@@ -8,7 +8,10 @@ module
 public import SymplecticGeometry.Topology.Sets.Strip
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
+public import Mathlib.Geometry.Manifold.SmoothEmbedding
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
+import TauCeti.Geometry.Manifold.Immersion.Basic
+import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 
 /-!
 # Symmetric strips as manifolds
@@ -17,11 +20,13 @@ For a manifold `M` modelled on `I`, the symmetric strip `SymplecticGeometry.symm
 open set `(-ε, ε) × M` of `ℝ × M`, is a manifold modelled on `𝓘(ℝ).prod I`. This file gives the
 calculus of its slice maps `SymplecticGeometry.symmStripMk hr : M → symmStrip M ε`, `x ↦ (r, x)`:
 they are smooth, their differential is `v ↦ (0, v)`, and so the pullback of a two-form `σ` on the
-strip along the slice map at `r` is `σ` at `(r, x)` restricted to vectors `(0, v)`.
+strip along the slice map at `r` is `σ` at `(r, x)` restricted to vectors `(0, v)`. The zero slice
+`x ↦ (0, x)` is moreover a smooth embedding.
 
 ## Main results
 
 * `SymplecticGeometry.contMDiff_symmStripMk`, `SymplecticGeometry.mfderiv_symmStripMk_apply`
+* `SymplecticGeometry.isSmoothEmbedding_symmStripMk_zero`
 * `TauCeti.SmoothForm.bilinFormAt_mpullback_symmStripMk`
 -/
 
@@ -45,6 +50,16 @@ theorem mfderiv_symmStripMk_apply {ε r : ℝ} (hr : |r| < ε) (x : M) (v : Tang
     mfderiv I (𝓘(ℝ).prod I) (symmStripMk hr) x v = ((0 : ℝ), v) := by
   rw [← TauCeti.Manifold.mfderiv_subtype_val_comp_apply, val_comp_symmStripMk, mfderiv_prod_right]
   exact ContinuousLinearMap.inr_apply ..
+
+/-- The zero slice `x ↦ (0, x)` of a symmetric strip of positive width is a smooth embedding. -/
+theorem isSmoothEmbedding_symmStripMk_zero {n : WithTop ℕ∞} [IsManifold I n M] {ε : ℝ}
+    (hε : 0 < ε) :
+    Manifold.IsSmoothEmbedding I (𝓘(ℝ).prod I) n
+      (symmStripMk (X := M) (abs_zero.trans_lt hε)) := by
+  have h : Manifold.IsSmoothEmbedding I (𝓘(ℝ).prod I) n (Prod.mk (0 : ℝ) : M → ℝ × M) :=
+    ⟨TauCeti.isImmersion_prodMkRight_of_extChartAt_eq_zero (by simp), isEmbedding_prodMkRight 0⟩
+  convert h.codRestrict (symmStrip M ε) (zero_mk_mem_symmStrip hε) using 1
+  exact funext fun x ↦ Subtype.ext (coe_symmStripMk _ x)
 
 end SymplecticGeometry
 
