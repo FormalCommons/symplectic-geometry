@@ -401,6 +401,22 @@ theorem norm_sq_complexToRealEuclidean (u : ι → ℂ) :
   refine Finset.sum_congr rfl fun i _ ↦ ?_
   rw [Pi.star_apply, Complex.star_def, Complex.conj_mul', ← Complex.ofReal_pow, Complex.ofReal_re]
 
+/-- The real part of the Hermitian square of a complex vector is its squared Euclidean norm:
+`Re (star z ⬝ᵥ z) = ∑ᵢ ‖zᵢ‖²`. -/
+theorem _root_.Matrix.re_star_dotProduct_self (z : ι → ℂ) :
+    (star z ⬝ᵥ z).re = ∑ i, ‖z i‖ ^ 2 := by
+  rw [← inner_complexToRealEuclidean, real_inner_self_eq_norm_sq, norm_sq_complexToRealEuclidean]
+
+/-- The standard symplectic form of `ι → ℂ` is the imaginary part of the Hermitian product:
+`ω₀(z, w) = Im (star z ⬝ᵥ w)`. -/
+theorem _root_.TauCeti.stdComplexPiSymplecticForm_apply_eq_im (z w : ι → ℂ) :
+    stdComplexPiSymplecticForm ι z w = (star z ⬝ᵥ w).im := by
+  simp only [stdComplexPiSymplecticForm_apply, stdComplexSymplecticForm_apply, dotProduct,
+    Complex.im_sum]
+  refine Finset.sum_congr rfl fun i _ ↦ ?_
+  simp only [Pi.star_apply, Complex.star_def, Complex.mul_im, Complex.conj_re, Complex.conj_im]
+  ring
+
 /-- `J₀` is the linear map of the matrix `Matrix.J ι ℝ = !![0, -1; 1, 0]`. -/
 theorem stdComplexStructure_eq_toEuclideanLin_J [DecidableEq ι] :
     (stdComplexStructure ι).toLinearMap = Matrix.toEuclideanLin (Matrix.J ι ℝ) := by
