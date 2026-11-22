@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Determinant
 public import SymplecticGeometry.Topology.FiberBundle.Pullback
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Conjugate
@@ -63,7 +64,7 @@ times the determinant of `Ψ y ∘ (Φ y)⁻¹` (`detCoreFrameSection_eq_det_smu
 rule follows Tau Ceti's `TauCeti.clutchingFunction_eq_mul_normalizedDet_inv`, which compares the
 clutching functions of two frames through the automorphism `(φ y)⁻¹ ∘ ψ y` of the model fibre.
 The same factor is the determinant of `(Φ y)⁻¹ ∘ Ψ y` on the model `G`
-(`ContinuousLinearEquiv.det_symm_trans`), and it depends continuously on `y`
+(`ContinuousLinearEquiv.det_trans_symm`), and it depends continuously on `y`
 (`continuous_det_trans_symm`), since it is the coordinate of the change of trivialization
 `detCoreFrameIso f Ψ hΨ ≪≫ (detCoreFrameIso f Φ hΦ).symm` of the trivial line.
 
@@ -204,9 +205,8 @@ theorem fiberMap_detCoreMap_trans_symm_hom (Φ Ψ : ∀ x, E x ≃L[𝕜] E₁ x
   refine (ContinuousLinearMap.exteriorPowerCoords_self _).trans ?_
   congr 1
   rw [Iso.trans_hom, Iso.symm_hom, fiberMap_comp, fiberMap_ofBundleOfFinrankEqIso_inv,
-    fiberMap_ofBundleOfFinrankEqIso_hom, ← LinearMap.det_conj
-      ((Ψ x).trans (Φ x).symm : E x →ₗ[𝕜] E x)
-      (ofBundleOfFinrankEqFiberEquiv 𝕜 G E rfl x).symm.toLinearEquiv]
+    fiberMap_ofBundleOfFinrankEqIso_hom, ← ContinuousLinearEquiv.det_symm_trans_trans
+      (ofBundleOfFinrankEqFiberEquiv 𝕜 G E rfl x).symm ((Ψ x).trans (Φ x).symm)]
   refine congrArg LinearMap.det (LinearMap.ext fun v ↦ ?_)
   exact congrArg (fun w ↦ (ofBundleOfFinrankEqFiberEquiv 𝕜 G E rfl x).symm ((Φ x).symm w))
     ((ofBundleOfFinrankEqFiberEquiv 𝕜 G E₁ rfl x).apply_symm_apply
@@ -491,18 +491,6 @@ theorem detCoreFrameSection_ne_zero (y : X) : detCoreFrameSection f Φ hΦ y ≠
   rw [detCoreFrameSection_def] at h
   exact one_ne_zero (congrFun ((isoFiberEquiv _ y).map_eq_zero_iff.1 h) ⟨0, Nat.one_pos⟩)
 
-/-- For two isomorphisms `e₁ e₂ : M ≃ N`, the automorphism `e₂ ∘ e₁⁻¹` of `N` and the automorphism
-`e₁⁻¹ ∘ e₂` of `M` have the same determinant. -/
-theorem _root_.ContinuousLinearEquiv.det_symm_trans {R : Type*} [CommRing R] [TopologicalSpace R]
-    {M N : Type*} [TopologicalSpace M] [AddCommGroup M] [Module R M] [TopologicalSpace N]
-    [AddCommGroup N] [Module R N] (e₁ e₂ : M ≃L[R] N) :
-    LinearMap.det (e₁.symm.trans e₂ : N →ₗ[R] N) =
-      LinearMap.det ((e₂.trans e₁.symm).toLinearEquiv : M →ₗ[R] M) := by
-  rw [← LinearMap.det_conj _ e₁.toLinearEquiv]
-  congr 1
-  ext v
-  simp
-
 /-- The trivializations of the determinant line given by two frames `Φ` and `Ψ` along `f`
 differ over `y` by the determinant of the automorphism `Ψ y ∘ (Φ y)⁻¹` of `E (f y)`. -/
 theorem fiberMap_detCoreFrameIso_trans_symm_hom (y : X) :
@@ -514,7 +502,7 @@ theorem fiberMap_detCoreFrameIso_trans_symm_hom (y : X) :
   have hc : LinearMap.det (((Ψ y : Trivial X G y ≃L[𝕜] ((⇑f) *ᵖ E) y).trans
         (Φ y : Trivial X G y ≃L[𝕜] ((⇑f) *ᵖ E) y).symm : Trivial X G y →ₗ[𝕜] Trivial X G y)) =
       LinearMap.det ((Φ y).symm.trans (Ψ y) : E (f y) →ₗ[𝕜] E (f y)) :=
-    (ContinuousLinearEquiv.det_symm_trans (Φ y) (Ψ y)).symm
+    ContinuousLinearEquiv.det_trans_symm (Φ y : G ≃L[𝕜] E (f y)) (Ψ y)
   rw [detCoreFrameIso_def, detCoreFrameIso_def, ← hc]
   exact fiberMap_trans_trans_symm_hom _ _ _ _
     (fiberMap_detCoreMap_trans_symm_hom (E := Trivial X G) (E₁ := (⇑f) *ᵖ E) Φ Ψ _ _ y)
@@ -538,7 +526,7 @@ theorem continuous_det_trans_symm :
     (continuous_trivial_iff.1 (continuous_isoFiberEquiv_const _ _)).2
   refine ((continuous_apply (⟨0, by simp⟩ : Fin (trivial 𝕜 X 1).rank)).comp h).congr fun y ↦ ?_
   rw [Function.comp_apply, isoFiberEquiv_apply, fiberMap_detCoreFrameIso_trans_symm_hom,
-    ContinuousLinearEquiv.det_symm_trans]
+    ← ContinuousLinearEquiv.det_trans_symm]
   simp
 
 /-- **The determinant section of a frame in coordinates.** The value at `y` of the determinant

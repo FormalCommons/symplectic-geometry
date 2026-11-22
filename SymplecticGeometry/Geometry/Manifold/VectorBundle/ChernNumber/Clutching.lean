@@ -229,7 +229,7 @@ private theorem outSection_boundaryCircle (i : ι) (ζ : Circle) :
         (Φout ⟨(φ i).boundaryCircle ζ, boundaryCircle_mem_discComplement φ hφ i ζ⟩) :
           E ((φ i).boundaryCircle ζ) →ₗ[ℂ] E ((φ i).boundaryCircle ζ))) =
       clutchingDet hφ hΦ hΦout i ζ := by
-    rw [ContinuousLinearEquiv.det_symm_trans, clutchingDet_apply, clutchingTransition_def]
+    rw [← ContinuousLinearEquiv.det_trans_symm, clutchingDet_apply, clutchingTransition_def]
   rw [outSection, discSection]
   refine h1.symm.trans (h3.trans ?_)
   rw [hc]
