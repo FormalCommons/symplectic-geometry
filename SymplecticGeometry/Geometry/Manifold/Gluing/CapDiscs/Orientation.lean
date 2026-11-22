@@ -195,8 +195,7 @@ private theorem isOrientationPreservingAt_ballDiffeomorph (z : ball) :
   have he : Subtype.val ∘ ballDiffeomorph = orthonormalBasisOneI.repr ∘ (Subtype.val : ball → ℂ) :=
     funext coe_ballDiffeomorph
   rw [discOrientation, isOrientationPreservingAt_restrict_iff, he]
-  exact (Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr _).comp
-    (isOrientationPreservingAt_restrict _ ball z)
+  exact Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr_comp_subtypeVal ball z
 
 /-- The inverse of the coordinates preserves orientation. -/
 private theorem isOrientationPreservingAt_ballDiffeomorph_symm (v : discOpens) :
