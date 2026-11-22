@@ -79,9 +79,8 @@ namespace SymplecticGeometry
 local instance : Fact (finrank ℝ (EuclideanSpace ℝ (Fin 3)) = 2 + 1) :=
   ⟨by simp⟩
 
-/-- The unit sphere of `ℝ³` is connected. -/
 local instance : ConnectedSpace (sphere (0 : EuclideanSpace ℝ (Fin 3)) 1) :=
-  isConnected_iff_connectedSpace.1 (isConnected_sphere_of_one_le (n := 2) (by norm_num))
+  connectedSpace_euclideanSphere (by norm_num)
 
 /-! ### The orientation -/
 
@@ -178,17 +177,10 @@ theorem isOpenEmbedding_ballToOpenSquare : IsOpenEmbedding ballToOpenSquare :=
 that of the ball. -/
 theorem comap_ballToOpenSquare_complexHomologicalOrientation :
     (complexHomologicalOrientation openSquare).comap isOpenEmbedding_ballToOpenSquare =
-      complexHomologicalOrientation CoordinateDisc.ball := by
-  set T := Diffeomorph.smulAdd 1 (5⁻¹ : ℂ) ((1 + Complex.I) / 2) (by norm_num)
-  have hT := T.toHomeomorph.isOpenEmbedding
-  have hv := CoordinateDisc.ball.isOpenEmbedding'
-  rw [← comap_subtypeVal_complexHomologicalOrientation hv,
-    ← comap_subtypeVal_complexHomologicalOrientation openSquare.isOpenEmbedding',
-    HomologicalOrientation.comap_comap,
-    ← HomologicalOrientation.comap_comap_of_comp_eq _ hT hv
-      (openSquare.isOpenEmbedding'.comp isOpenEmbedding_ballToOpenSquare)
-      subtypeVal_comp_ballToOpenSquare.symm,
-    comap_complexHomologicalOrientation hT T.isLocalDiffeomorph]
+      complexHomologicalOrientation CoordinateDisc.ball :=
+  let T := Diffeomorph.smulAdd 1 (5⁻¹ : ℂ) ((1 + Complex.I) / 2) (by norm_num)
+  comap_complexHomologicalOrientation_of_comp_eq _ T.toHomeomorph.isOpenEmbedding
+    T.isLocalDiffeomorph subtypeVal_comp_ballToOpenSquare
 
 namespace CoordinateDisc
 

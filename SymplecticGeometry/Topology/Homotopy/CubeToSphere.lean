@@ -38,6 +38,14 @@ composite `SymplecticGeometry.openSquareToSphere` is an open embedding of the op
   the complement of the boundary of the cube.
 * `SymplecticGeometry.isOpenEmbedding_openSquareToSphere`: the same for the open square of `ℂ`.
 
+## Implementation notes
+
+The proof of `TauCeti.isOpenEmbedding_cubeToSphere_comp_subtypeVal` adapts that of Tau Ceti's
+`isOpenEmbedding_diskToSphere_domRestrict`, with `bijOn_diskToSphere`, in
+`TauCeti.AlgebraicTopology.Homotopy.Hurewicz.Sphere`, from the collapse of the disc to that of the
+cube: the collapse is a bijection from the preimage of the complement of the north pole onto that
+complement, and a closed map since its source is compact, so it is a homeomorphism there.
+
 ## References
 
 * A. Hatcher, [*Algebraic Topology*](https://pi.math.cornell.edu/~hatcher/AT/AT.pdf),
@@ -75,16 +83,12 @@ theorem isOpenEmbedding_cubeToSphere_comp_subtypeVal (n : ℕ) :
     obtain ⟨y, rfl⟩ := exists_cubeToSphere_eq_of_ne hs
     exact ⟨⟨y, hs⟩, rfl⟩
   -- The cube is compact and the sphere Hausdorff, so the restriction to the preimage of `V` is a
-  -- closed embedding onto `V`, hence a homeomorphism onto `V`.
-  have hemb := IsClosedEmbedding.of_continuous_injective_isClosedMap
-    (f.continuous.restrictPreimage (s := V)) hinj
-    (IsClosedMap.restrictPreimage f.continuous.isClosedMap V)
-  let h := (Equiv.ofBijective _ ⟨hinj, hsurj⟩).toHomeomorphOfIsInducing hemb.isInducing
-  convert (isOpen_compl_singleton.isOpenEmbedding_subtypeVal.comp h.isOpenEmbedding).comp
-    (Homeomorph.setCongr hpre.symm).isOpenEmbedding using 1
-  -- Both sides send `y` to `f y`; `Homeomorph.setCongr` has no lemma for its values.
-  ext y : 1
-  rfl
+  -- closed map, hence a homeomorphism onto `V`.
+  have hh : IsHomeomorph (V.restrictPreimage f) :=
+    isHomeomorph_iff_continuous_isClosedMap_bijective.2 ⟨f.continuous.restrictPreimage,
+      f.continuous.isClosedMap.restrictPreimage V, hinj, hsurj⟩
+  rw [← hpre]
+  exact isOpen_compl_singleton.isOpenEmbedding_subtypeVal.comp hh.isOpenEmbedding
 
 end TauCeti
 

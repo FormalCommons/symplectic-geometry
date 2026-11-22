@@ -100,6 +100,9 @@ for `o`. Finitely many distinct points have pairwise disjoint open neighbourhood
   `SymplecticGeometry.CoordinateDisc.openDisc_reverse`,
   `SymplecticGeometry.CoordinateDisc.boundaryLoop_reverse`: reversal keeps the discs and reverses
   the boundary loop (`Path.symm`).
+* `TauCeti.comap_complexHomologicalOrientation_of_comp_eq`: an open embedding between open sets
+  of `ℂ` that is the restriction of a local diffeomorphism of `ℂ` preserves their canonical
+  orientations.
 * `SymplecticGeometry.CoordinateDisc.comap_affineBall_complexHomologicalOrientation`: the maps
   `z ↦ a + r z`, `r > 0`, preserve the canonical orientation of the ball.
 * `SymplecticGeometry.CoordinateDisc.comap_eq_complexHomologicalOrientation`: when `M` is charted
@@ -505,6 +508,22 @@ theorem boundaryLoop_reverse :
 
 /-! ### Smaller discs and restriction to an open set -/
 
+/-- An open embedding `f : U → V` between open sets of `ℂ` that is the restriction of an open
+embedding `T : ℂ → ℂ` which is a local diffeomorphism pulls the canonical orientation of `V` back
+to that of `U`. -/
+theorem _root_.TauCeti.comap_complexHomologicalOrientation_of_comp_eq
+    {U V : TopologicalSpace.Opens ℂ} {f : U → V} (hf : IsOpenEmbedding f) {k : WithTop ℕ∞}
+    [NeZero k] {T : ℂ → ℂ} (hT : IsOpenEmbedding T)
+    (hT' : IsLocalDiffeomorph 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ) k T)
+    (h : Subtype.val ∘ f = T ∘ Subtype.val) :
+    (complexHomologicalOrientation V).comap hf = complexHomologicalOrientation U := by
+  rw [← comap_subtypeVal_complexHomologicalOrientation U.isOpenEmbedding',
+    ← comap_subtypeVal_complexHomologicalOrientation V.isOpenEmbedding',
+    HomologicalOrientation.comap_comap,
+    ← HomologicalOrientation.comap_comap_of_comp_eq _ hT U.isOpenEmbedding'
+      (V.isOpenEmbedding'.comp hf) h.symm,
+    comap_complexHomologicalOrientation hT hT']
+
 /-- The affine map `z ↦ a + r z` of the ball of radius `2` into itself, for `r > 0` and
 `‖a‖ + 2 r ≤ 2`. -/
 def affineBall (a : ℂ) {r : ℝ} (hr : 0 < r) (h : ‖a‖ + 2 * r ≤ 2) : ball → ball :=
@@ -537,14 +556,10 @@ orientation. -/
 theorem comap_affineBall_complexHomologicalOrientation (a : ℂ) {r : ℝ} (hr : 0 < r)
     (h : ‖a‖ + 2 * r ≤ 2) :
     (complexHomologicalOrientation ball).comap (isOpenEmbedding_affineBall a hr h) =
-      complexHomologicalOrientation ball := by
-  set T := Diffeomorph.smulAdd 1 (r : ℂ) a (Complex.ofReal_ne_zero.2 hr.ne')
-  have hT := T.toHomeomorph.isOpenEmbedding
-  have hv := ball.isOpenEmbedding'
-  rw [← comap_subtypeVal_complexHomologicalOrientation hv, HomologicalOrientation.comap_comap,
-    ← HomologicalOrientation.comap_comap_of_comp_eq _ hT hv
-      (hv.comp (isOpenEmbedding_affineBall a hr h)) (subtypeVal_comp_affineBall a hr h).symm,
-    comap_complexHomologicalOrientation hT T.isLocalDiffeomorph]
+      complexHomologicalOrientation ball :=
+  let T := Diffeomorph.smulAdd 1 (r : ℂ) a (Complex.ofReal_ne_zero.2 hr.ne')
+  comap_complexHomologicalOrientation_of_comp_eq _ T.toHomeomorph.isOpenEmbedding
+    T.isLocalDiffeomorph (subtypeVal_comp_affineBall a hr h)
 
 /-- Precomposing a coordinate disc with an open embedding of the ball into itself that preserves
 its canonical orientation gives a coordinate disc. -/
