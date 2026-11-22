@@ -263,11 +263,10 @@ theorem contMDiff_compatibleEquiv :
       (fun Z : SiegelUpperHalfSpace ι ↦ complexStructureMatrix (Z : Matrix ι ι ℂ)) :=
     contDiffOn_complexStructureMatrix.contMDiffOn.comp_contMDiff contMDiff_coe
       fun Z ↦ isUnit_det_map_im Z
-  convert (LinearMap.toContinuousLinearMap
-    (Matrix.toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ)).toAlgEquiv.toLinearMap).contDiff.comp_contMDiff h
-    using 1
+  convert Matrix.toEuclideanCLMContinuousLinearEquiv.contDiff.comp_contMDiff h using 1
   funext Z
-  exact compatibleCLM_compatibleEquiv Z
+  exact (compatibleCLM_compatibleEquiv Z).trans
+    (congrFun Matrix.coe_toEuclideanCLMContinuousLinearEquiv _).symm
 
 /-- The inverse `J ↦ M₁₁ M₂₁⁻¹ + i M₂₁⁻¹` of `compatibleEquiv` is smooth. -/
 theorem contMDiff_compatibleEquiv_symm :
@@ -276,10 +275,11 @@ theorem contMDiff_compatibleEquiv_symm :
   rw [contMDiff_iff_coe_comp]
   have h : ContMDiff 𝓘(ℝ, (stdForm ι).compatibleModel) 𝓘(ℝ, Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) ∞
       (fun J : 𝒥₀ ι ↦ (Matrix.toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ)).symm
-        ((stdForm ι).compatibleCLM J)) :=
-    (LinearMap.toContinuousLinearMap
-      (Matrix.toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ)).symm.toAlgEquiv.toLinearMap).contDiff
-      |>.comp_contMDiff SymplecticForm.contMDiff_compatibleCLM
+        ((stdForm ι).compatibleCLM J)) := by
+    convert (Matrix.toEuclideanCLMContinuousLinearEquiv (n := ι ⊕ ι) (𝕜 := ℝ)).symm.contDiff
+      |>.comp_contMDiff SymplecticForm.contMDiff_compatibleCLM using 1
+    funext J
+    exact (congrFun Matrix.coe_toEuclideanCLMContinuousLinearEquiv_symm _).symm
   convert contDiffOn_ofComplexStructureMatrix.contMDiffOn.comp_contMDiff h
     (fun J ↦ by
       simpa [SymplecticForm.compatibleCLM_def,
@@ -320,26 +320,24 @@ theorem mfderiv_compatibleCLM_mfderiv_compatibleDiffeomorph (Z : SiegelUpperHalf
   have hZ : IsUnit ((Z : Matrix ι ι ℂ).map Complex.im).det := isUnit_det_map_im Z
   have h : HasMFDerivAt 𝓘(ℝ, 𝒮 ι) 𝓘(ℝ, StdSpace ι →L[ℝ] StdSpace ι)
       ((stdForm ι).compatibleCLM ∘ compatibleDiffeomorph ι) Z
-      ((LinearMap.toContinuousLinearMap
-        (Matrix.toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ)).toAlgEquiv.toLinearMap) ∘L
+      ((Matrix.toEuclideanCLMContinuousLinearEquiv (n := ι ⊕ ι) (𝕜 := ℝ)).toContinuousLinearMap ∘L
         complexStructureMatrixDeriv (Z : Matrix ι ι ℂ) ∘L
         (Submodule.subtypeL (𝒮 ι)).restrictScalars ℝ) := by
     have hfun : (stdForm ι).compatibleCLM ∘ compatibleDiffeomorph ι =
-        (LinearMap.toContinuousLinearMap
-          (Matrix.toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ)).toAlgEquiv.toLinearMap) ∘
+        Matrix.toEuclideanCLMContinuousLinearEquiv (n := ι ⊕ ι) (𝕜 := ℝ) ∘
         complexStructureMatrix ∘ ((↑) : SiegelUpperHalfSpace ι → Matrix ι ι ℂ) :=
-      funext fun Z ↦ compatibleCLM_compatibleEquiv Z
+      funext fun Z ↦ (compatibleCLM_compatibleEquiv Z).trans
+        (congrFun Matrix.coe_toEuclideanCLMContinuousLinearEquiv _).symm
     rw [hfun]
-    exact (((LinearMap.toContinuousLinearMap
-      (Matrix.toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ)).toAlgEquiv.toLinearMap).hasFDerivAt.comp _
+    exact (((Matrix.toEuclideanCLMContinuousLinearEquiv (n := ι ⊕ ι) (𝕜 := ℝ)).hasFDerivAt.comp _
         (hasFDerivAt_complexStructureMatrix hZ)).hasMFDerivAt.comp Z (hasMFDerivAt_coe Z))
   have hc := (SymplecticForm.contMDiff_compatibleCLM («ω» := stdForm ι) (n := 1)
     (compatibleDiffeomorph ι Z)).mdifferentiableAt one_ne_zero
   have hf := ((compatibleDiffeomorph ι).contMDiff Z).mdifferentiableAt (by simp)
   rw [← mfderiv_comp_apply Z hc hf, h.mfderiv]
   -- The tangent space at `Z` is the model `𝒮 ι` by definition; `simp` does not see
-  -- through it to apply `ContinuousLinearMap.comp_apply`, so the composite is unfolded.
-  rfl
+  -- through it to apply `ContinuousLinearMap.comp_apply`, so `exact` unfolds the composite.
+  exact congrFun Matrix.coe_toEuclideanCLMContinuousLinearEquiv _
 
 /-- The diffeomorphism `Z ↦ J(Z)` is holomorphic: it intertwines multiplication by `i` on the
 symmetric matrices, the complex structure of the Siegel upper half space, with the complex
