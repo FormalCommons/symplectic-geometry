@@ -2317,7 +2317,9 @@ has either; Tau Ceti's extension across a boundary,
   Tau Ceti (`nijenhuis` and its lemmas, `pullback`, `CovariantDerivative.hom`,
   the eigenbundles of `J`); *Smooth families* (only
   `Geometry/Manifold/LocalDiffeomorph/Basic.lean`, which `Integrable.lean`
-  imports for the local inverse of a local diffeomorphism).
+  imports for the local inverse of a local diffeomorphism); *Moser isotopy*
+  (only `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`, merged, which
+  `AlmostComplex/Chart.lean` imports for `PartialDiffeomorph.mfderivSymmEquiv`).
 - **Milestones:** *Nijenhuis tensor*. Existing parts: part 1 is
   `nijenhuis` (a tensor by construction), `nijenhuis_apply` and
   `nijenhuis_antisymm`; part 2 is `nijenhuis_self`, `nijenhuis_apply_left`,
