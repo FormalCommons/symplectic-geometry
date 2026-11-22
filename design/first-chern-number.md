@@ -1068,6 +1068,13 @@ issues, in an order where each issue's blockers come before it.
    discrete, is determined by its images under the maps
    `Circle.prodRetraction i` that keep the `i`-th circle and send the
    others to `1` (`Circle.singularHomologyOne_prod_ext`).
+   `AlgebraicTopology/Singular/LocalHomology/DiscComplement/BoundaryDegree.lean`,
+   beside `DiscComplement/Basic.lean`, which it imports with
+   `HolomorphicZero.lean` and `DisjointCircles.lean`, for the signs of the
+   boundary circles:
+   `SymplecticGeometry.boundaryDegree_prodRetraction_comp_discComplementBoundaryHomeomorph_symm`,
+   the map `∂X → Circle` that is `Circle.prodRetraction i` read through
+   `discComplementBoundaryHomeomorph` has boundary degree $-1$.
    Blocked by 5 and 7.
 7. **Boundary degree and the argument principle on a surface with
    boundary.** The setting is that of `RelativeFundamentalClass.lean`: `X`
