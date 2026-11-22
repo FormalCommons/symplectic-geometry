@@ -288,7 +288,8 @@ noncomputable def detCoreProdFiberEquiv (x : B) :
       (detCore 𝕜 G₁ E₁).core.Fiber x ⊗[𝕜] (detCore 𝕜 G₂ E₂).core.Fiber x :=
   (isoFiberEquiv (detCoreProdIso 𝕜 E₁ E₂) x).trans (tensorFiberEquiv _ _ x)
 
-theorem detCoreProdFiberEquiv_apply (x : B) (v : (detCore 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂)).core.Fiber x) :
+@[simp] theorem detCoreProdFiberEquiv_apply (x : B)
+    (v : (detCore 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂)).core.Fiber x) :
     detCoreProdFiberEquiv 𝕜 E₁ E₂ x v =
       tensorFiberEquiv _ _ x ((detCoreProdIso 𝕜 E₁ E₂).hom.fiberMap x v) := by
   -- The fibres of the cores are their coordinate spaces by definition, which `exact` sees.

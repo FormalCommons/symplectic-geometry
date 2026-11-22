@@ -285,6 +285,14 @@ noncomputable def ofBundleOfFinrankEqProdFiberEquiv (x : B) :
         (ofBundleOfFinrankEqFiberEquiv 𝕜 G₂ E₂ h₂ x).symm
           (ofBundleOfFinrankEqFiberEquiv 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) _ x v).2) := (rfl)
 
+@[simp] theorem ofBundleOfFinrankEqProdFiberEquiv_symm_apply (x : B)
+    (w : (whitneySum (ofBundleOfFinrankEq 𝕜 G₁ E₁ h₁)
+      (ofBundleOfFinrankEq 𝕜 G₂ E₂ h₂)).core.Fiber x) :
+    (ofBundleOfFinrankEqProdFiberEquiv E₁ E₂ h₁ h₂ h x).symm w =
+      (ofBundleOfFinrankEqFiberEquiv 𝕜 (G₁ × G₂) (E₁ ×ᵇ E₂) _ x).symm
+        (ofBundleOfFinrankEqFiberEquiv 𝕜 G₁ E₁ h₁ x (whitneySumFiberEquiv _ _ x w).1,
+          ofBundleOfFinrankEqFiberEquiv 𝕜 G₂ E₂ h₂ x (whitneySumFiberEquiv _ _ x w).2) := (rfl)
+
 /-- The fibrewise identification `ofBundleOfFinrankEqProdFiberEquiv` is continuous on total
 spaces. -/
 theorem continuous_ofBundleOfFinrankEqProdFiberEquiv :
@@ -316,6 +324,11 @@ noncomputable def ofBundleOfFinrankEqProdIso :
     (ofBundleOfFinrankEqProdIso E₁ E₂ h₁ h₂ h).hom.fiberMap x =
       (ofBundleOfFinrankEqProdFiberEquiv E₁ E₂ h₁ h₂ h x).toContinuousLinearMap := by
   rw [ofBundleOfFinrankEqProdIso]; exact fiberMap_isoOfContinuousEquiv_hom _ _ x
+
+@[simp] theorem fiberMap_ofBundleOfFinrankEqProdIso_inv (x : B) :
+    (ofBundleOfFinrankEqProdIso E₁ E₂ h₁ h₂ h).inv.fiberMap x =
+      (ofBundleOfFinrankEqProdFiberEquiv E₁ E₂ h₁ h₂ h x).symm.toContinuousLinearMap := by
+  rw [ofBundleOfFinrankEqProdIso]; exact fiberMap_isoOfContinuousEquiv_inv _ _ x
 
 end Prod
 

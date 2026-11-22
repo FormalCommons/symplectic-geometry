@@ -22,6 +22,8 @@ Whitney sum.
 
 ## Main definitions and results
 
+* `TauCeti.FiniteRankBundleCore.toLinearMap_linearEquivAt_trivializationAt`: in the chart at
+  `x₀`, the trivialization acts on the fibre over `x` by the transition `coordChange x x₀ x`;
 * `TauCeti.FiniteRankBundleCore.tensorFiberEquiv`: the fibre of `tensor A D` over `x` is
   `A.core.Fiber x ⊗[𝕜] D.core.Fiber x`, by Tau Ceti's coordinates `TauCeti.piTensorEquiv`;
 * `TauCeti.FiniteRankBundleCore.continuous_tensorFiberEquiv`: this identification is continuous
@@ -50,6 +52,23 @@ namespace FiniteRankBundleCore
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {B : Type*} [TopologicalSpace B]
 
+section Trivialization
+
+/-- In the chart of a finite-rank core at `x₀`, the linear equivalence that the trivialization
+gives on the fibre over a point `x` of its domain is the transition `A.core.coordChange x x₀ x`. -/
+theorem toLinearMap_linearEquivAt_trivializationAt (A : FiniteRankBundleCore 𝕜 B) {x₀ x : B}
+    (hx : x ∈ (trivializationAt (Fin A.rank → 𝕜) A.core.Fiber x₀).baseSet) :
+    (Trivialization.linearEquivAt 𝕜 (trivializationAt (Fin A.rank → 𝕜) A.core.Fiber x₀) x
+      hx).toLinearMap = (A.core.coordChange x x₀ x).toLinearMap := by
+  have h := A.core.trivializationAt_continuousLinearMapAt (R := 𝕜) hx
+  rw [A.indexAt_eq, A.indexAt_eq] at h
+  rw [← h]
+  ext v
+  simp [Trivialization.continuousLinearMapAt_apply, Trivialization.linearMapAt_def_of_mem _ hx,
+    Trivialization.linearEquivAt_apply]
+
+end Trivialization
+
 section TensorFiber
 
 variable (A D : FiniteRankBundleCore 𝕜 B)
@@ -64,14 +83,25 @@ noncomputable def tensorFiberEquiv (x : B) :
     (tensor A D).core.Fiber x ≃L[𝕜] A.core.Fiber x ⊗[𝕜] D.core.Fiber x :=
   letI : IsModuleTopology 𝕜 ((tensor A D).core.Fiber x) :=
     inferInstanceAs (IsModuleTopology 𝕜 (Fin (A.rank * D.rank) → 𝕜))
-  let e : (tensor A D).core.Fiber x ≃ₗ[𝕜] A.core.Fiber x ⊗[𝕜] D.core.Fiber x :=
-    (piTensorEquiv 𝕜 A.rank D.rank).symm
-  { e with
-    continuous_toFun := IsModuleTopology.continuous_of_linearMap e.toLinearMap
-    continuous_invFun := IsModuleTopology.continuous_of_linearMap e.symm.toLinearMap }
+  LinearEquiv.toContinuousLinearEquivOfIsModuleTopology (M := (tensor A D).core.Fiber x)
+    (N := A.core.Fiber x ⊗[𝕜] D.core.Fiber x) (piTensorEquiv 𝕜 A.rank D.rank).symm
 
-theorem tensorFiberEquiv_apply (x : B) (v : (tensor A D).core.Fiber x) :
-    tensorFiberEquiv A D x v = (piTensorEquiv 𝕜 A.rank D.rank).symm v := (rfl)
+@[simp] theorem tensorFiberEquiv_apply (x : B) (v : (tensor A D).core.Fiber x) :
+    tensorFiberEquiv A D x v = (piTensorEquiv 𝕜 A.rank D.rank).symm v := by
+  let _ : IsModuleTopology 𝕜 ((tensor A D).core.Fiber x) :=
+    inferInstanceAs (IsModuleTopology 𝕜 (Fin (A.rank * D.rank) → 𝕜))
+  rw [tensorFiberEquiv]
+  -- The explicit arguments let the lemma take its instances from the goal, where the fibre of
+  -- `tensor A D` carries the module topology that `tensorFiberEquiv` gives it.
+  exact congrFun
+    (@LinearEquiv.coe_toContinuousLinearEquivOfIsModuleTopology _ _ _ _ _ _ _ _ _ _ _ _ _ _) v
+
+@[simp] theorem tensorFiberEquiv_symm_apply (x : B) (t : A.core.Fiber x ⊗[𝕜] D.core.Fiber x) :
+    (tensorFiberEquiv A D x).symm t = piTensorEquiv 𝕜 A.rank D.rank t := by
+  -- The fibres of `A` and `D` are their coordinate spaces by definition, on which
+  -- `piTensorEquiv` is stated; `exact` sees this, `rw` does not.
+  exact (tensorFiberEquiv A D x).symm_apply_eq.2 <|
+    ((tensorFiberEquiv_apply A D x _).trans (LinearEquiv.symm_apply_apply _ t)).symm
 
 variable [CompleteSpace 𝕜]
 
@@ -102,21 +132,6 @@ theorem continuous_tensorFiberEquiv :
   have hD : p.proj ∈ (trivializationAt (Fin D.rank → 𝕜) D.core.Fiber p₀.proj).baseSet := by
     rw [D.trivializationAt_core]; exact hp.2
   rw [TensorProduct.inCoordinates_eq hA hD]
-  have h₁ : (Trivialization.linearEquivAt 𝕜 (trivializationAt (Fin A.rank → 𝕜) A.core.Fiber
-      p₀.proj) p.proj hA).toLinearMap = (A.core.coordChange p.proj p₀.proj p.proj).toLinearMap :=
-    LinearMap.ext fun v ↦ by
-      simp only [A.trivializationAt_core, LinearEquiv.coe_coe,
-        Trivialization.linearEquivAt_apply, VectorBundleCore.localTriv_apply, A.indexAt_eq]
-      -- The fibres of `A` are its coordinate space by definition, where the coercion of a
-      -- continuous linear map to a linear map has the same values.
-      rfl
-  have h₂ : (Trivialization.linearEquivAt 𝕜 (trivializationAt (Fin D.rank → 𝕜) D.core.Fiber
-      p₀.proj) p.proj hD).toLinearMap = (D.core.coordChange p.proj p₀.proj p.proj).toLinearMap :=
-    LinearMap.ext fun v ↦ by
-      simp only [D.trivializationAt_core, LinearEquiv.coe_coe,
-        Trivialization.linearEquivAt_apply, VectorBundleCore.localTriv_apply, D.indexAt_eq]
-      -- As for `h₁`.
-      rfl
   have hk (w : Fin (A.rank * D.rank) → 𝕜) : (piTensorEquiv 𝕜 A.rank D.rank).symm
       ((A.core.coordChange p.proj p₀.proj p.proj).kronecker
         (D.core.coordChange p.proj p₀.proj p.proj) w) =
@@ -125,7 +140,8 @@ theorem continuous_tensorFiberEquiv :
         ((piTensorEquiv 𝕜 A.rank D.rank).symm w) := by
     rw [← ContinuousLinearMap.coe_coe, ContinuousLinearMap.toLinearMap_kronecker_eq]
     simp
-  rw [h₁, h₂, tensorFiberEquiv_apply]
+  rw [A.toLinearMap_linearEquivAt_trivializationAt hA,
+    D.toLinearMap_linearEquivAt_trivializationAt hD, tensorFiberEquiv_apply]
   simp only [L, e, VectorBundleCore.localTriv_apply, (tensor A D).indexAt_eq, coordChange_tensor]
   rw [← ProjectiveTensor.linearEquiv_symm_apply]
   -- `exact` evaluates the composite on the right, whose coordinate spaces
@@ -180,6 +196,12 @@ noncomputable def detWhitneySumIso (A D : FiniteRankBundleCore 𝕜 B) :
       (ContinuousLinearEquiv.piCongrLeft 𝕜 (fun _ ↦ 𝕜) (finCongr (by simp))).toContinuousLinearMap
         := by
   rw [detWhitneySumIso]; exact fiberMap_constIso_hom _ _ _ x
+
+@[simp] theorem fiberMap_detWhitneySumIso_inv (A D : FiniteRankBundleCore 𝕜 B) (x : B) :
+    (detWhitneySumIso A D).inv.fiberMap x =
+      (ContinuousLinearEquiv.piCongrLeft 𝕜 (fun _ ↦ 𝕜)
+        (finCongr (by simp))).symm.toContinuousLinearMap := by
+  rw [detWhitneySumIso]; exact fiberMap_constIso_inv _ _ _ x
 
 end DetWhitneySum
 
