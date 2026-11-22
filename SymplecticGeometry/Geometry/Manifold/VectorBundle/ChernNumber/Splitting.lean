@@ -72,9 +72,9 @@ The frames give a complex structure `J` compatible with `σ`, and changes of fra
 transition on `g⁻¹(0)` has `ρ(P⁻¹ Ψ P')` as normalized determinant. By the product formula the
 index of `P⁻¹ Ψ P'` is the sum of those of `P⁻¹`, `Ψ` and `P'`. The first vanishes as `P⁻¹` is
 defined on all of `Σ₁`, and the last as `P'` is defined on all of `Σ₂`
-(`TauCeti.HomologicalOrientation.boundaryMaslovIndex_eq_zero_of_extend_Ici`, from the argument
-principle for the trivial line bundle,
-`TauCeti.HomologicalOrientation.boundaryDegree_eq_zero_of_extend_Ici`).
+(`TauCeti.HomologicalOrientation.sublevelBoundaryMaslovIndex_eq_zero_of_extend_Ici`, from the
+argument principle for the trivial line bundle,
+`TauCeti.HomologicalOrientation.sublevelBoundaryDegree_eq_zero_of_extend_Ici`).
 
 ## Main definitions
 
@@ -82,6 +82,9 @@ principle for the trivial line bundle,
   `Ψ : ∂X → Sp(2n)`.
 * `TauCeti.Manifold.Orientation.boundaryMaslovIndex`: the boundary Maslov index of a map
   `Ψ : ∂S → Sp(2n)` on a compact surface `S` with boundary, for an orientation of its interior.
+* `TauCeti.HomologicalOrientation.sublevelBoundaryMaslovIndex`: the boundary Maslov index on
+  `Σ₁ = {g ≤ 0}` of a map from its boundary to `Sp(2n)`, for a smooth `g` with regular value `0`
+  on a closed oriented surface.
 
 ## Main results
 
@@ -98,9 +101,14 @@ principle for the trivial line bundle,
   `TauCeti.Manifold.Orientation.boundaryMaslovIndex_eq_zero_of_extend`,
   `TauCeti.Manifold.Orientation.boundaryMaslovIndex_eq_of_homotopy`: the same properties for a
   compact surface with boundary.
-* `TauCeti.HomologicalOrientation.boundaryMaslovIndex_eq_zero_of_extend_Ici`: on a split closed
-  surface, a map on `g⁻¹(0)` that extends continuously over `Σ₂` has boundary Maslov index `0` on
-  `Σ₁`.
+* `TauCeti.HomologicalOrientation.sublevelBoundaryMaslovIndex_mul`,
+  `TauCeti.HomologicalOrientation.sublevelBoundaryMaslovIndex_eq_of_homotopy`,
+  `TauCeti.HomologicalOrientation.sublevelBoundaryMaslovIndex_eq_zero_of_extend_Iic`: the product
+  formula, homotopy invariance and the vanishing for maps that extend over `Σ₁`, on a split closed
+  surface.
+* `TauCeti.HomologicalOrientation.sublevelBoundaryMaslovIndex_eq_zero_of_extend_Ici`: on a split
+  closed surface, a map on `g⁻¹(0)` that extends continuously over `Σ₂` has boundary Maslov index
+  `0` on `Σ₁`.
 * `SymplecticGeometry.Bundle.chernNumber_eq_boundaryDegree_normalizedDet`: the first Chern number
   of a complex bundle with frames over the two sides of a splitting is the boundary degree of the
   normalized determinant of the transition.
@@ -289,26 +297,81 @@ open SymplecticGeometry
 variable {EM : Type} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [FiniteDimensional ℝ EM]
   {M : Type} [TopologicalSpace M] [ChartedSpace EM M] [T2Space M] [CompactSpace M]
   [IsManifold 𝓘(ℝ, EM) ∞ M] {g : M → ℝ} {n : Type*} [Fintype n] [DecidableEq n]
+  (oM : HomologicalOrientation M EM 2) (hn : Module.finrank ℝ EM = 2)
+  (hg : ContMDiff 𝓘(ℝ, EM) 𝓘(ℝ) ∞ g) (h0 : IsRegularValue 𝓘(ℝ, EM) 𝓘(ℝ) g 0)
+
+/-- **The boundary Maslov index on a sublevel set.** Let `M` be a closed smooth surface oriented
+by `oM`, and `g : M → ℝ` smooth with regular value `0`. For a continuous `Ψ` from the boundary
+`sublevelBoundary` of `{g ≤ 0}` to `Sp(2n)`, this is the boundary Maslov index of `Ψ` on the
+compact surface `{g ≤ 0}`, whose interior `{g < 0}` carries the orientation restricted from `oM`
+and whose boundary is collared by `SymplecticGeometry.isCollared_inclusion_levelSet`. -/
+def sublevelBoundaryMaslovIndex (Ψ : C(↥(sublevelBoundary hg.continuous), GLSymplectic n ℝ)) :
+    ℤ :=
+  haveI := compactSpace_preimage_Iic hg.continuous
+  (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryMaslovIndex hn
+    (isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
+    (range_inclusion_preimage_Iio hg.continuous) (isCollared_inclusion_levelSet hg h0) Ψ
+
+theorem sublevelBoundaryMaslovIndex_def
+    (Ψ : C(↥(sublevelBoundary hg.continuous), GLSymplectic n ℝ)) :
+    haveI := compactSpace_preimage_Iic hg.continuous
+    oM.sublevelBoundaryMaslovIndex hn hg h0 Ψ =
+      (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryMaslovIndex hn
+        (isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
+        (range_inclusion_preimage_Iio hg.continuous) (isCollared_inclusion_levelSet hg h0) Ψ :=
+  (rfl)
+
+/-- The boundary Maslov index of `Ψ` on `{g ≤ 0}` is the boundary degree there of `ρ ∘ Ψ`, where
+`ρ = TauCeti.GLSymplectic.maslovPhase`. -/
+theorem sublevelBoundaryMaslovIndex_eq_sublevelBoundaryDegree
+    (Ψ : C(↥(sublevelBoundary hg.continuous), GLSymplectic n ℝ)) :
+    oM.sublevelBoundaryMaslovIndex hn hg h0 Ψ =
+      oM.sublevelBoundaryDegree hn hg h0 (maslovPhaseMap.comp Ψ) := by
+  have := compactSpace_preimage_Iic hg.continuous
+  rw [sublevelBoundaryMaslovIndex_def, sublevelBoundaryDegree_def, boundaryMaslovIndex_def]
+
+/-- The pointwise product of two maps from the boundary of `{g ≤ 0}` to `Sp(2n)` has the sum of
+their boundary Maslov indices on `{g ≤ 0}`. -/
+theorem sublevelBoundaryMaslovIndex_mul
+    (Ψ Ψ' : C(↥(sublevelBoundary hg.continuous), GLSymplectic n ℝ)) :
+    oM.sublevelBoundaryMaslovIndex hn hg h0 (Ψ * Ψ') =
+      oM.sublevelBoundaryMaslovIndex hn hg h0 Ψ + oM.sublevelBoundaryMaslovIndex hn hg h0 Ψ' := by
+  have := compactSpace_preimage_Iic hg.continuous
+  simp only [sublevelBoundaryMaslovIndex_def, boundaryMaslovIndex_mul]
+
+/-- Homotopic maps from the boundary of `{g ≤ 0}` to `Sp(2n)` have the same boundary Maslov
+index on `{g ≤ 0}`. -/
+theorem sublevelBoundaryMaslovIndex_eq_of_homotopy
+    {Ψ Ψ' : C(↥(sublevelBoundary hg.continuous), GLSymplectic n ℝ)} (F : Ψ.Homotopy Ψ') :
+    oM.sublevelBoundaryMaslovIndex hn hg h0 Ψ = oM.sublevelBoundaryMaslovIndex hn hg h0 Ψ' := by
+  have := compactSpace_preimage_Iic hg.continuous
+  rw [sublevelBoundaryMaslovIndex_def, sublevelBoundaryMaslovIndex_def]
+  exact boundaryMaslovIndex_eq_of_homotopy _ _ _ _ _ F
+
+/-- A map from the boundary of `{g ≤ 0}` to `Sp(2n)` that is the restriction of a continuous map
+`Φ : {g ≤ 0} → Sp(2n)` has boundary Maslov index `0` on `{g ≤ 0}`. -/
+theorem sublevelBoundaryMaslovIndex_eq_zero_of_extend_Iic
+    {Ψ : C(↥(sublevelBoundary hg.continuous), GLSymplectic n ℝ)}
+    (Φ : C(g ⁻¹' Iic 0, GLSymplectic n ℝ))
+    (hΦ : ∀ z : ↥(sublevelBoundary hg.continuous), Φ z = Ψ z) :
+    oM.sublevelBoundaryMaslovIndex hn hg h0 Ψ = 0 := by
+  rw [sublevelBoundaryMaslovIndex_eq_sublevelBoundaryDegree]
+  exact oM.sublevelBoundaryDegree_eq_zero_of_extend_Iic hn hg h0 (maslovPhaseMap.comp Φ)
+    fun z ↦ by rw [ContinuousMap.comp_apply, ContinuousMap.comp_apply, hΦ]
 
 /-- Let `M` be a closed smooth surface oriented by `oM`, and `g : M → ℝ` smooth with regular
 value `0`, splitting `M` into `Σ₁ = {g ≤ 0}` and `Σ₂ = {g ≥ 0}`. A map `Ψ` from the boundary of
 `Σ₁` to `Sp(2n)` that is the restriction of a continuous map `Φ : Σ₂ → Sp(2n)` has boundary
 Maslov index `0` on `Σ₁`, whose interior `{g < 0}` carries the orientation restricted from
 `oM`. -/
-theorem boundaryMaslovIndex_eq_zero_of_extend_Ici (oM : HomologicalOrientation M EM 2)
-    (hn : Module.finrank ℝ EM = 2) (hg : ContMDiff 𝓘(ℝ, EM) 𝓘(ℝ) ∞ g)
-    (h0 : IsRegularValue 𝓘(ℝ, EM) 𝓘(ℝ) g 0)
+theorem sublevelBoundaryMaslovIndex_eq_zero_of_extend_Ici
     {Ψ : C(↥(sublevelBoundary hg.continuous), GLSymplectic n ℝ)}
     (Φ : C(g ⁻¹' Ici 0, GLSymplectic n ℝ))
     (hΦ : ∀ z, Φ ⟨_, mem_preimage_Ici_of_mem_sublevelBoundary z.property⟩ = Ψ z) :
-    haveI : CompactSpace (g ⁻¹' Iic 0) :=
-      isCompact_iff_compactSpace.1 (isClosed_Iic.preimage hg.continuous).isCompact
-    (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryMaslovIndex hn
-        (SymplecticGeometry.isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
-        (SymplecticGeometry.range_inclusion_preimage_Iio hg.continuous)
-        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0) Ψ = 0 :=
-  oM.boundaryDegree_eq_zero_of_extend_Ici hn hg h0 (maslovPhaseMap.comp Φ) fun z ↦ by
-    rw [ContinuousMap.comp_apply, ContinuousMap.comp_apply, hΦ]
+    oM.sublevelBoundaryMaslovIndex hn hg h0 Ψ = 0 := by
+  rw [sublevelBoundaryMaslovIndex_eq_sublevelBoundaryDegree]
+  exact oM.sublevelBoundaryDegree_eq_zero_of_extend_Ici hn hg h0 (maslovPhaseMap.comp Φ)
+    fun z ↦ by rw [ContinuousMap.comp_apply, ContinuousMap.comp_apply, hΦ]
 
 end TauCeti.HomologicalOrientation
 
@@ -345,12 +408,7 @@ theorem chernNumber_eq_boundaryDegree_normalizedDet
     (hu : ∀ (z : ↥(sublevelBoundary hg.continuous))
       (hz : ((z : g ⁻¹' Iic 0) : M) ∈ g ⁻¹' Ici 0),
       u z = ((Φ₂ ⟨_, hz⟩).trans (Φ₁ z).symm).normalizedDet) :
-    haveI := compactSpace_preimage_Iic hg.continuous
-    chernNumber oM hn G E =
-      (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryDegree hn
-        (isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
-        (range_inclusion_preimage_Iio hg.continuous)
-        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0) u := by
+    chernNumber oM hn G E = oM.sublevelBoundaryDegree hn hg h0 u := by
   let i₁ : C(g ⁻¹' Iic 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
   let i₂ : C(g ⁻¹' Ici 0, M) := ⟨Subtype.val, continuous_subtypeVal⟩
   let j₁ : C(↥(sublevelBoundary hg.continuous), g ⁻¹' Iic 0) :=
@@ -429,15 +487,7 @@ theorem symplecticChernNumber_eq_boundaryMaslovIndex
     (hΨ : ∀ (z : ↥(sublevelBoundary hg.continuous)) v,
       Φ₂ ⟨_, mem_preimage_Ici_of_mem_sublevelBoundary z.property⟩ v =
       Φ₁ z (toEuclideanLin (Ψ z : GL (κ ⊕ κ) ℝ) v)) :
-    haveI : CompactSpace (g ⁻¹' Iic 0) :=
-      isCompact_iff_compactSpace.1 (isClosed_Iic.preimage hg.continuous).isCompact
-    symplecticChernNumber oM hn G σ =
-      (oM.comap (TopologicalSpace.Opens.isOpenEmbedding' _)).boundaryMaslovIndex hn
-        (SymplecticGeometry.isOpenEmbedding_inclusion_preimage_Iio hg.continuous)
-        (SymplecticGeometry.range_inclusion_preimage_Iio hg.continuous)
-        (SymplecticGeometry.isCollared_inclusion_levelSet hg h0) Ψ := by
-  have : CompactSpace (g ⁻¹' Iic 0) :=
-    isCompact_iff_compactSpace.1 (isClosed_Iic.preimage hg.continuous).isCompact
+    symplecticChernNumber oM hn G σ = oM.sublevelBoundaryMaslovIndex hn hg h0 Ψ := by
   -- Every fibre carries one of the symplectic frames.
   have hframe (x : M) : ∃ Θ : StdSpace κ ≃L[ℝ] V x,
       ∀ v w, σ.bilinFormAt x (Θ v) (Θ w) = stdForm κ v w := by
@@ -448,7 +498,7 @@ theorem symplecticChernNumber_eq_boundaryMaslovIndex
   · -- Over the empty surface any frames will do.
     obtain ⟨J, hJ⟩ := (ContMDiffTwoForm.isNondegenerate_of_forall_exists (stdForm κ)
       fun x ↦ (hframe x).elim fun Θ hΘ ↦ ⟨Θ.toLinearEquiv, hΘ⟩).exists_compatible
-    rw [HomologicalOrientation.boundaryMaslovIndex_def,
+    rw [HomologicalOrientation.sublevelBoundaryMaslovIndex_eq_sublevelBoundaryDegree,
       symplecticChernNumber_eq_chernNumber oM hn G hJ.tames]
     exact chernNumber_eq_boundaryDegree_normalizedDet oM hn hg h0
       (Φ₁ := fun x ↦ isEmptyElim (x : M)) (Φ₂ := fun x ↦ isEmptyElim (x : M))
@@ -474,12 +524,13 @@ theorem symplecticChernNumber_eq_boundaryMaslovIndex
   -- on all of `Σ₂`.
   rw [hJσ, chernNumber_eq_boundaryDegree_normalizedDet oM hn hg h0 hΘ₁ hΘ₂
       (u := maslovPhaseMap.comp (Pinv * Ψ * Pout)) fun z hz ↦ ?_,
-    ← HomologicalOrientation.boundaryMaslovIndex_def,
-    HomologicalOrientation.boundaryMaslovIndex_mul, HomologicalOrientation.boundaryMaslovIndex_mul,
-    HomologicalOrientation.boundaryMaslovIndex_eq_zero_of_extend _ _ _ _ _
+    ← HomologicalOrientation.sublevelBoundaryMaslovIndex_eq_sublevelBoundaryDegree,
+    HomologicalOrientation.sublevelBoundaryMaslovIndex_mul,
+    HomologicalOrientation.sublevelBoundaryMaslovIndex_mul,
+    oM.sublevelBoundaryMaslovIndex_eq_zero_of_extend_Iic hn hg h0
       ((⟨P, hP⟩ : C(g ⁻¹' Iic 0, GLSymplectic κ ℝ))⁻¹) fun _ ↦ by
         simp only [Pinv, ContinuousMap.comp_apply, ContinuousMap.coe_mk],
-    oM.boundaryMaslovIndex_eq_zero_of_extend_Ici hn hg h0 (Ψ := Pout) ⟨P', hP'⟩ fun _ ↦ by
+    oM.sublevelBoundaryMaslovIndex_eq_zero_of_extend_Ici hn hg h0 (Ψ := Pout) ⟨P', hP'⟩ fun _ ↦ by
       simp only [Pout, ContinuousMap.comp_apply, ContinuousMap.coe_mk],
     zero_add, add_zero]
   -- The Maslov phase of the transition is the normalized determinant of the complex transition.

@@ -136,7 +136,7 @@ private theorem IsRegularFrame.mul_const {Λ Λ' : ℒ ι} {γ : Path Λ Λ'} {V
     {Z : ℝ → Matrix (ι ⊕ ι) ι ℝ} (h : IsRegularFrame γ V Z) (g : GL ι ℝ) :
     IsRegularFrame γ V (fun s ↦ Z s * (g : Matrix ι ι ℝ)) where
   contDiff := h.contDiff.matrix_mul contDiff_const
-  range_eq t := by rw [range_toEuclideanLin_mul_of_isUnit _ g.isUnit, h.range_eq t]
+  range_eq t := by rw [range_toLpLin_mul_of_isUnit 2 _ g.isUnit, h.range_eq t]
   nondegenerate t ht := by
     have hd : deriv (fun s ↦ Z s * (g : Matrix ι ι ℝ)) t = deriv Z t * (g : Matrix ι ι ℝ) :=
       ((h.hasDerivAt t).matrix_mul_const _).deriv
