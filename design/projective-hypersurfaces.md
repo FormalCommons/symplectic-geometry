@@ -218,8 +218,8 @@ says that $X$ consists of $d$ points, and issue 9 proves `Nat.card X = d`.
 Part 4 for `n = 0` is a statement about $\chi(X)$, so issue 9 also proves
 `TauCeti.eulerChar X = d`. $X$ is a compact manifold of dimension $0$,
 hence finite and discrete; its `FiniteCWType` instance is Tau Ceti's
-`TauCeti.ComplexManifold.finiteCWType`
-(`Geometry/Manifold/Complex/FiniteCWType.lean`), and Tau Ceti's
+`TauCeti.FiniteCWType.of_discreteTopology`, from the instances
+`DiscreteTopology X` and `Finite X` of issue 9, and Tau Ceti's
 `TauCeti.eulerChar_of_discreteTopology` turns `Nat.card X = d` into
 $\chi(X)=d$.
 
@@ -281,6 +281,7 @@ the order of the paths.
 | `Geometry/Manifold/Projectivization/Hypersurface/Veronese.lean` | $X$ as a hyperplane section of the Veronese image | 12 |
 | `Geometry/Manifold/Projectivization/TwistCore.lean` | sums and tensor products of the bundles $\mathcal O(k)$ | 2 |
 | `Geometry/Manifold/SmoothEmbedding/NormalSpace/Splitting.lean` | $TM\oplus\nu\cong f^*TN$ | 4 |
+| `LinearAlgebra/Projectivization/BinaryForm.lean` | a binary form with simple zeros has `d` zeros on $\mathbb CP^1$ | 9 |
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/Basic.lean`
 
@@ -444,9 +445,10 @@ For a compact Hausdorff complex manifold `M` modelled on `𝓘(ℂ, E)` with
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/Line.lean`
 
-- `card_inter_line`: if `u`, `w` are independent and the line they span is
-  transverse to `X` at every common point, it meets `X` in exactly `d`
-  points. The binary form `t ↦ poly (s • u + t • w)` argument above.
+- `card_inter_line`: if `ι : ℂ² → ℂⁿ⁺²` is linear and injective and the line
+  it spans is transverse to `X` at every common point, it meets `X` in
+  exactly `d` points. The binary form `poly ∘ ι` argument above, with the
+  count of zeros of a binary form in `LinearAlgebra/Projectivization/BinaryForm.lean`.
 - `card_eq` (**milestone, part 2 for `n = 0`**, finitely many points
   of $\mathbb CP^1$): `Nat.card X = d`, the line being all of $\mathbb CP^1$.
   For `n = 0` the pairing with $[X]$ is read as this count of points, since
@@ -454,7 +456,7 @@ For a compact Hausdorff complex manifold `M` modelled on `𝓘(ℂ, E)` with
   with the milestone line.
 - `eulerChar_eq_of_dim_zero` (**milestone, part 4 for `n = 0`**):
   `TauCeti.eulerChar X = d`, with the instance
-  `TauCeti.ComplexManifold.finiteCWType` on `X`, from `card_eq` and
+  `TauCeti.FiniteCWType.of_discreteTopology` on `X`, from `card_eq` and
   Tau Ceti's `TauCeti.eulerChar_of_discreteTopology`. Its docstring ends
   with the milestone line.
 
