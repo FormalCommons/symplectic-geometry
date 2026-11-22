@@ -1254,9 +1254,16 @@ issues, in an order where each issue's blockers come before it.
    that fixes that representation, and by 5. The gluing uses polar
    coordinates on the circle,
    `AddCircle.isLocalDiffeomorphAt_ofReal_mul_toCircle`, in
-   `Geometry/Manifold/Instances/AddCircle.lean`, which imports
-   `Geometry/Manifold/LocalDiffeomorph/Basic.lean` of *Smooth families*,
-   merged, for `isLocalDiffeomorph_id`. That the loops are
+   `Geometry/Manifold/Instances/AddCircle.lean`. The orientation of the
+   caps uses its orientation behaviour, in
+   `Geometry/Manifold/Orientation/AddCircle.lean`, this library's
+   counterpart of Tau Ceti's file of that name: for the product of
+   `AddCircle.orientation p` and the standard orientation of `ℝ`, and
+   the standard orientation of `ℂ`, polar coordinates reverse
+   orientation where `r > 0`
+   (`AddCircle.isOrientationReversingAt_ofReal_mul_toCircle`) and
+   preserve it where `r < 0`
+   (`AddCircle.isOrientationPreservingAt_ofReal_mul_toCircle`). That the loops are
    finitely many uses `finite_of_compactSpace_of_pairwise_disjoint`, a
    disjoint open cover of a compact space has finite index, in
    `Topology/Compactness/LocallyFinite.lean`. The orientation of the
