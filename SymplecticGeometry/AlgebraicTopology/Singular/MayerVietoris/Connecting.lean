@@ -247,7 +247,8 @@ theorem mayerVietorisδ_eq_singularHomologyδ_left (n m : ℕ) (h : m + 1 = n :=
     hφψ g
     (hgr.trans ((Category.id_comp _).symm.trans
       (congrArg (· ≫ _) (CategoryTheory.Functor.map_id _ _).symm))) hgb n m h
-  rw [TopPair.homologyMap_eq_singularHomologyπ_comp_inv R _ _ g hg] at key
+  rw [TopPair.homologyMap_eq_singularHomologyπ_comp_inv R _ _ g hg,
+    TopPair.singularHomologyπFst_eq] at key
   refine (cancel_epi (SSet.homologyMap (X.smallSingularSubcomplex ![U, V]).ι R n)).1 ?_
   rw [homologyMap_ι_comp_mayerVietorisδ R hU hV hUV n m h]
   have he : SSet.homologyMap (toSSet.map (TopPair.interPairSndIso U V).inv) R m ≫
@@ -313,7 +314,8 @@ theorem mayerVietorisδ_eq_neg_singularHomologyδ_right (n m : ℕ) (h : m + 1 =
     (TopPair.toSSetPair.obj (TopPair.interPair V U)) (toSSet.map E.inv) (𝟙 _) hφψ g hgr
     (hgb.trans ((Category.id_comp _).symm.trans
       (congrArg (· ≫ _) (CategoryTheory.Functor.map_id _ _).symm))) n m h
-  rw [TopPair.homologyMap_eq_singularHomologyπ_comp_inv R _ _ g hg] at key
+  rw [TopPair.homologyMap_eq_singularHomologyπ_comp_inv R _ _ g hg,
+    TopPair.singularHomologyπFst_eq] at key
   refine (cancel_epi (SSet.homologyMap (X.smallSingularSubcomplex ![U, V]).ι R n)).1 ?_
   rw [homologyMap_ι_comp_mayerVietorisδ R hU hV hUV n m h]
   have he : SSet.homologyMap (toSSet.map E.inv) R m ≫ SSet.homologyMap (toSSet.map E.hom) R m =

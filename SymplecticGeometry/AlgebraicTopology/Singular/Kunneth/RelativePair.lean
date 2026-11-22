@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.Pair
+public import SymplecticGeometry.AlgebraicTopology.Singular.PairMap
 public import TauCeti.AlgebraicTopology.Singular.CrossProduct
 public import TauCeti.Algebra.Homology.Homotopy
 public import TauCeti.AlgebraicTopology.SimplicialSet.EilenbergZilber
@@ -45,6 +46,9 @@ it descends along the two quotient maps (`Homotopy.descCokernel`).
 
 ## Main results
 
+* `TopCat.singularChainComplexπOfSubset_tensorHom_singularChainComplexπOfSubset_shufflePair`: the
+  characterization of `TopCat.shufflePair` through the quotient maps
+  `TopPair.singularChainComplexπOfSubset`, whose sources are the chains of the spaces.
 * `TopCat.singularHomologyCrossRelPair_naturality`: naturality in maps of pairs on both sides.
 * `TopCat.shufflePair_coefficient_naturality` and
   `TopCat.singularHomologyCrossRelPair_coefficient_naturality`: naturality in the two coefficient
@@ -198,6 +202,25 @@ end Projections
 
 variable [∀ (T : C) (J : Type w), PreservesColimitsOfShape (Discrete J) (tensorLeft T)]
   [∀ (T : C) (J : Type w), PreservesColimitsOfShape (Discrete J) (tensorRight T)]
+
+section ShufflePair
+
+variable (X Y : TopCat.{w}) (A : Set X) (B : Set Y) (R S : C)
+
+/-- `TopCat.singularChainComplexπ_tensorHom_singularChainComplexπ_shufflePair`, with the quotient
+maps written as `TopPair.singularChainComplexπOfSubset`, whose sources are the chains of `X`, `Y`
+and `X × Y`, so that composites with maps between the chains of these spaces reassociate by
+`rw`. -/
+@[reassoc]
+theorem singularChainComplexπOfSubset_tensorHom_singularChainComplexπOfSubset_shufflePair :
+    (TopPair.singularChainComplexπOfSubset R A ⊗ₘ TopPair.singularChainComplexπOfSubset S B) ≫
+        shufflePair X Y A B R S =
+      shuffle X Y R S ≫
+        TopPair.singularChainComplexπOfSubset (R ⊗ S) (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B) :=
+  -- The two statements differ only in how the sources of the quotient maps are written.
+  singularChainComplexπ_tensorHom_singularChainComplexπ_shufflePair X Y A B R S
+
+end ShufflePair
 
 section CrossRelPair
 
