@@ -21,8 +21,8 @@ every `t`. Neither compactness of `M` nor finite dimension is needed.
 The proof has two steps.
 
 * *Local step.* Let `M` be smoothly contractible, through `G : M × [0, 1] → M` with
-  `G (·, 0) = c` and `G (·, 1) = id`. By
-  `SymplecticGeometry.IsSmoothFamily.homotopyOperator_mpullback`,
+  `G (·, 0) = c` and `G (·, 1) = id`. By `SymplecticGeometry.IsSmoothFamily.mpullback` and
+  `SymplecticGeometry.IsSmoothFamily.homotopyOperator`,
   the `0`-forms `h (G^* α_t)`, the homotopy operator after pullback along `G`, form a smooth
   family over `N`, so they are the slices `f (t, ·)` of a smooth function `f` on `N × M`,
   explicitly `f (t, x) = ∫₀¹ α_t (G (x, s)) (∂ₛ G (x, s)) ds`. Since `α_t` is closed,
@@ -99,7 +99,7 @@ theorem IsSmoothlyContractible.exists_contMDiff_mextDeriv_eq_of_forall_mem_close
       ∀ t, mextDeriv (RoughForm.ofFunction I fun x ↦ f (t, x)) = (α t : RoughForm I M ℝ 1) := by
   obtain ⟨c, G, hG, hG₀, hG₁⟩ := isSmoothlyContractible_def.1 hM
   -- The primitives `h (G^* α_t)` form a smooth family of `0`-forms, the slices of `Ω`.
-  obtain ⟨Ω, hΩ⟩ := isSmoothFamily_def.1 (hα.homotopyOperator_mpullback hG)
+  obtain ⟨Ω, hΩ⟩ := isSmoothFamily_def.1 ((hα.mpullback G hG).homotopyOperator)
   refine ⟨fun p ↦ Ω.val p 0, ?_, fun t ↦ ?_⟩
   · have hΩs := Ω.isSmoothForm
     rw [RoughForm.eq_ofFunction Ω.val, isSmoothForm_ofFunction_iff] at hΩs

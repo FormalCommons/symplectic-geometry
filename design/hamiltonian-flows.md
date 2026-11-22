@@ -584,7 +584,7 @@ identity, which Tau Ceti proves (`IsNondegenerate.poissonBracket_jacobi`).
   `Flux/CompactSupport.lean`, and the merged `DeRham/GoodCover/Basic.lean`
   (smoothly contractible manifolds) and `DeRham/SmoothFamily/Contractible.lean`
   (the homotopy operator of a contraction, on smooth families of forms through
-  `IsSmoothFamily.homotopyOperator_mpullback`) for `DeRham/FamilyPrimitive.lean`.
+  `IsSmoothFamily.homotopyOperator`) for `DeRham/FamilyPrimitive.lean`.
   `Velocity.lean` (with `Instances/Icc.lean`) uses only Mathlib and Tau Ceti.
 - From *Contact geometry*: `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
   (the general flow lemma) for `PoissonAlgebra.lean`.
