@@ -22,9 +22,9 @@ map `b`, with `β₁` invertible at every point, and a `C^n` section `T` of the 
 (`ContMDiff.clm_bundle_bilinAdjoint`, and `ContMDiffAt.clm_bundle_bilinAdjoint` at a point). On a
 fibre of finite dimension, a nondegenerate form is invertible
 (`ContinuousLinearMap.isInvertible_iff_nondegenerate_toBilinForm` of Tau Ceti). The fibres carry
-`IsNormableSpace` instances, which transposing the forms needs. Instance search does not find
-them on tangent spaces: there a user provides Mathlib's `instIsNormableSpaceTangentSpace I x` as
-a local instance, as Tau Ceti's `Geometry/Symplectic/Manifold/Flat.lean` does.
+`IsNormableSpace` instances, which transposing the forms needs. On tangent spaces, instance search
+finds them through `TangentSpace.instIsNormableSpace` of
+`SymplecticGeometry/Geometry/Manifold/IsManifold/Basic.lean`, which a user imports.
 
 The proof composes Tau Ceti's `ContMDiffWithinAt.clm_bundle_flip`, `ContMDiffAt.clm_bundle_comp`
 and `ContMDiffAt.clm_bundle_inverse`, as Tau Ceti's

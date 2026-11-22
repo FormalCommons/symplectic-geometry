@@ -207,11 +207,12 @@ following choices.
 `DESIGN.md` is updated with this file, in its part 19, its dependency row
 and two rows of its milestone table.
 
-- Eleven files are added: `LinearAlgebra/Symplectic/Extension.lean`,
+- These files are added: `LinearAlgebra/Symplectic/Extension.lean`,
   `Neighborhood/Extension.lean`, `Neighborhood/Frames.lean`,
   `Neighborhood/Basic.lean`,
   `Geometry/Manifold/VectorBundle/ZeroSection.lean`,
   `Geometry/Manifold/VectorBundle/Adjoint.lean`,
+  `Geometry/Manifold/IsManifold/Basic.lean`,
   `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`,
   `Geometry/Manifold/VectorBundle/Orthogonal.lean`,
   `Geometry/Manifold/VectorBundle/Subbundle.lean`,
@@ -226,7 +227,10 @@ and two rows of its milestone table.
   `Tubular.lean`, and `FlatChart.lean` the step of
   `CharacteristicFoliation.lean`, that use nothing symplectic; the
   linear-algebra lemma of `VectorBundle/Orthogonal.lean` is in
-  `LinearAlgebra/BilinearForm/Orthogonal.lean`.
+  `LinearAlgebra/BilinearForm/Orthogonal.lean`. `IsManifold/Basic.lean` holds
+  two instances for smooth steps, here and in other parts: `C^(∞ + 1)`
+  structures from `C^∞` ones, and `IsNormableSpace` on tangent spaces, which
+  `Adjoint.lean` needs when its fibres are tangent spaces.
 - `Geometry/Manifold/Diffeomorph/Basic.lean` is added for the
   diffeomorphism between empty manifolds on two models, which `MFDeriv.lean`
   and `Tubular.lean` both use.

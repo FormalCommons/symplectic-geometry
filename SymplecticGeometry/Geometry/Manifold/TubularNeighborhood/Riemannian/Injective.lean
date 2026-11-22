@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Neighborhood
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Radial
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # A smooth injective map of the whole normal bundle
@@ -76,8 +77,6 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
             ((Bundle.zeroSectionTangentEquiv (I := I) x).symm (0, v))) = c x • v := by
   have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
   let := f.normalSpaceFiberBundle hn hdim
-  have : IsManifold I (∞ + 1) M := by simpa using (inferInstance : IsManifold I ∞ M)
-  have : IsManifold J (∞ + 1) N := by simpa using (inferInstance : IsManifold J ∞ N)
   let := f.normalSpaceVectorBundle hn hdim
   have := f.normalSpaceContMDiffVectorBundle (m := ∞) hn (by simp) hdim
   let ν : M → Type _ := fun x ↦ f.NormalSpace x hn

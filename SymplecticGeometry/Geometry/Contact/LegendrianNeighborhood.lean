@@ -17,6 +17,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Prod
 public import TauCeti.Geometry.Manifold.VectorBundle.Trivial
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Normal
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # A slice through a Legendrian submanifold
@@ -179,8 +180,6 @@ private theorem contMDiff_normalEquiv (hα : α.IsContactForm)
           (E := (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) ×ᵇ Trivial L ℝ) p.proj
           (normalEquiv hα hf p.proj p.snd)) := by
   let := g.normalSpaceFiberBundle infty_ne_zero hdim
-  have : IsManifold J (∞ + 1) L := by simpa using (inferInstance : IsManifold J ∞ L)
-  have : IsManifold I (∞ + 1) M := by simpa using (inferInstance : IsManifold I ∞ M)
   rw [g.contMDiff_normalBundle_iff infty_ne_zero (m := ∞) (by simp) hdim]
   have heq : ((fun p : TotalSpace P (fun q ↦ g.NormalSpace q infty_ne_zero) ↦
       TotalSpace.mk' ((E' →L[ℝ] ℝ) × ℝ)
@@ -246,8 +245,6 @@ private theorem contMDiff_cotangentToNormal (hα : α.IsContactForm)
         (E := fun q ↦ g.NormalSpace q infty_ne_zero) p.proj
         (cotangentToNormal hα hf p.proj p.snd)) := by
   let := g.normalSpaceFiberBundle infty_ne_zero hdim
-  have : IsManifold J (∞ + 1) L := by simpa using (inferInstance : IsManifold J ∞ L)
-  have : IsManifold I (∞ + 1) M := by simpa using (inferInstance : IsManifold I ∞ M)
   let := g.normalSpaceVectorBundle infty_ne_zero hdim
   have := g.normalSpaceContMDiffVectorBundle (m := ∞) infty_ne_zero (by simp) hdim
   exact (contMDiff_bundle_symm (normalEquiv hα hf) (contMDiff_normalEquiv hα hf hdim)).comp
