@@ -12,11 +12,11 @@ public import TauCeti.Topology.Algebra.Module.Alternating.TopDegree
 /-!
 # Top forms on the tangent planes of an almost complex surface
 
-Let `j` be an almost complex structure on a manifold `C` modelled on a real vector space of
-dimension two. For a nonzero tangent vector `e`, the pair `(e, j e)` is a basis of the tangent
-plane, so a top form on that plane is determined by its value on `(e, j e)`
-(`TauCeti.SmoothAlmostComplexStructure.topForm_ext`), and the ratio of two top forms takes the
-same value on every such pair
+Take a manifold `C` modelled on a real plane, with an almost complex structure `j`. For a
+nonzero tangent vector `e`, the pair `(e, j e)` is a basis of the tangent plane
+(`TauCeti.SmoothAlmostComplexStructure.exists_basis_coe_eq`). So a top form on that plane is
+determined by its value on `(e, j e)` (`TauCeti.SmoothAlmostComplexStructure.topForm_ext`), and
+the ratio of two top forms takes the same value on every such pair
 (`TauCeti.SmoothAlmostComplexStructure.topForm_apply_div_apply_eq`). Neither statement needs an
 orientation of `C`.
 
