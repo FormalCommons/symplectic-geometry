@@ -5,12 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 public import TauCeti.Geometry.Manifold.Flow.TimeDependent
 import TauCeti.Geometry.Manifold.Flow.Parametric
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
-import Mathlib.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 
 /-!
@@ -53,8 +51,6 @@ preconnected set of times, such as a closed interval, with derivatives within th
 follows Tau Ceti's: both curves are lifted through their clocks to integral curves of the
 suspension, and these agree by Tau Ceti's uniqueness theorem for integral curves on preconnected
 sets, `IsMIntegralCurveOn.eqOn_of_isPreconnected`.
-So the curves of the diffeotopy `TauCeti.timeDependentFlowDiffeotopy` of `X` are the solutions on
-`[0, 1]` (`TauCeti.timeDependentFlowDiffeotopy_apply_eq_of_mfderiv_eq`).
 
 ## Main results
 
@@ -70,8 +66,6 @@ So the curves of the diffeotopy `TauCeti.timeDependentFlowDiffeotopy` of `X` are
   the tangent spaces of `U` and `M` being identified.
 * `TauCeti.timeDependentFlowOf_eq_of_hasMFDerivWithinAt`: uniqueness of solutions on a
   preconnected set of times.
-* `TauCeti.timeDependentFlowDiffeotopy_apply_eq_of_mfderiv_eq`: a curve on `[0, 1]` whose
-  velocity is `X` is a trajectory of `TauCeti.timeDependentFlowDiffeotopy`.
 -/
 
 public section
@@ -194,34 +188,6 @@ theorem timeDependentFlowOf_eq_of_hasMFDerivWithinAt
     (fun _ _ ↦ (contMDiff_timeDependentSuspensionField hX).contMDiffAt)
     (by simp [timeDependentFlowOf_self]) ht
   exact congrArg Prod.snd heq
-
-/-- **The curves of the diffeotopy of a time-dependent field.** A differentiable curve `γ` on
-`[0, 1]` whose velocity at every time `t` is `X t (γ t)`, one-sided at the ends, is the trajectory
-of its initial point under the diffeotopy `TauCeti.timeDependentFlowDiffeotopy` of `X`. -/
-theorem timeDependentFlowDiffeotopy_apply_eq_of_mfderiv_eq [FiniteDimensional ℝ E]
-    [IsManifold I ∞ M]
-    (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent ∞
-      (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)))
-    (hc : IsCompleteVectorField (timeDependentSuspensionField X)) {γ : unitInterval → M}
-    (hγ : MDifferentiable (𝓡∂ 1) I γ) (hγX : ∀ t, mfderiv (𝓡∂ 1) I γ t 1 = X t (γ t))
-    (t : unitInterval) : timeDependentFlowDiffeotopy le_top hX hc (t, γ 0) = γ t := by
-  -- The curve `γ ∘ projIcc` on `ℝ` solves the time-dependent equation on `[0, 1]`.
-  have hsol (u : ℝ) (hu : u ∈ Icc (0 : ℝ) 1) :
-      HasMFDerivWithinAt 𝓘(ℝ, ℝ) I (γ ∘ projIcc 0 1 zero_le_one) (Icc 0 1) u
-        ((1 : ℝ →L[ℝ] ℝ).smulRight (X u ((γ ∘ projIcc 0 1 zero_le_one) u))) := by
-    set w : unitInterval := ⟨u, hu⟩
-    have hw : projIcc 0 1 zero_le_one u = w := projIcc_of_mem _ hu
-    refine (mdifferentiableWithinAt_comp_projIcc_iff (w := w).2 (hγ w)).hasMFDerivWithinAt
-      |>.congr_mfderiv (ContinuousLinearMap.ext_ring ?_)
-    refine (mfderivWithin_comp_projIcc_one (w := w)).trans ?_
-    rw [Function.comp_apply, hw, hγX w]
-    exact (one_smul ℝ _).symm
-  have h := timeDependentFlowOf_eq_of_hasMFDerivWithinAt (hX.of_le (by simp)) hc
-    isPreconnected_Icc hsol (s := 0) ⟨le_rfl, zero_le_one⟩ t.property
-  have h0 : projIcc (0 : ℝ) 1 zero_le_one 0 = 0 := projIcc_left _
-  rw [Function.comp_apply, Function.comp_apply, h0, projIcc_val] at h
-  rw [timeDependentFlowDiffeotopy_apply]
-  exact h
 
 end Icc
 

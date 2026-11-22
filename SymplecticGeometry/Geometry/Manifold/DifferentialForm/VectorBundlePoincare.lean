@@ -103,7 +103,7 @@ theorem exists_contMDiff_mextDeriv_ofFunction_eq_of_mpullback_zeroSection
   have hH : ContMDiff ((IB.prod 𝓘(ℝ, FV)).prod (𝓡∂ 1)) (IB.prod 𝓘(ℝ, FV)) ∞
       (vectorBundleFiberScaling FV V) :=
     contMDiff_vectorBundleFiberScaling
-  have hη : IsSmoothFamily 𝓘(ℝ, ℝ) ηt := isSmoothFamily_def.mpr ⟨η, fun _ ↦ rfl⟩
+  have hη : IsSmoothFamily 𝓘(ℝ, ℝ) ηt := isSmoothFamily_mpullback_prodMk η
   obtain ⟨Ω, hΩ⟩ := isSmoothFamily_def.mp (hη.mpullback _ hH).homotopyOperator
   -- The slice of `Ω` at `t`, as a function, is the relative Poincaré operator of `η_t`.
   have hG (t : ℝ) : RoughForm.ofFunction (IB.prod 𝓘(ℝ, FV)) (fun v ↦ Ω.val (t, v) 0) =
