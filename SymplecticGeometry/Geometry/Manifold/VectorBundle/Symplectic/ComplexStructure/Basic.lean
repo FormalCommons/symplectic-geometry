@@ -50,7 +50,8 @@ tangent bundle, and for a nondegenerate form they are, on each fibre, Tau Ceti's
 * `Tames.pushforward`, `Invariant.pushforward`, `Compatible.pushforward`: transport along an
   isomorphism of bundles, moving the form and the complex structure together.
 * `tames_tangentEquiv_iff`, `invariant_tangentEquiv_iff`, `compatible_tangentEquiv_iff`: on the
-  tangent bundle, the predicates are Tau Ceti's.
+  tangent bundle, the predicates are Tau Ceti's; `compatible_tangentEquiv_symm_iff` reads
+  compatibility the other way.
 * `convex_setOf_tames`, `convex_setOf_invariant`, `convex_setOf_compatible`: the two-forms
   taming, invariant under, or compatible with a fixed complex structure form a convex set.
 * `ContMDiffComplexStructure.compatible_compatibleForm`: `ω_{g,J}` is compatible with `J`.
