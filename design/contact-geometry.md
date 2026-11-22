@@ -615,6 +615,22 @@ Named like Tau Ceti's file, in `SymplecticGeometry`.
 
 Expected size: 400 lines, in two issues (G1 and G2).
 
+### `Geometry/Diffeomorphism/Diffeotopy/Transports.lean`
+
+Nothing in it is about contact geometry, so it sits with Tau Ceti's
+diffeotopies rather than in `Gray.lean`, and imports only Tau Ceti's
+`Diffeotopy/Basic.lean`. Any smooth manifold, any smoothness `n`.
+
+- `TauCeti.Diffeotopy.Transports (Φ : Diffeotopy I n M) (ξ : unitInterval → Π x, Submodule ℝ (TangentSpace I x)) : Prop`,
+  `∀ t x, ξ 0 x = (ξ t (Φ (t, x))).comap (mfderiv I I (Φ.timeSlice t) x).toLinearMap`,
+  the condition $\psi_t^*\xi_t=\xi_0$ written as Tau Ceti writes pullbacks of
+  distributions (`IsContactDistribution.exists_darbouxChart`), with
+  `transports_iff`, `Transports.trans (hn : 1 ≤ n)` (if `χ` transports the constant family
+  `fun _ ↦ ξ 0` and `Φ` transports `ξ`, then `χ.trans Φ`, which is
+  $\psi_t\circ\chi_t$ by `TauCeti.Diffeotopy.trans_apply`, transports `ξ`:
+  the non-uniqueness the page mentions without the normalization) and
+  `transports_refl` for a constant family.
+
 ### `Geometry/Contact/Gray.lean`
 
 Named like Tau Ceti's file. With `[I.Boundaryless] [T2Space M] [CompactSpace M]`.
@@ -629,15 +645,6 @@ Named like Tau Ceti's file. With `[I.Boundaryless] [T2Space M] [CompactSpace M]`
   `tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_subtype_val`, the
   case of an open subset `U`, which compares local Gray fields on different open sets in
   step 2 of *Decisions*.
-- `TauCeti.Diffeotopy.Transports (Φ : Diffeotopy I ∞ M) (ξ : unitInterval → Π x, Submodule ℝ (TangentSpace I x)) : Prop`,
-  `∀ t x, ξ 0 x = (ξ t (Φ (t, x))).comap (mfderiv I I (Φ.timeSlice t) x).toLinearMap`,
-  the condition $\psi_t^*\xi_t=\xi_0$ written as Tau Ceti writes pullbacks of
-  distributions (`IsContactDistribution.exists_darbouxChart`), with
-  `transports_iff`, `Transports.trans` (if `χ` transports the constant family
-  `fun _ ↦ ξ 0` and `Φ` transports `ξ`, then `χ.trans Φ`, which is
-  $\psi_t\circ\chi_t$ by `TauCeti.Diffeotopy.trans_apply`, transports `ξ`:
-  the non-uniqueness the page mentions without the normalization) and
-  `transports_refl` for a constant family.
 - `IsContactFamily.exists_grayField (hξ)`: a time-dependent field
   `Y : ℝ → Π x, TangentSpace I x`, jointly smooth on `ℝ × M`, with, for
   `t ∈ [0, 1]`, `Y t x ∈ ξ t x` and the Gray equation against every local
@@ -783,7 +790,7 @@ In this order; each is blocked by the ones listed, and all are sub-issues of
 | G1 | Smooth families of contact structures | `Geometry/Contact/Family.lean` (`IsContactFamily` and its API, `grayVectorField_eq_of_eventuallyEq_smul`), `Geometry/Contact/Levi.lean` (`of_forall_eventuallyEq_kerDistribution`), `Geometry/Contact/Moser.lean` (`contactMoserVectorField_apply_of_eventuallyEq_smul`) | — | 250 |
 | G2 | Local defining families over `ℝ` | `Geometry/Contact/Family.lean` (`exists_local_extension`) | G1, the issues of *Smooth families* that add `DifferentialForm/TimeExtension.lean` and `exists_contDiff_eqOn_id_Icc_mem_Ioo` (its issue 16) | 150 |
 | N | Naturality of the contact-Moser and Gray vectors under pullback and restriction to open subsets (#598) | `Geometry/Contact/Moser.lean`, `Geometry/Contact/Gray.lean` (`mfderiv_grayVectorField_mpullback_prodMap`), the slice lemmas of `Flow/Family.lean` | — | 150 |
-| G3 | The Gray field and the Gray isotopy of a family | `Geometry/Contact/Gray.lean` (`Transports`, `exists_grayField`, `grayDiffeotopy`, transport and velocity) | G0, G2, N | 350 |
+| G3 | The Gray field and the Gray isotopy of a family | `Geometry/Diffeomorphism/Diffeotopy/Transports.lean` (`Transports`), `Geometry/Contact/Gray.lean` (`exists_grayField`, `grayDiffeotopy`, transport and velocity) | G0, G2, N | 350 |
 | G4 | Uniqueness, rescaling of forms, and Gray stability | `Geometry/Contact/Gray.lean` (`eq_grayDiffeotopy_of_transports`, `Transports.exists_mpullback_eq_smul`, the milestone) | G3, the issue of *Smooth families* that adds `Diffeotopy/Real.lean` | 250 |
 | L1 | A slice through a Legendrian submanifold | `Geometry/Contact/LegendrianNeighborhood.lean` (`exists_contactSlice`) | — | 300 |
 | L2 | The Legendrian neighbourhood theorem | `Geometry/Contact/LegendrianNeighborhood.lean` (the milestone) | L1, the issue of *Symplectic neighbourhoods* that adds `Lagrangian.lean` | 350 |
