@@ -11,7 +11,7 @@ import Mathlib.Tactic.Linarith
 /-!
 # Symmetric `j`-bilinear maps with a prescribed symmetrization against a form
 
-Let `j ∘ j = -1` on a finite-dimensional vector space `V` over an ordered field, let `G` be a
+Let `j ∘ j = -1` on `V`, finite-dimensional over a linearly ordered field, let `G` be a
 left-separating symmetric `j`-invariant bilinear form, and let `A` be a trilinear form that is
 symmetric and `j`-invariant in its last two arguments and satisfies the cyclic identity
 `A(h, u, j v) - A(u, h, j v) + A(v, h, j u) = 0`. Then there is a symmetric bilinear map `Q` that
@@ -39,7 +39,7 @@ namespace LinearMap.BilinForm
 variable {K V : Type*} [Field K] [LinearOrder K] [IsStrictOrderedRing K] [AddCommGroup V]
   [Module K V] [FiniteDimensional K V]
 
-/-- Let `j ∘ j = -1` on a finite-dimensional vector space `V` over an ordered field `K`, let `G`
+/-- Let `j ∘ j = -1` on `V`, finite-dimensional over a linearly ordered field `K`, let `G`
 be a symmetric left-separating bilinear form with `G (j u) (j v) = G u v`, and let `A` be a
 trilinear form, symmetric and `j`-invariant in its last two arguments, with
 `A h u (j v) - A u h (j v) + A v h (j u) = 0`. Then there is a symmetric bilinear map `Q` with
