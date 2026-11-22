@@ -118,7 +118,6 @@ theorem firstChernClass_pullback {X : Type} [TopologicalSpace X] {K : Type*} [Fu
     ← complexEulerClass_pullback (detCore ℂ G E) (f : C(X, B)) (finrank_detCore ℂ G E)]
   exact complexEulerClass_eq_of_iso (eqToIso (detCore_pullback ℂ G E (f : C(X, B)))) _ _
 
-
 /-- **The first Chern class of a complex structure does not depend on the complex model.** For a
 continuous complex structure `J` on a real vector bundle `V`, the complex bundle `J.Fiber` has the
 same first Chern class with the complex model `G` as with the complex model `G'`. -/
