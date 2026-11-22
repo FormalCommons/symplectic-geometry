@@ -21,7 +21,9 @@ For spaces `X` and `Y`, `TopCat.prodHomeomorphTensorObj X Y` is the identity of 
 a homeomorphism onto the carrier of `TopCat.of X ⊗ TopCat.of Y`. The two types agree only after
 unfolding, so a map into `X × Y` composed with a morphism out of `TopCat.of X ⊗ TopCat.of Y`
 goes through it, and `TopCat.prodFiberRetraction_prodHomeomorphTensorObj` evaluates the
-retraction there.
+retraction there. The same homeomorphism gives the isomorphism
+`TopCat.tensorObjIsoOfProd X Y : TopCat.of X ⊗ TopCat.of Y ≅ TopCat.of (X × Y)`, for maps of
+spaces between the two.
 -/
 
 public section
@@ -114,6 +116,36 @@ lemma prodHomeomorphTensorObj_symm_apply (X Y : Type w) [TopologicalSpace X]
     [TopologicalSpace Y] (p : ↑(TopCat.of X ⊗ TopCat.of Y)) :
     (prodHomeomorphTensorObj X Y).symm p = (p.1, p.2) :=
   (rfl)
+
+/-- For spaces `X` and `Y`, the monoidal product `TopCat.of X ⊗ TopCat.of Y` is isomorphic to
+`TopCat.of (X × Y)`, by the identity of `X × Y`. -/
+def tensorObjIsoOfProd (X Y : Type w) [TopologicalSpace X] [TopologicalSpace Y] :
+    TopCat.of X ⊗ TopCat.of Y ≅ TopCat.of (X × Y) :=
+  isoOfHomeo (prodHomeomorphTensorObj X Y).symm
+
+lemma tensorObjIsoOfProd_def (X Y : Type w) [TopologicalSpace X] [TopologicalSpace Y] :
+    tensorObjIsoOfProd X Y = isoOfHomeo (prodHomeomorphTensorObj X Y).symm :=
+  (rfl)
+
+/-! The two evaluation lemmas below write out the coercion to a function so that they can write
+the carrier of `TopCat.of (X × Y)` as `X × Y`, the form `simp` reduces it to in goals, and mark
+the type of continuous maps with `no_index`. -/
+
+/-- The isomorphism `TopCat.of X ⊗ TopCat.of Y ≅ TopCat.of (X × Y)` sends `p` to `(p.1, p.2)`. -/
+@[simp]
+lemma tensorObjIsoOfProd_hom_apply (X Y : Type w) [TopologicalSpace X] [TopologicalSpace Y]
+    (p : ↑(TopCat.of X ⊗ TopCat.of Y)) :
+    DFunLike.coe (F := no_index C(↑(TopCat.of X ⊗ TopCat.of Y), X × Y))
+      (tensorObjIsoOfProd X Y).hom.hom p = (p.1, p.2) := by
+  simp [tensorObjIsoOfProd_def]
+
+/-- The inverse of `TopCat.tensorObjIsoOfProd X Y` is `TopCat.prodHomeomorphTensorObj X Y`. -/
+@[simp]
+lemma tensorObjIsoOfProd_inv_apply (X Y : Type w) [TopologicalSpace X] [TopologicalSpace Y]
+    (p : X × Y) :
+    DFunLike.coe (F := no_index C(X × Y, ↑(TopCat.of X ⊗ TopCat.of Y)))
+      (tensorObjIsoOfProd X Y).inv.hom p = prodHomeomorphTensorObj X Y p := by
+  simp [tensorObjIsoOfProd_def]
 
 /-- The retraction onto the fibre over `i`, evaluated at a point of `ι × X`.
 
