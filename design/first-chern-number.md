@@ -832,10 +832,12 @@ issues, in an order where each issue's blockers come before it.
    smoothly oriented surface (through `o.toHomologicalOrientation`), and
    `exists_coordinateDisc` (one centred at any point, and finitely many with
    disjoint closed discs at distinct points). `CoordinateDisc.lean` imports
-   two supporting files of this part, each beside the Mathlib or Tau Ceti
-   file it adds to: `LinearAlgebra/Complex/Orientation.lean` and
-   `AlgebraicTopology/Singular/LocalHomology/Orientation/Smooth.lean`. Done
-   when this API is proved.
+   supporting files of this part, each beside the Mathlib or Tau Ceti
+   file it adds to: `LinearAlgebra/Complex/Orientation.lean`,
+   `AlgebraicTopology/Singular/LocalHomology/Orientation/Smooth.lean`, and
+   `Geometry/Manifold/Complex/FundamentalClass.lean`, for the reversal of
+   `TauCeti.complexHomologicalOrientation` by conjugation that
+   `CoordinateDisc.reverse` uses. Done when this API is proved.
 6. **Argument principle for discs.**
    `AlgebraicTopology/Singular/LocalHomology/ArgumentPrinciple.lean`:
    `SymplecticGeometry.sum_degree_boundary_eq_zero`. Let `φ i`, `i : ι`
