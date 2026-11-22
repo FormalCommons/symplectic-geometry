@@ -56,7 +56,7 @@ piece makes them agree; such a change keeps the crossing forms up to isometry
 (`lagrangianCrossingForm_mul_equivalent`). Each piece is first reparametrized so that its frame is
 constant near the junctions: by Tau Ceti's `TauCeti.collaredSmoothTransition`, constant near both
 ends, whose derivative is positive where it is neither `0` nor `1`
-(`Real.smoothTransition.deriv_pos`); and
+(`TauCeti.deriv_collaredSmoothTransition_pos`); and
 for the rotations, whose first point is a crossing that must stay regular, by a map equal to the
 identity near `0`. The glued frame is then smooth. Making the pieces stationary near the joining
 time follows Tau Ceti's `TauCeti.SmoothIsotopy.trans`, which concatenates smooth isotopies with
@@ -256,35 +256,6 @@ private theorem IsRegularFrame.trans {Λ₀ Λ₁ Λ₂ : ℒ ι} {γ₁ : Path 
 
 /-! ### Flat reparametrizations -/
 
-private theorem collaredSmoothTransition_eventuallyEq_zero :
-    collaredSmoothTransition =ᶠ[𝓝 0] fun _ ↦ 0 := by
-  filter_upwards [Iio_mem_nhds (by norm_num : (0 : ℝ) < 1 / 4)] with s hs
-  exact collaredSmoothTransition_eq_zero_of_le hs.le
-
-private theorem collaredSmoothTransition_eventuallyEq_one :
-    collaredSmoothTransition =ᶠ[𝓝 1] fun _ ↦ 1 := by
-  filter_upwards [Ioi_mem_nhds (by norm_num : (3 / 4 : ℝ) < 1)] with s hs
-  exact collaredSmoothTransition_eq_one_of_ge hs.le
-
-/-- Where `collaredSmoothTransition` is neither `0` nor `1`, its derivative is positive. -/
-private theorem deriv_collaredSmoothTransition_ne_zero {s : ℝ}
-    (h₀ : collaredSmoothTransition s ≠ 0) (h₁ : collaredSmoothTransition s ≠ 1) :
-    deriv collaredSmoothTransition s ≠ 0 := by
-  rw [collaredSmoothTransition_def] at h₀ h₁
-  have hs₀ : 0 < 2 * s - 1 / 2 :=
-    lt_of_not_ge fun h ↦ h₀ (Real.smoothTransition.zero_of_nonpos h)
-  have hs₁ : 2 * s - 1 / 2 < 1 :=
-    lt_of_not_ge fun h ↦ h₁ (Real.smoothTransition.one_of_one_le h)
-  have hd : HasDerivAt collaredSmoothTransition
-      (deriv Real.smoothTransition (2 * s - 1 / 2) * 2) s := by
-    have := ((Real.smoothTransition.contDiff (n := 1)).differentiable one_ne_zero
-      (2 * s - 1 / 2)).hasDerivAt.comp s (((hasDerivAt_id' s).const_mul 2).sub_const (1 / 2))
-    rw [mul_one] at this
-    exact this.congr_of_eventuallyEq
-      (Eventually.of_forall fun r ↦ collaredSmoothTransition_def r)
-  rw [hd.deriv]
-  exact (mul_pos (Real.smoothTransition.deriv_pos hs₀ hs₁) two_pos).ne'
-
 /-- A reparametrization of `[0, 1]` that is the identity near `0` and `1` from `3 / 4` on. -/
 private noncomputable def startReparam (s : ℝ) : ℝ := s + (1 - s) * collaredSmoothTransition s
 
@@ -322,7 +293,7 @@ private theorem IsRegularFrame.exists_flat {Λ Λ' : ℒ ι} {γ : Path Λ Λ'} 
   refine ⟨_, _, ⟨Path.Homotopy.reparam γ _ _ (Subtype.ext hφ0) (Subtype.ext hφ1)⟩,
     h.reparam (contDiff_collaredSmoothTransition le_rfl) (fun t ↦ collaredSmoothTransition_mem t)
       hφ0 hφ1 fun t ht ↦ ?_, ?_, ?_⟩
-  · refine deriv_collaredSmoothTransition_ne_zero (fun h0 ↦ ht ?_) (fun h1 ↦ ht ?_)
+  · refine (deriv_collaredSmoothTransition_pos (fun h0 ↦ ht ?_) (fun h1 ↦ ht ?_)).ne'
     · rw [show (⟨collaredSmoothTransition t, _⟩ : I) = 0 from Subtype.ext h0, γ.source]; exact hΛ
     · rw [show (⟨collaredSmoothTransition t, _⟩ : I) = 1 from Subtype.ext h1, γ.target]; exact hΛ'
   · filter_upwards [collaredSmoothTransition_eventuallyEq_zero] with s hs

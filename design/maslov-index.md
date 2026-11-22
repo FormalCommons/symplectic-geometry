@@ -834,7 +834,8 @@ forms relative to `V₀`.
   frame on the later piece makes the frame continuous, and a
   reparametrization that is flat at the junctions makes it smooth. The
   file imports `Analysis/SpecialFunctions/SmoothTransition.lean` (*Smooth
-  families*) for `Real.smoothTransition.deriv_pos`, which that
+  families*) for `TauCeti.deriv_collaredSmoothTransition_pos` and the
+  eventual constancy of `TauCeti.collaredSmoothTransition`, which that
   reparametrization uses.
 - **Milestone theorem** `pathMaslovIndex_eq_crossing_sum_and_properties`, in
   `SymplecticGeometry` like the other three milestone theorems: one
