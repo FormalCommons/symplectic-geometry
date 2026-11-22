@@ -10,6 +10,7 @@ public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.MayerVietoris
 public import TauCeti.AlgebraicTopology.Cohomology.Point
 public import SymplecticGeometry.Order.SupClosed
 public import SymplecticGeometry.Topology.Sets.Opens
+public import SymplecticGeometry.Topology.Sets.Opens.Basic
 public import SymplecticGeometry.Topology.Sets.Opens.Comap
 
 /-!
@@ -183,8 +184,7 @@ theorem isZero_compactSupportCohomology_of_infClosed [T2Space X] {S : Set (Opens
     refine hS.finset_sup_induction
       (fun W : Opens X ↦ ∀ m, d < m → IsZero ((of W).compactSupportCohomology R k N m))
       (fun m _ ↦ ?_) hbase (fun V W hV hW hVW m hm ↦ ?_) s
-    · have : IsEmpty ↥(⊥ : Opens X) := ⟨fun x ↦ x.property⟩
-      exact isZero_compactSupportCohomology_of_isEmpty R k N _ m
+    · exact isZero_compactSupportCohomology_of_isEmpty R k N _ m
     · exact isZero_compactSupportCohomology_sup R k N (hV m hm) (hW m hm)
         (hVW (m + 1) (by omega))
   -- They form a directed family covering `X`; `(Opens.toTopCat (of X)).obj W` is `of W` by

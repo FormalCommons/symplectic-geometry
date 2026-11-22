@@ -875,7 +875,10 @@ issues, in an order where each issue's blockers come before it.
    `CompactSupport/Vanishing.lean`, and
    `TauCeti.HomologicalOrientation.bijective_dualityMap_of_infClosed`, in
    `CompactSupport/Duality/Union.lean`, which also assumes
-   `Hⁿ⁺¹_c(W; L) = 0` for every open set `W`.
+   `Hⁿ⁺¹_c(W; L) = 0` for every open set `W`. Their case of the empty
+   union uses the instance `TopologicalSpace.Opens.isEmpty_bot` of
+   `Topology/Sets/Opens/Basic.lean`, which `CompactSupport/Vanishing.lean`
+   imports.
    Duality for a manifold is the library's
    `AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`:
    `TauCeti.HomologicalOrientation.bijective_dualityMap`, for every

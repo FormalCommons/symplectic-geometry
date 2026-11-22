@@ -13,7 +13,7 @@ public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Van
 public import SymplecticGeometry.Topology.Sets.Opens.Comap
 
 /-!
-# Poincaré duality for a union of two open sets
+# Poincaré duality for unions of open sets
 
 Fix a boundaryless `n`-manifold `M` with a homological orientation `o`, an abelian group `L`, and
 give every open set of `M` the restricted orientation. This file proves the Mayer–Vietoris step of
@@ -304,7 +304,6 @@ theorem bijective_dualityMap_of_infClosed {S : Set (Opens M)} (hS : InfClosed S)
     refine hS.finset_sup_induction (fun W : Opens M ↦ ∀ p q (h : p + q = n), Function.Bijective
         ((o.comap W.isOpenEmbedding').dualityMap hn L p q h)) (fun p q h ↦ ?_) hbase
       (fun V W hV hW hVW _ _ ↦ o.bijective_dualityMap_comap_sup hn L hV hW hVW (hvanish _)) s
-    have : IsEmpty ↥(⊥ : Opens M) := ⟨fun x ↦ x.property⟩
     exact (o.comap _).bijective_dualityMap_of_isEmpty hn L h
   -- They form a directed family covering `M`.
   exact o.bijective_dualityMap_of_iSup_eq_top hn L h (fun _ _ hst ↦ Finset.sup_mono hst) hcover
