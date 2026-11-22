@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Sphere
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
-public import TauCeti.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.FubiniStudy
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Projectivization
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Sphere
@@ -67,10 +66,6 @@ local notation "ℝ³" => EuclideanSpace ℝ (Fin 3)
 /-- The standard orientation of `ℝ³`. -/
 local notation "o₃" =>
   Module.Basis.orientation (OrthonormalBasis.toBasis (EuclideanSpace.basisFun (Fin 3) ℝ))
-
-/-- The canonical orientation of `ℂP¹`, as a complex manifold, indexed by `Fin 2`. -/
-local notation "oCP1" => Manifold.Orientation.reindex (finCongr (by simp))
-  (complexManifoldOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ)))
 
 attribute [local instance] TauCeti.finrank_euclideanSpace_fin_succ_fact
 
@@ -287,8 +282,8 @@ theorem mpullback_sphereToProjectiveLine_fubiniStudyForm :
 unit sphere of `ℝ³`, for the standard orientation of `ℝ³`, to the canonical orientation of
 `ℂP¹` as a complex manifold. -/
 theorem isOrientationPreservingAt_sphereToProjectiveLine (p : sphere (0 : ℝ³) 1) :
-    Manifold.Orientation.IsOrientationPreservingAt (Orientation.sphereOrientation o₃) oCP1
-      sphereToProjectiveLine p := by
+    Manifold.Orientation.IsOrientationPreservingAt (Orientation.sphereOrientation o₃)
+      projectiveLineOrientation sphereToProjectiveLine p := by
   rw [coe_sphereToProjectiveLine]
   refine (OnePoint.isOrientationPreservingAt_equivProjectivization _).comp ?_
   have h := congrArg (fun φ : SmoothForm (𝓡 2) (sphere (0 : ℝ³) 1) ℝ 2 ↦ φ.val p)
