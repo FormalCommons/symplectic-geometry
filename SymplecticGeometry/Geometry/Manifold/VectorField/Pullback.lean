@@ -5,9 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Geometry.Manifold.IntegralCurve.Basic
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import Mathlib.Geometry.Manifold.VectorField.Pullback
+import TauCeti.Geometry.Manifold.IntegralCurve.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # Pulling back vector fields along local diffeomorphisms
@@ -26,12 +29,16 @@ of an open subset, where the pullback is the restriction of a vector field to `U
   `VectorField.contMDiff_mpullback_subtypeVal`: for an open subset `U`, the restriction of `V`
   to `U` is related to `V` by the inclusion, and is a `C^m` vector field on `U` when `V` is
   `C^m` on `U`.
+* `VectorField.isMIntegralCurveOn_mpullback_subtypeVal_iff`: a curve in `U` is an integral curve
+  of the restriction of `V` exactly when, read in `M`, it is an integral curve of `V`.
 
 The first item has the proof of Tau Ceti's `Diffeomorph.mfderiv_apply_mpullback` and
 `TauCeti.IsLocalRiemannianIsometry.mfderiv_apply_mpullback`, which state it for a global
 diffeomorphism and for a local Riemannian isometry. The second follows Mathlib's
 `ContMDiffOn.mpullback_vectorField_preimage`, with the invertibility of the differential given by
-`IsLocalDiffeomorph.isInvertible_mfderiv`.
+`IsLocalDiffeomorph.isInvertible_mfderiv`. The last follows Tau Ceti's
+`Diffeomorph.isMIntegralCurveOn_comp_iff`, with the inverse of the inclusion of `U` given by Tau
+Ceti's `PartialDiffeomorph.subtypeVal`.
 
 ## References
 
@@ -84,7 +91,43 @@ theorem contMDiff_mpullback_subtypeVal [CompleteSpace E] [IsManifold I 1 M] {U :
     hV le_top
   rwa [show (Subtype.val : U → M) ⁻¹' U = univ from eq_univ_of_forall fun y ↦ y.property,
     contMDiffOn_univ] at this
+end VectorField
+
+section Real
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+
+namespace VectorField
+
+/-- A curve `γ` in an open set `U` is an integral curve on `s` of the restriction
+`VectorField.mpullback I I Subtype.val V` of `V` to `U` exactly when, read in `M`, it is an
+integral curve of `V` on `s`. -/
+theorem isMIntegralCurveOn_mpullback_subtypeVal_iff {U : Opens M}
+    {V : Π x : M, TangentSpace I x} {γ : ℝ → U} {s : Set ℝ} :
+    IsMIntegralCurveOn γ (VectorField.mpullback I I Subtype.val V) s ↔
+      IsMIntegralCurveOn (Subtype.val ∘ γ) V s := by
+  refine ⟨fun h ↦ h.map_of_mfderiv_eq (fun _ _ ↦ mdifferentiableAt_subtypeVal)
+    (fun t _ ↦ mfderiv_subtypeVal_mpullback_subtypeVal V (γ t)), fun h ↦ ?_⟩
+  -- The inverse of the inclusion, a partial diffeomorphism defined on `U`.
+  let g := (PartialDiffeomorph.subtypeVal I 1 U ⟨γ 0⟩).symm
+  have hg (y : U) : g y = y := PartialDiffeomorph.subtypeVal_symm_apply_coe U _ y
+  have hgd (y : U) : MDifferentiableAt I I g y :=
+    g.mdifferentiableAt one_ne_zero (by simp [g])
+  have hgV (y : U) : mfderiv I I g y (V y) = VectorField.mpullback I I Subtype.val V y := by
+    have := mfderiv_comp_apply y (hgd y) mdifferentiableAt_subtypeVal
+      (VectorField.mpullback I I Subtype.val V y)
+    rw [show g ∘ Subtype.val = id from funext hg, mfderiv_id, ContinuousLinearMap.id_apply,
+      mfderiv_subtypeVal_mpullback_subtypeVal V y] at this
+    exact this.symm
+  have := h.map_of_mfderiv_eq (f := g) (W := VectorField.mpullback I I Subtype.val V)
+    (fun t _ ↦ hgd (γ t)) fun t _ ↦ by
+    rw [hgV (γ t)]
+    exact congrArg (VectorField.mpullback I I Subtype.val V) (hg (γ t)).symm
+  simpa only [Function.comp_def, hg] using this
 
 end VectorField
+
+end Real
 
 end
