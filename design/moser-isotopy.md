@@ -634,7 +634,7 @@ nondegenerate everywhere form an open set containing $[0,1]$
 with values in that set, and `σ' := (c × id)^* τ` over `ℝ`: it is closed,
 and every slice is symplectic. The time derivative of a closed form on
 `ℝ × M` is exact, `L_{∂_t} σ' = d (ι_{∂_t} σ')` by Cartan's formula
-(`SmoothForm.IsClosed.exists_timeDeriv_eq_mextDerivₗ`, in
+(`SmoothForm.mextDerivₗ_timeInterior`, in
 `DifferentialForm/Flow/Family.lean`), so `α := ι_{∂_t} σ'` satisfies the
 hypothesis of `TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq`, since
 pullbacks commute with `d`. That theorem gives

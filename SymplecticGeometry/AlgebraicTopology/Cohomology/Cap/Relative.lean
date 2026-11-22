@@ -23,8 +23,8 @@ its Tau Ceti name, so that moving Tau Ceti past it deletes this file without ren
 
 ## References
 
-* A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Section 3.3, the relative
-  cap product and its naturality.
+* A. Hatcher, [*Algebraic Topology*](https://pi.math.cornell.edu/~hatcher/AT/AT.pdf),
+  Section 3.3, the relative cap product `Hₙ(X, A) × Hᵖ(X, A) ⟶ H_{n - p}(X)`.
 -/
 
 public section
