@@ -549,11 +549,12 @@ continuous bilinear form `B`, which need not be positive.
 
 - `curvatureTensor_leviCivitaConnection_compatibleSpace (a b c) :
   d J ((leviCivitaConnection 𝓘 (𝒥 ω)).curvatureTensor J a b c) =
-  -(4⁻¹ : ℝ) • ⁅⁅d J a, d J b⁆, d J c⁆`, by `curvatureTensor_apply` on smooth
-  extensions of `a b c` and the computation of decision 7.
+  -(4⁻¹ : ℝ) • ⁅⁅D a, D b⁆, D c⁆`, with `D = mvfderiv 𝓘 ω.compatibleCLM J`, by
+  `curvatureTensor_apply` on smooth extensions of `a b c` and the computation of
+  decision 7.
 - `inner_curvatureTensor_compatibleSpace`: $\langle R(u,v)v,u\rangle=
   \tfrac18\operatorname{tr}([\hat u,\hat v]^2)$, and
-  `sectionalCurvature_compatibleSpace_nonpos (u v) :
+  `sectionalCurvature_compatibleSpace_nonpos (hcov J u v) :
   sectionalCurvature … J u v ≤ 0`, by `trace_commutator_sq_nonpos` and
   nonnegativity of the Gram determinant.
 
@@ -637,7 +638,9 @@ theorem compatibleSpace_properties (ω : SymplecticForm V) {n : ℕ}
       EqOn γ (ω.compatibleGeodesic J a) (Ioo s t)) ∧
     (∀ J, IsGeodesicallyCompleteAt 𝓘 (𝒥 ω) J) ∧
     (letI := EMetricSpace.ofRiemannianMetric 𝓘 (𝒥 ω); CompleteSpace (𝒥 ω)) ∧
-    (∀ J a b c, d J (∇.curvatureTensor J a b c) = -(4⁻¹ : ℝ) • ⁅⁅d J a, d J b⁆, d J c⁆) ∧
+    (∀ J a b c, d J (∇.curvatureTensor J a b c) = -(4⁻¹ : ℝ) •
+      ⁅⁅mvfderiv 𝓘 ω.compatibleCLM J a, mvfderiv 𝓘 ω.compatibleCLM J b⁆,
+        mvfderiv 𝓘 ω.compatibleCLM J c⁆) ∧
     (∀ J u v, ∇.sectionalCurvature _ J u v ≤ 0) ∧
     ∀ (ι : Type) [Fintype ι] [DecidableEq ι],
       (∀ Z, SiegelUpperHalfSpace.compatibleDiffeomorph ι Z =
