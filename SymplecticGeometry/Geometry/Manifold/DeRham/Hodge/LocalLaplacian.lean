@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Analysis.InnerProductSpace.HodgeStar.AlternatingForm
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Chart
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import SymplecticGeometry.LinearAlgebra.BilinearForm.Gram
 import TauCeti.Analysis.Normed.Module.Alternating.Uncurry.Fin
 import TauCeti.Topology.Algebra.Module.Alternating.Basic
@@ -69,26 +70,20 @@ theorem smul_hodgeStarInChart_alternatizeUncurryFin_hodgeStarInChart (hkl : k + 
   set u := ∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j • ξ (b i) • b j
   let := o.fact_finrank_tangentSpace (ψ.symm y)
   -- `A` is the differential of `ψ.symm` at `y`, and `P` its inverse, the differential of `ψ`.
-  set A : E →L[ℝ] TangentSpace I (ψ.symm y) := mfderiv 𝓘(ℝ, E) I ψ.symm y
-  set P : TangentSpace I (ψ.symm y) →L[ℝ] E := mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y)
-  have hAP : A.comp P = .id ℝ _ := ContinuousLinearMap.ext fun v ↦ by
-    have h := ψ.mfderiv_symm_apply_mfderiv_apply (by simp) (ψ.map_target hy) v
-    rwa [ψ.right_inv hy] at h
-  have hPA : P.comp A = .id ℝ E :=
-    ContinuousLinearMap.ext fun v ↦ ψ.mfderiv_apply_mfderiv_symm_apply (by simp) hy v
+  set e : E ≃L[ℝ] TangentSpace I (ψ.symm y) := ψ.mfderivSymmEquiv (by simp) hy
+  set A : E →L[ℝ] TangentSpace I (ψ.symm y) := e.toContinuousLinearMap
+  set P : TangentSpace I (ψ.symm y) →L[ℝ] E := e.symm.toContinuousLinearMap
+  have hA : A = mfderiv 𝓘(ℝ, E) I ψ.symm y := ψ.toContinuousLinearMap_mfderivSymmEquiv _ hy
+  have hP : P = mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) :=
+    ψ.toContinuousLinearMap_mfderivSymmEquiv_symm _ hy
+  -- Composing with `P`, then with `A`, is the identity, and so is the reverse: the two maps of
+  -- Mathlib's `continuousAlternatingMapCongrLeftEquiv e` are these composites by definition.
   have hcomp {j : ℕ} (c : E [⋀^Fin j]→L[ℝ] ℝ) :
-      (c.compContinuousLinearMap P).compContinuousLinearMap A = c := by
-    ext v
-    rw [compContinuousLinearMap_compContinuousLinearMap, hPA]
-    -- The two sides differ only in the types `E` and `TangentSpace 𝓘(ℝ, E) y` of the vectors.
-    rfl
+      (c.compContinuousLinearMap P).compContinuousLinearMap A = c :=
+    e.continuousAlternatingMapCongrLeftEquiv.left_inv c
   have hcomp' {j : ℕ} (c : TangentSpace I (ψ.symm y) [⋀^Fin j]→L[ℝ] ℝ) :
-      (c.compContinuousLinearMap A).compContinuousLinearMap P = c := by
-    ext v
-    rw [compContinuousLinearMap_compContinuousLinearMap, hAP]
-    -- The two sides differ only in the types `TangentSpace I (ψ.symm y)` and
-    -- `TangentSpace 𝓘(ℝ, E) y` of the vectors.
-    rfl
+      (c.compContinuousLinearMap A).compContinuousLinearMap P = c :=
+    e.continuousAlternatingMapCongrLeftEquiv.right_inv c
   -- `u` is the vector dual to `ξ` for `gramInChart ψ y`, whose Gram matrix in `b` is invertible.
   have hM : LinearMap.BilinForm.toMatrix b (gramInChart ψ y).toLinearMap₁₂ =
       Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j) := by
@@ -102,16 +97,15 @@ theorem smul_hodgeStarInChart_alternatizeUncurryFin_hodgeStarInChart (hkl : k + 
   have hS {j j' : ℕ} (h : j + j' = m) (c : E [⋀^Fin j]→L[ℝ] ℝ) :
       hodgeStarInChart o ψ h y c =
         (formHodgeStarCLM o h (ψ.symm y) (c.compContinuousLinearMap P)).compContinuousLinearMap
-          A :=
+          A := by
+    rw [hA, hP]
     -- `hodgeStarInChart_def`, applied to `c`; the composites differ from the right side only
     -- in the types `E` and `TangentSpace 𝓘(ℝ, E) _` of the vectors.
-    DFunLike.congr_fun (hodgeStarInChart_def o ψ h y) c
+    exact DFunLike.congr_fun (hodgeStarInChart_def o ψ h y) c
   have hξ : ξ.comp P = innerSL ℝ (E := TangentSpace I (ψ.symm y)) (A u) := by
     ext v
-    have h := DFunLike.congr_fun hAP v
-    rw [ContinuousLinearMap.comp_apply] at h
-    rw [ContinuousLinearMap.comp_apply, innerSL_apply_apply, ← hdual, gramInChart_apply]
-    exact congrArg (fun z ↦ ⟪A u, z⟫) h
+    rw [ContinuousLinearMap.comp_apply, innerSL_apply_apply, ← hdual, gramInChart_apply, ← hA]
+    exact congrArg (fun z ↦ ⟪A u, z⟫) (e.apply_symm_apply v)
   have hinner : compContinuousLinearMapCLM P ∘L ξ.smulRight
       ((formHodgeStarCLM o hkl (ψ.symm y) (a.compContinuousLinearMap P)).compContinuousLinearMap
         A) ∘L

@@ -648,6 +648,10 @@ was found, so `ERRATA.md` needs no entry.
   the proof of the milestone, and `val_eq_alternatingFormEquiv_kahlerForm`,
   which this part adds there, in `Kahler/Identities.lean`. This dependency
   is new; `DESIGN.md` records it.
+- *Moser isotopy*, `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`
+  (merged): `PartialDiffeomorph.mfderivSymmEquiv`, which this part adds
+  there, only in the proofs of `DeRham/Hodge/Chart.lean` and
+  `DeRham/Hodge/LocalLaplacian.lean`.
 - *Symplectic neighbourhoods*,
   `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`
   (merged): `PartialDiffeomorph.mpullback_symm_mpullback_apply`, only in

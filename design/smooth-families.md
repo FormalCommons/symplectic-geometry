@@ -556,10 +556,6 @@ Named like Tau Ceti's file; in `TauCeti`.
 
 ### `Geometry/Manifold/LocalDiffeomorph/Basic.lean`
 
-- `IsLocalDiffeomorphAt.exists_partialDiffeomorph`: a local diffeomorphism
-  at `x` agrees with a partial diffeomorphism on a source containing `x`,
-  since Mathlib does not expose the body of `IsLocalDiffeomorphAt`; used by
-  `Immersion/TangentProjection.lean`.
 - `IsLocalDiffeomorphAt.congr_of_eventuallyEq`: a map that agrees near `x`
   with a local diffeomorphism at `x` is one too; and
   `PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`: a partial
