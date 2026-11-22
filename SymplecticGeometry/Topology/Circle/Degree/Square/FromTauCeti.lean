@@ -5,7 +5,7 @@ Authors: The Tau Ceti contributors
 -/
 module
 
-public import TauCeti.Analysis.SpecialFunctions.Complex.Arg
+import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 public import TauCeti.Topology.Circle.Degree.Square
 import all TauCeti.Topology.Circle.Degree.Square
 
@@ -30,8 +30,10 @@ sweeps a quarter turn, as the arguments of the corners `(±1 ± i) / 2` show.
 
 They are stated under their Tau Ceti names and namespace, with Tau Ceti's statements, proofs and
 docstrings unchanged, so that moving Tau Ceti past this commit deletes this file without
-renames. The imports are those of Tau Ceti's file at that commit; the import of the pinned
-version of Tau Ceti's file is also made with `import all`, since the proofs use the private
+renames. The private import of `TauCeti.Analysis.SpecialFunctions.Complex.Arg` is that of Tau
+Ceti's file at that commit. Its public imports `TauCeti.Topology.Circle.Degree` and
+`TauCeti.Topology.Homotopy.Cube.Basic` are replaced by a `public import` and an `import all` of
+the pinned version of `TauCeti.Topology.Circle.Degree.Square`, since the proofs use the private
 edges of the square, `pathAngle`, `pathAngle_eq` and `squareBoundaryDegree_mul_two_pi` of that
 file.
 

@@ -21,10 +21,17 @@ the square.
   `TauCeti.one_half_le_norm_squareCenterOffset_of_mem`: the offset of a point of the square from
   the centre has coordinates of absolute value at most `1/2`, and norm at least `1/2` on the
   boundary.
+* `TauCeti.squareOfOffset`: the point of the square with a given offset from the centre, clamped
+  to the square, which inverts `TauCeti.squareCenterOffset`
+  (`TauCeti.squareOfOffset_squareCenterOffset`, `TauCeti.squareCenterOffset_squareOfOffset`).
 * `TauCeti.squareBoundaryDegree_eq_degree_toBasedLoop`: if `Γ` is continuous on the closed
   annulus of the points whose offset from the centre (`TauCeti.squareCenterOffset`) has norm at
   least `r`, for `0 ≤ r ≤ 1/2`, then its degree around the boundary of the square is the degree
-  of the loop `ζ ↦ Γ (centre + r ζ)` on the circle of radius `r` about the centre.
+  of the loop `ζ ↦ Γ (centre + r ζ)` on the circle of radius `r` about the centre, given as any
+  self-map `g` of the circle that agrees with it.
+* `TauCeti.squareBoundaryDegree_eq_degree_squareOfOffset`: the same, with the loop
+  `ζ ↦ Γ (squareOfOffset (r ζ))` read off `Γ`, continuous by
+  `TauCeti.continuous_comp_squareOfOffset_mul`.
 
 The proof pushes the boundary of the square radially onto the circle of radius `r`, inside the
 annulus, which leaves the composite of the loop on the circle with the direction from the centre
@@ -88,28 +95,53 @@ theorem one_half_le_norm_squareCenterOffset_of_mem {y : Fin 2 → I}
     linarith
 
 /-- The point of the square whose offset from the centre is `z`, each coordinate clamped to
-`[0, 1]`. -/
-private def squareOfOffset (z : ℂ) : Fin 2 → I :=
+`[0, 1]`. It inverts `TauCeti.squareCenterOffset` (`TauCeti.squareOfOffset_squareCenterOffset`),
+and `TauCeti.squareCenterOffset` inverts it on the offsets whose real and imaginary parts are at
+most `1/2` in absolute value (`TauCeti.squareCenterOffset_squareOfOffset`). -/
+def squareOfOffset (z : ℂ) : Fin 2 → I :=
   ![projIcc 0 1 zero_le_one (1 / 2 + z.re), projIcc 0 1 zero_le_one (1 / 2 + z.im)]
 
-private theorem continuous_squareOfOffset : Continuous squareOfOffset := by
-  refine continuous_pi fun i ↦ ?_
-  fin_cases i <;> simp only [squareOfOffset] <;> fun_prop
+theorem squareOfOffset_def (z : ℂ) : squareOfOffset z =
+    ![projIcc 0 1 zero_le_one (1 / 2 + z.re), projIcc 0 1 zero_le_one (1 / 2 + z.im)] :=
+  (rfl)
 
-private theorem squareOfOffset_squareCenterOffset (y : Fin 2 → I) :
+@[fun_prop]
+theorem continuous_squareOfOffset : Continuous squareOfOffset := by
+  refine continuous_pi fun i ↦ ?_
+  fin_cases i <;> simp only [squareOfOffset_def] <;> fun_prop
+
+@[simp]
+theorem squareOfOffset_squareCenterOffset (y : Fin 2 → I) :
     squareOfOffset (squareCenterOffset y) = y := by
   ext i
-  fin_cases i <;> simp [squareOfOffset]
+  fin_cases i <;> simp [squareOfOffset_def]
 
-private theorem squareCenterOffset_squareOfOffset {z : ℂ} (hre : |z.re| ≤ 1 / 2)
+theorem squareCenterOffset_squareOfOffset {z : ℂ} (hre : |z.re| ≤ 1 / 2)
     (him : |z.im| ≤ 1 / 2) : squareCenterOffset (squareOfOffset z) = z := by
   rw [abs_le] at hre him
-  apply Complex.ext <;> simp only [squareOfOffset, re_squareCenterOffset, im_squareCenterOffset,
-    Matrix.cons_val_zero, Matrix.cons_val_one]
+  apply Complex.ext <;> simp only [squareOfOffset_def, re_squareCenterOffset,
+    im_squareCenterOffset, Matrix.cons_val_zero, Matrix.cons_val_one]
   · rw [projIcc_of_mem _ ⟨by linarith, by linarith⟩]
     ring
   · rw [projIcc_of_mem _ ⟨by linarith, by linarith⟩]
     ring
+
+/-- For `0 ≤ r ≤ 1/2`, the point of the square at offset `r ζ` from the centre, for `ζ` on the
+circle, has offset exactly `r ζ`. -/
+theorem squareCenterOffset_squareOfOffset_mul {r : ℝ} (hr₀ : 0 ≤ r) (hr : r ≤ 1 / 2)
+    (ζ : Circle) : squareCenterOffset (squareOfOffset (r * ζ)) = r * ζ := by
+  have hn : ‖(r : ℂ) * ζ‖ ≤ 1 / 2 := by simpa [abs_of_nonneg hr₀] using hr
+  exact squareCenterOffset_squareOfOffset ((Complex.abs_re_le_norm _).trans hn)
+    ((Complex.abs_im_le_norm _).trans hn)
+
+/-- If `Γ` is continuous on the closed annulus of the points at distance at least `r` from the
+centre, for `0 ≤ r ≤ 1/2`, then the loop `ζ ↦ Γ (centre + r ζ)` on the circle of radius `r` is
+continuous. -/
+theorem continuous_comp_squareOfOffset_mul {r : ℝ} (hr₀ : 0 ≤ r) (hr : r ≤ 1 / 2)
+    (hΓ : ContinuousOn Γ {y | r ≤ ‖squareCenterOffset y‖}) :
+    Continuous fun ζ : Circle ↦ Γ (squareOfOffset (r * ζ)) := by
+  refine hΓ.comp_continuous (by fun_prop) fun ζ ↦ ?_
+  simp [squareCenterOffset_squareOfOffset_mul hr₀ hr, abs_of_nonneg hr₀]
 
 /-- **The degree around the boundary of the square is the degree around an inner circle.** Let
 `0 ≤ r ≤ 1/2`, let `Γ` be continuous on the closed annulus of the points of the square at distance
@@ -154,7 +186,7 @@ theorem squareBoundaryDegree_eq_degree_toBasedLoop {r : ℝ} (hr₀ : 0 ≤ r) (
   have h := squareBoundaryDegree_eq_of_homotopy hH
   have h₀ : (fun y ↦ Γ (K (0, y))) = Γ := by
     funext y
-    simp [K, s, squareOfOffset_squareCenterOffset]
+    simp [K, s]
   have h₁ : EqOn (fun y ↦ Γ (K (1, y))) (g ∘ squareCenterDirection) (Cube.boundary (Fin 2)) := by
     intro y hy
     have hne := squareCenterOffset_ne_zero_of_mem hy
@@ -167,5 +199,17 @@ theorem squareBoundaryDegree_eq_degree_toBasedLoop {r : ℝ} (hr₀ : 0 ≤ r) (
   rw [h, squareBoundaryDegree_congr h₁,
     squareBoundaryDegree_comp continuousOn_squareCenterDirection,
     squareBoundaryDegree_squareCenterDirection, mul_one, Circle.degree_toBasedLoop]
+
+/-- **The degree around the boundary of the square is the degree around an inner circle**, with
+the loop read off `Γ`. Let `0 ≤ r ≤ 1/2` and let `Γ` be continuous on the closed annulus of the
+points of the square at distance at least `r` from the centre. Then the degree of `Γ` around the
+boundary of the square is the degree of the loop `ζ ↦ Γ (centre + r ζ)`. -/
+theorem squareBoundaryDegree_eq_degree_squareOfOffset {r : ℝ} (hr₀ : 0 ≤ r) (hr : r ≤ 1 / 2)
+    (hΓ : ContinuousOn Γ {y | r ≤ ‖squareCenterOffset y‖}) :
+    squareBoundaryDegree Γ = Circle.degree
+      (⟨fun ζ : Circle ↦ Γ (squareOfOffset (r * ζ)),
+        continuous_comp_squareOfOffset_mul hr₀ hr hΓ⟩ : C(Circle, Circle)).toBasedLoop :=
+  squareBoundaryDegree_eq_degree_toBasedLoop hr₀ hr hΓ _ fun ζ y hy ↦ by
+    simp [← hy]
 
 end TauCeti
