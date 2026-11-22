@@ -16,8 +16,10 @@ A. Hatcher, *Algebraic Topology*, §§2.1 and 3.3 (the class of a simplex,
 local orientations and fundamental classes along compact sets).
 
 All declarations of Tau Ceti and Mathlib named below were checked against the
-pinned versions (Tau Ceti `v4.37.0-rc1`, see `lakefile.toml`). Paths of Tau
-Ceti files are relative to `.lake/packages/TauCeti/TauCeti/`.
+pinned versions (Tau Ceti `v4.37.0-rc1`, see `lakefile.toml`), except those
+said to be on Tau Ceti's main branch, which were checked against its commit
+`464618e8a5`. Paths of Tau Ceti files are relative to
+`.lake/packages/TauCeti/TauCeti/`.
 
 ## What there is, and what is missing
 
@@ -31,8 +33,37 @@ Ceti files are relative to `.lake/packages/TauCeti/TauCeti/`.
   $v=F\partial_s+JF\partial_t$, for $J$-invariant $\omega$), and the
   tameness lemmas `Tames.stdComplexLineEnergyDensity_nonneg`, `_eq_zero_iff`.
   The integrated energy there, `stdComplexLineEnergy`, lives on
-  $\mathbb R^2$ with a measure; no energy of a map from a closed surface
-  exists.
+  $\mathbb R^2$ with a measure; the pinned version has no energy of a map
+  from a closed surface.
+- **The energy of a map from a surface, on Tau Ceti's main branch**
+  (`Geometry/Symplectic/Manifold/Energy/Surface.lean`, added after the pin
+  in commit `464618e8a5`), in `TauCeti.SmoothTwoForm`:
+  `energyForm ω J j u : RoughForm I' C ℝ 2`, the polarized two-term form
+  $c\mapsto\tfrac12\bigl(\omega(du\,jv,J\,du\,w)-\omega(du\,jw,J\,du\,v)\bigr)$,
+  with `energyForm_apply` (`@[simp]`), `energyForm_apply_frame`,
+  `energyForm_apply_frame_eq_stdComplexLineEnergyDensity` and
+  `energyForm_eq_mpullback_of_isPseudoholomorphicAt`;
+  `Tames.energyForm_apply_frame_nonneg`, `_pos`; the pointwise Wirtinger
+  inequality and its equality case
+  (`Compatible.mpullback_apply_frame_le_energyForm_apply_frame`,
+  `Compatible.energyForm_apply_frame_eq_mpullback_apply_frame_iff`);
+  `isSmoothForm_energyForm` (continuity for a `C¹` map);
+  `energy ω J j o u := integralTopForm o (ω.energyForm J j u)` with
+  `energy_def`; `energy_eq_integralTopForm_mpullback` (for
+  `∀ c, IsPseudoholomorphicAt j J u c`, the energy is
+  `integralTopForm o (mpullback I' I u ω.val)`); `Tames.energy_nonneg`,
+  `Tames.energy_eq_zero_iff` and `Tames.apply_eq_of_energy_eq_zero`;
+  `Compatible.integralTopForm_mpullback_le_energy` and
+  `Compatible.energy_eq_integralTopForm_mpullback_iff` (the Wirtinger
+  inequality on compact surfaces, with its equality case);
+  `energyForm_comp_apply`, `energy_comp_diffeomorph` and
+  `energy_comp_eq_degree_mul`. The same commit adds
+  `SmoothBundleForm.contMDiffAt_eval₂`
+  (`Geometry/Manifold/DifferentialForm/Smooth.lean`) and
+  `Diffeomorph.mfderiv_ne_zero` (`Geometry/Manifold/Diffeomorph/Basic.lean`),
+  which the file uses, and gives `SmoothAlmostComplexStructure.complexFrame`
+  the hypothesis `finrank ℝ (TangentSpace I c) = 2` in place of the pinned
+  orientation `o`. Everything else it imports is pinned (Decision 8).
 - **The Cauchy–Riemann operator, linearly**
   (`LinearAlgebra/Complex/LinearPart.lean`):
   `TauCeti.complexAntilinearPart J J' F` $=\tfrac12(F+J'\circ F\circ J)$ for
@@ -79,8 +110,10 @@ Ceti files are relative to `.lake/packages/TauCeti/TauCeti/`.
   smooth orientation, `TauCeti.Manifold.Orientation.toHomologicalOrientation`
   (`Orientation/Smooth.lean`), with `toHomologicalOrientation_neg`.
 
-Missing: an energy of maps from a closed surface, its identity, and any link
-between `integralTopForm` and fundamental classes. On Tau Ceti's main branch
+Missing, even on Tau Ceti's main branch: the first display of the milestone
+for maps that are not pseudoholomorphic (the $\bar\partial$ term), the
+reading of the energy through an area form and its independence of it, and
+any link between `integralTopForm` and fundamental classes. On Tau Ceti's main branch
 (after the pin), `Geometry/Manifold/SmoothSingular/Period.lean` pairs de Rham
 classes with integral *smooth* singular homology
 (`deRhamCohomology.smoothHomologyPeriod`, built on a version of
@@ -107,9 +140,20 @@ of Tau Ceti's roadmap that no one has started.
    $e\ne0$, so $\tfrac12\lvert L\rvert^2\,\mathrm{dvol}_\Sigma=\varepsilon_L$
    as top forms. The page's integrand is therefore $\varepsilon_{du}$, and
    independence of the area form is a pointwise identity. The energy is
-   defined as $\int_\Sigma\varepsilon_{du}$, and the page's
-   $\tfrac12\int\lvert du\rvert^2\mathrm{dvol}_\Sigma$ is proved equal to it
-   for every admissible area form.
+   Tau Ceti main's `energy`, the integral of its `energyForm`, and the
+   page's $\tfrac12\int\lvert du\rvert^2\mathrm{dvol}_\Sigma$ is proved equal
+   to it for every admissible area form. Tau Ceti's form
+   $\tfrac12\bigl(b(jv,w)-b(jw,v)\bigr)$ and the four-term
+   $\varepsilon_{du}$ are both alternating and agree on a frame $(e,je)$,
+   where each is $\tfrac12\bigl(b(e,e)+b(je,je)\bigr)$; on a plane they are
+   therefore equal (`energyForm_apply_eq_energyDensity`, by
+   `SmoothAlmostComplexStructure.topForm_ext`). On a source of another
+   dimension they differ, and only the four-term form is defined for a
+   linear map rather than for a map of manifolds. So the library keeps
+   `energyDensity` for the pointwise statements that Tau Ceti lacks (the
+   squared norm and the $\bar\partial$ identity, with `normSq` and
+   `Energy/Metric.lean`, which are merged), and passes to Tau Ceti's form
+   by that lemma; it defines no energy form of its own.
 2. **The pointwise identity is an identity of top forms.** For
    $J$-invariant $\omega$,
    $\varepsilon_L=2\,\varepsilon_{\bar\partial L}+L^*\omega_x$ with
@@ -123,9 +167,9 @@ of Tau Ceti's roadmap that no one has started.
    on positively oriented bases exactly when it is positive on every frame
    $(e,je)$, which is Tau Ceti's `dvol.Tames j`. The statements take
    `hdvol : dvol.Tames j`; no new predicate.
-4. **Regularity.** Integrals are added only for integrable forms, so the
-   part proves that $c\mapsto\varepsilon_{du_c}$ is a continuous form
-   (`IsSmoothForm I' 0`) for a $C^1$ map. The forms
+4. **Regularity.** Integrals are added only for integrable forms. Tau Ceti
+   main's `isSmoothForm_energyForm` says that the energy form of a $C^1$ map
+   is a continuous form (`IsSmoothForm I' 0`). The forms
    $c\mapsto\varepsilon_{\bar\partial(du_c)}$ and
    $c\mapsto\lvert du_c\rvert^2\mathrm{dvol}_\Sigma$ are then continuous by
    the identities of Decisions 1 and 2, since $u^*\omega$ is smooth.
@@ -169,6 +213,25 @@ of Tau Ceti's roadmap that no one has started.
    and for $U$ (both pinned): through the relative chains of the pairs of
    simplicial sets of smooth and of continuous simplices, and Tau Ceti's
    `SSetPair.quasiIso_chainComplexMap`; it is one lemma.
+8. **Tau Ceti main's energy is copied now.** Waiting for a move of Tau Ceti
+   would block issue 3 and the milestone for an unknown time, and defining
+   the library's own `energyForm` and `energy` would clash by name with Tau
+   Ceti at the next move. Everything that Tau Ceti's
+   `Energy/Surface.lean` imports is pinned, and checking the file against the
+   pin leaves three gaps: `SmoothBundleForm.contMDiffAt_eval₂` and
+   `Diffeomorph.mfderiv_ne_zero`, which the same commit adds to other Tau
+   Ceti files, and the hypothesis of the pinned `complexFrame` (an
+   orientation, where the file has only `finrank = 2`). So, as *Files* in
+   `AGENTS.md` says, the part copies the whole file to
+   `SymplecticGeometry/Geometry/Symplectic/Manifold/Energy/Surface.lean`
+   with Tau Ceti's header, and the two lemmas to the `FromTauCeti.lean`
+   siblings of the library's `DifferentialForm/Smooth.lean` and
+   `Diffeomorph/Basic.lean`. The one change to a proof is in
+   `energyForm_eq_mpullback_of_isPseudoholomorphicAt`, which builds the frame
+   $(e,je)$ as a basis from the pinned
+   `TauCeti.AlmostComplexStructure.linearIndependent_pair` instead of calling
+   `complexFrame`; the module docstring records it. A move of Tau Ceti past
+   `464618e8a5` deletes the three files.
 
 ## Conventions
 
@@ -205,7 +268,10 @@ of Tau Ceti's roadmap that no one has started.
 | `Geometry/Symplectic/Manifold/AlmostComplex/TopForm.lean` | top forms on a tangent plane of an almost complex surface: equality and ratios read on one frame $(e,je)$, without an orientation |
 | `LinearAlgebra/Complex/TopForm.lean` | the same on a real plane with a complex structure |
 | `Geometry/Symplectic/JHolomorphic/Energy/Metric.lean` | the squared norm read in $g_J$ |
-| `Geometry/Symplectic/JHolomorphic/Energy/Surface.lean` | the energy form and its continuity, the energy, the integrated identity, the pseudoholomorphic case, positivity |
+| `Geometry/Symplectic/Manifold/Energy/Surface.lean` | Tau Ceti main's file of that path, copied with Tau Ceti's header (Decision 8): the energy form and its continuity, the energy, the pseudoholomorphic case, positivity, the Wirtinger inequality |
+| `Geometry/Manifold/DifferentialForm/Smooth/FromTauCeti.lean` | Tau Ceti main's `SmoothBundleForm.contMDiffAt_eval₂`, for the file above |
+| `Geometry/Manifold/Diffeomorph/Basic/FromTauCeti.lean` | Tau Ceti main's `Diffeomorph.mfderiv_ne_zero`, for the file above |
+| `Geometry/Symplectic/JHolomorphic/Energy/Surface.lean` | Tau Ceti's energy form read through `energyDensity`, the energy through an area form, the integrated identity, zero energy and local constancy |
 | `AlgebraicTopology/SimplicialSet/Homology/RestrictScalars.lean` | the change of coefficients on simplicial chains along a restriction of scalars, `SSet.restrictScalarsChainMap` |
 | `Geometry/Manifold/SmoothSingular/SingularPeriod.lean` | the pairing of de Rham classes with integral singular homology |
 | `Geometry/Manifold/SmoothSingular/RelativeCycle.lean` | the relative step of Decision 7 |
@@ -217,7 +283,8 @@ of Tau Ceti's roadmap that no one has started.
 | `Geometry/Symplectic/JHolomorphic/Energy/Homology.lean` | topological invariance, minimality, the milestone |
 
 The `Energy/` folder sits beside Tau Ceti's folder of the same name, as
-`DESIGN.md` says. The files outside it are general manifold topology or linear algebra
+`DESIGN.md` says; the copy of Tau Ceti's file is in that folder of Tau
+Ceti's, under `Manifold/`. The files outside it are general manifold topology or linear algebra
 and are placed by topic.
 
 ## Definitions and their API
@@ -284,37 +351,44 @@ identity, which Tau Ceti proves for nondegenerate forms only. The lemmas of
   the metric $g_J$ as a Riemannian metric. Separate from `Density.lean` so
   that only this file waits for `Metric.lean`.
 
-### `Energy/Surface.lean`
+### `Manifold/Energy/Surface.lean` (from Tau Ceti main)
 
-- `TauCeti.SmoothTwoForm.energyForm (ω) (J) (j) (u : C → M) : RoughForm I' C ℝ 2`,
-  `fun c ↦ ω.energyDensity J j (mfderiv I' I u c)`, with `energyForm_apply`.
-- `isSmoothForm_energyForm (hu : ContMDiff I' I 1 u) : IsSmoothForm I' 0 (ω.energyForm J j u)`.
-  Proof in the trivializations of the alternating bundle: the coordinate
-  expression is a continuous multilinear expression in the coordinate
-  expressions of `mfderiv I' I u` (Mathlib's `ContMDiffAt.mfderiv`, in
-  tangent coordinates), of `j`, of `J ∘ u` and of `ω ∘ u`, as Tau Ceti's
-  `Regularity.lean` and `Continuity.lean` read forms in charts.
-- `TauCeti.SmoothTwoForm.energy (ω) (J) (j) (o) (u) : ℝ`,
-  `integralTopForm o (ω.energyForm J j u)`, with `energy_def`.
+The declarations listed under *What there is* for this file, with Tau
+Ceti's names, statements and namespace `TauCeti.SmoothTwoForm`. The part
+uses in particular `energyForm`, `energyForm_apply`,
+`isSmoothForm_energyForm`, `energy`, `energy_def`,
+`energy_eq_integralTopForm_mpullback` (the pseudoholomorphic case),
+`Tames.energy_nonneg`, `Tames.energy_eq_zero_iff` (for compact `C`, `ho`,
+`ω.Tames J` and `hu : ContMDiff I' I 1 u`,
+`ω.energy J j o u = 0 ↔ ∀ c, mfderiv I' I u c = 0`) and
+`Compatible.integralTopForm_mpullback_le_energy`. The copy changes only the
+proof of `energyForm_eq_mpullback_of_isPseudoholomorphicAt` (Decision 8).
+The two supporting lemmas go in the `FromTauCeti.lean` files of *Files*.
+Tau Ceti states the pullback as `mpullback I' I u ω.val`, and so does the
+rest of this design.
+
+### `JHolomorphic/Energy/Surface.lean`
+
+It imports the copy above and `Energy/Density.lean`, and defines nothing.
+
+- `energyForm_apply_eq_energyDensity`: on a plane (`h2 : finrank ℝ E' = 2`),
+  `ω.energyForm J j u c = ω.energyDensity J j (mfderiv I' I u c).toLinearMap`.
+  Both sides agree on a frame by `energyForm_apply_frame_eq_stdComplexLineEnergyDensity`
+  and `energyDensity_apply_complexFrame_eq_stdComplexLineEnergyDensity`, hence
+  everywhere by `SmoothAlmostComplexStructure.topForm_ext` (Decision 1).
 - `energy_eq_half_integralTopForm_normSq`: for `hdvol : dvol.Tames j`,
   `ω.energy J j o u = 1 / 2 * integralTopForm o (fun c ↦ ω.normSq J j dvol (mfderiv I' I u c) • dvol c)`.
   This is the independence of the area form: the left side has none.
 - `Invariant.energy_eq_integralTopForm_add`: for `ω.Invariant J`, compact `C`
   and `hdvol`,
-  `ω.energy J j o u = integralTopForm o (fun c ↦ ω.normSq J j dvol (complexAntilinearPart … (mfderiv I' I u c)) • dvol c) + integralTopForm o (SmoothForm.mpullback u hu ω).val`.
-- `energy_eq_integralTopForm_mpullback`: for `IsPseudoholomorphic j J u`,
-  `ω.energy J j o u = integralTopForm o (SmoothForm.mpullback u hu ω).val`
-  (the $\bar\partial$ term vanishes by
-  `isComplexLinear_iff_complexAntilinearPart_eq_zero`; no relation between
-  `ω` and `J` is needed, as in Tau Ceti's `stdComplexLineEnergy_eq_lintegral_twoForm`).
-- `Tames.energy_nonneg` (with `ho`), and `Tames.energy_eq_zero_iff`: for compact
-  `C`, `ho` and `ω.Tames J`, `ω.energy J j o u = 0 ↔ ∀ c, mfderiv I' I u c = 0`,
-  by `SmoothAlmostComplexStructure.integralTopForm_pos_of_forall_nonneg` and
-  the frame $(e,je)$ spanning the plane; with
-  `TauCeti.isLocallyConstant_of_mfderiv_eq_zero`
-  (`Geometry/Manifold/MFDeriv/Constancy.lean`) and its converse,
-  `Tames.energy_eq_zero_iff_isLocallyConstant`. This is the strict positivity
-  that `integralTopForm_mpullback_nonneg` does not give.
+  `ω.energy J j o u = integralTopForm o (fun c ↦ ω.normSq J j dvol (complexAntilinearPart … (mfderiv I' I u c)) • dvol c) + integralTopForm o (mpullback I' I u ω.val)`.
+- `Tames.energy_eq_zero_iff_isLocallyConstant`: for compact `C`, `ho`,
+  `ω.Tames J` and `hu`, `ω.energy J j o u = 0 ↔ IsLocallyConstant u`, from
+  Tau Ceti's `Tames.energy_eq_zero_iff`,
+  `MDifferentiable.isLocallyConstant_of_mfderiv_eq_zero`
+  (`Geometry/Manifold/MFDeriv/Constancy.lean`) and its converse. Tau Ceti's
+  `Tames.apply_eq_of_energy_eq_zero` is the connected case; the milestone
+  speaks of local constancy.
 - `Compatible.energy_identity`: the analytic half of the milestone, the
   conjunction, for compact `C`, `hc : ω.Compatible J` and every `dvol` taming
   `j`, of the first display (in the form of
@@ -418,14 +492,15 @@ With `oₕ` as above, `A` an integral class of $H_2(M)$, `hω : ω` closed, and
 $A$"):
 
 - `integralTopForm_mpullback_eq_singularHomologyPeriod`:
-  `integralTopForm o (SmoothForm.mpullback u hu ω).val = singularHomologyPeriod (mk ω) A`,
+  `integralTopForm o (mpullback I' I u ω.val) = singularHomologyPeriod (mk ω) A`,
   from `FundamentalClass.lean` for `u^* ω` and `singularHomologyPeriod_map`.
-- `energy_eq_singularHomologyPeriod`: for `IsPseudoholomorphic j J u`,
+- `energy_eq_singularHomologyPeriod`: for `∀ c, IsPseudoholomorphicAt j J u c`,
   `ω.energy J j o u = singularHomologyPeriod (mk ω) A`.
 - `Compatible.energy_le_energy`: for `hc`, `ho`, pseudoholomorphic `u` and
   any smooth `v : C → M` representing the same `A`,
-  `ω.energy J j o u ≤ ω.energy J j o v` (the $\bar\partial$ term of `v` is
-  nonnegative under `ho`).
+  `ω.energy J j o u ≤ ω.energy J j o v` (both areas are the period of `A`,
+  and Tau Ceti's `Compatible.integralTopForm_mpullback_le_energy` bounds
+  that of `v` by its energy).
 - `singularHomologyPeriod_pos`: for `hc`, `ho` and pseudoholomorphic `u`
   that is not locally constant, `0 < singularHomologyPeriod (mk ω) A`.
 - **Milestone** `Compatible.energy_identity_and_homology`: the conjunction of
@@ -439,7 +514,7 @@ $A$"):
 | pointwise identity | `TauCeti.SmoothTwoForm.Invariant.energyDensity_eq_two_smul_add` | `Density.lean` |
 | independence of the area form | `TauCeti.SmoothTwoForm.energy_eq_half_integralTopForm_normSq` | `Surface.lean` |
 | integrated identity | `TauCeti.SmoothTwoForm.Invariant.energy_eq_integralTopForm_add` | `Surface.lean` |
-| pseudoholomorphic case | `TauCeti.SmoothTwoForm.energy_eq_integralTopForm_mpullback` | `Surface.lean` |
+| pseudoholomorphic case | `TauCeti.SmoothTwoForm.energy_eq_integralTopForm_mpullback` (Tau Ceti main) | `Manifold/Energy/Surface.lean` |
 | zero energy | `TauCeti.SmoothTwoForm.Tames.energy_eq_zero_iff_isLocallyConstant` | `Surface.lean` |
 | integration against $[\Sigma]$ | `TauCeti.Manifold.Orientation.integralTopForm_eq_singularHomologyPeriod` | `DeRham/FundamentalClass.lean` |
 | the milestone | `TauCeti.SmoothTwoForm.Compatible.energy_identity_and_homology` | `Homology.lean` |
@@ -453,9 +528,9 @@ later.
 
 - From *Almost complex manifolds*: `Metric.lean` (`Compatible.metric`,
   `Compatible.metric_inner`), for `Energy/Metric.lean` only.
-- From Tau Ceti: the declarations of *What there is*.
-- From Mathlib: `ContMDiffAt.mfderiv` (smoothness of the derivative in
-  tangent coordinates), `SmoothPartitionOfUnity`,
+- From Tau Ceti: the declarations of *What there is*; those of its main
+  branch through the copies of Decision 8.
+- From Mathlib: `SmoothPartitionOfUnity`,
   `AlternatingMap.eq_smul_basis_det`, `IsLocallyConstant`.
 
 ## Building issues
@@ -465,11 +540,12 @@ Each is a few hundred lines; each is blocked by the issues it names.
 1. **Energy densities.** `Energy/Density.lean`, all of it, with
    `Manifold/AlmostComplex/TopForm.lean`, which it imports. About 350
    lines. No blockers.
-2. **Continuity of the energy form.** In `Energy/Surface.lean`:
-   `energyForm` and `isSmoothForm_energyForm`. About 300 lines. Blocked by 1.
-3. **The energy and its identity.** In `Energy/Surface.lean`: `energy`
-   and the rest of the file, with `Compatible.energy_identity`. About 350
-   lines. Blocked by 2.
+2. **Tau Ceti main's energy of a map from a surface.** The copy of
+   Decision 8: `Manifold/Energy/Surface.lean` and the two `FromTauCeti.lean`
+   files. About 550 lines, nearly all copied. No blockers. If a move of Tau
+   Ceti past `464618e8a5` comes first, the issue has nothing left to do.
+3. **The energy and its identity.** `JHolomorphic/Energy/Surface.lean`, all
+   of it, with `Compatible.energy_identity`. About 250 lines. Blocked by 2.
 4. **The squared norm in the metric of a compatible pair.**
    `Energy/Metric.lean`. About 80 lines. Blocked by 1 and #860.
 5. **Periods of closed forms on integral singular homology.**

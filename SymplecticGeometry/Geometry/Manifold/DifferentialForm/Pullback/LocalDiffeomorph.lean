@@ -15,15 +15,23 @@ import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 /-!
 # Pulling forms back along local diffeomorphisms
 
+For a `C^n` partial diffeomorphism `ψ` with `n ≠ 0`, pulling a form back along `ψ` and then
+along `ψ.symm` returns it at each point of the target of `ψ`
+(`PartialDiffeomorph.mpullback_symm_mpullback_apply`): by the chain rule, since `ψ ∘ ψ.symm`
+is the identity near such a point. The proof is the pointwise form of the proof of Tau Ceti's
+`TauCeti.mpullback_symm_mpullback` for diffeomorphisms, and adapts the last step of the proof of
+Tau Ceti's `IsLocalDiffeomorphAt.exists_partialDiffeomorph_mpullback_eq`. Applied to `ψ.symm`,
+it gives the other order, along `ψ.symm` and then along `ψ`, at each point of the source of `ψ`
+(`PartialDiffeomorph.mpullback_mpullback_symm_apply`).
+
 If a local diffeomorphism `f` at `x` pulls a form `ω` back to `η` at a point `Λ y`, where
 `Λ = hf.localInverse` and `y` lies in the source of `Λ`, then `Λ` pulls `η` back to `ω` at `y`
-(`IsLocalDiffeomorphAt.mpullback_localInverse_apply_eq`): the chain rule for `f ∘ Λ`, which is the
-identity near `y`. The proof adapts the last step of the proof of Tau Ceti's
-`IsLocalDiffeomorphAt.exists_partialDiffeomorph_mpullback_eq`. That theorem only gives some
-partial diffeomorphism, a restriction of `Λ`; the pointwise form keeps `Λ` itself, so that it is
-still known to invert `f`. The chain rule needs `f` to be differentiable at `Λ y`: it is a local
-diffeomorphism there, as on the whole target of `Λ`
-(`IsLocalDiffeomorphAt.isLocalDiffeomorphOn_localInverse_target`).
+(`IsLocalDiffeomorphAt.mpullback_localInverse_apply_eq`). Tau Ceti's
+`IsLocalDiffeomorphAt.exists_partialDiffeomorph_mpullback_eq` only gives some partial
+diffeomorphism, a restriction of `Λ`; the pointwise form keeps `Λ` itself, so that it is still
+known to invert `f`. Near `Λ y`, `f` agrees with `Λ.symm`
+(`IsLocalDiffeomorphAt.eqOn_localInverse_symm`), so this is
+`PartialDiffeomorph.mpullback_mpullback_symm_apply` for `Λ`.
 
 A `C^n` local diffeomorphism `f` with `2 ≤ n` also pulls a pair with `ι_Y dα = α` back to such a
 pair, for the pulled-back field and form
@@ -48,6 +56,23 @@ variable {E H M E' H' M' F : Type*}
   [NormedAddCommGroup F] [NormedSpace ℝ F]
   {k : ℕ} {n : WithTop ℕ∞} {f : M → M'} {x : M}
 
+/-- For a `C^n` partial diffeomorphism `ψ` with `n ≠ 0`, pulling a form `ω` back along `ψ` and
+then along `ψ.symm` gives `ω` back at every point of the target of `ψ`. -/
+theorem PartialDiffeomorph.mpullback_symm_mpullback_apply (ψ : PartialDiffeomorph I I' M M' n)
+    (hn : n ≠ 0) (ω : RoughForm I' M' F k) {y : M'} (hy : y ∈ ψ.target) :
+    mpullback I' I ψ.symm (mpullback I I' ψ ω) y = ω y := by
+  have hid : ψ ∘ ψ.symm =ᶠ[𝓝 y] id :=
+    eventually_of_mem (ψ.open_target.mem_nhds hy) fun z hz ↦ ψ.right_inv hz
+  rw [← mpullback_comp_at (ψ.symm.mdifferentiableAt hn hy)
+    (ψ.mdifferentiableAt hn (ψ.map_target hy)), hid.mpullback_eq, mpullback_id]
+
+/-- For a `C^n` partial diffeomorphism `ψ` with `n ≠ 0`, pulling a form `ω` back along `ψ.symm`
+and then along `ψ` gives `ω` back at every point of the source of `ψ`. -/
+theorem PartialDiffeomorph.mpullback_mpullback_symm_apply (ψ : PartialDiffeomorph I I' M M' n)
+    (hn : n ≠ 0) (ω : RoughForm I M F k) {x : M} (hx : x ∈ ψ.source) :
+    mpullback I I' ψ (mpullback I' I ψ.symm ω) x = ω x :=
+  ψ.symm.mpullback_symm_mpullback_apply hn ω hx
+
 namespace IsLocalDiffeomorphAt
 
 /-- Let `f` be a `C^n` local diffeomorphism at `x`, `n ≠ 0`, with local inverse `Λ`, and let `y`
@@ -57,16 +82,12 @@ theorem mpullback_localInverse_apply_eq (hf : IsLocalDiffeomorphAt I I' n f x) (
     {ω : RoughForm I' M' F k} {η : RoughForm I M F k} {y : M'} (hy : y ∈ hf.localInverse.source)
     (hfω : mpullback I I' f ω (hf.localInverse y) = η (hf.localInverse y)) :
     mpullback I' I hf.localInverse η y = ω y := by
-  have hid : f ∘ hf.localInverse =ᶠ[𝓝 y] id :=
-    eventually_of_mem (hf.localInverse.open_source.mem_nhds hy) hf.localInverse_eqOn_right
-  calc mpullback I' I hf.localInverse η y
-      = mpullback I' I hf.localInverse (mpullback I I' f ω) y :=
-        ContinuousAlternatingMap.ext fun v ↦ by rw [mpullback_apply, mpullback_apply, hfω]
-    _ = mpullback I' I' (f ∘ hf.localInverse) ω y :=
-        (mpullback_comp_at (hf.localInverse.mdifferentiableAt hn hy)
-          ((hf.isLocalDiffeomorphOn_localInverse_target
-            ⟨_, hf.localInverse.map_source hy⟩).mdifferentiableAt hn) ω).symm
-    _ = ω y := by rw [hid.mpullback_eq, mpullback_id]
+  have hf' : f =ᶠ[𝓝 (hf.localInverse y)] hf.localInverse.symm :=
+    eventually_of_mem (hf.localInverse.open_target.mem_nhds (hf.localInverse.map_source hy))
+      hf.eqOn_localInverse_symm
+  rw [← hf.localInverse.mpullback_mpullback_symm_apply hn ω hy]
+  ext v
+  rw [mpullback_apply, mpullback_apply, ← hfω, hf'.mpullback_eq]
 
 end IsLocalDiffeomorphAt
 

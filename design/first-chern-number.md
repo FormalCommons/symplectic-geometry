@@ -300,6 +300,7 @@ complex ones that `chernNumber_congr` takes.
   nondegenerate, so that a compatible complex structure exists.
 - The file imports `Geometry/Manifold/VectorBundle/Symplectic/FirstChernClass.lean`
   of *First Chern class of nondegenerate forms*; `Tames.chernNumber_eq`,
+  `symplecticChernNumber_neg`,
   `symplecticChernNumber_congr` and `symplecticChernNumber_pullback` follow
   from the first-Chern-class lemmas there.
 
@@ -819,7 +820,14 @@ issues, in an order where each issue's blockers come before it.
    `U ∩ V`, both assume `Hⁿ⁺¹_c(U ∩ V; L) = 0`, which injectivity needs in
    the top degree; `TopCat.isZero_compactSupportCohomology_sup`, in the
    library's `AlgebraicTopology/Cohomology/CompactSupport/Vanishing.lean`,
-   passes that vanishing on to `U ∪ V`. The step uses
+   passes that vanishing on to `U ∪ V`, and
+   `TopCat.isZero_compactSupportCohomology_of_iSup_eq_top`, in the same
+   file, to a directed union of open sets. The vanishing starts from
+   `AlgebraicTopology/Cohomology/CompactSupport/Euclidean/Basic.lean`,
+   `TopCat.isZero_compactSupportCohomology_of_starConvex` and
+   `isZero_compactSupportCohomology_of_convex`: `Hᵏ_c(U) = 0` for
+   `k ≠ dim F` when `U` embeds openly in `F` with star-convex or convex
+   image. The step uses
    `Topology/Sets/Opens/Comap.lean`,
    `TopologicalSpace.Opens.range_val_comp_val_comap`, to read an open set of
    `M` as one of `U ∪ V`, and `Algebra/Category/ModuleCat/Basic.lean`,
@@ -828,18 +836,19 @@ issues, in an order where each issue's blockers come before it.
    `F` is the library's
    `AlgebraicTopology/Cohomology/CompactSupport/Euclidean/Duality.lean`:
    `TauCeti.HomologicalOrientation.bijective_dualityMap_of_isOpenEmbedding`,
-   for an open embedding `j : U → F` and any orientation of `U`. The same
-   file has `TopCat.isZero_compactSupportCohomology_of_isOpenEmbedding`,
-   `Hᵐ_c(U) = 0` for `m > dim F`, which the step to compact manifolds needs
-   for the intersections. Both run Mayer–Vietoris over finite unions of open
-   sets of `U` with bounded convex images, by Tau Ceti's
-   `TauCeti.finset_sup_of_inf_closed`; such a set is empty or homeomorphic
-   to `F`, by
-   `Convex.nonempty_homeomorph_of_isOpen_of_isBounded`
-   (`Analysis/Convex/GaugeRescale.lean`). `Vanishing.lean` has the vanishing
-   for the empty space, `TopCat.isZero_compactSupportCohomology_of_isEmpty`,
-   and for directed unions,
-   `TopCat.isZero_compactSupportCohomology_of_iSup_eq_top`.
+   for an open embedding `j : U → F` and any orientation of `U`. It uses
+   `TopCat.isZero_compactSupportCohomology_of_isOpenEmbedding`, in
+   `Euclidean/Basic.lean`, `Hᵐ_c(U) = 0` for `m > dim F`, which the step to
+   compact manifolds needs too, for the intersections. Both run
+   Mayer–Vietoris over finite unions of open sets of `U` with convex images,
+   starting from `isZero_compactSupportCohomology_of_convex` and Tau Ceti's
+   `bijective_dualityMap_of_convex`. Those open sets come from
+   `Analysis/Convex/Opens.lean`:
+   `TopologicalSpace.Opens.infClosed_setOf_convex_image` and
+   `Topology.IsOpenEmbedding.iSup_finset_sup_convex_image_eq_top`. The
+   induction is `InfClosed.finset_sup_induction`, in `Order/SupClosed.lean`,
+   Tau Ceti's `TauCeti.finset_sup_of_inf_closed` for a finite set of members
+   of the family.
 3. **The unit circle bundle of a Hermitian line bundle.**
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`, the file
    of *Symplectic vector bundles* (its section *The circle bundle of a

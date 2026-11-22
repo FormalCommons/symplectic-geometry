@@ -8,6 +8,7 @@ module
 public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.DirectedUnion
 public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.MayerVietoris
 public import TauCeti.AlgebraicTopology.Cohomology.Point
+public import SymplecticGeometry.Topology.Sets.Opens
 
 /-!
 # Invariance and vanishing of cohomology with compact supports
@@ -15,25 +16,26 @@ public import TauCeti.AlgebraicTopology.Cohomology.Point
 A homeomorphism `e : X ≃ₜ Y` induces an isomorphism `Hᵐ_c(Y) ≅ Hᵐ_c(X)`, by pulling back along
 the proper maps `e` and `e.symm`. The Mayer–Vietoris sequence of an open cover `X = U ∪ V` shows
 that `Hᵐ_c(X)` vanishes once `Hᵐ_c(U)`, `Hᵐ_c(V)` and `Hᵐ⁺¹_c(U ∩ V)` do, and the same holds for
-the union of two open sets of a Hausdorff space. Vanishing also passes to a directed union of open
-sets, since every compactly supported class comes from a member.
+the union of two open sets of a Hausdorff space. Since every class of `Hᵐ_c(X)` is extended from a
+member of a directed open cover, `Hᵐ_c(X)` also vanishes once it vanishes on every member.
 
 ## Main results
 
 * `TopCat.compactSupportCohomologyIsoOfHomeomorph`: the isomorphism `Hᵐ_c(Y) ≅ Hᵐ_c(X)`.
-* `TopCat.isZero_compactSupportCohomology_of_isEmpty`: `Hᵐ_c` of the empty space vanishes.
 * `TopCat.isZero_compactSupportCohomology_iff_of_homeomorph`: vanishing of `Hᵐ_c` is invariant
   under homeomorphisms.
-* `TopCat.isZero_compactSupportCohomology_of_iSup_eq_top`: vanishing of `Hᵐ_c` passes to directed
-  unions of open sets.
+* `TopCat.isZero_compactSupportCohomology_of_isEmpty`: `Hᵐ_c` of the empty space vanishes.
 * `TopCat.isZero_compactSupportCohomology_of_sup_eq_top` and
   `TopCat.isZero_compactSupportCohomology_sup`: vanishing of `Hᵐ_c` passes from `U`, `V` and
   `U ∩ V` to `U ∪ V`.
+* `TopCat.isZero_compactSupportCohomology_of_iSup_eq_top`: vanishing of `Hᵐ_c` passes from the
+  members of a directed open cover to the whole space.
 
 ## References
 
 * A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Section 3.3, the
-  Mayer–Vietoris sequence for cohomology with compact supports in the proof of Lemma 3.36.
+  Mayer–Vietoris sequence for cohomology with compact supports in the proof of Lemma 3.36, and
+  step (B) of the proof of Theorem 3.35 (increasing unions of open sets).
 -/
 
 public section
@@ -84,12 +86,6 @@ theorem isZero_compactSupportCohomology_iff_of_homeomorph {X Y : TopCat.{v}} (e 
   ⟨fun h ↦ h.of_iso (compactSupportCohomologyIsoOfHomeomorph R k N e m),
     fun h ↦ h.of_iso (compactSupportCohomologyIsoOfHomeomorph R k N e m).symm⟩
 
-/-- Cohomology with compact supports of the empty space vanishes in every degree. -/
-theorem isZero_compactSupportCohomology_of_isEmpty (X : TopCat.{v}) [IsEmpty X] (m : ℕ) :
-    IsZero (X.compactSupportCohomology R k N m) :=
-  (TauCeti.isZero_singularCohomology_of_isEmpty R k N X m).of_iso
-    (compactSupportCohomologyIsoOfCompactSpace m)
-
 /-- **Vanishing of cohomology with compact supports along a cover by two open sets.** If the
 Hausdorff space `X` is the union of open sets `U` and `V` with `Hᵐ_c(U) = 0`, `Hᵐ_c(V) = 0` and
 `Hᵐ⁺¹_c(U ∩ V) = 0`, then `Hᵐ_c(X) = 0`. -/
@@ -102,21 +98,29 @@ theorem isZero_compactSupportCohomology_of_sup_eq_top {X : TopCat.{v}} [T2Space 
   (compactSupportCohomologyMayerVietoris_exact₃ R k N U V hUV m (m + 1)).isZero_X₂
     (((biprod_isZero_iff _ _).2 ⟨hU, hV⟩).eq_of_src _ _) (hW.eq_of_tgt _ _)
 
-/-- **Vanishing of cohomology with compact supports on a directed union.** If the Hausdorff space
-`X` is the union of a directed family of open sets `U i` with `Hᵐ_c(U i) = 0` for all `i`, then
-`Hᵐ_c(X) = 0`. -/
+/-- Cohomology with compact supports of the empty space vanishes in every degree. -/
+theorem isZero_compactSupportCohomology_of_isEmpty (X : TopCat.{v}) [IsEmpty X] (m : ℕ) :
+    IsZero (X.compactSupportCohomology R k N m) :=
+  (TauCeti.isZero_singularCohomology_of_isEmpty R k N X m).of_iso
+    (compactSupportCohomologyIsoOfCompactSpace (R := R) (k := k) (M := N) m)
+
+/-- **Vanishing of cohomology with compact supports along a directed open cover.** If the
+Hausdorff space `X` is the union of a monotone family of open sets `U i`, indexed by a directed
+preorder, with `Hᵐ_c(U i) = 0` for every `i`, then `Hᵐ_c(X) = 0`. -/
 theorem isZero_compactSupportCohomology_of_iSup_eq_top {X : TopCat.{v}} [T2Space X] {ι : Type*}
-    [Preorder ι] [IsDirected ι (· ≤ ·)] [Nonempty ι] {U : ι → Opens X} (hU : Monotone U)
+    [Preorder ι] [IsDirected ι (· ≤ ·)] {U : ι → Opens X} (hU : Monotone U)
     (hcover : ⨆ i, U i = ⊤) {m : ℕ}
     (h : ∀ i, IsZero (((Opens.toTopCat X).obj (U i)).compactSupportCohomology R k N m)) :
     IsZero (X.compactSupportCohomology R k N m) := by
-  suffices h0 : ∀ x : X.compactSupportCohomology R k N m, x = 0 by
-    have : Subsingleton (X.compactSupportCohomology R k N m) := ⟨fun x y ↦ by rw [h0 x, h0 y]⟩
-    exact ModuleCat.isZero_of_subsingleton _
+  rcases isEmpty_or_nonempty ι with hι | hι
+  · have : IsEmpty X := Opens.isEmpty_of_iSup_eq_top hcover
+    exact isZero_compactSupportCohomology_of_isEmpty R k N X m
+  refine ModuleCat.isZero_iff_subsingleton.2 ⟨fun a b ↦ ?_⟩
+  suffices ∀ x : X.compactSupportCohomology R k N m, x = 0 by rw [this a, this b]
   intro x
-  -- Every class comes from some `Hᵐ_c(U i)`, which vanishes.
   obtain ⟨i, z, rfl⟩ := exists_compactSupportCohomologyExtend_eq_of_iSup_eq_top hU hcover x
-  rw [(ModuleCat.subsingleton_of_isZero (h i)).elim z 0, map_zero]
+  have := ModuleCat.subsingleton_of_isZero (h i)
+  rw [Subsingleton.elim z 0, map_zero]
 
 variable {X : Type v} [TopologicalSpace X]
 
