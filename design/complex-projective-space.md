@@ -200,12 +200,12 @@ as the form of $\mathbb CP^1$.
   coordinate $w=(x_1+ix_2)/(1+x_3)$.
 - **The area of a line** is an integral of a top form over Tau Ceti's
   oriented $\mathbb CP^1$: with
-  `projectiveLineOrientation := (TauCeti.complexManifoldOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ))).reindex (finCongr h)`
-  (in `Instances/OnePoint.lean`),
-  `h : 2 * finrank ℂ (Fin 1 → ℂ) = 2`, a line is the image of
+  `o := complexCurveOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ))`, the
+  orientation `TauCeti.complexManifoldOrientation` reindexed to `Fin 2`
+  (in `Geometry/Manifold/Complex/Orientation.lean`), a line is the image of
   `Projectivization.map f hf` for an injective
   `f : (Fin 2 → ℂ) →ₗ[ℂ] (Fin (n + 1) → ℂ)`, and its area is
-  `TauCeti.integralTopForm projectiveLineOrientation (mpullback (map f hf) (fubiniStudyForm n)).val`.
+  `TauCeti.integralTopForm o (mpullback (map f hf) (fubiniStudyForm n)).val`.
   It is $\pi$: on $\mathbb CP^1$ itself by change of variables along
   `sphereToProjectiveLine` and the $4\pi$ of the round sphere; for every
   line by writing $f=A\circ g$ with $A$ with orthonormal columns
@@ -319,6 +319,18 @@ need no cast by `modelWithCornersSelf_restrictScalars`.
 path of Tau Ceti's file whose `Diffeomorph.restrictScalars` it restates for
 the trivial models.
 
+### `Geometry/Manifold/Complex/Orientation.lean`
+
+In namespace `SymplecticGeometry`: `complexCurveOrientation E M h`, for a
+complex manifold `M` modelled on `𝓘(ℂ, E)` with `h : finrank ℂ E = 1`
+(by default `by simp`), the canonical orientation
+`TauCeti.complexManifoldOrientation E M` reindexed from
+`Fin (2 * finrank ℂ E)` to `Fin 2`, with `complexCurveOrientation_def`,
+`orientationAt_complexCurveOrientation` (the complex orientation of `E`,
+reindexed), and, in namespace `Diffeomorph`,
+`isOrientationPreservingAt_complexCurveOrientation` (biholomorphisms
+preserve it). `Instances/OnePoint.lean` imports it.
+
 ### `Geometry/Manifold/Instances/OnePoint.lean`
 
 In namespace `OnePoint`, for the Riemann sphere read as a real surface:
@@ -329,13 +341,9 @@ In namespace `OnePoint`, for the Riemann sphere read as a real surface:
 `hasFDerivAt_coe_diffeomorphSphere_coe` (the derivative of
 `diffeomorphSphere v ι` on `ℂ`, for any `v` and `ι`),
 `ofTopForm_fubiniStudyForm` (the orientation of `fubiniStudyForm` is
-`riemannSphereOrientation`), and
+`complexCurveOrientation ℂ (OnePoint ℂ)`), and
 `isOrientationPreservingAt_equivProjectivization` (for the complex
-orientations on both sides). In namespace `SymplecticGeometry`:
-`riemannSphereOrientation` (the canonical orientation of `OnePoint ℂ` as a
-complex manifold, reindexed to `Fin 2`),
-`projectiveLineOrientation` (the canonical orientation of `ℙ ℂ (Fin 2 → ℂ)`
-as a complex manifold, reindexed to `Fin 2`), `northPole`,
+orientations on both sides). In namespace `SymplecticGeometry`: `northPole`,
 `equatorIsometry` and their lemmas, and
 `mpullback_diffeomorphSphere_sphereVolumeForm` (the round area form pulls
 back to `(4 * Real.pi) • OnePoint.fubiniStudyForm`) with its `_symm_` form.
@@ -346,8 +354,8 @@ back to `(4 * Real.pi) • OnePoint.fubiniStudyForm`) with its `_symm_` form.
 Taken from Tau Ceti's main branch, with Tau Ceti's header, as *Files* in
 `AGENTS.md` says, in the sibling `FromTauCeti.lean` of the library's own
 `Orientation/Preserving.lean`: `TauCeti.Manifold.Orientation.IsOrientationPreservingAt.reindex`,
-which the pinned version lacks, for the reindexed orientation `projectiveLineOrientation`.
-`Instances/OnePoint.lean` imports it.
+which the pinned version lacks, for the reindexed orientation `complexCurveOrientation`.
+`Complex/Orientation.lean` imports it.
 
 ### `Geometry/Manifold/Orientation/Sphere.lean`
 
@@ -522,12 +530,13 @@ Mathlib's `LinearAlgebra/Matrix/ToLin.lean`, where `Matrix.toLin'` lives.
   ($[1+x_3:x_1+ix_2]$), `sphereToProjectiveLine_of_ne_northPole`
   ($[x_1-ix_2:1-x_3]$),
   `isOrientationPreservingAt_sphereToProjectiveLine` (for
-  `o₃.sphereOrientation` and `projectiveLineOrientation`), and
+  `o₃.sphereOrientation` and
+  `complexCurveOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ))`), and
   `mpullback_sphereToProjectiveLine_fubiniStudyForm` (part 4, stereographic
   sentence), from `mpullback_diffeomorphSphere_sphereVolumeForm` and
   `mpullback_equivProjectivization_fubiniStudyForm`.
-- `integralTopForm_fubiniStudyForm_one : integralTopForm projectiveLineOrientation
-  (fubiniStudyForm 1).val = Real.pi`.
+- `integralTopForm_fubiniStudyForm_one : integralTopForm
+  (complexCurveOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ))) (fubiniStudyForm 1).val = Real.pi`.
 - `integralTopForm_mpullback_map_fubiniStudyForm (f) (hf : Injective f)`:
   every line has area `Real.pi` (part 4, last sentence).
 

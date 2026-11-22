@@ -219,6 +219,9 @@ Further choices of this design:
 | `Analysis/Calculus/DifferentialForm/Poincare.lean` | a closed form on a star-convex open set, vanishing on a compact star-convex subset, has a global primitive near it that vanishes on it (named like Tau Ceti's file) |
 | `Topology/MetricSpace/ProperSpace/Lemmas.lean` | in a proper pseudometric space, an open set containing a closed ball contains a larger ball, open or closed (used by `Ball/Basic.lean`, `Ball/Moser.lean` and *First Chern number*'s `DiscComplement/Basic.lean`; named like Mathlib's file) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean` | `IsSymplecticBallEmbedding`, `IsSymplecticBallFamily`, enlarging a symplectic ball |
+| `Geometry/Manifold/LocalDiffeomorph/RightInverse.lean` | a first-order right inverse near a compact set, and the correction of the ends of a family of maps out of a normed space (used by `Ball/Interpolation.lean`) |
+| `Geometry/Manifold/MFDeriv/UniqueDifferential.lean` | maps that agree on a set of unique differentiability have the same differential there (used by `Ball/Interpolation.lean`) |
+| `Geometry/Symplectic/IsotopyExtension/Ball/Interpolation.lean` | a family that agrees with `e` along `B(λ)` and pulls the form back to `ω₀` there, with prescribed ends (steps 1 and 2 of `Ball/Isotopy.lean`) |
 | `Geometry/Manifold/ContMDiff/Opens.lean` | a map that agrees, on a parameter space times an open subset, with a smooth map there is smooth there, and a map composed there with a smooth map of that subset over the parameter space is smooth there (used by `Ball/Moser.lean`, and the first by `DeRham/FamilyPrimitive.lean` and `VectorBundle/Tangent/Opens.lean`) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Moser.lean` | Moser's correction of a family of balls with a parameter (step 3 of `Ball/Isotopy.lean`) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Isotopy.lean` | the Hamiltonian ball extension and the milestone *Symplectic ball extension* |
@@ -694,6 +697,13 @@ The route keeps the times of `e` exactly:
    family $k_t=k'_t\circ g_t$ is still right along $B(\lambda)$, and
    $k_0=j_0$, $k_1=j_1$ near $B(\lambda)$. For $\lambda>0$ this is the
    source's Theorem A.2.1(iii) step, which keeps both ends.
+   Steps 1 and 2 are
+   `IsSymplecticBallFamily.exists_contMDiffOn_eqOn_mpullback_eq`, in
+   `Ball/Interpolation.lean`, which needs `ω` only nondegenerate. For
+   $\lambda>0$ it takes $k'=e$, whose ends agree with $j_0$ and $j_1$ to first
+   order on $B(\lambda)$, so that case needs no `Ψ`.
+   Step 2 is `exists_contMDiffOn_forall_eq_mfderiv_eq`, for maps out of any
+   finite-dimensional normed space, in `Geometry/Manifold/LocalDiffeomorph/RightInverse.lean`.
 3. *Make it symplectic.* This step is
    `exists_isSymplecticBallFamily_eqOn_of_mpullback_eq`, in
    `Ball/Moser.lean`. `Moser/Family.lean`, with $\beta_t$ the
@@ -926,6 +936,9 @@ this design already follows. `Ball/Isotopy.lean` cites
   `TauCeti.contMDiff_timeDependentFlowOf_param`, a lemma this part adds
   there. `Extension.lean` imports `Diffeotopy/Real.lean` too, to restrict
   its family over `ℝ` to a `Diffeotopy`.
+  `Ball/Interpolation.lean` imports its
+  `Geometry/Manifold/DifferentialForm/Pullback/Smooth.lean` for
+  `TauCeti.mpullback_apply_eq_of_mfderiv_eq`, a lemma this part adds there.
 - *Hamiltonian flows*: in `DeRham/FamilyPrimitive.lean`, the smooth primitive of a
   smooth family of exact one-forms over $[0,1]$, which that part's design
   (`design/hamiltonian-flows.md`, Decision 4) builds on chart balls and glues
