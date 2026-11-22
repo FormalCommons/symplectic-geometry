@@ -25,8 +25,9 @@ the direct sum `⨁ k, H^{2k}(X; ℤ)` is a commutative ring. This file builds i
   `evenIntegralCohomologyOf_mul` and `evenIntegralCohomologyOf_one`.
 * `TopCat.evenIntegralCohomologyMap f`: the ring map induced by a continuous map `f : X ⟶ Y`,
   the pull-back in each degree, with `evenIntegralCohomologyMap_of`,
-  `evenIntegralCohomologyMap_apply` (its degree-`k` component), `evenIntegralCohomologyMap_id`
-  and `evenIntegralCohomologyMap_comp`.
+  `evenIntegralCohomologyMap_toAddMonoidHom` (as an additive map, the direct sum of the
+  pull-backs), `evenIntegralCohomologyMap_apply` (its degree-`k` component),
+  `evenIntegralCohomologyMap_id` and `evenIntegralCohomologyMap_comp`.
 
 The ring map preserves the unit by `TopCat.singularCohomologyMap_integralCohomologyOne`, the
 pull-back of the unit class, which Tau Ceti does not state; its proof reads the definition of
@@ -72,12 +73,14 @@ instance gMul : GradedMonoid.GMul fun k : ℕ ↦ ↥(X.integralCohomology (2 * 
   mul := fun {i j} a b ↦ X.integralCup (2 * i) (2 * j) (2 * (i + j)) (by ring) a b
 
 /-- The unit of the graded structure is the unit class. -/
+@[simp]
 theorem gOne_one :
     (GradedMonoid.GOne.one (A := fun k : ℕ ↦ ↥(X.integralCohomology (2 * k)))) =
       X.integralCohomologyOne :=
   (rfl)
 
 /-- The multiplication of the graded structure is the integral cup product. -/
+@[simp]
 theorem gMul_mul {i j : ℕ} (a : X.integralCohomology (2 * i)) (b : X.integralCohomology (2 * j)) :
     GradedMonoid.GMul.mul (A := fun k : ℕ ↦ ↥(X.integralCohomology (2 * k))) a b =
       X.integralCup (2 * i) (2 * j) (2 * (i + j)) (by ring) a b :=
@@ -114,13 +117,10 @@ instance gCommRing : DirectSum.GCommRing fun k : ℕ ↦ ↥(X.integralCohomolog
 end EvenIntegralCohomology
 
 /-- The **even integral cohomology ring** `⨁ k, H^{2k}(X; ℤ)` of a space `X`, indexed by half the
-degree. With the integral cup product it is a commutative ring. -/
+degree. With the integral cup product it is a commutative ring, by Mathlib's instance
+`DirectSum.commRing` for the graded structure `EvenIntegralCohomology.gCommRing`. -/
 abbrev EvenIntegralCohomology : Type :=
   ⨁ k : ℕ, ↥(X.integralCohomology (2 * k))
-
-/-- The even integral cohomology ring is a commutative ring under the cup product. -/
-instance : CommRing X.EvenIntegralCohomology :=
-  DirectSum.commRing fun k : ℕ ↦ ↥(X.integralCohomology (2 * k))
 
 /-- The inclusion of `H^{2k}(X; ℤ)` into the even integral cohomology ring. -/
 abbrev evenIntegralCohomologyOf (k : ℕ) :
@@ -134,7 +134,7 @@ theorem evenIntegralCohomologyOf_mul {i j : ℕ} (a : X.integralCohomology (2 * 
     X.evenIntegralCohomologyOf i a * X.evenIntegralCohomologyOf j b =
       X.evenIntegralCohomologyOf (i + j)
         (X.integralCup (2 * i) (2 * j) (2 * (i + j)) (by ring) a b) := by
-  rw [DirectSum.of_mul_of, EvenIntegralCohomology.gMul_mul]
+  simp [DirectSum.of_mul_of]
 
 /-- The unit class in degree `0` is the unit of the even integral cohomology ring. -/
 theorem evenIntegralCohomologyOf_one :
@@ -175,19 +175,19 @@ theorem evenIntegralCohomologyMap_of (f : X ⟶ Y) (k : ℕ) (a : Y.integralCoho
   simp only [evenIntegralCohomologyMap, DirectSum.toSemiring_of, AddMonoidHom.comp_apply,
     LinearMap.toAddMonoidHom_coe]
 
+/-- As an additive map, the ring map induced by `f` is the direct sum of the pull-backs along `f`
+in each degree. -/
+theorem evenIntegralCohomologyMap_toAddMonoidHom (f : X ⟶ Y) :
+    (evenIntegralCohomologyMap f).toAddMonoidHom =
+      DirectSum.map fun k ↦ (TopCat.singularCohomologyMap f (2 * k)).hom.toAddMonoidHom :=
+  DirectSum.addHom_ext fun k a ↦ by simp
+
 /-- The degree-`k` component of the image of a class under the ring map induced by `f` is the
 pull-back of its degree-`k` component. -/
 @[simp]
 theorem evenIntegralCohomologyMap_apply (f : X ⟶ Y) (x : Y.EvenIntegralCohomology) (k : ℕ) :
-    evenIntegralCohomologyMap f x k = TopCat.singularCohomologyMap f (2 * k) (x k) := by
-  induction x using DirectSum.induction_on with
-  | zero => simp
-  | of i a =>
-    rw [evenIntegralCohomologyMap_of]
-    obtain rfl | hik := eq_or_ne i k
-    · simp
-    · rw [DirectSum.of_eq_of_ne _ _ _ hik.symm, DirectSum.of_eq_of_ne _ _ _ hik.symm, map_zero]
-  | add x y hx hy => simp [hx, hy]
+    evenIntegralCohomologyMap f x k = TopCat.singularCohomologyMap f (2 * k) (x k) :=
+  congr($(evenIntegralCohomologyMap_toAddMonoidHom f) x k)
 
 /-- The ring map induced by the identity is the identity. -/
 @[simp]
