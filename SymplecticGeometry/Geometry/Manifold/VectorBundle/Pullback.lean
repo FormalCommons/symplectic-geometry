@@ -5,12 +5,15 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
+public import Mathlib.Geometry.Manifold.Immersion
 public import Mathlib.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
+public import TauCeti.Geometry.Manifold.VectorBundle.Subbundle
 public import SymplecticGeometry.Topology.VectorBundle.Pullback
 
 /-!
-# Sections of the alternating bundle of a pull-back
+# Sections of the alternating and bilinear bundles of a pull-back
 
 Let `V` be a vector bundle over `B` and `f : X → B` a `C^n` map. A family
 `A x : V (f x) [⋀^ι]→L[𝕜] G` of alternating maps with values in a fixed normed space `G` can be
@@ -23,6 +26,19 @@ proof follows Tau Ceti's: near a point, Mathlib's `contMDiffAt_continuousAlterna
 reduces both sides to coordinate expressions, which agree on a neighbourhood by
 `ContinuousAlternatingMap.inCoordinates_pullback_trivial_of_mem`
 (`SymplecticGeometry.Topology.VectorBundle.Pullback`).
+
+In the same way, a family `β x` of continuous bilinear forms on `V (f x)` is a `C^n` section of
+the bundle of bilinear forms on `f *ᵖ V` exactly when `x ↦ ⟨f x, β x⟩` is `C^n` into the bundle
+of bilinear forms on `V` (`Bundle.Pullback.contMDiff_bilinear_section_iff`). The proof is again
+that of Tau Ceti's `Bundle.Pullback.contMDiff_hom_section_iff`, the two coordinate expressions
+agreeing near each point by Mathlib's `inCoordinates_apply_eq₂`.
+
+Finally, for a `C^∞` map `f : Q → M`, the derivative `(q, v) ↦ (q, df_q v)` is a `C^∞` map from
+the tangent bundle of `Q` to the pull-back `f *ᵖ TM`
+(`Bundle.Pullback.contMDiff_totalSpace_mfderiv`). When `f` is moreover an immersion, the tangent
+images `df_q(T_q Q)` have `C^∞` local frames in `f *ᵖ TM`
+(`Bundle.Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv`), by Tau Ceti's constant-rank
+criterion `TauCeti.hasLocalContMDiffSubbundleFrames_of_contMDiff_totalSpace_range`.
 
 ## References
 
@@ -81,5 +97,115 @@ theorem contMDiff_continuousAlternatingMap_section_iff [Fintype ι] (f : K)
     exact ⟨contMDiffAt_id, hx.2.congr_of_eventuallyEq (heq x)⟩
 
 end Bundle.Pullback
+
+section Bilinear
+
+variable {𝕜 B X F K EB HB EX HX : Type*} [NontriviallyNormedField 𝕜]
+  [NormedAddCommGroup EB] [NormedSpace 𝕜 EB] [TopologicalSpace HB]
+  {IB : ModelWithCorners 𝕜 EB HB} [TopologicalSpace B] [ChartedSpace HB B]
+  [NormedAddCommGroup EX] [NormedSpace 𝕜 EX] [TopologicalSpace HX]
+  {IX : ModelWithCorners 𝕜 EX HX} [TopologicalSpace X] [ChartedSpace HX X]
+  [NormedAddCommGroup F] [NormedSpace 𝕜 F] {V : B → Type*}
+  [∀ b, AddCommGroup (V b)] [∀ b, Module 𝕜 (V b)] [∀ b, TopologicalSpace (V b)]
+  [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle 𝕜 F V]
+  [FunLike K X B] [ContinuousMapClass K X B] {n : WithTop ℕ∞}
+
+namespace Bundle.Pullback
+
+/-- A family `β x` of continuous bilinear forms on `V (f x)`, along a `C^n` map `f`, is a `C^n`
+section of the bundle of bilinear forms on `f *ᵖ V` exactly when `x ↦ ⟨f x, β x⟩` is `C^n` into
+the bundle of bilinear forms on `V`. No rank or smooth-bundle assumption is needed. -/
+theorem contMDiff_bilinear_section_iff (f : K) (hf : ContMDiff IX IB n f)
+    (β : ∀ x, V (f x) →L[𝕜] V (f x) →L[𝕜] 𝕜) :
+    ContMDiff IX (IX.prod 𝓘(𝕜, F →L[𝕜] F →L[𝕜] 𝕜)) n
+        (fun x ↦ TotalSpace.mk' (F →L[𝕜] F →L[𝕜] 𝕜)
+          (E := fun x ↦ ((f : X → B) *ᵖ V) x →L[𝕜] ((f : X → B) *ᵖ V) x →L[𝕜] 𝕜) x (β x)) ↔
+      ContMDiff IX (IB.prod 𝓘(𝕜, F →L[𝕜] F →L[𝕜] 𝕜)) n
+        (fun x ↦ TotalSpace.mk' (F →L[𝕜] F →L[𝕜] 𝕜)
+          (E := fun b ↦ V b →L[𝕜] V b →L[𝕜] 𝕜) (f x) (β x)) := by
+  have heq (x : X) :
+      (fun y ↦ ContinuousLinearMap.inCoordinates F ((f : X → B) *ᵖ V) (F →L[𝕜] 𝕜)
+        (fun y ↦ ((f : X → B) *ᵖ V) y →L[𝕜] Trivial X 𝕜 y) x y x y (β y)) =ᶠ[nhds x]
+      (fun y ↦ ContinuousLinearMap.inCoordinates F V (F →L[𝕜] 𝕜)
+        (fun b ↦ V b →L[𝕜] Trivial B 𝕜 b) (f x) (f y) (f x) (f y) (β y)) := by
+    filter_upwards [hf.continuous.continuousAt.preimage_mem_nhds
+      ((trivializationAt F V (f x)).open_baseSet.mem_nhds
+        (FiberBundle.mem_baseSet_trivializationAt F V (f x)))] with y hy
+    have hy' : y ∈ (trivializationAt F ((f : X → B) *ᵖ V) x).baseSet := hy
+    have hs (u : F) : (trivializationAt F ((f : X → B) *ᵖ V) x).symm y u =
+        (trivializationAt F V (f x)).symm (f y) u := by
+      rw [Trivialization.symm_apply _ hy']
+      exact cast_eq _ _
+    ext v w
+    -- The fibres of the pull-back carry the module instances of `V` under other names; `erw`
+    -- sees through them.
+    erw [inCoordinates_apply_eq₂ (E₃ := Trivial X 𝕜) hy' hy' (Set.mem_univ _),
+      inCoordinates_apply_eq₂ (E₃ := Trivial B 𝕜) hy hy (Set.mem_univ _)]
+    simp only [Trivial.fiberBundle_trivializationAt', Trivial.linearMapAt_trivialization, hs]
+    -- Both sides are now the same expression, up to those instances.
+    rfl
+  constructor
+  · intro h x
+    have hx := (contMDiffAt_hom_bundle _).mp (h x)
+    rw [contMDiffAt_hom_bundle]
+    exact ⟨hf x, hx.2.congr_of_eventuallyEq (heq x).symm⟩
+  · intro h x
+    have hx := (contMDiffAt_hom_bundle _).mp (h x)
+    rw [contMDiffAt_hom_bundle]
+    exact ⟨contMDiffAt_id, hx.2.congr_of_eventuallyEq (heq x)⟩
+
+end Bundle.Pullback
+
+end Bilinear
+
+section MFDeriv
+
+open scoped ContDiff
+
+variable {E E' H H' M Q K : Type*}
+  [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  [IsManifold I ∞ M]
+  [NormedAddCommGroup E'] [NormedSpace ℝ E']
+  [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'} [TopologicalSpace Q] [ChartedSpace H' Q]
+  [IsManifold J ∞ Q]
+  [FunLike K Q M] [ContinuousMapClass K Q M]
+
+namespace Bundle.Pullback
+
+open Module TauCeti
+
+/-- The derivative of a `C^∞` map `f`, as the map `(q, v) ↦ (q, df_q v)` from the tangent bundle
+of `Q` to the pull-back `f *ᵖ TM`, is `C^∞`. -/
+theorem contMDiff_totalSpace_mfderiv (f : K) (hf : ContMDiff J I ∞ f) :
+    ContMDiff (J.prod 𝓘(ℝ, E')) (J.prod 𝓘(ℝ, E)) ∞
+      (fun p : TangentBundle J Q ↦
+        (⟨p.proj, mfderiv J I f p.proj p.snd⟩ :
+          TotalSpace E ((f : Q → M) *ᵖ (TangentSpace I)))) := by
+  rw [Bundle.Pullback.contMDiff_iff f hf]
+  exact ⟨contMDiff_proj _, hf.contMDiff_tangentMap (by simp)⟩
+
+/-- **Frames of the tangent image.** For a `C^∞` immersion `f`, the images `df_q(T_q Q)` of the
+tangent spaces of `Q` have `C^∞` local frames of size `dim Q` in the pull-back `f *ᵖ TM`. -/
+theorem hasLocalContMDiffSubbundleFrames_range_mfderiv [FiniteDimensional ℝ E] (f : K)
+    (hi : Manifold.IsImmersion J I ∞ f) :
+    HasLocalContMDiffSubbundleFrames J ∞ E (Fin (finrank ℝ E'))
+      (E := (f : Q → M) *ᵖ (TangentSpace I)) fun q ↦ (mfderiv J I f q).range := by
+  have : IsManifold J (∞ + 1) Q := by simpa using (inferInstance : IsManifold J ∞ Q)
+  have : ContMDiffVectorBundle ∞ E' (TangentSpace J : Q → Type _) J :=
+    TangentBundle.contMDiffVectorBundle
+  refine hasLocalContMDiffSubbundleFrames_of_contMDiff_totalSpace_range
+    (fun q ↦ (mfderiv J I f q : TangentSpace J q →ₗ[ℝ] TangentSpace I (f q)))
+    (contMDiff_totalSpace_mfderiv f hi.contMDiff) (fun q ↦ rfl) fun q ↦ ?_
+  -- The ranges are subspaces of the fibres of the pull-back, which are the tangent spaces of
+  -- `M` under another name.
+  have h : finrank ℝ (LinearMap.range
+      (mfderiv J I f q : TangentSpace J q →ₗ[ℝ] TangentSpace I (f q))) = finrank ℝ E' :=
+    LinearMap.finrank_range_of_inj (hi.mfderiv_injective (by simp) q)
+  exact h
+
+end Bundle.Pullback
+
+end MFDeriv
 
 end
