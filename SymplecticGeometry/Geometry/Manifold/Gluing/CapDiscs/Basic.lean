@@ -387,25 +387,22 @@ theorem apply_gluingCoord_mem_interiorOpens {i : ι} {z : ball} (hz : 1 < ‖(z 
 
 /-- The point of the interior glued to a point `z` of the annulus of the `i`-th disc. -/
 private def gluingPoint (i : ι) {z : ball} (hz : 1 < ‖(z : ℂ)‖) : interiorOverlap c γ hγ i :=
-  ⟨interiorModelDiffeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S) ∞
-    ⟨c (gluingCoord γ i z), apply_gluingCoord_mem_interiorOpens c hz⟩, by
-    rw [mem_interiorOverlap, coe_interiorModelDiffeomorph,
-      InteriorModel.val_interiorModelHomeomorph]
+  ⟨InteriorModel.mk (𝓡∂ 2) (c (gluingCoord γ i z)) (by
+    rw [← ModelWithCorners.coe_interiorOpens, SetLike.mem_coe]
+    exact apply_gluingCoord_mem_interiorOpens c hz), by
+    rw [mem_interiorOverlap, InteriorModel.val_mk]
     exact ⟨_, _, rfl⟩⟩
 
 private theorem val_gluingPoint (i : ι) {z : ball} (hz : 1 < ‖(z : ℂ)‖) :
-    (gluingPoint (c := c) hγ i hz).val =
-      interiorModelDiffeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S) ∞
-        ⟨c (gluingCoord γ i z), apply_gluingCoord_mem_interiorOpens c hz⟩ :=
-  rfl
+    (gluingPoint (c := c) hγ i hz).val.val = c (gluingCoord γ i z) :=
+  InteriorModel.val_mk _ _
 
 include hinj in
 private theorem polarPoint_gluingPoint (i : ι) {z : ball} (hz : 1 < ‖(z : ℂ)‖) :
     polarPoint hγ (gluingPoint (c := c) hγ i hz) = z := by
   have hcoord : collarCoord hγ (gluingPoint (c := c) hγ i hz) = gluingCoord γ i z :=
     c.injective (by
-      rw [apply_collarCoord, val_gluingPoint, coe_interiorModelDiffeomorph,
-        InteriorModel.val_interiorModelHomeomorph])
+      rw [apply_collarCoord, val_gluingPoint])
   rw [polarPoint, hcoord, depth_gluingCoord hz, gluingCoord_fst, angle_apply hinj,
     toCircle_apply_mk, Circle.coe_exp]
   conv_rhs => rw [← norm_mul_exp_arg_mul_I (z : ℂ)]
@@ -653,8 +650,9 @@ theorem inr_eq_inl {i : ι} {z : ball} (hz : 1 < ‖(z : ℂ)‖) :
   -- The maps `f i j` of a glue data built by `TopCat.GlueData.mk'` are the inclusions of the
   -- overlaps, so the first condition of the relation holds by `rfl`.
   refine ((glueData c γ hγ hinj).ι_eq_iff_rel (some i) none _ _).2 ⟨⟨_, hw⟩, rfl, ?_⟩
-  exact (congrArg Subtype.val (annulusDiffeomorph_symm_apply hγ hinj i hz)).trans
-    (val_gluingPoint hγ i hz)
+  refine (congrArg Subtype.val (annulusDiffeomorph_symm_apply hγ hinj i hz)).trans
+    (InteriorModel.val_injective ?_)
+  rw [val_gluingPoint, coe_interiorModelDiffeomorph, InteriorModel.val_interiorModelHomeomorph]
 
 /-- A collar point `c (γ i θ, t)` of the interior of `S` is the point `(1 + t) · toCircle θ` of
 the `i`-th disc. -/

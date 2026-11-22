@@ -289,6 +289,7 @@ of Tau Ceti's roadmap that no one has started.
 | `AlgebraicTopology/Singular/LocalHomology/Orientation/StdSimplex.lean` | the class of the standard $2$-simplex in the local homology of $\mathbb R^2$ at an interior point, and the sign $s$ of Decision 6 |
 | `AlgebraicTopology/Singular/LocalHomology/Orientation/Simplex.lean` | the class of a positively oriented simplex in local homology, in dimension two |
 | `Geometry/Manifold/DeRham/FundamentalClass.lean` | $\int_\Sigma\varphi=\langle[\varphi],[\Sigma]\rangle$ on closed oriented surfaces |
+| `Geometry/Manifold/Orientation/Preserving.lean` | a map of a real normed space with positive Jacobian determinant preserves orientation, for the file above |
 | `Geometry/Symplectic/JHolomorphic/Energy/Homology.lean` | topological invariance, minimality, the milestone |
 
 The `Energy/` folder sits beside Tau Ceti's folder of the same name, as
@@ -492,9 +493,9 @@ and `Geometry/Manifold/MFDeriv/Constancy.lean`, and defines nothing.
 
 - `TauCeti.Manifold.Orientation.integralTopForm_eq_singularHomologyPeriod`
   (the name follows the orientation used): for a closed surface `C` as in
-  *Conventions*, oriented by `o`, and a smooth two-form `φ` (closed, by
-  `mextDeriv_eq_zero_of_finrank_le`),
-  `integralTopForm o φ = deRhamCohomology.singularHomologyPeriod (mk φ) (oₕ.fundamentalClass hE')`
+  *Conventions*, oriented by `o`, and `φ : closedForms 𝓘(ℝ, E') C 2` (every two-form
+  is closed, by `mextDeriv_eq_zero_of_finrank_le`),
+  `integralTopForm o φ.val.val = deRhamCohomology.singularHomologyPeriod (mk φ) (oₕ.fundamentalClass hE')`
   with `oₕ` the correctly signed homological orientation. Route: every
   point has a positively oriented simplex chart (a chart, a linear
   equivalence of `E'` with $\mathbb R^2$ matching `o` at the point, and a

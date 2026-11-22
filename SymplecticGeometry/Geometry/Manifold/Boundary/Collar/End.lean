@@ -218,23 +218,22 @@ end
 
 /-- The point of the interior piece glued to a point of the end overlap. -/
 private def endToInteriorPt (q : endOverlap (n := n) (W := W)) : InteriorPiece n W :=
-  interiorModelHomeomorph (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)
-    ⟨c.endRetract q.val, by
-    rw [← SetLike.mem_coe, ModelWithCorners.coe_interiorOpens, endRetract_def,
-      apply_mem_interior_iff_pos]
-    exact collarDepth_val_pos (mem_endOverlap.1 q.property)⟩
+  InteriorModel.mk (𝓡∂ (n + 1)) (c.endRetract q.val) (by
+    rw [endRetract_def, apply_mem_interior_iff_pos]
+    exact collarDepth_val_pos (mem_endOverlap.1 q.property))
 
 private theorem endToInteriorPt_val (q : endOverlap (n := n) (W := W)) :
-    (c.endToInteriorPt q).val = c.endRetract q.val := by
-  simp [endToInteriorPt]
+    (c.endToInteriorPt q).val = c.endRetract q.val :=
+  InteriorModel.val_mk _ _
 
 /-- The gluing map from the end overlap to the interior overlap. -/
 private def endToInterior : C(endOverlap (n := n) (W := W), c.interiorModelRange) where
   toFun q := ⟨c.endToInteriorPt q, c.mem_interiorModelRange.2
     ⟨_, ((c.endToInteriorPt_val q).trans (c.endRetract_def q.val)).symm⟩⟩
   continuous_toFun := Continuous.subtype_mk
-    ((interiorModelHomeomorph (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)).continuous.comp
-      ((c.continuous_endRetract.comp continuous_subtypeVal).subtype_mk _)) _
+    (InteriorModel.isOpenEmbedding_val.isInducing.continuous_iff.2 (by
+      simpa only [Function.comp_def, endToInteriorPt_val] using
+        c.continuous_endRetract.comp continuous_subtypeVal)) _
 
 private theorem endToInterior_val (q : endOverlap (n := n) (W := W)) :
     (c.endToInterior q).val.val = c.endRetract q.val :=
