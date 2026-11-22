@@ -281,6 +281,13 @@ variable [Fintype ι]
 theorem finrank_stdSpace : Module.finrank ℝ (StdSpace ι) = 2 * Fintype.card ι := by
   rw [finrank_euclideanSpace, Fintype.card_sum, two_mul]
 
+/-- `StdSpace (Fin (n + 1))` has real dimension `2 * n + 1 + 1`. This is the form in which
+Mathlib's charts on the unit sphere of `StdSpace (Fin (n + 1))`, modelled on `𝓡 (2 * n + 1)`,
+ask for it. -/
+scoped instance fact_finrank_stdSpace_fin_succ (n : ℕ) :
+    Fact (Module.finrank ℝ (StdSpace (Fin (n + 1))) = 2 * n + 1 + 1) :=
+  ⟨by rw [finrank_stdSpace, Fintype.card_fin]; omega⟩
+
 variable (ι) in
 /-- The standard symplectic form `ω₀ = ∑ᵢ dxᵢ ∧ dyᵢ` on `StdSpace ι`: the transport of
 `TauCeti.stdComplexPiSymplecticForm ι` along `complexToRealEuclidean ι`. -/
