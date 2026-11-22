@@ -38,9 +38,8 @@ variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Preadditive C]
 lemma chainComplexMap_id (X : SSet.{w}) (R : C) : chainComplexMap (𝟙 X) R = 𝟙 _ :=
   CategoryTheory.Functor.map_id _ _
 
-/-- For a map `f : X ⟶ Y` of simplicial sets, a morphism `c` out of the `n`-chains of `Y`
-is zero after `(chainComplexMap f R).f n` exactly when `Y.ιChainComplex (f x) ≫ c = 0` for every
-`n`-simplex `x` of `X`. -/
+/-- A morphism out of the simplicial `n`-chains of `Y` vanishes on the chains pushed forward along
+a map `f : X ⟶ Y` exactly when it vanishes on the summand of every simplex in the image of `f`. -/
 lemma chainComplexMap_f_comp_eq_zero_iff {X Y : SSet.{w}} (f : X ⟶ Y) (R : C) {n : ℕ} {T : C}
     (c : (Y.chainComplex R).X n ⟶ T) :
     (chainComplexMap f R).f n ≫ c = 0 ↔ ∀ x : X _⦋n⦌, Y.ιChainComplex (f.app _ x) ≫ c = 0 := by
