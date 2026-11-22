@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.LinearAlgebra.Complex.EnergyDensity
+public import SymplecticGeometry.LinearAlgebra.Complex.StdComplexLine
 public import TauCeti.Geometry.Symplectic.Manifold.Energy
 public import TauCeti.Topology.Algebra.Module.FiniteDimension
 
@@ -63,20 +64,6 @@ open scoped Manifold ContDiff
 noncomputable section
 
 namespace TauCeti
-
-/-- The map `(a, s) ↦ a • v + s • w` sends `stdComplexLineReal = (1, 0)` to `v`. -/
-theorem _root_.LinearMap.coprod_toSpanSingleton_apply_stdComplexLineReal {V : Type*}
-    [AddCommGroup V] [Module ℝ V] (v w : V) :
-    (LinearMap.toSpanSingleton ℝ V v).coprod (LinearMap.toSpanSingleton ℝ V w)
-      stdComplexLineReal = v := by
-  simp [stdComplexLineReal_eq]
-
-/-- The map `(a, s) ↦ a • v + s • w` sends `stdComplexLineImag = (0, 1)` to `w`. -/
-theorem _root_.LinearMap.coprod_toSpanSingleton_apply_stdComplexLineImag {V : Type*}
-    [AddCommGroup V] [Module ℝ V] (v w : V) :
-    (LinearMap.toSpanSingleton ℝ V v).coprod (LinearMap.toSpanSingleton ℝ V w)
-      stdComplexLineImag = w := by
-  simp [stdComplexLineImag_eq]
 
 namespace SmoothTwoForm
 
