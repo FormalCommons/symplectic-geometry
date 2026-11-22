@@ -6,12 +6,13 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
+public import Mathlib.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Basic
 
 /-!
-# Smooth forms: bilinear forms of two-forms, and multiplication by smooth functions
+# Smooth forms: bilinear forms of two-forms, multiplication by smooth functions, evaluation
 
 Tau Ceti's `TauCeti.SmoothForm.bilinFormAt` reads the value at `x` of a real smooth two-form
 `σ` on `M` as a bilinear form `σ_x` on the tangent space `T_x M`. This file shows that the map
@@ -30,6 +31,11 @@ smooth map `f`, where `g` becomes `g ∘ f`. The last is the smooth-form version
 `TauCeti.mpullback_fun_smul` for rough forms, from which it follows. These lemmas let proofs
 about smooth forms stay with smooth forms instead of passing to the underlying rough forms.
 
+Finally, Tau Ceti's `TauCeti.SmoothForm.contMDiff_apply` says that evaluating a smooth
+two-form along a map on two `C^n` tangent fields gives a `C^n` function; its version at a point,
+for tangent fields that are `C^n` only there, is `TauCeti.SmoothForm.contMDiffAt_apply`, with the
+same proof.
+
 ## Main results
 
 * `TauCeti.SmoothForm.bilinFormAt_add`, `TauCeti.SmoothForm.bilinFormAt_smul`,
@@ -37,6 +43,7 @@ about smooth forms stay with smooth forms instead of passing to the underlying r
   `TauCeti.SmoothForm.bilinFormAt_sub`.
 * `TauCeti.SmoothForm.funSMulₗ_add`, `TauCeti.SmoothForm.funSMulₗ_const`,
   `TauCeti.SmoothForm.funSMulₗ_one`, `TauCeti.SmoothForm.mpullback_funSMulₗ`.
+* `TauCeti.SmoothForm.contMDiffAt_apply`.
 -/
 
 public section
@@ -121,6 +128,33 @@ theorem mpullback_funSMulₗ (f : M → M') (hf : ContMDiff I I' ∞ f) (g : C^�
   simp [TauCeti.mpullback_fun_smul]
 
 end FunSMul
+
+section Evaluation
+
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+  {E' H' N : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N]
+
+/-- Evaluating a smooth degree-two form along a map `b` on two tangent fields along `b` that are
+`C^n` at `y₀`, as maps into the tangent bundle, gives a function that is `C^n` at `y₀`. This is
+the version at a point of Tau Ceti's `TauCeti.SmoothForm.contMDiff_apply`. -/
+theorem contMDiffAt_apply {n : WithTop ℕ∞} [ENat.LEInfty n] (form : SmoothForm I M F 2)
+    {b : N → M} {y₀ : N} {V W : ∀ y : N, TangentSpace I (b y)}
+    (hV : ContMDiffAt I' I.tangent n (fun y ↦ Bundle.TotalSpace.mk' E (b y) (V y)) y₀)
+    (hW : ContMDiffAt I' I.tangent n (fun y ↦ Bundle.TotalSpace.mk' E (b y) (W y)) y₀) :
+    ContMDiffAt I' 𝓘(ℝ, F) n (fun y ↦ form.eval₂ (b y) (V y) (W y)) y₀ := by
+  have hb : ContMDiffAt I' I n b y₀ := (Bundle.contMDiffAt_totalSpace_iff.mp hV).1
+  have h := (((form.contMDiff (b y₀)).of_le ENat.LEInfty.out).comp y₀
+    hb).continuousAlternatingMap_bundle_apply (v := ![V, W])
+    (fun i ↦ by fin_cases i <;> assumption)
+  convert (Bundle.contMDiffAt_totalSpace_iff.mp h).2 using 2 with y
+  simp only [Bundle.Trivial.fiberBundle_trivializationAt', Bundle.Trivial.trivialization_apply,
+    SmoothBundleForm.eval₂_apply]
+  congr 1
+  ext i
+  fin_cases i <;> simp
+
+end Evaluation
 
 end TauCeti.SmoothForm
 

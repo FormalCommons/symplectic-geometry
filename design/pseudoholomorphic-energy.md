@@ -274,11 +274,13 @@ For `c : C`, `x : M` and `L : TangentSpace I' c →ₗ[ℝ] TangentSpace I x`
 - `TauCeti.SmoothTwoForm.energyForm (ω) (J) (j) (u : C → M) : RoughForm I' C ℝ 2`,
   `fun c ↦ ω.energyDensity J j (mfderiv I' I u c)`, with `energyForm_apply`.
 - `isSmoothForm_energyForm (hu : ContMDiff I' I 1 u) : IsSmoothForm I' 0 (ω.energyForm J j u)`.
-  Proof in the trivializations of the alternating bundle: the coordinate
-  expression is a continuous multilinear expression in the coordinate
-  expressions of `mfderiv I' I u` (Mathlib's `ContMDiffAt.mfderiv`, in
-  tangent coordinates), of `j`, of `J ∘ u` and of `ω ∘ u`, as Tau Ceti's
-  `Regularity.lean` and `Continuity.lean` read forms in charts.
+  Proof on the frame fields of a tangent trivialization of `C`
+  (`isSmoothForm_iff_forall_contMDiffAt_trivializationAt_apply`): by
+  `energyDensity_apply`, each value is a combination of values of `ω` along
+  `u` on fields built from the frame fields with `j`, the tangent map of `u`
+  (Mathlib's `ContMDiff.contMDiff_tangentMap`) and `J`, evaluated by
+  `SmoothForm.contMDiffAt_apply` of *Moser isotopy*'s
+  `DifferentialForm/Smooth.lean`.
 - `TauCeti.SmoothTwoForm.energy (ω) (J) (j) (o) (u) : ℝ`,
   `integralTopForm o (ω.energyForm J j u)`, with `energy_def`.
 - `energy_eq_half_integralTopForm_normSq`: for `hdvol : dvol.Tames j`,
@@ -439,8 +441,10 @@ later.
 - From *Almost complex manifolds*: `Metric.lean` (`Compatible.metric`,
   `Compatible.metric_inner`), for `Energy/Metric.lean` only.
 - From Tau Ceti: the declarations of *What there is*.
-- From Mathlib: `ContMDiffAt.mfderiv` (smoothness of the derivative in
-  tangent coordinates), `SmoothPartitionOfUnity`,
+- From *Moser isotopy*: `Geometry/Manifold/DifferentialForm/Smooth.lean`
+  (`SmoothForm.contMDiffAt_apply`), for `Energy/Surface.lean`.
+- From Mathlib: `ContMDiff.contMDiff_tangentMap` (continuity of the tangent
+  map of a `C¹` map), `SmoothPartitionOfUnity`,
   `AlternatingMap.eq_smul_basis_det`, `IsLocallyConstant`.
 
 ## Building issues
