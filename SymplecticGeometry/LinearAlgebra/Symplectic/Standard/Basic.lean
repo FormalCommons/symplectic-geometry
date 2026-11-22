@@ -43,7 +43,8 @@ structures.
   along `finSumFinEquiv`, a linear isometry onto `EuclideanSpace ℝ (Fin (n + n))`.
 * `SymplecticGeometry.StdSpace.equivComplex ι`, for a one-element `ι`, identifies the standard
   plane with `ℂ` by `(x, y) ↦ x + i y`, a linear isometry; read on `ℂ`,
-  `ω₀(v, w) = ⟪i v, w⟫` (`stdForm_apply_eq_inner_equivComplex`).
+  `ω₀(v, w) = ⟪i v, w⟫` (`stdForm_apply_eq_inner_equivComplex`), and it carries `ω₀` to Tau
+  Ceti's `TauCeti.stdComplexSymplecticForm` (`isSymplectomorphism_equivComplex`).
 
 The main facts fixing the conventions are `stdForm_apply`
 (`ω₀(z, w) = ∑ᵢ (xᵢ(z) yᵢ(w) - yᵢ(z) xᵢ(w))`), `stdComplexStructure_eq_toEuclideanLin_J`,
@@ -1011,6 +1012,21 @@ theorem stdForm_apply_eq_inner_equivComplex (v w : StdSpace ι) :
   rw [stdForm_apply_eq_inner, stdComplexStructure_complexToRealEuclidean,
     inner_complexToRealEuclidean]
   simp [Complex.inner, dotProduct, mul_comm]
+
+open StdSpace in
+/-- `equivComplex ι` carries the standard form of the plane to Tau Ceti's standard form on `ℂ`:
+`stdComplexSymplecticForm (equivComplex ι v) (equivComplex ι w) = ω₀(v, w)`. -/
+theorem stdComplexSymplecticForm_equivComplex (v w : StdSpace ι) :
+    stdComplexSymplecticForm (equivComplex ι v) (equivComplex ι w) = stdForm ι v w := by
+  simp
+
+open StdSpace in
+/-- `equivComplex ι` is a symplectomorphism from the standard plane `(StdSpace ι, ω₀)` to `ℂ`
+with Tau Ceti's standard form `stdComplexSymplecticForm`. -/
+theorem isSymplectomorphism_equivComplex :
+    SymplecticForm.IsSymplectomorphism (stdForm ι) stdComplexSymplecticForm
+      (equivComplex ι).toLinearEquiv :=
+  SymplecticForm.isSymplectomorphism_iff.2 stdComplexSymplecticForm_equivComplex
 
 end Plane
 
