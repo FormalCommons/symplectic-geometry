@@ -24,7 +24,7 @@ The hypotheses of `fundamentalClassRel` hold for the closed unit ball of any rea
 the inclusion of the open unit ball into the closed one is an open embedding
 (`Topology.IsOpenEmbedding.inclusion`), its range is the complement of the unit sphere
 (`Metric.range_inclusion_ball_eq_compl`), and the unit sphere is collared
-(`SymplecticGeometry.isCollared_inclusion_sphere_closedBall`); both are proved in
+(`Metric.isCollared_inclusion_sphere_closedBall`); both are proved in
 `SymplecticGeometry.Analysis.Normed.Module.Ball.Collar`.
 
 The sign is `+1`: read in `Circle` (`SymplecticGeometry.closedBallComplToCircle`) and in `ℤ`

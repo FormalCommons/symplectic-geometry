@@ -13,7 +13,7 @@ public import TauCeti.Geometry.Manifold.Boundary.Collar.Global
 
 In a real normed space `E`, the closed unit ball with its centre removed is homeomorphic to
 `S × [0, 1)`, `S` the unit sphere, through `(z, t) ↦ (1 - t) • z`
-(`SymplecticGeometry.unitSphereProdIcoHomeomorph`). So the inclusion of the unit sphere into the
+(`homeomorphUnitSphereProdIco`). So the inclusion of the unit sphere into the
 closed unit ball is collared in the sense of Tau Ceti (`TauCeti.IsCollared`). In any
 pseudometric space, the open ball is the complement of the sphere in the closed ball, as ranges
 of inclusions (`Metric.range_inclusion_ball_eq_compl`). Together these put the closed unit ball
@@ -21,9 +21,9 @@ in the setting of Tau Ceti's relative fundamental class.
 
 ## Main results
 
-* `SymplecticGeometry.unitSphereProdIcoHomeomorph`: the homeomorphism from `S × [0, 1)` onto the
+* `homeomorphUnitSphereProdIco`: the homeomorphism from `S × [0, 1)` onto the
   closed unit ball minus its centre.
-* `SymplecticGeometry.isCollared_inclusion_sphere_closedBall`: the unit sphere is collared in
+* `Metric.isCollared_inclusion_sphere_closedBall`: the unit sphere is collared in
   the closed unit ball.
 * `Metric.range_inclusion_ball_eq_compl`: the open ball is the complement of the sphere in the
   closed ball.
@@ -53,13 +53,11 @@ theorem range_inclusion_ball_eq_compl {α : Type*} [PseudoMetricSpace α] (x : �
 
 end Metric
 
-namespace SymplecticGeometry
-
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
 /-- The closed unit ball with its centre removed is `S × [0, 1)`, `S` the unit sphere, through
 `(z, t) ↦ (1 - t) • z`. -/
-def unitSphereProdIcoHomeomorph :
+def homeomorphUnitSphereProdIco :
     sphere (0 : E) 1 × Ico (0 : ℝ) 1 ≃ₜ ({w | (w : E) ≠ 0} : Set (closedBall (0 : E) 1)) where
   toFun p := ⟨⟨(1 - (p.2 : ℝ)) • (p.1 : E), by
       rw [mem_closedBall_zero_iff, norm_smul, norm_eq_of_mem_sphere p.1, mul_one,
@@ -90,30 +88,32 @@ def unitSphereProdIcoHomeomorph :
       ((continuous_const.sub hn).subtype_mk _)
 
 @[simp]
-theorem coe_unitSphereProdIcoHomeomorph_apply (p : sphere (0 : E) 1 × Ico (0 : ℝ) 1) :
-    ((unitSphereProdIcoHomeomorph p : closedBall (0 : E) 1) : E) = (1 - (p.2 : ℝ)) • (p.1 : E) :=
+theorem coe_homeomorphUnitSphereProdIco_apply (p : sphere (0 : E) 1 × Ico (0 : ℝ) 1) :
+    ((homeomorphUnitSphereProdIco p : closedBall (0 : E) 1) : E) = (1 - (p.2 : ℝ)) • (p.1 : E) :=
   (rfl)
 
 @[simp]
-theorem coe_unitSphereProdIcoHomeomorph_symm_apply_fst
+theorem coe_homeomorphUnitSphereProdIco_symm_apply_fst
     (w : ({w | (w : E) ≠ 0} : Set (closedBall (0 : E) 1))) :
-    ((unitSphereProdIcoHomeomorph.symm w).1 : E) = ‖(w.val : E)‖⁻¹ • (w.val : E) :=
+    ((homeomorphUnitSphereProdIco.symm w).1 : E) = ‖(w.val : E)‖⁻¹ • (w.val : E) :=
   (rfl)
 
 @[simp]
-theorem coe_unitSphereProdIcoHomeomorph_symm_apply_snd
+theorem coe_homeomorphUnitSphereProdIco_symm_apply_snd
     (w : ({w | (w : E) ≠ 0} : Set (closedBall (0 : E) 1))) :
-    ((unitSphereProdIcoHomeomorph.symm w).2 : ℝ) = 1 - ‖(w.val : E)‖ :=
+    ((homeomorphUnitSphereProdIco.symm w).2 : ℝ) = 1 - ‖(w.val : E)‖ :=
   (rfl)
+
+namespace Metric
 
 /-- **The unit sphere is collared in the closed unit ball**, by `(z, t) ↦ (1 - t) • z`. -/
 theorem isCollared_inclusion_sphere_closedBall :
     TauCeti.IsCollared
       (inclusion (sphere_subset_closedBall : sphere (0 : E) 1 ⊆ closedBall 0 1)) :=
-  TauCeti.isCollared_iff.2 ⟨fun p ↦ (unitSphereProdIcoHomeomorph p).val,
+  TauCeti.isCollared_iff.2 ⟨fun p ↦ (homeomorphUnitSphereProdIco p).val,
     ⟨(isOpen_compl_singleton.preimage continuous_subtypeVal).isOpenEmbedding_subtypeVal.comp
-      unitSphereProdIcoHomeomorph.isOpenEmbedding, fun z ↦ by
+      homeomorphUnitSphereProdIco.isOpenEmbedding, fun z ↦ by
         ext
         simp⟩⟩
 
-end SymplecticGeometry
+end Metric
