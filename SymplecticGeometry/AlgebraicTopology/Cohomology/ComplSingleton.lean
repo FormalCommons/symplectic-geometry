@@ -9,7 +9,7 @@ public import TauCeti.AlgebraicTopology.Cohomology.Local.Basic
 public import TauCeti.AlgebraicTopology.Cohomology.Point
 
 /-!
-# Cohomology of a finite-dimensional real vector space with a point removed
+# Singular cohomology of a punctured real normed space
 
 Let `F` be a real normed space of finite dimension `d` and `x : F`. The space `F ∖ {x}` is
 homotopy equivalent to the sphere `Sᵈ⁻¹`, so its singular cohomology vanishes in every positive
