@@ -6,9 +6,14 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint
+public import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Sphere
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
+public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
+public import TauCeti.Analysis.Matrix.LDL
 public import TauCeti.Geometry.Manifold.Complex.Orientation
+public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.ChangeOfVariables
+public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.UnitSphere
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.FubiniStudy
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Projectivization
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Sphere
@@ -16,7 +21,7 @@ public import TauCeti.Geometry.Manifold.Orientation.Sphere
 public import TauCeti.Geometry.Manifold.Projectivization.ProjectiveLine
 
 /-!
-# The Fubini–Study form of `ℂP¹`: affine formula and stereographic coordinates
+# The Fubini–Study form of `ℂP¹`: affine formula, stereographic coordinates, area of lines
 
 This file compares the Fubini–Study form `ω_FS = fubiniStudyForm 1` of
 `ℂP¹ = ℙ ℂ (Fin 2 → ℂ)`, normalized as in McDuff–Salamon, with Tau Ceti's models of the Riemann
@@ -43,11 +48,24 @@ coordinate `x 0` in Lean.
   `SymplecticGeometry.mpullback_diffeomorphSphere_symm_fubiniStudyForm`, and
   `sphereToProjectiveLine` preserves the outward-normal orientation of the sphere and the complex
   orientation of `ℂP¹` (`isOrientationPreservingAt_sphereToProjectiveLine`).
+* `SymplecticGeometry.integralTopForm_fubiniStudyForm_one`: `ω_FS` integrates to `π` over `ℂP¹`
+  with its canonical orientation as a complex manifold, by change of variables along
+  `sphereToProjectiveLine` and the area `4π` of the round sphere.
+* `SymplecticGeometry.integralTopForm_mpullback_map_fubiniStudyForm`: every line of `ℂPⁿ`, the
+  image of `Projectivization.map f hf` for an injective linear `f : ℂ² → ℂⁿ⁺¹`, has area `π`.
+  With `F` the matrix of `f` and `P` an upper triangular matrix such that `Pᴴ (Fᴴ F) P = 1`, the
+  matrix `F P` has orthonormal columns, so `f ∘ P` pulls `ω_FS` back to the form of `ℂP¹`
+  (`mpullback_map_fubiniStudyForm`), and the biholomorphism of `ℂP¹` induced by `P` preserves the
+  canonical orientation and hence the integral.
 
 The comparison at the finite points through `TauCeti.SmoothBundleForm.eq_of_forall_mem_dense`
 follows the proof of Tau Ceti's
 `OnePoint.mpullback_smul_fubiniStudyForm_eq_self_iff_mem_unitaryGroup` (through its step
-`mpullback_eq_of_sq_norm_add_sq_norm_eq`).
+`mpullback_eq_of_sq_norm_add_sq_norm_eq`). The normalization of the Gram matrix `Fᴴ F` by
+Tau Ceti's `Matrix.PosDef.exists_isUpperTriangular_conjTranspose_mul_mul_eq_one` follows the
+proof of Tau Ceti's `QR` factorization
+`Matrix.GeneralLinearGroup.exists_mem_upperTriangularGroup_toUnits_mul_eq`, for a rectangular
+matrix with injective `mulVec` in place of an invertible one.
 
 ## References
 
@@ -56,11 +74,14 @@ follows the proof of Tau Ceti's
 * John M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Graduate Texts in Mathematics 218,
   Springer, 2013, Chapters 15 and 16 (the outward-normal orientation and the volume form of the
   sphere).
+* R. A. Horn and C. R. Johnson, *Matrix Analysis*, 2nd ed., Cambridge University Press, 2013,
+  Section 2.1 (the `QR` factorization), as Tau Ceti's `QR.lean` cites.
 -/
 public section
 
 open Metric TauCeti Projectivization ComplexConjugate
 open scoped Manifold ContDiff LinearAlgebra.Projectivization TauCeti.ComplexManifold
+open scoped Matrix ComplexOrder
 
 local notation "ℝ³" => EuclideanSpace ℝ (Fin 3)
 
@@ -297,6 +318,61 @@ theorem isOrientationPreservingAt_sphereToProjectiveLine (p : sphere (0 : ℝ³)
   rw [Orientation.sphereOrientation_eq_ofTopForm, ← OnePoint.ofTopForm_fubiniStudyForm]
   exact Manifold.Orientation.isOrientationPreservingAt_ofTopForm_of_mpullback_eq_smul _ _ _ _ _ _
     (by positivity) h
+
+/-! ### The area of a line -/
+
+/-- **The area of `ℂP¹`.** The Fubini–Study form of `ℂP¹ = ℙ ℂ (Fin 2 → ℂ)` integrates to `π`
+over `ℂP¹` with its canonical orientation as a complex manifold. -/
+theorem integralTopForm_fubiniStudyForm_one :
+    integralTopForm oCP1 (fubiniStudyForm 1).val = Real.pi := by
+  have he : Topology.IsOpenEmbedding sphereToProjectiveLine := by
+    simpa using sphereToProjectiveLine.toHomeomorph.isOpenEmbedding
+  rw [← he.integralTopForm_mpullback_of_isOrientationPreservingAt
+      isOrientationPreservingAt_sphereToProjectiveLine (by simp),
+    ← SmoothForm.coe_mpullback _ (sphereToProjectiveLine.contMDiff.of_le le_top),
+    mpullback_sphereToProjectiveLine_fubiniStudyForm, Submodule.coe_smul, integralTopForm_smul,
+    Orientation.integralTopForm_sphereOrientation_sphereVolumeForm]
+  ring
+
+/-- **Every complex line in `ℂPⁿ` has area `π`.** For every injective complex-linear map
+`f : ℂ² → ℂⁿ⁺¹`, the pull-back of the Fubini–Study form of `ℂPⁿ` along the induced embedding
+`ℂP¹ → ℂPⁿ`, `[z] ↦ [f z]`, onto the line `ℙ(range f)`, integrates to `π` over `ℂP¹` with its
+canonical orientation as a complex manifold. -/
+theorem integralTopForm_mpullback_map_fubiniStudyForm {n : ℕ}
+    (f : (Fin 2 → ℂ) →ₗ[ℂ] Fin (n + 1) → ℂ) (hf : Function.Injective f) :
+    integralTopForm oCP1
+      (SmoothForm.mpullback (map f hf) (contMDiff_map_restrictScalars f hf ∞)
+        (fubiniStudyForm n)).val = Real.pi := by
+  classical
+  -- Write `f ∘ g = A` with `A` of orthonormal columns and `g` invertible: the matrix `P` of `g`
+  -- normalizes the Gram matrix `Fᴴ F` of the matrix `F` of `f`, and `A = F P`.
+  set F := LinearMap.toMatrix' f
+  have hF : Function.Injective F.mulVec := fun x y h ↦
+    hf (by simpa only [F, LinearMap.toMatrix'_mulVec] using h)
+  obtain ⟨P, -, hP⟩ := (Matrix.PosDef.conjTranspose_mul_self F
+    hF).exists_isUpperTriangular_conjTranspose_mul_mul_eq_one
+  have hA : (F * P)ᴴ * (F * P) = 1 := by
+    simpa only [Matrix.conjTranspose_mul, Matrix.mul_assoc] using hP
+  have hPi : Function.Injective (Matrix.toLin' P) := by
+    rw [Matrix.toLin'_apply', Matrix.coe_mulVecLin]
+    exact Matrix.mulVec_injective_of_mul_eq_one (B := Pᴴ * Fᴴ * F) (by
+      simpa only [Matrix.mul_assoc] using hP)
+  set Φ := mapDiffeomorph (LinearEquiv.ofInjectiveEndo (Matrix.toLin' P) hPi) ω
+  have hAi : Function.Injective (Matrix.toLin' (F * P)) := by
+    rw [Matrix.toLin'_apply', Matrix.coe_mulVecLin]
+    exact Matrix.mulVec_injective_of_mul_eq_one hA
+  have hcomp : map f hf ∘ Φ = map (Matrix.toLin' (F * P)) hAi := by
+    funext x
+    induction x using ind with
+    | h v hv => simp [Φ, map_mk, F, Matrix.toLin'_mul]
+  have hΦ : Topology.IsOpenEmbedding Φ := by simpa using Φ.toHomeomorph.isOpenEmbedding
+  -- `Φ` is a biholomorphism of `ℂP¹`, so it preserves the canonical orientation.
+  rw [← hΦ.integralTopForm_mpullback_of_isOrientationPreservingAt
+      (fun x ↦ (Φ.isOrientationPreservingAt_complexManifoldOrientation ω x).reindex _) (by simp),
+    ← SmoothForm.coe_mpullback _ (by simpa [Φ] using contMDiff_map_restrictScalars _ _ ∞),
+    SmoothForm.mpullback_mpullback]
+  simp only [hcomp, mpullback_map_fubiniStudyForm (F * P) hA]
+  exact integralTopForm_fubiniStudyForm_one
 
 end SymplecticGeometry
 

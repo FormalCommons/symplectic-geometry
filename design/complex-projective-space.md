@@ -307,6 +307,13 @@ orientations on both sides). In namespace `SymplecticGeometry`: `northPole`,
 back to `(4 * Real.pi) • OnePoint.fubiniStudyForm`) with its `_symm_` form.
 `Normalization.lean` imports it.
 
+### `Geometry/Manifold/Orientation/Preserving.lean`
+
+Taken from Tau Ceti's main branch, with Tau Ceti's header, as *Files* in
+`AGENTS.md` says: `TauCeti.Manifold.Orientation.IsOrientationPreservingAt.reindex`,
+which the pinned version lacks, for the reindexed orientation `oCP1`.
+`Normalization.lean` imports it.
+
 ### `Geometry/Manifold/Orientation/Sphere.lean`
 
 In namespace `Orientation`: `sphereOrientation_eq_ofTopForm`, Tau Ceti's
