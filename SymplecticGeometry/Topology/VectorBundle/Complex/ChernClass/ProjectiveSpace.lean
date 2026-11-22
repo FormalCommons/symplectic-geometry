@@ -37,9 +37,8 @@ cohomology ring of `ℙ ℂ V` is `ℤ[X] ⧸ (X ^ (n + 1))`, with `X` going to 
 * `Projectivization.isZero_integralCohomology_of_lt` and
   `Projectivization.isZero_integralCohomology_of_odd`: `Hᵐ(ℙ ℂ V; ℤ) = 0` for `m > 2n` and for odd
   `m`.
-* `Projectivization.projective_singularHomology` and `Projectivization.finite_singularHomology`:
-  the singular homology of `ℙ ℂ V` is projective, and finitely generated, in every degree, as the
-  Leray–Hirsch theorem asks of a fibre.
+* `Projectivization.projective_singularHomology`: the singular homology of `ℙ ℂ V` is projective
+  in every degree, as the Leray–Hirsch theorem asks of a fibre.
 * `Projectivization.bijective_zsmul_hyperplaneClass_pow`: for `k ≤ n`, `m ↦ m • h ^ k` is a
   bijection `ℤ → H^{2k}(ℙ ℂ V; ℤ)`.
 * `Projectivization.hyperplaneClass_pow_eq_zero`: `h ^ (n + 1) = 0`.
@@ -163,30 +162,6 @@ theorem projective_singularHomology (hV : finrank ℂ V = n + 1) [Module.Project
   Projective.of_iso (((singularHomologyFunctor _ m).obj R).mapIso
     (TopCat.isoOfHomeo (X := TopCat.of (ComplexProjectiveSpace n)) (Y := TopCat.of (ℙ ℂ V))
       (complexProjectiveSpaceHomeomorph hV))) inferInstance
-
-/-- The singular homology of `ℙ ℂ V`, for `finrank ℂ V = n + 1`, is finitely generated in every
-degree, with finitely generated projective coefficients `R`: it is `R` in the degrees
-`0, 2, …, 2n` and zero in the others. -/
-theorem finite_singularHomology (hV : finrank ℂ V = n + 1) [Module.Projective k R]
-    [Module.Finite k R] (m : ℕ) :
-    Module.Finite k
-      (((singularHomologyFunctor (ModuleCat.{0} k) m).obj R).obj (TopCat.of (ℙ ℂ V))) := by
-  suffices Module.Finite k (((singularHomologyFunctor (ModuleCat.{0} k) m).obj R).obj
-      (TopCat.of (ComplexProjectiveSpace n))) from
-    Module.Finite.equiv (((singularHomologyFunctor _ m).obj R).mapIso
-      (TopCat.isoOfHomeo (X := TopCat.of (ComplexProjectiveSpace n)) (Y := TopCat.of (ℙ ℂ V))
-        (complexProjectiveSpaceHomeomorph hV))).toLinearEquiv
-  rcases Nat.even_or_odd m with ⟨i, rfl⟩ | hm
-  · rw [← two_mul]
-    by_cases hi : i ≤ n
-    · exact Module.Finite.equiv
-        (ComplexProjectiveSpace.singularHomologyIso R hi).symm.toLinearEquiv
-    · have := ModuleCat.subsingleton_of_isZero
-        (ComplexProjectiveSpace.isZero_singularHomology_of_lt (n := n) R (k := 2 * i) (by omega))
-      infer_instance
-  · have := ModuleCat.subsingleton_of_isZero
-      (ComplexProjectiveSpace.isZero_singularHomology_of_odd (n := n) R hm)
-    infer_instance
 
 end Homology
 

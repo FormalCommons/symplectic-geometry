@@ -27,14 +27,14 @@ definition, in the normalization of Bott–Tu, §20: for a line bundle `c₁` is
   by degree, the classes of the Leray–Hirsch theorem.
 * `SymplecticGeometry.Bundle.chernClass G E k`: the Chern class `c_k(E)`, with `chernClass_def`.
 * `SymplecticGeometry.Bundle.totalChernClass G E`: the total Chern class `∑_{k ≤ n} c_k(E)` in the
-  even integral cohomology ring, with `totalChernClass_def`.
+  even integral cohomology ring, with `totalChernClass_def` and `totalChernClass_apply`.
 
 ## Main results
 
 * `singularCohomologyMap_fiberInclusion_projectiveBundleClass`: `x` restricts on each fibre,
   read through the trivialization there, to `Projectivization.hyperplaneClass G`.
 * `bijective_integralLerayHirsch_projectiveBundle`: the Leray–Hirsch theorem for `P(E)` over a
-  compact base, for `E` of positive rank.
+  compact base, for `E` of finite rank.
 * `sum_mul_projectiveBundleClass_pow_eq_zero_iff`: over a compact base, classes `aₖ` with
   `a₀ = 1` satisfy the relation `∑_{i ≤ n} π^* aᵢ ⌣ x^{n-i} = 0` exactly when they are the
   Chern classes; hence `sum_chernClass_mul_projectiveBundleClass_pow`, the defining relation,
@@ -210,13 +210,22 @@ private theorem basis_fiberInclusion_projectiveBundleClassPow {m : ℕ}
     exact ⟨linearIndependent_empty_type, fun x _ ↦ Subsingleton.elim x 0 ▸ Submodule.zero_mem _⟩
 
 /-- **The Leray–Hirsch theorem for the projective bundle.** Over a compact base, for `E` of
-positive rank, the integral Leray–Hirsch map of the projection `P(E) → B` and the powers
+finite rank, the integral Leray–Hirsch map of the projection `P(E) → B` and the powers
 `xⁱ`, `i < finrank ℂ G`, of the tautological class is bijective in every degree: every class of
-`P(E)` is uniquely `∑ π^* aᵢ ⌣ xⁱ`. -/
-theorem bijective_integralLerayHirsch_projectiveBundle [CompactSpace B] (hG : 0 < finrank ℂ G)
+`P(E)` is uniquely `∑ π^* aᵢ ⌣ xⁱ`. In rank zero both sides are zero, since `P(E)` is empty. -/
+theorem bijective_integralLerayHirsch_projectiveBundle [CompactSpace B] [FiniteDimensional ℂ G]
     (n : ℕ) :
     Function.Bijective (TopCat.integralLerayHirsch
       (TopCat.ofHom (ProjectiveBundle.projection ℂ G E)) n (projectiveBundleClassPow G E)) := by
+  rcases Nat.eq_zero_or_pos (finrank ℂ G) with hG | hG
+  · -- In rank zero there are no powers `xⁱ`, and `P(E)` is empty.
+    have := ProjectiveBundle.isEmpty_of_finrank_eq_zero (E := E) hG
+    have : IsEmpty (Fin (finrank ℂ G)) := ⟨fun i ↦ by have := i.isLt; omega⟩
+    have := ModuleCat.subsingleton_of_isZero
+      (isZero_singularCohomology_of_isEmpty (TopCat.of (ProjectiveBundle ℂ G E))
+        (R := ModuleCat.of ℤ (ULift.{0} ℤ)) (k := ℤ) (M := ModuleCat.of ℤ ℤ) n)
+    exact ⟨fun x y _ ↦ DFinsupp.ext fun j ↦ isEmptyElim j.2.val,
+      fun y ↦ ⟨0, Subsingleton.elim _ _⟩⟩
   obtain ⟨m, hm⟩ : ∃ m, finrank ℂ G = m + 1 := ⟨_, (Nat.succ_pred_eq_of_pos hG).symm⟩
   obtain ⟨s, hs⟩ := isCompact_univ.elim_finite_subcover
     (fun b ↦ (trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).baseSet)
@@ -227,7 +236,7 @@ theorem bijective_integralLerayHirsch_projectiveBundle [CompactSpace B] (hG : 0 
   have := Projectivization.projective_singularHomology (V := G) (𝟙_ (ModuleCat.{0} ℤ)) hm
   exact TopCat.integralLerayHirsch_bijective s (Set.univ_subset_iff.1 hs) n _
     (fun _ _ ↦ inferInstance)
-    (fun d _ ↦ Projectivization.finite_singularHomology _ hm d)
+    (fun d _ ↦ TauCeti.finite_singularHomology_of_finiteCWType (ℙ ℂ G) _ d)
     (basis_fiberInclusion_projectiveBundleClassPow G E hm)
 
 /-! ### The Chern classes -/
@@ -284,6 +293,19 @@ theorem chernClass_eq_zero_of_finrank_lt {k : ℕ} (hk : finrank ℂ G < k) :
     chernClass G E k = 0 := by
   rw [chernClass_def, dite_eq_right (by omega), ← TopCat.evenIntegralCohomologyOf_one]
   exact DirectSum.of_eq_of_ne _ _ _ (by omega)
+
+/-- The component of degree `2k` of the total Chern class is `c_k(E)`, for every `k`: the
+classes above the rank vanish. -/
+@[simp]
+theorem totalChernClass_apply (k : ℕ) : totalChernClass G E k = chernClass G E k := by
+  rw [totalChernClass_def, DirectSum.sum_apply]
+  rcases le_or_gt k (finrank ℂ G) with hk | hk
+  · rw [Finset.sum_eq_single k (fun i _ hi ↦ DirectSum.of_eq_of_ne i k _ hi.symm)
+      (fun h ↦ (h (Finset.mem_range.2 (by omega))).elim)]
+    exact DirectSum.of_eq_same _ _
+  · rw [chernClass_eq_zero_of_finrank_lt G E hk]
+    exact Finset.sum_eq_zero fun i hi ↦
+      DirectSum.of_eq_of_ne _ _ _ (by rw [Finset.mem_range] at hi; omega)
 
 /-! ### The defining relation -/
 
@@ -386,14 +408,9 @@ theorem sum_mul_projectiveBundleClass_pow_eq_zero_iff
         (TopCat.of (ProjectiveBundle ℂ G E)).evenIntegralCohomologyOf 1
           (projectiveBundleClass G E) ^ (finrank ℂ G - i) = 0 ↔
       ∀ k ≤ finrank ℂ G, a k = chernClass G E k := by
-  rcases Nat.eq_zero_or_pos (finrank ℂ G) with hN | hN
+  rcases Nat.eq_zero_or_pos (finrank ℂ G) with hN | _
   · -- For `E` of rank zero the projective bundle is empty, and so is its cohomology.
-    have : IsEmpty (ProjectiveBundle ℂ G E) := ⟨fun p ↦ p.snd.rep_ne_zero
-      (by
-        have : Subsingleton G := Module.finrank_zero_iff.1 hN
-        have := ((trivializationAt G E p.proj).continuousLinearEquivAt ℂ p.proj
-          (mem_baseSet_trivializationAt G E p.proj)).toLinearEquiv.toEquiv.subsingleton
-        exact Subsingleton.elim _ _)⟩
+    have := ProjectiveBundle.isEmpty_of_finrank_eq_zero (E := E) hN
     refine ⟨fun _ k hk ↦ ?_, fun _ ↦ DFinsupp.ext fun k ↦ ?_⟩
     · obtain rfl : k = 0 := by omega
       rw [ha, chernClass_zero]
@@ -401,7 +418,7 @@ theorem sum_mul_projectiveBundleClass_pow_eq_zero_iff
         (isZero_singularCohomology_of_isEmpty (TopCat.of (ProjectiveBundle ℂ G E))
           (R := ModuleCat.of ℤ (ULift.{0} ℤ)) (k := ℤ) (M := ModuleCat.of ℤ ℤ) (2 * k))
       exact Subsingleton.elim _ _
-  have hbij := bijective_integralLerayHirsch_projectiveBundle G E hN (2 * finrank ℂ G)
+  have hbij := bijective_integralLerayHirsch_projectiveBundle G E (2 * finrank ℂ G)
   -- The Chern classes are the coefficients of the decomposition of `-xⁿ`.
   have hc (k : Fin (finrank ℂ G)) : (AddEquiv.ofBijective _ hbij).symm
       (-(((TopCat.of (ProjectiveBundle ℂ G E)).evenIntegralCohomologyOf 1
@@ -459,8 +476,9 @@ positive rank, `π^* : Hⁿ(B; ℤ) → Hⁿ(P(E); ℤ)` is injective in every d
 theorem injective_projectiveBundle_proj (hG : 0 < finrank ℂ G) (n : ℕ) :
     Function.Injective (TopCat.singularCohomologyMap (R := ModuleCat.of ℤ (ULift.{0} ℤ)) (k := ℤ)
       (M := ModuleCat.of ℤ ℤ) (TopCat.ofHom (ProjectiveBundle.projection ℂ G E)) n) :=
+  have := Module.finite_of_finrank_pos hG
   TopCat.singularCohomologyMap_injective_of_integralLerayHirsch_injective _ n _
-    (bijective_integralLerayHirsch_projectiveBundle G E hG n).1 ⟨⟨0, hG⟩, rfl⟩
+    (bijective_integralLerayHirsch_projectiveBundle G E n).1 ⟨⟨0, hG⟩, rfl⟩
     ((projectiveBundleClassPow_mk G E ⟨0, hG⟩).trans
       ((congrArg (fun y : (TopCat.of (ProjectiveBundle ℂ G E)).EvenIntegralCohomology ↦ y 0)
         (pow_zero _)).trans
