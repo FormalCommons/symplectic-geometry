@@ -265,6 +265,13 @@ theorem ofLE_neg (J : ContMDiffComplexStructure I n F V) (h : m ≤ n) :
   ext x v
   rfl
 
+/-- Lowering the regularity does not change the underlying continuous complex structure. -/
+@[simp]
+theorem toContinuousComplexStructure_ofLE (J : ContMDiffComplexStructure I n F V) (h : m ≤ n) :
+    (J.ofLE h).toContinuousComplexStructure = J.toContinuousComplexStructure :=
+  TauCeti.Bundle.ContinuousComplexStructure.ext fun x v ↦ by
+    rw [toContinuousComplexStructure_apply, toContinuousComplexStructure_apply, ofLE_apply]
+
 /-! ### Continuous complex structures as structures of regularity `0` -/
 
 /-- A continuous complex structure, as a complex structure of regularity `0`. -/
@@ -467,6 +474,67 @@ the negation taken in the pull-back bundle. -/
 @[simp]
 theorem pullback_neg_apply (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯) (y : N)
     (v : ((f : N → M) *ᵖ V) y) : (-J).pullback f y v = -J.pullback f y v := (rfl)
+
+/-- The complex bundle of the pull-back `J.pullback f` is the pull-back of the complex bundle of
+`J`: at `y` both fibres are `V (f y)`, with `J (f y)` as multiplication by `i`, and this is the
+identity of `V (f y)`, as a complex-linear equivalence. -/
+def pullbackFiberEquiv (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯) (y : N) :
+    (J.pullback f).toContinuousComplexStructure.Fiber y ≃L[ℂ]
+      ((f : N → M) *ᵖ J.toContinuousComplexStructure.Fiber) y where
+  toFun v := (J.toContinuousComplexStructure.fiberEquiv (f y)).symm
+    ((J.pullback f).toContinuousComplexStructure.fiberEquiv y v)
+  invFun v := ((J.pullback f).toContinuousComplexStructure.fiberEquiv y).symm
+    (J.toContinuousComplexStructure.fiberEquiv (f y) v)
+  -- The operations of `(f *ᵖ J.toContinuousComplexStructure.Fiber) y` are, by definition, those
+  -- of `J.toContinuousComplexStructure.Fiber (f y)`, which the closing `exact`s use.
+  map_add' v w := by
+    rw [map_add]
+    exact map_add _ _ _
+  map_smul' z v := (J.toContinuousComplexStructure.fiberEquiv (f y)).injective <| by
+    have h₁ := (J.pullback f).toContinuousComplexStructure.fiberEquiv_smul y z v
+    have h₂ := J.toContinuousComplexStructure.fiberEquiv_smul (f y) z
+      ((J.toContinuousComplexStructure.fiberEquiv (f y)).symm
+        ((J.pullback f).toContinuousComplexStructure.fiberEquiv y v))
+    erw [ContinuousLinearEquiv.apply_symm_apply] at h₂
+    rw [toContinuousComplexStructure_apply] at h₂
+    rw [toContinuousComplexStructure_apply, coe_pullback] at h₁
+    erw [ContinuousLinearEquiv.apply_symm_apply]
+    exact h₁.trans h₂.symm
+  left_inv v := by
+    dsimp only
+    erw [ContinuousLinearEquiv.apply_symm_apply, ContinuousLinearEquiv.symm_apply_apply]
+  right_inv v := by
+    dsimp only
+    erw [ContinuousLinearEquiv.apply_symm_apply, ContinuousLinearEquiv.symm_apply_apply]
+  continuous_toFun := (J.toContinuousComplexStructure.fiberEquiv (f y)).symm.continuous.comp
+    ((J.pullback f).toContinuousComplexStructure.fiberEquiv y).continuous
+  continuous_invFun :=
+    ((J.pullback f).toContinuousComplexStructure.fiberEquiv y).symm.continuous.comp
+      (J.toContinuousComplexStructure.fiberEquiv (f y)).continuous
+
+theorem pullbackFiberEquiv_apply (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯)
+    (y : N) (v : (J.pullback f).toContinuousComplexStructure.Fiber y) :
+    J.pullbackFiberEquiv f y v = (J.toContinuousComplexStructure.fiberEquiv (f y)).symm
+      ((J.pullback f).toContinuousComplexStructure.fiberEquiv y v) := (rfl)
+
+/-- `pullbackFiberEquiv` is continuous on total spaces, for any complex model `G`. -/
+theorem continuous_pullbackFiberEquiv [FiniteDimensional ℝ F] (G : Type*) [NormedAddCommGroup G]
+    [NormedSpace ℂ G] [FiniteDimensional ℂ G] [Fact (Module.finrank ℝ F = 2 * Module.finrank ℂ G)]
+    (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯) :
+    Continuous fun p : TotalSpace G (J.pullback f).toContinuousComplexStructure.Fiber ↦
+      TotalSpace.mk' G (E := (f : N → M) *ᵖ J.toContinuousComplexStructure.Fiber) p.proj
+        (J.pullbackFiberEquiv f p.proj p.snd) := by
+  rw [(inducing_pullbackTotalSpaceEmbedding G J.toContinuousComplexStructure.Fiber
+    f).continuous_iff]
+  refine (FiberBundle.continuous_proj G _).prodMk <|
+    ((J.toContinuousComplexStructure.totalSpaceHomeomorph G).symm.continuous.comp
+      ((Pullback.continuous_lift F V f).comp
+        ((J.pullback f).toContinuousComplexStructure.totalSpaceHomeomorph G).continuous)).congr
+      fun p ↦ ?_
+  rw [Function.comp_apply, Function.comp_apply,
+    TauCeti.Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_apply]
+  erw [Pullback.lift_mk, TauCeti.Bundle.ContinuousComplexStructure.totalSpaceHomeomorph_symm_apply]
+  simp only [pullbackFiberEquiv_apply]
 
 end Pullback
 

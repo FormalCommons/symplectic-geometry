@@ -186,6 +186,17 @@ theorem Tames.isNondegenerate (h : ω.Tames J) : ω.IsNondegenerate := by
   by_contra hv0
   exact (h.apply_pos hv0).ne' (hv (J x v))
 
+/-- Tameness does not depend on the regularity at which the complex structure is viewed. -/
+@[simp]
+theorem tames_ofLE_iff {l : ℕ∞} (h : l ≤ m) : ω.Tames (J.ofLE h) ↔ ω.Tames J := by
+  simp only [tames_def, ContMDiffComplexStructure.ofLE_apply]
+
+/-- `-ω` tames `-J` exactly when `ω` tames `J`. -/
+@[simp]
+theorem neg_tames_neg_iff : (-ω).Tames (-J) ↔ ω.Tames J := by
+  simp only [tames_def, bilinFormAt_neg, ContMDiffComplexStructure.neg_apply,
+    neg_apply, LinearMap.neg_apply, map_neg, neg_neg]
+
 /-- A form compatible with some complex structure is nondegenerate. -/
 theorem Compatible.isNondegenerate (h : ω.Compatible J) : ω.IsNondegenerate :=
   h.tames.isNondegenerate

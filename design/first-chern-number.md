@@ -172,12 +172,14 @@ updated to match.
 ## Files
 
 All files are under `SymplecticGeometry/`. The part's own files are in
-`Geometry/Manifold/VectorBundle/ChernNumber/`, as in `DESIGN.md`. One extra
-file, the topological class and number, goes in
-`Topology/VectorBundle/Complex/`, because it uses no smooth structure (a
+`Geometry/Manifold/VectorBundle/ChernNumber/`, as in `DESIGN.md`. The
+topological class and number, and the complex-linear maps of complex
+bundles that `Basic.lean` needs, go in
+`Topology/VectorBundle/Complex/`, because they use no smooth structure (a
 folder here beside Tau Ceti's folder of the same name; no Tau Ceti file has
-the name `FirstChernClass.lean` at that place). The prerequisites have files
-of their own, listed with their issues.
+the name `FirstChernClass.lean` at that place, and `Structure.lean` is
+named after Tau Ceti's file there so that the two can merge). The
+prerequisites have files of their own, listed with their issues.
 
 ### `Topology/VectorBundle/Complex/FirstChernClass.lean`
 
@@ -207,15 +209,15 @@ core of prerequisite 1:
   determinants, and
   `TauCeti.complexEulerClass_eq_neg_of_finrank_eq_one_of_conjugateFiberwise`
   applies.
-- `chernNumber o G E : ℤ`, for `o : TauCeti.HomologicalOrientation M E' 2`
-  of a compact topological surface `M` (with `hn : finrank ℝ E' = 2`): the
+- `chernNumber o hn G E : ℤ`, for `o : TauCeti.HomologicalOrientation M E' 2`
+  of a compact topological surface `M` and `hn : finrank ℝ E' = 2`: the
   integer under `o.evalFundamentalClass hn _ (ContinuousMap.id M)
   (firstChernClass G E)`; with `chernNumber_def`.
 - `chernNumber_neg_orientation`: reversing `o` negates it.
 - `chernNumber_congr`, `chernNumber_trivial`, `chernNumber_conj`, from the
   lemmas above.
 - `chernNumber_pullback (f : C(M', M))`, with `[PreconnectedSpace M]`:
-  `chernNumber o' G (f *ᵖ E) = o'.degree o hn f * chernNumber o G E`, from
+  `chernNumber o' hn' G (f *ᵖ E) = o'.degree o hn' f * chernNumber o hn G E`, from
   `firstChernClass_pullback` and
   `evalFundamentalClass_id_singularCohomologyMap_eq_degree_smul`, which needs
   the target compact and preconnected.
@@ -223,26 +225,51 @@ core of prerequisite 1:
 No Whitney sum formula is claimed over a general base; additivity is proved
 over surfaces only, from clutching.
 
+### `Topology/VectorBundle/Complex/Structure.lean`
+
+In the namespace `TauCeti.Bundle.ContinuousComplexStructure`, for
+continuous complex structures `J₁`, `J₂` on real bundles `V₁`, `V₂` over
+one base and fibrewise real-linear equivalences `Φ`:
+
+- `fiberEquivOfCommute`: if `Φ` intertwines `J₁` with `J₂`, the
+  complex-linear equivalences `J₁.Fiber b ≃L[ℂ] J₂.Fiber b`, and
+  `continuous_fiberEquivOfCommute` (continuous on total spaces, for any
+  complex models, when `Φ` is);
+- `fiberEquivConjOfAnticommute`: if `Φ` intertwines `J₁` with `-J₂`, the
+  complex-linear equivalences from `J₁.Fiber b` to the conjugate
+  `ConjugateBundle J₂.Fiber b`, and
+  `continuous_fiberEquivConjOfAnticommute`.
+
+They turn the real isomorphisms of *Symplectic vector bundles* into the
+complex ones that `chernNumber_congr` takes.
+
 ### `Geometry/Manifold/VectorBundle/ChernNumber/Basic.lean`
 
 - `chernNumber_pullback_eq_degree_mul`: for `φ : M' → M` smooth between
   closed oriented surfaces, `M` connected, the smooth form
-  `chernNumber o'ₕ G (φ *ᵖ E) = TauCeti.degree o' o φ * chernNumber oₕ G E`,
-  with `oₕ = o.toHomologicalOrientation`; from `chernNumber_pullback` and
-  `degree_toHomologicalOrientation_eq_degree`.
-- `symplecticChernNumber o ω : ℤ` for a symplectic vector bundle `(E, ω)` in
-  the representation of *Symplectic vector bundles*: the `chernNumber` of the
-  complex bundle of a compatible complex structure, chosen by the existence
-  theorem of that part. `symplecticChernNumber_eq_chernNumber` gives the same
-  value for every compatible or tame `J`. The proof: by that part's
-  classification theorem (`.../Symplectic/Classification.lean`), the identity
-  of `(E, ω)` is a symplectic isomorphism, so the two complex bundles are
-  isomorphic.
+  `chernNumber o'ₕ hn G (φ *ᵖ E) = TauCeti.degree o' o φ * chernNumber oₕ hn G E`,
+  with `oₕ = o.toHomologicalOrientation hn`, for `φ : C(M', M)` with
+  `ContMDiff 𝓘(ℝ, E') 𝓘(ℝ, E') 1 φ` and both surfaces modelled on `E'`; from
+  `chernNumber_pullback` and `degree_toHomologicalOrientation_eq_degree`.
+- `symplecticChernNumber o hn G ω : ℤ` for a symplectic vector bundle
+  `(E, ω)` in the representation of *Symplectic vector bundles*, with `o` a
+  homological orientation and `G` the complex model of the complex bundles
+  (`[Fact (finrank ℝ F = 2 * finrank ℂ G)]`): the `chernNumber` of the
+  complex bundle of a continuous complex structure tamed by `ω`, chosen by
+  `Classical.choose`, and `0` if there is none. Taking tame rather than
+  compatible structures, at regularity `0`, keeps the definition free of
+  hypotheses on the base; the existence theorem of that part gives one for
+  every nondegenerate form. `symplecticChernNumber_eq_chernNumber` gives the
+  same value for every compatible or tame `J`. The proof: two complex
+  structures tamed by one form are isomorphic
+  (`ContMDiffTwoForm.Tames.exists_complex_bundleEquiv` in
+  `.../Symplectic/Classification.lean`).
 - `symplecticChernNumber_neg`: `(E, -ω)` has the negated number, since `-J`
   is compatible with `-ω` and gives the conjugate bundle.
 - `symplecticChernNumber_pullback` and `symplecticChernNumber_congr`, from
   the complex statements and the pull-backs and isomorphisms of symplectic
-  bundles that *Symplectic vector bundles* gets from #57.
+  bundles that *Symplectic vector bundles* gets from #57. Both take the form
+  nondegenerate, so that a compatible complex structure exists.
 
 ### `Geometry/Manifold/VectorBundle/ChernNumber/Clutching.lean`
 
@@ -382,7 +409,7 @@ Bundles from clutching data, and isomorphisms from homotopies.
 
 - `chernNumber_eq_sum_sectionIndex`: let `L` be a complex line bundle over a
   compact homologically oriented surface, and `s` a continuous section with
-  finitely many zeros. Then `chernNumber o ℂ L` is the sum over the zeros of
+  finitely many zeros. Then `chernNumber o hn ℂ L` is the sum over the zeros of
   `TauCeti.VectorBundleOrientation.sectionIndex` for the canonical
   orientation `TauCeti.VectorBundleOrientation.complex`. The proof is
   `firstChernClass_eq_complexEulerClass` followed by
@@ -411,7 +438,7 @@ Bundles from clutching data, and isomorphisms from homotopies.
 - Uses the circle bundle `P` of a Hermitian line bundle and its connection
   forms from prerequisites 3 and 4.
 - `chernNumber_eq_integral_curvature`: for every connection form `α` on `P`
-  (`hα : IsCircleConnectionForm α`), `(chernNumber o.toHomologicalOrientation ℂ L :
+  (`hα : IsCircleConnectionForm α`), `(chernNumber (o.toHomologicalOrientation hn) hn ℂ L :
   ℝ) = -(2 * π)⁻¹ * TauCeti.integralTopForm o hα.curvature`. Proof: two connection forms
   differ by `π^* a`, so their curvatures differ by `d a`, whose integral is
   $0$ (`TauCeti.integralTopForm_mextDeriv_eq_zero`; no connectedness needed).
