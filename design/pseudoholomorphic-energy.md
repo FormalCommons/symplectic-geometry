@@ -280,7 +280,7 @@ of Tau Ceti's roadmap that no one has started.
 | `Geometry/Manifold/DifferentialForm/Smooth/FromTauCeti.lean` | Tau Ceti main's `SmoothBundleForm.contMDiffAt_eval₂`, for the file above |
 | `Geometry/Symplectic/JHolomorphic/Energy/Surface.lean` | Tau Ceti's energy form read through `energyDensity`, the energy through an area form, the integrated identity, zero energy and local constancy |
 | `Geometry/Manifold/MFDeriv/Constancy.lean` | a locally constant map has zero differential, `IsLocallyConstant.mfderiv_eq_zero`, for the file above |
-| `AlgebraicTopology/SimplicialSet/Homology/RestrictScalars.lean` | the change of coefficients on simplicial chains along a restriction of scalars, `SSet.restrictScalarsChainMap` |
+| `AlgebraicTopology/SimplicialSet/Homology/RestrictScalars.lean` | the change of coefficients on simplicial chains along a restriction of scalars, `SSet.restrictScalarsChainMap`, and its isomorphism form `SSet.restrictScalarsChainIso` |
 | `Geometry/Manifold/SmoothSingular/SingularPeriod.lean` | the pairing of de Rham classes with integral singular homology |
 | `Geometry/Manifold/SmoothSingular/RelativeCycle.lean` | the relative step of Decision 7 |
 | `AlgebraicTopology/SimplicialSet/Homology/RelativeClass.lean` | the relative class of a simplex whose faces lie in the subcomplex of a pair of simplicial sets, `SSetPair.relClass` |
@@ -460,14 +460,11 @@ and `Geometry/Manifold/MFDeriv/Constancy.lean`, and defines nothing.
   `TopPair.relClass` of the underlying singular simplex, from
   `AlgebraicTopology/Singular/RelativeClass.lean` (it defines no class of its
   own). By `eq_fundamentalClassOn` it suffices to
-  compute the local image at each point of `K`; by the change-of-chart sign
-  rule (`OpenPartialHomeomorph.localHomologyMap_restrict_localOrientationOfOrientedChart`)
-  and translation invariance this reduces to one affine simplex around `0`
-  in $\mathbb R^2$ with its standard orientation, where the connecting
-  morphism takes the simplex to its boundary loop, and Tau Ceti's explicit
-  description of the circle (`AlgebraicTopology/Singular/Sphere.lean`: the
-  connecting morphism of the two-arc cover sends its generator to
-  `[-x] - [x]`) fixes the sign $s$.
+  compute the local image at each point of `K`. There `g`, read on `U`, and
+  the inclusion of `U` into $\mathbb R^2$ preserve orientation, so they carry
+  local orientations to local orientations (Tau Ceti's
+  `localIndex_toHomologicalOrientation`), and this reduces to the standard
+  simplex of `StdSimplex.lean`, which fixes the sign $s$.
 - The issue records $s$ in this file and in this section, and from then on
   "the correctly signed homological orientation" means
   `o.toHomologicalOrientation hE'` if $s=1$ and

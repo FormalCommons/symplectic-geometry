@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Poincare
 public import TauCeti.Geometry.Manifold.DeRham.Basic
-import TauCeti.Geometry.Manifold.DeRham.Map
+import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
@@ -125,8 +125,7 @@ private theorem exists_contMDiff_sub_eq_of_mextDeriv_eq {α : N → SmoothForm I
   have := hU.connectedSpace
   obtain ⟨P, hP, hdP⟩ := hU.exists_contMDiff_mextDeriv_eq_of_forall_mem_closedForms
     (hα.mpullback Subtype.val contMDiff_subtypeVal) fun t ↦
-      closedForms.coe_mpullback Subtype.val contMDiff_subtypeVal 1 ⟨α t, _⟩ ▸
-        (closedForms.mpullback Subtype.val contMDiff_subtypeVal 1 ⟨α t, hcl t⟩).property
+      SmoothForm.mpullback_mem_closedForms Subtype.val contMDiff_subtypeVal (hcl t)
   have hmk (y y' : U) : ConnectedComponents.mk (y : M) = ConnectedComponents.mk (y' : M) :=
     ConnectedComponents.coe_eq_coe'.2 <|
       (isPreconnected_univ.image _ continuous_subtypeVal.continuousOn).subset_connectedComponent
