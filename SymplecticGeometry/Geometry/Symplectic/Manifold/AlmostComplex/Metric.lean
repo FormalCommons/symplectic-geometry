@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
+public import TauCeti.Geometry.Manifold.Riemannian.AlmostComplex
 
 /-!
 # The metric of a compatible pair on a manifold
@@ -38,6 +39,9 @@ identifications `SymplecticGeometry.Bundle.ContMDiffTwoForm.tangentEquiv` of two
 * `TauCeti.SmoothAlmostComplexStructure.compatibleFormEquiv_apply_apply` (or `_apply_eval₂`) and
   `TauCeti.SmoothAlmostComplexStructure.compatibleFormEquiv_symm_apply_inner`: the two
   directions of the bijection are `σ(u, v) = g(J u, v)` and `g(u, v) = σ(u, J v)`.
+* `TauCeti.SmoothAlmostComplexStructure.kahlerTwoForm_eq_compatibleFormEquiv`: Tau Ceti's Kähler
+  form `TauCeti.SmoothAlmostComplexStructure.kahlerTwoForm` of the ambient `RiemannianBundle`
+  metric is the form under the bijection of a compatible metric `g` that agrees with it.
 
 ## References
 
@@ -49,7 +53,7 @@ public section
 noncomputable section
 
 open _root_.Bundle
-open scoped ContDiff
+open scoped ContDiff RealInnerProductSpace
 
 namespace TauCeti
 
@@ -164,6 +168,19 @@ theorem compatibleFormEquiv_symm_apply_inner (σ : {σ : SmoothTwoForm I M // σ
     (x : M) (u v : TangentSpace I x) :
     (J.compatibleFormEquiv.symm σ).val.inner x u v = σ.val.eval₂ x u (J x v) := by
   rw [compatibleFormEquiv_symm_apply, SmoothTwoForm.Compatible.metric_inner]
+
+/-- Tau Ceti's Kähler form `TauCeti.SmoothAlmostComplexStructure.kahlerTwoForm`, built from the
+ambient `RiemannianBundle` metric on `TM`, is the form under `compatibleFormEquiv` of any metric
+`g` compatible with `J` that agrees with the ambient one: both are `σ(u, v) = g(J u, v)`. -/
+theorem kahlerTwoForm_eq_compatibleFormEquiv [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+    [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
+    (hJ : ∀ (x : M) (u w : TangentSpace I x), ⟪J x u, J x w⟫ = ⟪u, w⟫)
+    (g : {g : ContMDiffRiemannianMetric I ∞ E (fun x : M ↦ TangentSpace I x) //
+      ∀ x u v, g.inner x (J x u) (J x v) = g.inner x u v})
+    (hg : ∀ (x : M) (u v : TangentSpace I x), g.val.inner x u v = ⟪u, v⟫) :
+    J.kahlerTwoForm hJ = (J.compatibleFormEquiv g).val := by
+  refine SmoothBundleForm.ext_eval₂ fun x u w ↦ ?_
+  rw [compatibleFormEquiv_apply_eval₂, SmoothBundleForm.eval₂_apply, kahlerTwoForm_apply_two, hg]
 
 end SmoothAlmostComplexStructure
 
