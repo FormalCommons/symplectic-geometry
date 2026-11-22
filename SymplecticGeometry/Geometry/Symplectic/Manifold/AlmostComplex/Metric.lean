@@ -34,7 +34,8 @@ identifications `SymplecticGeometry.Bundle.ContMDiffTwoForm.tangentEquiv` of two
 ## Main results
 
 * `TauCeti.SmoothTwoForm.Compatible.metric_inner`: `g_J(u, v) = σ(u, J v)`.
-* `TauCeti.SmoothAlmostComplexStructure.compatibleFormEquiv_apply_eval₂` and
+* `TauCeti.SmoothTwoForm.Compatible.metric_inner_apply_apply`: `g_J` is invariant under `J`.
+* `TauCeti.SmoothAlmostComplexStructure.compatibleFormEquiv_apply_apply` (or `_apply_eval₂`) and
   `TauCeti.SmoothAlmostComplexStructure.compatibleFormEquiv_symm_apply_inner`: the two
   directions of the bijection are `σ(u, v) = g(J u, v)` and `g(u, v) = σ(u, J v)`.
 
@@ -68,41 +69,30 @@ def Compatible.metric (hc : σ.Compatible J) :
     ContMDiffRiemannianMetric I ∞ E (fun x : M ↦ TangentSpace I x) :=
   (ContMDiffTwoForm.compatible_tangentEquiv_symm_iff.2 hc).metric
 
+/-- The metric of a compatible pair on `TM` is the bundle metric of the pair moved to the tangent
+bundle. -/
+theorem Compatible.metric_def (hc : σ.Compatible J) :
+    hc.metric = (ContMDiffTwoForm.compatible_tangentEquiv_symm_iff.2 hc).metric :=
+  (rfl)
+
 /-- The metric of a compatible pair is `g_J(u, v) = σ(u, J v)`. -/
 @[simp]
 theorem Compatible.metric_inner (hc : σ.Compatible J) (x : M) (u v : TangentSpace I x) :
     hc.metric.inner x u v = σ.eval₂ x u (J x v) := by
-  rw [Compatible.metric, ContMDiffTwoForm.Compatible.metric_inner,
-    ContMDiffTwoForm.bilinFormAt_apply, ContMDiffTwoForm.tangentEquiv_symm_apply,
-    SmoothBundleForm.eval₂_apply, ContMDiffComplexStructure.tangentEquiv_symm_apply,
-    SmoothAlmostComplexStructure.toContMDiff_apply]
+  simp [Compatible.metric_def, ContMDiffTwoForm.bilinFormAt_apply]
+
+/-- The metric of a compatible pair `(σ, J)` is invariant under `J`: `g_J(J u, J v) = g_J(u, v)`. -/
+theorem Compatible.metric_inner_apply_apply (hc : σ.Compatible J) (x : M)
+    (u v : TangentSpace I x) :
+    hc.metric.inner x (J x u) (J x v) = hc.metric.inner x u v := by
+  simpa using
+    (ContMDiffTwoForm.compatible_tangentEquiv_symm_iff.2 hc).metric_inner_apply_apply x u v
 
 end SmoothTwoForm
 
 namespace SmoothAlmostComplexStructure
 
 variable (J : SmoothAlmostComplexStructure I M)
-
-/-- The two-form `g(J u, v)` of a Riemannian metric `g` compatible with `J`, read on the tangent
-bundle from `SymplecticGeometry.Bundle.ContMDiffComplexStructure.compatibleForm`. -/
-private def formOfMetric (g : ContMDiffRiemannianMetric I ∞ E (fun x : M ↦ TangentSpace I x)) :
-    SmoothTwoForm I M :=
-  ContMDiffTwoForm.tangentEquiv <| ContMDiffComplexStructure.compatibleForm g <|
-    ContMDiffComplexStructure.tangentEquiv.symm (J.toContMDiff ⊤)
-
-private theorem formOfMetric_eval₂
-    {g : ContMDiffRiemannianMetric I ∞ E (fun x : M ↦ TangentSpace I x)}
-    (hg : ∀ x u v, g.inner x (J x u) (J x v) = g.inner x u v) (x : M)
-    (u v : TangentSpace I x) :
-    (J.formOfMetric g).eval₂ x u v = g.inner x (J x u) v := by
-  have h := hg x u (J x v)
-  rw [J.apply_apply, map_neg] at h
-  simp only [formOfMetric, SmoothBundleForm.eval₂_apply, ContMDiffTwoForm.tangentEquiv_apply,
-    ContMDiffComplexStructure.compatibleForm_apply, Matrix.cons_val_zero, Matrix.cons_val_one,
-    Matrix.cons_val_fin_one, ContMDiffComplexStructure.tangentEquiv_symm_apply,
-    toContMDiff_apply]
-  beta_reduce at h ⊢
-  linarith
 
 /-- For a fixed smooth almost complex structure `J`, the bijection `g ↦ g(J ·, ·)` from the
 Riemannian metrics `g` on `TM` compatible with `J`, `g(J u, J v) = g(u, v)`, to the smooth
@@ -113,16 +103,20 @@ def compatibleFormEquiv :
     {g : ContMDiffRiemannianMetric I ∞ E (fun x : M ↦ TangentSpace I x) //
         ∀ x u v, g.inner x (J x u) (J x v) = g.inner x u v} ≃
       {σ : SmoothTwoForm I M // σ.Compatible J} where
-  toFun g := ⟨J.formOfMetric g.val, by
-    rw [formOfMetric, ← ContMDiffTwoForm.compatible_tangentEquiv_symm_iff,
-      LinearEquiv.symm_apply_apply]
+  toFun g := ⟨ContMDiffTwoForm.tangentEquiv <| ContMDiffComplexStructure.compatibleForm g.val <|
+      ContMDiffComplexStructure.tangentEquiv.symm (J.toContMDiff ⊤), by
+    rw [← ContMDiffTwoForm.compatible_tangentEquiv_symm_iff, LinearEquiv.symm_apply_apply]
     exact ContMDiffComplexStructure.compatible_compatibleForm _ _⟩
-  invFun σ := ⟨σ.property.metric, fun x u v ↦ by
-    rw [SmoothTwoForm.Compatible.metric_inner, SmoothTwoForm.Compatible.metric_inner,
-      ← σ.property.invariant.apply x u (J x v)]⟩
-  left_inv g := Subtype.ext <| ContMDiffRiemannianMetric.ext fun x u v ↦ by
-    rw [SmoothTwoForm.Compatible.metric_inner, J.formOfMetric_eval₂ g.property]
-    exact g.property x u v
+  invFun σ := ⟨σ.property.metric, σ.property.metric_inner_apply_apply⟩
+  left_inv g := Subtype.ext <| by
+    have hg : ∀ x u v, g.val.inner x (ContMDiffComplexStructure.tangentEquiv.symm
+        (J.toContMDiff ⊤) x u) (ContMDiffComplexStructure.tangentEquiv.symm
+        (J.toContMDiff ⊤) x v) = g.val.inner x u v := by
+      simpa using g.property
+    dsimp only
+    refine (SmoothTwoForm.Compatible.metric_def _).trans ?_
+    simp only [LinearEquiv.symm_apply_apply]
+    exact ContMDiffComplexStructure.metric_compatible_compatibleForm hg
   right_inv σ := Subtype.ext <|
     (congrArg ContMDiffTwoForm.tangentEquiv
       (ContMDiffTwoForm.Compatible.compatibleForm_metric _)).trans
@@ -140,12 +134,24 @@ theorem compatibleFormEquiv_apply
   (rfl)
 
 /-- The form of a metric `g` compatible with `J` is `σ(u, v) = g(J u, v)`. -/
+@[simp]
+theorem compatibleFormEquiv_apply_apply
+    (g : {g : ContMDiffRiemannianMetric I ∞ E (fun x : M ↦ TangentSpace I x) //
+      ∀ x u v, g.inner x (J x u) (J x v) = g.inner x u v})
+    (x : M) (u v : TangentSpace I x) :
+    (J.compatibleFormEquiv g).val.val x ![u, v] = g.val.inner x (J x u) v := by
+  rw [compatibleFormEquiv_apply, ContMDiffTwoForm.tangentEquiv_apply,
+    ContMDiffComplexStructure.compatibleForm_apply_of_invariant (by simpa using g.property)]
+  simp
+
+/-- The form of a metric `g` compatible with `J` is `σ(u, v) = g(J u, v)`, through Tau Ceti's
+`TauCeti.SmoothBundleForm.eval₂`. -/
 theorem compatibleFormEquiv_apply_eval₂
     (g : {g : ContMDiffRiemannianMetric I ∞ E (fun x : M ↦ TangentSpace I x) //
       ∀ x u v, g.inner x (J x u) (J x v) = g.inner x u v})
     (x : M) (u v : TangentSpace I x) :
-    (J.compatibleFormEquiv g).val.eval₂ x u v = g.val.inner x (J x u) v :=
-  J.formOfMetric_eval₂ g.property x u v
+    (J.compatibleFormEquiv g).val.eval₂ x u v = g.val.inner x (J x u) v := by
+  simp
 
 /-- The metric of a form compatible with `J` is `TauCeti.SmoothTwoForm.Compatible.metric`. -/
 @[simp]
