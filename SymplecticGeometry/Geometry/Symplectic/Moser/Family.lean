@@ -31,10 +31,10 @@ only involves `α_t` at the points `s • x` of the segment from `0` to `x`, so 
 
 ## Main results
 
-* `TauCeti.exists_contMDiff_parametric_radialPrimitive`: a smooth family of closed forms of
-  positive degree on a star-shaped open set has a smooth family of primitives, which vanishes at
-  every point where the form vanishes along the segment to the centre, and is `0` where the form
-  is `0`.
+* `SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex`: a smooth family of
+  closed forms of positive degree on a star-shaped open set has a smooth family of primitives,
+  which vanishes at every point where the form vanishes along the segment to the centre, and is
+  `0` where the form is `0`.
 
 ## References
 
@@ -47,10 +47,10 @@ only involves `α_t` at the points `s • x` of the segment from `0` to `x`, so 
 
 public section
 
-open Set TopologicalSpace SymplecticGeometry
+open Set TopologicalSpace TauCeti
 open scoped Manifold ContDiff
 
-namespace TauCeti
+namespace SymplecticGeometry
 
 section RadialPrimitive
 
@@ -65,7 +65,7 @@ star-shaped about `0`, and `α_t`, `t ∈ N`, a smooth family of closed `(k + 1)
 values in a Banach space, over a parameter manifold `N`. Then there is a smooth family `β_t` of
 `k`-forms on `U` with `d β_t = α_t` for every `t`, such that `β_t` vanishes at `x` whenever `α_t`
 vanishes at every point of the segment from `0` to `x`, and `β_t = 0` whenever `α_t = 0`. -/
-theorem exists_contMDiff_parametric_radialPrimitive {U : Opens V}
+theorem exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex {U : Opens V}
     (hU : StarConvex ℝ 0 (U : Set V)) {α : N → SmoothForm 𝓘(ℝ, V) U F (k + 1)}
     (hα : IsSmoothFamily J α) (hcl : ∀ t, mextDerivₗ 𝓘(ℝ, V) (k + 1) (α t) = 0) :
     ∃ β : N → SmoothForm 𝓘(ℝ, V) U F k, IsSmoothFamily J β ∧
@@ -97,4 +97,4 @@ theorem exists_contMDiff_parametric_radialPrimitive {U : Opens V}
 
 end RadialPrimitive
 
-end TauCeti
+end SymplecticGeometry

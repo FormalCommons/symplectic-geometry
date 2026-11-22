@@ -40,9 +40,7 @@ primitives (`TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq_of_isCompact`,
 `Geometry/Symplectic/Manifold/Moser.lean`), the relative Moser theorem for one
 pair of forms
 (`TauCeti.SmoothTwoForm.exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`,
-`RelativeMoser.lean`), the relative Poincaré operator of a vector bundle
-(`TauCeti.vectorBundlePoincareHomotopy`,
-`Geometry/Manifold/DifferentialForm/Relative/Basic.lean`), tubular
+`RelativeMoser.lean`), tubular
 neighbourhoods with their retractions and deformations
 (`TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`,
 `TauCeti.SmoothEmbedding.exists_deformation_subset`,
@@ -525,7 +523,7 @@ the flow of the vertical field $(0,X_{s,t})$ on the manifold `ℝ × N`. Its
 first component is constant, so by uniqueness its slices are the flows of the
 $X_{\cdot,t}$. The same file gives the parametric radial primitives on a
 star-shaped open set of a normed space,
-`TauCeti.exists_contMDiff_parametric_radialPrimitive`: for a smooth family of
+`SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex`: for a smooth family of
 closed $k$-forms ($k\ge1$) on an open set star-shaped about `0`, over any
 parameter manifold, a smooth family of
 primitives that vanishes at every point where the forms vanish along the
