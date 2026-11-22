@@ -18,7 +18,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Polar
 /-!
 # The first Chern class of a nondegenerate two-form
 
-Let `σ` be a nondegenerate smooth two-form on a Hausdorff σ-compact manifold `M` modelled on a
+Consider a nondegenerate smooth two-form `σ` on a Hausdorff σ-compact manifold `M` modelled on a
 finite-dimensional space. Its first Chern class `c₁(σ) ∈ H²(M; ℤ)`,
 `TauCeti.SmoothTwoForm.IsNondegenerate.firstChernClass`, is the first Chern class
 `SymplecticGeometry.Bundle.firstChernClass` of the complex vector bundle `(TM, J)` for an almost
