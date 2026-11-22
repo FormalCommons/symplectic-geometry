@@ -377,12 +377,19 @@ normed algebra with summable geometric series, `x ↦ A (1 + x) (1 - x)⁻¹` ha
 derivative $\dot X\mapsto2A(1-C)^{-1}\dot X(1-C)^{-1}$ at `C` with `1 - C`
 invertible.
 
+### `Geometry/Manifold/SmoothEmbedding/Basic/FromTauCeti.lean`
+
+Tau Ceti main's `Manifold.IsSmoothEmbedding.contMDiffAt_iff_comp` (commit
+`223a7bc65a`), copied with Tau Ceti's header for the file below, which proves
+`contMDiffAt_compatibleCLM_comp_iff` from it.
+
 ### `Geometry/Manifold/Instances/CompatibleComplexStructures.lean`
 
 The manifold, in `TauCeti.SymplecticForm`. Besides Mathlib, Tau Ceti,
 `CompatibleTangent/Finrank.lean` and `Compatible/Cayley.lean`, it imports
-`Analysis/Calculus/FDeriv/Cayley.lean` and *Linear complex structures*'
-`Topology/ComplexStructure/Basic.lean`.
+`Analysis/Calculus/FDeriv/Cayley.lean`, *Linear complex structures*'
+`Topology/ComplexStructure/Basic.lean` and
+`Geometry/Manifold/SmoothEmbedding/Basic/FromTauCeti.lean`.
 
 - `instance : ChartedSpace ω.compatibleModel (𝒥 ω)` and
   `instance : IsManifold 𝓘 n (𝒥 ω)` for every `n`, from the open embedding

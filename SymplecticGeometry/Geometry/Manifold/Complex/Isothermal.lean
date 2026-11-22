@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Analysis.Complex.Beltrami.Regularity
 import SymplecticGeometry.Analysis.InnerProductSpace.TwoDim
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import TauCeti.Analysis.Calculus.InverseFunctionTheorem
 import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
