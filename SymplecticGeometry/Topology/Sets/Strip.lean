@@ -22,6 +22,7 @@ set containing `{0} × X` contains a strip of positive width
 ## Main definitions
 
 * `SymplecticGeometry.symmStrip X ε`: the open set `Ioo (-ε) ε ×ˢ univ` of `ℝ × X`.
+* `SymplecticGeometry.symmStripMk`: the point `(r, x)` of the strip, for `|r| < ε`.
 
 ## Main results
 
@@ -58,6 +59,25 @@ theorem coe_symmStrip (ε : ℝ) : (symmStrip X ε : Set (ℝ × X)) = Ioo (-ε)
 theorem mem_symmStrip_iff {ε : ℝ} {p : ℝ × X} : p ∈ symmStrip X ε ↔ |p.1| < ε := by
   rw [← SetLike.mem_coe, coe_symmStrip, mem_prod, mem_Ioo, abs_lt]
   simp
+
+/-- The point `(r, x)` of the symmetric strip of width `ε`, for `|r| < ε`. As a map of `x`, it is
+the inclusion of the slice `{r} × X` into the strip. -/
+def symmStripMk {ε r : ℝ} (hr : |r| < ε) (x : X) : symmStrip X ε :=
+  ⟨(r, x), mem_symmStrip_iff.2 hr⟩
+
+@[simp]
+theorem coe_symmStripMk {ε r : ℝ} (hr : |r| < ε) (x : X) :
+    (symmStripMk hr x : ℝ × X) = (r, x) :=
+  (rfl)
+
+/-- Followed by the inclusion of the strip, the slice map at `r` is `x ↦ (r, x)`. -/
+theorem val_comp_symmStripMk {ε r : ℝ} (hr : |r| < ε) :
+    Subtype.val ∘ symmStripMk (X := X) hr = Prod.mk r :=
+  (rfl)
+
+/-- The slice map of a symmetric strip is continuous. -/
+theorem continuous_symmStripMk {ε r : ℝ} (hr : |r| < ε) : Continuous (symmStripMk (X := X) hr) :=
+  (continuous_const.prodMk continuous_id).subtype_mk _
 
 /-- Symmetric strips grow with their width. -/
 theorem symmStrip_mono {ε δ : ℝ} (h : ε ≤ δ) : symmStrip X ε ≤ symmStrip X δ := fun _ hp ↦

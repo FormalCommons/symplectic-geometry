@@ -220,7 +220,8 @@ No statement of this part is one that the authors' errata
 ### `Analysis/SpecialFunctions/SmoothTransition.lean`
 
 Named like Tau Ceti's file; in Mathlib's namespace `Real.smoothTransition`,
-except for the reparametrization, which is in `SymplecticGeometry`.
+except for the reparametrization, which is in `SymplecticGeometry`, and the
+lemmas about Tau Ceti's `TauCeti.collaredSmoothTransition`, which are in `TauCeti`.
 
 - `Real.smoothTransition.deriv_pos {x : ℝ} (h₀ : 0 < x) (h₁ : x < 1) :
   0 < deriv Real.smoothTransition x`, from the quotient
@@ -447,11 +448,12 @@ Named like Tau Ceti's file; in `TauCeti`.
 
 ### `Geometry/Manifold/DifferentialForm/TimeExtension.lean`
 
-- `SymplecticGeometry.SmoothForm.timeExtend : SmoothForm ((𝓡∂ 1).prod I)
-  (unitInterval × M) F k →ₗ[ℝ] SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F k`,
+- `TauCeti.SmoothForm.timeExtend : SmoothForm ((𝓡∂ 1).prod I)
+  (unitInterval × M) F k →ₗ[ℝ] SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F k`
+  (in Tau Ceti's namespace, as it is about Tau Ceti's `SmoothForm`),
   for a boundaryless `M`: the form `ofSlices` of the slices extended by
-  `seeleyIccExtend` at each point (see *Decisions*), with
-  `timeExtend_def`.
+  `seeleyIccExtend` at each point (see *Decisions*), named
+  `TauCeti.SmoothForm.timeExtendSlice Ω s`, with `timeExtend_def`.
 - `mpullback_prodMk_timeExtend (t : unitInterval)`: the slice of
   `timeExtend Ω` at `(t : ℝ)` is the slice of `Ω` at `t`.
 - `IsSmoothFamily.exists_extend`: every smooth family over `unitInterval` is

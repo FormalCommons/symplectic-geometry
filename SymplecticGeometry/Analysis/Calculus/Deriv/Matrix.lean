@@ -26,9 +26,10 @@ Through the entries, the two notions agree as they do for normed spaces
 derivatives of a constant (`hasDerivWithinAt_matrix_const`) and of a transpose
 (`HasDerivWithinAt.matrix_transpose`), and the product rule for products of possibly
 rectangular matrices with entries in a normed `𝕜`-algebra (`HasDerivWithinAt.matrix_mul`, and
-`HasDerivAt.matrix_mul_const` for a constant right factor). A function that a shift of the
-variable multiplies by a constant matrix, `Z (r + a) = Z r * g`, has derivative `Z' * g` at
-`t + a` if it has derivative `Z'` at `t` (`HasDerivAt.matrix_of_forall_add_eq_mul`). For
+`HasDerivAt.matrix_mul_const`, `HasDerivAt.matrix_const_mul` for a constant factor). A function
+that a shift of the variable multiplies by a constant matrix, `Z (r + a) = Z r * g`, has
+derivative `Z' * g` at `t + a` if it has derivative `Z'` at `t`
+(`HasDerivAt.matrix_of_forall_add_eq_mul`). For
 square matrices over a complete field, the derivative of the inverse at an invertible value is
 `-X⁻¹ X' X⁻¹` (`HasDerivWithinAt.matrix_inv`), from Mathlib's `hasFDerivAt_ringInverse`.
 
@@ -113,6 +114,14 @@ theorem HasDerivAt.matrix_mul_const {𝔸 : Type*} [NormedRing 𝔸] [NormedAlge
     HasDerivAt (fun r ↦ A r * C) (A' * C) t := by
   have h := (hasDerivWithinAt_matrix_univ.2 hA).matrix_mul (hasDerivWithinAt_matrix_const C _ t)
   rwa [Matrix.mul_zero, add_zero, hasDerivWithinAt_matrix_univ] at h
+
+/-- **Product rule** with a constant left factor, for matrix-valued functions with entries in a
+normed `𝕜`-algebra: `(C B)' = C B'`. -/
+theorem HasDerivAt.matrix_const_mul {𝔸 : Type*} [NormedRing 𝔸] [NormedAlgebra 𝕜 𝔸] [Fintype m]
+    {B : 𝕜 → Matrix m n 𝔸} {B' : Matrix m n 𝔸} (hB : HasDerivAt B B' t) (C : Matrix l m 𝔸) :
+    HasDerivAt (fun r ↦ C * B r) (C * B') t := by
+  have h := (hasDerivWithinAt_matrix_const C _ t).matrix_mul (hasDerivWithinAt_matrix_univ.2 hB)
+  rwa [Matrix.zero_mul, zero_add, hasDerivWithinAt_matrix_univ] at h
 
 /-- If a shift of the variable multiplies a matrix-valued function by a constant matrix,
 `Z (r + a) = Z r * g` for all `r`, and `Z` has derivative `Z'` at `t`, then `Z` has derivative

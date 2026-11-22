@@ -514,11 +514,11 @@ theorem IsNondegenerate.polarFormulaAt_flat (hω : ω.IsNondegenerate)
     (he : ∀ u v, ⟪e u, e v⟫ = g.inner x u v) :
     g.polarFormulaAt x (ω.flat x) = e.symm.conjContinuousAlgEquiv (LinearMap.toContinuousLinearMap
       ((hω.symplecticFormAt x).transport e.toLinearEquiv).polarComplexStructure.toLinearMap) := by
-  have hg : e.arrowCongr (e.arrowCongr (.refl ℝ ℝ)) (g.inner x) = innerSL ℝ := by
+  have hg : e.bilinearCongr (g.inner x) = innerSL ℝ := by
     ext u v
     rw [innerSL_apply_apply]
     simp [← he]
-  have hs : e.arrowCongr (e.arrowCongr (.refl ℝ ℝ)) (ω.flat x) =
+  have hs : e.bilinearCongr (ω.flat x) =
       ((hω.symplecticFormAt x).transport e.toLinearEquiv).toBilinForm.toContinuousBilinearMap := by
     ext u v
     simp
@@ -648,6 +648,16 @@ theorem IsNondegenerate.polarEndAt_eq_polarComplexStructure {x : M} {B : V x →
     g.polarEndAt x B = hω.polarComplexStructure g x := by
   rw [ContMDiffRiemannianMetric.polarEndAt_def, ← h,
     hω.polarComplexStructure_eq_polarFormulaAt]
+
+/-- For bundle metrics `g₀` and `g₁` and a complex structure `J`, the polar formula of `g₁` at
+`compatibleBilinAt g₀ x (J x)` is the value at `x` of `J_{g₁,ω_{g₀,J}}`. -/
+theorem _root_.SymplecticGeometry.Bundle.ContMDiffComplexStructure.polarFormulaAt_compatibleBilinAt
+    (g₀ g₁ : ContMDiffRiemannianMetric I n F V) (J : ContMDiffComplexStructure I n F V) (x : M) :
+    g₁.polarFormulaAt x (g₀.compatibleBilinAt x (J x)) =
+      IsNondegenerate.polarComplexStructure g₁
+        (ContMDiffComplexStructure.compatible_compatibleForm g₀ J).isNondegenerate x := by
+  rw [IsNondegenerate.polarComplexStructure_eq_polarFormulaAt,
+    ContMDiffComplexStructure.flat_compatibleForm]
 
 /-! ### The tangent bundle and existence -/
 

@@ -345,6 +345,35 @@ theorem LagrangianGrassmannian.isUnit_of_range_mul_eq {Λ : LagrangianGrassmanni
   simpa using hinj.of_comp (a₁ := WithLp.toLp 2 u) (a₂ := WithLp.toLp 2 v)
     (by simp [toLpLin_apply, huv])
 
+/-- Two real frames of one Lagrangian subspace differ by an invertible change of frame: if the
+columns of `Z₁` and of `Z₂` both span `Λ`, then `Z₂ * g = Z₁` for some `g : GL ι ℝ`. -/
+theorem LagrangianGrassmannian.exists_mul_eq_of_range_eq
+    {Λ : LagrangianGrassmannian (stdForm ι)} {Z₁ Z₂ : Matrix (ι ⊕ ι) ι ℝ}
+    (h₁ : LinearMap.range (toEuclideanLin Z₁) = Λ) (h₂ : LinearMap.range (toEuclideanLin Z₂) = Λ) :
+    ∃ g : GL ι ℝ, Z₂ * (g : Matrix ι ι ℝ) = Z₁ := by
+  obtain ⟨L, hL⟩ := (toEuclideanLin Z₂).exists_leftInverse_of_injective
+    (LinearMap.ker_eq_bot.2 (injective_toEuclideanLin_of_range_eq h₂))
+  set g : Matrix ι ι ℝ := toEuclideanLin.symm (L ∘ₗ toEuclideanLin Z₁)
+  have hg : Z₂ * g = Z₁ := by
+    refine toEuclideanLin.injective (LinearMap.ext fun u ↦ ?_)
+    obtain ⟨v, hv⟩ : toEuclideanLin Z₁ u ∈ LinearMap.range (toEuclideanLin Z₂) := by
+      rw [h₂, ← h₁]; exact ⟨u, rfl⟩
+    rw [toLpLin_mul_same, LinearMap.comp_apply, LinearEquiv.apply_symm_apply,
+      LinearMap.comp_apply, ← hv, ← LinearMap.comp_apply L, hL, LinearMap.id_apply]
+  exact ⟨(isUnit_of_range_mul_eq (Z := Z₂) (hg ▸ h₁)).unit, hg⟩
+
+/-- An invertible change of frame keeps the span of the columns: if `g` is invertible, then
+`Z * g` and `Z` have the same range. This is the converse of
+`LagrangianGrassmannian.exists_mul_eq_of_range_eq`. -/
+theorem _root_.Matrix.range_toEuclideanLin_mul_of_isUnit {m : Type*}
+    (Z : Matrix m ι ℝ) {g : Matrix ι ι ℝ} (hg : IsUnit g) :
+    LinearMap.range (toEuclideanLin (Z * g)) = LinearMap.range (toEuclideanLin Z) := by
+  rw [toLpLin_mul_same]
+  refine LinearMap.range_comp_of_range_eq_top _ (LinearMap.range_eq_top.2 fun v ↦ ?_)
+  obtain ⟨u, rfl⟩ := hg
+  refine ⟨toEuclideanLin (u⁻¹ : (Matrix ι ι ℝ)ˣ).val v, ?_⟩
+  rw [← LinearMap.comp_apply, ← toLpLin_mul_same, Units.mul_inv, toLpLin_one, LinearMap.id_apply]
+
 /-- The `x`-coordinates of `fromRows X Y` applied to `u` are `X u`. -/
 @[simp]
 theorem StdSpace.x_toEuclideanLin_fromRows (X Y : Matrix ι ι ℝ) (u : EuclideanSpace ℝ ι) :

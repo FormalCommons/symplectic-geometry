@@ -116,11 +116,11 @@ theorem continuous_transport (e : V ≃L[ℝ] W) :
     Continuous fun ω : SymplecticForm V ↦ ω.transport e.toLinearEquiv := by
   have h : (fun ω : SymplecticForm V ↦
       (ω.transport e.toLinearEquiv).toBilinForm.toContinuousBilinearMap) =
-      fun ω ↦ e.arrowCongr (e.arrowCongr (.refl ℝ ℝ)) ω.toBilinForm.toContinuousBilinearMap := by
+      fun ω ↦ e.bilinearCongr ω.toBilinForm.toContinuousBilinearMap := by
     ext
     simp
   rw [continuous_iff, h]
-  exact (e.arrowCongr (e.arrowCongr (.refl ℝ ℝ))).continuous.comp
+  exact e.bilinearCongr.continuous.comp
     isEmbedding_toContinuousBilinearMap.continuous
 
 end TauCeti.SymplecticForm
