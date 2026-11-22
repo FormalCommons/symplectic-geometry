@@ -5,20 +5,23 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Contact.Symplectization.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 public import TauCeti.Geometry.Contact.Flat
 public import TauCeti.Geometry.Contact.StableHamiltonian
-public import TauCeti.Geometry.Contact.Symplectization.Basic
 public import TauCeti.Geometry.Contact.Volume
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow
-public import SymplecticGeometry.Topology.Sets.Strip
+public import SymplecticGeometry.Geometry.Manifold.Strip
+import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
+import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.SmulRight
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
 import TauCeti.Geometry.Manifold.VectorBundle.Translate
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.Topology.Algebra.Module.BilinearForm
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.ArctanDeriv
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 
@@ -52,6 +55,14 @@ Tau Ceti's `TauCeti.Geometry.Contact.StableHamiltonian` with the following.
   (`SymplecticGeometry.symmStrip`), and wherever it is nondegenerate the kernel of its slice is
   that of `σ`. For the contact pair `(α, -dα)` the model is `-d((1 + r) α)`, and where `r > -1`
   it is the pullback of the symplectization form `d(eˢ (-α))` along `(r, x) ↦ (log (1 + r), x)`.
+* **The structure on the zero slice of a symplectic strip.** For a two-form `σ` on the strip,
+  with slices `σ_r` along `SymplecticGeometry.symmStripMk`, put `Ω₀ = σ_0` and
+  `λ₀ = -ι₀^*(ι_{∂_r} σ)` (`TauCeti.SmoothForm.zeroSliceOneForm`). Along `{0} × M`, `σ` equals
+  the model of `(λ₀, Ω₀)` on the whole tangent space of `ℝ × M`. If `σ` is symplectic and its
+  slices all have the same kernels, `(λ₀, Ω₀)` is a stable Hamiltonian structure: the contact
+  condition is the nondegeneracy of `σ` along `{0} × M`, read through the model, and the kernel
+  condition follows from Cartan's formula, which makes `d λ₀` a multiple of the `r`-derivative of
+  the slices at `0`, and this derivative vanishes on the common kernel.
 
 The proof of `contMDiff_characteristicVectorField` adapts Tau Ceti's proof of
 `TauCeti.SmoothForm.IsContactForm.contMDiff_reebVectorField`, through the inverse of the contact
@@ -64,7 +75,9 @@ symplectization form of linear algebra, which gives
 `TauCeti.SmoothForm.nondegenerate_bilinFormAt_stableHamiltonianModel_iff`, adapt Tau Ceti's
 `TauCeti.SmoothForm.mextDeriv_symplectization_apply` and
 `TauCeti.SmoothForm.isNondegenerate_mextDerivₗ_symplectization_iff`, with the factor `r` in place
-of `eᵗ`.
+of `eᵗ`. The kernel condition on the zero slice differentiates the slices with Tau Ceti's
+`TauCeti.SmoothForm.hasDerivAt_mpullback_prodMk_timeDeriv`, after pulling `σ` back to `ℝ × M`
+along `(r, x) ↦ ((2 ε / π) arctan r, x)`.
 
 ## Main results
 
@@ -82,6 +95,8 @@ of `eᵗ`.
 * `TauCeti.SmoothForm.IsStableHamiltonian.nondegenerate_bilinFormAt_stableHamiltonianModel_zero`,
   `TauCeti.SmoothForm.IsStableHamiltonian.exists_isSymplectic_stableHamiltonianModel`,
   `TauCeti.SmoothForm.IsStableHamiltonian.ker_mpullback_prodMk_stableHamiltonianModel`
+* `TauCeti.SmoothForm.val_symmStripMk_zero_eq_stableHamiltonianModel`,
+  `TauCeti.SmoothForm.isStableHamiltonian_zeroSliceOneForm`
 * `TauCeti.SmoothForm.stableHamiltonianModel_neg_mextDerivₗ`,
   `TauCeti.SmoothForm.mpullback_subtypeVal_stableHamiltonianModel_neg_mextDerivₗ`
 
@@ -305,7 +320,7 @@ def stableHamiltonianModel (α : SmoothForm I M ℝ 1) (σ : SmoothForm I M ℝ 
     SmoothTwoForm (𝓘(ℝ).prod I) (ℝ × M) :=
   mpullback Prod.snd contMDiff_snd σ -
     mextDerivₗ (𝓘(ℝ).prod I) 1
-      (funSMulₗ (⟨Prod.fst, contMDiff_fst⟩ : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯)
+      (funSMulₗ (ContMDiffMap.fst : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯)
         (mpullback Prod.snd contMDiff_snd α))
 
 /-- The stable Hamiltonian model is `σ - d(r α)`, with `σ` and `α` pulled back along the
@@ -314,7 +329,7 @@ theorem stableHamiltonianModel_def (α : SmoothForm I M ℝ 1) (σ : SmoothForm 
     stableHamiltonianModel α σ =
       mpullback Prod.snd contMDiff_snd σ -
         mextDerivₗ (𝓘(ℝ).prod I) 1
-          (funSMulₗ (⟨Prod.fst, contMDiff_fst⟩ : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯)
+          (funSMulₗ (ContMDiffMap.fst : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯)
             (mpullback Prod.snd contMDiff_snd α)) :=
   (rfl)
 
@@ -331,7 +346,7 @@ theorem stableHamiltonianModel_apply (α : SmoothForm I M ℝ 1) (σ : SmoothFor
           NormedSpace.fromTangentSpace p.1 (Manifold.tangentSpaceProdEquiv p w).1 *
             α.val p.2 ![(Manifold.tangentSpaceProdEquiv p v).2]) := by
   set β : SmoothForm (𝓘(ℝ).prod I) (ℝ × M) ℝ 1 := mpullback Prod.snd contMDiff_snd α
-  set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨Prod.fst, contMDiff_fst⟩
+  set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ContMDiffMap.fst
   have hβ (u : TangentSpace (𝓘(ℝ).prod I) p) :
       β.val p ![u] = α.val p.2 ![(Manifold.tangentSpaceProdEquiv p u).2] := by
     simp only [β, mpullback_snd_apply, Matrix.vec_single_eq_const]
@@ -353,7 +368,7 @@ theorem stableHamiltonianModel_apply (α : SmoothForm I M ℝ 1) (σ : SmoothFor
     mextDerivₗ_apply, coe_funSMulₗ g β,
     mextDeriv_fun_smul_apply ((g.contMDiff p).mdifferentiableAt (by simp))
       (β.mdifferentiableAt p), hg, hg, hβ, hβ, hdβ]
-  simp only [g, ContMDiffMap.coeFn_mk]
+  simp only [g, ContMDiffMap.fst_apply]
   ring
 
 /-- **The slices of the stable Hamiltonian model.** The pullback of the model along
@@ -363,7 +378,7 @@ theorem mpullback_prodMk_stableHamiltonianModel (α : SmoothForm I M ℝ 1)
     (σ : SmoothForm I M ℝ 2) (r : ℝ) :
     mpullback (Prod.mk r) (contMDiff_const.prodMk contMDiff_id) (stableHamiltonianModel α σ) =
       σ - r • mextDerivₗ I 1 α := by
-  set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨Prod.fst, contMDiff_fst⟩
+  set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ContMDiffMap.fst
   have hsmul : mpullback (Prod.mk r) (contMDiff_const.prodMk contMDiff_id)
       (funSMulₗ g (mpullback Prod.snd contMDiff_snd α)) = r • α := by
     -- Both sides send `x` to `r`.
@@ -474,16 +489,9 @@ end IsStableHamiltonian
 theorem stableHamiltonianModel_neg_mextDerivₗ (α : SmoothForm I M ℝ 1) :
     stableHamiltonianModel α (-mextDerivₗ I 1 α) =
       -mextDerivₗ (𝓘(ℝ).prod I) 1
-        (funSMulₗ (⟨fun p ↦ 1 + p.1, contMDiff_const.add contMDiff_fst⟩ :
-            C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯)
-          (mpullback Prod.snd contMDiff_snd α)) := by
-  set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨fun p ↦ 1 + p.1, contMDiff_const.add contMDiff_fst⟩
-  set r : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨Prod.fst, contMDiff_fst⟩
-  set β : SmoothForm (𝓘(ℝ).prod I) (ℝ × M) ℝ 1 := mpullback Prod.snd contMDiff_snd α
-  have hsmul : funSMulₗ g β = β + funSMulₗ r β := by
-    rw [show g = 1 + r from ContMDiffMap.ext fun _ ↦ rfl, funSMulₗ_add, funSMulₗ_one]
-  rw [stableHamiltonianModel_def, map_neg, ← mextDerivₗ_mpullback, hsmul, map_add, neg_add,
-    sub_eq_add_neg]
+        (funSMulₗ (1 + ContMDiffMap.fst) (mpullback Prod.snd contMDiff_snd α)) := by
+  rw [stableHamiltonianModel_def, map_neg, ← mextDerivₗ_mpullback, funSMulₗ_add,
+    funSMulₗ_one, map_add, neg_add, sub_eq_add_neg]
 
 /-- **The model of the contact pair is a symplectization form.** On an open set `U` of `ℝ × M`
 where `r > -1`, the stable Hamiltonian model of `(α, -dα)` is the pullback of the exterior
@@ -498,7 +506,6 @@ theorem mpullback_subtypeVal_stableHamiltonianModel_neg_mextDerivₗ (α : Smoot
           fun p ↦ (by linarith [hU p.val p.property] : (0 : ℝ) < 1 + p.val.1).ne').prodMk
           (contMDiff_snd.comp contMDiff_subtypeVal))
         (mextDerivₗ (𝓘(ℝ).prod I) 1 (-α).symplectization) := by
-  set g : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ := ⟨fun p ↦ 1 + p.1, contMDiff_const.add contMDiff_fst⟩
   rw [stableHamiltonianModel_neg_mextDerivₗ, map_neg, ← mextDerivₗ_mpullback,
     ← mextDerivₗ_mpullback, ← map_neg]
   congr 1
@@ -513,16 +520,306 @@ theorem mpullback_subtypeVal_stableHamiltonianModel_neg_mextDerivₗ (α : Smoot
     rw [mpullback_mpullback_of_comp_eq hΨ contMDiff_snd contMDiff_subtypeVal contMDiff_snd rfl,
       map_neg, map_neg]
   -- The pullback of `eˢ (-α)` is `-(1 + r) α`, since `exp (log (1 + r)) = 1 + r`.
-  apply Subtype.ext
-  rw [coe_mpullback, coe_symplectization, TauCeti.mpullback_fun_smul, ← coe_mpullback _ hΨ, hβ,
-    neg_toRoughForm, neg_toRoughForm, coe_mpullback, coe_mpullback, coe_funSMulₗ g,
-    TauCeti.mpullback_fun_smul]
-  funext p
-  rw [Real.exp_log (by linarith [hU p.val p.property])]
-  simp only [g, ContMDiffMap.coeFn_mk, Pi.neg_apply]
-  exact (smul_neg _ _).symm
+  set e : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯ :=
+    ⟨fun p ↦ Real.exp p.1, Real.contDiff_exp.contMDiff.comp contMDiff_fst⟩ with he
+  have he_apply : ∀ p, e p = Real.exp p.1 := fun p ↦ by rw [he, ContMDiffMap.coeFn_mk]
+  have hcomp : e.comp ⟨_, hΨ⟩ =
+      (1 + ContMDiffMap.fst : C^∞⟮𝓘(ℝ).prod I, ℝ × M; ℝ⟯).comp
+        ⟨Subtype.val, contMDiff_subtypeVal⟩ := by
+    ext p
+    refine (ContMDiffMap.comp_apply _ _ p).trans (Eq.trans ?_ (ContMDiffMap.comp_apply _ _ p).symm)
+    simp only [ContMDiffMap.coeFn_mk, he_apply, ContMDiffMap.coe_add, ContMDiffMap.coe_one,
+      Pi.add_apply, Pi.one_apply, ContMDiffMap.fst_apply]
+    exact Real.exp_log (by linarith [hU p.val p.property])
+  rw [symplectization_eq_funSMulₗ (-α) he_apply,
+    mpullback_funSMulₗ, mpullback_funSMulₗ, hβ, map_neg, hcomp]
 
 end Model
+
+section Converse
+
+/-! ### The structure on the zero slice of a symplectic strip -/
+
+open SymplecticGeometry
+
+variable {ε : ℝ}
+
+/-
+The proof of the kernel condition reads the strip through the smooth map
+`(r, x) ↦ (c r, x)` from `ℝ × M` onto it, with `c r = (2 ε / π) arctan r`, so that Tau Ceti's
+`TauCeti.SmoothForm.hasDerivAt_mpullback_prodMk_timeDeriv`, which differentiates the slices of a
+form on `ℝ × M`, applies to the pullback `β` of `σ`. Since `c'(0) ≠ 0`, the slice at `0` of
+`ι_{∂_t} β` is a nonzero multiple of `λ₀`.
+-/
+
+/-- The reparametrization `c r = (2 ε / π) arctan r` of `(-ε, ε)` by `ℝ`. -/
+private def stripReparam (ε r : ℝ) : ℝ := 2 * ε / Real.pi * Real.arctan r
+
+private theorem abs_stripReparam_lt (hε : 0 < ε) (r : ℝ) : |stripReparam ε r| < ε := by
+  have h1 := Real.neg_pi_div_two_lt_arctan r
+  have h2 := Real.arctan_lt_pi_div_two r
+  have hπ := Real.pi_pos
+  rw [stripReparam, abs_lt]
+  constructor
+  · have : 2 * ε / Real.pi * (-(Real.pi / 2)) < 2 * ε / Real.pi * Real.arctan r :=
+      mul_lt_mul_of_pos_left h1 (by positivity)
+    field_simp at this ⊢
+    linarith
+  · have : 2 * ε / Real.pi * Real.arctan r < 2 * ε / Real.pi * (Real.pi / 2) :=
+      mul_lt_mul_of_pos_left h2 (by positivity)
+    field_simp at this ⊢
+    linarith
+
+private theorem contDiff_stripReparam : ContDiff ℝ ∞ (stripReparam ε) :=
+  contDiff_const.mul Real.contDiff_arctan
+
+private theorem hasDerivAt_stripReparam : HasDerivAt (stripReparam ε) (2 * ε / Real.pi) 0 := by
+  have h := (Real.hasDerivAt_arctan (0 : ℝ)).const_mul (2 * ε / Real.pi)
+  unfold stripReparam
+  simpa using h
+
+private theorem stripReparam_zero : stripReparam ε 0 = 0 := by simp [stripReparam]
+
+/-- The map `(r, x) ↦ (c r, x)` from `ℝ × M` to the strip. -/
+private def stripChart (hε : 0 < ε) (p : ℝ × M) : symmStrip M ε :=
+  symmStripMk (abs_stripReparam_lt hε p.1) p.2
+
+private theorem val_comp_stripChart (hε : 0 < ε) :
+    Subtype.val ∘ stripChart (M := M) hε = Prod.map (stripReparam ε) id := by
+  funext p
+  simp [stripChart, Prod.map]
+
+private theorem contMDiff_stripChart (hε : 0 < ε) :
+    ContMDiff (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) ∞ (stripChart (M := M) hε) := by
+  rw [← TauCeti.ContMDiff.subtypeVal_comp_iff, val_comp_stripChart]
+  exact contDiff_stripReparam.contMDiff.prodMap contMDiff_id
+
+private theorem stripChart_comp_prodMk (hε : 0 < ε) (r : ℝ) :
+    stripChart (M := M) hε ∘ Prod.mk r = symmStripMk (abs_stripReparam_lt hε r) := rfl
+
+private theorem stripChart_zero (hε : 0 < ε) (y : M) :
+    stripChart hε ((0 : ℝ), y) = symmStripMk (abs_zero.trans_lt hε) y :=
+  Subtype.ext (by simp [stripChart, stripReparam_zero])
+
+private theorem mfderiv_stripChart_apply (hε : 0 < ε) (y : M) (s : ℝ) (w : TangentSpace I y) :
+    mfderiv (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) (stripChart hε) ((0 : ℝ), y)
+      ((s, w) : TangentSpace (𝓘(ℝ).prod I) ((0 : ℝ), y)) =
+      (2 * ε / Real.pi * s, w) := by
+  refine (TauCeti.Manifold.mfderiv_subtype_val_comp_apply (U := symmStrip M ε)
+    (f := stripChart hε) (I := 𝓘(ℝ).prod I) (J := 𝓘(ℝ).prod I) _).symm.trans ?_
+  rw [val_comp_stripChart]
+  have h := TauCeti.Manifold.mfderiv_prodMap_apply (I := 𝓘(ℝ)) (J := I) (I' := 𝓘(ℝ)) (J' := I)
+    (p := ((0 : ℝ), y))
+    (contDiff_stripReparam.contMDiff.mdifferentiableAt (by simp) : MDifferentiableAt 𝓘(ℝ) 𝓘(ℝ)
+      (stripReparam ε) 0) mdifferentiableAt_id (s, w)
+  rw [Manifold.tangentSpaceProdEquiv_symm_apply, Manifold.tangentSpaceProdEquiv_symm_apply] at h
+  refine h.trans ?_
+  rw [mfderiv_id, mfderiv_eq_fderiv, hasDerivAt_stripReparam.hasFDerivAt.fderiv]
+  refine Prod.ext ?_ rfl
+  -- The tangent spaces of `ℝ` are `ℝ`, and the casts between them are the identity.
+  change s • (2 * ε / Real.pi) = _
+  rw [smul_eq_mul, mul_comm]
+
+variable [IsManifold I ∞ M]
+
+private theorem contMDiff_dr :
+    ContMDiff (𝓘(ℝ).prod I) (𝓘(ℝ).prod I).tangent ∞
+      (fun p : ℝ × M ↦ (⟨p, ((1 : ℝ), (0 : E))⟩ : TangentBundle (𝓘(ℝ).prod I) (ℝ × M))) :=
+  contMDiff_const_prod_field 1 (X := 0) ((contMDiff_zeroSection ℝ (TangentSpace I)).comp
+    contMDiff_snd)
+
+/-- The contraction `ι_{∂_t} β` of the pullback `β` of `σ` to `ℝ × M`. -/
+private def stripInterior (hε : 0 < ε) (σ : SmoothTwoForm (𝓘(ℝ).prod I) (symmStrip M ε)) :
+    SmoothForm (𝓘(ℝ).prod I) (ℝ × M) ℝ 1 :=
+  ⟨RoughForm.interior
+    (fun _ ↦ ((1 : ℝ), (0 : E)) : (p : ℝ × M) → TangentSpace (𝓘(ℝ).prod I) p)
+    (mpullback (stripChart hε) (contMDiff_stripChart hε) σ).val,
+    ((mpullback (stripChart hε) (contMDiff_stripChart hε) σ).isSmoothForm.interior
+      contMDiff_dr).mem_smoothBundleForms⟩
+
+private theorem coe_stripInterior (hε : 0 < ε) (σ : SmoothTwoForm (𝓘(ℝ).prod I) (symmStrip M ε)) :
+    (stripInterior hε σ).val = RoughForm.interior
+      (fun _ ↦ ((1 : ℝ), (0 : E)) : (p : ℝ × M) → TangentSpace (𝓘(ℝ).prod I) p)
+      (mpullback (stripChart hε) (contMDiff_stripChart hε) σ).val :=
+  (rfl)
+
+private theorem mpullback_prodMk_stripInterior_apply (hε : 0 < ε)
+    (σ : SmoothTwoForm (𝓘(ℝ).prod I) (symmStrip M ε)) (y : M) (w : TangentSpace I y) :
+    (mpullback (Prod.mk 0) (contMDiff_const.prodMk contMDiff_id) (stripInterior hε σ)).val y ![w] =
+      2 * ε / Real.pi * σ.bilinFormAt (symmStripMk (abs_zero.trans_lt hε) y)
+        ((1 : ℝ), (0 : E)) ((0 : ℝ), w) := by
+  rw [mpullback_apply, coe_stripInterior]
+  refine (RoughForm.interior_apply _ _ _ _).trans ?_
+  rw [mpullback_apply]
+  have hι : mfderiv I (𝓘(ℝ).prod I) (Prod.mk (0 : ℝ)) y w = ((0 : ℝ), w) := by
+    rw [mfderiv_prod_right]
+    exact ContinuousLinearMap.inr_apply ..
+  have hv : (fun i ↦ mfderiv (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) (stripChart hε) ((0 : ℝ), y)
+      (Matrix.vecCons ((1 : ℝ), (0 : E))
+        (fun i ↦ mfderiv I (𝓘(ℝ).prod I) (Prod.mk (0 : ℝ)) y (![w] i)) i)) =
+      ![(2 * ε / Real.pi) • ((1 : ℝ), (0 : E)), ((0 : ℝ), w)] := by
+    -- The closing `rfl`s identify the tangent vectors of the strip with elements of `ℝ × E`.
+    funext i
+    fin_cases i
+    · simp only [Fin.zero_eta, Fin.isValue, Matrix.cons_val_zero, Prod.smul_mk, smul_eq_mul,
+        smul_zero]
+      exact (mfderiv_stripChart_apply hε y 1 0).trans (by rw [mul_one]; rfl)
+    · simp only [Fin.mk_one, Fin.isValue, Matrix.cons_val_one, Matrix.cons_val_fin_one, hι]
+      exact (mfderiv_stripChart_apply hε y 0 w).trans (by rw [mul_zero]; rfl)
+  rw [hv, stripChart_zero]
+  have h := (σ.bilinFormAt_apply (symmStripMk (abs_zero.trans_lt hε) y)
+    ((2 * ε / Real.pi) • ((1 : ℝ), (0 : E))) ((0 : ℝ), w)).trans
+    (SmoothBundleForm.eval₂_apply _ _ _ _)
+  refine h.symm.trans ?_
+  exact LinearMap.map_smul₂ _ _ _ _
+
+/-- For a two-form `σ` on the strip `(-ε, ε) × M`, the one-form `λ₀ = -ι₀^*(ι_{∂_r} σ)` on `M`:
+minus the slice at `0` of the contraction of `σ` with `∂_r = (1, 0)`, where `ι₀ : x ↦ (0, x)`. -/
+def zeroSliceOneForm (hε : 0 < ε) (σ : SmoothTwoForm (𝓘(ℝ).prod I) (symmStrip M ε)) :
+    SmoothForm I M ℝ 1 :=
+  (-(2 * ε / Real.pi)⁻¹) •
+    mpullback (Prod.mk 0) (contMDiff_const.prodMk contMDiff_id) (stripInterior hε σ)
+
+/-- The value of `λ₀` at `x` on `w` is `-σ_(0, x)(∂_r, (0, w))`. -/
+theorem zeroSliceOneForm_apply (hε : 0 < ε) (σ : SmoothTwoForm (𝓘(ℝ).prod I) (symmStrip M ε))
+    (x : M) (w : TangentSpace I x) :
+    (zeroSliceOneForm hε σ).val x ![w] =
+      -σ.bilinFormAt (symmStripMk (abs_zero.trans_lt hε) x) ((1 : ℝ), (0 : E)) ((0 : ℝ), w) := by
+  rw [zeroSliceOneForm, smul_toRoughForm]
+  rw [Pi.smul_apply, ContinuousAlternatingMap.smul_apply, mpullback_prodMk_stripInterior_apply,
+    smul_eq_mul, ← mul_assoc, neg_mul, inv_mul_cancel₀ (by positivity), neg_one_mul]
+
+/-- `λ₀` is `-ι₀^*(ι_{∂_r} σ)`, with `ι₀ : x ↦ (0, x)` and `∂_r = (1, 0)`. -/
+theorem coe_zeroSliceOneForm (hε : 0 < ε) (σ : SmoothTwoForm (𝓘(ℝ).prod I) (symmStrip M ε)) :
+    (zeroSliceOneForm hε σ).val =
+      -TauCeti.mpullback I (𝓘(ℝ).prod I) (symmStripMk (abs_zero.trans_lt hε))
+        (RoughForm.interior (fun _ ↦ ((1 : ℝ), (0 : E))) σ.val) := by
+  funext x
+  refine ContinuousAlternatingMap.ext fun v ↦ ?_
+  obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, funext fun i ↦ by fin_cases i; rfl⟩
+  rw [zeroSliceOneForm_apply, Pi.neg_apply, ContinuousAlternatingMap.neg_apply,
+    TauCeti.mpullback_apply]
+  refine congrArg Neg.neg (((σ.bilinFormAt_apply _ _ _).trans
+    (SmoothBundleForm.eval₂_apply _ _ _ _)).trans
+      (Eq.trans ?_ (RoughForm.interior_apply _ _ _ _).symm))
+  congr 1
+  funext i
+  fin_cases i
+  · rfl
+  · exact (mfderiv_symmStripMk_apply _ _ _).symm
+
+/-- **Along the zero slice, a two-form on the strip agrees with the stable Hamiltonian model** of
+its zero slice `Ω₀` and of `λ₀ = -ι₀^*(ι_{∂_r} σ)`: at every point `(0, x)`, on the whole tangent
+space of `ℝ × M`. -/
+theorem val_symmStripMk_zero_eq_stableHamiltonianModel (hε : 0 < ε)
+    (σ : SmoothTwoForm (𝓘(ℝ).prod I) (symmStrip M ε)) (x : M) :
+    σ.val (symmStripMk (abs_zero.trans_lt hε) x) =
+      (mpullback Subtype.val contMDiff_subtypeVal (stableHamiltonianModel (zeroSliceOneForm hε σ)
+        (mpullback (symmStripMk (abs_zero.trans_lt hε)) (contMDiff_symmStripMk _) σ))).val
+        (symmStripMk (abs_zero.trans_lt hε) x) := by
+  set z := symmStripMk (abs_zero.trans_lt hε) x
+  rw [coe_mpullback_subtype_val_apply]
+  refine ContinuousAlternatingMap.ext fun v ↦ ?_
+  obtain ⟨a, b, rfl⟩ : ∃ a b, v = ![a, b] :=
+    ⟨v 0, v 1, funext fun i ↦ by fin_cases i <;> rfl⟩
+  set B : LinearMap.BilinForm ℝ (ℝ × E) := σ.bilinFormAt z
+  have halt : B.IsAlt := isAlt_bilinFormAt σ z
+  have hsplit (c : ℝ × E) : c = c.1 • ((1 : ℝ), (0 : E)) + ((0 : ℝ), c.2) :=
+    Prod.ext (by simp) (by simp)
+  have hL : σ.val z ![a, b] = B ((0 : ℝ), a.2) ((0 : ℝ), b.2) +
+      a.1 * B ((1 : ℝ), (0 : E)) ((0 : ℝ), b.2) - b.1 * B ((1 : ℝ), (0 : E)) ((0 : ℝ), a.2) := by
+    have h : σ.val z ![a, b] = B a b :=
+      ((σ.bilinFormAt_apply _ _ _).trans (SmoothBundleForm.eval₂_apply _ _ _ _)).symm
+    rw [h]
+    conv_lhs => rw [hsplit a, hsplit b]
+    simp only [map_add, map_smul, LinearMap.add_apply, LinearMap.smul_apply, smul_eq_mul,
+      halt.self_eq_zero, ← halt.neg_eq ((1 : ℝ), (0 : E)) ((0 : ℝ), a.2)]
+    ring
+  rw [hL, coe_symmStripMk]
+  refine Eq.trans ?_ (SmoothBundleForm.eval₂_apply (stableHamiltonianModel (zeroSliceOneForm hε σ)
+    (mpullback (symmStripMk (abs_zero.trans_lt hε)) (contMDiff_symmStripMk _) σ)) ((0 : ℝ), x) a b)
+  refine Eq.trans ?_ (stableHamiltonianModel_apply _ _ ((0 : ℝ), x) a b).symm
+  simp only [zero_mul, sub_zero, ← bilinFormAt_apply,
+    zeroSliceOneForm_apply]
+  have ha := Manifold.tangentSpaceProdEquiv_apply (I := 𝓘(ℝ)) (J := I) ((0 : ℝ), x) a
+  have hb := Manifold.tangentSpaceProdEquiv_apply (I := 𝓘(ℝ)) (J := I) ((0 : ℝ), x) b
+  rw [ha, hb, bilinFormAt_mpullback_symmStripMk, NormedSpace.fromTangentSpace_apply,
+    NormedSpace.fromTangentSpace_apply]
+  -- Both sides read `σ` at `(0, x)`, with vectors typed in the strip or in `ℝ × M`.
+  change _ = B ((0 : ℝ), a.2) ((0 : ℝ), b.2) - (a.1 * -B ((1 : ℝ), (0 : E)) ((0 : ℝ), b.2) -
+    b.1 * -B ((1 : ℝ), (0 : E)) ((0 : ℝ), a.2))
+  ring
+
+/-- By Cartan's formula, `d(ι_{∂_t} β)` is the time derivative `L_{∂_t} β` of the closed
+form `β`. -/
+private theorem mextDerivₗ_stripInterior (hε : 0 < ε)
+    {σ : SmoothTwoForm (𝓘(ℝ).prod I) (symmStrip M ε)} (hσ : σ.IsClosed) :
+    mextDerivₗ (𝓘(ℝ).prod I) 1 (stripInterior hε σ) =
+      (mpullback (stripChart hε) (contMDiff_stripChart hε) σ).timeDeriv := by
+  refine Subtype.ext ?_
+  rw [mextDerivₗ_apply, coe_timeDeriv, SmoothForm.mlieDerivForm_eq_mextDeriv_interior
+    (contMDiff_dr.mdifferentiable (by simp)) (hσ.mpullback _ _), coe_stripInterior]
+
+variable [I.Boundaryless]
+
+/-- **The structure on the zero slice.** Let `σ` be a symplectic form on the strip
+`(-ε, ε) × M` whose slices `σ_r`, the pullbacks along `x ↦ (r, x)`, have the same kernel at every
+point for all `r, r'` in `(-ε, ε)`. Then the zero slice `Ω₀ = σ_0` and the one-form
+`λ₀ = -ι₀^*(ι_{∂_r} σ)` form a stable Hamiltonian structure `(λ₀, Ω₀)` on `M`. -/
+theorem isStableHamiltonian_zeroSliceOneForm (hε : 0 < ε)
+    {σ : SmoothTwoForm (𝓘(ℝ).prod I) (symmStrip M ε)} (hσ : σ.IsSymplectic)
+    (hker : ∀ (r : ℝ) (hr : |r| < ε) (r' : ℝ) (hr' : |r'| < ε) (x : M),
+      LinearMap.ker ((mpullback (symmStripMk hr) (contMDiff_symmStripMk hr) σ).bilinFormAt x) =
+        LinearMap.ker ((mpullback (symmStripMk hr') (contMDiff_symmStripMk hr') σ).bilinFormAt x)) :
+    (zeroSliceOneForm hε σ).IsStableHamiltonian
+      (mpullback (symmStripMk (abs_zero.trans_lt hε)) (contMDiff_symmStripMk _) σ) where
+  isClosed := hσ.isClosed.mpullback _ _
+  isContact x := by
+    set z := symmStripMk (abs_zero.trans_lt hε) x
+    have hval := val_symmStripMk_zero_eq_stableHamiltonianModel hε σ x
+    have hB : (mpullback Subtype.val contMDiff_subtypeVal (stableHamiltonianModel
+        (zeroSliceOneForm hε σ) (mpullback (symmStripMk (abs_zero.trans_lt hε))
+          (contMDiff_symmStripMk _) σ))).bilinFormAt z = σ.bilinFormAt z :=
+      LinearMap.ext₂ fun v w ↦ by
+        rw [bilinFormAt_apply, bilinFormAt_apply, SmoothBundleForm.eval₂_apply,
+          SmoothBundleForm.eval₂_apply, hval]
+    have hnd := (SmoothTwoForm.nondegenerate_bilinFormAt_mpullback_subtype_val_iff z).1
+      (hB ▸ hσ.isNondegenerate.nondegenerate_bilinFormAt z)
+    rw [coe_symmStripMk, nondegenerate_bilinFormAt_stableHamiltonianModel_iff, zero_smul,
+      sub_zero] at hnd
+    exact hnd
+  ker_le_ker x v hv := by
+    set β := mpullback (stripChart hε) (contMDiff_stripChart hε) σ
+    -- The slices of `β` are those of `σ`, so `v` lies in the kernel of all of them.
+    have hslice (u : ℝ) : mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) β =
+        mpullback (symmStripMk (abs_stripReparam_lt hε u)) (contMDiff_symmStripMk _) σ := by
+      simp only [β, mpullback_mpullback, stripChart_comp_prodMk]
+    have hzero (u : ℝ) (w : TangentSpace I x) :
+        (mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) β).val x ![v, w] = 0 := by
+      have hv' : v ∈ LinearMap.ker ((mpullback (symmStripMk (abs_stripReparam_lt hε u))
+          (contMDiff_symmStripMk _) σ).bilinFormAt x) := by
+        rw [hker _ _ 0 (abs_zero.trans_lt hε) x]
+        exact hv
+      rw [← SmoothBundleForm.eval₂_apply, ← bilinFormAt_apply, hslice, LinearMap.mem_ker.1 hv',
+        LinearMap.zero_apply]
+    -- Hence the slice at `0` of the time derivative of `β` vanishes on `v`.
+    have hdt (w : TangentSpace I x) :
+        (mpullback (Prod.mk 0) (contMDiff_const.prodMk contMDiff_id) β.timeDeriv).val x ![v, w] =
+          0 := by
+      have h := (ContinuousAlternatingMap.apply ℝ E ℝ ![v, w]).hasFDerivAt.comp_hasDerivAt (0 : ℝ)
+        (hasDerivAt_mpullback_prodMk_timeDeriv β 0 x)
+      have hfun : (ContinuousAlternatingMap.apply ℝ E ℝ ![v, w] ∘ fun u ↦
+          (mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) β).val x) =
+          fun _ ↦ (0 : ℝ) :=
+        funext fun u ↦ (ContinuousAlternatingMap.apply_apply).trans (hzero u w)
+      rw [hfun] at h
+      exact ContinuousAlternatingMap.apply_apply.symm.trans (h.unique (hasDerivAt_const _ _))
+    refine LinearMap.mem_ker.2 (LinearMap.ext fun w ↦ ?_)
+    rw [zeroSliceOneForm, map_smul, mextDerivₗ_mpullback, mextDerivₗ_stripInterior hε hσ.isClosed,
+      bilinFormAt_smul, LinearMap.smul_apply, LinearMap.smul_apply, bilinFormAt_apply,
+      SmoothBundleForm.eval₂_apply, hdt, smul_zero, LinearMap.zero_apply]
+
+end Converse
 
 end SmoothForm
 

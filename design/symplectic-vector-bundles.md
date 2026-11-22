@@ -140,6 +140,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Geometry/Manifold/VectorBundle/Prod.lean` | `Bundle.Prod.contMDiff_prodMap` and `Bundle.Prod.contMDiff_swap`: smoothness on total spaces of the fibrewise product of two maps and of the swap, for fibres with only a zero; `Bundle.Prod.contMDiff_prodCongr` and `Bundle.Prod.contMDiff_prodComm`: the same for bundle isomorphisms | 22 |
 | `Topology/VectorBundle/Pullback.lean` | coordinates of alternating maps on a pull-back bundle; `Bundle.Pullback.neg_fiber`, `add_fiber`, `sub_fiber`, `smul_fiber`, `neg_pullback`, `add_pullback`, `sub_pullback`, `smul_pullback`, `zero_fiber`, `eq_zero_fiber_iff`, `zero_fiber_eq_iff`, `eq_zero_pullback_iff` and `zero_pullback_eq_iff`: operations and zeros in a fibre of a pull-back bundle, for `simp` | 18, 20 |
 | `Topology/VectorBundle/Coordinates.lean` | coordinates of continuous bilinear forms on a vector bundle | 6 |
+| `Geometry/Manifold/VectorBundle/BilinearForm.lean` | `SymplecticGeometry.Bundle.mapBilinPairAt`: a map on pairs of continuous bilinear forms on a normed space, applied in each fibre through a family of fibre equivalences; for a map related to one on another model by the equivalences between the models, computation through any equivalence with that model (`mapBilinPairAt_eq_conj`) and, for one $C^n$ on an open set, smoothness along $C^n$ sections (`contMDiffAt_mapBilinPairAt`); `polarFormulaAt` and the fibrewise Moser flow of the classification are built on it | 6, 11 |
 | `Data/Bundle.lean` | `Bundle.Pullback.eq_iff`, `eq_fiber_iff`, `neg_apply_fiber` and `neg_apply_pullback`: equations and negated functions in a fibre of a pull-back bundle, for `simp` | 20 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Pullback.lean` | pull-backs of forms, of tame and compatible pairs, of isomorphisms and of frames | 21 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Prod.lean` | direct sums of forms, of tame and compatible pairs and of isomorphisms; block frames | 22 |
@@ -390,7 +391,7 @@ but the predicate below, as in Tau Ceti for $TM$.
   The fibres carry no norm, so Tau Ceti's `ContinuousAlternatingMap.flatL`
   cannot be applied to `ω x` itself: `flat` is `flatL ℝ F ℝ` of `ω x` read
   through the fibre equivalence of `trivializationAt F V x`, carried back by
-  the same equivalence (`ContinuousLinearEquiv.arrowCongr`); `flat_apply`
+  the same equivalence (`ContinuousLinearEquiv.bilinearCongr`); `flat_apply`
   hides that choice. `contMDiff_flat`: the map
   `x ↦ TotalSpace.mk' (F →L[ℝ] F →L[ℝ] ℝ) x (ω.flat x)` is
   `ContMDiff I (I.prod 𝓘(ℝ, F →L[ℝ] F →L[ℝ] ℝ)) n`, by the proof of Tau
@@ -515,7 +516,8 @@ the form and of the structure are independent.
   bundles, `Bundle.ContMDiffRiemannianMetric` and part 9's `TauCeti`
   operations, so they go in a file of their own,
   `Geometry/Manifold/VectorBundle/Riemannian/PolarEnd.lean`, which imports
-  no file of this part but `Topology/VectorBundle/Coordinates.lean` and
+  no file of this part but `Topology/VectorBundle/Coordinates.lean`,
+  `Geometry/Manifold/VectorBundle/BilinearForm.lean` and
   `Topology/FiberBundle/Basic.lean`, in the namespace `Bundle.ContMDiffRiemannianMetric` (where `g.polarFormulaAt x σ`
   finds them), except `Bundle.polarFormulaDomain` and
   `Bundle.euclideanEquivAt`, which involve no metric. Only the lemmas named
@@ -530,11 +532,11 @@ the form and of the structure are independent.
     `ContinuousLinearMap.isOpen_setOf_nondegenerate_toBilinForm_sub_flip`
     of forms on `F`: over the base set of a trivialization, the reading of
     `q.snd` in it is `q.snd` carried along the fibre equivalence
-    (`ContinuousLinearMap.inCoordinates_eq_arrowCongr_arrowCongr`, over any
+    (`ContinuousLinearMap.inCoordinates_eq_bilinearCongr`, over any
     `NontriviallyNormedField` and topological base, in
     `Topology/VectorBundle/Coordinates.lean`), and carrying a form along a
     linear equivalence does not change whether its skew part is
-    nondegenerate (`ContinuousLinearEquiv.nondegenerate_arrowCongr_sub_flip_iff`,
+    nondegenerate (`ContinuousLinearEquiv.nondegenerate_bilinearCongr_sub_flip_iff`,
     in part 9's `Topology/Algebra/Module/BilinearForm.lean`), so the chart
     of the total space reads the domain as that open set.
   - `polarFormulaAt g x (σ : V x →L[ℝ] V x →L[ℝ] ℝ) : V x →L[ℝ] V x`, part 9's
@@ -544,7 +546,7 @@ the form and of the structure are independent.
     `Bundle.euclideanEquivAt F V x` with `euclideanEquivAt_def`), conjugated
     back by `e x`; with `polarFormulaAt_def`. Since `g x` is positive, the
     carried pair lies in `polarDomain W` exactly when `⟨x, σ⟩ ∈ polarFormulaDomain F V`
-    (`mem_polarDomain_arrowCongr`, for any `e : V x ≃L[ℝ] W`).
+    (`mem_polarDomain_bilinearCongr`, for any `e : V x ≃L[ℝ] W`).
     `polarFormulaAt_eq_conj`: for `σ` with
     `(σ.toBilinForm - σ.toBilinForm.flip).Nondegenerate`, the same holds for any
     `e' : V x ≃L[ℝ] W'` to an inner product space `W'` with
@@ -1210,7 +1212,8 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
 - **The homotopy equivalence.** `exists_homotopyEquiv_polarComplexStructure`:
   for a metric `g`,
   `∃ e : {ω // ω.IsNondegenerate} ≃ₕ ContMDiffComplexStructure I n F V,
-  ∀ ω, e.toFun ω = ω.2.polarComplexStructure g`, a theorem for each pair of
+  (∀ ω, e.toFun ω = ω.2.polarComplexStructure g) ∧
+  ∀ J, (e.invFun J).1 = compatibleForm g J`, a theorem for each pair of
   covering frame systems. The map is continuous by
   `continuous_polarComplexStructure`, and the inverse is
   $J\mapsto\omega_{g,J}$, continuous into the subtype by
@@ -1219,47 +1222,67 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   forms, $\omega$ and $\omega_{g,J_{g,\omega}}$ both tame $J_{g,\omega}$, and
   the straight line `AffineMap.lineMap` between them, for $t$ in
   `unitInterval`, stays nondegenerate by `tames_lineMap_compatibleForm`.
-  It is continuous in $(t,\omega)$: by `AffineMap.lineMap_apply_module` it
-  is $(1-t)\omega+t\,\omega_{g,J_{g,\omega}}$, the second end is
+  It is continuous in $(t,\omega)$ by Mathlib's
+  `ContinuousMap.Homotopy.affine`: the second end is
   continuous in $\omega$ as the composite of the two continuity lemmas above,
   and the frame topology is a topological vector space
   (`isTopologicalAddGroup_frameTopology`, `continuousSMul_frameTopology`).
   At time $0$ it is $\omega$ (`AffineMap.lineMap_apply_zero`), at time $1$
-  the composite (`AffineMap.lineMap_apply_one`). On the structures, $J$
-  and $J_{g,\omega_{g,J}}$ are both compatible with $\omega_{g,J}$, and the
-  Cayley path between them, with $J_{g,\omega_{g,J}}$ as reference and
+  the composite (`AffineMap.lineMap_apply_one`). This is
+  `ContMDiffTwoForm.homotopic_compatibleForm_polarComplexStructure`. On the
+  structures the path is stated for two metrics `g₀` and `g₁`, so that
+  `polarComplexStructure_homotopic` can use it too: $J$ and
+  $J_{g_1,\omega_{g_0,J}}$ are both compatible with $\omega_{g_0,J}$, and the
+  Cayley path between them, with $J_{g_1,\omega_{g_0,J}}$ as reference and
   coefficient `smoothTransition t`, is a fibrewise formula in $(t, J_x)$
   that is jointly smooth for every real $t$ on an open set `O` of the
   endomorphism bundle, defined below, that contains the values of every
   complex structure. The reference is not a fixed section: at a point `q` of
-  the endomorphism bundle it is `A q = polarEndAt g q.proj q.snd`, which at
-  `q = ⟨x, J x⟩` is $J_{g,\omega_{g,J}}$ at `x`
-  (`polarEndAt_eq_polarComplexStructure`). The hypothesis `hΦ` of
+  the endomorphism bundle it is
+  `A q = g₁.polarFormulaAt q.proj (g₀.compatibleBilinAt q.proj q.snd)`
+  (`polarEndAt g q.proj q.snd` when `g₀ = g₁ = g`), which at
+  `q = ⟨x, J x⟩` is $J_{g_1,\omega_{g_0,J}}$ at `x`
+  (`ContMDiffComplexStructure.polarFormulaAt_compatibleBilinAt`, in
+  `Basic.lean`). The hypothesis `hΦ` of
   `continuous_fiberwiseMap` comes from
   `ContMDiffAt.cayleyPathFormula_hom_bundle_of_vectorBundle` as above, with
   `b` the time through `smoothTransition` and this `A`, which depends on the
   point of the endomorphism bundle and not only on its base point; the lemma
   allows that, since `A` may be any function of the parameter `q`. Its
   hypothesis `hA`, smoothness of `A` at the point, is
-  `contMDiffOn_polarEndAt` on the open set `polarEndDomain g`, which
-  contains `O`; its two unit hypotheses at the point follow from the
-  membership in `O` by `isUnit_of_mem_cayleyPathDomain`, at
-  the time `b` of the point.
+  `contMDiffOn_polarFormulaAt_compatibleBilinAt` (in `PolarEnd.lean`, with
+  `contMDiffOn_polarEndAt` its case `g₀ = g₁`) on the open set
+  `polarEndDomain g₀`, which contains `O`; its two unit hypotheses at the
+  point follow from the membership in `O` by `isUnit_of_mem_cayleyPathDomain`,
+  at the time `b` of the point.
 
-  The set `O` is `polarEndDomain g ∩ cayleyPathDomain F V A`, for this `A`.
-  It is open by `isOpen_cayleyPathDomain` with `U = polarEndDomain g`, which
-  is open (`isOpen_polarEndDomain`) and on which `A` is continuous
-  (`contMDiffOn_polarEndAt`). It contains `⟨x, J x⟩` for every complex
-  structure `J`: the point is in `polarEndDomain g`
-  (`mk_mem_polarEndDomain`), and `Compatible.mem_cayleyPathDomain`
-  applies with the linear symplectic form of $\omega_{g,J}$ at `x`, the
-  linear structure $J_{g,\omega_{g,J}}$ at `x`, whose map is `A ⟨x, J x⟩` by
-  `polarEndAt_eq_polarComplexStructure`, and the one of `J x`; both are
-  compatible with that form (`compatible_polarComplexStructure`,
+  The set `O` is `polarEndDomain g₀ ∩ cayleyPathDomain F V A`, for this `A`.
+  It is open by `isOpen_cayleyPathDomain` with `U = polarEndDomain g₀`, which
+  is open (`isOpen_polarEndDomain`) and on which `A` is continuous. It
+  contains `⟨x, J x⟩` for every complex structure `J`: the point is in
+  `polarEndDomain g₀` (`mk_mem_polarEndDomain`), and
+  `Compatible.mem_cayleyPathDomain` applies with the linear symplectic form
+  of $\omega_{g_0,J}$ at `x`, the linear structure $J_{g_1,\omega_{g_0,J}}$ at
+  `x`, whose map is `A ⟨x, J x⟩`, and the one of `J x`; both are compatible
+  with that form (`compatible_polarComplexStructure`,
   `compatible_compatibleForm`), and the second is therefore tame for it, by
-  Tau Ceti's `Compatible.tames`. `polarComplexStructure_homotopic`: for two metrics
-  the two maps $\omega\mapsto J_{g,\omega}$ are homotopic, by contracting the
-  metrics.
+  Tau Ceti's `Compatible.tames`. The structures on the path are
+  `Compatible.cayleyPath` for $\omega_{g_0,J}$ and the reference
+  $J_{g_1,\omega_{g_0,J}}$. In `Contractible.lean` the smoothness and the
+  continuity for a reference `A` that is `Cⁿ` on an open set `W` are
+  `contMDiffOn_cayleyPathFormula_of_contMDiffOn` and
+  `continuous_fiberwiseMap_cayleyPathFormula`, which give, with `W = univ`,
+  `contMDiffOn_cayleyPathFormula` and `Compatible.continuous_cayleyPath`
+  too. Then come `mk_mem_polarEndDomain_inter_cayleyPathDomain`,
+  `continuous_cayleyPath_polarComplexStructure` and the homotopy
+  `homotopic_polarComplexStructure_compatibleForm` from
+  $J\mapsto J_{g_1,\omega_{g_0,J}}$ to the identity.
+  `polarComplexStructure_homotopic`: for two metrics the two maps
+  $\omega\mapsto J_{g,\omega}$ are homotopic. Contracting the metrics would
+  need continuity in the metric, which the library does not have; instead,
+  $J_{g_0,\omega}$ is homotopic to $J_{g_1,\omega_{g_0,J_{g_0,\omega}}}$ by
+  the path above with two metrics, and that is homotopic to $J_{g_1,\omega}$
+  by the straight line on forms for `g₀`.
 - **Milestone.** `SymplecticGeometry.Bundle.contractibleSpace_compatible_tames`:
   the conjunction of the three parts of the plan (for every nondegenerate
   `ω`, the two spaces of structures are contractible; for every `J`, the two

@@ -150,7 +150,9 @@ Further choices:
   $(-\varepsilon,\varepsilon)\times M$ is `symmStrip M ε : Opens (ℝ × M)`
   (`Topology/Sets/Strip.lean`, for any topological space `X` in place of
   `M`), the open set `Ioo (-ε) ε ×ˢ univ`, a manifold as an open subset; a
-  form on the strip is a form on `↥(symmStrip M ε)`. The model form is defined on all of
+  form on the strip is a form on `↥(symmStrip M ε)`. The smoothness and
+  differential of its slice maps `symmStripMk hr` are in
+  `Geometry/Manifold/Strip.lean`. The model form is defined on all of
   `ℝ × M` and restricted.
 - **Dimension and degenerate cases.** Nothing assumes a dimension beyond the
   ones the statements need: `hdim` for hypersurfaces,
@@ -166,7 +168,9 @@ Further choices:
 | `Geometry/Symplectic/Liouville/ContactType.lean` | contact type through local Liouville fields; both directions in the book's signs | 1 |
 | `Geometry/Symplectic/Liouville/Collar.lean` | the Liouville collar of a hypersurface; first milestone | 2 |
 | `Geometry/Contact/StableHamiltonian.lean` | wedge criterion, smooth Reeb field, invariance, contact case; the model and its converse; second milestone | 3, 4 |
+| `Geometry/Contact/Symplectization/Basic.lean` | Tau Ceti's symplectization form written with `funSMulₗ`, beside Tau Ceti's file of that path | 4 |
 | `Topology/Sets/Strip.lean` | the open strip `(-ε, ε) × X` of `ℝ × X` and the tube lemma for it | 4 |
+| `Geometry/Manifold/Strip.lean` | the slice maps of the strip as smooth maps, their differential, and slices of two-forms | 4 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` | near one boundary point: the extended field and its flow from the boundary | 5 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean` | the collar of a compact boundary along an outward field | 6 |
 | `Geometry/Symplectic/Liouville/Filling.lean` | `IsStrongFilling`, its contact form, its Liouville collar | 7 |
@@ -284,7 +288,9 @@ a two-form on `M` (the book's $(\Omega,\lambda)$ is `IsStableHamiltonian α ω`
 with `α = λ`, `ω = Ω`). It imports
 `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy* for
 `SmoothForm.bilinFormAt_smul`, `_neg`, `SmoothForm.mpullback_funSMulₗ`,
-`funSMulₗ_const`, `funSMulₗ_add` and `funSMulₗ_one`. Issue 3:
+`funSMulₗ_const`, `funSMulₗ_add` and `funSMulₗ_one`, and
+`Geometry/Contact/Symplectization/Basic.lean` for
+`symplectization_eq_funSMulₗ`. Issue 3:
 
 - `isStableHamiltonian_iff_wedge_wedgePow_apply_ne_zero`: for
   `finrank ℝ E = 2 * m + 1`, `IsStableHamiltonian α ω` if and only if `ω` is
@@ -370,7 +376,11 @@ Issue 4, in `TauCeti.SmoothForm`:
   Ceti's compact relative Moser theorem
   `SmoothTwoForm.exists_diffeomorph_opens_of_eq_along` along
   `x ↦ (0, x)` gives a diffeomorphism of neighbourhoods, and the tube
-  lemma a strip inside.
+  lemma a strip inside. On the strip, the slice at `r` is the pullback along
+  `SymplecticGeometry.symmStripMk hr : M → symmStrip M ε`, and
+  `λ₀` is `zeroSliceOneForm hε σ`. The first half is
+  `isStableHamiltonian_zeroSliceOneForm` and
+  `val_symmStripMk_zero_eq_stableHamiltonianModel`.
 - The milestone,
   `IsStableHamiltonian.characteristicVectorField_and_stableHamiltonianModel`:
   for compact boundaryless `M` with `finrank ℝ E = 2 * m + 1`: the wedge
