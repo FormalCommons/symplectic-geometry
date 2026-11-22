@@ -18,6 +18,7 @@ import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Manifold.Distribution.VectorBundle
 import TauCeti.Geometry.Manifold.TwoForm.Kernel
 import TauCeti.Geometry.Symplectic.Lagrangian.Presymplectic
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # Smooth frames of the splitting along a submanifold
@@ -125,7 +126,6 @@ theorem hasLocalContMDiffSubbundleFrames_radical (hω : σ.IsNondegenerate)
     HasLocalContMDiffSubbundleFrames J ∞ E (Fin k) (E := (f : Q → M) *ᵖ (TangentSpace I))
       fun q ↦ (mfderiv J I f q).range ⊓
         (hω.symplecticFormAt (f q)).orthogonal (mfderiv J I f q).range := by
-  have : IsManifold J (∞ + 1) Q := by simpa using (inferInstance : IsManifold J ∞ Q)
   have h := ((SmoothForm.mpullback f f.contMDiff σ).isContMDiffDistribution_ker_bilinFormAt
     (n := ∞) hk).hasLocalContMDiffSubbundleFrames.map (E₂ := (f : Q → M) *ᵖ (TangentSpace I))
     (P := fun q ↦ (mfderiv J I f q : TangentSpace J q →ₗ[ℝ] TangentSpace I (f q)))
@@ -192,7 +192,6 @@ theorem hasLocalContMDiffSubbundleFrames_normalComplement (hc : σ.Compatible Jc
       (E := (f : Q → M) *ᵖ (TangentSpace I))
       fun q ↦ (hc.isNondegenerate.symplecticFormAt (f q)).normalComplement
         (Jc.almostComplexStructureAt (f q)) (mfderiv J I f q).range := by
-  have : IsManifold I (∞ + 1) M := by simpa using (inferInstance : IsManifold I ∞ M)
   have : ContMDiffVectorBundle ∞ E ((f : Q → M) *ᵖ (TangentSpace I)) J :=
     Bundle.Pullback.contMDiffVectorBundle (E := TangentSpace I) f.contMDiff
   have h := (f.hasLocalContMDiffSubbundleFrames_sup_map_radical hc hk).orthogonal_of_isCompl
@@ -227,7 +226,6 @@ theorem hasLocalContMDiffSubbundleFrames_orthogonal_radical (hc : σ.Compatible 
       fun q ↦ ((hc.isNondegenerate.symplecticFormAt (f q)).associatedBilinForm
         (Jc.almostComplexStructureAt (f q))).orthogonal ((mfderiv J I f q).range ⊓
           (hc.isNondegenerate.symplecticFormAt (f q)).orthogonal (mfderiv J I f q).range) := by
-  have : IsManifold I (∞ + 1) M := by simpa using (inferInstance : IsManifold I ∞ M)
   have : ContMDiffVectorBundle ∞ E ((f : Q → M) *ᵖ (TangentSpace I)) J :=
     Bundle.Pullback.contMDiffVectorBundle (E := TangentSpace I) f.contMDiff
   have h := (f.hasLocalContMDiffSubbundleFrames_radical hc.isNondegenerate hk).orthogonal_of_isCompl
@@ -261,7 +259,6 @@ theorem hasLocalContMDiffSubbundleFrames_radicalComplement (hc : σ.Compatible J
       (E := (f : Q → M) *ᵖ (TangentSpace I))
       fun q ↦ (hc.isNondegenerate.symplecticFormAt (f q)).radicalComplement
         (Jc.almostComplexStructureAt (f q)) (mfderiv J I f q).range := by
-  have : IsManifold I (∞ + 1) M := by simpa using (inferInstance : IsManifold I ∞ M)
   have : ContMDiffVectorBundle ∞ E ((f : Q → M) *ᵖ (TangentSpace I)) J :=
     Bundle.Pullback.contMDiffVectorBundle (E := TangentSpace I) f.contMDiff
   -- The radical `K` and its orthogonal `S = K^{⊥g}` for the metric `g = σ(·, J ·)`.
@@ -354,7 +351,6 @@ theorem contMDiff_totalSpace_projection_range_mfderiv (hc : σ.Compatible Jc)
         (⟨w.proj, (mfderiv J I f w.proj).range.projection _
           (hc.compatibleAt (f w.proj)).isCompl_map_sup_normalComplement w.snd⟩ :
           TotalSpace E ((f : Q → M) *ᵖ (TangentSpace I)))) := by
-  have : IsManifold I (∞ + 1) M := by simpa using (inferInstance : IsManifold I ∞ M)
   have : ContMDiffVectorBundle ∞ E ((f : Q → M) *ᵖ (TangentSpace I)) J :=
     Bundle.Pullback.contMDiffVectorBundle (E := TangentSpace I) f.contMDiff
   exact (Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv f f.isImmersion)
@@ -377,7 +373,6 @@ theorem contMDiff_totalSpace_projection_map_radical (hc : σ.Compatible Jc)
               (Jc.almostComplexStructureAt (f w.proj)).toLinearMap).projection _
           (hc.compatibleAt (f w.proj)).isCompl_map_self_sup_normalComplement w.snd⟩ :
           TotalSpace E ((f : Q → M) *ᵖ (TangentSpace I)))) := by
-  have : IsManifold I (∞ + 1) M := by simpa using (inferInstance : IsManifold I ∞ M)
   have : ContMDiffVectorBundle ∞ E ((f : Q → M) *ᵖ (TangentSpace I)) J :=
     Bundle.Pullback.contMDiffVectorBundle (E := TangentSpace I) f.contMDiff
   exact (f.hasLocalContMDiffSubbundleFrames_map_radical hc.isNondegenerate hk)
@@ -398,7 +393,6 @@ theorem contMDiff_totalSpace_projection_normalComplement (hc : σ.Compatible Jc)
           (Jc.almostComplexStructureAt (f w.proj)) (mfderiv J I f w.proj).range).projection _
           (hc.compatibleAt (f w.proj)).isCompl_sup_map_normalComplement.symm w.snd⟩ :
           TotalSpace E ((f : Q → M) *ᵖ (TangentSpace I)))) := by
-  have : IsManifold I (∞ + 1) M := by simpa using (inferInstance : IsManifold I ∞ M)
   have : ContMDiffVectorBundle ∞ E ((f : Q → M) *ᵖ (TangentSpace I)) J :=
     Bundle.Pullback.contMDiffVectorBundle (E := TangentSpace I) f.contMDiff
   exact (f.hasLocalContMDiffSubbundleFrames_normalComplement hc hk)
@@ -420,7 +414,6 @@ theorem contMDiff_totalSpace_projection_radical (hc : σ.Compatible Jc)
             (mfderiv J I f w.proj).range).projection _
           ((hc.compatibleAt (f w.proj)).isCompl_orthogonal_associatedBilinForm _) w.snd⟩ :
           TotalSpace E ((f : Q → M) *ᵖ (TangentSpace I)))) := by
-  have : IsManifold I (∞ + 1) M := by simpa using (inferInstance : IsManifold I ∞ M)
   have : ContMDiffVectorBundle ∞ E ((f : Q → M) *ᵖ (TangentSpace I)) J :=
     Bundle.Pullback.contMDiffVectorBundle (E := TangentSpace I) f.contMDiff
   exact (f.hasLocalContMDiffSubbundleFrames_radical hc.isNondegenerate hk)

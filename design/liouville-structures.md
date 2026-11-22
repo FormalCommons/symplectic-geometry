@@ -166,6 +166,7 @@ Further choices:
 | File | Contents | Issue |
 |---|---|---|
 | `Geometry/Symplectic/Liouville/ContactType.lean` | contact type through local Liouville fields; both directions in the book's signs | 1 |
+| `Geometry/Manifold/VectorField/Pullback.lean` | pullbacks of vector fields along local diffeomorphisms, and restrictions of vector fields to open subsets: smoothness and relatedness | — |
 | `Geometry/Symplectic/Liouville/Collar.lean` | the Liouville collar of a hypersurface; first milestone | 2 |
 | `Geometry/Contact/StableHamiltonian.lean` | wedge criterion, smooth Reeb field, invariance, contact case; the model and its converse; second milestone | 3, 4 |
 | `Geometry/Contact/Symplectization/Basic.lean` | Tau Ceti's symplectization form written with `funSMulₗ`, beside Tau Ceti's file of that path | 4 |
@@ -631,10 +632,12 @@ Expected size: 300 lines.
 ## What the part uses
 
 - *Smooth families*: Seeley's extension,
-  `Analysis/Calculus/ContDiff/Seeley/Extension.lean`,
-  `Geometry/Manifold/LocalDiffeomorph/Basic.lean` and
+  `Analysis/Calculus/ContDiff/Seeley/Extension.lean` and
   `Geometry/Manifold/MFDeriv/Chart.lean`, only in
-  `Collar/Flow/Local.lean`; and
+  `Collar/Flow/Local.lean`;
+  `Geometry/Manifold/LocalDiffeomorph/Basic.lean`, in
+  `Collar/Flow/Local.lean` and `Collar/Flow/Basic.lean`
+  (`TauCeti.EuclideanHalfSpace.isLocalDiffeomorph_of_val_eq_smul`); and
   `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean`
   (`TauCeti.SmoothForm.mpullback_prodMk_mpullback_snd`), merged, in
   `StableHamiltonian.lean`.
@@ -663,8 +666,8 @@ Expected size: 300 lines.
   `SmoothEmbedding.exists_mextDeriv_eq_and_mpullback_eq`, only in
   `ContactType.lean`.
 - *Moser isotopy*: `Geometry/Manifold/DifferentialForm/Opens.lean`
-  (`TauCeti.mpullback_subtype_val_mextDeriv`), merged, only in
-  `ContactType.lean`.
+  (`TauCeti.mpullback_subtype_val_mextDeriv`), merged, in `ContactType.lean`,
+  and (`TauCeti.isSmoothForm_mpullback_subtypeVal_interior`) in `Collar.lean`.
 - *Moser isotopy*: `Geometry/Symplectic/Manifold/Flat.lean`
   (`SmoothTwoForm.IsNondegenerate.interior_flat_inverse_ofSubsingleton`,
   `SmoothTwoForm.contMDiffAt_flat_inverse_apply`), merged, only in
