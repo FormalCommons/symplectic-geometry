@@ -322,7 +322,8 @@ Tau Ceti's `Symplectic/Manifold/AlmostComplex/Chart.lean`, and, for its
 proof only, `Regularity.lean` and Tau Ceti's
 `Calculus/InverseFunctionTheorem.lean`, `Manifold/Diffeomorph/Basic.lean`,
 `Manifold/LocalDiffeomorph/Basic.lean` and `Manifold/MFDeriv/NormedSpace.lean`, and
-`Geometry/Manifold/Complex/Integrable.lean` of *Nijenhuis tensor*. Throughout,
+`Geometry/Manifold/Complex/Integrable.lean` and
+`Geometry/Symplectic/Manifold/AlmostComplex/Chart.lean` of *Nijenhuis tensor*. Throughout,
 `I : ModelWithCorners ℝ E H` with
 `[I.Boundaryless]` and `[IsManifold I ∞ M]`; `[FiniteDimensional ℝ E]`
 follows from `hE`.
@@ -337,11 +338,11 @@ follows from `hE`.
   The chart at `x` followed by `I` and `E ≃L[ℝ] ℂ` pushes `J` forward to
   a smooth field on its target
   (`contDiffOn_chartPushforward`, squaring to `-1` by
-  `chartPushforward_apply_chartPushforward_apply` of `Integrable.lean`); the smooth planar
+  `chartPushforward_apply_chartPushforward_apply` of the library's `Chart.lean`); the smooth planar
   chart of `TauCeti.Beltrami.exists_smooth_isothermal_chart` composed with
   it is `ψ`, its inverse smooth by
   `OpenPartialHomeomorph.contDiffOn_symm_of_isInvertible_fderiv`, its
-  equation from `mfderiv_apply_eq_chartPushforward_apply` of `Integrable.lean`. That planar theorem, in
+  equation from `mfderiv_apply_eq_chartPushforward_apply` of the library's `Chart.lean`. That planar theorem, in
   `Regularity.lean`, drops the tameness hypothesis of
   `exists_smooth_isothermal_chart_of_contDiffOn`: where the field is not
   tame it composes with conjugation (Decision 5), and it restricts to where
@@ -414,8 +415,9 @@ About 300 lines.
   `ContinuousLinearEquiv.ofFinrankEq`, `PartialDiffeomorph`,
   `Orientation.rightAngleRotation`, `Orientation.rightAngleRotation_map_complex`,
   `isConformalMap_complex_linear`.
-- *Nijenhuis tensor*: only `Geometry/Manifold/Complex/Integrable.lean`
-  (#862), for the chart pushforward lemmas in issue 3 and `IsIntegrable` in
+- *Nijenhuis tensor*: `Geometry/Symplectic/Manifold/AlmostComplex/Chart.lean`
+  (#1295), for the chart pushforward lemmas in issue 3, and
+  `Geometry/Manifold/Complex/Integrable.lean` (#862), for `IsIntegrable` in
   issue 4.
 
 ## Building issues
@@ -428,7 +430,7 @@ estimates.
 |---|---|---|---|---|
 | 1 | Planar charts of class `C^{k+1}` for a small $C^{k,\alpha}$ coefficient | `Analysis/Complex/Beltrami/CkHolder.lean`, and the files under *Files taken from Tau Ceti* | — | 1000 |
 | 2 | Planar isothermal charts of class `C^m`, and smooth ones | `Analysis/Calculus/ContDiff/Holder.lean`, `Analysis/Complex/Beltrami/Regularity.lean` | 1 | 350 |
-| 3 | Smooth isothermal charts on surfaces | `Geometry/Manifold/Complex/Isothermal.lean` | 2; #862 | 250 |
+| 3 | Smooth isothermal charts on surfaces | `Geometry/Manifold/Complex/Isothermal.lean` | 2; #862, #1295 | 250 |
 | 4 | Integrability in dimension two, isothermal coordinates of a metric, and the milestone | `Geometry/Manifold/Complex/Isothermal.lean`, `Analysis/InnerProductSpace/TwoDim.lean` | 3; #862 | 300 |
 
 Issue 1 can start at once. The milestone *Integrability of almost complex
