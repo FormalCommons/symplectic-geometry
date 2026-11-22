@@ -53,7 +53,8 @@ identification transports classes, pull-backs and cup products along that equali
 * `TauCeti.integralCoeffComul_eq_uliftTensorSelfIso_inv`: the diagonal of `ULift ℤ` is the
   inverse of its multiplication.
 * `TopCat.uliftIntegralCohomologyIso_naturality`: `TopCat.uliftIntegralCohomologyIso` commutes
-  with the maps induced by continuous maps.
+  with the maps induced by continuous maps; `TopCat.uliftIntegralCohomologyIso_naturality_apply`
+  states it on a class.
 * `TopCat.uliftIntegralCohomologyIso_singularCup`: `TopCat.uliftIntegralCohomologyIso` carries the
   cup product with values in `ULift ℤ` to `TopCat.integralCup`.
 * `TopCat.integralCohomologyLinearEquiv_naturality` and
@@ -146,8 +147,9 @@ theorem uliftIntegralCohomologyIso_hom_homologyπ (n : ℕ)
   exact singularCohomologyValueMap_homologyπ X _ ℤ _ n a
 
 /-- **Naturality of `TopCat.uliftIntegralCohomologyIso`**: it commutes with the maps induced by a
-continuous map `f : X ⟶ Y`. -/
-@[reassoc]
+continuous map `f : X ⟶ Y`. Its form applied to a class is
+`TopCat.uliftIntegralCohomologyIso_naturality_apply`. -/
+@[reassoc, elementwise]
 theorem uliftIntegralCohomologyIso_naturality {X Y : TopCat.{0}} (f : X ⟶ Y) (n : ℕ) :
     TopCat.singularCohomologyMap f n ≫ (X.uliftIntegralCohomologyIso n).hom =
       (Y.uliftIntegralCohomologyIso n).hom ≫ TopCat.singularCohomologyMap f n := by
