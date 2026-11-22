@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.AlgebraicTopology.Singular.Additivity
+public import TauCeti.Topology.Category.TopCat.Monoidal
 public import SymplecticGeometry.AlgebraicTopology.Singular.CircleMap
 
 /-!
@@ -19,8 +20,9 @@ Write `Circle.prodInclusion i : C(Circle, ι × Circle)` for the inclusion `z �
 `i`-th circle, and `Circle.prodRetraction i : C(ι × Circle, Circle)` for the map that is the
 identity on the `i`-th circle and sends the others to `1`. The composite
 `prodRetraction i ∘ prodInclusion j` is the identity for `j = i` and constant otherwise, so on
-`H₁` it is the identity or zero. The inclusions are the legs of a coproduct cofan in `TopCat`,
-and singular homology preserves finite coproducts (Tau Ceti's
+`H₁` it is the identity or zero. The inclusions are the legs of a coproduct cofan in `TopCat`
+(Mathlib's `TopCat.sigmaCofanIsColimit`, carried to `ι × Circle` by Tau Ceti's
+`TopCat.sigmaConstIsoProd`), and singular homology preserves finite coproducts (Tau Ceti's
 `TauCeti.isColimitCofanSingularHomology`, whose `PreservesColimitsOfShape` instance is used
 here), so the composites `(prodRetraction i)_* ≫ (prodInclusion i)_*` add up to the identity of
 `H₁(ι × Circle)`. Hence every class is the sum over `i` of `nᵢ` times the class of
@@ -104,13 +106,13 @@ theorem prodRetraction_comp_prodInclusion_of_ne {i j : ι} (h : j ≠ i) :
 private def isColimitCofanProdInclusion :
     IsColimit (Cofan.mk (TopCat.of (ι × Circle))
       (fun i ↦ TopCat.ofHom (prodInclusion i)) : Cofan fun _ : ι ↦ TopCat.of Circle) :=
-  Cofan.IsColimit.mk _
-    (fun s ↦ TopCat.ofHom
-      ⟨fun p ↦ s.inj p.1 p.2, continuous_prod_of_discrete_left.2 fun j ↦ (s.inj j).hom.continuous⟩)
-    (fun s i ↦ by ext z; simp)
-    (fun s m hm ↦ by
-      ext ⟨i, z⟩
-      exact congrArg (fun f ↦ f z) (congrArg (fun f ↦ TopCat.Hom.hom f) (hm i)))
+  IsColimit.ofIsoColimit (TopCat.sigmaCofanIsColimit _)
+    (Cofan.ext (TopCat.sigmaConstIsoProd (TopCat.of ι) (TopCat.of Circle) :
+        TopCat.of (Σ _ : ι, Circle) ≅ TopCat.of (ι × Circle))
+      fun i ↦ TopCat.ext fun z ↦ by
+        simp only [Cofan.mk_pt, TopCat.hom_comp, ContinuousMap.comp_apply, cofan_mk_inj,
+          ConcreteCategory.hom_ofHom, prodInclusion_apply]
+        exact TopCat.sigmaConstIsoProd_hom_apply (TopCat.of ι) (TopCat.of Circle) ⟨i, z⟩)
 
 /-! ### First homology -/
 
