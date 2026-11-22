@@ -561,7 +561,11 @@ for local classes, `TauCeti.singularKronecker_complZeroPairCross`, with
 coefficients in modules, which applies to the cup data of
 `eulerClass_thomClassOfModel_prod`. The file is in `Cup/`, next to Tau Ceti's
 `Cup/Relative.lean`, and not in a folder `Cohomology/CrossProduct/`, which
-would be named like Tau Ceti's file `Cohomology/CrossProduct.lean`.
+would be named like Tau Ceti's file `Cohomology/CrossProduct.lean`. Its chain-level
+steps, the shuffle map of the pairs into the small chains
+(`TopCat.shuffleSmallPair`) and the relative Eilenberg–Zilber homotopy
+(`TopCat.shuffleAlexanderWhitneyPairHomotopy`), are public and sit in
+`Singular/Kunneth/RelativePair.lean`, which the file imports.
 
 ### `Topology/VectorBundle/Orientation/Complex/Whitney.lean`
 
