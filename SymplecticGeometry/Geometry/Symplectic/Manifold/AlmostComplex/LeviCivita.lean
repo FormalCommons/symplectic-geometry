@@ -48,8 +48,6 @@ In the namespace `TauCeti.SmoothAlmostComplexStructure`, for a metric with
 
 In the namespace `TauCeti.SmoothTwoForm`:
 
-* `Compatible.inner_eq_eval₂`: the metric `g_J` of a compatible pair, installed on `TM`, has
-  `⟪u, v⟫ = σ(u, J v)`.
 * `Compatible.leviCivita_hom_comp_add_and_inner_add_and_mextDeriv_and_apply`: the four
   identities for a compatible pair and the Levi-Civita connection of `g_J`.
 
@@ -195,14 +193,6 @@ end SmoothAlmostComplexStructure
 namespace SmoothTwoForm
 
 variable {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M}
-
-/-- For a smooth two-form `σ` compatible with a smooth almost complex structure `J`, the inner
-product of the metric `g_J` of the pair, installed as the Riemannian metric of `TM`, is
-`⟪u, v⟫ = σ(u, J v)`. -/
-theorem Compatible.inner_eq_eval₂ (hJ : σ.Compatible J) :
-    letI : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hJ.metric.toRiemannianMetric⟩
-    ∀ x (u v : TangentSpace I x), ⟪u, v⟫ = σ.eval₂ x u (J x v) := fun x u v ↦ by
-  rw [hJ.metric.inner_eq, Compatible.metric_inner]
 
 /-- Let `σ` be a smooth two-form compatible with a smooth almost complex structure `J`, and let
 `∇` be the Levi-Civita connection of the metric `g_J(u, v) = σ(u, J v)`. Then for all
