@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 public import SymplecticGeometry.Geometry.Manifold.ModelTransport.InteriorModel
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
@@ -141,13 +142,10 @@ private def endModelDiffeomorph (n : ℕ) :
 
 /-- The depth `max (-s) 0` as a point of `[0, 1)`. -/
 private def collarDepth (s : endInterval) : normalIioOpens 1 :=
-  ⟨normalRay (-s), by
-    rw [mem_normalIioOpens, normalRay_coe_apply]
-    have := mem_endInterval.1 s.property
-    exact max_lt (by linarith) one_pos⟩
+  normalIioRay ⟨-s, neg_lt.1 (mem_endInterval.1 s.property)⟩
 
 private theorem continuous_collarDepth : Continuous collarDepth :=
-  Continuous.subtype_mk (continuous_normalRay.comp (by fun_prop)) _
+  continuous_normalIioRay.comp ((continuous_neg.comp continuous_subtypeVal).subtype_mk _)
 
 @[simp] private theorem collarDepth_negNormalCoord (t : normalIioOpens 1) :
     collarDepth (negNormalCoord t) = t :=
