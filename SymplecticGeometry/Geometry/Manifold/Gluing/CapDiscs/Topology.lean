@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Gluing.CapDiscs.Basic
-import SymplecticGeometry.Topology.Compactness.Compact
+import SymplecticGeometry.Topology.Compactness.LocallyFinite
 
 /-!
 # Capping with discs: Hausdorff, compact and connected

@@ -1213,7 +1213,7 @@ issues, in an order where each issue's blockers come before it.
    `Geometry/Manifold/Instances/AddCircle.lean`. That the loops are
    finitely many uses `finite_of_compactSpace_of_pairwise_disjoint`, a
    disjoint open cover of a compact space has finite index, in
-   `Topology/Compactness/Compact.lean`.
+   `Topology/Compactness/LocallyFinite.lean`.
 9. **A map of degree one onto the sphere.**
    `Geometry/Manifold/Degree/Collapse.lean`:
    `SymplecticGeometry.exists_contMDiff_degree_eq_one`, every compact
