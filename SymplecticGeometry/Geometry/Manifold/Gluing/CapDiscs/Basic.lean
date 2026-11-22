@@ -381,15 +381,15 @@ variable (c) in
 /-- The point of `S` glued to a point `z` with `1 < ‖z‖` of a disc is an interior point. -/
 theorem apply_gluingCoord_mem_interiorOpens {i : ι} {z : ball} (hz : 1 < ‖(z : ℂ)‖) :
     c (gluingCoord γ i z) ∈ (𝓡∂ 2).interiorOpens S := by
-  rw [← SetLike.mem_coe, ModelWithCorners.coe_interiorOpens, c.apply_mem_interior_iff_pos,
+  rw [ModelWithCorners.mem_interiorOpens_iff_mem_interior, c.apply_mem_interior_iff_pos,
     ← depth_def, depth_gluingCoord hz]
   linarith
 
 /-- The point of the interior glued to a point `z` of the annulus of the `i`-th disc. -/
 private def gluingPoint (i : ι) {z : ball} (hz : 1 < ‖(z : ℂ)‖) : interiorOverlap c γ hγ i :=
-  ⟨InteriorModel.mk (𝓡∂ 2) (c (gluingCoord γ i z)) (by
-    rw [← ModelWithCorners.coe_interiorOpens, SetLike.mem_coe]
-    exact apply_gluingCoord_mem_interiorOpens c hz), by
+  ⟨InteriorModel.mk (𝓡∂ 2) (c (gluingCoord γ i z))
+    (ModelWithCorners.mem_interiorOpens_iff_mem_interior.1
+      (apply_gluingCoord_mem_interiorOpens c hz)), by
     rw [mem_interiorOverlap, InteriorModel.val_mk]
     exact ⟨_, _, rfl⟩⟩
 
@@ -652,7 +652,7 @@ theorem inr_eq_inl {i : ι} {z : ball} (hz : 1 < ‖(z : ℂ)‖) :
   refine ((glueData c γ hγ hinj).ι_eq_iff_rel (some i) none _ _).2 ⟨⟨_, hw⟩, rfl, ?_⟩
   refine (congrArg Subtype.val (annulusDiffeomorph_symm_apply hγ hinj i hz)).trans
     (InteriorModel.val_injective ?_)
-  rw [val_gluingPoint, coe_interiorModelDiffeomorph, InteriorModel.val_interiorModelHomeomorph]
+  rw [val_gluingPoint, InteriorModel.val_interiorModelDiffeomorph]
 
 /-- A collar point `c (γ i θ, t)` of the interior of `S` is the point `(1 + t) · toCircle θ` of
 the `i`-th disc. -/
@@ -663,10 +663,10 @@ theorem inr_ofReal_mul_toCircle_eq_inl {i : ι} {θ : AddCircle (1 : ℝ)} {t : 
   let q : interiorOverlap c γ hγ i :=
     ⟨interiorModelDiffeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S) ∞ ⟨c (γ i θ, t), h⟩,
       (mem_interiorOverlap hγ).2 ⟨θ, t, by
-        rw [coe_interiorModelDiffeomorph, InteriorModel.val_interiorModelHomeomorph]⟩⟩
+        rw [InteriorModel.val_interiorModelDiffeomorph]⟩⟩
   have hq : collarCoord hγ q = (γ i θ, t) :=
     collarCoord_eq hγ (by
-      simp only [q, coe_interiorModelDiffeomorph, InteriorModel.val_interiorModelHomeomorph])
+      simp only [q, InteriorModel.val_interiorModelDiffeomorph])
   have hz : toBall hγ q = ⟨_, ofReal_one_add_mul_toCircle_mem_ball t θ⟩ :=
     Subtype.ext (by rw [coe_toBall, polarPoint, hq, angle_apply hinj, depth_def])
   -- As in `inr_eq_inl`, the maps `f i j` of the glue data are the inclusions of the overlaps.

@@ -37,8 +37,11 @@ two families do not undo each other. `zero_fiber` relates the two zeros; it is n
 lemma, since a zero alone has no argument whose type could decide between them. In an equation
 the other side decides: `eq_zero_fiber_iff`, `zero_fiber_eq_iff`, `eq_zero_pullback_iff` and
 `zero_pullback_eq_iff` replace a zero of the other type by the zero of the type of the
-equation. The equations between two vectors are in `SymplecticGeometry/Data/Bundle.lean`, which
-this file imports so that the whole simp set comes with it.
+equation. `linearMap_sub_apply_fiber` and `linearMap_sub_apply_pullback` evaluate a difference
+of two semilinear maps on one of the types at a vector of the other, as `LinearMap.sub_apply`
+does at the same type. The equations between two vectors are in
+`SymplecticGeometry/Data/Bundle.lean`, which this file imports so that the whole simp set comes
+with it.
 
 `smul_fiber` is Tau Ceti's `Bundle.Pullback.smul_eq` read from right to left, for Mathlib's
 module structure on the fibres: the file of `smul_eq` gives the fibres a second scalar action,
@@ -191,6 +194,24 @@ the multiple `c • v` in `E (f y)`. -/
 @[simp]
 theorem smul_pullback (c : R) (v : E (f y)) :
     @Eq (E (f y)) (@HSMul.hSMul R ((f *ᵖ E) y) ((f *ᵖ E) y) _ c v) (c • v) := (rfl)
+
+variable {S N : Type*} [Semiring S] {σ : R →+* S} [AddCommGroup N] [Module S N]
+
+/-- The difference of two semilinear maps `g` and `h` on `E (f y)`, applied to a vector `v` of
+the fibre of `f *ᵖ E` at `y`, is `g v - h v`. This is `LinearMap.sub_apply` for a vector of the
+pull-back fibre. -/
+@[simp]
+theorem linearMap_sub_apply_fiber (g h : E (f y) →ₛₗ[σ] N) (v : (f *ᵖ E) y) :
+    (g - h) v = g v - h v :=
+  LinearMap.sub_apply g h v
+
+/-- The difference of two semilinear maps `g` and `h` on the fibre of `f *ᵖ E` at `y`, applied to
+a vector `v` of `E (f y)`, is `g v - h v`. This is `LinearMap.sub_apply` for a vector of
+`E (f y)`. -/
+@[simp]
+theorem linearMap_sub_apply_pullback (g h : (f *ᵖ E) y →ₛₗ[σ] N) (v : E (f y)) :
+    (g - h) v = g v - h v :=
+  LinearMap.sub_apply g h v
 
 end Module
 
