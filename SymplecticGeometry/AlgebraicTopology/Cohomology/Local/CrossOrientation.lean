@@ -1,0 +1,172 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import TauCeti.Algebra.Category.ModuleCat.Monoidal.Unit
+public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
+public import TauCeti.AlgebraicTopology.Cohomology.Local.Cross
+public import TauCeti.AlgebraicTopology.Cohomology.Local.Orientation
+public import TauCeti.CategoryTheory.Monoidal.Preadditive
+public import TauCeti.LinearAlgebra.Dimension.Prod
+public import TauCeti.LinearAlgebra.Orientation.Prod
+import SymplecticGeometry.AlgebraicTopology.Cohomology.Cup.RelativeKronecker
+import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
+import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Cross.Sign
+
+/-!
+# The product of the local cohomology generators selected by two orientations
+
+Let `F₁` and `F₂` be real normed spaces of dimensions `m + 1` and `n + 1`, with orientations
+`ω₁` and `ω₂`. Each orientation selects a generator of the integral local cohomology at the
+origin (`Orientation.localCohomologyClass`), the class pairing to one with the local orientation
+it selects. Tau Ceti's product `TauCeti.complZeroPairCross` of classes of the pairs
+`(F, F ∖ {0})`, with chain coefficients and cochain values `ULift ℤ` multiplied by
+`TauCeti.integralCoeffComul` and `ModuleCat.uliftTensorSelfIso ℤ`, as in the cup product of
+integral classes with values in `ULift ℤ` (`TopCat.uliftIntegralCohomologyIso_singularCup`), sends
+the two generators to `(-1) ^ ((m + 1) * (n + 1))` times the generator selected by the product
+orientation `ω₁.prod ω₂`, reindexed to `Fin (d + 1)`
+(`Orientation.complZeroPairCross_localCohomologyClass`).
+
+The product of the generators pairs with the cross product of the two local orientations to one
+(`TauCeti.singularKronecker_complZeroPairCross_int`, in `Cohomology/Cup/RelativeKronecker.lean`),
+and that cross product is `(-1) ^ ((m + 1) * (n + 1))` times the local orientation selected by
+`ω₁.prod ω₂` (`TauCeti.LocalOrientation.coe_cross_localOrientation_eq_neg_one_pow_smul`, in
+`Singular/LocalHomology/Orientation/Cross/Sign.lean`). The sign is `1` when one of the two
+dimensions is even, as for complex vector spaces.
+
+The integral cohomology here takes the `ℤ`-linear structure that `ModuleCat ℤ` has as a
+preadditive category, as Tau Ceti's integral cup product does
+(`CategoryTheory.MonoidalPreadditive.monoidalLinearInt`).
+
+## Main results
+
+* `Orientation.complZeroPairCross_localCohomologyClass`: the product of the generators selected
+  by `ω₁` and `ω₂` is `(-1) ^ ((m + 1) * (n + 1))` times the generator selected by `ω₁.prod ω₂`.
+
+## References
+
+* A. Hatcher, [*Algebraic Topology*](https://pi.math.cornell.edu/~hatcher/AT/AT.pdf),
+  Section 3.2 (cross products) and Section 3.3 (local orientations).
+* J. W. Milnor, J. D. Stasheff, *Characteristic Classes*, Annals of Mathematics Studies 76,
+  Princeton University Press, 1974, Sections 9 and 10.
+-/
+
+public section
+
+noncomputable section
+
+open CategoryTheory MonoidalCategory Module
+
+attribute [local instance] MonoidalPreadditive.monoidalLinearInt
+
+namespace Orientation
+
+open TauCeti
+
+variable {F₁ F₂ : Type} [NormedAddCommGroup F₁] [NormedSpace ℝ F₁]
+  [NormedAddCommGroup F₂] [NormedSpace ℝ F₂] {m n d : ℕ}
+
+/-- The cross product of local orientations `z × z'`, read in the pair of `F₁ × F₂` relative to
+`(F₁ ∖ {0}) × F₂ ∪ F₁ × (F₂ ∖ {0})` with the coefficients split back by
+`TauCeti.integralCoeffComul`, is the cross product of pairs of `z` and `z'`: the hypothesis of
+`TauCeti.singularKronecker_complZeroPairCross_int` for `z × z'`. -/
+private theorem homologyMap_integralCoeffComul_cross (hF₁ : finrank ℝ F₁ = m + 1)
+    (hF₂ : finrank ℝ F₂ = n + 1) (h : m + 1 + (n + 1) = d + 1)
+    (z : LocalOrientation F₁ 0 (m + 1)) (z' : LocalOrientation F₂ 0 (n + 1)) :
+    (HomologicalComplex.homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map
+        integralCoeffComul).app _) (d + 1)).hom
+      ((TopPair.singularHomologyMap (TopPair.ofSubsetMap
+          (B := ({((0 : F₁), (0 : F₂))}ᶜ : Set (TopCat.of (F₁ × F₂))))
+          (B' := CartesianMonoidalCategory.fst (TopCat.of F₁) (TopCat.of F₂) ⁻¹' {0}ᶜ ∪
+            CartesianMonoidalCategory.snd (TopCat.of F₁) (TopCat.of F₂) ⁻¹' {0}ᶜ)
+          (𝟙 (TopCat.of F₁ ⊗ TopCat.of F₂)) fun _ hv ↦ compl_zero_prod_subset F₁ F₂ hv)
+        (ModuleCat.of ℤ (ULift.{0} ℤ)) (d + 1)).hom
+        (LocalOrientation.cross hF₁ hF₂ h z z').val) =
+      (TopCat.singularHomologyCrossRelPair (TopCat.of F₁) (TopCat.of F₂) {0}ᶜ {0}ᶜ
+        (ModuleCat.of ℤ (ULift.{0} ℤ)) (ModuleCat.of ℤ (ULift.{0} ℤ)) (m + 1) (n + 1) (d + 1)
+          h).hom (z.val ⊗ₜ z'.val) := by
+  have hpm : TopPair.ofSubsetMap (TopCat.tensorObjIsoProd F₁ F₂).hom
+        (mapsTo_preimage_fst_compl_union_preimage_snd_compl (0 : F₁) (0 : F₂)) ≫
+      TopPair.ofSubsetMap (𝟙 (TopCat.of F₁ ⊗ TopCat.of F₂))
+        (B' := CartesianMonoidalCategory.fst (TopCat.of F₁) (TopCat.of F₂) ⁻¹' {0}ᶜ ∪
+          CartesianMonoidalCategory.snd (TopCat.of F₁) (TopCat.of F₂) ⁻¹' {0}ᶜ)
+        (fun _ hv ↦ compl_zero_prod_subset F₁ F₂ hv) = 𝟙 _ :=
+    (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ (fun _ hv ↦ hv)
+      ((Category.comp_id _).trans (TopCat.tensorObjIsoProd_hom_eq_id F₁ F₂))).trans
+      (TopPair.ofSubsetMap_id _)
+  have key : TopCat.singularHomologyCrossRelPair (TopCat.of F₁) (TopCat.of F₂) {0}ᶜ {0}ᶜ
+          (ModuleCat.of ℤ (ULift.{0} ℤ)) (ModuleCat.of ℤ (ULift.{0} ℤ)) (m + 1) (n + 1) (d + 1) h ≫
+        HomologicalComplex.homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map
+          (ModuleCat.uliftTensorSelfIso ℤ).hom).app _) (d + 1) ≫
+        TopPair.singularHomologyMap (TopPair.ofSubsetMap (TopCat.tensorObjIsoProd F₁ F₂).hom
+            (mapsTo_preimage_fst_compl_union_preimage_snd_compl (0 : F₁) (0 : F₂)) ≫
+          TopPair.ofSubsetMap (𝟙 (TopCat.of F₁ ⊗ TopCat.of F₂))
+            (B' := CartesianMonoidalCategory.fst (TopCat.of F₁) (TopCat.of F₂) ⁻¹' {0}ᶜ ∪
+              CartesianMonoidalCategory.snd (TopCat.of F₁) (TopCat.of F₂) ⁻¹' {0}ᶜ)
+            (fun _ hv ↦ compl_zero_prod_subset F₁ F₂ hv)) _ (d + 1) ≫
+        HomologicalComplex.homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map
+          integralCoeffComul).app _) (d + 1) =
+        TopCat.singularHomologyCrossRelPair (TopCat.of F₁) (TopCat.of F₂) {0}ᶜ {0}ᶜ
+          (ModuleCat.of ℤ (ULift.{0} ℤ)) (ModuleCat.of ℤ (ULift.{0} ℤ)) (m + 1) (n + 1) (d + 1)
+            h := by
+    rw [hpm, TopPair.singularHomologyMap_id, Category.id_comp,
+      ← HomologicalComplex.homologyMap_comp, ← NatTrans.comp_app,
+      ← CategoryTheory.Functor.map_comp (SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)),
+      integralCoeffComul_eq_uliftTensorSelfIso_inv, Iso.hom_inv_id, CategoryTheory.Functor.map_id,
+      NatTrans.id_app, HomologicalComplex.homologyMap_id, Category.comp_id]
+  rw [TopPair.singularHomologyMap_comp (TopPair.ofSubsetMap (TopCat.tensorObjIsoProd F₁ F₂).hom
+      (mapsTo_preimage_fst_compl_union_preimage_snd_compl (0 : F₁) (0 : F₂)))
+    (ModuleCat.of ℤ (ULift.{0} ℤ)) (TopPair.ofSubsetMap (𝟙 (TopCat.of F₁ ⊗ TopCat.of F₂))
+      (B' := CartesianMonoidalCategory.fst (TopCat.of F₁) (TopCat.of F₂) ⁻¹' {0}ᶜ ∪
+        CartesianMonoidalCategory.snd (TopCat.of F₁) (TopCat.of F₂) ⁻¹' {0}ᶜ)
+      (fun _ hv ↦ compl_zero_prod_subset F₁ F₂ hv))] at key
+  rw [LocalOrientation.coe_cross, localHomologyCross_eq]
+  -- The composite of linear maps is applied one after the other.
+  exact ConcreteCategory.congr_hom key _
+
+/-- **The product of the local cohomology generators selected by two orientations.** For
+orientations `ω₁` of `F₁` and `ω₂` of `F₂`, of dimensions `m + 1` and `n + 1`, the product
+`TauCeti.complZeroPairCross` of the generators of `Hᵐ⁺¹(F₁, F₁ ∖ {0}; ℤ)` and
+`Hⁿ⁺¹(F₂, F₂ ∖ {0}; ℤ)` that they select, with the diagonal and the multiplication of `ULift ℤ`, is
+`(-1) ^ ((m + 1) * (n + 1))` times the generator of `Hᵈ⁺¹(F₁ × F₂, (F₁ × F₂) ∖ {0}; ℤ)` selected by
+the product orientation `ω₁.prod ω₂`, reindexed by `Fin (m + 1 + (n + 1)) ≃ Fin (d + 1)`. -/
+theorem complZeroPairCross_localCohomologyClass (hF₁ : finrank ℝ F₁ = m + 1)
+    (hF₂ : finrank ℝ F₂ = n + 1) (h : m + 1 + (n + 1) = d + 1) (ω₁ : Orientation ℝ F₁ (Fin (m + 1)))
+    (ω₂ : Orientation ℝ F₂ (Fin (n + 1))) :
+    complZeroPairCross ℤ F₁ F₂ integralCoeffComul (ModuleCat.uliftTensorSelfIso ℤ).hom
+        (m + 1) (n + 1) (d + 1) h (ω₁.localCohomologyClass hF₁) (ω₂.localCohomologyClass hF₂) =
+      haveI := FiniteDimensional.of_finrank_eq_succ hF₁
+      haveI := FiniteDimensional.of_finrank_eq_succ hF₂
+      (-1 : ℤ) ^ ((m + 1) * (n + 1)) •
+        (Orientation.reindex ℝ (F₁ × F₂) (finCongr h) (ω₁.prod ω₂ hF₁ hF₂)).localCohomologyClass
+          (finrank_prod_eq_succ hF₁ hF₂ h) := by
+  have := FiniteDimensional.of_finrank_eq_succ hF₁
+  have := FiniteDimensional.of_finrank_eq_succ hF₂
+  have hs : ((-1 : ℤ) ^ ((m + 1) * (n + 1))) * (-1 : ℤ) ^ ((m + 1) * (n + 1)) = 1 := by
+    rw [← mul_pow, neg_one_mul, neg_neg, one_pow]
+  have hP : ((Orientation.reindex ℝ (F₁ × F₂) (finCongr h) (ω₁.prod ω₂ hF₁ hF₂)).localOrientation
+      (finrank_prod_eq_succ hF₁ hF₂ h)).val = (-1 : ℤ) ^ ((m + 1) * (n + 1)) •
+        (LocalOrientation.cross hF₁ hF₂ h (ω₁.localOrientation hF₁)
+          (ω₂.localOrientation hF₂)).val := by
+    rw [LocalOrientation.coe_cross_localOrientation_eq_neg_one_pow_smul, smul_smul, hs, one_smul]
+  have hz := singularKronecker_complZeroPairCross_int F₁ F₂ inferInstance integralCoeffComul
+    (ModuleCat.uliftTensorSelfIso ℤ).hom h (ω₁.localCohomologyClass hF₁)
+    (ω₂.localCohomologyClass hF₂) (ω₁.localOrientation hF₁).val (ω₂.localOrientation hF₂).val
+    _ (homologyMap_integralCoeffComul_cross hF₁ hF₂ h _ _)
+  have h1 := (eq_localCohomologyClass_iff _ (finrank_prod_eq_succ hF₁ hF₂ h)
+    ((-1 : ℤ) ^ ((m + 1) * (n + 1)) • complZeroPairCross ℤ F₁ F₂ integralCoeffComul
+      (ModuleCat.uliftTensorSelfIso ℤ).hom (m + 1) (n + 1) (d + 1) h
+      (ω₁.localCohomologyClass hF₁) (ω₂.localCohomologyClass hF₂))).2 (by
+    rw [hP, map_zsmul, map_zsmul, ModuleCat.hom_zsmul, LinearMap.smul_apply, smul_smul, hs,
+      one_smul]
+    refine hz.trans ?_
+    rw [kronecker_localCohomologyClass, kronecker_localCohomologyClass]
+    -- `1 ⊗ 1 ↦ 1 * 1`; the lemma is stated for `ModuleCat.Hom.hom`, the goal through
+    -- `ConcreteCategory.hom`, which agree by definition.
+    exact (ModuleCat.uliftTensorSelfIso_hom_tmul ℤ 1 1).trans (congrArg ULift.up (mul_one 1)))
+  rw [← h1, smul_smul, hs, one_smul]
+
+end Orientation
