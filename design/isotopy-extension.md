@@ -908,6 +908,10 @@ this design already follows. `Ball/Isotopy.lean` cites
   where the slices of a family are nondegenerate, and `Moser/Isotopy.lean`
   derives its theorem fixing a submanifold from the family theorem of
   `Moser/Family.lean`.
+  `TubularNeighborhood/OneFormCorrection.lean` imports
+  `Geometry/Manifold/DifferentialForm/Pullback/Family.lean`, merged, for
+  `SmoothForm.mpullback_prodMk_mpullback_prodMap` (the slices of the pulled-back
+  family on the tube).
   `IsotopyExtension/Ball/Basic.lean` also imports
   `Geometry/Symplectic/Manifold/TwoForm.lean`, for
   `TauCeti.SmoothTwoForm.injective_mfderiv_of_mpullback_apply_eq` (a map
