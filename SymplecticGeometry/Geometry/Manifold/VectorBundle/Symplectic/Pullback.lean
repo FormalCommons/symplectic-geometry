@@ -65,11 +65,10 @@ isomorphism of bundles is smooth by `Bundle.Pullback.contMDiff_fiberwise`. The A
 form they give lives on `V (f y)`, but the instances around it still name the fibre
 `(f *ᵖ V) y`, so the lemmas that evaluate it no longer apply. `simp` evaluates the pulled-back
 form on vectors with `bilinFormAt_pullback_apply`, and its symplectic form with
-`IsNondegenerate.symplecticFormAt_apply_pullback` and `pullback_apply`, which together prove
-`IsNondegenerate.symplecticFormAt_pullback_apply`; that lemma is therefore not `@[simp]`.
-`bilinFormAt_pullback_apply` is `@[simp high]`: if
-`bilinFormAt_apply_pullback` and `pullback_apply` rewrite first, the two sides still differ in
-hidden arguments that name the fibre `(f *ᵖ V) y`, and `simp` cannot close the goal.
+`IsNondegenerate.symplecticFormAt_pullback_apply`. Both are `@[simp high]`: if
+`bilinFormAt_apply_pullback` (or `IsNondegenerate.symplecticFormAt_apply_pullback`) and
+`pullback_apply` rewrite first, the two sides still differ in hidden arguments that name the
+fibre `(f *ᵖ V) y`, and `simp` cannot close the goal.
 
 `bilinFormAt_apply` does not fire on vectors typed in `V (f y)` for a form on `f *ᵖ V`: Mathlib's
 `Bundle.Pullback` is a plain definition, so at the transparency `simp` uses, such a term is not
@@ -241,7 +240,7 @@ theorem IsNondegenerate.pullback (h : ω.IsNondegenerate) (f : C^n⟮I', N; I, M
 /-- The symplectic form of the pull-back on the fibre over `y` is that of `ω` over `f y`.
 
 This is not `@[simp]`, for the reason given at `bilinFormAt_pullback`. On vectors, `simp` uses
-`IsNondegenerate.symplecticFormAt_apply_pullback` and `pullback_apply` instead. -/
+`IsNondegenerate.symplecticFormAt_pullback_apply` instead. -/
 theorem IsNondegenerate.symplecticFormAt_pullback (h : ω.IsNondegenerate) (f : C^n⟮I', N; I, M⟯)
     (y : N) : (h.pullback f).symplecticFormAt y = h.symplecticFormAt (f y) :=
   TauCeti.SymplecticForm.toBilinForm_injective <| by
@@ -250,8 +249,10 @@ theorem IsNondegenerate.symplecticFormAt_pullback (h : ω.IsNondegenerate) (f : 
 
 /-- The symplectic form of the pull-back on the fibre over `y` evaluates as `ω (f y)`. The
 hypothesis is the nondegeneracy of the pull-back, rather than of `ω`, so that the lemma applies
-to any proof of it, such as `h.pullback f`. It is not `@[simp]`: `simp` proves it with
-`IsNondegenerate.symplecticFormAt_apply_pullback` and `pullback_apply`. -/
+to any proof of it, such as `h.pullback f`. It is `@[simp high]`, so that it fires
+before `IsNondegenerate.symplecticFormAt_apply_pullback`: after that lemma and `pullback_apply`,
+the two sides still differ in hidden arguments that name the fibre `(f *ᵖ V) y`. -/
+@[simp high]
 theorem IsNondegenerate.symplecticFormAt_pullback_apply {f : C^n⟮I', N; I, M⟯}
     (h : (ω.pullback f).IsNondegenerate) (y : N) (v w : V (f y)) :
     h.symplecticFormAt y v w = ω (f y) ![v, w] :=
