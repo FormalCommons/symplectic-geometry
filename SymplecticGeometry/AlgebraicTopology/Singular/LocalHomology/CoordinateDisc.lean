@@ -7,6 +7,7 @@ module
 
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.OpenEmbedding
 public import TauCeti.Geometry.Manifold.Complex.FundamentalClass
+public import TauCeti.Geometry.Manifold.Diffeomorph.NormedSpace
 public import Mathlib.Geometry.Manifold.Instances.Real
 public import TauCeti.Geometry.Manifold.Orientation.Euclidean
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
@@ -41,6 +42,11 @@ Complex conjugation maps the ball to itself and reverses its canonical orientati
 coordinate disc `φ.reverse = φ ∘ conj` for `-o`, with the same discs and with the boundary loop
 run backwards.
 
+Smaller coordinate discs come from precomposing with the affine maps `z ↦ a + r z`, `r > 0`, of
+the ball into itself, which preserve its canonical orientation since they are holomorphic
+(`TauCeti.comap_complexHomologicalOrientation`). A coordinate disc whose image lies in an open
+set `U` is one of `U`, for the restriction of `o` (`TauCeti.HomologicalOrientation.comap`).
+
 On a `C¹` surface `M` charted on `ℝ²` with an orientation
 `o : TauCeti.Manifold.Orientation (𝓡 2) M (Fin 2)`, every chart `e` that preserves orientation
 gives coordinate discs for `o.toHomologicalOrientation`: for a ball `B(c, r)` in the target of
@@ -71,6 +77,11 @@ for `o`. Finitely many distinct points have pairwise disjoint open neighbourhood
   `C(Circle, M)`.
 * `SymplecticGeometry.CoordinateDisc.boundaryLoop`: the loop `t ↦ φ(e^{2πit})`.
 * `SymplecticGeometry.CoordinateDisc.reverse`: the coordinate disc `φ ∘ conj` for `-o`.
+* `SymplecticGeometry.CoordinateDisc.affineBall`: the map `z ↦ a + r z` of the ball into itself.
+* `SymplecticGeometry.CoordinateDisc.comp`: a coordinate disc precomposed with an
+  orientation-preserving open embedding of the ball into itself.
+* `SymplecticGeometry.CoordinateDisc.restrict`: a coordinate disc with image in an open set `U`,
+  as a coordinate disc of `U`.
 * `SymplecticGeometry.CoordinateDisc.subtypeVal`: the inclusion of the ball into `ℂ`, a coordinate
   disc of `ℂ` for its canonical orientation.
 * `SymplecticGeometry.CoordinateDisc.ofChart`: the coordinate disc of an orientation-preserving
@@ -87,6 +98,8 @@ for `o`. Finitely many distinct points have pairwise disjoint open neighbourhood
   `SymplecticGeometry.CoordinateDisc.openDisc_reverse`,
   `SymplecticGeometry.CoordinateDisc.boundaryLoop_reverse`: reversal keeps the discs and reverses
   the boundary loop (`Path.symm`).
+* `SymplecticGeometry.CoordinateDisc.comap_affineBall_complexHomologicalOrientation`: the maps
+  `z ↦ a + r z`, `r > 0`, preserve the canonical orientation of the ball.
 * `SymplecticGeometry.CoordinateDisc.comap_eq_complexHomologicalOrientation`: when `M` is charted
   on `ℂ`, the orientation condition says that `o` pulls back to the canonical orientation of the
   ball.
@@ -281,14 +294,19 @@ theorem apply_mem_disc_iff {z : ball} : φ z ∈ φ.disc ↔ ‖(z : ℂ)‖ ≤
 theorem apply_mem_openDisc_iff {z : ball} : φ z ∈ φ.openDisc ↔ ‖(z : ℂ)‖ < 1 :=
   φ.injective.mem_set_image
 
-theorem isCompact_disc : IsCompact φ.disc := by
+/-- The image of a closed ball of radius `ρ < 2` about the centre is compact. -/
+theorem isCompact_image_closedBall {ρ : ℝ} (hρ : ρ < 2) :
+    IsCompact (φ '' {z | ‖(z : ℂ)‖ ≤ ρ}) := by
   refine IsCompact.image ?_ φ.continuous
   rw [Subtype.isCompact_iff]
-  convert isCompact_closedBall (0 : ℂ) 1 using 1
+  convert isCompact_closedBall (0 : ℂ) ρ using 1
   ext w
   simp only [Set.mem_image, Set.mem_ofPred_eq, Subtype.exists, exists_and_right, exists_eq_right,
     mem_closedBall_zero_iff]
-  exact ⟨fun ⟨_, h⟩ ↦ h, fun h ↦ ⟨mem_ball_of_norm_le_one h, h⟩⟩
+  exact ⟨fun ⟨_, h⟩ ↦ h, fun h ↦ ⟨mem_ball_iff.2 (h.trans_lt hρ), h⟩⟩
+
+theorem isCompact_disc : IsCompact φ.disc :=
+  φ.isCompact_image_closedBall one_lt_two
 
 theorem isOpen_openDisc : IsOpen φ.openDisc :=
   φ.isOpenEmbedding.isOpenMap _ <|
@@ -434,6 +452,90 @@ theorem boundaryLoop_reverse :
   ext t
   exact φ.boundaryLoop_reverse_apply t
 
+
+/-! ### Smaller discs and restriction to an open set -/
+
+/-- The affine map `z ↦ a + r z` of the ball of radius `2` into itself, for `r > 0` and
+`‖a‖ + 2 r ≤ 2`. -/
+def affineBall (a : ℂ) {r : ℝ} (hr : 0 < r) (h : ‖a‖ + 2 * r ≤ 2) : ball → ball :=
+  fun z ↦ ⟨a + r * z, mem_ball_iff.2 <| by
+    calc ‖a + r * (z : ℂ)‖ ≤ ‖a‖ + r * ‖(z : ℂ)‖ := by
+          simpa [norm_mul, abs_of_pos hr] using norm_add_le a (r * (z : ℂ))
+      _ < ‖a‖ + r * 2 := by gcongr; exact mem_ball_iff.1 z.property
+      _ ≤ 2 := by linarith⟩
+
+@[simp]
+theorem coe_affineBall_apply (a : ℂ) {r : ℝ} (hr : 0 < r) (h : ‖a‖ + 2 * r ≤ 2) (z : ball) :
+    (affineBall a hr h z : ℂ) = a + r * z :=
+  (rfl)
+
+private theorem subtypeVal_comp_affineBall (a : ℂ) {r : ℝ} (hr : 0 < r) (h : ‖a‖ + 2 * r ≤ 2) :
+    Subtype.val ∘ affineBall a hr h =
+      Diffeomorph.smulAdd 1 (r : ℂ) a (Complex.ofReal_ne_zero.2 hr.ne') ∘ Subtype.val := by
+  ext z
+  simp [add_comm]
+
+theorem isOpenEmbedding_affineBall (a : ℂ) {r : ℝ} (hr : 0 < r) (h : ‖a‖ + 2 * r ≤ 2) :
+    IsOpenEmbedding (affineBall a hr h) :=
+  (IsOpenEmbedding.of_comp_iff _ ball.isOpenEmbedding').1 <| by
+    rw [subtypeVal_comp_affineBall]
+    exact (Diffeomorph.smulAdd 1 (r : ℂ) a
+      (Complex.ofReal_ne_zero.2 hr.ne')).toHomeomorph.isOpenEmbedding.comp ball.isOpenEmbedding'
+
+/-- The affine map `z ↦ a + r z`, `r > 0`, of the ball into itself preserves its canonical
+orientation. -/
+theorem comap_affineBall_complexHomologicalOrientation (a : ℂ) {r : ℝ} (hr : 0 < r)
+    (h : ‖a‖ + 2 * r ≤ 2) :
+    (complexHomologicalOrientation ball).comap (isOpenEmbedding_affineBall a hr h) =
+      complexHomologicalOrientation ball := by
+  set T := Diffeomorph.smulAdd 1 (r : ℂ) a (Complex.ofReal_ne_zero.2 hr.ne')
+  have hT := T.toHomeomorph.isOpenEmbedding
+  have hv := ball.isOpenEmbedding'
+  rw [← comap_subtypeVal_complexHomologicalOrientation hv, HomologicalOrientation.comap_comap,
+    ← HomologicalOrientation.comap_comap_of_comp_eq _ hT hv
+      (hv.comp (isOpenEmbedding_affineBall a hr h)) (subtypeVal_comp_affineBall a hr h).symm,
+    comap_complexHomologicalOrientation hT T.isLocalDiffeomorph]
+
+/-- Precomposing a coordinate disc with an open embedding of the ball into itself that preserves
+its canonical orientation gives a coordinate disc. -/
+def comp (f : ball → ball) (hf : IsOpenEmbedding f)
+    (h : (complexHomologicalOrientation ball).comap hf = complexHomologicalOrientation ball) :
+    CoordinateDisc o where
+  toFun := φ ∘ f
+  isOpenEmbedding' := φ.isOpenEmbedding.comp hf
+  localOrientationEquiv_apply' z := by
+    have h' := HomologicalOrientation.localOrientationEquiv_comap_apply
+      (complexHomologicalOrientation ball) hf z
+    rw [h] at h'
+    rw [← IsOpenEmbedding.localOrientationEquiv_trans hf φ.isOpenEmbedding, Equiv.trans_apply,
+      h', φ.localOrientationEquiv_apply]
+    -- `(φ ∘ f) z` is `φ (f z)`; as in `reverse`, `rw [Function.comp_apply]` fails here, since the
+    -- type of a local orientation depends on its point.
+    rfl
+
+@[simp]
+theorem comp_apply (f : ball → ball) (hf : IsOpenEmbedding f)
+    (h : (complexHomologicalOrientation ball).comap hf = complexHomologicalOrientation ball)
+    (z : ball) : φ.comp f hf h z = φ (f z) :=
+  (rfl)
+
+/-- A coordinate disc whose image lies in an open set `U`, as a coordinate disc of `U` for the
+restriction of the orientation. -/
+def restrict (U : TopologicalSpace.Opens M) (hU : Set.range φ ⊆ U) :
+    CoordinateDisc (o.comap U.isOpenEmbedding') where
+  toFun z := ⟨φ z, hU (Set.mem_range_self z)⟩
+  isOpenEmbedding' := (IsOpenEmbedding.of_comp_iff _ U.isOpenEmbedding').1
+    φ.isOpenEmbedding
+  localOrientationEquiv_apply' z := by
+    apply (U.isOpenEmbedding'.localOrientationEquiv _ 2).injective
+    rw [HomologicalOrientation.localOrientationEquiv_comap_apply, ← Equiv.trans_apply,
+      IsOpenEmbedding.localOrientationEquiv_trans]
+    exact φ.localOrientationEquiv_apply z
+
+@[simp]
+theorem coe_restrict_apply (U : TopologicalSpace.Opens M) (hU : Set.range φ ⊆ U) (z : ball) :
+    (φ.restrict U hU z : M) = φ z :=
+  (rfl)
 end CoordinateDisc
 
 /-! ### Surfaces charted on `ℂ` -/
