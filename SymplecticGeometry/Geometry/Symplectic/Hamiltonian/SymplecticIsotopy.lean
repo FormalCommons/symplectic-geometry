@@ -19,7 +19,7 @@ import TauCeti.Geometry.Symplectic.Hamiltonian.Bracket
 
 Let `σ` be a closed two-form on a manifold `M`. A smooth vector field `X` is symplectic when its
 contraction `ι_X σ` is closed (`TauCeti.SmoothTwoForm.symplecticVectorFields`). This file shows
-that this holds exactly when the local flow of `X` preserves `σ` wherever it is defined, that a
+that this is equivalent to `(φ_t^* σ)_x = σ_x` at each point `(t, x)` of the flow domain, that a
 diffeotopy `φ_t` consists of maps preserving `σ` exactly when its velocity `X_t` is symplectic for
 every `t`, and that symplectic fields `X`, `Y` have a Hamiltonian bracket, with Hamiltonian
 `σ(X, Y)`. Together with Tau Ceti's
@@ -34,10 +34,9 @@ given.
 * `TauCeti.SmoothTwoForm.isHamiltonianVectorField_neg_mlieBracket`: for symplectic `X` and `Y`,
   the field `-[X, Y]` (the bracket of McDuff–Salamon, Mathlib's `VectorField.mlieBracket` with the
   opposite sign) is a Hamiltonian vector field of `σ(X, Y)`.
-* `TauCeti.Diffeotopy.eulerianField_smoothTransitionFamily`: the Eulerian field of the family
-  `u ↦ φ_{s(u)}` over `ℝ`, `s = Real.smoothTransition`, is `s'(u) • X_{s(u)}`.
 * `TauCeti.Diffeotopy.mextDeriv_interior_eulerianField_smoothTransitionFamily`: the exterior
-  derivative of the contraction of `σ` with that field is `s'(u)` times `d(ι_{X_{s(u)}} σ)`.
+  derivative of the contraction of `σ` with the Eulerian field of the family `u ↦ φ_{s(u)}` over
+  `ℝ`, `s = Real.smoothTransition`, is `s'(u)` times `d(ι_{X_{s(u)}} σ)`.
 * `TauCeti.Diffeotopy.forall_timeSlice_mem_diffeomorphStabilizer_iff`: every `φ_t` preserves `σ`
   exactly when every velocity `X_t` is symplectic.
 * `TauCeti.SmoothTwoForm.IsSymplectic.symplecticVectorFields_and_isotopies`: the milestone, which
@@ -48,13 +47,16 @@ given.
 The isotopy criterion is Tau Ceti's
 `TauCeti.forall_mpullback_eq_iff_forall_mextDeriv_interior_eulerianField_eq_zero`, applied to the
 family `u ↦ φ_{s(u)}` over `ℝ` of `Diffeotopy/Real.lean`. Its Eulerian field at `u` is
-`s'(u) • X_{s(u)}`, and `s'(u) > 0` for `0 < u < 1` (`Real.smoothTransition.deriv_pos`), so the
-theorem gives the closedness of `ι_{X_t} σ` for `0 < t < 1`. At `t = 0` and `t = 1` it follows by
-continuity: the forms `d(ι_{X_t} σ)` are a smooth family in `t`
-(`SymplecticGeometry.isSmoothFamily_interiorₗ`), which vanishes on the dense set `(0, 1)`
-(`SymplecticGeometry.IsSmoothFamily.ext_on`). The flow criterion uses Tau Ceti's
-`TauCeti.mpullback_flowOf_apply_of_mextDeriv_interior_eq_zero` in one direction and
-`TauCeti.hasDerivAt_mpullback_flowOf_zero` in the other.
+`s'(u) • X_{s(u)}` (`TauCeti.Diffeotopy.eulerianField_smoothTransitionFamily`), and
+`s'(u) > 0` for `0 < u < 1` (`Real.smoothTransition.deriv_pos`), so the theorem gives the
+closedness of `ι_{X_t} σ` for `0 < t < 1`. At `t = 0` and `t = 1` it follows by continuity: the
+forms `d(ι_{X_t} σ)` are a smooth family in `t` (`SymplecticGeometry.isSmoothFamily_interiorₗ`),
+which vanishes on the dense set `(0, 1)` (`SymplecticGeometry.IsSmoothFamily.ext_on`).
+The flow criterion uses Tau Ceti's `TauCeti.mpullback_flowOf_apply_of_mextDeriv_interior_eq_zero`
+in one direction and `TauCeti.hasDerivAt_mpullback_flowOf_zero` in the other. That second
+direction is adapted from Tau Ceti's `TauCeti.ContactForm.mpullback_flowOf_apply_eq_self_iff`
+(`TauCeti/Geometry/Contact/Flow.lean`): the pulled-back forms are constant near time `0`, so their
+derivative there vanishes.
 
 ## References
 
@@ -77,9 +79,9 @@ namespace SmoothTwoForm
 
 /-! ### Symplectic vector fields and their local flows -/
 
-/-- For a closed two-form `σ`, a smooth vector field `X` is symplectic exactly when its local flow
-preserves `σ` wherever it is defined: `(φ_t^* σ)_x = σ_x` for every `(t, x)` in the domain of the
-flow. -/
+/-- For a closed two-form `σ`, a smooth vector field `X` is symplectic if and only if the
+pullback of `σ` by its local flow `φ_t` agrees with `σ` at `x`, `(φ_t^* σ)_x = σ_x`, for each
+`(t, x)` in the flow domain of `X`. -/
 theorem mem_symplecticVectorFields_iff_forall_mpullback_flowOf_apply [FiniteDimensional ℝ E]
     [J.Boundaryless] [T2Space M] (hσ : σ.IsClosed) {X : Cₛ^∞⟮J; E, TangentSpace J (M := M)⟯} :
     X ∈ σ.symplecticVectorFields ↔
@@ -110,13 +112,8 @@ theorem isHamiltonianVectorField_neg_mlieBracket (hσ : σ.IsClosed)
     (hY : Y ∈ σ.symplecticVectorFields) :
     σ.IsHamiltonianVectorField (fun x ↦ SmoothBundleForm.eval₂ σ x (X x) (Y x))
       (-VectorField.mlieBracket J X Y) := by
-  have h := isHamiltonianVectorField_iff.1 (isHamiltonianVectorField_mlieBracket hσ hX hY)
-  have hswap : (fun x ↦ SmoothBundleForm.eval₂ σ x (X x) (Y x)) =
-      -fun x ↦ SmoothBundleForm.eval₂ σ x (Y x) (X x) :=
-    funext fun x ↦ SmoothBundleForm.eval₂_swap σ x _ _
-  refine isHamiltonianVectorField_iff.2 fun x v ↦ ?_
-  rw [hswap, mvfderiv_neg, Pi.neg_apply, SmoothBundleForm.eval₂_neg_left, h x v,
-    neg_apply]
+  rw [← VectorField.mlieBracket_swap]
+  exact isHamiltonianVectorField_mlieBracket hσ hY hX
 
 end SmoothTwoForm
 
@@ -125,20 +122,6 @@ end SmoothTwoForm
 namespace Diffeotopy
 
 variable (Φ : Diffeotopy J ∞ M)
-
-/-- The Eulerian field at time `u` of the family `u ↦ φ_{s(u)}` over `ℝ` of a diffeotopy `Φ`,
-`s = Real.smoothTransition`, is `s'(u)` times the velocity `X_{s(u)}` of `Φ`. -/
-theorem eulerianField_smoothTransitionFamily (u : ℝ) :
-    eulerianField J (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) u =
-      ⇑(deriv Real.smoothTransition u • Φ.velocity (Real.smoothTransitionUnit u)) := by
-  funext y
-  obtain ⟨x, rfl⟩ : ∃ x, Φ.smoothTransitionFamily u x = y :=
-    ⟨(Φ.smoothTransitionFamily u).symm y, (Φ.smoothTransitionFamily u).apply_symm_apply y⟩
-  rw [eulerianField_smoothTransitionFamily_apply, ContMDiffSection.coe_smul, Pi.smul_apply,
-    smoothTransitionFamily_apply, velocity_apply_apply]
-  -- The sides differ only in the base point that names the fibre of the scalar multiplication,
-  -- `Φ (s u, x)` on the left and `Φ.cylinderMap (x, s u)` on the right, equal by definition.
-  rfl
 
 /-- The contraction of a two-form `σ` with the Eulerian field at time `u` of the family
 `u ↦ φ_{s(u)}`, `s = Real.smoothTransition`, has exterior derivative `s'(u)` times that of the
@@ -173,15 +156,6 @@ theorem forall_timeSlice_mem_diffeomorphStabilizer_iff (hσ : σ.IsClosed) :
   have hslice (u : ℝ) : (ψ u : M → M) = Φ.timeSlice (Real.smoothTransitionUnit u) :=
     funext fun x ↦ by
       rw [Diffeomorph.coe_toEquiv, smoothTransitionFamily_apply, timeSlice_apply]
-  have hcont : ContinuousOn Real.smoothTransition (Icc 0 1) :=
-    Real.smoothTransition.continuous.continuousOn
-  -- `s` maps `[0, 1]` onto `[0, 1]`, and `(0, 1)` onto `(0, 1)`.
-  have hIcc : Icc (0 : ℝ) 1 ⊆ Real.smoothTransition '' Icc 0 1 := by
-    simpa only [Real.smoothTransition.zero, Real.smoothTransition.one] using
-      intermediate_value_Icc zero_le_one hcont
-  have hIoo : Ioo (0 : ℝ) 1 ⊆ Real.smoothTransition '' Ioo 0 1 := by
-    simpa only [Real.smoothTransition.zero, Real.smoothTransition.one] using
-      intermediate_value_Ioo zero_le_one hcont
   constructor
   · intro h
     have hu := key.1 fun r u ↦ funext fun x ↦ by
@@ -190,10 +164,8 @@ theorem forall_timeSlice_mem_diffeomorphStabilizer_iff (hσ : σ.IsClosed) :
     -- On `(0, 1)` the factor `s'(u)` is positive, so `ι_{X_t} σ` is closed there.
     have hzero : EqOn (fun t ↦ mextDerivₗ J 1 (σ.interiorₗ (Φ.velocity t))) (fun _ ↦ 0)
         (Ioo 0 1) := by
-      rintro t ⟨h₀, h₁⟩
-      obtain ⟨u, ⟨hu₀, hu₁⟩, hut⟩ := hIoo ⟨h₀, h₁⟩
-      obtain rfl : Real.smoothTransitionUnit u = t :=
-        Subtype.ext ((Real.coe_smoothTransitionUnit u).trans hut)
+      intro t ht
+      obtain ⟨u, ⟨hu₀, hu₁⟩, rfl⟩ := Real.surjOn_smoothTransitionUnit_Ioo ht
       have h0 := hu u
       rw [mextDeriv_interior_eulerianField_smoothTransitionFamily] at h0
       exact (hmem _).1 (SmoothTwoForm.mem_symplecticVectorFields_iff.2
@@ -207,9 +179,7 @@ theorem forall_timeSlice_mem_diffeomorphStabilizer_iff (hσ : σ.IsClosed) :
     have hu := key.2 fun u ↦ by
       rw [mextDeriv_interior_eulerianField_smoothTransitionFamily,
         SmoothTwoForm.mem_symplecticVectorFields_iff.1 (h _), smul_zero]
-    obtain ⟨u, -, hut⟩ := hIcc t.property
-    obtain rfl : Real.smoothTransitionUnit u = t :=
-      Subtype.ext ((Real.coe_smoothTransitionUnit u).trans hut)
+    obtain ⟨u, rfl⟩ := Real.smoothTransitionUnit_surjective t
     refine SmoothForm.mem_diffeomorphStabilizer_iff_forall.2 fun x ↦ ?_
     rw [← hslice, hu u 0, hslice, Real.smoothTransitionUnit_of_nonpos le_rfl, timeSlice_zero]
     exact congrFun (mpullback_id σ.val) x
@@ -221,7 +191,7 @@ namespace SmoothTwoForm
 /-- **Symplectic vector fields and symplectic isotopies.** Let `σ` be a symplectic form on a
 boundaryless Hausdorff manifold `M` modelled on a finite-dimensional space.
 * A smooth vector field `X` is symplectic, `d(ι_X σ) = 0`, exactly when `L_X σ = 0`, and exactly
-  when its local flow `φ_t` satisfies `(φ_t^* σ)_x = σ_x` wherever it is defined.
+  when its local flow `φ_t` satisfies `(φ_t^* σ)_x = σ_x` at each `(t, x)` of its flow domain.
 * A diffeotopy `φ_t`, `t ∈ [0, 1]`, with velocity `X_t = (∂ₜ φ_t) ∘ φ_t⁻¹`, satisfies
   `φ_t^* σ = σ` for every `t` exactly when `d(ι_{X_t} σ) = 0` for every `t`.
 * For symplectic `X` and `Y`, the bracket `[X, Y]_b = -[X, Y]` of McDuff–Salamon, where `[X, Y]`

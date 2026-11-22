@@ -358,8 +358,7 @@ theorem contMDiff_apply (h : IsSmoothFamily J α) (x : M) (v : Fin k → Tangent
     ContinuousAlternatingMap.compContinuousLinearMap_apply,
     Trivialization.symmL_continuousLinearMapAt _ hx] using this
 
-/-- Two smooth families of forms that agree at the parameters of a dense set agree everywhere:
-at each point and on each tuple of tangent vectors, both are continuous in the parameter. -/
+/-- Two smooth families of forms that agree at the parameters of a dense set are equal. -/
 theorem ext_on (hα : IsSmoothFamily J α) (hβ : IsSmoothFamily J β) {s : Set N} (hs : Dense s)
     (h : EqOn α β s) : α = β := by
   funext t
