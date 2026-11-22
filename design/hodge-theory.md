@@ -334,17 +334,19 @@ compatibility with $d$ (`mpullback_mextDeriv_on`) and with the wedge product
 `Geometry/Manifold/Riemannian/PartialDiffeomorph.lean`.
 
 The coordinate expressions of the Hodge star and the codifferential in a
-chart `ψ`, in terms of the metric in the chart `gramInChart ψ`
+chart `ψ`, in terms of the metric in the chart `ψ.gramInChart`
 (`Geometry/Manifold/Riemannian/PartialDiffeomorph.lean`):
 
-- `hodgeStarInChart o ψ hkl : E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ]
-  (E [⋀^Fin l]→L[ℝ] ℝ)`, with `mpullback_symm_hodgeStar`. It is smooth on
-  `ψ.target`, and is the star of `E` for the inner product `gramInChart ψ y`.
+- `ψ.hodgeStarInChart o hkl : E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ]
+  (E [⋀^Fin l]→L[ℝ] ℝ)`, with `PartialDiffeomorph.mpullback_symm_hodgeStar`.
+  It is smooth on `ψ.target`, and is the star of `E` for the inner product
+  `ψ.gramInChart y`.
   By `Orientation.formHodgeStar_apply_eq_volumeForm_mul_sum` it is a
   smooth function of the Gram matrix in a fixed basis. Hence
-  `fderiv_hodgeStarInChart_eq_zero`: where `fderiv ℝ (gramInChart ψ)`
-  vanishes, so does `fderiv ℝ (hodgeStarInChart o ψ hkl)`.
-- `mpullback_symm_codifferential`: the expression of $d^*\beta$ is
+  `PartialDiffeomorph.fderiv_hodgeStarInChart_eq_zero`: where
+  `fderiv ℝ ψ.gramInChart` vanishes, so does
+  `fderiv ℝ (ψ.hodgeStarInChart o hkl)`.
+- `PartialDiffeomorph.mpullback_symm_codifferential`: the expression of $d^*\beta$ is
   $\pm S\,d(S\,b)$, with $S$ the star in the chart, $b$ the expression of
   $\beta$, and the sign of Tau Ceti's definition of `codifferential`.
 
@@ -372,23 +374,23 @@ chart `ψ`, in terms of the metric in the chart `gramInChart ψ`
 `Analysis/Normed/Module/Alternating/Uncurry/Fin.lean` and
 `Analysis/Calculus/LineDeriv/Transpose.lean`.
 
-- `exists_mpullback_symm_hodgeLaplacian_eq`: for a chart `ψ` and a basis `b` of
+- `PartialDiffeomorph.exists_mpullback_symm_hodgeLaplacian_eq`: for a chart `ψ` and a basis `b` of
   `E`, there are smooth `B : Fin m → E → Λ →L[ℝ] Λ` and `C : E → Λ →L[ℝ] Λ`,
   with `Λ = E [⋀^Fin k]→L[ℝ] ℝ`, such that for every smooth `k`-form
   $\alpha$ with expression $a$ and every `y ∈ ψ.target`,
   $(\Delta\alpha)_\psi(y)=-\sum_{ij}G^{ij}(y)\,\partial_{b_i}\partial_{b_j}a(y)
   +\sum_iB_i(y)\,\partial_{b_i}a(y)+C(y)\,a(y)$,
-  where $G^{ij}$ is the inverse Gram matrix of `gramInChart ψ y` in `b`.
+  where $G^{ij}$ is the inverse Gram matrix of `ψ.gramInChart y` in `b`.
   The second-order coefficient is computed from
-  `exists_mpullback_symm_codifferential_eq` and `mpullback_symm_mextDerivₗ`,
+  `PartialDiffeomorph.exists_mpullback_symm_codifferential_eq` and `mpullback_symm_mextDerivₗ`,
   and identified with $G^{ij}$ times the identity
   by Tau Ceti's `alternatizeUncurryFin_curryLeft_comp_add_curryLeft`.
-- `exists_mpullback_symm_hodgeLaplacian_transpose_eq`: for an additive Haar
+- `PartialDiffeomorph.exists_mpullback_symm_hodgeLaplacian_transpose_eq`: for an additive Haar
   measure `μ` on `E`, there are `B`, `C` as above and `B'`, `C'`, smooth
   on `ψ.target` with values in `Λ →L[ℝ] Λ`, such that the operator
   $P'w=-\sum_{ij}G^{ij}\partial_{b_j}\partial_{b_i}w+\sum_i(\partial_{b_i}w)\circ B'_i+w\circ C'$
   on maps `w : E → Λ →L[ℝ] ℝ` is the formal transpose of the operator $P$
-  of `exists_mpullback_symm_hodgeLaplacian_eq`:
+  of `PartialDiffeomorph.exists_mpullback_symm_hodgeLaplacian_eq`:
   $\int w(Pa)\,d\mu=\int(P'w)\,a\,d\mu$ for `w` $C^2$ on `ψ.target` and `a`
   $C^2$ with compact support in `ψ.target`. The pairing is the plain one
   between `Λ` and its dual, so no inverse of the fibre metric is needed:
@@ -396,7 +398,7 @@ chart `ψ`, in terms of the metric in the chart `gramInChart ψ`
   `u` multiplied by the fibre metric and the volume density, and the weak
   equation says that $P'w=Hf_\psi$ as distributions. It is
   `exists_integral_apply_eq_integral_transpose_apply` applied to the
-  operator of `exists_mpullback_symm_hodgeLaplacian_eq`.
+  operator of `PartialDiffeomorph.exists_mpullback_symm_hodgeLaplacian_eq`.
 
 ### `Geometry/Manifold/Riemannian/Basic.lean`
 
@@ -423,10 +425,11 @@ a compact `K ⊆ ψ.target`, used to show that `L2Form.localize` is bounded:
   `riemannianJacobian` of `ψ.symm` is positive on `ψ.target`, and bounded
   above and away from zero on `K`.
 
-The metric in a chart `ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞`:
+The metric in a chart `ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E n`:
 
-- `gramInChart ψ : E → E →L[ℝ] E →L[ℝ] ℝ`, the inner product at
-  `ψ.symm y` read through `mfderiv` of `ψ.symm`, smooth on `ψ.target`.
+- `PartialDiffeomorph.gramInChart ψ : E → E →L[ℝ] E →L[ℝ] ℝ`, the inner
+  product at `ψ.symm y` read through `mfderiv` of `ψ.symm`, smooth on
+  `ψ.target` when `n = ∞`.
 
 ### `Analysis/InnerProductSpace/Comass.lean`
 
@@ -616,8 +619,8 @@ Beside *Nijenhuis tensor*'s `Integrable.lean`:
   of `ω.IsKahler J` that the proof uses), and let the metric instance
   satisfy `hg`. Then every $x_0$ lies in the source
   of a chart `ψ` with `chartPushforward` of $J$ equal to $J_0$ on
-  `ψ.target`, and with `fderiv ℝ (gramInChart ψ) (ψ x₀) = 0`, the form
-  that `fderiv_hodgeStarInChart_eq_zero` takes.
+  `ψ.target`, and with `fderiv ℝ ψ.gramInChart (ψ x₀) = 0`, the form that
+  `PartialDiffeomorph.fderiv_hodgeStarInChart_eq_zero` takes.
   Start from an integrable chart and compose it with
   $z\mapsto z+Q(z,z)$, where $Q$ is $J_0$-bilinear and symmetric and is
   chosen so that the first derivative of the metric vanishes. Such a $Q$
@@ -665,7 +668,8 @@ On an oriented manifold with a metric instance satisfying `hg`,
 - `lefschetz_codifferential_sub`: the Kähler identity
   $L\,d^*\alpha-d^*L\alpha=-(\mathcal J\,d\alpha-d\,\mathcal J\alpha)$, at
   each point in the chart of `KahlerCoordinates.lean`, from
-  `mpullback_symm_codifferential`, `fderiv_hodgeStarInChart_eq_zero`,
+  `PartialDiffeomorph.mpullback_symm_codifferential`,
+  `PartialDiffeomorph.fderiv_hodgeStarInChart_eq_zero`,
   `mpullback_symm_mextDerivₗ`, `mpullback_symm_realAlternatingDerivation` and
   the linear identity. Of `ω.IsKahler J` it assumes only `ω.IsClosed`, as
   `KahlerCoordinates.lean` does.

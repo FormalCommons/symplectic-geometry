@@ -24,10 +24,10 @@ import TauCeti.Geometry.Manifold.VectorField.Regularity
 
 Let `M` be a manifold whose tangent spaces carry a Riemannian metric, and let
 `ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E n`, `n ≠ 0`, be a chart onto an open subset of a real
-normed space `E`. When `n = ∞`, reading the inner product of the tangent space at `ψ.symm y`
-through the differential of `ψ.symm` gives a bilinear form `SymplecticGeometry.gramInChart ψ y` on
-`E`, the metric in the chart. Its Gram matrix in a basis is positive definite on `ψ.target`, and
-for a finite-dimensional `E` and a smooth metric it is smooth there.
+normed space `E`. Reading the inner product of the tangent space at `ψ.symm y` through the
+differential of `ψ.symm` gives a bilinear form `PartialDiffeomorph.gramInChart ψ y` on `E`, the
+metric in the chart. Its Gram matrix in a basis is positive definite on `ψ.target`, and for
+`n = ∞`, a finite-dimensional `E` and a smooth metric it is smooth there.
 
 When `E` is finite-dimensional and the metric is continuous, on a compact set `K ⊆ ψ.target` the
 differential of `ψ.symm` is bounded above and below for the Riemannian norm on the tangent spaces
@@ -43,21 +43,21 @@ injective (`TauCeti.riemannianJacobian_pos`), and continuous
 
 ## Main definitions
 
-* `SymplecticGeometry.gramInChart ψ y`: the bilinear form on `E` that is the metric at `ψ.symm y`
+* `PartialDiffeomorph.gramInChart ψ y`: the bilinear form on `E` that is the metric at `ψ.symm y`
   read through the differential of `ψ.symm`.
 
 ## Main results
 
-* `SymplecticGeometry.posDef_gramInChart` and `SymplecticGeometry.gramInChart_apply_self_pos`: on
+* `PartialDiffeomorph.posDef_gramInChart` and `PartialDiffeomorph.gramInChart_apply_self_pos`: on
   `ψ.target`, the Gram matrix of the metric in the chart in a basis is positive definite, and the
   metric in the chart is positive on nonzero vectors.
-* `SymplecticGeometry.contDiffOn_gramInChart`: the metric in the chart is smooth on `ψ.target`,
+* `PartialDiffeomorph.contDiffOn_gramInChart`: the metric in the chart is smooth on `ψ.target`,
   and so are the entries of the inverse of its Gram matrix in a basis
-  (`SymplecticGeometry.contDiffOn_inv_gramInChart_apply`), and so is the Riemannian Jacobian of
+  (`PartialDiffeomorph.contDiffOn_inv_gramInChart_apply`), and so is the Riemannian Jacobian of
   `ψ.symm` (`PartialDiffeomorph.contDiffOn_riemannianJacobian_symm`).
-* `SymplecticGeometry.gramInChart_trans_apply`: how the metric in the chart changes when the chart
+* `PartialDiffeomorph.gramInChart_trans_apply`: how the metric in the chart changes when the chart
   is followed by a partial diffeomorphism of `E`.
-* `SymplecticGeometry.gramInChart_extChartPartialDiffeomorph`: for the atlas chart at `x`, its
+* `PartialDiffeomorph.gramInChart_extChartPartialDiffeomorph`: for the atlas chart at `x`, its
   matrix in the basis `finBasis ℝ E` is Tau Ceti's chart Gram matrix
   `Riemannian.Tensor.chartGramMatrix`.
 * `PartialDiffeomorph.exists_mul_norm_le_norm_mfderiv_symm_le`: two-sided bounds for the
@@ -86,9 +86,11 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
   [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
 
-namespace SymplecticGeometry
+namespace PartialDiffeomorph
 
 open Module TauCeti
+
+variable {n : ℕ∞ω}
 
 /-! ### The metric in a chart -/
 
@@ -96,7 +98,7 @@ section Metric
 
 open Bundle
 
-variable (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
+variable (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E n)
 
 /-- The metric in the chart `ψ`: at `y`, the inner product of the tangent space at `ψ.symm y`,
 read on `E` through the differential of `ψ.symm`. -/
@@ -114,13 +116,13 @@ theorem gramInChart_comm (y v w : E) : gramInChart ψ y v w = gramInChart ψ y w
 
 /-- On the target of the chart, the Gram matrix of the metric in a basis of `E` is positive
 definite. -/
-theorem posDef_gramInChart {ι : Type*} [Finite ι] (b : Basis ι ℝ E) {y : E}
+theorem posDef_gramInChart (hn : n ≠ 0) {ι : Type*} [Finite ι] (b : Basis ι ℝ E) {y : E}
     (hy : y ∈ ψ.target) : (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j)).PosDef := by
   have := Fintype.ofFinite ι
   set x := ψ.symm y
   have hcomp : (ContinuousLinearMap.toLinearMap (mfderiv I 𝓘(ℝ, E) ψ x) :
       TangentSpace I x →ₗ[ℝ] E) ∘ (fun i ↦ mfderiv 𝓘(ℝ, E) I ψ.symm y (b i)) = b :=
-    funext fun i ↦ ψ.mfderiv_apply_mfderiv_symm_apply (by simp) hy (b i)
+    funext fun i ↦ ψ.mfderiv_apply_mfderiv_symm_apply hn hy (b i)
   have hli : LinearIndependent ℝ (fun i ↦ mfderiv 𝓘(ℝ, E) I ψ.symm y (b i)) :=
     LinearIndependent.of_comp _ (by rw [hcomp]; exact b.linearIndependent)
   convert Matrix.posDef_gram_of_linearIndependent hli using 1
@@ -128,22 +130,21 @@ theorem posDef_gramInChart {ι : Type*} [Finite ι] (b : Basis ι ℝ E) {y : E}
   rw [Matrix.gram_apply, Matrix.of_apply, gramInChart_apply]
 
 /-- On the target of the chart, the metric in the chart is positive on nonzero vectors. -/
-theorem gramInChart_apply_self_pos {y : E} (hy : y ∈ ψ.target) {v : E} (hv : v ≠ 0) :
+theorem gramInChart_apply_self_pos (hn : n ≠ 0) {y : E} (hy : y ∈ ψ.target) {v : E} (hv : v ≠ 0) :
     0 < gramInChart ψ y v v := by
   rw [gramInChart_apply]
   refine real_inner_self_pos.2 fun h0 ↦ hv ?_
-  have h := ψ.mfderiv_apply_mfderiv_symm_apply (by simp) hy v
+  have h := ψ.mfderiv_apply_mfderiv_symm_apply hn hy v
   rw [h0, map_zero] at h
   exact h.symm
 
 /-- **The metric under a change of coordinates.** If `Θ` is a partial diffeomorphism of `E`, the
 metric in the chart `ψ.trans Θ` at `w`, evaluated on the images under the derivative of `Θ` of
 two vectors, is the metric in the chart `ψ` at `Θ.symm w` evaluated on those vectors. -/
-theorem gramInChart_trans_apply (Θ : PartialDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) E E ∞) {w : E}
-    (hw : w ∈ Θ.target) (hψ : Θ.symm w ∈ ψ.target) (u v : E) :
+theorem gramInChart_trans_apply (hn : n ≠ 0) (Θ : PartialDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) E E n)
+    {w : E} (hw : w ∈ Θ.target) (hψ : Θ.symm w ∈ ψ.target) (u v : E) :
     gramInChart (ψ.trans Θ) w (fderiv ℝ Θ (Θ.symm w) u) (fderiv ℝ Θ (Θ.symm w) v) =
       gramInChart ψ (Θ.symm w) u v := by
-  have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
   have key (a : E) : mfderiv 𝓘(ℝ, E) I (ψ.trans Θ).symm w (fderiv ℝ Θ (Θ.symm w) a) =
       mfderiv 𝓘(ℝ, E) I ψ.symm (Θ.symm w) a := by
     have ha : fderiv ℝ Θ (Θ.symm w) a = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) Θ (Θ.symm w) a := by
@@ -158,7 +159,11 @@ theorem gramInChart_trans_apply (Θ : PartialDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, 
   -- `ψ.symm (Θ.symm w)`, which are the same point by definition.
   rfl
 
-variable [FiniteDimensional ℝ E] [IsManifold I ∞ M]
+end Metric
+
+section Smooth
+
+variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
 
 /-- The metric in a chart is smooth on the target of the chart. -/
 theorem contDiffOn_gramInChart
@@ -182,8 +187,9 @@ theorem contDiffOn_inv_gramInChart_apply
       ψ.target :=
   ContDiffOn.matrix_inv_apply (fun i j ↦
       contDiffOn_clm_apply.1 (contDiffOn_clm_apply.1 (contDiffOn_gramInChart ψ) (b i)) (b j))
-    (fun _ hy ↦ (posDef_gramInChart ψ b hy).det_pos.ne') i j
-end Metric
+    (fun _ hy ↦ (ψ.posDef_gramInChart (by simp) b hy).det_pos.ne') i j
+
+end Smooth
 
 /-- For the atlas chart at `x`, the matrix of the metric in the chart in the basis `finBasis ℝ E`
 of `E` is Tau Ceti's chart Gram matrix at `x`. -/
@@ -208,12 +214,6 @@ theorem gramInChart_extChartPartialDiffeomorph [FiniteDimensional ℝ E] [IsMani
     rfl
   rw [gramInChart_apply, Riemannian.Tensor.chartGramMatrix_apply, hframe, hframe, hsymm]
 
-end SymplecticGeometry
-
-namespace PartialDiffeomorph
-
-variable {n : ℕ∞ω}
-
 /-- The Riemannian Jacobian of `ψ.symm`, for a partial diffeomorphism `ψ` from `M` onto an open
 subset of `E` and any basis of `E`, is positive on `ψ.target`. -/
 theorem riemannianJacobian_symm_pos {ι : Type*} [Fintype ι] [DecidableEq ι]
@@ -221,7 +221,6 @@ theorem riemannianJacobian_symm_pos {ι : Type*} [Fintype ι] [DecidableEq ι]
     (hy : y ∈ ψ.target) : 0 < TauCeti.riemannianJacobian (I := I) b ψ.symm y :=
   TauCeti.riemannianJacobian_pos b (ψ.symm.isInvertible_mfderiv hn hy).injective
 
-open SymplecticGeometry in
 /-- The Riemannian Jacobian of `ψ.symm` for a basis `b` of `E`, the square root of the determinant
 of the Gram matrix of `b` for the metric in the chart, is smooth on the target of the chart. -/
 theorem contDiffOn_riemannianJacobian_symm [FiniteDimensional ℝ E] [IsManifold I ∞ M]
@@ -240,7 +239,7 @@ theorem contDiffOn_riemannianJacobian_symm [FiniteDimensional ℝ E] [IsManifold
   rw [hJ]
   exact (ContDiffOn.matrix_det fun i j ↦ contDiffOn_clm_apply.1
     (contDiffOn_clm_apply.1 (contDiffOn_gramInChart ψ) (b i)) (b j)).sqrt
-    fun y hy ↦ (posDef_gramInChart ψ b hy).det_pos.ne'
+    fun y hy ↦ (ψ.posDef_gramInChart (by simp) b hy).det_pos.ne'
 
 variable [IsManifold I 1 M] [IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x)]
 
