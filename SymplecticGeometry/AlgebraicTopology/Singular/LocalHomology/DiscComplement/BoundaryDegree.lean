@@ -10,6 +10,7 @@ public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.DiscCo
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.HolomorphicZero
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Analysis.Complex.RadialProjection
+import TauCeti.Topology.Circle.Normalize
 
 /-!
 # The boundary degree of one disc's angle on the complement of coordinate discs
@@ -411,10 +412,11 @@ theorem boundaryDegree_prodRetraction_comp_discComplementBoundaryHomeomorph_symm
     (mem_singleton_iff.1 (preimage_testMap_zero φ i hε hd ▸ hx :
       (x : discComplement φ) ∈ _)).symm⟩
   let u : C(↥(range (inclusion (discComplementInterior_subset φ)))ᶜ, Circle) :=
-    Circle.radialProjection.comp ⟨fun x ↦ ⟨testMap φ i hε x, hne x⟩, by fun_prop⟩
+    ((testMap φ i hε).restrict _).normalizeToCircle hne
   have hu (x : ↥(range (inclusion (discComplementInterior_subset φ)))ᶜ) :
-      (u x : ℂ) = ‖testMap φ i hε x‖⁻¹ • testMap φ i hε x :=
-    Circle.coe_radialProjection_apply _
+      (u x : ℂ) = ‖testMap φ i hε x‖⁻¹ • testMap φ i hε x := by
+    refine (ContinuousMap.coe_normalizeToCircle_apply _ hne x).trans ?_
+    rw [ContinuousMap.restrict_apply, Complex.real_smul, Complex.ofReal_inv, inv_mul_eq_div]
   -- On the boundary, `u` is homotopic to `z⁻¹` on circle `i` and `1` on the others.
   let K : C(unitInterval × ↥(range (inclusion (discComplementInterior_subset φ)))ᶜ, Circle) :=
     (homotopyFun i hc).comp
