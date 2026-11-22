@@ -6,10 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
+public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Derivative
 public import TauCeti.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Topology.Algebra.Module.Equiv.RestrictScalars
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.Basic
-public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Degree
 
 /-!
 # A zero with complex-linear invertible derivative has index one
@@ -29,18 +29,22 @@ transverse zero of a holomorphic section of a holomorphic bundle.
 
 Tau Ceti computes the local index as a sign: that of the determinant of the derivative of the
 section, read in `e` and in an oriented chart of `M` with values in the model fibre `G`
-(`TauCeti.VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt`). Take as chart the
-preferred chart at `z` followed by `A`. It carries the local orientation of `M` at `z` to the
-local orientation of `G` selected by the image under `A` of the tangent orientation at `z`
-(`TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation_transHomeomorph`).
+(`TauCeti.VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt`). Since the derivative
+is invertible, `z` is an isolated zero, and the form of that computation used here finds the
+isolating neighbourhood itself
+(`TauCeti.VectorBundleOrientation.sectionIndex_eq_sign_det_of_hasFDerivAt_of_eventually`). Take
+as chart the preferred chart at `z` followed by `A`. It carries the local orientation of `M` at
+`z` to the local orientation of `G` selected by the image under `A` of the tangent orientation at
+`z` (`TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation_transHomeomorph`).
 The tangent orientation is the complex orientation of `E`
 (`TauCeti.orientationAt_complexManifoldOrientation_eq_complexOrientation`), and `A`, being
 complex linear, carries it to the complex orientation of `G`
-(`LinearEquiv.map_complexOrientation`), which is how the complex-linear trivialization `e` reads
-the orientation of every fibre (`Bundle.Trivialization.mapOrientation_complexOrientation`). In
-this chart the section has derivative `A ∘ A⁻¹ = id` at the image of `z`, of determinant `1`.
-That `z` is an isolated zero follows from the invertibility of the derivative
-(`HasFDerivAt.eventually_ne`).
+(`LinearEquiv.map_complexOrientation`; the two steps together are
+`TauCeti.map_orientationAt_reindex_complexManifoldOrientation`). That is how the complex-linear
+trivialization `e` reads the orientation of every fibre
+(`TauCeti.VectorBundleOrientation.mapOrientation_complex_of_isLinear`, a form of
+`Bundle.Trivialization.mapOrientation_complexOrientation`). In this chart the section has
+derivative `A ∘ A⁻¹ = id` at the image of `z`, of determinant `1`.
 
 ## References
 
@@ -56,17 +60,50 @@ public section
 open Bundle Filter Module Set Topology
 open scoped Manifold TauCeti.ComplexManifold
 
-namespace TauCeti.VectorBundleOrientation
+namespace TauCeti
 
 variable {E : Type} [NormedAddCommGroup E] [NormedSpace ℂ E] [FiniteDimensional ℂ E]
-  {M : Type} [TopologicalSpace M] [T2Space M] [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) 1 M]
+  {M : Type} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) 1 M]
   {G : Type} [NormedAddCommGroup G] [NormedSpace ℝ G] [NormedSpace ℂ G] [IsScalarTower ℝ ℂ G]
   [FiniteDimensional ℂ G]
+
+/-- A complex-linear isomorphism `A : E ≃L[ℂ] G` carries the tangent orientation at any point of
+the complex orientation of `M`, read in the preferred chart, to the complex orientation of `G`. -/
+theorem map_orientationAt_reindex_complexManifoldOrientation {m : ℕ} (h : 2 * finrank ℂ E = m)
+    (h' : 2 * finrank ℂ G = m) (A : E ≃L[ℂ] G) (z : M) :
+    (((complexManifoldOrientation E M).reindex (finCongr h)).orientationAt z).map (Fin m)
+        (A.restrictScalars' ℝ).toLinearEquiv =
+      Orientation.reindex ℝ G (finCongr h') (complexOrientation G) := by
+  have hoz : (((complexManifoldOrientation E M).reindex (finCongr h)).orientationAt z :
+      Orientation ℝ E (Fin m)) = Orientation.reindex ℝ E (finCongr h) (complexOrientation E) := by
+    rw [Manifold.Orientation.orientationAt_reindex,
+      orientationAt_complexManifoldOrientation_eq_complexOrientation]
+    -- The two sides differ only in reading the tangent space at `z` as `E`.
+    rfl
+  refine (congrArg (Orientation.map (Fin m) (A.restrictScalars' ℝ).toLinearEquiv) hoz).trans ?_
+  rw [Orientation.map_reindex, ContinuousLinearEquiv.restrictScalars'_toLinearEquiv,
+    LinearEquiv.map_complexOrientation, ← Orientation.reindex_trans]
+  exact congrArg (Orientation.reindex ℝ G · (complexOrientation G)) (Equiv.ext fun _ ↦ by simp)
+
+namespace VectorBundleOrientation
+
+variable [T2Space M]
   {V : M → Type} [TopologicalSpace (TotalSpace G V)] [∀ x, AddCommGroup (V x)]
   [∀ x, Module ℝ (V x)] [∀ x, Module ℂ (V x)] [∀ x, IsScalarTower ℝ ℂ (V x)]
   [∀ x, TopologicalSpace (V x)] [FiberBundle G V] [VectorBundle ℂ G V]
 
 local instance : VectorBundle ℝ G V := VectorBundle.restrictScalars ℝ ℂ G V
+
+omit [T2Space M] in
+/-- A complex-linear trivialization reads the canonical orientation of every fibre over its base
+set as the canonical orientation of the model fibre. -/
+@[simp]
+theorem mapOrientation_complex_of_isLinear (e : Trivialization G (π G V)) [e.IsLinear ℂ]
+    [e.IsLinear ℝ] {b : M} (hb : b ∈ e.baseSet) :
+    e.mapOrientation _ hb (complex G V b) = complexOrientation G := by
+  have := VectorBundle.finiteDimensional ℂ G V b
+  rw [complex_apply, Trivialization.mapOrientation_complexOrientation _ _ _ rfl, finCongr_refl,
+    Orientation.reindex_refl, Equiv.refl_apply]
 
 /-- **A zero with complex-linear invertible derivative has index `1`.** Let `M` be a complex
 manifold modelled on `𝓘(ℂ, E)`, of real dimension `n + 1`, with its complex orientation, and `V`
@@ -105,10 +142,7 @@ theorem sectionIndex_eq_one_of_complexLinear {n : ℕ} (hE : finrank ℝ E = n +
     (chartAt E z).transHomeomorph (𝓘(ℝ, E).toHomeomorph.trans Aℝ.toHomeomorph)
   have hzφ : z ∈ φ.source := by simp [φ]
   -- The section read in a chart, as a function of the point of `M`.
-  set g : M → G := fun x ↦ (e (TotalSpace.mk' G x (s x))).2 with hg
-  have hg0 : ∀ x ∈ e.baseSet, s x = 0 → g x = 0 := fun x hx h0 ↦ by
-    simp only [hg, h0]
-    exact congrArg Prod.snd (e.zeroSection ℝ hx)
+  set g : M → G := fun x ↦ (e (TotalSpace.mk' G x (s x))).2
   have hφg : (fun y ↦ (e (TotalSpace.mk' G (φ.symm y) (s (φ.symm y)))).2) =
       (g ∘ (chartAt E z).symm) ∘ Aℝ.symm := by
     ext y
@@ -123,49 +157,21 @@ theorem sectionIndex_eq_one_of_complexLinear {n : ℕ} (hE : finrank ℝ E = n +
     have h := ((Aℝ.symm_apply_apply (chartAt E z z)).symm ▸ hA).comp (Aℝ (chartAt E z z))
       Aℝ.symm.hasFDerivAt
     rwa [ContinuousLinearEquiv.coe_comp_coe_symm] at h
-  -- `z` is an isolated zero of `s`, since the derivative of the section read in the chart is
-  -- injective.
-  obtain ⟨U, hUz, hUo, hzU⟩ : ∃ U ⊆ {x | s x = 0 → x = z}, IsOpen U ∧ z ∈ U := by
-    have hne := hA.eventually_ne (c := 0) ⟨_, Aℝ.antilipschitzWith⟩
-    rw [eventually_nhdsWithin_iff] at hne
-    refine eventually_nhds_iff.1 ?_
-    filter_upwards [(chartAt E z).continuousAt (mem_chart_source E z) |>.eventually hne,
-      (chartAt E z).open_source.mem_nhds (mem_chart_source E z),
-      e.open_baseSet.mem_nhds hze] with x hx hxs hxe h0
-    by_contra hxz
-    refine hx (fun h ↦ hxz ((chartAt E z).injOn hxs (mem_chart_source E z) h)) ?_
-    rw [Function.comp_apply, (chartAt E z).left_inv hxs]
-    exact hg0 x hxe h0
-  set U' := U ∩ e.baseSet ∩ φ.source
-  have hU'o : IsOpen U' := (hUo.inter e.open_baseSet).inter φ.open_source
-  have hzU' : z ∈ U' := ⟨⟨hzU, hze⟩, hzφ⟩
   -- The trivialization `e` reads the orientation of every fibre as `ω`.
-  have ho : ∀ x (hx : x ∈ U'), e.mapOrientation (Fin (n + 1)) hx.1.2 (oV x) = ω := by
+  have ho : ∀ x (hx : x ∈ e.baseSet), e.mapOrientation (Fin (n + 1)) hx (oV x) = ω := by
     intro x hx
-    have := VectorBundle.finiteDimensional ℂ G V x
-    rw [reindex_apply, Trivialization.mapOrientation_reindex, complex_apply,
-      Trivialization.mapOrientation_complexOrientation _ _ _ rfl, ← Orientation.reindex_trans]
-    exact congrArg (Orientation.reindex ℝ G · (complexOrientation G)) (Equiv.ext fun _ ↦ by simp)
+    rw [reindex_apply, Trivialization.mapOrientation_reindex, mapOrientation_complex_of_isLinear]
   -- The chart `φ` carries the local orientation of `M` at `z` to the one selected by `ω`.
-  have hoz : (oM.orientationAt z : Orientation ℝ E (Fin (n + 1))) =
-      Orientation.reindex ℝ E (finCongr h₂) (complexOrientation E) := by
-    rw [Manifold.Orientation.orientationAt_reindex,
-      orientationAt_complexManifoldOrientation_eq_complexOrientation]
-    -- The two sides differ only in reading the tangent space at `z` as `E`.
-    rfl
-  have hω : (oM.orientationAt z).map (Fin (n + 1)) Aℝ.toLinearEquiv = ω := by
-    refine (congrArg (Orientation.map (Fin (n + 1)) Aℝ.toLinearEquiv) hoz).trans ?_
-    rw [Orientation.map_reindex, ContinuousLinearEquiv.restrictScalars'_toLinearEquiv,
-      LinearEquiv.map_complexOrientation, ← Orientation.reindex_trans]
-    exact congrArg (Orientation.reindex ℝ G · (complexOrientation G)) (Equiv.ext fun _ ↦ by simp)
+  have hω := map_orientationAt_reindex_complexManifoldOrientation h₂ h₁ A z
   have hφl := Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation_transHomeomorph
     hE oM hG Aℝ z
   rw [hω] at hφl
   have hdet : (ContinuousLinearMap.id ℝ G).det = 1 := LinearMap.det_id
-  rw [sectionIndex_eq_sign_det_of_hasFDerivAt oV hG _ hs e φ hU'o hzU'
-    (fun x hx h0 ↦ hUz hx.1.1 h0) hz (fun x hx ↦ hx.1.2) (fun x hx ↦ hx.2) ho hφl hAφ
-    (hdet ▸ one_ne_zero), hdet, sign_one, SignType.coe_one]
+  rw [sectionIndex_eq_sign_det_of_hasFDerivAt_of_eventually oV hG _ hs e φ hz hze hzφ
+    (Eventually.of_forall ho) hφl hAφ (hdet ▸ one_ne_zero), hdet, sign_one, SignType.coe_one]
 
-end TauCeti.VectorBundleOrientation
+end VectorBundleOrientation
+
+end TauCeti
 
 end
