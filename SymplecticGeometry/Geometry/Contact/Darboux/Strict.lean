@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Contact.Darboux.Strict
+public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Contact.Pullback
 import SymplecticGeometry.Geometry.Contact.Standard
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
@@ -113,8 +114,7 @@ theorem SmoothForm.IsContactForm.exists_strictDarbouxChart_reebVectorField_of_fi
     have hpb' : ∀ᶠ y in 𝓝 x, α.val y = TauCeti.mpullback I 𝓘(ℝ, V × V × ℝ) chart
         (-innerProductContactForm V).val y := by
       filter_upwards [chart.open_source.mem_nhds hx] with y hy
-      refine ContinuousAlternatingMap.ext fun v ↦ ?_
-      obtain ⟨w, rfl⟩ : ∃ w, v = ![w] := ⟨v 0, (FinVec.etaExpand_eq _).symm⟩
+      refine ContinuousAlternatingMap.ext_fin_one fun w ↦ ?_
       rw [← hform y hy, mvfderiv_apply_eq_mfderiv_apply, TauCeti.mpullback_apply]
       congr 1
       funext i
