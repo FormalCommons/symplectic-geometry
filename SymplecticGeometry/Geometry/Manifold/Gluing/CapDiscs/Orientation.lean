@@ -117,14 +117,14 @@ private instance : Nonempty discOpens :=
   ⟨⟨0, mem_discOpens.2 (by simp)⟩⟩
 
 /-- The identification `z ↦ (re z, im z)` of the ball of `ℂ` with the ball of radius `2` of
-`ℝ²`, the restriction of `complexDiffeomorph`. -/
+`ℝ²`, the restriction of `orthonormalBasisOneI.repr` as a diffeomorphism. -/
 private def ballDiffeomorph : ball ≃ₘ^∞⟮𝓘(ℝ, ℂ), 𝓡 2⟯ discOpens :=
-  complexDiffeomorph.subtype fun z ↦ by
-    rw [mem_ball_iff, mem_discOpens, coe_complexDiffeomorph, LinearIsometryEquiv.norm_map]
+  orthonormalBasisOneI.repr.toContinuousLinearEquiv.toDiffeomorph.subtype fun z ↦ by
+    simp [mem_ball_iff, mem_discOpens]
 
 private theorem coe_ballDiffeomorph (z : ball) :
     (ballDiffeomorph z : EuclideanSpace ℝ (Fin 2)) = orthonormalBasisOneI.repr z := by
-  rw [ballDiffeomorph, Diffeomorph.subtype_apply_coe, coe_complexDiffeomorph]
+  simp [ballDiffeomorph]
 
 variable (S ι) in
 /-- The pieces of the capped surface: the interior of `S`, and one disc for each `i : ι`. -/

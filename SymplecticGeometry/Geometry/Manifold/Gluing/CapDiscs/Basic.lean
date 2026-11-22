@@ -49,9 +49,7 @@ construction follows the gluing of `TauCeti.SmoothCollar.WithEnd`
   interior of `S` and of the `i`-th disc.
 * `SymplecticGeometry.capDiscs.gluingCoord`: the collar coordinates `(γ i (arg z / 2π), ‖z‖ - 1)`
   of a point `z` of the `i`-th disc.
-* `SymplecticGeometry.capDiscs.InteriorPiece`, `SymplecticGeometry.capDiscs.complexDiffeomorph`:
-  the interior of `S` over `ℝ²`, and the identification `z ↦ (re z, im z)` of `ℂ` with `ℝ²`,
-  along which the pieces are modelled on `ℝ²`.
+* `SymplecticGeometry.capDiscs.InteriorPiece`: the interior of `S`, as a manifold over `ℝ²`.
 
 ## Main results
 
@@ -103,21 +101,9 @@ abbrev InteriorPiece : Type := InteriorModel (𝓡∂ 2) ((𝓡∂ 2).interiorOp
 
 /-! ### The disc pieces -/
 
-/-- The identification `z ↦ (re z, im z)` of `ℂ` with `ℝ²` by the orthonormal basis `1, i`, as a
-smooth diffeomorphism. -/
-def complexDiffeomorph : ℂ ≃ₘ^∞⟮𝓘(ℝ, ℂ), 𝓡 2⟯ EuclideanSpace ℝ (Fin 2) :=
+/-- The identification of `ℂ` with `ℝ²` by the orthonormal basis `1, i`. -/
+private def complexDiffeomorph : ℂ ≃ₘ^∞⟮𝓘(ℝ, ℂ), 𝓡 2⟯ EuclideanSpace ℝ (Fin 2) :=
   Complex.orthonormalBasisOneI.repr.toContinuousLinearEquiv.toDiffeomorph
-
-/-- The diffeomorphism `complexDiffeomorph` is `Complex.orthonormalBasisOneI.repr`. -/
-@[simp]
-theorem coe_complexDiffeomorph : ⇑complexDiffeomorph = ⇑Complex.orthonormalBasisOneI.repr :=
-  (rfl)
-
-/-- The inverse of `complexDiffeomorph` is `Complex.orthonormalBasisOneI.repr.symm`. -/
-@[simp]
-theorem coe_complexDiffeomorph_symm :
-    ⇑complexDiffeomorph.symm = ⇑Complex.orthonormalBasisOneI.repr.symm :=
-  (rfl)
 
 /-- The ball of radius `2` of `ℂ`, re-modelled on `ℝ²`. -/
 private abbrev DiscPiece : Type := Remodel complexDiffeomorph ball
