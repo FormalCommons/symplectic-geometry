@@ -46,6 +46,11 @@ it descends along the two quotient maps (`Homotopy.descCokernel`).
 ## Main results
 
 * `TopCat.singularHomologyCrossRelPair_naturality`: naturality in maps of pairs on both sides.
+* `TopCat.shufflePair_coefficient_naturality` and
+  `TopCat.singularHomologyCrossRelPair_coefficient_naturality`: naturality in the two coefficient
+  objects.
+* `TopPair.chainComplexMap_comp_singularChainComplexπ_eq_zero_of_range_subset`: a continuous map
+  with range in `A` induces a chain map that vanishes in the chains relative to `A`.
 * `TopCat.whiskerLeft_singularHomologyπ_comp_singularHomologyCrossRelPair`: on the relative
   cross product `Hₚ(X, A) ⊗ H_q(Y) ⟶ Hₙ(X × Y, A × Y)`, the cross product of the pairs is the
   map of pairs `(X × Y, A × Y) ⟶ (X × Y, A × Y ∪ X × B)` applied after it.
@@ -56,7 +61,10 @@ it descends along the two quotient maps (`Homotopy.descCokernel`).
 The proofs adapt those of `TopCat.singularHomologyCrossRel_naturality` and
 `TopCat.singularHomologyCross_comp_singularHomologyπ` (Tau Ceti,
 `TauCeti/AlgebraicTopology/Singular/Kunneth/Relative.lean`) from the relative shuffle map
-`TopCat.shuffleRel` to the shuffle map of a product of pairs.
+`TopCat.shuffleRel` to the shuffle map of a product of pairs. The coefficient naturality adapts
+Tau Ceti's `TopCat.singularHomologyCross_coefficient_naturality`
+(`TauCeti/AlgebraicTopology/Singular/CrossProduct.lean`) to pairs, through the characterization
+of `TopCat.shufflePair` as in `TopCat.shufflePair_naturality`.
 
 The two-step descent of the shuffle map to the small chains follows the construction of
 `TopCat.shufflePair` (`SymplecticGeometry/AlgebraicTopology/Singular/Kunneth/Pair.lean`, from Tau
@@ -107,6 +115,28 @@ theorem chainComplexMap_comp_chainComplexπ_smallSingularSubcomplex {X Z : TopCa
   exact (Category.assoc _ _ _).trans <| (congrArg (_ ≫ ·) ((Category.assoc _ _ _).trans
     ((congrArg (_ ≫ ·) ((X.smallSingularSubcomplex U).pair.chainComplex_condition R)).trans
       comp_zero))).trans comp_zero
+
+/-- A continuous map into `X` with range in `A` induces a chain map that vanishes in the chains of
+`X` relative to `A`. -/
+theorem _root_.TopPair.chainComplexMap_comp_singularChainComplexπ_eq_zero_of_range_subset
+    {X Z : TopCat.{w}} {A : Set X} {f : Z ⟶ X} (hf : Set.range f ⊆ A) (R : C) :
+    SSet.chainComplexMap (toSSet.map f) R ≫ (TopPair.ofSubset A).singularChainComplexπ R = 0 := by
+  let g : Z ⟶ (TopPair.ofSubset A).snd :=
+    ofHom ⟨Set.codRestrict f A fun z ↦ hf ⟨z, rfl⟩, by fun_prop⟩
+  have hfac : g ≫ (TopPair.ofSubset A).map = f := by
+    rw [TopPair.ofSubset_map]
+    rfl
+  have h : SSet.chainComplexMap (toSSet.map f) R =
+      SSet.chainComplexMap (toSSet.map g) R ≫
+        SSet.chainComplexMap (toSSet.map (TopPair.ofSubset A).map) R := by
+    rw [← hfac]
+    exact (congrArg (SSet.chainComplexMap · R) (Functor.map_comp _ _ _)).trans
+      (Functor.map_comp _ _ _)
+  rw [h]
+  -- the ambient chains of the pair `(X, A)` are those of `X` only up to unfolding, so the
+  -- composite is reassociated by hand
+  exact (Category.assoc _ _ _).trans ((congrArg (_ ≫ ·)
+    (TopPair.chainComplexMap_comp_singularChainComplexπ (TopPair.ofSubset A) R)).trans comp_zero)
 
 end Small
 
@@ -228,6 +258,85 @@ theorem singularHomologyCrossRelPair_naturality {X' Y' : TopCat.{w}} {A' : Set X
     (Category.assoc _ _ _).trans <| (congrArg (_ ≫ ·) ((homologyMap_comp _ _ n).symm.trans
       ((congrArg (homologyMap · n) (shufflePair_naturality X Y A B R S f hf g hg)).trans
         (homologyMap_comp _ _ n)))).trans (Category.assoc _ _ _).symm
+
+section Coefficients
+
+-- Instance search does not find the monoidal structure on chain complexes when `C` is abelian,
+-- although its hypotheses hold; it is given here, so that the lemmas of monoidal categories apply
+-- to the tensor products of chain complexes below.
+noncomputable local instance : MonoidalCategory (ChainComplex C ℕ) :=
+  HomologicalComplex.monoidalCategory C (ComplexShape.down ℕ)
+
+variable {X Y A B R S} {R' S' : C} (φ : R ⟶ R') (ψ : S ⟶ S')
+
+/-- **Naturality of the shuffle map of a product of pairs** in the two coefficient objects. -/
+@[reassoc]
+theorem shufflePair_coefficient_naturality :
+    (((SSetPair.chainComplexFunctor C).map φ).app (TopPair.toSSetPair.obj (TopPair.ofSubset A)) ⊗ₘ
+        ((SSetPair.chainComplexFunctor C).map ψ).app
+          (TopPair.toSSetPair.obj (TopPair.ofSubset B))) ≫ shufflePair X Y A B R' S' =
+      shufflePair X Y A B R S ≫ ((SSetPair.chainComplexFunctor C).map (φ ⊗ₘ ψ)).app
+        (TopPair.toSSetPair.obj (TopPair.ofSubset (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B))) := by
+  refine (cancel_epi ((TopPair.ofSubset A).singularChainComplexπ R ⊗ₘ
+      (TopPair.ofSubset B).singularChainComplexπ S)).1 ?_
+  have h₁ := TopPair.singularChainComplexπ_coefficient_naturality (TopPair.ofSubset A) φ
+  have h₂ := TopPair.singularChainComplexπ_coefficient_naturality (TopPair.ofSubset B) ψ
+  have h₃ := TopPair.singularChainComplexπ_coefficient_naturality
+    (TopPair.ofSubset (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B)) (φ ⊗ₘ ψ)
+  have h₄ := shuffle_coefficient_naturality X Y φ ψ
+  have h₅ : ((TopPair.ofSubset A).singularChainComplexπ R ⊗ₘ
+        (TopPair.ofSubset B).singularChainComplexπ S) ≫
+      (((SSetPair.chainComplexFunctor C).map φ).app (TopPair.toSSetPair.obj (TopPair.ofSubset A)) ⊗ₘ
+        ((SSetPair.chainComplexFunctor C).map ψ).app
+          (TopPair.toSSetPair.obj (TopPair.ofSubset B))) =
+      (((SSet.chainComplexFunctor C).map φ).app (toSSet.obj X) ⊗ₘ
+        ((SSet.chainComplexFunctor C).map ψ).app (toSSet.obj Y)) ≫
+        ((TopPair.ofSubset A).singularChainComplexπ R' ⊗ₘ
+          (TopPair.ofSubset B).singularChainComplexπ S') :=
+    (tensorHom_comp_tensorHom _ _ _ _).trans ((congrArg₂ (· ⊗ₘ ·) h₁.symm h₂.symm).trans
+      (tensorHom_comp_tensorHom _ _ _ _).symm)
+  -- the ambient chains of a pair are the chains of its space only up to unfolding, so the
+  -- composites are reassociated by hand
+  exact (Category.assoc _ _ _).symm.trans <| (congrArg (· ≫ shufflePair X Y A B R' S') h₅).trans <|
+    (Category.assoc _ _ _).trans <| (congrArg (_ ≫ ·)
+      (singularChainComplexπ_tensorHom_singularChainComplexπ_shufflePair X Y A B R' S')).trans <|
+    (Category.assoc _ _ _).symm.trans <| (congrArg (· ≫ _) h₄).trans <|
+    (Category.assoc _ _ _).trans <| (congrArg (shuffle X Y R S ≫ ·) h₃).trans <|
+    (Category.assoc _ _ _).symm.trans <| (congrArg (· ≫ _)
+      (singularChainComplexπ_tensorHom_singularChainComplexπ_shufflePair X Y A B R S).symm).trans
+        (Category.assoc _ _ _)
+
+/-- **Naturality of the cross product of two pairs** in the two coefficient objects:
+`φ_* a × ψ_* b = (φ ⊗ ψ)_* (a × b)`. -/
+@[reassoc]
+theorem singularHomologyCrossRelPair_coefficient_naturality
+    [PreservesColimitsOfShape WalkingParallelPair
+      (tensorLeft (((TopPair.ofSubset A).singularChainComplex R').homology p))]
+    [PreservesColimitsOfShape WalkingParallelPair
+      (tensorRight (((TopPair.ofSubset B).singularChainComplex S').cycles q))]
+    [PreservesColimitsOfShape WalkingParallelPair
+      (tensorRight
+        (((TopPair.ofSubset B).singularChainComplex S').X ((ComplexShape.down ℕ).prev q)))] :
+    (homologyMap (((SSetPair.chainComplexFunctor C).map φ).app
+          (TopPair.toSSetPair.obj (TopPair.ofSubset A))) p ⊗ₘ
+        homologyMap (((SSetPair.chainComplexFunctor C).map ψ).app
+          (TopPair.toSSetPair.obj (TopPair.ofSubset B))) q) ≫
+        singularHomologyCrossRelPair X Y A B R' S' p q n h =
+      singularHomologyCrossRelPair X Y A B R S p q n h ≫
+        homologyMap (((SSetPair.chainComplexFunctor C).map (φ ⊗ₘ ψ)).app
+          (TopPair.toSSetPair.obj (TopPair.ofSubset (fst X Y ⁻¹' A ∪ snd X Y ⁻¹' B)))) n := by
+  rw [singularHomologyCrossRelPair_def, singularHomologyCrossRelPair_def]
+  -- the relative singular homology objects are by definition the homology of the relative chains,
+  -- so the algebraic naturality applies; the composites are reassociated by hand, as in
+  -- `TopCat.singularHomologyCrossRelPair_naturality`
+  exact (Category.assoc _ _ _).symm.trans <|
+    (congrArg (· ≫ homologyMap (shufflePair X Y A B R' S') n)
+      (homologyCross_naturality _ _ p q n h)).trans <|
+    (Category.assoc _ _ _).trans <| (congrArg (_ ≫ ·) ((homologyMap_comp _ _ n).symm.trans
+      ((congrArg (homologyMap · n) (shufflePair_coefficient_naturality φ ψ)).trans
+        (homologyMap_comp _ _ n)))).trans (Category.assoc _ _ _).symm
+
+end Coefficients
 
 /-- **The cross product of two pairs extends the relative cross product.** For
 `a ∈ Hₚ(X, A; R)` and `b ∈ H_q(Y; S)`, the relative cross product `a × b ∈ Hₙ(X × Y, A × Y)`,
