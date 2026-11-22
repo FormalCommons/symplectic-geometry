@@ -45,8 +45,8 @@ defined at a zero `z` of `s`. Suppose that `e` reads the orientation of every fi
 the orientation `ω` of `F`, and that `φ`, followed by the translation taking `φ z` to the origin,
 carries the local orientation `oM z` to the local orientation of `F` selected by `ω`. If the
 section, read in these coordinates as `y ↦ (e (s (φ⁻¹ y))).2`, has at `φ z` a derivative `A` of
-nonzero determinant, then `z` is an isolated zero of `s`, and the local index of `s` at `z` is
-the sign of `det A`. -/
+nonzero determinant, then the local index of `s` at `z`, an isolated zero, is the sign of
+`det A`. -/
 theorem sectionIndex_eq_sign_det_of_hasFDerivAt_of_eventually
     (o : VectorBundleOrientation F E (Fin (n + 1))) (hF : finrank ℝ F = n + 1)
     (oM : HomologicalOrientation M E' (n + 1)) {s : ∀ x, E x}
@@ -71,13 +71,8 @@ theorem sectionIndex_eq_sign_det_of_hasFDerivAt_of_eventually
   have := FiniteDimensional.of_finrank_eq_succ hF
   set f : F → F := fun y ↦ (e (TotalSpace.mk' F (φ.symm y) (s (φ.symm y)))).2 with hf
   -- `A` is invertible, so `φ z` is an isolated zero of `f`.
-  have hinj : Function.Injective A := by
-    have h := (LinearMap.isUnit_iff_isUnit_det (A : F →ₗ[ℝ] F)).2 (isUnit_iff_ne_zero.2 hdet)
-    exact ((Module.End.isUnit_iff _).1 h).1
   have hne : ∀ᶠ y in 𝓝[≠] φ z, f y ≠ 0 :=
-    hA.eventually_ne (A.antilipschitz_of_injective_of_isClosed_range hinj
-      (by simpa only [LinearMap.coe_range, ContinuousLinearMap.coe_coe] using
-        (LinearMap.range (A : F →ₗ[ℝ] F)).isClosed_of_finiteDimensional))
+    hA.eventually_ne ⟨_, (A.toContinuousLinearEquivOfDetNeZero hdet).antilipschitzWith⟩
   have hne' : ∀ᶠ x in 𝓝 z, φ x ≠ φ z → f (φ x) ≠ 0 :=
     (φ.continuousAt hzφ).eventually (eventually_nhdsWithin_iff.1 hne)
   -- An open neighbourhood `U` of `z` on which everything holds.

@@ -7,12 +7,22 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving.FromTauCeti
 public import TauCeti.Geometry.Manifold.Complex.Orientation
+public import TauCeti.Topology.Algebra.Module.Equiv.RestrictScalars
 
 /-!
-# The canonical orientation of a complex curve, indexed by `Fin 2`
+# The canonical orientation of a complex manifold, reindexed
 
 Tau Ceti's `TauCeti.complexManifoldOrientation E M` orients a complex manifold `M` modelled on
-`𝓘(ℂ, E)` as a real manifold, with index type `Fin (2 * finrank ℂ E)`. For a complex curve,
+`𝓘(ℂ, E)` as a real manifold, with index type `Fin (2 * finrank ℂ E)`. Statements about real
+manifolds often use another index type, such as `Fin (n + 1)` for the real dimension `n + 1`.
+For any reindexing:
+
+* `TauCeti.orientationAt_reindex_complexManifoldOrientation`: at every point, the reindexed
+  orientation is the complex orientation `TauCeti.complexOrientation E` of the model, reindexed;
+* `TauCeti.map_orientationAt_reindex_complexManifoldOrientation`: a complex-linear isomorphism
+  `E ≃L[ℂ] G` carries it to the complex orientation of `G`, reindexed.
+
+For a complex curve,
 `finrank ℂ E = 1`, statements about real surfaces use the index type `Fin 2` instead. This file
 reindexes the canonical orientation once, for every such `E` and `M`:
 
@@ -39,10 +49,44 @@ public section
 open Module TauCeti
 open scoped Manifold ContDiff TauCeti.ComplexManifold
 
-namespace SymplecticGeometry
-
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [FiniteDimensional ℂ E]
   {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) 1 M]
+
+namespace TauCeti
+
+/-- At every point, a reindexing of the complex orientation of `M` is the complex orientation of
+the model space `E`, reindexed in the same way. -/
+theorem orientationAt_reindex_complexManifoldOrientation {ι : Type*} [Fintype ι]
+    (e : Fin (2 * finrank ℂ E) ≃ ι) (x : M) :
+    ((complexManifoldOrientation E M).reindex e).orientationAt x =
+      Orientation.reindex ℝ (TangentSpace 𝓘(ℝ, E) x) e (complexOrientation E) := by
+  rw [Manifold.Orientation.orientationAt_reindex,
+    orientationAt_complexManifoldOrientation_eq_complexOrientation]
+
+/-- A complex-linear isomorphism `A : E ≃L[ℂ] G` carries the tangent orientation at any point of
+the complex orientation of `M`, reindexed to `Fin m`, to the complex orientation of `G`,
+reindexed to `Fin m`. -/
+theorem map_orientationAt_reindex_complexManifoldOrientation
+    {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G] [NormedSpace ℂ G] [IsScalarTower ℝ ℂ G]
+    [FiniteDimensional ℂ G] {m : ℕ} (h : 2 * finrank ℂ E = m) (h' : 2 * finrank ℂ G = m)
+    (A : E ≃L[ℂ] G) (z : M) :
+    (((complexManifoldOrientation E M).reindex (finCongr h)).orientationAt z).map (Fin m)
+        (A.restrictScalars' ℝ).toLinearEquiv =
+      Orientation.reindex ℝ G (finCongr h') (complexOrientation G) := by
+  -- The same statement, with the tangent space at `z` read as `E` (its definition), as
+  -- `Orientation.map` reads it here and as `Orientation.map_reindex` needs.
+  have hoz : (((complexManifoldOrientation E M).reindex (finCongr h)).orientationAt z :
+      Orientation ℝ E (Fin m)) = Orientation.reindex ℝ E (finCongr h) (complexOrientation E) :=
+    orientationAt_reindex_complexManifoldOrientation (finCongr h) z
+  refine (congrArg (Orientation.map (Fin m) (A.restrictScalars' ℝ).toLinearEquiv) hoz).trans
+    ?_
+  rw [Orientation.map_reindex, ContinuousLinearEquiv.restrictScalars'_toLinearEquiv,
+    LinearEquiv.map_complexOrientation, ← Orientation.reindex_trans]
+  exact congrArg (Orientation.reindex ℝ G · (complexOrientation G)) (Equiv.ext fun _ ↦ by simp)
+
+end TauCeti
+
+namespace SymplecticGeometry
 
 variable (E M) in
 /-- The canonical orientation of a complex curve `M`, a complex manifold modelled on `𝓘(ℂ, E)`
@@ -65,8 +109,7 @@ theorem orientationAt_complexCurveOrientation (h : finrank ℂ E = 1) (x : M) :
     (complexCurveOrientation E M h).orientationAt x =
       Orientation.reindex ℝ (TangentSpace 𝓘(ℝ, E) x) (finCongr (by rw [h]))
         (complexOrientation E) := by
-  rw [complexCurveOrientation_def, Manifold.Orientation.orientationAt_reindex,
-    orientationAt_complexManifoldOrientation_eq_complexOrientation]
+  rw [complexCurveOrientation_def, orientationAt_reindex_complexManifoldOrientation]
 
 /-- A biholomorphism `Φ : M → N` of complex curves (a `C^n` diffeomorphism for the complex
 models, `n ≠ 0`) carries `complexCurveOrientation` of `M` to that of `N` at every point. -/

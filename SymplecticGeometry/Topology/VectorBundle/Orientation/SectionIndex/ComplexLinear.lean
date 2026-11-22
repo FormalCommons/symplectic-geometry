@@ -6,10 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
+public import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
+public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Derivative
-public import TauCeti.Geometry.Manifold.Complex.Orientation
-public import TauCeti.Topology.Algebra.Module.Equiv.RestrictScalars
-public import TauCeti.Topology.VectorBundle.Orientation.Complex.Basic
 
 /-!
 # A zero with complex-linear invertible derivative has index one
@@ -67,24 +66,6 @@ variable {E : Type} [NormedAddCommGroup E] [NormedSpace ℂ E] [FiniteDimensiona
   {G : Type} [NormedAddCommGroup G] [NormedSpace ℝ G] [NormedSpace ℂ G] [IsScalarTower ℝ ℂ G]
   [FiniteDimensional ℂ G]
 
-/-- A complex-linear isomorphism `A : E ≃L[ℂ] G` carries the tangent orientation at any point of
-the complex orientation of `M`, read in the preferred chart, to the complex orientation of `G`. -/
-theorem map_orientationAt_reindex_complexManifoldOrientation {m : ℕ} (h : 2 * finrank ℂ E = m)
-    (h' : 2 * finrank ℂ G = m) (A : E ≃L[ℂ] G) (z : M) :
-    (((complexManifoldOrientation E M).reindex (finCongr h)).orientationAt z).map (Fin m)
-        (A.restrictScalars' ℝ).toLinearEquiv =
-      Orientation.reindex ℝ G (finCongr h') (complexOrientation G) := by
-  have hoz : (((complexManifoldOrientation E M).reindex (finCongr h)).orientationAt z :
-      Orientation ℝ E (Fin m)) = Orientation.reindex ℝ E (finCongr h) (complexOrientation E) := by
-    rw [Manifold.Orientation.orientationAt_reindex,
-      orientationAt_complexManifoldOrientation_eq_complexOrientation]
-    -- The two sides differ only in reading the tangent space at `z` as `E`.
-    rfl
-  refine (congrArg (Orientation.map (Fin m) (A.restrictScalars' ℝ).toLinearEquiv) hoz).trans ?_
-  rw [Orientation.map_reindex, ContinuousLinearEquiv.restrictScalars'_toLinearEquiv,
-    LinearEquiv.map_complexOrientation, ← Orientation.reindex_trans]
-  exact congrArg (Orientation.reindex ℝ G · (complexOrientation G)) (Equiv.ext fun _ ↦ by simp)
-
 namespace VectorBundleOrientation
 
 variable [T2Space M]
@@ -93,17 +74,6 @@ variable [T2Space M]
   [∀ x, TopologicalSpace (V x)] [FiberBundle G V] [VectorBundle ℂ G V]
 
 local instance : VectorBundle ℝ G V := VectorBundle.restrictScalars ℝ ℂ G V
-
-omit [T2Space M] in
-/-- A complex-linear trivialization reads the canonical orientation of every fibre over its base
-set as the canonical orientation of the model fibre. -/
-@[simp]
-theorem mapOrientation_complex_of_isLinear (e : Trivialization G (π G V)) [e.IsLinear ℂ]
-    [e.IsLinear ℝ] {b : M} (hb : b ∈ e.baseSet) :
-    e.mapOrientation _ hb (complex G V b) = complexOrientation G := by
-  have := VectorBundle.finiteDimensional ℂ G V b
-  rw [complex_apply, Trivialization.mapOrientation_complexOrientation _ _ _ rfl, finCongr_refl,
-    Orientation.reindex_refl, Equiv.refl_apply]
 
 /-- **A zero with complex-linear invertible derivative has index `1`.** Let `M` be a complex
 manifold modelled on `𝓘(ℂ, E)`, of real dimension `n + 1`, with its complex orientation, and `V`
