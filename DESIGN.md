@@ -286,9 +286,13 @@ page's conventions through them.
   `SmoothAlmostComplexStructure` $j$, oriented by $j$; by the milestone on
   surfaces this loses nothing.
 - **Characteristic classes and Betti numbers.** Chern classes are integral
-  singular cohomology classes (`TauCeti` singular cohomology with
+  singular cohomology classes (`TauCeti` singular cohomology with chain
   coefficients `ULift ℤ`), $c_1$ being *First Chern number*'s
-  `SymplecticGeometry.Bundle.firstChernClass`. The fundamental class and
+  `SymplecticGeometry.Bundle.firstChernClass`, with values in `ULift ℤ`.
+  *Chern classes* takes values in `ℤ` (`TopCat.integralCohomology`, whose
+  cup product has the ring laws) and compares with classes valued in
+  `ULift ℤ` through an isomorphism, as `design/chern-classes.md` says.
+  The fundamental class and
   the evaluation $\langle c,[M]\rangle$ are Tau Ceti's
   `TauCeti.HomologicalOrientation.fundamentalClass` and
   `evalFundamentalClass`. A complex manifold, or a manifold with an almost
@@ -2435,24 +2439,35 @@ has either; Tau Ceti's extension across a boundary,
 
 ### 28. Space of compatible complex structures (needs `design/compatible-structure-space.md`)
 
-- **Files:** in `Geometry/Symplectic/CompatibleSpace/`: `Manifold.lean`
+- **Files:** `Geometry/Manifold/Instances/CompatibleComplexStructures.lean`
   ($\mathcal J(V,\omega)$, of dimension $n(n+1)$, embedded as a smooth
   submanifold in $\mathrm{End}(V)$, with Tau Ceti's `compatibleTangentSpace` as tangent
-  spaces, charts from Tau Ceti's Cayley chart `compatibleCayleyEquiv`, and
-  for $V$ = `StdSpace ι` the diffeomorphism with *Siegel upper half space*'s
-  $\mathcal S_n$), `Kahler.lean` (the structure $\hat J\mapsto-J\hat J$, the
+  spaces, charts from Tau Ceti's Cayley chart `compatibleCayleyEquiv`), with
+  its algebra in `LinearAlgebra/Symplectic/CompatibleTangent/` and its
+  Cayley coordinates in `Topology/ComplexStructure/Compatible/Cayley.lean`;
+  `Geometry/Manifold/Instances/SiegelUpperHalfSpace.lean` ($\mathcal S_n$
+  as a complex manifold); and in `Geometry/Symplectic/CompatibleSpace/`:
+  `ComplexStructure.lean` (the structure $\hat J\mapsto-J\hat J$, constant in
+  the global Cayley chart, hence integrable), `Kahler.lean` (the
   form $\Omega$ and the trace metric, their invariance under linear
-  symplectomorphisms, integrability from the holomorphic coordinates of
-  $\mathcal S_n$, and `IsKahler`) and `Geodesic.lean` (the Levi-Civita
-  connection, the geodesics $J\exp(-J\hat Jt)$ and completeness, the
-  curvature and the sign of the sectional curvature, and the pulled-back
-  metric on $\mathcal S_n$).
-- **Builds on:** *Nijenhuis tensor* (only `Integrable.lean`); the merged
+  symplectomorphisms, and `IsKahler`), `LeviCivita.lean`, `Curvature.lean`
+  (the curvature and the sign of the sectional curvature),
+  `Geodesic.lean` (the geodesics $J\exp(-J\hat Jt)$ and completeness) and
+  `Siegel.lean` (for $V$ = `StdSpace ι` the holomorphic diffeomorphism with
+  *Siegel upper half space*'s $\mathcal S_n$ and the pulled-back metric).
+- **Builds on:** *Nijenhuis tensor* (only `Integrable.lean`); *Almost
+  complex manifolds* (only `Metric.lean`); the merged
   *Siegel upper half space* and *Compatible complex structures*; Tau Ceti's
   Cayley files and curvature of connections.
+- **The metric:** unlike the convention *The metric* above, the trace metric
+  of $\mathcal J(V,\omega)$ is a global `RiemannianBundle` instance on its
+  tangent bundle, as Tau Ceti does for its model geometries: it is the
+  canonical metric of the space, and Tau Ceti's geodesic API reads the
+  Levi-Civita connection from that instance.
 - **Milestones:** *Kähler structure on the space of compatible linear complex
-  structures*, with integrability from the coordinates of $\mathcal S_n$
-  rather than from the parallel-$J$ criterion, as the page advises. The
+  structures*, with integrability from the global Cayley chart, the bounded
+  model of $\mathcal S_n$, rather than from the parallel-$J$ criterion, as
+  the page advises. The
   design file fixes the curvature convention, which the page gives, and
   whether the manifold is a subtype of `V →L[ℝ] V` or Tau Ceti's type of
   compatible structures.
@@ -2462,24 +2477,27 @@ has either; Tau Ceti's extension across a boundary,
 - **Files:** `Geometry/Manifold/DeRham/Hodge/` (the analytic half of the
   Hodge theorem on a closed oriented Riemannian manifold: every de Rham
   class has a harmonic representative, completing Tau Ceti's
-  `Geometry/Manifold/DeRham/Harmonic.lean`, from Tau Ceti's interior
-  elliptic regularity `Analysis/Pseudodifferential/EllipticRegularity.lean`
-  and the Bessel-potential spaces there), and
+  `Geometry/Manifold/DeRham/Harmonic.lean`, from Tau Ceti's scalar interior
+  elliptic regularity `Analysis/Pseudodifferential/DistributionalRegularity.lean`,
+  its Rellich theorem and its Fredholm alternative for Gårding forms), and
   `Geometry/Manifold/DeRham/Kahler/` (complex harmonic forms, the Kähler
   identities, the decomposition of $H^k(M;\mathbb C)$ by type, with Tau
-  Ceti's `complexDeRhamCohomology`, `SmoothForm.IsOfType` and
-  `dolbeaultCohomology`, the symmetries of the Hodge numbers, and the
-  evenness of odd Betti numbers).
-- **Builds on:** *Nijenhuis tensor* (only `Integrable.lean`); *Almost Kähler
-  geometry*, if the design file proves the Kähler identities through
-  $\nabla J=0$; Tau Ceti's harmonic forms, Hodge star, Dolbeault operators
-  and elliptic regularity.
+  Ceti's `complexDeRhamCohomology` and `SmoothForm.IsOfType`, the
+  symmetries of the Hodge numbers, and the evenness of odd Betti numbers),
+  with the files outside these folders that the design file lists.
+- **Builds on:** *Nijenhuis tensor* (only `Integrable.lean`); *Almost complex
+  manifolds* (only `Metric.lean`, for the metric $g_J$ in the milestone);
+  Tau Ceti's harmonic forms, Hodge star, types of forms and elliptic
+  regularity. The Kähler identities are proved in osculating holomorphic
+  charts, not through $\nabla J=0$, so the part does not use *Almost Kähler
+  geometry*.
 - **Milestones:** *Hodge decomposition on closed Kähler manifolds*, for a
   closed Kähler manifold in the page's sense (`IsKahler` and
   `IsIntegrable`, on a boundaryless manifold), with Betti numbers the
   dimensions of de Rham cohomology. This is the largest part of the page;
-  the design file splits it, and decides between a proof on the whole
-  manifold and one through a parametrix glued from charts.
+  the design file splits it, and proves the analytic half on the whole
+  manifold, with regularity and compactness in charts, not through a
+  parametrix.
 
 ### 30. Energy of pseudoholomorphic curves (needs `design/pseudoholomorphic-energy.md`)
 
@@ -2561,16 +2579,22 @@ has either; Tau Ceti's extension across a boundary,
   files (`AlgebraicTopology/Cohomology/LerayHirsch/`), with $c_1$ equal to
   *First Chern number*'s `firstChernClass`; naturality, the Whitney sum
   formula, the top class as Tau Ceti's `TauCeti.complexEulerClass`; the
-  cohomology ring of $\mathbb CP^n$, which Tau Ceti has only additively;
-  and the evaluation of the Euler class of the tangent bundle of a closed
-  oriented manifold on its fundamental class as its Euler characteristic.
-- **Builds on:** *First Chern number* (`FirstChernClass.lean`, #784, and its
-  Poincaré duality prerequisites, #806–#810); Tau Ceti's Euler and Thom
-  classes, cup products and Leray–Hirsch files.
+  cohomology ring of $\mathbb CP^n$, which Tau Ceti has only additively.
+  The evaluation of the Euler class of the tangent bundle of a closed
+  oriented manifold on its fundamental class as its Euler characteristic,
+  and the general infrastructure (the ring of even integral classes,
+  Leray–Hirsch for bundles, projective bundles), are in files outside that
+  folder, which `design/chern-classes.md` lists.
+- **Builds on:** *First Chern number* (`FirstChernClass.lean`, #784, only
+  for the comparison of $c_1$); Tau Ceti's Euler and Thom classes, cup
+  products, Leray–Hirsch files and Poincaré–Hopf theorem for gradients of
+  Morse functions. No Poincaré duality is needed.
 - **Milestones:** none by itself; it provides what *Projective
-  hypersurfaces* needs. The design file chooses the construction (the
-  projective bundle or a splitting principle) and the proof of the Euler
-  characteristic formula, and may split the part.
+  hypersurfaces* needs. `design/chern-classes.md` gives the construction
+  (the projective bundle, with Hatcher's proof of the Whitney formula and a
+  one-step splitting principle), the proof of the Euler characteristic
+  formula (Poincaré–Hopf for the gradient of a Morse function) and the
+  issues.
 
 ### 34. Projective hypersurfaces (needs `design/projective-hypersurfaces.md`)
 
@@ -2630,19 +2654,19 @@ that file, and the notes here may fall behind it.
 | 1 | *Isothermal coordinates* | *Nijenhuis tensor* (only `Integrable.lean`) |
 | 1 | *Complex submanifolds* | *Nijenhuis tensor* |
 | 1 | *Almost Kähler geometry* | *Almost complex manifolds* (only `Metric.lean`), *Nijenhuis tensor* (only `Covariant.lean` and `Nijenhuis.lean`); `TwoForm.lean` can start at once |
-| 1 | *Space of compatible complex structures* | *Nijenhuis tensor* (only `Integrable.lean`); the merged *Siegel upper half space* and *Compatible complex structures* |
+| 1 | *Space of compatible complex structures* | *Nijenhuis tensor* (only `Integrable.lean`), *Almost complex manifolds* (only `Metric.lean`); the merged *Siegel upper half space* and *Compatible complex structures* |
 | 1 | *Energy of pseudoholomorphic curves* | *Almost complex manifolds* (only `Metric.lean`) |
+| 1 | *Hodge theory* | *Nijenhuis tensor* (only `Integrable.lean`), *Almost complex manifolds* (only `Metric.lean`), each for one issue of its design file; the Hodge theorem for the Laplacian can start at once |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `Topology/ComplexStructure/Basic.lean`, which besides it imports only Tau Ceti and the merged `LinearAlgebra/Matrix/NonsingularInverse.lean` and `Analysis/CStarAlgebra/Matrix.lean`, which import only Mathlib and merged files that do, and `LinearAlgebra/ComplexStructure/Standard.lean`, which besides `Action.lean` imports only `LinearAlgebra/Symplectic/Compatible.lean` of this part, `LinearAlgebra/Symplectic/Standard/Matrix.lean` of *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`, which imports only Tau Ceti, and Tau Ceti; and `Topology/ComplexStructure/Orthogonal.lean`, which besides `Topology/ComplexStructure/Basic.lean` imports only `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model*, `Analysis/Matrix/Polar/Deformation.lean` of *Symplectic group* and Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged, and `Analysis/Matrix/Polar/Deformation.lean`, through `Orthogonal.lean`, which is merged) |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
 | 2 | *Isotopy extension* | *Hamiltonian flows* (only `DeRham/FamilyPrimitive.lean`, `Flux/Hamiltonian.lean` and `Flux/CompactSupport.lean`), *Smooth families* (only `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `DeRham/SmoothFamily/GoodCover.lean`), *Moser isotopy* (only `Moser/Field.lean`); the merged *Standard model* and *Linear Moser*; the issues of its design file that use none of these can start at once |
 | 2 | *Symplectic neighbourhoods* | *Moser isotopy* (only `Relative.lean`); *Symplectic vector spaces* (only `LinearAlgebra/Symplectic/Reduction.lean` and `LinearAlgebra/Symplectic/Subspace.lean`, which are merged); *Compatible complex structures* (only `LinearAlgebra/Symplectic/Compatible.lean`, which is merged); `CharacteristicFoliation.lean` and `AdaptedDarboux.lean` can start at once |
 | 2 | *Complex projective space* | *Complex submanifolds* (only for the corollary in `Kahler.lean`; the other files can start at once) |
-| 2 | *Hodge theory* | *Nijenhuis tensor* (only `Integrable.lean`); *Almost Kähler geometry*, if its design file proves the Kähler identities through $\nabla J=0$; the Hodge theorem for the Laplacian can start at once |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); *Moser isotopy* (only `Darboux/Strict.lean`, through `LocalDiffeomorph/MFDeriv.lean`, merged); the other files of the part can start at once |
 | 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles* |
 | 4 | *Adjunction* | *First Chern number* (only `FirstChernClass.lean`, `ChernNumber/Basic.lean` and `ChernNumber/Axioms.lean`); `NormalSpace/ComplexStructure.lean` and `NormalSplitting.lean` can start at once |
-| 4 | *Chern classes* | *First Chern number* (only `FirstChernClass.lean` and the Poincaré duality prerequisites); the cohomology ring of $\mathbb CP^n$ can start at once |
+| 4 | *Chern classes* | *First Chern number* (only `FirstChernClass.lean`, for the comparison of $c_1$); the other issues of its design file can start at once |
 | 5 | *Projective hypersurfaces* | *Chern classes*, *First Chern number* (only `ChernNumber/EulerNumber.lean`); the bundle isomorphisms on $\mathbb CP^{n+1}$ can start at once |
 
 The design issues of the parts marked as needing one can start at once, in
