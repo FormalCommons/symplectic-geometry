@@ -171,10 +171,7 @@ theorem bijective_zsmul_hyperplaneClass_pow (hV : finrank ℂ V = n + 1) {k : �
     simp only [TopCat.evenIntegralCohomologyOf_pow_succ_apply]
     convert hcup.comp (ih (by omega)) using 1
     funext m
-    -- `a ↦ a ⌣ h` as an additive map, since the bilinear map has no `flip` over `ℤ` here.
-    exact (map_zsmul (AddMonoidHom.mk' (fun a ↦ (TopCat.of (ℙ ℂ V)).integralCup (2 * k) (2 * 1)
-      (2 * (k + 1)) (by ring) a (hyperplaneClass V)) fun a b ↦ by
-        rw [map_add, LinearMap.add_apply]) m _).symm
+    exact (TopCat.integralCup_zsmul_left _ _ m _ _).symm
 
 /-- **The hyperplane class of `ℙ ℂ V` is nilpotent**: `h ^ (n + 1) = 0` in the even integral
 cohomology ring, for `finrank ℂ V = n + 1`. -/
