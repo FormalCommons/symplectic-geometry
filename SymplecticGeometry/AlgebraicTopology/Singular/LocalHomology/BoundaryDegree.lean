@@ -25,7 +25,7 @@ A map `u : ∂X → S¹` sends the boundary class to `H₁(S¹; ℤ) ≅ ℤ`
 (`TauCeti.HomologicalOrientation.boundaryDegree`). Tau Ceti fixes no sign convention for its
 connecting morphisms, so we check the sign on the closed unit disc of `ℂ`: there the boundary
 class is the generator
-(`SymplecticGeometry.singularHomologyOneIso_singularHomologyδ_fundamentalClassRel_closedBall`),
+(`SymplecticGeometry.singularHomologyOneIso_map_boundaryClass_closedBall`),
 so the boundary circle, which runs counterclockwise, has boundary degree `1`
 (`SymplecticGeometry.boundaryDegree_closedBallComplToCircle`). No sign has to be inserted.
 
