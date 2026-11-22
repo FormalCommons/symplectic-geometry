@@ -181,7 +181,9 @@ Further choices:
 | `Geometry/Symplectic/Liouville/Scaling.lean` | Liouville scaling along integral curves, on a boundaryless manifold and in the interior of a manifold with boundary, for the collar of `Filling.lean` | 7 |
 | `Geometry/Manifold/DifferentialForm/Continuity.lean` | continuity in the parameter of the pullbacks of a form along the slices of a `C¹` map on a product, for the collar of `Filling.lean`, beside Tau Ceti's file of that path | 7 |
 | `Geometry/Manifold/Boundary/Collar/Local.lean` | smoothness of Tau Ceti's normal ray of the half-line on `[0, ∞)`, and the ray on `(-∞, 1)` as a depth map into `normalIioOpens 1`, for the collars of `Flow/Basic.lean` and `Filling.lean` and the end of `End.lean`, beside Tau Ceti's file of that path | 7 |
-| `Geometry/Manifold/ModelTransport/InteriorModel.lean` | a manifold without boundary points, modelled on the model vector space (`SymplecticGeometry.InteriorModel`), and its diffeomorphism with the manifold; used in `Scaling.lean` and `End.lean` | — |
+| `Geometry/Manifold/ModelTransport/InteriorModel.lean` | a manifold without boundary points, modelled on the model vector space (`SymplecticGeometry.InteriorModel`), and its diffeomorphism with the manifold; used in `Scaling.lean`, `End.lean`, `Collar/Interior.lean` and `Gluing/CapDiscs/Basic.lean` | — |
+| `Geometry/Manifold/ModelTransport/Remodel.lean` | a manifold re-modelled along a diffeomorphism of model spaces (`SymplecticGeometry.Remodel`), and its diffeomorphism with the manifold; used in `End.lean` and `Gluing/CapDiscs/Basic.lean` | — |
+| `Geometry/Manifold/Boundary/Collar/Interior.lean` | interior collar points, and the collar coordinates on the part of the interior covered by the collar (`SmoothCollar.interiorModelCoord`); used in `End.lean` and `Gluing/CapDiscs/Basic.lean` | — |
 | `Geometry/Manifold/Boundary/Collar/End.lean` | attaching the end `[0, ∞) × ∂W` along a smooth collar | 8 |
 | `Geometry/Symplectic/Liouville/Completion.lean` | $\widehat\omega$, $\widehat Y$, $\widehat\lambda$; third milestone | 9, 10 |
 | `Geometry/Symplectic/Liouville/Domain.lean` | the completion of a Liouville domain is a Tau Ceti completion | 11 |
@@ -529,9 +531,10 @@ instance and `isClosedEmbedding_inclusion`. This is differential topology, with 
   Tau Ceti's `Geometry/Manifold/Gluing/GlueData.lean`; the second piece is
   re-modelled by a linear equivalence
   `ℝ × EuclideanSpace ℝ (Fin n) ≃L[ℝ] EuclideanSpace ℝ (Fin (n + 1))`
-  through `Diffeomorph.isManifold_chartedSpaceComp`
-  (`ModelTransport/Diffeomorph.lean`). The pieces, overlaps and their atlases
-  are private. Instances: `TopologicalSpace`, `T2Space` (for `T2Space W`),
+  as `SymplecticGeometry.Remodel` (`ModelTransport/Remodel.lean`). The pieces,
+  overlaps and their atlases are private, except the interior overlap and its
+  collar coordinates, `c.interiorModelRange` and `c.interiorModelCoord` of
+  `Boundary/Collar/Interior.lean`. Instances: `TopologicalSpace`, `T2Space` (for `T2Space W`),
   `ChartedSpace (EuclideanSpace ℝ (Fin (n + 1)))` (`c.chartedSpaceWithEnd`),
   `IsManifold (𝓡 (n + 1)) ∞`, with no compactness or countability
   hypothesis.
@@ -560,8 +563,8 @@ Expected size: 600 lines.
 ### `Geometry/Symplectic/Liouville/Completion.lean`
 
 For `h : IsStrongFilling ω U Y`, with the collar `c`, `ε` and `Φ` of
-`h.exists_liouvilleCollar` chosen once (`Classical.choose`, through a
-private structure of the choices) and `α := fillingContactForm ω ⟨Y, hY⟩`.
+`h.exists_liouvilleCollar` chosen once (`Classical.choose`, as `h.collarWidth`,
+`h.collarFlow` and `h.collar`) and `α := fillingContactForm ω ⟨Y, hY⟩`.
 Issue 9:
 
 - `IsStrongFilling.Completion h := c.WithEnd`, with the instances above,
@@ -573,13 +576,11 @@ Issue 9:
   `completionEnd (s, x) = toCompletion (Φ (s, x))`).
 - `h.completionForm : SmoothTwoForm (𝓡 (n + 1)) h.Completion`, equal to the
   transport of `ω` on the image of the interior, and on the end piece to
-  the symplectization form $-d(e^s\alpha)$; it is glued by Tau Ceti's
-  descent along the surjective local
-  diffeomorphism from the disjoint union of the two pieces
-  (`RoughForm.IsBasic.mpullback_descendedForm`,
-  `Geometry/Manifold/DifferentialForm/Pullback/Descent.lean`), the pieces
+  the symplectization form $-d(e^s\alpha)$; it is defined pointwise, through
+  the inverse differential of the end map on the image of
+  `Ioi (-ε) ×ˢ univ` and of the inclusion elsewhere, the pieces
   agreeing on the overlap by `h.exists_liouvilleCollar`; smoothness by
-  `IsSmoothForm.of_mpullback_inclusion` (`DifferentialForm/Opens.lean`).
+  `IsLocalDiffeomorphAt.contMDiffAt_mpullback_form_iff`.
   Likewise `h.completionPrimitive` (λ on `W`, $e^s\alpha$ on the end) and
   the vector field `h.completionField` (`Y` on `W`, $\partial_s$ on the
   end; the pieces agree because the collar lines are integral curves of
@@ -667,7 +668,10 @@ Expected size: 300 lines.
   `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`, merged,
   which this part extends by
   `IsLocalDiffeomorph.interior_mextDeriv_mpullback_of_interior_mextDeriv`, in
-  `Liouville/Scaling.lean`.
+  `Liouville/Scaling.lean`, and by `TauCeti.RoughForm.pushforwardAt` and
+  `TauCeti.mpullback_apply_eq_of_apply_eq_pushforwardAt`, in `Completion.lean`.
+- *Hamiltonian flows*: `Geometry/Manifold/MFDeriv/Prod.lean`
+  (`MDifferentiableAt.mfderiv_curry_left_apply`), merged, in `Completion.lean`.
 - *Moser isotopy*: `Geometry/Symplectic/Manifold/Family.lean`
   (`SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`), merged, in
   `StableHamiltonian.lean`.
@@ -718,7 +722,8 @@ Expected size: 300 lines.
   `SmoothForm.mpullback`, `mextDerivₗ`, `flowOf`, `globalFlow`,
   `mpullback_flowOf_apply_of_mextDeriv_interior_eq_zero`,
   `mpullback_flowOf_apply_of_interior_mextDeriv_eq_zero`,
-  `IsSmoothForm.of_mpullback_inclusion`, `RoughForm.IsBasic.mpullback_descendedForm`;
+  `IsLocalDiffeomorphAt.contMDiffAt_mpullback_form_iff`,
+  `SmoothBundleForm.eq_of_forall_mem_dense`;
   tubular neighbourhoods and relative primitives:
   `SmoothEmbedding.exists_diffeomorph_normalBundle_subset`,
   `SmoothEmbedding.exists_isSmoothForm_relative_primitive`; relative Moser:

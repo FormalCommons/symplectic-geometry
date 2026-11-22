@@ -40,7 +40,10 @@ primitives (`TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq_of_isCompact`,
 `Geometry/Symplectic/Manifold/Moser.lean`), the relative Moser theorem for one
 pair of forms
 (`TauCeti.SmoothTwoForm.exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`,
-`RelativeMoser.lean`), tubular
+`RelativeMoser.lean`), the relative Poincaré operator of a vector bundle
+(`TauCeti.vectorBundlePoincareHomotopy`,
+`Geometry/Manifold/DifferentialForm/Relative/Basic.lean`, used by
+`DifferentialForm/VectorBundlePoincare.lean`), tubular
 neighbourhoods with their retractions and deformations
 (`TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`,
 `TauCeti.SmoothEmbedding.exists_deformation_subset`,
@@ -208,8 +211,10 @@ Further choices of this design:
 | `Geometry/Symplectic/Moser/Family.lean` | Moser's argument near a compact set along a family, and with a parameter |
 | `Geometry/Manifold/TubularNeighborhood/OneFormCorrection.lean` | the correction lemma: a function whose slices have differential `γ_t` along a compact submanifold where `f^* γ_t` vanishes |
 | `Geometry/Manifold/DifferentialForm/VectorBundlePoincare.lean` | the relative Poincaré operator at the zero section of a vector bundle, and its fibre-scaling primitives for a family of one-forms |
+| `Analysis/Calculus/DifferentialForm/Poincare.lean` | a closed form on a star-convex open set, vanishing on a compact star-convex subset, has a global primitive near it that vanishes on it (named like Tau Ceti's file) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean` | `IsSymplecticBallEmbedding`, `IsSymplecticBallFamily`, enlarging a symplectic ball |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Isotopy.lean` | the Hamiltonian ball extension and the milestone *Symplectic ball extension* |
+| `Geometry/Manifold/DeRham/HomologyPeriod.lean` | periods of a smooth family of closed one-forms depend smoothly on the parameter |
 | `Geometry/Symplectic/IsotopyExtension/Cohomological/Primitive.lean` | ambient closed forms with prescribed periods, and primitives on one neighbourhood for all times |
 | `Geometry/Symplectic/IsotopyExtension/Cohomological/Basic.lean` | the milestone *Symplectic isotopy extension* |
 | `Geometry/Symplectic/IsotopyExtension/Submanifold.lean` | the milestone *Neighbourhood extension of submanifold isotopies* |
@@ -222,7 +227,7 @@ the linear segment between two forms, and the submanifold theorem here needs
 a general family. Both parts use one cut-off Moser field, *Moser isotopy*'s
 `moserField` (`Moser/Field.lean`), generalized to a family of two-forms
 by #551 (see *What the part uses*). Where a Tau Ceti file has the same
-name (`Extension.lean`, `Connected.lean`), the two merge upstream, as
+name (`Extension.lean`, `Connected.lean`, `Poincare.lean`), the two merge upstream, as
 `DESIGN.md`'s *Principles* allow. No folder of this part has the name of a
 Tau Ceti file.
 
@@ -321,14 +326,15 @@ Its statement is Tau Ceti's `exists_diffeotopy_apply_eq` without the change of
 time. The steps:
 
 1. `TauCeti.SmoothIsotopy.exists_contMDiff_extend`. There are `δ > 0`, an
-   open `V ⊇ A` and a smooth `G : ℝ × V → N` that agrees with `F` on
-   $[0,1]\times V$ and whose slices are smooth embeddings for
+   open `V ⊇ A` and a `G : ℝ × P → N`, smooth on `Ioo (-δ) (1 + δ) ×ˢ V`,
+   that agrees with `F` on
+   $[0,1]\times V$ and whose slices are smooth embeddings of `V` for
    $t\in(-\delta,1+\delta)$. Seeley's extension extends maps into a normed
-   space, so the target is moved into one. Mathlib's
-   `SmoothBumpCovering.embeddingPiTangent` (`Geometry/Manifold/WhitneyEmbedding.lean`),
-   for a bump covering of the compact track of `A`, is an injective
-   immersion there. `SmoothEmbedding/Neighborhood.lean` makes it an
-   embedding of a neighbourhood `W`, with a smooth retraction of a
+   space, so the target is moved into one. Tau Ceti's
+   `IsCompact.exists_opens_nonempty_smoothEmbedding_euclidean`, built on the
+   map of Mathlib's `SmoothBumpCovering.embeddingPiTangent`, embeds a
+   neighbourhood `W` of the compact track of `A` into a Euclidean space,
+   with a smooth retraction of a
    neighbourhood of its image onto it
    (`TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`). The extension is
    *Smooth families*' `ContMDiff/TimeExtension.lean` applied to the
@@ -582,7 +588,7 @@ The first half of the milestone:
 
 ```lean
 theorem IsSymplecticBallEmbedding.exists_lt_isSymplecticBallEmbedding_eqOn
-    (hω : ω.IsSymplectic) (hdim : Module.finrank ℝ E = 2 * n) {r₀ : ℝ} (hr₀ : 0 < r₀)
+    (hω : ω.IsClosed) {r₀ : ℝ} (hr₀ : 0 < r₀)
     {j : StdSpace (Fin n) → M} (hj : IsSymplecticBallEmbedding ω r₀ j) :
     ∃ r, r₀ < r ∧ ∃ j', IsSymplecticBallEmbedding ω r j' ∧
       Set.EqOn j' j (Metric.closedBall 0 r₀)
@@ -592,9 +598,12 @@ theorem IsSymplecticBallEmbedding.exists_lt_isSymplecticBallEmbedding_eqOn
 full form. Its radial primitive vanishes there too, because every segment to
 `0` from a point of $B(\lambda)$ stays in it. Tau Ceti's relative Moser
 theorem `exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`,
-on an open ball where `j` is an immersion, with $K=B(\lambda)$, gives `Φ` fixing
+on `StdSpace (Fin n)`, with that primitive cut off away from $B(\lambda)$ and
+$K=B(\lambda)$, gives `Φ` fixing
 $B(\lambda)$ with `Φ^* j^* ω = ω₀` near it. The map `j' = j ∘ Φ` is injective near
-$B(\lambda)$ (`SmoothEmbedding/Neighborhood.lean`), which gives `r`. Expected
+$B(\lambda)$ (`SmoothEmbedding/Neighborhood.lean`), which gives `r`. The cut-off
+primitive is `StarConvex.exists_contDiff_eqOn_zero_eventually_extDeriv_eq`, from
+`Analysis/Calculus/DifferentialForm/Poincare.lean`, which this file imports. Expected
 size: 350 lines, with the API.
 
 ### `Geometry/Symplectic/IsotopyExtension/Ball/Isotopy.lean`
@@ -678,24 +687,33 @@ Let `M : Type` be compact, `Q : Set M`, `U : Opens M` with `Q ⊆ U`, and let
   a basis, closed representatives `b_i`, and finitely many cycles `z_j` of
   `Q` on which evaluation is injective. Then $\beta_t=\sum a_i(t)b_i$, where
   the coefficients are a fixed linear function of the periods of `α_t` on
-  the `z_j`. Those periods are smooth in `t`: the image of `z_j` in `H₁ U`
-  is a sum of classes of smooth loops (Tau Ceti's `Geometry/Manifold/SmoothApprox.lean`
-  and the Hurewicz map), and along a smooth loop the period is a line
-  integral, differentiable under the integral sign.
+  the `z_j`. Those periods are smooth in `t`, by
+  `IsSmoothFamily.contMDiff_homologyPeriodHom` in
+  `Geometry/Manifold/DeRham/HomologyPeriod.lean`: each singular simplex is
+  homotopic to a smooth path (Tau Ceti's `Geometry/Manifold/SmoothApprox.lean`),
+  and along a smooth path the period is the change of a jointly smooth
+  primitive of the pulled-back family on `ℝ`.
 - `TauCeti.NDRPair.exists_forall_exact`: for NDR data on `Q` there
   is an open `V` with `Q ⊆ V ⊆ U` such that every closed one-form on `U`
   whose periods vanish on the image of `H₁ Q` is exact on `V`. This is
   `exists_isOpen_range_singularHomologyMap_le` with
   `TauCeti.exists_mextDeriv_eq_of_homologyPeriodHom_eq_zero` and
   `TauCeti.homologyPeriodHom_singularHomologyMap` for the inclusion `V → U`.
-- `SmoothIsotopy.homologyPeriodHom_mpullback_eq`: for a `SmoothIsotopy`
-  `φ` from the inclusion of `U`, the periods of `φ_t^* β` on `H₁ U` are those
-  of `β`. The slices are homotopic to the inclusion, so
+- `SmoothIsotopy.homologyPeriodHom_mpullback_eq`: for any `SmoothIsotopy`
+  `φ` starting at `f₀` and a closed one-form `θ`, the periods of `φ_t^* θ`
+  are those of `f₀^* θ`, and from the inclusion of `U` those of `θ`. The
+  slices are homotopic to `f₀`, so
   `ContinuousMap.singularHomologyMap_eq_of_homotopic` and
   `homologyPeriodHom_singularHomologyMap` apply.
-- `exists_contMDiff_primitive_of_periods`: under both hypotheses, for a
-  symplectic `φ` with velocity forms `α`, the forms `α_t - φ_t^* β_t` are
-  exact on `V` with a primitive `h` smooth on `unitInterval × V`. Exactness
+- `exists_contMDiff_primitive_of_periods`: for NDR data on `Q`, a
+  `SmoothIsotopy` `φ` of `U` whose start `f₀` is the inclusion
+  (`∀ x, f₀ x = x`), and smooth families `α` on `U` and `β` on `M` of closed
+  one-forms with the periods equation of the first item (no compactness), the
+  forms `α_t - φ_t^* β_t` are exact on `V` with a primitive `h` smooth on
+  `unitInterval × V`. Issue 11 takes the velocity forms of a symplectic `φ`
+  as `α`, and `β` from the first item or `β = 0`. The start is a variable
+  with that equation rather than the term `⟨Subtype.val, contMDiff_subtypeVal⟩`,
+  since with that term Lean finds no coercion of `φ` to a function. Exactness
   comes from the last two items. The smooth choice is *Hamiltonian flows*'
   `SymplecticGeometry.exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms` (see
   *What the part uses*), applied on the manifold `V`.
@@ -812,18 +830,21 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Geometry/Manifold/ContMDiff/TimeExtension.lean` (used by `Extension.lean`
   and `Flow.lean`) and of forms on `unitInterval × M` in
   `Geometry/Manifold/DifferentialForm/TimeExtension.lean` (used by
-  `Flow.lean` and `Moser/Family.lean`); the parametric radial primitives
+  `Flow.lean` and `Moser/Family.lean`); the reparametrization of time
+  `exists_contDiff_eqOn_id_Icc_mem_Ioo` in
+  `Analysis/SpecialFunctions/SmoothTransition.lean` (used by
+  `Extension.lean`); the parametric radial primitives
   `exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex` in
   `Geometry/Manifold/DifferentialForm/SmoothFamily/Poincare.lean`
-  (used by `Ball/Isotopy.lean`); and the
+  (used by `Ball/Isotopy.lean`); the homotopy operator on smooth families
+  `SymplecticGeometry.IsSmoothFamily.homotopyOperator` in
+  `Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`
+  (used by `DifferentialForm/VectorBundlePoincare.lean`); and the
   instance
   `FiniteDimensional ℝ (deRhamCohomology I M k)` for a compact boundaryless
   `M`, which `Geometry/Manifold/DeRham/SmoothFamily/GoodCover.lean` derives
   from `hasFiniteGoodCover_of_compactSpace` (used by
-  `Cohomological/Primitive.lean`). It also uses
-  `SymplecticGeometry.IsSmoothFamily.homotopyOperator`
-  (`Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`,
-  used by `DifferentialForm/VectorBundlePoincare.lean`). The part uses neither the splittings and
+  `Cohomological/Primitive.lean`). The part uses neither the splittings and
   `contMDiff_repr_mk_of_hasFiniteGoodCover` nor the bridge
   `Diffeotopy/Real.lean`: the periods are smooth in `t` as line integrals,
   and its flows are Tau Ceti's `timeDependentFlowDiffeotopy`, already a
@@ -855,7 +876,7 @@ this design already follows. `Ball/Isotopy.lean` cites
   `TauCeti.mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero`
   `IsotopyExtension/Velocity.lean` uses for the closedness of the velocity
   forms.
-- *Moser isotopy*: only `Moser/Field.lean`, whose `moserField` (#506) is
+- *Moser isotopy*: `Moser/Field.lean`, whose `moserField` (#506) is
   the cut-off Moser field of both theorems of `Moser/Family.lean`. That
   design planned it for the linear segment between two forms with a fixed
   primitive. #551 generalizes it to a smooth family of two-forms
@@ -863,6 +884,15 @@ this design already follows. `Ball/Isotopy.lean` cites
   `SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id`, and this pull request records
   that choice in `design/moser-isotopy.md`. So the library adapts Tau Ceti's
   private field of `RelativeMoser.lean` once.
+  `IsotopyExtension/Ball/Basic.lean` also imports
+  `Geometry/Symplectic/Manifold/TwoForm.lean`, for
+  `TauCeti.SmoothTwoForm.injective_mfderiv_of_mpullback_apply_eq` (a map
+  pulling a form back to a nondegenerate one is an immersion), which the
+  pull request of `Ball/Basic.lean` adds there, and
+  `Geometry/Symplectic/Manifold/Family.lean`, for
+  `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_add_smul_sub_of_eq` (the
+  segment between two forms that agree at a point is constant there), which
+  that pull request also adds.
 - Tau Ceti, besides the declarations named above:
   `TauCeti.SmoothIsotopy` with `timeSlice`, `ContMDiffMap.smoothIsotopyRefl`;
   `TauCeti.Diffeotopy` with `timeSlice`, `final`, `trans`, `symm`,

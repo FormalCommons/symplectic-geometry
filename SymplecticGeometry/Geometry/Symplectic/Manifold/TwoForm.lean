@@ -25,10 +25,18 @@ of open subsets `U₀ ⊆ M₀` and `U₁ ⊆ M₁` for the restricted forms
 restriction does not change the values of the forms. Together, these give the same conclusion
 for maps between open subsets.
 
+A map that pulls `ω₁` back to a form `ω₀` at a point where `ω₀` is nondegenerate, with no
+assumption on `ω₁`, is an immersion there
+(`TauCeti.SmoothTwoForm.injective_mfderiv_of_mpullback_apply_eq`): a vector in the kernel of its
+differential pairs to zero under `ω₀` with every vector. The proof is that of Tau Ceti's
+`TauCeti.SmoothTwoForm.IsNondegenerate.injective_mvfderiv`, for maps into a manifold rather than
+a vector space.
+
 ## Main results
 
 * `TauCeti.SmoothTwoForm.coe_mpullback_apply_eq_of_mfderiv_eq`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.isSymplectomorphism_mpullback_subtype_val`.
+* `TauCeti.SmoothTwoForm.injective_mfderiv_of_mpullback_apply_eq`.
 
 ## References
 
@@ -96,6 +104,15 @@ theorem IsNondegenerate.isSymplectomorphism_mpullback_subtype_val
     -- and `U₁`, so `ContinuousLinearEquiv.coe_toLinearEquiv` does not match it syntactically.
     rfl
   rwa [e] at h
+
+/-- A map `f : M₀ → M₁` that pulls `ω₁` back to `ω₀` at a point `x₀` where `ω₀` is nondegenerate
+has injective differential at `x₀`. -/
+theorem injective_mfderiv_of_mpullback_apply_eq {ω₀ : SmoothTwoForm I₀ M₀}
+    {ω₁ : SmoothTwoForm I₁ M₁} {f : M₀ → M₁} {x₀ : M₀} (hω₀ : (ω₀.bilinFormAt x₀).Nondegenerate)
+    (h : mpullback I₀ I₁ f ω₁.val x₀ = ω₀.val x₀) : Function.Injective (mfderiv I₀ I₁ f x₀) := by
+  refine (injective_iff_map_eq_zero (mfderiv I₀ I₁ f x₀)).2 fun v hv ↦ hω₀.1 v fun w ↦ ?_
+  rw [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply, ← h, mpullback_apply]
+  exact (ω₁.val (f x₀)).map_coord_zero 0 (by simp [hv])
 
 end TauCeti.SmoothTwoForm
 
