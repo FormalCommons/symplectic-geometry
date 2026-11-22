@@ -245,15 +245,10 @@ theorem leviCivitaConnection_compatibleSpace_apply
     (hY : MDifferentiableAt 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, ω.compatibleModel).tangent
       (fun J' ↦ TotalSpace.mk' ω.compatibleModel J' (Y J')) J)
     (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
-    mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J
-        (leviCivitaConnection 𝓘(ℝ, ω.compatibleModel) 𝒥 Y J a) =
-      mvfderiv 𝓘(ℝ, ω.compatibleModel)
-          (fun J' : 𝒥 ↦ mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J' (Y J')) J a -
+    dι[ω] J (leviCivitaConnection 𝓘(ℝ, ω.compatibleModel) 𝒥 Y J a) =
+      mvfderiv 𝓘(ℝ, ω.compatibleModel) (fun J' : 𝒥 ↦ dι[ω] J' (Y J')) J a -
         (2⁻¹ : ℝ) • (ω.compatibleCLM J *
-          (mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J (Y J) *
-              mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J a +
-            mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J a *
-              mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J (Y J))) := by
+          (dι[ω] J (Y J) * dι[ω] J a + dι[ω] J a * dι[ω] J (Y J))) := by
   have hf : ContMDiffAt 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) 2 ω.compatibleCLM J :=
     contMDiff_compatibleCLM.contMDiffAt
   -- The ambient reading of `Y`, a function with values in `V →L[ℝ] V`.
@@ -337,7 +332,7 @@ theorem contMDiff_mvfderiv_compatibleCLM_apply
     (hY : ContMDiff 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, ω.compatibleModel).tangent
       ((⊤ : ℕ∞) : WithTop ℕ∞) (fun J' ↦ TotalSpace.mk' ω.compatibleModel J' (Y J'))) :
     ContMDiff 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ((⊤ : ℕ∞) : WithTop ℕ∞)
-      (fun J' : 𝒥 ↦ mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J' (Y J')) :=
+      (fun J' : 𝒥 ↦ dι[ω] J' (Y J')) :=
   ((contMDiff_compatibleCLM (ω := ω) (n := ((⊤ : ℕ∞) : WithTop ℕ∞))).contMDiff_mvfderiv_apply
     (m := ((⊤ : ℕ∞) : WithTop ℕ∞)) (by simp)).comp hY
 

@@ -275,7 +275,7 @@ theorem compatible_compatibleSpaceForm :
     -- The ambient reading of a nonzero tangent vector is nonzero.
     have hX0 : (X : Module.End ℝ V) ≠ 0 := by
       rw [Ne, ← ContinuousLinearMap.toLinearMap_zero, ContinuousLinearMap.coe_inj, ← hX]
-      exact (map_ne_zero_iff _ (injective_mvfderiv_iff.2 (injective_mfderiv_compatibleCLM J))).2 ha
+      exact (map_ne_zero_iff _ (injective_mvfderiv_compatibleCLM J)).2 ha
     rw [hX, ContinuousLinearMap.toLinearMap_mul]
     exact mul_pos (by norm_num) (J.property.trace_mul_self_pos hXm hX0)
 

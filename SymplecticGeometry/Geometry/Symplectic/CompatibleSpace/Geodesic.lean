@@ -214,13 +214,13 @@ theorem isGeodesicCurveOnFrom_compatibleGeodesic (J : 𝒥)
     have key : ω.compatibleCLM (γ t) * A * (ω.compatibleCLM (γ t) * A) = A * A := by
       rw [mul_assoc, ← mul_assoc A, hAc, neg_mul, mul_neg, ← mul_assoc, ← mul_assoc,
         compatibleCLM_mul_self, neg_one_mul, neg_mul, neg_neg]
-    apply (injective_mvfderiv_iff.2 (injective_mfderiv_compatibleCLM (γ t)))
+    apply (injective_mvfderiv_compatibleCLM (γ t))
     rw [hacc, key, ← two_smul ℝ (A * A), mul_smul_comm, smul_smul, inv_mul_cancel₀ two_ne_zero,
       one_smul, mul_assoc, sub_self, map_zero]
   · -- At `0` the curve is at `J`, with velocity `â`.
     rw [curveVelocityWithin_univ]
     refine TotalSpace.ext (compatibleGeodesic_zero J a) (heq_of_eq ?_)
-    apply (injective_mvfderiv_iff.2 (injective_mfderiv_compatibleCLM J))
+    apply (injective_mvfderiv_compatibleCLM J)
     have h := hv 0
     rw [compatibleGeodesic_zero] at h
     refine h.trans ?_

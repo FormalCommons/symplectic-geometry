@@ -217,7 +217,7 @@ theorem isPseudoholomorphic_compatibleTransport {Ψ : V ≃L[ℝ] V}
   intro J
   refine isPseudoholomorphicAt_iff_mfderiv.2
     ⟨(ω.compatibleTransport hΨ).mdifferentiable (by simp) J, fun a => ?_⟩
-  apply injective_mvfderiv_iff.2 (injective_mfderiv_compatibleCLM _)
+  apply injective_mvfderiv_compatibleCLM _
   rw [mvfderiv_compatibleCLM_compatibleTransport,
     mvfderiv_compatibleCLM_compatibleSpaceComplexStructure,
     mvfderiv_compatibleCLM_compatibleSpaceComplexStructure,

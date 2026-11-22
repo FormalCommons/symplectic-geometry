@@ -291,17 +291,21 @@ theorem mvfderiv_compatibleCLM_apply (J : 𝒥) (a : ω.compatibleModel) :
       ContinuousLinearMap.mulLeftRight_apply, Submodule.subtypeL_apply]
   exact h a
 
-/-- The differential of the inclusion into the continuous endomorphisms is injective. -/
-theorem injective_mfderiv_compatibleCLM (J : 𝒥) :
-    Function.Injective (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J) := by
+/-- The differential of the inclusion into the continuous endomorphisms, read through `mvfderiv`,
+is injective. -/
+theorem injective_mvfderiv_compatibleCLM (J : 𝒥) : Function.Injective (dι[ω] J) := by
   refine (injective_iff_map_eq_zero _).2 fun a ha => ?_
   have hR :=
     (isUnit_one_sub_of_mem_chartAt_target (cayleyChart_mem_chartAt_target J J)).ringInverse
-  have h : (2 : ℝ) • (_ : V →L[ℝ] V) = 0 := (mvfderiv_compatibleCLM_apply J a).symm.trans
-    ((mvfderiv_apply_eq_mfderiv_apply _ _ _).trans ha)
+  have h : (2 : ℝ) • (_ : V →L[ℝ] V) = 0 := (mvfderiv_compatibleCLM_apply J a).symm.trans ha
   rw [smul_eq_zero, hR.mul_left_eq_zero,
     ((isUnit_compatibleCLM _).mul hR).mul_right_eq_zero] at h
   exact Subtype.ext (h.resolve_left two_ne_zero)
+
+/-- The differential of the inclusion into the continuous endomorphisms is injective. -/
+theorem injective_mfderiv_compatibleCLM (J : 𝒥) :
+    Function.Injective (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J) :=
+  injective_mvfderiv_iff.1 (injective_mvfderiv_compatibleCLM J)
 
 /-- The differential of the inclusion at `J` takes values in Tau Ceti's compatible tangent space
 at `J`, read in the continuous endomorphisms. -/
