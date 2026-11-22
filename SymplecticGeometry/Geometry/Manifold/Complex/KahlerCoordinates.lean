@@ -84,20 +84,10 @@ theorem gramInChart_apply_eq_mpullback_symm_apply {J : SmoothAlmostComplexStruct
     (hφ : ∀ p ∈ φ.target, ∀ w : E, J.chartPushforward φ.toOpenPartialHomeomorph p w = J₀ w)
     {z : E} (hz : z ∈ φ.target) (u v : E) :
     gramInChart φ z u v = mpullback 𝓘(ℝ, E) I φ.symm form.val z ![u, J₀ v] := by
-  have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
-  have hs : φ.symm z ∈ φ.source := φ.map_target hz
   -- `J` read through the inverse of the chart is `J₀`.
   have hJ : J (φ.symm z) (mfderiv 𝓘(ℝ, E) I φ.symm z v) =
       mfderiv 𝓘(ℝ, E) I φ.symm z (J₀ v) := by
-    have h1 := (J.forall_chartPushforward_apply_eq_iff φ J₀).1 hφ _ hs
-      (mfderiv 𝓘(ℝ, E) I φ.symm z v)
-    rw [φ.mfderiv_apply_mfderiv_symm_apply hn hz v] at h1
-    have h2 := φ.mfderiv_symm_apply_mfderiv_apply hn hs
-      (J (φ.symm z) (mfderiv 𝓘(ℝ, E) I φ.symm z v))
-    have hr : φ (φ.symm z) = z := φ.right_inv hz
-    rw [← h1]
-    convert h2.symm using 2
-    rw [hr]
+    rw [← hφ z hz v, J.mfderiv_symm_apply_chartPushforward_apply φ hz]
   rw [gramInChart_apply, hg, hJ]
   refine Eq.trans ?_ (TauCeti.mpullback_apply _ _ _ _).symm
   congr 1
