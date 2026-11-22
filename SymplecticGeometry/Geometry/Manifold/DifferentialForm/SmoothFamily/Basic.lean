@@ -49,6 +49,8 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
   section is smooth.
 * `SymplecticGeometry.IsSmoothFamily.contMDiff_apply`: the values of a smooth family at a point,
   on fixed tangent vectors, are smooth in the parameter.
+* `SymplecticGeometry.IsSmoothFamily.ext_on`: two smooth families that agree on a dense set of
+  parameters are equal.
 * `SymplecticGeometry.isSmoothFamily_const` and the closure lemmas `IsSmoothFamily.add`, `.neg`,
   `.sub`, `.smul`, `.fun_smul`, `.funSMul`, `.sum`, `.mpullback`, `.mextDeriv`,
   `.extendByZero_smul` and `.comp`.
@@ -355,6 +357,14 @@ theorem contMDiff_apply (h : IsSmoothFamily J α) (x : M) (v : Fin k → Tangent
   simpa only [Function.comp_def, ContinuousAlternatingMap.apply_apply,
     ContinuousAlternatingMap.compContinuousLinearMap_apply,
     Trivialization.symmL_continuousLinearMapAt _ hx] using this
+
+/-- Two smooth families of forms that agree at the parameters of a dense set are equal. -/
+theorem ext_on (hα : IsSmoothFamily J α) (hβ : IsSmoothFamily J β) {s : Set N} (hs : Dense s)
+    (h : EqOn α β s) : α = β := by
+  funext t
+  ext x v
+  exact congrFun (Continuous.ext_on hs (hα.contMDiff_apply x v).continuous
+    (hβ.contMDiff_apply x v).continuous fun r hr ↦ by rw [h hr]) t
 
 /-- The sum of two smooth families is smooth. -/
 protected theorem add (hα : IsSmoothFamily J α) (hβ : IsSmoothFamily J β) :
