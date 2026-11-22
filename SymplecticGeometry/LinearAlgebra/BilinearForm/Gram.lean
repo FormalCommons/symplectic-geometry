@@ -7,6 +7,7 @@ module
 
 public import Mathlib.LinearAlgebra.Matrix.BilinearForm
 public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+public import Mathlib.Topology.Algebra.Module.Spaces.ContinuousLinearMap
 
 /-!
 # The vector dual to a linear form, through the inverse Gram matrix
@@ -23,6 +24,9 @@ The proof of `sum_inv_toMatrix_mulVec_smul` adapts that of Tau Ceti's
 `LinearMap.BilinForm.Nondegenerate.repr_eq_sum_inv_toMatrix₂_mul_apply`
 (`LinearAlgebra/Matrix/BilinearForm.lean`), which gives each coordinate for a nondegenerate form
 over a field; here the ring is any commutative ring and only the Gram determinant is a unit.
+
+For a continuous bilinear form `B` over a normed field, the matrix of the bilinear form underlying
+`B` is the Gram matrix `(B bᵢ bⱼ)ᵢⱼ` (`LinearMap.BilinForm.toMatrix_toLinearMap₁₂`).
 -/
 
 public section
@@ -61,6 +65,14 @@ theorem sum_inv_toMatrix_mulVec_smul (B : LinearMap.BilinForm R M) (b : Basis ι
     rw [apply_eq_dotProduct_toMatrix_mulVec b, b.repr_self, Finsupp.single_eq_pi_single,
       single_dotProduct, one_mul]
   rw [h, Matrix.mulVec_mulVec, Matrix.nonsing_inv_mul _ hB, Matrix.one_mulVec, b.sum_repr]
+
+/-- The matrix in a basis `b` of the bilinear form underlying a continuous bilinear form `B` is
+the Gram matrix `(B bᵢ bⱼ)ᵢⱼ`. -/
+theorem toMatrix_toLinearMap₁₂ {𝕜 V : Type*} [NormedField 𝕜] [AddCommGroup V] [Module 𝕜 V]
+    [TopologicalSpace V] (B : V →L[𝕜] V →L[𝕜] 𝕜) (b : Basis ι 𝕜 V) :
+    toMatrix b B.toLinearMap₁₂ = Matrix.of fun i j ↦ B (b i) (b j) := by
+  ext i j
+  rw [toMatrix_apply, Matrix.of_apply, ContinuousLinearMap.toLinearMap₁₂_apply_apply_apply]
 
 end LinearMap.BilinForm
 

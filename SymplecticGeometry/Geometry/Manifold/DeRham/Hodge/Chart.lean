@@ -579,16 +579,6 @@ theorem formInnerInChart_comm (y : E) (β γ : E [⋀^Fin k]→L[ℝ] ℝ) :
     formInnerInChart ψ y β γ = formInnerInChart ψ y γ β := by
   rw [formInnerInChart_apply, formInnerInChart_apply, alternatingFormInner_comm]
 
-/-- The matrix of the inner product in a chart in a basis `e` of the forms on `E` is the Gram
-matrix of `e`. -/
-theorem toMatrix_formInnerInChart {κ : Type*} [Fintype κ] [DecidableEq κ]
-    (e : Module.Basis κ ℝ (E [⋀^Fin k]→L[ℝ] ℝ)) (y : E) :
-    LinearMap.BilinForm.toMatrix e (formInnerInChart ψ y).toLinearMap₁₂ =
-      Matrix.of fun p q ↦ formInnerInChart ψ y (e p) (e q) := by
-  ext p q
-  rw [LinearMap.BilinForm.toMatrix_apply, Matrix.of_apply,
-    ContinuousLinearMap.toLinearMap₁₂_apply_apply_apply]
-
 /-- On the target of the chart, the Gram matrix of a basis of the forms on `E` for the inner
 product in the chart is positive definite. -/
 theorem posDef_formInnerInChart (hn : n ≠ 0) {κ : Type*} [Finite κ]
@@ -596,7 +586,7 @@ theorem posDef_formInnerInChart (hn : n ≠ 0) {κ : Type*} [Finite κ]
     (Matrix.of fun p q ↦ formInnerInChart ψ y (e p) (e q)).PosDef := by
   classical
   have := Fintype.ofFinite κ
-  rw [← toMatrix_formInnerInChart]
+  rw [← LinearMap.BilinForm.toMatrix_toLinearMap₁₂]
   exact (LinearMap.BilinForm.posDef_toQuadraticMap_iff_matrix e
     (formInnerInChart ψ y).toLinearMap₁₂
     (LinearMap.BilinForm.isSymm_def.2 fun β γ ↦ formInnerInChart_comm ψ y β γ)).1
@@ -611,10 +601,11 @@ theorem eq_sum_inv_mulVec_formInnerInChart (hn : n ≠ 0) {κ : Type*} [Fintype 
     β = ∑ p, ((Matrix.of fun p q ↦ formInnerInChart ψ y (e p) (e q))⁻¹ *ᵥ
       fun q ↦ formInnerInChart ψ y β (e q)) p • e p := by
   have hG : IsUnit (LinearMap.BilinForm.toMatrix e (formInnerInChart ψ y).toLinearMap₁₂).det := by
-    rw [toMatrix_formInnerInChart]
+    rw [LinearMap.BilinForm.toMatrix_toLinearMap₁₂]
     exact (posDef_formInnerInChart ψ hn e hy).det_pos.ne'.isUnit
   have h := LinearMap.BilinForm.sum_inv_toMatrix_mulVec_smul _ e hG β
-  simp only [toMatrix_formInnerInChart, ContinuousLinearMap.toLinearMap₁₂_apply_apply_apply,
+  simp only [LinearMap.BilinForm.toMatrix_toLinearMap₁₂,
+    ContinuousLinearMap.toLinearMap₁₂_apply_apply_apply,
     formInnerInChart_comm ψ y (e _) β] at h
   exact h.symm
 
@@ -678,7 +669,7 @@ theorem contDiffOn_formInnerInChart [T2Space M] [IsManifold I ∞ M]
       ∑ p, ∑ q, e.repr (f y) p * formInnerInChart ψ y (e p) (e q) * e.repr (g y) q := by
     rw [← ContinuousLinearMap.toLinearMap₁₂_apply_apply_apply,
       ← Matrix.toBilin_toMatrix e (formInnerInChart ψ y).toLinearMap₁₂, Matrix.toBilin_apply,
-      toMatrix_formInnerInChart]
+      LinearMap.BilinForm.toMatrix_toLinearMap₁₂]
     simp only [Matrix.of_apply]
   refine ContDiffOn.congr ?_ fun y _ ↦ hexp y
   have hc (p) {F : E → E [⋀^Fin k]→L[ℝ] ℝ} (hF : ContDiffOn ℝ ∞ F s) :
