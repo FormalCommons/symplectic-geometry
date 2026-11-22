@@ -1,12 +1,26 @@
 name: cache
 
-# Builds the dependencies that the library imports, and saves them for CI to
-# restore: Mathlib's files from its cache, and the Tau Ceti modules that the
-# library's files import, which `lake exe cache get` does not fetch. It runs
-# on every push to main, but builds only those dependencies, never the
-# library's own code, and saves again only when the library has started to
-# import Tau Ceti modules it did not import before. Only this workflow saves;
-# GitHub lets runs on any branch restore main's caches.
+# Saves two builds on main for CI to restore. Only this workflow saves; GitHub
+# lets runs on any branch restore main's caches.
+#
+# The first job builds the dependencies that the library imports: Mathlib's
+# files from its cache, and the Tau Ceti modules that the library's files
+# import, which `lake exe cache get` does not fetch. It builds only those
+# dependencies, never the library's own code, and saves again only when the
+# list of Tau Ceti modules that the library imports has changed.
+#
+# The second job builds the library and saves `.lake/build`. CI restores the
+# latest save, and Lake then builds only the files that differ from it and
+# the files that import them, directly or through other files. Lake takes a
+# file's build from a save only if the hash of the file's source, of its
+# imports' builds, of the toolchain and of the options is the one recorded
+# with that build; it does not go by the files' times. The job itself starts
+# from the latest save of the current hour. The first run of each hour finds
+# none and builds every file from its source, so main is built in full about
+# once an hour while pull requests merge, and no save descends from a save
+# of an earlier hour. If that build fails, nothing is saved, and each later
+# run builds in full again. So a run of this workflow that fails at the
+# library's build step says that main does not build from its source.
 on:
   push:
     branches: [main]
@@ -71,3 +85,49 @@ jobs:
         with:
           path: .lake/packages
           key: ${{ steps.deps.outputs.key }}
+
+  # Saves only `.lake/build`. The dependencies come from the first job's
+  # save, as in CI.
+  library:
+    needs: cache
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - name: install elan
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/v4.2.4/elan-init.sh \
+            | sh -s -- -y --no-modify-path --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: restore the built dependencies
+        id: restore
+        uses: actions/cache/restore@v6
+        with:
+          path: .lake/packages
+          key: lake-packages-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
+          restore-keys: lake-packages-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-
+      - name: fetch Mathlib's build cache
+        if: steps.restore.outputs.cache-matched-key == ''
+        run: lake exe cache get
+      # A save's name has the number of the hour in which its run began, then
+      # the commit and the run. lakefile.toml is in the hash because Lake's
+      # record of a build does not cover everything a lakefile can set.
+      - name: name the save
+        id: name
+        run: echo "hour=lake-build-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}-$(( $(date +%s) / 3600 ))-" >> "$GITHUB_OUTPUT"
+      # Only saves of this hour, so the first run of each hour restores
+      # nothing. A run started by hand restores nothing either.
+      - name: restore the latest build of the library
+        if: github.event_name == 'push'
+        uses: actions/cache/restore@v6
+        with:
+          path: .lake/build
+          key: ${{ steps.name.outputs.hour }}${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: ${{ steps.name.outputs.hour }}
+      - name: build
+        run: lake build --wfail
+      - name: save the build of the library
+        uses: actions/cache/save@v6
+        with:
+          path: .lake/build
+          key: ${{ steps.name.outputs.hour }}${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
