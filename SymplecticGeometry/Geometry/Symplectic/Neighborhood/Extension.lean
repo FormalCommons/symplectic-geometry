@@ -81,16 +81,16 @@ local instance (x : M) : IsNormableSpace ℝ (TangentSpace I x) :=
   instIsNormableSpaceTangentSpace I x
 
 /-- **A smooth left inverse of the derivative.** For a smooth embedding `f` into a manifold with
-a two-form `σ` and a compatible almost complex structure `J`, there is a smooth section `S` of
+a two-form `σ` and an almost complex structure `J` tamed by `σ`, there is a smooth section `S` of
 the bundle of linear maps from the pull-back `f *ᵖ TM` to `TQ` with `S_q ∘ df_q = id` at every
 `q`: `Manifold.IsImmersion.exists_contMDiff_leftInverse_mfderiv` for the form `σ(J ·, ·)`. -/
-theorem exists_contMDiff_leftInverse_mfderiv (hc : σ.Compatible Jc) :
+theorem exists_contMDiff_leftInverse_mfderiv (h : σ.Tames Jc) :
     ∃ S : ∀ q, TangentSpace I (f q) →L[ℝ] TangentSpace J q,
       ContMDiff J (J.prod 𝓘(ℝ, E →L[ℝ] E')) ∞ (fun q ↦ TotalSpace.mk' (E →L[ℝ] E')
         (E := fun q ↦ ((f : Q → M) *ᵖ (TangentSpace I)) q →L[ℝ] TangentSpace J q) q (S q)) ∧
       ∀ q, Function.LeftInverse (S q) (mfderiv J I f q) :=
   f.isImmersion.exists_contMDiff_leftInverse_mfderiv (σ.flatComp Jc.toEndomorphism).contMDiff
-    fun _ _ ↦ hc.tames.flatComp_apply_self_eq_zero_iff.1
+    fun _ _ ↦ h.flatComp_apply_self_eq_zero_iff.1
 
 variable [FiniteDimensional ℝ E]
 
@@ -510,8 +510,8 @@ theorem contMDiff_smoothExtendAlong {k : ℕ}
         ((f₁ : Q → M₁) *ᵖ (TangentSpace I₁)) q) q
       (smoothExtendAlong hc₀ hc₁ hσ L hL hLω hdim q :
         TangentSpace I₀ (f₀ q) →L[ℝ] TangentSpace I₁ (f₁ q))) := by
-  obtain ⟨S₀, hS₀, hS₀f⟩ := f₀.exists_contMDiff_leftInverse_mfderiv hc₀
-  obtain ⟨S₁, hS₁, hS₁f⟩ := f₁.exists_contMDiff_leftInverse_mfderiv hc₁
+  obtain ⟨S₀, hS₀, hS₀f⟩ := f₀.exists_contMDiff_leftInverse_mfderiv hc₀.tames
+  obtain ⟨S₁, hS₁, hS₁f⟩ := f₁.exists_contMDiff_leftInverse_mfderiv hc₁.tames
   simp only [smoothExtendAlong_eq_extendFormula hc₀ hc₁ hσ L hL hLω hdim hS₀f hS₁f]
   exact contMDiff_extendFormula hc₀ hc₁ hσ L hk hLs hS₀ hS₁
 
