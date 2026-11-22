@@ -766,26 +766,27 @@ Expected size: 450 lines.
 
 ```lean
 theorem TauCeti.SmoothIsotopy.exists_diffeotopy_mem_diffeomorphStabilizer_eqOn
-    {M : Type} … [CompactSpace M] (hω : ω.IsSymplectic) {Q : Set M} (hQ : IsCompact Q)
+    {M : Type} … [CompactSpace M] (hσ : σ.IsSymplectic) {Q : Set M} (hQ : IsCompact Q)
     (hQr : Nonempty (NDRPair Q)) {U : Opens M} (hQU : Q ⊆ U)
     {f₀ f₁ : C^∞⟮I, U; I, M⟯} (φ : SmoothIsotopy f₀ f₁) (hf₀ : ∀ x, f₀ x = x)
-    (hφ : φ.IsSymplectic (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal ω) ω)
+    (hφ : φ.IsSymplectic (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) σ)
     (hsurj : ∀ f : H₁ Q →+ ℝ, ∃ c : deRhamCohomology I M 1,
       (deRhamCohomology.homologyPeriod c).comp
         (ContinuousMap.singularHomologyMap ℤ 1
           (⟨Subtype.val, continuous_subtypeVal⟩ : C(Q, M))).toAddMonoidHom = f) :
     ∃ N : Opens M, Q ⊆ N ∧ N ≤ U ∧ ∃ Ψ : Diffeotopy I ∞ M,
-      (∀ t, Ψ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer ω) ∧
+      (∀ t, Ψ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) ∧
       ∀ t, ∀ x : U, (x : M) ∈ N → Ψ (t, x) = φ (t, x)
 
 theorem TauCeti.SmoothIsotopy.exists_hasHamiltonian_eqOn
-    {M : Type} … [T2Space M] [SigmaCompactSpace M] (hω : ω.IsSymplectic) {Q : Set M}
+    {M : Type} … [T2Space M] [SigmaCompactSpace M] (hσ : σ.IsSymplectic) {Q : Set M}
     (hQ : IsCompact Q) (hQr : Nonempty (NDRPair Q)) {U : Opens M} (hQU : Q ⊆ U)
     {f₀ f₁ : C^∞⟮I, U; I, M⟯} (φ : SmoothIsotopy f₀ f₁) (hf₀ : ∀ x, f₀ x = x)
-    (hφ : φ.IsSymplectic (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal ω) ω)
+    (hφ : φ.IsSymplectic (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) σ)
     (hQ1 : Subsingleton (H₁ Q →+ ℝ)) :
     ∃ N : Opens M, Q ⊆ N ∧ N ≤ U ∧ ∃ (Ψ : Diffeotopy I ∞ M) (F : M × unitInterval → ℝ)
-      (K : Set M), IsCompact K ∧ Ψ.HasHamiltonian ω F ∧ (∀ p, p.1 ∉ K → F p = 0) ∧
+      (K : Set M), IsCompact K ∧ Ψ.IsCompactlySupportedHamiltonian σ ∧
+      Ψ.HasHamiltonian σ F ∧ (∀ p, p.1 ∉ K → F p = 0) ∧
       (∀ t, ∀ y ∉ K, Ψ (t, y) = y) ∧ ∀ t, ∀ x : U, (x : M) ∈ N → Ψ (t, x) = φ (t, x)
 ```
 
@@ -794,7 +795,9 @@ Both start `φ` at a variable `f₀` equal to the inclusion, as
 `⟨Subtype.val, contMDiff_subtypeVal⟩` Lean finds no coercion of `φ` to a
 function and `φ (t, x)` does not elaborate.
 The first is `Flow.lean`'s symplectic theorem with `K` a compact neighbourhood
-of `Q` in `V`, and `β`, `h` from `Primitive.lean`. The second takes `β = 0`.
+of `Q` in `V`, and `β`, `h` from `Primitive.lean`, applied to the restriction of
+`φ` to `V`, `SmoothIsotopy.restrict`, which `Velocity.lean` defines with the
+slices of its velocity form. The second takes `β = 0`.
 Its periods vanish by `hQ1`, so it needs no compactness of `M`, only the
 compact support that `Flow.lean`'s Hamiltonian theorem provides. The
 milestone is the conjunction, under the plan's hypotheses (compact `M`):
@@ -899,7 +902,10 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Cohomological/Primitive.lean`, which also imports `Geometry/Manifold/DeRham/Map.lean`
   for `TauCeti.SmoothForm.mpullback_mem_closedForms`). The part does not use the splittings and
   `contMDiff_repr_mk_of_hasFiniteGoodCover`: the periods are smooth in `t`
-  as line integrals. Its flows are Tau Ceti's `timeDependentFlowDiffeotopy`,
+  as line integrals. `IsotopyExtension/Velocity.lean` imports its
+  `Geometry/Manifold/LocalDiffeomorph/OpenSubset.lean`, for the inclusion of one
+  open set in another as a local diffeomorphism (`SmoothIsotopy.restrict`).
+  The part's flows are Tau Ceti's `timeDependentFlowDiffeotopy`,
   already a `Diffeotopy`, except in `Moser/Family.lean`, which imports the
   bridge `Diffeotopy/Real.lean` for `TauCeti.Diffeotopy.ofReal` and
   `Geometry/Manifold/Flow/TimeDependent.lean` for
@@ -960,6 +966,9 @@ this design already follows. `Ball/Isotopy.lean` cites
   `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_add_smul_sub_of_eq` (the
   segment between two forms that agree at a point is constant there), which
   that pull request also adds.
+- *Liouville structures*: `Geometry/Manifold/VectorField/Prod.lean`, which
+  imports only Tau Ceti, for `TauCeti.Manifold.prodVectorField_apply` (the
+  value of the unit time field in `IsotopyExtension/Velocity.lean`).
 - Tau Ceti, besides the declarations named above:
   `TauCeti.SmoothIsotopy` with `timeSlice`, `ContMDiffMap.smoothIsotopyRefl`;
   `TauCeti.Diffeotopy` with `timeSlice`, `final`, `trans`, `symm`,

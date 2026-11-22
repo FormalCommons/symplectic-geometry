@@ -354,6 +354,14 @@ a compact `K ⊆ ψ.target`, used to show that `L2Form.localize` is bounded:
   `riemannianJacobian` of `ψ.symm` is positive on `ψ.target`, and bounded
   above and away from zero on `K`.
 
+### `Analysis/InnerProductSpace/Comass.lean`
+
+Named like Tau Ceti's file; used by `L2.lean`.
+
+- `ContinuousAlternatingMap.alternatingFormInner_self_le`:
+  `alternatingFormInner E k φ φ ≤ (finrank ℝ E).choose k * ‖φ‖ ^ 2`, the
+  square of Tau Ceti's `sqrt_alternatingFormInner_self_le`.
+
 ### `Geometry/Manifold/DeRham/Hodge/L2.lean`
 
 - `TauCeti.SmoothForm.l2Inner o (α β : SmoothForm I M ℝ k) : ℝ`, the integral of
@@ -475,6 +483,12 @@ complexification:
   and `curryLeft_alternatizeUncurryFin_smulRight_zero`: for a covector
   $\xi$, $\iota_v\varepsilon_\xi+\varepsilon_\xi\iota_v=\xi(v)$ in positive
   degree, and $\iota_v\varepsilon_\xi=\xi(v)$ in degree $0$.
+
+### `Topology/Algebra/Module/FiniteDimension.lean`
+
+- `Module.Basis.sum_coord_smulRight`: for a basis `b` of a
+  finite-dimensional space, a continuous linear map `f` is
+  `∑ i, (b.coord i).smulRight (f (b i))`. The file above uses it.
 
 ### `Analysis/InnerProductSpace/HodgeStar/AlternatingForm.lean`
 
@@ -678,6 +692,10 @@ was found, so `ERRATA.md` needs no entry.
   `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`
   (merged): `PartialDiffeomorph.mpullback_symm_mpullback_apply`, only in
   the proof of `mpullback_symm_extendByZeroAlong`.
+- *Smooth families*,
+  `Geometry/Manifold/DifferentialForm/Pullback/Smooth.lean` (merged):
+  `TauCeti.mpullback_apply_eq_compContinuousLinearMap`, which this part adds
+  there, only in the proofs of `L2.lean`.
 - *Nijenhuis tensor*, `Geometry/Symplectic/Manifold/AlmostComplex/Chart.lean`
   (#1295): `TauCeti.SmoothAlmostComplexStructure.mfderiv_symm_apply_chartPushforward_apply`,
   only in the proof of `mpullback_symm_realAlternatingDerivation`, and
