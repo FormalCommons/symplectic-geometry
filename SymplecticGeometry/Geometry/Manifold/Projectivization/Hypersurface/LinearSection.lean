@@ -16,7 +16,7 @@ public import TauCeti.Topology.VectorBundle.Pullback
 
 import SymplecticGeometry.LinearAlgebra.FiniteDimensional.KerInf
 import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
-import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 
 /-!
@@ -81,7 +81,7 @@ the tangent space of `X` at `z` in homogeneous coordinates (compare Tau Ceti's
 `TauCeti.tangentRange_complexProjectiveZeroLocusEmbedding`). As the derivative of the section goes
 from an `n`-dimensional space to `ℂ^n`, it is onto exactly when `ker ℓ` meets that intersection
 in `0`, which for `ℓ` onto says that `df` does not vanish on the plane `ker ℓ`
-(`LinearMap.ker_inf_ker_inf_ker_eq_bot_iff`).
+(`Submodule.inf_ker_inf_ker_eq_bot_iff`).
 
 ## References
 
@@ -442,22 +442,19 @@ private theorem injective_fderiv_chartLift (z : X) :
     have hi := X.embedding.isImmersion.mfderiv_injective WithTop.top_ne_zero z
     rw [coe_embedding] at hi
     exact hbij.injective.comp hi
-  rw [mfderiv, ite_eq_left (h1.comp z h2)] at hinj
-  simp only [writtenInExtChartAt, extChartAt_model_space_eq_id, extChartAt_coe,
-    extChartAt_coe_symm, modelWithCornersSelf_coe, modelWithCornersSelf_coe_symm, range_id,
-    PartialEquiv.refl_coe, Function.comp_def, id, fderivWithin_univ] at hinj
-  replace hinj : Function.Injective (fderiv ℂ (fun y ↦ affineChart j
-      (((chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z).symm y : X) : ℙ ℂ (Fin (n + 2) → ℂ)))
-      (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z)) := fun a b hab ↦
-    (tangentSpaceCastModel _ z).symm.injective <|
-      @hinj ((tangentSpaceCastModel _ z).symm a) ((tangentSpaceCastModel _ z).symm b)
-      (by simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
-        ContinuousLinearEquiv.apply_symm_apply, hab])
+  replace hinj : Function.Injective (fderiv ℂ
+      ((affineChart j ∘ (Subtype.val : X → ℙ ℂ (Fin (n + 2) → ℂ))) ∘
+        (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z).symm)
+      (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z)) := by
+    rw [TauCeti.fderiv_comp_chartAt_symm]
+    -- `mvfderiv` is `mfderiv` followed by `NormedSpace.fromTangentSpace`; the goal reads it on
+    -- the model space, which is the tangent space of `X` at `z` by definition.
+    exact (NormedSpace.fromTangentSpace _).injective.comp hinj
   -- The affine chart is the chart lift with its coordinate `j` deleted.
   set R : (Fin (n + 2) → ℂ) →L[ℂ] Fin (n + 1) → ℂ :=
     ContinuousLinearMap.pi fun k ↦ ContinuousLinearMap.proj (j.succAbove k)
-  have hR : (fun y ↦ affineChart j (((chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z).symm y :
-      X) : ℙ ℂ (Fin (n + 2) → ℂ))) = R ∘ chartLift X z := by
+  have hR : (affineChart j ∘ (Subtype.val : X → ℙ ℂ (Fin (n + 2) → ℂ))) ∘
+      (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z).symm = R ∘ chartLift X z := by
     funext y k
     simp only [Function.comp_apply, R, ContinuousLinearMap.pi_apply, ContinuousLinearMap.proj_apply,
       chartLift]
@@ -572,29 +569,17 @@ private theorem range_fderiv_chartLift (z : X) :
   have hg : g ≠ 0 := fun h ↦ X.polyDeriv_ne_zero z hc (by
     rw [← hv]
     exact ContinuousLinearMap.coe_injective h)
-  -- Both kernels are hyperplanes, and they differ since `v` lies in the second only.
-  have hker (h : (Fin (n + 2) → ℂ) →ₗ[ℂ] ℂ) (hh : h ≠ 0) :
-      Module.finrank ℂ (LinearMap.ker h) = n + 1 := by
-    have := h.finrank_range_add_finrank_ker
-    rw [Module.Dual.range_eq_top_of_ne_zero hh, finrank_top, Module.finrank_self,
-      Module.finrank_fin_fun] at this
-    omega
-  have hf : f ≠ 0 := fun h ↦ by simp [h] at hfv
-  have hsup : Module.finrank ℂ (LinearMap.ker f) <
-      Module.finrank ℂ ↥(LinearMap.ker f ⊔ LinearMap.ker g) :=
-    Submodule.finrank_lt_finrank_of_lt (lt_of_le_of_ne le_sup_left fun h ↦ by
-      have : v ∈ LinearMap.ker f := h ▸ Submodule.mem_sup_right (LinearMap.mem_ker.2 hgv)
-      simp [LinearMap.mem_ker.1 this] at hfv)
-  have h1 := Submodule.finrank_sup_add_finrank_inf_eq (LinearMap.ker f) (LinearMap.ker g)
-  have h2 := Submodule.finrank_le (LinearMap.ker f ⊔ LinearMap.ker g)
-  rw [Module.finrank_fin_fun] at h2
+  -- The kernel of `g` is a hyperplane, which `ker f` cuts in codimension one since `v` lies in
+  -- the first only.
+  have hker := Module.Dual.finrank_ker_add_one_of_ne_zero hg
+  have hfg := Module.Dual.finrank_ker_inf_add_one (f := f) (U := LinearMap.ker g) fun h ↦ by
+    simp [LinearMap.mem_ker.1 (h (LinearMap.mem_ker.2 hgv))] at hfv
+  rw [Module.finrank_fin_fun] at hker
   refine Submodule.eq_of_le_of_finrank_eq ?_ ?_
   · rintro _ ⟨u, rfl⟩
     exact ⟨congrArg (fun L : _ →L[ℂ] ℂ ↦ L u) (X.proj_comp_fderiv_chartLift z),
       congrArg (fun L : _ →L[ℂ] ℂ ↦ L u) (X.polyDeriv_comp_fderiv_chartLift z)⟩
   · rw [LinearMap.finrank_range_of_inj (X.injective_fderiv_chartLift z), finrank_model]
-    have := hker f hf
-    have := hker g hg
     omega
 
 /-- The derivative `ℓ ∘ D` of the section given by `ℓ` at a zero `z` is surjective exactly when
@@ -617,31 +602,23 @@ private theorem surjective_comp_fderiv_chartLift_iff {ℓ : (Fin (n + 2) → ℂ
     (by rw [finrank_model, Module.finrank_fin_fun])]
   have hinj : Function.Injective ((LinearMap.toContinuousLinearMap ℓ).comp D).toLinearMap ↔
       LinearMap.ker ℓ ⊓ LinearMap.range D.toLinearMap = ⊥ := by
-    constructor
-    · intro h
-      refine eq_bot_iff.2 fun x hx ↦ ?_
-      obtain ⟨hx, u, rfl⟩ := hx
-      have hu : u = 0 := h (by
-        simpa only [ContinuousLinearMap.coe_coe, ContinuousLinearMap.coe_comp, Function.comp_apply,
-          LinearMap.coe_toContinuousLinearMap', map_zero] using LinearMap.mem_ker.1 hx)
-      rw [hu, map_zero]
-      exact Submodule.zero_mem _
-    · intro h a b hab
-      refine hD (sub_eq_zero.1 ?_)
-      have : D (a - b) ∈ LinearMap.ker ℓ ⊓ LinearMap.range D.toLinearMap := by
-        refine ⟨LinearMap.mem_ker.2 ?_, a - b, rfl⟩
-        simp only [ContinuousLinearMap.coe_coe, ContinuousLinearMap.coe_comp, Function.comp_apply,
-          LinearMap.coe_toContinuousLinearMap'] at hab
-        rw [map_sub, map_sub, hab, sub_self]
-      rwa [h, Submodule.mem_bot, map_sub] at this
+    rw [← LinearMap.ker_eq_bot, ContinuousLinearMap.toLinearMap_comp, LinearMap.ker_comp, inf_comm,
+      ← Submodule.map_comap_eq, ← Submodule.map_bot D.toLinearMap,
+      (Submodule.map_injective_of_injective hD).eq_iff]
+    rfl
+  have hℓk : Module.finrank ℂ (LinearMap.ker ℓ) = 2 := by
+    have := ℓ.finrank_range_add_finrank_ker
+    rw [LinearMap.range_eq_top.2 hℓ, finrank_top, Module.finrank_fin_fun,
+      Module.finrank_fin_fun] at this
+    omega
   rw [hinj, X.range_fderiv_chartLift z, ← inf_assoc,
-    LinearMap.ker_inf_ker_inf_ker_eq_bot_iff hℓ (by simp)
-      (v := v) (by rw [hv, map_smul, hz, smul_zero])
+    Submodule.inf_ker_inf_ker_eq_bot_iff hℓk
+      (v := v) (by rw [LinearMap.mem_ker, hv, map_smul, hz, smul_zero])
       (by
         rw [ContinuousLinearMap.coe_coe, ContinuousLinearMap.proj_apply]
         exact (X.chartLift_apply_indexAt z _).trans_ne one_ne_zero)
       (X.polyDeriv_chartLift_chartAt z)]
-  refine exists_congr fun w ↦ and_congr_right fun _ ↦ ?_
+  refine exists_congr fun w ↦ and_congr LinearMap.mem_ker ?_
   rw [ContinuousLinearMap.coe_coe, X.chartLift_chartAt z, polyDeriv_smul, polyDeriv_apply]
   exact mul_ne_zero_iff.trans (and_iff_right (pow_ne_zero _ hc))
 
@@ -660,28 +637,12 @@ theorem surjective_sectionLinearization_linearSection_iff
   have hs := hc.2.mdifferentiableAt (by simp)
   rw [TauCeti.surjective_sectionLinearization_iff continuousAt_id
     (mem_baseSet_trivializationAt _ _ z) hs hz]
-  have hmf := TauCeti.Manifold.hasMFDerivAt_of_hasFDerivWithinAt_extChartAt_target
-    (I := 𝓘(ℝ, Fin (n + 1 - Fintype.card Unit) → ℂ)) (I' := 𝓘(ℝ, Fin n → ℂ))
-    (f := fun y ↦ (trivializationAt (Fin n → ℂ)
-      (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 (Fin n)).Fiber) z
-      ⟨id y, X.linearSection ℓ y⟩).2)
-    (by simp only [extChartAt_coe, modelWithCornersSelf_coe, Function.comp_apply, id])
-    hc.2.continuousAt
-    (X.hasFDerivAt_trivializationAt_linearSection ℓ z).hasFDerivWithinAt (fun y _ ↦ by
-      simp only [writtenInExtChartAt, extChartAt_model_space_eq_id, extChartAt_coe_symm,
-        modelWithCornersSelf_coe_symm, PartialEquiv.refl_coe, Function.comp_apply, id])
-  have h : ⇑(mvfderiv 𝓘(ℝ, Fin (n + 1 - Fintype.card Unit) → ℂ) (fun y ↦
-      (trivializationAt (Fin n → ℂ)
-        (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) 1 (Fin n)).Fiber) z
-        ⟨id y, X.linearSection ℓ y⟩).2) z) =
-      ⇑(((LinearMap.toContinuousLinearMap ℓ).comp (fderiv ℂ (chartLift X z)
-        (chartAt (Fin (n + 1 - Fintype.card Unit) → ℂ) z z))).restrictScalars ℝ) := by
-    funext v
-    rw [mvfderiv_apply_eq_mfderiv_apply, hmf.mfderiv]
-    -- The two sides differ only in the type of `v`: the tangent space of `X` at `z` for the
-    -- model `𝓘(ℝ, _)` is the model space itself.
-    rfl
-  rw [h, ContinuousLinearMap.coe_restrictScalars']
+  rw [← TauCeti.fderiv_comp_chartAt_symm]
+  simp only [Function.comp_def, id_eq]
+  rw [(X.hasFDerivAt_trivializationAt_linearSection ℓ z).fderiv]
+  -- The map is read on the tangent space of `X` at `z`, the model space by definition, so the
+  -- restriction of scalars, which `ContinuousLinearMap.coe_restrictScalars'` cannot rewrite
+  -- there, has the same underlying function.
   exact X.surjective_comp_fderiv_chartLift_iff hℓ ((X.linearSection_eq_zero_iff ℓ z).1 hz)
 
 /-- **At a transverse zero the derivative is a complex isomorphism.** Let `ℓ : ℂ^{n+2} → ℂ^n` be
@@ -707,14 +668,9 @@ theorem exists_continuousLinearEquiv_hasFDerivAt_trivializationAt_linearSection
   have hinj : Function.Injective B.toLinearMap :=
     (LinearMap.injective_iff_surjective_of_finrank_eq_finrank
       (by rw [finrank_model, Module.finrank_fin_fun])).2 hsurj
-  have hbij : Function.Bijective B.toLinearMap := ⟨hinj, hsurj⟩
-  refine ⟨(LinearEquiv.ofBijective B.toLinearMap hbij).toContinuousLinearEquiv, ?_⟩
-  have hB : ((LinearEquiv.ofBijective B.toLinearMap hbij).toContinuousLinearEquiv :
-      (Fin (n + 1 - Fintype.card Unit) → ℂ) →L[ℂ] Fin n → ℂ) = B :=
-    ContinuousLinearMap.ext fun u ↦ by
-      rw [ContinuousLinearEquiv.coe_coe, LinearEquiv.coe_toContinuousLinearEquiv',
-        LinearEquiv.ofBijective_apply, ContinuousLinearMap.coe_coe]
-  rw [hB]
+  refine ⟨ContinuousLinearEquiv.ofBijective B (LinearMap.ker_eq_bot.2 hinj)
+    (LinearMap.range_eq_top.2 hsurj), ?_⟩
+  rw [ContinuousLinearEquiv.coe_ofBijective]
   exact X.hasFDerivAt_trivializationAt_linearSection ℓ z
 
 /-- **The transversality condition along a parametrized line.** Let `L : ℂ² → ℂ^{n+2}` be injective
