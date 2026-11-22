@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Gluing.CapDiscs.Basic
+import SymplecticGeometry.Topology.Compactness.Compact
 
 /-!
 # Capping with discs: Hausdorff, compact and connected
@@ -159,20 +160,19 @@ end T2
 
 section Compact
 
+omit [IsManifold (𝓡∂ 2) ∞ S] in
 include hγ hinj in
 /-- If `S` is compact and the loops `γ i` together cover the boundary of `S`, there are finitely
 many of them: their ranges are disjoint, open and nonempty. -/
 theorem finite_of_compactSpace [CompactSpace S]
     (hsurj : Surjective fun p : ι × AddCircle (1 : ℝ) ↦ γ p.1 p.2) : Finite ι := by
-  have : CompactSpace ((𝓡∂ 2).boundary S) :=
-    isCompact_iff_compactSpace.1 ((𝓡∂ 2).isClosed_boundary (M := S) (n := ∞) (by simp)).isCompact
-  have hlf : LocallyFinite fun i ↦ range (γ i) := fun x ↦ by
-    obtain ⟨⟨j, θ⟩, rfl⟩ := hsurj x
-    refine ⟨range (γ j), (hγ j).isOpenMap.isOpen_range.mem_nhds ⟨θ, rfl⟩,
-      (finite_singleton j).subset ?_⟩
-    rintro i ⟨_, ⟨θ', rfl⟩, ⟨θ'', h⟩⟩
-    exact (congrArg Prod.fst (hinj (a₁ := (j, θ'')) (a₂ := (i, θ')) h)).symm
-  exact Set.finite_univ_iff.1 (hlf.finite_of_compact fun i ↦ range_nonempty _)
+  refine finite_of_compactSpace_of_pairwise_disjoint (fun i ↦ (hγ i).isOpenMap.isOpen_range)
+    (fun i ↦ range_nonempty _) (fun i j hij ↦ disjoint_left.2 ?_)
+    (eq_univ_of_forall fun x ↦ ?_)
+  · rintro _ ⟨θ, rfl⟩ ⟨θ', h⟩
+    exact hij (congrArg Prod.fst (hinj (a₁ := (j, θ')) (a₂ := (i, θ)) h)).symm
+  · obtain ⟨⟨i, θ⟩, rfl⟩ := hsurj x
+    exact mem_iUnion.2 ⟨i, θ, rfl⟩
 
 /-- The capped surface is compact when `S` is compact and the loops `γ i` together cover the
 boundary of `S`. -/
