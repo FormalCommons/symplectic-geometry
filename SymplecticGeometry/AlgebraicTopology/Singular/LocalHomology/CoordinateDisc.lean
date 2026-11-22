@@ -102,6 +102,9 @@ source: the inverse of Tau Ceti's oriented coordinate ball, restricted to a smal
   `SymplecticGeometry.CoordinateDisc.openDisc_subset_disc`.
 * `SymplecticGeometry.CoordinateDisc.disc_diff_openDisc`: the closed disc minus the open disc is
   the boundary circle.
+* `SymplecticGeometry.CoordinateDisc.apply_boundaryCircle_eq_of_continuousOn`: a map continuous on
+  the image of `ρ < ‖z‖ ≤ 1` and constant on the points of `ρ < ‖z‖ < 1` with angular coordinate
+  `ζ` takes the same value at the point `ζ` of the boundary circle.
 * `SymplecticGeometry.CoordinateDisc.disc_reverse`,
   `SymplecticGeometry.CoordinateDisc.openDisc_reverse`,
   `SymplecticGeometry.CoordinateDisc.boundaryLoop_reverse`: reversal keeps the discs and reverses
@@ -119,6 +122,10 @@ source: the inverse of Tau Ceti's oriented coordinate ball, restricted to a smal
 * `SymplecticGeometry.CoordinateDisc.range_ofChart`,
   `SymplecticGeometry.CoordinateDisc.range_ofChart_subset_source`: the image of `ofChart` is the
   image under `e.symm` of the ball of radius `r` about `c`, inside the source of `e`.
+* `SymplecticGeometry.CoordinateDisc.add_smul_orthonormalBasisOneI_repr_mem_ball`,
+  `SymplecticGeometry.CoordinateDisc.isOrientationPreservingAt_add_smul_orthonormalBasisOneI_repr`:
+  the parametrization `w ↦ c + (r / 2) (re w, im w)` of `ofChart` maps the ball into `B(c, r)`
+  and preserves the smooth orientations.
 * `TauCeti.HomologicalOrientation.forall_localOrientationEquiv_eq_or_forall_eq_neg`: an open
   embedding of a connected open set of `ℂ` carries its canonical orientation to `o` at every point
   or to `-o` at every point.
@@ -368,6 +375,50 @@ theorem disc_diff_openDisc : φ.disc \ φ.openDisc = Set.range φ.boundaryCircle
     exact ⟨c, by rw [boundaryCircle_apply]; exact congrArg φ (Subtype.ext hc)⟩
   · rintro ⟨z, rfl⟩
     exact ⟨φ.boundaryCircle_mem_disc z, φ.boundaryCircle_notMem_openDisc z⟩
+
+/-- A map that is continuous on the image of the half-open annulus `ρ < ‖z‖ ≤ 1`, for `ρ < 1`,
+and constant on the points of the open annulus `ρ < ‖z‖ < 1` with angular coordinate `ζ`, takes
+the same value at the point `φ.boundaryCircle ζ` of the boundary circle: it is the limit along the
+ray through `ζ`. -/
+theorem apply_boundaryCircle_eq_of_continuousOn {X : Type*} [TopologicalSpace X] [T1Space X]
+    {ρ : ℝ} (hρ : ρ < 1) {f : M → X}
+    (hf : ContinuousOn f (φ '' {z | ρ < ‖(z : ℂ)‖ ∧ ‖(z : ℂ)‖ ≤ 1})) {ζ : Circle} {c : X}
+    (h : ∀ z : ball, ρ < ‖(z : ℂ)‖ → ‖(z : ℂ)‖ < 1 → Circle.exp (Complex.arg z) = ζ →
+      f (φ z) = c) :
+    f (φ.boundaryCircle ζ) = c := by
+  -- The ray through `ζ`, as a map from `[0, 1]` to the ball.
+  let γ : unitInterval → ball := fun t ↦
+    ⟨(t : ℝ) * ζ, mem_ball_of_norm_le_one (by simp [abs_le.2 ⟨by
+      linarith [unitInterval.nonneg t], unitInterval.le_one t⟩])⟩
+  have hnorm : ∀ t : unitInterval, ‖((γ t : ball) : ℂ)‖ = t := fun t ↦ by
+    simp [γ, abs_of_nonneg (unitInterval.nonneg t)]
+  have hγ1 : φ (γ 1) = φ.boundaryCircle ζ := by
+    rw [boundaryCircle_apply]
+    congr 1
+    ext
+    simp [γ]
+  -- The open part of the ray beyond `ρ`, which has `1` in its closure.
+  let T : Set unitInterval := {t | max ρ 0 < t ∧ (t : ℝ) < 1}
+  have hT : Subtype.val '' T = Set.Ioo (max ρ 0) 1 := by
+    ext x
+    refine ⟨fun ⟨_, ht, hx⟩ ↦ hx ▸ ht, fun hx ↦
+      ⟨⟨x, (le_max_right ρ 0).trans hx.1.le, hx.2.le⟩, hx, rfl⟩⟩
+  have hmem : (1 : unitInterval) ∈ closure T := by
+    rw [closure_subtype, hT, closure_Ioo (max_lt hρ one_pos).ne]
+    exact ⟨(max_lt hρ one_pos).le, le_rfl⟩
+  have hmaps : Set.MapsTo (φ ∘ γ) (insert 1 T) (φ '' {z | ρ < ‖(z : ℂ)‖ ∧ ‖(z : ℂ)‖ ≤ 1}) :=
+    fun t ht ↦ ⟨γ t, ⟨by
+      rw [hnorm]
+      rcases ht with rfl | ht
+      · exact hρ
+      · exact (le_max_left ρ 0).trans_lt ht.1, by rw [hnorm]; exact unitInterval.le_one t⟩, rfl⟩
+  have hcont : ContinuousWithinAt (f ∘ φ ∘ γ) T 1 :=
+    ((hf.comp (φ.continuous.comp (by fun_prop : Continuous γ)).continuousOn hmaps) 1
+      (Set.mem_insert _ _)).mono (Set.subset_insert _ _)
+  rw [← hγ1]
+  refine hcont.eq_const_of_mem_closure hmem fun t ht ↦ h (γ t)
+    (by rw [hnorm]; exact (le_max_left ρ 0).trans_lt ht.1) (by rw [hnorm]; exact ht.2) ?_
+  simp [γ, Complex.arg_ofReal_mul ((le_max_right ρ 0).trans_lt ht.1), Circle.exp_arg]
 
 /-- The boundary loop of a coordinate disc, `t ↦ φ(e^{2πit})`, based at `φ.boundaryCircle 1`.
 It runs counterclockwise in the chart, so it is oriented as the boundary of the closed disc. -/
@@ -673,11 +724,6 @@ private theorem ofChartHomeomorph_apply (c : EuclideanSpace ℝ (Fin 2)) {r : �
     (w : ℂ) : ofChartHomeomorph c hr w = c + (r / 2) • Complex.orthonormalBasisOneI.repr w :=
   (rfl)
 
-private theorem dist_ofChartHomeomorph (c : EuclideanSpace ℝ (Fin 2)) {r : ℝ} (hr : 0 < r)
-    (w : ℂ) : dist (ofChartHomeomorph c hr w) c = r / 2 * ‖w‖ := by
-  rw [ofChartHomeomorph_apply, dist_self_add_left, norm_smul, LinearIsometryEquiv.norm_map,
-    Real.norm_of_nonneg (by positivity)]
-
 private theorem coe_ofChartHomeomorph (c : EuclideanSpace ℝ (Fin 2)) {r : ℝ} (hr : 0 < r) :
     ⇑(ofChartHomeomorph c hr) =
       (c + ·) ∘ ((r / 2) • ·) ∘ ⇑Complex.orthonormalBasisOneI.repr :=
@@ -701,10 +747,19 @@ private theorem image_ofChartHomeomorph_closedBall (c : EuclideanSpace ℝ (Fin 
     smul_closedBall' (by positivity), smul_zero, Set.image_add_left, preimage_add_closedBall,
     sub_neg_eq_add, zero_add, Real.norm_of_nonneg (by positivity)]
 
+/-- For `r > 0`, the map `w ↦ c + (r / 2) (re w, im w)` sends the ball of radius `2` of `ℂ` into
+the ball of radius `r` about `c`. -/
+theorem add_smul_orthonormalBasisOneI_repr_mem_ball (c : EuclideanSpace ℝ (Fin 2)) {r : ℝ}
+    (hr : 0 < r) (z : ball) :
+    c + (r / 2) • Complex.orthonormalBasisOneI.repr (z : ℂ) ∈ Metric.ball c r := by
+  rw [add_mem_ball_iff_norm, norm_smul, LinearIsometryEquiv.norm_map,
+    Real.norm_of_nonneg (by positivity)]
+  nlinarith [mem_ball_iff.1 z.property]
+
 private theorem ofChartHomeomorph_mem_ball {c : EuclideanSpace ℝ (Fin 2)} {r : ℝ} (hr : 0 < r)
     (z : ball) : ofChartHomeomorph c hr z ∈ Metric.ball c r := by
-  rw [Metric.mem_ball, dist_ofChartHomeomorph]
-  nlinarith [mem_ball_iff.1 z.property]
+  rw [ofChartHomeomorph_apply]
+  exact add_smul_orthonormalBasisOneI_repr_mem_ball c hr z
 
 private theorem hasFDerivAt_ofChartHomeomorph_symm (c : EuclideanSpace ℝ (Fin 2)) {r : ℝ}
     (hr : 0 < r) (y : EuclideanSpace ℝ (Fin 2)) :
@@ -713,6 +768,13 @@ private theorem hasFDerivAt_ofChartHomeomorph_symm (c : EuclideanSpace ℝ (Fin 
   have h := ((ofChartLinearEquiv hr).symm.hasFDerivAt (x := -c + y)).comp y
     ((hasFDerivAt_id y).const_add (-c))
   rwa [ContinuousLinearMap.comp_id] at h
+
+private theorem hasFDerivAt_ofChartHomeomorph (c : EuclideanSpace ℝ (Fin 2)) {r : ℝ}
+    (hr : 0 < r) (w : ℂ) :
+    HasFDerivAt (ofChartHomeomorph c hr)
+      ((ofChartLinearEquiv hr) : ℂ →L[ℝ] EuclideanSpace ℝ (Fin 2)) w :=
+  -- By definition, `ofChartHomeomorph c hr` is `ofChartLinearEquiv hr` followed by `c + ·`.
+  ((ofChartLinearEquiv hr).hasFDerivAt (x := w)).const_add c
 
 /-- The linear part of the parametrization carries the standard orientation of `ℂ` to that of
 `ℝ²`: it is `Complex.orthonormalBasisOneI.repr` followed by a positive homothety. -/
@@ -734,6 +796,27 @@ private theorem orientation_map_ofChartLinearEquiv {r : ℝ} (hr : 0 < r) :
     Orientation.map_eq_iff_det_pos _ _ (by simp), hs, LinearMap.det_smul, LinearMap.det_id,
     finrank_euclideanSpace_fin]
   positivity
+
+/-- **The parametrization of a coordinate disc from a chart preserves orientation.** For `r > 0`,
+the map `w ↦ c + (r / 2) (re w, im w)` from the ball of radius `2` of `ℂ` to `ℝ²` preserves
+orientation at every point, from the standard orientation of `ℂ` restricted to the ball to the
+standard orientation of `ℝ²`. -/
+theorem isOrientationPreservingAt_add_smul_orthonormalBasisOneI_repr
+    (c : EuclideanSpace ℝ (Fin 2)) {r : ℝ} (hr : 0 < r) (z : ball) :
+    Manifold.Orientation.IsOrientationPreservingAt
+      ((Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp)).restrict ball)
+      (Manifold.Orientation.euclideanSpace 2)
+      (fun w : ball ↦ c + (r / 2) • Complex.orthonormalBasisOneI.repr (w : ℂ)) z := by
+  have hf : (fun w : ball ↦ c + (r / 2) • Complex.orthonormalBasisOneI.repr (w : ℂ)) =
+      ofChartHomeomorph c hr ∘ Subtype.val :=
+    funext fun w ↦ (ofChartHomeomorph_apply c hr w).symm
+  rw [hf]
+  refine Manifold.Orientation.IsOrientationPreservingAt.comp ?_
+    (Manifold.Orientation.isOrientationPreservingAt_restrict _ ball z)
+  refine (Manifold.Orientation.isOrientationPreservingAt_iff_of_coe_eq _ _ _ _
+    (ofChartLinearEquiv hr) (hasFDerivAt_ofChartHomeomorph c hr z).hasMFDerivAt.mfderiv.symm).2 ?_
+  rw [Manifold.Orientation.orientationAt_model, Manifold.Orientation.orientationAt_euclideanSpace]
+  exact orientation_map_ofChartLinearEquiv hr
 
 /-- At a point `x` where the chart `e` preserves orientation, the local orientation of `o` is the
 one selected by the standard orientation of `ℂ` in `e` read through the parametrization. -/

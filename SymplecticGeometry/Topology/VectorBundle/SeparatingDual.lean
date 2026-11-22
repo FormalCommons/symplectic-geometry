@@ -39,8 +39,7 @@ variable (𝕜 : Type*) [NontriviallyNormedField 𝕜] {B : Type*} [TopologicalS
 /-- The fibres of a topological vector bundle whose model fibre has separating dual have
 separating dual. -/
 protected theorem separatingDual [SeparatingDual 𝕜 F] (b : B) : SeparatingDual 𝕜 (E b) :=
-  let e := (trivializationAt F E b).continuousLinearEquivAt 𝕜 b
-    (FiberBundle.mem_baseSet_trivializationAt' b)
+  let e := continuousLinearEquivAt 𝕜 F E b
   .of_injective (e : E b →L[𝕜] F) e.injective
 
 end VectorBundle

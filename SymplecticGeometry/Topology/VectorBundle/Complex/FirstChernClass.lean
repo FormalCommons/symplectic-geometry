@@ -148,7 +148,7 @@ theorem firstChernClass_eq_zero_of_finrank_eq_zero (hG : finrank ℂ G = 0) :
   have : Subsingleton G := Module.finrank_zero_iff.1 hG
   -- A bundle of rank zero is isomorphic to the trivial bundle, through any trivializations.
   let φ (b : B) : E b ≃L[ℂ] Bundle.Trivial B G b :=
-    (trivializationAt G E b).continuousLinearEquivAt ℂ b (mem_baseSet_trivializationAt G E b)
+    VectorBundle.continuousLinearEquivAt ℂ G E b
   have hφ : Continuous fun v : TotalSpace G E ↦
       TotalSpace.mk' G (E := Bundle.Trivial B G) v.proj (φ v.proj v.snd) :=
     ((Trivial.homeomorphProd B G).symm.continuous.comp

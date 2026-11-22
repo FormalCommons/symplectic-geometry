@@ -508,7 +508,7 @@ theorem contMDiffFiberBundle_circleFiber [IsManifold I n B] :
   simp only [Trivialization.baseSet_changeModelFiber,
     Trivialization.baseSet_orthonormalFrameBundleFiber,
     Trivialization.baseSet_orthonormalFrameBundle]
-  refine ContMDiffOn.of_coe_sphere (E := ℂ) (e₁.open_baseSet.inter e₂.open_baseSet) ?_
+  refine ContMDiffOn.of_coe_sphere (E := ℂ) ?_
   exact (g.contMDiffOn_hermitianPairing hI (b := id)
     ((e₂.contMDiffOn_orthonormalFrameAt_one g hI c₂ b₂).mono Set.inter_subset_right)
     ((e₁.contMDiffOn_orthonormalFrameAt_one g hI c₁ b₁).mono Set.inter_subset_left)).congr
@@ -568,7 +568,7 @@ private theorem contMDiff_frame_one :
 section Sections
 
 variable {EM HM M : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [TopologicalSpace HM]
-  {IM : ModelWithCorners ℝ EM HM} [TopologicalSpace M] [ChartedSpace HM M] [IsManifold IM n M]
+  {IM : ModelWithCorners ℝ EM HM} [TopologicalSpace M] [ChartedSpace HM M]
 
 /-- **Smooth families of unitary frames are smooth families of unit vectors.** On an open set `U`,
 a family `σ m` of unitary frames of `V (b m)` is `C^n` as a map into the smooth principal
@@ -610,10 +610,10 @@ theorem contMDiffOn_circleFiber_iff {b : M → B} {U : Set M} (hU : IsOpen U) :
     ⟨hm₀, hbase ▸ mem_baseSet_trivializationAt Circle (Fiber ℂ F V ℂ) (b m₀)⟩
   -- Over the base set of `e`, the fibre coordinate of `σ m` is `⟪τ 1, σ m 1⟫` for the local
   -- unitary frame `τ` of `e`.
-  refine (ContMDiffOn.of_coe_sphere (E := ℂ) hW ((g.contMDiffOn_hermitianPairing hI (b := b)
+  refine ContMDiffAt.of_coe_sphere (E := ℂ) (((g.contMDiffOn_hermitianPairing hI (b := b)
     ((e.contMDiffOn_orthonormalFrameAt_one g hI c b').comp (hb.mono Set.inter_subset_left)
-      fun m hm ↦ hm.2) (h.mono Set.inter_subset_left)).congr fun m hm ↦ ?_)).contMDiffAt
-    (hW.mem_nhds hm)
+      fun m hm ↦ hm.2) (h.mono Set.inter_subset_left)).congr fun m hm ↦ ?_).contMDiffAt
+    (hW.mem_nhds hm))
   have key := e.coe_snd_changeModelFiber_orthonormalFrameBundleFiber c b'
     (⟨b m, σ m⟩ : TotalSpace Circle (Fiber ℂ F V ℂ)) hm.2
   rw [← hst] at key

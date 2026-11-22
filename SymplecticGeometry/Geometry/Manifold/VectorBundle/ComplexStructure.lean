@@ -193,8 +193,7 @@ theorem toEndomorphism_ne_id [Nontrivial F] (J : ContMDiffComplexStructure I n F
     J.toEndomorphism x ≠ ContinuousLinearMap.id ℝ (V x) := by
   intro h
   have : Nontrivial (V x) :=
-    ((trivializationAt F V x).continuousLinearEquivAt ℝ x
-      (mem_baseSet_trivializationAt F V x)).toEquiv.nontrivial_congr.mpr inferInstance
+    (VectorBundle.continuousLinearEquivAt ℝ F V x).toEquiv.nontrivial_congr.mpr inferInstance
   obtain ⟨v, hv⟩ := exists_ne (0 : V x)
   have hJv : J x (J x v) = -v := J.apply_apply x v
   have hxv : J x v = v := congrArg (fun A : V x →L[ℝ] V x ↦ A v) h
