@@ -20,31 +20,30 @@ of the subspace `H^{p,q}` of `H^k_dR(M; ℂ)`, `TauCeti.complexDeRhamCohomology.
 Complex conjugation maps `H^{p,q}` onto `H^{q,p}` conjugate-linearly, so `h^{p,q} = h^{q,p}`, for
 every `J`.
 
-Now let `M` be compact, Hausdorff and boundaryless, modelled on a space of dimension `2 n`, with
-`J` integrable and a closed two-form `σ` compatible with `J`. Inside the proofs we equip `M` with
-the metric `g_J(u, v) = σ(u, J v)` (`TauCeti.SmoothTwoForm.Compatible.metric`) and with the
-symplectic orientation of `σ` (`TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation`); the
-statements depend on neither. The Hodge star commutes with the derivation of `J`, so it maps the
-harmonic forms of type `(p,q)` injectively to those of type `(n - q, n - p)`, which gives
-`h^{p,q} = h^{n-q,n-p}` for `p, q ≤ n`. The Hodge decomposition (`Kahler/Decomposition.lean`)
-holds in every degree (above `2 n` all pieces vanish), and the Hodge numbers add up to the Betti
-number `b_k = dim H^k_dR(M; ℝ)`. In odd degree the symmetry `h^{p,q} = h^{q,p}` pairs the terms of
-this sum, so the odd Betti numbers are even.
+Now let `M` be compact, Hausdorff and boundaryless, with `J` integrable and a closed two-form `σ`
+compatible with `J`. If `M` is nonempty, `J` makes its dimension even, say `2 n`. Inside the
+proofs we equip `M` with the metric `g_J(u, v) = σ(u, J v)`
+(`TauCeti.SmoothTwoForm.Compatible.metric`) and with the symplectic orientation of `σ`
+(`TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation`); the statements depend on neither.
+The Hodge star commutes with the derivation of `J`
+(`TauCeti.SmoothForm.complexHodgeStar_alternatingDerivation`, in `Kahler/Decomposition.lean`),
+so it maps the harmonic forms of type `(p,q)` injectively to those of type `(n - q, n - p)`,
+which gives `h^{p,q} = h^{n-q,n-p}` for `p, q ≤ n`. The Hodge decomposition
+(`Kahler/Decomposition.lean`) holds in every degree (above the dimension all pieces vanish), and
+the Hodge numbers add up to the Betti number `b_k = dim H^k_dR(M; ℝ)`. In odd degree the symmetry
+`h^{p,q} = h^{q,p}` pairs the terms of this sum, so the odd Betti numbers are even.
 
-The proof of `finrank_hodgePiece_symm` adapts Tau Ceti's
-`TauCeti.Hodge.HodgeStructureOn.hodgeNumber_symm` and
-`TauCeti.Hodge.HodgeStructureOn.pieceConjEquiv` to the pieces `H^{p,q}`, which form a Hodge
-structure only on a compact Kähler manifold.
+The proof of `finrank_hodgePiece_symm` follows Tau Ceti's
+`TauCeti.Hodge.HodgeStructureOn.hodgeNumber_symm` for the pieces `H^{p,q}`, which form a Hodge
+structure only on a compact Kähler manifold: conjugation maps `H^{p,q}` onto `H^{q,p}`
+(`TauCeti.complexDeRhamCohomology.map_conj_hodgePiece`), and Mathlib's `rank_eq_of_equiv_equiv`
+compares the dimensions of spaces related by a semilinear bijection.
 
 ## Main results
 
-* `TauCeti.SmoothForm.complexHodgeStar_alternatingDerivation`: the complex Hodge star commutes
-  with the derivation of a skew-adjoint endomorphism field.
-* `TauCeti.SmoothForm.IsOfType.complexHodgeStar`: the Hodge star of a form of type `(p,q)` has
-  type `(n - q, n - p)`.
 * `TauCeti.complexDeRhamCohomology.finrank_hodgePiece_symm`: `h^{p,q} = h^{q,p}`.
 * `TauCeti.complexDeRhamCohomology.isHodgeDecomposition_hodgePiece_of_compatible`: the Hodge
-  decomposition in every degree, with the metric `g_J`.
+  decomposition in every degree.
 * `TauCeti.complexDeRhamCohomology.finrank_hodgePiece_serre`: `h^{p,q} = h^{n-q,n-p}`.
 * `TauCeti.finrank_deRhamCohomology_eq_sum`: `b_k = ∑_{p+q=k} h^{p,q}`.
 * `TauCeti.even_finrank_deRhamCohomology_of_odd`: the odd Betti numbers are even.
@@ -73,43 +72,6 @@ namespace TauCeti
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
 
-/-! ### The Hodge star and types of forms -/
-
-namespace SmoothForm
-
-variable [FiniteDimensional ℝ E] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
-  [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] {m k l : ℕ}
-
-/-- On an oriented manifold with a smooth metric, the complex Hodge star commutes with the
-derivation `A.alternatingDerivation` of complex forms, for an endomorphism field `A` that is
-skew-adjoint at every point. -/
-theorem complexHodgeStar_alternatingDerivation (o : Manifold.Orientation I M (Fin m))
-    (hkl : k + l = m)
-    {A : ContMDiffSection I (E →L[ℝ] E) ∞ fun x : M ↦ TangentSpace I x →L[ℝ] TangentSpace I x}
-    (hA : ∀ x (u w : TangentSpace I x), ⟪A x u, w⟫ = -⟪u, A x w⟫) (φ : SmoothForm I M ℂ k) :
-    complexHodgeStar o hkl (A.alternatingDerivation φ) =
-      A.alternatingDerivation (complexHodgeStar o hkl φ) := by
-  conv_lhs => rw [← ofReal_realPart_add_I_smul_ofReal_imaginaryPart φ]
-  conv_rhs => rw [← ofReal_realPart_add_I_smul_ofReal_imaginaryPart φ]
-  simp only [complexHodgeStar_def, map_add, map_smul,
-    ContMDiffSection.alternatingDerivation_mapCoeff_ofRealCLM, complexifyₗ_mapCoeff_ofRealCLM,
-    hodgeStar_realAlternatingDerivation o hkl hA]
-
-/-- On an oriented manifold of dimension `2 n` with a metric in which `J` is orthogonal, the
-complex Hodge star of a complex form of type `(p,q)`, with `p ≤ n` and `q ≤ n`, has type
-`(n - q, n - p)`. -/
-theorem IsOfType.complexHodgeStar {J : SmoothAlmostComplexStructure I M} {n p q : ℕ}
-    (o : Manifold.Orientation I M (Fin (2 * n))) (hkl : k + l = 2 * n)
-    (hJ : ∀ x (u w : TangentSpace I x), ⟪J x u, w⟫ = -⟪u, J x w⟫) (hp : p ≤ n) (hq : q ≤ n)
-    {φ : SmoothForm I M ℂ k} (hφ : φ.IsOfType J p q) :
-    (complexHodgeStar o hkl φ).IsOfType J (n - q) (n - p) := by
-  have hpq := hφ.add_eq
-  refine isOfType_iff.2 ⟨by omega, ?_⟩
-  rw [← SmoothForm.complexHodgeStar_alternatingDerivation o hkl hJ, (isOfType_iff.1 hφ).2,
-    map_smul, Nat.cast_sub hp, Nat.cast_sub hq, sub_sub_sub_cancel_left]
-
-end SmoothForm
-
 /-! ### Hodge symmetry -/
 
 namespace complexDeRhamCohomology
@@ -121,19 +83,11 @@ variable (J : SmoothAlmostComplexStructure I M)
 maps one onto the other. -/
 theorem finrank_hodgePiece_symm (k p q : ℕ) :
     finrank ℂ (hodgePiece J k p q) = finrank ℂ (hodgePiece J k q p) := by
-  let e : hodgePiece J k p q ≃ₗ[ℝ] hodgePiece J k q p :=
-    { toFun x := ⟨(conj k).toEquiv x, conj_mem_hodgePiece J x.property⟩
-      invFun y := ⟨(conj k).toEquiv y, conj_mem_hodgePiece J y.property⟩
-      map_add' x y := by ext; exact map_add _ _ _
-      map_smul' r x := by
-        ext
-        simp only [Submodule.coe_smul_of_tower, RingHom.id_apply, ← Complex.coe_smul,
-          (conj k).toEquiv.map_smulₛₗ, Complex.conj_ofReal]
-      left_inv x := by ext; exact (conj k).apply_apply _
-      right_inv y := by ext; exact (conj k).apply_apply _ }
-  have h := e.finrank_eq
-  rw [finrank_real_of_complex, finrank_real_of_complex] at h
-  omega
+  rw [← map_conj_hodgePiece J p q]
+  exact congrArg Cardinal.toNat (rank_eq_of_equiv_equiv (starRingEnd ℂ)
+    ((conj k).toEquiv.submoduleMap _).toAddEquiv
+    ⟨RingHom.injective _, fun z ↦ ⟨starRingEnd ℂ z, by simp⟩⟩
+    fun r x ↦ ((conj k).toEquiv.submoduleMap _).map_smulₛₗ r x)
 
 end complexDeRhamCohomology
 
@@ -141,46 +95,45 @@ end complexDeRhamCohomology
 
 variable [FiniteDimensional ℝ E] [BoundarylessManifold I M] [T2Space M] [CompactSpace M]
 
-/-- On a compact Hausdorff boundaryless manifold, complex de Rham cohomology is finite-dimensional
-in every degree. -/
-theorem finiteDimensional_complexDeRhamCohomology {k : ℕ} :
-    FiniteDimensional ℂ (complexDeRhamCohomology I M k) :=
-  Module.Finite.equiv (complexDeRhamCohomology.complexificationEquiv I k)
-
-attribute [instance] finiteDimensional_complexDeRhamCohomology
-
 namespace complexDeRhamCohomology
 
 variable {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M} {n : ℕ}
 
-/-- In degrees above the dimension, all pieces of complex de Rham cohomology vanish, and they form
-a Hodge decomposition. -/
-private theorem isHodgeDecomposition_hodgePiece_of_finrank_lt {k : ℕ} (hk : finrank ℝ E < k) :
+omit [FiniteDimensional ℝ E] [BoundarylessManifold I M] [T2Space M] [CompactSpace M] in
+/-- When complex de Rham cohomology in degree `k` is trivial, its pieces, which all vanish, form a
+Hodge decomposition of weight `k`. -/
+private theorem isHodgeDecomposition_hodgePiece_of_subsingleton {k : ℕ}
+    [Subsingleton (complexDeRhamCohomology I M k)] :
     Hodge.IsHodgeDecomposition (conj k) k
-      (fun p : ℤ ↦ hodgePiece J k p.toNat (k - p).toNat) := by
-  have := subsingleton_deRhamCohomology_of_finrank_lt (I := I) M hk
-  have : Subsingleton (complexDeRhamCohomology I M k) := by
-    rw [← Module.finrank_zero_iff (R := ℂ), finrank_complexDeRhamCohomology,
-      Module.finrank_zero_of_subsingleton]
-  exact
-    { isInternal := DirectSum.isInternal_submodule_of_iSupIndep_of_iSup_eq_top
-        (fun i ↦ by simp [Subsingleton.elim (hodgePiece J k _ _) ⊥]) (Subsingleton.elim _ _)
-      map_conj := fun _ ↦ Subsingleton.elim _ _
-      exists_forall_lt_eq_bot := ⟨0, fun _ _ ↦ Subsingleton.elim _ _⟩ }
+      (fun p : ℤ ↦ hodgePiece J k p.toNat (k - p).toNat) :=
+  { isInternal := DirectSum.isInternal_submodule_of_iSupIndep_of_iSup_eq_top
+      (fun i ↦ by simp [Subsingleton.elim (hodgePiece J k _ _) ⊥]) (Subsingleton.elim _ _)
+    map_conj := fun _ ↦ Subsingleton.elim _ _
+    exists_forall_lt_eq_bot := ⟨0, fun _ _ ↦ Subsingleton.elim _ _⟩ }
 
-/-- **The Hodge decomposition in every degree**: on a compact Hausdorff boundaryless manifold
-modelled on a space of dimension `2 n`, with `J` integrable and `σ` a closed two-form compatible
-with `J`, the subspaces `H^{p,k-p}` form a Hodge decomposition of weight `k` of `H^k_dR(M; ℂ)`, for
-every `k`. -/
+/-- **The Hodge decomposition in every degree**: on a compact Hausdorff boundaryless manifold,
+with `J` integrable and `σ` a closed two-form compatible with `J`, the subspaces `H^{p,k-p}` form
+a Hodge decomposition of weight `k` of `H^k_dR(M; ℂ)`, for every `k`. -/
 theorem isHodgeDecomposition_hodgePiece_of_compatible (hσ : σ.IsClosed) (hc : σ.Compatible J)
-    (hJ : J.IsIntegrable) (hn : finrank ℝ E = 2 * n) (k : ℕ) :
+    (hJ : J.IsIntegrable) (k : ℕ) :
     Hodge.IsHodgeDecomposition (conj k) k
       (fun p : ℤ ↦ hodgePiece J k p.toNat (k - p).toNat) := by
-  rcases le_or_gt k (2 * n) with hk | hk
-  · let _ : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hc.metric.toRiemannianMetric⟩
-    exact isHodgeDecomposition_hodgePiece (hc.isNondegenerate.volumeOrientation hn) hJ hσ
-      hc.inner_eq_eval₂ (Nat.add_sub_cancel' hk)
-  · exact isHodgeDecomposition_hodgePiece_of_finrank_lt (hn ▸ hk)
+  cases isEmpty_or_nonempty M with
+  | inl _ =>
+    have : Subsingleton (complexDeRhamCohomology I M k) := (mk_surjective I k).subsingleton
+    exact isHodgeDecomposition_hodgePiece_of_subsingleton
+  | inr hM =>
+    obtain ⟨n, hn⟩ := J.even_finrank hM.some
+    rw [← two_mul] at hn
+    rcases le_or_gt k (2 * n) with hk | hk
+    · let _ : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hc.metric.toRiemannianMetric⟩
+      exact isHodgeDecomposition_hodgePiece (hc.isNondegenerate.volumeOrientation hn) hJ hσ
+        hc.inner_eq_eval₂ (Nat.add_sub_cancel' hk)
+    · have := subsingleton_deRhamCohomology_of_finrank_lt (I := I) M (hn ▸ hk)
+      have : Subsingleton (complexDeRhamCohomology I M k) := by
+        rw [← Module.finrank_zero_iff (R := ℂ), finrank_complexDeRhamCohomology,
+          Module.finrank_zero_of_subsingleton]
+      exact isHodgeDecomposition_hodgePiece_of_subsingleton
 
 /-- With the metric `⟪v, w⟫ = σ(v, J w)` and an orientation, on a manifold of dimension `2 n`,
 the space `H^{p,q}` of `H^k_dR(M; ℂ)` has at most the dimension of `H^{n-q,n-p}` in degree
@@ -244,14 +197,14 @@ end complexDeRhamCohomology
 variable {σ : SmoothTwoForm I M} {J : SmoothAlmostComplexStructure I M} {n : ℕ}
 
 open complexDeRhamCohomology in
-/-- **The Betti numbers are sums of Hodge numbers**: on a compact Hausdorff boundaryless manifold
-modelled on a space of dimension `2 n`, with `J` integrable and `σ` a closed two-form compatible
-with `J`, the `k`-th Betti number is `b_k = ∑_{p+q=k} h^{p,q}`. -/
+/-- **The Betti numbers are sums of Hodge numbers**: on a compact Hausdorff boundaryless manifold,
+with `J` integrable and `σ` a closed two-form compatible with `J`, the `k`-th Betti number is
+`b_k = ∑_{p+q=k} h^{p,q}`. -/
 theorem finrank_deRhamCohomology_eq_sum (hσ : σ.IsClosed) (hc : σ.Compatible J)
-    (hJ : J.IsIntegrable) (hn : finrank ℝ E = 2 * n) (k : ℕ) :
+    (hJ : J.IsIntegrable) (k : ℕ) :
     finrank ℝ (deRhamCohomology I M k) =
       ∑ p ∈ Finset.range (k + 1), finrank ℂ (hodgePiece J k p (k - p)) := by
-  have hH := isHodgeDecomposition_hodgePiece_of_compatible hσ hc hJ hn k
+  have hH := isHodgeDecomposition_hodgePiece_of_compatible hσ hc hJ k
   have hfin : {p : ℤ | hodgePiece J k p.toNat (k - p).toNat ≠ ⊥} ⊆
       ↑((Finset.range (k + 1)).map Nat.castEmbedding : Finset ℤ) := fun p hp ↦ by
     by_contra h
@@ -272,10 +225,10 @@ theorem finrank_deRhamCohomology_eq_sum (hσ : σ.IsClosed) (hc : σ.Compatible 
 
 open complexDeRhamCohomology in
 /-- **The odd Betti numbers of a compact Kähler manifold are even**: on a compact Hausdorff
-boundaryless manifold modelled on a space of dimension `2 n`, with `J` integrable and `σ` a closed
-two-form compatible with `J`, the `k`-th Betti number is even for odd `k`. -/
+boundaryless manifold, with `J` integrable and `σ` a closed two-form compatible with `J`, the
+`k`-th Betti number is even for odd `k`. -/
 theorem even_finrank_deRhamCohomology_of_odd (hσ : σ.IsClosed) (hc : σ.Compatible J)
-    (hJ : J.IsIntegrable) (hn : finrank ℝ E = 2 * n) {k : ℕ} (hk : Odd k) :
+    (hJ : J.IsIntegrable) {k : ℕ} (hk : Odd k) :
     Even (finrank ℝ (deRhamCohomology I M k)) := by
   obtain ⟨j, rfl⟩ := hk
   set f : ℕ → ℕ := fun p ↦ finrank ℂ (hodgePiece J (2 * j + 1) p (2 * j + 1 - p))
@@ -286,7 +239,7 @@ theorem even_finrank_deRhamCohomology_of_odd (hσ : σ.IsClosed) (hc : σ.Compat
     rw [finrank_hodgePiece_symm]
     rw [show 2 * j + 1 - (j + 1 + p) = j + 1 - 1 - p by omega,
       show 2 * j + 1 - (j + 1 - 1 - p) = j + 1 + p by omega]
-  rw [finrank_deRhamCohomology_eq_sum hσ hc hJ hn, show 2 * j + 1 + 1 = (j + 1) + (j + 1) by ring,
+  rw [finrank_deRhamCohomology_eq_sum hσ hc hJ, show 2 * j + 1 + 1 = (j + 1) + (j + 1) by ring,
     Finset.sum_range_add, Finset.sum_congr rfl hf, Finset.sum_range_reflect]
   exact ⟨_, rfl⟩
 
@@ -318,13 +271,13 @@ theorem SmoothTwoForm.IsKahler.hodge_decomposition
           finrank ℂ (complexDeRhamCohomology.hodgePiece J k p (k - p)) ∧
       (Odd k → Even (finrank ℝ (deRhamCohomology I M k))) :=
   ⟨complexDeRhamCohomology.isHodgeDecomposition_hodgePiece_of_compatible hK.isClosed
-      hK.compatible hJ hn k,
+      hK.compatible hJ k,
     inferInstance,
     fun p q _ ↦ complexDeRhamCohomology.finrank_hodgePiece_symm J k p q,
     fun _ _ hpq hp hq ↦ complexDeRhamCohomology.finrank_hodgePiece_serre hK.isClosed
       hK.compatible hJ hn hpq hp hq,
-    finrank_deRhamCohomology_eq_sum hK.isClosed hK.compatible hJ hn k,
-    even_finrank_deRhamCohomology_of_odd hK.isClosed hK.compatible hJ hn⟩
+    finrank_deRhamCohomology_eq_sum hK.isClosed hK.compatible hJ k,
+    even_finrank_deRhamCohomology_of_odd hK.isClosed hK.compatible hJ⟩
 
 end TauCeti
 
