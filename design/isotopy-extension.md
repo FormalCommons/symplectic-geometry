@@ -142,9 +142,12 @@ submanifold theorem raises a third.
   $d\gamma_t$, with $\gamma_t$ the pull-back by $G_t$ of the contraction of
   $\omega$ with the velocity field of $G_t$. On $Q$, $i^*\gamma_t$ is the
   velocity form of $e_t$, which is closed because $e_t^*\omega$ does not
-  depend on $t$. Its pull-back by a smooth retraction $r$ of a tubular
-  neighbourhood onto $Q$ is therefore closed too, so subtracting it leaves a
-  primitive of $\partial_t\omega_t$, and this one vanishes on $TQ$.
+  depend on $t$. Moser's argument needs the primitive near $[0,1]$ in time,
+  where $i^*\gamma_t$ need not be closed. So, with a smooth retraction $r$
+  of a tubular neighbourhood $W$ onto $Q$, the family on $W$ becomes
+  $G_t^*\omega-(G_t\circ i\circ r)^*\omega+(i\circ r)^*\omega$ at every
+  real time. It is $G_t^*\omega$ for $t\in[0,1]$, and its contraction with
+  $\partial_t$ is a primitive of its time derivative that vanishes on $TQ$.
   The relative Moser theorem along a family (`Moser/Family.lean` below)
   then gives $\chi_t$ fixing $Q$ with
   $\chi_t^*\omega_t=\omega$ near $Q$, and $F_t=G_t\circ\chi_t$ is the wanted
@@ -215,6 +218,8 @@ Further choices of this design:
 | `Geometry/Manifold/DifferentialForm/VectorBundlePoincare.lean` | the relative Poincaré operator at the zero section of a vector bundle, and its fibre-scaling primitives for a family of one-forms |
 | `Analysis/Calculus/DifferentialForm/Poincare.lean` | a closed form on a star-convex open set, vanishing on a compact star-convex subset, has a global primitive near it that vanishes on it (named like Tau Ceti's file) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean` | `IsSymplecticBallEmbedding`, `IsSymplecticBallFamily`, enlarging a symplectic ball |
+| `Geometry/Manifold/ContMDiff/Opens.lean` | a map composed, on an open subset, with a smooth map of that subset over a parameter space is smooth there (used by `Ball/Moser.lean`) |
+| `Geometry/Symplectic/IsotopyExtension/Ball/Moser.lean` | Moser's correction of a family of balls with a parameter (step 3 of `Ball/Isotopy.lean`) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Isotopy.lean` | the Hamiltonian ball extension and the milestone *Symplectic ball extension* |
 | `Geometry/Manifold/DeRham/HomologyPeriod.lean` | periods of a smooth family of closed one-forms depend smoothly on the parameter |
 | `Geometry/Symplectic/IsotopyExtension/Cohomological/Primitive.lean` | ambient closed forms with prescribed periods, and primitives on one neighbourhood for all times |
@@ -479,9 +484,9 @@ compact set: the first with `β = 0`, the second with that set `univ`. Its route
    both contractions are $k_t^*\beta_t+dh_t$, and $dk_t$ is
    onto (`TauCeti.SmoothIsotopy.eq_mfderiv_of_forall_eq_mpullback_prodMk_velocityForm`,
    in `Velocity.lean`). Uniqueness of solutions on `[0, 1]`
-   (`TauCeti.timeDependentFlowDiffeotopy_apply_eq_of_mfderiv_eq`, which this
-   part adds to `Geometry/Manifold/Flow/TimeDependent.lean` of *Smooth
-   families*, with `TauCeti.timeDependentFlowOf_eq_of_hasMFDerivWithinAt`)
+   (`TauCeti.Diffeotopy.apply_eq_of_mfderiv_eq_velocity`, for every
+   diffeotopy, in `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` of
+   *Hamiltonian flows*)
    gives `Φ (t, f₀ x) = k (t, x)`.
 5. The slices preserve `ω`, in `exists_interior_velocity_eq`, by
    `TauCeti.Diffeotopy.forall_timeSlice_mem_diffeomorphStabilizer_iff`, since
@@ -688,7 +693,9 @@ The route keeps the times of `e` exactly:
    family $k_t=k'_t\circ g_t$ is still right along $B(\lambda)$, and
    $k_0=j_0$, $k_1=j_1$ near $B(\lambda)$. For $\lambda>0$ this is the
    source's Theorem A.2.1(iii) step, which keeps both ends.
-3. *Make it symplectic.* `Moser/Family.lean`, with $\beta_t$ the
+3. *Make it symplectic.* This step is
+   `exists_isSymplecticBallFamily_eqOn_of_mpullback_eq`, in
+   `Ball/Moser.lean`. `Moser/Family.lean`, with $\beta_t$ the
    parametric radial primitive of $k_t^*\omega-\omega_0$ and
    $K=B(\lambda)$, gives $\chi_t$. Here $\beta_0=\beta_1=0$ because $j_0$ and
    $j_1$ are symplectic, so $\chi_0=\chi_1=\mathrm{id}$. The family
@@ -825,17 +832,20 @@ theorem TauCeti.SmoothIsotopy.exists_isSymplectic_extension_of_mpullback_eq
 
 The start `g₀` of `F` is the inclusion of `U`, given by its equation for the
 same reason as in `Cohomological/Basic.lean`.
-The route is the third decision: `Extension.lean` gives `G` with
-$G_t\circ i=e_t$. The family $\omega_t=G_t^*\omega$ has velocity $d\gamma_t$,
-with $\gamma_t$ the velocity form of the restriction of `G` to the identity
-(`Velocity.lean`).
-The form $\gamma_t-r^*(i^*\gamma_t)$, for the retraction `r` of
-`TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`, vanishes on `TQ`.
-The relative Moser theorem along a family of `Moser/Family.lean`, applied to
-the extensions of $\omega_t$ and of this primitive past both ends, gives
-$\chi_t$, and
-$F_t=G_t\circ\chi_t$ on the neighbourhood it provides. Expected size: 350
-lines.
+The route is the third decision. `Extension.lean`'s
+`TauCeti.SmoothIsotopy.exists_contMDiff_diffeomorph_forall_apply_eq` gives a
+jointly smooth family $G_t$ of diffeomorphisms over all real times with
+$G_0=\mathrm{id}$ and $G_t\circ i=e_t$ for $t\in[0,1]$. On the open set $W$
+of the retraction `r` of `TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`,
+the closed form $S=A^*\omega-B^*\omega+C^*\omega$ on $\mathbb R\times W$, for
+$A(t,w)=G_t w$, $B(t,w)=G_t(i(r w))$ and $C(t,w)=i(r w)$, has the slices
+$G_t^*\omega$ for $t\in[0,1]$. Its contraction with $\partial_t$
+(`SmoothForm.timeInterior`) is a primitive of its time derivative, and it
+pulls back to $0$ on $\mathbb R\times Q$ because $A$ and $B$ agree there. The
+relative Moser theorem along a family of `Moser/Family.lean`, on the manifold
+$W$, gives $\chi_t$, and $F_t=G_t\circ\chi_t$ on the neighbourhood it
+provides. The velocity forms of `Velocity.lean` are not needed. Expected
+size: 350 lines.
 
 ## Milestones
 
@@ -910,7 +920,8 @@ this design already follows. `Ball/Isotopy.lean` cites
   bridge `Diffeotopy/Real.lean` for `TauCeti.Diffeotopy.ofReal` and
   `Geometry/Manifold/Flow/TimeDependent.lean` for
   `TauCeti.contMDiff_timeDependentFlowOf_param`, a lemma this part adds
-  there.
+  there. `Extension.lean` imports `Diffeotopy/Real.lean` too, to restrict
+  its family over `ℝ` to a `Diffeotopy`.
 - *Hamiltonian flows*: in `DeRham/FamilyPrimitive.lean`, the smooth primitive of a
   smooth family of exact one-forms over $[0,1]$, which that part's design
   (`design/hamiltonian-flows.md`, Decision 4) builds on chart balls and glues
@@ -941,6 +952,10 @@ this design already follows. `Ball/Isotopy.lean` cites
   forms, and `Geometry/Manifold/DifferentialForm/Flow/Family.lean`, whose
   `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily`
   `Moser/Family.lean` uses for the velocity of a segment of forms.
+  `IsotopyExtension/Submanifold.lean` imports it for the contraction
+  `TauCeti.SmoothForm.timeInterior` with the time field, with
+  `mpullback_prodMap_timeInterior` and `timeInterior_mpullback_snd`, which
+  its pull request adds there.
 - *Moser isotopy*: `Moser/Field.lean`, whose `moserField` (#506) is
   the cut-off Moser field of both theorems of `Moser/Family.lean`. That
   design planned it for the linear segment between two forms with a fixed
@@ -966,6 +981,12 @@ this design already follows. `Ball/Isotopy.lean` cites
   `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_add_smul_sub_of_eq` (the
   segment between two forms that agree at a point is constant there), which
   that pull request also adds.
+  `IsotopyExtension/Ball/Moser.lean` imports `Ball/Basic.lean`,
+  `Moser/Family.lean`, `Geometry/Symplectic/Manifold/Family.lean`,
+  *Smooth families*' `DifferentialForm/SmoothFamily/Poincare.lean`, and
+  this part's `Geometry/Manifold/ContMDiff/Opens.lean`, for
+  `ContMDiffOn.dite_comp_of_opens` (a family composed with a diffeotopy of
+  an open subset is smooth there).
 - *Liouville structures*: `Geometry/Manifold/VectorField/Prod.lean`, which
   imports only Tau Ceti, for `TauCeti.Manifold.prodVectorField_apply` (the
   value of the unit time field in `IsotopyExtension/Velocity.lean`).
