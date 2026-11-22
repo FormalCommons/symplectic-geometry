@@ -462,6 +462,12 @@ complexification:
   for a basis `b`, `alternatizeUncurryFin f` is the sum of the
   alternatizations of `b.coord i • f (b i)`.
 
+### `Topology/Algebra/Module/FiniteDimension.lean`
+
+- `Module.Basis.sum_coord_smulRight`: for a basis `b` of a
+  finite-dimensional space, a continuous linear map `f` is
+  `∑ i, (b.coord i).smulRight (f (b i))`. The file above uses it.
+
 ### `Analysis/InnerProductSpace/HodgeStar/AlternatingForm.lean`
 
 - `TauCeti.alternatingFormEquiv_lieMap`: for a skew-adjoint `A`, `lieMap A`
