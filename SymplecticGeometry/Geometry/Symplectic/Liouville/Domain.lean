@@ -200,10 +200,8 @@ private theorem continuous_height : Continuous h.height := by
       (h.contMDiffOn_completionEnd.continuousOn.mono ?_)).isClosed
     exact prod_mono (fun s hs ↦ by simp only [mem_Ioi]; linarith [hs.1]) subset_rfl
   have hO : IsOpen (h.toCompletion '' (𝓡∂ (n + 1)).interior W) := by
-    have := (SmoothCollar.WithEnd.isOpenEmbedding_inclusion_comp_subtypeVal
-      h.collar).isOpen_range
-    rwa [range_comp, Subtype.range_coe, ModelWithCorners.coe_interiorOpens,
-      ← toCompletion_def] at this
+    have := (SmoothCollar.WithEnd.interiorPart h.collar).isOpen
+    rwa [SmoothCollar.WithEnd.coe_interiorPart, ← toCompletion_def] at this
   have hconst : ∀ w ∈ h.toCompletion '' (𝓡∂ (n + 1)).interior W \ K,
       h.height w = -h.collarWidth / 2 := by
     rintro w ⟨⟨p', -, rfl⟩, hwK⟩
