@@ -428,7 +428,7 @@ theorem fubiniStudyForm_spec :
           (Module.Basis.orientation
             (OrthonormalBasis.toBasis (EuclideanSpace.basisFun (Fin 3) ℝ))) ∧
       ∀ (f : (Fin 2 → ℂ) →ₗ[ℂ] Fin (n + 1) → ℂ) (hf : Injective f),
-        integralTopForm projectiveLineOrientation
+        integralTopForm (complexCurveOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ)))
             (SmoothForm.mpullback (map f hf) (contMDiff_map_restrictScalars f hf ∞)
               (fubiniStudyForm n)).val = π) ∧
     -- 5. Darboux charts
