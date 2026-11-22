@@ -200,7 +200,10 @@ of Tau Ceti's roadmap that no one has started.
    $s\in\{1,-1\}$ with $[\text{positive simplex}]=s\cdot$(Tau Ceti's local
    orientation). The homology statements then use `o.toHomologicalOrientation`
    if $s=1$ and `(-o).toHomologicalOrientation` if $s=-1$, and that issue
-   records the outcome in this file. The comparison is proved for surfaces
+   records the outcome in this file. Outcome: $s=-1$
+   (`TopPair.relClass_fullSimplex_eq_neg_toHomologicalOrientation`, in
+   `LocalHomology/Orientation/StdSimplex.lean`), so the homology statements
+   use `(-o).toHomologicalOrientation`. The comparison is proved for surfaces
    only: the milestone needs nothing more, and only the local lemma depends
    on the dimension. Tau Ceti's roadmap plans the general statement; when
    it arrives, the library's surface case becomes a corollary to be
@@ -265,6 +268,7 @@ of Tau Ceti's roadmap that no one has started.
 |---|---|
 | `Geometry/Symplectic/JHolomorphic/Energy/Density.lean` | the pointwise density $\varepsilon_L$, the squared norm, the pointwise identity |
 | `LinearAlgebra/Complex/EnergyDensity.lean` | the same for a linear map between vector spaces, from which `Density.lean` reads its statements |
+| `LinearAlgebra/Complex/StdComplexLine.lean` | the images of `stdComplexLineReal` and `stdComplexLineImag` under `(a, s) ↦ a • v + s • w`, used by `Density.lean` |
 | `Geometry/Symplectic/Manifold/AlmostComplex/TopForm.lean` | top forms on a tangent plane of an almost complex surface: equality and ratios read on one frame $(e,je)$, without an orientation |
 | `LinearAlgebra/Complex/TopForm.lean` | the same on a real plane with a complex structure |
 | `Geometry/Symplectic/JHolomorphic/Energy/Metric.lean` | the squared norm read in $g_J$ |
@@ -278,6 +282,7 @@ of Tau Ceti's roadmap that no one has started.
 | `AlgebraicTopology/SimplicialSet/Homology/RelativeClass.lean` | the relative class of a simplex whose faces lie in the subcomplex of a pair of simplicial sets, `SSetPair.relClass` |
 | `AlgebraicTopology/SimplicialSet/Homology/One.lean` | naturality of the class of a closed $1$-simplex under maps of simplicial sets, `SSet.ιHomology₁_homologyMap` |
 | `AlgebraicTopology/Singular/RelativeClass.lean` | the relative class of a singular simplex whose faces lie in the subspace, `TopPair.relClass` |
+| `AlgebraicTopology/Singular/LocalHomology/Orientation/StdSimplex.lean` | the class of the standard $2$-simplex in the local homology of $\mathbb R^2$ at an interior point, and the sign $s$ of Decision 6 |
 | `AlgebraicTopology/Singular/LocalHomology/Orientation/Simplex.lean` | the class of a positively oriented simplex in local homology, in dimension two |
 | `Geometry/Manifold/DeRham/FundamentalClass.lean` | $\int_\Sigma\varphi=\langle[\varphi],[\Sigma]\rangle$ on closed oriented surfaces |
 | `Geometry/Symplectic/JHolomorphic/Energy/Homology.lean` | topological invariance, minimality, the milestone |
@@ -463,6 +468,18 @@ It imports the copy above and `Energy/Density.lean`, and defines nothing.
   issue, labelled `proposed`, for the parts that compare integrals of forms
   with Tau Ceti's fundamental classes (at present *First Chern number*'s
   Chern–Weil formula).
+- Recorded: $s=-1$. For `p` in the interior of `fullSimplex 2`, the class
+  of the standard simplex in $H_2(\mathbb R^2,\mathbb R^2\setminus\{p\})$ is
+  minus the local orientation at `p` of
+  `(Manifold.Orientation.euclideanSpace 2).toHomologicalOrientation`
+  (`TopPair.relClass_fullSimplex_eq_neg_toHomologicalOrientation`, and
+  `TopPair.relClass_fullSimplex_eq_neg_localOrientationOfOrientedChart` for
+  the identity chart), in `LocalHomology/Orientation/StdSimplex.lean`. So the
+  correctly signed homological orientation is
+  `(-o).toHomologicalOrientation hE'`. `StdSimplex.lean` imports
+  `LinearAlgebra/Complex/Orientation.lean` and
+  `AlgebraicTopology/Singular/LocalHomology/Orientation/Smooth.lean` of part
+  *First Chern number*.
 
 ### `DeRham/FundamentalClass.lean`
 
