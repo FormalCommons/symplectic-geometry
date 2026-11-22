@@ -172,9 +172,7 @@ private theorem IsCircleConnectionForm.mextDeriv_apply_eq_zero_of_vertical
     mextDeriv α.val x v = 0 := by
   set ξ := rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x
   obtain ⟨c, hc⟩ := exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero hv
-  have hv01 : v = ![v 0, v 1] := by
-    funext i
-    fin_cases i <;> rfl
+  have hv01 : v = ![v 0, v 1] := (FinVec.etaExpand_eq _).symm
   have hfirst (w : TangentSpace (IB.prod (𝓡 1)) x) : mextDeriv α.val x ![c • ξ, w] = 0 := by
     rw [ContinuousAlternatingMap.vecCons_smul, hα.mextDeriv_apply_rightFundamentalVectorField,
       smul_zero]
@@ -579,10 +577,7 @@ theorem IsCircleConnectionForm.apply_eq_mpullback_add_mpullback (hα : IsCircleC
     rw [hps, PrincipalBundle.baseSet_trivializationOfSection]
     exact hx
   ext v
-  have hv : v = ![v 0] := by
-    funext i
-    fin_cases i
-    rfl
+  have hv : v = ![v 0] := (FinVec.etaExpand_eq _).symm
   set w := mfderiv IB (IB.prod (𝓡 1)) s (p x) (mfderiv (IB.prod (𝓡 1)) IB p x (v 0))
   -- The derivative of `p ∘ s = id` is the identity, and that of `θ ∘ s = 1` vanishes.
   have hdps : mfderiv (IB.prod (𝓡 1)) IB p x (v 0) = mfderiv (IB.prod (𝓡 1)) IB p (s (p x)) w := by

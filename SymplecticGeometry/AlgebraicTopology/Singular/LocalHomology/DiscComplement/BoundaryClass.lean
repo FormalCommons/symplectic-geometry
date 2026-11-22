@@ -24,14 +24,15 @@ loops `SymplecticGeometry.discComplementBoundaryLoop φ hφ i`.
 
 ## Proof
 
-The boundary `∂X` is `ι × S¹` (`SymplecticGeometry.discComplementBoundaryHomeomorph`), and a class
-of `H₁(ι × S¹; ℤ)` is determined by its images under the maps `Circle.prodRetraction j` that keep
-the `j`-th circle and send the others to `1` (`Circle.singularHomologyOne_prod_ext`). The image of
-the boundary class is `-1`
-(`SymplecticGeometry.boundaryDegree_prodRetraction_comp_discComplementBoundaryHomeomorph_symm`).
-The image of the class of the reversed loop of disc `i` is the degree of the reverse of the loop
-traced by `(Circle.prodRetraction j).comp (Circle.prodInclusion i)`, which is `-1` if `i = j`
-(`Circle.degree_symm`) and `0` otherwise.
+The boundary `∂X` is `ι × S¹` (`SymplecticGeometry.discComplementBoundaryHomeomorph`), read in
+`TopCat` as `TopCat.of ι ⊗ TopCat.of Circle` through `TopCat.prodHomeomorphTensorObj`. A class
+of `H₁(ι ⊗ S¹; ℤ)` is determined by its images under the fibre retractions
+`TopCat.prodFiberRetraction (TopCat.of ι) (1 : Circle) j`, which keep the `j`-th circle and send
+the others to `1` (`Circle.singularHomologyOne_prod_ext`). The image of the boundary class is `-1`
+(`boundaryDegree_prodFiberRetraction_comp_discComplementBoundaryHomeomorph_symm`).
+The image of the class of the reversed loop of disc `i` is the degree of a reversed loop that is
+the identity of the circle if `i = j` (`Circle.degree_symm`), so `-1`, and constant at `1`
+otherwise, so `0`.
 
 ## Main definitions
 
@@ -56,7 +57,7 @@ public section
 
 noncomputable section
 
-open CategoryTheory AlgebraicTopology Set Topology Module TauCeti Function
+open CategoryTheory MonoidalCategory AlgebraicTopology Set Topology Module TauCeti Function
 
 namespace SymplecticGeometry
 
@@ -69,9 +70,7 @@ variable {M : Type} [TopologicalSpace M] [T2Space M] {E : Type} [NormedAddCommGr
 place of `↥↑(discComplementInterior φ)`, as in `coe_discComplementBoundaryHomeomorph_apply`:
 `simp` puts it in that form by `SetLike.coe_sort_coe` before it tries the `_apply` lemmas below,
 which would not match otherwise. The explicit `DFunLike.coe` arguments are needed because a type
-ascription leaves the term unchanged. The endpoints are cast because `Circle.prodInclusion` is not
-exposed, so that `((discComplementBoundaryHomeomorph φ hφ).comp (Circle.prodInclusion i)) 1` is
-not definitionally `discComplementBoundaryHomeomorph φ hφ (i, 1)` here. -/
+ascription leaves the term unchanged. -/
 /-- The boundary loop of `φ i`, reversed, as a loop in the boundary of the complement
 `discComplement φ` of the open discs, based at the point `(φ i).boundaryCircle 1`: the reverse of
 the based loop of the circle `discComplementBoundaryHomeomorph φ hφ (i, ·)`. In `M` it is
@@ -86,57 +85,58 @@ def discComplementBoundaryLoop [Finite ι] (i : ι) :
         (discComplementBoundaryHomeomorph φ hφ) (i, 1)) :=
   ((discComplementBoundaryHomeomorph φ hφ :
       C(ι × Circle, ↥(range (inclusion (discComplementInterior_subset φ)))ᶜ)).comp
-    (Circle.prodInclusion i)).toBasedLoop.symm.cast (by simp [Circle.prodInclusion_apply])
-    (by simp [Circle.prodInclusion_apply])
+    ⟨fun z ↦ (i, z), by fun_prop⟩).toBasedLoop.symm
 
 @[simp]
 theorem discComplementBoundaryLoop_apply [Finite ι] (i : ι) (t : unitInterval) :
     discComplementBoundaryLoop φ hφ i t =
       discComplementBoundaryHomeomorph φ hφ (i, unitToCircle (unitInterval.symm t)) := by
-  rw [discComplementBoundaryLoop, Path.cast_coe, Path.symm_apply, Function.comp_apply,
-    ContinuousMap.toBasedLoop_apply, ContinuousMap.comp_apply, Circle.prodInclusion_apply,
-    ContinuousMap.coe_ofClass]
+  rw [discComplementBoundaryLoop, Path.symm_apply, Function.comp_apply,
+    ContinuousMap.toBasedLoop_apply, ContinuousMap.comp_apply]
+  simp
 
 theorem coe_coe_discComplementBoundaryLoop_apply [Finite ι] (i : ι) (t : unitInterval) :
     ((discComplementBoundaryLoop φ hφ i t : discComplement φ) : M) =
       (φ i).boundaryLoop.symm t := by
   simp [CoordinateDisc.boundaryLoop_def]
 
-/-- Read through `discComplementBoundaryHomeomorph`, the map `Circle.prodRetraction j` sends the
-class of the reversed loop of disc `i` to `-1` if `i = j`, and to `0` otherwise. -/
+/-- Read through `discComplementBoundaryHomeomorph`, the retraction onto the `j`-th circle sends
+the class of the reversed loop of disc `i` to `-1` if `i = j`, and to `0` otherwise. -/
 private lemma singularHomologyOneIso_hom_map_map_discComplementBoundaryLoop [Finite ι]
     [DecidableEq ι] (i j : ι) :
     (Circle.singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).hom.hom
         ((((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).map
-          (TopCat.ofHom ((Circle.prodRetraction j).comp
-            ((discComplementBoundaryHomeomorph φ hφ).symm :
-              C(↥(range (inclusion (discComplementInterior_subset φ)))ᶜ, ι × Circle))))).hom
+          (TopCat.ofHom
+            ((TopCat.prodFiberRetraction (TopCat.of ι) (X := TopCat.of Circle) 1 j).hom.comp
+             ((discComplementBoundaryHomeomorph φ hφ).symm.trans
+               (TopCat.prodHomeomorphTensorObj ι Circle) : C(_, _))))).hom
           ((((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj
             (ModuleCat.of ℤ (ULift.{0} ℤ))).map
               (TopCat.ofHom (discComplementBoundaryLoop φ hφ i).toCircle)).hom
             ((Circle.singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).inv.hom
               (ULift.up 1)))) =
       if i = j then -1 else 0 := by
-  set u : C(_, Circle) := (Circle.prodRetraction j).comp
-    ((discComplementBoundaryHomeomorph φ hφ).symm :
-      C(↥(range (inclusion (discComplementInterior_subset φ)))ᶜ, ι × Circle))
+  set u : C(↥(range (inclusion (discComplementInterior_subset φ)))ᶜ, Circle) :=
+    (TopCat.prodFiberRetraction (TopCat.of ι) (X := TopCat.of Circle) 1 j).hom.comp
+      ((discComplementBoundaryHomeomorph φ hφ).symm.trans
+        (TopCat.prodHomeomorphTensorObj ι Circle) : C(_, _))
   rw [ContinuousMap.singularHomologyOneIso_hom_map_map_inv_one,
     (u.comp (discComplementBoundaryLoop φ hφ i).toCircle).circleDegree_eq_degree
-      ((discComplementBoundaryLoop φ hφ i).map u.continuous) fun t ↦ by simp,
-    Circle.degree_congr _
-      (((Circle.prodRetraction j).comp (Circle.prodInclusion i)).toBasedLoop.symm)
-      fun t ↦ by
-        rw [Path.map_coe, Function.comp_apply, discComplementBoundaryLoop_apply, Path.symm_apply,
-          Function.comp_apply, ContinuousMap.toBasedLoop_apply]
-        simp [u, Circle.prodInclusion_apply],
-    Circle.degree_symm, Circle.degree_toBasedLoop]
+      ((discComplementBoundaryLoop φ hφ i).map u.continuous) fun t ↦ by simp]
   split_ifs with h
   · subst h
+    rw [Circle.degree_congr _ (ContinuousMap.id Circle).toBasedLoop.symm fun t ↦ by
+        rw [Path.map_coe, Function.comp_apply, discComplementBoundaryLoop_apply, Path.symm_apply,
+          Function.comp_apply, ContinuousMap.toBasedLoop_apply]
+        simp [u],
+      Circle.degree_symm, Circle.degree_toBasedLoop, ContinuousMap.circleDegree_id]
     ext
     simp
-  · ext
-    rw [Circle.prodRetraction_comp_prodInclusion_of_ne h, ContinuousMap.circleDegree_const,
-      neg_zero, ULift.zero_down]
+  · rw [Circle.degree_congr _ (Path.refl 1) fun t ↦ by
+        rw [Path.map_coe, Function.comp_apply, discComplementBoundaryLoop_apply]
+        simp [u, h], Circle.degree_refl]
+    ext
+    simp
 
 /-- **The boundary class of the complement of coordinate discs.** Let `φ i`, `i : ι` finite, be
 coordinate discs of a compact surface `M` homologically oriented by `o`, with pairwise disjoint
@@ -153,33 +153,32 @@ theorem sum_map_toCircle_discComplementBoundaryLoop_eq_boundaryClass [CompactSpa
         (isOpenEmbedding_inclusion_discComplementInterior φ)
         (range_inclusion_discComplementInterior φ hφ) (isCollared_discComplementBoundary φ hφ) := by
   classical
-  set h := discComplementBoundaryHomeomorph φ hφ
-  -- push both classes to `ι × S¹`, where `Circle.singularHomologyOne_prod_ext` applies
+  set h := (discComplementBoundaryHomeomorph φ hφ).symm.trans
+    (TopCat.prodHomeomorphTensorObj ι Circle)
+  set g : C(↥(range (inclusion (discComplementInterior_subset φ)))ᶜ,
+    ↑(TopCat.of ι ⊗ TopCat.of Circle)) := ↑h
+  -- push both classes to `ι ⊗ S¹`, where `Circle.singularHomologyOne_prod_ext` applies
   have hinj : Injective (((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj
-      (ModuleCat.of ℤ (ULift.{0} ℤ))).map (TopCat.ofHom
-        (h.symm :
-          C(↥(range (inclusion (discComplementInterior_subset φ)))ᶜ, ι × Circle)))).hom :=
+      (ModuleCat.of ℤ (ULift.{0} ℤ))).map (TopCat.ofHom g)).hom :=
     (((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj
       (ModuleCat.of ℤ (ULift.{0} ℤ))).mapIso (TopCat.isoOfHomeo
         (X := TopCat.of ↥(range (inclusion (discComplementInterior_subset φ)))ᶜ)
-        (Y := TopCat.of (ι × Circle)) h.symm)).toLinearEquiv.injective
+        (Y := TopCat.of ι ⊗ TopCat.of Circle) h)).toLinearEquiv.injective
   have hiso : Injective (Circle.singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).hom.hom :=
     (Circle.singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).toLinearEquiv.injective
   have hcomp (j : ι) (y) : (((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj
-      (ModuleCat.of ℤ (ULift.{0} ℤ))).map (TopCat.ofHom (Circle.prodRetraction j))).hom
+      (ModuleCat.of ℤ (ULift.{0} ℤ))).map
+        (TopCat.prodFiberRetraction (TopCat.of ι) (X := TopCat.of Circle) 1 j)).hom
       ((((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj
-        (ModuleCat.of ℤ (ULift.{0} ℤ))).map (TopCat.ofHom
-          (h.symm :
-          C(↥(range (inclusion (discComplementInterior_subset φ)))ᶜ, ι × Circle)))).hom
-        y) =
+        (ModuleCat.of ℤ (ULift.{0} ℤ))).map (TopCat.ofHom g)).hom y) =
       (((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj
-        (ModuleCat.of ℤ (ULift.{0} ℤ))).map (TopCat.ofHom ((Circle.prodRetraction j).comp
-          (h.symm :
-          C(↥(range (inclusion (discComplementInterior_subset φ)))ᶜ, ι × Circle))))).hom
-        y := by
-    rw [← ModuleCat.comp_apply, ← Functor.map_comp, ← TopCat.ofHom_comp]
+        (ModuleCat.of ℤ (ULift.{0} ℤ))).map (TopCat.ofHom
+          ((TopCat.prodFiberRetraction (TopCat.of ι) (X := TopCat.of Circle) 1 j).hom.comp
+            g))).hom y := by
+    rw [← ModuleCat.comp_apply, ← Functor.map_comp, TopCat.ofHom_comp, TopCat.ofHom_hom]
   refine hinj (Circle.singularHomologyOne_prod_ext fun j ↦ hiso ?_)
-  have hb := boundaryDegree_prodRetraction_comp_discComplementBoundaryHomeomorph_symm φ hn hφ j
+  have hb :=
+    boundaryDegree_prodFiberRetraction_comp_discComplementBoundaryHomeomorph_symm φ hn hφ j
   rw [HomologicalOrientation.boundaryDegree_def] at hb
   rw [hcomp, hcomp, map_sum, map_sum, Finset.sum_congr rfl fun i _ ↦
       singularHomologyOneIso_hom_map_map_discComplementBoundaryLoop φ hφ i j]

@@ -83,7 +83,7 @@ theorem fderivCompContinuousLinearMap_ofSubsingleton {ι : Type*} [Fintype ι] [
 theorem fderivCompContinuousLinearMap_apply_vecCons_fin_one (α : F [⋀^Fin 1]→L[𝕜] G)
     (g dg : E →L[𝕜] F) (v : E) : α.fderivCompContinuousLinearMap g dg ![v] = α ![dg v] := by
   rw [fderivCompContinuousLinearMap_apply, Fin.sum_univ_one]
-  exact congrArg α (by ext i; fin_cases i; rfl)
+  exact congrArg α (FinVec.etaExpand_eq _).symm
 
 /-- The derivative of the pullback commutes with reindexing the arguments: if `f' v = f (v ∘ σ)`
 for every `v`, then the same holds for their derivatives. -/

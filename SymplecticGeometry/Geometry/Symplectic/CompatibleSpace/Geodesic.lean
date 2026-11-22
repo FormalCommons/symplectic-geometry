@@ -187,8 +187,7 @@ theorem compatibleCLM_compatibleGeodesic_mul_neg_mul (J : 𝒥)
     mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a with hY
   simp only [← ContinuousLinearMap.mul_def]
   have hYj : Y * j = -(j * Y) := by
-    have h := compatibleCLM_comp_add_comp_compatibleCLM J
-      (mfderiv_compatibleCLM_mem_tangentSpace J a)
+    have h := compatibleCLM_comp_mfderiv_add_mfderiv_comp_compatibleCLM J a
     rw [← hY, ← ContinuousLinearMap.mul_def, ← ContinuousLinearMap.mul_def] at h
     exact eq_neg_of_add_eq_zero_right h
   -- `A = -j Y` anticommutes with `j`, and commutes with the exponential factor.
