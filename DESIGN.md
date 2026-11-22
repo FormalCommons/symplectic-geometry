@@ -2376,7 +2376,11 @@ has either; Tau Ceti's extension across a boundary,
   `mdifferentiableAt_iff_mvfderiv_ofComplexManifold_apply`) and
   `Geometry/Manifold/Immersion/TangentEndomorphism.lean` (an endomorphism
   field of $TN$ that $df$ relates to a smooth one along $f$ is smooth, when
-  $df$ has left inverses; it gives the restriction its smoothness).
+  $df$ has left inverses; it gives the restriction its smoothness) and
+  `Geometry/Manifold/VectorField/Immersion.lean` (beside Tau Ceti's file of
+  that name: every tangent vector at a point of an immersion is the value
+  of a field related near it to a field on the target; it gives the
+  Nijenhuis tensor of the restriction).
 - **Builds on:** *Nijenhuis tensor* (`Nijenhuis.lean` for naturality along
   embeddings, `Integrable.lean`); Tau Ceti.
 - **Milestones:** *Complex submanifolds of Kähler manifolds*, except its
