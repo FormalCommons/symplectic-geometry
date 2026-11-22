@@ -34,7 +34,8 @@ has one.
 * `StarConvex.lineContraction`: the straight-line contraction `(x, s) ↦ c + s • (x - c)` of an
   open set of a normed space, star-convex about `c`, with `StarConvex.contMDiff_lineContraction`
   and its ends `StarConvex.lineContraction_zero` and `StarConvex.lineContraction_one`. Its
-  smoothness, and that of the lines in `of_starConvex_image`, is `ContMDiff.lineMap_unitInterval`.
+  smoothness, and that of the lines in `of_starConvex_image`, comes from `ContMDiff.lineMap`:
+  `x ↦ AffineMap.lineMap (f₁ x) (f₂ x) (g x)` is smooth for smooth `f₁`, `f₂` and `g`.
 * `SymplecticGeometry.exists_mem_isSmoothlyContractible`: every point has a smoothly contractible
   open neighbourhood, and `SymplecticGeometry.IsSmoothlyContractible.connectedSpace`: a smoothly
   contractible manifold is connected.
@@ -105,16 +106,14 @@ theorem IsSmoothlyContractible.of_diffeomorph {E' H' : Type*} [NormedAddCommGrou
 
 variable {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
 
-/-- For a smooth map `f` from a manifold to a real normed space and a point `c`, the straight
-lines `(x, s) ↦ c + s • (f x - c)` from `c` to the values of `f`, at the times `s ∈ [0, 1]`, form
-a smooth map on `M × [0, 1]`. -/
-theorem _root_.ContMDiff.lineMap_unitInterval {E' : Type*} [NormedAddCommGroup E']
-    [NormedSpace ℝ E'] {n : WithTop ℕ∞} {f : M → E'} (hf : ContMDiff I 𝓘(ℝ, E') n f) (c : E') :
-    ContMDiff (I.prod (𝓡∂ 1)) 𝓘(ℝ, E') n
-      fun p : M × unitInterval ↦ AffineMap.lineMap c (f p.1) (p.2 : ℝ) :=
-  AffineMap.contDiff_lineMap_uncurry.comp_contMDiff (contMDiff_const.prodMk_space
-    ((hf.comp contMDiff_fst).prodMk_space
-      ((contMDiff_subtypeVal_Icc (x := 0) (y := 1)).comp contMDiff_snd)))
+/-- For smooth maps `f₁ f₂ : M → E'` to a real normed space and a smooth `g : M → ℝ`, the map
+`x ↦ AffineMap.lineMap (f₁ x) (f₂ x) (g x)`, that is `x ↦ f₁ x + g x • (f₂ x - f₁ x)`, is
+smooth. This is the manifold version of Mathlib's `ContDiff.lineMap`. -/
+theorem _root_.ContMDiff.lineMap {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+    {n : WithTop ℕ∞} {f₁ f₂ : M → E'} {g : M → ℝ} (h₁ : ContMDiff I 𝓘(ℝ, E') n f₁)
+    (h₂ : ContMDiff I 𝓘(ℝ, E') n f₂) (hg : ContMDiff I 𝓘(ℝ) n g) :
+    ContMDiff I 𝓘(ℝ, E') n fun x ↦ AffineMap.lineMap (f₁ x) (f₂ x) (g x) :=
+  AffineMap.contDiff_lineMap_uncurry.comp_contMDiff (h₁.prodMk_space (h₂.prodMk_space hg))
 
 /-- **Straight-line contraction.** Let `U` be a nonempty open subset of `M`, and `φ : M → E'` a
 map to a real normed space, smooth on `U`, with a left inverse `ψ` on `U` that is smooth on
@@ -134,7 +133,9 @@ theorem IsSmoothlyContractible.of_starConvex_image {E' : Type*} [NormedAddCommGr
   have hG : ∀ p, G p ∈ φ '' U := fun p ↦
     hc.segment_subset (mem_image_of_mem φ p.1.property) (lineMap_mem_segment ℝ _ _ p.2.property)
   have hGs : ContMDiff (I.prod (𝓡∂ 1)) 𝓘(ℝ, E') ∞ G :=
-    (hφ.comp_contMDiff contMDiff_subtypeVal fun x ↦ x.property).lineMap_unitInterval c
+    contMDiff_const.lineMap
+      ((hφ.comp_contMDiff contMDiff_subtypeVal fun x ↦ x.property).comp contMDiff_fst)
+      ((contMDiff_subtypeVal_Icc (x := 0) (y := 1)).comp contMDiff_snd)
   obtain ⟨x₀, hx₀, hφx₀⟩ := hcU
   refine ⟨⟨x₀, hx₀⟩, fun p ↦ ⟨ψ (G p), hψU (hG p)⟩, ?_, fun x ↦ ?_, fun x ↦ ?_⟩
   · rw [← ContMDiff.subtypeVal_comp_iff]
@@ -300,7 +301,8 @@ theorem lineContraction_one (hU : StarConvex ℝ c (U : Set V)) (x : U) :
 theorem contMDiff_lineContraction (hU : StarConvex ℝ c (U : Set V)) :
     ContMDiff (𝓘(ℝ, V).prod (𝓡∂ 1)) 𝓘(ℝ, V) ∞ hU.lineContraction := by
   rw [← ContMDiff.subtypeVal_comp_iff]
-  exact (contMDiff_subtypeVal (U := U)).lineMap_unitInterval c
+  exact contMDiff_const.lineMap ((contMDiff_subtypeVal (U := U)).comp contMDiff_fst)
+    ((contMDiff_subtypeVal_Icc (x := 0) (y := 1)).comp contMDiff_snd)
 
 end StarConvex
 
