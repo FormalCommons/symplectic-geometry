@@ -440,13 +440,20 @@ A general matrix fact that `Kahler.lean` uses, in namespace `Matrix`:
 `star_mulVec_dotProduct_mulVec` (a matrix with `Aᴴ * A = 1` preserves
 `star z ⬝ᵥ v`).
 
+### `LinearAlgebra/Matrix/ToLin.lean`
+
+A general matrix fact that `Kahler.lean` uses, in namespace `Matrix`:
+`toLin'_injective_of_mul_eq_one` (a matrix with a left inverse gives an
+injective `Matrix.toLin'`), from `Data/Matrix/Mul.lean`. It sits beside
+Mathlib's `LinearAlgebra/Matrix/ToLin.lean`, where `Matrix.toLin'` lives.
+
 ### `Geometry/Manifold/Projectivization/FubiniStudy/Kahler.lean`
 
 - `mpullback_map_fubiniStudyForm (A : Matrix (Fin (n + 1)) (Fin (m + 1)) ℂ)
   (hA : Aᴴ * A = 1)`: the pull-back of `fubiniStudyForm n` along
   `Projectivization.map (Matrix.toLin' A) _` is `fubiniStudyForm m`
-  (the injectivity of `Matrix.toLin' A` from `hA`; the implementer looks for
-  it in Mathlib first).
+  (the injectivity of `Matrix.toLin' A` from `hA` is
+  `Matrix.toLin'_injective_of_mul_eq_one`).
 - `mpullback_unitary_fubiniStudyForm (U : Matrix.unitaryGroup (Fin (n + 1)) ℂ)`:
   invariance under `Projectivization.mapDiffeomorph
   (Matrix.UnitaryGroup.toLinearEquiv U) ∞` (part 4, first sentence).

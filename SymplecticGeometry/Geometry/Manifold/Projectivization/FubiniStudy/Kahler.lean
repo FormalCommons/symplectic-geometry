@@ -9,6 +9,7 @@ public import Mathlib.LinearAlgebra.UnitaryGroup
 public import SymplecticGeometry.Data.Matrix.Mul
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
 public import SymplecticGeometry.LinearAlgebra.Matrix.DotProduct
+public import SymplecticGeometry.LinearAlgebra.Matrix.ToLin
 public import TauCeti.Geometry.Manifold.Projectivization.Map
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
@@ -138,9 +139,7 @@ private theorem mfderiv_puncturedMulVec (z : puncturedSpace (Fin (m + 1) → ℂ
 
 private theorem mkNonzero_comp_puncturedMulVec :
     mkNonzero ℂ n ∘ puncturedMulVec A hA =
-      map (toLin' A)
-          (by rw [toLin'_apply', coe_mulVecLin]; exact mulVec_injective_of_mul_eq_one hA) ∘
-        mkNonzero ℂ m := by
+      map (toLin' A) (toLin'_injective_of_mul_eq_one hA) ∘ mkNonzero ℂ m := by
   funext z
   simp [puncturedMulVec, map_mk]
 
@@ -150,8 +149,7 @@ form of `ℂPⁿ` along the induced map `ℂPᵐ → ℂPⁿ`, `[z] ↦ [A z]`, 
 `ℂPᵐ`. -/
 theorem mpullback_map_fubiniStudyForm :
     SmoothForm.mpullback
-        (map (toLin' A)
-          (by rw [toLin'_apply', coe_mulVecLin]; exact mulVec_injective_of_mul_eq_one hA))
+        (map (toLin' A) (toLin'_injective_of_mul_eq_one hA))
       (contMDiff_map_restrictScalars _ _ ∞) (fubiniStudyForm n) = fubiniStudyForm m := by
   refine SmoothForm.mpullback_injective_of_surjective (contMDiff_mkNonzero ℂ m ∞)
     (surjective_mkNonzero ℂ m) ((isSubmersion_mkNonzero ℂ m).surjective_mfderiv (by simp)) ?_
@@ -179,7 +177,7 @@ theorem mpullback_unitary_fubiniStudyForm (U : unitaryGroup (Fin (n + 1)) ℂ) :
     exact UnitaryGroup.star_mul_self U
   have h : ⇑(mapDiffeomorph (UnitaryGroup.toLinearEquiv U) ∞) =
       map (toLin' (U : Matrix (Fin (n + 1)) (Fin (n + 1)) ℂ))
-        (by rw [toLin'_apply', coe_mulVecLin]; exact mulVec_injective_of_mul_eq_one hU) := by
+        (toLin'_injective_of_mul_eq_one hU) := by
     funext x
     induction x using ind with
     | h v hv => simp [map_mk, UnitaryGroup.toLinearEquiv]
