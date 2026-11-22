@@ -49,6 +49,8 @@ target of `Λ`, not only at `x`.
   every point that it sends into the interior of its range.
 * `TauCeti.EuclideanHalfSpace.isLocalDiffeomorphAt_val_zero`: the coordinate of the half-line is a
   local diffeomorphism to `ℝ` where it is positive.
+* `PartialDiffeomorph.isCompact_image_of_subset_source`: a partial diffeomorphism sends compact
+  subsets of its source to compact sets.
 -/
 
 public section
@@ -207,5 +209,10 @@ theorem TauCeti.EuclideanHalfSpace.isLocalDiffeomorphAt_val_zero {t : EuclideanH
   convert h using 1
   funext s
   simp [e]
+
+/-- The image of a compact subset of the source of a partial diffeomorphism is compact. -/
+theorem PartialDiffeomorph.isCompact_image_of_subset_source (Φ : PartialDiffeomorph I J M N n)
+    {K : Set M} (hK : IsCompact K) (hKs : K ⊆ Φ.source) : IsCompact (Φ '' K) :=
+  hK.image_of_continuousOn (Φ.contMDiffOn.continuousOn.mono hKs)
 
 end

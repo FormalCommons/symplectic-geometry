@@ -15,6 +15,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Analysis.Normed.Module.Alternating.Derivation
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
@@ -59,6 +60,11 @@ which is meaningful on `ψ.target`.
   extension is smooth (`TauCeti.IsSmoothForm.extendByZeroAlong`), and bundled as
   `TauCeti.SmoothForm.extendByZeroAlong`. Both versions are linear in `a`
   (`extendByZeroAlong_zero`, `_add`, `_smul`, `_neg` and `_sub`).
+* `PartialDiffeomorph.tsupport_indicator_comp_symm_subset`,
+  `PartialDiffeomorph.hasCompactSupport_indicator_comp_symm` and
+  `PartialDiffeomorph.continuous_indicator_comp_symm`: a cutoff `χ` on `M` whose support is
+  compact and lies in `ψ.source`, read in `ψ` and extended by `0` off `ψ.target`, is supported in
+  `ψ '' tsupport χ`, so has compact support, and is continuous when `χ` is.
 * `TauCeti.SmoothForm.localize ψ χ α`: in the other direction, the flat form on `E` that is the
   reading of a smooth form `α` in `ψ`, scaled by `χ ∘ ψ.symm` for a cutoff `χ` on `M`, on
   `ψ.target`, and zero elsewhere. It is continuous with compact support when `χ` is continuous
@@ -526,6 +532,52 @@ end SmoothForm
 
 end ExtendByZero
 
+/-! ### A cutoff read in a chart -/
+
+section Cutoff
+
+variable {n : WithTop ℕ∞} (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E n)
+
+/-- The cutoff `χ` read in the chart `ψ` and extended by `0` off `ψ.target` vanishes off the
+image under `ψ` of the support of `χ`. -/
+theorem _root_.PartialDiffeomorph.support_indicator_comp_symm_subset (χ : M → ℝ) :
+    Function.support (ψ.target.indicator fun y ↦ χ (ψ.symm y)) ⊆ ψ '' tsupport χ := fun y hy ↦ by
+  by_cases hyt : y ∈ ψ.target
+  · refine ⟨ψ.symm y, subset_tsupport _ fun h0 ↦ hy ?_, ψ.right_inv hyt⟩
+    exact (Set.indicator_of_mem hyt _).trans h0
+  · exact absurd (Set.indicator_of_notMem hyt _) hy
+
+variable {χ : M → ℝ}
+
+/-- If the support of `χ` is compact and lies in the source of `ψ`, the cutoff `χ` read in the
+chart and extended by `0` off `ψ.target` is supported in the image under `ψ` of the support of
+`χ`. -/
+theorem _root_.PartialDiffeomorph.tsupport_indicator_comp_symm_subset
+    (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
+    tsupport (ψ.target.indicator fun y ↦ χ (ψ.symm y)) ⊆ ψ '' tsupport χ :=
+  closure_minimal (ψ.support_indicator_comp_symm_subset χ)
+    (ψ.isCompact_image_of_subset_source hK hχ).isClosed
+
+/-- If the support of `χ` is compact and lies in the source of `ψ`, the cutoff `χ` read in the
+chart and extended by `0` off `ψ.target` has compact support. -/
+theorem _root_.PartialDiffeomorph.hasCompactSupport_indicator_comp_symm
+    (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
+    HasCompactSupport (ψ.target.indicator fun y ↦ χ (ψ.symm y)) :=
+  (ψ.isCompact_image_of_subset_source hK hχ).of_isClosed_subset (isClosed_tsupport _)
+    (ψ.tsupport_indicator_comp_symm_subset hK hχ)
+
+/-- If `χ` is continuous and its support is compact and lies in the source of `ψ`, the cutoff
+`χ` read in the chart and extended by `0` off `ψ.target` is continuous. -/
+theorem _root_.PartialDiffeomorph.continuous_indicator_comp_symm (hχc : Continuous χ)
+    (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
+    Continuous (ψ.target.indicator fun y ↦ χ (ψ.symm y)) :=
+  ContinuousOn.continuous_of_tsupport_subset
+    ((hχc.comp_continuousOn ψ.symm.contMDiffOn.continuousOn).congr
+      fun _ hy ↦ Set.indicator_of_mem hy _) ψ.open_target
+    ((ψ.tsupport_indicator_comp_symm_subset hK hχ).trans (ψ.mapsTo.mono_left hχ).image_subset)
+
+end Cutoff
+
 /-! ### Localization of a smooth form to a chart -/
 
 namespace SmoothForm
@@ -548,6 +600,17 @@ theorem localize_def :
     α.localize ψ χ =
       ψ.target.indicator fun y ↦ χ (ψ.symm y) • TauCeti.mpullback 𝓘(ℝ, E) I ψ.symm α.val y :=
   (rfl)
+
+/-- The localization of `α` is the cutoff `χ` read in the chart and extended by `0` off
+`ψ.target`, times the reading of `α` in the chart. -/
+theorem localize_eq_indicator_smul :
+    α.localize ψ χ = fun y ↦
+      ψ.target.indicator (fun y ↦ χ (ψ.symm y)) y • TauCeti.mpullback 𝓘(ℝ, E) I ψ.symm α.val y :=
+  funext fun y ↦ by
+    rw [localize_def]
+    -- The reading takes values in forms on `TangentSpace 𝓘(ℝ, E) y`, a synonym of `E`, which hides
+    -- the pattern from `rw`; naming the type of forms on `E` lets `exact` unify the two.
+    exact Set.indicator_smul_apply_left (M := E [⋀^Fin k]→L[ℝ] F) _ _ _ y
 
 /-- On the target of the chart, the localization of `α` is the reading of `α` in the chart,
 scaled by `χ ∘ ψ.symm`. -/
@@ -653,16 +716,15 @@ theorem localize_extendByZeroAlong [T2Space M] {a : E → E [⋀^Fin k]→L[ℝ]
 /-- If the cutoff has compact support in the source of the chart, the localization is supported
 in the image of that support under the chart. -/
 theorem tsupport_localize_subset (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
-    tsupport (α.localize ψ χ) ⊆ ψ '' tsupport χ :=
-  closure_minimal (Function.support_subset_iff'.2 fun _ hy ↦
-    localize_apply_eq_zero_of_notMem _ _ _ hy)
-    (hK.image_of_continuousOn (ψ.contMDiffOn.continuousOn.mono hχ)).isClosed
+    tsupport (α.localize ψ χ) ⊆ ψ '' tsupport χ := by
+  rw [localize_eq_indicator_smul]
+  exact (tsupport_smul_subset_left _ _).trans (ψ.tsupport_indicator_comp_symm_subset hK hχ)
 
 /-- If the cutoff has compact support in the source of the chart, so does the localization. -/
 theorem hasCompactSupport_localize (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
     HasCompactSupport (α.localize ψ χ) :=
-  (hK.image_of_continuousOn (ψ.contMDiffOn.continuousOn.mono hχ)).of_isClosed_subset
-    (isClosed_tsupport _) (α.tsupport_localize_subset ψ hK hχ)
+  (ψ.isCompact_image_of_subset_source hK hχ).of_isClosed_subset (isClosed_tsupport _)
+    (α.tsupport_localize_subset ψ hK hχ)
 
 /-- The localization of a smooth form with a continuous cutoff whose support is compact and lies
 in the source of the chart is continuous. -/
@@ -689,7 +751,7 @@ theorem contDiff_localize (hχc : ContMDiff I 𝓘(ℝ) ∞ χ) (hK : IsCompact 
     filter_upwards [ψ.open_target.mem_nhds hy] with z hz
     exact localize_of_mem _ _ _ hz
   · have hK' : _root_.IsClosed (ψ '' tsupport χ) :=
-      (hK.image_of_continuousOn (ψ.contMDiffOn.continuousOn.mono hχ)).isClosed
+      (ψ.isCompact_image_of_subset_source hK hχ).isClosed
     have hyK : y ∉ ψ '' tsupport χ := fun h ↦ hy ((ψ.mapsTo.mono_left hχ).image_subset h)
     refine (contDiffAt_const (c := (0 : E [⋀^Fin k]→L[ℝ] F))).congr_of_eventuallyEq ?_
     filter_upwards [hK'.isOpen_compl.mem_nhds hyK] with z hz

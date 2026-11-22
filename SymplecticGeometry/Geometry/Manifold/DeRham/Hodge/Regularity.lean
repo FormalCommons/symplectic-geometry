@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.L2
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.LocalLaplacian
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Matrix
 import SymplecticGeometry.Analysis.Distribution.SecondOrderSystem
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.ChartCover
 import SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph
 import Mathlib.Geometry.Manifold.PartitionOfUnity
@@ -384,8 +385,8 @@ theorem L2Form.IsWeakSolution.exists_contDiff_ae_eq_localize {u : L2Form o k}
   obtain ⟨g, hg, hug⟩ := hu.exists_contDiffOn_ae_eq_localize ψ θ hθ hV Set.inter_subset_left
     fun y hy ↦ hθ1 (subset_closure hy.2)
   set r : E → ℝ := ψ.target.indicator fun y ↦ ρ (ψ.symm y)
-  have hK : IsCompact (ψ '' tsupport ρ) := (isClosed_tsupport _).isCompact.image_of_continuousOn
-    (ψ.contMDiffOn.continuousOn.mono hρ)
+  have hKρ : IsCompact (tsupport ρ) := (isClosed_tsupport _).isCompact
+  have hK : IsCompact (ψ '' tsupport ρ) := ψ.isCompact_image_of_subset_source hKρ hρ
   have hKV : ψ '' tsupport ρ ⊆ V := by
     rintro _ ⟨x, hx, rfl⟩
     exact ⟨ψ.map_source (hρ hx), by simpa [ψ.left_inv (hρ hx)] using hρU₁ hx⟩
@@ -393,8 +394,7 @@ theorem L2Form.IsWeakSolution.exists_contDiff_ae_eq_localize {u : L2Form o k}
     Function.notMem_support.1 fun h ↦ hy (hKV (ψ.support_indicator_comp_symm_subset ρ h))
   set F := fun y ↦ r y • g y
   have hFs : tsupport F ⊆ ψ '' tsupport ρ :=
-    closure_minimal ((Function.support_smul_subset_left r g).trans
-      (ψ.support_indicator_comp_symm_subset ρ)) hK.isClosed
+    (tsupport_smul_subset_left r g).trans (ψ.tsupport_indicator_comp_symm_subset hKρ hρ)
   have hFV : ContDiffOn ℝ ∞ F V := by
     have hρψ : ContDiffOn ℝ ∞ (fun y ↦ ρ (ψ.symm y)) V :=
       contMDiffOn_iff_contDiffOn.1 ((ρ.contMDiff.comp_contMDiffOn ψ.symm.contMDiffOn).mono
