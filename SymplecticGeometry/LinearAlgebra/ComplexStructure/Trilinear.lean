@@ -46,7 +46,7 @@ public section
 
 namespace LinearMap
 
-variable {R V W : Type*} [CommRing R] [AddCommGroup V] [Module R V] [AddCommGroup W]
+variable {R V W : Type*} [CommSemiring R] [AddCommGroup V] [Module R V] [AddCommGroup W]
   [Module R W] [IsAddTorsionFree W]
 
 /-- Let `j ∘ j = -1` on `V`, and let `α` be a trilinear map on `V` with

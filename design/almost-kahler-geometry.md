@@ -224,7 +224,7 @@ whose steps the proof follows for scalar forms.
 
 ### `LinearAlgebra/ComplexStructure/Trilinear.lean`
 
-- `LinearMap.apply_left_eq_apply_right_of_cyclic`: for a commutative ring
+- `LinearMap.apply_left_eq_apply_right_of_cyclic`: for a commutative semiring
   `R`, `R`-modules `V` and `W` with `[IsAddTorsionFree W]`,
   `j : V →ₗ[R] V` with `j ∘ₗ j = -LinearMap.id` and
   `α : V →ₗ[R] V →ₗ[R] V →ₗ[R] W` such that
@@ -247,8 +247,7 @@ Variables: `[RiemannianBundle (fun x : M ↦ TangentSpace I x)]`,
   `inner_apply_left_eq_neg (hJ) x u w : ⟪J x u, w⟫ = -⟪u, J x w⟫`: the
   page's $\sigma(u,w)=\langle Ju,w\rangle$ and the skew-adjointness of $J$. Public
   forms of steps that Tau Ceti's `AlmostComplex/Metric.lean` proves
-  privately (`inner_apply_left_of_inner_eq`); the names differ so that
-  nothing clashes if Tau Ceti makes its own public.
+  privately (`inner_apply_left_of_inner_eq`).
 - `inner_hom_apply_eq_neg (hJ) (hcov : cov.IsMetricCompatible) x u v w :
   ⟪D u v, w⟫ = -⟪v, D u w⟫`: the second identity, from
   `IsMetricCompatible.inner_hom_eq_neg` and `inner_apply_left_eq_neg`.
@@ -273,7 +272,8 @@ Variables: `[RiemannianBundle (fun x : M ↦ TangentSpace I x)]`,
 In the namespace `TauCeti.SmoothTwoForm`, the milestone:
 
 - `Compatible.leviCivita_hom_comp_add_and_inner_add_and_mextDeriv_and_apply
-  (hJ : σ.Compatible J)`, with `D` written out in full rather than bound by `let`:
+  (hJ : σ.Compatible J)`; the block below abbreviates the statement with `D`,
+  which the theorem writes out in full:
   ```
   letI : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hJ.metric.toRiemannianMetric⟩
   ∀ x (u v w : TangentSpace I x),
