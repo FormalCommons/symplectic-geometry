@@ -65,10 +65,13 @@ elementwise forms, which are stated separately.
 
 ## References
 
-* A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Section 3.3, Lemma 3.36 and
-  the proof of Theorem 3.35.
-* [R. Bott and L. W. Tu, *Differential Forms in Algebraic Topology*][BottTu1982], §5, the
-  Mayer–Vietoris argument and the disjoint-union step in the proof of Poincaré duality.
+* A. Hatcher, [*Algebraic Topology*](https://pi.math.cornell.edu/~hatcher/AT/AT.pdf),
+  Section 3.3, the duality map `D_M : Hᵖ_c(M; R) ⟶ H_{n-p}(M; R)` defined before Theorem 3.35, and
+  its naturality for inclusions of open sets used in Lemma 3.36, whose step (3) is the passage to
+  increasing unions.
+* R. Bott and L. W. Tu, *Differential Forms in Algebraic Topology*, Graduate Texts in
+  Mathematics 82, Springer, 1982, §5, the Mayer–Vietoris argument and the disjoint-union step in
+  the proof of Poincaré duality.
 -/
 
 public section

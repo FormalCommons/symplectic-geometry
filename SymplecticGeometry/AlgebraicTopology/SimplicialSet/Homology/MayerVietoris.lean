@@ -29,8 +29,7 @@ renames. The proofs are Tau Ceti's, with one added step: outside its defining mo
 
 ## References
 
-* A. Hatcher, *Algebraic Topology*, Cambridge University Press, 2002, Section 2.2, the
-  Mayer–Vietoris sequences.
+* A. Hatcher, *Algebraic Topology*, Section 2.2, the Mayer–Vietoris sequences.
 -/
 
 public section
