@@ -656,6 +656,11 @@ Expected size: 300 lines.
   curves as trajectories of the flow (`IsMIntegralCurveOn.sub_mem_flowDomain`,
   `IsMIntegralCurveOn.flowOf_sub_eq`, `TauCeti.eventuallyEq_flowOf_sub_of_isMIntegralCurveOn`,
   `TauCeti.contMDiffAt_of_isMIntegralCurveOn`), in `Liouville/Scaling.lean`.
+- *Symplectic neighbourhoods*:
+  `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`, merged,
+  which this part extends by
+  `IsLocalDiffeomorph.interior_mextDeriv_mpullback_of_interior_mextDeriv`, in
+  `Liouville/Scaling.lean`.
 - *Moser isotopy*: `Geometry/Symplectic/Manifold/Family.lean`
   (`SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`), merged, in
   `StableHamiltonian.lean`.
@@ -673,8 +678,7 @@ Expected size: 300 lines.
   `ContactType.lean`.
 - *Moser isotopy*: `Geometry/Manifold/DifferentialForm/Opens.lean`
   (`TauCeti.mpullback_subtype_val_mextDeriv`), merged, in `ContactType.lean`,
-  and (`TauCeti.isSmoothForm_mpullback_subtypeVal_interior`) in `Collar.lean` and
-  `Scaling.lean`.
+  and (`TauCeti.isSmoothForm_mpullback_subtypeVal_interior`) in `Collar.lean`.
 - *Moser isotopy*: `Geometry/Symplectic/Manifold/Flat.lean`
   (`SmoothTwoForm.IsNondegenerate.interior_flat_inverse_ofSubsingleton`,
   `SmoothTwoForm.contMDiffAt_flat_inverse_apply`), merged, only in

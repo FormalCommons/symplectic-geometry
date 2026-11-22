@@ -7,11 +7,9 @@ module
 
 public import TauCeti.Geometry.Symplectic.Liouville.Collar
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
-import TauCeti.Geometry.Manifold.DifferentialForm.Interior
-import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.Flow.Diffeomorph
 import TauCeti.Geometry.Manifold.ModelTransport.Interior
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.Flow.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 import SymplecticGeometry.Geometry.Symplectic.Liouville.ContactType
@@ -29,8 +27,9 @@ the symplectization form `e^(t - t₀) Φ(t₀, ·)^* α`
 (`TauCeti.mpullback_apply_eq_symplectization_of_isMIntegralCurveOn`). Tau Ceti's theorem asks for
 a boundaryless model; a manifold without boundary points over any model is re-modelled over the
 model vector space by Tau Ceti's `TauCeti.BoundarylessModel.interiorDiffeomorph`, and a
-diffeomorphism pulls a Liouville pair back to a Liouville pair
-(`Diffeomorph.interior_mextDeriv_mpullback_of_interior_mextDeriv`).
+diffeomorphism, being a local diffeomorphism, pulls a Liouville pair back to a Liouville pair
+(`IsLocalDiffeomorph.interior_mextDeriv_mpullback_of_interior_mextDeriv`, in
+`SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph`).
 
 The same holds in the interior of a manifold with boundary, for a field that is Liouville only on
 an open set. Let `σ` be a closed two-form on `W`, `Y` a smooth vector field, and `U` an open
@@ -46,8 +45,6 @@ identity reads `Φ^* λ = e^(t - t₀) α`.
 
 ## Main results
 
-* `Diffeomorph.interior_mextDeriv_mpullback_of_interior_mextDeriv`: if `ι_Y dα = α`, the same holds
-  for the pullbacks of `Y` and `α` along a diffeomorphism.
 * `TauCeti.mpullback_apply_eq_symplectization_of_isMIntegralCurveOn`: Liouville scaling along
   integral curves on a boundaryless manifold.
 * `TauCeti.mpullback_interiorₗ_apply_eq_symplectization_of_isMIntegralCurveOn`: Liouville scaling
@@ -89,29 +86,6 @@ theorem mpullback_fst_sub_const_apply {k : ℕ} (c : ℝ)
   rw [mpullback_apply, hd]
   -- The shifted point is `(p.1 - c, p.2)` by definition.
   rfl
-
-section Diffeomorph
-
-variable {M M' F : Type*} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 2 M]
-  [NormedAddCommGroup F] [NormedSpace ℝ F] [TopologicalSpace M'] [ChartedSpace H' M']
-  [IsManifold J 2 M'] {k : ℕ}
-
-omit [FiniteDimensional ℝ E] in
-/-- **A diffeomorphism pulls a Liouville pair back to a Liouville pair.** If the field `Y` on `M'`
-satisfies `ι_Y dα = α` for a smooth form `α`, and `h : M → M'` is a `C^n` diffeomorphism with
-`2 ≤ n`, then the pulled-back field `h^* Y` satisfies `ι_{h^* Y} d(h^* α) = h^* α`. -/
-theorem _root_.Diffeomorph.interior_mextDeriv_mpullback_of_interior_mextDeriv
-    {n : WithTop ℕ∞} (h : M ≃ₘ^n⟮I, J⟯ M') (hn : 2 ≤ n) {Y : (y : M') → TangentSpace J y}
-    {α : SmoothForm J M' F k} (hYα : (mextDeriv α.val).interior Y = α.val) :
-    (mextDeriv (mpullback I J h α.val)).interior (VectorField.mpullback I J h Y) =
-      mpullback I J h α.val := by
-  have hd : mextDeriv (mpullback I J h α.val) = mpullback I J h (mextDeriv α.val) :=
-    funext fun x ↦ (mpullback_mextDeriv_at (h.contMDiff.contMDiffAt.of_le hn)
-      ((α.contMDiff (h x)).of_le (by simp))).symm
-  rw [hd, ← mpullback_interior _ _ _ _
-    (h.mfderiv_apply_mpullback (lt_of_lt_of_le (by simp) hn).ne' Y), hYα]
-
-end Diffeomorph
 
 /-! ### Integral curves on a boundaryless manifold -/
 
@@ -195,17 +169,14 @@ theorem mpullback_apply_eq_symplectization_of_isMIntegralCurveOn
   have hα' : α'.val = mpullback 𝓘(ℝ, E) I h.symm α.val := SmoothForm.coe_mpullback _ _ _
   have hdα' : (mextDeriv α'.val).interior Z' = α'.val := by
     rw [hα']
-    exact h.symm.interior_mextDeriv_mpullback_of_interior_mextDeriv (by simp) hZα
+    exact h.symm.isLocalDiffeomorph.interior_mextDeriv_mpullback_of_interior_mextDeriv
+      (by simp) hZα
   have hΦ'Z (s : S) : IsMIntegralCurveOn (fun t ↦ h (Φ (t, s))) Z' (Ioo a b) :=
     (h.isMIntegralCurveOn_comp_iff (by simp) (h.symm.mfderiv_symm_apply_eq_of_mfderiv_apply_eq
       (by simp) (h.symm.mfderiv_apply_mpullback (by simp) Z))).2 (hΦZ s)
   have hΦ'₀ : ContMDiff J 𝓘(ℝ, E) ∞ fun s ↦ h (Φ (t₀, s)) := h.contMDiff.comp hΦ₀
   have hια : SmoothForm.mpullback _ hΦ'₀ α' = SmoothForm.mpullback _ hΦ₀ α := by
-    refine Subtype.ext (funext fun s ↦ ?_)
-    rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback _ hΦ₀, hα',
-      ← mpullback_comp_at ((hΦ'₀ s).mdifferentiableAt (by simp))
-        (h.symm.mdifferentiable (by simp) _)]
-    simp only [comp_def, h.symm_apply_apply]
+    simp only [α', SmoothForm.mpullback_mpullback, comp_def, h.symm_apply_apply]
   have hΦΦ' : mpullback (𝓘(ℝ).prod J) I Φ α.val =
       mpullback (𝓘(ℝ).prod J) I (h.symm ∘ fun p ↦ h (Φ p)) α.val := by
     simp only [comp_def, h.symm_apply_apply]
@@ -246,12 +217,12 @@ theorem mpullback_interiorₗ_apply_eq_symplectization_of_isMIntegralCurveOn
   let Y₁ : (x : U') → TangentSpace I x := VectorField.mpullback I I Subtype.val Y
   have hY₁ : ContMDiff I I.tangent ∞ (T% Y₁) := VectorField.contMDiff_mpullback_subtypeVal hYU
   let β₁ : SmoothForm I U' ℝ 1 :=
-    ⟨_, (isSmoothForm_mpullback_subtypeVal_interior (U := U')
-      σ.isSmoothForm.contMDiff.contMDiffOn hYU).mem_smoothBundleForms⟩
-  have hβ₁ : β₁.val = mpullback I I Subtype.val (σ.interiorₗ ⟨Y, hY⟩).val := by
-    rw [SmoothTwoForm.coe_interiorₗ, ContMDiffSection.coeFn_mk]
-  have hdβ₁ : (mextDeriv β₁.val).interior Y₁ = β₁.val :=
-    interior_mextDeriv_mpullback_subtypeVal_interior hσ hYU hYσ
+    SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (σ.interiorₗ ⟨Y, hY⟩)
+  have hβ₁ : β₁.val = mpullback I I Subtype.val (σ.interiorₗ ⟨Y, hY⟩).val :=
+    SmoothForm.coe_mpullback _ _ _
+  have hdβ₁ : (mextDeriv β₁.val).interior Y₁ = β₁.val := by
+    rw [hβ₁, SmoothTwoForm.coe_interiorₗ]
+    exact interior_mextDeriv_mpullback_subtypeVal_interior hσ hYU hYσ
   -- The lines of `Φ`, as curves in `U'`.
   let Φ₁ : ℝ × S → U' := fun p ↦
     if hp : Φ p ∈ U then ⟨Φ p, hp⟩ else ⟨Φ (t₀, p.2), hΦU t₀ ht₀ p.2⟩
@@ -267,10 +238,7 @@ theorem mpullback_interiorₗ_apply_eq_symplectization_of_isMIntegralCurveOn
     (contMDiff_subtypeVal (n := 1) y).mdifferentiableAt one_ne_zero
   have hια : SmoothForm.mpullback _ hΦ₁₀ β₁ =
       SmoothForm.mpullback _ hΦ₀ (σ.interiorₗ ⟨Y, hY⟩) := by
-    refine Subtype.ext (funext fun s ↦ ?_)
-    rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback _ hΦ₀, hβ₁,
-      ← mpullback_comp_at ((hΦ₁₀ s).mdifferentiableAt (by simp)) (hval _)]
-    simp only [comp_def, hΦ₁ (p := (t₀, _)) ht₀]
+    simp only [β₁, SmoothForm.mpullback_mpullback, comp_def, hΦ₁ (p := (t₀, _)) ht₀]
   -- `Φ` is `Φ₁` read back in `W`, near `(t, s)`.
   have hΦeq : Φ =ᶠ[𝓝 (t, s)] Subtype.val ∘ Φ₁ := by
     filter_upwards [(isOpen_Ioo.prod isOpen_univ).mem_nhds (mk_mem_prod ht (mem_univ s))] with p hp
