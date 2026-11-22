@@ -11,7 +11,9 @@ public import TauCeti.Geometry.Manifold.ContMDiff.ContinuousAlternatingMap
 public import TauCeti.Geometry.Manifold.ContMDiff.MFDeriv
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+public import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 public import TauCeti.Geometry.Manifold.Riemannian.Codifferential
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.ChartGram
 
@@ -33,6 +35,10 @@ expressions, on `ψ.target`, of the metric, of the Hodge star and of the codiffe
 ## Main results
 
 * `SymplecticGeometry.contDiffOn_gramInChart`: the metric in the chart is smooth on `ψ.target`.
+* `SymplecticGeometry.gramInChart_apply_self_pos`: on `ψ.target`, the metric in the chart is
+  positive on nonzero vectors.
+* `SymplecticGeometry.gramInChart_trans_apply`: how the metric in the chart changes when the chart
+  is followed by a partial diffeomorphism of `E`.
 * `SymplecticGeometry.gramInChart_extChartPartialDiffeomorph`: for the atlas chart at `x`, its
   matrix in the basis `finBasis ℝ E` is Tau Ceti's chart Gram matrix
   `Riemannian.Tensor.chartGramMatrix`.
@@ -117,6 +123,37 @@ theorem posDef_gramInChart {ι : Type*} [Finite ι] (b : Basis ι ℝ E) {y : E}
   convert Matrix.posDef_gram_of_linearIndependent hli using 1
   ext i j
   rw [Matrix.gram_apply, Matrix.of_apply, gramInChart_apply]
+
+/-- On the target of the chart, the metric in the chart is positive on nonzero vectors. -/
+theorem gramInChart_apply_self_pos {y : E} (hy : y ∈ ψ.target) {v : E} (hv : v ≠ 0) :
+    0 < gramInChart ψ y v v := by
+  rw [gramInChart_apply]
+  refine real_inner_self_pos.2 fun h0 ↦ hv ?_
+  have h := ψ.mfderiv_apply_mfderiv_symm_apply (by simp) hy v
+  rw [h0, map_zero] at h
+  exact h.symm
+
+/-- **The metric under a change of coordinates.** If `Θ` is a partial diffeomorphism of `E`, the
+metric in the chart `ψ.trans Θ` at `w`, evaluated on the images under the derivative of `Θ` of
+two vectors, is the metric in the chart `ψ` at `Θ.symm w` evaluated on those vectors. -/
+theorem gramInChart_trans_apply (Θ : PartialDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) E E ∞) {w : E}
+    (hw : w ∈ Θ.target) (hψ : Θ.symm w ∈ ψ.target) (u v : E) :
+    gramInChart (ψ.trans Θ) w (fderiv ℝ Θ (Θ.symm w) u) (fderiv ℝ Θ (Θ.symm w) v) =
+      gramInChart ψ (Θ.symm w) u v := by
+  have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
+  have key (a : E) : mfderiv 𝓘(ℝ, E) I (ψ.trans Θ).symm w (fderiv ℝ Θ (Θ.symm w) a) =
+      mfderiv 𝓘(ℝ, E) I ψ.symm (Θ.symm w) a := by
+    have ha : fderiv ℝ Θ (Θ.symm w) a = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) Θ (Θ.symm w) a :=
+      (TauCeti.mvfderiv_eq_fderiv_apply _ _ _).symm.trans (mvfderiv_apply_eq_mfderiv_apply _ _ _)
+    have h1 := Θ.mfderiv_symm_apply_mfderiv_apply hn (Θ.map_target hw) a
+    rw [Θ.right_inv hw] at h1
+    rw [ha, PartialDiffeomorph.coe_trans_symm, mfderiv_comp w
+      (ψ.symm.mdifferentiableAt hn hψ) (Θ.symm.mdifferentiableAt hn hw)]
+    exact congrArg (mfderiv 𝓘(ℝ, E) I ψ.symm (Θ.symm w)) h1
+  rw [gramInChart_apply, gramInChart_apply, key, key]
+  -- The two inner products are taken in the tangent spaces at `(ψ.trans Θ).symm w` and at
+  -- `ψ.symm (Θ.symm w)`, which are the same point by definition.
+  rfl
 
 variable [FiniteDimensional ℝ E] [IsManifold I ∞ M]
 

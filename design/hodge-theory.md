@@ -455,11 +455,13 @@ on the fibres `V [⋀^Fin k]→L[ℝ] ℝ` of the form bundle, beside Tau Ceti's
 
 Beside *Nijenhuis tensor*'s `Integrable.lean`:
 
-- `TauCeti.SmoothTwoForm.IsKahler.exists_partialDiffeomorph_hasFDerivAt_gramInChart_eq_zero`:
-  let `ω.IsKahler J` and `J.IsIntegrable` with linear structure $J_0$, and
-  let the metric instance satisfy `hg`. Then every $x_0$ lies in the source
+- `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.exists_partialDiffeomorph_fderiv_gramInChart_eq_zero`:
+  let `J.IsIntegrable` with linear structure $J_0$, let `ω.IsClosed` (all
+  of `ω.IsKahler J` that the proof uses), and let the metric instance
+  satisfy `hg`. Then every $x_0$ lies in the source
   of a chart `ψ` with `chartPushforward` of $J$ equal to $J_0$ on
-  `ψ.target`, and with `gramInChart ψ` of derivative zero at `ψ x₀`.
+  `ψ.target`, and with `fderiv ℝ (gramInChart ψ) (ψ x₀) = 0`, the form
+  that `fderiv_hodgeStarInChart_eq_zero` takes.
   Start from an integrable chart and compose it with
   $z\mapsto z+Q(z,z)$, where $Q$ is $J_0$-bilinear and symmetric and is
   chosen so that the first derivative of the metric vanishes. Such a $Q$
