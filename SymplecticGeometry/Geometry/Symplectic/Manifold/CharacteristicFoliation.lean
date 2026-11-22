@@ -229,8 +229,7 @@ private theorem eventually_fibreForm_eq (hp : IsCharacteristicSubmersion IB σ p
     have h1 := LinearMap.congr_fun (LinearMap.mem_ker.1 hk) (mfderiv 𝓘(ℝ, E) I κ.symm z (u 0))
     rw [bilinFormAt_apply, SmoothBundleForm.eval₂_apply] at h1
     convert h1 using 2
-    funext i
-    fin_cases i <;> simp
+    exact (FinVec.etaExpand_eq _).symm
   -- At points of the fibre through `x`, `fibreForm` is the form in the chart, evaluated on
   -- fixed lifts of the arguments.
   have hstar (z : E) (hz : z ∈ κ.target) (hpz : p (κ.symm z) = p x) :
