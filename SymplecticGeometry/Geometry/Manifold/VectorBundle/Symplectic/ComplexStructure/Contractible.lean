@@ -7,19 +7,22 @@ module
 
 public import Mathlib.Analysis.Convex.Contractible
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
+public import Mathlib.Topology.Homotopy.Affine
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Cayley
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Topology
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
 
 /-!
-# Contractibility of tame and compatible structures and forms on a vector bundle
+# Tame and compatible structures and forms on a vector bundle: contractibility and the polar map
 
 Let `V` be a real vector bundle of finite rank over a Hausdorff σ-compact manifold modelled on a
 finite-dimensional space. This file proves that for a nondegenerate two-form `ω` on `V` the
 complex structures tamed by `ω`, and those compatible with `ω`, form contractible spaces, and that
 for a complex structure `J` the two-forms that tame `J`, and those compatible with `J`, form
 contractible spaces, for the frame topologies of the endomorphism bundle and of the bundle of
-alternating forms, in every regularity `Cⁿ`.
+alternating forms, in every regularity `Cⁿ`. For a bundle metric `g`, the map `ω ↦ J_{g,ω}` from
+the nondegenerate two-forms to the complex structures is moreover a homotopy equivalence, with
+homotopy inverse `J ↦ ω_{g,J}`, and its homotopy class does not depend on `g`.
 
 For the forms, the two sets are convex and nonempty in a topological vector space, so Mathlib's
 `Convex.contractibleSpace` applies.
@@ -33,6 +36,17 @@ structure; so it gives complex structures
 `SymplecticGeometry.Bundle.ContMDiffTwoForm.Compatible.cayleyPath`, jointly continuous in `t` and
 `J` by `ContMDiffSection.continuous_fiberwiseMap`. Run backwards, it contracts the space of
 `ω`-tame structures, and the space of `ω`-compatible structures, to `J₀`.
+
+For the homotopy equivalence, `ω` and `ω_{g,J_{g,ω}}` both tame `J_{g,ω}`, so the segment between
+them stays among the nondegenerate forms. For metrics `g₀` and `g₁`, the structures `J` and
+`J_{g₁,ω_{g₀,J}}` are both compatible with `ω_{g₀,J}`, so `Compatible.cayleyPath` joins the
+second to the first. For its continuity in `J`, the reference is read as a function of the fibre
+value of `J`, defined and smooth on the open set
+`Bundle.ContMDiffRiemannianMetric.polarEndDomain g₀`; both continuity statements come from
+`Bundle.continuous_fiberwiseMap_cayleyPathFormula`, for any reference that is smooth on an open
+set. With `g₀ = g₁ = g` the
+segment and the path are the two homotopies of the equivalence; with two metrics they show that
+`ω ↦ J_{g₀,ω}` and `ω ↦ J_{g₁,ω}` are homotopic.
 
 ## Main definitions and results
 
@@ -50,15 +64,26 @@ structure; so it gives complex structures
   Both are `ContMDiffSection.fiberwiseMap`s without parameter, of the polar formula at the flat
   map `Bundle.flatAt` and of the alternating map `Bundle.alternatingMapOfBilin` of
   `compatibleBilinAt`.
+* `Bundle.ContMDiffComplexStructure.homotopic_polarComplexStructure_compatibleForm`:
+  for metrics `g₀` and `g₁`, the map `J ↦ J_{g₁,ω_{g₀,J}}` is homotopic to the identity, along
+  the Cayley paths from `J_{g₁,ω_{g₀,J}}` to `J`.
+* `SymplecticGeometry.Bundle.ContMDiffTwoForm.exists_homotopyEquiv_polarComplexStructure`: for a
+  metric `g`, the map `ω ↦ J_{g,ω}` is a homotopy equivalence.
+* `SymplecticGeometry.Bundle.ContMDiffTwoForm.polarComplexStructure_homotopic`: for two metrics,
+  the two maps `ω ↦ J_{g,ω}` are homotopic.
+* `SymplecticGeometry.Bundle.contractibleSpace_compatible_tames`: the conjunction of the
+  contractibility statements and of the homotopy equivalence.
 
 The construction of `Compatible.cayleyPath` adapts Tau Ceti's
 `TauCeti.SmoothTwoForm.Compatible.cayleyPath`, for the tangent bundle and smooth structures, to
 any vector bundle and any regularity.
+The homotopy equivalence follows this library's linear `SymplecticGeometry.polarHomotopyEquiv`,
+whose two homotopies `polarStraightHomotopy` and `polarCayleyHomotopy` it carries over fibrewise.
 
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Proposition 2.5.13 and Proposition 2.6.4
+  Proposition 2.5.6, Proposition 2.5.13 and Proposition 2.6.4
 -/
 
 public section
@@ -66,7 +91,7 @@ public section
 noncomputable section
 
 open _root_.Bundle Set Topology TopologicalSpace TauCeti
-open scoped Manifold
+open scoped Manifold ContinuousMap
 
 namespace SymplecticGeometry.Bundle
 
@@ -78,6 +103,64 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
   [∀ x, TopologicalSpace (V x)] [∀ x, IsTopologicalAddGroup (V x)]
   [∀ x, ContinuousSMul ℝ (V x)] [TopologicalSpace (TotalSpace F V)]
   [FiberBundle F V] [VectorBundle ℝ F V] {n : ℕ∞}
+
+/-- Let `A` be a reference endomorphism, a function of the point `q` of the endomorphism bundle,
+that is `Cⁿ` on an open set `W`. Then the Cayley path
+`cayleyPathFormula (smoothTransition t) (A q) q.snd` from `A q` to the fibre value of `q` is
+jointly `Cⁿ` in `t` and `q`, on the points of `W` in the domain of the Cayley path from `A`. -/
+theorem contMDiffOn_cayleyPathFormula_of_contMDiffOn
+    {W : Set (TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x))} (hW : IsOpen W)
+    {A : ∀ q : TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x), V q.proj →L[ℝ] V q.proj}
+    (hA : ContMDiffOn (I.prod 𝓘(ℝ, F →L[ℝ] F)) (I.prod 𝓘(ℝ, F →L[ℝ] F)) n
+      (fun q ↦ TotalSpace.mk' (F →L[ℝ] F) (E := fun x ↦ V x →L[ℝ] V x) q.proj (A q)) W) :
+    ContMDiffOn (𝓘(ℝ).prod (I.prod 𝓘(ℝ, F →L[ℝ] F))) (I.prod 𝓘(ℝ, F →L[ℝ] F)) n
+      (fun q : ℝ × TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x) ↦
+        TotalSpace.mk' (F →L[ℝ] F) (E := fun x ↦ V x →L[ℝ] V x) q.2.proj
+          (cayleyPathFormula (Real.smoothTransition q.1) (A q.2) q.2.snd))
+      (univ ×ˢ (W ∩ cayleyPathDomain F V A)) := by
+  rintro ⟨t, q⟩ ⟨-, hq₁, hq₂⟩
+  have hb : t.smoothTransition ∈ Icc (0 : ℝ) 1 :=
+    ⟨Real.smoothTransition.nonneg t, Real.smoothTransition.le_one t⟩
+  have hu := isUnit_of_mem_cayleyPathDomain hq₂ hb
+  have hproj : ContMDiff (𝓘(ℝ).prod (I.prod 𝓘(ℝ, F →L[ℝ] F))) I n
+      (fun p : ℝ × TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x) ↦ p.2.proj) :=
+    (contMDiff_proj _).comp contMDiff_snd
+  exact (ContMDiffAt.cayleyPathFormula_hom_bundle_of_vectorBundle
+    (f := fun p : ℝ × TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x) ↦ p.2.proj)
+    (b := fun p ↦ Real.smoothTransition p.1) (A := fun p ↦ A p.2) (B := fun p ↦ p.2.snd)
+    hproj.contMDiffAt
+    (Real.smoothTransition.contDiff.contMDiff.comp contMDiff_fst).contMDiffAt
+    (((hA q hq₁).contMDiffAt (hW.mem_nhds hq₁)).comp (t, q) contMDiff_snd.contMDiffAt)
+    contMDiff_snd.contMDiffAt hu.1 hu.2).contMDiffWithinAt
+
+section Continuity
+
+variable [IsManifold I n M] [ContMDiffVectorBundle n F V I] [LocallyCompactSpace EB] {ι : Type*}
+  (e : ι → Trivialization (F →L[ℝ] F) (π (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x)))
+  [∀ i, MemTrivializationAtlas (e i)]
+  (U : ι → Opens M) (hU : ∀ i, (U i : Set M) ⊆ (e i).baseSet)
+
+/-- Let `A` be a reference endomorphism, a function of the point of the endomorphism bundle, that
+is `Cⁿ` on an open set `W`. For a covering frame system, the fibrewise Cayley path from `A` is
+jointly continuous in the time and in the section of the endomorphism bundle, among the sections
+whose values lie in `W` and in the domain of the Cayley path from `A`, for the frame topology. -/
+theorem continuous_fiberwiseMap_cayleyPathFormula (hcover : ∀ x, ∃ i, x ∈ U i)
+    {W : Set (TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x))} (hW : IsOpen W)
+    {A : ∀ q : TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x), V q.proj →L[ℝ] V q.proj}
+    (hA : ContMDiffOn (I.prod 𝓘(ℝ, F →L[ℝ] F)) (I.prod 𝓘(ℝ, F →L[ℝ] F)) n
+      (fun q ↦ TotalSpace.mk' (F →L[ℝ] F) (E := fun x ↦ V x →L[ℝ] V x) q.proj (A q)) W) :
+    letI := ContMDiffSection.frameTopology (I := I) (n := n) e U hU
+    Continuous fun p : ℝ × {s : Cₛ^n⟮I; F →L[ℝ] F, fun x ↦ V x →L[ℝ] V x⟯ //
+        ∀ x, ⟨x, s x⟩ ∈ W ∩ cayleyPathDomain F V A} ↦
+      ContMDiffSection.fiberwiseMap
+        (fun t x B ↦ cayleyPathFormula (Real.smoothTransition t) (A ⟨x, B⟩) B)
+        (contMDiffOn_cayleyPathFormula_of_contMDiffOn hW hA) p.1 p.2 := by
+  let _ := ContMDiffSection.frameTopology (I := I) (n := n) e U hU
+  exact ContMDiffSection.continuous_fiberwiseMap _ _ e U hU e U hU
+    (isOpen_cayleyPathDomain hW (hA.continuousOn)) hcover
+
+end Continuity
+
 
 namespace ContMDiffComplexStructure
 
@@ -91,20 +174,8 @@ theorem contMDiffOn_cayleyPathFormula
         TotalSpace.mk' (F →L[ℝ] F) (E := fun x ↦ V x →L[ℝ] V x) q.2.proj
           (cayleyPathFormula (Real.smoothTransition q.1) (J₀ q.2.proj) q.2.snd))
       (univ ×ˢ cayleyPathDomain F V fun q ↦ J₀ q.proj) := by
-  rintro ⟨t, q⟩ ⟨-, hq⟩
-  have hb : t.smoothTransition ∈ Icc (0 : ℝ) 1 :=
-    ⟨Real.smoothTransition.nonneg t, Real.smoothTransition.le_one t⟩
-  have hu := isUnit_of_mem_cayleyPathDomain hq hb
-  have hproj : ContMDiff (𝓘(ℝ).prod (I.prod 𝓘(ℝ, F →L[ℝ] F))) I n
-      (fun p : ℝ × TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x) ↦ p.2.proj) :=
-    (contMDiff_proj _).comp contMDiff_snd
-  exact (ContMDiffAt.cayleyPathFormula_hom_bundle_of_vectorBundle
-    (f := fun p : ℝ × TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x) ↦ p.2.proj)
-    (b := fun p ↦ Real.smoothTransition p.1) (A := fun p ↦ J₀ p.2.proj) (B := fun p ↦ p.2.snd)
-    hproj.contMDiffAt
-    (Real.smoothTransition.contDiff.contMDiff.comp contMDiff_fst).contMDiffAt
-    (J₀.toEndomorphism.contMDiff.comp hproj).contMDiffAt contMDiff_snd.contMDiffAt
-    hu.1 hu.2).contMDiffWithinAt
+  simpa using contMDiffOn_cayleyPathFormula_of_contMDiffOn isOpen_univ
+    (A := fun q ↦ J₀ q.proj) (J₀.toEndomorphism.contMDiff.comp (contMDiff_proj _)).contMDiffOn
 
 end ContMDiffComplexStructure
 
@@ -218,18 +289,19 @@ theorem Compatible.continuous_cayleyPath (hcover : ∀ x, ∃ i, x ∈ U i) :
       h₀.cayleyPath p.2.property p.1 := by
   let _ := ContMDiffSection.frameTopology (I := I) (n := n) e U hU
   let _ := ContMDiffComplexStructure.frameTopology (I := I) (n := n) e U hU
-  have hO : IsOpen (cayleyPathDomain F V fun q ↦ J₀ q.proj) := by
-    simpa using isOpen_cayleyPathDomain (A := fun q ↦ J₀ q.proj) isOpen_univ
-      (J₀.toEndomorphism.contMDiff.continuous.comp (FiberBundle.continuous_proj _ _)).continuousOn
   have hs : Continuous fun J : {J : ContMDiffComplexStructure I n F V // ω.Tames J} ↦
-      (⟨J.val.toEndomorphism, h₀.mem_cayleyPathDomain J.property⟩ :
+      (⟨J.val.toEndomorphism, fun x ↦ ⟨mem_univ _, h₀.mem_cayleyPathDomain J.property x⟩⟩ :
         {s : Cₛ^n⟮I; F →L[ℝ] F, fun x ↦ V x →L[ℝ] V x⟯ //
-          ∀ x, ⟨x, s x⟩ ∈ cayleyPathDomain F V fun q ↦ J₀ q.proj}) :=
+          ∀ x, ⟨x, s x⟩ ∈ univ ∩ cayleyPathDomain F V fun q ↦ J₀ q.proj}) :=
     ((ContMDiffComplexStructure.isEmbedding_toEndomorphism_frameTopology e U hU).continuous.comp
       continuous_subtypeVal).subtype_mk _
-  refine (ContMDiffComplexStructure.continuous_frameTopology_iff e U hU).2 ?_
-  exact (ContMDiffSection.continuous_fiberwiseMap _ J₀.contMDiffOn_cayleyPathFormula e U hU e U hU
-    hO hcover).comp (continuous_fst.prodMk (hs.comp continuous_snd))
+  refine (ContMDiffComplexStructure.continuous_frameTopology_iff e U hU).2 <|
+    ((continuous_fiberwiseMap_cayleyPathFormula e U hU hcover isOpen_univ
+      (A := fun q ↦ J₀ q.proj) (J₀.toEndomorphism.contMDiff.comp (contMDiff_proj _)).contMDiffOn
+      ).comp (continuous_fst.prodMk (hs.comp continuous_snd))).congr fun p ↦
+    ContMDiffSection.ext fun x ↦ ?_
+  simp only [Function.comp_apply, ContMDiffSection.fiberwiseMap_apply]
+  exact (h₀.cayleyPath_apply p.2.property p.1 x).symm
 
 end CayleyPath
 
@@ -320,6 +392,29 @@ theorem contractibleSpace_compatible (J : ContMDiffComplexStructure I n F V) :
   let _ := ContMDiffSection.continuousSMul_frameTopology (I := I) (n := n) e U hU
   obtain ⟨ω, hω⟩ := J.exists_compatible
   exact (ContMDiffTwoForm.convex_setOf_compatible J).contractibleSpace ⟨ω, hω⟩
+
+end ContMDiffComplexStructure
+
+/-! ### The Cayley path from `J_{g₁,ω_{g₀,J}}` to `J` -/
+
+namespace ContMDiffComplexStructure
+
+variable (g₀ g₁ : ContMDiffRiemannianMetric I n F V)
+
+/-- For every complex structure `J`, the point `⟨x, J x⟩` of the endomorphism bundle lies in
+`polarEndDomain g₀` and in the domain of the Cayley path from `J_{g₁,ω_{g₀,J}}`, read as the
+polar formula of `g₁` at `compatibleBilinAt g₀`: both `J_{g₁,ω_{g₀,J}}` and `J` are compatible
+with `ω_{g₀,J}`. -/
+theorem mk_mem_polarEndDomain_inter_cayleyPathDomain (J : ContMDiffComplexStructure I n F V)
+    (x : M) :
+    (⟨x, J x⟩ : TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x)) ∈
+      g₀.polarEndDomain ∩ cayleyPathDomain F V fun q ↦
+        g₁.polarFormulaAt q.proj (g₀.compatibleBilinAt q.proj q.snd) := by
+  have hc := compatible_compatibleForm g₀ J
+  refine ⟨J.mk_mem_polarEndDomain g₀ x,
+    ((hc.isNondegenerate.compatible_polarComplexStructure g₁).compatibleAt x).mem_cayleyPathDomain
+      (hc.compatibleAt x).tames ?_ (J.almostComplexStructureAt_toLinearMap x).symm⟩
+  rw [almostComplexStructureAt_toLinearMap, ← polarFormulaAt_compatibleBilinAt]
 
 end ContMDiffComplexStructure
 
@@ -428,7 +523,211 @@ theorem ContMDiffComplexStructure.continuous_compatibleForm
   simp only [Function.comp_apply, ContMDiffSection.fiberwiseMap_apply]
   exact compatibleForm_eq_alternatingMapOfBilin g J x
 
+namespace ContMDiffComplexStructure
+
+variable (g₀ g₁ : ContMDiffRiemannianMetric I n F V)
+
+/-- For bundle metrics `g₀` and `g₁` and a covering frame system, the Cayley path from
+`J_{g₁,ω_{g₀,J}}` to `J`, through the complex structures compatible with `ω_{g₀,J}`, is jointly
+continuous in the time and in `J`, for the frame topology. -/
+theorem continuous_cayleyPath_polarComplexStructure (hcover : ∀ x, ∃ i, x ∈ U i) :
+    letI := frameTopology (I := I) (n := n) e U hU
+    Continuous fun p : ℝ × ContMDiffComplexStructure I n F V ↦
+      ((compatible_compatibleForm g₀ p.2).isNondegenerate.compatible_polarComplexStructure
+        g₁).cayleyPath (compatible_compatibleForm g₀ p.2).tames p.1 := by
+  let _ := ContMDiffSection.frameTopology (I := I) (n := n) e U hU
+  let _ := frameTopology (I := I) (n := n) e U hU
+  have hs : Continuous fun J : ContMDiffComplexStructure I n F V ↦
+      (⟨J.toEndomorphism, mk_mem_polarEndDomain_inter_cayleyPathDomain g₀ g₁ J⟩ :
+        {s : Cₛ^n⟮I; F →L[ℝ] F, fun x ↦ V x →L[ℝ] V x⟯ //
+          ∀ x, ⟨x, s x⟩ ∈ g₀.polarEndDomain ∩ cayleyPathDomain F V fun q ↦
+            g₁.polarFormulaAt q.proj (g₀.compatibleBilinAt q.proj q.snd)}) :=
+    (isEmbedding_toEndomorphism_frameTopology e U hU).continuous.subtype_mk _
+  refine (continuous_frameTopology_iff e U hU).2 <|
+    ((continuous_fiberwiseMap_cayleyPathFormula e U hU hcover g₀.isOpen_polarEndDomain
+      (g₀.contMDiffOn_polarFormulaAt_compatibleBilinAt g₁)).comp
+        (continuous_fst.prodMk (hs.comp continuous_snd))).congr fun p ↦
+    ContMDiffSection.ext fun x ↦ ?_
+  simp only [Function.comp_apply, ContMDiffSection.fiberwiseMap_apply]
+  rw [polarFormulaAt_compatibleBilinAt]
+  exact (ContMDiffTwoForm.Compatible.cayleyPath_apply _ _ p.1 x).symm
+
+/-- For bundle metrics `g₀` and `g₁` and a covering frame system, the complex structure
+`J_{g₁,ω_{g₀,J}}` depends continuously on the complex structure `J`, for the frame topology. -/
+theorem continuous_polarComplexStructure_compatibleForm (hcover : ∀ x, ∃ i, x ∈ U i) :
+    letI := frameTopology (I := I) (n := n) e U hU
+    Continuous fun J : ContMDiffComplexStructure I n F V ↦
+      (compatible_compatibleForm g₀ J).isNondegenerate.polarComplexStructure g₁ := by
+  let _ := frameTopology (I := I) (n := n) e U hU
+  exact ((continuous_cayleyPath_polarComplexStructure e U hU g₀ g₁ hcover).comp
+    (continuous_const.prodMk continuous_id)).congr
+    fun J ↦ ((compatible_compatibleForm g₀ J).isNondegenerate.compatible_polarComplexStructure
+      g₁).cayleyPath_of_nonpos (compatible_compatibleForm g₀ J).tames le_rfl
+
+/-- For bundle metrics `g₀` and `g₁` and a covering frame system, the map
+`J ↦ J_{g₁,ω_{g₀,J}}` of the complex structures to themselves is homotopic to the identity, for
+the frame topology, along the Cayley paths from `J_{g₁,ω_{g₀,J}}` to `J`. -/
+theorem homotopic_polarComplexStructure_compatibleForm (hcover : ∀ x, ∃ i, x ∈ U i) :
+    letI := frameTopology (I := I) (n := n) e U hU
+    ContinuousMap.Homotopic
+      ⟨fun J : ContMDiffComplexStructure I n F V ↦
+        (compatible_compatibleForm g₀ J).isNondegenerate.polarComplexStructure g₁,
+        continuous_polarComplexStructure_compatibleForm e U hU g₀ g₁ hcover⟩
+      (ContinuousMap.id _) := by
+  let _ := frameTopology (I := I) (n := n) e U hU
+  exact ⟨{
+    toFun := fun p ↦
+      ((compatible_compatibleForm g₀ p.2).isNondegenerate.compatible_polarComplexStructure
+        g₁).cayleyPath (compatible_compatibleForm g₀ p.2).tames p.1
+    continuous_toFun := (continuous_cayleyPath_polarComplexStructure e U hU g₀ g₁ hcover).comp
+      ((continuous_subtypeVal.comp continuous_fst).prodMk continuous_snd)
+    map_zero_left := fun _ ↦ ContMDiffTwoForm.Compatible.cayleyPath_of_nonpos _ _ (by simp)
+    map_one_left := fun _ ↦ ContMDiffTwoForm.Compatible.cayleyPath_of_one_le _ _ (by simp) }⟩
+
+end ContMDiffComplexStructure
+
+/-! ### The homotopy equivalence -/
+
+namespace ContMDiffTwoForm
+
+/-- For a bundle metric `g` and covering frame systems of the endomorphism bundle and of the
+bundle of alternating forms, the map `ω ↦ ω_{g,J_{g,ω}}` of the nondegenerate two-forms to
+themselves is homotopic to the identity, for the frame topology of the second, along the segments
+between `ω` and `ω_{g,J_{g,ω}}`. -/
+theorem homotopic_compatibleForm_polarComplexStructure (g : ContMDiffRiemannianMetric I n F V)
+    (hcover : ∀ x, ∃ i, x ∈ U i) (hcover' : ∀ x, ∃ j, x ∈ U' j) :
+    letI := ContMDiffSection.frameTopology (I := I) (n := n) e' U' hU'
+    letI := ContMDiffComplexStructure.frameTopology (I := I) (n := n) e U hU
+    ContinuousMap.Homotopic
+      ⟨fun ω : {ω : ContMDiffTwoForm I n F V // ω.IsNondegenerate} ↦
+        (⟨ContMDiffComplexStructure.compatibleForm g (ω.property.polarComplexStructure g),
+          (ContMDiffComplexStructure.compatible_compatibleForm g _).isNondegenerate⟩ :
+          {ω : ContMDiffTwoForm I n F V // ω.IsNondegenerate}),
+        ((ContMDiffComplexStructure.continuous_compatibleForm e U hU e' U' hU' g hcover).comp
+          (continuous_polarComplexStructure e U hU e' U' hU' g hcover')).subtype_mk _⟩
+      (ContinuousMap.id _) := by
+  let _ := ContMDiffSection.frameTopology (I := I) (n := n) e' U' hU'
+  let _ := ContMDiffSection.isTopologicalAddGroup_frameTopology (I := I) (n := n) e' U' hU'
+  let _ := ContMDiffSection.continuousSMul_frameTopology (I := I) (n := n) e' U' hU'
+  let _ := ContMDiffComplexStructure.frameTopology (I := I) (n := n) e U hU
+  have hb : Continuous fun ω : {ω : ContMDiffTwoForm I n F V // ω.IsNondegenerate} ↦
+      ContMDiffComplexStructure.compatibleForm g (ω.property.polarComplexStructure g) :=
+    (ContMDiffComplexStructure.continuous_compatibleForm e U hU e' U' hU' g hcover).comp
+      (continuous_polarComplexStructure e U hU e' U' hU' g hcover')
+  have hl : Continuous fun p : unitInterval × {ω : ContMDiffTwoForm I n F V // ω.IsNondegenerate} ↦
+      AffineMap.lineMap p.2.val (ContMDiffComplexStructure.compatibleForm g
+        (p.2.property.polarComplexStructure g)) (p.1 : ℝ) :=
+    (ContinuousMap.Homotopy.affine ⟨_, continuous_subtypeVal⟩ ⟨_, hb⟩).continuous
+  exact ContinuousMap.Homotopic.symm ⟨{
+    toFun := fun p ↦ ⟨AffineMap.lineMap p.2.val
+      (ContMDiffComplexStructure.compatibleForm g (p.2.property.polarComplexStructure g)) (p.1 : ℝ),
+      (p.2.property.tames_lineMap_compatibleForm g p.1.property).isNondegenerate⟩
+    continuous_toFun := hl.subtype_mk _
+    map_zero_left := fun ω ↦ Subtype.ext (AffineMap.lineMap_apply_zero _ _)
+    map_one_left := fun ω ↦ Subtype.ext (AffineMap.lineMap_apply_one _ _) }⟩
+
+/-- For a bundle metric `g`, the map `ω ↦ J_{g,ω}` from the nondegenerate two-forms to the complex
+structures is a homotopy equivalence, for the frame topologies of covering frame systems of the
+bundle of alternating forms and of the endomorphism bundle, with homotopy inverse
+`J ↦ ω_{g,J}`. -/
+theorem exists_homotopyEquiv_polarComplexStructure (g : ContMDiffRiemannianMetric I n F V)
+    (hcover : ∀ x, ∃ i, x ∈ U i) (hcover' : ∀ x, ∃ j, x ∈ U' j) :
+    letI := ContMDiffSection.frameTopology (I := I) (n := n) e' U' hU'
+    letI := ContMDiffComplexStructure.frameTopology (I := I) (n := n) e U hU
+    ∃ E : {ω : ContMDiffTwoForm I n F V // ω.IsNondegenerate} ≃ₕ
+        ContMDiffComplexStructure I n F V,
+      (∀ ω, E.toFun ω = ω.property.polarComplexStructure g) ∧
+        ∀ J, (E.invFun J).val = ContMDiffComplexStructure.compatibleForm g J := by
+  let _ := ContMDiffSection.frameTopology (I := I) (n := n) e' U' hU'
+  let _ := ContMDiffComplexStructure.frameTopology (I := I) (n := n) e U hU
+  exact ⟨{
+    toFun := ⟨_, continuous_polarComplexStructure e U hU e' U' hU' g hcover'⟩
+    invFun := ⟨fun J ↦ ⟨ContMDiffComplexStructure.compatibleForm g J,
+        (ContMDiffComplexStructure.compatible_compatibleForm g J).isNondegenerate⟩,
+      (ContMDiffComplexStructure.continuous_compatibleForm e U hU e' U' hU' g
+        hcover).subtype_mk _⟩
+    left_inv := homotopic_compatibleForm_polarComplexStructure e U hU e' U' hU' g hcover hcover'
+    right_inv := ContMDiffComplexStructure.homotopic_polarComplexStructure_compatibleForm e U hU g g
+      hcover }, fun _ ↦ rfl, fun _ ↦ rfl⟩
+
+/-- For bundle metrics `g₀` and `g₁`, the maps `ω ↦ J_{g₀,ω}` and `ω ↦ J_{g₁,ω}` from the
+nondegenerate two-forms to the complex structures are homotopic, for the frame topologies of
+covering frame systems of the bundle of alternating forms and of the endomorphism bundle. -/
+theorem polarComplexStructure_homotopic (g₀ g₁ : ContMDiffRiemannianMetric I n F V)
+    (hcover : ∀ x, ∃ i, x ∈ U i) (hcover' : ∀ x, ∃ j, x ∈ U' j) :
+    letI := ContMDiffSection.frameTopology (I := I) (n := n) e' U' hU'
+    letI := ContMDiffComplexStructure.frameTopology (I := I) (n := n) e U hU
+    ContinuousMap.Homotopic
+      ⟨fun ω : {ω : ContMDiffTwoForm I n F V // ω.IsNondegenerate} ↦
+        ω.property.polarComplexStructure g₀,
+        continuous_polarComplexStructure e U hU e' U' hU' g₀ hcover'⟩
+      ⟨fun ω : {ω : ContMDiffTwoForm I n F V // ω.IsNondegenerate} ↦
+        ω.property.polarComplexStructure g₁,
+        continuous_polarComplexStructure e U hU e' U' hU' g₁ hcover'⟩ := by
+  let _ := ContMDiffSection.frameTopology (I := I) (n := n) e' U' hU'
+  let _ := ContMDiffComplexStructure.frameTopology (I := I) (n := n) e U hU
+  -- `J_{g₀,ω}` is homotopic to `J_{g₁,ω_{g₀,J_{g₀,ω}}}`, which is homotopic to `J_{g₁,ω}`.
+  have h₀ := (ContMDiffComplexStructure.homotopic_polarComplexStructure_compatibleForm e U hU g₀ g₁
+    hcover).comp (ContinuousMap.Homotopic.refl
+      ⟨_, continuous_polarComplexStructure e U hU e' U' hU' g₀ hcover'⟩)
+  have h₁ := (ContinuousMap.Homotopic.refl
+      ⟨_, continuous_polarComplexStructure e U hU e' U' hU' g₁ hcover'⟩).comp
+    (homotopic_compatibleForm_polarComplexStructure e U hU e' U' hU' g₀ hcover hcover')
+  exact h₀.symm.trans h₁
+
+end ContMDiffTwoForm
+
 end Continuity
+
+/-! ### The milestone -/
+
+section Milestone
+
+variable [FiniteDimensional ℝ EB] [T2Space M] [SigmaCompactSpace M]
+  [IsManifold I ((⊤ : ℕ∞) : WithTop ℕ∞) M] [ContMDiffVectorBundle n F V I] {ι κ : Type*}
+  (e : ι → Trivialization (F →L[ℝ] F) (π (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x)))
+  [∀ i, MemTrivializationAtlas (e i)]
+  (U : ι → Opens M) (hU : ∀ i, (U i : Set M) ⊆ (e i).baseSet)
+  (e' : κ → Trivialization (F [⋀^Fin 2]→L[ℝ] ℝ)
+    (π (F [⋀^Fin 2]→L[ℝ] ℝ) (fun x ↦ V x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x)))
+  [∀ j, MemTrivializationAtlas (e' j)]
+  (U' : κ → Opens M) (hU' : ∀ j, (U' j : Set M) ⊆ (e' j).baseSet)
+
+/-- Let `V` be a real vector bundle of finite rank over a Hausdorff σ-compact manifold modelled on
+a finite-dimensional space, with the frame topologies of covering frame systems of its
+endomorphism bundle and of its bundle of alternating forms. Then, in every regularity `Cⁿ`:
+* for a nondegenerate two-form `ω`, the complex structures tamed by `ω`, and those compatible
+  with `ω`, form contractible spaces;
+* for a complex structure `J`, the two-forms that tame `J`, and those compatible with `J`, form
+  contractible spaces;
+* for a bundle metric `g`, the map `ω ↦ J_{g,ω}` from the nondegenerate two-forms to the complex
+  structures is a homotopy equivalence, with homotopy inverse `J ↦ ω_{g,J}`.
+
+A contractible space is nonempty, so in particular all four spaces are nonempty.
+
+Milestone: *Compatible and tame complex structures on symplectic vector bundles*. -/
+theorem contractibleSpace_compatible_tames (hcover : ∀ x, ∃ i, x ∈ U i)
+    (hcover' : ∀ x, ∃ j, x ∈ U' j) :
+    letI := ContMDiffSection.frameTopology (I := I) (n := n) e' U' hU'
+    letI := ContMDiffComplexStructure.frameTopology (I := I) (n := n) e U hU
+    (∀ ω : ContMDiffTwoForm I n F V, ω.IsNondegenerate →
+        ContractibleSpace {J : ContMDiffComplexStructure I n F V // ω.Tames J} ∧
+          ContractibleSpace {J : ContMDiffComplexStructure I n F V // ω.Compatible J}) ∧
+      (∀ J : ContMDiffComplexStructure I n F V,
+        ContractibleSpace {ω : ContMDiffTwoForm I n F V // ω.Tames J} ∧
+          ContractibleSpace {ω : ContMDiffTwoForm I n F V // ω.Compatible J}) ∧
+      ∀ g : ContMDiffRiemannianMetric I n F V,
+        ∃ E : {ω : ContMDiffTwoForm I n F V // ω.IsNondegenerate} ≃ₕ
+            ContMDiffComplexStructure I n F V,
+          (∀ ω, E.toFun ω = ω.property.polarComplexStructure g) ∧
+            ∀ J, (E.invFun J).val = ContMDiffComplexStructure.compatibleForm g J :=
+  ⟨fun _ hω ↦ ⟨hω.contractibleSpace_tames e U hU hcover,
+      hω.contractibleSpace_compatible e U hU hcover⟩,
+    fun J ↦ ⟨J.contractibleSpace_tames e' U' hU', J.contractibleSpace_compatible e' U' hU'⟩,
+    fun g ↦ ContMDiffTwoForm.exists_homotopyEquiv_polarComplexStructure e U hU e' U' hU' g hcover
+      hcover'⟩
+
+end Milestone
 
 end SymplecticGeometry.Bundle
 
