@@ -58,8 +58,8 @@ real two-dimensional space with smooth charts, and the chart is a partial diffeo
 
 * `TauCeti.SmoothAlmostComplexStructure.exists_isothermal_partialDiffeomorph`: smooth isothermal
   charts on a surface.
-* `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`: every smooth almost
-  complex structure on a surface is integrable.
+* `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`: integrability of every
+  smooth almost complex structure on a surface.
 * `TauCeti.Manifold.Orientation.rightAngleRotationStructure`: the almost complex structure of an
   oriented Riemannian surface.
 * `TauCeti.Manifold.Orientation.exists_isothermal_coordinates`: isothermal coordinates for a
@@ -147,7 +147,7 @@ theorem exists_isothermal_partialDiffeomorph (J : SmoothAlmostComplexStructure I
     mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply, hJ]
   exact hlin _ hy'.2 _
 
-/-- **Integrability of almost complex structures on surfaces.** Every smooth almost complex
+/-- **Integrability in real dimension two.** Every smooth almost complex
 structure on a boundaryless manifold whose model space has real dimension two is integrable.
 
 Milestone: *Integrability of almost complex structures on surfaces*. -/
