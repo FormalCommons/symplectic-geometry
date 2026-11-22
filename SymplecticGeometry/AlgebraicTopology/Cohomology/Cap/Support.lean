@@ -439,7 +439,7 @@ def capIntoHomology (φ : Q⁎[A].cycles p) :
     (by rw [← Category.assoc, toCycles_capIntoCycles, Category.assoc,
         HomologicalComplex.toCycles_comp_homologyπ, comp_zero])).val
 
-@[reassoc (attr := simp)]
+@[reassoc (attr := simp), elementwise (attr := simp)]
 lemma homologyπ_capIntoHomology (φ : Q⁎[A].cycles p) :
     R[A].homologyπ n ≫ capIntoHomology L S U A hS p q n h φ =
       capIntoCycles L S U A hS p q n h φ ≫
@@ -498,6 +498,7 @@ private lemma capInto_subspace_cycles (φ : Q⁎[A].cycles p) :
     ChainComplex.iCycles_cyclesMap_linearYonedaFunctor_map_apply (k := ℤ),
     capInto_subspace_chains L S U A T hT hS p q n h]
 
+@[elementwise]
 private lemma capInto_subspace_homology (φ : Q⁎[A].cycles p) :
     HomologicalComplex.homologyMap (SSetPair.chainComplexMap
         (SSetPair.restrictMap (TopPair.toSSetPair.map (openSubspaceInclusion U A)) hT)
@@ -553,12 +554,11 @@ lemma capIntoHomology_apply_eq_singularCap
       ConcreteCategory.comp_apply]
     exact congrArg (TopPair.singularHomologyMap (openSubspaceInclusion U A) ℤₘ n) hy'
   rw [← hz']
-  have hc := ConcreteCategory.congr_hom
-    (capInto_subspace_homology L S U A T hT hS p q n h φ) y'
+  have hc := capInto_subspace_homology_apply L S U A T hT hS p q n h φ y'
   have hy'' : HomologicalComplex.homologyMap
       (SSetPair.chainComplexMap ((TopPair.toSSetPair.obj P[U,A]).restrictι T)
         ℤₘ) n y' = y := hy'
-  erw [ConcreteCategory.comp_apply, ConcreteCategory.comp_apply, hy''] at hc
+  erw [ConcreteCategory.comp_apply, hy''] at hc
   exact hc
 
 end Subspace

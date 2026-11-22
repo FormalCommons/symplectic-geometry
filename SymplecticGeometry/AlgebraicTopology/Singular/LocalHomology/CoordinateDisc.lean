@@ -451,8 +451,7 @@ ray through `ζ`. -/
 theorem apply_boundaryCircle_eq_of_continuousOn {X : Type*} [TopologicalSpace X] [T1Space X]
     {ρ : ℝ} (hρ : ρ < 1) {f : M → X}
     (hf : ContinuousOn f (φ '' {z | ρ < ‖(z : ℂ)‖ ∧ ‖(z : ℂ)‖ ≤ 1})) {ζ : Circle} {c : X}
-    (h : ∀ z : ball, ρ < ‖(z : ℂ)‖ → ‖(z : ℂ)‖ < 1 → Circle.exp (Complex.arg z) = ζ →
-      f (φ z) = c) :
+    (h : ∀ z : ball, ρ < ‖(z : ℂ)‖ → ‖(z : ℂ)‖ < 1 → φ.phase (φ z) = ζ → f (φ z) = c) :
     f (φ.boundaryCircle ζ) = c := by
   -- The ray through `ζ`, as a map from `[0, 1]` to the ball.
   let γ : unitInterval → ball := fun t ↦
@@ -485,8 +484,8 @@ theorem apply_boundaryCircle_eq_of_continuousOn {X : Type*} [TopologicalSpace X]
       (Set.mem_insert _ _)).mono (Set.subset_insert _ _)
   rw [← hγ1]
   refine hcont.eq_const_of_mem_closure hmem fun t ht ↦ h (γ t)
-    (by rw [hnorm]; exact (le_max_left ρ 0).trans_lt ht.1) (by rw [hnorm]; exact ht.2) ?_
-  simp [γ, Complex.arg_ofReal_mul ((le_max_right ρ 0).trans_lt ht.1), Circle.exp_arg]
+    (by rw [hnorm]; exact (le_max_left ρ 0).trans_lt ht.1) (by rw [hnorm]; exact ht.2)
+    (φ.phase_apply_of_coe_eq_mul ((le_max_right ρ 0).trans_lt ht.1) (by simp [γ]))
 
 /-- The boundary loop of a coordinate disc, `t ↦ φ(e^{2πit})`, based at `φ.boundaryCircle 1`.
 It runs counterclockwise in the chart, so it is oriented as the boundary of the closed disc. -/
