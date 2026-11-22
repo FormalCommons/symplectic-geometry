@@ -33,13 +33,17 @@ Singular cohomology with chain coefficients and cochain values `ℤ`, in the for
 structure of `ModuleCat ℤ` as a linear category over the commutative ring `ℤ`, the latter the
 structure that every preadditive category has over `ℤ`. These two structures are not
 definitionally equal, but they are equal (`CategoryTheory.Linear.subsingletonInt`), and the
-identification transports classes, pull-backs and cup products along that equality.
+identification transports classes, pull-backs and cup products along that equality, by
+`TopCat.singularCohomologyLinearCongr`.
 
 ## Main definitions
 
 * `TopCat.uliftIntegralCohomologyIso`: the isomorphism `Hⁿ(X; ULift ℤ) ≅ Hⁿ(X; ℤ)`.
+* `TopCat.singularCohomologyLinearCongr`: the identification of cohomology with chain
+  coefficients and values `ℤ` for two equal structures of `ModuleCat ℤ` as a `ℤ`-linear category.
 * `TopCat.integralCohomologyLinearEquiv`: the linear equivalence from cohomology with chain
-  coefficients and values `ℤ` to `TopCat.integralCohomology`.
+  coefficients and values `ℤ` to `TopCat.integralCohomology`; its value is given by
+  `TopCat.integralCohomologyLinearEquiv_apply`.
 
 ## Main results
 
@@ -155,7 +159,7 @@ open TauCeti
 
 /-! The cohomology with chain coefficients and values `ℤ` uses the structure of `ModuleCat ℤ` as a
 linear category over the commutative ring `ℤ`, and integral cohomology the structure every
-preadditive category has over `ℤ`. The private declarations below transport cohomology classes,
+preadditive category has over `ℤ`. The declarations below transport cohomology classes,
 pull-backs and cup products between any two equal such structures. -/
 
 /-- Cohomology with chain coefficients and values `ℤ`, for a structure `L` of `ModuleCat ℤ` as a
@@ -180,11 +184,27 @@ private abbrev cupL (L : Linear ℤ (ModuleCat.{0} ℤ))
     (𝟙_ (ModuleCat.{0} ℤ)) (𝟙_ (ModuleCat.{0} ℤ)) (𝟙_ (ModuleCat.{0} ℤ)) (𝟙_ (ModuleCat.{0} ℤ)) X
     ℤ _ L hL (λ_ _).inv (λ_ _).hom p q n h
 
-/-- The identification of `HL L₁` with `HL L₂` for equal structures. -/
-private def castL {L₁ L₂ : Linear ℤ (ModuleCat.{0} ℤ)} (e : L₁ = L₂) (X : TopCat.{0}) (n : ℕ) :
-    HL L₁ X n ≃ₗ[ℤ] HL L₂ X n := by
+/-- The identification of singular cohomology with chain coefficients and cochain values `ℤ` for
+two equal structures `L₁ = L₂` of `ModuleCat ℤ` as a linear category over `ℤ`. It is the
+identity when the two structures are the same (`TopCat.singularCohomologyLinearCongr_refl`). -/
+def singularCohomologyLinearCongr {L₁ L₂ : Linear ℤ (ModuleCat.{0} ℤ)} (e : L₁ = L₂)
+    (X : TopCat.{0}) (n : ℕ) :
+    @TopCat.singularCohomology (ModuleCat.{0} ℤ) _ _ _ (𝟙_ (ModuleCat.{0} ℤ)) ℤ _ L₁
+        (𝟙_ (ModuleCat.{0} ℤ)) X n ≃ₗ[ℤ]
+      @TopCat.singularCohomology (ModuleCat.{0} ℤ) _ _ _ (𝟙_ (ModuleCat.{0} ℤ)) ℤ _ L₂
+        (𝟙_ (ModuleCat.{0} ℤ)) X n := by
   subst e
   exact LinearEquiv.refl ℤ _
+
+@[simp]
+theorem singularCohomologyLinearCongr_refl (L : Linear ℤ (ModuleCat.{0} ℤ)) (X : TopCat.{0})
+    (n : ℕ) : singularCohomologyLinearCongr (rfl : L = L) X n = LinearEquiv.refl ℤ _ :=
+  (rfl)
+
+/-- `TopCat.singularCohomologyLinearCongr`, with its type written through `HL`. -/
+private abbrev castL {L₁ L₂ : Linear ℤ (ModuleCat.{0} ℤ)} (e : L₁ = L₂) (X : TopCat.{0})
+    (n : ℕ) : HL L₁ X n ≃ₗ[ℤ] HL L₂ X n :=
+  singularCohomologyLinearCongr e X n
 
 private lemma castL_pullL {L₁ L₂ : Linear ℤ (ModuleCat.{0} ℤ)} (e : L₁ = L₂) {X Y : TopCat.{0}}
     (f : X ⟶ Y) (n : ℕ) (a : HL L₁ Y n) :
@@ -250,6 +270,18 @@ def integralCohomologyLinearEquiv (X : TopCat.{0}) (n : ℕ) :
 private lemma integralCohomologyLinearEquiv_eq (X : TopCat.{0}) (n : ℕ) :
     X.integralCohomologyLinearEquiv n = toIntegral X n :=
   (rfl)
+
+/-- The value of `TopCat.integralCohomologyLinearEquiv`: the change of linear structure
+`TopCat.singularCohomologyLinearCongr`, from `ModuleCat.instLinear` to
+`CategoryTheory.Linear.preadditiveIntLinear`, followed by the change of chain coefficients
+`TopCat.singularCohomologyChainCoefficientMap` along `TauCeti.integralCoeffIso`. -/
+theorem integralCohomologyLinearEquiv_apply (X : TopCat.{0}) (n : ℕ)
+    (a : X.singularCohomology (𝟙_ (ModuleCat.{0} ℤ)) ℤ (𝟙_ (ModuleCat.{0} ℤ)) n) :
+    X.integralCohomologyLinearEquiv n a =
+      @TopCat.singularCohomologyChainCoefficientMap _ _ _ _ _ _ X ℤ _
+        Linear.preadditiveIntLinear (ModuleCat.of ℤ ℤ) integralCoeffIso.hom n
+        (singularCohomologyLinearCongr (Subsingleton.elim ModuleCat.instLinear _) X n a) := by
+  rw [integralCohomologyLinearEquiv_eq, toIntegral_apply]
 
 /-- **Naturality of `TopCat.integralCohomologyLinearEquiv`**: it commutes with the maps induced by
 a continuous map `f : X ⟶ Y`. -/
