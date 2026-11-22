@@ -299,7 +299,9 @@ identity, `Algebra/Lie/Quotient.lean` for the value of
 `Geometry/Manifold/DifferentialForm/Flow/Family.lean` of
 *Contact geometry* for the general flow lemma. `Diffeotopy/Real.lean` of
 *Smooth families* imports `Velocity.lean`, for `mfderiv_cylinderMap_time` and
-`velocity`.
+`velocity`. `Diffeotopy/Real.lean` and `Geometry/Manifold/SmoothTransition.lean` of
+*Smooth families* import `Instances/Icc.lean`, for
+`mdifferentiableAt_subtypeVal_Icc`.
 
 ## Definitions and their API
 
