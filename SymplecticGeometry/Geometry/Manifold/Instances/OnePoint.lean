@@ -45,6 +45,8 @@ reads for the underlying real surface, modelled on `𝓘(ℝ, ℂ)`, and compare
 * `SymplecticGeometry.riemannSphereOrientation`: the canonical orientation of the Riemann sphere
   as a complex manifold, indexed by `Fin 2`, with
   `SymplecticGeometry.orientationAt_riemannSphereOrientation`;
+* `Diffeomorph.isOrientationPreservingAt_riemannSphereOrientation`: biholomorphisms of the Riemann
+  sphere preserve that orientation;
 * `SymplecticGeometry.projectiveLineOrientation`: the canonical orientation of `ℂP¹` as a complex
   manifold, indexed by `Fin 2`, with `SymplecticGeometry.orientationAt_projectiveLineOrientation`;
 * `Diffeomorph.isOrientationPreservingAt_projectiveLineOrientation`: biholomorphisms of `ℂP¹`
@@ -148,6 +150,15 @@ theorem orientationAt_riemannSphereOrientation (x : OnePoint ℂ) :
         (complexOrientation ℂ) := by
   rw [riemannSphereOrientation_def, Manifold.Orientation.orientationAt_reindex,
     orientationAt_complexManifoldOrientation_eq_complexOrientation]
+
+/-- A biholomorphism of the Riemann sphere (a `C^n` diffeomorphism for the complex model,
+`n ≠ 0`) preserves `riemannSphereOrientation` at every point. -/
+theorem _root_.Diffeomorph.isOrientationPreservingAt_riemannSphereOrientation (n : ℕ∞ω)
+    [NeZero n] (Φ : OnePoint ℂ ≃ₘ^n⟮𝓘(ℂ, ℂ), 𝓘(ℂ, ℂ)⟯ OnePoint ℂ) (x : OnePoint ℂ) :
+    Manifold.Orientation.IsOrientationPreservingAt riemannSphereOrientation
+      riemannSphereOrientation Φ x := by
+  rw [riemannSphereOrientation_def]
+  exact (Φ.isOrientationPreservingAt_complexManifoldOrientation n x).reindex _
 
 end SymplecticGeometry
 
