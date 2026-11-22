@@ -55,6 +55,8 @@ identification transports classes, pull-backs and cup products along that equali
 * `TopCat.integralCohomologyLinearEquiv_naturality` and
   `TopCat.integralCohomologyLinearEquiv_singularCup`: `TopCat.integralCohomologyLinearEquiv`
   commutes with pull-backs and carries cup products to `TopCat.integralCup`.
+* `TopCat.bijective_integralCup_integralCohomologyLinearEquiv_iff`: cup product with a class is
+  bijective in integral cohomology exactly when it is with coefficients `ℤ`.
 
 ## References
 
@@ -262,6 +264,27 @@ theorem integralCohomologyLinearEquiv_singularCup (X : TopCat.{0}) (p q n : ℕ)
   rw [integralCohomologyLinearEquiv_eq, integralCohomologyLinearEquiv_eq,
     integralCohomologyLinearEquiv_eq]
   exact toIntegral_singularCup X p q n h a b
+
+/-- Cup product with a class is bijective in integral cohomology exactly when it is in cohomology
+with chain coefficients and values `ℤ`: for `b` of degree `q`, `a ↦ a ⌣ b` is a bijection
+`Hᵖ(X; ℤ) → Hⁿ(X; ℤ)` of `TopCat.integralCohomology`, for the image of `b` under
+`TopCat.integralCohomologyLinearEquiv`, if and only if it is one for `b`. -/
+theorem bijective_integralCup_integralCohomologyLinearEquiv_iff (X : TopCat.{0}) (p q n : ℕ)
+    (h : p + q = n) (b : X.singularCohomology (𝟙_ (ModuleCat.{0} ℤ)) ℤ (𝟙_ (ModuleCat.{0} ℤ)) q) :
+    Function.Bijective (fun a : X.integralCohomology p ↦
+        X.integralCup p q n h a (X.integralCohomologyLinearEquiv q b)) ↔
+      Function.Bijective (fun a ↦ X.singularCup ℤ (λ_ _).inv (λ_ _).hom p q n h a b) := by
+  have hf : (fun a : X.integralCohomology p ↦
+      X.integralCup p q n h a (X.integralCohomologyLinearEquiv q b)) =
+      X.integralCohomologyLinearEquiv n ∘
+        (fun a ↦ X.singularCup ℤ (λ_ _).inv (λ_ _).hom p q n h a b) ∘
+        (X.integralCohomologyLinearEquiv p).symm := by
+    funext a
+    conv_lhs => rw [← LinearEquiv.apply_symm_apply (X.integralCohomologyLinearEquiv p) a]
+    rw [← integralCohomologyLinearEquiv_singularCup]
+    simp only [Function.comp_apply]
+  rw [hf, Function.Bijective.of_comp_iff' (LinearEquiv.bijective _),
+    Function.Bijective.of_comp_iff _ (LinearEquiv.bijective _)]
 
 end IntegerCoefficients
 
