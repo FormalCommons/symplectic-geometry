@@ -19,7 +19,9 @@ not closed by `simp` even when both sides agree. `Bundle.Pullback.eq_iff` moves 
 to the type `E (f y)`, and `Bundle.Pullback.eq_fiber_iff` moves an equation stated at the type
 `E (f y)` between terms of type `(f *ᵖ E) y` to the type `(f *ᵖ E) y`. Each applies only where
 the type of the equation differs from the type of its two sides, so between them `simp` states
-such an equation at the type of its sides.
+such an equation at the type of its sides. `Bundle.Pullback.fun_eq_iff` does what `eq_iff` does
+for an equation between maps from the fibre to itself, such as the coercions to functions of two
+endomorphisms of `E (f y)`.
 
 For the same reason `Pi.neg_apply` does not evaluate the negative `-g` of a function on one of
 the two types at a vector of the other; `Bundle.Pullback.neg_apply_fiber` and
@@ -46,6 +48,13 @@ theorem eq_iff {v w : E (f y)} : @Eq ((f *ᵖ E) y) v w ↔ v = w := Iff.rfl
 equation in that fibre. -/
 @[simp]
 theorem eq_fiber_iff {v w : (f *ᵖ E) y} : @Eq (E (f y)) v w ↔ v = w := Iff.rfl
+
+/-- An equation between two maps `g h : E (f y) → E (f y)`, stated between maps on the fibre of
+`f *ᵖ E` at `y`, is the same equation between maps on `E (f y)`. This is `eq_iff` for maps
+from the fibre to itself, such as the coercions of continuous linear endomorphisms. -/
+@[simp]
+theorem fun_eq_iff {g h : E (f y) → E (f y)} :
+    @Eq ((f *ᵖ E) y → (f *ᵖ E) y) g h ↔ g = h := Iff.rfl
 
 section Neg
 
