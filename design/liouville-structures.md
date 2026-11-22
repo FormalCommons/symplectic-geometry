@@ -625,7 +625,7 @@ Expected size: 450 lines for issue 9, 350 for issue 10.
 
 In `SymplecticGeometry.IsStrongFilling`, beside Tau Ceti's file:
 
-- `isLiouvilleCompletion_completion (h : IsStrongFilling ω univ Y)`:
+- `isLiouvilleCompletion_completion [CompactSpace W] (h : IsStrongFilling ω univ Y)`:
   `TauCeti.IsLiouvilleCompletion h.completionForm (-h.completionPrimitive)
   (range h.toCompletion)`. The domain conditions: nondegeneracy and
   $d(-\widehat\lambda)=\widehat\omega$ from issue 10; compactness and

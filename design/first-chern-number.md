@@ -785,11 +785,11 @@ issues, in an order where each issue's blockers come before it.
    for the evenness: Tau Ceti's
    `TopCat.even_finrank_singularHomology_of_injective_singularCapLinearMap`,
    given injectivity of the cap product with the fundamental class in degree
-   one. `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` reduces
+   one. `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` derives
    it, for the image of the fundamental class under
-   `TopCat.singularHomologyIntToRat`, to injectivity of the duality map with
+   `TopCat.singularHomologyIntToRat`, from bijectivity of the duality map with
    values in `ℚ`
-   (`TauCeti.HomologicalOrientation.injective_singularCapLinearMap_of_injective_dualityMap`).
+   (`TauCeti.HomologicalOrientation.bijective_singularCapLinearMap_fundamentalClass`).
    It uses two new general files:
    `AlgebraicTopology/Cohomology/Cap/Basic.lean`, the singular cap product
    of a simplex along the unitors, and
