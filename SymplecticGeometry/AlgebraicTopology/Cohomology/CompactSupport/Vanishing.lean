@@ -22,7 +22,7 @@ that `Hᵐ_c(X)` vanishes once `Hᵐ_c(U)`, `Hᵐ_c(V)` and `Hᵐ⁺¹_c(U ∩ V
 the union of two open sets of a Hausdorff space. Since every class of `Hᵐ_c(X)` is extended from a
 member of a directed open cover, `Hᵐ_c(X)` also vanishes once it vanishes on every member.
 Together, these carry vanishing above a degree from the members of a family of open sets closed
-under intersection to all finite unions of them, and on to `X` when those unions cover it: the
+under intersection to all finite unions of them, and on to `X` when the family covers it: the
 induction of Hatcher's Lemma 3.36, for vanishing alone.
 
 ## Main results
@@ -37,8 +37,8 @@ induction of Hatcher's Lemma 3.36, for vanishing alone.
 * `TopCat.isZero_compactSupportCohomology_of_iSup_eq_top`: vanishing of `Hᵐ_c` passes from the
   members of a directed open cover to the whole space.
 * `TopCat.isZero_compactSupportCohomology_of_infClosed`: vanishing of `Hᵐ_c` above a degree
-  passes from the members of an inf-closed family of open sets whose finite unions cover the
-  space to the whole space.
+  passes from the members of an inf-closed family of open sets that covers the space to the
+  whole space.
 
 ## Implementation notes
 

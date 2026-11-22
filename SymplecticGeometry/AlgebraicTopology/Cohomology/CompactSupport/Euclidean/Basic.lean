@@ -35,7 +35,7 @@ besides duality itself, in the induction over convex open sets of Hatcher's Lemm
 induction, run for vanishing alone, gives `Hⁿ_c(U) = 0` for `n > finrank ℝ F` and every `U` that
 embeds openly in `F` (`TopCat.isZero_compactSupportCohomology_of_isOpenEmbedding`): it holds for
 the open sets of `U` with convex image, which are closed under intersection
-(`TopologicalSpace.Opens.infClosed_setOf_convex_image`) and whose finite unions cover `U`
+(`TopologicalSpace.Opens.infClosed_setOf_convex_image`) and which cover `U`
 (`Topology.IsOpenEmbedding.sSup_setOf_convex_image_eq_top`), so it holds on `U` by
 `TopCat.isZero_compactSupportCohomology_of_infClosed`.
 

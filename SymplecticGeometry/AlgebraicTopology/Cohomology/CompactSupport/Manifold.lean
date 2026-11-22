@@ -23,9 +23,8 @@ open sets of `M` lying in one chart in place of those with convex image. Such op
 closed under intersection (`TopologicalSpace.Opens.infClosed_setOf_subset_chartAt_source`), and
 each embeds openly into `F` through its chart (`OpenPartialHomeomorph.isOpenEmbedding_comp`), so
 that the vanishing holds for them by `TopCat.isZero_compactSupportCohomology_of_isOpenEmbedding`.
-Their finite unions cover `M`
-(`TopologicalSpace.Opens.sSup_setOf_subset_chartAt_source_eq_top`), so the vanishing holds
-on `M` by `TopCat.isZero_compactSupportCohomology_of_infClosed`.
+They cover `M` (`TopologicalSpace.Opens.sSup_setOf_subset_chartAt_source_eq_top`), so the
+vanishing holds on `M` by `TopCat.isZero_compactSupportCohomology_of_infClosed`.
 
 ## Main results
 
