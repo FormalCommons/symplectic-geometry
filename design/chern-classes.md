@@ -236,6 +236,10 @@ In the namespace `TopCat`, for `X : TopCat.{0}`, with
   `uliftIntIso` carries Tau Ceti's `ModuleCat.uliftTensorSelfIso ℤ`, the
   multiplication `a ⊗ b ↦ ⟨a.down * b.down⟩` of the values, to
   `integralCoeffMul`.
+- `integralCohomologyLinearEquiv X n`, the linear equivalence from
+  cohomology with chain coefficients and values `ℤ`, in the form
+  `TopCat.lerayHirsch` takes for `k = ℤ`, to `X.integralCohomology n`,
+  with `_naturality` and `_singularCup`.
 
 ### `AlgebraicTopology/Cohomology/ChangeOfValues.lean`
 
@@ -307,14 +311,15 @@ homology projective in every degree and finitely generated in degrees
   that point, form a basis of `Hᵖ(F; k)`, then it is bijective in degree
   `n`. Over one trivializing set it is `TopCat.lerayHirschProdOfClasses_bijective`
   through the trivialization; the finite cover is handled by induction with
-  the previous file.
+  the previous file. The fibre inclusion `Bundle.Trivialization.fiberInclusion`
+  comes from `Topology/FiberBundle/Basic.lean` of *Symplectic vector bundles*.
 - `TopCat.lerayHirschEquiv`, the linear equivalence, with its value on
   summands; and `TopCat.singularCohomologyMap_injective_of_lerayHirsch_injective`,
   the injectivity of
   `π^*` (the summand of the unit class, when `c 0` is the unit), the form
   the splitting principle uses.
 - The integral form, for `TopCat.integralCohomology` and `integralCup`,
-  through `TopCat.integralCup_singularCohomologyChainCoefficientMap`; the
+  through `TopCat.integralCohomologyLinearEquiv`; the
   Chern classes use only this form. Its map `TopCat.integralLerayHirsch` is
   additive, with `TopCat.integralLerayHirsch_bijective`, the additive
   equivalence `TopCat.integralLerayHirschEquiv` and
@@ -562,6 +567,8 @@ dimensions are included (both sides vanish).
   `firstChernClass_trivial` and `firstChernClass_eq_complexEulerClass`
   (#784), only in `ChernClass/FirstChernClass.lean`; `detCore` from the merged
   `Topology/VectorBundle/Determinant.lean`.
+- From *Symplectic vector bundles*: `Bundle.Trivialization.fiberInclusion`
+  (`Topology/FiberBundle/Basic.lean`), only in `LerayHirsch/Bundle.lean`.
 - From Tau Ceti: integral cohomology and cup products
   (`AlgebraicTopology/Cohomology/IntegralCup.lean`, `Cup/Relative.lean`),
   the isomorphism `uliftIntIso` of `ULift ℤ` with `ℤ`, the multiplication
