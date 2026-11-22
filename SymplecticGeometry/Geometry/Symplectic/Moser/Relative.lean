@@ -7,11 +7,11 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.RelativePoincare
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
-import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Manifold.Flow.TimeDependent.RestPoint
 import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
 import TauCeti.Geometry.Symplectic.Manifold.Opens
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
@@ -297,19 +297,7 @@ theorem exists_diffeomorph_opens_of_eq_along (f : SmoothEmbedding J I ∞ Q M)
     · -- The differential of `Φ` at `f q` is the identity, read in `M`, then on the opens.
       exact (Manifold.mfderiv_eq_id_iff_of_comp_subtype_val hφΨ).2
         ((Manifold.mfderiv_eq_id_iff_of_comp_subtype_val hΨΦ.symm).1 hjet)
-  · -- At a point `z` of the source, `φ^* σ₁` is `Φ^* σ₁` at the point of `W` that `z` is.
-    apply Subtype.ext
-    funext z
-    obtain ⟨y, hy, hyz⟩ : (z : M) ∈ Subtype.val '' Φ.source :=
-      Φ.liftOpens_source hW hW ▸ z.property
-    have hφz : MDifferentiableAt I I φ z := φ.contMDiff.mdifferentiableAt (by simp)
-    have hΨz : MDifferentiableAt I I Ψ z := Ψ.mdifferentiableAt (by simp) z.property
-    have hval {U : Opens M} (x : U) : MDifferentiableAt I I (Subtype.val : U → M) x :=
-      (contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero
-    rw [SmoothForm.coe_mpullback_subtype_val_apply σ₀ z, SmoothForm.coe_mpullback,
-      SmoothForm.coe_mpullback, ← mpullback_comp_at hφz (hval _), hφΨ,
-      mpullback_comp_at (hval z) hΨz, mpullback_subtype_val_apply, ← hyz,
-      mpullback_liftOpens_apply_coe Φ (by simp) hW hW _ hy, hΦ y hy]
+  · exact Φ.mpullback_toDiffeomorphSourceTarget_liftOpens hW hW hΦ
 
 end SmoothEmbedding
 

@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Symplectic.AlmostComplex.Topology
 public import TauCeti.Geometry.Symplectic.Transport
 public import TauCeti.Topology.Algebra.Module.BilinearForm
 public import SymplecticGeometry.Analysis.ODE.DysonSeries
+public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 public import SymplecticGeometry.Analysis.Calculus.Deriv.ContinuousLinearMap
 import TauCeti.Analysis.Calculus.FDeriv.Prod
 import SymplecticGeometry.Analysis.Calculus.Deriv.Mul
@@ -130,17 +131,18 @@ variable {W : Type*} [NormedAddCommGroup W] [NormedSpace ℝ W]
 /-- **Naturality of the Moser generator.** Moving a path of forms along a linear isomorphism
 `e : V ≃L[ℝ] W`, to `(v, w) ↦ ω t (e⁻¹ v) (e⁻¹ w)`, conjugates its Moser generator by `e`. -/
 theorem moserGenerator_conj (e : V ≃L[ℝ] W) (ω : ℝ → V →L[ℝ] V →L[ℝ] ℝ) (t : ℝ) :
-    moserGenerator (fun s => (ω s).bilinearComp (e.symm : W →L[ℝ] V) (e.symm : W →L[ℝ] V)) t =
+    moserGenerator (fun s => e.bilinearCongr (ω s)) t =
       e.conjContinuousAlgEquiv (moserGenerator ω t) := by
   set A : (V →L[ℝ] ℝ) ≃L[ℝ] (W →L[ℝ] ℝ) := e.arrowCongr (ContinuousLinearEquiv.refl ℝ ℝ)
-  set Φ : (V →L[ℝ] V →L[ℝ] ℝ) ≃L[ℝ] (W →L[ℝ] W →L[ℝ] ℝ) := e.arrowCongr A
-  have hΦ : (fun s => (ω s).bilinearComp (e.symm : W →L[ℝ] V) (e.symm : W →L[ℝ] V)) = Φ ∘ ω := by
-    ext s w w'; rfl
+  set Φ : (V →L[ℝ] V →L[ℝ] ℝ) ≃L[ℝ] (W →L[ℝ] W →L[ℝ] ℝ) := e.bilinearCongr
+  have hΦ : (fun s => Φ (ω s)) = Φ ∘ ω := rfl
   have hd : deriv (Φ ∘ ω) t = Φ (deriv ω t) := by
     have h := ContinuousLinearEquiv.comp_fderiv (𝕜 := ℝ) (E := V →L[ℝ] V →L[ℝ] ℝ)
       (F := W →L[ℝ] W →L[ℝ] ℝ) Φ (f := ω) (x := t)
     exact congr($h 1)
-  have hc (σ : V →L[ℝ] V →L[ℝ] ℝ) : Φ σ = (A : _ →L[ℝ] _) ∘L σ ∘L (e.symm : W →L[ℝ] V) := rfl
+  have hc (σ : V →L[ℝ] V →L[ℝ] ℝ) : Φ σ = (A : _ →L[ℝ] _) ∘L σ ∘L (e.symm : W →L[ℝ] V) := by
+    ext v w
+    simp [Φ, A]
   rw [hΦ, moserGenerator_def, moserGenerator_def, hd, Function.comp_apply, hc, hc,
     ContinuousLinearMap.inverse_equiv_comp, ContinuousLinearMap.inverse_comp_equiv]
   ext w
@@ -205,10 +207,10 @@ theorem dysonSeriesLeft_moserGenerator_conj {W : Type*} [NormedAddCommGroup W] [
     [CompleteSpace W] (e : V ≃L[ℝ] W) (hω : ContDiff ℝ 1 ω) (hinv : ∀ t, (ω t).IsInvertible)
     (t : ℝ) :
     dysonSeriesLeft
-        (moserGenerator fun s => (ω s).bilinearComp (e.symm : W →L[ℝ] V) (e.symm : W →L[ℝ] V)) t =
+        (moserGenerator fun s => e.bilinearCongr (ω s)) t =
       e.conjContinuousAlgEquiv (dysonSeriesLeft (moserGenerator ω) t) := by
-  have h : moserGenerator (fun s => (ω s).bilinearComp (e.symm : W →L[ℝ] V) (e.symm : W →L[ℝ] V))
-      = fun s => e.conjContinuousAlgEquiv (moserGenerator ω s) :=
+  have h : moserGenerator (fun s => e.bilinearCongr (ω s)) =
+      fun s => e.conjContinuousAlgEquiv (moserGenerator ω s) :=
     funext fun s => moserGenerator_conj e ω s
   rw [h]
   exact (map_dysonSeriesLeft e.conjContinuousAlgEquiv.continuous
@@ -363,12 +365,13 @@ theorem contDiffOn_segmentMoserFlow {n : ℕ∞} :
 isomorphism `e : V ≃L[ℝ] W` conjugates their linear Moser flow by `e`. -/
 theorem segmentMoserFlow_conj {W : Type*} [NormedAddCommGroup W] [NormedSpace ℝ W]
     [CompleteSpace W] (e : V ≃L[ℝ] W) (hp : (a, b) ∈ invertibleSegments V) :
-    segmentMoserFlow (a.bilinearComp (e.symm : W →L[ℝ] V) (e.symm : W →L[ℝ] V))
-        (b.bilinearComp (e.symm : W →L[ℝ] V) (e.symm : W →L[ℝ] V)) =
+    segmentMoserFlow (e.bilinearCongr a) (e.bilinearCongr b) =
       e.conjContinuousAlgEquiv (segmentMoserFlow a b) := by
   rw [segmentMoserFlow_def, segmentMoserFlow_def, ← dysonSeriesLeft_moserGenerator_conj e
     (contDiff_segmentPath.of_le (by simp)) (isInvertible_segmentPath hp)]
   congr 2
+  ext1 t
+  simp
 
 end Segment
 
