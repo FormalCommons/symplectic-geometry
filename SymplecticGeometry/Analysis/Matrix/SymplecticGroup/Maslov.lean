@@ -241,50 +241,30 @@ theorem maslovIndex_eq_of_maslovPhase_apply {A : GLSymplectic ι ℝ} (γ : Path
     (fun t ↦ by rw [Path.map_coe, Function.comp_apply, h]) (by
       simp only [Set.Icc.coe_one, Set.Icc.coe_zero]; ring)
 
+/-- Changing the base point of a loop along an equality keeps its Maslov index. -/
+@[simp]
+theorem maslovIndex_cast {A B : GLSymplectic ι ℝ} (γ : Path B B) (h : A = B) :
+    maslovIndex (γ.cast h h) = maslovIndex γ := by
+  subst h
+  rfl
+
 end TauCeti.GLSymplectic
+
+namespace TauCeti
+
+/-- The `k`-th power of the point `e^{2πit}` of the circle is `e^{2πikt}`. -/
+theorem unitToCircle_zpow (k : ℤ) (t : I) :
+    unitToCircle t ^ k = Circle.exp (2 * Real.pi * k * t) := by
+  rw [unitToCircle_apply, ← Circle.exp_zsmul, zsmul_eq_mul]
+  ring_nf
+
+end TauCeti
 
 namespace SymplecticGeometry
 
 open TauCeti TauCeti.GLSymplectic
 
 /-! ### The rotation loops of `U(1) ⊆ Sp(2)` -/
-
-/-- The loop `t ↦ e^{2πikt}` in `U(1) = Sp(2) ∩ O(2)`, as a loop of symplectic `2 × 2` matrices
-at the identity: the realification of the `1 × 1` unitary matrix `e^{2πikt}`. -/
-noncomputable def symplecticRotationLoop (k : ℤ) : Path (1 : GLSymplectic (Fin 1) ℝ) 1 where
-  toFun t := ofUnitary (detSection (Fin 1) 0 (Circle.exp (2 * Real.pi * k * t)))
-  continuous_toFun := continuous_ofUnitary.comp ((continuous_detSection 0).comp (by fun_prop))
-  source' := by simp
-  target' := by
-    rw [Set.Icc.coe_one, mul_one, show 2 * Real.pi * k = (k : ℝ) * (2 * Real.pi) by ring,
-      Circle.exp_int_mul_two_pi, map_one, map_one]
-
-/-- At time `t`, the rotation loop is `ofUnitary` of the `1 × 1` unitary matrix `e^{2πikt}`. -/
-theorem symplecticRotationLoop_apply (k : ℤ) (t : I) :
-    symplecticRotationLoop k t =
-      ofUnitary (detSection (Fin 1) 0 (Circle.exp (2 * Real.pi * k * t))) :=
-  (rfl)
-
-/-- At time `t`, the rotation loop is the realification of the `1 × 1` matrix `e^{2πikt}`. -/
-@[simp]
-theorem coe_symplecticRotationLoop_apply (k : ℤ) (t : I) :
-    ((symplecticRotationLoop k t : GL (Fin 1 ⊕ Fin 1) ℝ) : Matrix (Fin 1 ⊕ Fin 1) _ ℝ) =
-      (diagonal fun _ : Fin 1 ↦ (Circle.exp (2 * Real.pi * k * t) : ℂ)).realify := by
-  rw [symplecticRotationLoop_apply, coe_ofUnitary, coe_detSection]
-  congr 2 with i
-  rw [Subsingleton.elim i 0, Pi.mulSingle_eq_same]
-
-/-- At time `t`, `ρ` takes the value `e^{2πikt}` on the rotation loop. -/
-@[simp]
-theorem maslovPhase_symplecticRotationLoop_apply (k : ℤ) (t : I) :
-    maslovPhase (symplecticRotationLoop k t) = Circle.exp (2 * Real.pi * k * t) := by
-  rw [symplecticRotationLoop_apply, maslovPhase_ofUnitary, detCircle_detSection]
-
-/-- The loop `t ↦ e^{2πikt}` in `U(1) ⊆ Sp(2)` has Maslov index `k`. -/
-@[simp]
-theorem maslovIndex_symplecticRotationLoop (k : ℤ) :
-    maslovIndex (symplecticRotationLoop k) = k :=
-  maslovIndex_eq_of_maslovPhase_apply _ k (maslovPhase_symplecticRotationLoop_apply k)
 
 /-- The loop `ζ ↦ ζ ^ k` in `U(1) = Sp(2) ∩ O(2)`, as a map from the circle to symplectic
 `2 × 2` matrices: the realification of the `1 × 1` unitary matrix `ζ ^ k`. -/
@@ -296,6 +276,11 @@ theorem circlePowLoop_apply (k : ℤ) (ζ : Circle) :
     circlePowLoop k ζ = ofUnitary (detSection (Fin 1) 0 (ζ ^ k)) :=
   (rfl)
 
+/-- The loop `ζ ↦ ζ ^ k` passes through the identity at `ζ = 1`. -/
+@[simp]
+theorem circlePowLoop_one (k : ℤ) : circlePowLoop k 1 = 1 := by
+  rw [circlePowLoop_apply, _root_.one_zpow, map_one, map_one]
+
 /-- At `ζ`, the loop `circlePowLoop k` is the realification of the `1 × 1` matrix `ζ ^ k`. -/
 @[simp]
 theorem coe_circlePowLoop_apply (k : ℤ) (ζ : Circle) :
@@ -305,14 +290,53 @@ theorem coe_circlePowLoop_apply (k : ℤ) (ζ : Circle) :
   congr 2 with i
   rw [Subsingleton.elim i 0, Pi.mulSingle_eq_same, Circle.coe_zpow]
 
+/-- At `ζ`, `ρ` takes the value `ζ ^ k` on the loop `circlePowLoop k`. -/
+@[simp]
+theorem maslovPhase_circlePowLoop_apply (k : ℤ) (ζ : Circle) :
+    maslovPhase (circlePowLoop k ζ) = ζ ^ k := by
+  rw [circlePowLoop_apply, maslovPhase_ofUnitary, detCircle_detSection]
+
 /-- The loop `ζ ↦ ζ ^ k` in `U(1) ⊆ Sp(2)` has Maslov index `k`. -/
 @[simp]
 theorem maslovIndex_toBasedLoop_circlePowLoop (k : ℤ) :
     maslovIndex (circlePowLoop k).toBasedLoop = k := by
   refine maslovIndex_eq_of_maslovPhase_apply _ k fun t ↦ ?_
-  rw [ContinuousMap.toBasedLoop_apply, circlePowLoop_apply, maslovPhase_ofUnitary,
-    detCircle_detSection, unitToCircle_apply, ← Circle.exp_zsmul, zsmul_eq_mul]
-  ring_nf
+  rw [ContinuousMap.toBasedLoop_apply, maslovPhase_circlePowLoop_apply, unitToCircle_zpow]
+
+/-- The loop `t ↦ e^{2πikt}` in `U(1) = Sp(2) ∩ O(2)`, as a loop of symplectic `2 × 2` matrices
+at the identity: the loop `ζ ↦ ζ ^ k` of `circlePowLoop k`, run once around the circle. -/
+noncomputable def symplecticRotationLoop (k : ℤ) : Path (1 : GLSymplectic (Fin 1) ℝ) 1 :=
+  (circlePowLoop k).toBasedLoop.cast (circlePowLoop_one k).symm (circlePowLoop_one k).symm
+
+theorem symplecticRotationLoop_def (k : ℤ) :
+    symplecticRotationLoop k =
+      (circlePowLoop k).toBasedLoop.cast (circlePowLoop_one k).symm (circlePowLoop_one k).symm :=
+  (rfl)
+
+/-- At time `t`, the rotation loop is `circlePowLoop k` at the point `e^{2πit}` of the circle. -/
+theorem symplecticRotationLoop_apply (k : ℤ) (t : I) :
+    symplecticRotationLoop k t = circlePowLoop k (unitToCircle t) := by
+  rw [symplecticRotationLoop_def, Path.cast_coe, ContinuousMap.toBasedLoop_apply]
+
+/-- At time `t`, the rotation loop is the realification of the `1 × 1` matrix `e^{2πikt}`. -/
+@[simp]
+theorem coe_symplecticRotationLoop_apply (k : ℤ) (t : I) :
+    ((symplecticRotationLoop k t : GL (Fin 1 ⊕ Fin 1) ℝ) : Matrix (Fin 1 ⊕ Fin 1) _ ℝ) =
+      (diagonal fun _ : Fin 1 ↦ (Circle.exp (2 * Real.pi * k * t) : ℂ)).realify := by
+  rw [symplecticRotationLoop_apply, coe_circlePowLoop_apply, ← Circle.coe_zpow,
+    unitToCircle_zpow]
+
+/-- At time `t`, `ρ` takes the value `e^{2πikt}` on the rotation loop. -/
+@[simp]
+theorem maslovPhase_symplecticRotationLoop_apply (k : ℤ) (t : I) :
+    maslovPhase (symplecticRotationLoop k t) = Circle.exp (2 * Real.pi * k * t) := by
+  rw [symplecticRotationLoop_apply, maslovPhase_circlePowLoop_apply, unitToCircle_zpow]
+
+/-- The loop `t ↦ e^{2πikt}` in `U(1) ⊆ Sp(2)` has Maslov index `k`. -/
+@[simp]
+theorem maslovIndex_symplecticRotationLoop (k : ℤ) :
+    maslovIndex (symplecticRotationLoop k) = k := by
+  rw [symplecticRotationLoop_def, maslovIndex_cast, maslovIndex_toBasedLoop_circlePowLoop]
 
 /-! ### Uniqueness -/
 
