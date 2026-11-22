@@ -41,6 +41,11 @@ cohomology ring of `ℙ ℂ V` is `ℤ[X] ⧸ (X ^ (n + 1))`, with `X` going to 
   in every degree, as the Leray–Hirsch theorem asks of a fibre.
 * `Projectivization.bijective_zsmul_hyperplaneClass_pow`: for `k ≤ n`, `m ↦ m • h ^ k` is a
   bijection `ℤ → H^{2k}(ℙ ℂ V; ℤ)`.
+* `Projectivization.bijective_zsmul_hyperplaneClass` and
+  `Projectivization.exists_eq_zsmul_hyperplaneClass`: in degree two, `m ↦ m • h` is a bijection
+  `ℤ → H²(ℙ ℂ V; ℤ)` for `n ≥ 1`, and for every `n` each class of `H²(ℙ ℂ V; ℤ)` is a multiple
+  of `h`.
+* `Projectivization.free_integralCohomology`: `Hᵐ(ℙ ℂ V; ℤ)` is a free `ℤ`-module for every `m`.
 * `Projectivization.hyperplaneClass_pow_eq_zero`: `h ^ (n + 1) = 0`.
 * `Projectivization.aeval_hyperplaneClass_eq_zero_iff` and
   `Projectivization.surjective_aeval_hyperplaneClass`: a polynomial `p ∈ ℤ[X]` has `p(h) = 0`
@@ -206,10 +211,43 @@ theorem bijective_zsmul_hyperplaneClass_pow (hV : finrank ℂ V = n + 1) {k : �
     simp only [TopCat.evenIntegralCohomologyOf_pow_succ_apply]
     convert hcup.comp (ih (by omega)) using 1
     funext m
-    -- `a ↦ a ⌣ h` as an additive map, since the bilinear map has no `flip` over `ℤ` here.
-    exact (map_zsmul (AddMonoidHom.mk' (fun a ↦ (TopCat.of (ℙ ℂ V)).integralCup (2 * k) (2 * 1)
-      (2 * (k + 1)) (by ring) a (hyperplaneClass V)) fun a b ↦ by
-        rw [map_add, LinearMap.add_apply]) m _).symm
+    exact (TopCat.integralCup_zsmul_left _ _ m _ _).symm
+
+/-- **The integral cohomology of `ℙ ℂ V` in degree two**, for `finrank ℂ V = n + 1` with
+`n ≥ 1`, is free on the hyperplane class: `m ↦ m • h` is a bijection from `ℤ` onto
+`H²(ℙ ℂ V; ℤ)`. -/
+theorem bijective_zsmul_hyperplaneClass (hV : finrank ℂ V = n + 1) (hn : 0 < n) :
+    Function.Bijective fun m : ℤ ↦ m • hyperplaneClass V := by
+  simpa only [pow_one, DirectSum.of_eq_same] using bijective_zsmul_hyperplaneClass_pow hV hn
+
+/-- Every class of `H²(ℙ ℂ V; ℤ)`, for `finrank ℂ V = n + 1`, is an integer multiple of the
+hyperplane class. For `n = 0` the group is zero. -/
+theorem exists_eq_zsmul_hyperplaneClass (hV : finrank ℂ V = n + 1)
+    (y : (TopCat.of (ℙ ℂ V)).integralCohomology 2) : ∃ m : ℤ, y = m • hyperplaneClass V := by
+  rcases Nat.eq_zero_or_pos n with rfl | hn
+  · have := ModuleCat.subsingleton_of_isZero (isZero_integralCohomology_of_lt hV (m := 2)
+      (by omega))
+    exact ⟨0, Subsingleton.elim _ _⟩
+  · exact ((bijective_zsmul_hyperplaneClass hV hn).2 y).imp fun _ h ↦ h.symm
+
+/-- The integral cohomology of `ℙ ℂ V`, for `finrank ℂ V = n + 1`, is a free `ℤ`-module in every
+degree. -/
+theorem free_integralCohomology (hV : finrank ℂ V = n + 1) (m : ℕ) :
+    Module.Free ℤ ((TopCat.of (ℙ ℂ V)).integralCohomology m) := by
+  rcases Nat.even_or_odd m with ⟨k, rfl⟩ | hm
+  · rw [← two_mul]
+    by_cases hk : k ≤ n
+    · refine Module.Free.of_equiv (LinearEquiv.ofBijective (LinearMap.toSpanSingleton ℤ _
+        (((TopCat.of (ℙ ℂ V)).evenIntegralCohomologyOf 1 (hyperplaneClass V) ^ k) k)) ?_)
+      convert bijective_zsmul_hyperplaneClass_pow hV hk using 1
+      funext m
+      -- The two sides use the `ℤ`-action of the module structure and that of the group structure.
+      exact int_smul_eq_zsmul _ _ _
+    · have := ModuleCat.subsingleton_of_isZero (isZero_integralCohomology_of_lt hV (m := 2 * k)
+        (by omega))
+      infer_instance
+  · have := ModuleCat.subsingleton_of_isZero (isZero_integralCohomology_of_odd hV hm)
+    infer_instance
 
 /-- **The hyperplane class of `ℙ ℂ V` is nilpotent**: `h ^ (n + 1) = 0` in the even integral
 cohomology ring, for `finrank ℂ V = n + 1`. -/

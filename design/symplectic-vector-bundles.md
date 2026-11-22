@@ -410,7 +410,7 @@ but the predicate below, as in Tau Ceti for $TM$.
   `isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot`, `IsNondegenerate.neg`,
   `IsNondegenerate.nondegenerate_bilinFormAt`, and
   `IsNondegenerate.symplecticFormAt : TauCeti.SymplecticForm (V x)` with
-  `@[simp] symplecticFormAt_apply`.
+  `symplecticFormAt_apply`.
 - `isOpen_setOf_nondegenerate`: the fibrewise nondegenerate forms are an open
   subset of the total space of the alternating bundle (used by issue 4's
   lemma; nondegeneracy is not an open condition on sections over a
@@ -1526,9 +1526,8 @@ For a map `f : K` with `[FunLike K N M] [ContinuousMapClass K N M]` and
   `IsNondegenerate.symplecticFormAt_pullback` (the symplectic form of the
   pull-back at `y` is that of `ω` at `f y`), through
   `IsNondegenerate.toBilinForm_symplecticFormAt` in `Symplectic/Basic.lean`,
-  and `@[simp↓] IsNondegenerate.symplecticFormAt_pullback_apply`, its value
-  on `v w : V (f y)`, for any proof that the pull-back is nondegenerate, which
-  fires before `@[simp] IsNondegenerate.symplecticFormAt_apply_pullback`.
+  and `IsNondegenerate.symplecticFormAt_pullback_apply`, its value
+  on `v w : V (f y)`, for any proof that the pull-back is nondegenerate.
   `bilinFormAt_pullback` and `symplecticFormAt_pullback` are not `@[simp]`,
   for the reason given below for `pullback_toEndomorphism`.
 - `ComplexStructure.lean`: `ContMDiffComplexStructure.pullback J f hf :

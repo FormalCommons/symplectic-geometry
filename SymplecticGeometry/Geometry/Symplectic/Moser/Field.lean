@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
+public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 
@@ -121,9 +122,7 @@ theorem interior_moserField (σ : SmoothForm (J.prod I) (N × M) ℝ 2)
         (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β).val x := by
   rw [SmoothTwoForm.interior_apply_eq_ofSubsingleton_flat, moserField_def, map_smul,
     hx.self_apply_inverse]
-  ext v
-  have hv : v = ![v 0] := funext fun i ↦ by rw [Fin.fin_one_eq_zero i, Matrix.cons_val_zero]
-  rw [hv]
+  ext w
   simp
 
 /-- When the flat map of the slice `σ_t` at `x` is invertible at every point `(t, x)` of the
