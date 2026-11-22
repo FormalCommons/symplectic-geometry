@@ -526,12 +526,15 @@ first component is constant, so by uniqueness its slices are the flows of the
 $X_{\cdot,t}$. The same file gives the parametric radial primitives on a
 star-shaped open set of a normed space,
 `TauCeti.exists_contMDiff_parametric_radialPrimitive`: for a smooth family of
-closed $k$-forms ($k\ge1$) on an open ball about `0`, a smooth family of
+closed $k$-forms ($k\ge1$) on an open set star-shaped about `0`, over any
+parameter manifold, a smooth family of
 primitives that vanishes at every point where the forms vanish along the
-segment to `0`, and is `0` when the form is. It is Tau Ceti's
-`vectorBundlePoincareHomotopy` of the trivial bundle
-`unitInterval × V → unitInterval`, read slice by slice. Expected size: 500
-lines.
+segment to `0`, and is `0` when the form is. It is the homotopy operator
+after pullback along the radial contraction $(x,s)\mapsto s\,x$, slice by
+slice (`IsSmoothFamily.homotopyOperator` and
+`SmoothForm.mextDerivₗ_homotopyOperator_mpullback_of_contraction`), which
+works on an open set where Tau Ceti's `vectorBundlePoincareHomotopy` needs
+the whole bundle. Expected size: 500 lines.
 
 ### `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean`
 
@@ -801,7 +804,11 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Geometry/Manifold/ContMDiff/TimeExtension.lean` (used by `Extension.lean`
   and `Flow.lean`) and of forms on `unitInterval × M` in
   `Geometry/Manifold/DifferentialForm/TimeExtension.lean` (used by
-  `Flow.lean` and `Moser/Family.lean`); and the instance
+  `Flow.lean` and `Moser/Family.lean`); the homotopy operator on smooth
+  families in
+  `Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`
+  (used by `Moser/Family.lean` for the parametric radial primitives); and the
+  instance
   `FiniteDimensional ℝ (deRhamCohomology I M k)` for a compact boundaryless
   `M`, which `Geometry/Manifold/DeRham/SmoothFamily/GoodCover.lean` derives
   from `hasFiniteGoodCover_of_compactSpace` (used by
