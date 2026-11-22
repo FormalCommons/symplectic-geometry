@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Analysis.Complex.Determinant
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.OpenEmbedding
 public import TauCeti.Geometry.Manifold.Complex.FundamentalClass
 public import TauCeti.Topology.Circle.Loop
@@ -26,6 +27,15 @@ A coordinate disc has a closed disc `φ.disc = φ(B̄₁)`, which is compact, in
 `φ.openDisc = φ(B₁)`, which is open, and a boundary circle `t ↦ φ(e^{2πit})`, which runs
 counterclockwise in the chart, so that it is oriented as the boundary of the closed disc.
 
+Complex conjugation reverses the canonical orientation of `ℂ`, and of every open set of `ℂ` that
+it maps to itself, since its real derivative `Complex.conjCLE` has determinant `-1`. So a
+coordinate disc `φ` for `o` gives a coordinate disc `φ.reverse = φ ∘ conj` for `-o`, with the same
+discs and with the boundary loop run backwards. The proof that conjugation reverses the
+orientation of `ℂ` reads it in the chart `OpenPartialHomeomorph.refl`, through Tau Ceti's
+`OpenPartialHomeomorph.localHomologyMap_restrict_localOrientationOfOrientedChart`, and passes
+from the restriction to `univ` back to the map itself as the proof of
+`OpenPartialHomeomorph.localHomologyMap_localOrientationOfOrientedChart` does.
+
 ## Main definitions
 
 * `SymplecticGeometry.CoordinateDisc o`: the coordinate discs of `M` for `o`.
@@ -35,6 +45,7 @@ counterclockwise in the chart, so that it is oriented as the boundary of the clo
 * `SymplecticGeometry.CoordinateDisc.boundaryCircle`: the unit circle of the chart, as a map
   `C(Circle, M)`.
 * `SymplecticGeometry.CoordinateDisc.boundaryLoop`: the loop `t ↦ φ(e^{2πit})`.
+* `SymplecticGeometry.CoordinateDisc.reverse`: the coordinate disc `φ ∘ conj` for `-o`.
 * `SymplecticGeometry.CoordinateDisc.subtypeVal`: the inclusion of the ball into `ℂ`, a coordinate
   disc of `ℂ` for its canonical orientation.
 
@@ -45,6 +56,12 @@ counterclockwise in the chart, so that it is oriented as the boundary of the clo
   `SymplecticGeometry.CoordinateDisc.openDisc_subset_disc`.
 * `SymplecticGeometry.CoordinateDisc.disc_diff_openDisc`: the closed disc minus the open disc is
   the boundary circle.
+* `TauCeti.comap_conj_complexHomologicalOrientation`: conjugation reverses the canonical
+  orientation of an open set of `ℂ` that it maps to itself.
+* `SymplecticGeometry.CoordinateDisc.disc_reverse`,
+  `SymplecticGeometry.CoordinateDisc.openDisc_reverse`,
+  `SymplecticGeometry.CoordinateDisc.boundaryLoop_reverse`: reversal keeps the discs and reverses
+  the boundary loop (`Path.symm`).
 * `SymplecticGeometry.CoordinateDisc.comap_eq_complexHomologicalOrientation`: when `M` is charted
   on `ℂ`, the orientation condition says that `o` pulls back to the canonical orientation of the
   ball.
@@ -60,7 +77,62 @@ public section
 
 noncomputable section
 
-open Topology TauCeti
+open Topology TauCeti ComplexConjugate
+
+/-! ### Complex conjugation reverses the canonical orientation -/
+
+namespace TauCeti
+
+open CategoryTheory
+
+/-- Complex conjugation reverses the canonical homological orientation of `ℂ`: pulling it back
+along `conj` gives its negation. -/
+theorem comap_conjCLE_complexHomologicalOrientation :
+    (complexHomologicalOrientation ℂ).comap Complex.conjCLE.toHomeomorph.isOpenEmbedding =
+      -complexHomologicalOrientation ℂ := by
+  ext x : 1
+  apply (Complex.conjCLE.toHomeomorph.isOpenEmbedding.localOrientationEquiv x 2).injective
+  rw [HomologicalOrientation.localOrientationEquiv_comap_apply, HomologicalOrientation.neg_apply,
+    IsOpenEmbedding.localOrientationEquiv_neg, ← neg_eq_iff_eq_neg, eq_comm]
+  apply Subtype.ext
+  rw [complexHomologicalOrientation_apply, complexHomologicalOrientation_apply,
+    IsOpenEmbedding.coe_localOrientationEquiv, localHomologyIsoOfIsOpenEmbedding_hom,
+    LocalOrientation.coe_neg]
+  simp only [chartAt_self_eq]
+  -- In the chart `refl`, conjugation has derivative `conjCLE`, of determinant `-1`.
+  have hf : HasFDerivAt (OpenPartialHomeomorph.refl ℂ ∘ Complex.conjCLE.toHomeomorph ∘
+      (OpenPartialHomeomorph.refl ℂ).symm) (Complex.conjCLE : ℂ →L[ℝ] ℂ) x := by
+    simpa using Complex.conjCLE.hasFDerivAt
+  have key :=
+    (OpenPartialHomeomorph.refl ℂ).localHomologyMap_restrict_localOrientationOfOrientedChart
+      Complex.orientation Complex.finrank_real_complex (OpenPartialHomeomorph.refl ℂ)
+      ⟨_, Complex.conjCLE.toHomeomorph.continuous⟩ (Set.mem_univ x) (Set.mem_univ _) isOpen_univ
+      (Set.mem_univ x) (fun _ _ h ↦ Complex.conjCLE.injective h) hf
+      (by rw [Complex.det_conjCLE]; norm_num)
+  rw [Complex.det_conjCLE, sign_neg (by norm_num : (-1 : ℝ) < 0), SignType.coe_neg_one,
+    neg_one_zsmul] at key
+  -- Conjugation restricted to `univ` is conjugation after the inclusion of `univ`.
+  have h' := isOpen_univ.isOpenEmbedding_subtypeVal.localHomologyMap_localOrientationEquiv_symm
+    ⟨x, Set.mem_univ x⟩ ((OpenPartialHomeomorph.refl ℂ).localOrientationOfOrientedChart
+      (Set.mem_univ x) Complex.orientation Complex.finrank_real_complex) fun _ hz ↦ Subtype.ext hz
+  rw [← h', ← ConcreteCategory.comp_apply]
+  exact (ConcreteCategory.congr_hom (localHomologyMap_comp _ _ _ _ _ 2) _).trans key
+
+/-- Complex conjugation reverses the canonical homological orientation of every open set `U` of
+`ℂ` that it maps to itself: pulling it back along an open embedding `f : U → U` that acts as
+`conj` gives its negation. -/
+theorem comap_conj_complexHomologicalOrientation {U : TopologicalSpace.Opens ℂ} {f : U → U}
+    (hf : IsOpenEmbedding f) (hfc : ∀ z, (f z : ℂ) = conj (z : ℂ)) :
+    (complexHomologicalOrientation U).comap hf = -complexHomologicalOrientation U := by
+  have hU : IsOpenEmbedding (Subtype.val : U → ℂ) := U.isOpen.isOpenEmbedding_subtypeVal
+  conv_lhs => rw [← comap_subtypeVal_complexHomologicalOrientation hU]
+  rw [HomologicalOrientation.comap_comap_of_comp_eq _ hU hf
+      (Complex.conjCLE.toHomeomorph.isOpenEmbedding.comp hU) (funext hfc),
+    ← HomologicalOrientation.comap_comap _ Complex.conjCLE.toHomeomorph.isOpenEmbedding hU,
+    comap_conjCLE_complexHomologicalOrientation, HomologicalOrientation.comap_neg,
+    comap_subtypeVal_complexHomologicalOrientation]
+
+end TauCeti
 
 namespace SymplecticGeometry
 
@@ -81,6 +153,21 @@ theorem mem_ball_iff {z : ℂ} : z ∈ ball ↔ ‖z‖ < 2 := by
 
 theorem mem_ball_of_norm_le_one {z : ℂ} (hz : ‖z‖ ≤ 1) : z ∈ ball :=
   mem_ball_iff.2 (hz.trans_lt one_lt_two)
+
+theorem conj_mem_ball {z : ℂ} (hz : z ∈ ball) : conj z ∈ ball := by
+  simpa using hz
+
+/-- Complex conjugation, as a homeomorphism of the ball of radius `2`. -/
+def conjBall : ball ≃ₜ ball :=
+  Complex.conjCLE.toHomeomorph.subtype fun z ↦ by simp
+
+@[simp]
+theorem coe_conjBall_apply (z : ball) : (conjBall z : ℂ) = conj (z : ℂ) :=
+  (rfl)
+
+@[simp]
+theorem conjBall_conjBall (z : ball) : conjBall (conjBall z) = z :=
+  Subtype.ext (by simp)
 
 end CoordinateDisc
 
@@ -249,6 +336,82 @@ theorem boundaryLoop_mem_disc (t : unitInterval) : φ.boundaryLoop t ∈ φ.disc
 theorem boundaryLoop_notMem_openDisc (t : unitInterval) : φ.boundaryLoop t ∉ φ.openDisc := by
   rw [boundaryLoop_apply]
   exact φ.boundaryCircle_notMem_openDisc _
+
+/-! ### Reversal -/
+
+/-- The **reverse** of a coordinate disc `φ` for `o`: the coordinate disc `φ ∘ conj` for the
+opposite orientation `-o`. Conjugation maps the ball of radius `2` to itself and reverses its
+canonical orientation (`TauCeti.comap_conj_complexHomologicalOrientation`). -/
+def reverse : CoordinateDisc (-o) where
+  toFun := φ ∘ conjBall
+  isOpenEmbedding' := φ.isOpenEmbedding.comp conjBall.isOpenEmbedding
+  localOrientationEquiv_apply' z := by
+    have h := HomologicalOrientation.localOrientationEquiv_comap_apply
+      (complexHomologicalOrientation ball) conjBall.isOpenEmbedding z
+    rw [comap_conj_complexHomologicalOrientation _ coe_conjBall_apply,
+      HomologicalOrientation.neg_apply, IsOpenEmbedding.localOrientationEquiv_neg,
+      neg_eq_iff_eq_neg] at h
+    rw [← IsOpenEmbedding.localOrientationEquiv_trans conjBall.isOpenEmbedding φ.isOpenEmbedding,
+      Equiv.trans_apply, h, IsOpenEmbedding.localOrientationEquiv_neg,
+      φ.localOrientationEquiv_apply, HomologicalOrientation.neg_apply]
+    -- `(φ ∘ conjBall) z` is `φ (conjBall z)`; `rw [Function.comp_apply]` fails here, since the
+    -- type of a local orientation depends on its point.
+    rfl
+
+theorem coe_reverse : ⇑φ.reverse = φ ∘ conjBall :=
+  (rfl)
+
+@[simp]
+theorem reverse_apply (z : ball) : φ.reverse z = φ ⟨conj (z : ℂ), conj_mem_ball z.property⟩ :=
+  (rfl)
+
+/-- Reversing a coordinate disc twice gives back its map. The discs themselves cannot be compared
+by `=`, since they lie in `CoordinateDisc (-(-o))` and in `CoordinateDisc o`. -/
+@[simp]
+theorem coe_reverse_reverse : ⇑φ.reverse.reverse = φ := by
+  ext z
+  simp
+
+/-- The reverse of a coordinate disc has the same image of every set of the ball that conjugation
+maps to itself. -/
+theorem image_reverse {s : Set ball} (hs : ∀ z, conjBall z ∈ s ↔ z ∈ s) :
+    φ.reverse '' s = φ '' s := by
+  rw [coe_reverse, Set.image_comp]
+  congr 1
+  ext z
+  exact ⟨fun ⟨w, hw, hwz⟩ ↦ hwz ▸ (hs w).2 hw, fun hz ↦ ⟨conjBall z, (hs z).2 hz, by simp⟩⟩
+
+@[simp]
+theorem disc_reverse : φ.reverse.disc = φ.disc :=
+  φ.image_reverse fun z ↦ by simp
+
+@[simp]
+theorem openDisc_reverse : φ.reverse.openDisc = φ.openDisc :=
+  φ.image_reverse fun z ↦ by simp
+
+/-- The boundary circle of the reverse of `φ` is that of `φ`, run through `z ↦ z⁻¹ = conj z`. -/
+@[simp]
+theorem boundaryCircle_reverse_apply (z : Circle) :
+    φ.reverse.boundaryCircle z = φ.boundaryCircle z⁻¹ := by
+  simp only [boundaryCircle_apply, reverse_apply, Circle.coe_inv_eq_conj]
+
+theorem boundaryCircle_reverse_one : φ.reverse.boundaryCircle 1 = φ.boundaryCircle 1 := by
+  simp
+
+/-- The boundary loop of the reverse of `φ` is `t ↦ φ(e^{-2πit})`, the boundary loop of `φ` run
+backwards in time. -/
+theorem boundaryLoop_reverse_apply (t : unitInterval) :
+    φ.reverse.boundaryLoop t = φ.boundaryLoop (unitInterval.symm t) := by
+  rw [boundaryLoop_apply, boundaryLoop_apply, boundaryCircle_reverse_apply,
+    unitInterval.coe_symm_eq, mul_sub, mul_one, Circle.exp_sub, Circle.exp_two_pi, one_div]
+
+/-- The boundary loop of the reverse of `φ` is the reversal `Path.symm` of the boundary loop of `φ`,
+up to the equality of their base points. -/
+theorem boundaryLoop_reverse :
+    φ.reverse.boundaryLoop =
+      φ.boundaryLoop.symm.cast φ.boundaryCircle_reverse_one φ.boundaryCircle_reverse_one := by
+  ext t
+  exact φ.boundaryLoop_reverse_apply t
 
 end CoordinateDisc
 
