@@ -124,7 +124,8 @@ applied through the Veronese embedding, as the book does:
   (`Geometry/Manifold/TubularNeighborhood/Existence.lean`) gives an open
   neighbourhood of $\iota(X)$ in $\mathbb CP^{n+1}$ onto which $\iota$ is a
   homotopy equivalence. It is stated for real models, so $\iota$ is read as a
-  real embedding through Tau Ceti's `Geometry/Manifold/MFDeriv/RestrictScalars.lean`.
+  real embedding by `Manifold.IsSmoothEmbedding.restrictScalars`
+  (`Geometry/Manifold/SmoothEmbedding/RestrictScalars.lean`).
   Its image under $v$ is the $W$ wanted: a homotopy equivalence is a weak
   homotopy equivalence (`ContinuousMap.HomotopyEquiv.isWeakHomotopyEquivalence`)
   and induces isomorphisms on homology.
@@ -264,6 +265,7 @@ the order of the paths.
 | File | Contents | Issue |
 |---|---|---|
 | `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` (addition) | Poincaré duality for rational Betti numbers | 13 |
+| `AlgebraicTopology/Singular/HomologyMap.lean` | homology isomorphisms across a commutative square | 12 |
 | `Geometry/Manifold/Complex/EulerCharacteristic.lean` | real and complex tangent bundles of a complex manifold; $\chi=\langle c_{top},[M]\rangle$ | 7 |
 | `Geometry/Manifold/Projectivization/ChernClass.lean` | $c(\mathcal O(k))$, $c(\mathcal O(k)^{\oplus r})$, $c(T\mathbb CP^m)$ | 6 |
 | `Geometry/Manifold/Projectivization/EulerSequence.lean` | $T\mathbb CP^m\oplus\mathbb C\cong\mathcal O(1)^{\oplus(m+1)}$ | 3 |
@@ -281,6 +283,11 @@ the order of the paths.
 | `Geometry/Manifold/Projectivization/Hypersurface/Veronese.lean` | $X$ as a hyperplane section of the Veronese image | 12 |
 | `Geometry/Manifold/Projectivization/TwistCore.lean` | sums and tensor products of the bundles $\mathcal O(k)$ | 2 |
 | `Geometry/Manifold/SmoothEmbedding/NormalSpace/Splitting.lean` | $TM\oplus\nu\cong f^*TN$ | 4 |
+| `Geometry/Manifold/SmoothEmbedding/RestrictScalars.lean` | a holomorphic embedding is a real smooth embedding | 12 |
+| `LinearAlgebra/Pi/LinearForm.lean` | a nonzero linear form as a coordinate of an automorphism | 12 |
+| `LinearAlgebra/Projectivization/VeroneseLinearForm.lean` | the linear form of a nonzero homogeneous polynomial is nonzero | 12 |
+| `Topology/ComplexProjectiveSpace/SimplyConnected.lean` | `ℙ ℂ (Fin (m + 1) → ℂ)` is simply connected | 12 |
+| `Topology/Homotopy/HomotopyGroup/ConnectedMap/PathConnected.lean` | path-connectedness under `n`-connected maps | 12 |
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/Basic.lean`
 
@@ -503,6 +510,13 @@ setting of Tau Ceti's Lefschetz theorems.
 - `exists_homotopyEquiv_nhds`: a neighbourhood $W$ of $Y\cap\{x_0=0\}$ in $Y$
   whose inclusion is a homotopy equivalence, from
   `exists_homotopyEquiv_subset` as above.
+- General steps in files of their own: `LinearEquiv.exists_apply_eq_sum_mul`
+  (`LinearAlgebra/Pi/LinearForm.lean`) and
+  `MvPolynomial.IsHomogeneous.veroneseLinearForm_coeff_ne_zero`
+  (`LinearAlgebra/Projectivization/VeroneseLinearForm.lean`) for `veroneseEquiv`;
+  `Manifold.IsSmoothEmbedding.restrictScalars`
+  (`Geometry/Manifold/SmoothEmbedding/RestrictScalars.lean`) for the tubular
+  neighbourhood.
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/Lefschetz.lean`
 
@@ -516,6 +530,13 @@ For `d ≠ 0`, with the inclusion `X → ℙ ℂ (Fin (n + 2) → ℂ)`.
   `veroneseHomeomorph`.
 - `connectedSpace` (for `n ≠ 0`), from `joined_notMem_affineOpen_iff` and
   `X.nonempty`; `simplyConnectedSpace` (for `2 ≤ n`).
+- General steps in files of their own:
+  `ContinuousMap.isIso_homologyMap_iff_of_comp_eq`
+  (`AlgebraicTopology/Singular/HomologyMap.lean`),
+  `ContinuousMap.IsNConnected.pathConnectedSpace_iff`
+  (`Topology/Homotopy/HomotopyGroup/ConnectedMap/PathConnected.lean`), and the
+  instance `Projectivization.instSimplyConnectedSpaceFinComplex`
+  (`Topology/ComplexProjectiveSpace/SimplyConnected.lean`).
 
 ### `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` (addition)
 

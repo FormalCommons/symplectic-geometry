@@ -8,9 +8,10 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Veronese
 public import TauCeti.Geometry.Manifold.Projectivization.Lefschetz
 public import TauCeti.Topology.Homotopy.HomotopyGroup.ConnectedMap.Basic
+import SymplecticGeometry.AlgebraicTopology.Singular.HomologyMap
+import SymplecticGeometry.Topology.ComplexProjectiveSpace.SimplyConnected
+import SymplecticGeometry.Topology.Homotopy.HomotopyGroup.ConnectedMap.PathConnected
 import TauCeti.AlgebraicTopology.Singular.Homotopy.Invariance
-import TauCeti.Topology.ComplexProjectiveSpace.Hopf.Exact
-import TauCeti.Topology.ComplexProjectiveSpace.Projectivization
 
 /-!
 # The Lefschetz hyperplane theorems for smooth projective hypersurfaces
@@ -122,30 +123,16 @@ theorem isIso_homologyMap_subtypeVal (hd : d ≠ 0) {C : Type*} [Category* C] [A
     X.veroneseAffine_def.symm (X.contMDiff_coe_veroneseAffine _)
     X.injective_mfderiv_coe_veroneseAffine R hW hW_nhds
     (by simpa [Module.finrank_fin_fun] using hk)
-  have hf := X.veroneseHyperplaneHomeomorph.toHomotopyEquiv.isIso_homologyMap R k
-  -- The map of the homotopy equivalence of a homeomorphism is the homeomorphism itself.
-  have hg : IsIso (SSet.homologyMap (TopCat.toSSet.map (TopCat.ofHom
-      (X.veroneseHomeomorph : C(ℙ ℂ (Fin (n + 2) → ℂ), X.veroneseImage)))) R k) :=
-    X.veroneseHomeomorph.toHomotopyEquiv.isIso_homologyMap R k
-  -- Homology turns the square `veroneseHomeomorph_comp_subtypeVal` into a commutative square.
-  have hsq := congrArg (fun f ↦ SSet.homologyMap (TopCat.toSSet.map (TopCat.ofHom f)) R k)
-    X.veroneseHomeomorph_comp_subtypeVal
-  simp only [TopCat.ofHom_comp, Functor.map_comp, SSet.homologyMap_comp] at hsq
-  have : IsIso (SSet.homologyMap (TopCat.toSSet.map
-      (TopCat.ofHom (ContinuousMap.subtypeVal X.carrier))) R k ≫
-        SSet.homologyMap (TopCat.toSSet.map (TopCat.ofHom
-          (X.veroneseHomeomorph : C(ℙ ℂ (Fin (n + 2) → ℂ), X.veroneseImage)))) R k) := by
-    rw [hsq]
-    exact IsIso.comp_isIso' hf hj
-  exact IsIso.of_isIso_comp_right _ (SSet.homologyMap (TopCat.toSSet.map
-    (TopCat.ofHom (X.veroneseHomeomorph : C(ℙ ℂ (Fin (n + 2) → ℂ), X.veroneseImage)))) R k)
+  exact (ContinuousMap.isIso_homologyMap_iff_of_comp_eq R k
+    (X.veroneseHyperplaneHomeomorph.toHomotopyEquiv.isIso_homologyMap R k)
+    (X.veroneseHomeomorph.toHomotopyEquiv.isIso_homologyMap R k)
+    X.veroneseHomeomorph_comp_subtypeVal).1 hj
 
 /-- For `d ≠ 0` and `n ≠ 0`, a smooth hypersurface `X ⊆ ℂℙⁿ⁺¹` is path-connected. -/
-theorem pathConnectedSpace (hd : d ≠ 0) (hn : n ≠ 0) : PathConnectedSpace X := by
-  have h := (X.isNConnected_subtypeVal hd).injective 0 (Nat.pos_of_ne_zero hn)
+theorem pathConnectedSpace (hd : d ≠ 0) (hn : n ≠ 0) : PathConnectedSpace X :=
   have := X.nonempty hd
-  exact ⟨inferInstance, fun a b ↦ (ContinuousMap.joined_iff_of_injective_homotopyGroupMap _ (h a)).1
-    (PathConnectedSpace.joined _ _)⟩
+  ((X.isNConnected_subtypeVal hd).pathConnectedSpace_iff (Nat.one_le_iff_ne_zero.2 hn)).2
+    inferInstance
 
 /-- For `d ≠ 0` and `n ≠ 0`, a smooth hypersurface `X ⊆ ℂℙⁿ⁺¹` is connected. -/
 theorem connectedSpace (hd : d ≠ 0) (hn : n ≠ 0) : ConnectedSpace X :=
@@ -154,11 +141,8 @@ theorem connectedSpace (hd : d ≠ 0) (hn : n ≠ 0) : ConnectedSpace X :=
 
 /-- For `d ≠ 0` and `2 ≤ n`, a smooth hypersurface `X ⊆ ℂℙⁿ⁺¹` is simply connected, as
 `ℂℙⁿ⁺¹` is. -/
-theorem simplyConnectedSpace (hd : d ≠ 0) (hn : 2 ≤ n) : SimplyConnectedSpace X := by
-  have : SimplyConnectedSpace (ℙ ℂ (Fin (n + 2) → ℂ)) :=
-    (ComplexProjectiveSpace.homeomorphProjectivization (n + 1)).toHomotopyEquiv
-      |>.simplyConnectedSpace_iff.1 inferInstance
-  exact ((X.isNConnected_subtypeVal hd).simplyConnectedSpace_iff hn).2 this
+theorem simplyConnectedSpace (hd : d ≠ 0) (hn : 2 ≤ n) : SimplyConnectedSpace X :=
+  ((X.isNConnected_subtypeVal hd).simplyConnectedSpace_iff hn).2 inferInstance
 
 end SmoothProjectiveHypersurface
 
