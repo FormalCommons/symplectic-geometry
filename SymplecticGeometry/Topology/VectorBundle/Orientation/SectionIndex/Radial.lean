@@ -126,9 +126,10 @@ theorem sectionIndex_eq_degree_sphereCone (hn : finrank ℝ E = 2) (hG : finrank
   -- The coordinate disc `ψ w = φ (w / 2)`, whose image lies in the open unit disc of `φ`.
   have hr : (0 : ℝ) < 1 / 2 := by norm_num
   have hr2 : ‖(0 : ℂ)‖ + 2 * (1 / 2 : ℝ) ≤ 2 := by norm_num
-  set f := affineBall 0 hr hr2
-  let ψ := φ.comp f (isOpenEmbedding_affineBall 0 hr hr2)
-    (comap_affineBall_complexHomologicalOrientation 0 hr hr2)
+  have hmem := add_mul_mem_ball hr hr2
+  set f := affineBall 0 hmem
+  let ψ := φ.comp f (isOpenEmbedding_affineBall 0 hmem hr.ne')
+    (comap_affineBall_complexHomologicalOrientation 0 hmem hr.ne')
   have hf : ∀ w : ball, (f w : ℂ) = ((1 / 2 : ℝ) : ℂ) * w := fun w ↦ by
     rw [coe_affineBall_apply, zero_add]
   have hf1 : ∀ w : ball, ‖(f w : ℂ)‖ < 1 := fun w ↦ by
@@ -153,7 +154,7 @@ theorem sectionIndex_eq_degree_sphereCone (hn : finrank ℝ E = 2) (hG : finrank
     (hF w).trans (congrArg _ (hf w).symm)
   -- In the frame `w ↦ σ (f w)` along `ψ`, the local index of `s` is the local index of `g`.
   have h3 := sectionIndex_eq_localIndex_of_eq_smul hn hG ψ hψ (σ := fun w ↦ σ (f w))
-    (hσ.comp_continuous (isOpenEmbedding_affineBall 0 hr hr2).continuous hf1)
+    (hσ.comp_continuous (isOpenEmbedding_affineBall 0 hmem hr.ne').continuous hf1)
     (fun w ↦ hσ0 (f w) (hf1 w)) g hs (fun w ↦ (hsσ (f w) (hf1 w)).trans (by rw [hg]))
     ((hF0 _).2 coe_zero) isOpen_univ (mem_univ 0) fun w _ h ↦ Subtype.ext ((hF0 w).1 h)
   rw [hf0] at h3
