@@ -1068,10 +1068,11 @@ issues, in an order where each issue's blockers come before it.
    `SymplecticGeometry.isCollared_discComplementBoundary`) and
    `ArgumentPrinciple.lean` imports. This is the half of the book's Lemma 2.7.3 needed for discs.
    `AlgebraicTopology/Singular/DisjointCircles.lean`, for the boundary class
-   of the complement, shows that a class of `H₁(ι × Circle)`, `ι` finite and
+   of the complement, shows that a class of `H₁(ι ⊗ Circle)`, `ι` finite and
    discrete, is determined by its images under the maps
-   `Circle.prodRetraction i` that keep the `i`-th circle and send the
-   others to `1` (`Circle.singularHomologyOne_prod_ext`). It imports
+   `TopCat.prodFiberRetraction (TopCat.of ι) (1 : Circle) i` that keep the
+   `i`-th circle and send the others to `1`
+   (`Circle.singularHomologyOne_prod_ext`). It imports
    `DiscreteProd.lean` and derives this from its sum decomposition, with
    `X = Circle`, degree 1 and coefficients `ULift ℤ`.
    `AlgebraicTopology/Singular/Nullhomotopic.lean`, for the homology of

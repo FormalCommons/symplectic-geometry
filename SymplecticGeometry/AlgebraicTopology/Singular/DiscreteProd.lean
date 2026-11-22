@@ -33,6 +33,8 @@ positive degree (`TopCat.singularHomologyFunctor_map_const_eq_zero`).
 
 * `TopCat.isColimitCofanSingularHomologyProd`: `Hₙ(ι ⊗ X)` is the coproduct of copies of `Hₙ(X)`
   indexed by the points of the discrete space `ι`.
+* `TopCat.singularHomologyFunctor_map_prodFiberInclusion_comp_prodFiberRetraction`: for `n ≠ 0`,
+  `(σⱼ)_* ≫ (ρᵢ)_*` is the identity if `j = i` and `0` otherwise.
 * `TopCat.sum_singularHomologyFunctor_map_prodFiberRetraction_comp`: for finite `ι` and `n ≠ 0`,
   the composites `(ρᵢ)_* ≫ (σᵢ)_*` of the fibre retractions and inclusions sum to the identity.
 
@@ -88,6 +90,20 @@ section Sum
 variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Abelian C] (R : C)
   (ι : TopCat.{w}) [DiscreteTopology ι] {X : TopCat.{w}}
 
+/-- In positive degree, the map on `Hₙ` induced by including the fibre over `j` and then
+retracting onto the fibre over `i` is the identity if `j = i` and `0` otherwise. -/
+theorem singularHomologyFunctor_map_prodFiberInclusion_comp_prodFiberRetraction [DecidableEq ι]
+    (x₀ : X) {n : ℕ} (hn : n ≠ 0) (i j : ι) :
+    ((singularHomologyFunctor C n).obj R).map (prodFiberInclusion ι X j) ≫
+      ((singularHomologyFunctor C n).obj R).map (prodFiberRetraction ι x₀ i) =
+      if j = i then 𝟙 _ else 0 := by
+  rw [← Functor.map_comp]
+  split_ifs with h
+  · subst h
+    rw [prodFiberInclusion_comp_prodFiberRetraction, CategoryTheory.Functor.map_id]
+  · rw [prodFiberInclusion_comp_prodFiberRetraction_of_ne ι x₀ h,
+      singularHomologyFunctor_map_const_eq_zero R x₀ hn]
+
 /-- **Decomposition of the identity of `Hₙ(ι ⊗ X)`.** For a finite discrete space `ι`, a point
 `x₀ : X` and `n ≠ 0`, the endomorphisms of `Hₙ(ι ⊗ X; R)` induced by retracting onto the fibre
 over `i` and including it again sum, over `i : ι`, to the identity. -/
@@ -100,11 +116,12 @@ theorem sum_singularHomologyFunctor_map_prodFiberRetraction_comp [Fintype ι] (x
   refine Cofan.IsColimit.hom_ext (isColimitCofanSingularHomologyProd R n ι X) _ _ fun j ↦ ?_
   rw [cofan_mk_inj, Preadditive.comp_sum,
     Finset.sum_eq_single_of_mem j (Finset.mem_univ j) fun i _ hij ↦ by
-      rw [← Category.assoc, ← Functor.map_comp,
-        prodFiberInclusion_comp_prodFiberRetraction_of_ne ι x₀ (Ne.symm hij),
-        singularHomologyFunctor_map_const_eq_zero R x₀ hn, zero_comp],
-    ← Category.assoc, ← Functor.map_comp, prodFiberInclusion_comp_prodFiberRetraction,
-    CategoryTheory.Functor.map_id, Category.id_comp]
+      rw [← Category.assoc,
+        singularHomologyFunctor_map_prodFiberInclusion_comp_prodFiberRetraction R ι x₀ hn,
+        ite_eq_right (Ne.symm hij), zero_comp],
+    ← Category.assoc,
+    singularHomologyFunctor_map_prodFiberInclusion_comp_prodFiberRetraction R ι x₀ hn,
+    ite_eq_left rfl, Category.id_comp]
   exact (Category.comp_id _).symm
 
 end Sum
