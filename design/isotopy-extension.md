@@ -577,7 +577,7 @@ The first half of the milestone:
 
 ```lean
 theorem IsSymplecticBallEmbedding.exists_lt_isSymplecticBallEmbedding_eqOn
-    (hω : ω.IsSymplectic) (hdim : Module.finrank ℝ E = 2 * n) {r₀ : ℝ} (hr₀ : 0 < r₀)
+    (hω : ω.IsClosed) {r₀ : ℝ} (hr₀ : 0 < r₀)
     {j : StdSpace (Fin n) → M} (hj : IsSymplecticBallEmbedding ω r₀ j) :
     ∃ r, r₀ < r ∧ ∃ j', IsSymplecticBallEmbedding ω r j' ∧
       Set.EqOn j' j (Metric.closedBall 0 r₀)
@@ -587,7 +587,8 @@ theorem IsSymplecticBallEmbedding.exists_lt_isSymplecticBallEmbedding_eqOn
 full form. Its radial primitive vanishes there too, because every segment to
 `0` from a point of $B(\lambda)$ stays in it. Tau Ceti's relative Moser
 theorem `exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`,
-on an open ball where `j` is an immersion, with $K=B(\lambda)$, gives `Φ` fixing
+on `StdSpace (Fin n)`, with that primitive cut off away from $B(\lambda)$ and
+$K=B(\lambda)$, gives `Φ` fixing
 $B(\lambda)$ with `Φ^* j^* ω = ω₀` near it. The map `j' = j ∘ Φ` is injective near
 $B(\lambda)$ (`SmoothEmbedding/Neighborhood.lean`), which gives `r`. Expected
 size: 350 lines, with the API.
@@ -850,7 +851,7 @@ this design already follows. `Ball/Isotopy.lean` cites
   `TauCeti.mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero`
   `IsotopyExtension/Velocity.lean` uses for the closedness of the velocity
   forms.
-- *Moser isotopy*: only `Moser/Field.lean`, whose `moserField` (#506) is
+- *Moser isotopy*: `Moser/Field.lean`, whose `moserField` (#506) is
   the cut-off Moser field of both theorems of `Moser/Family.lean`. That
   design planned it for the linear segment between two forms with a fixed
   primitive. #551 generalizes it to a smooth family of two-forms
@@ -858,6 +859,11 @@ this design already follows. `Ball/Isotopy.lean` cites
   `SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id`, and this pull request records
   that choice in `design/moser-isotopy.md`. So the library adapts Tau Ceti's
   private field of `RelativeMoser.lean` once.
+  `IsotopyExtension/Ball/Basic.lean` also imports
+  `Geometry/Symplectic/Manifold/TwoForm.lean`, for
+  `TauCeti.SmoothTwoForm.injective_mfderiv_of_mpullback_apply_eq` (a map
+  pulling a form back to a nondegenerate one is an immersion), which the
+  pull request of `Ball/Basic.lean` adds there.
 - Tau Ceti, besides the declarations named above:
   `TauCeti.SmoothIsotopy` with `timeSlice`, `ContMDiffMap.smoothIsotopyRefl`;
   `TauCeti.Diffeotopy` with `timeSlice`, `final`, `trans`, `symm`,
