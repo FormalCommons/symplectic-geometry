@@ -18,7 +18,7 @@ A complex structure `J` on a real vector bundle `V` makes `V` a complex vector b
 relates these classes to the operations on complex structures and to tameness:
 
 * `ContMDiffComplexStructure.firstChernClass_pullback`: the class of the pull-back
-  `J.pullback f f.contMDiff` along a `Cⁿ` map `f` is the pull-back of the class of `J`;
+  `J.pullback f hf` along a `Cⁿ` map `f` is the pull-back of the class of `J`;
 * `ContMDiffComplexStructure.firstChernClass_pushforward`: transport along an isomorphism of
   vector bundles does not change the class;
 * `ContMDiffComplexStructure.firstChernClass_neg`: the complex bundle of `-J` has the opposite
@@ -56,17 +56,19 @@ variable {EB HB : Type*} {M : Type} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 namespace ContMDiffComplexStructure
 
 /-- **Naturality of the first Chern class of a complex structure.** The complex bundle of the
-pull-back `J.pullback f f.contMDiff` along a `Cⁿ` map `f : N → M` has the pull-back along `f` of
-the first Chern class of the complex bundle of `J`. -/
+pull-back `J.pullback f hf` along a `Cⁿ` map `f : N → M`, of any type `K` with
+`[ContinuousMapClass K N M]`, has the pull-back along `f` of the first Chern class of the complex
+bundle of `J`. -/
 theorem firstChernClass_pullback {EN HN : Type*} {N : Type} [NormedAddCommGroup EN]
     [NormedSpace ℝ EN] [TopologicalSpace HN] {I' : ModelWithCorners ℝ EN HN} [TopologicalSpace N]
-    [ChartedSpace HN N] (J : ContMDiffComplexStructure I n F V) (f : C^n⟮I', N; I, M⟯) :
-    firstChernClass G (J.pullback f f.contMDiff).toContinuousComplexStructure.Fiber =
+    [ChartedSpace HN N] {K : Type*} [FunLike K N M] [ContinuousMapClass K N M]
+    (J : ContMDiffComplexStructure I n F V) (f : K) (hf : ContMDiff I' I n f) :
+    firstChernClass G (J.pullback f hf).toContinuousComplexStructure.Fiber =
       TopCat.singularCohomologyMap (TopCat.ofHom (f : C(N, M))) 2
         (firstChernClass G J.toContinuousComplexStructure.Fiber) := by
   rw [← SymplecticGeometry.Bundle.firstChernClass_pullback]
-  exact (firstChernClass_congr (J.pullbackFiberEquiv f f.contMDiff)
-    (continuous_pullbackFiberEquiv G J f f.contMDiff)).symm
+  exact (firstChernClass_congr (J.pullbackFiberEquiv f hf)
+    (continuous_pullbackFiberEquiv G J f hf)).symm
 
 /-- **Transport does not change the first Chern class.** The transport `Φ ∘ J ∘ Φ⁻¹` of a complex
 structure `J` along an isomorphism `Φ : V ≃ V₂` of vector bundles, whose map of total spaces is
