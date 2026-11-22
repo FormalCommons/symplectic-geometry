@@ -823,7 +823,11 @@ issues, in an order where each issue's blockers come before it.
    `CoordinateDisc.ofChart` from an orientation-preserving smooth chart of a
    smoothly oriented surface (through `o.toHomologicalOrientation`), and
    `exists_coordinateDisc` (one centred at any point, and finitely many with
-   disjoint closed discs at distinct points). Done when this API is proved.
+   disjoint closed discs at distinct points). `CoordinateDisc.lean` imports
+   two supporting files of this part, each beside the Mathlib or Tau Ceti
+   file it adds to: `LinearAlgebra/Complex/Orientation.lean` and
+   `AlgebraicTopology/Singular/LocalHomology/Orientation/Smooth.lean`. Done
+   when this API is proved.
 6. **Argument principle for discs.**
    `AlgebraicTopology/Singular/LocalHomology/ArgumentPrinciple.lean`:
    `SymplecticGeometry.sum_degree_boundary_eq_zero`. Let `φ i`, `i : ι`
