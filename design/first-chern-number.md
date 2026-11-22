@@ -888,7 +888,10 @@ issues, in an order where each issue's blockers come before it.
    basic), and `Geometry/Manifold/DifferentialForm/PartitionOfUnity.lean`
    (`SmoothPartitionOfUnity.IsSubordinate.isSmoothForm_finsum_smul_comp`: a
    locally finite sum of local forms weighted by a smooth partition of unity
-   is smooth). The example on the circle bundle imports
+   is smooth), the case of the bundle of forms of
+   `Geometry/Manifold/PartitionOfUnity.lean`
+   (`SmoothPartitionOfUnity.IsSubordinate.contMDiff_finsum_smul_comp_section`,
+   the same for sections of any vector bundle). The example on the circle bundle imports
    `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean` of *Symplectic
    vector bundles*. Blocked by 3 only for its example; the definitions are for
    any `P`.

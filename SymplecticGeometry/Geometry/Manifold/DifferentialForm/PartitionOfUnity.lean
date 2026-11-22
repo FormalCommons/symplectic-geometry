@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Geometry.Manifold.PartitionOfUnity
+public import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
 public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 
 /-!
@@ -20,17 +20,13 @@ over the preimages of open sets of the base.
 ## Main results
 
 * `SmoothPartitionOfUnity.IsSubordinate.isSmoothForm_finsum_smul_comp`: the glued form is
-  smooth. It is the argument of Mathlib's `exists_contMDiffSection_forall_mem_convex_of_local`
-  (through `ContMDiffOn.smul_section_of_tsupport` and
-  `ContMDiff.finsum_section_of_locallyFinite`), for the bundle of alternating forms and weights
-  pulled back along `p`.
+  smooth. It is `SmoothPartitionOfUnity.IsSubordinate.contMDiff_finsum_smul_comp_section` for
+  the bundle of alternating forms.
 -/
 
 public section
 
-noncomputable section
-
-open Bundle Set
+open Bundle
 open scoped Manifold ContDiff
 
 namespace SmoothPartitionOfUnity
@@ -50,13 +46,7 @@ theorem IsSubordinate.isSmoothForm_finsum_smul_comp {s : Set N}
     {φ : ι → TauCeti.RoughForm I M F k}
     (hφ : ∀ i, ContMDiffOn I (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞
       (fun x ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F) x (φ i x)) (p ⁻¹' U i)) :
-    TauCeti.IsSmoothForm I ∞ (fun x ↦ ∑ᶠ i, ρ i (p x) • φ i x) := by
-  rw [TauCeti.isSmoothForm_def]
-  refine ContMDiff.finsum_section_of_locallyFinite (t := fun i x ↦ ρ i (p x) • φ i x)
-    ((ρ.locallyFinite.preimage_continuous hp.continuous).subset
-      fun i x hx ↦ left_ne_zero_of_smul hx) fun i ↦ ?_
-  exact ContMDiffOn.smul_section_of_tsupport (ψ := fun x ↦ ρ i (p x))
-    ((ρ i).contMDiff.comp hp).contMDiffOn ((hU i).preimage hp.continuous)
-    ((tsupport_comp_subset_preimage _ hp.continuous).trans (preimage_mono (hρ i))) (hφ i)
+    TauCeti.IsSmoothForm I ∞ (fun x ↦ ∑ᶠ i, ρ i (p x) • φ i x) :=
+  (TauCeti.isSmoothForm_def _ _).2 (hρ.contMDiff_finsum_smul_comp_section hU hp hφ)
 
 end SmoothPartitionOfUnity
