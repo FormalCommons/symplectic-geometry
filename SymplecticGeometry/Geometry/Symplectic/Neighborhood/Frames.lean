@@ -178,7 +178,7 @@ theorem hasLocalContMDiffSubbundleFrames_sup_map_radical (hc : σ.Compatible Jc)
       fun q ↦ (mfderiv J I f q).range ⊔ ((mfderiv J I f q).range ⊓
         (hc.isNondegenerate.symplecticFormAt (f q)).orthogonal (mfderiv J I f q).range).map
           (Jc.almostComplexStructureAt (f q)).toLinearMap :=
-  (Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv f f.contMDiff f.isImmersion).sup_fin
+  (Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv f f.isImmersion).sup_fin
     (f.hasLocalContMDiffSubbundleFrames_map_radical hc.isNondegenerate hk) fun q ↦
       (hc.compatibleAt (f q)).disjoint_map
 
@@ -292,7 +292,7 @@ theorem hasLocalContMDiffSubbundleFrames_radicalComplement (hc : σ.Compatible J
     exact h
   · -- `W = H ⊕ K`, with `dim W = dim Q` and `dim K = k`.
     have hW : finrank ℝ (mfderiv J I f q).range = finrank ℝ E' := by
-      have h := (Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv f f.contMDiff
+      have h := (Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv f
         f.isImmersion).hasLocalSubbundleFrames.finrank_eq q
       rw [Fintype.card_fin] at h
       exact h
@@ -339,7 +339,7 @@ theorem hasLocalContMDiffSubbundleFrames_sup_normalComplement (hc : σ.Compatibl
       fun q ↦ (mfderiv J I f q).range ⊔
         (hc.isNondegenerate.symplecticFormAt (f q)).normalComplement
           (Jc.almostComplexStructureAt (f q)) (mfderiv J I f q).range :=
-  (Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv f f.contMDiff f.isImmersion).sup_fin
+  (Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv f f.isImmersion).sup_fin
     (f.hasLocalContMDiffSubbundleFrames_normalComplement hc hk) fun q ↦
       (hc.compatibleAt (f q)).isCompl_sup_map_normalComplement.disjoint.mono_left le_sup_left
 
@@ -357,7 +357,7 @@ theorem contMDiff_totalSpace_projection_range_mfderiv (hc : σ.Compatible Jc)
   have : IsManifold I (∞ + 1) M := by simpa using (inferInstance : IsManifold I ∞ M)
   have : ContMDiffVectorBundle ∞ E ((f : Q → M) *ᵖ (TangentSpace I)) J :=
     Bundle.Pullback.contMDiffVectorBundle (E := TangentSpace I) f.contMDiff
-  exact (Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv f f.contMDiff f.isImmersion)
+  exact (Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv f f.isImmersion)
     |>.contMDiff_totalSpace_projection_of_isCompl
       (f.hasLocalContMDiffSubbundleFrames_map_radical_sup_normalComplement hc hk) fun q ↦
         (hc.compatibleAt (f q)).isCompl_map_sup_normalComplement

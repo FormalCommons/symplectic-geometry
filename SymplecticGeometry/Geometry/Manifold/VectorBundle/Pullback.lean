@@ -188,7 +188,7 @@ theorem contMDiff_totalSpace_mfderiv (f : K) (hf : ContMDiff J I ∞ f) :
 /-- **Frames of the tangent image.** For a `C^∞` immersion `f`, the images `df_q(T_q Q)` of the
 tangent spaces of `Q` have `C^∞` local frames of size `dim Q` in the pull-back `f *ᵖ TM`. -/
 theorem hasLocalContMDiffSubbundleFrames_range_mfderiv [FiniteDimensional ℝ E] (f : K)
-    (hf : ContMDiff J I ∞ f) (hi : Manifold.IsImmersion J I ∞ f) :
+    (hi : Manifold.IsImmersion J I ∞ f) :
     HasLocalContMDiffSubbundleFrames J ∞ E (Fin (finrank ℝ E'))
       (E := (f : Q → M) *ᵖ (TangentSpace I)) fun q ↦ (mfderiv J I f q).range := by
   have : IsManifold J (∞ + 1) Q := by simpa using (inferInstance : IsManifold J ∞ Q)
@@ -196,7 +196,7 @@ theorem hasLocalContMDiffSubbundleFrames_range_mfderiv [FiniteDimensional ℝ E]
     TangentBundle.contMDiffVectorBundle
   refine hasLocalContMDiffSubbundleFrames_of_contMDiff_totalSpace_range
     (fun q ↦ (mfderiv J I f q : TangentSpace J q →ₗ[ℝ] TangentSpace I (f q)))
-    (contMDiff_totalSpace_mfderiv f hf) (fun q ↦ rfl) fun q ↦ ?_
+    (contMDiff_totalSpace_mfderiv f hi.contMDiff) (fun q ↦ rfl) fun q ↦ ?_
   -- The ranges are subspaces of the fibres of the pull-back, which are the tangent spaces of
   -- `M` under another name.
   have h : finrank ℝ (LinearMap.range

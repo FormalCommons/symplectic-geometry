@@ -230,7 +230,8 @@ adds beside them for `exists_mextDeriv_eq_and_mpullback_eq` are in `TauCeti`.
 
 The file has the name of Tau Ceti's file that defines
 `TauCeti.SmoothTwoForm.IsNondegenerate.interiorEquiv`. It is in the
-namespace `TauCeti.SmoothTwoForm.IsNondegenerate`.
+namespace `TauCeti.SmoothTwoForm`, with its lemmas about nondegenerate and
+compatible forms under `IsNondegenerate` and `Compatible`.
 It imports `Geometry/Manifold/VectorBundle/Pullback.lean` of *Symplectic
 vector bundles*, which is merged, for the flat maps of a two-form along a
 smooth map as sections of the bundle of bilinear forms on the pull-back.
