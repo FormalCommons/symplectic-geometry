@@ -775,6 +775,10 @@ issues, in an order where each issue's blockers come before it.
    of a simplex along the unitors, and
    `Algebra/Homology/ShortComplex/PreservesHomology.lean`,
    `CategoryTheory.ShortComplex.map_homologyπ_comp_mapHomologyIso_inv`.
+   Its chain map from integral to rational chains is the change of
+   coefficients `SSet.restrictScalarsChainMap` of
+   `AlgebraicTopology/SimplicialSet/Homology/RestrictScalars.lean`
+   (`design/pseudoholomorphic-energy.md`), which it imports.
    That injectivity is the degree-one case of Poincaré duality, which
    Tau Ceti prepares in `AlgebraicTopology/Cohomology/CompactSupport/`
    (`HomologicalOrientation.dualityMap` and its criterion in `Duality.lean`)
