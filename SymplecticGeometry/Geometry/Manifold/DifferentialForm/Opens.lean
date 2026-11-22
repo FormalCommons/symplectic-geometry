@@ -41,11 +41,6 @@ and the pull-back of restricted forms along a partial diffeomorphism of open sub
 * A smooth map `ψ` between open subsets that pulls the restriction of a two-form `σ'` back to the
   restriction of a two-form `σ` preserves the forms on tangent vectors at each point
   (`TauCeti.SmoothForm.eval₂_mfderiv_eq_of_mpullback_subtype_val_eq`).
-* The empty open sets of two manifolds are diffeomorphic by a diffeomorphism that pulls the
-  restriction of any two-form back to the restriction of any other
-  (`TauCeti.SmoothTwoForm.exists_diffeomorph_bot_mpullback_eq`), with
-  `Diffeomorph.ofIsEmpty` and the instance `TopologicalSpace.Opens.isEmpty_bot`. The
-  neighbourhood theorems use it for an empty submanifold.
 * Restriction commutes with the exterior derivative, with no regularity assumption
   (`TauCeti.mpullback_subtype_val_mextDeriv`), since near every point of `U` the coordinate
   expressions of a form and of its restriction agree
@@ -215,27 +210,6 @@ theorem SmoothForm.eval₂_mfderiv_eq_of_mpullback_subtype_val_eq {U : Opens M} 
     ContinuousLinearEquiv.coe_coe, Manifold.tangentSpaceOpenEquiv_apply] using this
 
 end TwoForm
-
-section Empty
-
-variable {E₀ E₁ H₀ H₁ M₀ M₁ : Type*}
-  [NormedAddCommGroup E₀] [NormedSpace ℝ E₀] [NormedAddCommGroup E₁] [NormedSpace ℝ E₁]
-  [TopologicalSpace H₀] [TopologicalSpace H₁]
-  {I₀ : ModelWithCorners ℝ E₀ H₀} {I₁ : ModelWithCorners ℝ E₁ H₁}
-  [TopologicalSpace M₀] [ChartedSpace H₀ M₀] [IsManifold I₀ ∞ M₀]
-  [TopologicalSpace M₁] [ChartedSpace H₁ M₁] [IsManifold I₁ ∞ M₁]
-
-/-- The empty open sets of `M₀` and `M₁` are diffeomorphic, by a diffeomorphism that pulls the
-restriction of any two-form `ω₁` on `M₁` back to the restriction of any two-form `ω₀` on `M₀`. -/
-theorem SmoothTwoForm.exists_diffeomorph_bot_mpullback_eq (ω₀ : SmoothTwoForm I₀ M₀)
-    (ω₁ : SmoothTwoForm I₁ M₁) :
-    ∃ ψ : (⊥ : Opens M₀) ≃ₘ⟮I₀, I₁⟯ (⊥ : Opens M₁),
-      SmoothForm.mpullback ψ ψ.contMDiff
-          (SmoothForm.mpullback (Subtype.val : (⊥ : Opens M₁) → M₁) contMDiff_subtypeVal ω₁) =
-        SmoothForm.mpullback (Subtype.val : (⊥ : Opens M₀) → M₀) contMDiff_subtypeVal ω₀ :=
-  ⟨Diffeomorph.ofIsEmpty, Subtype.ext (funext isEmptyElim)⟩
-
-end Empty
 
 end TauCeti
 

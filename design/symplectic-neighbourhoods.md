@@ -214,8 +214,8 @@ and two rows of its milestone table.
   place in that order: pull requests that each add a file then change
   different lines.
   - `Geometry/Manifold/Diffeomorph/Basic.lean`: the diffeomorphism between
-    empty manifolds on two models, which `MFDeriv.lean` and *Moser
-    isotopy*'s `DifferentialForm/Opens.lean` use.
+    empty manifolds on two models, which `MFDeriv.lean`, the neighbourhood
+    theorems and *Moser isotopy*'s `Moser/Relative.lean` use.
   - `Geometry/Manifold/Distribution/FlatChart.lean`: the step of
     `CharacteristicFoliation.lean` that uses nothing symplectic.
   - `Geometry/Manifold/IsManifold/Basic.lean`: three instances for smooth
@@ -499,9 +499,8 @@ symplectic, so it sits with the manifold topic, beside Tau Ceti's
 The case of an empty `Q` in `MFDeriv.lean`. Namespace
 `Diffeomorph`; the `IsEmpty` instance of `⊥ : Opens M`
 (`TopologicalSpace.Opens.isEmpty_bot`) is in `Topology/Sets/Opens/Basic.lean`.
-`DifferentialForm/Opens.lean` of *Moser isotopy* uses both for
-`TauCeti.SmoothTwoForm.exists_diffeomorph_bot_mpullback_eq`, which the
-neighbourhood theorems and `Moser/Relative.lean` use for an empty `Q`.
+The neighbourhood theorems and `Moser/Relative.lean` of *Moser isotopy* use
+both for an empty `Q`, with `Subsingleton.elim` for the restricted forms.
 
 - `Diffeomorph.ofIsEmpty : M ≃ₘ^n⟮I, I'⟯ M'` for `[IsEmpty M] [IsEmpty M']`,
   Mathlib's `Diffeomorph.empty` with two models, and the `Unique` instance
@@ -594,7 +593,7 @@ At Tau Ceti's path, in its namespace `TauCeti`, beside Tau Ceti's
 `isImmersion_comp_diffeomorph_of_boundaryless`,
 `isSmoothEmbedding_comp_diffeomorph_of_boundaryless`, and the bundled
 `SmoothEmbedding.compDiffeomorphOfBoundaryless`, with its `_apply`, `coe_`
-and `range_` lemmas.
+and `range_` lemmas, and `mfderiv_` and `range_mfderiv_` for its differential.
 
 ### `Geometry/Symplectic/Neighborhood/Isotropic.lean`
 
@@ -696,7 +695,7 @@ four theorems share.
 
 - From *Moser isotopy*: `Relative.lean`, `Geometry/Manifold/DifferentialForm/Opens.lean` and
   `Geometry/Symplectic/Manifold/TwoForm.lean`, only in `Tubular.lean`, and `Opens.lean`
-  also in `Symplectic.lean`, `Isotropic.lean`, `Coisotropic.lean` and `Lagrangian.lean`.
+  also in `Symplectic.lean`.
 - From *Liouville structures*: `Geometry/Manifold/MFDeriv/Opens.lean`
   (`mdifferentiable_subtypeVal`), in `CharacteristicFoliation.lean`.
 - From *Symplectic vector bundles*:

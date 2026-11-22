@@ -9,6 +9,8 @@ public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Basic
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Normal
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+import SymplecticGeometry.Topology.Sets.Opens.Basic
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
@@ -194,17 +196,14 @@ theorem HasSymplecticTangentImages.exists_symplectomorphism_opens {hσ₀ : σ�
           (SmoothForm.mpullback (Subtype.val : U₁ → M₁) contMDiff_subtypeVal σ₁) =
         SmoothForm.mpullback (Subtype.val : U₀ → M₀) contMDiff_subtypeVal σ₀ := by
   rcases isEmpty_or_nonempty Q₀ with hQ | ⟨⟨q₀⟩⟩
-  · obtain ⟨ψ, hψ⟩ := SmoothTwoForm.exists_diffeomorph_bot_mpullback_eq σ₀ σ₁
-    exact ⟨⊥, ⊥, ψ, fun q ↦ (hQ.false q).elim, hψ⟩
+  · exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun q ↦ (hQ.false q).elim, Subsingleton.elim _ _⟩
   -- Compare `f₀` with the reparametrization `g = f₁ ∘ φ`.
   set g := f₁.compDiffeomorphOfBoundaryless φ (by simp)
   have hg : ⇑g = f₁ ∘ φ := f₁.coe_compDiffeomorphOfBoundaryless φ (by simp)
   have hdg (q : Q₀) (v : TangentSpace J₀ q) :
       mfderiv J₀ I₁ g q v = mfderiv J₁ I₁ f₁ (φ q) (mfderiv J₀ J₁ φ q v) := by
-    rw [hg, φ.mfderiv_comp_diffeomorph hn, ContinuousLinearMap.comp_apply]
-  have hrange (q : Q₀) : (mfderiv J₀ I₁ g q).range = (mfderiv J₁ I₁ f₁ (φ q)).range := by
-    rw [hg]
-    exact φ.range_mfderiv_comp_diffeomorph hn f₁ q
+    rw [f₁.mfderiv_compDiffeomorphOfBoundaryless φ (by simp) q]
+    exact ContinuousLinearMap.comp_apply (M₃ := TangentSpace I₁ (f₁ (φ q))) _ _ _
   have hσ : SmoothForm.mpullback g g.contMDiff σ₁ = SmoothForm.mpullback f₀ f₀.contMDiff σ₀ := by
     rw [← hφ, ← LinearMap.comp_apply, ← SmoothForm.mpullback_comp]
     congr 2
@@ -235,7 +234,7 @@ theorem HasSymplecticTangentImages.exists_symplectomorphism_opens {hσ₀ : σ�
       L q v ∈ (hσ₁.isNondegenerate.symplecticFormAt (g q)).orthogonal
         (mfderiv J₀ I₁ g q).range := by
     intro v _
-    rw [hrange, hgq]
+    rw [f₁.range_mfderiv_compDiffeomorphOfBoundaryless φ (by simp) q, hgq]
     exact f₁.symplecticNormalRepresentative_mem_orthogonal h₁ (φ q) hn _
   have hLω (q : Q₀) : ∀ v ∈ (hσ₀.isNondegenerate.symplecticFormAt (f₀ q)).orthogonal
       (mfderiv J₀ I₀ f₀ q).range, ∀ w ∈ (hσ₀.isNondegenerate.symplecticFormAt (f₀ q)).orthogonal

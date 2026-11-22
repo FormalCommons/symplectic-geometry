@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Basic
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+import SymplecticGeometry.Topology.Sets.Opens.Basic
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 public import TauCeti.Geometry.Symplectic.Lagrangian.Manifold
 public import TauCeti.Geometry.Symplectic.LinearReduction
@@ -141,9 +142,6 @@ theorem IsIsotropicMap.exists_symplectomorphism_opens_of_finrank_eq
   set g := f₁.compDiffeomorphOfBoundaryless φ (by simp)
   have hg : ⇑g = f₁ ∘ φ := f₁.coe_compDiffeomorphOfBoundaryless φ (by simp)
   have hgq (q) : g q = f₁ (φ q) := f₁.compDiffeomorphOfBoundaryless_apply φ (by simp) q
-  have hgr (q) : (mfderiv J₀ I₁ g q).range = (mfderiv J₁ I₁ f₁ (φ q)).range := by
-    rw [hg]
-    exact φ.range_mfderiv_comp_diffeomorph (by simp) f₁ q
   have hgi : hω₁.isNondegenerate.IsIsotropicMap J₀ g := by
     rw [hg]
     exact (isIsotropicMap_comp_diffeomorph_iff φ (by simp)).2 h₁
@@ -156,13 +154,15 @@ theorem IsIsotropicMap.exists_symplectomorphism_opens_of_finrank_eq
       finrank_top, finrank_tangentSpace]
   obtain ⟨U₀, U₁, ψ, hψ, hψω⟩ := SmoothEmbedding.exists_symplectomorphism_opens_of_mpullback_eq
     f₀ g hω₀ hω₁ (hz₁.trans hz₀.symm) (k := finrank ℝ EQ₀) hk hdim L
-    hLs (fun q v hv ↦ by rw [hgr, hgq]; exact hL q v hv)
+    hLs (fun q v hv ↦ by
+      rw [f₁.range_mfderiv_compDiffeomorphOfBoundaryless φ (by simp) q, hgq]; exact hL q v hv)
     (fun q v hv w hw ↦ by rw [hgq]; exact hLω q v hv w hw)
   refine ⟨U₀, U₁, ψ, fun q ↦ ?_, hψω⟩
   obtain ⟨h, hf, -, hd⟩ := hψ q
   refine ⟨h, hf.trans (hgq q), fun v hv ↦ ?_⟩
   obtain ⟨u, hu⟩ := hd v hv
-  obtain ⟨u', hu'⟩ : mfderiv J₀ I₁ g q u ∈ (mfderiv J₁ I₁ f₁ (φ q)).range := hgr q ▸ ⟨u, rfl⟩
+  obtain ⟨u', hu'⟩ : mfderiv J₀ I₁ g q u ∈ (mfderiv J₁ I₁ f₁ (φ q)).range :=
+    f₁.range_mfderiv_compDiffeomorphOfBoundaryless φ (by simp) q ▸ ⟨u, rfl⟩
   exact ⟨u', hu.trans (congrArg (L q v + ·) hu'.symm)⟩
 
 /-- **The isotropic neighbourhood theorem.** Let `f₀ : Q₀ → M₀` and `f₁ : Q₁ → M₁` be isotropic
@@ -218,8 +218,7 @@ theorem IsIsotropicMap.exists_symplectomorphism_opens
         SmoothForm.mpullback (Subtype.val : U₀ → M₀) contMDiff_subtypeVal ω₀ := by
   rcases isEmpty_or_nonempty Q₀ with hQ | ⟨⟨q₀⟩⟩
   · -- Without points to work along, the empty open sets will do.
-    obtain ⟨ψ, hψ⟩ := SmoothTwoForm.exists_diffeomorph_bot_mpullback_eq ω₀ ω₁
-    exact ⟨⊥, ⊥, ψ, fun q ↦ (hQ.false q).elim, hψ⟩
+    exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun q ↦ (hQ.false q).elim, Subsingleton.elim _ _⟩
   -- `L` preserves `ω` on `W₀^ω`, since `Φ` preserves the reduced forms.
   have hLω (q) : ∀ v ∈ (hω₀.isNondegenerate.symplecticFormAt (f₀ q)).orthogonal
       (mfderiv J₀ I₀ f₀ q).range, ∀ w ∈ (hω₀.isNondegenerate.symplecticFormAt (f₀ q)).orthogonal
