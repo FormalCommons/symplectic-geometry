@@ -260,8 +260,11 @@ is general and sits beside Tau Ceti's `NormalSpace/` files, as *Adjunction*'s
 complex manifold sits beside Tau Ceti's
 `Geometry/Manifold/Complex/Orientation.lean`; Poincaré duality for
 Betti numbers is an addition to the library's file of rational coefficients.
-None of these names is taken by Tau Ceti at the same place. The list is in
-the order of the paths.
+The pointwise continuity of fibrewise operations that the gluing of the
+splitting uses is general too: `Topology/VectorBundle/Section.lean`
+complements Tau Ceti's file of that path, as the library's `Pullback.lean`
+there does. None of the other names is taken by Tau Ceti at the same place.
+The list is in the order of the paths.
 
 | File | Contents | Issue |
 |---|---|---|
@@ -283,6 +286,7 @@ the order of the paths.
 | `Geometry/Manifold/Projectivization/Hypersurface/Veronese.lean` | $X$ as a hyperplane section of the Veronese image | 12 |
 | `Geometry/Manifold/Projectivization/TwistCore.lean` | sums and tensor products of the bundles $\mathcal O(k)$ | 2 |
 | `Geometry/Manifold/SmoothEmbedding/NormalSpace/Splitting.lean` | $TM\oplus\nu\cong f^*TN$ | 4 |
+| `Topology/VectorBundle/Section.lean` | pointwise continuity of fibrewise scalar multiples and finite sums | 4 |
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/Basic.lean`
 
@@ -383,12 +387,15 @@ with `hn : n ≠ 0`, between finite-dimensional manifolds over `𝕜`.
   `normalSplitting` is its inverse for the representatives in the
   `ω`-orthogonal.
 - `normalRightInverse f hn x : f.NormalSpace x hn →L[𝕜] TangentSpace J (f x)`,
-  with `[IsRCLikeNormedField 𝕜]` and `[T2Space M] [ParacompactSpace M]` (for a
-  partition of unity), with `normalClass_normalRightInverse` (a right inverse
+  with `[IsRCLikeNormedField 𝕜]` and `[NormalSpace M] [ParacompactSpace M]` (for
+  a partition of unity), with `normalClass_normalRightInverse` (a right inverse
   of `normalClass`) and the continuity of its map of total spaces; glued from
   local linear right inverses, built from a fixed complement in a tangent
   chart (`normalSpaceEquivOfComplement`), by a `PartitionOfUnity`, since a
   combination with real coefficients summing to one of right inverses is one.
+  The continuity of the glued map uses `ContinuousAt.smul_totalSpace` and
+  `ContinuousAt.sum_totalSpace` from the library's
+  `Topology/VectorBundle/Section.lean`, which it imports.
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/NormalBundle.lean`
 
