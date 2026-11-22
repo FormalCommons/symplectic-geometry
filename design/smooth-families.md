@@ -571,6 +571,15 @@ For `[IsManifold I ∞ M]`:
   is $z\mapsto h(F^*z)$, which takes smooth families to smooth families by
   `preservesSmoothFamilies_homotopyOperator_mpullback`.
 
+### `Geometry/Manifold/DeRham/SmoothFamily/Cutoff.lean`
+
+The linear tools of `MayerVietoris.lean`, in a file of their own so that that file stays
+within its limit: `TauCeti.SmoothForm.glueₗ` (linear maps into the forms on `U` and on `V`
+that agree on `U ⊓ V` glue to one into the forms on `U ⊔ V`), the cut-off functions
+`SymplecticGeometry.MayerVietorisCutoff I U V` with `MayerVietorisCutoff.nonempty`, the cut-off
+extensions `extendLeft` and `extendRight` with their smooth families, and the connecting form
+`connecting`.
+
 ### `Geometry/Manifold/DeRham/SmoothFamily/MayerVietoris.lean`
 
 For `[FiniteDimensional ℝ E] [T2Space M] [SigmaCompactSpace M]` (the
@@ -743,7 +752,8 @@ can start at once; each issue's blockers come before it.
     `Geometry/Manifold/DeRham/SmoothFamily/Contractible.lean`. Blocked by 7
     and 10.
 12. **The Mayer–Vietoris step.**
-    `Geometry/Manifold/DeRham/SmoothFamily/MayerVietoris.lean`. Blocked by 10.
+    `Geometry/Manifold/DeRham/SmoothFamily/MayerVietoris.lean` and
+    `Geometry/Manifold/DeRham/SmoothFamily/Cutoff.lean`. Blocked by 10.
     It is the largest issue; if it exceeds the size limit, the proof that the
     new space maps isomorphically onto cohomology (step 4) becomes an issue
     of its own after the construction.
