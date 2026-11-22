@@ -605,6 +605,20 @@ the naturality `cross_map_complZeroPairIso`, and the sign
 `TauCeti.LocalOrientation.prod` (`coe_cross_eq_crossSign_smul`), whose value
 is not computed there.
 
+### `AlgebraicTopology/Singular/MayerVietoris/Connecting.lean`
+
+Tau Ceti's Mayer–Vietoris connecting morphism read through the pair of
+one piece, for computing `crossSign m 0` through the sphere generator:
+`TopCat.mayerVietorisδ_eq_singularHomologyδ_left`, the composite of
+`Hₙ(X) ⟶ Hₙ(X, V)`, the inverse of the excision map of
+`TopPair.excisionMap U V` and the connecting morphism of
+`TopPair.interPair U V`, with sign `1`;
+`TopCat.mayerVietorisδ_eq_neg_singularHomologyδ_right`, the same through
+`(V, U ∩ V)` with sign `-1`; and
+`TopCat.reducedMayerVietorisδ_succ_eq_singularHomologyδ_left` for the
+reduced morphism in positive degrees. They come from the simplicial-set
+statements `SSet.mayerVietorisδ_comp_homologyMap_of_fst` and `_of_snd`.
+
 ### `Topology/VectorBundle/Orientation/Complex/Whitney.lean`
 
 The integral Whitney formula for Euler classes of complex bundles, in Tau
