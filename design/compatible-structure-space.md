@@ -216,14 +216,13 @@ diffeomorphism. No Mathlib or Tau Ceti notion is redefined.
    `ℝ`, which gives Tau Ceti's `IsGeodesicallyCompleteAt` at every point.
    These curves are all the geodesics: by Tau Ceti's uniqueness lemmas
    `IsGeodesicCurveOnFrom.eq_maximalGeodesic_of_univ` and
-   `IsGeodesicCurveOnFrom.eqOn_maximalGeodesic`, the maximal geodesic with
-   initial data $(J,\hat J)$ is this curve, and any geodesic on an open
-   interval around $0$ with the same initial data agrees with it there. The
-   page's completeness of the metric is then Tau Ceti's Hopf–Rinow theorem
-   `completeSpace_iff_isGeodesicallyCompleteAt`, for the Riemannian distance
-   `EMetricSpace.ofRiemannianMetric`. Tau Ceti's
+   `IsGeodesicCurveOnFrom.eqOn_maximalGeodesic_of_isPreconnected`, the maximal
+   geodesic with initial data $(J,\hat J)$ is this curve, and any geodesic on a
+   preconnected parameter set with the same initial data agrees with it there.
+   The page's completeness of the metric, for the Riemannian distance
+   `EMetricSpace.ofRiemannianMetric`, is Tau Ceti's
    `completeSpace_ofRiemannianMetric_of_isPretransitive_isom`, with
-   transitivity of the isometries of decision 10, is a second route.
+   transitivity of the isometries of decision 10.
 9. **$\mathcal S_n$ as a complex manifold.** `SiegelUpperHalfSpace ι` gets the
    complex manifold structure of an open subset of the complex symmetric
    matrices, through `IsOpenEmbedding.singletonChartedSpace`. The model is
@@ -560,7 +559,7 @@ continuous bilinear form `B`, which need not be positive.
 ### `Geometry/Symplectic/CompatibleSpace/Geodesic.lean`
 
 - `TauCeti.AlmostComplexStructure.toContinuousLinearMap_tangentPath_eq_mul_exp
-  (hY : Y ∈ J.tangentSpace)`: `tangentPath J Y t` is `J * exp (-(J * Y) * t)`
+  (hY : Y ∈ J.tangentSpace) t`: `tangentPath J Y t` is `J * exp (-(t • (J * Y)))`
   (the identity $e^{tB}J=Je^{-tB}$ for $B$ anticommuting with $J$), in Tau
   Ceti's namespace.
 - `ω.compatibleGeodesic J a : ℝ → 𝒥 ω`, Tau Ceti's `Compatible.tangentPath`
@@ -571,14 +570,14 @@ continuous bilinear form `B`, which need not be positive.
   `LeviCivita.lean` and the computation of decision 8.
 - `maximalGeodesic_compatibleSpace : maximalGeodesic 𝓘 (𝒥 ω) J a =
   ω.compatibleGeodesic J a`, by `IsGeodesicCurveOnFrom.eq_maximalGeodesic_of_univ`,
-  and `eqOn_compatibleGeodesic (hγ : IsGeodesicCurveOnFrom 𝓘 γ (Ioo s t) J a) :
-  EqOn γ (ω.compatibleGeodesic J a) (Ioo s t)`, by
-  `IsGeodesicCurveOnFrom.eqOn_maximalGeodesic`: these curves are all the
-  geodesics.
+  and `eqOn_compatibleGeodesic (hγ : IsGeodesicCurveOnFrom 𝓘 γ s J a)
+  (hs : IsPreconnected s) : EqOn γ (ω.compatibleGeodesic J a) s`, by
+  `IsGeodesicCurveOnFrom.eqOn_maximalGeodesic_of_isPreconnected`: these curves
+  are all the geodesics.
 - `isGeodesicallyCompleteAt_compatibleSpace (J) :
   IsGeodesicallyCompleteAt 𝓘 (𝒥 ω) J`, and
   `completeSpace_compatibleSpace : letI := EMetricSpace.ofRiemannianMetric 𝓘 (𝒥 ω);
-  CompleteSpace (𝒥 ω)`, by Hopf–Rinow.
+  CompleteSpace (𝒥 ω)`, by `completeSpace_ofRiemannianMetric_of_isPretransitive_isom`.
 
 ### `Geometry/Symplectic/CompatibleSpace/Siegel.lean`
 
@@ -632,7 +631,7 @@ theorem compatibleSpace_properties (ω : SymplecticForm V) {n : ℕ}
             deriv (ω.compatibleCLM ∘ γ) t ∘L d (γ t) (W t)))) ∧
     (∀ J a, IsGeodesicCurveOnFrom 𝓘 (ω.compatibleGeodesic J a) univ J a ∧
       ∀ t, ω.compatibleCLM (ω.compatibleGeodesic J a t) =
-        ω.compatibleCLM J * NormedSpace.exp ℝ (-(t • (ω.compatibleCLM J * d J a)))) ∧
+        ω.compatibleCLM J * NormedSpace.exp (-(t • (ω.compatibleCLM J ∘L d J a)))) ∧
     (∀ J a (γ : ℝ → 𝒥 ω) s t, IsGeodesicCurveOnFrom 𝓘 γ (Ioo s t) J a →
       EqOn γ (ω.compatibleGeodesic J a) (Ioo s t)) ∧
     (∀ J, IsGeodesicallyCompleteAt 𝓘 (𝒥 ω) J) ∧
