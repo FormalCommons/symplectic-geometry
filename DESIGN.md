@@ -1039,7 +1039,9 @@ it into issues; the overview fixes its folders and its dependencies.
   coefficient, and `TauCeti.eq_dysonSeriesLeft_apply` gives uniqueness. So
   this part needs no general ODE theory of its own beyond the parametric
   lemma, which is general material and sits in its own file. It uses no other
-  part.
+  part, except `Topology/Algebra/Module/BilinearForm.lean` of *Compatible
+  complex structures* (`ContinuousLinearEquiv.bilinearCongr`), which imports
+  only Mathlib and Tau Ceti and is merged.
 - **Milestones:** *Linear Moser lemma*.
 - The construction is canonical, a formula in the family and its derivative,
   so that *Symplectic vector bundles* can apply it at each point of the base.
@@ -2166,7 +2168,7 @@ so two parts can each use merged files of the other without either waiting.
 |---|---|---|
 | 0 | *Standard model* | — (it imports `LinearAlgebra/Matrix/Block.lean` and `LinearAlgebra/Matrix/Symmetric.lean` of *Siegel upper half space*, which import only Mathlib and Tau Ceti and are merged, `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean` of *Symplectic group*, which imports only Mathlib and Tau Ceti and is merged, `LinearAlgebra/Matrix/PosDef/Block.lean` of *Siegel upper half space*, which imports only Mathlib and Tau Ceti and is merged, and the merged `LinearAlgebra/Symplectic/Compatible.lean` of *Compatible complex structures*, which besides `Standard/Basic.lean` imports only merged files that do not import `Standard/Matrix.lean`) |
 | 0 | *Symplectic group* | — |
-| 0 | *Linear Moser* | — |
+| 0 | *Linear Moser* | — (it imports `Topology/Algebra/Module/BilinearForm.lean` of *Compatible complex structures*, which imports only Mathlib and Tau Ceti and is merged) |
 | 0 | *Smooth families* | — (`Diffeotopy/Real.lean` imports `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` of *Hamiltonian flows*, which is merged and imports no file of *Smooth families*) |
 | 0 | *Cotangent bundles* | — |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |

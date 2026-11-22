@@ -259,8 +259,7 @@ variable {W W' : Type*} [NormedAddCommGroup W] [InnerProductSpace ℝ W] [Finite
 isomorphism `e` conjugates the formula by `e`. -/
 theorem metricPolarFormula_conj (e : W ≃L[ℝ] W') {g s : W →L[ℝ] W →L[ℝ] ℝ}
     (h : (g, s) ∈ polarDomain W) :
-    metricPolarFormula (g.bilinearComp (e.symm : W' →L[ℝ] W) (e.symm : W' →L[ℝ] W))
-        (s.bilinearComp (e.symm : W' →L[ℝ] W) (e.symm : W' →L[ℝ] W)) =
+    metricPolarFormula (e.bilinearCongr g) (e.bilinearCongr s) =
       e.conjContinuousAlgEquiv (metricPolarFormula g s) := by
   let ω := SymplecticForm.ofContinuousBilinearMap (skewSymmetrizeBilinear s)
     (isAlt_toBilinForm_skewSymmetrizeBilinear s) (nondegenerate_toBilinForm_of_mem_polarDomain h)
@@ -268,13 +267,14 @@ theorem metricPolarFormula_conj (e : W ≃L[ℝ] W') {g s : W →L[ℝ] W →L[�
     SymplecticForm.toBilinForm_toContinuousBilinearMap_ofContinuousBilinearMap _ _ _
   rw [metricPolarFormula_eq_of_mem h,
     ← metricPolarFormula_symmetrizeBilinear_skewSymmetrizeBilinear,
-    symmetrizeBilinear_bilinearComp]
-  have hs : skewSymmetrizeBilinear (s.bilinearComp (e.symm : W' →L[ℝ] W) (e.symm : W' →L[ℝ] W)) =
+    e.bilinearCongr_apply_eq_bilinearComp g, symmetrizeBilinear_bilinearComp,
+    ← e.bilinearCongr_apply_eq_bilinearComp]
+  have hs : skewSymmetrizeBilinear (e.bilinearCongr s) =
       (ω.transport e.toLinearEquiv).toBilinForm.toContinuousBilinearMap := by
-    rw [skewSymmetrizeBilinear_bilinearComp]
+    rw [e.bilinearCongr_apply_eq_bilinearComp, skewSymmetrizeBilinear_bilinearComp]
     ext u v
     simpa using (DFunLike.congr_fun (DFunLike.congr_fun hω (e.symm u)) (e.symm v)).symm
-  have hg : (symmetrizeBilinear g).val.bilinearComp (e.symm : W' →L[ℝ] W) (e.symm : W' →L[ℝ] W) =
+  have hg : e.bilinearCongr (symmetrizeBilinear g).val =
       (innerProducts.transport e ⟨_, symmetrizeBilinear_mem_innerProducts h.1⟩ :
         W' →L[ℝ] W' →L[ℝ] ℝ) := by
     ext u v

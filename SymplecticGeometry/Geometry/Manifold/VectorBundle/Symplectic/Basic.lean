@@ -11,6 +11,7 @@ public import Mathlib.Topology.VectorBundle.FiniteDimensional
 public import SymplecticGeometry.Topology.FiberBundle.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
+public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 public import TauCeti.Analysis.Normed.Module.Alternating.Curry
 public import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.Section
 public import TauCeti.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
@@ -203,17 +204,14 @@ continuous bilinear forms on `V`. The fibre carries no norm, so this is Tau Ceti
 def flat (x : M) : V x →L[ℝ] V x →L[ℝ] ℝ :=
   let e := (trivializationAt F V x).continuousLinearEquivAt ℝ x
     (FiberBundle.mem_baseSet_trivializationAt F V x)
-  (e.arrowCongr (e.arrowCongr (ContinuousLinearEquiv.refl ℝ ℝ))).symm
-    (ContinuousAlternatingMap.flatL ℝ F ℝ ((ω x).compContinuousLinearMap e.symm))
+  e.symm.bilinearCongr (ContinuousAlternatingMap.flatL ℝ F ℝ ((ω x).compContinuousLinearMap e.symm))
 
 /-- The flat map evaluates as the form: `ω♭_x v w = ω_x(v, w)`. -/
 @[simp]
 theorem flat_apply (x : M) (v w : V x) : ω.flat x v w = ω x ![v, w] := by
-  simp only [flat, ContinuousLinearEquiv.arrowCongr, ContinuousLinearEquiv.arrowCongrSL_symm_apply,
-    ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
+  simp only [flat, ContinuousLinearEquiv.bilinearCongr_apply, ContinuousLinearEquiv.symm_symm,
     ContinuousAlternatingMap.flatL_apply_apply,
-    ContinuousAlternatingMap.compContinuousLinearMap_apply, ContinuousLinearEquiv.refl_symm,
-    ContinuousLinearEquiv.coe_refl, ContinuousLinearMap.id_apply]
+    ContinuousAlternatingMap.compContinuousLinearMap_apply]
   congr 1
   ext i
   fin_cases i <;> simp [Trivialization.symm_apply_apply_mk _

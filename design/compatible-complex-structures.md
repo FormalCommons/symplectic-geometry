@@ -84,10 +84,10 @@ and does not redefine any of it:
   `TauCeti.BilinForm.nondegenerate_smul_iff`), and
   `isOpen_setOf_nondegenerate_toBilinForm_sub_flip` (in finite dimension,
   the $s$ with $s-s^{\mathrm{flip}}$ nondegenerate are open). In the same file, carrying a form along a continuous linear
-  equivalence `e` in both arguments:
-  `ContinuousLinearEquiv.toBilinForm_arrowCongr_arrowCongr` (as a bilinear
+  equivalence `e` in both arguments, `ContinuousLinearEquiv.bilinearCongr`:
+  `ContinuousLinearEquiv.toBilinForm_bilinearCongr` (as a bilinear
   form it is `LinearMap.BilinForm.congr` along `e`) and
-  `ContinuousLinearEquiv.nondegenerate_arrowCongr_sub_flip_iff` (it keeps
+  `ContinuousLinearEquiv.nondegenerate_bilinearCongr_sub_flip_iff` (it keeps
   $s-s^{\mathrm{flip}}$ nondegenerate or degenerate). Also in that file, for
   *Symplectic neighbourhoods*, the adjoint of a map for two forms,
   `ContinuousLinearMap.bilinAdjoint`, with `coe_bilinAdjoint`.
@@ -817,8 +817,7 @@ The file uses helpers stated in their own files:
   and the symplectic form `ω'` whose bilinear form is the skew part of `s`.
 - `TauCeti.metricPolarFormula_conj (e : W ≃L[ℝ] W') {g s : W →L[ℝ] W →L[ℝ] ℝ}
   (h : (g, s) ∈ polarDomain W) :
-  metricPolarFormula (g.bilinearComp (e.symm : W' →L[ℝ] W) (e.symm : W' →L[ℝ] W))
-  (s.bilinearComp (e.symm : W' →L[ℝ] W) (e.symm : W' →L[ℝ] W)) =
+  metricPolarFormula (e.bilinearCongr g) (e.bilinearCongr s) =
   e.conjContinuousAlgEquiv (metricPolarFormula g s)`: on `polarDomain W`,
   pushing both forms forward along `e` conjugates the formula by `e`. The
   proof is `metricPolarFormula_eq_of_mem`,

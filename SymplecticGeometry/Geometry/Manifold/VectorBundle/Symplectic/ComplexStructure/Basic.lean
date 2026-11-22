@@ -483,11 +483,11 @@ theorem IsNondegenerate.polarFormulaAt_flat (hω : ω.IsNondegenerate)
     (he : ∀ u v, ⟪e u, e v⟫ = g.inner x u v) :
     g.polarFormulaAt x (ω.flat x) = e.symm.conjContinuousAlgEquiv (LinearMap.toContinuousLinearMap
       ((hω.symplecticFormAt x).transport e.toLinearEquiv).polarComplexStructure.toLinearMap) := by
-  have hg : e.arrowCongr (e.arrowCongr (.refl ℝ ℝ)) (g.inner x) = innerSL ℝ := by
+  have hg : e.bilinearCongr (g.inner x) = innerSL ℝ := by
     ext u v
     rw [innerSL_apply_apply]
     simp [← he]
-  have hs : e.arrowCongr (e.arrowCongr (.refl ℝ ℝ)) (ω.flat x) =
+  have hs : e.bilinearCongr (ω.flat x) =
       ((hω.symplecticFormAt x).transport e.toLinearEquiv).toBilinForm.toContinuousBilinearMap := by
     ext u v
     simp
