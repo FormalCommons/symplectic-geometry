@@ -7,8 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 public import Mathlib.Topology.Compactification.OnePoint.ProjectiveLine
-public import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving.FromTauCeti
-public import TauCeti.Geometry.Manifold.Complex.Orientation
+public import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.FubiniStudy
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Projectivization
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Sphere
@@ -41,18 +40,10 @@ reads for the underlying real surface, modelled on `𝓘(ℝ, ℂ)`, and compare
 * `OnePoint.hasFDerivAt_coe_diffeomorphSphere_coe`: the derivative of Tau Ceti's inverse
   stereographic projection `OnePoint.diffeomorphSphere v ι`, read on `ℂ`;
 * `OnePoint.ofTopForm_fubiniStudyForm`: the orientation of Tau Ceti's `OnePoint.fubiniStudyForm`
-  is `SymplecticGeometry.riemannSphereOrientation`;
-* `SymplecticGeometry.riemannSphereOrientation`: the canonical orientation of the Riemann sphere
-  as a complex manifold, indexed by `Fin 2`, with
-  `SymplecticGeometry.orientationAt_riemannSphereOrientation`;
-* `Diffeomorph.isOrientationPreservingAt_riemannSphereOrientation`: biholomorphisms of the Riemann
-  sphere preserve that orientation;
-* `SymplecticGeometry.projectiveLineOrientation`: the canonical orientation of `ℂP¹` as a complex
-  manifold, indexed by `Fin 2`, with `SymplecticGeometry.orientationAt_projectiveLineOrientation`;
-* `Diffeomorph.isOrientationPreservingAt_projectiveLineOrientation`: biholomorphisms of `ℂP¹`
-  preserve that orientation;
+  is the canonical orientation `SymplecticGeometry.complexCurveOrientation ℂ (OnePoint ℂ)` of the
+  Riemann sphere as a complex manifold;
 * `OnePoint.isOrientationPreservingAt_equivProjectivization`: the identification with `ℂP¹`
-  preserves the canonical orientations;
+  preserves the canonical orientations `SymplecticGeometry.complexCurveOrientation` of both;
 * `SymplecticGeometry.northPole` and `SymplecticGeometry.equatorIsometry`: the north pole
   `(0, 0, 1)` of the unit sphere of `ℝ³`, and the isometry `z ↦ (Re z, -Im z, 0)` of `ℂ` onto
   the plane orthogonal to it;
@@ -93,74 +84,6 @@ local notation "o₃" =>
   Module.Basis.orientation (OrthonormalBasis.toBasis (EuclideanSpace.basisFun (Fin 3) ℝ))
 
 attribute [local instance] TauCeti.finrank_euclideanSpace_fin_succ_fact
-
-namespace SymplecticGeometry
-
-/-! ### The orientation of `ℂP¹` -/
-
-/-- The canonical orientation of `ℂP¹ = ℙ ℂ (Fin 2 → ℂ)` as a complex manifold, Tau Ceti's
-`complexManifoldOrientation`, indexed by `Fin 2` instead of `Fin (2 * finrank ℂ (Fin 1 → ℂ))`. -/
-noncomputable def projectiveLineOrientation :
-    Manifold.Orientation 𝓘(ℝ, Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ)) (Fin 2) :=
-  (complexManifoldOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ))).reindex (finCongr (by simp))
-
-theorem projectiveLineOrientation_def :
-    projectiveLineOrientation =
-      (complexManifoldOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ))).reindex (finCongr (by simp)) :=
-  (rfl)
-
-/-- At every point of `ℂP¹`, `projectiveLineOrientation` is the complex orientation of the model
-space `Fin 1 → ℂ`, indexed by `Fin 2`. -/
-@[simp]
-theorem orientationAt_projectiveLineOrientation (x : ℙ ℂ (Fin 2 → ℂ)) :
-    projectiveLineOrientation.orientationAt x =
-      Orientation.reindex ℝ (TangentSpace 𝓘(ℝ, Fin 1 → ℂ) x) (finCongr (by simp))
-        (complexOrientation (Fin 1 → ℂ)) := by
-  rw [projectiveLineOrientation_def, Manifold.Orientation.orientationAt_reindex,
-    orientationAt_complexManifoldOrientation_eq_complexOrientation]
-
-/-- A biholomorphism of `ℂP¹` (a `C^n` diffeomorphism for the complex model, `n ≠ 0`) preserves
-`projectiveLineOrientation` at every point. -/
-theorem _root_.Diffeomorph.isOrientationPreservingAt_projectiveLineOrientation (n : ℕ∞ω)
-    [NeZero n] (Φ : ℙ ℂ (Fin 2 → ℂ) ≃ₘ^n⟮𝓘(ℂ, Fin 1 → ℂ), 𝓘(ℂ, Fin 1 → ℂ)⟯ ℙ ℂ (Fin 2 → ℂ))
-    (x : ℙ ℂ (Fin 2 → ℂ)) :
-    Manifold.Orientation.IsOrientationPreservingAt projectiveLineOrientation
-      projectiveLineOrientation Φ x := by
-  rw [projectiveLineOrientation_def]
-  exact (Φ.isOrientationPreservingAt_complexManifoldOrientation n x).reindex _
-
-/-! ### The orientation of the Riemann sphere -/
-
-/-- The canonical orientation of the Riemann sphere `OnePoint ℂ` as a complex manifold, Tau Ceti's
-`complexManifoldOrientation`, indexed by `Fin 2` instead of `Fin (2 * finrank ℂ ℂ)`. -/
-noncomputable def riemannSphereOrientation : Manifold.Orientation 𝓘(ℝ, ℂ) (OnePoint ℂ) (Fin 2) :=
-  (complexManifoldOrientation ℂ (OnePoint ℂ)).reindex (finCongr (by simp))
-
-theorem riemannSphereOrientation_def :
-    riemannSphereOrientation =
-      (complexManifoldOrientation ℂ (OnePoint ℂ)).reindex (finCongr (by simp)) :=
-  (rfl)
-
-/-- At every point of the Riemann sphere, `riemannSphereOrientation` is the complex orientation of
-the model space `ℂ`, indexed by `Fin 2`. -/
-@[simp]
-theorem orientationAt_riemannSphereOrientation (x : OnePoint ℂ) :
-    riemannSphereOrientation.orientationAt x =
-      Orientation.reindex ℝ (TangentSpace 𝓘(ℝ, ℂ) x) (finCongr (by simp))
-        (complexOrientation ℂ) := by
-  rw [riemannSphereOrientation_def, Manifold.Orientation.orientationAt_reindex,
-    orientationAt_complexManifoldOrientation_eq_complexOrientation]
-
-/-- A biholomorphism of the Riemann sphere (a `C^n` diffeomorphism for the complex model,
-`n ≠ 0`) preserves `riemannSphereOrientation` at every point. -/
-theorem _root_.Diffeomorph.isOrientationPreservingAt_riemannSphereOrientation (n : ℕ∞ω)
-    [NeZero n] (Φ : OnePoint ℂ ≃ₘ^n⟮𝓘(ℂ, ℂ), 𝓘(ℂ, ℂ)⟯ OnePoint ℂ) (x : OnePoint ℂ) :
-    Manifold.Orientation.IsOrientationPreservingAt riemannSphereOrientation
-      riemannSphereOrientation Φ x := by
-  rw [riemannSphereOrientation_def]
-  exact (Φ.isOrientationPreservingAt_complexManifoldOrientation n x).reindex _
-
-end SymplecticGeometry
 
 namespace OnePoint
 
@@ -240,9 +163,9 @@ orientation as a complex manifold. -/
 theorem ofTopForm_fubiniStudyForm :
     Manifold.Orientation.ofTopForm Complex.finrank_real_complex fubiniStudyForm.val
         (fubiniStudyForm.isSmoothForm.of_le zero_le) fubiniStudyForm_apply_ne_zero =
-      SymplecticGeometry.riemannSphereOrientation := by
+      SymplecticGeometry.complexCurveOrientation ℂ (OnePoint ℂ) := by
   ext x
-  rw [SymplecticGeometry.orientationAt_riemannSphereOrientation]
+  rw [SymplecticGeometry.orientationAt_complexCurveOrientation]
   refine ((Manifold.Orientation.orientation_eq_orientationAt_ofTopForm_iff
     Complex.finrank_real_complex (fubiniStudyForm.isSmoothForm.of_le zero_le)
     fubiniStudyForm_apply_ne_zero (x := x) Complex.basisOneI).2 ?_).symm.trans
@@ -260,7 +183,8 @@ biholomorphism `OnePoint.diffeomorphProjectivization`, preserves the canonical o
 both as complex manifolds: its derivative is complex-linear. -/
 theorem isOrientationPreservingAt_equivProjectivization (x : OnePoint ℂ) :
     Manifold.Orientation.IsOrientationPreservingAt
-      SymplecticGeometry.riemannSphereOrientation SymplecticGeometry.projectiveLineOrientation
+      (SymplecticGeometry.complexCurveOrientation ℂ (OnePoint ℂ))
+      (SymplecticGeometry.complexCurveOrientation (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ)))
       (equivProjectivization ℂ) x := by
   set P₀ := diffeomorphProjectivization ℂ ω
   -- The real derivative is the complex one, the casts between tangent spaces being identities.
@@ -283,8 +207,8 @@ theorem isOrientationPreservingAt_equivProjectivization (x : OnePoint ℂ) :
             (complexOrientation (Fin 1 → ℂ)) := by
       rw [Orientation.map_reindex, ContinuousLinearEquiv.restrictScalars'_toLinearEquiv,
         LinearEquiv.map_complexOrientation, Orientation.reindex_finCongr_reindex_finCongr]
-    rw [SymplecticGeometry.orientationAt_riemannSphereOrientation,
-      SymplecticGeometry.orientationAt_projectiveLineOrientation]
+    rw [SymplecticGeometry.orientationAt_complexCurveOrientation,
+      SymplecticGeometry.orientationAt_complexCurveOrientation]
     exact key
 
 end OnePoint

@@ -20,6 +20,7 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Euclidean
+import TauCeti.Geometry.Manifold.SmoothEmbedding.LeftInverse
 import TauCeti.Geometry.Manifold.SmoothIsotopy.Velocity.Basic
 import TauCeti.Geometry.Manifold.TubularNeighborhood.Existence
 
@@ -81,6 +82,11 @@ Steps 2 and 3 adapt the proof of Tau Ceti's `TauCeti.SmoothIsotopy.exists_diffeo
   extension at every time and `χ` a cutoff; `f₀⁻¹` is smooth on the image of `f₀` because
   `f₀` is an injective local diffeomorphism (Tau Ceti's `IsImmersion.isLocalDiffeomorph` and
   `IsLocalDiffeomorphOn.contMDiffOn_invFunOn`).
+* `ContMDiff.exists_contMDiff_diffeomorph_forall_apply_eq`: a smooth path is the track of its
+  starting point under a jointly smooth family of diffeomorphisms over `ℝ`, with `ψ 0` the
+  identity, that fixes every point outside a compact set. The path is a smooth isotopy of a
+  point, the zero-dimensional space `EuclideanSpace ℝ (Fin 0)`, whose slices are smooth
+  embeddings by Tau Ceti's `TauCeti.isSmoothEmbedding_const_of_subsingleton`.
 
 ## References
 
@@ -293,6 +299,27 @@ theorem exists_contMDiff_comp_eventuallyEq [SigmaCompactSpace N] [FiniteDimensio
       hinj.injOn.leftInvOn_invFunOn (mem_univ y)]
 
 end SmoothIsotopy
+
+/-- **Pushing a point along a path.** A smooth path `c` in a finite-dimensional, Hausdorff,
+σ-compact boundaryless manifold is the track of its starting point under a family `ψ` of
+diffeomorphisms over `ℝ`, jointly smooth in time and space, with `ψ 0` the identity, that fixes
+every point outside a compact set: `ψ t (c 0) = c t` for every `t ∈ [0, 1]`. -/
+theorem _root_.ContMDiff.exists_contMDiff_diffeomorph_forall_apply_eq [SigmaCompactSpace N]
+    {c : unitInterval → N} (hc : ContMDiff (𝓡∂ 1) I ∞ c) :
+    ∃ ψ : ℝ → N ≃ₘ⟮I, I⟯ N, ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞ (fun p : ℝ × N ↦ ψ p.1 p.2) ∧
+      (∀ y, ψ 0 y = y) ∧ ∃ K : Set N, IsCompact K ∧ (∀ t, ∀ y ∉ K, ψ t y = y) ∧
+      ∀ t : unitInterval, ψ t (c 0) = c t := by
+  -- `c` is a smooth isotopy of the point `EuclideanSpace ℝ (Fin 0)`.
+  let Q := EuclideanSpace ℝ (Fin 0)
+  let F : SmoothIsotopy (⟨fun _ ↦ c 0, contMDiff_const⟩ : C^∞⟮𝓘(ℝ, Q), Q; I, N⟯)
+      ⟨fun _ ↦ c 1, contMDiff_const⟩ :=
+    { toContMDiffMap := ⟨fun p ↦ c p.1, hc.comp contMDiff_fst⟩
+      map_zero_left := fun _ ↦ rfl
+      map_one_left := fun _ ↦ rfl
+      isSmoothEmbedding := fun t ↦ isSmoothEmbedding_const_of_subsingleton (by simp) (c t) }
+  obtain ⟨ψ, hψ, hψ0, K, hK, hψK, hψc⟩ :=
+    F.exists_contMDiff_diffeomorph_forall_apply_eq (isCompact_singleton (x := 0))
+  exact ⟨ψ, hψ, hψ0, K, hK, hψK, fun t ↦ hψc t 0 rfl⟩
 
 end TauCeti
 
