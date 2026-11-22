@@ -185,38 +185,37 @@ private abbrev cupL (L : Linear ℤ (ModuleCat.{0} ℤ))
     ℤ _ L hL (λ_ _).inv (λ_ _).hom p q n h
 
 /-- The identification of singular cohomology with chain coefficients and cochain values `ℤ` for
-two equal structures `L₁ = L₂` of `ModuleCat ℤ` as a linear category over `ℤ`. It is the
+two equal structures `L₁ = L₂` of `ModuleCat ℤ` as a linear category over `ℤ`: Mathlib's
+`LinearEquiv.cast` along `e`, for cohomology as a family indexed by the structure. It is the
 identity when the two structures are the same (`TopCat.singularCohomologyLinearCongr_refl`). -/
 def singularCohomologyLinearCongr {L₁ L₂ : Linear ℤ (ModuleCat.{0} ℤ)} (e : L₁ = L₂)
     (X : TopCat.{0}) (n : ℕ) :
     @TopCat.singularCohomology (ModuleCat.{0} ℤ) _ _ _ (𝟙_ (ModuleCat.{0} ℤ)) ℤ _ L₁
         (𝟙_ (ModuleCat.{0} ℤ)) X n ≃ₗ[ℤ]
       @TopCat.singularCohomology (ModuleCat.{0} ℤ) _ _ _ (𝟙_ (ModuleCat.{0} ℤ)) ℤ _ L₂
-        (𝟙_ (ModuleCat.{0} ℤ)) X n := by
-  subst e
-  exact LinearEquiv.refl ℤ _
+        (𝟙_ (ModuleCat.{0} ℤ)) X n :=
+  LinearEquiv.cast (R := ℤ) (M := fun L : Linear ℤ (ModuleCat.{0} ℤ) =>
+    @TopCat.singularCohomology (ModuleCat.{0} ℤ) _ _ _ (𝟙_ (ModuleCat.{0} ℤ)) ℤ _ L
+      (𝟙_ (ModuleCat.{0} ℤ)) X n) e
 
 @[simp]
 theorem singularCohomologyLinearCongr_refl (L : Linear ℤ (ModuleCat.{0} ℤ)) (X : TopCat.{0})
     (n : ℕ) : singularCohomologyLinearCongr (rfl : L = L) X n = LinearEquiv.refl ℤ _ :=
   (rfl)
 
-/-- `TopCat.singularCohomologyLinearCongr`, with its type written through `HL`. -/
-private abbrev castL {L₁ L₂ : Linear ℤ (ModuleCat.{0} ℤ)} (e : L₁ = L₂) (X : TopCat.{0})
-    (n : ℕ) : HL L₁ X n ≃ₗ[ℤ] HL L₂ X n :=
-  singularCohomologyLinearCongr e X n
-
-private lemma castL_pullL {L₁ L₂ : Linear ℤ (ModuleCat.{0} ℤ)} (e : L₁ = L₂) {X Y : TopCat.{0}}
-    (f : X ⟶ Y) (n : ℕ) (a : HL L₁ Y n) :
-    castL e X n (pullL L₁ f n a) = pullL L₂ f n (castL e Y n a) := by
+private lemma singularCohomologyLinearCongr_pullL {L₁ L₂ : Linear ℤ (ModuleCat.{0} ℤ)}
+    (e : L₁ = L₂) {X Y : TopCat.{0}} (f : X ⟶ Y) (n : ℕ) (a : HL L₁ Y n) :
+    singularCohomologyLinearCongr e X n (pullL L₁ f n a) =
+      pullL L₂ f n (singularCohomologyLinearCongr e Y n a) := by
   subst e
   rfl
 
-private lemma castL_cupL {L₁ L₂ : Linear ℤ (ModuleCat.{0} ℤ)} (e : L₁ = L₂)
+private lemma singularCohomologyLinearCongr_cupL {L₁ L₂ : Linear ℤ (ModuleCat.{0} ℤ)} (e : L₁ = L₂)
     [hL : @MonoidalLinear ℤ _ (ModuleCat.{0} ℤ) _ _ L₁ _ _]
     (X : TopCat.{0}) (p q n : ℕ) (h : p + q = n) (a : HL L₁ X p) (b : HL L₁ X q) :
-    castL e X n (cupL L₁ X p q n h a b) =
-      cupL L₂ (hL := e ▸ hL) X p q n h (castL e X p a) (castL e X q b) := by
+    singularCohomologyLinearCongr e X n (cupL L₁ X p q n h a b) =
+      cupL L₂ (hL := e ▸ hL) X p q n h (singularCohomologyLinearCongr e X p a)
+        (singularCohomologyLinearCongr e X q b) := by
   subst e
   rfl
 
@@ -225,12 +224,12 @@ integral cohomology: the change of linear structure, then the change of chain co
 `TauCeti.integralCoeffIso`. -/
 private def toIntegral (X : TopCat.{0}) (n : ℕ) :
     HL ModuleCat.instLinear X n ≃ₗ[ℤ] X.integralCohomology n :=
-  (castL (Subsingleton.elim _ _) X n).trans
+  (singularCohomologyLinearCongr (Subsingleton.elim _ _) X n).trans
     (X.singularCohomologyChainCoefficientIso ℤ (ModuleCat.of ℤ ℤ) integralCoeffIso n).toLinearEquiv
 
 private lemma toIntegral_apply (X : TopCat.{0}) (n : ℕ) (a : HL ModuleCat.instLinear X n) :
     toIntegral X n a = X.singularCohomologyChainCoefficientMap ℤ (ModuleCat.of ℤ ℤ)
-      integralCoeffIso.hom n (castL (Subsingleton.elim _ _) X n a) := by
+      integralCoeffIso.hom n (singularCohomologyLinearCongr (Subsingleton.elim _ _) X n a) := by
   rw [toIntegral, LinearEquiv.trans_apply, Iso.toLinearEquiv_apply,
     singularCohomologyChainCoefficientIso_hom]
 
@@ -238,7 +237,7 @@ private lemma toIntegral_naturality {X Y : TopCat.{0}} (f : X ⟶ Y) (n : ℕ)
     (a : HL ModuleCat.instLinear Y n) :
     toIntegral X n (pullL ModuleCat.instLinear f n a) =
       TopCat.singularCohomologyMap f n (toIntegral Y n a) := by
-  rw [toIntegral_apply, toIntegral_apply, castL_pullL]
+  rw [toIntegral_apply, toIntegral_apply, singularCohomologyLinearCongr_pullL]
   exact ConcreteCategory.congr_hom (singularCohomologyChainCoefficientMap_naturality f ℤ
     (ModuleCat.of ℤ ℤ) integralCoeffIso.hom n) _
 
@@ -247,7 +246,7 @@ private lemma toIntegral_cupL (X : TopCat.{0}) (p q n : ℕ) (h : p + q = n)
     toIntegral X n (cupL ModuleCat.instLinear X p q n h a b) =
       X.integralCup p q n h (toIntegral X p a) (toIntegral X q b) := by
   rw [toIntegral_apply, toIntegral_apply, toIntegral_apply,
-    castL_cupL, integralCup_singularCohomologyChainCoefficientMap]
+    singularCohomologyLinearCongr_cupL, integralCup_singularCohomologyChainCoefficientMap]
   -- The two sides differ only in writing the cochain values as the unit `𝟙_ (ModuleCat ℤ)` or as
   -- `ModuleCat.of ℤ ℤ`, which Mathlib defines it to be.
   rfl
