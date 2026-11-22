@@ -11,8 +11,7 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Orthogonal
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Nonvanishing
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
-import TauCeti.Geometry.Manifold.VectorBundle.Scalar
-import TauCeti.Geometry.Manifold.VectorBundle.Translate
+import SymplecticGeometry.LinearAlgebra.Symplectic.Darboux
 
 /-!
 # Symplectic frames over surfaces with boundary
@@ -24,20 +23,14 @@ is used.
 
 ## Main results
 
-* `LinearMap.BilinForm.IsAlt.apply_sum_smul_add_smul`: for vectors `aᵢ`, `bᵢ` satisfying the
-  Darboux relations of an alternating form `B`, pairing `∑ᵢ (cᵢ aᵢ + dᵢ bᵢ)` with `bⱼ` and `aⱼ`
-  gives `cⱼ` and `-dⱼ`.
-* `ContMDiffTwoForm.exists_isSymplecticFrameOn_univ_of_darboux`: smooth sections `aᵢ`, `bᵢ`
-  (`i : κ`) of a bundle of rank `2 |κ|` that satisfy the Darboux relations `ω(aᵢ, aⱼ) = 0`,
-  `ω(bᵢ, bⱼ) = 0`, `ω(aᵢ, bⱼ) = δᵢⱼ` at every point give the global symplectic frame
-  `(x, y) ↦ ∑ᵢ (xᵢ aᵢ + yᵢ bᵢ)` of `ω` for `stdForm κ`.
 * `ContMDiffTwoForm.IsNondegenerate.exists_darboux_contMDiffSection_of_boundary_nonempty_of_le`:
   over a compact connected manifold of dimension `n + 2` whose boundary is not empty, a
   nondegenerate smooth two-form on a bundle of rank `2 (k + r)`, with `n + 2 ≤ 2 (r + 1)`, has
   `k` pairs of smooth sections that satisfy the Darboux relations at every point.
 * `ContMDiffTwoForm.IsNondegenerate.exists_isSymplecticFrameOn_univ_of_boundary_nonempty`: over a
   compact connected surface whose boundary is not empty, a nondegenerate smooth two-form on a
-  bundle of rank `2 |κ|` has a global smooth symplectic frame for `stdForm κ`.
+  bundle of rank `2 |κ|` has a global smooth symplectic frame for `stdForm κ`. The frame comes
+  from the Darboux sections through `ContMDiffTwoForm.exists_isSymplecticFrameOn_univ_of_darboux`.
 
 ## Implementation notes
 
@@ -72,23 +65,10 @@ namespace SymplecticGeometry
 
 open StdSpace
 
-/-- Let `aᵢ`, `bᵢ` satisfy the Darboux relations `B(aᵢ, aⱼ) = 0`, `B(bᵢ, bⱼ) = 0` and
-`B(aᵢ, bⱼ) = δᵢⱼ` for an alternating bilinear form `B`. Then pairing `∑ᵢ (cᵢ aᵢ + dᵢ bᵢ)` with
-`bⱼ` gives `cⱼ`, and pairing it with `aⱼ` gives `-dⱼ`. -/
-theorem _root_.LinearMap.BilinForm.IsAlt.apply_sum_smul_add_smul {R E : Type*} [CommRing R]
-    [AddCommGroup E] [Module R E] {B : LinearMap.BilinForm R E} (hB : B.IsAlt) {κ : Type*}
-    [Fintype κ] [DecidableEq κ] {a b : κ → E} (haa : ∀ i j, B (a i) (a j) = 0)
-    (hbb : ∀ i j, B (b i) (b j) = 0) (hab : ∀ i j, B (a i) (b j) = if i = j then 1 else 0)
-    (c d : κ → R) (j : κ) :
-    B (∑ i, (c i • a i + d i • b i)) (b j) = c j ∧
-      B (∑ i, (c i • a i + d i • b i)) (a j) = -d j := by
-  have hba (i j : κ) : B (b i) (a j) = -if j = i then 1 else 0 := by
-    rw [← hab j i, ← hB.neg_eq]
-  simp [map_sum, haa, hbb, hab, hba]
 
 namespace Bundle.ContMDiffTwoForm
 
-section Frame
+section Step
 
 variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
   [TopologicalSpace HB] {I : ModelWithCorners ℝ EB HB}
@@ -98,63 +78,6 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
   [∀ x, TopologicalSpace (V x)] [∀ x, IsTopologicalAddGroup (V x)]
   [∀ x, ContinuousSMul ℝ (V x)] [TopologicalSpace (TotalSpace F V)]
   [FiberBundle F V] [VectorBundle ℝ F V] {n : ℕ∞} {ω : ContMDiffTwoForm I n F V}
-
-/-- **Symplectic frames from Darboux sections.** Let `aᵢ`, `bᵢ` (`i : κ`) be `Cⁿ` sections of a
-bundle of rank `2 |κ|` that satisfy the Darboux relations `ω(aᵢ, aⱼ) = 0`, `ω(bᵢ, bⱼ) = 0` and
-`ω(aᵢ, bⱼ) = δᵢⱼ` at every point. Then `(x, y) ↦ ∑ᵢ (xᵢ aᵢ + yᵢ bᵢ)` is a global symplectic frame
-of `ω` for the standard form `stdForm κ`. -/
-theorem exists_isSymplecticFrameOn_univ_of_darboux {κ : Type*} [Fintype κ] [DecidableEq κ]
-    (hF : finrank ℝ F = 2 * Fintype.card κ) {a b : κ → ∀ x, V x}
-    (ha : ∀ i, CMDiff n (T% (a i))) (hb : ∀ i, CMDiff n (T% (b i)))
-    (haa : ∀ x i j, ω.bilinFormAt x (a i x) (a j x) = 0)
-    (hbb : ∀ x i j, ω.bilinFormAt x (b i x) (b j x) = 0)
-    (hab : ∀ x i j, ω.bilinFormAt x (a i x) (b j x) = if i = j then 1 else 0) :
-    ∃ Φ : ∀ x, StdSpace κ ≃L[ℝ] V x, ω.IsSymplecticFrameOn (stdForm κ) univ Φ ∧
-      ∀ x v, Φ x v = ∑ i, (v.x i • a i x + v.y i • b i x) := by
-  -- The frame as a linear map on each fibre.
-  let L (x : M) : StdSpace κ →ₗ[ℝ] V x := ∑ i,
-    (((LinearMap.proj i).comp StdSpace.x).smulRight (a i x) +
-      ((LinearMap.proj i).comp StdSpace.y).smulRight (b i x))
-  have hL (x : M) (v : StdSpace κ) : L x v = ∑ i, (v.x i • a i x + v.y i • b i x) := by
-    simp [L]
-  have hω (x : M) (v w : StdSpace κ) : ω.bilinFormAt x (L x v) (L x w) = stdForm κ v w := by
-    have h := (ω.isAlt_bilinFormAt x).apply_sum_smul_add_smul (haa x) (hbb x) (hab x) v.x v.y
-    have h₁ (j : κ) := (h j).1
-    have h₂ (j : κ) := (h j).2
-    rw [hL x v, hL x w, map_sum, stdForm_apply]
-    simp only [map_add, map_smul, h₁, h₂, smul_eq_mul]
-    exact Finset.sum_congr rfl fun j _ ↦ by ring
-  have hinj (x : M) : Function.Injective (L x) := by
-    refine (injective_iff_map_eq_zero _).2 fun v hv ↦ ?_
-    refine (stdForm κ).nondegenerate.1 v fun w ↦ ?_
-    simpa [hv] using (hω x v w).symm
-  have := VectorBundle.finiteDimensional ℝ F V
-  have hdim (x : M) : finrank ℝ (StdSpace κ) = finrank ℝ (V x) := by
-    rw [finrank_stdSpace, VectorBundle.finrank_eq ℝ F V x, hF]
-  have := FiberBundle.t2Space F (E := V)
-  let Φ (x : M) : StdSpace κ ≃L[ℝ] V x :=
-    (LinearEquiv.ofInjectiveOfFinrankEq (L x) (hinj x) (hdim x)).toContinuousLinearEquiv
-  have hΦL (x : M) (v : StdSpace κ) : Φ x v = L x v := by
-    rw [LinearEquiv.coe_toContinuousLinearEquiv', ← LinearEquiv.coe_coe,
-      LinearEquiv.coe_ofInjectiveOfFinrankEq]
-  have hΦ (x : M) (v : StdSpace κ) : Φ x v = ∑ i, (v.x i • a i x + v.y i • b i x) := by
-    rw [hΦL, hL]
-  refine ⟨Φ, ⟨?_, fun x _ v w ↦ ?_⟩, hΦ⟩
-  · -- Each term of the sum is `Cⁿ` in the point and the vector.
-    have hc (f : StdSpace κ →ₗ[ℝ] ℝ) :
-        ContMDiff (I.prod 𝓘(ℝ, StdSpace κ)) 𝓘(ℝ) n fun p : M × StdSpace κ ↦ f p.2 :=
-      f.toContinuousLinearMap.contDiff.contMDiff.comp contMDiff_snd
-    have hterm (f : StdSpace κ →ₗ[ℝ] ℝ) (s : ∀ x, V x) (hs : CMDiff n (T% s)) :
-        ContMDiff (I.prod 𝓘(ℝ, StdSpace κ)) (I.prod 𝓘(ℝ, F)) n
-          fun p : M × StdSpace κ ↦ TotalSpace.mk' F p.1 (f p.2 • s p.1) :=
-      (hc f).smul_totalSpace (hs.comp contMDiff_fst)
-    refine ContMDiff.contMDiffOn ?_
-    simp only [hΦ]
-    refine ContMDiff.sum_sectionAlong (b := Prod.fst) _ _ contMDiff_fst fun i _ ↦ ?_
-    exact (hterm ((LinearMap.proj i).comp StdSpace.x) _ (ha i)).add_sectionAlong
-      (hterm ((LinearMap.proj i).comp StdSpace.y) _ (hb i))
-  · rw [hΦL, hΦL, hω]
-
 
 /-! ### One step of the induction -/
 
@@ -168,11 +91,10 @@ private theorem hasLocalContMDiffSubbundleFrames_orthogonal_span_darboux {k : �
     (hbb : ∀ x i j, ω.bilinFormAt x (b i x) (b j x) = 0)
     (hab : ∀ x i j, ω.bilinFormAt x (a i x) (b j x) = if i = j then 1 else 0) :
     TauCeti.HasLocalContMDiffSubbundleFrames I n F (Fin (finrank ℝ F - (k + k))) fun x ↦
-      LinearMap.BilinForm.orthogonal (ω.flat x).toLinearMap₁₂
-        (Submodule.span ℝ (range (Fin.append a b · x))) := by
+      (ω.bilinFormAt x).orthogonal (Submodule.span ℝ (range (Fin.append a b · x))) := by
   classical
-  have hflat (x : M) (u v : V x) : (ω.flat x).toLinearMap₁₂ u v = ω.bilinFormAt x u v := by
-    rw [ContinuousLinearMap.toLinearMap₁₂_apply_apply_apply, flat_apply, bilinFormAt_apply]
+  have hflat (x : M) : (ω.flat x).toLinearMap₁₂ = ω.bilinFormAt x := by
+    rw [← ω.toBilinForm_flat x, ContinuousLinearMap.toBilinForm]
   -- The span `D` of the pairs, with its global frame `X`.
   let X : Fin (k + k) → ∀ x, V x := Fin.append a b
   let D (x : M) : Submodule ℝ (V x) := Submodule.span ℝ (range (X · x))
@@ -186,22 +108,18 @@ private theorem hasLocalContMDiffSubbundleFrames_orthogonal_span_darboux {k : �
   have hzero (x : M) (g : Fin (k + k) → ℝ)
       (hg : ∀ j, ω.bilinFormAt x (∑ p, g p • X p x) (b j x) = 0 ∧
         ω.bilinFormAt x (∑ p, g p • X p x) (a j x) = 0) (p : Fin (k + k)) : g p = 0 := by
-    have h (j : Fin k) := (ω.isAlt_bilinFormAt x).apply_sum_smul_add_smul (haa x) (hbb x) (hab x)
-      (g ∘ Fin.castAdd k) (g ∘ Fin.natAdd k) j
     have hsum : ∑ p, g p • X p x =
         ∑ i, ((g ∘ Fin.castAdd k) i • a i x + (g ∘ Fin.natAdd k) i • b i x) := by
       rw [Fin.sum_univ_add, ← Finset.sum_add_distrib]
       simp only [hXa, hXb, Function.comp_apply]
     refine Fin.addCases (fun j ↦ ?_) (fun j ↦ ?_) p
-    · rw [← Function.comp_apply (f := g), ← (h j).1, ← hsum]
+    · rw [← Function.comp_apply (f := g), ← (ω.bilinFormAt x).apply_sum_smul_add_smul_eq_left_coeff
+        (hbb x) (hab x) (g ∘ Fin.castAdd k) (g ∘ Fin.natAdd k) j, ← hsum]
       exact (hg j).1
-    · rw [← Function.comp_apply (f := g), ← neg_eq_zero, ← (h j).2, ← hsum]
+    · rw [← Function.comp_apply (f := g), ← neg_eq_zero,
+        ← (ω.isAlt_bilinFormAt x).apply_sum_smul_add_smul_eq_neg_right_coeff (haa x) (hab x)
+          (g ∘ Fin.castAdd k) _ j, ← hsum]
       exact (hg j).2
-  have hsep (x : M) (s : D x) (h : ∀ t : D x, ω.bilinFormAt x s t = 0) : s = 0 := by
-    obtain ⟨s, hs⟩ := s
-    obtain ⟨g, rfl⟩ := (Submodule.mem_span_range_iff_exists_fun ℝ).1 hs
-    ext
-    simp [hzero x g fun j ↦ ⟨h ⟨_, hbD x j⟩, h ⟨_, haD x j⟩⟩]
   have hX (p : Fin (k + k)) : CMDiff n (T% (X p)) := by
     refine Fin.addCases (fun i ↦ ?_) (fun i ↦ ?_) p
     · rw [hXa]
@@ -212,15 +130,20 @@ private theorem hasLocalContMDiffSubbundleFrames_orthogonal_span_darboux {k : �
     TauCeti.hasLocalContMDiffSubbundleFrames_iff.2 fun x ↦ ⟨univ, isOpen_univ, mem_univ x, X,
       ⟨fun p ↦ (hX p).continuous.continuousOn, fun {y} _ ↦ Fintype.linearIndependent_iff.2
         fun g hg ↦ hzero y g fun j ↦ by simp [hg], fun _ ↦ rfl⟩, fun p ↦ (hX p).contMDiffOn⟩
-  refine hD.orthogonal ω.contMDiff_flat (fun x u v h ↦ ?_) fun x ↦ ⟨fun s hs ↦ hsep x s ?_,
-    fun s hs ↦ hsep x s ?_⟩
-  · rw [hflat] at h ⊢
-    rw [← (ω.isAlt_bilinFormAt x).neg_eq, h, neg_zero]
-  · simpa only [LinearMap.BilinForm.restrict_apply, LinearMap.domRestrict_apply, hflat] using hs
-  · intro t
-    have h := hs t
-    simp only [LinearMap.BilinForm.restrict_apply, LinearMap.domRestrict_apply, hflat] at h
-    rw [← (ω.isAlt_bilinFormAt x).neg_eq, h, neg_zero]
+  -- `D` meets its `ω`-orthogonal only in `0`, so `ω` is nondegenerate on `D`.
+  have hdisj (x : M) : Disjoint (D x) ((ω.bilinFormAt x).orthogonal (D x)) := by
+    refine Submodule.disjoint_def.2 fun s hs hs' ↦ ?_
+    obtain ⟨g, rfl⟩ := (Submodule.mem_span_range_iff_exists_fun ℝ).1 hs
+    have hrefl := (ω.isAlt_bilinFormAt x).isRefl
+    have h := LinearMap.BilinForm.mem_orthogonal_iff.1 hs'
+    simp [hzero x g fun j ↦ ⟨hrefl _ _ (h _ (hbD x j)), hrefl _ _ (h _ (haD x j))⟩]
+  simp only [← orthogonal_flat]
+  refine hD.orthogonal ω.contMDiff_flat (fun x ↦ ?_) fun x ↦ ?_
+  · rw [hflat]
+    exact (ω.isAlt_bilinFormAt x).isRefl
+  · rw [hflat]
+    exact (ω.bilinFormAt x).nondegenerate_restrict_of_disjoint_orthogonal
+      (ω.isAlt_bilinFormAt x).isRefl (hdisj x)
 
 omit [FiniteDimensional ℝ F] [ContMDiffVectorBundle n F V I] in
 /-- Let `aᵢ`, `bᵢ` be `Cⁿ` sections that satisfy the Darboux relations everywhere, `u` a
@@ -250,20 +173,20 @@ private theorem exists_darboux_completion {J : ContMDiffComplexStructure I n F V
       (ContMDiff.sum_section fun i _ ↦ ((hpair hy (hb i)).smul_section (ha i)).add_section
         ((hpair hy (ha i)).neg.smul_section (hb i)))), fun x j ↦ ?_, fun x j ↦ ?_, fun x ↦ ?_⟩
   · rw [map_smul, map_sub, LinearMap.smul_apply, LinearMap.sub_apply,
-      ((ω.isAlt_bilinFormAt x).apply_sum_smul_add_smul (haa x) (hbb x) (hab x) _ _ j).2,
+      (ω.isAlt_bilinFormAt x).apply_sum_smul_add_smul_eq_neg_right_coeff (haa x) (hab x) _ _ j,
       neg_neg, sub_self, smul_zero]
   · rw [map_smul, map_sub, LinearMap.smul_apply, LinearMap.sub_apply,
-      ((ω.isAlt_bilinFormAt x).apply_sum_smul_add_smul (haa x) (hbb x) (hab x) _ _ j).1,
+      (ω.bilinFormAt x).apply_sum_smul_add_smul_eq_left_coeff (hbb x) (hab x) _ _ j,
       sub_self, smul_zero]
-  have hua (i : Fin k) : ω.bilinFormAt x (u x) (a i x) = 0 := by
-    rw [← (ω.isAlt_bilinFormAt x).neg_eq, hau, neg_zero]
-  have hub (i : Fin k) : ω.bilinFormAt x (u x) (b i x) = 0 := by
-    rw [← (ω.isAlt_bilinFormAt x).neg_eq, hbu, neg_zero]
+  have hua (i : Fin k) : ω.bilinFormAt x (u x) (a i x) = 0 :=
+    (ω.isAlt_bilinFormAt x).eq_iff.1 (hau x i)
+  have hub (i : Fin k) : ω.bilinFormAt x (u x) (b i x) = 0 :=
+    (ω.isAlt_bilinFormAt x).eq_iff.1 (hbu x i)
   simp only [map_smul, map_sub, map_sum, map_add, hua, hub, smul_eq_mul, mul_zero, add_zero,
     Finset.sum_const_zero, sub_zero]
   exact inv_mul_cancel₀ (hc₀ x).ne'
 
-end Frame
+end Step
 
 section Boundary
 
@@ -302,8 +225,7 @@ theorem IsNondegenerate.exists_darboux_contMDiffSection_of_boundary_nonempty_of_
     -- The `ω`-orthogonal `W` of the pairs chosen so far is a smooth subbundle of rank at least
     -- `n + 2`, so it has a nowhere-zero smooth section `u`.
     have hW := hasLocalContMDiffSubbundleFrames_orthogonal_span_darboux ha hb haa hbb hab
-    let W (x : M) := LinearMap.BilinForm.orthogonal (ω.flat x).toLinearMap₁₂
-      (Submodule.span ℝ (range (Fin.append a b · x)))
+    let W (x : M) := (ω.bilinFormAt x).orthogonal (Submodule.span ℝ (range (Fin.append a b · x)))
     let := TauCeti.subbundleTopology F (F' := Fin (finrank ℝ F - (k + k)) → ℝ) W
     let := hW.fiberBundle
     let := hW.vectorBundle
@@ -316,11 +238,8 @@ theorem IsNondegenerate.exists_darboux_contMDiffSection_of_boundary_nonempty_of_
     set u : ∀ x, V x := fun x ↦ (t x : V x)
     have hu : CMDiff ((⊤ : ℕ∞) : WithTop ℕ∞) (T% u) :=
       hW.contMDiff_totalSpace_inclusion.comp t.contMDiff
-    have hXu (x : M) (p : Fin (k + k)) : ω.bilinFormAt x (Fin.append a b p x) (u x) = 0 := by
-      have h := LinearMap.BilinForm.mem_orthogonal_iff.1 (t x).property _
-        (Submodule.subset_span ⟨p, rfl⟩)
-      rwa [ContinuousLinearMap.toLinearMap₁₂_apply_apply_apply, flat_apply,
-        ← bilinFormAt_apply] at h
+    have hXu (x : M) (p : Fin (k + k)) : ω.bilinFormAt x (Fin.append a b p x) (u x) = 0 :=
+      LinearMap.BilinForm.mem_orthogonal_iff.1 (t x).property _ (Submodule.subset_span ⟨p, rfl⟩)
     have hau (x : M) (i : Fin k) : ω.bilinFormAt x (a i x) (u x) = 0 := by
       simpa only [Fin.append_left] using hXu x (Fin.castAdd k i)
     have hbu (x : M) (i : Fin k) : ω.bilinFormAt x (b i x) (u x) = 0 := by
