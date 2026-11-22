@@ -314,17 +314,24 @@ def discComplementBoundaryHomeomorph (hφ : Pairwise (Disjoint on fun i ↦ (φ 
   (isCollared_discComplementBoundary φ hφ).isEmbedding.toHomeomorph.trans
     (.setCongr (by rw [range_inclusion_discComplementInterior φ hφ, compl_compl]))
 
+/- The codomain is written here with `↥(discComplementInterior φ)` in place of
+`↥↑(discComplementInterior φ)`: `simp` puts it in that form by `SetLike.coe_sort_coe` before it
+tries this lemma, which would not match the definition's form. The explicit `DFunLike.coe` and
+`range` arguments are needed because a type ascription leaves the term unchanged. -/
 @[simp]
 theorem coe_discComplementBoundaryHomeomorph_apply
     (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc)) (p : ι × Circle) :
-    (discComplementBoundaryHomeomorph φ hφ p : discComplement φ) = discComplementBoundary φ hφ p :=
+    (@DFunLike.coe (ι × Circle ≃ₜ ↥(@range _ (discComplementInterior φ)
+        (inclusion (discComplementInterior_subset φ)))ᶜ) _ _ _
+        (discComplementBoundaryHomeomorph φ hφ) p : discComplement φ) =
+      discComplementBoundary φ hφ p :=
   (rfl)
 
 theorem coe_coe_discComplementBoundaryHomeomorph_apply
     (hφ : Pairwise (Disjoint on fun i ↦ (φ i).disc)) (p : ι × Circle) :
     ((discComplementBoundaryHomeomorph φ hφ p : discComplement φ) : M) =
       (φ p.1).boundaryCircle p.2 := by
-  rw [coe_discComplementBoundaryHomeomorph_apply, coe_discComplementBoundary_apply]
+  simp
 
 /-- The inverse of `discComplementBoundaryHomeomorph φ hφ` sends the point
 `(φ i).boundaryCircle z` of the boundary to `(i, z)`. -/
