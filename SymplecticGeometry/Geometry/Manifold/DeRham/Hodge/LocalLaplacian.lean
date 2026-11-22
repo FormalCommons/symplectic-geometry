@@ -7,19 +7,32 @@ module
 
 public import SymplecticGeometry.Analysis.InnerProductSpace.HodgeStar.AlternatingForm
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Chart
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
 import SymplecticGeometry.LinearAlgebra.BilinearForm.Gram
+import TauCeti.Analysis.Calculus.SecondDerivative
 import TauCeti.Analysis.Normed.Module.Alternating.Uncurry.Fin
 import TauCeti.Topology.Algebra.Module.Alternating.Basic
+import TauCeti.Topology.Algebra.Module.Alternating.TopDegree
 
 /-!
-# The codifferential in a chart
+# The codifferential and the Hodge Laplacian in a chart
 
 Let `ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞` be a chart of an oriented Riemannian manifold `M` of
 dimension `m`, and `b` a basis of `E`, with Gram matrix `G(y)` for the metric in the chart
 `gramInChart ψ y`. This file shows that the codifferential, read in the chart, is a first-order
 operator whose principal part is minus the contraction with the metric dual of the derivative:
 for a smooth `(k + 1)`-form `β` read in the chart as `a`,
-`(d^* β)_ψ(y) = -∑ᵢⱼ G⁻¹ᵢⱼ(y) ι_{b_j} (∂_{b_i} a)(y) + C₀(y) a(y)`, with `C₀` smooth.
+`(d^* β)_ψ(y) = -∑ᵢⱼ G⁻¹ᵢⱼ(y) ι_{b_j} (∂_{b_i} a)(y) + C₀(y) a(y)`, with `C₀` smooth. It follows
+that the Hodge Laplacian `Δ = d^* d + d d^*`, read in the chart, is a second-order operator whose
+principal part is `-∑ᵢⱼ G⁻¹ᵢⱼ ∂_{b_i} ∂_{b_j}` times the identity.
+
+The second-order terms of `d^* d` and `d d^*` combine by the pointwise identity
+`ι_v ε_ξ + ε_ξ ι_v = ξ(v)`
+(`ContinuousAlternatingMap.curryLeft_alternatizeUncurryFin_smulRight_add`), which is Tau Ceti's
+`ContinuousAlternatingMap.alternatizeUncurryFin_curryLeft_comp_add_curryLeft` for a family
+`ξ.smulRight w`, and by the symmetry of second derivatives. In degree `0` there is no `d d^*`
+term and `ι_v ε_ξ = ξ(v)` alone; in the top degree there is no `d^* d` term, and `ε_ξ ι_v = ξ(v)`
+since forms of degree `m + 1` vanish.
 
 ## Main results
 
@@ -30,6 +43,14 @@ for a smooth `(k + 1)`-form `β` read in the chart as `a`,
   `ψ.symm y`, read through the differential of `ψ.symm`.
 * `SymplecticGeometry.exists_mpullback_symm_codifferential_eq`: the codifferential in the chart is
   a first-order operator with principal part `-∑ᵢⱼ G⁻¹ᵢⱼ ι_{b_j} ∂_{b_i}`.
+* `SymplecticGeometry.exists_mpullback_symm_hodgeLaplacian_eq`: the Hodge Laplacian in the chart
+  is a second-order operator with principal part `-∑ᵢⱼ G⁻¹ᵢⱼ ∂_{b_i} ∂_{b_j}` and smooth
+  lower-order coefficients.
+* `ContinuousAlternatingMap.curryLeft_alternatizeUncurryFin_smulRight_add` and
+  `ContinuousAlternatingMap.curryLeft_alternatizeUncurryFin_smulRight_zero`: the identity
+  `ι_v ε_ξ + ε_ξ ι_v = ξ(v)` in positive degree, and `ι_v ε_ξ = ξ(v)` in degree `0`.
+* `ContinuousAlternatingMap.alternatizeUncurryFin_eq_sum_coord`: the alternatization of a family
+  `f` is `∑ᵢ ε_{b^*_i} (f (b i))`, for a basis `b` with dual basis `b^*`.
 
 ## References
 
@@ -43,7 +64,77 @@ noncomputable section
 
 open Module TauCeti ContinuousAlternatingMap
 open Bundle
-open scoped Manifold ContDiff RealInnerProductSpace
+open scoped Manifold ContDiff RealInnerProductSpace Topology
+
+/-! ### Coordinates in a basis -/
+
+/-- Summing a family against the coordinates of a basis vector `b l` picks out its term at `l`. -/
+theorem Module.Basis.sum_coord_apply_self_smul {R M V ι : Type*} [CommSemiring R]
+    [AddCommMonoid M] [Module R M] [AddCommMonoid V] [Module R V] [Fintype ι]
+    (b : Basis ι R M) (w : ι → V) (l : ι) : ∑ i, b.coord i (b l) • w i = w l := by
+  classical
+  simp [Basis.coord_apply, Finsupp.single_apply]
+
+/-! ### Alternatization against a coordinate covector -/
+
+namespace ContinuousAlternatingMap
+
+section
+
+variable {𝕜 E F : Type*} [NontriviallyNormedField 𝕜]
+  [NormedAddCommGroup E] [NormedSpace 𝕜 E] [NormedAddCommGroup F] [NormedSpace 𝕜 F] {n : ℕ}
+
+/-- The interior product of a finite sum of forms is the sum of their interior products. -/
+theorem curryLeft_sum {ι : Type*} (s : Finset ι) (f : ι → E [⋀^Fin (n + 1)]→L[𝕜] F) :
+    (∑ i ∈ s, f i).curryLeft = ∑ i ∈ s, (f i).curryLeft := by
+  ext v u
+  simp [curryLeft_apply_apply]
+
+/-- For a covector `ξ`, a vector `v` and a form `w` of positive degree,
+`ι_v (ε_ξ w) + ε_ξ (ι_v w) = ξ v • w`, where `ε_ξ` is the exterior product
+`alternatizeUncurryFin (ξ.smulRight ·)` and `ι_v` the interior product `curryLeft v`. This is
+`alternatizeUncurryFin_curryLeft_comp_add_curryLeft` for `ξ.smulRight w`. -/
+theorem curryLeft_alternatizeUncurryFin_smulRight_add (ξ : E →L[𝕜] 𝕜)
+    (w : E [⋀^Fin (n + 1)]→L[𝕜] F) (v : E) :
+    (alternatizeUncurryFin (ξ.smulRight w)).curryLeft v +
+        alternatizeUncurryFin (ξ.smulRight (w.curryLeft v)) = ξ v • w := by
+  have hc : (curryLeftLI (𝕜 := 𝕜) (E := E) (F := F)).toContinuousLinearMap.flip v ∘L
+      ξ.smulRight w = ξ.smulRight (w.curryLeft v) := by
+    ext1 u
+    simp
+  rw [← hc, add_comm ((alternatizeUncurryFin (ξ.smulRight w)).curryLeft v),
+    alternatizeUncurryFin_curryLeft_comp_add_curryLeft, ContinuousLinearMap.smulRight_apply]
+
+/-- For a covector `ξ`, a vector `v` and a form `w` of degree `0`, `ι_v (ε_ξ w) = ξ v • w`. -/
+theorem curryLeft_alternatizeUncurryFin_smulRight_zero (ξ : E →L[𝕜] 𝕜)
+    (w : E [⋀^Fin 0]→L[𝕜] F) (v : E) :
+    (alternatizeUncurryFin (ξ.smulRight w)).curryLeft v = ξ v • w := by
+  ext u
+  simp [alternatizeUncurryFin_apply, curryLeft_apply_apply, Subsingleton.elim u Fin.elim0,
+    Matrix.vecCons]
+
+end
+
+variable {𝕜 E F ι : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜]
+  [NormedAddCommGroup E] [NormedSpace 𝕜 E] [FiniteDimensional 𝕜 E] [NormedAddCommGroup F]
+  [NormedSpace 𝕜 F] [Fintype ι] {n : ℕ}
+
+/-- The alternatization of `f` is the sum over a basis `b` of the exterior products of the
+coordinate covectors of `b` with the values `f (b i)`. -/
+theorem alternatizeUncurryFin_eq_sum_coord (b : Basis ι 𝕜 E)
+    (f : E →L[𝕜] E [⋀^Fin n]→L[𝕜] F) :
+    alternatizeUncurryFin f =
+      ∑ i, alternatizeUncurryFin ((LinearMap.toContinuousLinearMap (b.coord i)).smulRight
+        (f (b i))) := by
+  have hf : f = ∑ i, (LinearMap.toContinuousLinearMap (b.coord i)).smulRight (f (b i)) := by
+    ext1 v
+    simp only [FunLike.coe_sum, Finset.sum_apply, ContinuousLinearMap.smulRight_apply,
+      LinearMap.coe_toContinuousLinearMap', Basis.coord_apply]
+    simp_rw [← map_smul, ← _root_.map_sum, b.sum_repr]
+  conv_lhs => rw [hf]
+  exact _root_.map_sum (alternatizeUncurryFinCLM 𝕜 E F) _ _
+
+end ContinuousAlternatingMap
 
 namespace SymplecticGeometry
 
@@ -188,5 +279,253 @@ theorem exists_mpullback_symm_codifferential_eq
   simp_rw [alternatizeUncurryFinCLM_apply,
     smul_hodgeStarInChart_alternatizeUncurryFin_hodgeStarInChart o ψ hkl hlk b hy]
   simp [Finset.sum_neg_distrib, Basis.coord_apply, Finsupp.single_apply, ite_smul]
+
+/-- **`d^* d` in a chart.** For a smooth `k`-form `α` read in the chart as `a`, the form
+`d^* d α` read in the chart is `-∑ⱼₗ G⁻¹ⱼₗ ∑ᵢ ι_{b_l} ε_{b^*_i} (∂_{b_j} ∂_{b_i} a)` plus a
+first-order term `∑ᵢ Bᵢ (∂_{b_i} a)` with smooth coefficients, `b^*` being the dual basis. -/
+private theorem exists_mpullback_symm_codifferential_mextDeriv_eq
+    [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
+    (hkl : k + 1 + l = m) (hlk : l + 1 + k = m) (b : Basis (Fin m) ℝ E) :
+    ∃ B : Fin m → E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin k]→L[ℝ] ℝ,
+      (∀ i, ContDiffOn ℝ ∞ (B i) ψ.target) ∧
+      ∀ (α : SmoothForm I M ℝ k), ∀ y ∈ ψ.target,
+        (mpullback 𝓘(ℝ, E) I ψ.symm
+            (SmoothForm.codifferential o hkl (mextDerivₗ I k α)).val y :
+            E [⋀^Fin k]→L[ℝ] ℝ) =
+          -∑ j, ∑ l, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ j l •
+              ∑ i, (alternatizeUncurryFin ((LinearMap.toContinuousLinearMap (b.coord i)).smulRight
+                (fderiv ℝ (fun z ↦ fderiv ℝ
+                  (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) z (b i)) y
+                  (b j)))).curryLeft (b l) +
+            ∑ i, B i y (fderiv ℝ (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) y
+              (b i)) := by
+  obtain ⟨C₀, hC₀, hδ⟩ := exists_mpullback_symm_codifferential_eq o ψ hkl hlk b
+  -- `ε i` is the exterior product with the `i`-th coordinate covector of `b`.
+  set ε : Fin m → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin (k + 1)]→L[ℝ] ℝ := fun i ↦
+    alternatizeUncurryFinCLM ℝ E ℝ ∘L
+      ContinuousLinearMap.smulRightL ℝ ℝ ℝ E _ (LinearMap.toContinuousLinearMap (b.coord i))
+  have hε (i : Fin m) (w : E [⋀^Fin k]→L[ℝ] ℝ) : ε i w =
+      alternatizeUncurryFin ((LinearMap.toContinuousLinearMap (b.coord i)).smulRight w) := rfl
+  refine ⟨fun i z ↦ C₀ z ∘L ε i, fun i ↦ hC₀.clm_comp contDiffOn_const, fun α y hy ↦ ?_⟩
+  set a : E → E [⋀^Fin k]→L[ℝ] ℝ := mpullback 𝓘(ℝ, E) I ψ.symm α.val
+  have hT := ψ.open_target.mem_nhds hy
+  have ha : ContDiffOn ℝ ∞ a ψ.target :=
+    SmoothForm.contDiffOn_mpullback α ψ.open_target ψ.symm.contMDiffOn
+  -- `d a = ∑ᵢ ε i (∂ᵢ a)`.
+  have hd (z : E) : extDeriv a z = ∑ i, ε i (fderiv ℝ a z (b i)) := by
+    rw [extDeriv, alternatizeUncurryFin_eq_sum_coord b]
+    exact Finset.sum_congr rfl fun i _ ↦ (hε i _).symm
+  have hev : (mpullback 𝓘(ℝ, E) I ψ.symm (mextDerivₗ I k α).val :
+      E → E [⋀^Fin (k + 1)]→L[ℝ] ℝ) =ᶠ[𝓝 y] fun z ↦ ∑ i, ε i (fderiv ℝ a z (b i)) :=
+    Filter.eventually_of_mem hT fun z hz ↦ (mpullback_symm_mextDerivₗ ψ α hz).trans (hd z)
+  have hg (i : Fin m) : HasFDerivAt (fun z ↦ fderiv ℝ a z (b i))
+      (fderiv ℝ (fun z ↦ fderiv ℝ a z (b i)) y) y :=
+    (((ha.fderiv_of_isOpen ψ.open_target (m := ∞) (by simp)).contDiffAt hT).clm_apply
+      contDiffAt_const).differentiableAt (by simp) |>.hasFDerivAt
+  have hD : HasFDerivAt (fun z ↦ ∑ i, ε i (fderiv ℝ a z (b i)))
+      (∑ i, (ε i).comp (fderiv ℝ (fun z ↦ fderiv ℝ a z (b i)) y)) y :=
+    HasFDerivAt.fun_sum fun i _ ↦ (ε i).hasFDerivAt.comp y (hg i)
+  rw [hδ (mextDerivₗ I k α) y hy, hev.fderiv_eq, hev.eq_of_nhds, hD.fderiv]
+  simp only [_root_.sum_apply, ContinuousLinearMap.comp_apply, _root_.map_sum, hε, curryLeft_sum]
+  -- The two sides agree up to reducible unfolding.
+  with_reducible rfl
+
+/-- **`d d^*` in a chart.** For a smooth `(k + 1)`-form `α` read in the chart as `a`, the
+form `d d^* α` read in the chart is `-∑ⱼₗ G⁻¹ⱼₗ ∑ᵢ ε_{b^*_i} ι_{b_l} (∂_{b_i} ∂_{b_j} a)` plus terms
+`∑ᵢ Bᵢ (∂_{b_i} a) + C a` with smooth coefficients, `b^*` being the dual basis. -/
+private theorem exists_mpullback_symm_mextDeriv_codifferential_eq
+    [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
+    (hkl : k + 1 + l = m) (hlk : l + 1 + k = m) (b : Basis (Fin m) ℝ E) :
+    ∃ (B : Fin m → E → (E [⋀^Fin (k + 1)]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin (k + 1)]→L[ℝ] ℝ)
+      (C : E → (E [⋀^Fin (k + 1)]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin (k + 1)]→L[ℝ] ℝ),
+      (∀ i, ContDiffOn ℝ ∞ (B i) ψ.target) ∧ ContDiffOn ℝ ∞ C ψ.target ∧
+      ∀ (α : SmoothForm I M ℝ (k + 1)), ∀ y ∈ ψ.target,
+        (mpullback 𝓘(ℝ, E) I ψ.symm
+            (mextDerivₗ I k (SmoothForm.codifferential o hkl α)).val y :
+            E [⋀^Fin (k + 1)]→L[ℝ] ℝ) =
+          -∑ j, ∑ l, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ j l •
+              ∑ i, alternatizeUncurryFin ((LinearMap.toContinuousLinearMap (b.coord i)).smulRight
+                (curryLeft (fderiv ℝ (fun z ↦ fderiv ℝ
+                  (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin (k + 1)]→L[ℝ] ℝ) z (b j)) y
+                  (b i)) (b l))) +
+            ∑ i, B i y (fderiv ℝ (mpullback 𝓘(ℝ, E) I ψ.symm α.val :
+              E → E [⋀^Fin (k + 1)]→L[ℝ] ℝ) y (b i)) +
+            C y (mpullback 𝓘(ℝ, E) I ψ.symm α.val y) := by
+  obtain ⟨C₀, hC₀, hδ⟩ := exists_mpullback_symm_codifferential_eq o ψ hkl hlk b
+  set ε : Fin m → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin (k + 1)]→L[ℝ] ℝ := fun i ↦
+    alternatizeUncurryFinCLM ℝ E ℝ ∘L
+      ContinuousLinearMap.smulRightL ℝ ℝ ℝ E _ (LinearMap.toContinuousLinearMap (b.coord i))
+  have hε (i : Fin m) (w : E [⋀^Fin k]→L[ℝ] ℝ) : ε i w =
+      alternatizeUncurryFin ((LinearMap.toContinuousLinearMap (b.coord i)).smulRight w) := rfl
+  -- `κ l` is the interior product with `b l`.
+  set κ : Fin m → (E [⋀^Fin (k + 1)]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin k]→L[ℝ] ℝ := fun l ↦
+    (curryLeftLI (𝕜 := ℝ) (E := E) (F := ℝ) (n := k)).toContinuousLinearMap.flip (b l)
+  have hκ (l : Fin m) (w : E [⋀^Fin (k + 1)]→L[ℝ] ℝ) : κ l w = w.curryLeft (b l) := rfl
+  set g : E → Matrix (Fin m) (Fin m) ℝ := fun z ↦
+    (Matrix.of fun i j ↦ gramInChart ψ z (b i) (b j))⁻¹
+  have hgs (j l : Fin m) : ContDiffOn ℝ ∞ (fun z ↦ g z j l) ψ.target :=
+    contDiffOn_inv_gramInChart_apply ψ b j l
+  have hdg (j l : Fin m) : ContDiffOn ℝ ∞ (fun z ↦ fderiv ℝ (fun z ↦ g z j l) z) ψ.target :=
+    (hgs j l).fderiv_of_isOpen ψ.open_target (m := ∞) (by simp)
+  -- The partial derivatives of `C₀` are smooth.
+  have hdC₀ (i : Fin m) : ContDiffOn ℝ ∞ (fun z ↦ fderiv ℝ C₀ z (b i)) ψ.target := by
+    refine contDiffOn_clm_apply.2 fun w ↦ ?_
+    have hw : ContDiffOn ℝ ∞ (fun z ↦ C₀ z w) ψ.target := hC₀.clm_apply contDiffOn_const
+    refine ((hw.fderiv_of_isOpen ψ.open_target (m := ∞) (by simp)).clm_apply
+      (contDiffOn_const (c := b i))).congr fun z hz ↦ ?_
+    rw [fderiv_clm_apply ((hC₀.contDiffAt (ψ.open_target.mem_nhds hz)).differentiableAt
+      (by simp)) (differentiableAt_const _), fderiv_const_apply, ContinuousLinearMap.comp_zero,
+      zero_add, ContinuousLinearMap.flip_apply]
+  refine ⟨fun j z ↦ -∑ i, ∑ l, fderiv ℝ (fun z ↦ g z j l) z (b i) • (ε i ∘L κ l) + ε j ∘L C₀ z,
+    fun z ↦ ∑ i, ε i ∘L fderiv ℝ C₀ z (b i), fun j ↦ ?_, ?_, fun α y hy ↦ ?_⟩
+  · refine (ContDiffOn.sum fun i _ ↦ ContDiffOn.sum fun l _ ↦ ?_).neg.add
+      (contDiffOn_const.clm_comp hC₀)
+    refine contDiffOn_clm_apply.2 fun w ↦ ?_
+    simp only [_root_.smul_apply]
+    exact ((hdg j l).clm_apply contDiffOn_const).smul contDiffOn_const
+  · exact ContDiffOn.sum fun i _ ↦ contDiffOn_const.clm_comp (hdC₀ i)
+  set a : E → E [⋀^Fin (k + 1)]→L[ℝ] ℝ := mpullback 𝓘(ℝ, E) I ψ.symm α.val
+  have hT := ψ.open_target.mem_nhds hy
+  have ha : ContDiffOn ℝ ∞ a ψ.target :=
+    SmoothForm.contDiffOn_mpullback α ψ.open_target ψ.symm.contMDiffOn
+  -- `d^* α` read in the chart, near `y`.
+  set F : E → E [⋀^Fin k]→L[ℝ] ℝ := fun z ↦
+    -∑ j, ∑ l, g z j l • κ l (fderiv ℝ a z (b j)) + C₀ z (a z)
+  have hev : (mpullback 𝓘(ℝ, E) I ψ.symm (SmoothForm.codifferential o hkl α).val :
+      E → E [⋀^Fin k]→L[ℝ] ℝ) =ᶠ[𝓝 y] F :=
+    Filter.eventually_of_mem hT fun z hz ↦ hδ α z hz
+  have hdg' (i : Fin m) : HasFDerivAt (fun z ↦ fderiv ℝ a z (b i))
+      (fderiv ℝ (fun z ↦ fderiv ℝ a z (b i)) y) y :=
+    (((ha.fderiv_of_isOpen ψ.open_target (m := ∞) (by simp)).contDiffAt hT).clm_apply
+      contDiffAt_const).differentiableAt (by simp) |>.hasFDerivAt
+  have hF : HasFDerivAt F
+      (-∑ j, ∑ l, (g y j l • (κ l).comp (fderiv ℝ (fun z ↦ fderiv ℝ a z (b j)) y) +
+          (fderiv ℝ (fun z ↦ g z j l) y).smulRight (κ l (fderiv ℝ a y (b j)))) +
+        ((C₀ y).comp (fderiv ℝ a y) + (fderiv ℝ C₀ y).flip (a y))) y := by
+    refine (HasFDerivAt.fun_sum fun j _ ↦ HasFDerivAt.fun_sum fun l _ ↦ ?_).neg.add ?_
+    · exact (((hgs j l).contDiffAt hT).differentiableAt (by simp)).hasFDerivAt.smul
+        ((κ l).hasFDerivAt.comp y (hdg' j))
+    · exact ((hC₀.contDiffAt hT).differentiableAt (by simp)).hasFDerivAt.clm_apply
+        ((ha.contDiffAt hT).differentiableAt (by simp)).hasFDerivAt
+  rw [mpullback_symm_mextDerivₗ ψ _ hy, hev.extDeriv_eq, extDeriv, hF.fderiv]
+  rw [alternatizeUncurryFin_eq_sum_coord b]
+  have hεs (i : Fin m) (f : Fin m → E [⋀^Fin k]→L[ℝ] ℝ) : ε i (∑ j, f j) = ∑ j, ε i (f j) :=
+    map_sum _ _ _
+  have hεc (i : Fin m) (c : ℝ) (w : E [⋀^Fin k]→L[ℝ] ℝ) : ε i (c • w) = c • ε i w :=
+    map_smul _ _ _
+  simp only [← hε, ← hκ, map_add, map_neg, hεs, hεc, Finset.sum_add_distrib,
+    Finset.sum_neg_distrib, Finset.smul_sum, _root_.add_apply,
+    _root_.neg_apply, _root_.sum_apply,
+    _root_.smul_apply, ContinuousLinearMap.comp_apply, ContinuousLinearMap.smulRight_apply,
+    ContinuousLinearMap.flip_apply]
+  have e1 : ∑ x, ∑ x_1, ∑ x_2, g y x_1 x_2 •
+      ε x (κ x_2 (fderiv ℝ (fun z ↦ fderiv ℝ a z (b x_1)) y (b x))) =
+      ∑ x_1, ∑ x_2, ∑ x, g y x_1 x_2 •
+        ε x (κ x_2 (fderiv ℝ (fun z ↦ fderiv ℝ a z (b x_1)) y (b x))) := by
+    rw [Finset.sum_comm]
+    exact Finset.sum_congr rfl fun _ _ ↦ Finset.sum_comm
+  have e2 : ∑ x, ∑ x_1, ∑ x_2, fderiv ℝ (fun z ↦ g z x_1 x_2) y (b x) •
+      ε x (κ x_2 (fderiv ℝ a y (b x_1))) =
+      ∑ x, ∑ x_1, ∑ x_2, fderiv ℝ (fun z ↦ g z x x_2) y (b x_1) •
+        ε x_1 (κ x_2 (fderiv ℝ a y (b x))) :=
+    Finset.sum_comm
+  rw [e1, e2]
+  abel
+
+/-- The principal parts of `d^* d` and `d d^*` add up to `-∑ᵢⱼ Gᵢⱼ wᵢⱼ` for a symmetric `w`. -/
+private theorem principal_add (b : Basis (Fin m) ℝ E) (G : Matrix (Fin m) (Fin m) ℝ)
+    (w : Fin m → Fin m → E [⋀^Fin (k + 1)]→L[ℝ] ℝ) (hw : ∀ i j, w i j = w j i) :
+    -∑ j, ∑ l, G j l • ∑ i, (alternatizeUncurryFin
+        ((LinearMap.toContinuousLinearMap (b.coord i)).smulRight (w i j))).curryLeft (b l) +
+      -∑ j, ∑ l, G j l • ∑ i, alternatizeUncurryFin
+        ((LinearMap.toContinuousLinearMap (b.coord i)).smulRight ((w j i).curryLeft (b l))) =
+      -∑ i, ∑ j, G i j • w i j := by
+  have key (j l : Fin m) : ∑ i, (alternatizeUncurryFin
+        ((LinearMap.toContinuousLinearMap (b.coord i)).smulRight (w i j))).curryLeft (b l) +
+      ∑ i, alternatizeUncurryFin
+        ((LinearMap.toContinuousLinearMap (b.coord i)).smulRight ((w j i).curryLeft (b l))) =
+      w j l := by
+    simp_rw [hw j]
+    rw [← Finset.sum_add_distrib]
+    simp only [curryLeft_alternatizeUncurryFin_smulRight_add, LinearMap.coe_toContinuousLinearMap',
+      Basis.sum_coord_apply_self_smul, hw l j]
+  simp_rw [← neg_add, ← Finset.sum_add_distrib, ← smul_add, key]
+
+/-- **The Hodge Laplacian in a chart has principal part `-G^{ij} ∂ᵢ∂ⱼ`.** For a chart `ψ` and a
+basis `b` of `E`, there are `B : Fin m → E → Λ →L[ℝ] Λ` and `C : E → Λ →L[ℝ] Λ`, with
+`Λ = E [⋀^Fin k]→L[ℝ] ℝ`, smooth on `ψ.target`, such that for every smooth `k`-form `α`, read in
+the chart as `a`, and every `y ∈ ψ.target`, the Hodge Laplacian `Δα` read in the chart is
+`-∑ᵢⱼ G⁻¹ᵢⱼ(y) ∂_{b_j} ∂_{b_i} a(y) + ∑ᵢ Bᵢ(y) (∂_{b_i} a(y)) + C(y) a(y)`, where `G(y)` is the Gram
+matrix of `b` for the metric in the chart. -/
+theorem exists_mpullback_symm_hodgeLaplacian_eq
+    [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
+    (hkl : k + l = m) (b : Basis (Fin m) ℝ E) :
+    ∃ (B : Fin m → E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin k]→L[ℝ] ℝ)
+      (C : E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin k]→L[ℝ] ℝ),
+      (∀ i, ContDiffOn ℝ ∞ (B i) ψ.target) ∧ ContDiffOn ℝ ∞ C ψ.target ∧
+      ∀ (α : SmoothForm I M ℝ k), ∀ y ∈ ψ.target,
+        (mpullback 𝓘(ℝ, E) I ψ.symm (SmoothForm.hodgeLaplacian o hkl α).val y :
+            E [⋀^Fin k]→L[ℝ] ℝ) =
+          -∑ i, ∑ j, (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j •
+              fderiv ℝ (F := E [⋀^Fin k]→L[ℝ] ℝ) (fun z ↦ fderiv ℝ
+                (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) z (b i)) y (b j) +
+            ∑ i, B i y (fderiv ℝ (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) y
+              (b i)) +
+            C y (mpullback 𝓘(ℝ, E) I ψ.symm α.val y : E [⋀^Fin k]→L[ℝ] ℝ) := by
+  -- The second derivatives of a form read in the chart are symmetric.
+  have hsymm (α : SmoothForm I M ℝ k) {y : E} (hy : y ∈ ψ.target) :=
+    fderiv_fderiv_apply_comm ((SmoothForm.contDiffOn_mpullback α ψ.open_target
+      ψ.symm.contMDiffOn).contDiffAt (ψ.open_target.mem_nhds hy)) (n := ∞) (by simp)
+  rcases k with _ | k <;> rcases l with _ | l
+  · -- On a zero-dimensional manifold both sides vanish.
+    subst hkl
+    refine ⟨0, 0, fun _ ↦ contDiffOn_const, contDiffOn_const, fun α y _ ↦ ?_⟩
+    simp [SmoothForm.hodgeLaplacian_zero_zero, mpullback_zero]
+    -- What is left is `0 = C y (a y)` for the zero map `C`.
+    rfl
+  · -- In degree `0`, `Δ = d^* d`.
+    obtain ⟨B, hB, h⟩ := exists_mpullback_symm_codifferential_mextDeriv_eq o ψ
+      (by omega : 0 + 1 + l = m) (by omega) b
+    refine ⟨B, 0, hB, contDiffOn_const, fun α y hy ↦ ?_⟩
+    rw [SmoothForm.hodgeLaplacian_zero_add_one o hkl (by omega), h α y hy]
+    have h0 : (0 : E → (E [⋀^Fin 0]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin 0]→L[ℝ] ℝ) y
+        (mpullback 𝓘(ℝ, E) I ψ.symm α.val y : E [⋀^Fin 0]→L[ℝ] ℝ) = 0 := rfl
+    simp only [curryLeft_alternatizeUncurryFin_smulRight_zero, LinearMap.coe_toContinuousLinearMap',
+      Basis.sum_coord_apply_self_smul, h0, add_zero]
+    congr 2
+    refine Finset.sum_congr rfl fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ ?_
+    rw [hsymm α hy]
+  · -- In the top degree, `Δ = d d^*`, and forms of degree `m + 1` vanish.
+    obtain ⟨B, C, hB, hC, h⟩ := exists_mpullback_symm_mextDeriv_codifferential_eq o ψ
+      (k := k) (l := 0) hkl (by omega) b
+    refine ⟨B, C, hB, hC, fun α y hy ↦ ?_⟩
+    rw [SmoothForm.hodgeLaplacian_add_one_zero o hkl, h α y hy]
+    have hm : finrank ℝ E = k + 1 := by rw [finrank_eq_card_basis b, Fintype.card_fin]; omega
+    have hι (i : Fin m) (w : E [⋀^Fin (k + 1)]→L[ℝ] ℝ) (v : E) :
+        alternatizeUncurryFin ((LinearMap.toContinuousLinearMap (b.coord i)).smulRight
+          (w.curryLeft v)) = LinearMap.toContinuousLinearMap (b.coord i) v • w := by
+      have h0 : alternatizeUncurryFin ((LinearMap.toContinuousLinearMap (b.coord i)).smulRight
+          w) = 0 := eq_zero_of_finrank_lt _ (by simp [hm])
+      simpa [h0] using curryLeft_alternatizeUncurryFin_smulRight_add
+        (LinearMap.toContinuousLinearMap (b.coord i)) w v
+    simp only [hι, LinearMap.coe_toContinuousLinearMap', Basis.sum_coord_apply_self_smul]
+    -- The two sides agree up to reducible unfolding.
+    with_reducible rfl
+  · -- Strictly between, `Δ = d^* d + d d^*`.
+    obtain ⟨B₁, hB₁, h₁⟩ := exists_mpullback_symm_codifferential_mextDeriv_eq o ψ
+      (k := k + 1) (l := l) (by omega) (by omega) b
+    obtain ⟨B₂, C, hB₂, hC, h₂⟩ := exists_mpullback_symm_mextDeriv_codifferential_eq o ψ
+      (k := k) (l := l + 1) hkl (by omega) b
+    refine ⟨fun i z ↦ B₁ i z + B₂ i z, C, fun i ↦ (hB₁ i).add (hB₂ i), hC, fun α y hy ↦ ?_⟩
+    rw [SmoothForm.hodgeLaplacian_add_one_add_one o hkl (by omega), Submodule.coe_add,
+      mpullback_add, Pi.add_apply, h₁ α y hy, h₂ α y hy]
+    have hP := principal_add b (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹
+      (fun i j ↦ fderiv ℝ (F := E [⋀^Fin (k + 1)]→L[ℝ] ℝ) (fun z ↦ fderiv ℝ
+        (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin (k + 1)]→L[ℝ] ℝ) z (b i)) y (b j))
+      fun i j ↦ hsymm α hy _ _
+    rw [← hP]
+    simp only [_root_.add_apply, Finset.sum_add_distrib]
+    abel
+
 
 end SymplecticGeometry

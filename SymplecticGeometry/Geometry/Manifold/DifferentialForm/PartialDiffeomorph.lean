@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
+import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 
 /-!
 # Differential forms read through a partial diffeomorphism onto a normed space
@@ -27,6 +28,8 @@ which is meaningful on `ψ.target`.
   `TauCeti.extChartPartialDiffeomorph I n x`, this reading is Tau Ceti's coordinate expression
   `RoughForm.inChartAt` at `x`, at every point of the target, with no assumption on the boundary
   of the model: that target lies in the interior of `range I`.
+* `TauCeti.mpullback_symm_mextDerivₗ`: on the target, the reading of `dφ` is the flat exterior
+  derivative `extDeriv` of the reading of `φ`.
 * `TauCeti.mpullback_symm_realAlternatingDerivation`: the reading of the real derivation
   `J.toEndomorphism.realAlternatingDerivation φ` of a smooth form along an almost complex
   structure `J` is the derivation of the reading of `φ` along the pushed-forward structure
@@ -81,6 +84,18 @@ theorem mpullback_symm_eq_inChartAt {n : WithTop ℕ∞} [IsManifold I n M] (φ 
   exact (mpullback_apply _ φ y v).trans ((congrArg (fun L : TangentSpace 𝓘(ℝ, E) y →L[ℝ]
     TangentSpace I ((extChartAt I x).symm y) ↦ φ _ fun i ↦ L (v i)) hd.symm).trans
       (RoughForm.inChartAt_apply φ x y v).symm)
+
+/-! ### The exterior derivative -/
+
+/-- On the target of a partial diffeomorphism `ψ` onto an open subset of `E`, the exterior
+derivative of a smooth form, read through `ψ`, is the flat exterior derivative of its reading. -/
+theorem mpullback_symm_mextDerivₗ [IsManifold I ∞ M] (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
+    (φ : SmoothForm I M F k) {y : E} (hy : y ∈ ψ.target) :
+    (mpullback 𝓘(ℝ, E) I ψ.symm (mextDerivₗ I k φ).val y : E [⋀^Fin (k + 1)]→L[ℝ] F) =
+      extDeriv (mpullback 𝓘(ℝ, E) I ψ.symm φ.val : E → E [⋀^Fin k]→L[ℝ] F) y := by
+  rw [mextDerivₗ_apply, mpullback_mextDeriv_at
+    ((ψ.symm.contMDiffOn.contMDiffAt (ψ.open_target.mem_nhds hy)).of_le (by simp))
+    ((φ.contMDiff _).of_le (by simp)), mextDeriv_eq_extDeriv]
 
 /-! ### The derivation along an almost complex structure -/
 

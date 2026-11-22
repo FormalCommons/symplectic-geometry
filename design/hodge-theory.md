@@ -299,7 +299,7 @@ codifferential in a chart `ψ`:
 `LocalLaplacian.lean` imports `LinearAlgebra/BilinearForm/Gram.lean`.
 
 - `exists_mpullback_symm_hodgeLaplacian_eq`: for a chart `ψ` and a basis `b` of
-  `E`, there are smooth `B : Fin n → E → Λ →L[ℝ] Λ` and `C : E → Λ →L[ℝ] Λ`,
+  `E`, there are smooth `B : Fin m → E → Λ →L[ℝ] Λ` and `C : E → Λ →L[ℝ] Λ`,
   with `Λ = E [⋀^Fin k]→L[ℝ] ℝ`, such that for every smooth `k`-form
   $\alpha$ with expression $a$ and every `y ∈ ψ.target`,
   $(\Delta\alpha)_\psi(y)=-\sum_{ij}G^{ij}(y)\,\partial_{b_i}\partial_{b_j}a(y)
@@ -307,8 +307,7 @@ codifferential in a chart `ψ`:
   where $G^{ij}$ is the inverse Gram matrix of `gramInChart ψ y` in `b`.
   The second-order coefficient is computed from
   `mpullback_symm_codifferential` and `mpullback_mextDeriv_on`, and identified with $G^{ij}$ times the identity
-  by Tau Ceti's `adjoint_wedgeLeft` and
-  `Orientation.koszulDifferential_eq_smul_hodgeStar_wedgeLeft_hodgeStar`.
+  by Tau Ceti's `alternatizeUncurryFin_curryLeft_comp_add_curryLeft`.
 - `exists_mpullback_symm_hodgeLaplacian_transpose_eq`: the same shape for the
   formal transpose for Lebesgue measure of the operator conjugated by the
   fibre metric and the volume density. This is the operator that the weak

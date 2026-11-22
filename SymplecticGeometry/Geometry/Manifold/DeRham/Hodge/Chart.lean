@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Manifold.Riemannian.Codifferential
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.ChartGram
+import TauCeti.Analysis.Calculus.ContDiff.Matrix
 
 /-!
 # The metric, the Hodge star and the codifferential in a chart
@@ -32,7 +33,9 @@ expressions, on `ψ.target`, of the metric, of the Hodge star and of the codiffe
 
 ## Main results
 
-* `SymplecticGeometry.contDiffOn_gramInChart`: the metric in the chart is smooth on `ψ.target`.
+* `SymplecticGeometry.contDiffOn_gramInChart`: the metric in the chart is smooth on `ψ.target`,
+  and so are the entries of the inverse of its Gram matrix in a basis
+  (`SymplecticGeometry.contDiffOn_inv_gramInChart_apply`).
 * `SymplecticGeometry.gramInChart_extChartPartialDiffeomorph`: for the atlas chart at `x`, its
   matrix in the basis `finBasis ℝ E` is Tau Ceti's chart Gram matrix
   `Riemannian.Tensor.chartGramMatrix`.
@@ -132,6 +135,24 @@ theorem contDiffOn_gramInChart
     (by simp)
   exact (contMDiffAt_iff_contDiffAt.1 (ContMDiffAt.inner_bundle (F := E)
     (E := fun x : M ↦ TangentSpace I x) (b := ψ.symm) (hs v) (hs w))).contDiffWithinAt
+
+/-- The entries of the inverse of the Gram matrix of a basis `b` of `E` for the metric in a chart
+are smooth on the target of the chart. -/
+theorem contDiffOn_inv_gramInChart_apply
+    [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] {ι : Type*} [Fintype ι]
+    [DecidableEq ι] (b : Basis ι ℝ E) (i j : ι) :
+    ContDiffOn ℝ ∞ (fun y ↦ (Matrix.of fun i j ↦ gramInChart ψ y (b i) (b j))⁻¹ i j)
+      ψ.target := by
+  have hG (i j : ι) : ContDiffOn ℝ ∞ (fun y ↦ gramInChart ψ y (b i) (b j)) ψ.target :=
+    contDiffOn_clm_apply.1 (contDiffOn_clm_apply.1 (contDiffOn_gramInChart ψ) (b i)) (b j)
+  -- Cramer's rule: the entries of `G⁻¹` are those of the adjugate divided by `det G`.
+  simp_rw [Matrix.inv_def, Matrix.smul_apply, Matrix.adjugate_apply, smul_eq_mul,
+    Ring.inverse_eq_inv']
+  refine ((ContDiffOn.matrix_det fun i j ↦ hG i j).inv fun y hy ↦
+    (posDef_gramInChart ψ b hy).det_pos.ne').mul (ContDiffOn.matrix_det fun i' j' ↦ ?_)
+  rcases eq_or_ne i' j with rfl | h
+  · simpa using contDiffOn_const
+  · simpa [Matrix.updateRow_ne h] using hG i' j'
 
 end Metric
 
