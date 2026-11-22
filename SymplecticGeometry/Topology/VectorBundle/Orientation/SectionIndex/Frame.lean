@@ -44,8 +44,8 @@ canonical orientation of the ball to `o`.
 
 ## Main results
 
-* `SymplecticGeometry.CoordinateDisc.sectionIndex_eq_localIndex_of_eq_smul`: the local index of a
-  section of a complex line bundle is that of its coefficient in a frame over a coordinate disc.
+* `SymplecticGeometry.CoordinateDisc.sectionIndex_eq_localIndex_of_eq_smul`: read in a frame over a
+  coordinate disc, a section and its coefficient map to `ℂ` have equal indices at a zero.
 
 ## References
 
