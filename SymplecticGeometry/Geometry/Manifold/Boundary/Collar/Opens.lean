@@ -23,16 +23,12 @@ smooth when its composite with the inclusion of the boundary is (Tau Ceti's
 Through it, a smooth collar of `∂V` in `V` is a smooth collar of `∂W` in `W`
 (`TauCeti.SmoothCollar.ofOpens`), with the same image. So a collar of `∂W` may be built on any
 open neighbourhood of `∂W`. When `∂W` is compact, there is always a σ-compact one, inside any
-given open set containing `∂W`, even when `W` is not σ-compact: finitely many chart domains
-cover a compact set, and their union is second countable
-(`IsCompact.exists_opens_subset_sigmaCompactSpace`, for any charted space over a locally compact,
-second-countable model).
+given open set containing `∂W`, even when `W` is not σ-compact, since `W` is locally compact
+(`IsCompact.exists_isOpen_isSigmaCompact_subset`, in
+`SymplecticGeometry/Topology/Compactness/SigmaCompact.lean`).
 
 ## Main results
 
-* `IsCompact.exists_opens_subset_sigmaCompactSpace`: in a charted space over a locally compact,
-  second-countable model, a compact set has σ-compact open neighbourhoods inside any open set
-  that contains it.
 * `TauCeti.diffeomorphBoundaryOpens`: for an open `V ⊇ ∂W`, the inclusion gives a diffeomorphism
   `∂V ≃ ∂W`.
 * `TauCeti.SmoothCollar.ofOpens`: a smooth collar of `∂V` as a smooth collar of `∂W`;
@@ -45,30 +41,6 @@ open Set Function TopologicalSpace
 open scoped Manifold ContDiff
 
 open _root_.TauCeti.EuclideanHalfSpace
-
-/-- In a charted space over a locally compact, second-countable model, a compact set `K` inside an
-open set `U` has an open neighbourhood inside `U` that is σ-compact. It may be taken to be `U`
-intersected with finitely many chart sources. -/
-theorem IsCompact.exists_opens_subset_sigmaCompactSpace {H M : Type*} [TopologicalSpace H]
-    [TopologicalSpace M] [ChartedSpace H M] [SecondCountableTopology H] [LocallyCompactSpace H]
-    {K U : Set M} (hK : IsCompact K) (hU : IsOpen U) (hKU : K ⊆ U) :
-    ∃ V : Opens M, K ⊆ V ∧ (V : Set M) ⊆ U ∧ SigmaCompactSpace V := by
-  obtain ⟨t, htK, hKt⟩ := hK.elim_nhds_subcover (fun x ↦ (chartAt H x).source)
-    fun x _ ↦ chart_source_mem_nhds H x
-  let V : Opens M := ⟨U ∩ ⋃ x ∈ t, (chartAt H x).source,
-    hU.inter (isOpen_biUnion fun x _ ↦ (chartAt H x).open_source)⟩
-  have : LocallyCompactSpace V := ChartedSpace.locallyCompactSpace H V
-  -- The charts of `V` at the finitely many points of `t` cover `V`.
-  have : SecondCountableTopology V := by
-    refine ChartedSpace.secondCountable_of_countable_cover H (s := Subtype.val ⁻¹' (t : Set M))
-      ?_ (t.finite_toSet.preimage Subtype.val_injective.injOn).countable
-    refine eq_univ_of_forall fun y ↦ ?_
-    obtain ⟨x, hxt, hyx⟩ := mem_iUnion₂.1 y.property.2
-    refine mem_iUnion₂.2 ⟨⟨x, hKU (htK x hxt), mem_iUnion₂.2 ⟨x, hxt, mem_chart_source H x⟩⟩,
-      hxt, ?_⟩
-    rw [Opens.chartAt_eq, OpenPartialHomeomorph.subtypeRestr_source]
-    exact hyx
-  exact ⟨V, subset_inter hKU hKt, inter_subset_left, inferInstance⟩
 
 namespace TauCeti
 
@@ -130,6 +102,7 @@ noncomputable def ofOpens (c : SmoothCollar n k V) : SmoothCollar n k W where
     rw [← coe_coe_diffeomorphBoundaryOpens_symm_apply (k := k) hV x, c.apply_zero]
 
 /-- The value of `c.ofOpens hV` at `(x, t)` is that of `c` at `(x, t)`, with `x` read in `∂V`. -/
+@[simp]
 theorem ofOpens_apply (c : SmoothCollar n k V)
     (p : (𝓡∂ (n + 1)).boundary W × normalIioOpens 1) :
     c.ofOpens hV p = c ((diffeomorphBoundaryOpens (k := k) V hV).symm p.1, p.2) := (rfl)
@@ -142,7 +115,7 @@ theorem range_ofOpens (c : SmoothCollar n k V) :
   · rintro ⟨p, rfl⟩
     exact ⟨_, ⟨_, rfl⟩, (ofOpens_apply hV c p).symm⟩
   · rintro ⟨_, ⟨⟨x, t⟩, rfl⟩, rfl⟩
-    exact ⟨(diffeomorphBoundaryOpens (k := k) V hV x, t), by simp [ofOpens_apply]⟩
+    exact ⟨(diffeomorphBoundaryOpens (k := k) V hV x, t), by simp⟩
 
 end SmoothCollar
 

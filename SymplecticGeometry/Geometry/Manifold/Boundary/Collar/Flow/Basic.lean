@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Local
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Opens
+public import SymplecticGeometry.Topology.Compactness.SigmaCompact
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
 public import TauCeti.Geometry.Manifold.Boundary.OutwardExistence
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
@@ -38,8 +39,8 @@ manifold to the half-open interval of a boundary.
 
 On a σ-compact manifold, outward fields exist (Tau Ceti's
 `TauCeti.exists_isOutwardPointingField`, by a partition of unity). A compact boundary has a
-σ-compact open neighbourhood `V`, made of finitely many chart domains
-(`IsCompact.exists_opens_subset_sigmaCompactSpace`), and a collar of `∂V` is a collar of `∂W`
+σ-compact open neighbourhood `V`, since `W` is locally compact
+(`IsCompact.exists_isOpen_isSigmaCompact_subset`), and a collar of `∂V` is a collar of `∂W`
 (`TauCeti.SmoothCollar.ofOpens`). So every compact boundary of a Hausdorff manifold has a smooth
 collar, inside any given open neighbourhood of the boundary, without σ-compactness of `W`.
 
@@ -235,13 +236,12 @@ smooth collar with image in `U`. -/
 theorem exists_range_subset [CompactSpace ↥((𝓡∂ (n + 1)).boundary W)]
     {U : Set W} (hU : IsOpen U) (hbU : (𝓡∂ (n + 1)).boundary W ⊆ U) :
     ∃ c : SmoothCollar n ∞ W, range c ⊆ U := by
-  -- `EuclideanHalfSpace` is a `def`, so instance search does not see the subtype instance.
-  have : SecondCountableTopology (EuclideanHalfSpace (n + 1)) :=
-    inferInstanceAs (SecondCountableTopology {x : EuclideanSpace ℝ (Fin (n + 1)) // 0 ≤ x 0})
   have : LocallyCompactSpace (EuclideanHalfSpace (n + 1)) := (𝓡∂ (n + 1)).locallyCompactSpace
-  obtain ⟨V, hbV, hVU, _⟩ :=
-    (isCompact_iff_compactSpace.2 ‹_›).exists_opens_subset_sigmaCompactSpace
-      (H := EuclideanHalfSpace (n + 1)) hU hbU
+  have : LocallyCompactSpace W := ChartedSpace.locallyCompactSpace (EuclideanHalfSpace (n + 1)) W
+  obtain ⟨V, hVo, hbV, hVU, hVσ⟩ :=
+    (isCompact_iff_compactSpace.2 ‹_›).exists_isOpen_isSigmaCompact_subset hU hbU
+  lift V to TopologicalSpace.Opens W using hVo
+  have : SigmaCompactSpace V := isSigmaCompact_iff_sigmaCompactSpace.1 hVσ
   have : CompactSpace ↥((𝓡∂ (n + 1)).boundary V) :=
     (diffeomorphBoundaryOpens (k := ∞) V hbV).toHomeomorph.symm.compactSpace
   obtain ⟨Y, hY⟩ := exists_isOutwardPointingField (n := n) (M := V)
