@@ -159,13 +159,11 @@ theorem sum_map_toCircle_discComplementBoundaryLoop_eq_boundaryClass [CompactSpa
     ↑(TopCat.of ι ⊗ TopCat.of Circle)) := ↑h
   -- push both classes to `ι ⊗ S¹`, where `Circle.singularHomologyOne_prod_ext` applies
   have hinj : Injective (((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj
-      (ModuleCat.of ℤ (ULift.{0} ℤ))).map (TopCat.ofHom g)).hom := by
-    refine Function.LeftInverse.injective
-      (g := (((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj
-        (ModuleCat.of ℤ (ULift.{0} ℤ))).map (TopCat.ofHom (h.symm : C(_, _)))).hom) fun y ↦ ?_
-    rw [← ModuleCat.comp_apply, ← Functor.map_comp, ← TopCat.ofHom_comp,
-      Homeomorph.symm_comp_toContinuousMap, TopCat.ofHom_id, CategoryTheory.Functor.map_id,
-      ModuleCat.id_apply]
+      (ModuleCat.of ℤ (ULift.{0} ℤ))).map (TopCat.ofHom g)).hom :=
+    (((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj
+      (ModuleCat.of ℤ (ULift.{0} ℤ))).mapIso (TopCat.isoOfHomeo
+        (X := TopCat.of ↥(range (inclusion (discComplementInterior_subset φ)))ᶜ)
+        (Y := TopCat.of ι ⊗ TopCat.of Circle) h)).toLinearEquiv.injective
   have hiso : Injective (Circle.singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).hom.hom :=
     (Circle.singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).toLinearEquiv.injective
   have hcomp (j : ι) (y) : (((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj
