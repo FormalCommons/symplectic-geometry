@@ -5,8 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.DeRham.GoodCover.Basic
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.HomotopyOperator
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Poincare
 public import TauCeti.Geometry.Manifold.DeRham.Basic
 import TauCeti.Geometry.Manifold.DeRham.Map
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
@@ -22,13 +21,11 @@ every `t`. Neither compactness of `M` nor finite dimension is needed.
 The proof has two steps.
 
 * *Local step.* Let `M` be smoothly contractible, through `G : M × [0, 1] → M` with
-  `G (·, 0) = c` and `G (·, 1) = id`. By `SymplecticGeometry.IsSmoothFamily.mpullback` and
-  `SymplecticGeometry.IsSmoothFamily.homotopyOperator`,
-  the `0`-forms `h (G^* α_t)`, the homotopy operator after pullback along `G`, form a smooth
-  family over `N`, so they are the slices `f (t, ·)` of a smooth function `f` on `N × M`,
-  explicitly `f (t, x) = ∫₀¹ α_t (G (x, s)) (∂ₛ G (x, s)) ds`. Since `α_t` is closed,
-  `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator_mpullback_of_contraction` gives
-  `d (h (G^* α_t)) = α_t`.
+  `G (·, 0) = c` and `G (·, 1) = id`. By the parametric Poincaré lemma
+  `SymplecticGeometry.IsSmoothlyContractible.exists_isSmoothFamily_mextDerivₗ_eq`, the
+  primitives `h (G^* α_t)`, the homotopy operator after pullback along `G`, form a smooth
+  family of `0`-forms over `N`, so they are the slices `f (t, ·)` of a smooth function `f` on
+  `N × M`, explicitly `f (t, x) = ∫₀¹ α_t (G (x, s)) (∂ₛ G (x, s)) ds`.
 * *Gluing.* Choose primitives `g_t` of the `α_t` and a point `r i` in each connected component
   `i`, and let `f (t, x) = g_t x - g_t (r i)` for `x` in the component `i`. Every point has a
   smoothly contractible, hence connected, open neighbourhood `U`, and on `U` the difference of
@@ -98,22 +95,20 @@ theorem IsSmoothlyContractible.exists_contMDiff_mextDeriv_eq_of_forall_mem_close
     (hcl : ∀ t, α t ∈ closedForms I M 1) :
     ∃ f : N × M → ℝ, ContMDiff (K.prod I) 𝓘(ℝ) ∞ f ∧
       ∀ t, mextDeriv (RoughForm.ofFunction I fun x ↦ f (t, x)) = (α t : RoughForm I M ℝ 1) := by
-  obtain ⟨c, G, hG, hG₀, hG₁⟩ := isSmoothlyContractible_def.1 hM
-  -- The primitives `h (G^* α_t)` form a smooth family of `0`-forms, the slices of `Ω`.
-  obtain ⟨Ω, hΩ⟩ := isSmoothFamily_def.1 ((hα.mpullback G hG).homotopyOperator)
+  -- A smooth family `β_t` of primitives, as `0`-forms: the slices of `Ω`.
+  obtain ⟨β, hβ, hdβ⟩ := hM.exists_isSmoothFamily_mextDerivₗ_eq hα
+    fun t ↦ (mem_closedForms_iff_mextDerivₗ_eq_zero I _).1 (hcl t)
+  obtain ⟨Ω, hΩ⟩ := isSmoothFamily_def.1 hβ
   refine ⟨fun p ↦ Ω.val p 0, ?_, fun t ↦ ?_⟩
   · have hΩs := Ω.isSmoothForm
     rw [RoughForm.eq_ofFunction Ω.val, isSmoothForm_ofFunction_iff] at hΩs
     exact hΩs
-  have hslice : RoughForm.ofFunction I (fun x ↦ Ω.val (t, x) 0) =
-      (SmoothForm.homotopyOperator (SmoothForm.mpullback G hG (α t))).val := by
+  have hslice : RoughForm.ofFunction I (fun x ↦ Ω.val (t, x) 0) = (β t).val := by
     rw [← hΩ t, SmoothForm.coe_mpullback]
     conv_rhs => rw [RoughForm.eq_ofFunction Ω.val, mpullback_ofFunction]
     -- Both sides are the `0`-form of `x ↦ Ω (t, x)`, written with and without `∘`.
     rfl
-  rw [hslice, ← mextDerivₗ_apply,
-    SmoothForm.mextDerivₗ_homotopyOperator_mpullback_of_contraction hG hG₀ hG₁
-    ((mem_closedForms_iff_mextDerivₗ_eq_zero I _).1 (hcl t))]
+  rw [hslice, ← mextDerivₗ_apply, hdβ t]
 
 /-- Near every point of `M`, a family `g_t` of primitives of a smooth family of closed one-forms
 agrees, up to a function of the parameter, with a jointly smooth function `P` on `N × U`, where
