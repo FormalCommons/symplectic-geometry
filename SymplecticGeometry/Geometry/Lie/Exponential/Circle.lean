@@ -1,0 +1,80 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import Mathlib.Geometry.Manifold.Instances.Icc
+public import TauCeti.Geometry.Lie.Exponential.Circle
+import TauCeti.Geometry.Lie.Exponential.Derivative.Basic
+import TauCeti.Geometry.Manifold.Instances.Sphere
+
+/-!
+# The generator of the Lie algebra of the circle
+
+The Lie algebra of `Circle`, as the tangent space `GroupLieAlgebra (𝓡 1) Circle` at `1`, is
+spanned by the velocity of `Circle.exp` at `0`, `SymplecticGeometry.circleLieGenerator`. It is the
+fundamental vector field of this element that a connection form on a principal circle bundle
+takes to `1`. Tau Ceti describes the same element as a left-invariant derivation,
+`circleExpGenerator`, the generator of the one-parameter subgroup `Circle.exp`; the two agree
+under Tau Ceti's `leftInvariantDerivationEquivGroupLieAlgebra`.
+
+## Main definitions
+
+* `SymplecticGeometry.circleLieGenerator`: the velocity of `Circle.exp` at `0`, in the Lie algebra
+  of `Circle`.
+
+## Main results
+
+* `SymplecticGeometry.circleLieGenerator_ne_zero`: the generator is nonzero.
+* `SymplecticGeometry.leftInvariantDerivationEquivGroupLieAlgebra_circleExpGenerator`: Tau Ceti's
+  `circleExpGenerator` corresponds to `circleLieGenerator`.
+
+## References
+
+* John M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Chapter 20 (one-parameter subgroups
+  and the exponential map of a Lie group).
+-/
+
+public section
+
+noncomputable section
+
+open Manifold TauCeti
+open scoped Manifold ContDiff
+
+namespace SymplecticGeometry
+
+/-- The generator of the Lie algebra of `Circle` that corresponds to `1 ∈ ℝ` under `Circle.exp`:
+the velocity of `Circle.exp` at `0`. -/
+def circleLieGenerator : GroupLieAlgebra (𝓡 1) Circle :=
+  mfderiv 𝓘(ℝ) (𝓡 1) Circle.exp 0 1
+
+theorem circleLieGenerator_def : circleLieGenerator = mfderiv 𝓘(ℝ) (𝓡 1) Circle.exp 0 1 :=
+  (rfl)
+
+/-- The generator of the Lie algebra of `Circle` is nonzero. -/
+theorem circleLieGenerator_ne_zero : circleLieGenerator ≠ 0 := fun h ↦
+  one_ne_zero (α := ℝ) <| injective_mfderiv_circleExp 0 (h.trans (map_zero _).symm)
+
+attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField in
+/-- Tau Ceti's generator `circleExpGenerator` of `Circle.exp`, a left-invariant derivation, is
+sent to `circleLieGenerator` by the identification of left-invariant derivations with the tangent
+space at `1`. -/
+theorem leftInvariantDerivationEquivGroupLieAlgebra_circleExpGenerator :
+    leftInvariantDerivationEquivGroupLieAlgebra BoundarylessManifold.isInteriorPoint
+      circleExpGenerator = circleLieGenerator := by
+  set v := leftInvariantDerivationEquivGroupLieAlgebra (I := 𝓡 1) (G := Circle)
+    BoundarylessManifold.isInteriorPoint circleExpGenerator
+  have h := hasMFDerivAt_mulInvariantExp_smul_zero (I := 𝓡 1) (G := Circle) v
+  have hexp : (fun t : ℝ ↦ mulInvariantExp (I := 𝓡 1) (G := Circle) (t • v)) = Circle.exp :=
+    funext fun t ↦ by rw [← map_smul, ← lieExp_eq_mulInvariantExp, lieExp_circleExpGenerator]
+  rw [circleLieGenerator_def, ← hexp, h.mfderiv]
+  -- `smulRight 1 v` sends `1` to `1 • v` by definition. `smulRight_apply` does not match: `v` is
+  -- read in the tangent space at `mulInvariantExp (0 • v)`, which is `1` only propositionally.
+  exact (one_smul ℝ v).symm
+
+end SymplecticGeometry
+
+end

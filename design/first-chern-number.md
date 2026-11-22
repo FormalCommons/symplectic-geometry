@@ -855,7 +855,9 @@ issues, in an order where each issue's blockers come before it.
    total space, invariant under the action and equal to $1$ on the
    fundamental vector field of $1$ (`TauCeti.rightFundamentalVectorField` of
    `SymplecticGeometry.circleLieGenerator`, the velocity of `Circle.exp` at
-   $0$, defined in this file). Its curvature `IsCircleConnectionForm.curvature
+   $0$, defined in `Geometry/Lie/Exponential/Circle.lean`, at the place of the
+   Tau Ceti file of the same name, with the lemma that Tau Ceti's
+   `circleExpGenerator` corresponds to it). Its curvature `IsCircleConnectionForm.curvature
    (hα : IsCircleConnectionForm α)`, the 2-form on `M` whose pull-back is `d α`,
    exists and is unique by descent of basic forms (`TauCeti.RoughForm.IsBasic`,
    `Manifold.IsSubmersion.exists_smoothForm_mpullback_eq_iff`).
