@@ -2269,8 +2269,9 @@ has either; Tau Ceti's extension across a boundary,
   metrics compatible with $J$ and nondegenerate forms compatible with $J$,
   through part 12's `compatibleForm`, with its two evaluation lemmas).
 - **Builds on:** *Symplectic vector bundles* (only the merged
-  `Symplectic/ComplexStructure/Basic.lean` and `Contractible.lean`); Tau
-  Ceti.
+  `Symplectic/ComplexStructure/Basic.lean` and `Contractible.lean`, and
+  `Geometry/Manifold/VectorBundle/ComplexStructure.lean` for `tangentEquiv`
+  and `tangentHomeomorph`); Tau Ceti.
 - **Milestones:** *Compatible and tame almost complex structures on
   manifolds*, over a Hausdorff σ-compact manifold, in the compact-open
   $C^\infty$ topology, as part 12 states the bundle milestone. The part needs
@@ -2608,7 +2609,7 @@ that file, and the notes here may fall behind it.
 | 0 | *Smooth families* | — (`Diffeotopy/Real.lean` imports `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` of *Hamiltonian flows*, which is merged and imports no file of *Smooth families*) |
 | 0 | *Cotangent bundles* | — |
 | 0 | *Liouville structures* | — (it imports `Analysis/Calculus/ContDiff/Seeley/Extension.lean`, `Geometry/Manifold/LocalDiffeomorph/Basic.lean` and `Geometry/Manifold/MFDeriv/Chart.lean` of *Smooth families*, in `Geometry/Manifold/Boundary/Collar/Flow/Local.lean`, which are merged, `Geometry/Manifold/IsManifold/InteriorBoundary.lean` of *Symplectic vector bundles*, which is merged, `Geometry/Manifold/DifferentialForm/Smooth.lean` of *Moser isotopy*, which imports only Tau Ceti and is merged, and `Geometry/Symplectic/Manifold/Family.lean` of *Moser isotopy* and `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*, in `StableHamiltonian.lean`, which are merged) |
-| 0 | *Almost complex manifolds* | — (it uses only merged files of *Symplectic vector bundles*: `Symplectic/ComplexStructure/Basic.lean` and `Contractible.lean`) |
+| 0 | *Almost complex manifolds* | — (it uses only merged files of *Symplectic vector bundles*: `Symplectic/ComplexStructure/Basic.lean`, `Contractible.lean` and `ComplexStructure.lean`) |
 | 0 | *Nijenhuis tensor* | — |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
 | 1 | *Symplectic vector spaces* | *Standard model*, *Symplectic group* |

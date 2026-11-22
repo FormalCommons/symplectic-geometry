@@ -327,6 +327,18 @@ theorem compatible_tangentEquiv_iff :
   rw [compatible_iff, ← invariant_tangentEquiv_iff, ← tames_tangentEquiv_iff]
   exact ⟨fun h ↦ ⟨h.invariant, h.tames⟩, fun h ↦ ⟨h.1, h.2⟩⟩
 
+/-- A smooth two-form and a smooth almost complex structure in the sense of Tau Ceti are
+compatible exactly when the corresponding two-form and complex structure on the tangent bundle
+are. -/
+@[simp]
+theorem compatible_tangentEquiv_symm_iff {φ : TauCeti.SmoothTwoForm I M}
+    {K : TauCeti.SmoothAlmostComplexStructure I M} :
+    (tangentEquiv.symm φ).Compatible
+        (ContMDiffComplexStructure.tangentEquiv.symm (K.toContMDiff ⊤)) ↔
+      φ.Compatible K := by
+  rw [← compatible_tangentEquiv_iff]
+  simp
+
 end Tangent
 
 end ContMDiffTwoForm
