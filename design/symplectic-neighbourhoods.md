@@ -637,7 +637,8 @@ four theorems share.
 
 ## What the part uses
 
-- From *Moser isotopy*: `Relative.lean`, only in `Tubular.lean`.
+- From *Moser isotopy*: `Relative.lean`, `Geometry/Manifold/DifferentialForm/Opens.lean` and
+  `Geometry/Symplectic/Manifold/TwoForm.lean`, only in `Tubular.lean`.
 - *Symplectic vector bundles* is not used: the compatible complex
   structures of `Neighborhood/Basic.lean` come from Tau Ceti's
   `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible`.
