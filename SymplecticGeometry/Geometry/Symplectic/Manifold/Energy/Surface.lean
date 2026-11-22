@@ -131,9 +131,7 @@ theorem energyForm_apply (c : C) (v w : TangentSpace I' c) :
       form.val (u c) ![a, b] = form.bilinFormAt (u c) a b := by
     rw [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply]
   have hcomp (L : TangentSpace I' c →L[ℝ] TangentSpace I (u c)) :
-      ⇑L ∘ ![v, w] = ![L v, L w] := by
-    ext i
-    fin_cases i <;> rfl
+      ⇑L ∘ ![v, w] = ![L v, L w] := (FinVec.etaExpand_eq _).symm
   simp only [hcomp, key, add_apply, ContinuousLinearMap.comp_apply, map_add, LinearMap.add_apply]
   rw [← SmoothForm.bilinFormAt_apply, ← SmoothForm.bilinFormAt_apply]
   -- Expanding `(A + K)^* form - A^* form - K^* form` leaves `form(A v, K w) + form(K v, A w)`.
@@ -284,9 +282,8 @@ theorem isSmoothForm_energyForm [FiniteDimensional ℝ E'] (hu : ContMDiff I' I 
       ((contMDiff_proj (TangentSpace I)).contMDiffAt.comp x (hdu hW))).clm_bundle_apply (hdu hW)
   have hfr (y : C) : ⇑((trivializationAt E' (TangentSpace I') x).symmL ℝ y) ∘ v =
       ![(trivializationAt E' (TangentSpace I') x).symmL ℝ y (v 0),
-        (trivializationAt E' (TangentSpace I') x).symmL ℝ y (v 1)] := by
-    ext i
-    fin_cases i <;> rfl
+        (trivializationAt E' (TangentSpace I') x).symmL ℝ y (v 1)] :=
+    (FinVec.etaExpand_eq _).symm
   -- The scalar values of `form` along `u` on two such fields.
   have heval {P Q : ∀ y, TangentSpace I (u y)}
       (hP : ContMDiffAt I' I.tangent 0 (fun y ↦ (⟨u y, P y⟩ : TangentBundle I X)) x)
