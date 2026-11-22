@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Manifold.Instances.OnePoint.Sphere
 public import TauCeti.Geometry.Manifold.Orientation.Sphere
 public import TauCeti.Geometry.Manifold.Orientation.TopForm
 public import TauCeti.Geometry.Manifold.Projectivization.ProjectiveLine
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 import TauCeti.Geometry.Symplectic.Manifold.Sphere
 
@@ -86,9 +87,8 @@ attribute [local instance] TauCeti.finrank_euclideanSpace_fin_succ_fact
 namespace OnePoint
 
 /-- The inclusion `ℂ → OnePoint ℂ` is real-analytic for the underlying real surfaces. -/
-theorem contMDiff_coe_real : ContMDiff 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ω ((↑) : ℂ → OnePoint ℂ) := by
-  simpa only [modelWithCornersSelf_restrictScalars] using
-    (contMDiff_coe (𝕜 := ℂ)).restrictScalars ℝ
+theorem contMDiff_coe_real : ContMDiff 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ω ((↑) : ℂ → OnePoint ℂ) :=
+  (contMDiff_coe (𝕜 := ℂ)).restrictScalars' ℝ
 
 /-- The real derivative of the inclusion `ℂ → OnePoint ℂ` at `z` is the identity of `ℂ`: the
 inclusion is the inverse of the affine chart, through which the tangent space at `z` is read. -/
@@ -113,16 +113,14 @@ theorem mvfderiv_coe_apply {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E
 /-- Mathlib's identification of `OnePoint ℂ` with `ℙ ℂ (Fin 2 → ℂ)`, `t ↦ [t : 1]` and
 `∞ ↦ [1 : 0]`, is real-analytic for the underlying real surfaces. -/
 theorem contMDiff_equivProjectivization_real :
-    ContMDiff 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 1 → ℂ) ω (equivProjectivization ℂ) := by
-  simpa only [modelWithCornersSelf_restrictScalars] using
-    (contMDiff_equivProjectivization (𝕜 := ℂ)).restrictScalars ℝ
+    ContMDiff 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 1 → ℂ) ω (equivProjectivization ℂ) :=
+  (contMDiff_equivProjectivization (𝕜 := ℂ)).restrictScalars' ℝ
 
 /-- The inverse of Mathlib's identification of `OnePoint ℂ` with `ℙ ℂ (Fin 2 → ℂ)` is
 real-analytic for the underlying real surfaces. -/
 theorem contMDiff_equivProjectivization_symm_real :
-    ContMDiff 𝓘(ℝ, Fin 1 → ℂ) 𝓘(ℝ, ℂ) ω (equivProjectivization ℂ).symm := by
-  simpa only [modelWithCornersSelf_restrictScalars] using
-    (contMDiff_equivProjectivization_symm (𝕜 := ℂ)).restrictScalars ℝ
+    ContMDiff 𝓘(ℝ, Fin 1 → ℂ) 𝓘(ℝ, ℂ) ω (equivProjectivization ℂ).symm :=
+  (contMDiff_equivProjectivization_symm (𝕜 := ℂ)).restrictScalars' ℝ
 
 /-- Mathlib's identification of `OnePoint ℂ` with `ℙ ℂ (Fin 2 → ℂ)` sends a finite point `t` to
 `[t : 1]`, the value at `t` of Tau Ceti's affine coordinate at the coordinate `1`. -/

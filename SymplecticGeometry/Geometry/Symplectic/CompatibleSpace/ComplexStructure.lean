@@ -137,11 +137,14 @@ theorem compatibleSpaceComplexStructure_apply (J : 𝒥)
 /-- **The complex structure in ambient readings.** At `J`, the almost complex structure sends a
 tangent vector with ambient reading `Ĵ` to the tangent vector with ambient reading `-J Ĵ`. -/
 theorem mfderiv_compatibleCLM_compatibleSpaceComplexStructure (J : 𝒥)
-    (a : ω.compatibleModel) :
+    (a : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
     mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J
         (ω.compatibleSpaceComplexStructure J a) =
       -(ω.compatibleCLM J ∘L
         mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a) := by
+  -- The tangent space at `J` is the model space; the computation reads `a` in the model.
+  revert a
+  intro (a : ω.compatibleModel)
   -- Name the ambient reading of `a`, an element of `V →L[ℝ] V`.
   obtain ⟨d, hd⟩ : ∃ d : V →L[ℝ] V,
       mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a = d := ⟨_, rfl⟩
