@@ -117,7 +117,9 @@ diffeomorphism. No Mathlib or Tau Ceti notion is redefined.
    `V →L[ℝ] V`. This is the milestone's submanifold statement. Every
    formula of the milestone is then stated on *ambient readings*: for a
    tangent vector `a` at `J`, its reading is
-   `Ĵ = mfderiv 𝓘 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a`.
+   `Ĵ = mvfderiv 𝓘 ω.compatibleCLM J a`, the value of
+   `mfderiv 𝓘 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a` taken in `V →L[ℝ] V`
+   (`mvfderiv_apply_eq_mfderiv_apply`), so that products of readings are `*`.
 4. **The complex structure, and integrability from the Cayley chart.** In
    Cayley coordinates $J=J_0(1+C)(1-C)^{-1}$ the differential is
    $\dot C\mapsto 2J_0(1-C)^{-1}\dot C(1-C)^{-1}$, and since $C$ and $\dot C$
@@ -126,7 +128,7 @@ diffeomorphism. No Mathlib or Tau Ceti notion is redefined.
    milestone is, in the global chart, the *constant* linear structure
    $-J_0\cdot$ of the model. It is defined that way
    (`ω.compatibleSpaceComplexStructure`), and the book's formula is the
-   lemma `mfderiv_compatibleCLM_compatibleSpaceComplexStructure`. The global
+   lemma `mvfderiv_compatibleCLM_compatibleSpaceComplexStructure`. The global
    chart is then a chart in which the structure is constant, which is
    *Nijenhuis tensor*'s `IsIntegrable` at once, and `IsKahler` follows from
    `IsIntegrable.nijenhuis_eq_zero`. The Cayley chart is the bounded model
@@ -473,9 +475,10 @@ notation of the file):
 - `ω.compatibleSpaceComplexStructure : SmoothAlmostComplexStructure 𝓘 (𝒥 ω)`,
   the constant section `compatibleModelComplexStructure` in the global chart.
   API: `compatibleSpaceComplexStructure_apply` (its value in the model) and
-  `mfderiv_compatibleCLM_compatibleSpaceComplexStructure : d J (j J a) =
-  -(ω.compatibleCLM J ∘L d J a)`, writing `d J` for the differential of
-  `compatibleCLM` at `J` and `j` for the structure. The proof is the
+  `mvfderiv_compatibleCLM_compatibleSpaceComplexStructure : D J (j J a) =
+  -(ω.compatibleCLM J * D J a)`, writing `D J` for `mvfderiv 𝓘 ω.compatibleCLM J`,
+  the differential of `compatibleCLM` at `J` with values in `V →L[ℝ] V`, and
+  `j` for the structure. The proof is the
   computation of decision 4 in the chart.
 - `chartPushforward_compatibleSpaceComplexStructure`: in the global chart the
   pushed-forward structure is `compatibleModelComplexStructure` everywhere;
@@ -500,9 +503,9 @@ notation of the file):
   with `compatibleSpaceForm_apply`:
   $\Omega_J(a,b)=\tfrac12\operatorname{tr}(\hat a J\hat b)$, as the
   `bilinFormAt` of the form: `Ω.bilinFormAt J a b =
-  2⁻¹ * trace ↑(d J a ∘L ω.compatibleCLM J ∘L d J b)`. The products of
-  ambient readings are written with `∘L`, since `d J a` has type
-  `TangentSpace 𝓘(ℝ, V →L[ℝ] V) _`, on which `*` does not elaborate.
+  2⁻¹ * trace ↑(D J a * ω.compatibleCLM J * D J b)`. The ambient readings
+  are taken through `mvfderiv`, with values in `V →L[ℝ] V`, so that their
+  products are `*` in that ring.
 - `isClosed_compatibleSpaceForm`, by Tau Ceti's naturality of `mextDeriv`
   under pull-back (`Geometry/Manifold/DifferentialForm/Naturality.lean`) and
   `trace_mul_eq_zero_of_mem_tangentSpace`.
@@ -514,7 +517,7 @@ notation of the file):
   `instance : RiemannianBundle (fun J : 𝒥 ω ↦ TangentSpace 𝓘 J)` from it,
   with its `IsContMDiffRiemannianBundle` and `IsContinuousRiemannianBundle`
   instances, and `inner_compatibleSpace (a b : TangentSpace 𝓘 J) :
-  ⟪a, b⟫ = 2⁻¹ * trace ↑(d J a ∘L d J b)`.
+  ⟪a, b⟫ = 2⁻¹ * trace ↑(D J a * D J b)`.
 - `mpullback_compatibleTransport_compatibleSpaceForm` (`Ω` is invariant) and
   `ω.compatibleTransportIsometry (hΨ) : RiemannianIsometry 𝓘 𝓘 (𝒥 ω) (𝒥 ω)`,
   with the instance `isPretransitive_isom_compatibleSpace :
@@ -548,7 +551,7 @@ continuous bilinear form `B`, which need not be positive.
 ### `Geometry/Symplectic/CompatibleSpace/Curvature.lean`
 
 - `curvatureTensor_leviCivitaConnection_compatibleSpace (a b c) :
-  d J ((leviCivitaConnection 𝓘 (𝒥 ω)).curvatureTensor J a b c) =
+  D ((leviCivitaConnection 𝓘 (𝒥 ω)).curvatureTensor J a b c) =
   -(4⁻¹ : ℝ) • ⁅⁅D a, D b⁆, D c⁆`, with `D = mvfderiv 𝓘 ω.compatibleCLM J`, by
   `curvatureTensor_apply` on smooth extensions of `a b c` and the computation of
   decision 7.
@@ -605,7 +608,8 @@ For `ι` finite with decidable equality, `V = StdSpace ι`, `ω = stdForm ι`:
 ## The milestone
 
 One theorem in `Siegel.lean`, where its last ingredient is. Writing `d J` for
-`mfderiv 𝓘 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J`, `j` for
+`mfderiv 𝓘 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J`, `D J` for
+`mvfderiv 𝓘 ω.compatibleCLM J`, `j` for
 `ω.compatibleSpaceComplexStructure`, `Ω` for `ω.compatibleSpaceForm` and
 `∇` for `leviCivitaConnection 𝓘 (𝒥 ω)` (local notations of the file):
 
@@ -615,10 +619,10 @@ theorem compatibleSpace_properties (ω : SymplecticForm V) {n : ℕ}
     Manifold.IsSmoothEmbedding 𝓘 𝓘(ℝ, V →L[ℝ] V) ∞ ω.compatibleCLM ∧
     Module.finrank ℝ ω.compatibleModel = n * (n + 1) ∧
     (∀ J, LinearMap.range (d J) = ω.compatibleTangentSpaceCLM J) ∧
-    (∀ J a, d J (j J a) = -(ω.compatibleCLM J ∘L d J a)) ∧
+    (∀ J a, D J (j J a) = -(ω.compatibleCLM J * D J a)) ∧
     (∀ J a b, Ω.bilinFormAt J a b =
-      2⁻¹ * LinearMap.trace ℝ V ↑(d J a ∘L ω.compatibleCLM J ∘L d J b)) ∧
-    (∀ J (a b : TangentSpace 𝓘 J), ⟪a, b⟫ = 2⁻¹ * LinearMap.trace ℝ V ↑(d J a ∘L d J b)) ∧
+      2⁻¹ * LinearMap.trace ℝ V ↑(D J a * ω.compatibleCLM J * D J b)) ∧
+    (∀ J (a b : TangentSpace 𝓘 J), ⟪a, b⟫ = 2⁻¹ * LinearMap.trace ℝ V ↑(D J a * D J b)) ∧
     Ω.IsKahler j ∧ j.IsIntegrable ∧
     (∀ (Ψ : V ≃L[ℝ] V) (hΨ : ω.IsSymplectomorphism ω Ψ.toLinearEquiv),
       IsPseudoholomorphic j j (ω.compatibleTransport hΨ) ∧
@@ -627,20 +631,18 @@ theorem compatibleSpace_properties (ω : SymplecticForm V) {n : ℕ}
         ⟪mfderiv 𝓘 𝓘 (ω.compatibleTransport hΨ) J a,
           mfderiv 𝓘 𝓘 (ω.compatibleTransport hΨ) J b⟫_ℝ = ⟪a, b⟫_ℝ) ∧
     (∀ (γ : ℝ → 𝒥 ω) (W : Π t, TangentSpace 𝓘 (γ t)) t, … →
-      d (γ t) (∇.alongCurve γ W t) =
-        deriv (fun s ↦ (d (γ s) (W s) : V →L[ℝ] V)) t - (2⁻¹ : ℝ) • (ω.compatibleCLM (γ t) ∘L
-          (d (γ t) (W t) ∘L deriv (ω.compatibleCLM ∘ γ) t +
-            deriv (ω.compatibleCLM ∘ γ) t ∘L d (γ t) (W t)))) ∧
+      D (γ t) (∇.alongCurve γ W t) =
+        deriv (fun s ↦ D (γ s) (W s)) t - (2⁻¹ : ℝ) • (ω.compatibleCLM (γ t) *
+          (D (γ t) (W t) * deriv (ω.compatibleCLM ∘ γ) t +
+            deriv (ω.compatibleCLM ∘ γ) t * D (γ t) (W t)))) ∧
     (∀ J a, IsGeodesicCurveOnFrom 𝓘 (ω.compatibleGeodesic J a) univ J a ∧
       ∀ t, ω.compatibleCLM (ω.compatibleGeodesic J a t) =
-        ω.compatibleCLM J * NormedSpace.exp (-(t • (ω.compatibleCLM J ∘L d J a)))) ∧
+        ω.compatibleCLM J * NormedSpace.exp (-(t • (ω.compatibleCLM J * D J a)))) ∧
     (∀ J a (γ : ℝ → 𝒥 ω) s t, IsGeodesicCurveOnFrom 𝓘 γ (Ioo s t) J a →
       EqOn γ (ω.compatibleGeodesic J a) (Ioo s t)) ∧
     (∀ J, IsGeodesicallyCompleteAt 𝓘 (𝒥 ω) J) ∧
     (letI := EMetricSpace.ofRiemannianMetric 𝓘 (𝒥 ω); CompleteSpace (𝒥 ω)) ∧
-    (∀ J a b c, d J (∇.curvatureTensor J a b c) = -(4⁻¹ : ℝ) •
-      ⁅⁅mvfderiv 𝓘 ω.compatibleCLM J a, mvfderiv 𝓘 ω.compatibleCLM J b⁆,
-        mvfderiv 𝓘 ω.compatibleCLM J c⁆) ∧
+    (∀ J a b c, D J (∇.curvatureTensor J a b c) = -(4⁻¹ : ℝ) • ⁅⁅D J a, D J b⁆, D J c⁆) ∧
     (∀ J u v, ∇.sectionalCurvature _ J u v ≤ 0) ∧
     ∀ (ι : Type) [Fintype ι] [DecidableEq ι],
       (∀ Z, SiegelUpperHalfSpace.compatibleDiffeomorph ι Z =

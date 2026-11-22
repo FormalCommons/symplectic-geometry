@@ -44,11 +44,11 @@ and the metric is nondegenerate, which gives the formula.
 
 ## Main results
 
-* `TauCeti.SymplecticForm.mfderiv_compatibleCLM_eq_of_inner_eq_trace`: the algebraic step, a
+* `TauCeti.SymplecticForm.mvfderiv_compatibleCLM_eq_of_inner_eq_trace`: the algebraic step, a
   tangent vector pairing with every `w` as `½ tr(D ŵ)` has ambient reading
   `D - ½ J (Ŷ X̂ + X̂ Ŷ)`, given the differentiated relations for `D`.
-* `TauCeti.SymplecticForm.mvfderiv_mfderiv_compatibleCLM_skew` and
-  `TauCeti.SymplecticForm.compatibleCLM_comp_mvfderiv_mfderiv_add`: the derivative of the ambient
+* `TauCeti.SymplecticForm.mvfderiv_mvfderiv_compatibleCLM_skew` and
+  `TauCeti.SymplecticForm.compatibleCLM_mul_mvfderiv_mvfderiv_add`: the derivative of the ambient
   reading of a field along a map into `𝒥 ω` satisfies those relations.
 * `TauCeti.SymplecticForm.leviCivitaConnection_compatibleSpace_apply`: the Levi-Civita connection
   of `𝒥 ω` on vector fields.
@@ -75,49 +75,46 @@ variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimension
 
 local notation "𝒥" => {J : AlmostComplexStructure V // ω.Compatible J}
 
+local notation "dι" => mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM
+
 /-! ### The algebraic step -/
 
 /-- Let `a b c` be tangent vectors at `J`, with ambient readings `X̂ Ŷ ĉ`, and `D : V →L[ℝ] V`
 satisfy the derivatives of the relations defining the tangent spaces along `a`, for a field with
 value `b` at `J`: `D` is skew for `ω`, and `J D + D J = -(X̂ Ŷ + Ŷ X̂)`. If `c` pairs with every
 tangent vector `w` as `½ tr (D ŵ)`, then `ĉ = D - ½ J (Ŷ X̂ + X̂ Ŷ)`. -/
-theorem mfderiv_compatibleCLM_eq_of_inner_eq_trace {J : 𝒥}
+theorem mvfderiv_compatibleCLM_eq_of_inner_eq_trace {J : 𝒥}
     {a b c : TangentSpace 𝓘(ℝ, ω.compatibleModel) J} {D : V →L[ℝ] V}
     (hskew : ∀ u v, ω (D u) v + ω u (D v) = 0)
-    (hanti : ω.compatibleCLM J ∘L D + D ∘L ω.compatibleCLM J =
-      -(mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a ∘L
-          mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J b +
-        mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J b ∘L
-          mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a))
-    (hc : ∀ w, ⟪c, w⟫ = 2⁻¹ * LinearMap.trace ℝ V
-      ↑(D ∘L mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J w)) :
-    mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J c =
-      D - (2⁻¹ : ℝ) • (ω.compatibleCLM J ∘L
-        (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J b ∘L
-            mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a +
-          mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J a ∘L
-            mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J b)) := by
-  set d := mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J
+    (hanti : ω.compatibleCLM J * D + D * ω.compatibleCLM J =
+      -(dι J a * dι J b + dι J b * dι J a))
+    (hc : ∀ w, ⟪c, w⟫ = 2⁻¹ * LinearMap.trace ℝ V ↑(D * dι J w)) :
+    dι J c = D - (2⁻¹ : ℝ) • (ω.compatibleCLM J * (dι J b * dι J a + dι J a * dι J b)) := by
+  -- The ambient readings lie in the compatible tangent space at `J`.
+  have hmem (w : TangentSpace 𝓘(ℝ, ω.compatibleModel) J) :
+      ((dι J w : V →L[ℝ] V) : Module.End ℝ V) ∈ ω.compatibleTangentSpace J.val := by
+    rw [mvfderiv_apply_eq_mfderiv_apply]
+    exact mfderiv_compatibleCLM_mem_compatibleTangentSpace J w
   -- Name the ambient readings, elements of `V →L[ℝ] V`.
-  obtain ⟨X, hX⟩ : ∃ X : V →L[ℝ] V, d a = X := ⟨_, rfl⟩
-  obtain ⟨Y, hY⟩ : ∃ Y : V →L[ℝ] V, d b = Y := ⟨_, rfl⟩
-  have hXm := mfderiv_compatibleCLM_mem_compatibleTangentSpace J a
-  have hYm := mfderiv_compatibleCLM_mem_compatibleTangentSpace J b
+  obtain ⟨X, hX⟩ : ∃ X : V →L[ℝ] V, dι J a = X := ⟨_, rfl⟩
+  obtain ⟨Y, hY⟩ : ∃ Y : V →L[ℝ] V, dι J b = Y := ⟨_, rfl⟩
+  have hXm := hmem a
+  have hYm := hmem b
   rw [hX] at hXm
   rw [hY] at hYm
   rw [hX, hY] at hanti ⊢
   rw [mem_compatibleTangentSpace] at hXm hYm
   simp only [ContinuousLinearMap.coe_coe] at hXm hYm
-  set R := D - (2⁻¹ : ℝ) • (ω.compatibleCLM J ∘L (Y ∘L X + X ∘L Y)) with hR
+  set R := D - (2⁻¹ : ℝ) • (ω.compatibleCLM J * (Y * X + X * Y)) with hR
   -- `R` is a tangent vector at `J`.
   have hRm : (R : Module.End ℝ V) ∈ ω.compatibleTangentSpace J.val := by
     rw [mem_compatibleTangentSpace]
     refine ⟨fun v => ?_, fun u v => ?_⟩
     · have h := congrArg (fun P : V →L[ℝ] V => P v) hanti
-      simp only [add_apply, neg_apply, ContinuousLinearMap.comp_apply,
+      simp only [add_apply, neg_apply, mul_apply_eq_comp,
         compatibleCLM_apply] at h
       simp only [hR, ContinuousLinearMap.coe_coe, sub_apply,
-        smul_apply, ContinuousLinearMap.comp_apply,
+        smul_apply, mul_apply_eq_comp,
         add_apply, compatibleCLM_apply, hXm.1, hYm.1, map_neg, map_add,
         map_sub, map_smul, AlmostComplexStructure.apply_apply]
       linear_combination (norm := module) h
@@ -127,22 +124,23 @@ theorem mfderiv_compatibleCLM_eq_of_inner_eq_trace {J : 𝒥}
       have rX (p q : V) : ω (X p) q = -ω p (X q) := eq_neg_of_add_eq_zero_left (hXm.2 p q)
       have rY (p q : V) : ω (Y p) q = -ω p (Y q) := eq_neg_of_add_eq_zero_left (hYm.2 p q)
       simp only [hR, ContinuousLinearMap.coe_coe, sub_apply, smul_apply,
-        ContinuousLinearMap.comp_apply, add_apply, compatibleCLM_apply, map_sub, map_smul,
+        mul_apply_eq_comp, add_apply, compatibleCLM_apply, map_sub, map_smul,
         map_add, LinearMap.sub_apply, LinearMap.smul_apply, LinearMap.add_apply, smul_eq_mul,
         rJ, rX, rY, hXm.1, hYm.1, map_neg, neg_neg]
       linear_combination hskew u v
   -- So it is the ambient reading of a tangent vector `e`.
-  obtain ⟨e, he⟩ : (R : V →L[ℝ] V) ∈ LinearMap.range d.toLinearMap := by
+  obtain ⟨e, he⟩ : (R : V →L[ℝ] V) ∈ LinearMap.range
+      (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J).toLinearMap := by
     rw [range_mfderiv_compatibleCLM]
     exact mem_compatibleTangentSpaceCLM.2 hRm
+  have hde : dι J e = R := (mvfderiv_apply_eq_mfderiv_apply _ _ _).trans he
   -- `e` and `c` pair in the same way with every tangent vector.
-  have hde : d e = R := he
   have hec : e = c := by
     refine ext_inner_right ℝ fun w => ?_
     rw [hc, inner_compatibleSpace, hde]
-    obtain ⟨Wm, hW⟩ : ∃ Wm : V →L[ℝ] V, d w = Wm := ⟨_, rfl⟩
+    obtain ⟨Wm, hW⟩ : ∃ Wm : V →L[ℝ] V, dι J w = Wm := ⟨_, rfl⟩
     have hwm : (Wm : Module.End ℝ V) ∈ J.val.tangentSpace :=
-      hW ▸ mfderiv_compatibleCLM_mem_tangentSpace J w
+      hW ▸ compatibleTangentSpace_le_tangentSpace (hmem w)
     rw [hW]
     have hXt : (X : Module.End ℝ V) ∈ J.val.tangentSpace :=
       AlmostComplexStructure.mem_tangentSpace_iff_apply.2 hXm.1
@@ -156,11 +154,10 @@ theorem mfderiv_compatibleCLM_eq_of_inner_eq_trace {J : 𝒥}
           (AlmostComplexStructure.commute_mul_of_mem_tangentSpace hXt hYt))
     have h0 := AlmostComplexStructure.trace_mul_eq_zero_of_mem_tangentSpace hwm hS
     rw [LinearMap.trace_mul_comm] at h0
-    simp only [hR, ContinuousLinearMap.sub_comp, ContinuousLinearMap.smul_comp,
-      ContinuousLinearMap.toLinearMap_comp, ContinuousLinearMap.toLinearMap_sub,
-      ContinuousLinearMap.toLinearMap_smul, ContinuousLinearMap.toLinearMap_add,
-      toLinearMap_compatibleCLM, map_sub, map_smul, ← Module.End.mul_eq_comp, h0, smul_zero,
-      sub_zero]
+    simp only [hR, sub_mul, smul_mul_assoc, ContinuousLinearMap.toLinearMap_mul,
+      ContinuousLinearMap.toLinearMap_sub, ContinuousLinearMap.toLinearMap_smul,
+      ContinuousLinearMap.toLinearMap_add, toLinearMap_compatibleCLM, map_sub, map_smul, h0,
+      smul_zero, sub_zero]
   rw [← hec, hde]
 
 
@@ -189,55 +186,45 @@ variable {E' H' N : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [Topolog
 /-- Let `Y` be a field along a map `p` into the compatible complex structures, with ambient
 reading `Ŷ : x ↦ Ŷ x`. Each `Ŷ x` is skew for `ω`, and so is the derivative of `Ŷ` at `x`
 along any tangent vector `v` at `x`. -/
-theorem mvfderiv_mfderiv_compatibleCLM_skew {p : N → 𝒥}
+theorem mvfderiv_mvfderiv_compatibleCLM_skew {p : N → 𝒥}
     {Y : ∀ x, TangentSpace 𝓘(ℝ, ω.compatibleModel) (p x)} {x : N}
     (v : TangentSpace I x) (u w : V) :
-    ω (mvfderiv I (fun x ↦ (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM
-        (p x) (Y x) : V →L[ℝ] V)) x v u) w +
-      ω u (mvfderiv I (fun x ↦ (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V)
-        ω.compatibleCLM (p x) (Y x) : V →L[ℝ] V)) x v w) = 0 := by
-  by_cases hY : MDifferentiableAt I 𝓘(ℝ, V →L[ℝ] V) (fun x ↦
-      (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM (p x) (Y x) :
-        V →L[ℝ] V)) x
+    ω (mvfderiv I (fun x ↦ dι (p x) (Y x)) x v u) w +
+      ω u (mvfderiv I (fun x ↦ dι (p x) (Y x)) x v w) = 0 := by
+  by_cases hY : MDifferentiableAt I 𝓘(ℝ, V →L[ℝ] V) (fun x ↦ dι (p x) (Y x)) x
   swap
-  · simp [mvfderiv, mfderiv_zero_of_not_mdifferentiableAt hY]
+  · rw [mvfderiv_eq_zero_iff.2 (mfderiv_zero_of_not_mdifferentiableAt hY)]
+    simp
   have h := (skewFunctional ω u w).mvfderiv_comp_apply hY v
-  rw [show ⇑(skewFunctional ω u w) ∘ (fun x ↦ (mfderiv 𝓘(ℝ, ω.compatibleModel)
-      𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM (p x) (Y x) : V →L[ℝ] V)) = fun _ => 0 from
-    funext fun x' => (mem_compatibleTangentSpace.1
-      (mfderiv_compatibleCLM_mem_compatibleTangentSpace (p x') (Y x'))).2 u w, mvfderiv_const,
-    zero_apply] at h
+  rw [show ⇑(skewFunctional ω u w) ∘ (fun x ↦ dι (p x) (Y x)) = fun _ => 0 from
+    funext fun x' => by
+      rw [Function.comp_apply, skewFunctional_apply, mvfderiv_apply_eq_mfderiv_apply]
+      exact (mem_compatibleTangentSpace.1
+        (mfderiv_compatibleCLM_mem_compatibleTangentSpace (p x') (Y x'))).2 u w,
+    mvfderiv_const, zero_apply] at h
   rw [← skewFunctional_apply, ← h]
 
 /-- Let `Y` be a field along a map `p` into the compatible complex structures, differentiable
 at `x` with its ambient reading `Ŷ`. Differentiating `J Ŷ + Ŷ J = 0`, with `J = p x`, along a
 tangent vector `v` at `x` gives `J D + D J = -(J̇ Ŷ + Ŷ J̇)`, where `D` is the derivative of `Ŷ`
 and `J̇` that of `p` read in `V →L[ℝ] V`. -/
-theorem compatibleCLM_comp_mvfderiv_mfderiv_add {p : N → 𝒥}
+theorem compatibleCLM_mul_mvfderiv_mvfderiv_add {p : N → 𝒥}
     {Y : ∀ x, TangentSpace 𝓘(ℝ, ω.compatibleModel) (p x)} {x : N}
     (hp : MDifferentiableAt I 𝓘(ℝ, ω.compatibleModel) p x)
-    (hY : MDifferentiableAt I 𝓘(ℝ, V →L[ℝ] V) (fun x ↦
-      (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM (p x) (Y x) :
-        V →L[ℝ] V)) x)
+    (hY : MDifferentiableAt I 𝓘(ℝ, V →L[ℝ] V) (fun x ↦ dι (p x) (Y x)) x)
     (v : TangentSpace I x) :
-    ω.compatibleCLM (p x) ∘L mvfderiv I (fun x ↦ (mfderiv 𝓘(ℝ, ω.compatibleModel)
-        𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM (p x) (Y x) : V →L[ℝ] V)) x v +
-      mvfderiv I (fun x ↦ (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM
-        (p x) (Y x) : V →L[ℝ] V)) x v ∘L ω.compatibleCLM (p x) =
-      -(mvfderiv I (ω.compatibleCLM ∘ p) x v ∘L
-          mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM (p x) (Y x) +
-        mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM (p x) (Y x) ∘L
-          mvfderiv I (ω.compatibleCLM ∘ p) x v) := by
-  set g : N → V →L[ℝ] V := fun x ↦
-    mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM (p x) (Y x)
+    ω.compatibleCLM (p x) * mvfderiv I (fun x ↦ dι (p x) (Y x)) x v +
+      mvfderiv I (fun x ↦ dι (p x) (Y x)) x v * ω.compatibleCLM (p x) =
+      -(mvfderiv I (ω.compatibleCLM ∘ p) x v * dι (p x) (Y x) +
+        dι (p x) (Y x) * mvfderiv I (ω.compatibleCLM ∘ p) x v) := by
+  set g : N → V →L[ℝ] V := fun x ↦ dι (p x) (Y x)
   have hc : MDifferentiableAt I 𝓘(ℝ, V →L[ℝ] V) (ω.compatibleCLM ∘ p) x :=
     ((contMDiff_compatibleCLM (n := 1)).mdifferentiableAt one_ne_zero).comp x hp
   -- `J g + g J = 0` everywhere; differentiate by the product rule in `V →L[ℝ] V`.
   have h0 : (fun y ↦ (ω.compatibleCLM ∘ p) y * g y + g y * (ω.compatibleCLM ∘ p) y) =
       fun _ ↦ 0 := by
     funext y
-    simpa only [Function.comp_apply, mvfderiv_apply_eq_mfderiv_apply] using
-      compatibleCLM_mul_mvfderiv_add_mvfderiv_mul_compatibleCLM (p y) (Y y)
+    exact compatibleCLM_mul_mvfderiv_add_mvfderiv_mul_compatibleCLM (p y) (Y y)
   have hv := congrArg (fun f ↦ mvfderiv I f x v) h0
   have hcg : MDifferentiableAt I 𝓘(ℝ, V →L[ℝ] V) (fun y ↦ (ω.compatibleCLM ∘ p) y * g y) x :=
     hc.mul hY
@@ -245,7 +232,7 @@ theorem compatibleCLM_comp_mvfderiv_mfderiv_add {p : N → 𝒥}
     hY.mul hc
   rw [mvfderiv_fun_add hcg hgc, add_apply, mvfderiv_fun_mul_apply' hc hY,
     mvfderiv_fun_mul_apply' hY hc, mvfderiv_const, zero_apply] at hv
-  simp only [Function.comp_apply, ContinuousLinearMap.mul_def] at hv
+  simp only [Function.comp_apply] at hv
   rw [eq_neg_iff_add_eq_zero, ← hv]
   abel
 
@@ -272,29 +259,24 @@ theorem leviCivitaConnection_compatibleSpace_apply
               mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J a +
             mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J a *
               mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J (Y J))) := by
-  simp only [mvfderiv_apply_eq_mfderiv_apply (f := ω.compatibleCLM), ContinuousLinearMap.mul_def]
   have hf : ContMDiffAt 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) 2 ω.compatibleCLM J :=
     contMDiff_compatibleCLM.contMDiffAt
   -- The ambient reading of `Y`, a function with values in `V →L[ℝ] V`.
-  set g : 𝒥 → V →L[ℝ] V := fun J' ↦
-    mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM J' (Y J')
-  have hgm : g = fun J' ↦ mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J' (Y J') :=
-    funext fun J' => (mvfderiv_apply_eq_mfderiv_apply _ _ _).symm
-  have hgd : MDifferentiableAt 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) g J :=
-    hgm ▸ TauCeti.mdifferentiableAt_mvfderiv_apply hf le_rfl hY
-  refine mfderiv_compatibleCLM_eq_of_inner_eq_trace (a := a) (b := Y J)
-    (mvfderiv_mfderiv_compatibleCLM_skew (p := fun J' ↦ J') a) ?_ fun w => ?_
-  · have h := compatibleCLM_comp_mvfderiv_mfderiv_add (p := fun J' ↦ J') (Y := Y)
-      mdifferentiableAt_id hgd a
-    simp only [Function.comp_def] at h
-    rwa [mvfderiv_apply_eq_mfderiv_apply] at h
+  have hgd : MDifferentiableAt 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V)
+      (fun J' : 𝒥 ↦ dι J' (Y J')) J :=
+    TauCeti.mdifferentiableAt_mvfderiv_apply hf le_rfl hY
+  refine mvfderiv_compatibleCLM_eq_of_inner_eq_trace (a := a) (b := Y J)
+    (mvfderiv_mvfderiv_compatibleCLM_skew (p := fun J' ↦ J') a) ?_ fun w => ?_
+  · simpa only [Function.comp_def] using
+      compatibleCLM_mul_mvfderiv_mvfderiv_add (p := fun J' ↦ J') (Y := Y)
+        mdifferentiableAt_id hgd a
   · -- The Gauss formula for the trace form.
     have h := (CovariantDerivative.isLeviCivitaConnection_leviCivitaConnection
       𝓘(ℝ, ω.compatibleModel) (M := 𝒥)).inner_apply_eq_bilin_mvfderiv hf
       (ContinuousLinearMap.smul_traceForm_comm _) inner_compatibleSpace_eq_smul_traceForm
       (mdifferentiableAt_extend _ _ a) hY w
-    rwa [extend_apply_self, ← hgm, smul_apply, smul_apply,
-      smul_eq_mul, ContinuousLinearMap.traceForm_apply, mvfderiv_apply_eq_mfderiv_apply] at h
+    rwa [extend_apply_self, smul_apply, smul_apply, smul_eq_mul,
+      ContinuousLinearMap.traceForm_apply, ← ContinuousLinearMap.mul_def] at h
 
 /-- **The covariant derivative along a curve in the space of compatible complex structures.** For
 a curve `γ` and a field `W` along it, differentiable at `t` as a curve in the tangent bundle, the
@@ -305,37 +287,27 @@ theorem alongCurve_leviCivitaConnection_compatibleSpace {γ : ℝ → 𝒥}
     {W : ∀ r, TangentSpace 𝓘(ℝ, ω.compatibleModel) (γ r)} {t : ℝ}
     (hW : MDifferentiableAt 𝓘(ℝ) 𝓘(ℝ, ω.compatibleModel).tangent
       (fun r ↦ TotalSpace.mk' ω.compatibleModel (γ r) (W r)) t) :
-    mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM (γ t)
-        (alongCurve (leviCivitaConnection 𝓘(ℝ, ω.compatibleModel) 𝒥) γ W t) =
-      deriv (fun r ↦ (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM (γ r)
-          (W r) : V →L[ℝ] V)) t -
-        (2⁻¹ : ℝ) • (ω.compatibleCLM (γ t) ∘L
-          (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM (γ t) (W t) ∘L
-              deriv (ω.compatibleCLM ∘ γ) t +
-            deriv (ω.compatibleCLM ∘ γ) t ∘L
-              mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM (γ t) (W t))) := by
+    dι (γ t) (alongCurve (leviCivitaConnection 𝓘(ℝ, ω.compatibleModel) 𝒥) γ W t) =
+      deriv (fun r ↦ dι (γ r) (W r)) t -
+        (2⁻¹ : ℝ) • (ω.compatibleCLM (γ t) *
+          (dι (γ t) (W t) * deriv (ω.compatibleCLM ∘ γ) t +
+            deriv (ω.compatibleCLM ∘ γ) t * dι (γ t) (W t))) := by
   have hγ : MDifferentiableAt 𝓘(ℝ) 𝓘(ℝ, ω.compatibleModel) γ t :=
     ((mdifferentiableAt_totalSpace _ _).1 hW).1
   have hf : ContMDiffAt 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) 2 ω.compatibleCLM (γ t) :=
     contMDiff_compatibleCLM.contMDiffAt
   -- The ambient reading of `W`, a curve in `V →L[ℝ] V`, and its derivative.
-  set g : ℝ → V →L[ℝ] V := fun r ↦
-    mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM (γ r) (W r) with hg
-  have hgm : g = fun r ↦ mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM (γ r) (W r) :=
-    funext fun r => (mvfderiv_apply_eq_mfderiv_apply _ _ _).symm
-  have hgd' : MDifferentiableAt 𝓘(ℝ) 𝓘(ℝ, V →L[ℝ] V) g t := by
-    rw [hgm]
-    exact ((ContMDiffAt.contMDiffAt_mvfderiv_apply
+  set g : ℝ → V →L[ℝ] V := fun r ↦ dι (γ r) (W r) with hg
+  have hgd' : MDifferentiableAt 𝓘(ℝ) 𝓘(ℝ, V →L[ℝ] V) g t :=
+    ((ContMDiffAt.contMDiffAt_mvfderiv_apply
       (p := TotalSpace.mk' ω.compatibleModel (γ t) (W t)) hf (m := 1)
         (by norm_num)).mdifferentiableAt one_ne_zero).comp t hW
   have hgd : HasDerivAt g (deriv g t) t :=
     (mdifferentiableAt_iff_differentiableAt.1 hgd').hasDerivAt
   -- The velocity of `γ`, read in `V →L[ℝ] V`.
   have hc : HasDerivAt (ω.compatibleCLM ∘ γ)
-      (mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM (γ t)
-        (curveVelocity 𝓘(ℝ, ω.compatibleModel) γ t)) t := by
-    rw [← mvfderiv_apply_eq_mfderiv_apply]
-    exact hasDerivAt_comp_curve (hf.mdifferentiableAt two_ne_zero) (hasMFDerivAt_curveVelocity hγ)
+      (dι (γ t) (curveVelocity 𝓘(ℝ, ω.compatibleModel) γ t)) t :=
+    hasDerivAt_comp_curve (hf.mdifferentiableAt two_ne_zero) (hasMFDerivAt_curveVelocity hγ)
   -- On curves, `mvfderiv` at the unit vector is `deriv`. The unit tangent vector `1` lives in
   -- `TangentSpace 𝓘(ℝ) t`, a type synonym of `ℝ` that the rewrite lemmas do not see through,
   -- so the last step is closed by `exact`.
@@ -343,25 +315,23 @@ theorem alongCurve_leviCivitaConnection_compatibleSpace {γ : ℝ → 𝒥}
     rw [mvfderiv_eq_fderiv_apply]
     exact fderiv_apply_one_eq_deriv
   have hX : mvfderiv 𝓘(ℝ) (ω.compatibleCLM ∘ γ) t 1 =
-      mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ω.compatibleCLM (γ t)
-        (curveVelocity 𝓘(ℝ, ω.compatibleModel) γ t) := by
+      dι (γ t) (curveVelocity 𝓘(ℝ, ω.compatibleModel) γ t) := by
     rw [mvfderiv_eq_fderiv_apply, ← hc.deriv]
     exact fderiv_apply_one_eq_deriv
   rw [hc.deriv]
-  refine mfderiv_compatibleCLM_eq_of_inner_eq_trace
+  refine mvfderiv_compatibleCLM_eq_of_inner_eq_trace
     (a := curveVelocity 𝓘(ℝ, ω.compatibleModel) γ t) (b := W t) (fun u v => ?_) ?_ fun w => ?_
-  · have h := mvfderiv_mfderiv_compatibleCLM_skew (I := 𝓘(ℝ)) (p := γ) (Y := W) (x := t) 1 u v
+  · have h := mvfderiv_mvfderiv_compatibleCLM_skew (I := 𝓘(ℝ)) (p := γ) (Y := W) (x := t) 1 u v
     rwa [← hg, hD] at h
-  · have h := compatibleCLM_comp_mvfderiv_mfderiv_add (Y := W) hγ hgd' 1
+  · have h := compatibleCLM_mul_mvfderiv_mvfderiv_add (Y := W) hγ hgd' 1
     rwa [← hg, hD, hX] at h
   · -- The Gauss formula along a curve, for the trace form.
     have h := (CovariantDerivative.isLeviCivitaConnection_leviCivitaConnection
       𝓘(ℝ, ω.compatibleModel) (M := 𝒥)).inner_alongCurve_eq_bilin hf
       (ContinuousLinearMap.smul_traceForm_comm _) inner_compatibleSpace_eq_smul_traceForm hγ
-      (differentiableAt_sectionCoord γ W hW (mem_baseSet_trivializationAt _ _ (γ t)))
-      (hgm ▸ hgd) w
+      (differentiableAt_sectionCoord γ W hW (mem_baseSet_trivializationAt _ _ (γ t))) hgd w
     rwa [smul_apply, smul_apply, smul_eq_mul,
-      ContinuousLinearMap.traceForm_apply, mvfderiv_apply_eq_mfderiv_apply] at h
+      ContinuousLinearMap.traceForm_apply, ← ContinuousLinearMap.mul_def] at h
 
 /-! ### Regularity of ambient readings -/
 
