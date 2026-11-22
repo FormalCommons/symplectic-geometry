@@ -24,6 +24,7 @@ pair of `P`, its faces lifted to singular simplices of `A` (`TopPair.liftSimplex
 * `TopPair.relClass_singularHomologyMap`: naturality in maps of pairs.
 * `TopPair.relClass_localHomologyRestriction`: compatibility with the restriction
   `Hₙ₊₁(M, M ∖ T) ⟶ Hₙ₊₁(M, M ∖ S)` for `S ⊆ T`.
+* `TopPair.relClass_localHomologyMap`: naturality in continuous maps, on local homology.
 * `TopPair.relClass_singularHomologyδ`: the connecting morphism of the pair sends the class to that
   of the cycle `∑ i, (-1) ^ i • t i` of `A`, where the `t i` lift the faces of `σ`; for a singular
   `2`-simplex, to that of `t 0 - t 1 + t 2` (`TopPair.relClass_singularHomologyδ_two`).
@@ -199,6 +200,45 @@ lemma relClass_localHomologyRestriction {M : Type w} [TopologicalSpace M] {S T :
     (congrArg TopCat.toSSet.map (ofSubsetMap_fst _ _)).trans (CategoryTheory.Functor.map_id _ _)
   rw [e, NatTrans.id_app]
   exact ConcreteCategory.id_apply _
+
+/-- For a continuous map `j : M → N` and `S ⊆ j ⁻¹' T`, a singular simplex of `M` whose image
+under `j` has its faces in `N ∖ T` has its faces in `M ∖ S`. -/
+lemma range_toSSetObjEquiv_δ_subset_of_toSSet_map_app {M N : Type w} [TopologicalSpace M]
+    [TopologicalSpace N] (j : C(M, N)) {S : Set M} {T : Set N} (h : S ⊆ j ⁻¹' T)
+    (σ : (TopCat.toSSet.obj (TopCat.of M)) _⦋n + 1⦌)
+    (hσ : ∀ i, Set.range ((TopCat.of N).toSSetObjEquiv _
+      ((TopCat.toSSet.obj _).δ i ((TopCat.toSSet.map (TopCat.ofHom j)).app _ σ))) ⊆
+        Set.range (ofSubset (Tᶜ : Set (TopCat.of N))).map) (i : Fin (n + 2)) :
+    Set.range ((TopCat.of M).toSSetObjEquiv _ ((TopCat.toSSet.obj _).δ i σ)) ⊆
+      Set.range (ofSubset (Sᶜ : Set (TopCat.of M))).map := by
+  rintro _ ⟨z, rfl⟩
+  obtain ⟨⟨y, hy⟩, hyz⟩ := hσ i ⟨z, rfl⟩
+  -- The inclusion of `N ∖ T` sends `⟨y, hy⟩` to `y`, so `hyz` says that `y` is `j` of the point.
+  exact ⟨⟨_, fun hS ↦ hy ((show y = _ from hyz) ▸ h hS)⟩, rfl⟩
+
+/-- **The class of a singular simplex in local homology is natural**: for a continuous map
+`j : M → N` with `j ⁻¹' T ⊆ S`, the map `Hₙ₊₁(M, M ∖ S) ⟶ Hₙ₊₁(N, N ∖ T)` induced by `j` carries
+the class of a simplex `σ` whose faces avoid `S` to the class of its image `τ`. -/
+lemma relClass_localHomologyMap {M N : Type w} [TopologicalSpace M] [TopologicalSpace N]
+    (j : C(M, N)) {S : Set M} {T : Set N} (h : j ⁻¹' T ⊆ S)
+    (σ : (TopCat.toSSet.obj (TopCat.of M)) _⦋n + 1⦌)
+    (hσ : ∀ i, Set.range ((TopCat.of M).toSSetObjEquiv _ ((TopCat.toSSet.obj _).δ i σ)) ⊆
+      Set.range (ofSubset (Sᶜ : Set (TopCat.of M))).map)
+    {τ : (TopCat.toSSet.obj (TopCat.of N)) _⦋n + 1⦌}
+    (hτ : ∀ i, Set.range ((TopCat.of N).toSSetObjEquiv _ ((TopCat.toSSet.obj _).δ i τ)) ⊆
+      Set.range (ofSubset (Tᶜ : Set (TopCat.of N))).map)
+    (hστ : (TopCat.toSSet.map (TopCat.ofHom j)).app _ σ = τ) :
+    (ofSubset (Sᶜ : Set (TopCat.of M))).relClass R σ hσ ≫
+        TauCeti.localHomologyMap R j h (n + 1) =
+      (ofSubset (Tᶜ : Set (TopCat.of N))).relClass R τ hτ := by
+  subst hστ
+  rw [TauCeti.localHomologyMap_def]
+  refine (relClass_singularHomologyMap (P := ofSubset (Sᶜ : Set (TopCat.of M))) R σ hσ _).trans ?_
+  congr 1
+  -- After the rewrite the two sides agree up to unfolding the source `(ofSubset Sᶜ).fst` of the
+  -- map of pairs, which is `TopCat.of M`.
+  rw [ofSubsetMap_fst]
+  rfl
 
 end Abelian
 
