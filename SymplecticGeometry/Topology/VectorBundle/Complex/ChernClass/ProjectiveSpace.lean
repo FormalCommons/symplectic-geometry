@@ -119,8 +119,7 @@ theorem hyperplaneClass_map (f : V →ₗ[ℂ] W) (hf : Function.Injective f) :
     (finrank_self ℂ) (g := ⟨map f hf, continuous_map hf hfc⟩)
     (continuous_tautologicalMapEquiv f hf hfc)
   rw [hyperplaneClass_def, hyperplaneClass_def, map_neg, h]
-  exact congrArg _ (CategoryTheory.ConcreteCategory.congr_hom
-    (TopCat.uliftIntegralCohomologyIso_naturality _ 2) _).symm
+  exact congrArg _ (TopCat.uliftIntegralCohomologyIso_naturality_apply _ 2 _).symm
 
 /-! ### The cohomology ring -/
 

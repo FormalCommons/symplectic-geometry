@@ -105,7 +105,7 @@ theorem chernClass_finrank_eq_complexEulerClass {r : ℕ} (hG : finrank ℂ G = 
       ← complexEulerClass_eq_of_fiberwise (E' := ⇑(ProjectiveBundle.projection ℂ G E) *ᵖ E) _ _
         ProjectiveBundle.continuous_pullbackEquivTautologicalProdComplement,
       complexEulerClass_pullback]
-    exact ConcreteCategory.congr_hom (TopCat.uliftIntegralCohomologyIso_naturality _ _) _
+    exact TopCat.uliftIntegralCohomologyIso_naturality_apply _ _ _
 
 end SymplecticGeometry.Bundle
 
