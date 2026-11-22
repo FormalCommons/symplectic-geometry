@@ -179,7 +179,7 @@ These settle the questions that `DESIGN.md` leaves to this file.
    of `ContMDiff/TimeExtension.lean` states it as `timeExtend_eq_zero`.
    `PoissonAlgebra.lean` takes nothing from *Smooth families*, and
    `Flux/Hamiltonian.lean` only the merged `DeRham/GoodCover/Basic.lean` and
-   `DifferentialForm/SmoothFamily/Basic.lean`, through
+   `DeRham/SmoothFamily/Contractible.lean`, through
    `DeRham/FamilyPrimitive.lean`.
 4. **Hamiltonians from exactness** are built directly, not from the
    smooth-primitive map of `DeRham/SmoothFamily/GoodCover.lean`, which needs a compact
@@ -289,7 +289,7 @@ Imports between the files: `Velocity.lean` imports `Instances/Icc.lean`,
 `Flux/Hamiltonian.lean` import `Velocity.lean`; `Flux/Hamiltonian.lean`
 imports `Diffeotopy/Basic.lean` and `DeRham/FamilyPrimitive.lean`, which
 imports `DeRham/GoodCover/Basic.lean` and
-`DifferentialForm/SmoothFamily/Basic.lean` of *Smooth families*;
+`DeRham/SmoothFamily/Contractible.lean` of *Smooth families*;
 `Flux/CompactSupport.lean` imports `Flux/Hamiltonian.lean`. `PoissonAlgebra.lean` imports Tau Ceti,
 among it `Hamiltonian/ExtendedPhaseSpace/Manifold.lean` for the energy
 identity, `Algebra/Lie/Quotient.lean` for the value of
@@ -582,8 +582,9 @@ identity, which Tau Ceti proves (`IsNondegenerate.poissonBracket_jacobi`).
   over `ℝ`, Decision 3) for `SymplecticIsotopy.lean`, and
   `ContMDiff/TimeExtension.lean` (the extension in time, Decision 3) for
   `Flux/CompactSupport.lean`, and the merged `DeRham/GoodCover/Basic.lean`
-  (smoothly contractible manifolds) and `DifferentialForm/SmoothFamily/Basic.lean`
-  (smooth families of forms) for `DeRham/FamilyPrimitive.lean`.
+  (smoothly contractible manifolds) and `DeRham/SmoothFamily/Contractible.lean`
+  (the homotopy operator of a contraction, on smooth families of forms through
+  `IsSmoothFamily.homotopyOperator`) for `DeRham/FamilyPrimitive.lean`.
   `Velocity.lean` (with `Instances/Icc.lean`) uses only Mathlib and Tau Ceti.
 - From *Contact geometry*: `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
   (the general flow lemma) for `PoissonAlgebra.lean`.
