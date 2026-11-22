@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Basic
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Liouville
 public import TauCeti.Geometry.Symplectic.Lagrangian.Manifold
-import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
@@ -92,10 +91,9 @@ theorem IsLagrangianMap.exists_symplectomorphism_cotangent {σ : SmoothTwoForm I
   have := f.isEmbedding.t2Space
   have := f.isEmbedding.isInducing.secondCountableTopology
   rcases isEmpty_or_nonempty L with hL | ⟨⟨q₀⟩⟩
-  · have : IsEmpty (⊥ : Opens (CotangentBundle J L)) := ⟨fun x ↦ x.property⟩
-    have : IsEmpty (⊥ : Opens M) := ⟨fun x ↦ x.property⟩
-    exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun q ↦ (hL.false q).elim,
-      Subtype.ext (funext fun x ↦ (IsEmpty.false x).elim)⟩
+  · obtain ⟨ψ, hψ⟩ := SmoothTwoForm.exists_diffeomorph_bot_mpullback_eq
+      (CotangentBundle.symplecticForm J L) σ
+    exact ⟨⊥, ⊥, ψ, fun q ↦ (hL.false q).elim, hψ⟩
   have hcoe := Bundle.coe_zeroSectionEmbedding J (EL →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)
   generalize Bundle.zeroSectionEmbedding J (EL →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) = f₀
     at hcoe
