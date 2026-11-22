@@ -27,7 +27,7 @@ is written with `Submodule.comap`, as Tau Ceti writes pullbacks of distributions
 * `TauCeti.Diffeotopy.transports_refl`: the constant diffeotopy transports every constant family.
 * `TauCeti.Diffeotopy.Transports.trans`: if `χ` preserves `ξ_0` at all times and `Φ` transports
   `ξ`, then `χ.trans Φ`, whose slice at `t` is `ψ_t ∘ χ_t`, transports `ξ`. So a transporting
-  diffeotopy is not unique.
+  diffeotopy can be changed by composing it with any diffeotopy that preserves `ξ_0`.
 
 ## References
 
@@ -48,7 +48,10 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSp
 /-- A diffeotopy `ψ_t` of `M` **transports** a family `ξ_t` of distributions on `M`,
 `t ∈ [0, 1]`, if `ψ_t^* ξ_t = ξ_0` for every `t`: for all `t` and `x`, a tangent vector at `x`
 lies in `ξ_0 x` if and only if the differential of `ψ_t` at `x` sends it into
-`ξ_t (ψ_t x)`. -/
+`ξ_t (ψ_t x)`.
+
+The predicate has this meaning only for `1 ≤ n`. For `n = 0`, `mfderiv` is `0` where a slice is
+not differentiable, so there the condition forces `ξ_0 x = ⊤`. -/
 def Transports (Φ : Diffeotopy J n M)
     (ξ : unitInterval → Π x : M, Submodule ℝ (TangentSpace J x)) : Prop :=
   ∀ t x, ξ 0 x = (ξ t (Φ (t, x))).comap (mfderiv J J (Φ.timeSlice t) x).toLinearMap
