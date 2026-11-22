@@ -594,11 +594,11 @@ set:
 | `HasSymplecticTangentImages.exists_darbouxChart_inter_range_eq` | `finrank ℝ E' = 2 * k` | `{z | ∀ j : Fin n, k ≤ (j : ℕ) → z.x j = 0 ∧ z.y j = 0}` |
 | `IsIsotropicMap.exists_darbouxChart_inter_range_eq` | `finrank ℝ E' = k` | `{z | z.y = 0 ∧ ∀ j : Fin n, k ≤ (j : ℕ) → z.x j = 0}` |
 | `IsLagrangianMap.exists_darbouxChart_inter_range_eq` | — | `{z | z.y = 0}` |
-| `IsCoisotropicMap.exists_darbouxChart_inter_range_eq` | `finrank ℝ E' = 2 * n - k` | `{z | ∀ j : Fin n, j < k → z.y j = 0}` |
+| `IsCoisotropicMap.exists_darbouxChart_inter_range_eq` | `finrank ℝ E' = 2 * n - k` | `{z | ∀ j : Fin n, (j : ℕ) < k → z.y j = 0}` |
 
 The coisotropic theorem also states that at every `x = f q` in the source,
 `mvfderiv I e x` maps $(T_xQ)^\omega$ onto
-`{v | v.y = 0 ∧ ∀ j : Fin n, k ≤ j → v.x j = 0}`, the span of the first
+`{v | v.y = 0 ∧ ∀ j : Fin n, k ≤ (j : ℕ) → v.x j = 0}`, the span of the first
 `k` vectors $\partial_{q_j}$. The four theorems share the milestone line.
 Milestone: *Darboux charts adapted to submanifolds*.
 
@@ -650,7 +650,7 @@ four theorems share.
   `Topology/Algebra/Module/BilinearForm.lean` (merged), in
   `Geometry/Manifold/VectorBundle/Adjoint.lean`.
 - From *Standard model*: `StdSpace`, `stdForm`, `stdForm_apply`, and the
-  inclusions `StdSpace.stdInl` and `StdSpace.ofX` that this part adds to
+  inclusions `StdSpace.stdInl`, `StdSpace.stdInr` and `StdSpace.ofX` that this part adds to
   `LinearAlgebra/Symplectic/Standard/Basic.lean`, in `AdaptedDarboux.lean`;
   `StdSpace` also in `CharacteristicFoliation.lean`.
 - *Cotangent bundles* is not used: `Lagrangian.lean` needs only Tau Ceti's
