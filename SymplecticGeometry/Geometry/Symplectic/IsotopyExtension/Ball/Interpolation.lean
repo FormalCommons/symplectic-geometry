@@ -23,12 +23,12 @@ import TauCeti.Topology.Algebra.Module.Alternating.Basic
 # A family of maps along a ball with prescribed ends
 
 Let `B(r)` be the closed ball `Metric.closedBall 0 r` of `StdSpace (Fin n)`, `ω₀` the standard
-form, and `σ` a nondegenerate two-form on a manifold `M` of dimension `2 n`. Given symplectic
-embeddings `j₀`, `j₁` of a ball `B(r)` and a smooth family `e` of symplectic embeddings of a
-smaller ball `B(r₀)`, `0 ≤ r₀ < r`, with `e 0 = j₀` and `e 1 = j₁` on `B(r₀)`, this file builds a
-family `k` of maps, jointly smooth near `[0, 1] × B(r₀)`, that is `e` on `B(r₀)` at every time,
-pulls `σ` back to `ω₀` at every point of `B(r₀)`, and whose ends are `j₀` and `j₁` on a whole
-neighbourhood of `B(r₀)`
+form, and `σ` a two-form on `M`, of dimension `2 n`, that is nondegenerate at each point. Given
+symplectic embeddings `j₀`, `j₁` of a ball `B(r)` and a family `e` over `[0, 1]` of symplectic
+embeddings of a smaller ball `B(r₀)`, `0 ≤ r₀ < r`, with `e 0 = j₀` and `e 1 = j₁` on `B(r₀)`,
+this file builds a family `k` of maps, jointly smooth near `[0, 1] × B(r₀)`, that is `e` on
+`B(r₀)` at every time, pulls `σ` back to `ω₀` at every point of `B(r₀)`, and whose ends are `j₀`
+and `j₁` on a whole neighbourhood of `B(r₀)`
 (`SymplecticGeometry.IsSymplecticBallFamily.exists_contMDiffOn_eqOn_mpullback_eq`). These are the
 first two steps of the proof of the symplectic ball extension of McDuff–Salamon, Theorem 3.3.1;
 Moser's argument then makes the slices of `k` symplectic near `B(r₀)`.
@@ -470,9 +470,9 @@ private theorem exists_contMDiffOn_mpullback_eq_of_path [FiniteDimensional ℝ E
     ext v
     exact (DFunLike.congr_fun (hFΨ 1).mfderiv_eq (B v)).symm.trans (hAB v)
 
-/-- **A family of maps along a ball with prescribed ends.** Let `σ` be a nondegenerate two-form
-on a manifold `M` of dimension `2 n`, let `j₀`, `j₁` be symplectic embeddings of `B(r)`, and let
-`e` be a smooth family of symplectic embeddings of `B(r₀)`, `0 ≤ r₀ < r`, with `e 0 = j₀` and
+/-- **A family of maps along a ball with prescribed ends.** Let `M` have dimension `2 n` and carry
+a two-form `σ` that is nondegenerate at each point, let `j₀`, `j₁` be symplectic embeddings of
+`B(r)`, and let `e` be an `IsSymplecticBallFamily` of radius `r₀`, `0 ≤ r₀ < r`, with `e 0 = j₀` and
 `e 1 = j₁` on `B(r₀)`. Then there is a family `k`, jointly smooth on `[0, 1] × U` for an open
 `U ⊇ B(r₀)`, that agrees with `e` on `B(r₀)` at every time, whose slices pull `σ` back to `ω₀` at
 every point of `B(r₀)`, and whose slices at times `0` and `1` are `j₀` and `j₁` on `U`. -/
