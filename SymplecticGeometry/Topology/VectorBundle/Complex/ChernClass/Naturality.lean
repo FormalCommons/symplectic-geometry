@@ -41,7 +41,7 @@ positive degree.
   of the Chern classes to one of the same form, with coefficients pulled back to the new base.
 * `chernClass_pullback`, `totalChernClass_pullback`: `c_k(f *ᵖ E) = f^* c_k(E)` and
   `c(f *ᵖ E) = f^* c(E)`, for `f : C(B', B)` between compact spaces.
-* `chernClass_congr`: a complex-linear fibrewise isomorphism, continuous
+* `chernClass_congr`, `totalChernClass_congr`: a complex-linear fibrewise isomorphism, continuous
   on total spaces, preserves the Chern classes; the two models may differ.
 * `chernClass_trivial`, `totalChernClass_trivial`: the Chern classes of `Bundle.Trivial B G`
   vanish in positive degree, and its total Chern class is `1`.
@@ -263,6 +263,20 @@ theorem chernClass_congr
     (E' := E) (VectorBundle.finrank_model_eq φ).symm (ContinuousMap.id B) _
     (ContinuousMap.ext fun _ ↦ rfl) hx k
   rw [h, TopCat.ofHom_id, TopCat.singularCohomologyMap_id, ModuleCat.id_apply]
+
+omit [FiniteDimensional ℂ G'] in
+/-- **Isomorphic complex bundles have the same total Chern class.** The isomorphism is a family of
+complex-linear equivalences of the fibres, continuous on total spaces; the two models may
+differ. -/
+theorem totalChernClass_congr
+    {E' : B → Type} [∀ b, AddCommGroup (E' b)] [∀ b, Module ℂ (E' b)] [∀ b, Module ℝ (E' b)]
+    [∀ b, IsScalarTower ℝ ℂ (E' b)] [∀ b, TopologicalSpace (E' b)]
+    [TopologicalSpace (TotalSpace G' E')] [FiberBundle G' E'] [VectorBundle ℂ G' E']
+    (φ : ∀ b, E b ≃L[ℂ] E' b)
+    (hφ : Continuous fun v : TotalSpace G E ↦ TotalSpace.mk' G' v.proj (φ v.proj v.snd)) :
+    totalChernClass G E = totalChernClass G' E' :=
+  DFinsupp.ext fun k ↦ by
+    rw [totalChernClass_apply, totalChernClass_apply, chernClass_congr φ hφ k]
 
 /-! ### Trivial bundles -/
 

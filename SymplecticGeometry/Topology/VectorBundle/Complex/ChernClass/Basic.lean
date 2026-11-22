@@ -28,7 +28,9 @@ definition, in the normalization of Bott–Tu, §20: for a line bundle `c₁` is
   by degree, the classes of the Leray–Hirsch theorem.
 * `SymplecticGeometry.Bundle.chernClass G E k`: the Chern class `c_k(E)`, with `chernClass_def`.
 * `SymplecticGeometry.Bundle.totalChernClass G E`: the total Chern class `∑_{k ≤ n} c_k(E)` in the
-  even integral cohomology ring, with `totalChernClass_def` and `totalChernClass_apply`.
+  even integral cohomology ring, with `totalChernClass_def` and `totalChernClass_apply`; it is `1`
+  in rank zero and `1 + c₁(E)` in rank one (`totalChernClass_eq_one_of_finrank_eq_zero`,
+  `totalChernClass_eq_one_add_of_finrank_eq_one`).
 
 ## Main results
 
@@ -304,6 +306,18 @@ theorem totalChernClass_apply (k : ℕ) : totalChernClass G E k = chernClass G E
   · rw [chernClass_eq_zero_of_finrank_lt G E hk]
     exact Finset.sum_eq_zero fun i hi ↦
       DirectSum.of_eq_of_ne _ _ _ (by rw [Finset.mem_range] at hi; omega)
+
+/-- The total Chern class of a bundle of rank zero is `1`. -/
+theorem totalChernClass_eq_one_of_finrank_eq_zero (hG : finrank ℂ G = 0) :
+    totalChernClass G E = 1 := by
+  rw [totalChernClass_def, hG, Finset.sum_range_one, chernClass_zero,
+    TopCat.evenIntegralCohomologyOf_one]
+
+/-- The total Chern class of a bundle of rank one is `1 + c₁(E)`. -/
+theorem totalChernClass_eq_one_add_of_finrank_eq_one (hG : finrank ℂ G = 1) :
+    totalChernClass G E = 1 + (TopCat.of B).evenIntegralCohomologyOf 1 (chernClass G E 1) := by
+  rw [totalChernClass_def, hG, Finset.sum_range_succ, Finset.sum_range_one, chernClass_zero,
+    TopCat.evenIntegralCohomologyOf_one]
 
 /-! ### The defining relation -/
 
