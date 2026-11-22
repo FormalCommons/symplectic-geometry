@@ -202,7 +202,7 @@ parametrix glued from charts.
   orientation (`harmonicForms_neg_orientation`), and the Kähler identities
   hold for both orientations. The results of the Kähler half that come
   before the milestone take any metric instance with
-  `hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = ω x ![v, J x w]`, the
+  `hg : ∀ x (v w : TangentSpace I x), ⟪v, w⟫ = ω.eval₂ x v (J x w)`, the
   convention of `DESIGN.md`, so that they do not depend on how the metric
   was built.
 - **Models.** Every statement is for a general boundaryless model `I`. The
@@ -274,7 +274,15 @@ compatibility with $d$ (`mpullback_mextDeriv_on`) and with the wedge product
   manifold, finitely many charts `extChartPartialDiffeomorph I ∞ x` with a
   subordinate smooth partition of unity.
 
+### `Analysis/Calculus/ContDiff/Matrix.lean`
+
+- `ContDiffOn.matrix_inv_apply`: a matrix-valued map with `C^n` entries on a
+  set, whose determinant does not vanish there, has an inverse with `C^n`
+  entries there.
+
 ### `Geometry/Manifold/DeRham/Hodge/Chart.lean`
+
+`Chart.lean` imports `Analysis/Calculus/ContDiff/Matrix.lean`.
 
 The coordinate expressions of the metric, the Hodge star and the
 codifferential in a chart `ψ`:
@@ -300,19 +308,21 @@ codifferential in a chart `ψ`:
 
 ### `Geometry/Manifold/DeRham/Hodge/LocalLaplacian.lean`
 
-`LocalLaplacian.lean` imports `LinearAlgebra/BilinearForm/Gram.lean`.
+`LocalLaplacian.lean` imports `LinearAlgebra/BilinearForm/Gram.lean`,
+`Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean` and
+`Analysis/Normed/Module/Alternating/Uncurry/Fin.lean`.
 
 - `exists_mpullback_symm_hodgeLaplacian_eq`: for a chart `ψ` and a basis `b` of
-  `E`, there are smooth `B : Fin n → E → Λ →L[ℝ] Λ` and `C : E → Λ →L[ℝ] Λ`,
+  `E`, there are smooth `B : Fin m → E → Λ →L[ℝ] Λ` and `C : E → Λ →L[ℝ] Λ`,
   with `Λ = E [⋀^Fin k]→L[ℝ] ℝ`, such that for every smooth `k`-form
   $\alpha$ with expression $a$ and every `y ∈ ψ.target`,
   $(\Delta\alpha)_\psi(y)=-\sum_{ij}G^{ij}(y)\,\partial_{b_i}\partial_{b_j}a(y)
   +\sum_iB_i(y)\,\partial_{b_i}a(y)+C(y)\,a(y)$,
   where $G^{ij}$ is the inverse Gram matrix of `gramInChart ψ y` in `b`.
   The second-order coefficient is computed from
-  `mpullback_symm_codifferential` and `mpullback_mextDeriv_on`, and identified with $G^{ij}$ times the identity
-  by Tau Ceti's `adjoint_wedgeLeft` and
-  `Orientation.koszulDifferential_eq_smul_hodgeStar_wedgeLeft_hodgeStar`.
+  `exists_mpullback_symm_codifferential_eq` and `mpullback_symm_mextDerivₗ`,
+  and identified with $G^{ij}$ times the identity
+  by Tau Ceti's `alternatizeUncurryFin_curryLeft_comp_add_curryLeft`.
 - `exists_mpullback_symm_hodgeLaplacian_transpose_eq`: the same shape for the
   formal transpose for Lebesgue measure of the operator conjugated by the
   fibre metric and the volume density. This is the operator that the weak
@@ -343,6 +353,14 @@ a compact `K ⊆ ψ.target`, used to show that `L2Form.localize` is bounded:
   `PartialDiffeomorph.exists_le_riemannianJacobian_symm_le`: Tau Ceti's
   `riemannianJacobian` of `ψ.symm` is positive on `ψ.target`, and bounded
   above and away from zero on `K`.
+
+### `Analysis/InnerProductSpace/Comass.lean`
+
+Named like Tau Ceti's file; used by `L2.lean`.
+
+- `ContinuousAlternatingMap.alternatingFormInner_self_le`:
+  `alternatingFormInner E k φ φ ≤ (finrank ℝ E).choose k * ‖φ‖ ^ 2`, the
+  square of Tau Ceti's `sqrt_alternatingFormInner_self_le`.
 
 ### `Geometry/Manifold/DeRham/Hodge/L2.lean`
 
@@ -461,6 +479,10 @@ complexification:
 - `ContinuousAlternatingMap.alternatizeUncurryFin_eq_sum_coord_smulRight`:
   for a basis `b`, `alternatizeUncurryFin f` is the sum of the
   alternatizations of `b.coord i • f (b i)`.
+- `ContinuousAlternatingMap.curryLeft_alternatizeUncurryFin_smulRight_add`
+  and `curryLeft_alternatizeUncurryFin_smulRight_zero`: for a covector
+  $\xi$, $\iota_v\varepsilon_\xi+\varepsilon_\xi\iota_v=\xi(v)$ in positive
+  degree, and $\iota_v\varepsilon_\xi=\xi(v)$ in degree $0$.
 
 ### `Analysis/InnerProductSpace/HodgeStar/AlternatingForm.lean`
 
@@ -664,6 +686,10 @@ was found, so `ERRATA.md` needs no entry.
   `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`
   (merged): `PartialDiffeomorph.mpullback_symm_mpullback_apply`, only in
   the proof of `mpullback_symm_extendByZeroAlong`.
+- *Smooth families*,
+  `Geometry/Manifold/DifferentialForm/Pullback/Smooth.lean` (merged):
+  `TauCeti.mpullback_apply_eq_compContinuousLinearMap`, which this part adds
+  there, only in the proofs of `L2.lean`.
 - *Nijenhuis tensor*, `Geometry/Symplectic/Manifold/AlmostComplex/Chart.lean`
   (#1295): `TauCeti.SmoothAlmostComplexStructure.mfderiv_symm_apply_chartPushforward_apply`,
   only in the proof of `mpullback_symm_realAlternatingDerivation`, and
