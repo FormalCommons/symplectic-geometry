@@ -90,7 +90,6 @@ theorem mpullback_prodMk_mpullback_prodMap_id_right {c : ℝ → ℝ}
   rw [mpullback_prodMk_mpullback_prodMap' hc id contMDiff_id]
   exact LinearMap.congr_fun SmoothForm.mpullback_id _
 
-
 end prodMap
 
 end TauCeti.SmoothForm
