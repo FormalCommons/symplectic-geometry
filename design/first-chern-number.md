@@ -232,6 +232,15 @@ core of prerequisite 1:
 No Whitney sum formula is claimed over a general base; additivity is proved
 over surfaces only, from clutching.
 
+### `Topology/ContinuousMap/Defs.lean`
+
+In the namespace `ContinuousMap`, importing only Mathlib:
+
+- `ofClass_eq_self`, `@[simp]`: `ContinuousMap.ofClass f = f` for
+  `f : C(X, Y)`, as Mathlib's `OrderHom.coe_eq` for monotone maps. With it,
+  `simp` turns the right side of `firstChernClass_pullback`, used with a
+  bundled `f : C(X, B)`, into the same term stated with `f`.
+
 ### `Topology/VectorBundle/FiniteRank/EulerClass.lean`
 
 In the namespace `TauCeti.FiniteRankBundleCore`, for complex finite-rank
