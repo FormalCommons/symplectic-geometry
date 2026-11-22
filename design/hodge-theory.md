@@ -611,6 +611,9 @@ was found, so `ERRATA.md` needs no entry.
   `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`
   (merged): `PartialDiffeomorph.mpullback_symm_mpullback_apply`, only in
   the proof of `mpullback_symm_extendByZeroAlong`.
+- *Nijenhuis tensor*, `Geometry/Symplectic/Manifold/AlmostComplex/Chart.lean`
+  (#1295): `TauCeti.SmoothAlmostComplexStructure.mfderiv_symm_apply_chartPushforward_apply`,
+  only in the proof of `mpullback_symm_realAlternatingDerivation`.
 - Tau Ceti: the declarations listed under *What exists*, and
   `SmoothForm.mapCoeff`, `exactForms`, `closedForms`,
   `deRhamCohomology.mk`, `riemannianVolumeForm`, `integralTopForm`,
