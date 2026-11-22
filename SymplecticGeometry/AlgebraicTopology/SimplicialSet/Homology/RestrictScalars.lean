@@ -102,6 +102,15 @@ def restrictScalarsChainIso (X : SSet.{u}) :
   ((chainComplexFunctor _).mapIso e).app X ≪≫
     (chainComplexFunctorObjCompMapIso (ModuleCat.restrictScalars f) N).symm.app X
 
+/-- The change of coefficients along `e` is the isomorphism induced by `e` on chain complexes,
+followed by the inverse of the identification of the chains with coefficients `f^* N` with the
+restriction of scalars of the chains with coefficients `N`. -/
+theorem restrictScalarsChainIso_def (X : SSet.{u}) :
+    restrictScalarsChainIso f e X =
+      ((chainComplexFunctor _).mapIso e).app X ≪≫
+        (chainComplexFunctorObjCompMapIso (ModuleCat.restrictScalars f) N).symm.app X :=
+  (rfl)
+
 /-- The forward map of the change of coefficients along `e` is the change of coefficients
 along `e.hom`. -/
 theorem restrictScalarsChainIso_hom (X : SSet.{u}) :
