@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.Normed.Module.Basic
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Global
+
 /-!
 # The unit sphere is collared in the closed unit ball
 
@@ -57,6 +58,18 @@ theorem range_inclusion_ball_eq_compl {α : Type*} [PseudoMetricSpace α] (x : �
   exact ⟨ne_of_lt, fun h ↦ lt_of_le_of_ne hw h⟩
 
 end Metric
+
+/-- For `c > 0`, `(a - 1) / c ∈ [0, 1)` exactly when `1 ≤ a < 1 + c`. -/
+theorem sub_div_mem_Ico_iff_of_pos {a c : ℝ} (hc : 0 < c) :
+    (a - 1) / c ∈ Ico (0 : ℝ) 1 ↔ 1 ≤ a ∧ a < 1 + c := by
+  rw [mem_Ico, le_div_iff₀ hc, div_lt_one hc]
+  constructor <;> rintro ⟨h₁, h₂⟩ <;> constructor <;> linarith
+
+/-- For `c < 0`, `(a - 1) / c ∈ [0, 1)` exactly when `1 + c < a ≤ 1`. -/
+theorem sub_div_mem_Ico_iff_of_neg {a c : ℝ} (hc : c < 0) :
+    (a - 1) / c ∈ Ico (0 : ℝ) 1 ↔ 1 + c < a ∧ a ≤ 1 := by
+  rw [mem_Ico, le_div_iff_of_neg hc, div_lt_one_of_neg hc]
+  constructor <;> rintro ⟨h₁, h₂⟩ <;> constructor <;> linarith
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {c : ℝ}
 
@@ -129,16 +142,15 @@ theorem isCollared_inclusion_sphere_closedBall :
     TauCeti.IsCollared
       (inclusion (sphere_subset_closedBall : sphere (0 : E) 1 ⊆ closedBall 0 1)) := by
   have hc₀ : (-1 : ℝ) ≠ 0 := by norm_num
-  have hsub : {w : E | (‖w‖ - 1) / -1 ∈ Ico (0 : ℝ) 1} ⊆ closedBall 0 1 := fun w hw ↦ by
-    have := hw.1
-    rwa [div_neg, div_one, neg_nonneg, sub_nonpos, ← mem_closedBall_zero_iff] at this
+  have hsub : {w : E | (‖w‖ - 1) / -1 ∈ Ico (0 : ℝ) 1} ⊆ closedBall 0 1 := fun w hw ↦
+    mem_closedBall_zero_iff.2 ((sub_div_mem_Ico_iff_of_neg neg_one_lt_zero).1 hw).2
   have hopen : IsOpen (((↑) : closedBall (0 : E) 1 → E) ⁻¹'
       {w | (‖w‖ - 1) / -1 ∈ Ico (0 : ℝ) 1}) := by
     convert (isOpen_compl_singleton (x := (0 : E))).preimage continuous_subtypeVal using 1
     ext w
-    simp only [mem_preimage, mem_ofPred_eq, div_neg, div_one, neg_sub, mem_Ico, sub_nonneg,
-      sub_lt_self_iff, norm_pos_iff, mem_compl_iff, mem_singleton_iff,
-      mem_closedBall_zero_iff.1 w.property, true_and]
+    rw [mem_preimage, mem_ofPred_eq, sub_div_mem_Ico_iff_of_neg neg_one_lt_zero, mem_preimage,
+      mem_compl_singleton_iff, ← norm_pos_iff, add_neg_cancel]
+    exact and_iff_left (mem_closedBall_zero_iff.1 w.property)
   refine TauCeti.isCollared_iff.2 ⟨inclusion hsub ∘ homeomorphUnitSphereProdIco le_rfl hc₀,
     (IsOpenEmbedding.inclusion hsub hopen).comp (homeomorphUnitSphereProdIco _ _).isOpenEmbedding,
     fun z ↦ ?_⟩
