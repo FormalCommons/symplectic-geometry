@@ -5,9 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.DifferentialForm.Continuity
-public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
-import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
+public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 
 /-!
 # Continuity of slice pullbacks in the parameter
@@ -15,12 +13,10 @@ import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 This file extends Tau Ceti's `TauCeti.Geometry.Manifold.DifferentialForm.Continuity`. For a `C¹`
 map `f : M × N → M'` and a continuous form `φ` on `M'`, the slices `x ↦ f (x, y)` pull `φ` back to
 forms on `M` whose value at a fixed point on fixed tangent vectors depends continuously on the
-parameter `y` (`TauCeti.IsSmoothForm.continuous_mpullback_prodMk_apply`). The differential of the
-slice at `y` sends `v` to the differential of `f` on `(v, 0)`, and these vectors move continuously
-in the tangent bundle of `M'` (Mathlib's `contMDiff_equivTangentBundleProd_symm`, and the
-continuity of the tangent map of `f`), so Tau Ceti's `TauCeti.IsSmoothForm.tendsto_apply` applies.
-No interior assumption is made on `N`: for a manifold with boundary this gives continuity of the
-slices up to the boundary.
+parameter `y` (`TauCeti.IsSmoothForm.continuous_mpullback_prodMk_apply`). It is the case of
+continuous forms and a constant base point of Tau Ceti's `ContMDiffAt.mpullback_form_family`,
+read in one fibre of the bundle of forms. No interior assumption is made on `N`: for a manifold
+with boundary this gives continuity of the slices up to the boundary.
 
 ## Main results
 
@@ -49,28 +45,17 @@ map `f : M × N → M'`, a continuous form `φ` on `M'`, a point `x` of `M` and 
 theorem IsSmoothForm.continuous_mpullback_prodMk_apply {φ : RoughForm I' M' F k}
     (hφ : IsSmoothForm I' 0 φ) {f : M × N → M'} (hf : ContMDiff (I.prod J) I' 1 f) (x : M)
     (v : Fin k → TangentSpace I x) :
-    Continuous fun y : N ↦ mpullback I I' (fun x' ↦ f (x', y)) φ x v := by
-  have key (y : N) : mpullback I I' (fun x' ↦ f (x', y)) φ x v =
-      φ (f (x, y)) (fun j ↦ mfderiv (I.prod J) I' f (x, y) (v j, 0)) := by
-    rw [mpullback_apply]
-    congr 1
-    funext j
-    have hg : MDifferentiableAt I (I.prod J) (fun x' : M ↦ (x', y)) x :=
-      mdifferentiableAt_id.prodMk mdifferentiableAt_const
-    rw [show (fun x' ↦ f (x', y)) = f ∘ fun x' ↦ (x', y) from rfl,
-      mfderiv_comp x (hf.mdifferentiableAt one_ne_zero (x := (x, y))) hg, mfderiv_prod_left]
-    -- `ContinuousLinearMap.inl_apply` does not match through the `TangentSpace` synonyms.
-    rfl
-  simp_rw [key]
-  refine continuous_iff_continuousAt.2 fun y₀ ↦ hφ.tendsto_apply
-    (hf.continuous.comp (continuous_const.prodMk continuous_id)).continuousAt fun j ↦ ?_
-  have hc : Continuous fun y : N ↦ tangentMap (I.prod J) I' f
-      ((equivTangentBundleProd I M J N).symm (⟨x, v j⟩, zeroSection E' (TangentSpace J) y)) :=
-    (hf.continuous_tangentMap le_rfl).comp
-      ((contMDiff_equivTangentBundleProd_symm (n := 1)).continuous.comp
-        (continuous_const.prodMk (Trivialization.continuous_zeroSection ℝ)))
-  -- The tangent map of `f` at `((x, y), (v j, 0))` is the vector `(f (x, y), df (v j, 0))`.
-  exact hc.continuousAt.tendsto
+    Continuous fun y : N ↦ TauCeti.mpullback I I' (fun x' ↦ f (x', y)) φ x v := by
+  -- The pullbacks at `x` form a continuous section over the constant map `y ↦ x`.
+  have h : Continuous fun y : N ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
+      (E := fun x : M ↦ TangentSpace I x [⋀^Fin k]→L[ℝ] Trivial M F x) x
+      (TauCeti.mpullback I I' (fun x' ↦ f (x', y)) φ x) :=
+    continuous_iff_continuousAt.2 fun y ↦ (ContMDiffAt.mpullback_form_family (m := 0) (n := 1)
+      (f := fun y x' ↦ f (x', y)) (g := fun _ ↦ x) (hφ.contMDiff _)
+      ((hf _).comp _ (contMDiffAt_snd.prodMk contMDiffAt_fst)) contMDiffAt_const
+      (by simp)).continuousAt
+  exact (continuous_eval_const v).comp
+    ((FiberBundle.totalSpaceMk_isInducing _ _ x).continuous_iff.2 h)
 
 end TauCeti
 
