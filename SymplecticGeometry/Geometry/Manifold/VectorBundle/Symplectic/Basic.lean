@@ -217,6 +217,11 @@ theorem toBilinForm_flat (x : M) : (ω.flat x).toBilinForm = ω.bilinFormAt x :=
   ext v w
   simp
 
+/-- The orthogonal of a submodule for the flat map of `ω` at `x` is its `ω`-orthogonal. -/
+theorem orthogonal_flat (x : M) (N : Submodule ℝ (V x)) :
+    LinearMap.BilinForm.orthogonal (ω.flat x).toLinearMap₁₂ N = (ω.bilinFormAt x).orthogonal N := by
+  rw [← toBilinForm_flat, ContinuousLinearMap.toBilinForm]
+
 /-- The flat maps of a `C^n` two-form form a `C^n` section of the bundle of continuous bilinear
 forms on `V`. -/
 theorem contMDiff_flat :
@@ -402,6 +407,45 @@ theorem isNondegenerate_const (σ : TauCeti.SymplecticForm W) :
 
 end Const
 
+/-! ### Pulling back along linear bundle maps -/
+
+section CompContinuousLinearMap
+
+variable {F₂ : Type*} [NormedAddCommGroup F₂] [NormedSpace ℝ F₂] {V₂ : M → Type*}
+  [∀ x, AddCommGroup (V₂ x)] [∀ x, Module ℝ (V₂ x)]
+  [∀ x, TopologicalSpace (V₂ x)] [∀ x, IsTopologicalAddGroup (V₂ x)]
+  [∀ x, ContinuousSMul ℝ (V₂ x)] [TopologicalSpace (TotalSpace F₂ V₂)]
+  [FiberBundle F₂ V₂] [VectorBundle ℝ F₂ V₂]
+  (L : ∀ x, V₂ x →L[ℝ] V x)
+  (hL : ContMDiff I (I.prod 𝓘(ℝ, F₂ →L[ℝ] F)) n
+    (fun x ↦ TotalSpace.mk' (F₂ →L[ℝ] F) (E := fun x ↦ V₂ x →L[ℝ] V x) x (L x)))
+
+/-- The pull-back `ω ↦ ω(L ·, L ·)` of two-forms along a `C^n` family of linear maps
+`L x : V₂ x → V x` between the fibres of two bundles over the same base. Unlike `pushforward`,
+it does not need the maps `L x` to be invertible. -/
+def compContinuousLinearMap : ContMDiffTwoForm I n F V →ₗ[ℝ] ContMDiffTwoForm I n F₂ V₂ :=
+  ContMDiffSection.mapLinearMap
+    (fun x ↦ ContinuousAlternatingMap.compContinuousLinearMapₗ (L x))
+    (contMDiff_compContinuousLinearMap_totalSpace _ hL)
+
+/-- The pulled-back form at `x` is `ω_x(L_x ·, L_x ·)`. -/
+@[simp]
+theorem compContinuousLinearMap_apply (ω : ContMDiffTwoForm I n F V) (x : M) :
+    compContinuousLinearMap L hL ω x = (ω x).compContinuousLinearMap (L x) :=
+  ContMDiffSection.mapLinearMap_apply _ _ ω x
+
+/-- The pulled-back form takes on `u`, `v` the value of `ω` on `L_x u`, `L_x v`. -/
+theorem bilinFormAt_compContinuousLinearMap (ω : ContMDiffTwoForm I n F V) (x : M)
+    (u v : V₂ x) :
+    (compContinuousLinearMap L hL ω).bilinFormAt x u v = ω.bilinFormAt x (L x u) (L x v) := by
+  simp only [bilinFormAt_apply, compContinuousLinearMap_apply,
+    ContinuousAlternatingMap.compContinuousLinearMap_apply]
+  congr 1
+  ext i
+  fin_cases i <;> rfl
+
+end CompContinuousLinearMap
+
 /-! ### Transport along isomorphisms of bundles -/
 
 section Pushforward
@@ -452,17 +496,20 @@ theorem pushforward_symm_apply (ω : ContMDiffTwoForm I n F₂ V₂) (x : M) :
   ext v
   simp
 
+/-- The transport along `Φ` is the pull-back along the inverses `Φ_x⁻¹`. -/
+theorem pushforward_eq_compContinuousLinearMap (ω : ContMDiffTwoForm I n F₁ V₁) :
+    pushforward Φ hΦ ω = compContinuousLinearMap (fun x ↦ ((Φ x).symm : V₂ x →L[ℝ] V₁ x))
+      (contMDiff_hom_bundle_symm Φ hΦ) ω :=
+  ContMDiffSection.ext fun x ↦ by rw [pushforward_apply, compContinuousLinearMap_apply]
+
 /-- The bilinear form of the transported form at `x` is the bilinear form of `ω` moved along `Φ
 x`. -/
 theorem bilinFormAt_pushforward (ω : ContMDiffTwoForm I n F₁ V₁) (x : M) :
     (pushforward Φ hΦ ω).bilinFormAt x =
       LinearMap.BilinForm.congr (Φ x).toLinearEquiv (ω.bilinFormAt x) := by
   ext u v
-  simp only [bilinFormAt_apply, pushforward_apply, LinearMap.BilinForm.congr_apply,
-    ContinuousAlternatingMap.compContinuousLinearMap_apply]
-  congr 1
-  ext i
-  fin_cases i <;> rfl
+  rw [pushforward_eq_compContinuousLinearMap, bilinFormAt_compContinuousLinearMap]
+  simp
 
 /-- The transported form takes on `u`, `v` the value of `ω` on `Φ_x⁻¹ u`, `Φ_x⁻¹ v`. -/
 theorem bilinFormAt_pushforward_apply (ω : ContMDiffTwoForm I n F₁ V₁) (x : M) (u v : V₂ x) :
@@ -516,45 +563,6 @@ theorem pushforward_trans [FiniteDimensional ℝ F₂] (Ψ : ∀ x, V₂ x ≃L[
   simp [Function.comp_def]
 
 end Pushforward
-
-/-! ### Pulling back along linear bundle maps -/
-
-section CompContinuousLinearMap
-
-variable {F₂ : Type*} [NormedAddCommGroup F₂] [NormedSpace ℝ F₂] {V₂ : M → Type*}
-  [∀ x, AddCommGroup (V₂ x)] [∀ x, Module ℝ (V₂ x)]
-  [∀ x, TopologicalSpace (V₂ x)] [∀ x, IsTopologicalAddGroup (V₂ x)]
-  [∀ x, ContinuousSMul ℝ (V₂ x)] [TopologicalSpace (TotalSpace F₂ V₂)]
-  [FiberBundle F₂ V₂] [VectorBundle ℝ F₂ V₂]
-  (L : ∀ x, V₂ x →L[ℝ] V x)
-  (hL : ContMDiff I (I.prod 𝓘(ℝ, F₂ →L[ℝ] F)) n
-    (fun x ↦ TotalSpace.mk' (F₂ →L[ℝ] F) (E := fun x ↦ V₂ x →L[ℝ] V x) x (L x)))
-
-/-- The pull-back `ω ↦ ω(L ·, L ·)` of two-forms along a `C^n` family of linear maps
-`L x : V₂ x → V x` between the fibres of two bundles over the same base. Unlike `pushforward`,
-it does not need the maps `L x` to be invertible. -/
-def compContinuousLinearMap : ContMDiffTwoForm I n F V →ₗ[ℝ] ContMDiffTwoForm I n F₂ V₂ :=
-  ContMDiffSection.mapLinearMap
-    (fun x ↦ ContinuousAlternatingMap.compContinuousLinearMapₗ (L x))
-    (contMDiff_compContinuousLinearMap_totalSpace _ hL)
-
-/-- The pulled-back form at `x` is `ω_x(L_x ·, L_x ·)`. -/
-@[simp]
-theorem compContinuousLinearMap_apply (ω : ContMDiffTwoForm I n F V) (x : M) :
-    compContinuousLinearMap L hL ω x = (ω x).compContinuousLinearMap (L x) :=
-  ContMDiffSection.mapLinearMap_apply _ _ ω x
-
-/-- The pulled-back form takes on `u`, `v` the value of `ω` on `L_x u`, `L_x v`. -/
-theorem bilinFormAt_compContinuousLinearMap (ω : ContMDiffTwoForm I n F V) (x : M)
-    (u v : V₂ x) :
-    (compContinuousLinearMap L hL ω).bilinFormAt x u v = ω.bilinFormAt x (L x u) (L x v) := by
-  simp only [bilinFormAt_apply, compContinuousLinearMap_apply,
-    ContinuousAlternatingMap.compContinuousLinearMap_apply]
-  congr 1
-  ext i
-  fin_cases i <;> rfl
-
-end CompContinuousLinearMap
 
 /-! ### Two-forms on the tangent bundle -/
 

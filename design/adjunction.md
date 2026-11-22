@@ -132,12 +132,10 @@ pull-back bundle `f *ᵖ TangentSpace I` over the compact surface, and with a
 symplectic form instead of a metric, so that *First Chern number*'s
 additivity, which is stated for symplectic bundles, applies to it directly:
 
-1. A bundle metric `g` on `f *ᵖ TangentSpace I` exists over `M` (Tau Ceti's
-   `nonempty_contMDiffRiemannianMetric`, `M` being compact Hausdorff, hence
-   σ-compact). Let `Jf` be the pull-back of $J$ (*Symplectic vector
-   bundles*' `ContMDiffComplexStructure.tangentEquiv` and `pullback`) and
-   `ω := compatibleForm g Jf`, compatible with `Jf` by
-   `compatible_compatibleForm` (`Symplectic/ComplexStructure/Basic.lean`).
+1. Let `Jf` be `f.pullbackComplexStructure J`, the pull-back of $J$ to
+   `f *ᵖ TangentSpace I`, and `ω` a two-form compatible with `Jf`, given by
+   the library's `ContMDiffComplexStructure.exists_compatible`
+   (`Symplectic/ComplexStructure/Basic.lean`).
 2. The tangent image $W$ (frames
    `Bundle.Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv`) is
    `Jf`-invariant, so `ω`, which tames `Jf`, is nondegenerate on it, and
@@ -254,8 +252,9 @@ with `hω : ω.Tames Jf`, and `hω : ω.Compatible Jf` where invariance is used.
   `pushforward_normalSplitting`: it carries `ω` to
   `(tangentForm f ω).prod (normalForm f hdim hJ ω hω)`.
 
-If the file grows past a few hundred lines, the orthogonal subbundle and the
-form `normalForm` go first, in an issue of their own.
+The orthogonal and `normalForm` stay in this file, with the splitting: they
+share the complement and the smoothness of its representatives, and the file
+stays under the limit for a new file.
 
 ### `Geometry/Symplectic/Manifold/AlmostComplex/SelfIntersection.lean`
 
