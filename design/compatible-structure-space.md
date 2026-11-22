@@ -653,7 +653,9 @@ is the conjunct on `compatibleTransport`. No entry in `ERRATA.md` is needed.
 - *Lagrangian Grassmannian* (merged): `Matrix.finrank_selfAdjoint`
   (`LinearAlgebra/Matrix/SelfAdjoint.lean`).
 - *Nijenhuis tensor* (#862, not merged): `IsIntegrable`,
-  `IsIntegrable.nijenhuis_eq_zero` (`Geometry/Manifold/Complex/Integrable.lean`).
+  `IsIntegrable.nijenhuis_eq_zero` (`Geometry/Manifold/Complex/Integrable.lean`);
+  `SmoothAlmostComplexStructure.chartPushforward_apply`
+  (`Geometry/Symplectic/Manifold/AlmostComplex/Chart.lean`).
 - *Almost complex manifolds* (#860, not merged):
   `TauCeti.SmoothTwoForm.Compatible.metric` and `Compatible.metric_inner`
   (`Geometry/Symplectic/Manifold/AlmostComplex/Metric.lean`).

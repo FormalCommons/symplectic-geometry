@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import SymplecticGeometry.Geometry.Manifold.Instances.CompatibleComplexStructures
 public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 import Mathlib.Tactic.NoncommRing
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 
 /-!
 # The complex structure of the space of compatible complex structures
@@ -182,9 +183,7 @@ theorem chartPushforward_compatibleSpaceComplexStructure {J : 𝒥} {p : ω.comp
     (hp : p ∈ (chartAt ω.compatibleModel J).target) (w : ω.compatibleModel) :
     ω.compatibleSpaceComplexStructure.chartPushforward (chartAt ω.compatibleModel J) p w =
       ω.compatibleModelComplexStructure w := by
-  rw [← SmoothAlmostComplexStructure.toContMDiff_chartPushforward _ ⊤,
-    ContMDiffAlmostComplexStructure.chartPushforward_apply,
-    SmoothAlmostComplexStructure.toContMDiff_apply]
+  rw [SmoothAlmostComplexStructure.chartPushforward_apply]
   -- The tangent spaces are the model, and the differentials of the chart and of its inverse are
   -- the identity.
   exact (mfderiv_chartAt_apply J _ _).trans ((compatibleSpaceComplexStructure_apply _ _).trans
