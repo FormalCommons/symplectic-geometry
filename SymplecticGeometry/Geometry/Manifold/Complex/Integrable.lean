@@ -235,6 +235,31 @@ theorem mfderiv_trans_toDiffeomorph_apply_eq_transport {G G' : Type*} [NormedAdd
   rw [hd, hd, hψ y hy' v, AlmostComplexStructure.transport_apply]
   exact congrArg (fun z : G ↦ L (J₀ z)) (L.symm_apply_apply _).symm
 
+/-- Following a smooth chart `ψ` into `G` whose derivative carries `J` to `J₀` by a partial
+diffeomorphism `Θ` from `G` to `G'` whose derivative carries `J₀` to `J₁` at every point of its
+source gives a chart whose derivative carries `J` to `J₁` at every point of its source. -/
+theorem mfderiv_trans_apply_eq_of_fderiv_apply_eq {G G' : Type*} [NormedAddCommGroup G]
+    [NormedSpace ℝ G] [NormedAddCommGroup G'] [NormedSpace ℝ G']
+    {ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞} {J₀ : G → G}
+    (hψ : ∀ y ∈ ψ.source, ∀ v : TangentSpace I y,
+      mfderiv I 𝓘(ℝ, G) ψ y (J y v) = J₀ (mfderiv I 𝓘(ℝ, G) ψ y v))
+    {Θ : PartialDiffeomorph 𝓘(ℝ, G) 𝓘(ℝ, G') G G' ∞} {J₁ : G' → G'}
+    (hΘ : ∀ z ∈ Θ.source, ∀ w : G, fderiv ℝ Θ z (J₀ w) = J₁ (fderiv ℝ Θ z w)) :
+    ∀ y ∈ (ψ.trans Θ).source, ∀ v : TangentSpace I y,
+      mfderiv I 𝓘(ℝ, G') (ψ.trans Θ) y (J y v) =
+        J₁ (mfderiv I 𝓘(ℝ, G') (ψ.trans Θ) y v) := by
+  intro y hy v
+  rw [PartialDiffeomorph.trans_source] at hy
+  have hd (u : TangentSpace I y) : mfderiv I 𝓘(ℝ, G') (ψ.trans Θ) y u =
+      fderiv ℝ Θ (ψ y) (mfderiv I 𝓘(ℝ, G) ψ y u) := by
+    rw [PartialDiffeomorph.coe_trans, mfderiv_comp_apply y (Θ.mdifferentiableAt (by simp) hy.2)
+      (ψ.mdifferentiableAt (by simp) hy.1), mfderiv_eq_fderiv]
+    -- `NormedSpace.fromTangentSpace` is the identity of `G` and of `G'`, which Mathlib states by
+    -- no lemma.
+    rfl
+  rw [hd, hd, hψ y hy.1 v]
+  exact hΘ _ hy.2 _
+
 /-- **Integrability is invariant under pullback.** The pullback of an integrable almost complex
 structure along a diffeomorphism is integrable. -/
 theorem IsIntegrable.pullback [FiniteDimensional ℝ E] {E' H' N : Type*} [NormedAddCommGroup E']

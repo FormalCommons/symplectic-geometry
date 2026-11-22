@@ -489,11 +489,13 @@ on the fibres `V [⋀^Fin k]→L[ℝ] ℝ` of the form bundle, beside Tau Ceti's
 
 Beside *Nijenhuis tensor*'s `Integrable.lean`:
 
-- `TauCeti.SmoothTwoForm.IsKahler.exists_partialDiffeomorph_hasFDerivAt_gramInChart_eq_zero`:
-  let `ω.IsKahler J` and `J.IsIntegrable` with linear structure $J_0$, and
-  let the metric instance satisfy `hg`. Then every $x_0$ lies in the source
+- `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.exists_partialDiffeomorph_fderiv_gramInChart_eq_zero`:
+  let `J.IsIntegrable` with linear structure $J_0$, let `ω.IsClosed` (all
+  of `ω.IsKahler J` that the proof uses), and let the metric instance
+  satisfy `hg`. Then every $x_0$ lies in the source
   of a chart `ψ` with `chartPushforward` of $J$ equal to $J_0$ on
-  `ψ.target`, and with `gramInChart ψ` of derivative zero at `ψ x₀`.
+  `ψ.target`, and with `fderiv ℝ (gramInChart ψ) (ψ x₀) = 0`, the form
+  that `fderiv_hodgeStarInChart_eq_zero` takes.
   Start from an integrable chart and compose it with
   $z\mapsto z+Q(z,z)$, where $Q$ is $J_0$-bilinear and symmetric and is
   chosen so that the first derivative of the metric vanishes. Such a $Q$
@@ -501,7 +503,18 @@ Beside *Nijenhuis tensor*'s `Integrable.lean`:
   $d\omega=0$, symmetric in the right pair of slots
   ([GriffithsHarris1978], Chapter 0, §7). The derivative of the composite
   is $J_0$-linear at every point, so $J$ stays constant. The local inverse
-  comes from Mathlib's `HasStrictFDerivAt.toOpenPartialHomeomorph`.
+  comes from Tau Ceti's `ContDiffOn.exists_openPartialHomeomorph`. The
+  file imports `SymmetricBilinear.lean` below for $Q$, and uses
+  `mfderiv_trans_apply_eq_of_fderiv_apply_eq`, which this part adds to
+  `Integrable.lean`, for the constancy of $J$.
+
+### `LinearAlgebra/ComplexStructure/SymmetricBilinear.lean`
+
+- `LinearMap.BilinForm.exists_symm_complexBilinear_apply_add_apply_eq`:
+  the linear algebra behind $Q$ above, for a symmetric left-separating
+  $j$-invariant form on a finite-dimensional space over a field of
+  characteristic zero.
+  It imports only Mathlib.
 
 ### `Geometry/Manifold/DeRham/Kahler/Identities.lean`
 
@@ -610,7 +623,8 @@ was found, so `ERRATA.md` needs no entry.
 
 - *Nijenhuis tensor*, `Geometry/Manifold/Complex/Integrable.lean` (#862):
   `TauCeti.SmoothAlmostComplexStructure.IsIntegrable`, for
-  `KahlerCoordinates.lean` and the milestone.
+  `KahlerCoordinates.lean` and the milestone, and
+  `mfderiv_trans_apply_eq_of_fderiv_apply_eq`, which this part adds there.
 - *Almost complex manifolds*, `Geometry/Symplectic/Manifold/AlmostComplex/Metric.lean`
   (#860): `TauCeti.SmoothTwoForm.Compatible.metric` and `metric_inner`, only
   in the proof of the milestone. This dependency is new; `DESIGN.md` records
@@ -624,12 +638,12 @@ was found, so `ERRATA.md` needs no entry.
   `deRhamCohomology.mk`, `riemannianVolumeForm`, `integralTopForm`,
   `alternatingFormInner`, `Orientation.formHodgeStar`,
   `TauCeti.exists_contMDiff_ae_eq_of_locally` (if the gluing is done on
-  representatives), `TestFunction` cutoffs and `BesselPotentialSpace`.
+  representatives), `TestFunction` cutoffs, `BesselPotentialSpace` and
+  `ContDiffOn.exists_openPartialHomeomorph`.
 - Mathlib: `UniformSpace.Completion` with its inner product space instance,
   `InnerProductSpace.ofCore`, the closed graph theorem
   `LinearMap.continuous_of_isClosed_graph`, `IsCompactOperator`,
-  `PartialDiffeomorph`, `HasStrictFDerivAt.toOpenPartialHomeomorph`, and
-  `MeasureTheory.Lp`.
+  `PartialDiffeomorph`, and `MeasureTheory.Lp`.
 
 The part does not use *Almost Kähler geometry*. Mathlib and Tau Ceti were
 searched, at the pinned versions, for each definition and main result
@@ -655,7 +669,7 @@ sub-issues of #874, *Build the part Hodge theory*. Sizes are estimates.
 | 8 | The Hodge theorem on a closed oriented Riemannian manifold | `DeRham/Hodge/Basic.lean` | 7 | 300 |
 | 9 | Complex harmonic forms | `DeRham/Hodge/Complex.lean` | 8 | 300 |
 | 10 | The Lefschetz operator and the linear Kähler identity | `Analysis/InnerProductSpace/HodgeStar/Kahler/Lefschetz.lean`, `Analysis/InnerProductSpace/HodgeStar/AlternatingForm.lean`, `Analysis/Normed/Module/Alternating/Derivation.lean` | — | 350 |
-| 11 | Osculating holomorphic charts of a Kähler manifold | `Geometry/Manifold/Complex/KahlerCoordinates.lean` | 3; #862 | 400 |
+| 11 | Osculating holomorphic charts of a Kähler manifold | `Geometry/Manifold/Complex/KahlerCoordinates.lean`, `LinearAlgebra/ComplexStructure/SymmetricBilinear.lean` | 3; #862 | 400 |
 | 12 | The Kähler identity and $[\Delta,\mathcal J]=0$ | `DeRham/Kahler/Identities.lean` | 3, 10, 11 | 400 |
 | 13 | Conjugation on complex de Rham cohomology, and the Hodge decomposition | `Geometry/Manifold/DeRham/ComplexCoefficients.lean`, `DeRham/Kahler/Decomposition.lean` | 9, 12 | 400 |
 | 14 | Hodge numbers, Betti numbers, and the milestone | `DeRham/Kahler/HodgeNumbers.lean` | 13; #860 | 300 |
