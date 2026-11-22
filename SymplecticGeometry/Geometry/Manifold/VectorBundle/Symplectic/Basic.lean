@@ -711,8 +711,8 @@ theorem contMDiffOn_frameTransition
   intro x hx
   have hom {Ψ : ∀ x, W ≃L[ℝ] V x} (hΨ : ContMDiffOn (I.prod 𝓘(ℝ, W)) (I.prod 𝓘(ℝ, F)) n
       (fun p : M × W ↦ TotalSpace.mk' F p.1 (Ψ p.1 p.2)) (U ×ˢ Set.univ)) :=
-    (contMDiffAt_hom_trivial_iff (fun y ↦ (Ψ y : W →L[ℝ] V y)) x).2 fun v ↦
-      hΨ.contMDiffAt ((hU.prod isOpen_univ).mem_nhds ⟨hx, Set.mem_univ v⟩)
+    ((contMDiffOn_hom_trivial_iff (fun y ↦ (Ψ y : W →L[ℝ] V y)) hU).2 hΨ).contMDiffAt
+      (hU.mem_nhds hx)
   have hcomp := ((hom hΦ').clm_bundle_inverse
     ContinuousLinearMap.isInvertible_equiv).clm_bundle_comp (hom hΦ)
   rw [contMDiffAt_hom_bundle] at hcomp
@@ -740,10 +740,10 @@ theorem contMDiffOn_totalSpaceMk_symm_trans {F₂ : Type*} [NormedAddCommGroup F
   -- The fibre `F` is `W` through the frame and the trivialization at `p.proj`.
   have : FiniteDimensional ℝ F :=
     ((Φ p.proj).trans (VectorBundle.continuousLinearEquivAt ℝ F V p.proj)).finiteDimensional
-  have hΦx := (contMDiffAt_hom_trivial_iff (fun y ↦ (Φ y : W →L[ℝ] V y)) p.proj).2 fun v ↦
-    hΦ.contMDiffAt ((hU.prod isOpen_univ).mem_nhds ⟨hp, Set.mem_univ v⟩)
-  have hΨx := (contMDiffAt_hom_trivial_iff (fun y ↦ (Ψ y : W →L[ℝ] V₂ y)) p.proj).2 fun v ↦
-    hΨ.contMDiffAt ((hU.prod isOpen_univ).mem_nhds ⟨hp, Set.mem_univ v⟩)
+  have hΦx := ((contMDiffOn_hom_trivial_iff (fun y ↦ (Φ y : W →L[ℝ] V y)) hU).2
+    hΦ).contMDiffAt (hU.mem_nhds hp)
+  have hΨx := ((contMDiffOn_hom_trivial_iff (fun y ↦ (Ψ y : W →L[ℝ] V₂ y)) hU).2
+    hΨ).contMDiffAt (hU.mem_nhds hp)
   have hcomp := hΨx.clm_bundle_comp (hΦx.clm_bundle_inverse
     ContinuousLinearMap.isInvertible_equiv)
   simp only [ContinuousLinearMap.inverse_equiv] at hcomp
