@@ -26,12 +26,12 @@ Let `k : [0, 1] × P → M` be a smooth isotopy of embeddings (`TauCeti.SmoothIs
 manifolds of the same dimension, so that its slices `k_t` are open embeddings, and let `σ` be a
 symplectic form on `M`. The velocity form `α_t` of `k` (`TauCeti.SmoothIsotopy.velocityForm`)
 sends `v` at `x` to `σ (∂ₜ k (t, x), dk_t v)`. Suppose that `α_t = k_t^* β_t + dh_t`, for a smooth
-family of closed one-forms `β_t` on `M` vanishing off a compact set and a smooth family of
-functions `h_t` on `P`. Then on a compact set `K ⊆ P` the isotopy is the restriction of a
-diffeotopy `φ_t` of `M` preserving `σ`, at every time: `φ_t (k_0 x) = k_t x` for `x ∈ K`. When
-`β = 0`, the diffeotopy is a compactly supported Hamiltonian diffeotopy. The isotopy extension
-theorems of McDuff–Salamon, §3.3 (Theorems 3.3.1 and 3.3.2), end with this step: a family of
-symplectic embeddings with suitable velocity forms is moved by an ambient flow.
+family of closed one-forms `β_t` on `M` vanishing off a compact set, and for functions `h_t` on
+`P` that are jointly smooth in `(t, x)`. Then on a compact set `K ⊆ P` the isotopy is the
+restriction of a diffeotopy `φ_t` of `M` preserving `σ`, at every time: `φ_t (k_0 x) = k_t x` for
+`x ∈ K`. When `β = 0`, the diffeotopy is a compactly supported Hamiltonian diffeotopy. The isotopy
+extension theorems of McDuff–Salamon, §3.3 (Theorems 3.3.1 and 3.3.2), end with this step: a
+family of symplectic embeddings with suitable velocity forms is moved by an ambient flow.
 
 The construction (`TauCeti.SmoothIsotopy.exists_diffeotopy_interior_velocity_eq_forall_apply_eq`):
 
