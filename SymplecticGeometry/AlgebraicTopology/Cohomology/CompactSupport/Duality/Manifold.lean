@@ -29,13 +29,12 @@ open sets of `M` lying in one chart in place of those with convex image, as the 
 Such open sets are closed under intersection
 (`TopologicalSpace.Opens.infClosed_setOf_subset_chartAt_source`), and each embeds openly into `E`
 through its chart (`OpenPartialHomeomorph.isOpenEmbedding_comp`), so that duality holds for them
-by `TauCeti.HomologicalOrientation.bijective_dualityMap_of_isOpenEmbedding`. It passes to finite
-unions by Mayer–Vietoris (`TauCeti.HomologicalOrientation.bijective_dualityMap_comap_sup`,
-`InfClosed.finset_sup_induction`); the vanishing of `Hⁿ⁺¹_c(V ∩ W)` that this step needs is
-`TopCat.isZero_compactSupportCohomology_of_chartedSpace`, applied to the manifold `V ∩ W`.
-Finally, these finite unions form a directed family covering `M`
-(`TopologicalSpace.Opens.iSup_finset_sup_subset_chartAt_source_eq_top`), and duality passes to
-directed unions (`TauCeti.HomologicalOrientation.bijective_dualityMap_of_iSup_eq_top`).
+by `TauCeti.HomologicalOrientation.bijective_dualityMap_of_isOpenEmbedding`. Their finite unions
+cover `M` (`TopologicalSpace.Opens.iSup_finset_sup_subset_chartAt_source_eq_top`), and
+`Hⁿ⁺¹_c(W) = 0` for every open set `W` of `M`, by
+`TopCat.isZero_compactSupportCohomology_of_chartedSpace` applied to the manifold `W`, so duality
+holds on `M` by the Mayer–Vietoris induction
+`TauCeti.HomologicalOrientation.bijective_dualityMap_of_infClosed`.
 
 ## Main results
 
@@ -78,31 +77,17 @@ duality map `Hᵖ_c(M; L) ⟶ H_q(M; L)` is a bijection whenever `p + q = n`, fo
 group `L`. -/
 theorem bijective_dualityMap {p q : ℕ} (h : p + q = n) :
     Function.Bijective (o.dualityMap hn L p q h) := by
-  -- Duality in every degree, for the orientation restricted from `M`, passes to finite unions of
-  -- open sets lying in one chart, by Mayer–Vietoris.
-  have hT (s : Finset {W : Opens M | ∃ x, (W : Set M) ⊆ (chartAt E x).source}) :
-      ∀ p q (h : p + q = n), Function.Bijective
-        ((o.comap (s.sup Subtype.val).isOpenEmbedding').dualityMap hn L p q h) := by
-    refine (Opens.infClosed_setOf_subset_chartAt_source E).finset_sup_induction
-      (fun W : Opens M ↦ ∀ p q (h : p + q = n), Function.Bijective
-        ((o.comap W.isOpenEmbedding').dualityMap hn L p q h)) ?_ ?_ ?_ s
-    · have : IsEmpty ↥(⊥ : Opens M) := ⟨fun x ↦ x.property⟩
-      exact fun p q h ↦ (o.comap _).bijective_dualityMap_of_isEmpty hn L h
-    · rintro W ⟨x, hx⟩ p q h
-      exact (o.comap W.isOpenEmbedding').bijective_dualityMap_of_isOpenEmbedding hn L
-        ((chartAt E x).isOpenEmbedding_comp W.isOpenEmbedding' (by rwa [Subtype.range_coe])) h
-    · intro V W hV hW hVW p q h
-      -- `TopCat.isZero_compactSupportCohomology_of_chartedSpace` uses the `ℤ`-linear structure
-      -- of `ModuleCat ℤ` as a category of modules; it agrees with the one of a preadditive
-      -- category used here, as a `ℤ`-module structure is unique.
-      have := Linear.subsingletonInt (ModuleCat.{0} ℤ)
-      refine o.bijective_dualityMap_comap_sup hn L hV hW hVW ?_ h
-      convert TopCat.isZero_compactSupportCohomology_of_chartedSpace
-        (ModuleCat.of ℤ (ULift ℤ : Type)) L (F := E) (M := ↥(V ⊓ W))
-        (show finrank ℝ E < n + 1 by omega)
-  -- They form a directed family covering `M`.
-  exact o.bijective_dualityMap_of_iSup_eq_top hn L h (fun _ _ hst ↦ Finset.sup_mono hst)
-    (Opens.iSup_finset_sup_subset_chartAt_source_eq_top E) fun s ↦ hT s p q h
+  refine o.bijective_dualityMap_of_infClosed hn L (Opens.infClosed_setOf_subset_chartAt_source E)
+    (Opens.iSup_finset_sup_subset_chartAt_source_eq_top E) ?_ (fun W ↦ ?_) h
+  · rintro W ⟨x, hx⟩ p q h
+    exact (o.comap W.isOpenEmbedding').bijective_dualityMap_of_isOpenEmbedding hn L
+      ((chartAt E x).isOpenEmbedding_comp W.isOpenEmbedding' (by rwa [Subtype.range_coe])) h
+  · -- `TopCat.isZero_compactSupportCohomology_of_chartedSpace` uses the `ℤ`-linear structure
+    -- of `ModuleCat ℤ` as a category of modules; it agrees with the one of a preadditive
+    -- category used here, as a `ℤ`-module structure is unique.
+    have := Linear.subsingletonInt (ModuleCat.{0} ℤ)
+    convert TopCat.isZero_compactSupportCohomology_of_chartedSpace
+      (ModuleCat.of ℤ (ULift ℤ : Type)) L (F := E) (M := W) (show finrank ℝ E < n + 1 by omega)
 
 /-- **Poincaré duality for a compact manifold.** For a compact homologically oriented
 `n`-manifold `M` without boundary, capping with the fundamental class,
