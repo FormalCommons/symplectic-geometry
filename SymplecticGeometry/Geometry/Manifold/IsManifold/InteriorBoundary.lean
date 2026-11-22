@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.IsManifold.InteriorBoundary
 public import Mathlib.Analysis.Convex.Topology
 public import SymplecticGeometry.Topology.Connected.Clopen
+public import TauCeti.Geometry.Manifold.Boundary.Invariance
 import TauCeti.Geometry.Manifold.Boundary.Basic
 
 /-!
@@ -38,6 +39,8 @@ chart of the maximal atlas.
 * `ModelWithCorners.BoundarylessManifold.interior`: the interior of `M` is a manifold without
   boundary.
 * `ModelWithCorners.isConnected_interior`: the interior of a connected manifold is connected.
+* `ModelWithCorners.compactSpace_boundary`: the boundary of a compact charted space over a
+  finite-dimensional real model is compact.
 
 ## References
 
@@ -169,6 +172,14 @@ instance BoundarylessManifold.interior [IsManifold I 1 M] :
 instance connectedSpace_interiorOpens [IsManifold I 1 M] [ConnectedSpace M] :
     ConnectedSpace (I.interiorOpens M) :=
   isConnected_iff_connectedSpace.1 (I.isConnected_interior one_ne_zero)
+
+/-- The boundary of a compact charted space over a finite-dimensional real model is compact. No
+`C¹` structure is needed: the boundary is closed by Tau Ceti's
+`ModelWithCorners.isClosed_boundary_of_finiteDimensional`. -/
+instance compactSpace_boundary {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [FiniteDimensional ℝ E] [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M]
+    [ChartedSpace H M] [CompactSpace M] : CompactSpace (I.boundary M) :=
+  isCompact_iff_compactSpace.1 I.isClosed_boundary_of_finiteDimensional.isCompact
 
 end ModelWithCorners
 
