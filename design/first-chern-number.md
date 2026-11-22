@@ -869,7 +869,16 @@ issues, in an order where each issue's blockers come before it.
    `Topology.IsOpenEmbedding.iSup_finset_sup_convex_image_eq_top`. The
    induction is `InfClosed.finset_sup_induction`, in `Order/SupClosed.lean`,
    Tau Ceti's `TauCeti.finset_sup_of_inf_closed` for a finite set of members
-   of the family.
+   of the family. It is run once for each theory, over any inf-closed
+   family of open sets whose finite unions cover the space:
+   `TopCat.isZero_compactSupportCohomology_of_infClosed`, in
+   `CompactSupport/Vanishing.lean`, and
+   `TauCeti.HomologicalOrientation.bijective_dualityMap_of_infClosed`, in
+   `CompactSupport/Duality/Union.lean`, which also assumes
+   `Hⁿ⁺¹_c(W; L) = 0` for every open set `W`. Their case of the empty
+   union uses the instance `TopologicalSpace.Opens.isEmpty_bot` of
+   `Topology/Sets/Opens/Basic.lean`, which `CompactSupport/Vanishing.lean`
+   imports.
    Duality for a manifold is the library's
    `AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`:
    `TauCeti.HomologicalOrientation.bijective_dualityMap`, for every
@@ -1034,10 +1043,10 @@ issues, in an order where each issue's blockers come before it.
    minus the open discs is an instance of the setting of 7: it is compact,
    its interior is the surface minus the closed discs, and its boundary
    circles are collared by thin annuli $1\le|z|<1+\delta$ of the coordinate
-   discs. The issue picks $\delta\in(0,1)$ such that the images of the
-   closed balls of radius $1+\delta$ are pairwise disjoint; one exists
+   discs. The issue picks widths $\delta_i\in(0,1)$ such that the images
+   of the balls of radius $1+\delta_i$ are pairwise disjoint; they exist
    because the closed discs are finitely many disjoint compact sets, so
-   they have pairwise disjoint open neighbourhoods, and for small $\delta$
+   they have pairwise disjoint open neighbourhoods, and for small $\delta_i$
    each enlarged closed disc lies in its neighbourhood. Then the collars
    are disjoint and miss the other closed discs, and together they give
    the open embedding that `TauCeti.IsCollar` requires. The wider annuli
@@ -1047,7 +1056,12 @@ issues, in an order where each issue's blockers come before it.
    orientation of this surface, so `boundaryDegree_eq_sum_degree` is
    applied to their reversals (`Path.symm`); it gives minus the sum of the
    degrees along the boundary loops, which is therefore $0$. The work of
-   the issue is that instance. This is the half of the book's Lemma 2.7.3 needed for discs.
+   the issue is that instance, which
+   `AlgebraicTopology/Singular/LocalHomology/DiscComplement/Basic.lean`
+   proves (`SymplecticGeometry.isOpenEmbedding_inclusion_discComplementInterior`,
+   `SymplecticGeometry.range_inclusion_discComplementInterior`,
+   `SymplecticGeometry.isCollared_discComplementBoundary`) and
+   `ArgumentPrinciple.lean` imports. This is the half of the book's Lemma 2.7.3 needed for discs.
    Blocked by 5 and 7.
 7. **Boundary degree and the argument principle on a surface with
    boundary.** The setting is that of `RelativeFundamentalClass.lean`: `X`
@@ -1083,7 +1097,8 @@ issues, in an order where each issue's blockers come before it.
      `Circle.radialProjection : C(ℂ ∖ {0}, Circle)`, `z ↦ z / |z|`, Tau
      Ceti's `complSingletonHomotopyEquivSphere 0` read in `Circle`.
    - `Analysis/Normed/Module/Ball/Collar.lean`, used by
-     `DiscBoundaryClass.lean`: in a real normed space the unit sphere is
+     `DiscBoundaryClass.lean` and `DiscComplement/Basic.lean`: in a real
+     normed space the unit sphere is
      collared in the closed unit ball
      (`Metric.isCollared_inclusion_sphere_closedBall`), and the
      open ball is the complement of the sphere in the closed ball

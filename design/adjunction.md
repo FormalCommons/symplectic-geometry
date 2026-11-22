@@ -338,7 +338,9 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
   $0\to U\to V\to W\to 0$ whose maps are complex linear for `J₁`, `J`
   and `J₂`, `Orientation.shortExact` sends the orientations of `J₁` and
   `J₂` to that of `J`. The proof splits the sequence along a complex-linear
-  section, so no invariant complement appears in the statement.
+  section, `IsComplexLinearMap.exists_rightInverse_of_surjective` of
+  *Linear complex structures*, so no invariant complement appears in the
+  statement.
 
 ### `Geometry/Symplectic/Manifold/AlmostComplex/AdjunctionFormula.lean`
 
@@ -409,6 +411,9 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
   `tangentEquiv`, `pullback` and `toContinuousComplexStructure`;
   `ContMDiffTwoForm` with `prod`, `pushforward`, `compMFDeriv`,
   `compatibleForm` and `compatible_compatibleForm`.
+- *Linear complex structures*, merged: `LinearAlgebra/ComplexStructure/Hom.lean`,
+  which `Orientation.lean` imports for
+  `IsComplexLinearMap.exists_rightInverse_of_surjective`.
 - The library's merged `Geometry/Manifold/VectorBundle/Pullback.lean`
   (`Bundle.Pullback.hasLocalContMDiffSubbundleFrames_range_mfderiv`,
   `contMDiff_totalSpace_mfderiv`) and `Geometry/Manifold/VectorBundle/Orthogonal.lean`.
