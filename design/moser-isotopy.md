@@ -517,6 +517,10 @@ trajectory argument this proof follows for every time,
 `exists_diffeomorph_fix_embedding_eventually_mpullback_eq` and
 `exists_diffeomorph_opens_of_eq_along`.
 
+The file imports `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` of
+*Hamiltonian flows*, which is merged, for the slices of `Ψ`
+(`TauCeti.Diffeotopy.timeSlice_timeDependentFlowDiffeotopy`).
+
 ### `Geometry/Symplectic/Manifold/Darboux.lean`
 
 The file has the name of Tau Ceti's file. It is in the namespace
