@@ -121,22 +121,14 @@ theorem clutchingScalar_mul (i j l : Bool) (x : M) :
   congr 2
   ring
 
-/-- A point in both charts of the clutching line bundle is `φ z` with `1 / 2 < ‖z‖ < 1`. -/
-private theorem exists_of_mem_inter {x : M} (h₁ : x ∈ φ.openDisc)
-    (h₂ : x ∈ (φ '' {z | ‖(z : ℂ)‖ ≤ 1 / 2})ᶜ) :
-    ∃ z : CoordinateDisc.ball, φ z = x ∧ 1 / 2 < ‖(z : ℂ)‖ ∧ ‖(z : ℂ)‖ < 1 := by
+/-- The overlap of the two charts of the clutching line bundle lies in the range of `φ`, off the
+centre: there the coordinate of `φ` does not vanish. -/
+private theorem inter_subset_coord_ne_zero :
+    φ.openDisc ∩ (φ '' {z | ‖(z : ℂ)‖ ≤ 1 / 2})ᶜ ⊆ {x ∈ range φ | φ.coord x ≠ 0} := by
+  rintro x ⟨h₁, h₂⟩
   obtain ⟨z, hz, rfl⟩ := φ.mem_openDisc_iff.1 h₁
-  exact ⟨z, rfl, lt_of_not_ge fun h ↦ h₂ ⟨z, h, rfl⟩, hz⟩
-
-/-- On the overlap of the two charts, the scalar transition function is
-`(w / ‖w‖) ^ (k (j - i))` for `w = φ.coord x`. -/
-private theorem coe_clutchingScalar_of_mem {x : M} (h₁ : x ∈ φ.openDisc)
-    (h₂ : x ∈ (φ '' {z | ‖(z : ℂ)‖ ≤ 1 / 2})ᶜ) (i j : Bool) :
-    (clutchingScalar φ k i j x : ℂ) =
-      (φ.coord x / ‖φ.coord x‖) ^ (k * ((j.toNat : ℤ) - i.toNat)) := by
-  obtain ⟨z, rfl, hz, -⟩ := exists_of_mem_inter φ h₁ h₂
-  have hz0 : (z : ℂ) ≠ 0 := norm_pos_iff.1 (by linarith)
-  rw [clutchingScalar_def, Circle.coe_zpow, φ.coe_phase (by simpa using hz0)]
+  have hz' : 1 / 2 < ‖(z : ℂ)‖ := lt_of_not_ge fun h ↦ h₂ ⟨z, h, rfl⟩
+  exact ⟨mem_range_self z, by rw [CoordinateDisc.coord_apply]; exact norm_pos_iff.1 (by linarith)⟩
 
 variable {φ} in
 /-- On the overlap of the two charts the scalar transition functions are `Cⁿ` if the coordinate
@@ -146,23 +138,11 @@ private theorem contMDiffOn_clutchingScalar {n : WithTop ℕ∞}
     ContMDiffOn 𝓘(ℝ, EM) 𝓘(ℝ, ℂ) n (fun x ↦ (clutchingScalar φ k i j x : ℂ))
       (φ.openDisc ∩ (φ '' {z | ‖(z : ℂ)‖ ≤ 1 / 2})ᶜ) := by
   intro x hx
-  obtain ⟨z, rfl, hz, -⟩ := exists_of_mem_inter φ hx.1 hx.2
-  have hz0 : φ.coord (φ z) ≠ 0 := by
-    rw [CoordinateDisc.coord_apply]
-    exact norm_pos_iff.1 (by linarith)
-  -- The function `w ↦ (w / ‖w‖) ^ m` is smooth away from `0`.
-  have hw : ((‖φ.coord (φ z)‖ : ℝ) : ℂ) ≠ 0 := by simpa using hz0
-  have hs : ContDiffAt ℝ n (fun w : ℂ ↦ (w / ‖w‖) ^ (k * ((j.toNat : ℤ) - i.toNat)))
-      (φ.coord (φ z)) := by
-    simp only [div_eq_mul_inv]
-    exact (contDiffAt_id.mul ((Complex.ofRealCLM.contDiff.contDiffAt.comp _
-      (contDiffAt_norm ℝ hz0)).inv hw)).zpow (Or.inl (mul_ne_zero hz0 (inv_ne_zero hw)))
-  refine (hs.comp_contMDiffWithinAt
-    ((hφ _ (mem_range_self z)).mono fun y hy ↦ ?_)).congr (fun y hy ↦ ?_) ?_
-  · obtain ⟨w, rfl, -⟩ := exists_of_mem_inter φ hy.1 hy.2
-    exact mem_range_self w
-  · exact coe_clutchingScalar_of_mem φ k hy.1 hy.2 i j
-  · exact coe_clutchingScalar_of_mem φ k hx.1 hx.2 i j
+  simp only [clutchingScalar_def, Circle.coe_zpow]
+  have hs := (contDiffAt_id (𝕜 := ℝ) (n := n) (x := (φ.phase x : ℂ))).zpow
+    (m := k * ((j.toNat : ℤ) - i.toNat)) (Or.inl (Circle.coe_ne_zero _))
+  refine hs.comp_contMDiffWithinAt (f := fun y ↦ (φ.phase y : ℂ)) ?_
+  exact (φ.contMDiffOn_coe_phase hφ).mono (inter_subset_coord_ne_zero φ) x hx
 
 private theorem continuousOn_clutchingScalar (i j : Bool) :
     ContinuousOn (fun x ↦ (clutchingScalar φ k i j x : ℂ))
@@ -406,13 +386,9 @@ private theorem discComplement_clutchingDisc_subset :
 
 private theorem phase_boundaryCircle_clutchingDisc (ζ : Circle) :
     φ.phase ((clutchingDisc φ).boundaryCircle ζ) = ζ := by
-  refine Circle.ext ?_
-  rw [CoordinateDisc.boundaryCircle_apply, clutchingDisc_apply, φ.coe_phase_apply]
-  · simp only [CoordinateDisc.coe_affineBall_apply, zero_add, norm_mul, Complex.norm_real,
-      Circle.norm_coe, mul_one]
-    norm_num
-  · rw [CoordinateDisc.coe_affineBall_apply, zero_add]
-    exact mul_ne_zero (by norm_num) (Circle.coe_ne_zero ζ)
+  rw [CoordinateDisc.boundaryCircle_apply, clutchingDisc_apply]
+  exact φ.phase_apply_of_coe_eq_mul (r := 3 / 4) (by norm_num)
+    (by rw [CoordinateDisc.coe_affineBall_apply, zero_add])
 
 /-! ### The frames of the charts -/
 
@@ -423,7 +399,7 @@ the standard plane `StdSpace (Fin 1)`, read as `ℂ` through `(x, y) ↦ x + i y
 inverse of the chart at `x`. -/
 def clutchingFrame (i : Bool) (x : M) (hx : x ∈ (clutchingLineBundle φ k).baseSet i) :
     StdSpace (Fin 1) ≃L[ℝ] (clutchingLineBundle φ k).Fiber x :=
-  (equivComplex (Fin 1)).trans
+  (equivComplex (Fin 1)).toContinuousLinearEquiv.trans
     (((clutchingLineBundle φ k).localTriv i).continuousLinearEquivAt ℝ x hx).symm
 
 theorem clutchingFrame_apply (i : Bool) {x : M} (hx : x ∈ (clutchingLineBundle φ k).baseSet i)

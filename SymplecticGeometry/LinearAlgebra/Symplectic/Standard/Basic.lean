@@ -42,8 +42,8 @@ structures.
 * `SymplecticGeometry.StdSpace.finSumIsometry n` relabels the coordinates of `StdSpace (Fin n)`
   along `finSumFinEquiv`, a linear isometry onto `EuclideanSpace ℝ (Fin (n + n))`.
 * `SymplecticGeometry.StdSpace.equivComplex ι`, for a one-element `ι`, identifies the standard
-  plane with `ℂ` by `(x, y) ↦ x + i y`; read on `ℂ`, `ω₀(v, w) = ⟪i v, w⟫`
-  (`stdForm_apply_eq_inner_equivComplex`).
+  plane with `ℂ` by `(x, y) ↦ x + i y`, a linear isometry; read on `ℂ`,
+  `ω₀(v, w) = ⟪i v, w⟫` (`stdForm_apply_eq_inner_equivComplex`).
 
 The main facts fixing the conventions are `stdForm_apply`
 (`ω₀(z, w) = ∑ᵢ (xᵢ(z) yᵢ(w) - yᵢ(z) xᵢ(w))`), `stdComplexStructure_eq_toEuclideanLin_J`,
@@ -957,20 +957,29 @@ namespace StdSpace
 
 variable (ι) in
 /-- For a one-element index type `ι`, the identification `(x, y) ↦ x + i y` of the standard
-plane `StdSpace ι` with `ℂ`. -/
-noncomputable def equivComplex : StdSpace ι ≃L[ℝ] ℂ :=
-  (complexToRealEuclidean ι).symm.trans (ContinuousLinearEquiv.funUnique ι ℝ ℂ)
+plane `StdSpace ι` with `ℂ`, a linear isometry. -/
+noncomputable def equivComplex : StdSpace ι ≃ₗᵢ[ℝ] ℂ :=
+  ((complexToRealEuclidean ι).symm.trans
+      (ContinuousLinearEquiv.funUnique ι ℝ ℂ)).toLinearEquiv.isometryOfInner fun v w ↦ by
+    obtain ⟨v, rfl⟩ := (complexToRealEuclidean ι).surjective v
+    obtain ⟨w, rfl⟩ := (complexToRealEuclidean ι).surjective w
+    simp [Complex.inner, dotProduct]
+    ring
 
-variable (ι) in
-theorem equivComplex_def :
-    equivComplex ι =
-      (complexToRealEuclidean ι).symm.trans (ContinuousLinearEquiv.funUnique ι ℝ ℂ) :=
+/-- `equivComplex ι z` is the one coordinate of `(complexToRealEuclidean ι).symm z`. -/
+theorem equivComplex_apply (z : StdSpace ι) :
+    equivComplex ι z = (complexToRealEuclidean ι).symm z default :=
   (rfl)
 
 @[simp]
 theorem equivComplex_complexToRealEuclidean (u : ι → ℂ) :
     equivComplex ι (complexToRealEuclidean ι u) = u default := by
-  simp [equivComplex_def]
+  simp [equivComplex_apply]
+
+/-- The inverse of `equivComplex ι` sends `z` to the point with coordinates `(re z, im z)`. -/
+theorem equivComplex_symm_apply (z : ℂ) :
+    (equivComplex ι).symm z = complexToRealEuclidean ι fun _ ↦ z :=
+  (equivComplex ι).symm_apply_eq.2 (by simp)
 
 /-- The real part of `equivComplex ι z` is the `x`-coordinate of `z`. -/
 @[simp]

@@ -17,6 +17,7 @@ public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Change
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import SymplecticGeometry.LinearAlgebra.Complex.Orientation
 import SymplecticGeometry.Geometry.Manifold.Orientation.CoordinateBall
+import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 import TauCeti.Geometry.Manifold.CoordinateBall
 import TauCeti.Geometry.Manifold.ModelTransport.Finrank
 import TauCeti.Topology.OpenPartialHomeomorph.Constructions
@@ -104,6 +105,9 @@ source: the inverse of Tau Ceti's oriented coordinate ball, restricted to a smal
 * `SymplecticGeometry.CoordinateDisc.isCompact_disc`,
   `SymplecticGeometry.CoordinateDisc.isOpen_openDisc`,
   `SymplecticGeometry.CoordinateDisc.openDisc_subset_disc`.
+* `SymplecticGeometry.CoordinateDisc.phase_boundaryCircle`,
+  `SymplecticGeometry.CoordinateDisc.contMDiffOn_coe_phase`: the angular coordinate is `ζ` at the
+  point `ζ` of the boundary circle, and it is `Cⁿ` off the centre where the coordinate is.
 * `SymplecticGeometry.CoordinateDisc.disc_diff_openDisc`: the closed disc minus the open disc is
   the boundary circle.
 * `SymplecticGeometry.CoordinateDisc.disc_reverse`,
@@ -378,6 +382,30 @@ theorem coe_phase {x : M} (hx : φ.coord x ≠ 0) : (φ.phase x : ℂ) = φ.coor
 theorem coe_phase_apply {z : ball} (hz : (z : ℂ) ≠ 0) : (φ.phase (φ z) : ℂ) = z / ‖(z : ℂ)‖ := by
   rw [coe_phase φ (by rwa [coord_apply]), coord_apply]
 
+/-- At a point `φ z` with `z = r ζ`, where `r > 0` and `|ζ| = 1`, the angular coordinate is
+`ζ`. -/
+theorem phase_apply_of_coe_eq_mul {z : ball} {r : ℝ} (hr : 0 < r) {ζ : Circle}
+    (hz : (z : ℂ) = r * ζ) : φ.phase (φ z) = ζ := by
+  have hr' : (r : ℂ) ≠ 0 := Complex.ofReal_ne_zero.2 hr.ne'
+  refine Circle.ext ?_
+  rw [φ.coe_phase_apply (by rw [hz]; exact mul_ne_zero hr' (Circle.coe_ne_zero ζ)), hz, norm_mul,
+    Complex.norm_real, Circle.norm_coe, mul_one, Real.norm_of_nonneg hr.le]
+  field_simp
+
+/-- If the coordinate of a coordinate disc is `Cⁿ` on the range of `φ`, then its angular
+coordinate is `Cⁿ` on the points of that range where the coordinate does not vanish. -/
+theorem contMDiffOn_coe_phase {n : WithTop ℕ∞}
+    (hφ : ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, ℂ) n φ.coord (Set.range φ)) :
+    ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, ℂ) n (fun x ↦ (φ.phase x : ℂ))
+      {x ∈ Set.range φ | φ.coord x ≠ 0} := by
+  intro x hx
+  -- The map `w ↦ w / ‖w‖` is smooth away from `0`.
+  have hs : ContDiffAt ℝ n (fun w : ℂ ↦ w / ‖w‖) (φ.coord x) := by
+    simpa using (Complex.contDiffOn_div_norm_pow 1).contDiffAt
+      (isOpen_compl_singleton.mem_nhds hx.2)
+  exact (hs.comp_contMDiffWithinAt ((hφ x hx.1).mono (Set.sep_subset _ _))).congr
+    (fun _ hy ↦ φ.coe_phase hy.2) (φ.coe_phase hx.2)
+
 /-! ### The boundary circle -/
 
 /-- The boundary circle of a coordinate disc: the unit circle of the chart, `z ↦ φ z`. -/
@@ -388,6 +416,11 @@ def boundaryCircle : C(Circle, M) where
 theorem boundaryCircle_apply (z : Circle) :
     φ.boundaryCircle z = φ ⟨z, mem_ball_of_norm_le_one (Circle.norm_coe z).le⟩ :=
   (rfl)
+
+/-- The angular coordinate of the point `ζ` of the boundary circle is `ζ`. -/
+@[simp]
+theorem phase_boundaryCircle (ζ : Circle) : φ.phase (φ.boundaryCircle ζ) = ζ :=
+  φ.phase_apply_of_coe_eq_mul one_pos (by simp)
 
 @[simp]
 theorem boundaryCircle_mem_disc (z : Circle) : φ.boundaryCircle z ∈ φ.disc := by
