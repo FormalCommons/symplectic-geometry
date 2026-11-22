@@ -116,6 +116,31 @@ end
 - The header is exactly as above; CI checks it. The module docstring comes
   right after the imports. Mathlib's style linters are on and fail the build,
   among them the limit of 100 characters per line.
+- The one other header is that of a file taken from Tau Ceti. When the
+  library needs declarations that Tau Ceti's main branch has and the pinned
+  version does not, you may copy them, since Tau Ceti's license is this
+  library's. The license then requires that their file keeps Tau Ceti's
+  notices, so:
+  - They go in a file of their own, at the path of Tau Ceti's file with
+    `SymplecticGeometry/` in place of `TauCeti/`, under Tau Ceti's names and
+    namespaces. A move of Tau Ceti past them then deletes the file. Add no
+    declaration of your own to such a file, and copy none into a file with
+    the header above.
+  - The header is that of Tau Ceti's file as it is: every line before
+    `module`, with its copyright line and its `Authors:` line, which may
+    name people. CI's check allows any holder and any authors in a header
+    of five lines. A few of Tau Ceti's files have a longer one: an
+    `Authors:` line that runs on, or a second comment that credits another
+    project. Do not shorten it. CI rejects it, so take nothing from such a
+    file, and create an issue labelled `proposed` that asks a maintainer to
+    change the check.
+  - The module docstring names Tau Ceti's file and each commit you copied
+    from, says that the file is a part of it, and says each change you made
+    to a statement or a proof. Keep what Tau Ceti's file says of where a
+    declaration you take comes from, in its module docstring or in a
+    comment ("Adapted from …", "Ported from …", its references).
+  - Take only what the library needs, and change only what the pinned
+    version requires.
 - A module can import only modules, so every file starts with `module`.
   Import with `public import`, so that files that import yours see the
   declarations your statements use. Import the specific modules you need,
