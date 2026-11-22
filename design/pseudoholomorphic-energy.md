@@ -201,6 +201,7 @@ of Tau Ceti's roadmap that no one has started.
 | `Geometry/Symplectic/JHolomorphic/Energy/Density.lean` | the pointwise density $\varepsilon_L$, the squared norm, the pointwise identity |
 | `Geometry/Symplectic/JHolomorphic/Energy/Metric.lean` | the squared norm read in $g_J$ |
 | `Geometry/Symplectic/JHolomorphic/Energy/Surface.lean` | the energy form and its continuity, the energy, the integrated identity, the pseudoholomorphic case, positivity |
+| `AlgebraicTopology/SimplicialSet/Homology/RestrictScalars.lean` | the change of coefficients on simplicial chains along a restriction of scalars, `SSet.restrictScalarsChainMap` |
 | `Geometry/Manifold/SmoothSingular/SingularPeriod.lean` | the pairing of de Rham classes with integral singular homology |
 | `Geometry/Manifold/SmoothSingular/RelativeCycle.lean` | the relative step of Decision 7 |
 | `AlgebraicTopology/SimplicialSet/Homology/RelativeClass.lean` | the relative class of a simplex whose faces lie in the subcomplex of a pair of simplicial sets, `SSetPair.relClass` |
@@ -448,7 +449,9 @@ Each is a few hundred lines; each is blocked by the issues it names.
 4. **The squared norm in the metric of a compatible pair.**
    `Energy/Metric.lean`. About 80 lines. Blocked by 1 and #860.
 5. **Periods of closed forms on integral singular homology.**
-   `SmoothSingular/SingularPeriod.lean`. About 300 lines. No blockers.
+   `SmoothSingular/SingularPeriod.lean`, with the change of coefficients on
+   chains in `SimplicialSet/Homology/RestrictScalars.lean`. About 300 lines.
+   No blockers.
 6. **Relative cycles and smooth chains.** `SmoothSingular/RelativeCycle.lean`.
    About 250 lines. No blockers.
 7. **Positively oriented simplices in local homology.**

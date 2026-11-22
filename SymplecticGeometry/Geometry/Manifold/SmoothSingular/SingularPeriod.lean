@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Algebra.Category.ModuleCat.ChangeOfRings
-public import TauCeti.AlgebraicTopology.SimplicialSet.Homology.Pairing
+public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RestrictScalars
+public import TauCeti.Algebra.Category.ModuleCat.RestrictScalars
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 public import TauCeti.Geometry.Manifold.SmoothSingular.DeRham
 public import TauCeti.Geometry.Manifold.SmoothSingular.Smoothing
 
@@ -22,8 +23,6 @@ theorem. Exact forms integrate to zero on cycles, so the period depends only on 
 
 ## Main declarations
 
-* `SSet.intToRealChainMap X`: the change of coefficients `ℤ → ℝ` on the simplicial chains of `X`,
-  `∑ nᵢ σᵢ ↦ ∑ (nᵢ : ℝ) σᵢ`, landing in the real chains with scalars restricted to `ℤ`.
 * `TauCeti.intIntegrationCochain φ`: the integral of a `p`-form over integral smooth singular
   `p`-chains, `∑ nᵢ σᵢ ↦ ∑ nᵢ ∫_{σᵢ} φ`: Tau Ceti's real `TauCeti.integrationCochain` after the
   change of coefficients.
@@ -44,8 +43,9 @@ that the period applies to fundamental classes as they are. The target of the sm
 isomorphism is the same module, written as the simplicial homology of
 `TopCat.toSSet.obj (TopCat.of M)`; the two are equal by definition, and no cast is needed.
 
-The integral cochain is the composite of the change of coefficients `ℤ → ℝ` on chains, built from
-Mathlib's `SSet.chainComplexFunctorObjCompMapIso` for restriction of scalars along `ℤ → ℝ`, with
+The integral cochain is the composite of the change of coefficients `ℤ → ℝ` on chains,
+`SSet.restrictScalarsChainMap` along `algebraMap ℤ ℝ` applied to Tau Ceti's coefficient map
+`TauCeti.intToRealCoeff` (with `ℝ` read as the restriction of scalars of the `ℝ`-module `ℝ`), with
 the restriction of scalars of Tau Ceti's real-coefficient `TauCeti.integrationCochain`. Its value
 on a simplex, Stokes' theorem and naturality are then derived from Tau Ceti's
 `TauCeti.integrationCochain_ιChainComplex`, `TauCeti.d_comp_integrationCochain` and
@@ -72,70 +72,6 @@ noncomputable section
 open AlgebraicTopology CategoryTheory
 open scoped Manifold ContDiff Simplicial
 
-namespace SSet
-
-/-- The coefficient map `ℤ → ℝ`, `n ↦ (n : ℝ)`, from the integers (as `ULift ℤ`, the coefficients
-of Tau Ceti's integral homology) to the reals viewed as a `ℤ`-module. -/
-def intToRealCoeff :
-    ModuleCat.of ℤ (ULift.{0} ℤ) ⟶
-      (ModuleCat.restrictScalars (Int.castRingHom ℝ)).obj (ModuleCat.of ℝ ℝ) :=
-  ModuleCat.ofHom (X := ModuleCat.of ℤ (ULift.{0} ℤ))
-    (Y := (ModuleCat.restrictScalars (Int.castRingHom ℝ)).obj (ModuleCat.of ℝ ℝ))
-    { toFun n := (n.down : ℝ)
-      map_add' m n := Int.cast_add (R := ℝ) m.down n.down
-      map_smul' m n := by
-        -- The scalar action on the target is the restricted one, `m • x = (m : ℝ) * x`.
-        change ((m • n).down : ℝ) = (m : ℝ) • (n.down : ℝ)
-        simp }
-
-@[simp]
-theorem intToRealCoeff_apply (n : ULift.{0} ℤ) : intToRealCoeff.hom n = (n.down : ℝ) :=
-  (rfl)
-
-/-- The change of coefficients `ℤ → ℝ` on simplicial chains, `∑ nᵢ σᵢ ↦ ∑ (nᵢ : ℝ) σᵢ`: a map of
-complexes of `ℤ`-modules from the integral chains of `X` to its real chains, with scalars
-restricted to `ℤ`. -/
-def intToRealChainMap (X : SSet.{0}) :
-    X.chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ⟶
-      ((ModuleCat.restrictScalars (Int.castRingHom ℝ)).mapHomologicalComplex _).obj
-        (X.chainComplex (ModuleCat.of ℝ ℝ)) :=
-  ((chainComplexFunctor _).map intToRealCoeff).app X ≫
-    (chainComplexFunctorObjCompMapIso (ModuleCat.restrictScalars (Int.castRingHom ℝ))
-      (ModuleCat.of ℝ ℝ)).inv.app X
-
-/-- The change of coefficients `ℤ → ℝ` sends the simplex `x` with coefficient `n` to `x` with
-coefficient `(n : ℝ)`. -/
-@[reassoc]
-theorem ιChainComplex_intToRealChainMap_f (X : SSet.{0}) {n : ℕ} (x : X _⦋n⦌) :
-    X.ιChainComplex x ≫ (intToRealChainMap X).f n =
-      intToRealCoeff ≫ (ModuleCat.restrictScalars (Int.castRingHom ℝ)).map (X.ιChainComplex x) := by
-  rw [intToRealChainMap, HomologicalComplex.comp_f,
-    ιChainComplex_chainComplexFunctor_map_app_f_assoc,
-    ιChainComplex_chainComplexFunctorObjCompMapIso_inv_app_f]
-
-/-- The change of coefficients `ℤ → ℝ` sends the simplex `x` with coefficient `n` to `x` with
-coefficient `(n : ℝ)`. -/
-theorem intToRealChainMap_f_ιChainComplex (X : SSet.{0}) {n : ℕ} (x : X _⦋n⦌)
-    (k : ULift.{0} ℤ) :
-    ((intToRealChainMap X).f n).hom
-        ((X.ιChainComplex (R := ModuleCat.of ℤ (ULift.{0} ℤ)) x).hom k) =
-      (X.ιChainComplex (R := ModuleCat.of ℝ ℝ) x).hom (k.down : ℝ) := by
-  rw [← ModuleCat.comp_apply, ιChainComplex_intToRealChainMap_f, ModuleCat.comp_apply,
-    ModuleCat.restrictScalars.map_apply, intToRealCoeff_apply]
-
-/-- The change of coefficients `ℤ → ℝ` commutes with the chain maps induced by maps of simplicial
-sets. -/
-@[reassoc]
-theorem chainComplexMap_f_intToRealChainMap {X Y : SSet.{0}} (f : X ⟶ Y) (n : ℕ) :
-    (chainComplexMap f _).f n ≫ (intToRealChainMap Y).f n =
-      (intToRealChainMap X).f n ≫
-        (ModuleCat.restrictScalars (Int.castRingHom ℝ)).map ((chainComplexMap f _).f n) := by
-  refine chainComplex_hom_ext fun x ↦ ?_
-  rw [ι_chainComplexMap_f_assoc, ιChainComplex_intToRealChainMap_f,
-    ιChainComplex_intToRealChainMap_f_assoc, ← Functor.map_comp, ι_chainComplexMap_f]
-
-end SSet
-
 namespace TauCeti
 
 section Cochain
@@ -149,9 +85,10 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSp
 `ℤ → ℝ`. -/
 def intIntegrationCochain (φ : RoughForm I M F p) :
     ((smoothSingularSubcomplex I M : SSet).chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).X p ⟶
-      (ModuleCat.restrictScalars (Int.castRingHom ℝ)).obj (ModuleCat.of ℝ F) :=
-  (SSet.intToRealChainMap _).f p ≫
-    (ModuleCat.restrictScalars (Int.castRingHom ℝ)).map (integrationCochain φ)
+      (ModuleCat.restrictScalars (algebraMap ℤ ℝ)).obj (ModuleCat.of ℝ F) :=
+  (SSet.restrictScalarsChainMap (algebraMap ℤ ℝ)
+      (intToRealCoeff ≫ (ModuleCat.restrictScalarsAlgebraMapIso ℝ).inv) _).f p ≫
+    (ModuleCat.restrictScalars (algebraMap ℤ ℝ)).map (integrationCochain φ)
 
 /-- The integral over an integral chain is the real integral over the same chain with its
 coefficients cast to `ℝ`. -/
@@ -159,7 +96,8 @@ theorem intIntegrationCochain_apply (φ : RoughForm I M F p)
     (c : ((smoothSingularSubcomplex I M : SSet).chainComplex
       (ModuleCat.of ℤ (ULift.{0} ℤ))).X p) :
     (intIntegrationCochain φ).hom c =
-      (integrationCochain φ).hom (((SSet.intToRealChainMap _).f p).hom c) :=
+      (integrationCochain φ).hom (((SSet.restrictScalarsChainMap (algebraMap ℤ ℝ)
+        (intToRealCoeff ≫ (ModuleCat.restrictScalarsAlgebraMapIso ℝ).inv) _).f p).hom c) :=
   (rfl)
 
 /-- The integral of `φ` over a simplex with integral coefficient `n` is `n` times its integral. -/
@@ -167,7 +105,8 @@ theorem intIntegrationCochain_ιChainComplex (φ : RoughForm I M F p) (σ : Smoo
     (n : ULift.{0} ℤ) :
     (intIntegrationCochain φ).hom (((smoothSingularSubcomplex I M : SSet).ιChainComplex
       (R := ModuleCat.of ℤ (ULift.{0} ℤ)) σ).hom n) = n.down • σ.integral φ := by
-  rw [intIntegrationCochain_apply, SSet.intToRealChainMap_f_ιChainComplex,
+  rw [intIntegrationCochain_apply, SSet.restrictScalarsChainMap_f_ιChainComplex,
+    ModuleCat.comp_apply, ModuleCat.restrictScalarsAlgebraMapIso_inv_apply, intToRealCoeff_apply,
     integrationCochain_ιChainComplex, Int.cast_smul_eq_zsmul]
 
 /-- The integral of the zero form over integral chains is zero. -/
@@ -189,8 +128,7 @@ theorem intIntegrationCochain_smul_apply (a : ℝ) (φ : RoughForm I M F p)
     (intIntegrationCochain (a • φ)).hom c = a • ((intIntegrationCochain φ).hom c : F) := by
   rw [intIntegrationCochain_apply, intIntegrationCochain_apply, integrationCochain_smul,
     ModuleCat.hom_smul]
-  exact LinearMap.smul_apply a (integrationCochain φ).hom
-    (((SSet.intToRealChainMap _).f p).hom c)
+  exact LinearMap.smul_apply a (integrationCochain φ).hom _
 
 variable {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   {J : ModelWithCorners ℝ E' H'} {N : Type} [TopologicalSpace N] [ChartedSpace H' N]
@@ -203,8 +141,8 @@ theorem intIntegrationCochain_naturality {f : M → N} (hf : ContMDiff I J ∞ f
     (SSet.chainComplexMap (smoothSingularSubcomplexMap f hf)
       (ModuleCat.of ℤ (ULift.{0} ℤ))).f p ≫ intIntegrationCochain ψ =
         intIntegrationCochain (mpullback I J f ψ) := by
-  rw [intIntegrationCochain, SSet.chainComplexMap_f_intToRealChainMap_assoc, ← Functor.map_comp,
-    integrationCochain_naturality, intIntegrationCochain]
+  rw [intIntegrationCochain, SSet.chainComplexMap_f_restrictScalarsChainMap_assoc,
+    ← Functor.map_comp, integrationCochain_naturality, intIntegrationCochain]
 
 section Stokes
 
@@ -217,7 +155,7 @@ theorem d_comp_intIntegrationCochain {φ : RoughForm I M F p} (hφ : IsSmoothFor
     ((smoothSingularSubcomplex I M : SSet).chainComplex
       (ModuleCat.of ℤ (ULift.{0} ℤ))).d (p + 1) p ≫ intIntegrationCochain φ =
         intIntegrationCochain (mextDeriv φ) := by
-  rw [intIntegrationCochain, ← (SSet.intToRealChainMap _).comm_assoc,
+  rw [intIntegrationCochain, ← (SSet.restrictScalarsChainMap _ _ _).comm_assoc,
     Functor.mapHomologicalComplex_obj_d, ← Functor.map_comp, d_comp_integrationCochain hφ,
     intIntegrationCochain]
 
@@ -246,7 +184,7 @@ variable [IsManifold I 2 M]
 /-- The integral of a closed form over integral smooth singular cycles, on their homology. -/
 private def smoothPeriod (φ : closedForms I M p) :
     (smoothSingularSubcomplex I M : SSet).homology (ModuleCat.of ℤ (ULift.{0} ℤ)) p ⟶
-      (ModuleCat.restrictScalars (Int.castRingHom ℝ)).obj (ModuleCat.of ℝ ℝ) :=
+      (ModuleCat.restrictScalars (algebraMap ℤ ℝ)).obj (ModuleCat.of ℝ ℝ) :=
   HomologicalComplex.homologyι _ p ≫ HomologicalComplex.descOpcycles _
     (intIntegrationCochain φ.val.val) (p + 1) (by simp)
     (d_comp_intIntegrationCochain_eq_zero (φ.val.isSmoothForm.of_le (by simp))
