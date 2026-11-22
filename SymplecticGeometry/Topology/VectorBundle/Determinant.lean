@@ -68,6 +68,11 @@ theorem detCore_def : detCore 𝕜 G E = (ofBundleOfFinrankEq 𝕜 G E rfl).det 
 @[simp] theorem rank_detCore : (detCore 𝕜 G E).rank = 1 :=
   rank_det _
 
+/-- The model of the determinant line has dimension `0 + 1`, the form in which Tau Ceti's Euler
+classes take the rank. -/
+theorem finrank_detCore : finrank 𝕜 (Fin (detCore 𝕜 G E).rank → 𝕜) = 0 + 1 := by
+  simp
+
 /-- The determinant line is the exterior power of `E` in the degree of its rank. -/
 theorem detCore_eq_exteriorPower :
     detCore 𝕜 G E = (exteriorPower 𝕜 B (finrank 𝕜 G)).obj (ofBundleOfFinrankEq 𝕜 G E rfl) :=
