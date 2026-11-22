@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.AlgebraicTopology.Singular.AlexanderWhitney.RelativeCup
 public import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.RelativePair
 public import TauCeti.AlgebraicTopology.Cohomology.Local.Cross
+import TauCeti.CategoryTheory.Linear.Int
 
 /-!
 # The Kronecker pairing of relative cross products
@@ -55,6 +56,8 @@ this evaluates Tau Ceti's product of local classes `TauCeti.complZeroPairCross`
   relative cup product of classes pulled back along the projections of a product.
 * `TauCeti.singularKronecker_complZeroPairCross`: the Kronecker pairing of the product of classes
   of the pairs `(V₁, V₁ ∖ {0})` and `(V₂, V₂ ∖ {0})`, with coefficients in modules.
+* `TauCeti.singularKronecker_complZeroPairCross_int`: the same with integer scalars, for any
+  `ℤ`-linear structure of `ModuleCat ℤ`.
 
 The proof of the Kronecker pairing adapts that of
 `TopCat.singularHomologyCross_comp_singularKronecker_singularCross` and
@@ -300,5 +303,42 @@ theorem singularKronecker_complZeroPairCross (u : T ⟶ R ⊗ S) (μ : M ⊗ N �
   exact hK.trans <| (congrArg (ConcreteCategory.hom (TopPair.singularKronecker _ K n
     (singularRelativeCross K (TopCat.of V₁) (TopCat.of V₂) isOpen_compl_singleton
       isOpen_compl_singleton μ p q n h g₁ g₂))) hz).trans hA
+
+
+section Int
+
+variable {R S T M N L : ModuleCat.{0} ℤ} (V₁ V₂ : Type) [TopologicalSpace V₁] [Zero V₁]
+  [T1Space V₁] [TopologicalSpace V₂] [Zero V₂] [T1Space V₂]
+
+/-- `TauCeti.singularKronecker_complZeroPairCross` with integer scalars, for any structure `iL` of
+`ModuleCat ℤ` as a `ℤ`-linear category. Besides that of a category of modules, which the general
+statement uses, `ModuleCat ℤ` has the one of every preadditive category
+(`CategoryTheory.Linear.preadditiveIntLinear`), which integral cohomology uses; the two are equal
+(`CategoryTheory.Linear.subsingletonInt`) but not by definition. -/
+theorem singularKronecker_complZeroPairCross_int {iL : Linear ℤ (ModuleCat.{0} ℤ)}
+    [MonoidalLinear ℤ (ModuleCat.{0} ℤ)] (u : T ⟶ R ⊗ S) (μ : M ⊗ N ⟶ L) {p q n : ℕ}
+    (h : p + q = n)
+    (g₁ : (TopPair.ofSubset (X := TopCat.of V₁) ({0}ᶜ : Set V₁)).singularCohomology R ℤ M p)
+    (g₂ : (TopPair.ofSubset (X := TopCat.of V₂) ({0}ᶜ : Set V₂)).singularCohomology S ℤ N q)
+    (x : ↑((TopPair.ofSubset (X := TopCat.of V₁) ({0}ᶜ : Set V₁)).singularHomology R p))
+    (y : ↑((TopPair.ofSubset (X := TopCat.of V₂) ({0}ᶜ : Set V₂)).singularHomology S q))
+    (z : ↑((TopPair.ofSubset (X := TopCat.of (V₁ × V₂)) ({0}ᶜ : Set (V₁ × V₂))).singularHomology
+      T n))
+    (hz : homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map u).app
+        (TopPair.toSSetPair.obj (TopPair.ofSubset
+          (CartesianMonoidalCategory.fst (TopCat.of V₁) (TopCat.of V₂) ⁻¹' {0}ᶜ ∪
+            CartesianMonoidalCategory.snd (TopCat.of V₁) (TopCat.of V₂) ⁻¹' {0}ᶜ))))
+        n (TopPair.singularHomologyMap (TopPair.ofSubsetMap (𝟙 (TopCat.of V₁ ⊗ TopCat.of V₂))
+          fun _ hv ↦ compl_zero_prod_subset V₁ V₂ hv) T n z) =
+      TopCat.singularHomologyCrossRelPair (TopCat.of V₁) (TopCat.of V₂) {0}ᶜ {0}ᶜ R S p q n h
+        (x ⊗ₜ y)) :
+    (TopPair.ofSubset (X := TopCat.of (V₁ × V₂)) ({0}ᶜ : Set (V₁ × V₂))).singularKronecker ℤ n
+        (complZeroPairCross ℤ V₁ V₂ u μ p q n h g₁ g₂) z =
+      μ ((TopPair.ofSubset (X := TopCat.of V₁) ({0}ᶜ : Set V₁)).singularKronecker ℤ p g₁ x ⊗ₜ
+        (TopPair.ofSubset (X := TopCat.of V₂) ({0}ᶜ : Set V₂)).singularKronecker ℤ q g₂ y) := by
+  obtain rfl : iL = ModuleCat.instLinear := Subsingleton.elim _ _
+  exact singularKronecker_complZeroPairCross V₁ V₂ u μ h g₁ g₂ x y z hz
+
+end Int
 
 end TauCeti

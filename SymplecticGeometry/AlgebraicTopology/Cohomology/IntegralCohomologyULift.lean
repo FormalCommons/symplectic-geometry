@@ -50,6 +50,8 @@ identification transports classes, pull-backs and cup products along that equali
 
 * `TauCeti.uliftTensorSelfIso_hom_comp_uliftIntIso_hom`: `TauCeti.uliftIntIso` carries the
   multiplication of `ULift ℤ` to that of `ℤ`.
+* `TauCeti.integralCoeffComul_eq_uliftTensorSelfIso_inv`: the diagonal of `ULift ℤ` is the
+  inverse of its multiplication.
 * `TopCat.uliftIntegralCohomologyIso_naturality`: `TopCat.uliftIntegralCohomologyIso` commutes
   with the maps induced by continuous maps.
 * `TopCat.uliftIntegralCohomologyIso_singularCup`: `TopCat.uliftIntegralCohomologyIso` carries the
@@ -87,6 +89,17 @@ theorem uliftTensorSelfIso_hom_comp_uliftIntIso_hom :
   rw [ModuleCat.hom_comp, LinearMap.comp_apply, ModuleCat.hom_comp, LinearMap.comp_apply,
     ModuleCat.MonoidalCategory.tensorHom_tmul, ModuleCat.uliftTensorSelfIso_hom_tmul,
     integralCoeffMul_apply, uliftIntIso_hom_apply, uliftIntIso_hom_apply, uliftIntIso_hom_apply]
+
+/-- The diagonal `n ↦ n (1 ⊗ 1)` of the integral chain coefficients `ULift ℤ` is the inverse of
+their multiplication `ModuleCat.uliftTensorSelfIso ℤ`. -/
+theorem integralCoeffComul_eq_uliftTensorSelfIso_inv :
+    integralCoeffComul = (ModuleCat.uliftTensorSelfIso ℤ).inv := by
+  ext a
+  rw [integralCoeffComul_apply, ModuleCat.uliftTensorSelfIso_inv_apply,
+    ← TensorProduct.tmul_smul]
+  congr 1
+  ext
+  simp
 
 end TauCeti
 
