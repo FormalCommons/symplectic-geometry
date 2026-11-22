@@ -207,18 +207,20 @@ following choices.
 `DESIGN.md` is updated with this file, in its part 19, its dependency row
 and two rows of its milestone table.
 
-- Eight files are added: `LinearAlgebra/Symplectic/Extension.lean`,
+- Nine files are added: `LinearAlgebra/Symplectic/Extension.lean`,
   `Neighborhood/Extension.lean`, `Neighborhood/Basic.lean`,
   `Geometry/Manifold/VectorBundle/ZeroSection.lean`,
   `Geometry/Manifold/VectorBundle/Adjoint.lean`,
   `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`,
-  `Geometry/Manifold/VectorBundle/Orthogonal.lean` and
-  `LinearAlgebra/BilinearForm/Orthogonal.lean`. Each neighbourhood
+  `Geometry/Manifold/VectorBundle/Orthogonal.lean`,
+  `LinearAlgebra/BilinearForm/Orthogonal.lean` and
+  `Geometry/Manifold/Distribution/FlatChart.lean`. Each neighbourhood
   theorem would otherwise repeat the linear extension and its smoothness;
   `Adjoint.lean` and `VectorBundle/Orthogonal.lean` hold steps of
-  `Neighborhood/Extension.lean`, and `MFDeriv.lean` the step of
-  `Tubular.lean`, that use nothing symplectic; the linear-algebra lemma
-  of `VectorBundle/Orthogonal.lean` is in
+  `Neighborhood/Extension.lean`, `MFDeriv.lean` the step of
+  `Tubular.lean`, and `FlatChart.lean` the step of
+  `CharacteristicFoliation.lean`, that use nothing symplectic; the
+  linear-algebra lemma of `VectorBundle/Orthogonal.lean` is in
   `LinearAlgebra/BilinearForm/Orthogonal.lean`.
 - `Lagrangian.lean` no longer uses *Cotangent bundles* or
   `normalBundleDiffeomorphOfIsLagrangianMap`, since the comparison theorem
@@ -292,12 +294,13 @@ On an open `U`, it is applied to `U` and the restriction
   `StdSpace (Fin r)` (an open subset of the product) whose second component
   `p` is an `IsCharacteristicSubmersion` of the restriction of `σ` onto the
   ball of `StdSpace (Fin r)`. The first component gives the leaf
-  coordinates that `AdaptedDarboux.lean` needs. Route: from
-  `exists_flatChart_extend` at `x`, choose a complement `C` of `W` and
-  linear identifications of `W` and `C` with the two model spaces. Then
-  restrict to the preimage of a small product of balls, rescaled to unit
-  balls. The fibres of `p` are the preimages of balls in `W`-directions, so
-  they are convex in the chart, hence connected. `p` is a submersion by
+  coordinates that `AdaptedDarboux.lean` needs; `Ψ` sends `x` to `0`.
+  Route: `exists_flatPartialDiffeomorph` (`FlatChart.lean`) for the
+  kernel distribution gives a partial diffeomorphism `Φ` into the product,
+  with `Φ x = 0` and the unit ball in its target, whose derivative sends
+  the kernels to the vectors with second component `0`. Restrict `Φ` to
+  the preimage of the unit ball. The fibres of `p` are the preimages of
+  slices `ball × {b}`, so they are convex in the chart, hence connected. `p` is a submersion by
   Tau Ceti's `ContMDiff.isSubmersionOfComplement_of_surjective_mfderiv`
   (`Geometry/Manifold/Submersion/Split.lean`). The kernel of `dp` is the
   flat directions, so it is the kernel of `σ`.
@@ -311,7 +314,7 @@ On an open `U`, it is applied to `U` and the restriction
   symplectic quotients*.
 - The coisotropic case, in namespace
   `TauCeti.SmoothTwoForm.IsNondegenerate.IsCoisotropicMap`:
-  `IsCoisotropicMap.exists_isCharacteristicSubmersion` applies the above to `σ = f^*ω` for a coisotropic smooth embedding `f` of a closed
+  `IsCoisotropicMap.exists_isCharacteristicSubmersion` applies the above to `σ = f^*ω` for a coisotropic immersion `f` of a closed
   `ω`, with `k` the codimension, from Tau Ceti's
   `IsCoisotropicMap.finrank_ker_bilinFormAt_mpullback`. Then
   `IsCoisotropicMap.isIsotropic_map_ker_bilinFormAt_mpullback` says that
@@ -404,6 +407,20 @@ hom bundle of the pull-backs satisfying `hL` and `hLω` at every `q`:
   `isSymplectomorphism_smoothExtendAlong` (at each `q`, for
   `hω₀.symplecticFormAt (f₀ q)` and `hω₁.symplecticFormAt (f₁ q)`), and
   `smoothExtendAlong_sub_mem`.
+
+### `Geometry/Manifold/Distribution/FlatChart.lean`
+
+The flat chart that `exists_isCharacteristicSubmersion` uses. It uses
+nothing symplectic, so it sits with the manifold topic, beside Tau Ceti's
+`Geometry/Manifold/Distribution/FlatChart.lean`. Namespace `TauCeti`.
+
+- `IsInvolutiveDistribution.exists_flatPartialDiffeomorph (hinv) (hD :
+  IsContMDiffDistribution I ∞ k D) (h₁ : finrank ℝ F₁ = k) (h₂ : finrank ℝ
+  E = k + finrank ℝ F₂) (x : M)`, on a boundaryless manifold: a
+  `PartialDiffeomorph` `Φ` into `F₁ × F₂` with `x` in its source,
+  `Φ x = 0`, the unit ball in its target, and `(dΦ_y v).2 = 0 ↔ v ∈ D y`
+  on its source. Route: Tau Ceti's `exists_flatChart`, a splitting of the
+  model space along the flat subspace, and `Diffeomorph.smulAdd`.
 
 ### `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`
 
@@ -599,14 +616,16 @@ four theorems share.
   `TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible`.
 - From *Symplectic vector spaces*: `LinearAlgebra/Symplectic/Reduction.lean`
   (merged), in `Extension.lean` and `Isotropic.lean`, and
-  `LinearAlgebra/Symplectic/Subspace.lean` (merged), in `Extension.lean`.
+  `LinearAlgebra/Symplectic/Subspace.lean` (merged), in `Extension.lean` and
+  `CharacteristicFoliation.lean`.
 - From *Compatible complex structures*:
   `LinearAlgebra/Symplectic/Compatible.lean` (merged), in `Extension.lean`, and
   `Topology/Algebra/Module/BilinearForm.lean` (merged), in
   `Geometry/Manifold/VectorBundle/Adjoint.lean`.
 - From *Standard model*: `StdSpace`, `stdForm`, `stdForm_apply`, and the
   inclusions `StdSpace.stdInl` and `StdSpace.ofX` that this part adds to
-  `LinearAlgebra/Symplectic/Standard/Basic.lean`, in `AdaptedDarboux.lean`.
+  `LinearAlgebra/Symplectic/Standard/Basic.lean`, in `AdaptedDarboux.lean`;
+  `StdSpace` also in `CharacteristicFoliation.lean`.
 - *Cotangent bundles* is not used: `Lagrangian.lean` needs only Tau Ceti's
   `symplecticForm` and `isLagrangianMap_zeroSection`, because the comparison
   theorem replaces the zero-section splitting.
@@ -623,8 +642,9 @@ list. Issues 1, 3, 5 and 10 can start at once.
    projection of a product $B\times F$ with a form pulled back from $B$).
    About 350 lines. Blockers: none.
 2. **Characteristic charts and the milestone.** `CharacteristicFoliation.lean`:
-   `exists_isCharacteristicSubmersion`, the milestone theorem, and the
-   coisotropic statements. About 350 lines. Blockers: 1.
+   `exists_isCharacteristicSubmersion` (with `exists_flatPartialDiffeomorph`
+   in `Geometry/Manifold/Distribution/FlatChart.lean`), the milestone
+   theorem, and the coisotropic statements. About 350 lines. Blockers: 1.
 3. **The linear extension.** `LinearAlgebra/Symplectic/Extension.lean`: the
    pieces and their lemmas, `extendAlong` and its API, and the lemma on the
    reduced spaces. About 400 lines. Blockers: none.
