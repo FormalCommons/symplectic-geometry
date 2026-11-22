@@ -5,8 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Geometry.Manifold.Instances.Real
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
@@ -29,11 +31,18 @@ target of `Λ`, not only at `x`.
   partial diffeomorphism on a source that contains `x`.
 * `IsLocalDiffeomorphAt.isLocalDiffeomorphOn_localInverse_target`: a local diffeomorphism `f` at
   `x` is a local diffeomorphism on the target of `hf.localInverse`.
+* `IsLocalDiffeomorphAt.comp_iff_left`: composing on the left with a local diffeomorphism at the
+  image point, a map continuous at `x` is a local diffeomorphism at `x` exactly when the composite
+  is. It is the left-hand partner of Tau Ceti's `IsLocalDiffeomorphAt.comp_iff_right`, and
+  combines Tau Ceti's `IsLocalDiffeomorphAt.of_comp_left` with Mathlib's
+  `IsLocalDiffeomorphAt.comp`.
 * `IsLocalDiffeomorphAt.congr_of_eventuallyEq`: being a local diffeomorphism at `x` depends only
   on the germ of the map at `x`.
 * `PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`: a partial diffeomorphism of
   model vector spaces that preserves the ranges of two models with corners is a local
   diffeomorphism between their model spaces.
+* `TauCeti.EuclideanHalfSpace.isLocalDiffeomorph_of_val_eq_smul`: multiplication by a positive
+  constant is a local diffeomorphism of the half-space.
 -/
 
 public section
@@ -71,6 +80,16 @@ theorem isLocalDiffeomorphOn_localInverse_target (hf : IsLocalDiffeomorphAt I J 
     IsLocalDiffeomorphOn I J n f hf.localInverse.target := fun z ↦
   TauCeti.isLocalDiffeomorphAt_of_eqOn (Φ := hf.localInverse.symm) (by simp)
     (by simpa using hf.eqOn_localInverse_symm)
+
+/-- **Composing with a local diffeomorphism on the left.** If `g` is a `C^n` local diffeomorphism
+at `f x` and `f` is continuous at `x`, then `g ∘ f` is a `C^n` local diffeomorphism at `x` exactly
+when `f` is one at `x`. -/
+theorem comp_iff_left {F' : Type*} [NormedAddCommGroup F'] [NormedSpace 𝕜 F'] {G' : Type*}
+    [TopologicalSpace G'] {K : ModelWithCorners 𝕜 F' G'} {P : Type*} [TopologicalSpace P]
+    [ChartedSpace G' P] {g : N → P} (hg : IsLocalDiffeomorphAt J K n g (f x))
+    (hf : ContinuousAt f x) :
+    IsLocalDiffeomorphAt I K n (g ∘ f) x ↔ IsLocalDiffeomorphAt I J n f x :=
+  ⟨fun h ↦ h.of_comp_left hg hf, fun h ↦ h.comp (hg := hg)⟩
 
 end IsLocalDiffeomorphAt
 
@@ -130,5 +149,27 @@ theorem PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model
         (Θ.symm.contMDiffOn.comp J.contMDiff.contMDiffOn fun _ hz ↦ hz) fun z hz ↦
           htgt z hz }
   exact TauCeti.isLocalDiffeomorphAt_of_eqOn (Φ := Ψ) hx fun _ _ ↦ rfl
+
+/-- A map of the half-space `EuclideanHalfSpace m` to itself that multiplies every point by a
+fixed `ε > 0` is a `C^k` local diffeomorphism, for every `k`. -/
+theorem TauCeti.EuclideanHalfSpace.isLocalDiffeomorph_of_val_eq_smul {m : ℕ} [NeZero m]
+    {k : WithTop ℕ∞} {ε : ℝ} (hε : 0 < ε) {f : EuclideanHalfSpace m → EuclideanHalfSpace m}
+    (hf : ∀ t, (f t).val = ε • t.val) : IsLocalDiffeomorph (𝓡∂ m) (𝓡∂ m) k f := by
+  intro t
+  let Θ := ((LinearEquiv.smulOfNeZero ℝ (EuclideanSpace ℝ (Fin m)) ε
+    hε.ne').toContinuousLinearEquiv).toPartialDiffeomorph (n := k)
+  have hΘ : ∀ y : EuclideanSpace ℝ (Fin m), Θ y = ε • y := fun y ↦ by simp [Θ]
+  have h := Θ.isLocalDiffeomorphAt_symm_comp_comp_model (𝓡∂ m) (𝓡∂ m) (x := t)
+    (fun y _ ↦ by
+      simp only [hΘ, range_modelWithCornersEuclideanHalfSpace, mem_ofPred_eq, PiLp.smul_apply,
+        smul_eq_mul]
+      exact ⟨fun hy ↦ nonneg_of_mul_nonneg_right hy hε, fun hy ↦ mul_nonneg hε.le hy⟩)
+    (by simp [Θ])
+  convert h using 1
+  funext s
+  simp only [comp_apply, hΘ]
+  rw [← (𝓡∂ m).left_inv (f s)]
+  congr 1
+  rw [modelWithCornersEuclideanHalfSpace_apply, modelWithCornersEuclideanHalfSpace_apply, hf]
 
 end
