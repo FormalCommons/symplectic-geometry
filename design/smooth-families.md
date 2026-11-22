@@ -220,7 +220,8 @@ No statement of this part is one that the authors' errata
 ### `Analysis/SpecialFunctions/SmoothTransition.lean`
 
 Named like Tau Ceti's file; in Mathlib's namespace `Real.smoothTransition`,
-except for the reparametrization, which is in `SymplecticGeometry`.
+except for the reparametrization, which is in `SymplecticGeometry`, and the
+lemmas about Tau Ceti's `TauCeti.collaredSmoothTransition`, which are in `TauCeti`.
 
 - `Real.smoothTransition.deriv_pos {x : ℝ} (h₀ : 0 < x) (h₁ : x < 1) :
   0 < deriv Real.smoothTransition x`, from the quotient

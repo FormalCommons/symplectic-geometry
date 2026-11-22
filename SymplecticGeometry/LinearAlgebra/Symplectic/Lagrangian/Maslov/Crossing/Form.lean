@@ -109,6 +109,14 @@ theorem lagrangianCrossingForm_smul (Z Z' : Matrix (ι ⊕ ι) ι ℝ) (c : ℝ)
   ext u
   simp
 
+/-- Scaling the derivative by a nonzero constant does not change whether the crossing form is
+nondegenerate. -/
+theorem nondegenerate_lagrangianCrossingForm_smul_iff (Z Z' : Matrix (ι ⊕ ι) ι ℝ) {c : ℝ}
+    (hc : c ≠ 0) (V : Submodule ℝ (StdSpace ι)) :
+    (lagrangianCrossingForm Z (c • Z') V).Nondegenerate ↔
+      (lagrangianCrossingForm Z Z' V).Nondegenerate := by
+  rw [lagrangianCrossingForm_smul, QuadraticMap.nondegenerate_smul_iff (isUnit_iff_ne_zero.2 hc)]
+
 /-- Away from a crossing, where the image of `Z` meets `V` only in `0`, the crossing form is
 zero: its vectors `u` have `Z u = 0`. -/
 theorem lagrangianCrossingForm_eq_zero_of_inf_eq_bot {Z : Matrix (ι ⊕ ι) ι ℝ}
