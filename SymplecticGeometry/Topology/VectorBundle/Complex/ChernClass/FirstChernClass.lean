@@ -114,7 +114,7 @@ theorem chernClass_one_eq_firstChernClass :
       ← firstChernClass_congr (E := ⇑(ProjectiveBundle.projection ℂ G E) *ᵖ E)
         _ ProjectiveBundle.continuous_pullbackEquivTautologicalProdComplement,
       firstChernClass_pullback]
-    exact ConcreteCategory.congr_hom (TopCat.uliftIntegralCohomologyIso_naturality _ _) _
+    exact TopCat.uliftIntegralCohomologyIso_naturality_apply _ _ _
 
 end SymplecticGeometry.Bundle
 
