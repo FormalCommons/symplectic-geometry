@@ -286,7 +286,8 @@ Tau Ceti unchanged.
 Imports between the files: `Velocity.lean` imports `Instances/Icc.lean`,
 `MFDeriv/Prod.lean` and `Diffeotopy/Basic.lean`;
 `SymplecticIsotopy.lean` and
-`Flux/Hamiltonian.lean` import `Velocity.lean`; `Flux/Hamiltonian.lean`
+`Flux/Hamiltonian.lean` import `Velocity.lean`; `SymplecticIsotopy.lean`
+imports `Flux/Hamiltonian.lean`, for `isSmoothFamily_interiorₗ`; `Flux/Hamiltonian.lean`
 imports `Diffeotopy/Basic.lean` and `DeRham/FamilyPrimitive.lean`, which
 imports `DeRham/GoodCover/Basic.lean` and
 `DifferentialForm/SmoothFamily/HomotopyOperator.lean` of *Smooth families*;
@@ -411,11 +412,14 @@ For symplectic `σ` (`hσ : σ.IsSymplectic`):
 - `TauCeti.Diffeotopy.forall_timeSlice_mem_diffeomorphStabilizer_iff`, for
   closed `σ`: `(∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) ↔
   ∀ t, Φ.velocity t ∈ σ.symplecticVectorFields`. Proof as in Decision 2,
-  with a private lemma for the endpoint step. Only `[IsManifold J ∞ M]` is
-  needed, as for Tau Ceti's Eulerian theorem.
-- The lemma $X^{\mathbb R}_u=s'(u)\,X_{s(u)}$ as vector fields, from the
-  pointwise form of Decision 3 and `velocity_apply_apply`; private unless
-  another file needs it.
+  with the endpoint step by `SymplecticGeometry.IsSmoothFamily.ext_on`
+  (added to `DifferentialForm/SmoothFamily/Basic.lean`: smooth families
+  agreeing on a dense set of parameters agree), applied to the exterior
+  derivatives of `SymplecticGeometry.isSmoothFamily_interiorₗ`. It assumes
+  `[J.Boundaryless]`, as Tau Ceti's Eulerian theorem does.
+- `TauCeti.Diffeotopy.eulerianField_smoothTransitionFamily`, the lemma
+  $X^{\mathbb R}_u=s'(u)\,X_{s(u)}$ as vector fields, from the
+  pointwise form of Decision 3 and `velocity_apply_apply`; public.
 
 ### `Geometry/Symplectic/Flux/Hamiltonian.lean`
 
