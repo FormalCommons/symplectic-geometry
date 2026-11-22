@@ -452,7 +452,7 @@ notation of the file):
   the constant section `compatibleModelComplexStructure` in the global chart.
   API: `compatibleSpaceComplexStructure_apply` (its value in the model) and
   `mfderiv_compatibleCLM_compatibleSpaceComplexStructure : d J (j J a) =
-  -(ω.compatibleCLM J * d J a)`, writing `d J` for the differential of
+  -(ω.compatibleCLM J ∘L d J a)`, writing `d J` for the differential of
   `compatibleCLM` at `J` and `j` for the structure. The proof is the
   computation of decision 4 in the chart.
 - `chartPushforward_compatibleSpaceComplexStructure`: in the global chart the
@@ -578,7 +578,7 @@ theorem compatibleSpace_properties (ω : SymplecticForm V) {n : ℕ}
     Manifold.IsSmoothEmbedding 𝓘 𝓘(ℝ, V →L[ℝ] V) ∞ ω.compatibleCLM ∧
     Module.finrank ℝ ω.compatibleModel = n * (n + 1) ∧
     (∀ J, LinearMap.range (d J) = ω.compatibleTangentSpaceCLM J) ∧
-    (∀ J a, d J (j J a) = -(ω.compatibleCLM J * d J a)) ∧
+    (∀ J a, d J (j J a) = -(ω.compatibleCLM J ∘L d J a)) ∧
     (∀ J a b, Ω.bilinFormAt J a b =
       2⁻¹ * LinearMap.trace ℝ V (d J a * ω.compatibleCLM J * d J b)) ∧
     (∀ J (a b : TangentSpace 𝓘 J), ⟪a, b⟫_ℝ = 2⁻¹ * LinearMap.trace ℝ V (d J a * d J b)) ∧

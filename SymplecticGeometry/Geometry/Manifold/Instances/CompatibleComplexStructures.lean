@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Manifold.Immersion.Differential
 public import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Symplectic.Cayley.Tangent
+import Mathlib.Geometry.Manifold.MFDeriv.Tangent
 
 /-!
 # The manifold of compatible complex structures
@@ -114,6 +115,20 @@ theorem isUnit_compatibleCLM (J : 𝒥) : IsUnit (ω.compatibleCLM J) := by
   rw [compatibleCLM_def]
   exact J.val.isUnit_toContinuousLinearMap
 
+/-- A complex structure squares to `-1` in the continuous endomorphisms. -/
+@[simp]
+theorem compatibleCLM_mul_self (J : 𝒥) : ω.compatibleCLM J * ω.compatibleCLM J = -1 := by
+  ext v
+  simp
+
+/-- Composing a compatible tangent vector at `J` with `J` on the left gives a compatible tangent
+vector at `J`, in the continuous endomorphisms. -/
+theorem compatibleCLM_mul_mem_compatibleTangentSpaceCLM (J : 𝒥) {C : V →L[ℝ] V}
+    (hC : C ∈ ω.compatibleTangentSpaceCLM J.val) :
+    ω.compatibleCLM J * C ∈ ω.compatibleTangentSpaceCLM J.val := by
+  rw [mem_compatibleTangentSpaceCLM] at hC ⊢
+  exact J.property.invariant.mul_mem_compatibleTangentSpace hC
+
 /-! ### The global Cayley chart -/
 
 variable (ω) in
@@ -187,6 +202,46 @@ theorem contMDiff_compatibleCLM {n : WithTop ℕ∞} :
     (fun J => J.property.tames)
     ((ω.compatibleModel.subtypeL.contMDiff.comp contMDiff_cayleyChart).congr fun J => ?_)
   simp
+
+/-- All points have the same chart. -/
+theorem chartAt_eq_chartAt (J J' : 𝒥) :
+    chartAt ω.compatibleModel J = chartAt ω.compatibleModel J' :=
+  (OpenPartialHomeomorph.singletonChartedSpace_mem_atlas_eq _
+    (IsOpenEmbedding.toOpenPartialHomeomorph_source _ _) _ (chart_mem_atlas _ J)).trans
+    (OpenPartialHomeomorph.singletonChartedSpace_mem_atlas_eq _
+      (IsOpenEmbedding.toOpenPartialHomeomorph_source _ _) _ (chart_mem_atlas _ J')).symm
+
+/-- Since there is one chart, the changes of coordinates of the tangent bundle are the
+identity. -/
+theorem tangentCoordChange_apply (J J' J'' : 𝒥) (v : ω.compatibleModel) :
+    tangentCoordChange 𝓘(ℝ, ω.compatibleModel) J J' J'' v = v := by
+  rw [tangentCoordChange_def, extChartAt, extChartAt, chartAt_eq_chartAt J' J, ← extChartAt,
+    ← tangentCoordChange_def, tangentCoordChange_self (by simp)]
+
+/-- The differential of the chart is the identity of the model. -/
+theorem mfderiv_chartAt_apply (J J' : 𝒥) (v : TangentSpace 𝓘(ℝ, ω.compatibleModel) J') :
+    mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, ω.compatibleModel) (chartAt ω.compatibleModel J) J' v =
+      v := by
+  rw [mfderiv_chartAt_eq_tangentCoordChange (by simp)]
+  exact tangentCoordChange_apply J' J J' v
+
+/-- On the target of the chart, the differential of the inverse chart is the identity of the
+model. -/
+theorem mfderiv_chartAt_symm_apply {J : 𝒥} {C : ω.compatibleModel}
+    (hC : C ∈ (chartAt ω.compatibleModel J).target) (v : ω.compatibleModel) :
+    mfderiv 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, ω.compatibleModel) (chartAt ω.compatibleModel J).symm C v =
+      v := by
+  let e := chartAt ω.compatibleModel J
+  have hid : e ∘ e.symm =ᶠ[𝓝 C] id := by
+    filter_upwards [e.open_target.mem_nhds hC] with C' hC' using e.right_inv hC'
+  have h := mfderiv_comp C
+    (mdifferentiableAt_atlas (I := 𝓘(ℝ, ω.compatibleModel)) (chart_mem_atlas _ J)
+    (e.map_target hC))
+    (mdifferentiableAt_atlas_symm (I := 𝓘(ℝ, ω.compatibleModel)) (chart_mem_atlas _ J) hC)
+  rw [hid.mfderiv_eq, mfderiv_id] at h
+  -- The tangent spaces of the model are the model itself, so `exact` sees through them.
+  have h' : v = _ := DFunLike.congr_fun h v
+  exact (mfderiv_chartAt_apply J _ _).symm.trans h'.symm
 
 /-! ### The differential of the inclusion -/
 
