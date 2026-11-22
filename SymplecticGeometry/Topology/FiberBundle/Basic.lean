@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Topology.FiberBundle.Basic
+public import Mathlib.Topology.FiberBundle.Constructions
 
 /-!
 # Fibre bundles read in their trivializations
@@ -33,6 +33,9 @@ two trivializations, these inclusions differ by the coordinate change.
 * `FiberBundle.isOpen_of_forall_mem_iff_snd_mem`: a set of the total space that every
   trivialization `trivializationAt F E b` reads, on its source, as the preimage of an open set of
   the model fibre under the fibre coordinate, is open.
+* `Bundle.Pullback.continuous_totalSpaceMk_trivial`: a family of maps from the model fibre `F` to
+  the fibres of `V` along `f : X → B`, continuous on `X × F`, is continuous from the trivial
+  bundle `Bundle.Trivial X F` to the pull-back `f *ᵖ V`.
 
 ## Implementation notes
 
@@ -103,5 +106,23 @@ theorem isOpen_of_forall_mem_iff_snd_mem {s : Set (TotalSpace F E)} {t : Set F}
     hpe, (h p.proj p hpe).1 hp⟩
 
 end FiberBundle
+
+namespace Bundle.Pullback
+
+variable {B F : Type*} {V : B → Type*} [TopologicalSpace F]
+  [TopologicalSpace (TotalSpace F V)] {X : Type*} [TopologicalSpace X]
+
+/-- A family of maps `φ y : F → V (f y)` along `f : X → B`, continuous as a map from `X × F` to
+the total space of `V`, is continuous as a fibrewise map from the trivial bundle `X × F` to the
+pull-back `f *ᵖ V`. -/
+theorem continuous_totalSpaceMk_trivial {f : X → B} {φ : ∀ y, F → V (f y)}
+    (hφ : Continuous fun q : X × F ↦ TotalSpace.mk' F (f q.1) (φ q.1 q.2)) :
+    Continuous fun p : TotalSpace F (Trivial X F) ↦
+      TotalSpace.mk' F (E := f *ᵖ V) p.proj (φ p.proj p.snd) := by
+  rw [(inducing_pullbackTotalSpaceEmbedding F V f).continuous_iff]
+  exact continuous_prodMk.2 ⟨FiberBundle.continuous_proj F _,
+    hφ.comp (Trivial.homeomorphProd X F).continuous⟩
+
+end Bundle.Pullback
 
 end

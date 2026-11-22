@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Topology.FiberBundle.Basic
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Conjugate
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.ConjugateExteriorPower
@@ -38,7 +39,21 @@ of rank one: Tau Ceti's `TauCeti.FiniteRankBundleCore.det` of the core
 * `detCoreProdFiberEquiv` and `continuous_detCoreProdFiberEquiv`: the resulting linear isomorphism
   from the fibres of the determinant line of `E₁ ×ᵇ E₂` to the tensor products of the fibres of the
   determinant lines, continuous from its total space to that of Tau Ceti's tensor product bundle,
-  in the form taken by `TauCeti.complexEulerClass_eq_of_fiberwise`.
+  in the form taken by `TauCeti.complexEulerClass_eq_of_fiberwise`;
+* `fiberMap_detCoreMap_trans_symm_hom`: for two fibrewise isomorphisms `Φ` and `Ψ` of bundles
+  with the same model, `detCoreMap Ψ ≪≫ (detCoreMap Φ)⁻¹` acts on each fibre as multiplication by
+  the determinant of `Φ⁻¹ ∘ Ψ`.
+
+## The determinant section of a frame
+
+A frame of `E` along a continuous map `f : X → B`, in the sense of Tau Ceti's
+`Topology/VectorBundle/Complex/Clutching.lean`, is a family `Φ y : G ≃ E (f y)` that is continuous
+from `X × G` to the total space of `E`. It trivializes the pull-back of the determinant line
+(`detCoreFrameIso`), and so gives the section `detCoreFrameSection f Φ hΦ` of that pull-back, the
+top wedge of the frame. This section is continuous on total spaces
+(`continuous_detCoreFrameSection`) and vanishes nowhere (`detCoreFrameSection_ne_zero`). For a
+second frame `Ψ`, the section of `Ψ` at `y` is that of `Φ` times the determinant of
+`Ψ y ∘ (Φ y)⁻¹` (`detCoreFrameSection_eq_det_smul`).
 
 ## References
 
@@ -124,6 +139,43 @@ theorem detCoreMap_def :
       eqToIso (detCore_eq_exteriorPower_of_finrank_eq 𝕜 G₁ E₁ hG).symm := (rfl)
 
 end Map
+
+section SameModel
+
+variable {𝕜} {G : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G] [FiniteDimensional 𝕜 G]
+  {E : B → Type*} [∀ x, AddCommGroup (E x)] [∀ x, Module 𝕜 (E x)]
+  [∀ x, TopologicalSpace (E x)] [TopologicalSpace (TotalSpace G E)]
+  [FiberBundle G E] [VectorBundle 𝕜 G E]
+  {E₁ : B → Type*} [∀ x, AddCommMonoid (E₁ x)] [∀ x, Module 𝕜 (E₁ x)]
+  [∀ x, TopologicalSpace (E₁ x)] [TopologicalSpace (TotalSpace G E₁)]
+  [FiberBundle G E₁] [VectorBundle 𝕜 G E₁]
+
+/-- **Change of fibrewise isomorphism on the determinant line.** For two fibrewise isomorphisms
+`Φ Ψ : E x ≃ E₁ x` of bundles with the same model, continuous on total spaces, the automorphism
+`detCoreMap Ψ ≪≫ (detCoreMap Φ)⁻¹` of the determinant line of `E` acts on the fibre over `x` as
+multiplication by the determinant of `(Φ x)⁻¹ ∘ Ψ x`. -/
+theorem fiberMap_detCoreMap_trans_symm_hom (Φ Ψ : ∀ x, E x ≃L[𝕜] E₁ x)
+    (hΦ : Continuous fun p : TotalSpace G E ↦ TotalSpace.mk' G (E := E₁) p.proj (Φ p.proj p.snd))
+    (hΨ : Continuous fun p : TotalSpace G E ↦ TotalSpace.mk' G (E := E₁) p.proj (Ψ p.proj p.snd))
+    (x : B) :
+    (detCoreMap rfl Ψ hΨ ≪≫ (detCoreMap rfl Φ hΦ).symm).hom.fiberMap x =
+      LinearMap.det ((Ψ x).trans (Φ x).symm : E x →ₗ[𝕜] E x) • ContinuousLinearMap.id 𝕜 _ := by
+  rw [detCoreMap_def, detCoreMap_def]
+  refine fiberMap_trans_trans_symm_hom _ _ _ _ ?_
+  rw [← Functor.mapIso_symm, ← Functor.mapIso_trans, Functor.mapIso_hom]
+  refine (fiberMap_exteriorPower_map _ _ x).trans ?_
+  refine (ContinuousLinearMap.exteriorPowerCoords_self _).trans ?_
+  congr 1
+  rw [Iso.trans_hom, Iso.symm_hom, fiberMap_comp, fiberMap_ofBundleOfFinrankEqIso_inv,
+    fiberMap_ofBundleOfFinrankEqIso_hom, ← LinearMap.det_conj
+      ((Ψ x).trans (Φ x).symm : E x →ₗ[𝕜] E x)
+      (ofBundleOfFinrankEqFiberEquiv 𝕜 G E rfl x).symm.toLinearEquiv]
+  refine congrArg LinearMap.det (LinearMap.ext fun v ↦ ?_)
+  exact congrArg (fun w ↦ (ofBundleOfFinrankEqFiberEquiv 𝕜 G E rfl x).symm ((Φ x).symm w))
+    ((ofBundleOfFinrankEqFiberEquiv 𝕜 G E₁ rfl x).apply_symm_apply
+      (Ψ x (ofBundleOfFinrankEqFiberEquiv 𝕜 G E rfl x v)))
+
+end SameModel
 
 section Pullback
 
@@ -308,6 +360,91 @@ theorem continuous_detCoreProdFiberEquiv :
   (continuous_tensorFiberEquiv _ _).comp (continuous_isoFiberEquiv (detCoreProdIso 𝕜 E₁ E₂))
 
 end Prod
+
+section Frame
+
+/-! ### The determinant section of a frame -/
+
+variable {𝕜} {X : Type*} [TopologicalSpace X]
+  {G : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G] [FiniteDimensional 𝕜 G]
+  {E : B → Type*} [∀ x, AddCommGroup (E x)] [∀ x, Module 𝕜 (E x)]
+  [∀ x, TopologicalSpace (E x)] [TopologicalSpace (TotalSpace G E)]
+  [FiberBundle G E] [VectorBundle 𝕜 G E]
+  (f : C(X, B)) {Φ Ψ : ∀ y, G ≃L[𝕜] E (f y)}
+  (hΦ : Continuous fun q : X × G ↦ TotalSpace.mk' G (f q.1) (Φ q.1 q.2))
+  (hΨ : Continuous fun q : X × G ↦ TotalSpace.mk' G (f q.1) (Ψ q.1 q.2))
+
+/-- The trivialization of the pull-back of the determinant line along `f` given by a frame `Φ` of
+`E` along `f`, a family `Φ y : G ≃ E (f y)` continuous from `X × G` to the total space of `E`:
+the trivial line `X × 𝕜` is the determinant line of `X × G` (`detCoreTrivialIso`), which `Φ`
+carries to that of `f *ᵖ E` (`detCoreMap`), the pull-back of the determinant line of `E`
+(`detCore_pullback`). -/
+noncomputable def detCoreFrameIso (Φ : ∀ y, G ≃L[𝕜] E (f y))
+    (hΦ : Continuous fun q : X × G ↦ TotalSpace.mk' G (f q.1) (Φ q.1 q.2)) :
+    trivial 𝕜 X 1 ≅ (detCore 𝕜 G E).pullback f :=
+  (detCoreTrivialIso 𝕜 X G).symm ≪≫
+    detCoreMap (E₀ := Trivial X G) (E₁ := (⇑f) *ᵖ E) rfl Φ
+      (Pullback.continuous_totalSpaceMk_trivial (φ := fun y ↦ Φ y) hΦ) ≪≫
+    eqToIso (detCore_pullback 𝕜 G E f)
+
+theorem detCoreFrameIso_def :
+    detCoreFrameIso f Φ hΦ = (detCoreTrivialIso 𝕜 X G).symm ≪≫
+      detCoreMap (E₀ := Trivial X G) (E₁ := (⇑f) *ᵖ E) rfl Φ
+        (Pullback.continuous_totalSpaceMk_trivial (φ := fun y ↦ Φ y) hΦ) ≪≫
+      eqToIso (detCore_pullback 𝕜 G E f) := (rfl)
+
+/-- The **determinant section of a frame**: for a frame `Φ` of `E` along `f`, the section of the
+pull-back along `f` of the determinant line `Λ^top E` whose value at `y` is the top wedge of the
+images under `Φ y` of the basis of `G` that the determinant line uses, read in the coordinates of
+the fibre. It is the image under `detCoreFrameIso` of the constant section `1` of `X × 𝕜`. -/
+noncomputable def detCoreFrameSection (Φ : ∀ y, G ≃L[𝕜] E (f y))
+    (hΦ : Continuous fun q : X × G ↦ TotalSpace.mk' G (f q.1) (Φ q.1 q.2)) (y : X) :
+    Fin ((detCore 𝕜 G E).pullback f).rank → 𝕜 :=
+  isoFiberEquiv (detCoreFrameIso f Φ hΦ) y fun _ ↦ 1
+
+theorem detCoreFrameSection_def (y : X) :
+    detCoreFrameSection f Φ hΦ y = isoFiberEquiv (detCoreFrameIso f Φ hΦ) y fun _ ↦ 1 := (rfl)
+
+/-- The determinant section of a frame is continuous on total spaces. -/
+theorem continuous_detCoreFrameSection :
+    Continuous fun y ↦ TotalSpace.mk' (Fin ((detCore 𝕜 G E).pullback f).rank → 𝕜)
+      (E := ((detCore 𝕜 G E).pullback f).core.Fiber) y (detCoreFrameSection f Φ hΦ y) :=
+  continuous_isoFiberEquiv_const (detCoreFrameIso f Φ hΦ) _
+
+/-- The determinant section of a frame vanishes nowhere. -/
+theorem detCoreFrameSection_ne_zero (y : X) : detCoreFrameSection f Φ hΦ y ≠ 0 := by
+  intro h
+  rw [detCoreFrameSection_def] at h
+  exact one_ne_zero (congrFun ((isoFiberEquiv _ y).map_eq_zero_iff.1 h) ⟨0, Nat.one_pos⟩)
+
+/-- The trivializations of the determinant line given by two frames `Φ` and `Ψ` along `f`
+differ over `y` by the determinant of `(Φ y)⁻¹ ∘ Ψ y`. -/
+theorem fiberMap_detCoreFrameIso_trans_symm_hom (y : X) :
+    (detCoreFrameIso f Ψ hΨ ≪≫ (detCoreFrameIso f Φ hΦ).symm).hom.fiberMap y =
+      LinearMap.det (((Ψ y : Trivial X G y ≃L[𝕜] ((⇑f) *ᵖ E) y).trans
+        (Φ y : Trivial X G y ≃L[𝕜] ((⇑f) *ᵖ E) y).symm : Trivial X G y →ₗ[𝕜] Trivial X G y)) •
+        ContinuousLinearMap.id 𝕜 _ := by
+  rw [detCoreFrameIso_def, detCoreFrameIso_def]
+  exact fiberMap_trans_trans_symm_hom _ _ _ _
+    (fiberMap_detCoreMap_trans_symm_hom (E := Trivial X G) (E₁ := (⇑f) *ᵖ E) Φ Ψ _ _ y)
+
+/-- **Change of frame.** For two frames `Φ` and `Ψ` of `E` along `f`, the determinant section of
+`Ψ` is that of `Φ` times the determinant of the automorphism `Ψ y ∘ (Φ y)⁻¹` of `E (f y)`. -/
+theorem detCoreFrameSection_eq_det_smul (y : X) :
+    detCoreFrameSection f Ψ hΨ y =
+      LinearMap.det ((Φ y).symm.trans (Ψ y) : E (f y) →ₗ[𝕜] E (f y)) •
+        detCoreFrameSection f Φ hΦ y := by
+  have hc : LinearMap.det (((Ψ y : Trivial X G y ≃L[𝕜] ((⇑f) *ᵖ E) y).trans
+        (Φ y : Trivial X G y ≃L[𝕜] ((⇑f) *ᵖ E) y).symm : Trivial X G y →ₗ[𝕜] Trivial X G y)) =
+      LinearMap.det ((Φ y).symm.trans (Ψ y) : E (f y) →ₗ[𝕜] E (f y)) := by
+    rw [← LinearMap.det_conj _ (Φ y : G ≃L[𝕜] E (f y)).toLinearEquiv]
+    congr 1
+    ext v
+    simp
+  rw [detCoreFrameSection_def, detCoreFrameSection_def, ← hc]
+  exact isoFiberEquiv_apply_eq_smul _ _ (fiberMap_detCoreFrameIso_trans_symm_hom f hΦ hΨ y) _
+
+end Frame
 
 end Bundle
 

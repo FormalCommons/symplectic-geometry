@@ -22,6 +22,12 @@ total spaces. This file gives the converse construction.
 * `TauCeti.FiniteRankBundleCore.isoFiberEquiv_isoOfContinuousEquiv` and
   `TauCeti.FiniteRankBundleCore.isoOfContinuousEquiv_isoFiberEquiv`: the two constructions are
   inverse to each other.
+* `TauCeti.FiniteRankBundleCore.continuous_isoFiberEquiv_const`: an isomorphism from a trivial core
+  carries a constant section to a continuous one;
+* `TauCeti.FiniteRankBundleCore.isoFiberEquiv_apply_eq_smul`: two isomorphisms that differ over a
+  point by a scalar have fibrewise equivalences that differ by that scalar there.
+* `TauCeti.FiniteRankBundleCore.fiberMap_trans_trans_symm_hom`: being a scalar multiple of the
+  identity on a fibre is invariant under conjugation by isomorphisms.
 
 ## References
 
@@ -103,6 +109,40 @@ cores is `e`. -/
     isoOfContinuousEquiv (isoFiberEquiv e) (continuous_isoFiberEquiv e) = e := by
   ext x : 2
   simp
+
+/-- An isomorphism `e` from a trivial core carries a constant section `x ↦ v` to a section of `D`
+that is continuous on total spaces. -/
+theorem continuous_isoFiberEquiv_const {n : ℕ} (e : trivial 𝕜 B n ≅ D) (v : Fin n → 𝕜) :
+    Continuous fun x : B ↦
+      TotalSpace.mk' (Fin D.rank → 𝕜) (E := D.core.Fiber) x (isoFiberEquiv e x v) := by
+  have hv : Continuous fun x : B ↦
+      TotalSpace.mk' (Fin (trivial 𝕜 B n).rank → 𝕜) (E := (trivial 𝕜 B n).core.Fiber) x v :=
+    continuous_trivial_iff.2 ⟨continuous_id, continuous_const⟩
+  exact (continuous_isoFiberEquiv e).comp hv
+
+/-- If two isomorphisms `d d' : A ≅ D` differ over `x` by multiplication by `c`, in the sense
+that `d' ≪≫ d.symm` acts on the fibre over `x` as `c` times the identity, then their fibrewise
+equivalences over `x` differ by the factor `c`. -/
+theorem isoFiberEquiv_apply_eq_smul (d d' : A ≅ D) {x : B} {c : 𝕜}
+    (h : (d' ≪≫ d.symm).hom.fiberMap x = c • ContinuousLinearMap.id 𝕜 (Fin A.rank → 𝕜))
+    (v : Fin A.rank → 𝕜) :
+    isoFiberEquiv d' x v = c • isoFiberEquiv d x v := by
+  have hd : d'.hom = (d' ≪≫ d.symm).hom ≫ d.hom := by simp
+  rw [isoFiberEquiv_apply, isoFiberEquiv_apply, hd, fiberMap_comp, ContinuousLinearMap.comp_apply,
+    h, smul_apply, ContinuousLinearMap.id_apply, map_smul]
+
+/-- If `d' ≪≫ d.symm` acts on the fibre over `x` as `c` times the identity, then so does its
+conjugate `(a ≪≫ d' ≪≫ b) ≪≫ (a ≪≫ d ≪≫ b).symm`. -/
+theorem fiberMap_trans_trans_symm_hom {P Q R : FiniteRankBundleCore 𝕜 B} (a : A ≅ P)
+    (d d' : P ≅ Q) (b : Q ≅ R) {x : B} {c : 𝕜}
+    (h : (d' ≪≫ d.symm).hom.fiberMap x = c • ContinuousLinearMap.id 𝕜 (Fin P.rank → 𝕜)) :
+    ((a ≪≫ d' ≪≫ b) ≪≫ (a ≪≫ d ≪≫ b).symm).hom.fiberMap x =
+      c • ContinuousLinearMap.id 𝕜 (Fin A.rank → 𝕜) := by
+  have he : (a ≪≫ d' ≪≫ b) ≪≫ (a ≪≫ d ≪≫ b).symm = a ≪≫ (d' ≪≫ d.symm) ≪≫ a.symm := by
+    simp
+  rw [he, Iso.trans_hom, Iso.trans_hom, fiberMap_comp, fiberMap_comp, h,
+    ContinuousLinearMap.comp_smul, ContinuousLinearMap.comp_id, ContinuousLinearMap.smul_comp,
+    ← fiberMap_comp, Iso.symm_hom, Iso.hom_inv_id, fiberMap_id]
 
 end FiniteRankBundleCore
 
