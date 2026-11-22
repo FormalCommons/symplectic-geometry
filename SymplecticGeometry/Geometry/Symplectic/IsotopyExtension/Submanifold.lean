@@ -49,8 +49,9 @@ rank of `i^* σ` is needed.
 
 The form `S` differs from `ψ_t^* σ` only at times outside `[0, 1]`. The correction terms
 `- B^* σ + C^* σ` make the primitive `γ` vanish on `Q` at every real time, which Moser's argument
-needs near `[0, 1]`, while the plain primitive `ι_{∂_t} ψ^* σ` corrected by `r^* i^*` of itself
-would have closed slices only for `t ∈ [0, 1]`.
+needs near `[0, 1]`. Subtracting `r^* i^* γ'` from the plain primitive `γ' = ι_{∂_t} ψ^* σ`
+instead would not do: the slices of `i^* γ'` are closed only for `t ∈ [0, 1]`, so the corrected
+form is a primitive of the time derivative only on `[0, 1]`, and not on a neighbourhood of it.
 
 ## Main results
 
@@ -187,12 +188,12 @@ private theorem exists_diffeotopy_mpullback_eq [FiniteDimensional ℝ E']
   rw [← h₀, ← hw t, hslice t t.property]
 
 /-- **Neighbourhood extension of isotopies of submanifolds.** Let `σ` be a symplectic form on a
-Hausdorff, σ-compact, boundaryless manifold `M`, let `i : Q → M` be a compact embedded
-submanifold without boundary, and let `e` be a smooth isotopy of embeddings from `i` to `f₁` that
-keeps the pullback of `σ` fixed: `e_t^* σ = i^* σ` for every `t ∈ [0, 1]`. Then there are an open
-neighbourhood `U` of `i(Q)` and a symplectic isotopy `F` of `U` into `M`, starting at the
-inclusion `g₀` of `U`, with `F_t^* σ = σ` on `U` and `F_t ∘ i = e_t` for every `t`. No
-condition on the rank of `i^* σ` is needed.
+finite-dimensional, Hausdorff, σ-compact, boundaryless manifold `M`, let `i : Q → M` be a
+compact embedded submanifold without boundary, and let `e` be a smooth isotopy of embeddings
+from `i` to `f₁` that keeps the pullback of `σ` fixed: `e_t^* σ = i^* σ` for every
+`t ∈ [0, 1]`. Then there are an open neighbourhood `U` of `i(Q)` and a symplectic isotopy `F`
+of `U` into `M`, starting at the inclusion `g₀` of `U`, with `F_t^* σ = σ` on `U` and
+`F_t ∘ i = e_t` for every `t`. No condition on the rank of `i^* σ` is needed.
 
 Milestone: *Neighbourhood extension of submanifold isotopies*. -/
 theorem exists_isSymplectic_extension_of_mpullback_eq [SigmaCompactSpace M]

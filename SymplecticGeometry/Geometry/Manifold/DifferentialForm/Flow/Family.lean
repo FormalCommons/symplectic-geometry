@@ -92,6 +92,8 @@ pullback along `id × f`, and it vanishes on forms pulled back from `M` along th
 * `TauCeti.SmoothForm.mextDerivₗ_timeInterior`: `d (ι_{∂_t} σ) = ∂_t σ` for closed `σ`.
 * `TauCeti.SmoothForm.mpullback_prodMap_timeInterior`:
   `(id × f)^* ι_{∂_t} σ = ι_{∂_t} (id × f)^* σ`.
+* `TauCeti.SmoothForm.timeInterior_mpullback_snd`: the contraction with `∂_t` of a form pulled
+  back along the projection `ℝ × M → M` is zero.
 
 ## References
 
