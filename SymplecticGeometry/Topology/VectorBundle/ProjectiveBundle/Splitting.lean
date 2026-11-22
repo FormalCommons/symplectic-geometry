@@ -59,7 +59,8 @@ spaces.
   continuously on the line.
 * `ProjectiveBundle.finrank_range_tautologicalComplementProjection`: the complement has rank
   `finrank 𝕜 G - 1`.
-* `ProjectiveBundle.pullbackEquivTautologicalProdComplement_apply_of_mem`: the splitting is the
+* `ProjectiveBundle.pullbackEquivTautologicalProdComplement_apply_of_mem` and
+  `ProjectiveBundle.pullbackEquivTautologicalProdComplement_apply_coe`: the splitting is the
   identity on the tautological line.
 * `ProjectiveBundle.continuous_pullbackEquivTautologicalProdComplement`: the splitting is
   continuous on total spaces.
@@ -395,6 +396,13 @@ theorem pullbackEquivTautologicalProdComplement_apply_of_mem (p : ProjectiveBund
     (Subtype.ext ((coe_pullbackEquivTautologicalProdComplement_snd p v).trans (h₀ v hv)))
   rw [trivialEmbedding_pullbackEquivTautologicalProdComplement_fst]
   exact Submodule.starProjection_eq_self_iff.2 (hmap v hv)
+
+/-- On a vector `v` of the line `p`, `pullbackEquivTautologicalProdComplement` gives `(v, 0)`. -/
+@[simp]
+theorem pullbackEquivTautologicalProdComplement_apply_coe (p : ProjectiveBundle 𝕜 G E)
+    (v : p.snd.submodule) :
+    pullbackEquivTautologicalProdComplement 𝕜 G E p (v : E p.proj) = (v, 0) :=
+  pullbackEquivTautologicalProdComplement_apply_of_mem p _ v.property
 
 /-- The splitting `pullbackEquivTautologicalProdComplement` is continuous on total spaces. -/
 theorem continuous_pullbackEquivTautologicalProdComplement :
