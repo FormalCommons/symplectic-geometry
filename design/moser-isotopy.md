@@ -215,10 +215,9 @@ It also gives the `Subtype.val` counterparts of the Tau Ceti file's
 `RelativePoincare.lean` uses them. The file is about forms in general, so any
 part may import it.
 
-It also has `TauCeti.SmoothTwoForm.exists_diffeomorph_bot_mpullback_eq`, the
-empty open sets of two manifolds as a diffeomorphism matching any two
-restricted two-forms, for the empty case of `Relative.lean` and of the
-neighbourhood theorems. For it the file imports *Symplectic neighbourhoods*'
+In the empty case, `Relative.lean` takes `Diffeomorph.ofIsEmpty` between the
+empty open sets, and the restricted forms agree by `Subsingleton.elim`. For
+this it imports *Symplectic neighbourhoods*'
 `Geometry/Manifold/Diffeomorph/Basic.lean` and
 `Topology/Sets/Opens/Basic.lean`, which import only Mathlib.
 
@@ -328,9 +327,9 @@ Proof, in four steps.
    input is `h₁.sub h₀`. The pullback `f^*(σ₁ - σ₀)` vanishes by `heq`.
 2. *Nondegeneracy region.* `N := W ∩ {x | ∀ s ∈ Icc 0 1, …}` is open by
    `isOpen_setOf_forall_mem_Icc_nondegenerate`. It contains `range f`,
-   because along `f(Q)` every point of the segment is `σ₀`. (Tau Ceti
-   proves this pointwise fact in its private
-   `bilinFormAt_add_smul_sub_of_eq`; restate it here as a step.) Work on the
+   because along `f(Q)` every point of the segment is `σ₀`
+   (`nondegenerate_bilinFormAt_add_smul_sub_of_eq`, in
+   `Manifold/Family.lean`). Work on the
    open submanifold `N`, with the forms restricted along `Subtype.val`.
 3. *Moser flow.* With `c = Real.smoothTransition`, let
    `σ := SmoothForm.lineMapFamily σ₀ σ₁ c.contDiff` on `ℝ × N`. Its slices
@@ -658,7 +657,7 @@ pullbacks commute with `d`. That theorem gives
   (`mdifferentiableAt_subtypeVal`), in `DifferentialForm/Opens.lean` and
   `RelativePoincare.lean`.
 - *Symplectic neighbourhoods*, merged: `Geometry/Manifold/Diffeomorph/Basic.lean`
-  and `Topology/Sets/Opens/Basic.lean`, in `DifferentialForm/Opens.lean`.
+  and `Topology/Sets/Opens/Basic.lean`, in `Relative.lean`.
 - *Standard model*, merged, only for the plan's case `F = StdSpace (Fin n)`
   of `Darboux.lean`. The general statement does not mention it.
 
