@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Topology.VectorBundle.Riemannian
 public import TauCeti.Geometry.Manifold.DifferentialForm.AlmostComplexType
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Complexification
 import SymplecticGeometry.Analysis.Normed.Module.Alternating.Derivation
 
 /-!
@@ -26,6 +27,8 @@ of complex-valued forms, and describes the range of Tau Ceti's type projections.
 * `ContMDiffSection.realAlternatingDerivation_fin_zero`: the derivation vanishes on functions.
 * `ContMDiffSection.alternatingDerivation_mapCoeff_ofRealCLM`: on real forms, the complex
   derivation is the real one.
+* `TauCeti.SmoothForm.complexifyₗ_alternatingDerivation`: if a real-linear map of real forms
+  commutes with the real derivation, its complexification commutes with the complex one.
 * `TauCeti.SmoothAlmostComplexStructure.mem_range_typeProjection_iff`: the range of the
   type-`(p,q)` projection is the forms of type `(p,q)`.
 * `TauCeti.SmoothAlmostComplexStructure.typeProjection_eq_aeval`: the type projection is a
@@ -81,6 +84,25 @@ theorem alternatingDerivation_mapCoeff_ofRealCLM
   simp [RoughForm.mapCoeff_apply, ContinuousLinearMap.alternatingDerivation_apply]
 
 end ContMDiffSection
+
+namespace TauCeti.SmoothForm
+
+omit [RiemannianBundle (fun x : M ↦ TangentSpace I x)] in
+/-- If a real-linear map `f` of real forms commutes with the real derivation along an
+endomorphism field `A`, then its complexification commutes with the derivation along `A` of
+complex forms. -/
+theorem complexifyₗ_alternatingDerivation {l : ℕ}
+    (A : ContMDiffSection I (E →L[ℝ] E) ∞ fun x : M ↦ TangentSpace I x →L[ℝ] TangentSpace I x)
+    {f : SmoothForm I M ℝ k →ₗ[ℝ] SmoothForm I M ℝ l}
+    (hf : ∀ α, f (A.realAlternatingDerivation α) = A.realAlternatingDerivation (f α))
+    (φ : SmoothForm I M ℂ k) :
+    complexifyₗ f (A.alternatingDerivation φ) = A.alternatingDerivation (complexifyₗ f φ) := by
+  conv_lhs => rw [← ofReal_realPart_add_I_smul_ofReal_imaginaryPart φ]
+  conv_rhs => rw [← ofReal_realPart_add_I_smul_ofReal_imaginaryPart φ]
+  simp only [map_add, map_smul, ContMDiffSection.alternatingDerivation_mapCoeff_ofRealCLM,
+    complexifyₗ_mapCoeff_ofRealCLM, hf]
+
+end TauCeti.SmoothForm
 
 namespace TauCeti.SmoothAlmostComplexStructure
 
