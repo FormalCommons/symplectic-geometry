@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Liouville.Completion
 public import TauCeti.Geometry.Symplectic.Liouville.Completion
 import SymplecticGeometry.Geometry.Manifold.Flow.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
 
@@ -96,14 +97,8 @@ theorem isMIntegralCurveOn_completionEnd (x : (𝓡∂ (n + 1)).boundary W) :
     hd.comp t (mdifferentiableAt_id.prodMk mdifferentiableAt_const)
   refine (hslice.hasMFDerivAt.congr_mfderiv ?_).hasMFDerivWithinAt
   refine ContinuousLinearMap.ext_ring ?_
-  have hv : Manifold.prodVectorField (constVectorField (1 : ℝ))
-      (0 : (x : (𝓡∂ (n + 1)).boundary W) → TangentSpace (𝓡 n) x) (t, x) =
-        ((1 : ℝ), (0 : EuclideanSpace ℝ (Fin n))) :=
-    -- Both components are equal in the model spaces, where the tangent spaces are `ℝ` and `ℝⁿ`.
-    Prod.ext (by simp only [Manifold.prodVectorField_fst, constVectorField_apply]; rfl)
-      (by simp only [Manifold.prodVectorField_snd, Pi.zero_apply]; rfl)
   have key := h.mfderiv_completionEnd_apply hq
-  rw [hv, hd.mfderiv_curry_left_apply] at key
+  rw [Manifold.prodVectorField_constVectorField_zero_apply, hd.mfderiv_curry_left_apply] at key
   exact key.trans (one_smul ℝ _).symm
 
 /-- Every point of the completion is carried into `W` by the flow of its Liouville field: the
