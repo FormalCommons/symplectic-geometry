@@ -2383,7 +2383,9 @@ has either; Tau Ceti's extension across a boundary,
   which treats one-forms, in Mathlib's namespace `CovariantDerivative`),
   `Geometry/Symplectic/Manifold/AlmostComplex/LeviCivita.lean` (for
   $J\in\mathcal J(M,\omega)$ and the Levi-Civita connection of $g_J$: the
-  four identities, the fourth for closed $\omega$) and
+  four identities, the fourth for closed $\omega$),
+  `LinearAlgebra/ComplexStructure/Trilinear.lean` (the linear algebra
+  behind the fourth identity) and
   `Geometry/Symplectic/Manifold/Kahler.lean` (named like Tau Ceti's file:
   the identity expressing $\langle N_J(X,Y),Z\rangle$ through $d\omega$ and
   $\nabla J$, and $\nabla J=0$ if and only if $d\omega=0$ and $N_J=0$, that
