@@ -368,6 +368,19 @@ theorem alongCurve_leviCivitaConnection_compatibleSpace {γ : ℝ → 𝒥}
       (hgm ▸ hgd) w
     rwa [ContinuousLinearMap.traceForm_apply, mvfderiv_apply_eq_mfderiv_apply] at h
 
+/-! ### Regularity of ambient readings -/
+
+/-- The ambient reading `J ↦ Ŷ(J)` of a smooth vector field `Y` on the compatible complex
+structures, a function with values in `V →L[ℝ] V`, is smooth. -/
+theorem contMDiff_mvfderiv_compatibleCLM_apply
+    {Y : Π J : 𝒥, TangentSpace 𝓘(ℝ, ω.compatibleModel) J}
+    (hY : ContMDiff 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, ω.compatibleModel).tangent
+      ((⊤ : ℕ∞) : WithTop ℕ∞) (fun J' ↦ TotalSpace.mk' ω.compatibleModel J' (Y J'))) :
+    ContMDiff 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ((⊤ : ℕ∞) : WithTop ℕ∞)
+      (fun J' : 𝒥 ↦ mvfderiv 𝓘(ℝ, ω.compatibleModel) ω.compatibleCLM J' (Y J')) :=
+  ((contMDiff_compatibleCLM (ω := ω) (n := ((⊤ : ℕ∞) : WithTop ℕ∞))).contMDiff_mvfderiv_apply
+    (m := ((⊤ : ℕ∞) : WithTop ℕ∞)) (by simp)).comp hY
+
 end TauCeti.SymplecticForm
 
 end

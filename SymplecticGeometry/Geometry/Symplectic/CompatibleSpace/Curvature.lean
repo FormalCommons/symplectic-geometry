@@ -15,7 +15,6 @@ import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Regularity
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Extension
 import TauCeti.Geometry.Manifold.VectorField.LieBracket
-import TauCeti.Geometry.Manifold.VectorField.Regularity
 
 /-!
 # The curvature of the space of compatible complex structures
@@ -109,16 +108,6 @@ private theorem curvature_algebra {R : Type*} [Ring R] [Algebra ℝ R]
     mul_assoc, smul_add, smul_sub, mul_neg, mul_one, smul_neg, neg_neg, hPA, hPB, hPC, hPP,
     hPA', hPB', hPC']
   module
-
-/-- The ambient reading `J ↦ Ŷ(J)` of a smooth vector field `Y` on the compatible complex
-structures, a function with values in `V →L[ℝ] V`, is smooth. -/
-theorem contMDiff_mvfderiv_compatibleCLM_apply
-    {Y : Π J : 𝒥, TangentSpace 𝓘(ℝ, ω.compatibleModel) J}
-    (hY : ContMDiff 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, ω.compatibleModel).tangent ∞
-      (fun J' ↦ TotalSpace.mk' ω.compatibleModel J' (Y J'))) :
-    ContMDiff 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V) ∞ (fun J' : 𝒥 ↦ dι J' (Y J')) :=
-  ((contMDiff_compatibleCLM (ω := ω) (n := ∞)).contMDiff_mvfderiv_apply (m := ∞)
-    (by simp)).comp hY
 
 /-- The Levi-Civita connection in ambient terms, with products written as multiplication in
 `V →L[ℝ] V`. -/
@@ -243,11 +232,11 @@ theorem inner_curvatureTensor_compatibleSpace (J : 𝒥)
     map_smul]
   generalize (U : Module.End ℝ V) = A
   generalize (W : Module.End ℝ V) = B
-  -- With `K = A B - B A`: `tr((K B - B K) A) = tr(K (B A)) - tr(K (A B)) = -tr(K K)`.
+  -- With `K = ⁅A, B⁆`: `tr(⁅K, B⁆ A) = tr(K ⁅B, A⁆) = -tr(K K)`.
   have hK : LinearMap.trace ℝ V (((A * B - B * A) * B - B * (A * B - B * A)) * A) =
       -LinearMap.trace ℝ V ((A * B - B * A) * (A * B - B * A)) := by
-    rw [sub_mul, map_sub, mul_assoc, mul_assoc B, LinearMap.trace_mul_comm ℝ B, mul_assoc,
-      ← map_sub, ← mul_sub, ← map_neg, ← mul_neg, neg_sub]
+    rw [← map_neg, ← mul_neg, neg_sub]
+    simpa [Ring.lie_def] using LinearMap.trace_lie_mul_eq ⁅A, B⁆ B A
   rw [hK, smul_eq_mul]
   ring
 
