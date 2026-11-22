@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
@@ -25,6 +26,9 @@ and the pull-back of restricted forms along a partial diffeomorphism of open sub
 * At a point of `U`, a form and its restriction have the same regularity
   (`TauCeti.contMDiffAt_mpullback_subtype_val_iff`), since `Subtype.val` is a local
   diffeomorphism.
+* For a `C^n` form `γ` on `M` and a vector field `Z` that is `C^n` on `U`, the restriction of
+  `ι_Z γ` to `U` is a `C^n` form (`TauCeti.isSmoothForm_mpullback_subtypeVal_interior`), although
+  `ι_Z γ` need not be smooth on all of `M`.
 * Restriction commutes with the exterior derivative, with no regularity assumption
   (`TauCeti.mpullback_subtype_val_mextDeriv`), since near every point of `U` the coordinate
   expressions of a form and of its restriction agree
@@ -89,6 +93,16 @@ theorem contMDiffAt_mpullback_subtype_val_iff [IsManifold I 1 M] {U : Opens M}
   (isLocalDiffeomorph_subtype_val (n := ω) x).contMDiffAt_mpullback_form_iff (by simp)
 
 variable [IsManifold I 1 M]
+
+/-- Let `γ` be a `C^n` form on `M` and `Z` a vector field that is `C^n` on an open subset `U`.
+Then the restriction to `U` of the interior product `ι_Z γ` is a `C^n` form on `U`. -/
+theorem isSmoothForm_mpullback_subtypeVal_interior {U : Opens M} {n : WithTop ℕ∞}
+    {γ : RoughForm I M F (k + 1)} {Z : (x : M) → TangentSpace I x} (hγ : IsSmoothForm I n γ)
+    (hZ : ContMDiffOn I I.tangent n (T% Z) U) :
+    IsSmoothForm I n (mpullback I I (Subtype.val : U → M) (γ.interior Z)) :=
+  (isSmoothForm_def n _).mpr fun x ↦ (contMDiffAt_mpullback_subtype_val_iff _ x).2
+    (RoughForm.contMDiffAt_interior (hZ.contMDiffAt (U.isOpen.mem_nhds x.property))
+      (hγ.contMDiff x))
 
 /-- Near the chart image of a point of an open subset `U`, the coordinate expression of the
 restriction to `U` of a form on `M` agrees with that of the form itself. -/
