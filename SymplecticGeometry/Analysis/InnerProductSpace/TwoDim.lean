@@ -54,28 +54,12 @@ theorem isConformalMap_of_map_rightAngleRotation {f : E →L[ℝ] F}
     apply φ.symm.injective
     rw [o.rightAngleRotation_map_complex φ.symm hφo, LinearIsometryEquiv.symm_apply_apply,
       LinearIsometryEquiv.symm_apply_apply]
-  -- `f ∘ φ` is multiplication by `f (φ 1)`.
-  let g : ℂ →L[ℂ] F := (ContinuousLinearMap.id ℂ ℂ).smulRight (f (φ 1))
-  have hg : g.restrictScalars ℝ = f.comp φ.toLinearIsometry.toContinuousLinearMap := by
-    ext z
-    have hz : z = (z.re : ℂ) * 1 + (z.im : ℂ) * (I * 1) := by simp [Complex.re_add_im]
-    conv_rhs => rw [hz]
-    have hI : f (φ (I * 1)) = I • f (φ 1) := by rw [hφ, hf]
-    simp only [ContinuousLinearMap.coe_restrictScalars', ContinuousLinearMap.comp_apply,
-      LinearIsometry.coe_toContinuousLinearMap, LinearIsometryEquiv.coe_toLinearIsometry]
-    rw [← Complex.real_smul, ← Complex.real_smul, map_add, map_smul, map_smul, map_add, map_smul,
-      map_smul, hI, ← Complex.coe_smul, ← Complex.coe_smul, smul_smul, ← add_smul,
-      Complex.re_add_im]
-    simp [g]
+  -- `f ∘ φ` commutes with multiplication by `i`, so it is complex linear.
+  let ℓ := f.comp φ.toLinearIsometry.toContinuousLinearMap
+  let g := ℓ.complexOfReal (by simpa [ℓ, ← hf] using congrArg f (hφ 1))
   have hf' : f = (g.restrictScalars ℝ).comp φ.symm.toLinearIsometry.toContinuousLinearMap := by
-    rw [hg]
-    ext x
-    simp
-  have hg0 : g ≠ 0 := by
-    intro h
-    apply h0
-    rw [hf', h]
-    simp
+    ext x; simp [g, ℓ]
+  have hg0 : g ≠ 0 := fun h ↦ h0 (by rw [hf', h]; simp)
   rw [hf']
   exact (isConformalMap_complex_linear hg0).comp φ.symm.toLinearIsometry.isConformalMap
 
