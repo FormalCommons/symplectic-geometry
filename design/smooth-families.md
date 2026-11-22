@@ -517,6 +517,14 @@ Named like Tau Ceti's file; in `TauCeti`.
   at `x` agrees with a partial diffeomorphism on a source containing `x`,
   since Mathlib does not expose the body of `IsLocalDiffeomorphAt`; used by
   `Immersion/TangentProjection.lean`.
+- `IsLocalDiffeomorphAt.congr_of_eventuallyEq`: a map that agrees near `x`
+  with a local diffeomorphism at `x` is one too; and
+  `PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`: a partial
+  diffeomorphism `Θ` between the model vector spaces of `I` and `J` that, on
+  its source, maps exactly the points of `range I` into `range J` gives the
+  local diffeomorphism `J.symm ∘ Θ ∘ I` at each point that `I` sends into its
+  source. Both are used by `Boundary/Collar/Flow/Local.lean` of *Liouville
+  structures*.
 
 ### `Analysis/Calculus/TangentGraphChart.lean`
 
@@ -534,6 +542,13 @@ centred at the point, used by `Immersion/TangentProjection.lean`: the
 `mvfderiv` and off-centre forms of Tau Ceti's
 `TauCeti.mfderiv_eq_fderiv_comp_mfderiv_extChartAt` and
 `TauCeti.range_mvfderiv_eq_range_fderiv_comp_extChartAt_symm`.
+
+- `ContMDiff.contDiffOn_mpullbackWithin_extChartAt_symm`: a `C^m` vector
+  field on a `C^n` manifold, `m + 1 ≤ n`, read in an extended chart, is
+  `C^m` on the chart's target; and
+  `VectorField.mfderivWithin_extChartAt_symm_mpullbackWithin`: the derivative
+  of the inverse chart sends that expression back to the field. Both are used
+  by `Boundary/Collar/Flow/Local.lean` of *Liouville structures*.
 
 ### `Geometry/Manifold/Immersion/TangentProjection.lean`
 
