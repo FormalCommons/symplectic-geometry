@@ -32,7 +32,8 @@ Tau Ceti makes the sublevel set `S = {f ≤ a}` a compact connected surface with
 (`TauCeti.contMDiff_subtypeVal_scalarRegularSublevel`). The pull-back of `ω` to `S` has a global
 frame by `ContMDiffTwoForm.IsNondegenerate.exists_isSymplecticFrameOn_univ_of_boundary_nonempty`.
 On `{f < a}` the frame is read through the inclusion of `{f < a}` into `S`, which is smooth by
-`TauCeti.contMDiff_codRestrict_scalarRegularSublevel`.
+`TauCeti.contMDiff_codRestrict_scalarRegularSublevel`, and
+`IsSymplecticFrameOn.of_pullback_subtypeVal` makes it a frame of `ω` there.
 
 ## References
 
@@ -99,36 +100,12 @@ theorem IsNondegenerate.exists_isSymplecticFrameOn_setOf_lt (hω : ω.IsNondegen
       ((trivializationAt F V x).continuousLinearEquivAt ℝ x
         (FiberBundle.mem_baseSet_trivializationAt' x)).symm
   let Φ (x : M) : StdSpace κ ≃L[ℝ] V x := if h : f x ≤ a then Ψ ⟨x, h⟩ else Φ₀ x
-  have hΦ {x : M} (hx : f x < a) : Φ x = Ψ ⟨x, hx.le⟩ := dite_eq_left hx.le
-  refine ⟨Φ, ⟨?_, fun x (hx : f x < a) v w ↦ ?_⟩⟩
-  · -- On `{f < a}`, `Φ` is the frame `Ψ` read through a map `r : M → S` that is the
-    -- inclusion there, and so smooth there.
-    let U : Opens M := ⟨f ⁻¹' Iio a, isOpen_Iio.preimage hf.continuous⟩
-    obtain ⟨x₀, hx₀⟩ := hne
-    let r (x : M) : S := if h : f x ≤ a then ⟨x, h⟩ else ⟨x₀, le_of_eq hx₀⟩
-    have hr {x : M} (hx : f x < a) : r x = ⟨x, hx.le⟩ := dite_eq_left hx.le
-    have hrs {x : M} (hx : f x < a) : ContMDiffAt I (𝓡∂ 2) ((⊤ : ℕ∞) : WithTop ℕ∞) r x := by
-      rw [← contMDiffAt_subtype_iff (U := U) (x := ⟨x, hx⟩)]
-      refine (TauCeti.contMDiff_codRestrict_scalarRegularSublevel hreg hn hm hf
-        (U := U) subset_rfl ⟨x, hx⟩).congr_of_eventuallyEq
-        (Filter.Eventually.of_forall fun y ↦ ?_)
-      exact hr y.property
-    have hG : ContMDiff ((𝓡∂ 2).prod 𝓘(ℝ, StdSpace κ)) (I.prod 𝓘(ℝ, F)) ((⊤ : ℕ∞) : WithTop ℕ∞)
-        (fun q : S × StdSpace κ ↦ Pullback.lift ι (TotalSpace.mk' F q.1 (Ψ q.1 q.2))) :=
-      (Pullback.contMDiff_lift ι hι).comp
-        (contMDiffOn_univ.1 (by simpa only [univ_prod_univ] using hΨ.contMDiffOn))
-    rintro ⟨x, v⟩ ⟨hx : f x < a, -⟩
-    refine ContMDiffAt.contMDiffWithinAt ?_
-    have hk : ContMDiffAt (I.prod 𝓘(ℝ, StdSpace κ)) ((𝓡∂ 2).prod 𝓘(ℝ, StdSpace κ))
-        ((⊤ : ℕ∞) : WithTop ℕ∞) (fun p : M × StdSpace κ ↦ (r p.1, p.2)) (x, v) :=
-      ((hrs hx).comp (x, v) contMDiffAt_fst).prodMk contMDiffAt_snd
-    refine ((hG _).comp _ hk).congr_of_eventuallyEq ?_
-    filter_upwards [(U.isOpen.prod isOpen_univ).mem_nhds (mk_mem_prod hx (mem_univ v))] with p hp
-    rw [Function.comp_apply, hr hp.1, hΦ hp.1]
-    exact (Pullback.lift_mk (E := V) ι ⟨p.1, hp.1.le⟩ (Ψ ⟨p.1, hp.1.le⟩ p.2)).symm
-  · rw [hΦ hx]
-    have := hΨ.map_bilinFormAt ⟨x, hx.le⟩ (mem_univ _) v w
-    rwa [bilinFormAt_pullback] at this
+  -- On `{f < a}`, `Φ` is `Ψ`, read through the inclusion of `{f < a}` into `S`.
+  let U : Opens M := ⟨f ⁻¹' Iio a, isOpen_Iio.preimage hf.continuous⟩
+  have hUS : (U : Set M) ⊆ S := fun _ hx ↦ le_of_lt hx
+  exact ⟨Φ, hΨ.of_pullback_subtypeVal hUS
+    (TauCeti.contMDiff_codRestrict_scalarRegularSublevel hreg hn hm hf subset_rfl)
+    fun x hx ↦ dite_eq_left hx.le⟩
 
 end Bundle.ContMDiffTwoForm
 
