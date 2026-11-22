@@ -148,9 +148,8 @@ theorem continuous_tangentNormalEquiv
   have hdf : Continuous fun p : TangentBundle I M ↦
       TotalSpace.mk' V (E := (f : M → N) *ᵖ (TangentSpace J)) p.proj
         (mfderiv I J f p.proj p.snd) :=
-    (inducing_pullbackTotalSpaceEmbedding V (TangentSpace J) (f : M → N)).continuous_iff.2
-      ((FiberBundle.continuous_proj E (TangentSpace I)).prodMk
-        (f.contMDiff.continuous_tangentMap (ENat.one_le_iff_ne_zero_withTop.mpr hn)))
+    Pullback.continuous_iff.2 ⟨FiberBundle.continuous_proj E (TangentSpace I),
+      f.contMDiff.continuous_tangentMap (ENat.one_le_iff_ne_zero_withTop.mpr hn)⟩
   have h := (hdf.comp (continuous_fst.comp hd)).add_totalSpace 𝕜 (hrc.comp (continuous_snd.comp hd))
   exact h.congr fun p ↦ (congrArg (TotalSpace.mk p.proj)
     (f.tangentNormalEquiv_apply hn r hr p.proj p.snd)).symm
