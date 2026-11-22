@@ -12,6 +12,8 @@ import TauCeti.Geometry.Manifold.Flow.TimeDependent.RestPoint
 import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+import SymplecticGeometry.Topology.Sets.Opens.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
@@ -271,8 +273,7 @@ theorem exists_diffeomorph_opens_of_eq_along (f : SmoothEmbedding J I ∞ Q M)
   rcases isEmpty_or_nonempty W with hW | hW
   · -- If the tube is empty, so is `Q`, and the empty opens will do.
     have : IsEmpty Q := ⟨fun q ↦ hW.false ⟨f q, (hΦf q).1⟩⟩
-    obtain ⟨φ, hφ⟩ := SmoothTwoForm.exists_diffeomorph_bot_mpullback_eq σ₀ σ₁
-    exact ⟨⊥, ⊥, φ, isEmptyElim, hφ⟩
+    exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, isEmptyElim, Subsingleton.elim _ _⟩
   -- Read `Φ` in `M`, as a partial diffeomorphism `Ψ`, and then as a diffeomorphism `φ` between
   -- the source and the target of `Ψ`.
   let Ψ := Φ.liftOpens hW hW

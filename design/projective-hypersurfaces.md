@@ -202,16 +202,18 @@ $X$ on the projective line $\{\ell_1=\dots=\ell_n=0\}$. Then:
   makes each index $+1$. By
   `TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`
   the number is the count of zeros.
-- The count is $d$ (issue 9): restricted to the line, parametrized by
-  $[s:t]\mapsto su+tw$, the polynomial is a binary form of degree $d$. It is
-  not zero, since the zeros are finite, and transversality at a point of the
-  line is the simplicity of that root (the tangent space of `X` is the kernel
-  of the differential, Tau Ceti's
-  `TauCeti.tangentRange_complexProjectiveZeroLocusEmbedding`). A nonzero
-  binary form of degree $d$ over `ℂ` with only simple roots has exactly $d$
-  of them on $\mathbb CP^1$ (after a change of coordinates that puts no root
-  at infinity, Mathlib's `IsAlgClosed.card_roots_eq_natDegree` and
-  `Polynomial.nodup_roots`).
+- The count is $d$ (issue 9): the line is the image of an injective linear
+  map $\iota:\mathbb C^2\to\mathbb C^{n+2}$, and the polynomial pulled back
+  along $\iota$ (by `aeval` of Mathlib's `Matrix.toMvPolynomial`, as in Tau
+  Ceti's `TauCeti.preimage_map_complexProjectiveZeroLocus`) is a binary form
+  of degree $d$. Transversality at a point of the line says that this form's
+  gradient is nonzero there (the tangent space of `X` is the kernel of the
+  differential, Tau Ceti's
+  `TauCeti.tangentRange_complexProjectiveZeroLocusEmbedding`), so it has no
+  squared linear factor. By Tau Ceti's
+  `MvPolynomial.IsHomogeneous.exists_linear_factors` it is then a product of
+  $d$ pairwise non-proportional linear forms, each with one zero on
+  $\mathbb CP^1$ (`LinearAlgebra/Projectivization/BinaryForm.lean`).
 
 For `n = 0`, Tau Ceti's fundamental classes need positive dimension, so
 the pairing with $[X]$ is read as a count of points: part 2 of the milestone
@@ -219,8 +221,8 @@ says that $X$ consists of $d$ points, and issue 9 proves `Nat.card X = d`.
 Part 4 for `n = 0` is a statement about $\chi(X)$, so issue 9 also proves
 `TauCeti.eulerChar X = d`. $X$ is a compact manifold of dimension $0$,
 hence finite and discrete; its `FiniteCWType` instance is Tau Ceti's
-`TauCeti.ComplexManifold.finiteCWType`
-(`Geometry/Manifold/Complex/FiniteCWType.lean`), and Tau Ceti's
+`TauCeti.FiniteCWType.of_discreteTopology`, from the instances
+`DiscreteTopology X` and `Finite X` of issue 9, and Tau Ceti's
 `TauCeti.eulerChar_of_discreteTopology` turns `Nat.card X = d` into
 $\chi(X)=d$.
 
@@ -285,6 +287,7 @@ the order of the paths.
 | `Geometry/Manifold/SmoothEmbedding/NormalSpace/Splitting.lean` | $TM\oplus\nu\cong f^*TN$ | 4 |
 | `Geometry/Manifold/SmoothEmbedding/RestrictScalars.lean` | a holomorphic embedding is a real smooth embedding | 12 |
 | `LinearAlgebra/Pi/LinearForm.lean` | a nonzero linear form as a coordinate of an automorphism | 12 |
+| `LinearAlgebra/Projectivization/BinaryForm.lean` | a binary form with simple zeros has `d` zeros on $\mathbb CP^1$ | 9 |
 | `LinearAlgebra/Projectivization/VeroneseLinearForm.lean` | the linear form of a nonzero homogeneous polynomial is nonzero | 12 |
 | `Topology/Algebra/Module/Equiv/Pi.lean` | `ContinuousLinearEquiv.piOptionEquivProd` | 2 |
 | `Topology/ComplexProjectiveSpace/SimplyConnected.lean` | `ℙ ℂ (Fin (m + 1) → ℂ)` is simply connected | 12 |
@@ -455,9 +458,10 @@ For a compact Hausdorff complex manifold `M` modelled on `𝓘(ℂ, E)` with
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/Line.lean`
 
-- `card_inter_line`: if `u`, `w` are independent and the line they span is
-  transverse to `X` at every common point, it meets `X` in exactly `d`
-  points. The binary form `t ↦ poly (s • u + t • w)` argument above.
+- `card_inter_line`: if `ι : ℂ² → ℂⁿ⁺²` is linear and injective and the line
+  it spans is transverse to `X` at every common point, it meets `X` in
+  exactly `d` points. The binary form `poly ∘ ι` argument above, with the
+  count of zeros of a binary form in `LinearAlgebra/Projectivization/BinaryForm.lean`.
 - `card_eq` (**milestone, part 2 for `n = 0`**, finitely many points
   of $\mathbb CP^1$): `Nat.card X = d`, the line being all of $\mathbb CP^1$.
   For `n = 0` the pairing with $[X]$ is read as this count of points, since
@@ -465,7 +469,7 @@ For a compact Hausdorff complex manifold `M` modelled on `𝓘(ℂ, E)` with
   with the milestone line.
 - `eulerChar_eq_of_dim_zero` (**milestone, part 4 for `n = 0`**):
   `TauCeti.eulerChar X = d`, with the instance
-  `TauCeti.ComplexManifold.finiteCWType` on `X`, from `card_eq` and
+  `TauCeti.FiniteCWType.of_discreteTopology` on `X`, from `card_eq` and
   Tau Ceti's `TauCeti.eulerChar_of_discreteTopology`. Its docstring ends
   with the milestone line.
 

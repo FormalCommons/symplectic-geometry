@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ComplexStructure
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Prod
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Representative
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Pullback
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Pullback
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Representative
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Orthogonal
 import TauCeti.Geometry.Manifold.VectorBundle.Prod
@@ -28,7 +28,9 @@ two-form on `f *ᵖ TX` that tames `Jf`. Then:
 * `ω` is nondegenerate on each `W_x`, so `W_x` and its `ω`-orthogonal `W_x^ω` are complements,
   and `W_x^ω` is `Jf`-invariant when `ω` is `Jf`-invariant;
 * `ω` read through `df` is a nondegenerate two-form `σ` on `TM`, positive on the pairs
-  `(u, v)` with `df v = J (df u)`;
+  `(u, v)` with `df v = J (df u)`. This is `ω.compMFDeriv f f.contMDiff`
+  (`SymplecticGeometry.Bundle.ContMDiffTwoForm.compMFDeriv`, defined for any smooth map in
+  `SymplecticGeometry/Geometry/Manifold/VectorBundle/Symplectic/Pullback.lean`);
 * `ω` read through the representatives in `W^ω` of the normal classes is a two-form `ω_ν` on the
   normal bundle `ν`, compatible with the complex structure that `J` induces on `ν` when `ω` is
   compatible with `Jf`;
@@ -41,7 +43,6 @@ Hausdorff σ-compact `M`, a form compatible with `Jf` exists by
 
 ## Main definitions
 
-* `TauCeti.SmoothEmbedding.tangentForm`: the two-form `σ(u, v) = ω(df u, df v)` on `TM`.
 * `TauCeti.SmoothEmbedding.normalForm`: the two-form `ω_ν` on the normal bundle.
 * `TauCeti.SmoothEmbedding.normalSplitting`: the fibrewise isomorphism
   `f *ᵖ TX ≃ TM ×ᵇ ν`.
@@ -50,12 +51,13 @@ Hausdorff σ-compact `M`, a form compatible with `Jf` exists by
 
 * `TauCeti.SmoothEmbedding.isCompl_tangentRange_orthogonal`: `W_x` and `W_x^ω` are complements;
   `TauCeti.SmoothEmbedding.pullbackComplexStructure_mem_orthogonal`: `W_x^ω` is `Jf`-invariant.
-* `TauCeti.SmoothEmbedding.isNondegenerate_tangentForm`, `TauCeti.SmoothEmbedding.tangentForm_pos`.
+* `TauCeti.SmoothEmbedding.isNondegenerate_compMFDeriv`,
+  `TauCeti.SmoothEmbedding.compMFDeriv_pos`.
 * `TauCeti.SmoothEmbedding.normalForm_normalClass`,
   `TauCeti.SmoothEmbedding.compatible_normalForm`.
 * `TauCeti.SmoothEmbedding.contMDiff_normalSplitting`: the splitting is smooth on total spaces;
   `TauCeti.SmoothEmbedding.pushforward_normalSplitting`: it carries `ω` to
-  `(tangentForm f ω).prod (normalForm f hdim hJ ω hω)`.
+  `(ω.compMFDeriv f f.contMDiff).prod (normalForm f hdim hJ ω hω)`.
 
 ## Implementation notes
 
@@ -195,65 +197,30 @@ variable [FiniteDimensional ℝ E'] [IsManifold I' ((⊤ : ℕ∞) : WithTop ℕ
 
 /-! ### The form on the tangent bundle -/
 
-variable (f) in
-/-- The two-form `σ(u, v) = ω(df u, df v)` on the tangent bundle of `M` that a two-form `ω` on
-`f *ᵖ TX` induces. -/
-def tangentForm (ω : ContMDiffTwoForm I' ⊤ E ((f : M → X) *ᵖ (TangentSpace I))) :
-    ContMDiffTwoForm I' ⊤ E' (TangentSpace I' (M := M)) :=
-  ContMDiffTwoForm.compContinuousLinearMap (V := (f : M → X) *ᵖ (TangentSpace I))
-    (V₂ := TangentSpace I') (fun x ↦ mfderiv I' I f x)
-    (_root_.Bundle.Pullback.contMDiff_mfderiv_hom f f.contMDiff) ω
-
 omit [FiniteDimensional ℝ E] in
-variable (f) in
-theorem tangentForm_def (ω : ContMDiffTwoForm I' ⊤ E ((f : M → X) *ᵖ (TangentSpace I))) :
-    f.tangentForm ω = ContMDiffTwoForm.compContinuousLinearMap
-      (V := (f : M → X) *ᵖ (TangentSpace I)) (V₂ := TangentSpace I') (fun x ↦ mfderiv I' I f x)
-      (_root_.Bundle.Pullback.contMDiff_mfderiv_hom f f.contMDiff) ω :=
-  (rfl)
-
-omit [FiniteDimensional ℝ E] in
-variable (f) in
-/-- The form on the tangent bundle at `x` is `ω_x(df ·, df ·)`. -/
-@[simp]
-theorem tangentForm_apply (ω : ContMDiffTwoForm I' ⊤ E ((f : M → X) *ᵖ (TangentSpace I)))
-    (x : M) : f.tangentForm ω x = (ω x).compContinuousLinearMap (mfderiv I' I f x) := by
-  rw [tangentForm_def]
-  exact ContMDiffTwoForm.compContinuousLinearMap_apply _ _ ω x
-
-omit [FiniteDimensional ℝ E] in
-variable (f) in
-/-- The form on the tangent bundle takes on `u`, `v` the value of `ω` on `df u`, `df v`. -/
-theorem bilinFormAt_tangentForm (ω : ContMDiffTwoForm I' ⊤ E ((f : M → X) *ᵖ (TangentSpace I)))
-    (x : M) (u v : TangentSpace I' x) :
-    (f.tangentForm ω).bilinFormAt x u v =
-      ω.bilinFormAt x (mfderiv I' I f x u) (mfderiv I' I f x v) := by
-  rw [tangentForm_def]
-  exact ContMDiffTwoForm.bilinFormAt_compContinuousLinearMap _ _ ω x u v
-
-omit [FiniteDimensional ℝ E] in
-/-- If `ω` tames the pull-back of `J`, the form on the tangent bundle is positive on every pair
-`(u, v)` with `u ≠ 0` and `df v = J (df u)`. -/
-theorem tangentForm_pos (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) {x : M}
+/-- If `ω` tames the pull-back of `J`, the form `ω(df ·, df ·)` on the tangent bundle is positive
+on every pair `(u, v)` with `u ≠ 0` and `df v = J (df u)`. -/
+theorem compMFDeriv_pos (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) {x : M}
     {u v : TangentSpace I' x} (hu : u ≠ 0)
     (hv : mfderiv I' I f x v = J (f x) (mfderiv I' I f x u)) :
-    0 < (f.tangentForm ω).bilinFormAt x u v := by
-  rw [bilinFormAt_tangentForm, hv, ← pullbackComplexStructure_apply J f f.contMDiff]
+    0 < (ω.compMFDeriv f f.contMDiff).bilinFormAt x u v := by
+  rw [ContMDiffTwoForm.bilinFormAt_compMFDeriv, hv,
+    ← pullbackComplexStructure_apply J f f.contMDiff]
   exact ContMDiffTwoForm.tames_def.1 hω x _ fun h ↦
     hu (f.isImmersion.mfderiv_injective (by simp) x (h.trans (map_zero _).symm))
 
 omit [FiniteDimensional ℝ E] in
 /-- If the tangent images of `f` are `J`-invariant and `ω` tames the pull-back of `J`, the form
-on the tangent bundle is nondegenerate. -/
-theorem isNondegenerate_tangentForm
+`ω(df ·, df ·)` on the tangent bundle is nondegenerate. -/
+theorem isNondegenerate_compMFDeriv
     (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
     (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff)) :
-    (f.tangentForm ω).IsNondegenerate := by
+    (ω.compMFDeriv f f.contMDiff).IsNondegenerate := by
   rw [ContMDiffTwoForm.isNondegenerate_iff_separatingLeft]
   intro x u hu
   by_contra h0
   obtain ⟨v, hv⟩ := hJ x _ ⟨u, rfl⟩
-  have h := tangentForm_pos hω h0 hv
+  have h := compMFDeriv_pos hω h0 hv
   rw [ContMDiffTwoForm.bilinFormAt_apply] at h
   exact h.ne' (hu v)
 
@@ -562,14 +529,15 @@ theorem pushforward_normalSplitting (hdim : finrank ℝ P = finrank ℝ E - finr
     letI := f.normalSpaceVectorBundle hn hdim
     ContMDiffTwoForm.pushforward (f.normalSplitting hJ ω hω)
         (contMDiff_normalSplitting hdim hJ hω) ω =
-      (f.tangentForm ω).prod (f.normalForm hdim hJ ω hω) := by
+      (ω.compMFDeriv f f.contMDiff).prod (f.normalForm hdim hJ ω hω) := by
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
   refine (ContMDiffTwoForm.pushforward_eq_iff _ _).2 fun x v w ↦ ?_
   obtain ⟨p, rfl⟩ := (f.normalSplitting hJ ω hω x).symm.surjective v
   obtain ⟨q, rfl⟩ := (f.normalSplitting hJ ω hω x).symm.surjective w
   rw [ContinuousLinearEquiv.apply_symm_apply, ContinuousLinearEquiv.apply_symm_apply,
-    ContMDiffTwoForm.bilinFormAt_prod_apply, bilinFormAt_tangentForm, bilinFormAt_normalForm,
+    ContMDiffTwoForm.bilinFormAt_prod_apply, ContMDiffTwoForm.bilinFormAt_compMFDeriv,
+    bilinFormAt_normalForm,
     normalSplitting_symm_apply, normalSplitting_symm_apply]
   -- The cross terms vanish: a tangent vector and a vector of the `ω`-orthogonal pair to zero.
   have h₁ := mem_orthogonalTangentRange_iff.1

@@ -2287,7 +2287,7 @@ has either; Tau Ceti's extension across a boundary,
   Ceti's file, in Tau Ceti's namespace
   `TauCeti.SmoothAlmostComplexStructure`: $N_J(v,Jv)=0$; naturality,
   `nijenhuis_pullback`, for Tau Ceti's `pullback` along a diffeomorphism,
-  from Mathlib's `VectorField.mpullback_mlieBracket`; and the formula of
+  from `mfderiv_nijenhuis_of_eventually_related`; and the formula of
   $N_J$ through any torsion-free covariant derivative on $TM$, with the
   milestone as one theorem),
   `Geometry/Symplectic/Manifold/AlmostComplex/Covariant.lean` (the covariant
