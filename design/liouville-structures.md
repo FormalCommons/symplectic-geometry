@@ -105,13 +105,13 @@ by `coe_interiorₗ`. For a strong filling `h`, `hY` is
   there are `ε > 0` and a `TauCeti.SmoothCollar` whose normal lines, run at
   speed `ε`, are the integral curves of `Y` through the boundary points, for
   times in $(-\varepsilon,0]$ (`TauCeti.SmoothCollar.exists_eq_of_isOutwardPointing`,
-  in `Geometry/Manifold/Boundary/Collar/Flow/`). It is proved in Tau Ceti's
-  local product collars (`TauCeti.IsProductCollarChart.diffeomorphProd`),
-  where the field is extended across the boundary by Seeley's extension in
-  the normal coordinate, from *Smooth families*'
-  `Geometry/Manifold/ContMDiff/TimeExtension.lean`; the extended field has a
-  flow (Tau Ceti's, on a boundaryless chart domain), whose backward lines
-  from the boundary enter the interior and are there the integral curves of
+  in `Geometry/Manifold/Boundary/Collar/Flow/`). It is proved in the extended
+  chart at a boundary point, where the field is extended across the boundary
+  by Seeley's extension in the normal coordinate, from *Smooth families*'
+  `exists_contDiff_eqOn_of_contDiffOn_halfSpace`
+  (`Analysis/Calculus/ContDiff/Seeley/Extension.lean`);
+  the extended field has a flow (Tau Ceti's, on the boundaryless `ℝⁿ⁺¹`),
+  whose backward lines from the boundary enter the interior and are there the integral curves of
   `Y`, so the local collars agree and patch. For a strong filling the
   collar formulas $\Phi^*\lambda=e^s\alpha$ and $\Phi^*\omega=-d(e^s\alpha)$
   then follow from Tau Ceti's on the interior (see `Filling.lean`).
@@ -172,6 +172,7 @@ Further choices:
 | `Topology/Sets/Strip.lean` | the open strip `(-ε, ε) × X` of `ℝ × X` and the tube lemma for it | 4 |
 | `Geometry/Manifold/Strip.lean` | the slice maps of the strip as smooth maps, their differential, and slices of two-forms | 4 |
 | `Geometry/Manifold/SmoothEmbedding/Basic.lean` | the right slice `x ↦ (c, x)` of a product as a smooth embedding, beside Tau Ceti's file of that path | 4 |
+| `Geometry/Manifold/Boundary/Charts.lean` | boundary points in the extended charts of the half-space model | 5 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` | near one boundary point: the extended field and its flow from the boundary | 5 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean` | the collar of a compact boundary along an outward field | 6 |
 | `Geometry/Symplectic/Liouville/Filling.lean` | `IsStrongFilling`, its contact form, its Liouville collar | 7 |
@@ -399,25 +400,31 @@ In `TauCeti`, for `W` as in *Decisions* (no compactness), a field `Y` with
 `hY : IsOutwardPointingField Y` (Tau Ceti's smooth field that points outward
 along the boundary), and a boundary point `p`:
 
-- In a product collar chart at `p`
-  (`TauCeti.exists_isProductCollarChart_of_mem_boundary`,
-  `IsProductCollarChart.diffeomorphProd`), the field read in the product
-  `V × [0, δ)` extends to a smooth field on `V × (-δ, δ)`: Seeley's
-  extension in the normal coordinate, from *Smooth families*'
-  `TimeExtension.lean` after a cut-off in the normal coordinate.
+- In the extended chart at `p`, the coordinate expression of the field,
+  smooth on a relatively open part of the half-space, agrees near `p` with a
+  smooth field on `ℝⁿ⁺¹` (`exists_contDiff_eqOn_mpullbackWithin_extChartAt_symm`,
+  from *Smooth families*'
+  `SymplecticGeometry.exists_contDiff_eqOn_of_contDiffOn_halfSpace` in
+  `Analysis/Calculus/ContDiff/Seeley/Extension.lean`): Seeley's extension in
+  the normal coordinate.
 - `exists_isMIntegralCurveOn_of_isOutwardPointing`: there are an open
-  `B ∋ p` of `∂W`, `η > 0` and a map `γ : ℝ × ∂W → W`, smooth on
-  `Ioo (-η) η ×ˢ B` read through the extension, such that for `x ∈ B` the
-  curve `s ↦ γ (s, x)` starts at `x`, lies in the interior of `W` for
+  `B ∋ p` of `∂W`, `η > 0` and a map `γ : ℝ × ∂W → W` such that for `x ∈ B`
+  the curve `s ↦ γ (s, x)` starts at `x`, lies in the interior of `W` for
   `s ∈ (-η, 0)` and is an integral curve of `Y` on `Ioc (-η) 0`
-  (`IsMIntegralCurveOn`), and `(s, x) ↦ γ (s, x)` is a local diffeomorphism
-  from `Ioc (-η) 0 ×ˢ B`, read as a manifold with boundary, at `(0, p)`.
-  Its derivative there is invertible since `Y p` is outward
-  (`Boundary/Derivative.lean`: the boundary inclusion is the zero-insertion
-  in charts).
-- `IsMIntegralCurveOn.eqOn_of_isOutwardPointing`: two integral curves of `Y`
-  on `Ioc (-η) 0` that start at the same boundary point agree, by
-  uniqueness for the extended field in the chart while they stay there.
+  (`IsMIntegralCurveOn`), and `(x, t) ↦ γ (-t.val 0, x)` is a local
+  diffeomorphism (`IsLocalDiffeomorphOn ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) ∞`)
+  on `B ×ˢ EuclideanHalfSpace.normalIio η`. In charts it is the flow of the
+  extended field from the boundary hyperplane, a local diffeomorphism of
+  boundaryless spaces since `Y p` is transverse to the boundary, restricted
+  to the half-spaces
+  (`PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`, in
+  *Smooth families*' `Geometry/Manifold/LocalDiffeomorph/Basic.lean`).
+- `IsMIntegralCurveOn.eqOn_of_isOutwardPointing` (with `[T2Space W]`): two
+  integral curves of `Y` on `Ioc (-η) 0` that agree at time `0` agree; at
+  negative times both are in the interior
+  (`IsMIntegralCurveOn.mem_interior_of_isOutwardPointing`), and from a
+  boundary point they first agree near `0` by uniqueness for the extended
+  field in the chart.
 
 Expected size: 500 lines.
 
@@ -610,8 +617,10 @@ Expected size: 300 lines.
 
 ## What the part uses
 
-- *Smooth families*: Seeley's extension in the time variable,
-  `Geometry/Manifold/ContMDiff/TimeExtension.lean`, only in
+- *Smooth families*: Seeley's extension,
+  `Analysis/Calculus/ContDiff/Seeley/Extension.lean`,
+  `Geometry/Manifold/LocalDiffeomorph/Basic.lean` and
+  `Geometry/Manifold/MFDeriv/Chart.lean`, only in
   `Collar/Flow/Local.lean`; and
   `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean`
   (`TauCeti.SmoothForm.mpullback_prodMk_mpullback_snd`), merged, in
@@ -621,6 +630,10 @@ Expected size: 300 lines.
   `TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff`,
   `TauCeti.isLocalDiffeomorph_inclusion`), merged, in `Boundary/Collar/End.lean`
   and `StableHamiltonian.lean`.
+- *Cotangent bundles*: `Geometry/Manifold/Flow/Basic.lean`, merged, which this
+  part extends by the flow of a vector field on a normed space
+  (`TauCeti.contDiffOn_flowOf_uncurry`,
+  `TauCeti.hasFDerivAt_flowOf_uncurry_zero`), in `Collar/Flow/Local.lean`.
 - *Moser isotopy*: `Geometry/Symplectic/Manifold/Family.lean`
   (`SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`), merged, in
   `StableHamiltonian.lean`.
@@ -709,7 +722,7 @@ In this order; each is blocked by the ones listed. All are parts of #480,
 | 2 | Liouville collars of hypersurfaces, first milestone | `Liouville/Collar.lean` | 1 | 300 |
 | 3 | Stable Hamiltonian structures: wedge criterion, Reeb field, invariance | `Contact/StableHamiltonian.lean` | — | 300 |
 | 4 | The stable Hamiltonian model and its converse, second milestone | `Contact/StableHamiltonian.lean` | 3 | 500 |
-| 5 | Outward flow near a boundary point | `Boundary/Collar/Flow/Local.lean` | the *Smooth families* issue that adds `TimeExtension.lean` | 500 |
+| 5 | Outward flow near a boundary point | `Boundary/Collar/Flow/Local.lean` | the *Smooth families* issue that adds `Seeley/Extension.lean` | 500 |
 | 6 | The collar along an outward field | `Boundary/Collar/Flow/Basic.lean` | 5 | 400 |
 | 7 | Strong fillings and their Liouville collar | `Liouville/Filling.lean` | 6 | 400 |
 | 8 | Attaching an end along a smooth collar | `Boundary/Collar/End.lean` | — | 600 |
@@ -717,7 +730,8 @@ In this order; each is blocked by the ones listed. All are parts of #480,
 | 10 | Symplecticity and the third milestone | `Liouville/Completion.lean` | 9 | 350 |
 | 11 | The completion of a Liouville domain is a Tau Ceti completion | `Liouville/Domain.lean` | 10 | 300 |
 
-Issues 1, 3 and 8 can start at once; issue 5 waits for *Smooth families*.
+Issues 1, 3 and 8 can start at once; issue 5 waits for Seeley's extension
+in *Smooth families*.
 The milestones are proved in issues 2, 4 and 10. If issue 5 or 8 exceeds the
 size limit, its local chart computations become an issue of their own before
 it.

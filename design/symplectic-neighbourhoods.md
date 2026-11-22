@@ -245,7 +245,10 @@ and two rows of its milestone table.
 - The part no longer builds on *Symplectic vector bundles*, neither on
   `Symplectic/Basic.lean` nor on any of its open issues: the compatible
   complex structures come from Tau Ceti, and the symplectic normal bundle
-  is read through Tau Ceti's `symplecticNormalForm`.
+  is read through Tau Ceti's `symplecticNormalForm`. Its one import from
+  that part is the merged `Geometry/Manifold/IsManifold/InteriorBoundary.lean`,
+  in `CharacteristicFoliation.lean` and `FlatChart.lean`, for the open
+  targets of maximal-atlas charts on a manifold without boundary.
 
 ## Files and their contents
 
@@ -254,7 +257,9 @@ and two rows of its milestone table.
 The local quotients of a closed two-form of constant rank. Namespace
 `TauCeti.SmoothForm`, beside Tau Ceti's `characteristicFoliation`, since
 dot notation on `σ` finds it. For `σ : SmoothForm I M ℝ 2` with
-`[I.Boundaryless]`, and a manifold `B` over a model `IB`, which is an
+`[BoundarylessManifold I M]` (`[I.Boundaryless]` for the descent and the
+charts, as Tau Ceti's descent theorem and
+`ContMDiff.isSubmersionOfComplement_of_surjective_mfderiv` ask), and a manifold `B` over a model `IB`, which is an
 explicit argument, `IsCharacteristicSubmersion IB σ p`, since `p` does not
 determine it:
 
@@ -323,7 +328,8 @@ On an open `U`, it is applied to `U` and the restriction
 - The coisotropic case, in namespace
   `TauCeti.SmoothTwoForm.IsNondegenerate.IsCoisotropicMap`:
   `IsCoisotropicMap.exists_isCharacteristicSubmersion` applies the above to `σ = f^*ω` for a coisotropic immersion `f` of a closed
-  `ω`, with `k` the codimension, from Tau Ceti's
+  `ω`, with `k` the codimension, explicit with `hk : finrank ℝ F + k =
+  finrank ℝ E`, from Tau Ceti's
   `IsCoisotropicMap.finrank_ker_bilinFormAt_mpullback`. Then
   `IsCoisotropicMap.isIsotropic_map_ker_bilinFormAt_mpullback` says that
   $df$ maps the kernel, the tangent spaces of the leaves, onto an isotropic
@@ -428,7 +434,7 @@ nothing symplectic, so it sits with the manifold topic, beside Tau Ceti's
 
 - `IsInvolutiveDistribution.exists_flatPartialDiffeomorph (hinv) (hD :
   IsContMDiffDistribution I ∞ k D) (h₁ : finrank ℝ F₁ = k) (h₂ : finrank ℝ
-  E = k + finrank ℝ F₂) (x : M)`, on a boundaryless manifold: a
+  E = k + finrank ℝ F₂) (x : M)`, with `[BoundarylessManifold I M]`: a
   `PartialDiffeomorph` `Φ` into `F₁ × F₂` with `x` in its source,
   `Φ x = 0`, the unit ball in its target, and `(dΦ_y v).2 = 0 ↔ v ∈ D y`
   on its source. Route: Tau Ceti's `exists_flatChart`, a splitting of the
@@ -588,11 +594,11 @@ set:
 | `HasSymplecticTangentImages.exists_darbouxChart_inter_range_eq` | `finrank ℝ E' = 2 * k` | `{z | ∀ j : Fin n, k ≤ (j : ℕ) → z.x j = 0 ∧ z.y j = 0}` |
 | `IsIsotropicMap.exists_darbouxChart_inter_range_eq` | `finrank ℝ E' = k` | `{z | z.y = 0 ∧ ∀ j : Fin n, k ≤ (j : ℕ) → z.x j = 0}` |
 | `IsLagrangianMap.exists_darbouxChart_inter_range_eq` | — | `{z | z.y = 0}` |
-| `IsCoisotropicMap.exists_darbouxChart_inter_range_eq` | `finrank ℝ E' = 2 * n - k` | `{z | ∀ j : Fin n, j < k → z.y j = 0}` |
+| `IsCoisotropicMap.exists_darbouxChart_inter_range_eq` | `finrank ℝ E' = 2 * n - k` | `{z | ∀ j : Fin n, (j : ℕ) < k → z.y j = 0}` |
 
 The coisotropic theorem also states that at every `x = f q` in the source,
 `mvfderiv I e x` maps $(T_xQ)^\omega$ onto
-`{v | v.y = 0 ∧ ∀ j : Fin n, k ≤ j → v.x j = 0}`, the span of the first
+`{v | v.y = 0 ∧ ∀ j : Fin n, k ≤ (j : ℕ) → v.x j = 0}`, the span of the first
 `k` vectors $\partial_{q_j}$. The four theorems share the milestone line.
 Milestone: *Darboux charts adapted to submanifolds*.
 
@@ -644,7 +650,7 @@ four theorems share.
   `Topology/Algebra/Module/BilinearForm.lean` (merged), in
   `Geometry/Manifold/VectorBundle/Adjoint.lean`.
 - From *Standard model*: `StdSpace`, `stdForm`, `stdForm_apply`, and the
-  inclusions `StdSpace.stdInl` and `StdSpace.ofX` that this part adds to
+  inclusions `StdSpace.stdInl`, `StdSpace.stdInr` and `StdSpace.ofX` that this part adds to
   `LinearAlgebra/Symplectic/Standard/Basic.lean`, in `AdaptedDarboux.lean`;
   `StdSpace` also in `CharacteristicFoliation.lean`.
 - *Cotangent bundles* is not used: `Lagrangian.lean` needs only Tau Ceti's
