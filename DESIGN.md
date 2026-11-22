@@ -2292,15 +2292,16 @@ has either; Tau Ceti's extension across a boundary,
   section `toEndomorphism`, and $(\nabla_vJ)J+J(\nabla_vJ)=0$ for every
   covariant derivative, the derivative of $J^2=-1$; *Almost Kähler
   geometry* uses both) and `Geometry/Manifold/Complex/Integrable.lean`
-  (`TauCeti.SmoothAlmostComplexStructure.IsIntegrable J`: there is a linear
-  structure `J₀ : TauCeti.AlmostComplexStructure E` such that every point
-  lies in the source of a chart `ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞`
-  on whose target Tau Ceti's `chartPushforward` of `J` is `J₀`; on a
+  (`TauCeti.SmoothAlmostComplexStructure.IsIntegrable J`: every point lies
+  in the source of a chart `ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞` on
+  whose target Tau Ceti's `chartPushforward` of `J` is a linear structure
+  `J₀ : TauCeti.AlmostComplexStructure E`, one for each chart; on a
   manifold with boundary no boundary point has such a chart; with
   `isIntegrable_ofComplexManifold`, from Tau Ceti's
-  `inTangentCoordinates_ofComplexManifold`, invariance under `pullback`, and
-  `IsIntegrable.nijenhuis_eq_zero`, from naturality and Tau Ceti's
-  `SmoothAlmostComplexStructure.nijenhuis_model_eq_zero_iff`; on surfaces modelled on `𝓘(ℝ, ℂ)`, the
+  `tangentCoordChange_smul`, invariance under `pullback`, and
+  `IsIntegrable.nijenhuis_eq_zero`, from Mathlib's
+  `VectorField.mpullback_mlieBracket` for constant fields pulled back along a
+  chart; on surfaces modelled on `𝓘(ℝ, ℂ)`, the
   comparison with Tau Ceti's class
   `SmoothAlmostComplexStructure.HasIsothermalCharts`).
 - **Builds on:** Mathlib (`mlieBracket`, `CovariantDerivative.torsion`) and
