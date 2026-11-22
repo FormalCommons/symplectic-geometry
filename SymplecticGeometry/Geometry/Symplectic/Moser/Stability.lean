@@ -159,11 +159,10 @@ theorem exists_diffeotopy_mpullback_eq (σ : SmoothTwoForm ((𝓡∂ 1).prod I) 
     (isOpen_setOf_forall_isInvertible_flat_mpullback_prodMk τ) hIP
   have hcs : ContMDiff (𝓘(ℝ, ℝ).prod I) (𝓘(ℝ, ℝ).prod I) ∞ (Prod.map c (id : M → M)) :=
     hc.contMDiff.prodMap contMDiff_id
-  set ρ := SmoothForm.mpullback (Prod.map c id) hcs τ with hρ
+  set ρ := SmoothForm.mpullback (Prod.map c id) hcs τ
   have hρs (t : ℝ) : SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) ρ =
-      SmoothForm.mpullback (Prod.mk (c t)) (contMDiff_const.prodMk contMDiff_id) τ := by
-    have hcomp : (Prod.map c id ∘ Prod.mk t : M → ℝ × M) = Prod.mk (c t) := rfl
-    simp only [hρ, SmoothForm.mpullback_mpullback, hcomp]
+      SmoothForm.mpullback (Prod.mk (c t)) (contMDiff_const.prodMk contMDiff_id) τ :=
+    SmoothForm.mpullback_prodMk_mpullback_prodMap_id_right hc.contMDiff τ t
   have hρsymp (t : ℝ) : IsSymplectic
       (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) ρ) := by
     rw [hρs]
