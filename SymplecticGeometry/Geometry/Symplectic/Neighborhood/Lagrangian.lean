@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Liouville
 public import TauCeti.Geometry.Symplectic.Lagrangian.Manifold
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
