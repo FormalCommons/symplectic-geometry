@@ -133,7 +133,7 @@ can join them.
 | `Geometry/Symplectic/Manifold/Darboux.lean` | Darboux charts with prescribed derivative, symplectic transitions, the milestone | 5 |
 | `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean` | the derivative of a transition between partial diffeomorphisms, composed with a differential; the differential of a partial diffeomorphism followed by a continuous linear equivalence (`PartialDiffeomorph.mvfderiv_trans_toDiffeomorph`) | 5 |
 | `Geometry/Symplectic/Moser/Stability.lean` | Moser stability, the milestone | 6 |
-| `Geometry/Manifold/DifferentialForm/Smooth.lean` | `TauCeti.SmoothForm.bilinFormAt` of sums, real multiples, zero, negatives and differences of two-forms | — |
+| `Geometry/Manifold/DifferentialForm/Smooth.lean` | `TauCeti.SmoothForm.bilinFormAt` of sums, real multiples, zero, negatives and differences of two-forms; `TauCeti.SmoothForm.funSMulₗ` under sums and constants of functions and under pullback | — |
 | `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean` | a primitive of the difference of two closed forms with the same pullback to `f(Q)`, as a smooth form on a tube around `f(Q)` | — |
 
 ### `Geometry/Symplectic/Manifold/Family.lean`
@@ -185,8 +185,10 @@ The file has the name of Tau Ceti's file that defines
 `TauCeti.SmoothForm.bilinFormAt_add`, `_smul`, `_zero`, `_neg` and `_sub`,
 in the namespace `TauCeti.SmoothForm`, for real smooth two-forms. They
 rewrite the bilinear form at a point of a segment `σ₀ + s • (σ₁ - σ₀)` of
-two-forms. The file is about two-forms in general,
-so any part may import it.
+two-forms. It also has the `@[simp]` lemmas `TauCeti.SmoothForm.funSMulₗ_add`,
+`_const`, `_one` and `mpullback_funSMulₗ`, for smooth `k`-forms with any
+coefficient space. The file is about smooth forms in general, so any part may
+import it.
 
 ### `Geometry/Manifold/TubularNeighborhood/RelativePoincare.lean`
 
