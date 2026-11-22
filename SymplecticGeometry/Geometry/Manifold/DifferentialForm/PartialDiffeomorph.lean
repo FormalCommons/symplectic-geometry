@@ -302,14 +302,9 @@ theorem symbolInChart_realAlternatingDerivation_apply
   rw [symbolInChart_apply, symbolInChart_apply]
   refine key _ ?_ _ _ (fderiv_mpullback_symm_realAlternatingDerivation_apply J ψ hψ φ hy)
   ext u
-  set e := ψ.mfderivSymmEquiv (by simp) hy
-  have h1 := (congrArg (mfderiv 𝓘(ℝ, E) I ψ.symm y) (hψ y hy (e.symm u))).symm.trans
-    (J.mfderiv_symm_apply_chartPushforward_apply ψ hy (e.symm u))
-  rw [← ψ.coe_mfderivSymmEquiv (by simp) hy] at h1
-  have hT (w : TangentSpace I (ψ.symm y)) : mfderiv I 𝓘(ℝ, E) ψ (ψ.symm y) w = e.symm w :=
-    (congrFun (ψ.coe_mfderivSymmEquiv_symm (by simp) hy) w).symm
-  exact (congrArg A₀ (hT u)).trans (((e.symm_apply_apply _).symm.trans
-    (congrArg e.symm (h1.trans (congrArg _ (e.apply_symm_apply u))))).trans (hT _).symm)
+  have h := J.mfderiv_apply_eq_chartPushforward_apply ψ (ψ.map_target hy) u
+  rw [ψ.right_inv hy] at h
+  exact (h.trans (hψ y hy _)).symm
 
 end Readings
 

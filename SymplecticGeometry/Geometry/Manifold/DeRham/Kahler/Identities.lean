@@ -67,8 +67,6 @@ identity becomes the linear Kähler identity for `B`,
 * `TauCeti.SmoothTwoForm.symbolInChart_lefschetz`: where `σ` read in a chart has derivative zero,
   the derivative of `L β` read in the chart, carried to the tangent space by
   `TauCeti.symbolInChart`, is the linear Lefschetz operator applied to that of `β`.
-* `TauCeti.formHodgeStarCLM_eq_formHodgeStar`: Tau Ceti's fibrewise Hodge star is the Hodge star
-  of the tangent space, as a continuous linear map.
 
 ## References
 
@@ -159,23 +157,6 @@ theorem hodgeStar_realAlternatingDerivation (o : Manifold.Orientation I M (Fin m
 end TauCeti.SmoothForm
 
 /-! ### The first-order Kähler identity -/
-
-namespace TauCeti
-
-variable [FiniteDimensional ℝ E] [RiemannianBundle (fun x : M ↦ TangentSpace I x)] {m l : ℕ}
-
-/-- The fibrewise Hodge star `formHodgeStarCLM` at `x` is the Hodge star
-`Orientation.formHodgeStar` of the tangent space at `x`, for the orientation that `o` gives it,
-as a continuous linear map. -/
-theorem formHodgeStarCLM_eq_formHodgeStar (o : Manifold.Orientation I M (Fin m))
-    (hkl : k + l = m) (x : M) :
-    formHodgeStarCLM o hkl x =
-      (letI := o.fact_finrank_tangentSpace x
-       ((o.orientationAt x).formHodgeStar (hkl.trans (o.fact_finrank_tangentSpace x).out.symm)
-         ).toContinuousLinearEquiv.toContinuousLinearMap) :=
-  ContinuousLinearMap.ext fun a ↦ formHodgeStarCLM_apply o hkl x a
-
-end TauCeti
 
 namespace TauCeti.SmoothTwoForm
 
@@ -281,9 +262,9 @@ theorem lefschetz_codifferential_sub (o : Manifold.Orientation I M (Fin m))
     (l := l) (l' := l') (by omega) (by omega) (by omega) (by omega) (symbolInChart ψ α.val y)
     using 4
   · rw [hm]
-  · rw [formHodgeStarCLM_apply, formHodgeStarCLM_eq_formHodgeStar]
+  · rw [formHodgeStarCLM_apply, formHodgeStarCLM_def]
   · rw [hm]
-  · rw [formHodgeStarCLM_apply, formHodgeStarCLM_eq_formHodgeStar]
+  · rw [formHodgeStarCLM_apply, formHodgeStarCLM_def]
   · ext u
     simp
   · ext1 v
@@ -318,7 +299,7 @@ theorem lefschetz_codifferential_of_lt (o : Manifold.Orientation I M (Fin m))
     (o.orientationAt (ψ.symm y))
     (l := l) (by omega) (by omega) (by omega) (symbolInChart ψ α.val y) using 4
   · rw [hm]
-  · rw [formHodgeStarCLM_apply, formHodgeStarCLM_eq_formHodgeStar]
+  · rw [formHodgeStarCLM_apply, formHodgeStarCLM_def]
   · ext u
     simp
   · ext1 v
@@ -353,7 +334,7 @@ theorem codifferential_lefschetz (o : Manifold.Orientation I M (Fin m))
     (o.orientationAt (ψ.symm y))
     (l := l) (by omega) (by omega) (symbolInChart ψ f.val y) using 3
   · rw [hm]
-  · rw [formHodgeStarCLM_apply, formHodgeStarCLM_eq_formHodgeStar]
+  · rw [formHodgeStarCLM_apply, formHodgeStarCLM_def]
   · ext u
     simp
 

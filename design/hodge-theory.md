@@ -691,7 +691,7 @@ was found, so `ERRATA.md` needs no entry.
   is new; `DESIGN.md` records it.
 - *Moser isotopy*, `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`
   (merged): `PartialDiffeomorph.mfderivSymmEquiv`, which this part adds
-  there, only in the proofs of `DifferentialForm/PartialDiffeomorph.lean`,
+  there, only in the proofs of
   `DeRham/Hodge/Chart.lean` and `DeRham/Hodge/LocalLaplacian.lean`.
 - *Symplectic neighbourhoods*,
   `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`
@@ -703,8 +703,9 @@ was found, so `ERRATA.md` needs no entry.
   there, only in the proofs of `L2.lean`.
 - *Nijenhuis tensor*, `Geometry/Symplectic/Manifold/AlmostComplex/Chart.lean`
   (#1295): `TauCeti.SmoothAlmostComplexStructure.mfderiv_symm_apply_chartPushforward_apply`,
-  only in the proofs of `mpullback_symm_realAlternatingDerivation` and
-  `symbolInChart_realAlternatingDerivation_apply`, and
+  only in the proof of `mpullback_symm_realAlternatingDerivation`,
+  `TauCeti.SmoothAlmostComplexStructure.mfderiv_apply_eq_chartPushforward_apply`,
+  only in the proof of `symbolInChart_realAlternatingDerivation_apply`, and
   `TauCeti.SmoothAlmostComplexStructure.forall_chartPushforward_apply_eq_iff`,
   only in the proofs of `KahlerCoordinates.lean`.
 - Tau Ceti: the declarations listed under *What exists*, and

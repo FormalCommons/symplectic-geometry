@@ -224,6 +224,18 @@ section HodgeStar
 
 open Bundle
 
+/-- The fibrewise Hodge star `formHodgeStarCLM` at `x` is the Hodge star
+`Orientation.formHodgeStar` of the tangent space at `x`, for the orientation that `o` gives it,
+as a continuous linear map. -/
+theorem _root_.TauCeti.formHodgeStarCLM_def [IsManifold I 1 M] [FiniteDimensional ℝ E]
+    (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) (x : M) :
+    formHodgeStarCLM o hkl x =
+      (letI := o.fact_finrank_tangentSpace x
+       ((o.orientationAt x).formHodgeStar (hkl.trans (o.fact_finrank_tangentSpace x).out.symm)
+         ).toContinuousLinearEquiv.toContinuousLinearMap) :=
+  -- Tau Ceti does not expose the body of `formHodgeStarCLM`, so this is not `rfl` here.
+  ContinuousLinearMap.ext fun a ↦ formHodgeStarCLM_apply o hkl x a
+
 variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] (o : Manifold.Orientation I M (Fin m))
   (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
 
