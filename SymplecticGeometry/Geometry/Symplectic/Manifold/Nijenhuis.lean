@@ -20,15 +20,15 @@ of a smooth almost complex structure `J`, which with Mathlib's bracket `mlieBrac
 `N_J(X, Y) = [JX, JY] - [X, Y] - J[JX, Y] - J[X, JY]`:
 
 * `N_J(v, Jv) = 0`;
-* naturality: for a diffeomorphism `h : M → N` and a structure `J` on `N`, the Nijenhuis tensor of
-  the pullback `h^* J` is the pullback of the Nijenhuis tensor of `J`. Lie brackets commute with
-  pullbacks along diffeomorphisms (Mathlib's `VectorField.mpullback_mlieBracket`), and `h^* J`
-  maps pullbacks of vector fields to pullbacks;
 * naturality for related vector fields: if a `C²` map `f : M → N` intertwines `J` with `K` near
   `x`, `df ∘ J = K ∘ df`, and the fields `X, Y` on `M` are `f`-related near `x` to fields `V, W`
   on `N`, then `df_x (N_J(X, Y) x) = N_K(V, W) (f x)`. The differential of `f` need not be
   invertible: each bracket is handled by Tau Ceti's
   `TauCeti.mfderiv_mlieBracket_of_eventually_related`;
+* naturality: for a diffeomorphism `h : M → N` and a structure `J` on `N`, the Nijenhuis tensor of
+  the pullback `h^* J` is the pullback of the Nijenhuis tensor of `J`. This is the case of the
+  previous point where `f = h`, `h^* J` and `J` are intertwined by `dh`, and the fields on `M`
+  are the pullbacks of fields on `N`;
 * for a covariant derivative `∇` on `TM` whose torsion vanishes at `x`,
   `N_J(v, w) = (∇_{Jv} J) w - (∇_{Jw} J) v + (∇_v J) (J w) - (∇_w J) (J v)` at `x`, where
   `∇J` is the induced connection `CovariantDerivative.hom` applied to `J`. The brackets are
@@ -40,12 +40,12 @@ of a smooth almost complex structure `J`, which with Mathlib's bracket `mlieBrac
 ## Main declarations
 
 * `TauCeti.SmoothAlmostComplexStructure.nijenhuis_self_apply`: `N_J(v, Jv) = 0`.
+* `TauCeti.SmoothAlmostComplexStructure.mfderiv_nijenhuis_of_eventually_related`: naturality for
+  related vector fields along any `C²` map intertwining two structures.
 * `TauCeti.SmoothAlmostComplexStructure.nijenhuis_pullback`: naturality under pullback along a
   diffeomorphism, on tangent vectors.
 * `TauCeti.SmoothAlmostComplexStructure.nijenhuis_mpullback`: the same on vector fields,
   `N_{h^* J}(h^* X, h^* Y) = h^* N_J(X, Y)`.
-* `TauCeti.SmoothAlmostComplexStructure.mfderiv_nijenhuis_of_eventually_related`: naturality for
-  related vector fields along any `C²` map intertwining two structures.
 * `TauCeti.SmoothAlmostComplexStructure.nijenhuis_eq_hom_toEndomorphism`: the formula of `N_J`
   through a torsion-free covariant derivative.
 * `TauCeti.SmoothAlmostComplexStructure.nijenhuis_tensor`: the properties of the Nijenhuis
@@ -80,68 +80,6 @@ section Pullback
 variable {E' H' N : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
   [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
   [TopologicalSpace N] [ChartedSpace H' N] [IsManifold I' ∞ N]
-
-/-- **Naturality of the Nijenhuis tensor.** For a diffeomorphism `h : M → N` and a smooth almost
-complex structure `J` on `N`, the Nijenhuis tensor of the pullback `h^* J` at `x` is the Nijenhuis
-tensor of `J` at `h x` read through the differential `dh_x`:
-`N_{h^* J}(v, w) = (dh_x)⁻¹ N_J(dh_x v, dh_x w)`. -/
-theorem nijenhuis_pullback (h : M ≃ₘ⟮I, I'⟯ N) (J : SmoothAlmostComplexStructure I' N) (x : M)
-    (v w : TangentSpace I x) :
-    (pullback h J).nijenhuis x v w = (mfderiv I I' h x).inverse
-      (J.nijenhuis (h x) (mfderiv I I' h x v) (mfderiv I I' h x w)) := by
-  have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
-  have hh : ContMDiffAt I I' ∞ h x := h.contMDiff x
-  have : IsManifold I (minSmoothness ℝ 2) M := .of_le (n := ∞) (by simp)
-  have : IsManifold I' (minSmoothness ℝ 2) N := .of_le (n := ∞) (by simp)
-  have hinv (y : M) := h.isInvertible_mfderiv hn (x := y)
-  -- Vector fields on `N` through `dh_x v` and `dh_x w`, and their pullbacks to `M`.
-  set X' := extend E' (mfderiv I I' h x v)
-  set Y' := extend E' (mfderiv I I' h x w)
-  have hX' : MDiffAt (T% X') (h x) := mdifferentiableAt_extend ..
-  have hY' : MDiffAt (T% Y') (h x) := mdifferentiableAt_extend ..
-  have hX'x : X' (h x) = mfderiv I I' h x v := extend_apply_self ..
-  have hY'x : Y' (h x) = mfderiv I I' h x w := extend_apply_self ..
-  have hJX' := J.mdifferentiableAt_apply hX'
-  have hJY' := J.mdifferentiableAt_apply hY'
-  have hpb {V : Π z : N, TangentSpace I' z} (hV : MDiffAt (T% V) (h x)) :
-      MDiffAt (T% (VectorField.mpullback I I' h V)) x :=
-    hV.mpullback_vectorField hh (hinv x) (by simp)
-  have hval {u : TangentSpace I x} :
-      VectorField.mpullback I I' h (extend E' (mfderiv I I' h x u)) x = u := by
-    rw [VectorField.mpullback_apply, extend_apply_self]
-    exact (hinv x).inverse_apply_self u
-  -- `h^* J` maps the pullback of a vector field to the pullback of its image under `J`.
-  have hJ (V : Π z : N, TangentSpace I' z) :
-      (fun y ↦ pullback h J y (VectorField.mpullback I I' h V y)) =
-        VectorField.mpullback I I' h (fun z ↦ J z (V z)) := by
-    funext y
-    rw [pullback_apply, VectorField.mpullback_apply, VectorField.mpullback_apply,
-      (hinv y).self_apply_inverse]
-  have hbr {V W : Π z : N, TangentSpace I' z} (hV : MDiffAt (T% V) (h x))
-      (hW : MDiffAt (T% W) (h x)) :
-      mlieBracket I (VectorField.mpullback I I' h V) (VectorField.mpullback I I' h W) x =
-        (mfderiv I I' h x).inverse (mlieBracket I' V W (h x)) := by
-    rw [← mpullback_mlieBracket hV hW hh (by simp), VectorField.mpullback_apply]
-  have hJinv (z : TangentSpace I' (h x)) :
-      pullback h J x ((mfderiv I I' h x).inverse z) = (mfderiv I I' h x).inverse (J (h x) z) := by
-    rw [pullback_apply, (hinv x).self_apply_inverse]
-  conv_lhs => rw [← hval (u := v), ← hval (u := w)]
-  rw [nijenhuis_apply _ (hpb hX') (hpb hY'), hJ, hJ, hbr hJX' hJY', hbr hX' hY', hbr hJX' hY',
-    hbr hX' hJY', hJinv, hJinv]
-  conv_rhs => rw [← hX'x, ← hY'x, J.nijenhuis_apply hX' hY']
-  simp only [map_sub]
-
-/-- **Naturality of the Nijenhuis tensor on vector fields.** For a diffeomorphism `h : M → N`, a
-smooth almost complex structure `J` on `N` and vector fields `X`, `Y` on `N`,
-`N_{h^* J}(h^* X, h^* Y) = h^* N_J(X, Y)`. -/
-theorem nijenhuis_mpullback (h : M ≃ₘ⟮I, I'⟯ N) (J : SmoothAlmostComplexStructure I' N)
-    (X Y : Π z : N, TangentSpace I' z) (x : M) :
-    (pullback h J).nijenhuis x (VectorField.mpullback I I' h X x)
-        (VectorField.mpullback I I' h Y x) =
-      VectorField.mpullback I I' h (fun y ↦ J.nijenhuis y (X y) (Y y)) x := by
-  have hinv := h.isInvertible_mfderiv (by simp) (x := x)
-  simp only [nijenhuis_pullback, VectorField.mpullback_apply]
-  rw [hinv.self_apply_inverse, hinv.self_apply_inverse]
 
 /-- **Naturality of the Nijenhuis tensor for related vector fields.** Let `f : M → N` be `C²` at
 `x` and intertwine `J` on `M` with `K` on `N` near `x`, `df_z ∘ J_z = K_{f z} ∘ df_z`. If the vector
@@ -178,6 +116,40 @@ theorem mfderiv_nijenhuis_of_eventually_related (K : SmoothAlmostComplexStructur
   rw [J.nijenhuis_apply hX hY, K.nijenhuis_apply hV hW, map_sub, map_sub, map_sub,
     hJK.self_of_nhds, hJK.self_of_nhds, hbr hJX hJY hKV hKW (hJ hXV) (hJ hYW),
     hbr hX hY hV hW hXV hYW, hbr hJX hY hKV hW (hJ hXV) hYW, hbr hX hJY hV hKW hXV (hJ hYW)]
+
+/-- **Naturality of the Nijenhuis tensor.** For a diffeomorphism `h : M → N` and a smooth almost
+complex structure `J` on `N`, the Nijenhuis tensor of the pullback `h^* J` at `x` is the Nijenhuis
+tensor of `J` at `h x` read through the differential `dh_x`:
+`N_{h^* J}(v, w) = (dh_x)⁻¹ N_J(dh_x v, dh_x w)`. -/
+theorem nijenhuis_pullback (h : M ≃ₘ⟮I, I'⟯ N) (J : SmoothAlmostComplexStructure I' N) (x : M)
+    (v w : TangentSpace I x) :
+    (pullback h J).nijenhuis x v w = (mfderiv I I' h x).inverse
+      (J.nijenhuis (h x) (mfderiv I I' h x v) (mfderiv I I' h x w)) := by
+  have hinv := h.isInvertible_mfderiv (by simp) (x := x)
+  have hval (u : TangentSpace I x) :
+      VectorField.mpullback I I' h (extend E' (mfderiv I I' h x u)) x = u := by
+    rw [VectorField.mpullback_apply, extend_apply_self, hinv.inverse_apply_self]
+  have hext (u : TangentSpace I x) : MDiffAt (T% (extend E' (mfderiv I I' h x u))) (h x) :=
+    mdifferentiableAt_extend ..
+  have key := (pullback h J).mfderiv_nijenhuis_of_eventually_related J
+    ((h.contMDiff x).of_le (by simp)) (.of_forall (mfderiv_pullback_apply h J))
+    ((hext v).mpullback_vectorField (h.contMDiff x) hinv (by simp))
+    ((hext w).mpullback_vectorField (h.contMDiff x) hinv (by simp)) (hext v) (hext w)
+    (.of_forall (h.mfderiv_apply_mpullback (by simp) _))
+    (.of_forall (h.mfderiv_apply_mpullback (by simp) _))
+  rw [hval, hval, extend_apply_self, extend_apply_self] at key
+  rw [← key, hinv.inverse_apply_self]
+
+/-- **Naturality of the Nijenhuis tensor on vector fields.** For a diffeomorphism `h : M → N`, a
+smooth almost complex structure `J` on `N` and vector fields `X`, `Y` on `N`,
+`N_{h^* J}(h^* X, h^* Y) = h^* N_J(X, Y)`. -/
+theorem nijenhuis_mpullback (h : M ≃ₘ⟮I, I'⟯ N) (J : SmoothAlmostComplexStructure I' N)
+    (X Y : Π z : N, TangentSpace I' z) (x : M) :
+    (pullback h J).nijenhuis x (VectorField.mpullback I I' h X x)
+        (VectorField.mpullback I I' h Y x) =
+      VectorField.mpullback I I' h (fun y ↦ J.nijenhuis y (X y) (Y y)) x := by
+  rw [nijenhuis_pullback, h.mfderiv_apply_mpullback (by simp),
+    h.mfderiv_apply_mpullback (by simp), VectorField.mpullback_apply]
 
 end Pullback
 

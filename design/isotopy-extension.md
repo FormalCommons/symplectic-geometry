@@ -168,7 +168,7 @@ Further choices of this design:
   set, then $k_t^{-1}=k_0^{-1}\circ\Phi_t^{-1}$ there, and $\Phi^{-1}$ is
   smooth because $\Phi$ is a `Diffeotopy`.
 - **Hamiltonians.** The milestones' Hamiltonian isotopies are
-  `TauCeti.Diffeotopy` with `HasHamiltonian ω.val F` for an explicit `F`,
+  `TauCeti.Diffeotopy` with `HasHamiltonian ω F` for an explicit `F`,
   read along the motion as Tau Ceti reads it, $F(x,t)=H_t(\phi_t x)$. The
   plan's compact support of $H$ throughout $[0,1]$ is the conclusion
   `∀ p, p.1 ∉ K → F p = 0` together with `∀ t, ∀ y ∉ K, Φ (t, y) = y`, for
@@ -203,6 +203,7 @@ Further choices of this design:
 | `AlgebraicTopology/Singular/NDRPair.lean` | the homological shrinking lemma for the subset of an NDR pair |
 | `Analysis/CStarAlgebra/Exponential.lean` | smoothness of `t ↦ selfAdjoint.expUnitary (t • a)` (named like Mathlib's file) |
 | `Analysis/Matrix/SymplecticGroup/Connected.lean` | smooth paths in `Matrix.symplecticGroup` (named like Tau Ceti's file) |
+| `Analysis/Matrix/L2OpNorm.lean` | `ContDiff` of matrix-valued maps under the ℓ² operator norm, entrywise and against the entrywise norm (named like Tau Ceti's `Analysis/Matrix/L2OpNorm.lean`) |
 | `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/ExpLog.lean` | smoothness of `t ↦ a ^ t` for strictly positive `a` (named like Tau Ceti's file) |
 | `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean` | embeddings near a compact set, uniformly in a compact parameter |
 | `Geometry/Manifold/SmoothIsotopy/Extension.lean` | time extension of an isotopy past its ends, and isotopy extension at every time (named like Tau Ceti's file) |
@@ -385,7 +386,7 @@ API:
   (the restriction `Diffeotopy.smoothIsotopy` of a diffeotopy with slices in
   `diffeomorphStabilizer ω` is symplectic). These are the examples of the
   predicate;
-- `TauCeti.Diffeotopy.hasHamiltonian_iff_velocityForm`: `Φ.HasHamiltonian ω.val F`
+- `TauCeti.Diffeotopy.hasHamiltonian_iff_velocityForm`: `Φ.HasHamiltonian ω F`
   if and only if `F` is smooth and the slices of the velocity form of
   `Φ.smoothIsotopy` (the restriction of `Φ` to the identity of `M`) are the
   differentials of the `F (·, t)`. This translates between Tau
@@ -637,7 +638,7 @@ theorem IsSymplecticBallFamily.exists_hasHamiltonian_extension
     (he₀ : ∀ z ∈ Metric.closedBall 0 r₀, e (0, z) = j₀ z)
     (he₁ : ∀ z ∈ Metric.closedBall 0 r₀, e (1, z) = j₁ z) :
     ∃ ρ, r₀ < ρ ∧ ρ < r ∧ ∃ (Φ : TauCeti.Diffeotopy I ∞ M) (F : M × unitInterval → ℝ)
-      (K : Set M), IsCompact K ∧ Φ.HasHamiltonian ω.val F ∧ (∀ p, p.1 ∉ K → F p = 0) ∧
+      (K : Set M), IsCompact K ∧ Φ.HasHamiltonian ω F ∧ (∀ p, p.1 ∉ K → F p = 0) ∧
       (∀ t, ∀ y ∉ K, Φ (t, y) = y) ∧
       (∀ t, ∀ z ∈ Metric.closedBall 0 r₀, Φ (t, j₀ z) = e (t, z)) ∧
       ∀ z ∈ Metric.closedBall 0 ρ, Φ.final (j₀ z) = j₁ z
@@ -745,11 +746,12 @@ Expected size: 450 lines.
 theorem TauCeti.SmoothIsotopy.exists_diffeotopy_mem_diffeomorphStabilizer_eqOn
     {M : Type} … [CompactSpace M] (hω : ω.IsSymplectic) {Q : Set M} (hQ : IsCompact Q)
     (hQr : Nonempty (NDRPair Q)) {U : Opens M} (hQU : Q ⊆ U)
-    {f₁ : C^∞⟮I, U; I, M⟯} (φ : SmoothIsotopy ⟨Subtype.val, contMDiff_subtypeVal⟩ f₁)
+    {f₀ f₁ : C^∞⟮I, U; I, M⟯} (φ : SmoothIsotopy f₀ f₁) (hf₀ : ∀ x, f₀ x = x)
     (hφ : φ.IsSymplectic (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal ω) ω)
     (hsurj : ∀ f : H₁ Q →+ ℝ, ∃ c : deRhamCohomology I M 1,
       (deRhamCohomology.homologyPeriod c).comp
-        (ContinuousMap.singularHomologyMap ℤ 1 ⟨Subtype.val, continuous_subtype_val⟩).toAddMonoidHom = f) :
+        (ContinuousMap.singularHomologyMap ℤ 1
+          (⟨Subtype.val, continuous_subtypeVal⟩ : C(Q, M))).toAddMonoidHom = f) :
     ∃ N : Opens M, Q ⊆ N ∧ N ≤ U ∧ ∃ Ψ : Diffeotopy I ∞ M,
       (∀ t, Ψ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer ω) ∧
       ∀ t, ∀ x : U, (x : M) ∈ N → Ψ (t, x) = φ (t, x)
@@ -757,14 +759,18 @@ theorem TauCeti.SmoothIsotopy.exists_diffeotopy_mem_diffeomorphStabilizer_eqOn
 theorem TauCeti.SmoothIsotopy.exists_hasHamiltonian_eqOn
     {M : Type} … [T2Space M] [SigmaCompactSpace M] (hω : ω.IsSymplectic) {Q : Set M}
     (hQ : IsCompact Q) (hQr : Nonempty (NDRPair Q)) {U : Opens M} (hQU : Q ⊆ U)
-    {f₁ : C^∞⟮I, U; I, M⟯} (φ : SmoothIsotopy ⟨Subtype.val, contMDiff_subtypeVal⟩ f₁)
+    {f₀ f₁ : C^∞⟮I, U; I, M⟯} (φ : SmoothIsotopy f₀ f₁) (hf₀ : ∀ x, f₀ x = x)
     (hφ : φ.IsSymplectic (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal ω) ω)
     (hQ1 : Subsingleton (H₁ Q →+ ℝ)) :
     ∃ N : Opens M, Q ⊆ N ∧ N ≤ U ∧ ∃ (Ψ : Diffeotopy I ∞ M) (F : M × unitInterval → ℝ)
-      (K : Set M), IsCompact K ∧ Ψ.HasHamiltonian ω.val F ∧ (∀ p, p.1 ∉ K → F p = 0) ∧
+      (K : Set M), IsCompact K ∧ Ψ.HasHamiltonian ω F ∧ (∀ p, p.1 ∉ K → F p = 0) ∧
       (∀ t, ∀ y ∉ K, Ψ (t, y) = y) ∧ ∀ t, ∀ x : U, (x : M) ∈ N → Ψ (t, x) = φ (t, x)
 ```
 
+Both start `φ` at a variable `f₀` equal to the inclusion, as
+`Primitive.lean` does, since with the start written as
+`⟨Subtype.val, contMDiff_subtypeVal⟩` Lean finds no coercion of `φ` to a
+function and `φ (t, x)` does not elaborate.
 The first is `Flow.lean`'s symplectic theorem with `K` a compact neighbourhood
 of `Q` in `V`, and `β`, `h` from `Primitive.lean`. The second takes `β = 0`.
 Its periods vanish by `hQ1`, so it needs no compactness of `M`, only the
@@ -786,12 +792,14 @@ theorem TauCeti.SmoothIsotopy.exists_isSymplectic_extension_of_mpullback_eq
     (hω : ω.IsSymplectic) (i : SmoothEmbedding J I ∞ Q M) {f₁ : C^∞⟮J, Q; I, M⟯}
     (e : SmoothIsotopy i.toContMDiffMap f₁)
     (he : ∀ t, TauCeti.mpullback J I (fun q ↦ e (t, q)) ω.val = TauCeti.mpullback J I i ω.val) :
-    ∃ (U : Opens M) (hU : Set.range i ⊆ U) (g₁ : C^∞⟮I, U; I, M⟯)
-      (F : SmoothIsotopy ⟨Subtype.val, contMDiff_subtypeVal⟩ g₁),
+    ∃ (U : Opens M) (hU : Set.range i ⊆ U) (g₀ g₁ : C^∞⟮I, U; I, M⟯) (_ : ∀ x, g₀ x = x)
+      (F : SmoothIsotopy g₀ g₁),
       F.IsSymplectic (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal ω) ω ∧
       ∀ t q, F (t, ⟨i q, hU ⟨q, rfl⟩⟩) = e (t, q)
 ```
 
+The start `g₀` of `F` is the inclusion of `U`, given by its equation for the
+same reason as in `Cohomological/Basic.lean`.
 The route is the third decision: `Extension.lean` gives `G` with
 $G_t\circ i=e_t$. The family $\omega_t=G_t^*\omega$ has velocity $d\gamma_t$,
 with $\gamma_t$ the velocity form of the restriction of `G` to the identity
@@ -863,7 +871,8 @@ this design already follows. `Ball/Isotopy.lean` cites
   `FiniteDimensional ℝ (deRhamCohomology I M k)` for a compact boundaryless
   `M`, which `Geometry/Manifold/DeRham/SmoothFamily/GoodCover.lean` derives
   from `hasFiniteGoodCover_of_compactSpace` (used by
-  `Cohomological/Primitive.lean`). The part uses neither the splittings and
+  `Cohomological/Primitive.lean`, which also imports `Geometry/Manifold/DeRham/Map.lean`
+  for `TauCeti.SmoothForm.mpullback_mem_closedForms`). The part uses neither the splittings and
   `contMDiff_repr_mk_of_hasFiniteGoodCover` nor the bridge
   `Diffeotopy/Real.lean`: the periods are smooth in `t` as line integrals,
   and its flows are Tau Ceti's `timeDependentFlowDiffeotopy`, already a

@@ -12,6 +12,8 @@ import TauCeti.Geometry.Manifold.Flow.TimeDependent.RestPoint
 import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+import SymplecticGeometry.Topology.Sets.Opens.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
@@ -55,9 +57,7 @@ The proof is Moser's argument along a flow that is only partially defined.
 The proof adapts Tau Ceti's
 `TauCeti.SmoothTwoForm.exists_diffeomorph_fix_embedding_eventually_mpullback_eq` and
 `TauCeti.SmoothTwoForm.exists_diffeomorph_opens_of_eq_along` from a compactly supported cut-off
-flow to the local flow, and restates the agreement of the segment with `σ₀` along `f(Q)` from
-Tau Ceti's file `TauCeti/Geometry/Symplectic/Manifold/RelativeMoser.lean` (its private
-`bilinFormAt_add_smul_sub_of_eq`). Step 3 follows the construction of the Moser field in Tau
+flow to the local flow. Step 3 follows the construction of the Moser field in Tau
 Ceti's `TauCeti.SmoothTwoForm.mpullback_timeDependentFlowOf_eq` and
 `TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq_of_isCompact`. Step 4, and the reading of the
 time-one map in `M`, follow Tau Ceti's
@@ -224,12 +224,7 @@ private theorem exists_partialDiffeomorph_opens_of_eq_along (f : SmoothEmbedding
   have hfO : range f ⊆
       {x | ∀ s ∈ Icc (0 : ℝ) 1, ((σ₀ + s • (σ₁ - σ₀)).bilinFormAt x).Nondegenerate} := by
     rintro _ ⟨q, rfl⟩ s -
-    have hs : (σ₀ + s • (σ₁ - σ₀)).bilinFormAt (f q) = σ₀.bilinFormAt (f q) := by
-      ext v w
-      simp only [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply,
-        SmoothForm.add_toRoughForm, Pi.add_apply, SetLike.val_smul, Pi.smul_apply, hη q,
-        smul_zero, add_zero]
-    exact hs ▸ hnd q
+    exact nondegenerate_bilinFormAt_add_smul_sub_of_eq (hη q) (hnd q) s
   -- A primitive of `σ₁ - σ₀` on a tube `W` around `f(Q)` on which the segment is nondegenerate,
   -- vanishing with its first jet along `f(Q)`.
   have hf : SmoothForm.mpullback f f.contMDiff σ₁ = SmoothForm.mpullback f f.contMDiff σ₀ :=
@@ -278,8 +273,7 @@ theorem exists_diffeomorph_opens_of_eq_along (f : SmoothEmbedding J I ∞ Q M)
   rcases isEmpty_or_nonempty W with hW | hW
   · -- If the tube is empty, so is `Q`, and the empty opens will do.
     have : IsEmpty Q := ⟨fun q ↦ hW.false ⟨f q, (hΦf q).1⟩⟩
-    obtain ⟨φ, hφ⟩ := SmoothTwoForm.exists_diffeomorph_bot_mpullback_eq σ₀ σ₁
-    exact ⟨⊥, ⊥, φ, isEmptyElim, hφ⟩
+    exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, isEmptyElim, Subsingleton.elim _ _⟩
   -- Read `Φ` in `M`, as a partial diffeomorphism `Ψ`, and then as a diffeomorphism `φ` between
   -- the source and the target of `Ψ`.
   let Ψ := Φ.liftOpens hW hW
