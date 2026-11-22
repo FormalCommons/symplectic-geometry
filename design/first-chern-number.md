@@ -721,6 +721,14 @@ issues, in an order where each issue's blockers come before it.
      coordinates is continuous from the conjugate core to the core) and
      `TauCeti.FiniteRankBundleCore.ofBundleOfFinrankEqConjugateIso` (the
      core of `ConjugateBundle E` is the conjugate of the core of `E`);
+   - a shared step, added after this issue, in
+     `Topology/VectorBundle/FiniteRank/Basic.lean` beside Tau Ceti's file of
+     that name, importing only it:
+     `TauCeti.FiniteRankBundleCore.isoFiberEquiv e x`, the fibrewise
+     continuous linear equivalence on coordinates of an isomorphism
+     `e : A ≅ D` of cores, the converse of Tau Ceti's `isoOfContinuousEquiv`,
+     with `isoFiberEquiv_apply` and `continuous_isoFiberEquiv` (continuity on
+     total spaces); `detCoreConjugateFiberwise` is built from it;
    - back in `Topology/VectorBundle/Determinant.lean`, since it is about this
      library's `detCore`: `SymplecticGeometry.Bundle.detCoreConjugateFiberwise`,
      a conjugate-linear fibrewise isomorphism between `detCore ℂ` of the
