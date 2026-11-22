@@ -38,6 +38,8 @@ construction at one point of a pseudoholomorphic map between vector spaces.
   sends the normal class of `v` to the normal class of `J v`.
 * `TauCeti.SmoothEmbedding.isComplexLinearMap_normalClass`: the normal class map is complex
   linear.
+* `TauCeti.SmoothEmbedding.normalAlmostComplexStructureAt_eq_iff`: the induced structure is the
+  only one for which the normal class map is complex linear.
 
 ## References
 
@@ -101,6 +103,7 @@ theorem normalAlmostComplexStructureAt_normalClass (f : SmoothEmbedding I' I n M
 
 /-- The normal class map `T_{f x} X → f.NormalSpace x hn` is complex linear for `J` and the
 induced structure. -/
+@[simp]
 theorem isComplexLinearMap_normalClass (f : SmoothEmbedding I' I n M X)
     (J : SmoothAlmostComplexStructure I X)
     (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn) (x : M) :
@@ -109,6 +112,18 @@ theorem isComplexLinearMap_normalClass (f : SmoothEmbedding I' I n M X)
   rw [normalAlmostComplexStructureAt_def, normalClass_def]
   -- `f.NormalSpace x hn` is by definition the quotient by `f.tangentRange x hn`.
   exact AlmostComplexStructure.isComplexLinearMap_mkQ _ _ _
+
+/-- The induced structure is the unique almost complex structure on the normal space for which
+the normal class map is complex linear. -/
+theorem normalAlmostComplexStructureAt_eq_iff (f : SmoothEmbedding I' I n M X)
+    (J : SmoothAlmostComplexStructure I X)
+    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn) (x : M)
+    (K : AlmostComplexStructure (f.NormalSpace x hn)) :
+    f.normalAlmostComplexStructureAt J hJ x = K ↔
+      IsComplexLinearMap (J.almostComplexStructureAt (f x)) K (f.normalClass x hn) := by
+  rw [normalAlmostComplexStructureAt_def, normalClass_def]
+  -- `f.NormalSpace x hn` is by definition the quotient by `f.tangentRange x hn`.
+  exact AlmostComplexStructure.quotient_eq_iff _ _ _ K
 
 end Pointwise
 
@@ -182,6 +197,7 @@ theorem normalComplexStructure_apply (f : SmoothEmbedding I' I ∞ M X)
 
 /-- The value of the complex structure on the normal bundle at `x` is
 `f.normalAlmostComplexStructureAt J hJ x`. -/
+@[simp]
 theorem almostComplexStructureAt_normalComplexStructure (f : SmoothEmbedding I' I ∞ M X)
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') (J : SmoothAlmostComplexStructure I X)
     (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn) (x : M) :
