@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
-public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.LocalInverse
+public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 

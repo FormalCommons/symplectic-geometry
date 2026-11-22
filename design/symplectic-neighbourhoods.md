@@ -227,6 +227,9 @@ and two rows of its milestone table.
   `CharacteristicFoliation.lean`, that use nothing symplectic; the
   linear-algebra lemma of `VectorBundle/Orthogonal.lean` is in
   `LinearAlgebra/BilinearForm/Orthogonal.lean`.
+- `Geometry/Manifold/Diffeomorph/Basic.lean` is added for the
+  diffeomorphism between empty manifolds on two models, which `MFDeriv.lean`
+  and `Tubular.lean` both use.
 - `Lagrangian.lean` no longer uses *Cotangent bundles* or
   `normalBundleDiffeomorphOfIsLagrangianMap`, since the comparison theorem
   needs only that the zero section is Lagrangian. The part therefore no
@@ -454,6 +457,15 @@ symplectic, so it sits with the manifold topic, beside Tau Ceti's
   $\psi=\Theta\circ\mathrm{normalExp}_0^{-1}$ on the intersection of the
   sources. It needs no compactness and no closed image.
 
+### `Geometry/Manifold/Diffeomorph/Basic.lean`
+
+The case of an empty `Q` in `MFDeriv.lean` and `Tubular.lean`. Namespace
+`Diffeomorph`.
+
+- `Diffeomorph.ofIsEmpty : M ≃ₘ^n⟮I, I'⟯ M'` for `[IsEmpty M] [IsEmpty M']`,
+  Mathlib's `Diffeomorph.empty` with two models, and the `Unique` instance
+  on such diffeomorphisms.
+
 ### `Geometry/Symplectic/Neighborhood/Tubular.lean`
 
 The second half of the common step of `DESIGN.md`. Namespace
@@ -608,7 +620,7 @@ being an embedding, the image of `Q` in the source is exactly the part of
 `S` that `e` hits. The pull-back along the local inverse is
 `IsLocalDiffeomorphAt.mpullback_localInverse_apply_eq`, in the general
 `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`, with
-`Geometry/Manifold/LocalDiffeomorph/LocalInverse.lean`; the
+`Geometry/Manifold/LocalDiffeomorph/Basic.lean`; the
 shrinking is `Topology.IsInducing.exists_isOpen_inter_range_eq`, in the
 general `Topology/Maps/Embedding.lean`. These steps, for any chart `c` and injective linear
 `ι : E' → StdSpace (Fin n)` with `range ι = S`, are the public
@@ -677,7 +689,7 @@ list. Issues 1, 3, 5 and 10 can start at once.
     general files `Geometry/Manifold/LocalDiffeomorph/Extend.lean`,
     `LinearAlgebra/FiniteDimensional/Extension.lean`,
     `Geometry/Manifold/DifferentialForm/Pullback/LocalDiffeomorph.lean`,
-    `Geometry/Manifold/LocalDiffeomorph/LocalInverse.lean` and
+    `Geometry/Manifold/LocalDiffeomorph/Basic.lean` and
     `Topology/Maps/Embedding.lean`. About 400
     lines. Blockers: none.
 11. **Adapted Darboux charts of coisotropic submanifolds.**
