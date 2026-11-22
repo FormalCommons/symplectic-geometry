@@ -11,8 +11,10 @@ public import TauCeti.Geometry.Manifold.Orientation.Preserving
 # Reindexing orientations preserved by a map
 
 This file is a part of Tau Ceti's `TauCeti/Geometry/Manifold/Orientation/Preserving.lean`, taken
-from Tau Ceti's commit `b7f2438cb64bbb45f96ce4471625dc1a510e918c`, which the pinned version of
-Tau Ceti does not contain yet. It holds one declaration of that file:
+from Tau Ceti's commit `b7f2438cb64bbb45f96ce4471625dc1a510e918c`; the pinned version of Tau Ceti
+does not have this declaration yet. It sits in the sibling `FromTauCeti.lean` of
+`SymplecticGeometry/Geometry/Manifold/Orientation/Preserving.lean`, the path that the library
+keeps for its own declarations on the subject. It holds one declaration of Tau Ceti's file:
 
 * `TauCeti.Manifold.Orientation.IsOrientationPreservingAt.reindex`: reindexing both orientations
   along the same equivalence of index types keeps a map orientation preserving.

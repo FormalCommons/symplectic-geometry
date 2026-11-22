@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint
-public import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
+public import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving.FromTauCeti
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Sphere
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
