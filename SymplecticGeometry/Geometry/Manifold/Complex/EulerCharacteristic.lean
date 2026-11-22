@@ -23,7 +23,7 @@ inverse is the identity of `E`, as the map
 `(tangentSpaceCastModel 𝓘(ℝ, E) x).trans`
 `((tangentSpaceCastModel 𝓘(ℂ, E) x).restrictScalars ℝ).symm`.
 
-* `TauCeti.VectorBundleOrientation.map_orientationAt_complexManifoldOrientation_eq_complex`: this
+* `TauCeti.map_orientationAt_complexManifoldOrientation_eq_complex`: this
   identification carries the canonical orientation `TauCeti.complexManifoldOrientation E M` of
   the real tangent space at `x` to the canonical orientation
   `TauCeti.VectorBundleOrientation.complex` of the complex one. Both are the orientation
@@ -72,7 +72,7 @@ local instance instVectorBundleRealTangentSpaceComplex :
 tangent space, the fibre of the inverse of `TangentBundle.restrictScalarsHomeomorph`, carries the
 canonical orientation `complexManifoldOrientation E M` to the canonical orientation of the complex
 tangent space. -/
-theorem VectorBundleOrientation.map_orientationAt_complexManifoldOrientation_eq_complex (x : M) :
+theorem map_orientationAt_complexManifoldOrientation_eq_complex (x : M) :
     Orientation.map _ ((tangentSpaceCastModel 𝓘(ℝ, E) x).trans
         ((tangentSpaceCastModel 𝓘(ℂ, E) x).restrictScalars ℝ).symm).toLinearEquiv
         ((complexManifoldOrientation E M).orientationAt x) =
@@ -114,7 +114,7 @@ theorem complexEulerClass_tangentSpace {r : ℕ} (hE : finrank ℂ E = r + 1) :
   rw [Manifold.Orientation.toVectorBundleOrientation_apply,
     Manifold.Orientation.orientationAt_reindex, VectorBundleOrientation.reindex_apply,
     Orientation.map_reindex,
-    VectorBundleOrientation.map_orientationAt_complexManifoldOrientation_eq_complex]
+    map_orientationAt_complexManifoldOrientation_eq_complex]
 
 end TauCeti
 
