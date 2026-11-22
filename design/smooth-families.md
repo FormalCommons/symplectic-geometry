@@ -748,7 +748,11 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
   `eulerianField_apply_apply` and the chain rule through
   `mfderiv_subtypeVal_Icc_one`, as Tau Ceti's
   `SmoothIsotopy/Velocity/Isotopy.lean` differentiates through
-  `smoothTransition`. With `Real.smoothTransition.deriv_pos` and
+  `smoothTransition`. Its form as vector fields,
+  `eulerianField_smoothTransitionFamily (u : ℝ) :
+  TauCeti.eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) u =
+  ⇑(deriv Real.smoothTransition u • Φ.velocity (s u))`, follows by
+  `velocity_apply_apply`. With `Real.smoothTransition.deriv_pos` and
   `deriv_of_neg`, `deriv_of_one_lt`, the consumers (*Hamiltonian flows*)
   pass between conditions on the velocity for all real times and for all
   $t\in[0,1]$.
@@ -772,11 +776,12 @@ In `TauCeti.Diffeotopy`, for `[FiniteDimensional ℝ E] [IsManifold I ∞ M]
 ## What the part uses
 
 - From Tau Ceti and Mathlib: everything listed under *What exists*.
-- From other parts: `TauCeti.Diffeotopy.mfderiv_cylinderMap_time` of
+- From other parts: `TauCeti.Diffeotopy.mfderiv_cylinderMap_time` and
+  `TauCeti.Diffeotopy.velocity` of
   `Diffeotopy/Velocity.lean` of *Hamiltonian flows*, which `Diffeotopy/Real.lean`
-  imports for the time derivative of a diffeotopy; that file is merged and
-  imports no file of this part. The part is at level 0 of `DESIGN.md`'s build
-  order and stays there. Also `Geometry/Manifold/IsManifold/Basic.lean` of
+  imports publicly for the time derivative and the velocity of a diffeotopy;
+  that file is merged and imports no file of this part. The part is at level
+  0 of `DESIGN.md`'s build order and stays there. Also `Geometry/Manifold/IsManifold/Basic.lean` of
   *Symplectic neighbourhoods*, whose instance giving `C^(m + 1)` structures
   from `C^∞` ones the merged `DifferentialForm/HomotopyOperator.lean` uses; it
   imports only Mathlib, so the level does not change.
