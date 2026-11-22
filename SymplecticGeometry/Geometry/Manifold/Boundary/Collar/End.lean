@@ -517,12 +517,7 @@ private theorem inclusion_apply_of_mem_interior {p : W} (hp : p ∈ (𝓡∂ (n 
   by_cases h : p ∈ range c
   · obtain ⟨q, rfl⟩ := h
     rw [inclusion_apply_collar]
-    refine c.endIncl_collarToEnd_eq ?_ hp
-    refine lt_of_le_of_ne (q.2 : EuclideanHalfSpace 1).property fun h0 ↦ ?_
-    rw [apply_mem_interior_iff] at hp
-    refine hp (Subtype.ext ?_)
-    rw [coe_normalIioOpensZero]
-    exact EuclideanHalfSpace.eq_zero_iff.2 h0.symm
+    exact c.endIncl_collarToEnd_eq ((c.apply_mem_interior_iff_pos q).1 hp) hp
   · simp only [inclusion, h, ↓reduceDIte]
 
 /-- The point `(s, x)` of `(-1, ∞) × ∂W` in `c.WithEnd`; its values for `s ≤ -1` are junk. -/
