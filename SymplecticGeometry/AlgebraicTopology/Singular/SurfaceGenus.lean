@@ -25,13 +25,16 @@ two can merge.
   dimension `3` has genus `0`, since its first rational homology vanishes (Tau Ceti's
   `ModuleCat.finrank_singularHomology_sphere_of_finrank_eq_succ`).
 * `TauCeti.surfaceGenus_sphere`: the case of `S²` in `EuclideanSpace ℝ (Fin 3)`.
-* `TauCeti.HomologicalOrientation.even_finrank_singularHomology_one`: a compact homologically
-  oriented surface has even first rational Betti number. By Poincaré duality
+* `TauCeti.HomologicalOrientation.even_finrank_singularHomology_of_odd`: for a compact
+  homologically oriented manifold of dimension `n = 2p` with `p` odd, the middle rational Betti
+  number `finrank ℚ Hₚ(M; ℚ)` is even. By Poincaré duality
   (`TauCeti.HomologicalOrientation.bijective_dualityMap`, passed to rational coefficients by
   `TauCeti.HomologicalOrientation.injective_singularCapLinearMap_of_injective_dualityMap`),
-  capping with the image of the fundamental class in `H₂(M; ℚ)` is injective on `H¹(M; ℚ)`, and
+  capping with the image of the fundamental class in `Hₙ(M; ℚ)` is injective on `Hᵖ(M; ℚ)`, and
   Tau Ceti's `TopCat.even_finrank_singularHomology_of_injective_singularCapLinearMap` turns this
-  into evenness through the alternating cup product pairing. Together with Tau Ceti's
+  into evenness through the alternating cup product pairing.
+* `TauCeti.HomologicalOrientation.even_finrank_singularHomology_one`: the case `p = 1`; a compact
+  homologically oriented surface has even first rational Betti number. Together with Tau Ceti's
   `TauCeti.HomologicalOrientation.eulerChar_eq_two_sub_two_mul_genus_iff_even_finrank`, it gives
   `χ(M) = 2 - 2 · genus M` for such a surface that is connected and of finite CW type.
 
@@ -62,6 +65,20 @@ theorem surfaceGenus_sphere :
     surfaceGenus (Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1) = 0 :=
   surfaceGenus_sphere_of_finrank_eq_three finrank_euclideanSpace_fin
 
+/-- **The middle Betti number of a closed oriented manifold of dimension `2p`, `p` odd, is
+even.** If `M` is a compact Hausdorff space with charts in a real normed space of dimension `n`
+and a homological orientation, `p` is odd and `p + p = n`, then `Hₚ(M; ℚ)` has even `finrank`
+over `ℚ`. `M` need not be connected. -/
+theorem HomologicalOrientation.even_finrank_singularHomology_of_odd {M E : Type}
+    [TopologicalSpace M] [T2Space M] [CompactSpace M] [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [FiniteDimensional ℝ E] [ChartedSpace E M] {n p : ℕ} (o : HomologicalOrientation M E n)
+    (hn : Module.finrank ℝ E = n) (hp : Odd p) (h : p + p = n) :
+    Even (Module.finrank ℚ (((AlgebraicTopology.singularHomologyFunctor (ModuleCat.{0} ℚ) p).obj
+      (ModuleCat.of ℚ ℚ)).obj (TopCat.of M))) :=
+  (TopCat.of M).even_finrank_singularHomology_of_injective_singularCapLinearMap ℚ two_ne_zero
+    hp h _ (o.injective_singularCapLinearMap_of_injective_dualityMap hn h
+      (o.bijective_dualityMap hn _ h).1)
+
 /-- **The first Betti number of a closed oriented surface is even.** If `M` is a compact
 Hausdorff space with charts in a real normed space of dimension `2` and a homological orientation,
 then `H₁(M; ℚ)` has even `finrank` over `ℚ`. `M` need not be connected. -/
@@ -71,9 +88,7 @@ theorem HomologicalOrientation.even_finrank_singularHomology_one {M E : Type}
     (hn : Module.finrank ℝ E = 2) :
     Even (Module.finrank ℚ (((AlgebraicTopology.singularHomologyFunctor (ModuleCat.{0} ℚ) 1).obj
       (ModuleCat.of ℚ ℚ)).obj (TopCat.of M))) :=
-  (TopCat.of M).even_finrank_singularHomology_of_injective_singularCapLinearMap ℚ two_ne_zero
-    odd_one rfl _ (o.injective_singularCapLinearMap_of_injective_dualityMap hn rfl
-      (o.bijective_dualityMap hn _ rfl).1)
+  o.even_finrank_singularHomology_of_odd hn odd_one rfl
 
 end TauCeti
 
