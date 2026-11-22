@@ -1511,10 +1511,10 @@ it into issues; the overview fixes its folders and its dependencies.
   constructions on forms sit in its namespace, so that dot notation finds
   them; those on complex structures sit in `ContMDiffComplexStructure`, in
   `ComplexStructure.lean`, since they use no form.
-  - *Pull-back* (`Symplectic/Pullback.lean`). For `f : C^n⟮I', N; I, M⟯`,
-    the argument of Mathlib's instance `ContMDiffVectorBundle.pullback`, the
+  - *Pull-back* (`Symplectic/Pullback.lean`). For a `ContinuousMapClass` map
+    `f` with `hf : ContMDiff I' I n f`, the
     pull-back of a form `ω` on `E` to `f *ᵖ E` (`Bundle.Pullback`) is
-    `ContMDiffTwoForm.pullback ω f`, written `ω.pullback f`, with the
+    `ContMDiffTwoForm.pullback ω f hf`, written `ω.pullback f hf`, with the
     section first as in Tau Ceti's `ContMDiffSection.pullback ω f`, of
     which it is that section read as a section of the bundle of
     alternating maps of `f *ᵖ E`: the fibres of the two bundles at `y` are

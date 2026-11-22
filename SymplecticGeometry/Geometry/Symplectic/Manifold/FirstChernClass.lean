@@ -161,8 +161,8 @@ private theorem firstChernClass_mpullback_prodMk_eq_of_forall
     have ht : (ContMDiffTwoForm.tangentEquiv.symm
         (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ)).Tames
         ((J.pullback (ι t) (ι t).contMDiff).pushforward Φ hΦ) := by
-      have := (hJ.tames.pullback (ι t)).pushforward Φ hΦ hΦ
-      have hp : ContMDiffTwoForm.pushforward Φ hΦ (Ω.pullback (ι t)) =
+      have := (hJ.tames.pullback (ι t) (ι t).contMDiff).pushforward Φ hΦ hΦ
+      have hp : ContMDiffTwoForm.pushforward Φ hΦ (Ω.pullback (ι t) (ι t).contMDiff) =
           ContMDiffTwoForm.tangentEquiv.symm
             (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ) :=
         (ContMDiffTwoForm.pushforward_eq_iff Φ hΦ).2 fun x v w ↦ by
