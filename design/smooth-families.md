@@ -330,7 +330,8 @@ Maps `unitInterval × M → F` into a normed space, for a boundaryless `M`.
   `timeExtend_def`.
 - `timeExtend_apply_coe (t : unitInterval) (x : M) : timeExtend f (t, x) =
   f (t, x)`; `timeExtend_add`, `timeExtend_smul`;
-  `LinearMap.map_timeExtend`.
+  `timeExtendLinearMap M F : (unitInterval × M → F) →ₗ[ℝ] (ℝ × M → F)` with
+  `coe_timeExtendLinearMap`; `LinearMap.map_timeExtend`.
 - `timeExtend_eq_zero (h : ∀ s, f (s, x) = 0) (t : ℝ) : timeExtend f (t, x) =
   0`: Seeley's sum at `(t, x)` combines values of `f` at the same point `x`.
   *Hamiltonian flows* uses it to keep a Hamiltonian zero off a compact set
@@ -406,24 +407,43 @@ Named like Tau Ceti's file; in `TauCeti`.
   inclusion `Opens.inclusion h : U → W` is a `C^n` local diffeomorphism, for
   restricting families and forms between open subsets.
 
+### `Geometry/Manifold/DifferentialForm/Pullback/Smooth.lean`
+
+Named like Tau Ceti's file; in `TauCeti`.
+
+- `TauCeti.SmoothForm.mpullback_const`: the pullback of a smooth
+  `(k + 1)`-form along a constant map is `0`, for the end of a contraction.
+
+### `Geometry/Manifold/DeRham/DegreeZero.lean`
+
+Named like Tau Ceti's file; in `TauCeti`.
+
+- `TauCeti.finiteDimensional_closedForms_zero`: an instance, on a connected
+  manifold, of `FiniteDimensional ℝ (closedForms I M 0)`, for the degree-zero
+  space of the contractible splitting.
+
 ### `Geometry/Manifold/DifferentialForm/HomotopyOperator.lean`
 
 Named like Tau Ceti's file; in `TauCeti`.
 
 - `TauCeti.SmoothForm.homotopyOperator : SmoothForm (I.prod (𝓡∂ 1))
-  (M × Icc (0 : ℝ) 1) F (k + 1) →ₗ[ℝ] SmoothForm I M F k`, for a complete `F`,
+  (M × Icc (0 : ℝ) 1) F (k + 1) →ₗ[ℝ] SmoothForm I M F k`,
   the operator `TauCeti.homotopyOperator` with `IsSmoothForm.homotopyOperator`
   and `homotopyOperator_add`, with `coe_homotopyOperator` and
-  `mextDerivₗ_homotopyOperator` (for a closed form).
+  `mextDerivₗ_homotopyOperator` (for a closed form, and a complete `F`).
+
+### `Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`
+
 - `SymplecticGeometry.preservesSmoothFamilies_homotopyOperator_mpullback`:
-  for a smooth `F : M' × Icc 0 1 → M`, the map
-  $\omega\mapsto h(F^*\omega)$ takes smooth families to smooth families. A
+  for a smooth `F : M' × Icc 0 1 → M`, a complete coefficient space and a
+  submodule `D` of the forms on `M`, the map
+  $\omega\mapsto h(F^*\omega)$ on `D` takes smooth families to smooth families. A
   family $\omega_t$ is pulled back along
   $((t,x),s)\mapsto(t,F(x,s))$ on $(\text{unitInterval}\times M')\times[0,1]$,
   and the homotopy operator of that cylinder has the wanted slices by
   `homotopyOperator_mpullback_prodMap_id_of_isSmoothForm` applied to the
   slice inclusions, as the auxiliary page's formalization notes say. The
-  file imports `SmoothFamily/Map.lean`.
+  file imports `SmoothFamily/Map.lean` and `DifferentialForm/HomotopyOperator.lean`.
 
 ### `Geometry/Manifold/DifferentialForm/TimeExtension.lean`
 
@@ -744,7 +764,10 @@ can start at once; each issue's blockers come before it.
 10. **Splittings and their consequences.**
     `Geometry/Manifold/DeRham/SmoothFamily/Basic.lean`. Blocked by 5.
 11. **The homotopy operator on families, and contractible manifolds.**
-    `Geometry/Manifold/DifferentialForm/HomotopyOperator.lean` and
+    `Geometry/Manifold/DifferentialForm/HomotopyOperator.lean`,
+    `Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`,
+    `Geometry/Manifold/DifferentialForm/Pullback/Smooth.lean`,
+    `Geometry/Manifold/DeRham/DegreeZero.lean` and
     `Geometry/Manifold/DeRham/SmoothFamily/Contractible.lean`. Blocked by 7
     and 10.
 12. **The Mayer–Vietoris step.**

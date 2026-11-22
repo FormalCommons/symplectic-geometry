@@ -15,7 +15,6 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Extend
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
-import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
 import TauCeti.Geometry.Manifold.SmoothIsotopy.Diffeotopy
 import TauCeti.Geometry.Symplectic.Manifold.Opens
