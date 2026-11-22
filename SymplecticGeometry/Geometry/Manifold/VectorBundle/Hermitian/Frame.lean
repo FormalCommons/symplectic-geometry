@@ -42,19 +42,28 @@ them.
   `TauCeti.complexDoubledFrame s`, which is complex-linear on fibres
   (`IsLocalFrameOn.isLinear_complex_trivialization_complexDoubledFrame`) and sends `s j x` to
   `b j` (`IsLocalFrameOn.trivialization_complexDoubledFrame_apply_frame`).
-* `Bundle.ContMDiffRiemannianMetric.contMDiffOn_gramSchmidt` and
-  `Bundle.ContMDiffRiemannianMetric.contMDiffOn_gramSchmidtNormed`: Gram–Schmidt with respect to
-  the Hermitian products, plain and normalized, keeps smoothness of sections along a map on a set
-  where they are complex linearly independent. They and their proofs are adapted from Tau Ceti's
-  real `ContMDiffWithinAt.gramSchmidt_bundle` and `ContMDiffWithinAt.gramSchmidtNormed_bundle`
+* `Bundle.ContMDiffRiemannianMetric.contMDiffWithinAt_gramSchmidt` and
+  `Bundle.ContMDiffRiemannianMetric.contMDiffWithinAt_gramSchmidtNormed`: Gram–Schmidt with
+  respect to the Hermitian products, plain and normalized, keeps smoothness of sections along a
+  map within a set at a point where they are complex linearly independent. They and their proofs
+  are adapted from Tau Ceti's real `ContMDiffWithinAt.gramSchmidt_bundle` and
+  `ContMDiffWithinAt.gramSchmidtNormed_bundle`
   (`TauCeti/Geometry/Manifold/VectorBundle/GramSchmidt.lean`), with the Hermitian products made
-  smooth by `Bundle.ContMDiffRiemannianMetric.contMDiffOn_hermitianPairing`.
+  smooth by `Bundle.ContMDiffRiemannianMetric.contMDiffWithinAt_hermitianPairing`. Their
+  versions on a set, `Bundle.ContMDiffRiemannianMetric.contMDiffOn_gramSchmidt` and
+  `Bundle.ContMDiffRiemannianMetric.contMDiffOn_gramSchmidtNormed`, follow.
 * `Bundle.Trivialization.contMDiffOn_orthonormalFrameAt`: for a complex linear trivialization `e`
   in the smooth maximal atlas, every vector `y ↦ e.orthonormalFrameAt c b y w` of Tau Ceti's local
   unitary frame of `e` is a smooth section over the base set of `e`, in any rank. It and its proof
   are adapted from Tau Ceti's real
   `Bundle.Trivialization.contMDiffOn_orthonormalBasis_of_mem_maximalAtlas`
   (`TauCeti/Geometry/Manifold/VectorBundle/Riemannian/OrthonormalTrivialization.lean`).
+
+The Gram–Schmidt lemmas, and the proof of `Bundle.Trivialization.contMDiffOn_orthonormalFrameAt`,
+repeat Tau Ceti's real ones almost word for word, with `ℂ` in place of `ℝ`. They would become
+unnecessary if Tau Ceti's `GramSchmidt.lean`, and its
+`Bundle.Trivialization.isLocalFrameOn_symm_of_mem_maximalAtlas` for a basis over a larger field
+of scalars, were stated for fibres with an inner product over any `RCLike` field.
 
 ## References
 
@@ -131,14 +140,65 @@ section GramSchmidt
 variable {XM HM M : Type*} [NormedAddCommGroup XM] [NormedSpace ℝ XM]
   [TopologicalSpace HM] {IM : ModelWithCorners ℝ XM HM} [TopologicalSpace M] [ChartedSpace HM M]
   {ι : Type*} [LinearOrder ι] [LocallyFiniteOrderBot ι] {b : M → B} {v : ι → ∀ m, V (b m)}
-  {s : Set M}
+  {s : Set M} {x : M}
 
 /-- For a smooth Hermitian metric `(g, hI)`, Gram–Schmidt with respect to the Hermitian products
-`g.complexInnerProductSpace hI` keeps smoothness on a set: if the sections `v i` along a smooth
-map `b` are `C^n` on `s` for `i ≤ j`, and the vectors `v i m` with `i < j` are complex linearly
-independent at every point `m` of `s`, then the `j`-th Gram–Schmidt vector is `C^n` on `s`.
+`g.complexInnerProductSpace hI` keeps smoothness within a set at a point: if the sections `v i`
+along a map `b` are `C^n` within `s` at `x` for `i ≤ j`, and the vectors `v i x` with `i < j` are
+complex linearly independent, then the `j`-th Gram–Schmidt vector is `C^n` within `s` at `x`.
 
 This is the complex counterpart of Tau Ceti's `ContMDiffWithinAt.gramSchmidt_bundle`. -/
+theorem contMDiffWithinAt_gramSchmidt (g : ContMDiffRiemannianMetric IB n F V)
+    (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w) (j : ι)
+    (hv : ∀ i ≤ j, ContMDiffWithinAt IM (IB.prod 𝓘(ℝ, F)) n
+      (fun m ↦ (⟨b m, v i m⟩ : TotalSpace F V)) s x)
+    (hli : LinearIndepOn ℂ (fun i ↦ v i x) (Iio j)) :
+    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+    ContMDiffWithinAt IM (IB.prod 𝓘(ℝ, F)) n
+      (fun m ↦ (⟨b m, gramSchmidt ℂ (fun i ↦ v i m) j⟩ : TotalSpace F V)) s x := by
+  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  induction j using WellFoundedLT.induction with
+  | ind j ih =>
+    have hg (i : ι) (hi : i < j) :=
+      ih i hi (fun k hk ↦ hv k (hk.trans hi.le)) (hli.mono (Iio_subset_Iio hi.le))
+    -- The coefficient of `gramSchmidt ℂ v i` in the formula for `gramSchmidt ℂ v j`, written
+    -- with a real denominator.
+    have hc (i : ι) (hi : i < j) : ContMDiffWithinAt IM 𝓘(ℝ, ℂ) n
+        (fun m ↦ (‖gramSchmidt ℂ (fun k ↦ v k m) i‖ ^ 2)⁻¹ •
+          ⟪gramSchmidt ℂ (fun k ↦ v k m) i, v j m⟫_ℂ) s x := by
+      have hd : ContMDiffWithinAt IM 𝓘(ℝ) n
+          (fun m ↦ (‖gramSchmidt ℂ (fun k ↦ v k m) i‖ ^ 2)⁻¹) s x := by
+        refine (((hg i hi).inner_bundle (hg i hi)).congr (fun m _ ↦ ?_) ?_).inv₀ ?_
+        · exact (real_inner_self_eq_norm_sq _).symm
+        · exact (real_inner_self_eq_norm_sq _).symm
+        · exact pow_ne_zero 2 (norm_ne_zero_iff.2 (gramSchmidt_ne_zero_coe i
+            (hli.mono (Iic_subset_Iio.2 hi))))
+      exact hd.smul (g.contMDiffWithinAt_hermitianPairing hI (hg i hi) (hv j le_rfl))
+    have hb : ContMDiffWithinAt IM IB n b s x :=
+      (contMDiff_proj V).contMDiffAt.comp_contMDiffWithinAt x (hv j le_rfl)
+    have heq (m : M) : gramSchmidt ℂ (fun i ↦ v i m) j = v j m -
+        ∑ i ∈ Finset.Iio j, ((‖gramSchmidt ℂ (fun k ↦ v k m) i‖ ^ 2)⁻¹ •
+          ⟪gramSchmidt ℂ (fun k ↦ v k m) i, v j m⟫_ℂ) • gramSchmidt ℂ (fun k ↦ v k m) i := by
+      refine eq_sub_of_add_eq (Eq.trans ?_ (gramSchmidt_def'' ℂ (fun i ↦ v i m) j).symm)
+      congr 1
+      refine Finset.sum_congr rfl fun i _ ↦ ?_
+      rw [Complex.real_smul, div_eq_inv_mul, Complex.ofReal_inv, Complex.ofReal_pow]
+      -- The two sides differ only in how scalar multiplication by `ℂ` is found: through the
+      -- bundle's `Module ℂ`, or through `g.complexInnerProductSpace hI`, which keeps that module
+      -- (`complexInnerProductSpace_toModule`, which holds by `rfl`).
+      rfl
+    refine ((hv j le_rfl).sub_sectionAlong (ContMDiffWithinAt.sum_sectionAlong (Finset.Iio j)
+      (fun i m ↦ ((‖gramSchmidt ℂ (fun k ↦ v k m) i‖ ^ 2)⁻¹ •
+        ⟪gramSchmidt ℂ (fun k ↦ v k m) i, v j m⟫_ℂ) • gramSchmidt ℂ (fun k ↦ v k m) i) hb
+      fun i hi ↦ (hc i (Finset.mem_Iio.1 hi)).smul_totalSpace (hg i (Finset.mem_Iio.1 hi)))).congr
+      (fun m _ ↦ ?_) ?_ <;> exact congrArg (TotalSpace.mk (b _)) (heq _)
+
+/-- For a smooth Hermitian metric `(g, hI)`, Gram–Schmidt with respect to the Hermitian products
+`g.complexInnerProductSpace hI` keeps smoothness on a set: if the sections `v i` along a map `b`
+are `C^n` on `s` for `i ≤ j`, and the vectors `v i m` with `i < j` are complex linearly
+independent at every point `m` of `s`, then the `j`-th Gram–Schmidt vector is `C^n` on `s`. -/
 theorem contMDiffOn_gramSchmidt (g : ContMDiffRiemannianMetric IB n F V)
     (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w) (j : ι)
     (hv : ∀ i ≤ j, ContMDiffOn IM (IB.prod 𝓘(ℝ, F)) n
@@ -147,48 +207,46 @@ theorem contMDiffOn_gramSchmidt (g : ContMDiffRiemannianMetric IB n F V)
     letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
     letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
     ContMDiffOn IM (IB.prod 𝓘(ℝ, F)) n
-      (fun m ↦ (⟨b m, gramSchmidt ℂ (fun i ↦ v i m) j⟩ : TotalSpace F V)) s := by
+      (fun m ↦ (⟨b m, gramSchmidt ℂ (fun i ↦ v i m) j⟩ : TotalSpace F V)) s :=
+  fun m hm ↦ g.contMDiffWithinAt_gramSchmidt hI j (fun i hi ↦ hv i hi m hm) (hli m hm)
+
+/-- For a smooth Hermitian metric `(g, hI)`, normalized Gram–Schmidt with respect to the
+Hermitian products `g.complexInnerProductSpace hI` keeps smoothness within a set at a point: if
+the sections `v i` along a map `b` are `C^n` within `s` at `x` for `i ≤ j`, and the vectors
+`v i x` with `i ≤ j` are complex linearly independent, then the `j`-th normalized Gram–Schmidt
+vector is `C^n` within `s` at `x`.
+
+This is the complex counterpart of Tau Ceti's `ContMDiffWithinAt.gramSchmidtNormed_bundle`. -/
+theorem contMDiffWithinAt_gramSchmidtNormed (g : ContMDiffRiemannianMetric IB n F V)
+    (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w) (j : ι)
+    (hv : ∀ i ≤ j, ContMDiffWithinAt IM (IB.prod 𝓘(ℝ, F)) n
+      (fun m ↦ (⟨b m, v i m⟩ : TotalSpace F V)) s x)
+    (hli : LinearIndepOn ℂ (fun i ↦ v i x) (Iic j)) :
+    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+    ContMDiffWithinAt IM (IB.prod 𝓘(ℝ, F)) n
+      (fun m ↦ (⟨b m, gramSchmidtNormed ℂ (fun i ↦ v i m) j⟩ : TotalSpace F V)) s x := by
   let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
   let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  induction j using WellFoundedLT.induction with
-  | ind j ih =>
-    have hg (i : ι) (hi : i < j) :=
-      ih i hi (fun k hk ↦ hv k (hk.trans hi.le)) fun m hm ↦ (hli m hm).mono (Iio_subset_Iio hi.le)
-    -- The coefficient of `gramSchmidt ℂ v i` in the formula for `gramSchmidt ℂ v j`, written
-    -- with a real denominator.
-    have hc (i : ι) (hi : i < j) : ContMDiffOn IM 𝓘(ℝ, ℂ) n
-        (fun m ↦ (‖gramSchmidt ℂ (fun k ↦ v k m) i‖ ^ 2)⁻¹ •
-          ⟪gramSchmidt ℂ (fun k ↦ v k m) i, v j m⟫_ℂ) s := by
-      have hd : ContMDiffOn IM 𝓘(ℝ) n
-          (fun m ↦ (‖gramSchmidt ℂ (fun k ↦ v k m) i‖ ^ 2)⁻¹) s := by
-        refine (((hg i hi).inner_bundle (hg i hi)).congr fun m _ ↦ ?_).inv₀ fun m hm ↦ ?_
-        · exact (real_inner_self_eq_norm_sq _).symm
-        · exact pow_ne_zero 2 (norm_ne_zero_iff.2 (gramSchmidt_ne_zero_coe i
-            ((hli m hm).mono (Iic_subset_Iio.2 hi))))
-      exact hd.smul (g.contMDiffOn_hermitianPairing hI (hg i hi) (hv j le_rfl))
-    have hb : ContMDiffOn IM IB n b s :=
-      (contMDiff_proj V).comp_contMDiffOn (hv j le_rfl)
-    refine ((hv j le_rfl).sub_sectionAlong (ContMDiffOn.sum_sectionAlong (Finset.Iio j)
-      (fun i m ↦ ((‖gramSchmidt ℂ (fun k ↦ v k m) i‖ ^ 2)⁻¹ •
-        ⟪gramSchmidt ℂ (fun k ↦ v k m) i, v j m⟫_ℂ) • gramSchmidt ℂ (fun k ↦ v k m) i) hb
-      fun i hi ↦ (hc i (Finset.mem_Iio.1 hi)).smul_totalSpace (hg i (Finset.mem_Iio.1 hi)))).congr
-      fun m _ ↦ ?_
-    refine congrArg (TotalSpace.mk (b m)) (eq_sub_of_add_eq
-      (Eq.trans ?_ (gramSchmidt_def'' ℂ (fun i ↦ v i m) j).symm))
-    congr 1
-    refine Finset.sum_congr rfl fun i _ ↦ ?_
-    rw [Complex.real_smul, div_eq_inv_mul, Complex.ofReal_inv, Complex.ofReal_pow]
-    -- The two sides differ only in how scalar multiplication by `ℂ` is found: through the
-    -- bundle's `Module ℂ`, or through `g.complexInnerProductSpace hI`, which keeps that module
-    -- (`complexInnerProductSpace_toModule`, which holds by `rfl`).
+  have hg := g.contMDiffWithinAt_gramSchmidt hI j hv (hli.mono Iio_subset_Iic_self)
+  have h0 : gramSchmidt ℂ (fun i ↦ v i x) j ≠ 0 := gramSchmidt_ne_zero_coe j hli
+  have hc : ContMDiffWithinAt IM 𝓘(ℝ, ℂ) n
+      (fun m ↦ ((‖gramSchmidt ℂ (fun i ↦ v i m) j‖⁻¹ : ℝ) : ℂ)) s x :=
+    Complex.ofRealCLM.contMDiff.contMDiffAt.comp_contMDiffWithinAt x
+      ((hg.norm_bundle h0).inv₀ (norm_ne_zero_iff.2 h0))
+  have heq (m : M) : gramSchmidtNormed ℂ (fun i ↦ v i m) j =
+      ((‖gramSchmidt ℂ (fun i ↦ v i m) j‖⁻¹ : ℝ) : ℂ) • gramSchmidt ℂ (fun i ↦ v i m) j := by
+    rw [gramSchmidtNormed, Complex.ofReal_inv]
+    -- As in `contMDiffWithinAt_gramSchmidt`, the two sides differ only in the path to
+    -- `Module ℂ`.
     rfl
+  refine (hc.smul_totalSpace hg).congr (fun m _ ↦ ?_) ?_ <;>
+    exact congrArg (TotalSpace.mk (b _)) (heq _)
 
 /-- For a smooth Hermitian metric `(g, hI)`, normalized Gram–Schmidt with respect to the
 Hermitian products `g.complexInnerProductSpace hI` keeps smoothness on a set: if the sections
-`v i` along a smooth map `b` are `C^n` on `s` for `i ≤ j`, and complex linearly independent for
-`i ≤ j` at every point of `s`, then the `j`-th normalized Gram–Schmidt vector is `C^n` on `s`.
-
-This is the complex counterpart of Tau Ceti's `ContMDiffWithinAt.gramSchmidtNormed_bundle`. -/
+`v i` along a map `b` are `C^n` on `s` for `i ≤ j`, and complex linearly independent for
+`i ≤ j` at every point of `s`, then the `j`-th normalized Gram–Schmidt vector is `C^n` on `s`. -/
 theorem contMDiffOn_gramSchmidtNormed (g : ContMDiffRiemannianMetric IB n F V)
     (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w) (j : ι)
     (hv : ∀ i ≤ j, ContMDiffOn IM (IB.prod 𝓘(ℝ, F)) n
@@ -197,19 +255,8 @@ theorem contMDiffOn_gramSchmidtNormed (g : ContMDiffRiemannianMetric IB n F V)
     letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
     letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
     ContMDiffOn IM (IB.prod 𝓘(ℝ, F)) n
-      (fun m ↦ (⟨b m, gramSchmidtNormed ℂ (fun i ↦ v i m) j⟩ : TotalSpace F V)) s := by
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  have hg := g.contMDiffOn_gramSchmidt hI j hv fun m hm ↦ (hli m hm).mono Iio_subset_Iic_self
-  have hc : ContMDiffOn IM 𝓘(ℝ, ℂ) n
-      (fun m ↦ ((‖gramSchmidt ℂ (fun i ↦ v i m) j‖⁻¹ : ℝ) : ℂ)) s :=
-    Complex.ofRealCLM.contMDiff.comp_contMDiffOn ((hg.norm_bundle fun m hm ↦
-      gramSchmidt_ne_zero_coe j (hli m hm)).inv₀ fun m hm ↦
-        norm_ne_zero_iff.2 (gramSchmidt_ne_zero_coe j (hli m hm)))
-  refine (hc.smul_totalSpace hg).congr fun m _ ↦ ?_
-  rw [gramSchmidtNormed, Complex.ofReal_inv]
-  -- As in `contMDiffOn_gramSchmidt`, the two sides differ only in the path to `Module ℂ`.
-  rfl
+      (fun m ↦ (⟨b m, gramSchmidtNormed ℂ (fun i ↦ v i m) j⟩ : TotalSpace F V)) s :=
+  fun m hm ↦ g.contMDiffWithinAt_gramSchmidtNormed hI j (fun i hi ↦ hv i hi m hm) (hli m hm)
 
 end GramSchmidt
 

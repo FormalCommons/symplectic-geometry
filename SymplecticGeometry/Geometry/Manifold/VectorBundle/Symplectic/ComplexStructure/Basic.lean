@@ -50,16 +50,22 @@ tangent bundle, and for a nondegenerate form they are, on each fibre, Tau Ceti's
 * `Tames.pushforward`, `Invariant.pushforward`, `Compatible.pushforward`: transport along an
   isomorphism of bundles, moving the form and the complex structure together.
 * `tames_tangentEquiv_iff`, `invariant_tangentEquiv_iff`, `compatible_tangentEquiv_iff`: on the
-  tangent bundle, the predicates are Tau Ceti's.
+  tangent bundle, the predicates are Tau Ceti's; `compatible_tangentEquiv_symm_iff` reads
+  compatibility the other way.
 * `convex_setOf_tames`, `convex_setOf_invariant`, `convex_setOf_compatible`: the two-forms
   taming, invariant under, or compatible with a fixed complex structure form a convex set.
 * `ContMDiffComplexStructure.compatible_compatibleForm`: `ω_{g,J}` is compatible with `J`.
+* `ContMDiffComplexStructure.compatibleForm_apply_of_invariant`: for a metric `g` invariant under
+  `J`, `ω_{g,J}(u, v) = g(J u, v)`.
 * `ContMDiffComplexStructure.flat_compatibleForm`: the flat map of `ω_{g,J}` at `x` is
   `Bundle.ContMDiffRiemannianMetric.compatibleBilinAt g x (J x)`, and
   `ContMDiffComplexStructure.compatibleForm_eq_alternatingMapOfBilin`: the value of `ω_{g,J}` at
   `x` is the alternating map `Bundle.alternatingMapOfBilin` of that form.
 * `ContMDiffTwoForm.Compatible.compatibleForm_metric`: for a compatible pair `(ω, J)`, the form
   `ω_{g,J}` of the metric `g = Compatible.metric` is `ω` again.
+* `ContMDiffTwoForm.Compatible.metric_inner_apply_apply`: that metric is invariant under `J`.
+* `ContMDiffComplexStructure.metric_compatible_compatibleForm`: conversely, for a metric `g`
+  invariant under `J`, the metric of the pair `(ω_{g,J}, J)` is `g` again.
 * `Bundle.mk_flatAt_mem_polarFormulaDomain`, `IsNondegenerate.mk_flat_mem_polarFormulaDomain`:
   the flat map of a nondegenerate alternating form lies in `Bundle.polarFormulaDomain`.
 * `IsNondegenerate.polarFormulaAt_flat`: the polar formula of
@@ -327,6 +333,18 @@ theorem compatible_tangentEquiv_iff :
   rw [compatible_iff, ← invariant_tangentEquiv_iff, ← tames_tangentEquiv_iff]
   exact ⟨fun h ↦ ⟨h.invariant, h.tames⟩, fun h ↦ ⟨h.1, h.2⟩⟩
 
+/-- A smooth two-form and a smooth almost complex structure in the sense of Tau Ceti are
+compatible exactly when the corresponding two-form and complex structure on the tangent bundle
+are. -/
+@[simp]
+theorem compatible_tangentEquiv_symm_iff {φ : TauCeti.SmoothTwoForm I M}
+    {K : TauCeti.SmoothAlmostComplexStructure I M} :
+    (tangentEquiv.symm φ).Compatible
+        (ContMDiffComplexStructure.tangentEquiv.symm (K.toContMDiff ⊤)) ↔
+      φ.Compatible K := by
+  rw [← compatible_tangentEquiv_iff]
+  simp
+
 end Tangent
 
 end ContMDiffTwoForm
@@ -361,6 +379,18 @@ theorem compatibleForm_apply (g : ContMDiffRiemannianMetric I n F V)
       (2 : ℝ)⁻¹ * (g.inner x (J x (v 0)) (v 1) - g.inner x (v 0) (J x (v 1))) :=
   (ContMDiffTwoForm.ofBilinearSection_apply _ _ x v).trans <| by
     rw [compatibleBilin, ContMDiffSection.coeFn_mk, g.compatibleBilinAt_apply]
+
+/-- For a metric `g` invariant under `J`, `g(J u, J v) = g(u, v)`, the form `ω_{g,J}` is
+`ω_{g,J}(u, v) = g(J u, v)`. -/
+theorem compatibleForm_apply_of_invariant {g : ContMDiffRiemannianMetric I n F V}
+    {J : ContMDiffComplexStructure I n F V}
+    (hg : ∀ x (u v : V x), g.inner x (J x u) (J x v) = g.inner x u v) (x : M) (u v : V x) :
+    compatibleForm g J x ![u, v] = g.inner x (J x u) v := by
+  have h := hg x u (J x v)
+  rw [apply_apply, map_neg] at h
+  simp only [compatibleForm_apply, Matrix.cons_val_zero, Matrix.cons_val_one,
+    Matrix.cons_val_fin_one]
+  linarith
 
 /-- The form `ω_{g,J}` is compatible with `J`. -/
 theorem compatible_compatibleForm (g : ContMDiffRiemannianMetric I n F V)
@@ -455,6 +485,13 @@ theorem Compatible.compatibleForm_metric (hc : ω.Compatible J) :
     map_neg] at h ⊢
   linarith
 
+/-- The metric of a compatible pair `(ω, J)` is invariant under `J`:
+`g(J u, J v) = g(u, v)`. -/
+theorem Compatible.metric_inner_apply_apply (hc : ω.Compatible J) (x : M) (u v : V x) :
+    hc.metric.inner x (J x u) (J x v) = hc.metric.inner x u v := by
+  rw [metric_inner, metric_inner]
+  exact invariant_def.1 hc.invariant x u (J x v)
+
 /-- On each fibre, the metric of a compatible pair is the metric `ω_x(·, J_x ·)` of the linear
 compatible pair. -/
 theorem Compatible.symplecticFormAt_apply_apply_eq_metric_inner (hc : ω.Compatible J) (x : M)
@@ -465,6 +502,24 @@ theorem Compatible.symplecticFormAt_apply_apply_eq_metric_inner (hc : ω.Compati
     IsNondegenerate.symplecticFormAt_apply, bilinFormAt_apply]
 
 end ContMDiffTwoForm
+
+namespace ContMDiffComplexStructure
+
+variable [FiniteDimensional ℝ F] {g : ContMDiffRiemannianMetric I n F V}
+  {J : ContMDiffComplexStructure I n F V}
+
+/-- For a metric `g` invariant under `J`, the metric of the compatible pair `(ω_{g,J}, J)` is `g`
+again. So `ContMDiffTwoForm.Compatible.metric` is a left inverse of `compatibleForm · J` on the
+metrics invariant under `J`. -/
+theorem metric_compatible_compatibleForm
+    (hg : ∀ x (u v : V x), g.inner x (J x u) (J x v) = g.inner x u v) :
+    (compatible_compatibleForm g J).metric = g := by
+  refine ContMDiffRiemannianMetric.ext fun x u v ↦ ?_
+  rw [ContMDiffTwoForm.Compatible.metric_inner, ContMDiffTwoForm.bilinFormAt_apply,
+    compatibleForm_apply_of_invariant hg]
+  exact hg x u v
+
+end ContMDiffComplexStructure
 
 /-! ### The complex structure `J_{g,ω}` -/
 

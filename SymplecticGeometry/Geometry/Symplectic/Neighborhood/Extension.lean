@@ -440,10 +440,6 @@ private theorem contMDiff_extendFormula {k : ℕ}
     Bundle.Pullback.contMDiffVectorBundle (E := TangentSpace I₀) f₀.contMDiff
   have : ContMDiffVectorBundle ∞ E₁ ((f₁ : Q → M₁) *ᵖ (TangentSpace I₁)) J :=
     Bundle.Pullback.contMDiffVectorBundle (E := TangentSpace I₁) f₁.contMDiff
-  have (q : Q) : IsNormableSpace ℝ (((f₀ : Q → M₀) *ᵖ (TangentSpace I₀)) q) :=
-    instIsNormableSpaceTangentSpace I₀ (f₀ q)
-  have (q : Q) : IsNormableSpace ℝ (((f₁ : Q → M₁) *ᵖ (TangentSpace I₁)) q) :=
-    instIsNormableSpaceTangentSpace I₁ (f₁ q)
   have hk₁ (q : Q) : finrank ℝ (LinearMap.ker
       ((SmoothForm.mpullback f₁ f₁.contMDiff σ₁).bilinFormAt q)) = k := hσ ▸ hk q
   -- The derivatives and the projections, as smooth sections of bundles of linear maps.
