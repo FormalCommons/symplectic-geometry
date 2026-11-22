@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.BoundaryDegree
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.DiscBoundaryClass
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.FiberwiseEquiv
 public import TauCeti.Topology.FiberBundle.Pullback
 public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Degree
@@ -17,7 +16,8 @@ public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Degree
 We work in the setting of the boundary degree
 (`TauCeti.HomologicalOrientation.boundaryDegree`): `X` is compact Hausdorff, `ι : M → X` is an
 open embedding of a surface oriented by `o`, and `∂X = X ∖ ι(M)` is the image of a collared map.
-Let `L` be a real plane bundle over `X` with an orientation `oL`, and let `τ` be a frame of `L` over
+Let `L` be a real plane bundle over `X`, with any model fibre `F` of real dimension `2`, and with an
+orientation `oL`, and let `τ` be a frame of `L` over
 the whole of `X`: a family of linear isomorphisms `τ x : L_x ≃ ℂ`, continuous on the total space,
 carrying `oL` to `Complex.orientation`. Let `t` be a continuous section of `L` whose zeros are
 finitely many and lie in `ι(M)`.
@@ -35,9 +35,10 @@ leaves the zeros and their indices as they were.
 Write `G = τ t : X → ℂ` and `Z` for the zero set of `t ∘ ι`. Then `G` is a map of pairs
 `(X, ∂X) ⟶ (ℂ, ℂ ∖ {0})`, and on `∂X`, followed by radial projection, it is the map `u`.
 
-* *Near the boundary.* By naturality of the connecting morphism, the image of the boundary class
-  `∂[X, ∂X]` under `u` is the image of `G_*[X, ∂X] ∈ H₂(ℂ, ℂ ∖ {0})` under the connecting
-  morphism of `(ℂ, ℂ ∖ {0})` followed by radial projection onto `Circle`.
+* *Near the boundary.* If `G_*[X, ∂X] ∈ H₂(ℂ, ℂ ∖ {0})` is `c` times the local orientation of `ℂ`
+  at the origin selected by `Complex.orientation`, then the boundary degree of `u` is `c`
+  (`TauCeti.HomologicalOrientation.boundaryDegree_eq_of_localHomologyMap_eq_zsmul`, by
+  naturality of the connecting morphism and the computation of the generator).
 * *Near the zeros.* The image of `[X, ∂X]` in `H₂(X, X ∖ ι(Z))` is the fundamental class of `M`
   along `Z`
   (`TauCeti.HomologicalOrientation.localHomologyRestriction_fundamentalClassRel_image`), which is
@@ -50,9 +51,10 @@ Write `G = τ t : X → ℂ` and `Z` for the zero set of `t ∘ ι`. Then `G` is
   of `ℂ` at the origin selected by `Complex.orientation`
   (`TauCeti.VectorBundleOrientation.localHomologyMap_eq_sectionIndex_smul`). So `G_*[X, ∂X]` is
   the sum of the local indices times that local orientation.
-* *The generator.* The connecting morphism followed by radial projection sends the local
-  orientation of `ℂ` at the origin to `1` in `H₁(Circle; ℤ) ≅ ℤ`: this is
-  `SymplecticGeometry.singularHomologyOneIso_singularHomologyδ_localOrientation_complexOrientation`.
+
+The step near the zeros and the final summation adapt the proof of Tau Ceti's
+`TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`, the same
+argument on a closed manifold, to the relative fundamental class of `(X, ∂X)`.
 
 ## Main results
 
@@ -81,96 +83,33 @@ namespace TauCeti.VectorBundleOrientation
 
 section ArgumentPrinciple
 
-open AlgebraicTopology Topology Metric
+open AlgebraicTopology Topology
 
 variable {X M : Type} {N : Type*} [TopologicalSpace X] [TopologicalSpace N] [TopologicalSpace M]
   [T2Space X] [CompactSpace X] [T2Space M] {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [FiniteDimensional ℝ E] [ChartedSpace E M] {ι : M → X} {f : N → X}
-  {L : X → Type} [TopologicalSpace (TotalSpace ℂ L)] [∀ x, AddCommMonoid (L x)]
-  [∀ x, Module ℝ (L x)] [∀ x, TopologicalSpace (L x)] [FiberBundle ℂ L] [VectorBundle ℝ ℂ L]
-
-/-- The boundary side. For `G : X → ℂ` with zeros in `ι(M)` and `u = G / |G|` on `∂X`, the boundary
-degree of `u` is read off from `G_*[X, ∂X] ∈ H₂(ℂ, ℂ ∖ {0})` through the connecting morphism,
-radial projection onto `Circle` and `H₁(Circle; ℤ) ≅ ℤ`. -/
-private theorem boundaryDegree_eq_of_localHomologyMap (o : HomologicalOrientation M E 2)
-    (hn : finrank ℝ E = 2) (hι : IsOpenEmbedding ι) (hιf : range ι = (range f)ᶜ)
-    (hf : IsCollared f) {G : C(X, ℂ)} (hG : G ⁻¹' {0} ⊆ range ι)
-    {u : C(↥((range ι)ᶜ : Set X), Circle)} (hu : ∀ z, (u z : ℂ) = ‖G z‖⁻¹ • G z) :
-    o.boundaryDegree hn hι hιf hf u =
-      ((Circle.singularHomologyOneIso (ModuleCat.of ℤ (ULift.{0} ℤ))).hom
-        (((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj (ModuleCat.of ℤ (ULift.{0} ℤ))).map
-          (TopCat.ofHom (complSingletonHomotopyEquivSphere (0 : ℂ)).toFun ≫
-            TopCat.ofHom (Circle.homeomorphSphere.symm : C(sphere (0 : ℂ) 1, Circle)))
-          ((TopPair.ofSubset ({0}ᶜ : Set (TopCat.of ℂ))).singularHomologyδ
-            (ModuleCat.of ℤ (ULift.{0} ℤ)) 2 1 rfl
-            (localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) G hG 2
-              (o.fundamentalClassRel hn hι hιf hf))))).down := by
-  set R := ModuleCat.of ℤ (ULift.{0} ℤ)
-  set γ := o.fundamentalClassRel hn hι hιf hf
-  set P := TopPair.ofSubset ((range ι)ᶜ : Set (TopCat.of X))
-  set Q := TopPair.ofSubset ({0}ᶜ : Set (TopCat.of ℂ))
-  set H := (singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj R
-  set H' := reducedSingularHomologyFunctor R 1
-  set c := TopCat.ofHom (complSingletonHomotopyEquivSphere (0 : ℂ)).toFun
-  set e := TopCat.ofHom (Circle.homeomorphSphere.symm : C(sphere (0 : ℂ) 1, Circle))
-  -- On `∂X`, the map `G` followed by radial projection onto `Circle` is `u`.
-  have hsnd : TopPair.Hom.snd (TopPair.ofSubsetMap (X := TopCat.of X) (Y := TopCat.of ℂ)
-      (B := (range ι)ᶜ) (B' := {0}ᶜ) (TopCat.ofHom G)
-      ((mapsTo_preimage _ _).mono_left (compl_subset_compl.2 hG))) ≫ c ≫ e =
-      TopCat.ofHom u := by
-    ext z
-    -- The subspace of `TopPair.ofSubset` is the subtype only after unfolding the pair.
-    erw [ConcreteCategory.comp_apply, ConcreteCategory.comp_apply]
-    refine (Circle.coe_homeomorphSphere_symm_apply _).trans
-      ((coe_complSingletonHomotopyEquivSphere_apply 0 _).trans ?_)
-    erw [TopPair.ofSubsetMap_snd_apply]
-    simp only [TopCat.hom_ofHom, sub_zero]
-    exact (hu z).symm
-  -- Naturality of the connecting morphism for `G : (X, ∂X) ⟶ (ℂ, ℂ ∖ {0})`.
-  have hnat : P.reducedSingularHomologyδ R 1 ≫ H'.map (TopCat.ofHom u) =
-      localHomologyMap R G hG 2 ≫ Q.reducedSingularHomologyδ R 1 ≫ H'.map (c ≫ e) := by
-    rw [localHomologyMap_def, ← TopPair.reducedSingularHomologyδ_naturality_assoc]
-    congr 1
-    -- The composite is only type-correct after unfolding the subspace of the pair.
-    erw [← Functor.map_comp, hsnd]
-  rw [HomologicalOrientation.boundaryDegree_def, HomologicalOrientation.boundaryClass_def]
-  refine congrArg (fun y ↦ ((Circle.singularHomologyOneIso R).hom.hom y).down) ?_
-  exact calc
-    _ = H.map (TopCat.ofHom u) ((reducedSingularHomologyι R 1).app _
-          (P.reducedSingularHomologyδ R 1 γ)) :=
-        congrArg _
-          (ConcreteCategory.congr_hom (TopPair.reducedSingularHomologyδ_comp_ι P R 1) γ).symm
-    _ = (reducedSingularHomologyι R 1).app _
-          (H'.map (TopCat.ofHom u) (P.reducedSingularHomologyδ R 1 γ)) :=
-        (ConcreteCategory.congr_hom ((reducedSingularHomologyι R 1).naturality _) _).symm
-    _ = (reducedSingularHomologyι R 1).app _
-          (H'.map (c ≫ e) (Q.reducedSingularHomologyδ R 1 (localHomologyMap R G hG 2 γ))) := by
-        have h := ConcreteCategory.congr_hom hnat γ
-        simp only [ConcreteCategory.comp_apply] at h
-        exact congrArg _ h
-    _ = H.map (c ≫ e) ((reducedSingularHomologyι R 1).app _
-          (Q.reducedSingularHomologyδ R 1 (localHomologyMap R G hG 2 γ))) :=
-        ConcreteCategory.congr_hom ((reducedSingularHomologyι R 1).naturality _) _
-    _ = _ := congrArg _
-        (ConcreteCategory.congr_hom (TopPair.reducedSingularHomologyδ_comp_ι Q R 1) _)
+  {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F] {L : X → Type}
+  [TopologicalSpace (TotalSpace F L)] [∀ x, AddCommMonoid (L x)]
+  [∀ x, Module ℝ (L x)] [∀ x, TopologicalSpace (L x)] [FiberBundle F L] [VectorBundle ℝ F L]
 
 /-- The interior side. Read in the frame `τ`, the section `t` is a map `G : X → ℂ`, and
 `G_*[X, ∂X] ∈ H₂(ℂ, ℂ ∖ {0})` is the sum over the zeros of `t ∘ ι` of their local indices times the
 local orientation of `ℂ` at the origin selected by `Complex.orientation`. -/
 private theorem localHomologyMap_fundamentalClassRel_eq_sum
-    (oL : VectorBundleOrientation ℂ L (Fin 2)) (o : HomologicalOrientation M E 2)
+    (oL : VectorBundleOrientation F L (Fin 2)) (hF : finrank ℝ F = 2)
+    (o : HomologicalOrientation M E 2)
     (hn : finrank ℝ E = 2) (hι : IsOpenEmbedding ι) (hιf : range ι = (range f)ᶜ) (hf : IsCollared f)
-    {τ : ∀ x, L x ≃L[ℝ] ℂ} (hτ : Continuous fun v : TotalSpace ℂ L ↦ τ v.proj v.snd)
+    {τ : ∀ x, L x ≃L[ℝ] ℂ} (hτ : Continuous fun v : TotalSpace F L ↦ τ v.proj v.snd)
     (hτo : ∀ x, Orientation.map (Fin 2) (τ x).toLinearEquiv (oL x) = Complex.orientation)
-    {t : ∀ x, L x} (ht : Continuous fun x ↦ TotalSpace.mk' ℂ x (t x))
+    {t : ∀ x, L x} (ht : Continuous fun x ↦ TotalSpace.mk' F x (t x))
     (hZ : {x : M | t (ι x) = 0}.Finite) (hZι : ∀ x, t x = 0 → x ∈ range ι)
     (hG : (⟨fun x ↦ τ x (t x), hτ.comp ht⟩ : C(X, ℂ)) ⁻¹' {0} ⊆ range ι)
     {s : ∀ x, ((⟨ι, hι.continuous⟩ : C(M, X)) *ᵖ L) x} (hst : ∀ x, s x = t (ι x))
-    (hs : Continuous fun x ↦ TotalSpace.mk' ℂ x (s x)) :
+    (hs : Continuous fun x ↦ TotalSpace.mk' F x (s x)) :
     localHomologyMap (ModuleCat.of ℤ (ULift.{0} ℤ)) ⟨fun x ↦ τ x (t x), hτ.comp ht⟩ hG 2
         (o.fundamentalClassRel hn hι hιf hf) =
       ∑ z ∈ hZ.toFinset,
-        (oL.pullback ⟨ι, hι.continuous⟩).sectionIndex Complex.finrank_real_complex o hs z •
+        (oL.pullback ⟨ι, hι.continuous⟩).sectionIndex hF o hs z •
           (Complex.orientation.localOrientation Complex.finrank_real_complex).val := by
   set g : C(M, X) := ⟨ι, hι.continuous⟩
   set G : C(X, ℂ) := ⟨fun x ↦ τ x (t x), hτ.comp ht⟩
@@ -180,11 +119,11 @@ private theorem localHomologyMap_fundamentalClassRel_eq_sum
     obtain ⟨y, rfl⟩ := hZι x h0
     exact ⟨y, h0, rfl⟩
   -- The frame identifies `ι^* L` with the trivial bundle `M × ℂ`, preserving local indices.
-  have hφ : Continuous fun v : TotalSpace ℂ ((⇑g) *ᵖ L) ↦
+  have hφ : Continuous fun v : TotalSpace F ((⇑g) *ᵖ L) ↦
       TotalSpace.mk' ℂ (E := Bundle.Trivial M ℂ) v.proj (τ (ι v.proj) v.snd) :=
     (Bundle.Trivial.isInducing_toProd M ℂ).continuous_iff.2
-      ((Pullback.continuous_proj ℂ L g).prodMk (hτ.comp (Pullback.continuous_lift ℂ L g)))
-  have hind (z : M) : (oL.pullback g).sectionIndex Complex.finrank_real_complex o hs z =
+      ((Pullback.continuous_proj F L g).prodMk (hτ.comp (Pullback.continuous_lift F L g)))
+  have hind (z : M) : (oL.pullback g).sectionIndex hF o hs z =
       (trivial M Complex.orientation).sectionIndex Complex.finrank_real_complex o
         (hφ.comp hs) z :=
     sectionIndex_eq_of_fiberwise _ _ o _ _ hφ (fun x ↦ by
@@ -222,60 +161,42 @@ private theorem localHomologyMap_fundamentalClassRel_eq_sum
 
 /-- **The argument principle on a surface with boundary.** Let `X` be compact Hausdorff, let
 `ι : M → X` be an open embedding of a surface oriented by `o`, and let the complement `∂X` of
-`ι(M)` be collared. Let `L` be a real plane bundle over `X`, oriented by `oL`, with a frame over all
+`ι(M)` be collared. Let `L` be a real plane bundle over `X`, with a model fibre `F` of real
+dimension `2`, oriented by `oL`, with a frame over all
 of `X`: linear isomorphisms `τ x : L_x ≃ ℂ`, continuous on the total space, that carry `oL` to
 `Complex.orientation`. Let `t` be a continuous section of `L` whose zeros lie in `ι(M)`, finitely
 many. Then the sum over the zeros of `t ∘ ι` of the local indices of the pull-back of `t` along `ι`
 is the boundary degree of `u = τ t / |τ t|` on `∂X`. -/
-theorem sum_sectionIndex_eq_boundaryDegree (oL : VectorBundleOrientation ℂ L (Fin 2))
+theorem sum_sectionIndex_eq_boundaryDegree (oL : VectorBundleOrientation F L (Fin 2))
+    (hF : finrank ℝ F = 2)
     (o : HomologicalOrientation M E 2) (hn : finrank ℝ E = 2) (hι : IsOpenEmbedding ι)
     (hιf : range ι = (range f)ᶜ) (hf : IsCollared f)
-    {τ : ∀ x, L x ≃L[ℝ] ℂ} (hτ : Continuous fun v : TotalSpace ℂ L ↦ τ v.proj v.snd)
+    {τ : ∀ x, L x ≃L[ℝ] ℂ} (hτ : Continuous fun v : TotalSpace F L ↦ τ v.proj v.snd)
     (hτo : ∀ x, Orientation.map (Fin 2) (τ x).toLinearEquiv (oL x) = Complex.orientation)
-    {t : ∀ x, L x} (ht : Continuous fun x ↦ TotalSpace.mk' ℂ x (t x))
+    {t : ∀ x, L x} (ht : Continuous fun x ↦ TotalSpace.mk' F x (t x))
     (hZ : {x : M | t (ι x) = 0}.Finite) (hZι : ∀ x, t x = 0 → x ∈ range ι)
     {u : C(↥((range ι)ᶜ : Set X), Circle)}
     (hu : ∀ z, (u z : ℂ) = ‖τ z (t z)‖⁻¹ • τ z (t z)) :
-    ∑ z ∈ hZ.toFinset, (oL.pullback ⟨ι, hι.continuous⟩).sectionIndex Complex.finrank_real_complex o
+    ∑ z ∈ hZ.toFinset, (oL.pullback ⟨ι, hι.continuous⟩).sectionIndex hF o
         (s := fun x ↦ t (ι x)) (Pullback.continuous_iff.2 ⟨continuous_id, ht.comp hι.continuous⟩)
         z =
       o.boundaryDegree hn hι hιf hf u := by
-  set R := ModuleCat.of ℤ (ULift.{0} ℤ)
   set G : C(X, ℂ) := ⟨fun x ↦ τ x (t x), hτ.comp ht⟩
   have hG : G ⁻¹' {0} ⊆ range ι := fun x hx ↦ hZι x ((τ x).map_eq_zero_iff.1 hx)
   -- The section is named, with the fibres of the pull-back, so that every term is type-correct.
   set s : ∀ x, ((⟨ι, hι.continuous⟩ : C(M, X)) *ᵖ L) x := fun x ↦ t (ι x)
-  have hs : Continuous fun x ↦ TotalSpace.mk' ℂ x (s x) :=
+  have hs : Continuous fun x ↦ TotalSpace.mk' F x (s x) :=
     Pullback.continuous_iff.2 ⟨continuous_id, ht.comp hι.continuous⟩
   suffices key : o.boundaryDegree hn hι hιf hf u = ∑ z ∈ hZ.toFinset,
-      (oL.pullback ⟨ι, hι.continuous⟩).sectionIndex Complex.finrank_real_complex o hs z from
+      (oL.pullback ⟨ι, hι.continuous⟩).sectionIndex hF o hs z from
     key.symm
-  rw [boundaryDegree_eq_of_localHomologyMap o hn hι hιf hf hG hu,
-    localHomologyMap_fundamentalClassRel_eq_sum oL o hn hι hιf hf hτ hτo ht hZ hZι hG
-      (fun _ ↦ rfl) hs]
-  -- The composite of the connecting morphism, radial projection and `H₁(S¹) ≅ ℤ`, as one map.
-  let K := (TopPair.ofSubset ({0}ᶜ : Set (TopCat.of ℂ))).singularHomologyδ R 2 1 rfl ≫
-    ((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj R).map
-      (TopCat.ofHom (complSingletonHomotopyEquivSphere (0 : ℂ)).toFun ≫
-        TopCat.ofHom (Circle.homeomorphSphere.symm : C(sphere (0 : ℂ) 1, Circle))) ≫
-    (Circle.singularHomologyOneIso R).hom
-  have hK (y) : (Circle.singularHomologyOneIso R).hom.hom
-      (((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj R).map
-        (TopCat.ofHom (complSingletonHomotopyEquivSphere (0 : ℂ)).toFun ≫
-          TopCat.ofHom (Circle.homeomorphSphere.symm : C(sphere (0 : ℂ) 1, Circle)))
-        ((TopPair.ofSubset ({0}ᶜ : Set (TopCat.of ℂ))).singularHomologyδ R 2 1 rfl y)) =
-      K.hom y := by
-    simp only [K, ModuleCat.hom_comp, LinearMap.comp_apply]
-    -- The two sides differ only in how the morphisms of `ModuleCat` are applied.
-    rfl
-  refine (congrArg ULift.down (hK _)).trans ?_
-  rw [map_sum]
-  refine (map_sum (ULift.moduleEquiv (R := ℤ)) _ _).trans (Finset.sum_congr rfl fun z _ ↦ ?_)
-  rw [map_zsmul, ← hK,
-    SymplecticGeometry.singularHomologyOneIso_singularHomologyδ_localOrientation_complexOrientation,
-    map_zsmul]
-  -- `ULift.moduleEquiv` is `ULift.down`, which sends `1 : ULift ℤ` to `1`.
-  exact mul_one _
+  refine HomologicalOrientation.boundaryDegree_eq_of_localHomologyMap_eq_zsmul o hn hι hιf hf hG
+    hu ?_
+  rw [localHomologyMap_fundamentalClassRel_eq_sum oL hF o hn hι hιf hf hτ hτo ht hZ hZι hG
+    (fun _ ↦ rfl) hs]
+  -- Both sides scale by `ℤ` through `zsmul`, the action of `AddCommGroup.toIntModule`, not
+  -- through the module structure of the homology that instance search finds.
+  exact (@Finset.sum_smul _ ℤ _ _ _ (AddCommGroup.toIntModule _) _ _ _).symm
 
 end ArgumentPrinciple
 

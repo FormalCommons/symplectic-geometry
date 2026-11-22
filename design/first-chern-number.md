@@ -979,6 +979,16 @@ issues, in an order where each issue's blockers come before it.
      the local orientation of the identity chart of an oriented inner
      product space, through the connecting morphism and radial projection,
      is the oriented generator of the unit sphere.
+   - `AlgebraicTopology/Singular/LocalHomology/Orientation/Chart.lean`, used
+     by `Orientation/Linear.lean`: from Tau Ceti's main branch, which the
+     pinned version lags,
+     `LinearIsometryEquiv.snd_ofSubsetMap_comp_complSingletonHomotopyEquivSphere`,
+     linear isometries commute with radial projection.
+   - `AlgebraicTopology/Singular/LocalHomology/Orientation/Linear.lean`, used
+     by `DiscBoundaryClass.lean`: from Tau Ceti's main branch,
+     `Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl`,
+     on an inner product space the local orientation that an orientation
+     selects is the one of the identity chart.
    - `AlgebraicTopology/Singular/LocalHomology/BoundaryClass.lean`, imported
      by `DiscBoundaryClass.lean` and `BoundaryDegree.lean`: in any dimension `n + 1`,
      `TauCeti.HomologicalOrientation.boundaryClass`, the image of

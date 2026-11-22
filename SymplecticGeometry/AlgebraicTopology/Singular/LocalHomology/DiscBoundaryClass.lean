@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.AlgebraicTopology.Singular.Circle
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.BoundaryClass
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OrientedChart
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Linear
 public import SymplecticGeometry.Analysis.Normed.Module.Ball.Collar
 public import TauCeti.Geometry.Manifold.Complex.FundamentalClass
 
@@ -270,7 +271,7 @@ theorem _root_.TauCeti.complexHomologicalOrientation_apply_zero :
       OpenPartialHomeomorph.refl ℂ ∈ IsManifold.maximalAtlas (modelWithCornersSelf ℂ ℂ) 1 ℂ := by
     simpa using IsManifold.chart_mem_maximalAtlas (I := modelWithCornersSelf ℂ ℂ) (n := 1) (0 : ℂ)
   rw [complexHomologicalOrientation_apply_of_mem_maximalAtlas hrefl h0,
-    Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl _ _ h0]
+    Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl]
 
 /-- **The local orientation of `ℂ` generates `H₁(S¹)`.** The connecting morphism of the pair
 `(ℂ, ℂ ∖ {0})`, followed by radial projection `z ↦ z / |z|` onto `Circle`, sends the local
