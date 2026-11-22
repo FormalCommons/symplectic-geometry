@@ -113,25 +113,9 @@ theorem exists_symplectomorphism_opens_mfderiv_eq [SecondCountableTopology M₀]
   -- Since `A q` is symplectic, the two forms agree at `f₀ q`.
   have heq (q : Q) : σ₁.val (g q) = σ₀.val (g q) := by
     rw [hg q]
-    -- The tangent spaces of `U₀`, `U₁`, `M₀` and `M₁` are all model spaces, so `A q` is also a
-    -- linear map between the tangent spaces of the open subsets.
-    refine SmoothTwoForm.coe_mpullback_apply_eq_of_mfderiv_eq ψ'.contMDiff
-      (hω₀.isNondegenerate.mpullback_subtype_val U₀)
-      (hω₁.isNondegenerate.mpullback_subtype_val U₁) (A q) ?_ rfl (hψ'd q)
-    rw [SymplecticForm.isSymplectomorphism_iff]
-    intro v w
-    have h : SmoothBundleForm.eval₂ ω₁ (f₁ q) (A q v) (A q w) =
-        SmoothBundleForm.eval₂ ω₀ (f₀ q) v w := by
-      have h := (hAω q).apply v w
-      simp only [SmoothTwoForm.IsNondegenerate.toBilinForm_symplecticFormAt,
-        ContinuousLinearEquiv.coe_toLinearEquiv] at h
-      exact (SmoothForm.bilinFormAt_apply ω₁ (f₁ q) _ _).symm.trans
-        (h.trans (SmoothForm.bilinFormAt_apply ω₀ (f₀ q) v w))
-    simp only [SmoothTwoForm.IsNondegenerate.symplecticFormAt_apply, SmoothForm.eval₂_mpullback,
-      Manifold.mfderiv_subtype_val, ContinuousLinearEquiv.coe_coe]
-    rw [Manifold.tangentSpaceOpenEquiv_apply, Manifold.tangentSpaceOpenEquiv_apply,
-      Manifold.tangentSpaceOpenEquiv_apply, Manifold.tangentSpaceOpenEquiv_apply, hψ'f q]
-    exact h
+    exact SmoothTwoForm.coe_mpullback_apply_eq_of_mfderiv_eq ψ'.contMDiff _ _ (A q)
+      (hω₀.isNondegenerate.isSymplectomorphism_mpullback_subtype_val hω₁.isNondegenerate
+        (hψ'f q) (A q) (hAω q)) rfl (hψ'd q)
   obtain ⟨V₀, V₁, χ, hχf, hχ⟩ := g.exists_diffeomorph_opens_of_eq_along
     (hω₀.isClosed.mpullback _ _) ((hω₁.isClosed.mpullback _ _).mpullback _ _)
     (fun q ↦ (SmoothTwoForm.nondegenerate_bilinFormAt_mpullback_subtype_val_iff _).2
