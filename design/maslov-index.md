@@ -836,7 +836,8 @@ forms relative to `V₀`.
   file imports `Analysis/SpecialFunctions/SmoothTransition.lean` (*Smooth
   families*) for `TauCeti.deriv_collaredSmoothTransition_pos` and the
   eventual constancy of `TauCeti.collaredSmoothTransition`, which that
-  reparametrization uses.
+  reparametrization uses, and `Analysis/Calculus/ContDiff/Concat.lean` (*Smooth
+  families*) for `curveTrans`, the glued frame.
 - **Milestone theorem** `pathMaslovIndex_eq_crossing_sum_and_properties`, in
   `SymplecticGeometry` like the other three milestone theorems: one
   conjunction of `ℒ.eventually_not_crossing_of_regular`,

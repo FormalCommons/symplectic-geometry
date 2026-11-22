@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Crossing.Path
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Path.RegularPieces
+import SymplecticGeometry.Analysis.Calculus.ContDiff.Concat
 import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 import TauCeti.Analysis.Matrix.ContDiff
 import TauCeti.Geometry.Manifold.Instances.Icc.CollaredSmoothTransition
@@ -146,53 +147,6 @@ private theorem IsRegularFrame.mul_const {Λ Λ' : ℒ ι} {γ : Path Λ Λ'} {V
     rw [hd]
     exact (Classical.choice e).nondegenerate_iff.1 (h.nondegenerate t ht)
 
-/-- The frame of a catenation: `Z₁` at twice the speed on `[0, 1 / 2]`, then `Z₂`. -/
-private noncomputable def glue (Z₁ Z₂ : ℝ → Matrix (ι ⊕ ι) ι ℝ) (s : ℝ) : Matrix (ι ⊕ ι) ι ℝ :=
-  if s ≤ 1 / 2 then Z₁ (2 * s) else Z₂ (2 * s - 1)
-
-omit [Fintype ι] [DecidableEq ι] in
-private theorem glue_of_le {Z₁ Z₂ : ℝ → Matrix (ι ⊕ ι) ι ℝ} {s : ℝ} (hs : s ≤ 1 / 2) :
-    glue Z₁ Z₂ s = Z₁ (2 * s) :=
-  ite_eq_left hs
-
-omit [Fintype ι] [DecidableEq ι] in
-private theorem glue_of_lt {Z₁ Z₂ : ℝ → Matrix (ι ⊕ ι) ι ℝ} {s : ℝ} (hs : 1 / 2 < s) :
-    glue Z₁ Z₂ s = Z₂ (2 * s - 1) :=
-  ite_eq_right (not_le.2 hs)
-
-omit [Fintype ι] [DecidableEq ι] in
-private theorem glue_eventuallyEq_left {Z₁ Z₂ : ℝ → Matrix (ι ⊕ ι) ι ℝ} {t : ℝ} (ht : t < 1 / 2) :
-    glue Z₁ Z₂ =ᶠ[𝓝 t] fun s ↦ Z₁ (2 * s) := by
-  filter_upwards [Iio_mem_nhds ht] with s hs
-  exact glue_of_le hs.le
-
-omit [Fintype ι] [DecidableEq ι] in
-private theorem glue_eventuallyEq_right {Z₁ Z₂ : ℝ → Matrix (ι ⊕ ι) ι ℝ} {t : ℝ} (ht : 1 / 2 < t) :
-    glue Z₁ Z₂ =ᶠ[𝓝 t] fun s ↦ Z₂ (2 * s - 1) := by
-  filter_upwards [Ioi_mem_nhds ht] with s hs
-  exact glue_of_lt hs
-
-omit [Fintype ι] [DecidableEq ι] in
-/-- The glued frame is constant near `0` when the first frame is. -/
-private theorem glue_eventuallyEq_zero {Z₁ Z₂ : ℝ → Matrix (ι ⊕ ι) ι ℝ}
-    (h : Z₁ =ᶠ[𝓝 0] fun _ ↦ Z₁ 0) : glue Z₁ Z₂ =ᶠ[𝓝 0] fun _ ↦ glue Z₁ Z₂ 0 := by
-  have ht : Tendsto (fun s : ℝ ↦ 2 * s) (𝓝 0) (𝓝 0) :=
-    (by fun_prop : Continuous fun s : ℝ ↦ 2 * s).tendsto' 0 0 (by norm_num)
-  filter_upwards [glue_eventuallyEq_left (Z₁ := Z₁) (Z₂ := Z₂) (by norm_num : (0 : ℝ) < 1 / 2),
-    ht.eventually h] with s hs hs'
-  rw [hs, hs', glue_of_le (by norm_num), mul_zero]
-
-omit [Fintype ι] [DecidableEq ι] in
-/-- The glued frame is constant near `1` when the second frame is. -/
-private theorem glue_eventuallyEq_one {Z₁ Z₂ : ℝ → Matrix (ι ⊕ ι) ι ℝ}
-    (h : Z₂ =ᶠ[𝓝 1] fun _ ↦ Z₂ 1) : glue Z₁ Z₂ =ᶠ[𝓝 1] fun _ ↦ glue Z₁ Z₂ 1 := by
-  have ht : Tendsto (fun s : ℝ ↦ 2 * s - 1) (𝓝 1) (𝓝 1) :=
-    (by fun_prop : Continuous fun s : ℝ ↦ 2 * s - 1).tendsto' 1 1 (by norm_num)
-  filter_upwards [glue_eventuallyEq_right (Z₁ := Z₁) (Z₂ := Z₂) (by norm_num : (1 / 2 : ℝ) < 1),
-    ht.eventually h] with s hs hs'
-  rw [hs, hs', glue_of_lt (by norm_num)]
-  norm_num
-
 /-- **Gluing frames.** If the frame of `γ₁` is constant near `1`, that of `γ₂` constant near `0`,
 the two agree at the junction, and the junction is not a crossing, then the glued frame is a
 regular frame of the catenation. -/
@@ -201,29 +155,13 @@ private theorem IsRegularFrame.trans {Λ₀ Λ₁ Λ₂ : ℒ ι} {γ₁ : Path 
     (h₂ : IsRegularFrame γ₂ V Z₂) (hZ₁ : Z₁ =ᶠ[𝓝 1] fun _ ↦ Z₁ 1)
     (hZ₂ : Z₂ =ᶠ[𝓝 0] fun _ ↦ Z₂ 0) (h₁₂ : Z₂ 0 = Z₁ 1)
     (hΛ₁ : (Λ₁ : Submodule ℝ (StdSpace ι)) ⊓ V = ⊥) :
-    IsRegularFrame (γ₁.trans γ₂) V (glue Z₁ Z₂) := by
-  have hl : ContDiff ℝ ∞ fun s : ℝ ↦ Z₁ (2 * s) := h₁.contDiff.comp (contDiff_const.mul contDiff_id)
-  have hr : ContDiff ℝ ∞ fun s : ℝ ↦ Z₂ (2 * s - 1) :=
-    h₂.contDiff.comp ((contDiff_const.mul contDiff_id).sub contDiff_const)
-  have hmid : glue Z₁ Z₂ =ᶠ[𝓝 (1 / 2)] fun _ ↦ Z₁ 1 := by
-    have t₁ : Tendsto (fun s : ℝ ↦ 2 * s) (𝓝 (1 / 2)) (𝓝 1) :=
-      (by fun_prop : Continuous fun s : ℝ ↦ 2 * s).tendsto' _ _ (by norm_num)
-    have t₂ : Tendsto (fun s : ℝ ↦ 2 * s - 1) (𝓝 (1 / 2)) (𝓝 0) :=
-      (by fun_prop : Continuous fun s : ℝ ↦ 2 * s - 1).tendsto' _ _ (by norm_num)
-    filter_upwards [t₁.eventually hZ₁, t₂.eventually hZ₂] with s hs₁ hs₂
-    rcases le_or_gt s (1 / 2) with h | h
-    · rw [glue_of_le h]; exact hs₁
-    · rw [glue_of_lt h]; exact hs₂.trans h₁₂
-  refine ⟨contDiff_iff_contDiffAt.2 fun t ↦ ?_, fun t ↦ ?_, fun t ht ↦ ?_⟩
-  · rcases lt_trichotomy t (1 / 2) with h | rfl | h
-    · exact hl.contDiffAt.congr_of_eventuallyEq (glue_eventuallyEq_left h)
-    · exact contDiffAt_const.congr_of_eventuallyEq hmid
-    · exact hr.contDiffAt.congr_of_eventuallyEq (glue_eventuallyEq_right h)
+    IsRegularFrame (γ₁.trans γ₂) V (curveTrans Z₁ Z₂) := by
+  refine ⟨h₁.contDiff.curveTrans h₂.contDiff hZ₁ hZ₂ h₁₂.symm, fun t ↦ ?_, fun t ht ↦ ?_⟩
   · by_cases h : (t : ℝ) ≤ 1 / 2
-    · rw [Path.trans_apply, dite_eq_left h, glue_of_le h]
+    · rw [Path.trans_apply, dite_eq_left h, curveTrans_of_le_half h]
       exact h₁.range_eq
         ⟨2 * (t : ℝ), (unitInterval.mul_pos_mem_iff zero_lt_two).2 ⟨t.property.1, h⟩⟩
-    · rw [Path.trans_apply, dite_eq_right h, glue_of_lt (not_le.1 h)]
+    · rw [Path.trans_apply, dite_eq_right h, curveTrans_of_half_lt (not_le.1 h)]
       exact h₂.range_eq ⟨2 * (t : ℝ) - 1,
         unitInterval.two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, t.property.2⟩⟩
   · rw [Path.trans_apply] at ht
@@ -231,11 +169,12 @@ private theorem IsRegularFrame.trans {Λ₀ Λ₁ Λ₂ : ℒ ι} {γ₁ : Path 
     · rw [dite_eq_left h.le] at ht
       have key := h₁.nondegenerate ⟨2 * (t : ℝ),
         unitInterval.mul_pos_mem_iff zero_lt_two |>.2 ⟨t.property.1, h.le⟩⟩ ht
-      have hd := (h₁.hasDerivAt (2 * t)).scomp (t : ℝ) ((hasDerivAt_id' (t : ℝ)).const_mul 2)
-      rw [mul_one] at hd
-      have hd' : deriv (glue Z₁ Z₂) t = (2 : ℝ) • deriv Z₁ (2 * t) :=
-        (hd.congr_of_eventuallyEq (glue_eventuallyEq_left h)).deriv
-      rw [hd', glue_of_le h.le,
+      -- `deriv` in `IsRegularFrame` is for the default topology of matrices, and that of
+      -- `HasDerivAt.curveTrans_of_lt_half` for the entrywise norm: equal, but not syntactically, so
+      -- we state `hd` with the former before rewriting with it.
+      have hd : deriv (curveTrans Z₁ Z₂) t = (2 : ℝ) • deriv Z₁ (2 * t) :=
+        (HasDerivAt.curveTrans_of_lt_half (h₁.hasDerivAt (2 * t)) h).deriv
+      rw [hd, curveTrans_of_le_half h.le,
         nondegenerate_lagrangianCrossingForm_smul_iff _ _ two_ne_zero]
       exact key
     · rw [dite_eq_left h.le] at ht
@@ -245,12 +184,9 @@ private theorem IsRegularFrame.trans {Λ₀ Λ₁ Λ₂ : ℒ ι} {γ₁ : Path 
     · rw [dite_eq_right (not_le.2 h)] at ht
       have key := h₂.nondegenerate ⟨2 * (t : ℝ) - 1,
         unitInterval.two_mul_sub_one_mem_iff.2 ⟨h.le, t.property.2⟩⟩ ht
-      have hd := (h₂.hasDerivAt (2 * t - 1)).scomp (t : ℝ)
-        (((hasDerivAt_id' (t : ℝ)).const_mul 2).sub_const 1)
-      rw [mul_one] at hd
-      have hd' : deriv (glue Z₁ Z₂) t = (2 : ℝ) • deriv Z₂ (2 * t - 1) :=
-        (hd.congr_of_eventuallyEq (glue_eventuallyEq_right h)).deriv
-      rw [hd', glue_of_lt h,
+      have hd : deriv (curveTrans Z₁ Z₂) t = (2 : ℝ) • deriv Z₂ (2 * t - 1) :=
+        (HasDerivAt.curveTrans_of_half_lt (h₂.hasDerivAt (2 * t - 1)) h).deriv
+      rw [hd, curveTrans_of_half_lt h,
         nondegenerate_lagrangianCrossingForm_smul_iff _ _ two_ne_zero]
       exact key
 
@@ -337,8 +273,8 @@ private theorem IsRegularFrame.exists_trans {Λ₀ Λ₁ Λ₂ : ℒ ι} {γ₁ 
   have hZ₂g : (fun s ↦ Z₂ s * (g : Matrix ι ι ℝ)) =ᶠ[𝓝 0] fun _ ↦ Z₂ 0 * (g : Matrix ι ι ℝ) := by
     filter_upwards [hZ₂] with s hs
     rw [hs]
-  refine ⟨_, (h₁.trans (h₂.mul_const g) hZ₁ hZ₂g hg hΛ₁), glue_eventuallyEq_zero,
-    fun h ↦ glue_eventuallyEq_one ?_⟩
+  refine ⟨_, (h₁.trans (h₂.mul_const g) hZ₁ hZ₂g hg hΛ₁), curveTrans_eventuallyEq_zero,
+    fun h ↦ curveTrans_eventuallyEq_one ?_⟩
   filter_upwards [h] with s hs
   rw [hs]
 
