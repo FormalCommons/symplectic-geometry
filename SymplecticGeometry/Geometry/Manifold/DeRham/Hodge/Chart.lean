@@ -30,7 +30,10 @@ Let `M` be an oriented Riemannian manifold of dimension `m` modelled on `E`, and
 in `ψ` as the flat form `mpullback 𝓘(ℝ, E) I ψ.symm φ` on `E`. This file gives the coordinate
 expressions, on `ψ.target`, of the inner product of forms, of the Hodge star and of the
 codifferential, in terms of the metric in the chart `PartialDiffeomorph.gramInChart ψ`
-(`SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph`).
+(`SymplecticGeometry.Geometry.Manifold.Riemannian.PartialDiffeomorph`). The inner product of
+forms in a chart and its pointwise lemmas hold for a chart of any regularity `n`, with `n ≠ 0`
+wherever the differentials of `ψ` and `ψ.symm` must be inverse to each other; only its
+smoothness needs `n = ∞`.
 
 ## Main definitions
 
@@ -506,7 +509,7 @@ section FormInner
 open Bundle
 open scoped Matrix
 
-variable [FiniteDimensional ℝ E] (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
+variable [FiniteDimensional ℝ E] {n : WithTop ℕ∞} (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E n)
 
 /-- The inner product of `k`-forms in the chart `ψ`: at `y`, the inner product
 `alternatingFormInner` of the tangent space at `ψ.symm y`, read on the forms on `E` through the
@@ -529,20 +532,19 @@ theorem formInnerInChart_apply (y : E) (β γ : E [⋀^Fin k]→L[ℝ] ℝ) :
 
 /-- On the target of the chart, the pointwise inner product of two forms at `ψ.symm y` is the
 inner product in the chart of their readings at `y`. -/
-theorem alternatingFormInner_eq_formInnerInChart (φ φ' : RoughForm I M ℝ k) {y : E}
+theorem alternatingFormInner_eq_formInnerInChart (hn : n ≠ 0) (φ φ' : RoughForm I M ℝ k)
+    {y : E}
     (hy : y ∈ ψ.target) :
     alternatingFormInner (TangentSpace I (ψ.symm y)) k (φ (ψ.symm y)) (φ' (ψ.symm y)) =
       formInnerInChart ψ y (mpullback 𝓘(ℝ, E) I ψ.symm φ y : E [⋀^Fin k]→L[ℝ] ℝ)
         (mpullback 𝓘(ℝ, E) I ψ.symm φ' y : E [⋀^Fin k]→L[ℝ] ℝ) := by
-  have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
   rw [← mpullback_symm_compContinuousLinearMap_mfderiv ψ hn φ hy,
     ← mpullback_symm_compContinuousLinearMap_mfderiv ψ hn φ' hy]
   exact (formInnerInChart_apply ψ y _ _).symm
 
 /-- On the target of the chart, the inner product of forms in the chart is positive definite. -/
-theorem formInnerInChart_self_pos {y : E} (hy : y ∈ ψ.target) {β : E [⋀^Fin k]→L[ℝ] ℝ}
-    (hβ : β ≠ 0) : 0 < formInnerInChart ψ y β β := by
-  have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
+theorem formInnerInChart_self_pos (hn : n ≠ 0) {y : E} (hy : y ∈ ψ.target)
+    {β : E [⋀^Fin k]→L[ℝ] ℝ} (hβ : β ≠ 0) : 0 < formInnerInChart ψ y β β := by
   rw [formInnerInChart_apply]
   refine (alternatingFormInner_self_nonneg _).lt_of_ne' fun h ↦ hβ ?_
   have h0 := alternatingFormInner_self_eq_zero.1 h
@@ -556,6 +558,63 @@ theorem formInnerInChart_self_pos {y : E} (hy : y ∈ ψ.target) {β : E [⋀^Fi
   erw [ContinuousAlternatingMap.compContinuousLinearMap_apply, Function.comp_def] at this
   convert this using 2
   exact (funext key).symm
+
+/-- The inner product of forms in a chart is symmetric. -/
+theorem formInnerInChart_comm (y : E) (β γ : E [⋀^Fin k]→L[ℝ] ℝ) :
+    formInnerInChart ψ y β γ = formInnerInChart ψ y γ β := by
+  rw [formInnerInChart_apply, formInnerInChart_apply, alternatingFormInner_comm]
+
+/-- The inner product in a chart, expanded in a basis `e` of the forms on `E`. -/
+theorem formInnerInChart_eq_sum_repr {κ : Type*} [Fintype κ]
+    (e : Module.Basis κ ℝ (E [⋀^Fin k]→L[ℝ] ℝ)) (y : E) (β γ : E [⋀^Fin k]→L[ℝ] ℝ) :
+    formInnerInChart ψ y β γ =
+      ∑ p, ∑ q, e.repr β p * e.repr γ q * formInnerInChart ψ y (e p) (e q) := by
+  conv_lhs => rw [← e.sum_repr β, ← e.sum_repr γ]
+  simp only [map_sum, map_smul, _root_.sum_apply, _root_.smul_apply, smul_eq_mul, Finset.mul_sum]
+  rw [Finset.sum_comm]
+  exact Finset.sum_congr rfl fun p _ ↦ Finset.sum_congr rfl fun q _ ↦ by ring
+
+/-- On the target of the chart, the Gram matrix of a basis of the forms on `E` for the inner
+product in the chart is positive definite. -/
+theorem posDef_formInnerInChart (hn : n ≠ 0) {κ : Type*} [Finite κ]
+    (e : Module.Basis κ ℝ (E [⋀^Fin k]→L[ℝ] ℝ)) {y : E} (hy : y ∈ ψ.target) :
+    (Matrix.of fun p q ↦ formInnerInChart ψ y (e p) (e q)).PosDef := by
+  classical
+  have := Fintype.ofFinite κ
+  have h := (LinearMap.BilinForm.posDef_toQuadraticMap_iff_matrix e
+    (formInnerInChart ψ y).toLinearMap₁₂
+    (LinearMap.BilinForm.isSymm_def.2 fun β γ ↦ formInnerInChart_comm ψ y β γ)).1
+    fun β hβ ↦ formInnerInChart_self_pos ψ hn hy hβ
+  convert h using 1
+  ext p q
+  rw [LinearMap.BilinForm.toMatrix_apply, Matrix.of_apply,
+    ContinuousLinearMap.toLinearMap₁₂_apply_apply_apply]
+
+/-- On the target of the chart, a form `β` is recovered from its inner products in the chart with
+the vectors of a basis `e` of the forms on `E`, through the inverse of the Gram matrix of `e`. -/
+theorem eq_sum_inv_mulVec_formInnerInChart (hn : n ≠ 0) {κ : Type*} [Fintype κ]
+    [DecidableEq κ]
+    (e : Module.Basis κ ℝ (E [⋀^Fin k]→L[ℝ] ℝ)) {y : E} (hy : y ∈ ψ.target)
+    (β : E [⋀^Fin k]→L[ℝ] ℝ) :
+    β = ∑ p, ((Matrix.of fun p q ↦ formInnerInChart ψ y (e p) (e q))⁻¹ *ᵥ
+      fun q ↦ formInnerInChart ψ y β (e q)) p • e p := by
+  set G := Matrix.of fun p q ↦ formInnerInChart ψ y (e p) (e q)
+  have hGz : (fun q ↦ formInnerInChart ψ y β (e q)) = G *ᵥ e.repr β := by
+    ext q
+    rw [formInnerInChart_comm, formInnerInChart_eq_sum_repr ψ e]
+    simp [G, Matrix.mulVec, dotProduct, mul_comm, Finsupp.single_apply]
+  have hG : IsUnit G.det := isUnit_iff_ne_zero.2 (posDef_formInnerInChart ψ hn e hy).det_pos.ne'
+  rw [hGz, Matrix.mulVec_mulVec, Matrix.nonsing_inv_mul G hG, Matrix.one_mulVec, e.sum_repr]
+
+end FormInner
+
+/-! ### Smoothness of the inner product of forms in a chart -/
+
+section FormInnerSmooth
+
+open Bundle
+
+variable [FiniteDimensional ℝ E] (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
 
 /-- The inner product of two fixed forms in a chart is smooth on the target of the chart. -/
 theorem contDiffOn_formInnerInChart_apply [T2Space M] [IsManifold I ∞ M]
@@ -587,27 +646,12 @@ theorem contDiffOn_formInnerInChart_apply [T2Space M] [IsManifold I ∞ M]
         (mpullback 𝓘(ℝ, E) I ψ.symm (ext δ).val y : E [⋀^Fin k]→L[ℝ] ℝ) = δ := by
       rw [SmoothForm.coe_extendByZeroAlong, mpullback_symm_extendByZeroAlong ψ _ hn hyt,
         θ.one_of_mem_closedBall hy, one_smul]
-    rw [alternatingFormInner_eq_formInnerInChart ψ _ _ hyt, h1, h1]
+    rw [alternatingFormInner_eq_formInnerInChart ψ hn _ _ hyt, h1, h1]
   have hψ : ContMDiffAt 𝓘(ℝ, E) I ∞ ψ.symm y₀ :=
     ψ.symm.contMDiffOn.contMDiffAt (ψ.open_target.mem_nhds hy₀)
   have hinner := (((ext β).isSmoothForm.contMDiff_alternatingFormInner
     (ext γ).isSmoothForm).contMDiffAt (x := ψ.symm y₀)).comp y₀ hψ
   exact (contMDiffAt_iff_contDiffAt.1 hinner).congr_of_eventuallyEq heq.symm |>.contDiffWithinAt
-
-/-- The inner product of forms in a chart is symmetric. -/
-theorem formInnerInChart_comm (y : E) (β γ : E [⋀^Fin k]→L[ℝ] ℝ) :
-    formInnerInChart ψ y β γ = formInnerInChart ψ y γ β := by
-  rw [formInnerInChart_apply, formInnerInChart_apply, alternatingFormInner_comm]
-
-/-- The inner product in a chart, expanded in a basis `e` of the forms on `E`. -/
-theorem formInnerInChart_eq_sum_repr {κ : Type*} [Fintype κ]
-    (e : Module.Basis κ ℝ (E [⋀^Fin k]→L[ℝ] ℝ)) (y : E) (β γ : E [⋀^Fin k]→L[ℝ] ℝ) :
-    formInnerInChart ψ y β γ =
-      ∑ p, ∑ q, e.repr β p * e.repr γ q * formInnerInChart ψ y (e p) (e q) := by
-  conv_lhs => rw [← e.sum_repr β, ← e.sum_repr γ]
-  simp only [map_sum, map_smul, _root_.sum_apply, _root_.smul_apply, smul_eq_mul, Finset.mul_sum]
-  rw [Finset.sum_comm]
-  exact Finset.sum_congr rfl fun p _ ↦ Finset.sum_congr rfl fun q _ ↦ by ring
 
 /-- The inner product in a chart of two forms that depend smoothly on the point is smooth on the
 target of the chart. -/
@@ -624,37 +668,6 @@ theorem contDiffOn_formInnerInChart [T2Space M] [IsManifold I ∞ M]
   exact ContDiffOn.sum fun p _ ↦ ContDiffOn.sum fun q _ ↦ ((hc p hf).mul (hc q hg)).mul
     ((contDiffOn_formInnerInChart_apply ψ (e p) (e q)).mono hs)
 
-/-- On the target of the chart, the Gram matrix of a basis of the forms on `E` for the inner
-product in the chart is positive definite. -/
-theorem posDef_formInnerInChart {κ : Type*} [Finite κ]
-    (e : Module.Basis κ ℝ (E [⋀^Fin k]→L[ℝ] ℝ)) {y : E} (hy : y ∈ ψ.target) :
-    (Matrix.of fun p q ↦ formInnerInChart ψ y (e p) (e q)).PosDef := by
-  classical
-  have := Fintype.ofFinite κ
-  have h := (LinearMap.BilinForm.posDef_toQuadraticMap_iff_matrix e
-    (formInnerInChart ψ y).toLinearMap₁₂
-    (LinearMap.BilinForm.isSymm_def.2 fun β γ ↦ formInnerInChart_comm ψ y β γ)).1
-    fun β hβ ↦ formInnerInChart_self_pos ψ hy hβ
-  convert h using 1
-  ext p q
-  rw [LinearMap.BilinForm.toMatrix_apply, Matrix.of_apply,
-    ContinuousLinearMap.toLinearMap₁₂_apply_apply_apply]
-
-/-- On the target of the chart, a form `β` is recovered from its inner products in the chart with
-the vectors of a basis `e` of the forms on `E`, through the inverse of the Gram matrix of `e`. -/
-theorem eq_sum_inv_mulVec_formInnerInChart {κ : Type*} [Fintype κ] [DecidableEq κ]
-    (e : Module.Basis κ ℝ (E [⋀^Fin k]→L[ℝ] ℝ)) {y : E} (hy : y ∈ ψ.target)
-    (β : E [⋀^Fin k]→L[ℝ] ℝ) :
-    β = ∑ p, ((Matrix.of fun p q ↦ formInnerInChart ψ y (e p) (e q))⁻¹ *ᵥ
-      fun q ↦ formInnerInChart ψ y β (e q)) p • e p := by
-  set G := Matrix.of fun p q ↦ formInnerInChart ψ y (e p) (e q)
-  have hGz : (fun q ↦ formInnerInChart ψ y β (e q)) = G *ᵥ e.repr β := by
-    ext q
-    rw [formInnerInChart_comm, formInnerInChart_eq_sum_repr ψ e]
-    simp [G, Matrix.mulVec, dotProduct, mul_comm, Finsupp.single_apply]
-  have hG : IsUnit G.det := isUnit_iff_ne_zero.2 (posDef_formInnerInChart ψ e hy).det_pos.ne'
-  rw [hGz, Matrix.mulVec_mulVec, Matrix.nonsing_inv_mul G hG, Matrix.one_mulVec, e.sum_repr]
-
-end FormInner
+end FormInnerSmooth
 
 end PartialDiffeomorph

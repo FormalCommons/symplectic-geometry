@@ -450,7 +450,7 @@ theorem l2Inner_eq_integral_formInnerInChart (o : Manifold.Orientation I M (Fin 
       simp [mul_assoc]
     rw [e, e]
     refine (hsm _ _ _).trans ?_
-    rw [← ψ.alternatingFormInner_eq_formInnerInChart _ _ hy]
+    rw [← ψ.alternatingFormInner_eq_formInnerInChart (by simp) _ _ hy]
     -- Restate the goal through `g`, so that both sides read `ψ.symm y` through the same coercion.
     change θ (ψ.symm y) * θ (ψ.symm y) * g (ψ.symm y) = g (ψ.symm y)
     exact hθg _
