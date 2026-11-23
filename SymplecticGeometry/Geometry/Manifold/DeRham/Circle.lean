@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Lie.Exponential.Circle
 public import TauCeti.Geometry.Manifold.DeRham.Circle
-import TauCeti.Analysis.SpecialFunctions.Complex.Arg
+import SymplecticGeometry.Analysis.Complex.RadialProjection
 
 /-!
 # The angular forms of the circle and of the plane
@@ -48,30 +48,6 @@ public section
 noncomputable section
 
 open scoped Manifold ContDiff
-
-/-! ### The radial projection of the punctured plane -/
-
-namespace Complex
-
-/-- The radial projection `z / ‖z‖` of a nonzero complex number lies on the unit circle. -/
-theorem norm_div_norm {z : ℂ} (hz : z ≠ 0) : ‖z / ‖z‖‖ = 1 := by
-  rw [norm_div, Complex.norm_real, norm_norm, div_self (norm_ne_zero_iff.2 hz)]
-
-/-- The radial projection `z ↦ z / ‖z‖` is real differentiable away from `0`. -/
-theorem differentiableAt_div_norm {w : ℂ} (hw : w ≠ 0) :
-    DifferentiableAt ℝ (fun z : ℂ ↦ z / ‖z‖) w := by
-  have h := (contDiffOn_div_norm_pow 1 (N := 1)).contDiffAt (isOpen_compl_singleton.mem_nhds hw)
-  simp only [pow_one] at h
-  exact h.differentiableAt one_ne_zero
-
-/-- For every integer `k`, the map `z ↦ (z / ‖z‖) ^ k` is real differentiable away from `0`. -/
-theorem differentiableAt_div_norm_zpow {w : ℂ} (hw : w ≠ 0) (k : ℤ) :
-    DifferentiableAt ℝ (fun z : ℂ ↦ (z / ‖z‖) ^ k) w := by
-  have hn := norm_div_norm hw
-  exact ((differentiableAt_zpow.2 (Or.inl fun h ↦ by simp [h] at hn)).restrictScalars ℝ).comp w
-    (differentiableAt_div_norm hw)
-
-end Complex
 
 namespace TauCeti
 
