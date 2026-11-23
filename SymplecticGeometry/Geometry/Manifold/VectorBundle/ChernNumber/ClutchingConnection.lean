@@ -10,7 +10,6 @@ public import SymplecticGeometry.Geometry.Manifold.DeRham.RadialAngularForm
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
-import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 
 /-!
 # A connection built from clutching frames, and its curvature
@@ -84,17 +83,8 @@ private theorem mpullback_circleAngularForm_eq_of_eventuallyEq_phase_zpow
   have hrange : IsOpen (range φ) := φ.isOpenEmbedding.isOpen_range
   have hcx : MDifferentiableAt (𝓡 2) 𝓘(ℝ, ℂ) φ.coord x :=
     (hcoord.contMDiffAt (hrange.mem_nhds hx)).mdifferentiableAt (by simp)
-  -- The map `z ↦ (z / ‖z‖) ^ k` is differentiable at `w ≠ 0`.
-  have hdiv : DifferentiableAt ℝ (fun z : ℂ ↦ z / ‖z‖) w := by
-    have h := (Complex.contDiffOn_div_norm_pow 1 (N := 1)).contDiffAt
-      (isOpen_compl_singleton.mem_nhds hx0)
-    simp only [pow_one] at h
-    exact h.differentiableAt one_ne_zero
-  have hn : ‖w / ‖w‖‖ = 1 := by
-    rw [norm_div, Complex.norm_real, norm_norm, div_self (norm_ne_zero_iff.2 hx0)]
   have hpow : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun z : ℂ ↦ (z / ‖z‖) ^ k) w :=
-    (((differentiableAt_zpow.2 (Or.inl fun h ↦ by simp [h] at hn)).restrictScalars ℝ).comp w
-      hdiv).mdifferentiableAt
+    (Complex.differentiableAt_div_norm_zpow hx0 k).mdifferentiableAt
   -- Near `x`, `D`, read in `ℂ`, is `(z / ‖z‖) ^ k` in the coordinate `z`.
   have hW : IsOpen {y ∈ range φ | φ.coord y ≠ 0} :=
     φ.continuousOn_coord.isOpen_inter_preimage hrange isOpen_compl_singleton
@@ -108,9 +98,8 @@ private theorem mpullback_circleAngularForm_eq_of_eventuallyEq_phase_zpow
     rw [hβ, one_div, smul_smul]
   have hcoe : MDifferentiableAt (𝓡 1) 𝓘(ℝ, ℂ) (fun z : Circle ↦ (z : ℂ)) (D x) :=
     (contMDiff_coe_sphere (n := 1) (D x)).mdifferentiableAt one_ne_zero
-  rw [circleAngularForm_def, ← mpullback_comp_at hD hcoe]
-  change mpullback (𝓡 2) 𝓘(ℝ, ℂ) (fun y ↦ (D y : ℂ)) planeAngularForm x = _
-  rw [hcomp.mpullback_eq, mpullback_comp_at hcx hpow]
+  rw [circleAngularForm_def, ← mpullback_comp_at hD hcoe, Function.comp_def, hcomp.mpullback_eq,
+    mpullback_comp_at hcx hpow]
   ext v
   rw [mpullback_apply, hρ, ContinuousAlternatingMap.smul_apply,
     ContinuousAlternatingMap.smul_apply, mpullback_apply]
@@ -193,9 +182,8 @@ private theorem mpullback_apply_eq_add_of_collar
       (fun y ↦ PrincipalBundle.division Circle (σ y) (σout y)) (φ z) :=
     (((hσ.contMDiffAt (hrange.mem_nhds (mem_range_self z))).division hσout)).mdifferentiableAt
       (by simp)
-  rw [hα.mpullback_apply_eq_mpullback_division_add hrange
-      (ManifoldTotalSpace.continuousOn_of_contMDiffOn_homeomorph hσ) hσ
-      (mem_range_self z) (hσout.mdifferentiableAt (by simp)),
+  rw [hα.mpullback_apply_eq_mpullback_division_add hrange hσ (mem_range_self z)
+      (hσout.mdifferentiableAt (by simp)),
     mpullback_circleAngularForm_eq_of_eventuallyEq_phase_zpow φ hcoord
       (mem_range_self z) (by rwa [CoordinateDisc.coord_apply]) hD hDk
       (by rw [CoordinateDisc.coord_apply]; exact hβb _ hbz), add_comm]
@@ -339,7 +327,7 @@ theorem exists_isCircleConnectionForm_of_collar_eq_zpow_smul {ι : Type*} [Finit
         (fun y : ManifoldTotalSpace Circle P ↦
           ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
         (ManifoldTotalSpace.contMDiff_proj ∞ Circle P (𝓡 2) (𝓡 1)) a').val y = A τ y + a y :=
-    mpullback_add_mpullback_proj_apply α₀ a' (hτ.mdifferentiableAt (by simp))
+    ManifoldTotalSpace.mpullback_add_mpullback_proj_apply α₀ a' (hτ.mdifferentiableAt (by simp))
   -- off the discs of radius `b` the curvature vanishes
   have hcurv_out {x : M} (hx : x ∈ U) : hα.curvature.val x = 0 := by
     rw [hα.curvature_apply_eq_mextDeriv_mpullback (hsout (hUC hx)),

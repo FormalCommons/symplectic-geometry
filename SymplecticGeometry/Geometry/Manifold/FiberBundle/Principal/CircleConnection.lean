@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartitionOfUnity
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
 
@@ -63,8 +64,6 @@ section `σ`, a connection form is `θ^* dθ + π^* (σ^* α)`.
   the trivialization of a local section.
 * `SymplecticGeometry.IsCircleConnectionForm.mpullback_apply_eq_mpullback_division_add`: a change
   of local section `τ = σ • g` adds `g^* dθ` to the pull-back of a connection form.
-* `SymplecticGeometry.mpullback_add_mpullback_proj_apply`: the pull-back of `α + π^* a` along a
-  section is the pull-back of `α` plus `a`.
 * `SymplecticGeometry.IsCircleConnectionForm.curvature_apply_eq_mextDeriv_mpullback`: near a
   point where a section `σ` is smooth, the curvature is `d (σ^* α)`.
 
@@ -614,8 +613,7 @@ pull-back of the angular form `dθ` of the circle along the transition `g = σ�
 `τ = σ • g` (`TauCeti.PrincipalBundle.division`): `τ^* α = σ^* α + g^* dθ`. -/
 theorem IsCircleConnectionForm.mpullback_apply_eq_mpullback_division_add
     (hα : IsCircleConnectionForm α) {σ τ : ∀ b, P b} {U : Set B} (hU : IsOpen U)
-    (hσ : ContinuousOn (fun b ↦ TotalSpace.mk' Circle b (σ b)) U)
-    (hσ' : ContMDiffOn IB (IB.prod (𝓡 1)) ∞
+    (hσ : ContMDiffOn IB (IB.prod (𝓡 1)) ∞
       (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) U)
     {x : B} (hx : x ∈ U)
     (hτ : MDifferentiableAt IB (IB.prod (𝓡 1))
@@ -626,11 +624,13 @@ theorem IsCircleConnectionForm.mpullback_apply_eq_mpullback_division_add
           circleAngularForm x +
         TauCeti.mpullback IB (IB.prod (𝓡 1))
           (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) α.val x := by
+  have hσc : ContinuousOn (fun b ↦ TotalSpace.mk' Circle b (σ b)) U :=
+    ManifoldTotalSpace.continuousOn_of_contMDiffOn_homeomorph hσ
   set t := fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, τ b⟩
   set p := fun y : ManifoldTotalSpace Circle P ↦
     ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj
   set θ := fun y : ManifoldTotalSpace Circle P ↦
-    (PrincipalBundle.trivializationOfSection σ hU hσ
+    (PrincipalBundle.trivializationOfSection σ hU hσc
       ((ManifoldTotalSpace.homeomorph Circle P).symm y)).2
   have hpt : p ∘ t = id := funext fun b ↦ by simp [p, t]
   -- Along `τ`, the fibre coordinate of the trivialization of `σ` is the transition `σ⁻¹ τ`.
@@ -641,12 +641,12 @@ theorem IsCircleConnectionForm.mpullback_apply_eq_mpullback_division_add
   have hxt : p (t x) ∈ U := by simpa [p, t] using hx
   have hθd : MDifferentiableAt (IB.prod (𝓡 1)) (𝓡 1) θ (t x) :=
     ((contMDiff_snd.comp_contMDiffOn (PrincipalBundle.contMDiffOn_trivializationOfSection
-      (hU := hU) (hσ := hσ) hσ')).contMDiffAt ((hU.preimage
+      (hU := hU) (hσ := hσc) hσ)).contMDiffAt ((hU.preimage
         (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)).continuous).mem_nhds
           hxt)).mdifferentiableAt (by simp)
   have hpd : MDifferentiableAt (IB.prod (𝓡 1)) IB p (t x) :=
     (ManifoldTotalSpace.contMDiff_proj 1 Circle P IB (𝓡 1) _).mdifferentiableAt one_ne_zero
-  have hloc := hα.apply_eq_mpullback_add_mpullback hU hσ hσ' hxt
+  have hloc := hα.apply_eq_mpullback_add_mpullback hU hσc hσ hxt
   have h : TauCeti.mpullback IB (IB.prod (𝓡 1)) t α.val x =
       TauCeti.mpullback IB (IB.prod (𝓡 1)) t
         (TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) θ circleAngularForm +
@@ -657,29 +657,6 @@ theorem IsCircleConnectionForm.mpullback_apply_eq_mpullback_division_add
     rfl
   rw [h, mpullback_add, Pi.add_apply, ← mpullback_comp_at hτ hθd, ← mpullback_comp_at hτ hpd,
     hθt, hpt, mpullback_id]
-
-omit [∀ b, MulAction Circleᵐᵒᵖ (P b)] [PrincipalBundle Circle P] in
-/-- The pull-back of `α + π^* a` along a section `τ` of `P` differentiable at `x`, read as a map
-into the charted total space, is `τ^* α + a` at `x`. -/
-theorem mpullback_add_mpullback_proj_apply
-    (α : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1)
-    (a : SmoothForm IB B ℝ 1) {τ : ∀ b, P b} {x : B}
-    (hτ : MDifferentiableAt IB (IB.prod (𝓡 1))
-      (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, τ b⟩) x) :
-    TauCeti.mpullback IB (IB.prod (𝓡 1))
-        (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, τ b⟩)
-        (α + SmoothForm.mpullback (fun y : ManifoldTotalSpace Circle P ↦
-          ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
-          (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) a).val x =
-      TauCeti.mpullback IB (IB.prod (𝓡 1))
-        (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, τ b⟩) α.val x + a.val x := by
-  have hpt : (fun y : ManifoldTotalSpace Circle P ↦
-      ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj) ∘
-        (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, τ b⟩) = id :=
-    funext fun b ↦ by simp
-  rw [Submodule.coe_add, SmoothForm.coe_mpullback, mpullback_add, Pi.add_apply,
-    ← mpullback_comp_at hτ ((ManifoldTotalSpace.contMDiff_proj 1 Circle P IB (𝓡 1)
-      _).mdifferentiableAt one_ne_zero), hpt, mpullback_id]
 
 /-- **The curvature in a local section.** At a point `x` near which a section `σ` of `P` is
 smooth, read as a map into the charted total space, the curvature of a connection form `α` is the
