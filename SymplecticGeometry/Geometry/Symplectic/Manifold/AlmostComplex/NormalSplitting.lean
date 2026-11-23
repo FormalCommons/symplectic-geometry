@@ -9,6 +9,9 @@ public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.C
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Prod
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Representative
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Pullback
+public import TauCeti.Geometry.Symplectic.Manifold.Volume
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Volume
+import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Splitting
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Representative
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Orthogonal
@@ -31,7 +34,9 @@ two-form on `f *ᵖ TX` that tames `Jf`. Then:
 * `ω` read through `df` is a nondegenerate two-form `σ` on `TM`, positive on the pairs
   `(u, v)` with `df v = J (df u)`. This is `ω.compMFDeriv f f.contMDiff`
   (`SymplecticGeometry.Bundle.ContMDiffTwoForm.compMFDeriv`, defined for any smooth map in
-  `SymplecticGeometry/Geometry/Manifold/VectorBundle/Symplectic/Pullback.lean`);
+  `SymplecticGeometry/Geometry/Manifold/VectorBundle/Symplectic/Pullback.lean`). When `M` is a
+  surface, the symplectic orientation of `σ` is the orientation of `M` in which every frame
+  `(u, v)` with `df v = J (df u)` is positive;
 * `ω` read through the representatives in `W^ω` of the normal classes is a two-form `ω_ν` on the
   normal bundle `ν`, compatible with the complex structure that `J` induces on `ν` when `ω` is
   compatible with `Jf`;
@@ -55,7 +60,9 @@ Hausdorff σ-compact `M`, a form compatible with `Jf` exists by
 * `TauCeti.SmoothEmbedding.isCompl_tangentRange_orthogonal`: `W_x` and `W_x^ω` are complements;
   `TauCeti.SmoothEmbedding.pullbackComplexStructure_mem_orthogonal`: `W_x^ω` is `Jf`-invariant.
 * `TauCeti.SmoothEmbedding.isNondegenerate_compMFDeriv`,
-  `TauCeti.SmoothEmbedding.compMFDeriv_pos`.
+  `TauCeti.SmoothEmbedding.compMFDeriv_pos`;
+  `TauCeti.SmoothEmbedding.volumeOrientation_compMFDeriv`: on a surface, the symplectic
+  orientation of `ω(df ·, df ·)` is the orientation given by `J`.
 * `TauCeti.SmoothEmbedding.normalForm_normalClass`,
   `TauCeti.SmoothEmbedding.compatible_normalForm`.
 * `TauCeti.SmoothEmbedding.contMDiff_normalSplitting`: the splitting is smooth on total spaces;
@@ -226,6 +233,45 @@ theorem isNondegenerate_compMFDeriv
   have h := compMFDeriv_pos hω h0 hv
   rw [ContMDiffTwoForm.bilinFormAt_apply] at h
   exact h.ne' (hu v)
+
+omit [FiniteDimensional ℝ E] in
+/-- **The area form induced by a taming form gives the orientation of `J`.** Let `f` embed a
+surface `M` so that `J` preserves its tangent planes, and let `ω` be a two-form on `f *ᵖ TX`
+that tames the pull-back of `J`. If `o` is the orientation of `M` for which every basis `(u, v)`
+of `T_c M` with `df v = J (df u)` is positive, then `o` is the symplectic orientation of the
+nondegenerate two-form `ω(df ·, df ·)` on `M`. -/
+theorem volumeOrientation_compMFDeriv (hE' : finrank ℝ E' = 2)
+    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
+    (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff))
+    {o : Manifold.Orientation I' M (Fin 2)}
+    (ho : ∀ c (b : Basis (Fin 2) ℝ (TangentSpace I' c)),
+      mfderiv I' I f c (b 1) = J (f c) (mfderiv I' I f c (b 0)) →
+        b.orientation = o.orientationAt c) :
+    (ContMDiffTwoForm.isNondegenerate_tangentEquiv_iff.2
+        (isNondegenerate_compMFDeriv hJ hω)).volumeOrientation (n := 1) hE' = o := by
+  have : Nontrivial E' := Module.nontrivial_of_finrank_pos (R := ℝ) (by omega)
+  ext x
+  -- A frame `(u, v)` with `df v = J (df u)` is positive for `o`, and `ω(df u, df v) > 0`.
+  obtain ⟨u, hu⟩ := exists_ne (0 : TangentSpace I' x)
+  obtain ⟨v, hv⟩ := hJ x _ ⟨u, rfl⟩
+  have hpos := compMFDeriv_pos hω hu hv
+  have hli : LinearIndependent ℝ ![u, v] := by
+    refine LinearIndependent.pair_iff.2 fun s t hst ↦ ?_
+    have h0 := congrArg ((ω.compMFDeriv f f.contMDiff).bilinFormAt x u) hst
+    rw [map_add, map_smul, map_smul, (ω.compMFDeriv f f.contMDiff).isAlt_bilinFormAt x u,
+      map_zero, smul_zero, zero_add, smul_eq_mul, mul_eq_zero] at h0
+    obtain rfl : t = 0 := h0.resolve_right hpos.ne'
+    rw [zero_smul, add_zero, smul_eq_zero] at hst
+    exact ⟨hst.resolve_right hu, rfl⟩
+  let b := basisOfLinearIndependentOfCardEqFinrank hli (by simpa using hE'.symm)
+  have hb : ⇑b = ![u, v] := coe_basisOfLinearIndependentOfCardEqFinrank _ _
+  rw [← ho x b (by simpa [hb] using hv)]
+  refine ((SmoothTwoForm.IsNondegenerate.orientation_eq_orientationAt_volumeOrientation_iff
+    (ContMDiffTwoForm.isNondegenerate_tangentEquiv_iff.2 (isNondegenerate_compMFDeriv hJ hω))
+    (n := 1) hE' b).2 ?_).symm
+  rw [SmoothTwoForm.volumeForm_one, ContMDiffTwoForm.tangentEquiv_apply, hb,
+    ← ContMDiffTwoForm.bilinFormAt_apply]
+  exact hpos
 
 /-! ### The projection onto the tangent image -/
 
