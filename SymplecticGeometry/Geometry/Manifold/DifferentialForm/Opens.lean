@@ -174,7 +174,7 @@ theorem RoughForm.inChartAt_mpullback_subtype_val_eventuallyEq {U : Opens M}
   have hmf : mfderivWithin 𝓘(ℝ, E) I (Subtype.val ∘ (extChartAt I x).symm) (range I) z =
       mfderivWithin 𝓘(ℝ, E) I (extChartAt I (x : M)).symm (range I) z :=
     hev.symm.mfderivWithin_eq h0
-  rw [inChartAt_mpullback γ _ x hz mdifferentiableAt_subtypeVal, hmf,
+  rw [inChartAt_mpullback γ _ x hz SymplecticGeometry.mdifferentiableAt_subtypeVal, hmf,
     ← Function.comp_apply (f := Subtype.val), h0]
   ext v
   exact (inChartAt_apply γ (x : M) z v).symm
@@ -239,8 +239,8 @@ theorem mpullback_toDiffeomorphSourceTarget (Φ : PartialDiffeomorph I I' M M' �
   rw [TauCeti.SmoothForm.coe_mpullback_subtype_val_apply τ z, TauCeti.SmoothForm.coe_mpullback,
     TauCeti.SmoothForm.coe_mpullback,
     ← TauCeti.mpullback_comp_at (φ.contMDiff.mdifferentiableAt (by simp))
-      mdifferentiableAt_subtypeVal, hφΦ,
-    TauCeti.mpullback_comp_at mdifferentiableAt_subtypeVal
+      SymplecticGeometry.mdifferentiableAt_subtypeVal, hφΦ,
+    TauCeti.mpullback_comp_at SymplecticGeometry.mdifferentiableAt_subtypeVal
       (Φ.mdifferentiableAt (by simp) z.property), TauCeti.mpullback_subtype_val_apply,
     h z z.property]
 

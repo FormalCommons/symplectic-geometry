@@ -38,6 +38,8 @@ its differential as a tangent coordinate change.
 
 public section
 
+namespace SymplecticGeometry
+
 open scoped Manifold
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
@@ -106,3 +108,5 @@ theorem mfderiv_chartAt_symm_of_chartAt_eq {x : M} {z : H} (hz : z ∈ (chartAt 
   rw [mfderiv_chartAt_symm_eq_tangentCoordChange hz,
     tangentCoordChange_of_chartAt_eq h.symm ((chartAt H x).map_target hz)]
   rfl
+
+end SymplecticGeometry

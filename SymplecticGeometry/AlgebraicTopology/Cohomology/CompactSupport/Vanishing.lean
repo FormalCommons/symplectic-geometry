@@ -191,6 +191,6 @@ theorem isZero_compactSupportCohomology_of_infClosed [T2Space X] {S : Set (Opens
   -- definition.
   exact isZero_compactSupportCohomology_of_iSup_eq_top R k N (X := of X)
     (U := fun s : Finset S ↦ s.sup Subtype.val) (fun _ _ hst ↦ Finset.sup_mono hst)
-    (by rw [iSup_finset_sup_eq_iSup, ← sSup_eq_iSup', hcover]) fun s ↦ hT s m hm
+    (by rw [SymplecticGeometry.iSup_finset_sup_eq_iSup, ← sSup_eq_iSup', hcover]) fun s ↦ hT s m hm
 
 end TopCat

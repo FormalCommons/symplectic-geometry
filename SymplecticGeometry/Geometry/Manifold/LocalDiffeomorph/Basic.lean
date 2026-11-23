@@ -131,10 +131,14 @@ theorem exists_contMDiffAt_transition (hf : IsLocalDiffeomorphAt I J n f x) {M' 
 
 end IsLocalDiffeomorphAt
 
+namespace SymplecticGeometry
+
 /-- The identity of a manifold is a `C^n` local diffeomorphism. -/
 theorem isLocalDiffeomorph_id : IsLocalDiffeomorph I I n (id : M → M) := by
   rw [← Diffeomorph.coe_refl I M n]
   exact Diffeomorph.isLocalDiffeomorph _
+
+end SymplecticGeometry
 
 /-- A continuous linear equivalence of normed spaces is a `C^n` local diffeomorphism, for every
 `n`. -/
@@ -143,9 +147,13 @@ theorem ContinuousLinearEquiv.isLocalDiffeomorph (A : E ≃L[𝕜] E') :
   fun _ ↦ TauCeti.isLocalDiffeomorphAt_of_eqOn (Φ := A.toPartialDiffeomorph) (by simp)
     fun _ _ ↦ by simp
 
+namespace SymplecticGeometry
+
 /-- Negation of a normed space is a `C^n` local diffeomorphism. -/
 theorem isLocalDiffeomorph_neg : IsLocalDiffeomorph 𝓘(𝕜, E) 𝓘(𝕜, E) n (Neg.neg : E → E) :=
   (ContinuousLinearEquiv.neg 𝕜 (M := E)).isLocalDiffeomorph
+
+end SymplecticGeometry
 
 /-- A map that agrees near `x` with a local diffeomorphism at `x` is a local diffeomorphism at
 `x`. -/

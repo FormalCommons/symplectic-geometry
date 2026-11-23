@@ -224,7 +224,8 @@ private theorem exists_mpullback_symm_codifferential_mextDeriv_eq
   have hev : (mpullback 𝓘(ℝ, E) I ψ.symm (mextDerivₗ I k α).val :
       E → E [⋀^Fin (k + 1)]→L[ℝ] ℝ) =ᶠ[𝓝 y] fun z ↦ ∑ i, ε i (fderiv ℝ a z (b i)) :=
     Filter.eventually_of_mem (ψ.open_target.mem_nhds hy) fun z hz ↦
-      (mpullback_symm_mextDerivₗ ψ α hz).trans (extDeriv_eq_sum_extProdCLM_coord b a z)
+      (mpullback_symm_mextDerivₗ ψ α hz).trans
+        (SymplecticGeometry.extDeriv_eq_sum_extProdCLM_coord b a z)
   have hD : HasFDerivAt (fun z ↦ ∑ i, ε i (fderiv ℝ a z (b i)))
       (∑ i, (ε i).comp (fderiv ℝ (fun z ↦ fderiv ℝ a z (b i)) y)) y :=
     HasFDerivAt.fun_sum fun i _ ↦ (ε i).hasFDerivAt.comp y
@@ -302,8 +303,8 @@ private theorem exists_mpullback_symm_mextDeriv_codifferential_eq
             (ψ.open_target.mem_nhds hy)).differentiableAt (by simp)).hasFDerivAt)
     · exact ((hC₀.contDiffAt hT).differentiableAt (by simp)).hasFDerivAt.clm_apply
         (α.differentiableAt_mpullback_symm ψ hy).hasFDerivAt
-  rw [mpullback_symm_mextDerivₗ ψ _ hy, hev.extDeriv_eq, extDeriv_eq_sum_extProdCLM_coord b,
-    hF.fderiv]
+  rw [mpullback_symm_mextDerivₗ ψ _ hy, hev.extDeriv_eq,
+    SymplecticGeometry.extDeriv_eq_sum_extProdCLM_coord b, hF.fderiv]
   simp only [← extProdCLM_apply, ← hκ, map_add, map_neg, _root_.map_sum, map_smul,
     Finset.sum_add_distrib, Finset.sum_neg_distrib, Finset.smul_sum, _root_.add_apply,
     _root_.neg_apply, _root_.sum_apply, _root_.smul_apply, ContinuousLinearMap.comp_apply,

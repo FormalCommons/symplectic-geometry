@@ -25,6 +25,8 @@ the exterior derivative of a form `ω` on `E` (Mathlib's `extDeriv` and `extDeri
 
 public section
 
+namespace SymplecticGeometry
+
 open ContinuousAlternatingMap
 
 variable {𝕜 E F ι : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜]
@@ -49,5 +51,7 @@ theorem extDeriv_eq_sum_extProdCLM_coord (b : Module.Basis ι 𝕜 E)
         (fderiv 𝕜 ω x (b i)) := by
   rw [extDeriv, alternatizeUncurryFin_eq_sum_coord_smulRight b]
   simp only [extProdCLM_apply]
+
+end SymplecticGeometry
 
 end

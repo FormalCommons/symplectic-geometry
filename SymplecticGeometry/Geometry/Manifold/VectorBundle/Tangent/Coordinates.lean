@@ -26,6 +26,8 @@ tangent coordinate changes, and cancels them with `tangentCoordChange_comp` and
 
 public section
 
+namespace SymplecticGeometry
+
 open scoped Manifold
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E H M : Type*} [NormedAddCommGroup E]
@@ -48,5 +50,7 @@ theorem inTangentCoordinates_const (J₀ : E →L[𝕜] E) {x₀ x : M} (hx : x 
   simp only [ContinuousLinearMap.comp_apply]
   exact (h _).trans
     (congrArg J₀ ((tangentCoordChange_comp hx').trans (tangentCoordChange_self (by simp [hx]))))
+
+end SymplecticGeometry
 
 end

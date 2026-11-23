@@ -34,10 +34,14 @@ theorem InfClosed.finset_sup_induction (hB : InfClosed B) (P : α → Prop) (hbo
   obtain ⟨W, -, rfl⟩ := Finset.mem_image.1 hV
   exact W.property
 
+namespace SymplecticGeometry
+
 /-- The joins of the finite subsets of an indexed family in a complete lattice have the same
 supremum as the family. -/
 theorem iSup_finset_sup_eq_iSup {ι β : Type*} [CompleteLattice β] (f : ι → β) :
     ⨆ t : Finset ι, t.sup f = ⨆ i, f i := by
   simp only [Finset.sup_eq_iSup, ← iSup_eq_iSup_finset]
+
+end SymplecticGeometry
 
 end

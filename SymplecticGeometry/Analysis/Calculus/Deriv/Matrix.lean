@@ -47,6 +47,8 @@ open Matrix
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {F : Type*} [NormedAddCommGroup F]
   [NormedSpace 𝕜 F] {l m n : Type*} [Finite n] {s : Set 𝕜} {t : 𝕜}
 
+namespace SymplecticGeometry
+
 /-- A matrix-valued function has derivative `A'` within `s` at `t` if and only if each of its
 entries has the corresponding entry of `A'` as derivative. -/
 theorem hasDerivWithinAt_matrix {A : 𝕜 → Matrix m n F} {A' : Matrix m n F} :
@@ -74,6 +76,10 @@ theorem hasDerivWithinAt_matrix_univ {A : 𝕜 → Matrix m n F} {A' : Matrix m 
   hasDerivWithinAt_matrix.trans <| (forall₂_congr fun _ _ ↦ hasDerivWithinAt_univ).trans
     hasDerivAt_matrix.symm
 
+end SymplecticGeometry
+
+open SymplecticGeometry
+
 /-- A matrix-valued function with derivative `A'` at `t` has derivative `A'` within every set at
 `t`: the matrix form of `HasDerivAt.hasDerivWithinAt`. -/
 theorem HasDerivAt.matrix_hasDerivWithinAt {A : 𝕜 → Matrix m n F} {A' : Matrix m n F}
@@ -86,10 +92,14 @@ theorem HasDerivWithinAt.matrix_elem {A : 𝕜 → Matrix m n F} {A' : Matrix m 
     HasDerivWithinAt (fun r ↦ A r i j) (A' i j) s t :=
   hasDerivWithinAt_matrix.1 hA i j
 
+namespace SymplecticGeometry
+
 /-- A constant matrix-valued function has derivative `0`. -/
 theorem hasDerivWithinAt_matrix_const (C : Matrix m n F) (s : Set 𝕜) (t : 𝕜) :
     HasDerivWithinAt (fun _ ↦ C) 0 s t :=
   hasDerivWithinAt_matrix.2 fun i j ↦ hasDerivWithinAt_const t s (C i j)
+
+end SymplecticGeometry
 
 /-- The derivative of the transpose is the transpose of the derivative. -/
 theorem HasDerivWithinAt.matrix_transpose [Finite m] {A : 𝕜 → Matrix m n F} {A' : Matrix m n F}

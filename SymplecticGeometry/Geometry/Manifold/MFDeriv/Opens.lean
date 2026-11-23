@@ -19,6 +19,8 @@ regularity (Mathlib's `contMDiff_subtypeVal`). Its differential is Tau Ceti's
 
 public section
 
+namespace SymplecticGeometry
+
 open TopologicalSpace
 
 variable {𝕜 E H M : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
@@ -32,5 +34,7 @@ theorem mdifferentiableAt_subtypeVal {x : U} : MDifferentiableAt I I (Subtype.va
 /-- The inclusion of an open subset is differentiable. -/
 theorem mdifferentiable_subtypeVal : MDifferentiable I I (Subtype.val : U → M) :=
   fun _ ↦ mdifferentiableAt_subtypeVal
+
+end SymplecticGeometry
 
 end

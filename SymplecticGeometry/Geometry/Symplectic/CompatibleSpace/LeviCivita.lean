@@ -225,8 +225,8 @@ theorem compatibleCLM_mul_mvfderiv_mvfderiv_add {p : N → 𝒥}
     hc.mul hY
   have hgc : MDifferentiableAt I 𝓘(ℝ, V →L[ℝ] V) (fun y ↦ g y * (ω.compatibleCLM ∘ p) y) x :=
     hY.mul hc
-  rw [mvfderiv_fun_add hcg hgc, add_apply, mvfderiv_fun_mul_apply' hc hY,
-    mvfderiv_fun_mul_apply' hY hc, mvfderiv_const, zero_apply] at hv
+  rw [mvfderiv_fun_add hcg hgc, add_apply, SymplecticGeometry.mvfderiv_fun_mul_apply' hc hY,
+    SymplecticGeometry.mvfderiv_fun_mul_apply' hY hc, mvfderiv_const, zero_apply] at hv
   simp only [Function.comp_apply] at hv
   rw [eq_neg_iff_add_eq_zero, ← hv]
   abel

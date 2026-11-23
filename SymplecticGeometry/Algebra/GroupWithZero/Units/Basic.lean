@@ -30,7 +30,7 @@ variable {M : Type*}
 is its negative. -/
 theorem Ring.inverse_eq_neg_of_mul_self_eq_neg_one [MonoidWithZero M] [HasDistribNeg M] {a : M}
     (ha : a * a = -1) : a⁻¹ʳ = -a :=
-  left_inv_eq_right_inv (inverse_mul_cancel a (isUnit_of_mul_self_eq_neg_one ha))
+  left_inv_eq_right_inv (inverse_mul_cancel a (SymplecticGeometry.isUnit_of_mul_self_eq_neg_one ha))
     (by rw [mul_neg, ha, neg_neg])
 
 end

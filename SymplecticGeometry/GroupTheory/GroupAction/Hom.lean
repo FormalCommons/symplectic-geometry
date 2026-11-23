@@ -22,10 +22,14 @@ complex-linear map out of `ℂ`.
 
 public section
 
+namespace SymplecticGeometry
+
 /-- A map `f` out of `R` that commutes with the action of `R` on itself by left multiplication is
 the action on its value at `1`: `f r = r • f 1`. -/
 theorem map_eq_smul_map_one {R M F : Type*} [MulOneClass R] [SMul R M] [FunLike F R M]
     [MulActionHomClass F R R M] (f : F) (r : R) : f r = r • f 1 := by
   rw [← map_smul, smul_eq_mul, mul_one]
+
+end SymplecticGeometry
 
 end

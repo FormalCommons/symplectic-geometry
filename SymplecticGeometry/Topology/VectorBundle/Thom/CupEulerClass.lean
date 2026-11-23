@@ -229,7 +229,7 @@ theorem bijective_integralCup_complexEulerClass [CompactSpace B] {r : ℕ}
         ((TopCat.uliftIntegralCohomologyIso _ _).hom (complexEulerClass F E hF)) := by
   rw [complexEulerClass_def]
   exact VectorBundleOrientation.bijective_integralCup_eulerClass _
-    (finrank_real_of_finrank_complex_eq_add_one hF) hl h hEl hEm
+    (SymplecticGeometry.finrank_real_of_finrank_complex_eq_add_one hF) hl h hEl hEm
 
 end Complex
 

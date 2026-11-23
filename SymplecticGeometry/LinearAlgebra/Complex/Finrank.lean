@@ -23,6 +23,8 @@ It is Tau Ceti's `TauCeti.finrank_real_eq_two_mul_finrank_complex` in complex di
 
 public section
 
+namespace SymplecticGeometry
+
 open Module
 
 /-- A complex vector space of complex dimension `r + 1`, with a compatible real structure, has
@@ -31,5 +33,7 @@ theorem finrank_real_of_finrank_complex_eq_add_one {V : Type*} [AddCommGroup V] 
     [Module ℂ V] [IsScalarTower ℝ ℂ V] {r : ℕ} (hV : finrank ℂ V = r + 1) :
     finrank ℝ V = 2 * r + 1 + 1 := by
   rw [TauCeti.finrank_real_eq_two_mul_finrank_complex, hV]; ring
+
+end SymplecticGeometry
 
 end

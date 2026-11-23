@@ -111,7 +111,8 @@ theorem contDiffAt_of_contDiffAt_exp {E : Type*} [NormedAddCommGroup E] [NormedS
     {n : WithTop ℕ∞} {θ : E → ℝ} {x : E} (hθ : ContinuousAt θ x)
     (h : ContDiffAt ℝ n (fun y ↦ (exp (θ y) : ℂ)) x) : ContDiffAt ℝ n θ x := by
   rw [← contMDiffAt_iff_contDiffAt, ← contMDiffWithinAt_univ]
-  exact ContMDiffWithinAt.of_comp_isLocalDiffeomorph (isLocalDiffeomorph_circleExp n (θ x))
+  exact ContMDiffWithinAt.of_comp_isLocalDiffeomorph
+    (SymplecticGeometry.isLocalDiffeomorph_circleExp n (θ x))
     hθ.continuousWithinAt (contMDiffAt_iff_contDiffAt.2 h).of_coe_sphere.contMDiffWithinAt
 
 /-- A real function `θ`, continuous on an open set `s`, whose exponential `y ↦ exp (i θ y)` is

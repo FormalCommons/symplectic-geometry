@@ -168,7 +168,7 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
     rw [hs.hasFDerivAt.hasMFDerivAt.mfderiv]
     exact ContinuousLinearMap.toSpanSingleton_apply_one ℝ (r x)
   have hlin : mfderiv 𝓘(ℝ) J (Ψ ∘ line) 0 (r x) = r x • mfderiv 𝓘(ℝ) J (Ψ ∘ line) 0 (1 : ℝ) :=
-    map_eq_smul_map_one _ (r x)
+    SymplecticGeometry.map_eq_smul_map_one _ (r x)
   have key : mfderiv 𝓘(ℝ) J (Ψ ∘ line) 0 (1 : ℝ) = f.normalRepresentative x hn v := by
     rw [h3, hΨ, ← Bundle.zeroSectionTangentEquiv_symm_inr,
       f.mfderiv_normalExp_zeroSection_apply hn (by simp) hdim, map_zero, zero_add]

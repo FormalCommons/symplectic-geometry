@@ -249,8 +249,8 @@ and two rows of its milestone table.
   needs only that the zero section is Lagrangian. The part therefore no
   longer builds on *Cotangent bundles*. No open issue has a blocker that
   this changes: #476 is blocked only by its design issue.
-- `Analysis/Calculus/DifferentialForm/LieDeriv.lean` is added, in the root
-  namespace, for the flat lemmas that `CharacteristicFoliation.lean` uses:
+- `Analysis/Calculus/DifferentialForm/LieDeriv.lean` is added, in
+  `SymplecticGeometry`, for the flat lemmas that `CharacteristicFoliation.lean` uses:
   they use nothing of symplectic geometry. *Contact geometry* later adds to
   it, in `TauCeti`, the linearity of the flat Lie derivative in the field.
 - `AdaptedDarboux.lean` uses Tau Ceti's pointwise relative Darboux theorem

@@ -729,8 +729,8 @@ private theorem exists_slice_mextDerivₗ_eq [I.Boundaryless] [J.Boundaryless] [
   refine exists_mextDerivₗ_eq_of_isSymplectic (N := ⟨N, hN⟩) hf hzN (hι.comp contMDiff_subtypeVal)
     (fun q ↦ hι0 q) (hα.isSymplectic_neg_mextDerivₗ_mpullback hf.finrank_prod_dual_add_one _
       fun x ↦ ?_)
-  rw [mfderiv_comp x ((hι _).mdifferentiableAt (by simp)) mdifferentiableAt_subtypeVal,
-    Manifold.mfderiv_subtype_val]
+  rw [mfderiv_comp x ((hι _).mdifferentiableAt (by simp))
+    SymplecticGeometry.mdifferentiableAt_subtypeVal, Manifold.mfderiv_subtype_val]
   refine ⟨(hNι x x.property).1.comp (Manifold.tangentSpaceOpenEquiv x).injective, ?_⟩
   rintro ⟨v, hv⟩
   exact (hNι x x.property).2 ⟨_, hv⟩
@@ -797,8 +797,10 @@ private theorem exists_primitive [I.Boundaryless] [J.Boundaryless] [T2Space L]
       mextDeriv (RoughForm.ofFunction (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) fun w : W ↦ b w 0) := by
     rw [← hbg, hdb, hγ, hlamU, Submodule.coe_sub, TauCeti.mpullback_sub, SmoothForm.coe_mpullback,
       SmoothForm.coe_mpullback,
-      ← TauCeti.mpullback_comp mdifferentiable_subtypeVal (hκ.mdifferentiable (by simp)),
-      ← TauCeti.mpullback_comp mdifferentiable_subtypeVal mdifferentiable_subtypeVal,
+      ← TauCeti.mpullback_comp SymplecticGeometry.mdifferentiable_subtypeVal
+        (hκ.mdifferentiable (by simp)),
+      ← TauCeti.mpullback_comp SymplecticGeometry.mdifferentiable_subtypeVal
+        SymplecticGeometry.mdifferentiable_subtypeVal,
       add_sub_cancel]
   exact ⟨W, fun w ↦ b w 0, hgs, fun q ↦ ⟨z₀ q, hz₀W (mem_range_self q)⟩,
     z₀.contMDiff.continuous.subtype_mk _, hz₀, hκz₀,

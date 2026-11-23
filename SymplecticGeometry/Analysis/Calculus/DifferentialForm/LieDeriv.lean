@@ -99,6 +99,8 @@ end LinearInField
 
 end TauCeti
 
+namespace SymplecticGeometry
+
 section Field
 
 variable {𝕜 E F : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
@@ -139,5 +141,7 @@ theorem apply_add_eq_of_extDeriv_eq_zero {α : E → E [⋀^Fin (k + 1)]→L[�
       (eventually_of_mem (hU.mem_nhds (hzw t ht)) hw)
 
 end RCLike
+
+end SymplecticGeometry
 
 end

@@ -17,6 +17,8 @@ pointwise sums are known to exist. It needs no completeness of the target, unlik
 
 public section
 
+namespace SymplecticGeometry
+
 open Filter
 
 /-- Weierstrass' test for a series of functions whose sums exist: the partial sums converge
@@ -33,5 +35,7 @@ theorem tendstoUniformlyOn_finsetSum_of_hasSum {α β G : Type*} [NormedAddCommG
     (t.hasSum_compl_iff (f := fun n ↦ f n x)).2 (by rw [sub_add_cancel]; exact hg x hx)
   rw [dist_eq_norm]
   exact (htail.norm_le_of_bounded (hu.subtype _).hasSum fun n ↦ hfu n x hx).trans_lt ht
+
+end SymplecticGeometry
 
 end

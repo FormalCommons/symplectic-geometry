@@ -448,7 +448,7 @@ variable {EB HB B F : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topol
 
 attribute [local instance] finrank_real_complex_fact'
 
-local instance instVectorBundleRealCircleBundle : VectorBundle ℝ F V :=
+local instance SymplecticGeometry.instVectorBundleRealCircleBundle : VectorBundle ℝ F V :=
   VectorBundle.restrictScalars ℝ ℂ F V
 
 variable [ContMDiffVectorBundle n F V I] (g : ContMDiffRiemannianMetric I n F V)
