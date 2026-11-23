@@ -43,7 +43,7 @@ theorem contMDiffOn_twoChartCocycle {U₁ U₂ : Set B} (ρ : G →* (F →L[�
   cases i <;> cases j
   · simpa using contMDiffOn_const
   · simpa [inter_comm] using hg
-  · simp only [twoChartCocycle_true_false, ρ.map_inv_eq_ringInverse]
+  · simp only [twoChartCocycle_true_false, map_inv_eq_ringInverse]
     refine fun x hx ↦ ContMDiffAt.comp_contMDiffWithinAt (g := Ring.inverse) x ?_ (hg x hx)
     have h := (Group.isUnit (g x)).map ρ
     simpa only [h.unit_spec] using (contDiffAt_ringInverse 𝕜 h.unit).contMDiffAt

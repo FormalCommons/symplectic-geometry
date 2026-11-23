@@ -313,8 +313,7 @@ private theorem disc_clutchingDisc_subset :
     (clutchingDisc φ).disc ⊆ (clutchingLineBundle φ k).baseSet true := by
   intro x hx
   obtain ⟨z, hz, rfl⟩ := (clutchingDisc φ).mem_disc_iff.1 hx
-  rw [baseSet_twoChartCore, Bool.cond_true]
-  rw [clutchingDisc_apply]
+  rw [baseSet_twoChartCore_true, clutchingDisc_apply]
   refine φ.apply_mem_openDisc_iff.2 ?_
   rw [CoordinateDisc.coe_affineBall_apply, zero_add, norm_mul, Complex.norm_real,
     Real.norm_of_nonneg (by norm_num)]
@@ -323,7 +322,7 @@ private theorem disc_clutchingDisc_subset :
 private theorem discComplement_clutchingDisc_subset :
     discComplement (fun _ : Unit ↦ clutchingDisc φ) ⊆
       (clutchingLineBundle φ k).baseSet false := by
-  rw [baseSet_twoChartCore, Bool.cond_false]
+  rw [baseSet_twoChartCore_false]
   rintro x hx ⟨w, hw, rfl⟩
   have hw' : ‖(w : ℂ)‖ ≤ 1 / 2 := hw
   have hb : (4 / 3 : ℂ) * w ∈ (CoordinateDisc.ball : Set ℂ) := by

@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.Normed.Operator.Completeness
 public import Mathlib.Analysis.Normed.Ring.Units
 public import Mathlib.Topology.VectorBundle.Basic
+public import SymplecticGeometry.Algebra.GroupWithZero.Units.Lemmas
 public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 
 /-!
@@ -25,7 +26,7 @@ from the chart `i` to the chart `j` is `ρ (g x ^ (j - i))` (`twoChartCocycle`),
 every point, not only on `U₁ ∩ U₂`. Its continuity for `true → false` comes from that of
 `Ring.inverse` at the units of the complete normed ring `F →L[𝕜] F`
 (`NormedRing.inverse_continuousAt`), since `ρ (g x)⁻¹ = Ring.inverse (ρ (g x))`
-(`MonoidHom.map_inv_eq_ringInverse`).
+(`map_inv_eq_ringInverse`).
 
 ## Main definitions
 
@@ -43,12 +44,6 @@ public section
 noncomputable section
 
 open Set
-
-/-- The image of the inverse `a⁻¹` under a monoid homomorphism from a group to a monoid with
-zero is the ring inverse of the image of `a`. -/
-theorem MonoidHom.map_inv_eq_ringInverse {G R : Type*} [Group G] [MonoidWithZero R]
-    (ρ : G →* R) (a : G) : ρ a⁻¹ = Ring.inverse (ρ a) := by
-  simpa using (Ring.inverse_unit (Units.map ρ (toUnits a))).symm
 
 namespace SymplecticGeometry
 
@@ -108,7 +103,7 @@ theorem continuousOn_twoChartCocycle {U₁ U₂ : Set B} (ρ : G →* (F →L[�
   cases i <;> cases j
   · simpa using continuousOn_const
   · simpa [inter_comm] using hg
-  · simp only [twoChartCocycle_true_false, ρ.map_inv_eq_ringInverse]
+  · simp only [twoChartCocycle_true_false, map_inv_eq_ringInverse]
     refine fun x hx ↦ ContinuousAt.comp_continuousWithinAt (g := Ring.inverse) ?_ (hg x hx)
     have h := (Group.isUnit (g x)).map ρ
     simpa only [h.unit_spec] using NormedRing.inverse_continuousAt h.unit
@@ -140,6 +135,14 @@ def twoChartCore : VectorBundleCore 𝕜 B F Bool where
 /-- The base set of the chart `b` is `U₁` for `b = true` and `U₂` for `b = false`. -/
 theorem baseSet_twoChartCore (b : Bool) :
     (twoChartCore U₁ U₂ ρ g hU₁ hU₂ hU hg).baseSet b = bif b then U₁ else U₂ :=
+  (rfl)
+
+/-- The base set of the first chart is `U₁`. -/
+theorem baseSet_twoChartCore_true : (twoChartCore U₁ U₂ ρ g hU₁ hU₂ hU hg).baseSet true = U₁ :=
+  (rfl)
+
+/-- The base set of the second chart is `U₂`. -/
+theorem baseSet_twoChartCore_false : (twoChartCore U₁ U₂ ρ g hU₁ hU₂ hU hg).baseSet false = U₂ :=
   (rfl)
 
 /-- The first chart lies over `U₁`. -/
