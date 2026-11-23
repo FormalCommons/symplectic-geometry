@@ -424,8 +424,8 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
   `firstChernClass_pullback`, `firstChernClass_congr`,
   `firstChernClass_eq_complexEulerClass`, `chernNumber`,
   `chernNumber_neg_orientation`, `symplecticChernNumber`,
-  `symplecticChernNumber_eq_chernNumber`, `symplecticChernNumber_congr`) and
-  `ChernNumber/Axioms.lean` (#788: `symplecticChernNumber_whitneySum`,
+  `symplecticChernNumber_eq_chernNumber`, `symplecticChernNumber_congr`; #1922:
+  `symplecticChernNumber_whitneySum`) and `ChernNumber/Axioms.lean` (#788:
   `symplecticChernNumber_tangent`). `ChernNumber/EulerNumber.lean` (#785) is
   not needed: the self-intersection number is the Euler class itself, not a
   count of zeros, and $c_1(T\Sigma)$ is `symplecticChernNumber_tangent`.
