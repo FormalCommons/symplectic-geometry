@@ -700,8 +700,8 @@ is the conjunct on `compatibleTransport`. No entry in `ERRATA.md` is needed.
   `SmoothAlmostComplexStructure.chartPushforward_apply`
   (`Geometry/Symplectic/Manifold/AlmostComplex/Chart.lean`).
 - *Almost complex manifolds* (#860, not merged):
-  `TauCeti.SmoothTwoForm.Compatible.metric` and `Compatible.metric_inner`
-  (`Geometry/Symplectic/Manifold/AlmostComplex/Metric.lean`).
+  `TauCeti.SmoothTwoForm.Compatible.metric` and `Compatible.metric_inner`,
+  now Tau Ceti's (`TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/CompatibleMetric.lean`).
 - Tau Ceti: the declarations of *What exists* above; also
   `AlmostComplexStructure.transport`, `compatible_transport_iff`,
   `isSymplectomorphism_iff_transport_eq`, `SymplecticForm.exists_compatible`,

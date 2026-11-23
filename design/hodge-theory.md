@@ -771,7 +771,8 @@ was found, so `ERRATA.md` needs no entry.
   `KahlerCoordinates.lean`, `Kahler/Identities.lean` and the milestone, and
   `mfderiv_trans_apply_eq_of_fderiv_apply_eq`, which this part adds there.
 - *Almost complex manifolds*, `Geometry/Symplectic/Manifold/AlmostComplex/Metric.lean`
-  (#860): `TauCeti.SmoothTwoForm.Compatible.metric` and `metric_inner`, in
+  (#860): Tau Ceti's `TauCeti.SmoothTwoForm.Compatible.metric` and
+  `metric_inner` (in `TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/CompatibleMetric.lean`), in
   the proof of the milestone, and `val_eq_alternatingFormEquiv_kahlerForm`
   and `inner_almostComplexStructureAt_apply_apply`,
   which this part adds there, in `Kahler/Identities.lean`. This dependency
