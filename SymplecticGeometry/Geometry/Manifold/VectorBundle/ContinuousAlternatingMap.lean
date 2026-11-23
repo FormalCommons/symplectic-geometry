@@ -27,8 +27,8 @@ The proof reads the map in the fibre coordinates of the trivializations at a poi
 Tau Ceti's `ContinuousAlternatingMap.compContinuousLinearMapCLM`, a `C^n` map of the model spaces.
 
 A section of the bundle of continuous alternating maps that reads as a constant in the
-trivializations at each point, near that point, is `C^n`
-(`contMDiff_continuousAlternatingMap_bundle_of_inCoordinates_eq_const`).
+trivializations at each point, on the common base set of the trivializations at that point, is
+`C^n` (`SymplecticGeometry.contMDiff_continuousAlternatingMap_bundle_of_inCoordinates_eq_const`).
 
 The file also passes between alternating maps of two vectors and alternating bilinear maps on the
 fibres, along a map `b : N → M` into the base, so that both a section over `M` (`b = id`) and a
@@ -58,8 +58,8 @@ proof of `contMDiffAt_sectionAlong_continuousAlternatingMap_of_bilinear` is that
 `TauCeti.contMDiffAt_continuousAlternatingMap_bundle_of_bilinear`
 (`TauCeti/Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean`), its case `b = id`, with
 the sections of that proof composed with `b`. The proof of
-`contMDiff_continuousAlternatingMap_bundle_of_inCoordinates_eq_const` is that of Tau Ceti's
-`TauCeti.contMDiff_hom_bundle_of_inCoordinates_eq_const`
+`SymplecticGeometry.contMDiff_continuousAlternatingMap_bundle_of_inCoordinates_eq_const` is that
+of Tau Ceti's `TauCeti.contMDiff_hom_bundle_of_inCoordinates_eq_const`
 (`TauCeti/Geometry/Manifold/VectorBundle/Hom.lean`), with the bundle of continuous linear maps
 replaced by that of continuous alternating maps.
 -/
@@ -122,6 +122,8 @@ theorem contMDiff_compContinuousLinearMap_totalSpace (L : ∀ x, V₂ x →L[�
   simp only [Function.comp_apply, ContinuousLinearMap.coe_comp]
   exact (Trivialization.symmL_continuousLinearMapAt _ hp _).symm
 
+namespace SymplecticGeometry
+
 omit [∀ x, IsTopologicalAddGroup (V₁ x)] [∀ x, ContinuousSMul 𝕜 (V₁ x)] in
 /-- A section of the bundle of continuous alternating maps `V₁ x [⋀^ι]→L W x` is `C^n` if, read
 in the trivializations at each point `a`, it is a constant `c a` on the common base set of those
@@ -140,6 +142,8 @@ theorem contMDiff_continuousAlternatingMap_bundle_of_inCoordinates_eq_const {n :
     (trivializationAt G W a).open_baseSet.mem_nhds
       (FiberBundle.mem_baseSet_trivializationAt G W a)] with x hx₁ hx₂
   exact hϕ a x hx₁ hx₂
+
+end SymplecticGeometry
 
 /-! ### Flat maps and alternating bilinear maps on the fibres -/
 
