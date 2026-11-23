@@ -260,7 +260,7 @@ theorem exists_coordinateDisc_unitSection_eq_phase_zpow_smul
     have hdiv : division Circle (τ i (φ i z)) (ν (φ i z)) = w i z := by
       simp only [w]
       rw [hψ i z]
-    rw [CoordinateDisc.phase_def, CoordinateDisc.coord_apply, ← hck i z hz hz1.le, ← hdiv,
+    rw [CoordinateDisc.phase_apply_self, ← hck i z hz hz1.le, ← hdiv,
       ← hprod, op_mul, mul_smul, smul_division]
   refine ⟨ι, inferInstance, e, r, hr, hc, he, φ, fun i ↦ rfl, hatlas, hrdisj, k,
     fun i ↦ τ i, σout, fun i ↦ (hτ i).mono (hrU i),

@@ -14,6 +14,7 @@ import SymplecticGeometry.Analysis.Calculus.ContDiff.Matrix
 import SymplecticGeometry.Analysis.Calculus.LineDeriv.Transpose
 import SymplecticGeometry.Analysis.Distribution.SecondOrderSystem
 import SymplecticGeometry.Analysis.Normed.Operator.BoundedSMul
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.ChartCover
 import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
