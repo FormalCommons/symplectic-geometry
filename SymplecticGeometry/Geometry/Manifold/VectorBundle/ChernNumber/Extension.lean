@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.DoubleClutching
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Flow.Basic
 import SymplecticGeometry.Topology.Homotopy.Extension.Collar
-import TauCeti.Geometry.Manifold.SmoothApprox
+import SymplecticGeometry.Geometry.Manifold.Instances.SymplecticGroup.SmoothApprox
 
 /-!
 # Extending maps from the boundary of a surface into the symplectic group
@@ -39,8 +39,6 @@ The book glues discs into the boundary circles of `S` instead. The double avoids
 
 ## Main results
 
-* `ContinuousMap.exists_homotopic_contMDiff_symplecticGroup`: a continuous map from a compact
-  manifold to the symplectic group is homotopic to a smooth one.
 * `TauCeti.Manifold.Orientation.exists_extension_iff_boundaryMaslovIndex_eq_zero`: a map from the
   boundary of a compact connected surface to the symplectic group extends over the surface if
   and only if its boundary Maslov index is `0`.
@@ -59,41 +57,6 @@ noncomputable section
 
 open Set Function Topology Manifold TauCeti TauCeti.GLSymplectic SymplecticGeometry
 open scoped Manifold ContDiff
-
-/-! ### Smooth maps into the symplectic group -/
-
-namespace ContinuousMap
-
-variable {E H N : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace N] [ChartedSpace H N]
-  [IsManifold I ∞ N] [CompactSpace N] [T2Space N] {κ : Type*} [Fintype κ] [DecidableEq κ]
-
-open scoped Matrix.Norms.Operator in
-/-- **Smooth representatives of maps into the symplectic group.** A continuous map `f` from a
-compact Hausdorff manifold, possibly with boundary, to `Sp(2k)` is homotopic to a map `g` that is
-smooth as a map into Tau Ceti's manifold `Matrix.symplecticGroup κ ℝ`. -/
-theorem exists_homotopic_contMDiff_symplecticGroup (f : C(N, GLSymplectic κ ℝ)) :
-    ∃ g : C(N, GLSymplectic κ ℝ), f.Homotopic g ∧
-      letI := Matrix.linftyOpTopologicalSpace (κ ⊕ κ) (κ ⊕ κ) ℝ
-      ContMDiff I 𝓘(ℝ, Lie.SymplecticGroupModel κ ℝ) ∞
-        fun x ↦ (symplecticGroupContinuousMulEquiv κ ℝ).symm (g x) := by
-  -- Tau Ceti's charts on the symplectic group are stated for the topology of the operator norm
-  -- on matrices, which is the product topology, but not reducibly so.
-  let := Matrix.linftyOpTopologicalSpace (κ ⊕ κ) (κ ⊕ κ) ℝ
-  let e := symplecticGroupContinuousMulEquiv κ ℝ
-  let f' : C(N, Matrix.symplecticGroup κ ℝ) := (ContinuousMap.mk _ e.symm.continuous).comp f
-  obtain ⟨g, hg, hfg⟩ := f'.exists_contMDiff_homotopic_of_isCompact_closure_range (I := I)
-    (J := 𝓘(ℝ, Lie.SymplecticGroupModel κ ℝ)) ⊤ (isCompact_range f'.continuous).closure
-  refine ⟨(ContinuousMap.mk _ e.continuous).comp g, ?_,
-    hg.congr fun x ↦ ?_⟩
-  · convert (ContinuousMap.Homotopic.refl (ContinuousMap.mk _ e.continuous)).comp hfg using 1
-    ext1 x
-    exact (e.apply_symm_apply (f x)).symm
-  · -- The two sides use the two topologies on matrices, so `rw` cannot see the composite.
-    change e.symm (e (g x)) = g x
-    exact e.symm_apply_apply (g x)
-
-end ContinuousMap
 
 /-! ### The extension lemma -/
 

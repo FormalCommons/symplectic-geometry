@@ -16,7 +16,7 @@ import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.ExtendOverDisc
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.DiscFrame
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Core.TwoChart
-import SymplecticGeometry.Geometry.Manifold.Instances.SymplecticGroup
+import SymplecticGeometry.Geometry.Manifold.Instances.SymplecticGroup.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.CoordinateDisc
 
 /-!
@@ -100,7 +100,7 @@ over `W`, and `Φ₁'` and `Φ₂'` away from a smaller closed disc, then glue t
 `exists_pushforward_eq_of_symplecticChernNumber_eq`, the frames come from
 `ContMDiffTwoForm.IsNondegenerate.exists_isSymplecticFrameOn_disc_ofChart` and
 `ContMDiffTwoForm.IsNondegenerate.exists_isSymplecticFrameOn_discComplement_ofChart`, their
-transition loops from `ContMDiffTwoForm.IsSymplecticFrameOn.exists_frameTransition_loop`, and the
+transition loops from `ContMDiffTwoForm.IsSymplecticFrameOn.exists_frameTransition`, and the
 disc clutching formula turns equal Chern numbers into equal Maslov indices.
 
 ## Implementation notes
@@ -771,8 +771,8 @@ theorem exists_pushforward_eq_of_symplecticChernNumber_eq [CompactSpace M] [Conn
   have hbc {U U' : Set M} (hD : φ.disc ⊆ U) (hD' : discComplement (fun _ : Unit ↦ φ) ⊆ U')
       (ζ : Circle) : φ.boundaryCircle ζ ∈ U ∩ U' :=
     ⟨hD (φ.boundaryCircle_mem_disc ζ), hD' (boundaryCircle_mem_discComplement _ hdisj () ζ)⟩
-  obtain ⟨Ψ₁, hΨ₁⟩ := h₁.exists_frameTransition_loop hU₁ hU₁' h₁' _ (hbc hD₁ hD₁')
-  obtain ⟨Ψ₂, hΨ₂⟩ := h₂.exists_frameTransition_loop hU₂ hU₂' h₂' _ (hbc hD₂ hD₂')
+  obtain ⟨Ψ₁, hΨ₁⟩ := h₁.exists_frameTransition hU₁ hU₁' h₁' _ (hbc hD₁ hD₁')
+  obtain ⟨Ψ₂, hΨ₂⟩ := h₂.exists_frameTransition hU₂ hU₂' h₂' _ (hbc hD₂ hD₂')
   refine exists_pushforward_eq_of_maslovIndex_eq (hea ()) (hr ()) (hc ()) (he ()) hU₁ hU₁' hU₂
     hU₂' hD₁ hD₂ hD₁' hD₂' h₁ h₁' h₂ h₂' Ψ₁ Ψ₂ hΨ₁ hΨ₂ ?_
   -- By the clutching formula, the Maslov indices are the Chern numbers.

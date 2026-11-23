@@ -112,8 +112,8 @@ complement of the open discs.
   transition loops.
 * `SymplecticGeometry.Bundle.ContMDiffTwoForm.IsSymplecticFrameOn.exists_frameTransition`:
   two symplectic frames differ along a continuous map into their common domain by a continuous
-  map into the symplectic matrices; `exists_frameTransition_loop` is the case of a loop, the
-  transition loop that the formula takes.
+  map into the symplectic matrices; the case `X = Circle` is the transition loop that the formula
+  takes.
 
 ## References
 
@@ -678,7 +678,8 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
 
 /-- Two symplectic frames `Φ`, `Φ'` for `stdForm κ`, over open sets that contain the image of a
 continuous map `γ : X → M`, differ along `γ` by a continuous map `Ψ` into the symplectic
-matrices: `Φ' = Φ ∘ Ψ` along `γ`. -/
+matrices: `Φ' = Φ ∘ Ψ` along `γ`. For `X = Circle` this is the transition loop of the disc
+clutching formula (`symplecticChernNumber_eq_sum_maslovIndex_clutching`). -/
 theorem ContMDiffTwoForm.IsSymplecticFrameOn.exists_frameTransition {X : Type*}
     [TopologicalSpace X] {U U' : Set M} (hU : IsOpen U) (hU' : IsOpen U')
     {Φ Φ' : ∀ x, StdSpace κ ≃L[ℝ] V x} (h : ω.IsSymplecticFrameOn (stdForm κ) U Φ)
@@ -698,18 +699,6 @@ theorem ContMDiffTwoForm.IsSymplecticFrameOn.exists_frameTransition {X : Type*}
   simp only [ContinuousMap.coe_mk]
   rw [← toEuclideanCLM_apply, GeneralLinearGroup.toEuclideanCLM_ofEuclideanCLE,
     ContinuousLinearEquiv.coe_coe, frameTransition_apply, ContinuousLinearEquiv.apply_symm_apply]
-
-/-- Two symplectic frames `Φ`, `Φ'` for `stdForm κ`, over open sets that contain a loop `γ` of
-`M`, differ along `γ` by a continuous loop `Ψ` of symplectic matrices: `Φ' = Φ ∘ Ψ` on `γ`. This
-is the transition loop of the disc clutching formula
-(`symplecticChernNumber_eq_sum_maslovIndex_clutching`). -/
-theorem ContMDiffTwoForm.IsSymplecticFrameOn.exists_frameTransition_loop {U U' : Set M}
-    (hU : IsOpen U) (hU' : IsOpen U') {Φ Φ' : ∀ x, StdSpace κ ≃L[ℝ] V x}
-    (h : ω.IsSymplecticFrameOn (stdForm κ) U Φ) (h' : ω.IsSymplecticFrameOn (stdForm κ) U' Φ')
-    (γ : C(Circle, M)) (hγ : ∀ ζ, γ ζ ∈ U ∩ U') :
-    ∃ Ψ : C(Circle, GLSymplectic κ ℝ), ∀ ζ v,
-      Φ' (γ ζ) v = Φ (γ ζ) (toEuclideanLin (Ψ ζ : GL (κ ⊕ κ) ℝ) v) :=
-  h.exists_frameTransition hU hU' h' γ hγ
 
 end TransitionLoop
 
