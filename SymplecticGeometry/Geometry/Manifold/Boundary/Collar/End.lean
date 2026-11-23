@@ -72,28 +72,25 @@ private def endInterval : Opens ℝ := ⟨Ioi (-1), isOpen_Ioi⟩
 
 @[simp] private theorem mem_endInterval {s : ℝ} : s ∈ endInterval ↔ -1 < s := Iff.rfl
 
-/-- The point `-t` of `(-1, ∞)` for a depth `t ∈ [0, 1)`. -/
-private def negNormalCoord (t : normalIioOpens 1) : endInterval :=
-  ⟨-(t : EuclideanHalfSpace 1).val 0, by
-    have := mem_normalIioOpens.1 t.property
-    rw [mem_endInterval]
-    linarith⟩
+private theorem endInterval_subset : (endInterval : Set ℝ) ⊆ Ioi (-1) :=
+  fun _ ↦ mem_endInterval.1
 
-@[simp] private theorem coe_negNormalCoord (t : normalIioOpens 1) :
-    (negNormalCoord t : ℝ) = -(t : EuclideanHalfSpace 1).val 0 := rfl
+private theorem Ioc_subset_endInterval : Ioc (-1) 0 ⊆ (endInterval : Set ℝ) :=
+  fun _ h ↦ mem_endInterval.2 h.1
 
 /-- The linear form `u ↦ -u 0` on `ℝ¹`, as an equivalence. -/
 private def negCoordEquiv : EuclideanSpace ℝ (Fin 1) ≃L[ℝ] ℝ :=
   ((EuclideanSpace.equiv (Fin 1) ℝ).trans (ContinuousLinearEquiv.funUnique (Fin 1) ℝ ℝ)).trans
     (ContinuousLinearEquiv.neg ℝ)
 
-private theorem continuous_negNormalCoord : Continuous negNormalCoord :=
-  Continuous.subtype_mk (by fun_prop) _
-
 private theorem isImmersionAt_negNormalCoord (t : normalIioOpens 1) :
-    IsImmersionAt (𝓡∂ 1) 𝓘(ℝ) ∞ negNormalCoord t := by
+    IsImmersionAt (𝓡∂ 1) 𝓘(ℝ) ∞ (negNormalCoord Ioc_subset_endInterval) t := by
   have hf : ∀ t : normalIioOpens 1, -(t : EuclideanHalfSpace 1).val 0 ∈ endInterval :=
-    fun t ↦ (negNormalCoord t).property
+    fun t ↦ coe_negNormalCoord Ioc_subset_endInterval t ▸ (negNormalCoord _ t).property
+  have he : negNormalCoord Ioc_subset_endInterval =
+      fun t ↦ ⟨-(t : EuclideanHalfSpace 1).val 0, hf t⟩ :=
+    funext fun t ↦ Subtype.ext (coe_negNormalCoord _ t)
+  rw [he]
   refine (isImmersionAt_codRestrict_opens_iff (U := endInterval)
     (f := fun t : normalIioOpens 1 ↦ -(t : EuclideanHalfSpace 1).val 0) hf).2 ?_
   refine (isImmersionAt_comp_subtypeVal_iff
@@ -109,13 +106,16 @@ private theorem isImmersionAt_negNormalCoord (t : normalIioOpens 1) :
 
 private theorem isLocalDiffeomorphAt_negNormalCoord {t : normalIioOpens 1}
     (ht : 0 < (t : EuclideanHalfSpace 1).val 0) :
-    IsLocalDiffeomorphAt (𝓡∂ 1) 𝓘(ℝ) ∞ negNormalCoord t := by
+    IsLocalDiffeomorphAt (𝓡∂ 1) 𝓘(ℝ) ∞ (negNormalCoord Ioc_subset_endInterval) t := by
   have hg : IsLocalDiffeomorphAt (𝓡∂ 1) 𝓘(ℝ) ∞
       (fun s : EuclideanHalfSpace 1 ↦ -s.val 0) t := by
     have := (isLocalDiffeomorphAt_val_zero ht).comp
       (hg := (ContinuousLinearEquiv.neg ℝ (M := ℝ)).toDiffeomorph.isLocalDiffeomorph _)
     simpa [comp_def] using this
   refine isLocalDiffeomorphAt_subtypeVal_comp_iff.1 ?_
+  rw [show Subtype.val ∘ negNormalCoord Ioc_subset_endInterval =
+    (fun s : EuclideanHalfSpace 1 ↦ -s.val 0) ∘ Subtype.val from
+      funext (coe_negNormalCoord Ioc_subset_endInterval)]
   exact (isLocalDiffeomorph_subtype_val t).comp (hg := hg)
 
 private def endModelEquiv (n : ℕ) :
@@ -135,25 +135,6 @@ def endModelDiffeomorph (n : ℕ) :
   contMDiff_invFun := by
     rw [← modelWithCornersSelf_prod]
     exact (endModelEquiv n).symm.contDiff.contMDiff
-
-/-- The depth `max (-s) 0` as a point of `[0, 1)`. -/
-private def collarDepth (s : endInterval) : normalIioOpens 1 :=
-  normalIioRay ⟨-s, neg_lt.1 (mem_endInterval.1 s.property)⟩
-
-private theorem continuous_collarDepth : Continuous collarDepth :=
-  continuous_normalIioRay.comp ((continuous_neg.comp continuous_subtypeVal).subtype_mk _)
-
-@[simp] private theorem collarDepth_negNormalCoord (t : normalIioOpens 1) :
-    collarDepth (negNormalCoord t) = t :=
-  Subtype.ext (by simp [collarDepth])
-
-private theorem negNormalCoord_collarDepth {s : endInterval} (hs : (s : ℝ) ≤ 0) :
-    negNormalCoord (collarDepth s) = s :=
-  Subtype.ext (by simp [collarDepth, max_eq_left (neg_nonneg.2 hs)])
-
-private theorem collarDepth_val_pos {s : endInterval} (hs : (s : ℝ) < 0) :
-    0 < (collarDepth s : EuclideanHalfSpace 1).val 0 := by
-  simp [collarDepth, hs]
 
 universe u
 
@@ -192,37 +173,40 @@ private theorem mem_endOverlap {q : EndPiece n W} :
     q ∈ endOverlap ↔ (q.coord.1 : ℝ) < 0 := Iff.rfl
 
 /-- The collar point of a point of the end piece, the boundary point for nonnegative `s`. -/
-private def endRetract (q : EndPiece n W) : W := c (q.coord.2, collarDepth q.coord.1)
+private def endRetract (q : EndPiece n W) : W :=
+  c (q.coord.2, negNormalIioRay endInterval_subset q.coord.1)
 
 private theorem endRetract_def (q : EndPiece n W) :
-    c.endRetract q = c (q.coord.2, collarDepth q.coord.1) := rfl
+    c.endRetract q = c (q.coord.2, negNormalIioRay endInterval_subset q.coord.1) := rfl
 
 private theorem endRetract_mk (s : endInterval) (x : (𝓡∂ (n + 1)).boundary W) :
-    c.endRetract ((s, x) : endInterval × (𝓡∂ (n + 1)).boundary W) = c (x, collarDepth s) := rfl
+    c.endRetract ((s, x) : endInterval × (𝓡∂ (n + 1)).boundary W) =
+      c (x, negNormalIioRay endInterval_subset s) := rfl
 
 private theorem continuous_endRetract : Continuous c.endRetract :=
-  c.continuous.comp (continuous_snd.prodMk (continuous_collarDepth.comp continuous_fst))
+  c.continuous.comp
+    (continuous_snd.prodMk ((continuous_negNormalIioRay endInterval_subset).comp continuous_fst))
 
 /-- The end coordinates `(-t, x)` of collar coordinates `(x, t)`. -/
 private def collarToEnd (p : ↥((𝓡∂ (n + 1)).boundary W) × normalIioOpens 1) :
     endInterval × (𝓡∂ (n + 1)).boundary W :=
-  (negNormalCoord p.2, p.1)
+  (negNormalCoord Ioc_subset_endInterval p.2, p.1)
 
 private theorem collarToEnd_mk (x : (𝓡∂ (n + 1)).boundary W) (t : normalIioOpens 1) :
-    collarToEnd (x, t) = (negNormalCoord t, x) := rfl
+    collarToEnd (x, t) = (negNormalCoord Ioc_subset_endInterval t, x) := rfl
 
 private theorem endRetract_collarToEnd (p : ↥((𝓡∂ (n + 1)).boundary W) × normalIioOpens 1) :
     c.endRetract (collarToEnd p) = c p := by
   obtain ⟨x, t⟩ := p
-  rw [collarToEnd_mk, endRetract_mk, collarDepth_negNormalCoord]
+  rw [collarToEnd_mk, endRetract_mk, negNormalIioRay_negNormalCoord]
 
 end
 
 /-- The point of the interior piece glued to a point of the end overlap. -/
 private def endToInteriorPt (q : endOverlap (n := n) (W := W)) : InteriorPiece n W :=
   InteriorModel.mk (𝓡∂ (n + 1)) (c.endRetract q.val) (by
-    rw [endRetract_def, apply_mem_interior_iff_pos]
-    exact collarDepth_val_pos (mem_endOverlap.1 q.property))
+    rw [endRetract_def, apply_mem_interior_iff_pos, negNormalIioRay_coe_apply, lt_max_iff, neg_pos]
+    exact Or.inl (mem_endOverlap.1 q.property))
 
 private theorem endToInteriorPt_val (q : endOverlap (n := n) (W := W)) :
     (c.endToInteriorPt q).val = c.endRetract q.val :=
@@ -247,19 +231,21 @@ private theorem interiorToEndPt_def (q : c.interiorModelRange) :
     c.interiorToEndPt q = collarToEnd (c.interiorModelCoord q) := rfl
 
 private theorem continuous_interiorToEndPt : Continuous c.interiorToEndPt :=
-  (continuous_negNormalCoord.comp (continuous_snd.comp c.continuous_interiorModelCoord)).prodMk
-    (continuous_fst.comp c.continuous_interiorModelCoord)
+  ((continuous_negNormalCoord Ioc_subset_endInterval).comp
+    (continuous_snd.comp c.continuous_interiorModelCoord)).prodMk
+      (continuous_fst.comp c.continuous_interiorModelCoord)
 
 /-- The gluing map from the interior overlap to the end overlap. -/
 private def interiorToEnd : C(c.interiorModelRange, endOverlap (n := n) (W := W)) where
-  toFun q := ⟨c.interiorToEndPt q, neg_neg_of_pos (c.interiorModelCoord_snd_pos q)⟩
+  toFun q := ⟨c.interiorToEndPt q, negNormalCoord_neg _ (c.interiorModelCoord_snd_pos q)⟩
   continuous_toFun := c.continuous_interiorToEndPt.subtype_mk _
 
 private theorem interiorToEnd_val (q : c.interiorModelRange) :
     (c.interiorToEnd q).val = c.interiorToEndPt q := rfl
 
 private theorem interiorModelCoord_endToInterior (q : endOverlap (n := n) (W := W)) :
-    c.interiorModelCoord (c.endToInterior q) = (q.val.coord.2, collarDepth q.val.coord.1) := by
+    c.interiorModelCoord (c.endToInterior q) =
+      (q.val.coord.2, negNormalIioRay endInterval_subset q.val.coord.1) := by
   refine c.injective ?_
   rw [apply_interiorModelCoord, endToInterior_val, endRetract_def]
 
@@ -268,7 +254,7 @@ private theorem interiorToEnd_endToInterior (q : endOverlap (n := n) (W := W)) :
   have hq : ((q.val.coord.1 : endInterval) : ℝ) ≤ 0 := le_of_lt (mem_endOverlap.1 q.property)
   apply Subtype.ext
   rw [interiorToEnd_val, interiorToEndPt_def, interiorModelCoord_endToInterior, collarToEnd_mk,
-    negNormalCoord_collarDepth hq]
+    negNormalCoord_negNormalIioRay endInterval_subset Ioc_subset_endInterval hq]
   exact Prod.mk.eta.trans (EndPiece.coord_eq _)
 
 private theorem endToInterior_interiorToEnd (q : c.interiorModelRange) :
@@ -444,8 +430,7 @@ private theorem endRetract_mem_boundary {q : EndPiece n W} (hq : q ∉ endOverla
     c.endRetract q ∈ (𝓡∂ (n + 1)).boundary W := by
   have h0 : ((q.coord.1 : endInterval) : ℝ) ≥ 0 := not_lt.1 hq
   rw [endRetract_def, apply_mem_boundary_iff]
-  apply Subtype.ext
-  simp [collarDepth, h0]
+  exact (negNormalIioRay_eq_zero_iff endInterval_subset).2 h0
 
 private theorem exists_separation [T2Space W] (x : InteriorPiece n W) {y : EndPiece n W}
     (hy : y ∉ endOverlap) : ∃ A ∈ 𝓝 x, ∃ B ∈ 𝓝 y, ∀ z : InteriorPiece n W, z ∈ A →
@@ -480,7 +465,7 @@ instance [T2Space W] : T2Space c.WithEnd := by
 private theorem endIncl_collarToEnd_eq {p : ↥((𝓡∂ (n + 1)).boundary W) × normalIioOpens 1}
     (hp : 0 < (p.2 : EuclideanHalfSpace 1).val 0) (hint : c p ∈ (𝓡∂ (n + 1)).interior W) :
     c.endIncl (collarToEnd p) = c.interiorIncl (InteriorModel.mk (𝓡∂ (n + 1)) (c p) hint) := by
-  refine c.endIncl_eq_interiorIncl_iff.2 ⟨neg_neg_of_pos hp, ?_⟩
+  refine c.endIncl_eq_interiorIncl_iff.2 ⟨negNormalCoord_neg _ hp, ?_⟩
   apply InteriorModel.val_injective
   rw [InteriorModel.val_mk]
   exact (c.endToInterior_val _).trans (c.endRetract_collarToEnd p)
@@ -528,8 +513,9 @@ private theorem endMap_of_lt {s : ℝ} (hs : -1 < s) (x : (𝓡∂ (n + 1)).boun
 /-- For `s ∈ (-1, 0]`, the point `(s, x)` of the end is the collar point `c (x, -s)` of `W`. -/
 theorem endMap_neg_eq_inclusion (x : (𝓡∂ (n + 1)).boundary W) (t : normalIioOpens 1) :
     endMap c (-(t : EuclideanHalfSpace 1).val 0, x) = inclusion c (c (x, t)) := by
-  rw [inclusion_apply_collar, ← coe_negNormalCoord, endMap_of_lt c (negNormalCoord t).property,
-    Subtype.coe_eta, collarToEnd_mk]
+  rw [inclusion_apply_collar, ← coe_negNormalCoord Ioc_subset_endInterval,
+    endMap_of_lt c (negNormalCoord Ioc_subset_endInterval t).property, Subtype.coe_eta,
+    collarToEnd_mk]
 
 /-- The end is attached along `∂W`: `(0, x)` is the boundary point `x` of `W`. -/
 theorem endMap_zero (x : (𝓡∂ (n + 1)).boundary W) : endMap c (0, x) = inclusion c x := by
@@ -579,7 +565,7 @@ private theorem isImmersionAt_endIncl_collarToEnd
     IsImmersionAt ((𝓡 n).prod (𝓡∂ 1)) (𝓡 (n + 1)) ∞
       (fun p ↦ c.endIncl (remodelDiffeomorph (endModelDiffeomorph n) _ (collarToEnd p))) q := by
   have h₁ : IsImmersionAt ((𝓡 n).prod (𝓡∂ 1)) ((𝓡 n).prod 𝓘(ℝ)) ∞
-      (Prod.map id negNormalCoord) q :=
+      (Prod.map id (negNormalCoord Ioc_subset_endInterval)) q :=
     ((IsImmersion.id (I := 𝓡 n) (n := ∞)
       (M := ↥((𝓡∂ (n + 1)).boundary W))).isImmersionAt q.1).prodMap
       (isImmersionAt_negNormalCoord q.2)
@@ -752,9 +738,9 @@ theorem exists_eq_inclusion_or_endMap (z : c.WithEnd) :
     rw [inclusion_apply_of_mem_interior c p.val_mem_interior, InteriorModel.mk_val]
   · obtain ⟨⟨s, hs⟩, x⟩ := q
     by_cases h0 : s ≤ 0
-    · refine Or.inl ⟨c (x, collarDepth ⟨s, hs⟩), ?_⟩
-      rw [inclusion_apply_collar]
-      rw [collarToEnd_mk, negNormalCoord_collarDepth h0]
+    · refine Or.inl ⟨c (x, negNormalIioRay endInterval_subset ⟨s, hs⟩), ?_⟩
+      rw [inclusion_apply_collar, collarToEnd_mk,
+        negNormalCoord_negNormalIioRay endInterval_subset Ioc_subset_endInterval h0]
     · exact Or.inr ⟨s, x, not_le.1 h0, endMap_of_lt c hs x⟩
 
 /-- The inclusion of `W` in `c.WithEnd` is injective. -/
@@ -768,8 +754,7 @@ theorem retraction_endMap {s : ℝ} (hs : 0 ≤ s) (x : (𝓡∂ (n + 1)).bounda
   refine (retraction_endIncl c _).trans ?_
   rw [endRetract_mk]
   convert c.apply_zero x using 3
-  apply Subtype.ext
-  simpa [collarDepth, EndPiece.coord] using hs
+  exact (negNormalIioRay_eq_zero_iff endInterval_subset).2 hs
 
 /-- A point of `W` equal to a point `(s, x)` of the end with `0 ≤ s` is the boundary point `x`. -/
 theorem eq_of_inclusion_eq_endMap {p : W} {s : ℝ} (hs : 0 ≤ s) {x : (𝓡∂ (n + 1)).boundary W}
