@@ -191,7 +191,7 @@ private def pieceOrientation : ∀ k : Option ι, Manifold.Orientation (𝓡 2) 
 /-- The coordinates `z ↦ (re z, im z)` of the ball of `ℂ` preserve orientation. -/
 private theorem isOrientationPreservingAt_ballDiffeomorph (z : ball) :
     IsOrientationPreservingAt
-      ((Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp)).restrict ball)
+      (Manifold.Orientation.complex.restrict ball)
       discOrientation ballDiffeomorph z := by
   have he : Subtype.val ∘ ballDiffeomorph = orthonormalBasisOneI.repr ∘ (Subtype.val : ball → ℂ) :=
     funext coe_ballDiffeomorph
@@ -201,7 +201,7 @@ private theorem isOrientationPreservingAt_ballDiffeomorph (z : ball) :
 /-- The inverse of the coordinates preserves orientation. -/
 private theorem isOrientationPreservingAt_ballDiffeomorph_symm (v : discOpens) :
     IsOrientationPreservingAt discOrientation
-      ((Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp)).restrict ball)
+      (Manifold.Orientation.complex.restrict ball)
       ballDiffeomorph.symm v :=
   (isOrientationPreservingAt_ballDiffeomorph _).diffeomorph_symm (by simp)
 
@@ -279,7 +279,7 @@ private theorem isOrientationPreservingAt_collarPoint (i : ι) (u : annulusParam
 /-- In the parameters, the polar parametrization reverses orientation. -/
 private theorem isOrientationPreservingAt_polarPoint (u : annulusParam) :
     IsOrientationPreservingAt (-annulusOrientation)
-      ((Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp)).restrict ball)
+      (Manifold.Orientation.complex.restrict ball)
       polarPoint u := by
   have hd (s : normalIioOpens 1) : IsOrientationPreservingAt (normalIioOpensOrientation 1)
       real (fun s : normalIioOpens 1 ↦ 1 + (s : EuclideanHalfSpace 1).val 0) s := by
@@ -290,13 +290,13 @@ private theorem isOrientationPreservingAt_polarPoint (u : annulusParam) :
     exact (isOrientationPreservingAt_add_const 1 _).comp
       (isOrientationPreservingAt_normalIioOpens_val_zero s)
   have hpol : IsOrientationReversingAt ((AddCircle.orientation 1).prod real)
-      (Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp))
+      Manifold.Orientation.complex
       (fun q : AddCircle (1 : ℝ) × ℝ ↦ (q.2 : ℂ) * (toCircle q.1 : ℂ))
       (Prod.map id (fun s : normalIioOpens 1 ↦ 1 + (s : EuclideanHalfSpace 1).val 0) u.val) :=
     AddCircle.isOrientationReversingAt_ofReal_mul_toCircle _
       (by have := (u.val.2 : EuclideanHalfSpace 1).property; linarith)
   have h : IsOrientationPreservingAt (-annulusOrientation)
-      (Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp))
+      Manifold.Orientation.complex
       (Subtype.val ∘ polarPoint) u := by
     rw [val_comp_polarPoint, isOrientationPreservingAt_neg_left, annulusOrientation]
     exact (hpol.comp_preserving
@@ -418,7 +418,7 @@ theorem isOrientationPreservingAt_inl (p : (𝓡∂ 2).interiorOpens S) :
 orientation of the capped surface. -/
 theorem isOrientationPreservingAt_inr (i : ι) (z : ball) :
     IsOrientationPreservingAt
-      ((Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp)).restrict ball)
+      (Manifold.Orientation.complex.restrict ball)
       (orientation c γ hγ hinj o hrev) (inr c γ hγ hinj i) z := by
   have h := isOrientationPreservingAt_iGlue (isLocalDiffeomorph_pieceMap c γ hγ hinj)
     (iUnion_range_pieceMap c γ hγ hinj) (map_orientationAt_pieceMap c γ hγ hinj hrev) (some i)
@@ -437,7 +437,7 @@ theorem eq_orientation_iff {o' : Manifold.Orientation (𝓡 2) (capDiscs c γ h�
       (∀ p, IsOrientationPreservingAt (o.restrict ((𝓡∂ 2).interiorOpens S)) o'
         (inl c γ hγ hinj) p) ∧
       ∀ i z, IsOrientationPreservingAt
-        ((Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp)).restrict ball)
+        (Manifold.Orientation.complex.restrict ball)
         o' (inr c γ hγ hinj i) z := by
   refine ⟨?_, fun ⟨hl, hr⟩ ↦ ?_⟩
   · rintro rfl

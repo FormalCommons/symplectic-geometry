@@ -93,7 +93,7 @@ preserves orientation at every point of the ball of radius `2`, from the standar
 theorem isOrientationPreservingAt_ofChart (he' : e ∈ IsManifold.maximalAtlas (𝓡 2) 1 M)
     (z : ball) :
     IsOrientationPreservingAt
-      ((Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp)).restrict ball)
+      (Manifold.Orientation.complex.restrict ball)
       o (ofChart e hr hc he) z := by
   have hφ : ⇑(ofChart e hr hc he) =
       e.symm ∘ fun w : ball ↦ c + (r / 2) • Complex.orthonormalBasisOneI.repr (w : ℂ) :=
@@ -116,7 +116,7 @@ theorem integralTopForm_mpullback_ofChart (he' : e ∈ IsManifold.maximalAtlas (
     (hf : _root_.tsupport (α := EuclideanSpace ℝ (Fin 2) [⋀^Fin 2]→L[ℝ] ℝ) f ⊆
       range (ofChart e hr hc he)) :
     integralTopForm
-        ((Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp)).restrict ball)
+        (Manifold.Orientation.complex.restrict ball)
         (mpullback 𝓘(ℝ, ℂ) (𝓡 2) (ofChart e hr hc he) f) =
       integralTopForm o f :=
   (ofChart e hr hc he).isOpenEmbedding.integralTopForm_mpullback_of_isOrientationPreservingAt

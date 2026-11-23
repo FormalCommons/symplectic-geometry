@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.Orientation.Complex
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.OpenEmbedding
 public import TauCeti.Geometry.Manifold.Complex.FundamentalClass
 public import TauCeti.Geometry.Manifold.Diffeomorph.NormedSpace
@@ -948,7 +949,7 @@ standard orientation of `ℝ²`. -/
 theorem isOrientationPreservingAt_add_smul_orthonormalBasisOneI_repr
     (c : EuclideanSpace ℝ (Fin 2)) {r : ℝ} (hr : 0 < r) (z : ball) :
     Manifold.Orientation.IsOrientationPreservingAt
-      ((Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp)).restrict ball)
+      (Manifold.Orientation.complex.restrict ball)
       (Manifold.Orientation.euclideanSpace 2)
       (fun w : ball ↦ c + (r / 2) • Complex.orthonormalBasisOneI.repr (w : ℂ)) z := by
   have hf : (fun w : ball ↦ c + (r / 2) • Complex.orthonormalBasisOneI.repr (w : ℂ)) =
@@ -959,7 +960,7 @@ theorem isOrientationPreservingAt_add_smul_orthonormalBasisOneI_repr
     (Manifold.Orientation.isOrientationPreservingAt_restrict _ ball z)
   refine (Manifold.Orientation.isOrientationPreservingAt_iff_of_coe_eq _ _ _ _
     (ofChartLinearEquiv hr) (hasFDerivAt_ofChartHomeomorph c hr z).hasMFDerivAt.mfderiv.symm).2 ?_
-  rw [Manifold.Orientation.orientationAt_model, Manifold.Orientation.orientationAt_euclideanSpace]
+  rw [Manifold.Orientation.orientationAt_complex, Manifold.Orientation.orientationAt_euclideanSpace]
   exact orientation_map_ofChartLinearEquiv hr
 
 /-- At a point `x` where the chart `e` preserves orientation, the local orientation of `o` is the
