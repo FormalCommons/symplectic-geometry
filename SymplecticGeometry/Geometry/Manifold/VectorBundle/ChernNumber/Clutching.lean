@@ -110,9 +110,10 @@ complement of the open discs.
 * `SymplecticGeometry.Bundle.symplecticChernNumber_eq_sum_maslovIndex_clutching`: for symplectic
   frames, the first Chern number of a symplectic bundle adds up the Maslov indices of the
   transition loops.
-* `SymplecticGeometry.Bundle.ContMDiffTwoForm.IsSymplecticFrameOn.exists_frameTransition_loop`:
-  two symplectic frames differ along a loop by a continuous loop of symplectic matrices, the
-  transition loop that the formula takes.
+* `SymplecticGeometry.Bundle.ContMDiffTwoForm.IsSymplecticFrameOn.exists_frameTransition`:
+  two symplectic frames differ along a continuous map into their common domain by a continuous
+  map into the symplectic matrices; the case `X = Circle` is the transition loop that the formula
+  takes.
 
 ## References
 
@@ -675,26 +676,26 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
   [FiberBundle F V] [VectorBundle ℝ F V] {n : ℕ∞} {ω : ContMDiffTwoForm I n F V}
   {κ : Type*} [Fintype κ] [DecidableEq κ]
 
-/-- Two symplectic frames `Φ`, `Φ'` for `stdForm κ`, over open sets that contain a loop `γ` of
-`M`, differ along `γ` by a continuous loop `Ψ` of symplectic matrices: `Φ' = Φ ∘ Ψ` on `γ`. This
-is the transition loop of the disc clutching formula
-(`symplecticChernNumber_eq_sum_maslovIndex_clutching`). -/
-theorem ContMDiffTwoForm.IsSymplecticFrameOn.exists_frameTransition_loop {U U' : Set M}
-    (hU : IsOpen U) (hU' : IsOpen U') {Φ Φ' : ∀ x, StdSpace κ ≃L[ℝ] V x}
-    (h : ω.IsSymplecticFrameOn (stdForm κ) U Φ) (h' : ω.IsSymplecticFrameOn (stdForm κ) U' Φ')
-    (γ : C(Circle, M)) (hγ : ∀ ζ, γ ζ ∈ U ∩ U') :
-    ∃ Ψ : C(Circle, GLSymplectic κ ℝ), ∀ ζ v,
-      Φ' (γ ζ) v = Φ (γ ζ) (toEuclideanLin (Ψ ζ : GL (κ ⊕ κ) ℝ) v) := by
-  have hT : Continuous fun ζ ↦ (frameTransition Φ' Φ (γ ζ) : StdSpace κ →L[ℝ] StdSpace κ) :=
+/-- Two symplectic frames `Φ`, `Φ'` for `stdForm κ`, over open sets that contain the image of a
+continuous map `γ : X → M`, differ along `γ` by a continuous map `Ψ` into the symplectic
+matrices: `Φ' = Φ ∘ Ψ` along `γ`. For `X = Circle` this is the transition loop of the disc
+clutching formula (`symplecticChernNumber_eq_sum_maslovIndex_clutching`). -/
+theorem ContMDiffTwoForm.IsSymplecticFrameOn.exists_frameTransition {X : Type*}
+    [TopologicalSpace X] {U U' : Set M} (hU : IsOpen U) (hU' : IsOpen U')
+    {Φ Φ' : ∀ x, StdSpace κ ≃L[ℝ] V x} (h : ω.IsSymplecticFrameOn (stdForm κ) U Φ)
+    (h' : ω.IsSymplecticFrameOn (stdForm κ) U' Φ') (γ : C(X, M)) (hγ : ∀ y, γ y ∈ U ∩ U') :
+    ∃ Ψ : C(X, GLSymplectic κ ℝ), ∀ y v,
+      Φ' (γ y) v = Φ (γ y) (toEuclideanLin (Ψ y : GL (κ ⊕ κ) ℝ) v) := by
+  have hT : Continuous fun y ↦ (frameTransition Φ' Φ (γ y) : StdSpace κ →L[ℝ] StdSpace κ) :=
     ((h'.mono Set.inter_subset_right).contMDiffOn_frameTransition (h.mono Set.inter_subset_left)
       (hU.inter hU')).continuousOn.comp_continuous γ.continuous hγ
-  have hmem (ζ : Circle) :
-      GeneralLinearGroup.ofEuclideanCLE (frameTransition Φ' Φ (γ ζ)) ∈ GLSymplectic κ ℝ := by
+  have hmem (y : X) :
+      GeneralLinearGroup.ofEuclideanCLE (frameTransition Φ' Φ (γ y)) ∈ GLSymplectic κ ℝ := by
     rw [mem_GLSymplectic_iff_isSymplectomorphism, GeneralLinearGroup.toEuclideanCLE_ofEuclideanCLE]
     exact (h'.mono Set.inter_subset_right).isSymplectomorphism_frameTransition
-      (h.mono Set.inter_subset_left) (hγ ζ)
-  refine ⟨⟨fun ζ ↦ ⟨_, hmem ζ⟩, (GeneralLinearGroup.continuous_ofEuclideanCLE hT).subtype_mk _⟩,
-    fun ζ v ↦ ?_⟩
+      (h.mono Set.inter_subset_left) (hγ y)
+  refine ⟨⟨fun y ↦ ⟨_, hmem y⟩, (GeneralLinearGroup.continuous_ofEuclideanCLE hT).subtype_mk _⟩,
+    fun y v ↦ ?_⟩
   simp only [ContinuousMap.coe_mk]
   rw [← toEuclideanCLM_apply, GeneralLinearGroup.toEuclideanCLM_ofEuclideanCLE,
     ContinuousLinearEquiv.coe_coe, frameTransition_apply, ContinuousLinearEquiv.apply_symm_apply]
