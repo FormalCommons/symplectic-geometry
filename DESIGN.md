@@ -1714,10 +1714,11 @@ it into issues; the overview fixes its folders and its dependencies.
   `ChernWeil.lean`, `EulerNumber.lean` (with
   `TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`),
   `ClutchingNumber.lean` (comparison with Tau Ceti's
-  `TauCeti.clutchingNumber`, `Topology/VectorBundle/Complex/Clutching.lean`)
-  and `Splitting.lean` (the splitting description through the Maslov index
-  of the overlap loop, and the extension lemma for maps from the boundary
-  into $\mathrm{Sp}(2n)$). `design/first-chern-number.md` gives the details.
+  `TauCeti.clutchingNumber`, `Topology/VectorBundle/Complex/Clutching.lean`),
+  `Splitting.lean` (the splitting description through the Maslov index of
+  the overlap loop) and `Extension.lean` (the extension lemma for maps from
+  the boundary into $\mathrm{Sp}(2n)$). `design/first-chern-number.md` gives
+  the details.
 - **Builds on:** *Maslov index* (symplectic loops), *Symplectic vector
   bundles*, Tau Ceti's degree of maps (`TauCeti.HomologicalOrientation.degree`),
   surface genus (`TauCeti.surfaceGenus`), integration of top forms
