@@ -1571,7 +1571,7 @@ does.
     `isSymplecticFrameOn_symplecticClutchingFrame` (a
     `ContMDiffTwoForm.IsSymplecticFrameOn` for `stdForm κ` on `U₁` for
     `b = true`, on `U₂` for `false`) and
-    `symplecticClutchingFrame_false_apply`: on `U₁ ∩ U₂`, the second frame
+    `symplecticClutchingFrame_false_apply`: at every `x`, the second frame
     at `v` is the first at `T x v`. Can start at once.
 18d. **The double along a collar.**
     `Geometry/Manifold/Boundary/Collar/Double/Basic.lean`:
