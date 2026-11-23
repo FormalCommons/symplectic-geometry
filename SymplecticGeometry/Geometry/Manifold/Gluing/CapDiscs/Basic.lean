@@ -582,7 +582,7 @@ instance : IsManifold (𝓡 2) ∞ (capDiscs c γ hγ hinj) :=
 /-- The inclusion of the interior of `S` into the capped surface. -/
 def inl (p : (𝓡∂ 2).interiorOpens S) : capDiscs c γ hγ hinj :=
   (glueData c γ hγ hinj).toGlueData.ι none
-    (interiorModelDiffeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S) ∞ p)
+    (interiorPieceDiffeomorph p)
 
 /-- The inclusion of the ball of radius `2` of `ℂ` into the capped surface as the `i`-th disc. -/
 def inr (i : ι) (z : ball) : capDiscs c γ hγ hinj :=
@@ -590,7 +590,7 @@ def inr (i : ι) (z : ball) : capDiscs c γ hγ hinj :=
 
 private theorem range_inl :
     range (inl c γ hγ hinj) = range ((glueData c γ hγ hinj).toGlueData.ι none) :=
-  ((interiorModelDiffeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S) ∞).surjective.range_comp _)
+  ((interiorPieceDiffeomorph).surjective.range_comp _)
 
 private theorem range_inr (i : ι) :
     range (inr c γ hγ hinj i) = range ((glueData c γ hγ hinj).toGlueData.ι (some i)) :=
@@ -598,7 +598,7 @@ private theorem range_inr (i : ι) :
 
 /-- The inclusion of the interior of `S` is a smooth local diffeomorphism. -/
 theorem isLocalDiffeomorph_inl : IsLocalDiffeomorph (𝓡∂ 2) (𝓡 2) ∞ (inl c γ hγ hinj) := fun p ↦
-  ((interiorModelDiffeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S) ∞).isLocalDiffeomorph p).comp
+  ((interiorPieceDiffeomorph).isLocalDiffeomorph p).comp
     (hg := (isCompatible_glueData hγ hinj).isLocalDiffeomorph_ι none _)
 
 /-- The inclusion of each disc is a smooth local diffeomorphism. -/
@@ -612,7 +612,7 @@ end capDiscs
 /-- The interior of `S` is an open subset of the capped surface. -/
 theorem isOpenEmbedding_capDiscs_inl : IsOpenEmbedding (capDiscs.inl c γ hγ hinj) :=
   ((capDiscs.glueData c γ hγ hinj).ι_isOpenEmbedding none).comp
-    (interiorModelDiffeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S) ∞).toHomeomorph.isOpenEmbedding
+    (interiorPieceDiffeomorph).toHomeomorph.isOpenEmbedding
 
 /-- Each disc is an open subset of the capped surface. -/
 theorem isOpenEmbedding_capDiscs_inr (i : ι) : IsOpenEmbedding (capDiscs.inr c γ hγ hinj i) :=
@@ -642,7 +642,7 @@ theorem inr_ofReal_mul_toCircle_eq_inl {i : ι} {θ : AddCircle (1 : ℝ)} {t : 
     inr c γ hγ hinj i ⟨_, ofReal_one_add_mul_toCircle_mem_ball t θ⟩ =
       inl c γ hγ hinj ⟨c (γ i θ, t), h⟩ := by
   let q : interiorOverlap c γ hγ i :=
-    ⟨interiorModelDiffeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S) ∞ ⟨c (γ i θ, t), h⟩,
+    ⟨interiorPieceDiffeomorph ⟨c (γ i θ, t), h⟩,
       (mem_interiorOverlap hγ).2 ⟨θ, t, by
         rw [InteriorModel.val_interiorModelDiffeomorph]⟩⟩
   have hq : collarCoord hγ q = (γ i θ, t) :=
