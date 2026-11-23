@@ -160,7 +160,7 @@ theorem signature_surface (hd : d ≠ 0)
     (hq : q = LinearMap.BilinMap.toQuadraticMap ((TopCat.of X).singularCupPairing ℚ
       (show 2 + 2 = 2 * 1 + 1 + 1 from rfl) ((TopCat.of X).singularHomologyIntToRat _
         ((complexManifoldHomologicalOrientation _ X finrank_model).fundamentalClass
-          (by rw [finrank_real_of_complex, finrank_model])))))
+          (finrank_real_of_finrank_complex_eq_add_one finrank_model)))))
     (hsignature : 3 * ((sigPos q : ℤ) - sigNeg q) =
       complexManifoldEvalFundamentalClass (Fin (2 + 1 - Fintype.card Unit) → ℂ) X finrank_model
         ((TopCat.of X).integralCup (2 * 1) (2 * 1) (2 * (1 + 1)) rfl

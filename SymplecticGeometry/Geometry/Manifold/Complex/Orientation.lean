@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving.FromTauCeti
+public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 public import TauCeti.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Topology.Algebra.Module.Equiv.RestrictScalars
 
@@ -36,7 +37,8 @@ reindexes the canonical orientation once, for every such `E` and `M`:
 
 More generally, for complex dimension `finrank ℂ E = r + 1`, statements about real manifolds of
 dimension `2 r + 2` use the index type `Fin (2 * r + 1 + 1)`, and the real dimension
-`finrank ℝ E = 2 * r + 1 + 1` (`finrank_real_of_finrank_complex_eq_add_one`):
+`finrank ℝ E = 2 * r + 1 + 1` (`finrank_real_of_finrank_complex_eq_add_one`, in
+`SymplecticGeometry/LinearAlgebra/Complex/Finrank.lean`):
 
 * `SymplecticGeometry.complexManifoldOrientationOfFinrank`: the canonical orientation, indexed by
   `Fin (2 * r + 1 + 1)`, with `SymplecticGeometry.complexManifoldOrientationOfFinrank_def`;
@@ -66,12 +68,6 @@ open scoped Manifold ContDiff TauCeti.ComplexManifold
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [FiniteDimensional ℂ E]
   {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) 1 M]
-
-/-- A complex vector space of complex dimension `r + 1` has real dimension `2 r + 2`, written
-`2 * r + 1 + 1`, the form that the index type `Fin (2 * r + 1 + 1)` needs. -/
-theorem finrank_real_of_finrank_complex_eq_add_one {V : Type*} [AddCommGroup V] [Module ℂ V]
-    {r : ℕ} (hV : finrank ℂ V = r + 1) : finrank ℝ V = 2 * r + 1 + 1 := by
-  rw [finrank_real_of_complex, hV]; ring
 
 namespace TauCeti
 
