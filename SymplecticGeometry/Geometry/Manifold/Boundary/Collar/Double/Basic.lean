@@ -118,7 +118,16 @@ theorem inr_injective : Injective (inr c) := fun _ _ h ↦ by
   rw [coe_inr] at h
   exact (DoubleAlong.inr_eq_inr_iff _).1 h
 
+/-- Two points of the first copy are equal exactly when the points of `W` are. -/
+@[simp]
+theorem inl_eq_inl_iff {x y : W} : inl c x = inl c y ↔ x = y := (inl_injective c).eq_iff
+
+/-- Two points of the second copy are equal exactly when the points of `W` are. -/
+@[simp]
+theorem inr_eq_inr_iff {x y : W} : inr c x = inr c y ↔ x = y := (inr_injective c).eq_iff
+
 /-- A point of the first copy is a point of the second exactly on the boundary. -/
+@[simp]
 theorem inl_eq_inr_iff {x y : W} : inl c x = inr c y ↔ x = y ∧ x ∈ (𝓡∂ (n + 1)).boundary W := by
   rw [coe_inl, coe_inr]
   exact DoubleAlong.inl_eq_inr_iff _
@@ -362,6 +371,7 @@ theorem bandMap_of_nonneg {s : ℝ} (hs : 0 ≤ s) (hs' : s < 1) (x : (𝓡∂ (
   rw [bandMap_coe c (⟨s, ⟨by linarith, hs'⟩⟩, x), bandPt_of_nonneg c hs, posDepth]
 
 /-- The point `(0, x)` of the band is the boundary point `x` of `W`. -/
+@[simp]
 theorem bandMap_zero (x : (𝓡∂ (n + 1)).boundary W) : bandMap c (0, x) = inl c x := by
   rw [bandMap_coe c (⟨0, by simp [mem_bandInterval]⟩, x), bandPt_zero]
 
@@ -697,12 +707,14 @@ variable [Nonempty ((𝓡∂ (n + 1)).boundary W)]
 
 omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- The projection of the band sends a collar point `c (x, t)` of the first copy to `x`. -/
+@[simp]
 theorem bandProj_inl_apply (p : ↥((𝓡∂ (n + 1)).boundary W) × normalIioOpens 1) :
     bandProj c (inl c (c p)) = p.1 := by
   rw [bandProj, homeomorphDoubleAlong_inl, DoubleAlong.fold_inl, leftInverse_invFun c.injective]
 
 omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- The projection of the band sends a collar point `c (x, t)` of the second copy to `x`. -/
+@[simp]
 theorem bandProj_inr_apply (p : ↥((𝓡∂ (n + 1)).boundary W) × normalIioOpens 1) :
     bandProj c (inr c (c p)) = p.1 := by
   rw [bandProj, homeomorphDoubleAlong_inr, DoubleAlong.fold_inr, leftInverse_invFun c.injective]
