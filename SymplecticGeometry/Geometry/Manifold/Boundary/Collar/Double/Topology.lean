@@ -16,8 +16,9 @@ the topology of Tau Ceti's `TauCeti.DoubleAlong` of `W` along its boundary
 (`TauCeti.SmoothCollar.Double.homeomorphDoubleAlong`). This file transfers the point-set
 properties of that double to `c.Double`:
 
-* it is Hausdorff when `W` is, by `TauCeti.DoubleAlong.t2Space`, since the boundary is closed
-  (`ModelWithCorners.isClosed_boundary_of_finiteDimensional`);
+* the first copy `inl` of `W` is an embedding, by `TauCeti.DoubleAlong.isEmbedding_inl`;
+* `c.Double` is Hausdorff when `W` is, by `TauCeti.DoubleAlong.t2Space`, since the boundary is
+  closed (`ModelWithCorners.isClosed_boundary_of_finiteDimensional`);
 * it is compact when `W` is, by Tau Ceti's compactness instance on `TauCeti.DoubleAlong`;
 * it is connected when `W` is connected with nonempty boundary, by
   `TauCeti.DoubleAlong.connectedSpace`.
@@ -28,6 +29,7 @@ collar is a closed connected manifold. The instance `T2Space` follows Tau Ceti's
 
 ## Main results
 
+* `TauCeti.SmoothCollar.Double.isEmbedding_inl`.
 * `TauCeti.SmoothCollar.Double.instT2Space`, `Double.instCompactSpace`,
   `Double.instConnectedSpace`.
 
@@ -45,6 +47,13 @@ namespace TauCeti.SmoothCollar.Double
 
 variable {n : ℕ} {W : Type*} [TopologicalSpace W] [ChartedSpace (EuclideanHalfSpace (n + 1)) W]
   (c : SmoothCollar n ∞ W)
+
+/-- The first copy `inl` of `W` in its double along a collar is a topological embedding. -/
+theorem isEmbedding_inl : Topology.IsEmbedding (inl c) :=
+  have heq : ⇑(homeomorphDoubleAlong c).symm ∘ DoubleAlong.inl _ = inl c :=
+    funext fun w ↦ by
+      rw [Function.comp_apply, Homeomorph.symm_apply_eq, homeomorphDoubleAlong_inl]
+  heq ▸ (homeomorphDoubleAlong c).symm.isEmbedding.comp (DoubleAlong.isEmbedding_inl _)
 
 /-- The double of a Hausdorff manifold along a collar is Hausdorff. -/
 instance instT2Space [T2Space W] : T2Space c.Double :=

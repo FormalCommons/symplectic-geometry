@@ -47,10 +47,12 @@ copies of `W` as `Double.inl` and `Double.inr`.
 * `TauCeti.SmoothCollar.Double.isOpenEmbedding_inlInterior`, `isOpenEmbedding_inrInterior`,
   `isLocalDiffeomorph_inlInterior`, `isLocalDiffeomorph_inrInterior`.
 * `TauCeti.SmoothCollar.Double.bandMap_of_nonpos`, `bandMap_of_nonneg`: the gluing formulas;
+  `inl_apply_eq_bandMap`, `inr_apply_eq_bandMap`: collar points of the two copies on the band;
   `injOn_bandMap`, `isOpen_bandMap_image`, `isLocalDiffeomorphOn_bandMap` on
   `(-1, 1) × ∂W`.
 * `TauCeti.SmoothCollar.Double.range_inlInterior_union_range_inrInterior_union`: the three pieces
-  cover the double; `disjoint_range_inlInterior_inrInterior`.
+  cover the double; `disjoint_range_inlInterior_inrInterior`; `range_inlInterior`,
+  `range_inrInterior`.
 * `TauCeti.SmoothCollar.Double.bandProj_bandMap`, `contMDiffOn_bandProj`.
 
 The construction follows the gluing of `TauCeti.SmoothCollar.WithEnd`, and the open embeddings of
@@ -335,6 +337,21 @@ theorem bandMap_of_nonneg {s : ℝ} (hs : 0 ≤ s) (hs' : s < 1) (x : (𝓡∂ (
 theorem bandMap_zero (x : (𝓡∂ (n + 1)).boundary W) : bandMap c (0, x) = inl c x := by
   rw [bandMap_coe c (⟨0, by simp [mem_bandInterval]⟩, x), bandPt_zero]
 
+/-- The collar point `c (x, t)` of the first copy of `W` is the point `(-t, x)` of the band. -/
+theorem inl_apply_eq_bandMap (x : (𝓡∂ (n + 1)).boundary W) (t : normalIioOpens 1) :
+    inl c (c (x, t)) = bandMap c (-(t : EuclideanHalfSpace 1).val 0, x) := by
+  have h1 := mem_normalIioOpens.1 t.property
+  rw [bandMap_of_nonpos c (neg_nonpos.2 (t : EuclideanHalfSpace 1).property) (by linarith)]
+  congr 3
+  exact Subtype.ext (by simp [normalRay_normalCoord])
+
+/-- The collar point `c (x, t)` of the second copy of `W` is the point `(t, x)` of the band. -/
+theorem inr_apply_eq_bandMap (x : (𝓡∂ (n + 1)).boundary W) (t : normalIioOpens 1) :
+    inr c (c (x, t)) = bandMap c ((t : EuclideanHalfSpace 1).val 0, x) := by
+  rw [bandMap_of_nonneg c (t : EuclideanHalfSpace 1).property (mem_normalIioOpens.1 t.property)]
+  congr 3
+  exact Subtype.ext (by simp [normalRay_normalCoord])
+
 /-- On `(-1, 1) × ∂W`, the band map is injective. -/
 theorem injOn_bandMap : InjOn (bandMap c) (Ioo (-1) 1 ×ˢ univ) := by
   rintro ⟨s, x⟩ ⟨hs, -⟩ ⟨s', x'⟩ ⟨hs', -⟩ h
@@ -407,6 +424,18 @@ theorem inlInterior_apply (p : InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)
 theorem inrInterior_apply (p : InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)) :
     inrInterior c p = inr c p.val :=
   (rfl)
+
+/-- The first copy of the interior of `W` is the image of the interior under `inl`. -/
+theorem range_inlInterior : range (inlInterior c) = inl c '' (𝓡∂ (n + 1)).interior W := by
+  rw [← (𝓡∂ (n + 1)).coe_interiorOpens (M := W),
+    ← InteriorModel.range_val (I := 𝓡∂ (n + 1)) (U := (𝓡∂ (n + 1)).interiorOpens W), ← range_comp]
+  exact congrArg range (funext (inlInterior_apply c))
+
+/-- The second copy of the interior of `W` is the image of the interior under `inr`. -/
+theorem range_inrInterior : range (inrInterior c) = inr c '' (𝓡∂ (n + 1)).interior W := by
+  rw [← (𝓡∂ (n + 1)).coe_interiorOpens (M := W),
+    ← InteriorModel.range_val (I := 𝓡∂ (n + 1)) (U := (𝓡∂ (n + 1)).interiorOpens W), ← range_comp]
+  exact congrArg range (funext (inrInterior_apply c))
 
 /-- The copy of the interior of `W`, as the complement of the boundary. -/
 private def interiorToCompl (p : InteriorPiece n W) : ↥((𝓡∂ (n + 1)).boundary W)ᶜ :=
