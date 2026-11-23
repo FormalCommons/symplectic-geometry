@@ -248,7 +248,7 @@ theorem coe_homeomorphSublevel (w : W) : (homeomorphSublevel c w : c.Double) = i
 
 variable [IsManifold (𝓡∂ (n + 1)) ∞ W]
 
-local instance : IsManifold (𝓡 n) ∞ ((𝓡∂ (n + 1)).boundary W) := isManifold_boundary W
+private local instance : IsManifold (𝓡 n) ∞ ((𝓡∂ (n + 1)).boundary W) := isManifold_boundary W
 
 /-- The strict sublevel set `{height < 0}` is the first copy of the interior of `W`. -/
 theorem preimage_height_Iio : height c ⁻¹' Iio 0 = range (inlInterior c) := by

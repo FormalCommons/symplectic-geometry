@@ -28,6 +28,9 @@ map that `f` itself induces on local homology.
 * `TauCeti.Manifold.Orientation.toHomologicalOrientation_apply_eq_localOrientationOfOrientedChart`.
 * `TauCeti.Manifold.Orientation.localHomologyMap_toHomologicalOrientation`: orientation-preserving
   maps carry local orientations to local orientations.
+* `TauCeti.Manifold.Orientation.comap_toHomologicalOrientation`: along an orientation-preserving
+  open embedding, the homological orientation of a smooth orientation pulls back to that of the
+  source.
 
 ## Implementation notes
 
@@ -118,6 +121,32 @@ theorem localHomologyMap_toHomologicalOrientation (f : C(M, N)) {x : M}
   simpa using (HomologicalOrientation.localIndex_eq_iff_of_preimage_subset _ _ hF f rfl hfx).1 hi
 
 end LocalHomologyMap
+
+section Comap
+
+variable {M N E : Type} {H H' : Type*}
+  [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
+  [TopologicalSpace H'] {J : ModelWithCorners ℝ E H'} [J.Boundaryless]
+  [TopologicalSpace M] [ChartedSpace H M] [ChartedSpace E M] [T2Space M] [IsManifold I 1 M]
+  [TopologicalSpace N] [ChartedSpace H' N] [ChartedSpace E N] [T2Space N] [IsManifold J 1 N]
+  {n : ℕ} (hE : finrank ℝ E = n + 1)
+
+/-- **Pulling back the homological orientation of a smooth orientation.** Let `j : M → N` be an
+open embedding that preserves the orientations `o` and `o'` at every point. Then the pull-back
+along `j` of the homological orientation of `o'` is the homological orientation of `o`. -/
+theorem comap_toHomologicalOrientation {o : Manifold.Orientation I M (Fin (n + 1))}
+    {o' : Manifold.Orientation J N (Fin (n + 1))} {j : M → N} (hj : Topology.IsOpenEmbedding j)
+    (hjo : ∀ x, IsOrientationPreservingAt o o' j x) :
+    (o'.toHomologicalOrientation hE).comap hj = o.toHomologicalOrientation hE := by
+  ext x : 1
+  apply (hj.localOrientationEquiv x (n + 1)).injective
+  rw [HomologicalOrientation.localOrientationEquiv_comap_apply]
+  apply Subtype.ext
+  rw [Topology.IsOpenEmbedding.coe_localOrientationEquiv, localHomologyIsoOfIsOpenEmbedding_hom]
+  exact (localHomologyMap_toHomologicalOrientation hE hE ⟨j, hj.continuous⟩ _ (hjo x)).symm
+
+end Comap
 end TauCeti.Manifold.Orientation
 
 end
