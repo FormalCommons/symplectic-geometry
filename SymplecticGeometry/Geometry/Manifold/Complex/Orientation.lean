@@ -34,6 +34,14 @@ reindexes the canonical orientation once, for every such `E` and `M`:
   orientation given by `Complex.orientation`;
 * `Diffeomorph.isOrientationPreservingAt_complexCurveOrientation`: biholomorphisms preserve it.
 
+More generally, for complex dimension `finrank ℂ E = r + 1`, statements about real manifolds of
+dimension `2 r + 2` use the index type `Fin (2 * r + 1 + 1)`:
+
+* `SymplecticGeometry.complexManifoldOrientationOfFinrank`: the canonical orientation, indexed by
+  `Fin (2 * r + 1 + 1)`, with `SymplecticGeometry.complexManifoldOrientationOfFinrank_def`;
+* `SymplecticGeometry.orientationAt_complexManifoldOrientationOfFinrank`: at every point it is the
+  complex orientation `TauCeti.complexOrientation E` of the model, reindexed.
+
 Tau Ceti's `TauCeti.complexHomologicalOrientation` (in
 `TauCeti/Geometry/Manifold/Complex/FundamentalClass.lean`) reindexes the same orientation to
 `Fin 2` for Riemann surfaces modelled on `ℂ`, as a homological orientation.
@@ -132,6 +140,31 @@ theorem _root_.Diffeomorph.isOrientationPreservingAt_complexCurveOrientation
       (complexCurveOrientation E N h) Φ x := by
   rw [complexCurveOrientation_def, complexCurveOrientation_def]
   exact (Φ.isOrientationPreservingAt_complexManifoldOrientation n x).reindex _
+
+variable (E M) in
+/-- The canonical orientation of a complex manifold `M` modelled on `𝓘(ℂ, E)`, of complex
+dimension `finrank ℂ E = r + 1`, as an orientation of the underlying real manifold of dimension
+`2 r + 2` indexed by `Fin (2 * r + 1 + 1)`: Tau Ceti's `complexManifoldOrientation E M`,
+reindexed from `Fin (2 * finrank ℂ E)`. -/
+noncomputable def complexManifoldOrientationOfFinrank {r : ℕ} (hE : finrank ℂ E = r + 1) :
+    Manifold.Orientation 𝓘(ℝ, E) M (Fin (2 * r + 1 + 1)) :=
+  (complexManifoldOrientation E M).reindex (finCongr (by rw [hE]; ring))
+
+theorem complexManifoldOrientationOfFinrank_def {r : ℕ} (hE : finrank ℂ E = r + 1) :
+    complexManifoldOrientationOfFinrank E M hE =
+      (complexManifoldOrientation E M).reindex (finCongr (by rw [hE]; ring)) :=
+  (rfl)
+
+/-- At every point of a complex manifold of complex dimension `r + 1`,
+`complexManifoldOrientationOfFinrank` is the complex orientation of the model space `E`,
+reindexed to `Fin (2 * r + 1 + 1)`. -/
+@[simp]
+theorem orientationAt_complexManifoldOrientationOfFinrank {r : ℕ} (hE : finrank ℂ E = r + 1)
+    (x : M) :
+    (complexManifoldOrientationOfFinrank E M hE).orientationAt x =
+      Orientation.reindex ℝ (TangentSpace 𝓘(ℝ, E) x) (finCongr (by rw [hE]; ring))
+        (complexOrientation E) := by
+  rw [complexManifoldOrientationOfFinrank_def, orientationAt_reindex_complexManifoldOrientation]
 
 end SymplecticGeometry
 

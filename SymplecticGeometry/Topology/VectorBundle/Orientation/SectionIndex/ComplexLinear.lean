@@ -10,8 +10,6 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.HomologicalOrientatio
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Derivative
 
-import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
-
 /-!
 # A zero with complex-linear invertible derivative has index one
 
@@ -103,7 +101,7 @@ theorem sectionIndex_eq_one_of_complexLinear {r : ℕ} (hE : finrank ℂ E = r +
   have h₂ : 2 * finrank ℂ E = 2 * r + 1 + 1 := by rw [hE]; ring
   rw [SymplecticGeometry.complexManifoldHomologicalOrientation_def]
   set oV := (complex G V).reindex (finCongr h₁)
-  set oM := (complexManifoldOrientation E M).reindex (finCongr h₂)
+  set oM := SymplecticGeometry.complexManifoldOrientationOfFinrank E M hE
   set Aℝ : E ≃L[ℝ] G := A.restrictScalars' ℝ
   have hAℝ : (A : E →L[ℂ] G).restrictScalars ℝ = (Aℝ : E →L[ℝ] G) := by
     ext v
@@ -137,6 +135,7 @@ theorem sectionIndex_eq_one_of_complexLinear {r : ℕ} (hE : finrank ℂ E = r +
     rw [reindex_apply, Trivialization.mapOrientation_reindex, mapOrientation_complex_of_isLinear]
   -- The chart `φ` carries the local orientation of `M` at `z` to the one selected by `ω`.
   have hω := map_orientationAt_reindex_complexManifoldOrientation h₂ h₁ A z
+  rw [← SymplecticGeometry.complexManifoldOrientationOfFinrank_def hE] at hω
   have hφl := Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation_transHomeomorph
     hEℝ oM hG Aℝ z
   rw [hω] at hφl
