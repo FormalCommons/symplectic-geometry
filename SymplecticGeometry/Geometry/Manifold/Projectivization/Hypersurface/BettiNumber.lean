@@ -94,8 +94,9 @@ theorem bettiNumber_of_ne (hd : d ≠ 0) {k : ℕ} (hk : k ≠ n) :
     grind
   by_cases hk' : k ≤ 2 * n
   · obtain ⟨m, rfl⟩ := Nat.exists_eq_add_one_of_ne_zero (by omega : n ≠ 0)
-    have hE : finrank ℝ (Fin (m + 1 + 1 - Fintype.card Unit) → ℂ) = 2 * m + 1 + 1 := by
-      rw [finrank_real_of_complex, finrank_model]; ring
+    have hE : finrank ℝ (Fin (m + 1 + 1 - Fintype.card Unit) → ℂ) =
+        2 * m + 1 + 1 :=
+      finrank_real_of_finrank_complex_eq_add_one finrank_model
     rw [(complexManifoldHomologicalOrientation _ X finrank_model).bettiNumber_eq_bettiNumber hE
         (p := 2 * (m + 1) - k) (by omega),
       X.bettiNumber_of_lt ℚ hd (by omega)]

@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
+public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 public import SymplecticGeometry.Topology.VectorBundle.Thom.ChangeOfCoefficients
 public import SymplecticGeometry.Topology.VectorBundle.Thom.Gysin
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
@@ -228,7 +229,7 @@ theorem bijective_integralCup_complexEulerClass [CompactSpace B] {r : ℕ}
         ((TopCat.uliftIntegralCohomologyIso _ _).hom (complexEulerClass F E hF)) := by
   rw [complexEulerClass_def]
   exact VectorBundleOrientation.bijective_integralCup_eulerClass _
-    (by rw [finrank_real_eq_two_mul_finrank_complex, hF]; ring) hl h hEl hEm
+    (finrank_real_of_finrank_complex_eq_add_one hF) hl h hEl hEm
 
 end Complex
 

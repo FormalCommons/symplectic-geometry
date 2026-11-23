@@ -158,7 +158,8 @@ follows from the signature theorem in every degree.
 Milestone: *Chern classes of projective hypersurfaces*. -/
 theorem signature_surface (hd : d ≠ 0)
     (hsignature : 3 * (complexManifoldHomologicalOrientation _ X finrank_model).signature
-        (by rw [finrank_real_of_complex, finrank_model]) (show 2 + 2 = 2 * 1 + 1 + 1 from rfl) =
+        (finrank_real_of_finrank_complex_eq_add_one finrank_model)
+        (show 2 + 2 = 2 * 1 + 1 + 1 from rfl) =
       complexManifoldEvalFundamentalClass (Fin (2 + 1 - Fintype.card Unit) → ℂ) X finrank_model
         ((TopCat.of X).integralCup (2 * 1) (2 * 1) (2 * (1 + 1)) rfl
           (chernClass (Fin (2 + 1 - Fintype.card Unit) → ℂ)
@@ -169,16 +170,17 @@ theorem signature_surface (hd : d ≠ 0)
           finrank_model (chernClass (Fin (2 + 1 - Fintype.card Unit) → ℂ)
             (TangentSpace 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ) : X → Type) 2)) :
     3 * (complexManifoldHomologicalOrientation _ X finrank_model).signature
-        (by rw [finrank_real_of_complex, finrank_model]) (show 2 + 2 = 2 * 1 + 1 + 1 from rfl) =
+        (finrank_real_of_finrank_complex_eq_add_one finrank_model)
+        (show 2 + 2 = 2 * 1 + 1 + 1 from rfl) =
         (4 - (d : ℤ) ^ 2) * d ∧
       3 * (sigPos
           ((complexManifoldHomologicalOrientation _ X finrank_model).intersectionQuadraticForm
-            (by rw [finrank_real_of_complex, finrank_model])
+            (finrank_real_of_finrank_complex_eq_add_one finrank_model)
             (show 2 + 2 = 2 * 1 + 1 + 1 from rfl)) : ℤ) =
         (d : ℤ) ^ 3 - 6 * d ^ 2 + 11 * d - 3 ∧
       3 * (sigNeg
           ((complexManifoldHomologicalOrientation _ X finrank_model).intersectionQuadraticForm
-            (by rw [finrank_real_of_complex, finrank_model])
+            (finrank_real_of_finrank_complex_eq_add_one finrank_model)
             (show 2 + 2 = 2 * 1 + 1 + 1 from rfl)) : ℤ) =
         2 * (d : ℤ) ^ 3 - 6 * d ^ 2 + 7 * d - 3 := by
   rw [evalFundamentalClass_integralCup_chernClass_one_surface,
@@ -188,7 +190,8 @@ theorem signature_surface (hd : d ≠ 0)
   have hb := congrArg (Nat.cast : ℕ → ℤ) <|
     (complexManifoldHomologicalOrientation _ X finrank_model)
       |>.sigPos_add_sigNeg_intersectionQuadraticForm
-        (by rw [finrank_real_of_complex, finrank_model]) (show 2 + 2 = 2 * 1 + 1 + 1 from rfl)
+        (finrank_real_of_finrank_complex_eq_add_one finrank_model)
+        (show 2 + 2 = 2 * 1 + 1 + 1 from rfl)
         even_two
   push_cast at hb
   rw [X.bettiNumber_two_surface hd] at hb
