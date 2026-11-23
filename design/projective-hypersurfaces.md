@@ -592,7 +592,7 @@ In the namespace `TauCeti.HomologicalOrientation`:
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/BettiNumber.lean`
 
-For `d ≠ 0` and `n ≠ 0`.
+For `d ≠ 0`.
 
 - `bettiNumber_of_ne`: for `k ≠ n`, `bettiNumber ℚ X k` is `1` if `k` is even
   and `k ≤ 2 * n`, and `0` otherwise; below `n` by
