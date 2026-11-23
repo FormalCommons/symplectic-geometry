@@ -35,9 +35,9 @@ The orientation is glued by `TauCeti.Manifold.Orientation.iGlue` from the two co
 interior and the band piece `bandIncl c`. The band is oriented by pulling `o` back along the
 map `(s, x) ↦ c (x, 1/2 - s/4)` into the interior, a local diffeomorphism since the collar is
 one. Where the band meets the first copy, `s < 0`, the band parameters carry into the interior
-by `(s, x) ↦ c (x, -s)`. Its orientation sign is locally constant
-(`TauCeti.Manifold.Orientation.eventually_orientationSign_eq`), so constant along the connected
-slice `(-1, 0) × {x}`, as in the proof of `TauCeti.SmoothCollar.orientationSign_eq_neg_one_pow`.
+by `(s, x) ↦ c (x, -s)`. That map is `C¹` with invertible derivative, so its orientation sign
+takes one value on the connected slice `(-1, 0) × {x}`
+(`TauCeti.Manifold.Orientation.orientationSign_eq_of_isPreconnected`).
 At `s = -2/3` the two maps into the interior differ by `(s, x) ↦ (2 + 4 s, x)`, which fixes the
 point with derivative of determinant `4`, so the sign is `1`
 (`TauCeti.Manifold.Orientation.orientationSign_of_apply_eq`). On the second copy, `s > 0`, the
@@ -117,7 +117,7 @@ private theorem isLocalDiffeomorph_bandDepth : IsLocalDiffeomorph 𝓘(ℝ) (�
   intro s
   have hg : IsLocalDiffeomorphAt (𝓡∂ 1) 𝓘(ℝ) ∞
       (fun t : normalIioOpens 1 ↦ (t : EuclideanHalfSpace 1).val 0) (bandDepth s) :=
-    (isLocalDiffeomorph_subtype_val _).comp (hg := isLocalDiffeomorphAt_val_zero (bandDepth_pos s))
+    isLocalDiffeomorphAt_opens_val_zero (bandDepth_pos s)
   have hcont : Continuous bandDepth :=
     continuous_normalIioRay.comp (Continuous.subtype_mk (by fun_prop) _)
   refine (hg.comp_iff_left hcont.continuousAt).1 ?_
@@ -155,8 +155,7 @@ private theorem isLocalDiffeomorph_bandInterior :
     IsLocalDiffeomorph (𝓘(ℝ).prod (𝓡 n)) (𝓡 (n + 1)) ∞ (bandInterior c) := fun p ↦
   (isLocalDiffeomorph_bandCollar c p).comp (hg := Diffeomorph.isLocalDiffeomorph _ _)
 
-variable (o : Manifold.Orientation (𝓡 (n + 1))
-  (InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)) (Fin (n + 1)))
+variable (o : Manifold.Orientation (𝓡 (n + 1)) (InteriorPiece n W) (Fin (n + 1)))
 
 /-- The orientation of the parameters of the band, pulled back from `o` along `bandInterior`. -/
 private def bandParamOrientation :
@@ -289,8 +288,7 @@ private theorem continuous_bandPoint : Continuous (bandPoint c) :=
 
 section Copy
 
-variable {c} {j : InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W) → c.Double}
-  (hj : IsOpenEmbedding j)
+variable {c} {j : InteriorPiece n W → c.Double} (hj : IsOpenEmbedding j)
 
 /-- The point of the copy `j` of the interior of `W` at the parameter `p` of the band, when the
 band point lies on that copy. -/
@@ -470,10 +468,9 @@ private theorem isOrientationPreservingAt_copyParam_inr {p : BandParam n W} (hp 
 tangent orientation of the double wherever they meet, if the band parameters carry into `j`
 preserving orientation, from the band orientation to `oj`. -/
 private theorem map_orientationAt_eq_bandIncl
-    {j : InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W) → c.Double}
-    (hj : IsOpenEmbedding j) (hjd : IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ j)
-    {oj : Manifold.Orientation (𝓡 (n + 1))
-      (InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)) (Fin (n + 1))}
+    {j : InteriorPiece n W → c.Double} (hj : IsOpenEmbedding j)
+    (hjd : IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ j)
+    {oj : Manifold.Orientation (𝓡 (n + 1)) (InteriorPiece n W) (Fin (n + 1))}
     (hpres : ∀ p, bandPoint c p ∈ range j →
       IsOrientationPreservingAt (bandParamOrientation c o) oj (copyParam hj) p)
     {x : InteriorPiece n W} {y : BandPiece n W} (h : j x = bandIncl c y) :
@@ -554,8 +551,7 @@ private theorem orientation_def :
 
 /-- The first copy of the interior of `W` preserves orientation, from `o` to the orientation of
 the double. -/
-theorem isOrientationPreservingAt_inlInterior
-    (p : InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)) :
+theorem isOrientationPreservingAt_inlInterior (p : InteriorPiece n W) :
     IsOrientationPreservingAt o (orientation c o) (inlInterior c) p := by
   rw [orientation_def]
   exact isOrientationPreservingAt_iGlue (isLocalDiffeomorph_pieceMap c) (iUnion_range_pieceMap c)
@@ -563,8 +559,7 @@ theorem isOrientationPreservingAt_inlInterior
 
 /-- The second copy of the interior of `W` preserves orientation, from `-o` to the orientation of
 the double: the collar coordinate is reflected from one copy to the other. -/
-theorem isOrientationPreservingAt_inrInterior
-    (p : InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)) :
+theorem isOrientationPreservingAt_inrInterior (p : InteriorPiece n W) :
     IsOrientationPreservingAt (-o) (orientation c o) (inrInterior c) p := by
   rw [orientation_def]
   exact isOrientationPreservingAt_iGlue (isLocalDiffeomorph_pieceMap c) (iUnion_range_pieceMap c)

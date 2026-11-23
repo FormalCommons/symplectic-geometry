@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.Instances.AddCircle
 public import TauCeti.Topology.Category.TopCat.GlueData
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
 import SymplecticGeometry.Geometry.Manifold.Instances.AddCircle
+import SymplecticGeometry.Geometry.Manifold.Instances.HalfLine.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.ModelTransport.Remodel
@@ -50,7 +51,6 @@ construction follows the gluing of `TauCeti.SmoothCollar.WithEnd`
   interior of `S` and of the `i`-th disc.
 * `SymplecticGeometry.capDiscs.gluingCoord`: the collar coordinates `(γ i (arg z / 2π), ‖z‖ - 1)`
   of a point `z` of the `i`-th disc.
-* `SymplecticGeometry.capDiscs.InteriorPiece`: the interior of `S`, as a manifold over `ℝ²`.
 
 ## Main results
 
@@ -94,12 +94,6 @@ local instance : IsManifold (𝓡 1) ∞ ((𝓡∂ 2).boundary S) := isManifold_
 
 namespace capDiscs
 
-/-! ### The interior piece -/
-
-variable (S) in
-/-- The interior of `S`, as a boundaryless manifold over `ℝ²`. -/
-abbrev InteriorPiece : Type := InteriorModel (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S)
-
 /-! ### The disc pieces -/
 
 /-- The identification of `ℂ` with `ℝ²` by the orthonormal basis `1, i`. -/
@@ -138,14 +132,14 @@ variable {ι : Type} (γ : ι → AddCircle (1 : ℝ) → (𝓡∂ 2).boundary S
 /-- The part of the interior piece covered by the collar over the image of `γ i`: the points
 `c (γ i θ, t)` with `t > 0`. -/
 private def interiorOverlap (hγ : ∀ i, IsLocalDiffeomorph 𝓘(ℝ) (𝓡 1) ∞ (γ i)) (i : ι) :
-    Opens (InteriorPiece S) :=
+    Opens (InteriorPiece 1 S) :=
   ⟨InteriorModel.val ⁻¹' (c '' (range (γ i) ×ˢ univ)),
     (c.isOpenEmbedding.isOpenMap _ ((hγ i).isOpen_range.prod isOpen_univ)).preimage
       InteriorModel.continuous_val⟩
 
 variable {c γ} (hγ : ∀ i, IsLocalDiffeomorph 𝓘(ℝ) (𝓡 1) ∞ (γ i))
 
-private theorem mem_interiorOverlap {i : ι} {q : InteriorPiece S} :
+private theorem mem_interiorOverlap {i : ι} {q : InteriorPiece 1 S} :
     q ∈ interiorOverlap c γ hγ i ↔ ∃ θ t, c (γ i θ, t) = q.val := by
   simp [interiorOverlap, ← SetLike.mem_coe]
 
@@ -294,7 +288,7 @@ private theorem isLocalDiffeomorphAt_polarPoint {i : ι} (q : interiorOverlap c 
   have hpair : IsLocalDiffeomorphAt ((𝓡 1).prod (𝓡∂ 1)) (𝓘(ℝ).prod 𝓘(ℝ)) ∞
       (Prod.map (angle γ i) fun t : normalIioOpens 1 ↦ 1 + (t : EuclideanHalfSpace 1).val 0)
         (collarCoord hγ q) :=
-    hangle.prodMap ((isLocalDiffeomorphAt_normalIioOpens_val_zero hd).comp (hg := hshift _))
+    hangle.prodMap ((isLocalDiffeomorphAt_opens_val_zero hd).comp (hg := hshift _))
   exact ((isLocalDiffeomorph_collarCoord hγ i q).comp (hg := hpair)).comp
     (hg := AddCircle.isLocalDiffeomorphAt_ofReal_mul_toCircle hr)
 
@@ -429,7 +423,7 @@ private theorem coe_annulusDiffeomorph (i : ι) :
 
 include hinj in
 /-- The interior and the discs overlap in distinct places for distinct discs. -/
-private theorem eq_of_mem_interiorOverlap {i j : ι} {q : InteriorPiece S}
+private theorem eq_of_mem_interiorOverlap {i j : ι} {q : InteriorPiece 1 S}
     (hi : q ∈ interiorOverlap c γ hγ i) (hj : q ∈ interiorOverlap c γ hγ j) : i = j := by
   obtain ⟨θ, t, hθ⟩ := (mem_interiorOverlap hγ).1 hi
   obtain ⟨θ', t', hθ'⟩ := (mem_interiorOverlap hγ).1 hj
@@ -441,7 +435,7 @@ private theorem eq_of_mem_interiorOverlap {i j : ι} {q : InteriorPiece S}
 variable (S ι) in
 /-- The pieces of the gluing: the interior of `S`, and one disc for each `i : ι`. -/
 private def piece : Option ι → TopCat
-  | none => TopCat.of (InteriorPiece S)
+  | none => TopCat.of (InteriorPiece 1 S)
   | some _ => TopCat.of DiscPiece
 
 variable (c γ) in
@@ -514,11 +508,11 @@ def glueData : TopCat.GlueData :=
 
 private instance instChartedSpacePiece :
     ∀ i : Option ι, ChartedSpace (EuclideanSpace ℝ (Fin 2)) (piece S ι i)
-  | none => inferInstanceAs (ChartedSpace _ (InteriorPiece S))
+  | none => inferInstanceAs (ChartedSpace _ (InteriorPiece 1 S))
   | some _ => inferInstanceAs (ChartedSpace _ DiscPiece)
 
 private instance instIsManifoldPiece : ∀ i : Option ι, IsManifold (𝓡 2) ∞ (piece S ι i)
-  | none => inferInstanceAs (IsManifold _ ∞ (InteriorPiece S))
+  | none => inferInstanceAs (IsManifold _ ∞ (InteriorPiece 1 S))
   | some _ => inferInstanceAs (IsManifold _ ∞ DiscPiece)
 
 private instance (i : (glueData c γ hγ hinj).J) :
