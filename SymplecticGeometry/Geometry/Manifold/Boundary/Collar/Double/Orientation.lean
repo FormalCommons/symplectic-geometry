@@ -117,7 +117,7 @@ private theorem isLocalDiffeomorph_bandDepth : IsLocalDiffeomorph 𝓘(ℝ) (�
   intro s
   have hg : IsLocalDiffeomorphAt (𝓡∂ 1) 𝓘(ℝ) ∞
       (fun t : normalIioOpens 1 ↦ (t : EuclideanHalfSpace 1).val 0) (bandDepth s) :=
-    (isLocalDiffeomorph_subtype_val _).comp (hg := isLocalDiffeomorphAt_val_zero (bandDepth_pos s))
+    isLocalDiffeomorphAt_normalIioOpens_val_zero (bandDepth_pos s)
   have hcont : Continuous bandDepth :=
     continuous_normalIioRay.comp (Continuous.subtype_mk (by fun_prop) _)
   refine (hg.comp_iff_left hcont.continuousAt).1 ?_
