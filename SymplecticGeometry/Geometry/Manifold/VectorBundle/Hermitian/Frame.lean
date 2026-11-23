@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.OrthogonalComplement
 public import TauCeti.Geometry.Manifold.VectorBundle.TotallyReal.Trivialization
 public import TauCeti.Topology.VectorBundle.OrthonormalFrame.Basic
+public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 import Mathlib.Geometry.Manifold.Algebra.LieGroup
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Norm
@@ -87,8 +88,7 @@ variable {X H B F : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
   [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V]
   {n : ℕ∞ω}
 
-local instance SymplecticGeometry.instVectorBundleRealHermitianFrame : VectorBundle ℝ F V :=
-  VectorBundle.restrictScalars ℝ ℂ F V
+open scoped VectorBundle.ComplexToReal
 
 namespace Bundle.ContMDiffRiemannianMetric
 

@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.Frame
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Nonvanishing
+public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 
 /-!
 # Unitary frames over manifolds with boundary
@@ -70,8 +71,7 @@ variable {n : ℕ} {M : Type*} [TopologicalSpace M] [ChartedSpace (EuclideanHalf
   [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
   [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V]
 
-local instance instVectorBundleRealHermitianBoundary : VectorBundle ℝ F V :=
-  VectorBundle.restrictScalars ℝ ℂ F V
+open scoped VectorBundle.ComplexToReal
 
 variable [ContMDiffVectorBundle ∞ F V (𝓡∂ (n + 2))]
 
@@ -100,7 +100,6 @@ theorem exists_orthonormal_contMDiffSection_of_boundary_nonempty_of_le
     let W := g.orthogonalSpanFamily hI s
     let := hW.fiberBundle
     let := hW.vectorBundle
-    let := VectorBundle.restrictScalars ℝ ℂ (Fin (r + 1) → ℂ) fun x ↦ W x
     let := hW.contMDiffVectorBundle
     -- A nowhere-zero smooth section of the complement of the sections chosen so far.
     have hr : n + 2 ≤ finrank ℝ (Fin (r + 1) → ℂ) := by
@@ -127,8 +126,7 @@ variable {S : Type*} [TopologicalSpace S] [ChartedSpace (EuclideanHalfSpace 2) S
   [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
   [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V]
 
-local instance instVectorBundleRealHermitianSurface : VectorBundle ℝ F V :=
-  VectorBundle.restrictScalars ℝ ℂ F V
+open scoped VectorBundle.ComplexToReal
 
 variable [ContMDiffVectorBundle ∞ F V (𝓡∂ 2)]
 

@@ -11,6 +11,7 @@ public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Trivial
 public import SymplecticGeometry.Topology.VectorBundle.Section
 public import TauCeti.Geometry.Manifold.ModelTransport.Finrank
+public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 
 /-!
 # Local indices of sections of a complex line bundle read in a frame over a coordinate disc
@@ -69,7 +70,7 @@ variable {M : Type} [TopologicalSpace M] [T2Space M] {E : Type} [NormedAddCommGr
   [∀ x, Module ℝ (L x)] [∀ x, Module ℂ (L x)] [∀ x, IsScalarTower ℝ ℂ (L x)]
   [∀ x, TopologicalSpace (L x)] [FiberBundle G L] [VectorBundle ℂ G L]
 
-local instance : VectorBundle ℝ G L := VectorBundle.restrictScalars ℝ ℂ G L
+open scoped VectorBundle.ComplexToReal
 
 /-- **Local indices in a frame over a coordinate disc.** Let `ψ` be a coordinate disc of a surface
 `M` with homological orientation `o`, read through any map `j` equal to it (so that a frame along a

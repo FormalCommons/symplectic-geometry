@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
+public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 
 /-!
@@ -41,7 +42,7 @@ variable {X H B F : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
   [TopologicalSpace HM] {IM : ModelWithCorners ℝ XM HM}
   [TopologicalSpace M] [ChartedSpace HM M]
 
-local instance : VectorBundle ℝ F V := VectorBundle.restrictScalars ℝ ℂ F V
+open scoped VectorBundle.ComplexToReal
 
 /-- The Hermitian product of two maps into the total space over a common base map is `C^n`
 within a set at a point where both maps are. -/

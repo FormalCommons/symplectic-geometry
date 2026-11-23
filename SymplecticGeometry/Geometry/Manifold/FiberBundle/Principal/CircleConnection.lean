@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Submersion
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
@@ -680,8 +681,7 @@ variable {E' H' M F : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [Finit
   [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
   [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V]
 
-local instance instVectorBundleRealCircleConnection : VectorBundle ℝ F V :=
-  VectorBundle.restrictScalars ℝ ℂ F V
+open scoped VectorBundle.ComplexToReal
 
 /-- The unit circle bundle of a smooth Hermitian line bundle over a Hausdorff, σ-compact,
 finite-dimensional manifold has a connection form. -/
