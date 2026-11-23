@@ -1655,10 +1655,10 @@ does.
       points `bandMap (s, x)` with `s ∈ (-1, 0)`, where it is
       `inlInterior (φ (s, x))` for `φ (s, x) = c (x, -s)`
       (`bandMap_of_nonpos`, `inl_eq_inr_iff`). The orientation sign of `φ`,
-      from the band orientation to `o`, is locally constant on `s < 0`
-      (`TauCeti.Manifold.Orientation.eventually_orientationSign_eq`), so
-      constant on each connected slice `(-1, 0) × {x}`, as in the proof of
-      `orientationSign_eq_neg_one_pow`. At `s = -2/3` it is `1`: near that
+      from the band orientation to `o`, is constant on each connected slice
+      `(-1, 0) × {x}`, where `φ` is `C¹` with invertible derivative
+      (`TauCeti.Manifold.Orientation.orientationSign_eq_of_isPreconnected`).
+      At `s = -2/3` it is `1`: near that
       point `φ = β ∘ A` for `A (s, x) = (2 + 4 s, x)`, which fixes the point
       with derivative `diag(4, id)`, so `orientationSign_comp`,
       `isOrientationPreservingAt_pullback` and
