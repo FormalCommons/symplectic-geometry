@@ -44,7 +44,9 @@ structures.
 * `SymplecticGeometry.StdSpace.equivComplex ι`, for a one-element `ι`, identifies the standard
   plane with `ℂ` by `(x, y) ↦ x + i y`, a linear isometry; read on `ℂ`,
   `ω₀(v, w) = ⟪i v, w⟫` (`stdForm_apply_eq_inner_equivComplex`), and it carries `ω₀` to Tau
-  Ceti's `TauCeti.stdComplexSymplecticForm` (`isSymplectomorphism_equivComplex`).
+  Ceti's `TauCeti.stdComplexSymplecticForm` (`isSymplectomorphism_equivComplex`); it carries
+  `J₀` to multiplication by `i` (`equivComplex_stdComplexStructure`,
+  `isComplexLinearMap_equivComplex`).
 
 The main facts fixing the conventions are `stdForm_apply`
 (`ω₀(z, w) = ∑ᵢ (xᵢ(z) yᵢ(w) - yᵢ(z) xᵢ(w))`), `stdComplexStructure_eq_toEuclideanLin_J`,
@@ -1027,6 +1029,22 @@ theorem isSymplectomorphism_equivComplex :
     SymplecticForm.IsSymplectomorphism (stdForm ι) stdComplexSymplecticForm
       (equivComplex ι).toLinearEquiv :=
   SymplecticForm.isSymplectomorphism_iff.2 stdComplexSymplecticForm_equivComplex
+
+open StdSpace in
+/-- `equivComplex ι` carries `J₀` to multiplication by `i`:
+`equivComplex ι (J₀ z) = i * equivComplex ι z`. -/
+theorem equivComplex_stdComplexStructure (z : StdSpace ι) :
+    equivComplex ι (stdComplexStructure ι z) = Complex.I * equivComplex ι z :=
+  Complex.ext (by simp) (by simp)
+
+open StdSpace in
+/-- `equivComplex ι` is complex linear from `J₀` on the standard plane to multiplication by `i`
+on `ℂ`. -/
+theorem isComplexLinearMap_equivComplex :
+    IsComplexLinearMap (stdComplexStructure ι) (AlmostComplexStructure.ofComplexModule ℂ)
+      (equivComplex ι).toLinearEquiv.toLinearMap :=
+  (isComplexLinearMap_iff_apply _ _ _).2 fun z ↦ by
+    simp [AlmostComplexStructure.ofComplexModule_apply, equivComplex_stdComplexStructure]
 
 end Plane
 
