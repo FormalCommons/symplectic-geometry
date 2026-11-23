@@ -7,9 +7,10 @@ module
 
 public import SymplecticGeometry.Geometry.Lie.Exponential.Circle
 public import TauCeti.Geometry.Manifold.DeRham.Circle
+import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 
 /-!
-# Rotation invariance of the angular form on the circle
+# The angular forms of the circle and of the plane
 
 The angular form `dθ` on the unit circle (`TauCeti.circleAngularForm`), the restriction of
 `x dy - y dx`, is invariant under the rotations of the circle: for every `a : Circle`, the
@@ -17,6 +18,11 @@ pull-back of `dθ` along `w ↦ a * w`, and along `w ↦ w * a`, is `dθ`. In th
 invariance of `x dy - y dx = Im (conj z dz)` under multiplication by a complex number of modulus
 one. The form also takes the value `1` on the velocity of `Circle.exp` at `0`, the generator of
 the Lie algebra of the circle.
+
+The plane form also transforms simply under the maps that read the angle off a point of the
+plane: at a point of the unit circle its pull-back along `z ↦ z ^ k` is `k (x dy - y dx)`, and
+away from `0` its pull-back along the radial projection `z ↦ z / ‖z‖` is the angular form
+`‖z‖⁻² (x dy - y dx)` of the punctured plane.
 
 ## Main results
 
@@ -26,6 +32,10 @@ the Lie algebra of the circle.
   the rotations of the circle preserve `dθ`.
 * `SymplecticGeometry.circleAngularForm_one_circleLieGenerator`: `dθ` takes the value `1` on the
   generator `SymplecticGeometry.circleLieGenerator` of the Lie algebra of the circle.
+* `TauCeti.mpullback_zpow_planeAngularForm_apply`,
+  `TauCeti.mpullback_div_norm_planeAngularForm_apply`,
+  `TauCeti.mpullback_div_norm_zpow_planeAngularForm_apply`: the pull-backs of `x dy - y dx` along
+  `z ↦ z ^ k` on the unit circle, along `z ↦ z / ‖z‖`, and along `z ↦ (z / ‖z‖) ^ k`.
 
 ## References
 
@@ -38,6 +48,30 @@ public section
 noncomputable section
 
 open scoped Manifold ContDiff
+
+/-! ### The radial projection of the punctured plane -/
+
+namespace Complex
+
+/-- The radial projection `z / ‖z‖` of a nonzero complex number lies on the unit circle. -/
+theorem norm_div_norm {z : ℂ} (hz : z ≠ 0) : ‖z / ‖z‖‖ = 1 := by
+  rw [norm_div, Complex.norm_real, norm_norm, div_self (norm_ne_zero_iff.2 hz)]
+
+/-- The radial projection `z ↦ z / ‖z‖` is real differentiable away from `0`. -/
+theorem differentiableAt_div_norm {w : ℂ} (hw : w ≠ 0) :
+    DifferentiableAt ℝ (fun z : ℂ ↦ z / ‖z‖) w := by
+  have h := (contDiffOn_div_norm_pow 1 (N := 1)).contDiffAt (isOpen_compl_singleton.mem_nhds hw)
+  simp only [pow_one] at h
+  exact h.differentiableAt one_ne_zero
+
+/-- For every integer `k`, the map `z ↦ (z / ‖z‖) ^ k` is real differentiable away from `0`. -/
+theorem differentiableAt_div_norm_zpow {w : ℂ} (hw : w ≠ 0) (k : ℤ) :
+    DifferentiableAt ℝ (fun z : ℂ ↦ (z / ‖z‖) ^ k) w := by
+  have hn := norm_div_norm hw
+  exact ((differentiableAt_zpow.2 (Or.inl fun h ↦ by simp [h] at hn)).restrictScalars ℝ).comp w
+    (differentiableAt_div_norm hw)
+
+end Complex
 
 namespace TauCeti
 
@@ -89,6 +123,102 @@ theorem mpullback_mul_right_circleAngularForm (a : Circle) :
     mpullback (𝓡 1) (𝓡 1) (fun w : Circle ↦ w * a) circleAngularForm = circleAngularForm := by
   simp_rw [mul_comm _ a]
   exact mpullback_mul_left_circleAngularForm a
+
+/-! ### The plane angular form under powers and radial projection -/
+
+/-- The plane angular form `x dy - y dx` at `z` is `Im (conj z · v)`. -/
+theorem planeAngularForm_apply_eq_im (z : ℂ) (v : Fin 1 → ℂ) :
+    planeAngularForm z v = ((starRingEnd ℂ) z * v 0).im := by
+  rw [planeAngularForm_apply, Complex.mul_im, Complex.conj_re, Complex.conj_im]
+  ring
+
+/-- Let `f` be a map of the plane with real derivative `f'` at `z`. If
+`Im (conj (f z) · f' v) = c · Im (conj z · v)` for every `v`, then at `z` the pull-back of
+`x dy - y dx` along `f` is `c (x dy - y dx)`. -/
+theorem mpullback_planeAngularForm_eq_smul_of_hasFDerivAt {f : ℂ → ℂ} {f' : ℂ →L[ℝ] ℂ} {z : ℂ}
+    (hf : HasFDerivAt f f' z) {c : ℝ}
+    (h : ∀ v : ℂ, ((starRingEnd ℂ) (f z) * f' v).im = c * ((starRingEnd ℂ) z * v).im) :
+    mpullback 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) f planeAngularForm z = c • planeAngularForm z := by
+  ext v
+  -- The tangent vectors of `ℂ` are elements of `ℂ` only up to unfolding `TangentSpace`.
+  erw [mpullback_apply, mfderiv_eq_fderiv, hf.fderiv, planeAngularForm_apply_eq_im,
+    ContinuousAlternatingMap.smul_apply, planeAngularForm_apply_eq_im]
+  exact h (v 0)
+
+/-- At a point `u` of the unit circle, the pull-back of `x dy - y dx` along `z ↦ z ^ k` is
+`k (x dy - y dx)`. -/
+theorem mpullback_zpow_planeAngularForm_apply {u : ℂ} (hu : ‖u‖ = 1) (k : ℤ) :
+    mpullback 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun z : ℂ ↦ z ^ k) planeAngularForm u =
+      (k : ℝ) • planeAngularForm u := by
+  have hu0 : u ≠ 0 := by
+    rintro rfl
+    simp at hu
+  have hconj : (starRingEnd ℂ) u = u⁻¹ := by
+    rw [Complex.inv_def, Complex.normSq_eq_norm_sq, hu]
+    simp
+  refine mpullback_planeAngularForm_eq_smul_of_hasFDerivAt
+    ((hasStrictDerivAt_zpow k u (Or.inl hu0)).hasDerivAt.hasFDerivAt.restrictScalars ℝ)
+    fun v ↦ ?_
+  have h1 : u ^ (-k) * u ^ k = 1 := by
+    rw [← zpow_add₀ hu0]
+    simp
+  have h : (starRingEnd ℂ) (u ^ k) * (v * ((k : ℂ) * u ^ (k - 1))) =
+      (k : ℝ) * ((starRingEnd ℂ) u * v) := by
+    rw [map_zpow₀, hconj, zpow_sub₀ hu0, zpow_one, inv_zpow', Complex.ofReal_intCast]
+    field_simp
+    linear_combination (v * k) * h1
+  simp only [ContinuousLinearMap.coe_restrictScalars', ContinuousLinearMap.toSpanSingleton_apply,
+    smul_eq_mul]
+  rw [h, Complex.im_ofReal_mul]
+
+/-- Away from `0`, the pull-back of `x dy - y dx` along the radial projection `z ↦ z / ‖z‖` onto
+the unit circle is the angular form `‖z‖⁻² (x dy - y dx)`. -/
+theorem mpullback_div_norm_planeAngularForm_apply {w : ℂ} (hw : w ≠ 0) :
+    mpullback 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun z : ℂ ↦ z / ‖z‖) planeAngularForm w =
+      (‖w‖ ^ 2)⁻¹ • planeAngularForm w := by
+  have hn : DifferentiableAt ℝ (fun z : ℂ ↦ ‖z‖⁻¹) w :=
+    ((contDiffAt_norm ℝ hw (n := 1)).differentiableAt one_ne_zero).inv (norm_ne_zero_iff.2 hw)
+  have hd := hn.hasFDerivAt.smul (hasFDerivAt_id (𝕜 := ℝ) w)
+  have heq : ((fun z : ℂ ↦ ‖z‖⁻¹) • id) = fun z : ℂ ↦ z / ‖z‖ := by
+    funext z
+    simp [div_eq_inv_mul, Complex.real_smul]
+  rw [heq] at hd
+  refine mpullback_planeAngularForm_eq_smul_of_hasFDerivAt hd fun v ↦ ?_
+  simp only [add_apply, FunLike.coe_smul, Pi.smul_apply, ContinuousLinearMap.smulRight_apply,
+    ContinuousLinearMap.id_apply, id, Complex.real_smul, map_div₀, Complex.conj_ofReal]
+  have h1 : ((starRingEnd ℂ) w * w).im = 0 := by
+    rw [Complex.mul_im, Complex.conj_re, Complex.conj_im]
+    ring
+  have h2 : (‖w‖ : ℂ) ≠ 0 := by simpa using hw
+  -- The derivative of `z / ‖z‖` is `v / ‖w‖` plus a real multiple of `w`.
+  set t := fderiv ℝ (fun z : ℂ ↦ ‖z‖⁻¹) w v
+  rw [show (starRingEnd ℂ) w / ‖w‖ * (((‖w‖⁻¹ : ℝ) : ℂ) * v + (t : ℂ) * w) =
+      (((‖w‖ ^ 2)⁻¹ : ℝ) : ℂ) * ((starRingEnd ℂ) w * v) +
+        ((t / ‖w‖ : ℝ) : ℂ) * ((starRingEnd ℂ) w * w) by
+    push_cast
+    field_simp,
+    Complex.add_im, Complex.im_ofReal_mul, Complex.im_ofReal_mul, h1, mul_zero, add_zero]
+
+/-- Away from `0`, the pull-back of `x dy - y dx` along `z ↦ (z / ‖z‖) ^ k` is
+`k ‖z‖⁻² (x dy - y dx)`, `k` times the angular form. -/
+theorem mpullback_div_norm_zpow_planeAngularForm_apply {w : ℂ} (hw : w ≠ 0) (k : ℤ) :
+    mpullback 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun z : ℂ ↦ (z / ‖z‖) ^ k) planeAngularForm w =
+      ((k : ℝ) * (‖w‖ ^ 2)⁻¹) • planeAngularForm w := by
+  have hn := Complex.norm_div_norm hw
+  have hdiv : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun z : ℂ ↦ z / ‖z‖) w :=
+    (Complex.differentiableAt_div_norm hw).mdifferentiableAt
+  have hpow : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun z : ℂ ↦ z ^ k) (w / ‖w‖) :=
+    ((differentiableAt_zpow.2 (Or.inl (by rintro h; simp [h] at hn))).restrictScalars
+      ℝ).mdifferentiableAt
+  have hcomp : (fun z : ℂ ↦ (z / ‖z‖) ^ k) = (fun z : ℂ ↦ z ^ k) ∘ fun z : ℂ ↦ z / ‖z‖ := rfl
+  have h : mpullback 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun z : ℂ ↦ z / ‖z‖)
+      (mpullback 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun z : ℂ ↦ z ^ k) planeAngularForm) w =
+      mpullback 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun z : ℂ ↦ z / ‖z‖) ((k : ℝ) • planeAngularForm) w := by
+    ext v
+    rw [mpullback_apply, mpullback_zpow_planeAngularForm_apply hn, mpullback_apply]
+    rfl
+  rw [hcomp, mpullback_comp_at hdiv hpow, h, mpullback_smul, Pi.smul_apply,
+    mpullback_div_norm_planeAngularForm_apply hw, mul_smul]
 
 end TauCeti
 
