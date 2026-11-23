@@ -395,9 +395,9 @@ Bundles from clutching data, and isomorphisms from homotopies.
   `M : Type` with the instances above, `[ConnectedSpace M]` and an
   orientation), and `structure SymplecticSurfaceBundle
   (S : ClosedConnectedOrientedSurface)` (the complex rank `n`, a model fibre
-  `F : Type` with `finrank ℝ F = 2 * n`, the fibres `E : S → Type` with the
-  smooth bundle instances, and the symplectic form `ω` in the representation
-  of *Symplectic vector bundles*).
+  `F : Type` with `finrank ℝ F = 2 * n`, the fibres `V : S → Type` with the
+  smooth bundle instances, and the nondegenerate symplectic form `form` in
+  the representation of *Symplectic vector bundles*).
 - Operations on `SymplecticSurfaceBundle`, in this file, each a thin
   bundling of the construction of *Symplectic vector bundles* (#57):
   `SymplecticSurfaceBundle.Iso E E'`, the type of smooth fibrewise
@@ -405,8 +405,8 @@ Bundles from clutching data, and isomorphisms from homotopies.
   needed); `SymplecticSurfaceBundle.pullback (φ : S' → S) (hφ : ContMDiff …)
   E`; `SymplecticSurfaceBundle.whitneySum E E'`, the fibrewise direct sum
   with the sum of the forms; `SymplecticSurfaceBundle.trivial S n`; and
-  `SymplecticSurfaceBundle.tangent S σ`, the tangent bundle with an area form
-  `σ` inducing the orientation of `S`.
+  `SymplecticSurfaceBundle.tangent S σ hσ`, the tangent bundle with an area
+  form `σ`, nondegenerate by `hσ`.
 - `structure ChernNumberAxioms
   (c : ∀ S : ClosedConnectedOrientedSurface, SymplecticSurfaceBundle S → ℤ) :
   Prop` with four fields, as the plan states the axioms:
@@ -415,7 +415,7 @@ Bundles from clutching data, and isomorphisms from homotopies.
   - `apply_pullback`: `c S' (E.pullback φ hφ) = TauCeti.degree S'.o S.o φ *
     c S E` for every smooth `φ : S' → S`;
   - `apply_whitneySum`: `c S (E.whitneySum E') = c S E + c S E'`;
-  - `apply_tangent`: `c S (SymplecticSurfaceBundle.tangent S σ) = 2 - 2 *
+  - `apply_tangent`: `c S (SymplecticSurfaceBundle.tangent S σ hσ) = 2 - 2 *
     TauCeti.surfaceGenus S` for every area form `σ` that induces the
     orientation of `S`.
 - `symplecticChernNumber_tangent`: for $T\Sigma$ with an area form $\sigma$
