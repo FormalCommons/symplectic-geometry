@@ -36,6 +36,11 @@ the coordinate preserves orientation there too.
 * `TauCeti.EuclideanHalfSpace.isOrientationPreservingAt_normalIioOpens_val_zero`: the coordinate
   `t ↦ t 0` of `[0, ε)` preserves orientation, to the standard orientation of `ℝ`, by
   restricting `TauCeti.EuclideanHalfSpace.isOrientationPreservingAt_val_zero`.
+
+## References
+
+* John M. Lee, *Introduction to Smooth Manifolds*, second edition, Springer GTM 218, 2013,
+  Chapter 15 (orientations, and the orientation of an open subset).
 -/
 
 public section
