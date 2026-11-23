@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.OpenSubset
 public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Indicator
 import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
+import SymplecticGeometry.Topology.Algebra.Support
 
 
 /-!
@@ -211,7 +212,7 @@ theorem integralTopForm_eq_sum_of_mpullback_ofChart_eq {ι : Type*} [Fintype ι]
       · exact (hdisj hji).ne_of_mem (hKr j hj) h rfl
   have htsupp (i : ι) : _root_.tsupport (α := EuclideanSpace ℝ (Fin 2) [⋀^Fin 2]→L[ℝ] ℝ) (g i) ⊆
       K i :=
-    RoughForm.tsupport_indicator_subset (hKc i).isClosed (hf0' i)
+    tsupport_indicator_subset_of_eqOn (hKc i).isClosed fun x hx ↦ hf0' i x hx.1 hx.2
   have hgs (i : ι) : IsSmoothForm (𝓡 2) 0 (g i) :=
     IsSmoothForm.indicator (φ i).isOpenEmbedding.isOpen_range (hKc i).isClosed (hKr i)
       (fun x _ ↦ hf.contMDiff x) (hf0' i)

@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
+import SymplecticGeometry.Topology.Algebra.Support
 
 /-!
 # The restriction of a differential form to an open set, extended by zero
@@ -13,8 +14,8 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Smooth
 For a rough form `f` on `M` and a subset `U` of `M`, `U.indicator f` is `f` on `U` and `0` off
 `U`. When `U` is open, `f` is a `C^n` section at the points of `U`, and `f` vanishes on `U` outside
 a closed set `K ⊆ U`, the form `U.indicator f` is `C^n` on all of `M`
-(`TauCeti.IsSmoothForm.indicator`), and its support lies in `K`
-(`TauCeti.RoughForm.tsupport_indicator_subset`). This cuts a form into the pieces it has in
+(`TauCeti.IsSmoothForm.indicator`). Its support then lies in `K`, by the lemma
+`tsupport_indicator_subset_of_eqOn` about functions. This cuts a form into the pieces it has in
 finitely many disjoint open sets.
 
 The proof of smoothness follows Tau Ceti's `TauCeti.IsSmoothForm.extendByZero`, written for a set
@@ -31,21 +32,6 @@ namespace TauCeti
 variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
   [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
-
-namespace RoughForm
-
-/-- If a form `f` vanishes on `U` outside a closed set `K`, then the support of `U.indicator f`
-lies in `K`. -/
-theorem tsupport_indicator_subset {f : RoughForm I M F k} {U K : Set M} (hK : IsClosed K)
-    (hf0 : ∀ x ∈ U, x ∉ K → f x = 0) :
-    _root_.tsupport (α := E [⋀^Fin k]→L[ℝ] F) (U.indicator (M := E [⋀^Fin k]→L[ℝ] F) f) ⊆
-      K := by
-  refine closure_minimal (fun x hx ↦ by_contra fun hxK ↦ hx ?_) hK
-  by_cases hxU : x ∈ U
-  · exact (indicator_of_mem (M := E [⋀^Fin k]→L[ℝ] F) hxU f).trans (hf0 x hxU hxK)
-  · exact indicator_of_notMem (M := E [⋀^Fin k]→L[ℝ] F) hxU f
-
-end RoughForm
 
 /-- **Restricting a form to an open set and extending by zero.** Let `U` be open and `K ⊆ U`
 closed. If a form `f` is a `C^n` section at every point of `U` and vanishes on `U` outside `K`,
@@ -65,7 +51,7 @@ theorem IsSmoothForm.indicator [IsManifold I 1 M] {n : WithTop ℕ∞} {f : Roug
       |>.congr_of_eventuallyEq ?_
     filter_upwards [hK.isOpen_compl.mem_nhds fun h ↦ hx (hKU h)] with y hy
     exact congrArg _ (_root_.image_eq_zero_of_notMem_tsupport (α := E [⋀^Fin k]→L[ℝ] F)
-      fun h ↦ hy (RoughForm.tsupport_indicator_subset hK hf0 h))
+      fun h ↦ hy (tsupport_indicator_subset_of_eqOn hK (fun z hz ↦ hf0 z hz.1 hz.2) h))
 
 end TauCeti
 
