@@ -451,9 +451,10 @@ symplectic form on `V`.
 * If `g (A u) v = ω u v` and `Q` is the square root of `-A²` that is self-adjoint and positive
   definite for `g` (such `A` and `Q` exist), then `J_{g,ω} = Q⁻¹ A`.
 * `J_{g,ω}` is smooth, indeed analytic, in `(g, ω)`: for every finite-dimensional real inner
-  product space `W` and isomorphism `e : V ≃L[ℝ] W`, the formula `TauCeti.metricPolarFormula` is
-  analytic on the open set `TauCeti.polarDomain W`, which contains the pair of `g` and `ω`
-  carried to `W`, and its value there is `J_{g,ω}` conjugated by `e`.
+  product space `W` and isomorphism `e : V ≃L[ℝ] W`, the formula
+  `SymplecticGeometry.metricPolarFormula` is analytic on the open set
+  `SymplecticGeometry.polarDomain W`, which contains the pair of `g` and `ω` carried to `W`, and its
+  value there is `J_{g,ω}` conjugated by `e`.
 * `J_{g,ω}` is natural under linear isomorphisms, so equivariant under `GL(V)`.
 * `J_{g,ω}` is compatible with `ω` and preserves `g`.
 * If `J` is compatible with `ω`, then `J_{g,ω} = J` for `g = ω(·, J ·)`.

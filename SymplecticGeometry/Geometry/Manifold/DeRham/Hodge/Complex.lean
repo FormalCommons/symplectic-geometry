@@ -26,12 +26,12 @@ complex de Rham cohomology.
   `k`-forms, `TauCeti.SmoothForm.complexifyₗ` of the real one.
 * `TauCeti.SmoothForm.complexHodgeStar`: the complex-linear (not conjugate-linear) Hodge star
   from complex `k`-forms to complex `l`-forms, `TauCeti.SmoothForm.complexifyₗ` of the real one.
-* `TauCeti.complexHarmonicForms`: the kernel of `complexHodgeLaplacian`, equivalently the complex
-  forms whose real and imaginary parts are harmonic.
-* `TauCeti.complexHarmonicForms.toComplexDeRhamCohomology`: the complex de Rham class of a
-  complex harmonic form.
-* `TauCeti.complexHarmonicForms.complexDeRhamCohomologyEquiv`: the complex Hodge isomorphism
-  between complex harmonic forms and complex de Rham cohomology.
+* `SymplecticGeometry.complexHarmonicForms`: the kernel of `complexHodgeLaplacian`, equivalently the
+  complex forms whose real and imaginary parts are harmonic.
+* `SymplecticGeometry.complexHarmonicForms.toComplexDeRhamCohomology`: the complex de Rham class of
+  a complex harmonic form.
+* `SymplecticGeometry.complexHarmonicForms.complexDeRhamCohomologyEquiv`: the complex Hodge
+  isomorphism between complex harmonic forms and complex de Rham cohomology.
 
 The `@[simp]` lemmas `complexHodgeLaplacian_def` and `complexHodgeStar_def` rewrite both
 operators to `TauCeti.SmoothForm.complexifyₗ` of the real ones, so that `simp` computes their
@@ -39,10 +39,10 @@ real parts, imaginary parts and values on real forms with the lemmas of `complex
 
 ## Main results
 
-* `TauCeti.complexHarmonicForms.toComplexDeRhamCohomology_bijective`: on a closed oriented
-  Riemannian manifold, every complex de Rham class has exactly one harmonic representative.
-* `TauCeti.exists_mem_complexHarmonicForms_add_complexHodgeLaplacian`: every complex form is
-  `h + Δγ` with `h` harmonic.
+* `SymplecticGeometry.complexHarmonicForms.toComplexDeRhamCohomology_bijective`: on a closed
+  oriented Riemannian manifold, every complex de Rham class has exactly one harmonic representative.
+* `SymplecticGeometry.exists_mem_complexHarmonicForms_add_complexHodgeLaplacian`: every complex form
+  is `h + Δγ` with `h` harmonic.
 * `TauCeti.mem_complexExactForms_of_complexHodgeLaplacian_mem_complexClosedForms`: a closed
   complex Laplacian is exact.
 * `TauCeti.SmoothForm.complexHodgeStar_injective`: the complex Hodge star is injective.
@@ -116,6 +116,40 @@ theorem complexHodgeStar_injective (o : Manifold.Orientation I M (Fin m)) (hkl :
 
 end SmoothForm
 
+variable [FiniteDimensional ℝ E] [IsManifold I ∞ M]
+  [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+  [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
+  {m k l : ℕ}
+
+section Compact
+
+variable [BoundarylessManifold I M] [T2Space M] [CompactSpace M]
+
+/-- On a compact oriented boundaryless Riemannian manifold, if the complex Laplacian `Δβ` of a
+complex form is closed then it is exact, by the real statement for its real and imaginary
+parts. -/
+theorem mem_complexExactForms_of_complexHodgeLaplacian_mem_complexClosedForms
+    (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) {β : SmoothForm I M ℂ k}
+    (hβ : SmoothForm.complexHodgeLaplacian o hkl β ∈ complexClosedForms I M k) :
+    SmoothForm.complexHodgeLaplacian o hkl β ∈ complexExactForms I M k := by
+  rw [mem_complexClosedForms_iff_realPart_imaginaryPart, SmoothForm.complexHodgeLaplacian_def,
+    SmoothForm.mapCoeff_reCLM_complexifyₗ, SmoothForm.mapCoeff_imCLM_complexifyₗ] at hβ
+  rw [mem_complexExactForms_iff_realPart_imaginaryPart, SmoothForm.complexHodgeLaplacian_def,
+    SmoothForm.mapCoeff_reCLM_complexifyₗ, SmoothForm.mapCoeff_imCLM_complexifyₗ]
+  exact ⟨mem_exactForms_of_hodgeLaplacian_mem_closedForms o hkl hβ.1,
+    mem_exactForms_of_hodgeLaplacian_mem_closedForms o hkl hβ.2⟩
+
+end Compact
+
+end TauCeti
+
+namespace SymplecticGeometry
+
+open TauCeti
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+
 /-! ### Complex harmonic forms -/
 
 variable [FiniteDimensional ℝ E] [IsManifold I ∞ M]
@@ -175,20 +209,6 @@ theorem complexHarmonicForms_le_complexClosedForms (o : Manifold.Orientation I M
   rw [mem_complexHarmonicForms_iff_realPart_imaginaryPart] at hφ
   exact (mem_complexClosedForms_iff_realPart_imaginaryPart I φ).2
     ⟨harmonicForms_le_closedForms o hkl hφ.1, harmonicForms_le_closedForms o hkl hφ.2⟩
-
-/-- On a compact oriented boundaryless Riemannian manifold, if the complex Laplacian `Δβ` of a
-complex form is closed then it is exact, by the real statement for its real and imaginary
-parts. -/
-theorem mem_complexExactForms_of_complexHodgeLaplacian_mem_complexClosedForms
-    (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) {β : SmoothForm I M ℂ k}
-    (hβ : SmoothForm.complexHodgeLaplacian o hkl β ∈ complexClosedForms I M k) :
-    SmoothForm.complexHodgeLaplacian o hkl β ∈ complexExactForms I M k := by
-  rw [mem_complexClosedForms_iff_realPart_imaginaryPart, SmoothForm.complexHodgeLaplacian_def,
-    SmoothForm.mapCoeff_reCLM_complexifyₗ, SmoothForm.mapCoeff_imCLM_complexifyₗ] at hβ
-  rw [mem_complexExactForms_iff_realPart_imaginaryPart, SmoothForm.complexHodgeLaplacian_def,
-    SmoothForm.mapCoeff_reCLM_complexifyₗ, SmoothForm.mapCoeff_imCLM_complexifyₗ]
-  exact ⟨mem_exactForms_of_hodgeLaplacian_mem_closedForms o hkl hβ.1,
-    mem_exactForms_of_hodgeLaplacian_mem_closedForms o hkl hβ.2⟩
 
 /-- The complex de Rham class of a complex harmonic form on a compact oriented boundaryless
 Riemannian manifold. -/
@@ -271,6 +291,10 @@ theorem exists_mem_complexHarmonicForms_add_complexHodgeLaplacian
   abel
 
 end Compact
+
+end SymplecticGeometry
+
+namespace TauCeti
 
 /-- The complex dimension of complex de Rham cohomology is the real dimension of real de Rham
 cohomology, since the former is the complexification of the latter. -/

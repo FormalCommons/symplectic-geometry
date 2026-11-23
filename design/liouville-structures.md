@@ -178,7 +178,7 @@ Further choices:
 | `Geometry/Manifold/Boundary/Collar/Flow/Local.lean` | near one boundary point: the extended field and its flow from the boundary | 5 |
 | `Geometry/Manifold/Boundary/Collar/Flow/Basic.lean` | the collar of a compact boundary along an outward field | 6 |
 | `Topology/Compactness/SigmaCompact.lean` | σ-compact open neighbourhoods of a compact set in a locally compact space (`IsCompact.exists_isOpen_isSigmaCompact_subset`); used in `Flow/Basic.lean` | — |
-| `Geometry/Manifold/Boundary/Collar/Opens.lean` | the diffeomorphism `∂V ≃ ∂W` for an open `V ⊇ ∂W` (`TauCeti.diffeomorphBoundaryOpens`), and a collar of `∂V` as one of `∂W` (`TauCeti.SmoothCollar.ofOpens`); used in `Flow/Basic.lean` | — |
+| `Geometry/Manifold/Boundary/Collar/Opens.lean` | the diffeomorphism `∂V ≃ ∂W` for an open `V ⊇ ∂W` (`SymplecticGeometry.diffeomorphBoundaryOpens`), and a collar of `∂V` as one of `∂W` (`TauCeti.SmoothCollar.ofOpens`); used in `Flow/Basic.lean` | — |
 | `Geometry/Symplectic/Liouville/Filling.lean` | `IsStrongFilling`, its contact form, its Liouville collar | 7 |
 | `Geometry/Symplectic/Liouville/Scaling.lean` | Liouville scaling along integral curves, on a boundaryless manifold and in the interior of a manifold with boundary, for the collar of `Filling.lean` | 7 |
 | `Geometry/Manifold/DifferentialForm/Continuity.lean` | continuity in the parameter of the pullbacks of a form along the slices of a `C¹` map on a product, for the collar of `Filling.lean`, beside Tau Ceti's file of that path | 7 |

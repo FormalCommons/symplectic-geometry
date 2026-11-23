@@ -22,17 +22,18 @@ the square.
   `TauCeti.one_half_le_norm_squareCenterOffset_of_mem`: the offset of a point of the square from
   the centre has coordinates of absolute value at most `1/2`, and norm at least `1/2` on the
   boundary; the centre itself has offset `0` (`TauCeti.squareCenterOffset_cubeCenter`).
-* `TauCeti.squareOfOffset`: the point of the square with a given offset from the centre, clamped
-  to the square, which inverts `TauCeti.squareCenterOffset`
-  (`TauCeti.squareOfOffset_squareCenterOffset`, `TauCeti.squareCenterOffset_squareOfOffset`).
+* `SymplecticGeometry.squareOfOffset`: the point of the square with a given offset from the centre,
+  clamped to the square, which inverts `TauCeti.squareCenterOffset`
+  (`SymplecticGeometry.squareOfOffset_squareCenterOffset`,
+  `SymplecticGeometry.squareCenterOffset_squareOfOffset`).
 * `TauCeti.squareBoundaryDegree_eq_degree_toBasedLoop`: if `Γ` is continuous on the closed
   annulus of the points whose offset from the centre (`TauCeti.squareCenterOffset`) has norm at
   least `r`, for `0 ≤ r ≤ 1/2`, then its degree around the boundary of the square is the degree
   of the loop `ζ ↦ Γ (centre + r ζ)` on the circle of radius `r` about the centre, given as any
   self-map `g` of the circle that agrees with it.
-* `TauCeti.squareBoundaryDegree_eq_degree_squareOfOffset`: the same, with the loop
+* `SymplecticGeometry.squareBoundaryDegree_eq_degree_squareOfOffset`: the same, with the loop
   `ζ ↦ Γ (squareOfOffset (r ζ))` read off `Γ`, continuous by
-  `TauCeti.continuous_comp_squareOfOffset_mul`.
+  `SymplecticGeometry.continuous_comp_squareOfOffset_mul`.
 
 The proof pushes the boundary of the square radially onto the circle of radius `r`, inside the
 annulus, which leaves the composite of the loop on the circle with the direction from the centre
@@ -101,10 +102,19 @@ theorem one_half_le_norm_squareCenterOffset_of_mem {y : Fin 2 → I}
     norm_num [hi] at this
     linarith
 
+end TauCeti
+
+namespace SymplecticGeometry
+
+open TauCeti
+
+variable {Γ : (Fin 2 → I) → Circle}
+
 /-- The point of the square whose offset from the centre is `z`, each coordinate clamped to
-`[0, 1]`. It inverts `TauCeti.squareCenterOffset` (`TauCeti.squareOfOffset_squareCenterOffset`),
-and `TauCeti.squareCenterOffset` inverts it on the offsets whose real and imaginary parts are at
-most `1/2` in absolute value (`TauCeti.squareCenterOffset_squareOfOffset`). -/
+`[0, 1]`. It inverts `TauCeti.squareCenterOffset`
+(`SymplecticGeometry.squareOfOffset_squareCenterOffset`), and `TauCeti.squareCenterOffset` inverts
+it on the offsets whose real and imaginary parts are at most `1/2` in absolute value
+(`SymplecticGeometry.squareCenterOffset_squareOfOffset`). -/
 def squareOfOffset (z : ℂ) : Fin 2 → I :=
   ![projIcc 0 1 zero_le_one (1 / 2 + z.re), projIcc 0 1 zero_le_one (1 / 2 + z.im)]
 
@@ -149,6 +159,14 @@ theorem continuous_comp_squareOfOffset_mul {r : ℝ} (hr₀ : 0 ≤ r) (hr : r �
     Continuous fun ζ : Circle ↦ Γ (squareOfOffset (r * ζ)) := by
   refine hΓ.comp_continuous (by fun_prop) fun ζ ↦ ?_
   simp [squareCenterOffset_squareOfOffset_mul hr₀ hr, abs_of_nonneg hr₀]
+
+end SymplecticGeometry
+
+namespace TauCeti
+
+open SymplecticGeometry
+
+variable {Γ : (Fin 2 → I) → Circle}
 
 /-- **The degree around the boundary of the square is the degree around an inner circle.** Let
 `0 ≤ r ≤ 1/2`, let `Γ` be continuous on the closed annulus of the points of the square at distance
@@ -207,6 +225,14 @@ theorem squareBoundaryDegree_eq_degree_toBasedLoop {r : ℝ} (hr₀ : 0 ≤ r) (
     squareBoundaryDegree_comp continuousOn_squareCenterDirection,
     squareBoundaryDegree_squareCenterDirection, mul_one, Circle.degree_toBasedLoop]
 
+end TauCeti
+
+namespace SymplecticGeometry
+
+open TauCeti
+
+variable {Γ : (Fin 2 → I) → Circle}
+
 /-- **The degree around the boundary of the square is the degree around an inner circle**, with
 the loop read off `Γ`. Let `0 ≤ r ≤ 1/2` and let `Γ` be continuous on the closed annulus of the
 points of the square at distance at least `r` from the centre. Then the degree of `Γ` around the
@@ -219,4 +245,4 @@ theorem squareBoundaryDegree_eq_degree_squareOfOffset {r : ℝ} (hr₀ : 0 ≤ r
   squareBoundaryDegree_eq_degree_toBasedLoop hr₀ hr hΓ _ fun ζ y hy ↦ by
     simp [← hy]
 
-end TauCeti
+end SymplecticGeometry

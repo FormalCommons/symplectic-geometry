@@ -67,7 +67,8 @@ need a smooth manifold and `n = ∞`.
   `± S (Alt (S ∘ Db))`, with `Db` the derivative of the form read in the chart.
 * `PartialDiffeomorph.val_codifferential_symm_of_fderiv_gramInChart_eq_zero`: the same at the
   point `ψ.symm y` of `M`, as `± ⋆ Alt (⋆ ∘ B)` with `⋆` the Hodge star of the tangent space and
-  `B` the derivative of the form read in the chart, carried there by `TauCeti.symbolInChart`.
+  `B` the derivative of the form read in the chart, carried there by
+  `PartialDiffeomorph.symbolInChart`.
 * `PartialDiffeomorph.alternatingFormInner_eq_formInnerInChart`: the pointwise inner product of
   two forms, read in the chart, is `formInnerInChart`; it is positive definite on `ψ.target`
   (`formInnerInChart_self_pos`) and smooth there (`contDiffOn_formInnerInChart`), and the Gram
@@ -483,7 +484,7 @@ theorem mpullback_symm_codifferential_of_fderiv_gramInChart_eq_zero
 open ContinuousAlternatingMap in
 /-- At `ψ.symm y`, where the metric in the chart has derivative zero, the codifferential of `β`
 is `± ⋆ Alt (⋆ ∘ B)`, with `⋆` the Hodge star of the tangent space at `ψ.symm y`, `Alt` the
-alternation `alternatizeUncurryFin` and `B = TauCeti.symbolInChart ψ β y` the derivative of the
+alternation `alternatizeUncurryFin` and `B = TauCeti.ψ.symbolInChart β y` the derivative of the
 reading of `β` carried to that tangent space. -/
 theorem val_codifferential_symm_of_fderiv_gramInChart_eq_zero
     [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
@@ -492,7 +493,7 @@ theorem val_codifferential_symm_of_fderiv_gramInChart_eq_zero
     (SmoothForm.codifferential o hkl β).val (ψ.symm y) =
       (-1 : ℝ) ^ (m * (k + 2) + 1) • formHodgeStarCLM o hlk (ψ.symm y)
         (alternatizeUncurryFin
-          (formHodgeStarCLM o hkl (ψ.symm y) ∘L symbolInChart ψ β.val y)) := by
+          (formHodgeStarCLM o hkl (ψ.symm y) ∘L ψ.symbolInChart β.val y)) := by
   -- The step on `E`, for a map `T` that intertwines the two stars, and the derivative `C`.
   have key (T : TangentSpace I (ψ.symm y) →L[ℝ] E)
       (hT : ∀ {i i' : ℕ} (hii' : i + i' = m) (a : E [⋀^Fin i]→L[ℝ] ℝ),

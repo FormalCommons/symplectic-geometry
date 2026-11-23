@@ -13,16 +13,16 @@ public import TauCeti.AlgebraicTopology.Singular.Sphere
 # The sphere suspension read in local homology
 
 Let `b` be an orthonormal basis of a real inner product space `E` of dimension `m + 2`, `p` its
-last vector and `G = (ℝ ∙ p)ᗮ`. Cover `E ∖ {0}` by `TauCeti.complRay p` and
-`TauCeti.complRay (-p)`, the points off the open rays `{t • p | t > 0}` and `{t • p | t < 0}`;
-their intersection is the complement of the line through `p`, which contains `G ∖ {0}`. This file
-shows that the Mayer–Vietoris connecting morphism `Hₘ₊₁(E ∖ {0}) ⟶ Hₘ(E ∖ ℝ p)` of this cover
-sends the boundary of the local orientation of `E` at `0` selected by the orientation of `b` to
-the image of the boundary of the local orientation of `G` at `0` selected by the orientation of
-`b.orthogonalLast`, with sign `+1` in every dimension
-(`TauCeti.mayerVietorisδ_singularHomologyδ_localOrientation`), and the same for the local
+last vector and `G = (ℝ ∙ p)ᗮ`. Cover `E ∖ {0}` by `SymplecticGeometry.complRay p` and
+`SymplecticGeometry.complRay (-p)`, the points off the open rays `{t • p | t > 0}` and
+`{t • p | t < 0}`; their intersection is the complement of the line through `p`, which contains
+`G ∖ {0}`. This file shows that the Mayer–Vietoris connecting morphism `Hₘ₊₁(E ∖ {0}) ⟶ Hₘ(E ∖ ℝ p)`
+of this cover sends the boundary of the local orientation of `E` at `0` selected by the orientation
+of `b` to the image of the boundary of the local orientation of `G` at `0` selected by the
+orientation of `b.orthogonalLast`, with sign `+1` in every dimension
+(`SymplecticGeometry.mayerVietorisδ_singularHomologyδ_localOrientation`), and the same for the local
 homology isomorphisms of the identity charts with any coefficients
-(`TauCeti.singularHomologyComplSingletonIsoOfOrientation_inv_singularHomologyδ_mayerVietorisδ`).
+(`singularHomologyComplSingletonIsoOfOrientation_inv_singularHomologyδ_mayerVietorisδ`).
 
 There is no sign because Tau Ceti's sphere generators are built by the same suspension: the
 generator of `H̃ₘ₊₁(S)` selected by `b` is the reduced Mayer–Vietoris morphism of the cover of the
@@ -32,16 +32,16 @@ the generator of the equator selected by `b.orthogonalLast`
 projection `E ∖ {0} ⟶ S` carries the cover by the ray complements into this cover of the sphere,
 so the naturality of the reduced Mayer–Vietoris morphism moves the computation to the sphere. The
 complement of the line through `p` is homotopy equivalent to the equator by radial projection
-followed by `TauCeti.equatorHomotopyEquiv p` (`TauCeti.complRayInterHomotopyEquiv`, in
+followed by `TauCeti.equatorHomotopyEquiv p` (`SymplecticGeometry.complRayInterHomotopyEquiv`, in
 `SymplecticGeometry/Topology/Homotopy/PuncturedStarConvex.lean`, with the cover by the ray
 complements). On `G ∖ {0}` it is radial projection in `G`, so both sides agree after this
 isomorphism and the generator of the equator.
 
 ## Main results
 
-* `TauCeti.singularHomologyComplSingletonIsoOfOrientation_inv_singularHomologyδ_mayerVietorisδ`:
-  the suspension identity for the oriented local homology isomorphisms, any coefficients.
-* `TauCeti.mayerVietorisδ_singularHomologyδ_localOrientation`: the same for the local
+* `singularHomologyComplSingletonIsoOfOrientation_inv_singularHomologyδ_mayerVietorisδ`: the
+  suspension identity for the oriented local homology isomorphisms, any coefficients.
+* `SymplecticGeometry.mayerVietorisδ_singularHomologyδ_localOrientation`: the same for the local
   orientations, with coefficients `ULift ℤ`.
 
 ## References
@@ -96,11 +96,30 @@ theorem reducedSingularHomologySphereIsoOfOrientation_hom_eq_reducedMayerVietori
   -- The equators of `p` and of `⟨b (Fin.last _), _⟩` agree only after unfolding `p`.
   erw [Category.assoc, Category.assoc]
 
+end Suspension
+
+end TauCeti
+
+namespace SymplecticGeometry
+
+open TauCeti
+
+section Suspension
+
+variable {E : Type w} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-- A real vector space has unique division by nonzero natural numbers; this lets Tau Ceti's
+cover of a sphere by the complements of two antipodal points apply. -/
+local instance : HasUniqueDiv E := HasUniqueDiv.of_isTorsionFree ℝ E
+
+variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Abelian C] (R : C) {m : ℕ}
+  (b : OrthonormalBasis (Fin (m + 2)) ℝ E)
+
 /-- The local homology generator of `E` at `0` selected by the orientation of `b`, read through
 the connecting morphism of `(E, E ∖ {0})`, the reduced Mayer–Vietoris morphism of the cover of
-`E ∖ {0}` by `TauCeti.complRay p` and `TauCeti.complRay (-p)`, `p` the last vector of `b`,
-`TauCeti.complRayInterHomotopyEquiv p` and the generator of the equator selected by the
-orientation of `b.orthogonalLast`. -/
+`E ∖ {0}` by `SymplecticGeometry.complRay p` and `SymplecticGeometry.complRay (-p)`, `p` the last
+vector of `b`, `SymplecticGeometry.complRayInterHomotopyEquiv p` and the generator of the equator
+selected by the orientation of `b.orthogonalLast`. -/
 theorem singularHomologyδ_reducedMayerVietorisδ_complRayInterHomotopyEquiv :
     let p : sphere (0 : E) 1 := ⟨b (Fin.last _), by simp⟩
     (TopPair.ofSubset ({0}ᶜ : Set (TopCat.of E))).singularHomologyδ R (m + 2) (m + 1) ≫
@@ -131,7 +150,7 @@ theorem singularHomologyδ_reducedMayerVietorisδ_complRayInterHomotopyEquiv :
 /-- The local homology generator of `(ℝ ∙ p)ᗮ` at `0` selected by the orientation of
 `b.orthogonalLast`, `p` the last vector of `b`, read through the connecting morphism of
 `((ℝ ∙ p)ᗮ, (ℝ ∙ p)ᗮ ∖ {0})`, the inclusion into the complement of the line through `p`,
-`TauCeti.complRayInterHomotopyEquiv p`, and the generator of the equator. -/
+`SymplecticGeometry.complRayInterHomotopyEquiv p`, and the generator of the equator. -/
 theorem reducedSingularHomologyδ_complZeroOrthogonalInclusion_complRayInterHomotopyEquiv :
     let p : sphere (0 : E) 1 := ⟨b (Fin.last _), by simp⟩
     (TopPair.ofSubset ({0}ᶜ : Set (TopCat.of (ℝ ∙ (p : E))ᗮ))).reducedSingularHomologyδ R m ≫
@@ -152,10 +171,10 @@ theorem reducedSingularHomologyδ_complZeroOrthogonalInclusion_complRayInterHomo
 
 /-- **The sphere suspension in local homology.** Let `b` be an orthonormal basis of a real inner
 product space `E` of dimension `m + 2`, `p` its last vector and `G = (ℝ ∙ p)ᗮ`. Cover `E ∖ {0}`
-by the complements `TauCeti.complRay p` and `TauCeti.complRay (-p)` of the open rays through `p`
-and `-p`. Then the connecting morphism of `(E, E ∖ {0})`, followed by the Mayer–Vietoris
-connecting morphism of this cover, agrees on the local homology generator selected by the
-orientation of `b` with the connecting morphism of `(G, G ∖ {0})`, followed by the inclusion of
+by the complements `SymplecticGeometry.complRay p` and `SymplecticGeometry.complRay (-p)` of the
+open rays through `p` and `-p`. Then the connecting morphism of `(E, E ∖ {0})`, followed by the
+Mayer–Vietoris connecting morphism of this cover, agrees on the local homology generator selected by
+the orientation of `b` with the connecting morphism of `(G, G ∖ {0})`, followed by the inclusion of
 `G ∖ {0}` into the intersection of the cover, on the generator selected by the orientation of
 `b.orthogonalLast`, with no sign. -/
 theorem singularHomologyComplSingletonIsoOfOrientation_inv_singularHomologyδ_mayerVietorisδ :
@@ -210,11 +229,11 @@ theorem singularHomologyComplSingletonIsoOfOrientation_inv_singularHomologyδ_ma
 
 /-- **The sphere suspension for local orientations.** Let `b` be an orthonormal basis of a real
 inner product space `E` of dimension `m + 2`, `p` its last vector and `G = (ℝ ∙ p)ᗮ`. Cover
-`E ∖ {0}` by the complements `TauCeti.complRay p` and `TauCeti.complRay (-p)` of the open rays
-through `p` and `-p`. The Mayer–Vietoris connecting morphism of this cover sends the boundary in
-`E ∖ {0}` of the local orientation of `E` selected by the orientation of `b` to the image, under
-the inclusion `G ∖ {0} ⊆ E ∖ ℝ p`, of the boundary in `G ∖ {0}` of the local orientation of `G`
-selected by the orientation of `b.orthogonalLast`. -/
+`E ∖ {0}` by the complements `SymplecticGeometry.complRay p` and `SymplecticGeometry.complRay (-p)`
+of the open rays through `p` and `-p`. The Mayer–Vietoris connecting morphism of this cover sends
+the boundary in `E ∖ {0}` of the local orientation of `E` selected by the orientation of `b` to the
+image, under the inclusion `G ∖ {0} ⊆ E ∖ ℝ p`, of the boundary in `G ∖ {0}` of the local
+orientation of `G` selected by the orientation of `b.orthogonalLast`. -/
 theorem mayerVietorisδ_singularHomologyδ_localOrientation :
     let p : sphere (0 : E) 1 := ⟨b (Fin.last _), by simp⟩
     TopCat.mayerVietorisδ (ModuleCat.of ℤ (ULift.{w} ℤ)) (X := TopCat.of ({0}ᶜ : Set E))
@@ -245,4 +264,4 @@ theorem mayerVietorisδ_singularHomologyδ_localOrientation :
 
 end Suspension
 
-end TauCeti
+end SymplecticGeometry

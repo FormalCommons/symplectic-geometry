@@ -18,8 +18,8 @@ Let `W` be a finite-dimensional real inner product space. This file writes the c
 `(g, s)` of continuous bilinear forms on `W`, and shows that the formula is smooth on an open set
 of pairs that contains every pair of an inner product and a symplectic form.
 
-The formula, `TauCeti.metricPolarFormula g s`, takes the symmetric part `g'` of `g` and the
-skew part `s'` of `s`, and evaluates Tau Ceti's coordinate expression for the polar complex
+The formula, `SymplecticGeometry.metricPolarFormula g s`, takes the symmetric part `g'` of `g` and
+the skew part `s'` of `s`, and evaluates Tau Ceti's coordinate expression for the polar complex
 structure, `R A (√(-A²))⁻¹ √(g'♯)` with `R = (g'♯)^(-1/2)` and `A = R s'♯ R`. Outside the domain
 the junk values of `Ring.inverse`, `CFC.sqrt` and the metric change transport make it a total
 function, without a case split. The inner product of `W` is only an auxiliary choice: on inner
@@ -27,17 +27,18 @@ products and symplectic forms the formula is `J_{g,ω}`, which does not depend o
 
 ## Main definitions
 
-* `TauCeti.polarDomain V`: the pairs `(g, s)` such that `g` is positive on nonzero vectors and
-  the skew part of `s` is nondegenerate.
-* `TauCeti.metricPolarFormula g s`: the explicit formula.
+* `SymplecticGeometry.polarDomain V`: the pairs `(g, s)` such that `g` is positive on nonzero
+  vectors and the skew part of `s` is nondegenerate.
+* `SymplecticGeometry.metricPolarFormula g s`: the explicit formula.
 
 ## Main results
 
-* `TauCeti.isOpen_polarDomain`: the domain is open.
-* `TauCeti.contDiffOn_metricPolarFormula`: the formula is smooth on the domain, of every order.
-* `TauCeti.metricPolarFormula_symmetrizeBilinear_skewSymmetrizeBilinear`: the formula only
-  depends on the symmetric part of `g` and the skew part of `s`.
-* `TauCeti.metricPolarFormula_conj`: naturality of the formula on the domain under linear
+* `SymplecticGeometry.isOpen_polarDomain`: the domain is open.
+* `SymplecticGeometry.contDiffOn_metricPolarFormula`: the formula is smooth on the domain, of every
+  order.
+* `SymplecticGeometry.metricPolarFormula_symmetrizeBilinear_skewSymmetrizeBilinear`: the formula
+  only depends on the symmetric part of `g` and the skew part of `s`.
+* `SymplecticGeometry.metricPolarFormula_conj`: naturality of the formula on the domain under linear
   isomorphisms.
 * `SymplecticGeometry.mem_polarDomain`: every inner product and symplectic form lie in the
   domain.
@@ -55,12 +56,12 @@ products and symplectic forms the formula is `J_{g,ω}`, which does not depend o
 
 ## Implementation notes
 
-The proof of `TauCeti.contDiffOn_metricPolarFormula` adapts the argument of Tau Ceti's private
-lemma `contMDiffAt_metricChangeTransport_mul_mul_sqrt`
+The proof of `SymplecticGeometry.contDiffOn_metricPolarFormula` adapts the argument of Tau Ceti's
+private lemma `contMDiffAt_metricChangeTransport_mul_mul_sqrt`
 (`TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/Polar.lean`) from smoothness at a point of a
 manifold to smoothness on an open set of pairs of forms: the same factors `R` and `A`, the same
 use of `CFC.isUnit_sqrt_iff` and `contDiffAt_ringInverse` for the inverse, and the same final
-product. Its proof uses no declaration of the namespace `SymplecticGeometry`.
+product.
 -/
 
 public section
@@ -70,22 +71,24 @@ open scoped RealInnerProductSpace
 
 local postfix:1024 "♯" => continuousLinearMapOfBilin (𝕜 := ℝ)
 
-namespace TauCeti
+namespace SymplecticGeometry
+
+open TauCeti Module
 
 section Domain
 
 variable (V : Type*) [NormedAddCommGroup V] [NormedSpace ℝ V]
 
-/-- The domain of `TauCeti.metricPolarFormula`: the pairs `(g, s)` of continuous bilinear forms
-on `V` such that `g` is positive on nonzero vectors and `s - sᵀ`, twice the skew part of `s`, is
-nondegenerate. -/
+/-- The domain of `SymplecticGeometry.metricPolarFormula`: the pairs `(g, s)` of continuous bilinear
+forms on `V` such that `g` is positive on nonzero vectors and `s - sᵀ`, twice the skew part of `s`,
+is nondegenerate. -/
 def polarDomain : Set ((V →L[ℝ] V →L[ℝ] ℝ) × (V →L[ℝ] V →L[ℝ] ℝ)) :=
   {p | (∀ v, v ≠ 0 → 0 < p.1 v v) ∧ (p.2 - p.2.flip).toBilinForm.Nondegenerate}
 
 variable {V}
 
-/-- Membership in `TauCeti.polarDomain`: positivity of the first form on nonzero vectors and
-nondegeneracy of the skew part of the second. -/
+/-- Membership in `SymplecticGeometry.polarDomain`: positivity of the first form on nonzero vectors
+and nondegeneracy of the skew part of the second. -/
 @[simp]
 theorem mem_polarDomain_iff {p : (V →L[ℝ] V →L[ℝ] ℝ) × (V →L[ℝ] V →L[ℝ] ℝ)} :
     p ∈ polarDomain V ↔
@@ -98,12 +101,14 @@ theorem nondegenerate_toBilinForm_of_mem_polarDomain {g s : V →L[ℝ] V →L[�
   (nondegenerate_toBilinForm_skewSymmetrizeBilinear_iff s).2 (mem_polarDomain_iff.1 h).2
 
 variable (V) in
-/-- In finite dimension, the domain of `TauCeti.metricPolarFormula` is open. -/
+/-- In finite dimension, the domain of `SymplecticGeometry.metricPolarFormula` is open. -/
 theorem isOpen_polarDomain [FiniteDimensional ℝ V] : IsOpen (polarDomain V) :=
   (isOpen_setOf_forall_bilinear_apply_self_pos.preimage continuous_fst).inter
     (isOpen_setOf_nondegenerate_toBilinForm_sub_flip.preimage continuous_snd)
 
 end Domain
+
+section Formula
 
 variable {W W' : Type*} [NormedAddCommGroup W] [InnerProductSpace ℝ W] [FiniteDimensional ℝ W]
   [NormedAddCommGroup W'] [InnerProductSpace ℝ W'] [FiniteDimensional ℝ W']
@@ -123,7 +128,7 @@ theorem metricPolarFormula_def (g s : W →L[ℝ] W →L[ℝ] ℝ) :
   (rfl)
 
 /-- The formula is smooth, of every order including analyticity, on the domain
-`TauCeti.polarDomain W`. -/
+`SymplecticGeometry.polarDomain W`. -/
 theorem contDiffOn_metricPolarFormula {n : WithTop ℕ∞} :
     ContDiffOn ℝ n (fun p ↦ metricPolarFormula p.1 p.2) (polarDomain W) := by
   let g' (p : (W →L[ℝ] W →L[ℝ] ℝ) × (W →L[ℝ] W →L[ℝ] ℝ)) := (symmetrizeBilinear p.1).val
@@ -170,11 +175,7 @@ theorem metricPolarFormula_symmetrizeBilinear_skewSymmetrizeBilinear
   simp only [metricPolarFormula_def, symmetrizeBilinear_coe,
     skewSymmetrizeBilinear_skewSymmetrizeBilinear]
 
-end TauCeti
-
-namespace SymplecticGeometry
-
-open TauCeti Module
+end Formula
 
 section Domain
 
@@ -190,6 +191,8 @@ theorem mem_polarDomain (g : innerProducts V) (ω : SymplecticForm V) :
   simpa using ω.nondegenerate
 
 end Domain
+
+section Polar
 
 variable {W : Type*} [NormedAddCommGroup W] [InnerProductSpace ℝ W] [FiniteDimensional ℝ W]
 
@@ -246,11 +249,9 @@ theorem metricPolarFormula_eq_of_mem {g s : W →L[ℝ] W →L[ℝ] ℝ} (h : (g
   metricPolarFormula_eq_of_toContinuousBilinearMap_eq (mem_polarDomain_iff.1 h).1
     (SymplecticForm.toBilinForm_toContinuousBilinearMap_ofContinuousBilinearMap _ _ _)
 
-end SymplecticGeometry
+end Polar
 
-namespace TauCeti
-
-open SymplecticGeometry
+section Conj
 
 variable {W W' : Type*} [NormedAddCommGroup W] [InnerProductSpace ℝ W] [FiniteDimensional ℝ W]
   [NormedAddCommGroup W'] [InnerProductSpace ℝ W'] [FiniteDimensional ℝ W']
@@ -283,11 +284,9 @@ theorem metricPolarFormula_conj (e : W ≃L[ℝ] W') {g s : W →L[ℝ] W →L[�
   ext v
   simp [ω]
 
-end TauCeti
+end Conj
 
-namespace SymplecticGeometry
-
-open TauCeti Module
+section Continuous
 
 variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
 
@@ -324,5 +323,7 @@ theorem _root_.Continuous.metricPolarComplexStructure {X : Type*} [TopologicalSp
     {g : X → innerProducts V} {ω : X → SymplecticForm V} (hg : Continuous g)
     (hω : Continuous ω) : Continuous fun x ↦ metricPolarComplexStructure (g x) (ω x) :=
   continuous_metricPolarComplexStructure.comp (hg.prodMk hω)
+
+end Continuous
 
 end SymplecticGeometry

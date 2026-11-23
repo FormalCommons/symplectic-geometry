@@ -20,8 +20,8 @@ public import TauCeti.Topology.VectorBundle.Coordinates
 Let `g` be a bundle metric on a real vector bundle `V → M` of finite rank. For a continuous
 bilinear form `σ` on a fibre `V x` whose skew part is nondegenerate, this file defines the
 endomorphism `J_{g,σ}` of `V x` (`Bundle.ContMDiffRiemannianMetric.polarFormulaAt g x σ`): the
-formula `TauCeti.metricPolarFormula` applied to the pair `(g x, σ)`, read on a Euclidean space
-through a linear equivalence of `V x` with it. It shows that this does not depend on the
+formula `SymplecticGeometry.metricPolarFormula` applied to the pair `(g x, σ)`, read on a Euclidean
+space through a linear equivalence of `V x` with it. It shows that this does not depend on the
 equivalence, and that it is a `Cⁿ` map from the bundle of bilinear forms to the endomorphism bundle
 on the open set where it is defined. At the flat map of a nondegenerate two-form it is the
 complex structure `J_{g,ω}` of the bundle, which is built from it in
@@ -71,8 +71,8 @@ structure, the form is the flat map of `ω_{g,J}`.
 The fibres of `V` carry no norm, so the formula, which needs an inner product space, is applied on
 the Euclidean space `EuclideanSpace ℝ (Fin (finrank ℝ F))`, reached from `V x` through the
 trivialization at `x`, as `SymplecticGeometry.Bundle.mapBilinPairAt`. The formula is natural
-under linear isomorphisms (`TauCeti.metricPolarFormula_conj`) and smooth on the open set
-`TauCeti.polarDomain` (`TauCeti.contDiffOn_metricPolarFormula`), so
+under linear isomorphisms (`SymplecticGeometry.metricPolarFormula_conj`) and smooth on the open set
+`SymplecticGeometry.polarDomain` (`SymplecticGeometry.contDiffOn_metricPolarFormula`), so
 `contMDiffOn_polarFormulaAt` is `SymplecticGeometry.Bundle.contMDiffAt_mapBilinPairAt`, with the
 form a coordinate of the total space. The domain is open by
 `FiberBundle.isOpen_of_forall_mem_iff_snd_mem`, since each trivialization reads it as the open
@@ -155,15 +155,16 @@ theorem euclideanEquivAt_def [FiniteDimensional ℝ F] (x : M) :
   (rfl)
 
 /-- Carrying a metric and a form along a linear equivalence with an inner product space gives a
-point of the domain of `TauCeti.metricPolarFormula` exactly when the skew part of the form is
-nondegenerate. -/
+point of the domain of `SymplecticGeometry.metricPolarFormula` exactly when the skew part of the
+form is nondegenerate. -/
 theorem ContMDiffRiemannianMetric.mem_polarDomain_bilinearCongr {n : WithTop ℕ∞}
     (g : ContMDiffRiemannianMetric I n F V) {x : M} {W : Type*} [NormedAddCommGroup W]
     [InnerProductSpace ℝ W] (e : V x ≃L[ℝ] W) {σ : V x →L[ℝ] V x →L[ℝ] ℝ}
     (hσ : (σ.toBilinForm - σ.toBilinForm.flip).Nondegenerate) :
-    (e.bilinearCongr (g.inner x), e.bilinearCongr σ) ∈ TauCeti.polarDomain W :=
-  TauCeti.mem_polarDomain_iff.2 ⟨fun v hv ↦ by simpa using g.pos x (e.symm v) (by simpa using hv),
-    e.nondegenerate_bilinearCongr_sub_flip_iff.2 hσ⟩
+    (e.bilinearCongr (g.inner x), e.bilinearCongr σ) ∈ SymplecticGeometry.polarDomain W :=
+  SymplecticGeometry.mem_polarDomain_iff.2
+    ⟨fun v hv ↦ by simpa using g.pos x (e.symm v) (by simpa using hv),
+      e.nondegenerate_bilinearCongr_sub_flip_iff.2 hσ⟩
 
 /-- Along a map `f` of class `Cⁿ` into the base, the reading of a bundle metric of class `Cⁿ` in
 the trivialization at `f y`, `y' ↦ inCoordinates … (f y) (f y') (f y) (f y') (g.inner (f y'))`,
@@ -203,18 +204,18 @@ theorem exists_continuousLinearEquiv_inner_eq (x : M) :
 variable [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
 
 /-- The polar formula `J_{g,σ}` of a bundle metric `g` and a continuous bilinear form `σ` on the
-fibre `V x`: the formula `TauCeti.metricPolarFormula` of the pair `(g x, σ)`, carried to the
-Euclidean space `EuclideanSpace ℝ (Fin (finrank ℝ F))` along `Bundle.euclideanEquivAt F V x` and
+fibre `V x`: the formula `SymplecticGeometry.metricPolarFormula` of the pair `(g x, σ)`, carried to
+the Euclidean space `EuclideanSpace ℝ (Fin (finrank ℝ F))` along `Bundle.euclideanEquivAt F V x` and
 conjugated back, as `SymplecticGeometry.Bundle.mapBilinPairAt`.
 Where the skew part of `σ` is nondegenerate, the choice of the equivalence does not matter
 (`polarFormulaAt_eq_conj`). -/
 def polarFormulaAt (x : M) (σ : V x →L[ℝ] V x →L[ℝ] ℝ) : V x →L[ℝ] V x :=
   SymplecticGeometry.Bundle.mapBilinPairAt (euclideanEquivAt F V)
-    (fun p ↦ TauCeti.metricPolarFormula p.1 p.2) x (g.inner x) σ
+    (fun p ↦ SymplecticGeometry.metricPolarFormula p.1 p.2) x (g.inner x) σ
 
 theorem polarFormulaAt_def (x : M) (σ : V x →L[ℝ] V x →L[ℝ] ℝ) :
     g.polarFormulaAt x σ = SymplecticGeometry.Bundle.mapBilinPairAt (euclideanEquivAt F V)
-      (fun p ↦ TauCeti.metricPolarFormula p.1 p.2) x (g.inner x) σ :=
+      (fun p ↦ SymplecticGeometry.metricPolarFormula p.1 p.2) x (g.inner x) σ :=
   (rfl)
 
 /-- **Independence of the equivalence.** Where the skew part of `σ` is nondegenerate, `J_{g,σ}` is
@@ -224,11 +225,13 @@ theorem polarFormulaAt_eq_conj {x : M} {σ : V x →L[ℝ] V x →L[ℝ] ℝ}
     (hσ : (σ.toBilinForm - σ.toBilinForm.flip).Nondegenerate) {W : Type*}
     [NormedAddCommGroup W] [InnerProductSpace ℝ W] [FiniteDimensional ℝ W] (e : V x ≃L[ℝ] W) :
     g.polarFormulaAt x σ = e.symm.conjContinuousAlgEquiv
-      (TauCeti.metricPolarFormula (e.bilinearCongr (g.inner x)) (e.bilinearCongr σ)) := by
+      (SymplecticGeometry.metricPolarFormula (e.bilinearCongr (g.inner x))
+        (e.bilinearCongr σ)) := by
   rw [polarFormulaAt_def]
   exact SymplecticGeometry.Bundle.mapBilinPairAt_eq_conj _
-    (Φ' := fun p ↦ TauCeti.metricPolarFormula p.1 p.2)
-    (fun f _ hp ↦ TauCeti.metricPolarFormula_conj f hp) e (g.mem_polarDomain_bilinearCongr e hσ)
+    (Φ' := fun p ↦ SymplecticGeometry.metricPolarFormula p.1 p.2)
+    (fun f _ hp ↦ SymplecticGeometry.metricPolarFormula_conj f hp) e
+    (g.mem_polarDomain_bilinearCongr e hσ)
 
 /-- For a metric of class `Cⁿ`, the polar formula is a `Cⁿ` map from the bundle of bilinear forms
 to the endomorphism bundle on the domain `Bundle.polarFormulaDomain F V`. -/
@@ -250,8 +253,8 @@ theorem contMDiffOn_polarFormulaAt :
       q₀ :=
     contMDiffAt_id
   exact (SymplecticGeometry.Bundle.contMDiffAt_mapBilinPairAt (euclideanEquivAt F V)
-    (TauCeti.isOpen_polarDomain _) TauCeti.contDiffOn_metricPolarFormula
-    (fun f _ hp ↦ TauCeti.metricPolarFormula_conj f hp) ha hb
+    (SymplecticGeometry.isOpen_polarDomain _) SymplecticGeometry.contDiffOn_metricPolarFormula
+    (fun f _ hp ↦ SymplecticGeometry.metricPolarFormula_conj f hp) ha hb
     (g.mem_polarDomain_bilinearCongr _ (mem_polarFormulaDomain_iff.1 hq₀))).contMDiffWithinAt
 
 end ContMDiffRiemannianMetric

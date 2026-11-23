@@ -79,7 +79,7 @@ derivation `𝒜` in the middle, follow the steps of the proof of
   `L α = 0`, and `TauCeti.SmoothTwoForm.codifferential_lefschetz` on functions.
 * `TauCeti.SmoothTwoForm.symbolInChart_lefschetz`: where `σ` read in a chart has derivative zero,
   the derivative of `L β` read in the chart, carried to the tangent space by
-  `TauCeti.symbolInChart`, is the linear Lefschetz operator applied to that of `β`.
+  `PartialDiffeomorph.symbolInChart`, is the linear Lefschetz operator applied to that of `β`.
 * `TauCeti.SmoothForm.hodgeLaplacian_realAlternatingDerivation`: `Δ 𝒥 α = 𝒥 Δ α` under the
   hypotheses of the Kähler identity, and
   `TauCeti.SmoothForm.realAlternatingDerivation_mem_harmonicForms`: `𝒥` preserves harmonic forms.
@@ -216,8 +216,8 @@ theorem symbolInChart_lefschetz_apply (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M 
     (σ : SmoothTwoForm I M) (β : SmoothForm I M ℝ j) {y : E} (hy : y ∈ ψ.target)
     (hσ : fderiv ℝ (F := E [⋀^Fin 2]→L[ℝ] ℝ) (mpullback 𝓘(ℝ, E) I ψ.symm σ.val) y = 0)
     (v : TangentSpace I (ψ.symm y)) :
-    symbolInChart ψ (σ.lefschetz β).val y v =
-      (symbolInChart ψ β.val y v).wedge (σ.val (ψ.symm y)) := by
+    ψ.symbolInChart (σ.lefschetz β).val y v =
+      (ψ.symbolInChart β.val y v).wedge (σ.val (ψ.symm y)) := by
   -- The step on `E`, for the value `b` and derivative `D` of `β` read in the chart, the value `Ω`
   -- and derivative `D₂` of `σ`, and the derivative `D'` of `β ∧ σ`.
   have key (T : TangentSpace I (ψ.symm y) →L[ℝ] E) (Ω : E [⋀^Fin 2]→L[ℝ] ℝ)
@@ -228,7 +228,7 @@ theorem symbolInChart_lefschetz_apply (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M 
       (D' (T v)).compContinuousLinearMap T =
         ((D (T v)).compContinuousLinearMap T).wedge (σ.val (ψ.symm y)) := by
     rw [hD, hD₂, zero_apply, wedge_zero_right, add_zero, ← hT, wedge_compContinuousLinearMap]
-  rw [symbolInChart_apply, symbolInChart_apply]
+  rw [PartialDiffeomorph.symbolInChart_apply, PartialDiffeomorph.symbolInChart_apply]
   refine key _ _ (mpullback_symm_compContinuousLinearMap_mfderiv ψ (by simp) σ.val hy)
     (mpullback 𝓘(ℝ, E) I ψ.symm β.val y) _ _ hσ _ fun u ↦ ?_
   rw [lefschetz_apply]
@@ -244,10 +244,10 @@ theorem symbolInChart_lefschetz
     (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (β : SmoothForm I M ℝ j) {y : E}
     (hy : y ∈ ψ.target)
     (hσ : fderiv ℝ (F := E [⋀^Fin 2]→L[ℝ] ℝ) (mpullback 𝓘(ℝ, E) I ψ.symm σ.val) y = 0) :
-    symbolInChart ψ (σ.lefschetz β).val y =
+    ψ.symbolInChart (σ.lefschetz β).val y =
       (letI : FiniteDimensional ℝ (TangentSpace I (ψ.symm y)) :=
         VectorBundle.finiteDimensional ℝ E (TangentSpace I) (ψ.symm y)
-       (J.almostComplexStructureAt (ψ.symm y)).lefschetz ∘L symbolInChart ψ β.val y) := by
+       (J.almostComplexStructureAt (ψ.symm y)).lefschetz ∘L ψ.symbolInChart β.val y) := by
   ext1 v
   rw [symbolInChart_lefschetz_apply ψ σ β hy hσ v, ContinuousLinearMap.comp_apply,
     AlmostComplexStructure.lefschetz_apply, val_eq_alternatingFormEquiv_kahlerForm hg]
@@ -298,14 +298,14 @@ theorem lefschetz_codifferential_sub (o : Manifold.Orientation I M (Fin m))
       hgr,
     ContMDiffSection.coe_realAlternatingDerivation]
   beta_reduce
-  rw [val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart ψ α hy,
-    val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart ψ _ hy,
+  rw [ψ.val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart α hy,
+    ψ.val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart _ hy,
     symbolInChart_lefschetz hg ψ α hy
       (ψ.fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero hg hψ hy hgr)]
   convert AlmostComplexStructure.lefschetz_smul_formHodgeStar_alternatizeUncurryFin_sub
     (SmoothAlmostComplexStructure.inner_almostComplexStructureAt_apply_apply hg (ψ.symm y))
     (o.orientationAt (ψ.symm y))
-    (l := l) (l' := l') (by omega) (by omega) (by omega) (by omega) (symbolInChart ψ α.val y)
+    (l := l) (l' := l') (by omega) (by omega) (by omega) (by omega) (ψ.symbolInChart α.val y)
     using 4
   · rw [hm]
   · rw [formHodgeStarCLM_apply, formHodgeStarCLM_def]
@@ -314,7 +314,7 @@ theorem lefschetz_codifferential_sub (o : Manifold.Orientation I M (Fin m))
   · ext u
     simp
   · ext1 v
-    exact (symbolInChart_realAlternatingDerivation_apply J ψ
+    exact (ψ.symbolInChart_realAlternatingDerivation_apply J
       (A₀ := J₀.toLinearMap.toContinuousLinearMap) (by simpa using hψ) α hy v).trans
       (congrArg _ (by ext u; simp))
 
@@ -338,18 +338,18 @@ theorem lefschetz_codifferential_of_lt (o : Manifold.Orientation I M (Fin m))
       α hy hgr,
     ContMDiffSection.coe_realAlternatingDerivation]
   beta_reduce
-  rw [val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart ψ α hy,
-    val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart ψ _ hy]
+  rw [ψ.val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart α hy,
+    ψ.val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart _ hy]
   convert AlmostComplexStructure.lefschetz_smul_formHodgeStar_alternatizeUncurryFin_of_lt
     (SmoothAlmostComplexStructure.inner_almostComplexStructureAt_apply_apply hg (ψ.symm y))
     (o.orientationAt (ψ.symm y))
-    (l := l) (by omega) (by omega) (by omega) (symbolInChart ψ α.val y) using 4
+    (l := l) (by omega) (by omega) (by omega) (ψ.symbolInChart α.val y) using 4
   · rw [hm]
   · rw [formHodgeStarCLM_apply, formHodgeStarCLM_def]
   · ext u
     simp
   · ext1 v
-    exact (symbolInChart_realAlternatingDerivation_apply J ψ
+    exact (ψ.symbolInChart_realAlternatingDerivation_apply J
       (A₀ := J₀.toLinearMap.toContinuousLinearMap) (by simpa using hψ) α hy v).trans
       (congrArg _ (by ext u; simp))
 
@@ -372,13 +372,13 @@ theorem codifferential_lefschetz (o : Manifold.Orientation I M (Fin m))
       hgr,
     ContMDiffSection.coe_realAlternatingDerivation]
   beta_reduce
-  rw [val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart ψ f hy,
+  rw [ψ.val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart f hy,
     symbolInChart_lefschetz hg ψ f hy
       (ψ.fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero hg hψ hy hgr)]
   convert AlmostComplexStructure.smul_formHodgeStar_alternatizeUncurryFin_lefschetz_fin_zero
     (SmoothAlmostComplexStructure.inner_almostComplexStructureAt_apply_apply hg (ψ.symm y))
     (o.orientationAt (ψ.symm y))
-    (l := l) (by omega) (by omega) (symbolInChart ψ f.val y) using 3
+    (l := l) (by omega) (by omega) (ψ.symbolInChart f.val y) using 3
   · rw [hm]
   · rw [formHodgeStarCLM_apply, formHodgeStarCLM_def]
   · ext u

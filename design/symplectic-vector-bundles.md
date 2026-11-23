@@ -541,7 +541,7 @@ the form and of the structure are independent.
     in part 9's `Topology/Algebra/Module/BilinearForm.lean`), so the chart
     of the total space reads the domain as that open set.
   - `polarFormulaAt g x (σ : V x →L[ℝ] V x →L[ℝ] ℝ) : V x →L[ℝ] V x`, part 9's
-    `TauCeti.metricPolarFormula` on `W` of the pair (`g x`, `σ`) carried
+    `SymplecticGeometry.metricPolarFormula` on `W` of the pair (`g x`, `σ`) carried
     along `e x : V x ≃L[ℝ] W` (the trivialization at `x` followed by
     Mathlib's `ContinuousLinearEquiv.ofFinrankEq`, the definition
     `Bundle.euclideanEquivAt F V x` with `euclideanEquivAt_def`), conjugated
@@ -2133,8 +2133,8 @@ it, its design adds it.
   smoothness of `polarComplexStructure` and `polarEndAt` with its
   smoothness are derived. It uses part 9's
   `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure/Smooth.lean`
-  (`TauCeti.polarDomain`, `isOpen_polarDomain`, `mem_polarDomain_iff`,
-  `TauCeti.metricPolarFormula`, `contDiffOn_metricPolarFormula`,
+  (`SymplecticGeometry.polarDomain`, `isOpen_polarDomain`, `mem_polarDomain_iff`,
+  `SymplecticGeometry.metricPolarFormula`, `contDiffOn_metricPolarFormula`,
   `metricPolarFormula_conj`, `metricPolarFormula_eq`) and
   `metricPolarComplexStructure_transport` and
   `metricPolarComplexStructure_innerSL` from its `Basic.lean`: part 9

@@ -68,7 +68,7 @@ collar, inside any given open neighbourhood of the boundary, without σ-compactn
 
 public section
 
-open Set Filter Function Topology
+open Set Filter Function Topology SymplecticGeometry
 open scoped Manifold ContDiff
 
 namespace TauCeti

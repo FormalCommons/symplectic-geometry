@@ -35,8 +35,8 @@ abelian group.
   are the chains with coefficients in the abelian group `ℚ`: the inverse of the change of
   coefficients `SSet.restrictScalarsChainIso` along `ModuleCat.restrictScalarsAlgebraMapIso`.
 * `TopCat.singularChainComplexIntToRat`: the chain map `C(X; ℤ) ⟶ F (C(X; ℚ))` induced by the
-  inclusion `ℤ → ℚ` of coefficients (`TauCeti.intToRatCoeff`), an instance of the change of
-  coefficients `SSet.restrictScalarsChainMap`, and the induced map on homology
+  inclusion `ℤ → ℚ` of coefficients (`SymplecticGeometry.intToRatCoeff`), an instance of the
+  change of coefficients `SSet.restrictScalarsChainMap`, and the induced map on homology
   `TopCat.singularHomologyIntToRat : Hₙ(X; ℤ) ⟶ F (Hₙ(X; ℚ))`. For an oriented compact
   manifold, it sends the integral fundamental class to a rational one. For a connected
   manifold Tau Ceti also has `TauCeti.HomologicalOrientation.rationalFundamentalClass`, built
@@ -84,7 +84,7 @@ inertia add up to `b_p`
 
 ## Implementation notes
 
-`TauCeti.intToRatCoeff` and `TauCeti.intToRatCoeff_apply` are Tau Ceti's
+`SymplecticGeometry.intToRatCoeff` and `SymplecticGeometry.intToRatCoeff_apply` are Tau Ceti's
 `TauCeti.intToRealCoeff` and `TauCeti.intToRealCoeff_apply` with `ℚ` in place of `ℝ`.
 
 The comparisons of chains and of homologies follow the steps of Tau Ceti's
@@ -116,7 +116,7 @@ noncomputable section
 
 open CategoryTheory Limits MonoidalCategory AlgebraicTopology Simplicial
 
-namespace TauCeti
+namespace SymplecticGeometry
 
 /-- The coefficient map `ℤ → ℚ`, from the integral coefficients `ULift ℤ` of the fundamental class
 to the abelian group `ℚ`. -/
@@ -128,13 +128,13 @@ def intToRatCoeff : ModuleCat.of ℤ (ULift.{0} ℤ) ⟶ ModuleCat.of ℤ ℚ :=
 theorem intToRatCoeff_apply (m : ULift.{0} ℤ) : intToRatCoeff m = (m.down : ℚ) :=
   (rfl)
 
-end TauCeti
+end SymplecticGeometry
 
 namespace TopCat
 
 attribute [local instance] MonoidalPreadditive.monoidalLinearInt
 
-open TauCeti
+open TauCeti SymplecticGeometry
 
 variable (X : TopCat.{0})
 
@@ -173,7 +173,7 @@ theorem map_ιChainComplex_singularChainComplexRestrictScalarsRatIso_hom_f {n : 
 
 /-- The chain map from integral to rational singular chains, read as abelian groups, induced by
 the inclusion `ℤ → ℚ` of coefficients: the change of coefficients `SSet.restrictScalarsChainMap`
-along `TauCeti.intToRatCoeff`, with `ℚ` read as a restricted `ℚ`-module. -/
+along `SymplecticGeometry.intToRatCoeff`, with `ℚ` read as a restricted `ℚ`-module. -/
 def singularChainComplexIntToRat :
     (toSSet.obj X).chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ)) ⟶
       ((ModuleCat.restrictScalars.{0} (algebraMap ℤ ℚ)).mapHomologicalComplex _).obj
@@ -183,8 +183,8 @@ def singularChainComplexIntToRat :
     (toSSet.obj X)
 
 /-- The chain map from integral to rational chains is the change of coefficients
-`SSet.restrictScalarsChainMap` along `TauCeti.intToRatCoeff`, followed by the identification of
-the abelian group `ℚ` with the restricted `ℚ`-module `ℚ`. -/
+`SSet.restrictScalarsChainMap` along `SymplecticGeometry.intToRatCoeff`, followed by the
+identification of the abelian group `ℚ` with the restricted `ℚ`-module `ℚ`. -/
 theorem singularChainComplexIntToRat_def :
     X.singularChainComplexIntToRat =
       SSet.restrictScalarsChainMap (algebraMap ℤ ℚ) (N := 𝟙_ (ModuleCat.{0} ℚ))

@@ -26,7 +26,7 @@ This file shows that this sign is `(-1) ^ (m + 1)`
 Both classes are read through the connecting morphism of `(F × ℝ, (F × ℝ) ∖ {0})` followed by the
 map to the homology of `(F × ℝ) ∖ {0}` relative to `(F ∖ {0}) × ℝ`, which is injective
 (`TauCeti.injective_singularHomologyπ_singularHomologyδ_prod`, in `Orientation/Sheets.lean`). For
-`t ≠ 0` let `jₜ` be the sheet `x ↦ (x, t)` (`TauCeti.prodSheetPairMap`).
+`t ≠ 0` let `jₜ` be the sheet `x ↦ (x, t)` (`SymplecticGeometry.prodSheetPairMap`).
 
 * The ordered product goes to `j₋₁ z - j₁ z`
   (`TauCeti.LocalOrientation.singularHomologyπ_singularHomologyδ_prod`, from the suspension that
@@ -144,6 +144,12 @@ theorem singularHomologyδ_localOrientation_real :
       (ModuleCat.of ℤ (ULift.{0} ℤ))) 1
 
 end Real
+
+end TauCeti
+
+namespace SymplecticGeometry
+
+open TauCeti
 
 section Prod
 
@@ -337,13 +343,25 @@ private theorem singularHomologyπ_singularHomologyδ_localHomologyCross {m : �
   -- the composite applied to an element is the composition of the applications
   rfl
 
+end Prod
+
+end SymplecticGeometry
+
+namespace TauCeti
+
+open SymplecticGeometry
+
+section Prod
+
+variable {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F]
+
 /-- **The cross product of a local orientation with that of the line, read on the sheets.** Let
 `F` be a real normed space of dimension `m + 1`, `z` a local orientation of `F` at `0`, and `ι`
 the local orientation of `ℝ` selected by its standard orientation. The connecting morphism of
 `(F × ℝ, (F × ℝ) ∖ {0})`, followed by the map
 `Hₘ₊₁((F × ℝ) ∖ {0}) ⟶ Hₘ₊₁((F × ℝ) ∖ {0}, (F ∖ {0}) × ℝ)`, sends the cross product `z × ι` to
 `(-1) ^ (m + 1) • (j₋₁ z - j₁ z)`, where `jₜ` is the sheet `x ↦ (x, t)`
-(`TauCeti.prodSheetPairMap`). -/
+(`SymplecticGeometry.prodSheetPairMap`). -/
 theorem LocalOrientation.singularHomologyπ_singularHomologyδ_cross {m : ℕ}
     (hF : finrank ℝ F = m + 1) (z : LocalOrientation F 0 (m + 1)) :
     (TopPair.ofSubset (X := TopCat.of ({0}ᶜ : Set (F × ℝ)))

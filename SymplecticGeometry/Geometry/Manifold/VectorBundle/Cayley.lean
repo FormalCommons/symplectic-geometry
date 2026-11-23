@@ -55,7 +55,7 @@ public section
 
 noncomputable section
 
-open Bundle Set Topology TauCeti
+open Bundle Set Topology TauCeti SymplecticGeometry
 open scoped Manifold
 
 section Smooth
@@ -125,7 +125,7 @@ variable (F V) in
 /-- The points `q` of the endomorphism bundle of `V` such that the Cayley path from the reference
 endomorphism `A q` to `q` is defined for every coefficient `b ∈ [0, 1]`: read in the preferred
 trivialization at the base point of `q`, the triple `(b, A q, q)` lies in the domain
-`TauCeti.cayleyDomain` of the Cayley path in `F →L[ℝ] F`. -/
+`SymplecticGeometry.cayleyDomain` of the Cayley path in `F →L[ℝ] F`. -/
 def cayleyPathDomain
     (A : ∀ q : TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x), V q.proj →L[ℝ] V q.proj) :
     Set (TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x)) :=

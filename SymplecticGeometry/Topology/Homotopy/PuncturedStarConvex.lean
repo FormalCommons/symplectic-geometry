@@ -21,16 +21,16 @@ identity of `V ∖ {p}` moves each point along its ray from `p`, so it keeps the
 fixed. Hence radial projection `V ∖ {p} ⟶ sphere p r` is a fibre homotopy equivalence over the
 sphere (`StarConvex.radialProjectionFiberHomotopyEquiv`), and restricting it to preimages shows
 that the punctured cone `ρ⁻¹ W` over any subset `W` of the unit sphere is homotopy equivalent to
-`W` (`TauCeti.complZeroPreimageHomotopyEquiv`).
+`W` (`SymplecticGeometry.complZeroPreimageHomotopyEquiv`).
 
-For a point `p` of the unit sphere, `E ∖ {0}` is covered by `TauCeti.complRay p` and
-`TauCeti.complRay (-p)`, the points off the open rays `{t • p | t > 0}` and `{t • p | t < 0}`.
-Each is contractible, as the punctured cone over the sphere minus a point
-(`TauCeti.contractibleSpace_complRay`).
+For a point `p` of the unit sphere, `E ∖ {0}` is covered by `SymplecticGeometry.complRay p` and
+`SymplecticGeometry.complRay (-p)`, the points off the open rays `{t • p | t > 0}` and
+`{t • p | t < 0}`. Each is contractible, as the punctured cone over the sphere minus a point
+(`SymplecticGeometry.contractibleSpace_complRay`).
 Their intersection is the complement of the line `ℝ ∙ p`
-(`TauCeti.mem_complRay_inter_complRay_neg_iff`), the punctured cone over the sphere minus `±p`.
-In an inner product space it is therefore homotopy equivalent to the unit sphere of `(ℝ ∙ p)ᗮ`
-(`TauCeti.complRayInterHomotopyEquiv`), by radial projection followed by
+(`SymplecticGeometry.mem_complRay_inter_complRay_neg_iff`), the punctured cone over the sphere minus
+`±p`. In an inner product space it is therefore homotopy equivalent to the unit sphere of `(ℝ ∙ p)ᗮ`
+(`SymplecticGeometry.complRayInterHomotopyEquiv`), by radial projection followed by
 `TauCeti.equatorHomotopyEquiv p`, and it contains `(ℝ ∙ p)ᗮ ∖ {0}`, on which this homotopy
 equivalence is radial projection in `(ℝ ∙ p)ᗮ`.
 
@@ -38,13 +38,13 @@ equivalence is radial projection in `(ℝ ∙ p)ᗮ`.
 
 * `StarConvex.radialProjectionFiberHomotopyEquiv`: radial projection as a fibre homotopy
   equivalence over the sphere.
-* `TauCeti.complZeroPreimageHomotopyEquiv W`: the punctured cone over `W` is homotopy equivalent
-  to `W`.
-* `TauCeti.complRay p`: the points of `E ∖ {0}` off the open ray through `p`.
-* `TauCeti.complZeroOrthogonalInclusion p`: the inclusion of `(ℝ ∙ p)ᗮ ∖ {0}` into
+* `SymplecticGeometry.complZeroPreimageHomotopyEquiv W`: the punctured cone over `W` is homotopy
+  equivalent to `W`.
+* `SymplecticGeometry.complRay p`: the points of `E ∖ {0}` off the open ray through `p`.
+* `SymplecticGeometry.complZeroOrthogonalInclusion p`: the inclusion of `(ℝ ∙ p)ᗮ ∖ {0}` into
   `complRay p ∩ complRay (-p)`.
-* `TauCeti.complRayInterHomotopyEquiv p`: the complement of the line through `p` is homotopy
-  equivalent to the unit sphere of `(ℝ ∙ p)ᗮ`.
+* `SymplecticGeometry.complRayInterHomotopyEquiv p`: the complement of the line through `p` is
+  homotopy equivalent to the unit sphere of `(ℝ ∙ p)ᗮ`.
 
 ## Implementation notes
 
@@ -168,6 +168,17 @@ theorem radialProjectionToSphere_setCongr_compl_eq_univ_sdiff (x : ({0}ᶜ : Set
   simp only [zero_add, sub_zero, one_div]
   rfl
 
+end Radial
+
+end TauCeti
+
+namespace SymplecticGeometry
+
+open TauCeti
+
+section Radial
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 variable (W : Set (sphere (0 : E) 1))
 
 /-- The punctured cone over a subset `W` of the unit sphere, the points `x ≠ 0` whose radial
@@ -184,7 +195,8 @@ def complZeroPreimageHomotopyEquiv :
       (subset_univ _)).restrictPreimage W).toHomotopyEquiv).trans
     (Homeomorph.setCongr (by rw [ContinuousMap.coe_id, preimage_id])).toHomotopyEquiv
 
-/-- The homotopy equivalence `TauCeti.complZeroPreimageHomotopyEquiv` is radial projection. -/
+/-- The homotopy equivalence `SymplecticGeometry.complZeroPreimageHomotopyEquiv` is radial
+projection. -/
 @[simp]
 theorem coe_complZeroPreimageHomotopyEquiv_apply
     (x : ↥(complSingletonHomotopyEquivSphere (0 : E) ⁻¹' W)) :
@@ -198,7 +210,8 @@ theorem coe_complZeroPreimageHomotopyEquiv_apply
   exact (FiberHomotopyEquiv.coe_restrictPreimage_toFun_apply _ W _).trans
     (radialProjectionToSphere_setCongr_compl_eq_univ_sdiff _)
 
-/-- The homotopy inverse of `TauCeti.complZeroPreimageHomotopyEquiv` is the inclusion of `W`. -/
+/-- The homotopy inverse of `SymplecticGeometry.complZeroPreimageHomotopyEquiv` is the inclusion of
+`W`. -/
 @[simp]
 theorem coe_complZeroPreimageHomotopyEquiv_symm_apply (y : W) :
     (((complZeroPreimageHomotopyEquiv W).symm y : ({0}ᶜ : Set E)) : E) = y := by
@@ -223,7 +236,7 @@ cover of a sphere by the complements of two antipodal points apply. -/
 local instance : HasUniqueDiv E := HasUniqueDiv.of_isTorsionFree ℝ E
 
 /-- The points of `E ∖ {0}` off the open ray `{t • p | t > 0}` through a point `p` of the unit
-sphere: those whose radial projection is not `p` (`TauCeti.mem_complRay_iff`). -/
+sphere: those whose radial projection is not `p` (`SymplecticGeometry.mem_complRay_iff`). -/
 def complRay (p : sphere (0 : E) 1) : Set ({0}ᶜ : Set E) :=
   complSingletonHomotopyEquivSphere (0 : E) ⁻¹' {p}ᶜ
 
@@ -231,7 +244,8 @@ theorem complRay_def (p : sphere (0 : E) 1) :
     complRay p = complSingletonHomotopyEquivSphere (0 : E) ⁻¹' {p}ᶜ :=
   (rfl)
 
-/-- A point lies in `TauCeti.complRay p` exactly when it is not a positive multiple of `p`. -/
+/-- A point lies in `SymplecticGeometry.complRay p` exactly when it is not a positive multiple of
+`p`. -/
 theorem mem_complRay_iff {p : sphere (0 : E) 1} {x : ({0}ᶜ : Set E)} :
     x ∈ complRay p ↔ ∀ t : ℝ, 0 < t → t • (p : E) ≠ x := by
   rw [complRay_def, Set.mem_preimage, Set.mem_compl_singleton_iff, Ne,
@@ -242,7 +256,8 @@ theorem mem_complRay_iff {p : sphere (0 : E) 1} {x : ({0}ᶜ : Set E)} :
 theorem isOpen_complRay (p : sphere (0 : E) 1) : IsOpen (complRay p) :=
   isOpen_compl_singleton.preimage (map_continuous _)
 
-/-- Radial projection carries `TauCeti.complRay p` into the complement of `p` in the sphere. -/
+/-- Radial projection carries `SymplecticGeometry.complRay p` into the complement of `p` in the
+sphere. -/
 theorem mapsTo_complRay (p : sphere (0 : E) 1) :
     Set.MapsTo (complSingletonHomotopyEquivSphere (0 : E)) (complRay p) {p}ᶜ :=
   Set.mapsTo_preimage _ _
@@ -253,8 +268,8 @@ theorem complRay_union_complRay_neg (p : sphere (0 : E) 1) :
   rw [complRay_def, complRay_def, ← Set.preimage_union,
     compl_singleton_union_compl_singleton_neg one_ne_zero p, Set.preimage_univ]
 
-/-- The intersection of `TauCeti.complRay p` and `TauCeti.complRay (-p)` is the complement of the
-line through `p`. -/
+/-- The intersection of `SymplecticGeometry.complRay p` and `SymplecticGeometry.complRay (-p)` is
+the complement of the line through `p`. -/
 theorem mem_complRay_inter_complRay_neg_iff {p : sphere (0 : E) 1} {x : ({0}ᶜ : Set E)} :
     x ∈ complRay p ∩ complRay (-p) ↔ (x : E) ∉ ℝ ∙ (p : E) := by
   have hx : ‖(x : E)‖⁻¹ ≠ 0 := inv_ne_zero (norm_ne_zero_iff.2 x.property)
@@ -262,8 +277,8 @@ theorem mem_complRay_inter_complRay_neg_iff {p : sphere (0 : E) 1} {x : ({0}ᶜ 
     compl_singleton_inter_compl_singleton_neg_eq, Set.mem_ofPred_eq,
     coe_complSingletonHomotopyEquivSphere_apply, sub_zero, Submodule.smul_mem_iff _ hx]
 
-/-- `TauCeti.complRay p` is contractible: it is the punctured cone over the sphere minus `p`,
-which is contractible (`TauCeti.contractibleSpace_sphere_compl_singleton`). -/
+/-- `SymplecticGeometry.complRay p` is contractible: it is the punctured cone over the sphere minus
+`p`, which is contractible (`TauCeti.contractibleSpace_sphere_compl_singleton`). -/
 instance contractibleSpace_complRay (p : sphere (0 : E) 1) : ContractibleSpace (complRay p) := by
   have := contractibleSpace_sphere_compl_singleton p
   rw [complRay_def]
@@ -276,7 +291,7 @@ section InnerProductSpace
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
 /-- The points `x ≠ 0` of the orthogonal complement of a unit vector `p` lie off the line through
-`p`: they are in both `TauCeti.complRay p` and `TauCeti.complRay (-p)`. -/
+`p`: they are in both `SymplecticGeometry.complRay p` and `SymplecticGeometry.complRay (-p)`. -/
 theorem mem_complRay_inter_complRay_neg_of_mem_orthogonal (p : sphere (0 : E) 1)
     (x : ({0}ᶜ : Set (ℝ ∙ (p : E))ᗮ)) :
     (⟨(x : (ℝ ∙ (p : E))ᗮ), fun h ↦ x.property (Subtype.ext h)⟩ : ({0}ᶜ : Set E)) ∈
@@ -286,7 +301,7 @@ theorem mem_complRay_inter_complRay_neg_of_mem_orthogonal (p : sphere (0 : E) 1)
 
 /-- The inclusion of the punctured orthogonal complement `(ℝ ∙ p)ᗮ ∖ {0}` of a unit vector `p`
 into the complement in `E ∖ {0}` of the line through `p`, the intersection of
-`TauCeti.complRay p` and `TauCeti.complRay (-p)`. -/
+`SymplecticGeometry.complRay p` and `SymplecticGeometry.complRay (-p)`. -/
 def complZeroOrthogonalInclusion (p : sphere (0 : E) 1) :
     C(↥({0}ᶜ : Set (ℝ ∙ (p : E))ᗮ), ↥(complRay p ∩ complRay (-p))) where
   toFun x := ⟨_, mem_complRay_inter_complRay_neg_of_mem_orthogonal p x⟩
@@ -300,15 +315,15 @@ theorem coe_complZeroOrthogonalInclusion_apply (p : sphere (0 : E) 1)
 
 /-- **The complement of a line is homotopy equivalent to the equator.** For a point `p` of the
 unit sphere, the points of `E ∖ {0}` off the line through `p`, the intersection of
-`TauCeti.complRay p` and `TauCeti.complRay (-p)`, form a space homotopy equivalent to the unit
-sphere of `(ℝ ∙ p)ᗮ`: radial projection onto the sphere minus `±p`, followed by
-`TauCeti.equatorHomotopyEquiv p`. -/
+`SymplecticGeometry.complRay p` and `SymplecticGeometry.complRay (-p)`, form a space homotopy
+equivalent to the unit sphere of `(ℝ ∙ p)ᗮ`: radial projection onto the sphere minus `±p`, followed
+by `TauCeti.equatorHomotopyEquiv p`. -/
 def complRayInterHomotopyEquiv (p : sphere (0 : E) 1) :
     ↥(complRay p ∩ complRay (-p)) ≃ₕ sphere (0 : (ℝ ∙ (p : E))ᗮ) 1 :=
   (complZeroPreimageHomotopyEquiv ({p}ᶜ ∩ {-p}ᶜ)).trans (equatorHomotopyEquiv p)
 
-/-- `TauCeti.complRayInterHomotopyEquiv p` is radial projection onto the sphere minus `±p`,
-followed by `TauCeti.equatorHomotopyEquiv p`. -/
+/-- `SymplecticGeometry.complRayInterHomotopyEquiv p` is radial projection onto the sphere minus
+`±p`, followed by `TauCeti.equatorHomotopyEquiv p`. -/
 @[simp]
 theorem complRayInterHomotopyEquiv_apply (p : sphere (0 : E) 1)
     (x : ↥(complRay p ∩ complRay (-p))) :
@@ -318,8 +333,8 @@ theorem complRayInterHomotopyEquiv_apply (p : sphere (0 : E) 1)
   congrArg (equatorHomotopyEquiv p)
     (Subtype.ext (coe_complZeroPreimageHomotopyEquiv_apply ({p}ᶜ ∩ {-p}ᶜ) x))
 
-/-- The homotopy inverse of `TauCeti.complRayInterHomotopyEquiv p` is the inclusion of the unit
-sphere of `(ℝ ∙ p)ᗮ`. -/
+/-- The homotopy inverse of `SymplecticGeometry.complRayInterHomotopyEquiv p` is the inclusion of
+the unit sphere of `(ℝ ∙ p)ᗮ`. -/
 @[simp]
 theorem coe_complRayInterHomotopyEquiv_symm_apply (p : sphere (0 : E) 1)
     (y : sphere (0 : (ℝ ∙ (p : E))ᗮ) 1) :
@@ -327,8 +342,8 @@ theorem coe_complRayInterHomotopyEquiv_symm_apply (p : sphere (0 : E) 1)
   (coe_complZeroPreimageHomotopyEquiv_symm_apply _ _).trans
     (coe_equatorHomotopyEquiv_symm_apply p y)
 
-/-- `TauCeti.complRayInterHomotopyEquiv p`, as a continuous map, is the restriction of radial
-projection, followed by `TauCeti.equatorHomotopyEquiv p`. -/
+/-- `SymplecticGeometry.complRayInterHomotopyEquiv p`, as a continuous map, is the restriction of
+radial projection, followed by `TauCeti.equatorHomotopyEquiv p`. -/
 theorem complRayInterHomotopyEquiv_toFun (p : sphere (0 : E) 1) :
     (complRayInterHomotopyEquiv p).toFun = (equatorHomotopyEquiv p).toFun.comp
       ⟨((mapsTo_complRay p).inter_inter (mapsTo_complRay (-p))).restrict,
@@ -336,7 +351,7 @@ theorem complRayInterHomotopyEquiv_toFun (p : sphere (0 : E) 1) :
   ContinuousMap.ext (complRayInterHomotopyEquiv_apply p)
 
 /-- On the punctured orthogonal complement `(ℝ ∙ p)ᗮ ∖ {0}`, the homotopy equivalence
-`TauCeti.complRayInterHomotopyEquiv p` is radial projection in `(ℝ ∙ p)ᗮ`. -/
+`SymplecticGeometry.complRayInterHomotopyEquiv p` is radial projection in `(ℝ ∙ p)ᗮ`. -/
 theorem complRayInterHomotopyEquiv_toFun_comp_complZeroOrthogonalInclusion
     (p : sphere (0 : E) 1) :
     (complRayInterHomotopyEquiv p).toFun.comp (complZeroOrthogonalInclusion p) =
@@ -352,4 +367,4 @@ theorem complRayInterHomotopyEquiv_toFun_comp_complZeroOrthogonalInclusion
 
 end InnerProductSpace
 
-end TauCeti
+end SymplecticGeometry
