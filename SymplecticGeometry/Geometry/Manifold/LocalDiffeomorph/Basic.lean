@@ -38,6 +38,9 @@ target of `Λ`, not only at `x`.
   is. It is the left-hand partner of Tau Ceti's `IsLocalDiffeomorphAt.comp_iff_right`, and
   combines Tau Ceti's `IsLocalDiffeomorphAt.of_comp_left` with Mathlib's
   `IsLocalDiffeomorphAt.comp`.
+* `IsLocalDiffeomorphAt.exists_contMDiffAt_transition`: two maps that agree wherever two local
+  diffeomorphisms into a common manifold do are related, near a point, by a map smooth there, as
+  the transition maps of a gluing must be.
 * `isLocalDiffeomorph_id`: the identity of a manifold is a local diffeomorphism.
 * `IsLocalDiffeomorphAt.congr_of_eventuallyEq`: being a local diffeomorphism at `x` depends only
   on the germ of the map at `x`.
@@ -106,6 +109,25 @@ theorem comp_iff_left {F' : Type*} [NormedAddCommGroup F'] [NormedSpace 𝕜 F']
     (hf : ContinuousAt f x) :
     IsLocalDiffeomorphAt I K n (g ∘ f) x ↔ IsLocalDiffeomorphAt I J n f x :=
   ⟨fun h ↦ h.of_comp_left hg hf, fun h ↦ h.comp (hg := hg)⟩
+
+open Topology in
+/-- **Transition maps through local diffeomorphisms.** Let `f : M → N` and `g : M' → N` be `C^n`
+local diffeomorphisms at `x` and `y`, with `f x = g y`, and let `φ : M → X` and `ψ : M' → X` be
+maps with `φ u = ψ v` whenever `f u = g v`. Then some map `T : M → M'`, `C^n` at `x`, has
+`ψ ∘ T = φ` near `x`: the local inverse of `g` at `y` composed with `f`. -/
+theorem exists_contMDiffAt_transition (hf : IsLocalDiffeomorphAt I J n f x) {M' : Type*}
+    [TopologicalSpace M'] [ChartedSpace H M'] {g : M' → N} {y : M'}
+    (hg : IsLocalDiffeomorphAt I J n g y) (hxy : f x = g y) {X : Type*} {φ : M → X}
+    {ψ : M' → X} (h : ∀ u v, f u = g v → φ u = ψ v) :
+    ∃ T : M → M', ContMDiffAt I I n T x ∧ ψ ∘ T =ᶠ[𝓝 x] φ := by
+  refine ⟨hg.localInverse ∘ f, ?_, ?_⟩
+  · have h₁ := hg.contMDiffAt_localInverse
+    rw [← hxy] at h₁
+    exact h₁.comp x hf.contMDiffAt
+  · have h₂ := hg.localInverse_eventuallyEq_right
+    rw [← hxy] at h₂
+    filter_upwards [hf.contMDiffAt.continuousAt.eventually h₂] with u hu
+    exact (h u _ hu.symm).symm
 
 end IsLocalDiffeomorphAt
 
