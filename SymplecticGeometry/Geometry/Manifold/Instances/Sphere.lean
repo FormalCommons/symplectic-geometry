@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.Instances.Sphere
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
+import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 import TauCeti.Geometry.Manifold.Instances.Sphere
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
@@ -24,7 +25,9 @@ apply to maps into `Circle`.
 It also shows that `Circle.exp : ℝ → S¹` is an analytic local diffeomorphism
 (`isLocalDiffeomorph_circleExp`), by Tau Ceti's inverse function theorem for manifolds
 (`TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv`) and Tau Ceti's computation that the
-derivative of `Circle.exp` is injective (`TauCeti.injective_mfderiv_circleExp`).
+derivative of `Circle.exp` is injective (`TauCeti.injective_mfderiv_circleExp`), and that the
+direction `z ↦ z / ‖z‖ = exp (i arg z)` is a smooth map from `ℂ \ {0}` to the circle
+(`Circle.contMDiffOn_exp_arg`), by Tau Ceti's `Complex.contDiffOn_div_norm_pow`.
 -/
 
 public section
@@ -87,5 +90,12 @@ theorem isLocalDiffeomorph_circleExp (n : ℕ∞ω) :
   IsLocalDiffeomorph.of_le (fun t ↦ TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv
     contMDiff_circleExp.contMDiffOn isOpen_univ (mem_univ t) BoundarylessManifold.isInteriorPoint
     (by simp) (TauCeti.injective_mfderiv_circleExp t) (by simp)) le_top
+
+/-- The direction `z / ‖z‖ = exp (i arg z)` is a smooth map from `ℂ \ {0}` to the circle. -/
+theorem Circle.contMDiffOn_exp_arg {n : ℕ∞ω} :
+    ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 1) n (fun z : ℂ ↦ Circle.exp (Complex.arg z)) {0}ᶜ := by
+  refine ContMDiffOn.of_coe_sphere (E := ℂ) (contMDiffOn_iff_contDiffOn.2 ?_)
+  refine (Complex.contDiffOn_div_norm_pow 1).congr fun z hz ↦ ?_
+  simp [Circle.coe_exp, Complex.exp_arg_mul_I (show z ≠ 0 from hz)]
 
 end
