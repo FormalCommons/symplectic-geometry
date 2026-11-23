@@ -67,7 +67,8 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   its `toHomologicalOrientation`, as `DESIGN.md` says. This needs `n ≠ 0`:
   Tau Ceti's homological orientations are of positive dimension. The Euler
   characteristic is Tau Ceti's `TauCeti.eulerChar`, under the instance
-  `TauCeti.ComplexManifold.instFiniteCWType`. Betti numbers are
+  `SmoothProjectiveHypersurface.instFiniteCWType`, Tau Ceti's
+  `TauCeti.ComplexManifold.finiteCWType` for `X`. Betti numbers are
   `TauCeti.bettiNumber ℚ X k`, the dimension of $H_k(X;\mathbb Q)$, so the
   rank of $H_k(X;\mathbb Z)$ as `DESIGN.md` asks.
 - **The intersection form and the signature.** No new definition. For a
@@ -526,7 +527,8 @@ For `n ≠ 0`.
 - **Milestone, part 4** `eulerChar_eq_evalFundamentalClass_chernClass`:
   $\chi(X)=\langle c_n(TX),[X]\rangle$, the general theorem of issue 7 for `X`.
 - `eulerChar_eq`: $\chi(X)=d\sum_{j\le n}\binom{n+2}{n-j}(-d)^j$, from
-  `chernClass_tangentSpace` and `evalFundamentalClass_hyperplaneClass_pow`.
+  `chernClass_tangentSpace` and `evalFundamentalClass_hyperplaneClass_pow`,
+  and for every `n`: for `n = 0` it is `eulerChar_eq_of_dim_zero`.
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/Veronese.lean`
 
