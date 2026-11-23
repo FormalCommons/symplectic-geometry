@@ -680,7 +680,8 @@ variable {E' H' M F : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [Finit
   [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
   [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V]
 
-local instance : VectorBundle ℝ F V := VectorBundle.restrictScalars ℝ ℂ F V
+local instance instVectorBundleRealCircleConnection : VectorBundle ℝ F V :=
+  VectorBundle.restrictScalars ℝ ℂ F V
 
 /-- The unit circle bundle of a smooth Hermitian line bundle over a Hausdorff, σ-compact,
 finite-dimensional manifold has a connection form. -/
