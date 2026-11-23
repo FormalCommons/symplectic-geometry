@@ -35,9 +35,9 @@ The orientation is glued by `TauCeti.Manifold.Orientation.iGlue` from the two co
 interior and the band piece `bandIncl c`. The band is oriented by pulling `o` back along the
 map `(s, x) ↦ c (x, 1/2 - s/4)` into the interior, a local diffeomorphism since the collar is
 one. Where the band meets the first copy, `s < 0`, the band parameters carry into the interior
-by `(s, x) ↦ c (x, -s)`. Its orientation sign is locally constant
-(`TauCeti.Manifold.Orientation.eventually_orientationSign_eq`), so constant along the connected
-slice `(-1, 0) × {x}`, as in the proof of `TauCeti.SmoothCollar.orientationSign_eq_neg_one_pow`.
+by `(s, x) ↦ c (x, -s)`. That map is `C¹` with invertible derivative, so its orientation sign
+takes one value on the connected slice `(-1, 0) × {x}`
+(`TauCeti.Manifold.Orientation.orientationSign_eq_of_isPreconnected`).
 At `s = -2/3` the two maps into the interior differ by `(s, x) ↦ (2 + 4 s, x)`, which fixes the
 point with derivative of determinant `4`, so the sign is `1`
 (`TauCeti.Manifold.Orientation.orientationSign_of_apply_eq`). On the second copy, `s > 0`, the
