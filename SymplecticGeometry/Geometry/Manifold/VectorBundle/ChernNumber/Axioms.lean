@@ -289,7 +289,7 @@ end Iso
 
 /-- The **pull-back** `φ* E` of a symplectic bundle along a smooth map `φ : S' → S`, with the
 pulled-back form. -/
-@[reducible] noncomputable def pullback (φ : S' → S) (hφ : ContMDiff (𝓡 2) (𝓡 2) ∞ φ)
+@[reducible, expose] noncomputable def pullback (φ : S' → S) (hφ : ContMDiff (𝓡 2) (𝓡 2) ∞ φ)
     (E : SymplecticSurfaceBundle S) : SymplecticSurfaceBundle S' where
   n := E.n
   F := E.F
@@ -301,7 +301,7 @@ pulled-back form. -/
   isNondegenerate := E.isNondegenerate.pullback _ hφ
 
 /-- The **direct sum** `E ⊕ E'` of two symplectic bundles, with the sum of the forms. -/
-@[reducible] noncomputable def whitneySum (E E' : SymplecticSurfaceBundle S) :
+@[reducible, expose] noncomputable def whitneySum (E E' : SymplecticSurfaceBundle S) :
     SymplecticSurfaceBundle S where
   n := E.n + E'.n
   F := E.F × E'.F
@@ -312,7 +312,7 @@ pulled-back form. -/
 
 /-- The **trivial symplectic bundle** `S × ℝ²ⁿ` of rank `2 n`, with the constant standard form
 `stdForm (Fin n)`. -/
-@[reducible] noncomputable def trivial (S : ClosedConnectedOrientedSurface) (n : ℕ) :
+@[reducible, expose] noncomputable def trivial (S : ClosedConnectedOrientedSurface) (n : ℕ) :
     SymplecticSurfaceBundle S where
   n := n
   F := StdSpace (Fin n)
@@ -322,7 +322,7 @@ pulled-back form. -/
   isNondegenerate := ContMDiffTwoForm.isNondegenerate_const _
 
 /-- The **tangent bundle** of `S` with an area form `σ`, a nondegenerate smooth two-form. -/
-@[reducible] noncomputable def tangent (S : ClosedConnectedOrientedSurface)
+@[reducible, expose] noncomputable def tangent (S : ClosedConnectedOrientedSurface)
     (σ : SmoothTwoForm (𝓡 2) S) (hσ : σ.IsNondegenerate) : SymplecticSurfaceBundle S where
   n := 1
   F := EuclideanSpace ℝ (Fin 2)
@@ -412,21 +412,12 @@ noncomputable def Iso.pullbackTrivial (φ : S' → S) (hφ : ContMDiff (𝓡 2) 
     -- so `ContinuousLinearEquiv.refl_apply` does not apply syntactically.
     rfl
 
-/-- A trivial bundle has first Chern number `0`. -/
+/-- `Iso.pullbackTrivial` is the identity on each fibre. -/
 @[simp]
-theorem symplecticChernNumber_trivial (S : ClosedConnectedOrientedSurface) (n : ℕ) :
-    (trivial S n).symplecticChernNumber = 0 := by
-  obtain ⟨x₀⟩ := (inferInstance : Nonempty S)
-  rw [← (Iso.pullbackTrivial (fun _ : S ↦ x₀) contMDiff_const n).symplecticChernNumber_eq,
-    symplecticChernNumber_pullback, degree_const (by rw [finrank_euclideanSpace_fin]; norm_num),
-    zero_mul]
-
-/-- **Triviality**: a symplectic bundle over a closed connected oriented surface is trivial if
-and only if its first Chern number is `0`. -/
-theorem symplecticChernNumber_eq_zero_iff :
-    E.symplecticChernNumber = 0 ↔ Nonempty (E.Iso (trivial S E.n)) := by
-  rw [symplecticChernNumber_nonempty_iso_iff, symplecticChernNumber_trivial]
-  exact (and_iff_right rfl).symm
+theorem Iso.pullbackTrivial_toFun (φ : S' → S) (hφ : ContMDiff (𝓡 2) (𝓡 2) ∞ φ) (n : ℕ)
+    (x : S') :
+    (Iso.pullbackTrivial φ hφ n).toFun x = ContinuousLinearEquiv.refl ℝ (StdSpace (Fin n)) :=
+  (rfl)
 
 /-- A bundle of rank zero is isomorphic to the trivial bundle of rank zero. -/
 private noncomputable def isoTrivialOfNEqZero (E : SymplecticSurfaceBundle S) (hE : E.n = 0) :
@@ -502,6 +493,25 @@ theorem apply_of_n_eq_zero {E : SymplecticSurfaceBundle S} (hE : E.n = 0) : c S 
   (h.apply_eq_of_iso (isoTrivialOfNEqZero E hE)).trans (h.apply_trivial S 0)
 
 end ChernNumberAxioms
+
+namespace SymplecticSurfaceBundle
+
+variable {S : ClosedConnectedOrientedSurface}
+
+/-- A trivial bundle has first Chern number `0`. -/
+@[simp]
+theorem symplecticChernNumber_trivial (S : ClosedConnectedOrientedSurface) (n : ℕ) :
+    (trivial S n).symplecticChernNumber = 0 :=
+  chernNumberAxioms_symplecticChernNumber.apply_trivial S n
+
+/-- **Triviality**: a symplectic bundle over a closed connected oriented surface is trivial if
+and only if its first Chern number is `0`. -/
+theorem symplecticChernNumber_eq_zero_iff {E : SymplecticSurfaceBundle S} :
+    E.symplecticChernNumber = 0 ↔ Nonempty (E.Iso (trivial S E.n)) := by
+  rw [symplecticChernNumber_nonempty_iso_iff, symplecticChernNumber_trivial]
+  exact (and_iff_right rfl).symm
+
+end SymplecticSurfaceBundle
 
 /-! ### Uniqueness -/
 
