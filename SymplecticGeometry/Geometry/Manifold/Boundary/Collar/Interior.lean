@@ -88,12 +88,10 @@ variable [IsManifold (𝓡∂ (n + 1)) 1 W]
 
 /-- The part of the interior of `W`, re-modelled on `ℝⁿ⁺¹` as `InteriorModel`, covered by the
 collar: the points `c (x, t)` with `t > 0`. -/
-def interiorModelRange :
-    Opens (InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)) :=
+def interiorModelRange : Opens (InteriorPiece n W) :=
   ⟨InteriorModel.val ⁻¹' range c, c.isOpen_range.preimage InteriorModel.continuous_val⟩
 
-theorem mem_interiorModelRange
-    {q : InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)} :
+theorem mem_interiorModelRange {q : InteriorPiece n W} :
     q ∈ c.interiorModelRange ↔ q.val ∈ range c := Iff.rfl
 
 /-- A point of `c.interiorModelRange` lies in the image of the collar. -/
