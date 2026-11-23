@@ -7,14 +7,12 @@ module
 
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
 public import TauCeti.Geometry.Manifold.Boundary.InducedOrientation
-public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
 public import TauCeti.Geometry.Manifold.Orientation.Prod
 public import TauCeti.Geometry.Manifold.Orientation.Sign
+public import SymplecticGeometry.Geometry.Manifold.Instances.HalfLine.Orientation
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Sign
-public import SymplecticGeometry.Geometry.Manifold.Orientation.OpenSubset
 import Mathlib.GroupTheory.Perm.Fin
 import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
-import SymplecticGeometry.Geometry.Manifold.Instances.HalfLine.Orientation
 
 /-!
 # A smooth collar and the induced boundary orientation
@@ -41,11 +39,6 @@ basis `(dc(b₁), …, dc(bₙ), dc(∂ₜ))` differs from the outward-first bas
 derivative is invertible (`TauCeti.Manifold.Orientation.orientationSign_eq_of_isPreconnected`)
 and each slice `{y} × [0, 1)` is preconnected, so the sign at `(y, 0)` holds on the whole slice.
 
-## Main definitions
-
-* `TauCeti.EuclideanHalfSpace.normalIioOpensOrientation`: the standard orientation of the
-  initial segment `[0, ε)` of the one-dimensional half-space model.
-
 ## Main results
 
 * `TauCeti.SmoothCollar.mfderiv_comp_inl`: on the zero slice, the derivative of a collar along
@@ -57,9 +50,6 @@ and each slice `{y} × [0, 1)` is preconnected, so the sign at `(y, 0)` holds on
 * `TauCeti.SmoothCollar.isOrientationPreservingAt_of_odd`,
   `TauCeti.SmoothCollar.isOrientationReversingAt_of_even`: a collar preserves orientation when
   `n` is odd and reverses it when `n` is even.
-* `TauCeti.EuclideanHalfSpace.isOrientationPreservingAt_normalIioOpens_val_zero`: the coordinate
-  `t ↦ t 0` of `[0, ε)` preserves orientation, to the standard orientation of `ℝ`, by
-  restricting `TauCeti.EuclideanHalfSpace.isOrientationPreservingAt_val_zero` on the half-line.
 
 ## References
 
@@ -76,41 +66,6 @@ open Set Function Topology Filter
 open scoped Manifold ContDiff
 
 namespace TauCeti
-
-namespace EuclideanHalfSpace
-
-/-- The standard orientation of the initial segment `[0, ε)` of the one-dimensional half-space
-model: the restriction of the constant orientation of the standard basis. -/
-def normalIioOpensOrientation (ε : ℝ) :
-    Manifold.Orientation (𝓡∂ 1) (normalIioOpens ε) (Fin 1) :=
-  (Manifold.Orientation.model (I := 𝓡∂ 1)
-    (EuclideanSpace.basisFun (Fin 1) ℝ).toBasis.orientation (by simp)).restrict _
-
-theorem normalIioOpensOrientation_def (ε : ℝ) :
-    normalIioOpensOrientation ε =
-      (Manifold.Orientation.model (I := 𝓡∂ 1)
-        (EuclideanSpace.basisFun (Fin 1) ℝ).toBasis.orientation (by simp)).restrict
-          (normalIioOpens ε) :=
-  (rfl)
-
-/-- At every point, the standard orientation of `[0, ε)` is that of the standard basis. -/
-@[simp]
-theorem orientationAt_normalIioOpensOrientation {ε : ℝ} (t : normalIioOpens ε) :
-    (normalIioOpensOrientation ε).orientationAt t =
-      (EuclideanSpace.basisFun (Fin 1) ℝ).toBasis.orientation := by
-  rw [normalIioOpensOrientation_def, Manifold.Orientation.orientationAt_restrict,
-    Manifold.Orientation.orientationAt_model]
-
-/-- The coordinate `t ↦ t 0` of `[0, ε)` preserves orientation at every point, from the standard
-orientation of `[0, ε)` to the standard orientation of `ℝ`. -/
-theorem isOrientationPreservingAt_normalIioOpens_val_zero {ε : ℝ} (t : normalIioOpens ε) :
-    Manifold.Orientation.IsOrientationPreservingAt (normalIioOpensOrientation ε)
-      Manifold.Orientation.real (fun s : normalIioOpens ε ↦ (s : EuclideanHalfSpace 1).val 0)
-      t :=
-  (isOrientationPreservingAt_val_zero t).comp
-    (Manifold.Orientation.isOrientationPreservingAt_restrict _ _ t)
-
-end EuclideanHalfSpace
 
 namespace SmoothCollar
 

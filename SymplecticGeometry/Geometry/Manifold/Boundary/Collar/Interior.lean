@@ -24,6 +24,8 @@ attaching an end (`Boundary/Collar/End.lean`) or capping boundary circles with d
 
 ## Main definitions
 
+* `SymplecticGeometry.InteriorPiece`: the interior of `W`, re-modelled on `ℝⁿ⁺¹`, the piece
+  that the gluings along the collar start from.
 * `TauCeti.SmoothCollar.interiorModelRange`: the part of the interior of `W`, re-modelled on
   `ℝⁿ⁺¹`, covered by the collar.
 * `TauCeti.SmoothCollar.interiorModelCoord`: the collar coordinates of a point of it.
@@ -48,6 +50,17 @@ open Set Function TopologicalSpace SymplecticGeometry
 open scoped Manifold ContDiff
 
 noncomputable section
+
+namespace SymplecticGeometry
+
+variable (n : ℕ) (W : Type*) [TopologicalSpace W]
+  [ChartedSpace (EuclideanHalfSpace (n + 1)) W] [IsManifold (𝓡∂ (n + 1)) 1 W]
+
+/-- The interior of `W`, as a boundaryless manifold over `ℝⁿ⁺¹`. -/
+abbrev InteriorPiece : Type _ :=
+  InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)
+
+end SymplecticGeometry
 
 namespace TauCeti.SmoothCollar
 open _root_.TauCeti.EuclideanHalfSpace
