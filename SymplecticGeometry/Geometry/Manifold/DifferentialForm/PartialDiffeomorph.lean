@@ -22,6 +22,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffe
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
 import TauCeti.Analysis.Calculus.DifferentialForm.Wedge
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 
@@ -686,21 +687,10 @@ theorem continuous_localize (hχc : Continuous χ) (hK : IsCompact (tsupport χ)
 the source of the chart is smooth. -/
 theorem contDiff_localize (hχc : ContMDiff I 𝓘(ℝ) ∞ χ) (hK : IsCompact (tsupport χ))
     (hχ : tsupport χ ⊆ ψ.source) : ContDiff ℝ ∞ (α.localize ψ χ) := by
-  rw [contDiff_iff_contDiffAt]
-  intro y
-  by_cases hy : y ∈ ψ.target
-  · have hon :=
-      (contMDiffOn_iff_contDiffOn.1 (hχc.comp_contMDiffOn ψ.symm.contMDiffOn)).smul
-        (α.contDiffOn_mpullback ψ.open_target ψ.symm.contMDiffOn)
-    refine (hon.contDiffAt (ψ.open_target.mem_nhds hy)).congr_of_eventuallyEq ?_
-    filter_upwards [ψ.open_target.mem_nhds hy] with z hz
-    exact localize_of_mem _ _ _ hz
-  · have hK' : _root_.IsClosed (ψ '' tsupport χ) :=
-      (ψ.isCompact_image_of_subset_source hK hχ).isClosed
-    have hyK : y ∉ ψ '' tsupport χ := fun h ↦ hy ((ψ.mapsTo.mono_left hχ).image_subset h)
-    refine (contDiffAt_const (c := (0 : E [⋀^Fin k]→L[ℝ] F))).congr_of_eventuallyEq ?_
-    filter_upwards [hK'.isOpen_compl.mem_nhds hyK] with z hz
-    exact localize_apply_eq_zero_of_notMem _ _ _ hz
+  rw [localize_eq_indicator_smul]
+  exact (α.contDiffOn_mpullback ψ.open_target ψ.symm.contMDiffOn).contDiff_smul_of_tsupport_subset
+    ψ.open_target (ψ.contDiff_indicator_comp_symm hχc hK hχ).contDiffOn
+    ((ψ.tsupport_indicator_comp_symm_subset hK hχ).trans (ψ.mapsTo.mono_left hχ).image_subset)
 
 /-- Extending the localization of `α` by zero along the chart gives back `χ • α`, when the
 support of the cutoff `χ` lies in the source of the chart. -/

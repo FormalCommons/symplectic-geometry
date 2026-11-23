@@ -5,7 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Topology.Homotopy.Contractible
 public import Mathlib.Topology.Homotopy.Path
+public import TauCeti.Topology.Circle.Loop
+import TauCeti.AlgebraicTopology.FundamentalGroup.FreeLoop
 
 /-!
 # Homotopies of loops with fixed and with free base point
@@ -15,11 +18,14 @@ homotopic through loops, the base point being allowed to move:
 `(γ : C(I, X)).HomotopicWith γ' fun p ↦ p 0 = p 1`. This is the easy half of the comparison
 between based and free homotopy classes of loops; Tau Ceti's
 `Path.exists_trans_homotopic_trans_of_homotopicWith` and `Path.homotopicWith_trans_trans_symm`
-give the rest.
+give the rest. In particular a loop that is homotopic with fixed ends to the constant loop is
+null-homotopic as a map from the circle, through Tau Ceti's `Path.toCircle`.
 
 ## Main results
 
 * `Path.Homotopic.homotopicWith`: a homotopy with fixed ends is a homotopy through loops.
+* `Path.Homotopic.nullhomotopic_toCircle`: a loop homotopic to the constant loop is
+  null-homotopic as a map from the circle.
 
 ## References
 
@@ -41,6 +47,19 @@ theorem homotopicWith {γ γ' : Path x x} (h : γ.Homotopic γ') :
     (γ : C(I, X)).HomotopicWith (γ' : C(I, X)) fun p ↦ p 0 = p 1 := by
   obtain ⟨F⟩ := h
   exact ⟨{ toHomotopy := F.toHomotopy, prop' := fun s ↦ by simp }⟩
+
+/-- A loop at `x` that is homotopic with fixed ends to the constant loop is null-homotopic as a
+map from the circle (`Path.toCircle`). -/
+theorem nullhomotopic_toCircle {γ : Path x x} (h : γ.Homotopic (Path.refl x)) :
+    γ.toCircle.Nullhomotopic := by
+  -- A homotopy with fixed ends gives a path from `γ.toCircle` to the constant map in `C(S¹, X)`.
+  obtain ⟨p⟩ := h.joined_toCircle
+  refine ⟨x, ⟨{ toFun := fun q ↦ p q.1 q.2
+                continuous_toFun := by fun_prop
+                map_zero_left := fun ζ ↦ by simp
+                map_one_left := fun ζ ↦ ?_ }⟩⟩
+  obtain ⟨t, rfl⟩ := TauCeti.unitToCircle_surjective ζ
+  simp [Path.toCircle_unitToCircle]
 
 end Path.Homotopic
 

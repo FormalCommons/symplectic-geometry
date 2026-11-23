@@ -369,14 +369,14 @@ Bundles from clutching data, and isomorphisms from homotopies.
   Hermitian line bundles that #57 adds to *Symplectic vector bundles*.
   `symplecticChernNumber_clutchingLineBundle`: its number is `k`, by the
   clutching formula.
-- `nonempty_iso_of_maslovIndex_eq`: two symplectic bundles of the same rank
-  over a closed connected oriented surface whose clutching loops, for frames
-  over a disc and over its complement, have the same Maslov index are
-  isomorphic. Proof: equal index means the loops are freely homotopic, by the
-  converse of the homotopy axiom from *Maslov index*. Realize the homotopy as
-  a smooth map on the annulus between two concentric discs (Tau Ceti's
-  smooth approximation, `Geometry/Manifold/SmoothApprox.lean`). Change the
-  outer frame of one bundle on the annulus so that its transition loop
+- `nonempty_iso_of_maslovIndex_eq`: two symplectic bundles over a surface
+  whose clutching loops, for frames over the disc of an oriented chart and
+  over its complement, have the same Maslov index are isomorphic. Proof:
+  the pointwise ratio of the two loops then has index `0`, so it is
+  null-homotopic, by the converse of the homotopy axiom from *Maslov index*.
+  Realize the null-homotopy as a smooth map on the disc (Tau Ceti's smooth
+  approximation, `Geometry/Manifold/SmoothApprox.lean`). Change the
+  frame over the disc of one bundle by it, so that its transition loop
   becomes the other's. Then the frames of the two bundles match into a global
   symplectic isomorphism. The existence of the outer frame is *Symplectic
   vector bundles*' milestone *Unitary trivializations over surfaces with

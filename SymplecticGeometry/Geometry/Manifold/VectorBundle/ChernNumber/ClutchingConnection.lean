@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.CoordinateDisc
 public import SymplecticGeometry.Geometry.Manifold.DeRham.RadialAngularForm
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
+import SymplecticGeometry.Analysis.Complex.RadialProjection
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
 import TauCeti.Geometry.Manifold.Algebra.LieGroup
