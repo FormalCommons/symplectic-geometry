@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Normed.Module.FiniteDimension
-public import Mathlib.Topology.VectorBundle.Basic
+public import Mathlib.Topology.VectorBundle.Constructions
 public import TauCeti.Analysis.Normed.Module.ContinuousInverse
 
 /-!
@@ -16,6 +16,8 @@ For two frames `Φ Φ' : ∀ x, W ≃L[R] V x` of a bundle `V` with model fibre 
 `R`, `SymplecticGeometry.Bundle.frameTransition Φ Φ' x : W ≃L[R] W` is the transition map
 `(Φ' x)⁻¹ ∘ Φ x`, in the order of Mathlib's `Bundle.Trivialization.coordChangeL`. It is the
 identity from a frame to itself, transition maps compose, and inverting one swaps the two frames.
+Pulling two frames back along a map `f` gives, at `y`, their transition map at `f y`
+(`SymplecticGeometry.Bundle.frameTransition_pullback`).
 
 Let `E` be a vector bundle over `X` with model fibre `F`, let `f : B → X` be a map and let
 `ψ y : F ≃L[R] E (f y)` be a frame of `E` along `f`. Given a linear trivialization `e` of `E`,
@@ -76,6 +78,7 @@ theorem frameTransition_self : frameTransition Φ Φ x = ContinuousLinearEquiv.r
 
 /-- Transition maps compose: going from `Φ` to `Φ'` and then to `Φ''` is going from `Φ` to
 `Φ''`. -/
+@[simp]
 theorem frameTransition_trans :
     (frameTransition Φ Φ' x).trans (frameTransition Φ' Φ'' x) = frameTransition Φ Φ'' x := by
   ext v
@@ -86,6 +89,14 @@ theorem frameTransition_trans :
 theorem frameTransition_symm : (frameTransition Φ Φ' x).symm = frameTransition Φ' Φ x := by
   ext v
   simp [frameTransition_def, ContinuousLinearEquiv.symm_trans_apply]
+
+/-- The transition map between the pull-backs `y ↦ Φ (f y)` and `y ↦ Φ' (f y)` of two frames along
+a map `f : N → M` is the transition map between `Φ` and `Φ'` at `f y`. -/
+@[simp]
+theorem frameTransition_pullback {N : Type*} (f : N → M) (y : N) :
+    frameTransition (V := f *ᵖ V) (fun y ↦ Φ (f y)) (fun y ↦ Φ' (f y)) y =
+      frameTransition Φ Φ' (f y) :=
+  (rfl)
 
 end FrameTransition
 
