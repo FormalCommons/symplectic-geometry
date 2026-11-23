@@ -9,6 +9,7 @@ public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Coordi
 public import SymplecticGeometry.Geometry.Manifold.DeRham.RadialAngularForm
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.OpenSubset
 public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Indicator
 import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
 
 
@@ -24,9 +25,12 @@ of `ℂ` restricted to the ball to `o`, and so computes integrals of top forms o
 the image of `φ` in the coordinates `z`: `∫_M f = ∫_{B(0, 2)} φ^* f`.
 
 As a consequence, a `2`-form on `M` that reads `k • d(β(‖z‖) dθ)` in such a disc
-(`SymplecticGeometry.radialAngularForm`) and vanishes outside its image integrates to `2πk`. These
-are the curvature forms of the connections that the Chern–Weil computation of the first Chern
-number builds from clutching data.
+(`SymplecticGeometry.radialAngularForm`) and vanishes outside its image integrates to `2πk`. More
+generally, a form supported in the images of finitely many such discs with pairwise disjoint
+images, reading `k i • d(β(‖z‖) dθ)` in the `i`-th one, integrates to `2π ∑ i, k i`: its pieces in
+the discs, cut out with `Set.indicator`, are smooth (`TauCeti.IsSmoothForm.indicator`), and the
+integral is additive. These are the curvature forms of the connections that the Chern–Weil
+computation of the first Chern number builds from clutching data.
 
 The change of variables is Tau Ceti's
 `Topology.IsOpenEmbedding.integralTopForm_mpullback_of_isOrientationPreservingAt`, which applies
@@ -34,7 +38,8 @@ to any orientation-preserving open embedding, so no comparison with the charts o
 `M` is needed.
 
 For a chart in the maximal `C^n` atlas, the formula of `φ` is `C^n` on the ball of radius `2`
-(`SymplecticGeometry.CoordinateDisc.contMDiffOn_symm_add_smul_orthonormalBasisOneI_repr`).
+(`SymplecticGeometry.CoordinateDisc.contMDiffOn_symm_add_smul_orthonormalBasisOneI_repr`), so `φ`
+is `C^n` (`SymplecticGeometry.CoordinateDisc.contMDiff_ofChart`).
 
 ## Main results
 
@@ -44,8 +49,13 @@ For a chart in the maximal `C^n` atlas, the formula of `φ` is `C^n` on the ball
   for a top form `f` supported in the image of `φ`.
 * `SymplecticGeometry.CoordinateDisc.integralTopForm_eq_of_mpullback_ofChart_eq`: a form that
   reads `k • d(β(‖z‖) dθ)` in the disc and vanishes outside it integrates to `2πk`.
+* `SymplecticGeometry.CoordinateDisc.integralTopForm_eq_sum_of_mpullback_ofChart_eq`: a form that
+  reads `k i • d(β(‖z‖) dθ)` in the `i`-th of finitely many disjoint discs and vanishes outside
+  them integrates to `2π ∑ i, k i`.
 * `SymplecticGeometry.CoordinateDisc.contMDiffOn_symm_add_smul_orthonormalBasisOneI_repr`: the
   coordinate disc of a smooth chart extends smoothly to the ball of radius `2`.
+* `SymplecticGeometry.CoordinateDisc.contMDiff_ofChart`: the coordinate disc of a smooth chart is
+  smooth.
 
 ## References
 
@@ -187,46 +197,34 @@ theorem integralTopForm_eq_sum_of_mpullback_ofChart_eq {ι : Type*} [Fintype ι]
         (mextDeriv (radialAngularForm β))) :
     integralTopForm o f = 2 * π * ∑ i, k i := by
   classical
-  set φ := fun i ↦ ofChart (e i) (hr i) (hc i) (he i) with hφ
+  set φ := fun i ↦ ofChart (e i) (hr i) (hc i) (he i)
   set K : ι → Set M := fun i ↦ φ i '' {z | ‖(z : ℂ)‖ ≤ b}
   have hKc (i : ι) : IsCompact (K i) := (φ i).isCompact_image_closedBall hb
   have hKr (i : ι) : K i ⊆ range (φ i) := image_subset_range _ _
   -- the part `g i` of `f` in the `i`-th disc
-  let g : ι → RoughForm (𝓡 2) M ℝ 2 := fun i x ↦ if x ∈ range (φ i) then f x else 0
-  have hg0 {i : ι} {x : M} (hx : x ∉ K i) : g i x = 0 := by
-    by_cases h : x ∈ range (φ i)
-    · simp only [g, h, ite_true]
-      refine hf0 x fun j hj ↦ ?_
+  let g : ι → RoughForm (𝓡 2) M ℝ 2 := fun i ↦
+    (range (φ i)).indicator (M := EuclideanSpace ℝ (Fin 2) [⋀^Fin 2]→L[ℝ] ℝ) f
+  have hf0' (i : ι) : ∀ x ∈ range (φ i), x ∉ K i → f x = 0 := fun x h hx ↦
+    hf0 x fun j hj ↦ by
       by_cases hji : j = i
       · exact hx (hji ▸ hj)
       · exact (hdisj hji).ne_of_mem (hKr j hj) h rfl
-    · simp only [g, h, ite_false]
   have htsupp (i : ι) : _root_.tsupport (α := EuclideanSpace ℝ (Fin 2) [⋀^Fin 2]→L[ℝ] ℝ) (g i) ⊆
       K i :=
-    closure_minimal (fun x hx ↦ by_contra fun h ↦ hx (hg0 h)) (hKc i).isClosed
-  have hgs (i : ι) : IsSmoothForm (𝓡 2) 0 (g i) := by
-    rw [isSmoothForm_def]
-    intro x
-    by_cases hx : x ∈ range (φ i)
-    · refine (hf.contMDiff x).congr_of_eventuallyEq ?_
-      filter_upwards [(φ i).isOpenEmbedding.isOpen_range.mem_nhds hx] with y hy
-      simp only [g, hy, ite_true]
-    · refine ((IsSmoothForm.zero (I := 𝓡 2) (M := M) (F := ℝ) (k := 2) 0).contMDiff x)
-        |>.congr_of_eventuallyEq ?_
-      filter_upwards [(hKc i).isClosed.isOpen_compl.mem_nhds fun h ↦ hx (hKr i h)] with y hy
-      rw [hg0 hy]
-      rfl
+    RoughForm.tsupport_indicator_subset (hKc i).isClosed (hf0' i)
+  have hgs (i : ι) : IsSmoothForm (𝓡 2) 0 (g i) :=
+    IsSmoothForm.indicator (φ i).isOpenEmbedding.isOpen_range (hKc i).isClosed (hKr i)
+      (fun x _ ↦ hf.contMDiff x) (hf0' i)
   have hsum : f = ∑ i, g i := by
     funext x
     rw [Finset.sum_apply]
-    by_cases h : ∃ i, x ∈ range (φ i)
-    · obtain ⟨i, hi⟩ := h
-      rw [Finset.sum_eq_single i (fun j _ hji ↦ ?_) (by simp)]
-      · simp only [g, hi, ite_true]
-      · exact ite_eq_right fun h ↦ ((hdisj hji).notMem_of_mem_right hi h).elim
-    · push Not at h
-      rw [hf0 x fun i hi ↦ h i (hKr i hi)]
-      simp only [g, h, ite_false, Finset.sum_const_zero]
+    -- stated pointwise, since the sums in `M → E [⋀^Fin 2]→L[ℝ] ℝ` and in `RoughForm` differ in
+    -- their instances; they agree by definition of the tangent space
+    refine (congrFun ((Set.indicator_eq_self (M := EuclideanSpace ℝ (Fin 2) [⋀^Fin 2]→L[ℝ] ℝ)).2
+      fun y hy ↦ ?_) x).symm.trans (Finset.indicator_biUnion_apply Finset.univ
+        (fun i ↦ range (φ i)) (fun i _ j _ hij ↦ hdisj hij) x)
+    refine by_contra fun h ↦ hy (hf0 y fun i hi ↦ h ?_)
+    exact mem_iUnion₂.2 ⟨i, Finset.mem_univ i, hKr i hi⟩
   let bE := (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis
   rw [hsum, integralTopForm_sum o g Finset.univ
       (fun i _ ↦ (hgs i).integrableTopForm ((hKc i).of_isClosed_subset (isClosed_tsupport _)
@@ -237,7 +235,9 @@ theorem integralTopForm_eq_sum_of_mpullback_ofChart_eq {ι : Type*} [Fintype ι]
   funext z
   ext v
   rw [mpullback_apply, mpullback_apply]
-  simp only [g, hφ, mem_range_self, ite_true]
+  dsimp only [g]
+  rw [
+    indicator_of_mem (M := EuclideanSpace ℝ (Fin 2) [⋀^Fin 2]→L[ℝ] ℝ) (mem_range_self z) f]
 
 end CoordinateDisc
 
