@@ -42,6 +42,7 @@ target of `Λ`, not only at `x`.
   diffeomorphisms into a common manifold do are related, near a point, by a map smooth there, as
   the transition maps of a gluing must be.
 * `isLocalDiffeomorph_id`: the identity of a manifold is a local diffeomorphism.
+* `isLocalDiffeomorph_neg`: negation of a normed space is a local diffeomorphism.
 * `IsLocalDiffeomorphAt.congr_of_eventuallyEq`: being a local diffeomorphism at `x` depends only
   on the germ of the map at `x`.
 * `PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`: a partial diffeomorphism of
@@ -135,6 +136,11 @@ end IsLocalDiffeomorphAt
 theorem isLocalDiffeomorph_id : IsLocalDiffeomorph I I n (id : M → M) := by
   rw [← Diffeomorph.coe_refl I M n]
   exact Diffeomorph.isLocalDiffeomorph _
+
+/-- Negation of a normed space is a `C^n` local diffeomorphism. -/
+theorem isLocalDiffeomorph_neg : IsLocalDiffeomorph 𝓘(𝕜, E) 𝓘(𝕜, E) n (Neg.neg : E → E) :=
+  fun _ ↦ TauCeti.isLocalDiffeomorphAt_of_eqOn
+    (Φ := (ContinuousLinearEquiv.neg 𝕜 (M := E)).toPartialDiffeomorph) (by simp) fun _ _ ↦ by simp
 
 /-- A map that agrees near `x` with a local diffeomorphism at `x` is a local diffeomorphism at
 `x`. -/
