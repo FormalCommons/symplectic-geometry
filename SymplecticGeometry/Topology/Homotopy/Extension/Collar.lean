@@ -17,10 +17,11 @@ Let `c : N × [0, 1) → X` be a collar of `f : N → X` (`TauCeti.IsCollar`), w
 
 The proof builds NDR data for `f(N)` with `TauCeti.NDRPair.ofHomotopyRel`. The neighbourhood is
 the whole collar `c(N × [0, 1))`, deformed onto `f(N)` relative to `f(N)` by scaling the depth
-(`TauCeti.IsCollar.collarDeformation`). The control function is twice the depth, clipped to
-`[0, 1]`, on the collar, and `1` off it: it is less than `1` exactly on `c(N × [0, 1/2))`. It is
-continuous because, `N` being compact, `c(N × [0, 1/2])` is compact and so closed in `X`, and the
-function is `1` off that set (`TauCeti.IsCollar.isCompact_image_setOf_le`).
+(`TauCeti.IsCollar.collarDeformation`). The function given to `ofHomotopyRel` is twice the
+depth, clipped to `[0, 1]`, on the collar, and `1` off it: it vanishes exactly on `f(N)` and is
+less than `1` only on the collar. It is continuous because, `N` being compact, `c(N × [0, 1/2])`
+is compact and so closed in `X`, and the function is `1` off that set
+(`TauCeti.IsCollar.isCompact_image_setOf_le`).
 
 ## Main results
 
@@ -68,7 +69,7 @@ private lemma depthControlFun_of_notMem {x : X} (h : x ∉ collarPart c 1) :
     hc.depthControlFun x = 1 := by
   simp [depthControlFun, h]
 
-/-- The control function is `1` at every point outside `c(N × [0, 1/2))`. -/
+/-- The function `depthControlFun` is `1` at every point outside `c(N × [0, 1/2))`. -/
 private lemma depthControlFun_eq_one {x : X} (hx : x ∉ collarPart c (1 / 2)) :
     hc.depthControlFun x = 1 := by
   by_cases h : x ∈ collarPart c 1
@@ -79,26 +80,23 @@ private lemma depthControlFun_eq_one {x : X} (hx : x ∉ collarPart c (1 / 2)) :
 
 private lemma continuous_depthControlFun [CompactSpace N] [T2Space X] :
     Continuous hc.depthControlFun := by
-  refine continuous_iff_continuousAt.2 fun x ↦ ?_
-  by_cases h : x ∈ collarPart c 1
-  · refine ContinuousOn.continuousAt ?_ ((hc.isOpen_collarPart 1).mem_nhds h)
-    rw [continuousOn_iff_continuous_domRestrict]
+  refine ContinuousOn.continuous_of_mulTSupport_subset ?_ (hc.isOpen_collarPart 1) ?_
+  · rw [continuousOn_iff_continuous_domRestrict]
     refine Continuous.congr (f := fun y : collarPart c 1 ↦ projIcc (0 : ℝ) 1 zero_le_one
       (2 * ((hc.collarCoord 1 y).2 : ℝ))) (by fun_prop) fun y ↦ ?_
     exact (hc.depthControlFun_of_mem y.property).symm
-  · -- Off the collar, `x` lies outside the closed set `c(N × [0, 1/2])`, where the function is
-    -- `1`.
-    have hK := (hc.isCompact_image_setOf_le (t := 1 / 2) (by norm_num)).isClosed
-    have hxK : x ∉ c '' {p | (p.2 : ℝ) ≤ 1 / 2} := by
-      rintro ⟨p, hp, rfl⟩
+  · -- The function is `1` off the closed set `c(N × [0, 1/2])`, which lies in the collar.
+    refine (closure_minimal (fun x hx ↦ ?_)
+      (hc.isCompact_image_setOf_le (t := 1 / 2) (by norm_num)).isClosed).trans ?_
+    · by_contra hxK
+      refine hx (hc.depthControlFun_eq_one fun hx' ↦ hxK ?_)
+      obtain ⟨p, hp, rfl⟩ := mem_collarPart_iff.1 hx'
+      exact ⟨p, show (p.2 : ℝ) ≤ 1 / 2 from hp.le, rfl⟩
+    · rintro _ ⟨p, hp, rfl⟩
       have hp : (p.2 : ℝ) ≤ 1 / 2 := hp
-      exact h (mem_collarPart_iff.2 ⟨p, by linarith, rfl⟩)
-    refine continuousAt_const.congr (Filter.eventuallyEq_of_mem (hK.isOpen_compl.mem_nhds hxK)
-      fun y hy ↦ (hc.depthControlFun_eq_one fun hy' ↦ hy ?_).symm)
-    obtain ⟨p, hp, rfl⟩ := mem_collarPart_iff.1 hy'
-    exact ⟨p, show (p.2 : ℝ) ≤ 1 / 2 from hp.le, rfl⟩
+      exact mem_collarPart_iff.2 ⟨p, by linarith, rfl⟩
 
-/-- The control function vanishes exactly on the boundary `f(N)`. -/
+/-- The function `depthControlFun` vanishes exactly on the boundary `f(N)`. -/
 private lemma depthControlFun_eq_zero_iff (x : X) :
     hc.depthControlFun x = 0 ↔ x ∈ range f := by
   by_cases h : x ∈ collarPart c 1

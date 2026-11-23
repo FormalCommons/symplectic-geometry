@@ -1549,8 +1549,9 @@ does.
     `c` is a collar of `f : N → X` (`TauCeti.IsCollar`), `N` compact and `X`
     Hausdorff, then `range f` has `TauCeti.HasHomotopyExtensionProperty`.
     Proof: NDR data from Tau Ceti's `TauCeti.NDRPair.ofHomotopyRel`, with
-    the collar deformation `TauCeti.IsCollar.collarDeformation` and twice
-    the clipped collar depth as control; compactness of `N` makes
+    the collar deformation `TauCeti.IsCollar.collarDeformation`, given
+    twice the clipped collar depth, which vanishes exactly on `range f` and
+    is below `1` only on the collar; compactness of `N` makes
     `c(N × [0, 1/2])` closed. With
     `TauCeti.IsCollared.hasHomotopyExtensionProperty_range`.
     Can start at once.
