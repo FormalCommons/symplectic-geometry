@@ -25,15 +25,15 @@ hyperplane class. This file specializes the general results on hypersurfaces to 
   (`SmoothProjectiveHypersurface.bettiNumber_middle`; the Lefschetz theorem makes `b₀ = b₄ = 1`
   and `b₁ = b₃ = 0`).
 * The intersection form of `X` is the cup pairing `(α, β) ↦ ⟨α ⌣ β, [X]⟩` on `H²(X; ℚ)`
-  (Tau Ceti's `TopCat.singularCupPairing`, on the image of the fundamental class of the complex
-  orientation in `H₄(X; ℚ)`), and `b⁺`, `b⁻` are the indices of inertia `sigPos` and `sigNeg` of
-  its quadratic form, the signature being `σ = b⁺ - b⁻`. The library does not prove Hirzebruch's
-  signature theorem `3σ = ⟨c₁² - 2c₂, [X]⟩`; `signature_surface` takes it as a hypothesis, and
-  derives `3σ = (4 - d²) d` from the Chern numbers `⟨c₁², [X]⟩ = (4 - d)² d` and
-  `⟨c₂, [X]⟩ = (d² - 4d + 6) d`. By Poincaré duality the pairing is nondegenerate, so
+  (`TauCeti.HomologicalOrientation.intersectionForm`, for the complex orientation), `b⁺`, `b⁻`
+  are the indices of inertia `sigPos` and `sigNeg` of its quadratic form, and the signature is
+  `σ = b⁺ - b⁻` (`TauCeti.HomologicalOrientation.signature`). The library does not prove
+  Hirzebruch's signature theorem `3σ = ⟨c₁² - 2c₂, [X]⟩`; `signature_surface` takes it as a
+  hypothesis, and derives `3σ = (4 - d²) d` from the Chern numbers `⟨c₁², [X]⟩ = (4 - d)² d` and
+  `⟨c₂, [X]⟩ = (d² - 4d + 6) d`. By Poincaré duality the intersection form is nondegenerate, so
   `b⁺ + b⁻ = b₂`
-  (`TauCeti.HomologicalOrientation.sigPos_add_sigNeg_singularCupPairing_fundamentalClass`), which
-  gives `b⁺` and `b⁻`.
+  (`TauCeti.HomologicalOrientation.sigPos_add_sigNeg_intersectionQuadraticForm`), which gives
+  `b⁺` and `b⁻`.
 
 The formulas for `b₂`, `b⁺` and `b⁻` fail for `d = 0`, where `X` is empty.
 
@@ -146,9 +146,10 @@ theorem evalFundamentalClass_chernClass_two_surface :
     evalFundamentalClass_hyperplaneClass_pow (n := 1), smul_eq_mul]
 
 /-- **The signature of a surface in `ℂℙ³`.** Let `X ⊆ ℂℙ³` be a smooth surface of degree `d`,
-`q` the quadratic form of its intersection form, the cup pairing `(α, β) ↦ ⟨α ⌣ β, [X]⟩` on
-`H²(X; ℚ)` for the fundamental class of the complex orientation, and `b⁺ = sigPos q`,
-`b⁻ = sigNeg q` its indices of inertia, so that `σ = b⁺ - b⁻` is the signature of `X`. Assume the
+oriented by its complex structure, `σ` its signature
+(`TauCeti.HomologicalOrientation.signature`, in degree `2`), and `b⁺`, `b⁻` the positive and
+negative indices of inertia of the quadratic form of its intersection form on `H²(X; ℚ)`
+(`TauCeti.HomologicalOrientation.intersectionQuadraticForm`), so that `σ = b⁺ - b⁻`. Assume the
 signature theorem `3σ = ⟨c₁ ⌣ c₁, [X]⟩ - 2 ⟨c₂, [X]⟩`, which the library does not prove, and
 `d ≠ 0`. Then `3σ = (4 - d²) d`, `3b⁺ = d³ - 6d² + 11d - 3` and `3b⁻ = 2d³ - 6d² + 7d - 3`.
 Only the formulas for `b⁺` and `b⁻` use `d ≠ 0` (see `sigPos_fermat_zero`); the one for `σ`
@@ -156,12 +157,9 @@ follows from the signature theorem in every degree.
 
 Milestone: *Chern classes of projective hypersurfaces*. -/
 theorem signature_surface (hd : d ≠ 0)
-    (q : QuadraticForm ℚ ((TopCat.of X).singularCohomology (𝟙_ (ModuleCat.{0} ℚ)) ℚ (𝟙_ _) 2))
-    (hq : q = LinearMap.BilinMap.toQuadraticMap ((TopCat.of X).singularCupPairing ℚ
-      (show 2 + 2 = 2 * 1 + 1 + 1 from rfl) ((TopCat.of X).singularHomologyIntToRat _
-        ((complexManifoldHomologicalOrientation _ X finrank_model).fundamentalClass
-          (finrank_real_of_finrank_complex_eq_add_one finrank_model)))))
-    (hsignature : 3 * ((sigPos q : ℤ) - sigNeg q) =
+    (hsignature : 3 * (complexManifoldHomologicalOrientation _ X finrank_model).signature
+        (finrank_real_of_finrank_complex_eq_add_one finrank_model)
+        (show 2 + 2 = 2 * 1 + 1 + 1 from rfl) =
       complexManifoldEvalFundamentalClass (Fin (2 + 1 - Fintype.card Unit) → ℂ) X finrank_model
         ((TopCat.of X).integralCup (2 * 1) (2 * 1) (2 * (1 + 1)) rfl
           (chernClass (Fin (2 + 1 - Fintype.card Unit) → ℂ)
@@ -171,19 +169,33 @@ theorem signature_surface (hd : d ≠ 0)
         2 * complexManifoldEvalFundamentalClass (Fin (2 + 1 - Fintype.card Unit) → ℂ) X
           finrank_model (chernClass (Fin (2 + 1 - Fintype.card Unit) → ℂ)
             (TangentSpace 𝓘(ℂ, Fin (2 + 1 - Fintype.card Unit) → ℂ) : X → Type) 2)) :
-    3 * ((sigPos q : ℤ) - sigNeg q) = (4 - (d : ℤ) ^ 2) * d ∧
-      3 * (sigPos q : ℤ) = (d : ℤ) ^ 3 - 6 * d ^ 2 + 11 * d - 3 ∧
-      3 * (sigNeg q : ℤ) = 2 * (d : ℤ) ^ 3 - 6 * d ^ 2 + 7 * d - 3 := by
+    3 * (complexManifoldHomologicalOrientation _ X finrank_model).signature
+        (finrank_real_of_finrank_complex_eq_add_one finrank_model)
+        (show 2 + 2 = 2 * 1 + 1 + 1 from rfl) =
+        (4 - (d : ℤ) ^ 2) * d ∧
+      3 * (sigPos
+          ((complexManifoldHomologicalOrientation _ X finrank_model).intersectionQuadraticForm
+            (finrank_real_of_finrank_complex_eq_add_one finrank_model)
+            (show 2 + 2 = 2 * 1 + 1 + 1 from rfl)) : ℤ) =
+        (d : ℤ) ^ 3 - 6 * d ^ 2 + 11 * d - 3 ∧
+      3 * (sigNeg
+          ((complexManifoldHomologicalOrientation _ X finrank_model).intersectionQuadraticForm
+            (finrank_real_of_finrank_complex_eq_add_one finrank_model)
+            (show 2 + 2 = 2 * 1 + 1 + 1 from rfl)) : ℤ) =
+        2 * (d : ℤ) ^ 3 - 6 * d ^ 2 + 7 * d - 3 := by
   rw [evalFundamentalClass_integralCup_chernClass_one_surface,
-    evalFundamentalClass_chernClass_two_surface] at hsignature
-  have hσ : 3 * ((sigPos q : ℤ) - sigNeg q) = (4 - (d : ℤ) ^ 2) * d := by
-    rw [hsignature]; ring
-  have hb : (sigPos q : ℤ) + sigNeg q = (d : ℤ) ^ 3 - 4 * d ^ 2 + 6 * d - 2 := by
-    subst hq
-    rw [← X.bettiNumber_two_surface hd]
-    exact_mod_cast (complexManifoldHomologicalOrientation _ X finrank_model)
-      |>.sigPos_add_sigNeg_singularCupPairing_fundamentalClass _ even_two _
-  exact ⟨hσ, by linarith, by linarith⟩
+    evalFundamentalClass_chernClass_two_surface, HomologicalOrientation.signature_def,
+    QuadraticForm.signature_def] at hsignature
+  rw [HomologicalOrientation.signature_def, QuadraticForm.signature_def]
+  have hb := congrArg (Nat.cast : ℕ → ℤ) <|
+    (complexManifoldHomologicalOrientation _ X finrank_model)
+      |>.sigPos_add_sigNeg_intersectionQuadraticForm
+        (finrank_real_of_finrank_complex_eq_add_one finrank_model)
+        (show 2 + 2 = 2 * 1 + 1 + 1 from rfl)
+        even_two
+  push_cast at hb
+  rw [X.bettiNumber_two_surface hd] at hb
+  exact ⟨by rw [hsignature]; ring, by linarith, by linarith⟩
 
 /-- `signature_surface` needs `d ≠ 0` for `b⁺` and `b⁻`: the Fermat surface of degree `0` is
 empty, so every quadratic form on its `H²(X; ℚ)` has `b⁺ = 0`, while

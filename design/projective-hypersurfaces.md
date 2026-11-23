@@ -71,16 +71,19 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   `TauCeti.ComplexManifold.finiteCWType` for `X`. Betti numbers are
   `TauCeti.bettiNumber ℚ X k`, the dimension of $H_k(X;\mathbb Q)$, so the
   rank of $H_k(X;\mathbb Z)$ as `DESIGN.md` asks.
-- **The intersection form and the signature.** No new definition. For a
-  closed oriented four-manifold, the intersection form over `ℚ` is Tau Ceti's
+- **The intersection form and the signature.** For a
+  closed oriented four-manifold, the intersection form over `ℚ`,
+  `TauCeti.HomologicalOrientation.intersectionForm`, is Tau Ceti's
   cup pairing `TopCat.singularCupPairing ℚ (h : 2 + 2 = 4) μ` on
   $H^2(X;\mathbb Q)$ (`AlgebraicTopology/Cohomology/Cap/Kronecker.lean`),
   with `μ` the rational fundamental class, the library's
   `TopCat.singularHomologyIntToRat 4 (oₕ.fundamentalClass _)`
   (`AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean`). The numbers
   $b^\pm$ are the indices of inertia `sigPos` and `sigNeg` of its quadratic
-  form (Mathlib's `LinearAlgebra/QuadraticForm/Signature.lean`, at the pin in
-  the root namespace), and the signature is $b^+-b^-$; this is how Tau
+  form `TauCeti.HomologicalOrientation.intersectionQuadraticForm` (Mathlib's
+  `LinearAlgebra/QuadraticForm/Signature.lean`, at the pin in the root
+  namespace), and the signature `TauCeti.HomologicalOrientation.signature` is
+  $b^+-b^-$; this is how Tau
   Ceti's `AlgebraicTopology/Cohomology/Sphere/IntersectionForm.lean` reads
   $b_2^+$. Over `ℚ` the indices agree with those over `ℝ` (Sylvester), and
   `ℚ` is the field over which the library has Poincaré duality.
@@ -232,7 +235,7 @@ $\chi(X)=d$.
 
 As `DESIGN.md` decided (*Departures*), the Hirzebruch formula is a
 hypothesis: for a surface, the statement of $\sigma$ and $b^\pm$ assumes
-$3\sigma=\langle c_1^2-2c_2,[X]\rangle$, written with `sigPos`, `sigNeg`,
+$3\sigma=\langle c_1^2-2c_2,[X]\rangle$, written with `signature`,
 `integralCup` and `evalFundamentalClass`. From it and the Chern numbers,
 $3\sigma=(4-d^2)d$. The relation $b^++b^-=b_2$ is proved, not assumed: the
 cup pairing is nondegenerate, by Tau Ceti's
@@ -614,9 +617,9 @@ hypersurfaces*.
   $c_1=(4-d)\,\iota^*h$, $c_2=(d^2-4d+6)\,(\iota^*h)^2$;
   `eulerChar_surface`: $\chi=d^3-4d^2+6d$.
 - `bettiNumber_two_surface`: $b_2=d^3-4d^2+6d-2$, from `bettiNumber_middle`.
-- `signature_surface`: with `Q` the rational cup pairing above, a quadratic
-  form `q` with `hq : q = Q.toQuadraticMap`, and the hypothesis
-  `3 * ((sigPos q : ℤ) - sigNeg q) = ⟨c₁ ⌣ c₁, [X]⟩ - 2 * ⟨c₂, [X]⟩`, the three equations
+- `signature_surface`: with `σ` the signature above and `q` the quadratic
+  form of the intersection form, and the hypothesis
+  `3 * σ = ⟨c₁ ⌣ c₁, [X]⟩ - 2 * ⟨c₂, [X]⟩`, the three equations
   $3\sigma=(4-d^2)d$, $3b^+=d^3-6d^2+11d-3$ and $3b^-=2d^3-6d^2+7d-3$ in
   `ℤ`, the page's formulas with the denominators cleared.
 
