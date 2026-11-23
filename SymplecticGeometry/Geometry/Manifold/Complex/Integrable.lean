@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.Nijenhuis
 import Mathlib.Geometry.Manifold.MFDeriv.Tangent
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Coordinates
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 import TauCeti.Geometry.Symplectic.Finrank
@@ -276,23 +277,6 @@ section Constant
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   (I : ModelWithCorners ℝ E H) [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
   (J₀ : E →L[ℝ] E)
-
-/-- In the tangent coordinates of the chart at `x₀`, the constant section `J₀` is `J₀` on the
-whole chart domain, when the tangent coordinate changes commute with `J₀`. -/
-private theorem inTangentCoordinates_const
-    (h : ∀ {x y z : M}, z ∈ (chartAt H x).source ∩ (chartAt H y).source → ∀ v : E,
-      tangentCoordChange I x y z (J₀ v) = J₀ (tangentCoordChange I x y z v))
-    {x₀ x : M} (hx : x ∈ (chartAt H x₀).source) :
-    inTangentCoordinates I I id id
-        (fun x : M ↦ (J₀ : TangentSpace I x →L[ℝ] TangentSpace I x)) x₀ x = J₀ := by
-  refine (inTangentCoordinates_eq (I := I) (I' := I) id id _ hx hx).trans
-    (ContinuousLinearMap.ext fun v ↦ ?_)
-  have hx' : x ∈ (extChartAt I x₀).source ∩ (extChartAt I x).source ∩
-      (extChartAt I x₀).source := by
-    simp [hx]
-  simp only [ContinuousLinearMap.comp_apply]
-  exact (h ⟨mem_chart_source H x, hx⟩ _).trans
-    (congrArg J₀ ((tangentCoordChange_comp hx').trans (tangentCoordChange_self (by simp [hx]))))
 
 /-- The constant section `J₀` of the tangent bundle, for a linear complex structure `J₀` of the
 model space with which all tangent coordinate changes commute, as a smooth almost complex
