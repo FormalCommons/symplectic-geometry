@@ -13,7 +13,6 @@ public import SymplecticGeometry.Geometry.Symplectic.Manifold.ComplexOrientation
 public import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.Genus
 public import TauCeti.Geometry.Manifold.Morse.CWModel
 import SymplecticGeometry.Geometry.Manifold.Degree.Collapse
-import SymplecticGeometry.Geometry.Manifold.Orientation.Sphere
 import TauCeti.Geometry.Symplectic.Manifold.Sphere
 
 /-!
@@ -45,8 +44,9 @@ assignment that does.
   inducing the orientation `o`, the tangent bundle with the form `σ` has first Chern number
   `2 - 2 g`, for `g = TauCeti.surfaceGenus M`.
 * `SymplecticSurfaceBundle.symplecticChernNumber_nonempty_iso_iff`: bundles of equal rank are
-  isomorphic exactly when their numbers agree; `symplecticChernNumber_eq_zero_iff`
-  is the case of the trivial bundle.
+  isomorphic exactly when their numbers agree;
+  `SymplecticSurfaceBundle.symplecticChernNumber_eq_zero_iff` is the case of the trivial bundle,
+  which has number `0` (`SymplecticSurfaceBundle.symplecticChernNumber_trivial`).
 * `chernNumberAxioms_symplecticChernNumber`: the first Chern number satisfies the axioms.
 * `eq_symplecticChernNumber_of_chernNumberAxioms`: every assignment satisfying the axioms is the
   first Chern number.
@@ -82,7 +82,8 @@ Over a coordinate disc of `S` the clutching line bundles `L_k` (`clutchingLineBu
 number `k` (`symplecticChernNumber_clutchingLineBundle`). By naturality for the first Chern
 number, a bundle of rank `n ≥ 1` and number `k` is isomorphic to `L_k ⊕ ℝ^(2n-2)`, and
 `L_a ⊕ L_b` to `L_(a+b) ⊕ ℝ²`. So `c` is determined by `h k = c L_k`, and `h` is additive.
-Finally `TS²`, with the area form `TauCeti.sphereAreaForm` and the outward orientation, pulls back
+Finally `TS²`, with the volume form `o.sphereVolumeForm` and the outward orientation
+(`Orientation.volumeOrientation_sphereVolumeForm`), pulls back
 along a map `S → S²` of degree one (`SymplecticGeometry.exists_contMDiff_degree_eq_one`) to a
 line bundle on which both `c` and the first Chern number take the value `2`
 (`TauCeti.surfaceGenus_sphere`), so it is isomorphic to `L_2`, and `h 2 = 2`. Normalization on
@@ -161,16 +162,13 @@ instance : CoeSort ClosedConnectedOrientedSurface Type := ⟨carrier⟩
 
 attribute [instance] topologicalSpace chartedSpace isManifold t2Space compactSpace connectedSpace
 
-instance (S : ClosedConnectedOrientedSurface) : IsManifold (𝓡 2) 1 S :=
-  IsManifold.of_le (n := ∞) (by norm_cast)
-
 end ClosedConnectedOrientedSurface
 
 namespace Bundle
 
 /-- A **symplectic vector bundle over a closed connected oriented surface** `S`: a smooth real
 vector bundle `V` over `S` of rank `2 n`, with model fibre `F`, and a smooth nondegenerate
-two-form `ω` on it. -/
+two-form `form` on it. -/
 structure SymplecticSurfaceBundle (S : ClosedConnectedOrientedSurface) where
   /-- The complex rank: half the real rank. -/
   n : ℕ
@@ -242,6 +240,13 @@ theorem bilinFormAt_apply (Φ : E.Iso E') (x : S) (v w : E.V x) :
     E'.form.bilinFormAt x (Φ.toFun x v) (Φ.toFun x w) = E.form.bilinFormAt x v w :=
   (ContMDiffTwoForm.pushforward_eq_iff _ _).1 Φ.pushforward_eq x v w
 
+/-- An isomorphism preserves the forms, evaluated on pairs of vectors: `ω'(Φ v, Φ w) = ω(v, w)`.
+This is `bilinFormAt_apply` in the form that `simp` normalizes to. -/
+@[simp]
+theorem form_apply_toFun (Φ : E.Iso E') (x : S) (v w : E.V x) :
+    E'.form x ![Φ.toFun x v, Φ.toFun x w] = E.form x ![v, w] := by
+  simpa using Φ.bilinFormAt_apply x v w
+
 /-- The identity isomorphism. -/
 def refl (E : SymplecticSurfaceBundle S) : E.Iso E where
   toFun x := ContinuousLinearEquiv.refl ℝ (E.V x)
@@ -263,6 +268,20 @@ def trans (Φ : E.Iso E') (Ψ : E'.Iso E'') : E.Iso E'' where
   contMDiff := Ψ.contMDiff.comp Φ.contMDiff
   pushforward_eq := (ContMDiffTwoForm.pushforward_eq_iff _ _).2 fun x v w ↦ by
     simp only [ContinuousLinearEquiv.trans_apply, Ψ.bilinFormAt_apply, Φ.bilinFormAt_apply]
+
+@[simp]
+theorem refl_toFun (E : SymplecticSurfaceBundle S) (x : S) :
+    (refl E).toFun x = ContinuousLinearEquiv.refl ℝ (E.V x) :=
+  (rfl)
+
+@[simp]
+theorem symm_toFun (Φ : E.Iso E') (x : S) : Φ.symm.toFun x = (Φ.toFun x).symm :=
+  (rfl)
+
+@[simp]
+theorem trans_toFun (Φ : E.Iso E') (Ψ : E'.Iso E'') (x : S) :
+    (Φ.trans Ψ).toFun x = (Φ.toFun x).trans (Ψ.toFun x) :=
+  (rfl)
 
 end Iso
 
@@ -359,6 +378,7 @@ theorem symplecticChernNumber_pullback (φ : S' → S) (hφ : ContMDiff (𝓡 2)
     (hφ.of_le (by norm_cast)) (map_continuous (⟨φ, hφ.continuous⟩ : C(S', S))).isProperMap
 
 /-- **The first Chern number is additive on direct sums.** -/
+@[simp]
 theorem symplecticChernNumber_whitneySum (E E' : SymplecticSurfaceBundle S) :
     (E.whitneySum E').symplecticChernNumber =
       E.symplecticChernNumber + E'.symplecticChernNumber :=
@@ -376,9 +396,10 @@ theorem symplecticChernNumber_tangent (S : ClosedConnectedOrientedSurface)
     fact_finrank_eq (tangent S σ hσ)
   Bundle.symplecticChernNumber_tangent _ _ _ hσ ho
 
-/-- The pull-back of a trivial bundle is trivial. -/
-private noncomputable def pullbackTrivialIso (φ : S' → S) (hφ : ContMDiff (𝓡 2) (𝓡 2) ∞ φ)
-    (n : ℕ) : ((trivial S n).pullback φ hφ).Iso (trivial S' n) where
+/-- The canonical isomorphism `φ* (S × ℝ²ⁿ) ≅ S' × ℝ²ⁿ`: the pull-back of a trivial bundle is
+trivial, by the identity of each fibre. -/
+noncomputable def Iso.pullbackTrivial (φ : S' → S) (hφ : ContMDiff (𝓡 2) (𝓡 2) ∞ φ) (n : ℕ) :
+    ((trivial S n).pullback φ hφ).Iso (trivial S' n) where
   toFun _ := ContinuousLinearEquiv.refl ℝ (StdSpace (Fin n))
   contMDiff := Trivial.contMDiff_mk_iff.2 ⟨contMDiff_proj _,
     (Trivial.contMDiff_mk_iff.1 (contMDiff_id (I := (𝓡 2).prod 𝓘(ℝ, StdSpace (Fin n)))
@@ -390,6 +411,22 @@ private noncomputable def pullbackTrivialIso (φ : S' → S) (hφ : ContMDiff (�
     -- The fibres of both bundles are `StdSpace (Fin n)`, but only up to unfolding the pull-back,
     -- so `ContinuousLinearEquiv.refl_apply` does not apply syntactically.
     rfl
+
+/-- A trivial bundle has first Chern number `0`. -/
+@[simp]
+theorem symplecticChernNumber_trivial (S : ClosedConnectedOrientedSurface) (n : ℕ) :
+    (trivial S n).symplecticChernNumber = 0 := by
+  obtain ⟨x₀⟩ := (inferInstance : Nonempty S)
+  rw [← (Iso.pullbackTrivial (fun _ : S ↦ x₀) contMDiff_const n).symplecticChernNumber_eq,
+    symplecticChernNumber_pullback, degree_const (by rw [finrank_euclideanSpace_fin]; norm_num),
+    zero_mul]
+
+/-- **Triviality**: a symplectic bundle over a closed connected oriented surface is trivial if
+and only if its first Chern number is `0`. -/
+theorem symplecticChernNumber_eq_zero_iff :
+    E.symplecticChernNumber = 0 ↔ Nonempty (E.Iso (trivial S E.n)) := by
+  rw [symplecticChernNumber_nonempty_iso_iff, symplecticChernNumber_trivial]
+  exact (and_iff_right rfl).symm
 
 /-- A bundle of rank zero is isomorphic to the trivial bundle of rank zero. -/
 private noncomputable def isoTrivialOfNEqZero (E : SymplecticSurfaceBundle S) (hE : E.n = 0) :
@@ -458,22 +495,13 @@ theorem apply_trivial (S : ClosedConnectedOrientedSurface) (n : ℕ) : c S (triv
   obtain ⟨x₀⟩ := (inferInstance : Nonempty S)
   have hd := h.apply_pullback (fun _ : S ↦ x₀) contMDiff_const (trivial S n)
   rw [degree_const (by rw [finrank_euclideanSpace_fin]; norm_num), zero_mul] at hd
-  rw [← h.apply_eq_of_iso (pullbackTrivialIso _ contMDiff_const n), hd]
+  rw [← h.apply_eq_of_iso (Iso.pullbackTrivial _ contMDiff_const n), hd]
 
 /-- An assignment satisfying the axioms vanishes on bundles of rank zero. -/
 theorem apply_of_n_eq_zero {E : SymplecticSurfaceBundle S} (hE : E.n = 0) : c S E = 0 :=
   (h.apply_eq_of_iso (isoTrivialOfNEqZero E hE)).trans (h.apply_trivial S 0)
 
 end ChernNumberAxioms
-
-/-- **Triviality**: a symplectic bundle over a closed connected oriented surface is trivial if
-and only if its first Chern number is `0`. -/
-theorem symplecticChernNumber_eq_zero_iff {S : ClosedConnectedOrientedSurface}
-    {E : SymplecticSurfaceBundle S} :
-    E.symplecticChernNumber = 0 ↔ Nonempty (E.Iso (trivial S E.n)) := by
-  rw [symplecticChernNumber_nonempty_iso_iff,
-    chernNumberAxioms_symplecticChernNumber.apply_trivial S E.n]
-  exact (and_iff_right rfl).symm
 
 /-! ### Uniqueness -/
 
@@ -515,8 +543,7 @@ private theorem ChernNumberAxioms.apply_lineBundle (h : ChernNumberAxioms c)
       c S (lineBundle hφ (a + b)) = c S (lineBundle hφ a) + c S (lineBundle hφ b) := by
     obtain ⟨Φ⟩ := (hχ.nonempty_iso_iff ((lineBundle hφ a).whitneySum (lineBundle hφ b))
       ((lineBundle hφ (a + b)).whitneySum (trivial S 1))).2 ⟨rfl, by
-        simp only [hχ.apply_whitneySum, hχ.apply_trivial, symplecticChernNumber_lineBundle,
-          add_zero]⟩
+        simp [symplecticChernNumber_lineBundle]⟩
     have := h.apply_eq_of_iso Φ
     rw [h.apply_whitneySum, h.apply_whitneySum, h.apply_trivial, add_zero] at this
     exact this.symm
@@ -530,22 +557,18 @@ private theorem ChernNumberAxioms.apply_lineBundle (h : ChernNumberAxioms c)
         connectedSpace := TauCeti.connectedSpace_sphere 2
         o := o₃.sphereOrientation }
     obtain ⟨g, hg, hdeg⟩ := exists_contMDiff_degree_eq_one (n := 2) S.o o₃
-    have hσ : sphereAreaForm.IsNondegenerate := isSymplectic_sphereAreaForm.isNondegenerate
-    have ho : hσ.volumeOrientation (n := 1) finrank_euclideanSpace_fin = S₂.o := by
-      -- The area form is the volume form of the sphere, which defines its orientation.
-      suffices ∀ (σ : SmoothTwoForm (𝓡 2) S₂) (hσ : σ.IsNondegenerate), σ = o₃.sphereVolumeForm →
-          hσ.volumeOrientation (n := 1) finrank_euclideanSpace_fin = S₂.o from
-        this _ hσ sphereAreaForm_eq_sphereVolumeForm
-      rintro σ hσ rfl
-      rw [SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_ofTopForm]
-      exact (Orientation.sphereOrientation_eq_ofTopForm o₃).symm
+    have hσ : SmoothTwoForm.IsNondegenerate o₃.sphereVolumeForm :=
+      o₃.isSymplectic_sphereVolumeForm.isNondegenerate
+    have ho : hσ.volumeOrientation (n := 1) finrank_euclideanSpace_fin = S₂.o :=
+      o₃.volumeOrientation_sphereVolumeForm hσ
     have key (c' : ∀ S : ClosedConnectedOrientedSurface, SymplecticSurfaceBundle S → ℤ)
         (h' : ChernNumberAxioms c') :
-        c' S ((tangent S₂ sphereAreaForm hσ).pullback (S' := S) g hg) = 2 := by
+        c' S ((tangent S₂ o₃.sphereVolumeForm hσ).pullback (S' := S) g hg) = 2 := by
       have hg0 : surfaceGenus S₂ = 0 := surfaceGenus_sphere
       rw [h'.apply_pullback, h'.apply_tangent S₂ hσ ho, hg0, hdeg]
       norm_num
-    obtain ⟨Φ⟩ := (hχ.nonempty_iso_iff ((tangent S₂ sphereAreaForm hσ).pullback (S' := S) g hg)
+    obtain ⟨Φ⟩ := (hχ.nonempty_iso_iff
+      ((tangent S₂ o₃.sphereVolumeForm hσ).pullback (S' := S) g hg)
       (lineBundle hφ 2)).2 ⟨rfl, (key _ hχ).trans (symplecticChernNumber_lineBundle hφ 2).symm⟩
     rw [← h.apply_eq_of_iso Φ, key c h]
   have h1 : f 1 = 1 := by
@@ -571,8 +594,7 @@ theorem eq_symplecticChernNumber_of_chernNumberAxioms (h : ChernNumberAxioms c)
   -- `E` is isomorphic to `L_k ⊕ ℝ^(2 n - 2)`, for `k` its number.
   obtain ⟨Φ⟩ := (hχ.nonempty_iso_iff E ((lineBundle hφ E.symplecticChernNumber).whitneySum
     (trivial S (E.n - 1)))).2 ⟨(Nat.add_sub_cancel' hE).symm, by
-      simp only [hχ.apply_whitneySum, hχ.apply_trivial, symplecticChernNumber_lineBundle,
-        add_zero]⟩
+      simp [symplecticChernNumber_lineBundle]⟩
   rw [h.apply_eq_of_iso Φ, h.apply_whitneySum, h.apply_trivial, h.apply_lineBundle, add_zero]
 
 end Uniqueness
