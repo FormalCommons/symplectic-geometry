@@ -10,6 +10,7 @@ public import SymplecticGeometry.Algebra.Homology.ShortComplex.PreservesHomology
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Basic
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Duality.Manifold
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RestrictScalars
+public import SymplecticGeometry.LinearAlgebra.QuadraticForm.Signature
 public import TauCeti.Algebra.Category.ModuleCat.RestrictScalars
 public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Duality
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralComparison
@@ -71,9 +72,10 @@ rational Betti numbers of a compact oriented `n`-manifold satisfy `b_q = b_p` fo
 For `p + p = n`, the intersection form `TauCeti.HomologicalOrientation.intersectionForm` is the
 cup pairing `(α, β) ↦ ⟨α ⌣ β, μ⟩` on `Hᵖ(M; ℚ)`, `μ` being the image of the fundamental class;
 `TauCeti.HomologicalOrientation.intersectionQuadraticForm` is its quadratic form, and
-`TauCeti.HomologicalOrientation.signature` is the difference `sigPos - sigNeg` of the indices of
-inertia of that quadratic form. Injectivity of the cap product makes the intersection form
-nondegenerate, by Tau Ceti's `TopCat.nondegenerate_singularCupPairing_iff`
+`TauCeti.HomologicalOrientation.signature` is the signature `QuadraticForm.signature`, the
+difference `sigPos - sigNeg` of the indices of inertia, of that quadratic form. Injectivity of the
+cap product makes the intersection form nondegenerate, by Tau Ceti's
+`TopCat.nondegenerate_singularCupPairing_iff`
 (`TauCeti.HomologicalOrientation.nondegenerate_intersectionForm`). For `p` even the form is
 symmetric, so its quadratic form is nondegenerate too
 (`TauCeti.HomologicalOrientation.nondegenerate_intersectionQuadraticForm`), and the indices of
@@ -613,7 +615,10 @@ variable [CompactSpace M] {p : ℕ} (h : p + p = n)
 
 /-- The rational **intersection form** of a compact homologically oriented `n`-manifold `M` in
 degree `p`, for `p + p = n`: the cup pairing `(α, β) ↦ ⟨α ⌣ β, μ⟩` on `Hᵖ(M; ℚ)`, for `μ` the
-image of the fundamental class in `Hₙ(M; ℚ)`. -/
+image of the fundamental class in `Hₙ(M; ℚ)`.
+
+Tau Ceti's `TauCeti.HomologicalOrientation.cupPairing` is the integral counterpart, on
+`Hᵖ(M; ℤ)`. -/
 def intersectionForm :
     LinearMap.BilinForm ℚ ((TopCat.of M).singularCohomology (𝟙_ (ModuleCat.{0} ℚ)) ℚ (𝟙_ _) p) :=
   (TopCat.of M).singularCupPairing ℚ h
@@ -622,6 +627,15 @@ def intersectionForm :
 theorem intersectionForm_def :
     o.intersectionForm hn h = (TopCat.of M).singularCupPairing ℚ h
       ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn)) :=
+  (rfl)
+
+/-- The intersection form of `α` and `β` is the cup pairing of `α` and `β` on the image of the
+fundamental class, which `TopCat.singularCupPairing_apply` evaluates to `⟨α ⌣ β, μ⟩`. -/
+@[simp]
+theorem intersectionForm_apply
+    (α β : (TopCat.of M).singularCohomology (𝟙_ (ModuleCat.{0} ℚ)) ℚ (𝟙_ _) p) :
+    o.intersectionForm hn h α β = (TopCat.of M).singularCupPairing ℚ h
+      ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn)) α β :=
   (rfl)
 
 /-- For `p` even, the intersection form is symmetric. -/
@@ -647,14 +661,12 @@ theorem intersectionQuadraticForm_apply
   (rfl)
 
 /-- The **signature** of a compact homologically oriented `n`-manifold `M` in degree `p`, for
-`p + p = n`: the positive minus the negative index of inertia, `sigPos - sigNeg`, of the
-intersection form on `Hᵖ(M; ℚ)`. The signature of a `4k`-manifold is the case `p = 2k`. -/
+`p + p = n`: the signature `sigPos - sigNeg` of the quadratic form of the intersection form on
+`Hᵖ(M; ℚ)`. The signature of a `4k`-manifold is the case `p = 2k`. -/
 def signature : ℤ :=
-  (sigPos (o.intersectionQuadraticForm hn h) : ℤ) - sigNeg (o.intersectionQuadraticForm hn h)
+  (o.intersectionQuadraticForm hn h).signature
 
-theorem signature_def :
-    o.signature hn h =
-      (sigPos (o.intersectionQuadraticForm hn h) : ℤ) - sigNeg (o.intersectionQuadraticForm hn h) :=
+theorem signature_def : o.signature hn h = (o.intersectionQuadraticForm hn h).signature :=
   (rfl)
 
 /-- **Poincaré duality for the cup pairing.** For a compact homologically oriented `n`-manifold

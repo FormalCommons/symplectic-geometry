@@ -182,8 +182,9 @@ theorem signature_surface (hd : d ≠ 0)
             (show 2 + 2 = 2 * 1 + 1 + 1 from rfl)) : ℤ) =
         2 * (d : ℤ) ^ 3 - 6 * d ^ 2 + 7 * d - 3 := by
   rw [evalFundamentalClass_integralCup_chernClass_one_surface,
-    evalFundamentalClass_chernClass_two_surface, HomologicalOrientation.signature_def] at hsignature
-  rw [HomologicalOrientation.signature_def]
+    evalFundamentalClass_chernClass_two_surface, HomologicalOrientation.signature_def,
+    QuadraticForm.signature_def] at hsignature
+  rw [HomologicalOrientation.signature_def, QuadraticForm.signature_def]
   have hb := congrArg (Nat.cast : ℕ → ℤ) <|
     (complexManifoldHomologicalOrientation _ X finrank_model)
       |>.sigPos_add_sigNeg_intersectionQuadraticForm
