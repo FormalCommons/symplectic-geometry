@@ -268,13 +268,14 @@ theorem HasHamiltonian.exists_sub_eq (hF : Φ.HasHamiltonian σ F) (hG : Φ.HasH
 contraction `ι_{X_t} σ` of `σ` with the velocity of `φ_t` is exact, then `φ_t` has a
 Hamiltonian, read along the motion. Neither closedness nor nondegeneracy of `σ` is needed. -/
 theorem exists_hasHamiltonian_of_forall_mem_exactForms
-    (h : ∀ t, σ.interiorₗ (Φ.velocity t) ∈ exactForms J M 1) : ∃ F, Φ.HasHamiltonian σ F := by
+    (h : ∀ t, σ.interiorₗ (Φ.smoothVelocity t) ∈ exactForms J M 1) : ∃ F, Φ.HasHamiltonian σ F := by
   obtain ⟨f, hf, hdf⟩ := SymplecticGeometry.exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms
-    (SymplecticGeometry.isSmoothFamily_interiorₗ σ Φ.contMDiff_velocity) h
+    (SymplecticGeometry.isSmoothFamily_interiorₗ σ Φ.contMDiff_smoothVelocity) h
   refine ⟨fun p ↦ f (p.2, Φ.cylinderMap p),
     (hasHamiltonian_comp_iff (G := fun q ↦ f (q.2, q.1))).2
       ⟨hf.comp (contMDiff_snd.prodMk contMDiff_fst), fun t ↦ ?_⟩⟩
-  rw [SmoothTwoForm.isHamiltonianVectorField_iff_interior_eq, ← SmoothTwoForm.coe_interiorₗ]
+  rw [SmoothTwoForm.isHamiltonianVectorField_iff_interior_eq, ← coe_smoothVelocity,
+    ← SmoothTwoForm.coe_interiorₗ]
   exact (hdf t).symm
 
 /-- **Hamiltonian diffeotopies and exactness.** A diffeotopy `φ_t` all of whose slices preserve
@@ -282,7 +283,7 @@ theorem exists_hasHamiltonian_of_forall_mem_exactForms
 velocity is exact. -/
 theorem isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms
     (hΦ : ∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) :
-    Φ.IsHamiltonian σ ↔ ∀ t, σ.interiorₗ (Φ.velocity t) ∈ exactForms J M 1 := by
+    Φ.IsHamiltonian σ ↔ ∀ t, σ.interiorₗ (Φ.smoothVelocity t) ∈ exactForms J M 1 := by
   refine ⟨fun h t ↦ ?_, fun h ↦
     isHamiltonian_iff.2 ⟨hΦ, exists_hasHamiltonian_of_forall_mem_exactForms h⟩⟩
   obtain ⟨F, hF⟩ := h.exists_hasHamiltonian

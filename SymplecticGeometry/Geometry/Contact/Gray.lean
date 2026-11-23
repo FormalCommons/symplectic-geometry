@@ -27,9 +27,9 @@ Let `α` be a one-form on `ℝ × N`, representing the family of its slices `α_
 the pullbacks `f^* α_t`, and the slices of its time derivative are the pullbacks of the slices of
 `∂_t α`. So if `α_t` is a contact form, the differential of `f` carries the Gray vector of the
 pulled-back family at time `t` and point `x` to the Gray vector of `α` at time `t` and point
-`f x` (`TauCeti.SmoothForm.mfderiv_grayVectorField_mpullback_prodMap`). The case of an open subset
-`U ⊆ N`, `f = Subtype.val`, says that the Gray vector field of a family restricted to `ℝ × U`
-is the restriction of the Gray vector field
+`f x` (Tau Ceti's `TauCeti.SmoothForm.mfderiv_grayVectorField_mpullback_prodMap`). The case of
+an open subset `U ⊆ N`, `f = Subtype.val`, says that the Gray vector field of a family
+restricted to `ℝ × U` is the restriction of the Gray vector field
 (`TauCeti.SmoothForm.tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_subtype_val`).
 This lets one compare Gray vector fields of local defining families of a contact family that
 live on different open sets.
@@ -108,10 +108,8 @@ pinned Tau Ceti's `TauCeti/Geometry/Contact/Gray.lean`, with its proof.
 
 ## Main results
 
-* `TauCeti.SmoothForm.mfderiv_grayVectorField_mpullback_prodMap`: naturality of the Gray vector
-  field under `id × f` for maps `f` with bijective differentials.
-* `TauCeti.SmoothForm.tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_subtype_val`:
-  its restriction to an open subset.
+* `TauCeti.SmoothForm.tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_subtype_val`: the
+  Gray vector field restricts to open subsets.
 * `TauCeti.SmoothForm.grayVectorField_eq_of_eventually_kerDistribution_eq`: the Gray vector
   depends only on the kernels of the slices.
 * `SymplecticGeometry.IsLocalDefiningFamily.tangentSpaceOpenEquiv_grayVectorField_eq`: local
@@ -162,21 +160,6 @@ variable {E H M F H' N : Type*}
   [IsManifold I ∞ M] [IsManifold J ∞ N] [I.Boundaryless] [J.Boundaryless]
   {α : SmoothForm (𝓘(ℝ, ℝ).prod J) (ℝ × N) ℝ 1}
 
-/-- **Naturality of the Gray vector field.** Let `α` be a one-form on `ℝ × N` whose slice `α_t`
-at time `t` is a contact form, and let `f : M → N` be smooth with bijective differentials. Then
-the differential of `f` at `x` sends the Gray vector at time `t` and point `x` of the
-pulled-back family `(id × f)^* α` to the Gray vector of `α` at time `t` and point `f x`. -/
-theorem mfderiv_grayVectorField_mpullback_prodMap [FiniteDimensional ℝ E] {t : ℝ}
-    (hc : (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).IsContactForm)
-    (f : M → N) (hf : ContMDiff I J ∞ f)
-    (hdf : ∀ x, Function.Bijective (mfderiv I J f x)) (x : M) :
-    mfderiv I J f x
-        ((mpullback (Prod.map id f) (contMDiff_id.prodMap hf) α).grayVectorField t x) =
-      α.grayVectorField t (f x) := by
-  rw [grayVectorField_def, grayVectorField_def, mpullback_prodMk_mpullback_prodMap,
-    mpullback_prodMk_timeDeriv_mpullback_prodMap]
-  exact hc.mfderiv_contactMoserVectorField_mpullback f hf hdf _ x
-
 /-- **The Gray vector field restricts to open subsets.** Let `α` be a one-form on `ℝ × N` whose
 slice `α_t` at time `t` is a contact form, and let `U ⊆ N` be open. Under the canonical
 identification of tangent spaces, the Gray vector at time `t` and point `x ∈ U` of the
@@ -190,7 +173,7 @@ theorem tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_subtype_val
           α).grayVectorField t x) =
       α.grayVectorField t x := by
   simpa only [Manifold.mfderiv_subtype_val, ContinuousLinearEquiv.coe_coe] using
-    mfderiv_grayVectorField_mpullback_prodMap hc Subtype.val contMDiff_subtypeVal
+    mfderiv_grayVectorField_mpullback_prodMap _ hc Subtype.val contMDiff_subtypeVal
       (fun y ↦ Manifold.mfderiv_subtype_val (I := J) y ▸
         (Manifold.tangentSpaceOpenEquiv (I := J) y).bijective) x
 
@@ -246,7 +229,7 @@ theorem tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_inclusion {U V :
         (contMDiff_id.prodMap (contMDiff_inclusion hVU)) α).grayVectorField t x) =
       Manifold.tangentSpaceOpenEquiv (Opens.inclusion hVU x)
         (α.grayVectorField t (Opens.inclusion hVU x)) := by
-  rw [← mfderiv_grayVectorField_mpullback_prodMap hc (Opens.inclusion hVU)
+  rw [← mfderiv_grayVectorField_mpullback_prodMap _ hc (Opens.inclusion hVU)
     (contMDiff_inclusion hVU)
     (fun y ↦ ((isLocalDiffeomorph_inclusion (n := ∞) hVU y).isInvertible_mfderiv
       (by simp)).bijective) x,
@@ -722,7 +705,8 @@ private theorem eulerianField_smoothTransitionFamily_eq (hξ : IsContactFamily �
   set Z := eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) with hZdef
   have hZeq (u' : ℝ) (y' : M) :
       Z u' y' = deriv Real.smoothTransition u' • Φ.velocity (Real.smoothTransitionUnit u') y' := by
-    rw [hZdef, Φ.eulerianField_smoothTransitionFamily u', ContMDiffSection.coe_smul, Pi.smul_apply]
+    rw [hZdef, Φ.eulerianField_smoothTransitionFamily u', ContMDiffSection.coe_smul, Pi.smul_apply,
+      Diffeotopy.coe_smoothVelocity]
   by_cases hd : deriv Real.smoothTransition u = 0
   · rw [hZeq, hd, zero_smul, zero_smul]
   have hs : ContMDiff 𝓘(ℝ) 𝓘(ℝ) ∞ Real.smoothTransition :=
@@ -901,7 +885,7 @@ lies in `ξ_t` at `ψ_t x`, for every `t ∈ [0, 1]`, the ends included. -/
 theorem velocity_grayDiffeotopy_mem (hξ : IsContactFamily ξ) (t : unitInterval) (x : M) :
     mfderiv (I.prod (𝓡∂ 1)) I hξ.grayDiffeotopy.cylinderMap (x, t)
       ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) ∈ ξ t (hξ.grayDiffeotopy (t, x)) := by
-  rw [← Diffeotopy.velocity_apply_apply, grayDiffeotopy,
+  rw [← Diffeotopy.velocity_apply, grayDiffeotopy,
     Diffeotopy.velocity_timeDependentFlowDiffeotopy]
   exact hξ.exists_grayField.choose_spec.2.1 t t.property _
 

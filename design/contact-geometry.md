@@ -648,13 +648,12 @@ diffeotopies rather than in `Gray.lean`, and imports only Tau Ceti's
 
 Named like Tau Ceti's file. With `[I.Boundaryless] [T2Space M] [CompactSpace M]`.
 
-- First, in `TauCeti.SmoothForm`, with `[I.Boundaryless]` only:
-  `mfderiv_grayVectorField_mpullback_prodMap (hc) (f) (hf) (hdf) (x)`, for
+- First, in `TauCeti.SmoothForm`, with `[I.Boundaryless]` only: Tau Ceti's
+  `mfderiv_grayVectorField_mpullback_prodMap (α) (hc) (f) (hf) (hdf) (x)`, for
   `α` on `ℝ × N` whose slice at `t` is contact and `f` smooth with bijective
   differentials,
-  `mfderiv I J f x ((mpullback (Prod.map id f) _ α).grayVectorField t x) = α.grayVectorField t (f x)`,
-  from the slice lemmas of `Flow/Family.lean` and
-  `mfderiv_contactMoserVectorField_mpullback`; and
+  `mfderiv I J f x ((mpullback (Prod.map id f) _ α).grayVectorField t x) = α.grayVectorField t (f x)`;
+  and
   `tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_subtype_val`, the
   case of an open subset `U`, which compares local Gray fields on different open sets in
   step 2 of *Decisions*.

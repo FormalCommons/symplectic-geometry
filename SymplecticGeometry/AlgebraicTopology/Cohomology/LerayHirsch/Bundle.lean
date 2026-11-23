@@ -169,8 +169,9 @@ private theorem lerayHirschRestrict_biUnion_bijective_of_le {κ : Type*} (s : Fi
 a finite set `s`, be open sets of the base of `p : E ⟶ B`, each contained in the base set of a
 trivialization of `p` with fibre `F` through which, over every point of `W j`, the classes
 `c d i ∈ Hᵈ(E; k)` restrict to a basis of `Hᵈ(F; k)`. Suppose that the homology `H_d(F; k)` is
-projective in every degree and finitely generated in degrees `d ≤ n`. Then the Leray–Hirsch map of the
-restriction of `p` over `⋃ j ∈ s, W j`, with the restricted classes, is bijective in degree `n`. -/
+projective in every degree and finitely generated in degrees `d ≤ n`. Then the Leray–Hirsch
+map of the restriction of `p` over `⋃ j ∈ s, W j`, with the restricted classes, is bijective in
+degree `n`. -/
 theorem lerayHirschRestrict_biUnion_bijective {κ : Type*} (s : Finset κ)
     {W : κ → Set B} (hWo : ∀ j ∈ s, IsOpen (W j)) (n : ℕ)
     (c : ∀ d, ι d → E.singularCohomology (𝟙_ (ModuleCat.{w} k)) k (𝟙_ (ModuleCat.{w} k)) d)

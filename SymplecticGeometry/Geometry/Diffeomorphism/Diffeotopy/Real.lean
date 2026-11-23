@@ -246,12 +246,12 @@ theorem eulerianField_smoothTransitionFamily_apply (u : ℝ) (x : M) :
 `s = Real.smoothTransition`, is `s'(u)` times the velocity `X_{s(u)}` of `Φ`. -/
 theorem eulerianField_smoothTransitionFamily [IsManifold I ∞ M] (u : ℝ) :
     eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) u =
-      ⇑(deriv Real.smoothTransition u • Φ.velocity (Real.smoothTransitionUnit u)) := by
+      ⇑(deriv Real.smoothTransition u • Φ.smoothVelocity (Real.smoothTransitionUnit u)) := by
   funext y
   obtain ⟨x, rfl⟩ : ∃ x, Φ.smoothTransitionFamily u x = y :=
     ⟨(Φ.smoothTransitionFamily u).symm y, (Φ.smoothTransitionFamily u).apply_symm_apply y⟩
   rw [eulerianField_smoothTransitionFamily_apply, ContMDiffSection.coe_smul, Pi.smul_apply,
-    smoothTransitionFamily_apply, velocity_apply_apply]
+    coe_smoothVelocity, smoothTransitionFamily_apply, velocity_apply]
   -- The sides differ only in the base point that names the fibre of the scalar multiplication,
   -- `Φ (s u, x)` on the left and `Φ.cylinderMap (x, s u)` on the right, equal by definition.
   rfl

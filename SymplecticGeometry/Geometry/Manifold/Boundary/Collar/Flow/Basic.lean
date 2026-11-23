@@ -119,7 +119,7 @@ private theorem exists_isLocalDiffeomorphOn_of_isOutwardPointing
     ((hBo _).prod (isOpen_normalIio _)).mem_nhds ⟨hxi x, hs⟩
   exact (hγloc (i x) ⟨(x, s), hxi x,
     mem_normalIio.2 ((mem_normalIio.1 hs).trans_le (hη₀le _ (hit x)))⟩).congr_of_eventuallyEq
-    (eventually_of_mem hmem heq)
+    (Filter.EventuallyEq.symm (eventually_of_mem hmem heq))
 
 omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- **A collar from a local diffeomorphism that is the inclusion on the boundary.** Let `W` be a

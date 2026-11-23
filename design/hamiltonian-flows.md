@@ -327,24 +327,21 @@ would give `-X₁` there. Further hypotheses are named where they are needed.
 
 ### `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean`
 
-- `TauCeti.Diffeotopy.velocity (Φ : Diffeotopy J ∞ M) (t : I) :
-  Cₛ^∞⟮J; E, TangentSpace J (M := M)⟯`, the vector field
-  `fun y ↦ mfderiv (J.prod (𝓡∂ 1)) J Φ.cylinderMap (Φ.symm (t, y), t) ∂ₜ`.
-  API:
-  - `velocity_apply` (the body, by `(rfl)` through the coercion of the
-    section);
-  - `velocity_apply_apply : Φ.velocity t (Φ (t, x)) =
-    mfderiv (J.prod (𝓡∂ 1)) J Φ.cylinderMap (x, t) ∂ₜ`, the form used with
-    `HasHamiltonian`;
+- The velocity is Tau Ceti's `TauCeti.Diffeotopy.velocity Φ t : (x : M) →
+  TangentSpace J x`, the vector field
+  `fun y ↦ mfderiv (J.prod (𝓡∂ 1)) J Φ.cylinderMap (Φ.symm (t, y), t) ∂ₜ`,
+  with Tau Ceti's `velocity_def`, `velocity_apply` (the form
+  `Φ.velocity t (Φ (t, x)) = mfderiv … (x, t) ∂ₜ` used with
+  `HasHamiltonian`), `velocity_refl` and `velocity_globalFlowDiffeotopy`.
+  This file adds `TauCeti.Diffeotopy.smoothVelocity Φ t :
+  Cₛ^∞⟮J; E, TangentSpace J (M := M)⟯`, the same field as a smooth section,
+  with `coe_smoothVelocity`, `smoothVelocity_refl` and
+  `contMDiff_smoothVelocity`, and:
   - `contMDiff_velocity : ContMDiff ((𝓡∂ 1).prod J) J.tangent ∞
     (fun p : I × M ↦ (⟨p.2, Φ.velocity p.1 p.2⟩ : TangentBundle J M))`, from
     Mathlib's `ContMDiff.contMDiff_tangentMap` and
     `contMDiff_totalSpaceMk_one_Icc`; the smoothness of each slice, used
     to build the section, is its composite with `Prod.mk t`;
-  - `@[simp] velocity_refl : (refl J ∞ M).velocity t = 0`;
-  - `velocity_globalFlowDiffeotopy` (the flow of a complete field `X`, run
-    for duration `a`, has velocity `a • X`), from
-    `mfderiv_cylinderMap_globalFlowDiffeotopy_time`;
   - `velocity_timeDependentFlowDiffeotopy`, under
     `[FiniteDimensional ℝ E] [BoundarylessManifold J M] [T2Space M]`: the velocity of
     `timeDependentFlowDiffeotopy le_top hX hc` at `t` is `X t`, from
@@ -424,7 +421,7 @@ For symplectic `σ` (`hσ : σ.IsSymplectic`):
   `isHamiltonianVectorField_mlieBracket` and skew-symmetry.
 - `TauCeti.Diffeotopy.forall_timeSlice_mem_diffeomorphStabilizer_iff`, for
   closed `σ`: `(∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) ↔
-  ∀ t, Φ.velocity t ∈ σ.symplecticVectorFields`. Proof as in Decision 2,
+  ∀ t, Φ.smoothVelocity t ∈ σ.symplecticVectorFields`. Proof as in Decision 2,
   with the endpoint step by `SymplecticGeometry.IsSmoothFamily.ext_on`
   (added to `DifferentialForm/SmoothFamily/Basic.lean`: smooth families
   agreeing on a dense set of parameters agree), applied to the exterior
@@ -432,7 +429,7 @@ For symplectic `σ` (`hσ : σ.IsSymplectic`):
   `[J.Boundaryless]`, as Tau Ceti's Eulerian theorem does.
 - `TauCeti.Diffeotopy.eulerianField_smoothTransitionFamily`, the lemma
   $X^{\mathbb R}_u=s'(u)\,X_{s(u)}$ as vector fields, from the
-  pointwise form of Decision 3 and `velocity_apply_apply`; public, in
+  pointwise form of Decision 3 and Tau Ceti's `velocity_apply`; public, in
   `Diffeotopy/Real.lean` of *Smooth families*, after its pointwise form.
 
 ### `Geometry/Symplectic/Flux/Hamiltonian.lean`
@@ -470,7 +467,7 @@ In `TauCeti.Diffeotopy`, for any two-form `σ` unless said:
   `x`.
 - `isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms`: if every
   slice of `Φ` preserves `σ`, then `Φ.IsHamiltonian σ ↔
-  ∀ t, σ.interiorₗ (Φ.velocity t) ∈ exactForms J M 1`. The backward
+  ∀ t, σ.interiorₗ (Φ.smoothVelocity t) ∈ exactForms J M 1`. The backward
   direction builds the Hamiltonian as in Decision 4, with
   `exists_hasHamiltonian_of_forall_mem_exactForms` as the public
   statement; the local step is the public lemma
