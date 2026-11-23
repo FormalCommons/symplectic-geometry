@@ -66,17 +66,16 @@ instance instFiniteCWType (X : SmoothProjectiveHypersurface n d) : FiniteCWType 
 
 /-- **The Euler characteristic of a hypersurface as a Chern number.** For a smooth hypersurface
 `X ⊆ ℂℙⁿ⁺²` of dimension `n + 1`, oriented by its complex structure
-(`SmoothProjectiveHypersurface.homologicalOrientation`), the Euler characteristic of `X` is its
-top Chern class `c_{n+1}(TX)` evaluated on the fundamental class of `X`.
+(`complexManifoldHomologicalOrientation`), the Euler characteristic of `X` is its top Chern class
+`c_{n+1}(TX)` evaluated on the fundamental class of `X`.
 
 Milestone: *Chern classes of projective hypersurfaces*. -/
 theorem eulerChar_eq_evalFundamentalClass_chernClass (X : SmoothProjectiveHypersurface (n + 1) d) :
     eulerChar X =
-      X.evalFundamentalClass
+      complexManifoldEvalFundamentalClass (Fin (n + 1 + 1 - Fintype.card Unit) → ℂ) X finrank_model
         (chernClass (Fin (n + 1 + 1 - Fintype.card Unit) → ℂ)
-          (TangentSpace 𝓘(ℂ, Fin (n + 1 + 1 - Fintype.card Unit) → ℂ) : X → Type) (n + 1)) := by
-  rw [evalFundamentalClass_def, homologicalOrientation_def,
-    evalFundamentalClass_chernClass_eq_eulerChar finrank_model]
+          (TangentSpace 𝓘(ℂ, Fin (n + 1 + 1 - Fintype.card Unit) → ℂ) : X → Type) (n + 1)) :=
+  (evalFundamentalClass_chernClass_eq_eulerChar finrank_model).symm
 
 /-- **The Euler characteristic of a hypersurface.** A smooth hypersurface `X ⊆ ℂℙⁿ⁺¹` of degree
 `d` has Euler characteristic `d ∑_{j ≤ n} (n + 2).choose (n - j) (-d) ^ j`. -/
