@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
+public import SymplecticGeometry.Geometry.Manifold.Complex.HomologicalOrientation
 public import SymplecticGeometry.Geometry.Manifold.Orientation.EulerCharacteristic
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.EulerClass
 public import TauCeti.Geometry.Manifold.Complex.Orientation
@@ -124,19 +125,17 @@ variable [CompactSpace M] [T2Space M] [IsManifold 𝓘(ℂ, E) ∞ M] [FiniteCWT
 
 /-- **The top Chern number of a compact complex manifold is its Euler characteristic.** Let `M` be
 a compact Hausdorff smooth complex manifold modelled on `𝓘(ℂ, E)`, of complex dimension
-`finrank ℂ E = r + 1`, oriented by its complex structure (`complexManifoldOrientation E M`,
-reindexed along `2 * finrank ℂ E = 2 r + 2`). Then the top Chern class `c_{r+1}(TM)` evaluated on
-the fundamental class of `M` is the Euler characteristic `TauCeti.eulerChar M`. A finite CW type of
-`M`, which `eulerChar` needs, is given by `TauCeti.ComplexManifold.finiteCWType`. -/
+`finrank ℂ E = r + 1`, oriented by its complex structure
+(`complexManifoldHomologicalOrientation E M hE`). Then the top Chern class `c_{r+1}(TM)` evaluated
+on the fundamental class of `M` (`complexManifoldEvalFundamentalClass E M hE`) is the Euler
+characteristic `TauCeti.eulerChar M`. A finite CW type of `M`, which `eulerChar` needs, is given
+by `TauCeti.ComplexManifold.finiteCWType`. -/
 theorem evalFundamentalClass_chernClass_eq_eulerChar {r : ℕ} (hE : finrank ℂ E = r + 1) :
-    (((complexManifoldOrientation E M).reindex
-        (finCongr (by rw [hE]; ring) : Fin (2 * finrank ℂ E) ≃ Fin (2 * r + 1 + 1))
-        ).toHomologicalOrientation (n := 2 * r + 1)
-        (by rw [finrank_real_of_complex, hE]; ring)).evalFundamentalClass
-        (by rw [finrank_real_of_complex, hE]; ring) (ModuleCat.of ℤ ℤ) (ContinuousMap.id M)
+    complexManifoldEvalFundamentalClass E M hE
         (Bundle.chernClass E (TangentSpace 𝓘(ℂ, E) : M → Type) (r + 1)) =
       eulerChar M := by
-  rw [Bundle.chernClass_finrank_eq_complexEulerClass hE,
+  rw [complexManifoldEvalFundamentalClass_def, complexManifoldHomologicalOrientation_def,
+    Bundle.chernClass_finrank_eq_complexEulerClass hE,
     HomologicalOrientation.evalFundamentalClass_uliftIntegralCohomologyIso_hom,
     complexEulerClass_tangentSpace hE,
     Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar]
