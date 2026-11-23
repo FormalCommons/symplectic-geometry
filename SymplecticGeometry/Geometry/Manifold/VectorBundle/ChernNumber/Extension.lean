@@ -150,7 +150,7 @@ theorem exists_extension_iff_boundaryMaslovIndex_eq_zero {n : Type*} [Fintype n]
   -- Reindex the matrices by `Fin (card n)`, and make the map smooth.
   let e := Fintype.equivFin n
   let r : C(GLSymplectic n ℝ, GLSymplectic (Fin (Fintype.card n)) ℝ) :=
-    ⟨GLSymplectic.reindex ℝ e, continuous_reindex e⟩
+    reindexContinuousMulEquiv ℝ e
   obtain ⟨Ψ', ⟨F⟩, hΨ'⟩ := (r.comp Ψ).exists_homotopic_contMDiff_symplecticGroup (I := 𝓡 1)
   have h' : o.boundaryMaslovIndex Ψ' = 0 := by
     rw [← o.boundaryMaslovIndex_eq_of_homotopy F, boundaryMaslovIndex_reindex, h]
@@ -164,12 +164,12 @@ theorem exists_extension_iff_boundaryMaslovIndex_eq_zero {n : Type*} [Fintype n]
   obtain ⟨Φ'', G, hG⟩ := hHEP.exists_homotopy_of_restrict
     (𝓡∂ 2).isClosed_boundary_of_finiteDimensional Φ'
     (F.symm.cast (ContinuousMap.ext hΦ').symm rfl)
-  refine ⟨(⟨GLSymplectic.reindex ℝ e.symm, continuous_reindex _⟩ : C(_, _)).comp Φ'', fun z ↦ ?_⟩
+  refine ⟨((reindexContinuousMulEquiv ℝ e).symm : C(_, _)).comp Φ'', fun z ↦ ?_⟩
   have h₁ : Φ'' z = r (Ψ z) := by
     rw [← G.apply_one, hG 1 z]
     simp
-  rw [ContinuousMap.comp_apply, h₁, ContinuousMap.coe_mk, ← symm_reindex]
-  exact (GLSymplectic.reindex ℝ e).symm_apply_apply _
+  rw [ContinuousMap.comp_apply, h₁, ContinuousMap.coe_ofClass, ContinuousMap.coe_ofClass]
+  exact (reindexContinuousMulEquiv ℝ e).symm_apply_apply _
 
 end TauCeti.Manifold.Orientation
 

@@ -227,8 +227,7 @@ index. -/
 theorem boundaryMaslovIndex_reindex {κ : Type*} [Fintype κ] [DecidableEq κ] (e : n ≃ κ)
     (Ψ : C(↥((range ι)ᶜ : Set X), GLSymplectic n ℝ)) :
     o.boundaryMaslovIndex hn hι hιf hf
-        ((⟨GLSymplectic.reindex ℝ e, continuous_reindex e⟩ :
-          C(GLSymplectic n ℝ, GLSymplectic κ ℝ)).comp Ψ) =
+        ((reindexContinuousMulEquiv ℝ e : C(GLSymplectic n ℝ, GLSymplectic κ ℝ)).comp Ψ) =
       o.boundaryMaslovIndex hn hι hιf hf Ψ := by
   rw [boundaryMaslovIndex_def, boundaryMaslovIndex_def]
   congr 1
@@ -329,8 +328,7 @@ index. -/
 theorem boundaryMaslovIndex_reindex {κ : Type*} [Fintype κ] [DecidableEq κ] (e : n ≃ κ)
     (Ψ : C((𝓡∂ 2).boundary S, GLSymplectic n ℝ)) :
     o.boundaryMaslovIndex
-        ((⟨GLSymplectic.reindex ℝ e, continuous_reindex e⟩ :
-          C(GLSymplectic n ℝ, GLSymplectic κ ℝ)).comp Ψ) =
+        ((reindexContinuousMulEquiv ℝ e : C(GLSymplectic n ℝ, GLSymplectic κ ℝ)).comp Ψ) =
       o.boundaryMaslovIndex Ψ := by
   simp only [boundaryMaslovIndex_def, ContinuousMap.comp_assoc,
     HomologicalOrientation.boundaryMaslovIndex_reindex]
