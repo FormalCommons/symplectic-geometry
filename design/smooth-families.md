@@ -264,7 +264,7 @@ instead of completeness.
 ### `Analysis/Sobolev/Trace/Reflection/HalfSpace.lean`
 
 Named like Tau Ceti's file; in its namespace `TauCeti.HalfSpaceExtension`.
-`norm_timeScale_le` and `timeScale_of_fst_eq_zero`.
+`timeScale_of_fst_eq_zero`; `norm_timeScale_le` is Tau Ceti's.
 
 ### `LinearAlgebra/Lagrange.lean`
 

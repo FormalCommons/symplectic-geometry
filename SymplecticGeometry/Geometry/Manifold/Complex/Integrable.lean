@@ -39,8 +39,7 @@ the pullbacks along a chart of the constant vector fields of `E` span every tang
 carries them to one another, and their Lie brackets vanish, as in Tau Ceti's
 `SmoothAlmostComplexStructure.nijenhuis_const`, by Mathlib's `VectorField.mpullback_mlieBracket`.
 On a real surface, a structure is integrable exactly when isothermal charts of the smooth maximal
-atlas cover the surface; in particular integrable structures have isothermal charts in the sense of
-Tau Ceti's `SmoothAlmostComplexStructure.HasIsothermalCharts`.
+atlas cover the surface.
 
 A linear complex structure `J₀` of the model with which all tangent coordinate changes commute
 defines a constant almost complex structure, `ofTangentCoordChange`; its construction follows Tau
@@ -66,10 +65,8 @@ itself it is integrable.
   pullback along a diffeomorphism.
 * `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.nijenhuis_eq_zero`: the Nijenhuis tensor of
   an integrable structure vanishes.
-* `TauCeti.SmoothAlmostComplexStructure.isIntegrable_iff_forall_exists_isIsothermalChart` and
-  `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.hasIsothermalCharts`: on a surface,
-  integrability is the existence of smooth isothermal charts around every point, and integrable
-  structures have isothermal charts.
+* `TauCeti.SmoothAlmostComplexStructure.isIntegrable_iff_forall_exists_isIsothermalChart`: on a
+  surface, integrability is the existence of smooth isothermal charts around every point.
 
 ## References
 
@@ -393,12 +390,6 @@ theorem isIntegrable_iff_forall_exists_isIsothermalChart :
     exact ⟨e, he, hx, AlmostComplexStructure.ofComplexModule ℂ, fun y hy v ↦
       (hj.mfderiv_apply_commute hy v).trans ((ofComplexManifold_apply _ _).trans
         (AlmostComplexStructure.ofComplexModule_apply (V := ℂ) _).symm)⟩
-
-/-- **An integrable structure on a real surface has isothermal charts.** -/
-theorem IsIntegrable.hasIsothermalCharts (hj : j.IsIntegrable) : j.HasIsothermalCharts where
-  exists_isIsothermalChart x := by
-    obtain ⟨e, -, he, hx⟩ := isIntegrable_iff_forall_exists_isIsothermalChart.1 hj x
-    exact ⟨e, he, hx⟩
 
 end Surface
 

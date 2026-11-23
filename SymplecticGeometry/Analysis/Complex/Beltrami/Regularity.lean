@@ -293,7 +293,7 @@ theorem exists_smooth_isothermal_chart_of_contDiffOn {J : ℂ → AlmostComplexS
     (hJ.contDiffAt (hU.mem_nhds hz)).of_le (by exact_mod_cast le_top)
   -- Tau Ceti's `C¹` chart at `c`, restricted to `U`.
   obtain ⟨e₁, hc₁, hC₁, -, hinv₁, hlin₁⟩ := exists_isothermal_chart_of_contDiffAt
-    (α := 1 / 2) (by norm_num) (by norm_num) (hJat c hc 1) (hJU c hc)
+    (α := 1 / 2) (by norm_num) (by norm_num) (hJat c hc 1)
   set e := e₁.restrOpen U hU
   have he : ⇑e = e₁ := e₁.coe_restrOpen hU
   have hes : e.source = e₁.source ∩ U := e₁.restrOpen_source U hU

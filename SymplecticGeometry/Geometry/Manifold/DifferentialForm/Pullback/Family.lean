@@ -26,9 +26,9 @@ reparametrization `c : ℝ → ℝ` of time and a smooth map `f : M → N`: sinc
 * `TauCeti.SmoothForm.coe_mpullback_prodMk_lineMapFamily`: the slices of
   `TauCeti.SmoothForm.lineMapFamily`, stated for the underlying rough forms.
 * `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap'`: `ι_t^* (c × f)^* α = f^* ι_{c t}^* α`
-  for a reparametrization `c` of time, with its cases `c = id`,
-  `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap`, and `f = id`,
-  `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap_id_right`.
+  for a reparametrization `c` of time, with its case `f = id`,
+  `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap_id_right`; the case `c = id` is Tau
+  Ceti's `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap`.
 -/
 
 public section
@@ -69,15 +69,6 @@ theorem mpullback_prodMk_mpullback_prodMap' {c : ℝ → ℝ} (hc : ContMDiff �
   -- The square `Prod.map c f ∘ Prod.mk t = Prod.mk (c t) ∘ f` commutes by definition.
   mpullback_mpullback_of_comp_eq (contMDiff_const.prodMk contMDiff_id) (hc.prodMap hf) hf
     (contMDiff_const.prodMk contMDiff_id) rfl α
-
-/-- The slice at time `t` of the pullback of a form `α` on `ℝ × N` along `id × f` is the pullback
-along `f` of the slice of `α` at time `t`: `ι_t^* (id × f)^* α = f^* ι_t^* α`. -/
-theorem mpullback_prodMk_mpullback_prodMap (f : M → N) (hf : ContMDiff I J ∞ f)
-    (α : SmoothForm (𝓘(ℝ, ℝ).prod J) (ℝ × N) F k) (t : ℝ) :
-    mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
-        (mpullback (Prod.map id f) (contMDiff_id.prodMap hf) α) =
-      mpullback f hf (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α) :=
-  mpullback_prodMk_mpullback_prodMap' contMDiff_id f hf α t
 
 /-- The slice at time `t` of the pullback of a form `α` on `ℝ × M` along `c × id`, for a smooth
 `c : ℝ → ℝ`, is the slice of `α` at time `c t`. -/

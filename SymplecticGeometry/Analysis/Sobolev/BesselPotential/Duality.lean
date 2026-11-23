@@ -20,10 +20,8 @@ distribution `u` that satisfies `‖u ψ‖ ≤ C ‖ψ‖_{H^s}` for every Schw
 Evaluating at `1` (`BesselPotentialSpace.postcomp`) turns it into an element of `H^{-s}(E)`, which
 is `u` as a distribution, and whose norm is no larger.
 
-That `u` lies in `H^{-s}` is Tau Ceti's `TemperedDistribution.memSobolev_neg_of_norm_le`, from
-Tau Ceti's main branch (commit `149af18a4e`), copied into
-`SymplecticGeometry.Analysis.Sobolev.BesselPotential.Duality.FromTauCeti`. The proof here adapts
-that proof and adds the norm bound, which it bounds as the proof of Tau Ceti's
+That `u` lies in `H^{-s}` is Tau Ceti's `TemperedDistribution.memSobolev_neg_of_norm_le`. The
+proof here adapts that proof and adds the norm bound, which it bounds as the proof of Tau Ceti's
 `BesselPotentialSpace.exists_inclusion_eq_and_norm_le` bounds the norm of its extension.
 
 ## Main results
@@ -62,13 +60,15 @@ theorem exists_toDistr_eq_and_norm_le {s C : ℝ} (hC : 0 ≤ C) {u : 𝓢'(E, �
   have hΛ (ψ : 𝓢(E, ℂ)) : Λ (toBesselPotentialSpaceCLM s 2 ψ) = u ψ :=
     LinearMap.extendOfNorm_eq hdense ⟨C, hu⟩ ψ
   -- Represent `Λ` in `H^{-s}(E, ℂ⋆)`, and evaluate pointwise at `1`.
-  set w := (dualEquiv (E := E) (F := ℂ) s).symm Λ
+  set w :=
+    (dualEquiv (E := E) (F := ℂ) s 2 2 ENNReal.one_lt_two ENNReal.ofNat_ne_top).symm Λ
   let T : StrongDual ℂ ℂ →L[ℂ] ℂ := ContinuousLinearMap.apply ℂ ℂ 1
   refine ⟨postcomp E (-s) 2 T w, ?_, ?_⟩
   · ext ψ
     rw [toDistr_apply_eq_besselPotentialPairing 2,
       ContinuousLinearMap.besselPotentialPairing_apply, ← hΛ,
-      ← (dualEquiv s).apply_symm_apply Λ, dualEquiv_apply_eq_integral, neg_neg, toLp_postcomp]
+      ← (dualEquiv s 2 2 ENNReal.one_lt_two ENNReal.ofNat_ne_top).apply_symm_apply Λ,
+      dualEquiv_apply_eq_integral, neg_neg, toLp_postcomp]
     refine integral_congr_ae ?_
     filter_upwards [T.coeFn_compLp w.toLp] with x hx
     simp [hx, T, w]

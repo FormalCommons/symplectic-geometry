@@ -351,8 +351,8 @@ theorem mpullback_inclusion (hα : IsLocalDefiningFamily ξ U α a b) {V : Opens
     rw [Submodule.mem_map_equiv, ContinuousLinearEquiv.coe_symm_toLinearEquiv,
       mpullback_prodMk_mpullback_prodMap _ (contMDiff_inclusion hV), kerDistribution_mpullback,
       Submodule.mem_comap, ContinuousLinearMap.coe_coe, hα.mem_kerDistribution_iff ht,
-      Manifold.tangentSpaceOpenEquiv_mfderiv_apply (f := Opens.inclusion hV) (A := id) rfl,
-      mfderiv_id, ContinuousLinearMap.id_apply, ContinuousLinearEquiv.apply_symm_apply]
+      Manifold.tangentSpaceOpenEquiv_mfderiv_inclusion_apply,
+      ContinuousLinearEquiv.apply_symm_apply]
 
 end IsLocalDefiningFamily
 

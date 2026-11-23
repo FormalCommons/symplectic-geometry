@@ -60,7 +60,7 @@ theorem curryLeft_alternatizeUncurryFin_smulRight_add (ξ : E →L[𝕜] 𝕜)
     (w : E [⋀^Fin (n + 1)]→L[𝕜] F) (v : E) :
     (alternatizeUncurryFin (ξ.smulRight w)).curryLeft v +
         alternatizeUncurryFin (ξ.smulRight (w.curryLeft v)) = ξ v • w := by
-  have hc : (curryLeftLI (𝕜 := 𝕜) (E := E) (F := F)).toContinuousLinearMap.flip v ∘L
+  have hc : curryLeftFlipL (𝕜 := 𝕜) (E := E) (F := F) v ∘L
       ξ.smulRight w = ξ.smulRight (w.curryLeft v) := by
     ext1 u
     simp

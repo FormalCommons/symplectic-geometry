@@ -14,9 +14,9 @@ import SymplecticGeometry.Analysis.Complex.RadialProjection
 
 The angular form `dθ` on the unit circle (`TauCeti.circleAngularForm`), the restriction of
 `x dy - y dx`, is invariant under the rotations of the circle (Tau Ceti's
-`TauCeti.mpullback_mul_left_circleAngularForm`). In the plane, `x dy - y dx = Im (conj z dz)` is
-invariant under multiplication by a complex number of modulus one. The form also takes the value `1` on the velocity of `Circle.exp` at `0`, the generator of
-the Lie algebra of the circle.
+`TauCeti.mpullback_mul_left_circleAngularForm`). In the plane, `x dy - y dx = Im (conj z dz)`
+is invariant under multiplication by a complex number of modulus one. The form also takes the
+value `1` on the velocity of `Circle.exp` at `0`, the generator of the Lie algebra of the circle.
 
 The plane form also transforms simply under the maps that read the angle off a point of the
 plane: at a point of the unit circle its pull-back along `z ↦ z ^ k` is `k (x dy - y dx)`, and

@@ -92,7 +92,7 @@ def intIntegrationCochain (φ : RoughForm I M F p) :
       (ModuleCat.restrictScalars (algebraMap ℤ ℝ)).obj (ModuleCat.of ℝ F) :=
   (SSet.restrictScalarsChainMap (algebraMap ℤ ℝ)
       (intToRealCoeff ≫ (ModuleCat.restrictScalarsAlgebraMapIso ℝ).inv) _).f p ≫
-    (ModuleCat.restrictScalars (algebraMap ℤ ℝ)).map (integrationCochain φ)
+    (ModuleCat.restrictScalars (algebraMap ℤ ℝ)).map (integrationCochain (R := ℝ) φ)
 
 /-- The integral over an integral chain is the real integral over the same chain with its
 coefficients cast to `ℝ`. -/
@@ -100,7 +100,7 @@ theorem intIntegrationCochain_apply (φ : RoughForm I M F p)
     (c : ((smoothSingularSubcomplex I M : SSet).chainComplex
       (ModuleCat.of ℤ (ULift.{0} ℤ))).X p) :
     (intIntegrationCochain φ).hom c =
-      (integrationCochain φ).hom (((SSet.restrictScalarsChainMap (algebraMap ℤ ℝ)
+      (integrationCochain (R := ℝ) φ).hom (((SSet.restrictScalarsChainMap (algebraMap ℤ ℝ)
         (intToRealCoeff ≫ (ModuleCat.restrictScalarsAlgebraMapIso ℝ).inv) _).f p).hom c) :=
   (rfl)
 
@@ -148,7 +148,7 @@ theorem intIntegrationCochain_smul_apply (a : ℝ) (φ : RoughForm I M F p)
     (intIntegrationCochain (a • φ)).hom c = a • ((intIntegrationCochain φ).hom c : F) := by
   rw [intIntegrationCochain_apply, intIntegrationCochain_apply, integrationCochain_smul,
     ModuleCat.hom_smul]
-  exact LinearMap.smul_apply a (integrationCochain φ).hom _
+  exact LinearMap.smul_apply a (integrationCochain (R := ℝ) φ).hom _
 
 variable {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   {J : ModelWithCorners ℝ E' H'} {N : Type} [TopologicalSpace N] [ChartedSpace H' N]

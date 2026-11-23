@@ -250,9 +250,7 @@ theorem tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_inclusion {U V :
     (contMDiff_inclusion hVU)
     (fun y ↦ ((isLocalDiffeomorph_inclusion (n := ∞) hVU y).isInvertible_mfderiv
       (by simp)).bijective) x,
-    Manifold.tangentSpaceOpenEquiv_mfderiv_apply (f := Opens.inclusion hVU) (A := id) rfl,
-    mfderiv_id,
-    ContinuousLinearMap.id_apply]
+    Manifold.tangentSpaceOpenEquiv_mfderiv_inclusion_apply]
 
 omit [I.Boundaryless] in
 /-- **Gray's equation, as a rate.** If the slice `α_t` of a family of one-forms on `ℝ × M` is a

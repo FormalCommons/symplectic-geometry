@@ -329,10 +329,9 @@ private theorem exists_diffeomorph_opens_mfderiv_eq_of_riemannian [SecondCountab
     exact twistedExp_zeroSection f₀ f₁ A q
   · refine ContinuousLinearMap.ext fun v ↦ ?_
     -- The derivative of `ψ` is that of `Ψ = Φ₁ ∘ Φ₀⁻¹`, read through the inclusions.
-    have h := Manifold.tangentSpaceOpenEquiv_mfderiv_apply (I := I₀) (I' := I₁)
+    have h := Manifold.mfderiv_apply_of_subtype_val_comp_eq (I := I₀) (I' := I₁)
       (f := Ψ.toDiffeomorphSourceTarget) (A := Ψ) (x := ⟨f₀ q, hmem q⟩)
       (funext Ψ.toDiffeomorphSourceTarget_apply_coe) v
-    rw [Manifold.tangentSpaceOpenEquiv_apply, Manifold.tangentSpaceOpenEquiv_apply] at h
     have hd₀ : MDifferentiableAt I₀ (J.prod 𝓘(ℝ, P)) Φ₀.symm (f₀ q) :=
       Φ₀.symm.mdifferentiableAt infty_ne_zero (hmem q).1
     have hd₁ : MDifferentiableAt (J.prod 𝓘(ℝ, P)) I₁ Φ₁ (Φ₀.symm (f₀ q)) :=
