@@ -104,11 +104,6 @@ variable {n : ℕ} {W : Type u} [TopologicalSpace W] [ChartedSpace (EuclideanHal
 local instance : IsManifold (𝓡 n) ∞ ((𝓡∂ (n + 1)).boundary W) := isManifold_boundary W
 
 variable (n W) in
-/-- The interior of `W`, as a boundaryless manifold over `ℝⁿ⁺¹`. -/
-private abbrev InteriorPiece : Type u :=
-  InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)
-
-variable (n W) in
 /-- The end piece `(-1, ∞) × ∂W`, re-modelled on `ℝⁿ⁺¹`. -/
 private abbrev EndPiece : Type u :=
   Remodel (endModelDiffeomorph n) (endInterval × (𝓡∂ (n + 1)).boundary W)

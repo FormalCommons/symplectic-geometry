@@ -103,7 +103,7 @@ variable (c : SmoothCollar 1 ∞ S) {ι : Type} (γ : ι → AddCircle (1 : ℝ)
 
 /-- The identification of the interior of `S` with its copy over `ℝ²`. -/
 private abbrev interiorDiffeomorph :
-    (𝓡∂ 2).interiorOpens S ≃ₘ^∞⟮𝓡∂ 2, 𝓡 2⟯ InteriorPiece S :=
+    (𝓡∂ 2).interiorOpens S ≃ₘ^∞⟮𝓡∂ 2, 𝓡 2⟯ SmoothCollar.InteriorPiece 1 S :=
   interiorModelDiffeomorph (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S) ∞
 
 /-- The ball of radius `2` of `ℝ²`, the image of the ball of `ℂ` under `z ↦ (re z, im z)`. -/
@@ -129,20 +129,20 @@ private theorem coe_ballDiffeomorph (z : ball) :
 variable (S ι) in
 /-- The pieces of the capped surface: the interior of `S`, and one disc for each `i : ι`. -/
 private def piece : Option ι → Type
-  | none => InteriorPiece S
+  | none => SmoothCollar.InteriorPiece 1 S
   | some _ => discOpens
 
 private instance instTopologicalSpacePiece : ∀ k : Option ι, TopologicalSpace (piece S ι k)
-  | none => inferInstanceAs (TopologicalSpace (InteriorPiece S))
+  | none => inferInstanceAs (TopologicalSpace (SmoothCollar.InteriorPiece 1 S))
   | some _ => inferInstanceAs (TopologicalSpace discOpens)
 
 private instance instChartedSpacePiece :
     ∀ k : Option ι, ChartedSpace (EuclideanSpace ℝ (Fin 2)) (piece S ι k)
-  | none => inferInstanceAs (ChartedSpace _ (InteriorPiece S))
+  | none => inferInstanceAs (ChartedSpace _ (SmoothCollar.InteriorPiece 1 S))
   | some _ => inferInstanceAs (ChartedSpace _ discOpens)
 
 private instance instIsManifoldPiece : ∀ k : Option ι, IsManifold (𝓡 2) ∞ (piece S ι k)
-  | none => inferInstanceAs (IsManifold _ ∞ (InteriorPiece S))
+  | none => inferInstanceAs (IsManifold _ ∞ (SmoothCollar.InteriorPiece 1 S))
   | some _ => inferInstanceAs (IsManifold _ ∞ discOpens)
 
 private instance (k : Option ι) : IsManifold (𝓡 2) 1 (piece S ι k) :=
