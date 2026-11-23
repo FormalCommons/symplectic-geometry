@@ -117,7 +117,7 @@ theorem maslovPhase_reindex (e : ι ≃ κ) (A : GLSymplectic ι ℝ) :
 index. -/
 @[simp]
 theorem maslovIndex_reindex (e : ι ≃ κ) {A : GLSymplectic ι ℝ} (γ : Path A A) :
-    maslovIndex (γ.map (continuous_reindex (R := ℝ) e)) = maslovIndex γ := by
+    maslovIndex (γ.map (reindexContinuousMulEquiv ℝ e).continuous) = maslovIndex γ := by
   rw [maslovIndex_def, maslovIndex_def]
   exact Circle.degree_congr _ _ fun t ↦ by simp
 
@@ -349,7 +349,8 @@ theorem homotopicWith_reindex_sum_symplecticRotationLoop {n : ℕ}
     (γ : C(I, GLSymplectic (Fin (n + 1)) ℝ)).HomotopicWith
       ((((Path.refl (1 : GLSymplectic (Fin n) ℝ)).prod
         (symplecticRotationLoop (maslovIndex γ))).map continuous_sum).map
-          (continuous_reindex finSumFinEquiv) : C(I, GLSymplectic (Fin (n + 1)) ℝ))
+          (reindexContinuousMulEquiv ℝ finSumFinEquiv).continuous :
+        C(I, GLSymplectic (Fin (n + 1)) ℝ))
       fun p ↦ p 0 = p 1 :=
   (homotopicWith_iff_maslovIndex_eq _ _).2 (by
     rw [maslovIndex_reindex, maslovIndex_sum, maslovIndex_refl,
@@ -371,7 +372,8 @@ structure IsMaslovIndex (μ : (n : ℕ) → (A : GLSymplectic (Fin n) ℝ) → P
     μ n (A * B) (γ.mul γ') = μ n A γ + μ n B γ'
   sum {n m : ℕ} {A : GLSymplectic (Fin n) ℝ} {B : GLSymplectic (Fin m) ℝ} (γ : Path A A)
     (γ' : Path B B) :
-    μ (n + m) _ (((γ.prod γ').map continuous_sum).map (continuous_reindex finSumFinEquiv)) =
+    μ (n + m) _ (((γ.prod γ').map continuous_sum).map
+        (reindexContinuousMulEquiv ℝ finSumFinEquiv).continuous) =
       μ n A γ + μ m B γ'
   normalization : μ 1 1 (symplecticRotationLoop 1) = 1
 

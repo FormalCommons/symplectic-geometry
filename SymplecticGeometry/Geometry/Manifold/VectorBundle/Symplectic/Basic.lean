@@ -20,9 +20,11 @@ public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import TauCeti.LinearAlgebra.BilinearForm.SymplecticBasis
 public import TauCeti.LinearAlgebra.BilinearMap.Multilinear
+public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
 public import TauCeti.Topology.Algebra.Module.BilinearForm
 public import TauCeti.Topology.Algebra.Module.FiniteDimension
 import SymplecticGeometry.LinearAlgebra.Symplectic.Darboux
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 import TauCeti.Geometry.Manifold.VectorBundle.Translate
 
@@ -80,6 +82,9 @@ rank to be even (for finite rank, a nondegenerate form forces it), and rank zero
   symplectic frames it is a linear symplectomorphism of `(W, σ)`
   (`IsSymplecticFrameOn.isSymplectomorphism_frameTransition`,
   `IsSymplecticFrameOn.contMDiffOn_frameTransition`).
+* `ContMDiffTwoForm.IsSymplecticFrameOn.exists_frameTransition`: two symplectic frames for
+  `stdForm κ` differ, along a continuous map into the intersection of their open sets, by a
+  continuous map into the symplectic matrices `TauCeti.GLSymplectic κ ℝ`.
 * `ContMDiffTwoForm.exists_pushforward_eq_of_frameTransition_eq`: symplectic frames of two forms
   over the two sets of an open cover, with equal transition maps on the overlap, give a symplectic
   isomorphism between the forms; its smoothness over each set is
@@ -792,6 +797,30 @@ theorem contMDiffOn_frameTransition [FiniteDimensional ℝ W] (h : ω.IsSymplect
     (h' : ω.IsSymplecticFrameOn σ U Φ') (hU : IsOpen U) :
     ContMDiffOn I 𝓘(ℝ, W →L[ℝ] W) n (fun x ↦ (frameTransition Φ Φ' x : W →L[ℝ] W)) U :=
   Bundle.contMDiffOn_frameTransition h.contMDiffOn h'.contMDiffOn hU
+
+/-- Two symplectic frames `Φ`, `Φ'` for `stdForm κ`, over open sets that contain the image of a
+continuous map `γ : X → M`, differ along `γ` by a continuous map `Ψ` into the symplectic
+matrices: `Φ' = Φ ∘ Ψ` along `γ`. -/
+theorem exists_frameTransition {κ : Type*} [Fintype κ] [DecidableEq κ] {X : Type*}
+    [TopologicalSpace X] {U U' : Set M} (hU : IsOpen U) (hU' : IsOpen U')
+    {Φ Φ' : ∀ x, StdSpace κ ≃L[ℝ] V x} (h : ω.IsSymplecticFrameOn (stdForm κ) U Φ)
+    (h' : ω.IsSymplecticFrameOn (stdForm κ) U' Φ') (γ : C(X, M)) (hγ : ∀ y, γ y ∈ U ∩ U') :
+    ∃ Ψ : C(X, TauCeti.GLSymplectic κ ℝ), ∀ y v,
+      Φ' (γ y) v = Φ (γ y) (Matrix.toEuclideanLin (Ψ y : GL (κ ⊕ κ) ℝ) v) := by
+  have hT : Continuous fun y ↦ (frameTransition Φ' Φ (γ y) : StdSpace κ →L[ℝ] StdSpace κ) :=
+    ((h'.mono Set.inter_subset_right).contMDiffOn_frameTransition (h.mono Set.inter_subset_left)
+      (hU.inter hU')).continuousOn.comp_continuous γ.continuous hγ
+  have hmem (y : X) : Matrix.GeneralLinearGroup.ofEuclideanCLE (frameTransition Φ' Φ (γ y)) ∈
+      TauCeti.GLSymplectic κ ℝ := by
+    rw [mem_GLSymplectic_iff_isSymplectomorphism,
+      Matrix.GeneralLinearGroup.toEuclideanCLE_ofEuclideanCLE]
+    exact (h'.mono Set.inter_subset_right).isSymplectomorphism_frameTransition
+      (h.mono Set.inter_subset_left) (hγ y)
+  refine ⟨⟨fun y ↦ ⟨_, hmem y⟩,
+    (Matrix.GeneralLinearGroup.continuous_ofEuclideanCLE hT).subtype_mk _⟩, fun y v ↦ ?_⟩
+  simp only [ContinuousMap.coe_mk]
+  rw [← Matrix.toEuclideanCLM_apply, Matrix.GeneralLinearGroup.toEuclideanCLM_ofEuclideanCLE,
+    ContinuousLinearEquiv.coe_coe, frameTransition_apply, ContinuousLinearEquiv.apply_symm_apply]
 
 /-- Precomposing a symplectic frame for `σ` with linear symplectomorphisms `P x` from `(W', σ')`
 to `(W, σ)` that depend `C^n` on the point `x` of `U` gives a symplectic frame for `σ'`. -/
