@@ -13,8 +13,8 @@ public import Mathlib.Geometry.Manifold.VectorBundle.Tangent
 On a manifold `M` modelled on `E`, a continuous linear endomorphism `J₀` of `E` gives the
 constant family `y ↦ J₀` of endomorphisms of the tangent spaces `T_x M = E`. Read in the tangent
 coordinates of the chart at a point `x₀`, this family is `J₀` at each point `x` of the chart's
-source at which `J₀` commutes with the tangent coordinate change from the chart at `x₀` to the
-chart at `x` (`inTangentCoordinates_const`).
+source at which `J₀` commutes with the tangent coordinate change from the chart at `x` to the
+chart at `x₀` (`inTangentCoordinates_const`).
 
 The proof writes the reading by Mathlib's `inTangentCoordinates_eq` as a conjugate of `J₀` by
 tangent coordinate changes, and cancels them with `tangentCoordChange_comp` and
@@ -33,8 +33,8 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E H M : Type*} [NormedAd
   [ChartedSpace H M] [IsManifold I 1 M]
 
 /-- Let `x` be in the source of the chart at `x₀`. If a continuous linear endomorphism `J₀` of the
-model space commutes with the tangent coordinate change at `x` from the chart at `x₀` to the chart
-at `x`, then the constant family `y ↦ J₀` of endomorphisms of the tangent spaces, read in the
+model space commutes with the tangent coordinate change at `x` from the chart at `x` to the chart
+at `x₀`, then the constant family `y ↦ J₀` of endomorphisms of the tangent spaces, read in the
 tangent coordinates of the chart at `x₀`, is `J₀` at `x`. -/
 theorem inTangentCoordinates_const (J₀ : E →L[𝕜] E) {x₀ x : M} (hx : x ∈ (chartAt H x₀).source)
     (h : ∀ v : E, tangentCoordChange I x x₀ x (J₀ v) = J₀ (tangentCoordChange I x x₀ x v)) :
