@@ -298,7 +298,6 @@ The list is in the order of the paths.
 | `LinearAlgebra/Projectivization/BinaryForm.lean` | a binary form with simple zeros has `d` zeros on $\mathbb CP^1$ | 9 |
 | `LinearAlgebra/Projectivization/HermitianProjector.lean` | the Hermitian projector in the standard affine charts | 3 |
 | `LinearAlgebra/Projectivization/VeroneseLinearForm.lean` | the linear form of a nonzero homogeneous polynomial is nonzero | 12 |
-| `Topology/Algebra/Module/Equiv/Pi.lean` | `ContinuousLinearEquiv.piOptionEquivProd` | 2 |
 | `Topology/ComplexProjectiveSpace/SimplyConnected.lean` | `ℙ ℂ (Fin (m + 1) → ℂ)` is simply connected | 12 |
 | `Topology/Homotopy/HomotopyGroup/ConnectedMap/PathConnected.lean` | path-connectedness under `n`-connected maps | 12 |
 | `Topology/VectorBundle/Section.lean` | pointwise continuity of fibrewise scalar multiples and finite sums | 4 |
@@ -339,7 +338,7 @@ the tensor products on total spaces.
 - `twistPiCoreOptionEquiv k ι x`: the fibrewise linear equivalence
   `(twistPiCore k (Option ι)).Fiber x ≃L[𝕜] ((twistCore k).Fiber ×ᵇ
   (twistPiCore k ι).Fiber) x` (by `ContinuousLinearEquiv.piOptionEquivProd`
-  of `Topology/Algebra/Module/Equiv/Pi.lean`), continuous on
+  of Tau Ceti's `Topology/Algebra/Module/Equiv/Pi.lean`), continuous on
   total spaces in both directions; and, for `IsEmpty ι`,
   `twistPiCoreTrivializationOfIsEmpty`, a global trivialization of the
   rank-zero `twistPiCore k ι`. These make $\mathcal O(k)^{\oplus r}$ an
