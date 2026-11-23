@@ -51,7 +51,8 @@ carry information.
 
 ## Implementation notes
 
-The form is smooth because, read in any chart, it is the constant `stdForm κ`; the smoothness of
+The form is smooth because, read in any chart, it is the constant `stdForm κ`
+(`contMDiff_continuousAlternatingMap_bundle_of_inCoordinates_eq_const`); the smoothness of
 `T` is used through `Matrix.SymplecticGroup.contMDiff_toEuclideanCLM`. As in
 `Geometry/Manifold/Instances/SymplecticGroup.lean`, the smooth structure of the symplectic group
 is that of Tau Ceti, for the topology `Matrix.linftyOpTopologicalSpace` on matrices.
@@ -121,13 +122,9 @@ def symplecticClutchingForm (n : ℕ∞) :
   toFun x := (AlternatingMap.toContinuousAlternatingMap
       (stdForm κ).isAlt.toAlternatingMap).compContinuousLinearMap
     ((symplecticClutchingCore U₁ U₂ T hU₁ hU₂ hU hT).fiberEquiv x : _ →L[ℝ] StdSpace κ)
-  contMDiff_toFun x₀ := by
-    rw [contMDiffAt_continuousAlternatingMap_bundle]
-    refine ⟨contMDiffAt_id, (contMDiffAt_const (c := AlternatingMap.toContinuousAlternatingMap
-      (stdForm κ).isAlt.toAlternatingMap)).congr_of_eventuallyEq ?_⟩
-    filter_upwards [(trivializationAt (StdSpace κ)
-      (symplecticClutchingCore U₁ U₂ T hU₁ hU₂ hU hT).Fiber x₀).open_baseSet.mem_nhds
-        (mem_baseSet_trivializationAt (StdSpace κ) _ x₀)] with x hx
+  contMDiff_toFun := contMDiff_continuousAlternatingMap_bundle_of_inCoordinates_eq_const
+      (c := fun _ ↦ AlternatingMap.toContinuousAlternatingMap
+        (stdForm κ).isAlt.toAlternatingMap) fun _ x hx _ ↦ by
     ext v
     simp only [ContinuousAlternatingMap.inCoordinates, Trivial.eq_trivialization M ℝ,
       Trivial.continuousLinearMapAt_trivialization,
