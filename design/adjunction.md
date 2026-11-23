@@ -68,7 +68,7 @@ pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
   `Geometry/Symplectic/Manifold/AlmostComplex/ComplexTangentBundle.lean`),
   for a complex model `G : Type` with `[Fact (finrank ℝ E = 2 * finrank ℂ G)]`.
   Its value $\langle c_1(TX,J),[\Sigma]\rangle$ is the integer under
-  `oₕ.evalFundamentalClass hM _ ⟨f, f.continuous⟩ (firstChernClass G _)`,
+  `oₕ.evalFundamentalClass hM _ (f : C(M, X)) (firstChernClass G _)`,
   with `oₕ = o.toHomologicalOrientation` and
   `hM : finrank ℝ (EuclideanSpace ℝ (Fin 2)) = 2`: Tau Ceti's evaluation on
   $f_*[\Sigma]$, so no homology class of $X$ is formed. The genus is Tau
@@ -194,7 +194,7 @@ is updated to match. The list is in the order of the paths.
 | `Geometry/Manifold/SmoothEmbedding/NormalSpace/ComplexStructure.lean` | the complex structure that $J$ induces on the normal spaces and on the normal bundle | 1 |
 | `Geometry/Manifold/SmoothEmbedding/NormalSpace/Exact.lean` | the exact sequence of the differential and the normal class map | 3 |
 | `Geometry/Manifold/SmoothEmbedding/NormalSpace/Representative.lean` | the representative of a normal class in a complement, as a projection | 2 |
-| `Geometry/Symplectic/Manifold/AlmostComplex/AdjunctionFormula.lean` | the Chern number of the pulled-back tangent bundle, the milestone | 4 |
+| `Geometry/Symplectic/Manifold/AlmostComplex/AdjunctionFormula.lean` | the milestone | 4 |
 | `Geometry/Symplectic/Manifold/AlmostComplex/NormalSplitting.lean` | the forms on the tangent and normal bundles and the symplectic splitting of the pulled-back tangent bundle | 2 |
 | `Geometry/Symplectic/Manifold/AlmostComplex/SelfIntersection.lean` | the self-intersection number, its Chern number, the orientation lemma | 3 |
 | `LinearAlgebra/ComplexStructure/Orientation.lean` | the orientation induced by an almost complex structure, and short exact sequences of complex-linear maps | 3 |
@@ -345,16 +345,15 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
 ### `Geometry/Symplectic/Manifold/AlmostComplex/AdjunctionFormula.lean`
 
 - `Bundle.chernNumber_pullback_complexStructure`, in the namespace
-  `SymplecticGeometry.Bundle`: for a smooth complex structure `K` on a
-  bundle `V` over `B : Type` and a smooth map `φ` from a compact oriented
-  surface, `chernNumber oₕ G (K.pullback φ).toContinuousComplexStructure.Fiber`
-  is the integer under `oₕ.evalFundamentalClass _ _ φ (firstChernClass G
-  K.toContinuousComplexStructure.Fiber)`. The identity of fibres is a
-  complex isomorphism between the pulled-back complex bundle and the complex
-  bundle of the pulled-back structure, continuous on total spaces, so
-  `firstChernClass_congr` and `firstChernClass_pullback` apply, and
-  `evalFundamentalClass` along `φ` is that along the identity of the
-  pulled-back class (`TauCeti.HomologicalOrientation.evalFundamentalClass_apply`).
+  `SymplecticGeometry.Bundle`, sits with *First Chern number* in
+  `Geometry/Manifold/VectorBundle/ChernNumber/Basic.lean`: for a smooth
+  complex structure `K` on a bundle `V` over `B : Type` and a smooth map `φ`
+  from a compact oriented surface,
+  `chernNumber oₕ hM G (K.pullback φ hφ).toContinuousComplexStructure.Fiber`
+  is the integer under `oₕ.evalFundamentalClass hM _ (φ : C(M, B))
+  (firstChernClass G K.toContinuousComplexStructure.Fiber)`, by
+  `ContMDiffComplexStructure.firstChernClass_pullback` and
+  `TauCeti.HomologicalOrientation.evalFundamentalClass_id_singularCohomologyMap`.
   It is stated for any bundle, its natural generality.
 - **Milestone** `adjunction_formula`, in the namespace
   `TauCeti.SmoothEmbedding`, for `X`, `J`, `hE`, `G`, the closed connected
@@ -363,7 +362,7 @@ Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
   ```
   2 * (TauCeti.surfaceGenus M : ℤ) - 2 =
     f.selfIntersectionNumber hE J hJ o -
-      (o.toHomologicalOrientation.evalFundamentalClass hM _ ⟨f, f.continuous⟩
+      (o.toHomologicalOrientation.evalFundamentalClass hM _ (f : C(M, X))
         (SymplecticGeometry.Bundle.firstChernClass G
           (J.toContMDiff ⊤).toContinuousComplexStructure.Fiber)).down
   ```

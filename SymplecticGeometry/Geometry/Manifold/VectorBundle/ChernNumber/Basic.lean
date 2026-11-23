@@ -22,6 +22,8 @@ data:
 
 * `chernNumber_pullback_eq_degree_mul`: along a `C¹` map of closed oriented surfaces, the number
   of the pull-back is the mapping degree `TauCeti.degree` times the number;
+* `chernNumber_pullback_complexStructure`: along a smooth map `φ` from a surface, the number of
+  the pull-back of a complex structure is the evaluation of its first Chern class on `φ_*[M]`;
 * `symplecticChernNumber o hn G ω`: the first Chern number of a symplectic vector bundle `(V, ω)`,
   the number of the complex bundle `(V, J)` for a complex structure `J` tamed by `ω`;
 * `symplecticChernNumber_eq_chernNumber`: every complex structure tamed by `ω`, in particular
@@ -96,6 +98,40 @@ theorem chernNumber_pullback_eq_degree_mul [PreconnectedSpace M] {K : Type*} [Fu
       (map_continuous φ).isProperMap, ContinuousMap.coe_ofClass]
 
 end Degree
+
+/-! ### Pull-backs of complex structures -/
+
+section PullbackComplexStructure
+
+variable {M : Type} [TopologicalSpace M] [T2Space M] [CompactSpace M]
+  {EM : Type} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [FiniteDimensional ℝ EM]
+  [ChartedSpace EM M] (o : HomologicalOrientation M EM 2) (hn : finrank ℝ EM = 2)
+  {EB HB : Type*} {B : Type} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
+  {I : ModelWithCorners ℝ EB HB} [TopologicalSpace B] [ChartedSpace HB B]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+  {V : B → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)]
+  [∀ x, TopologicalSpace (V x)] [∀ x, IsTopologicalAddGroup (V x)]
+  [∀ x, ContinuousSMul ℝ (V x)] [TopologicalSpace (TotalSpace F V)]
+  [FiberBundle F V] [VectorBundle ℝ F V]
+  (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
+  [Fact (finrank ℝ F = 2 * finrank ℂ G)] {n : ℕ∞}
+
+/-- **The first Chern number of a pulled-back complex structure.** For a complex structure `K`
+on a vector bundle `V` over `B` and a `Cⁿ` map `φ : M → B` from a compact surface with
+homological orientation `o`, of any type with `[ContinuousMapClass _ M B]`, the first Chern
+number of the complex bundle of the pull-back `K.pullback φ hφ` is the first Chern class of the
+complex bundle of `K` evaluated on the image `φ_*[M]` of the fundamental class:
+`⟨c₁(φ* V, φ* K), [M]⟩ = ⟨c₁(V, K), φ_*[M]⟩`. -/
+theorem chernNumber_pullback_complexStructure (K : ContMDiffComplexStructure I n F V)
+    {Φ : Type*} [FunLike Φ M B] [ContinuousMapClass Φ M B] (φ : Φ)
+    (hφ : ContMDiff 𝓘(ℝ, EM) I n φ) :
+    chernNumber o hn G (K.pullback φ hφ).toContinuousComplexStructure.Fiber =
+      (o.evalFundamentalClass hn (ModuleCat.of ℤ (ULift ℤ)) (φ : C(M, B))
+        (firstChernClass G K.toContinuousComplexStructure.Fiber)).down := by
+  rw [chernNumber_def, K.firstChernClass_pullback G φ hφ,
+    HomologicalOrientation.evalFundamentalClass_id_singularCohomologyMap]
+
+end PullbackComplexStructure
 
 /-! ### The first Chern number of a symplectic vector bundle -/
 
