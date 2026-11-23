@@ -1548,10 +1548,12 @@ does.
     `Topology/Homotopy/Extension/Collar.lean`, beside Tau Ceti's folder: if
     `c` is a collar of `f : N → X` (`TauCeti.IsCollar`), `N` compact and `X`
     Hausdorff, then `range f` has `TauCeti.HasHomotopyExtensionProperty`.
-    Proof: NDR data as in Tau Ceti's `TauCeti.sublevelNDRPair`, with the
-    collar depth in place of the function, pushing the points of depth below
-    `1 / 2` down to depth `0`; compactness of `N` makes `c(N × [0, 1/2])`
-    closed. With `TauCeti.IsCollared.hasHomotopyExtensionProperty_range`.
+    Proof: NDR data from Tau Ceti's `TauCeti.NDRPair.ofHomotopyRel`, with
+    the collar deformation `TauCeti.IsCollar.collarDeformation`, given
+    twice the clipped collar depth, which vanishes exactly on `range f` and
+    is below `1` only on the collar; compactness of `N` makes
+    `c(N × [0, 1/2])` closed. With
+    `TauCeti.IsCollared.hasHomotopyExtensionProperty_range`.
     Can start at once.
 18c. **Symplectic bundles from a clutching map.**
     `Geometry/Manifold/VectorBundle/Symplectic/Clutching.lean`: over a
