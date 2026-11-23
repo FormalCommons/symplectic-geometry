@@ -9,10 +9,10 @@ public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
 public import TauCeti.Geometry.Manifold.Boundary.InducedOrientation
 public import TauCeti.Geometry.Manifold.Orientation.Prod
 public import TauCeti.Geometry.Manifold.Orientation.Sign
+public import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
 public import SymplecticGeometry.Geometry.Manifold.Instances.HalfLine.Orientation
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Sign
 import Mathlib.GroupTheory.Perm.Fin
-import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
 
 /-!
 # A smooth collar and the induced boundary orientation
@@ -160,8 +160,6 @@ theorem isOutwardPointing_neg_mfderiv_inr (hk : k ≠ 0) (y : (𝓡∂ (n + 1)).
   refine (congrArg (fun w : EuclideanSpace ℝ (Fin (n + 1)) ↦ w 0)
     (tangentCoordChange_self (I := 𝓡∂ (n + 1)) (mem_extChartAt_source (y : M)))).trans_lt ?_
   exact neg_neg_of_pos (c.proj_zero_mfderiv_inr_pos hk y)
-
-local instance : IsManifold (𝓡 n) 1 ((𝓡∂ (n + 1)).boundary M) := isManifold_boundary M
 
 variable (o : Manifold.Orientation (𝓡∂ (n + 1)) M (Fin (n + 1)))
 
