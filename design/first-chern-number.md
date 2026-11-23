@@ -1618,13 +1618,62 @@ does.
     agreement and open-interior facts are Tau Ceti's. Blocked by 18d.
 18f. **The orientation of the double.**
     `Geometry/Manifold/Boundary/Collar/Double/Orientation.lean`: for an
-    orientation `o` of the interior of `W`, `Double.orientation o`, glued by
-    `TauCeti.Manifold.Orientation.iGlue`, with
-    `isOrientationPreservingAt_inlInterior` (from `o`) and
-    `isOrientationPreservingAt_inrInterior` (from `-o`): the band coordinate
-    is reflected between the two copies. The comparison on the band uses
-    `TauCeti.SmoothCollar.orientationSign_eq_neg_one_pow`, as
-    `Gluing/CapDiscs/Orientation.lean` does. Blocked by 18d.
+    orientation `o` of the interior of `W`, the `InteriorModel` on which
+    `inlInterior` and `inrInterior` are defined, `Double.orientation o`,
+    with `isOrientationPreservingAt_inlInterior` (from `o`),
+    `isOrientationPreservingAt_inrInterior` (from `-o`) and
+    `eq_orientation_iff` (the two properties characterize it), as
+    `capDiscs.orientation` has. It is glued by
+    `TauCeti.Manifold.Orientation.iGlue` from three pieces: the two copies
+    of the interior, oriented by `o` and `-o`, and the band. No orientation
+    of `W` or of `∂W` enters, so `orientationSign_eq_neg_one_pow` is not
+    used.
+    - *The band piece.* 18f makes the band piece of `Double/Basic.lean`
+      public and uses it, instead of building a second one: `bandInterval`
+      (the open interval `(-1, 1)`), `BandPiece` (`bandInterval × ∂W`,
+      re-modelled on `ℝⁿ⁺¹` by
+      `SymplecticGeometry.Remodel (endModelDiffeomorph n)`), `bandIncl`,
+      `isOpenEmbedding_bandIncl`, a new public `isLocalDiffeomorph_bandIncl`
+      (the band case of `isLocalDiffeomorph_pieceMap`), and
+      `bandIncl_remodel` stated with `bandMap` in place of the private
+      `bandPt`: `bandIncl c (remodelDiffeomorph _ _ p) = bandMap c (p.1, p.2)`
+      (by `bandMap_coe`, as `bandMap_bandCoord` is).
+      So 18f edits `Double/Basic.lean` too. The sharing of the collar depth
+      and coordinate maps with `Collar/End.lean` edits the same file but
+      none of these statements, so the two need no order: whichever lands
+      second merges the other.
+    - *Its orientation.* With `g s = 1/2 - s/4`, which maps `(-1, 1)` into
+      `(0, 1)`, let `β (s, x) = c (x, g s)` (the depth by `normalIioRay`),
+      an interior point (`apply_mem_interior_iff_pos`) read in the
+      `InteriorModel` by `interiorModelDiffeomorph`, as `collarPoint` is in
+      `Gluing/CapDiscs/Orientation.lean`; `β` is smooth with invertible
+      derivative since `c` is a diffeomorphism onto its open range
+      (`diffeomorphOpensRange`). Orient `bandInterval × ∂W` by
+      `TauCeti.Manifold.Orientation.pullback` of `o` along `β`, and the band
+      piece by the pull-back of that along the remodelling diffeomorphism.
+    - *The first copy.* The band meets `range inlInterior` exactly in the
+      points `bandMap (s, x)` with `s ∈ (-1, 0)`, where it is
+      `inlInterior (φ (s, x))` for `φ (s, x) = c (x, -s)`
+      (`bandMap_of_nonpos`, `inl_eq_inr_iff`). The orientation sign of `φ`,
+      from the band orientation to `o`, is locally constant on `s < 0`
+      (`TauCeti.Manifold.Orientation.eventually_orientationSign_eq`), so
+      constant on each connected slice `(-1, 0) × {x}`, as in the proof of
+      `orientationSign_eq_neg_one_pow`. At `s = -2/3` it is `1`: near that
+      point `φ = β ∘ A` for `A (s, x) = (2 + 4 s, x)`, which fixes the point
+      with derivative `diag(4, id)`, so `orientationSign_comp`,
+      `isOrientationPreservingAt_pullback` and
+      `Orientation.map_eq_iff_det_pos` give it. Then
+      `map_orientationAt_eq_of_comp_eventuallyEq` on the overlap.
+    - *The second copy.* The same for `s ∈ (0, 1)`, where the band point is
+      `inrInterior (c (x, s))` (`bandMap_of_nonneg`), at `s = 2/5`, with
+      `A (s, x) = (2 - 4 s, x)` of derivative `diag(-4, id)`: the sign is
+      `-1`, so the map preserves orientation to `-o`.
+    - *The other pairs.* The two copies are disjoint
+      (`disjoint_range_inlInterior_inrInterior`), each piece is injective
+      (`isOpenEmbedding_inlInterior`, `isOpenEmbedding_inrInterior`,
+      `isOpenEmbedding_bandIncl`), and the three cover `c.Double`
+      (`range_inlInterior_union_range_inrInterior_union`).
+    This holds in every dimension. Blocked by 18d.
 18g. **The height function of the double.**
     `Geometry/Manifold/Boundary/Collar/Double/Height.lean`:
     `Double.height : c.Double → ℝ`, `-1` on the first copy away from the

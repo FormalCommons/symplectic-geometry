@@ -7,12 +7,15 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Clutching
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.Basic
+public import SymplecticGeometry.Analysis.Complex.Circle
+public import SymplecticGeometry.Topology.VectorBundle.Core.TwoChart
 import Mathlib.Analysis.Complex.Isometry
 import TauCeti.Geometry.Manifold.Algebra.LieGroup
 import TauCeti.Topology.VectorBundle.RestrictScalars
 import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.ExtendOverDisc
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.DiscFrame
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Core.TwoChart
 import SymplecticGeometry.Geometry.Manifold.Instances.SymplecticGroup
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.CoordinateDisc
 
@@ -46,11 +49,11 @@ clutching formula, this is the case when their first Chern numbers agree
 
 ## Main definitions
 
-* `SymplecticGeometry.Bundle.clutchingScalar`: the scalar coordinate changes of the bundle.
-* `SymplecticGeometry.Bundle.clutchingLineBundle`: the clutching line bundle, with its complex
-  structure (`VectorBundle ℂ ℂ`) and fibres of complex dimension one
-  (`finrank_clutchingLineBundle`).
-* `SymplecticGeometry.Bundle.clutchingFiberEquiv`: the identification of each fibre with `ℂ`.
+* `SymplecticGeometry.Bundle.clutchingLineBundle`: the clutching line bundle, the two-chart core
+  `twoChartCore` for the action `Circle.lsmul` of the circle on `ℂ` and the map `e^{ikθ}`, with
+  its complex structure (`VectorBundle ℂ ℂ`) and fibres of complex dimension one
+  (`finrank_clutchingLineBundle`). Its fibres are identified with `ℂ` by
+  `VectorBundleCore.fiberEquiv`.
 * `SymplecticGeometry.Bundle.clutchingFrame`: the frames of the two charts, from the standard
   plane `StdSpace (Fin 1)`.
 * `SymplecticGeometry.Bundle.clutchingMetric`: its Hermitian metric.
@@ -134,31 +137,6 @@ variable {M : Type} [TopologicalSpace M] [T2Space M] {EM : Type} [NormedAddCommG
 
 /-! ### The line bundle -/
 
-/-- The scalar transition function of the clutching line bundle, from chart `i` to chart `j`:
-`e^{ik(j - i)θ}`, where the inner chart is `true` and the outer one `false`. -/
-def clutchingScalar (i j : Bool) (x : M) : Circle :=
-  φ.phase x ^ (k * ((j.toNat : ℤ) - i.toNat))
-
-theorem clutchingScalar_def (i j : Bool) (x : M) :
-    clutchingScalar φ k i j x = φ.phase x ^ (k * ((j.toNat : ℤ) - i.toNat)) :=
-  (rfl)
-
-@[simp]
-theorem clutchingScalar_self (i : Bool) (x : M) : clutchingScalar φ k i i x = 1 := by
-  simp [clutchingScalar_def]
-
-/-- From the outer chart to the inner chart, the transition is `e^{ikθ}`. -/
-@[simp]
-theorem clutchingScalar_false_true (x : M) :
-    clutchingScalar φ k false true x = φ.phase x ^ k := by
-  simp [clutchingScalar_def]
-
-theorem clutchingScalar_mul (i j l : Bool) (x : M) :
-    clutchingScalar φ k j l x * clutchingScalar φ k i j x = clutchingScalar φ k i l x := by
-  rw [clutchingScalar_def, clutchingScalar_def, clutchingScalar_def, ← zpow_add, ← mul_add]
-  congr 2
-  ring
-
 /-- The overlap of the two charts of the clutching line bundle lies in the range of `φ`, off the
 centre: there the coordinate of `φ` does not vanish. -/
 private theorem inter_subset_coord_ne_zero :
@@ -168,84 +146,40 @@ private theorem inter_subset_coord_ne_zero :
   have hz' : 1 / 2 < ‖(z : ℂ)‖ := lt_of_not_ge fun h ↦ h₂ ⟨z, h, rfl⟩
   exact ⟨mem_range_self z, by rw [CoordinateDisc.coord_apply]; exact norm_pos_iff.1 (by linarith)⟩
 
+/-- The two charts of the clutching line bundle cover `M`. -/
+private theorem openDisc_union_compl_image :
+    φ.openDisc ∪ (φ '' {z | ‖(z : ℂ)‖ ≤ 1 / 2})ᶜ = univ := by
+  refine eq_univ_of_forall fun x ↦ or_iff_not_imp_left.2 fun hx ↦ ?_
+  rintro ⟨z, hz, rfl⟩
+  exact hx (φ.apply_mem_openDisc_iff.2 (by linarith [show ‖(z : ℂ)‖ ≤ 1 / 2 from hz]))
+
 variable {φ} in
-/-- On the overlap of the two charts the scalar transition functions are `Cⁿ` if the coordinate
+/-- On the overlap of the two charts the multiplication by `e^{ikθ}` is `Cⁿ` if the coordinate
 of `φ` is. -/
-private theorem contMDiffOn_clutchingScalar {n : WithTop ℕ∞}
-    (hφ : ContMDiffOn 𝓘(ℝ, EM) 𝓘(ℝ, ℂ) n φ.coord (range φ)) (i j : Bool) :
-    ContMDiffOn 𝓘(ℝ, EM) 𝓘(ℝ, ℂ) n (fun x ↦ (clutchingScalar φ k i j x : ℂ))
+private theorem contMDiffOn_lsmul_phase_zpow {n : WithTop ℕ∞}
+    (hφ : ContMDiffOn 𝓘(ℝ, EM) 𝓘(ℝ, ℂ) n φ.coord (range φ)) :
+    ContMDiffOn 𝓘(ℝ, EM) 𝓘(ℝ, ℂ →L[ℝ] ℂ) n (fun x ↦ Circle.lsmul (φ.phase x ^ k))
       (φ.openDisc ∩ (φ '' {z | ‖(z : ℂ)‖ ≤ 1 / 2})ᶜ) := by
-  simp only [clutchingScalar_def]
+  simp only [Circle.lsmul_def]
   have := finrank_real_complex_fact'
-  refine (contMDiff_coe_sphere (E := ℂ) (n := 1)).comp_contMDiffOn ?_
+  refine (ContinuousLinearMap.lsmul ℝ ℂ : ℂ →L[ℝ] ℂ →L[ℝ] ℂ).contMDiff.comp_contMDiffOn
+    ((contMDiff_coe_sphere (E := ℂ) (n := 1)).comp_contMDiffOn ?_)
   exact ((TauCeti.contMDiff_zpow _).comp_contMDiffOn (φ.contMDiffOn_phase hφ)).mono
     (inter_subset_coord_ne_zero φ)
 
-private theorem continuousOn_clutchingScalar (i j : Bool) :
-    ContinuousOn (fun x ↦ (clutchingScalar φ k i j x : ℂ))
-      (φ.openDisc ∩ (φ '' {z | ‖(z : ℂ)‖ ≤ 1 / 2})ᶜ) :=
-  contMDiffOn_zero_iff.1
-    (contMDiffOn_clutchingScalar k (contMDiffOn_zero_iff.2 φ.continuousOn_coord) i j)
-
-open scoped Classical in
 /-- **The clutching line bundle** of a coordinate disc `φ` and an integer `k`: the complex line
 bundle glued from the trivial bundles with fibre `ℂ` over the open disc `φ '' {‖z‖ < 1}` (the
 chart `true`) and over the complement of `φ '' {‖z‖ ≤ 1 / 2}` (the chart `false`), with
 transition `v ↦ e^{ikθ} v` from the second to the first on the annulus where they overlap, `θ`
 being the angle of the coordinate of `φ`. It is a real vector bundle core; its fibres are `ℂ`,
-and the coordinate changes are complex linear. -/
-def clutchingLineBundle : VectorBundleCore ℝ M ℂ Bool where
-  baseSet b := if b then φ.openDisc else (φ '' {z | ‖(z : ℂ)‖ ≤ 1 / 2})ᶜ
-  isOpen_baseSet b := by
-    cases b
-    · exact (φ.isCompact_image_closedBall (by norm_num)).isClosed.isOpen_compl
-    · exact φ.isOpen_openDisc
-  indexAt x := decide (x ∈ φ.openDisc)
-  mem_baseSet_at x := by
-    by_cases hx : x ∈ φ.openDisc
-    · simp [hx]
-    · simp only [hx, decide_false, Bool.false_eq_true, ↓reduceIte, mem_compl_iff]
-      rintro ⟨z, hz, rfl⟩
-      exact hx (φ.apply_mem_openDisc_iff.2 (by linarith [show ‖(z : ℂ)‖ ≤ 1 / 2 from hz]))
-  coordChange i j x := ContinuousLinearMap.lsmul ℝ ℂ (clutchingScalar φ k i j x : ℂ)
-  coordChange_self i x _ v := by simp
-  continuousOn_coordChange i j := by
-    refine (ContinuousLinearMap.lsmul ℝ ℂ).continuous.comp_continuousOn ?_
-    cases i <;> cases j
-    · simpa using continuousOn_const
-    · exact (continuousOn_clutchingScalar φ k _ _).mono fun x hx ↦ ⟨by simpa using hx.2,
-        by simpa using hx.1⟩
-    · exact (continuousOn_clutchingScalar φ k _ _).mono fun x hx ↦ ⟨by simpa using hx.1,
-        by simpa using hx.2⟩
-    · simpa using continuousOn_const
-  coordChange_comp i j l x _ v := by
-    simp only [ContinuousLinearMap.lsmul_apply, smul_smul, ← Circle.coe_mul,
-      clutchingScalar_mul]
-
-/-- The inner chart of the clutching line bundle is the open disc of `φ`. -/
-@[simp]
-theorem baseSet_localTriv_clutchingLineBundle_true :
-    ((clutchingLineBundle φ k).localTriv true).baseSet = φ.openDisc :=
-  (rfl)
-
-/-- The outer chart of the clutching line bundle is the complement of `φ '' {‖z‖ ≤ 1 / 2}`. -/
-@[simp]
-theorem baseSet_localTriv_clutchingLineBundle_false :
-    ((clutchingLineBundle φ k).localTriv false).baseSet = (φ '' {z | ‖(z : ℂ)‖ ≤ 1 / 2})ᶜ :=
-  (rfl)
-
-open scoped Classical in
-/-- The chart that the clutching line bundle assigns to a point is the inner one exactly on the
-open disc of `φ`. -/
-@[simp]
-theorem indexAt_clutchingLineBundle (x : M) :
-    (clutchingLineBundle φ k).indexAt x = decide (x ∈ φ.openDisc) :=
-  (rfl)
-
-@[simp]
-theorem coordChange_clutchingLineBundle (i j : Bool) (x : M) (v : ℂ) :
-    (clutchingLineBundle φ k).coordChange i j x v = (clutchingScalar φ k i j x : ℂ) * v :=
-  (rfl)
+and the coordinate changes are complex linear. It is the two-chart core `twoChartCore` for the
+action `Circle.lsmul` of the circle on `ℂ` and the map `x ↦ e^{ikθ}`. -/
+abbrev clutchingLineBundle : VectorBundleCore ℝ M ℂ Bool :=
+  twoChartCore φ.openDisc (φ '' {z | ‖(z : ℂ)‖ ≤ 1 / 2})ᶜ Circle.lsmul (fun x ↦ φ.phase x ^ k)
+    φ.isOpen_openDisc (φ.isCompact_image_closedBall (by norm_num)).isClosed.isOpen_compl
+    (by exact openDisc_union_compl_image φ)
+    (by exact contMDiffOn_zero_iff.1 (contMDiffOn_lsmul_phase_zpow k
+      (contMDiffOn_zero_iff.2 φ.continuousOn_coord)))
 
 /-- The fibres of the clutching line bundle are complex vector spaces: they are `ℂ`. -/
 instance (x : M) : Module ℂ ((clutchingLineBundle φ k).Fiber x) :=
@@ -267,7 +201,10 @@ multiplications by complex scalars. -/
 instance (i : Bool) : ((clutchingLineBundle φ k).localTriv i).IsLinear ℂ where
   linear x _ :=
     ⟨fun v w ↦ map_add ((clutchingLineBundle φ k).coordChange _ i x) v w,
-      fun c v ↦ mul_left_comm (clutchingScalar φ k _ i x : ℂ) c (v : ℂ)⟩
+      fun c v ↦ by
+        simp only [VectorBundleCore.localTriv_apply, coordChange_twoChartCore]
+        exact (Circle.lsmul_apply _ _).trans ((mul_left_comm _ c (v : ℂ)).trans
+          (congrArg (c * ·) (Circle.lsmul_apply _ _).symm))⟩
 
 /-- The clutching line bundle is a complex vector bundle. -/
 instance : VectorBundle ℂ ℂ (clutchingLineBundle φ k).Fiber :=
@@ -281,44 +218,21 @@ atlas (`CoordinateDisc.contMDiffOn_coord_ofChart`), then the coordinate changes 
 line bundle are `Cⁿ`. -/
 theorem isContMDiff_clutchingLineBundle {n : WithTop ℕ∞}
     (hφ : ContMDiffOn 𝓘(ℝ, EM) 𝓘(ℝ, ℂ) n φ.coord (range φ)) :
-    (clutchingLineBundle φ k).IsContMDiff 𝓘(ℝ, EM) n where
-  contMDiffOn_coordChange i j := by
-    refine (ContinuousLinearMap.lsmul ℝ ℂ : ℂ →L[ℝ] ℂ →L[ℝ] ℂ).contMDiff.comp_contMDiffOn ?_
-    cases i <;> cases j
-    · simpa using contMDiffOn_const
-    · exact (contMDiffOn_clutchingScalar k hφ _ _).mono fun x hx ↦ ⟨hx.2, hx.1⟩
-    · exact (contMDiffOn_clutchingScalar k hφ _ _).mono fun x hx ↦ hx
-    · simpa using contMDiffOn_const
+    (clutchingLineBundle φ k).IsContMDiff 𝓘(ℝ, EM) n :=
+  isContMDiff_twoChartCore _ _ _ _ _ (contMDiffOn_lsmul_phase_zpow k hφ)
 
 /-! ### The Hermitian metric and the symplectic form -/
 
-/-- The fibres of the clutching line bundle are `ℂ`: the identity, as a real linear
-isomorphism. -/
-def clutchingFiberEquiv (x : M) : (clutchingLineBundle φ k).Fiber x ≃L[ℝ] ℂ :=
-  ContinuousLinearEquiv.refl ℝ ℂ
-
-/-- The identification of the fibres with `ℂ` is complex linear. -/
+/-- The identification `VectorBundleCore.fiberEquiv` of the fibres of the clutching line bundle
+with `ℂ` is complex linear. -/
 @[simp]
-theorem clutchingFiberEquiv_smul (x : M) (c : ℂ) (v : (clutchingLineBundle φ k).Fiber x) :
-    clutchingFiberEquiv φ k x (c • v) = c * clutchingFiberEquiv φ k x v :=
-  (rfl)
-
-/-- The point `v` of `ℂ` in the chart `i` is the point `e^{ik(j - i)θ} v` of the fibre, where `j`
-is the chart that the core assigns to the base point. -/
-theorem clutchingFiberEquiv_localTriv_symm (i : Bool) {x : M}
-    (hx : x ∈ ((clutchingLineBundle φ k).localTriv i).baseSet) (v : ℂ) :
-    clutchingFiberEquiv φ k x (((clutchingLineBundle φ k).localTriv i).symm x v) =
-      (clutchingScalar φ k i ((clutchingLineBundle φ k).indexAt x) x : ℂ) * v :=
-  congrArg (clutchingFiberEquiv φ k x) ((clutchingLineBundle φ k).localTriv_symm_apply i hx v)
-
-/-- The point `v` of `ℂ` in the preferred chart at `a` is the point `e^{ik(j - i)θ} v` of the
-fibre. -/
-theorem clutchingFiberEquiv_trivializationAt_symm {a x : M}
-    (hx : x ∈ (trivializationAt ℂ (clutchingLineBundle φ k).Fiber a).baseSet) (v : ℂ) :
-    clutchingFiberEquiv φ k x ((trivializationAt ℂ (clutchingLineBundle φ k).Fiber a).symm x v) =
-      (clutchingScalar φ k ((clutchingLineBundle φ k).indexAt a)
-        ((clutchingLineBundle φ k).indexAt x) x : ℂ) * v :=
-  clutchingFiberEquiv_localTriv_symm φ k _ hx v
+theorem fiberEquiv_clutchingLineBundle_smul (x : M) (c : ℂ)
+    (v : (clutchingLineBundle φ k).Fiber x) :
+    (clutchingLineBundle φ k).fiberEquiv x (c • v) =
+      c * (clutchingLineBundle φ k).fiberEquiv x v := by
+  simp only [VectorBundleCore.fiberEquiv_def]
+  -- The action of `ℂ` on the fibre is, by the instance above, multiplication in `ℂ`.
+  rfl
 
 /-- **The Hermitian metric of the clutching line bundle**: on every fibre `ℂ`, the real part
 `⟪v, w⟫_ℝ = Re (conj v * w)` of the standard Hermitian product. The coordinate changes are
@@ -326,8 +240,9 @@ multiplications by complex numbers of modulus one, so it is constant in every ch
 smooth. -/
 def clutchingMetric (n : WithTop ℕ∞) :
     ContMDiffRiemannianMetric 𝓘(ℝ, EM) n ℂ (clutchingLineBundle φ k).Fiber where
-  inner x := (ContinuousLinearMap.precomp ℝ (clutchingFiberEquiv φ k x : _ →L[ℝ] ℂ)).comp
-    ((innerSL ℝ).comp (clutchingFiberEquiv φ k x : _ →L[ℝ] ℂ))
+  inner x :=
+    (ContinuousLinearMap.precomp ℝ ((clutchingLineBundle φ k).fiberEquiv x : _ →L[ℝ] ℂ)).comp
+      ((innerSL ℝ).comp ((clutchingLineBundle φ k).fiberEquiv x : _ →L[ℝ] ℂ))
   symm _ v w := by
     simp only [ContinuousLinearMap.comp_apply, ContinuousLinearMap.precomp_apply,
       innerSL_apply_apply, ContinuousLinearEquiv.coe_coe]
@@ -340,7 +255,7 @@ def clutchingMetric (n : WithTop ℕ∞) :
     have h := ((innerSL ℝ : ℂ →L[ℝ] ℂ →L[ℝ] ℝ).isVonNBounded_setOf_lt_one_of_pos fun v hv ↦ by
       rw [innerSL_apply_apply]
       exact real_inner_self_pos.2 hv).image
-        ((clutchingFiberEquiv φ k x).symm : ℂ →L[ℝ] (clutchingLineBundle φ k).Fiber x)
+        (((clutchingLineBundle φ k).fiberEquiv x).symm : ℂ →L[ℝ] (clutchingLineBundle φ k).Fiber x)
     rw [ContinuousLinearEquiv.coe_coe, ContinuousLinearEquiv.image_symm_eq_preimage,
       Set.preimage_ofPred_eq] at h
     simp only [ContinuousLinearMap.comp_apply, ContinuousLinearMap.precomp_apply,
@@ -353,7 +268,8 @@ def clutchingMetric (n : WithTop ℕ∞) :
         (by simp [Trivial.eq_trivialization M ℝ])]
       simp only [Trivial.eq_trivialization M ℝ, Trivial.linearMapAt_trivialization,
         LinearMap.id_apply, ContinuousLinearMap.comp_apply, ContinuousLinearMap.precomp_apply,
-        ContinuousLinearEquiv.coe_coe, clutchingFiberEquiv_trivializationAt_symm φ k hx,
+        ContinuousLinearEquiv.coe_coe, VectorBundleCore.fiberEquiv_trivializationAt_symm _ hx,
+        coordChange_twoChartCore, Circle.lsmul_apply,
         innerSL_apply_apply]
       rw [← rotation_apply, ← rotation_apply, LinearIsometryEquiv.inner_map_map]
       exact (innerSL_apply_apply ℝ v w).symm
@@ -363,7 +279,8 @@ def clutchingMetric (n : WithTop ℕ∞) :
 theorem clutchingMetric_inner (n : WithTop ℕ∞) (x : M)
     (v w : (clutchingLineBundle φ k).Fiber x) :
     (clutchingMetric φ k n).inner x v w =
-      inner ℝ (clutchingFiberEquiv φ k x v) (clutchingFiberEquiv φ k x w) := by
+      inner ℝ ((clutchingLineBundle φ k).fiberEquiv x v)
+        ((clutchingLineBundle φ k).fiberEquiv x w) := by
   simp only [clutchingMetric, ContinuousLinearMap.comp_apply, ContinuousLinearMap.precomp_apply,
     innerSL_apply_apply, ContinuousLinearEquiv.coe_coe]
 
@@ -373,8 +290,8 @@ theorem clutchingMetric_inner_I_smul (n : WithTop ℕ∞) (x : M)
     (v w : (clutchingLineBundle φ k).Fiber x) :
     (clutchingMetric φ k n).inner x (Complex.I • v) (Complex.I • w) =
       (clutchingMetric φ k n).inner x v w := by
-  rw [clutchingMetric_inner, clutchingMetric_inner, clutchingFiberEquiv_smul,
-    clutchingFiberEquiv_smul]
+  rw [clutchingMetric_inner, clutchingMetric_inner, fiberEquiv_clutchingLineBundle_smul,
+    fiberEquiv_clutchingLineBundle_smul]
   simp [Complex.inner]
 
 /-! ### The first Chern number -/
@@ -396,7 +313,7 @@ private theorem disc_clutchingDisc_subset :
     (clutchingDisc φ).disc ⊆ (clutchingLineBundle φ k).baseSet true := by
   intro x hx
   obtain ⟨z, hz, rfl⟩ := (clutchingDisc φ).mem_disc_iff.1 hx
-  rw [clutchingDisc_apply]
+  rw [baseSet_twoChartCore_true, clutchingDisc_apply]
   refine φ.apply_mem_openDisc_iff.2 ?_
   rw [CoordinateDisc.coe_affineBall_apply, zero_add, norm_mul, Complex.norm_real,
     Real.norm_of_nonneg (by norm_num)]
@@ -405,6 +322,7 @@ private theorem disc_clutchingDisc_subset :
 private theorem discComplement_clutchingDisc_subset :
     discComplement (fun _ : Unit ↦ clutchingDisc φ) ⊆
       (clutchingLineBundle φ k).baseSet false := by
+  rw [baseSet_twoChartCore_false]
   rintro x hx ⟨w, hw, rfl⟩
   have hw' : ‖(w : ℂ)‖ ≤ 1 / 2 := hw
   have hb : (4 / 3 : ℂ) * w ∈ (CoordinateDisc.ball : Set ℂ) := by
@@ -449,12 +367,13 @@ theorem clutchingFrame_apply (i : Bool) {x : M} (hx : x ∈ (clutchingLineBundle
 
 /-- Read in `ℂ`, the frame of the chart `i` at `x` is `v ↦ e^{ik(j - i)θ} v`, where `j` is the
 chart that the core assigns to `x`. -/
-theorem clutchingFiberEquiv_clutchingFrame (i : Bool) {x : M}
+theorem fiberEquiv_clutchingFrame (i : Bool) {x : M}
     (hx : x ∈ (clutchingLineBundle φ k).baseSet i) (v : StdSpace (Fin 1)) :
-    clutchingFiberEquiv φ k x (clutchingFrame φ k i x hx v) =
-      (clutchingScalar φ k i ((clutchingLineBundle φ k).indexAt x) x : ℂ) *
+    (clutchingLineBundle φ k).fiberEquiv x (clutchingFrame φ k i x hx v) =
+      (↑(twoChartCocycle (fun x ↦ φ.phase x ^ k) i ((clutchingLineBundle φ k).indexAt x) x) : ℂ) *
         equivComplex (Fin 1) v := by
-  rw [clutchingFrame_apply, clutchingFiberEquiv_localTriv_symm φ k i hx]
+  rw [clutchingFrame_apply, VectorBundleCore.fiberEquiv_localTriv_symm _ i hx,
+    coordChange_twoChartCore, Circle.lsmul_apply]
 
 /-- The frames of the charts are symplectic for the form of the Hermitian metric
 `clutchingMetric φ k n`: they carry the standard form of the plane to it. -/
@@ -466,8 +385,9 @@ theorem bilinFormAt_clutchingFrame (n : ℕ∞) (i : Bool) {x : M}
       stdForm (Fin 1) v w := by
   rw [ContMDiffTwoForm.bilinFormAt_apply,
     ContMDiffComplexStructure.compatibleForm_ofComplexModule_apply _
-      (clutchingMetric_inner_I_smul φ k n), clutchingMetric_inner, clutchingFiberEquiv_smul,
-    clutchingFiberEquiv_clutchingFrame, clutchingFiberEquiv_clutchingFrame,
+      (clutchingMetric_inner_I_smul φ k n), clutchingMetric_inner,
+    fiberEquiv_clutchingLineBundle_smul,
+    fiberEquiv_clutchingFrame, fiberEquiv_clutchingFrame,
     stdForm_apply_eq_inner_equivComplex, mul_left_comm, ← rotation_apply, ← rotation_apply,
     LinearIsometryEquiv.inner_map_map]
 
@@ -514,10 +434,10 @@ theorem symplecticChernNumber_clutchingLineBundle (hn : finrank ℝ EM = 2) {n :
     Fintype.sum_unique, maslovIndex_toBasedLoop_circlePowLoop]
   -- On the boundary circle the frames differ by `ζ ↦ ζ ^ k`.
   intro _ ζ v
-  apply (clutchingFiberEquiv φ k _).injective
-  rw [clutchingFiberEquiv_clutchingFrame, clutchingFiberEquiv_clutchingFrame,
+  apply ((clutchingLineBundle φ k).fiberEquiv _).injective
+  rw [fiberEquiv_clutchingFrame, fiberEquiv_clutchingFrame,
     coe_circlePowLoop_apply, equivComplex_toEuclideanLin_realify_diagonal,
-    ← clutchingScalar_mul φ k false true, clutchingScalar_false_true,
+    ← twoChartCocycle_mul _ false true, twoChartCocycle_false_true,
     phase_boundaryCircle_clutchingDisc, Circle.coe_mul, Circle.coe_zpow]
   ring
 

@@ -18,12 +18,16 @@ normal distance `max r 0` from the boundary, and is continuous. On `[0, ∞)` it
 the model with corners of the half-line, composed with a linear map, so it is smooth there, up to
 the boundary point `0`. Restricted to `(-∞, 1)`, the ray takes values in the open segment
 `normalIioOpens 1`, the normal factor of a collar; this gives the depth map
-`TauCeti.EuclideanHalfSpace.normalIioRay`.
+`TauCeti.EuclideanHalfSpace.normalIioRay`. Gluing pieces such as `(-1, ∞) × ∂W` to a collar read
+the depth along `s ↦ -s`; the file gives that depth map and the map `t ↦ -t` back, for any open
+set of reals between `(-1, 0]` and `(-1, ∞)`.
 
 ## Main definitions
 
 * `TauCeti.EuclideanHalfSpace.normalIioRay`: the normal ray on `(-∞, 1)`, as a map into
   `normalIioOpens 1`.
+* `TauCeti.EuclideanHalfSpace.negNormalIioRay`, `negNormalCoord`: the depth `max (-s) 0` of a
+  point `s > -1`, and the point `-t` at a depth `t`.
 
 ## Main results
 
@@ -32,6 +36,8 @@ the boundary point `0`. Restricted to `(-∞, 1)`, the ray takes values in the o
   `normalIioOpens ε`, for `ε > 0`, exactly when `r < ε`.
 * `TauCeti.EuclideanHalfSpace.continuous_normalIioRay` and
   `ContMDiffAt.normalIioRay`: the depth map is continuous, and smooth at positive depth.
+* `TauCeti.EuclideanHalfSpace.negNormalIioRay_negNormalCoord` and
+  `negNormalCoord_negNormalIioRay`: the two maps are inverse to each other on `(-1, 0]`.
 -/
 
 public section
@@ -91,6 +97,96 @@ theorem normalIioRay_zero :
 /-- The depth map is continuous. -/
 theorem continuous_normalIioRay : Continuous normalIioRay :=
   (continuous_normalRay.comp continuous_subtypeVal).subtype_mk _
+
+/-! ### The depth map read along `s ↦ -s` -/
+
+variable {S : TopologicalSpace.Opens ℝ}
+
+/-- For an open set `S` of reals greater than `-1`, the depth map at `-s`, for `s ∈ S`: the
+point of `[0, 1)` at depth `max (-s) 0`. -/
+noncomputable def negNormalIioRay (hS : (S : Set ℝ) ⊆ Ioi (-1)) (s : S) : normalIioOpens 1 :=
+  normalIioRay ⟨-s, neg_lt.1 (hS s.property)⟩
+
+theorem negNormalIioRay_def (hS : (S : Set ℝ) ⊆ Ioi (-1)) (s : S) :
+    negNormalIioRay hS s = normalIioRay ⟨-s, neg_lt.1 (hS s.property)⟩ := (rfl)
+
+/-- The point `negNormalIioRay hS s` of `[0, 1)` is the normal ray at `-s`. -/
+@[simp]
+theorem coe_negNormalIioRay (hS : (S : Set ℝ) ⊆ Ioi (-1)) (s : S) :
+    (negNormalIioRay hS s : EuclideanHalfSpace 1) = normalRay (-s) := (rfl)
+
+/-- The depth of `negNormalIioRay hS s` is `max (-s) 0`. -/
+theorem negNormalIioRay_coe_apply (hS : (S : Set ℝ) ⊆ Ioi (-1)) (s : S) :
+    (negNormalIioRay hS s : EuclideanHalfSpace 1).val 0 = max (-(s : ℝ)) 0 := by
+  rw [negNormalIioRay_def, normalIioRay_coe_apply]
+
+/-- For `s ≤ 0`, the depth of `negNormalIioRay hS s` is `-s`. -/
+theorem negNormalIioRay_coe_apply_of_nonpos (hS : (S : Set ℝ) ⊆ Ioi (-1)) {s : S}
+    (hs : (s : ℝ) ≤ 0) : (negNormalIioRay hS s : EuclideanHalfSpace 1).val 0 = -s := by
+  rw [negNormalIioRay_coe_apply, max_eq_left (neg_nonneg.2 hs)]
+
+/-- The point `negNormalIioRay hS s` is the origin exactly when `0 ≤ s`. -/
+theorem negNormalIioRay_eq_zero_iff (hS : (S : Set ℝ) ⊆ Ioi (-1)) {s : S} :
+    negNormalIioRay hS s = normalIioOpensZero one_pos ↔ 0 ≤ (s : ℝ) := by
+  rw [negNormalIioRay_def, normalIioRay_eq_zero_iff, neg_nonpos]
+
+/-- The depth map read along `s ↦ -s` is continuous. -/
+theorem continuous_negNormalIioRay (hS : (S : Set ℝ) ⊆ Ioi (-1)) :
+    Continuous (negNormalIioRay hS) :=
+  continuous_normalIioRay.comp ((continuous_neg.comp continuous_subtypeVal).subtype_mk _)
+
+/-- For an open set `S` of reals containing `(-1, 0]`, the point `-t` of `S` at a depth
+`t ∈ [0, 1)`. It is a right inverse of `negNormalIioRay` (`negNormalIioRay_negNormalCoord`), and
+a left inverse on `S ∩ (-∞, 0]` (`negNormalCoord_negNormalIioRay`). -/
+def negNormalCoord (hS : Ioc (-1) 0 ⊆ (S : Set ℝ)) (t : normalIioOpens 1) : S :=
+  ⟨-(t : EuclideanHalfSpace 1).val 0,
+    hS ⟨neg_lt_neg (mem_normalIioOpens.1 t.property),
+      neg_nonpos.2 (t : EuclideanHalfSpace 1).property⟩⟩
+
+theorem negNormalCoord_def (hS : Ioc (-1) 0 ⊆ (S : Set ℝ)) (t : normalIioOpens 1) :
+    negNormalCoord hS t = ⟨-(t : EuclideanHalfSpace 1).val 0,
+      hS ⟨neg_lt_neg (mem_normalIioOpens.1 t.property),
+        neg_nonpos.2 (t : EuclideanHalfSpace 1).property⟩⟩ := (rfl)
+
+/-- Read in `ℝ`, the map `negNormalCoord hS` is `s ↦ -s 0` on the points of `[0, 1)`. -/
+theorem val_comp_negNormalCoord (hS : Ioc (-1) 0 ⊆ (S : Set ℝ)) :
+    Subtype.val ∘ negNormalCoord hS =
+      (fun s : EuclideanHalfSpace 1 ↦ -s.val 0) ∘ Subtype.val := (rfl)
+
+/-- The point `negNormalCoord hS t` is minus the depth of `t`. -/
+@[simp]
+theorem coe_negNormalCoord (hS : Ioc (-1) 0 ⊆ (S : Set ℝ)) (t : normalIioOpens 1) :
+    (negNormalCoord hS t : ℝ) = -(t : EuclideanHalfSpace 1).val 0 := (rfl)
+
+/-- The point `negNormalCoord hS t` is at most `0`. -/
+theorem negNormalCoord_nonpos (hS : Ioc (-1) 0 ⊆ (S : Set ℝ)) (t : normalIioOpens 1) :
+    (negNormalCoord hS t : ℝ) ≤ 0 := by
+  rw [coe_negNormalCoord]
+  exact neg_nonpos.2 (t : EuclideanHalfSpace 1).property
+
+/-- At a positive depth `t`, the point `negNormalCoord hS t` is negative. -/
+theorem negNormalCoord_neg (hS : Ioc (-1) 0 ⊆ (S : Set ℝ)) {t : normalIioOpens 1}
+    (ht : 0 < (t : EuclideanHalfSpace 1).val 0) : (negNormalCoord hS t : ℝ) < 0 := by
+  rw [coe_negNormalCoord]
+  exact neg_neg_of_pos ht
+
+/-- The map `t ↦ -t` from depths into `S` is continuous. -/
+theorem continuous_negNormalCoord (hS : Ioc (-1) 0 ⊆ (S : Set ℝ)) :
+    Continuous (negNormalCoord hS) :=
+  Continuous.subtype_mk (by fun_prop) _
+
+/-- The depth of `-t` is `t`. -/
+@[simp]
+theorem negNormalIioRay_negNormalCoord (hS : (S : Set ℝ) ⊆ Ioi (-1))
+    (hS' : Ioc (-1) 0 ⊆ (S : Set ℝ)) (t : normalIioOpens 1) :
+    negNormalIioRay hS (negNormalCoord hS' t) = t :=
+  Subtype.ext (by simp [negNormalIioRay_def, normalRay_normalCoord])
+
+/-- For `s ≤ 0`, the point `-t` at the depth `t = -s` is `s`. -/
+theorem negNormalCoord_negNormalIioRay (hS : (S : Set ℝ) ⊆ Ioi (-1))
+    (hS' : Ioc (-1) 0 ⊆ (S : Set ℝ)) {s : S} (hs : (s : ℝ) ≤ 0) :
+    negNormalCoord hS' (negNormalIioRay hS s) = s :=
+  Subtype.ext (by rw [coe_negNormalCoord, negNormalIioRay_coe_apply_of_nonpos hS hs, neg_neg])
 
 end TauCeti.EuclideanHalfSpace
 
