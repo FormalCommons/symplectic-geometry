@@ -85,11 +85,12 @@ than comparing surfaces of equal genus. So neither a decomposition nor the
 classification of closed surfaces is used anywhere in the part.
 
 What the Euler class does not give for free is additivity, the hard direction
-of naturality, and the existence of bundles with every Chern number. All three
-come from the disc clutching formula: the Chern number is the degree of the
-determinant (for symplectic frames, the Maslov index) of the transition loop
-between a frame over a disc and a frame over its complement. That formula is
-the technical centre of the part.
+of naturality, and the existence of bundles with every Chern number.
+Additivity comes from `firstChernClass_prod`, applied to the complex bundle
+of `J₁.prod J₂`. The other two come from the disc clutching formula: the
+Chern number is the degree of the determinant (for symplectic frames, the
+Maslov index) of the transition loop between a frame over a disc and a frame
+over its complement. That formula is the technical centre of the part.
 
 ### Departure from `DESIGN.md`
 
