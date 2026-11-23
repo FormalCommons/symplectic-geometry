@@ -64,8 +64,9 @@ a smooth complex line bundle `V` with a smooth `i`-invariant real metric `g`, wh
 their norms and Hermitian products from `g` through three local instances (written with `letI` in
 the statements). The unit vector `σ 1` of a local unitary frame is then a smooth local section
 (`Bundle.Trivialization.contMDiffOn_orthonormalFrameAt_one`, a case of the smoothness of local
-unitary frames in any rank, `Bundle.Trivialization.contMDiffOn_orthonormalFrameAt`), so the
-transition functions above are smooth. By Tau Ceti's
+unitary frames in any rank,
+`Bundle.Trivialization.contMDiffOn_totalSpaceMk_orthonormalFrameAt_complex`), so the transition
+functions above are smooth. By Tau Ceti's
 `TauCeti.PrincipalBundle.contMDiffFiberBundle_iff`, the unitary frames thus form a smooth
 principal `Circle`-bundle (`SymplecticGeometry.Bundle.contMDiffFiberBundle_circleFiber`), charted
 through the fibre as `TauCeti.ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)`; Tau Ceti's
@@ -458,7 +459,7 @@ variable [ContMDiffVectorBundle n F V I] (g : ContMDiffRiemannianMetric I n F V)
 /-- For a smooth Hermitian metric on a complex line bundle, the unit vector `σ 1` of the local
 unitary frame `σ = e.orthonormalFrameAt c b` of a trivialization `e` of the atlas is a smooth
 section over the base set of `e`: the case `w = 1` of
-`Bundle.Trivialization.contMDiffOn_orthonormalFrameAt`. -/
+`Bundle.Trivialization.contMDiffOn_totalSpaceMk_orthonormalFrameAt_complex`. -/
 theorem Bundle.Trivialization.contMDiffOn_orthonormalFrameAt_one
     (e : Trivialization F (π F V)) [MemTrivializationAtlas e]
     {ι : Type*} [Fintype ι] [LinearOrder ι] [LocallyFiniteOrderBot ι] (c : Basis ι ℂ F)
@@ -467,7 +468,8 @@ theorem Bundle.Trivialization.contMDiffOn_orthonormalFrameAt_one
     letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
     ContMDiffOn I (I.prod 𝓘(ℝ, F)) n
       (fun y ↦ (⟨y, e.orthonormalFrameAt c b y 1⟩ : TotalSpace F V)) e.baseSet :=
-  e.contMDiffOn_orthonormalFrameAt g hI (e.mem_maximalAtlas_of_memTrivializationAtlas I n) c b 1
+  e.contMDiffOn_totalSpaceMk_orthonormalFrameAt_complex g hI
+    (e.mem_maximalAtlas_of_memTrivializationAtlas I n) c b 1
 
 namespace SymplecticGeometry.Bundle
 

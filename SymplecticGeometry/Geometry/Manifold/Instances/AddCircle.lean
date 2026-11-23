@@ -27,7 +27,7 @@ to `(u, r) ↦ r · exp (2π u / p · i)`, whose derivative is injective for `r 
 with Tau Ceti's inverse function theorem `TauCeti.isLocalDiffeomorphAt_of_eqOn_comp`. The same
 lift gives, by the chain rule, the derivative of polar coordinates: at `(θ, r)` it sends `(a, b)`
 to `(2π r a / p · i + b) · toCircle θ`. Their smoothness follows from that of `toCircle`
-(`AddCircle.contMDiff_toCircle`), which lifts along the quotient map `ℝ → AddCircle p`.
+(`AddCircle.contMDiff_coe_toCircle`), which lifts along the quotient map `ℝ → AddCircle p`.
 
 ## Main results
 
@@ -37,7 +37,7 @@ to `(2π r a / p · i + b) · toCircle θ`. Their smoothness follows from that o
 * `AddCircle.mfderiv_ofReal_mul_toCircle_apply`: the derivative of polar coordinates.
 * `AddCircle.not_isInvertible_mfderiv_ofReal_mul_toCircle_zero`: that derivative is not invertible
   at the radius `0`.
-* `AddCircle.contMDiff_toCircle`: the map `toCircle : AddCircle p → ℂ` is smooth.
+* `AddCircle.contMDiff_coe_toCircle`: the map `toCircle : AddCircle p → ℂ` is smooth.
 -/
 
 public section
@@ -100,7 +100,7 @@ private theorem injective_fderiv_polarLift {x : ℝ × ℝ} (hx : x.2 ≠ 0) :
 
 /-- The map `AddCircle p → ℂ`, `[t] ↦ exp (2π i t / p)`, given by `AddCircle.toCircle`, is smooth
 of every order. -/
-theorem contMDiff_toCircle (r : ℕ∞ω) :
+theorem contMDiff_coe_toCircle (r : ℕ∞ω) :
     ContMDiff 𝓘(ℝ) 𝓘(ℝ, ℂ) r fun x : AddCircle p ↦ (toCircle x : ℂ) := by
   rw [← (isLocalDiffeomorph_coe p r).contMDiff_comp_iff QuotientAddGroup.mk_surjective le_rfl]
   have h : (fun x : AddCircle p ↦ (toCircle x : ℂ)) ∘ ((↑) : ℝ → AddCircle p) =
@@ -116,7 +116,7 @@ theorem contMDiff_ofReal_mul_toCircle :
     ContMDiff (𝓘(ℝ).prod 𝓘(ℝ)) 𝓘(ℝ, ℂ) n
       (fun q : AddCircle p × ℝ ↦ (q.2 : ℂ) * (toCircle q.1 : ℂ)) :=
   contDiff_mul.comp_contMDiff ((ofRealCLM.contMDiff.comp contMDiff_snd).prodMk_space
-    ((contMDiff_toCircle n).comp contMDiff_fst))
+    ((contMDiff_coe_toCircle n).comp contMDiff_fst))
 
 /-- **The derivative of polar coordinates.** At `(θ, r)`, the derivative of
 `(θ, r) ↦ r · toCircle θ` sends `(a, b)` to `(2π r a / p · i + b) · toCircle θ`. -/
