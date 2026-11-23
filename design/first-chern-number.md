@@ -1628,19 +1628,27 @@ does.
     of the interior, oriented by `o` and `-o`, and the band. No orientation
     of `W` or of `∂W` enters, so `orientationSign_eq_neg_one_pow` is not
     used.
-    - *The band piece.* The band scaffolding of `Double/Basic.lean` is
-      private, so the file rebuilds the piece from its public API:
-      `Ioo (-1) 1 × ∂W`, re-modelled on `ℝⁿ⁺¹` by
-      `SymplecticGeometry.Remodel (endModelDiffeomorph n)`, mapped to
-      `c.Double` by `bandMap`, a local diffeomorphism by
-      `isLocalDiffeomorphOn_bandMap` and the remodelling diffeomorphism.
+    - *The band piece.* 18f makes the band piece of `Double/Basic.lean`
+      public and uses it, instead of building a second one: `bandInterval`
+      (the open interval `(-1, 1)`), `BandPiece` (`bandInterval × ∂W`,
+      re-modelled on `ℝⁿ⁺¹` by
+      `SymplecticGeometry.Remodel (endModelDiffeomorph n)`), `bandIncl`,
+      `isOpenEmbedding_bandIncl`, a new public `isLocalDiffeomorph_bandIncl`
+      (the band case of `isLocalDiffeomorph_pieceMap`), and
+      `bandIncl_remodel` stated with `bandMap` in place of the private
+      `bandPt`: `bandIncl c (remodelDiffeomorph _ _ p) = bandMap c (p.1, p.2)`
+      (by `bandMap_coe`, as `bandMap_bandCoord` is).
+      So 18f edits `Double/Basic.lean` too. The sharing of the collar depth
+      and coordinate maps with `Collar/End.lean` edits the same file but
+      none of these statements, so the two need no order: whichever lands
+      second merges the other.
     - *Its orientation.* With `g s = 1/2 - s/4`, which maps `(-1, 1)` into
       `(0, 1)`, let `β (s, x) = c (x, g s)` (the depth by `normalIioRay`),
       an interior point (`apply_mem_interior_iff_pos`) read in the
       `InteriorModel` by `interiorModelDiffeomorph`, as `collarPoint` is in
       `Gluing/CapDiscs/Orientation.lean`; `β` is smooth with invertible
       derivative since `c` is a diffeomorphism onto its open range
-      (`diffeomorphOpensRange`). Orient `Ioo (-1) 1 × ∂W` by
+      (`diffeomorphOpensRange`). Orient `bandInterval × ∂W` by
       `TauCeti.Manifold.Orientation.pullback` of `o` along `β`, and the band
       piece by the pull-back of that along the remodelling diffeomorphism.
     - *The first copy.* The band meets `range inlInterior` exactly in the
@@ -1663,7 +1671,7 @@ does.
     - *The other pairs.* The two copies are disjoint
       (`disjoint_range_inlInterior_inrInterior`), each piece is injective
       (`isOpenEmbedding_inlInterior`, `isOpenEmbedding_inrInterior`,
-      `injOn_bandMap`), and the three cover `c.Double`
+      `isOpenEmbedding_bandIncl`), and the three cover `c.Double`
       (`range_inlInterior_union_range_inrInterior_union`).
     This holds in every dimension. Blocked by 18d.
 18g. **The height function of the double.**
