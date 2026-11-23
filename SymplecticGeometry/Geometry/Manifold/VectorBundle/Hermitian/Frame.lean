@@ -65,7 +65,8 @@ The Gram–Schmidt lemmas, and the proof of
 `Bundle.Trivialization.contMDiffOn_totalSpaceMk_orthonormalFrameAt_complex`, repeat Tau Ceti's
 real ones almost word for word, with `ℂ` in place of `ℝ`. They would become unnecessary if Tau
 Ceti's `GramSchmidt.lean`, and its `Bundle.Trivialization.isLocalFrameOn_symm_of_mem_maximalAtlas`
-for a basis over a larger field of scalars, were stated for fibres with an inner product over any `RCLike` field.
+for a basis over a larger field of scalars, were stated for fibres with an inner product over any
+`RCLike` field.
 
 ## References
 

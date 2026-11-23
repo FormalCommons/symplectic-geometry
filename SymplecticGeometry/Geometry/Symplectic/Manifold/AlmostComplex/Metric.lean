@@ -132,8 +132,10 @@ def compatibleFormEquiv :
     refine (SmoothTwoForm.Compatible.metric_eq_tangentEquiv_symm_metric _).trans ?_
     simp only [LinearEquiv.symm_apply_apply]
     exact ContMDiffComplexStructure.metric_compatible_compatibleForm hg
-  right_inv σ := Subtype.ext <|
-    (congrArg ContMDiffTwoForm.tangentEquiv
+  right_inv σ := Subtype.ext <| by
+    dsimp only
+    rw [σ.property.metric_eq_tangentEquiv_symm_metric]
+    exact (congrArg ContMDiffTwoForm.tangentEquiv
       (ContMDiffTwoForm.Compatible.compatibleForm_metric _)).trans
         (LinearEquiv.apply_symm_apply _ _)
 
