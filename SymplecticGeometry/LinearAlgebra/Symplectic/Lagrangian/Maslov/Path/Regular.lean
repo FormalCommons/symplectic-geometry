@@ -494,9 +494,6 @@ open LagrangianGrassmannian
 
 universe v
 
-/-- The signature `sigPos Q - sigNeg Q` of a quadratic form, as an integer. -/
-local notation "σ[" Q "]" => ((sigPos Q : ℤ) - sigNeg Q)
-
 /-- **The Maslov index for paths of Lagrangian subspaces.** For the Robbin–Salamon index
 `pathMaslovIndex γ V` of paths `γ` in `ℒ ι` relative to a Lagrangian `V`:
 * regular crossings are isolated;
@@ -531,9 +528,9 @@ theorem pathMaslovIndex_eq_crossing_sum_and_properties :
       (∀ t : I, (γ t : Submodule ℝ (StdSpace ι)) ⊓ V ≠ ⊥ →
         (lagrangianCrossingForm (Z t) (Z' t) V).Nondegenerate) →
       pathMaslovIndex γ V =
-        ((σ[lagrangianCrossingForm (Z 0) (Z' 0) V] + σ[lagrangianCrossingForm (Z 1) (Z' 1) V] :
-            ℤ) : ℝ) / 2 +
-          ((∑ᶠ t ∈ Ioo (0 : ℝ) 1, σ[lagrangianCrossingForm (Z t) (Z' t) V] : ℤ) : ℝ)) ∧
+        (((lagrangianCrossingForm (Z 0) (Z' 0) V).signature +
+            (lagrangianCrossingForm (Z 1) (Z' 1) V).signature : ℤ) : ℝ) / 2 +
+          ((∑ᶠ t ∈ Ioo (0 : ℝ) 1, (lagrangianCrossingForm (Z t) (Z' t) V).signature : ℤ) : ℝ)) ∧
     (∀ {Λ Λ' : ℒ ι} (γ : Path Λ Λ') (V : ℒ ι),
       ∃ γ' : Path Λ Λ', γ.Homotopic γ' ∧ ∃ Z Z' : ℝ → Matrix (ι ⊕ ι) ι ℝ, ContDiff ℝ ∞ Z ∧
         (∀ s, HasDerivAt Z (Z' s) s) ∧
