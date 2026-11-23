@@ -63,9 +63,6 @@ variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
 local notation "ℒ" ι => SymplecticGeometry.LagrangianGrassmannian (SymplecticGeometry.stdForm ι)
 
-/-- The signature `sigPos Q - sigNeg Q` of a quadratic form, as an integer. -/
-local notation "σ[" Q "]" => ((sigPos Q : ℤ) - sigNeg Q)
-
 namespace SymplecticGeometry
 
 namespace LagrangianGrassmannian
@@ -110,7 +107,7 @@ theorem maslovIndex_eq_crossing_sum {Λ : ℒ ι} (γ : Path Λ Λ) {Z Z' : ℝ 
     (hreg : ∀ t ∈ Ico (0 : ℝ) 1, (Z t).toRows₁.det = 0 →
       (lagrangianCrossingForm (Z t) (Z' t) (vertical ι)).Nondegenerate) :
     maslovIndex γ =
-      ∑ᶠ t ∈ Ico (0 : ℝ) 1, σ[lagrangianCrossingForm (Z t) (Z' t) (vertical ι)] := by
+      ∑ᶠ t ∈ Ico (0 : ℝ) 1, (lagrangianCrossingForm (Z t) (Z' t) (vertical ι)).signature := by
   have h1 : Z 1 = Z 0 * g := by simpa using hg 0
   have hcross (t : I) :
       (γ t : Submodule ℝ (StdSpace ι)) ⊓ vertical ι ≠ ⊥ ↔ (Z t).toRows₁.det = 0 :=
@@ -150,11 +147,11 @@ theorem maslovIndex_eq_crossing_sum {Λ : ℒ ι} (γ : Path Λ Λ) {Z Z' : ℝ 
   rw [pathMaslovIndex_eq_maslovIndex] at key
   -- With the derivative `Z' 0 * g` at `1`, the signatures at `0` and `1` agree, and the sum over
   -- `[0, 1)` does not see the change of derivative at `1`.
-  have hσ1 : σ[lagrangianCrossingForm (Z 1) (Z'' 1) (vertical ι)] =
-      σ[lagrangianCrossingForm (Z 0) (Z' 0) (vertical ι)] := by
-    rw [← heq1.sigPos_eq, ← heq1.sigNeg_eq]
-  have hIco : ∑ᶠ t ∈ Ico (0 : ℝ) 1, σ[lagrangianCrossingForm (Z t) (Z'' t) (vertical ι)] =
-      ∑ᶠ t ∈ Ico (0 : ℝ) 1, σ[lagrangianCrossingForm (Z t) (Z' t) (vertical ι)] :=
+  have hσ1 : (lagrangianCrossingForm (Z 1) (Z'' 1) (vertical ι)).signature =
+      (lagrangianCrossingForm (Z 0) (Z' 0) (vertical ι)).signature :=
+    heq1.signature_eq.symm
+  have hIco : ∑ᶠ t ∈ Ico (0 : ℝ) 1, (lagrangianCrossingForm (Z t) (Z'' t) (vertical ι)).signature =
+      ∑ᶠ t ∈ Ico (0 : ℝ) 1, (lagrangianCrossingForm (Z t) (Z' t) (vertical ι)).signature :=
     finsum_mem_congr rfl fun t ht ↦ by rw [hZ''t ht.2.ne]
   rw [hσ1, hIco, hZ''t zero_ne_one, sub_self, Int.cast_zero, zero_div, add_zero] at key
   exact_mod_cast key
@@ -184,8 +181,8 @@ theorem maslovIndex_eq_half_crossing_sum {A : GLSymplectic ι ℝ} (γ : Path A 
         (fromRows (Ψ' t).toBlocks₁₂ (Ψ' t).toBlocks₂₂) (vertical ι)).Nondegenerate) :
     (maslovIndex γ : ℝ) =
       ((∑ᶠ t ∈ Ico (0 : ℝ) 1,
-        σ[lagrangianCrossingForm (fromRows (Ψ t).toBlocks₁₂ (Ψ t).toBlocks₂₂)
-          (fromRows (Ψ' t).toBlocks₁₂ (Ψ' t).toBlocks₂₂) (vertical ι)] : ℤ) : ℝ) / 2 := by
+        (lagrangianCrossingForm (fromRows (Ψ t).toBlocks₁₂ (Ψ t).toBlocks₂₂)
+          (fromRows (Ψ' t).toBlocks₁₂ (Ψ' t).toBlocks₂₂) (vertical ι)).signature : ℤ) : ℝ) / 2 := by
   have hV : (vertical ι : Submodule ℝ (StdSpace ι)) =
       LinearMap.range (toEuclideanLin (fromRows (0 : Matrix ι ι ℝ) 1)) := by
     rw [StdSpace.range_toEuclideanLin_fromRows_one_eq_graphY, StdSpace.graphY_zero, coe_vertical]
@@ -233,7 +230,7 @@ theorem maslovIndex_eq_crossing_sum_and_half_crossing_sum :
       (∀ t ∈ Ico (0 : ℝ) 1, (Z t).toRows₁.det = 0 →
         (lagrangianCrossingForm (Z t) (Z' t) (vertical ι)).Nondegenerate) →
       maslovIndex γ =
-        ∑ᶠ t ∈ Ico (0 : ℝ) 1, σ[lagrangianCrossingForm (Z t) (Z' t) (vertical ι)]) ∧
+        ∑ᶠ t ∈ Ico (0 : ℝ) 1, (lagrangianCrossingForm (Z t) (Z' t) (vertical ι)).signature) ∧
     (∀ {A : GLSymplectic ι ℝ} (γ : Path A A) {Ψ Ψ' : ℝ → Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ},
       (∀ t : I, ((γ t : GL (ι ⊕ ι) ℝ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) = Ψ t) →
       Function.Periodic Ψ 1 →
@@ -243,8 +240,8 @@ theorem maslovIndex_eq_crossing_sum_and_half_crossing_sum :
           (fromRows (Ψ' t).toBlocks₁₂ (Ψ' t).toBlocks₂₂) (vertical ι)).Nondegenerate) →
       (GLSymplectic.maslovIndex γ : ℝ) =
         ((∑ᶠ t ∈ Ico (0 : ℝ) 1,
-          σ[lagrangianCrossingForm (fromRows (Ψ t).toBlocks₁₂ (Ψ t).toBlocks₂₂)
-            (fromRows (Ψ' t).toBlocks₁₂ (Ψ' t).toBlocks₂₂) (vertical ι)] : ℤ) : ℝ) / 2) :=
+          (lagrangianCrossingForm (fromRows (Ψ t).toBlocks₁₂ (Ψ t).toBlocks₂₂)
+            (fromRows (Ψ' t).toBlocks₁₂ (Ψ' t).toBlocks₂₂) (vertical ι)).signature : ℤ) : ℝ) / 2) :=
   ⟨fun γ _ _ _ hZ hg hd hreg ↦ maslovIndex_eq_crossing_sum γ hZ hg hd hreg,
     fun γ _ _ hγ hΨ hd hreg ↦ GLSymplectic.maslovIndex_eq_half_crossing_sum γ hγ hΨ hd hreg⟩
 

@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.DiscreteSubset
+public import SymplecticGeometry.LinearAlgebra.QuadraticForm.Signature
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Crossing.Form
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Path.Naturality
 public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Graph
@@ -81,9 +82,6 @@ variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
 local notation "ℒ" ι => LagrangianGrassmannian (stdForm ι)
 
-/-- The signature `sigPos Q - sigNeg Q` of a quadratic form, as an integer. -/
-local notation "σ[" Q "]" => ((sigPos Q : ℤ) - sigNeg Q)
-
 namespace LagrangianGrassmannian
 
 /-! ### Paths of graphs -/
@@ -100,8 +98,9 @@ theorem pathMaslovIndex_graph_eq_crossing_sum {Λ Λ' : ℒ ι} (γ : Path Λ Λ
     (hd : ∀ t ∈ Icc (0 : ℝ) 1, (A t).det = 0 → HasDerivWithinAt A (A' t) (Icc 0 1) t)
     (hreg : ∀ t ∈ Icc (0 : ℝ) 1, (A t).det = 0 → (crossingForm (A t) (A' t)).Nondegenerate) :
     pathMaslovIndex γ (horizontal ι) =
-      ((σ[crossingForm (A 0) (A' 0)] + σ[crossingForm (A 1) (A' 1)] : ℤ) : ℝ) / 2 +
-        ((∑ᶠ t ∈ Ioo (0 : ℝ) 1, σ[crossingForm (A t) (A' t)] : ℤ) : ℝ) := by
+      (((crossingForm (A 0) (A' 0)).signature + (crossingForm (A 1) (A' 1)).signature :
+          ℤ) : ℝ) / 2 +
+        ((∑ᶠ t ∈ Ioo (0 : ℝ) 1, (crossingForm (A t) (A' t)).signature : ℤ) : ℝ) := by
   have hAc : ContinuousOn A (Icc 0 1) := by
     rw [continuousOn_iff_continuous_domRestrict]
     exact continuous_of_coe_eq_graph γ.continuous hγ
@@ -110,8 +109,9 @@ theorem pathMaslovIndex_graph_eq_crossing_sum {Λ Λ' : ℒ ι} (γ : Path Λ Λ
   obtain ⟨_, _, δ, hδ, h⟩ := exists_souriau_eq_cayley_and_pathMaslovIndex_eq_maslovIndex γ
     (A := fun t : I ↦ A t) hγ
   rw [h]
-  exact UnitaryGroup.maslovIndex_eq_crossingForm_add_finsum_of_souriau_eq_cayley δ hAc hA hδ
-    (fun t ht h ↦ (hd t ht h).matrix_elem) hreg
+  simpa only [QuadraticForm.signature_def] using
+    UnitaryGroup.maslovIndex_eq_crossingForm_add_finsum_of_souriau_eq_cayley δ hAc hA hδ
+      (fun t ht h ↦ (hd t ht h).matrix_elem) hreg
 
 /-- Two integer weightings of `[0, 1]` that agree there give the same crossing sum. -/
 private theorem crossing_sum_congr {f g : ℝ → ℤ} (h : ∀ t ∈ Icc (0 : ℝ) 1, f t = g t) :
@@ -131,10 +131,10 @@ private theorem crossing_sum_of_isCompl_vertical {Λ Λ' : ℒ ι} (γ : Path Λ
     (hreg : ∀ t : I, (γ t : Submodule ℝ (StdSpace ι)) ⊓ horizontal ι ≠ ⊥ →
       (lagrangianCrossingForm (Z t) (Z' t) (horizontal ι)).Nondegenerate) :
     pathMaslovIndex γ (horizontal ι) =
-      ((σ[lagrangianCrossingForm (Z 0) (Z' 0) (horizontal ι)] +
-          σ[lagrangianCrossingForm (Z 1) (Z' 1) (horizontal ι)] : ℤ) : ℝ) / 2 +
+      (((lagrangianCrossingForm (Z 0) (Z' 0) (horizontal ι)).signature +
+          (lagrangianCrossingForm (Z 1) (Z' 1) (horizontal ι)).signature : ℤ) : ℝ) / 2 +
         ((∑ᶠ t ∈ Ioo (0 : ℝ) 1,
-          σ[lagrangianCrossingForm (Z t) (Z' t) (horizontal ι)] : ℤ) : ℝ) := by
+          (lagrangianCrossingForm (Z t) (Z' t) (horizontal ι)).signature : ℤ) : ℝ) := by
   -- The blocks `Z t = fromRows (X t) (Y t)`; `X t` is invertible since `γ t` is transverse to
   -- `{x = 0}`, and `γ t` is the graph of `A t = Y t (X t)⁻¹`.
   set X : ℝ → Matrix ι ι ℝ := fun r ↦ (Z r).toRows₁
@@ -184,10 +184,9 @@ private theorem crossing_sum_of_isCompl_vertical {Λ Λ' : ℒ ι} (γ : Path Λ
   have hregA (t : ℝ) (ht : t ∈ Icc (0 : ℝ) 1) (h : (A t).det = 0) :
       (crossingForm (A t) (A' t)).Nondegenerate :=
     (Classical.choice (heq ⟨t, ht⟩)).nondegenerate_iff.1 (hreg ⟨t, ht⟩ (hcross ⟨t, ht⟩ h))
-  have hσ (t : ℝ) (ht : t ∈ Icc (0 : ℝ) 1) : σ[crossingForm (A t) (A' t)] =
-      σ[lagrangianCrossingForm (Z t) (Z' t) (horizontal ι)] := by
-    have h := (heq ⟨t, ht⟩).symm
-    rw [h.sigPos_eq, h.sigNeg_eq]
+  have hσ (t : ℝ) (ht : t ∈ Icc (0 : ℝ) 1) : (crossingForm (A t) (A' t)).signature =
+      (lagrangianCrossingForm (Z t) (Z' t) (horizontal ι)).signature :=
+    (heq ⟨t, ht⟩).symm.signature_eq
   have hsum := crossing_sum_congr hσ
   exact (pathMaslovIndex_graph_eq_crossing_sum γ hγA hdA hregA).trans hsum
 
@@ -204,9 +203,9 @@ private theorem crossing_sum_of_isCompl {Λ Λ' : ℒ ι} (γ : Path Λ Λ') {V 
     (hreg : ∀ t : I, (γ t : Submodule ℝ (StdSpace ι)) ⊓ V ≠ ⊥ →
       (lagrangianCrossingForm (Z t) (Z' t) V).Nondegenerate) :
     pathMaslovIndex γ V =
-      ((σ[lagrangianCrossingForm (Z 0) (Z' 0) V] + σ[lagrangianCrossingForm (Z 1) (Z' 1) V] :
-          ℤ) : ℝ) / 2 +
-        ((∑ᶠ t ∈ Ioo (0 : ℝ) 1, σ[lagrangianCrossingForm (Z t) (Z' t) V] : ℤ) : ℝ) := by
+      (((lagrangianCrossingForm (Z 0) (Z' 0) V).signature +
+          (lagrangianCrossingForm (Z 1) (Z' 1) V).signature : ℤ) : ℝ) / 2 +
+        ((∑ᶠ t ∈ Ioo (0 : ℝ) 1, (lagrangianCrossingForm (Z t) (Z' t) V).signature : ℤ) : ℝ) := by
   obtain ⟨g, hgV, hgW⟩ := exists_smul_eq_horizontal_vertical hVW
   have hΨV : g⁻¹ • V = horizontal ι := by rw [← hgV, inv_smul_smul]
   have hΨW : g⁻¹ • W = vertical ι := by rw [← hgW, inv_smul_smul]
@@ -231,10 +230,9 @@ private theorem crossing_sum_of_isCompl {Λ Λ' : ℒ ι} (γ : Path Λ Λ') {V 
       simpa using (hasDerivWithinAt_matrix_const M _ _).matrix_mul (hd t ((hcross t).1 h)))
     (fun t h ↦ (Classical.choice (heq t)).nondegenerate_iff.1 (hreg t ((hcross t).1 h)))
   have hσ (t : ℝ) (_ : t ∈ Icc (0 : ℝ) 1) :
-      σ[lagrangianCrossingForm (M * Z t) (M * Z' t) (horizontal ι)] =
-        σ[lagrangianCrossingForm (Z t) (Z' t) V] := by
-    have h := (heq t).symm
-    rw [h.sigPos_eq, h.sigNeg_eq]
+      (lagrangianCrossingForm (M * Z t) (M * Z' t) (horizontal ι)).signature =
+        (lagrangianCrossingForm (Z t) (Z' t) V).signature :=
+    (heq t).symm.signature_eq
   have hsum := crossing_sum_congr hσ
   rw [← pathMaslovIndex_smul g⁻¹ γ V, hΨV]
   exact key.trans hsum
@@ -251,9 +249,9 @@ private theorem crossing_sum_subpath {Λ Λ' : ℒ ι} (γ : Path Λ Λ') {V W :
       (lagrangianCrossingForm (Z t) (Z' t) V).Nondegenerate)
     {a b : I} (hab : a < b) (hW : ∀ t ∈ Icc a b, IsCompl (γ t : Submodule ℝ (StdSpace ι)) W) :
     pathMaslovIndex (γ.subpath a b) V =
-      ((σ[lagrangianCrossingForm (Z a) (Z' a) V] + σ[lagrangianCrossingForm (Z b) (Z' b) V] :
-          ℤ) : ℝ) / 2 +
-        ((∑ᶠ t ∈ Ioo (a : ℝ) b, σ[lagrangianCrossingForm (Z t) (Z' t) V] : ℤ) : ℝ) := by
+      (((lagrangianCrossingForm (Z a) (Z' a) V).signature +
+          (lagrangianCrossingForm (Z b) (Z' b) V).signature : ℤ) : ℝ) / 2 +
+        ((∑ᶠ t ∈ Ioo (a : ℝ) b, (lagrangianCrossingForm (Z t) (Z' t) V).signature : ℤ) : ℝ) := by
   have hba : (0 : ℝ) < b - a := sub_pos.2 (Subtype.coe_lt_coe.2 hab)
   -- The affine reparametrization `φ` of `[a, b]` by `[0, 1]`, which `Path.subpath` uses.
   set φ : ℝ → ℝ := fun r ↦ (1 - r) * a + r * b
@@ -285,10 +283,9 @@ private theorem crossing_sum_subpath {Λ Λ' : ℒ ι} (γ : Path Λ Λ') {V W :
     (fun s h ↦ by
       rw [lagrangianCrossingForm_smul, QuadraticMap.nondegenerate_smul_iff hba.ne'.isUnit, hφ]
       exact hreg _ (hcross s h))
-  have hσ (r : ℝ) : σ[lagrangianCrossingForm (Z (φ r)) (((b : ℝ) - a) • Z' (φ r)) V] =
-      σ[lagrangianCrossingForm (Z (φ r)) (Z' (φ r)) V] := by
-    rw [lagrangianCrossingForm_smul, QuadraticForm.sigPos_smul_of_pos _ hba,
-      QuadraticForm.sigNeg_smul_of_pos _ hba]
+  have hσ (r : ℝ) : (lagrangianCrossingForm (Z (φ r)) (((b : ℝ) - a) • Z' (φ r)) V).signature =
+      (lagrangianCrossingForm (Z (φ r)) (Z' (φ r)) V).signature := by
+    rw [lagrangianCrossingForm_smul, QuadraticForm.signature_smul_of_pos _ hba]
   have hbij : BijOn φ (Ioo 0 1) (Ioo (a : ℝ) b) := by
     refine ⟨fun r hr ↦ ?_, fun r _ r' _ h ↦ ?_, fun t ht ↦ ?_⟩
     · constructor <;> simp only [φ] <;> nlinarith [hr.1, hr.2]
@@ -302,7 +299,7 @@ private theorem crossing_sum_subpath {Λ Λ' : ℒ ι} (γ : Path Λ Λ') {V W :
   have h0 : φ 0 = a := by simp [φ]
   have h1 : φ 1 = b := by simp [φ]
   rw [key, hσ, hσ, finsum_mem_congr rfl fun r _ ↦ hσ r,
-    finsum_mem_eq_of_bijOn φ hbij (g := fun t ↦ σ[lagrangianCrossingForm (Z t) (Z' t) V])
+    finsum_mem_eq_of_bijOn φ hbij (g := fun t ↦ (lagrangianCrossingForm (Z t) (Z' t) V).signature)
       fun _ _ ↦ rfl, h0, h1]
 
 /-! ### The crossing-form formula -/
@@ -346,11 +343,12 @@ theorem finite_Icc_inter_support_signature_of_regular {Λ Λ' : ℒ ι} (γ : Pa
     (hreg : ∀ t : I, (γ t : Submodule ℝ (StdSpace ι)) ⊓ V ≠ ⊥ →
       (lagrangianCrossingForm (Z t) (Z' t) V).Nondegenerate) :
     (Icc (0 : ℝ) 1 ∩
-      Function.support fun t ↦ σ[lagrangianCrossingForm (Z t) (Z' t) V]).Finite :=
+      Function.support fun t ↦ (lagrangianCrossingForm (Z t) (Z' t) V).signature).Finite :=
   ((finite_setOf_inf_ne_bot_of_regular γ V hZ hd hreg).image ((↑) : I → ℝ)).subset
     fun t ⟨ht, hst⟩ ↦ ⟨⟨t, ht⟩, fun h ↦
-      hst (sigPos_sub_sigNeg_lagrangianCrossingForm_eq_zero_of_inf_eq_bot
-        (by rwa [hZ ⟨t, ht⟩]) _), rfl⟩
+      hst ((congrArg QuadraticForm.signature
+        (lagrangianCrossingForm_eq_zero_of_inf_eq_bot (by rwa [hZ ⟨t, ht⟩]) _)).trans
+          QuadraticForm.signature_zero), rfl⟩
 
 /-- **The crossing-form formula for paths, with the crossing at `0` counted fully.** Under the
 hypotheses of `pathMaslovIndex_eq_crossing_sum`, the index of `γ` relative to `V` is the sum of
@@ -364,10 +362,10 @@ theorem pathMaslovIndex_eq_crossing_sum_Ico {Λ Λ' : ℒ ι} (γ : Path Λ Λ')
     (hreg : ∀ t : I, (γ t : Submodule ℝ (StdSpace ι)) ⊓ V ≠ ⊥ →
       (lagrangianCrossingForm (Z t) (Z' t) V).Nondegenerate) :
     pathMaslovIndex γ V =
-      ((∑ᶠ t ∈ Ico (0 : ℝ) 1, σ[lagrangianCrossingForm (Z t) (Z' t) V] : ℤ) : ℝ) +
-        ((σ[lagrangianCrossingForm (Z 1) (Z' 1) V] - σ[lagrangianCrossingForm (Z 0) (Z' 0) V] :
-          ℤ) : ℝ) / 2 := by
-  set sgn : ℝ → ℤ := fun t ↦ σ[lagrangianCrossingForm (Z t) (Z' t) V] with hsgn
+      ((∑ᶠ t ∈ Ico (0 : ℝ) 1, (lagrangianCrossingForm (Z t) (Z' t) V).signature : ℤ) : ℝ) +
+        (((lagrangianCrossingForm (Z 1) (Z' 1) V).signature -
+            (lagrangianCrossingForm (Z 0) (Z' 0) V).signature : ℤ) : ℝ) / 2 := by
+  set sgn : ℝ → ℤ := fun t ↦ (lagrangianCrossingForm (Z t) (Z' t) V).signature with hsgn
   have hsupp {s : Set ℝ} (hs : s ⊆ Icc 0 1) : (s ∩ Function.support sgn).Finite :=
     (finite_Icc_inter_support_signature_of_regular γ V hZ hd hreg).subset
       (inter_subset_inter_left _ hs)
@@ -436,9 +434,9 @@ theorem pathMaslovIndex_eq_crossing_sum {Λ Λ' : ℒ ι} (γ : Path Λ Λ') (V 
     (hreg : ∀ t : I, (γ t : Submodule ℝ (StdSpace ι)) ⊓ V ≠ ⊥ →
       (lagrangianCrossingForm (Z t) (Z' t) V).Nondegenerate) :
     pathMaslovIndex γ V =
-      ((σ[lagrangianCrossingForm (Z 0) (Z' 0) V] + σ[lagrangianCrossingForm (Z 1) (Z' 1) V] :
-          ℤ) : ℝ) / 2 +
-        ((∑ᶠ t ∈ Ioo (0 : ℝ) 1, σ[lagrangianCrossingForm (Z t) (Z' t) V] : ℤ) : ℝ) := by
+      (((lagrangianCrossingForm (Z 0) (Z' 0) V).signature +
+          (lagrangianCrossingForm (Z 1) (Z' 1) V).signature : ℤ) : ℝ) / 2 +
+        ((∑ᶠ t ∈ Ioo (0 : ℝ) 1, (lagrangianCrossingForm (Z t) (Z' t) V).signature : ℤ) : ℝ) := by
   rw [pathMaslovIndex_eq_crossing_sum_Ico γ V hZ hd hreg, ← insert_left_Ioo zero_lt_one,
     finsum_mem_insert' _ left_notMem_Ioo
       ((finite_Icc_inter_support_signature_of_regular γ V hZ hd hreg).subset
