@@ -98,10 +98,11 @@ The overview placed the splitting definition and the extension lemma in
 `Basic.lean`, and the comparison with `clutchingNumber` in `Clutching.lean`.
 With the cohomological definition, the class and the number go in
 `Topology/VectorBundle/Complex/FirstChernClass.lean`, `Basic.lean` holds the
-symplectic number, the splitting description and the extension lemma move to
-`Splitting.lean`, `Clutching.lean` holds the disc clutching formula, the
-comparison with `clutchingNumber` moves to `ClutchingNumber.lean`, and
-`Gluing.lean` is new. The *Files* bullet of part 13 in `DESIGN.md` is
+symplectic number, the splitting description moves to `Splitting.lean` and
+the extension lemma to `Extension.lean`, `Clutching.lean` holds the disc
+clutching formula, the comparison with `clutchingNumber` moves to
+`ClutchingNumber.lean`, and `Gluing.lean` and `DoubleClutching.lean` are
+new. The *Files* bullet of part 13 in `DESIGN.md` is
 updated to match.
 
 ## Conventions
@@ -557,9 +558,9 @@ two clutching functions agree by the convention above. The theorem is
 
 ### `Geometry/Manifold/VectorBundle/ChernNumber/Splitting.lean`
 
-The book's description and its key lemma. Both are part of the first
-milestone, with `existsUnique_chernNumberAxioms`: the milestone is complete
-only when `symplecticChernNumber_eq_boundaryMaslovIndex` and
+The book's description. With its key lemma (`Extension.lean`), it is part
+of the first milestone, with `existsUnique_chernNumberAxioms`: the milestone
+is complete only when `symplecticChernNumber_eq_boundaryMaslovIndex` and
 `exists_extension_iff_boundaryMaslovIndex_eq_zero` are proved too, and both
 docstrings end with the same milestone line.
 
@@ -638,18 +639,93 @@ docstrings end with the same milestone line.
   second is the determinant of the transition on `C`, and
   `evalFundamentalClass_eulerClass_eq_boundaryDegree` (prerequisite 7)
   applies.
-- `exists_extension_iff_boundaryMaslovIndex_eq_zero`: the book's Lemma 2.7.3,
-  for a connected compact oriented surface whose boundary is not empty, in the
-  representation of *Symplectic vector bundles* above. A continuous `Ψ` on
-  the boundary extends continuously over the surface if and only if its
-  `boundaryMaslovIndex` is $0$. "Only if": the Maslov phase of an extension
-  extends `maslovPhase ∘ Ψ` over `X`, and `boundaryDegree_eq_zero_of_extend`
-  (prerequisite 7) applies. "If": cap the boundary circles with discs
-  (prerequisite 8) and glue a bundle over the closed surface with clutching
-  `Ψ`. Its number is $0$, so it is trivial by `nonempty_iso_iff`. A global
-  frame then writes `Ψ` as a map defined on the surface times maps defined on
-  the discs, and the latter are null-homotopic on the circles, which a collar
-  absorbs.
+- `boundaryMaslovIndex_comp_homeomorph` (issue 18a): the boundary Maslov
+  index is invariant under a homeomorphism of settings, from
+  `boundaryDegree_comp_homeomorph`.
+
+### `Geometry/Manifold/VectorBundle/ChernNumber/DoubleClutching.lean`
+
+The bundle over the double of a surface clutched by a smooth map on its
+boundary, and its number. `S` is a compact connected surface over `𝓡∂ 2`
+with nonempty boundary, `o` an orientation of its interior, `c` a smooth
+collar of `∂S` (one exists: the instance `Nonempty (SmoothCollar n ∞ W)` of
+`Boundary/Collar/Flow/Basic.lean`), and `c.Double` the double of issues
+18d–18g, with `height` splitting it into the two copies of `S`.
+
+- `ClosedConnectedOrientedSurface.double c o hS`: `c.Double` with
+  `Double.orientation o`, bundled as a `ClosedConnectedOrientedSurface`
+  (`hS : ((𝓡∂ 2).boundary S).Nonempty` gives connectedness).
+- `TauCeti.Manifold.Orientation.boundaryMaslovIndex_eq_sublevelBoundaryMaslovIndex_height`:
+  for `Ψ : C(∂S, GLSymplectic κ ℝ)`, `o.boundaryMaslovIndex Ψ` is the
+  `sublevelBoundaryMaslovIndex` on `{height ≤ 0}`, for
+  `(Double.orientation o).toHomologicalOrientation`, of `Ψ` read on the
+  level set through `bandProj`. Proof: `boundaryMaslovIndex_comp_homeomorph`
+  (18a) along `Double.homeomorphSublevel` (18g); the orientations agree since
+  `inlInterior` preserves orientation from `o` (18f), by
+  `TauCeti.Manifold.Orientation.comap_toHomologicalOrientation`, the
+  pull-back of `toHomologicalOrientation` along an orientation-preserving
+  open embedding that is a local diffeomorphism, from
+  `TauCeti.Manifold.Orientation.localHomologyMap_toHomologicalOrientation`,
+  in this library's `AlgebraicTopology/Singular/LocalHomology/Orientation/Smooth.lean`.
+- `SymplecticSurfaceBundle.doubleClutching c o hS Ψ hΨ`, for `κ : Type`
+  and `Ψ : C(∂S, GLSymplectic κ ℝ)` smooth as a map into
+  `Matrix.symplecticGroup κ ℝ` (through
+  `TauCeti.GLSymplectic.symplecticGroupContinuousMulEquiv`): the bundle
+  `symplecticClutchingCore` (18c) over `c.Double` with
+  `U₁ = range inlInterior ∪ band`, `U₂ = range inrInterior ∪ band`, where
+  `band` is the open image of `(-1, 1) × ∂S`, and `T = Ψ ∘ bandProj` on
+  `U₁ ∩ U₂ = band`.
+  `U₁` contains `{height ≤ 0}` and `U₂` contains `{height ≥ 0}`.
+- `symplecticChernNumber_doubleClutching`: its number is
+  `o.boundaryMaslovIndex Ψ`. Proof: the two frames of 18c restricted to
+  `{height ≤ 0}` and `{height ≥ 0}` are symplectic frames related by `Ψ` on
+  the level set, so `symplecticChernNumber_eq_boundaryMaslovIndex` applies,
+  and then the comparison above.
+
+### `Geometry/Manifold/VectorBundle/ChernNumber/Extension.lean`
+
+- **Milestone**
+  `TauCeti.Manifold.Orientation.exists_extension_iff_boundaryMaslovIndex_eq_zero`,
+  the book's Lemma 2.7.3, in the representation of `Splitting.lean`: for
+  `S` over `𝓡∂ 2`, `[IsManifold (𝓡∂ 2) ∞ S] [T2Space S] [CompactSpace S]
+  [ConnectedSpace S]`, an orientation `o` of its interior, `n : Type*` finite
+  with decidable equality and `Ψ : C((𝓡∂ 2).boundary S, GLSymplectic n ℝ)`,
+  `(∃ Φ : C(S, GLSymplectic n ℝ), ∀ z, Φ z = Ψ z) ↔ o.boundaryMaslovIndex Ψ = 0`.
+  Its docstring ends with the line Milestone: *First Chern number of
+  symplectic vector bundles over surfaces*.
+  - **Hypotheses.** The plan asks for a nonempty boundary. The statement
+    does not: when `∂S` is empty, `Ψ` is the restriction of the constant map
+    `1`, so both sides hold. Connectedness stays: on two discs, with `Ψ` of
+    Maslov index `1` on one circle and `-1` on the other, the index is `0`
+    but `Ψ` extends over neither disc.
+  - "Only if" is `boundaryMaslovIndex_eq_zero_of_extend`.
+  - "If", for `∂S` nonempty. Reindex `n` to `Fin k`
+    (`TauCeti.GLSymplectic.reindex`, `maslovPhase_reindex`). By Tau Ceti's
+    `ContinuousMap.exists_contMDiff_homotopic_of_isCompact_closure_range`,
+    into `Matrix.symplecticGroup (Fin k) ℝ` through
+    `symplecticGroupContinuousMulEquiv`, `Ψ` is homotopic to a smooth `Ψ'`,
+    of index `0` by `boundaryMaslovIndex_eq_of_homotopy`. Then
+    `doubleClutching c o hS Ψ' _` has number `0`, so it is trivial
+    (`SymplecticSurfaceBundle.symplecticChernNumber_eq_zero_iff`). Read the
+    global symplectic frame in the frames of `U₁` and `U₂`: this gives
+    continuous `A` on `U₁` and `B` on `U₂` with values in the symplectic
+    group, and `B = A Ψ'` on the band, since there the second frame is the
+    first composed with `Ψ'`. On `∂S` the two inclusions of `S` agree, so
+    `(A ∘ DoubleAlong.inl _)⁻¹ * (B ∘ DoubleAlong.inr _)` extends `Ψ'` over
+    `S`.
+    Last, the homotopy extension property of the collared boundary (18b,
+    applied to `TauCeti.isCollared_subtypeVal_boundary_of_compactSpace`)
+    with `TauCeti.HasHomotopyExtensionProperty.exists_homotopy_of_restrict`
+    turns this into an extension of `Ψ`.
+  - **Why the double and not capping.** Capping `∂S` with discs
+    (prerequisite 8) needs loops that parametrize `∂S`, the classification
+    of compact 1-manifolds, which neither this library nor Tau Ceti has; a
+    bundle clutched over several discs; and a comparison of the classes of
+    the cap circles with the boundary class of `S`. The double needs none
+    of these: `height` makes it a split surface whose half `{height ≤ 0}` is
+    `S`, so `symplecticChernNumber_eq_boundaryMaslovIndex` computes the
+    number directly, and a global frame gives the extension without
+    absorbing anything in a collar.
 
 ## What the part uses
 
@@ -1437,10 +1513,131 @@ issues, in an order where each issue's blockers come before it.
     `symplecticChernNumber_eq_boundaryMaslovIndex`, with
     `TauCeti.GLSymplectic.maslovPhase_mul_homotopic` in
     `Analysis/Matrix/SymplecticGroup/Maslov.lean`. Blocked by 7 and 12.
-18. **The extension lemma.** `exists_extension_iff_boundaryMaslovIndex_eq_zero`
-    in `Splitting.lean`. Blocked by 8, 14 and 17.
 
-The first milestone needs issues 1, 2, 5–10, 12–14, 17 and 18, with the
+The extension lemma, issue 18, comes after its own issues 18a–18h, in the
+route of `Extension.lean`. For a manifold `W` over `𝓡∂ (n + 1)` with a
+smooth collar `c`, the double `c.Double` is Tau Ceti's topological double
+`TauCeti.DoubleAlong ((𝓡∂ (n + 1)).boundary W)`, as Tau Ceti's
+`TauCeti.SchottkyDouble` is, so its topology (`DoubleAlong.inl`,
+`DoubleAlong.inr`, `inl_coe_eq_inr`, `inl_eq_inr_iff`, compactness,
+`isClosedEmbedding_inl`, `isOpenEmbedding_inl_compl`,
+`disjoint_image_compl`, `t2Space`, with their `inr` forms) is cited, not
+proved again. Its smooth structure is glued from open embeddings by
+`TauCeti.chartedSpaceOfIsOpenEmbedding` and
+`TauCeti.isManifold_chartedSpaceOfIsOpenEmbedding`
+(`Geometry/Manifold/Gluing/Basic.lean`), with the band read in collar
+coordinates as `TauCeti.SmoothCollar.WithEnd` reads its end in
+`Boundary/Collar/End.lean`; 18d–18g hold in every dimension, as `End.lean`
+does.
+
+18a. **Boundary degrees under homeomorphisms.**
+    `TauCeti.HomologicalOrientation.boundaryDegree_comp_homeomorph` in
+    `AlgebraicTopology/Singular/LocalHomology/BoundaryDegree.lean`: for two
+    instances `(X, M, ι, f)` and `(X', M', ι', f')` of the setting of the
+    boundary degree, `o'` an orientation of `M'`, a homeomorphism `h : X ≃ₜ X'` and
+    `φ : M ≃ₜ M'` with `h ∘ ι = ι' ∘ φ`, the boundary degree for
+    `o'.comap φ.isOpenEmbedding` of `u ∘ h|∂X` is the boundary degree for
+    `o'` of `u`, for every `u : C(∂X', Circle)`. Proof: `h` carries the
+    relative fundamental class to the relative fundamental class, by the
+    uniqueness `TauCeti.HomologicalOrientation.eq_fundamentalClassRel`, and
+    the connecting morphism is natural. With
+    `TauCeti.HomologicalOrientation.boundaryMaslovIndex_comp_homeomorph` in
+    `Splitting.lean`. Can start at once.
+18b. **Homotopy extension along a collar.**
+    `TauCeti.IsCollar.hasHomotopyExtensionProperty_range` in
+    `Topology/Homotopy/Extension/Collar.lean`, beside Tau Ceti's folder: if
+    `c` is a collar of `f : N → X` (`TauCeti.IsCollar`), `N` compact and `X`
+    Hausdorff, then `range f` has `TauCeti.HasHomotopyExtensionProperty`.
+    Proof: NDR data as in Tau Ceti's `TauCeti.sublevelNDRPair`, with the
+    collar depth in place of the function, pushing the points of depth below
+    `1 / 2` down to depth `0`; compactness of `N` makes `c(N × [0, 1/2])`
+    closed. With `TauCeti.IsCollared.hasHomotopyExtensionProperty_range`.
+    Can start at once.
+18c. **Symplectic bundles from a clutching map.**
+    `Geometry/Manifold/VectorBundle/Symplectic/Clutching.lean`: over a
+    manifold `M` with open `U₁ U₂` covering it and
+    `T : M → Matrix.symplecticGroup κ ℝ` smooth on `U₁ ∩ U₂`,
+    `SymplecticGeometry.Bundle.symplecticClutchingCore U₁ U₂ T`, a
+    `VectorBundleCore` with fibre `StdSpace κ`, two charts and coordinate
+    change `T` from the second to the first, with
+    `isContMDiff_symplecticClutchingCore`; its form
+    `symplecticClutchingForm`, the constant `stdForm κ` in every chart,
+    smooth because the coordinate changes are symplectic, and nondegenerate
+    (`isNondegenerate_symplecticClutchingForm`); and its frames
+    `symplecticClutchingFrame b`, with
+    `isSymplecticFrameOn_symplecticClutchingFrame` (a
+    `ContMDiffTwoForm.IsSymplecticFrameOn` for `stdForm κ` on `U₁` for
+    `b = true`, on `U₂` for `false`) and
+    `symplecticClutchingFrame_false_apply`: on `U₁ ∩ U₂`, the second frame
+    at `v` is the first at `T x v`. Can start at once.
+18d. **The double along a collar.**
+    `Geometry/Manifold/Boundary/Collar/Double/Basic.lean`:
+    `TauCeti.SmoothCollar.Double c`, an `abbrev` for
+    `DoubleAlong ((𝓡∂ (n + 1)).boundary W)`, in the universe of `W`. The
+    band map `Double.bandMap : ℝ × ∂W → c.Double` (as `WithEnd.endMap`)
+    sends `(s, x)` to `DoubleAlong.inl _ (c (x, -s))` for `s ∈ (-1, 0]` and
+    to `DoubleAlong.inr _ (c (x, s))` for `s ∈ [0, 1)`; the two agree at
+    `s = 0` by `inl_coe_eq_inr`. With `bandMap_of_nonpos`,
+    `bandMap_of_nonneg`, `injOn_bandMap` and `isOpenMap` of its restriction
+    to `Ioo (-1) 1 ×ˢ univ`, whose image is open. The pieces are the
+    interior of `W` (`SymplecticGeometry.InteriorModel`), embedded twice by
+    `Double.inlInterior` and `Double.inrInterior`, `DoubleAlong.inl` and
+    `DoubleAlong.inr` on the interior (`inlInterior_apply`,
+    `inrInterior_apply`), open embeddings by `isOpenEmbedding_inl_compl`
+    and `isOpenEmbedding_inr_compl` (the interior is the complement of the
+    closed boundary, `ModelWithCorners.isClosed_boundary`), and the band
+    `(-1, 1) × ∂W` re-modelled on `ℝⁿ⁺¹`
+    (`SymplecticGeometry.Remodel`), embedded by `bandMap`. They cover
+    `c.Double`, and their transition maps are smooth: between an interior
+    copy and the band they are `c` and its inverse read in
+    `TauCeti.SmoothCollar.interiorModelCoord`, with the sign of `s` flipped
+    on the first copy. So `chartedSpaceOfIsOpenEmbedding` and
+    `isManifold_chartedSpaceOfIsOpenEmbedding` make `c.Double` a smooth
+    manifold over `𝓡 (n + 1)`. Then `isLocalDiffeomorph_inlInterior`,
+    `isLocalDiffeomorph_inrInterior`, `isLocalDiffeomorphOn_bandMap` on
+    `Ioo (-1) 1 ×ˢ univ`, the cover by the three ranges, and
+    `Double.bandProj : c.Double → ∂W`, smooth on the band, with
+    `bandProj (bandMap (s, x)) = x` for `s ∈ (-1, 1)`. Can start at once.
+18e. **The double is a closed manifold.** The topology of `c.Double` is
+    Tau Ceti's, except connectedness, which it lacks.
+    `TauCeti.DoubleAlong.connectedSpace` in
+    `Topology/Constructions/DoubleAlong/Connected.lean`: the double of a
+    connected space along a nonempty subset is connected (both copies are
+    connected and meet along the subset). In
+    `Geometry/Manifold/Boundary/Collar/Double/Topology.lean`, the instance
+    `T2Space c.Double` for Hausdorff `W`, from `DoubleAlong.t2Space` and
+    `ModelWithCorners.isClosed_boundary`; compactness is Tau Ceti's
+    instance. So `c.Double` is connected when `W` is connected with
+    nonempty boundary. The two copies of `W` are `DoubleAlong.inl` and
+    `DoubleAlong.inr`, and their closed-embedding, agreement and
+    open-interior facts are Tau Ceti's. Blocked by 18d.
+18f. **The orientation of the double.**
+    `Geometry/Manifold/Boundary/Collar/Double/Orientation.lean`: for an
+    orientation `o` of the interior of `W`, `Double.orientation o`, glued by
+    `TauCeti.Manifold.Orientation.iGlue`, with
+    `isOrientationPreservingAt_inlInterior` (from `o`) and
+    `isOrientationPreservingAt_inrInterior` (from `-o`): the band coordinate
+    is reflected between the two copies. The comparison on the band uses
+    `TauCeti.SmoothCollar.orientationSign_eq_neg_one_pow`, as
+    `Gluing/CapDiscs/Orientation.lean` does. Blocked by 18d.
+18g. **The height function of the double.**
+    `Geometry/Manifold/Boundary/Collar/Double/Height.lean`:
+    `Double.height : c.Double → ℝ`, `-1` on the first copy away from the
+    collar, `1` on the second, and on the band an odd function of `s` equal
+    to `s` near `0` and nonzero for `s ≠ 0`; `contMDiff_height`,
+    `isRegularValue_height_zero`, `preimage_height_Iic` (the range of
+    `DoubleAlong.inl`), `preimage_height_Iio` (the range of `inlInterior`),
+    `preimage_height_zero` (`bandMap '' ({0} ×ˢ univ)`), and
+    `Double.homeomorphSublevel : W ≃ₜ height ⁻¹' Iic 0`, from
+    `DoubleAlong.inl`, which maps the interior onto `{height < 0}`. Blocked
+    by 18e.
+18h. **The clutched bundle over the double.** `DoubleClutching.lean`.
+    Blocked by 18a, 18c, 18f and 18g.
+18. **The extension lemma.** `exists_extension_iff_boundaryMaslovIndex_eq_zero`
+    in `Extension.lean`. Blocked by 14, 17, 18b and 18h.
+
+The first milestone needs issues 1, 2, 5–7, 9, 10, 12–14, 17 and 18 with
+18a–18h, with the
 named issues of other parts; it is done only when 14, 17 and 18 are all
 merged. The Euler-number milestone needs 1, 10 and 11, and the Chern–Weil
 milestone 1, 3–7, 10, 12 and 15. Issue 16 completes the comparison with Tau
