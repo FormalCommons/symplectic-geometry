@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Manifold.Volume
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.LineBundle
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
 public import TauCeti.Topology.VectorBundle.Orientation.FiberwiseEquiv
+public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 
 /-!
 # The symplectic orientation of a surface is the orientation of a tamed complex structure
@@ -67,8 +68,7 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   {J : ContMDiffComplexStructure I m E (TangentSpace I : M → Type _)}
   [Fact (finrank ℝ E = 2 * finrank ℂ ℂ)]
 
-local instance : VectorBundle ℝ ℂ J.toContinuousComplexStructure.Fiber :=
-  VectorBundle.restrictScalars ℝ ℂ ℂ _
+open scoped VectorBundle.ComplexToReal
 
 /-- **A tamed complex structure induces the symplectic orientation of a surface.** Let `σ` be a
 nondegenerate smooth two-form on a manifold modelled on a plane, and `J` a complex structure on
@@ -114,8 +114,7 @@ variable {E H M : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimens
   {J : ContMDiffComplexStructure I m E (TangentSpace I : M → Type)}
   [Fact (finrank ℝ E = 2 * finrank ℂ ℂ)]
 
-local instance : VectorBundle ℝ ℂ J.toContinuousComplexStructure.Fiber :=
-  VectorBundle.restrictScalars ℝ ℂ ℂ _
+open scoped VectorBundle.ComplexToReal
 
 /-- **The Euler class of a tamed complex structure on a surface.** Let `σ` be a nondegenerate
 smooth two-form on a manifold `M` modelled on a plane, and `J` a complex structure on the tangent

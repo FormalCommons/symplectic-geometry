@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Basic
-public import SymplecticGeometry.Geometry.Manifold.Instances.SymplecticGroup
+public import SymplecticGeometry.Geometry.Manifold.Instances.SymplecticGroup.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Core.TwoChart
 public import TauCeti.Analysis.Matrix.EuclideanLin
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Core.TwoChart
@@ -54,8 +54,8 @@ carry information.
 The form is smooth because, read in any chart, it is the constant `stdForm κ`
 (`contMDiff_continuousAlternatingMap_bundle_of_inCoordinates_eq_const`); the smoothness of
 `T` is used through `Matrix.SymplecticGroup.contMDiff_toEuclideanCLM`. As in
-`Geometry/Manifold/Instances/SymplecticGroup.lean`, the smooth structure of the symplectic group
-is that of Tau Ceti, for the topology `Matrix.linftyOpTopologicalSpace` on matrices.
+`Geometry/Manifold/Instances/SymplecticGroup/Basic.lean`, the smooth structure of the symplectic
+group is that of Tau Ceti, for the topology `Matrix.linftyOpTopologicalSpace` on matrices.
 
 ## References
 

@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.Basic
+public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 
 /-!
 # The canonical orientation of a complex vector bundle in a complex-linear trivialization
@@ -38,7 +39,7 @@ variable {B : Type*} [TopologicalSpace B]
   [∀ x, Module ℝ (V x)] [∀ x, Module ℂ (V x)] [∀ x, IsScalarTower ℝ ℂ (V x)]
   [∀ x, TopologicalSpace (V x)] [FiberBundle G V] [VectorBundle ℂ G V]
 
-local instance : VectorBundle ℝ G V := VectorBundle.restrictScalars ℝ ℂ G V
+open scoped VectorBundle.ComplexToReal
 
 /-- A complex-linear trivialization reads the canonical orientation of every fibre over its base
 set as the canonical orientation of the model fibre. -/

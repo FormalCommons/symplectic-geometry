@@ -11,6 +11,7 @@ public import SymplecticGeometry.Geometry.Manifold.Orientation.EulerCharacterist
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.EulerClass
 public import TauCeti.Topology.VectorBundle.Orientation.FiberwiseEquiv
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.RestrictScalars
+public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 
 /-!
 # The top Chern class of a compact complex manifold and its Euler characteristic
@@ -94,9 +95,7 @@ section
 
 variable [IsManifold 𝓘(ℂ, E) 1 M]
 
-local instance instVectorBundleRealTangentSpaceComplex :
-    VectorBundle ℝ E (TangentSpace 𝓘(ℂ, E) : M → Type) :=
-  VectorBundle.restrictScalars ℝ ℂ E _
+open scoped VectorBundle.ComplexToReal
 
 /-- **The Euler class of the tangent bundle of a complex manifold.** For `finrank ℂ E = r + 1`, the
 Euler class of the complex tangent bundle, `complexEulerClass`, is the Euler class of the real

@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.UnitSection
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
+public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 import SymplecticGeometry.Analysis.SpecialFunctions.Complex.CircleLog
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.CoordinateDisc
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
@@ -129,8 +130,7 @@ variable {M : Type} [TopologicalSpace M] [ChartedSpace (EuclideanSpace ℝ (Fin 
   [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
   [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V]
 
-local instance instVectorBundleRealStandardTransition : VectorBundle ℝ F V :=
-  VectorBundle.restrictScalars ℝ ℂ F V
+open scoped VectorBundle.ComplexToReal
 
 local instance : FiniteDimensional ℂ F := .of_fact_finrank_eq_succ 0
 
