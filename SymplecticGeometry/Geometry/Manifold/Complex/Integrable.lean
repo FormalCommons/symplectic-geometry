@@ -289,7 +289,8 @@ def ofTangentCoordChange (hJ₀ : ∀ v, J₀ (J₀ v) = -v)
     ⟨fun _ ↦ J₀, TauCeti.contMDiff_hom_bundle_of_inCoordinates_eq_const
       (V := TangentSpace I) (W := TangentSpace I) (c := fun _ ↦ J₀) fun _ _ hx _ ↦ by
         rw [TangentBundle.trivializationAt_baseSet] at hx
-        simpa only [inTangentCoordinates, id_eq] using inTangentCoordinates_const I J₀ h hx⟩
+        simpa only [inTangentCoordinates, id_eq] using inTangentCoordinates_const I J₀ hx
+          (h ⟨mem_chart_source H _, hx⟩)⟩
   square_neg _ := ContinuousLinearMap.ext hJ₀
 
 variable {I J₀}
@@ -318,7 +319,7 @@ theorem inTangentCoordinates_ofTangentCoordChange {hJ₀ : ∀ v, J₀ (J₀ v) 
     (hx : x ∈ (chartAt H x₀).source) :
     inTangentCoordinates I I id id
         (fun x ↦ (ofTangentCoordChange I J₀ hJ₀ h).toEndomorphism x) x₀ x = J₀ :=
-  inTangentCoordinates_const I J₀ h hx
+  inTangentCoordinates_const I J₀ hx (h ⟨mem_chart_source H _, hx⟩)
 
 /-- On a manifold modelled on `E` itself, the constant structure `J₀` is integrable: in every
 chart it is `J₀`. -/
