@@ -12,6 +12,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Pullb
 public import TauCeti.Geometry.Symplectic.Manifold.Volume
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Volume
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
+import SymplecticGeometry.LinearAlgebra.BilinearForm.Orthogonal.FromTauCeti
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Splitting
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Representative
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Orthogonal
@@ -255,14 +256,9 @@ theorem volumeOrientation_compMFDeriv (hE' : finrank ℝ E' = 2)
   obtain ⟨u, hu⟩ := exists_ne (0 : TangentSpace I' x)
   obtain ⟨v, hv⟩ := hJ x _ ⟨u, rfl⟩
   have hpos := compMFDeriv_pos hω hu hv
-  have hli : LinearIndependent ℝ ![u, v] := by
-    refine LinearIndependent.pair_iff.2 fun s t hst ↦ ?_
-    have h0 := congrArg ((ω.compMFDeriv f f.contMDiff).bilinFormAt x u) hst
-    rw [map_add, map_smul, map_smul, (ω.compMFDeriv f f.contMDiff).isAlt_bilinFormAt x u,
-      map_zero, smul_zero, zero_add, smul_eq_mul, mul_eq_zero] at h0
-    obtain rfl : t = 0 := h0.resolve_right hpos.ne'
-    rw [zero_smul, add_zero, smul_eq_zero] at hst
-    exact ⟨hst.resolve_right hu, rfl⟩
+  have hli : LinearIndependent ℝ ![u, v] :=
+    ((ω.compMFDeriv f f.contMDiff).isAlt_bilinFormAt x)
+      |>.linearIndependent_pair_of_mem_nonZeroDivisors (mem_nonZeroDivisors_of_ne_zero hpos.ne')
   let b := basisOfLinearIndependentOfCardEqFinrank hli (by simpa using hE'.symm)
   have hb : ⇑b = ![u, v] := coe_basisOfLinearIndependentOfCardEqFinrank _ _
   rw [← ho x b (by simpa [hb] using hv)]
