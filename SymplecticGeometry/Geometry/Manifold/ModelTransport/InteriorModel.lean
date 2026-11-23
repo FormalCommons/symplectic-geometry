@@ -205,6 +205,10 @@ variable {I M} [ChartedSpace H M] [IsManifold I 1 M]
 theorem val_mem_interior (q : InteriorModel I (I.interiorOpens M)) : q.val ∈ I.interior M :=
   I.mem_interiorOpens.1 q.val_mem
 
+/-- A point of the copy of the interior of `M` is not a boundary point of `M`. -/
+theorem val_notMem_boundary (q : InteriorModel I (I.interiorOpens M)) : q.val ∉ I.boundary M :=
+  Set.disjoint_left.1 I.disjoint_interior_boundary q.val_mem_interior
+
 /-- The copy of the interior of `M` sits in `M` as the complement of the boundary. -/
 theorem range_val_interiorOpens :
     Set.range (val (I := I) (U := I.interiorOpens M)) =
