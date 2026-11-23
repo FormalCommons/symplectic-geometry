@@ -5,8 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import TauCeti.Analysis.Complex.Circle
 public import TauCeti.Topology.Homotopy.PuncturedStarConvex
+import Mathlib.Analysis.Calculus.Deriv.ZPow
+import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 
 /-!
 # Radial projection of the punctured plane onto the unit circle
@@ -35,6 +38,13 @@ that is the subspace of the pair `TopPair.ofSubset {0}ᶜ`, and because its defi
 * `Circle.coe_radialProjectionAt_apply`: `radialProjectionAt φ p y = |φ (y - p)|⁻¹ • φ (y - p)`.
 * `Circle.radialProjectionAt_refl_zero`: about `0` and through the identity of `ℂ`,
   `radialProjectionAt` is `radialProjection`.
+* `Complex.norm_div_norm`: `z / ‖z‖` has norm `1` for `z ≠ 0`.
+* `Complex.contDiffAt_div_norm`, `Complex.differentiableAt_div_norm`: the map `z ↦ z / ‖z‖` of
+  `ℂ` to itself is smooth, and so real differentiable, away from `0`.
+* `Complex.differentiableAt_div_norm_zpow`: for every integer `k`, `z ↦ (z / ‖z‖) ^ k` is real
+  differentiable away from `0`.
+
+The smoothness of `z ↦ z / ‖z‖` is read off Tau Ceti's `Complex.contDiffOn_div_norm_pow`.
 -/
 
 public section
@@ -108,5 +118,33 @@ theorem radialProjectionAt_refl_zero :
 end At
 
 end Circle
+
+/-! ### The radial projection as a map of `ℂ` to itself -/
+
+namespace Complex
+
+/-- The radial projection `z / ‖z‖` of a nonzero complex number lies on the unit circle. -/
+theorem norm_div_norm {z : ℂ} (hz : z ≠ 0) : ‖z / ‖z‖‖ = 1 := by
+  rw [norm_div, Complex.norm_real, norm_norm, div_self (norm_ne_zero_iff.2 hz)]
+
+/-- The radial projection `z ↦ z / ‖z‖` is smooth away from `0`. -/
+theorem contDiffAt_div_norm {w : ℂ} (hw : w ≠ 0) {n : WithTop ℕ∞} :
+    ContDiffAt ℝ n (fun z : ℂ ↦ z / ‖z‖) w := by
+  simpa only [pow_one] using
+    (contDiffOn_div_norm_pow 1 (N := n)).contDiffAt (isOpen_compl_singleton.mem_nhds hw)
+
+/-- The radial projection `z ↦ z / ‖z‖` is real differentiable away from `0`. -/
+theorem differentiableAt_div_norm {w : ℂ} (hw : w ≠ 0) :
+    DifferentiableAt ℝ (fun z : ℂ ↦ z / ‖z‖) w :=
+  (contDiffAt_div_norm hw (n := 1)).differentiableAt one_ne_zero
+
+/-- For every integer `k`, the map `z ↦ (z / ‖z‖) ^ k` is real differentiable away from `0`. -/
+theorem differentiableAt_div_norm_zpow {w : ℂ} (hw : w ≠ 0) (k : ℤ) :
+    DifferentiableAt ℝ (fun z : ℂ ↦ (z / ‖z‖) ^ k) w := by
+  have hn := norm_div_norm hw
+  exact ((differentiableAt_zpow.2 (Or.inl fun h ↦ by simp [h] at hn)).restrictScalars ℝ).comp w
+    (differentiableAt_div_norm hw)
+
+end Complex
 
 end
