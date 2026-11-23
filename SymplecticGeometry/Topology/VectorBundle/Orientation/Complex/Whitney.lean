@@ -9,6 +9,7 @@ public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
 public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.Whitney
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+public import SymplecticGeometry.LinearAlgebra.Complex.FiniteDimensional
 
 /-!
 # The Whitney formula for Euler classes of complex vector bundles
@@ -65,9 +66,7 @@ variable {B : Type*} [TopologicalSpace B]
   [∀ b, Module ℝ (E₂ b)] [∀ b, Module ℂ (E₂ b)] [∀ b, IsScalarTower ℝ ℂ (E₂ b)]
   [∀ b, TopologicalSpace (E₂ b)] [FiberBundle F₂ E₂] [VectorBundle ℂ F₂ E₂]
 
-open scoped VectorBundle.ComplexToReal
-local instance : FiniteDimensional ℝ F₁ := Module.Finite.trans ℂ F₁
-local instance : FiniteDimensional ℝ F₂ := Module.Finite.trans ℂ F₂
+open scoped VectorBundle.ComplexToReal Module.ComplexToReal
 
 namespace VectorBundleOrientation
 
@@ -107,9 +106,7 @@ variable {B : Type} [TopologicalSpace B]
   [∀ b, Module ℝ (E₂ b)] [∀ b, Module ℂ (E₂ b)] [∀ b, IsScalarTower ℝ ℂ (E₂ b)]
   [∀ b, TopologicalSpace (E₂ b)] [FiberBundle F₂ E₂] [VectorBundle ℂ F₂ E₂]
 
-open scoped VectorBundle.ComplexToReal
-local instance : FiniteDimensional ℝ F₁ := Module.Finite.trans ℂ F₁
-local instance : FiniteDimensional ℝ F₂ := Module.Finite.trans ℂ F₂
+open scoped VectorBundle.ComplexToReal Module.ComplexToReal
 
 /-- **The Whitney formula for Euler classes of complex vector bundles.** For complex vector
 bundles `E₁` and `E₂` over a common base, of complex ranks `r₁ + 1` and `r₂ + 1`, the Euler class

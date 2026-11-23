@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.UnitSection
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+public import SymplecticGeometry.LinearAlgebra.Complex.FiniteDimensional
 import SymplecticGeometry.Analysis.SpecialFunctions.Complex.CircleLog
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.CoordinateDisc
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
@@ -130,7 +131,7 @@ variable {M : Type} [TopologicalSpace M] [ChartedSpace (EuclideanSpace ℝ (Fin 
   [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
   [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V]
 
-open scoped VectorBundle.ComplexToReal
+open scoped VectorBundle.ComplexToReal Module.ComplexToReal
 
 local instance : FiniteDimensional ℂ F := .of_fact_finrank_eq_succ 0
 
@@ -187,7 +188,6 @@ theorem exists_coordinateDisc_unitSection_eq_phase_zpow_smul
     contMDiffFiberBundle_circleFiber g hI
   have : SecondCountableTopology M :=
     ChartedSpace.secondCountable_of_sigmaCompact (EuclideanSpace ℝ (Fin 2)) M
-  have : FiniteDimensional ℝ F := Module.Finite.trans ℂ F
   -- a smooth section `s` with finitely many zeros
   have hF : finrank ℝ F = 2 := by
     rw [← Module.finrank_mul_finrank ℝ ℂ F, Complex.finrank_real_complex,

@@ -73,7 +73,7 @@ The following are in the namespace `SymplecticGeometry.SmoothProjectiveHypersurf
 public section
 
 open Bundle Module Projectivization SymplecticGeometry.Bundle TauCeti
-open scoped LinearAlgebra.Projectivization Manifold
+open scoped LinearAlgebra.Projectivization Manifold VectorBundle.ComplexToReal
 
 namespace SymplecticGeometry
 

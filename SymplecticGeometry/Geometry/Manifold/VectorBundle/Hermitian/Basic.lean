@@ -12,6 +12,7 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 public import TauCeti.Geometry.Manifold.VectorBundle.Trivial
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+public import SymplecticGeometry.LinearAlgebra.Complex.FiniteDimensional
 
 /-!
 # The symplectic form of a Hermitian bundle
@@ -67,8 +68,7 @@ variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace ℂ
   [∀ x, ContinuousConstSMul ℂ (V x)]
   [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V]
 
-open scoped VectorBundle.ComplexToReal
-local instance : FiniteDimensional ℝ F := Module.Finite.trans ℂ F
+open scoped VectorBundle.ComplexToReal Module.ComplexToReal
 
 variable (g : ContMDiffRiemannianMetric I n F V)
   (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w)
