@@ -44,8 +44,6 @@ target of `Λ`, not only at `x`.
 * `isLocalDiffeomorph_id`: the identity of a manifold is a local diffeomorphism.
 * `ContinuousLinearEquiv.isLocalDiffeomorph`: a continuous linear equivalence of normed spaces
   is a local diffeomorphism, for every `n`; `isLocalDiffeomorph_neg` is the case of negation.
-* `IsLocalDiffeomorphAt.congr_of_eventuallyEq`: being a local diffeomorphism at `x` depends only
-  on the germ of the map at `x`.
 * `PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`: a partial diffeomorphism of
   model vector spaces that preserves the ranges of two models with corners is a local
   diffeomorphism between their model spaces.
@@ -154,14 +152,6 @@ theorem isLocalDiffeomorph_neg : IsLocalDiffeomorph 𝓘(𝕜, E) 𝓘(𝕜, E) 
   (ContinuousLinearEquiv.neg 𝕜 (M := E)).isLocalDiffeomorph
 
 end SymplecticGeometry
-
-/-- A map that agrees near `x` with a local diffeomorphism at `x` is a local diffeomorphism at
-`x`. -/
-theorem IsLocalDiffeomorphAt.congr_of_eventuallyEq {g : M → N}
-    (hf : IsLocalDiffeomorphAt I J n f x) (hfg : f =ᶠ[nhds x] g) :
-    IsLocalDiffeomorphAt I J n g x := by
-  obtain ⟨Φ, hxΦ, hΦg, hfΦ⟩ := hf.exists_partialDiffeomorph_source_subset hfg
-  exact TauCeti.isLocalDiffeomorphAt_of_eqOn hxΦ fun y hy ↦ (hΦg hy).symm.trans (hfΦ hy)
 
 /-- A partial diffeomorphism `Θ` between the model vector spaces of `I` and `J` which, on its
 source, sends exactly the points of `range I` into `range J` restricts to a local diffeomorphism

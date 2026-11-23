@@ -556,8 +556,9 @@ Named like Tau Ceti's file; in `TauCeti`.
 
 ### `Geometry/Manifold/LocalDiffeomorph/Basic.lean`
 
-- `IsLocalDiffeomorphAt.congr_of_eventuallyEq`: a map that agrees near `x`
-  with a local diffeomorphism at `x` is one too; and
+- `IsLocalDiffeomorphAt.congr_of_eventuallyEq`, now Tau Ceti's (in
+  `TauCeti/Geometry/Manifold/LocalDiffeomorph/OpenSubset.lean`): a map that
+  agrees near `x` with a local diffeomorphism at `x` is one too; and
   `PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`: a partial
   diffeomorphism `Θ` between the model vector spaces of `I` and `J` that, on
   its source, maps exactly the points of `range I` into `range J` gives the

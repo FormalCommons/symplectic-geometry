@@ -182,10 +182,8 @@ folder here beside Tau Ceti's folder of the same name; no Tau Ceti file has
 the name `FirstChernClass.lean` at that place, and `Structure.lean` is
 named after Tau Ceti's file there so that the two can merge). Two general
 lemmas on Euler classes of finite-rank cores go in
-`Topology/VectorBundle/FiniteRank/EulerClass.lean`, and the complex-linear
-equivalence of a real one that commutes with `I` in
-`Topology/Algebra/Module/ComplexSmulI.lean`, named after Tau Ceti's file
-where `ContinuousLinearMap.complexOfMapISmul` lives. The
+`Topology/VectorBundle/FiniteRank/EulerClass.lean`; the complex-linear
+equivalence of a real one that commutes with `I` is Tau Ceti's. The
 prerequisites have files of their own, listed with their issues.
 
 ### `Topology/VectorBundle/Complex/FirstChernClass.lean`
@@ -278,15 +276,15 @@ one base and fibrewise real-linear equivalences `Φ`:
 They turn the real isomorphisms of *Symplectic vector bundles* into the
 complex ones that `chernNumber_congr` takes.
 
-### `Topology/Algebra/Module/ComplexSmulI.lean`
+### `ContinuousLinearEquiv.complexOfMapISmul`
 
-- `ContinuousLinearEquiv.complexOfMapISmul`: a continuous real-linear
-  equivalence of complex modules that commutes with multiplication by `I`,
-  as a continuous complex-linear one, from Tau Ceti's
-  `ContinuousLinearMap.complexOfMapISmul`. `Structure.lean` builds its
-  equivalences with it, and so does `pullbackFiberEquiv` in
+- Tau Ceti's, in `TauCeti/Topology/Algebra/Module/ComplexSmulI.lean`: a
+  continuous real-linear equivalence of complex modules that commutes with
+  multiplication by `I`, as a continuous complex-linear one.
+  `Structure.lean` builds its equivalences with it, and so does
+  `pullbackFiberEquiv` in
   `Geometry/Manifold/VectorBundle/ComplexStructure.lean` of *Symplectic
-  vector bundles*, which imports this file.
+  vector bundles*.
 
 ### `Geometry/Manifold/VectorBundle/ChernNumber/Basic.lean`
 
@@ -1492,8 +1490,7 @@ issues, in an order where each issue's blockers come before it.
 ### The part's own issues
 
 10. **Chern classes and numbers.** `FirstChernClass.lean` and `Basic.lean`,
-    with `FiniteRank/EulerClass.lean`, `Complex/Structure.lean` and
-    `ComplexSmulI.lean`.
+    with `FiniteRank/EulerClass.lean` and `Complex/Structure.lean`.
     Blocked by 1, by *Symplectic vector bundles*' issues for symplectic
     bundles and complex structures, by its classification issue for
     `symplecticChernNumber_eq_chernNumber`, and by the issues from #57 for

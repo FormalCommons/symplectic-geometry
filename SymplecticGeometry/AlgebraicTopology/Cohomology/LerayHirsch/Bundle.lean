@@ -38,14 +38,14 @@ The integral form, for `TopCat.integralCohomology` and the integral cup product
 `TopCat.integralLerayHirsch` is an additive map, which over `ℤ` is the same as a linear one.
 For a product `X × F` and the pull-backs `pr₂^* b` of bases `b` of the integral cohomology of
 `F`, its bijectivity is `TopCat.integralLerayHirsch_fst_bijective`, from Tau Ceti's
-`TopCat.lerayHirschProd_bijective`. Both bijectivity results reduce to coefficients `ℤ` by
+`TopCat.lerayHirsch_fst_bijective`. Both bijectivity results reduce to coefficients `ℤ` by
 `TopCat.integralLerayHirsch_bijective_iff`.
 
 ## Proof
 
 Over a subset `S` of the base set of one trivialization `t`, the trivialization identifies
-`p⁻¹ S` with `S × F` over `S`, and the Leray–Hirsch map with Tau Ceti's
-`TopCat.lerayHirschProdOfClasses`, which is bijective by `TopCat.lerayHirschProdOfClasses_bijective`
+`p⁻¹ S` with `S × F` over `S`, and the Leray–Hirsch map with that of the projection `S × F ⟶ S`, which is bijective by Tau
+Ceti's `TopCat.lerayHirsch_fst_bijective_of_fiberwise_basis`
 (`TopCat.lerayHirschRestrict_bijective_of_subset_baseSet`). The finite cover is handled by
 induction on the number of open sets, with the Mayer–Vietoris step
 `TopCat.lerayHirschRestrict_union_bijective`; the intersection of a new set with the union of the
@@ -80,15 +80,6 @@ namespace TopCat
 
 variable {k : Type w} [CommRing k]
 
-/-- For the projection `X × F ⟶ X` of a product, the Leray–Hirsch map is
-`TopCat.lerayHirschProdOfClasses`. -/
-lemma lerayHirsch_fst (X F : TopCat.{w}) (n : ℕ) {ι : ℕ → Type w} [∀ d, DecidableEq (ι d)]
-    (c : ∀ d, ι d → (X ⊗ F).singularCohomology (𝟙_ (ModuleCat.{w} k)) k (𝟙_ (ModuleCat.{w} k)) d) :
-    lerayHirsch (fst X F) n c = lerayHirschProdOfClasses X F n c := by
-  refine DirectSum.linearMap_ext k fun ⟨⟨⟨d, q⟩, h⟩, i⟩ ↦ LinearMap.ext fun a ↦ ?_
-  simp only [LinearMap.comp_apply]
-  rw [lerayHirsch_lof, lerayHirschProdOfClasses_lof]
-
 section Local
 
 variable {E B F : TopCat.{w}} (p : E ⟶ B) {ι : ℕ → Type w} [∀ d, DecidableEq (ι d)]
@@ -119,8 +110,8 @@ theorem lerayHirschRestrict_bijective_of_subset_baseSet (t : Trivialization F p)
     ext ⟨x, y⟩
     -- The map of `isoOfHomeo` is the homeomorphism, which sends `(x, y)` to `t⁻¹ (x, y)`.
     exact t.proj_symm_apply' (hS x.property)
-  rw [← lerayHirsch_bijective_iff_of_isIso f (𝟙 _) hf (fun _ _ _ ↦ rfl), lerayHirsch_fst]
-  refine lerayHirschProdOfClasses_bijective (F := F) _ n _ hι hF fun x d ↦ ?_
+  rw [← lerayHirsch_bijective_iff_of_isIso f (𝟙 _) hf (fun _ _ _ ↦ rfl)]
+  refine lerayHirsch_fst_bijective_of_fiberwise_basis n _ hF fun x d _ ↦ ?_
   have hx : prodFiberInclusion (of S) F x ≫ f ≫ ofHom (ContinuousMap.subtypeVal (p ⁻¹' S)) =
       ofHom (t.fiberInclusion (hS x.property)) := by
     ext y
@@ -514,8 +505,9 @@ theorem integralLerayHirsch_fst_bijective (X F : TopCat.{0}) {ι : ℕ → Type}
     funext d i
     rw [integralCohomologyLinearEquiv_naturality, Module.Basis.map_apply,
       LinearEquiv.apply_symm_apply]
-  rw [hbb', integralLerayHirsch_bijective_iff, lerayHirsch_fst, lerayHirschProdOfClasses_snd]
-  exact lerayHirschProd_bijective X b' hF
+  rw [hbb', integralLerayHirsch_bijective_iff]
+  exact lerayHirsch_fst_bijective X (fun d ↦ b' d)
+    (fun d _ ↦ ⟨(b' d).linearIndependent, (b' d).span_eq.ge⟩) hF
 
 end Integral
 
