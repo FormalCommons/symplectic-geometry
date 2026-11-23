@@ -151,6 +151,94 @@ theorem contMDiffOn_symm_add_smul_orthonormalBasisOneI_repr {n : ℕ∞ω} [IsMa
       (r / 2))).contMDiff.contMDiffOn
     fun z hz ↦ hc (add_smul_orthonormalBasisOneI_repr_mem_ball c hr ⟨z, hz⟩)
 
+/-- The coordinate disc of a chart `e` of the maximal `C^n` atlas of `M` is `C^n`. -/
+theorem contMDiff_ofChart {n : ℕ∞ω} [IsManifold (𝓡 2) n M]
+    (he' : e ∈ IsManifold.maximalAtlas (𝓡 2) n M) :
+    ContMDiff 𝓘(ℝ, ℂ) (𝓡 2) n (ofChart e hr hc he) := by
+  have h : ⇑(ofChart e hr hc he) =
+      (fun z : ℂ ↦ e.symm (c + (r / 2) • Complex.orthonormalBasisOneI.repr z)) ∘ Subtype.val :=
+    funext fun z ↦ ofChart_apply e hr hc he z
+  rw [h]
+  exact (contMDiffOn_symm_add_smul_orthonormalBasisOneI_repr e hr hc he').comp_contMDiff
+    contMDiff_subtypeVal fun z ↦ z.property
+
+/-! ### Forms supported in finitely many coordinate discs -/
+
+/-- **The integral of model curvature forms in finitely many coordinate discs.** Let `φ i` be the
+coordinate discs of finitely many oriented smooth charts `e i`, with pairwise disjoint images. Let
+`β` be `C¹`, `0` on `(-∞, a]` and `1` on `[b, ∞)`, with `0 < a` and `b < 2`. A continuous `2`-form
+on `M` that vanishes off the images under the `φ i` of the closed disc of radius `b`, and whose
+pull-back along each `φ i` is `k i • d(β(‖z‖) dθ)`, integrates to `2π ∑ i, k i`. -/
+theorem integralTopForm_eq_sum_of_mpullback_ofChart_eq {ι : Type*} [Fintype ι]
+    (e : ι → OpenPartialHomeomorph M (EuclideanSpace ℝ (Fin 2)))
+    {c : ι → EuclideanSpace ℝ (Fin 2)} {r : ι → ℝ} (hr : ∀ i, 0 < r i)
+    (hc : ∀ i, Metric.ball (c i) (r i) ⊆ (e i).target)
+    (he : ∀ i, ∀ x ∈ (e i).source,
+      o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) (e i) x)
+    (he' : ∀ i, e i ∈ IsManifold.maximalAtlas (𝓡 2) 1 M)
+    (hdisj : Pairwise fun i j ↦ Disjoint (range (ofChart (e i) (hr i) (hc i) (he i)))
+      (range (ofChart (e j) (hr j) (hc j) (he j))))
+    {β : ℝ → ℝ} {a b : ℝ} (hβ : ContDiff ℝ 1 β)
+    (ha : 0 < a) (hb : b < 2) (hβa : ∀ t ≤ a, β t = 0) (hβb : ∀ t ≥ b, β t = 1)
+    {f : RoughForm (𝓡 2) M ℝ 2} (hf : IsSmoothForm (𝓡 2) 0 f)
+    (hf0 : ∀ x, (∀ i, x ∉ ofChart (e i) (hr i) (hc i) (he i) '' {z | ‖(z : ℂ)‖ ≤ b}) → f x = 0)
+    {k : ι → ℝ} (hfk : ∀ i, mpullback 𝓘(ℝ, ℂ) (𝓡 2) (ofChart (e i) (hr i) (hc i) (he i)) f =
+      k i • mpullback 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (Subtype.val : ball → ℂ)
+        (mextDeriv (radialAngularForm β))) :
+    integralTopForm o f = 2 * π * ∑ i, k i := by
+  classical
+  set φ := fun i ↦ ofChart (e i) (hr i) (hc i) (he i) with hφ
+  set K : ι → Set M := fun i ↦ φ i '' {z | ‖(z : ℂ)‖ ≤ b}
+  have hKc (i : ι) : IsCompact (K i) := (φ i).isCompact_image_closedBall hb
+  have hKr (i : ι) : K i ⊆ range (φ i) := image_subset_range _ _
+  -- the part `g i` of `f` in the `i`-th disc
+  let g : ι → RoughForm (𝓡 2) M ℝ 2 := fun i x ↦ if x ∈ range (φ i) then f x else 0
+  have hg0 {i : ι} {x : M} (hx : x ∉ K i) : g i x = 0 := by
+    by_cases h : x ∈ range (φ i)
+    · simp only [g, h, ite_true]
+      refine hf0 x fun j hj ↦ ?_
+      by_cases hji : j = i
+      · exact hx (hji ▸ hj)
+      · exact (hdisj hji).ne_of_mem (hKr j hj) h rfl
+    · simp only [g, h, ite_false]
+  have htsupp (i : ι) : _root_.tsupport (α := EuclideanSpace ℝ (Fin 2) [⋀^Fin 2]→L[ℝ] ℝ) (g i) ⊆
+      K i :=
+    closure_minimal (fun x hx ↦ by_contra fun h ↦ hx (hg0 h)) (hKc i).isClosed
+  have hgs (i : ι) : IsSmoothForm (𝓡 2) 0 (g i) := by
+    rw [isSmoothForm_def]
+    intro x
+    by_cases hx : x ∈ range (φ i)
+    · refine (hf.contMDiff x).congr_of_eventuallyEq ?_
+      filter_upwards [(φ i).isOpenEmbedding.isOpen_range.mem_nhds hx] with y hy
+      simp only [g, hy, ite_true]
+    · refine ((IsSmoothForm.zero (I := 𝓡 2) (M := M) (F := ℝ) (k := 2) 0).contMDiff x)
+        |>.congr_of_eventuallyEq ?_
+      filter_upwards [(hKc i).isClosed.isOpen_compl.mem_nhds fun h ↦ hx (hKr i h)] with y hy
+      rw [hg0 hy]
+      rfl
+  have hsum : f = ∑ i, g i := by
+    funext x
+    rw [Finset.sum_apply]
+    by_cases h : ∃ i, x ∈ range (φ i)
+    · obtain ⟨i, hi⟩ := h
+      rw [Finset.sum_eq_single i (fun j _ hji ↦ ?_) (by simp)]
+      · simp only [g, hi, ite_true]
+      · exact ite_eq_right fun h ↦ ((hdisj hji).notMem_of_mem_right hi h).elim
+    · push Not at h
+      rw [hf0 x fun i hi ↦ h i (hKr i hi)]
+      simp only [g, h, ite_false, Finset.sum_const_zero]
+  let bE := (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis
+  rw [hsum, integralTopForm_sum o g Finset.univ
+      (fun i _ ↦ (hgs i).integrableTopForm ((hKc i).of_isClosed_subset (isClosed_tsupport _)
+        (htsupp i)) bE), Finset.mul_sum]
+  refine Finset.sum_congr rfl fun i _ ↦ integralTopForm_eq_of_mpullback_ofChart_eq (e i) (hr i)
+    (hc i) (he i) (he' i) hβ ha hb hβa hβb ((htsupp i).trans (hKr i)) ?_
+  rw [← hfk i]
+  funext z
+  ext v
+  rw [mpullback_apply, mpullback_apply]
+  simp only [g, hφ, mem_range_self, ite_true]
+
 end CoordinateDisc
 
 end SymplecticGeometry
