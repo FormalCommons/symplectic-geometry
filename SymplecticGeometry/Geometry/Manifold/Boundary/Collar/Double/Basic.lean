@@ -44,7 +44,7 @@ copies of `W` as `Double.inl` and `Double.inr`.
   interval `(-1, 1)`, the band `(-1, 1) × ∂W` re-modelled on `ℝⁿ⁺¹`, and its map into the
   double, one of the three pieces of the atlas.
 * `TauCeti.SmoothCollar.Double.Piece`, `Double.piece`, `Double.pieceMap`: the three pieces of
-  the atlas, the two copies `Double.InteriorPiece` of the interior and the band, as manifolds
+  the atlas, the two copies `InteriorPiece` of the interior and the band, as manifolds
   over `ℝⁿ⁺¹`, with their maps into the double.
 * `TauCeti.SmoothCollar.Double.bandProj`: the projection of the band onto `∂W`.
 
@@ -400,11 +400,6 @@ variable [IsManifold (𝓡∂ (n + 1)) ∞ W]
 local instance : IsManifold (𝓡 n) ∞ ((𝓡∂ (n + 1)).boundary W) := isManifold_boundary W
 
 /-! ### The pieces -/
-
-variable (n W) in
-/-- The interior of `W`, as a boundaryless manifold over `ℝⁿ⁺¹`. -/
-abbrev InteriorPiece : Type u :=
-  InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)
 
 variable (n W) in
 /-- The band `(-1, 1) × ∂W`, re-modelled on `ℝⁿ⁺¹` along `endModelDiffeomorph`. -/
