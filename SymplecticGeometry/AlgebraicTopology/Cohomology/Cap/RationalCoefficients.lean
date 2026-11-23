@@ -12,7 +12,7 @@ public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Dua
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RestrictScalars
 public import SymplecticGeometry.LinearAlgebra.QuadraticForm.Signature
 public import TauCeti.Algebra.Category.ModuleCat.RestrictScalars
-public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Duality
+public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Duality.Basic
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralComparison
 public import TauCeti.AlgebraicTopology.Cohomology.UniversalCoefficient.CapDuality
 public import TauCeti.AlgebraicTopology.Singular.BettiNumber
