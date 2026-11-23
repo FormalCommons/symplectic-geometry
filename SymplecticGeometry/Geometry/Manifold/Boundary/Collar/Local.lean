@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Local
 public import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import Mathlib.Geometry.Manifold.ContMDiff.Atlas
-import SymplecticGeometry.Geometry.Manifold.Instances.HalfLine
+import SymplecticGeometry.Geometry.Manifold.Instances.HalfLine.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
