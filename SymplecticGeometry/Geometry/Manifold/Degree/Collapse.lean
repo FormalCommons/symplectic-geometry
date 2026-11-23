@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Degree.Global
 public import TauCeti.Geometry.Manifold.Orientation.Sphere
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import TauCeti.Analysis.InnerProductSpace.Reflection
 import TauCeti.Geometry.Diffeomorphism.Sphere
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
@@ -210,25 +211,12 @@ private theorem chartCollapse_eq_iff (hv : ‖v‖ = 1) (hJv : ∀ w, ⟪J w, v�
     simp only [inner_neg_left, real_inner_self_eq_norm_sq, hv] at hi
     norm_num at hi
 
-variable [T2Space M]
-
-/-- The chart collapse is `-v` off the preimage of the closed ball of radius `r / 2`, a compact
-subset of the source of the chart. -/
-private theorem chartCollapse_of_notMem_image (hr : 0 < r)
-    (hball : ball (extChartAt (𝓡 n) x₀ x₀) r ⊆ (extChartAt (𝓡 n) x₀).target) :
-    IsClosed ((extChartAt (𝓡 n) x₀).symm '' closedBall (extChartAt (𝓡 n) x₀ x₀) (r / 2)) ∧
-      (extChartAt (𝓡 n) x₀).symm '' closedBall (extChartAt (𝓡 n) x₀ x₀) (r / 2) ⊆
-        (chartAt (EuclideanSpace ℝ (Fin n)) x₀).source ∧
-      ∀ x ∉ (extChartAt (𝓡 n) x₀).symm '' closedBall (extChartAt (𝓡 n) x₀ x₀) (r / 2),
-        chartCollapse J v x₀ r x = -v := by
+/-- The chart collapse is `-v` off the image under the inverse chart of the closed ball of
+radius `r / 2` around `extChartAt (𝓡 n) x₀ x₀`. -/
+private theorem chartCollapse_of_notMem_image (hr : 0 < r) {x : M}
+    (hx : x ∉ (extChartAt (𝓡 n) x₀).symm '' closedBall (extChartAt (𝓡 n) x₀ x₀) (r / 2)) :
+    chartCollapse J v x₀ r x = -v := by
   set e := extChartAt (𝓡 n) x₀
-  have hcb : closedBall (e x₀) (r / 2) ⊆ e.target :=
-    (closedBall_subset_ball (by linarith)).trans hball
-  refine ⟨((isCompact_closedBall _ _).image_of_continuousOn
-    ((continuousOn_extChartAt_symm x₀).mono hcb)).isClosed, ?_, fun x hx ↦ ?_⟩
-  · rintro _ ⟨z, hz, rfl⟩
-    rw [← extChartAt_source (𝓡 n)]
-    exact e.map_target (hcb hz)
   by_cases hxs : x ∈ (chartAt (EuclideanSpace ℝ (Fin n)) x₀).source
   · rw [chartCollapse_of_mem hxs]
     refine collapse_of_le (by positivity) ?_
@@ -238,20 +226,19 @@ private theorem chartCollapse_of_notMem_image (hr : 0 < r)
     nlinarith [norm_nonneg (e x - e x₀)]
   · exact chartCollapse_of_notMem hxs
 
-variable [IsManifold (𝓡 n) ∞ M]
+variable [T2Space M] [IsManifold (𝓡 n) ∞ M]
 
 private theorem contMDiff_chartCollapse (hr : 0 < r)
     (hball : ball (extChartAt (𝓡 n) x₀ x₀) r ⊆ (extChartAt (𝓡 n) x₀).target) :
     ContMDiff (𝓡 n) 𝓘(ℝ, F) ∞ (chartCollapse J v x₀ r) := by
-  obtain ⟨hK, hKs, hGK⟩ := chartCollapse_of_notMem_image (J := J) (v := v) hr hball
-  intro x
-  by_cases hx : x ∈ (chartAt (EuclideanSpace ℝ (Fin n)) x₀).source
-  · exact ((contDiff_collapse J v (by positivity)).contMDiff.contMDiffAt.comp x
-      ((contMDiffAt_extChartAt' hx).sub contMDiffAt_const)).congr_of_eventuallyEq
-      (Filter.eventually_of_mem ((chartAt _ x₀).open_source.mem_nhds hx)
-        fun y hy ↦ chartCollapse_of_mem hy)
-  · exact contMDiffAt_const.congr_of_eventuallyEq
-      (Filter.eventually_of_mem (hK.isOpen_compl.mem_nhds fun h ↦ hx (hKs h)) hGK)
+  have hcb : closedBall (extChartAt (𝓡 n) x₀ x₀) (r / 2) ⊆ (chartAt _ x₀).target := by
+    simpa using (closedBall_subset_ball (by linarith)).trans hball
+  refine (chartAt _ x₀).contMDiff_of_contMDiffOn_source_of_contMDiffOn_compl
+    (isCompact_closedBall _ _) hcb ?_ fun x hx ↦ ?_
+  · exact ((contDiff_collapse J v (by positivity)).contMDiff.comp_contMDiffOn
+      (contMDiffOn_extChartAt.sub contMDiffOn_const)).congr fun y hy ↦ chartCollapse_of_mem hy
+  · exact (contMDiffWithinAt_const (c := -v)).congr (fun y hy ↦ chartCollapse_of_notMem_image hr
+      (by simpa using hy)) (chartCollapse_of_notMem_image hr (by simpa using hx))
 
 omit [T2Space M] [IsManifold (𝓡 n) ∞ M] in
 /-- The derivative of the chart collapse at the centre `x₀` is injective: in the chart it is a
