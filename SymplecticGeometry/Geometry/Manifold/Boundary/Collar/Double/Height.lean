@@ -188,7 +188,7 @@ private theorem height_inr_nonneg_and_eq_zero_iff (w : W) :
     rw [inr_apply_eq_bandMap, height_bandMap c (depth_mem_Ioo t), smoothSign_eq_zero_iff,
       depth_eq_zero_iff, c.apply_mem_boundary_iff]
     refine ⟨?_, Iff.rfl⟩
-    rw [← not_lt, smoothSign_lt_zero_iff, not_lt]
+    rw [smoothSign_nonneg_iff]
     exact (t : EuclideanHalfSpace 1).property
   · rw [height_inr_of_notMem_range c hw]
     exact ⟨by norm_num, by norm_num; exact fun h ↦ hw (c.boundary_subset_range h)⟩
@@ -239,10 +239,7 @@ theorem preimage_height_zero : height c ⁻¹' {0} = bandMap c '' ({0} ×ˢ univ
 /-- The manifold `W` is homeomorphic to the sublevel set `{height ≤ 0}` of the double, by its
 first copy `inl`. -/
 def homeomorphSublevel : W ≃ₜ height c ⁻¹' Iic 0 :=
-  have heq : ⇑(homeomorphDoubleAlong c).symm ∘ DoubleAlong.inl _ = inl c :=
-    funext fun w ↦ by rw [comp_apply, Homeomorph.symm_apply_eq, homeomorphDoubleAlong_inl]
-  (heq ▸ (homeomorphDoubleAlong c).symm.isEmbedding.comp (DoubleAlong.isEmbedding_inl _) :
-    IsEmbedding (inl c)).toHomeomorph.trans (Homeomorph.setCongr (preimage_height_Iic c).symm)
+  (isEmbedding_inl c).toHomeomorph.trans (Homeomorph.setCongr (preimage_height_Iic c).symm)
 
 /-- The homeomorphism of `W` with `{height ≤ 0}` is the first copy `inl`. -/
 @[simp]

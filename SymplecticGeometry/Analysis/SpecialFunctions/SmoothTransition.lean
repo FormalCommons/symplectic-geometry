@@ -217,17 +217,33 @@ theorem smoothSign_of_le_neg {s : ℝ} (hs : s ≤ -(1 / 2)) : smoothSign s = -1
     abs_of_neg (by linarith), div_neg, div_self (by linarith)]
 
 /-- `smoothSign` is odd. -/
+@[simp]
 theorem smoothSign_neg (s : ℝ) : smoothSign (-s) = -smoothSign s := by
   simp [smoothSign_def, neg_div]
 
+@[simp]
+theorem smoothSign_zero : smoothSign 0 = 0 := by
+  simp [smoothSign_def]
+
+@[simp]
 theorem smoothSign_lt_zero_iff {s : ℝ} : smoothSign s < 0 ↔ s < 0 := by
   rw [smoothSign_def, div_lt_iff₀ (sqrt_smoothSign_denom_pos s), zero_mul]
 
+@[simp]
 theorem smoothSign_eq_zero_iff {s : ℝ} : smoothSign s = 0 ↔ s = 0 := by
   rw [smoothSign_def, div_eq_zero_iff, or_iff_left (sqrt_smoothSign_denom_pos s).ne']
 
+@[simp]
 theorem smoothSign_nonpos_iff {s : ℝ} : smoothSign s ≤ 0 ↔ s ≤ 0 := by
   rw [le_iff_lt_or_eq, le_iff_lt_or_eq, smoothSign_lt_zero_iff, smoothSign_eq_zero_iff]
+
+@[simp]
+theorem smoothSign_pos_iff {s : ℝ} : 0 < smoothSign s ↔ 0 < s := by
+  rw [← not_le, smoothSign_nonpos_iff, not_le]
+
+@[simp]
+theorem smoothSign_nonneg_iff {s : ℝ} : 0 ≤ smoothSign s ↔ 0 ≤ s := by
+  rw [← not_lt, smoothSign_lt_zero_iff, not_lt]
 
 end SymplecticGeometry
 
