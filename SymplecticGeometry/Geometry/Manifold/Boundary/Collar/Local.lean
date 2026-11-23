@@ -110,6 +110,11 @@ noncomputable def negNormalIioRay (hS : (S : Set ℝ) ⊆ Ioi (-1)) (s : S) : no
 theorem negNormalIioRay_def (hS : (S : Set ℝ) ⊆ Ioi (-1)) (s : S) :
     negNormalIioRay hS s = normalIioRay ⟨-s, neg_lt.1 (hS s.property)⟩ := (rfl)
 
+/-- The point `negNormalIioRay hS s` of `[0, 1)` is the normal ray at `-s`. -/
+@[simp]
+theorem coe_negNormalIioRay (hS : (S : Set ℝ) ⊆ Ioi (-1)) (s : S) :
+    (negNormalIioRay hS s : EuclideanHalfSpace 1) = normalRay (-s) := (rfl)
+
 /-- The depth of `negNormalIioRay hS s` is `max (-s) 0`. -/
 theorem negNormalIioRay_coe_apply (hS : (S : Set ℝ) ⊆ Ioi (-1)) (s : S) :
     (negNormalIioRay hS s : EuclideanHalfSpace 1).val 0 = max (-(s : ℝ)) 0 := by
@@ -137,6 +142,16 @@ def negNormalCoord (hS : Ioc (-1) 0 ⊆ (S : Set ℝ)) (t : normalIioOpens 1) : 
   ⟨-(t : EuclideanHalfSpace 1).val 0,
     hS ⟨neg_lt_neg (mem_normalIioOpens.1 t.property),
       neg_nonpos.2 (t : EuclideanHalfSpace 1).property⟩⟩
+
+theorem negNormalCoord_def (hS : Ioc (-1) 0 ⊆ (S : Set ℝ)) (t : normalIioOpens 1) :
+    negNormalCoord hS t = ⟨-(t : EuclideanHalfSpace 1).val 0,
+      hS ⟨neg_lt_neg (mem_normalIioOpens.1 t.property),
+        neg_nonpos.2 (t : EuclideanHalfSpace 1).property⟩⟩ := (rfl)
+
+/-- Read in `ℝ`, the map `negNormalCoord hS` is `s ↦ -s 0` on the points of `[0, 1)`. -/
+theorem val_comp_negNormalCoord (hS : Ioc (-1) 0 ⊆ (S : Set ℝ)) :
+    Subtype.val ∘ negNormalCoord hS =
+      (fun s : EuclideanHalfSpace 1 ↦ -s.val 0) ∘ Subtype.val := (rfl)
 
 /-- The point `negNormalCoord hS t` is minus the depth of `t`. -/
 @[simp]

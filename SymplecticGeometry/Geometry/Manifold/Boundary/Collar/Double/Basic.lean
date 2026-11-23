@@ -216,7 +216,7 @@ private def bandPt (p : bandInterval × (𝓡∂ (n + 1)).boundary W) : c.Double
   if (p.1 : ℝ) ≤ 0 then inl c (c (p.2, negNormalIioRay bandInterval_subset p.1))
   else inr c (c (p.2, posDepth p.1))
 
-private theorem inl_negDepth_eq_inr_posDepth {s : bandInterval} (hs : (s : ℝ) = 0)
+private theorem inl_negNormalIioRay_eq_inr_posDepth {s : bandInterval} (hs : (s : ℝ) = 0)
     (x : (𝓡∂ (n + 1)).boundary W) :
     inl c (c (x, negNormalIioRay bandInterval_subset s)) = inr c (c (x, posDepth s)) := by
   rw [(negNormalIioRay_eq_zero_iff bandInterval_subset).2 hs.ge, posDepth_eq_zero_iff.2 hs.le,
@@ -230,7 +230,7 @@ private theorem bandPt_of_nonpos {s : bandInterval} (hs : (s : ℝ) ≤ 0)
 private theorem bandPt_of_nonneg {s : bandInterval} (hs : 0 ≤ (s : ℝ))
     (x : (𝓡∂ (n + 1)).boundary W) : bandPt c (s, x) = inr c (c (x, posDepth s)) := by
   rcases hs.eq_or_lt with h | h
-  · rw [bandPt_of_nonpos c h.ge, inl_negDepth_eq_inr_posDepth c h.symm]
+  · rw [bandPt_of_nonpos c h.ge, inl_negNormalIioRay_eq_inr_posDepth c h.symm]
   · exact ite_eq_right_iff.2 fun h' ↦ absurd h' (not_le.2 h)
 
 private theorem continuous_bandPt : Continuous (bandPt c) :=
@@ -241,7 +241,7 @@ private theorem continuous_bandPt : Continuous (bandPt c) :=
     ((inr c).continuous.comp (c.continuous.comp
       (continuous_snd.prodMk (continuous_posDepth.comp continuous_fst))))
     (continuous_subtypeVal.comp continuous_fst) continuous_const
-    fun p hp ↦ inl_negDepth_eq_inr_posDepth c hp p.2
+    fun p hp ↦ inl_negNormalIioRay_eq_inr_posDepth c hp p.2
 
 /-- A collar point in both copies of `W` is a boundary point. -/
 private theorem inl_eq_inr_collar {x y : (𝓡∂ (n + 1)).boundary W} {t u : normalIioOpens 1}

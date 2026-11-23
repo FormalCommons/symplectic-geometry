@@ -87,10 +87,7 @@ private theorem isImmersionAt_negNormalCoord (t : normalIioOpens 1) :
     IsImmersionAt (𝓡∂ 1) 𝓘(ℝ) ∞ (negNormalCoord Ioc_subset_endInterval) t := by
   have hf : ∀ t : normalIioOpens 1, -(t : EuclideanHalfSpace 1).val 0 ∈ endInterval :=
     fun t ↦ coe_negNormalCoord Ioc_subset_endInterval t ▸ (negNormalCoord _ t).property
-  have he : negNormalCoord Ioc_subset_endInterval =
-      fun t ↦ ⟨-(t : EuclideanHalfSpace 1).val 0, hf t⟩ :=
-    funext fun t ↦ Subtype.ext (coe_negNormalCoord _ t)
-  rw [he]
+  rw [funext (negNormalCoord_def Ioc_subset_endInterval)]
   refine (isImmersionAt_codRestrict_opens_iff (U := endInterval)
     (f := fun t : normalIioOpens 1 ↦ -(t : EuclideanHalfSpace 1).val 0) hf).2 ?_
   refine (isImmersionAt_comp_subtypeVal_iff
@@ -113,9 +110,7 @@ private theorem isLocalDiffeomorphAt_negNormalCoord {t : normalIioOpens 1}
       (hg := (ContinuousLinearEquiv.neg ℝ (M := ℝ)).toDiffeomorph.isLocalDiffeomorph _)
     simpa [comp_def] using this
   refine isLocalDiffeomorphAt_subtypeVal_comp_iff.1 ?_
-  rw [show Subtype.val ∘ negNormalCoord Ioc_subset_endInterval =
-    (fun s : EuclideanHalfSpace 1 ↦ -s.val 0) ∘ Subtype.val from
-      funext (coe_negNormalCoord Ioc_subset_endInterval)]
+  rw [val_comp_negNormalCoord]
   exact (isLocalDiffeomorph_subtype_val t).comp (hg := hg)
 
 private def endModelEquiv (n : ℕ) :
@@ -205,8 +200,8 @@ end
 /-- The point of the interior piece glued to a point of the end overlap. -/
 private def endToInteriorPt (q : endOverlap (n := n) (W := W)) : InteriorPiece n W :=
   InteriorModel.mk (𝓡∂ (n + 1)) (c.endRetract q.val) (by
-    rw [endRetract_def, apply_mem_interior_iff_pos, negNormalIioRay_coe_apply, lt_max_iff, neg_pos]
-    exact Or.inl (mem_endOverlap.1 q.property))
+    rw [endRetract_def, apply_mem_interior_iff_pos]
+    simpa using mem_endOverlap.1 q.property)
 
 private theorem endToInteriorPt_val (q : endOverlap (n := n) (W := W)) :
     (c.endToInteriorPt q).val = c.endRetract q.val :=
