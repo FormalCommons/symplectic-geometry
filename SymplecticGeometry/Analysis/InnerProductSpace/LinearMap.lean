@@ -25,6 +25,8 @@ conjugate-linear type, so `simp` cannot use it for the coercion at the bilinear 
 
 public section
 
+namespace SymplecticGeometry
+
 /-- The inner product of a real inner product space, read as a real bilinear map
 `E →L[ℝ] E →L[ℝ] ℝ` rather than as the conjugate-linear map `innerSL ℝ : E →L⋆[ℝ] E →L[ℝ] ℝ`,
 evaluates at `u` and `v` to `⟪u, v⟫`. -/
@@ -35,5 +37,7 @@ theorem innerSL_real_apply_apply {E : Type*} [NormedAddCommGroup E] [InnerProduc
     -- `innerSL ℝ` used as a term of that type, where `innerSL_apply_apply` does not apply.
     @DFunLike.coe (E →L[ℝ] E →L[ℝ] ℝ) E (fun _ ↦ E →L[ℝ] ℝ) _ (innerSL ℝ) u v = inner ℝ u v :=
   innerSL_apply_apply ..
+
+end SymplecticGeometry
 
 end

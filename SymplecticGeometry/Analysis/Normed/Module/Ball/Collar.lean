@@ -59,6 +59,8 @@ theorem range_inclusion_ball_eq_compl {α : Type*} [PseudoMetricSpace α] (x : �
 
 end Metric
 
+namespace SymplecticGeometry
+
 /-- For `c > 0`, `(a - 1) / c ∈ [0, 1)` exactly when `1 ≤ a < 1 + c`. -/
 theorem sub_div_mem_Ico_iff_of_pos {a c : ℝ} (hc : 0 < c) :
     (a - 1) / c ∈ Ico (0 : ℝ) 1 ↔ 1 ≤ a ∧ a < 1 + c := by
@@ -71,7 +73,11 @@ theorem sub_div_mem_Ico_iff_of_neg {a c : ℝ} (hc : c < 0) :
   rw [mem_Ico, le_div_iff_of_neg hc, div_lt_one_of_neg hc]
   constructor <;> rintro ⟨h₁, h₂⟩ <;> constructor <;> linarith
 
+end SymplecticGeometry
+
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {c : ℝ}
+
+namespace SymplecticGeometry
 
 /-- For `-1 ≤ c` and `t ∈ [0, 1)`, the radius `1 + c t` is positive. -/
 private lemma one_add_mul_pos (hc : -1 ≤ c) {t : ℝ} (ht : t ∈ Ico (0 : ℝ) 1) : 0 < 1 + c * t := by
@@ -134,6 +140,10 @@ theorem coe_homeomorphUnitSphereProdIco_symm_apply_snd (hc : -1 ≤ c) (hc₀ : 
     (w : {w : E | (‖w‖ - 1) / c ∈ Ico (0 : ℝ) 1}) :
     (((homeomorphUnitSphereProdIco hc hc₀).symm w).2 : ℝ) = (‖(w : E)‖ - 1) / c :=
   (rfl)
+
+end SymplecticGeometry
+
+open SymplecticGeometry
 
 namespace Metric
 

@@ -23,6 +23,8 @@ has a member of the family as a neighbourhood, which meets no other member, so M
 
 public section
 
+namespace SymplecticGeometry
+
 open Set Function
 
 variable {ι X : Type*} [TopologicalSpace X]
@@ -37,5 +39,7 @@ theorem finite_of_compactSpace_of_pairwise_disjoint [CompactSpace X] {s : ι →
     refine ⟨s j, (hs j).mem_nhds hj, (finite_singleton j).subset fun i hi ↦ ?_⟩
     exact not_not.1 fun hij ↦ not_disjoint_iff_nonempty_inter.2 hi (hd hij)
   exact finite_univ_iff.1 (hlf.finite_of_compact hne)
+
+end SymplecticGeometry
 
 end

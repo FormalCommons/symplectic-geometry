@@ -87,7 +87,7 @@ variable {X H B F : Type*} [NormedAddCommGroup X] [NormedSpace ℝ X]
   [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V]
   {n : ℕ∞ω}
 
-local instance instVectorBundleRealHermitianFrame : VectorBundle ℝ F V :=
+local instance SymplecticGeometry.instVectorBundleRealHermitianFrame : VectorBundle ℝ F V :=
   VectorBundle.restrictScalars ℝ ℂ F V
 
 namespace Bundle.ContMDiffRiemannianMetric

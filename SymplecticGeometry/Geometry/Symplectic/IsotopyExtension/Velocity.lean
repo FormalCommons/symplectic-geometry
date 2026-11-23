@@ -114,7 +114,7 @@ theorem contMDiff_prodVectorField_one_zero :
     ContMDiff ((𝓡∂ 1).prod J) ((𝓡∂ 1).prod J).tangent ∞ (fun p : unitInterval × P ↦
       (⟨p, Manifold.prodVectorField (fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
         (0 : Π y : P, TangentSpace J y) p⟩ : TangentBundle ((𝓡∂ 1).prod J) (unitInterval × P))) :=
-  Manifold.contMDiff_prodVectorField contMDiff_totalSpaceMk_one_Icc
+  Manifold.contMDiff_prodVectorField SymplecticGeometry.contMDiff_totalSpaceMk_one_Icc
     (contMDiff_zeroSection ℝ (TangentSpace J))
 
 end TimeField
@@ -237,7 +237,8 @@ theorem IsSymplectic.mextDeriv_mpullback_prodMk_velocityForm [CompleteSpace E']
     SmoothForm.coe_mpullback, mextDerivₗ_apply, hd]
   funext x
   refine mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero (β.mdifferentiableAt _)
-    ((contMDiff_totalSpaceMk_one_Icc (n := 1)).mdifferentiableAt one_ne_zero) fun s ↦ ?_
+    ((SymplecticGeometry.contMDiff_totalSpaceMk_one_Icc (n := 1)).mdifferentiableAt one_ne_zero)
+    fun s ↦ ?_
   have hs (s : unitInterval) : mpullback J ((𝓡∂ 1).prod J) (Prod.mk s) β.val = τ.val := by
     have hι : MDifferentiable J ((𝓡∂ 1).prod J) (Prod.mk s : P → unitInterval × P) :=
       mdifferentiable_const.prodMk mdifferentiable_id

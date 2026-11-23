@@ -157,8 +157,9 @@ private theorem mvfderiv_ambient_leviCivita
   have hR : MDifferentiableAt 𝓘(ℝ, ω.compatibleModel) 𝓘(ℝ, V →L[ℝ] V)
       (fun J' ↦ (2⁻¹ : ℝ) • (P J' * (Zh J' * Yh J' + Yh J' * Zh J'))) J := hPS.const_smul _
   rw [hfun, mvfderiv_fun_sub hD hR, sub_apply, TauCeti.mvfderiv_const_smul hPS, smul_apply,
-    mvfderiv_fun_mul_apply' (hP J) hS, mvfderiv_fun_add hZY hYZ, add_apply,
-    mvfderiv_fun_mul_apply' (hZh J) (hYh J), mvfderiv_fun_mul_apply' (hYh J) (hZh J)]
+    SymplecticGeometry.mvfderiv_fun_mul_apply' (hP J) hS, mvfderiv_fun_add hZY hYZ, add_apply,
+    SymplecticGeometry.mvfderiv_fun_mul_apply' (hZh J) (hYh J),
+    SymplecticGeometry.mvfderiv_fun_mul_apply' (hYh J) (hZh J)]
 
 /-- **Curvature of the manifold of compatible complex structures.** For tangent vectors `a b c`
 at `J`, the ambient reading of `R(a, b) c` is `-¼ [[â, b̂], ĉ]`, the double commutator of the

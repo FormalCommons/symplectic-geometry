@@ -83,6 +83,8 @@ theorem ContMDiffOn.of_coe_sphere {n : ℕ} [Fact (finrank ℝ E = n + 1)]
 
 attribute [local instance] finrank_real_complex_fact'
 
+namespace SymplecticGeometry
+
 /-- The map `Circle.exp : ℝ → S¹`, `t ↦ exp (t i)`, is a `C^n` local diffeomorphism for every
 `n`, analytic ones included. -/
 theorem isLocalDiffeomorph_circleExp (n : ℕ∞ω) :
@@ -90,6 +92,8 @@ theorem isLocalDiffeomorph_circleExp (n : ℕ∞ω) :
   IsLocalDiffeomorph.of_le (fun t ↦ TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv
     contMDiff_circleExp.contMDiffOn isOpen_univ (mem_univ t) BoundarylessManifold.isInteriorPoint
     (by simp) (TauCeti.injective_mfderiv_circleExp t) (by simp)) le_top
+
+end SymplecticGeometry
 
 /-- The direction `z / ‖z‖ = exp (i arg z)` is a smooth map from `ℂ \ {0}` to the circle. -/
 theorem Circle.contMDiffOn_exp_arg {n : ℕ∞ω} :

@@ -32,6 +32,8 @@ No topology on `X` is involved: smoothness is only asked of the scalar functions
 
 public section
 
+namespace SymplecticGeometry
+
 open scoped Manifold ContDiff
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
@@ -64,5 +66,7 @@ theorem contMDiff_dual_apply_of_separating {X : Type*} [AddCommGroup X] [Module 
     (hx : ∀ g ∈ s, ContMDiff J 𝓘(𝕜) n (fun t ↦ g (x t))) (f : Module.Dual 𝕜 X) :
     ContMDiff J 𝓘(𝕜) n (fun t ↦ f (x t)) :=
   contMDiff_dual_apply_of_span_eq_top (Submodule.span_eq_top_of_ne_zero hs) hx f
+
+end SymplecticGeometry
 
 end

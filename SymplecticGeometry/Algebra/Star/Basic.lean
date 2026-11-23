@@ -27,6 +27,8 @@ It follows that `a⋆ a` and `a a⋆` are inverse to each other.
 
 public section
 
+namespace SymplecticGeometry
+
 open Ring
 
 variable {A : Type*} [Ring A] [StarRing A]
@@ -36,5 +38,7 @@ theorem star_mul_self_eq_inverse_of_mul_self_eq_neg_one {a : A} (ha : a * a = -1
     star a * a = (a * star a)⁻¹ʳ := by
   rw [inverse_mul (.inl (isUnit_of_mul_self_eq_neg_one ha)), inverse_star,
     inverse_eq_neg_of_mul_self_eq_neg_one ha, star_neg, neg_mul_neg]
+
+end SymplecticGeometry
 
 end

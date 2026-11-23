@@ -19,6 +19,8 @@ Complements to Mathlib's `Mathlib/Topology/Algebra/Support.lean`.
 
 public section
 
+namespace SymplecticGeometry
+
 open Set Function
 
 variable {X α : Type*} [TopologicalSpace X] [One α]
@@ -32,5 +34,7 @@ theorem mulTSupport_mulIndicator_subset_of_eqOn {f : X → α} {U K : Set X} (hK
   refine closure_minimal ?_ hK
   rw [mulSupport_mulIndicator]
   exact fun x ⟨hxU, hx⟩ ↦ by_contra fun hxK ↦ hx (hf ⟨hxU, hxK⟩)
+
+end SymplecticGeometry
 
 end

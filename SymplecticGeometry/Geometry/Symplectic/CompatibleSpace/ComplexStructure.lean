@@ -112,7 +112,7 @@ noncomputable def compatibleSpaceComplexStructure :
     { toLinearMap := ω.compatibleModelComplexStructure.toLinearMap
       cont := ω.compatibleModelComplexStructure.toLinearMap.continuous_of_finiteDimensional }
     ω.compatibleModelComplexStructure.apply_apply fun {x y _} hz _ => by
-      simp only [tangentCoordChange_of_chartAt_eq (x := x) (y := y) rfl hz.1,
+      simp only [SymplecticGeometry.tangentCoordChange_of_chartAt_eq (x := x) (y := y) rfl hz.1,
         ContinuousLinearMap.id_apply]
 
 theorem compatibleSpaceComplexStructure_def :
@@ -121,7 +121,7 @@ theorem compatibleSpaceComplexStructure_def :
         { toLinearMap := ω.compatibleModelComplexStructure.toLinearMap
           cont := ω.compatibleModelComplexStructure.toLinearMap.continuous_of_finiteDimensional }
         ω.compatibleModelComplexStructure.apply_apply fun {x y _} hz _ => by
-          simp only [tangentCoordChange_of_chartAt_eq (x := x) (y := y) rfl hz.1,
+          simp only [SymplecticGeometry.tangentCoordChange_of_chartAt_eq (x := x) (y := y) rfl hz.1,
             ContinuousLinearMap.id_apply] :=
   (rfl)
 
@@ -188,9 +188,10 @@ theorem chartPushforward_compatibleSpaceComplexStructure {J : 𝒥} {p : ω.comp
   rw [SmoothAlmostComplexStructure.chartPushforward_apply]
   -- The differentials of the chart and of its inverse are the identity. The tangent spaces are
   -- the model, but `rw` does not rewrite under them, so the equalities of maps are applied.
-  have h₁ := mfderiv_chartAt_of_chartAt_eq (I := 𝓘(ℝ, ω.compatibleModel))
+  have h₁ := SymplecticGeometry.mfderiv_chartAt_of_chartAt_eq (I := 𝓘(ℝ, ω.compatibleModel))
     (x := (chartAt ω.compatibleModel J).symm p) (y := J) rfl
-  have h₂ := mfderiv_chartAt_symm_of_chartAt_eq (I := 𝓘(ℝ, ω.compatibleModel)) hp rfl
+  have h₂ := SymplecticGeometry.mfderiv_chartAt_symm_of_chartAt_eq
+    (I := 𝓘(ℝ, ω.compatibleModel)) hp rfl
   exact (DFunLike.congr_fun h₁ _).trans ((compatibleSpaceComplexStructure_apply _ _).trans
     (congrArg ω.compatibleModelComplexStructure (DFunLike.congr_fun h₂ w)))
 

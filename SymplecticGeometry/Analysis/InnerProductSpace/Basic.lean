@@ -20,6 +20,8 @@ Facts about real inner product spaces that complement Mathlib's
 
 public section
 
+namespace SymplecticGeometry
+
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
 /-- If `|⟪z, w⟫ + c| ≤ R` for every `z` in the closed ball of radius `r ≥ 0` about `0`, then
@@ -45,5 +47,7 @@ theorem mul_norm_le_of_abs_inner_add_le {w : E} {c r R : ℝ} (hr : 0 ≤ r)
   rw [hzw] at h₁
   rw [inner_neg_left, hzw] at h₂
   linarith [(abs_le.1 h₁).2, (abs_le.1 h₂).1]
+
+end SymplecticGeometry
 
 end

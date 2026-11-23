@@ -309,7 +309,7 @@ theorem isImmersionAt_negNormalCoord (hS : Ioc (-1) 0 ⊆ (S : Set ℝ)) (t : no
     fun t ↦ (negNormalCoord hS t).property).2 ?_
   refine (isImmersionAt_comp_subtypeVal_iff (f := fun t : EuclideanHalfSpace 1 ↦ -t.val 0)).2 ?_
   exact isImmersionAt_isLocalDiffeomorphAt_comp (f := fun s : EuclideanHalfSpace 1 ↦ s.val 0)
-    (isLocalDiffeomorph_neg _) (isImmersionAt_val_zero _)
+    (SymplecticGeometry.isLocalDiffeomorph_neg _) (isImmersionAt_val_zero _)
 
 /-- The map `t ↦ t` from depths into `S` is a `C^n` immersion, the depth `0` included. -/
 theorem isImmersionAt_posNormalCoord (hS : Ico 0 1 ⊆ (S : Set ℝ)) (t : normalIioOpens 1) :
@@ -328,7 +328,8 @@ theorem isLocalDiffeomorphAt_negNormalCoord (hS : Ioc (-1) 0 ⊆ (S : Set ℝ))
     IsLocalDiffeomorphAt (𝓡∂ 1) 𝓘(ℝ) n (negNormalCoord hS) t := by
   refine isLocalDiffeomorphAt_subtypeVal_comp_iff.1 ?_
   rw [val_comp_negNormalCoord]
-  exact (isLocalDiffeomorphAt_normalIioOpens_val_zero ht).comp (hg := isLocalDiffeomorph_neg _)
+  exact (isLocalDiffeomorphAt_normalIioOpens_val_zero ht).comp
+    (hg := SymplecticGeometry.isLocalDiffeomorph_neg _)
 
 /-- At a positive depth, the map `t ↦ t` from depths into `S` is a `C^n` local
 diffeomorphism. -/

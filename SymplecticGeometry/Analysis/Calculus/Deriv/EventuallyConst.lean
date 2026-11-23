@@ -22,6 +22,8 @@ functions that interpolate between two constant values on an interval.
 
 public section
 
+namespace SymplecticGeometry
+
 open Set Filter
 
 /-- A function of a real variable that is constant on `(-∞, a]` and on `[b, ∞)` has derivative
@@ -36,5 +38,7 @@ theorem deriv_eq_zero_of_notMem_Icc {F : Type*} [NormedAddCommGroup F] [NormedSp
   · have : f =ᶠ[nhds t] fun _ ↦ w :=
       (eventually_gt_nhds (not_le.1 h)).mono fun s hs ↦ hfb s hs.le
     rw [this.deriv_eq, deriv_const]
+
+end SymplecticGeometry
 
 end

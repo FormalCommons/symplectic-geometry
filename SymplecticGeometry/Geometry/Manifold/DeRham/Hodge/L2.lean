@@ -175,7 +175,8 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
 
 /-- The Riemannian volume measure, and the bounds for a chart on a compact set, need only a
 continuous metric. -/
-local instance [IsManifold I ∞ M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+local instance SymplecticGeometry.instIsContinuousRiemannianBundleTangentSpace
+    [IsManifold I ∞ M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
     [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] :
     IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x) :=
   IsContMDiffRiemannianBundle.toIsContinuousRiemannianBundle

@@ -56,6 +56,8 @@ open scoped ContDiff
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] {g : E → F} {U : Set E}
 
+namespace SymplecticGeometry
+
 /-- **Graph coordinates over tangent spaces, with a parameter.** Let `g : E → F` be `C^∞` with
 injective derivatives on an open set `U ∋ w₀`, and write `Q w'` for the orthogonal projection
 onto the range of `fderiv ℝ g w'`. For some `S : F →L[ℝ] E`, the map
@@ -132,6 +134,10 @@ private theorem exists_openPartialHomeomorph_prod_starProjection (hU : IsOpen U)
     rw [hLi, h₁, h₂]
     exact congrArg (Prod.mk 0) hab
   simpa using Li.injective h
+
+end SymplecticGeometry
+
+open SymplecticGeometry
 
 /-- **Uniform graph coordinates over tangent spaces.** Let `g : E → F` be `C^∞` on an open set
 `U ∋ w₀`, with injective derivative at `w₀`, and write `Q w'` for the orthogonal projection of `F`

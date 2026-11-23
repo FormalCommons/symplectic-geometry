@@ -388,7 +388,7 @@ invertible.
 
 A general file that serves `CompatibleSpace/ComplexStructure.lean`, for the
 manifold of `CompatibleComplexStructures.lean`, whose atlas
-has one chart; imports Mathlib. In the root namespace, for points whose
+has one chart; imports Mathlib. In `SymplecticGeometry`, for points whose
 preferred charts coincide: `tangentCoordChange_of_chartAt_eq` (the tangent
 coordinate change is the identity), `mfderiv_chartAt_of_chartAt_eq` and
 `mfderiv_chartAt_symm_of_chartAt_eq` (the differentials of the chart and of

@@ -24,11 +24,15 @@ unit, so it sends inverses to ring inverses: `f a⁻¹ = Ring.inverse (f a)`
 
 public section
 
+namespace SymplecticGeometry
+
 variable {F G M₀ : Type*} [Group G] [MonoidWithZero M₀] [FunLike F G M₀] [MonoidHomClass F G M₀]
 
 /-- A monoid homomorphism from a group to a monoid with zero sends the inverse `a⁻¹` to the ring
 inverse of `f a`. -/
 theorem map_inv_eq_ringInverse (f : F) (a : G) : f a⁻¹ = Ring.inverse (f a) := by
   simpa using (Ring.inverse_unit (Units.map (MonoidHom.ofClass f) (toUnits a))).symm
+
+end SymplecticGeometry
 
 end

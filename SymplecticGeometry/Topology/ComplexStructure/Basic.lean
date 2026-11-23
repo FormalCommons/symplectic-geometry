@@ -148,7 +148,7 @@ theorem homeomorphMatrix_symm_apply_apply (A : {A : Matrix n n ℝ // A * A = -1
 `-J`, since `J * J = -1`. -/
 noncomputable def toGeneralLinearGroup (J : AlmostComplexStructure (EuclideanSpace ℝ n)) :
     GL n ℝ :=
-  (isUnit_of_mul_self_eq_neg_one (homeomorphMatrix n J).property).unit
+  (SymplecticGeometry.isUnit_of_mul_self_eq_neg_one (homeomorphMatrix n J).property).unit
 
 /-- The invertible matrix of `J` is its matrix. -/
 @[simp]

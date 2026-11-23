@@ -53,7 +53,7 @@ theorem polarUnitary_mul_rpow_mul_star_of_mul_self_eq_neg_one (a : Aˣ) (ha : (a
   have hu : (u : A) * star (u : A) = 1 := Unitary.mul_star_self_of_mem u.property
   -- `u⋆ P u = √(a⋆ a) = √((a a⋆)⁻¹) = P⁻¹`.
   have hsqrt : star (u : A) * P * u = P⁻¹ʳ := by
-    rw [← sqrt_star_mul_eq, star_mul_self_eq_inverse_of_mul_self_eq_neg_one ha,
+    rw [← sqrt_star_mul_eq, SymplecticGeometry.star_mul_self_eq_inverse_of_mul_self_eq_neg_one ha,
       CFC.sqrt_ringInverse]
   have hconj : P = u * P⁻¹ʳ * star (u : A) := by
     rw [← hsqrt]

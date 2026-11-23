@@ -25,6 +25,8 @@ family of continuous linear maps.
 
 public section
 
+namespace SymplecticGeometry
+
 open scoped Manifold
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
@@ -44,3 +46,5 @@ theorem mvfderiv_fun_mul_apply' {p q : M → F} {x : M}
   have h := TauCeti.mvfderiv_clm_apply hA hq v
   simp only [Function.comp_apply, ContinuousLinearMap.mul_apply'] at h
   rw [h, (ContinuousLinearMap.mul 𝕜 F).mvfderiv_comp_apply hp, ContinuousLinearMap.mul_apply']
+
+end SymplecticGeometry

@@ -35,6 +35,8 @@ open scoped Manifold ContDiff
 
 variable {x y : ℝ} [Fact (x < y)] {n : WithTop ℕ∞}
 
+namespace SymplecticGeometry
+
 /-- The inclusion `Icc x y → ℝ` of a closed interval is differentiable, up to both ends. -/
 theorem mdifferentiable_subtypeVal_Icc :
     MDifferentiable (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc x y → ℝ) :=
@@ -63,6 +65,8 @@ theorem contMDiff_totalSpaceMk_one_Icc :
   refine (hT.comp_contMDiff hg fun z ↦ z.property).congr fun z ↦ ?_
   simp only [Function.comp_apply, tangentMapWithin]
   rw [mfderivWithin_projIcc_one z.property, projIcc_val]
+
+end SymplecticGeometry
 
 /-- Two continuous linear maps on a tangent space of a closed interval `[x, y]`, `x < y`, are equal
 when they agree on the unit tangent vector `1`. -/

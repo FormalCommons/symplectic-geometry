@@ -51,7 +51,8 @@ theorem IsSmoothForm.indicator [IsManifold I 1 M] {n : WithTop ℕ∞} {f : Roug
       |>.congr_of_eventuallyEq ?_
     filter_upwards [hK.isOpen_compl.mem_nhds fun h ↦ hx (hKU h)] with y hy
     exact congrArg _ (_root_.image_eq_zero_of_notMem_tsupport (α := E [⋀^Fin k]→L[ℝ] F)
-      fun h ↦ hy (tsupport_indicator_subset_of_eqOn hK (fun z hz ↦ hf0 z hz.1 hz.2) h))
+      fun h ↦ hy (SymplecticGeometry.tsupport_indicator_subset_of_eqOn hK
+        (fun z hz ↦ hf0 z hz.1 hz.2) h))
 
 end TauCeti
 

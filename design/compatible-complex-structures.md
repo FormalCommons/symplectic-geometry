@@ -407,9 +407,10 @@ request updates it to the files below. Each change, with its reason:
 - **New `Analysis/InnerProductSpace/LinearMap.lean`.** It holds the
   `@[simp]` lemma `innerSL_real_apply_apply`, which `InnerProducts.lean`
   and the files that use the ambient inner product as an element of
-  `innerProducts V` need. It mentions only Mathlib's `innerSL`, so it sits in
-  the root namespace, in the file named after Mathlib's
-  `Analysis/InnerProductSpace/LinearMap.lean`, and can move there unchanged.
+  `innerProducts V` need. It mentions only Mathlib's `innerSL`. It sits in
+  `SymplecticGeometry`, in the file named after Mathlib's
+  `Analysis/InnerProductSpace/LinearMap.lean`, and can move there with a new
+  namespace.
 - **$\mathrm{Met}(V)$ without coordinates.** The overview got convexity from
   `TauCeti.convex_setOfPred_posDef` in coordinates. Tau Ceti's
   `convex_setOfPred_symm_pos` states it for continuous bilinear forms on `V`
@@ -541,7 +542,7 @@ complex structure, in a section with only `[AddCommGroup V] [Module ℝ V]`.
 
 This complements Mathlib's file of `innerSL`, and imports only it.
 
-- `innerSL_real_apply_apply` (`@[simp]`, in the root namespace): `innerSL ℝ`,
+- `innerSL_real_apply_apply` (`@[simp]`, in `SymplecticGeometry`): `innerSL ℝ`,
   coerced at the real bilinear type `V →L[ℝ] V →L[ℝ] ℝ` (the ambient type of
   `innerProducts V`), evaluates to `⟪u, v⟫`. Mathlib's `innerSL_apply_apply`
   is stated at the conjugate-linear type, so `simp` does not use it there.

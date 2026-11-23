@@ -61,6 +61,8 @@ section SymmEval
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
 
+namespace SymplecticGeometry
+
 /-- A step of `Diffeomorph.contMDiff_symm_eval_unitInterval`: for a continuous `f` on
 `unitInterval × M`, an interval `[a, b]` that is a neighbourhood of `t₀` in `[0, 1]`, and an open
 `U` in the target of the chart at `x₀` containing the image of `x₀`, such that `f` maps
@@ -127,6 +129,10 @@ private theorem contDiffOn_extChartAt_comp_projIcc [IsManifold I ∞ M] {f : uni
   refine contMDiffOn_extChartAt.comp (hf.comp_contMDiffOn hP) fun q hq ↦ ?_
   rw [← extChartAt_source I]
   exact (hU' hq).2
+
+end SymplecticGeometry
+
+open SymplecticGeometry
 
 variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] [BoundarylessManifold I M]
 

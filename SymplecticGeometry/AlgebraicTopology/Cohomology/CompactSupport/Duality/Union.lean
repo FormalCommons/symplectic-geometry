@@ -301,7 +301,7 @@ theorem bijective_dualityMap_of_infClosed {S : Set (Opens M)} (hS : InfClosed S)
     exact (o.comap _).bijective_dualityMap_of_isEmpty hn L h
   -- They form a directed family covering `M`.
   exact o.bijective_dualityMap_of_iSup_eq_top hn L h (fun _ _ hst ↦ Finset.sup_mono hst)
-    (by rw [iSup_finset_sup_eq_iSup, ← sSup_eq_iSup', hcover]) fun s ↦ hT s p q h
+    (by rw [SymplecticGeometry.iSup_finset_sup_eq_iSup, ← sSup_eq_iSup', hcover]) fun s ↦ hT s p q h
 
 end HomologicalOrientation
 

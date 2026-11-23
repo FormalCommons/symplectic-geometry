@@ -413,8 +413,8 @@ The file imports only Tau Ceti; its lemmas belong upstream beside Tau Ceti's
 
 ### `Algebra/Ring/Units.lean`
 
-- `isUnit_of_mul_self_eq_neg_one (ha : a * a = -1) : IsUnit a`, in the root
-  namespace, for `[Monoid M] [HasDistribNeg M]`. It imports only
+- `isUnit_of_mul_self_eq_neg_one (ha : a * a = -1) : IsUnit a`, in
+  `SymplecticGeometry`, for `[Monoid M] [HasDistribNeg M]`. It imports only
   `Mathlib.Algebra.Ring.Units`, whose level it has.
 
 ### `Algebra/GroupWithZero/Units/Basic.lean`
@@ -440,7 +440,7 @@ The file imports only Tau Ceti; its lemmas belong upstream beside Tau Ceti's
 ### `Algebra/Star/Basic.lean`
 
 - `star_mul_self_eq_inverse_of_mul_self_eq_neg_one {a : A} (ha : a * a = -1) :
-  star a * a = (a * star a)⁻¹ʳ`, in the root namespace, for any
+  star a * a = (a * star a)⁻¹ʳ`, in `SymplecticGeometry`, for any
   `[Ring A] [StarRing A]`. Such an `a` is a unit with inverse `-a`, so this
   follows from Mathlib's `Ring.inverse_mul` and `Ring.inverse_star`. It is
   pure star-ring algebra, so it sits apart from the functional calculus and
