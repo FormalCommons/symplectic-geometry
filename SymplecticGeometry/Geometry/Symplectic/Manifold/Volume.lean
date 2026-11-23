@@ -5,7 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.Orientation.Sphere
 public import TauCeti.Geometry.Symplectic.Manifold.Volume
+import SymplecticGeometry.Geometry.Manifold.Orientation.Sphere
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.TwoForm
 
 /-!
@@ -18,7 +20,8 @@ of dimension `2 * n`. Then `-σ` is nondegenerate too, and its volume form `(-σ
 
 On a surface (`n = 1`) the volume form `σ¹ / 1!` is `σ` itself, so the symplectic orientation of a
 nondegenerate two-form `σ` is the orientation `TauCeti.Manifold.Orientation.ofTopForm` on which
-`σ` is positive.
+`σ` is positive. For the volume form of the unit sphere of an oriented three-dimensional space,
+this is the outward-normal orientation.
 
 ## Main results
 
@@ -27,6 +30,8 @@ nondegenerate two-form `σ` is the orientation `TauCeti.Manifold.Orientation.ofT
 * `TauCeti.SmoothTwoForm.volumeForm_one`: the volume form `σ¹ / 1!` is `σ`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_ofTopForm`: on a surface, the
   symplectic orientation of `σ` is the orientation defined by `σ` as a top form.
+* `Orientation.volumeOrientation_sphereVolumeForm`: the symplectic orientation of the volume form
+  of the unit two-sphere is its outward-normal orientation.
 
 ## References
 
@@ -106,5 +111,20 @@ theorem IsNondegenerate.volumeOrientation_eq_ofTopForm (h : σ.IsNondegenerate)
 end SmoothTwoForm
 
 end TauCeti
+
+namespace Orientation
+
+/-- **The symplectic orientation of the two-sphere.** On the unit sphere of an oriented
+three-dimensional real inner product space, the symplectic orientation of the volume form
+`o.sphereVolumeForm`, a nondegenerate two-form, is the outward-normal orientation
+`o.sphereOrientation`. -/
+theorem volumeOrientation_sphereVolumeForm {E : Type*} [NormedAddCommGroup E]
+    [InnerProductSpace ℝ E] [Fact (finrank ℝ E = 2 + 1)] (o : Orientation ℝ E (Fin (2 + 1)))
+    (h : TauCeti.SmoothTwoForm.IsNondegenerate o.sphereVolumeForm) :
+    h.volumeOrientation (n := 1) finrank_euclideanSpace_fin = o.sphereOrientation := by
+  rw [TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_ofTopForm,
+    o.sphereOrientation_eq_ofTopForm]
+
+end Orientation
 
 end
