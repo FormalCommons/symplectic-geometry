@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.Boundary.InducedOrientation
 public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
 public import TauCeti.Geometry.Manifold.Orientation.Prod
 public import TauCeti.Geometry.Manifold.Orientation.Sign
+public import SymplecticGeometry.Geometry.Manifold.Orientation.Sign
 public import SymplecticGeometry.Geometry.Manifold.Orientation.OpenSubset
 import Mathlib.GroupTheory.Perm.Fin
 import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
@@ -36,9 +37,9 @@ excludes zero. This adapts the proof of `TauCeti.tangentCoordChange_normal_nonne
 `TauCeti.tangentCoordChange_normal_pos` from chart transitions to collars. The ordered image
 basis `(dc(b₁), …, dc(bₙ), dc(∂ₜ))` differs from the outward-first basis
 `(-dc(∂ₜ), dc(b₁), …, dc(bₙ))` of `boundaryOrientation_spec` by a cyclic permutation of sign
-`(-1) ^ n` and one negation. The orientation sign is locally constant where the derivative is
-invertible (`TauCeti.Manifold.Orientation.eventually_orientationSign_eq`) and each slice
-`{y} × [0, 1)` is connected, so the sign at `(y, 0)` holds on the whole slice.
+`(-1) ^ n` and one negation. The orientation sign is constant on a preconnected set where the
+derivative is invertible (`TauCeti.Manifold.Orientation.orientationSign_eq_of_isPreconnected`)
+and each slice `{y} × [0, 1)` is preconnected, so the sign at `(y, 0)` holds on the whole slice.
 
 ## Main definitions
 
@@ -312,20 +313,18 @@ theorem orientationSign_eq_neg_one_pow (hk : k ≠ 0)
     Manifold.Orientation.orientationSign
       ((boundaryOrientation o).prod (normalIioOpensOrientation 1)) o c q = (-1) ^ (n + 1) := by
   obtain ⟨y, t⟩ := q
-  let g : normalIioOpens 1 → ℤ := fun s ↦ Manifold.Orientation.orientationSign
-    ((boundaryOrientation o).prod (normalIioOpensOrientation 1)) o c (y, s)
-  have hg : IsLocallyConstant g := (IsLocallyConstant.iff_eventually_eq g).2 fun s ↦
-    ((continuous_const.prodMk continuous_id).tendsto s).eventually
-      (Manifold.Orientation.eventually_orientationSign_eq
-        ((c.contMDiff (y, s)).of_le (ENat.one_le_iff_ne_zero_withTop.2 hk))
-        ((c.isLocalDiffeomorph (y, s)).isInvertible_mfderiv hk))
-  -- The slice `{y} × [0, 1)` is connected, as `[0, 1)` is.
+  -- The slice `{y} × [0, 1)` is preconnected, as `[0, 1)` is.
   let h := homeomorphNormalIioOpens 1
   have : PreconnectedSpace (Ico (0 : ℝ) 1) := Subtype.preconnectedSpace isPreconnected_Ico
-  have hgt := (hg.comp_continuous h.symm.continuous).apply_eq_of_preconnectedSpace
-    (h t) (h (normalIioOpensZero one_pos))
-  simp only [Function.comp_apply, Homeomorph.symm_apply_apply] at hgt
-  exact hgt.trans (c.orientationSign_mk_normalIioOpensZero o hk y)
+  have hS : IsPreconnected (range fun s ↦ (y, h.symm s)) :=
+    isPreconnected_range (continuous_const.prodMk h.symm.continuous)
+  have hmem (s : normalIioOpens 1) : (y, s) ∈ range fun s ↦ (y, h.symm s) :=
+    ⟨h s, congrArg (y, ·) (h.symm_apply_apply s)⟩
+  refine (Manifold.Orientation.orientationSign_eq_of_isPreconnected hS
+    (fun p _ ↦ (c.contMDiff p).of_le (ENat.one_le_iff_ne_zero_withTop.2 hk))
+    (fun p _ ↦ (c.isLocalDiffeomorph p).isInvertible_mfderiv hk) (hmem t)
+    (hmem (normalIioOpensZero one_pos))).trans ?_
+  exact c.orientationSign_mk_normalIioOpensZero o hk y
 
 /-- When `n` is odd, as for surfaces, a smooth collar preserves orientation at every point, from
 the product of the boundary orientation and the standard orientation of `[0, 1)`. -/
