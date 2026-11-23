@@ -11,6 +11,7 @@ import Mathlib.Geometry.Manifold.ContMDiff.Atlas
 import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
 import TauCeti.Topology.OpenPartialHomeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Topology.Algebra.Support
 
 /-!
 # Extending a function by zero along a chart
@@ -121,8 +122,8 @@ chart and extended by `0` off `ψ.target` is supported in the image under `ψ` o
 theorem tsupport_indicator_comp_symm_subset
     (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
     tsupport (ψ.target.indicator fun y ↦ χ (ψ.symm y)) ⊆ ψ '' tsupport χ :=
-  closure_minimal (ψ.support_indicator_comp_symm_subset χ)
-    (ψ.isCompact_image_of_subset_source hK hχ).isClosed
+  tsupport_indicator_subset_of_eqOn (ψ.isCompact_image_of_subset_source hK hχ).isClosed
+    fun _ hy ↦ image_eq_zero_of_notMem_tsupport fun h ↦ hy.2 ⟨_, h, ψ.right_inv hy.1⟩
 
 /-- If the support of `χ` is compact and lies in the source of `ψ`, the function `χ` read in the
 chart and extended by `0` off `ψ.target` has compact support. -/
