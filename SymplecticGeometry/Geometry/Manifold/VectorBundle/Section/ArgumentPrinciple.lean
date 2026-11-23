@@ -14,6 +14,7 @@ public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.LineB
 public import SymplecticGeometry.Topology.VectorBundle.Section
 public import TauCeti.Topology.VectorBundle.Hom
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
+public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 
 /-!
 # The argument principle on a split closed surface
@@ -266,7 +267,7 @@ variable {G : Type} [NormedAddCommGroup G] [NormedSpace ℝ G] [NormedSpace ℂ 
   [∀ x, Module ℝ (L x)] [∀ x, Module ℂ (L x)] [∀ x, IsScalarTower ℝ ℂ (L x)]
   [∀ x, TopologicalSpace (L x)] [FiberBundle G L] [VectorBundle ℂ G L]
 
-local instance : VectorBundle ℝ G L := VectorBundle.restrictScalars ℝ ℂ G L
+open scoped VectorBundle.ComplexToReal
 
 /-- **The argument principle on a split closed surface, for a complex line bundle.** Let `M` be a
 closed smooth surface oriented by `oM`, and `g : M → ℝ` smooth with regular value `0`, splitting

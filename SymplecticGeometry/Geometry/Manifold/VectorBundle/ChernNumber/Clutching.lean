@@ -16,6 +16,7 @@ public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 public import SymplecticGeometry.Topology.VectorBundle.Determinant
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Radial
 public import TauCeti.Topology.VectorBundle.Complex.Clutching
+public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 
 /-!
 # The disc clutching formula for the first Chern number
@@ -375,8 +376,7 @@ private theorem clutchingSection_eq_zero_iff {x : M} :
       (hj ▸ (φ i).openDisc_subset_disc hi)
     rw [← (φ j).injective hj, CoordinateDisc.coe_zero]
 
-local instance : VectorBundle ℝ (Fin (detCore ℂ G E).rank → ℂ) (detCore ℂ G E).core.Fiber :=
-  VectorBundle.restrictScalars ℝ ℂ _ _
+open scoped VectorBundle.ComplexToReal
 
 /-- The local index of the clutching section at the centre of the `i`-th disc is the degree of
 the loop of normalized determinants of the clutching transition. -/

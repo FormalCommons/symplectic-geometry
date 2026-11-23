@@ -13,6 +13,7 @@ public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Winding
 public import TauCeti.Analysis.Complex.Circle
 public import TauCeti.Topology.Circle.Normalize
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.Basic
+public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 
 /-!
 # The local index of a section extended radially into a coordinate disc
@@ -103,7 +104,7 @@ variable {M : Type} [TopologicalSpace M] [T2Space M] {E : Type} [NormedAddCommGr
   [∀ x, Module ℝ (L x)] [∀ x, Module ℂ (L x)] [∀ x, IsScalarTower ℝ ℂ (L x)]
   [∀ x, TopologicalSpace (L x)] [FiberBundle G L] [VectorBundle ℂ G L]
 
-local instance : VectorBundle ℝ G L := VectorBundle.restrictScalars ℝ ℂ G L
+open scoped VectorBundle.ComplexToReal
 
 /-- **The local index of a radially extended section.** Let `φ` be a coordinate disc of a surface
 `M` with homological orientation `o`, `L` a complex line bundle over `M`, and `σ` a frame of `L`

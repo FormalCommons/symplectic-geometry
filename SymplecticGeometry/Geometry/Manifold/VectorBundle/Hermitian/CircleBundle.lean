@@ -15,6 +15,7 @@ public import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Sphere
+public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 import SymplecticGeometry.GroupTheory.GroupAction.Hom
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.Frame
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Norm
@@ -448,8 +449,7 @@ variable {EB HB B F : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topol
 
 attribute [local instance] finrank_real_complex_fact'
 
-local instance SymplecticGeometry.instVectorBundleRealCircleBundle : VectorBundle ℝ F V :=
-  VectorBundle.restrictScalars ℝ ℂ F V
+open scoped VectorBundle.ComplexToReal
 
 variable [ContMDiffVectorBundle n F V I] (g : ContMDiffRiemannianMetric I n F V)
   (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w)
