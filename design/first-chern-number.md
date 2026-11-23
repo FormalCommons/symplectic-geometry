@@ -664,7 +664,7 @@ collar of `∂S` (one exists: the instance `Nonempty (SmoothCollar n ∞ W)` of
   `inlInterior` preserves orientation from `o` (18f), by
   `TauCeti.Manifold.Orientation.comap_toHomologicalOrientation`, the
   pull-back of `toHomologicalOrientation` along an orientation-preserving
-  open embedding that is a local diffeomorphism, from
+  open embedding, from
   `TauCeti.Manifold.Orientation.localHomologyMap_toHomologicalOrientation`,
   in this library's `AlgebraicTopology/Singular/LocalHomology/Orientation/Smooth.lean`.
 - `SymplecticSurfaceBundle.doubleClutching c o hS Ψ hΨ`, for `κ : Type`
