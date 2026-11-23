@@ -98,7 +98,6 @@ theorem sectionIndex_eq_one_of_complexLinear {r : ℕ} (hE : finrank ℂ E = r +
   have hG : finrank ℝ G = 2 * r + 1 + 1 := by
     rw [← (A.restrictScalars' ℝ).toLinearEquiv.finrank_eq, hEℝ]
   have h₁ : 2 * finrank ℂ G = 2 * r + 1 + 1 := by rw [← A.toLinearEquiv.finrank_eq, hE]; ring
-  have h₂ : 2 * finrank ℂ E = 2 * r + 1 + 1 := by rw [hE]; ring
   rw [SymplecticGeometry.complexManifoldHomologicalOrientation_def]
   set oV := (complex G V).reindex (finCongr h₁)
   set oM := SymplecticGeometry.complexManifoldOrientationOfFinrank E M hE
@@ -134,8 +133,8 @@ theorem sectionIndex_eq_one_of_complexLinear {r : ℕ} (hE : finrank ℂ E = r +
     intro x hx
     rw [reindex_apply, Trivialization.mapOrientation_reindex, mapOrientation_complex_of_isLinear]
   -- The chart `φ` carries the local orientation of `M` at `z` to the one selected by `ω`.
-  have hω := map_orientationAt_reindex_complexManifoldOrientation h₂ h₁ A z
-  rw [← SymplecticGeometry.complexManifoldOrientationOfFinrank_def hE] at hω
+  have hω := SymplecticGeometry.map_orientationAt_complexManifoldOrientationOfFinrank hE
+    (by rw [← A.toLinearEquiv.finrank_eq, hE]) A z
   have hφl := Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation_transHomeomorph
     hEℝ oM hG Aℝ z
   rw [hω] at hφl

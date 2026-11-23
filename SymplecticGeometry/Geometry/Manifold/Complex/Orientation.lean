@@ -40,7 +40,11 @@ dimension `2 r + 2` use the index type `Fin (2 * r + 1 + 1)`:
 * `SymplecticGeometry.complexManifoldOrientationOfFinrank`: the canonical orientation, indexed by
   `Fin (2 * r + 1 + 1)`, with `SymplecticGeometry.complexManifoldOrientationOfFinrank_def`;
 * `SymplecticGeometry.orientationAt_complexManifoldOrientationOfFinrank`: at every point it is the
-  complex orientation `TauCeti.complexOrientation E` of the model, reindexed.
+  complex orientation `TauCeti.complexOrientation E` of the model, reindexed;
+* `SymplecticGeometry.map_orientationAt_complexManifoldOrientationOfFinrank`: a complex-linear
+  isomorphism `E ≃L[ℂ] G` carries it to the complex orientation of `G`, reindexed;
+* `SymplecticGeometry.complexCurveOrientation_eq_complexManifoldOrientationOfFinrank`: its case
+  `r = 0` is `SymplecticGeometry.complexCurveOrientation`.
 
 Tau Ceti's `TauCeti.complexHomologicalOrientation` (in
 `TauCeti/Geometry/Manifold/Complex/FundamentalClass.lean`) reindexes the same orientation to
@@ -165,6 +169,23 @@ theorem orientationAt_complexManifoldOrientationOfFinrank {r : ℕ} (hE : finran
       Orientation.reindex ℝ (TangentSpace 𝓘(ℝ, E) x) (finCongr (by rw [hE]; ring))
         (complexOrientation E) := by
   rw [complexManifoldOrientationOfFinrank_def, orientationAt_reindex_complexManifoldOrientation]
+
+/-- A complex-linear isomorphism `A : E ≃L[ℂ] G` carries the tangent orientation of
+`complexManifoldOrientationOfFinrank` at any point to the complex orientation of `G`, reindexed to
+`Fin (2 * r + 1 + 1)`. -/
+theorem map_orientationAt_complexManifoldOrientationOfFinrank
+    {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G] [NormedSpace ℂ G] [IsScalarTower ℝ ℂ G]
+    [FiniteDimensional ℂ G] {r : ℕ} (hE : finrank ℂ E = r + 1) (hG : finrank ℂ G = r + 1)
+    (A : E ≃L[ℂ] G) (z : M) :
+    ((complexManifoldOrientationOfFinrank E M hE).orientationAt z).map (Fin (2 * r + 1 + 1))
+        (A.restrictScalars' ℝ).toLinearEquiv =
+      Orientation.reindex ℝ G (finCongr (by rw [hG]; ring)) (complexOrientation G) :=
+  map_orientationAt_reindex_complexManifoldOrientation _ _ A z
+
+/-- `complexCurveOrientation` is the case `r = 0` of `complexManifoldOrientationOfFinrank`. -/
+theorem complexCurveOrientation_eq_complexManifoldOrientationOfFinrank (h : finrank ℂ E = 1) :
+    complexCurveOrientation E M h = complexManifoldOrientationOfFinrank E M (r := 0) h :=
+  (rfl)
 
 end SymplecticGeometry
 
