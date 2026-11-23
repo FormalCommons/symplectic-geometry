@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
+public import SymplecticGeometry.Topology.Collar.Compact
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Deformation
 public import TauCeti.Topology.Homeomorph.Extend
 
@@ -76,23 +77,6 @@ private lemma raise_of_le {t : Ico (0 : ℝ) 1} {τ : unitInterval} {p : N × Ic
 
 variable (hc : IsCollar f c)
 include hc
-
-/-- For compact `N` and `t < 1`, the part `c(N × [0, t])` of the collar of depth at most `t` is
-compact. -/
-theorem isCompact_image_setOf_le [CompactSpace N] {t : ℝ} (ht : t < 1) :
-    IsCompact (c '' {p | (p.2 : ℝ) ≤ t}) := by
-  have hs : IsCompact {s : Ico (0 : ℝ) 1 | (s : ℝ) ≤ t} := by
-    rw [Subtype.isCompact_iff]
-    convert isCompact_Icc (a := (0 : ℝ)) (b := t) using 1
-    ext x
-    refine ⟨?_, fun hx ↦ ⟨⟨x, hx.1, hx.2.trans_lt ht⟩, hx.2, rfl⟩⟩
-    rintro ⟨s, hs, rfl⟩
-    exact ⟨s.property.1, hs⟩
-  have hp : {p : N × Ico (0 : ℝ) 1 | (p.2 : ℝ) ≤ t} =
-      (univ : Set N) ×ˢ {s : Ico (0 : ℝ) 1 | (s : ℝ) ≤ t} := by
-    ext; simp
-  rw [hp]
-  exact (isCompact_univ.prod hs).image hc.isOpenEmbedding.continuous
 
 /-- **Pushing along a collar.** Let `c` be a collar of `f : N → M`, with `N` compact and `M`
 Hausdorff, and let `t ∈ [0, 1)`. There is a map `g : M → M`, homotopic to the identity, that
