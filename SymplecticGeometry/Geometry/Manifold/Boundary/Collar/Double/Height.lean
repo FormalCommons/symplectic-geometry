@@ -6,9 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Double.Topology
+public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 public import TauCeti.Geometry.Manifold.RegularValue
-import Mathlib.Analysis.SpecialFunctions.SmoothTransition
-import Mathlib.Analysis.SpecialFunctions.Sqrt
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 
 /-!
@@ -16,11 +15,11 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 
 For a manifold `W` modelled on the half-space with a smooth collar `c`, the double `c.Double`
 carries a smooth function `Double.height c : c.Double → ℝ` that splits it into its two copies of
-`W`. On the band, at the point `(s, x)` of `(-1, 1) × ∂W`, it is `ρ s` for a fixed smooth odd
-function `ρ : ℝ → ℝ` with `ρ s = s` for `|s| ≤ 1/4`, `ρ s = ±1` for `±s ≥ 1/2`, and of the sign of
-`s`. Off the band it is `-1` on the first copy of `W` and `1` on the second. So `{height ≤ 0}` is
-the first copy of `W`, `{height < 0}` the first copy of its interior and `{height = 0}` the common
-boundary, and `0` is a regular value.
+`W`. On the band, at the point `(s, x)` of `(-1, 1) × ∂W`, it is `smoothSign s`, for the smooth
+odd function `smoothSign : ℝ → ℝ` with `smoothSign s = s` for `|s| ≤ 1/4`, `smoothSign s = ±1`
+for `±s ≥ 1/2`, and of the sign of `s`. Off the band it is `-1` on the first copy of `W` and `1`
+on the second. So `{height ≤ 0}` is the first copy of `W`, `{height < 0}` the first copy of its
+interior and `{height = 0}` the common boundary, and `0` is a regular value.
 
 ## Main definitions
 
@@ -61,76 +60,6 @@ noncomputable section
 namespace TauCeti.SmoothCollar.Double
 open _root_.TauCeti.EuclideanHalfSpace
 
-/-! ### The profile of the height function on the band -/
-
-/-- A smooth even cutoff: `0` for `|s| ≤ 1/4` and `1` for `|s| ≥ 1/2`. -/
-private def profileCutoff (s : ℝ) : ℝ := Real.smoothTransition (16 * s ^ 2 - 1)
-
-/-- The positive denominator `1 - β s + β s * s ^ 2` of the profile, for the cutoff `β`. -/
-private def profileDenom (s : ℝ) : ℝ := 1 - profileCutoff s + profileCutoff s * s ^ 2
-
-/-- The profile of the height function on the band: `s / √(1 - β s + β s * s ^ 2)`, for the
-cutoff `β`. It is `s` for `|s| ≤ 1/4` and `s / |s|` for `|s| ≥ 1/2`. -/
-private def heightProfile (s : ℝ) : ℝ := s / √(profileDenom s)
-
-private theorem profileCutoff_of_abs_le {s : ℝ} (hs : |s| ≤ 1 / 4) : profileCutoff s = 0 :=
-  Real.smoothTransition.zero_of_nonpos (by nlinarith [abs_nonneg s, sq_abs s])
-
-private theorem profileCutoff_of_le_abs {s : ℝ} (hs : 1 / 2 ≤ |s|) : profileCutoff s = 1 :=
-  Real.smoothTransition.one_of_one_le (by nlinarith [abs_nonneg s, sq_abs s])
-
-private theorem profileCutoff_neg (s : ℝ) : profileCutoff (-s) = profileCutoff s := by
-  simp [profileCutoff]
-
-private theorem profileDenom_pos (s : ℝ) : 0 < profileDenom s := by
-  have h0 := Real.smoothTransition.nonneg (16 * s ^ 2 - 1)
-  have h1 := Real.smoothTransition.le_one (16 * s ^ 2 - 1)
-  rw [profileDenom, profileCutoff]
-  rcases eq_or_ne s 0 with rfl | hs
-  · rw [Real.smoothTransition.zero_of_nonpos (by norm_num)]
-    norm_num
-  · have := pow_pos (abs_pos.2 hs) 2
-    rw [sq_abs] at this
-    rcases eq_or_lt_of_le h1 with h | h
-    · rw [h]; linarith
-    · nlinarith
-
-private theorem contDiff_heightProfile : ContDiff ℝ ∞ heightProfile := by
-  have hβ : ContDiff ℝ ∞ profileCutoff :=
-    (Real.smoothTransition.contDiff (n := ⊤)).comp (by fun_prop)
-  have hD : ContDiff ℝ ∞ profileDenom := by
-    unfold profileDenom
-    exact (contDiff_const.sub hβ).add (hβ.mul (contDiff_id.pow 2))
-  exact contDiff_id.div (hD.sqrt fun s ↦ (profileDenom_pos s).ne')
-    fun s ↦ (Real.sqrt_pos.2 (profileDenom_pos s)).ne'
-
-private theorem heightProfile_of_abs_le {s : ℝ} (hs : |s| ≤ 1 / 4) : heightProfile s = s := by
-  simp [heightProfile, profileDenom, profileCutoff_of_abs_le hs]
-
-private theorem heightProfile_of_le_abs {s : ℝ} (hs : 1 / 2 ≤ |s|) :
-    heightProfile s = s / |s| := by
-  simp [heightProfile, profileDenom, profileCutoff_of_le_abs hs, Real.sqrt_sq_eq_abs]
-
-private theorem heightProfile_of_le {s : ℝ} (hs : 1 / 2 ≤ s) : heightProfile s = 1 := by
-  rw [heightProfile_of_le_abs (by rw [abs_of_pos (by linarith)]; exact hs),
-    abs_of_pos (by linarith), div_self (by linarith)]
-
-private theorem heightProfile_of_le_neg {s : ℝ} (hs : s ≤ -(1 / 2)) : heightProfile s = -1 := by
-  rw [heightProfile_of_le_abs (by rw [abs_of_neg (by linarith)]; linarith),
-    abs_of_neg (by linarith), div_neg, div_self (by linarith)]
-
-private theorem heightProfile_neg (s : ℝ) : heightProfile (-s) = -heightProfile s := by
-  simp [heightProfile, profileDenom, profileCutoff_neg, neg_div]
-
-private theorem heightProfile_lt_zero_iff {s : ℝ} : heightProfile s < 0 ↔ s < 0 := by
-  rw [heightProfile, div_lt_iff₀ (Real.sqrt_pos.2 (profileDenom_pos s)), zero_mul]
-
-private theorem heightProfile_eq_zero_iff {s : ℝ} : heightProfile s = 0 ↔ s = 0 := by
-  rw [heightProfile, div_eq_zero_iff, or_iff_left (Real.sqrt_pos.2 (profileDenom_pos s)).ne']
-
-private theorem heightProfile_nonpos_iff {s : ℝ} : heightProfile s ≤ 0 ↔ s ≤ 0 := by
-  rw [le_iff_lt_or_eq, le_iff_lt_or_eq, heightProfile_lt_zero_iff, heightProfile_eq_zero_iff]
-
 /-! ### The height function -/
 
 variable {n : ℕ} {W : Type*} [TopologicalSpace W] [ChartedSpace (EuclideanHalfSpace (n + 1)) W]
@@ -142,11 +71,12 @@ open scoped Classical in
 `s ≤ -1/2` and to `1` for `s ≥ 1/2`, and of the sign of `s`; off the band it is `-1` on the first
 copy of `W` and `1` on the second. -/
 def height (z : c.Double) : ℝ :=
-  if h : z ∈ bandMap c '' (Ioo (-1) 1 ×ˢ univ) then heightProfile h.choose.1
+  if h : z ∈ bandMap c '' (Ioo (-1) 1 ×ˢ univ) then smoothSign h.choose.1
   else if z ∈ range (inl c) then -1 else 1
 
-private theorem height_bandMap {s : ℝ} (hs : s ∈ Ioo (-1) 1) (x : (𝓡∂ (n + 1)).boundary W) :
-    height c (bandMap c (s, x)) = heightProfile s := by
+/-- The height of the point `(s, x)` of the band is `smoothSign s`. -/
+theorem height_bandMap {s : ℝ} (hs : s ∈ Ioo (-1) 1) (x : (𝓡∂ (n + 1)).boundary W) :
+    height c (bandMap c (s, x)) = smoothSign s := by
   have h : bandMap c (s, x) ∈ bandMap c '' (Ioo (-1) 1 ×ˢ univ) :=
     mem_image_of_mem _ ⟨hs, mem_univ _⟩
   rw [height, dite_eq_left h, injOn_bandMap c h.choose_spec.1 ⟨hs, mem_univ _⟩ h.choose_spec.2]
@@ -155,33 +85,33 @@ private theorem height_bandMap {s : ℝ} (hs : s ∈ Ioo (-1) 1) (x : (𝓡∂ (
 theorem height_bandMap_of_abs_le {s : ℝ} (hs : |s| ≤ 1 / 4) (x : (𝓡∂ (n + 1)).boundary W) :
     height c (bandMap c (s, x)) = s := by
   have := abs_le.1 hs
-  rw [height_bandMap c ⟨by linarith, by linarith⟩, heightProfile_of_abs_le hs]
+  rw [height_bandMap c ⟨by linarith, by linarith⟩, smoothSign_of_abs_le hs]
 
 /-- On the band, the height is an odd function of the band coordinate. -/
 theorem height_bandMap_neg {s : ℝ} (hs : s ∈ Ioo (-1) 1) (x : (𝓡∂ (n + 1)).boundary W) :
     height c (bandMap c (-s, x)) = -height c (bandMap c (s, x)) := by
   rw [height_bandMap c hs, height_bandMap c ⟨by linarith [hs.2], by linarith [hs.1]⟩,
-    heightProfile_neg]
+    smoothSign_neg]
 
 /-- The height of the point `(s, x)` of the band is `1` for `s ∈ [1/2, 1)`. -/
 theorem height_bandMap_of_le {s : ℝ} (hs : 1 / 2 ≤ s) (hs' : s < 1)
     (x : (𝓡∂ (n + 1)).boundary W) : height c (bandMap c (s, x)) = 1 := by
-  rw [height_bandMap c ⟨by linarith, hs'⟩, heightProfile_of_le hs]
+  rw [height_bandMap c ⟨by linarith, hs'⟩, smoothSign_of_le hs]
 
 /-- The height of the point `(s, x)` of the band is `-1` for `s ∈ (-1, -1/2]`. -/
 theorem height_bandMap_of_le_neg {s : ℝ} (hs : s ≤ -(1 / 2)) (hs' : -1 < s)
     (x : (𝓡∂ (n + 1)).boundary W) : height c (bandMap c (s, x)) = -1 := by
-  rw [height_bandMap c ⟨hs', by linarith⟩, heightProfile_of_le_neg hs]
+  rw [height_bandMap c ⟨hs', by linarith⟩, smoothSign_of_le_neg hs]
 
 /-- On the band, the height is negative exactly where the band coordinate is. -/
 theorem height_bandMap_lt_zero_iff {s : ℝ} (hs : s ∈ Ioo (-1) 1)
     (x : (𝓡∂ (n + 1)).boundary W) : height c (bandMap c (s, x)) < 0 ↔ s < 0 := by
-  rw [height_bandMap c hs, heightProfile_lt_zero_iff]
+  rw [height_bandMap c hs, smoothSign_lt_zero_iff]
 
 /-- On the band, the height vanishes exactly where the band coordinate does. -/
 theorem height_bandMap_eq_zero_iff {s : ℝ} (hs : s ∈ Ioo (-1) 1)
     (x : (𝓡∂ (n + 1)).boundary W) : height c (bandMap c (s, x)) = 0 ↔ s = 0 := by
-  rw [height_bandMap c hs, heightProfile_eq_zero_iff]
+  rw [height_bandMap c hs, smoothSign_eq_zero_iff]
 
 private theorem neg_depth_mem_Ioo (t : normalIioOpens 1) :
     -(t : EuclideanHalfSpace 1).val 0 ∈ Ioo (-1) 1 := by
@@ -244,8 +174,8 @@ private theorem height_inl_nonpos_and_eq_zero_iff (w : W) :
     height c (inl c w) ≤ 0 ∧ (height c (inl c w) = 0 ↔ w ∈ (𝓡∂ (n + 1)).boundary W) := by
   by_cases hw : w ∈ range c
   · obtain ⟨⟨x, t⟩, rfl⟩ := hw
-    rw [inl_apply_eq_bandMap, height_bandMap c (neg_depth_mem_Ioo t), heightProfile_nonpos_iff,
-      heightProfile_eq_zero_iff, neg_eq_zero, depth_eq_zero_iff, c.apply_mem_boundary_iff]
+    rw [inl_apply_eq_bandMap, height_bandMap c (neg_depth_mem_Ioo t), smoothSign_nonpos_iff,
+      smoothSign_eq_zero_iff, neg_eq_zero, depth_eq_zero_iff, c.apply_mem_boundary_iff]
     exact ⟨neg_nonpos.2 (t : EuclideanHalfSpace 1).property, Iff.rfl⟩
   · rw [height_inl_of_notMem_range c hw]
     exact ⟨by norm_num, by norm_num; exact fun h ↦ hw (c.boundary_subset_range h)⟩
@@ -255,10 +185,10 @@ private theorem height_inr_nonneg_and_eq_zero_iff (w : W) :
     0 ≤ height c (inr c w) ∧ (height c (inr c w) = 0 ↔ w ∈ (𝓡∂ (n + 1)).boundary W) := by
   by_cases hw : w ∈ range c
   · obtain ⟨⟨x, t⟩, rfl⟩ := hw
-    rw [inr_apply_eq_bandMap, height_bandMap c (depth_mem_Ioo t), heightProfile_eq_zero_iff,
+    rw [inr_apply_eq_bandMap, height_bandMap c (depth_mem_Ioo t), smoothSign_eq_zero_iff,
       depth_eq_zero_iff, c.apply_mem_boundary_iff]
     refine ⟨?_, Iff.rfl⟩
-    rw [← not_lt, heightProfile_lt_zero_iff, not_lt]
+    rw [← not_lt, smoothSign_lt_zero_iff, not_lt]
     exact (t : EuclideanHalfSpace 1).property
   · rw [height_inr_of_notMem_range c hw]
     exact ⟨by norm_num, by norm_num; exact fun h ↦ hw (c.boundary_subset_range h)⟩
@@ -306,6 +236,19 @@ theorem preimage_height_zero : height c ⁻¹' {0} = bandMap c '' ({0} ×ˢ univ
   · rintro ⟨⟨s, x⟩, ⟨rfl, -⟩, rfl⟩
     exact (height_bandMap_eq_zero_iff c (by norm_num) x).2 rfl
 
+/-- The manifold `W` is homeomorphic to the sublevel set `{height ≤ 0}` of the double, by its
+first copy `inl`. -/
+def homeomorphSublevel : W ≃ₜ height c ⁻¹' Iic 0 :=
+  have heq : ⇑(homeomorphDoubleAlong c).symm ∘ DoubleAlong.inl _ = inl c :=
+    funext fun w ↦ by rw [comp_apply, Homeomorph.symm_apply_eq, homeomorphDoubleAlong_inl]
+  (heq ▸ (homeomorphDoubleAlong c).symm.isEmbedding.comp (DoubleAlong.isEmbedding_inl _) :
+    IsEmbedding (inl c)).toHomeomorph.trans (Homeomorph.setCongr (preimage_height_Iic c).symm)
+
+/-- The homeomorphism of `W` with `{height ≤ 0}` is the first copy `inl`. -/
+@[simp]
+theorem coe_homeomorphSublevel (w : W) : (homeomorphSublevel c w : c.Double) = inl c w :=
+  (rfl)
+
 variable [IsManifold (𝓡∂ (n + 1)) ∞ W]
 
 local instance : IsManifold (𝓡 n) ∞ ((𝓡∂ (n + 1)).boundary W) := isManifold_boundary W
@@ -328,7 +271,7 @@ private theorem contMDiffAt_height_bandMap {s : ℝ} (hs : s ∈ Ioo (-1) 1)
     ContMDiffAt (𝓡 (n + 1)) 𝓘(ℝ) ∞ (height c) (bandMap c (s, x)) := by
   have hd := isLocalDiffeomorphOn_bandMap c ⟨(s, x), ⟨hs, mem_univ _⟩⟩
   refine (hd.contMDiffAt_comp_iff le_rfl).1 ?_
-  refine (contDiff_heightProfile.contMDiff.comp contMDiff_fst).contMDiffAt.congr_of_eventuallyEq ?_
+  refine (contDiff_smoothSign.contMDiff.comp contMDiff_fst).contMDiffAt.congr_of_eventuallyEq ?_
   filter_upwards [(isOpen_Ioo.prod isOpen_univ).mem_nhds (⟨hs, mem_univ _⟩ :
     (s, x) ∈ Ioo (-1 : ℝ) 1 ×ˢ (univ : Set ((𝓡∂ (n + 1)).boundary W)))] with p hp
   exact height_bandMap c hp.1 p.2
@@ -407,26 +350,6 @@ theorem isRegularValue_height_zero : IsRegularValue (𝓡 (n + 1)) 𝓘(ℝ) (he
   refine Surjective.of_comp (g := mfderiv (𝓘(ℝ).prod (𝓡 n)) (𝓡 (n + 1)) (bandMap c) (0, x)) ?_
   rw [← ContinuousLinearMap.coe_comp, ← h]
   exact fun v ↦ ⟨(v, 0), rfl⟩
-
-/-! ### The first copy of `W` as a sublevel set -/
-
-/-- The first copy `inl` of `W` in the double is an embedding. -/
-private theorem isEmbedding_inl : IsEmbedding (inl c) := by
-  have h := (homeomorphDoubleAlong c).symm.isClosedEmbedding.comp
-    (DoubleAlong.isClosedEmbedding_inl _ ((𝓡∂ (n + 1)).isClosed_boundary (n := ∞) (by simp)))
-  have heq : ⇑(homeomorphDoubleAlong c).symm ∘ DoubleAlong.inl _ = inl c :=
-    funext fun w ↦ by rw [comp_apply, Homeomorph.symm_apply_eq, homeomorphDoubleAlong_inl]
-  exact heq ▸ h.isEmbedding
-
-/-- The manifold `W` is homeomorphic to the sublevel set `{height ≤ 0}` of the double, by its
-first copy `inl`. -/
-def homeomorphSublevel : W ≃ₜ height c ⁻¹' Iic 0 :=
-  (isEmbedding_inl c).toHomeomorph.trans (Homeomorph.setCongr (preimage_height_Iic c).symm)
-
-/-- The homeomorphism of `W` with `{height ≤ 0}` is the first copy `inl`. -/
-@[simp]
-theorem coe_homeomorphSublevel (w : W) : (homeomorphSublevel c w : c.Double) = inl c w :=
-  (rfl)
 
 /-- The homeomorphism of `W` with `{height ≤ 0}` maps the interior of `W` onto `{height < 0}`. -/
 theorem image_interior_homeomorphSublevel :
