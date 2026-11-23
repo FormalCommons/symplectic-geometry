@@ -246,10 +246,11 @@ $\dim H^2(X;\mathbb Q)=b_2$ by Tau Ceti's
 ### Degree zero
 
 The structure allows `d = 0`: then `poly` is a nonzero constant and `X` is
-empty. Parts 1–4 of the milestone hold for it, but the page's formulas for
-the Betti numbers, the signature, $b^\pm$ and the genus do not (for
-surfaces they would give $b_2=-2$). The statements of issues 14 and 15
-assume `d ≠ 0`, and the issue that states them adds an entry to
+empty. Parts 1–4 of the milestone hold for it, and so do the formulas for
+the Chern classes, $\chi$ and $\sigma$, but the page's formulas for the
+Betti numbers, $b^\pm$ and the genus do not (for surfaces they would give
+$b_2=-2$). The statements of issues 14 and 15 assume `d ≠ 0` only for the
+Betti numbers, $b^\pm$ and the genus, and the issue that states them adds an entry to
 `ERRATA.md` with the empty surface as the counterexample.
 
 ## Files
@@ -604,8 +605,8 @@ For `d ≠ 0`.
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/Surface.lean`
 
-For `X : SmoothProjectiveHypersurface 2 d`, with `d ≠ 0` for $b_2$ and the
-signature. Each theorem's
+For `X : SmoothProjectiveHypersurface 2 d`, with `d ≠ 0` for $b_2$ and
+$b^\pm$. Each theorem's
 docstring ends with the line Milestone: *Chern classes of projective
 hypersurfaces*.
 

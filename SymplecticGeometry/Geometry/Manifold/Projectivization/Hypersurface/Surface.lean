@@ -49,7 +49,8 @@ The following are in the namespace `SymplecticGeometry.SmoothProjectiveHypersurf
   `evalFundamentalClass_chernClass_two_surface`: the Chern numbers `⟨c₁ ⌣ c₁, [X]⟩` and
   `⟨c₂, [X]⟩`.
 * `signature_surface`: given the signature theorem, and for `d ≠ 0`, `3σ = (4 - d²) d`,
-  `3b⁺ = d³ - 6d² + 11d - 3` and `3b⁻ = 2d³ - 6d² + 7d - 3`.
+  `3b⁺ = d³ - 6d² + 11d - 3` and `3b⁻ = 2d³ - 6d² + 7d - 3`; `sigPos_fermat_zero` shows that
+  the last two need `d ≠ 0`.
 
 ## References
 
@@ -116,8 +117,8 @@ theorem bettiNumber_two_surface (hd : d ≠ 0) :
 
 /-- `bettiNumber_two_surface` needs `d ≠ 0`: the Fermat surface of degree `0` is empty, so its
 second Betti number is `0`, while `d³ - 4d² + 6d - 2 = -2` for `d = 0`. -/
-theorem bettiNumber_two_fermat_zero : bettiNumber ℚ (fermat 2 0) 2 = 0 := by
-  rw [bettiNumber_def, ← TopCat.finrank_singularCohomology, finrank_zero_of_subsingleton]
+theorem bettiNumber_two_fermat_zero : bettiNumber ℚ (fermat 2 0) 2 = 0 :=
+  bettiNumber_eq_zero_of_isEmpty ℚ _ 2
 
 /-- On a surface in `ℂℙ³`, `⟨c₁ ⌣ c₁, [X]⟩ = (4 - d)² d`. -/
 theorem evalFundamentalClass_integralCup_chernClass_one_surface :
@@ -150,6 +151,8 @@ theorem evalFundamentalClass_chernClass_two_surface :
 `b⁻ = sigNeg q` its indices of inertia, so that `σ = b⁺ - b⁻` is the signature of `X`. Assume the
 signature theorem `3σ = ⟨c₁ ⌣ c₁, [X]⟩ - 2 ⟨c₂, [X]⟩`, which the library does not prove, and
 `d ≠ 0`. Then `3σ = (4 - d²) d`, `3b⁺ = d³ - 6d² + 11d - 3` and `3b⁻ = 2d³ - 6d² + 7d - 3`.
+Only the formulas for `b⁺` and `b⁻` use `d ≠ 0` (see `sigPos_fermat_zero`); the one for `σ`
+follows from the signature theorem in every degree.
 
 Milestone: *Chern classes of projective hypersurfaces*. -/
 theorem signature_surface (hd : d ≠ 0)
@@ -181,6 +184,15 @@ theorem signature_surface (hd : d ≠ 0)
     exact_mod_cast (complexManifoldHomologicalOrientation _ X finrank_model)
       |>.sigPos_add_sigNeg_singularCupPairing_fundamentalClass _ even_two _
   exact ⟨hσ, by linarith, by linarith⟩
+
+/-- `signature_surface` needs `d ≠ 0` for `b⁺` and `b⁻`: the Fermat surface of degree `0` is
+empty, so every quadratic form on its `H²(X; ℚ)` has `b⁺ = 0`, while
+`(d³ - 6d² + 11d - 3) / 3 = -1` for `d = 0`. -/
+theorem sigPos_fermat_zero
+    (q : QuadraticForm ℚ
+      ((TopCat.of (fermat 2 0)).singularCohomology (𝟙_ (ModuleCat.{0} ℚ)) ℚ (𝟙_ _) 2)) :
+    sigPos q = 0 :=
+  Nat.le_zero.1 ((sigPos_le_finrank q).trans_eq finrank_zero_of_subsingleton)
 
 end SmoothProjectiveHypersurface
 

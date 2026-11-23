@@ -66,11 +66,13 @@ injectivity is the hypothesis of Tau Ceti's evenness criterion
 `TopCat.even_finrank_singularHomology_of_injective_singularCapLinearMap`. With Tau
 Ceti's `TopCat.finrank_singularHomology_eq_of_bijective_singularCapLinearMap`, it follows that the
 rational Betti numbers of a compact oriented `n`-manifold satisfy `b_q = b_p` for `p + q = n`
-(`TauCeti.HomologicalOrientation.bettiNumber_eq_bettiNumber`). For `p + p = n` with `p` even,
+(`TauCeti.HomologicalOrientation.bettiNumber_eq_bettiNumber`). For `p + p = n`,
 injectivity also makes the cup pairing `(α, β) ↦ ⟨α ⌣ β, μ⟩` on `Hᵖ(M; ℚ)` nondegenerate, by
 Tau Ceti's `TopCat.nondegenerate_singularCupPairing_iff`
+(`TauCeti.HomologicalOrientation.nondegenerate_singularCupPairing_fundamentalClass`). For `p`
+even the pairing is symmetric, so its quadratic form is nondegenerate too
 (`TauCeti.HomologicalOrientation.nondegenerate_toQuadraticMap_singularCupPairing_fundamentalClass`),
-so the indices of inertia of its quadratic form add up to `b_p`
+and the indices of inertia of its quadratic form add up to `b_p`
 (`TauCeti.HomologicalOrientation.sigPos_add_sigNeg_singularCupPairing_fundamentalClass`).
 
 ## Implementation notes
@@ -600,6 +602,16 @@ theorem bettiNumber_eq_bettiNumber [CompactSpace M] {p q : ℕ} (h : p + q = n) 
   exact (TopCat.of M).finrank_singularHomology_eq_of_bijective_singularCapLinearMap ℚ h _
     (o.bijective_singularCapLinearMap_fundamentalClass hn h)
 
+/-- **Poincaré duality for the cup pairing.** For a compact homologically oriented `n`-manifold
+`M` and `p` with `p + p = n`, the cup pairing `(α, β) ↦ ⟨α ⌣ β, μ⟩` on `Hᵖ(M; ℚ)`, for `μ` the
+image of the fundamental class in `Hₙ(M; ℚ)`, is nondegenerate. -/
+theorem nondegenerate_singularCupPairing_fundamentalClass [CompactSpace M] {p : ℕ}
+    (h : p + p = n) :
+    ((TopCat.of M).singularCupPairing ℚ h
+      ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn))).Nondegenerate :=
+  ((TopCat.of M).nondegenerate_singularCupPairing_iff ℚ h _).2
+    (o.bijective_singularCapLinearMap_fundamentalClass hn h).injective
+
 /-- **The intersection form of a compact manifold is nondegenerate.** For a compact homologically
 oriented `n`-manifold `M` and an even `p` with `p + p = n`, the quadratic form
 `α ↦ ⟨α ⌣ α, μ⟩` on `Hᵖ(M; ℚ)`, for `μ` the image of the fundamental class in `Hₙ(M; ℚ)`, is
@@ -609,8 +621,7 @@ theorem nondegenerate_toQuadraticMap_singularCupPairing_fundamentalClass [Compac
     (LinearMap.BilinMap.toQuadraticMap ((TopCat.of M).singularCupPairing ℚ h
       ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn)))).Nondegenerate :=
   LinearMap.BilinForm.Nondegenerate.toQuadraticMap
-    (((TopCat.of M).nondegenerate_singularCupPairing_iff ℚ h _).2
-      (o.bijective_singularCapLinearMap_fundamentalClass hn h).injective)
+    (o.nondegenerate_singularCupPairing_fundamentalClass hn h)
     (LinearMap.isSymm_iff_eq_flip.1 ((TopCat.of M).isSymm_singularCupPairing ℚ hp h _)).symm
 
 /-- **The indices of inertia of the intersection form add up to the middle Betti number.** For a

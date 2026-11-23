@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.BettiNumber
 
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Empty
-import TauCeti.AlgebraicTopology.Cohomology.UniversalCoefficient.Field
 
 /-!
 # Smooth threefolds in `ℂℙ⁴`
@@ -32,6 +31,8 @@ The following are in the namespace `SymplecticGeometry.SmoothProjectiveHypersurf
 * `chernClass_one_tangentSpace_threefold`: `c₁(TZ) = (5 - d) ι^* h`.
 * `bettiNumber_two_threefold`, `bettiNumber_four_threefold`: `b₂ = b₄ = 1` for `d ≠ 0`.
 * `bettiNumber_three_threefold`: `b₃ = d⁴ - 5d³ + 10d² - 10d + 4` for `d ≠ 0`.
+* `bettiNumber_two_fermat_zero_threefold`, `bettiNumber_three_fermat_zero_threefold`: the
+  empty threefold of degree `0` shows that these need `d ≠ 0`.
 
 ## References
 
@@ -79,8 +80,8 @@ theorem bettiNumber_four_threefold (hd : d ≠ 0) : bettiNumber ℚ Z 4 = 1 := b
 
 /-- `bettiNumber_two_threefold` and `bettiNumber_four_threefold` need `d ≠ 0`: the Fermat
 threefold of degree `0` is empty, so its second Betti number is `0`. -/
-theorem bettiNumber_two_fermat_zero_threefold : bettiNumber ℚ (fermat 3 0) 2 = 0 := by
-  rw [bettiNumber_def, ← TopCat.finrank_singularCohomology, finrank_zero_of_subsingleton]
+theorem bettiNumber_two_fermat_zero_threefold : bettiNumber ℚ (fermat 3 0) 2 = 0 :=
+  bettiNumber_eq_zero_of_isEmpty ℚ _ 2
 
 /-- **The third Betti number of a threefold in `ℂℙ⁴`.** For `d ≠ 0`, a smooth threefold
 `Z ⊆ ℂℙ⁴` of degree `d` has `b₃ = d⁴ - 5d³ + 10d² - 10d + 4`.
@@ -92,6 +93,11 @@ theorem bettiNumber_three_threefold (hd : d ≠ 0) :
   rw [Z.eulerChar_eq] at h
   simp [Finset.sum_range_succ, Nat.choose, show ¬Even 3 by decide] at h
   linear_combination -h
+
+/-- `bettiNumber_three_threefold` needs `d ≠ 0`: the Fermat threefold of degree `0` is empty, so
+its third Betti number is `0`, while `d⁴ - 5d³ + 10d² - 10d + 4 = 4` for `d = 0`. -/
+theorem bettiNumber_three_fermat_zero_threefold : bettiNumber ℚ (fermat 3 0) 3 = 0 :=
+  bettiNumber_eq_zero_of_isEmpty ℚ _ 3
 
 end SmoothProjectiveHypersurface
 

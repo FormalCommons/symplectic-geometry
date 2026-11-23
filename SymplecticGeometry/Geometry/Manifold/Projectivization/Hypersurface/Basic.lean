@@ -166,10 +166,9 @@ constant. -/
 instance instIsEmpty (X : SmoothProjectiveHypersurface n 0) : IsEmpty X := by
   have hc := totalDegree_eq_zero_iff_eq_C.1
     ((totalDegree_zero_iff_isHomogeneous _).2 X.isHomogeneous)
-  refine ⟨fun x ↦ X.poly_ne_zero ?_⟩
-  have hx := X.mem_carrier_iff.1 x.property
-  rw [hc, eval_C] at hx
-  rw [hc, hx, C_0]
+  refine Set.isEmpty_coe_sort.2 (X.carrier_def.trans
+    (complexProjectiveZeroLocus_eq_empty_of_eq_C (i := ()) hc fun h ↦ X.poly_ne_zero ?_))
+  rw [hc, h, C_0]
 
 /-- The **Fermat hypersurface** `∑ⱼ zⱼ ^ d = 0` of degree `d` in `ℂℙⁿ⁺¹`. It is smooth in every
 degree; for `d = 0` its polynomial is the nonzero constant `n + 2` and it is empty. Its
