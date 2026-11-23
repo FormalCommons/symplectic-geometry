@@ -321,7 +321,7 @@ theorem isLocalDiffeomorphAt_negNormalCoord (hS : Ioc (-1) 0 ⊆ (S : Set ℝ))
     IsLocalDiffeomorphAt (𝓡∂ 1) 𝓘(ℝ) n (negNormalCoord hS) t := by
   refine isLocalDiffeomorphAt_subtypeVal_comp_iff.1 ?_
   rw [val_comp_negNormalCoord]
-  exact (isLocalDiffeomorphAt_normalIioOpens_val_zero ht).comp (hg := isLocalDiffeomorph_neg _)
+  exact (isLocalDiffeomorphAt_opens_val_zero ht).comp (hg := isLocalDiffeomorph_neg _)
 
 /-- At a positive depth, the map `t ↦ t` from depths into `S` is a `C^n` local
 diffeomorphism. -/
@@ -330,7 +330,7 @@ theorem isLocalDiffeomorphAt_posNormalCoord (hS : Ico 0 1 ⊆ (S : Set ℝ))
     IsLocalDiffeomorphAt (𝓡∂ 1) 𝓘(ℝ) n (posNormalCoord hS) t := by
   refine isLocalDiffeomorphAt_subtypeVal_comp_iff.1 ?_
   rw [val_comp_posNormalCoord]
-  exact isLocalDiffeomorphAt_normalIioOpens_val_zero ht
+  exact isLocalDiffeomorphAt_opens_val_zero ht
 
 end TauCeti.EuclideanHalfSpace
 

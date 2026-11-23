@@ -288,7 +288,7 @@ private theorem isLocalDiffeomorphAt_polarPoint {i : ι} (q : interiorOverlap c 
   have hpair : IsLocalDiffeomorphAt ((𝓡 1).prod (𝓡∂ 1)) (𝓘(ℝ).prod 𝓘(ℝ)) ∞
       (Prod.map (angle γ i) fun t : normalIioOpens 1 ↦ 1 + (t : EuclideanHalfSpace 1).val 0)
         (collarCoord hγ q) :=
-    hangle.prodMap ((isLocalDiffeomorphAt_normalIioOpens_val_zero hd).comp (hg := hshift _))
+    hangle.prodMap ((isLocalDiffeomorphAt_opens_val_zero hd).comp (hg := hshift _))
   exact ((isLocalDiffeomorph_collarCoord hγ i q).comp (hg := hpair)).comp
     (hg := AddCircle.isLocalDiffeomorphAt_ofReal_mul_toCircle hr)
 
