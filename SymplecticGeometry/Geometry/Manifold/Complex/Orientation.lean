@@ -5,18 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.Orientation.Complex
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving.FromTauCeti
 public import TauCeti.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Topology.Algebra.Module.Equiv.RestrictScalars
 
 /-!
 # The canonical orientation of a complex manifold, reindexed
-
-The standard orientation of `ℂ` as a real manifold, the constant orientation of the model
-`𝓘(ℝ, ℂ)` given by `Complex.orientation`, is `TauCeti.Manifold.Orientation.complex`, with
-`TauCeti.Manifold.Orientation.complex_def` and `TauCeti.Manifold.Orientation.orientationAt_complex`.
-It is named as Tau Ceti names `TauCeti.Manifold.Orientation.real` and
-`TauCeti.Manifold.Orientation.euclideanSpace`.
 
 Tau Ceti's `TauCeti.complexManifoldOrientation E M` orients a complex manifold `M` modelled on
 `𝓘(ℂ, E)` as a real manifold, with index type `Fin (2 * finrank ℂ E)`. Statements about real
@@ -73,24 +68,6 @@ open scoped Manifold ContDiff TauCeti.ComplexManifold
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [FiniteDimensional ℂ E]
   {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) 1 M]
-
-namespace TauCeti.Manifold.Orientation
-
-/-- The standard orientation of `ℂ`, as a real manifold modelled on `𝓘(ℝ, ℂ)`: the constant
-orientation of the model given by `Complex.orientation`, in which the real basis `(1, i)` is
-positive. It is the `ℂ` analogue of `TauCeti.Manifold.Orientation.real`. -/
-noncomputable def complex : Orientation 𝓘(ℝ, ℂ) ℂ (Fin 2) :=
-  model Complex.orientation (by simp)
-
-theorem complex_def : complex = model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp) :=
-  (rfl)
-
-/-- At every point of `ℂ`, the standard orientation is `Complex.orientation`. -/
-@[simp]
-theorem orientationAt_complex (x : ℂ) : orientationAt complex x = Complex.orientation := by
-  rw [complex_def, orientationAt_model]
-
-end TauCeti.Manifold.Orientation
 
 namespace TauCeti
 

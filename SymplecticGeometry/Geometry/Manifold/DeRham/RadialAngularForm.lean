@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
+public import SymplecticGeometry.Geometry.Manifold.Orientation.Complex
 public import TauCeti.Geometry.Manifold.DeRham.Circle
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
 public import Mathlib.LinearAlgebra.Complex.Orientation
