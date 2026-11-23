@@ -121,6 +121,8 @@ source: the inverse of Tau Ceti's oriented coordinate ball, restricted to a smal
   map to `Circle` and as a map to `ℂ`.
 * `SymplecticGeometry.CoordinateDisc.disc_diff_openDisc`: the closed disc minus the open disc is
   the boundary circle.
+* `SymplecticGeometry.CoordinateDisc.exists_image_annulus_subset`: an open set around the boundary
+  circle contains the image of a thin annulus `1 - ε < ‖z‖ < 1 + ε`.
 * `SymplecticGeometry.CoordinateDisc.apply_boundaryCircle_eq_of_continuousOn`: a map continuous on
   the image of `ρ < ‖z‖ ≤ 1` and constant on the points of `ρ < ‖z‖ < 1` with angular coordinate
   `ζ` takes the same value at the point `ζ` of the boundary circle.
@@ -464,6 +466,35 @@ theorem disc_diff_openDisc : φ.disc \ φ.openDisc = Set.range φ.boundaryCircle
     exact ⟨c, by rw [boundaryCircle_apply]; exact congrArg φ (Subtype.ext hc)⟩
   · rintro ⟨z, rfl⟩
     exact ⟨φ.boundaryCircle_mem_disc z, φ.boundaryCircle_notMem_openDisc z⟩
+
+/-- An open set that contains the boundary circle of a coordinate disc contains the image of an
+annulus `1 - ε < ‖z‖ < 1 + ε` of the ball, for some `0 < ε ≤ 1 / 2`. -/
+theorem exists_image_annulus_subset {O : Set M} (hO : IsOpen O)
+    (hφO : ∀ ζ, φ.boundaryCircle ζ ∈ O) :
+    ∃ ε : ℝ, 0 < ε ∧ ε ≤ 1 / 2 ∧
+      ∀ z : ball, 1 - ε < ‖(z : ℂ)‖ → ‖(z : ℂ)‖ < 1 + ε → φ z ∈ O := by
+  -- The points of the ball that `φ` sends into `O`, as an open set of `ℂ`, contain the circle.
+  have hS : IsOpen (Subtype.val '' (φ ⁻¹' O) : Set ℂ) :=
+    CoordinateDisc.ball.isOpen.isOpenMap_subtypeVal _ (hO.preimage φ.continuous)
+  have hsph : Metric.sphere (0 : ℂ) 1 ⊆ Subtype.val '' (φ ⁻¹' O) := fun z hz ↦
+    ⟨⟨z, mem_ball_of_norm_le_one (mem_sphere_zero_iff_norm.1 hz).le⟩,
+      by have h := hφO (show Circle from ⟨z, hz⟩); rwa [boundaryCircle_apply] at h, rfl⟩
+  obtain ⟨δ, hδ, hδS⟩ := (isCompact_sphere (0 : ℂ) 1).exists_thickening_subset_open hS hsph
+  refine ⟨min δ (1 / 2), lt_min hδ one_half_pos, min_le_right _ _, fun z h₁ h₂ ↦ ?_⟩
+  have hn : 0 < ‖(z : ℂ)‖ := by linarith [min_le_right δ (1 / 2)]
+  -- `z` is within `δ` of the point `z / ‖z‖` of the circle.
+  have hd : dist (z : ℂ) (z / ‖(z : ℂ)‖) < δ := by
+    have he : (z : ℂ) - z / ‖(z : ℂ)‖ = (((‖(z : ℂ)‖ - 1) / ‖(z : ℂ)‖ : ℝ) : ℂ) * z := by
+      have : (‖(z : ℂ)‖ : ℂ) ≠ 0 := Complex.ofReal_ne_zero.2 hn.ne'
+      push_cast
+      field_simp
+    rw [dist_eq_norm, he, norm_mul, Complex.norm_real, Real.norm_eq_abs, abs_div,
+      abs_of_pos hn, div_mul_cancel₀ _ hn.ne']
+    have := min_le_left δ (1 / 2)
+    exact abs_sub_lt_iff.2 ⟨by linarith, by linarith⟩
+  obtain ⟨w, hw, hwz⟩ := hδS (Metric.mem_thickening_iff.2
+    ⟨(z : ℂ) / ‖(z : ℂ)‖, by simp [hn.ne'], hd⟩)
+  rwa [Subtype.val_injective hwz] at hw
 
 /-- A map that is continuous on the image of the half-open annulus `ρ < ‖z‖ ≤ 1`, for `ρ < 1`,
 and constant on the points of the open annulus `ρ < ‖z‖ < 1` with angular coordinate `ζ`, takes
