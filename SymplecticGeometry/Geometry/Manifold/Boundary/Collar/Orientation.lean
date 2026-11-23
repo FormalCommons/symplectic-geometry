@@ -7,13 +7,11 @@ module
 
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
 public import TauCeti.Geometry.Manifold.Boundary.InducedOrientation
-public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
 public import TauCeti.Geometry.Manifold.Orientation.Prod
 public import TauCeti.Geometry.Manifold.Orientation.Sign
-public import SymplecticGeometry.Geometry.Manifold.Orientation.OpenSubset
+public import SymplecticGeometry.Geometry.Manifold.Instances.HalfLine.Orientation
 import Mathlib.GroupTheory.Perm.Fin
 import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
-import SymplecticGeometry.Geometry.Manifold.Instances.HalfLine.Orientation
 
 /-!
 # A smooth collar and the induced boundary orientation
@@ -75,41 +73,6 @@ open Set Function Topology Filter
 open scoped Manifold ContDiff
 
 namespace TauCeti
-
-namespace EuclideanHalfSpace
-
-/-- The standard orientation of the initial segment `[0, ε)` of the one-dimensional half-space
-model: the restriction of the constant orientation of the standard basis. -/
-def normalIioOpensOrientation (ε : ℝ) :
-    Manifold.Orientation (𝓡∂ 1) (normalIioOpens ε) (Fin 1) :=
-  (Manifold.Orientation.model (I := 𝓡∂ 1)
-    (EuclideanSpace.basisFun (Fin 1) ℝ).toBasis.orientation (by simp)).restrict _
-
-theorem normalIioOpensOrientation_def (ε : ℝ) :
-    normalIioOpensOrientation ε =
-      (Manifold.Orientation.model (I := 𝓡∂ 1)
-        (EuclideanSpace.basisFun (Fin 1) ℝ).toBasis.orientation (by simp)).restrict
-          (normalIioOpens ε) :=
-  (rfl)
-
-/-- At every point, the standard orientation of `[0, ε)` is that of the standard basis. -/
-@[simp]
-theorem orientationAt_normalIioOpensOrientation {ε : ℝ} (t : normalIioOpens ε) :
-    (normalIioOpensOrientation ε).orientationAt t =
-      (EuclideanSpace.basisFun (Fin 1) ℝ).toBasis.orientation := by
-  rw [normalIioOpensOrientation_def, Manifold.Orientation.orientationAt_restrict,
-    Manifold.Orientation.orientationAt_model]
-
-/-- The coordinate `t ↦ t 0` of `[0, ε)` preserves orientation at every point, from the standard
-orientation of `[0, ε)` to the standard orientation of `ℝ`. -/
-theorem isOrientationPreservingAt_normalIioOpens_val_zero {ε : ℝ} (t : normalIioOpens ε) :
-    Manifold.Orientation.IsOrientationPreservingAt (normalIioOpensOrientation ε)
-      Manifold.Orientation.real (fun s : normalIioOpens ε ↦ (s : EuclideanHalfSpace 1).val 0)
-      t :=
-  (isOrientationPreservingAt_val_zero t).comp
-    (Manifold.Orientation.isOrientationPreservingAt_restrict _ _ t)
-
-end EuclideanHalfSpace
 
 namespace SmoothCollar
 

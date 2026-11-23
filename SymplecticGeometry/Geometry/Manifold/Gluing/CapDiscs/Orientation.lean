@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Manifold.Orientation.AddCircle
 public import TauCeti.Geometry.Manifold.Orientation.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Orientation
 import SymplecticGeometry.Geometry.Manifold.Orientation.AddCircle
+import SymplecticGeometry.Geometry.Manifold.Orientation.OpenSubset
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
