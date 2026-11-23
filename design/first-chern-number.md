@@ -1536,8 +1536,9 @@ does.
     instances `(X, M, ι, f)` and `(X', M', ι', f')` of the setting of the
     boundary degree, `o'` an orientation of `M'`, a homeomorphism `h : X ≃ₜ X'` and
     `φ : M ≃ₜ M'` with `h ∘ ι = ι' ∘ φ`, the boundary degree for
-    `o'.comap φ.isOpenEmbedding` of `u ∘ h|∂X` is the boundary degree for
-    `o'` of `u`, for every `u : C(∂X', Circle)`. Proof: `h` carries the
+    `o'.comap φ.isOpenEmbedding` of `u ∘ g` is the boundary degree for
+    `o'` of `u`, for `g : C(∂X, ∂X')` agreeing with `h` and every
+    `u : C(∂X', Circle)`. Proof: `h` carries the
     relative fundamental class to the relative fundamental class, by the
     uniqueness `TauCeti.HomologicalOrientation.eq_fundamentalClassRel`, and
     the connecting morphism is natural. With

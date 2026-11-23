@@ -97,6 +97,9 @@ argument principle for the trivial line bundle,
   continuously over `X` has boundary Maslov index `0`.
 * `TauCeti.HomologicalOrientation.boundaryMaslovIndex_eq_of_homotopy`: homotopic maps have the
   same boundary Maslov index.
+* `TauCeti.HomologicalOrientation.boundaryMaslovIndex_comp_homeomorph`: invariance under a
+  homeomorphism of the setting that restricts to a homeomorphism `φ` of the interiors, for the
+  pulled-back orientation `o'.comap φ`.
 * `TauCeti.Manifold.Orientation.boundaryMaslovIndex_mul`,
   `TauCeti.Manifold.Orientation.boundaryMaslovIndex_eq_zero_of_extend`,
   `TauCeti.Manifold.Orientation.boundaryMaslovIndex_eq_of_homotopy`: the same properties for a
@@ -214,6 +217,23 @@ theorem boundaryMaslovIndex_inv (Ψ : C(↥((range ι)ᶜ : Set X), GLSymplectic
   have h := o.boundaryMaslovIndex_mul hn hι hιf hf Ψ⁻¹ Ψ
   rw [inv_mul_cancel, boundaryMaslovIndex_one] at h
   lia
+
+/-- **Boundary Maslov indices under homeomorphisms.** Let `h : X ≃ₜ X'` and `φ : M ≃ₜ M'` be
+homeomorphisms with `h ∘ ι = ι' ∘ φ`, for two instances of the setting of the boundary Maslov
+index, and let `g : ∂X → ∂X'` be the restriction of `h`. For an orientation `o'` of `M'` and every
+`Ψ : ∂X' → Sp(2n)`, the boundary Maslov index of `Ψ ∘ g` for the pull-back `o'.comap φ` is the
+boundary Maslov index of `Ψ` for `o'`. -/
+theorem boundaryMaslovIndex_comp_homeomorph {X' M' : Type} {N' : Type*} [TopologicalSpace X']
+    [TopologicalSpace N'] [TopologicalSpace M'] [T2Space X'] [CompactSpace X'] [T2Space M']
+    [ChartedSpace E M'] {ι' : M' → X'} {f' : N' → X'} (o' : HomologicalOrientation M' E 2)
+    (hι' : IsOpenEmbedding ι') (hιf' : range ι' = (range f')ᶜ) (hf' : IsCollared f')
+    (h : X ≃ₜ X') (φ : M ≃ₜ M') (hφ : h ∘ ι = ι' ∘ φ)
+    (g : C(↥((range ι)ᶜ : Set X), ↥((range ι')ᶜ : Set X'))) (hg : ∀ z, (g z : X') = h z)
+    (Ψ : C(↥((range ι')ᶜ : Set X'), GLSymplectic n ℝ)) :
+    (o'.comap φ.isOpenEmbedding).boundaryMaslovIndex hn hι hιf hf (Ψ.comp g) =
+      o'.boundaryMaslovIndex hn hι' hιf' hf' Ψ := by
+  rw [boundaryMaslovIndex_def, boundaryMaslovIndex_def, ← ContinuousMap.comp_assoc]
+  exact boundaryDegree_comp_homeomorph hn hι hιf hf o' hι' hιf' hf' h φ hφ g hg _
 
 end TauCeti.HomologicalOrientation
 
