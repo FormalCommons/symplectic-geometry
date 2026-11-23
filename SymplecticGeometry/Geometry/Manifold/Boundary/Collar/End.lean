@@ -78,41 +78,6 @@ private theorem endInterval_subset : (endInterval : Set ℝ) ⊆ Ioi (-1) :=
 private theorem Ioc_subset_endInterval : Ioc (-1) 0 ⊆ (endInterval : Set ℝ) :=
   fun _ h ↦ mem_endInterval.2 h.1
 
-/-- The linear form `u ↦ -u 0` on `ℝ¹`, as an equivalence. -/
-private def negCoordEquiv : EuclideanSpace ℝ (Fin 1) ≃L[ℝ] ℝ :=
-  ((EuclideanSpace.equiv (Fin 1) ℝ).trans (ContinuousLinearEquiv.funUnique (Fin 1) ℝ ℝ)).trans
-    (ContinuousLinearEquiv.neg ℝ)
-
-private theorem isImmersionAt_negNormalCoord (t : normalIioOpens 1) :
-    IsImmersionAt (𝓡∂ 1) 𝓘(ℝ) ∞ (negNormalCoord Ioc_subset_endInterval) t := by
-  have hf : ∀ t : normalIioOpens 1, -(t : EuclideanHalfSpace 1).val 0 ∈ endInterval :=
-    fun t ↦ coe_negNormalCoord Ioc_subset_endInterval t ▸ (negNormalCoord _ t).property
-  rw [funext (negNormalCoord_def Ioc_subset_endInterval)]
-  refine (isImmersionAt_codRestrict_opens_iff (U := endInterval)
-    (f := fun t : normalIioOpens 1 ↦ -(t : EuclideanHalfSpace 1).val 0) hf).2 ?_
-  refine (isImmersionAt_comp_subtypeVal_iff
-    (f := fun t : EuclideanHalfSpace 1 ↦ -t.val 0)).2 ?_
-  refine (IsImmersionAtOfComplement.mk_of_continuousAt_of_extChartAt (F := PUnit.{1})
-    (by fun_prop) ((ContinuousLinearEquiv.prodUnique ℝ _ _).trans negCoordEquiv)
-    ?_).isImmersionAt
-  intro u hu
-  have h0 : 0 ≤ u 0 := by
-    have := (extChartAt_target_subset_range (I := 𝓡∂ 1) (t : EuclideanHalfSpace 1)) hu
-    rwa [range_modelWithCornersEuclideanHalfSpace] at this
-  simp [modelWithCornersEuclideanHalfSpace_symm_apply_of_le h0, negCoordEquiv]
-
-private theorem isLocalDiffeomorphAt_negNormalCoord {t : normalIioOpens 1}
-    (ht : 0 < (t : EuclideanHalfSpace 1).val 0) :
-    IsLocalDiffeomorphAt (𝓡∂ 1) 𝓘(ℝ) ∞ (negNormalCoord Ioc_subset_endInterval) t := by
-  have hg : IsLocalDiffeomorphAt (𝓡∂ 1) 𝓘(ℝ) ∞
-      (fun s : EuclideanHalfSpace 1 ↦ -s.val 0) t := by
-    have := (isLocalDiffeomorphAt_val_zero ht).comp
-      (hg := (ContinuousLinearEquiv.neg ℝ (M := ℝ)).toDiffeomorph.isLocalDiffeomorph _)
-    simpa [comp_def] using this
-  refine isLocalDiffeomorphAt_subtypeVal_comp_iff.1 ?_
-  rw [val_comp_negNormalCoord]
-  exact (isLocalDiffeomorph_subtype_val t).comp (hg := hg)
-
 private def endModelEquiv (n : ℕ) :
     (ℝ × EuclideanSpace ℝ (Fin n)) ≃L[ℝ] EuclideanSpace ℝ (Fin (n + 1)) :=
   (ContinuousLinearEquiv.prodComm ℝ ℝ (EuclideanSpace ℝ (Fin n))).trans
@@ -303,7 +268,7 @@ private theorem isLocalDiffeomorphAt_collarToEnd {p : ↥((𝓡∂ (n + 1)).boun
     (hp : 0 < (p.2 : EuclideanHalfSpace 1).val 0) :
     IsLocalDiffeomorphAt ((𝓡 n).prod (𝓡∂ 1)) (𝓘(ℝ).prod (𝓡 n)) ∞ collarToEnd p := by
   exact ((Diffeomorph.prodComm (𝓡 n) (𝓡∂ 1) _ _ ∞).isLocalDiffeomorph p).comp
-    (hg := (isLocalDiffeomorphAt_negNormalCoord hp).prodMap
+    (hg := (isLocalDiffeomorphAt_negNormalCoord Ioc_subset_endInterval hp).prodMap
       (isLocalDiffeomorph_id p.1))
 
 private instance instChartedSpacePiece :
@@ -563,7 +528,7 @@ private theorem isImmersionAt_endIncl_collarToEnd
       (Prod.map id (negNormalCoord Ioc_subset_endInterval)) q :=
     ((IsImmersion.id (I := 𝓡 n) (n := ∞)
       (M := ↥((𝓡∂ (n + 1)).boundary W))).isImmersionAt q.1).prodMap
-      (isImmersionAt_negNormalCoord q.2)
+      (isImmersionAt_negNormalCoord Ioc_subset_endInterval q.2)
   let e := (Diffeomorph.prodComm (𝓡 n) 𝓘(ℝ) ↥((𝓡∂ (n + 1)).boundary W) endInterval ∞).trans
     (remodelDiffeomorph (endModelDiffeomorph n) (endInterval × (𝓡∂ (n + 1)).boundary W))
   have hB : ((ContinuousLinearEquiv.prodComm ℝ (EuclideanSpace ℝ (Fin n)) ℝ).trans

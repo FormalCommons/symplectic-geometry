@@ -6,11 +6,14 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Local
+public import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import Mathlib.Geometry.Manifold.ContMDiff.Atlas
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 
 /-!
-# Smoothness of the normal ray of the half-line
+# Smoothness of the normal ray and the depth coordinates of the half-line
 
 This file extends Tau Ceti's `TauCeti.Geometry.Manifold.Boundary.Collar.Local`. Tau Ceti's normal
 ray `TauCeti.EuclideanHalfSpace.normalRay : ℝ → EuclideanHalfSpace 1` sends `r` to the point at
@@ -20,7 +23,10 @@ the boundary point `0`. Restricted to `(-∞, 1)`, the ray takes values in the o
 `normalIioOpens 1`, the normal factor of a collar; this gives the depth map
 `TauCeti.EuclideanHalfSpace.normalIioRay`. Gluing pieces such as `(-1, ∞) × ∂W` to a collar read
 the depth along `s ↦ -s`; the file gives that depth map and the map `t ↦ -t` back, for any open
-set of reals between `(-1, 0]` and `(-1, ∞)`.
+set of reals between `(-1, 0]` and `(-1, ∞)`, and likewise the depth `max s 0` and the map
+`t ↦ t` back, for any open set of reals between `[0, 1)` and `(-∞, 1)`. The maps `t ↦ -t` and
+`t ↦ t` from depths are immersions, the depth `0` included, since the coordinate of the
+half-line is one, and local diffeomorphisms at positive depth.
 
 ## Main definitions
 
@@ -28,6 +34,8 @@ set of reals between `(-1, 0]` and `(-1, ∞)`.
   `normalIioOpens 1`.
 * `TauCeti.EuclideanHalfSpace.negNormalIioRay`, `negNormalCoord`: the depth `max (-s) 0` of a
   point `s > -1`, and the point `-t` at a depth `t`.
+* `TauCeti.EuclideanHalfSpace.posNormalIioRay`, `posNormalCoord`: the depth `max s 0` of a point
+  `s < 1`, and the point `t` at a depth `t`.
 
 ## Main results
 
@@ -38,6 +46,13 @@ set of reals between `(-1, 0]` and `(-1, ∞)`.
   `ContMDiffAt.normalIioRay`: the depth map is continuous, and smooth at positive depth.
 * `TauCeti.EuclideanHalfSpace.negNormalIioRay_negNormalCoord` and
   `negNormalCoord_negNormalIioRay`: the two maps are inverse to each other on `(-1, 0]`.
+* `TauCeti.EuclideanHalfSpace.posNormalIioRay_posNormalCoord` and
+  `posNormalCoord_posNormalIioRay`: the two maps are inverse to each other on `[0, 1)`.
+* `TauCeti.EuclideanHalfSpace.isImmersionAt_val_zero`: the coordinate of the half-line is an
+  immersion into `ℝ`, the boundary point included.
+* `TauCeti.EuclideanHalfSpace.isImmersionAt_negNormalCoord`, `isImmersionAt_posNormalCoord`,
+  `isLocalDiffeomorphAt_negNormalCoord` and `isLocalDiffeomorphAt_posNormalCoord`: the maps
+  `t ↦ -t` and `t ↦ t` from depths are immersions, and local diffeomorphisms at positive depth.
 -/
 
 public section
@@ -187,6 +202,157 @@ theorem negNormalCoord_negNormalIioRay (hS : (S : Set ℝ) ⊆ Ioi (-1))
     (hS' : Ioc (-1) 0 ⊆ (S : Set ℝ)) {s : S} (hs : (s : ℝ) ≤ 0) :
     negNormalCoord hS' (negNormalIioRay hS s) = s :=
   Subtype.ext (by rw [coe_negNormalCoord, negNormalIioRay_coe_apply_of_nonpos hS hs, neg_neg])
+
+/-! ### The depth map on reals below `1` -/
+
+/-- For an open set `S` of reals less than `1`, the depth map at `s ∈ S`: the point of `[0, 1)` at
+depth `max s 0`. -/
+noncomputable def posNormalIioRay (hS : (S : Set ℝ) ⊆ Iio 1) (s : S) : normalIioOpens 1 :=
+  normalIioRay ⟨s, hS s.property⟩
+
+theorem posNormalIioRay_def (hS : (S : Set ℝ) ⊆ Iio 1) (s : S) :
+    posNormalIioRay hS s = normalIioRay ⟨s, hS s.property⟩ := (rfl)
+
+/-- The point `posNormalIioRay hS s` of `[0, 1)` is the normal ray at `s`. -/
+@[simp]
+theorem coe_posNormalIioRay (hS : (S : Set ℝ) ⊆ Iio 1) (s : S) :
+    (posNormalIioRay hS s : EuclideanHalfSpace 1) = normalRay s := (rfl)
+
+/-- The depth of `posNormalIioRay hS s` is `max s 0`. -/
+theorem posNormalIioRay_coe_apply (hS : (S : Set ℝ) ⊆ Iio 1) (s : S) :
+    (posNormalIioRay hS s : EuclideanHalfSpace 1).val 0 = max (s : ℝ) 0 := by
+  rw [posNormalIioRay_def, normalIioRay_coe_apply]
+
+/-- For `0 ≤ s`, the depth of `posNormalIioRay hS s` is `s`. -/
+theorem posNormalIioRay_coe_apply_of_nonneg (hS : (S : Set ℝ) ⊆ Iio 1) {s : S}
+    (hs : 0 ≤ (s : ℝ)) : (posNormalIioRay hS s : EuclideanHalfSpace 1).val 0 = s := by
+  rw [posNormalIioRay_def, normalIioRay_coe_apply_of_nonneg _ hs]
+
+/-- The point `posNormalIioRay hS s` is the origin exactly when `s ≤ 0`. -/
+theorem posNormalIioRay_eq_zero_iff (hS : (S : Set ℝ) ⊆ Iio 1) {s : S} :
+    posNormalIioRay hS s = normalIioOpensZero one_pos ↔ (s : ℝ) ≤ 0 := by
+  rw [posNormalIioRay_def, normalIioRay_eq_zero_iff]
+
+/-- The depth map on `S` is continuous. -/
+theorem continuous_posNormalIioRay (hS : (S : Set ℝ) ⊆ Iio 1) :
+    Continuous (posNormalIioRay hS) :=
+  continuous_normalIioRay.comp (continuous_subtypeVal.subtype_mk _)
+
+/-- For an open set `S` of reals containing `[0, 1)`, the point `t` of `S` at a depth
+`t ∈ [0, 1)`. It is a right inverse of `posNormalIioRay` (`posNormalIioRay_posNormalCoord`), and
+a left inverse on `S ∩ [0, ∞)` (`posNormalCoord_posNormalIioRay`). -/
+def posNormalCoord (hS : Ico 0 1 ⊆ (S : Set ℝ)) (t : normalIioOpens 1) : S :=
+  ⟨(t : EuclideanHalfSpace 1).val 0,
+    hS ⟨(t : EuclideanHalfSpace 1).property, mem_normalIioOpens.1 t.property⟩⟩
+
+theorem posNormalCoord_def (hS : Ico 0 1 ⊆ (S : Set ℝ)) (t : normalIioOpens 1) :
+    posNormalCoord hS t = ⟨(t : EuclideanHalfSpace 1).val 0,
+      hS ⟨(t : EuclideanHalfSpace 1).property, mem_normalIioOpens.1 t.property⟩⟩ := (rfl)
+
+/-- Read in `ℝ`, the map `posNormalCoord hS` is `s ↦ s 0` on the points of `[0, 1)`. -/
+theorem val_comp_posNormalCoord (hS : Ico 0 1 ⊆ (S : Set ℝ)) :
+    Subtype.val ∘ posNormalCoord hS =
+      (fun s : EuclideanHalfSpace 1 ↦ s.val 0) ∘ Subtype.val := (rfl)
+
+/-- The point `posNormalCoord hS t` is the depth of `t`. -/
+@[simp]
+theorem coe_posNormalCoord (hS : Ico 0 1 ⊆ (S : Set ℝ)) (t : normalIioOpens 1) :
+    (posNormalCoord hS t : ℝ) = (t : EuclideanHalfSpace 1).val 0 := (rfl)
+
+/-- The point `posNormalCoord hS t` is at least `0`. -/
+theorem posNormalCoord_nonneg (hS : Ico 0 1 ⊆ (S : Set ℝ)) (t : normalIioOpens 1) :
+    0 ≤ (posNormalCoord hS t : ℝ) := by
+  rw [coe_posNormalCoord]
+  exact (t : EuclideanHalfSpace 1).property
+
+/-- At a positive depth `t`, the point `posNormalCoord hS t` is positive. -/
+theorem posNormalCoord_pos (hS : Ico 0 1 ⊆ (S : Set ℝ)) {t : normalIioOpens 1}
+    (ht : 0 < (t : EuclideanHalfSpace 1).val 0) : 0 < (posNormalCoord hS t : ℝ) := by
+  rwa [coe_posNormalCoord]
+
+/-- The map `t ↦ t` from depths into `S` is continuous. -/
+theorem continuous_posNormalCoord (hS : Ico 0 1 ⊆ (S : Set ℝ)) :
+    Continuous (posNormalCoord hS) :=
+  Continuous.subtype_mk (by fun_prop) _
+
+/-- The depth of `t` is `t`. -/
+@[simp]
+theorem posNormalIioRay_posNormalCoord (hS : (S : Set ℝ) ⊆ Iio 1)
+    (hS' : Ico 0 1 ⊆ (S : Set ℝ)) (t : normalIioOpens 1) :
+    posNormalIioRay hS (posNormalCoord hS' t) = t :=
+  Subtype.ext (by simp [posNormalIioRay_def, normalRay_normalCoord])
+
+/-- For `0 ≤ s`, the point `t` at the depth `t = s` is `s`. -/
+theorem posNormalCoord_posNormalIioRay (hS : (S : Set ℝ) ⊆ Iio 1)
+    (hS' : Ico 0 1 ⊆ (S : Set ℝ)) {s : S} (hs : 0 ≤ (s : ℝ)) :
+    posNormalCoord hS' (posNormalIioRay hS s) = s :=
+  Subtype.ext (by rw [coe_posNormalCoord, posNormalIioRay_coe_apply_of_nonneg hS hs])
+
+/-! ### Smoothness of the coordinate maps -/
+
+variable {n : WithTop ℕ∞}
+
+open Manifold
+
+/-- The coordinate `t ↦ t 0` of the half-line is a `C^n` immersion into `ℝ` at every point, the
+boundary point `0` included. -/
+theorem isImmersionAt_val_zero (t : EuclideanHalfSpace 1) :
+    IsImmersionAt (𝓡∂ 1) 𝓘(ℝ) n (fun s : EuclideanHalfSpace 1 ↦ s.val 0) t := by
+  refine (IsImmersionAtOfComplement.mk_of_continuousAt_of_extChartAt (F := PUnit.{1})
+    (by fun_prop) ((ContinuousLinearEquiv.prodUnique ℝ _ _).trans
+      ((EuclideanSpace.equiv (Fin 1) ℝ).trans (ContinuousLinearEquiv.funUnique (Fin 1) ℝ ℝ)))
+    ?_).isImmersionAt
+  intro u hu
+  have h0 : 0 ≤ u 0 := by
+    have := (extChartAt_target_subset_range (I := 𝓡∂ 1) t) hu
+    rwa [range_modelWithCornersEuclideanHalfSpace] at this
+  simp [modelWithCornersEuclideanHalfSpace_symm_apply_of_le h0]
+
+/-- The depth `t ↦ t 0` on `[0, 1)` is a `C^n` local diffeomorphism to `ℝ` at positive depth. -/
+theorem isLocalDiffeomorphAt_normalIioOpens_val_zero {t : normalIioOpens 1}
+    (ht : 0 < (t : EuclideanHalfSpace 1).val 0) :
+    IsLocalDiffeomorphAt (𝓡∂ 1) 𝓘(ℝ) n
+      (fun s : normalIioOpens 1 ↦ (s : EuclideanHalfSpace 1).val 0) t :=
+  (isLocalDiffeomorph_subtype_val t).comp (hg := isLocalDiffeomorphAt_val_zero ht)
+
+/-- The map `t ↦ -t` from depths into `S` is a `C^n` immersion, the depth `0` included. -/
+theorem isImmersionAt_negNormalCoord (hS : Ioc (-1) 0 ⊆ (S : Set ℝ)) (t : normalIioOpens 1) :
+    IsImmersionAt (𝓡∂ 1) 𝓘(ℝ) n (negNormalCoord hS) t := by
+  rw [funext (negNormalCoord_def hS)]
+  refine (isImmersionAt_codRestrict_opens_iff
+    (f := fun t : normalIioOpens 1 ↦ -(t : EuclideanHalfSpace 1).val 0)
+    fun t ↦ (negNormalCoord hS t).property).2 ?_
+  refine (isImmersionAt_comp_subtypeVal_iff (f := fun t : EuclideanHalfSpace 1 ↦ -t.val 0)).2 ?_
+  exact isImmersionAt_isLocalDiffeomorphAt_comp (f := fun s : EuclideanHalfSpace 1 ↦ s.val 0)
+    (isLocalDiffeomorph_neg _) (isImmersionAt_val_zero _)
+
+/-- The map `t ↦ t` from depths into `S` is a `C^n` immersion, the depth `0` included. -/
+theorem isImmersionAt_posNormalCoord (hS : Ico 0 1 ⊆ (S : Set ℝ)) (t : normalIioOpens 1) :
+    IsImmersionAt (𝓡∂ 1) 𝓘(ℝ) n (posNormalCoord hS) t := by
+  rw [funext (posNormalCoord_def hS)]
+  refine (isImmersionAt_codRestrict_opens_iff
+    (f := fun t : normalIioOpens 1 ↦ (t : EuclideanHalfSpace 1).val 0)
+    fun t ↦ (posNormalCoord hS t).property).2 ?_
+  exact (isImmersionAt_comp_subtypeVal_iff (f := fun t : EuclideanHalfSpace 1 ↦ t.val 0)).2
+    (isImmersionAt_val_zero _)
+
+/-- At a positive depth, the map `t ↦ -t` from depths into `S` is a `C^n` local
+diffeomorphism. -/
+theorem isLocalDiffeomorphAt_negNormalCoord (hS : Ioc (-1) 0 ⊆ (S : Set ℝ))
+    {t : normalIioOpens 1} (ht : 0 < (t : EuclideanHalfSpace 1).val 0) :
+    IsLocalDiffeomorphAt (𝓡∂ 1) 𝓘(ℝ) n (negNormalCoord hS) t := by
+  refine isLocalDiffeomorphAt_subtypeVal_comp_iff.1 ?_
+  rw [val_comp_negNormalCoord]
+  exact (isLocalDiffeomorphAt_normalIioOpens_val_zero ht).comp (hg := isLocalDiffeomorph_neg _)
+
+/-- At a positive depth, the map `t ↦ t` from depths into `S` is a `C^n` local
+diffeomorphism. -/
+theorem isLocalDiffeomorphAt_posNormalCoord (hS : Ico 0 1 ⊆ (S : Set ℝ))
+    {t : normalIioOpens 1} (ht : 0 < (t : EuclideanHalfSpace 1).val 0) :
+    IsLocalDiffeomorphAt (𝓡∂ 1) 𝓘(ℝ) n (posNormalCoord hS) t := by
+  refine isLocalDiffeomorphAt_subtypeVal_comp_iff.1 ?_
+  rw [val_comp_posNormalCoord]
+  exact isLocalDiffeomorphAt_normalIioOpens_val_zero ht
 
 end TauCeti.EuclideanHalfSpace
 

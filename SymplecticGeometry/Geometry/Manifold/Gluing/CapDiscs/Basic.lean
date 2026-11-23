@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Interior
 public import TauCeti.Geometry.Manifold.Gluing.GlueData
 public import TauCeti.Geometry.Manifold.Instances.AddCircle
 public import TauCeti.Topology.Category.TopCat.GlueData
+import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
 import SymplecticGeometry.Geometry.Manifold.Instances.AddCircle
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -130,33 +131,6 @@ private theorem mem_annulus {z : DiscPiece} : z ∈ annulus ↔ 1 < ‖z.val‖ 
 
 /-! ### Collar coordinates and the overlaps -/
 
-/-- The depth `t ∈ [0, 1)` of a collar point, as a real number. -/
-private def depth (t : normalIioOpens 1) : ℝ := (t : EuclideanHalfSpace 1).val 0
-
-private theorem depth_def (t : normalIioOpens 1) : depth t = (t : EuclideanHalfSpace 1).val 0 :=
-  rfl
-
-private theorem depth_nonneg (t : normalIioOpens 1) : 0 ≤ depth t :=
-  (t : EuclideanHalfSpace 1).property
-
-private theorem depth_lt_one (t : normalIioOpens 1) : depth t < 1 :=
-  mem_normalIioOpens.1 t.property
-
-private theorem depth_injective : Function.Injective depth := fun s t h ↦ by
-  apply Subtype.ext
-  rw [← normalRay_normalCoord (s : EuclideanHalfSpace 1),
-    ← normalRay_normalCoord (t : EuclideanHalfSpace 1)]
-  exact congrArg normalRay h
-
-/-- The depth of a collar point is a local diffeomorphism where it is positive. -/
-private theorem isLocalDiffeomorphAt_depth {t : normalIioOpens 1} (ht : 0 < depth t) :
-    IsLocalDiffeomorphAt (𝓡∂ 1) 𝓘(ℝ) ∞ depth t := by
-  have h := (isLocalDiffeomorph_subtype_val (n := ∞) t).comp
-    (hg := isLocalDiffeomorphAt_val_zero ht)
-  convert h using 1
-  funext s
-  rw [depth_def, comp_apply]
-
 variable (c : SmoothCollar 1 ∞ S)
 
 variable {ι : Type} (γ : ι → AddCircle (1 : ℝ) → (𝓡∂ 2).boundary S)
@@ -201,7 +175,7 @@ private theorem exists_collarCoord_eq {i : ι} (q : interiorOverlap c γ hγ i) 
   exact ⟨θ, by rw [collarCoord_eq hγ h]⟩
 
 private theorem depth_collarCoord_pos {i : ι} (q : interiorOverlap c γ hγ i) :
-    0 < depth (collarCoord hγ q).2 :=
+    0 < ((collarCoord hγ q).2 : EuclideanHalfSpace 1).val 0 :=
   c.interiorModelCoord_snd_pos _
 
 private theorem isLocalDiffeomorph_collarCoord (i : ι) :
@@ -265,11 +239,12 @@ theorem ofReal_one_add_mul_toCircle_mem_ball (t : normalIioOpens 1) (θ : AddCir
 
 /-- The point `(1 + t) · toCircle θ` of the plane, for a point `c (γ i θ, t)` of the interior. -/
 private def polarPoint {i : ι} (q : interiorOverlap c γ hγ i) : ℂ :=
-  ((1 + depth (collarCoord hγ q).2 : ℝ) : ℂ) * (toCircle (angle γ i (collarCoord hγ q).1) : ℂ)
+  ((1 + ((collarCoord hγ q).2 : EuclideanHalfSpace 1).val 0 : ℝ) : ℂ) *
+    (toCircle (angle γ i (collarCoord hγ q).1) : ℂ)
 
 private theorem norm_polarPoint {i : ι} (q : interiorOverlap c γ hγ i) :
-    ‖polarPoint hγ q‖ = 1 + depth (collarCoord hγ q).2 := by
-  rw [polarPoint, depth_def]
+    ‖polarPoint hγ q‖ = 1 + ((collarCoord hγ q).2 : EuclideanHalfSpace 1).val 0 := by
+  rw [polarPoint]
   exact norm_ofReal_one_add_mul_toCircle _ _
 
 private theorem one_lt_norm_polarPoint {i : ι} (q : interiorOverlap c γ hγ i) :
@@ -279,7 +254,7 @@ private theorem one_lt_norm_polarPoint {i : ι} (q : interiorOverlap c γ hγ i)
 
 private theorem polarPoint_mem_ball {i : ι} (q : interiorOverlap c γ hγ i) :
     polarPoint hγ q ∈ ball := by
-  rw [polarPoint, depth_def]
+  rw [polarPoint]
   exact ofReal_one_add_mul_toCircle_mem_ball _ _
 
 /-- The point of the ball glued to a point of the interior. -/
@@ -310,15 +285,16 @@ private theorem isLocalDiffeomorphAt_polarPoint {i : ι} (q : interiorOverlap c 
     IsLocalDiffeomorphAt (𝓡 2) 𝓘(ℝ, ℂ) ∞ (polarPoint hγ) q := by
   obtain ⟨θ, hθ⟩ := exists_collarCoord_eq hγ q
   have hd := depth_collarCoord_pos hγ q
-  have hr : 1 + depth (collarCoord hγ q).2 ≠ 0 := by linarith
+  have hr : 1 + ((collarCoord hγ q).2 : EuclideanHalfSpace 1).val 0 ≠ 0 := by linarith
   have hshift : IsLocalDiffeomorph 𝓘(ℝ) 𝓘(ℝ) ∞ (fun s : ℝ ↦ 1 + s) :=
     isLocalDiffeomorph_of_deriv_ne_zero (contDiff_const.add contDiff_id) (by simp) fun _ ↦ by
       simp
   have hangle := isLocalDiffeomorphAt_angle hγ hinj i θ
   rw [← hθ] at hangle
   have hpair : IsLocalDiffeomorphAt ((𝓡 1).prod (𝓡∂ 1)) (𝓘(ℝ).prod 𝓘(ℝ)) ∞
-      (Prod.map (angle γ i) (fun t ↦ 1 + depth t)) (collarCoord hγ q) :=
-    hangle.prodMap ((isLocalDiffeomorphAt_depth hd).comp (hg := hshift _))
+      (Prod.map (angle γ i) fun t : normalIioOpens 1 ↦ 1 + (t : EuclideanHalfSpace 1).val 0)
+        (collarCoord hγ q) :=
+    hangle.prodMap ((isLocalDiffeomorphAt_normalIioOpens_val_zero hd).comp (hg := hshift _))
   exact ((isLocalDiffeomorph_collarCoord hγ i q).comp (hg := hpair)).comp
     (hg := AddCircle.isLocalDiffeomorphAt_ofReal_mul_toCircle hr)
 
@@ -338,12 +314,13 @@ private theorem injective_toAnnulus (i : ι) :
   have hdepth : (collarCoord hγ q).2 = (collarCoord hγ q').2 := by
     have := congrArg norm hp
     rw [norm_polarPoint, norm_polarPoint, add_right_inj] at this
-    exact depth_injective this
+    exact (homeomorphNormalIioOpens 1).injective
+      (Subtype.ext (by rwa [coe_homeomorphNormalIioOpens, coe_homeomorphNormalIioOpens]))
   have hangle : angle γ i (collarCoord hγ q).1 = angle γ i (collarCoord hγ q').1 := by
     refine injective_toCircle one_ne_zero (Subtype.ext ?_)
-    have h1 : ((1 + depth (collarCoord hγ q).2 : ℝ) : ℂ) ≠ 0 := by
-      have := depth_nonneg (collarCoord hγ q).2
-      exact_mod_cast (show (1 + depth (collarCoord hγ q).2 : ℝ) ≠ 0 by linarith)
+    have h1 : ((1 + ((collarCoord hγ q).2 : EuclideanHalfSpace 1).val 0 : ℝ) : ℂ) ≠ 0 :=
+      Complex.ofReal_ne_zero.2 (by
+        linarith [((collarCoord hγ q).2 : EuclideanHalfSpace 1).property])
     rw [polarPoint, polarPoint, ← hdepth] at hp
     exact mul_left_cancel₀ h1 hp
   have hcoord : collarCoord hγ q = collarCoord hγ q' := by
@@ -375,15 +352,15 @@ def gluingCoord (i : ι) (z : ball) : ↥((𝓡∂ 2).boundary S) × normalIioOp
   (rfl)
 
 private theorem depth_gluingCoord {i : ι} {z : ball} (hz : 1 < ‖(z : ℂ)‖) :
-    depth (gluingCoord γ i z).2 = ‖(z : ℂ)‖ - 1 := by
-  rw [depth_def, coe_gluingCoord_snd, normalRay_coe_apply, max_eq_left (by linarith)]
+    ((gluingCoord γ i z).2 : EuclideanHalfSpace 1).val 0 = ‖(z : ℂ)‖ - 1 := by
+  rw [coe_gluingCoord_snd, normalRay_coe_apply, max_eq_left (by linarith)]
 
 /-- A point `z` of the ball with `1 < ‖z‖` is `(1 + t) · toCircle θ` for its collar coordinates:
 the depth `t = ‖z‖ - 1` of `gluingCoord γ i z` and the angle `θ = arg z / 2π`. -/
 theorem ofReal_one_add_mul_toCircle_gluingCoord {i : ι} {z : ball} (hz : 1 < ‖(z : ℂ)‖) :
     ((1 + ((gluingCoord γ i z).2 : EuclideanHalfSpace 1).val 0 : ℝ) : ℂ) *
       (toCircle ((arg z / (2 * π) : ℝ) : AddCircle (1 : ℝ)) : ℂ) = z := by
-  rw [← depth_def, depth_gluingCoord hz, toCircle_apply_mk, Circle.coe_exp]
+  rw [depth_gluingCoord hz, toCircle_apply_mk, Circle.coe_exp]
   conv_rhs => rw [← norm_mul_exp_arg_mul_I (z : ℂ)]
   congr 2
   · ring
@@ -396,7 +373,7 @@ variable (c) in
 theorem apply_gluingCoord_mem_interiorOpens {i : ι} {z : ball} (hz : 1 < ‖(z : ℂ)‖) :
     c (gluingCoord γ i z) ∈ (𝓡∂ 2).interiorOpens S := by
   rw [ModelWithCorners.mem_interiorOpens_iff_mem_interior, c.apply_mem_interior_iff_pos,
-    ← depth_def, depth_gluingCoord hz]
+    depth_gluingCoord hz]
   linarith
 
 /-- The point of the interior glued to a point `z` of the annulus of the `i`-th disc. -/
@@ -417,7 +394,7 @@ private theorem polarPoint_gluingPoint (i : ι) {z : ball} (hz : 1 < ‖(z : ℂ
   have hcoord : collarCoord hγ (gluingPoint (c := c) hγ i hz) = gluingCoord γ i z :=
     c.injective (by
       rw [apply_collarCoord, val_gluingPoint])
-  rw [polarPoint, hcoord, gluingCoord_fst, angle_apply hinj, depth_def]
+  rw [polarPoint, hcoord, gluingCoord_fst, angle_apply hinj]
   exact ofReal_one_add_mul_toCircle_gluingCoord hz
 
 include hinj in
@@ -678,7 +655,7 @@ theorem inr_ofReal_mul_toCircle_eq_inl {i : ι} {θ : AddCircle (1 : ℝ)} {t : 
     collarCoord_eq hγ (by
       simp only [q, InteriorModel.val_interiorModelDiffeomorph])
   have hz : toBall hγ q = ⟨_, ofReal_one_add_mul_toCircle_mem_ball t θ⟩ :=
-    Subtype.ext (by rw [coe_toBall, polarPoint, hq, angle_apply hinj, depth_def])
+    Subtype.ext (by rw [coe_toBall, polarPoint, hq, angle_apply hinj])
   -- As in `inr_eq_inl`, the maps `f i j` of the glue data are the inclusions of the overlaps.
   refine (((glueData c γ hγ hinj).ι_eq_iff_rel none (some i) _ _).2 ⟨q, rfl, ?_⟩).symm
   exact (congrArg Subtype.val (congrFun (coe_annulusDiffeomorph hγ hinj i) q)).trans
