@@ -72,7 +72,8 @@ variable [T2Space M]
   [∀ x, Module ℝ (V x)] [∀ x, Module ℂ (V x)] [∀ x, IsScalarTower ℝ ℂ (V x)]
   [∀ x, TopologicalSpace (V x)] [FiberBundle G V] [VectorBundle ℂ G V]
 
-local instance : VectorBundle ℝ G V := VectorBundle.restrictScalars ℝ ℂ G V
+local instance instVectorBundleRealSectionIndexComplexLinear : VectorBundle ℝ G V :=
+  VectorBundle.restrictScalars ℝ ℂ G V
 
 /-- **A zero with complex-linear invertible derivative has index `1`.** Let `M` be a complex
 manifold modelled on `𝓘(ℂ, E)`, of complex dimension `r + 1`, with its complex orientation
