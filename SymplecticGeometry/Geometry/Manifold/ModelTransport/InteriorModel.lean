@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Geometry.Manifold.Instances.Real
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import TauCeti.Geometry.Manifold.Orientation.Pullback
@@ -35,6 +36,9 @@ type synonym `SymplecticGeometry.InteriorModel I M` carries that atlas as an ins
   underlying a point of `InteriorModel I U`.
 * `SymplecticGeometry.InteriorModel.mk I p hp`: the point of `InteriorModel I (I.interiorOpens M)`
   at an interior point `p` of `M`.
+* `SymplecticGeometry.InteriorPiece n W`: for a manifold `W` with boundary modelled on the
+  half-space `EuclideanHalfSpace (n + 1)`, its interior re-modelled on `ℝⁿ⁺¹`, with the
+  identification `SymplecticGeometry.interiorPieceDiffeomorph` of the interior of `W` with it.
 * `TauCeti.Manifold.Orientation.toInteriorModel`: an orientation of `M`, carried to
   `InteriorModel I M`, for `M` without boundary points. For the interior of a manifold `S` with
   boundary oriented by `o`, the orientation of its copy is
@@ -249,6 +253,25 @@ theorem continuous_mk {X : Type*} [TopologicalSpace X] {f : X → M} (hf : Conti
 end Interior
 
 end InteriorModel
+
+section HalfSpace
+
+variable (n : ℕ) (W : Type*) [TopologicalSpace W]
+  [ChartedSpace (EuclideanHalfSpace (n + 1)) W] [IsManifold (𝓡∂ (n + 1)) 1 W]
+
+/-- The interior of a manifold `W` with boundary, modelled on `EuclideanHalfSpace (n + 1)`, as a
+manifold without boundary over `ℝⁿ⁺¹`. -/
+abbrev InteriorPiece : Type _ :=
+  InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)
+
+variable {n W} in
+/-- The identity of the interior of `W`, as a smooth diffeomorphism from the open subset
+`(𝓡∂ (n + 1)).interiorOpens W` of `W` to its copy `InteriorPiece n W` over `ℝⁿ⁺¹`. -/
+abbrev interiorPieceDiffeomorph :
+    (𝓡∂ (n + 1)).interiorOpens W ≃ₘ^∞⟮𝓡∂ (n + 1), 𝓡 (n + 1)⟯ InteriorPiece n W :=
+  interiorModelDiffeomorph (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W) ∞
+
+end HalfSpace
 
 end SymplecticGeometry
 

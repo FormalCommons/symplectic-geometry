@@ -149,7 +149,7 @@ private theorem isLocalDiffeomorph_bandCollar :
 
 /-- The collar point `c (x, 1/2 - s/4)`, read in the copy of the interior of `W` over `ℝⁿ⁺¹`. -/
 private def bandInterior (p : BandParam n W) : InteriorPiece n W :=
-  interiorModelDiffeomorph (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W) ∞ (bandCollar c p)
+  interiorPieceDiffeomorph (bandCollar c p)
 
 private theorem isLocalDiffeomorph_bandInterior :
     IsLocalDiffeomorph (𝓘(ℝ).prod (𝓡 n)) (𝓡 (n + 1)) ∞ (bandInterior c) := fun p ↦

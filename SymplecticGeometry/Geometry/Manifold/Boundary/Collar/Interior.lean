@@ -15,7 +15,7 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 Let `W` be a manifold with boundary, modelled on the half-space `EuclideanHalfSpace (n + 1)`, and
 `c : ∂W × [0, 1) → W` a `C^k` collar of its boundary. A collar point `c (x, t)` is an interior
 point of `W` exactly when its depth `t` is positive. This file gives the inverse of the collar on
-the interior of `W`, re-modelled on `ℝⁿ⁺¹` as `SymplecticGeometry.InteriorModel`: on the open
+the interior of `W`, re-modelled on `ℝⁿ⁺¹` as `SymplecticGeometry.InteriorPiece`: on the open
 subset `c.interiorModelRange` of the points covered by the collar, the collar coordinates
 `c.interiorModelCoord` form a `C^k` local diffeomorphism into `∂W × [0, 1)` that takes values
 of positive depth. Gluings of other manifolds to the interior of `W` along the collar, such as
@@ -24,8 +24,6 @@ attaching an end (`Boundary/Collar/End.lean`) or capping boundary circles with d
 
 ## Main definitions
 
-* `SymplecticGeometry.InteriorPiece`: the interior of `W`, re-modelled on `ℝⁿ⁺¹`, the piece
-  that the gluings along the collar start from.
 * `TauCeti.SmoothCollar.interiorModelRange`: the part of the interior of `W`, re-modelled on
   `ℝⁿ⁺¹`, covered by the collar.
 * `TauCeti.SmoothCollar.interiorModelCoord`: the collar coordinates of a point of it.
@@ -50,17 +48,6 @@ open Set Function TopologicalSpace SymplecticGeometry
 open scoped Manifold ContDiff
 
 noncomputable section
-
-namespace SymplecticGeometry
-
-variable (n : ℕ) (W : Type*) [TopologicalSpace W]
-  [ChartedSpace (EuclideanHalfSpace (n + 1)) W] [IsManifold (𝓡∂ (n + 1)) 1 W]
-
-/-- The interior of `W`, as a boundaryless manifold over `ℝⁿ⁺¹`. -/
-abbrev InteriorPiece : Type _ :=
-  InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)
-
-end SymplecticGeometry
 
 namespace TauCeti.SmoothCollar
 open _root_.TauCeti.EuclideanHalfSpace
