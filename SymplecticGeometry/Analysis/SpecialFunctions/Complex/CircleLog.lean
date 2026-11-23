@@ -14,7 +14,6 @@ import Mathlib.Topology.Homotopy.Lifting
 import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
 import SymplecticGeometry.Topology.Circle.FreeLoop
 import TauCeti.AlgebraicTopology.UniversalCover.Circle.FreeLoop.Basic
-import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 import TauCeti.Geometry.Manifold.Algebra.LieGroup
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 
@@ -42,7 +41,8 @@ continuous branch of the logarithm (`Function.Periodic.continuousOn_comp_log`), 
 first result, in the form `Circle.contDiffOn_of_contMDiffOn_exp`.
 
 As an application, a smooth map `w : ℂ → S¹` on a punctured disc `0 < ‖z‖ < b` can be brought to
-the normal form `(z / ‖z‖) ^ k` near the centre (`Circle.exists_contMDiffOn_mul_eq_exp_arg_zpow`):
+the normal form `(z / ‖z‖) ^ k` near the centre (`Circle.exists_contMDiffOn_mul_eq_exp_arg_zpow`),
+whose smoothness on `ℂ \ {0}` is `Circle.contMDiffOn_exp_arg` (`Instances/Sphere.lean`):
 with `k` the degree of `w` on a circle of radius `r₁`, the map `w · (z / ‖z‖) ^ (-k)` has
 degree `0`, so it is `exp (i h)` for a smooth real `h`, and multiplying `w` by `exp (-i χ h)`, for
 a radial cut-off `χ` (`ContDiffBump`) equal to `1` up to radius `r₁` and to `0` from radius `r₂`
@@ -58,8 +58,6 @@ on, gives `(z / ‖z‖) ^ k` up to radius `r₁` without changing `w` from radi
   `exp ⁻¹' U` becomes continuous on `U` after composing with `Complex.log`.
 * `Circle.exists_contDiffOn_exp_eq_of_circleDegree_eq_zero`: a `C^n` circle-valued map of
   degree `0` on an annulus has a `C^n` real logarithm.
-* `Circle.contMDiffOn_exp_arg`: the direction `z ↦ z / ‖z‖ = exp (i arg z)` is smooth on
-  `ℂ \ {0}`.
 * `Circle.exists_contMDiffOn_mul_eq_exp_arg_zpow`: a smooth circle-valued map on a punctured
   disc agrees with `(z / ‖z‖) ^ k` near the centre after multiplication by a smooth map that is
   `1` near the edge.
@@ -201,13 +199,6 @@ theorem exists_contDiffOn_exp_eq_of_circleDegree_eq_zero {n : WithTop ℕ∞} {a
   refine ⟨fun z ↦ Gx (log z), ?_, fun z h₁ h₂ ↦ hexp ⟨h₁, h₂⟩⟩
   exact contDiffOn_of_contMDiffOn_exp hA (hper.continuousOn_comp_log hA0 hGxc)
     (hu.congr fun z hz ↦ (hexp hz).symm)
-
-/-- The direction `z / ‖z‖ = exp (i arg z)` is a smooth map from `ℂ \ {0}` to the circle. -/
-theorem contMDiffOn_exp_arg {n : ℕ∞ω} :
-    ContMDiffOn 𝓘(ℝ, ℂ) (𝓡 1) n (fun z : ℂ ↦ exp (arg z)) {0}ᶜ := by
-  refine ContMDiffOn.of_coe_sphere (E := ℂ) (contMDiffOn_iff_contDiffOn.2 ?_)
-  refine (contDiffOn_div_norm_pow 1).congr fun z hz ↦ ?_
-  simp [coe_exp, exp_arg_mul_I (show z ≠ 0 from hz)]
 
 /-- **Normal form of a smooth circle-valued map on a punctured disc.** Let `0 < r₁ < r₂` and
 `r₁ < b`, and let `w : ℂ → S¹` be smooth on the punctured disc `0 < ‖z‖ < b`. Then there are an

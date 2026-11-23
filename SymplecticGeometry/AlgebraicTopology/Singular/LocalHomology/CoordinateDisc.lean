@@ -9,6 +9,7 @@ public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.OpenE
 public import TauCeti.Geometry.Manifold.Complex.FundamentalClass
 public import TauCeti.Geometry.Manifold.Diffeomorph.NormedSpace
 public import Mathlib.Geometry.Manifold.Instances.Real
+public import Mathlib.Geometry.Manifold.Instances.Sphere
 public import TauCeti.Geometry.Manifold.Orientation.Euclidean
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
 public import TauCeti.Topology.Circle.Loop
@@ -16,7 +17,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.FundamentalClass
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.ChangeOfModel
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import SymplecticGeometry.LinearAlgebra.Complex.Orientation
-import SymplecticGeometry.Analysis.SpecialFunctions.Complex.CircleLog
+import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
 import SymplecticGeometry.Geometry.Manifold.Orientation.CoordinateBall
 import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 import TauCeti.Geometry.Manifold.CoordinateBall
@@ -114,8 +115,10 @@ source: the inverse of Tau Ceti's oriented coordinate ball, restricted to a smal
   `SymplecticGeometry.CoordinateDisc.isOpen_openDisc`,
   `SymplecticGeometry.CoordinateDisc.openDisc_subset_disc`.
 * `SymplecticGeometry.CoordinateDisc.phase_boundaryCircle`,
+  `SymplecticGeometry.CoordinateDisc.contMDiffOn_phase`,
   `SymplecticGeometry.CoordinateDisc.contMDiffOn_coe_phase`: the angular coordinate is `ζ` at the
-  point `ζ` of the boundary circle, and it is `Cⁿ` off the centre where the coordinate is.
+  point `ζ` of the boundary circle, and it is `Cⁿ` off the centre where the coordinate is, as a
+  map to `Circle` and as a map to `ℂ`.
 * `SymplecticGeometry.CoordinateDisc.disc_diff_openDisc`: the closed disc minus the open disc is
   the boundary circle.
 * `SymplecticGeometry.CoordinateDisc.apply_boundaryCircle_eq_of_continuousOn`: a map continuous on
@@ -410,15 +413,22 @@ theorem phase_apply_of_coe_eq_mul {z : ball} {r : ℝ} (hr : 0 < r) {ζ : Circle
   rw [phase_apply_self, hz, Complex.arg_ofReal_mul hr, Circle.exp_arg]
 
 /-- If the coordinate of a coordinate disc is `Cⁿ` on the range of `φ`, then its angular
+coordinate, as a map to the circle, is `Cⁿ` on the points of that range where the coordinate does
+not vanish. -/
+theorem contMDiffOn_phase {n : WithTop ℕ∞}
+    (hφ : ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, ℂ) n φ.coord (Set.range φ)) :
+    ContMDiffOn 𝓘(ℝ, E) (𝓡 1) n φ.phase {x ∈ Set.range φ | φ.coord x ≠ 0} :=
+  (Circle.contMDiffOn_exp_arg.comp (hφ.mono (Set.sep_subset _ _)) fun _ hx ↦ hx.2).congr
+    fun x _ ↦ φ.phase_def x
+
+/-- If the coordinate of a coordinate disc is `Cⁿ` on the range of `φ`, then its angular
 coordinate is `Cⁿ` on the points of that range where the coordinate does not vanish. -/
 theorem contMDiffOn_coe_phase {n : WithTop ℕ∞}
     (hφ : ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, ℂ) n φ.coord (Set.range φ)) :
     ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ, ℂ) n (fun x ↦ (φ.phase x : ℂ))
       {x ∈ Set.range φ | φ.coord x ≠ 0} := by
-  simp_rw [phase_def]
   have := finrank_real_complex_fact'
-  exact (contMDiff_coe_sphere (E := ℂ) (n := 1)).comp_contMDiffOn
-    (Circle.contMDiffOn_exp_arg.comp (hφ.mono (Set.sep_subset _ _)) fun _ hx ↦ hx.2)
+  exact (contMDiff_coe_sphere (E := ℂ) (n := 1)).comp_contMDiffOn (φ.contMDiffOn_phase hφ)
 
 /-! ### The boundary circle -/
 
