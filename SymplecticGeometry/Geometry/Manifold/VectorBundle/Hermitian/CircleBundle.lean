@@ -16,6 +16,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Hermi
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Sphere
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+public import SymplecticGeometry.LinearAlgebra.Complex.FiniteDimensional
 import SymplecticGeometry.GroupTheory.GroupAction.Hom
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.Frame
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Norm
@@ -449,7 +450,7 @@ variable {EB HB B F : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topol
 
 attribute [local instance] finrank_real_complex_fact'
 
-open scoped VectorBundle.ComplexToReal
+open scoped VectorBundle.ComplexToReal Module.ComplexToReal
 
 variable [ContMDiffVectorBundle n F V I] (g : ContMDiffRiemannianMetric I n F V)
   (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w)
@@ -476,7 +477,6 @@ local instance : FiniteDimensional ℂ F := .of_fact_finrank_eq_succ 0
 
 local instance : Fact (finrank ℂ ℂ = finrank ℂ F) :=
   ⟨by rw [finrank_self, Fact.out (p := finrank ℂ F = 1)]⟩
-
 
 /-- **The unitary frames of a smooth Hermitian line bundle form a smooth principal
 `Circle`-bundle.** For a smooth `i`-invariant metric `g` on a smooth complex line bundle `V`, the

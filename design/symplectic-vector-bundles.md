@@ -1736,7 +1736,7 @@ variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace ℂ
   [∀ x, ContinuousConstSMul ℂ (V x)]
   [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V]
 
-open scoped VectorBundle.ComplexToReal
+open scoped VectorBundle.ComplexToReal Module.ComplexToReal
 
 variable [ContMDiffVectorBundle n F V I]
   (g : Bundle.ContMDiffRiemannianMetric I n F V)
@@ -1860,7 +1860,7 @@ circle bundle needs more: the hypotheses of Tau Ceti's
 with the variables of *Hermitian bundles*: `[IsManifold I n M]`, which
 follows from `[IsManifold I ∞ M]`, `[ContMDiffVectorBundle n F V I]`, and
 `[FiniteDimensional ℝ F]`, the scoped instance
-`VectorBundle.ComplexToReal.finiteDimensional` (instance search does not find
+`Module.ComplexToReal.finiteDimensional` (instance search does not find
 it otherwise, since Mathlib's `FiniteDimensional.complexToReal` goes through
 `Module.complexToReal`). The
 rest, `[I.Boundaryless]`, `[FiniteDimensional ℝ EB]`,
