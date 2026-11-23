@@ -6,10 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Algebra.SMul
-public import Mathlib.Topology.Algebra.Module.Equiv.Pi
 public import Mathlib.Topology.VectorBundle.Constructions
-public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Pi
 public import TauCeti.Geometry.Manifold.Projectivization.LineBundle
+public import TauCeti.Topology.Algebra.Module.Equiv.Pi
 public import TauCeti.Topology.VectorBundle.Core.Trivial
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.RestrictScalars
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Core.Section
@@ -259,28 +258,28 @@ spaces in both directions (`continuous_twistPiCoreOptionEquiv` and
 def twistPiCoreOptionEquiv (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) :
     (twistPiCore k (Option ι)).Fiber x ≃L[𝕜]
       ((twistCore k).Fiber ×ᵇ (twistPiCore k ι).Fiber) x :=
-  ContinuousLinearEquiv.piOptionEquivProd 𝕜 fun _ ↦ 𝕜
+  ContinuousLinearEquiv.piOptionEquivProd (M := fun _ ↦ 𝕜) 𝕜
 
 /-- `twistPiCoreOptionEquiv` splits off the `none` coordinate. -/
 @[simp]
 theorem twistPiCoreOptionEquiv_apply (x : ℙ 𝕜 (Fin (n + 1) → 𝕜))
     (v : (twistPiCore k (Option ι)).Fiber x) :
     twistPiCoreOptionEquiv k ι x v = (v none, fun i ↦ v (some i)) :=
-  ContinuousLinearEquiv.piOptionEquivProd_apply v
+  ContinuousLinearEquiv.piOptionEquivProd_apply 𝕜 v
 
 /-- The inverse of `twistPiCoreOptionEquiv` has the first summand as its `none` coordinate. -/
 @[simp]
 theorem twistPiCoreOptionEquiv_symm_apply_none (x : ℙ 𝕜 (Fin (n + 1) → 𝕜))
     (v : ((twistCore k).Fiber ×ᵇ (twistPiCore k ι).Fiber) x) :
     (twistPiCoreOptionEquiv k ι x).symm v none = v.1 :=
-  ContinuousLinearEquiv.piOptionEquivProd_symm_apply_none (R := 𝕜) (M := fun _ ↦ 𝕜) v
+  congrFun (ContinuousLinearEquiv.piOptionEquivProd_symm_apply (M := fun _ ↦ 𝕜) 𝕜 v) none
 
 /-- The inverse of `twistPiCoreOptionEquiv` has the second summand as its `some` coordinates. -/
 @[simp]
 theorem twistPiCoreOptionEquiv_symm_apply_some (x : ℙ 𝕜 (Fin (n + 1) → 𝕜))
     (v : ((twistCore k).Fiber ×ᵇ (twistPiCore k ι).Fiber) x) (i : ι) :
     (twistPiCoreOptionEquiv k ι x).symm v (some i) = v.2 i :=
-  ContinuousLinearEquiv.piOptionEquivProd_symm_apply_some (R := 𝕜) (M := fun _ ↦ 𝕜) v i
+  congrFun (ContinuousLinearEquiv.piOptionEquivProd_symm_apply (M := fun _ ↦ 𝕜) 𝕜 v) (some i)
 
 /-- In the chart `i` of all three bundles, `twistPiCoreOptionEquiv` is
 `ContinuousLinearEquiv.piOptionEquivProd`. -/
@@ -289,7 +288,7 @@ private theorem prod_localTriv_twistPiCoreOptionEquiv (i : Fin (n + 1))
     ((twistCore k).localTriv i).prod ((twistPiCore k ι).localTriv i)
         (TotalSpace.mk' (𝕜 × (ι → 𝕜)) (E := (twistCore k).Fiber ×ᵇ (twistPiCore k ι).Fiber)
           p.proj (twistPiCoreOptionEquiv k ι p.proj p.snd)) =
-      (p.proj, ContinuousLinearEquiv.piOptionEquivProd 𝕜 (fun _ ↦ 𝕜)
+      (p.proj, ContinuousLinearEquiv.piOptionEquivProd (M := fun _ ↦ 𝕜) 𝕜
         ((twistPiCore k (Option ι)).localTriv i p).2) := by
   -- After the coordinates of `twistCore` are computed, both sides are the coordinate changes of
   -- `twistPiCore`, which are the scalar multiplications by `twistTransition`.
@@ -329,7 +328,7 @@ private theorem localTriv_twistPiCoreOptionEquiv_symm (i : Fin (n + 1))
     (twistPiCore k (Option ι)).localTriv i
         (TotalSpace.mk' (Option ι → 𝕜) (E := (twistPiCore k (Option ι)).Fiber) q.proj
           ((twistPiCoreOptionEquiv k ι q.proj).symm q.snd)) =
-      (q.proj, (ContinuousLinearEquiv.piOptionEquivProd 𝕜 (fun _ ↦ 𝕜)).symm
+      (q.proj, (ContinuousLinearEquiv.piOptionEquivProd (M := fun _ ↦ 𝕜) 𝕜).symm
         (((twistCore k).localTriv i).prod ((twistPiCore k ι).localTriv i) q).2) := by
   -- As in `prod_localTriv_twistPiCoreOptionEquiv`, both sides are scalar multiplications by
   -- `twistTransition` once the coordinates of `twistCore` are computed.
@@ -337,12 +336,12 @@ private theorem localTriv_twistPiCoreOptionEquiv_symm (i : Fin (n + 1))
   · rfl
   · cases j
     · simp only [Trivialization.Prod.toFun', Trivialization.prod_apply,
-        VectorBundleCore.localTriv_apply, ContinuousLinearEquiv.piOptionEquivProd_symm_apply_none]
+        VectorBundleCore.localTriv_apply, ContinuousLinearEquiv.piOptionEquivProd_symm_apply]
       exact (congrArg (twistTransition k ((twistCore k).indexAt q.proj) i q.proj * ·)
         (twistPiCoreOptionEquiv_symm_apply_none k ι q.proj q.snd)).trans
           (twistCore_coordChange_apply k _ i q.proj q.snd.1).symm
     · simp only [Trivialization.Prod.toFun', Trivialization.prod_apply,
-        VectorBundleCore.localTriv_apply, ContinuousLinearEquiv.piOptionEquivProd_symm_apply_some]
+        VectorBundleCore.localTriv_apply, ContinuousLinearEquiv.piOptionEquivProd_symm_apply]
       exact congrArg (twistTransition k ((twistCore k).indexAt q.proj) i q.proj * ·)
         (twistPiCoreOptionEquiv_symm_apply_some k ι q.proj q.snd _)
 
