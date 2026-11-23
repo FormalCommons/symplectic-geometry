@@ -69,6 +69,19 @@ theorem normalIioRay_coe_apply (r : Iio (1 : ℝ)) :
     (normalIioRay r : EuclideanHalfSpace 1).val 0 = max (r : ℝ) 0 :=
   normalRay_coe_apply r
 
+/-- For `0 ≤ r < 1`, the depth of `normalIioRay r` is `r`. -/
+theorem normalIioRay_coe_apply_of_nonneg {r : ℝ} (hr : r < 1) (h0 : 0 ≤ r) :
+    (normalIioRay ⟨r, hr⟩ : EuclideanHalfSpace 1).val 0 = r := by
+  rw [normalIioRay_coe_apply]
+  exact max_eq_left h0
+
+/-- The depth map sends `r` to the origin exactly when `r ≤ 0`. -/
+theorem normalIioRay_eq_zero_iff {r : ℝ} (hr : r < 1) :
+    normalIioRay ⟨r, hr⟩ = normalIioOpensZero one_pos ↔ r ≤ 0 := by
+  rw [← Subtype.coe_inj, coe_normalIioOpensZero, EuclideanHalfSpace.eq_zero_iff,
+    normalIioRay_coe_apply]
+  exact max_eq_right_iff
+
 /-- The depth map starts at the origin. -/
 @[simp]
 theorem normalIioRay_zero :

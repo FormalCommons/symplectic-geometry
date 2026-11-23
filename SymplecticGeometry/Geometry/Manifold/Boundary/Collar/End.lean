@@ -123,7 +123,9 @@ private def endModelEquiv (n : ℕ) :
   (ContinuousLinearEquiv.prodComm ℝ ℝ (EuclideanSpace ℝ (Fin n))).trans
     (euclideanHalfSpaceBoundaryNormalEquiv n)
 
-private def endModelDiffeomorph (n : ℕ) :
+/-- The identification of the model `ℝ × ℝⁿ` with `ℝⁿ⁺¹` that makes the first factor the first
+coordinate, a linear diffeomorphism. -/
+def endModelDiffeomorph (n : ℕ) :
     ModelProd ℝ (EuclideanSpace ℝ (Fin n)) ≃ₘ^∞⟮𝓘(ℝ).prod (𝓡 n), 𝓡 (n + 1)⟯
       EuclideanSpace ℝ (Fin (n + 1)) where
   toEquiv := (endModelEquiv n).toEquiv
@@ -755,6 +757,10 @@ theorem exists_eq_inclusion_or_endMap (z : c.WithEnd) :
       rw [collarToEnd_mk, negNormalCoord_collarDepth h0]
     · exact Or.inr ⟨s, x, not_le.1 h0, endMap_of_lt c hs x⟩
 
+/-- The inclusion of `W` in `c.WithEnd` is injective. -/
+theorem inclusion_injective : Function.Injective (inclusion c) :=
+  Function.LeftInverse.injective (retraction_inclusion c)
+
 /-- The retraction sends a point `(s, x)` of the end with `0 ≤ s` to `x`. -/
 theorem retraction_endMap {s : ℝ} (hs : 0 ≤ s) (x : (𝓡∂ (n + 1)).boundary W) :
     retraction c (endMap c (s, x)) = x := by
@@ -764,6 +770,11 @@ theorem retraction_endMap {s : ℝ} (hs : 0 ≤ s) (x : (𝓡∂ (n + 1)).bounda
   convert c.apply_zero x using 3
   apply Subtype.ext
   simpa [collarDepth, EndPiece.coord] using hs
+
+/-- A point of `W` equal to a point `(s, x)` of the end with `0 ≤ s` is the boundary point `x`. -/
+theorem eq_of_inclusion_eq_endMap {p : W} {s : ℝ} (hs : 0 ≤ s) {x : (𝓡∂ (n + 1)).boundary W}
+    (h : inclusion c p = endMap c (s, x)) : p = x := by
+  rw [← retraction_inclusion c p, h, retraction_endMap c hs]
 
 /-- `c.WithEnd` is the union of `W` and of the open end `(0, ∞) × ∂W`. -/
 theorem range_inclusion_union :
