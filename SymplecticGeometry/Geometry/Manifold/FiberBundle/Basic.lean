@@ -41,7 +41,7 @@ open scoped ContDiff Manifold
 
 namespace TauCeti.ManifoldTotalSpace
 
-section Continuity
+section AnyField
 
 variable {n : ℕ∞ω} {𝕜 B F M : Type*} {E : B → Type*} [NontriviallyNormedField 𝕜]
   {EB : Type*} [NormedAddCommGroup EB] [NormedSpace 𝕜 EB] {HB : Type*} [TopologicalSpace HB]
@@ -60,22 +60,6 @@ theorem continuousOn_of_contMDiffOn_homeomorph {f : M → TotalSpace F E} {s : S
     (h : ContMDiffOn IM (IB.prod IF) n (fun x ↦ homeomorph F E (f x)) s) : ContinuousOn f s :=
   ((homeomorph F E).comp_continuousOn_iff f s).1 h.continuousOn
 
-end Continuity
-
-/-! ### Pulling back forms along sections -/
-
-section Pullback
-
-variable {B F : Type*} {E : B → Type*}
-  {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*} [TopologicalSpace HB]
-  {IB : ModelWithCorners ℝ EB HB} [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB ∞ B]
-  [TopologicalSpace (TotalSpace F E)] [∀ b, TopologicalSpace (E b)]
-  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] {HF : Type*}
-  [TopologicalSpace HF] {IF : ModelWithCorners ℝ EF HF} [TopologicalSpace F] [ChartedSpace HF F]
-  [IsManifold IF ∞ F] [FiberBundle F E] [ContMDiffFiberBundle ∞ F E IB IF]
-  {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G] {k : ℕ}
-
-omit [IsManifold IB ∞ B] [IsManifold IF ∞ F] [ContMDiffFiberBundle ∞ F E IB IF] in
 /-- A section `τ` of a fibre bundle, differentiable at `x` as a map into the charted total space, is
 a right inverse of the projection to first order at `x`: `dπ (dτ v) = v`. -/
 theorem mfderiv_proj_mfderiv_section_apply {τ : ∀ b, E b} {x : B}
@@ -89,6 +73,21 @@ theorem mfderiv_proj_mfderiv_section_apply {τ : ∀ b, E b} {x : B}
     funext fun b ↦ by simp
   rw [← mfderiv_comp_apply x ((contMDiff_proj 1 F E IB IF _).mdifferentiableAt one_ne_zero) hτ,
     hpt, mfderiv_id, ContinuousLinearMap.id_apply]
+
+end AnyField
+
+/-! ### Pulling back forms along sections -/
+
+section Pullback
+
+variable {B F : Type*} {E : B → Type*}
+  {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*} [TopologicalSpace HB]
+  {IB : ModelWithCorners ℝ EB HB} [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB ∞ B]
+  [TopologicalSpace (TotalSpace F E)] [∀ b, TopologicalSpace (E b)]
+  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] {HF : Type*}
+  [TopologicalSpace HF] {IF : ModelWithCorners ℝ EF HF} [TopologicalSpace F] [ChartedSpace HF F]
+  [IsManifold IF ∞ F] [FiberBundle F E] [ContMDiffFiberBundle ∞ F E IB IF]
+  {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G] {k : ℕ}
 
 omit [IsManifold IB ∞ B] [IsManifold IF ∞ F] [ContMDiffFiberBundle ∞ F E IB IF] in
 /-- A section `τ` of a fibre bundle, differentiable at `x` as a map into the charted total space,
