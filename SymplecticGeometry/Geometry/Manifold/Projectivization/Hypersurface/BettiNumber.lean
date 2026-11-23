@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.EulerCharacteristic
 public import TauCeti.AlgebraicTopology.Singular.BettiNumber
 
+import SymplecticGeometry.Algebra.BigOperators.Parity
 import SymplecticGeometry.AlgebraicTopology.Cellular.ComplexProjective.BettiNumber
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.RationalCoefficients
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Lefschetz
@@ -33,7 +34,7 @@ one is determined by the Euler characteristic: `(-1)ⁿ b_n = χ(X) - (n + 1) + 
   (`TauCeti.bettiNumber_eq_zero_of_finrank_lt`).
 * The Euler characteristic is the alternating sum of the Betti numbers up to the dimension
   (`TauCeti.eulerChar_eq_sum_range_finrank_singularHomology`), and the terms other than `b_n`
-  contribute `n + 1 - [n even]`.
+  contribute `n + 1 - [n even]` (`Finset.sum_range_two_mul_add_one_ite_even`).
 
 For `d = 0` the hypersurface is empty and both formulas fail when `n ≠ 0`. For `n = 0` they hold,
 `X` being `d` points.
@@ -42,7 +43,7 @@ For `d = 0` the hypersurface is empty and both formulas fail when `n ≠ 0`. For
 
 The following are in the namespace `SymplecticGeometry.SmoothProjectiveHypersurface`.
 
-* `bettiNumber_of_lt`: `b_k = [k even]` for `k < n`.
+* `bettiNumber_of_lt`: `b_k = [k even]` for `k < n`, over any ring with the strong rank condition.
 * `bettiNumber_of_ne`: `b_k = [k even and k ≤ 2n]` for `k ≠ n`.
 * `bettiNumber_middle`: `(-1)ⁿ b_n = χ(X) - (n + 1) + [n even]`.
 
@@ -67,16 +68,16 @@ namespace SmoothProjectiveHypersurface
 variable {n d : ℕ} (X : SmoothProjectiveHypersurface n d)
 
 /-- **The Betti numbers of a hypersurface below the middle degree.** For `d ≠ 0` and `k < n`, the
-`k`-th rational Betti number of a smooth hypersurface `X ⊆ ℂℙⁿ⁺¹` is `1` if `k` is even and `0`
-if `k` is odd. -/
-theorem bettiNumber_of_lt (hd : d ≠ 0) {k : ℕ} (hk : k < n) :
-    bettiNumber ℚ X k = if Even k then 1 else 0 := by
-  have : IsIso (((AlgebraicTopology.singularHomologyFunctor (ModuleCat.{0} ℚ) k).obj
-      (ModuleCat.of ℚ ℚ)).map (TopCat.ofHom (ContinuousMap.subtypeVal X.carrier))) := by
+`k`-th Betti number, with coefficients in a ring `R` with the strong rank condition, of a smooth
+hypersurface `X ⊆ ℂℙⁿ⁺¹` is `1` if `k` is even and `0` if `k` is odd. -/
+theorem bettiNumber_of_lt (R : Type) [Ring R] [StrongRankCondition R] (hd : d ≠ 0) {k : ℕ}
+    (hk : k < n) : bettiNumber R X k = if Even k then 1 else 0 := by
+  have : IsIso (((AlgebraicTopology.singularHomologyFunctor (ModuleCat.{0} R) k).obj
+      (ModuleCat.of R R)).map (TopCat.ofHom (ContinuousMap.subtypeVal X.carrier))) := by
     rw [TauCeti.singularHomologyFunctor_obj_map]
     exact X.isIso_homologyMap_subtypeVal hd _ hk
   rw [bettiNumber_def, (asIso (((AlgebraicTopology.singularHomologyFunctor _ k).obj
-      (ModuleCat.of ℚ ℚ)).map (TopCat.ofHom (ContinuousMap.subtypeVal X.carrier)))
+      (ModuleCat.of R R)).map (TopCat.ofHom (ContinuousMap.subtypeVal X.carrier)))
       ).toLinearEquiv.finrank_eq, ← bettiNumber_def,
     ← (ComplexProjectiveSpace.homeomorphProjectivization (n + 1)).toHomotopyEquiv.bettiNumber_eq,
     bettiNumber_complexProjectiveSpace]
@@ -88,7 +89,7 @@ the `k`-th rational Betti number of a smooth hypersurface `X ⊆ ℂℙⁿ⁺¹`
 theorem bettiNumber_of_ne (hd : d ≠ 0) {k : ℕ} (hk : k ≠ n) :
     bettiNumber ℚ X k = if Even k ∧ k ≤ 2 * n then 1 else 0 := by
   rcases lt_or_gt_of_ne hk with hk | hk
-  · rw [X.bettiNumber_of_lt hd hk]
+  · rw [X.bettiNumber_of_lt ℚ hd hk]
     grind
   by_cases hk' : k ≤ 2 * n
   · obtain ⟨m, rfl⟩ := Nat.exists_eq_add_one_of_ne_zero (by omega : n ≠ 0)
@@ -99,7 +100,7 @@ theorem bettiNumber_of_ne (hd : d ≠ 0) {k : ℕ} (hk : k ≠ n) :
         Fin (2 * finrank ℂ (Fin (m + 1 + 1 - Fintype.card Unit) → ℂ)) ≃ Fin (2 * m + 1 + 1))
       ).toHomologicalOrientation (n := 2 * m + 1) hE
     rw [o.bettiNumber_eq_bettiNumber hE (p := 2 * (m + 1) - k) (by omega),
-      X.bettiNumber_of_lt hd (by omega)]
+      X.bettiNumber_of_lt ℚ hd (by omega)]
     simp [hk', Nat.even_sub hk']
   · rw [ite_eq_right_iff.2 fun h ↦ absurd h.2 hk']
     exact bettiNumber_eq_zero_of_finrank_lt X
@@ -115,14 +116,6 @@ theorem bettiNumber_middle (hd : d ≠ 0) :
     (E := Fin (n + 1 - Fintype.card Unit) → ℂ) X ℚ
   simp only [← bettiNumber_def, finrank_real_of_complex, finrank_model] at h
   have hn : n ∈ Finset.range (2 * n + 1) := Finset.mem_range.2 (by omega)
-  have hsum : ∀ m : ℕ, ∑ i ∈ Finset.range (2 * m + 1), (if Even i then 1 else 0 : ℤ) = m + 1 := by
-    intro m
-    induction m with
-    | zero => rw [mul_zero, zero_add, Finset.sum_range_one]; simp
-    | succ m ih =>
-      rw [show 2 * (m + 1) + 1 = 2 * m + 1 + 1 + 1 by ring, Finset.sum_range_succ,
-        Finset.sum_range_succ, ih]
-      simp [parity_simps]
   have hterm : ∀ i ∈ (Finset.range (2 * n + 1)).erase n,
       (-1 : ℤ) ^ i * bettiNumber ℚ X i = if Even i then 1 else 0 := by
     intro i hi
@@ -130,7 +123,7 @@ theorem bettiNumber_middle (hd : d ≠ 0) :
     rw [X.bettiNumber_of_ne hd (Finset.ne_of_mem_erase hi)]
     split_ifs <;> simp_all
   rw [h, ← Finset.add_sum_erase _ _ hn, Finset.sum_congr rfl hterm, Finset.sum_erase_eq_sub hn,
-    hsum]
+    Finset.sum_range_two_mul_add_one_ite_even]
   ring
 
 end SmoothProjectiveHypersurface
