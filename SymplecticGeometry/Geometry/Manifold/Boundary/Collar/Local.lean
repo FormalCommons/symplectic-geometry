@@ -265,6 +265,11 @@ theorem posNormalCoord_nonneg (hS : Ico 0 1 ⊆ (S : Set ℝ)) (t : normalIioOpe
   rw [coe_posNormalCoord]
   exact (t : EuclideanHalfSpace 1).property
 
+/-- At a positive depth `t`, the point `posNormalCoord hS t` is positive. -/
+theorem posNormalCoord_pos (hS : Ico 0 1 ⊆ (S : Set ℝ)) {t : normalIioOpens 1}
+    (ht : 0 < (t : EuclideanHalfSpace 1).val 0) : 0 < (posNormalCoord hS t : ℝ) := by
+  rwa [coe_posNormalCoord]
+
 /-- The map `t ↦ t` from depths into `S` is continuous. -/
 theorem continuous_posNormalCoord (hS : Ico 0 1 ⊆ (S : Set ℝ)) :
     Continuous (posNormalCoord hS) :=
@@ -338,8 +343,7 @@ theorem isLocalDiffeomorphAt_negNormalCoord (hS : Ioc (-1) 0 ⊆ (S : Set ℝ))
     IsLocalDiffeomorphAt (𝓡∂ 1) 𝓘(ℝ) n (negNormalCoord hS) t := by
   refine isLocalDiffeomorphAt_subtypeVal_comp_iff.1 ?_
   rw [val_comp_negNormalCoord]
-  exact (isLocalDiffeomorph_subtype_val t).comp (hg :=
-    (isLocalDiffeomorphAt_val_zero ht).comp (hg := isLocalDiffeomorph_neg _))
+  exact (isLocalDiffeomorphAt_normalIioOpens_val_zero ht).comp (hg := isLocalDiffeomorph_neg _)
 
 /-- At a positive depth, the map `t ↦ t` from depths into `S` is a `C^n` local
 diffeomorphism. -/

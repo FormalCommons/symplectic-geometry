@@ -567,8 +567,7 @@ private theorem isLocalDiffeomorph_bandEnd :
 private theorem isLocalDiffeomorph_bandEndNeg :
     IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ (bandEndNeg c) := fun q ↦
   ((isLocalDiffeomorph_bandCoord q).comp
-    (hg := ((ContinuousLinearEquiv.neg ℝ (M := ℝ)).toDiffeomorph.isLocalDiffeomorph _).prodMap
-      (isLocalDiffeomorph_id _))).comp
+    (hg := (isLocalDiffeomorph_neg _).prodMap (isLocalDiffeomorph_id _))).comp
     (hg := WithEnd.isLocalDiffeomorphOn_endMap c
       ⟨Prod.map Neg.neg id (bandCoord q), neg_lt_neg (bandCoord_mem q).1.2, trivial⟩)
 
