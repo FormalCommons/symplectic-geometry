@@ -847,8 +847,10 @@ The file uses helpers stated in their own files:
 
 The domain of the Cayley path, in a complete normed `ℝ`-algebra `R`.
 `cayleyDomain` and its lemmas are the library's own declarations, in
-`SymplecticGeometry`; only `Compatible.mem_cayleyDomain` and its variants are
-in `TauCeti.SymplecticForm`.
+`SymplecticGeometry`. The `Compatible.*` lemmas are in `TauCeti.SymplecticForm`,
+and the lemmas about Tau Ceti's `cayleyPathFormula` and `cayleyFormula` alone
+(`cayleyPathFormula_zero`, `cayleyPathFormula_one`, `contDiffAt_cayleyFormula`)
+stay in `TauCeti`.
 
 - `cayleyDomain (R) : Set (ℝ × R × R) := {q | IsUnit (1 - q.2.1 * q.2.2) ∧
   IsUnit (1 - q.1 • cayleyFormula q.2.1 q.2.2)}`, with `@[simp]`

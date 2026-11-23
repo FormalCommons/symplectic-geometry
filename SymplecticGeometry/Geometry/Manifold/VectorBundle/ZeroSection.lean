@@ -19,7 +19,9 @@ embedding: the bundle projection is a smooth left inverse of it. This file bundl
 neighbourhood theorems, apply to it, and shows that its image is closed.
 
 The file has the path of Tau Ceti's `Geometry/Manifold/VectorBundle/ZeroSection.lean`, which
-splits the tangent spaces along the zero section, and its namespace `TauCeti.Bundle`.
+splits the tangent spaces along the zero section. The zero section as an embedding is the
+library's own definition, in `SymplecticGeometry.Bundle`; only `isClosed_range_zeroSection`, which
+is about Mathlib's zero section alone, is in Tau Ceti's namespace `TauCeti.Bundle`.
 
 ## Main definitions
 
