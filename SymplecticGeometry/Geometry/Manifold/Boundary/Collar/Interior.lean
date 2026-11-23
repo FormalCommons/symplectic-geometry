@@ -24,7 +24,7 @@ attaching an end (`Boundary/Collar/End.lean`) or capping boundary circles with d
 
 ## Main definitions
 
-* `TauCeti.SmoothCollar.InteriorPiece`: the interior of `W`, re-modelled on `ℝⁿ⁺¹`, the piece
+* `SymplecticGeometry.InteriorPiece`: the interior of `W`, re-modelled on `ℝⁿ⁺¹`, the piece
   that the gluings along the collar start from.
 * `TauCeti.SmoothCollar.interiorModelRange`: the part of the interior of `W`, re-modelled on
   `ℝⁿ⁺¹`, covered by the collar.
@@ -51,6 +51,17 @@ open scoped Manifold ContDiff
 
 noncomputable section
 
+namespace SymplecticGeometry
+
+variable (n : ℕ) (W : Type*) [TopologicalSpace W]
+  [ChartedSpace (EuclideanHalfSpace (n + 1)) W] [IsManifold (𝓡∂ (n + 1)) 1 W]
+
+/-- The interior of `W`, as a boundaryless manifold over `ℝⁿ⁺¹`. -/
+abbrev InteriorPiece : Type _ :=
+  InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)
+
+end SymplecticGeometry
+
 namespace TauCeti.SmoothCollar
 open _root_.TauCeti.EuclideanHalfSpace
 
@@ -74,11 +85,6 @@ theorem apply_mem_interior_iff_pos (p : ↥((𝓡∂ (n + 1)).boundary W) × nor
   rw [← coe_diffeomorphOpensRange_apply, Diffeomorph.apply_symm_apply]
 
 variable [IsManifold (𝓡∂ (n + 1)) 1 W]
-
-variable (n W) in
-/-- The interior of `W`, as a boundaryless manifold over `ℝⁿ⁺¹`. -/
-abbrev InteriorPiece : Type _ :=
-  InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)
 
 /-- The part of the interior of `W`, re-modelled on `ℝⁿ⁺¹` as `InteriorModel`, covered by the
 collar: the points `c (x, t)` with `t > 0`. -/
