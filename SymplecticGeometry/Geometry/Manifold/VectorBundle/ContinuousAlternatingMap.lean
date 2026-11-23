@@ -20,8 +20,8 @@ public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 For vector bundles `V₁`, `V₂` and `W` over `M` and a `C^n` section `L` of the bundle of
 continuous linear maps `V₂ x →L V₁ x`, the map `α ↦ α ∘ L` from the total space of the bundle of
 continuous alternating maps `V₁ x [⋀^ι]→L W x` to that of `V₂ x [⋀^ι]→L W x` is `C^n`
-(`contMDiff_compContinuousLinearMap_totalSpace`). It holds for any arity `ι` and any coefficient
-bundle `W`, and asks no regularity of the bundles themselves.
+(`SymplecticGeometry.contMDiff_compContinuousLinearMap_totalSpace`). It holds for any arity `ι`
+and any coefficient bundle `W`, and asks no regularity of the bundles themselves.
 
 The proof reads the map in the fibre coordinates of the trivializations at a point, where it is
 Tau Ceti's `ContinuousAlternatingMap.compContinuousLinearMapCLM`, a `C^n` map of the model spaces.
@@ -37,13 +37,13 @@ point of a total space (`b` the projection) are covered:
 * `Bundle.flatAt F α`: for an alternating map `α` of two vectors of `V x` with values in a normed
   space `G`, the continuous bilinear map `(v, w) ↦ α ![v, w]` (`Bundle.flatAt_apply`). The fibre
   carries no norm, so it is Tau Ceti's `ContinuousAlternatingMap.flatL` read through the fibre
-  equivalence of `trivializationAt F V x`. By `contMDiffAt_sectionAlong_flatAt`, the flat maps of
-  a `C^n` family of such maps along `b` form a `C^n` family along `b`.
+  equivalence of `trivializationAt F V x`. By `SymplecticGeometry.contMDiffAt_sectionAlong_flatAt`,
+  the flat maps of a `C^n` family of such maps along `b` form a `C^n` family along `b`.
 * `Bundle.alternatingMapOfBilin F β hβ`: for a continuous bilinear map `β` on a fibre of finite
   dimension that vanishes on the diagonal, the continuous alternating map `v ↦ β (v 0) (v 1)`
   (`Bundle.alternatingMapOfBilin_apply`), with its two round trips with `flatAt`. By
-  `contMDiffAt_sectionAlong_continuousAlternatingMap_of_bilinear`, a family of alternating maps
-  along `b` whose values come from a `C^n` family of bilinear maps is `C^n`.
+  `SymplecticGeometry.contMDiffAt_sectionAlong_continuousAlternatingMap_of_bilinear`, a family of
+  alternating maps along `b` whose values come from a `C^n` family of bilinear maps is `C^n`.
 
 The coefficients of `flatAt` form the trivial bundle with fibre `G`, since the flat map is read
 through a trivialization of `V` alone; the two-forms of this library take values in `ℝ`. The other
@@ -88,6 +88,8 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   [∀ x, ContinuousSMul 𝕜 (W x)] [TopologicalSpace (TotalSpace G W)]
   [FiberBundle G W] [VectorBundle 𝕜 G W] {n : ℕ∞}
 
+namespace SymplecticGeometry
+
 /-- Composing alternating maps on the fibres of `V₁` with a `C^n` family of linear maps
 `L x : V₂ x → V₁ x` is a `C^n` map between the total spaces of the bundles of alternating maps
 on `V₁` and on `V₂`. -/
@@ -121,8 +123,6 @@ theorem contMDiff_compContinuousLinearMap_totalSpace (L : ∀ x, V₂ x →L[�
   ext i
   simp only [Function.comp_apply, ContinuousLinearMap.coe_comp]
   exact (Trivialization.symmL_continuousLinearMapAt _ hp _).symm
-
-namespace SymplecticGeometry
 
 omit [∀ x, IsTopologicalAddGroup (V₁ x)] [∀ x, ContinuousSMul 𝕜 (V₁ x)] in
 /-- A section of the bundle of continuous alternating maps `V₁ x [⋀^ι]→L W x` is `C^n` if, read
@@ -226,6 +226,8 @@ theorem alternatingMapOfBilin_flatAt {x : M} (α : V x [⋀^Fin 2]→L[𝕜] Tri
 
 end Bundle
 
+namespace SymplecticGeometry
+
 /-- **Flat maps along a map into the base.** Let `α y` be alternating maps of two vectors of the
 fibres `V (b y)` along a map `b : N → M`, depending `C^n` on `y` at `y₀`. Then their flat maps
 `v ↦ α y (v, ·)` depend `C^n` on `y` at `y₀`, as maps into the bundle of bilinear maps along
@@ -299,6 +301,8 @@ theorem contMDiffAt_sectionAlong_continuousAlternatingMap_of_bilinear [CompleteS
     ContinuousAlternatingMap.compContinuousLinearMap_apply, hα, Function.comp_apply]
   rw [Trivialization.symmL_apply _ hy, Trivialization.symmL_apply _ hy]
   exact e'.continuousLinearMapAt_apply_of_mem 𝕜 hy' _
+
+end SymplecticGeometry
 
 end TwoForms
 

@@ -1259,7 +1259,7 @@ it into issues; the overview fixes its folders and its dependencies.
   `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean`
   (precomposition with a $C^n$ section of a hom bundle as a $C^n$ map of the
   total spaces of bundles of alternating maps,
-  `contMDiff_compContinuousLinearMap_totalSpace`, in the root namespace, and
+  `contMDiff_compContinuousLinearMap_totalSpace`, in `SymplecticGeometry`, and
   `Bundle.flatAt` and `Bundle.alternatingMapOfBilin` between alternating and
   bilinear maps of two vectors, $C^n$ along a map; the
   file has the name of the Mathlib file that defines

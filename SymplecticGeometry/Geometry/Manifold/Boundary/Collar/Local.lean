@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Local
 public import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import Mathlib.Geometry.Manifold.ContMDiff.Atlas
+import SymplecticGeometry.Geometry.Manifold.Instances.HalfLine
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
@@ -48,8 +49,6 @@ half-line is one, and local diffeomorphisms at positive depth.
   `negNormalCoord_negNormalIioRay`: the two maps are inverse to each other on `(-1, 0]`.
 * `TauCeti.EuclideanHalfSpace.posNormalIioRay_posNormalCoord` and
   `posNormalCoord_posNormalIioRay`: the two maps are inverse to each other on `[0, 1)`.
-* `TauCeti.EuclideanHalfSpace.isImmersionAt_val_zero`: the coordinate of the half-line is an
-  immersion into `ℝ`, the boundary point included.
 * `TauCeti.EuclideanHalfSpace.isImmersionAt_negNormalCoord`, `isImmersionAt_posNormalCoord`,
   `isLocalDiffeomorphAt_negNormalCoord` and `isLocalDiffeomorphAt_posNormalCoord`: the maps
   `t ↦ -t` and `t ↦ t` from depths are immersions, and local diffeomorphisms at positive depth.
@@ -293,20 +292,6 @@ theorem posNormalCoord_posNormalIioRay (hS : (S : Set ℝ) ⊆ Iio 1)
 variable {n : WithTop ℕ∞}
 
 open Manifold
-
-/-- The coordinate `t ↦ t 0` of the half-line is a `C^n` immersion into `ℝ` at every point, the
-boundary point `0` included. -/
-theorem isImmersionAt_val_zero (t : EuclideanHalfSpace 1) :
-    IsImmersionAt (𝓡∂ 1) 𝓘(ℝ) n (fun s : EuclideanHalfSpace 1 ↦ s.val 0) t := by
-  refine (IsImmersionAtOfComplement.mk_of_continuousAt_of_extChartAt (F := PUnit.{1})
-    (by fun_prop) ((ContinuousLinearEquiv.prodUnique ℝ _ _).trans
-      ((EuclideanSpace.equiv (Fin 1) ℝ).trans (ContinuousLinearEquiv.funUnique (Fin 1) ℝ ℝ)))
-    ?_).isImmersionAt
-  intro u hu
-  have h0 : 0 ≤ u 0 := by
-    have := (extChartAt_target_subset_range (I := 𝓡∂ 1) t) hu
-    rwa [range_modelWithCornersEuclideanHalfSpace] at this
-  simp [modelWithCornersEuclideanHalfSpace_symm_apply_of_le h0]
 
 /-- The depth `t ↦ t 0` on `[0, 1)` is a `C^n` local diffeomorphism to `ℝ` at positive depth. -/
 theorem isLocalDiffeomorphAt_normalIioOpens_val_zero {t : normalIioOpens 1}
