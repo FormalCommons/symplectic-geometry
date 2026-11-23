@@ -36,7 +36,8 @@ again compact Hausdorff, and `π^*` is injective on cohomology (`injective_proje
 ## Main results
 
 * `firstChernClass_prod`: `firstChernClass` is additive on direct sums, over a compact normal
-  base.
+  base; hence `chernNumber_prod`, the additivity of the first Chern number over a compact oriented
+  surface.
 * `chernClass_one_eq_firstChernClass`: `c₁(E)` is `firstChernClass G E`, read in integral
   cohomology, over a compact Hausdorff base.
 
@@ -82,6 +83,29 @@ theorem firstChernClass_prod :
   exact complexEulerClass_tensorProduct (by simp) (by simp)
 
 end FirstChernClass
+
+section ChernNumber
+
+variable {M : Type} [TopologicalSpace M] [T2Space M] [CompactSpace M]
+  {EM : Type} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [FiniteDimensional ℝ EM]
+  [ChartedSpace EM M] (o : HomologicalOrientation M EM 2) (hn : finrank ℝ EM = 2)
+  {G₁ : Type*} [NormedAddCommGroup G₁] [NormedSpace ℂ G₁] [FiniteDimensional ℂ G₁]
+  {E₁ : M → Type*} [∀ x, AddCommMonoid (E₁ x)] [∀ x, Module ℂ (E₁ x)]
+  [∀ x, TopologicalSpace (E₁ x)] [TopologicalSpace (TotalSpace G₁ E₁)]
+  [FiberBundle G₁ E₁] [VectorBundle ℂ G₁ E₁]
+  {G₂ : Type*} [NormedAddCommGroup G₂] [NormedSpace ℂ G₂] [FiniteDimensional ℂ G₂]
+  {E₂ : M → Type*} [∀ x, AddCommMonoid (E₂ x)] [∀ x, Module ℂ (E₂ x)]
+  [∀ x, TopologicalSpace (E₂ x)] [TopologicalSpace (TotalSpace G₂ E₂)]
+  [FiberBundle G₂ E₂] [VectorBundle ℂ G₂ E₂]
+
+/-- **The first Chern number is additive.** Over a compact surface with a homological
+orientation, the first Chern number of `E₁ ⊕ E₂` is the sum of those of `E₁` and `E₂`. -/
+theorem chernNumber_prod :
+    chernNumber o hn (G₁ × G₂) (E₁ ×ᵇ E₂) = chernNumber o hn G₁ E₁ + chernNumber o hn G₂ E₂ := by
+  rw [chernNumber_def, chernNumber_def, chernNumber_def, firstChernClass_prod, map_add,
+    ULift.add_down]
+
+end ChernNumber
 
 /-! ### The comparison -/
 
