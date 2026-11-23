@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 public import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.SmoothZero
 public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Degree
+public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 
 /-!
 # The first Chern number as a count of zeros
@@ -102,7 +103,7 @@ variable {M : Type} [TopologicalSpace M] [T2Space M] [CompactSpace M]
   [∀ x, Module ℝ (L x)] [∀ x, Module ℂ (L x)] [∀ x, IsScalarTower ℝ ℂ (L x)]
   [∀ x, TopologicalSpace (L x)] [FiberBundle G L] [VectorBundle ℂ G L]
 
-local instance : VectorBundle ℝ G L := VectorBundle.restrictScalars ℝ ℂ G L
+open scoped VectorBundle.ComplexToReal
 
 /-- **The first Chern number as a sum of local indices.** Let `L` be a complex line bundle, with
 model `G` of complex dimension one, over a compact surface `M` with a homological orientation `o`,
@@ -135,7 +136,7 @@ variable {M : Type} [TopologicalSpace M] [T2Space M] [CompactSpace M]
 
 local instance (x : M) : ContinuousSMul ℝ (J.Fiber x) := IsScalarTower.continuousSMul ℂ
 
-local instance : VectorBundle ℝ ℂ J.Fiber := VectorBundle.restrictScalars ℝ ℂ ℂ J.Fiber
+open scoped VectorBundle.ComplexToReal
 
 omit [T2Space M] [CompactSpace M] [FiniteDimensional ℝ EM] [IsManifold 𝓘(ℝ, EM) 1 M]
   [ContMDiffVectorBundle 1 F V 𝓘(ℝ, EM)] in

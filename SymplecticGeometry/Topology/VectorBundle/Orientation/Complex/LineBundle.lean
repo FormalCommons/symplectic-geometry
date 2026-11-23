@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Topology.VectorBundle.LineBundle
 public import TauCeti.Topology.Algebra.Module.Equiv.RestrictScalars
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.Basic
+public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 
 /-!
 # The canonical orientation of a complex line bundle read through a nonzero vector
@@ -45,7 +46,7 @@ variable {B : Type*} [TopologicalSpace B]
   [∀ x, Module ℝ (L x)] [∀ x, Module ℂ (L x)] [∀ x, IsScalarTower ℝ ℂ (L x)]
   [∀ x, TopologicalSpace (L x)] [FiberBundle G L] [VectorBundle ℂ G L]
 
-local instance : VectorBundle ℝ G L := VectorBundle.restrictScalars ℝ ℂ G L
+open scoped VectorBundle.ComplexToReal
 
 /-- In a complex line bundle `L`, the map `c ↦ c • v` from `ℂ` onto the fibre `L x` containing a
 nonzero vector `v` carries `Complex.orientation` to the canonical orientation of `L x` as a

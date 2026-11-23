@@ -9,6 +9,7 @@ public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orient
 public import SymplecticGeometry.Geometry.Manifold.Complex.HomologicalOrientation
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Derivative
+public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 
 /-!
 # A zero with complex-linear invertible derivative has index one
@@ -72,8 +73,7 @@ variable [T2Space M]
   [∀ x, Module ℝ (V x)] [∀ x, Module ℂ (V x)] [∀ x, IsScalarTower ℝ ℂ (V x)]
   [∀ x, TopologicalSpace (V x)] [FiberBundle G V] [VectorBundle ℂ G V]
 
-local instance instVectorBundleRealSectionIndexComplexLinear : VectorBundle ℝ G V :=
-  VectorBundle.restrictScalars ℝ ℂ G V
+open scoped VectorBundle.ComplexToReal
 
 /-- **A zero with complex-linear invertible derivative has index `1`.** Let `M` be a complex
 manifold modelled on `𝓘(ℂ, E)`, of complex dimension `r + 1`, with its complex orientation

@@ -1736,7 +1736,7 @@ variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace ℂ
   [∀ x, ContinuousConstSMul ℂ (V x)]
   [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V]
 
-local instance : VectorBundle ℝ F V := VectorBundle.restrictScalars ℝ ℂ F V
+open scoped VectorBundle.ComplexToReal
 local instance : FiniteDimensional ℝ F := Module.Finite.trans ℂ F
 
 variable [ContMDiffVectorBundle n F V I]

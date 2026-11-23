@@ -10,6 +10,7 @@ public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 public import SymplecticGeometry.Topology.VectorBundle.Thom.ChangeOfCoefficients
 public import SymplecticGeometry.Topology.VectorBundle.Thom.Gysin
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
+public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 
 /-!
 # Cup product with the Euler class when the complement of the zero section is acyclic
@@ -210,8 +211,7 @@ variable {B : Type} [TopologicalSpace B]
   [∀ b, Module ℝ (E b)] [∀ b, Module ℂ (E b)] [∀ b, IsScalarTower ℝ ℂ (E b)]
   [∀ b, TopologicalSpace (E b)] [FiberBundle F E] [VectorBundle ℂ F E]
 
-local instance instVectorBundleRealCupEulerClass : VectorBundle ℝ F E :=
-  VectorBundle.restrictScalars ℝ ℂ F E
+open scoped VectorBundle.ComplexToReal
 
 /-- **Cup product with the Euler class of a complex vector bundle is bijective** if the integral
 cohomology of the complement `E₀` of the zero section vanishes in the target degree and one below
