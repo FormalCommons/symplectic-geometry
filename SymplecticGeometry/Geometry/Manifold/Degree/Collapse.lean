@@ -211,7 +211,8 @@ private theorem chartCollapse_eq_iff (hv : ‖v‖ = 1) (hJv : ∀ w, ⟪J w, v�
     simp only [inner_neg_left, real_inner_self_eq_norm_sq, hv] at hi
     norm_num at hi
 
-/-- The chart collapse is `-v` off the preimage of the closed ball of radius `r / 2`. -/
+/-- The chart collapse is `-v` off the image under the inverse chart of the closed ball of
+radius `r / 2` around `extChartAt (𝓡 n) x₀ x₀`. -/
 private theorem chartCollapse_of_notMem_image (hr : 0 < r) {x : M}
     (hx : x ∉ (extChartAt (𝓡 n) x₀).symm '' closedBall (extChartAt (𝓡 n) x₀ x₀) (r / 2)) :
     chartCollapse J v x₀ r x = -v := by
