@@ -32,6 +32,8 @@ conditions on that map.
 * `SymplecticGeometry.mem_symplecticGroup_iff_isSymplectomorphism`: the same in terms of Tau Ceti's
   `SymplecticForm.IsSymplectomorphism`, for a linear automorphism `e` of `StdSpace ι` and its
   matrix `Matrix.toEuclideanLin.symm e`.
+* `SymplecticGeometry.toEuclideanCLM_symm_mem_symplecticGroup_iff`: the same for a continuous
+  linear automorphism `e` and its matrix `Matrix.toEuclideanCLM.symm e`.
 * `SymplecticGeometry.mem_GLSymplectic_iff_isSymplectomorphism`: an invertible matrix `g` lies in
   Tau Ceti's `GLSymplectic ι ℝ` if and only if its linear automorphism of `StdSpace ι`, through
   `Matrix.toEuclideanCLE`, is a symplectomorphism of `ω₀`.
@@ -138,6 +140,16 @@ theorem mem_symplecticGroup_iff_isSymplectomorphism (e : StdSpace ι ≃ₗ[ℝ]
   rw [mem_symplecticGroup_iff_forall_stdForm, LinearEquiv.apply_symm_apply,
     SymplecticForm.isSymplectomorphism_iff]
   simp
+
+/-- A continuous linear automorphism `e` of `StdSpace ι` is a symplectomorphism of `ω₀` if and
+only if its matrix `Matrix.toEuclideanCLM.symm e` lies in `Matrix.symplecticGroup ι ℝ`. It is
+the `Matrix.toEuclideanCLM` form of `mem_symplecticGroup_iff_isSymplectomorphism`: the two
+matrices agree by definition. -/
+theorem toEuclideanCLM_symm_mem_symplecticGroup_iff (e : StdSpace ι ≃L[ℝ] StdSpace ι) :
+    (toEuclideanCLM (n := ι ⊕ ι) (𝕜 := ℝ)).symm (e : StdSpace ι →L[ℝ] StdSpace ι) ∈
+        symplecticGroup ι ℝ ↔
+      (stdForm ι).IsSymplectomorphism (stdForm ι) e.toLinearEquiv :=
+  mem_symplecticGroup_iff_isSymplectomorphism e.toLinearEquiv
 
 /-- An invertible real matrix `g` indexed by `ι ⊕ ι` lies in `GLSymplectic ι ℝ` if and only if
 its linear automorphism `Matrix.toEuclideanCLE g` of `StdSpace ι` is a symplectomorphism of
