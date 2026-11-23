@@ -77,28 +77,38 @@ namespace TauCeti
 
 attribute [local instance] finrank_real_complex_fact'
 
+/-- The plane angular form `x dy - y dx` at `z` is `Im (conj z · v)`. -/
+theorem planeAngularForm_apply_eq_im (z : ℂ) (v : Fin 1 → ℂ) :
+    planeAngularForm z v = ((starRingEnd ℂ) z * v 0).im := by
+  rw [planeAngularForm_apply, Complex.mul_im, Complex.conj_re, Complex.conj_im]
+  ring
+
+/-- Let `f` be a map of the plane with real derivative `f'` at `z`. If
+`Im (conj (f z) · f' v) = c · Im (conj z · v)` for every `v`, then at `z` the pull-back of
+`x dy - y dx` along `f` is `c (x dy - y dx)`. -/
+theorem mpullback_planeAngularForm_eq_smul_of_hasFDerivAt {f : ℂ → ℂ} {f' : ℂ →L[ℝ] ℂ} {z : ℂ}
+    (hf : HasFDerivAt f f' z) {c : ℝ}
+    (h : ∀ v : ℂ, ((starRingEnd ℂ) (f z) * f' v).im = c * ((starRingEnd ℂ) z * v).im) :
+    mpullback 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) f planeAngularForm z = c • planeAngularForm z := by
+  ext v
+  -- The tangent vectors of `ℂ` are elements of `ℂ` only up to unfolding `TangentSpace`.
+  erw [mpullback_apply, mfderiv_eq_fderiv, hf.fderiv, planeAngularForm_apply_eq_im,
+    ContinuousAlternatingMap.smul_apply, planeAngularForm_apply_eq_im]
+  exact h (v 0)
+
 /-- Multiplication by a complex number `a` of modulus one preserves the `1`-form `x dy - y dx` on
 the plane. -/
 theorem mpullback_mul_planeAngularForm {a : ℂ} (ha : ‖a‖ = 1) :
     mpullback 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun z : ℂ ↦ a * z) planeAngularForm = planeAngularForm := by
-  have hd (z u : ℂ) : mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun z : ℂ ↦ a * z) z u = a * u := by
-    rw [mfderiv_eq_fderiv]
-    -- `NormedSpace.fromTangentSpace` is the identity of `ℂ` and has no simp lemmas.
-    change fderiv ℝ (fun z : ℂ ↦ a * z) z u = a * u
-    rw [show (fun z : ℂ ↦ a * z) = fun y ↦ a * id y from rfl,
-      ((hasFDerivAt_id z).const_mul a).fderiv]
-    simp
-  have hnorm : a.re * a.re + a.im * a.im = 1 := by
-    rw [← Complex.normSq_apply, Complex.normSq_eq_norm_sq, ha, one_pow]
-  have key (z u : ℂ) :
-      (a * z).re * (a * u).im - (a * z).im * (a * u).re = z.re * u.im - z.im * u.re := by
-    simp only [Complex.mul_re, Complex.mul_im]
-    linear_combination (z.re * u.im - z.im * u.re) * hnorm
   funext z
-  ext v
-  -- The tangent vectors of `ℂ` are elements of `ℂ` only up to unfolding `TangentSpace`.
-  erw [mpullback_apply, planeAngularForm_apply, planeAngularForm_apply, hd]
-  exact key z (v 0)
+  rw [← one_smul ℝ (planeAngularForm z)]
+  refine mpullback_planeAngularForm_eq_smul_of_hasFDerivAt
+    ((hasFDerivAt_id z).const_mul a) fun v ↦ ?_
+  simp only [smul_apply, ContinuousLinearMap.id_apply, id, smul_eq_mul,
+    map_mul, one_mul]
+  rw [show (starRingEnd ℂ) a * (starRingEnd ℂ) z * (a * v) =
+      ((starRingEnd ℂ) a * a) * ((starRingEnd ℂ) z * v) by ring, Complex.conj_mul', ha]
+  simp
 
 /-- The rotations `w ↦ a * w` of the circle preserve its angular form. -/
 @[simp]
@@ -125,25 +135,6 @@ theorem mpullback_mul_right_circleAngularForm (a : Circle) :
   exact mpullback_mul_left_circleAngularForm a
 
 /-! ### The plane angular form under powers and radial projection -/
-
-/-- The plane angular form `x dy - y dx` at `z` is `Im (conj z · v)`. -/
-theorem planeAngularForm_apply_eq_im (z : ℂ) (v : Fin 1 → ℂ) :
-    planeAngularForm z v = ((starRingEnd ℂ) z * v 0).im := by
-  rw [planeAngularForm_apply, Complex.mul_im, Complex.conj_re, Complex.conj_im]
-  ring
-
-/-- Let `f` be a map of the plane with real derivative `f'` at `z`. If
-`Im (conj (f z) · f' v) = c · Im (conj z · v)` for every `v`, then at `z` the pull-back of
-`x dy - y dx` along `f` is `c (x dy - y dx)`. -/
-theorem mpullback_planeAngularForm_eq_smul_of_hasFDerivAt {f : ℂ → ℂ} {f' : ℂ →L[ℝ] ℂ} {z : ℂ}
-    (hf : HasFDerivAt f f' z) {c : ℝ}
-    (h : ∀ v : ℂ, ((starRingEnd ℂ) (f z) * f' v).im = c * ((starRingEnd ℂ) z * v).im) :
-    mpullback 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) f planeAngularForm z = c • planeAngularForm z := by
-  ext v
-  -- The tangent vectors of `ℂ` are elements of `ℂ` only up to unfolding `TangentSpace`.
-  erw [mpullback_apply, mfderiv_eq_fderiv, hf.fderiv, planeAngularForm_apply_eq_im,
-    ContinuousAlternatingMap.smul_apply, planeAngularForm_apply_eq_im]
-  exact h (v 0)
 
 /-- At a point `u` of the unit circle, the pull-back of `x dy - y dx` along `z ↦ z ^ k` is
 `k (x dy - y dx)`. -/
