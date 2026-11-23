@@ -14,6 +14,7 @@ import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.ExtendOverDisc
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.DiscFrame
 import SymplecticGeometry.Geometry.Manifold.Instances.SymplecticGroup
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.CoordinateDisc
 
 /-!
 # Bundles from clutching data, and isomorphisms from equal Maslov indices
@@ -81,10 +82,10 @@ loop of `1 × 1` unitary matrices (`circlePowLoop k`), whose Maslov index is `k`
 
 For `nonempty_iso_of_maslovIndex_eq`, let `Tₖ = Φₖ⁻¹ ∘ Φₖ'` be the transitions of the two
 bundles, defined near the boundary circle, on the image of an annulus `1 - ε < ‖z‖ < 1 + ε` of the
-chart. There `D = T₂ ∘ T₁⁻¹` is a smooth map into `Matrix.symplecticGroup κ ℝ`
-(`Matrix.SymplecticGroup.contMDiffAt_iff_toEuclideanCLM`), and on the circle it is the loop
-`Ψ₂ Ψ₁⁻¹`, of Maslov index `μ(Ψ₂) - μ(Ψ₁) = 0` by the product axiom
-(`TauCeti.GLSymplectic.maslovIndex_toBasedLoop_mul`). So it is null-homotopic
+chart (`CoordinateDisc.exists_image_annulus_subset`). There `D = T₂ ∘ T₁⁻¹` is a smooth map into
+`Matrix.symplecticGroup κ ℝ` (`Matrix.SymplecticGroup.exists_contMDiffOn_toEuclideanCLM_eq`),
+and on the circle it is the loop `Ψ₂ Ψ₁⁻¹`, of Maslov index `μ(Ψ₂) - μ(Ψ₁) = 0` by the product
+axiom (`TauCeti.GLSymplectic.maslovIndex_toBasedLoop_mul`). So it is null-homotopic
 (`TauCeti.GLSymplectic.nullhomotopic_of_maslovIndex_toBasedLoop_eq_zero`), and agrees near the
 circle with a smooth map `g` on the disc of radius `1 + ε`
 (`ContMDiffOn.exists_contMDiffOn_ball_eq_of_nullhomotopic`). Over the image `W` of that disc, the
@@ -94,8 +95,9 @@ over `W`, and `Φ₁'` and `Φ₂'` away from a smaller closed disc, then glue t
 (`ContMDiffTwoForm.exists_pushforward_eq_of_frameTransition_eq`). For
 `nonempty_iso_of_symplecticChernNumber_eq`, the frames come from
 `ContMDiffTwoForm.IsNondegenerate.exists_isSymplecticFrameOn_disc_ofChart` and
-`ContMDiffTwoForm.IsNondegenerate.exists_isSymplecticFrameOn_discComplement_ofChart`, and the disc
-clutching formula turns equal Chern numbers into equal Maslov indices.
+`ContMDiffTwoForm.IsNondegenerate.exists_isSymplecticFrameOn_discComplement_ofChart`, their
+transition loops from `ContMDiffTwoForm.IsSymplecticFrameOn.exists_frameTransition_loop`, and the
+disc clutching formula turns equal Chern numbers into equal Maslov indices.
 
 ## Implementation notes
 
@@ -527,38 +529,6 @@ section Iso
 open Matrix TauCeti.GLSymplectic StdSpace ContMDiffTwoForm
 open scoped ContDiff Matrix.Norms.Operator
 
-/-- An open set that contains the boundary circle of a coordinate disc contains the image of an
-annulus `1 - ε < ‖z‖ < 1 + ε` of the chart, for some `0 < ε ≤ 1 / 2`. -/
-private theorem exists_image_annulus_subset {M : Type} [TopologicalSpace M] [T2Space M]
-    {EM : Type} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [FiniteDimensional ℝ EM]
-    [ChartedSpace EM M] {o : HomologicalOrientation M EM 2} (φ : CoordinateDisc o) {O : Set M}
-    (hO : IsOpen O) (hφO : ∀ ζ, φ.boundaryCircle ζ ∈ O) :
-    ∃ ε : ℝ, 0 < ε ∧ ε ≤ 1 / 2 ∧
-      ∀ z : CoordinateDisc.ball, 1 - ε < ‖(z : ℂ)‖ → ‖(z : ℂ)‖ < 1 + ε → φ z ∈ O := by
-  -- The points of the ball that `φ` sends into `O`, as an open set of `ℂ`, contain the circle.
-  have hS : IsOpen (Subtype.val '' (φ ⁻¹' O) : Set ℂ) :=
-    CoordinateDisc.ball.isOpen.isOpenMap_subtypeVal _ (hO.preimage φ.continuous)
-  have hsph : Metric.sphere (0 : ℂ) 1 ⊆ Subtype.val '' (φ ⁻¹' O) := fun z hz ↦
-    ⟨⟨z, CoordinateDisc.mem_ball_of_norm_le_one (mem_sphere_zero_iff_norm.1 hz).le⟩,
-      by have h := hφO (show Circle from ⟨z, hz⟩); rwa [CoordinateDisc.boundaryCircle_apply] at h,
-      rfl⟩
-  obtain ⟨δ, hδ, hδS⟩ := (isCompact_sphere (0 : ℂ) 1).exists_thickening_subset_open hS hsph
-  refine ⟨min δ (1 / 2), lt_min hδ one_half_pos, min_le_right _ _, fun z h₁ h₂ ↦ ?_⟩
-  have hn : 0 < ‖(z : ℂ)‖ := by linarith [min_le_right δ (1 / 2)]
-  -- `z` is within `δ` of the point `z / ‖z‖` of the circle.
-  have hd : dist (z : ℂ) (z / ‖(z : ℂ)‖) < δ := by
-    have he : (z : ℂ) - z / ‖(z : ℂ)‖ = (((‖(z : ℂ)‖ - 1) / ‖(z : ℂ)‖ : ℝ) : ℂ) * z := by
-      have : (‖(z : ℂ)‖ : ℂ) ≠ 0 := Complex.ofReal_ne_zero.2 hn.ne'
-      push_cast
-      field_simp
-    rw [dist_eq_norm, he, norm_mul, Complex.norm_real, Real.norm_eq_abs, abs_div,
-      abs_of_pos hn, div_mul_cancel₀ _ hn.ne']
-    have := min_le_left δ (1 / 2)
-    exact abs_sub_lt_iff.2 ⟨by linarith, by linarith⟩
-  obtain ⟨w, hw, hwz⟩ := hδS (Metric.mem_thickening_iff.2
-    ⟨(z : ℂ) / ‖(z : ℂ)‖, by simp [hn.ne'], hd⟩)
-  rwa [Subtype.val_injective hwz] at hw
-
 variable {M : Type} [TopologicalSpace M] [ChartedSpace (EuclideanSpace ℝ (Fin 2)) M]
   [IsManifold (𝓡 2) ((⊤ : ℕ∞) : WithTop ℕ∞) M] [T2Space M]
   {o : Manifold.Orientation (𝓡 2) M (Fin 2)}
@@ -576,6 +546,200 @@ variable {κ : Type*} [Fintype κ] [DecidableEq κ]
   [∀ x, ContinuousSMul ℝ (V₂ x)] [TopologicalSpace (TotalSpace F₂ V₂)]
   [FiberBundle F₂ V₂] [VectorBundle ℝ F₂ V₂]
   {ω₁ : ContMDiffTwoForm (𝓡 2) ⊤ F₁ V₁} {ω₂ : ContMDiffTwoForm (𝓡 2) ⊤ F₂ V₂}
+
+omit [TopologicalSpace M] [ChartedSpace (EuclideanSpace ℝ (Fin 2)) M]
+  [IsManifold (𝓡 2) ((⊤ : ℕ∞) : WithTop ℕ∞) M] [T2Space M] [FiniteDimensional ℝ F₁]
+  [∀ x, IsTopologicalAddGroup (V₁ x)] [∀ x, ContinuousSMul ℝ (V₁ x)]
+  [∀ x, IsTopologicalAddGroup (V₂ x)] [∀ x, ContinuousSMul ℝ (V₂ x)] in
+/-- At a point where the frames of the two bundles differ by the matrices `A₁` and `A₂`,
+`Φₖ' = Φₖ ∘ Aₖ`, the change of frame `T₂ ∘ T₁⁻¹`, for the transitions `Tₖ = Φₖ⁻¹ ∘ Φₖ'`, is the
+matrix `A₂ A₁⁻¹`. -/
+private theorem frameTransition_trans_frameTransition_eq {x : M}
+    {Φ₁ Φ₁' : ∀ x, StdSpace κ ≃L[ℝ] V₁ x} {Φ₂ Φ₂' : ∀ x, StdSpace κ ≃L[ℝ] V₂ x}
+    {A₁ A₂ : GL (κ ⊕ κ) ℝ} (h₁ : ∀ v, Φ₁' x v = Φ₁ x (toEuclideanLin (A₁ : Matrix _ _ ℝ) v))
+    (h₂ : ∀ v, Φ₂' x v = Φ₂ x (toEuclideanLin (A₂ : Matrix _ _ ℝ) v)) :
+    ((frameTransition Φ₁ Φ₁' x).trans (frameTransition Φ₂' Φ₂ x) :
+        StdSpace κ →L[ℝ] StdSpace κ) =
+      toEuclideanCLM (𝕜 := ℝ) ((A₂ * A₁⁻¹ : GL (κ ⊕ κ) ℝ) : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) := by
+  ext1 v
+  -- Write `v = T₁⁻¹ w = A₁ w`, so that both sides send it to `A₂ w`.
+  obtain ⟨w, rfl⟩ := (frameTransition Φ₁' Φ₁ x).surjective v
+  have hv : frameTransition Φ₁' Φ₁ x w = toEuclideanLin (A₁ : Matrix _ _ ℝ) w := by
+    rw [frameTransition_apply, h₁, ContinuousLinearEquiv.symm_apply_apply]
+  have hD : (frameTransition Φ₁ Φ₁' x).trans (frameTransition Φ₂' Φ₂ x)
+      (frameTransition Φ₁' Φ₁ x w) = toEuclideanLin (A₂ : Matrix _ _ ℝ) w := by
+    simp [frameTransition_apply, h₂]
+  rw [ContinuousLinearEquiv.coe_coe, hD, hv, ← toEuclideanCLM_apply, ← toEuclideanCLM_apply,
+    ← mul_apply_eq_comp, ← map_mul, Units.val_mul, Matrix.mul_assoc, ← Units.val_mul,
+    inv_mul_cancel, Units.val_one, Matrix.mul_one]
+
+/-- Let `D` be a smooth family of linear symplectomorphisms of `StdSpace κ` on an open set `O`
+that contains the image of the annulus `1 - ε < ‖z‖ < 1 + ε` of the coordinate disc `φ` of a chart.
+If on the boundary circle `D` is a loop of symplectic matrices of Maslov index `0`, then some
+family `P` of linear symplectomorphisms, smooth on the image of the disc `‖z‖ < 1 + ε`, equals `D`
+on the image of the annulus `1 - ε / 2 < ‖z‖ < 1 + ε`. -/
+private theorem exists_extend_of_maslovIndex_eq_zero
+    (hea : e ∈ IsManifold.maximalAtlas (𝓡 2) ∞ M) (hr : 0 < r) (hc : Metric.ball c r ⊆ e.target)
+    (he : ∀ x ∈ e.source,
+      o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x)
+    {ε : ℝ} (hε : 0 < ε) (hε2 : ε ≤ 1 / 2) {O : Set M} (hO : IsOpen O)
+    (hεO : ∀ z : CoordinateDisc.ball, 1 - ε < ‖(z : ℂ)‖ → ‖(z : ℂ)‖ < 1 + ε →
+      CoordinateDisc.ofChart e hr hc he z ∈ O)
+    {D : M → StdSpace κ ≃L[ℝ] StdSpace κ}
+    (hD : ContMDiffOn (𝓡 2) 𝓘(ℝ, StdSpace κ →L[ℝ] StdSpace κ) ∞
+      (fun x ↦ (D x : StdSpace κ →L[ℝ] StdSpace κ)) O)
+    (hDσ : ∀ x ∈ O, (stdForm κ).IsSymplectomorphism (stdForm κ) (D x).toLinearEquiv)
+    (Ψ : C(Circle, GLSymplectic κ ℝ)) (hΨ : maslovIndex Ψ.toBasedLoop = 0)
+    (hDΨ : ∀ ζ, (D ((CoordinateDisc.ofChart e hr hc he).boundaryCircle ζ) :
+        StdSpace κ →L[ℝ] StdSpace κ) =
+      toEuclideanCLM (𝕜 := ℝ) ((Ψ ζ : GL (κ ⊕ κ) ℝ) : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ)) :
+    ∃ P : M → StdSpace κ ≃L[ℝ] StdSpace κ,
+      ContMDiffOn (𝓡 2) 𝓘(ℝ, StdSpace κ →L[ℝ] StdSpace κ) ∞
+        (fun x ↦ (P x : StdSpace κ →L[ℝ] StdSpace κ))
+        (CoordinateDisc.ofChart e hr hc he '' {z | ‖(z : ℂ)‖ < 1 + ε}) ∧
+      (∀ x, (stdForm κ).IsSymplectomorphism (stdForm κ) (P x).toLinearEquiv) ∧
+      ∀ z : CoordinateDisc.ball, 1 - ε / 2 < ‖(z : ℂ)‖ → ‖(z : ℂ)‖ < 1 + ε →
+        P (CoordinateDisc.ofChart e hr hc he z) = D (CoordinateDisc.ofChart e hr hc he z) := by
+  set φ := CoordinateDisc.ofChart e hr hc he
+  set ψ : ℂ → M := fun z ↦ e.symm (c + (r / 2) • Complex.orthonormalBasisOneI.repr z)
+  have hψ (z : CoordinateDisc.ball) : ψ z = φ z := (CoordinateDisc.ofChart_apply e hr hc he z).symm
+  -- Tau Ceti's charts on the symplectic group are stated for the topology of the operator norm
+  -- on matrices, which is the product topology (`Matrix.linftyOpTopologicalSpace_eq`), but not
+  -- reducibly so.
+  let : TopologicalSpace (Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) := Matrix.linftyOpTopologicalSpace _ _ _
+  -- `D` is a smooth map `C` into the symplectic group on `O`.
+  obtain ⟨C, hCs, hC⟩ := Matrix.SymplecticGroup.exists_contMDiffOn_toEuclideanCLM_eq hO hD
+    fun x hx ↦ mem_symplecticGroup_iff_forall_stdForm.2 fun v w ↦ by
+      rw [← toEuclideanCLM_apply, ← toEuclideanCLM_apply, StarAlgEquiv.apply_symm_apply]
+      exact (hDσ x hx).apply v w
+  -- So `C ∘ ψ` is smooth on the annulus `A` of the chart.
+  set A : Set ℂ := {z | 1 - ε < ‖z‖ ∧ ‖z‖ < 1 + ε}
+  have hψO (z : ℂ) (hz : z ∈ A) : ψ z ∈ O := by
+    have hb : z ∈ CoordinateDisc.ball := CoordinateDisc.mem_ball_iff.2 (by linarith [hz.2])
+    rw [show z = ((⟨z, hb⟩ : CoordinateDisc.ball) : ℂ) from rfl, hψ]
+    exact hεO _ hz.1 hz.2
+  have hf : ContMDiffOn 𝓘(ℝ, ℂ) 𝓘(ℝ, TauCeti.Lie.SymplecticGroupModel κ ℝ) ∞
+      (fun z ↦ C (ψ z)) A :=
+    hCs.comp ((CoordinateDisc.contMDiffOn_symm_add_smul_orthonormalBasisOneI_repr e hr hc
+      hea).mono fun z hz ↦ CoordinateDisc.mem_ball_iff.2 (by linarith [hz.2]))
+      fun z hz ↦ hψO z hz
+  -- On the circle, `C ∘ ψ` is the loop `Ψ`, which is null-homotopic.
+  let γ : C(Circle, symplecticGroup κ ℝ) :=
+    (ContinuousMap.mk _ (symplecticGroupContinuousMulEquiv κ ℝ).symm.continuous).comp Ψ
+  have hγ (ζ : Circle) : γ ζ = C (ψ ζ) := by
+    have hζ : (ζ : ℂ) ∈ A := by
+      exact ⟨by rw [Circle.norm_coe]; linarith, by rw [Circle.norm_coe]; linarith⟩
+    have hb : ψ ζ = φ.boundaryCircle ζ := by rw [CoordinateDisc.boundaryCircle_apply, ← hψ]
+    have hγζ : ((γ ζ : symplecticGroup κ ℝ) : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) =
+        ((Ψ ζ : GLSymplectic κ ℝ) : GL (κ ⊕ κ) ℝ) :=
+      coe_symplecticGroupContinuousMulEquiv_symm κ ℝ _
+    apply Subtype.ext
+    refine EquivLike.injective (toEuclideanCLM (n := κ ⊕ κ) (𝕜 := ℝ)) ?_
+    rw [hC _ (hψO _ hζ), hb, hDΨ, hγζ]
+  have hγ0 : γ.Nullhomotopic :=
+    ContinuousMap.Nullhomotopic.comp_right (nullhomotopic_of_maslovIndex_toBasedLoop_eq_zero hΨ) _
+  -- Extend `C ∘ ψ` from the annulus to a smooth map `g` on the disc of radius `1 + ε`, and read
+  -- it through the coordinate of `φ`.
+  obtain ⟨g, hg, hgf⟩ := ContMDiffOn.exists_contMDiffOn_ball_eq_of_nullhomotopic (n := ⊤)
+    (a := 1 - ε) (a' := 1 - ε / 2) (b := 1 + ε) (by linarith) (by linarith) (by linarith)
+    (by linarith) hf γ hγ hγ0
+  let P (x : M) : StdSpace κ ≃L[ℝ] StdSpace κ :=
+    Matrix.GeneralLinearGroup.ofEuclideanCLE.symm (ofSymplecticGroup κ ℝ (g (φ.coord x)))
+  have hP (x : M) : (P x : StdSpace κ →L[ℝ] StdSpace κ) =
+      toEuclideanCLM (𝕜 := ℝ) (g (φ.coord x) : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) := by
+    simp only [P, Matrix.GeneralLinearGroup.ofEuclideanCLE_symm_apply, coe_toEuclideanCLE,
+      coe_ofSymplecticGroup]
+  refine ⟨P, ?_, fun x ↦ ?_, fun z hz₁ hz₂ ↦ ?_⟩
+  · have hcoord := CoordinateDisc.contMDiffOn_coord_ofChart e hr hc he hea
+    refine ContMDiffOn.congr ?_ fun x _ ↦ hP x
+    refine (Matrix.SymplecticGroup.contMDiff_toEuclideanCLM (κ := κ)).comp_contMDiffOn
+      (hg.comp (hcoord.mono ?_) ?_)
+    · rintro _ ⟨z, -, rfl⟩
+      exact Set.mem_range_self z
+    · rintro _ ⟨z, hz, rfl⟩
+      rw [Set.mem_preimage, CoordinateDisc.coord_apply]
+      exact mem_ball_zero_iff.2 hz
+  · refine TauCeti.SymplecticForm.isSymplectomorphism_iff.2 fun v w ↦ ?_
+    have := mem_symplecticGroup_iff_forall_stdForm.1 (g (φ.coord x)).property v w
+    rwa [← toEuclideanCLM_apply, ← toEuclideanCLM_apply, ← hP] at this
+  · have hgz : g (φ.coord (φ z)) = C (φ z) := by
+      rw [CoordinateDisc.coord_apply, hgf z hz₁.le hz₂, hψ]
+    refine ContinuousLinearEquiv.coe_injective ?_
+    rw [hP, hgz, hC _ (hεO z (by linarith) hz₂)]
+
+omit [DecidableEq κ] in
+/-- If a family `P` of linear symplectomorphisms, smooth on the image `W` of the disc
+`‖z‖ < 1 + ε` of `φ`, equals the change of frame `T₂ ∘ T₁⁻¹` near the boundary circle, then the
+frames `Φ₁` and `Φ₂ ∘ P` over `W`, and `Φ₁'` and `Φ₂'` away from the closed disc
+`‖z‖ ≤ 1 - ε / 2`, glue to a symplectic isomorphism. -/
+private theorem exists_pushforward_eq_of_eq_frameTransition_trans (hr : 0 < r)
+    (hc : Metric.ball c r ⊆ e.target)
+    (he : ∀ x ∈ e.source,
+      o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x)
+    {ε : ℝ} (hε : 0 < ε) (hε2 : ε ≤ 1 / 2)
+    {U₁ U₁' U₂ U₂' : Set M} (hU₁' : IsOpen U₁') (hU₂' : IsOpen U₂')
+    (hDU₁ : (CoordinateDisc.ofChart e hr hc he).disc ⊆ U₁)
+    (hDU₂ : (CoordinateDisc.ofChart e hr hc he).disc ⊆ U₂)
+    (hDU₁' : discComplement (fun _ : Unit ↦ CoordinateDisc.ofChart e hr hc he) ⊆ U₁')
+    (hDU₂' : discComplement (fun _ : Unit ↦ CoordinateDisc.ofChart e hr hc he) ⊆ U₂')
+    (hεO : ∀ z : CoordinateDisc.ball, 1 - ε < ‖(z : ℂ)‖ → ‖(z : ℂ)‖ < 1 + ε →
+      CoordinateDisc.ofChart e hr hc he z ∈ (U₁ ∩ U₁') ∩ (U₂ ∩ U₂'))
+    {Φ₁ Φ₁' : ∀ x, StdSpace κ ≃L[ℝ] V₁ x} {Φ₂ Φ₂' : ∀ x, StdSpace κ ≃L[ℝ] V₂ x}
+    (h₁ : ω₁.IsSymplecticFrameOn (stdForm κ) U₁ Φ₁)
+    (h₁' : ω₁.IsSymplecticFrameOn (stdForm κ) U₁' Φ₁')
+    (h₂ : ω₂.IsSymplecticFrameOn (stdForm κ) U₂ Φ₂)
+    (h₂' : ω₂.IsSymplecticFrameOn (stdForm κ) U₂' Φ₂')
+    {P : M → StdSpace κ ≃L[ℝ] StdSpace κ}
+    (hP : ContMDiffOn (𝓡 2) 𝓘(ℝ, StdSpace κ →L[ℝ] StdSpace κ) ∞
+      (fun x ↦ (P x : StdSpace κ →L[ℝ] StdSpace κ))
+      (CoordinateDisc.ofChart e hr hc he '' {z | ‖(z : ℂ)‖ < 1 + ε}))
+    (hPσ : ∀ x, (stdForm κ).IsSymplectomorphism (stdForm κ) (P x).toLinearEquiv)
+    (hPD : ∀ z : CoordinateDisc.ball, 1 - ε / 2 < ‖(z : ℂ)‖ → ‖(z : ℂ)‖ < 1 + ε →
+      P (CoordinateDisc.ofChart e hr hc he z) =
+        (frameTransition Φ₁ Φ₁' (CoordinateDisc.ofChart e hr hc he z)).trans
+          (frameTransition Φ₂' Φ₂ (CoordinateDisc.ofChart e hr hc he z))) :
+    ∃ (Ψ : ∀ x, V₁ x ≃L[ℝ] V₂ x) (hΨ : ContMDiff ((𝓡 2).prod 𝓘(ℝ, F₁)) ((𝓡 2).prod 𝓘(ℝ, F₂)) ∞
+      (fun p : TotalSpace F₁ V₁ ↦ TotalSpace.mk' F₂ p.proj (Ψ p.proj p.snd))),
+      pushforward Ψ hΨ ω₁ = ω₂ := by
+  set φ := CoordinateDisc.ofChart e hr hc he
+  -- Over the image `W` of the disc of radius `1 + ε`, the frames `Φ₁` and `Φ₂ ∘ P`.
+  set W := φ '' {z | ‖(z : ℂ)‖ < 1 + ε}
+  have hW : IsOpen W :=
+    φ.isOpenEmbedding.isOpenMap _ (isOpen_lt continuous_subtypeVal.norm continuous_const)
+  have hWU : W ⊆ U₁ ∩ U₂ := by
+    rintro _ ⟨z, hz, rfl⟩
+    by_cases h : ‖(z : ℂ)‖ ≤ 1
+    · exact ⟨hDU₁ (φ.apply_mem_disc_iff.2 h), hDU₂ (φ.apply_mem_disc_iff.2 h)⟩
+    · have := hεO z (by linarith [not_le.1 h]) hz
+      exact ⟨this.1.1, this.2.1⟩
+  have hPs : ω₂.IsSymplecticFrameOn (stdForm κ) W fun x ↦ (P x).trans (Φ₂ x) :=
+    (h₂.mono fun x hx ↦ (hWU hx).2).precomp_of_contMDiffOn hP fun x _ ↦ hPσ x
+  -- Away from a smaller closed disc, the frames `Φ₁'` and `Φ₂'`.
+  set U' := (U₁' ∩ U₂') ∩ (φ '' {z | ‖(z : ℂ)‖ ≤ 1 - ε / 2})ᶜ
+  have hU' : IsOpen U' := (hU₁'.inter hU₂').inter
+    (φ.isCompact_image_closedBall (by linarith)).isClosed.isOpen_compl
+  have hcover : W ∪ U' = Set.univ := by
+    refine Set.eq_univ_of_forall fun x ↦ ?_
+    by_cases hx : x ∈ φ.openDisc
+    · obtain ⟨z, hz, rfl⟩ := φ.mem_openDisc_iff.1 hx
+      exact Or.inl ⟨z, show ‖(z : ℂ)‖ < 1 + ε by linarith, rfl⟩
+    · have hxc : x ∈ discComplement (fun _ : Unit ↦ φ) := (mem_discComplement_iff _).2 fun _ ↦ hx
+      refine Or.inr ⟨⟨hDU₁' hxc, hDU₂' hxc⟩, ?_⟩
+      rintro ⟨z, hz, rfl⟩
+      exact hx (φ.apply_mem_openDisc_iff.2 (by linarith [show ‖(z : ℂ)‖ ≤ 1 - ε / 2 from hz]))
+  -- On the overlap, `P = T₂ ∘ T₁⁻¹`, so the frames of both bundles have the same transition.
+  have htrans : ∀ x ∈ W ∩ U', frameTransition Φ₁' Φ₁ x =
+      frameTransition Φ₂' (fun x ↦ (P x).trans (Φ₂ x)) x := by
+    rintro x ⟨⟨z, hz, rfl⟩, -, hxz⟩
+    have hz' : 1 - ε / 2 < ‖(z : ℂ)‖ := not_le.1 fun h ↦ hxz ⟨z, h, rfl⟩
+    refine ContinuousLinearEquiv.ext (funext fun v ↦ ?_)
+    rw [frameTransition_apply, frameTransition_apply, ContinuousLinearEquiv.eq_symm_apply,
+      ContinuousLinearEquiv.trans_apply, hPD z hz' hz]
+    simp [frameTransition_apply]
+  obtain ⟨Ψ, hΨ, hpush, -, -⟩ := exists_pushforward_eq_of_frameTransition_eq
+    (h₁.mono fun x hx ↦ (hWU hx).1) (h₁'.mono fun x (hx : x ∈ U') ↦ hx.1.1) hPs
+    (h₂'.mono fun x (hx : x ∈ U') ↦ hx.1.2) hW hU' hcover htrans
+  exact ⟨Ψ, hΨ, hpush⟩
 
 /-- **Isomorphic bundles from equal Maslov indices.** Let `φ = CoordinateDisc.ofChart e hr hc he`
 be the coordinate disc of a chart `e` of the smooth maximal atlas of a Hausdorff surface `M`, and
@@ -611,8 +775,6 @@ theorem nonempty_iso_of_maslovIndex_eq (hea : e ∈ IsManifold.maximalAtlas (�
       (fun p : TotalSpace F₁ V₁ ↦ TotalSpace.mk' F₂ p.proj (Ψ p.proj p.snd))),
       pushforward Ψ hΨ ω₁ = ω₂ := by
   set φ := CoordinateDisc.ofChart e hr hc he
-  set ψ : ℂ → M := fun z ↦ e.symm (c + (r / 2) • Complex.orthonormalBasisOneI.repr z)
-  have hψ (z : CoordinateDisc.ball) : ψ z = φ z := (CoordinateDisc.ofChart_apply e hr hc he z).symm
   have hdisj : Pairwise (Disjoint on fun _ : Unit ↦ φ.disc) := Subsingleton.pairwise
   -- The four frames are defined near the boundary circle; around it, on an annulus of the chart.
   set O := (U₁ ∩ U₁') ∩ (U₂ ∩ U₂')
@@ -621,195 +783,32 @@ theorem nonempty_iso_of_maslovIndex_eq (hea : e ∈ IsManifold.maximalAtlas (�
     have hd := φ.boundaryCircle_mem_disc ζ
     have hd' := boundaryCircle_mem_discComplement _ hdisj () ζ
     ⟨⟨hDU₁ hd, hDU₁' hd'⟩, hDU₂ hd, hDU₂' hd'⟩
-  obtain ⟨ε, hε, hε2, hεO⟩ := exists_image_annulus_subset φ hO hφO
-  -- The change of frame `D = T₂ ∘ T₁⁻¹`, from the transitions `Tₖ = Φₖ⁻¹ ∘ Φₖ'`, as a smooth map
-  -- into the symplectic group on `O`.
-  let D (x : M) : StdSpace κ ≃L[ℝ] StdSpace κ :=
-    (frameTransition Φ₁ Φ₁' x).trans (frameTransition Φ₂' Φ₂ x)
+  obtain ⟨ε, hε, hε2, hεO⟩ := φ.exists_image_annulus_subset hO hφO
+  -- The change of frame `D = T₂ ∘ T₁⁻¹`, from the transitions `Tₖ = Φₖ⁻¹ ∘ Φₖ'`, is smooth and
+  -- symplectic on `O`.
+  have hO₁ : ω₁.IsSymplecticFrameOn (stdForm κ) O Φ₁ := h₁.mono fun x hx ↦ hx.1.1
+  have hO₁' : ω₁.IsSymplecticFrameOn (stdForm κ) O Φ₁' := h₁'.mono fun x hx ↦ hx.1.2
+  have hO₂ : ω₂.IsSymplecticFrameOn (stdForm κ) O Φ₂ := h₂.mono fun x hx ↦ hx.2.1
+  have hO₂' : ω₂.IsSymplecticFrameOn (stdForm κ) O Φ₂' := h₂'.mono fun x hx ↦ hx.2.2
   have hD : ContMDiffOn (𝓡 2) 𝓘(ℝ, StdSpace κ →L[ℝ] StdSpace κ) ∞
-      (fun x ↦ (D x : StdSpace κ →L[ℝ] StdSpace κ)) O := by
-    have hT₁ := ((h₁.mono fun x (hx : x ∈ O) ↦ hx.1.1).contMDiffOn_frameTransition
-      (h₁'.mono fun x (hx : x ∈ O) ↦ hx.1.2) hO)
-    have hT₂ := ((h₂'.mono fun x (hx : x ∈ O) ↦ hx.2.2).contMDiffOn_frameTransition
-      (h₂.mono fun x (hx : x ∈ O) ↦ hx.2.1) hO)
-    exact (hT₂.clm_comp hT₁).congr fun x _ ↦ (ContinuousLinearEquiv.comp_coe _ _).symm
-  have hDσ (x : M) (hx : x ∈ O) (v w : StdSpace κ) : stdForm κ (D x v) (D x w) = stdForm κ v w := by
-    have hT₁ := (h₁.mono fun x (hx : x ∈ O) ↦ hx.1.1).isSymplectomorphism_frameTransition
-      (h₁'.mono fun x (hx : x ∈ O) ↦ hx.1.2) hx
-    have hT₂ := (h₂'.mono fun x (hx : x ∈ O) ↦ hx.2.2).isSymplectomorphism_frameTransition
-      (h₂.mono fun x (hx : x ∈ O) ↦ hx.2.1) hx
-    exact (hT₂.apply _ _).trans (hT₁.apply v w)
-  -- Tau Ceti's charts on the symplectic group are stated for the topology of the operator norm
-  -- on matrices, which is the product topology (`Matrix.linftyOpTopologicalSpace_eq`), but not
-  -- reducibly so.
-  let : TopologicalSpace (Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) := Matrix.linftyOpTopologicalSpace _ _ _
-  -- The symplectic matrix of `D x` for `x ∈ O`, and the identity elsewhere.
-  classical
-  let C (x : M) : symplecticGroup κ ℝ := if hx : x ∈ O then
-      ⟨(toEuclideanCLM (𝕜 := ℝ)).symm (D x : StdSpace κ →L[ℝ] StdSpace κ),
-        mem_symplecticGroup_iff_forall_stdForm.2 fun v w ↦ by
-          rw [← toEuclideanCLM_apply, ← toEuclideanCLM_apply, StarAlgEquiv.apply_symm_apply]
-          exact hDσ x hx v w⟩
-    else 1
-  have hC (x : M) (hx : x ∈ O) :
-      toEuclideanCLM (𝕜 := ℝ) (C x : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) = D x := by
-    simp only [C, hx, dite_true, StarAlgEquiv.apply_symm_apply]
-  -- The map `z ↦ C (ψ z)` is smooth on the annulus `A` of the chart.
-  set A : Set ℂ := {z | 1 - ε < ‖z‖ ∧ ‖z‖ < 1 + ε}
-  have hψO (z : ℂ) (hz : z ∈ A) : ψ z ∈ O := by
-    have hb : z ∈ CoordinateDisc.ball := CoordinateDisc.mem_ball_iff.2 (by linarith [hz.2])
-    rw [show z = ((⟨z, hb⟩ : CoordinateDisc.ball) : ℂ) from rfl, hψ]
-    exact hεO _ hz.1 hz.2
-  have hf : ContMDiffOn 𝓘(ℝ, ℂ) 𝓘(ℝ, TauCeti.Lie.SymplecticGroupModel κ ℝ)
-      ((⊤ : ℕ∞) : WithTop ℕ∞) (fun z ↦ C (ψ z)) A := by
-    have hA : IsOpen A :=
-      (isOpen_lt continuous_const continuous_norm).inter
-        (isOpen_lt continuous_norm continuous_const)
-    intro z hz
-    refine ContMDiffAt.contMDiffWithinAt
-      ((Matrix.SymplecticGroup.contMDiffAt_iff_toEuclideanCLM (κ := κ)
-        (f := fun z ↦ C (ψ z)) (x := z)).2 ?_)
-    have hψz : ContMDiffAt 𝓘(ℝ, ℂ) (𝓡 2) ∞ ψ z :=
-      (CoordinateDisc.contMDiffOn_ofChart e hr hc hea).contMDiffAt
-      (Metric.isOpen_ball.mem_nhds (mem_ball_zero_iff.2 (by linarith [hz.2])))
-    refine ((hD.contMDiffAt (hO.mem_nhds (hψO z hz))).comp z hψz).congr_of_eventuallyEq ?_
-    filter_upwards [hA.mem_nhds hz] with y hy
-    exact hC _ (hψO y hy)
+      (fun x ↦ ((frameTransition Φ₁ Φ₁' x).trans (frameTransition Φ₂' Φ₂ x) :
+        StdSpace κ →L[ℝ] StdSpace κ)) O :=
+    ((hO₂'.contMDiffOn_frameTransition hO₂ hO).clm_comp
+      (hO₁.contMDiffOn_frameTransition hO₁' hO)).congr fun x _ ↦
+        (ContinuousLinearEquiv.comp_coe _ _).symm
+  have hDσ (x : M) (hx : x ∈ O) : (stdForm κ).IsSymplectomorphism (stdForm κ)
+      ((frameTransition Φ₁ Φ₁' x).trans (frameTransition Φ₂' Φ₂ x)).toLinearEquiv :=
+    (hO₁.isSymplectomorphism_frameTransition hO₁' hx).trans
+      (hO₂'.isSymplectomorphism_frameTransition hO₂ hx)
   -- On the boundary circle, `D` is the loop `Ψ₂ Ψ₁⁻¹`, of Maslov index `0`.
-  have hT₁ (ζ : Circle) (v : StdSpace κ) : frameTransition Φ₁' Φ₁ (φ.boundaryCircle ζ) v =
-      toEuclideanCLM (𝕜 := ℝ) ((Ψ₁ ζ : GL (κ ⊕ κ) ℝ) : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) v := by
-    rw [frameTransition_apply, hΨ₁, ContinuousLinearEquiv.symm_apply_apply, toEuclideanCLM_apply]
-  have hT₂ (ζ : Circle) (v : StdSpace κ) : frameTransition Φ₂' Φ₂ (φ.boundaryCircle ζ) v =
-      toEuclideanCLM (𝕜 := ℝ) ((Ψ₂ ζ : GL (κ ⊕ κ) ℝ) : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) v := by
-    rw [frameTransition_apply, hΨ₂, ContinuousLinearEquiv.symm_apply_apply, toEuclideanCLM_apply]
-  let γ : C(Circle, symplecticGroup κ ℝ) :=
-    (ContinuousMap.mk _ (symplecticGroupContinuousMulEquiv κ ℝ).symm.continuous).comp (Ψ₂ * Ψ₁⁻¹)
-  have hγ (ζ : Circle) : γ ζ = C (ψ ζ) := by
-    have hb : ψ ζ = φ.boundaryCircle ζ := by rw [CoordinateDisc.boundaryCircle_apply, ← hψ]
-    have hγζ : ((γ ζ : symplecticGroup κ ℝ) : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) =
-        (((Ψ₂ * Ψ₁⁻¹) ζ : GLSymplectic κ ℝ) : GL (κ ⊕ κ) ℝ) :=
-      coe_symplecticGroupContinuousMulEquiv_symm κ ℝ _
-    have hmul : ((((Ψ₂ * Ψ₁⁻¹) ζ : GLSymplectic κ ℝ) : GL (κ ⊕ κ) ℝ) :
-        Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) * ((Ψ₁ ζ : GL (κ ⊕ κ) ℝ) : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) =
-        ((Ψ₂ ζ : GL (κ ⊕ κ) ℝ) : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) := by
-      rw [← Units.val_mul, ← Subgroup.coe_mul, ContinuousMap.mul_apply, ContinuousMap.inv_apply,
-        inv_mul_cancel_right]
-    apply Subtype.ext
-    refine EquivLike.injective (toEuclideanCLM (n := κ ⊕ κ) (𝕜 := ℝ)) ?_
-    rw [hb, hC _ (hφO ζ), hγζ]
-    ext1 v
-    -- Write `v = T₁ w`, so that `D v = T₂ w`.
-    obtain ⟨w, rfl⟩ := (frameTransition Φ₁' Φ₁ (φ.boundaryCircle ζ)).surjective v
-    have hDw : D (φ.boundaryCircle ζ) (frameTransition Φ₁' Φ₁ (φ.boundaryCircle ζ) w) =
-        frameTransition Φ₂' Φ₂ (φ.boundaryCircle ζ) w := by
-      simp [D, frameTransition_apply]
-    rw [ContinuousLinearEquiv.coe_coe, hDw, hT₂, hT₁, ← hmul, map_mul,
-      mul_apply_eq_comp]
-  have hγ0 : γ.Nullhomotopic := by
-    refine ContinuousMap.Nullhomotopic.comp_right
-      (nullhomotopic_of_maslovIndex_toBasedLoop_eq_zero ?_) _
+  have hμ0 : maslovIndex (Ψ₂ * Ψ₁⁻¹).toBasedLoop = 0 := by
     have h := maslovIndex_toBasedLoop_mul (Ψ₂ * Ψ₁⁻¹) Ψ₁
     rw [inv_mul_cancel_right] at h
     linarith
-  -- Extend `C ∘ ψ` from the annulus to a smooth map `g` on the disc of radius `1 + ε`.
-  obtain ⟨g, hg, hgf⟩ := ContMDiffOn.exists_contMDiffOn_ball_eq_of_nullhomotopic (n := ⊤)
-    (a := 1 - ε) (a' := 1 - ε / 2) (b := 1 + ε) (by linarith) (by linarith) (by linarith)
-    (by linarith) hf γ hγ hγ0
-  -- Change the frame `Φ₂` over the image `W` of that disc by `g`.
-  let P (x : M) : StdSpace κ ≃L[ℝ] StdSpace κ :=
-    Matrix.GeneralLinearGroup.ofEuclideanCLE.symm (ofSymplecticGroup κ ℝ (g (φ.coord x)))
-  have hP (x : M) : (P x : StdSpace κ →L[ℝ] StdSpace κ) =
-      toEuclideanCLM (𝕜 := ℝ) (g (φ.coord x) : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) := by
-    simp only [P, Matrix.GeneralLinearGroup.ofEuclideanCLE_symm_apply, coe_toEuclideanCLE,
-      coe_ofSymplecticGroup]
-  set W := φ '' {z | ‖(z : ℂ)‖ < 1 + ε}
-  have hW : IsOpen W :=
-    φ.isOpenEmbedding.isOpenMap _ (isOpen_lt continuous_subtypeVal.norm continuous_const)
-  have hWU : W ⊆ U₁ ∩ U₂ := by
-    rintro _ ⟨z, hz, rfl⟩
-    by_cases h : ‖(z : ℂ)‖ ≤ 1
-    · exact ⟨hDU₁ (φ.apply_mem_disc_iff.2 h), hDU₂ (φ.apply_mem_disc_iff.2 h)⟩
-    · have := hεO z (by linarith [not_le.1 h]) hz
-      exact ⟨this.1.1, this.2.1⟩
-  have hPs : ω₂.IsSymplecticFrameOn (stdForm κ) W fun x ↦ (P x).trans (Φ₂ x) := by
-    refine (h₂.mono fun x hx ↦ (hWU hx).2).precomp_of_contMDiffOn ?_ fun x _ ↦ ?_
-    · have hcoord := CoordinateDisc.contMDiffOn_coord_ofChart e hr hc he hea
-      refine ContMDiffOn.congr ?_ fun x _ ↦ hP x
-      refine (Matrix.SymplecticGroup.contMDiff_toEuclideanCLM (κ := κ)).comp_contMDiffOn
-        (hg.comp (hcoord.mono ?_) ?_)
-      · rintro _ ⟨z, -, rfl⟩
-        exact Set.mem_range_self z
-      · rintro _ ⟨z, hz, rfl⟩
-        rw [Set.mem_preimage, CoordinateDisc.coord_apply]
-        exact mem_ball_zero_iff.2 hz
-    · refine TauCeti.SymplecticForm.isSymplectomorphism_iff.2 fun v w ↦ ?_
-      have := mem_symplecticGroup_iff_forall_stdForm.1 (g (φ.coord x)).property v w
-      rwa [← toEuclideanCLM_apply, ← toEuclideanCLM_apply, ← hP] at this
-  -- Away from a smaller closed disc, keep the frames `Φ₁'` and `Φ₂'`, and glue.
-  set U' := (U₁' ∩ U₂') ∩ (φ '' {z | ‖(z : ℂ)‖ ≤ 1 - ε / 2})ᶜ
-  have hU' : IsOpen U' := (hU₁'.inter hU₂').inter
-    (φ.isCompact_image_closedBall (by linarith)).isClosed.isOpen_compl
-  have hcover : W ∪ U' = Set.univ := by
-    refine Set.eq_univ_of_forall fun x ↦ ?_
-    by_cases hx : x ∈ φ.openDisc
-    · obtain ⟨z, hz, rfl⟩ := φ.mem_openDisc_iff.1 hx
-      exact Or.inl ⟨z, show ‖(z : ℂ)‖ < 1 + ε by linarith, rfl⟩
-    · have hxc : x ∈ discComplement (fun _ : Unit ↦ φ) := (mem_discComplement_iff _).2 fun _ ↦ hx
-      refine Or.inr ⟨⟨hDU₁' hxc, hDU₂' hxc⟩, ?_⟩
-      rintro ⟨z, hz, rfl⟩
-      exact hx (φ.apply_mem_openDisc_iff.2 (by linarith [show ‖(z : ℂ)‖ ≤ 1 - ε / 2 from hz]))
-  -- On the overlap, `g = C`, so the new frame has the transition of the first bundle.
-  have htrans : ∀ x ∈ W ∩ U', frameTransition Φ₁' Φ₁ x =
-      frameTransition Φ₂' (fun x ↦ (P x).trans (Φ₂ x)) x := by
-    rintro x ⟨⟨z, hz, rfl⟩, -, hxz⟩
-    have hz' : 1 - ε / 2 < ‖(z : ℂ)‖ := not_le.1 fun h ↦ hxz ⟨z, h, rfl⟩
-    have hgz : g (φ.coord (φ z)) = C (φ z) := by
-      rw [CoordinateDisc.coord_apply, hgf z hz'.le hz, hψ]
-    have hPx (y : StdSpace κ) : P (φ z) y = D (φ z) y := by
-      rw [← ContinuousLinearEquiv.coe_coe, hP, hgz, hC _ (hεO z (by linarith) hz),
-        ContinuousLinearEquiv.coe_coe]
-    refine ContinuousLinearEquiv.ext (funext fun v ↦ ?_)
-    rw [frameTransition_apply, frameTransition_apply, ContinuousLinearEquiv.eq_symm_apply,
-      ContinuousLinearEquiv.trans_apply, hPx]
-    simp [D, frameTransition_apply]
-  obtain ⟨Ψ, hΨ, hpush, -, -⟩ := exists_pushforward_eq_of_frameTransition_eq
-    (h₁.mono fun x hx ↦ (hWU hx).1) (h₁'.mono fun x (hx : x ∈ U') ↦ hx.1.1) hPs
-    (h₂'.mono fun x (hx : x ∈ U') ↦ hx.1.2) hW hU' hcover htrans
-  exact ⟨Ψ, hΨ, hpush⟩
-
-omit [IsManifold (𝓡 2) ((⊤ : ℕ∞) : WithTop ℕ∞) M] [T2Space M] [DecidableEq κ]
-  [FiniteDimensional ℝ F₁] in
-/-- A symplectic frame over `U` restricts to a continuous frame over a subset `S` of `U`, in the
-form of the clutching formula. -/
-private theorem ContMDiffTwoForm.IsSymplecticFrameOn.continuous_restrict {U S : Set M}
-    {Φ : ∀ x, StdSpace κ ≃L[ℝ] V₁ x} (h : ω₁.IsSymplecticFrameOn (stdForm κ) U Φ) (hS : S ⊆ U) :
-    Continuous fun q : S × StdSpace κ ↦ TotalSpace.mk' F₁ (q.1 : M) (Φ q.1 q.2) :=
-  h.contMDiffOn.continuousOn.comp_continuous
-    ((continuous_subtypeVal.comp continuous_fst).prodMk continuous_snd)
-    fun q ↦ ⟨hS q.1.property, Set.mem_univ _⟩
-
-omit [IsManifold (𝓡 2) ((⊤ : ℕ∞) : WithTop ℕ∞) M] [T2Space M] [FiniteDimensional ℝ F₁] in
-/-- Two symplectic frames over open sets that contain a loop `γ` of `M` differ along `γ` by a
-continuous loop of symplectic matrices. -/
-private theorem exists_frameTransition_loop {U U' : Set M} (hU : IsOpen U) (hU' : IsOpen U')
-    {Φ Φ' : ∀ x, StdSpace κ ≃L[ℝ] V₁ x} (h : ω₁.IsSymplecticFrameOn (stdForm κ) U Φ)
-    (h' : ω₁.IsSymplecticFrameOn (stdForm κ) U' Φ') (γ : C(Circle, M))
-    (hγ : ∀ ζ, γ ζ ∈ U ∩ U') :
-    ∃ Ψ : C(Circle, GLSymplectic κ ℝ), ∀ ζ v,
-      Φ' (γ ζ) v = Φ (γ ζ) (toEuclideanLin (Ψ ζ : GL (κ ⊕ κ) ℝ) v) := by
-  have hT : Continuous fun ζ ↦ (frameTransition Φ' Φ (γ ζ) : StdSpace κ →L[ℝ] StdSpace κ) :=
-    ((h'.mono Set.inter_subset_right).contMDiffOn_frameTransition (h.mono Set.inter_subset_left)
-      (hU.inter hU')).continuousOn.comp_continuous γ.continuous hγ
-  have hmem (ζ : Circle) :
-      GeneralLinearGroup.ofEuclideanCLE (frameTransition Φ' Φ (γ ζ)) ∈ GLSymplectic κ ℝ := by
-    rw [mem_GLSymplectic_iff_isSymplectomorphism, GeneralLinearGroup.toEuclideanCLE_ofEuclideanCLE]
-    exact (h'.mono Set.inter_subset_right).isSymplectomorphism_frameTransition
-      (h.mono Set.inter_subset_left) (hγ ζ)
-  refine ⟨⟨fun ζ ↦ ⟨_, hmem ζ⟩, (GeneralLinearGroup.continuous_ofEuclideanCLE hT).subtype_mk _⟩,
-    fun ζ v ↦ ?_⟩
-  simp only [ContinuousMap.coe_mk]
-  rw [← toEuclideanCLM_apply, GeneralLinearGroup.toEuclideanCLM_ofEuclideanCLE,
-    ContinuousLinearEquiv.coe_coe, frameTransition_apply, ContinuousLinearEquiv.apply_symm_apply]
+  obtain ⟨P, hP, hPσ, hPD⟩ := exists_extend_of_maslovIndex_eq_zero hea hr hc he hε hε2 hO hεO hD
+    hDσ (Ψ₂ * Ψ₁⁻¹) hμ0 fun ζ ↦ frameTransition_trans_frameTransition_eq (hΨ₁ ζ) (hΨ₂ ζ)
+  exact exists_pushforward_eq_of_eq_frameTransition_trans hr hc he hε hε2 hU₁' hU₂' hDU₁ hDU₂
+    hDU₁' hDU₂' hεO h₁ h₁' h₂ h₂' hP hPσ hPD
 
 omit [DecidableEq κ] in
 /-- **Isomorphic bundles from equal first Chern numbers.** Let `ω₁`, `ω₂` be nondegenerate smooth
@@ -855,8 +854,8 @@ theorem nonempty_iso_of_symplecticChernNumber_eq [CompactSpace M] [ConnectedSpac
   have hbc {U U' : Set M} (hD : φ.disc ⊆ U) (hD' : discComplement (fun _ : Unit ↦ φ) ⊆ U')
       (ζ : Circle) : φ.boundaryCircle ζ ∈ U ∩ U' :=
     ⟨hD (φ.boundaryCircle_mem_disc ζ), hD' (boundaryCircle_mem_discComplement _ hdisj () ζ)⟩
-  obtain ⟨Ψ₁, hΨ₁⟩ := exists_frameTransition_loop hU₁ hU₁' h₁ h₁' _ (hbc hD₁ hD₁')
-  obtain ⟨Ψ₂, hΨ₂⟩ := exists_frameTransition_loop (V₁ := V₂) hU₂ hU₂' h₂ h₂' _ (hbc hD₂ hD₂')
+  obtain ⟨Ψ₁, hΨ₁⟩ := h₁.exists_frameTransition_loop hU₁ hU₁' h₁' _ (hbc hD₁ hD₁')
+  obtain ⟨Ψ₂, hΨ₂⟩ := h₂.exists_frameTransition_loop hU₂ hU₂' h₂' _ (hbc hD₂ hD₂')
   refine nonempty_iso_of_maslovIndex_eq (hea ()) (hr ()) (hc ()) (he ()) hU₁ hU₁' hU₂ hU₂' hD₁
     hD₂ hD₁' hD₂' h₁ h₁' h₂ h₂' Ψ₁ Ψ₂ hΨ₁ hΨ₂ ?_
   -- By the clutching formula, the Maslov indices are the Chern numbers.
@@ -866,10 +865,8 @@ theorem nonempty_iso_of_symplecticChernNumber_eq [CompactSpace M] [ConnectedSpac
     (fun _ x ↦ h₁.map_bilinFormAt x (hD₁ x.property))
     (fun x ↦ h₁'.map_bilinFormAt x (hD₁' x.property)) (fun _ ↦ Ψ₁) fun _ ↦ hΨ₁
   have hc₂ := symplecticChernNumber_eq_sum_maslovIndex_clutching hdisj
-    (Φ := fun _ x ↦ Φ₂ x) (Φout := fun x ↦ Φ₂' x)
-    (fun _ ↦ ContMDiffTwoForm.IsSymplecticFrameOn.continuous_restrict (V₁ := V₂) h₂ hD₂)
-    (ContMDiffTwoForm.IsSymplecticFrameOn.continuous_restrict (V₁ := V₂) h₂' hD₂') G₂
-    finrank_euclideanSpace_fin
+    (Φ := fun _ x ↦ Φ₂ x) (Φout := fun x ↦ Φ₂' x) (fun _ ↦ h₂.continuous_restrict hD₂)
+    (h₂'.continuous_restrict hD₂') G₂ finrank_euclideanSpace_fin
     (fun _ x ↦ h₂.map_bilinFormAt x (hD₂ x.property))
     (fun x ↦ h₂'.map_bilinFormAt x (hD₂' x.property)) (fun _ ↦ Ψ₂) fun _ ↦ hΨ₂
   rw [hc₁, hc₂, Fintype.sum_unique, Fintype.sum_unique] at h

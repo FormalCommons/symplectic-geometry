@@ -794,32 +794,36 @@ theorem contMDiffOn_frameTransition [FiniteDimensional ℝ W] (h : ω.IsSymplect
     ContMDiffOn I 𝓘(ℝ, W →L[ℝ] W) n (fun x ↦ (frameTransition Φ Φ' x : W →L[ℝ] W)) U :=
   Bundle.contMDiffOn_frameTransition h.contMDiffOn h'.contMDiffOn hU
 
-/-- Precomposing a symplectic frame for `σ` with a linear symplectomorphism `e` from `(W', σ')`
-to `(W, σ)` gives a symplectic frame for `σ'`. -/
-theorem precomp {W' : Type*} [NormedAddCommGroup W'] [NormedSpace ℝ W']
-    {σ' : TauCeti.SymplecticForm W'} (h : ω.IsSymplecticFrameOn σ U Φ) (e : W' ≃L[ℝ] W)
-    (he : σ'.IsSymplectomorphism σ e.toLinearEquiv) :
-    ω.IsSymplecticFrameOn σ' U fun x ↦ e.trans (Φ x) := by
-  refine ⟨h.contMDiffOn.comp (contMDiff_fst.prodMk
-    ((e : W' →L[ℝ] W).contDiff.contMDiff.comp contMDiff_snd)).contMDiffOn
-    fun p hp ↦ ⟨hp.1, Set.mem_univ _⟩, fun x hx v w ↦ ?_⟩
-  rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
-    h.map_bilinFormAt x hx]
-  exact he.apply v w
-
-/-- Precomposing a symplectic frame for `σ` with linear symplectomorphisms `P x` of `(W, σ)` that
-depend `C^n` on the point `x` of `U` gives a symplectic frame for `σ`. -/
-theorem precomp_of_contMDiffOn (h : ω.IsSymplecticFrameOn σ U Φ) {P : M → W ≃L[ℝ] W}
-    (hP : ContMDiffOn I 𝓘(ℝ, W →L[ℝ] W) n (fun x ↦ (P x : W →L[ℝ] W)) U)
-    (hPσ : ∀ x ∈ U, σ.IsSymplectomorphism σ (P x).toLinearEquiv) :
-    ω.IsSymplecticFrameOn σ U fun x ↦ (P x).trans (Φ x) := by
+/-- Precomposing a symplectic frame for `σ` with linear symplectomorphisms `P x` from `(W', σ')`
+to `(W, σ)` that depend `C^n` on the point `x` of `U` gives a symplectic frame for `σ'`. -/
+theorem precomp_of_contMDiffOn {W' : Type*} [NormedAddCommGroup W'] [NormedSpace ℝ W']
+    {σ' : TauCeti.SymplecticForm W'} (h : ω.IsSymplecticFrameOn σ U Φ) {P : M → W' ≃L[ℝ] W}
+    (hP : ContMDiffOn I 𝓘(ℝ, W' →L[ℝ] W) n (fun x ↦ (P x : W' →L[ℝ] W)) U)
+    (hPσ : ∀ x ∈ U, σ'.IsSymplectomorphism σ (P x).toLinearEquiv) :
+    ω.IsSymplecticFrameOn σ' U fun x ↦ (P x).trans (Φ x) := by
   refine ⟨h.contMDiffOn.comp (contMDiff_fst.contMDiffOn.prodMk
-    ((hP.comp contMDiff_fst.contMDiffOn fun (p : M × W) (hp : p ∈ U ×ˢ Set.univ) ↦ hp.1).clm_apply
+    ((hP.comp contMDiff_fst.contMDiffOn fun (p : M × W') (hp : p ∈ U ×ˢ Set.univ) ↦ hp.1).clm_apply
       contMDiff_snd.contMDiffOn))
     fun p hp ↦ ⟨hp.1, Set.mem_univ _⟩, fun x hx v w ↦ ?_⟩
   rw [ContinuousLinearEquiv.trans_apply, ContinuousLinearEquiv.trans_apply,
     h.map_bilinFormAt x hx]
   exact (hPσ x hx).apply v w
+
+/-- Precomposing a symplectic frame for `σ` with a linear symplectomorphism `e` from `(W', σ')`
+to `(W, σ)` gives a symplectic frame for `σ'`. -/
+theorem precomp {W' : Type*} [NormedAddCommGroup W'] [NormedSpace ℝ W']
+    {σ' : TauCeti.SymplecticForm W'} (h : ω.IsSymplecticFrameOn σ U Φ) (e : W' ≃L[ℝ] W)
+    (he : σ'.IsSymplectomorphism σ e.toLinearEquiv) :
+    ω.IsSymplecticFrameOn σ' U fun x ↦ e.trans (Φ x) :=
+  h.precomp_of_contMDiffOn (P := fun _ ↦ e) contMDiffOn_const fun _ _ ↦ he
+
+/-- A symplectic frame over `U`, restricted to a subset `S` of `U`, is continuous as a map from
+`S × W` to the total space. -/
+theorem continuous_restrict (h : ω.IsSymplecticFrameOn σ U Φ) {S : Set M} (hS : S ⊆ U) :
+    Continuous fun q : S × W ↦ TotalSpace.mk' F (q.1 : M) (Φ q.1 q.2) :=
+  h.contMDiffOn.continuousOn.comp_continuous
+    ((continuous_subtypeVal.comp continuous_fst).prodMk continuous_snd)
+    fun q ↦ ⟨hS q.1.property, Set.mem_univ _⟩
 
 end IsSymplecticFrameOn
 

@@ -24,7 +24,10 @@ of the matrices, without the norm on matrices that the charts are built with.
 * `Matrix.SymplecticGroup.contMDiff_toEuclideanCLM`: the linear map of a symplectic matrix depends
   smoothly on the point of the group.
 * `Matrix.SymplecticGroup.contMDiffAt_iff_toEuclideanCLM`: a map into the group is smooth at a
-  point if and only if the linear maps of its values are.
+  point if and only if the linear maps of its values are; `contMDiffOn_iff_toEuclideanCLM` is the
+  same on an open set.
+* `Matrix.SymplecticGroup.exists_contMDiffOn_toEuclideanCLM_eq`: a family of linear maps that is
+  smooth on an open set and symplectic there comes from a map into the group, smooth there.
 * `Matrix.SymplecticGroup.contMDiff_coe`, `Matrix.SymplecticGroup.contMDiffAt_iff_coe`: the same
   for the matrices themselves, with the operator norm on matrices.
 
@@ -103,6 +106,36 @@ theorem contMDiffAt_iff_toEuclideanCLM {f : X → symplecticGroup κ ℝ} {x : X
     (toEuclideanCLM (n := κ ⊕ κ) (𝕜 := ℝ)).symm.toAlgEquiv.toLinearMap).contDiff.contMDiff
     |>.contMDiffAt.comp x hf).congr_of_eventuallyEq (Filter.Eventually.of_forall fun y ↦ ?_)
   exact ((toEuclideanCLM (n := κ ⊕ κ) (𝕜 := ℝ)).symm_apply_apply _).symm
+
+/-- On an open set `s`, a map `f` into `Matrix.symplecticGroup κ ℝ` is smooth if and only if the
+endomorphisms `Matrix.toEuclideanCLM (f y)` of `EuclideanSpace ℝ (κ ⊕ κ)` depend smoothly on
+`y ∈ s`. -/
+theorem contMDiffOn_iff_toEuclideanCLM {f : X → symplecticGroup κ ℝ} {s : Set X}
+    (hs : IsOpen s) :
+    ContMDiffOn I 𝓘(ℝ, TauCeti.Lie.SymplecticGroupModel κ ℝ) ∞ f s ↔
+      ContMDiffOn I 𝓘(ℝ, EuclideanSpace ℝ (κ ⊕ κ) →L[ℝ] EuclideanSpace ℝ (κ ⊕ κ)) ∞
+        (fun y ↦ toEuclideanCLM (𝕜 := ℝ) (f y : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ)) s :=
+  ⟨fun hf _ hx ↦ (contMDiffAt_iff_toEuclideanCLM.1 (hf.contMDiffAt (hs.mem_nhds hx)))
+      |>.contMDiffWithinAt,
+    fun hf _ hx ↦ (contMDiffAt_iff_toEuclideanCLM.2 (hf.contMDiffAt (hs.mem_nhds hx)))
+      |>.contMDiffWithinAt⟩
+
+/-- A family `D` of endomorphisms of `EuclideanSpace ℝ (κ ⊕ κ)` that is smooth on an open set `s`
+and whose matrices are symplectic on `s` is, on `s`, the family of linear maps of a map `C` into
+the symplectic group that is smooth on `s`. -/
+theorem exists_contMDiffOn_toEuclideanCLM_eq {s : Set X} (hs : IsOpen s)
+    {D : X → EuclideanSpace ℝ (κ ⊕ κ) →L[ℝ] EuclideanSpace ℝ (κ ⊕ κ)}
+    (hD : ContMDiffOn I 𝓘(ℝ, EuclideanSpace ℝ (κ ⊕ κ) →L[ℝ] EuclideanSpace ℝ (κ ⊕ κ)) ∞ D s)
+    (hDs : ∀ x ∈ s, (toEuclideanCLM (n := κ ⊕ κ) (𝕜 := ℝ)).symm (D x) ∈ symplecticGroup κ ℝ) :
+    ∃ C : X → symplecticGroup κ ℝ,
+      ContMDiffOn I 𝓘(ℝ, TauCeti.Lie.SymplecticGroupModel κ ℝ) ∞ C s ∧
+        ∀ x ∈ s, toEuclideanCLM (𝕜 := ℝ) (C x : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) = D x := by
+  classical
+  let C (x : X) : symplecticGroup κ ℝ := if hx : x ∈ s then ⟨_, hDs x hx⟩ else 1
+  have hC (x : X) (hx : x ∈ s) :
+      toEuclideanCLM (𝕜 := ℝ) (C x : Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) = D x := by
+    simp only [C, hx, dite_true, StarAlgEquiv.apply_symm_apply]
+  exact ⟨C, (contMDiffOn_iff_toEuclideanCLM hs).2 (hD.congr hC), hC⟩
 
 end Matrix.SymplecticGroup
 
