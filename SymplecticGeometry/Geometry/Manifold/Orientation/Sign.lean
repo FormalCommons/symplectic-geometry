@@ -22,9 +22,8 @@ This file adds to Tau Ceti's orientation sign `TauCeti.Manifold.Orientation.orie
   `TauCeti.Manifold.Orientation.isOrientationPreservingAt_of_apply_eq_of_mfderiv_eq_id` does;
 * it is constant on a preconnected set on which the map is `C¹` with invertible derivative
   (`TauCeti.Manifold.Orientation.orientationSign_eq_of_isPreconnected`), since it is locally
-  constant there (`TauCeti.Manifold.Orientation.eventually_orientationSign_eq`). The proof of
-  `TauCeti.SmoothCollar.orientationSign_eq_neg_one_pow` makes the same argument on the slices of a
-  collar.
+  constant there (`TauCeti.Manifold.Orientation.eventually_orientationSign_eq`). It gives
+  `TauCeti.SmoothCollar.orientationSign_eq_neg_one_pow` on the slices of a collar.
 
 Applied to the identity, local constancy shows that two orientations which agree on a dense set
 agree everywhere (`TauCeti.Manifold.Orientation.eq_of_dense`).
