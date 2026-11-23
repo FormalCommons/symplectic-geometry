@@ -36,6 +36,10 @@ interior and `{height = 0}` the common boundary, and `0` is a regular value.
   `preimage_height_zero`: the sublevel set, the strict sublevel set and the level set of `0`.
 * `TauCeti.SmoothCollar.Double.image_interior_homeomorphSublevel`: `homeomorphSublevel` maps the
   interior of `W` onto `{height < 0}`.
+* `TauCeti.SmoothCollar.Double.preimage_height_Iic_subset_range_inlInterior_union_bandMap_image`,
+  `preimage_height_Ici_subset_range_inrInterior_union_bandMap_image`: `{height ≤ 0}` and
+  `{height ≥ 0}` lie in the open sets made of a copy of the interior of `W` and the band, which
+  cover the double and meet in the band.
 
 ## Implementation notes
 
@@ -261,6 +265,64 @@ theorem preimage_height_Iio : height c ⁻¹' Iio 0 = range (inlInterior c) := b
     · exact absurd hz (height_inr_nonneg c w).not_gt
   · rintro ⟨w, hw, rfl⟩
     exact (height_inl_nonpos c w).lt_of_ne fun h ↦ hw ((height_inl_eq_zero_iff c).1 h)
+
+/-! ### The two open sets around the copies of `W` -/
+
+/-- The first copy of the interior of `W` together with the band is open in the double. -/
+theorem isOpen_range_inlInterior_union_bandMap_image :
+    IsOpen (range (inlInterior c) ∪ bandMap c '' (Ioo (-1) 1 ×ˢ univ)) :=
+  (isOpenEmbedding_inlInterior c).isOpen_range.union
+    (isOpen_bandMap_image c subset_rfl (isOpen_Ioo.prod isOpen_univ))
+
+/-- The second copy of the interior of `W` together with the band is open in the double. -/
+theorem isOpen_range_inrInterior_union_bandMap_image :
+    IsOpen (range (inrInterior c) ∪ bandMap c '' (Ioo (-1) 1 ×ˢ univ)) :=
+  (isOpenEmbedding_inrInterior c).isOpen_range.union
+    (isOpen_bandMap_image c subset_rfl (isOpen_Ioo.prod isOpen_univ))
+
+/-- The two copies of the interior of `W`, each with the band, cover the double. -/
+theorem range_inlInterior_union_bandMap_image_union_range_inrInterior_union_bandMap_image :
+    (range (inlInterior c) ∪ bandMap c '' (Ioo (-1) 1 ×ˢ univ)) ∪
+      (range (inrInterior c) ∪ bandMap c '' (Ioo (-1) 1 ×ˢ univ)) = univ := by
+  rw [← range_inlInterior_union_range_inrInterior_union c]
+  ext z
+  simp only [mem_union]
+  tauto
+
+/-- The two copies of the interior of `W`, each with the band, meet in the band. -/
+theorem range_inlInterior_union_bandMap_image_inter_range_inrInterior_union_bandMap_image :
+    (range (inlInterior c) ∪ bandMap c '' (Ioo (-1) 1 ×ˢ univ)) ∩
+      (range (inrInterior c) ∪ bandMap c '' (Ioo (-1) 1 ×ˢ univ)) =
+      bandMap c '' (Ioo (-1) 1 ×ˢ univ) := by
+  refine Subset.antisymm ?_ fun z hz ↦ ⟨Or.inr hz, Or.inr hz⟩
+  rintro z ⟨hl | hl, hr | hr⟩
+  · exact absurd hr ((disjoint_range_inlInterior_inrInterior c).notMem_of_mem_left hl)
+  all_goals assumption
+
+/-- The sublevel set `{height ≤ 0}` lies in the first copy of the interior of `W` together with
+the band. -/
+theorem preimage_height_Iic_subset_range_inlInterior_union_bandMap_image :
+    height c ⁻¹' Iic 0 ⊆ range (inlInterior c) ∪ bandMap c '' (Ioo (-1) 1 ×ˢ univ) := by
+  intro z hz
+  rcases (range_inlInterior_union_range_inrInterior_union c).symm ▸ mem_univ z with
+    (h | ⟨p, rfl⟩) | h
+  · exact Or.inl h
+  · rw [inrInterior_apply] at hz
+    exact absurd ((height_inr_eq_zero_iff c).1 (le_antisymm hz (height_inr_nonneg c _)))
+      p.val_notMem_boundary
+  · exact Or.inr h
+
+/-- The superlevel set `{height ≥ 0}` lies in the second copy of the interior of `W` together
+with the band. -/
+theorem preimage_height_Ici_subset_range_inrInterior_union_bandMap_image :
+    height c ⁻¹' Ici 0 ⊆ range (inrInterior c) ∪ bandMap c '' (Ioo (-1) 1 ×ˢ univ) := by
+  intro z hz
+  rcases (range_inlInterior_union_range_inrInterior_union c).symm ▸ mem_univ z with
+    (h | h) | h
+  · rw [← preimage_height_Iio c] at h
+    exact absurd (mem_Ici.1 hz) (not_le.2 h)
+  · exact Or.inl h
+  · exact Or.inr h
 
 /-- The height is smooth at the points of the band. -/
 private theorem contMDiffAt_height_bandMap {s : ℝ} (hs : s ∈ Ioo (-1) 1)

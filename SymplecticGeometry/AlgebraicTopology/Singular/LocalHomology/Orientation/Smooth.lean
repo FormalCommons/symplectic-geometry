@@ -46,6 +46,10 @@ Ceti's `TauCeti.Manifold.Orientation.localIndex_toHomologicalOrientation`, a loc
 on the whole source by `TauCeti.HomologicalOrientation.localIndex_eq_iff_of_preimage_subset`,
 which `SymplecticGeometry/AlgebraicTopology/Singular/LocalHomology/LocalIndex.lean` copies from
 Tau Ceti's main branch.
+
+The proof of `TauCeti.Manifold.Orientation.comap_toHomologicalOrientation` opens as Tau Ceti's
+`TauCeti.comap_complexHomologicalOrientation` does, reducing to local
+orientations through `Topology.IsOpenEmbedding.localOrientationEquiv`.
 -/
 
 public section

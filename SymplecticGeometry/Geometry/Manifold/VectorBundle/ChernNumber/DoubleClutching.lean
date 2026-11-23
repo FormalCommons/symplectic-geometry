@@ -47,7 +47,8 @@ double pulls back along the first copy of the interior to that of `o`
 * `SymplecticGeometry.ClosedConnectedOrientedSurface.double c o hS`: the double with the
   orientation `Double.orientation c o`, as a closed connected oriented surface.
 * `SymplecticGeometry.Bundle.SymplecticSurfaceBundle.doubleClutching c o hS Ψ hΨ`: the
-  symplectic bundle over the double clutched by `Ψ`, with the frames of its two charts
+  symplectic bundle over the double clutched by `Ψ`, of complex rank `Fintype.card κ` and fibre
+  `StdSpace κ` (`doubleClutching_n`, `doubleClutching_F`), with the frames of its two charts
   `doubleClutchingFrame`.
 
 ## Main results
@@ -91,55 +92,6 @@ namespace TauCeti.SmoothCollar.Double
 
 variable {n : ℕ} {W : Type*} [TopologicalSpace W] [ChartedSpace (EuclideanHalfSpace (n + 1)) W]
   [IsManifold (𝓡∂ (n + 1)) ∞ W] (c : SmoothCollar n ∞ W)
-
-/-! ### The two sets of the clutching -/
-
-/-- The band `bandMap c '' ((-1, 1) × ∂W)` of the double. -/
-private abbrev band : Set c.Double := bandMap c '' (Ioo (-1) 1 ×ˢ univ)
-
-omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
-private theorem isOpen_band : IsOpen (band c) :=
-  isOpen_bandMap_image c subset_rfl (isOpen_Ioo.prod isOpen_univ)
-
-private theorem isOpen_range_inlInterior_union_band : IsOpen (range (inlInterior c) ∪ band c) :=
-  (isOpenEmbedding_inlInterior c).isOpen_range.union (isOpen_band c)
-
-private theorem isOpen_range_inrInterior_union_band : IsOpen (range (inrInterior c) ∪ band c) :=
-  (isOpenEmbedding_inrInterior c).isOpen_range.union (isOpen_band c)
-
-private theorem union_band_union_union_band :
-    (range (inlInterior c) ∪ band c) ∪ (range (inrInterior c) ∪ band c) = univ := by
-  rw [← range_inlInterior_union_range_inrInterior_union c]
-  ext z
-  simp only [mem_union]
-  tauto
-
-private theorem union_band_inter_union_band_subset :
-    (range (inlInterior c) ∪ band c) ∩ (range (inrInterior c) ∪ band c) ⊆ band c := by
-  rintro z ⟨hl | hl, hr | hr⟩
-  · exact absurd hr ((disjoint_range_inlInterior_inrInterior c).notMem_of_mem_left hl)
-  all_goals assumption
-
-private theorem preimage_height_Iic_subset_union_band :
-    height c ⁻¹' Iic 0 ⊆ range (inlInterior c) ∪ band c := by
-  intro z hz
-  rcases (range_inlInterior_union_range_inrInterior_union c).symm ▸ mem_univ z with
-    (h | ⟨p, rfl⟩) | h
-  · exact Or.inl h
-  · rw [inrInterior_apply] at hz
-    exact absurd ((height_inr_eq_zero_iff c).1 (le_antisymm hz (height_inr_nonneg c _)))
-      p.val_notMem_boundary
-  · exact Or.inr h
-
-private theorem preimage_height_Ici_subset_union_band :
-    height c ⁻¹' Ici 0 ⊆ range (inrInterior c) ∪ band c := by
-  intro z hz
-  rcases (range_inlInterior_union_range_inrInterior_union c).symm ▸ mem_univ z with
-    (h | h) | h
-  · rw [← preimage_height_Iio c] at h
-    exact absurd (mem_Ici.1 hz) (not_le.2 h)
-  · exact Or.inl h
-  · exact Or.inr h
 
 /-! ### The projection of the band on the level set -/
 
@@ -283,9 +235,11 @@ private theorem contMDiffOn_clutchingMap
     (hΨ : ContMDiff (𝓡 1) 𝓘(ℝ, Lie.SymplecticGroupModel κ ℝ) ∞
       fun x ↦ (symplecticGroupContinuousMulEquiv κ ℝ).symm (Ψ x)) :
     ContMDiffOn (𝓡 2) 𝓘(ℝ, Lie.SymplecticGroupModel κ ℝ) ∞ (clutchingMap c hS Ψ)
-      ((range (inlInterior c) ∪ band c) ∩ (range (inrInterior c) ∪ band c)) :=
+      ((range (inlInterior c) ∪ bandMap c '' (Ioo (-1) 1 ×ˢ univ)) ∩
+        (range (inrInterior c) ∪ bandMap c '' (Ioo (-1) 1 ×ˢ univ))) :=
   haveI := hS.to_subtype
-  hΨ.comp_contMDiffOn ((contMDiffOn_bandProj c).mono (union_band_inter_union_band_subset c))
+  hΨ.comp_contMDiffOn ((contMDiffOn_bandProj c).mono
+    (range_inlInterior_union_bandMap_image_inter_range_inrInterior_union_bandMap_image c).subset)
 
 /-- The vector bundle core clutched by `Ψ ∘ bandProj`. -/
 private abbrev clutchingCore
@@ -293,8 +247,10 @@ private abbrev clutchingCore
       fun x ↦ (symplecticGroupContinuousMulEquiv κ ℝ).symm (Ψ x)) :
     VectorBundleCore ℝ c.Double (StdSpace κ) Bool :=
   symplecticClutchingCore (IM := 𝓡 2) _ _ (clutchingMap c hS Ψ)
-    (isOpen_range_inlInterior_union_band c) (isOpen_range_inrInterior_union_band c)
-    (union_band_union_union_band c) (contMDiffOn_clutchingMap c hS Ψ hΨ)
+    (isOpen_range_inlInterior_union_bandMap_image c)
+    (isOpen_range_inrInterior_union_bandMap_image c)
+    (range_inlInterior_union_bandMap_image_union_range_inrInterior_union_bandMap_image c)
+    (contMDiffOn_clutchingMap c hS Ψ hΨ)
 
 end Core
 
@@ -333,14 +289,25 @@ def doubleClutching (Ψ : C((𝓡∂ 2).boundary S, GLSymplectic κ ℝ))
   contMDiffVectorBundle :=
     (inferInstance : ContMDiffVectorBundle ∞ (StdSpace κ) (clutchingCore c hS Ψ hΨ).Fiber (𝓡 2))
   form := symplecticClutchingForm _ _ (clutchingMap c hS Ψ)
-    (isOpen_range_inlInterior_union_band c) (isOpen_range_inrInterior_union_band c)
-    (union_band_union_union_band c) (contMDiffOn_clutchingMap c hS Ψ hΨ) ⊤
+    (isOpen_range_inlInterior_union_bandMap_image c)
+    (isOpen_range_inrInterior_union_bandMap_image c)
+    (range_inlInterior_union_bandMap_image_union_range_inrInterior_union_bandMap_image c)
+    (contMDiffOn_clutchingMap c hS Ψ hΨ) ⊤
   isNondegenerate := isNondegenerate_symplecticClutchingForm _ _ _ _ _ _ _ _
 
 variable (Ψ : C((𝓡∂ 2).boundary S, GLSymplectic κ ℝ))
   (hΨ : letI := Matrix.linftyOpTopologicalSpace (κ ⊕ κ) (κ ⊕ κ) ℝ
     ContMDiff (𝓡 1) 𝓘(ℝ, Lie.SymplecticGroupModel κ ℝ) ∞
       fun x ↦ (symplecticGroupContinuousMulEquiv κ ℝ).symm (Ψ x))
+
+/-- The clutched bundle has complex rank `Fintype.card κ`. -/
+@[simp]
+theorem doubleClutching_n : (doubleClutching c o hS Ψ hΨ).n = Fintype.card κ :=
+  (rfl)
+
+/-- The model fibre of the clutched bundle is `StdSpace κ`. -/
+theorem doubleClutching_F : (doubleClutching c o hS Ψ hΨ).F = StdSpace κ :=
+  (rfl)
 
 /-- **The frames of the charts of the clutched bundle.** The frame `true` is a symplectic frame
 over the first copy of the interior of `S` and the band
@@ -350,8 +317,10 @@ band (`isSymplecticFrameOn_doubleClutchingFrame_false`), and they differ by `Ψ 
 def doubleClutchingFrame (b : Bool) (z : ClosedConnectedOrientedSurface.double c o hS) :
     StdSpace κ ≃L[ℝ] (doubleClutching c o hS Ψ hΨ).V z :=
   symplecticClutchingFrame _ _ (clutchingMap c hS Ψ)
-    (isOpen_range_inlInterior_union_band c) (isOpen_range_inrInterior_union_band c)
-    (union_band_union_union_band c) (contMDiffOn_clutchingMap c hS Ψ hΨ) b z
+    (isOpen_range_inlInterior_union_bandMap_image c)
+    (isOpen_range_inrInterior_union_bandMap_image c)
+    (range_inlInterior_union_bandMap_image_union_range_inrInterior_union_bandMap_image c)
+    (contMDiffOn_clutchingMap c hS Ψ hΨ) b z
 
 /-- The frame `true` of the clutched bundle is a symplectic frame over the first copy of the
 interior of `S` and the band. -/
@@ -386,8 +355,10 @@ theorem doubleClutchingFrame_false_apply (z : ClosedConnectedOrientedSurface.dou
     rw [toEuclideanCLM_apply]
     exact congrArg (fun A ↦ toEuclideanLin A v) (coe_clutchingMap c hS Ψ z)
   exact (symplecticClutchingFrame_false_apply _ _ (clutchingMap c hS Ψ)
-    (isOpen_range_inlInterior_union_band c) (isOpen_range_inrInterior_union_band c)
-    (union_band_union_union_band c) (contMDiffOn_clutchingMap c hS Ψ hΨ) z v).trans
+    (isOpen_range_inlInterior_union_bandMap_image c)
+    (isOpen_range_inrInterior_union_bandMap_image c)
+    (range_inlInterior_union_bandMap_image_union_range_inrInterior_union_bandMap_image c)
+    (contMDiffOn_clutchingMap c hS Ψ hΨ) z v).trans
     (congrArg _ hT)
 
 /-- **The first Chern number of the clutched bundle.** Let `S` be a compact connected surface
@@ -410,12 +381,16 @@ theorem symplecticChernNumber_doubleClutching :
     finrank_euclideanSpace_fin (contMDiff_height c) (isRegularValue_height_zero c)
     (Φ₁ := fun x ↦ doubleClutchingFrame c o hS Ψ hΨ true x.val)
     (h₁.contMDiffOn.continuousOn.comp_continuous (continuous_subtypeVal.prodMap continuous_id)
-      fun q ↦ ⟨preimage_height_Iic_subset_union_band c q.1.property, mem_univ _⟩)
-    (fun x ↦ h₁.map_bilinFormAt x.val (preimage_height_Iic_subset_union_band c x.property))
+      fun q ↦ ⟨preimage_height_Iic_subset_range_inlInterior_union_bandMap_image c
+        q.1.property, mem_univ _⟩)
+    (fun x ↦ h₁.map_bilinFormAt x.val
+      (preimage_height_Iic_subset_range_inlInterior_union_bandMap_image c x.property))
     (Φ₂ := fun x ↦ doubleClutchingFrame c o hS Ψ hΨ false x.val)
     (h₂.contMDiffOn.continuousOn.comp_continuous (continuous_subtypeVal.prodMap continuous_id)
-      fun q ↦ ⟨preimage_height_Ici_subset_union_band c q.1.property, mem_univ _⟩)
-    (fun x ↦ h₂.map_bilinFormAt x.val (preimage_height_Ici_subset_union_band c x.property)) _
+      fun q ↦ ⟨preimage_height_Ici_subset_range_inrInterior_union_bandMap_image c
+        q.1.property, mem_univ _⟩)
+    (fun x ↦ h₂.map_bilinFormAt x.val
+      (preimage_height_Ici_subset_range_inrInterior_union_bandMap_image c x.property)) _
     fun z v ↦ doubleClutchingFrame_false_apply c o hS Ψ hΨ _ v
 
 end Bundle.SymplecticSurfaceBundle
