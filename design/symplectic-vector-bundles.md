@@ -308,7 +308,7 @@ name, so that the $TM$ statements are special cases:
   `contMDiff_hom_bundle_iff` (same file) gives `Φₛ` from `hΦ`, and needs
   only `[FiniteDimensional ℝ F₁]`. Then `Φ⁻¹ₛ` is the fibrewise inverse of
   `Φₛ`, given by `contMDiff_hom_bundle_symm` (this library's
-  `Geometry/Manifold/VectorBundle/Hom.lean`, root namespace, shared with the
+  `Geometry/Manifold/VectorBundle/Hom.lean`, namespace `SymplecticGeometry`, shared with the
   two-form `pushforward`); its proof applies Tau Ceti's
   `ContMDiff.clm_bundle_inverse` to `Φₛ` and rewrites with Mathlib's
   `ContinuousLinearMap.inverse_equiv`.
@@ -437,7 +437,7 @@ but the predicate below, as in Tau Ceti for $TM$.
   namespace `SymplecticGeometry`, any arity and coefficient bundle). For
   the map the section is
   $x\mapsto\Phi_x^{-1}$, given by `contMDiff_hom_bundle_symm` (this
-  library's `Geometry/Manifold/VectorBundle/Hom.lean`, root namespace, shared
+  library's `Geometry/Manifold/VectorBundle/Hom.lean`, namespace `SymplecticGeometry`, shared
   with the transport of complex structures); for its inverse it is
   $x\mapsto\Phi_x$, given by Tau Ceti's `contMDiff_hom_bundle_iff`. Nothing
   about sections is rebuilt.

@@ -1251,8 +1251,8 @@ it into issues; the overview fixes its folders and its dependencies.
   `Bundle.Pullback`),
   `Geometry/Manifold/VectorBundle/Hom.lean` (for fibrewise equivalences
   whose map of total spaces is $C^n$, the $C^n$ section of the hom bundle
-  formed by their inverses, `contMDiff_hom_bundle_symm`, in the root
-  namespace; the file has the name of the Tau Ceti file with
+  formed by their inverses, `contMDiff_hom_bundle_symm`, in the
+  namespace `SymplecticGeometry`; the file has the name of the Tau Ceti file with
   `TauCeti.contMDiff_hom_bundle_iff`, so that the two merge upstream; also
   `Bundle.Trivial.contMDiff_totalSpaceMk_clm`, a fixed linear map applied
   in each fibre of trivial bundles as a $C^n$ map of total spaces),

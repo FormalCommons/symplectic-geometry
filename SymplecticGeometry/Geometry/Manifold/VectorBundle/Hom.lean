@@ -55,6 +55,8 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜]
   [∀ x, ContinuousSMul 𝕜 (V₂ x)] [TopologicalSpace (TotalSpace F₂ V₂)]
   [FiberBundle F₂ V₂] [VectorBundle 𝕜 F₂ V₂] {n : WithTop ℕ∞}
 
+namespace SymplecticGeometry
+
 /-- The fibrewise inverses of fibrewise equivalences `Φ x : V₁ x ≃L V₂ x` whose map of total
 spaces is `C^n` form a `C^n` section of the bundle of continuous linear maps `V₂ x →L V₁ x`, when
 `V₁` has finite rank. -/
@@ -68,6 +70,8 @@ theorem contMDiff_hom_bundle_symm (Φ : ∀ x, V₁ x ≃L[𝕜] V₂ x)
   simpa only [ContinuousLinearMap.inverse_equiv] using
     ((TauCeti.contMDiff_hom_bundle_iff fun x ↦ (Φ x : V₁ x →L[𝕜] V₂ x)).2 hΦ).clm_bundle_inverse
       fun _ ↦ ContinuousLinearMap.isInvertible_equiv
+
+end SymplecticGeometry
 
 section Trivial
 
@@ -126,6 +130,8 @@ theorem Bundle.Trivial.contMDiff_comp_mk_iff {EN HN N : Type*} [NormedAddCommGro
   simpa only [Function.comp_def, diffeomorphProd_symm_apply] using
     (diffeomorphProd I M W n).symm.contMDiff_comp_diffeomorph_iff le_rfl
 
+namespace SymplecticGeometry
+
 /-- A family of continuous linear maps `Φ x : W →L V₂ x` from a fixed space `W` of finite
 dimension is a `C^n` section at `x` of the bundle of continuous linear maps from the trivial bundle
 with fibre `W` to `V₂` exactly when `(y, v) ↦ Φ y v`, as a map from `M × W` to the total space of
@@ -154,6 +160,8 @@ theorem contMDiffOn_hom_trivial_iff (Φ : ∀ x, W →L[𝕜] V₂ x) {U : Set M
       p.2).contMDiffWithinAt
   · exact ((contMDiffAt_hom_trivial_iff Φ x).2 fun v ↦
       h.contMDiffAt ((hU.prod isOpen_univ).mem_nhds ⟨hx, Set.mem_univ v⟩)).contMDiffWithinAt
+
+end SymplecticGeometry
 
 omit [CompleteSpace 𝕜] [FiniteDimensional 𝕜 W] in
 /-- A fixed continuous linear map `f : W →L W'`, applied in each fibre, is a `C^n` map from the
