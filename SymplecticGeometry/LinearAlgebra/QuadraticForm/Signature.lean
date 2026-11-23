@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.QuadraticForm.Signature
+public import TauCeti.LinearAlgebra.QuadraticForm.Signature
 
 /-!
 # The signature of a quadratic form
@@ -20,6 +21,8 @@ quadratic form `Q` over a linearly ordered ring. This file names their differenc
 ## Main results
 
 * `QuadraticForm.signature_neg`: `(-Q).signature = -Q.signature`.
+* `QuadraticForm.signature_smul_of_pos`: scaling by a positive scalar keeps the signature.
+* `QuadraticForm.signature_zero`: the zero form has signature zero.
 * `QuadraticMap.Equivalent.signature_eq`: equivalent forms have the same signature.
 -/
 
@@ -42,6 +45,20 @@ theorem signature_def (Q : QuadraticForm R M) : Q.signature = (sigPos Q : ℤ) -
 @[simp]
 theorem signature_neg (Q : QuadraticForm R M) : (-Q).signature = -Q.signature := by
   rw [signature_def, signature_def, sigPos_neg, sigNeg_neg, neg_sub]
+
+/-- Multiplying a quadratic form by a positive scalar does not change its signature. -/
+@[simp]
+theorem signature_smul_of_pos [IsStrictOrderedRing R] (Q : QuadraticForm R M) {a : R}
+    (ha : 0 < a) : (a • Q).signature = Q.signature := by
+  rw [signature_def, signature_def, sigPos_smul_of_pos Q ha, sigNeg_smul_of_pos Q ha]
+
+/-- The zero quadratic form has signature zero. -/
+@[simp]
+theorem signature_zero {K : Type*} [Field K] [LinearOrder K] [IsStrictOrderedRing K]
+    [Module K M] : (0 : QuadraticForm K M).signature = 0 := by
+  have h : sigPos (0 : QuadraticForm K M) = 0 := by
+    rw [← neg_zero, sigPos_neg, sigNeg_zero]
+  rw [signature_def, h, sigNeg_zero, Nat.cast_zero, sub_zero]
 
 end QuadraticForm
 

@@ -667,8 +667,8 @@ an element of `ℒ ι`.
   `lagrangianCrossingForm_symplectic_mul_equivalent`,
   `(lagrangianCrossingForm Z Z' V).Equivalent (lagrangianCrossingForm (Ψ * Z) (Ψ * Z') (V.map (toEuclideanLin Ψ)))`,
   takes the identity on underlying vectors as its isometry.
-- The use sites take signatures from Mathlib's
-  `QuadraticMap.Equivalent.sigPos_eq` and `sigNeg_eq`, and nondegeneracy from
+- The use sites take signatures from
+  `QuadraticMap.Equivalent.signature_eq`, and nondegeneracy from
   Tau Ceti's `QuadraticMap.IsometryEquiv.nondegenerate_iff`; the part adds no
   signature corollaries of the two isometries.
 - `ℒ.eventually_not_crossing_of_regular`: regular crossings are isolated. For
@@ -707,8 +707,9 @@ an element of `ℒ ι`.
   conclude. Their symmetry hypotheses hold because `β r` is symmetric at
   every `r` where `Z r` is a frame of `Λ r`, so eventually on that side.
 
-Signatures are `(sigPos Q : ℤ) - sigNeg Q`, as in Tau Ceti's crossing theorem;
-the part adds no signature function.
+Signatures are `QuadraticForm.signature Q`, the integer `(sigPos Q : ℤ) - sigNeg Q`
+of `LinearAlgebra/QuadraticForm/Signature.lean`, which Tau Ceti's crossing theorem
+writes out; the part adds no signature function.
 
 ### `LinearAlgebra/Symplectic/Lagrangian/Maslov/Crossing/Path.lean`
 
