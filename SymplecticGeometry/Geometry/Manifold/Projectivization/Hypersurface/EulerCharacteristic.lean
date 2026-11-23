@@ -65,23 +65,18 @@ instance instFiniteCWType (X : SmoothProjectiveHypersurface n d) : FiniteCWType 
   ComplexManifold.finiteCWType X 𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) → ℂ) (n := ω) (by simp)
 
 /-- **The Euler characteristic of a hypersurface as a Chern number.** For a smooth hypersurface
-`X ⊆ ℂℙⁿ⁺²` of dimension `n + 1`, oriented by its complex structure (`complexManifoldOrientation`,
-reindexed along `2 (n + 1) = 2 n + 2`), the Euler characteristic of `X` is its top Chern class
-`c_{n+1}(TX)` evaluated on the fundamental class of `X`.
+`X ⊆ ℂℙⁿ⁺²` of dimension `n + 1`, oriented by its complex structure
+(`SmoothProjectiveHypersurface.homologicalOrientation`), the Euler characteristic of `X` is its
+top Chern class `c_{n+1}(TX)` evaluated on the fundamental class of `X`.
 
 Milestone: *Chern classes of projective hypersurfaces*. -/
 theorem eulerChar_eq_evalFundamentalClass_chernClass (X : SmoothProjectiveHypersurface (n + 1) d) :
     eulerChar X =
-      (((complexManifoldOrientation (Fin (n + 1 + 1 - Fintype.card Unit) → ℂ) X).reindex
-        (finCongr (by rw [finrank_model]; ring) :
-          Fin (2 * finrank ℂ (Fin (n + 1 + 1 - Fintype.card Unit) → ℂ)) ≃ Fin (2 * n + 1 + 1))
-        ).toHomologicalOrientation (n := 2 * n + 1)
-        (by rw [finrank_real_of_complex, finrank_model]; ring)).evalFundamentalClass
-        (by rw [finrank_real_of_complex, finrank_model]; ring) (ModuleCat.of ℤ ℤ)
-        (ContinuousMap.id X)
+      X.evalFundamentalClass
         (chernClass (Fin (n + 1 + 1 - Fintype.card Unit) → ℂ)
-          (TangentSpace 𝓘(ℂ, Fin (n + 1 + 1 - Fintype.card Unit) → ℂ) : X → Type) (n + 1)) :=
-  (evalFundamentalClass_chernClass_eq_eulerChar finrank_model).symm
+          (TangentSpace 𝓘(ℂ, Fin (n + 1 + 1 - Fintype.card Unit) → ℂ) : X → Type) (n + 1)) := by
+  rw [evalFundamentalClass_def, homologicalOrientation_def,
+    evalFundamentalClass_chernClass_eq_eulerChar finrank_model]
 
 /-- **The Euler characteristic of a hypersurface.** A smooth hypersurface `X ⊆ ℂℙⁿ⁺¹` of degree
 `d` has Euler characteristic `d ∑_{j ≤ n} (n + 2).choose (n - j) (-d) ^ j`. -/

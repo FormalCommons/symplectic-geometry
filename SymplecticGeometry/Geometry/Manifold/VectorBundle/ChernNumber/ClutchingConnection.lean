@@ -26,9 +26,9 @@ number (`SymplecticGeometry.Bundle.exists_coordinateDisc_unitSection_eq_phase_zp
 Fix a smooth cut-off `β`, `0` on `(-∞, a]` and `1` on `[b, ∞)` with `0 < a` and `b < 1`. This
 file builds a connection form `α` on `P` that is flat for `σout` (`σout^* α = 0`) away from the
 discs of radius `b`, and reads `σ i ^* α = -k i β(‖z‖) dθ` in the `i`-th unit disc. Its curvature
-vanishes off the discs, and on the `i`-th disc it is `-k i d(β(‖z‖) dθ)` in the coordinate `z`
-(`SymplecticGeometry.exists_isCircleConnectionForm_of_collar_eq_zpow_smul`). With
-`SymplecticGeometry.CoordinateDisc.integralTopForm_eq_of_mpullback_ofChart_eq` each disc then
+vanishes off the closed discs of radius `b`, and on the `i`-th disc it is `-k i d(β(‖z‖) dθ)` in
+the coordinate `z` (`SymplecticGeometry.exists_isCircleConnectionForm_of_collar_eq_zpow_smul`).
+With `SymplecticGeometry.CoordinateDisc.integralTopForm_eq_of_mpullback_ofChart_eq` each disc then
 contributes `-2π k i` to the integral of the curvature.
 
 The construction: start from any connection form `α₀` (`exists_isCircleConnectionForm`) and add
@@ -44,7 +44,8 @@ curvature is then read off a local section
 ## Main results
 
 * `SymplecticGeometry.exists_isCircleConnectionForm_of_collar_eq_zpow_smul`: a connection form
-  whose curvature vanishes off the discs and pulls back along `φ i` to `-k i d(β(‖z‖) dθ)`.
+  whose curvature vanishes off the closed discs of radius `b` and pulls back along `φ i` to
+  `-k i d(β(‖z‖) dθ)`.
 
 ## References
 
@@ -198,9 +199,9 @@ sections of `P` smooth on the image of `φ i`, and `σout` a section smooth off 
 `φ i 0`, with `σout (φ i z) = σ i (φ i z) • (φ i).phase (φ i z) ^ k i` for `0 < ‖z‖ < 1`. Let
 `β` be smooth, `0` on `(-∞, a]` and `1` on `[b, ∞)`, with `0 < a` and `b < 1`.
 
-Then `P` has a connection form whose curvature vanishes off the images of the discs, and whose
-pull-back along `φ i` is `-k i d(β(‖z‖) dθ)` (`SymplecticGeometry.radialAngularForm`) on the
-ball of radius `2`. -/
+Then `P` has a connection form whose curvature vanishes off the images under the `φ i` of the
+closed disc of radius `b`, and whose pull-back along `φ i` is `-k i d(β(‖z‖) dθ)`
+(`SymplecticGeometry.radialAngularForm`) on the ball of radius `2`. -/
 theorem exists_isCircleConnectionForm_of_collar_eq_zpow_smul {ι : Type*} [Finite ι]
     {φ : ι → CoordinateDisc o} (hφ : ∀ i, MDifferentiable 𝓘(ℝ, ℂ) (𝓡 2) (φ i))
     (hcoord : ∀ i, ContMDiffOn (𝓡 2) 𝓘(ℝ, ℂ) ∞ (φ i).coord (range (φ i)))
@@ -216,7 +217,7 @@ theorem exists_isCircleConnectionForm_of_collar_eq_zpow_smul {ι : Type*} [Finit
     (hβa : ∀ t ≤ a, β t = 0) (hβb : ∀ t ≥ b, β t = 1) :
     ∃ (α : SmoothForm ((𝓡 2).prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1)
       (hα : IsCircleConnectionForm α),
-      (∀ x, (∀ i, x ∉ range (φ i)) → hα.curvature.val x = 0) ∧
+      (∀ x, (∀ i, x ∉ φ i '' {z | ‖(z : ℂ)‖ ≤ b}) → hα.curvature.val x = 0) ∧
       ∀ i, mpullback 𝓘(ℝ, ℂ) (𝓡 2) (φ i) hα.curvature.val =
         (-(k i : ℝ)) • mpullback 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (Subtype.val : CoordinateDisc.ball → ℂ)
           (mextDeriv (radialAngularForm β)) := by
@@ -350,7 +351,7 @@ theorem exists_isCircleConnectionForm_of_collar_eq_zpow_smul {ι : Type*} [Finit
     rw [hpull (hsσ i (hDr i hy)), ha_disc hy, Pi.smul_apply]
     abel_nf
     exact (smul_assoc _ _ _).symm
-  refine ⟨fun x hx ↦ hcurv_out (mem_iInter.2 fun i h ↦ hx i (image_subset_range _ _ h)),
+  refine ⟨fun x hx ↦ hcurv_out (mem_iInter.2 hx),
     fun i ↦ mpullback_eq_smul_of_eqOn_openDisc (φ i) (hφ i) (hcoord i)
       (hβ.differentiable (by simp)) ha hb hβa hβb (fun x hx ↦ hcurv_disc hx) fun z hz ↦
         hcurv_out (mem_iInter.2 fun j hj ↦ ?_)⟩

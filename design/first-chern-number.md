@@ -493,20 +493,20 @@ Bundles from clutching data, and isomorphisms from homotopies.
 - Uses the circle bundle `P` of a Hermitian line bundle and its connection
   forms from prerequisites 3 and 4.
 - `chernNumber_eq_integral_curvature`: for every connection form `α` on `P`
-  (`hα : IsCircleConnectionForm α`), `(chernNumber (o.toHomologicalOrientation hn) hn ℂ L :
-  ℝ) = -(2 * π)⁻¹ * TauCeti.integralTopForm o hα.curvature`. Proof: two connection forms
+  (`hα : IsCircleConnectionForm α`), `(chernNumber (o.toHomologicalOrientation hn) hn F V :
+  ℝ) = -(2 * π)⁻¹ * TauCeti.integralTopForm o hα.curvature.val`. Proof: two connection forms
   differ by `π^* a`, so their curvatures differ by `d a`, whose integral is
   $0$ (`TauCeti.integralTopForm_mextDeriv_eq_zero`; no connectedness needed).
   So it suffices to compute one connection. Choose frames as in the clutching
-  formula, one disc per component of `M`, normalized so that each transition
+  formula, finitely many disjoint discs, normalized so that each transition
   is exactly $\Psi=\Phi_D^{-1}\Phi_{out}=e^{ik_j\theta}$
-  (`Circle.joined_iff_circleDegree_eq`, and a change of frame on a collar).
+  (`Bundle.exists_coordinateDisc_unitSection_eq_phase_zpow_smul`).
   Take the connection that is flat for the outer frame. Since
   $\Phi_{out}=\Phi_D\Psi$, in the disc frame it reads
   $-k_j\beta(r)\,d\theta$, with $\beta$ a smooth cut-off equal to $1$ near
   the circle and $0$ near the centre. Its curvature is supported in the
   discs, where the integral is computed in polar coordinates: $-2\pi k_j$
-  for each disc (`TauCeti.integralTopForm_eq_chartIntegral`), so the
+  for each disc (`CoordinateDisc.integralTopForm_eq_sum_of_mpullback_ofChart_eq`), so the
   right-hand side is $\sum_j k_j$, the Chern number by the clutching formula.
 - **Which homological orientation.** The statement uses
   `o.toHomologicalOrientation hn`, not the opposite one that Decision 6 of
@@ -529,7 +529,7 @@ Bundles from clutching data, and isomorphisms from homotopies.
   *Conventions*. With the opposite orientation the left side would be $-2$.
 - `exists_isCircleConnectionForm_curvature_eq`: if `M` is connected, every smooth
   real 2-form `σ` with `TauCeti.integralTopForm o σ = -2π * chernNumber
-  o.toHomologicalOrientation ℂ L` is the curvature of a
+  (o.toHomologicalOrientation hn) hn F V` is the curvature of a
   connection form. Proof: `σ - hα₀.curvature` has integral $0$, so it is
   exact by `TauCeti.mem_exactCompactlySupportedForms_iff_integralTopForm_eq_zero`
   (with `TauCeti.compactlySupportedForms_eq_top`). Then add the pull-back of
