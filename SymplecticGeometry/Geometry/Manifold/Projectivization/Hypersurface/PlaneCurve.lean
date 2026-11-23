@@ -73,7 +73,8 @@ theorem two_mul_surfaceGenus (X : SmoothProjectiveHypersurface 1 d) (hd : d ≠ 
     exact (Int.even_mul_succ_self _).add (even_two_mul _)
   have hg := RiemannSurface.eulerChar_eq_two_sub_two_mul_genus_iff.2 ⟨hle, hev⟩
   rw [(complexManifoldHomologicalOrientation (Fin (1 + 1 - Fintype.card Unit) → ℂ) X
-    finrank_model).genus_eq_surfaceGenus (by rw [finrank_real_of_complex, finrank_model]),
+    finrank_model).genus_eq_surfaceGenus
+      (finrank_real_of_finrank_complex_eq_add_one finrank_model),
     hχ] at hg
   linarith
 

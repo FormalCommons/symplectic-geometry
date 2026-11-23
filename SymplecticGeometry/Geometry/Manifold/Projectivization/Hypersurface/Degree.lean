@@ -41,7 +41,7 @@ of parameters, being dense, meets the nonempty open set of surjective tuples. Fo
 * each zero is transverse, and there the derivative of the section is a complex isomorphism
   (`exists_continuousLinearEquiv_hasFDerivAt_trivializationAt_linearSection`),
   so its index is `1`
-  (`TauCeti.VectorBundleOrientation.sectionIndex_eq_one_of_complexLinear`);
+  (`SymplecticGeometry.sectionIndex_eq_one_of_complexLinear`);
 * the line `{ℓ = 0}` is transverse to `X`, so it meets `X` in `d` points
   (`SymplecticGeometry.SmoothProjectiveHypersurface.card_inter_line`).
 
@@ -206,8 +206,9 @@ Milestone: *Chern classes of projective hypersurfaces*. -/
 theorem evalFundamentalClass_hyperplaneClass_pow (X : SmoothProjectiveHypersurface (n + 1) d) :
     complexManifoldEvalFundamentalClass (Fin (n + 1 + 1 - Fintype.card Unit) → ℂ) X finrank_model
       (((TopCat.of X).evenIntegralCohomologyOf 1 X.hyperplaneClass ^ (n + 1)) (n + 1)) = d := by
-  have hE : finrank ℝ (Fin (n + 1 + 1 - Fintype.card Unit) → ℂ) = 2 * n + 1 + 1 := by
-    rw [finrank_real_of_complex, finrank_model]; ring
+  have hE : finrank ℝ (Fin (n + 1 + 1 - Fintype.card Unit) → ℂ) =
+      2 * n + 1 + 1 :=
+    finrank_real_of_finrank_complex_eq_add_one finrank_model
   obtain ⟨ℓ, hℓ, hreg, hfin⟩ := X.exists_surjective_linearSection_regular
   have hs : Continuous fun x ↦ TotalSpace.mk' (Fin (n + 1) → ℂ) x (X.linearSection ℓ x) :=
     (X.linearSection ℓ).contMDiff.continuous
@@ -226,7 +227,7 @@ theorem evalFundamentalClass_hyperplaneClass_pow (X : SmoothProjectiveHypersurfa
   have hz0 : X.linearSection ℓ z = 0 := hfin.mem_toFinset.1 hz
   obtain ⟨A, hA⟩ := X.exists_continuousLinearEquiv_hasFDerivAt_trivializationAt_linearSection hℓ
     hz0 ((X.surjective_sectionLinearization_linearSection_iff hℓ hz0).1 (hreg z hz0))
-  exact VectorBundleOrientation.sectionIndex_eq_one_of_complexLinear finrank_model hs hz0 _
+  exact sectionIndex_eq_one_of_complexLinear finrank_model hs hz0 _
     (mem_baseSet_trivializationAt _ _ z) A hA
 
 end SmoothProjectiveHypersurface

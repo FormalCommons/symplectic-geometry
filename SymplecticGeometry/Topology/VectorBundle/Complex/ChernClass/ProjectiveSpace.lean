@@ -180,7 +180,7 @@ private lemma isZero_integralCohomology_zeroSectionCompl (hV : finrank ℂ V = n
     (Homeomorph.subtype (.refl _) fun _ ↦ mem_zeroSectionCompl).trans
       (tautologicalComplZeroHomeomorph ℂ V)
   exact (isZero_singularCohomology_complSingleton_subtype_of_ne _ _ (0 : V)
-    (by rw [finrank_real_of_complex, hV]; ring) hm hmn).of_iso
+    (finrank_real_of_finrank_complex_eq_add_one hV) hm hmn).of_iso
     ((singularCohomologyFunctor _ ℤ _ m).mapIso (TopCat.isoOfHomeo e.symm).op)
 
 /-- **The integral cohomology of `ℙ ℂ V` in degree `2k ≤ 2n`** is free on the `k`-th power of
