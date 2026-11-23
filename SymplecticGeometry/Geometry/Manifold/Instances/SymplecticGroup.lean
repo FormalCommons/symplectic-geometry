@@ -40,6 +40,11 @@ continuous and its composite with the embedding is smooth (Mathlib's
 are restrictions of the identity (`Units.chartAt_apply`), and a matrix and its linear map
 determine each other linearly (`Matrix.toEuclideanCLM`).
 
+Only that embedding is used, so `contMDiffAt_iff_coe`, `contMDiffAt_iff_toEuclideanCLM` and
+`contMDiffOn_iff_toEuclideanCLM` are cases of a general fact: a map into an embedded Lie subgroup
+of a Lie group is smooth if and only if its composite with the inclusion is. That general form
+belongs upstream, in Tau Ceti's `Geometry/Lie/Subgroup/Embedded.lean`.
+
 Tau Ceti states its charts for the topology of the operator norm on matrices
 (`Matrix.linftyOpTopologicalSpace`), which is the product topology
 (`Matrix.linftyOpTopologicalSpace_eq`) but not reducibly so. This file does the same, so a proof

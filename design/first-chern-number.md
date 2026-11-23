@@ -369,8 +369,8 @@ Bundles from clutching data, and isomorphisms from homotopies.
   Hermitian line bundles that #57 adds to *Symplectic vector bundles*.
   `symplecticChernNumber_clutchingLineBundle`: its number is `k`, by the
   clutching formula.
-- `nonempty_iso_of_maslovIndex_eq`: two symplectic bundles over a surface
-  whose clutching loops, for frames over the disc of an oriented chart and
+- `exists_pushforward_eq_of_maslovIndex_eq`: two symplectic bundles over a
+  surface whose clutching loops, for frames over the disc of an oriented chart and
   over its complement, have the same Maslov index are isomorphic. Proof:
   the pointwise ratio of the two loops then has index `0`, so it is
   null-homotopic, by the converse of the homotopy axiom from *Maslov index*.
@@ -433,7 +433,8 @@ Bundles from clutching data, and isomorphisms from homotopies.
   evenness of $b_1$ from prerequisite 2.
 - `symplecticChernNumber_nonempty_iso_iff`: the forward direction is
   `symplecticChernNumber_congr`; the converse is
-  `nonempty_iso_of_maslovIndex_eq` with the clutching formula.
+  `exists_pushforward_eq_of_symplecticChernNumber_eq` (`Gluing.lean`), which
+  is `exists_pushforward_eq_of_maslovIndex_eq` with the clutching formula.
 - `chernNumberAxioms_symplecticChernNumber`.
 - `eq_symplecticChernNumber_of_chernNumberAxioms`: uniqueness. Fix `S` and
   let `c` satisfy the axioms. By `nonempty_iso_iff`, `c` is constant on
