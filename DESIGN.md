@@ -1062,20 +1062,21 @@ it into issues; the overview fixes its folders and its dependencies.
   file chooses between a submanifold structure and maps defined on an open
   neighbourhood in $\mathrm{End}(V)$). The design file chooses explicit
   formulas that are smooth on open sets: the Cayley path, Tau Ceti's
-  `cayleyPathFormula`, on `TauCeti.cayleyDomain`
+  `cayleyPathFormula`, on `SymplecticGeometry.cayleyDomain`
   (`Geometry/Symplectic/Cayley/Domain.lean`), and $(g,\omega)\mapsto
-  J_{g,\omega}$ as `TauCeti.metricPolarFormula` on `TauCeti.polarDomain`
+  J_{g,\omega}$ as `SymplecticGeometry.metricPolarFormula` on `SymplecticGeometry.polarDomain`
   (`PolarComplexStructure/Smooth.lean`), an open set that contains every
-  pair of an inner product and a symplectic form. These three, the openness
-  lemma and `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain` below, are
-  planned declarations of this part, not existing Tau Ceti API; they go in
-  Tau Ceti's namespace so that they can move there.
+  pair of an inner product and a symplectic form. These three and the
+  openness lemma below are the library's own declarations, not Tau Ceti API,
+  so they are in `SymplecticGeometry`;
+  `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain` below is in the
+  namespace of Tau Ceti's `SymplecticForm.Compatible`.
   The two Cayley-transform contractions, taken relative to a reference
   structure $J_0$, are given on the set $U_{J_0}$ of $A\in\mathrm{End}(V)$ such that $1-J_0A$ is invertible
   and $1-b\cdot$`cayleyFormula J₀ A` is invertible for every $b\in[0,1]$: the
   two units that `contDiffAt_cayleyPathFormula`
   (`Geometry/Symplectic/Cayley/Smooth.lean`) asks for. This set is open,
-  since $[0,1]$ is compact (`TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`
+  since $[0,1]$ is compact (`SymplecticGeometry.isOpen_setOf_forall_Icc_mem_cayleyDomain`
   in `Cayley/Domain.lean`, stated for the pairs $(J_0,A)$). It
   does not contain every complex structure ($A=-J_0$ gives $1-J_0A=0$), but
   for an $\omega$-compatible $J_0$ it contains the $\omega$-tame structures,
@@ -1093,7 +1094,7 @@ it into issues; the overview fixes its folders and its dependencies.
   on its endomorphism bundle both come from that one reading. So its
   existence issue waits for the two issues of this part that write
   `PolarComplexStructure/`. It uses the same set $U_{J_0}$ at each point, and
-  takes its openness from `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`
+  takes its openness from `SymplecticGeometry.isOpen_setOf_forall_Icc_mem_cayleyDomain`
   and the membership of the tame structures from
   `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`, so its
   contractibility issue waits for the issue of this part that writes
@@ -1387,10 +1388,10 @@ it into issues; the overview fixes its folders and its dependencies.
   `Bundle.cayleyPathDomain`, the set of points $q$ of the total space at
   which, read in a trivialization, the triple of a coefficient $b$, the
   reference endomorphism at $q$ and the fibre value of $q$ lies in part 9's
-  `TauCeti.cayleyDomain` for every $b\in[0,1]$. Its intersection with an
+  `SymplecticGeometry.cayleyDomain` for every $b\in[0,1]$. Its intersection with an
   open set on which the reference is continuous is open
   (`Bundle.isOpen_cayleyPathDomain`, from part 9's
-  `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`), and it contains
+  `SymplecticGeometry.isOpen_setOf_forall_Icc_mem_cayleyDomain`), and it contains
   every structure on a fibre that is tame for a form there when the
   reference is compatible with that form
   (`TauCeti.SymplecticForm.Compatible.mem_cayleyPathDomain`, from
@@ -1455,11 +1456,11 @@ it into issues; the overview fixes its folders and its dependencies.
   its generic sections, diffeotopies of configurations and collars, for the
   last milestone; for the constructions, the pieces listed under
   *Constructions*. From *Compatible complex structures* it uses the file
-  `Geometry/Symplectic/Cayley/Domain.lean` (`TauCeti.cayleyDomain`, its
-  openness lemma `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain` and
+  `Geometry/Symplectic/Cayley/Domain.lean` (`SymplecticGeometry.cayleyDomain`, its
+  openness lemma `SymplecticGeometry.isOpen_setOf_forall_Icc_mem_cayleyDomain` and
   `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`), and the two files of
   `Analysis/InnerProductSpace/Symplectic/PolarComplexStructure/`
-  (`TauCeti.metricPolarFormula` on `TauCeti.polarDomain`, with its smoothness
+  (`SymplecticGeometry.metricPolarFormula` on `SymplecticGeometry.polarDomain`, with its smoothness
   and naturality) for `polarFormulaAt`, and so for the smoothness of
   `polarComplexStructure` and for `polarEndAt`.
   Its existence issue waits for the two issues of that part that write

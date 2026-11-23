@@ -241,7 +241,7 @@ end IsStrongFilling
 
 section Collar
 
-open _root_.TauCeti.EuclideanHalfSpace Filter Topology
+open _root_.TauCeti.EuclideanHalfSpace SymplecticGeometry.EuclideanHalfSpace Filter Topology
 
 variable [T2Space W]
 

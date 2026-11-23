@@ -20,10 +20,11 @@ import Mathlib.GroupTheory.Perm.Fin
 Let `M` be a manifold modelled on the half-space `𝓡∂ (n + 1)`, oriented by `o`, and let
 `c : ∂M × [0, 1) → M` be a smooth collar (`TauCeti.SmoothCollar`). Orient `∂M` by Tau Ceti's
 induced orientation `boundaryOrientation o`, with the outward vector first, the depth parameter
-`[0, 1)` by its standard orientation `TauCeti.EuclideanHalfSpace.normalIioOpensOrientation 1`,
-and `∂M × [0, 1)` by their product, with the boundary directions first. This file shows that
-`c` has orientation sign `(-1) ^ (n + 1)` at every point: it preserves orientation when `n` is
-odd, as for surfaces, and reverses it when `n` is even.
+`[0, 1)` by its standard orientation
+`SymplecticGeometry.EuclideanHalfSpace.normalIioOpensOrientation 1`, and `∂M × [0, 1)` by their
+product, with the boundary directions first. This file shows that `c` has orientation sign
+`(-1) ^ (n + 1)` at every point: it preserves orientation when `n` is odd, as for surfaces, and
+reverses it when `n` is even.
 
 At a point `(y, 0)` of the zero slice, the derivative of `c` restricts on the first factor to
 the derivative of the inclusion of the boundary, since `c (y, 0) = y`, and sends the unit vector
@@ -69,7 +70,7 @@ namespace TauCeti
 
 namespace SmoothCollar
 
-open _root_.TauCeti.EuclideanHalfSpace
+open _root_.TauCeti.EuclideanHalfSpace SymplecticGeometry.EuclideanHalfSpace
 
 variable {n : ℕ} {k : WithTop ℕ∞} {M : Type*} [TopologicalSpace M]
   [ChartedSpace (EuclideanHalfSpace (n + 1)) M] (c : SmoothCollar n k M)

@@ -72,7 +72,7 @@ public section
 
 noncomputable section
 
-open Bundle Module
+open Bundle Module SymplecticGeometry
 open scoped Manifold ContDiff RealInnerProductSpace
 
 namespace TauCeti

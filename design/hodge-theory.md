@@ -538,14 +538,14 @@ complexification:
   real operators, so that they act on real and imaginary parts by the
   lemmas of `complexifyₗ` (`mapCoeff_reCLM_complexifyₗ`,
   `mapCoeff_imCLM_complexifyₗ`).
-- `TauCeti.complexHarmonicForms o hkl : Submodule ℂ (SmoothForm I M ℂ k)`,
+- `SymplecticGeometry.complexHarmonicForms o hkl : Submodule ℂ (SmoothForm I M ℂ k)`,
   the forms whose real and imaginary parts are harmonic, with
   `mem_complexHarmonicForms_iff` (the kernel of `complexHodgeLaplacian`),
   `complexHarmonicForms_le_complexClosedForms`, and
   `complexHodgeStar_mem_complexHarmonicForms_iff`.
-- `TauCeti.complexHarmonicForms.toComplexDeRhamCohomology_bijective`, from
+- `SymplecticGeometry.complexHarmonicForms.toComplexDeRhamCohomology_bijective`, from
   the real theorem applied to real and imaginary parts, and
-  `TauCeti.exists_mem_complexHarmonicForms_add_complexHodgeLaplacian`.
+  `SymplecticGeometry.exists_mem_complexHarmonicForms_add_complexHodgeLaplacian`.
 - `TauCeti.finrank_complexDeRhamCohomology`: its complex dimension is the
   real dimension of `deRhamCohomology I M k`.
 

@@ -32,8 +32,8 @@ orientation `ω₁.prod ω₂`, reindexed to `Fin (d + 1)`
 
 The product of the generators pairs with the cross product of the two local orientations to one
 (`TauCeti.singularKronecker_complZeroPairCross_int`, in `Cohomology/Cup/RelativeKronecker.lean`,
-whose hypothesis is `TauCeti.localHomologyCross_comp_homologyMap_uliftTensorSelfIso_inv` with the
-diagonal `TauCeti.integralCoeffComul` as the inverse of the multiplication),
+whose hypothesis is `SymplecticGeometry.localHomologyCross_comp_homologyMap_uliftTensorSelfIso_inv`
+with the diagonal `TauCeti.integralCoeffComul` as the inverse of the multiplication),
 and that cross product is `(-1) ^ ((m + 1) * (n + 1))` times the local orientation selected by
 `ω₁.prod ω₂` (`TauCeti.LocalOrientation.coe_cross_localOrientation_eq_neg_one_pow_smul`, in
 `Singular/LocalHomology/Orientation/Cross/Sign.lean`). The sign is `1` when one of the two
@@ -66,7 +66,7 @@ attribute [local instance] MonoidalPreadditive.monoidalLinearInt
 
 namespace Orientation
 
-open TauCeti
+open TauCeti SymplecticGeometry
 
 variable {F₁ F₂ : Type} [NormedAddCommGroup F₁] [NormedSpace ℝ F₁]
   [NormedAddCommGroup F₂] [NormedSpace ℝ F₂] {m n d : ℕ}

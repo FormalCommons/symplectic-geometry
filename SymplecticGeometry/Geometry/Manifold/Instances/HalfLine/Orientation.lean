@@ -16,7 +16,7 @@ import SymplecticGeometry.Geometry.Manifold.Orientation.OpenSubset
 
 Orient the half-line `EuclideanHalfSpace 1` by the standard basis of `ℝ¹`, as a constant
 orientation of the model (`TauCeti.Manifold.Orientation.model`), named
-`TauCeti.EuclideanHalfSpace.halfLineOrientation`, and `ℝ` by its standard
+`SymplecticGeometry.EuclideanHalfSpace.halfLineOrientation`, and `ℝ` by its standard
 orientation `TauCeti.Manifold.Orientation.real`. This file shows that the coordinate `t ↦ t 0`
 preserves orientation at every point, the boundary point `0` included: its derivative is the
 projection `EuclideanSpace.proj 0`, which sends the standard basis vector of `ℝ¹` to `1`.
@@ -27,18 +27,18 @@ the coordinate preserves orientation there too.
 
 ## Main definitions
 
-* `TauCeti.EuclideanHalfSpace.halfLineOrientation`: the standard orientation of the
+* `SymplecticGeometry.EuclideanHalfSpace.halfLineOrientation`: the standard orientation of the
   one-dimensional half-space model.
-* `TauCeti.EuclideanHalfSpace.normalIioOpensOrientation`: the standard orientation of the
+* `SymplecticGeometry.EuclideanHalfSpace.normalIioOpensOrientation`: the standard orientation of the
   initial segment `[0, ε)` of the one-dimensional half-space model.
 
 ## Main results
 
-* `TauCeti.EuclideanHalfSpace.isOrientationPreservingAt_val_zero`: the coordinate of the half-line
-  preserves orientation, to the standard orientation of `ℝ`.
-* `TauCeti.EuclideanHalfSpace.isOrientationPreservingAt_normalIioOpens_val_zero`: the coordinate
-  `t ↦ t 0` of `[0, ε)` preserves orientation, to the standard orientation of `ℝ`, by
-  restricting `TauCeti.EuclideanHalfSpace.isOrientationPreservingAt_val_zero`.
+* `SymplecticGeometry.EuclideanHalfSpace.isOrientationPreservingAt_val_zero`: the coordinate of
+  the half-line preserves orientation, to the standard orientation of `ℝ`.
+* `SymplecticGeometry.EuclideanHalfSpace.isOrientationPreservingAt_normalIioOpens_val_zero`: the
+  coordinate `t ↦ t 0` of `[0, ε)` preserves orientation, to the standard orientation of `ℝ`, by
+  restricting `SymplecticGeometry.EuclideanHalfSpace.isOrientationPreservingAt_val_zero`.
 
 ## References
 
@@ -50,7 +50,9 @@ public section
 
 open Manifold
 
-namespace TauCeti.EuclideanHalfSpace
+namespace SymplecticGeometry.EuclideanHalfSpace
+
+open TauCeti TauCeti.EuclideanHalfSpace
 
 /-- The standard orientation of the half-line `EuclideanHalfSpace 1`: the constant orientation of
 the model in which the standard basis vector of `ℝ¹` is positive. -/
@@ -127,6 +129,6 @@ theorem isOrientationPreservingAt_normalIioOpens_val_zero {ε : ℝ} (t : normal
   (isOrientationPreservingAt_val_zero t).comp
     (Manifold.Orientation.isOrientationPreservingAt_restrict _ _ t)
 
-end TauCeti.EuclideanHalfSpace
+end SymplecticGeometry.EuclideanHalfSpace
 
 end

@@ -700,11 +700,11 @@ chain-level steps are `TopCat.shuffleAssocHomotopy`, the homotopy of
 
 ### `AlgebraicTopology/Singular/LocalHomology/Orientation/Cross/Basic.lean`
 
-The cross product of local orientations, for the Whitney file below, in Tau
-Ceti's namespace: `TauCeti.localHomologyCross`, the cross product of the pairs
+The cross product of local orientations, for the Whitney file below:
+`SymplecticGeometry.localHomologyCross`, the cross product of the pairs
 `(X, X ∖ {x})` and `(Y, Y ∖ {y})` read in the local homology of `X × Y` at
 `(x, y)` with the coefficients multiplied by `ModuleCat.uliftTensorSelfIso ℤ`;
-`TauCeti.isLocalOrientation_localHomologyCross`, that it carries local
+`SymplecticGeometry.isLocalOrientation_localHomologyCross`, that it carries local
 orientations of vector spaces to a local orientation; and
 `TauCeti.LocalOrientation.cross`, with `cross_neg_left`, `cross_neg_right`,
 the naturality `cross_map_complZeroPairIso`, and the sign
@@ -736,20 +736,20 @@ each followed by the inclusion of its pair into `(X, U ∩ V)`.
 
 The sphere suspension read in the pair `(E, E ∖ {0})`, for computing
 `crossSign m 0`. For an orthonormal basis `b` of `E` of dimension `m + 2`,
-`p` its last vector, `E ∖ {0}` is covered by `TauCeti.complRay p` and
-`TauCeti.complRay (-p)`, the points off the open rays through `p` and
-`-p`. `TauCeti.mayerVietorisδ_singularHomologyδ_localOrientation`: the
+`p` its last vector, `E ∖ {0}` is covered by `SymplecticGeometry.complRay p` and
+`SymplecticGeometry.complRay (-p)`, the points off the open rays through `p` and
+`-p`. `SymplecticGeometry.mayerVietorisδ_singularHomologyδ_localOrientation`: the
 Mayer–Vietoris connecting morphism of this cover sends the boundary of the
 local orientation selected by `b.toBasis.orientation` to the image of the
 boundary of the one of `(ℝ ∙ p)ᗮ` selected by
 `b.orthogonalLast.toBasis.orientation`, under
-`TauCeti.complZeroOrthogonalInclusion p`, with sign `1` for every `m`;
-`TauCeti.singularHomologyComplSingletonIsoOfOrientation_inv_singularHomologyδ_mayerVietorisδ`
+`SymplecticGeometry.complZeroOrthogonalInclusion p`, with sign `1` for every `m`;
+`SymplecticGeometry.singularHomologyComplSingletonIsoOfOrientation_inv_singularHomologyδ_mayerVietorisδ`
 is the same for the oriented local homology isomorphisms, with any
 coefficients. The file imports Tau Ceti's `Singular/Sphere.lean`, the
 library's `Orientation/Linear.lean`, and
 `Topology/Homotopy/PuncturedStarConvex.lean`, which defines
-`TauCeti.complRay` and `TauCeti.complZeroOrthogonalInclusion`.
+`SymplecticGeometry.complRay` and `SymplecticGeometry.complZeroOrthogonalInclusion`.
 
 ### `Topology/VectorBundle/Orientation/Complex/Whitney.lean`
 

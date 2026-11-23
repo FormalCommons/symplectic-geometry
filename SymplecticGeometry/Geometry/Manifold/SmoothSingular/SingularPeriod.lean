@@ -23,12 +23,13 @@ theorem. Exact forms integrate to zero on cycles, so the period depends only on 
 
 ## Main declarations
 
-* `TauCeti.intIntegrationCochain φ`: the integral of a `p`-form over integral smooth singular
-  `p`-chains, `∑ nᵢ σᵢ ↦ ∑ nᵢ ∫_{σᵢ} φ`: Tau Ceti's real `TauCeti.integrationCochain` after the
-  change of coefficients.
-* `TauCeti.intIntegrationCochain_sum_apply`: additivity in finitely many continuous forms.
-* `TauCeti.d_comp_intIntegrationCochain`: Stokes' theorem for integral smooth chains.
-* `TauCeti.intIntegrationCochain_naturality`: naturality under smooth maps.
+* `SymplecticGeometry.intIntegrationCochain φ`: the integral of a `p`-form over integral smooth
+  singular `p`-chains, `∑ nᵢ σᵢ ↦ ∑ nᵢ ∫_{σᵢ} φ`: Tau Ceti's real `TauCeti.integrationCochain` after
+  the change of coefficients.
+* `SymplecticGeometry.intIntegrationCochain_sum_apply`: additivity in finitely many continuous
+  forms.
+* `SymplecticGeometry.d_comp_intIntegrationCochain`: Stokes' theorem for integral smooth chains.
+* `SymplecticGeometry.intIntegrationCochain_naturality`: naturality under smooth maps.
 * `TauCeti.deRhamCohomology.singularHomologyPeriod`: the pairing of `Hᵖ_dR(M)` with the integral
   singular homology `Hₚ(M; ℤ)`, in the model of Tau Ceti's fundamental classes
   (`TauCeti.HomologicalOrientation.mapFundamentalClass`).
@@ -73,7 +74,9 @@ noncomputable section
 open AlgebraicTopology CategoryTheory
 open scoped Manifold ContDiff Simplicial
 
-namespace TauCeti
+namespace SymplecticGeometry
+
+open TauCeti
 
 section Cochain
 
@@ -187,9 +190,13 @@ end Stokes
 
 end Cochain
 
+end SymplecticGeometry
+
 /-! ### The period of a de Rham class on integral singular homology -/
 
-namespace deRhamCohomology
+namespace TauCeti.deRhamCohomology
+
+open SymplecticGeometry
 
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} {M : Type} [TopologicalSpace M] [ChartedSpace H M] {p : ℕ}
@@ -352,6 +359,4 @@ theorem singularHomologyPeriod_map {f : M → N} (hf : ContMDiff I J ∞ f)
     (smoothSingularHomologyIso_inv_naturality_assoc (ModuleCat.of ℤ (ULift.{0} ℤ)) hf p
       (smoothPeriod ψ)) A
 
-end deRhamCohomology
-
-end TauCeti
+end TauCeti.deRhamCohomology

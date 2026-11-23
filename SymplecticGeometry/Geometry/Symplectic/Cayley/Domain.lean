@@ -27,14 +27,14 @@ finite-dimensional normed space, such as a fibre of a vector bundle.
 
 ## Main definitions and results
 
-* `TauCeti.cayleyDomain R`: the triples where both denominators are units.
-* `TauCeti.map_mem_cayleyDomain_iff`: algebra isomorphisms preserve the domain.
+* `SymplecticGeometry.cayleyDomain R`: the triples where both denominators are units.
+* `SymplecticGeometry.map_mem_cayleyDomain_iff`: algebra isomorphisms preserve the domain.
 * `TauCeti.cayleyPathFormula_zero`, `TauCeti.cayleyPathFormula_one`: the two ends of the path.
 * `TauCeti.contDiffAt_cayleyFormula`: the Cayley coordinate is smooth, jointly in both
   arguments, wherever `1 - A B` is a unit.
-* `TauCeti.isOpen_cayleyDomain`, `TauCeti.contDiffOn_cayleyPathFormula`.
-* `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`: the pairs `(A, B)` whose segment over
-  `[0, 1]` lies in the domain form an open set.
+* `SymplecticGeometry.isOpen_cayleyDomain`, `SymplecticGeometry.contDiffOn_cayleyPathFormula`.
+* `SymplecticGeometry.isOpen_setOf_forall_Icc_mem_cayleyDomain`: the pairs `(A, B)` whose segment
+  over `[0, 1]` lies in the domain form an open set.
 * `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`: a compatible and a tame structure,
   with `|b| ≤ 1`, give a point of the domain, and
   `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain_of_continuousLinearEquiv` does so on a
@@ -56,30 +56,7 @@ namespace TauCeti
 
 section Ring
 
-variable (R : Type*) [Ring R] [Algebra ℝ R]
-
-/-- The triples `(b, A, B)` at which both denominators of the Cayley path
-`cayleyPathFormula b A B` are units: `1 - A B`, and `1 - b C` for the Cayley coordinate
-`C = cayleyFormula A B`. -/
-def cayleyDomain : Set (ℝ × R × R) :=
-  {q | IsUnit (1 - q.2.1 * q.2.2) ∧ IsUnit (1 - q.1 • cayleyFormula q.2.1 q.2.2)}
-
-variable {R}
-
-@[simp]
-lemma mem_cayleyDomain {q : ℝ × R × R} :
-    q ∈ cayleyDomain R ↔
-      IsUnit (1 - q.2.1 * q.2.2) ∧ IsUnit (1 - q.1 • cayleyFormula q.2.1 q.2.2) :=
-  Iff.rfl
-
-/-- An algebra isomorphism `f` maps the domain of the Cayley path onto the domain of the Cayley
-path: `(b, f A, f B)` lies in it exactly when `(b, A, B)` does. -/
-theorem map_mem_cayleyDomain_iff {S E : Type*} [Ring S] [Algebra ℝ S] [EquivLike E R S]
-    [AlgEquivClass E ℝ R S] (f : E) {b : ℝ} {A B : R} :
-    (b, f A, f B) ∈ cayleyDomain S ↔ (b, A, B) ∈ cayleyDomain R := by
-  simp only [mem_cayleyDomain, ← map_mul, ← map_one f, ← map_sub, ← map_cayleyFormula,
-    ← map_smul, isUnit_map_iff]
-
+variable {R : Type*} [Ring R] [Algebra ℝ R]
 /-- At the coefficient `0` the Cayley path is at its starting point `A`. -/
 @[simp]
 theorem cayleyPathFormula_zero (A B : R) : cayleyPathFormula 0 A B = A := by
@@ -131,6 +108,46 @@ theorem contDiffAt_cayleyFormula {n : WithTop ℕ∞} {A B : R} (h : IsUnit (1 -
   simp only [cayleyFormula_def]
   exact ((contDiffAt_const.add hAB).mul ((contDiffAt_const.sub hAB).inverse h)).neg
 
+end Normed
+
+end TauCeti
+
+namespace SymplecticGeometry
+
+open TauCeti
+
+section Ring
+
+variable (R : Type*) [Ring R] [Algebra ℝ R]
+
+/-- The triples `(b, A, B)` at which both denominators of the Cayley path
+`cayleyPathFormula b A B` are units: `1 - A B`, and `1 - b C` for the Cayley coordinate
+`C = cayleyFormula A B`. -/
+def cayleyDomain : Set (ℝ × R × R) :=
+  {q | IsUnit (1 - q.2.1 * q.2.2) ∧ IsUnit (1 - q.1 • cayleyFormula q.2.1 q.2.2)}
+
+variable {R}
+
+@[simp]
+lemma mem_cayleyDomain {q : ℝ × R × R} :
+    q ∈ cayleyDomain R ↔
+      IsUnit (1 - q.2.1 * q.2.2) ∧ IsUnit (1 - q.1 • cayleyFormula q.2.1 q.2.2) :=
+  Iff.rfl
+
+/-- An algebra isomorphism `f` maps the domain of the Cayley path onto the domain of the Cayley
+path: `(b, f A, f B)` lies in it exactly when `(b, A, B)` does. -/
+theorem map_mem_cayleyDomain_iff {S E : Type*} [Ring S] [Algebra ℝ S] [EquivLike E R S]
+    [AlgEquivClass E ℝ R S] (f : E) {b : ℝ} {A B : R} :
+    (b, f A, f B) ∈ cayleyDomain S ↔ (b, A, B) ∈ cayleyDomain R := by
+  simp only [mem_cayleyDomain, ← map_mul, ← map_one f, ← map_sub, ← map_cayleyFormula,
+    ← map_smul, isUnit_map_iff]
+
+end Ring
+
+section Normed
+
+variable {R : Type*} [NormedRing R] [NormedAlgebra ℝ R] [CompleteSpace R]
+
 variable (R) in
 /-- The domain of the Cayley path is open. -/
 theorem isOpen_cayleyDomain : IsOpen (cayleyDomain R) := by
@@ -161,7 +178,11 @@ theorem isOpen_setOf_forall_Icc_mem_cayleyDomain :
 
 end Normed
 
-namespace SymplecticForm
+end SymplecticGeometry
+
+namespace TauCeti.SymplecticForm
+
+open SymplecticGeometry
 
 section NormedSpace
 
@@ -226,8 +247,6 @@ theorem Compatible.exists_toLinearMap_eq_cayleyPathFormula (h₀ : ω.Compatible
 
 end ContinuousLinearEquiv
 
-end SymplecticForm
-
-end TauCeti
+end TauCeti.SymplecticForm
 
 end

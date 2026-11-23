@@ -29,26 +29,27 @@ coefficients `ULift ℤ`, lands in the homology of `X × Y` relative to
 
 `Hₚ(X, X ∖ {x}; ℤ) ⊗ H_q(Y, Y ∖ {y}; ℤ) ⟶ Hₙ(X × Y, X × Y ∖ {(x, y)}; ℤ)`, for `p + q = n`
 
-(`TauCeti.localHomologyCross`). It is natural in maps of pairs
-(`TauCeti.localHomologyMap_tensorHom_localHomologyMap_localHomologyCross`), and on classes coming
-from absolute homology it is the absolute cross product
-(`TauCeti.singularHomologyπ_tensorHom_singularHomologyπ_localHomologyCross`). Read back relative
-to `(X ∖ {x}) × Y ∪ X × (Y ∖ {y})`, with the coefficients split again by the inverse of
+(`SymplecticGeometry.localHomologyCross`). It is natural in maps of pairs
+(`SymplecticGeometry.localHomologyMap_tensorHom_localHomologyMap_localHomologyCross`), and on
+classes coming from absolute homology it is the absolute cross product
+(`SymplecticGeometry.singularHomologyπ_tensorHom_singularHomologyπ_localHomologyCross`). Read back
+relative to `(X ∖ {x}) × Y ∪ X × (Y ∖ {y})`, with the coefficients split again by the inverse of
 `ModuleCat.uliftTensorSelfIso`, it is the cross product of pairs
-(`TauCeti.localHomologyCross_comp_homologyMap_uliftTensorSelfIso_inv`).
+(`SymplecticGeometry.localHomologyCross_comp_homologyMap_uliftTensorSelfIso_inv`).
 
 The main result is that the cross product of two local orientations of real vector spaces at the
-origin is a local orientation of their product (`TauCeti.isLocalOrientation_localHomologyCross`).
-The proof reduces to compact manifolds. On compact connected manifolds `M` and `N` with integral
-fundamental classes `μ` and `ν`, the cross product `μ × ν` is a fundamental class of `M × N`
-(Tau Ceti's `TauCeti.IsFundamentalClass.singularHomologyCross`), and its image in the local
-homology at `(x, y)` is the cross product of the images of `μ` and `ν`, so the cross product of
-local orientations is a local orientation there
-(`TauCeti.isLocalOrientation_localHomologyCross_of_isFundamentalClass`). Open embeddings
+origin is a local orientation of their product
+(`SymplecticGeometry.isLocalOrientation_localHomologyCross`). The proof reduces to compact
+manifolds. On compact connected manifolds `M` and `N` with integral fundamental classes `μ` and `ν`,
+the cross product `μ × ν` is a fundamental class of `M × N` (Tau Ceti's
+`TauCeti.IsFundamentalClass.singularHomologyCross`), and its image in the local homology at `(x, y)`
+is the cross product of the images of `μ` and `ν`, so the cross product of local orientations is a
+local orientation there
+(`SymplecticGeometry.isLocalOrientation_localHomologyCross_of_isFundamentalClass`). Open embeddings
 identify local homology groups compatibly with the cross product
-(`TauCeti.forall_isLocalOrientation_localHomologyCross_iff`), and a vector space of dimension
-`k + 1` embeds near the origin into the circle (`k = 0`) or into the sphere `Sᵏ⁺¹`, which have
-integral fundamental classes (`TauCeti.exists_compact_manifold_isFundamentalClass`).
+(`SymplecticGeometry.forall_isLocalOrientation_localHomologyCross_iff`), and a vector space of
+dimension `k + 1` embeds near the origin into the circle (`k = 0`) or into the sphere `Sᵏ⁺¹`, which
+have integral fundamental classes (`TauCeti.exists_compact_manifold_isFundamentalClass`).
 
 This gives the cross product of local orientations of vector spaces
 (`TauCeti.LocalOrientation.cross`). It reverses when either factor reverses
@@ -62,18 +63,18 @@ here.
 
 ## Main definitions
 
-* `TauCeti.localHomologyCross`: the cross product of local homology classes.
+* `SymplecticGeometry.localHomologyCross`: the cross product of local homology classes.
 * `TauCeti.LocalOrientation.cross`: the cross product of local orientations of vector spaces.
 * `TauCeti.LocalOrientation.crossSign`: the sign comparing it with `TauCeti.LocalOrientation.prod`.
 
 ## Main results
 
-* `TauCeti.isLocalOrientation_localHomologyCross`: the cross product of local orientations of
-  vector spaces is a local orientation.
+* `SymplecticGeometry.isLocalOrientation_localHomologyCross`: the cross product of local
+  orientations of vector spaces is a local orientation.
 * `TauCeti.LocalOrientation.cross_map_complZeroPairIso`: naturality.
 * `TauCeti.LocalOrientation.coe_cross_eq_crossSign_smul`: the cross product is `crossSign m n`
   times the ordered product, for all spaces of dimensions `m + 1` and `n + 1`.
-* `TauCeti.localHomologyCross_assoc`, `TauCeti.LocalOrientation.map_prodAssoc_cross`:
+* `SymplecticGeometry.localHomologyCross_assoc`, `TauCeti.LocalOrientation.map_prodAssoc_cross`:
   associativity of the cross product of local homology classes and of local orientations, the
   latter stated as Tau Ceti's `TauCeti.LocalOrientation.map_prodAssoc_prod` is for the ordered
   product.
@@ -95,7 +96,9 @@ open CategoryTheory MonoidalCategory Set Topology Module
 open TopCat (mapsTo_preimage_fst_compl_union_preimage_snd_compl
   mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl)
 
-namespace TauCeti
+namespace SymplecticGeometry
+
+open TauCeti
 
 section Cross
 
@@ -130,7 +133,7 @@ theorem localHomologyCross_def (x : X) (y : Y) (p q n : ℕ) (h : p + q = n) :
 
 /-- The local homology cross product is the cross product of pairs, then the multiplication of
 coefficients, then the map of pairs given by the identity of `X × Y`: the two maps after the cross
-product of pairs in `TauCeti.localHomologyCross_def` commute. -/
+product of pairs in `SymplecticGeometry.localHomologyCross_def` commute. -/
 theorem localHomologyCross_eq (x : X) (y : Y) (p q n : ℕ) (h : p + q = n) :
     localHomologyCross x y p q n h =
       TopCat.singularHomologyCrossRelPair (TopCat.of X) (TopCat.of Y) {x}ᶜ {y}ᶜ
@@ -476,6 +479,10 @@ theorem localHomologyCross_assoc (x : X) (y : Y) (z : Z) (p q r pq qr n : ℕ) (
 
 end Assoc
 
+end SymplecticGeometry
+
+namespace TauCeti
+
 open Metric in
 /-- In every positive dimension `k + 1` there is a compact connected manifold with an integral
 fundamental class: the circle `AddCircle 1` for `k = 0`, and the sphere `Sᵏ⁺¹`, which is simply
@@ -503,6 +510,12 @@ theorem exists_compact_manifold_isFundamentalClass (k : ℕ) :
       inferInstance, inferInstance, inferInstance, inferInstance,
       inferInstance, inferInstance, inferInstance, inferInstance, hE,
       _, o.isFundamentalClass_fundamentalClass hE⟩
+
+end TauCeti
+
+namespace SymplecticGeometry
+
+open TauCeti
 
 /-- **The cross product of local orientations of vector spaces is a local orientation.** For
 real normed spaces `F₁` and `F₂` of dimensions `m + 1` and `n + 1` and local orientations `z₁`
@@ -539,7 +552,7 @@ theorem isLocalOrientation_localHomologyCross {F₁ F₂ : Type} [NormedAddCommG
     h).1 (fun w₁ w₂ ↦ isLocalOrientation_localHomologyCross_of_isFundamentalClass hE₁ hE₂ h
       hμ₁ hμ₂ w₁ w₂) z₁ z₂
 
-end TauCeti
+end SymplecticGeometry
 
 /-- The map of local homology at the origins induced by the isomorphism of pairs
 `f.complZeroPairIso` is the map induced by `f`. -/
@@ -553,6 +566,8 @@ theorem ContinuousLinearEquiv.singularHomologyMap_complZeroPairIso_hom {E E' : T
   exact (TauCeti.localHomologyMap_def _ _ _ _).symm
 
 namespace TauCeti.LocalOrientation
+
+open SymplecticGeometry
 
 variable {E F E' F' : Type} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedAddCommGroup E'] [NormedSpace ℝ E']
@@ -579,7 +594,7 @@ theorem zsmul_left_injective (hE : finrank ℝ E = m + 1) (w : LocalOrientation 
 
 /-- **The cross product of local orientations.** For local orientations `z` of `E` and `z'` of
 `F` at the origin, their cross product `z × z'` is a local orientation of `E × F` at the origin
-(`TauCeti.isLocalOrientation_localHomologyCross`). Its degree is written `d + 1` with
+(`SymplecticGeometry.isLocalOrientation_localHomologyCross`). Its degree is written `d + 1` with
 `(m + 1) + (n + 1) = d + 1`, as for `TauCeti.LocalOrientation.prod`. -/
 def cross (hE : finrank ℝ E = m + 1) (hF : finrank ℝ F = n + 1) (hd : m + 1 + (n + 1) = d + 1)
     (z : LocalOrientation E 0 (m + 1)) (z' : LocalOrientation F 0 (n + 1)) :

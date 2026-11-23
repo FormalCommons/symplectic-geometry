@@ -23,31 +23,32 @@ selected by the standard orientation of `ℝ`. This file computes the image of `
 connecting morphism of `(F × ℝ, (F × ℝ) ∖ {0})`, followed by the map
 `Hₘ₊₁((F × ℝ) ∖ {0}) ⟶ Hₘ₊₁((F × ℝ) ∖ {0}, (F ∖ {0}) × ℝ)`. For `t ≠ 0` let
 `jₜ : (F, F ∖ {0}) ⟶ ((F × ℝ) ∖ {0}, (F ∖ {0}) × ℝ)` be the sheet `x ↦ (x, t)`
-(`TauCeti.prodSheetPairMap`). Then the image of `w` is `j₋₁ z - j₁ z`, that is
+(`SymplecticGeometry.prodSheetPairMap`). Then the image of `w` is `j₋₁ z - j₁ z`, that is
 `s m • (j₁ z - j₋₁ z)` with `s m = -1` in every dimension
 (`TauCeti.LocalOrientation.singularHomologyπ_singularHomologyδ_prod`).
 
 The computation is first made in a real inner product space `E` of dimension `m + 2` with an
 orthonormal basis `b`, `p` its last vector and `G = (ℝ ∙ p)ᗮ`, where the sheets are
-`x ↦ x + t • p` on `G` (`TauCeti.orthogonalSheetPairMap`)
-(`TauCeti.singularHomologyComplSingletonIsoOfOrientation_inv_singularHomologyδ_singularHomologyπ`
+`x ↦ x + t • p` on `G` (`SymplecticGeometry.orthogonalSheetPairMap`)
+(`singularHomologyComplSingletonIsoOfOrientation_inv_singularHomologyδ_singularHomologyπ`
 for the oriented local homology isomorphisms, with any coefficients, and
-`TauCeti.singularHomologyπ_singularHomologyδ_localOrientation` for the local orientations).
-Cover `E ∖ {0}` by `U = TauCeti.complRay p` and `V = TauCeti.complRay (-p)`, whose intersection is
-the complement of the line through `p`. By `TopCat.singularHomologyπ_ofSubset_inter_eq_add`, the
-image of a class `c` of `Hₘ₊₁(E ∖ {0})` relative to `U ∩ V` is the sum of the images of its two
-excision preimages `a ∈ Hₘ₊₁(U, U ∩ V)` and `a' ∈ Hₘ₊₁(V, V ∩ U)`. Since `U` and `V` are
-contractible (`TauCeti.contractibleSpace_complRay`), the connecting morphisms of these pairs are
+`SymplecticGeometry.singularHomologyπ_singularHomologyδ_localOrientation` for the local
+orientations). Cover `E ∖ {0}` by `U = SymplecticGeometry.complRay p` and
+`V = SymplecticGeometry.complRay (-p)`, whose intersection is the complement of the line through
+`p`. By `TopCat.singularHomologyπ_ofSubset_inter_eq_add`, the image of a class `c` of
+`Hₘ₊₁(E ∖ {0})` relative to `U ∩ V` is the sum of the images of its two excision preimages
+`a ∈ Hₘ₊₁(U, U ∩ V)` and `a' ∈ Hₘ₊₁(V, V ∩ U)`. Since `U` and `V` are contractible
+(`SymplecticGeometry.contractibleSpace_complRay`), the connecting morphisms of these pairs are
 injective in positive degrees (`TopPair.mono_singularHomologyδ_of_contractibleSpace`). By
 `TopCat.mayerVietorisδ_eq_singularHomologyδ_left` and
 `TopCat.mayerVietorisδ_eq_neg_singularHomologyδ_right` they send `a` and `-a'` to the
 Mayer–Vietoris connecting morphism of `c`, which for the boundary of the local orientation of `E`
 is the image of the boundary of that of `G`
-(`TauCeti.singularHomologyComplSingletonIsoOfOrientation_inv_singularHomologyδ_mayerVietorisδ`).
-The sheet at `-1` lies in `U` and the sheet at `1` in `V`; by naturality of the connecting
-morphism, and as each sheet is homotopic to the inclusion of `G ∖ {0}` off the line through `p`,
-the connecting morphisms send the images of the local orientation of `G` under these sheets to
-the same class. Hence `a` and `-a'` are these images.
+(`singularHomologyComplSingletonIsoOfOrientation_inv_singularHomologyδ_mayerVietorisδ`). The
+sheet at `-1` lies in `U` and the sheet at `1` in `V`; by naturality of the connecting morphism, and
+as each sheet is homotopic to the inclusion of `G ∖ {0}` off the line through `p`, the connecting
+morphisms send the images of the local orientation of `G` under these sheets to the same class.
+Hence `a` and `-a'` are these images.
 
 The case of `F × ℝ` follows by naturality, along a continuous linear equivalence of `F × ℝ` with
 the Euclidean space `EuclideanSpace ℝ (Fin (m + 2))` that carries `F × {0}` onto the orthogonal
@@ -61,14 +62,15 @@ and the inclusion of `(F ∖ {0}) × ℝ` into `(F × ℝ) ∖ {0}` is nullhomot
 
 ## Main definitions
 
-* `TauCeti.orthogonalSheetPairMap`: the sheet `x ↦ x + t • p` on `(ℝ ∙ p)ᗮ`, as a map of pairs.
-* `TauCeti.prodSheetPairMap`: the sheet `x ↦ (x, t)` of `F × ℝ`, as a map of pairs.
+* `SymplecticGeometry.orthogonalSheetPairMap`: the sheet `x ↦ x + t • p` on `(ℝ ∙ p)ᗮ`, as a map of
+  pairs.
+* `SymplecticGeometry.prodSheetPairMap`: the sheet `x ↦ (x, t)` of `F × ℝ`, as a map of pairs.
 
 ## Main results
 
-* `TauCeti.singularHomologyComplSingletonIsoOfOrientation_inv_singularHomologyδ_singularHomologyπ`
-  and `TauCeti.singularHomologyπ_singularHomologyδ_localOrientation`: the computation in an inner
-  product space.
+* `singularHomologyComplSingletonIsoOfOrientation_inv_singularHomologyδ_singularHomologyπ` and
+  `SymplecticGeometry.singularHomologyπ_singularHomologyδ_localOrientation`: the computation in
+  an inner product space.
 * `TauCeti.LocalOrientation.singularHomologyπ_singularHomologyδ_prod`: the product local
   orientation of `F × ℝ` read on the sheets `F × {±1}`.
 * `TauCeti.nullhomotopic_map_prodComplZeroPair` and
@@ -92,7 +94,9 @@ open scoped ContinuousMap
 
 universe w v u
 
-namespace TauCeti
+namespace SymplecticGeometry
+
+open TauCeti
 
 section Sheets
 
@@ -144,7 +148,8 @@ theorem orthogonalSheet_mem_complRay_neg_of_pos (p : sphere (0 : E) 1) {t : ℝ}
 
 /-- **The sheets over the orthogonal complement.** For a point `p` of the unit sphere and
 `t ≠ 0`, the map of pairs `((ℝ ∙ p)ᗮ, (ℝ ∙ p)ᗮ ∖ {0}) ⟶ (E ∖ {0}, E ∖ ℝ p)`, `x ↦ x + t • p`, the
-target pair being `E ∖ {0}` relative to `TauCeti.complRay p ∩ TauCeti.complRay (-p)`. -/
+target pair being `E ∖ {0}` relative to
+`SymplecticGeometry.complRay p ∩ SymplecticGeometry.complRay (-p)`. -/
 def orthogonalSheetPairMap (p : sphere (0 : E) 1) {t : ℝ} (ht : t ≠ 0) :
     TopPair.ofSubset ({0}ᶜ : Set (TopCat.of (ℝ ∙ (p : E))ᗮ)) ⟶
       TopPair.ofSubset (X := TopCat.of ({0}ᶜ : Set E)) (complRay p ∩ complRay (-p)) :=
@@ -559,13 +564,25 @@ private theorem singularHomologyπ_singularHomologyδ_of_continuousLinearEquiv {
   rw [LocalOrientation.coe_map, LocalOrientation.coe_map] at h
   exact (congrArg (fun f ↦ f w.val) M₁).trans h
 
+end Prod
+
+end SymplecticGeometry
+
+namespace TauCeti
+
+open SymplecticGeometry
+
+section Prod
+
+variable {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F]
+
 /-- **The product local orientation of `F × ℝ` read on the sheets `F × {±1}`.** Let `F` be a real
 normed space of dimension `m + 1`, `z` a local orientation of `F` at `0`, and
 `w = TauCeti.LocalOrientation.prod z ι` the local orientation of `F × ℝ` at `0`, where `ι` is the
 local orientation of `ℝ` selected by its standard orientation. The connecting morphism of
 `(F × ℝ, (F × ℝ) ∖ {0})`, followed by the map
 `Hₘ₊₁((F × ℝ) ∖ {0}) ⟶ Hₘ₊₁((F × ℝ) ∖ {0}, (F ∖ {0}) × ℝ)`, sends `w` to `j₋₁ z - j₁ z`, where
-`jₜ` is the sheet `x ↦ (x, t)` (`TauCeti.prodSheetPairMap`): the sign `s m` with
+`jₜ` is the sheet `x ↦ (x, t)` (`SymplecticGeometry.prodSheetPairMap`): the sign `s m` with
 `w ↦ s m • (j₁ z - j₋₁ z)` is `-1` in every dimension. -/
 theorem LocalOrientation.singularHomologyπ_singularHomologyδ_prod {m : ℕ}
     (hF : finrank ℝ F = m + 1) (z : LocalOrientation F 0 (m + 1)) :

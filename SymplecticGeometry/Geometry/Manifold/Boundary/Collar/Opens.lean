@@ -16,8 +16,8 @@ Let `W` be a manifold modelled on the half-space `𝓡∂ (n + 1)` and `V` an op
 contains the boundary `∂W`. By Mathlib's `ModelWithCorners.boundary_open`, the boundary of `V`
 is the set of points of `V` that lie in `∂W`, so the inclusion `V → W` maps `∂V` onto `∂W`. This
 file shows that it is a diffeomorphism for Tau Ceti's manifold structures on the two boundaries
-(`TauCeti.diffeomorphBoundaryOpens`): both directions are smooth, since a map into a boundary is
-smooth when its composite with the inclusion of the boundary is (Tau Ceti's
+(`SymplecticGeometry.diffeomorphBoundaryOpens`): both directions are smooth, since a map into a
+boundary is smooth when its composite with the inclusion of the boundary is (Tau Ceti's
 `TauCeti.contMDiff_iff_comp_subtypeVal_boundary`).
 
 Through it, a smooth collar of `∂V` in `V` is a smooth collar of `∂W` in `W`
@@ -29,8 +29,8 @@ given open set containing `∂W`, even when `W` is not σ-compact, since `W` is 
 
 ## Main results
 
-* `TauCeti.diffeomorphBoundaryOpens`: for an open `V ⊇ ∂W`, the inclusion gives a diffeomorphism
-  `∂V ≃ ∂W`.
+* `SymplecticGeometry.diffeomorphBoundaryOpens`: for an open `V ⊇ ∂W`, the inclusion gives a
+  diffeomorphism `∂V ≃ ∂W`.
 * `TauCeti.SmoothCollar.ofOpens`: a smooth collar of `∂V` as a smooth collar of `∂W`;
   `TauCeti.SmoothCollar.range_ofOpens` gives its image.
 -/
@@ -42,7 +42,9 @@ open scoped Manifold ContDiff
 
 open _root_.TauCeti.EuclideanHalfSpace
 
-namespace TauCeti
+namespace SymplecticGeometry
+
+open TauCeti
 
 variable {n : ℕ} {W : Type*} [TopologicalSpace W] [ChartedSpace (EuclideanHalfSpace (n + 1)) W]
   {k : ℕ∞ω}
@@ -83,12 +85,21 @@ seen in `V`. -/
 theorem coe_coe_diffeomorphBoundaryOpens_symm_apply (x : (𝓡∂ (n + 1)).boundary W) :
     (((diffeomorphBoundaryOpens (k := k) V hV).symm x : V) : W) = x := (rfl)
 
-namespace SmoothCollar
+end
+
+end SymplecticGeometry
+
+namespace TauCeti.SmoothCollar
+
+open SymplecticGeometry
+
+variable {n : ℕ} {W : Type*} [TopologicalSpace W] [ChartedSpace (EuclideanHalfSpace (n + 1)) W]
+  {k : ℕ∞ω} [IsManifold (𝓡∂ (n + 1)) k W] {V : Opens W} (hV : (𝓡∂ (n + 1)).boundary W ⊆ V)
 
 /-- **A collar of an open neighbourhood of the boundary.** For an open subset `V` of `W` that
 contains `∂W`, a `C^k` collar `c` of `∂V` in `V`, followed by the inclusion `V → W`, is a `C^k`
 collar of `∂W` in `W`: its value at `(x, t)` is `c (x, t)`, reading the boundary point `x` of `W`
-as a boundary point of `V` (`TauCeti.diffeomorphBoundaryOpens`). -/
+as a boundary point of `V` (`SymplecticGeometry.diffeomorphBoundaryOpens`). -/
 noncomputable def ofOpens (c : SmoothCollar n k V) : SmoothCollar n k W where
   toFun p := c ((diffeomorphBoundaryOpens V hV).symm p.1, p.2)
   isLocalDiffeomorph' p :=
@@ -117,8 +128,4 @@ theorem range_ofOpens (c : SmoothCollar n k V) :
   · rintro ⟨_, ⟨⟨x, t⟩, rfl⟩, rfl⟩
     exact ⟨(diffeomorphBoundaryOpens (k := k) V hV x, t), by simp⟩
 
-end SmoothCollar
-
-end
-
-end TauCeti
+end TauCeti.SmoothCollar

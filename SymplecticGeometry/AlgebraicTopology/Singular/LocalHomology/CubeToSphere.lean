@@ -35,8 +35,8 @@ The map `z ↦ (1 + i) / 2 + z / 5` sends the ball of radius `2` of `ℂ` into t
 holomorphic (`SymplecticGeometry.CoordinateDisc.affineBall`), so composing it with the collapse
 gives a coordinate disc `SymplecticGeometry.CoordinateDisc.cubeToSphere` of `S²` for this
 orientation (`SymplecticGeometry.CoordinateDisc.ofComp`). In the coordinates of the square, it
-sends `z` to the image of the point at offset `z / 5` from the centre (`TauCeti.squareOfOffset`),
-its closed disc is the image of the points `y` whose offset
+sends `z` to the image of the point at offset `z / 5` from the centre
+(`SymplecticGeometry.squareOfOffset`), its closed disc is the image of the points `y` whose offset
 `TauCeti.squareCenterOffset y` from the centre has norm at most `1/5`, and its open disc that of
 the points where it is less than `1/5`.
 
@@ -55,7 +55,7 @@ the points where it is less than `1/5`.
   `SymplecticGeometry.existsUnique_forall_localOrientationEquiv_openSquareToSphere_eq`: it is the
   only such orientation.
 * `SymplecticGeometry.CoordinateDisc.cubeToSphere_apply`: the formula of the coordinate disc,
-  through `TauCeti.squareOfOffset`.
+  through `SymplecticGeometry.squareOfOffset`.
 * `SymplecticGeometry.CoordinateDisc.disc_cubeToSphere`,
   `SymplecticGeometry.CoordinateDisc.openDisc_cubeToSphere`: its closed and open discs in the
   coordinates of the square.

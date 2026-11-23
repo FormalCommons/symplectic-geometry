@@ -22,36 +22,37 @@ normal distance `max r 0` from the boundary, and is continuous. On `[0, ∞)` it
 the model with corners of the half-line, composed with a linear map, so it is smooth there, up to
 the boundary point `0`. Restricted to `(-∞, 1)`, the ray takes values in the open segment
 `normalIioOpens 1`, the normal factor of a collar; this gives the depth map
-`TauCeti.EuclideanHalfSpace.normalIioRay`. Gluing pieces such as `(-1, ∞) × ∂W` to a collar read
-the depth along `s ↦ -s`; the file gives that depth map and the map `t ↦ -t` back, for any open
-set of reals between `(-1, 0]` and `(-1, ∞)`, and likewise the depth `max s 0` and the map
-`t ↦ t` back, for any open set of reals between `[0, 1)` and `(-∞, 1)`. The maps `t ↦ -t` and
-`t ↦ t` from depths are immersions, the depth `0` included, since the coordinate of the
-half-line is one, and local diffeomorphisms at positive depth.
+`SymplecticGeometry.EuclideanHalfSpace.normalIioRay`. Gluing pieces such as `(-1, ∞) × ∂W` to a
+collar read the depth along `s ↦ -s`; the file gives that depth map and the map `t ↦ -t`
+back, for any open set of reals between `(-1, 0]` and `(-1, ∞)`, and likewise the depth
+`max s 0` and the map `t ↦ t` back, for any open set of reals between `[0, 1)` and `(-∞, 1)`.
+The maps `t ↦ -t` and `t ↦ t` from depths are immersions, the depth `0` included, since the
+coordinate of the half-line is one, and local diffeomorphisms at positive depth.
 
 ## Main definitions
 
-* `TauCeti.EuclideanHalfSpace.normalIioRay`: the normal ray on `(-∞, 1)`, as a map into
+* `SymplecticGeometry.EuclideanHalfSpace.normalIioRay`: the normal ray on `(-∞, 1)`, as a map into
   `normalIioOpens 1`.
-* `TauCeti.EuclideanHalfSpace.negNormalIioRay`, `negNormalCoord`: the depth `max (-s) 0` of a
-  point `s > -1`, and the point `-t` at a depth `t`.
-* `TauCeti.EuclideanHalfSpace.posNormalIioRay`, `posNormalCoord`: the depth `max s 0` of a point
-  `s < 1`, and the point `t` at a depth `t`.
+* `SymplecticGeometry.EuclideanHalfSpace.negNormalIioRay`, `negNormalCoord`: the depth
+  `max (-s) 0` of a point `s > -1`, and the point `-t` at a depth `t`.
+* `SymplecticGeometry.EuclideanHalfSpace.posNormalIioRay`, `posNormalCoord`: the depth
+  `max s 0` of a point `s < 1`, and the point `t` at a depth `t`.
 
 ## Main results
 
 * `TauCeti.EuclideanHalfSpace.contMDiffOn_normalRay`: the normal ray is smooth on `[0, ∞)`.
 * `TauCeti.EuclideanHalfSpace.normalRay_mem_normalIioOpens`: the normal ray at `r` lies in
   `normalIioOpens ε`, for `ε > 0`, exactly when `r < ε`.
-* `TauCeti.EuclideanHalfSpace.continuous_normalIioRay` and
+* `SymplecticGeometry.EuclideanHalfSpace.continuous_normalIioRay` and
   `ContMDiffAt.normalIioRay`: the depth map is continuous, and smooth at positive depth.
-* `TauCeti.EuclideanHalfSpace.negNormalIioRay_negNormalCoord` and
+* `SymplecticGeometry.EuclideanHalfSpace.negNormalIioRay_negNormalCoord` and
   `negNormalCoord_negNormalIioRay`: the two maps are inverse to each other on `(-1, 0]`.
-* `TauCeti.EuclideanHalfSpace.posNormalIioRay_posNormalCoord` and
+* `SymplecticGeometry.EuclideanHalfSpace.posNormalIioRay_posNormalCoord` and
   `posNormalCoord_posNormalIioRay`: the two maps are inverse to each other on `[0, 1)`.
-* `TauCeti.EuclideanHalfSpace.isImmersionAt_negNormalCoord`, `isImmersionAt_posNormalCoord`,
-  `isLocalDiffeomorphAt_negNormalCoord` and `isLocalDiffeomorphAt_posNormalCoord`: the maps
-  `t ↦ -t` and `t ↦ t` from depths are immersions, and local diffeomorphisms at positive depth.
+* `SymplecticGeometry.EuclideanHalfSpace.isImmersionAt_negNormalCoord`,
+  `isImmersionAt_posNormalCoord`, `isLocalDiffeomorphAt_negNormalCoord` and
+  `isLocalDiffeomorphAt_posNormalCoord`: the maps `t ↦ -t` and `t ↦ t` from depths are
+  immersions, and local diffeomorphisms at positive depth.
 -/
 
 public section
@@ -73,6 +74,12 @@ theorem contMDiffOn_normalRay {n : WithTop ℕ∞} :
 theorem normalRay_mem_normalIioOpens {ε r : ℝ} (hε : 0 < ε) :
     normalRay r ∈ normalIioOpens ε ↔ r < ε := by
   rw [mem_normalIioOpens, normalRay_coe_apply, max_lt_iff, and_iff_left hε]
+
+end TauCeti.EuclideanHalfSpace
+
+namespace SymplecticGeometry.EuclideanHalfSpace
+
+open TauCeti TauCeti.EuclideanHalfSpace
 
 /-- The normal ray on `(-∞, 1)`, as a map into the open segment `normalIioOpens 1`: the point of
 `[0, 1)` at depth `max r 0`. -/
@@ -333,11 +340,11 @@ theorem isLocalDiffeomorphAt_posNormalCoord (hS : Ico 0 1 ⊆ (S : Set ℝ))
   rw [val_comp_posNormalCoord]
   exact isLocalDiffeomorphAt_opens_val_zero ht
 
-end TauCeti.EuclideanHalfSpace
+end SymplecticGeometry.EuclideanHalfSpace
 
 namespace ContMDiffAt
 
-open TauCeti.EuclideanHalfSpace
+open TauCeti.EuclideanHalfSpace SymplecticGeometry.EuclideanHalfSpace
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]

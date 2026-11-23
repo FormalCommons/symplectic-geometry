@@ -253,8 +253,8 @@ below, its contractibility issue for issue 6, and its homotopy-equivalence
 issue for issues 4, 5 and 6.
 The two formulas:
 
-1. `TauCeti.metricPolarFormula`, the formula for $(g,\omega)\mapsto J_{g,\omega}$, on
-   the open set `TauCeti.polarDomain W` of pairs of continuous bilinear forms. It is
+1. `SymplecticGeometry.metricPolarFormula`, the formula for $(g,\omega)\mapsto J_{g,\omega}$, on
+   the open set `SymplecticGeometry.polarDomain W` of pairs of continuous bilinear forms. It is
    Tau Ceti's coordinate expression for the polar structure, the right-hand
    side of `conjContinuousAlgEquiv_toContinuousLinearMap_polarComplexStructure`,
    applied to the symmetric part of its first argument and the skew part of
@@ -267,7 +267,7 @@ The two formulas:
    pair on `V` is carried to `W` along any `e : V ≃L[ℝ] W`, and the value
    there is $J_{g,\omega}$ conjugated by `e`.
 2. The Cayley path `TauCeti.cayleyPathFormula b A B`, on the open set
-   `TauCeti.cayleyDomain` of triples $(b,A,B)$ where its two
+   `SymplecticGeometry.cayleyDomain` of triples $(b,A,B)$ where its two
    denominators are invertible. The `B` with `(b, J₀, B)` in it for all
    $b\in[0,1]$ form the set $U_{J_0}$ of `DESIGN.md`. The domain contains
    $[0,1]\times\{(J_0,J)\}$ for $J_0$ $\omega$-compatible and $J$ $\omega$-tame. The reference structure is a
@@ -343,11 +343,12 @@ The part uses the following from other parts:
 Namespaces follow `AGENTS.md`. A declaration that mentions only Tau Ceti's
 notions goes in their namespace, so that it can move there unchanged. That
 covers the `Compatible` lemmas and the instance on `SymplecticForm V` (in
-`TauCeti.SymplecticForm`), the Cayley domain and the polar formula
-`metricPolarFormula` with its domain (in `TauCeti`), and the tame
-homotopy equivalence (in `TauCeti.SymplecticForm`). Declarations that involve
-the library's own notions (`innerProducts`, `StdSpace`,
-`metricPolarComplexStructure`) go in `SymplecticGeometry`. The statements
+`TauCeti.SymplecticForm`), and the tame homotopy equivalence (in
+`TauCeti.SymplecticForm`). The library's own definitions, among them the
+Cayley domain and the polar formula `metricPolarFormula` with its domain,
+and the declarations that involve them or the library's other notions
+(`innerProducts`, `StdSpace`, `metricPolarComplexStructure`) go in
+`SymplecticGeometry`. The statements
 below are written with `variable {V : Type*} [AddCommGroup V] [Module ℝ V]
 {ω : TauCeti.SymplecticForm V} {J : TauCeti.AlmostComplexStructure V}`, and
 with the normed variables of *Topologies* in the topological files. Only the
@@ -386,13 +387,14 @@ request updates it to the files below. Each change, with its reason:
   `SymplecticForm V`.
 - **New `Geometry/Symplectic/Cayley/Domain.lean`.** The open set where the
   Cayley path is smooth is used by two files of this part. *Symplectic
-  vector bundles* uses this file, for `TauCeti.cayleyDomain`, the openness
-  lemma `TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain` and
+  vector bundles* uses this file, for `SymplecticGeometry.cayleyDomain`, the openness
+  lemma `SymplecticGeometry.isOpen_setOf_forall_Icc_mem_cayleyDomain` and
   `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`; of the other files
   of this part it uses only the two of `PolarComplexStructure/`.
   It involves only Tau Ceti's `cayleyPathFormula`, so it goes in the folder
-  of Tau Ceti's `Cayley/Smooth.lean`, which it extends, and can
-  move there unchanged.
+  of Tau Ceti's `Cayley/Smooth.lean`, which it extends; its own
+  declarations are in `SymplecticGeometry`, so a move there needs a new
+  namespace.
 - **New `Geometry/Symplectic/Darboux/EuclideanBasis.lean`.** The complex
   linearity of `b.darbouxBasisEquiv` for a basis adapted to $J$ is stated
   with Tau Ceti's notions alone and does not need a symplectic form, so it
@@ -710,12 +712,12 @@ inner product spaces, and `s♯` is Tau Ceti's Riesz map
 `continuousLinearMapOfBilin s`, as in Tau Ceti's file. The skew part of `s`
 is `ContinuousLinearMap.skewSymmetrizeBilinear s`.
 
-The domain, the formula and their smoothness and naturality mention only
+The domain and the formula are the library's own definitions, built from
 continuous bilinear forms and Tau Ceti's operations on them
 (`metricChangeTransport`, `continuousLinearMapOfBilin`, `CFC.sqrt`,
-`Ring.inverse`), so by the namespace rule above they go in `TauCeti`, next
-to `cayleyPathFormula`. The declarations that involve `innerProducts` or
-`metricPolarComplexStructure` (`mem_polarDomain`, `metricPolarFormula_eq`,
+`Ring.inverse`), so they, their smoothness and naturality, and the
+declarations that involve `innerProducts` or `metricPolarComplexStructure`
+(`mem_polarDomain`, `metricPolarFormula_eq`,
 `metricPolarFormula_eq_of_toContinuousBilinearMap_eq`,
 `metricPolarFormula_eq_of_mem` and `continuous_metricPolarComplexStructure`)
 are in `SymplecticGeometry`.
@@ -729,7 +731,7 @@ The file uses helpers stated in their own files:
 `ContinuousLinearMap.skewSymmetrizeBilinear`
 (`Topology/Algebra/Module/BilinearForm.lean`).
 
-- `TauCeti.polarDomain (V) : Set ((V →L[ℝ] V →L[ℝ] ℝ) ×
+- `SymplecticGeometry.polarDomain (V) : Set ((V →L[ℝ] V →L[ℝ] ℝ) ×
   (V →L[ℝ] V →L[ℝ] ℝ))`, for any real normed space `V`, since it uses no
   inner product: `{p | (∀ v, v ≠ 0 → 0 < p.1 v v) ∧
   (p.2 - p.2.flip).toBilinForm.Nondegenerate}`. The condition is on
@@ -750,7 +752,7 @@ The file uses helpers stated in their own files:
   `nondegenerate_toBilinForm_skewSymmetrizeBilinear_iff` and
   `skewSymmetrizeBilinear_toContinuousBilinearMap`. It is in `SymplecticGeometry` because
   it mentions `innerProducts`.
-- `TauCeti.metricPolarFormula (g s : W →L[ℝ] W →L[ℝ] ℝ) : W →L[ℝ] W`. With
+- `SymplecticGeometry.metricPolarFormula (g s : W →L[ℝ] W →L[ℝ] ℝ) : W →L[ℝ] W`. With
   `g' := (symmetrizeBilinear g).val` (Tau Ceti's
   `ContinuousLinearMap.symmetrizeBilinear`), `R := g'.metricChangeTransport`
   and `A := R * (skewSymmetrizeBilinear s)♯ * R`, it is Tau Ceti's expression
@@ -778,7 +780,7 @@ The file uses helpers stated in their own files:
   part of `g` is `g` (Tau Ceti's `symmetrizeBilinear_coe`) and the skew part
   of `ω` is `ω` (`skewSymmetrizeBilinear_toContinuousBilinearMap`). The
   formula is not derived a second time.
-- `TauCeti.contDiffOn_metricPolarFormula {n : WithTop ℕ∞} :
+- `SymplecticGeometry.contDiffOn_metricPolarFormula {n : WithTop ℕ∞} :
   ContDiffOn ℝ n (fun p ↦ metricPolarFormula p.1 p.2) (polarDomain W)`. The
   proof composes the symmetrization (a continuous linear map),
   `ContDiffOn.metricChangeTransport`,
@@ -795,9 +797,9 @@ The file uses helpers stated in their own files:
   `contMDiffAt_metricChangeTransport_mul_mul_sqrt`
   (`Geometry/Symplectic/Manifold/AlmostComplex/Polar.lean`). That lemma is
   private and stated for families on a manifold, so it cannot be used here.
-  The library states the pointwise version once, in Tau Ceti's style and
-  namespace, so that it can replace the private lemma upstream.
-- `TauCeti.metricPolarFormula_symmetrizeBilinear_skewSymmetrizeBilinear
+  The library states the pointwise version once, as
+  `SymplecticGeometry.contDiffOn_metricPolarFormula`.
+- `SymplecticGeometry.metricPolarFormula_symmetrizeBilinear_skewSymmetrizeBilinear
   (g s : W →L[ℝ] W →L[ℝ] ℝ) :
   metricPolarFormula (symmetrizeBilinear g).val (skewSymmetrizeBilinear s) =
   metricPolarFormula g s`: the formula depends only on the symmetric part of
@@ -817,7 +819,7 @@ The file uses helpers stated in their own files:
   (nondegenerate_toBilinForm_of_mem_polarDomain h))).toLinearMap`: on the
   domain, the formula is $J_{g',\omega'}$, for the symmetric part `g'` of `g`
   and the symplectic form `ω'` whose bilinear form is the skew part of `s`.
-- `TauCeti.metricPolarFormula_conj (e : W ≃L[ℝ] W') {g s : W →L[ℝ] W →L[ℝ] ℝ}
+- `SymplecticGeometry.metricPolarFormula_conj (e : W ≃L[ℝ] W') {g s : W →L[ℝ] W →L[ℝ] ℝ}
   (h : (g, s) ∈ polarDomain W) :
   metricPolarFormula (e.bilinearCongr g) (e.bilinearCongr s) =
   e.conjContinuousAlgEquiv (metricPolarFormula g s)`: on `polarDomain W`,
@@ -843,10 +845,12 @@ The file uses helpers stated in their own files:
 
 ### `Geometry/Symplectic/Cayley/Domain.lean`
 
-The domain of the Cayley path, in a complete normed `ℝ`-algebra `R`. Every
-declaration here is about Tau Ceti's `cayleyFormula` and `cayleyPathFormula`
-alone, so they go in `TauCeti`, next to `TauCeti.contDiffAt_cayleyPathFormula`,
-and `Compatible.mem_cayleyDomain` in `TauCeti.SymplecticForm`.
+The domain of the Cayley path, in a complete normed `ℝ`-algebra `R`.
+`cayleyDomain` and its lemmas are the library's own declarations, in
+`SymplecticGeometry`. The `Compatible.*` lemmas are in `TauCeti.SymplecticForm`,
+and the lemmas about Tau Ceti's `cayleyPathFormula` and `cayleyFormula` alone
+(`cayleyPathFormula_zero`, `cayleyPathFormula_one`, `contDiffAt_cayleyFormula`)
+stay in `TauCeti`.
 
 - `cayleyDomain (R) : Set (ℝ × R × R) := {q | IsUnit (1 - q.2.1 * q.2.2) ∧
   IsUnit (1 - q.1 • cayleyFormula q.2.1 q.2.2)}`, with `@[simp]`
@@ -1213,7 +1217,7 @@ Each is a few hundred lines. External blockers are given by issue number.
 Issues 1, 3 and 6 can start at once. The contractibility issue of
 *Symplectic vector bundles* uses the same open set of Cayley units over
 $[0,1]$ as issue 6 here, through
-`TauCeti.isOpen_setOf_forall_Icc_mem_cayleyDomain`, and the tame structures
+`SymplecticGeometry.isOpen_setOf_forall_Icc_mem_cayleyDomain`, and the tame structures
 lie in it by `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`, so it
 waits for issue 6. That part's existence issue (building issue 6 of
 `design/symplectic-vector-bundles.md`) proves the smoothness of its

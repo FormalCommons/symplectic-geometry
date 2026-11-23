@@ -648,14 +648,16 @@ theorem _root_.TauCeti.IsLegendrianImmersion.finrank_prod_dual_add_one
 private def zeroSectionOpens [J.Boundaryless] (N : Opens (CotangentBundle J L))
     (hN : ∀ q, zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q ∈ N) :
     SmoothEmbedding J (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) ∞ L N :=
-  (Bundle.zeroSectionEmbedding J (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ)).codRestrict
-    N fun q ↦ by rw [Bundle.coe_zeroSectionEmbedding]; exact hN q
+  (SymplecticGeometry.Bundle.zeroSectionEmbedding J (E' →L[ℝ] ℝ)
+    (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ)).codRestrict
+    N fun q ↦ by rw [SymplecticGeometry.Bundle.coe_zeroSectionEmbedding]; exact hN q
 
 private theorem coe_zeroSectionOpens_apply [J.Boundaryless] (N : Opens (CotangentBundle J L))
     (hN : ∀ q, zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q ∈ N) (q : L) :
     ((zeroSectionOpens N hN q : N) : CotangentBundle J L) =
       zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q := by
-  rw [zeroSectionOpens, SmoothEmbedding.val_codRestrict_apply, Bundle.coe_zeroSectionEmbedding]
+  rw [zeroSectionOpens, SmoothEmbedding.val_codRestrict_apply,
+    SymplecticGeometry.Bundle.coe_zeroSectionEmbedding]
 
 /-- Step 2 of the proof: given a map `κ` from an open neighbourhood `N` of the zero section of
 `T^* L` into `M`, which is `f` on the zero section and for which `-d(κ^* α)` is symplectic, the
