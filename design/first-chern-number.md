@@ -661,7 +661,7 @@ collar of `∂S` (one exists: the instance `Nonempty (SmoothCollar n ∞ W)` of
   `(Double.orientation o).toHomologicalOrientation`, of `Ψ` read on the
   level set through `bandProj`. Proof: `boundaryMaslovIndex_comp_homeomorph`
   (18a) along `Double.homeomorphSublevel` (18g); the orientations agree since
-  `inl` preserves orientation from `o` (18f), by
+  `inlInterior` preserves orientation from `o` (18f), by
   `TauCeti.Manifold.Orientation.comap_toHomologicalOrientation`, the
   pull-back of `toHomologicalOrientation` along an orientation-preserving
   open embedding that is a local diffeomorphism, from
@@ -672,8 +672,9 @@ collar of `∂S` (one exists: the instance `Nonempty (SmoothCollar n ∞ W)` of
   `Matrix.symplecticGroup κ ℝ` (through
   `TauCeti.GLSymplectic.symplecticGroupContinuousMulEquiv`): the bundle
   `symplecticClutchingCore` (18c) over `c.Double` with
-  `U₁ = range inl ∪ band`, `U₂ = range inr ∪ band`, where `band` is the open
-  image of `(-1, 1) × ∂S`, and `T = Ψ ∘ bandProj` on `U₁ ∩ U₂ = band`.
+  `U₁ = range inlInterior ∪ band`, `U₂ = range inrInterior ∪ band`, where
+  `band` is the open image of `(-1, 1) × ∂S`, and `T = Ψ ∘ bandProj` on
+  `U₁ ∩ U₂ = band`.
   `U₁` contains `{height ≤ 0}` and `U₂` contains `{height ≥ 0}`.
 - `symplecticChernNumber_doubleClutching`: its number is
   `o.boundaryMaslovIndex Ψ`. Proof: the two frames of 18c restricted to
@@ -710,7 +711,8 @@ collar of `∂S` (one exists: the instance `Nonempty (SmoothCollar n ∞ W)` of
     continuous `A` on `U₁` and `B` on `U₂` with values in the symplectic
     group, and `B = A Ψ'` on the band, since there the second frame is the
     first composed with `Ψ'`. On `∂S` the two inclusions of `S` agree, so
-    `(A ∘ inclusionLeft)⁻¹ * (B ∘ inclusionRight)` extends `Ψ'` over `S`.
+    `(A ∘ DoubleAlong.inl _)⁻¹ * (B ∘ DoubleAlong.inr _)` extends `Ψ'` over
+    `S`.
     Last, the homotopy extension property of the collared boundary (18b,
     applied to `TauCeti.isCollared_subtypeVal_boundary_of_compactSpace`)
     with `TauCeti.HasHomotopyExtensionProperty.exists_homotopy_of_restrict`
@@ -1513,10 +1515,20 @@ issues, in an order where each issue's blockers come before it.
     `Analysis/Matrix/SymplecticGroup/Maslov.lean`. Blocked by 7 and 12.
 
 The extension lemma, issue 18, comes after its own issues 18a–18h, in the
-route of `Extension.lean`. The double is glued as
-`TauCeti.SmoothCollar.WithEnd` is in `Boundary/Collar/End.lean`, for a
-manifold `W` over `𝓡∂ (n + 1)` with a smooth collar `c`; 18d–18g hold in
-every dimension, as `End.lean` does.
+route of `Extension.lean`. For a manifold `W` over `𝓡∂ (n + 1)` with a
+smooth collar `c`, the double `c.Double` is Tau Ceti's topological double
+`TauCeti.DoubleAlong ((𝓡∂ (n + 1)).boundary W)`, as Tau Ceti's
+`TauCeti.SchottkyDouble` is, so its topology (`DoubleAlong.inl`,
+`DoubleAlong.inr`, `inl_coe_eq_inr`, `inl_eq_inr_iff`, compactness,
+`isClosedEmbedding_inl`, `isOpenEmbedding_inl_compl`,
+`disjoint_image_compl`, `t2Space`, with their `inr` forms) is cited, not
+proved again. Its smooth structure is glued from open embeddings by
+`TauCeti.chartedSpaceOfIsOpenEmbedding` and
+`TauCeti.isManifold_chartedSpaceOfIsOpenEmbedding`
+(`Geometry/Manifold/Gluing/Basic.lean`), with the band read in collar
+coordinates as `TauCeti.SmoothCollar.WithEnd` reads its end in
+`Boundary/Collar/End.lean`; 18d–18g hold in every dimension, as `End.lean`
+does.
 
 18a. **Boundary degrees under homeomorphisms.**
     `TauCeti.HomologicalOrientation.boundaryDegree_comp_homeomorph` in
@@ -1560,39 +1572,52 @@ every dimension, as `End.lean` does.
     at `v` is the first at `T x v`. Can start at once.
 18d. **The double along a collar.**
     `Geometry/Manifold/Boundary/Collar/Double/Basic.lean`:
-    `TauCeti.SmoothCollar.Double c`, glued (`TopCat.GlueData`) from two
-    copies of the interior of `W` (`SymplecticGeometry.InteriorModel`) and
-    the band `(-1, 1) × ∂W` re-modelled on `ℝⁿ⁺¹`
-    (`SymplecticGeometry.Remodel`), the band point `(s, x)` being
-    `c (x, -s)` in the first copy for `s < 0` and `c (x, s)` in the second
-    for `s > 0`; it is a smooth manifold by
-    `TopCat.GlueData.IsCompatible.isManifold`. The maps `Double.inl`,
-    `Double.inr` of the two interiors and `Double.bandMap` of the band
-    (on `ℝ × ∂W`, as `WithEnd.endMap`), with `isLocalDiffeomorph_inl`,
-    `isLocalDiffeomorph_inr`, `isOpenEmbedding_inl`, `isOpenEmbedding_inr`,
-    `isLocalDiffeomorphOn_bandMap` and `injOn_bandMap` on
-    `Ioo (-1) 1 ×ˢ univ`, the gluing formulas `bandMap_eq_inl` and
-    `bandMap_eq_inr`, `disjoint_range_inl_inr`, the cover by the three
-    ranges, and `Double.bandProj : c.Double → ∂W`, smooth on the band, with
+    `TauCeti.SmoothCollar.Double c`, an `abbrev` for
+    `DoubleAlong ((𝓡∂ (n + 1)).boundary W)`, in the universe of `W`. The
+    band map `Double.bandMap : ℝ × ∂W → c.Double` (as `WithEnd.endMap`)
+    sends `(s, x)` to `DoubleAlong.inl _ (c (x, -s))` for `s ∈ (-1, 0]` and
+    to `DoubleAlong.inr _ (c (x, s))` for `s ∈ [0, 1)`; the two agree at
+    `s = 0` by `inl_coe_eq_inr`. With `bandMap_of_nonpos`,
+    `bandMap_of_nonneg`, `injOn_bandMap` and `isOpenMap` of its restriction
+    to `Ioo (-1) 1 ×ˢ univ`, whose image is open. The pieces are the
+    interior of `W` (`SymplecticGeometry.InteriorModel`), embedded twice by
+    `Double.inlInterior` and `Double.inrInterior`, `DoubleAlong.inl` and
+    `DoubleAlong.inr` on the interior (`inlInterior_apply`,
+    `inrInterior_apply`), open embeddings by `isOpenEmbedding_inl_compl`
+    and `isOpenEmbedding_inr_compl` (the interior is the complement of the
+    closed boundary, `ModelWithCorners.isClosed_boundary`), and the band
+    `(-1, 1) × ∂W` re-modelled on `ℝⁿ⁺¹`
+    (`SymplecticGeometry.Remodel`), embedded by `bandMap`. They cover
+    `c.Double`, and their transition maps are smooth: between an interior
+    copy and the band they are `c` and its inverse read in
+    `TauCeti.SmoothCollar.interiorModelCoord`, with the sign of `s` flipped
+    on the first copy. So `chartedSpaceOfIsOpenEmbedding` and
+    `isManifold_chartedSpaceOfIsOpenEmbedding` make `c.Double` a smooth
+    manifold over `𝓡 (n + 1)`. Then `isLocalDiffeomorph_inlInterior`,
+    `isLocalDiffeomorph_inrInterior`, `isLocalDiffeomorphOn_bandMap` on
+    `Ioo (-1) 1 ×ˢ univ`, the cover by the three ranges, and
+    `Double.bandProj : c.Double → ∂W`, smooth on the band, with
     `bandProj (bandMap (s, x)) = x` for `s ∈ (-1, 1)`. Can start at once.
-18e. **The double is a closed manifold.**
-    `Geometry/Manifold/Boundary/Collar/Double/Topology.lean`: `c.Double` is
-    Hausdorff when `W` is, compact when `W` is, and connected when `W` is
-    connected with nonempty boundary (the interior is connected,
-    `ModelWithCorners.connectedSpace_interiorOpens`, and both copies meet
-    the band at depth `0`). The two copies of the whole of `W`,
-    `Double.inclusionLeft`, `Double.inclusionRight : C(W, c.Double)`, are
-    closed embeddings, `inl` and `inr` on the interior, with
-    `inclusionLeft (c (x, t)) = bandMap (-t, x)`,
-    `inclusionRight (c (x, t)) = bandMap (t, x)`, so they agree on `∂W`.
-    Blocked by 18d.
+18e. **The double is a closed manifold.** The topology of `c.Double` is
+    Tau Ceti's, except connectedness, which it lacks.
+    `TauCeti.DoubleAlong.connectedSpace` in
+    `Topology/Constructions/DoubleAlong/Connected.lean`: the double of a
+    connected space along a nonempty subset is connected (both copies are
+    connected and meet along the subset). In
+    `Geometry/Manifold/Boundary/Collar/Double/Topology.lean`, the instance
+    `T2Space c.Double` for Hausdorff `W`, from `DoubleAlong.t2Space` and
+    `ModelWithCorners.isClosed_boundary`; compactness is Tau Ceti's
+    instance. So `c.Double` is connected when `W` is connected with
+    nonempty boundary. The two copies of `W` are `DoubleAlong.inl` and
+    `DoubleAlong.inr`, and their closed-embedding, agreement and
+    open-interior facts are Tau Ceti's. Blocked by 18d.
 18f. **The orientation of the double.**
     `Geometry/Manifold/Boundary/Collar/Double/Orientation.lean`: for an
     orientation `o` of the interior of `W`, `Double.orientation o`, glued by
     `TauCeti.Manifold.Orientation.iGlue`, with
-    `isOrientationPreservingAt_inl` (from `o`) and
-    `isOrientationPreservingAt_inr` (from `-o`): the band coordinate is
-    reflected between the two copies. The comparison on the band uses
+    `isOrientationPreservingAt_inlInterior` (from `o`) and
+    `isOrientationPreservingAt_inrInterior` (from `-o`): the band coordinate
+    is reflected between the two copies. The comparison on the band uses
     `TauCeti.SmoothCollar.orientationSign_eq_neg_one_pow`, as
     `Gluing/CapDiscs/Orientation.lean` does. Blocked by 18d.
 18g. **The height function of the double.**
@@ -1601,10 +1626,10 @@ every dimension, as `End.lean` does.
     collar, `1` on the second, and on the band an odd function of `s` equal
     to `s` near `0` and nonzero for `s ≠ 0`; `contMDiff_height`,
     `isRegularValue_height_zero`, `preimage_height_Iic` (the range of
-    `inclusionLeft`), `preimage_height_Iio` (the range of `inl`),
+    `DoubleAlong.inl`), `preimage_height_Iio` (the range of `inlInterior`),
     `preimage_height_zero` (`bandMap '' ({0} ×ˢ univ)`), and
     `Double.homeomorphSublevel : W ≃ₜ height ⁻¹' Iic 0`, from
-    `inclusionLeft`, which maps the interior onto `{height < 0}`. Blocked
+    `DoubleAlong.inl`, which maps the interior onto `{height < 0}`. Blocked
     by 18e.
 18h. **The clutched bundle over the double.** `DoubleClutching.lean`.
     Blocked by 18a, 18c, 18f and 18g.
