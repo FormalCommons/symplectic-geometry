@@ -7,6 +7,7 @@ module
 
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.RelativeFundamentalClass
 public import TauCeti.AlgebraicTopology.Singular.Relative
+public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.OpenEmbedding
 
 /-!
 # The boundary class of a compact manifold with collared boundary
@@ -32,7 +33,9 @@ fundamental class `[X, ∂X]` to the *boundary class* `∂[X, ∂X] ∈ Hₙ(∂
   restricts to a homeomorphism `φ : M ≃ₜ M'` carries the relative fundamental class and the
   boundary class for `o'.comap φ` to those for `o'`. The first follows from the uniqueness of the
   relative fundamental class (`TauCeti.HomologicalOrientation.eq_fundamentalClassRel`), the second
-  from it by naturality of the connecting morphism.
+  from it by naturality of the connecting morphism. The proof of the first adapts that of Tau
+  Ceti's `TauCeti.HomologicalOrientation.localHomologyMap_fundamentalClassOn_comap` from the
+  fundamental class along a compact set to the relative fundamental class.
 
 ## References
 
@@ -113,19 +116,12 @@ theorem localHomologyMap_fundamentalClassRel_comap {d : ℕ} (o' : HomologicalOr
   set R := ModuleCat.of ℤ (ULift.{0} ℤ)
   have hx : (h : C(X, X')) ⁻¹' {ι' (φ x)} ⊆ {ι x} := fun y hy ↦
     h.injective (hy.trans (congrFun hφ x).symm)
-  -- On local homology at `x`, `h ∘ ι = ι' ∘ φ` induces the same map both ways.
-  have key : ∀ v, localHomologyMap R (h : C(X, X')) hx d
-      ((localHomologyIsoOfIsOpenEmbedding R hι x d).hom v) =
-        (localHomologyIsoOfIsOpenEmbedding R hι' (φ x) d).hom
-          ((localHomologyIsoOfIsOpenEmbedding R φ.isOpenEmbedding x d).hom v) := fun v ↦ by
-    simp only [localHomologyIsoOfIsOpenEmbedding_hom, ← ConcreteCategory.comp_apply,
-      localHomologyMap_comp]
-    congr 3
-    exact ContinuousMap.ext fun y ↦ congrFun hφ y
   rw [← ConcreteCategory.comp_apply, localHomologyMap_comp_localHomologyRestriction,
     ← localHomologyRestriction_comp_localHomologyMap R _ (singleton_subset_iff.2 (mem_range_self x))
       hx, ConcreteCategory.comp_apply, localHomologyRestriction_fundamentalClassRel, comap_apply,
-    IsOpenEmbedding.coe_localOrientationEquiv_symm, key, Iso.inv_hom_id_apply]
+    IsOpenEmbedding.coe_localOrientationEquiv_symm, ← ConcreteCategory.comp_apply,
+    localHomologyIsoOfIsOpenEmbedding_hom_comp_localHomologyMap R hι hι' φ.isOpenEmbedding _ hφ,
+    ConcreteCategory.comp_apply, Iso.inv_hom_id_apply]
 
 /-- **The boundary class under a homeomorphism.** Let `h : X ≃ₜ X'` and `φ : M ≃ₜ M'` be
 homeomorphisms with `h ∘ ι = ι' ∘ φ`, for two instances of the setting of the boundary class, and
@@ -147,9 +143,7 @@ theorem map_boundaryClass_comap (o' : HomologicalOrientation M' E (n + 1))
   have hsnd : TopPair.Hom.snd F = TopCat.ofHom g := by
     ext z
     refine Subtype.ext ?_
-    -- The subspace of `TopPair.ofSubset` is the subtype only after unfolding the pair.
-    erw [TopPair.ofSubsetMap_snd_apply]
-    exact (hg z).symm
+    exact (TopPair.ofSubsetMap_snd_apply _ _ z).trans (hg z).symm
   have hnat := ConcreteCategory.congr_hom
     (TopPair.singularHomologyδ_naturality (ModuleCat.of ℤ (ULift.{0} ℤ)) F (n + 1) n rfl)
     ((o'.comap φ.isOpenEmbedding).fundamentalClassRel hn hι hιf hf)
