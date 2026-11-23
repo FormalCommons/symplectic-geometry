@@ -433,8 +433,9 @@ but the predicate below, as in Tau Ceti for $TM$.
   alternating bundles. Both that map and its inverse are precompositions by
   a $C^n$ section of a hom bundle, so they are $C^n$ on total spaces by
   `contMDiff_compContinuousLinearMap_totalSpace` (this library's
-  `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean`, root
-  namespace, any arity and coefficient bundle). For the map the section is
+  `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean`,
+  namespace `SymplecticGeometry`, any arity and coefficient bundle). For
+  the map the section is
   $x\mapsto\Phi_x^{-1}$, given by `contMDiff_hom_bundle_symm` (this
   library's `Geometry/Manifold/VectorBundle/Hom.lean`, root namespace, shared
   with the transport of complex structures); for its inverse it is
