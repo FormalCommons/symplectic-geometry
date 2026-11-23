@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Double.Basic
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Interior
-import SymplecticGeometry.Geometry.Manifold.Instances.HalfLine
+import SymplecticGeometry.Geometry.Manifold.Instances.HalfLine.Basic
 import SymplecticGeometry.Geometry.Manifold.Orientation.Glue
 import TauCeti.Geometry.Manifold.Orientation.Pullback
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
