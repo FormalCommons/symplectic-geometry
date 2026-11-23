@@ -413,7 +413,8 @@ theorem contMDiff_normalSplitting (hdim : finrank ℝ P = finrank ℝ E - finran
         (E₂ := fun x ↦ f.NormalSpace x hn) (F₁ := E') (F₂ := P) (n := ((⊤ : ℕ∞) : WithTop ℕ∞)))
     refine (h₁.add_sectionAlong h₂).congr fun p ↦ ?_
     exact congrArg (TotalSpace.mk p.proj) (normalSplitting_symm_apply hJ hω p.proj p.snd)
-  have h := contMDiff_hom_bundle_symm (fun x ↦ (f.normalSplitting hJ ω hω x).symm) hΨ
+  have h :=
+    SymplecticGeometry.contMDiff_hom_bundle_symm (fun x ↦ (f.normalSplitting hJ ω hω x).symm) hΨ
   simp only [ContinuousLinearEquiv.symm_symm] at h
   exact (TauCeti.contMDiff_hom_bundle_iff _).1 h
 
