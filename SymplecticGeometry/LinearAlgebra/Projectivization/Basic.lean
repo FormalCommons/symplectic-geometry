@@ -27,8 +27,9 @@ For a linear form `φ` on a vector space `V` over a field `K`, every point `x` o
 * `Projectivization.apply_smul_normalizedRep`: a vector `u` of the line `x` is
   `φ u • normalizedRep φ x`.
 * `Projectivization.mk_eq_of_mem_submodule`: a nonzero vector of a line spans it.
-* `Projectivization.mem_range_map_iff`: a point is in the image of the map induced by an
-  injective linear map `f` exactly when its representative is in the range of `f`.
+* `Projectivization.mem_range_map_iff`: over a division ring, a point is in the image of the map
+  induced by an injective linear map `f` exactly when its representative is in the range of
+  `f`.
 * `Projectivization.affineOpen_eq_linearProjectionDomain`: the standard affine open `U_i` of
   `ℙ K (ι → K)`, over a division ring `K`, is the set where the `i`-th coordinate form does not
   vanish.
@@ -51,6 +52,23 @@ theorem affineOpen_eq_linearProjectionDomain {K : Type*} [DivisionRing K] {ι : 
     affineOpen (K := K) i = linearProjectionDomain (LinearMap.proj (R := K) i) := by
   ext x
   rw [mem_affineOpen_iff, mem_linearProjectionDomain_iff, LinearMap.proj_apply]
+
+/-- A point of `ℙ K W` lies in the image of the map induced by an injective linear map `f`
+exactly when its representative lies in the range of `f`. -/
+theorem mem_range_map_iff {K V W : Type*} [DivisionRing K] [AddCommGroup V] [Module K V]
+    [AddCommGroup W] [Module K W] {f : V →ₗ[K] W} (hf : Function.Injective f) {x : ℙ K W} :
+    x ∈ Set.range (map f hf) ↔ x.rep ∈ LinearMap.range f := by
+  constructor
+  · rintro ⟨y, rfl⟩
+    refine LinearMap.map_le_range (p := y.submodule) ?_
+    rw [← submodule_map f hf y, submodule_eq]
+    exact Submodule.mem_span_singleton_self _
+  · rintro ⟨u, hu⟩
+    have hu0 : u ≠ 0 := by rintro rfl; exact x.rep_ne_zero (by simp [← hu])
+    refine ⟨mk K u hu0, ?_⟩
+    rw [map_mk]
+    conv_rhs => rw [← mk_rep x]
+    simp_rw [hu]
 
 variable {K V : Type*} [Field K] [AddCommGroup V] [Module K V]
 
@@ -101,28 +119,6 @@ theorem mk_eq_of_mem_submodule {x : ℙ K V} {v : V} (hv : v ≠ 0) (hx : v ∈ 
   obtain ⟨c, rfl⟩ := hx
   conv_rhs => rw [← mk_rep x]
   exact (mk_eq_mk_iff' K _ _ hv x.rep_ne_zero).2 ⟨c, rfl⟩
-
-/-- A point of `ℙ K W` lies in the image of the map induced by an injective linear map `f`
-exactly when its representative lies in the range of `f`. -/
-theorem mem_range_map_iff {W : Type*} [AddCommGroup W] [Module K W] {f : V →ₗ[K] W}
-    (hf : Function.Injective f) {x : ℙ K W} :
-    x ∈ Set.range (map f hf) ↔ x.rep ∈ LinearMap.range f := by
-  constructor
-  · rintro ⟨y, rfl⟩
-    have hy : f y.rep ≠ 0 := (map_ne_zero_iff f hf).2 y.rep_ne_zero
-    obtain ⟨a, ha⟩ := exists_smul_eq_mk_rep K (f y.rep) hy
-    have h : map f hf y = mk K (f y.rep) hy := by
-      conv_lhs => rw [← mk_rep y]
-      exact map_mk f hf y.rep y.rep_ne_zero
-    rw [h, ← ha, Units.smul_def]
-    exact Submodule.smul_mem _ _ (LinearMap.mem_range_self f _)
-  · rintro ⟨u, hu⟩
-    have hu0 : u ≠ 0 := by rintro rfl; exact x.rep_ne_zero (by simp [← hu])
-    refine ⟨mk K u hu0, ?_⟩
-    rw [map_mk]
-    refine mk_eq_of_mem_submodule _ ?_
-    rw [hu, submodule_eq]
-    exact Submodule.mem_span_singleton_self _
 
 /-- On the standard affine open `U_i`, the homogeneous coordinates `[1 : z]` of a point, with `1`
 in position `i` and `z` its affine coordinates, are its representative on which the `i`-th
