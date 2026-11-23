@@ -437,21 +437,19 @@ theorem isOpenEmbedding_bandIncl : IsOpenEmbedding (bandIncl c (n := n)) :=
     (remodelDiffeomorph (endModelDiffeomorph n) _).symm.toHomeomorph.isOpenEmbedding
 
 /-- The first copy of the interior of `W` in the double. -/
-def inlInterior (p : InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)) : c.Double :=
+def inlInterior (p : InteriorPiece n W) : c.Double :=
   inl c p.val
 
 /-- The second copy of the interior of `W` in the double. -/
-def inrInterior (p : InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)) : c.Double :=
+def inrInterior (p : InteriorPiece n W) : c.Double :=
   inr c p.val
 
 @[simp]
-theorem inlInterior_apply (p : InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)) :
-    inlInterior c p = inl c p.val :=
+theorem inlInterior_apply (p : InteriorPiece n W) : inlInterior c p = inl c p.val :=
   (rfl)
 
 @[simp]
-theorem inrInterior_apply (p : InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)) :
-    inrInterior c p = inr c p.val :=
+theorem inrInterior_apply (p : InteriorPiece n W) : inrInterior c p = inr c p.val :=
   (rfl)
 
 /-- The first copy of the interior of `W` is the image of the interior under `inl`. -/

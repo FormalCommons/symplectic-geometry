@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.BoundaryDegree
 public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
-public import SymplecticGeometry.Geometry.Manifold.ModelTransport.InteriorModel
+public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Interior
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.ArgumentPrinciple
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.UnitaryFrame
@@ -245,7 +245,7 @@ open SymplecticGeometry
 
 variable {S : Type} [TopologicalSpace S] [ChartedSpace (EuclideanHalfSpace 2) S]
   [IsManifold (𝓡∂ 2) 1 S] [T2Space S] [CompactSpace S] {n : Type*} [Fintype n] [DecidableEq n]
-  (o : Manifold.Orientation (𝓡 2) (InteriorModel (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S)) (Fin 2))
+  (o : Manifold.Orientation (𝓡 2) (InteriorPiece 1 S) (Fin 2))
 
 /-- **The boundary Maslov index on a compact surface with boundary.** Let `S` be a compact surface
 with boundary, modelled on the half-plane, and `o` an orientation of its interior, re-modelled on
