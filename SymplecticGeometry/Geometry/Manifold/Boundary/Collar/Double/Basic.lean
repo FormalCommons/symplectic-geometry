@@ -397,8 +397,6 @@ theorem isOpen_bandMap_image {U : Set (ℝ × (𝓡∂ (n + 1)).boundary W)}
 
 variable [IsManifold (𝓡∂ (n + 1)) ∞ W]
 
-open scoped TauCeti.HalfSpaceBoundary
-
 /-! ### The pieces -/
 
 variable (n W) in

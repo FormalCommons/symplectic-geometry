@@ -161,8 +161,6 @@ theorem isOutwardPointing_neg_mfderiv_inr (hk : k ≠ 0) (y : (𝓡∂ (n + 1)).
     (tangentCoordChange_self (I := 𝓡∂ (n + 1)) (mem_extChartAt_source (y : M)))).trans_lt ?_
   exact neg_neg_of_pos (c.proj_zero_mfderiv_inr_pos hk y)
 
-open scoped TauCeti.HalfSpaceBoundary
-
 variable (o : Manifold.Orientation (𝓡∂ (n + 1)) M (Fin (n + 1)))
 
 /-- The orientation sign of a smooth collar at a point `(y, 0)` of its zero slice. -/

@@ -91,8 +91,6 @@ open TauCeti TauCeti.EuclideanHalfSpace CoordinateDisc AddCircle
 variable {S : Type} [TopologicalSpace S] [ChartedSpace (EuclideanHalfSpace 2) S]
   [IsManifold (𝓡∂ 2) ∞ S]
 
-open scoped TauCeti.HalfSpaceBoundary
-
 namespace capDiscs
 
 /-! ### The disc pieces -/

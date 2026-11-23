@@ -329,7 +329,6 @@ private theorem isLocalDiffeomorphOn_extChartAt_symm_comp {p : (𝓡∂ (n + 1))
       f q ∈ (extChartAt (𝓡∂ (n + 1)) (p : W)).target) :
     IsLocalDiffeomorphOn ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) ∞
       (fun q ↦ (extChartAt (𝓡∂ (n + 1)) (p : W)).symm (f q)) S := by
-  have : IsManifold (𝓡 n) ∞ ((𝓡∂ (n + 1)).boundary W) := isManifold_boundary W
   set β := chartAt (EuclideanSpace ℝ (Fin n)) p
   set C := chartAt (ModelProd (EuclideanSpace ℝ (Fin n)) (EuclideanHalfSpace 1))
     ((p, 0) : (𝓡∂ (n + 1)).boundary W × EuclideanHalfSpace 1)

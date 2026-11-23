@@ -70,8 +70,6 @@ namespace SymplecticGeometry
 variable {n : ℕ} {W : Type*} [TopologicalSpace W] [ChartedSpace (EuclideanHalfSpace (n + 1)) W]
   [IsManifold (𝓡∂ (n + 1)) ∞ W] [T2Space W] [CompactSpace ((𝓡∂ (n + 1)).boundary W)]
 
-open scoped TauCeti.HalfSpaceBoundary
-
 variable {σ : SmoothTwoForm (𝓡∂ (n + 1)) W} {U : Set W}
   {Y : (x : W) → TangentSpace (𝓡∂ (n + 1)) x}
 

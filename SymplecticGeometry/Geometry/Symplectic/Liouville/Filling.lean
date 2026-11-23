@@ -88,8 +88,6 @@ namespace SymplecticGeometry
 variable {n : ℕ} {W : Type*} [TopologicalSpace W] [ChartedSpace (EuclideanHalfSpace (n + 1)) W]
   [IsManifold (𝓡∂ (n + 1)) ∞ W]
 
-open scoped TauCeti.HalfSpaceBoundary
-
 /-- A **strong filling** structure on a manifold with boundary `W`: the two-form `σ` is
 symplectic, `U` is an open set containing the boundary, and `Y` is a smooth vector field on `W`
 pointing outward along the boundary and Liouville for `σ` on `U`, that is `L_Y σ = σ` there.

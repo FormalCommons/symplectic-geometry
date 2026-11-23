@@ -102,8 +102,6 @@ universe u
 variable {n : ℕ} {W : Type u} [TopologicalSpace W] [ChartedSpace (EuclideanHalfSpace (n + 1)) W]
   [IsManifold (𝓡∂ (n + 1)) ∞ W]
 
-open scoped TauCeti.HalfSpaceBoundary
-
 variable (n W) in
 /-- The end piece `(-1, ∞) × ∂W`, re-modelled on `ℝⁿ⁺¹`. -/
 private abbrev EndPiece : Type u :=
