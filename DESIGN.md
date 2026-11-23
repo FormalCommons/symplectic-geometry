@@ -2834,8 +2834,8 @@ theorem is used by no milestone. The
 Lefschetz theorem is Tau Ceti's, whose remaining hypothesis *Projective
 hypersurfaces* supplies. The signature theorem is not built: the
 hypersurface milestone takes it as a hypothesis for the signature and
-$b^\pm$ only (see *Departures*). No error of the page was found that needs
-an entry in `ERRATA.md`.
+$b^\pm$ only (see *Departures*). The page's formulas fail in degree zero,
+where the hypersurface is empty; `ERRATA.md` has an entry for this.
 
 **The deferred milestones.** The integrability theorem would say, on a
 boundaryless manifold, that `IsIntegrable J` holds exactly when
