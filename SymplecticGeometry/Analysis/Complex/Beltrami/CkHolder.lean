@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Analysis.Complex.Beltrami.HigherHolder
+public import TauCeti.Analysis.Complex.Beltrami.HigherHolder
 public import TauCeti.Analysis.Complex.Beltrami.Chart
 public import TauCeti.Analysis.Complex.Beltrami.Linear
 

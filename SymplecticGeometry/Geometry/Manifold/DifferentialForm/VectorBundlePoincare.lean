@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Relative.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.HomotopyOperator
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Regularity
+import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 
 /-!
 # The relative Poincaré operator at the zero section, and for families

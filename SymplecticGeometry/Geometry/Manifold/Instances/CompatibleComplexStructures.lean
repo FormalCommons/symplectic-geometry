@@ -10,7 +10,6 @@ public import Mathlib.Geometry.Manifold.Immersion
 public import Mathlib.Geometry.Manifold.MFDeriv.FDeriv
 public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
 public import SymplecticGeometry.Analysis.Calculus.FDeriv.Cayley
-public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Basic.FromTauCeti
 public import SymplecticGeometry.LinearAlgebra.Symplectic.CompatibleTangent.Finrank
 public import SymplecticGeometry.Topology.ComplexStructure.Basic
 public import SymplecticGeometry.Topology.ComplexStructure.Compatible.Cayley

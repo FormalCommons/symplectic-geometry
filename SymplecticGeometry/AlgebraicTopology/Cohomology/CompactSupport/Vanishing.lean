@@ -9,7 +9,7 @@ public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.DirectedUnion
 public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.MayerVietoris
 public import TauCeti.AlgebraicTopology.Cohomology.Point
 public import SymplecticGeometry.Order.SupClosed
-public import SymplecticGeometry.Topology.Sets.Opens
+public import TauCeti.Topology.Sets.Opens
 public import SymplecticGeometry.Topology.Sets.Opens.Basic
 public import SymplecticGeometry.Topology.Sets.Opens.Comap
 

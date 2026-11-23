@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Analysis.Convex.Contractible
 public import Mathlib.LinearAlgebra.Complex.Orientation
-public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.MayerVietoris
+public import TauCeti.AlgebraicTopology.SimplicialSet.Homology.MayerVietoris
 public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.One
 public import SymplecticGeometry.AlgebraicTopology.Singular.Path
 public import SymplecticGeometry.Topology.ContinuousMap.Basic

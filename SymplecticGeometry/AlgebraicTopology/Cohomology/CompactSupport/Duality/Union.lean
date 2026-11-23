@@ -7,8 +7,8 @@ module
 
 public import Mathlib.Algebra.FiveLemma
 public import SymplecticGeometry.Algebra.Category.ModuleCat.Basic
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.MayerVietoris.Basic
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Duality.MayerVietoris
+public import TauCeti.AlgebraicTopology.Cohomology.Cap.MayerVietoris.Basic
+public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Duality.MayerVietoris
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Manifold
 public import SymplecticGeometry.Topology.Sets.Opens.Comap
 

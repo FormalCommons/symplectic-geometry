@@ -12,7 +12,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Pullb
 public import TauCeti.Geometry.Symplectic.Manifold.Volume
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Volume
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
-import SymplecticGeometry.LinearAlgebra.BilinearForm.Orthogonal.FromTauCeti
+import TauCeti.LinearAlgebra.BilinearForm.Orthogonal
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Splitting
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Representative
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Orthogonal

@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.BoundaryDegree
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.CoordinateDisc
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.LocalIndex
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.LocalIndex
 public import TauCeti.Analysis.Complex.Conformal.LocalIndex
 
 /-!

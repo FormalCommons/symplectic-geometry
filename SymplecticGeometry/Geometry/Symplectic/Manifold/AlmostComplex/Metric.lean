@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric.FromTauCeti
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 public import TauCeti.Geometry.Manifold.Riemannian.AlmostComplex
 
 /-!

@@ -16,7 +16,7 @@ public import TauCeti.Geometry.Manifold.Riemannian.VolumeDensity.Volume
 public import TauCeti.Geometry.Manifold.Riemannian.VolumeForm
 import SymplecticGeometry.Analysis.InnerProductSpace.AlternatingForm
 import SymplecticGeometry.Analysis.InnerProductSpace.Comass
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Regularity
+import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic

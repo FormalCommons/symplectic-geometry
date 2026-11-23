@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.LerayHirsch.MayerVietoris
+public import TauCeti.AlgebraicTopology.Cohomology.LerayHirsch.MayerVietoris
 public import SymplecticGeometry.Topology.FiberBundle.Basic
 public import TauCeti.AlgebraicTopology.Cohomology.LerayHirsch.FiberwiseBasis
 
