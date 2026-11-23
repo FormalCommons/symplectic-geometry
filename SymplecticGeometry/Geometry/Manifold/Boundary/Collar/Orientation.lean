@@ -38,11 +38,6 @@ basis `(dc(b₁), …, dc(bₙ), dc(∂ₜ))` differs from the outward-first bas
 invertible (`TauCeti.Manifold.Orientation.eventually_orientationSign_eq`) and each slice
 `{y} × [0, 1)` is connected, so the sign at `(y, 0)` holds on the whole slice.
 
-## Main definitions
-
-* `TauCeti.EuclideanHalfSpace.normalIioOpensOrientation`: the standard orientation of the
-  initial segment `[0, ε)` of the one-dimensional half-space model.
-
 ## Main results
 
 * `TauCeti.SmoothCollar.mfderiv_comp_inl`: on the zero slice, the derivative of a collar along
@@ -54,9 +49,6 @@ invertible (`TauCeti.Manifold.Orientation.eventually_orientationSign_eq`) and ea
 * `TauCeti.SmoothCollar.isOrientationPreservingAt_of_odd`,
   `TauCeti.SmoothCollar.isOrientationReversingAt_of_even`: a collar preserves orientation when
   `n` is odd and reverses it when `n` is even.
-* `TauCeti.EuclideanHalfSpace.isOrientationPreservingAt_normalIioOpens_val_zero`: the coordinate
-  `t ↦ t 0` of `[0, ε)` preserves orientation, to the standard orientation of `ℝ`, by
-  restricting `TauCeti.EuclideanHalfSpace.isOrientationPreservingAt_val_zero` on the half-line.
 
 ## References
 
