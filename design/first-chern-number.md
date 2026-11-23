@@ -653,12 +653,12 @@ collar of `∂S` (one exists: the instance `Nonempty (SmoothCollar n ∞ W)` of
 18d–18g, with `height` splitting it into the two copies of `S`.
 
 - `ClosedConnectedOrientedSurface.double c o hS`: `c.Double` with
-  `Double.orientation o`, bundled as a `ClosedConnectedOrientedSurface`
+  `Double.orientation c o`, bundled as a `ClosedConnectedOrientedSurface`
   (`hS : ((𝓡∂ 2).boundary S).Nonempty` gives connectedness).
 - `TauCeti.Manifold.Orientation.boundaryMaslovIndex_eq_sublevelBoundaryMaslovIndex_height`:
   for `Ψ : C(∂S, GLSymplectic κ ℝ)`, `o.boundaryMaslovIndex Ψ` is the
   `sublevelBoundaryMaslovIndex` on `{height ≤ 0}`, for
-  `(Double.orientation o).toHomologicalOrientation`, of `Ψ` read on the
+  `(Double.orientation c o).toHomologicalOrientation`, of `Ψ` read on the
   level set through `bandProj`. Proof: `boundaryMaslovIndex_comp_homeomorph`
   (18a) along `Double.homeomorphSublevel` (18g); the orientations agree since
   `inlInterior` preserves orientation from `o` (18f), by
@@ -1619,7 +1619,7 @@ does.
 18f. **The orientation of the double.**
     `Geometry/Manifold/Boundary/Collar/Double/Orientation.lean`: for an
     orientation `o` of the interior of `W`, the `InteriorModel` on which
-    `inlInterior` and `inrInterior` are defined, `Double.orientation o`,
+    `inlInterior` and `inrInterior` are defined, `Double.orientation c o`,
     with `isOrientationPreservingAt_inlInterior` (from `o`),
     `isOrientationPreservingAt_inrInterior` (from `-o`) and
     `eq_orientation_iff` (the two properties characterize it), as
@@ -1635,7 +1635,7 @@ does.
       `SymplecticGeometry.Remodel (endModelDiffeomorph n)`), `bandIncl`,
       `isOpenEmbedding_bandIncl`, a new public `isLocalDiffeomorph_bandIncl`
       (the band case of `isLocalDiffeomorph_pieceMap`), and
-      `bandIncl_remodel` stated with `bandMap` in place of the private
+      `bandIncl_remodelDiffeomorph` stated with `bandMap` in place of the private
       `bandPt`: `bandIncl c (remodelDiffeomorph _ _ p) = bandMap c (p.1, p.2)`
       (by `bandMap_coe`, as `bandMap_bandCoord` is).
       So 18f edits `Double/Basic.lean` too. The sharing of the collar depth
