@@ -185,7 +185,7 @@ instance connectedSpace_interiorOpens [IsManifold I 1 M] [ConnectedSpace M] :
 instance compactSpace_boundary {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     [FiniteDimensional ℝ E] [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M]
     [ChartedSpace H M] [CompactSpace M] : CompactSpace (I.boundary M) :=
-  isCompact_iff_compactSpace.1 I.isClosed_boundary_of_finiteDimensional.isCompact
+  isCompact_iff_compactSpace.1 (I.isClosed_boundary_of_finiteDimensional M).isCompact
 
 end ModelWithCorners
 

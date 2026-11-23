@@ -12,12 +12,13 @@ public import TauCeti.Geometry.Manifold.ModelTransport.Diffeomorph
 
 Let `Φ : H ≃ₘ^n⟮I, I'⟯ H'` be a `C^n` diffeomorphism between two model spaces, and let `M` be a
 space charted on `H`. Composing the charts of `M` with `Φ` charts `M` on `H'`
-(`ChartedSpace.comp`), and a `C^n` manifold modelled on `I` becomes a `C^n` manifold modelled on
-`I'` (Tau Ceti's `Diffeomorph.isManifold_chartedSpaceComp`). This file names that manifold, as a
-type synonym of `M` carrying the new atlas as an instance, and the identity of `M` as a `C^n`
-diffeomorphism onto it (by Tau Ceti's `Diffeomorph.contMDiff_chartedSpaceComp_iff`). For
-instance, a product of an interval and a manifold over `ℝⁿ`, or an open subset of `ℂ`, can so be
-modelled on a Euclidean space `EuclideanSpace ℝ (Fin m)`, as a piece of a gluing over it.
+(Tau Ceti's `Homeomorph.chartedSpaceComp`), and a `C^n` manifold modelled on `I` becomes a
+`C^n` manifold modelled on `I'` (Tau Ceti's `Diffeomorph.isManifold_chartedSpaceComp`). This
+file names that manifold, as a type synonym of `M` carrying the new atlas as an instance, and the
+identity of `M` as a `C^n` diffeomorphism onto it (by Tau Ceti's
+`Diffeomorph.contMDiff_chartedSpaceComp_iff`). For instance, a product of an interval and a
+manifold over `ℝⁿ`, or an open subset of `ℂ`, can so be modelled on a Euclidean space
+`EuclideanSpace ℝ (Fin m)`, as a piece of a gluing over it.
 
 ## Main definitions
 
@@ -60,8 +61,7 @@ instance [T2Space M] : T2Space (Remodel Φ M) := inferInstanceAs (T2Space M)
 
 /-- The charts of `Remodel Φ M` are the charts of `M` followed by `Φ`. -/
 instance [ChartedSpace H M] : ChartedSpace H' (Remodel Φ M) :=
-  letI := Φ.toHomeomorph.toOpenPartialHomeomorph.singletonChartedSpace (by simp)
-  ChartedSpace.comp H' H M
+  Φ.toHomeomorph.chartedSpaceComp M
 
 instance [ChartedSpace H M] [IsManifold I n M] : IsManifold I' n (Remodel Φ M) :=
   Φ.isManifold_chartedSpaceComp M
