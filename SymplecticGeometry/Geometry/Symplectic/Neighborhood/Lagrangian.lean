@@ -29,10 +29,11 @@ Neither compactness of `L` nor closedness of its image is needed.
 
 ## Proof
 
-The zero section of `T^*L` is a smooth embedding (`TauCeti.Bundle.zeroSectionEmbedding`), and it
-is Lagrangian (Tau Ceti's `TauCeti.CotangentBundle.isLagrangianMap_zeroSection`). Both embeddings
-pull their symplectic forms back to `0`, and `T^*L` and `M` have the same dimension, twice that of
-`L`. The symplectic complement of a Lagrangian tangent space is the tangent space itself, so the
+The zero section of `T^*L` is a smooth embedding
+(`SymplecticGeometry.Bundle.zeroSectionEmbedding`), and it is Lagrangian (Tau Ceti's
+`TauCeti.CotangentBundle.isLagrangianMap_zeroSection`). Both embeddings pull their symplectic
+forms back to `0`, and `T^*L` and `M` have the same dimension, twice that of `L`. The
+symplectic complement of a Lagrangian tangent space is the tangent space itself, so the
 comparison theorem `TauCeti.SmoothEmbedding.exists_symplectomorphism_opens_of_mpullback_eq` applies
 to the zero section and `f`, with the zero map as the prescribed linear map.
 
@@ -94,9 +95,10 @@ theorem IsLagrangianMap.exists_symplectomorphism_cotangent {σ : SmoothTwoForm I
   have := f.isEmbedding.isInducing.secondCountableTopology
   rcases isEmpty_or_nonempty L with hL | ⟨⟨q₀⟩⟩
   · exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, fun q ↦ (hL.false q).elim, Subsingleton.elim _ _⟩
-  have hcoe := Bundle.coe_zeroSectionEmbedding J (EL →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)
-  generalize Bundle.zeroSectionEmbedding J (EL →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) = f₀
-    at hcoe
+  have hcoe := SymplecticGeometry.Bundle.coe_zeroSectionEmbedding J (EL →L[ℝ] ℝ)
+    (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)
+  generalize SymplecticGeometry.Bundle.zeroSectionEmbedding J (EL →L[ℝ] ℝ)
+    (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) = f₀ at hcoe
   have hω₀ := CotangentBundle.isSymplectic_symplecticForm (I := J) (M := L)
   have hf₀ : hω₀.isNondegenerate.IsLagrangianMap J f₀ := by
     rw [hcoe]

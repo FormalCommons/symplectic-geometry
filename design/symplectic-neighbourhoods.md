@@ -561,14 +561,14 @@ $K=0$, the comparison theorem's conclusion is the equality. Milestone:
 
 ### `Geometry/Manifold/VectorBundle/ZeroSection.lean`
 
-At Tau Ceti's path, which has `zeroSectionTangentEquiv`, and in its namespace
-`TauCeti.Bundle`, so that the two files merge upstream.
-`TauCeti.Bundle.zeroSectionEmbedding F V :
+At Tau Ceti's path, which has `zeroSectionTangentEquiv`. The embedding is the
+library's own definition, so it is in `SymplecticGeometry.Bundle`:
+`SymplecticGeometry.Bundle.zeroSectionEmbedding F V :
 TauCeti.SmoothEmbedding IB (IB.prod 𝓘(ℝ, F)) ∞ B (TotalSpace F V)` for a
 smooth vector bundle with finite-dimensional fibre over a boundaryless base.
 It comes from Tau Ceti's `ContMDiff.isSmoothEmbedding_of_leftInverse` with
 the projection. API: `coe_zeroSectionEmbedding` (it is `zeroSection F V`),
-`isClosed_range_zeroSection`.
+and `TauCeti.Bundle.isClosed_range_zeroSection`, about Mathlib's zero section.
 
 ### `Geometry/Symplectic/Neighborhood/Lagrangian.lean`
 

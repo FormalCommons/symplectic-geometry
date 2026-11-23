@@ -79,7 +79,8 @@ open scoped Manifold ContDiff
 noncomputable section
 
 namespace TauCeti.SmoothCollar.Double
-open _root_.TauCeti.EuclideanHalfSpace _root_.TauCeti.Manifold.Orientation
+open _root_.TauCeti.EuclideanHalfSpace SymplecticGeometry.EuclideanHalfSpace
+  _root_.TauCeti.Manifold.Orientation
 
 universe u
 

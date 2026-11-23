@@ -66,7 +66,7 @@ open scoped Manifold ContDiff
 noncomputable section
 
 namespace TauCeti.SmoothCollar
-open _root_.TauCeti.EuclideanHalfSpace
+open _root_.TauCeti.EuclideanHalfSpace SymplecticGeometry.EuclideanHalfSpace
 
 /-- The open half-line `(-1, ∞)`, the range of the first coordinate of the end piece. -/
 private def endInterval : Opens ℝ := ⟨Ioi (-1), isOpen_Ioi⟩

@@ -47,8 +47,8 @@ of `I` and `-I`, the one behind Tau Ceti's suspension isomorphism
 `TauCeti.reducedSingularHomologySphereSuccIso` at the last vector `I` of the basis `1, I`. The
 loop is the concatenation of the upper half-circle from `1` to `-1` and the lower one from `-1`
 to `1`, so it is homologous to the sum of the two half-circles
-(`TauCeti.TopCat.ιChainComplex_transSimplex_d`), which lie in the two sets of the cover. The
-chain-level description of the connecting morphism
+(`SymplecticGeometry.TopCat.ιChainComplex_transSimplex_d`), which lie in the two sets of the
+cover. The chain-level description of the connecting morphism
 (`SSet.homologyπ_mayerVietorisδ_of_chain_lifts`) then sends the class of the loop to
 `[1] - [-1]`. Radial projection to the equator carries this to `[b] - [-b]`, for `b` the
 remaining basis vector `1`, while Tau Ceti's generator of the equator is `[-b] - [b]`
@@ -175,7 +175,7 @@ theorem singularHomologyOneIso_inv_eq_complexOrientation :
 
 section Loop
 
-open Real Simplicial TopCat
+open Real Simplicial TopCat SymplecticGeometry.TopCat
 open scoped unitInterval
 
 /-- The unit circle of `ℂ`, as a topological space. -/

@@ -88,7 +88,7 @@ open scoped Manifold ContDiff
 noncomputable section
 
 namespace TauCeti.SmoothCollar
-open _root_.TauCeti.EuclideanHalfSpace
+open _root_.TauCeti.EuclideanHalfSpace SymplecticGeometry.EuclideanHalfSpace
 
 universe u
 

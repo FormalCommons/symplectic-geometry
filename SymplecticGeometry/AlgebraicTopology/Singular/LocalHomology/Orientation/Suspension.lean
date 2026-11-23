@@ -60,7 +60,9 @@ open scoped ContinuousMap
 
 universe w v u
 
-namespace TauCeti
+namespace SymplecticGeometry
+
+open TauCeti
 
 section Suspension
 
@@ -78,7 +80,7 @@ a space of dimension `m + 2` and `p` its last vector, the generator of `H̃ₘ�
 orientation of `b` is the reduced Mayer–Vietoris morphism of the cover of `S` by the complements
 of `p` and `-p`, followed by `TauCeti.equatorHomotopyEquiv p` and the generator of the equator
 selected by the orientation of `b.orthogonalLast`. -/
-theorem reducedSingularHomologySphereIsoOfOrientation_hom_eq_reducedMayerVietorisδ :
+theorem _root_.TauCeti.reducedSingularHomologySphereIsoOfOrientation_hom_eq_reducedMayerVietorisδ :
     let p : sphere (0 : E) 1 := ⟨b (Fin.last _), by simp⟩
     (reducedSingularHomologySphereIsoOfOrientation R b.toBasis.orientation
         ((finrank_eq_card_basis b.toBasis).trans (Fintype.card_fin _))).hom =
@@ -95,25 +97,6 @@ theorem reducedSingularHomologySphereIsoOfOrientation_hom_eq_reducedMayerVietori
     reducedSingularHomologySphereIsoOfOrientation_eq R _ _ b.orthogonalLast rfl]
   -- The equators of `p` and of `⟨b (Fin.last _), _⟩` agree only after unfolding `p`.
   erw [Category.assoc, Category.assoc]
-
-end Suspension
-
-end TauCeti
-
-namespace SymplecticGeometry
-
-open TauCeti
-
-section Suspension
-
-variable {E : Type w} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
-
-/-- A real vector space has unique division by nonzero natural numbers; this lets Tau Ceti's
-cover of a sphere by the complements of two antipodal points apply. -/
-local instance : HasUniqueDiv E := HasUniqueDiv.of_isTorsionFree ℝ E
-
-variable {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Abelian C] (R : C) {m : ℕ}
-  (b : OrthonormalBasis (Fin (m + 2)) ℝ E)
 
 /-- The local homology generator of `E` at `0` selected by the orientation of `b`, read through
 the connecting morphism of `(E, E ∖ {0})`, the reduced Mayer–Vietoris morphism of the cover of

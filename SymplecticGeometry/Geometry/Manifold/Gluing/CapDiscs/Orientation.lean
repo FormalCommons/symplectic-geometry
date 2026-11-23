@@ -84,7 +84,8 @@ noncomputable section
 
 namespace SymplecticGeometry
 
-open TauCeti TauCeti.EuclideanHalfSpace TauCeti.Manifold.Orientation CoordinateDisc AddCircle
+open TauCeti TauCeti.EuclideanHalfSpace SymplecticGeometry.EuclideanHalfSpace
+  TauCeti.Manifold.Orientation CoordinateDisc AddCircle
 
 variable {S : Type} [TopologicalSpace S] [ChartedSpace (EuclideanHalfSpace 2) S]
   [IsManifold (𝓡∂ 2) ∞ S]

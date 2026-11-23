@@ -484,7 +484,7 @@ theorem mpullback_symm_codifferential_of_fderiv_gramInChart_eq_zero
 open ContinuousAlternatingMap in
 /-- At `ψ.symm y`, where the metric in the chart has derivative zero, the codifferential of `β`
 is `± ⋆ Alt (⋆ ∘ B)`, with `⋆` the Hodge star of the tangent space at `ψ.symm y`, `Alt` the
-alternation `alternatizeUncurryFin` and `B = TauCeti.ψ.symbolInChart β y` the derivative of the
+alternation `alternatizeUncurryFin` and `B = ψ.symbolInChart β y` the derivative of the
 reading of `β` carried to that tangent space. -/
 theorem val_codifferential_symm_of_fderiv_gramInChart_eq_zero
     [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]

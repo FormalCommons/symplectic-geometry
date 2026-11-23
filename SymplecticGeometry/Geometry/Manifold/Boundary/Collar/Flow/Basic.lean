@@ -73,7 +73,7 @@ open scoped Manifold ContDiff
 
 namespace TauCeti
 
-open _root_.TauCeti.EuclideanHalfSpace
+open _root_.TauCeti.EuclideanHalfSpace SymplecticGeometry.EuclideanHalfSpace
 
 namespace SmoothCollar
 

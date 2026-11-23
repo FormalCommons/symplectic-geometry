@@ -392,8 +392,9 @@ request updates it to the files below. Each change, with its reason:
   `TauCeti.SymplecticForm.Compatible.mem_cayleyDomain`; of the other files
   of this part it uses only the two of `PolarComplexStructure/`.
   It involves only Tau Ceti's `cayleyPathFormula`, so it goes in the folder
-  of Tau Ceti's `Cayley/Smooth.lean`, which it extends, and can
-  move there unchanged.
+  of Tau Ceti's `Cayley/Smooth.lean`, which it extends; its own
+  declarations are in `SymplecticGeometry`, so a move there needs a new
+  namespace.
 - **New `Geometry/Symplectic/Darboux/EuclideanBasis.lean`.** The complex
   linearity of `b.darbouxBasisEquiv` for a basis adapted to $J$ is stated
   with Tau Ceti's notions alone and does not need a symplectic form, so it
@@ -796,8 +797,8 @@ The file uses helpers stated in their own files:
   `contMDiffAt_metricChangeTransport_mul_mul_sqrt`
   (`Geometry/Symplectic/Manifold/AlmostComplex/Polar.lean`). That lemma is
   private and stated for families on a manifold, so it cannot be used here.
-  The library states the pointwise version once, in Tau Ceti's style and
-  namespace, so that it can replace the private lemma upstream.
+  The library states the pointwise version once, as
+  `SymplecticGeometry.contDiffOn_metricPolarFormula`.
 - `SymplecticGeometry.metricPolarFormula_symmetrizeBilinear_skewSymmetrizeBilinear
   (g s : W →L[ℝ] W →L[ℝ] ℝ) :
   metricPolarFormula (symmetrizeBilinear g).val (skewSymmetrizeBilinear s) =
@@ -844,10 +845,10 @@ The file uses helpers stated in their own files:
 
 ### `Geometry/Symplectic/Cayley/Domain.lean`
 
-The domain of the Cayley path, in a complete normed `ℝ`-algebra `R`. Every
-declaration here is about Tau Ceti's `cayleyFormula` and `cayleyPathFormula`
-alone, so they go in `TauCeti`, next to `TauCeti.contDiffAt_cayleyPathFormula`,
-and `Compatible.mem_cayleyDomain` in `TauCeti.SymplecticForm`.
+The domain of the Cayley path, in a complete normed `ℝ`-algebra `R`.
+`cayleyDomain` and its lemmas are the library's own declarations, in
+`SymplecticGeometry`; only `Compatible.mem_cayleyDomain` and its variants are
+in `TauCeti.SymplecticForm`.
 
 - `cayleyDomain (R) : Set (ℝ × R × R) := {q | IsUnit (1 - q.2.1 * q.2.2) ∧
   IsUnit (1 - q.1 • cayleyFormula q.2.1 q.2.2)}`, with `@[simp]`
