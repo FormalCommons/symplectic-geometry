@@ -162,7 +162,7 @@ theorem exists_extension_iff_boundaryMaslovIndex_eq_zero {n : Type*} [Fintype n]
       (isCollared_subtypeVal_boundary_of_compactSpace (n := 1)).hasHomotopyExtensionProperty_range
     rwa [Subtype.range_coe] at h
   obtain ⟨Φ'', G, hG⟩ := hHEP.exists_homotopy_of_restrict
-    (𝓡∂ 2).isClosed_boundary_of_finiteDimensional Φ'
+    ((𝓡∂ 2).isClosed_boundary_of_finiteDimensional S) Φ'
     (F.symm.cast (ContinuousMap.ext hΦ').symm rfl)
   refine ⟨((reindexContinuousMulEquiv ℝ e).symm : C(_, _)).comp Φ'', fun z ↦ ?_⟩
   have h₁ : Φ'' z = r (Ψ z) := by
