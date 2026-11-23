@@ -28,8 +28,9 @@ one is determined by the Euler characteristic: `(-1)ⁿ b_n = χ(X) - (n + 1) + 
 * Below the middle degree, `k < n`, the inclusion `X → ℂℙⁿ⁺¹` is an isomorphism on `H_k`
   (`SmoothProjectiveHypersurface.isIso_homologyMap_subtypeVal`, the Lefschetz hyperplane
   theorem), and the Betti numbers of `ℂℙⁿ⁺¹` are `TauCeti.bettiNumber_complexProjectiveSpace`.
-* For `n < k ≤ 2n`, rational Poincaré duality for `X`, oriented by its complex structure, gives
-  `b_k = b_{2n-k}` (`TauCeti.HomologicalOrientation.bettiNumber_eq_bettiNumber`).
+* For `n < k ≤ 2n`, rational Poincaré duality for `X`, oriented by its complex structure
+  (`SymplecticGeometry.complexManifoldHomologicalOrientation`), gives `b_k = b_{2n-k}`
+  (`TauCeti.HomologicalOrientation.bettiNumber_eq_bettiNumber`).
 * Above `2n` the Betti numbers of a compact manifold vanish
   (`TauCeti.bettiNumber_eq_zero_of_finrank_lt`).
 * The Euler characteristic is the alternating sum of the Betti numbers up to the dimension
@@ -95,11 +96,8 @@ theorem bettiNumber_of_ne (hd : d ≠ 0) {k : ℕ} (hk : k ≠ n) :
   · obtain ⟨m, rfl⟩ := Nat.exists_eq_add_one_of_ne_zero (by omega : n ≠ 0)
     have hE : finrank ℝ (Fin (m + 1 + 1 - Fintype.card Unit) → ℂ) = 2 * m + 1 + 1 := by
       rw [finrank_real_of_complex, finrank_model]; ring
-    let o := ((complexManifoldOrientation (Fin (m + 1 + 1 - Fintype.card Unit) → ℂ) X).reindex
-      (finCongr (by rw [finrank_model]; ring) :
-        Fin (2 * finrank ℂ (Fin (m + 1 + 1 - Fintype.card Unit) → ℂ)) ≃ Fin (2 * m + 1 + 1))
-      ).toHomologicalOrientation (n := 2 * m + 1) hE
-    rw [o.bettiNumber_eq_bettiNumber hE (p := 2 * (m + 1) - k) (by omega),
+    rw [(complexManifoldHomologicalOrientation _ X finrank_model).bettiNumber_eq_bettiNumber hE
+        (p := 2 * (m + 1) - k) (by omega),
       X.bettiNumber_of_lt ℚ hd (by omega)]
     simp [hk', Nat.even_sub hk']
   · rw [ite_eq_right_iff.2 fun h ↦ absurd h.2 hk']
