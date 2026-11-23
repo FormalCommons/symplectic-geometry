@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.CoordinateDisc
+public import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Interior
 public import TauCeti.Geometry.Manifold.Gluing.GlueData
 public import TauCeti.Geometry.Manifold.Instances.AddCircle
@@ -89,7 +90,7 @@ open TauCeti TauCeti.EuclideanHalfSpace CoordinateDisc AddCircle
 variable {S : Type} [TopologicalSpace S] [ChartedSpace (EuclideanHalfSpace 2) S]
   [IsManifold (𝓡∂ 2) ∞ S]
 
-local instance : IsManifold (𝓡 1) ∞ ((𝓡∂ 2).boundary S) := isManifold_boundary S
+open scoped TauCeti.HalfSpaceBoundary
 
 namespace capDiscs
 

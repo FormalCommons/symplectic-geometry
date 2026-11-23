@@ -88,8 +88,7 @@ namespace SymplecticGeometry
 variable {n : ℕ} {W : Type*} [TopologicalSpace W] [ChartedSpace (EuclideanHalfSpace (n + 1)) W]
   [IsManifold (𝓡∂ (n + 1)) ∞ W]
 
-/-- The boundary of `W` is a smooth manifold over `EuclideanSpace ℝ (Fin n)`. -/
-local instance : IsManifold (𝓡 n) ∞ ((𝓡∂ (n + 1)).boundary W) := isManifold_boundary W
+open scoped TauCeti.HalfSpaceBoundary
 
 /-- A **strong filling** structure on a manifold with boundary `W`: the two-form `σ` is
 symplectic, `U` is an open set containing the boundary, and `Y` is a smooth vector field on `W`
