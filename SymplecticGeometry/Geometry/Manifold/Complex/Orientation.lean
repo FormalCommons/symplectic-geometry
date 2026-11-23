@@ -35,7 +35,9 @@ reindexes the canonical orientation once, for every such `E` and `M`:
 * `Diffeomorph.isOrientationPreservingAt_complexCurveOrientation`: biholomorphisms preserve it.
 
 More generally, for complex dimension `finrank ℂ E = r + 1`, statements about real manifolds of
-dimension `2 r + 2` use the index type `Fin (2 * r + 1 + 1)`:
+dimension `2 r + 2` use the index type `Fin (2 * r + 1 + 1)`, and the real dimension
+`finrank ℝ E = 2 * r + 1 + 1` (`finrank_real_of_finrank_complex_eq_add_one`, in
+`SymplecticGeometry/LinearAlgebra/Complex/Finrank.lean`):
 
 * `SymplecticGeometry.complexManifoldOrientationOfFinrank`: the canonical orientation, indexed by
   `Fin (2 * r + 1 + 1)`, with `SymplecticGeometry.complexManifoldOrientationOfFinrank_def`;

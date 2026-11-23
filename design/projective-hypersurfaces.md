@@ -515,7 +515,7 @@ For `n ≠ 0`.
   `chernClass_finrank_eq_complexEulerClass`.
 - `sectionIndex_eq_one_of_complexLinear` (in
   `Topology/VectorBundle/Orientation/SectionIndex/ComplexLinear.lean`, in the namespace
-  `TauCeti.VectorBundleOrientation`, for any complex bundle over a complex
+  `SymplecticGeometry`, for any complex bundle over a complex
   manifold oriented by `complexManifoldOrientation`): at a zero where a
   section has a complex-linear invertible derivative in a holomorphic chart
   and a complex trivialization, its index for the complex orientation is

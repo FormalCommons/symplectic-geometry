@@ -9,7 +9,6 @@ public import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
 public import SymplecticGeometry.Geometry.Manifold.Complex.HomologicalOrientation
 public import SymplecticGeometry.Geometry.Manifold.Orientation.EulerCharacteristic
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.EulerClass
-public import TauCeti.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Topology.VectorBundle.Orientation.FiberwiseEquiv
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.RestrictScalars
 
@@ -106,7 +105,7 @@ along `2 * finrank ℂ E = 2 r + 2` (`complexManifoldOrientationOfFinrank E M hE
 theorem complexEulerClass_tangentSpace {r : ℕ} (hE : finrank ℂ E = r + 1) :
     complexEulerClass E (TangentSpace 𝓘(ℂ, E) : M → Type) hE =
       (complexManifoldOrientationOfFinrank E M hE).toVectorBundleOrientation.eulerClass
-        (by rw [finrank_real_of_complex, hE]; ring) := by
+        (finrank_real_of_finrank_complex_eq_add_one hE) := by
   -- On total spaces the fibrewise identification is the inverse of `restrictScalarsHomeomorph`.
   have hφ : Continuous fun v : TotalSpace E (TangentSpace 𝓘(ℝ, E) : M → Type) ↦
       TotalSpace.mk' E v.proj ((tangentSpaceCastModel 𝓘(ℝ, E) v.proj).trans

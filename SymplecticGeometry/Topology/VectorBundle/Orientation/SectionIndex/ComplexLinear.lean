@@ -22,7 +22,7 @@ whose base set contains `z`. Suppose that the section read in the preferred char
 `z` and in `e`, `y ↦ (e (s (φ⁻¹ y))).2`, has at `φ z` a real derivative that is a
 complex-linear isomorphism `A : E ≃L[ℂ] G`; in particular the complex rank of `V` is the complex
 dimension of `M`. Then the local index `TauCeti.VectorBundleOrientation.sectionIndex`
-of `s` at `z` is `1` (`TauCeti.VectorBundleOrientation.sectionIndex_eq_one_of_complexLinear`). This
+of `s` at `z` is `1` (`SymplecticGeometry.sectionIndex_eq_one_of_complexLinear`). This
 is the case of a transverse zero of a holomorphic section of a holomorphic bundle.
 
 ## Proof
@@ -57,17 +57,15 @@ derivative `A ∘ A⁻¹ = id` at the image of `z`, of determinant `1`.
 
 public section
 
-open Bundle Filter Module Set Topology
+open Bundle Filter Module Set Topology TauCeti TauCeti.VectorBundleOrientation
 open scoped Manifold TauCeti.ComplexManifold
 
-namespace TauCeti
+namespace SymplecticGeometry
 
 variable {E : Type} [NormedAddCommGroup E] [NormedSpace ℂ E] [FiniteDimensional ℂ E]
   {M : Type} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) 1 M]
   {G : Type} [NormedAddCommGroup G] [NormedSpace ℝ G] [NormedSpace ℂ G] [IsScalarTower ℝ ℂ G]
   [FiniteDimensional ℂ G]
-
-namespace VectorBundleOrientation
 
 variable [T2Space M]
   {V : M → Type} [TopologicalSpace (TotalSpace G V)] [∀ x, AddCommGroup (V x)]
@@ -78,7 +76,7 @@ local instance : VectorBundle ℝ G V := VectorBundle.restrictScalars ℝ ℂ G 
 
 /-- **A zero with complex-linear invertible derivative has index `1`.** Let `M` be a complex
 manifold modelled on `𝓘(ℂ, E)`, of complex dimension `r + 1`, with its complex orientation
-`SymplecticGeometry.complexManifoldHomologicalOrientation E M hE`, and `V` a complex vector bundle
+`complexManifoldHomologicalOrientation E M hE`, and `V` a complex vector bundle
 over `M` with its complex orientation. Let `s` be a continuous section of `V` vanishing at `z`,
 and `e` a complex-linear trivialization of `V` whose base set contains `z`. If the section read in
 the preferred chart of `M` at `z` and in `e` has at the image of `z` the real derivative of a
@@ -91,16 +89,17 @@ theorem sectionIndex_eq_one_of_complexLinear {r : ℕ} (hE : finrank ℂ E = r +
       ((A : E →L[ℂ] G).restrictScalars ℝ) (chartAt E z z)) :
     ((complex G V).reindex (finCongr (by
         rw [← A.toLinearEquiv.finrank_eq, hE]; ring))).sectionIndex
-      (by rw [← (A.restrictScalars' ℝ).toLinearEquiv.finrank_eq, finrank_real_of_complex, hE]; ring)
-      (SymplecticGeometry.complexManifoldHomologicalOrientation E M hE) hs z = 1 := by
-  have hEℝ : finrank ℝ E = 2 * r + 1 + 1 := by rw [finrank_real_of_complex, hE]; ring
+      (by rw [← (A.restrictScalars' ℝ).toLinearEquiv.finrank_eq,
+        finrank_real_of_finrank_complex_eq_add_one hE])
+      (complexManifoldHomologicalOrientation E M hE) hs z = 1 := by
+  have hEℝ : finrank ℝ E = 2 * r + 1 + 1 := finrank_real_of_finrank_complex_eq_add_one hE
   have : e.IsLinear ℝ := Trivialization.isLinear_restrictScalars ℝ ℂ e
   have hG : finrank ℝ G = 2 * r + 1 + 1 := by
     rw [← (A.restrictScalars' ℝ).toLinearEquiv.finrank_eq, hEℝ]
   have h₁ : 2 * finrank ℂ G = 2 * r + 1 + 1 := by rw [← A.toLinearEquiv.finrank_eq, hE]; ring
-  rw [SymplecticGeometry.complexManifoldHomologicalOrientation_def]
+  rw [complexManifoldHomologicalOrientation_def]
   set oV := (complex G V).reindex (finCongr h₁)
-  set oM := SymplecticGeometry.complexManifoldOrientationOfFinrank E M hE
+  set oM := complexManifoldOrientationOfFinrank E M hE
   set Aℝ : E ≃L[ℝ] G := A.restrictScalars' ℝ
   have hAℝ : (A : E →L[ℂ] G).restrictScalars ℝ = (Aℝ : E →L[ℝ] G) := by
     ext v
@@ -133,7 +132,7 @@ theorem sectionIndex_eq_one_of_complexLinear {r : ℕ} (hE : finrank ℂ E = r +
     intro x hx
     rw [reindex_apply, Trivialization.mapOrientation_reindex, mapOrientation_complex_of_isLinear]
   -- The chart `φ` carries the local orientation of `M` at `z` to the one selected by `ω`.
-  have hω := SymplecticGeometry.map_orientationAt_complexManifoldOrientationOfFinrank hE
+  have hω := map_orientationAt_complexManifoldOrientationOfFinrank hE
     (by rw [← A.toLinearEquiv.finrank_eq, hE]) A z
   have hφl := Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation_transHomeomorph
     hEℝ oM hG Aℝ z
@@ -142,8 +141,6 @@ theorem sectionIndex_eq_one_of_complexLinear {r : ℕ} (hE : finrank ℂ E = r +
   rw [sectionIndex_eq_sign_det_of_hasFDerivAt_of_eventually oV hG _ hs e φ hz hze hzφ
     (Eventually.of_forall ho) hφl hAφ (hdet ▸ one_ne_zero), hdet, sign_one, SignType.coe_one]
 
-end VectorBundleOrientation
-
-end TauCeti
+end SymplecticGeometry
 
 end
