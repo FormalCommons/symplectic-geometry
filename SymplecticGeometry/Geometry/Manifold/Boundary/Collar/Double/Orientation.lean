@@ -86,8 +86,6 @@ universe u
 variable {n : ℕ} {W : Type u} [TopologicalSpace W] [ChartedSpace (EuclideanHalfSpace (n + 1)) W]
   [IsManifold (𝓡∂ (n + 1)) ∞ W] (c : SmoothCollar n ∞ W)
 
-local instance : IsManifold (𝓡 n) ∞ ((𝓡∂ (n + 1)).boundary W) := isManifold_boundary W
-
 variable (n W) in
 /-- The parameters `(s, x)` of the band, `s ∈ (-1, 1)` and `x ∈ ∂W`. -/
 private abbrev BandParam : Type u := bandInterval × (𝓡∂ (n + 1)).boundary W
