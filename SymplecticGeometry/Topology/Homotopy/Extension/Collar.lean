@@ -5,7 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Push
+public import SymplecticGeometry.Topology.Collar.Compact
+public import TauCeti.Geometry.Manifold.Boundary.Collar.Deformation
 public import TauCeti.Topology.Homotopy.Extension.NDRPair
 
 /-!
