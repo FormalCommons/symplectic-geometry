@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import SymplecticGeometry.Analysis.Normed.Module.Alternating.Derivation
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
@@ -60,12 +61,6 @@ which is meaningful on `ψ.target`.
   extension is smooth (`TauCeti.IsSmoothForm.extendByZeroAlong`), and bundled as
   `TauCeti.SmoothForm.extendByZeroAlong`. Both versions are linear in `a`
   (`extendByZeroAlong_zero`, `_add`, `_smul`, `_neg` and `_sub`).
-* `PartialDiffeomorph.tsupport_indicator_comp_symm_subset`,
-  `PartialDiffeomorph.hasCompactSupport_indicator_comp_symm`,
-  `PartialDiffeomorph.continuous_indicator_comp_symm` and
-  `PartialDiffeomorph.contDiff_indicator_comp_symm`: a cutoff `χ` on `M` whose support is
-  compact and lies in `ψ.source`, read in `ψ` and extended by `0` off `ψ.target`, is supported in
-  `ψ '' tsupport χ`, so has compact support, and is continuous, or `C^n`, when `χ` is.
 * `TauCeti.SmoothForm.localize ψ χ α`: in the other direction, the flat form on `E` that is the
   reading of a smooth form `α` in `ψ`, scaled by `χ ∘ ψ.symm` for a cutoff `χ` on `M`, on
   `ψ.target`, and zero elsewhere. It is continuous with compact support when `χ` is continuous
@@ -447,24 +442,19 @@ theorem IsSmoothForm.extendByZeroAlong [T2Space M] [IsManifold I ∞ M]
     (ha : ContDiff ℝ ∞ a) (hc : HasCompactSupport a)
     (hs : tsupport a ⊆ ψ.target) :
     IsSmoothForm I ∞ (RoughForm.extendByZeroAlong ψ a) := by
+  have ha' : IsSmoothForm 𝓘(ℝ, E) ∞ (a : RoughForm 𝓘(ℝ, E) E F k) :=
+    isSmoothForm_modelSpace_iff.mpr ha
   rw [isSmoothForm_def]
-  intro x
-  by_cases hx : x ∈ ψ.source
-  · have ha' : IsSmoothForm 𝓘(ℝ, E) ∞ (a : RoughForm 𝓘(ℝ, E) E F k) :=
-      isSmoothForm_modelSpace_iff.mpr ha
-    refine ContMDiffAt.congr_of_eventuallyEq (((isSmoothForm_def _ _).mp ha' (ψ x)).mpullback_form
-      (ψ.contMDiffOn.contMDiffAt (ψ.open_source.mem_nhds hx)) (by simp)) ?_
+  refine ψ.toOpenPartialHomeomorph.contMDiff_of_contMDiffOn_source_of_contMDiffOn_compl hc hs
+    (fun x hx ↦ ?_) (fun x hx ↦ ?_)
+  · refine ContMDiffAt.contMDiffWithinAt <| ContMDiffAt.congr_of_eventuallyEq
+      (((isSmoothForm_def _ _).mp ha' (ψ x)).mpullback_form
+        (ψ.contMDiffOn.contMDiffAt (ψ.open_source.mem_nhds hx)) (by simp)) ?_
     filter_upwards [ψ.open_source.mem_nhds hx] with z hz
     rw [RoughForm.extendByZeroAlong_apply_of_mem a hz]
-  · have hK : IsClosed (ψ.symm '' tsupport a) :=
-      (ψ.symm.isCompact_image_of_subset_source hc hs).isClosed
-    have hxK : x ∉ ψ.symm '' tsupport a := by
-      rintro ⟨z, hz, rfl⟩
-      exact hx (ψ.map_target (hs hz))
-    refine ContMDiffAt.congr_of_eventuallyEq
-      ((isSmoothForm_def _ _).mp (IsSmoothForm.zero (I := I) (M := M) (F := F) (k := k) ∞) x) ?_
-    filter_upwards [hK.isOpen_compl.mem_nhds hxK] with z hz
-    rw [RoughForm.extendByZeroAlong_apply_of_notMem_image a hz, Pi.zero_apply]
+  · refine ((isSmoothForm_def _ _).mp (IsSmoothForm.zero (I := I) (M := M) (F := F) (k := k) ∞)
+      x).contMDiffWithinAt.congr (fun z hz ↦ ?_) ?_ <;>
+    rw [RoughForm.extendByZeroAlong_apply_of_notMem_image a ‹_›, Pi.zero_apply]
 
 /-- The extension by zero along a smooth chart `ψ`, on a Hausdorff manifold, of a smooth flat form
 `a` with compact support in the target of `ψ`, as a smooth form. -/
@@ -532,63 +522,6 @@ theorem SmoothForm.extendByZeroAlong_sub (ha : ContDiff ℝ ∞ a) (hac : HasCom
 end SmoothForm
 
 end ExtendByZero
-
-/-! ### A cutoff read in a chart -/
-
-section Cutoff
-
-variable {n : WithTop ℕ∞} (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E n)
-
-/-- The cutoff `χ` read in the chart `ψ` and extended by `0` off `ψ.target` vanishes off the
-image under `ψ` of the support of `χ`. -/
-theorem _root_.PartialDiffeomorph.support_indicator_comp_symm_subset (χ : M → ℝ) :
-    Function.support (ψ.target.indicator fun y ↦ χ (ψ.symm y)) ⊆ ψ '' tsupport χ := fun y hy ↦ by
-  by_cases hyt : y ∈ ψ.target
-  · refine ⟨ψ.symm y, subset_tsupport _ fun h0 ↦ hy ?_, ψ.right_inv hyt⟩
-    exact (Set.indicator_of_mem hyt _).trans h0
-  · exact absurd (Set.indicator_of_notMem hyt _) hy
-
-variable {χ : M → ℝ}
-
-/-- If the support of `χ` is compact and lies in the source of `ψ`, the cutoff `χ` read in the
-chart and extended by `0` off `ψ.target` is supported in the image under `ψ` of the support of
-`χ`. -/
-theorem _root_.PartialDiffeomorph.tsupport_indicator_comp_symm_subset
-    (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
-    tsupport (ψ.target.indicator fun y ↦ χ (ψ.symm y)) ⊆ ψ '' tsupport χ :=
-  closure_minimal (ψ.support_indicator_comp_symm_subset χ)
-    (ψ.isCompact_image_of_subset_source hK hχ).isClosed
-
-/-- If the support of `χ` is compact and lies in the source of `ψ`, the cutoff `χ` read in the
-chart and extended by `0` off `ψ.target` has compact support. -/
-theorem _root_.PartialDiffeomorph.hasCompactSupport_indicator_comp_symm
-    (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
-    HasCompactSupport (ψ.target.indicator fun y ↦ χ (ψ.symm y)) :=
-  (ψ.isCompact_image_of_subset_source hK hχ).of_isClosed_subset (isClosed_tsupport _)
-    (ψ.tsupport_indicator_comp_symm_subset hK hχ)
-
-/-- If `χ` is continuous and its support is compact and lies in the source of `ψ`, the cutoff
-`χ` read in the chart and extended by `0` off `ψ.target` is continuous. -/
-theorem _root_.PartialDiffeomorph.continuous_indicator_comp_symm (hχc : Continuous χ)
-    (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
-    Continuous (ψ.target.indicator fun y ↦ χ (ψ.symm y)) :=
-  ContinuousOn.continuous_of_tsupport_subset
-    ((hχc.comp_continuousOn ψ.symm.contMDiffOn.continuousOn).congr
-      fun _ hy ↦ Set.indicator_of_mem hy _) ψ.open_target
-    ((ψ.tsupport_indicator_comp_symm_subset hK hχ).trans (ψ.mapsTo.mono_left hχ).image_subset)
-
-/-- If `χ` is `C^n` and its support is compact and lies in the source of `ψ`, the cutoff `χ` read
-in the chart and extended by `0` off `ψ.target` is `C^n`. -/
-theorem _root_.PartialDiffeomorph.contDiff_indicator_comp_symm (hχc : ContMDiff I 𝓘(ℝ) n χ)
-    (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
-    ContDiff ℝ n (ψ.target.indicator fun y ↦ χ (ψ.symm y)) := by
-  refine contMDiff_iff_contDiff.1 (contMDiff_of_tsupport fun y hy ↦ ?_)
-  have hyt : y ∈ ψ.target := (ψ.mapsTo.mono_left hχ).image_subset
-    (ψ.tsupport_indicator_comp_symm_subset hK hχ hy)
-  exact ((hχc.comp_contMDiffOn ψ.symm.contMDiffOn).congr fun y hy ↦ Set.indicator_of_mem hy _)
-    |>.contMDiffAt (ψ.open_target.mem_nhds hyt)
-
-end Cutoff
 
 /-! ### Localization of a smooth form to a chart -/
 
