@@ -57,6 +57,9 @@ the local orientation of `ℂ` at the origin
   negates the boundary degree.
 * `TauCeti.HomologicalOrientation.boundaryDegree_eq_zero_of_extend`: a map that extends
   continuously over `X` has boundary degree `0`.
+* `TauCeti.HomologicalOrientation.boundaryDegree_comp_homeomorph`: invariance under a homeomorphism
+  `h : X ≃ₜ X'` that restricts to a homeomorphism `φ : M ≃ₜ M'`, for the pulled-back orientation
+  `o'.comap φ`, from `TauCeti.HomologicalOrientation.map_boundaryClass_comap`.
 * `TauCeti.HomologicalOrientation.boundaryDegree_eq_sum_degree`: if loops in `∂X` represent the
   boundary class, the boundary degree is the sum of the degrees (`Circle.degree`) of `u` along them.
 * `TauCeti.HomologicalOrientation.boundaryDegree_eq_of_localHomologyMap`,
@@ -252,6 +255,31 @@ theorem boundaryDegree_eq_of_localHomologyMap_eq_zsmul {G : C(X, ℂ)} (hG : G �
   erw [map_zsmul, map_zsmul,
     SymplecticGeometry.singularHomologyOneIso_singularHomologyδ_localOrientation_complexOrientation]
   simp
+
+
+section Homeomorph
+
+variable {X' M' : Type} {N' : Type*} [TopologicalSpace X'] [TopologicalSpace N']
+  [TopologicalSpace M'] [T2Space X'] [CompactSpace X'] [T2Space M'] [ChartedSpace E M']
+  {ι' : M' → X'} {f' : N' → X'}
+
+/-- **Boundary degrees under homeomorphisms.** Let `h : X ≃ₜ X'` and `φ : M ≃ₜ M'` be
+homeomorphisms with `h ∘ ι = ι' ∘ φ`, for two instances of the setting of the boundary degree, and
+let `g : ∂X → ∂X'` be the restriction of `h`. For an orientation `o'` of `M'` and every
+`u : ∂X' → S¹`, the boundary degree of `u ∘ g` for the pull-back `o'.comap φ` is the boundary degree
+of `u` for `o'`. -/
+theorem boundaryDegree_comp_homeomorph (o' : HomologicalOrientation M' E 2)
+    (hι' : IsOpenEmbedding ι') (hιf' : range ι' = (range f')ᶜ) (hf' : IsCollared f')
+    (h : X ≃ₜ X') (φ : M ≃ₜ M') (hφ : h ∘ ι = ι' ∘ φ)
+    (g : C(↥((range ι)ᶜ : Set X), ↥((range ι')ᶜ : Set X'))) (hg : ∀ z, (g z : X') = h z)
+    (u : C(↥((range ι')ᶜ : Set X'), Circle)) :
+    (o'.comap φ.isOpenEmbedding).boundaryDegree hn hι hιf hf (u.comp g) =
+      o'.boundaryDegree hn hι' hιf' hf' u := by
+  rw [boundaryDegree_def, boundaryDegree_def, TopCat.ofHom_comp, Functor.map_comp,
+    ModuleCat.hom_comp, LinearMap.comp_apply,
+    map_boundaryClass_comap hn hι hιf hf o' hι' hιf' hf' h φ hφ g hg]
+
+end Homeomorph
 
 end TauCeti.HomologicalOrientation
 

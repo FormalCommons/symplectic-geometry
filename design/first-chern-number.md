@@ -1537,8 +1537,9 @@ does.
     instances `(X, M, ι, f)` and `(X', M', ι', f')` of the setting of the
     boundary degree, `o'` an orientation of `M'`, a homeomorphism `h : X ≃ₜ X'` and
     `φ : M ≃ₜ M'` with `h ∘ ι = ι' ∘ φ`, the boundary degree for
-    `o'.comap φ.isOpenEmbedding` of `u ∘ h|∂X` is the boundary degree for
-    `o'` of `u`, for every `u : C(∂X', Circle)`. Proof: `h` carries the
+    `o'.comap φ.isOpenEmbedding` of `u ∘ g` is the boundary degree for
+    `o'` of `u`, for `g : C(∂X, ∂X')` agreeing with `h` and every
+    `u : C(∂X', Circle)`. Proof: `h` carries the
     relative fundamental class to the relative fundamental class, by the
     uniqueness `TauCeti.HomologicalOrientation.eq_fundamentalClassRel`, and
     the connecting morphism is natural. With
@@ -1549,10 +1550,12 @@ does.
     `Topology/Homotopy/Extension/Collar.lean`, beside Tau Ceti's folder: if
     `c` is a collar of `f : N → X` (`TauCeti.IsCollar`), `N` compact and `X`
     Hausdorff, then `range f` has `TauCeti.HasHomotopyExtensionProperty`.
-    Proof: NDR data as in Tau Ceti's `TauCeti.sublevelNDRPair`, with the
-    collar depth in place of the function, pushing the points of depth below
-    `1 / 2` down to depth `0`; compactness of `N` makes `c(N × [0, 1/2])`
-    closed. With `TauCeti.IsCollared.hasHomotopyExtensionProperty_range`.
+    Proof: NDR data from Tau Ceti's `TauCeti.NDRPair.ofHomotopyRel`, with
+    the collar deformation `TauCeti.IsCollar.collarDeformation`, given
+    twice the clipped collar depth, which vanishes exactly on `range f` and
+    is below `1` only on the collar; compactness of `N` makes
+    `c(N × [0, 1/2])` closed. With
+    `TauCeti.IsCollared.hasHomotopyExtensionProperty_range`.
     Can start at once.
 18c. **Symplectic bundles from a clutching map.**
     `Geometry/Manifold/VectorBundle/Symplectic/Clutching.lean`: over a
