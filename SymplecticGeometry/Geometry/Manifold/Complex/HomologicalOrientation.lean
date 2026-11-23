@@ -57,12 +57,12 @@ variable (E : Type) [NormedAddCommGroup E] [NormedSpace ℂ E] [FiniteDimensiona
 noncomputable def complexManifoldHomologicalOrientation (hE : finrank ℂ E = r + 1) :
     HomologicalOrientation M E (2 * r + 1 + 1) :=
   (complexManifoldOrientationOfFinrank E M hE).toHomologicalOrientation (n := 2 * r + 1)
-    (by rw [finrank_real_of_complex, hE]; ring)
+    (finrank_real_of_finrank_complex_eq_add_one hE)
 
 theorem complexManifoldHomologicalOrientation_def (hE : finrank ℂ E = r + 1) :
     complexManifoldHomologicalOrientation E M hE =
       (complexManifoldOrientationOfFinrank E M hE).toHomologicalOrientation (n := 2 * r + 1)
-        (by rw [finrank_real_of_complex, hE]; ring) :=
+        (finrank_real_of_finrank_complex_eq_add_one hE) :=
   (rfl)
 
 /-- **The evaluation on the fundamental class of a complex manifold**, `c ↦ ⟨c, [M]⟩`. For a
@@ -73,12 +73,12 @@ noncomputable def complexManifoldEvalFundamentalClass [CompactSpace M]
     (hE : finrank ℂ E = r + 1) :
     (TopCat.of M).integralCohomology (2 * (r + 1)) →ₗ[ℤ] ℤ :=
   (complexManifoldHomologicalOrientation E M hE).evalFundamentalClass
-    (by rw [finrank_real_of_complex, hE]; ring) (ModuleCat.of ℤ ℤ) (ContinuousMap.id M)
+    (finrank_real_of_finrank_complex_eq_add_one hE) (ModuleCat.of ℤ ℤ) (ContinuousMap.id M)
 
 theorem complexManifoldEvalFundamentalClass_def [CompactSpace M] (hE : finrank ℂ E = r + 1) :
     complexManifoldEvalFundamentalClass E M hE =
       (complexManifoldHomologicalOrientation E M hE).evalFundamentalClass
-        (by rw [finrank_real_of_complex, hE]; ring) (ModuleCat.of ℤ ℤ) (ContinuousMap.id M) :=
+        (finrank_real_of_finrank_complex_eq_add_one hE) (ModuleCat.of ℤ ℤ) (ContinuousMap.id M) :=
   (rfl)
 
 end SymplecticGeometry
