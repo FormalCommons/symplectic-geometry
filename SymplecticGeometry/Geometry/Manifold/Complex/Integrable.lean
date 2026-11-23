@@ -17,6 +17,7 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 import TauCeti.Geometry.Symplectic.Finrank
 import TauCeti.Geometry.Manifold.VectorField.LieBracket
+import TauCeti.Geometry.Manifold.VectorBundle.Hom
 
 /-!
 # Integrable almost complex structures
@@ -43,7 +44,10 @@ Tau Ceti's `SmoothAlmostComplexStructure.HasIsothermalCharts`.
 A linear complex structure `J₀` of the model with which all tangent coordinate changes commute
 defines a constant almost complex structure, `ofTangentCoordChange`; its construction follows Tau
 Ceti's `SmoothAlmostComplexStructure.ofTangentCoordChangeISMul`, the case of multiplication by
-`i`. On a manifold modelled on the vector space itself it is integrable.
+`i`. Its smoothness is Tau Ceti's `TauCeti.contMDiff_hom_bundle_of_inCoordinates_eq_const`: the
+trivialization of the tangent bundle at a point has the chart's source as its base set, and there
+the structure reads as `J₀` in tangent coordinates. On a manifold modelled on the vector space
+itself it is integrable.
 
 ## Main declarations
 
@@ -298,12 +302,10 @@ def ofTangentCoordChange (hJ₀ : ∀ v, J₀ (J₀ v) = -v)
       tangentCoordChange I x y z (J₀ v) = J₀ (tangentCoordChange I x y z v)) :
     SmoothAlmostComplexStructure I M where
   toEndomorphism :=
-    ⟨fun _ ↦ J₀, fun x₀ ↦ by
-      -- In the tangent coordinates at `x₀`, the section is constantly `J₀` near `x₀`.
-      rw [contMDiffAt_hom_bundle]
-      refine ⟨contMDiffAt_id, (contMDiffAt_const (c := J₀)).congr_of_eventuallyEq ?_⟩
-      filter_upwards [(chartAt H x₀).open_source.mem_nhds (mem_chart_source H x₀)] with x hx
-      exact inTangentCoordinates_const I J₀ h hx⟩
+    ⟨fun _ ↦ J₀, TauCeti.contMDiff_hom_bundle_of_inCoordinates_eq_const
+      (V := TangentSpace I) (W := TangentSpace I) (c := fun _ ↦ J₀) fun _ _ hx _ ↦ by
+        rw [TangentBundle.trivializationAt_baseSet] at hx
+        simpa only [inTangentCoordinates, id_eq] using inTangentCoordinates_const I J₀ h hx⟩
   square_neg _ := ContinuousLinearMap.ext hJ₀
 
 variable {I J₀}

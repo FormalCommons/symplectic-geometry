@@ -93,7 +93,10 @@ This file carries Tau Ceti's two-forms on the tangent bundle over to an arbitrar
 At each point, the flat map and the two-form of a bilinear section are the maps
 `Bundle.flatAt` and `Bundle.alternatingMapOfBilin` of
 `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean`, and their smoothness is the case
-`b = id` of the lemmas there. The nondegeneracy API adapts Tau Ceti's for
+`b = id` of the lemmas there. The constant form `ContMDiffTwoForm.const` is smooth by
+`contMDiff_continuousAlternatingMap_bundle_of_inCoordinates_eq_const` from the same file, since
+in the trivializations of a trivial bundle it reads as `σ` everywhere. The nondegeneracy
+API adapts Tau Ceti's for
 `TauCeti.SmoothTwoForm.IsNondegenerate` (`TauCeti/Geometry/Symplectic/Manifold/TwoForm.lean`).
 The rank-two criterion `isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two` takes over the
 fibrewise step of `TauCeti.SmoothTwoForm.isNondegenerate_iff_forall_ne_zero_of_finrank_eq_two`
@@ -412,13 +415,9 @@ finite-dimensional normed space `W`. For `σ = stdForm ι` this is the standard 
 `Trivial M (StdSpace ι)`. -/
 def const (σ : TauCeti.SymplecticForm W) : ContMDiffTwoForm I n W (Trivial M W) where
   toFun _ := AlternatingMap.toContinuousAlternatingMap σ.isAlt.toAlternatingMap
-  contMDiff_toFun x₀ := by
-    rw [contMDiffAt_continuousAlternatingMap_bundle]
-    refine ⟨contMDiffAt_id, (contMDiffAt_const (c := AlternatingMap.toContinuousAlternatingMap
-      σ.isAlt.toAlternatingMap)).congr_of_eventuallyEq
-      (Filter.Eventually.of_forall fun x ↦ ?_)⟩
-    ext v
-    simp [ContinuousAlternatingMap.inCoordinates]
+  contMDiff_toFun := contMDiff_continuousAlternatingMap_bundle_of_inCoordinates_eq_const
+    (c := fun _ ↦ AlternatingMap.toContinuousAlternatingMap σ.isAlt.toAlternatingMap)
+    fun _ _ _ _ ↦ by ext v; simp [ContinuousAlternatingMap.inCoordinates]
 
 /-- At every point, the constant form is `σ` as a continuous alternating map. -/
 theorem const_def (σ : TauCeti.SymplecticForm W) (x : M) :
