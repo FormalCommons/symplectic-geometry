@@ -187,7 +187,6 @@ theorem exists_coordinateDisc_unitSection_eq_phase_zpow_smul
     contMDiffFiberBundle_circleFiber g hI
   have : SecondCountableTopology M :=
     ChartedSpace.secondCountable_of_sigmaCompact (EuclideanSpace ℝ (Fin 2)) M
-  have : FiniteDimensional ℝ F := Module.Finite.trans ℂ F
   -- a smooth section `s` with finitely many zeros
   have hF : finrank ℝ F = 2 := by
     rw [← Module.finrank_mul_finrank ℝ ℂ F, Complex.finrank_real_complex,

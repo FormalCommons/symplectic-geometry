@@ -477,7 +477,6 @@ local instance : FiniteDimensional ℂ F := .of_fact_finrank_eq_succ 0
 local instance : Fact (finrank ℂ ℂ = finrank ℂ F) :=
   ⟨by rw [finrank_self, Fact.out (p := finrank ℂ F = 1)]⟩
 
-local instance : FiniteDimensional ℝ F := Module.Finite.trans ℂ F
 
 /-- **The unitary frames of a smooth Hermitian line bundle form a smooth principal
 `Circle`-bundle.** For a smooth `i`-invariant metric `g` on a smooth complex line bundle `V`, the

@@ -68,7 +68,6 @@ variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace ℂ
   [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V]
 
 open scoped VectorBundle.ComplexToReal
-local instance : FiniteDimensional ℝ F := Module.Finite.trans ℂ F
 
 variable (g : ContMDiffRiemannianMetric I n F V)
   (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w)

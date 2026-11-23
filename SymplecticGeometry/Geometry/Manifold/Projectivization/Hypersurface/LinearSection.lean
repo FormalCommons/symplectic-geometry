@@ -96,7 +96,7 @@ public section
 noncomputable section
 
 open Bundle Set Projectivization
-open scoped Manifold ContDiff LinearAlgebra.Projectivization
+open scoped Manifold ContDiff LinearAlgebra.Projectivization VectorBundle.ComplexToReal
 
 namespace Projectivization
 

@@ -66,8 +66,6 @@ variable {B : Type*} [TopologicalSpace B]
   [∀ b, TopologicalSpace (E₂ b)] [FiberBundle F₂ E₂] [VectorBundle ℂ F₂ E₂]
 
 open scoped VectorBundle.ComplexToReal
-local instance : FiniteDimensional ℝ F₁ := Module.Finite.trans ℂ F₁
-local instance : FiniteDimensional ℝ F₂ := Module.Finite.trans ℂ F₂
 
 namespace VectorBundleOrientation
 
@@ -108,8 +106,6 @@ variable {B : Type} [TopologicalSpace B]
   [∀ b, TopologicalSpace (E₂ b)] [FiberBundle F₂ E₂] [VectorBundle ℂ F₂ E₂]
 
 open scoped VectorBundle.ComplexToReal
-local instance : FiniteDimensional ℝ F₁ := Module.Finite.trans ℂ F₁
-local instance : FiniteDimensional ℝ F₂ := Module.Finite.trans ℂ F₂
 
 /-- **The Whitney formula for Euler classes of complex vector bundles.** For complex vector
 bundles `E₁` and `E₂` over a common base, of complex ranks `r₁ + 1` and `r₂ + 1`, the Euler class
