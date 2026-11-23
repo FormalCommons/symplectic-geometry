@@ -709,9 +709,9 @@ collar of `∂S` (one exists: the instance `Nonempty (SmoothCollar n ∞ W)` of
     (`SymplecticSurfaceBundle.symplecticChernNumber_eq_zero_iff`). Read the
     global symplectic frame in the frames of `U₁` and `U₂`: this gives
     continuous `A` on `U₁` and `B` on `U₂` with values in the symplectic
-    group, and `B = A Ψ'` on the band, since there the second frame is the
+    group, and `A = Ψ' B` on the band, since there the second frame is the
     first composed with `Ψ'`. On `∂S` the two inclusions of `S` agree, so
-    `(A ∘ Double.inl c)⁻¹ * (B ∘ Double.inr c)` extends `Ψ'` over
+    `(A ∘ Double.inl c) * (B ∘ Double.inr c)⁻¹` extends `Ψ'` over
     `S`.
     Last, the homotopy extension property of the collared boundary (18b,
     applied to `TauCeti.isCollared_subtypeVal_boundary_of_compactSpace`)

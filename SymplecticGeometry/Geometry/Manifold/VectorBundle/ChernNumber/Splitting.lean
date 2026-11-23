@@ -103,7 +103,8 @@ argument principle for the trivial line bundle,
 * `TauCeti.Manifold.Orientation.boundaryMaslovIndex_mul`,
   `TauCeti.Manifold.Orientation.boundaryMaslovIndex_eq_zero_of_extend`,
   `TauCeti.Manifold.Orientation.boundaryMaslovIndex_eq_of_homotopy`: the same properties for a
-  compact surface with boundary.
+  compact surface with boundary; `TauCeti.Manifold.Orientation.boundaryMaslovIndex_reindex`:
+  reindexing the matrices keeps the index.
 * `TauCeti.HomologicalOrientation.sublevelBoundaryMaslovIndex_mul`,
   `TauCeti.HomologicalOrientation.sublevelBoundaryMaslovIndex_eq_of_homotopy`,
   `TauCeti.HomologicalOrientation.sublevelBoundaryMaslovIndex_eq_zero_of_extend_Iic`: the product
@@ -305,6 +306,20 @@ theorem boundaryMaslovIndex_inv (Ψ : C((𝓡∂ 2).boundary S, GLSymplectic n �
     o.boundaryMaslovIndex Ψ⁻¹ = -o.boundaryMaslovIndex Ψ := by
   simp only [boundaryMaslovIndex_def, ContinuousMap.inv_comp,
     HomologicalOrientation.boundaryMaslovIndex_inv]
+
+/-- Reindexing a map `∂S → Sp(2n)` along an equivalence of index types keeps its boundary Maslov
+index. -/
+@[simp]
+theorem boundaryMaslovIndex_reindex {κ : Type*} [Fintype κ] [DecidableEq κ] (e : n ≃ κ)
+    (Ψ : C((𝓡∂ 2).boundary S, GLSymplectic n ℝ)) :
+    o.boundaryMaslovIndex
+        ((⟨GLSymplectic.reindex ℝ e, continuous_reindex e⟩ :
+          C(GLSymplectic n ℝ, GLSymplectic κ ℝ)).comp Ψ) =
+      o.boundaryMaslovIndex Ψ := by
+  simp only [boundaryMaslovIndex_def, HomologicalOrientation.boundaryMaslovIndex_def]
+  congr 1
+  ext1 z
+  simp
 
 end TauCeti.Manifold.Orientation
 

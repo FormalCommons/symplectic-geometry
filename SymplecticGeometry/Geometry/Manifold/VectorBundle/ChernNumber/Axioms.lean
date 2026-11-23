@@ -46,7 +46,9 @@ assignment that does.
 * `SymplecticSurfaceBundle.symplecticChernNumber_nonempty_iso_iff`: bundles of equal rank are
   isomorphic exactly when their numbers agree;
   `SymplecticSurfaceBundle.symplecticChernNumber_eq_zero_iff` is the case of the trivial bundle,
-  which has number `0` (`SymplecticSurfaceBundle.symplecticChernNumber_trivial`).
+  which has number `0` (`SymplecticSurfaceBundle.symplecticChernNumber_trivial`), and an
+  isomorphism with the trivial bundle is a global symplectic frame
+  (`SymplecticSurfaceBundle.Iso.isSymplecticFrameOn_trans_symm_toFun`).
 * `chernNumberAxioms_symplecticChernNumber`: the first Chern number satisfies the axioms.
 * `eq_symplecticChernNumber_of_chernNumberAxioms`: every assignment satisfying the axioms is the
   first Chern number.
@@ -510,6 +512,16 @@ theorem symplecticChernNumber_eq_zero_iff {E : SymplecticSurfaceBundle S} :
     E.symplecticChernNumber = 0 ↔ Nonempty (E.Iso (trivial S E.n)) := by
   rw [symplecticChernNumber_nonempty_iso_iff, symplecticChernNumber_trivial]
   exact (and_iff_right rfl).symm
+
+/-- **Global frames of a trivial bundle.** An isomorphism `Φ` of `E` with the trivial bundle of
+rank `2 n`, read backwards on each fibre after a linear symplectomorphism `e` from `(W, σ)` to
+the standard model `StdSpace (Fin n)`, is a symplectic frame of `E` for `σ` over all of `S`. -/
+theorem Iso.isSymplecticFrameOn_trans_symm_toFun {E : SymplecticSurfaceBundle S} {n : ℕ}
+    {W : Type*} [NormedAddCommGroup W] [NormedSpace ℝ W] {σ : TauCeti.SymplecticForm W}
+    (Φ : E.Iso (trivial S n)) {e : W ≃L[ℝ] StdSpace (Fin n)}
+    (he : σ.IsSymplectomorphism (stdForm (Fin n)) e.toLinearEquiv) :
+    E.form.IsSymplecticFrameOn σ Set.univ fun x ↦ e.trans (Φ.symm.toFun x) :=
+  (ContMDiffTwoForm.isSymplecticFrameOn_const he).trans _ Φ.symm.contMDiff Φ.symm.pushforward_eq
 
 end SymplecticSurfaceBundle
 
