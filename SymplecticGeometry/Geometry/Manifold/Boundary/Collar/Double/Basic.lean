@@ -167,42 +167,26 @@ private def bandInterval : Opens ℝ := ⟨Ioo (-1) 1, isOpen_Ioo⟩
 
 private theorem mem_bandInterval {s : ℝ} : s ∈ bandInterval ↔ s ∈ Ioo (-1) 1 := Iff.rfl
 
-/-- The depth `-s` of a point `s ≤ 0` of the band (`0` for `s ≥ 0`). -/
-private def negDepth (s : bandInterval) : normalIioOpens 1 :=
-  normalIioRay ⟨-s, by have := (mem_bandInterval.1 s.property).1; rw [mem_Iio]; linarith⟩
+private theorem bandInterval_subset : (bandInterval : Set ℝ) ⊆ Ioi (-1) :=
+  fun _ h ↦ (mem_bandInterval.1 h).1
+
+private theorem Ioc_subset_bandInterval : Ioc (-1) 0 ⊆ (bandInterval : Set ℝ) :=
+  fun _ h ↦ mem_bandInterval.2 ⟨h.1, h.2.trans_lt one_pos⟩
 
 /-- The depth `s` of a point `s ≥ 0` of the band (`0` for `s ≤ 0`). -/
 private def posDepth (s : bandInterval) : normalIioOpens 1 :=
   normalIioRay ⟨s, (mem_bandInterval.1 s.property).2⟩
 
-private theorem continuous_negDepth : Continuous negDepth :=
-  continuous_normalIioRay.comp ((continuous_neg.comp continuous_subtypeVal).subtype_mk _)
-
 private theorem continuous_posDepth : Continuous posDepth :=
   continuous_normalIioRay.comp (continuous_subtypeVal.subtype_mk _)
-
-private theorem negDepth_coe_apply {s : bandInterval} (hs : (s : ℝ) ≤ 0) :
-    (negDepth s : EuclideanHalfSpace 1).val 0 = -s :=
-  normalIioRay_coe_apply_of_nonneg _ (neg_nonneg.2 hs)
 
 private theorem posDepth_coe_apply {s : bandInterval} (hs : 0 ≤ (s : ℝ)) :
     (posDepth s : EuclideanHalfSpace 1).val 0 = s :=
   normalIioRay_coe_apply_of_nonneg _ hs
 
-private theorem negDepth_eq_zero_iff {s : bandInterval} :
-    negDepth s = normalIioOpensZero one_pos ↔ 0 ≤ (s : ℝ) :=
-  (normalIioRay_eq_zero_iff _).trans neg_nonpos
-
 private theorem posDepth_eq_zero_iff {s : bandInterval} :
     posDepth s = normalIioOpensZero one_pos ↔ (s : ℝ) ≤ 0 :=
   normalIioRay_eq_zero_iff _
-
-/-- The point `-t` of `(-1, 0]` at a depth `t` of the collar. -/
-private def negCoord (t : normalIioOpens 1) : bandInterval :=
-  ⟨-(t : EuclideanHalfSpace 1).val 0, by
-    have h0 := (t : EuclideanHalfSpace 1).property
-    have h1 := mem_normalIioOpens.1 t.property
-    exact ⟨by linarith, by linarith⟩⟩
 
 /-- The point `t` of `[0, 1)` at a depth `t` of the collar. -/
 private def posCoord (t : normalIioOpens 1) : bandInterval :=
@@ -211,27 +195,14 @@ private def posCoord (t : normalIioOpens 1) : bandInterval :=
     have h1 := mem_normalIioOpens.1 t.property
     exact ⟨by linarith, h1⟩⟩
 
-private theorem continuous_negCoord : Continuous negCoord :=
-  Continuous.subtype_mk (by fun_prop) _
-
 private theorem continuous_posCoord : Continuous posCoord :=
   Continuous.subtype_mk (by fun_prop) _
-
-private theorem coe_negCoord (t : normalIioOpens 1) :
-    (negCoord t : ℝ) = -(t : EuclideanHalfSpace 1).val 0 := rfl
 
 private theorem coe_posCoord (t : normalIioOpens 1) :
     (posCoord t : ℝ) = (t : EuclideanHalfSpace 1).val 0 := rfl
 
-private theorem negDepth_negCoord (t : normalIioOpens 1) : negDepth (negCoord t) = t :=
-  Subtype.ext (by simp [negDepth, negCoord, normalRay_normalCoord])
-
 private theorem posDepth_posCoord (t : normalIioOpens 1) : posDepth (posCoord t) = t :=
   Subtype.ext (by simp [posDepth, posCoord, normalRay_normalCoord])
-
-private theorem negCoord_negDepth {s : bandInterval} (hs : (s : ℝ) ≤ 0) :
-    negCoord (negDepth s) = s :=
-  Subtype.ext (by rw [coe_negCoord, negDepth_coe_apply hs, neg_neg])
 
 private theorem posCoord_posDepth {s : bandInterval} (hs : 0 ≤ (s : ℝ)) :
     posCoord (posDepth s) = s :=
@@ -242,31 +213,35 @@ private theorem posCoord_posDepth {s : bandInterval} (hs : 0 ≤ (s : ℝ)) :
 /-- The point `(s, x)` of `(-1, 1) × ∂W` in the double: `c (x, -s)` in the first copy for
 `s ≤ 0`, and `c (x, s)` in the second copy for `0 < s`. -/
 private def bandPt (p : bandInterval × (𝓡∂ (n + 1)).boundary W) : c.Double :=
-  if (p.1 : ℝ) ≤ 0 then inl c (c (p.2, negDepth p.1)) else inr c (c (p.2, posDepth p.1))
+  if (p.1 : ℝ) ≤ 0 then inl c (c (p.2, negNormalIioRay bandInterval_subset p.1))
+  else inr c (c (p.2, posDepth p.1))
 
-private theorem inl_negDepth_eq_inr_posDepth {s : bandInterval} (hs : (s : ℝ) = 0)
+private theorem inl_negNormalIioRay_eq_inr_posDepth {s : bandInterval} (hs : (s : ℝ) = 0)
     (x : (𝓡∂ (n + 1)).boundary W) :
-    inl c (c (x, negDepth s)) = inr c (c (x, posDepth s)) := by
-  rw [negDepth_eq_zero_iff.2 hs.ge, posDepth_eq_zero_iff.2 hs.le, c.apply_zero, inl_coe_eq_inr]
+    inl c (c (x, negNormalIioRay bandInterval_subset s)) = inr c (c (x, posDepth s)) := by
+  rw [(negNormalIioRay_eq_zero_iff bandInterval_subset).2 hs.ge, posDepth_eq_zero_iff.2 hs.le,
+    c.apply_zero, inl_coe_eq_inr]
 
 private theorem bandPt_of_nonpos {s : bandInterval} (hs : (s : ℝ) ≤ 0)
-    (x : (𝓡∂ (n + 1)).boundary W) : bandPt c (s, x) = inl c (c (x, negDepth s)) :=
+    (x : (𝓡∂ (n + 1)).boundary W) :
+    bandPt c (s, x) = inl c (c (x, negNormalIioRay bandInterval_subset s)) :=
   ite_eq_left_iff.2 fun h ↦ absurd hs h
 
 private theorem bandPt_of_nonneg {s : bandInterval} (hs : 0 ≤ (s : ℝ))
     (x : (𝓡∂ (n + 1)).boundary W) : bandPt c (s, x) = inr c (c (x, posDepth s)) := by
   rcases hs.eq_or_lt with h | h
-  · rw [bandPt_of_nonpos c h.ge, inl_negDepth_eq_inr_posDepth c h.symm]
+  · rw [bandPt_of_nonpos c h.ge, inl_negNormalIioRay_eq_inr_posDepth c h.symm]
   · exact ite_eq_right_iff.2 fun h' ↦ absurd h' (not_le.2 h)
 
 private theorem continuous_bandPt : Continuous (bandPt c) :=
   Continuous.if_le
     ((inl c).continuous.comp (c.continuous.comp
-      (continuous_snd.prodMk (continuous_negDepth.comp continuous_fst))))
+      (continuous_snd.prodMk
+        ((continuous_negNormalIioRay bandInterval_subset).comp continuous_fst))))
     ((inr c).continuous.comp (c.continuous.comp
       (continuous_snd.prodMk (continuous_posDepth.comp continuous_fst))))
     (continuous_subtypeVal.comp continuous_fst) continuous_const
-    fun p hp ↦ inl_negDepth_eq_inr_posDepth c hp p.2
+    fun p hp ↦ inl_negNormalIioRay_eq_inr_posDepth c hp p.2
 
 /-- A collar point in both copies of `W` is a boundary point. -/
 private theorem inl_eq_inr_collar {x y : (𝓡∂ (n + 1)).boundary W} {t u : normalIioOpens 1}
@@ -284,15 +259,17 @@ private theorem bandPt_injective : Injective (bandPt c) := by
     have h' := c.injective (inl_injective c h)
     simp only [Prod.mk.injEq] at h'
     obtain ⟨rfl, ht⟩ := h'
-    rw [← negCoord_negDepth hs, ← negCoord_negDepth hs', ht]
+    rw [← negNormalCoord_negNormalIioRay bandInterval_subset Ioc_subset_bandInterval hs,
+      ← negNormalCoord_negNormalIioRay bandInterval_subset Ioc_subset_bandInterval hs', ht]
   · rw [bandPt_of_nonpos c hs, bandPt_of_nonneg c hs'] at h
     obtain ⟨rfl, ht, hu⟩ := inl_eq_inr_collar c h
-    exact Prod.ext (Subtype.ext ((le_antisymm hs (negDepth_eq_zero_iff.1 ht)).trans
-      (le_antisymm (posDepth_eq_zero_iff.1 hu) hs').symm)) rfl
+    exact Prod.ext (Subtype.ext
+      ((le_antisymm hs ((negNormalIioRay_eq_zero_iff bandInterval_subset).1 ht)).trans
+        (le_antisymm (posDepth_eq_zero_iff.1 hu) hs').symm)) rfl
   · rw [bandPt_of_nonneg c hs, bandPt_of_nonpos c hs'] at h
     obtain ⟨rfl, ht, hu⟩ := inl_eq_inr_collar c h.symm
     exact Prod.ext (Subtype.ext ((le_antisymm (posDepth_eq_zero_iff.1 hu) hs).trans
-      (le_antisymm hs' (negDepth_eq_zero_iff.1 ht)).symm)) rfl
+      (le_antisymm hs' ((negNormalIioRay_eq_zero_iff bandInterval_subset).1 ht)).symm)) rfl
   · rw [bandPt_of_nonneg c hs, bandPt_of_nonneg c hs'] at h
     have h' := c.injective (inr_injective c h)
     simp only [Prod.mk.injEq] at h'
@@ -300,22 +277,22 @@ private theorem bandPt_injective : Injective (bandPt c) := by
     rw [← posCoord_posDepth hs, ← posCoord_posDepth hs', ht]
 
 private theorem preimage_inl_image_bandPt (U : Set (bandInterval × (𝓡∂ (n + 1)).boundary W)) :
-    inl c ⁻¹' (bandPt c '' U) = c '' ((fun p ↦ (negCoord p.2, p.1)) ⁻¹' U) := by
+    inl c ⁻¹' (bandPt c '' U) =
+      c '' ((fun p ↦ (negNormalCoord Ioc_subset_bandInterval p.2, p.1)) ⁻¹' U) := by
   ext w
   constructor
   · rintro ⟨⟨s, x⟩, hU, h⟩
     rcases le_or_gt (s : ℝ) 0 with hs | hs
     · rw [bandPt_of_nonpos c hs] at h
-      refine ⟨(x, negDepth s), ?_, inl_injective c h⟩
-      rwa [mem_preimage, negCoord_negDepth hs]
+      refine ⟨(x, negNormalIioRay bandInterval_subset s), ?_, inl_injective c h⟩
+      rwa [mem_preimage,
+        negNormalCoord_negNormalIioRay bandInterval_subset Ioc_subset_bandInterval hs]
     · rw [bandPt_of_nonneg c hs.le] at h
       obtain ⟨rfl, hw⟩ := (inl_eq_inr_iff c).1 h.symm
       exact absurd (posDepth_eq_zero_iff.1 ((c.apply_mem_boundary_iff _).1 hw)) (not_le.2 hs)
   · rintro ⟨⟨x, t⟩, hU, rfl⟩
-    refine ⟨(negCoord t, x), hU, ?_⟩
-    have ht : (negCoord t : ℝ) ≤ 0 := by
-      rw [coe_negCoord]; exact neg_nonpos.2 (t : EuclideanHalfSpace 1).property
-    rw [bandPt_of_nonpos c ht, negDepth_negCoord]
+    refine ⟨(negNormalCoord Ioc_subset_bandInterval t, x), hU, ?_⟩
+    rw [bandPt_of_nonpos c (negNormalCoord_nonpos _ t), negNormalIioRay_negNormalCoord]
 
 private theorem preimage_inr_image_bandPt (U : Set (bandInterval × (𝓡∂ (n + 1)).boundary W)) :
     inr c ⁻¹' (bandPt c '' U) = c '' ((fun p ↦ (posCoord p.2, p.1)) ⁻¹' U) := by
@@ -328,7 +305,8 @@ private theorem preimage_inr_image_bandPt (U : Set (bandInterval × (𝓡∂ (n 
       rwa [mem_preimage, posCoord_posDepth hs]
     · rw [bandPt_of_nonpos c hs.le] at h
       obtain ⟨-, hw⟩ := (inl_eq_inr_iff c).1 h
-      exact absurd (negDepth_eq_zero_iff.1 ((c.apply_mem_boundary_iff _).1 hw)) (not_le.2 hs)
+      exact absurd ((negNormalIioRay_eq_zero_iff bandInterval_subset).1
+        ((c.apply_mem_boundary_iff _).1 hw)) (not_le.2 hs)
   · rintro ⟨⟨x, t⟩, hU, rfl⟩
     refine ⟨(posCoord t, x), hU, ?_⟩
     rw [bandPt_of_nonneg c (by rw [coe_posCoord]; exact (t : EuclideanHalfSpace 1).property),
@@ -339,14 +317,16 @@ private theorem isOpenEmbedding_bandPt : IsOpenEmbedding (bandPt c) := by
     fun U hU ↦ (isOpen_iff c).2 ⟨?_, ?_⟩
   · rw [preimage_inl_image_bandPt]
     exact c.isOpenEmbedding.isOpenMap _
-      (hU.preimage (continuous_negCoord.comp continuous_snd |>.prodMk continuous_fst))
+      (hU.preimage ((continuous_negNormalCoord Ioc_subset_bandInterval).comp continuous_snd
+        |>.prodMk continuous_fst))
   · rw [preimage_inr_image_bandPt]
     exact c.isOpenEmbedding.isOpenMap _
       (hU.preimage (continuous_posCoord.comp continuous_snd |>.prodMk continuous_fst))
 
 private theorem bandPt_zero (x : (𝓡∂ (n + 1)).boundary W) :
     bandPt c (⟨0, by simp [mem_bandInterval]⟩, x) = inl c x := by
-  rw [bandPt_of_nonpos c le_rfl, negDepth_eq_zero_iff.2 le_rfl, c.apply_zero]
+  rw [bandPt_of_nonpos c le_rfl, (negNormalIioRay_eq_zero_iff bandInterval_subset).2 le_rfl,
+    c.apply_zero]
 
 /-- The point `(s, x)` of the band `(-1, 1) × ∂W` in the double: the collar point `c (x, -s)` of
 the first copy of `W` for `s ≤ 0`, and the collar point `c (x, s)` of the second copy for
@@ -362,7 +342,7 @@ private theorem bandMap_coe (p : bandInterval × (𝓡∂ (n + 1)).boundary W) :
 copy of `W`. -/
 theorem bandMap_of_nonpos {s : ℝ} (hs : s ≤ 0) (hs' : -1 < s) (x : (𝓡∂ (n + 1)).boundary W) :
     bandMap c (s, x) = inl c (c (x, normalIioRay ⟨-s, by rw [mem_Iio]; linarith⟩)) := by
-  rw [bandMap_coe c (⟨s, ⟨hs', by linarith⟩⟩, x), bandPt_of_nonpos c hs, negDepth]
+  rw [bandMap_coe c (⟨s, ⟨hs', by linarith⟩⟩, x), bandPt_of_nonpos c hs, negNormalIioRay_def]
 
 /-- For `s ∈ [0, 1)`, the point `(s, x)` of the band is the collar point `c (x, s)` of the second
 copy of `W`. -/
@@ -527,9 +507,10 @@ second copy and the band reflected by `s ↦ -s`. -/
 
 private theorem endMap_of_nonpos {s : bandInterval} (hs : (s : ℝ) ≤ 0)
     (x : (𝓡∂ (n + 1)).boundary W) :
-    WithEnd.endMap c (s, x) = WithEnd.inclusion c (c (x, negDepth s)) := by
-  have h := WithEnd.endMap_neg_eq_inclusion c x (negDepth s)
-  rwa [negDepth_coe_apply hs, neg_neg] at h
+    WithEnd.endMap c (s, x) =
+      WithEnd.inclusion c (c (x, negNormalIioRay bandInterval_subset s)) := by
+  have h := WithEnd.endMap_neg_eq_inclusion c x (negNormalIioRay bandInterval_subset s)
+  rwa [negNormalIioRay_coe_apply_of_nonpos bandInterval_subset hs, neg_neg] at h
 
 private theorem endMap_neg_of_nonneg {s : bandInterval} (hs : 0 ≤ (s : ℝ))
     (x : (𝓡∂ (n + 1)).boundary W) :
