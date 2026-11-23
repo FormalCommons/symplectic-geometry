@@ -122,7 +122,7 @@ open SmoothCollar.Double
 
 variable {S : Type} [TopologicalSpace S] [ChartedSpace (EuclideanHalfSpace 2) S]
   [IsManifold (𝓡∂ 2) ∞ S] [T2Space S] [CompactSpace S] [Nonempty ((𝓡∂ 2).boundary S)]
-  (o : Manifold.Orientation (𝓡 2) (InteriorModel (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S)) (Fin 2))
+  (o : Manifold.Orientation (𝓡 2) (InteriorPiece 1 S) (Fin 2))
   (c : SmoothCollar 1 ∞ S) {κ : Type*} [Fintype κ] [DecidableEq κ]
 
 /-- **The boundary Maslov index on the first copy of the double.** Let `S` be a compact surface
@@ -142,10 +142,10 @@ theorem boundaryMaslovIndex_eq_sublevelBoundaryMaslovIndex_height
   -- orientation of the double back along it gives `o`.
   let U : TopologicalSpace.Opens c.Double :=
     ⟨height c ⁻¹' Iio 0, isOpen_Iio.preimage (contMDiff_height c).continuous⟩
-  let φ : InteriorModel (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S) ≃ₜ U :=
+  let φ : InteriorPiece 1 S ≃ₜ U :=
     (isOpenEmbedding_inlInterior c).isEmbedding.toHomeomorph.trans
       (Homeomorph.setCongr (preimage_height_Iio c).symm)
-  have hφ (p : InteriorModel (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S)) :
+  have hφ (p : InteriorPiece 1 S) :
       (φ p : c.Double) = inlInterior c p :=
     rfl
   have ho : (((orientation c o).toHomologicalOrientation hn).comap U.isOpenEmbedding').comap
@@ -190,7 +190,7 @@ open scoped Matrix.Norms.Operator
 variable {S : Type} [TopologicalSpace S] [ChartedSpace (EuclideanHalfSpace 2) S]
   [IsManifold (𝓡∂ 2) ∞ S] [T2Space S] [CompactSpace S] [ConnectedSpace S]
   (c : SmoothCollar 1 ∞ S)
-  (o : Manifold.Orientation (𝓡 2) (InteriorModel (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S)) (Fin 2))
+  (o : Manifold.Orientation (𝓡 2) (InteriorPiece 1 S) (Fin 2))
   (hS : ((𝓡∂ 2).boundary S).Nonempty)
 
 /-- **The double of a surface as a closed connected oriented surface.** For a compact connected
