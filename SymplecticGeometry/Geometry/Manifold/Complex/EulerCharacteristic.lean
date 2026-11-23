@@ -31,9 +31,11 @@ inverse is the identity of `E`, as the map
   `TauCeti.complexOrientation E` of the model, by Tau Ceti's
   `TauCeti.orientationAt_complexManifoldOrientation_eq_complexOrientation` and
   `TauCeti.VectorBundleOrientation.complex_apply`.
-* `TauCeti.complexEulerClass_tangentSpace`: hence the Euler class of the complex tangent bundle,
-  `TauCeti.complexEulerClass`, is the Euler class of the real tangent bundle oriented by
-  `complexManifoldOrientation E M` (`TauCeti.VectorBundleOrientation.eulerClass_eq_of_fiberwise`).
+* `SymplecticGeometry.complexEulerClass_tangentSpace`: hence the Euler class of the complex
+  tangent bundle, `TauCeti.complexEulerClass`, is the Euler class of the real tangent bundle
+  oriented by `complexManifoldOrientation E M`, reindexed
+  (`SymplecticGeometry.complexManifoldOrientationOfFinrank`), by
+  `TauCeti.VectorBundleOrientation.eulerClass_eq_of_fiberwise`.
 * `SymplecticGeometry.evalFundamentalClass_chernClass_eq_eulerChar`: for `M` compact, Hausdorff
   and smooth, `⟨c_{r+1}(TM), [M]⟩ = χ(M)`, the fundamental class being that of the canonical
   orientation. The top Chern class is the Euler class
@@ -65,10 +67,6 @@ namespace TauCeti
 
 variable [IsManifold 𝓘(ℂ, E) 1 M]
 
-local instance instVectorBundleRealTangentSpaceComplex :
-    VectorBundle ℝ E (TangentSpace 𝓘(ℂ, E) : M → Type) :=
-  VectorBundle.restrictScalars ℝ ℂ E _
-
 /-- The identification of the real tangent space of a complex manifold at `x` with its complex
 tangent space, the fibre of the inverse of `TangentBundle.restrictScalarsHomeomorph`, carries the
 canonical orientation `complexManifoldOrientation E M` to the canonical orientation of the complex
@@ -89,14 +87,25 @@ theorem map_orientationAt_complexManifoldOrientation_eq_complex (x : M) :
   -- The left side is an orientation of `TangentSpace 𝓘(ℝ, E) x`, which is `E` by definition.
   exact (tangentSpaceCastModel 𝓘(ℂ, E) x).symm.toLinearEquiv.map_complexOrientation
 
+end TauCeti
+
+namespace SymplecticGeometry
+
+section
+
+variable [IsManifold 𝓘(ℂ, E) 1 M]
+
+local instance instVectorBundleRealTangentSpaceComplex :
+    VectorBundle ℝ E (TangentSpace 𝓘(ℂ, E) : M → Type) :=
+  VectorBundle.restrictScalars ℝ ℂ E _
+
 /-- **The Euler class of the tangent bundle of a complex manifold.** For `finrank ℂ E = r + 1`, the
 Euler class of the complex tangent bundle, `complexEulerClass`, is the Euler class of the real
 tangent bundle oriented by the canonical orientation `complexManifoldOrientation E M`, reindexed
-along `2 * finrank ℂ E = 2 r + 2`. -/
+along `2 * finrank ℂ E = 2 r + 2` (`complexManifoldOrientationOfFinrank E M hE`). -/
 theorem complexEulerClass_tangentSpace {r : ℕ} (hE : finrank ℂ E = r + 1) :
     complexEulerClass E (TangentSpace 𝓘(ℂ, E) : M → Type) hE =
-      ((complexManifoldOrientation E M).reindex
-        (finCongr (by rw [hE]; ring))).toVectorBundleOrientation.eulerClass
+      (complexManifoldOrientationOfFinrank E M hE).toVectorBundleOrientation.eulerClass
         (by rw [finrank_real_of_complex, hE]; ring) := by
   -- On total spaces the fibrewise identification is the inverse of `restrictScalarsHomeomorph`.
   have hφ : Continuous fun v : TotalSpace E (TangentSpace 𝓘(ℝ, E) : M → Type) ↦
@@ -107,7 +116,7 @@ theorem complexEulerClass_tangentSpace {r : ℕ} (hE : finrank ℂ E = r + 1) :
     rw [TangentBundle.restrictScalarsHomeomorph_symm_apply]
     -- Both sides are `⟨x, v⟩`: the two casts are the identity of `E` by definition.
     rfl
-  rw [complexEulerClass_def]
+  rw [complexEulerClass_def, complexManifoldOrientationOfFinrank_def]
   refine (VectorBundleOrientation.eulerClass_eq_of_fiberwise _ _ _ _
     (φ := fun x ↦ (tangentSpaceCastModel 𝓘(ℝ, E) x).trans
       ((tangentSpaceCastModel 𝓘(ℂ, E) x).restrictScalars ℝ).symm)
@@ -117,9 +126,7 @@ theorem complexEulerClass_tangentSpace {r : ℕ} (hE : finrank ℂ E = r + 1) :
     Orientation.map_reindex,
     map_orientationAt_complexManifoldOrientation_eq_complex]
 
-end TauCeti
-
-namespace SymplecticGeometry
+end
 
 variable [CompactSpace M] [T2Space M] [IsManifold 𝓘(ℂ, E) ∞ M] [FiniteCWType M]
 

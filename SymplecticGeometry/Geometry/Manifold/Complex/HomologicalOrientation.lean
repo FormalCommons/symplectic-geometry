@@ -8,7 +8,7 @@ module
 public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
-public import TauCeti.Geometry.Manifold.Complex.Orientation
+public import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
 
 /-!
 # The homological orientation and fundamental class of a complex manifold
@@ -19,7 +19,8 @@ by `Fin (2 * finrank ℂ E)`. This file names, once for every such `E` and `M`, 
 turn it into a pairing with the fundamental class:
 
 * `SymplecticGeometry.complexManifoldHomologicalOrientation`: that orientation, reindexed to
-  `Fin (2 r + 2)`, as a homological orientation of `M` in degree `2 r + 2`, with
+  `Fin (2 r + 2)` (`SymplecticGeometry.complexManifoldOrientationOfFinrank`), as a homological
+  orientation of `M` in degree `2 r + 2`, with
   `SymplecticGeometry.complexManifoldHomologicalOrientation_def`;
 * `SymplecticGeometry.complexManifoldEvalFundamentalClass`: for `M` compact, the `ℤ`-linear map
   `H^{2r+2}(M; ℤ) → ℤ`, `c ↦ ⟨c, [M]⟩`, for that orientation, with
@@ -50,19 +51,17 @@ variable (E : Type) [NormedAddCommGroup E] [NormedSpace ℂ E] [FiniteDimensiona
 
 /-- **The homological orientation of a complex manifold.** A complex manifold `M` modelled on
 `𝓘(ℂ, E)`, with `finrank ℂ E = r + 1`, is oriented by its complex structure: Tau Ceti's
-`complexManifoldOrientation E M`, reindexed along `2 * finrank ℂ E = 2 r + 2`, as a homological
-orientation of `M` in degree `2 r + 2`. -/
+`complexManifoldOrientation E M`, reindexed along `2 * finrank ℂ E = 2 r + 2`
+(`complexManifoldOrientationOfFinrank E M hE`), as a homological orientation of `M` in degree
+`2 r + 2`. -/
 noncomputable def complexManifoldHomologicalOrientation (hE : finrank ℂ E = r + 1) :
     HomologicalOrientation M E (2 * r + 1 + 1) :=
-  ((complexManifoldOrientation E M).reindex
-    (finCongr (by rw [hE]; ring) : Fin (2 * finrank ℂ E) ≃ Fin (2 * r + 1 + 1))
-    ).toHomologicalOrientation (n := 2 * r + 1) (by rw [finrank_real_of_complex, hE]; ring)
+  (complexManifoldOrientationOfFinrank E M hE).toHomologicalOrientation (n := 2 * r + 1)
+    (by rw [finrank_real_of_complex, hE]; ring)
 
 theorem complexManifoldHomologicalOrientation_def (hE : finrank ℂ E = r + 1) :
     complexManifoldHomologicalOrientation E M hE =
-      ((complexManifoldOrientation E M).reindex
-        (finCongr (by rw [hE]; ring) : Fin (2 * finrank ℂ E) ≃ Fin (2 * r + 1 + 1))
-        ).toHomologicalOrientation (n := 2 * r + 1)
+      (complexManifoldOrientationOfFinrank E M hE).toHomologicalOrientation (n := 2 * r + 1)
         (by rw [finrank_real_of_complex, hE]; ring) :=
   (rfl)
 

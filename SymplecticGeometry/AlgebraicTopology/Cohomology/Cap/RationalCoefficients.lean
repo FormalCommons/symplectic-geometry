@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.LinearAlgebra.QuadraticForm.Signature
 public import SymplecticGeometry.Algebra.Homology.ShortComplex.PreservesHomology
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.Basic
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Duality.Manifold
@@ -14,6 +15,9 @@ public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Duality
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralComparison
 public import TauCeti.AlgebraicTopology.Cohomology.UniversalCoefficient.CapDuality
 public import TauCeti.AlgebraicTopology.Singular.BettiNumber
+
+import TauCeti.LinearAlgebra.QuadraticForm.Radical
+import TauCeti.LinearAlgebra.QuadraticForm.Signature
 
 /-!
 # The cap product with integral and with rational chains
@@ -62,7 +66,14 @@ injectivity is the hypothesis of Tau Ceti's evenness criterion
 `TopCat.even_finrank_singularHomology_of_injective_singularCapLinearMap`. With Tau
 Ceti's `TopCat.finrank_singularHomology_eq_of_bijective_singularCapLinearMap`, it follows that the
 rational Betti numbers of a compact oriented `n`-manifold satisfy `b_q = b_p` for `p + q = n`
-(`TauCeti.HomologicalOrientation.bettiNumber_eq_bettiNumber`).
+(`TauCeti.HomologicalOrientation.bettiNumber_eq_bettiNumber`). For `p + p = n`,
+injectivity also makes the cup pairing `(α, β) ↦ ⟨α ⌣ β, μ⟩` on `Hᵖ(M; ℚ)` nondegenerate, by
+Tau Ceti's `TopCat.nondegenerate_singularCupPairing_iff`
+(`TauCeti.HomologicalOrientation.nondegenerate_singularCupPairing_fundamentalClass`). For `p`
+even the pairing is symmetric, so its quadratic form is nondegenerate too
+(`TauCeti.HomologicalOrientation.nondegenerate_toQuadraticMap_singularCupPairing_fundamentalClass`),
+and the indices of inertia of its quadratic form add up to `b_p`
+(`TauCeti.HomologicalOrientation.sigPos_add_sigNeg_singularCupPairing_fundamentalClass`).
 
 ## Implementation notes
 
@@ -590,6 +601,45 @@ theorem bettiNumber_eq_bettiNumber [CompactSpace M] {p q : ℕ} (h : p + q = n) 
   -- definition of the monoidal structure; Mathlib states no lemma for it.
   exact (TopCat.of M).finrank_singularHomology_eq_of_bijective_singularCapLinearMap ℚ h _
     (o.bijective_singularCapLinearMap_fundamentalClass hn h)
+
+/-- **Poincaré duality for the cup pairing.** For a compact homologically oriented `n`-manifold
+`M` and `p` with `p + p = n`, the cup pairing `(α, β) ↦ ⟨α ⌣ β, μ⟩` on `Hᵖ(M; ℚ)`, for `μ` the
+image of the fundamental class in `Hₙ(M; ℚ)`, is nondegenerate. -/
+theorem nondegenerate_singularCupPairing_fundamentalClass [CompactSpace M] {p : ℕ}
+    (h : p + p = n) :
+    ((TopCat.of M).singularCupPairing ℚ h
+      ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn))).Nondegenerate :=
+  ((TopCat.of M).nondegenerate_singularCupPairing_iff ℚ h _).2
+    (o.bijective_singularCapLinearMap_fundamentalClass hn h).injective
+
+/-- **The intersection form of a compact manifold is nondegenerate.** For a compact homologically
+oriented `n`-manifold `M` and an even `p` with `p + p = n`, the quadratic form
+`α ↦ ⟨α ⌣ α, μ⟩` on `Hᵖ(M; ℚ)`, for `μ` the image of the fundamental class in `Hₙ(M; ℚ)`, is
+nondegenerate. -/
+theorem nondegenerate_toQuadraticMap_singularCupPairing_fundamentalClass [CompactSpace M] {p : ℕ}
+    (hp : Even p) (h : p + p = n) :
+    (LinearMap.BilinMap.toQuadraticMap ((TopCat.of M).singularCupPairing ℚ h
+      ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn)))).Nondegenerate :=
+  LinearMap.BilinForm.Nondegenerate.toQuadraticMap
+    (o.nondegenerate_singularCupPairing_fundamentalClass hn h)
+    (LinearMap.isSymm_iff_eq_flip.1 ((TopCat.of M).isSymm_singularCupPairing ℚ hp h _)).symm
+
+/-- **The indices of inertia of the intersection form add up to the middle Betti number.** For a
+compact homologically oriented `n`-manifold `M` and an even `p` with `p + p = n`, the positive
+and negative indices of inertia of the quadratic form `α ↦ ⟨α ⌣ α, μ⟩` on `Hᵖ(M; ℚ)`, for `μ`
+the image of the fundamental class in `Hₙ(M; ℚ)`, add up to the `p`-th rational Betti number. -/
+theorem sigPos_add_sigNeg_singularCupPairing_fundamentalClass [CompactSpace M] {p : ℕ}
+    (hp : Even p) (h : p + p = n) :
+    sigPos (LinearMap.BilinMap.toQuadraticMap ((TopCat.of M).singularCupPairing ℚ h
+        ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn)))) +
+      sigNeg (LinearMap.BilinMap.toQuadraticMap ((TopCat.of M).singularCupPairing ℚ h
+        ((TopCat.of M).singularHomologyIntToRat n (o.fundamentalClass hn)))) =
+      bettiNumber ℚ M p := by
+  rw [QuadraticForm.sigPos_add_sigNeg_of_nondegenerate _
+    (o.nondegenerate_toQuadraticMap_singularCupPairing_fundamentalClass hn hp h), bettiNumber_def]
+  -- `bettiNumber` takes coefficients `ModuleCat.of ℚ ℚ`, which is `𝟙_ (ModuleCat ℚ)` by the
+  -- definition of the monoidal structure; Mathlib states no lemma for it.
+  exact (TopCat.of M).finrank_singularCohomology p
 
 end TauCeti.HomologicalOrientation
 

@@ -34,6 +34,18 @@ reindexes the canonical orientation once, for every such `E` and `M`:
   orientation given by `Complex.orientation`;
 * `Diffeomorph.isOrientationPreservingAt_complexCurveOrientation`: biholomorphisms preserve it.
 
+More generally, for complex dimension `finrank ℂ E = r + 1`, statements about real manifolds of
+dimension `2 r + 2` use the index type `Fin (2 * r + 1 + 1)`:
+
+* `SymplecticGeometry.complexManifoldOrientationOfFinrank`: the canonical orientation, indexed by
+  `Fin (2 * r + 1 + 1)`, with `SymplecticGeometry.complexManifoldOrientationOfFinrank_def`;
+* `SymplecticGeometry.orientationAt_complexManifoldOrientationOfFinrank`: at every point it is the
+  complex orientation `TauCeti.complexOrientation E` of the model, reindexed;
+* `SymplecticGeometry.map_orientationAt_complexManifoldOrientationOfFinrank`: a complex-linear
+  isomorphism `E ≃L[ℂ] G` carries it to the complex orientation of `G`, reindexed;
+* `SymplecticGeometry.complexCurveOrientation_eq_complexManifoldOrientationOfFinrank`: its case
+  `r = 0` is `SymplecticGeometry.complexCurveOrientation`.
+
 Tau Ceti's `TauCeti.complexHomologicalOrientation` (in
 `TauCeti/Geometry/Manifold/Complex/FundamentalClass.lean`) reindexes the same orientation to
 `Fin 2` for Riemann surfaces modelled on `ℂ`, as a homological orientation.
@@ -132,6 +144,48 @@ theorem _root_.Diffeomorph.isOrientationPreservingAt_complexCurveOrientation
       (complexCurveOrientation E N h) Φ x := by
   rw [complexCurveOrientation_def, complexCurveOrientation_def]
   exact (Φ.isOrientationPreservingAt_complexManifoldOrientation n x).reindex _
+
+variable (E M) in
+/-- The canonical orientation of a complex manifold `M` modelled on `𝓘(ℂ, E)`, of complex
+dimension `finrank ℂ E = r + 1`, as an orientation of the underlying real manifold of dimension
+`2 r + 2` indexed by `Fin (2 * r + 1 + 1)`: Tau Ceti's `complexManifoldOrientation E M`,
+reindexed from `Fin (2 * finrank ℂ E)`. -/
+noncomputable def complexManifoldOrientationOfFinrank {r : ℕ} (hE : finrank ℂ E = r + 1) :
+    Manifold.Orientation 𝓘(ℝ, E) M (Fin (2 * r + 1 + 1)) :=
+  (complexManifoldOrientation E M).reindex (finCongr (by rw [hE]; ring))
+
+theorem complexManifoldOrientationOfFinrank_def {r : ℕ} (hE : finrank ℂ E = r + 1) :
+    complexManifoldOrientationOfFinrank E M hE =
+      (complexManifoldOrientation E M).reindex (finCongr (by rw [hE]; ring)) :=
+  (rfl)
+
+/-- At every point of a complex manifold of complex dimension `r + 1`,
+`complexManifoldOrientationOfFinrank` is the complex orientation of the model space `E`,
+reindexed to `Fin (2 * r + 1 + 1)`. -/
+@[simp]
+theorem orientationAt_complexManifoldOrientationOfFinrank {r : ℕ} (hE : finrank ℂ E = r + 1)
+    (x : M) :
+    (complexManifoldOrientationOfFinrank E M hE).orientationAt x =
+      Orientation.reindex ℝ (TangentSpace 𝓘(ℝ, E) x) (finCongr (by rw [hE]; ring))
+        (complexOrientation E) := by
+  rw [complexManifoldOrientationOfFinrank_def, orientationAt_reindex_complexManifoldOrientation]
+
+/-- A complex-linear isomorphism `A : E ≃L[ℂ] G` carries the tangent orientation of
+`complexManifoldOrientationOfFinrank` at any point to the complex orientation of `G`, reindexed to
+`Fin (2 * r + 1 + 1)`. -/
+theorem map_orientationAt_complexManifoldOrientationOfFinrank
+    {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G] [NormedSpace ℂ G] [IsScalarTower ℝ ℂ G]
+    [FiniteDimensional ℂ G] {r : ℕ} (hE : finrank ℂ E = r + 1) (hG : finrank ℂ G = r + 1)
+    (A : E ≃L[ℂ] G) (z : M) :
+    ((complexManifoldOrientationOfFinrank E M hE).orientationAt z).map (Fin (2 * r + 1 + 1))
+        (A.restrictScalars' ℝ).toLinearEquiv =
+      Orientation.reindex ℝ G (finCongr (by rw [hG]; ring)) (complexOrientation G) :=
+  map_orientationAt_reindex_complexManifoldOrientation _ _ A z
+
+/-- `complexCurveOrientation` is the case `r = 0` of `complexManifoldOrientationOfFinrank`. -/
+theorem complexCurveOrientation_eq_complexManifoldOrientationOfFinrank (h : finrank ℂ E = 1) :
+    complexCurveOrientation E M h = complexManifoldOrientationOfFinrank E M (r := 0) h :=
+  (rfl)
 
 end SymplecticGeometry
 
