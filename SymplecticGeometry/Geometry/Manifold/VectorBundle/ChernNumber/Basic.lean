@@ -8,8 +8,9 @@ module
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Classification
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.FirstChernClass
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Pullback
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Prod
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
-public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.FirstChernClass
 public import TauCeti.Geometry.Manifold.Degree.Homological
 
 /-!
@@ -31,7 +32,12 @@ data:
   compatible with `ω`;
 * `symplecticChernNumber_neg`: `(V, -ω)` has the opposite number;
 * `symplecticChernNumber_pullback` and `symplecticChernNumber_congr`: behaviour under pull-backs
-  and invariance under isomorphisms of symplectic bundles.
+  and invariance under isomorphisms of symplectic bundles;
+* `symplecticChernNumber_whitneySum`: the number of a direct sum `(V₁ ⊕ V₂, ω₁ ⊕ ω₂)` is the sum
+  of the numbers of the summands. A sum of compatible complex structures is compatible with the
+  sum of the forms, its complex bundle is the direct sum of theirs
+  (`ContMDiffComplexStructure.prodFiberEquiv`), and the first Chern number is additive
+  (`chernNumber_prod`).
 
 ## Implementation notes
 
@@ -253,6 +259,50 @@ theorem exists_compatible_symplecticChernNumber_eq_chernNumber [Nonempty M]
     symplecticChernNumber_eq_chernNumber o hn (κ → ℂ) hJ.tames]
 
 end Symplectic
+
+/-! ### Direct sums -/
+
+section WhitneySum
+
+variable {M : Type} [TopologicalSpace M] [T2Space M] [CompactSpace M]
+  {EM : Type} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [FiniteDimensional ℝ EM]
+  [ChartedSpace EM M] [IsManifold 𝓘(ℝ, EM) ((⊤ : ℕ∞) : WithTop ℕ∞) M]
+  (o : HomologicalOrientation M EM 2) (hn : finrank ℝ EM = 2) {n : ℕ∞}
+  {F₁ : Type*} [NormedAddCommGroup F₁] [NormedSpace ℝ F₁] [FiniteDimensional ℝ F₁]
+  {V₁ : M → Type*} [∀ x, AddCommGroup (V₁ x)] [∀ x, Module ℝ (V₁ x)]
+  [∀ x, TopologicalSpace (V₁ x)] [∀ x, IsTopologicalAddGroup (V₁ x)]
+  [∀ x, ContinuousSMul ℝ (V₁ x)] [TopologicalSpace (TotalSpace F₁ V₁)]
+  [FiberBundle F₁ V₁] [VectorBundle ℝ F₁ V₁] [ContMDiffVectorBundle n F₁ V₁ 𝓘(ℝ, EM)]
+  {F₂ : Type*} [NormedAddCommGroup F₂] [NormedSpace ℝ F₂] [FiniteDimensional ℝ F₂]
+  {V₂ : M → Type*} [∀ x, AddCommGroup (V₂ x)] [∀ x, Module ℝ (V₂ x)]
+  [∀ x, TopologicalSpace (V₂ x)] [∀ x, IsTopologicalAddGroup (V₂ x)]
+  [∀ x, ContinuousSMul ℝ (V₂ x)] [TopologicalSpace (TotalSpace F₂ V₂)]
+  [FiberBundle F₂ V₂] [VectorBundle ℝ F₂ V₂] [ContMDiffVectorBundle n F₂ V₂ 𝓘(ℝ, EM)]
+  (G : Type*) [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
+  [Fact (finrank ℝ (F₁ × F₂) = 2 * finrank ℂ G)]
+  (G₁ : Type*) [NormedAddCommGroup G₁] [NormedSpace ℂ G₁] [FiniteDimensional ℂ G₁]
+  [Fact (finrank ℝ F₁ = 2 * finrank ℂ G₁)]
+  (G₂ : Type*) [NormedAddCommGroup G₂] [NormedSpace ℂ G₂] [FiniteDimensional ℂ G₂]
+  [Fact (finrank ℝ F₂ = 2 * finrank ℂ G₂)]
+
+/-- **The first Chern number is additive on direct sums of symplectic bundles.** For
+nondegenerate forms `ω₁` on `V₁` and `ω₂` on `V₂` over a compact surface with a homological
+orientation, the first Chern number of the direct sum `(V₁ ⊕ V₂, ω₁ ⊕ ω₂)` is the sum of those of
+`(V₁, ω₁)` and `(V₂, ω₂)`; each of the three may be computed with its own complex model. -/
+theorem symplecticChernNumber_whitneySum {ω₁ : ContMDiffTwoForm 𝓘(ℝ, EM) n F₁ V₁}
+    {ω₂ : ContMDiffTwoForm 𝓘(ℝ, EM) n F₂ V₂} (hω₁ : ω₁.IsNondegenerate)
+    (hω₂ : ω₂.IsNondegenerate) :
+    symplecticChernNumber o hn G (ω₁.prod ω₂) =
+      symplecticChernNumber o hn G₁ ω₁ + symplecticChernNumber o hn G₂ ω₂ := by
+  obtain ⟨J₁, hJ₁⟩ := hω₁.exists_compatible
+  obtain ⟨J₂, hJ₂⟩ := hω₂.exists_compatible
+  rw [symplecticChernNumber_eq_chernNumber o hn G (hJ₁.prod hJ₂).tames,
+    symplecticChernNumber_eq_chernNumber o hn G₁ hJ₁.tames,
+    symplecticChernNumber_eq_chernNumber o hn G₂ hJ₂.tames,
+    chernNumber_congr o hn (J₁.prodFiberEquiv J₂) (J₁.continuous_prodFiberEquiv G G₁ G₂ J₂),
+    chernNumber_prod]
+
+end WhitneySum
 
 end Bundle
 

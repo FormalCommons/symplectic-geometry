@@ -85,11 +85,12 @@ than comparing surfaces of equal genus. So neither a decomposition nor the
 classification of closed surfaces is used anywhere in the part.
 
 What the Euler class does not give for free is additivity, the hard direction
-of naturality, and the existence of bundles with every Chern number. All three
-come from the disc clutching formula: the Chern number is the degree of the
-determinant (for symplectic frames, the Maslov index) of the transition loop
-between a frame over a disc and a frame over its complement. That formula is
-the technical centre of the part.
+of naturality, and the existence of bundles with every Chern number.
+Additivity comes from `firstChernClass_prod`, applied to the complex bundle
+of `J₁.prod J₂`. The other two come from the disc clutching formula: the
+Chern number is the degree of the determinant (for symplectic frames, the
+Maslov index) of the transition loop between a frame over a disc and a frame
+over its complement. That formula is the technical centre of the part.
 
 ### Departure from `DESIGN.md`
 
@@ -230,8 +231,8 @@ core of prerequisite 1:
   `evalFundamentalClass_id_singularCohomologyMap_eq_degree_smul`, which needs
   the target compact and preconnected.
 
-No Whitney sum formula is claimed over a general base; additivity is proved
-over surfaces only, from clutching.
+Additivity on direct sums, over a compact normal base, is `firstChernClass_prod`
+(`Topology/VectorBundle/Complex/ChernClass/FirstChernClass.lean`).
 
 ### `Topology/ContinuousMap/Defs.lean`
 
@@ -316,6 +317,10 @@ complex ones that `chernNumber_congr` takes.
   nondegenerate, so that a compatible complex structure exists. The pull-back
   lemma takes `f : K`, any `[ContinuousMapClass K M' M]`, with
   `hf : ContMDiff 𝓘(ℝ, EM') 𝓘(ℝ, EM) n f`, and is stated for `ω.pullback f hf`.
+- `symplecticChernNumber_whitneySum`: for nondegenerate `ω₁`, `ω₂`, the number
+  of `ω₁.prod ω₂` is the sum of their numbers. Compatible `J₁`, `J₂` give the
+  compatible `J₁.prod J₂`, whose complex bundle is the direct sum of theirs;
+  then `firstChernClass_prod`.
 - The file imports `Geometry/Manifold/VectorBundle/Symplectic/FirstChernClass.lean`
   of *First Chern class of nondegenerate forms*; `Tames.chernNumber_eq`,
   `symplecticChernNumber_neg`,
@@ -413,9 +418,6 @@ Bundles from clutching data, and isomorphisms from homotopies.
   - `apply_tangent`: `c S (SymplecticSurfaceBundle.tangent S σ) = 2 - 2 *
     TauCeti.surfaceGenus S` for every area form `σ` that induces the
     orientation of `S`.
-- `symplecticChernNumber_whitneySum` (from block frames and
-  `TauCeti.GLSymplectic.maslovIndex_sum`, through the clutching formula with
-  frames from *Symplectic vector bundles*).
 - `symplecticChernNumber_tangent`: for $T\Sigma$ with an area form $\sigma$
   inducing `o`, and a $\sigma$-compatible $J$, the complex orientation of
   $(T\Sigma,J)$ is the orientation of `M`. So the number is the Euler number
