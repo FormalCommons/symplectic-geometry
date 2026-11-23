@@ -30,6 +30,7 @@ namespace TauCeti.DoubleAlong
 variable {X : Type*} [TopologicalSpace X] (A : Set X)
 
 /-- The two copies of `X` cover the double. -/
+@[simp]
 theorem range_inl_union_range_inr : range (inl A) ∪ range (inr A) = univ :=
   eq_univ_of_forall fun z ↦ (exists_inl_or_inr A z).imp (fun h ↦ h) fun h ↦ h
 
