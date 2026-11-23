@@ -9,6 +9,7 @@ public import TauCeti.AlgebraicTopology.Cohomology.FundamentalClass
 public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
+public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 
 /-!
 # The homological orientation and fundamental class of a complex manifold
