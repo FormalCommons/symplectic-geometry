@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.Instances.AddCircle
 public import TauCeti.Topology.Category.TopCat.GlueData
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
 import SymplecticGeometry.Geometry.Manifold.Instances.AddCircle
+import SymplecticGeometry.Geometry.Manifold.Instances.HalfLine.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.ModelTransport.Remodel

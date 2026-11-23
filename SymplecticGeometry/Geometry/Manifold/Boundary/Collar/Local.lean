@@ -293,13 +293,6 @@ variable {n : WithTop ℕ∞}
 
 open Manifold
 
-/-- The depth `t ↦ t 0` on `[0, 1)` is a `C^n` local diffeomorphism to `ℝ` at positive depth. -/
-theorem isLocalDiffeomorphAt_normalIioOpens_val_zero {t : normalIioOpens 1}
-    (ht : 0 < (t : EuclideanHalfSpace 1).val 0) :
-    IsLocalDiffeomorphAt (𝓡∂ 1) 𝓘(ℝ) n
-      (fun s : normalIioOpens 1 ↦ (s : EuclideanHalfSpace 1).val 0) t :=
-  (isLocalDiffeomorph_subtype_val t).comp (hg := isLocalDiffeomorphAt_val_zero ht)
-
 /-- The map `t ↦ -t` from depths into `S` is a `C^n` immersion, the depth `0` included. -/
 theorem isImmersionAt_negNormalCoord (hS : Ioc (-1) 0 ⊆ (S : Set ℝ)) (t : normalIioOpens 1) :
     IsImmersionAt (𝓡∂ 1) 𝓘(ℝ) n (negNormalCoord hS) t := by
