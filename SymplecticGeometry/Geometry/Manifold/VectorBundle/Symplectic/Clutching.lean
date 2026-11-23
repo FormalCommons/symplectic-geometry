@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Basic
 public import SymplecticGeometry.Geometry.Manifold.Instances.SymplecticGroup
-import TauCeti.Analysis.Matrix.EuclideanLin
+public import TauCeti.Analysis.Matrix.EuclideanLin
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 import TauCeti.Geometry.Manifold.Algebra.LieGroup
 
@@ -211,6 +211,11 @@ def symplecticClutchingFiberEquiv (x : M) :
     (symplecticClutchingCore U₁ U₂ T hU₁ hU₂ hU hT).Fiber x ≃L[ℝ] StdSpace κ :=
   ContinuousLinearEquiv.refl ℝ (StdSpace κ)
 
+theorem symplecticClutchingFiberEquiv_def (x : M) :
+    symplecticClutchingFiberEquiv U₁ U₂ T hU₁ hU₂ hU hT x =
+      ContinuousLinearEquiv.refl ℝ (StdSpace κ) :=
+  (rfl)
+
 /-- The point `v` of the chart `i` is the point `T x ^ (j - i) v` of the fibre, where `j` is the
 preferred chart at `x`. -/
 theorem symplecticClutchingFiberEquiv_localTriv_symm (i : Bool) {x : M}
@@ -223,6 +228,20 @@ theorem symplecticClutchingFiberEquiv_localTriv_symm (i : Bool) {x : M}
   congrArg (symplecticClutchingFiberEquiv U₁ U₂ T hU₁ hU₂ hU hT x)
     ((symplecticClutchingCore U₁ U₂ T hU₁ hU₂ hU hT).localTriv_symm_apply i
       (by rwa [← VectorBundleCore.baseSet_at]) v)
+
+/-- The point `v` of the trivialization at `a` is the point `T x ^ (j - i) v` of the fibre, where
+`i` and `j` are the preferred charts at `a` and at `x`. -/
+theorem symplecticClutchingFiberEquiv_trivializationAt_symm {a x : M}
+    (hx : x ∈ (trivializationAt (StdSpace κ)
+      (symplecticClutchingCore U₁ U₂ T hU₁ hU₂ hU hT).Fiber a).baseSet) (v : StdSpace κ) :
+    symplecticClutchingFiberEquiv U₁ U₂ T hU₁ hU₂ hU hT x
+        ((trivializationAt (StdSpace κ)
+          (symplecticClutchingCore U₁ U₂ T hU₁ hU₂ hU hT).Fiber a).symm x v) =
+      toEuclideanCLM (𝕜 := ℝ) (symplecticClutchingMatrix T
+        ((symplecticClutchingCore U₁ U₂ T hU₁ hU₂ hU hT).indexAt a)
+        ((symplecticClutchingCore U₁ U₂ T hU₁ hU₂ hU hT).indexAt x) x :
+          Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) v :=
+  symplecticClutchingFiberEquiv_localTriv_symm U₁ U₂ T hU₁ hU₂ hU hT _ hx v
 
 /-! ### The symplectic form -/
 
@@ -237,13 +256,10 @@ def symplecticClutchingForm (n : ℕ∞) :
     rw [contMDiffAt_continuousAlternatingMap_bundle]
     refine ⟨contMDiffAt_id, (contMDiffAt_const (c := AlternatingMap.toContinuousAlternatingMap
       (stdForm κ).isAlt.toAlternatingMap)).congr_of_eventuallyEq ?_⟩
-    filter_upwards [((symplecticClutchingCore U₁ U₂ T hU₁ hU₂ hU hT).isOpen_baseSet _).mem_nhds
-      ((symplecticClutchingCore U₁ U₂ T hU₁ hU₂ hU hT).mem_baseSet_at x₀)] with x hx
+    filter_upwards [(trivializationAt (StdSpace κ)
+      (symplecticClutchingCore U₁ U₂ T hU₁ hU₂ hU hT).Fiber x₀).open_baseSet.mem_nhds
+        (mem_baseSet_trivializationAt (StdSpace κ) _ x₀)] with x hx
     ext v
-    have hx' : x ∈ (trivializationAt (StdSpace κ)
-        (symplecticClutchingCore U₁ U₂ T hU₁ hU₂ hU hT).Fiber x₀).baseSet := by
-      rwa [VectorBundleCore.trivializationAt, ← VectorBundleCore.localTrivAt_def,
-        ← VectorBundleCore.baseSet_at]
     simp only [ContinuousAlternatingMap.inCoordinates, Trivial.eq_trivialization M ℝ,
       Trivial.continuousLinearMapAt_trivialization,
       ContinuousLinearMap.compContinuousAlternatingMap_coe, Function.comp_apply,
@@ -252,9 +268,9 @@ def symplecticClutchingForm (n : ℕ∞) :
     rw [LinearMap.IsAlt.toAlternatingMap_apply (stdForm κ).isAlt,
       LinearMap.IsAlt.toAlternatingMap_apply (stdForm κ).isAlt]
     simp only [Function.comp_apply, ContinuousLinearEquiv.coe_coe]
-    rw [Trivialization.symmL_apply _ hx', Trivialization.symmL_apply _ hx']
-    simp only [VectorBundleCore.trivializationAt, ← VectorBundleCore.localTrivAt_def,
-      symplecticClutchingFiberEquiv_localTriv_symm U₁ U₂ T hU₁ hU₂ hU hT _ hx]
+    rw [Trivialization.symmL_apply _ hx, Trivialization.symmL_apply _ hx,
+      symplecticClutchingFiberEquiv_trivializationAt_symm U₁ U₂ T hU₁ hU₂ hU hT hx,
+      symplecticClutchingFiberEquiv_trivializationAt_symm U₁ U₂ T hU₁ hU₂ hU hT hx]
     rw [toEuclideanCLM_apply, toEuclideanCLM_apply]
     exact mem_symplecticGroup_iff_forall_stdForm.1 (Subtype.prop _) (v 0) (v 1)
 
@@ -300,6 +316,15 @@ def symplecticClutchingFrame (b : Bool) (x : M) :
     (SymplecticGroup.symplectic_det (Subtype.prop _)).ne_zero).trans
     (symplecticClutchingFiberEquiv U₁ U₂ T hU₁ hU₂ hU hT x).symm
 
+theorem symplecticClutchingFrame_def (b : Bool) (x : M) :
+    symplecticClutchingFrame U₁ U₂ T hU₁ hU₂ hU hT b x =
+      (toEuclideanCLE (symplecticClutchingMatrix T b
+          ((symplecticClutchingCore U₁ U₂ T hU₁ hU₂ hU hT).indexAt x) x :
+            Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ)
+        (SymplecticGroup.symplectic_det (Subtype.prop _)).ne_zero).trans
+        (symplecticClutchingFiberEquiv U₁ U₂ T hU₁ hU₂ hU hT x).symm :=
+  (rfl)
+
 /-- Read in `StdSpace κ`, the frame of the chart `b` at `x` is the matrix `T x ^ (j - b)`, where
 `j` is the preferred chart at `x`. -/
 @[simp]
@@ -310,7 +335,7 @@ theorem symplecticClutchingFiberEquiv_symplecticClutchingFrame (b : Bool) (x : M
       toEuclideanCLM (𝕜 := ℝ) (symplecticClutchingMatrix T b
         ((symplecticClutchingCore U₁ U₂ T hU₁ hU₂ hU hT).indexAt x) x :
           Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) v := by
-  simp [symplecticClutchingFrame]
+  simp [symplecticClutchingFrame_def]
 
 /-- Over the base set of the chart `b`, its frame is the inverse of the chart. -/
 theorem symplecticClutchingFrame_apply_of_mem {b : Bool} {x : M}
