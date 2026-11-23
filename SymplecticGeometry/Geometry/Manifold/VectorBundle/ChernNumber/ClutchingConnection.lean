@@ -11,6 +11,7 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleC
 import SymplecticGeometry.Analysis.Complex.RadialProjection
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
+import TauCeti.Geometry.Manifold.Algebra.LieGroup
 
 /-!
 # A connection built from clutching frames, and its curvature
@@ -71,14 +72,13 @@ variable {M : Type} [TopologicalSpace M] [ChartedSpace (EuclideanSpace ℝ (Fin 
 
 omit [IsManifold (𝓡 2) ∞ M] in
 /-- Let `φ` be a coordinate disc whose coordinate is smooth on its image, and `D` a map to the
-circle, differentiable at a point `x` of the image off the centre, and equal near `x` to the
-`k`-th power of the angular coordinate. If `β (‖φ.coord x‖) = 1`, then at `x` the pull-back of
-the angular form along `D` is `k` times the pull-back of `β(‖z‖) dθ` along the coordinate. -/
+circle, equal near a point `x` of the image off the centre to the `k`-th power of the angular
+coordinate. If `β (‖φ.coord x‖) = 1`, then at `x` the pull-back of the angular form along `D` is
+`k` times the pull-back of `β(‖z‖) dθ` along the coordinate. -/
 private theorem mpullback_circleAngularForm_eq_of_eventuallyEq_phase_zpow
     (φ : CoordinateDisc o) (hcoord : ContMDiffOn (𝓡 2) 𝓘(ℝ, ℂ) ∞ φ.coord (range φ))
     {x : M} (hx : x ∈ range φ) (hx0 : φ.coord x ≠ 0) {k : ℤ} {D : M → Circle}
-    (hD : MDifferentiableAt (𝓡 2) (𝓡 1) D x) (hDk : D =ᶠ[𝓝 x] fun y ↦ φ.phase y ^ k)
-    {β : ℝ → ℝ} (hβ : β ‖φ.coord x‖ = 1) :
+    (hDk : D =ᶠ[𝓝 x] fun y ↦ φ.phase y ^ k) {β : ℝ → ℝ} (hβ : β ‖φ.coord x‖ = 1) :
     mpullback (𝓡 2) (𝓡 1) D circleAngularForm x =
       (k : ℝ) • mpullback (𝓡 2) 𝓘(ℝ, ℂ) φ.coord (radialAngularForm β) x := by
   set w := φ.coord x
@@ -87,9 +87,13 @@ private theorem mpullback_circleAngularForm_eq_of_eventuallyEq_phase_zpow
     (hcoord.contMDiffAt (hrange.mem_nhds hx)).mdifferentiableAt (by simp)
   have hpow : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun z : ℂ ↦ (z / ‖z‖) ^ k) w :=
     (Complex.differentiableAt_div_norm_zpow hx0 k).mdifferentiableAt
-  -- Near `x`, `D`, read in `ℂ`, is `(z / ‖z‖) ^ k` in the coordinate `z`.
   have hW : IsOpen {y ∈ range φ | φ.coord y ≠ 0} :=
     φ.continuousOn_coord.isOpen_inter_preimage hrange isOpen_compl_singleton
+  -- `D` is differentiable at `x`, since near `x` it is a power of the smooth angular coordinate.
+  have hD : MDifferentiableAt (𝓡 2) (𝓡 1) D x :=
+    ((((TauCeti.contMDiff_zpow k).contMDiffAt).comp x ((φ.contMDiffOn_phase hcoord).contMDiffAt
+      (hW.mem_nhds ⟨hx, hx0⟩))).mdifferentiableAt (by simp)).congr_of_eventuallyEq hDk
+  -- Near `x`, `D`, read in `ℂ`, is `(z / ‖z‖) ^ k` in the coordinate `z`.
   have hcomp : (fun y ↦ (D y : ℂ)) =ᶠ[𝓝 x] (fun z : ℂ ↦ (z / ‖z‖) ^ k) ∘ φ.coord := by
     filter_upwards [hDk, hW.mem_nhds ⟨hx, hx0⟩] with y hy hy'
     rw [hy, Function.comp_apply, Circle.coe_zpow, φ.coe_phase hy'.2]
@@ -180,14 +184,10 @@ private theorem mpullback_apply_eq_add_of_collar
     filter_upwards [hWo.mem_nhds ⟨z, ⟨norm_pos_iff.2 hz0, hz1⟩, rfl⟩] with y hy
     obtain ⟨z', ⟨hz'0, hz'1⟩, rfl⟩ := hy
     exact PrincipalBundle.division_eq_iff.2 (hrel z' hz'0 hz'1).symm
-  have hD : MDifferentiableAt (𝓡 2) (𝓡 1)
-      (fun y ↦ PrincipalBundle.division Circle (σ y) (σout y)) (φ z) :=
-    (((hσ.contMDiffAt (hrange.mem_nhds (mem_range_self z))).division hσout)).mdifferentiableAt
-      (by simp)
   rw [hα.mpullback_apply_eq_mpullback_division_add hrange hσ (mem_range_self z)
       (hσout.mdifferentiableAt (by simp)),
     mpullback_circleAngularForm_eq_of_eventuallyEq_phase_zpow φ hcoord
-      (mem_range_self z) (by rwa [CoordinateDisc.coord_apply]) hD hDk
+      (mem_range_self z) (by rwa [CoordinateDisc.coord_apply]) hDk
       (by rw [CoordinateDisc.coord_apply]; exact hβb _ hbz), add_comm]
 
 variable [SigmaCompactSpace M]
