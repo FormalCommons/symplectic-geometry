@@ -27,9 +27,6 @@ reads `K · M + M · M = 2 g - 2`.
 
 ## Main results
 
-* `TauCeti.SmoothEmbedding.volumeOrientation_compMFDeriv`: for a two-form `ω` on `f *ᵖ TX` that
-  tames the pull-back of `J`, the symplectic orientation of the area form `ω(df ·, df ·)` on `M`
-  is the orientation given by `J`.
 * `TauCeti.SmoothEmbedding.adjunction_formula`: the adjunction formula.
 
 ## Proof
@@ -45,8 +42,9 @@ so the number is the sum of their numbers
 (`SymplecticGeometry.Bundle.symplecticChernNumber_congr`,
 `SymplecticGeometry.Bundle.symplecticChernNumber_whitneySum`). The first is `2 - 2 g`
 (`SymplecticGeometry.Bundle.symplecticChernNumber_tangent`), since the area form induces the
-orientation of `M`; the second is the self-intersection number, since `ω_ν` is compatible with
-the complex structure of `ν` (`TauCeti.SmoothEmbedding.compatible_normalForm`,
+orientation of `M` (`TauCeti.SmoothEmbedding.volumeOrientation_compMFDeriv`); the second is the
+self-intersection number, since `ω_ν` is compatible with the complex structure of `ν`
+(`TauCeti.SmoothEmbedding.compatible_normalForm`,
 `TauCeti.SmoothEmbedding.selfIntersectionNumber_eq_chernNumber`).
 
 ## References
@@ -71,46 +69,6 @@ variable {E : Type} {H : Type*} {X : Type} [NormedAddCommGroup E] [NormedSpace �
   [IsManifold I ((⊤ : ℕ∞) : WithTop ℕ∞) X]
   {M : Type} [TopologicalSpace M] [ChartedSpace (EuclideanSpace ℝ (Fin 2)) M]
   [IsManifold (𝓡 2) ((⊤ : ℕ∞) : WithTop ℕ∞) M] {hn : ((⊤ : ℕ∞) : WithTop ℕ∞) ≠ 0}
-
-/-- **The area form induced by a taming form gives the orientation of `J`.** Let `f` embed a
-surface `M` so that `J` preserves its tangent planes, and let `ω` be a two-form on `f *ᵖ TX`
-that tames the pull-back of `J`. If `o` is the orientation of `M` given by `J`, for which every
-basis `(u, v)` of `T_c M` with `df v = J (df u)` is positive, then `o` is the symplectic
-orientation of the nondegenerate two-form `ω(df ·, df ·)` on `M`. -/
-theorem volumeOrientation_compMFDeriv (f : SmoothEmbedding (𝓡 2) I ((⊤ : ℕ∞) : WithTop ℕ∞) M X)
-    {J : SmoothAlmostComplexStructure I X}
-    (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn)
-    {ω : ContMDiffTwoForm (𝓡 2) ⊤ E ((f : M → X) *ᵖ (TangentSpace I))}
-    (hω : ω.Tames (J.pullbackComplexStructure f f.contMDiff))
-    {o : Manifold.Orientation (𝓡 2) M (Fin 2)}
-    (ho : ∀ c (b : Basis (Fin 2) ℝ (TangentSpace (𝓡 2) c)),
-      mfderiv (𝓡 2) I f c (b 1) = J (f c) (mfderiv (𝓡 2) I f c (b 0)) →
-        b.orientation = o.orientationAt c) :
-    (ContMDiffTwoForm.isNondegenerate_tangentEquiv_iff.2
-        (isNondegenerate_compMFDeriv hJ hω)).volumeOrientation (n := 1)
-      finrank_euclideanSpace_fin = o := by
-  ext x
-  -- A frame `(u, v)` with `df v = J (df u)` is positive for `o`, and `ω(df u, df v) > 0`.
-  obtain ⟨u, hu⟩ := exists_ne (0 : TangentSpace (𝓡 2) x)
-  obtain ⟨v, hv⟩ := hJ x _ ⟨u, rfl⟩
-  have hpos := compMFDeriv_pos hω hu hv
-  have hli : LinearIndependent ℝ ![u, v] := by
-    refine LinearIndependent.pair_iff.2 fun s t hst ↦ ?_
-    have h0 := congrArg ((ω.compMFDeriv f f.contMDiff).bilinFormAt x u) hst
-    rw [map_add, map_smul, map_smul, (ω.compMFDeriv f f.contMDiff).isAlt_bilinFormAt x u,
-      map_zero, smul_zero, zero_add, smul_eq_mul, mul_eq_zero] at h0
-    obtain rfl : t = 0 := h0.resolve_right hpos.ne'
-    rw [zero_smul, add_zero, smul_eq_zero] at hst
-    exact ⟨hst.resolve_right hu, rfl⟩
-  let b := basisOfLinearIndependentOfCardEqFinrank hli (by simp)
-  have hb : ⇑b = ![u, v] := coe_basisOfLinearIndependentOfCardEqFinrank _ _
-  rw [← ho x b (by simpa [hb] using hv)]
-  refine ((SmoothTwoForm.IsNondegenerate.orientation_eq_orientationAt_volumeOrientation_iff
-    (ContMDiffTwoForm.isNondegenerate_tangentEquiv_iff.2 (isNondegenerate_compMFDeriv hJ hω))
-    (n := 1) finrank_euclideanSpace_fin b).2 ?_).symm
-  rw [SmoothTwoForm.volumeForm_one, ContMDiffTwoForm.tangentEquiv_apply, hb,
-    ← ContMDiffTwoForm.bilinFormAt_apply]
-  exact hpos
 
 attribute [local instance] Complex.finrank_real_complex_eq_two_mul_finrank_fact
 
@@ -146,15 +104,10 @@ theorem adjunction_formula [T2Space M] [CompactSpace M] [ConnectedSpace M]
   have hdim := finrank_real_complex_eq_sub_of_finrank_eq_four hE
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
-  -- The normal bundle, and the pull-back of `TX` along the smooth map `f`, are smooth vector
-  -- bundles; both instances ask for manifolds of class `C^(∞ + 1)`, which is `C^∞`.
-  have : IsManifold (𝓡 2) (((⊤ : ℕ∞) : WithTop ℕ∞) + 1) M := by
-    simpa using ‹IsManifold (𝓡 2) _ M›
-  have : IsManifold I (((⊤ : ℕ∞) : WithTop ℕ∞) + 1) X := by simpa using ‹IsManifold I _ X›
   let := f.normalSpaceContMDiffVectorBundle (m := ((⊤ : ℕ∞) : WithTop ℕ∞)) hn (by simp) hdim
   have : ContMDiffVectorBundle ((⊤ : ℕ∞) : WithTop ℕ∞) E ((f : M → X) *ᵖ (TangentSpace I))
       (𝓡 2) :=
-    ContMDiffVectorBundle.pullback (f := ⟨f, f.contMDiff⟩) _ _ _
+    Bundle.Pullback.contMDiffVectorBundle (E := TangentSpace I) f.contMDiff
   have : Fact (finrank ℝ (EuclideanSpace ℝ (Fin 2) × ℂ) = 2 * finrank ℂ G) :=
     ⟨by rw [finrank_prod, finrank_euclideanSpace_fin, Complex.finrank_real_complex,
       ← Fact.out (p := finrank ℝ E = 2 * finrank ℂ G), hE]⟩
@@ -185,7 +138,8 @@ theorem adjunction_formula [T2Space M] [CompactSpace M] [ConnectedSpace M]
   have h₃ : symplecticChernNumber oₕ finrank_euclideanSpace_fin ℂ (ω.compMFDeriv f f.contMDiff) =
       2 - 2 * surfaceGenus M := by
     rw [← (ContMDiffTwoForm.tangentEquiv (M := M)).symm_apply_apply (ω.compMFDeriv f f.contMDiff)]
-    exact symplecticChernNumber_tangent _ o ℂ _ (volumeOrientation_compMFDeriv f hJ hω.tames ho)
+    exact symplecticChernNumber_tangent _ o ℂ _
+      (volumeOrientation_compMFDeriv finrank_euclideanSpace_fin hJ hω.tames ho)
   -- The normal summand is the self-intersection number.
   have h₄ : symplecticChernNumber oₕ finrank_euclideanSpace_fin ℂ
       (f.normalForm hdim hJ ω hω.tames) = f.selfIntersectionNumber hE J hJ o := by
