@@ -542,7 +542,7 @@ private theorem inclusion_comp_collar :
 
 private theorem inclusion_comp_subtypeVal :
     inclusion c ∘ Subtype.val =
-      c.interiorIncl ∘ interiorModelDiffeomorph (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W) ∞ := by
+      c.interiorIncl ∘ interiorPieceDiffeomorph := by
   funext q
   rw [comp_apply, inclusion_apply_of_mem_interior c
     (ModelWithCorners.mem_interiorOpens_iff_mem_interior.1 q.property),
@@ -552,8 +552,8 @@ private theorem inclusion_comp_subtypeVal :
 theorem isOpenEmbedding_inclusion_comp_subtypeVal :
     IsOpenEmbedding (inclusion c ∘ ((↑) : (𝓡∂ (n + 1)).interiorOpens W → W)) := by
   rw [inclusion_comp_subtypeVal]
-  exact c.isOpenEmbedding_interiorIncl.comp (Diffeomorph.toHomeomorph
-    (interiorModelDiffeomorph (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W) ∞)).isOpenEmbedding
+  exact c.isOpenEmbedding_interiorIncl.comp
+    interiorPieceDiffeomorph.toHomeomorph.isOpenEmbedding
 
 /-- The inclusion is a local diffeomorphism at interior points. -/
 theorem isLocalDiffeomorphAt_inclusion {p : W} (hp : p ∈ (𝓡∂ (n + 1)).interior W) :
@@ -562,8 +562,7 @@ theorem isLocalDiffeomorphAt_inclusion {p : W} (hp : p ∈ (𝓡∂ (n + 1)).int
       (⟨p, ModelWithCorners.mem_interiorOpens_iff_mem_interior.2 hp⟩ :
         (𝓡∂ (n + 1)).interiorOpens W) := by
     rw [inclusion_comp_subtypeVal]
-    exact (Diffeomorph.isLocalDiffeomorph
-      (interiorModelDiffeomorph (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W) ∞) _).comp
+    exact (interiorPieceDiffeomorph.isLocalDiffeomorph _).comp
       (hg := c.isLocalDiffeomorph_interiorIncl _)
   exact h.of_comp_right (isLocalDiffeomorph_subtype_val _)
 

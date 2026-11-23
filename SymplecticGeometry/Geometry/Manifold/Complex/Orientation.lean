@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.Orientation.Complex
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving.FromTauCeti
 public import TauCeti.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Topology.Algebra.Module.Equiv.RestrictScalars
@@ -30,8 +31,8 @@ reindexes the canonical orientation once, for every such `E` and `M`:
   indexed by `Fin 2`, with `SymplecticGeometry.complexCurveOrientation_def`;
 * `SymplecticGeometry.orientationAt_complexCurveOrientation`: at every point it is Tau Ceti's
   complex orientation `TauCeti.complexOrientation E` of the model, reindexed to `Fin 2`;
-* `SymplecticGeometry.complexCurveOrientation_complex`: on `ℂ` itself it is the constant
-  orientation given by `Complex.orientation`;
+* `SymplecticGeometry.complexCurveOrientation_complex`: on `ℂ` itself it is the standard
+  orientation `TauCeti.Manifold.Orientation.complex`;
 * `Diffeomorph.isOrientationPreservingAt_complexCurveOrientation`: biholomorphisms preserve it.
 
 More generally, for complex dimension `finrank ℂ E = r + 1`, statements about real manifolds of
@@ -127,13 +128,13 @@ theorem orientationAt_complexCurveOrientation (h : finrank ℂ E = 1) (x : M) :
         (complexOrientation E) := by
   rw [complexCurveOrientation_def, orientationAt_reindex_complexManifoldOrientation]
 
-/-- On `ℂ`, as a complex curve, `complexCurveOrientation` is the constant orientation given by the
-standard orientation `Complex.orientation` of `ℂ`, the orientation of the basis `(1, i)`. -/
+/-- On `ℂ`, as a complex curve, `complexCurveOrientation` is the standard orientation
+`Manifold.Orientation.complex` of `ℂ`, the constant orientation given by `Complex.orientation`,
+the orientation of the basis `(1, i)`. -/
 theorem complexCurveOrientation_complex :
-    complexCurveOrientation ℂ ℂ =
-      Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp) := by
+    complexCurveOrientation ℂ ℂ = Manifold.Orientation.complex := by
   ext x
-  rw [orientationAt_complexCurveOrientation, Manifold.Orientation.orientationAt_model]
+  rw [orientationAt_complexCurveOrientation, Manifold.Orientation.orientationAt_complex]
   -- The tangent space of `ℂ` at `x` is `ℂ`, so this is Tau Ceti's statement on `ℂ`.
   exact reindex_complexOrientation_complex
 
