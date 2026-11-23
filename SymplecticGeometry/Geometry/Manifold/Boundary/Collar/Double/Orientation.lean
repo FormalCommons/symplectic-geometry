@@ -88,11 +88,6 @@ variable {n : ℕ} {W : Type u} [TopologicalSpace W] [ChartedSpace (EuclideanHal
 local instance : IsManifold (𝓡 n) ∞ ((𝓡∂ (n + 1)).boundary W) := isManifold_boundary W
 
 variable (n W) in
-/-- The interior of `W`, as a boundaryless manifold over `ℝⁿ⁺¹`. -/
-private abbrev InteriorPiece : Type u :=
-  InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)
-
-variable (n W) in
 /-- The parameters `(s, x)` of the band, `s ∈ (-1, 1)` and `x ∈ ∂W`. -/
 private abbrev BandParam : Type u := bandInterval × (𝓡∂ (n + 1)).boundary W
 
@@ -496,52 +491,6 @@ private theorem map_orientationAt_eq_bandIncl
     (mdifferentiableAt_of_isInvertible_mfderiv hρ₁.isInvertible_mfderiv)
     (mdifferentiableAt_of_isInvertible_mfderiv hρ₂.isInvertible_mfderiv)
     (eventuallyEq_copyParam hj hp)
-
-/-- The three pieces of the double: the two copies of the interior of `W`, and the band. -/
-private inductive Piece
-  | inl | inr | band
-
-private instance : Nonempty Piece := ⟨.inl⟩
-
-variable (n W) in
-/-- The manifold of a piece. -/
-private def piece : Piece → Type u
-  | .inl | .inr => InteriorPiece n W
-  | .band => BandPiece n W
-
-private instance instTopologicalSpacePiece : ∀ k, TopologicalSpace (piece n W k)
-  | .inl | .inr => inferInstanceAs (TopologicalSpace (InteriorPiece n W))
-  | .band => inferInstanceAs (TopologicalSpace (BandPiece n W))
-
-private instance instChartedSpacePiece :
-    ∀ k, ChartedSpace (EuclideanSpace ℝ (Fin (n + 1))) (piece n W k)
-  | .inl | .inr => inferInstanceAs (ChartedSpace _ (InteriorPiece n W))
-  | .band => inferInstanceAs (ChartedSpace _ (BandPiece n W))
-
-private instance instIsManifoldPiece : ∀ k, IsManifold (𝓡 (n + 1)) 1 (piece n W k)
-  | .inl | .inr => inferInstanceAs (IsManifold _ 1 (InteriorPiece n W))
-  | .band => inferInstanceAs (IsManifold _ 1 (BandPiece n W))
-
-/-- The map of a piece into the double. -/
-private def pieceMap : ∀ k, piece n W k → c.Double
-  | .inl => inlInterior c
-  | .inr => inrInterior c
-  | .band => bandIncl c
-
-private theorem isLocalDiffeomorph_pieceMap :
-    ∀ k, IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ (pieceMap c k)
-  | .inl => isLocalDiffeomorph_inlInterior c
-  | .inr => isLocalDiffeomorph_inrInterior c
-  | .band => isLocalDiffeomorph_bandIncl c
-
-private theorem iUnion_range_pieceMap : ⋃ k, range (pieceMap c (n := n) (W := W) k) = univ := by
-  refine eq_univ_of_forall fun z ↦ mem_iUnion.2 ?_
-  rcases (range_inlInterior_union_range_inrInterior_union c ▸ mem_univ z :
-    z ∈ range (inlInterior c) ∪ range (inrInterior c) ∪ bandMap c '' (Ioo (-1) 1 ×ˢ univ))
-    with (hz | hz) | hz
-  · exact ⟨.inl, hz⟩
-  · exact ⟨.inr, hz⟩
-  · exact ⟨.band, (range_bandIncl c).symm ▸ hz⟩
 
 /-- The orientations of the pieces: `o` on the first copy of the interior, `-o` on the second, and
 the band orientation on the band. -/

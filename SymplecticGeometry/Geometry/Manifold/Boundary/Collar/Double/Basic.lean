@@ -43,6 +43,9 @@ copies of `W` as `Double.inl` and `Double.inr`.
 * `TauCeti.SmoothCollar.Double.bandInterval`, `Double.BandPiece`, `Double.bandIncl`: the
   interval `(-1, 1)`, the band `(-1, 1) × ∂W` re-modelled on `ℝⁿ⁺¹`, and its map into the
   double, one of the three pieces of the atlas.
+* `TauCeti.SmoothCollar.Double.Piece`, `Double.piece`, `Double.pieceMap`: the three pieces of
+  the atlas, the two copies `Double.InteriorPiece` of the interior and the band, as manifolds
+  over `ℝⁿ⁺¹`, with their maps into the double.
 * `TauCeti.SmoothCollar.Double.bandProj`: the projection of the band onto `∂W`.
 
 ## Main results
@@ -56,7 +59,8 @@ copies of `W` as `Double.inl` and `Double.inr`.
   `isOpenEmbedding_bandIncl`, `isLocalDiffeomorph_bandIncl`: the band piece is the band map read
   on `(-1, 1) × ∂W`, and an open embedding and a local diffeomorphism.
 * `TauCeti.SmoothCollar.Double.range_inlInterior_union_range_inrInterior_union`: the three pieces
-  cover the double; `disjoint_range_inlInterior_inrInterior`.
+  cover the double, as do the pieces (`iUnion_range_pieceMap`), each a local diffeomorphism
+  (`isLocalDiffeomorph_pieceMap`); `disjoint_range_inlInterior_inrInterior`.
 * `TauCeti.SmoothCollar.Double.bandMap_mem_range_inlInterior_iff`,
   `bandMap_mem_range_inrInterior_iff`: the point `(s, x)` of the band lies on the first copy of
   the interior exactly when `s < 0`, and on the second exactly when `0 < s`;
@@ -178,6 +182,7 @@ def bandInterval : Opens ℝ := ⟨Ioo (-1) 1, isOpen_Ioo⟩
 @[simp]
 theorem coe_bandInterval : (bandInterval : Set ℝ) = Ioo (-1) 1 := (rfl)
 
+@[simp]
 theorem mem_bandInterval {s : ℝ} : s ∈ bandInterval ↔ s ∈ Ioo (-1) 1 := Iff.rfl
 
 private theorem bandInterval_subset : (bandInterval : Set ℝ) ⊆ Ioi (-1) :=
@@ -337,7 +342,7 @@ private theorem isOpenEmbedding_bandPt : IsOpenEmbedding (bandPt c) := by
       (hU.preimage (continuous_posCoord.comp continuous_snd |>.prodMk continuous_fst))
 
 private theorem bandPt_zero (x : (𝓡∂ (n + 1)).boundary W) :
-    bandPt c (⟨0, by simp [mem_bandInterval]⟩, x) = inl c x := by
+    bandPt c (⟨0, by simp⟩, x) = inl c x := by
   rw [bandPt_of_nonpos c le_rfl, (negNormalIioRay_eq_zero_iff bandInterval_subset).2 le_rfl,
     c.apply_zero]
 
@@ -366,7 +371,7 @@ theorem bandMap_of_nonneg {s : ℝ} (hs : 0 ≤ s) (hs' : s < 1) (x : (𝓡∂ (
 /-- The point `(0, x)` of the band is the boundary point `x` of `W`. -/
 @[simp]
 theorem bandMap_zero (x : (𝓡∂ (n + 1)).boundary W) : bandMap c (0, x) = inl c x := by
-  rw [bandMap_coe c (⟨0, by simp [mem_bandInterval]⟩, x), bandPt_zero]
+  rw [bandMap_coe c (⟨0, by simp⟩, x), bandPt_zero]
 
 /-- On `(-1, 1) × ∂W`, the band map is injective. -/
 theorem injOn_bandMap : InjOn (bandMap c) (Ioo (-1) 1 ×ˢ univ) := by
@@ -401,7 +406,7 @@ local instance : IsManifold (𝓡 n) ∞ ((𝓡∂ (n + 1)).boundary W) := isMan
 
 variable (n W) in
 /-- The interior of `W`, as a boundaryless manifold over `ℝⁿ⁺¹`. -/
-private abbrev InteriorPiece : Type u :=
+abbrev InteriorPiece : Type u :=
   InteriorModel (𝓡∂ (n + 1)) ((𝓡∂ (n + 1)).interiorOpens W)
 
 variable (n W) in
@@ -482,33 +487,46 @@ theorem isOpenEmbedding_inrInterior : IsOpenEmbedding (inrInterior c) :=
 /-! ### The smooth structure -/
 
 /-- The three pieces of the double: the two copies of the interior of `W`, and the band. -/
-private inductive Piece
+inductive Piece
   | inl | inr | band
+
+instance : Nonempty Piece := ⟨.inl⟩
 
 variable (n W) in
 /-- The manifold of a piece. -/
-private def piece : Piece → Type u
+@[expose]
+def piece : Piece → Type u
   | .inl | .inr => InteriorPiece n W
   | .band => BandPiece n W
 
-private instance instTopologicalSpacePiece : ∀ j, TopologicalSpace (piece n W j)
+/-- The topology of a piece. -/
+instance instTopologicalSpacePiece : ∀ j, TopologicalSpace (piece n W j)
   | .inl | .inr => inferInstanceAs (TopologicalSpace (InteriorPiece n W))
   | .band => inferInstanceAs (TopologicalSpace (BandPiece n W))
 
-private instance instChartedSpacePiece :
+/-- The charts of a piece, on `ℝⁿ⁺¹`. -/
+instance instChartedSpacePiece :
     ∀ j, ChartedSpace (EuclideanSpace ℝ (Fin (n + 1))) (piece n W j)
   | .inl | .inr => inferInstanceAs (ChartedSpace _ (InteriorPiece n W))
   | .band => inferInstanceAs (ChartedSpace _ (BandPiece n W))
 
-private instance instIsManifoldPiece : ∀ j, IsManifold (𝓡 (n + 1)) ∞ (piece n W j)
+/-- Each piece is a smooth manifold. -/
+instance instIsManifoldPiece : ∀ j, IsManifold (𝓡 (n + 1)) ∞ (piece n W j)
   | .inl | .inr => inferInstanceAs (IsManifold _ ∞ (InteriorPiece n W))
   | .band => inferInstanceAs (IsManifold _ ∞ (BandPiece n W))
 
 /-- The map of a piece into the double. -/
-private def pieceMap : ∀ j, piece n W j → c.Double
+@[expose]
+def pieceMap : ∀ j, piece n W j → c.Double
   | .inl => inlInterior c
   | .inr => inrInterior c
   | .band => bandIncl c
+
+@[simp] theorem pieceMap_inl : pieceMap c .inl = inlInterior c := (rfl)
+
+@[simp] theorem pieceMap_inr : pieceMap c .inr = inrInterior c := (rfl)
+
+@[simp] theorem pieceMap_band : pieceMap c .band = bandIncl c := (rfl)
 
 private theorem isOpenEmbedding_pieceMap : ∀ j, IsOpenEmbedding (pieceMap c j)
   | .inl => isOpenEmbedding_inlInterior c
@@ -516,7 +534,7 @@ private theorem isOpenEmbedding_pieceMap : ∀ j, IsOpenEmbedding (pieceMap c j)
   | .band => isOpenEmbedding_bandIncl c
 
 private theorem exists_pieceMap_eq (z : c.Double) : ∃ j y, pieceMap c j y = z := by
-  have h0 : (0 : ℝ) ∈ bandInterval := by simp [mem_bandInterval]
+  have h0 : (0 : ℝ) ∈ bandInterval := by simp
   rcases exists_inl_or_inr c z with ⟨w, rfl⟩ | ⟨w, rfl⟩ <;>
     by_cases hw : w ∈ (𝓡∂ (n + 1)).interior W
   · exact ⟨.inl, InteriorModel.mk _ w hw, congrArg (inl c) (InteriorModel.val_mk _ _)⟩
@@ -530,6 +548,10 @@ private theorem exists_pieceMap_eq (z : c.Double) : ∃ j y, pieceMap c j y = z 
       (bandInterval × (𝓡∂ (n + 1)).boundary W) (⟨0, h0⟩, ⟨w, hw⟩),
       ((bandIncl_remodelDiffeomorph c _).trans (bandMap_zero c ⟨w, hw⟩)).trans
         (inl_coe_eq_inr c ⟨w, hw⟩)⟩
+
+/-- The three pieces cover the double. -/
+theorem iUnion_range_pieceMap : ⋃ j, range (pieceMap c (n := n) (W := W) j) = univ :=
+  eq_univ_of_forall fun z ↦ mem_iUnion.2 <| (exists_pieceMap_eq c z).imp fun _ ↦ id
 
 /-! The transition maps between the pieces are read in `c.WithEnd`: the first copy of the interior
 and the band sit in it as the interior of `W` and the end piece `(-1, 1) × ∂W`, and so do the
@@ -658,7 +680,8 @@ instance instChartedSpace : ChartedSpace (EuclideanSpace ℝ (Fin (n + 1))) c.Do
 instance instIsManifold : IsManifold (𝓡 (n + 1)) ∞ c.Double :=
   isManifold_chartedSpaceOfIsOpenEmbedding _ _ (exists_transition c)
 
-private theorem isLocalDiffeomorph_pieceMap (j : Piece) :
+/-- Each piece is a smooth local diffeomorphism into the double. -/
+theorem isLocalDiffeomorph_pieceMap (j : Piece) :
     IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ (pieceMap c j) :=
   isLocalDiffeomorph_chartedSpaceOfIsOpenEmbedding _ _ (exists_transition c) j
 
@@ -807,7 +830,7 @@ theorem contMDiffOn_bandProj :
     rw [← bandMap_bandCoord, bandProj_bandMap c (bandCoord_mem q).1]
   have : Nonempty (piece n W .band) :=
     ⟨remodelDiffeomorph (endModelDiffeomorph n) (bandInterval × (𝓡∂ (n + 1)).boundary W)
-      (⟨0, by simp [mem_bandInterval]⟩, Classical.arbitrary _)⟩
+      (⟨0, by simp⟩, Classical.arbitrary _)⟩
   have hsymm := contMDiffOn_symm_chartedSpaceOfIsOpenEmbedding (isOpenEmbedding_pieceMap c)
     (exists_pieceMap_eq c) (exists_transition c) .band
   rw [himage]
