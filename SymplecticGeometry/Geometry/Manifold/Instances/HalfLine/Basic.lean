@@ -18,6 +18,9 @@ shows that its coordinate `t ↦ t 0`, a map to `ℝ`, is an immersion at every 
 point `0` included, and a local diffeomorphism at every point where it is positive. Both proofs
 identify `ℝ¹` with `ℝ` by Mathlib's `PiLp.equivOfUnique`.
 
+That the coordinate preserves orientation is in
+`SymplecticGeometry.Geometry.Manifold.Instances.HalfLine.Orientation`.
+
 ## Main results
 
 * `TauCeti.EuclideanHalfSpace.isImmersionAt_val_zero`: the coordinate of the half-line is an
