@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Analysis.Complex.Determinant
+public import SymplecticGeometry.Geometry.Manifold.Complex.HomologicalOrientation
 public import TauCeti.Geometry.Manifold.Complex.FundamentalClass
 
 /-!
@@ -40,6 +41,10 @@ where those have a positive one.
 * `TauCeti.comap_complexHomologicalOrientation_of_comp_eq`: an open embedding `U → V` between
   open sets of Riemann surfaces that acts as an open embedding `T` which is a `C^k` local
   biholomorphism preserves their canonical orientations.
+* `SymplecticGeometry.complexManifoldHomologicalOrientation_eq_complexHomologicalOrientation`:
+  on a Riemann surface, the library's homological orientation of a complex manifold of complex
+  dimension `0 + 1` is Tau Ceti's `TauCeti.complexHomologicalOrientation`, so that Tau Ceti's
+  results on the latter apply to it.
 -/
 
 public section
@@ -116,5 +121,21 @@ theorem comap_complexHomologicalOrientation_of_comp_eq
     comap_complexHomologicalOrientation hT hT']
 
 end TauCeti
+
+namespace SymplecticGeometry
+
+open Module TauCeti
+
+/-- On a Riemann surface `M`, a complex manifold modelled on `ℂ`, the homological orientation
+`complexManifoldHomologicalOrientation ℂ M hE` of complex dimension `0 + 1` is Tau Ceti's
+canonical homological orientation `complexHomologicalOrientation M`. -/
+theorem complexManifoldHomologicalOrientation_eq_complexHomologicalOrientation
+    {M : Type} [TopologicalSpace M] [T2Space M] [ChartedSpace ℂ M] [IsManifold 𝓘(ℂ, ℂ) 1 M]
+    (hE : finrank ℂ ℂ = 0 + 1) :
+    complexManifoldHomologicalOrientation ℂ M hE = complexHomologicalOrientation M := by
+  rw [complexManifoldHomologicalOrientation_def, complexManifoldOrientationOfFinrank_def,
+    complexHomologicalOrientation_def]
+
+end SymplecticGeometry
 
 end
