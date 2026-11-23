@@ -56,9 +56,16 @@ The following are in the namespace `SymplecticGeometry.SmoothProjectiveHypersurf
   of `ι^* 𝒪(1)^{⊕n}` that is transverse to zero, with finitely many zeros.
 * `card_setOf_linearSection_eq_zero`: for surjective `ℓ` whose section is transverse to zero, that
   section has exactly `d` zeros.
+* `homologicalOrientation`: the complex orientation of a hypersurface of dimension `n + 1`, as a
+  homological orientation in degree `2 n + 2`.
+* `evalFundamentalClass`: the `ℤ`-linear map `c ↦ ⟨c, [X]⟩` on `H^{2n+2}(X; ℤ)`, for that
+  orientation.
 * `evalFundamentalClass_hyperplaneClass_pow`: `⟨(ι^* h) ^ n, [X]⟩ = d` for `n ≠ 0`, written for a
   hypersurface of dimension `n + 1`. The case `n = 0`, where the pairing is read as a count of
   points, is `SmoothProjectiveHypersurface.card_eq`.
+
+`homologicalOrientation` is built as Tau Ceti's `TauCeti.complexHomologicalOrientation` is for
+a Riemann surface, here for the model `Fin (n + 1 + 1 - Fintype.card Unit) → ℂ` of `X`.
 
 ## References
 
@@ -199,21 +206,53 @@ theorem card_setOf_linearSection_eq_zero {ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ
     ((X.surjective_sectionLinearization_linearSection_iff hℓ hz).1 (htr _ hz))
 
 open scoped TauCeti.ComplexManifold in
+/-- **The complex orientation of a hypersurface**, as a homological orientation. A smooth
+hypersurface `X ⊆ ℂℙⁿ⁺²` of dimension `n + 1` is oriented by its complex structure: Tau Ceti's
+`complexManifoldOrientation` of the real tangent spaces of `X`, reindexed along
+`2 (n + 1) = 2 n + 2`, gives a homological orientation of `X` in degree `2 n + 2`. -/
+noncomputable def homologicalOrientation (X : SmoothProjectiveHypersurface (n + 1) d) :
+    HomologicalOrientation X (Fin (n + 1 + 1 - Fintype.card Unit) → ℂ) (2 * n + 1 + 1) :=
+  ((complexManifoldOrientation (Fin (n + 1 + 1 - Fintype.card Unit) → ℂ) X).reindex
+    (finCongr (by rw [finrank_model]; ring) :
+      Fin (2 * finrank ℂ (Fin (n + 1 + 1 - Fintype.card Unit) → ℂ)) ≃ Fin (2 * n + 1 + 1))
+    ).toHomologicalOrientation (n := 2 * n + 1)
+    (by rw [finrank_real_of_complex, finrank_model]; ring)
+
+open scoped TauCeti.ComplexManifold in
+theorem homologicalOrientation_def (X : SmoothProjectiveHypersurface (n + 1) d) :
+    X.homologicalOrientation =
+      ((complexManifoldOrientation (Fin (n + 1 + 1 - Fintype.card Unit) → ℂ) X).reindex
+        (finCongr (by rw [finrank_model]; ring) :
+          Fin (2 * finrank ℂ (Fin (n + 1 + 1 - Fintype.card Unit) → ℂ)) ≃ Fin (2 * n + 1 + 1))
+        ).toHomologicalOrientation (n := 2 * n + 1)
+        (by rw [finrank_real_of_complex, finrank_model]; ring) :=
+  (rfl)
+
+/-- **The evaluation on the fundamental class of a hypersurface**, `c ↦ ⟨c, [X]⟩`. For a smooth
+hypersurface `X ⊆ ℂℙⁿ⁺²` of dimension `n + 1`, the `ℤ`-linear map `H^{2n+2}(X; ℤ) → ℤ` that pairs
+a class with the fundamental class of `X` for its complex orientation
+`SmoothProjectiveHypersurface.homologicalOrientation`. -/
+noncomputable def evalFundamentalClass (X : SmoothProjectiveHypersurface (n + 1) d) :
+    (TopCat.of X).integralCohomology (2 * (n + 1)) →ₗ[ℤ] ℤ :=
+  X.homologicalOrientation.evalFundamentalClass
+    (by rw [finrank_real_of_complex, finrank_model]; ring) (ModuleCat.of ℤ ℤ) (ContinuousMap.id X)
+
+theorem evalFundamentalClass_def (X : SmoothProjectiveHypersurface (n + 1) d) :
+    X.evalFundamentalClass =
+      X.homologicalOrientation.evalFundamentalClass
+        (by rw [finrank_real_of_complex, finrank_model]; ring) (ModuleCat.of ℤ ℤ)
+        (ContinuousMap.id X) :=
+  (rfl)
+
 /-- **The degree of a hypersurface as a characteristic number.** For a smooth hypersurface
 `X ⊆ ℂℙⁿ⁺²` of degree `d` and dimension `n + 1`, oriented by its complex structure
-(`complexManifoldOrientation`, reindexed along `2 (n + 1) = 2 n + 2`), the class
+(`SmoothProjectiveHypersurface.homologicalOrientation`), the class
 `(ι^* h) ^ (n + 1) ∈ H^{2n+2}(X; ℤ)` evaluated on the fundamental class of `X` is `d`.
 
 Milestone: *Chern classes of projective hypersurfaces*. -/
 theorem evalFundamentalClass_hyperplaneClass_pow (X : SmoothProjectiveHypersurface (n + 1) d) :
-    (((complexManifoldOrientation (Fin (n + 1 + 1 - Fintype.card Unit) → ℂ) X).reindex
-        (finCongr (by rw [finrank_model]; ring) :
-          Fin (2 * finrank ℂ (Fin (n + 1 + 1 - Fintype.card Unit) → ℂ)) ≃ Fin (2 * n + 1 + 1))
-        ).toHomologicalOrientation (n := 2 * n + 1)
-        (by rw [finrank_real_of_complex, finrank_model]; ring)).evalFundamentalClass
-        (by rw [finrank_real_of_complex, finrank_model]; ring) (ModuleCat.of ℤ ℤ)
-        (ContinuousMap.id X)
-        (((TopCat.of X).evenIntegralCohomologyOf 1 X.hyperplaneClass ^ (n + 1)) (n + 1)) = d := by
+    X.evalFundamentalClass
+      (((TopCat.of X).evenIntegralCohomologyOf 1 X.hyperplaneClass ^ (n + 1)) (n + 1)) = d := by
   have hE : finrank ℝ (Fin (n + 1 + 1 - Fintype.card Unit) → ℂ) = 2 * n + 1 + 1 := by
     rw [finrank_real_of_complex, finrank_model]; ring
   obtain ⟨ℓ, hℓ, hreg, hfin⟩ := X.exists_surjective_linearSection_regular
@@ -221,7 +260,8 @@ theorem evalFundamentalClass_hyperplaneClass_pow (X : SmoothProjectiveHypersurfa
     (X.linearSection ℓ).contMDiff.continuous
   -- The pairing is that of the Euler class of `ι^* 𝒪(1)^{⊕(n+1)}`, the sum of the local indices
   -- of the section given by `ℓ`.
-  rw [← X.complexEulerClass_twistPiCore_pullback n,
+  rw [← X.complexEulerClass_twistPiCore_pullback n, evalFundamentalClass_def,
+    homologicalOrientation_def,
     HomologicalOrientation.evalFundamentalClass_uliftIntegralCohomologyIso_hom,
     complexEulerClass_def,
     VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex _ _ _ hs hE hfin]
