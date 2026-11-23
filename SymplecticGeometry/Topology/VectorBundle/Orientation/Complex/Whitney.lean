@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
+public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.Whitney
 
 /-!
@@ -123,8 +124,8 @@ theorem complexEulerClass_prod {r₁ r₂ r : ℕ} (hF₁ : finrank ℂ F₁ = r
         (complexEulerClass F₁ E₁ hF₁) (complexEulerClass F₂ E₂ hF₂) := by
   rw [complexEulerClass_def, complexEulerClass_def, complexEulerClass_def,
     ← VectorBundleOrientation.eulerClass_prod (m := 2 * r₁ + 1) (n := 2 * r₂ + 1)
-      (d := 2 * r + 1) _ _ (by rw [finrank_real_eq_two_mul_finrank_complex, hF₁]; ring)
-      (by rw [finrank_real_eq_two_mul_finrank_complex, hF₂]; ring) (by omega),
+      (d := 2 * r + 1) _ _ (finrank_real_of_finrank_complex_eq_add_one hF₁)
+      (finrank_real_of_finrank_complex_eq_add_one hF₂) (by omega),
     VectorBundleOrientation.reindex_prod_complex (by omega) (by omega) (by omega)]
 
 end EulerClass
