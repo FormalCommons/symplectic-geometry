@@ -89,10 +89,6 @@ open TauCeti TauCeti.EuclideanHalfSpace TauCeti.Manifold.Orientation CoordinateD
 variable {S : Type} [TopologicalSpace S] [ChartedSpace (EuclideanHalfSpace 2) S]
   [IsManifold (𝓡∂ 2) ∞ S]
 
-local instance : IsManifold (𝓡 1) ∞ ((𝓡∂ 2).boundary S) := isManifold_boundary S
-
-local instance : IsManifold (𝓡 1) 1 ((𝓡∂ (1 + 1)).boundary S) := isManifold_boundary S
-
 namespace capDiscs
 
 variable (c : SmoothCollar 1 ∞ S) {ι : Type} (γ : ι → AddCircle (1 : ℝ) → (𝓡∂ 2).boundary S)

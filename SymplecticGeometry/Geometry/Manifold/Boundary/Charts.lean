@@ -30,6 +30,9 @@ vanishes. This complements Tau Ceti's `TauCeti.ModelWithCorners.mem_boundary_euc
   point is not tangent to the boundary.
 * `TauCeti.IsOutwardPointingField.isTransverseAlong_subtypeVal`: an outward field is transverse to
   the boundary.
+
+The file also makes Tau Ceti's `TauCeti.isManifold_boundary`, that the boundary of a `C^k`
+manifold modelled on `𝓡∂ (n + 1)` is a `C^k` manifold modelled on `𝓡 n`, a global instance.
 -/
 
 public section
@@ -87,6 +90,10 @@ theorem IsOutwardPointingField.isTransverseAlong_subtypeVal [IsManifold (𝓡∂
     {Y : (x : W) → TangentSpace (𝓡∂ (n + 1)) x} (hY : IsOutwardPointingField Y) :
     IsTransverseAlong (𝓡 n) Y (Subtype.val : (𝓡∂ (n + 1)).boundary W → W) :=
   isTransverseAlong_iff.2 fun x ↦ (hY.isOutwardPointing x.property).notMem_range_mfderiv_subtypeVal
+
+/- Tau Ceti's `isManifold_boundary`, that the boundary of a `C^k` manifold modelled on the
+half-space `𝓡∂ (n + 1)` is a `C^k` manifold modelled on `𝓡 n`, made a global instance. -/
+attribute [instance] isManifold_boundary
 
 end TauCeti
 
