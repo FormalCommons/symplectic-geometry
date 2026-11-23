@@ -40,6 +40,12 @@ continuous and its composite with the embedding is smooth (Mathlib's
 are restrictions of the identity (`Units.chartAt_apply`), and a matrix and its linear map
 determine each other linearly (`Matrix.toEuclideanCLM`).
 
+Only that embedding is used, so `contMDiffAt_iff_coe`, `contMDiffAt_iff_toEuclideanCLM` and
+`contMDiffOn_iff_toEuclideanCLM` are cases of a general fact about smooth embeddings. Tau Ceti
+has its global form, `Manifold.IsSmoothEmbedding.contMDiff_iff_comp`, but not its forms at a point
+and on a set, which are what this file needs. Those belong upstream, next to it in Tau Ceti's
+`Geometry/Manifold/SmoothEmbedding/Basic.lean` or in `Geometry/Lie/Subgroup/Embedded.lean`.
+
 Tau Ceti states its charts for the topology of the operator norm on matrices
 (`Matrix.linftyOpTopologicalSpace`), which is the product topology
 (`Matrix.linftyOpTopologicalSpace_eq`) but not reducibly so. This file does the same, so a proof

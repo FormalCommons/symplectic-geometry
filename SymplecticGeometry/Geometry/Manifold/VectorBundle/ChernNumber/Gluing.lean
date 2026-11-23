@@ -39,9 +39,10 @@ bundle, `(ContMDiffComplexStructure.ofComplexModule …).compatibleForm g` (`Her
 
 Conversely, two symplectic bundles `(V₁, ω₁)` and `(V₂, ω₂)` of the same rank are isomorphic if
 they have frames over a coordinate disc and over the complement of its open disc whose transition
-loops on the boundary circle have the same Maslov index (`nonempty_iso_of_maslovIndex_eq`). Over a
-closed connected oriented surface, by the disc clutching formula, this is the case when their first
-Chern numbers agree (`nonempty_iso_of_symplecticChernNumber_eq`).
+loops on the boundary circle have the same Maslov index
+(`exists_pushforward_eq_of_maslovIndex_eq`). Over a closed connected oriented surface, by the disc
+clutching formula, this is the case when their first Chern numbers agree
+(`exists_pushforward_eq_of_symplecticChernNumber_eq`).
 
 ## Main definitions
 
@@ -62,12 +63,12 @@ Chern numbers agree (`nonempty_iso_of_symplecticChernNumber_eq`).
 * `SymplecticGeometry.Bundle.bilinFormAt_clutchingFrame`: the frames of the charts are symplectic.
 * `SymplecticGeometry.Bundle.symplecticChernNumber_clutchingLineBundle`: over a compact surface,
   the first Chern number of the bundle with the symplectic form of its metric is `k`.
-* `SymplecticGeometry.Bundle.nonempty_iso_of_maslovIndex_eq`: two symplectic bundles with frames
-  over a coordinate disc and over its complement whose transition loops have the same Maslov index
-  are isomorphic.
-* `SymplecticGeometry.Bundle.nonempty_iso_of_symplecticChernNumber_eq`: over a closed connected
-  oriented surface, two symplectic bundles of the same rank with the same first Chern number are
-  isomorphic.
+* `SymplecticGeometry.Bundle.exists_pushforward_eq_of_maslovIndex_eq`: two symplectic bundles
+  with frames over a coordinate disc and over its complement whose transition loops have the same
+  Maslov index are isomorphic.
+* `SymplecticGeometry.Bundle.exists_pushforward_eq_of_symplecticChernNumber_eq`: over a closed
+  connected oriented surface, two symplectic bundles of the same rank with the same first Chern
+  number are isomorphic.
 
 ## Proof
 
@@ -80,9 +81,9 @@ have modulus one, and on the boundary circle they differ by `ζ ↦ ζ ^ k`, the
 loop of `1 × 1` unitary matrices (`circlePowLoop k`), whose Maslov index is `k`
 (`maslovIndex_toBasedLoop_circlePowLoop`).
 
-For `nonempty_iso_of_maslovIndex_eq`, let `Tₖ = Φₖ⁻¹ ∘ Φₖ'` be the transitions of the two
-bundles, defined near the boundary circle, on the image of an annulus `1 - ε < ‖z‖ < 1 + ε` of the
-chart (`CoordinateDisc.exists_image_annulus_subset`). There `D = T₂ ∘ T₁⁻¹` is a smooth map into
+For `exists_pushforward_eq_of_maslovIndex_eq`, let `Tₖ = Φₖ⁻¹ ∘ Φₖ'` be the transitions of the
+two bundles, defined near the boundary circle, on the image of an annulus `1 - ε < ‖z‖ < 1 + ε` of
+the chart (`CoordinateDisc.exists_image_annulus_subset`). There `D = T₂ ∘ T₁⁻¹` is a smooth map into
 `Matrix.symplecticGroup κ ℝ` (`Matrix.SymplecticGroup.exists_contMDiffOn_toEuclideanCLM_eq`),
 and on the circle it is the loop `Ψ₂ Ψ₁⁻¹`, of Maslov index `μ(Ψ₂) - μ(Ψ₁) = 0` by the product
 axiom (`TauCeti.GLSymplectic.maslovIndex_toBasedLoop_mul`). So it is null-homotopic
@@ -93,7 +94,7 @@ frame `Φ₂ ∘ g` of the second bundle has transition `T₁` to `Φ₂'` near 
 (`ContMDiffTwoForm.IsSymplecticFrameOn.precomp_of_contMDiffOn`). The frames `Φ₁` and `Φ₂ ∘ g`
 over `W`, and `Φ₁'` and `Φ₂'` away from a smaller closed disc, then glue to an isomorphism
 (`ContMDiffTwoForm.exists_pushforward_eq_of_frameTransition_eq`). For
-`nonempty_iso_of_symplecticChernNumber_eq`, the frames come from
+`exists_pushforward_eq_of_symplecticChernNumber_eq`, the frames come from
 `ContMDiffTwoForm.IsNondegenerate.exists_isSymplecticFrameOn_disc_ofChart` and
 `ContMDiffTwoForm.IsNondegenerate.exists_isSymplecticFrameOn_discComplement_ofChart`, their
 transition loops from `ContMDiffTwoForm.IsSymplecticFrameOn.exists_frameTransition_loop`, and the
@@ -113,7 +114,7 @@ from the complex linearity of the charts, by Tau Ceti's `VectorBundle.ofLinear`.
   complement, and their first Chern number by the Maslov index of the transition loop
   (Theorem 2.7.1).
   The isomorphism property of the first Chern number in Theorem 2.7.1, that bundles of the same
-  rank with the same number are isomorphic, is `nonempty_iso_of_symplecticChernNumber_eq`.
+  rank with the same number are isomorphic, is `exists_pushforward_eq_of_symplecticChernNumber_eq`.
 -/
 
 public section
@@ -608,9 +609,7 @@ private theorem exists_extend_of_maslovIndex_eq_zero
   let : TopologicalSpace (Matrix (κ ⊕ κ) (κ ⊕ κ) ℝ) := Matrix.linftyOpTopologicalSpace _ _ _
   -- `D` is a smooth map `C` into the symplectic group on `O`.
   obtain ⟨C, hCs, hC⟩ := Matrix.SymplecticGroup.exists_contMDiffOn_toEuclideanCLM_eq hO hD
-    fun x hx ↦ mem_symplecticGroup_iff_forall_stdForm.2 fun v w ↦ by
-      rw [← toEuclideanCLM_apply, ← toEuclideanCLM_apply, StarAlgEquiv.apply_symm_apply]
-      exact (hDσ x hx).apply v w
+    fun x hx ↦ (toEuclideanCLM_symm_mem_symplecticGroup_iff (D x)).2 (hDσ x hx)
   -- So `C ∘ ψ` is smooth on the annulus `A` of the chart.
   set A : Set ℂ := {z | 1 - ε < ‖z‖ ∧ ‖z‖ < 1 + ε}
   have hψO (z : ℂ) (hz : z ∈ A) : ψ z ∈ O := by
@@ -658,9 +657,8 @@ private theorem exists_extend_of_maslovIndex_eq_zero
     · rintro _ ⟨z, hz, rfl⟩
       rw [Set.mem_preimage, CoordinateDisc.coord_apply]
       exact mem_ball_zero_iff.2 hz
-  · refine TauCeti.SymplecticForm.isSymplectomorphism_iff.2 fun v w ↦ ?_
-    have := mem_symplecticGroup_iff_forall_stdForm.1 (g (φ.coord x)).property v w
-    rwa [← toEuclideanCLM_apply, ← toEuclideanCLM_apply, ← hP] at this
+  · rw [← toEuclideanCLM_symm_mem_symplecticGroup_iff, hP, StarAlgEquiv.symm_apply_apply]
+    exact (g (φ.coord x)).property
   · have hgz : g (φ.coord (φ z)) = C (φ z) := by
       rw [CoordinateDisc.coord_apply, hgf z hz₁.le hz₂, hψ]
     refine ContinuousLinearEquiv.coe_injective ?_
@@ -748,7 +746,7 @@ disc of `φ`, `Φₖ'` one over an open set that contains the complement `discCo
 disc, and `Ψₖ` the loop of symplectic matrices with `Φₖ' = Φₖ ∘ Ψₖ` on the boundary circle. If
 `Ψ₁` and `Ψ₂` have the same Maslov index, then `(V₁, ω₁)` and `(V₂, ω₂)` are isomorphic: some
 fibrewise linear isomorphism `Ψ`, smooth on total spaces, carries `ω₁` to `ω₂`. -/
-theorem nonempty_iso_of_maslovIndex_eq (hea : e ∈ IsManifold.maximalAtlas (𝓡 2) ∞ M)
+theorem exists_pushforward_eq_of_maslovIndex_eq (hea : e ∈ IsManifold.maximalAtlas (𝓡 2) ∞ M)
     (hr : 0 < r) (hc : Metric.ball c r ⊆ e.target)
     (he : ∀ x ∈ e.source,
       o.IsOrientationPreservingAt (Manifold.Orientation.euclideanSpace 2) e x)
@@ -815,7 +813,7 @@ two-forms on smooth vector bundles `V₁`, `V₂` of the same rank `2 |κ|` over
 surface `M` with a smooth orientation `o`. If their first Chern numbers `symplecticChernNumber`
 agree, then `(V₁, ω₁)` and `(V₂, ω₂)` are isomorphic: some fibrewise linear isomorphism `Ψ`,
 smooth on total spaces, carries `ω₁` to `ω₂`. -/
-theorem nonempty_iso_of_symplecticChernNumber_eq [CompactSpace M] [ConnectedSpace M]
+theorem exists_pushforward_eq_of_symplecticChernNumber_eq [CompactSpace M] [ConnectedSpace M]
     [FiniteDimensional ℝ F₂] [ContMDiffVectorBundle ((⊤ : ℕ∞) : WithTop ℕ∞) F₁ V₁ (𝓡 2)]
     [ContMDiffVectorBundle ((⊤ : ℕ∞) : WithTop ℕ∞) F₂ V₂ (𝓡 2)]
     (hω₁ : ω₁.IsNondegenerate) (hω₂ : ω₂.IsNondegenerate)
@@ -855,8 +853,8 @@ theorem nonempty_iso_of_symplecticChernNumber_eq [CompactSpace M] [ConnectedSpac
     ⟨hD (φ.boundaryCircle_mem_disc ζ), hD' (boundaryCircle_mem_discComplement _ hdisj () ζ)⟩
   obtain ⟨Ψ₁, hΨ₁⟩ := h₁.exists_frameTransition_loop hU₁ hU₁' h₁' _ (hbc hD₁ hD₁')
   obtain ⟨Ψ₂, hΨ₂⟩ := h₂.exists_frameTransition_loop hU₂ hU₂' h₂' _ (hbc hD₂ hD₂')
-  refine nonempty_iso_of_maslovIndex_eq (hea ()) (hr ()) (hc ()) (he ()) hU₁ hU₁' hU₂ hU₂' hD₁
-    hD₂ hD₁' hD₂' h₁ h₁' h₂ h₂' Ψ₁ Ψ₂ hΨ₁ hΨ₂ ?_
+  refine exists_pushforward_eq_of_maslovIndex_eq (hea ()) (hr ()) (hc ()) (he ()) hU₁ hU₁' hU₂
+    hU₂' hD₁ hD₂ hD₁' hD₂' h₁ h₁' h₂ h₂' Ψ₁ Ψ₂ hΨ₁ hΨ₂ ?_
   -- By the clutching formula, the Maslov indices are the Chern numbers.
   have hc₁ := symplecticChernNumber_eq_sum_maslovIndex_clutching hdisj
     (Φ := fun _ x ↦ Φ₁ x) (Φout := fun x ↦ Φ₁' x) (fun _ ↦ h₁.continuous_restrict hD₁)
