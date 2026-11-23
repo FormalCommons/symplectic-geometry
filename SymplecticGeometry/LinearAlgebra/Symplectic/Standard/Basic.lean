@@ -1033,6 +1033,7 @@ theorem isSymplectomorphism_equivComplex :
 open StdSpace in
 /-- `equivComplex ι` carries `J₀` to multiplication by `i`:
 `equivComplex ι (J₀ z) = i * equivComplex ι z`. -/
+@[simp]
 theorem equivComplex_stdComplexStructure (z : StdSpace ι) :
     equivComplex ι (stdComplexStructure ι z) = Complex.I * equivComplex ι z :=
   Complex.ext (by simp) (by simp)
@@ -1044,7 +1045,7 @@ theorem isComplexLinearMap_equivComplex :
     IsComplexLinearMap (stdComplexStructure ι) (AlmostComplexStructure.ofComplexModule ℂ)
       (equivComplex ι).toLinearEquiv.toLinearMap :=
   (isComplexLinearMap_iff_apply _ _ _).2 fun z ↦ by
-    simp [AlmostComplexStructure.ofComplexModule_apply, equivComplex_stdComplexStructure]
+    simp [AlmostComplexStructure.ofComplexModule_apply]
 
 end Plane
 
