@@ -605,24 +605,25 @@ For `d ≠ 0`.
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/Surface.lean`
 
-For `X : SmoothProjectiveHypersurface 2 d` with `d ≠ 0`. Each theorem's
+For `X : SmoothProjectiveHypersurface 2 d`, with `d ≠ 0` for $b_2$ and the
+signature. Each theorem's
 docstring ends with the line Milestone: *Chern classes of projective
 hypersurfaces*.
 
 - `chernClass_one_tangentSpace_surface` and `chernClass_two_tangentSpace_surface`:
   $c_1=(4-d)\,\iota^*h$, $c_2=(d^2-4d+6)\,(\iota^*h)^2$;
   `eulerChar_surface`: $\chi=d^3-4d^2+6d$.
-- `bettiNumber_two_surface`: $b_2=d^3-4d^2+6d-2$, with `connectedSpace` and
-  `simplyConnectedSpace` of issue 12.
-- `signature_surface`: with `Q` the rational cup pairing above and the
-  hypothesis `3 * ((sigPos Q.toQuadraticMap : ℤ) - sigNeg Q.toQuadraticMap)
-  = ⟨c₁ ⌣ c₁, [X]⟩ - 2 * ⟨c₂, [X]⟩`, the three equations
+- `bettiNumber_two_surface`: $b_2=d^3-4d^2+6d-2$, from `bettiNumber_middle`.
+- `signature_surface`: with `Q` the rational cup pairing above, a quadratic
+  form `q` with `hq : q = Q.toQuadraticMap`, and the hypothesis
+  `3 * ((sigPos q : ℤ) - sigNeg q) = ⟨c₁ ⌣ c₁, [X]⟩ - 2 * ⟨c₂, [X]⟩`, the three equations
   $3\sigma=(4-d^2)d$, $3b^+=d^3-6d^2+11d-3$ and $3b^-=2d^3-6d^2+7d-3$ in
   `ℤ`, the page's formulas with the denominators cleared.
 
 ### `Geometry/Manifold/Projectivization/Hypersurface/Threefold.lean`
 
-For `X : SmoothProjectiveHypersurface 3 d` with `d ≠ 0`, with the milestone
+For `X : SmoothProjectiveHypersurface 3 d`, with `d ≠ 0` for the Betti
+numbers, with the milestone
 line: `chernClass_one_tangentSpace_threefold` ($c_1=(5-d)\,\iota^*h$),
 `bettiNumber_two_threefold`, `bettiNumber_four_threefold` ($b_2=b_4=1$) and
 `bettiNumber_three_threefold` ($b_3=d^4-5d^3+10d^2-10d+4$).
@@ -631,7 +632,7 @@ line: `chernClass_one_tangentSpace_threefold` ($c_1=(5-d)\,\iota^*h$),
 
 For `X : SmoothProjectiveHypersurface 1 d` with `d ≠ 0`:
 
-- `two_mul_surfaceGenus`: `2 * TauCeti.surfaceGenus X = (d - 1) * (d - 2)`,
+- `two_mul_surfaceGenus`: `2 * (TauCeti.surfaceGenus X : ℤ) = (d - 1) * (d - 2)`,
   the example of *Adjunction formula*, with the line Milestone: *Adjunction
   formula*. From $\chi(X)=d(3-d)$ (`eulerChar_eq`), which is even and at most
   $2$, Tau Ceti's `RiemannSurface.eulerChar_eq_two_sub_two_mul_genus_iff`

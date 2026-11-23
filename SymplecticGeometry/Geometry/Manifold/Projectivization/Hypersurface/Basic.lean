@@ -35,6 +35,7 @@ manifold of dimension `n`, through Tau Ceti's zero-locus API
   `ℙ ℂ (Fin (n + 2) → ℂ)` as a bundled analytic embedding.
 * `SymplecticGeometry.SmoothProjectiveHypersurface.nonempty`: in positive degree the hypersurface
   is nonempty.
+* `SymplecticGeometry.SmoothProjectiveHypersurface.instIsEmpty`: in degree `0` it is empty.
 * `SymplecticGeometry.SmoothProjectiveHypersurface.fermat n d`: the Fermat hypersurface
   `∑ⱼ zⱼ ^ d = 0`.
 
@@ -159,6 +160,16 @@ theorem nonempty (hd : d ≠ 0) : Nonempty X := by
     (s := {X.poly}) (by simp) (by simpa [constantCoeff_eq] using h0)
   exact ⟨⟨Projectivization.mk ℂ v hv, (X.mem_carrier_mk_iff hv).2 <| by
     simpa using hvp X.poly (by simp)⟩⟩
+
+/-- A smooth projective hypersurface of degree `0` is empty: its polynomial is a nonzero
+constant. -/
+instance instIsEmpty (X : SmoothProjectiveHypersurface n 0) : IsEmpty X := by
+  have hc := totalDegree_eq_zero_iff_eq_C.1
+    ((totalDegree_zero_iff_isHomogeneous _).2 X.isHomogeneous)
+  refine ⟨fun x ↦ X.poly_ne_zero ?_⟩
+  have hx := X.mem_carrier_iff.1 x.property
+  rw [hc, eval_C] at hx
+  rw [hc, hx, C_0]
 
 /-- The **Fermat hypersurface** `∑ⱼ zⱼ ^ d = 0` of degree `d` in `ℂℙⁿ⁺¹`. It is smooth in every
 degree; for `d = 0` its polynomial is the nonzero constant `n + 2` and it is empty. Its

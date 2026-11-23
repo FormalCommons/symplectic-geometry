@@ -79,4 +79,35 @@ Each entry has this form:
   $\mathrm{SU}(n)$ holds for every $n$.
 - **Issue:** #4.
 
+## atlas/almost-complex-structures.md
+
+### Hypersurfaces of degree zero are empty
+
+- **Where:** `atlas/almost-complex-structures.md`, *Chern classes of
+  projective hypersurfaces* (the Betti numbers, signature and $b^\pm$ of
+  surfaces in $\mathbb CP^3$, the Betti numbers of threefolds in
+  $\mathbb CP^4$) and the example of plane curves in *Adjunction formula*.
+- **Error:** the page allows any degree $d$, and its formulas for these
+  numbers are stated with no bound on $d$. For $d=0$ the polynomial is a
+  nonzero constant, so the hypersurface is empty and all its Betti numbers,
+  its signature and its genus vanish. The formulas give other values: for
+  the empty surface in $\mathbb CP^3$, $b_2=d^3-4d^2+6d-2=-2$ and
+  $3b^+=3b^-=-3$; for the empty threefold, $b_2=b_4=1$ and $b_3=4$; for the
+  empty plane curve, $g=\tfrac12(d-1)(d-2)=1$. The Chern classes and
+  $\chi=d^3-4d^2+6d$ do hold for $d=0$, all being zero.
+- **Fix:** the library assumes `d ≠ 0` exactly where the formulas need
+  it: `bettiNumber_two_surface`, `signature_surface`
+  (`Hypersurface/Surface.lean`),
+  `bettiNumber_two_threefold`, `bettiNumber_four_threefold`,
+  `bettiNumber_three_threefold` (`Hypersurface/Threefold.lean`) and
+  `two_mul_surfaceGenus` (`Hypersurface/PlaneCurve.lean`), all in the
+  namespace `SymplecticGeometry.SmoothProjectiveHypersurface`. The Chern
+  classes and `eulerChar_surface` are stated for every `d`. The
+  counterexamples are the Fermat hypersurfaces of degree zero, which are
+  empty (`instIsEmpty` in `Hypersurface/Basic.lean`): the surface has
+  $b_2=0\neq-2$ (`bettiNumber_two_fermat_zero`), the threefold has
+  $b_2=0\neq1$ (`bettiNumber_two_fermat_zero_threefold`), and the curve
+  has genus $0$, while $(d-1)(d-2)=2$ (`surfaceGenus_fermat_zero`).
+- **Issue:** #1148.
+
 ## Other sources
