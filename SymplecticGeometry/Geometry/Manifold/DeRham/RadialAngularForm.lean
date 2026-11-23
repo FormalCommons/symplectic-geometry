@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Geometry.Manifold.DeRham.Circle
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
 public import Mathlib.LinearAlgebra.Complex.Orientation
@@ -33,10 +34,10 @@ and the angular form near the boundary circle.
 The integral is computed in polar form through Mathlib's `integral_fun_norm_addHaar`: on `ℂ`, the
 integral of `f(‖z‖)` is `2π ∫₀^∞ f(r) r dr`.
 
-The standard orientation is `TauCeti.Manifold.Orientation.model Complex.orientation`. It is the
-orientation of `ℂ` as a complex manifold, but Tau Ceti's `TauCeti.complexManifoldOrientation` is
-indexed by `Fin (2 * finrank ℂ ℂ)`, which is not `Fin 2` by definition, so it does not integrate
-`2`-forms directly.
+The standard orientation is `TauCeti.Manifold.Orientation.complex`, the constant orientation
+given by `Complex.orientation`. It is the orientation of `ℂ` as a complex manifold, but Tau
+Ceti's `TauCeti.complexManifoldOrientation` is indexed by `Fin (2 * finrank ℂ ℂ)`, which is not
+`Fin 2` by definition, so it does not integrate `2`-forms directly.
 
 ## Main declarations
 
@@ -223,7 +224,7 @@ with `0 < a`, then the integral of `d(β(‖z‖) dθ)` over `ℂ`, for the stan
 `(1, i)` is positive, is `2π`. -/
 theorem integralTopForm_mextDeriv_radialAngularForm (hβ : ContDiff ℝ 1 β) (ha : 0 < a)
     (hβa : ∀ t ≤ a, β t = 0) (hβb : ∀ t ≥ b, β t = 1) :
-    integralTopForm (Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp))
+    integralTopForm Manifold.Orientation.complex
       (mextDeriv (radialAngularForm β)) = 2 * π := by
   have hβd : Differentiable ℝ β := hβ.differentiable (by simp)
   have hab : a ≤ b := by
@@ -239,7 +240,8 @@ theorem integralTopForm_mextDeriv_radialAngularForm (hβ : ContDiff ℝ 1 β) (h
         ((tsupport_mextDeriv_radialAngularForm_subset hβd ha hβa hβb).trans
           fun z hz ↦ mem_closedBall_zero_iff.2 hz.2)) Complex.basisOneI
   -- `Complex.orientation` is by definition the orientation of `Complex.basisOneI`.
-  rw [integralTopForm_model_eq_integral_of_integrableTopForm Complex.orientation _ hint
+  rw [Manifold.Orientation.complex_def,
+    integralTopForm_model_eq_integral_of_integrableTopForm Complex.orientation _ hint
       Complex.basisOneI rfl,
     Complex.addHaar_basisOneI]
   simp only [mextDeriv_radialAngularForm_basisOneI hβd ha hβa]

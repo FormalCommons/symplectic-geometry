@@ -12,6 +12,12 @@ public import TauCeti.Topology.Algebra.Module.Equiv.RestrictScalars
 /-!
 # The canonical orientation of a complex manifold, reindexed
 
+The standard orientation of `ℂ` as a real manifold, the constant orientation of the model
+`𝓘(ℝ, ℂ)` given by `Complex.orientation`, is `TauCeti.Manifold.Orientation.complex`, with
+`TauCeti.Manifold.Orientation.complex_def` and `TauCeti.Manifold.Orientation.orientationAt_complex`.
+It is named as Tau Ceti names `TauCeti.Manifold.Orientation.real` and
+`TauCeti.Manifold.Orientation.euclideanSpace`.
+
 Tau Ceti's `TauCeti.complexManifoldOrientation E M` orients a complex manifold `M` modelled on
 `𝓘(ℂ, E)` as a real manifold, with index type `Fin (2 * finrank ℂ E)`. Statements about real
 manifolds often use another index type, such as `Fin (n + 1)` for the real dimension `n + 1`.
@@ -30,8 +36,8 @@ reindexes the canonical orientation once, for every such `E` and `M`:
   indexed by `Fin 2`, with `SymplecticGeometry.complexCurveOrientation_def`;
 * `SymplecticGeometry.orientationAt_complexCurveOrientation`: at every point it is Tau Ceti's
   complex orientation `TauCeti.complexOrientation E` of the model, reindexed to `Fin 2`;
-* `SymplecticGeometry.complexCurveOrientation_complex`: on `ℂ` itself it is the constant
-  orientation given by `Complex.orientation`;
+* `SymplecticGeometry.complexCurveOrientation_complex`: on `ℂ` itself it is the standard
+  orientation `TauCeti.Manifold.Orientation.complex`;
 * `Diffeomorph.isOrientationPreservingAt_complexCurveOrientation`: biholomorphisms preserve it.
 
 More generally, for complex dimension `finrank ℂ E = r + 1`, statements about real manifolds of
@@ -67,6 +73,24 @@ open scoped Manifold ContDiff TauCeti.ComplexManifold
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [FiniteDimensional ℂ E]
   {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℂ, E) 1 M]
+
+namespace TauCeti.Manifold.Orientation
+
+/-- The standard orientation of `ℂ`, as a real manifold modelled on `𝓘(ℝ, ℂ)`: the constant
+orientation of the model given by `Complex.orientation`, in which the real basis `(1, i)` is
+positive. It is the `ℂ` analogue of `TauCeti.Manifold.Orientation.real`. -/
+noncomputable def complex : Orientation 𝓘(ℝ, ℂ) ℂ (Fin 2) :=
+  model Complex.orientation (by simp)
+
+theorem complex_def : complex = model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp) :=
+  (rfl)
+
+/-- At every point of `ℂ`, the standard orientation is `Complex.orientation`. -/
+@[simp]
+theorem orientationAt_complex (x : ℂ) : orientationAt complex x = Complex.orientation := by
+  rw [complex_def, orientationAt_model]
+
+end TauCeti.Manifold.Orientation
 
 namespace TauCeti
 
@@ -127,13 +151,13 @@ theorem orientationAt_complexCurveOrientation (h : finrank ℂ E = 1) (x : M) :
         (complexOrientation E) := by
   rw [complexCurveOrientation_def, orientationAt_reindex_complexManifoldOrientation]
 
-/-- On `ℂ`, as a complex curve, `complexCurveOrientation` is the constant orientation given by the
-standard orientation `Complex.orientation` of `ℂ`, the orientation of the basis `(1, i)`. -/
+/-- On `ℂ`, as a complex curve, `complexCurveOrientation` is the standard orientation
+`Manifold.Orientation.complex` of `ℂ`, the constant orientation given by `Complex.orientation`,
+the orientation of the basis `(1, i)`. -/
 theorem complexCurveOrientation_complex :
-    complexCurveOrientation ℂ ℂ =
-      Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp) := by
+    complexCurveOrientation ℂ ℂ = Manifold.Orientation.complex := by
   ext x
-  rw [orientationAt_complexCurveOrientation, Manifold.Orientation.orientationAt_model]
+  rw [orientationAt_complexCurveOrientation, Manifold.Orientation.orientationAt_complex]
   -- The tangent space of `ℂ` at `x` is `ℂ`, so this is Tau Ceti's statement on `ℂ`.
   exact reindex_complexOrientation_complex
 

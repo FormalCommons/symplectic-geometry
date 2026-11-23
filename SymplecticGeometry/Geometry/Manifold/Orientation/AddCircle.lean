@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.Complex.Orientation
 public import Mathlib.Analysis.SpecialFunctions.Complex.Circle
 public import Mathlib.LinearAlgebra.Complex.Orientation
 public import TauCeti.Geometry.Manifold.Orientation.AddCircle
@@ -135,7 +136,7 @@ positive orientation of the circle and the standard orientation of `ℝ` to `ℂ
 orientation, preserve orientation at `(θ, r)` exactly when `r < 0`. -/
 theorem isOrientationPreservingAt_ofReal_mul_toCircle_iff (θ : AddCircle p) (r : ℝ) :
     IsOrientationPreservingAt ((AddCircle.orientation p).prod real)
-        (Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp))
+        Manifold.Orientation.complex
         (fun q : AddCircle p × ℝ ↦ (q.2 : ℂ) * (toCircle q.1 : ℂ)) (θ, r) ↔
       r < 0 := by
   rcases eq_or_ne r 0 with rfl | hr
@@ -144,7 +145,7 @@ theorem isOrientationPreservingAt_ofReal_mul_toCircle_iff (θ : AddCircle p) (r 
   obtain ⟨b, hb, hbo⟩ := exists_basis_mfderiv_ofReal_mul_toCircle θ hr
   refine (isOrientationPreservingAt_iff_of_basis _ b hb).trans
     ((iff_true_left (orientationAt_orientation_prod_real p _).symm).trans ?_)
-  rw [orientationAt_model]
+  rw [orientationAt_complex]
   exact hbo
 
 /-- Polar coordinates `(θ, r) ↦ r · toCircle θ`, from `AddCircle p × ℝ` with the product of the
@@ -152,7 +153,7 @@ positive orientation of the circle and the standard orientation of `ℝ` to `ℂ
 orientation, reverse orientation at `(θ, r)` exactly when `0 < r`. -/
 theorem isOrientationReversingAt_ofReal_mul_toCircle_iff (θ : AddCircle p) (r : ℝ) :
     IsOrientationReversingAt ((AddCircle.orientation p).prod real)
-        (Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp))
+        Manifold.Orientation.complex
         (fun q : AddCircle p × ℝ ↦ (q.2 : ℂ) * (toCircle q.1 : ℂ)) (θ, r) ↔
       0 < r := by
   rcases eq_or_ne r 0 with rfl | hr
@@ -161,7 +162,7 @@ theorem isOrientationReversingAt_ofReal_mul_toCircle_iff (θ : AddCircle p) (r :
   obtain ⟨b, hb, hbo⟩ := exists_basis_mfderiv_ofReal_mul_toCircle θ hr
   refine (isOrientationReversingAt_iff_of_basis _ b hb).trans
     ((iff_true_left (orientationAt_orientation_prod_real p _).symm).trans ?_)
-  rw [orientationAt_model]
+  rw [orientationAt_complex]
   exact (Orientation.ne_iff_eq_neg _ _ (by simp)).symm.trans
     ((not_congr hbo).trans (not_lt.trans hr.symm.le_iff_lt))
 
@@ -171,7 +172,7 @@ orientation of the circle and the standard orientation of `ℝ`, to `ℂ`, with 
 orientation, preserves orientation at every point with `r < 0`. -/
 theorem isOrientationPreservingAt_ofReal_mul_toCircle (θ : AddCircle p) {r : ℝ} (hr : r < 0) :
     IsOrientationPreservingAt ((AddCircle.orientation p).prod real)
-      (Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp))
+      Manifold.Orientation.complex
       (fun q : AddCircle p × ℝ ↦ (q.2 : ℂ) * (toCircle q.1 : ℂ)) (θ, r) :=
   (isOrientationPreservingAt_ofReal_mul_toCircle_iff θ r).2 hr
 
@@ -181,7 +182,7 @@ orientation of the circle and the standard orientation of `ℝ`, to `ℂ`, with 
 orientation, reverses orientation at every point with `r > 0`. -/
 theorem isOrientationReversingAt_ofReal_mul_toCircle (θ : AddCircle p) {r : ℝ} (hr : 0 < r) :
     IsOrientationReversingAt ((AddCircle.orientation p).prod real)
-      (Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp))
+      Manifold.Orientation.complex
       (fun q : AddCircle p × ℝ ↦ (q.2 : ℂ) * (toCircle q.1 : ℂ)) (θ, r) :=
   (isOrientationReversingAt_ofReal_mul_toCircle_iff θ r).2 hr
 
@@ -192,12 +193,12 @@ preserves orientation at every point, from the standard orientation of `ℂ` to 
 orientation of `ℝ²`. -/
 theorem Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr (z : ℂ) :
     IsOrientationPreservingAt
-      (Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp))
+      Manifold.Orientation.complex
       (Manifold.Orientation.euclideanSpace 2) Complex.orthonormalBasisOneI.repr z := by
   refine (isOrientationPreservingAt_iff_of_coe_eq _ _ _ z
     Complex.orthonormalBasisOneI.repr.toContinuousLinearEquiv
     (Complex.orthonormalBasisOneI.repr.toContinuousLinearEquiv.mfderiv_eq (x := z)).symm).2 ?_
-  rw [orientationAt_model, orientationAt_euclideanSpace]
+  rw [orientationAt_complex, orientationAt_euclideanSpace]
   exact Complex.orientation_map_orthonormalBasisOneI_repr
 
 /-- On an open set `U` of `ℂ`, the identification `z ↦ (re z, im z)` with `ℝ²` preserves
@@ -206,7 +207,7 @@ orientation of `ℝ²`. -/
 theorem Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr_comp_subtypeVal
     (U : TopologicalSpace.Opens ℂ) (z : U) :
     IsOrientationPreservingAt
-      ((Manifold.Orientation.model (I := 𝓘(ℝ, ℂ)) Complex.orientation (by simp)).restrict U)
+      (Manifold.Orientation.complex.restrict U)
       (Manifold.Orientation.euclideanSpace 2)
       (Complex.orthonormalBasisOneI.repr ∘ (Subtype.val : U → ℂ)) z :=
   (Complex.isOrientationPreservingAt_orthonormalBasisOneI_repr _).comp
