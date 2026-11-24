@@ -29,6 +29,12 @@ there unchanged.
 The file also has `TauCeti.InfinitesimalAction.coe_fundamental_toSectionLinearMap`: the smooth
 section `(InfinitesimalAction.fundamental I G I' M).toSectionLinearMap ξ` is, as a function, the
 fundamental vector field `fundamentalVectorField I' ξ`.
+
+For a commutative group, `TauCeti.mfderiv_fundamentalVectorField_eq_of_eventually_smul_eq`
+says that an element `g` fixing `x` fixes the orbit directions `ξ_M(x)`, read through any map
+`f` that turns `y ↦ g • y` into a linear map `L` near `x`: `L (df_x ξ_M(x)) = df_x ξ_M(x)`. It
+follows from Tau Ceti's `TauCeti.mfderiv_smul_fundamentalVectorField`, since `Ad_g` is the
+identity (`TauCeti.Lie.adjointContinuousLinearMap_eq_id`).
 -/
 
 public section
@@ -88,5 +94,49 @@ theorem map_orbitTangent_fundamental_of_map_smul (hf : MDifferentiableAt I' I'' 
 end InfinitesimalAction
 
 end TauCeti
+
+
+section Commutative
+
+open scoped Topology
+
+namespace TauCeti
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I 1 G]
+  [IsMulCommutative G]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [MulAction G M] [ContMDiffSMul I I' 1 G M]
+
+/-- **A commutative group fixes the orbit directions at a fixed point, in any equivariant
+reading.** Let a commutative Lie group `G` act on `M`, let `g : G` fix `x`, and let
+`f : M → F`, differentiable at `x`, satisfy `f (g • y) = L (f y)` for `y` near `x`, with `L` a
+continuous linear map of `F`. Then `L` fixes `df_x (ξ_M(x))` for every `ξ` in the Lie algebra:
+since `Ad_g` is the identity, `dg_x` fixes `ξ_M(x)`. -/
+theorem mfderiv_fundamentalVectorField_eq_of_eventually_smul_eq
+    {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {f : M → F} {x : M} {g : G}
+    (hf : MDifferentiableAt I' 𝓘(ℝ, F) f x) (hgx : g • x = x) (L : F →L[ℝ] F)
+    (hL : ∀ᶠ y in 𝓝 x, f (g • y) = L (f y)) (ξ : GroupLieAlgebra I G) :
+    L (mfderiv I' 𝓘(ℝ, F) f x (fundamentalVectorField I' ξ x)) =
+      mfderiv I' 𝓘(ℝ, F) f x (fundamentalVectorField I' ξ x) := by
+  have hsmul : MDifferentiableAt I' I' (fun y : M ↦ g • y) x :=
+    (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') (n := 1) g).mdifferentiableAt
+      one_ne_zero
+  have hfg : MDifferentiableAt I' 𝓘(ℝ, F) f (g • x) := by rw [hgx]; exact hf
+  have hcomp : mfderiv I' 𝓘(ℝ, F) (f ∘ fun y : M ↦ g • y) x =
+      mfderiv I' 𝓘(ℝ, F) (L ∘ f) x := Filter.EventuallyEq.mfderiv_eq hL
+  have h := mfderiv_comp_apply_of_eq x hfg hsmul rfl (fundamentalVectorField I' ξ x)
+  rw [hcomp, mfderiv_comp x L.mdifferentiableAt hf, ContinuousLinearMap.mfderiv_eq,
+    mfderiv_smul_fundamentalVectorField, Lie.adjointContinuousLinearMap_eq_id,
+    ContinuousLinearMap.id_apply] at h
+  -- `h` reads `(L ∘L df_x) (ξ_M x) = df_{g • x} (ξ_M (g • x))`, and `g • x = x`.
+  refine h.trans ?_
+  rw [hgx]
+
+end TauCeti
+
+end Commutative
 
 end
