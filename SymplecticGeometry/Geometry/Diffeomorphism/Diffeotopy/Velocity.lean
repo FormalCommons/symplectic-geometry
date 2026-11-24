@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
+public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Reparam
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Velocity
 public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
@@ -38,6 +39,8 @@ the diffeotopy, in the sense of McDuff–Salamon, §3.1, and the time derivative
 * `TauCeti.Diffeotopy.mfderiv_cylinderMap_time`: the motion sends `∂ₜ` at `(x, t)` to the
   velocity of the trajectory `s ↦ φ_s x`. Its action `(v, 0) ↦ dφ_t v` on spatial vectors is Tau
   Ceti's `TauCeti.Diffeotopy.mfderiv_cylinderMap_inl`.
+* `TauCeti.Diffeotopy.velocity_reparam`: if `ρ` has derivative `r` at `t`, the reparametrization
+  of `φ` along `ρ` has velocity `r X_{ρ t}` at time `t`.
 * `TauCeti.Diffeotopy.forall_velocity_mem_iff`: the velocity lies in a family of subspaces `D_t`
   everywhere if and only if the time derivative of the motion at `(x, t)` lies in `D_t (φ_t x)`.
 * `TauCeti.Diffeotopy.contMDiff_velocity`, `TauCeti.Diffeotopy.contMDiff_smoothVelocity`: `X_t` is
@@ -106,6 +109,28 @@ theorem mfderiv_cylinderMap_time (hn : 1 ≤ n) (p : M × unitInterval) :
   have hd := Φ.contMDiff_cylinderMap.mdifferentiableAt (x := p) (zero_lt_one.trans_le hn).ne'
   exact (hd.mfderiv_curry_right_apply _).trans
     (congrArg (fun f ↦ mfderiv (𝓡∂ 1) J f p.2 (1 : TangentSpace (𝓡∂ 1) p.2)) h)
+
+/-- **The velocity of a reparametrization.** If the derivative of `ρ` at `t` sends the unit
+vector to `r` times the unit vector, then the reparametrization of a `C^n` diffeotopy `φ`, `1 ≤ n`,
+along `ρ` has velocity `r X_{ρ t}` at time `t`, where `X` is the velocity of `φ`. -/
+theorem velocity_reparam (hn : 1 ≤ n) {ρ : C^n⟮𝓡∂ 1, unitInterval; 𝓡∂ 1, unitInterval⟯}
+    (t : unitInterval) {r : ℝ}
+    (hr : mfderiv (𝓡∂ 1) (𝓡∂ 1) ρ t 1 = r • (1 : TangentSpace (𝓡∂ 1) (ρ t))) :
+    (Φ.reparam ρ).velocity t = r • Φ.velocity (ρ t) := by
+  funext y
+  obtain ⟨x, rfl⟩ : ∃ x, Φ.reparam ρ (t, x) = y := ⟨_, (Φ.reparam ρ).apply_mk_symm_apply t y⟩
+  -- The trajectory of `x` under the reparametrization is that of `z = φ_{ρ 0}⁻¹ x`, through `ρ`.
+  set z := Φ.symm (ρ 0, x)
+  have hcomp : (fun s ↦ Φ.reparam ρ (s, x)) = (fun u ↦ Φ (u, z)) ∘ ρ :=
+    funext fun s ↦ Φ.reparam_apply ρ (s, x)
+  have hd : MDifferentiableAt (𝓡∂ 1) J (fun u ↦ Φ (u, z)) (ρ t) :=
+    (Φ.contMDiff.comp (contMDiff_id.prodMk contMDiff_const)).mdifferentiableAt
+      (zero_lt_one.trans_le hn).ne'
+  have hρ : MDifferentiableAt (𝓡∂ 1) (𝓡∂ 1) ρ t :=
+    ρ.contMDiff.mdifferentiableAt (zero_lt_one.trans_le hn).ne'
+  rw [velocity_apply, mfderiv_cylinderMap_time _ hn, Pi.smul_apply, reparam_apply,
+    velocity_apply, mfderiv_cylinderMap_time _ hn, hcomp, mfderiv_comp_apply t hd hρ, hr,
+    map_smul]
 
 end Derivative
 
