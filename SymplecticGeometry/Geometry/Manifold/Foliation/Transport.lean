@@ -158,8 +158,8 @@ theorem exists_foliatedChart (𝓕 : Foliation I ∞ M k) (h₁ : finrank ℝ F�
     exact hflat u (huΦ u).1 v
   -- The segment from `Φ u` to `Φ u'` lies in the product of balls, and is flat.
   have hseg : segment ℝ (Φ u) (Φ u') ⊆ Φ.target :=
-    ((convex_ball (0 : F₁ × F₂) 1).segment_subset (hV ▸ (huΦ u).2) (hV ▸ (huΦ u').2)).trans
-      hball
+    (((convex_ball (0 : F₁) 1).prod (convex_ball (0 : F₂) 1)).segment_subset (huΦ u).2
+      (huΦ u').2).trans hVt
   have h := sameLeaf_symm_of_segment_subset (fun y hy v ↦ (hflat y hy v).1) hseg
     (by simp only [← hΨ, huu'])
   simpa [Φ.left_inv (huΦ u).1, Φ.left_inv (huΦ u').1] using h
