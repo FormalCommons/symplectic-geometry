@@ -3321,7 +3321,8 @@ Differential topology and complex analysis only; it waits for no part of
 
 ### 51. Integration over the fibre (needs `design/fiber-integration.md`)
 
-- **Files:** `Geometry/Manifold/DifferentialForm/FiberIntegral.lean`
+- **Files:** in `Geometry/Manifold/DifferentialForm/FiberIntegral/`, the
+  operator on a product in `Product/`, then on a fibration
   (for an oriented fibration with closed fibre of dimension $m$, the operator
   $\int_F\colon\Omega^j(M)\to\Omega^{j-m}(B)$,
   `SymplecticGeometry.FiberAtlas.fiberIntegral`, defined in each chart and
