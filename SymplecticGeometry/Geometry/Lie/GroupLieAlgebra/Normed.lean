@@ -25,6 +25,15 @@ topology instance of the tangent space, and the additive group is that of the ta
 are equal to those of `E`, but only up to unfolding `TangentSpace`; stating them this way makes
 them agree at instance transparency, so that lemmas about continuous linear maps of the Lie
 algebra, such as Tau Ceti's adjoint action, rewrite in terms built with this norm.
+
+The two instances are scoped to the namespace `GroupLieAlgebra` (`open scoped GroupLieAlgebra`)
+rather than global, as Mathlib does for `normedAddCommGroupTangentSpaceVectorSpace`. Since
+`GroupLieAlgebra I G` is reducible to `TangentSpace I 1`, a global instance would put the norm of
+`E` on the tangent space at the identity of every Lie group, and would win there over the norm of
+a Riemannian metric on the tangent bundle, which differs from it, so that the tangent space at `1`
+would carry two norms that are not definitionally equal.
+Their bodies are exposed, so that the instances unfold to the tangent-space ones in other
+files too.
 -/
 
 public section
@@ -38,8 +47,11 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
 
 namespace GroupLieAlgebra
 
-/-- The Lie algebra of a Lie group carries the norm of the model space. -/
-instance instNormedAddCommGroup : NormedAddCommGroup (GroupLieAlgebra I G) :=
+/-- The Lie algebra of a Lie group carries the norm of the model space.
+
+Not a global instance: see the module docstring. -/
+@[expose, instance_reducible]
+def instNormedAddCommGroup : NormedAddCommGroup (GroupLieAlgebra I G) :=
   let m : PseudoMetricSpace (GroupLieAlgebra I G) :=
     (inferInstanceAs (PseudoMetricSpace E) : PseudoMetricSpace E).replaceTopology
       (U := instTopologicalSpaceTangentSpace I (1 : G)) rfl
@@ -47,9 +59,16 @@ instance instNormedAddCommGroup : NormedAddCommGroup (GroupLieAlgebra I G) :=
     toPseudoMetricSpace := m
     toAddCommGroup := instAddCommGroupTangentSpace I (1 : G) }
 
-/-- The Lie algebra of a Lie group is a normed space, with the norm of the model space. -/
-instance instNormedSpace : NormedSpace 𝕜 (GroupLieAlgebra I G) :=
+scoped[GroupLieAlgebra] attribute [instance] GroupLieAlgebra.instNormedAddCommGroup
+
+/-- The Lie algebra of a Lie group is a normed space, with the norm of the model space.
+
+Not a global instance: see the module docstring. -/
+@[expose, instance_reducible]
+def instNormedSpace : NormedSpace 𝕜 (GroupLieAlgebra I G) :=
   inferInstanceAs (NormedSpace 𝕜 E)
+
+scoped[GroupLieAlgebra] attribute [instance] GroupLieAlgebra.instNormedSpace
 
 end GroupLieAlgebra
 

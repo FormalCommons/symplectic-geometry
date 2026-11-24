@@ -28,6 +28,7 @@ For a real Lie group `G` with Lie algebra `𝔤 = GroupLieAlgebra I G`, the left
   `mfderiv I I (g⁻¹ * ·) g v`.
 * `SymplecticGeometry.leftMaurerCartanForm_apply_mulInvariantVectorField`: it takes the value `ξ`
   on the left-invariant vector field of `ξ`.
+* `SymplecticGeometry.mpullback_mul_left_leftMaurerCartanForm`: it is left-invariant.
 * `SymplecticGeometry.mpullback_mul_right_leftMaurerCartanForm`: right translation by `h` pulls
   it back to its image under `Ad(h⁻¹)`.
 
@@ -35,12 +36,14 @@ For a real Lie group `G` with Lie algebra `𝔤 = GroupLieAlgebra I G`, the left
 
 Smoothness is not proved in charts: in a basis of `𝔤`, the components of `θ` are Tau Ceti's
 left-invariant one-forms `Module.Dual.leftInvariantForm` of the coordinate functionals, which are
-smooth, so `θ` is a finite sum of smooth forms. The proof of
-`mpullback_mul_right_leftMaurerCartanForm` follows that of Tau Ceti's
+smooth, so `θ` is a finite sum of smooth forms. The proofs of
+`mpullback_mul_left_leftMaurerCartanForm` and `mpullback_mul_right_leftMaurerCartanForm` follow
+those of Tau Ceti's `Module.Dual.mpullback_mul_left_leftInvariantForm` and
 `Module.Dual.mpullback_mul_right_leftInvariantForm`.
 
-The norm on `𝔤` that `SmoothForm` needs is the one of
-`SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed`.
+The norm on `𝔤` that `SmoothForm` needs is the scoped one of
+`SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed`; statements about this form need
+`open scoped GroupLieAlgebra`.
 
 ## References
 
@@ -53,7 +56,7 @@ public section
 noncomputable section
 
 open TauCeti TauCeti.Lie
-open scoped Manifold ContDiff
+open scoped Manifold ContDiff GroupLieAlgebra
 
 namespace SymplecticGeometry
 
@@ -101,8 +104,22 @@ theorem leftMaurerCartanForm_apply_mulInvariantVectorField (ξ : GroupLieAlgebra
     (leftMaurerCartanForm I G).val g ![mulInvariantVectorField ξ g] = ξ := by
   rw [leftMaurerCartanForm_apply, Matrix.cons_val_zero, mfderiv_inv_mul_mulInvariantVectorField]
 
+/-- The left Maurer–Cartan form is left-invariant: `L_h^* θ = θ`. -/
+@[simp]
+theorem mpullback_mul_left_leftMaurerCartanForm (h : G) :
+    SmoothForm.mpullback (h * ·) contMDiff_mul_left (leftMaurerCartanForm I G) =
+      leftMaurerCartanForm I G := by
+  apply Subtype.ext
+  funext g
+  ext v
+  obtain ⟨ξ, hξ⟩ := exists_mulInvariantVectorField_eq (v 0)
+  rw [SmoothForm.coe_mpullback, TauCeti.mpullback_apply, leftMaurerCartanForm_apply,
+    leftMaurerCartanForm_apply, ← hξ, mfderiv_mul_left_mulInvariantVectorField,
+    mfderiv_inv_mul_mulInvariantVectorField, mfderiv_inv_mul_mulInvariantVectorField]
+
 /-- Right translation by `h` pulls the left Maurer–Cartan form back to its image under the
 adjoint action of `h⁻¹`: `R_h^* θ = Ad(h⁻¹) θ`. -/
+@[simp]
 theorem mpullback_mul_right_leftMaurerCartanForm (h : G) :
     SmoothForm.mpullback (· * h) contMDiff_mul_right (leftMaurerCartanForm I G) =
       SmoothForm.mapCoeff (adjointContinuousLinearMap h⁻¹) (leftMaurerCartanForm I G) := by
