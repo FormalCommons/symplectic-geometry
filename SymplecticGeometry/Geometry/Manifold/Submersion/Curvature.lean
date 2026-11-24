@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Submersion.HorizontalLiftField
 public import Mathlib.Geometry.Manifold.VectorField.LieBracket
+public import Mathlib.LinearAlgebra.SesquilinearForm.Basic
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Extension
 import TauCeti.Geometry.Manifold.VectorBundle.Tensoriality
@@ -83,7 +84,8 @@ and their curvature is `-curvature`.
   only on their values at `f x`.
 * `TauCeti.IsEhresmannConnection.curvatureTensor_apply` and `eq_curvatureTensor_iff`: the
   curvature tensor computes the curvature of smooth fields, and is characterized by this;
-  `curvatureTensor_mem_ker`, `curvatureTensor_self` and `curvatureTensor_swap`.
+  `curvatureTensor_mem_ker`, `curvatureTensor_self` and `curvatureTensor_swap`;
+  `curvatureTensor_isAlt` states that it is alternating as Mathlib's `LinearMap.IsAlt`.
 
 ## References
 
@@ -173,39 +175,38 @@ variable [IsRCLikeNormedField 𝕜] [CompleteSpace E] [CompleteSpace F]
 attribute [local instance] IsManifold.minSmoothness_of_isRCLikeNormedField
 
 /-- The derivative of `f` maps the bracket of the horizontal lifts of `v₁ v₂` at `x` to the
-bracket of `v₁ v₂` at `f x`, for a `C^n` connection with `1 ≤ n`, `f` of class `C^(n+1)` at `x`
-and `v₁ v₂` of class `C^n` at `f x`. -/
+bracket of `v₁ v₂` at `f x`, for a `C^n` connection with `1 ≤ n`, `f` of class `C^2` at `x`
+and `v₁ v₂` of class `C^1` at `f x`. -/
 theorem mfderiv_mlieBracket_horizontalLiftField (hn : 1 ≤ n) {x : P}
-    (hf : ContMDiffAt I J (n + 1) f x) {v₁ v₂ : Π b : B, TangentSpace J b}
-    (hv₁ : ContMDiffAt J J.tangent n (T% v₁) (f x))
-    (hv₂ : ContMDiffAt J J.tangent n (T% v₂) (f x)) :
+    (hf : ContMDiffAt I J 2 f x) {v₁ v₂ : Π b : B, TangentSpace J b}
+    (hv₁ : ContMDiffAt J J.tangent 1 (T% v₁) (f x))
+    (hv₂ : ContMDiffAt J J.tangent 1 (T% v₂) (f x)) :
     mfderiv I J f x (mlieBracket I (hD.horizontalLiftField v₁) (hD.horizontalLiftField v₂) x) =
       mlieBracket J v₁ v₂ (f x) :=
-  mfderiv_mlieBracket_of_eventually_related hf
-    (by simpa [one_add_one_eq_two] using add_le_add_left hn 1)
+  mfderiv_mlieBracket_of_eventually_related hf (by simp)
     (hD.mdifferentiableAt_horizontalLiftField hn hf hv₁)
     (hD.mdifferentiableAt_horizontalLiftField hn hf hv₂)
-    ((hv₁.of_le hn).mdifferentiableAt one_ne_zero) ((hv₂.of_le hn).mdifferentiableAt one_ne_zero)
+    (hv₁.mdifferentiableAt one_ne_zero) (hv₂.mdifferentiableAt one_ne_zero)
     (.of_forall fun y ↦ hD.mfderiv_horizontalLiftField v₁ y)
     (.of_forall fun y ↦ hD.mfderiv_horizontalLiftField v₂ y)
 
-/-- The curvature is **vertical**: for a `C^n` connection with `1 ≤ n`, `f` of class `C^(n+1)` at
-`x` and `v₁ v₂` of class `C^n` at `f x`, the curvature at `x` lies in the kernel of the
+/-- The curvature is **vertical**: for a `C^n` connection with `1 ≤ n`, `f` of class `C^2` at
+`x` and `v₁ v₂` of class `C^1` at `f x`, the curvature at `x` lies in the kernel of the
 derivative of `f`. -/
-theorem curvature_mem_ker (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J (n + 1) f x)
-    {v₁ v₂ : Π b : B, TangentSpace J b} (hv₁ : ContMDiffAt J J.tangent n (T% v₁) (f x))
-    (hv₂ : ContMDiffAt J J.tangent n (T% v₂) (f x)) :
+theorem curvature_mem_ker (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x)
+    {v₁ v₂ : Π b : B, TangentSpace J b} (hv₁ : ContMDiffAt J J.tangent 1 (T% v₁) (f x))
+    (hv₂ : ContMDiffAt J J.tangent 1 (T% v₂) (f x)) :
     hD.curvature v₁ v₂ x ∈ (mfderiv I J f x).ker := by
   rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe, curvature_apply, map_sub,
     hD.mfderiv_mlieBracket_horizontalLiftField hn hf hv₁ hv₂, mfderiv_horizontalLiftField,
     sub_self]
 
 /-- The curvature vanishes at `x` exactly when the bracket of the horizontal lifts of `v₁ v₂` is
-horizontal at `x`, for a `C^n` connection with `1 ≤ n`, `f` of class `C^(n+1)` at `x` and
-`v₁ v₂` of class `C^n` at `f x`. -/
-theorem curvature_eq_zero_iff_mem (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J (n + 1) f x)
-    {v₁ v₂ : Π b : B, TangentSpace J b} (hv₁ : ContMDiffAt J J.tangent n (T% v₁) (f x))
-    (hv₂ : ContMDiffAt J J.tangent n (T% v₂) (f x)) :
+horizontal at `x`, for a `C^n` connection with `1 ≤ n`, `f` of class `C^2` at `x` and
+`v₁ v₂` of class `C^1` at `f x`. -/
+theorem curvature_eq_zero_iff_mem (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x)
+    {v₁ v₂ : Π b : B, TangentSpace J b} (hv₁ : ContMDiffAt J J.tangent 1 (T% v₁) (f x))
+    (hv₂ : ContMDiffAt J J.tangent 1 (T% v₂) (f x)) :
     hD.curvature v₁ v₂ x = 0 ↔
       mlieBracket I (hD.horizontalLiftField v₁) (hD.horizontalLiftField v₂) x ∈ D x := by
   have hlift := hD.horizontalLiftField_mem (mlieBracket J v₁ v₂) x
@@ -219,52 +220,52 @@ theorem curvature_eq_zero_iff_mem (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J (
     exact (D x).sub_mem h hlift
 
 /-- The curvature is additive in its first argument, at a point `x` where the fields are
-`C^n` at `f x`, for a `C^n` connection with `1 ≤ n` and `f` of class `C^(n+1)` at `x`. -/
-theorem curvature_add_left (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J (n + 1) f x)
+`C^1` at `f x`, for a `C^n` connection with `1 ≤ n` and `f` of class `C^2` at `x`. -/
+theorem curvature_add_left (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x)
     {v₁ v₁' : Π b : B, TangentSpace J b} (v₂ : Π b : B, TangentSpace J b)
-    (hv₁ : ContMDiffAt J J.tangent n (T% v₁) (f x))
-    (hv₁' : ContMDiffAt J J.tangent n (T% v₁') (f x)) :
+    (hv₁ : ContMDiffAt J J.tangent 1 (T% v₁) (f x))
+    (hv₁' : ContMDiffAt J J.tangent 1 (T% v₁') (f x)) :
     hD.curvature (v₁ + v₁') v₂ x = hD.curvature v₁ v₂ x + hD.curvature v₁' v₂ x := by
   simp only [curvature_apply, horizontalLiftField_add,
     mlieBracket_add_left (hD.mdifferentiableAt_horizontalLiftField hn hf hv₁)
       (hD.mdifferentiableAt_horizontalLiftField hn hf hv₁'),
     horizontalLiftField_apply,
-    mlieBracket_add_left ((hv₁.of_le hn).mdifferentiableAt one_ne_zero)
-      ((hv₁'.of_le hn).mdifferentiableAt one_ne_zero), map_add, Submodule.coe_add]
+    mlieBracket_add_left (hv₁.mdifferentiableAt one_ne_zero)
+      (hv₁'.mdifferentiableAt one_ne_zero), map_add, Submodule.coe_add]
   abel
 
 /-- The curvature is additive in its second argument, at a point `x` where the fields are
-`C^n` at `f x`, for a `C^n` connection with `1 ≤ n` and `f` of class `C^(n+1)` at `x`. -/
-theorem curvature_add_right (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J (n + 1) f x)
+`C^1` at `f x`, for a `C^n` connection with `1 ≤ n` and `f` of class `C^2` at `x`. -/
+theorem curvature_add_right (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x)
     (v₁ : Π b : B, TangentSpace J b) {v₂ v₂' : Π b : B, TangentSpace J b}
-    (hv₂ : ContMDiffAt J J.tangent n (T% v₂) (f x))
-    (hv₂' : ContMDiffAt J J.tangent n (T% v₂') (f x)) :
+    (hv₂ : ContMDiffAt J J.tangent 1 (T% v₂) (f x))
+    (hv₂' : ContMDiffAt J J.tangent 1 (T% v₂') (f x)) :
     hD.curvature v₁ (v₂ + v₂') x = hD.curvature v₁ v₂ x + hD.curvature v₁ v₂' x := by
   rw [curvature_swap_apply, hD.curvature_add_left hn hf v₁ hv₂ hv₂', neg_add,
     ← curvature_swap_apply, ← curvature_swap_apply]
 
 /-- The curvature is linear over functions on the base in its first argument: for a function
 `g` on `B` differentiable at `f x`, `g • v₁` has curvature `g (f x) • curvature v₁ v₂` at `x`,
-for a `C^n` connection with `1 ≤ n`, `f` of class `C^(n+1)` at `x` and `v₁` of class `C^n` at
+for a `C^n` connection with `1 ≤ n`, `f` of class `C^2` at `x` and `v₁` of class `C^1` at
 `f x`. -/
-theorem curvature_smul_left (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J (n + 1) f x)
+theorem curvature_smul_left (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x)
     {g : B → 𝕜} (hg : MDifferentiableAt J 𝓘(𝕜) g (f x)) {v₁ : Π b : B, TangentSpace J b}
-    (v₂ : Π b : B, TangentSpace J b) (hv₁ : ContMDiffAt J J.tangent n (T% v₁) (f x)) :
+    (v₂ : Π b : B, TangentSpace J b) (hv₁ : ContMDiffAt J J.tangent 1 (T% v₁) (f x)) :
     hD.curvature (g • v₁) v₂ x = g (f x) • hD.curvature v₁ v₂ x := by
   have hfx : MDifferentiableAt I J f x := hf.mdifferentiableAt (by simp)
   have hP := mlieBracket_smul_left (W := hD.horizontalLiftField v₂) (hg.comp x hfx)
     (hD.mdifferentiableAt_horizontalLiftField hn hf hv₁)
-  have hB := mlieBracket_smul_left (W := v₂) hg ((hv₁.of_le hn).mdifferentiableAt one_ne_zero)
+  have hB := mlieBracket_smul_left (W := v₂) hg (hv₁.mdifferentiableAt one_ne_zero)
   rw [mvfderiv_comp_apply x hg hfx, mfderiv_horizontalLiftField] at hP
   simp [curvature_apply, horizontalLiftField_smul, hP, hB, smul_sub]
 
 /-- The curvature is linear over functions on the base in its second argument: for a function
 `g` on `B` differentiable at `f x`, `g • v₂` has curvature `g (f x) • curvature v₁ v₂` at `x`,
-for a `C^n` connection with `1 ≤ n`, `f` of class `C^(n+1)` at `x` and `v₂` of class `C^n` at
+for a `C^n` connection with `1 ≤ n`, `f` of class `C^2` at `x` and `v₂` of class `C^1` at
 `f x`. -/
-theorem curvature_smul_right (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J (n + 1) f x)
+theorem curvature_smul_right (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x)
     {g : B → 𝕜} (hg : MDifferentiableAt J 𝓘(𝕜) g (f x)) (v₁ : Π b : B, TangentSpace J b)
-    {v₂ : Π b : B, TangentSpace J b} (hv₂ : ContMDiffAt J J.tangent n (T% v₂) (f x)) :
+    {v₂ : Π b : B, TangentSpace J b} (hv₂ : ContMDiffAt J J.tangent 1 (T% v₂) (f x)) :
     hD.curvature v₁ (g • v₂) x = g (f x) • hD.curvature v₁ v₂ x := by
   rw [curvature_swap_apply, hD.curvature_smul_left hn hf hg v₁ hv₂, ← smul_neg,
     ← curvature_swap_apply]
@@ -285,7 +286,8 @@ theorem curvature_eq_zero_of_isInvolutiveDistribution (hn : 1 ≤ n) {x : P}
     (hD.contMDiffAt_horizontalLiftField hf hv).eventually_mdifferentiableAt
       (zero_lt_one.trans_le hn).ne'
   obtain ⟨U, hU, hUo, hxU⟩ := eventually_nhds_iff.1 ((hnear hv₁).and (hnear hv₂))
-  exact (hD.curvature_eq_zero_iff_mem hn hf hv₁ hv₂).2 <| hDi.mlieBracket_mem hUo
+  exact (hD.curvature_eq_zero_iff_mem hn (hf.of_le (add_le_add_left hn 1))
+    (hv₁.of_le hn) (hv₂.of_le hn)).2 <| hDi.mlieBracket_mem hUo
     (fun y hy ↦ (hU y hy).1.mdifferentiableWithinAt)
     (fun y hy ↦ (hU y hy).2.mdifferentiableWithinAt)
     (fun y _ ↦ hD.horizontalLiftField_mem v₁ y) (fun y _ ↦ hD.horizontalLiftField_mem v₂ y) hxU
@@ -311,7 +313,8 @@ theorem isInvolutiveDistribution_of_curvature_eq_zero [FiniteDimensional 𝕜 F]
     (hv.contMDiffOn i).contMDiffAt (hO.mem_nhds hxO)
   -- The brackets of the frame are horizontal, since the curvature vanishes.
   exact hX.mlieBracket_mem_of_forall_mlieBracket_mem hn hOx
-    (fun i j ↦ (hD.curvature_eq_zero_iff_mem hn (hf x) (hvx i) (hvx j)).1 (h (hvx i) (hvx j)))
+    (fun i j ↦ (hD.curvature_eq_zero_iff_mem hn ((hf x).of_le (add_le_add_left hn 1))
+      ((hvx i).of_le hn) ((hvx j).of_le hn)).1 (h (hvx i) (hvx j)))
     (hV.mdifferentiableAt hUx) (hW.mdifferentiableAt hUx) (eventually_of_mem hUx hVD)
     (eventually_of_mem hUx hWD)
 
@@ -350,26 +353,21 @@ theorem curvature_congr (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x)
     (hv₂ : CMDiff ∞ (T% v₂)) (hv₂' : CMDiff ∞ (T% v₂'))
     (h₁ : v₁ (f x) = v₁' (f x)) (h₂ : v₂ (f x) = v₂' (f x)) :
     hD.curvature v₁ v₂ x = hD.curvature v₁' v₂' x := by
-  -- The curvature of `hD` is that of `hD` seen as a `C^1` connection.
-  rw [← hD.curvature_of_le hn]
-  set hD₁ := hD.of_le hn
-  have hf₁ : ContMDiffAt I J (1 + 1) f x := by rwa [one_add_one_eq_two]
-  have hsm {v : Π b : B, TangentSpace J b} (hv : CMDiff ∞ (T% v)) :
-      ContMDiffAt J J.tangent 1 (T% v) (f x) :=
-    (hv (f x)).of_le (by exact_mod_cast le_top)
-  calc hD₁.curvature v₁ v₂ x = hD₁.curvature v₁' v₂ x :=
+  -- The fields are smooth, so `C^1` at `f x`.
+  have h1 : (1 : ℕ∞ω) ≤ ∞ := ENat.LEInfty.out
+  calc hD.curvature v₁ v₂ x = hD.curvature v₁' v₂ x :=
         Manifold.eq_of_contMDiff_tensorial (G := F) (W := TangentSpace J)
-          (fun v ↦ hD₁.curvature v v₂ x) (f x)
-          (fun hv hv' ↦ hD₁.curvature_add_left le_rfl hf₁ v₂ (hsm hv) (hsm hv'))
-          (fun hg hv ↦ hD₁.curvature_smul_left le_rfl hf₁ (hg.mdifferentiableAt (by simp)) v₂
-            (hsm hv))
+          (fun v ↦ hD.curvature v v₂ x) (f x)
+          (fun hv hv' ↦ hD.curvature_add_left hn hf v₂ ((hv _).of_le h1) ((hv' _).of_le h1))
+          (fun hg hv ↦ hD.curvature_smul_left hn hf (hg.mdifferentiableAt (by simp)) v₂
+            ((hv _).of_le h1))
           hv₁ hv₁' h₁
-    _ = hD₁.curvature v₁' v₂' x :=
+    _ = hD.curvature v₁' v₂' x :=
         Manifold.eq_of_contMDiff_tensorial (G := F) (W := TangentSpace J)
-          (fun v ↦ hD₁.curvature v₁' v x) (f x)
-          (fun hv hv' ↦ hD₁.curvature_add_right le_rfl hf₁ v₁' (hsm hv) (hsm hv'))
-          (fun hg hv ↦ hD₁.curvature_smul_right le_rfl hf₁ (hg.mdifferentiableAt (by simp)) v₁'
-            (hsm hv))
+          (fun v ↦ hD.curvature v₁' v x) (f x)
+          (fun hv hv' ↦ hD.curvature_add_right hn hf v₁' ((hv _).of_le h1) ((hv' _).of_le h1))
+          (fun hg hv ↦ hD.curvature_smul_right hn hf (hg.mdifferentiableAt (by simp)) v₁'
+            ((hv _).of_le h1))
           hv₂ hv₂' h₂
 
 /-- The **curvature tensor** of an Ehresmann connection `D` at `x`, for a `C^n` connection with
@@ -378,29 +376,27 @@ theorem curvature_congr (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x)
 `v₁ v₂` on the base (`curvatureTensor_apply`). -/
 def curvatureTensor (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x) :
     TangentSpace J (f x) →ₗ[ℝ] TangentSpace J (f x) →ₗ[ℝ] TangentSpace I x :=
-  -- The linearity laws are those of the curvature of `hD` seen as a `C^1` connection.
-  have hf₁ : ContMDiffAt I J (1 + 1) f x := by rwa [one_add_one_eq_two]
-  have hsm (u : TangentSpace J (f x)) :
-      ContMDiffAt J J.tangent 1 (T% (FiberBundle.contMDiffExtend J F u)) (f x) :=
-    (FiberBundle.contMDiff_contMDiffExtend (n := ∞) J F u (f x)).of_le
-      (by exact_mod_cast le_top)
   have hc (c : ℝ) (s : Π b : B, TangentSpace J b) : c • s = (fun _ : B ↦ c) • s :=
     funext fun y ↦ by rw [Pi.smul_apply, Pi.smul_apply']
   LinearMap.mk₂ ℝ
     (fun u v ↦ hD.curvature (FiberBundle.contMDiffExtend J F u)
       (FiberBundle.contMDiffExtend J F v) x)
     (fun u u' v ↦ by
-      rw [FiberBundle.contMDiffExtend_add, ← hD.curvature_of_le hn]
-      exact (hD.of_le hn).curvature_add_left le_rfl hf₁ _ (hsm u) (hsm u'))
+      rw [FiberBundle.contMDiffExtend_add]
+      exact hD.curvature_add_left hn hf _ (FiberBundle.contMDiff_contMDiffExtend J F u _)
+        (FiberBundle.contMDiff_contMDiffExtend J F u' _))
     (fun c u v ↦ by
-      rw [FiberBundle.contMDiffExtend_smul, hc, ← hD.curvature_of_le hn]
-      exact (hD.of_le hn).curvature_smul_left le_rfl hf₁ mdifferentiableAt_const _ (hsm u))
+      rw [FiberBundle.contMDiffExtend_smul, hc]
+      exact hD.curvature_smul_left hn hf mdifferentiableAt_const _
+        (FiberBundle.contMDiff_contMDiffExtend J F u _))
     (fun u v v' ↦ by
-      rw [FiberBundle.contMDiffExtend_add, ← hD.curvature_of_le hn]
-      exact (hD.of_le hn).curvature_add_right le_rfl hf₁ _ (hsm v) (hsm v'))
+      rw [FiberBundle.contMDiffExtend_add]
+      exact hD.curvature_add_right hn hf _ (FiberBundle.contMDiff_contMDiffExtend J F v _)
+        (FiberBundle.contMDiff_contMDiffExtend J F v' _))
     (fun c u v ↦ by
-      rw [FiberBundle.contMDiffExtend_smul, hc, ← hD.curvature_of_le hn]
-      exact (hD.of_le hn).curvature_smul_right le_rfl hf₁ mdifferentiableAt_const _ (hsm v))
+      rw [FiberBundle.contMDiffExtend_smul, hc]
+      exact hD.curvature_smul_right hn hf mdifferentiableAt_const _
+        (FiberBundle.contMDiff_contMDiffExtend J F v _))
 
 /-- The curvature tensor at `x` computes the curvature at `x` of smooth vector fields on the
 base, from their values at `f x`. -/
@@ -431,9 +427,9 @@ theorem curvatureTensor_mem_ker (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f
     hD.curvatureTensor hn hf u v ∈ (mfderiv I J f x).ker := by
   obtain ⟨v₁, hv₁, rfl⟩ := FiberBundle.exists_contMDiff_section_eq J F ∞ u
   obtain ⟨v₂, hv₂, rfl⟩ := FiberBundle.exists_contMDiff_section_eq J F ∞ v
-  rw [hD.curvatureTensor_apply hn hf hv₁ hv₂, ← hD.curvature_of_le hn]
-  exact (hD.of_le hn).curvature_mem_ker le_rfl (by rwa [one_add_one_eq_two])
-    ((hv₁ (f x)).of_le (by exact_mod_cast le_top)) ((hv₂ (f x)).of_le (by exact_mod_cast le_top))
+  rw [hD.curvatureTensor_apply hn hf hv₁ hv₂]
+  exact hD.curvature_mem_ker hn hf ((hv₁ _).of_le ENat.LEInfty.out)
+    ((hv₂ _).of_le ENat.LEInfty.out)
 
 /-- The curvature tensor is alternating. -/
 @[simp]
@@ -442,14 +438,18 @@ theorem curvatureTensor_self (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x)
   obtain ⟨v, hv, rfl⟩ := FiberBundle.exists_contMDiff_section_eq J F ∞ u
   rw [hD.curvatureTensor_apply hn hf hv hv, curvature_self, Pi.zero_apply]
 
+/-- The curvature tensor is an alternating bilinear map, in the sense of Mathlib's
+`LinearMap.IsAlt`. -/
+theorem curvatureTensor_isAlt (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x) :
+    (hD.curvatureTensor hn hf).IsAlt :=
+  hD.curvatureTensor_self hn hf
+
 /-- The curvature tensor is antisymmetric. -/
 theorem curvatureTensor_swap (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x)
     (u v : TangentSpace J (f x)) :
-    hD.curvatureTensor hn hf u v = -hD.curvatureTensor hn hf v u := by
-  obtain ⟨v₁, hv₁, rfl⟩ := FiberBundle.exists_contMDiff_section_eq J F ∞ u
-  obtain ⟨v₂, hv₂, rfl⟩ := FiberBundle.exists_contMDiff_section_eq J F ∞ v
-  rw [hD.curvatureTensor_apply hn hf hv₁ hv₂, hD.curvatureTensor_apply hn hf hv₂ hv₁,
-    curvature_swap_apply]
+    hD.curvatureTensor hn hf u v = -hD.curvatureTensor hn hf v u :=
+  ((hD.curvatureTensor_isAlt hn hf).neg v u).symm
+
 end Pointwise
 
 end IsEhresmannConnection
