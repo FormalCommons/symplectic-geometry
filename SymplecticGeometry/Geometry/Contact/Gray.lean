@@ -228,8 +228,7 @@ theorem tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_inclusion {U V :
         (α.grayVectorField t (Opens.inclusion hVU x)) := by
   rw [← mfderiv_grayVectorField_mpullback_prodMap _ hc (Opens.inclusion hVU)
     (contMDiff_inclusion hVU)
-    (fun y ↦ ((isLocalDiffeomorph_inclusion (n := ∞) hVU y).isInvertible_mfderiv
-      (by simp)).bijective) x,
+    (fun y ↦ TauCeti.bijective_mfderiv_inclusion hVU y) x,
     Manifold.tangentSpaceOpenEquiv_mfderiv_inclusion_apply]
 
 omit [I.Boundaryless] in

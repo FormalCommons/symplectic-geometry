@@ -347,7 +347,7 @@ theorem mpullback_inclusion (hα : IsLocalDefiningFamily ξ U α a b) {V : Opens
   refine ⟨fun t ↦ ?_, fun t ht x ↦ ?_⟩
   · rw [mpullback_prodMk_mpullback_prodMap]
     exact (hα.isContactForm t).mpullback _ (contMDiff_inclusion hV) fun y ↦
-      ((isLocalDiffeomorph_inclusion (n := ∞) hV y).isInvertible_mfderiv (by simp)).bijective
+      TauCeti.bijective_mfderiv_inclusion hV y
   · ext v
     rw [Submodule.mem_map_equiv, ContinuousLinearEquiv.coe_symm_toLinearEquiv,
       mpullback_prodMk_mpullback_prodMap _ (contMDiff_inclusion hV), kerDistribution_mpullback,
