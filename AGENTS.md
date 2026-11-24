@@ -46,14 +46,21 @@ issue, labelled `proposed`, instead of working around it. Keep changes to
 ## Building
 
 ```sh
-lake exe cache get      # Mathlib's compiled files; takes a minute
+lake exe cache get          # Mathlib's compiled files; takes a minute
+.github/tauceti-cache.sh    # Tau Ceti's, where its build cache has them
 lake build --wfail
 ```
 
 `--wfail` makes every warning an error, as CI does, so a `sorry` fails the
-build. Before you push, `lake build --wfail` must succeed. The first build
-compiles the Tau Ceti modules that the library imports, which can take some
-minutes.
+build. Before you push, `lake build --wfail` must succeed.
+
+Run the three commands in this order. The script takes the Tau Ceti modules
+that the library imports from Tau Ceti's build cache, and does nothing once
+a job on the same server has run it for the same commit of Tau Ceti and the
+same imports. After a move of Tau Ceti, the first job to run it compiles the
+modules that Tau Ceti's cache does not have, which can take 40 minutes, and
+jobs that start meanwhile wait for it. The script never fails: if it reports
+a problem, go on, and the build compiles what is missing.
 
 ## Layout and names
 
