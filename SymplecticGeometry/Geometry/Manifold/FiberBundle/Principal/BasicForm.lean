@@ -13,7 +13,6 @@ import TauCeti.Geometry.Lie.Exponential.Derivative.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.VectorField.Prod
-import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 
@@ -44,6 +43,8 @@ applies: the points of a fibre are related by the action, through the division m
   `TauCeti.PrincipalBundle.interior_mextDeriv_rightFundamentalVectorField_prod`: on a product
   `P × N` with a manifold `N` that may have boundary, a one-form `A` invariant under the action
   on the first factor satisfies `ι_{(ξ_P, 0)} dA = -d (A (ξ_P, 0))`.
+* `TauCeti.PrincipalBundle.mlieDerivForm_rightFundamentalVectorField_prod_eq_zero`: such a form
+  has vanishing Lie derivative along `(ξ_P, 0)`.
 
 ## Implementation notes
 
@@ -62,7 +63,9 @@ naturality of `d` (`TauCeti.mpullback_mextDeriv_at`). On vectors tangent to `N`,
 along `(s, m) ↦ (x • exp (s ξ), m)` to `ℝ × N`: by invariance all its slices `{s} × N` agree,
 so its Lie derivative along `∂ₛ` vanishes on vectors tangent to `N`
 (`TauCeti.mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero`, which needs no
-boundaryless model), and Cartan's formula on `ℝ × N` gives the identity.
+boundaryless model), and Cartan's formula on `ℝ × N` gives the identity. The vanishing of the
+Lie derivative along `(ξ_P, 0)` and the identity of forms then follow from the pointwise identity
+by Cartan's formula on `P × N` (`TauCeti.SmoothForm.mlieDerivForm_eq_interior_mextDeriv_add`).
 
 ## References
 
@@ -323,12 +326,11 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inr (ξ : Group
   have hT : MDifferentiableAt 𝓘(ℝ) 𝓘(ℝ).tangent
       (fun s ↦ (⟨s, constVectorField (1 : ℝ) s⟩ : TangentBundle 𝓘(ℝ) ℝ)) 0 :=
     (contMDiff_constVectorField (1 : ℝ) (n := 1)).mdifferentiableAt one_ne_zero
-  have hV := DFunLike.congr_fun
-    (mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero (t := 0) (x := n)
-      ((SmoothForm.mpullback _ hφ A).mdifferentiableAt _) hT fun s ↦ by
-        have h := congrArg Subtype.val ((hslice s).trans (hslice 0).symm)
-        rwa [SmoothForm.coe_mpullback (Prod.mk s : N → ℝ × N),
-          SmoothForm.coe_mpullback (Prod.mk (0 : ℝ) : N → ℝ × N)] at h) ![v]
+  have hV := mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero (t := 0) (x := n)
+    ((SmoothForm.mpullback _ hφ A).mdifferentiableAt _) hT fun s ↦ by
+      have h := congrArg Subtype.val ((hslice s).trans (hslice 0).symm)
+      rwa [SmoothForm.coe_mpullback (Prod.mk s : N → ℝ × N),
+        SmoothForm.coe_mpullback (Prod.mk (0 : ℝ) : N → ℝ × N)] at h
   -- The derivative of `(s, m) ↦ (γ s, m)`, from the integral curves `γ` of `ξ_P`.
   have hφ' (q : ℝ × N) : HasMFDerivAt (𝓘(ℝ).prod IN) ((IB.prod IG).prod IN)
       (fun q : ℝ × N ↦ (γ q.1, q.2)) q
@@ -345,25 +347,38 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inr (ξ : Group
         (0 : Π y : N, TangentSpace IN y) q⟩ : TangentBundle (𝓘(ℝ).prod IN) (ℝ × N))) (0, n) :=
     Manifold.mdifferentiableAt_prodVectorField hT
       ((contMDiff_zeroSection ℝ (TangentSpace IN)).mdifferentiableAt one_ne_zero)
+  -- The vector `(0, v)` at `(0, n)` is the image of `v` under the differential of
+  -- `m ↦ (0, m)`; written so, it is a tangent vector of `ℝ × N` at `(0, n)`.
+  have hw : mfderiv IN (𝓘(ℝ).prod IN) (Prod.mk (0 : ℝ)) n v = ((0 : ℝ), v) := by
+    rw [mfderiv_prod_right]
+    -- The zero of `TangentSpace 𝓘(ℝ) 0` is that of `ℝ` under another name of the instance.
+    exact ContinuousLinearMap.inr_apply v
+  -- Cartan's formula on `ℝ × N` for the pulled-back form, along `∂ₛ`.
   have hC := mlieDerivForm_apply_eq_mextDeriv_add
     (f := (fun q : ManifoldTotalSpace G P × N ↦
         A.val q ![(rightFundamentalVectorField (IB.prod IG) ξ q.1, (0 : EN))]) ∘
       fun q : ℝ × N ↦ (γ q.1, q.2))
-    (fun q ↦ ?_) ((SmoothForm.mpullback _ hφ A).mdifferentiableAt (0, n)) hWd ((0 : ℝ), v)
-  · have hV2 : mlieDerivForm (Manifold.prodVectorField (constVectorField (1 : ℝ))
+    (fun q ↦ ?_) ((SmoothForm.mpullback _ hφ A).mdifferentiableAt (0, n)) hWd
+    (mfderiv IN (𝓘(ℝ).prod IN) (Prod.mk (0 : ℝ)) n v)
+  · -- The left side of `hC` vanishes, since the slices of the pulled-back form agree.
+    have hV2 : mlieDerivForm (Manifold.prodVectorField (constVectorField (1 : ℝ))
         (0 : Π y : N, TangentSpace IN y)) (SmoothForm.mpullback _ hφ A).val (0, n)
-          ![((0 : ℝ), v)] = 0 := by
-      erw [mpullback_apply] at hV
-      convert hV using 2
+          ![mfderiv IN (𝓘(ℝ).prod IN) (Prod.mk (0 : ℝ)) n v] = 0 := by
+      have h := mpullback_apply (I := IN) (I' := 𝓘(ℝ).prod IN) (Prod.mk (0 : ℝ))
+        (mlieDerivForm (Manifold.prodVectorField (constVectorField (1 : ℝ))
+          (0 : Π y : N, TangentSpace IN y)) (SmoothForm.mpullback _ hφ A).val) n
+        ![v]
+      rw [hV, ContinuousAlternatingMap.coe_zero, Pi.zero_apply] at h
+      rw [h]
+      congr 1
       funext i
       fin_cases i
-      simp [mfderiv_prod_right]
-      rfl
+      exact congrArg _ (Matrix.cons_val_zero v ![]).symm
+    -- Its right side is the identity, pushed forward along `(s, m) ↦ (γ s, m)`.
     rw [hC, SmoothForm.coe_mpullback, ← mpullback_mextDeriv_at
-      (hφ.contMDiffAt.of_le (by simp)) ((A.contMDiff _).of_le (by simp)), mpullback_apply] at hV2
-    erw [mvfderiv_comp_apply _ (mdifferentiable_apply_rightFundamentalVectorField_prod ξ _)
-        (hφ.mdifferentiableAt (by simp))] at hV2
-    rw [(hφ' _).mfderiv] at hV2
+      (hφ.contMDiffAt.of_le (by simp)) ((A.contMDiff _).of_le (by simp)), mpullback_apply,
+      mvfderiv_comp_apply _ (mdifferentiable_apply_rightFundamentalVectorField_prod ξ _)
+        (hφ.mdifferentiableAt (by simp)), (hφ' _).mfderiv, hw] at hV2
     have hγ0 : γ 0 = x := by simp [hγdef, mulInvariantExp_zero]
     rw [← hγ0, eq_neg_iff_add_eq_zero, ← hV2]
     congr 2
@@ -413,6 +428,21 @@ theorem mextDeriv_apply_rightFundamentalVectorField_prod (ξ : GroupLieAlgebra I
   rw [← neg_add]
   exact congrArg Neg.neg (map_add _ _ _).symm
 
+/-- A smooth one-form on `P × N` that is invariant under the right action of `G` on the first
+factor has vanishing Lie derivative along the field `(ξ_P, 0)`, for every `ξ` in the Lie algebra,
+where `N` may have boundary or corners. -/
+theorem mlieDerivForm_rightFundamentalVectorField_prod_eq_zero (ξ : GroupLieAlgebra IG G) :
+    mlieDerivForm (fun q : ManifoldTotalSpace G P × N ↦
+      ((rightFundamentalVectorField (IB.prod IG) ξ q.1, (0 : EN)) :
+        TangentSpace ((IB.prod IG).prod IN) q)) A.val = 0 := by
+  funext q
+  ext v
+  rw [Pi.zero_apply, ContinuousAlternatingMap.coe_zero, Pi.zero_apply, ← Matrix.cons_head_tail v,
+    Subsingleton.elim (Matrix.vecTail v) ![],
+    mlieDerivForm_apply_eq_mextDeriv_add (fun _ ↦ rfl) (A.mdifferentiableAt q)
+      (mdifferentiable_rightFundamentalVectorField_prod ξ q),
+    mextDeriv_apply_rightFundamentalVectorField_prod hA, neg_add_cancel]
+
 /-- **Cartan's identity for invariant one-forms on `P × N`**, as an identity of forms:
 `ι_{(ξ_P, 0)} dA = -d (ι_{(ξ_P, 0)} A)` for a smooth one-form `A` on `P × N` invariant under the
 right action of `G` on the first factor, where `N` may have boundary or corners. -/
@@ -422,32 +452,10 @@ theorem interior_mextDeriv_rightFundamentalVectorField_prod (ξ : GroupLieAlgebr
           TangentSpace ((IB.prod IG).prod IN) q)) (mextDeriv A.val) =
       -mextDeriv (RoughForm.interior (fun q : ManifoldTotalSpace G P × N ↦
         ((rightFundamentalVectorField (IB.prod IG) ξ q.1, (0 : EN)) :
-          TangentSpace ((IB.prod IG).prod IN) q)) A.val) := by
-  set V : (q : ManifoldTotalSpace G P × N) → TangentSpace ((IB.prod IG).prod IN) q :=
-    fun q ↦ (rightFundamentalVectorField (IB.prod IG) ξ q.1, (0 : EN))
-  funext q
-  ext v
-  have hι : mextDeriv (RoughForm.interior (F := F) (k := 0) V A.val) q =
-      mextDeriv (RoughForm.ofFunction _
-        fun y ↦ RoughForm.interior (F := F) (k := 0) V A.val y 0) q := by
-    congr 1
-    exact RoughForm.eq_ofFunction _
-  have hv : v = ![v 0] := by
-    funext i
-    fin_cases i
-    rfl
-  rw [RoughForm.interior_apply, Pi.neg_apply, ContinuousAlternatingMap.neg_apply, hι, hv,
-    mextDeriv_ofFunction_apply, ← mvfderiv_apply_eq_mfderiv_apply]
-  have hf : (fun y ↦ RoughForm.interior (F := F) (k := 0) V A.val y 0) =
-      fun y ↦ A.val y ![V y] := by
-    funext y
-    rw [RoughForm.interior_apply]
-    congr 1
-    funext i
-    fin_cases i
-    rfl
-  rw [hf]
-  exact mextDeriv_apply_rightFundamentalVectorField_prod hA ξ q (v 0)
+          TangentSpace ((IB.prod IG).prod IN) q)) A.val) :=
+  eq_neg_of_add_eq_zero_left ((SmoothForm.mlieDerivForm_eq_interior_mextDeriv_add
+    (mdifferentiable_rightFundamentalVectorField_prod ξ)).symm.trans
+      (mlieDerivForm_rightFundamentalVectorField_prod_eq_zero hA ξ))
 
 end Prod
 
