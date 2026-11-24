@@ -166,11 +166,11 @@ theorem ofTopForm_fubiniStudyForm :
         (fubiniStudyForm.isSmoothForm.of_le zero_le) fubiniStudyForm_apply_ne_zero =
       SymplecticGeometry.complexCurveOrientation ℂ (OnePoint ℂ) := by
   ext x
-  rw [SymplecticGeometry.orientationAt_complexCurveOrientation]
+  rw [SymplecticGeometry.complexCurveOrientation_def,
+    orientationAt_reindex_complexManifoldOrientation_complex]
   refine ((Manifold.Orientation.orientation_eq_orientationAt_ofTopForm_iff
     Complex.finrank_real_complex (fubiniStudyForm.isSmoothForm.of_le zero_le)
-    fubiniStudyForm_apply_ne_zero (x := x) Complex.basisOneI).2 ?_).symm.trans
-      reindex_complexOrientation_complex.symm
+    fubiniStudyForm_apply_ne_zero (x := x) Complex.basisOneI).2 ?_).symm
   -- In the preferred chart, the Fubini–Study form is positive on the basis `(1, i)`.
   have h := (SmoothBundleForm.eval₂_apply _ _ _ _).symm.trans
     (eval₂_fubiniStudyForm x 1 Complex.I)

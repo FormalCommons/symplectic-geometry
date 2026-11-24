@@ -2289,7 +2289,8 @@ has either; Tau Ceti's extension across a boundary,
   `J₀ : TauCeti.AlmostComplexStructure E`, one for each chart; on a
   manifold with boundary no boundary point has such a chart; with
   `isIntegrable_ofComplexManifold`, from Tau Ceti's
-  `tangentCoordChange_smul`, invariance under `pullback`, and
+  `MDifferentiableAt.mfderiv_ofComplexManifold_apply`, invariance under
+  `pullback`, and
   `IsIntegrable.nijenhuis_eq_zero`, from Mathlib's
   `VectorField.mpullback_mlieBracket` for constant fields pulled back along a
   chart; on surfaces modelled on `𝓘(ℝ, ℂ)`, the

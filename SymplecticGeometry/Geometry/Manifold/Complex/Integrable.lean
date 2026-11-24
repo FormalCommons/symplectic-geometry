@@ -15,7 +15,6 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Coordinates
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
-import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 import TauCeti.Geometry.Symplectic.Finrank
 import TauCeti.Geometry.Manifold.VectorField.LieBracket
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
@@ -346,11 +345,11 @@ theorem isIntegrable_ofComplexManifold : (ofComplexManifold E M).IsIntegrable :=
   isIntegrable_of_forall_mem_maximalAtlas fun x ↦
     ⟨chartAt E x, IsManifold.chart_mem_maximalAtlas x, mem_chart_source E x,
       AlmostComplexStructure.ofComplexModule E, fun y hy v ↦ by
-        have h := tangentCoordChange_smul ℝ (𝕜' := ℂ) ⟨mem_chart_source E y, hy⟩ Complex.I v
-        rw [← mfderiv_chartAt_eq_tangentCoordChange hy] at h
-        exact (congrArg (mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) (chartAt E x) y)
-          (ofComplexManifold_apply (E := E) y v)).trans
-          (h.trans (AlmostComplexStructure.ofComplexModule_apply _).symm)⟩
+        -- The chart is holomorphic, so its real derivative commutes with multiplication by `i`.
+        have h := (mdifferentiableAt_atlas (I := 𝓘(ℂ, E)) (chart_mem_atlas E x)
+          hy).mfderiv_ofComplexManifold_apply v
+        exact h.trans ((ofComplexManifold_apply (E := E) (M := E) _ _).trans
+          (AlmostComplexStructure.ofComplexModule_apply (V := E) _).symm)⟩
 
 end ComplexManifold
 
