@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Geometry.Manifold.Instances.Icc
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
@@ -55,6 +56,8 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
   section is smooth.
 * `SymplecticGeometry.IsSmoothFamily.contMDiff_apply`: the values of a smooth family at a point,
   on fixed tangent vectors, are smooth in the parameter.
+* `SymplecticGeometry.IsSmoothFamily.continuous_apply_one`: the values of a smooth family of
+  one-forms on `ℝ` on the unit vector are jointly continuous in the parameter and the point.
 * `SymplecticGeometry.IsSmoothFamily.ext_on`: two smooth families that agree on a dense set of
   parameters are equal.
 * `SymplecticGeometry.isSmoothFamily_mpullback_prodMk`: the slices of a form on `N × M` are a
@@ -274,6 +277,21 @@ theorem contMDiff_apply (h : IsSmoothFamily J α) (x : M) (v : Fin k → Tangent
   simpa only [Function.comp_def, ContinuousAlternatingMap.apply_apply,
     ContinuousAlternatingMap.compContinuousLinearMap_apply,
     Trivialization.symmL_continuousLinearMapAt _ hx] using this
+
+/-- For a smooth family `α` of one-forms on `ℝ`, the value of `α t` at `s` on the unit tangent
+vector `1` depends jointly continuously on `(t, s)`. -/
+theorem continuous_apply_one {α : N → SmoothForm 𝓘(ℝ, ℝ) ℝ F 1} (h : IsSmoothFamily J α) :
+    Continuous fun p : N × ℝ ↦ (α p.1).val p.2 (fun _ ↦ 1) := by
+  refine continuous_iff_continuousAt.2 fun p₀ ↦ ?_
+  have hc := (Bundle.contMDiffAt_totalSpace_iff.mp (isSmoothFamily_iff_contMDiff.mp h p₀)).2
+  simp only [FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
+    TangentBundle.symmL_model_space] at hc
+  refine ((ContinuousAlternatingMap.apply ℝ ℝ F fun _ ↦ (1 : ℝ)).continuous.continuousAt.comp
+    hc.continuousAt).congr (Filter.Eventually.of_forall fun p ↦ ?_)
+  simp only [Function.comp_apply, ContinuousAlternatingMap.apply_apply]
+  -- The trivialization at `p₀` is the identity `1 : ℝ →L[ℝ] TangentSpace 𝓘(ℝ, ℝ) p.2`; its
+  -- target is `ℝ` only definitionally, so `ContinuousLinearMap.one_apply` does not apply.
+  exact (ContinuousAlternatingMap.compContinuousLinearMap_apply _ _ _).trans rfl
 
 /-- Two smooth families of forms that agree at the parameters of a dense set are equal. -/
 theorem ext_on (hα : IsSmoothFamily J α) (hβ : IsSmoothFamily J β) {s : Set N} (hs : Dense s)
