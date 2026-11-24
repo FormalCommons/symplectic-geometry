@@ -9,7 +9,6 @@ public import Mathlib.Topology.LocallyConstant.Algebra
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap
 import Mathlib.LinearAlgebra.Basis.VectorSpace
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Manifold
-import SymplecticGeometry.Geometry.Manifold.MFDeriv.Constancy
 import TauCeti.Geometry.Manifold.MFDeriv.Constancy
 
 /-!
@@ -34,9 +33,8 @@ freedom in the choice.
   `TauCeti.SmoothTwoForm.IsMomentMap.isMomentMap_iff_exists_eq_add`.
 
 Both results are stated in Tau Ceti's convention `ι_{Z_M} σ = d⟨μ, Z⟩`. They hold unchanged in the
-opposite convention of `DESIGN.md`, *Group actions, moment maps and periods*, since passing from one
-convention to the other replaces `μ` by `-μ` and keeps the class of moment maps and of locally
-constant shifts.
+opposite convention `ι_{Z_M} σ = -d⟨μ, Z⟩`, since passing from one convention to the other replaces
+`μ` by `-μ` and keeps the class of moment maps and of locally constant shifts.
 
 ## References
 
@@ -94,6 +92,19 @@ theorem exists_isMomentMap_iff :
 
 namespace IsMomentMap
 
+/-- Adding to a moment map `μ` a linear map `c` from the Lie algebra to the locally constant
+functions on `M` gives a moment map `x ↦ μ x + c(·) x` of the same action. -/
+theorem add_locallyConstant (h : σ.IsMomentMap a μ) (c : 𝔤 →ₗ[ℝ] LocallyConstant M ℝ) :
+    σ.IsMomentMap a fun x ↦ μ x + LocallyConstant.evalₗ ℝ x ∘ₗ c := by
+  have hμ (Z : 𝔤) : (fun x ↦ (μ x + LocallyConstant.evalₗ ℝ x ∘ₗ c) Z) = (fun x ↦ μ x Z) + c Z :=
+    funext fun x ↦ by simp
+  have hc (Z : 𝔤) : ContMDiff I 𝓘(ℝ) ∞ (c Z) := (c Z).isLocallyConstant.contMDiff
+  refine ⟨fun Z ↦ hμ Z ▸ (h.contMDiff Z).add (hc Z), fun Z ↦ ?_⟩
+  rw [hμ Z, ← add_zero (a Z)]
+  exact (h.isHamiltonianVectorField Z).add
+    (isHamiltonianVectorField_zero_of_isLocallyConstant (c Z).isLocallyConstant)
+    (fun x ↦ h.mdifferentiableAt Z x) ((hc Z).mdifferentiable (by simp))
+
 /-- **Moment maps up to locally constant shifts.** If `μ` is a moment map of an infinitesimal
 action, the moment maps of the same action are exactly the maps `x ↦ μ x + c(·) x` for a linear
 map `c` from the Lie algebra to the locally constant functions on `M`. -/
@@ -112,16 +123,9 @@ theorem isMomentMap_iff_exists_eq_add_locallyConstant (h : σ.IsMomentMap a μ) 
         map_smul' r Z := by ext x; simp; ring }
     exact ⟨c, fun x Z ↦ by simp [c]⟩
   · rintro ⟨c, hc⟩
-    have hμ' (Z : 𝔤) : (fun x ↦ μ' x Z) = (fun x ↦ μ x Z) + c Z := funext fun x ↦ hc x Z
-    have hlc (Z : 𝔤) : IsLocallyConstant (c Z) := (c Z).toFun_eq_coe ▸ (c Z).isLocallyConstant
-    have hcZ (Z : 𝔤) : ContMDiff I 𝓘(ℝ) ∞ (c Z) := (hlc Z).contMDiff
-    refine ⟨fun Z ↦ hμ' Z ▸ (h.contMDiff Z).add (hcZ Z), fun Z ↦ ?_⟩
-    have hc0 : σ.IsHamiltonianVectorField (c Z) 0 := isHamiltonianVectorField_iff_flat.2 fun x ↦ by
-      rw [Pi.zero_apply, map_zero, eq_comm, mvfderiv_eq_zero_iff,
-        (hlc Z).mfderiv_eq_zero]
-    rw [hμ' Z, ← add_zero (a Z)]
-    exact (h.isHamiltonianVectorField Z).add hc0 (fun x ↦ h.mdifferentiableAt Z x)
-      ((hcZ Z).mdifferentiable (by simp))
+    have hμ' : μ' = fun x ↦ μ x + LocallyConstant.evalₗ ℝ x ∘ₗ c :=
+      funext fun x ↦ LinearMap.ext fun Z ↦ hc x Z
+    exact hμ' ▸ h.add_locallyConstant c
 
 end IsMomentMap
 

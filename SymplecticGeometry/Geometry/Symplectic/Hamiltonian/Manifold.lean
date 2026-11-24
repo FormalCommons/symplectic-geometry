@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Constancy
 
 /-!
 # Regularity and linearity of Hamiltonian vector fields
@@ -24,7 +25,9 @@ Hamiltonian vector field of the zero function
 (`TauCeti.SmoothTwoForm.IsHamiltonianVectorField.zero`), and sums of differentiable functions and
 real multiples of functions have the sums and multiples of their Hamiltonian vector fields
 (`TauCeti.SmoothTwoForm.IsHamiltonianVectorField.add`,
-`TauCeti.SmoothTwoForm.IsHamiltonianVectorField.const_smul`).
+`TauCeti.SmoothTwoForm.IsHamiltonianVectorField.const_smul`). More generally than the first, the
+zero field is a Hamiltonian vector field of every locally constant function
+(`TauCeti.SmoothTwoForm.isHamiltonianVectorField_zero_of_isLocallyConstant`).
 
 The results extend Tau Ceti's file of the same path, in its namespace.
 
@@ -66,6 +69,20 @@ theorem const_smul (hX : σ.IsHamiltonianVectorField f X) (c : ℝ) :
       isHamiltonianVectorField_iff_flat.1 hX]
 
 end TauCeti.SmoothTwoForm.IsHamiltonianVectorField
+
+namespace TauCeti.SmoothTwoForm
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+  {σ : SmoothTwoForm I M} {f : M → ℝ}
+
+/-- The zero vector field is a Hamiltonian vector field of every locally constant function. -/
+theorem isHamiltonianVectorField_zero_of_isLocallyConstant (hf : IsLocallyConstant f) :
+    σ.IsHamiltonianVectorField f 0 :=
+  isHamiltonianVectorField_iff_flat.2 fun x ↦ by
+    rw [Pi.zero_apply, map_zero, eq_comm, mvfderiv_eq_zero_iff, hf.mfderiv_eq_zero]
+
+end TauCeti.SmoothTwoForm
 
 namespace TauCeti.SmoothTwoForm.IsNondegenerate
 
