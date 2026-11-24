@@ -229,7 +229,7 @@ omit [BoundarylessManifold I M] in
 dimension `k` in a space of dimension `finrank ℝ E`. -/
 theorem injective_mfderiv (hs : 𝓕.IsSlice s) (u : U) :
     Injective (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) I s u) := by
-  have hk : k ≤ finrank ℝ E := 𝓕.finrank_distribution (s u) ▸ Submodule.finrank_le _
+  have hk := 𝓕.rank_le_finrank (s u)
   rw [← ContinuousLinearMap.coe_coe]
   refine LinearMap.injective_of_isCompl_range (hs.isCompl_range_mfderiv u) ?_
   rw [𝓕.finrank_distribution]
@@ -247,7 +247,7 @@ theorem exists_retraction (hs : 𝓕.IsSlice s) (u : U) :
       (∀ᶠ v in 𝓝 u, r (s v) = v) ∧ (∀ᶠ z in 𝓝 (s u), 𝓕.SameLeaf z (s (r z))) ∧
       ∀ v ∈ 𝓕.distribution (s u),
         mfderiv I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) r (s u) v = 0 := by
-  have hk : k ≤ finrank ℝ E := 𝓕.finrank_distribution (s u) ▸ Submodule.finrank_le _
+  have hk := 𝓕.rank_le_finrank (s u)
   obtain ⟨V, ψ, hxV, hψ, hker, hleaf⟩ := 𝓕.exists_transverseCoordinate
     (F₂ := EuclideanSpace ℝ (Fin (finrank ℝ E - k))) (by rw [finrank_euclideanSpace_fin]; omega)
     (s u)

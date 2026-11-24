@@ -11,6 +11,7 @@ public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.Contracti
 public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.MayerVietoris
 public import TauCeti.Geometry.Manifold.DeRham.ComplexCoefficients
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 
 /-!
@@ -47,6 +48,8 @@ boundaryless manifold is finite-dimensional.
   choice of primitives of exact forms, under which smooth families have smooth primitives.
 * `SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq`: a smooth family of exact forms over
   the unit interval has a smooth family of primitives.
+* `SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_Icc`: the same over a closed interval
+  `[a, b]`, by reparametrizing along Mathlib's `iccHomeoI`.
 * `SymplecticGeometry.finiteDimensional_deRhamCohomology_of_hasFiniteGoodCover`,
   `SymplecticGeometry.contMDiff_repr_mk_of_hasFiniteGoodCover`, and the instance
   `SymplecticGeometry.finiteDimensional_deRhamCohomology` on compact boundaryless manifolds, with
@@ -182,6 +185,22 @@ theorem exists_isSmoothFamily_mextDerivₗ_eq (hM : HasFiniteGoodCover I M) {k :
       ∀ t, mextDerivₗ I k (α t) = η t := by
   obtain ⟨P, hP, hPs⟩ := exists_primitiveMap_of_hasFiniteGoodCover hM k
   exact ⟨fun t ↦ P ⟨η t, hex t⟩, preservesSmoothFamilies_def.mp hPs _ hη, fun t ↦ hP _⟩
+
+/-- **Smooth families of primitives over a closed interval.** On a Hausdorff σ-compact manifold,
+modelled on a finite-dimensional space, that has a finite good cover, a smooth family `η` of
+exact `(k + 1)`-forms over a closed interval `[a, b]`, `a < b`, has a smooth family `α` of
+primitives: `d (α t) = η t` for every `t`. -/
+theorem exists_isSmoothFamily_mextDerivₗ_eq_Icc (hM : HasFiniteGoodCover I M) {k : ℕ}
+    {a b : ℝ} [hab : Fact (a < b)] {η : Set.Icc a b → SmoothForm I M ℝ (k + 1)}
+    (hη : IsSmoothFamily (𝓡∂ 1) η) (hex : ∀ t, η t ∈ exactForms I M (k + 1)) :
+    ∃ α : Set.Icc a b → SmoothForm I M ℝ k, IsSmoothFamily (𝓡∂ 1) α ∧
+      ∀ t, mextDerivₗ I k (α t) = η t := by
+  -- Reparametrize by the affine homeomorphism `e : [a, b] ≃ₜ [0, 1]`, which is smooth both ways.
+  let e := iccHomeoI a b hab.out
+  obtain ⟨α, hα, hdα⟩ := exists_isSmoothFamily_mextDerivₗ_eq hM
+    (hη.comp e.symm (contMDiff_iccHomeoI_symm hab.out)) fun u ↦ hex (e.symm u)
+  exact ⟨fun t ↦ α (e t), hα.comp e (contMDiff_iccHomeoI hab.out), fun t ↦
+    (hdα (e t)).trans (congrArg η (e.symm_apply_apply t))⟩
 
 /-- A Hausdorff σ-compact manifold, modelled on a finite-dimensional space, that has a finite
 good cover has finite-dimensional de Rham cohomology in every degree. -/
