@@ -5,9 +5,12 @@ name: cache
 #
 # The first job builds the dependencies that the library imports: Mathlib's
 # files from its cache, and the Tau Ceti modules that the library's files
-# import, which `lake exe cache get` does not fetch. It builds only those
-# dependencies, never the library's own code, and saves again only when the
-# list of Tau Ceti modules that the library imports has changed.
+# import, which `lake exe cache get` does not fetch. When it starts without
+# a save, as after a move of Tau Ceti, it takes those modules from Tau Ceti's
+# build cache where that has them, and compiles the rest; see the setup
+# action. It builds only those dependencies, never the library's own code,
+# and saves again only when the list of Tau Ceti modules that the library
+# imports has changed.
 #
 # The second job builds the library and saves `.lake/build`. CI restores the
 # latest save, and Lake then builds only the files that differ from it and
@@ -48,23 +51,16 @@ jobs:
         uses: ./.github/actions/setup-lean
         with:
           names-only: true
-      # Read from the files' text; the key of the save names the list.
-      - name: list the imported Tau Ceti modules
-        id: deps
-        run: |
-          git ls-files '*.lean' \
-            | xargs -r sed -nE 's/^\s*(public\s+)?import\s+(TauCeti\.[A-Za-z0-9_.]+).*/\2/p' \
-            | sort -u > "$RUNNER_TEMP/tauceti-imports.txt"
-          sum=$(sha256sum "$RUNNER_TEMP/tauceti-imports.txt" | cut -c1-16)
-          echo "key=${{ steps.names.outputs.packages }}-$sum" >> "$GITHUB_OUTPUT"
+      # The key of the save names the list of imported Tau Ceti modules.
       - name: look for a save with these modules
         id: look
         uses: actions/cache/restore@v6
         with:
           path: .lake/packages
-          key: ${{ steps.deps.outputs.key }}
+          key: ${{ steps.names.outputs.packages }}-${{ steps.names.outputs.imports }}
           lookup-only: true
-      # elan, then the latest save, or Mathlib's build cache without one.
+      # elan, then the latest save, or Mathlib's build cache and Tau Ceti's
+      # without one.
       - name: set up Lean and restore the latest save
         if: steps.look.outputs.cache-hit != 'true'
         uses: ./.github/actions/setup-lean
@@ -78,7 +74,7 @@ jobs:
         uses: actions/cache/save@v6
         with:
           path: .lake/packages
-          key: ${{ steps.deps.outputs.key }}
+          key: ${{ steps.names.outputs.packages }}-${{ steps.names.outputs.imports }}
 
   # Saves only `.lake/build`. The dependencies come from the first job's
   # save, as in CI.
