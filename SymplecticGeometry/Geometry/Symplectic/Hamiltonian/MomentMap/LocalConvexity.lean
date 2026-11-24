@@ -9,6 +9,8 @@ public import TauCeti.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
 import SymplecticGeometry.Geometry.Lie.Exponential.CommutativeGroup.Character
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Lie.Subgroup.IdentityComponent
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Chart
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Restrict
 import TauCeti.Topology.Algebra.ConstMulAction
@@ -47,17 +49,18 @@ statements take the properties of the chart as hypotheses, so that they apply to
   the chart's differential has zero coordinates at every index `k` with `χₖ ≠ 1`. The
   differential of each `g ∈ K` at `x` fixes `ξ_M(x)` since `G` is commutative, and in the chart it
   is a rotation that fixes only vectors with zero coordinates where `χₖ(g) ≠ 1`.
-* `TauCeti.SmoothTwoForm.IsMomentMap.fderiv_comp_symm_apply`: in a chart that carries `σ` to the
-  standard form `ω₀` of `V × V`, the derivative of `μ^ξ` read in the chart is
-  `ω₀(dchart (ξ_M), ·)`, in Tau Ceti's sign `σ(ξ_M, ·) = dμ^ξ`.
-* `TauCeti.SmoothTwoForm.IsMomentMap.fderiv_comp_symm_apply_eq_zero`: so in the weight chart that
-  derivative vanishes on the vectors supported on the indices with `χₖ ≠ 1`.
+* `TauCeti.SmoothTwoForm.IsMomentMap.fderiv_comp_symm_apply_eq_zero`: in the weight chart, the
+  derivative of `μ^ξ` read in the chart vanishes on the vectors supported on the indices with
+  `χₖ ≠ 1`. It is `ω₀(dchart (ξ_M), ·)` by
+  `TauCeti.SmoothTwoForm.IsMomentMap.fderiv_comp_symm_apply` (in `MomentMap/Chart.lean`), in Tau
+  Ceti's sign `σ(ξ_M, ·) = dμ^ξ`.
 * `TauCeti.SmoothTwoForm.IsMomentMap.exists_fderiv_comp_symm_apply_eq`: for a subspace `𝔮` of the
   Lie algebra meeting the isotropy algebra only in `0`, every linear form on `𝔮` is
   `ξ ↦ d(μ^ξ ∘ chart⁻¹)(w)` for a vector `w` supported on the indices with `χₖ = 1`. That is, the
   derivative of the `𝔮*`-part of `μ` is onto from the weight-zero coordinates: `ξ ↦ ξ_M(x)` is
-  injective on `𝔮`, and `ω₀` pairs a vector supported on those indices with its image under the
-  complex structure to a positive number.
+  injective on `𝔮`, and the vectors supported on those indices form a subspace stable under the
+  complex structure, on which `ω₀` is nondegenerate by
+  `TauCeti.SymplecticForm.Tames.isSymplectic_of_mem_invtSubmodule`.
 
 ## References
 
@@ -77,14 +80,6 @@ namespace TauCeti
 section WeightCoordinates
 
 variable {ι : Type*} [Fintype ι]
-
-/-- The standard symplectic form of `ℂ^ι = ℝ^ι × ℝ^ι` vanishes on two vectors that have, at each
-index, one of them with both coordinates zero. -/
-theorem stdSymplecticForm_eq_zero_of_forall {v w : EuclideanSpace ℝ ι × EuclideanSpace ℝ ι}
-    (h : ∀ k, v.1 k = 0 ∧ v.2 k = 0 ∨ w.1 k = 0 ∧ w.2 k = 0) : stdSymplecticForm v w = 0 := by
-  rw [stdSymplecticForm_apply, PiLp.inner_apply, PiLp.inner_apply, ← Finset.sum_sub_distrib]
-  refine Finset.sum_eq_zero fun k _ ↦ ?_
-  rcases h k with ⟨h1, h2⟩ | ⟨h1, h2⟩ <;> simp [h1, h2]
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
@@ -119,68 +114,11 @@ theorem mfderiv_fundamentalVectorField_apply_eq_zero_of_ne_one {K : Subgroup G}
   have hv := (weightRotation_apply_eq_self_iff_apply _ v k).1
     ⟨congrArg (fun z ↦ z.1 k) hR, congrArg (fun z ↦ z.2 k) hR⟩
   by_contra hne
-  -- The rotation angle `arg (χₖ g)` lies in `(-π, π]` and in `2πℤ`, so it is `0` and `χₖ g = 1`.
+  -- The rotation angle `arg (χₖ g)` lies in `2πℤ`, so `χₖ g = 1`.
   obtain ⟨m, hm⟩ := hv (by tauto)
-  have h1 := Complex.neg_pi_lt_arg (χ k g)
-  have h2 := Complex.arg_le_pi (χ k g)
-  rw [← hm] at h1 h2
-  have hm0 : m = 0 := by
-    have hlt : (m : ℝ) < (1 : ℤ) := by push_cast; nlinarith [Real.pi_pos]
-    have hgt : ((-1 : ℤ) : ℝ) < m := by push_cast; nlinarith [Real.pi_pos]
-    have := Int.cast_lt.mp hlt
-    have := Int.cast_lt.mp hgt
-    omega
-  apply hg
-  rw [← Circle.exp_arg (χ k g), ← hm, hm0]
-  simp
+  exact hg (by rw [← Circle.exp_arg (χ k g), ← hm, Circle.exp_int_mul_two_pi])
 
 end WeightCoordinates
-
-namespace SmoothTwoForm.IsMomentMap
-
-section Chart
-
-variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
-  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
-  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M]
-  {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V]
-  {𝔤 : Type*} [LieRing 𝔤] [LieAlgebra ℝ 𝔤] {σ : SmoothTwoForm I' M}
-  {a : InfinitesimalAction 𝔤 I' M} {μ : M → Module.Dual ℝ 𝔤}
-
-/-- **The derivative of a moment map in a symplectic chart.** Let `μ` be a moment map of an
-infinitesimal action `Z ↦ Z_M` for `σ`, and let `chart` be a partial diffeomorphism of `M` onto
-an open subset of `V × V` that carries `σ` at `y` to the standard symplectic form `ω₀`. Then the
-derivative at `chart y` of the component `μ^Z` read in the chart is `ω₀(dchart_y (Z_M(y)), ·)`. -/
-theorem fderiv_comp_symm_apply (h : σ.IsMomentMap a μ)
-    (chart : PartialDiffeomorph I' 𝓘(ℝ, V × V) M (V × V) ∞) {y : M} (hy : y ∈ chart.source)
-    (hform : ∀ v w : TangentSpace I' y,
-      σ.eval₂ y v w = stdSymplecticForm (mvfderiv I' chart y v) (mvfderiv I' chart y w))
-    (Z : 𝔤) (w : V × V) :
-    fderiv ℝ (fun z ↦ μ (chart.symm z) Z) (chart y) w =
-      stdSymplecticForm (mfderiv I' 𝓘(ℝ, V × V) chart y (a Z y)) w := by
-  obtain ⟨z, hz, rfl⟩ : ∃ z ∈ chart.target, chart.symm z = y :=
-    ⟨chart y, chart.map_source hy, chart.left_inv hy⟩
-  -- Rewriting `chart (chart.symm z) = z` everywhere would leave a vector of the tangent space at
-  -- `chart (chart.symm z)` where one at `z` is expected, so only the left side is rewritten.
-  conv_lhs => erw [chart.right_inv hz]
-  set u := mfderiv 𝓘(ℝ, V × V) I' chart.symm z w
-  have h1 := (mvfderiv_eq_fderiv_apply (𝕜 := ℝ) ((fun x ↦ μ x Z) ∘ chart.symm) z w).symm
-  have h2 := mvfderiv_apply_eq_mfderiv_apply (𝕜 := ℝ) (I := 𝓘(ℝ, V × V))
-    ((fun x ↦ μ x Z) ∘ chart.symm) z w
-  have h3 := mfderiv_comp_apply_of_eq z (h.mdifferentiableAt Z _)
-    (chart.symm.mdifferentiableAt (by simp) hz) rfl w
-  have h4 := mvfderiv_apply_eq_mfderiv_apply (𝕜 := ℝ) (I := I') (fun x ↦ μ x Z) (chart.symm z) u
-  have h5 := h.eval₂_apply Z (chart.symm z) u
-  have h6 := hform (a Z (chart.symm z)) u
-  have h7 : mvfderiv I' chart (chart.symm z) u = w := by
-    rw [mvfderiv_apply_eq_mfderiv_apply]
-    exact chart.mfderiv_apply_mfderiv_symm_apply (by simp) hz w
-  rw [h7, mvfderiv_apply_eq_mfderiv_apply] at h6
-  exact h1.trans (h2.trans (h3.trans (h4.symm.trans (h5.symm.trans h6))))
-
-end Chart
-
-end SmoothTwoForm.IsMomentMap
 
 end TauCeti
 
@@ -287,7 +225,7 @@ namespace TauCeti.SmoothTwoForm.IsMomentMap
 
 section WeightChart
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   [IsMulCommutative G]
@@ -328,12 +266,12 @@ theorem fderiv_comp_symm_apply_eq_zero
       (chart.mdifferentiableAt (by simp) hx) hK hχ ξ hk)
 
 /-- **The derivative of the transverse part of the moment map is onto from the weight-zero
-coordinates.** In the setting of `fderiv_comp_symm_apply_eq_zero`, let `𝔮` be a subspace of the
-Lie algebra of `G` that meets the isotropy algebra `𝔤ₓ = {ξ | ξ_M(x) = 0}` only in `0`, for
-instance a linear complement of it. Then every linear form `φ` on `𝔮` is
+coordinates.** In the setting of `fderiv_comp_symm_apply_eq_zero`, with `G` finite-dimensional, let
+`𝔮` be a subspace of the Lie algebra of `G` that meets the isotropy algebra `𝔤ₓ = {ξ | ξ_M(x) = 0}`
+only in `0`, for instance a linear complement of it. Then every linear form `φ` on `𝔮` is
 `ξ ↦ d(μ^ξ ∘ chart⁻¹)_{chart x} w` for some vector `w` whose coordinates vanish at each index `k`
 with `χₖ ≠ 1`. -/
-theorem exists_fderiv_comp_symm_apply_eq
+theorem exists_fderiv_comp_symm_apply_eq [FiniteDimensional ℝ E]
     (h : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) μ) (hx : x ∈ chart.source)
     (hform : ∀ v w : TangentSpace I' x,
       σ.eval₂ x v w = stdSymplecticForm (mvfderiv I' chart x v) (mvfderiv I' chart x w))
@@ -362,19 +300,20 @@ theorem exists_fderiv_comp_symm_apply_eq
   have hvW (ξ : GroupLieAlgebra I G) : v ξ ∈ W := fun k hk ↦ hv ξ ▸
     mfderiv_fundamentalVectorField_apply_eq_zero_of_ne_one (chart.mdifferentiableAt (by simp) hx)
       hK hχ ξ hk
-  -- The pairing `(ξ, w) ↦ ω₀(D (ξ_M x), w)` on `𝔮 × W` is injective in `ξ`: take `w = J₀ (v ξ)`.
+  -- `W` is `J₀`-stable, so `ω₀` is nondegenerate on it, and the pairing
+  -- `(ξ, w) ↦ ω₀(D (ξ_M x), w)` on `𝔮 × W` is injective in `ξ`.
+  have hWs : (stdSymplecticForm (V := EuclideanSpace ℝ ι)).IsSymplectic W :=
+    stdSymplecticForm_tames_product.isSymplectic_of_mem_invtSubmodule <|
+      (Module.End.mem_invtSubmodule _).2 fun u hu k hk ↦ by simp [(hu k hk).1, (hu k hk).2]
   let B : 𝔮 →ₗ[ℝ] W →ₗ[ℝ] ℝ :=
     (stdSymplecticForm (V := EuclideanSpace ℝ ι)).toBilinForm.compl₁₂ (v ∘ₗ 𝔮.subtype) W.subtype
   have hB (ξ : 𝔮) (w : W) : B ξ w = stdSymplecticForm (v ξ) w := rfl
   have hBinj : Function.Injective B := by
     rw [← LinearMap.ker_eq_bot, Submodule.eq_bot_iff]
     intro ξ hξ
-    have hJ : AlmostComplexStructure.product _ (v ξ) ∈ W := fun k hk ↦ by
-      simp [(hvW ξ k hk).1, (hvW ξ k hk).2]
-    have h0 := LinearMap.congr_fun (LinearMap.mem_ker.1 hξ) ⟨_, hJ⟩
-    rw [LinearMap.zero_apply, hB, stdSymplecticForm_apply_product_self] at h0
-    have hz := (add_eq_zero_iff_of_nonneg real_inner_self_nonneg real_inner_self_nonneg).1 h0
-    have hv0 : v ξ = 0 := Prod.ext (inner_self_eq_zero.1 hz.1) (inner_self_eq_zero.1 hz.2)
+    have hv0 : v ξ = 0 := Submodule.disjoint_def.1 (SymplecticForm.isSymplectic_iff_disjoint.1 hWs)
+      _ (hvW ξ) (SymplecticForm.mem_orthogonal_iff'.2 fun w hw ↦
+        LinearMap.congr_fun (LinearMap.mem_ker.1 hξ) ⟨w, hw⟩)
     have hfund : fundamentalVectorField I' (ξ : GroupLieAlgebra I G) x = 0 := by
       rw [← chart.mfderiv_symm_apply_mfderiv_apply (by simp) hx
         (fundamentalVectorField I' (ξ : GroupLieAlgebra I G) x), ← hv, hv0]
