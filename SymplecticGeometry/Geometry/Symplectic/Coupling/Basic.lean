@@ -301,19 +301,14 @@ private theorem ker_restrict_eq_span_couplingField (h : IsCouplingForm σ τ) {t
       rw [hwe]
       exact (SmoothForm.bilinFormAt_apply σ (p, t) w _).symm.trans
         (LinearMap.congr_fun hk ⟨u₀, hu0⟩)
-    obtain ⟨c, hc⟩ := exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero hd
-    have hX : ((2 * Real.pi)⁻¹ * c) •
-        rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator p =
-          c • rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator p := by
-      rw [circlePeriodOneGenerator_def, rightFundamentalVectorField_smul, Pi.smul_apply, smul_smul]
-      congr 1
-      field_simp
-    refine ⟨(2 * Real.pi)⁻¹ * c, Subtype.ext ?_⟩
+    obtain ⟨c, hc⟩ := exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero
+      circlePeriodOneGenerator_ne_zero hd
+    refine ⟨c, Subtype.ext ?_⟩
     refine Eq.trans ?_ hwe
     simp only [Submodule.coe_smul]
     rw [hc, couplingField_def]
     -- the tangent space of the product is the product of the tangent spaces, by definition
-    exact Prod.ext hX (smul_zero _)
+    exact Prod.ext rfl (smul_zero _)
   · rintro ⟨c, hc⟩
     refine LinearMap.ext fun u ↦ ?_
     simp only [← hc, LinearMap.BilinForm.restrict_apply, LinearMap.domRestrict_apply,
