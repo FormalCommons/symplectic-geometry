@@ -6,9 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Lie.Adjoint.Basic
-public import TauCeti.Geometry.Manifold.DifferentialForm.DegreeOne
 public import TauCeti.Geometry.Manifold.Riemannian.Invariant
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
+public import SymplecticGeometry.Geometry.Manifold.Riemannian.OneForm
 
 /-!
 # An invariant one-form dual to a fundamental vector field
@@ -18,10 +18,11 @@ Let a compact commutative Lie group `G` act smoothly on a σ-compact Hausdorff b
 file shows that some smooth one-form `β` on `M` is invariant under every `g • ·`, satisfies
 `β(X) ≥ 0`, and vanishes on `X` exactly at the zeros of `X`.
 
-The form is `β = g(X, ·)` for a Riemannian metric `g` that `G` preserves, which exists by Tau
-Ceti's `TauCeti.of_forall_riemannianBundle_inner_mfderiv` (Haar averaging of any metric). Then
-`β(X) = g(X, X)`, which is nonnegative and vanishes exactly where `X` does. Invariance of `β`
-comes from that of `g` and of `X`: the differential of `a • ·` carries `X` at `x` to the
+The form is the flat `β = g(X, ·)` (`TauCeti.SmoothForm.flat`) for a Riemannian metric `g` that
+`G` preserves, which exists by Tau Ceti's `TauCeti.of_forall_riemannianBundle_inner_mfderiv`
+(Haar averaging of any metric). Then `β(X) = g(X, X)`, which is nonnegative and vanishes exactly
+where `X` does. Invariance of `β` comes from that of `g` and of `X`
+(`TauCeti.SmoothForm.mpullback_flat`): the differential of `a • ·` carries `X` at `x` to the
 fundamental vector field of `Ad_a ξ` at `a • x` (`TauCeti.mfderiv_smul_fundamentalVectorField`),
 and `Ad_a` is the identity because `G` is commutative
 (`TauCeti.Lie.adjointContinuousLinearMap_eq_id`).
@@ -82,30 +83,16 @@ theorem exists_invariant_smoothForm_apply_fundamentalVectorField_nonneg
       ∀ x : M, 0 ≤ β.val x ![fundamentalVectorField I ξ x] ∧
         (β.val x ![fundamentalVectorField I ξ x] = 0 ↔ fundamentalVectorField I ξ x = 0) := by
   refine of_forall_riemannianBundle_inner_mfderiv (I := I) (M := M) J G fun hg ↦ ?_
-  obtain ⟨g, hgs, hgi⟩ :=
-    IsContMDiffRiemannianBundle.exists_contMDiff (IB := I) (n := ∞) (F := E)
-      (E := fun x : M ↦ TangentSpace I x)
   set X : (x : M) → TangentSpace I x := fundamentalVectorField I ξ
   have hX : ContMDiff I I.tangent ∞ (fun x ↦ (⟨x, X x⟩ : TangentBundle I M)) :=
     contMDiff_fundamentalVectorField (by rw [ENat.coe_top_add_one]) ξ
-  -- The section `x ↦ g_x(X x, ·)` of the cotangent bundle, and its one-form.
-  obtain ⟨s, hs⟩ : ∃ s : Cₛ^∞⟮I; E →L[ℝ] ℝ, fun x : M ↦ TangentSpace I x →L[ℝ] ℝ⟯,
-      ∀ x, s x = g x (X x) :=
-    ⟨⟨fun x ↦ g x (X x), fun x ↦ (hgs x).clm_bundle_apply (hX x)⟩, fun x ↦ rfl⟩
-  set β : SmoothForm I M ℝ 1 := SmoothForm.degreeOneEquiv.symm s with hβdef
-  have hβ (x : M) (v : TangentSpace I x) : β.val x ![v] = inner ℝ (X x) v := by
-    rw [hβdef, SmoothForm.degreeOneEquiv_symm_apply_apply, Matrix.cons_val_zero, hs, hgi]
   -- The differential of `a • ·` carries `X` to itself, since `Ad_a = id`.
   have hXa (a : G) (x : M) : mfderiv I I (a • ·) x (X x) = X (a • x) := by
     rw [mfderiv_smul_fundamentalVectorField, Lie.adjointContinuousLinearMap_eq_id,
       ContinuousLinearMap.id_apply]
-  refine ⟨β, fun a ↦ ?_, fun x ↦ ?_⟩
-  · refine SmoothForm.degreeOneEquiv.injective (ContMDiffSection.ext fun x ↦
-      ContinuousLinearMap.ext fun v ↦ ?_)
-    rw [SmoothForm.degreeOneEquiv_mpullback_apply, SmoothForm.degreeOneEquiv_apply_apply_vec,
-      SmoothForm.degreeOneEquiv_apply_apply_vec, hβ, hβ, ← hXa, hg]
-  · rw [hβ, real_inner_self_eq_norm_sq]
-    exact ⟨sq_nonneg _, by simp⟩
+  refine ⟨SmoothForm.flat X hX, fun a ↦ SmoothForm.mpullback_flat _ (hg a) (hXa a), fun x ↦ ?_⟩
+  rw [SmoothForm.flat_apply_self]
+  exact ⟨sq_nonneg _, by simp⟩
 
 end CommGroup
 
