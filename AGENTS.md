@@ -55,12 +55,16 @@ lake build --wfail
 build. Before you push, `lake build --wfail` must succeed.
 
 Run the three commands in this order. The script takes the Tau Ceti modules
-that the library imports from Tau Ceti's build cache, and does nothing once
-a job on the same server has run it for the same commit of Tau Ceti and the
-same imports. After a move of Tau Ceti, the first job to run it compiles the
-modules that Tau Ceti's cache does not have, which can take 40 minutes, and
-jobs that start meanwhile wait for it. The script never fails: if it reports
-a problem, go on, and the build compiles what is missing.
+that the library imports from Tau Ceti's build cache. It takes a second once
+an earlier job has built them on the same server; work jobs and reviews keep
+separate caches. After a move of Tau Ceti, the first job to run it compiles
+the modules that Tau Ceti's cache does not have, which can take 40 minutes,
+and jobs that start meanwhile wait for it, 45 minutes at most. So start it
+in a way that lets it run that long, such as in the background, and start
+`lake build` only when it has ended. If it is stopped, run it again: it
+goes on from where it was. It never fails: if it reports a problem, go on,
+and the build compiles what is missing. A branch made before the script was
+added does not have it; build without it there.
 
 ## Layout and names
 
