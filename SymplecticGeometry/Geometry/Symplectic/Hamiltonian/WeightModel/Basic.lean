@@ -27,8 +27,9 @@ Last, it splits `ℂ^ι = ℝ^ι × ℝ^ι` along a predicate `p` on the indices
 `ℂ^{i // p i} × ℂ^{i // ¬p i}` restricting both real coordinates to each part; it is Tau Ceti's
 `EuclideanSpace.sumComplEquivProd` applied to both coordinates. The squared norm on `ℂ^ι` is the
 sum of those of the parts (`TauCeti.norm_sq_add_norm_sq_eq_weightModelSplit`), so a round ball of
-`ℂ^ι` contains a product of round balls of the parts. When the weights vanish at each index
-outside `p`, the moment map of the weight model factors through the first part:
+`ℂ^ι` contains a product of round balls of the parts. The moment map of the weight model is the
+sum of those of the two parts (`TauCeti.weightMomentMap_eq_add_weightModelSplit`); when the
+weights vanish at each index outside `p`, it factors through the first part:
 `TauCeti.weightMomentMap_eq_weightMomentMap_weightModelSplit_fst`.
 -/
 
@@ -114,6 +115,7 @@ theorem weightModelSplit_symm_apply_snd
   obtain ⟨z, rfl⟩ := (weightModelSplit p).surjective w
   by_cases h : p i <;> simp [h]
 
+variable (p) in
 /-- The squared norm `‖x‖² + ‖y‖²` of `(x, y) ∈ ℂ^ι` is the sum of the squared norms of the two
 parts of `weightModelSplit p (x, y)`. -/
 theorem norm_sq_add_norm_sq_eq_weightModelSplit (z : EuclideanSpace ℝ ι × EuclideanSpace ℝ ι) :
@@ -125,6 +127,21 @@ theorem norm_sq_add_norm_sq_eq_weightModelSplit (z : EuclideanSpace ℝ ι × Eu
     ← EuclideanSpace.norm_fst_sumComplEquivProd_sq_add_norm_snd_sq (p := p) z.2]
   ring
 
+variable (p) in
+/-- The moment map of the weight model on `ℂ^ι` is the sum of the moment maps of the weight
+models on `ℂ^{k // p k}` and `ℂ^{k // ¬p k}`, with the weights restricted, at the two parts of
+`weightModelSplit p z`. -/
+theorem weightMomentMap_eq_add_weightModelSplit {𝔱 : Type*} [NormedAddCommGroup 𝔱]
+    [NormedSpace ℝ 𝔱] (α : ι → StrongDual ℝ 𝔱) (z : EuclideanSpace ℝ ι × EuclideanSpace ℝ ι) :
+    weightMomentMap α z =
+      weightMomentMap (fun k : {k // p k} ↦ α k) (weightModelSplit p z).1 +
+        weightMomentMap (fun k : {k // ¬p k} ↦ α k) (weightModelSplit p z).2 := by
+  ext ξ
+  simp only [weightMomentMap_apply, add_apply, weightModelSplit_apply_fst_fst,
+    weightModelSplit_apply_fst_snd, weightModelSplit_apply_snd_fst, weightModelSplit_apply_snd_snd,
+    ← Fintype.sum_subtype_add_sum_subtype p fun k ↦ α k ξ * (z.1 k ^ 2 + z.2 k ^ 2)]
+  ring
+
 /-- If the weights `αₖ` vanish at every index `k` outside `p`, the moment map of the weight model
 on `ℂ^ι` is the moment map of the weight model on `ℂ^{k // p k}`, with the weights restricted,
 composed with the restriction of coordinates `z ↦ (weightModelSplit p z).1`. -/
@@ -132,12 +149,10 @@ theorem weightMomentMap_eq_weightMomentMap_weightModelSplit_fst {𝔱 : Type*}
     [NormedAddCommGroup 𝔱] [NormedSpace ℝ 𝔱] {α : ι → StrongDual ℝ 𝔱} (hα : ∀ k, ¬p k → α k = 0)
     (z : EuclideanSpace ℝ ι × EuclideanSpace ℝ ι) :
     weightMomentMap α z = weightMomentMap (fun k : {k // p k} ↦ α k) (weightModelSplit p z).1 := by
+  have h0 : (fun k : {k // ¬p k} ↦ α k) = 0 := funext fun k ↦ hα k k.property
+  rw [weightMomentMap_eq_add_weightModelSplit p, h0]
   ext ξ
-  rw [weightMomentMap_apply, weightMomentMap_apply,
-    ← Fintype.sum_subtype_add_sum_subtype p (fun k ↦ α k ξ * (z.1 k ^ 2 + z.2 k ^ 2)),
-    Finset.sum_eq_zero (s := Finset.univ (α := {k // ¬p k})) fun k _ ↦ by simp [hα k k.property],
-    add_zero]
-  simp
+  simp [weightMomentMap_apply]
 
 end Split
 
