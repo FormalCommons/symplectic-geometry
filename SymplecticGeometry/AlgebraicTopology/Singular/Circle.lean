@@ -191,9 +191,6 @@ private lemma coe_halfTurn (θ : ℝ) :
     (halfTurn θ : ℂ) = Complex.exp ((π * θ : ℝ) * Complex.I) := by
   simp [halfTurn, Circle.coe_exp]
 
-private lemma im_halfTurn (θ : ℝ) : (halfTurn θ : ℂ).im = Real.sin (π * θ) := by
-  rw [coe_halfTurn, Complex.exp_ofReal_mul_I_im]
-
 private lemma halfTurn_zero : halfTurn 0 = ⟨1, by simp⟩ := Subtype.ext (by simp [coe_halfTurn])
 
 private lemma halfTurn_one : halfTurn 1 = -halfTurn 0 :=
@@ -242,7 +239,7 @@ include hp in
 private lemma arc_one_one_mem (t : I) : arc 1 1 t ∈ ({p}ᶜ : Set (sphere (0 : ℂ) 1)) := by
   intro h
   have h' := congrArg (fun z : sphere (0 : ℂ) 1 ↦ (z : ℂ).im) (Set.mem_singleton_iff.mp h)
-  simp only [arc_apply, im_halfTurn, hp, Complex.I_im] at h'
+  simp only [arc_apply, halfTurn, Circle.coe_homeomorphSphere_exp_im, hp, Complex.I_im] at h'
   have : 0 ≤ Real.sin (π * t) :=
     Real.sin_nonneg_of_nonneg_of_le_pi (by have := unitInterval.nonneg t; positivity)
       (by nlinarith [unitInterval.le_one t, Real.pi_pos])
@@ -253,7 +250,8 @@ include hp in
 private lemma arc_zero_one_mem (t : I) : arc 0 1 t ∈ ({-p}ᶜ : Set (sphere (0 : ℂ) 1)) := by
   intro h
   have h' := congrArg (fun z : sphere (0 : ℂ) 1 ↦ (z : ℂ).im) (Set.mem_singleton_iff.mp h)
-  simp only [arc_apply, im_halfTurn, hp, Complex.I_im, coe_neg_sphere, Complex.neg_im] at h'
+  simp only [arc_apply, halfTurn, Circle.coe_homeomorphSphere_exp_im, hp, Complex.I_im,
+    coe_neg_sphere, Complex.neg_im] at h'
   have : 0 ≤ Real.sin (π * t) :=
     Real.sin_nonneg_of_nonneg_of_le_pi (by have := unitInterval.nonneg t; positivity)
       (by nlinarith [unitInterval.le_one t, Real.pi_pos])
