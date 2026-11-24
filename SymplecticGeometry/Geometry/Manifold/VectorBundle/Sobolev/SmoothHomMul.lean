@@ -548,17 +548,15 @@ theorem contMDiffHomMulL_ofContMDiffSection (s : Cₛ^k⟮𝓘(ℝ, E); F₁, V�
         at this)
     fun i ↦ chartValueL_ofContMDiffSection_ae (A.ofBaseSet h) μ p k _ i
 
-
 omit [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
-  [IsManifold 𝓘(ℝ, E) ∞ M] [FiniteDimensional ℝ F₁] [ContMDiffVectorBundle ∞ F₁ V₁ 𝓘(ℝ, E)]
-  [FiniteDimensional ℝ F₂] [ContMDiffVectorBundle ∞ F₂ V₂ 𝓘(ℝ, E)] in
-/-- The image of chart `i` lies in the open set on which the chart reading of a smooth hom
-section is smooth. -/
-private theorem image_subset_coord_hom_domain (i : Fin A.n) :
-    (A.image i : Set E) ⊆ ((A.hom (𝕜 := ℝ) h).chart i).target ∩
-      ((A.hom (𝕜 := ℝ) h).chart i).symm ⁻¹' ((A.hom (𝕜 := ℝ) h).triv i).baseSet := fun _ hy ↦
-  (A.hom (𝕜 := ℝ) h).chart_image_closure_dom_subset i
-    ((A.hom (𝕜 := ℝ) h).image_subset_chart_image_closure_dom i ((image_hom (h := h) i).ge hy))
+  [IsManifold 𝓘(ℝ, E) ∞ M] [NormedSpace ℝ F₁] [FiniteDimensional ℝ F₁]
+  [∀ x, AddCommGroup (V₁ x)] [∀ x, Module ℝ (V₁ x)] [VectorBundle ℝ F₁ V₁]
+  [ContMDiffVectorBundle ∞ F₁ V₁ 𝓘(ℝ, E)] in
+/-- The image of chart `i` lies in the chart target, and the inverse chart takes it into the
+base set of bundle chart `i`. -/
+theorem _root_.TauCeti.FiniteBundleAtlas.image_subset_target_inter_preimage_symm (i : Fin A.n) :
+    (A.image i : Set E) ⊆ (A.chart i).target ∩ (A.chart i).symm ⁻¹' (A.triv i).baseSet :=
+  (A.image_subset_chart_image_closure_dom i).trans (A.chart_image_closure_dom_subset i)
 
 variable (A h k) in
 /-- **A `C^k` bound for a smooth hom section acting on `W^{k,p}`.** There is a constant `c`,
@@ -580,7 +578,7 @@ theorem exists_norm_contMDiffHomMulL_le :
   have hy' : y ∈ A.image i := (image_ofBaseSet (A := A) (h := h) i).le hy
   rw [iteratedFDerivWithin_of_isOpen j (((A.hom (𝕜 := ℝ) h).chart i).isOpen_inter_preimage_symm
     ((A.hom (𝕜 := ℝ) h).triv i).open_baseSet)
-    (image_subset_coord_hom_domain (A := A) (h := h) i hy')]
+    ((A.hom (𝕜 := ℝ) h).image_subset_target_inter_preimage_symm i ((image_hom (h := h) i).ge hy'))]
   exact hM i j hj y hy'
 
 variable (A h k) in
@@ -609,7 +607,8 @@ theorem exists_norm_contMDiffHomMulL_sub_le :
     (contMDiffHomMulL A h μ p k hΨ))).trans_le (hc hΦΨ hM0 fun i j hj y hy ↦ ?_)
   have hU := ((A.hom (𝕜 := ℝ) h).chart i).isOpen_inter_preimage_symm
     ((A.hom (𝕜 := ℝ) h).triv i).open_baseSet
-  have hyU := image_subset_coord_hom_domain (A := A) (h := h) i hy
+  have hyU :=
+    (A.hom (𝕜 := ℝ) h).image_subset_target_inter_preimage_symm i ((image_hom (h := h) i).ge hy)
   have hcd {Θ : ∀ x, V₁ x →L[ℝ] V₂ x}
       (hΘ : ContMDiff 𝓘(ℝ, E) (𝓘(ℝ, E).prod 𝓘(ℝ, F₁ →L[ℝ] F₂)) ∞
         fun x ↦ TotalSpace.mk' (F₁ →L[ℝ] F₂) x (Θ x)) :
