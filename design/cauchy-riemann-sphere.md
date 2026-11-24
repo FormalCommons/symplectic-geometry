@@ -351,8 +351,8 @@ About 200 lines.
 
 ### `VectorBundle/Sobolev/SmoothHomMul.lean`
 
-For bundles `V`, `W` with atlases `A`, `B` over the same charts and a smooth
-section `Φ` of $\mathrm{Hom}(V,W)$:
+For bundles `V`, `W`, an atlas `A` of `V` whose chart domains also give the
+atlas `A.ofBaseSet h` of `W`, and a smooth section `Φ` of $\mathrm{Hom}(V,W)$:
 
 - `TauCeti.SobolevSection.contMDiffHomMulL A h μ p k hΦ : SobolevSection A μ p k →L[ℝ] SobolevSection (A.ofBaseSet h) μ p k`,
   built chartwise from `TauCeti.Wkp.contDiffOnCLMApplyL` as
@@ -361,11 +361,12 @@ section `Φ` of $\mathrm{Hom}(V,W)$:
 - `chartValueL_contMDiffHomMulL_ae` and `chartValueL_contMDiffHomMulL_ae_coord`:
   the chart data are $\Phi_i u_i$.
 - `norm_contMDiffHomMulL_le`: the operator norm is at most a constant,
-  depending on `A`, `B`, `k`, `p`, times the maximum over charts of the
+  depending on `A`, `h`, `k`, `p`, times the maximum over charts of the
   `C^k` norms of the chart readings of `Φ` on the closed chart images. With
   linearity in `Φ` this gives continuity in `Φ` for the `C^k` atlas norm.
 
-Issue 6 needs only `W = V` with `B = A`, for `V` the bundle
+Issue 6 needs only `W = V` with `h = A.closure_dom_subset_baseSet`, where
+`A.ofBaseSet h` is `A`, for `V` the bundle
 `A.tangentHom` of `ZeroOneForm.lean`; if atlases of two bundles on the same
 charts are awkward to state, the issue proves that case alone. About 300
 lines.

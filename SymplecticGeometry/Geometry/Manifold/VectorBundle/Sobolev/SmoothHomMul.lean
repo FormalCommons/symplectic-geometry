@@ -8,7 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Analysis.Sobolev.Wkp.SmoothCoefficients
 public import TauCeti.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.Hom
-public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Basic
+public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ContMDiffSection
 import TauCeti.Geometry.Manifold.VectorBundle.Trivialization
 
 /-!
@@ -38,8 +38,10 @@ The construction follows Tau Ceti's `TauCeti.SectionChartData.contDiffOnSMulL` a
 which are built in the same way from scalar multiplication `TauCeti.Wkp.contDiffOnSMulL`, with the
 operator coefficient `TauCeti.Wkp.contDiffOnCLMApplyL` in place of the scalar one, as in Tau Ceti's
 `TauCeti.IsRealCauchyRiemannOperator.zeroOrderL` (`Sobolev/CauchyRiemann/Basic.lean` on Tau Ceti's
-main branch). Tau Ceti's `TauCeti.SobolevSection.homMulL` is a different operator: its
-coefficient is a rough Sobolev section, and it lowers the order.
+main branch). The proof of `TauCeti.SobolevSection.contMDiffHomMulL_ofContMDiffSection` is that of
+Tau Ceti's `TauCeti.SobolevSection.contMDiffSMulL_ofContMDiffSection`. Tau Ceti's
+`TauCeti.SobolevSection.homMulL` is a different operator: its coefficient is a rough Sobolev
+section, and it lowers the order.
 
 ## Main definitions
 
@@ -54,6 +56,8 @@ coefficient is a rough Sobolev section, and it lowers the order.
   `TauCeti.SectionChartData.eq_contDiffOnCLMApplyL_iff`,
   `TauCeti.SectionChartData.chartValueL_contDiffOnCLMApplyL_ae`: the components and chart data of
   the product, and its characterization by its components.
+* `TauCeti.SectionChartData.contDiffOnCLMApplyL_congr`: coefficients that agree on the chart images
+  give the same map.
 * `TauCeti.SectionChartData.contDiffOnCLMApplyL_zero`,
   `TauCeti.SectionChartData.contDiffOnCLMApplyL_add`,
   `TauCeti.SectionChartData.contDiffOnCLMApplyL_smul`,
@@ -69,6 +73,8 @@ coefficient is a rough Sobolev section, and it lowers the order.
   `TauCeti.SobolevSection.contMDiffHomMulL_smul`, `TauCeti.SobolevSection.contMDiffHomMulL_congr`,
   `TauCeti.SobolevSection.lowerOrderL_contMDiffHomMulL`: linearity in `Φ` and compatibility with
   the inclusion `W^{k+1,p} → W^{k,p}`.
+* `TauCeti.SobolevSection.contMDiffHomMulL_ofContMDiffSection`: applied to the Sobolev section of a
+  `Cᵏ` section `s`, the map gives the Sobolev section of `x ↦ Φ x (s x)`.
 
 ## References
 
@@ -198,6 +204,18 @@ theorem chartValueL_contDiffOnCLMApplyL_ae (w : C.sobolevSections μ p k) (i : F
       =ᵐ[μ.restrict (D.image i)] fun y ↦ g i y (C.chartValueL μ p k (σ i) w y) :=
   chartValueL_homMulData_ae C D μ p k hσ hU hK hKU hg w i
 
+/-- Coefficients that agree on the image of each chart of `D` give the same map. -/
+theorem contDiffOnCLMApplyL_congr (hg' : ∀ i, ContDiffOn ℝ ∞ (g' i) (U i))
+    (hsec' : ∀ s, ∃ t, ∀ i, ∀ y ∈ D.image i, D.coord i t y = g' i y (C.coord (σ i) s y))
+    (hgg' : ∀ i, ∀ y ∈ D.image i, g i y = g' i y) :
+    C.contDiffOnCLMApplyL D μ p k hσ hU hK hKU hg hsec =
+      C.contDiffOnCLMApplyL D μ p k hσ hU hK hKU hg' hsec' := by
+  ext1 w
+  refine (eq_contDiffOnCLMApplyL_iff C D μ p k hσ hU hK hKU hg' hsec').2 fun i m ↦ ?_
+  filter_upwards [C.value_contDiffOnCLMApplyL_ae D μ p k hσ hU hK hKU hg hsec w i m,
+    ae_restrict_mem (D.image i).isOpen.measurableSet] with y hy hyD
+  rw [hy, hgg' i y hyD]
+
 omit [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
   [FiniteDimensional ℝ F] [FiniteDimensional ℝ F'] in
 /-- Applying the zero coefficient to the readings of sections gives the readings of a section. -/
@@ -309,36 +327,6 @@ variable {E : Type u} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDi
   {μ : Measure E} [μ.IsAddHaarMeasure] {p : ℝ≥0∞} [Fact (1 ≤ p)] {k : ℕ}
   {Φ Ψ : ∀ x, V₁ x →L[ℝ] V₂ x}
 
-variable (A) in
-omit [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
-  [IsManifold 𝓘(ℝ, E) ∞ M] [FiniteDimensional ℝ F₁] [ContMDiffVectorBundle ∞ F₁ V₁ 𝓘(ℝ, E)]
-  [FiniteDimensional ℝ F₂] [ContMDiffVectorBundle ∞ F₂ V₂ 𝓘(ℝ, E)] in
-/-- The closure of the image of chart `i` lies in the open set of chart-`i` coordinates over the
-base set of the hom bundle chart, where the chart reading of a smooth hom section is smooth
-(`TauCeti.FiniteBundleAtlas.contDiffOn_coord_of_contMDiff`). -/
-theorem _root_.TauCeti.FiniteBundleAtlas.closure_image_ofBaseSet_subset_hom (i : Fin A.n) :
-    closure ((A.ofBaseSet h).image i : Set E) ⊆
-      ((A.hom (𝕜 := ℝ) h).chart i).target ∩
-        ((A.hom (𝕜 := ℝ) h).chart i).symm ⁻¹' ((A.hom (𝕜 := ℝ) h).triv i).baseSet := by
-  rw [image_ofBaseSet, ← image_hom (𝕜 := ℝ) (h := h)]
-  exact ((A.hom (𝕜 := ℝ) h).closure_image_subset_chart_image_closure_dom i).trans
-    ((A.hom (𝕜 := ℝ) h).chart_image_closure_dom_subset i)
-
-variable (A) in
-omit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] [FiniteDimensional ℝ F₁]
-  [FiniteDimensional ℝ F₂] in
-/-- **The chart readings of a smooth hom section are smooth** on the open set of points of the
-chart target over the base set of the hom bundle chart. -/
-theorem _root_.TauCeti.FiniteBundleAtlas.contDiffOn_coord_hom
-    (hΦ : ContMDiff 𝓘(ℝ, E) (𝓘(ℝ, E).prod 𝓘(ℝ, F₁ →L[ℝ] F₂)) ∞
-      fun x ↦ TotalSpace.mk' (F₁ →L[ℝ] F₂) x (Φ x)) (i : Fin A.n) :
-    ContDiffOn ℝ ∞ ((A.hom (𝕜 := ℝ) h).coord i Φ)
-      (((A.hom (𝕜 := ℝ) h).chart i).target ∩
-        ((A.hom (𝕜 := ℝ) h).chart i).symm ⁻¹' ((A.hom (𝕜 := ℝ) h).triv i).baseSet) :=
-  (contDiffOn_trivialization_comp_chart_symm_of_contMDiff hΦ
-    (IsManifold.chart_mem_maximalAtlas _) ((A.hom (𝕜 := ℝ) h).triv i)).congr
-      fun y _ ↦ (A.hom (𝕜 := ℝ) h).coord_def i Φ y
-
 variable (A h) in
 omit [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [BorelSpace E] [IsManifold 𝓘(ℝ, E) ∞ M]
   [NormedSpace ℝ F₁] [FiniteDimensional ℝ F₁] [∀ x, AddCommGroup (V₁ x)] [∀ x, Module ℝ (V₁ x)]
@@ -351,7 +339,7 @@ image of chart `i` of `A`, which is the same set. -/
 private theorem ae_image_of_ae_image_ofBaseSet (i : Fin A.n) {P : E → Prop}
     (hP : ∀ᵐ y ∂μ.restrict ((A.ofBaseSet h).sectionChartData.image i), P y) :
     ∀ᵐ y ∂μ.restrict (A.image i), P y := by
-  rwa [← image_ofBaseSet (A := A) (h := h) i]
+  rwa [(A.ofBaseSet h).sectionChartData_image i, image_ofBaseSet] at hP
 
 variable (A h μ p k) in
 /-- **A smooth hom section acting on `W^{k,p}`.** A smooth section `Φ` of the hom bundle
@@ -371,8 +359,13 @@ def contMDiffHomMulL
     (fun i ↦ (image_ofBaseSet (A := A) (h := h) i).le)
     (fun i ↦ (((A.hom (𝕜 := ℝ) h).chart i).isOpen_inter_preimage_symm
       ((A.hom (𝕜 := ℝ) h).triv i).open_baseSet).uniqueDiffOn)
-    (A.ofBaseSet h).isCompact_closure_image A.closure_image_ofBaseSet_subset_hom
-    (A.contDiffOn_coord_hom hΦ) fun s ↦
+    (A.ofBaseSet h).isCompact_closure_image
+    (fun i ↦ (closure_mono fun _ hy ↦
+      (image_hom (𝕜 := ℝ) (h := h) i).ge ((image_ofBaseSet (A := A) (h := h) i).le hy)).trans
+      (((A.hom (𝕜 := ℝ) h).closure_image_subset_chart_image_closure_dom i).trans
+        ((A.hom (𝕜 := ℝ) h).chart_image_closure_dom_subset i)))
+    (fun i ↦ contDiffOn_infty.2 fun _ ↦
+      (A.hom (𝕜 := ℝ) h).contDiffOn_coord (hΦ.of_le (by exact_mod_cast le_top)) i) fun s ↦
       ⟨fun x ↦ Φ x (s x), fun i y hy ↦ by
         have hy' : y ∈ A.image i := (image_ofBaseSet (A := A) (h := h) i).le hy
         rw [(A.ofBaseSet h).sectionChartData_coord_of_mem _ hy,
@@ -394,8 +387,14 @@ theorem contMDiffHomMulL_apply (w : SobolevSection A μ p k) (i : Fin A.n)
       Wkp.contDiffOnCLMApplyL
         (((A.hom (𝕜 := ℝ) h).chart i).isOpen_inter_preimage_symm
           ((A.hom (𝕜 := ℝ) h).triv i).open_baseSet).uniqueDiffOn
-        ((A.ofBaseSet h).isCompact_closure_image i) (A.closure_image_ofBaseSet_subset_hom i) k
-        (finBasis ℝ F₁) (finBasis ℝ F₂) (A.contDiffOn_coord_hom hΦ i)
+        ((A.ofBaseSet h).isCompact_closure_image i)
+        ((closure_mono fun _ hy ↦
+          (image_hom (𝕜 := ℝ) (h := h) i).ge ((image_ofBaseSet (A := A) (h := h) i).le hy)).trans
+          (((A.hom (𝕜 := ℝ) h).closure_image_subset_chart_image_closure_dom i).trans
+            ((A.hom (𝕜 := ℝ) h).chart_image_closure_dom_subset i))) k
+        (finBasis ℝ F₁) (finBasis ℝ F₂)
+        (contDiffOn_infty.2 fun _ ↦
+          (A.hom (𝕜 := ℝ) h).contDiffOn_coord (hΦ.of_le (by exact_mod_cast le_top)) i)
         (fun l ↦ Wkp.restrictL (image_ofBaseSet (A := A) (h := h) i).le k
           ((w : A.sectionChartData.SobolevData μ p k) i l)) m :=
   A.sectionChartData.contDiffOnCLMApplyL_apply (A.ofBaseSet h).sectionChartData μ p k
@@ -459,16 +458,12 @@ theorem contMDiffHomMulL_congr (hΦΨ : Φ = Ψ) :
 theorem contMDiffHomMulL_zero
     (h0 : ContMDiff 𝓘(ℝ, E) (𝓘(ℝ, E).prod 𝓘(ℝ, F₁ →L[ℝ] F₂)) ∞
       fun x ↦ TotalSpace.mk' (F₁ →L[ℝ] F₂) x ((0 : ∀ x, V₁ x →L[ℝ] V₂ x) x)) :
-    contMDiffHomMulL A h μ p k h0 = 0 := by
-  ext1 w
-  refine ((eq_contMDiffHomMulL_iff h0).2 fun i m ↦ ?_).symm
-  filter_upwards [ae_image_of_ae_image_ofBaseSet A h i
-      (Wkp.value_zero_ae (mu := μ) (Omega := (A.ofBaseSet h).sectionChartData.image i) (p := p) k),
-    ae_restrict_mem (A.image i).isOpen.measurableSet] with y hy hyi
-  have hc : (A.hom (𝕜 := ℝ) h).coord i (0 : ∀ x, V₁ x →L[ℝ] V₂ x) y = 0 :=
-    (A.hom (𝕜 := ℝ) h).coord_zero i ((image_hom (𝕜 := ℝ) (h := h) i).ge hyi)
-  rw [zero_apply, ZeroMemClass.coe_zero, Pi.zero_apply, Pi.zero_apply, hy, Pi.zero_apply, hc,
-    zero_apply, map_zero, Finsupp.coe_zero, Pi.zero_apply]
+    contMDiffHomMulL A h μ p k h0 = 0 :=
+  (A.sectionChartData.contDiffOnCLMApplyL_congr (A.ofBaseSet h).sectionChartData μ p k
+    _ _ _ _ _ _ _ (A.sectionChartData.exists_coord_eq_zero_apply _) fun i _ hy ↦
+      (A.hom (𝕜 := ℝ) h).coord_zero i
+        ((image_hom (h := h) i).ge ((image_ofBaseSet (A := A) (h := h) i).le hy))).trans
+    (A.sectionChartData.contDiffOnCLMApplyL_zero (A.ofBaseSet h).sectionChartData μ p k _ _ _ _)
 
 /-- The map is additive in the hom section. -/
 theorem contMDiffHomMulL_add
@@ -476,34 +471,22 @@ theorem contMDiffHomMulL_add
       fun x ↦ TotalSpace.mk' (F₁ →L[ℝ] F₂) x ((Φ + Ψ) x)) :
     contMDiffHomMulL A h μ p k hΦΨ =
       contMDiffHomMulL A h μ p k hΦ + contMDiffHomMulL A h μ p k hΨ := by
-  ext1 w
-  refine ((eq_contMDiffHomMulL_iff hΦΨ).2 fun i m ↦ ?_).symm
-  filter_upwards [ae_image_of_ae_image_ofBaseSet A h i (Wkp.value_add_ae k
-      ((contMDiffHomMulL A h μ p k hΦ w : (A.ofBaseSet h).sectionChartData.SobolevData μ p k) i m)
-      ((contMDiffHomMulL A h μ p k hΨ w : (A.ofBaseSet h).sectionChartData.SobolevData μ p k) i m)),
-    value_contMDiffHomMulL_ae hΦ w i m, value_contMDiffHomMulL_ae hΨ w i m,
-    ae_restrict_mem (A.image i).isOpen.measurableSet] with y hy h₁ h₂ hyi
-  have hc : (A.hom (𝕜 := ℝ) h).coord i (Φ + Ψ) y =
-      (A.hom (𝕜 := ℝ) h).coord i Φ y + (A.hom (𝕜 := ℝ) h).coord i Ψ y :=
-    (A.hom (𝕜 := ℝ) h).coord_add i Φ Ψ ((image_hom (𝕜 := ℝ) (h := h) i).ge hyi)
-  rw [add_apply, Submodule.coe_add, Pi.add_apply, Pi.add_apply, hy, Pi.add_apply, h₁, h₂, hc,
-    add_apply, map_add, Finsupp.coe_add, Pi.add_apply]
+  refine Eq.trans ?_ (A.sectionChartData.contDiffOnCLMApplyL_add (A.ofBaseSet h).sectionChartData
+    μ p k _ _ _ _ _ _ _ _)
+  exact A.sectionChartData.contDiffOnCLMApplyL_congr (A.ofBaseSet h).sectionChartData μ p k
+    _ _ _ _ _ _ _ _ fun i _ hy ↦ (A.hom (𝕜 := ℝ) h).coord_add i Φ Ψ
+      ((image_hom (h := h) i).ge ((image_ofBaseSet (A := A) (h := h) i).le hy))
 
 /-- The map is homogeneous in the hom section. -/
 theorem contMDiffHomMulL_smul (c : ℝ)
     (hcΦ : ContMDiff 𝓘(ℝ, E) (𝓘(ℝ, E).prod 𝓘(ℝ, F₁ →L[ℝ] F₂)) ∞
       fun x ↦ TotalSpace.mk' (F₁ →L[ℝ] F₂) x ((c • Φ) x)) :
     contMDiffHomMulL A h μ p k hcΦ = c • contMDiffHomMulL A h μ p k hΦ := by
-  ext1 w
-  refine ((eq_contMDiffHomMulL_iff hcΦ).2 fun i m ↦ ?_).symm
-  filter_upwards [ae_image_of_ae_image_ofBaseSet A h i (Wkp.value_smul_ae k c
-      ((contMDiffHomMulL A h μ p k hΦ w : (A.ofBaseSet h).sectionChartData.SobolevData μ p k) i m)),
-    value_contMDiffHomMulL_ae hΦ w i m,
-    ae_restrict_mem (A.image i).isOpen.measurableSet] with y hy h₁ hyi
-  have hc : (A.hom (𝕜 := ℝ) h).coord i (c • Φ) y = c • (A.hom (𝕜 := ℝ) h).coord i Φ y :=
-    (A.hom (𝕜 := ℝ) h).coord_smul i c Φ ((image_hom (𝕜 := ℝ) (h := h) i).ge hyi)
-  rw [smul_apply, Submodule.coe_smul, Pi.smul_apply, Pi.smul_apply, hy, Pi.smul_apply, h₁, hc,
-    smul_apply, map_smul, Finsupp.coe_smul, Pi.smul_apply]
+  refine Eq.trans ?_ (A.sectionChartData.contDiffOnCLMApplyL_smul (A.ofBaseSet h).sectionChartData
+    μ p k _ _ _ _ _ _ c)
+  exact A.sectionChartData.contDiffOnCLMApplyL_congr (A.ofBaseSet h).sectionChartData μ p k
+    _ _ _ _ _ _ _ _ fun i _ hy ↦ (A.hom (𝕜 := ℝ) h).coord_smul i c Φ
+      ((image_hom (h := h) i).ge ((image_ofBaseSet (A := A) (h := h) i).le hy))
 
 /-- The action of a smooth hom section commutes with the inclusion `W^{k+1,p} → W^{k,p}`. -/
 theorem lowerOrderL_contMDiffHomMulL (w : SobolevSection A μ p (k + 1)) :
@@ -511,6 +494,21 @@ theorem lowerOrderL_contMDiffHomMulL (w : SobolevSection A μ p (k + 1)) :
       contMDiffHomMulL A h μ p k hΦ (A.sectionChartData.lowerOrderL μ p k w) :=
   A.sectionChartData.lowerOrderL_contDiffOnCLMApplyL (A.ofBaseSet h).sectionChartData μ p k
     _ _ _ _ _ _ w
+
+/-- Applying a smooth hom section `Φ` to the Sobolev section of a `Cᵏ` section `s` of `V₁` gives
+the Sobolev section of the `Cᵏ` section `x ↦ Φ x (s x)` of `V₂`. -/
+@[simp]
+theorem contMDiffHomMulL_ofContMDiffSection (s : Cₛ^k⟮𝓘(ℝ, E); F₁, V₁⟯) :
+    contMDiffHomMulL A h μ p k hΦ (ofContMDiffSection A μ p k s) =
+      ofContMDiffSection (A.ofBaseSet h) μ p k
+        ⟨fun x ↦ Φ x (s x), (hΦ.of_le (by exact_mod_cast le_top)).clm_bundle_apply s.contMDiff⟩ :=
+  eq_of_ae_eq_coord
+    (fun i ↦ by
+      have := chartValueL_contMDiffHomMulL_ae_coord (h := h) hΦ
+        (chartValueL_ofContMDiffSection_ae A μ p k s) i
+      rwa [← image_ofBaseSet (A := A) (h := h) i, ← (A.ofBaseSet h).sectionChartData_image i]
+        at this)
+    fun i ↦ chartValueL_ofContMDiffSection_ae (A.ofBaseSet h) μ p k _ i
 
 end SobolevSection
 
