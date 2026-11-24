@@ -43,10 +43,7 @@ runs:
       run: |
         echo "packages=lake-packages-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}" >> "$GITHUB_OUTPUT"
         echo "build=lake-build-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.toml') }}" >> "$GITHUB_OUTPUT"
-        # Read from the files' text.
-        git ls-files '*.lean' \
-          | xargs -r sed -nE 's/^\s*(public\s+)?import\s+(TauCeti\.[A-Za-z0-9_.]+).*/\2/p' \
-          | sort -u > "$RUNNER_TEMP/tauceti-imports.txt"
+        .github/tauceti-cache.sh --imports > "$RUNNER_TEMP/tauceti-imports.txt"
         echo "imports=$(sha256sum "$RUNNER_TEMP/tauceti-imports.txt" | cut -c1-16)" >> "$GITHUB_OUTPUT"
     - name: install elan
       if: inputs.names-only != 'true'
@@ -83,35 +80,15 @@ runs:
     # cache. A later build without the cache accepts what the step leaves in
     # `.lake/packages` and compiles nothing again, so the steps after it,
     # and a save of `.lake/packages`, work as before. If the cache has
-    # nothing, or fetching or building from it fails, the step gives a
-    # warning, and the build that follows compiles what is missing. Lake
-    # sets no limit on a download, so each command has one here.
+    # nothing or cannot be read, the step gives a warning and compiles the
+    # modules itself; if its build fails, it gives a warning, and the build
+    # that follows compiles what is missing. The script is the one that the
+    # agents' jobs run, and on a runner it has no other job to wait for.
     - name: take the imported Tau Ceti modules from Tau Ceti's build cache
       if: inputs.names-only != 'true' && steps.restore.outputs.cache-matched-key == ''
       shell: bash
       env:
-        LAKE_CONFIG: ${{ runner.temp }}/lake-cache.toml
+        LAKE_ARTIFACT_CACHE: 'true'
         LAKE_CACHE_DIR: ${{ runner.temp }}/lake-cache
-      run: |
-        mapfile -t modules < <(sed 's/^/+/' "$RUNNER_TEMP/tauceti-imports.txt")
-        [ ${#modules[@]} -gt 0 ] || exit 0
-        printf '%s\n' \
-          'cache.defaultService = "tauceti-public"' \
-          '[[cache.service]]' \
-          'name = "tauceti-public"' \
-          'kind = "s3"' \
-          'artifactEndpoint = "https://cache.taucetiproject.org/artifacts"' \
-          'revisionEndpoint = "https://cache.taucetiproject.org/revisions"' > "$LAKE_CONFIG"
-        if timeout 10m lake cache get --service tauceti-public --repo TauCetiProject/TauCeti \
-            --package TauCeti --mappings-only --max-revs=500 > "$RUNNER_TEMP/lake-cache-get.log" 2>&1; then
-          grep 'downloading build outputs' "$RUNNER_TEMP/lake-cache-get.log" | tail -n 1 || true
-          LAKE_ARTIFACT_CACHE=true LAKE_RESTORE_ARTIFACTS=true timeout 90m lake build "${modules[@]}" ||
-            echo "::warning::the build from Tau Ceti's cache failed or took too long; the build that follows compiles what is missing"
-        else
-          tail -n 5 "$RUNNER_TEMP/lake-cache-get.log"
-          if grep -q 'no outputs found' "$RUNNER_TEMP/lake-cache-get.log"; then
-            echo "::warning::Tau Ceti's cache has no builds for the pinned commit or the 499 before it; the Tau Ceti modules are compiled from source"
-          else
-            echo "::warning::reading Tau Ceti's cache failed or took longer than 10 minutes, see the lines above; the Tau Ceti modules are compiled from source"
-          fi
-        fi
+        TAUCETI_CACHE_BUILD_LIMIT: 90m
+      run: .github/tauceti-cache.sh
