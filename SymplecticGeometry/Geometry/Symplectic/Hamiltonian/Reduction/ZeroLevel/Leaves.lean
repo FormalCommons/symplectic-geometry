@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Foliation.Orbit
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.Level
 public import TauCeti.Geometry.Symplectic.Lagrangian.Manifold
 public import TauCeti.Geometry.Symplectic.Lagrangian.Presymplectic
+import SymplecticGeometry.Geometry.Manifold.Distribution.ConstantRank
 
 /-!
 # The zero level of a moment map: coisotropy and characteristic leaves
@@ -39,6 +40,12 @@ through the inclusion `i : Z → M`.
   `i`, and for connected `G` so does the whole orbit of `z`. These are
   `TauCeti.Foliation.mulInvariantExp_smul_mem_leaf` and `TauCeti.Foliation.orbit_subset_leaf`
   of `Foliation/Orbit.lean`, applied with the previous item.
+* `leaf_characteristicFoliation_zeroLevel_subset_orbit` and
+  `leaf_characteristicFoliation_zeroLevel`: if `G` also acts properly on `Z`, each characteristic
+  leaf of `i` lies in an orbit, and for connected `G` the leaf through `z` is the orbit of `z`. By
+  `ker_bilinFormAt_mpullback_coe_zeroLevel` the foliation is tangent to the kernels of `dπ`, so `π`
+  is constant on each leaf (`TauCeti.Foliation.SameLeaf.apply_eq_of_le_ker`), and a fibre of `π`
+  is an orbit.
 
 All declarations are in the namespace `TauCeti.SmoothTwoForm.IsEquivariantMomentMap`, beside those
 of `ZeroLevel/Basic.lean`.
@@ -189,6 +196,55 @@ theorem orbit_subset_leaf_characteristicFoliation_zeroLevel [ConnectedSpace G]
   have := h.contMDiffSMul_zeroLevel hσ.isNondegenerate hfree hn
   exact Foliation.orbit_subset_leaf _
     (h.fundamentalVectorField_mem_distribution_characteristicFoliation_zeroLevel hfree hn hσ) z
+
+/-- **Characteristic leaves of the zero level lie in orbits.** If `σ` is symplectic and `G` acts
+freely at every point of `μ⁻¹(0)` and properly on the zero level, then the leaf through each point
+`z` of the zero level of the characteristic foliation of the inclusion of the zero level is
+contained in the orbit of `z`. -/
+theorem leaf_characteristicFoliation_zeroLevel_subset_orbit [ProperSMul G h.zeroLevel]
+    (z : h.zeroLevel) :
+    letI := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
+    haveI := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
+    haveI : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
+    ((h.isCoisotropicMap_coe_zeroLevel hσ.isNondegenerate hfree hn).characteristicFoliation
+        (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).isImmersion
+        (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).contMDiff hσ.isClosed
+        le_rfl).leaf z ⊆
+      MulAction.orbit G z := by
+  let := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
+  let := h.zeroLevelQuotientChartedSpace hσ.isNondegenerate hfree hn
+  have := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
+  have : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
+  have : IsManifold 𝓘(ℝ, ProperSMul.QuotientModelSpace E (Fin n → ℝ)) 1
+      (MulAction.orbitRel.Quotient G h.zeroLevel) :=
+    (h.isManifold_zeroLevelQuotient hσ.isNondegenerate hfree hn).of_le (by norm_num)
+  intro y hy
+  -- The orbit projection is constant on the leaf, whose tangent spaces are the kernels of its
+  -- differential.
+  have hq := (Foliation.mem_leaf.1 hy).apply_eq_of_le_ker
+    ((h.isSubmersion_quotientMk_zeroLevel hσ.isNondegenerate hfree hn).contMDiff.mdifferentiable
+      (by simp))
+    fun x ↦ by
+      rw [IsNondegenerate.IsCoisotropicMap.characteristicFoliation_distribution,
+        h.ker_bilinFormAt_mpullback_coe_zeroLevel hσ.isNondegenerate hfree hn]
+  exact MulAction.mem_orbit_symm.1 (MulAction.orbitRel_apply.1 (Quotient.exact hq))
+
+/-- **The characteristic leaves of the zero level are the orbits.** If `σ` is symplectic and the
+connected group `G` acts freely at every point of `μ⁻¹(0)` and properly on the zero level, then
+the leaf through each point `z` of the zero level of the characteristic foliation of the
+inclusion of the zero level is the orbit of `z`. -/
+theorem leaf_characteristicFoliation_zeroLevel [ConnectedSpace G] [ProperSMul G h.zeroLevel]
+    (z : h.zeroLevel) :
+    letI := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
+    haveI := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
+    haveI : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
+    ((h.isCoisotropicMap_coe_zeroLevel hσ.isNondegenerate hfree hn).characteristicFoliation
+        (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).isImmersion
+        (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).contMDiff hσ.isClosed
+        le_rfl).leaf z =
+      MulAction.orbit G z :=
+  (h.leaf_characteristicFoliation_zeroLevel_subset_orbit hfree hn hσ z).antisymm
+    (h.orbit_subset_leaf_characteristicFoliation_zeroLevel hfree hn hσ z)
 
 end Leaves
 
