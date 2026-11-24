@@ -12,6 +12,7 @@ import SymplecticGeometry.Analysis.Complex.RadialProjection
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
 import TauCeti.Geometry.Manifold.Algebra.LieGroup
+import TauCeti.Topology.Separation.Basic
 
 /-!
 # A connection built from clutching frames, and its curvature
@@ -241,10 +242,8 @@ theorem exists_isCircleConnectionForm_of_collar_eq_zpow_smul {ι : Type*} [Finit
     isSmoothForm_radialAngularForm le_rfl hβ ha hβa
   have hrange (i : ι) : IsOpen (range (φ i)) := (φ i).isOpenEmbedding.isOpen_range
   -- the open set off the centres, where `σout` is smooth
-  set C := {x : M | ∀ i, x ≠ φ i 0} with hC
-  have hCo : IsOpen C := by
-    simp only [hC, ofPred_forall]
-    exact isOpen_iInter_of_finite fun i ↦ isOpen_ne_fun continuous_id continuous_const
+  set C := {x : M | ∀ i, x ≠ φ i 0}
+  have hCo : IsOpen C := TauCeti.isOpen_forall_ne continuous_id
   -- the closed discs of radius `b`, and the open set `U` off them
   set K : ι → Set M := fun i ↦ φ i '' {z | ‖(z : ℂ)‖ ≤ b}
   set U := ⋂ i, (K i)ᶜ with hU

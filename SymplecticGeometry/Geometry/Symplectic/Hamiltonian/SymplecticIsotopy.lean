@@ -131,7 +131,8 @@ theorem mextDeriv_interior_eulerianField_smoothTransitionFamily (σ : SmoothTwoF
     mextDeriv (RoughForm.interior
         (eulerianField J (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) u) σ.val) =
       deriv Real.smoothTransition u •
-        mextDeriv (RoughForm.interior (Φ.smoothVelocity (Real.smoothTransitionUnit u)) σ.val) := by
+        mextDeriv
+          (RoughForm.interior (Φ.smoothVelocity (unitInterval.smoothTransition u)) σ.val) := by
   rw [eulerianField_smoothTransitionFamily, ← SmoothTwoForm.coe_interiorₗ, map_smul,
     Submodule.coe_smul, mextDeriv_smul, SmoothTwoForm.coe_interiorₗ]
 
@@ -154,7 +155,7 @@ theorem forall_timeSlice_mem_diffeomorphStabilizer_iff (hσ : σ.IsClosed) :
       mextDerivₗ J 1 (σ.interiorₗ (Φ.smoothVelocity t)) = 0 := by
     rw [SmoothTwoForm.mem_symplecticVectorFields_iff, ← SmoothTwoForm.coe_interiorₗ,
       ← mextDerivₗ_apply, ← Submodule.coe_eq_zero]
-  have hslice (u : ℝ) : (ψ u : M → M) = Φ.timeSlice (Real.smoothTransitionUnit u) :=
+  have hslice (u : ℝ) : (ψ u : M → M) = Φ.timeSlice (unitInterval.smoothTransition u) :=
     funext fun x ↦ by
       rw [Diffeomorph.coe_toEquiv, smoothTransitionFamily_apply, timeSlice_apply]
   constructor
@@ -166,7 +167,7 @@ theorem forall_timeSlice_mem_diffeomorphStabilizer_iff (hσ : σ.IsClosed) :
     have hzero : EqOn (fun t ↦ mextDerivₗ J 1 (σ.interiorₗ (Φ.smoothVelocity t))) (fun _ ↦ 0)
         (Ioo 0 1) := by
       intro t ht
-      obtain ⟨u, ⟨hu₀, hu₁⟩, rfl⟩ := Real.surjOn_smoothTransitionUnit_Ioo ht
+      obtain ⟨u, ⟨hu₀, hu₁⟩, rfl⟩ := unitInterval.surjOn_smoothTransition_Ioo ht
       have h0 := hu u
       rw [mextDeriv_interior_eulerianField_smoothTransitionFamily] at h0
       exact (hmem _).1 (SmoothTwoForm.mem_symplecticVectorFields_iff.2
@@ -181,9 +182,9 @@ theorem forall_timeSlice_mem_diffeomorphStabilizer_iff (hσ : σ.IsClosed) :
     have hu := key.2 fun u ↦ by
       rw [mextDeriv_interior_eulerianField_smoothTransitionFamily,
         SmoothTwoForm.mem_symplecticVectorFields_iff.1 (h _), smul_zero]
-    obtain ⟨u, rfl⟩ := Real.smoothTransitionUnit_surjective t
+    obtain ⟨u, rfl⟩ := unitInterval.smoothTransition_surjective t
     refine SmoothForm.mem_diffeomorphStabilizer_iff_forall.2 fun x ↦ ?_
-    rw [← hslice, hu u 0, hslice, Real.smoothTransitionUnit_of_nonpos le_rfl, timeSlice_zero]
+    rw [← hslice, hu u 0, hslice, unitInterval.smoothTransition_of_nonpos le_rfl, timeSlice_zero]
     exact congrFun (mpullback_id σ.val) x
 
 end Diffeotopy

@@ -129,13 +129,11 @@ private theorem mfderiv_puncturedMulVec (z : puncturedSpace (Fin (m + 1) → ℂ
     (v : TangentSpace 𝓘(ℝ, Fin (m + 1) → ℂ) z) :
     mfderiv 𝓘(ℝ, Fin (m + 1) → ℂ) 𝓘(ℝ, Fin (n + 1) → ℂ) (puncturedMulVec A hA) z v =
       A *ᵥ (v : Fin (m + 1) → ℂ) := by
-  have h₁ := TauCeti.Manifold.mfderiv_subtype_val_comp_apply (I := 𝓘(ℝ, Fin (n + 1) → ℂ))
-    (J := 𝓘(ℝ, Fin (m + 1) → ℂ)) (f := puncturedMulVec A hA) (x := z) v
-  have h₂ := TauCeti.Manifold.mfderiv_comp_subtype_val_apply (I := 𝓘(ℝ, Fin (n + 1) → ℂ))
-    (J := 𝓘(ℝ, Fin (m + 1) → ℂ))
-    (f := ((toLin' A).restrictScalars ℝ).toContinuousLinearMap) (x := z) v
-  rw [mfderiv_eq_fderiv, ContinuousLinearMap.fderiv] at h₂
-  exact h₁.symm.trans h₂
+  -- `puncturedMulVec A hA` is the restriction of `A *ᵥ ·` to the punctured spaces.
+  have h := TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq (I := 𝓘(ℝ, Fin (m + 1) → ℂ))
+    (I' := 𝓘(ℝ, Fin (n + 1) → ℂ)) (f := puncturedMulVec A hA)
+    (A := ((toLin' A).restrictScalars ℝ).toContinuousLinearMap) rfl v
+  rwa [mfderiv_eq_fderiv, ContinuousLinearMap.fderiv] at h
 
 private theorem mkNonzero_comp_puncturedMulVec :
     mkNonzero ℂ n ∘ puncturedMulVec A hA =

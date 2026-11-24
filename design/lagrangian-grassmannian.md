@@ -951,8 +951,8 @@ The manifold structure and the milestone.
   `mem_chart_source`.
 - `instance : IsManifold 𝓘(ℝ, selfAdjoint (Matrix ι ι ℝ)) ∞ (ℒ ι)`. A
   transition map is `S ↦ (A S + B)(C S + D)⁻¹` for the blocks of a real
-  symplectic matrix. It is smooth where it is defined, by Mathlib's
-  `contDiffAt_ringInverse`. For `g : GLSymplectic ι ℝ`,
+  symplectic matrix. It is smooth where it is defined, by Tau Ceti's
+  `ContDiffAt.inverse`. For `g : GLSymplectic ι ℝ`,
   `contDiffOn_graphYChart_smul_graphY` is that smoothness; and
   `unitaryChart_symm_trans_apply`, `unitaryChart_symm_trans_source` for the
   transition maps of the atlas. The proof uses three lemmas placed with

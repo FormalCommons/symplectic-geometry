@@ -785,8 +785,8 @@ The file uses helpers stated in their own files:
   proof composes the symmetrization (a continuous linear map),
   `ContDiffOn.metricChangeTransport`,
   `ContDiffOn.sqrt_continuousLinearMapOfBilin`,
-  `ContinuousLinearMap.contDiffOn_sqrt`, and `contDiffAt_ringInverse` at the
-  unit that `CFC.isUnit_sqrt_iff` gives. On the domain `g'♯` is strictly
+  `ContinuousLinearMap.contDiffOn_sqrt`, and Tau Ceti's `ContDiffAt.inverse`
+  at the unit that `CFC.isUnit_sqrt_iff` gives. On the domain `g'♯` is strictly
   positive by
   `InnerProductSpace.isStrictlyPositive_continuousLinearMapOfBilin_symmetrizeBilinear`
   (`Topology/Algebra/Module/InnerProducts.lean`), and `-A²` by Tau

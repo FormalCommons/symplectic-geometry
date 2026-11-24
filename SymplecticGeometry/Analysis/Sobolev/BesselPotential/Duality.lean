@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Analysis.Sobolev.BesselPotential.Duality
 import Mathlib.Analysis.Normed.Operator.Extend
+import TauCeti.MeasureTheory.Function.Lp.Norm
 import TauCeti.Analysis.Sobolev.BesselPotential.Postcomp
 
 /-!
@@ -72,11 +73,9 @@ theorem exists_toDistr_eq_and_norm_le {s C : ℝ} (hC : 0 ≤ C) {u : 𝓢'(E, �
     refine integral_congr_ae ?_
     filter_upwards [T.coeFn_compLp w.toLp] with x hx
     simp [hx, T, w]
-  · have hT : ‖T‖ ≤ 1 := T.opNorm_le_bound zero_le_one fun f ↦ by simpa [T] using f.le_opNorm 1
-    rw [← norm_toLp_eq, toLp_postcomp]
-    refine (T.norm_compLp_le w.toLp).trans ?_
+  · rw [← norm_toLp_eq, toLp_postcomp]
+    refine (ContinuousLinearMap.norm_apply_one_compLp w.toLp).le.trans ?_
     rw [norm_toLp_eq, LinearIsometryEquiv.norm_map]
-    exact (mul_le_of_le_one_left (norm_nonneg _) hT).trans
-      (LinearMap.opNorm_extendOfNorm_le hdense hC hu)
+    exact LinearMap.opNorm_extendOfNorm_le hdense hC hu
 
 end BesselPotentialSpace

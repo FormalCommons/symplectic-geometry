@@ -196,15 +196,13 @@ theorem mfderiv_mkNonzero_smul_self (v : TauCeti.puncturedSpace (Fin (n + 1) →
     funext a
     exact (mk_eq_mk_iff' 𝕜 _ _ _ _).2 ⟨a, rfl⟩
   have hderiv : mfderiv 𝓘(ℝ, 𝕜) 𝓘(ℝ, Fin (n + 1) → 𝕜) φ one c = c • (v : Fin (n + 1) → 𝕜) := by
-    have h₁ := TauCeti.Manifold.mfderiv_subtype_val_comp_apply (I := 𝓘(ℝ, Fin (n + 1) → 𝕜))
-      (J := 𝓘(ℝ, 𝕜)) (f := φ) (x := one) c
-    have h₂ := TauCeti.Manifold.mfderiv_comp_subtype_val_apply (I := 𝓘(ℝ, Fin (n + 1) → 𝕜))
-      (J := 𝓘(ℝ, 𝕜)) (f := fun a : 𝕜 ↦ a • (v : Fin (n + 1) → 𝕜)) (x := one) c
-    have h₃ : fderiv ℝ (fun a : 𝕜 ↦ a • (v : Fin (n + 1) → 𝕜)) 1 c = c • (v : Fin (n + 1) → 𝕜) := by
-      exact congrArg (fun L ↦ L c)
-        ((hasFDerivAt_id (𝕜 := ℝ) (1 : 𝕜)).smul_const (v : Fin (n + 1) → 𝕜)).fderiv
-    rw [mfderiv_eq_fderiv] at h₂
-    exact h₁.symm.trans (h₂.trans h₃)
+    -- `φ` is the restriction of `a ↦ a • v` to the punctured spaces.
+    have h := TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq (I := 𝓘(ℝ, 𝕜))
+      (I' := 𝓘(ℝ, Fin (n + 1) → 𝕜)) (A := fun a : 𝕜 ↦ a • (v : Fin (n + 1) → 𝕜))
+      (f := φ) (x := one) rfl c
+    rw [mfderiv_eq_fderiv] at h
+    exact h.trans <| congrArg (fun L ↦ L c)
+      ((hasFDerivAt_id (𝕜 := ℝ) (1 : 𝕜)).smul_const (v : Fin (n + 1) → 𝕜)).fderiv
   have h := TauCeti.mfderiv_apply_mfderiv_of_eventuallyEq_comp (Filter.EventuallyEq.of_eq hconst)
     ((contMDiff_mkNonzero 𝕜 n 1 (φ one)).mdifferentiableAt one_ne_zero)
     ((hφ one).mdifferentiableAt one_ne_zero) c
@@ -524,15 +522,11 @@ theorem ker_mfderiv_sphereHopf (x : sphere (0 : StdSpace (Fin (n + 1))) 1) :
     simpa using ne_zero_of_mem_unit_sphere x
   have hmem : stdComplexStructure (Fin (n + 1)) (x : StdSpace (Fin (n + 1))) ∈
       (LinearMap.ker L).map D := by
-    have hrange : stdComplexStructure (Fin (n + 1)) (x : StdSpace (Fin (n + 1))) ∈
-        LinearMap.range D := by
-      -- `D` is the derivative of the inclusion of the sphere, whose range Mathlib computes.
-      change _ ∈ (mvfderiv (𝓡 (2 * n + 1))
-        (Subtype.val : sphere (0 : StdSpace (Fin (n + 1))) 1 → StdSpace (Fin (n + 1))) x).range
-      rw [range_mvfderiv_subtypeVal, Submodule.mem_orthogonal_singleton_iff_inner_right,
-        real_inner_comm, ← stdForm_apply_eq_inner]
-      exact (stdForm (Fin (n + 1))).isAlt _
-    obtain ⟨w, hw⟩ := hrange
+    -- The tangent vector is read in the model space, the domain of `D`.
+    obtain ⟨w, hw⟩ : ∃ w : EuclideanSpace ℝ (Fin (2 * n + 1)),
+        D w = stdComplexStructure (Fin (n + 1)) (x : StdSpace (Fin (n + 1))) :=
+      exists_mvfderiv_coe_sphere_eq x (by
+        rw [real_inner_comm, ← stdForm_apply_eq_inner]; exact (stdForm (Fin (n + 1))).isAlt _)
     refine ⟨w, ?_, hw⟩
     let w' : TangentSpace (𝓡 (2 * n + 1)) x := w
     have hι : mfderiv (𝓡 (2 * n + 1)) 𝓘(ℝ, Fin (n + 1) → ℂ) (sphereToPuncturedSpace n) x w' =

@@ -16,8 +16,8 @@ public import TauCeti.Geometry.Manifold.Orientation.TopForm
 public import TauCeti.Geometry.Manifold.Projectivization.ProjectiveLine
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import TauCeti.Analysis.InnerProductSpace.Euclidean.CoordinateHyperplane
+import TauCeti.Geometry.Manifold.Instances.OnePoint.Tangent.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
-import TauCeti.Geometry.Symplectic.Manifold.Sphere
 
 /-!
 # The Riemann sphere as a real surface
@@ -28,18 +28,15 @@ reads for the underlying real surface, modelled on `𝓘(ℝ, ℂ)`, and compare
 `ℂP¹` and with the round sphere of `ℝ³`:
 
 * `OnePoint.contMDiff_coe_real`: the inclusion is real-analytic;
-* `OnePoint.mfderiv_coe_apply`: its derivative is the identity of `ℂ`, the tangent spaces at
-  `z` and at `(z : OnePoint ℂ)` being `ℂ`;
-* `OnePoint.mvfderiv_coe_apply`: so the derivative at a finite point of a map from the sphere to
-  a normed space is the derivative of its restriction to `ℂ`;
+* `OnePoint.mvfderiv_coe_apply`: the derivative at a finite point of a map from the sphere to a
+  normed space is the derivative of its restriction to `ℂ`, since the derivative of the inclusion
+  is the identity (Tau Ceti's `OnePoint.hasMFDerivAt_coe`);
 * `OnePoint.contMDiff_equivProjectivization_real` and
   `OnePoint.contMDiff_equivProjectivization_symm_real`: Mathlib's identification
   `OnePoint.equivProjectivization` of `OnePoint ℂ` with `ℙ ℂ (Fin 2 → ℂ)` and its inverse are
   real-analytic;
 * `OnePoint.equivProjectivization_apply_coe_eq_affineParam`: under that identification, the
   inclusion is Tau Ceti's affine coordinate `t ↦ [t : 1]` of the projective line;
-* `OnePoint.hasFDerivAt_coe_diffeomorphSphere_coe`: the derivative of Tau Ceti's inverse
-  stereographic projection `OnePoint.diffeomorphSphere v ι`, read on `ℂ`;
 * `OnePoint.ofTopForm_fubiniStudyForm`: the orientation of Tau Ceti's `OnePoint.fubiniStudyForm`
   is the canonical orientation `SymplecticGeometry.complexCurveOrientation ℂ (OnePoint ℂ)` of the
   Riemann sphere as a complex manifold;
@@ -52,17 +49,9 @@ reads for the underlying real surface, modelled on `𝓘(ℝ, ℂ)`, and compare
   projection `OnePoint.diffeomorphSphere northPole equatorIsometry` pulls the area form
   `vol(x, ·, ·)` of the round sphere back to `4π` times `OnePoint.fubiniStudyForm`, and
   `SymplecticGeometry.mpullback_diffeomorphSphere_symm_fubiniStudyForm` states the inverse
-  relation. Tau Ceti's `OnePoint.inner_mfderiv_diffeomorphSphere` says as much for the metrics;
-  the sign of the area forms is read off the triple product, computed at the finite points.
-
-The derivative of the inclusion is computed in charts, as in the proof of Tau Ceti's
-`OnePoint.mfderiv_smul_coe_apply`. The comparison of area forms at the finite points through
-`TauCeti.SmoothBundleForm.eq_of_forall_mem_dense` follows the proof of Tau Ceti's
-`OnePoint.mpullback_smul_fubiniStudyForm_eq_self_iff_mem_unitaryGroup` (through its step
-`mpullback_eq_of_sq_norm_add_sq_norm_eq`), and the triple product of inverse stereographic
-projection with its derivatives is computed as in Tau Ceti's
-`Orientation.integralTopForm_sphereOrientation_sphereVolumeForm` (through its step
-`dotProduct_cross_fderiv_stereoParam`), here for the projection from the north pole.
+  relation. This is Tau Ceti's general `OnePoint.mpullback_diffeomorphSphere_sphereVolumeForm`
+  for this choice of `v` and `ι`, for which the frame `(v, ι 1, ι i) = (e₃, e₁, -e₂)` has
+  volume `-1`.
 
 ## References
 
@@ -92,25 +81,14 @@ namespace OnePoint
 theorem contMDiff_coe_real : ContMDiff 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ω ((↑) : ℂ → OnePoint ℂ) :=
   (contMDiff_coe (𝕜 := ℂ)).restrictScalars' ℝ
 
-/-- The real derivative of the inclusion `ℂ → OnePoint ℂ` at `z` is the identity of `ℂ`: the
-inclusion is the inverse of the affine chart, through which the tangent space at `z` is read. -/
-theorem mfderiv_coe_apply (z v : ℂ) :
-    mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ((↑) : ℂ → OnePoint ℂ) z v = v := by
-  rw [((contMDiff_coe_real z).mdifferentiableAt (by simp)).mfderiv]
-  simp only [writtenInExtChartAt, chartAt_coe, affineChart_coe, fderivWithin_univ,
-    Function.comp_def, mfld_simps]
-  rw [fderiv_fun_id, ContinuousLinearMap.id_comp]
-  -- The casts `tangentSpaceCastModel` between the tangent spaces and `ℂ` are identities.
-  rfl
-
 /-- At a finite point `z`, the derivative of a map `F` from the Riemann sphere to a real normed
 space is the derivative of `F` restricted to `ℂ`. -/
 theorem mvfderiv_coe_apply {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {F : OnePoint ℂ → E} {z : ℂ} (hF : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, E) F z) (a : ℂ) :
-    mvfderiv 𝓘(ℝ, ℂ) F z a = fderiv ℝ (F ∘ (↑)) z a :=
-  (congrArg (mvfderiv 𝓘(ℝ, ℂ) F z) (mfderiv_coe_apply z a)).symm.trans
-    ((mvfderiv_comp_apply z hF ((contMDiff_coe_real z).mdifferentiableAt (by simp)) a).symm.trans
-      (TauCeti.mvfderiv_eq_fderiv_apply _ z a))
+    mvfderiv 𝓘(ℝ, ℂ) F z a = fderiv ℝ (F ∘ (↑)) z a := by
+  have h := mvfderiv_comp_apply z hF (hasMFDerivAt_coe z).mdifferentiableAt a
+  simp only [(hasMFDerivAt_coe z).mfderiv] at h
+  exact h.symm.trans (TauCeti.mvfderiv_eq_fderiv_apply _ z a)
 
 /-- Mathlib's identification of `OnePoint ℂ` with `ℙ ℂ (Fin 2 → ℂ)`, `t ↦ [t : 1]` and
 `∞ ↦ [1 : 0]`, is real-analytic for the underlying real surfaces. -/
@@ -133,30 +111,6 @@ theorem equivProjectivization_apply_coe_eq_affineParam (t : ℂ) :
   ext k
   fin_cases k <;> simp
 
-/-! ### Inverse stereographic projection -/
-
-/-- The derivative of Tau Ceti's inverse stereographic projection
-`OnePoint.diffeomorphSphere v ι` from `v`, read on `ℂ`: the derivative at `z` of
-`y ↦ (1 + ‖y‖²)⁻¹ • (2 ι y + (‖y‖² - 1) v)`. -/
-theorem hasFDerivAt_coe_diffeomorphSphere_coe {E : Type*} [NormedAddCommGroup E]
-    [InnerProductSpace ℝ E] [Fact (Module.finrank ℝ E = 2 + 1)] (v : sphere (0 : E) 1)
-    (ι : ℂ ≃ₗᵢ[ℝ] (ℝ ∙ (v : E))ᗮ) (z : ℂ) :
-    HasFDerivAt (fun y : ℂ ↦ (diffeomorphSphere v ι y : E))
-      ((-((1 + ‖z‖ ^ 2) ^ 2)⁻¹ • (2 • (innerSL ℝ z).comp (ContinuousLinearMap.id ℝ ℂ))).smulRight
-          ((2 : ℝ) • (ι z : E) + (‖z‖ ^ 2 - 1) • (v : E)) +
-        (1 + ‖z‖ ^ 2)⁻¹ • ((2 : ℝ) • ((ℝ ∙ (v : E))ᗮ.subtypeL.comp
-          ι.toContinuousLinearEquiv.toContinuousLinearMap) +
-          (2 • (innerSL ℝ z).comp (ContinuousLinearMap.id ℝ ℂ)).smulRight (v : E))) z := by
-  have hN := (hasFDerivAt_id z).norm_sq
-  have h := ((hasDerivAt_inv (by positivity : (1 + ‖z‖ ^ 2) ≠ 0)).comp_hasFDerivAt z
-    (hN.const_add 1)).smul ((((ℝ ∙ (v : E))ᗮ.subtypeL.comp
-      ι.toContinuousLinearEquiv.toContinuousLinearMap).hasFDerivAt.const_smul
-        (2 : ℝ)).add ((hN.sub_const 1).smul_const (v : E)))
-  refine (h.congr_of_eventuallyEq (.of_forall fun y ↦ ?_)).congr_fderiv ?_
-  · simp
-  · ext a
-    simp [smul_add, add_comm]
-
 /-! ### Orientations -/
 
 /-- The orientation of the Riemann sphere defined by its Fubini–Study form is its canonical
@@ -166,11 +120,11 @@ theorem ofTopForm_fubiniStudyForm :
         (fubiniStudyForm.isSmoothForm.of_le zero_le) fubiniStudyForm_apply_ne_zero =
       SymplecticGeometry.complexCurveOrientation ℂ (OnePoint ℂ) := by
   ext x
-  rw [SymplecticGeometry.orientationAt_complexCurveOrientation]
+  rw [SymplecticGeometry.complexCurveOrientation_def,
+    orientationAt_reindex_complexManifoldOrientation_complex]
   refine ((Manifold.Orientation.orientation_eq_orientationAt_ofTopForm_iff
     Complex.finrank_real_complex (fubiniStudyForm.isSmoothForm.of_le zero_le)
-    fubiniStudyForm_apply_ne_zero (x := x) Complex.basisOneI).2 ?_).symm.trans
-      reindex_complexOrientation_complex.symm
+    fubiniStudyForm_apply_ne_zero (x := x) Complex.basisOneI).2 ?_).symm
   -- In the preferred chart, the Fubini–Study form is positive on the basis `(1, i)`.
   have h := (SmoothBundleForm.eval₂_apply _ _ _ _).symm.trans
     (eval₂_fubiniStudyForm x 1 Complex.I)
@@ -302,42 +256,16 @@ theorem mpullback_diffeomorphSphere_sphereVolumeForm :
         ((OnePoint.diffeomorphSphere northPole equatorIsometry).contMDiff.of_le le_top)
         (Orientation.sphereVolumeForm o₃) =
       (4 * Real.pi) • OnePoint.fubiniStudyForm := by
-  set σ := OnePoint.diffeomorphSphere northPole equatorIsometry
-  -- The forms agree at the finite points, which are dense in the sphere.
-  refine SmoothBundleForm.eq_of_forall_mem_dense OnePoint.denseRange_coe ?_
-  rintro _ ⟨z, rfl⟩
-  refine SmoothBundleForm.apply_eq_of_eval₂_eq fun a b ↦ ?_
-  have hσ : MDifferentiableAt 𝓘(ℝ, ℂ) (𝓡 2) σ z := σ.mdifferentiable (by simp) _
-  have hcoe : MDifferentiableAt (𝓡 2) 𝓘(ℝ, ℝ³) ((↑) : sphere (0 : ℝ³) 1 → ℝ³) (σ z) :=
-    (contMDiff_coe_sphere _).mdifferentiableAt one_ne_zero
-  have hd (c : TangentSpace 𝓘(ℝ, ℂ) (z : OnePoint ℂ)) :
-      mvfderiv (𝓡 2) ((↑) : sphere (0 : ℝ³) 1 → ℝ³) (σ z) (mfderiv 𝓘(ℝ, ℂ) (𝓡 2) σ z c) =
-        fderiv ℝ (fun y : ℂ ↦ (σ y : ℝ³)) z c :=
-    (mvfderiv_comp_apply _ hcoe hσ c).symm.trans (OnePoint.mvfderiv_coe_apply (hcoe.comp _ hσ) c)
-  rw [SmoothForm.eval₂_mpullback, ← sphereAreaForm_eq_sphereVolumeForm, eval₂_sphereAreaForm,
-    hd, hd, (OnePoint.hasFDerivAt_coe_diffeomorphSphere_coe northPole equatorIsometry z).fderiv]
-  have h₁ := SmoothForm.eval₂_smul (4 * Real.pi) OnePoint.fubiniStudyForm (z : OnePoint ℂ) a b
-  have h₂ := OnePoint.eval₂_fubiniStudyForm_coe z a b
-  rw [h₁, h₂, OnePoint.fubiniStudyDensity_def, OnePoint.coe_diffeomorphSphere_coe]
-  clear h₁ h₂ hd
-  -- Read `a` and `b` as complex numbers, and compute the triple product in coordinates.
-  revert a b
-  intro (a : ℂ) (b : ℂ)
-  simp only [add_apply, smul_apply, ContinuousLinearMap.smulRight_apply,
-    ContinuousLinearMap.comp_apply, innerSL_apply_apply, ContinuousLinearMap.id_apply,
-    Submodule.subtypeL_apply, ContinuousLinearEquiv.coe_coe,
-    LinearIsometryEquiv.coe_toContinuousLinearEquiv, coe_equatorIsometry_apply, coe_northPole,
-    Complex.inner, WithLp.ofLp_add, WithLp.ofLp_smul]
-  have hv : (EuclideanSpace.single 2 1 : ℝ³).ofLp = ![0, 0, 1] := by
-    ext i
-    fin_cases i <;> simp
-  rw [hv]
-  simp only [cross_apply, dotProduct, Fin.sum_univ_three, Complex.sq_norm, Complex.normSq_apply,
-    Complex.mul_re, Complex.mul_im, Complex.conj_re, Complex.conj_im, smul_eq_mul, Pi.add_apply,
-    Pi.smul_apply, Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_two,
-    Matrix.head_cons, Matrix.tail_cons, nsmul_eq_mul, Nat.cast_ofNat]
-  field_simp
-  ring
+  -- The frame `(v, ι 1, ι i) = (e₃, e₁, -e₂)` of Tau Ceti's general comparison is negative.
+  have hvol : Orientation.volumeForm o₃ ![(northPole : ℝ³), (equatorIsometry 1 : ℝ³),
+      (equatorIsometry Complex.I : ℝ³)] = -1 := by
+    rw [Orientation.volumeForm_robust _ (EuclideanSpace.basisFun (Fin 3) ℝ) rfl,
+      Module.Basis.det_apply, Matrix.det_fin_three]
+    simp [Module.Basis.toMatrix_apply]
+  refine Subtype.ext ?_
+  rw [SmoothForm.coe_mpullback,
+    OnePoint.mpullback_diffeomorphSphere_sphereVolumeForm northPole equatorIsometry o₃, hvol,
+    SetLike.val_smul, mul_neg_one, neg_neg]
 
 /-- Stereographic projection from the north pole, the inverse of
 `OnePoint.diffeomorphSphere northPole equatorIsometry`, pulls the Fubini–Study form of the

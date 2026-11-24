@@ -27,6 +27,8 @@ import TauCeti.Geometry.Manifold.Riemannian.DivergenceTheorem
 import TauCeti.Geometry.Manifold.Riemannian.FormMetric
 import TauCeti.Geometry.Manifold.Riemannian.VolumeDensity.Support
 import TauCeti.Geometry.Manifold.Riemannian.VolumeForm.Measure
+import TauCeti.MeasureTheory.Function.Lp.LIntegralRpow
+import TauCeti.MeasureTheory.Function.Lp.Restriction
 import TauCeti.MeasureTheory.Function.LpSeminorm.Lintegral
 import TauCeti.MeasureTheory.Integral.ContinuousMap
 import Mathlib.MeasureTheory.Function.Holder
@@ -877,19 +879,8 @@ theorem localize_ae_eq_indicator_smul_localize {χ₁ χ₂ : C^∞⟮I, M; ℝ�
 image `ψ '' tsupport χ` of the support of `χ`. -/
 theorem localize_ae_eq_zero_of_notMem (u : L2Form o k) :
     ∀ᵐ y ∂volume, y ∉ ψ '' tsupport χ → localize ψ χ hχ u y = 0 := by
-  set K := ψ '' tsupport χ
-  have hK : MeasurableSet Kᶜ := (ψ.isCompact_image_of_subset_source
-    (isClosed_tsupport _).isCompact hχ).isClosed.isOpen_compl.measurableSet
-  -- The property says that the restriction of the localization to `Kᶜ` vanishes.
-  have hP (v : Lp (E [⋀^Fin k]→L[ℝ] ℝ) 2 (volume : Measure E)) :
-      (∀ᵐ y ∂volume, y ∉ K → v y = 0) ↔ LpToLpRestrictCLM E _ ℝ volume 2 Kᶜ v = 0 := by
-    rw [Lp.eq_zero_iff_ae_eq_zero]
-    refine (ae_restrict_iff' hK).symm.trans ?_
-    exact ⟨fun h ↦ (LpToLpRestrictCLM_coeFn ℝ Kᶜ v).trans h,
-      fun h ↦ (LpToLpRestrictCLM_coeFn ℝ Kᶜ v).symm.trans h⟩
-  rw [hP]
-  refine induction_on u (isClosed_eq (by fun_prop) continuous_const) fun α ↦ ?_
-  rw [← hP]
+  refine induction_on u ((Lp.isClosed_setOf_ae_notMem_imp_eq_zero _).preimage
+    (localize ψ χ hχ).continuous) fun α ↦ ?_
   filter_upwards [localize_ofSmooth ψ χ hχ α] with y hy hyK
   rw [hy, SmoothForm.localize_apply_eq_zero_of_notMem _ _ _ hyK]
 
@@ -977,7 +968,7 @@ private theorem exists_ofReal_norm_ofSmooth_extendByZeroAlong_sq_le
     ∃ B, 0 ≤ B ∧ ∀ (a : E → E [⋀^Fin k]→L[ℝ] ℝ) (ha : ContDiff ℝ ∞ a) (hc : HasCompactSupport a)
       (hs : tsupport a ⊆ ψ.target), tsupport a ⊆ K →
       ENNReal.ofReal (‖(ofSmooth (SmoothForm.extendByZeroAlong ψ a ha hc hs) : L2Form o k)‖ ^ 2) ≤
-        ENNReal.ofReal B * ∫⁻ y, ‖a y‖ₑ ^ (2 : ℝ) ∂volume := by
+        ENNReal.ofReal B * ∫⁻ y, ‖a y‖ₑ ^ 2 ∂volume := by
   borelize M
   have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
   let b := Module.finBasis ℝ E
@@ -1004,14 +995,13 @@ private theorem exists_ofReal_norm_ofSmooth_extendByZeroAlong_sq_le
         simp [g, γ, RoughForm.extendByZeroAlong_apply_of_notMem _ hxs]
     _ = ∫⁻ y in ψ.target, ENNReal.ofReal (J y) * ENNReal.ofReal (g (ψ.symm y)) ∂b.addHaar := by
         simpa [J] using ψ.symm.setLIntegral_riemannianVolume_eq hn b fun x ↦ ENNReal.ofReal (g x)
-    _ ≤ ∫⁻ y in ψ.target, ENNReal.ofReal B' * ‖a y‖ₑ ^ (2 : ℝ) ∂b.addHaar := by
+    _ ≤ ∫⁻ y in ψ.target, ENNReal.ofReal B' * ‖a y‖ₑ ^ 2 ∂b.addHaar := by
         refine setLIntegral_mono' ψ.open_target.measurableSet fun y hy ↦ ?_
         rw [← ENNReal.ofReal_mul (riemannianJacobian_nonneg _ _ _), ← ofReal_norm,
-          ENNReal.ofReal_rpow_of_nonneg (norm_nonneg _) zero_le_two, ← ENNReal.ofReal_mul hB',
-          Real.rpow_two]
+          ← ENNReal.ofReal_pow (norm_nonneg _), ← ENNReal.ofReal_mul hB']
         exact ENNReal.ofReal_le_ofReal (hpt y hy)
-    _ ≤ ∫⁻ y, ENNReal.ofReal B' * ‖a y‖ₑ ^ (2 : ℝ) ∂b.addHaar := setLIntegral_le_lintegral _ _
-    _ = ENNReal.ofReal (s * B') * ∫⁻ y, ‖a y‖ₑ ^ (2 : ℝ) ∂volume := by
+    _ ≤ ∫⁻ y, ENNReal.ofReal B' * ‖a y‖ₑ ^ 2 ∂b.addHaar := setLIntegral_le_lintegral _ _
+    _ = ENNReal.ofReal (s * B') * ∫⁻ y, ‖a y‖ₑ ^ 2 ∂volume := by
         rw [lintegral_const_mul' _ _ ENNReal.ofReal_ne_top,
           Measure.isAddLeftInvariant_eq_smul b.addHaar volume, lintegral_smul_measure,
           ENNReal.smul_def, smul_eq_mul, ENNReal.ofReal_mul (q := B') s.coe_nonneg,
@@ -1031,13 +1021,11 @@ theorem exists_norm_ofSmooth_extendByZeroAlong_le (ψ : PartialDiffeomorph I �
   obtain ⟨B, hB, h⟩ := exists_ofReal_norm_ofSmooth_extendByZeroAlong_sq_le (k := k) ψ o hK hKψ
   refine ⟨√B, by positivity, fun a ha hc hs haK ↦ ?_⟩
   have hmem : MemLp a 2 volume := ha.continuous.memLp_of_hasCompactSupport hc
-  have hX : eLpNorm a 2 volume ^ (2 : ℝ) = ∫⁻ y, ‖a y‖ₑ ^ (2 : ℝ) ∂volume := by
-    simpa using eLpNorm_nnreal_pow_eq_lintegral (p := 2) two_ne_zero hmem.aestronglyMeasurable
   have h2 := h a ha hc hs haK
-  rw [← hX] at h2
+  rw [← TauCeti.eLpNorm_two_sq_eq_lintegral hmem.aestronglyMeasurable] at h2
   have h3 := (ENNReal.ofReal_le_iff_le_toReal (ENNReal.mul_ne_top ENNReal.ofReal_ne_top
-    (ENNReal.rpow_ne_top_of_nonneg zero_le_two hmem.eLpNorm_ne_top))).1 h2
-  rw [ENNReal.toReal_mul, ENNReal.toReal_ofReal hB, ← ENNReal.toReal_rpow, Real.rpow_two] at h3
+    (ENNReal.pow_ne_top hmem.eLpNorm_ne_top))).1 h2
+  rw [ENNReal.toReal_mul, ENNReal.toReal_ofReal hB, ENNReal.toReal_pow] at h3
   refine (pow_le_pow_iff_left₀ (norm_nonneg _)
     (mul_nonneg (Real.sqrt_nonneg _) ENNReal.toReal_nonneg) two_ne_zero).1 ?_
   rwa [mul_pow, Real.sq_sqrt hB]

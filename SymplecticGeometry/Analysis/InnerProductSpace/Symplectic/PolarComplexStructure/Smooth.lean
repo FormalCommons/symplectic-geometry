@@ -9,6 +9,7 @@ public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.PolarComp
 public import SymplecticGeometry.Topology.Algebra.Module.SymplecticForms
 public import TauCeti.Analysis.InnerProductSpace.Positive.MetricChange.Smooth
 public import TauCeti.Geometry.Symplectic.AlmostComplex.Topology
+import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
 
 /-!
 # Smoothness of `J_{g,ω}`
@@ -60,8 +61,8 @@ The proof of `SymplecticGeometry.contDiffOn_metricPolarFormula` adapts the argum
 private lemma `contMDiffAt_metricChangeTransport_mul_mul_sqrt`
 (`TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/Polar.lean`) from smoothness at a point of a
 manifold to smoothness on an open set of pairs of forms: the same factors `R` and `A`, the same
-use of `CFC.isUnit_sqrt_iff` and `contDiffAt_ringInverse` for the inverse, and the same final
-product.
+use of `CFC.isUnit_sqrt_iff` for the inverse, and the same final product. Where Tau Ceti applies
+`contDiffAt_ringInverse` to the unit, this proof uses `ContDiffAt.inverse`.
 -/
 
 public section
@@ -160,10 +161,8 @@ theorem contDiffOn_metricPolarFormula {n : WithTop ℕ∞} :
   have hinv : ContDiffOn ℝ n (fun p ↦ Ring.inverse (CFC.sqrt (-(A p * A p))))
       (polarDomain W) := by
     intro p hp
-    obtain ⟨u, hu⟩ := (CFC.isUnit_sqrt_iff _ (hApos p hp).nonneg).2 (hApos p hp).isUnit
-    have h := contDiffAt_ringInverse ℝ (n := n) u
-    rw [hu] at h
-    exact h.comp_contDiffWithinAt p (hsqrt p hp)
+    exact (contDiffAt_id.inverse ((CFC.isUnit_sqrt_iff _ (hApos p hp).nonneg).2
+      (hApos p hp).isUnit)).comp_contDiffWithinAt p (hsqrt p hp)
   exact (hR.mul (hA.mul hinv)).mul hQ
 
 /-- The formula only sees the symmetric part of its first argument and the skew part of its

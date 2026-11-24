@@ -646,7 +646,7 @@ private theorem eventuallyEq_mpullback_timeDependentFlowOf_eulerianField_restric
       (hZ₁.comp (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd)))
   -- Write `y = φ_{s u} x`.
   obtain ⟨y, hxU⟩ := y
-  obtain ⟨x, rfl⟩ := (Φ.timeSlice (Real.smoothTransitionUnit u)).surjective y
+  obtain ⟨x, rfl⟩ := (Φ.timeSlice (unitInterval.smoothTransition u)).surjective y
   have hdom : ∀ᶠ u' : ℝ in 𝓝 u, ((u, u'), (⟨_, hxU⟩ : U)) ∈ timeDependentFlowDomain ZU :=
     ((isOpen_timeDependentFlowDomain hZU₁).preimage (by fun_prop)).mem_nhds
       (mem_timeDependentFlowDomain_self hZU₁ _ _)
@@ -661,25 +661,26 @@ private theorem eventuallyEq_mpullback_timeDependentFlowOf_eulerianField_restric
     ← coe_mpullback (Prod.mk u') (contMDiff_const.prodMk contMDiff_id),
     mpullback_prodMk_mpullback_prodMap_id_right Real.smoothTransition.contDiff.contMDiff,
     ← mem_kerDistribution,
-    ← Real.coe_smoothTransitionUnit u', hβ.mem_kerDistribution_iff
-      ⟨(Real.coe_smoothTransitionUnit u').symm ▸ hu', (Real.smoothTransitionUnit u').property⟩,
+    ← unitInterval.coe_smoothTransition u', hβ.mem_kerDistribution_iff
+      ⟨(unitInterval.coe_smoothTransition u').symm ▸ hu',
+        (unitInterval.smoothTransition u').property⟩,
     hw']
   -- The flow of `Z` from time `u` to time `u'` is `φ_{s u'} ∘ φ_{s u}⁻¹`.
   have hflow : timeDependentFlowOf Z u u' =
-      fun y' ↦ Φ.timeSlice (Real.smoothTransitionUnit u')
-        ((Φ.timeSlice (Real.smoothTransitionUnit u)).symm y') := by
+      fun y' ↦ Φ.timeSlice (unitInterval.smoothTransition u')
+        ((Φ.timeSlice (unitInterval.smoothTransition u)).symm y') := by
     funext y'
     rw [Φ.timeDependentFlowOf_eulerianField_smoothTransitionFamily,
       Diffeotopy.smoothTransitionFamily_def, Diffeotopy.smoothTransitionFamily_def]
-  have hpt' : timeDependentFlowOf Z u u' (Φ.timeSlice (Real.smoothTransitionUnit u) x) =
-      Φ.timeSlice (Real.smoothTransitionUnit u') x := by
+  have hpt' : timeDependentFlowOf Z u u' (Φ.timeSlice (unitInterval.smoothTransition u) x) =
+      Φ.timeSlice (unitInterval.smoothTransition u') x := by
     simp only [hflow, Diffeomorph.symm_apply_apply]
   refine (mem_iff_mem_of_eq _ (hpt.trans hpt') _).2 ?_
   rw [hflow]
-  rw [← Real.coe_smoothTransitionUnit u] at hab hw
-  exact hΦ.mfderiv_timeSlice_comp_symm_mem (by simp) (Real.smoothTransitionUnit u)
-    (Real.smoothTransitionUnit u') x
-    ((hβ.mem_kerDistribution_iff ⟨hab, (Real.smoothTransitionUnit u).property⟩ _ w).1 hw)
+  rw [← unitInterval.coe_smoothTransition u] at hab hw
+  exact hΦ.mfderiv_timeSlice_comp_symm_mem (by simp) (unitInterval.smoothTransition u)
+    (unitInterval.smoothTransition u') x
+    ((hβ.mem_kerDistribution_iff ⟨hab, (unitInterval.smoothTransition u).property⟩ _ w).1 hw)
 
 /-- The Eulerian field of a normalized transporting diffeotopy, read over `ℝ`. Let `Φ` transport
 `ξ` with velocity in `ξ`, and let `Y` be a field with the properties of
@@ -701,7 +702,8 @@ private theorem eulerianField_smoothTransitionFamily_eq (hξ : IsContactFamily �
       deriv Real.smoothTransition u • Y (Real.smoothTransition u) y := by
   set Z := eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) with hZdef
   have hZeq (u' : ℝ) (y' : M) :
-      Z u' y' = deriv Real.smoothTransition u' • Φ.velocity (Real.smoothTransitionUnit u') y' := by
+      Z u' y' =
+        deriv Real.smoothTransition u' • Φ.velocity (unitInterval.smoothTransition u') y' := by
     rw [hZdef, Φ.eulerianField_smoothTransitionFamily u', ContMDiffSection.coe_smul, Pi.smul_apply,
       Diffeotopy.coe_smoothVelocity]
   by_cases hd : deriv Real.smoothTransition u = 0
@@ -709,8 +711,9 @@ private theorem eulerianField_smoothTransitionFamily_eq (hξ : IsContactFamily �
   have hs : ContMDiff 𝓘(ℝ) 𝓘(ℝ) ∞ Real.smoothTransition :=
     Real.smoothTransition.contDiff.contMDiff
   -- A local defining family `β` near `(s u, y)`, read over `ℝ` as `β'`.
-  obtain ⟨a, b, hab, U, hyU, β, hβ⟩ := hξ.exists_local_extension (Real.smoothTransitionUnit u, y)
-  rw [Real.coe_smoothTransitionUnit] at hab
+  obtain ⟨a, b, hab, U, hyU, β, hβ⟩ :=
+    hξ.exists_local_extension (unitInterval.smoothTransition u, y)
+  rw [unitInterval.coe_smoothTransition] at hab
   set β' := mpullback (Prod.map Real.smoothTransition id) (hs.prodMap contMDiff_id) β
   -- The restriction `ZU` of `Z` to `U`, which lies in the kernels of `β`, since the velocities of
   -- `Φ` lie in `ξ`.
@@ -723,9 +726,10 @@ private theorem eulerianField_smoothTransitionFamily_eq (hξ : IsContactFamily �
         (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd)))
   have hZker (z : U) : (mpullback (Prod.mk (Real.smoothTransition u))
       (contMDiff_const.prodMk contMDiff_id) β).val z ![ZU u z] = 0 := by
-    rw [← mem_kerDistribution, ← Real.coe_smoothTransitionUnit u,
+    rw [← mem_kerDistribution, ← unitInterval.coe_smoothTransition u,
       hβ.mem_kerDistribution_iff
-        ⟨(Real.coe_smoothTransitionUnit u).symm ▸ hab, (Real.smoothTransitionUnit u).property⟩,
+        ⟨(unitInterval.coe_smoothTransition u).symm ▸ hab,
+          (unitInterval.smoothTransition u).property⟩,
       ContinuousLinearEquiv.apply_symm_apply, hZeq]
     exact Submodule.smul_mem _ _ (hv _ _)
   set y' : U := ⟨y, hyU⟩
@@ -758,13 +762,14 @@ private theorem eulerianField_smoothTransitionFamily_eq (hξ : IsContactFamily �
     simpa only [Submodule.coe_smul, Pi.smul_apply, ContinuousAlternatingMap.smul_apply,
       smul_eq_mul] using h
   rw [← hgray (Real.smoothTransition u)
-    (Real.coe_smoothTransitionUnit u ▸ (Real.smoothTransitionUnit u).property) a b hab U y hyU β hβ,
+    (unitInterval.coe_smoothTransition u ▸ (unitInterval.smoothTransition u).property) a b hab U y
+    hyU β hβ,
     ← hgv, map_smul, smul_inv_smul₀ hd]
   exact (ContinuousLinearEquiv.apply_symm_apply _ _).symm
 
 /-- A normalized transporting diffeotopy `Φ`, read over `ℝ` as `u ↦ φ_{s(u)}`, is the
 time-dependent flow from time `0` of the field `s'(u) • Y_{s(u)}`, which depends only on `Y`. -/
-private theorem apply_smoothTransitionUnit_eq_timeDependentFlowOf (hξ : IsContactFamily ξ)
+private theorem apply_smoothTransition_eq_timeDependentFlowOf (hξ : IsContactFamily ξ)
     {Y : ℝ → Π x : M, TangentSpace I x}
     (hgray : ∀ (t : ℝ), t ∈ unitInterval → ∀ (a b : ℝ), t ∈ Ioo a b → ∀ (U : Opens M) (x : M)
         (hx : x ∈ U) (α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U) ℝ 1),
@@ -772,7 +777,7 @@ private theorem apply_smoothTransitionUnit_eq_timeDependentFlowOf (hξ : IsConta
         Manifold.tangentSpaceOpenEquiv ⟨x, hx⟩ (α.grayVectorField t ⟨x, hx⟩) = Y t x)
     {Φ : Diffeotopy I ∞ M} (hΦ : Φ.Transports ξ) (hv : ∀ t y, Φ.velocity t y ∈ ξ t y)
     (u : ℝ) (x : M) :
-    Φ (Real.smoothTransitionUnit u, x) = timeDependentFlowOf
+    Φ (unitInterval.smoothTransition u, x) = timeDependentFlowOf
       (fun u y ↦ deriv Real.smoothTransition u • Y (Real.smoothTransition u) y) 0 u x := by
   have hZ : eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) =
       fun u y ↦ deriv Real.smoothTransition u • Y (Real.smoothTransition u) y :=
@@ -794,11 +799,11 @@ theorem eq_of_transports [SigmaCompactSpace M] (hξ : IsContactFamily ξ) {Φ Ψ
     Φ = Ψ := by
   obtain ⟨Y, -, -, hgray⟩ := hξ.exists_grayField
   refine Diffeotopy.ext fun p ↦ ?_
-  obtain ⟨u, hu⟩ := Real.smoothTransitionUnit_surjective p.1
+  obtain ⟨u, hu⟩ := unitInterval.smoothTransition_surjective p.1
   rw [← Prod.mk.eta (p := p), ← hu,
-    apply_smoothTransitionUnit_eq_timeDependentFlowOf hξ hgray hΦ
+    apply_smoothTransition_eq_timeDependentFlowOf hξ hgray hΦ
       ((Φ.forall_velocity_mem_iff ξ).2 hvΦ),
-    apply_smoothTransitionUnit_eq_timeDependentFlowOf hξ hgray hΨ
+    apply_smoothTransition_eq_timeDependentFlowOf hξ hgray hΨ
       ((Ψ.forall_velocity_mem_iff ξ).2 hvΨ)]
 
 variable [CompactSpace M]

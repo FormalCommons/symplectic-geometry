@@ -169,11 +169,11 @@ theorem exists_symplectomorphism_opens_mfderiv_eq [SecondCountableTopology M₀]
     rw [hg q] at hfix hd
     refine ContinuousLinearMap.ext fun v ↦ ?_
     have h₁ : mfderiv I₀ I₁ ψ ⟨f₀ q, hgΘ q⟩ v = mfderiv I₀ I₁ Θ (f₀ q) v := by
-      rw [← Manifold.mfderiv_subtype_val_comp_apply, hψΘ, Manifold.mfderiv_comp_subtype_val_apply]
+      exact Manifold.mfderiv_apply_of_subtype_val_comp_eq hψΘ v
     -- The vector `v` is tangent to the source of `Θ`; read it as tangent to `U₀`.
     have h₂ (u : TangentSpace I₀ (⟨f₀ q, hfU q⟩ : U₀)) :
         mfderiv I₀ I₁ Θ' ⟨f₀ q, hfU q⟩ u = mfderiv I₀ I₁ Θ (f₀ q) u := by
-      rw [← Manifold.mfderiv_subtype_val_comp_apply, hΘΘ', Manifold.mfderiv_comp_subtype_val_apply]
+      exact Manifold.mfderiv_apply_of_subtype_val_comp_eq hΘΘ' u
     have hdu (u : TangentSpace I₀ (⟨f₀ q, hfU q⟩ : U₀)) : mfderiv I₀ I₀ χ' ⟨f₀ q, hfU q⟩ u = u := by
       rw [hd]
       exact ContinuousLinearMap.id_apply u

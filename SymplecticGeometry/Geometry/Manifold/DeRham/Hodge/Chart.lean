@@ -292,7 +292,7 @@ theorem exists_hodgeStarInChart_apply_eq (hn : n ≠ 0) (hkl : k + l = m) (b : B
         simpa using (Matrix.ofContinuousLinearEquiv ℝ :
           (Fin m → Fin m → ℝ) ≃L[ℝ] Matrix (Fin m) (Fin m) ℝ).symm.contDiff
       simpa [Function.comp_def, Matrix.nonsing_inv_eq_ringInverse] using
-        hof_symm.contDiffAt.comp g ((contDiffAt_ringInverse ℝ hu.unit).comp g hof.contDiffAt)
+        hof_symm.contDiffAt.comp g (hof.contDiffAt.inverse hu)
     exact hF₀.contDiffAt.comp (c, g) (contDiffAt_fst.prodMk
       (ContDiffAt.comp (g := fun g : Fin m → Fin m → ℝ ↦ Matrix.of.symm (Matrix.of g)⁻¹)
         (f := Prod.snd) (c, g) hinv contDiffAt_snd))
