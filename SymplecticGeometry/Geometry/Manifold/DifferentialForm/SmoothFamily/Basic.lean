@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.Opens
+public import TauCeti.Geometry.Manifold.DifferentialForm.Vertical
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -25,8 +26,10 @@ when there is a smooth form `Ω` on `N × M` with `α t = ι_t^* Ω` for every `
 
 The slice section of a family of slices is smooth (Tau Ceti's
 `TauCeti.contMDiff_mpullback_prodMk_form`). Conversely, if the slice section of `α` is smooth,
-then the form on `N × M` whose value at `(t, y)` is the pullback of `α t` along the projection
-to `M` is smooth (`TauCeti.SmoothForm.ofSlices`), and its slices are the `α t`. So a family is
+then Tau Ceti's vertical form `TauCeti.verticalForm J` of the family, the form on `N × M` whose
+value at `(t, y)` evaluates `α t` on the components along `M`, is smooth
+(`TauCeti.contMDiffAt_verticalForm_iff`, `TauCeti.SmoothForm.ofSlices`), and its slices are the
+`α t` (Tau Ceti's `TauCeti.mpullback_prodMk_verticalForm`). So a family is
 smooth exactly when its slice section is (`SymplecticGeometry.isSmoothFamily_iff_contMDiff`).
 This makes smoothness of a family a local property in `M`, and gives the closure properties of
 smooth families: under the linear operations, multiplication by smooth functions of the parameter
@@ -71,7 +74,7 @@ The pullback of a family of forms along a family of maps
 (`ContMDiffAt.mpullback_form_family_of_family`) is proved as Tau Ceti's
 `ContMDiffAt.mpullback_form_family`, which is its case of a fixed form, with the coefficients of
 the family in place of those of the form. The form with prescribed slices is smooth by this
-lemma (`TauCeti.contMDiffAt_fun_mpullback_snd_iff`). The constant family is the pullback along
+lemma (`TauCeti.contMDiffAt_verticalForm_iff`). The constant family is the pullback along
 the projection (`TauCeti.SmoothForm.mpullback_prodMk_mpullback_snd`), as in Tau Ceti's
 `TauCeti.SmoothForm.mpullback_prodMk_lineMapFamily`. Locality in `M` comes from Tau Ceti's
 `IsLocalDiffeomorphAt.contMDiffAt_mpullback_form_iff`, applied to `id × (U ↪ W)`, and the proof
@@ -145,38 +148,36 @@ theorem _root_.ContMDiffAt.mpullback_form_family_of_family {φ : N → RoughForm
 end Family
 
 omit [IsManifold I 1 M] [IsManifold J 1 N] in
-/-- Pulling back along a map `f` the rough form on `N × M` whose value at `(t, y)` is the pullback
-of `β t` along the projection to `M` gives, at `x`, the pullback of `β (f x).1` along the second
-component of `f`. -/
-theorem mpullback_fun_mpullback_snd_apply {EX HX X : Type*} [NormedAddCommGroup EX]
+/-- The value of the vertical form `TauCeti.verticalForm J β` at `p` is the pullback of `β p.1`
+along the projection `N × M → M`, at `p`. -/
+theorem verticalForm_apply_eq_mpullback_snd (β : N → RoughForm I M F k) (p : N × M) :
+    verticalForm J β p = mpullback (J.prod I) I Prod.snd (β p.1) p := by
+  ext v
+  rw [verticalForm_apply, mpullback_apply, mfderiv_snd]
+  -- `ContinuousLinearMap.snd` is the second projection.
+  rfl
+
+omit [IsManifold I 1 M] [IsManifold J 1 N] in
+/-- Pulling back the vertical form `TauCeti.verticalForm J β` of a family `β` along a map `f`
+gives, at `x`, the pullback of `β (f x).1` along the second component of `f`. -/
+theorem mpullback_verticalForm_apply {EX HX X : Type*} [NormedAddCommGroup EX]
     [NormedSpace ℝ EX] [TopologicalSpace HX] [TopologicalSpace X] [ChartedSpace HX X]
     {IX : ModelWithCorners ℝ EX HX} (β : N → RoughForm I M F k) {f : X → N × M} {x : X}
     (hf : MDifferentiableAt IX (J.prod I) f x) :
-    mpullback IX (J.prod I) f (fun p ↦ mpullback (J.prod I) I Prod.snd (β p.1) p) x =
+    mpullback IX (J.prod I) f (verticalForm J β) x =
       mpullback IX I (Prod.snd ∘ f) (β (f x).1) x := by
   rw [mpullback_comp_at hf mdifferentiableAt_snd]
   -- Both sides only read the value at `f x` of the form on `N × M`.
   ext v
-  simp only [mpullback_apply]
+  simp only [mpullback_apply, verticalForm_apply_eq_mpullback_snd]
 
-omit [IsManifold I 1 M] [IsManifold J 1 N] in
-/-- The rough form on `N × M` whose value at `(t, y)` is the pullback of `β t` along the
-projection to `M` has the slice `β t` at `t`. -/
-theorem mpullback_prodMk_fun_mpullback_snd_apply (β : N → RoughForm I M F k) (t : N) (x : M) :
-    mpullback I (J.prod I) (Prod.mk t)
-        (fun p ↦ mpullback (J.prod I) I Prod.snd (β p.1) p) x = β t x := by
-  rw [mpullback_fun_mpullback_snd_apply β (f := Prod.mk t)
-    (mdifferentiableAt_const.prodMk mdifferentiableAt_id),
-    Prod.snd_comp_mk, mpullback_id]
-
-/-- **Forms with prescribed slices.** For a family `β` of rough forms on `M` over `N`, the rough
-form on `N × M` whose value at `(t, y)` is the pullback of `β t` along the projection to `M` is
-`C^m` at `p` exactly when the slice section `(t, y) ↦ β t y`, along the projection, is. -/
-theorem contMDiffAt_fun_mpullback_snd_iff {m : WithTop ℕ∞} (β : N → RoughForm I M F k)
+/-- **Smoothness of vertical forms.** The vertical form `TauCeti.verticalForm J β` of a family `β`
+of rough forms on `M` over `N` is `C^m` at `p` exactly when the slice section `(t, y) ↦ β t y`,
+along the projection, is. -/
+theorem contMDiffAt_verticalForm_iff {m : WithTop ℕ∞} (β : N → RoughForm I M F k)
     (p : N × M) :
     ContMDiffAt (J.prod I) ((J.prod I).prod 𝓘(ℝ, (EN × E) [⋀^Fin k]→L[ℝ] F)) m
-        (fun q ↦ TotalSpace.mk' ((EN × E) [⋀^Fin k]→L[ℝ] F) q
-          (mpullback (J.prod I) I Prod.snd (β q.1) q)) p ↔
+        (fun q ↦ TotalSpace.mk' ((EN × E) [⋀^Fin k]→L[ℝ] F) q (verticalForm J β q)) p ↔
       ContMDiffAt (J.prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) m
         (fun q : N × M ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
           (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) q.2
@@ -185,10 +186,12 @@ theorem contMDiffAt_fun_mpullback_snd_iff {m : WithTop ℕ∞} (β : N → Rough
   · have := ContMDiffAt.mpullback_form_family (hφ := h) (f := fun q : N × M ↦ Prod.mk q.1)
       (g := Prod.snd) (n := ω) (p₀ := p)
       ((contMDiff_fst.comp contMDiff_fst).prodMk contMDiff_snd).contMDiffAt contMDiffAt_snd le_top
-    simpa only [mpullback_prodMk_fun_mpullback_snd_apply] using this
-  · exact ContMDiffAt.mpullback_form_family_of_family (φ := fun q : N × M ↦ β q.1)
+    simpa only [mpullback_prodMk_verticalForm] using this
+  · have := ContMDiffAt.mpullback_form_family_of_family (φ := fun q : N × M ↦ β q.1)
       (f := fun _ ↦ Prod.snd) (g := id) (n := ω) h
       (contMDiff_snd.comp contMDiff_snd).contMDiffAt contMDiffAt_id le_top
+    refine this.congr_of_eventuallyEq (Eventually.of_forall fun q ↦ ?_)
+    simp only [id_eq, verticalForm_apply_eq_mpullback_snd]
 
 /-- **Slice sections are local in `M`.** For a family `β` of rough forms on an open subset `W`
 of `M` and an open subset `U ≤ W`, the slice section of the restrictions of the `β t` to `U` is
@@ -205,15 +208,16 @@ theorem contMDiffAt_mpullback_inclusion_iff_of_family {m : WithTop ℕ∞} {U W 
         (p.1, Opens.inclusion h p.2) := by
   have hf : IsLocalDiffeomorphAt (J.prod I) (J.prod I) ω (Prod.map id (Opens.inclusion h)) p :=
     (SymplecticGeometry.isLocalDiffeomorph_id p.1).prodMap (isLocalDiffeomorph_inclusion h p.2)
-  rw [← contMDiffAt_fun_mpullback_snd_iff,
-    ← contMDiffAt_fun_mpullback_snd_iff (fun t ↦ mpullback I I (Opens.inclusion h) (β t))]
+  rw [← contMDiffAt_verticalForm_iff,
+    ← contMDiffAt_verticalForm_iff (fun t ↦ mpullback I I (Opens.inclusion h) (β t))]
   refine Iff.trans (Iff.of_eq (congrArg (ContMDiffAt _ _ _ · p) (funext fun q ↦ ?_)))
     (hf.contMDiffAt_mpullback_form_iff le_top)
   have hq : MDifferentiableAt (J.prod I) (J.prod I) (Prod.map id (Opens.inclusion h)) q :=
     mdifferentiableAt_id.prodMap ((contMDiff_inclusion h).mdifferentiableAt (n := 1) one_ne_zero)
-  rw [mpullback_fun_mpullback_snd_apply _ hq, Prod.map_snd',
+  rw [mpullback_verticalForm_apply _ hq, Prod.map_snd',
     mpullback_comp_at mdifferentiableAt_snd
-      ((contMDiff_inclusion h).mdifferentiableAt (n := 1) one_ne_zero), Prod.map_fst, id_eq]
+      ((contMDiff_inclusion h).mdifferentiableAt (n := 1) one_ne_zero), Prod.map_fst, id_eq,
+    verticalForm_apply_eq_mpullback_snd]
 
 end TauCeti
 
@@ -228,19 +232,19 @@ variable {E H M EN HN N F : Type*}
 
 /-- **The form on `N × M` with prescribed slices.** For a family `α` of smooth forms on `M`
 over `N` whose slice section `(t, y) ↦ (α t) y`, along the projection to `M`, is smooth, the
-smooth form on `N × M` whose value at `(t, y)` is the pullback of `α t` along the projection to
-`M`. It vanishes on the directions of `N` (`TauCeti.SmoothForm.ofSlices_apply`), and its slice at
-`t` is `α t`
-(`TauCeti.SmoothForm.mpullback_prodMk_ofSlices`). -/
+smooth form on `N × M` whose underlying form is the vertical form `TauCeti.verticalForm J` of the
+family (`TauCeti.SmoothForm.coe_ofSlices`), so that it vanishes on the directions of `N`
+(`TauCeti.SmoothForm.ofSlices_apply`), and
+whose slice at `t` is `α t` (`TauCeti.SmoothForm.mpullback_prodMk_ofSlices`). -/
 def ofSlices (α : N → SmoothForm I M F k)
     (hα : ContMDiff (J.prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞
       (fun p : N × M ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
         (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) p.2
         ((α p.1).val p.2))) :
     SmoothForm (J.prod I) (N × M) F k :=
-  ⟨fun p ↦ TauCeti.mpullback (J.prod I) I Prod.snd (α p.1).val p,
+  ⟨verticalForm J fun t ↦ (α t).val,
     IsSmoothForm.mem_smoothBundleForms <| (isSmoothForm_def _ _).mpr fun p ↦
-      (contMDiffAt_fun_mpullback_snd_iff (fun t ↦ (α t).val) p).mpr (hα p)⟩
+      (contMDiffAt_verticalForm_iff (fun t ↦ (α t).val) p).mpr (hα p)⟩
 
 variable {α : N → SmoothForm I M F k}
   {hα : ContMDiff (J.prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) ∞
@@ -248,10 +252,10 @@ variable {α : N → SmoothForm I M F k}
       (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) p.2
         ((α p.1).val p.2))}
 
-/-- The value of `TauCeti.SmoothForm.ofSlices α hα` at `(t, y)` is the pullback of `α t` along
-the projection to `M`. -/
+/-- The underlying form of `TauCeti.SmoothForm.ofSlices α hα` is the vertical form of the family
+of underlying forms of the `α t`. -/
 theorem coe_ofSlices :
-    (ofSlices α hα).val = fun p ↦ TauCeti.mpullback (J.prod I) I Prod.snd (α p.1).val p :=
+    (ofSlices α hα).val = verticalForm J fun t ↦ (α t).val :=
   (rfl)
 
 /-- The form `TauCeti.SmoothForm.ofSlices α hα` evaluates `α t` on the components along `M` of
@@ -259,7 +263,8 @@ the tangent vectors at `(t, y)`. -/
 theorem ofSlices_apply (p : N × M) (v : Fin k → TangentSpace (J.prod I) p) :
     (ofSlices α hα).val p v =
       (α p.1).val p.2 (fun i ↦ (Manifold.tangentSpaceProdEquiv p (v i)).2) := by
-  rw [coe_ofSlices, ← mpullback_snd_apply (I := J) (α p.1) p v, coe_mpullback]
+  rw [coe_ofSlices, verticalForm_apply_eq_mpullback_snd, ← mpullback_snd_apply (I := J) (α p.1) p v,
+    coe_mpullback]
 
 /-- The slice at `t` of `TauCeti.SmoothForm.ofSlices α hα` is `α t`. -/
 @[simp]
@@ -267,7 +272,7 @@ theorem mpullback_prodMk_ofSlices (t : N) :
     mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) (ofSlices α hα) = α t :=
   Subtype.ext <| funext fun x ↦ by
     rw [coe_mpullback, coe_ofSlices]
-    exact mpullback_prodMk_fun_mpullback_snd_apply (fun t ↦ (α t).val) t x
+    exact congrFun (mpullback_prodMk_verticalForm (fun t ↦ (α t).val) t) x
 
 /-- The slice at `t` of the pullback of a form `α` on `M` along the projection `N × M → M` is
 `α`. -/
@@ -332,14 +337,13 @@ theorem isSmoothFamily_iff_contMDiff {α : N → SmoothForm I M F k} :
   simp_rw [← hΩ, SmoothForm.coe_mpullback]
   exact contMDiff_mpullback_prodMk_form Ω.contMDiff
 
-/-- A family `α` of smooth forms on `M` over `N` is smooth exactly when the rough form on `N × M`
-whose value at `(t, y)` is the pullback of `α t` along the projection to `M` is smooth. -/
+/-- A family `α` of smooth forms on `M` over `N` is smooth exactly when its vertical form
+`TauCeti.verticalForm J` on `N × M` is smooth. -/
 theorem isSmoothFamily_iff_isSmoothForm {α : N → SmoothForm I M F k} :
     IsSmoothFamily J α ↔
-      IsSmoothForm (J.prod I) ∞
-        fun p ↦ TauCeti.mpullback (J.prod I) I Prod.snd (α p.1).val p := by
+      IsSmoothForm (J.prod I) ∞ (verticalForm J fun t ↦ (α t).val) := by
   rw [isSmoothFamily_iff_contMDiff, isSmoothForm_def]
-  exact forall_congr' fun p ↦ (contMDiffAt_fun_mpullback_snd_iff (fun t ↦ (α t).val) p).symm
+  exact forall_congr' fun p ↦ (contMDiffAt_verticalForm_iff (fun t ↦ (α t).val) p).symm
 
 namespace IsSmoothFamily
 
@@ -402,14 +406,16 @@ protected theorem fun_smul (hα : IsSmoothFamily J α) {c : N → ℝ}
     (hc : ContMDiff J 𝓘(ℝ) ∞ c) :
     IsSmoothFamily J (fun t ↦ c t • α t) := by
   rw [isSmoothFamily_iff_isSmoothForm] at hα ⊢
-  simp only [Submodule.coe_smul, mpullback_smul, Pi.smul_apply]
-  exact hα.fun_smul (hc.comp contMDiff_fst)
+  convert hα.fun_smul (hc.comp contMDiff_fst) using 1
+  funext p
+  simp only [verticalForm_apply_eq_mpullback_snd, Submodule.coe_smul, mpullback_smul,
+    Pi.smul_apply, Function.comp_apply]
 
 /-- The product of a smooth family with a fixed smooth function on `M` is smooth. -/
 protected theorem funSMul (hα : IsSmoothFamily J α) (g : C^∞⟮I, M; ℝ⟯) :
     IsSmoothFamily J (fun t ↦ SmoothForm.funSMulₗ g (α t)) := by
   rw [isSmoothFamily_iff_isSmoothForm] at hα ⊢
-  simp only [SmoothForm.coe_funSMulₗ, mpullback_fun_smul]
+  simp only [SmoothForm.coe_funSMulₗ, verticalForm_fun_smul]
   exact hα.fun_smul (g.contMDiff.comp contMDiff_snd)
 
 end IsSmoothFamily
@@ -507,9 +513,9 @@ protected theorem extendByZero_smul {U W : Opens M} (h : U ≤ W)
     refine (contMDiffAt_mpullback_inclusion_iff_of_family h (fun s ↦ (β s).val)
       (t, ⟨x, hx⟩)).mp ?_
     simp only [hβ, RoughForm.mpullback_inclusion_extendByZero]
-    refine (contMDiffAt_fun_mpullback_snd_iff
+    refine (contMDiffAt_verticalForm_iff
       (fun s y ↦ g (Opens.inclusion h y) • (α s).val y) _).mp ?_
-    simpa only [mpullback_fun_smul] using hgα.contMDiff (t, ⟨x, hx⟩)
+    simpa only [verticalForm_fun_smul] using hgα.contMDiff (t, ⟨x, hx⟩)
   · -- Near `x`, every `β s` vanishes.
     have hev : ∀ᶠ q : N × W in 𝓝 (t, x), ∀ s, (β s).val q.2 = 0 := by
       have hy : ∀ᶠ y in 𝓝 x, ∀ s, (β s).val y = 0 := by
