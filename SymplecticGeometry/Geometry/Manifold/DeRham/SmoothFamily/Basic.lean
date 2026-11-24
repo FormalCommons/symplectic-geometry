@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.DeRham.Basic
 public import TauCeti.Geometry.Manifold.DeRham.Map
+import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Map
 
@@ -136,8 +137,8 @@ theorem mk_proj (k : ℕ) (z : closedForms I M k) :
   cases k with
   | zero => exact congrArg _ (Subtype.ext (σ.proj_zero z))
   | succ k =>
-    rw [eq_comm, ← sub_eq_zero, ← map_sub, deRhamCohomology.mk_eq_zero_iff, exactForms_succ,
-      Submodule.coe_sub, Submodule.coe_inclusion, coe_projSpace, ← σ.mextDerivₗ_primitive]
+    rw [eq_comm, deRhamCohomology.mk_eq_mk_iff, exactForms_succ,
+      Submodule.coe_inclusion, coe_projSpace, ← σ.mextDerivₗ_primitive]
     exact LinearMap.mem_range_self _ _
 
 /-- A closed form of the space of a splitting whose class vanishes is zero. -/

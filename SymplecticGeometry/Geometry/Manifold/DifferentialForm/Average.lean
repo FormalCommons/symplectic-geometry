@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.DifferentialForm.Average
 public import TauCeti.Geometry.Manifold.DeRham.PathIntegral
 import TauCeti.Geometry.Manifold.SmoothApprox
+import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 
@@ -150,8 +151,7 @@ theorem measureAverage_sub_mem_exactForms_one [FiniteDimensional ℝ E] [FiniteD
   · rw [Subsingleton.elim (measureAverage J μ γ - γ) 0]
     exact zero_mem _
   have hclosed : measureAverage J μ γ ∈ closedForms I M 1 :=
-    (mem_closedForms I _).2 <| (isClosed_def _).1 <|
-      IsClosed.measureAverage J μ ((isClosed_def _).2 ((mem_closedForms I _).1 hγ))
+    (IsClosed.measureAverage J μ ((isClosed_iff_mem_closedForms γ).2 hγ)).mem_closedForms
   rw [mem_exactForms_one_iff_forall_pathIntegral_eq_zero (sub_mem hclosed hγ) x₀]
   intro c hc hc₀ hc₁
   have hc' : ContMDiff 𝓘(ℝ, ℝ) I 1 c := hc.of_le (by simp)

@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Sobolev
 public import TauCeti.Geometry.Manifold.DeRham.Harmonic
+import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import TauCeti.Analysis.InnerProductSpace.Variational.Compatibility
 
 /-!
@@ -218,8 +219,7 @@ theorem harmonicForms.toDeRhamCohomology_bijective (o : Manifold.Orientation I M
   obtain ⟨α, rfl⟩ := deRhamCohomology.mk_surjective I k c
   obtain ⟨h, hh, hαh⟩ := exists_mem_harmonicForms_sub_mem_exactForms o hkl α.property
   refine ⟨⟨h, hh⟩, ?_⟩
-  rw [harmonicForms.toDeRhamCohomology_apply, eq_comm, ← sub_eq_zero, ← map_sub,
-    deRhamCohomology.mk_eq_zero_iff, Submodule.coe_sub]
+  rw [harmonicForms.toDeRhamCohomology_apply, eq_comm, deRhamCohomology.mk_eq_mk_iff]
   exact hαh
 
 /-- **The Hodge isomorphism**: on a closed oriented Riemannian manifold, sending a harmonic form
@@ -244,8 +244,7 @@ theorem harmonicForms.deRhamCohomologyEquiv_symm_mk (o : Manifold.Orientation I 
     (hαh : α.val - h.val ∈ exactForms I M k) :
     (harmonicForms.deRhamCohomologyEquiv o hkl).symm (deRhamCohomology.mk I k α) = h := by
   rw [LinearEquiv.symm_apply_eq, deRhamCohomologyEquiv_apply, toDeRhamCohomology_apply,
-    ← sub_eq_zero, ← map_sub,
-    deRhamCohomology.mk_eq_zero_iff, Submodule.coe_sub]
+    deRhamCohomology.mk_eq_mk_iff]
   exact hαh
 
 /-- A closed form differs from the harmonic representative of its class by an exact form. -/
