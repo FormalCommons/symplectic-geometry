@@ -6,8 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.Projection
-public import TauCeti.Geometry.Lie.Functor
-import TauCeti.Geometry.Lie.Subgroup.Kernel
+public import TauCeti.Geometry.Symplectic.AlmostComplex
+public import TauCeti.LinearAlgebra.TotallyReal.Basic
+public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
 
 /-!
 # Complexifications of Lie groups
@@ -15,9 +16,10 @@ import TauCeti.Geometry.Lie.Subgroup.Kernel
 A complexification of a real Lie group `G` (over `I`) is recorded here as data with
 hypotheses, `SymplecticGeometry.LieComplexification I G IC Gc`: a real Lie group `Gc` (over
 `IC`) containing `G` through an injective smooth homomorphism `toHom`, a complex structure
-`cplx` on the Lie algebra of `Gc` that commutes with every `ad`, for which the Lie algebra of `Gc`
-is the direct sum of the image `𝔤` of the Lie algebra of `G` and of `cplx 𝔤`, and a polar
-decomposition: a diffeomorphism `𝔤 × G ≃ Gc`, `(ξ, u) ↦ exp (cplx ξ) * u`.
+`cplx` on the Lie algebra of `Gc` (a `TauCeti.AlmostComplexStructure`) that commutes with every
+`ad`, for which the image `𝔤` of the Lie algebra of `G` is maximal totally real
+(`TauCeti.IsMaximalTotallyReal`: the Lie algebra of `Gc` is the direct sum of `𝔤` and `cplx 𝔤`),
+and a polar decomposition: a diffeomorphism `𝔤 × G ≃ Gc`, `(ξ, u) ↦ exp (cplx ξ) * u`.
 
 Neither Mathlib nor Tau Ceti constructs the complexification of a compact Lie group, and its
 construction needs more than the results built on it, so the structure takes these as fields.
@@ -38,7 +40,7 @@ The complex structure `cplx` is not determined by the other fields.
 
 * `SymplecticGeometry.LieComplexification.toHom_mulInvariantExp`: `toHom` intertwines the
   exponentials through `lieMap`.
-* `SymplecticGeometry.LieComplexification.injective_lieMap`: `lieMap` is injective.
+* `SymplecticGeometry.LieComplexification.lieMap_injective`: `lieMap` is injective.
 * `SymplecticGeometry.LieComplexification.lieMap_re_add_cplx_lieMap_im`: every element `x` is
   `lieMap (re x) + cplx (lieMap (im x))`.
 * `SymplecticGeometry.LieComplexification.connectedSpace`: `Gc` is connected if `G` is.
@@ -72,27 +74,28 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 
 /-- A complexification of the real Lie group `G`: a real Lie group `Gc` with an injective smooth
-homomorphism `toHom : G → Gc`, a real-linear map `cplx` on the Lie algebra of `Gc` with
-`cplx ∘ cplx = -1` that commutes with every `ad` (so that the Lie algebra of `Gc` is a complex
-Lie algebra), for which the Lie algebra of `Gc` is the direct sum of the image of the Lie algebra
-`𝔤` of `G` and of its image under `cplx`, and a diffeomorphism
-`polar : 𝔤 × G ≃ Gc`, `(ξ, u) ↦ exp (cplx ξ) * toHom u`. The source of `polar` is written
-`E × G`: the Lie algebra `GroupLieAlgebra I G` is the model space `E` by definition, but carries
-no charted-space instance of its own.
+homomorphism `toHom : G → Gc`, a complex structure `cplx` on the Lie algebra of `Gc` (a real-linear
+map with `cplx ∘ cplx = -1`) that commutes with every `ad` (so that the Lie algebra of `Gc` is a
+complex Lie algebra), for which the image of the Lie algebra `𝔤` of `G` is maximal totally real
+(the Lie algebra of `Gc` is the direct sum of the image of `𝔤` and of its image under `cplx`), and
+a diffeomorphism `polar : 𝔤 × G ≃ Gc`, `(ξ, u) ↦ exp (cplx ξ) * toHom u`. The source of `polar`
+is written `E × G`: the Lie algebra `GroupLieAlgebra I G` is the model space `E` by definition,
+but carries no charted-space instance of its own.
 
-The laws of the structure do not determine `cplx`: for `Circle` in `ℂˣ`, multiplication by any
-`a + i b` with `a ≠ 0` on the Lie algebra `ℂ` satisfies all of them. What ties `cplx` to a
-complex structure elsewhere is a compatibility condition with an action, not this structure. -/
+The laws of the structure do not determine `cplx`. For `Circle` in `ℂˣ`, with Lie algebras `i ℝ`
+and `ℂ`, every real-linear `J` on `ℂ` with `J ∘ J = -1` and `J i = a + b i`, `a ≠ 0`, satisfies
+all of them, and such a `J` is multiplication by a complex number only when it is `±i`. What ties
+`cplx` to a complex structure elsewhere is a compatibility condition with an action, not this
+structure. -/
 structure LieComplexification where
   /-- The inclusion of `G` into its complexification. -/
   toHom : ContMDiffMonoidMorphism I IC ∞ G Gc
-  injective_toHom : Injective toHom
+  toHom_injective : Injective toHom
   /-- The complex structure of the Lie algebra of the complexification. -/
-  cplx : GroupLieAlgebra IC Gc →ₗ[ℝ] GroupLieAlgebra IC Gc
-  cplx_cplx (x : GroupLieAlgebra IC Gc) : cplx (cplx x) = -x
+  cplx : AlmostComplexStructure (GroupLieAlgebra IC Gc)
   cplx_lie (x y : GroupLieAlgebra IC Gc) : cplx ⁅x, y⁆ = ⁅x, cplx y⁆
-  isCompl_range : IsCompl (LinearMap.range toHom.groupLieAlgebraLieHom.toLinearMap)
-    (LinearMap.range (cplx ∘ₗ toHom.groupLieAlgebraLieHom.toLinearMap))
+  isMaximalTotallyReal_range : IsMaximalTotallyReal cplx.toLinearMap
+    (LinearMap.range toHom.groupLieAlgebraLieHom.toLinearMap)
   /-- The polar decomposition of the complexification. -/
   polar : (E × G) ≃ₘ⟮𝓘(ℝ, E).prod I, IC⟯ Gc
   polar_apply' (ξ : E) (u : G) :
@@ -110,74 +113,50 @@ theorem lieMap_def : C.lieMap = C.toHom.groupLieAlgebraLieHom :=
   (rfl)
 
 theorem lieMap_apply (ξ : GroupLieAlgebra I G) : C.lieMap ξ = mfderiv I IC C.toHom 1 ξ := by
-  rw [lieMap_def, ContMDiffMonoidMorphism.coe_groupLieAlgebraLieHom]
-  exact MonoidHom.groupLieAlgebraMap_apply _ _ ξ
+  rw [lieMap_def, ContMDiffMonoidMorphism.coe_groupLieAlgebraLieHom,
+    MonoidHom.groupLieAlgebraMap_apply, ContMDiffMonoidMorphism.coe_toMonoidHom]
 
+theorem isMaximalTotallyReal_range_lieMap :
+    IsMaximalTotallyReal C.cplx.toLinearMap (LinearMap.range C.lieMap.toLinearMap) :=
+  C.isMaximalTotallyReal_range
+
+/-- The ranges of `lieMap` and of `cplx ∘ lieMap` are complementary. -/
 theorem isCompl_range_lieMap : IsCompl (LinearMap.range C.lieMap.toLinearMap)
-    (LinearMap.range (C.cplx ∘ₗ C.lieMap.toLinearMap)) :=
-  C.isCompl_range
-
-attribute [simp] cplx_cplx
+    (LinearMap.range (C.cplx.toLinearMap ∘ₗ C.lieMap.toLinearMap)) := by
+  rw [LinearMap.range_comp]
+  exact C.isMaximalTotallyReal_range_lieMap.isCompl
 
 /-- The complex structure also commutes with brackets on the right: `cplx ⁅x, y⁆ = ⁅cplx x, y⁆`.
 -/
 theorem cplx_lie' (x y : GroupLieAlgebra IC Gc) : C.cplx ⁅x, y⁆ = ⁅C.cplx x, y⁆ := by
-  rw [← lie_skew, map_neg, C.cplx_lie, ← lie_skew, neg_neg]
-
-theorem injective_cplx : Injective C.cplx := fun x y h ↦ by
-  simpa using congrArg C.cplx h
+  rw [← lie_skew, ← neg_one_smul ℝ ⁅y, x⁆, C.cplx.apply_smul, C.cplx_lie, neg_one_smul, lie_skew]
 
 section FiniteDimensional
 
-variable [T2Space G] [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC]
+variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC]
 
 /-- The inclusion of `G` into its complexification intertwines the exponentials:
 `toHom (exp ξ) = exp (lieMap ξ)`. -/
-theorem toHom_mulInvariantExp [BoundarylessManifold I G] (ξ : GroupLieAlgebra I G) :
-    C.toHom (mulInvariantExp ξ) = mulInvariantExp (C.lieMap ξ) := by
-  obtain ⟨X, rfl⟩ := (leftInvariantDerivationEquivGroupLieAlgebra (I := I) (G := G)
-    BoundarylessManifold.isInteriorPoint).surjective ξ
-  have h := map_lieExp C.toHom X
-  simp only [lieExp_eq_mulInvariantExp] at h
-  rw [h, lieMap_def, ContMDiffMonoidMorphism.coe_groupLieAlgebraLieHom,
-    MonoidHom.groupLieAlgebraMap_apply, ← leftInvariantDerivationLieEquivGroupLieAlgebra_apply,
-    ← leftInvariantDerivationLieEquivGroupLieAlgebra_apply]
-  exact congrArg _ (leftInvariantDerivationLieEquivGroupLieAlgebra_lieMap C.toHom X)
+theorem toHom_mulInvariantExp [T2Space G] [BoundarylessManifold I G] (ξ : GroupLieAlgebra I G) :
+    C.toHom (mulInvariantExp ξ) = mulInvariantExp (C.lieMap ξ) :=
+  C.toHom.map_mulInvariantExp ξ
 
 /-- The Lie algebra map of the inclusion of `G` into its complexification is injective. -/
-theorem injective_lieMap : Injective C.lieMap := by
-  let f : G →ₜ* Gc := ⟨C.toHom.toMonoidHom, C.toHom.contMDiff_toFun.continuous⟩
-  have hf : f.toContMDiffMonoidMorphism I IC = C.toHom :=
-    DFunLike.ext _ _ fun _ ↦
-      ContinuousMonoidHom.coe_toContMDiffMonoidMorphism (I := I) (I' := IC) f ▸ rfl
-  have : Subsingleton f.ker :=
-    ⟨fun a b ↦ Subtype.ext (C.injective_toHom (a.property.trans b.property.symm))⟩
-  have hinj := ContinuousMonoidHom.lieMap_injective_of_discreteTopology_ker (I := I) (I' := IC) f
-  rw [ContinuousMonoidHom.lieMap_def, hf] at hinj
-  intro ξ η h
-  let e := leftInvariantDerivationLieEquivGroupLieAlgebra
-    (ContMDiffMul.isInteriorPoint (I := I) (n := ∞) (by simp) (1 : G))
-  let e' := leftInvariantDerivationLieEquivGroupLieAlgebra
-    (ContMDiffMul.isInteriorPoint (I := IC) (n := ∞) (by simp) (1 : Gc))
-  have key (ξ : GroupLieAlgebra I G) : C.lieMap ξ = e' (_root_.lieMap C.toHom (e.symm ξ)) := by
-    rw [leftInvariantDerivationLieEquivGroupLieAlgebra_lieMap, LieEquiv.apply_symm_apply]
-    -- The two sides differ only in reading the tangent space at `C.toHom 1` as the one at `1`.
-    exact C.lieMap_apply ξ
-  rw [key, key] at h
-  exact e.symm.injective (hinj (e'.injective h))
+theorem lieMap_injective : Injective C.lieMap :=
+  C.toHom.groupLieAlgebraLieHom_injective C.toHom_injective
 
-theorem injective_cplx_comp_lieMap : Injective (C.cplx ∘ₗ C.lieMap.toLinearMap) :=
-  C.injective_cplx.comp C.injective_lieMap
+theorem cplx_comp_lieMap_injective : Injective (C.cplx.toLinearMap ∘ₗ C.lieMap.toLinearMap) :=
+  C.cplx.injective.comp C.lieMap_injective
 
 /-- The component of an element of the Lie algebra of `Gc` along `lieMap 𝔤`, read in `𝔤`. -/
 def re : GroupLieAlgebra IC Gc →ₗ[ℝ] GroupLieAlgebra I G :=
-  LinearMap.linearProjOfIsCompl _ C.lieMap.toLinearMap C.injective_lieMap C.isCompl_range_lieMap
+  LinearMap.linearProjOfIsCompl _ C.lieMap.toLinearMap C.lieMap_injective C.isCompl_range_lieMap
 
 /-- The component of an element of the Lie algebra of `Gc` along `cplx (lieMap 𝔤)`, read in
 `𝔤`. -/
 def im : GroupLieAlgebra IC Gc →ₗ[ℝ] GroupLieAlgebra I G :=
-  LinearMap.linearProjOfIsCompl _ (C.cplx ∘ₗ C.lieMap.toLinearMap) C.injective_cplx_comp_lieMap
-    C.isCompl_range_lieMap.symm
+  LinearMap.linearProjOfIsCompl _ (C.cplx.toLinearMap ∘ₗ C.lieMap.toLinearMap)
+    C.cplx_comp_lieMap_injective C.isCompl_range_lieMap.symm
 
 @[simp]
 theorem re_lieMap (ξ : GroupLieAlgebra I G) : C.re (C.lieMap ξ) = ξ :=
@@ -213,7 +192,14 @@ theorem expI_def (ξ : GroupLieAlgebra I G) : C.expI ξ = mulInvariantExp (C.cpl
 
 @[simp]
 theorem expI_zero : C.expI 0 = 1 := by
-  rw [expI_def, map_zero, map_zero, mulInvariantExp_zero (I := IC)]
+  rw [expI_def, map_zero, AlmostComplexStructure.apply_zero, mulInvariantExp_zero (I := IC)]
+
+/-- `expI_zero` with `0` written in the model space `E`, the form in which `polar_apply` gives
+`C.polar (0, u)`. -/
+@[simp]
+theorem expI_zero' : C.expI (0 : E) = 1 :=
+  -- The zeros of `E` and of `GroupLieAlgebra I G` agree only after unfolding `TangentSpace`.
+  C.expI_zero
 
 theorem expI_add_smul (ξ : GroupLieAlgebra I G) (s t : ℝ) :
     C.expI ((s + t) • ξ) = C.expI (s • ξ) * C.expI (t • ξ) := by
@@ -227,17 +213,14 @@ theorem polar_apply (ξ : E) (u : G) :
 
 /-- The polar decomposition at `ξ = 0` is the inclusion `toHom`. -/
 theorem polar_zero_apply (u : G) : C.polar (0, u) = C.toHom u := by
-  -- `0 : E` is the zero of `GroupLieAlgebra I G` only up to unfolding `TangentSpace`, so
-  -- `expI_zero` is applied by `exact` rather than `rw`.
-  rw [polar_apply]
-  exact (congrArg (· * C.toHom u) C.expI_zero).trans (one_mul _)
+  rw [polar_apply, expI_zero', one_mul]
 
 /-- A complexification is determined by its inclusion and its complex structure. -/
 @[ext]
 theorem ext {C C' : LieComplexification I G IC Gc} (htoHom : C.toHom = C'.toHom)
     (hcplx : C.cplx = C'.cplx) : C = C' := by
-  obtain ⟨toHom, hinj, cplx, h₁, h₂, h₃, polar, hpolar⟩ := C
-  obtain ⟨toHom', hinj', cplx', h₁', h₂', h₃', polar', hpolar'⟩ := C'
+  obtain ⟨toHom, hinj, cplx, h₁, h₂, polar, hpolar⟩ := C
+  obtain ⟨toHom', hinj', cplx', h₁', h₂', polar', hpolar'⟩ := C'
   obtain rfl : toHom = toHom' := htoHom
   obtain rfl : cplx = cplx' := hcplx
   obtain rfl : polar = polar' := Diffeomorph.ext fun ⟨ξ, u⟩ ↦ by rw [hpolar, hpolar']

@@ -80,9 +80,10 @@ may adjust implicit arguments and instance arguments to what elaborates.
    `C.lieMap`, is a definition and not a field: Tau Ceti's
    `ContMDiffMonoidMorphism.groupLieAlgebraLieHom`, with `map_lieExp` for
    its exponential (`Geometry/Lie/Functor.lean`). Then
-   `cplx` is a real-linear map on `GroupLieAlgebra IC Gc` with square
-   `-1` that commutes with each `ad` (a complex Lie algebra). The ranges of
-   `lieMap` and of `cplx ∘ lieMap` are complementary. Finally there is
+   `cplx` is a `TauCeti.AlmostComplexStructure` on `GroupLieAlgebra IC Gc`
+   that commutes with each `ad` (a complex Lie algebra). The range of
+   `lieMap` is `TauCeti.IsMaximalTotallyReal` for `cplx`, so that it and
+   the range of `cplx ∘ lieMap` are complementary. Finally there is
    `polar : (E × G) ≃ₘ⟮_, IC⟯ Gc`, with `𝔤` read as its model space `E` (the
    tangent space has no charted-space instance), a diffeomorphism with
    `polar (ξ, u) = mulInvariantExp (cplx (lieMap ξ)) * toHom u`. All the
