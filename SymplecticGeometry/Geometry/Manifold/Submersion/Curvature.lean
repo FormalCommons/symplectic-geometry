@@ -265,7 +265,7 @@ theorem curvature_eq_zero_of_isInvolutiveDistribution (hn : 1 ≤ n)
     rw [← hD.horizontalLiftField_of_le v hn]
     exact (hD.of_le hn).mdifferentiableAt_horizontalLiftField le_rfl (hf2 y) hy
   obtain ⟨U, hU, hUo, hxU⟩ := eventually_nhds_iff.1 ((hnear hv₁).and (hnear hv₂))
-  refine (hD.curvature_eq_zero_iff_mem hn (hf x) hv₁ hv₂).2 <| hDi.mlieBracket_mem hUo
+  exact (hD.curvature_eq_zero_iff_mem hn (hf x) hv₁ hv₂).2 <| hDi.mlieBracket_mem hUo
     (fun y hy ↦ (hU y hy).1.mdifferentiableWithinAt)
     (fun y hy ↦ (hU y hy).2.mdifferentiableWithinAt)
     (fun y _ ↦ hD.horizontalLiftField_mem v₁ y) (fun y _ ↦ hD.horizontalLiftField_mem v₂ y) hxU
