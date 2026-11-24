@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.Orientation.Sign
+import TauCeti.Geometry.Manifold.Orientation.Pullback
 
 /-!
 # More on the orientation sign
@@ -21,12 +22,14 @@ This file adds to Tau Ceti's orientation sign `TauCeti.Manifold.Orientation.orie
   orientation at `f x` to `x` as the proof of Tau Ceti's
   `TauCeti.Manifold.Orientation.isOrientationPreservingAt_of_apply_eq_of_mfderiv_eq_id` does;
 * it is constant on a preconnected set on which the map is `C¹` with invertible derivative
-  (`TauCeti.Manifold.Orientation.orientationSign_eq_of_isPreconnected`), since it is locally
-  constant there (`TauCeti.Manifold.Orientation.eventually_orientationSign_eq`). It gives
+  (`TauCeti.Manifold.Orientation.orientationSign_eq_of_isPreconnected`), since so is preservation
+  of orientation (Tau Ceti's `IsPreconnected.isOrientationPreservingAt_iff`), applied to the
+  orientation on the target and to its opposite. It gives
   `TauCeti.SmoothCollar.orientationSign_eq_neg_one_pow` on the slices of a collar.
 
-Applied to the identity, local constancy shows that two orientations which agree on a dense set
-agree everywhere (`TauCeti.Manifold.Orientation.eq_of_dense`).
+Applied to the identity, local constancy of the sign
+(`TauCeti.Manifold.Orientation.eventually_orientationSign_eq`) shows that two orientations which
+agree on a dense set agree everywhere (`TauCeti.Manifold.Orientation.eq_of_dense`).
 
 ## References
 
@@ -141,12 +144,12 @@ theorem orientationSign_eq_of_isPreconnected {s : Set M} (hs : IsPreconnected s)
     (hf : ∀ y ∈ s, ContMDiffAt I J 1 f y) (hd : ∀ y ∈ s, (mfderiv I J f y).IsInvertible)
     {x y : M} (hx : x ∈ s) (hy : y ∈ s) :
     orientationSign o o' f x = orientationSign o o' f y := by
-  have : PreconnectedSpace s := Subtype.preconnectedSpace hs
-  let σ : s → ℤ := fun z ↦ orientationSign o o' f z
-  have hσ : IsLocallyConstant σ := (IsLocallyConstant.iff_eventually_eq σ).2 fun z ↦
-    (continuous_subtypeVal.tendsto z).eventually
-      (eventually_orientationSign_eq (hf z z.property) (hd z z.property))
-  exact hσ.apply_eq_of_preconnectedSpace ⟨x, hx⟩ ⟨y, hy⟩
+  rcases orientationSign_eq_one_or_eq_neg_one (o := o) (o' := o') (hd x hx) with h | h
+  · rw [h, eq_comm, orientationSign_eq_one_iff,
+      ← hs.isOrientationPreservingAt_iff hf hd o o' hx hy, ← orientationSign_eq_one_iff, h]
+  · rw [h, eq_comm, orientationSign_eq_neg_one_iff, ← isOrientationPreservingAt_neg_right,
+      ← hs.isOrientationPreservingAt_iff hf hd o (-o') hx hy, isOrientationPreservingAt_neg_right,
+      ← orientationSign_eq_neg_one_iff, h]
 
 /-- **Orientations agreeing on a dense set are equal.** Two orientations of `M` whose tangent
 orientations agree at every point of a dense set are equal. -/
