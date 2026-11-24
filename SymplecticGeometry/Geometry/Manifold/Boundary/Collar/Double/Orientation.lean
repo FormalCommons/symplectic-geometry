@@ -257,8 +257,7 @@ private theorem det_mfderiv_bandParamAffine {a b : ℝ} (hb : b ≠ 0) {s₀ : b
     · exact mfderiv_bandAffine h v.1
     · rfl
   have hdet : ((b • ContinuousLinearMap.id ℝ ℝ).prodMap
-      (ContinuousLinearMap.id ℝ (EuclideanSpace ℝ (Fin n)))).det = b := by
-    simp
+      (ContinuousLinearMap.id ℝ (EuclideanSpace ℝ (Fin n)))).det = b := by simp
   rw [hD]
   exact hdet
 
