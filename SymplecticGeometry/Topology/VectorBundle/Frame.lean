@@ -5,9 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Normed.Module.FiniteDimension
 public import Mathlib.Topology.VectorBundle.Constructions
 public import TauCeti.Analysis.Normed.Module.ContinuousInverse
+public import TauCeti.Topology.VectorBundle.Contractible
 
 /-!
 # Transition maps of frames of a vector bundle
@@ -30,9 +30,9 @@ value at `y` is the inverse of the fibre equivalence of `e`
 When the frame is continuous, as a map `B × F → TotalSpace F E`, and `F` is finite-dimensional,
 the transition and its inverse are continuous on the preimage of the base set
 (`Bundle.Trivialization.continuousOn_frameTransition`,
-`Bundle.Trivialization.continuousOn_frameTransition_symm`). The continuity proof follows Tau
-Ceti's proof of `TauCeti.continuousOn_clutchingFunction`, whose clutching function is the
-inverse of the normalized determinant of this transition.
+`Bundle.Trivialization.continuousOn_frameTransition_symm`), for fibres that are groups. Over the
+base set the transition is the frame read in `e`, which is continuous there by Tau Ceti's
+`TauCeti.continuousOn_continuousLinearMapAt_comp`.
 
 ## References
 
@@ -143,7 +143,15 @@ theorem frameTransition_eq_frameTransition {y : B} (h : f y ∈ e.baseSet)
   rw [frameTransition_of_mem h, SymplecticGeometry.Bundle.frameTransition_def, hΦ',
     ContinuousLinearEquiv.symm_symm]
 
-variable [CompleteSpace R] [TopologicalSpace B] [FiniteDimensional R F]
+end Bundle.Trivialization
+
+namespace Bundle.Trivialization
+
+variable {R : Type*} [NontriviallyNormedField R] [CompleteSpace R] {B X : Type*}
+  [TopologicalSpace B] [TopologicalSpace X] {F : Type*} [NormedAddCommGroup F] [NormedSpace R F]
+  [FiniteDimensional R F] {E : X → Type*} [∀ x, AddCommGroup (E x)] [∀ x, Module R (E x)]
+  [∀ x, TopologicalSpace (E x)] [TopologicalSpace (TotalSpace F E)] [FiberBundle F E]
+  {f : B → X} {ψ : ∀ y, F ≃L[R] E (f y)}
   (hψ : Continuous fun q : B × F ↦ TotalSpace.mk' F (f q.1) (ψ q.1 q.2))
 
 include hψ in
@@ -151,11 +159,10 @@ include hψ in
 the base set. -/
 theorem continuousOn_frameTransition (e : Trivialization F (π F E)) [e.IsLinear R] :
     ContinuousOn (fun y ↦ (e.frameTransition ψ y : F →L[R] F)) (f ⁻¹' e.baseSet) := by
-  refine continuousOn_clm_apply.2 fun v ↦ ?_
-  have hc : ContinuousOn (fun y ↦ (e (TotalSpace.mk' F (f y) (ψ y v))).2) (f ⁻¹' e.baseSet) :=
-    continuous_snd.comp_continuousOn (e.continuousOn.comp
-      (hψ.comp (Continuous.prodMk_left v)).continuousOn fun y hy ↦ e.mem_source.2 hy)
-  exact hc.congr fun y (hy : f y ∈ e.baseSet) ↦ frameTransition_apply_of_mem hy v
+  refine (TauCeti.continuousOn_continuousLinearMapAt_comp hψ e).congr
+    fun y (hy : f y ∈ e.baseSet) ↦ ?_
+  ext v
+  simp [frameTransition_apply_of_mem hy, e.coe_linearMapAt_of_mem hy]
 
 include hψ in
 /-- The inverse of the transition of a continuous frame in a trivialization is continuous on the

@@ -82,7 +82,8 @@ theorem unitFrame_symm_apply {x : B} (φ : Fiber ℂ F E ℂ x) (w : E x) :
 /-- Acting by `z : Circle` on a unitary frame multiplies its frame by `z` on the model. -/
 theorem unitFrame_op_circle_smul {x : B} (z : Circle) (φ : Fiber ℂ F E ℂ x) (v : F) :
     unitFrame e (op z • φ) v = unitFrame e φ ((z : ℂ) • v) := by
-  rw [unitFrame_apply, unitFrame_apply, Fiber.frame_op_circle_smul_apply, map_smul, smul_eq_mul]
+  rw [unitFrame_apply, unitFrame_apply, Fiber.frame_op_circle_smul_apply, _root_.map_smul,
+    smul_eq_mul]
 
 variable [TopologicalSpace B] [TopologicalSpace (TotalSpace F E)] [FiberBundle F E]
   [VectorBundle ℂ F E] [ContinuousFiberNorm F E] [Fact (finrank ℂ F = 1)]
@@ -103,23 +104,19 @@ theorem normalizedDet_trans_unitFrame_symm {x : B} (φ ψ : Fiber ℂ F E ℂ x)
   rw [ContinuousLinearEquiv.normalizedDet_eq_pow_of_apply_eq_smul _ _
     (trans_unitFrame_symm_apply e φ ψ), Fact.out (p := finrank ℂ F = 1), pow_one]
 
-omit [ContinuousFiberNorm F E] in
+omit [ContinuousFiberNorm F E] [Fact (finrank ℂ F = 1)] in
 /-- **Continuity of the frames `unitFrame`.** If `σ` is a section of the principal
 `Circle`-bundle of unitary frames that is continuous on a set `S`, the frames `unitFrame e (σ x)`,
 `x ∈ S`, form a continuous map `S × F → TotalSpace F E`. -/
 theorem continuous_unitFrame {S : Set B} {σ : ∀ x, Fiber ℂ F E ℂ x}
     (hσ : ContinuousOn (fun x ↦ TotalSpace.mk' Circle x (σ x)) S) :
     Continuous fun q : S × F ↦ TotalSpace.mk' F (q.1 : B) (unitFrame e (σ q.1) q.2) := by
-  -- The unit vectors `σ x 1` are the image of `σ` under `circleBundleHomeomorph`.
-  have h1 : ContinuousOn (fun x ↦ TotalSpace.mk' F x ((σ x).frame 1)) S :=
-    ((continuous_subtypeVal.comp (circleBundleHomeomorph.continuous.comp
-      (TotalSpace.modelFiberHomeomorph ⟨rfl⟩).continuous)).comp_continuousOn hσ).congr
-      fun x _ ↦ by
+  -- `σ` read in the frame bundle with model fibre `unitary (ℂ →L[ℂ] ℂ)`.
+  have hσ' : Continuous fun q : S × F ↦ TotalSpace.mk' (unitary (ℂ →L[ℂ] ℂ)) (q.1 : B) (σ q.1) :=
+    (((TotalSpace.modelFiberHomeomorph ⟨rfl⟩).continuous.comp_continuousOn hσ).comp_continuous
+      (continuous_subtypeVal.comp continuous_fst) fun q ↦ q.1.property).congr fun q ↦ by
         simp [TotalSpace.coe_modelFiberHomeomorph, TotalSpace.modelFiberEquiv_apply]
-  refine (Continuous.smul_totalSpace (e.continuous.comp continuous_snd)
-    (h1.comp_continuous (continuous_subtypeVal.comp continuous_fst)
-      fun q ↦ q.1.property)).congr fun q ↦ ?_
-  simp only [Function.comp_apply, unitFrame_apply_eq_smul]
+  exact continuous_totalSpace_frame_apply.comp (hσ'.prodMk (e.continuous.comp continuous_snd))
 
 end Frame
 

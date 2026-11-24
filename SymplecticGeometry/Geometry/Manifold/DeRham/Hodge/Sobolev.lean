@@ -18,6 +18,7 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.ChartCover
 import SymplecticGeometry.Analysis.Normed.Operator.Compact
 import TauCeti.Analysis.Distribution.SchwartzSpace.Cutoff
+import TauCeti.Analysis.Distribution.TemperedDistribution.Lp
 import TauCeti.Analysis.Sobolev.BesselPotential.Inclusion
 import TauCeti.Analysis.Sobolev.BesselPotential.Rellich
 import TauCeti.MeasureTheory.Function.Lp.FiniteDimensional
@@ -705,9 +706,13 @@ theorem isCompactOperator_localizeCoord_comp_toL2 :
     simp only [Function.comp_apply, ContinuousLinearMap.comp_apply,
       BesselPotentialSpace.toDistr_inclusion, BesselPotentialSpace.toDistr_smulLeftCLM,
       toDistr_localizeSobolev]
-    exact (Lp.smulLeftCLM_toTemperedDistribution_of_eqOn φ.hasTemperateGrowth
-      (fun x hx ↦ hφ.self_of_nhdsSet x hx)
-      (L2Form.localizeCoord_ae_eq_zero_of_notMem ψ χ hχ bΛ p e (toL2 u))).symm
+    -- The coordinate vanishes almost everywhere off the set where `φ = 1`.
+    refine (Lp.toTemperedDistribution_eq_smulLeftCLM_iff φ.hasTemperateGrowth
+      (L2Form.localizeCoord ψ χ hχ bΛ p e (toL2 u)) _).2
+      ((L2Form.localizeCoord_ae_eq_zero_of_notMem ψ χ hχ bΛ p e (toL2 u)).mono fun x hx ↦ ?_)
+    by_cases hxK : x ∈ e '' (ψ '' tsupport χ)
+    · simp [hφ.self_of_nhdsSet x hxK]
+    · simp [hx hxK]
   rw [h]
   exact ((BesselPotentialSpace.isCompactOperator_inclusion_comp_smulLeftCLM φ
     zero_lt_one).clm_comp _).comp_clm _

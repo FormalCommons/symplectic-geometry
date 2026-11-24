@@ -42,8 +42,6 @@ statement for a coisotropic subspace `W` needs on top of it:
   map that sends `U₀` into `U₁` and preserves `ω` on `U₀`, when the reduced space of `U₁` has
   at most the dimension of that of `U₀`, sends the radical of `U₀` into that of `U₁` and
   induces a symplectomorphism of the reduced spaces.
-* `TauCeti.SymplecticForm.finrank_inf_orthogonal_eq_of_forall_apply_eq`: an isomorphism
-  `W₀ ≃ W₁` that preserves the restricted forms preserves the dimension of `W ∩ W^ω`.
 
 ## References
 
@@ -231,42 +229,6 @@ theorem exists_isSymplectomorphism_reducedSpace_of_forall_apply_eq (hL : ∀ u �
     isSymplectomorphism_iff.2 hg, fun u => rfl⟩
 
 end ReducedMap
-
-section Radical
-
-open Module
-
-variable {V₀ V₁ : Type*} [AddCommGroup V₀] [Module ℝ V₀] [AddCommGroup V₁] [Module ℝ V₁]
-  [FiniteDimensional ℝ V₀] [FiniteDimensional ℝ V₁]
-  {ω₀ : SymplecticForm V₀} {ω₁ : SymplecticForm V₁} {W₀ : Submodule ℝ V₀}
-  {W₁ : Submodule ℝ V₁}
-
-omit [FiniteDimensional ℝ V₀] in
-private theorem finrank_inf_orthogonal_le {b : W₀ ≃ₗ[ℝ] W₁}
-    (hb : ∀ x y : W₀, ω₁ (b x) (b y) = ω₀ x y) :
-    finrank ℝ ↥(W₀ ⊓ ω₀.orthogonal W₀) ≤ finrank ℝ ↥(W₁ ⊓ ω₁.orthogonal W₁) := by
-  refine LinearMap.finrank_le_finrank_of_injective
-    (f := LinearMap.codRestrict (W₁ ⊓ ω₁.orthogonal W₁)
-      (W₁.subtype ∘ₗ b.toLinearMap ∘ₗ Submodule.inclusion inf_le_left)
-      fun c => ⟨(b _).property, fun y hy => ?_⟩) fun c c' h => ?_
-  · have h := hb (b.symm ⟨y, hy⟩) (Submodule.inclusion inf_le_left c)
-    rw [LinearEquiv.apply_symm_apply] at h
-    exact h.trans (mem_orthogonal_iff.1 c.property.2 _ (b.symm ⟨y, hy⟩).property)
-  · have h₀ := congrArg (fun z : ↥(W₁ ⊓ ω₁.orthogonal W₁) => (z : V₁)) h
-    have h₂ := b.injective (Subtype.ext h₀ :
-      b (Submodule.inclusion inf_le_left c) = b (Submodule.inclusion inf_le_left c'))
-    rw [Subtype.ext_iff, Submodule.coe_inclusion, Submodule.coe_inclusion] at h₂
-    exact Subtype.ext h₂
-
-/-- A linear isomorphism `b : W₀ ≃ W₁` preserving the restrictions of `ω₀` and `ω₁` preserves
-the dimension of the radical `W ∩ W^ω`. -/
-theorem finrank_inf_orthogonal_eq_of_forall_apply_eq {b : W₀ ≃ₗ[ℝ] W₁}
-    (hb : ∀ x y : W₀, ω₁ (b x) (b y) = ω₀ x y) :
-    finrank ℝ ↥(W₀ ⊓ ω₀.orthogonal W₀) = finrank ℝ ↥(W₁ ⊓ ω₁.orthogonal W₁) :=
-  le_antisymm (finrank_inf_orthogonal_le hb) (finrank_inf_orthogonal_le (b := b.symm)
-    fun x y => by simpa using (hb (b.symm x) (b.symm y)).symm)
-
-end Radical
 
 end TauCeti.SymplecticForm
 

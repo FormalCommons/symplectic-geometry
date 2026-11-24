@@ -55,9 +55,7 @@ theorem isLagrangian_map_piLpCongrLeft_sumCongr (e : ι ≃ κ) {L : Submodule �
     (hL : (stdForm ι).IsLagrangian L) :
     (stdForm κ).IsLagrangian
       (L.map (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (e.sumCongr e)).toLinearEquiv.toLinearMap) :=
-  SymplecticForm.isSymplectomorphism_iff_transport_eq.1
-      (isSymplectomorphism_piLpCongrLeft_sumCongr e) ▸
-    SymplecticForm.isLagrangian_map_transport_iff.2 hL
+  (isSymplectomorphism_piLpCongrLeft_sumCongr e).isLagrangian_map_iff.2 hL
 
 namespace LagrangianGrassmannian
 
@@ -68,9 +66,8 @@ namespace LagrangianGrassmannian
 noncomputable def sum (p : (ℒ ι) × ℒ κ) : ℒ (ι ⊕ κ) :=
   ⟨((p.1 : Submodule ℝ (StdSpace ι)).prod (p.2 : Submodule ℝ (StdSpace κ))).map
       (sumEquiv ι κ).toLinearEquiv.symm.toLinearMap,
-    SymplecticForm.isSymplectomorphism_iff_transport_eq.1
-        (isSymplectomorphism_sumEquiv (ι := ι) (κ := κ)).symm ▸
-      SymplecticForm.isLagrangian_map_transport_iff.2 (p.1.isLagrangian.prod p.2.isLagrangian)⟩
+    (isSymplectomorphism_sumEquiv (ι := ι) (κ := κ)).symm.isLagrangian_map_iff.2
+      (p.1.isLagrangian.prod p.2.isLagrangian)⟩
 
 @[simp]
 theorem coe_sum (p : (ℒ ι) × ℒ κ) :
