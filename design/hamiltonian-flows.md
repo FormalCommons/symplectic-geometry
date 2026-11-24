@@ -202,13 +202,13 @@ These settle the questions that `DESIGN.md` leaves to this file.
      in degree $1$. The step is the public lemma
      `SymplecticGeometry.IsSmoothlyContractible.exists_contMDiff_mextDeriv_eq_of_forall_mem_closedForms`
      (`DeRham/FamilyPrimitive.lean`), for any parameter manifold.
-   - *Gluing.* On $U$, $F_t-P_t$ has zero differential, so
-     $F(y,t)=P(y,t)+F(x_0,t)-P(x_0,t)$ for $x_0,y\in U$. The set of points
-     $x_0$ for which $t\mapsto F(x_0,t)$ is smooth is therefore open and
-     closed in each component, and it contains the base point, where
-     $F=0$. So $F$ is jointly smooth.
-   This is the path integration of the page's proof route, carried out on
-   chart balls. It needs neither compactness nor nondegeneracy.
+   - *Gluing.* Each component is open, since manifolds are locally
+     path-connected. On a component, Tau
+     Ceti's `TauCeti.exists_contMDiff_mvfderiv_eq_of_forall_exists` gives a
+     jointly smooth family of primitives vanishing at the base point; it
+     differs from $F$ by a constant, which is $0$. So $F$ is jointly smooth.
+   This is the path integration of the page's proof route, done by Tau
+   Ceti's theorem on each component. It needs neither compactness nor nondegeneracy.
 5. **Uniqueness of the Hamiltonian** is stated in `TauCeti.Diffeotopy`, as
    the review of #420 asks: two Hamiltonians of the same diffeotopy differ
    by `c (ConnectedComponents.mk x) t` for a function `c` smooth in `t`.
