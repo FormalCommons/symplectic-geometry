@@ -7,10 +7,12 @@ module
 
 public import TauCeti.Geometry.Manifold.GroupAction.InvariantForm
 public import TauCeti.Geometry.Manifold.MFDeriv.Constancy
+public import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
+import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
 
 /-!
-# Closed invariant one-forms on fundamental vector fields
+# Closed invariant forms on fundamental vector fields
 
 Let a Lie group `G` act smoothly on a boundaryless manifold `M`, and let `γ` be a closed one-form
 on `M` that is invariant under every `g • ·`. For each `ξ` in the Lie algebra of `G`, with
@@ -24,12 +26,19 @@ closedness. It adapts the proof of Tau Ceti's
 `TauCeti.mextDerivₗ_apply_fundamentalVectorField_eq_zero`, which applies the same formula with
 the roles of the two terms exchanged.
 
+For a closed invariant two-form `σ` the same invariance, through Tau Ceti's
+`TauCeti.SmoothTwoForm.mem_symplecticVectorFields_iff_mlieDerivForm_eq_zero`, makes every
+fundamental vector field symplectic, so that `ι_{X_ξ} σ` is closed.
+
 ## Main results
 
 * `TauCeti.mvfderiv_apply_fundamentalVectorField_eq_zero`: the pairing of a closed invariant
   one-form with a fundamental vector field has zero differential.
 * `TauCeti.apply_fundamentalVectorField_eq_of_preconnectedSpace`: on a preconnected manifold this
   pairing is constant.
+* `TauCeti.SmoothTwoForm.fundamental_toSectionLinearMap_mem_symplecticVectorFields` and
+  `TauCeti.SmoothTwoForm.interiorₗ_fundamental_toSectionLinearMap_mem_closedForms`: for a closed
+  invariant two-form `σ`, each fundamental vector field is symplectic and `ι_{X_ξ} σ` is closed.
 
 ## References
 
@@ -85,6 +94,31 @@ theorem apply_fundamentalVectorField_eq_of_preconnectedSpace [PreconnectedSpace 
     ⟨_, contMDiff_fundamentalVectorField (m := ∞) (n := ∞) (by simp) ξ⟩
   refine (hf.mdifferentiable (by simp)).apply_eq_of_mfderiv_eq_zero (fun z ↦ ?_) x y
   exact mvfderiv_eq_zero_iff.mp (mvfderiv_apply_fundamentalVectorField_eq_zero hγ hinv ξ z)
+
+/-- A closed two-form `σ` invariant under every element of `G` makes the fundamental vector field
+of each `ξ` in the Lie algebra of `G` a symplectic vector field of `σ`. -/
+theorem SmoothTwoForm.fundamental_toSectionLinearMap_mem_symplecticVectorFields
+    {σ : SmoothTwoForm I' M} (hσ : σ.IsClosed)
+    (hinv : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) σ = σ)
+    (ξ : GroupLieAlgebra I G) :
+    (InfinitesimalAction.fundamental I G I' M).toSectionLinearMap ξ ∈ σ.symplecticVectorFields := by
+  rw [SmoothTwoForm.mem_symplecticVectorFields_iff_mlieDerivForm_eq_zero hσ,
+    InfinitesimalAction.coe_fundamental_toSectionLinearMap]
+  exact mlieDerivForm_fundamentalVectorField_eq_zero hinv ξ
+
+/-- For a closed two-form `σ` invariant under every element of `G`, the contraction `ι_{X_ξ} σ`
+with the fundamental vector field of each `ξ` in the Lie algebra of `G` is a closed one-form. -/
+theorem SmoothTwoForm.interiorₗ_fundamental_toSectionLinearMap_mem_closedForms
+    {σ : SmoothTwoForm I' M} (hσ : σ.IsClosed)
+    (hinv : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) σ = σ)
+    (ξ : GroupLieAlgebra I G) :
+    σ.interiorₗ ((InfinitesimalAction.fundamental I G I' M).toSectionLinearMap ξ) ∈
+      closedForms I' M 1 := by
+  rw [mem_closedForms, SmoothTwoForm.coe_interiorₗ]
+  exact SmoothTwoForm.mem_symplecticVectorFields_iff.1
+    (fundamental_toSectionLinearMap_mem_symplecticVectorFields hσ hinv ξ)
 
 end TauCeti
 
