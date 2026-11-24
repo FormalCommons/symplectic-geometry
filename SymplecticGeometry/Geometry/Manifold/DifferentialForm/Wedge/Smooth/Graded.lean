@@ -278,6 +278,7 @@ def ofFunctionRingHom : C^∞⟮I, M; ℝ⟯ →+* ⨁ k, SmoothForm I M ℝ k w
     simp only [of_mul_of_zero_ofFunction, funSMulₗ_ofFunction, mul_comm g']
 
 /-- `ofFunctionRingHom` sends a smooth function `g` to its `0`-form, in degree `0`. -/
+@[simp]
 theorem ofFunctionRingHom_apply (g : C^∞⟮I, M; ℝ⟯) :
     ofFunctionRingHom g = DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 0 (ofFunction g) :=
   (rfl)
