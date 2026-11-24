@@ -271,8 +271,9 @@ Variables: `[RiemannianBundle (fun x : M ↦ TangentSpace I x)]`,
   (hσ : σ.IsClosed) x v : D (J x v) = -(J.toEndomorphism x).comp (D v)`:
   the fourth identity, from `LinearMap.apply_left_eq_apply_right_of_cyclic`
   for $\alpha(u,v,w)=\langle(\nabla_uJ)v,w\rangle$, whose hypotheses are
-  the first identity (`Covariant.lean`) with the skew-adjointness
-  of $J$, and the third identity with $d\sigma=0$.
+  the first identity (Tau Ceti's `CovariantDerivative.hom_apply_apply_anticomm`,
+  with the differentiability of `J` from `Covariant.lean`) with the
+  skew-adjointness of $J$, and the third identity with $d\sigma=0$.
 
 In the namespace `TauCeti.SmoothTwoForm`, the milestone:
 
@@ -346,8 +347,10 @@ About 250 lines.
   milestone of `LeviCivita.lean`.
 - From *Almost complex manifolds*: `Metric.lean` (#860), for `inner_apply_left_of_inner_eq` and
   `inner_apply_left_eq_neg`, in its identities.
-- From *Nijenhuis tensor*: `Covariant.lean`, for $\nabla J$ and the first
-  identity, in `LeviCivita.lean`; `Nijenhuis.lean`, for the formula of $N_J$
+- From *Nijenhuis tensor*: `Covariant.lean`, for the differentiability of
+  `J` as a section of `End(TM)`, which Tau Ceti's $\nabla J$ and its
+  anticommutation lemma `CovariantDerivative.hom_apply_apply_anticomm` take,
+  in `LeviCivita.lean`; `Nijenhuis.lean`, for the formula of $N_J$
   through a torsion-free connection, in `Kahler.lean` (both #863, or the
   issue it splits off for `Covariant.lean`).
 - From Tau Ceti and Mathlib: the declarations of *What there is*.
