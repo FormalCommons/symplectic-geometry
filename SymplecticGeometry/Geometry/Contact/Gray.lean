@@ -203,8 +203,8 @@ theorem grayVectorField_eq_of_eventually_kerDistribution_eq
         (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) α').val q.2
           ![(mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) α).reebVectorField
             q.2] • (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) α).val q.2 :=
-    h.mono fun q hq ↦ (hc q.1).apply_eq_apply_reebVectorField_smul_of_kerDistribution_le
-      (by rw [← hq, kerDistribution_eq_ker])
+    h.mono fun q hq ↦ apply_eq_smul_of_kerDistribution_le hq.ge
+      ((hc q.1).apply_reebVectorField q.2)
   refine grayVectorField_eq_of_eventuallyEq_smul hs ht (hc t) hc' ?_
     ((hf.comp (contMDiff_const.prodMk contMDiff_id)).mdifferentiableAt (by simp)) ?_ hmul
   · exact ((contMDiff_iff_contDiff.1 (hf.comp (contMDiff_id.prodMk contMDiff_const))).differentiable
@@ -333,10 +333,10 @@ theorem Transports.exists_mpullback_eq_smul {Φ : Diffeotopy I ∞ M}
       (SmoothForm.mpullback (Φ.timeSlice t) (Φ.timeSlice t).contMDiff
         (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α)).val x =
         f (t, x) • α₀.val x := by
-    refine (hc 0).apply_eq_apply_reebVectorField_smul_of_kerDistribution_le ?_
+    refine apply_eq_smul_of_kerDistribution_le ?_ ((hc 0).apply_reebVectorField x)
     have h := transports_iff.1 hΦ t x
     rw [← timeSlice_apply] at h
-    rw [← kerDistribution_eq_ker, kerDistribution_mpullback (Φ.timeSlice t)]
+    rw [kerDistribution_mpullback (Φ.timeSlice t)]
     exact h.le
   have hne (t : unitInterval) (x : M) : f (t, x) ≠ 0 := by
     intro h

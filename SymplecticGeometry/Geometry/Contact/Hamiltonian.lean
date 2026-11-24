@@ -140,10 +140,7 @@ theorem apply_eq_apply_reebVectorField_smul_of_kerDistribution_le {β : RoughFor
     β x = β x ![α.reebVectorField x] • α.val x := by
   ext w
   -- Subtract the Reeb component of `w` to land in the contact hyperplane.
-  have hw : w - α.val x ![w] • α.reebVectorField x ∈ α.kerDistribution x := by
-    rw [mem_kerDistribution, ← degreeOneEquiv_apply_apply_vec, map_sub, map_smul]
-    simp [degreeOneEquiv_apply_apply_vec, hα.apply_reebVectorField]
-  have h := RoughForm.mem_ker.1 (hβ hw)
+  have h := RoughForm.mem_ker.1 (hβ (hα.sub_smul_reebVectorField_mem_kerDistribution w))
   rw [← RoughForm.eval_apply, map_sub, map_smul, RoughForm.eval_apply, RoughForm.eval_apply,
     sub_eq_zero] at h
   rw [h, ContinuousAlternatingMap.smul_apply, smul_eq_mul, smul_eq_mul, mul_comm]
