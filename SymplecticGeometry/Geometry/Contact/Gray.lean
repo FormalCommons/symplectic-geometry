@@ -12,7 +12,6 @@ public import SymplecticGeometry.Geometry.Contact.Hamiltonian
 public import SymplecticGeometry.Geometry.Contact.Moser
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
-public import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Transports
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
