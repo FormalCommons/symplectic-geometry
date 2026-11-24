@@ -5,13 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Lie.FundamentalVectorField.OrbitMap
 public import TauCeti.Geometry.Manifold.FiberBundle.MapFiber
-public import TauCeti.Geometry.Manifold.GroupAction.Orbit
 public import TauCeti.Geometry.Manifold.GroupAction.Quotient
-public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 public import SymplecticGeometry.Geometry.Manifold.Algebra.MulOpposite
+public import SymplecticGeometry.Geometry.Manifold.GroupAction.LocalSection
 public import SymplecticGeometry.Topology.Algebra.ProperAction.Free
 public import SymplecticGeometry.Topology.FiberBundle.ChangeModelFiber
 
@@ -56,13 +54,11 @@ acts properly (`TauCeti.properSMul_of_compactSpace`), so this covers free smooth
 compact Lie groups.
 
 **Smoothness.** The trivialization of a smooth local section `s` over `U` has inverse
-`(q, g) ↦ op g • s q`, which is smooth on `U × G`. Its differential is injective: composed with
-the differential of the orbit projection it is the first projection, since `s` is a section, and
-along `G` it is the differential of an orbit map, injective because the action is free
-(`TauCeti.injective_mfderiv_smul_const_iff`). The orbit space and `G` have dimensions adding up to
-that of `X`, so by Tau Ceti's inverse function theorem
-(`TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv`) this inverse is a local diffeomorphism, and
-the trivialization, its inverse on its image, is smooth
+`(q, g) ↦ op g • s q`. This is the map `(k, q) ↦ k • s q` after the diffeomorphism
+`(q, g) ↦ (op g, q)` built from `MulOpposite.opDiffeomorph`. The orbit space and `G` have
+dimensions adding up to that of `X`, so that map is a local diffeomorphism on `Gᵐᵒᵖ × U`
+(`SymplecticGeometry.isLocalDiffeomorphOn_smul_section`), and so is the inverse on `U × G`. The
+trivialization, its inverse on its image, is then smooth
 (`IsLocalDiffeomorphOn.contMDiffOn_invFunOn`). So the atlas is smooth
 (`SymplecticGeometry.orbitFiber.isContMDiff_atlas`): Tau Ceti's
 `TauCeti.MapFiber.Atlas.contMDiffFiberBundle` makes `orbitFiber Gᵐᵒᵖ X` a smooth fibre bundle,
@@ -290,84 +286,27 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
 
 namespace orbitFiber
 
-omit [FiniteDimensional ℝ E] [LieGroup IG ∞ G] [FiniteDimensional ℝ E'] [IX.Boundaryless]
-  [IsManifold IX ∞ X] [ProperSMul Gᵐᵒᵖ X] [IsCancelSMul Gᵐᵒᵖ X] in
-/-- The map `(q, g) ↦ op g • s q` is smooth on `U × G` for a section `s` smooth on `U`. -/
-private theorem contMDiffOn_smul_section (hs : ContMDiffOn IB IX ∞ s U) :
-    ContMDiffOn (IB.prod IG) IX ∞ (fun p : orbitRel.Quotient Gᵐᵒᵖ X × G ↦ op p.2 • s p.1)
-      (U ×ˢ univ) :=
-  (ContMDiffSMul.contMDiff_smul (I := IG) (I' := IX)).comp_contMDiffOn
-    (((MulOpposite.contMDiff_op (I := IG) (n := ∞)).comp contMDiff_snd).contMDiffOn.prodMk
-      (hs.comp (contMDiff_fst.contMDiffOn (s := U ×ˢ univ)) fun _ hp ↦ hp.1))
-
-/-- The differential of `(q, g) ↦ op g • s q` at a point of `U × G` is injective: its composite
-with the differential of the orbit projection is the first projection, since `s` is a section, and
-along `G` it is the differential of an orbit map, injective because the action is free. -/
-private theorem injective_mfderiv_smul_section (hU : IsOpen U) (hs : ContMDiffOn IB IX ∞ s U)
-    (hsec : ∀ q ∈ U, Quotient.mk (orbitRel Gᵐᵒᵖ X) (s q) = q)
-    (hπ : ContMDiff IX IB ∞ (Quotient.mk (orbitRel Gᵐᵒᵖ X))) {q : orbitRel.Quotient Gᵐᵒᵖ X}
-    (hq : q ∈ U) (g : G) :
-    Function.Injective (mfderiv (IB.prod IG) IX
-      (fun p : orbitRel.Quotient Gᵐᵒᵖ X × G ↦ op p.2 • s p.1) (q, g)) := by
-  have := FiniteDimensional.completeSpace ℝ E
-  have := FiniteDimensional.completeSpace ℝ E'
-  set Φ := fun p : orbitRel.Quotient Gᵐᵒᵖ X × G ↦ op p.2 • s p.1
-  have hmem : U ×ˢ (univ : Set G) ∈ 𝓝 (q, g) := (hU.prod isOpen_univ).mem_nhds ⟨hq, trivial⟩
-  have hΦ : MDifferentiableAt (IB.prod IG) IX Φ (q, g) :=
-    ((contMDiffOn_smul_section hs).contMDiffAt hmem).mdifferentiableAt (by simp)
-  have hπd : ∀ x, MDifferentiableAt IX IB (Quotient.mk (orbitRel Gᵐᵒᵖ X)) x :=
-    fun x ↦ (hπ x).mdifferentiableAt (by simp)
-  refine (injective_iff_map_eq_zero _).2 fun v hv ↦ ?_
-  -- The orbit projection after `Φ` is the first projection near `(q, g)`.
-  have hfst : Quotient.mk (orbitRel Gᵐᵒᵖ X) ∘ Φ =ᶠ[𝓝 (q, g)] Prod.fst :=
-    Filter.eventually_of_mem hmem fun p hp ↦ by
-      simp only [Function.comp_apply, Φ, orbitRel.Quotient.quotient_smul_eq, hsec _ hp.1]
-  have h1 : v.1 = 0 := by
-    have := mfderiv_comp_apply _ (hπd (Φ (q, g))) hΦ v
-    rw [hfst.mfderiv_eq, hv, map_zero, mfderiv_fst] at this
-    exact this
-  -- Along `G`, `Φ` is the orbit map of `s q` after `op`.
-  set w : TangentSpace IG g := v.2
-  have hι : MDifferentiableAt IG (IB.prod IG) (fun k : G ↦ (q, k)) g :=
-    mdifferentiableAt_const.prodMk mdifferentiableAt_id
-  have hv' : mfderiv IG (IB.prod IG) (fun k : G ↦ (q, k)) g w = v := by
-    rw [mfderiv_prod_right]
-    exact Prod.ext h1.symm rfl
-  have hop : MDifferentiableAt IG IG (op : G → Gᵐᵒᵖ) g :=
-    (MulOpposite.contMDiff_op (I := IG) (n := ∞) g).mdifferentiableAt (by simp)
-  have horb : MDifferentiableAt IG IX (fun h : Gᵐᵒᵖ ↦ h • s q) (op g) :=
-    ((ContMDiffSMul.contMDiff_smul_const (I := IG) (I' := IX) (n := ∞) (s q)) _).mdifferentiableAt
-      (by simp)
-  have h2 := mfderiv_comp_apply _ hΦ hι w
-  rw [hv', hv] at h2
-  have hcomp : Φ ∘ (fun k : G ↦ (q, k)) = (fun h : Gᵐᵒᵖ ↦ h • s q) ∘ op := rfl
-  rw [hcomp, mfderiv_comp_apply _ horb hop] at h2
-  have hinj := (injective_mfderiv_smul_const_iff (I := IG) (I' := IX) (s q) (op g)).2
-    (isotropy_fundamental_eq_bot_of_properSMul_of_stabilizer_eq_bot
-      (IsCancelSMul.stabilizer_eq_bot _))
-  have h3 : mfderiv IG IG op g w = 0 := hinj (by rw [h2, map_zero])
-  -- `op` has a differentiable inverse `unop`, so its differential is injective.
-  have hunop : MDifferentiableAt IG IG (unop : Gᵐᵒᵖ → G) (op g) :=
-    (MulOpposite.contMDiff_unop (I := IG) (n := ∞) (op g)).mdifferentiableAt (by simp)
-  have h4 := mfderiv_comp_apply _ hunop hop w
-  rw [h3, map_zero] at h4
-  rw [unop_comp_op, mfderiv_id] at h4
-  rw [ContinuousLinearMap.id_apply] at h4
-  exact Prod.ext h1 h4
-
-/-- `(q, g) ↦ op g • s q` is a local diffeomorphism on `U × G`, by the inverse function theorem,
-when the dimensions of the orbit space and of `G` add up to that of `X`. -/
-private theorem isLocalDiffeomorphOn_smul_section [FiniteDimensional ℝ EB] [IB.Boundaryless]
+/-- `(q, g) ↦ op g • s q` is a local diffeomorphism on `U × G`: it is the map
+`(k, q) ↦ k • s q` of `SymplecticGeometry.isLocalDiffeomorphOn_smul_section` after the
+diffeomorphism `(q, g) ↦ (op g, q)`. -/
+private theorem isLocalDiffeomorphOn_op_smul_section [FiniteDimensional ℝ EB] [IB.Boundaryless]
     [IsManifold IB ∞ (orbitRel.Quotient Gᵐᵒᵖ X)] (hU : IsOpen U) (hs : ContMDiffOn IB IX ∞ s U)
     (hsec : ∀ q ∈ U, Quotient.mk (orbitRel Gᵐᵒᵖ X) (s q) = q)
     (hπ : ContMDiff IX IB ∞ (Quotient.mk (orbitRel Gᵐᵒᵖ X)))
-    (hdim : Module.finrank ℝ EB + Module.finrank ℝ E = Module.finrank ℝ E') :
+    (hdim : Module.finrank ℝ E + Module.finrank ℝ EB = Module.finrank ℝ E') :
     IsLocalDiffeomorphOn (IB.prod IG) IX ∞
-      (fun p : orbitRel.Quotient Gᵐᵒᵖ X × G ↦ op p.2 • s p.1) (U ×ˢ univ) := fun p ↦
-  isLocalDiffeomorphAt_of_injective_mfderiv (contMDiffOn_smul_section hs) (hU.prod isOpen_univ)
-    p.property BoundarylessManifold.isInteriorPoint (by simp)
-    (injective_mfderiv_smul_section hU hs hsec hπ p.property.1 _)
-    (by rw [Module.finrank_prod, hdim])
+      (fun p : orbitRel.Quotient Gᵐᵒᵖ X × G ↦ op p.2 • s p.1) (U ×ˢ univ) := fun p ↦ by
+  let T : (orbitRel.Quotient Gᵐᵒᵖ X × G) ≃ₘ⟮IB.prod IG, IG.prod IB⟯
+      (Gᵐᵒᵖ × orbitRel.Quotient Gᵐᵒᵖ X) :=
+    (Diffeomorph.prodComm IB IG _ G ∞).trans
+      ((opDiffeomorph IG ∞ G).prodCongr (Diffeomorph.refl IB _ ∞))
+  have hT : (fun p : Gᵐᵒᵖ × orbitRel.Quotient Gᵐᵒᵖ X ↦ p.1 • s p.2) ∘ T =
+      fun p : orbitRel.Quotient Gᵐᵒᵖ X × G ↦ op p.2 • s p.1 :=
+    funext fun p ↦ by simp [T]
+  rw [← hT]
+  exact IsLocalDiffeomorphAt.comp (hf := T.isLocalDiffeomorph p)
+    (hg := isLocalDiffeomorphOn_smul_section (IK := IG) hU hs hsec hπ hdim
+      ⟨T p, trivial, p.property.1⟩)
 
 /-- The trivialization `orbitTrivializationOfSectionUnop` of a smooth local section is smooth on
 its source, and so is its inverse on its target: the inverse is `(q, g) ↦ op g • s q`, and the
@@ -377,7 +316,7 @@ private theorem contMDiffOn_orbitTrivializationOfSectionUnop [ContinuousInv G]
     (hU : IsOpen U)
     (hs : ContMDiffOn IB IX ∞ s U) (hsec : ∀ q ∈ U, Quotient.mk (orbitRel Gᵐᵒᵖ X) (s q) = q)
     (hπ : ContMDiff IX IB ∞ (Quotient.mk (orbitRel Gᵐᵒᵖ X)))
-    (hdim : Module.finrank ℝ EB + Module.finrank ℝ E = Module.finrank ℝ E') :
+    (hdim : Module.finrank ℝ E + Module.finrank ℝ EB = Module.finrank ℝ E') :
     ContMDiffOn IX (IB.prod IG) ∞ (orbitTrivializationOfSectionUnop U hU s hs.continuousOn hsec)
         (orbitTrivializationOfSectionUnop U hU s hs.continuousOn hsec).source ∧
       ContMDiffOn (IB.prod IG) IX ∞
@@ -389,7 +328,8 @@ private theorem contMDiffOn_orbitTrivializationOfSectionUnop [ContinuousInv G]
     rw [e.target_eq, orbitTrivializationOfSectionUnop_baseSet]
   have hsymm : EqOn e.toOpenPartialHomeomorph.symm Φ (U ×ˢ univ) := fun p hp ↦
     orbitTrivializationOfSectionUnop_symm_apply hp.1 p.2
-  refine ⟨fun x hx ↦ ?_, htarget ▸ (contMDiffOn_smul_section hs).congr hsymm⟩
+  have hloc := isLocalDiffeomorphOn_op_smul_section (IG := IG) hU hs hsec hπ hdim
+  refine ⟨fun x hx ↦ ?_, htarget ▸ hloc.contMDiffOn.congr hsymm⟩
   have : Nonempty (orbitRel.Quotient Gᵐᵒᵖ X × G) := ⟨e x⟩
   have hinjOn : InjOn Φ (U ×ˢ univ) :=
     (htarget ▸ e.toPartialEquiv.symm_source ▸ e.toPartialEquiv.symm.injOn).congr hsymm
@@ -402,8 +342,7 @@ private theorem contMDiffOn_orbitTrivializationOfSectionUnop [ContinuousInv G]
           rw [← hsymm hm]
           exact congrArg _ (e.left_inv hy).symm
       _ = e y := hinjOn.leftInvOn_invFunOn hm
-  have key := (isLocalDiffeomorphOn_smul_section (IG := IG) hU hs hsec hπ hdim).contMDiffOn_invFunOn
-    (hU.prod isOpen_univ) hinjOn
+  have key := hloc.contMDiffOn_invFunOn (hU.prod isOpen_univ) hinjOn
   rw [himage] at key
   exact (key.congr fun y hy ↦ (hinv y hy).symm) x hx
 
