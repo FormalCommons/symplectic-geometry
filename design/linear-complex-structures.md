@@ -583,7 +583,8 @@ it mentions complex structures.
   retraction).
 - Dimension four: `stdSpaceQuaternionIsometry : StdSpace (Fin 2) ≃ₗᵢ[ℝ] ℍ[ℝ]`,
   defined as `(LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ e).trans
-  Quaternion.linearIsometryEquivTuple.symm`, where `e : Fin 2 ⊕ Fin 2 ≃ Fin 4`
+  Quaternion.linearIsometryEquivTuple.symm`, where
+  `e = TauCeti.finSumFinInterleaveEquiv 2 : Fin 2 ⊕ Fin 2 ≃ Fin (2 * 2)`
   sends `inl 0, inr 0, inl 1, inr 1` to `0, 1, 2, 3` (not `finSumFinEquiv`,
   whose order differs), so that $z\mapsto x_1+y_1i+x_2j+y_2k$; with `@[simp]`
   lemmas `stdSpaceQuaternionIsometry_apply` (its four components) and
