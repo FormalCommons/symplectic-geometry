@@ -477,9 +477,9 @@ It imports Tau Ceti's `Manifold/Energy/Surface.lean`, and
   is closed, by `mextDeriv_eq_zero_of_finrank_le`),
   `integralTopForm o φ.val.val = deRhamCohomology.singularHomologyPeriod (mk φ) (oₕ.fundamentalClass hE')`
   with `oₕ` the correctly signed homological orientation. Route: every
-  point has a positively oriented simplex chart (a chart, a linear
-  equivalence of `E'` with $\mathbb R^2$ matching `o` at the point, and a
-  small affine simplex around it); a smooth partition of unity subordinate to
+  point has a positively oriented simplex chart (the inverse of an oriented
+  chart, `exists_partialDiffeomorph_isOrientationPreservingAt` of Tau Ceti, and a
+  small affine simplex in its target); a smooth partition of unity subordinate to
   the interiors of finitely many of them splits `φ` into forms `ρᵢ • φ`
   supported in compact sets `Kᵢ`; both sides are additive in `φ`. For one
   piece choose a smooth integral cycle `z` representing the fundamental
