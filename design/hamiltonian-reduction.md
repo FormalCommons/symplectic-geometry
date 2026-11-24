@@ -364,7 +364,7 @@ moment map `fun p ↦ μ p.1 + ι p.2` of `σ.prod η.coadjointOrbitForm`),
 - `stabilizer_zeroLevel_prod_eq_bot` and
   `properSMul_zeroLevel_prod [ProperSMul G (h.orbitLevel η)]`: freeness and
   properness pass to the product's zero level along the graph.
-- `def orbitLevelChartedSpace (hσ : σ.IsNondegenerate) (hemb) (hfree) (hm) :
+- `def orbitLevelChartedSpace (hemb) (hσ : σ.IsNondegenerate) (hfree) (hm) :
   ChartedSpace (Fin m → ℝ) (h.orbitLevel η)`, with
   `hm : finrank ℝ E' + finrank ℝ (Subgroup.QuotientModelSpace I _) - finrank ℝ 𝔤 = m`:
   the pullback along the graph of `hP.zeroLevelChartedSpace` (the product
