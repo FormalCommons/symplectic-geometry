@@ -13,7 +13,7 @@ public import TauCeti.LinearAlgebra.Projectivization.Basic
 
 For a linear form `φ` on a vector space `V` over a field `K`, every point `x` of `ℙ K V` on which
 `φ` does not vanish has exactly one representative `v` with `φ v = 1`. This file names it
-`Projectivization.normalizedRep φ x`, and relates nonzero vectors to the lines they span.
+`Projectivization.normalizedRep φ x`.
 
 ## Main definitions
 
@@ -26,7 +26,6 @@ For a linear form `φ` on a vector space `V` over a field `K`, every point `x` o
   representative, on `Projectivization.linearProjectionDomain φ`.
 * `Projectivization.apply_smul_normalizedRep`: a vector `u` of the line `x` is
   `φ u • normalizedRep φ x`.
-* `Projectivization.mk_eq_of_mem_submodule`: a nonzero vector of a line spans it.
 * `Projectivization.mem_range_map_iff`: over a division ring, a point is in the image of the map
   induced by an injective linear map `f` exactly when its representative is in the range of
   `f`.
@@ -107,18 +106,6 @@ theorem apply_smul_normalizedRep {φ : V →ₗ[K] K} {x : ℙ K V} (hx : x ∈ 
   rw [mem_linearProjectionDomain_iff] at hx
   rw [normalizedRep_def, smul_smul, map_smul, smul_eq_mul, mul_assoc, mul_inv_cancel₀ hx,
     mul_one]
-
-theorem mem_submodule_mk {v : V} (hv : v ≠ 0) : v ∈ (mk K v hv).submodule := by
-  rw [submodule_mk]
-  exact Submodule.mem_span_singleton_self v
-
-/-- A nonzero vector of a line spans it. -/
-theorem mk_eq_of_mem_submodule {x : ℙ K V} {v : V} (hv : v ≠ 0) (hx : v ∈ x.submodule) :
-    mk K v hv = x := by
-  rw [submodule_eq, Submodule.mem_span_singleton] at hx
-  obtain ⟨c, rfl⟩ := hx
-  conv_rhs => rw [← mk_rep x]
-  exact (mk_eq_mk_iff' K _ _ hv x.rep_ne_zero).2 ⟨c, rfl⟩
 
 /-- On the standard affine open `U_i`, the homogeneous coordinates `[1 : z]` of a point, with `1`
 in position `i` and `z` its affine coordinates, are its representative on which the `i`-th
