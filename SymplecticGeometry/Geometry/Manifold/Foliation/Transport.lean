@@ -6,8 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.Foliation.Leaf
-import SymplecticGeometry.Geometry.Manifold.Distribution.ConstantRank
 import SymplecticGeometry.Geometry.Manifold.Distribution.FlatChart
+import SymplecticGeometry.Geometry.Manifold.Foliation.Constancy
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
@@ -248,9 +248,9 @@ private theorem eventually_transportable_curve (h₁ : finrank ℝ F₁ = k)
             (Φ.mdifferentiableAt (by simp) hy), ContinuousLinearMap.mfderiv_eq]
         exact (hflat y hy v).2 hv
     simpa only [comp_apply, ContinuousLinearMap.coe_snd'] using
-      apply_eq_of_contMDiffOn_of_tangent hsnd hker hγ htan
-        ((convex_ball t δ).inter (convex_Icc 0 1)) inter_subset_right (fun r hr ↦ (hδO hr).1) hs
-        ⟨Metric.mem_ball_self hδ, ht⟩
+      apply_eq_of_contMDiffOn_of_tangent hsnd hker hγ
+        ((convex_ball t δ).inter (convex_Icc 0 1)) inter_subset_right (fun r hr ↦ (hδO hr).1)
+        (fun r hr ↦ htan r hr.2) hs ⟨Metric.mem_ball_self hδ, ht⟩
   filter_upwards [inter_mem_nhdsWithin _ (Metric.ball_mem_nhds t hδ)] with s hs
   have hs' : s ∈ S := ⟨hs.2, hs.1⟩
   have hst := hconst s hs'
