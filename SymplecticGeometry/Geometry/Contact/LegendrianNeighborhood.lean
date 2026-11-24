@@ -358,11 +358,10 @@ private theorem sliceDeriv_mem_kerDistribution_and_injective
 
 /-- **A slice through a Legendrian submanifold.** Let `f : L → M` be a Legendrian embedding for
 the kernel of a one-form `α`, which is then a contact form, between boundaryless manifolds, `M`
-Hausdorff and second countable. There are a
-smooth injective map `ι : T^* L → M` with `ι (0_q) = f q`, and an open neighbourhood `N` of the
-zero section, such that at each point of `N` the differential of `ι` is injective and the Reeb
-vector field of `α` is not in its range, and at `0_q` the range of the differential is the
-contact hyperplane `ker α` at `f q`. -/
+Hausdorff and second countable. There are a smooth injective map `ι : T^* L → M` with
+`ι (0_q) = f q`, and an open neighbourhood `N` of the zero section, such that at each point of
+`N` the differential of `ι` is injective and the Reeb vector field of `α` is not in its range,
+and at `0_q` the range of the differential is the contact hyperplane `ker α` at `f q`. -/
 theorem exists_contactSlice [I.Boundaryless] [J.Boundaryless] [T2Space M]
     [SecondCountableTopology M] {f : L → M}
     (hf : IsLegendrianEmbedding J α.kerDistribution f) :
@@ -823,11 +822,10 @@ end Flow
 
 /-- **The Legendrian neighbourhood theorem.** Let `f : L → M` be a Legendrian embedding for the
 kernel of a one-form `α`, which is then a contact form, between boundaryless manifolds, `M`
-Hausdorff and second countable. Then an
-open set around the zero section of `T^* L × ℝ` is diffeomorphic to an open set around `f (L)`
-by a map `Φ` with `Φ (0_q, 0) = f q` that pulls `α` back to `λ_can - dz`, minus the
-contactization form `dz - λ_can` of the Liouville form. Neither compactness of `L` nor closedness
-of `f (L)` is assumed.
+Hausdorff and second countable. Then an open set around the zero section of `T^* L × ℝ` is
+diffeomorphic to an open set around `f (L)` by a map `Φ` with `Φ (0_q, 0) = f q` that pulls `α`
+back to `λ_can - dz`, minus the contactization form `dz - λ_can` of the Liouville form. Neither
+compactness of `L` nor closedness of `f (L)` is assumed.
 
 Milestone: *Legendrian neighbourhood theorem*. -/
 theorem exists_diffeomorph_opens_mpullback_eq_neg_contactization [I.Boundaryless]
