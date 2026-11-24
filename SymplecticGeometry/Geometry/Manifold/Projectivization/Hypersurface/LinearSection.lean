@@ -14,6 +14,7 @@ public import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Linearization
 public import TauCeti.Topology.VectorBundle.Pullback
 
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.RestrictScalars
 import SymplecticGeometry.LinearAlgebra.FiniteDimensional.KerInf
 import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
@@ -45,8 +46,8 @@ many forms span every fibre.
   `ℓ` vanishes on `x` (`Projectivization.linearSection_eq_zero_iff`), and it is analytic
   (`Projectivization.contMDiff_linearSection`).
 * The instance `ContMDiffVectorBundle ∞ _ _ 𝓘(ℝ, _)` on the pull-back of `𝒪(k) ⊗ ℂ^ι` to `X`,
-  by the library's `ContMDiffVectorBundle.restrictScalars'`; its real structure is Mathlib's
-  pull-back of the one that `Projectivization/TwistCore.lean` gives `𝒪(k) ⊗ ℂ^ι`.
+  by Tau Ceti's `ContMDiffVectorBundle.restrictScalars_modelWithCornersSelf`; its real structure is
+  Mathlib's pull-back of the one that `Projectivization/TwistCore.lean` gives `𝒪(k) ⊗ ℂ^ι`.
 * `SymplecticGeometry.SmoothProjectiveHypersurface.linearSection`: the `ℝ`-linear map sending
   `ℓ : ℂ^{n+2} → ℂ^ι` to the smooth real section of the pull-back of `𝒪(1) ⊗ ℂ^ι` that it gives,
   the holomorphic section with its scalars restricted (`ContMDiffSection.restrictScalars'`), with
@@ -212,7 +213,7 @@ instance (k : ℤ) (ι : Type*) [Fintype ι] :
       (X.embedding *ᵖ (twistPiCore (𝕜 := ℂ) (n := n + 1) k ι).Fiber)
       𝓘(ℂ, Fin (n + 1 - Fintype.card Unit) → ℂ) :=
     Bundle.Pullback.contMDiffVectorBundle (X.embedding.contMDiff.of_le le_top)
-  ContMDiffVectorBundle.restrictScalars' (𝕜' := ℂ) ℝ _ _
+  ContMDiffVectorBundle.restrictScalars_modelWithCornersSelf ℝ this
 
 variable {ι : Type*} [Fintype ι]
 
