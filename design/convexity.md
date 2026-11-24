@@ -222,8 +222,8 @@ unless Mathlib or Tau Ceti has it:
 3. in the chart of `exists_weightModelChart` for `K`: the orbit directions lie
    in the weight-zero coordinates, and the derivative of the
    $\mathfrak q^*$-part at `0` is onto from them and zero on the others;
-4. the change of the weight-zero coordinates by the inverse function theorem
-   (`HasStrictFDerivAt.toOpenPartialHomeomorph`), and the product form of
+4. the change of the weight-zero coordinates by the implicit function theorem
+   (`HasStrictFDerivAt.implicitToOpenPartialHomeomorph`), and the product form of
    $\mu$;
 5. a convexity chart of the product form, from
    `image_mem_nhdsWithin_range_weightMomentMap`,

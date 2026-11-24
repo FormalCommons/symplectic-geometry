@@ -6,6 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
+import Mathlib.Analysis.Calculus.ContDiff.FiniteDimension
+import SymplecticGeometry.Analysis.Calculus.Implicit
 import SymplecticGeometry.Geometry.Lie.Exponential.CommutativeGroup.Character
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Lie.Subgroup.IdentityComponent
@@ -61,6 +63,19 @@ statements take the properties of the chart as hypotheses, so that they apply to
   injective on `𝔮`, and the vectors supported on those indices form a subspace stable under the
   complex structure, on which `ω₀` is nondegenerate by
   `TauCeti.SymplecticForm.Tames.isSymplectic_of_mem_invtSubmodule`.
+
+Finally, the product form:
+
+* `TauCeti.SmoothTwoForm.IsMomentMap.exists_openPartialHomeomorph_weightMomentMap_prod`: for a
+  subspace `𝔮` meeting `𝔤_x` only in `0`, there is a homeomorphism `Θ` from a neighbourhood
+  of `x` onto an open subset of `𝔮* × ℝᵐ × ℂ^ι`, sending `x` to `0`, and nonzero weights
+  `βₖ ∈ 𝔤_x*`, such that the `𝔤_x*`-part of `μ - μ(x)` is the weight-model moment map of `β`
+  at the last component of `Θ` and the `𝔮*`-part is its first component. In the weight chart,
+  the `𝔤_x*`-part depends only on the coordinates of nonzero weight
+  (`TauCeti.weightMomentMap_eq_weightMomentMap_weightModelSplit_fst`), while the `𝔮*`-part has
+  a derivative onto from those of zero weight (`exists_fderiv_comp_symm_apply_eq`); the implicit
+  function theorem, in the form `HasStrictFDerivAt.exists_openPartialHomeomorph_fst_eq_snd_snd_eq`
+  (in `Analysis/Calculus/Implicit.lean`), turns the `𝔮*`-part into coordinates.
 
 ## References
 
@@ -329,5 +344,113 @@ theorem exists_fderiv_comp_symm_apply_eq [FiniteDimensional ℝ E]
     ← LinearMap.flip_apply, hw]
 
 end WeightChart
+
+end TauCeti.SmoothTwoForm.IsMomentMap
+
+namespace TauCeti.SmoothTwoForm.IsMomentMap
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G] [T2Space G]
+  [IsTopologicalGroup G] [IsMulCommutative G] [CompactSpace G]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} [I'.Boundaryless]
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M] [T2Space M]
+  [MulAction G M] [ContMDiffSMul I I' ∞ G M]
+  {σ : SmoothTwoForm I' M} {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+
+attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
+attribute [local instance] ContMDiffMul.boundarylessManifold
+
+open scoped IsMulCommutative in
+/-- **The product form of a torus moment map near a point.** In the setting of
+`exists_weightModelChart_isotropy`, let `𝔮` be a subspace of the Lie algebra meeting the isotropy
+algebra `𝔤_x` only in `0`, for instance a linear complement of it. Then there are weights
+`βₖ ∈ 𝔤_x*`, all nonzero, indexed by a finite type, and an open partial homeomorphism `Θ` of `M`
+onto an open subset of `𝔮* × ℝᵐ × ℂ^ι`, defined at `x` with `Θ x = 0`, in which `μ` reads as a
+product: on the source of `Θ`, `μ^ξ = μ^ξ(x) + Φ_β(z)(ξ)` for `ξ ∈ 𝔤_x`, with `z` the last
+component of `Θ` and `Φ_β` the moment map of the weight model, and `μ^ξ = μ^ξ(x) + u(ξ)` for
+`ξ ∈ 𝔮`, with `u` the first component of `Θ`. -/
+theorem exists_openPartialHomeomorph_weightMomentMap_prod
+    (h : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) μ) (hσ : σ.IsSymplectic)
+    (hG : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) g) σ = σ) (x : M) {𝔮 : Submodule ℝ E}
+    (h𝔮 : Disjoint 𝔮 ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule) :
+    let 𝔤ₓ : Submodule ℝ E := ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule
+    ∃ (ι : Type) (_ : Fintype ι) (β : ι → StrongDual ℝ 𝔤ₓ) (m : ℕ)
+      (Θ : OpenPartialHomeomorph M
+        (StrongDual ℝ 𝔮 × EuclideanSpace ℝ (Fin m) × (EuclideanSpace ℝ ι × EuclideanSpace ℝ ι))),
+      (∀ k, β k ≠ 0) ∧ x ∈ Θ.source ∧ Θ x = 0 ∧
+      (∀ y ∈ Θ.source, ∀ ξ : 𝔤ₓ, μ y (ξ : E) = μ x (ξ : E) + weightMomentMap β (Θ y).2.2 ξ) ∧
+      ∀ y ∈ Θ.source, ∀ ξ : 𝔮, μ y (ξ : E) = μ x (ξ : E) + (Θ y).1 ξ := by
+  intro 𝔤ₓ
+  classical
+  obtain ⟨n, χ, α, chart, -, hα, hx, h0, -, -, hequiv, hform, -, hμ⟩ :=
+    exists_weightModelChart_isotropy h hσ hG x
+  set p : Fin n → Prop := fun k ↦ α k ≠ 0
+  set S := weightModelSplit p
+  -- Coordinates `(a, b)`: `a` those of zero weight, `b` the others.
+  let T : ((EuclideanSpace ℝ {k // ¬p k} × EuclideanSpace ℝ {k // ¬p k}) ×
+      (EuclideanSpace ℝ {k // p k} × EuclideanSpace ℝ {k // p k})) ≃L[ℝ]
+      EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n) :=
+    (ContinuousLinearEquiv.prodComm ℝ _ _).trans S.symm
+  -- The `𝔮*`-part of `μ - μ x`, read in the chart.
+  let Fq : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n) → StrongDual ℝ 𝔮 := fun z ↦
+    LinearMap.toContinuousLinearMap ((μ (chart.symm z) - μ x) ∘ₗ 𝔮.subtype)
+  have hFq (z) (ξ : 𝔮) : Fq z ξ = μ (chart.symm z) (ξ : E) - μ x (ξ : E) := rfl
+  have hsymm0 : chart.symm 0 = x := by rw [← h0]; exact chart.left_inv hx
+  have h0t : (0 : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n)) ∈ chart.target :=
+    h0 ▸ chart.map_source hx
+  have hcomp (ξ : E) : ContDiffAt ℝ ∞ (fun z ↦ μ (chart.symm z) ξ) 0 := by
+    rw [← contMDiffAt_iff_contDiffAt]
+    exact (h.contMDiff ξ).contMDiffAt.comp _
+      ((chart.symm.contMDiffOn 0 h0t).contMDiffAt (chart.open_target.mem_nhds h0t))
+  have hFqd : ContDiffAt ℝ 1 Fq 0 := by
+    rw [← contDiffWithinAt_univ, contDiffWithinAt_clm_apply]
+    exact fun ξ ↦ ((hcomp ξ).sub contDiffAt_const).of_le (by norm_cast) |>.contDiffWithinAt
+  have hFqD (w : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n)) (ξ : 𝔮) :
+      fderiv ℝ Fq 0 w ξ = fderiv ℝ (fun z ↦ μ (chart.symm z) (ξ : E)) 0 w := by
+    calc fderiv ℝ Fq 0 w ξ = fderiv ℝ (fun z ↦ Fq z ξ) 0 w := by
+          rw [fderiv_clm_apply (hFqd.differentiableAt one_ne_zero) (differentiableAt_const ξ)]
+          simp
+      _ = _ := by simp only [hFq, fderiv_sub_const]
+  have hFc : ContDiffAt ℝ 1 (Fq ∘ T) 0 :=
+    ContDiffAt.comp (0 : _) (by rwa [map_zero T]) T.contDiff.contDiffAt
+  have hF := hFc.hasStrictFDerivAt (hFc.differentiableAt one_ne_zero).hasFDerivAt one_ne_zero
+  obtain ⟨m, Φ, hΦ0, hΦa, hΦ⟩ := hF.exists_openPartialHomeomorph_fst_eq_snd_snd_eq fun q ↦ by
+    have hK (g : (Subgroup.connectedComponentOfOne (MulAction.stabilizer G x)).map
+        (MulAction.stabilizer G x).subtype) : (g : G) • x = x := by
+      obtain ⟨s, -, hs⟩ := Subgroup.mem_map.1 g.property
+      rw [← hs]
+      exact s.property
+    obtain ⟨w, hw, hwq⟩ := exists_fderiv_comp_symm_apply_eq (𝔮 := 𝔮) h hx (hform x hx) hK
+      (fun g ↦ Filter.eventually_of_mem (chart.open_source.mem_nhds hx)
+        fun y hy ↦ (hequiv g y hy).2) h𝔮 (q : 𝔮 →ₗ[ℝ] ℝ)
+    refine ⟨(S w).2, ContinuousLinearMap.ext fun ξ ↦ ?_⟩
+    have h1 : (S w).1 = 0 := by
+      have hw' (i : {k // p k}) := hw i (by rw [Ne, hα]; exact i.property)
+      exact Prod.ext (by ext i; simp [S, (hw' i).1]) (by ext i; simp [S, (hw' i).2])
+    have hTw : T ((S w).2, 0) = w := by
+      calc T ((S w).2, 0) = S.symm ((S w).1, (S w).2) := by simp [T, h1]
+        _ = w := S.symm_apply_apply w
+    rw [fderiv_comp _ (by rw [map_zero T]; exact hFqd.differentiableAt one_ne_zero)
+      T.differentiableAt, ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.fderiv, map_zero T,
+      ContinuousLinearEquiv.coe_coe, hTw, hFqD, ← h0]
+    exact hwq ξ
+  refine ⟨{k // p k}, inferInstance, fun k ↦ α k, m,
+    (chart.toOpenPartialHomeomorph.transHomeomorph T.symm.toHomeomorph).trans Φ,
+    fun k ↦ k.property, ?_, ?_, ?_, ?_⟩
+  · simpa [h0, hx] using hΦ0
+  · have hFq0 : Fq 0 = 0 := ContinuousLinearMap.ext fun ξ ↦ by
+      rw [hFq, hsymm0, sub_self, zero_apply]
+    simp [h0, hΦa, hFq0]
+  · intro y hy ξ
+    have hy' : y ∈ chart.source := by simp_all
+    rw [hμ y hy' ξ, weightMomentMap_eq_weightMomentMap_weightModelSplit_fst (𝔱 := 𝔤ₓ) (p := p)
+      fun k hk ↦ not_not.1 hk]
+    simp [hΦ, T, S]
+  · intro y hy ξ
+    have hy' : y ∈ chart.source := by simp_all
+    simp [hΦ, hFq, chart.left_inv hy']
 
 end TauCeti.SmoothTwoForm.IsMomentMap
