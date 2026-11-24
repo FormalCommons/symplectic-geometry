@@ -169,7 +169,7 @@ Over a base as in *Setting*, with the bundle's instances.
   curvature is closed (`IsCircleConnectionForm.isClosed_curvature`).
 - `IsCircleConnectionForm.realFirstChernClass_eq (hα)`: for every
   connection form, `realFirstChernClass IB P = -(2 * π)⁻¹ •
-  TauCeti.deRhamCohomology.mk IB 2 ⟨hα.curvature, hα.isClosed_curvature⟩`.
+  TauCeti.deRhamCohomology.mk IB 2 ⟨hα.curvature, hα.curvature_mem_closedForms⟩`.
   Proof: two connection forms differ by `π^* a`
   (`existsUnique_eq_add_mpullback`), and their curvatures by `d a`
   (`curvature_add_mpullback`).
