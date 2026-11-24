@@ -76,10 +76,18 @@ No statement of this part is one that the authors' errata
   $\sum_jc_j(-\lambda_j)^n=1$ for every $n$, that is
   $\sum_jc_j/(1+\lambda_jz)=1/(1-z)$ as rational functions, which the poles
   forbid. So the $C^\infty$ extension is Seeley's series, with Tau Ceti's coefficients
-  `TauCeti.HalfSpaceExtension.seeleyCoeff`. It reuses `timeScale`, `map_timeScale_eq_sum_pow_card_smul` for the
+  `TauCeti.HalfSpaceExtension.seeleyCoeff`. Tau Ceti also has Seeley's
+  extension itself (`Analysis/Sobolev/Trace/Reflection/Seeley.lean`):
+  `seeleyExtension`, `contDiff_seeleyExtension`,
+  `tsum_seeleyCoeff_smul_compContinuousLinearMap_timeScale` and
+  `exists_contDiff_infty_extension_halfSpace`, all for a complete target and
+  for functions on the whole half-space of `ℝ × E`. The library keeps its own
+  operator, since it needs one with no complete target, with parameters in an
+  open set `U`, from both ends of $[0,1]$, and near a single boundary point.
+  It reuses `timeScale`, `map_timeScale_eq_sum_pow_card_smul` for the
   derivatives of the dilated terms, and glues at $t=0$ as
   `HasFTaylorSeriesUpToOn.union_of_isClosed` does, by `HasFTaylorSeriesUpToOn.union`
-  for sets closed only in their union, but not the reflection itself. Mathlib has neither.
+  for sets closed only in their union. Mathlib has no extension of either kind.
 - **Isotopies.** `TauCeti.Diffeotopy J n M`
   (`Geometry/Diffeomorphism/Diffeotopy/Basic.lean`), a level-preserving
   diffeomorphism of `unitInterval × M`, with `timeSlice`, `final`,
@@ -266,17 +274,6 @@ instead of completeness.
 
 Named like Tau Ceti's file; in its namespace `TauCeti.HalfSpaceExtension`.
 `timeScale_of_fst_eq_zero`; `norm_timeScale_le` is Tau Ceti's.
-
-### `LinearAlgebra/Lagrange.lean`
-
-Evaluation of Mathlib's Lagrange basis, in Mathlib's namespace `Lagrange`.
-
-- `Lagrange.eval_basis (s : Finset ι) (v : ι → F) (i : ι) (x : F) :
-  (basis s v i).eval x = ∏ j ∈ s.erase i, (x - v j) / (v i - v j)`.
-- `Lagrange.sum_eval_basis_mul_eval (hvs : Set.InjOn v s) (hP : P.degree < #s)
-  (x : F) : ∑ i ∈ s, (basis s v i).eval x * P.eval (v i) = P.eval x`.
-- `Lagrange.sum_eval_basis_mul_pow (hvs : Set.InjOn v s) (hn : n < #s) (x : F) :
-  ∑ i ∈ s, (basis s v i).eval x * v i ^ n = x ^ n`.
 
 ### Seeley's coefficients
 

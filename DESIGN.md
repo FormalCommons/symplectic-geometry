@@ -1742,7 +1742,8 @@ The lemma of `auxiliary/smooth-primitives.md`, which Moser stability and
 isotopy extension need, and the passage between families over $[0,1]$ and
 over `ℝ` of *Manifolds, families and signs*. Neither Mathlib nor Tau Ceti
 has either; Tau Ceti's extension across a boundary,
-`TauCeti.HalfSpaceExtension`, is of finite order only.
+`TauCeti.HalfSpaceExtension`, is either of finite order or, for Seeley's, needs a
+complete target and a function on the whole half-space.
 
 - **Files:** `Geometry/Manifold/DeRham/GoodCover/Basic.lean` (finite good
   covers in the auxiliary page's sense: finitely many open sets each of
