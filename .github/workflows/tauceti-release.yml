@@ -11,12 +11,13 @@ name: tauceti-release
 # commits, so the library does not wait for them. fc-worker counts this
 # workflow's issues as the project's own: its config lists github-actions[bot]
 # under `apps`. So everything the issue says is fixed text or a checked value,
-# never text from Tau Ceti as it is. The issue gets the label merge-first:
-# a move can touch so many files that the merges of other pull requests
-# keep giving its pull request new conflicts. fc-worker counts the label on
-# an issue from an App in `apps`. From when the pull request that closes the
-# issue is ready for review until it has merged, the workers put no other
-# pull request in the merge queue, for at most the config's
+# never text from Tau Ceti as it is. The issue is opened with the label
+# merge-first: a move can touch so many files that the merges of other pull
+# requests keep giving its pull request new conflicts. fc-worker counts the
+# label on an issue that an App in `apps` opens with it; added to the issue
+# later by a workflow, it would not count. From when a pull request that
+# closes the issue is ready for review until it has merged, the workers put
+# no other pull request in the merge queue, for at most the config's
 # merge_first_limit, 4 hours. Removing the label from the issue ends this
 # (fc-worker's README, *Merging one pull request first*). GitHub turns
 # scheduled workflows off after 60 days without activity in the repository.
