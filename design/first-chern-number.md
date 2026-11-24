@@ -1650,7 +1650,7 @@ does.
       (`bandMap_of_nonpos`, `inl_eq_inr_iff`). The orientation sign of `φ`,
       from the band orientation to `o`, is constant on each connected slice
       `(-1, 0) × {x}`, where `φ` is `C¹` with invertible derivative
-      (`TauCeti.Manifold.Orientation.orientationSign_eq_of_isPreconnected`).
+      (`IsPreconnected.orientationSign_eq`).
       At `s = -2/3` it is `1`: near that
       point `φ = β ∘ A` for `A (s, x) = (2 + 4 s, x)`, which fixes the point
       with derivative `diag(4, id)`, so `orientationSign_comp`,

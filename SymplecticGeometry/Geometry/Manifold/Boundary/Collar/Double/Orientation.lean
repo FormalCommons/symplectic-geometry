@@ -38,7 +38,7 @@ map `(s, x) ↦ c (x, 1/2 - s/4)` into the interior, a local diffeomorphism sinc
 one. Where the band meets the first copy, `s < 0`, the band parameters carry into the interior
 by `(s, x) ↦ c (x, -s)`. That map is `C¹` with invertible derivative, so its orientation sign
 takes one value on the connected slice `(-1, 0) × {x}`
-(`TauCeti.Manifold.Orientation.orientationSign_eq_of_isPreconnected`).
+(`IsPreconnected.orientationSign_eq`).
 At `s = -2/3` the two maps into the interior differ by `(s, x) ↦ (2 + 4 s, x)`, which fixes the
 point with derivative of determinant `4`, so the sign is `1`
 (`TauCeti.Manifold.Orientation.orientationSign_of_apply_eq`). On the second copy, `s > 0`, the
@@ -365,7 +365,7 @@ private theorem orientationSign_copyParam_eq
     ext r
     exact ⟨fun hr ↦ ⟨⟨r, mem_bandInterval.2 (hIsub hr)⟩, hr, rfl⟩, fun ⟨_, ht, h⟩ ↦ h ▸ ht⟩
   have hS := hpre.image (fun s : bandInterval ↦ (s, x)) (by fun_prop)
-  refine orientationSign_eq_of_isPreconnected hS ?_ ?_ ⟨s, hs, rfl⟩ ⟨s', hs', rfl⟩
+  refine hS.orientationSign_eq ?_ ?_ ⟨s, hs, rfl⟩ ⟨s', hs', rfl⟩
   · rintro _ ⟨t, ht, rfl⟩
     exact (isLocalDiffeomorphAt_copyParam hj hjd (hmem (t, x) ht)).contMDiffAt.of_le (by simp)
   · rintro _ ⟨t, ht, rfl⟩

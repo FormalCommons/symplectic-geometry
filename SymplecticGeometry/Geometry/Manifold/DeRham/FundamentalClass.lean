@@ -11,13 +11,11 @@ public import TauCeti.Geometry.Manifold.Orientation.Euclidean
 public import TauCeti.Geometry.Manifold.SmoothSingular.Period
 public import TauCeti.Geometry.Manifold.SmoothSingular.TopForm
 import Mathlib.Geometry.Manifold.PartitionOfUnity
-import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
+import SymplecticGeometry.Geometry.Manifold.Orientation.Simplex
 import SymplecticGeometry.Geometry.Manifold.SmoothSingular.Chains
 import SymplecticGeometry.Geometry.Manifold.SmoothSingular.RelativeCycle
 import SymplecticGeometry.Geometry.Manifold.SmoothSingular.Smoothing
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
-import TauCeti.Geometry.Manifold.Orientation.Chart
-import TauCeti.Topology.OpenPartialHomeomorph.Constructions
 
 /-!
 # Integration against the fundamental class of a surface
@@ -43,10 +41,8 @@ The proof is local.
 
 * Every point lies in the image of the interior of the standard simplex `Δ²` under a map
   `g : ℝ² → C` that is, on a neighbourhood of `Δ²`, a smooth open embedding preserving orientation
-  (`TauCeti.Manifold.Orientation.exists_isOpenEmbedding_isOrientationPreservingAt_fullSimplex`):
-  the inverse of an oriented chart from Tau Ceti
-  (`TauCeti.Manifold.Orientation.exists_partialDiffeomorph_isOrientationPreservingAt`), composed
-  with an affine map that puts a small copy of `Δ²` in its target.
+  (`TauCeti.Manifold.Orientation.exists_isOpenEmbedding_isOrientationPreservingAt_fullSimplex`,
+  in `Geometry/Manifold/Orientation/Simplex.lean`).
 * Let `z` be a smooth cycle representing the fundamental class (smoothing), and `ψ` a
   form supported in a compact `K ⊆ g(interior Δ²)`. The image of `z` in `H₂(C, C ∖ K)` is the
   fundamental class along `K`, and so is the class of the simplex `σ` given by `g`
@@ -61,8 +57,6 @@ The proof is local.
 
 ## Main results
 
-* `TauCeti.Manifold.Orientation.exists_isOpenEmbedding_isOrientationPreservingAt_fullSimplex`:
-  positively oriented simplices around every point of an oriented manifold.
 * `TauCeti.Manifold.Orientation.integrationCochain_iCycles_eq_integralTopForm`: the local
   statement, for a form supported inside one positively oriented simplex.
 * `TauCeti.Manifold.Orientation.integralTopForm_eq_closedFormHomologyPeriod`: `∫_C φ = ⟨[φ], [C]⟩`.
@@ -85,68 +79,6 @@ open CategoryTheory Set Topology TopologicalSpace Module Filter Simplicial
 open scoped Manifold ContDiff
 
 namespace TauCeti.Manifold.Orientation
-
-section Simplex
-
-variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
-  {C : Type*} [TopologicalSpace C] [ChartedSpace E' C] [IsManifold 𝓘(ℝ, E') ∞ C]
-  {p : ℕ} [NeZero p]
-
-/-- **Positively oriented simplices.** Every point `x` of a smooth manifold of positive dimension
-`p`, oriented by `o`, lies in the image of the interior of the standard simplex `Δᵖ` under a map
-`g : ℝᵖ → C` which, on an open neighbourhood `U` of `Δᵖ`, is smooth, an open embedding, and
-orientation preserving from the standard orientation of `ℝᵖ` to `o`. -/
-theorem exists_isOpenEmbedding_isOrientationPreservingAt_fullSimplex
-    (o : Manifold.Orientation 𝓘(ℝ, E') C (Fin p)) (x : C) :
-    ∃ (U : Opens (EuclideanSpace ℝ (Fin p))) (g : EuclideanSpace ℝ (Fin p) → C),
-      fullSimplex p ⊆ U ∧ ContMDiffOn (𝓡 p) 𝓘(ℝ, E') ∞ g U ∧
-      IsOpenEmbedding (g ∘ ((↑) : U → EuclideanSpace ℝ (Fin p))) ∧
-      (∀ y ∈ U, IsOrientationPreservingAt (euclideanSpace p) o g y) ∧
-      x ∈ g '' interior (fullSimplex p) := by
-  -- An oriented chart `φ : C → ℝᵖ` at `x`; its inverse preserves orientation on its target.
-  obtain ⟨φ, hxφ, -, hφo⟩ := o.exists_partialDiffeomorph_isOrientationPreservingAt
-    (n := ∞) (euclideanSpace p) isOpen_univ (mem_univ x)
-  have hsymm (z) (hz : z ∈ φ.target) : IsOrientationPreservingAt (euclideanSpace p) o φ.symm z :=
-    (hφo _ (φ.map_target hz)).partialDiffeomorph_symm hz (by simp)
-  -- A ball about `φ x` inside the target of `φ`.
-  obtain ⟨r, hr, hball⟩ := Metric.isOpen_iff.1 φ.open_target (φ x) (φ.map_source hxφ)
-  -- Shrink `Δᵖ` into that ball by `A y = φ x + ε • (y - p₀)` around an interior point `p₀`.
-  obtain ⟨p₀, hp₀⟩ := nonempty_interior_fullSimplex p
-  obtain ⟨R, hR, hsub⟩ := (isCompact_fullSimplex p).isBounded.subset_ball_lt 0 p₀
-  set ε := r / R
-  have hε : 0 < ε := div_pos hr hR
-  set A : EuclideanSpace ℝ (Fin p) → EuclideanSpace ℝ (Fin p) := fun y ↦ φ x + ε • (y - p₀)
-    with hAdef
-  have hA (y) (hy : y ∈ Metric.ball p₀ R) : A y ∈ φ.target := by
-    refine hball ?_
-    rw [Metric.mem_ball, hAdef, dist_eq_norm, add_sub_cancel_left, norm_smul,
-      Real.norm_of_nonneg hε.le]
-    rw [Metric.mem_ball, dist_eq_norm] at hy
-    calc ε * ‖y - p₀‖ < ε * R := by gcongr
-      _ = r := div_mul_cancel₀ r hR.ne'
-  have hAd (y : EuclideanSpace ℝ (Fin p)) :
-      HasFDerivAt A (ε • ContinuousLinearMap.id ℝ (EuclideanSpace ℝ (Fin p))) y :=
-    (((hasFDerivAt_id y).sub_const p₀).const_smul ε).const_add (φ x)
-  let T : EuclideanSpace ℝ (Fin p) ≃ₜ EuclideanSpace ℝ (Fin p) := (Homeomorph.subRight p₀).trans
-    ((Homeomorph.smulOfNeZero ε hε.ne').trans (Homeomorph.addLeft (φ x)))
-  refine ⟨⟨Metric.ball p₀ R, Metric.isOpen_ball⟩, φ.symm ∘ A, hsub, fun y hy ↦ ?_, ?_,
-    fun y hy ↦ ?_, ⟨p₀, hp₀, by simpa [A] using φ.left_inv hxφ⟩⟩
-  · exact ((φ.symm.contMDiffOn.contMDiffAt (φ.open_target.mem_nhds (hA y hy))).comp y
-      (contDiff_const.add
-        ((contDiff_id.sub contDiff_const).const_smul ε)).contMDiff.contMDiffAt).contMDiffWithinAt
-  · -- On the ball, `φ.symm ∘ A` is the inverse of `φ` after the affine homeomorphism `T`.
-    refine φ.symm.toOpenPartialHomeomorph.isOpenEmbedding_comp
-      (g := T ∘ ((↑) : Metric.ball p₀ R → _))
-      (T.isOpenEmbedding.comp Metric.isOpen_ball.isOpenEmbedding_subtypeVal) ?_
-    rintro _ ⟨y, rfl⟩
-    exact hA y y.prop
-  · refine (hsymm _ (hA y hy)).comp (isOrientationPreservingAt_of_det_fderiv_pos _ ?_)
-    rw [(hAd y).fderiv, ContinuousLinearMap.det,
-      ContinuousLinearMap.toLinearMap_smul, LinearMap.det_smul]
-    simp only [ContinuousLinearMap.coe_id, LinearMap.det_id, mul_one]
-    positivity
-
-end Simplex
 
 variable {E' : Type} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
   {C : Type} [TopologicalSpace C] [ChartedSpace E' C] [IsManifold 𝓘(ℝ, E') ∞ C]
