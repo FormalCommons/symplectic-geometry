@@ -188,7 +188,6 @@ theorem forall_timeSlice_mem_diffeomorphStabilizer_iff (hσ : σ.IsClosed) :
     rw [← hslice, hu u 0, hslice, unitInterval.smoothTransition_of_nonpos le_rfl, timeSlice_zero]
     exact congrFun (mpullback_id σ.val) x
 
-
 /-- If every map of a diffeotopy preserves a closed two-form `σ`, then every contraction
 `ι_{X_t} σ` of `σ` with its velocity is a closed one-form. -/
 theorem interiorₗ_smoothVelocity_mem_closedForms (hσ : σ.IsClosed)
@@ -197,6 +196,7 @@ theorem interiorₗ_smoothVelocity_mem_closedForms (hσ : σ.IsClosed)
   rw [mem_closedForms, SmoothTwoForm.coe_interiorₗ]
   exact SmoothTwoForm.mem_symplecticVectorFields_iff.1
     ((Φ.forall_timeSlice_mem_diffeomorphStabilizer_iff hσ).1 hΦ t)
+
 end Diffeotopy
 
 namespace SmoothTwoForm

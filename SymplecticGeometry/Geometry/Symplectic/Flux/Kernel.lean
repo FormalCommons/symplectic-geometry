@@ -13,6 +13,7 @@ import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.HomologyPeriod
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.SymplecticIsotopy
+import SymplecticGeometry.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 
 /-!
 # Fluxes of truncations and the Hamiltonian criterion
@@ -32,7 +33,8 @@ periods of the contractions
 
 As a consequence, if every truncation of `φ` has zero flux, then every period of every
 `ι_{X_t} σ` vanishes: a continuous function whose integrals over every `[0, T]` vanish is the
-derivative of zero, hence zero. Every `ι_{X_t} σ` is then exact (Tau Ceti's
+derivative of zero, hence zero (`Continuous.eqOn_zero_of_forall_intervalIntegral_eq_zero`). Every
+`ι_{X_t} σ` is then exact (Tau Ceti's
 `TauCeti.mem_exactForms_one_iff_homologyPeriodHom_eq_zero`), so `φ` is Hamiltonian
 (`TauCeti.Diffeotopy.isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms`). This is the
 way McDuff–Salamon pass from fluxes to Hamiltonian isotopies in the proofs of Theorem 10.2.5 and
@@ -61,13 +63,6 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSp
   {J : ModelWithCorners ℝ E H} {M : Type} [TopologicalSpace M] [ChartedSpace H M]
   [IsManifold J ∞ M] {σ : closedForms J M 2} {Φ : Diffeotopy J ∞ M}
 
-/-- The maps of a truncation of a diffeotopy preserving `σ` preserve `σ`. -/
-theorem timeSlice_truncate_mem_diffeomorphStabilizer
-    (hΦ : ∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ.val) (T t : unitInterval) :
-    (Φ.truncate T).timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ.val := by
-  rw [timeSlice_truncate]
-  exact hΦ _
-
 variable [J.Boundaryless] [FiniteDimensional ℝ E] [T2Space M]
 
 /-- **Periods of the flux of a truncation.** Let every map of the diffeotopy `φ_t` preserve the
@@ -79,11 +74,11 @@ theorem homologyPeriod_flux_truncate
     (c : ((singularChains ℤ).obj (.of M)).homology 1) :
     deRhamCohomology.homologyPeriod ((Φ.truncate T).flux σ
         (SmoothForm.final_mem_diffeomorphStabilizer
-          (timeSlice_truncate_mem_diffeomorphStabilizer hΦ T))) c =
+          (SmoothForm.timeSlice_truncate_mem_diffeomorphStabilizer hΦ T))) c =
       ∫ t in (0 : ℝ)..T, homologyPeriodHom (SmoothTwoForm.interiorₗ σ.val
         (Φ.smoothVelocity (projIcc 0 1 zero_le_one t)) : RoughForm J M ℝ 1) c := by
   have hσ := (SmoothForm.isClosed_iff_mem_closedForms σ.val).2 σ.property
-  have hΨ := timeSlice_truncate_mem_diffeomorphStabilizer hΦ T
+  have hΨ := SmoothForm.timeSlice_truncate_mem_diffeomorphStabilizer hΦ T
   -- The periods of the contractions of `Φ`, as a function of real time.
   set g : ℝ → ℝ := fun s ↦ homologyPeriodHom (SmoothTwoForm.interiorₗ σ.val
     (Φ.smoothVelocity (projIcc 0 1 zero_le_one s)) : RoughForm J M ℝ 1) c
@@ -121,12 +116,12 @@ then `φ_t` is Hamiltonian. -/
 theorem isHamiltonian_of_forall_flux_truncate_eq_zero
     (hΦ : ∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ.val)
     (h : ∀ T, (Φ.truncate T).flux σ (SmoothForm.final_mem_diffeomorphStabilizer
-      (timeSlice_truncate_mem_diffeomorphStabilizer hΦ T)) = 0) :
+      (SmoothForm.timeSlice_truncate_mem_diffeomorphStabilizer hΦ T)) = 0) :
     Φ.IsHamiltonian σ.val := by
   have hσ := (SmoothForm.isClosed_iff_mem_closedForms σ.val).2 σ.property
+  have hX := Φ.interiorₗ_smoothVelocity_mem_closedForms hσ hΦ
   refine (isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms hΦ).2 fun t ↦ ?_
-  rw [mem_exactForms_one_iff_homologyPeriodHom_eq_zero
-    (Φ.interiorₗ_smoothVelocity_mem_closedForms hσ hΦ t)]
+  rw [mem_exactForms_one_iff_homologyPeriodHom_eq_zero (hX t)]
   ext c
   -- The periods on `c` of the contractions, as a continuous function of real time.
   set g : ℝ → ℝ := fun s ↦ homologyPeriodHom (SmoothTwoForm.interiorₗ σ.val
@@ -134,20 +129,13 @@ theorem isHamiltonian_of_forall_flux_truncate_eq_zero
   have hg : Continuous g :=
     (SymplecticGeometry.IsSmoothFamily.contMDiff_homologyPeriodHom
       (SymplecticGeometry.isSmoothFamily_interiorₗ σ.val Φ.contMDiff_smoothVelocity)
-      (Φ.interiorₗ_smoothVelocity_mem_closedForms hσ hΦ) c).continuous.comp continuous_projIcc
-  -- Its integrals over the intervals `[0, s]`, `s ∈ [0, 1]`, vanish.
-  have hint (s : ℝ) (hs : s ∈ Icc (0 : ℝ) 1) : ∫ u in (0 : ℝ)..s, g u = 0 := by
+      hX c).continuous.comp continuous_projIcc
+  -- Its integrals over the intervals `[0, s]`, `s ∈ [0, 1]`, vanish, so it vanishes on `[0, 1]`.
+  have hzero := hg.eqOn_zero_of_forall_intervalIntegral_eq_zero zero_lt_one fun s hs ↦ by
     have := homologyPeriod_flux_truncate hΦ ⟨s, hs⟩ c
     rw [h, map_zero, AddMonoidHom.zero_apply] at this
     exact this.symm
-  -- So `g` vanishes on `(0, 1)`, as the derivative of these integrals, and then on `[0, 1]`.
-  have hzero : EqOn g 0 (Ioo 0 1) := fun s hs ↦ by
-    have hF : (fun r ↦ ∫ u in (0 : ℝ)..r, g u) =ᶠ[𝓝 s] fun _ ↦ 0 :=
-      Filter.mem_of_superset (Ioo_mem_nhds hs.1 hs.2) fun r hr ↦ hint r (Ioo_subset_Icc_self hr)
-    rw [← hg.deriv_integral g 0 s, hF.deriv_eq, deriv_const, Pi.zero_apply]
-  have := hzero.of_subset_closure hg.continuousOn continuousOn_const Ioo_subset_Icc_self
-    (closure_Ioo zero_ne_one).ge t.property
-  simpa only [g, projIcc_val, Pi.zero_apply, AddMonoidHom.zero_apply] using this
+  simpa only [g, projIcc_val, Pi.zero_apply, AddMonoidHom.zero_apply] using hzero t.property
 
 end TauCeti.Diffeotopy
 
