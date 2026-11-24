@@ -69,8 +69,7 @@ theorem IsSemialgebraicOn.isSemialgebraic_inter_setOf_eval_map_eq_zero {σ R : T
   set q : MvPolynomial (σ ⊕ Unit) R := Q.eval₂ (rename Sum.inl).toRingHom (X (Sum.inr ()))
   convert (hF.eval_comp fun _ : Unit ↦ q).isSemialgebraic_inter_setOf_eq_const 0 using 2
   ext x
-  simp only [q, eval_eval₂_rename_inl_X_inr, Sum.elim_comp_inl, Sum.elim_inr]
-  simp [funext_iff]
+  simp [q, funext_iff]
 
 open _root_.Polynomial in
 /-- A real function `f` of one variable that is semialgebraic on a set containing the points

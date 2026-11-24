@@ -49,7 +49,7 @@ theorem isNashAt_of_eventually_isRoot {σ : Type*} [Fintype σ] {f : (σ → ℝ
   have hF : F = fun p ↦ MvPolynomial.eval p
       (P.eval₂ (MvPolynomial.rename Sum.inl).toRingHom (MvPolynomial.X (.inr ()))) := by
     ext p
-    rw [MvPolynomial.eval_eval₂_rename_inl_X_inr]
+    simp [F]
   have hFN : IsNashAt F (Sum.elim x fun _ ↦ f x) := by
     rw [hF]
     exact MvPolynomial.isNashAt_eval _
