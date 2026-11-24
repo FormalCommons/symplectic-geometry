@@ -37,7 +37,7 @@ excludes zero. This adapts the proof of `TauCeti.tangentCoordChange_normal_nonne
 basis `(dc(b₁), …, dc(bₙ), dc(∂ₜ))` differs from the outward-first basis
 `(-dc(∂ₜ), dc(b₁), …, dc(bₙ))` of `boundaryOrientation_spec` by a cyclic permutation of sign
 `(-1) ^ n` and one negation. The orientation sign is constant on a preconnected set where the
-derivative is invertible (`TauCeti.Manifold.Orientation.orientationSign_eq_of_isPreconnected`)
+derivative is invertible (`IsPreconnected.orientationSign_eq`)
 and each slice `{y} × [0, 1)` is preconnected, so the sign at `(y, 0)` holds on the whole slice.
 
 ## Main results
@@ -267,7 +267,7 @@ theorem orientationSign_eq_neg_one_pow (hk : k ≠ 0)
     isPreconnected_range (continuous_const.prodMk h.symm.continuous)
   have hmem (s : normalIioOpens 1) : (y, s) ∈ range fun s ↦ (y, h.symm s) :=
     ⟨h s, congrArg (y, ·) (h.symm_apply_apply s)⟩
-  refine (Manifold.Orientation.orientationSign_eq_of_isPreconnected hS
+  refine (hS.orientationSign_eq
     (fun p _ ↦ (c.contMDiff p).of_le (ENat.one_le_iff_ne_zero_withTop.2 hk))
     (fun p _ ↦ (c.isLocalDiffeomorph p).isInvertible_mfderiv hk) (hmem t)
     (hmem (normalIioOpensZero one_pos))).trans ?_
