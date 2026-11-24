@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Topology.Algebra.Module.FiniteDimension
+public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap
 
 /-!
@@ -15,8 +15,10 @@ A moment map `μ : M → 𝔤*` takes values in `Module.Dual ℝ 𝔤`, which ca
 Tau Ceti's `TauCeti.SmoothTwoForm.IsMomentMap` asks only that each component `x ↦ μ x Z` be
 smooth. When `𝔤` is finite-dimensional, this file reads `μ` through a linear map
 `f : 𝔤* → V` into a real normed space and shows that `f ∘ μ` is smooth, hence continuous. The
-proof writes `f ∘ μ` as a continuous linear map applied to the components of `μ` in a basis of
-`𝔤`, as Tau Ceti's `TauCeti.SmoothTwoForm.IsMomentMap.contMDiff_sub` reads a moment map in a basis.
+evaluations at elements of `𝔤` separate the points of `𝔤*`, so every functional on `𝔤*` takes
+`μ` to a smooth function (`SymplecticGeometry.contMDiff_dual_apply_of_separating`), and
+`SymplecticGeometry.contMDiff_linearMap_comp_of_dual` concludes. That lemma reads `μ` in a basis,
+as Tau Ceti's `TauCeti.SmoothTwoForm.IsMomentMap.contMDiff_sub` does.
 
 ## Main results
 
@@ -42,19 +44,14 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
 `𝔤` finite-dimensional, and let `f : 𝔤* → V` be linear (a linear map, a linear equivalence, or
 any `LinearMapClass`), with `V` a real normed space. Then `f ∘ μ : M → V` is smooth. -/
 theorem contMDiff_linearMap_comp (h : σ.IsMomentMap a μ) (f : F) :
-    ContMDiff I 𝓘(ℝ, V) ∞ (f ∘ μ) := by
-  let b := Module.finBasis ℝ 𝔤
-  let L : (Fin (finrank ℝ 𝔤) → ℝ) →L[ℝ] V :=
-    LinearMap.toContinuousLinearMap
-      ((f : Module.Dual ℝ 𝔤 →ₗ[ℝ] V) ∘ₗ b.dualBasis.equivFun.symm.toLinearMap)
-  have hμ : f ∘ μ = L ∘ fun x i ↦ μ x (b i) := by
-    funext x
-    have hx : b.dualBasis.equivFun (μ x) = fun i ↦ μ x (b i) := funext (b.dualBasis_equivFun _)
-    rw [Function.comp_apply, Function.comp_apply, ← hx, LinearMap.coe_toContinuousLinearMap',
-      LinearMap.comp_apply, LinearEquiv.coe_coe, LinearEquiv.symm_apply_apply,
-      LinearMap.coe_ofClass]
-  rw [hμ]
-  exact L.contMDiff.comp (contMDiff_pi_module_iff.2 fun i ↦ h.contMDiff (b i))
+    ContMDiff I 𝓘(ℝ, V) ∞ (f ∘ μ) :=
+  SymplecticGeometry.contMDiff_linearMap_comp_of_dual
+    (SymplecticGeometry.contMDiff_dual_apply_of_separating
+      (s := Set.range (Module.Dual.eval ℝ 𝔤))
+      (fun φ hφ ↦ by
+        by_contra! h0
+        exact hφ (LinearMap.ext fun Z ↦ h0 _ ⟨Z, rfl⟩))
+      (by rintro _ ⟨Z, rfl⟩; exact h.contMDiff Z)) f
 
 /-- **A moment map read through a linear map is continuous.** Let `μ : M → 𝔤*` be a moment map,
 with `𝔤` finite-dimensional, and let `f : 𝔤* → V` be linear, with `V` a real normed space. Then
