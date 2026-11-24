@@ -12,12 +12,14 @@ name: tauceti-release
 # workflow's issues as the project's own: its config lists github-actions[bot]
 # under `apps`. So everything the issue says is fixed text or a checked value,
 # never text from Tau Ceti as it is. The issue gets the label merge-first:
-# a move touches so many files that the merges of other pull requests would
-# keep giving its pull request new conflicts, so fc-worker lets that pull
-# request merge before all others once it is ready for review, and holds
-# the others back meanwhile (fc-worker's README, *Merging one pull request
-# first*). GitHub turns scheduled workflows off after 60 days without
-# activity in the repository.
+# a move can touch so many files that the merges of other pull requests
+# keep giving its pull request new conflicts. fc-worker counts the label on
+# an issue from an App in `apps`. From when the pull request that closes the
+# issue is ready for review until it has merged, the workers put no other
+# pull request in the merge queue, for at most the config's
+# merge_first_limit, 4 hours. Removing the label from the issue ends this
+# (fc-worker's README, *Merging one pull request first*). GitHub turns
+# scheduled workflows off after 60 days without activity in the repository.
 on:
   schedule:
     - cron: "17 6 * * *"
@@ -91,9 +93,12 @@ jobs:
             { echo "::error::could not list Tau Ceti's files at $short"; exit 1; }
           { grep -qx 'lakefile\.toml' <<<"$files" && ! grep -qx 'lakefile\.lean' <<<"$files"; } ||
             { echo "::error::Tau Ceti at $short is not set up by a lakefile.toml alone, so CI would reject the move"; exit 1; }
-          # gh issue create fails if the label is missing, so make it if
-          # someone deleted it; this fails when it exists, which is fine.
-          gh label create merge-first --color B60205 --description "Merges before all others; on an issue, the pull request that closes it does (fc-worker)" 2>/dev/null || true
+          # gh issue create fails if the label does not exist, so create it
+          # first; --force updates it if it exists. If this fails and the
+          # label is there, the issue is still opened.
+          gh label create merge-first --force --color B60205 \
+            --description "Merges before all others; on an issue, the pull request that closes it does (fc-worker)" ||
+            echo "::warning::could not create or update the label merge-first"
           gh issue create --title "Move Tau Ceti to $short" --label merge-first --body "$(cat <<EOF
           Tau Ceti's security audit has reached commit \`$audited\` of its main branch, $ahead commits after \`$pinned\`, which the library is on. Move the library to this commit, as \`AGENTS.md\` says under *Leave the setup alone*:
 
