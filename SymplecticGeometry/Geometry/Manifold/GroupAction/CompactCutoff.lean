@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.ContMDiff.ParametricIntegral
+public import TauCeti.Geometry.Manifold.ContMDiff.ParametricIntegral.Basic
 public import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
 public import TauCeti.RepresentationTheory.Compact.Haar
 public import TauCeti.Topology.Algebra.ConstMulAction
