@@ -268,12 +268,157 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   [Group G] [IsTopologicalGroup G] [CompactSpace G] [T2Space G] [MulAction G M]
   [ContMDiffSMul IG I ∞ G M]
 
+
+omit [IsTopologicalGroup G] [T2Space G] in
+/-- The first step of the equivariant relative Moser theorem: a tube `W` around `f(Q)` on which
+the segment from `σ₀` to `σ₁` is nondegenerate, whose invariant core contains `f(Q)`, and a
+primitive on that invariant core of the restriction of `σ₁ - σ₀`, vanishing with its first jet
+along `f(Q)`. -/
+private theorem exists_primitive_invariantCore_of_eq_along [ContinuousSMul G M]
+    (f : SmoothEmbedding J I ∞ Q M) (hfG : ∀ (g : G) q, g • f q ∈ range f)
+    {σ₀ σ₁ : SmoothTwoForm I M} (h₀ : σ₀.IsClosed) (h₁ : σ₁.IsClosed)
+    (hnd : ∀ q, (σ₀.bilinFormAt (f q)).Nondegenerate)
+    (heq : ∀ q, σ₁.val (f q) = σ₀.val (f q)) :
+    ∃ (W : Opens M) (_ : (W : Set M) ⊆
+        {x | ∀ s ∈ Icc (0 : ℝ) 1, ((σ₀ + s • (σ₁ - σ₀)).bilinFormAt x).Nondegenerate})
+      (hfV : range f ⊆ W.invariantCore G) (β : SmoothForm I (W.invariantCore G) ℝ 1),
+      mextDeriv β.val =
+        (SmoothForm.mpullback (Subtype.val : W.invariantCore G → M) contMDiff_subtypeVal σ₁ -
+          SmoothForm.mpullback (Subtype.val : W.invariantCore G → M) contMDiff_subtypeVal σ₀).val ∧
+      (∀ q, β.val ⟨f q, hfV (mem_range_self q)⟩ = 0) ∧
+      ∀ q, HasFDerivAt (RoughForm.inChartAt β.val ⟨f q, hfV (mem_range_self q)⟩)
+        (0 : E →L[ℝ] E [⋀^Fin 1]→L[ℝ] ℝ)
+        (extChartAt I (⟨f q, hfV (mem_range_self q)⟩ : W.invariantCore G)
+          ⟨f q, hfV (mem_range_self q)⟩) := by
+  have hη (q : Q) : (σ₁ - σ₀).val (f q) = 0 := by
+    rw [AddSubgroupClass.coe_sub, Pi.sub_apply, heq q, sub_self]
+  -- Along `f(Q)`, every form of the segment from `σ₀` to `σ₁` is `σ₀`.
+  have hfO : range f ⊆
+      {x | ∀ s ∈ Icc (0 : ℝ) 1, ((σ₀ + s • (σ₁ - σ₀)).bilinFormAt x).Nondegenerate} := by
+    rintro _ ⟨q, rfl⟩ s -
+    exact nondegenerate_bilinFormAt_add_smul_sub_of_eq (hη q) (hnd q) s
+  have hf : SmoothForm.mpullback f f.contMDiff σ₁ = SmoothForm.mpullback f f.contMDiff σ₀ :=
+    Subtype.ext (funext fun q ↦ by
+      ext v
+      rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback, mpullback_apply, mpullback_apply,
+        heq q])
+  -- A primitive of `σ₁ - σ₀` on a tube `W`, vanishing with its first jet along `f(Q)`.
+  obtain ⟨W, hWO, hfW, βW, hdβW, hβW0, hβW1⟩ := f.exists_smoothForm_relative_primitive_sub h₀ h₁
+    hf (isOpen_setOf_forall_mem_Icc_nondegenerate σ₀ σ₁) hfO
+  -- Its restriction to the invariant core `V` of `W`, which still contains `f(Q)`.
+  set V := W.invariantCore G
+  have hVW : V ≤ W := Opens.invariantCore_le W
+  have hfV : range f ⊆ V := Opens.subset_invariantCore (by
+    rintro g _ ⟨q, rfl⟩
+    exact hfW (hfG g q))
+  have hres (σ : SmoothTwoForm I M) : SmoothForm.mpullback (Opens.inclusion hVW)
+      (contMDiff_inclusion hVW)
+        (SmoothForm.mpullback (Subtype.val : W → M) contMDiff_subtypeVal σ) =
+        SmoothForm.mpullback (Subtype.val : V → M) contMDiff_subtypeVal σ := by
+    rw [SmoothForm.mpullback_mpullback]
+    -- `Opens.inclusion` is an abbreviation of `Set.inclusion`, so `congr` closes
+    -- `Subtype.val ∘ Opens.inclusion hVW = Subtype.val` (`Set.val_comp_inclusion`).
+    congr 2
+  refine ⟨W, hWO, hfV, SmoothForm.mpullback (Opens.inclusion hVW) (contMDiff_inclusion hVW) βW,
+    ?_, fun q ↦ ?_, fun q ↦ ?_⟩
+  · rw [SmoothForm.coe_mpullback, ← mpullback_inclusion_mextDeriv, hdβW,
+      ← SmoothForm.coe_mpullback _ (contMDiff_inclusion hVW), map_sub, hres, hres]
+  · rw [SmoothForm.coe_mpullback, mpullback_inclusion_apply]
+    exact hβW0 q
+  · have h := RoughForm.inChartAt_mpullback_inclusion_eventuallyEq hVW βW.val
+      ⟨f q, hfV (mem_range_self q)⟩
+    rw [I.range_eq_univ, nhdsWithin_univ] at h
+    rw [SmoothForm.coe_mpullback]
+    refine HasFDerivAt.congr_of_eventuallyEq ?_ h
+    rw [← extChartAt_inclusion_self hVW]
+    exact hβW1 q (heq q)
+
 include IG in
-/-- **The equivariant relative Moser theorem.** Let a compact Hausdorff group `G`, which is a
-smooth manifold, act smoothly on a boundaryless Hausdorff second-countable manifold `M`, and let
-`f : Q → M` be a smooth embedding whose image is `G`-invariant. Let `σ₀`, `σ₁` be closed two-forms
-on `M`, invariant under every element of `G`, which agree on the whole tangent space
-`T_{f q} M` at every point `f q`, with `σ₀` nondegenerate there. Then there are `G`-invariant
+/-- The equivariant relative Moser theorem before it is read in `M`: on the invariant core of a tube
+around `f(Q)`, an equivariant partial diffeomorphism `Φ` with invariant source, whose source
+contains `f(Q)`, which fixes `f(Q)` with identity differential there, and which pulls `σ₁` back
+to `σ₀` at every point of its source. -/
+private theorem exists_partialDiffeomorph_invariantCore_of_eq_along [ContinuousSMul G M]
+    (f : SmoothEmbedding J I ∞ Q M) (hfG : ∀ (g : G) q, g • f q ∈ range f)
+    {σ₀ σ₁ : SmoothTwoForm I M} (h₀ : σ₀.IsClosed) (h₁ : σ₁.IsClosed)
+    (hσ₀ : ∀ g : G, TauCeti.mpullback I I (g • ·) σ₀.val = σ₀.val)
+    (hσ₁ : ∀ g : G, TauCeti.mpullback I I (g • ·) σ₁.val = σ₁.val)
+    (hnd : ∀ q, (σ₀.bilinFormAt (f q)).Nondegenerate)
+    (heq : ∀ q, σ₁.val (f q) = σ₀.val (f q)) :
+    ∃ (W : Opens M) (Φ : PartialDiffeomorph I I (W.invariantCore G) (W.invariantCore G) ∞),
+      (∀ q, ∃ h : f q ∈ W.invariantCore G, ⟨f q, h⟩ ∈ Φ.source ∧ Φ ⟨f q, h⟩ = ⟨f q, h⟩ ∧
+        mfderiv I I Φ ⟨f q, h⟩ =
+          ContinuousLinearMap.id ℝ (TangentSpace I (⟨f q, h⟩ : W.invariantCore G))) ∧
+      (∀ x ∈ Φ.source, mpullback I I Φ
+        (mpullback I I (Subtype.val : W.invariantCore G → M) σ₁.val) x = σ₀.val x) ∧
+      (∀ (g : G) x, g • x ∈ Φ.source ↔ x ∈ Φ.source) ∧ ∀ (g : G) x, Φ (g • x) = g • Φ x := by
+  have : ContMDiffConstSMul I ∞ G M := ContMDiffSMul.contMDiffConstSMul IG
+  borelize G
+  obtain ⟨W, hWO, hfV, β, hdβ, hβ0, hβ1⟩ :=
+    exists_primitive_invariantCore_of_eq_along (G := G) f hfG h₀ h₁ hnd heq
+  set τ₀ := SmoothForm.mpullback (Subtype.val : W.invariantCore G → M) contMDiff_subtypeVal σ₀
+  set τ₁ := SmoothForm.mpullback (Subtype.val : W.invariantCore G → M) contMDiff_subtypeVal σ₁
+  have hτ (σ : SmoothTwoForm I M) (hσ : ∀ g : G, TauCeti.mpullback I I (g • ·) σ.val = σ.val)
+      (g : G) : SmoothForm.mpullback (fun x : W.invariantCore G ↦ g • x) (contMDiff_const_smul g)
+        (SmoothForm.mpullback (Subtype.val : W.invariantCore G → M) contMDiff_subtypeVal σ) =
+      SmoothForm.mpullback (Subtype.val : W.invariantCore G → M) contMDiff_subtypeVal σ :=
+    Subtype.ext ((SmoothForm.coe_mpullback _ _ _).trans
+      (SmoothForm.mpullback_smul_mpullback_subtypeVal Opens.coe_smul_invariantCore hσ g))
+  -- The average `γ` of `β` over `G` is an invariant primitive, still vanishing with its first jet
+  -- along the invariant set `f(Q)`.
+  set γ := SmoothForm.measureAverage IG (haarProb G) β
+  have horb (g : G) (q : Q) :
+      ∃ q', g • (⟨f q, hfV (mem_range_self q)⟩ : W.invariantCore G) =
+        ⟨f q', hfV (mem_range_self q')⟩ := by
+    obtain ⟨q', hq'⟩ := hfG g q
+    exact ⟨q', Subtype.ext ((Opens.coe_smul_invariantCore g _).trans hq'.symm)⟩
+  have hdγ : mextDeriv γ.val = (τ₁ - τ₀).val := by
+    have hβₗ : mextDerivₗ I 1 β = τ₁ - τ₀ := Subtype.ext (by rw [mextDerivₗ_apply, hdβ])
+    have hτG (g : G) : TauCeti.mpullback I I (g • ·) (τ₁ - τ₀).val = (τ₁ - τ₀).val := by
+      rw [← SmoothForm.coe_mpullback _ (contMDiff_const_smul g), map_sub, hτ σ₀ hσ₀ g,
+        hτ σ₁ hσ₁ g]
+    rw [← mextDerivₗ_apply,
+      SmoothForm.mextDerivₗ_measureAverage_of_invariant IG (haarProb G) hβₗ hτG]
+  have hγG (g : G) : SmoothForm.mpullback (fun x : W.invariantCore G ↦ g • x)
+      (contMDiff_const_smul g) γ = γ :=
+    Subtype.ext ((SmoothForm.coe_mpullback _ _ _).trans
+      (SmoothForm.mpullback_smul_measureAverage IG _ β g))
+  -- Moser's argument on the invariant core, equivariantly.
+  obtain ⟨Φ, hΦf, hΦ, hsrc, hΦG⟩ :=
+    SmoothTwoForm.exists_partialDiffeomorph_mpullback_eq_of_mextDeriv_eq_sub_of_smul
+      (h₀.mpullback _ _) hdγ
+      (fun x s hs ↦ by
+        rw [← map_sub, ← map_smul, ← map_add]
+        exact (nondegenerate_bilinFormAt_mpullback_subtype_val_iff x).2
+          (hWO (Opens.invariantCore_le W x.property) s hs))
+      (hτ σ₀ hσ₀) (hτ σ₁ hσ₁) hγG
+  refine ⟨W, Φ, fun q ↦ ?_, fun x hx ↦ ?_, hsrc, hΦG⟩
+  · have hγ0 : γ.val ⟨f q, hfV (mem_range_self q)⟩ = 0 :=
+      SmoothForm.measureAverage_eq_zero_of_forall_smul IG _ β fun g ↦ by
+        obtain ⟨q', hq'⟩ := horb g q
+        rw [hq']
+        exact hβ0 q'
+    have hγ1 := SmoothForm.hasFDerivAt_inChartAt_measureAverage_of_forall_smul IG (haarProb G) β
+      (x := ⟨f q, hfV (mem_range_self q)⟩)
+      (fun g ↦ by
+        obtain ⟨q', hq'⟩ := horb g q
+        rw [hq']
+        exact hβ0 q')
+      (fun g ↦ by
+        obtain ⟨q', hq'⟩ := horb g q
+        rw [hq']
+        exact hβ1 q')
+    obtain ⟨hq, hfix, hjet⟩ := hΦf _ hγ0
+    exact ⟨hfV (mem_range_self q), hq, hfix, hjet hγ1⟩
+  · rw [← SmoothForm.coe_mpullback _ contMDiff_subtypeVal, hΦ x hx,
+      SmoothForm.coe_mpullback_subtype_val_apply]
+
+include IG in
+/-- **The equivariant relative Moser theorem.** Let a compact Hausdorff topological group `G`,
+which is a smooth manifold, act smoothly on a boundaryless Hausdorff second-countable manifold
+`M`, and let `f : Q → M` be a smooth embedding whose image is `G`-invariant. Let `σ₀`, `σ₁` be
+closed two-forms on `M`, invariant under every element of `G`, which agree on the whole tangent
+space `T_{f q} M` at every point `f q`, with `σ₀` nondegenerate there. Then there are `G`-invariant
 open sets `U₀`, `U₁` of `M` containing `f(Q)` and a `G`-equivariant diffeomorphism
 `φ : U₀ → U₁`, which pulls the restriction of `σ₁` to `U₁` back to the restriction of `σ₀` to
 `U₀`, fixes every point `f q`, and has the identity of `T_{f q} M` as its differential there.
@@ -296,113 +441,21 @@ theorem exists_equivariant_diffeomorph_opens_of_eq_along (f : SmoothEmbedding J 
           (SmoothForm.mpullback (Subtype.val : U₁ → M) contMDiff_subtypeVal σ₁) =
         SmoothForm.mpullback (Subtype.val : U₀ → M) contMDiff_subtypeVal σ₀ := by
   have : ContinuousSMul G M := ContMDiffSMul.continuousSMul (I := IG) (I' := I) ∞
-  have : ContMDiffConstSMul I ∞ G M := ContMDiffSMul.contMDiffConstSMul IG
-  borelize G
-  have hη (q : Q) : (σ₁ - σ₀).val (f q) = 0 := by
-    rw [AddSubgroupClass.coe_sub, Pi.sub_apply, heq q, sub_self]
-  -- Along `f(Q)`, every form of the segment from `σ₀` to `σ₁` is `σ₀`.
-  have hfO : range f ⊆
-      {x | ∀ s ∈ Icc (0 : ℝ) 1, ((σ₀ + s • (σ₁ - σ₀)).bilinFormAt x).Nondegenerate} := by
-    rintro _ ⟨q, rfl⟩ s -
-    exact nondegenerate_bilinFormAt_add_smul_sub_of_eq (hη q) (hnd q) s
-  have hf : SmoothForm.mpullback f f.contMDiff σ₁ = SmoothForm.mpullback f f.contMDiff σ₀ :=
-    Subtype.ext (funext fun q ↦ by
-      ext v
-      rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback, mpullback_apply, mpullback_apply,
-        heq q])
-  -- A primitive of `σ₁ - σ₀` on a tube `W`, vanishing with its first jet along `f(Q)`.
-  obtain ⟨W, hWO, hfW, βW, hdβW, hβW0, hβW1⟩ := f.exists_smoothForm_relative_primitive_sub h₀ h₁
-    hf (isOpen_setOf_forall_mem_Icc_nondegenerate σ₀ σ₁) hfO
-  -- Its restriction to the invariant core `V` of `W`, which still contains `f(Q)`.
-  set V := W.invariantCore G
-  have hVW : V ≤ W := Opens.invariantCore_le W
-  have hfV : range f ⊆ V := Opens.subset_invariantCore (by
-    rintro g _ ⟨q, rfl⟩
-    exact hfW (hfG g q))
-  have hmem (q : Q) : f q ∈ V := hfV (mem_range_self q)
-  set βV := SmoothForm.mpullback (Opens.inclusion hVW) (contMDiff_inclusion hVW) βW
-  set τ₀ := SmoothForm.mpullback (Subtype.val : V → M) contMDiff_subtypeVal σ₀
-  set τ₁ := SmoothForm.mpullback (Subtype.val : V → M) contMDiff_subtypeVal σ₁
-  have hτ (σ : SmoothTwoForm I M) (hσ : ∀ g : G, TauCeti.mpullback I I (g • ·) σ.val = σ.val)
-      (g : G) : SmoothForm.mpullback (fun x : V ↦ g • x) (contMDiff_const_smul g)
-        (SmoothForm.mpullback (Subtype.val : V → M) contMDiff_subtypeVal σ) =
-      SmoothForm.mpullback (Subtype.val : V → M) contMDiff_subtypeVal σ :=
-    Subtype.ext ((SmoothForm.coe_mpullback _ _ _).trans
-      (SmoothForm.mpullback_smul_mpullback_subtypeVal Opens.coe_smul_invariantCore hσ g))
-  have hres (σ : SmoothTwoForm I M) : SmoothForm.mpullback (Opens.inclusion hVW)
-      (contMDiff_inclusion hVW)
-        (SmoothForm.mpullback (Subtype.val : W → M) contMDiff_subtypeVal σ) =
-        SmoothForm.mpullback (Subtype.val : V → M) contMDiff_subtypeVal σ := by
-    rw [SmoothForm.mpullback_mpullback]
-    -- `Opens.inclusion` is an abbreviation of `Set.inclusion`, so `congr` closes
-    -- `Subtype.val ∘ Opens.inclusion hVW = Subtype.val` (`Set.val_comp_inclusion`).
-    congr 2
-  have hdβV : mextDeriv βV.val = (τ₁ - τ₀).val := by
-    rw [SmoothForm.coe_mpullback, ← mpullback_inclusion_mextDeriv, hdβW,
-      ← SmoothForm.coe_mpullback _ (contMDiff_inclusion hVW), map_sub, hres, hres]
-  -- Its average over `G` is an invariant primitive, still vanishing with its first jet on `f(Q)`.
-  set γ := SmoothForm.measureAverage IG (haarProb G) βV
-  have hβV0 (q : Q) : βV.val ⟨f q, hmem q⟩ = 0 := by
-    rw [SmoothForm.coe_mpullback, mpullback_inclusion_apply]
-    exact hβW0 q
-  have hβV1 (q : Q) : HasFDerivAt (RoughForm.inChartAt βV.val ⟨f q, hmem q⟩)
-      (0 : E →L[ℝ] E [⋀^Fin 1]→L[ℝ] ℝ) (extChartAt I (⟨f q, hmem q⟩ : V) ⟨f q, hmem q⟩) := by
-    have h := RoughForm.inChartAt_mpullback_inclusion_eventuallyEq hVW βW.val ⟨f q, hmem q⟩
-    rw [I.range_eq_univ, nhdsWithin_univ] at h
-    rw [SmoothForm.coe_mpullback]
-    refine HasFDerivAt.congr_of_eventuallyEq ?_ h
-    rw [← extChartAt_inclusion_self hVW]
-    exact hβW1 q (heq q)
-  have horb (g : G) (q : Q) : ∃ q', g • (⟨f q, hmem q⟩ : V) = ⟨f q', hmem q'⟩ := by
-    obtain ⟨q', hq'⟩ := hfG g q
-    exact ⟨q', Subtype.ext ((Opens.coe_smul_invariantCore g _).trans hq'.symm)⟩
-  have hγ0 (q : Q) : γ.val ⟨f q, hmem q⟩ = 0 :=
-    SmoothForm.measureAverage_eq_zero_of_forall_smul IG _ βV fun g ↦ by
-      obtain ⟨q', hq'⟩ := horb g q
-      rw [hq']
-      exact hβV0 q'
-  have hγ1 (q : Q) : HasFDerivAt (RoughForm.inChartAt γ.val ⟨f q, hmem q⟩)
-      (0 : E →L[ℝ] E [⋀^Fin 1]→L[ℝ] ℝ) (extChartAt I (⟨f q, hmem q⟩ : V) ⟨f q, hmem q⟩) :=
-    SmoothForm.hasFDerivAt_inChartAt_measureAverage_of_forall_smul IG _ βV
-      (fun g ↦ by
-        obtain ⟨q', hq'⟩ := horb g q
-        rw [hq']
-        exact hβV0 q')
-      (fun g ↦ by
-        obtain ⟨q', hq'⟩ := horb g q
-        rw [hq']
-        exact hβV1 q')
-  have hdγ : mextDeriv γ.val = (τ₁ - τ₀).val := by
-    have hβₗ : mextDerivₗ I 1 βV = τ₁ - τ₀ := Subtype.ext (by rw [mextDerivₗ_apply, hdβV])
-    have hτG (g : G) : TauCeti.mpullback I I (g • ·) (τ₁ - τ₀).val = (τ₁ - τ₀).val := by
-      rw [← SmoothForm.coe_mpullback _ (contMDiff_const_smul g), map_sub, hτ σ₀ hσ₀ g,
-        hτ σ₁ hσ₁ g]
-    rw [← mextDerivₗ_apply,
-      SmoothForm.mextDerivₗ_measureAverage_of_invariant IG (haarProb G) hβₗ hτG]
-  have hγG (g : G) : SmoothForm.mpullback (fun x : V ↦ g • x) (contMDiff_const_smul g) γ = γ :=
-    Subtype.ext ((SmoothForm.coe_mpullback _ _ _).trans
-      (SmoothForm.mpullback_smul_measureAverage IG _ βV g))
-  -- Moser's argument on `V`, equivariantly.
-  obtain ⟨Φ, hΦf, hΦ, hsrc, hΦG⟩ :=
-    SmoothTwoForm.exists_partialDiffeomorph_mpullback_eq_of_mextDeriv_eq_sub_of_smul
-      (h₀.mpullback _ _) hdγ
-      (fun x s hs ↦ by
-        rw [← map_sub, ← map_smul, ← map_add]
-        exact (nondegenerate_bilinFormAt_mpullback_subtype_val_iff x).2
-          (hWO (hVW x.property) s hs))
-      (hτ σ₀ hσ₀) (hτ σ₁ hσ₁) hγG
-  rcases isEmpty_or_nonempty V with hV | hV
+  obtain ⟨W, Φ, hΦf, hΦ, hsrc, hΦG⟩ :=
+    exists_partialDiffeomorph_invariantCore_of_eq_along IG f hfG h₀ h₁ hσ₀ hσ₁ hnd heq
+  rcases isEmpty_or_nonempty (W.invariantCore G) with hV | hV
   · -- If the invariant core is empty, so is `Q`, and the empty opens will do.
-    have : IsEmpty Q := ⟨fun q ↦ hV.false ⟨f q, hmem q⟩⟩
+    have : IsEmpty Q := ⟨fun q ↦ hV.false ⟨f q, (hΦf q).1⟩⟩
     refine ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, by simp, by simp, fun _ x ↦ isEmptyElim x, isEmptyElim,
       Subsingleton.elim _ _⟩
   -- Read `Φ` in `M`, as a partial diffeomorphism `Ψ`, and then as a diffeomorphism `φ` between
-  -- the source and the target of `Ψ`.
+  -- the source and the target of `Ψ`; both are invariant, and `Ψ` is equivariant.
   let Ψ := Φ.liftOpens hV hV
-  have hΨΦ : ⇑Ψ ∘ (Subtype.val : V → M) = Subtype.val ∘ ⇑Φ := funext (Φ.liftOpens_apply_coe hV hV)
+  have hΨΦ : ⇑Ψ ∘ (Subtype.val : W.invariantCore G → M) = Subtype.val ∘ ⇑Φ :=
+    funext (Φ.liftOpens_apply_coe hV hV)
   let φ := Ψ.toDiffeomorphSourceTarget
   have hφΨ : Subtype.val ∘ ⇑φ = ⇑Ψ ∘ Subtype.val := funext Ψ.toDiffeomorphSourceTarget_apply_coe
-  have hΨG (g : G) (y : V) : Ψ (g • (y : M)) = g • Ψ y := by
+  have hΨG (g : G) (y : W.invariantCore G) : Ψ (g • (y : M)) = g • Ψ y := by
     rw [← Opens.coe_smul_invariantCore, Φ.liftOpens_apply_coe, Φ.liftOpens_apply_coe, hΦG,
       Opens.coe_smul_invariantCore]
   have hsrcG (g : G) : ∀ x ∈ Ψ.source, g • x ∈ Ψ.source := by
@@ -420,7 +473,7 @@ theorem exists_equivariant_diffeomorph_opens_of_eq_along (f : SmoothEmbedding J 
     rw [Ψ.toDiffeomorphSourceTarget_apply_coe, Ψ.toDiffeomorphSourceTarget_apply_coe]
     simp only [← hy]
     exact hΨG g y
-  · obtain ⟨hq, hfix, hjet⟩ := hΦf ⟨f q, hmem q⟩ (hγ0 q)
+  · obtain ⟨hqV, hq, hfix, hjet⟩ := hΦf q
     have hqΨ : f q ∈ Ψ.source := by
       rw [PartialDiffeomorph.liftOpens_source]
       exact ⟨_, hq, rfl⟩
@@ -429,12 +482,9 @@ theorem exists_equivariant_diffeomorph_opens_of_eq_along (f : SmoothEmbedding J 
       exact (Φ.liftOpens_apply_coe hV hV _).trans (congrArg Subtype.val hfix)
     · -- The differential of `Φ` at `f q` is the identity, read in `M`, then on the opens.
       exact (Manifold.mfderiv_eq_id_iff_of_comp_subtype_val hφΨ).2
-        ((Manifold.mfderiv_eq_id_iff_of_comp_subtype_val hΨΦ.symm).1 (hjet (hγ1 q)))
-  · refine Φ.mpullback_toDiffeomorphSourceTarget_liftOpens hV hV fun x hx ↦ ?_
-    rw [← SmoothForm.coe_mpullback _ contMDiff_subtypeVal, hΦ x hx,
-      SmoothForm.coe_mpullback_subtype_val_apply]
+        ((Manifold.mfderiv_eq_id_iff_of_comp_subtype_val hΨΦ.symm).1 hjet)
+  · exact Φ.mpullback_toDiffeomorphSourceTarget_liftOpens hV hV hΦ
 
 end TauCeti.SmoothEmbedding
-
 
 end
