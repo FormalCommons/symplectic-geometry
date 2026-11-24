@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Topology.FiberBundle.MapFiber
 public import SymplecticGeometry.Topology.Algebra.ProperAction.Free
+public import SymplecticGeometry.Topology.FiberBundle.ChangeModelFiber
 
 /-!
 # The principal bundle of a free proper action
@@ -130,9 +131,8 @@ variable {hU : IsOpen U} {hs : ContinuousOn s U}
 @[simp]
 theorem trivializationOfSection_baseSet :
     (trivializationOfSection U hU s hs hsec).baseSet = U := by
-  rw [trivializationOfSection, Trivialization.toMapFiber_baseSet]
-  -- `transFiberHomeomorph` keeps the base set by definition; Mathlib states no lemma for it
-  exact orbitTrivializationOfSection_baseSet
+  rw [trivializationOfSection, Trivialization.toMapFiber_baseSet,
+    Trivialization.transFiberHomeomorph_baseSet, orbitTrivializationOfSection_baseSet]
 
 /-- `trivializationOfSection` sends a point `x` over `q` to `(q, unop (orbitSectionCoord s x))`. -/
 @[simp]
@@ -148,9 +148,7 @@ theorem trivializationOfSection_symm_apply {q : orbitRel.Quotient Gᵐᵒᵖ X} 
       ⟨q, op g • ⟨s q, hsec q hq⟩⟩ := by
   rw [trivializationOfSection, Trivialization.toMapFiber_symm_apply, Homeomorph.symm_apply_eq,
     MapFiber.totalSpaceHomeomorph_apply, MapFiber.coe_smul]
-  -- Mathlib states no lemma for the inverse of `transFiberHomeomorph`, so its definition is
-  -- unfolded to reach `OpenPartialHomeomorph.transHomeomorph_symm_apply`
-  simp [Trivialization.transFiberHomeomorph, orbitTrivializationOfSection_symm_apply hq]
+  simp [orbitTrivializationOfSection_symm_apply hq]
 
 /-- **The trivialization from a local section is equivariant.** Left multiplication by
 `g : Gᵐᵒᵖ` on the fibre `Gᵐᵒᵖ` of `orbitTrivializationOfSection` is right multiplication by
