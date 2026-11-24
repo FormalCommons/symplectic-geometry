@@ -94,7 +94,7 @@ two more.
   $F_A(X,Y)=-A([X,Y])$ with `mlieBracket`, as the page says.
 - **Descent along $P\times F\to P\times_GF$.** Tau Ceti's
   `RoughForm.isBasic_of_mpullback_eq`, with the diagonal action, and
-  `IsSubmersion.exists_smoothForm_mpullback_eq_iff` give it once the
+  the smooth descent `SmoothForm.descendedForm` give it once the
   kernel of $dq$ is known; that kernel is found with the pull-back principal
   bundle $Q=\pi_M^*P$ over $M$, where $\pi_M:M\to B$ is the projection. Tau Ceti
   makes it a smooth principal `G`-bundle (`TauCeti.PrincipalBundle.pullback`
@@ -286,10 +286,10 @@ projection as a smooth map, and `Q := πM *ᵖ P`.
   $(x\xi,-X_\xi(v))$ to the fundamental field of $\xi$ on $Q$.
 - `isSubmersion_totalSpaceMk_mk` and `surjective_totalSpaceMk_mk`: $q$ is
   a surjective submersion.
-- `exists_mpullback_totalSpaceMk_mk_eq`: a smooth form on $P\times F$
+- `existsUnique_mpullback_totalSpaceMk_mk_eq`: a smooth form on $P\times F$
   invariant under the diagonal action and vanishing when one argument is
   $(x\xi,-X_\xi(v))$ is `mpullback q` of a form on $M$, unique by Tau
-  Ceti's `mpullback_injective_of_surjective`. It is Tau Ceti's
+  Ceti's `SmoothForm.eq_descendedForm_iff`. It is Tau Ceti's
   `RoughForm.isBasic_of_mpullback_eq` for $q$ and the diagonal action,
   with the kernel of $dq$ found through $\Phi$.
 
@@ -346,7 +346,7 @@ pulled back to `ManifoldTotalSpace G P × F` along `Prod.fst` and
   second expression, since $\hat x+X_{A v}$ vanishes on $(x\xi,-X_\xi)$ and
   $F_A$ vanishes on vertical vectors.
 - `associatedForm σ hμ hσG hA : SmoothForm (IB.prod IF) M ℝ 2`, the descended
-  form of `exists_mpullback_totalSpaceMk_mk_eq`, with
+  form of `existsUnique_mpullback_totalSpaceMk_mk_eq`, with
   `mpullback_totalSpaceMk_mk_associatedForm` (its pull-back along $q$ is
   `weinsteinForm`), `isClosed_associatedForm`, and
   `mpullback_associatedForm_fiber`: for every point $x$ of the total space

@@ -15,6 +15,7 @@ public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
 public import TauCeti.Geometry.Manifold.Submersion.Split
 public import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
+public import SymplecticGeometry.Topology.FiberBundle.Basic
 
 /-!
 # The product `P × F` as the pull-back of `P` to `P ×_G F`
@@ -53,14 +54,14 @@ form on `M`.
   sends `(x ξ, -X_ξ(v))` to the fundamental vector of `ξ` on `Q` at `Φ (x, v)`.
 * `TauCeti.AssociatedBundle.surjective_totalSpaceMk_mk` and
   `TauCeti.AssociatedBundle.isSubmersion_totalSpaceMk_mk`: `q` is a surjective submersion.
-* `TauCeti.AssociatedBundle.contMDiff_op_smul_inv_smul`: the diagonal action is smooth.
+* `TauCeti.AssociatedBundle.contMDiff_op_smul_inv_smul`: the diagonal action is `C^n`.
 * `TauCeti.AssociatedBundle.totalSpaceMk_mk_op_smul_inv_smul` and
   `TauCeti.AssociatedBundle.totalSpaceMk_mk_eq_totalSpaceMk_mk_iff`: `q` is invariant under the
   diagonal action, and its fibres are the orbits.
 * `TauCeti.AssociatedBundle.mfderiv_totalSpaceMk_mk_eq_zero_iff`: the kernel of the derivative
   of `q` at `(x, v)` is made of the vectors `(x ξ, -X_ξ(v))`.
 * `TauCeti.AssociatedBundle.isBasic_totalSpaceMk_mk` and
-  `TauCeti.AssociatedBundle.exists_mpullback_totalSpaceMk_mk_eq`: a smooth form on `P × F`
+  `TauCeti.AssociatedBundle.existsUnique_mpullback_totalSpaceMk_mk_eq`: a smooth form on `P × F`
   invariant under the diagonal action and vanishing on the vectors `(x ξ, -X_ξ(v))` is basic for
   `q`, and is the pull-back along `q` of a unique smooth form on `M`.
 
@@ -86,17 +87,19 @@ diagonal action, which `Φ` turns into the orbit map of `Q` (`pullbackProjDiffeo
 second component `g ↦ g⁻¹ • v` has derivative `ξ ↦ -X_ξ(v)` at `1`, by
 `TauCeti.mfderiv_inv_smul_one_apply`.
 
-From `pullbackProjSection` on, the declarations take `[∀ b, Nonempty (P b)]`. Their statements
-need it, not only their proofs: Mathlib's and Tau Ceti's fibre bundle structure on the pull-back
-`Q` asks for it, and so does `pullbackEquiv`. A caller supplies it with
-`have := FiberBundle.nonempty_fiber G P`, since `G` is nonempty.
+The declarations from `pullbackProjSection` to `mfderiv_pullbackProjDiffeomorph_fundamental` take
+`[∀ b, Nonempty (P b)]`. Their statements need it, not only their proofs: Mathlib's and Tau
+Ceti's fibre bundle structure on the pull-back `Q` asks for it, and so does `pullbackEquiv`. A
+caller supplies it with `have := FiberBundle.nonempty_fiber G P`, since `G` is nonempty.
+`isSubmersion_totalSpaceMk_mk` takes it as well. The statements after it do not mention `Q`, and
+their proofs derive the hypothesis in this way.
 
 The descent does not transport the descent of basic forms on principal bundles along `Φ`: Tau
 Ceti's `TauCeti.RoughForm.isBasic_of_mpullback_eq` applies to `q` directly, with the diagonal
-action as the family of maps over `q`, and
-`Manifold.IsSubmersion.exists_smoothForm_mpullback_eq_iff` then descends the basic form. `Φ` enters
-only through the kernel of the derivative of `q`. The statement of the descent is about smooth
-forms on `M`, so it takes the instance
+action as the family of maps over `q`, and Tau Ceti's smooth descent
+`TauCeti.SmoothForm.descendedForm` then gives the form on `M`, unique by
+`TauCeti.SmoothForm.eq_descendedForm_iff`. `Φ` enters only through the kernel of the derivative
+of `q`. The statement of the descent is about smooth forms on `M`, so it takes the instance
 `[ContMDiffFiberBundle ∞ F (AssociatedBundle G P F) IB IF]`, which a caller supplies with
 `have := contMDiffFiberBundle IG`; Tau Ceti does not make it an instance, since `IG` does not
 appear in its conclusion.
@@ -185,6 +188,14 @@ theorem totalSpaceMk_mk_op_smul_inv_smul (g : G) (x : ManifoldTotalSpace G P × 
         ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
           mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩ := by
   rw [ManifoldTotalSpace.homeomorph_symm_smul, mk_smul_inv_smul]
+
+omit [ContinuousSMul G F] in
+/-- The diagonal action `(x, v) ↦ (x · g, g⁻¹ • v)` of `g : G` on `P × F` is `C^n`. -/
+theorem contMDiff_op_smul_inv_smul [LieGroup IG n G] [ContMDiffSMul IG IF n G F] (g : G) :
+    ContMDiff ((IB.prod IG).prod IF) ((IB.prod IG).prod IF) n
+      fun x : ManifoldTotalSpace G P × F ↦ (op g • x.1, g⁻¹ • x.2) :=
+  ((contMDiff_const_smul (op g)).comp contMDiff_fst).prodMk
+    ((ContMDiffSMul.contMDiff_const_smul (I := IG) g⁻¹).comp contMDiff_snd)
 
 /-- **The fibres of the quotient map are the orbits of the diagonal action**: `[x, v] = [y, w]`
 exactly when `(y, w) = (x · g, g⁻¹ • v)` for some `g : G`. -/
@@ -424,7 +435,7 @@ variable {n : ℕ∞ω} {𝕜 B G F : Type*} [RCLike 𝕜]
   [TopologicalSpace F] [ChartedSpace HF F] [IsManifold IF n F] [MulAction G F]
   [ContinuousSMul G F] [ContMDiffSMul IG IF n G F]
   {P : B → Type*} [TopologicalSpace (TotalSpace G P)] [∀ b, TopologicalSpace (P b)]
-  [FiberBundle G P] [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P] [∀ b, Nonempty (P b)]
+  [FiberBundle G P] [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P]
   [ContMDiffFiberBundle n G P IB IG]
 
 /-- The projection `π_M` of the associated bundle, as a `C^n` map. -/
@@ -437,7 +448,7 @@ local notation "Q" => (πM : ManifoldTotalSpace F (AssociatedBundle G P F) → B
 `P` (`1 ≤ n`) with finite-dimensional base and structure group, and a `C^n` action of `G` on a
 finite-dimensional manifold `F`, all without boundary, the map `(x, v) ↦ [x, v]` from `P × F`
 onto `P ×_G F` is a `C^n` submersion. -/
-theorem isSubmersion_totalSpaceMk_mk (hn : 1 ≤ n) :
+theorem isSubmersion_totalSpaceMk_mk [∀ b, Nonempty (P b)] (hn : 1 ≤ n) :
     Manifold.IsSubmersion ((IB.prod IG).prod IF) (IB.prod IF) n
       fun x : ManifoldTotalSpace G P × F ↦
         ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
@@ -469,6 +480,7 @@ theorem mfderiv_totalSpaceMk_mk_eq_zero_iff (hn : 1 ≤ n) (x : ManifoldTotalSpa
               mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩) x w = 0 ↔
       ∃ ξ : GroupLieAlgebra IG G,
         (rightFundamentalVectorField (IB.prod IG) ξ x.1, -fundamentalVectorField IF ξ x.2) = w := by
+  have := FiberBundle.nonempty_fiber G P
   have hn₀ : n ≠ 0 := (zero_lt_one.trans_le hn).ne'
   have : ContMDiffFiberBundle n F (AssociatedBundle G P F) IB IF := contMDiffFiberBundle IG
   set Φ := pullbackProjDiffeomorph n IB IG IF (G := G) (F := F) (P := P)
@@ -525,18 +537,9 @@ variable {B G F : Type*}
   {IF : ModelWithCorners ℝ EF HF} [TopologicalSpace F] [ChartedSpace HF F] [IsManifold IF ∞ F]
   [MulAction G F] [ContinuousSMul G F] [ContMDiffSMul IG IF ∞ G F]
   {P : B → Type*} [TopologicalSpace (TotalSpace G P)] [∀ b, TopologicalSpace (P b)]
-  [FiberBundle G P] [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P] [∀ b, Nonempty (P b)]
+  [FiberBundle G P] [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P]
   [ContMDiffFiberBundle ∞ G P IB IG]
   {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] {k : ℕ}
-
-omit [IsManifold IB ∞ B] [IsManifold IF ∞ F] [ContinuousSMul G F] [∀ b, Nonempty (P b)]
-  [ContMDiffFiberBundle ∞ G P IB IG] in
-/-- The diagonal action `(x, v) ↦ (x · g, g⁻¹ • v)` of `g : G` on `P × F` is smooth. -/
-theorem contMDiff_op_smul_inv_smul (g : G) :
-    ContMDiff ((IB.prod IG).prod IF) ((IB.prod IG).prod IF) ∞
-      fun x : ManifoldTotalSpace G P × F ↦ (op g • x.1, g⁻¹ • x.2) :=
-  ((contMDiff_const_smul (op g)).comp contMDiff_fst).prodMk
-    ((ContMDiffSMul.contMDiff_const_smul (I := IG) g⁻¹).comp contMDiff_snd)
 
 /-- **Invariant forms vanishing on fundamental vectors are basic for the quotient map.** A smooth
 form on `P × F` that is invariant under the diagonal action `(x, v) ↦ (x · g, g⁻¹ • v)` and
@@ -559,7 +562,7 @@ theorem isBasic_totalSpaceMk_mk
   refine RoughForm.isBasic_of_mpullback_eq
     (σ := fun (g : G) (x : ManifoldTotalSpace G P × F) ↦ (op g • x.1, g⁻¹ • x.2))
     ((contMDiff_totalSpaceMk_mk ∞ G F IB IG IF P).mdifferentiable (by simp))
-    (fun g ↦ (contMDiff_op_smul_inv_smul g).mdifferentiable (by simp))
+    (fun g ↦ (contMDiff_op_smul_inv_smul (n := ∞) g).mdifferentiable (by simp))
     (fun g ↦ funext (totalSpaceMk_mk_op_smul_inv_smul g))
     (fun x y hxy ↦ Or.inr ((totalSpaceMk_mk_eq_totalSpaceMk_mk_iff.1 hxy).imp fun _ h ↦ h.symm))
     (fun x v j hj ↦ ?_) fun g ↦ ?_
@@ -571,7 +574,7 @@ theorem isBasic_totalSpaceMk_mk
 invariant under the diagonal action `(x, v) ↦ (x · g, g⁻¹ • v)` and vanishes as soon as one of
 its arguments at `(x, v)` is `(x ξ, -X_ξ(v))` for some `ξ` in the Lie algebra of `G` is the
 pull-back of exactly one smooth form on `P ×_G F` along the quotient map `(x, v) ↦ [x, v]`. -/
-theorem exists_mpullback_totalSpaceMk_mk_eq [FiniteDimensional ℝ EB] [IB.Boundaryless]
+theorem existsUnique_mpullback_totalSpaceMk_mk_eq [FiniteDimensional ℝ EB] [IB.Boundaryless]
     [FiniteDimensional ℝ EG] [IG.Boundaryless] [FiniteDimensional ℝ EF] [IF.Boundaryless]
     [ContMDiffFiberBundle ∞ F (AssociatedBundle G P F) IB IF]
     {β : SmoothForm ((IB.prod IG).prod IF) (ManifoldTotalSpace G P × F) V k}
@@ -589,12 +592,11 @@ theorem exists_mpullback_totalSpaceMk_mk_eq [FiniteDimensional ℝ EB] [IB.Bound
             ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
               mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩)
         (contMDiff_totalSpaceMk_mk ∞ G F IB IG IF P) γ = β := by
+  have := FiberBundle.nonempty_fiber G P
   have hq := isSubmersion_totalSpaceMk_mk (n := ∞) (IB := IB) (IG := IG) (IF := IF) (G := G)
     (F := F) (P := P) ENat.LEInfty.out
-  obtain ⟨γ, hγ⟩ := (hq.exists_smoothForm_mpullback_eq_iff surjective_totalSpaceMk_mk).2
-    (isBasic_totalSpaceMk_mk hβ hfund)
-  exact ⟨γ, hγ, fun γ' hγ' ↦ SmoothForm.mpullback_injective_of_surjective hq.contMDiff
-    surjective_totalSpaceMk_mk (hq.surjective_mfderiv (by simp)) (hγ'.trans hγ.symm)⟩
+  exact ⟨_, SmoothForm.mpullback_descendedForm (hf := hq) (hsurj := surjective_totalSpaceMk_mk)
+    (hα := isBasic_totalSpaceMk_mk hβ hfund), fun _ ↦ SmoothForm.eq_descendedForm_iff.2⟩
 
 end Descent
 
