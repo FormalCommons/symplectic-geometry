@@ -211,8 +211,9 @@ and let `hfree : ∀ x, μ x = 0 → MulAction.stabilizer G x = ⊥`.
   `SubMulAction.isCancelSMul_of_forall_stabilizer_eq_bot`.
 - `def zeroLevelChartedSpace (hσ : σ.IsNondegenerate) (hfree) (hn) :
   ChartedSpace (Fin n → ℝ) h.zeroLevel`, which is
-  `h.levelSubMulActionChartedSpace 0` with the regularity of
-  `forall_differential_surjective_of_stabilizer_eq_bot`.
+  `h.toIsMomentMap.levelChartedSpace` on `{x : M // μ x = 0}`, with the
+  regularity of `forall_differential_surjective_of_stabilizer_eq_bot`,
+  pulled back along `zeroLevelHomeomorph : h.zeroLevel ≃ₜ {x : M // μ x = 0}`.
 - With it: `isManifold_zeroLevel`, `isSmoothEmbedding_coe_zeroLevel`
   (`Subtype.val : Z → M` is a smooth embedding), `range_mfderiv_coe_zeroLevel`
   (`range (mfderiv … Subtype.val z) = ker (h.differential z)`),
