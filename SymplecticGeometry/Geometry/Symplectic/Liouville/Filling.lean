@@ -395,9 +395,8 @@ theorem IsStrongFilling.exists_liouvilleCollar [CompactSpace ((𝓡∂ (n + 1)).
         (congrFun ((SmoothForm.isClosed_def σ).1 h.isSymplectic.isClosed) _),
         SmoothTwoForm.coe_interiorₗ, ContMDiffSection.coeFn_mk]
     calc mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡∂ (n + 1)) Φ σ.val (t, x)
-        = mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡∂ (n + 1)) Φ (mextDeriv β.val) (t, x) := by
-          ext v
-          rw [mpullback_apply, mpullback_apply, hcart]
+        = mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡∂ (n + 1)) Φ (mextDeriv β.val) (t, x) :=
+          mpullback_apply_congr hcart
       _ = mextDeriv (mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡∂ (n + 1)) Φ β.val) (t, x) :=
           mpullback_mextDeriv_at (((SmoothCollar.contMDiffOn_of_forall_apply_eq hε hc).contMDiffAt
             ((isOpen_Ioo.prod isOpen_univ).mem_nhds hp)).of_le (by simp))

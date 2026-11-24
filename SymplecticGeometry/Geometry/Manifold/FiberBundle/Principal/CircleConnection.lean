@@ -272,7 +272,7 @@ variable [IB.Boundaryless]
 
 /-- Two connection forms differ by the pull-back of a unique `1`-form on the base. The base is
 assumed boundaryless, as for the curvature, because Tau Ceti's descent of basic forms along
-submersions (`Manifold.IsSubmersion.exists_smoothForm_mpullback_eq_iff`) assumes it. -/
+submersions (`SmoothForm.descendedForm`) assumes it. -/
 theorem IsCircleConnectionForm.existsUnique_eq_add_mpullback (hα : IsCircleConnectionForm α)
     {β : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1}
     (hβ : IsCircleConnectionForm β) :
@@ -298,13 +298,11 @@ theorem IsCircleConnectionForm.existsUnique_eq_add_mpullback (hα : IsCircleConn
         Submodule.coe_sub, Pi.sub_apply, ContinuousAlternatingMap.sub_apply,
         hα.apply_rightFundamentalVectorField, hβ.apply_rightFundamentalVectorField, sub_self,
         smul_zero, add_zero]
-  obtain ⟨a, ha⟩ := (hsub.exists_smoothForm_mpullback_eq_iff hsurj).mpr hbasic
-  refine ⟨a, ?_, fun a' ha' ↦ SmoothForm.mpullback_injective_of_surjective
-    (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) hsurj
-    (hsub.surjective_mfderiv (by simp)) ?_⟩
+  refine ⟨SmoothForm.descendedForm hsub hsurj (β - α) hbasic, ?_,
+    fun a' ha' ↦ SmoothForm.eq_descendedForm_iff.mpr ?_⟩
   · beta_reduce
-    rw [ha, add_sub_cancel]
-  · rw [ha, ha', add_sub_cancel_left]
+    rw [SmoothForm.mpullback_descendedForm, add_sub_cancel]
+  · rw [ha', add_sub_cancel_left]
 
 /-- Adding the pull-back of a `1`-form `a` on the base to a connection form adds `d a` to its
 curvature. -/
@@ -645,10 +643,8 @@ theorem IsCircleConnectionForm.mpullback_apply_eq_mpullback_division_add
       TauCeti.mpullback IB (IB.prod (𝓡 1)) t
         (TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) θ circleAngularForm +
           TauCeti.mpullback (IB.prod (𝓡 1)) IB p (TauCeti.mpullback IB (IB.prod (𝓡 1))
-            (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) α.val)) x := by
-    ext v
-    rw [mpullback_apply, mpullback_apply, hloc]
-    rfl
+            (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) α.val)) x :=
+    mpullback_apply_congr hloc
   rw [h, mpullback_add, Pi.add_apply, ← mpullback_comp_at hτ hθd, hθt,
     ManifoldTotalSpace.mpullback_mpullback_proj_apply _ hτ]
 
