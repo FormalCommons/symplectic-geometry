@@ -189,10 +189,10 @@ By induction with `wedgePow_succ` and Tau Ceti's `wedge_mem_closedForms`.
 
 ### `Geometry/Manifold/DifferentialForm/Average.lean`
 
-For `J : ModelWithCorners ℝ E' H'` with `[J.Boundaryless]`, a group `G`
+For `J : ModelWithCorners ℝ E' H'` with `[FiniteDimensional ℝ E'] [J.Boundaryless]`, a group `G`
 with `[T2Space G] [CompactSpace G] [PathConnectedSpace G]
 [IsManifold J ∞ G] [ContMDiffSMul J I ∞ G M]`, `[MeasurableSpace G]
-[BorelSpace G]`, and `[I.Boundaryless]` (Tau Ceti's averaging needs it):
+[OpensMeasurableSpace G]`, and `[I.Boundaryless]` (Tau Ceti's averaging needs it):
 
 ```lean
 theorem TauCeti.SmoothForm.measureAverage_sub_mem_exactForms_one [T2Space M]
