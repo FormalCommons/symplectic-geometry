@@ -80,8 +80,9 @@ theorem continuousAffineEquiv_comp (hU : IsConvexChart f U) (e : E ≃ᴬ[ℝ] F
     simp [e.eq_symm_apply]
 
 /-- A convexity chart of `f` is one of its translate `fun x ↦ c + f x`. -/
-theorem const_add (hU : IsConvexChart f U) (c : E) : IsConvexChart (fun x ↦ c + f x) U :=
-  hU.continuousAffineEquiv_comp (ContinuousAffineEquiv.constVAdd ℝ E c)
+theorem const_add (hU : IsConvexChart f U) (c : E) : IsConvexChart (fun x ↦ c + f x) U := by
+  simpa [comp_def, ← ContinuousAffineEquiv.coe_coe, ContinuousAffineEquiv.constVAdd_coe] using
+    hU.continuousAffineEquiv_comp (ContinuousAffineEquiv.constVAdd ℝ E c)
 
 /-- A convexity chart of `f` is one of its translate `fun x ↦ f x + c`. -/
 theorem add_const (hU : IsConvexChart f U) (c : E) : IsConvexChart (fun x ↦ f x + c) U := by
