@@ -3273,7 +3273,7 @@ Differential topology and complex analysis only; it waits for no part of
   from the merged Chern–Weil formula
   `SymplecticGeometry.Bundle.chernNumber_eq_integral_curvature`).
 - **Builds on:** *Symplectic fibrations* (only `Basic.lean` and
-  `Connection.lean`); the merged *Symplectic vector bundles*, *First
+  `HorizontalDistribution.lean`); the merged *Symplectic vector bundles*, *First
   Chern number* and *Moser isotopy*; Tau Ceti (de Rham cohomology and its
   homotopy invariance).
 - **Milestones:** *Thurston's theorem on symplectic fibrations*, *Chern
@@ -3333,8 +3333,8 @@ Differential topology and complex analysis only; it waits for no part of
   projection formula $\int_F(\pi^*\beta\wedge\alpha)=\beta\wedge\int_F\alpha$;
   naturality under pull-back along maps of the base; and, in degree $m$,
   the integral over each fibre).
-- **Builds on:** *Symplectic fibrations* (only `Basic.lean`, for oriented
-  atlases); Tau Ceti (`integralTopForm`, orientations, Stokes's theorem on
+- **Builds on:** *Symplectic fibrations* (only `StructureGroup.lean`, for
+  oriented atlases); Tau Ceti (`integralTopForm`, orientations, Stokes's theorem on
   closed manifolds).
 - **Milestones:** none; it serves *Coupling forms*. Later pages
   (characteristic classes of bundles, Gysin sequences) can use it.
@@ -3540,8 +3540,8 @@ behind.
 | 2 | *Isotopy extension* | *Hamiltonian flows* (only `DeRham/FamilyPrimitive.lean`, `Flux/Hamiltonian.lean` and `Flux/CompactSupport.lean`), *Smooth families* (only `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `DeRham/SmoothFamily/GoodCover.lean`), *Moser isotopy* (only `Moser/Field.lean`); the merged *Standard model* and *Linear Moser*; the issues of its design file that use none of these can start at once |
 | 2 | *Symplectic neighbourhoods* | *Moser isotopy* (only `Relative.lean`); *Symplectic vector spaces* (only `LinearAlgebra/Symplectic/Reduction.lean` and `LinearAlgebra/Symplectic/Subspace.lean`, which are merged); *Compatible complex structures* (only `LinearAlgebra/Symplectic/Compatible.lean`, which is merged); `CharacteristicFoliation.lean` and `AdaptedDarboux.lean` can start at once |
 | 2 | *Complex projective space* | *Complex submanifolds* (only for the corollary in `Kahler.lean`; the other files can start at once) |
-| 2 | *Compatible symplectic forms* | *Symplectic fibrations* (only `Basic.lean` and `Connection.lean`); merged files of *Symplectic vector bundles*, *First Chern number* and *Moser isotopy* |
-| 2 | *Integration over the fibre* | *Symplectic fibrations* (only `Basic.lean`) |
+| 2 | *Compatible symplectic forms* | *Symplectic fibrations* (only `Basic.lean` and `HorizontalDistribution.lean`); merged files of *Symplectic vector bundles*, *First Chern number* and *Moser isotopy* |
+| 2 | *Integration over the fibre* | *Symplectic fibrations* (only `StructureGroup.lean`) |
 | 2 | *Sphere bundles over surfaces* | *Diffeomorphisms of the 2-sphere* (only `Smale.lean`, for `Clutching.lean` and `Classification.lean`), *Symplectic fibrations* (only `Basic.lean`); the constructions of `RuledSurface.lean` can start once `Basic.lean` is merged |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); *Moser isotopy* (only `Darboux/Strict.lean`, through `LocalDiffeomorph/MFDeriv.lean`, merged); the other files of the part can start at once |

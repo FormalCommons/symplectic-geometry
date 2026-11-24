@@ -260,14 +260,20 @@ parallel transport. About 550 lines.
   pointwise statement is a new lemma `LinearMap.BilinForm.orthogonal_eq_orthogonal_iff`
   in the library's `LinearAlgebra/BilinearForm/Orthogonal.lean`.
 - `exists_restrictsTo_horizontalDistribution_eq`: for a smooth atlas with
-  structure group `diffeomorphStabilizer σ` and an Ehresmann connection
+  structure group `diffeomorphStabilizer σ`, `σ` nondegenerate
+  (`hσ : σ.IsNondegenerate`), and an Ehresmann connection
   `hD : TauCeti.IsEhresmannConnection IM IB ∞ π D`, the form whose value at
   `x` is the fibre form evaluated on the vertical parts of its arguments,
   the parts along `D x`, restricts to `σ` and has
   `τ.horizontalDistribution π = D`. In a chart `e` it is the pull-back of
   `σ` along `x ↦ (e x).2` composed with the projection onto the vertical
   spaces, which is smooth since `D` is. The charts agree on overlaps since
-  their coordinate changes preserve `σ`.
+  their coordinate changes preserve `σ`. The hypothesis `hσ` is needed:
+  for `σ = 0` the form is zero, and its horizontal distribution is the
+  whole tangent space, not `D`, once the fibre has positive dimension.
+  With `hσ` the form is vertically nondegenerate, and it vanishes on
+  `(η, v)` for `η` vertical and `v ∈ D x`, so `D x` lies in its horizontal
+  space; both are complements of the vertical space, so they agree.
 - Connection two-forms. `exists_restrictsTo_isVerticallyClosed`: for a
   smooth atlas with structure group `diffeomorphStabilizer σ`, `σ` closed,
   and `B` Hausdorff and σ-compact, some `τ` restricts to `σ` and is
@@ -277,9 +283,15 @@ parallel transport. About 550 lines.
   `(ρ i ∘ π) • (pull-back of σ along x ↦ (e_i x).2)`. It is smooth by the
   library's `SmoothPartitionOfUnity.IsSubordinate.isSmoothForm_finsum_smul_comp`.
   It restricts to `σ` because the weights sum to one and each chart pulls
-  back to `σ`. It is vertically closed because each summand's derivative
-  is `d(ρ i ∘ π) ∧ (…) + (ρ i ∘ π) • d(…)`: the first term vanishes on
-  two vertical vectors and the second is zero. Also
+  back to `σ`. For vertical closedness write `θ_i` for the pull-back of
+  `σ` along `x ↦ (e_i x).2`; it is closed, as `σ` is. So the derivative of
+  the sum is `Σ_i d(ρ i ∘ π) ∧ θ_i`. On `(η₁, η₂, v)` with `η₁`, `η₂`
+  vertical, a single term need not vanish: it leaves
+  `d(ρ i ∘ π)(v) · θ_i(η₁, η₂)`. But since the structure group is
+  `diffeomorphStabilizer σ`, all the `θ_i` take the same value on a
+  vertical pair, the value of the fibre form, and
+  `Σ_i d(ρ i ∘ π) = d(Σ_i ρ i ∘ π) = d 1 = 0`, so the sum vanishes. This is
+  where the structure-group hypothesis is used. Also
   `convex_setOf_restrictsTo_isVerticallyClosed`.
 
 ### `Geometry/Symplectic/Fibration/Connection.lean`
