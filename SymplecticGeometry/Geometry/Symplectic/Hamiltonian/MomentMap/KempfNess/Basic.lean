@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Lie.Complexification
+public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 public import SymplecticGeometry.Topology.Algebra.GroupAction.Stabilizer
 public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.Geometry.Lie.FundamentalVectorField
@@ -96,8 +97,9 @@ search: Mathlib's `Units.contMDiffSMul` and `ContMDiffMul.contMDiffSMul` from Ta
 The gradient of `x ↦ μ x ξ` is computed as in Tau Ceti's
 `TauCeti.SmoothTwoForm.IsNondegenerate.apply_hamiltonianVectorField_eq_mgradient`, read for the
 component `-μ_ξ` with Hamiltonian vector field `X_ξ`; no nondegeneracy is needed, since the
-gradient is tested directly against the moment map identity. The derivative along `exp(itξ)`
-follows Tau Ceti's `TauCeti.Manifold.hasDerivAt_comp_maximalIntegralCurve_neg_mgradient`: the
+gradient is tested directly against the moment map identity, through
+`TauCeti.SmoothAlmostComplexStructure.apply_eq_mgradient_of_eval₂_eq`. The derivative along
+`exp(itξ)` follows Tau Ceti's `TauCeti.hasDerivAt_comp_maximalIntegralCurve_neg_mgradient`: the
 chain rule along the integral curve `isMIntegralCurve_expI_smul` of `J X_ξ`, and `J` is
 orthogonal for `g` (`TauCeti.SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq`).
 These results take any metric with `g(u, w) = σ(u, J w)`; for a compatible pair, Tau Ceti's
@@ -411,7 +413,7 @@ end IsComplexifiedAction
 
 section Gradient
 
-open Bundle
+open _root_.Bundle
 open scoped RealInnerProductSpace
 
 variable [FiniteDimensional ℝ E'] [ContMDiffSMul I I' ∞ G M]
@@ -427,14 +429,10 @@ theorem mgradient_moment_apply
     (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
     (ξ : GroupLieAlgebra I G) (x : M) :
     Manifold.mgradient I' (fun y ↦ μ y ξ) x = -J x (fundamentalVectorField I' ξ x) := by
-  refine (Manifold.eq_mgradient_iff.2 fun v ↦ ?_).symm
-  -- `⟪-J X_ξ, v⟫ = σ(v, -J J X_ξ) = σ(v, X_ξ) = -σ(X_ξ, v)`, and `σ(X_ξ, v) = -dμ_ξ(v)`.
-  have h := hμ.eval₂_apply ξ x v
-  simp only [InfinitesimalAction.fundamental_apply, LinearMap.neg_apply, mvfderiv_fun_neg,
-    neg_apply] at h
-  rw [real_inner_comm, hg]
-  simp only [map_neg, SmoothAlmostComplexStructure.apply_apply, neg_neg]
-  rw [SmoothBundleForm.eval₂_swap, h, neg_neg]
+  -- `J X_ξ` is the gradient of the component `x ↦ (-μ x) ξ` of the moment map `-μ`.
+  have h := J.apply_eq_mgradient_of_eval₂_eq hg (hμ.eval₂_apply ξ x)
+  rw [InfinitesimalAction.fundamental_apply] at h
+  rw [show (fun y ↦ μ y ξ) = -fun y ↦ (-μ y) ξ by ext; simp, Manifold.mgradient_neg, ← h]
 
 /-- **The derivative of `⟨μ, ξ⟩` along `exp(itξ)`.** For a complexified action, with `-μ` a
 moment map for `σ` and the metric `g(u, w) = σ(u, J w)`, the function
