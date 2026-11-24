@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Symplectic.Lagrangian.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.Constructions
 public import TauCeti.Geometry.Symplectic.Rescale
 public import TauCeti.LinearAlgebra.BilinearForm.LagrangianBasis
+public import TauCeti.LinearAlgebra.Dimension.Basis
 public import Mathlib.Order.Zorn
 public import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 
@@ -157,8 +158,7 @@ theorem IsLagrangian.exists_isDarbouxBasis_apply_zero_eq (h : ω.IsLagrangian L)
     rw [← hd, LinearMap.BilinForm.toMatrix_apply]
   let v : Fin n × Fin 2 → V := fun p => if p.2 = 0 then d (.inl p.1) else -d (.inr p.1)
   have hdim : finrank ℝ V = n * 2 := by
-    rw [finrank_eq_card_basis d]
-    simp [mul_two]
+    rw [finrank_eq_two_mul_card_of_basis_sum d, Fintype.card_fin, mul_comm]
   obtain ⟨b, hb, hbv⟩ := exists_isDarbouxBasis_coe_eq (ω := ω) hdim (v := v)
     (fun i j => by simp [v, hJ])
     (fun i j => by simp [v, hJ])
