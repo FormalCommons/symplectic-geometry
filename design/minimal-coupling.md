@@ -261,8 +261,7 @@ lines, with the smoothness lemmas of `iccHomeoI` if Mathlib lacks them.
 
 ### `Geometry/Symplectic/Moser/Equivariant.lean`
 
-- `moserField_comp` (name to be fixed by the issue after reading
-  `Moser/Field.lean`): if a diffeomorphism $g$ of $M$ preserves the slices of
+- `mfderiv_moserField`: if a diffeomorphism $g$ of $M$ preserves the slices of
   the two-form $\sigma$ and of the one-form $\beta$ on `N × M` and the
   cutoff $\rho$, then `moserField σ β ρ` is $g$-related to itself.
 - `timeDependentFlowOf_moserField_comp`: its time-dependent flow then
