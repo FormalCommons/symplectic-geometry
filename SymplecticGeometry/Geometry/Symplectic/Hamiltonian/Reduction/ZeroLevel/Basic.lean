@@ -10,7 +10,7 @@ public import SymplecticGeometry.Topology.Algebra.ProperAction.Basic
 public import SymplecticGeometry.GroupTheory.GroupAction.SubMulAction
 public import TauCeti.Geometry.Manifold.PullbackGroupoid
 import TauCeti.Geometry.Lie.Subgroup.Stabilizer
-import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Pullback
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 
 /-!
@@ -218,13 +218,14 @@ embedding. -/
 theorem isSmoothEmbedding_coe_zeroLevel :
     letI := h.zeroLevelChartedSpace hσ hfree hn
     Manifold.IsSmoothEmbedding 𝓘(ℝ, Fin n → ℝ) I' ∞ (Subtype.val : h.zeroLevel → M) := by
-  let := h.zeroLevelChartedSpace hσ hfree hn
   let := h.toIsMomentMap.levelChartedSpace
     (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
-  have := h.isManifold_zeroLevel hσ hfree hn
-  -- The inclusion is the inclusion of Tau Ceti's level after `zeroLevelDiffeomorph`.
-  simpa [Function.comp_def] using isSmoothEmbedding_comp_diffeomorph
-    (h.zeroLevelDiffeomorph hσ hfree hn) (h.toIsMomentMap.isSmoothEmbedding_coe_level _ hn)
+  have := h.toIsMomentMap.isManifold_level
+    (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
+  rw [zeroLevelChartedSpace_def]
+  -- The inclusion is the inclusion of Tau Ceti's level after `zeroLevelHomeomorph`.
+  simpa [Function.comp_def] using h.zeroLevelHomeomorph.isSmoothEmbedding_comp_pullbackChartedSpace
+    (h.toIsMomentMap.isSmoothEmbedding_coe_level _ hn)
 
 /-- **The tangent space of the zero level is the kernel of `dμ`**: at `z`, the differential of
 the inclusion has range `ker dμ_z`. -/
@@ -232,13 +233,13 @@ theorem range_mfderiv_coe_zeroLevel (z : h.zeroLevel) :
     letI := h.zeroLevelChartedSpace hσ hfree hn
     LinearMap.range (mfderiv 𝓘(ℝ, Fin n → ℝ) I' (Subtype.val : h.zeroLevel → M) z).toLinearMap =
       LinearMap.ker (h.differential z) := by
-  let := h.zeroLevelChartedSpace hσ hfree hn
   let := h.toIsMomentMap.levelChartedSpace
     (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
-  -- The inclusion is the inclusion of Tau Ceti's level after `zeroLevelDiffeomorph`.
-  rw [show (Subtype.val : h.zeroLevel → M) = Subtype.val ∘ h.zeroLevelDiffeomorph hσ hfree hn from
-    funext fun z ↦ by simp, Diffeomorph.range_mfderiv_comp_diffeomorph _ (by simp)]
-  simpa using h.toIsMomentMap.range_mfderiv_coe_level _ hn (h.zeroLevelDiffeomorph hσ hfree hn z)
+  rw [zeroLevelChartedSpace_def]
+  -- The inclusion is the inclusion of Tau Ceti's level after `zeroLevelHomeomorph`.
+  rw [show (Subtype.val : h.zeroLevel → M) = Subtype.val ∘ h.zeroLevelHomeomorph from
+    funext fun z ↦ by simp, h.zeroLevelHomeomorph.range_mfderiv_comp_pullbackChartedSpace]
+  simpa using h.toIsMomentMap.range_mfderiv_coe_level _ hn (h.zeroLevelHomeomorph z)
 
 /-- **`G` acts smoothly on the zero level**, for the atlas `zeroLevelChartedSpace`. -/
 theorem contMDiffSMul_zeroLevel :
