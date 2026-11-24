@@ -13,6 +13,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Lagrangian.Submersion
 public import TauCeti.Geometry.Manifold.Instances.AddCircle.Torus
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Basic
 import Mathlib.Analysis.SpecialFunctions.ExpDeriv
+import TauCeti.Algebra.AddCircle
 import TauCeti.Geometry.Manifold.Immersion.Differential
 
 /-!
@@ -230,8 +231,7 @@ theorem isSmoothEmbedding_cliffordTorus :
   have himm : IsImmersion (ModelWithCorners.pi fun _ : Fin n ↦ 𝓘(ℝ)) 𝓘(ℝ, Fin n → ℂ) ∞
       (cliffordTorus n) := by
     refine (contMDiff_cliffordTorus n ∞).isImmersion_of_injective_mfderiv (by simp) fun θ ↦ ?_
-    obtain ⟨t, rfl⟩ : ∃ t : Fin n → ℝ, (fun k ↦ (t k : AddCircle (2 * π))) = θ :=
-      (Surjective.piMap fun _ ↦ QuotientAddGroup.mk_surjective) θ
+    obtain ⟨t, rfl⟩ := AddCircle.exists_pi_coe_eq θ
     rw [injective_iff_map_eq_zero]
     -- Read the tangent vector as a vector of `Fin n → ℝ`, the tangent space of the covering.
     intro (a : Fin n → ℝ) ha
@@ -301,7 +301,7 @@ theorem isLagrangianEmbedding_cliffordTorus :
     (by simp [Module.finrank_pi_fintype, mul_comm])
   refine SmoothTwoForm.IsNondegenerate.isIsotropicMap_of_comp
     (q := fun t : Fin n → ℝ ↦ fun k ↦ (t k : AddCircle (2 * π)))
-    (Surjective.piMap fun _ ↦ QuotientAddGroup.mk_surjective)
+    AddCircle.exists_pi_coe_eq
     (fun t ↦ by rw [AddCircle.mfderiv_coe_pi]; exact surjective_id) ?_
   rw [cliffordTorus_def, comp_assoc, isIsotropicMap_mkNonzero_comp_iff
     (((contMDiff_cliffordTorusLift 1).comp
