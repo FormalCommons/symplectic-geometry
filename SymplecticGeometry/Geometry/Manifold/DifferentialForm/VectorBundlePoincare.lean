@@ -40,7 +40,7 @@ function of `(t, v)`, since the homotopy operator preserves smooth families
 
 ## References
 
-* [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001], §6.2
+* [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001Lectures], §6.2
 -/
 
 public section

@@ -26,7 +26,7 @@ with the same pullback to `Q`. Then on a tube `W` around `f(Q)`, inside any give
 containing `f(Q)`, there is a smooth `k`-form `β` with `dβ = η₁ - η₀` on `W` that vanishes along
 `f(Q)`. Its coordinate expressions have zero derivative at each point `f q` at which `η₁` and `η₀`
 agree as forms on `T_{f q} M`. This is the first step of the relative Moser theorems
-([McDuffSalamon2017], Lemma 3.2.1 and Exercise 3.2.6; [CannasdaSilva2001], Theorem 7.4). The
+([McDuffSalamon2017], Lemma 3.2.1 and Exercise 3.2.6; [CannasdaSilva2001Lectures], Theorem 7.4). The
 proof applies the relative Poincaré lemma to `η₁ - η₀` and bundles the primitive as a smooth form
 on the tube, as Tau Ceti's
 `TauCeti.SmoothTwoForm.exists_diffeomorph_fix_embedding_eventually_mpullback_eq` does inside its
@@ -60,7 +60,7 @@ primitive to `M` with the restriction lemmas `TauCeti.mpullback_subtype_val_surj
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017]
-* [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001]
+* [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001Lectures]
 -/
 
 public section
