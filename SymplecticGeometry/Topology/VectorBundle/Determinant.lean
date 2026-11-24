@@ -317,7 +317,7 @@ noncomputable def detCoreConjugateIso :
       (ofBundleOfFinrankEqConjugateIso E rfl rfl) ≪≫
     eqToIso ((congrArg (fun k ↦ (exteriorPower ℂ B k).obj
       ((conjugate B).obj (ofBundleOfFinrankEq ℂ G E rfl)))
-      (LinearEquiv.finrank_complex_eq (toConjₗ' (V := G))).symm).trans
+      (finrank_complex (V := G))).trans
         (det_def _).symm) ≪≫
     detConjugateIso _ ≪≫ eqToIso (congrArg (conjugate B).obj (detCore_def ℂ G E).symm)
 
@@ -328,7 +328,7 @@ theorem detCoreConjugateIso_def :
           (ofBundleOfFinrankEqConjugateIso E rfl rfl) ≪≫
         eqToIso ((congrArg (fun k ↦ (exteriorPower ℂ B k).obj
           ((conjugate B).obj (ofBundleOfFinrankEq ℂ G E rfl)))
-      (LinearEquiv.finrank_complex_eq (toConjₗ' (V := G))).symm).trans
+      (finrank_complex (V := G))).trans
             (det_def _).symm) ≪≫
         detConjugateIso _ ≪≫ eqToIso (congrArg (conjugate B).obj (detCore_def ℂ G E).symm) :=
   (rfl)
