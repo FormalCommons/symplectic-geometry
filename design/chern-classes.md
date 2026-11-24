@@ -385,8 +385,8 @@ The file imports *Symplectic vector bundles*'
 `Topology/VectorBundle/ZeroSet.lean`, for the closedness of zero sets.
 
 The instance `FiberBundle.compactSpace_totalSpace`, compactness of the total
-space of a fibre bundle with compact fibre over a compact base, is in a file
-of its own, `Topology/FiberBundle/Compact.lean`, which this file imports.
+space of a fibre bundle with compact fibre over a compact base, is Tau Ceti's,
+in `TauCeti/Topology/FiberBundle/Proper.lean`, which this file imports.
 
 ### `LinearAlgebra/Projectivization/Basic.lean`
 

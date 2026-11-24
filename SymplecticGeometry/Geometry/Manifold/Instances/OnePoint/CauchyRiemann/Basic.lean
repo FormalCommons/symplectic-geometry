@@ -158,7 +158,8 @@ theorem symmL_comp_dbarFunction_twistCore_localTriv_eq {y y' x : OnePoint ℂ}
     ((chartAt ℂ y).open_source.inter (chartAt ℂ y').open_source).mem_nhds ⟨hx, hx'⟩
   have ht : MDifferentiableAt 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ) (twistTransition k y y') x :=
     ((contMDiffOn_twistTransition k y y').contMDiffAt hU).mdifferentiableAt (by simp)
-  have ht' := MDifferentiableAt.restrictScalars ℝ ht
+  have ht' : MDifferentiableAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (twistTransition k y y') x := by
+    simpa only [modelWithCornersSelf_restrictScalars] using MDifferentiableAt.restrictScalars ℝ ht
   have hcoord : (fun p ↦ twistTransition k p y' p * s p) =ᶠ[𝓝 x]
       twistTransition k y y' • fun p ↦ twistTransition k p y p * s p := by
     filter_upwards [hU] with p hp

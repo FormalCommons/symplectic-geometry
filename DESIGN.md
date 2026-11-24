@@ -809,8 +809,7 @@ it into issues; the overview fixes its folders and its dependencies.
   matrix-valued functions), beside Tau Ceti's file of the same name so that
   the two merge upstream. The regular pieces add a fourth,
   `Data/Matrix/Basis.lean` (the matrix `1 + Eᵢᵢ a`, beside the files of the
-  same name in Mathlib and Tau Ceti), and the lemma `Matrix.realify_smul_one`
-  (`LinearAlgebra/Matrix/Realify.lean`).
+  same name in Mathlib and Tau Ceti).
 - **Builds on:** *Standard model*, *Symplectic group*, *Unitary group
   topology*, *Lagrangian Grassmannian*. From Mathlib and Tau Ceti, in two
   ways, none of it re-derived:

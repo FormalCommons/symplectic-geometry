@@ -26,7 +26,7 @@ public import TauCeti.Topology.Algebra.Module.FiniteDimension
 import SymplecticGeometry.LinearAlgebra.Symplectic.Darboux
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
-import TauCeti.Geometry.Manifold.VectorBundle.Translate
+import TauCeti.Geometry.Manifold.VectorBundle.SectionAlongMap.Regularity
 
 /-!
 # Two-forms on a vector bundle

@@ -200,7 +200,6 @@ theorem timeDependentFlowOf_eq_of_hasMFDerivWithinAt
     hlift (hasMFDerivAt_timeDependentFlowOf hX
       ((timeDependentFlowDomain_eq_univ hc).symm ▸ mem_univ _)).hasMFDerivWithinAt
   have heq := h₂.eqOn_of_isPreconnected h₁ hS hs
-    (fun _ _ ↦ BoundarylessManifold.isInteriorPoint)
     (fun _ _ ↦ (contMDiff_timeDependentSuspensionField hX).contMDiffAt)
     (by simp [timeDependentFlowOf_self]) ht
   exact congrArg Prod.snd heq

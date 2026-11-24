@@ -265,7 +265,7 @@ theorem Transports.exists_mpullback_eq_smul {Φ : Diffeotopy I ∞ M}
   set β := SmoothForm.mpullback Φ.toDiffeomorph Φ.toDiffeomorph.contMDiff α
   have hκ (t : unitInterval) :
       SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) κ = α₀ :=
-    mpullback_prodMk_mpullback_snd t α₀
+    mpullback_prodMk_mpullback_snd α₀ t
   have hβ (t : unitInterval) :
       SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β =
         SmoothForm.mpullback (Φ.timeSlice t) (Φ.timeSlice t).contMDiff

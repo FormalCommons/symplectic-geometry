@@ -76,8 +76,8 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
 
 The form with prescribed slices is smooth by `TauCeti.contMDiffAt_verticalForm_iff`
 (`Geometry/Manifold/DifferentialForm/Vertical.lean`). The constant family is the pullback along
-the projection (`TauCeti.SmoothForm.mpullback_prodMk_mpullback_snd`), as in Tau Ceti's
-`TauCeti.SmoothForm.mpullback_prodMk_lineMapFamily`. Locality in `M` comes from Tau Ceti's
+the projection, whose slices Tau Ceti's `TauCeti.SmoothForm.mpullback_prodMk_mpullback_snd`
+computes. Locality in `M` comes from Tau Ceti's
 `IsLocalDiffeomorphAt.contMDiffAt_mpullback_form_iff`, applied to `id × (U ↪ W)`, and the proof
 of `SymplecticGeometry.IsSmoothFamily.extendByZero_smul` follows that of Tau Ceti's
 `TauCeti.IsSmoothForm.extendByZero`.
@@ -183,16 +183,6 @@ theorem mpullback_prodMk_ofSlices (t : N) :
   Subtype.ext <| funext fun x ↦ by
     rw [coe_mpullback, coe_ofSlices]
     exact congrFun (mpullback_prodMk_verticalForm (fun t ↦ (α t).val) t) x
-
-/-- The slice at `t` of the pullback of a form `α` on `M` along the projection `N × M → M` is
-`α`. -/
-@[simp]
-theorem mpullback_prodMk_mpullback_snd (t : N) (α : SmoothForm I M F k) :
-    mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
-      (mpullback Prod.snd contMDiff_snd α : SmoothForm (J.prod I) (N × M) F k) = α :=
-  (mpullback_mpullback (Prod.mk t) Prod.snd (I' := J.prod I)
-    (contMDiff_const.prodMk contMDiff_id) contMDiff_snd α).trans
-      (LinearMap.congr_fun mpullback_id α)
 
 /-- **The two orders of a cylinder.** The slice at `t` of the pullback of a form `Ω` on `M × N`
 along the swap `N × M → M × N` is the pullback of `Ω` along `x ↦ (x, t)`. -/
@@ -346,7 +336,7 @@ end IsSmoothFamily
 /-- A constant family is smooth: it is the family of slices of the pullback of its value along
 the projection `N × M → M`. -/
 theorem isSmoothFamily_const (α : SmoothForm I M F k) : IsSmoothFamily J (fun _ : N ↦ α) :=
-  ⟨_, fun t ↦ SmoothForm.mpullback_prodMk_mpullback_snd t α⟩
+  ⟨_, fun t ↦ SmoothForm.mpullback_prodMk_mpullback_snd α t⟩
 
 /-- The slices `t ↦ Ω (t, ·)` of a smooth form `Ω` on `N × M` form a smooth family. -/
 theorem isSmoothFamily_mpullback_prodMk (Ω : SmoothForm (J.prod I) (N × M) F k) :

@@ -10,6 +10,7 @@ public import Mathlib.Analysis.Complex.Basic
 public import Mathlib.Data.Matrix.ColumnRowPartitioned
 public import Mathlib.LinearAlgebra.Matrix.ConjTranspose
 public import TauCeti.Analysis.Complex.Euclidean.Space
+public import TauCeti.LinearAlgebra.Matrix.OfReal
 public import TauCeti.LinearAlgebra.TotallyReal.Euclidean
 
 /-!
@@ -28,8 +29,6 @@ frames in `ℂⁿ` (§2.3).
 
 * `Matrix.map_re_add_I_smul_map_im`: every complex matrix `A` equals `Re A + i Im A`, its real
   and imaginary parts being read back over `ℂ`.
-* `Matrix.map_ofReal_mul`: the coercion is multiplicative. This is Mathlib's `Matrix.map_mul` for
-  `f := Complex.ofRealHom`, but stated with `ofReal` itself, so that `rw` and `simp` find it.
 * `Matrix.transpose_map_ofReal_mul_map_ofReal`: `(P.map ofReal)ᵀ * Q.map ofReal` is the image of
   the real product `Pᵀ * Q`.
 * `Matrix.conjTranspose_map_ofReal`: the conjugate transpose of a real matrix, read over `ℂ`, is
@@ -62,11 +61,6 @@ theorem map_re_add_I_smul_map_im (A : Matrix m n ℂ) :
     (A.map re).map ofReal + I • (A.map im).map ofReal = A := by
   ext i j
   simp [mul_comm I]
-
-/-- The product of real matrices may be computed over `ℂ`. -/
-theorem map_ofReal_mul [Fintype n] (P : Matrix m n ℝ) (Q : Matrix n p ℝ) :
-    (P * Q).map ofReal = P.map ofReal * Q.map ofReal :=
-  Matrix.map_mul (f := ofRealHom)
 
 /-- The product `Pᵀ Q` of real matrices may be computed over `ℂ`. -/
 theorem transpose_map_ofReal_mul_map_ofReal [Fintype m] (P : Matrix m n ℝ) (Q : Matrix m p ℝ) :

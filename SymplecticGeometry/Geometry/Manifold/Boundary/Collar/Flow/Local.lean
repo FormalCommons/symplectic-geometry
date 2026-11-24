@@ -53,15 +53,12 @@ hyperplane in place of an immersion; see also Lee, Theorem 9.20. Near that point
 half-space models (`PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`), and in the
 charts of `∂W × [0, ∞)` and `W` this is the map `(x, t) ↦ γ (-t, x)`.
 
-Uniqueness: an integral curve of an outward field cannot meet the boundary at a time from which
-it is defined for a while forward, since its velocity there within `[t, ∞)` would be outward,
-which Tau Ceti's `TauCeti.not_isOutwardPointing_curveVelocityWithin_Ici` rules out
-(`IsMIntegralCurveOn.mem_interior_of_isOutwardPointing`); so two integral
-curves on `(-η, 0]` are in the interior at negative times, where Tau Ceti's uniqueness theorem
-`IsMIntegralCurveOn.eqOn_of_isPreconnected` applies. When they start at a boundary point, they
-first agree on some `[l, 0]` by Tau Ceti's
-`IsMIntegralCurveOn.eqOn_Icc_of_lipschitzOnWith_extChartAt`, since in the chart the coordinate
-field is the restriction of the Lipschitz field `w`.
+Uniqueness: Tau Ceti's `IsMIntegralCurveOn.eqOn_of_isPreconnected` holds for curves that may meet
+the boundary, so two integral curves of a smooth field on `(-η, 0]` that agree at time `0` agree.
+An integral curve of an outward field stays in the interior at times from which it is defined for
+a while forward, since its velocity there within `[t, ∞)` would be outward, which Tau Ceti's
+`TauCeti.not_isOutwardPointing_curveVelocityWithin_Ici` rules out
+(`IsMIntegralCurveOn.mem_interior_of_isOutwardPointing`).
 
 ## Main results
 
@@ -465,89 +462,17 @@ theorem exists_isMIntegralCurveOn_of_isOutwardPointing (hY : IsOutwardPointingFi
     refine ⟨hq1.1, hsrc, by rw [hΘG _ hsrc, hι _ (hBsrc _ hq1)], hVt (hmemV _ (hBball _ hq1)
       (hB0 _ hq1) _ ⟨by linarith [lt_of_lt_of_le hq2 (min_le_left _ _)], by linarith⟩)⟩
 
-/-- Two integral curves of a smooth field on `(-η, 0]` that start at the same boundary point agree
-on some interval `[l, 0]` with `-η < l < 0`: in the chart at that point, the coordinate field is
-the restriction of a Lipschitz field. -/
-private theorem exists_eqOn_Icc_of_mem_boundary (hY : CMDiff ∞ (T% Y)) {γ δ : ℝ → W} {η : ℝ}
-    (hη : 0 < η) (hγ : IsMIntegralCurveOn γ Y (Ioc (-η) 0))
-    (hδ : IsMIntegralCurveOn δ Y (Ioc (-η) 0)) (h0 : γ 0 = δ 0)
-    (hb : γ 0 ∈ (𝓡∂ (n + 1)).boundary W) :
-    ∃ l ∈ Ioo (-η) 0, EqOn γ δ (Icc l 0) := by
-  set φ := extChartAt (𝓡∂ (n + 1)) (γ 0)
-  obtain ⟨w, hw, V, hV, hqV, -, hwv⟩ := exists_contDiff_eqOn_mpullbackWithin_extChartAt_symm hY hb
-  obtain ⟨K, T, hT, hK⟩ :=
-    ((hw.of_le (m := 1) (by simp)).contDiffAt (x := φ (γ 0))).exists_lipschitzOnWith
-  -- On `V ∩ T ∩ φ.target`, the coordinate field of `Y` is `w`, so it is Lipschitz there.
-  have hlip : LipschitzOnWith K (fun y ↦ tangentCoordChange (𝓡∂ (n + 1)) (φ.symm y) (γ 0)
-      (φ.symm y) (Y (φ.symm y))) (V ∩ T ∩ φ.target) := by
-    have he (y : EuclideanSpace ℝ (Fin (n + 1))) (hy : y ∈ V ∩ T ∩ φ.target) :
-        w y = tangentCoordChange (𝓡∂ (n + 1)) (φ.symm y) (γ 0) (φ.symm y) (Y (φ.symm y)) := by
-      have hs : φ.symm y ∈ φ.source := φ.map_target hy.2
-      have h := mpullbackWithin_extChartAt_symm_apply Y hs
-      rw [φ.right_inv hy.2, TangentBundle.trivializationAt_snd_eq_tangentCoordChange] at h
-      rw [hwv ⟨hy.1.1, extChartAt_target_subset_range _ hy.2⟩]
-      exact h
-    intro a ha b hb
-    dsimp only
-    rw [← he a ha, ← he b hb]
-    exact hK ha.1.2 hb.1.2
-  -- Near time `0`, both curves stay in the chart, in `V` and in the Lipschitz set `T`.
-  have hS : φ.source ∩ φ ⁻¹' (V ∩ T) ∈ 𝓝 (γ 0) :=
-    inter_mem (extChartAt_source_mem_nhds (γ 0))
-      ((continuousAt_extChartAt (γ 0)).preimage_mem_nhds (inter_mem (hV.mem_nhds hqV) hT))
-  have h0mem : (0 : ℝ) ∈ Ioc (-η) 0 := ⟨by linarith, le_rfl⟩
-  have hev := inter_mem ((hγ.continuousWithinAt h0mem).preimage_mem_nhdsWithin hS)
-    ((hδ.continuousWithinAt h0mem).preimage_mem_nhdsWithin (h0 ▸ hS))
-  obtain ⟨ε, hε, hεsub⟩ := Metric.mem_nhdsWithin_iff.1 hev
-  set l := max (-ε / 2) (-η / 2)
-  have hl : l ∈ Ioo (-η) 0 :=
-    ⟨lt_max_of_lt_right (by linarith), max_lt (by linarith) (by linarith)⟩
-  have hsub : Icc l 0 ⊆ Ioc (-η) 0 := fun r hr ↦ ⟨by linarith [hl.1, hr.1], hr.2⟩
-  have hgood : ∀ r ∈ Icc l 0, (γ r ∈ φ.source ∧ φ (γ r) ∈ V ∩ T) ∧
-      (δ r ∈ φ.source ∧ φ (δ r) ∈ V ∩ T) := fun r hr ↦ by
-    refine hεsub ⟨?_, hsub hr⟩
-    rw [Metric.mem_ball, Real.dist_eq, sub_zero, abs_of_nonpos hr.2]
-    linarith [le_max_left (-ε / 2) (-η / 2), hr.1]
-  exact ⟨l, hl, (hγ.mono hsub).eqOn_Icc_of_lipschitzOnWith_extChartAt (z := V ∩ T ∩ φ.target)
-    (hδ.mono hsub)
-    (fun r hr ↦ (hgood r hr).1.1) (fun r hr ↦ (hgood r hr).2.1)
-    (fun r hr ↦ ⟨(hgood r hr).1.2, φ.map_source (hgood r hr).1.1⟩)
-    (fun r hr ↦ ⟨(hgood r hr).2.2, φ.map_source (hgood r hr).2.1⟩) hlip ⟨hl.2.le, le_rfl⟩ h0⟩
-
 /-- **Uniqueness of integral curves of an outward field.** Two integral curves on `(-η, 0]` of a
 smooth vector field pointing outward along the boundary agree if they agree at time `0`. -/
 theorem _root_.IsMIntegralCurveOn.eqOn_of_isOutwardPointing [T2Space W]
     (hY : IsOutwardPointingField Y) {γ δ : ℝ → W} {η : ℝ}
     (hγ : IsMIntegralCurveOn γ Y (Ioc (-η) 0)) (hδ : IsMIntegralCurveOn δ Y (Ioc (-η) 0))
     (h0 : γ 0 = δ 0) : EqOn γ δ (Ioc (-η) 0) := by
-  obtain ⟨hYs, hYb⟩ := isOutwardPointingField_iff.1 hY
   rcases le_or_gt η 0 with hη | hη
   · intro t ht
     exact absurd (ht.1.trans_le ht.2) (by linarith)
-  have hv : ∀ t ∈ Ioc (-η) 0,
-      CMDiffAt 1 (fun x ↦ (⟨x, Y x⟩ : TangentBundle (𝓡∂ (n + 1)) W)) (γ t) :=
-    fun t _ ↦ (hYs.of_le (by simp)).contMDiffAt
-  -- At negative times, both curves are in the interior.
-  have hint : ∀ t ∈ Ioo (-η) 0, γ t ∈ (𝓡∂ (n + 1)).interior W := fun t ht ↦
-    hγ.mem_interior_of_isOutwardPointing hYb
-      (nhdsWithin_le_nhds (mem_of_superset (Ioo_mem_nhds ht.1 ht.2) Ioo_subset_Ioc_self))
-  by_cases hb : γ 0 ∈ (𝓡∂ (n + 1)).boundary W
-  · obtain ⟨l, hl, hEq⟩ := exists_eqOn_Icc_of_mem_boundary hYs hη hγ hδ h0 hb
-    have hIoo := IsMIntegralCurveOn.eqOn_of_isPreconnected (hγ.mono Ioo_subset_Ioc_self)
-      (hδ.mono Ioo_subset_Ioc_self) isPreconnected_Ioo hl (fun t ht ↦ hint t ht)
-      (fun t ht ↦ hv t (Ioo_subset_Ioc_self ht)) (hEq ⟨le_rfl, hl.2.le⟩)
-    intro t ht
-    rcases ht.2.lt_or_eq with ht0 | rfl
-    · exact hIoo ⟨ht.1, ht0⟩
-    · exact h0
-  · refine IsMIntegralCurveOn.eqOn_of_isPreconnected hγ hδ isPreconnected_Ioc
-      ⟨by linarith, le_rfl⟩ (fun t ht ↦ ?_) hv h0
-    rcases ht.2.lt_or_eq with ht0 | rfl
-    · exact hint t ⟨ht.1, ht0⟩
-    · have h : γ 0 ∈ (𝓡∂ (n + 1)).interior W := by
-        rw [← ModelWithCorners.compl_boundary]
-        exact hb
-      exact h
+  exact IsMIntegralCurveOn.eqOn_of_isPreconnected hγ hδ isPreconnected_Ioc ⟨by linarith, le_rfl⟩
+    (fun _ _ ↦ ((isOutwardPointingField_iff.1 hY).1.of_le (by simp)).contMDiffAt) h0
 
 end TauCeti
 

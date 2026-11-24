@@ -342,11 +342,6 @@ would give `-X₁` there. Further hypotheses are named where they are needed.
     Mathlib's `ContMDiff.contMDiff_tangentMap` and
     `contMDiff_totalSpaceMk_one_Icc`; the smoothness of each slice, used
     to build the section, is its composite with `Prod.mk t`;
-  - `velocity_timeDependentFlowDiffeotopy`, under
-    `[FiniteDimensional ℝ E] [BoundarylessManifold J M] [T2Space M]`: the velocity of
-    `timeDependentFlowDiffeotopy le_top hX hc` at `t` is `X t`, from
-    `hasMFDerivAt_timeDependentFlowOf` (at the ends, the one-sided
-    derivative on `I` is the restriction of the derivative on `ℝ`);
   - `mpullback_timeSlice_interior_velocity_apply`: for a two-form `σ`,
     `(φ_t^* ι_{X_t} σ)_x v = (Φ.cylinderMap^* σ)_{(x, t)}(∂ₜ, (v, 0))`, the
     integrand of `fluxForm` and of `HasHamiltonian`.

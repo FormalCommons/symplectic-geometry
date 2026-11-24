@@ -142,8 +142,7 @@ may adjust implicit arguments and instance arguments to what elaborates.
    (d) needs: near every point, a chart of $M$ in which $\|\mu\|^2$ is a
    polynomial in some of the coordinates; (d) the inequality for $f$ on
    $M$; (e) convergence on a Riemannian manifold, which is Tau Ceti's
-   `tendsto_maximalIntegralCurve_neg_mgradient_of_mapClusterPt`, taken
-   from its main branch at `07c8b6b1f5ff`. The analytic inequality is not
+   `tendsto_maximalIntegralCurve_neg_mgradient_of_mapClusterPt`. The analytic inequality is not
    needed and is not proved.
 5. **The limit points $p^+_\xi$** for $\xi\in\Lambda$ do not need (d): the
    orbit $t\mapsto\exp(it\xi)p$ is the negative gradient flow of
@@ -151,13 +150,8 @@ may adjust implicit arguments and instance arguments to what elaborates.
    Ceti's `MomentMap/MorseBott.lean`,
    `exists_isNondegenerateCriticalSubmanifold_fixedPointsOfFinrank_of_compactSpace`),
    so Tau Ceti's Morse–Bott inequality `exists_mul_abs_sub_le_norm_mgradient_sq`
-   with (e) gives the limit. Tau Ceti's pinned file for that inequality,
-   `Morse/Bott/ExponentialConvergence.lean`, clashes with the copies from
-   Tau Ceti main that (e) rests on, so issue 11 takes the inequality from
-   the library's copy of main's version of that file, at
-   `Geometry/Manifold/Morse/Bott/ExponentialConvergence.lean`, which can be
-   imported next to (e); a move of Tau Ceti past `07c8b6b1f5ff` deletes
-   it. The weights $w_\mu(p,\xi)$ exist for every
+   with (e) gives the limit; issue 11 takes it from Tau Ceti's
+   `Morse/Bott/ExponentialConvergence.lean`. The weights $w_\mu(p,\xi)$ exist for every
    $\xi$, by monotonicity and compactness of $M$.
 6. **Home.** The complexification is Lie theory, so it is
    `Geometry/Lie/Complexification.lean`, beside Tau Ceti's folder

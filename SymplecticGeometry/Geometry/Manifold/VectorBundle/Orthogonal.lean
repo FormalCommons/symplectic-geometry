@@ -9,7 +9,7 @@ public import SymplecticGeometry.LinearAlgebra.BilinearForm.Orthogonal
 public import TauCeti.Geometry.Manifold.VectorBundle.ComplementarySubbundle
 import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.Section
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
-import TauCeti.Geometry.Manifold.VectorBundle.Translate
+import TauCeti.Geometry.Manifold.VectorBundle.SectionAlongMap.Regularity
 
 /-!
 # Orthogonal complements of smooth subbundles for a smooth field of bilinear forms

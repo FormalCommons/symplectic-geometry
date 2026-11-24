@@ -11,7 +11,7 @@ import TauCeti.Analysis.Normed.Module.ContinuousInverse
 import TauCeti.Geometry.Manifold.ContMDiff.LeftInverse
 import TauCeti.Geometry.Manifold.ContMDiff.MFDeriv
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
-import TauCeti.Geometry.Manifold.VectorBundle.Translate
+import TauCeti.Geometry.Manifold.VectorBundle.SectionAlongMap.Regularity
 
 /-!
 # Horizontal lifts of vector fields

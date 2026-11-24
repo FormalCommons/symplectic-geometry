@@ -758,8 +758,8 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
   of `fun t ↦ timeDependentFlowDiffeomorph hc le_top hX 0 t`, jointly smooth
   by `TauCeti.contMDiff_timeDependentFlowDiffeomorph`, in
   `Geometry/Manifold/Flow/TimeDependent.lean`). The velocity
-  of the flow diffeotopy is `velocity_timeDependentFlowDiffeotopy` of
-  *Hamiltonian flows*, and is not stated here.
+  of the flow diffeotopy is Tau Ceti's `velocity_timeDependentFlowDiffeotopy`,
+  and is not stated here.
 - The reading over `ℝ`: writing `s u` for `unitInterval.smoothTransition u :=
   ⟨Real.smoothTransition u, _, _⟩ : unitInterval`, with
   `unitInterval.coe_smoothTransition`, `unitInterval.smoothTransition_of_nonpos` and

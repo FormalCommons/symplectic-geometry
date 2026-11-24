@@ -200,7 +200,7 @@ theorem exists_specialOrthogonalGroup_smul_stdComplexStructure_eq
   obtain ⟨Φ, hΦ⟩ := exists_linearIsometryEquiv_transport_eq (stdComplexStructure ι) J
     (mem_orthogonalComplexStructures.1 stdComplexStructure_mem_orthogonalComplexStructures)
     (mem_orthogonalComplexStructures.1 hJ) rfl
-  obtain ⟨U, rfl⟩ := UnitaryGroup.toLinearIsometryEquiv_surjective Φ
+  obtain ⟨U, rfl⟩ := UnitaryGroup.toLinearIsometryEquiv.surjective Φ
   have hU : (Unitary.toUnits U : GL (ι ⊕ ι) ℝ) • stdComplexStructure ι = J := by
     rw [generalLinearGroup_smul_def, ← hΦ]
     congr 1
