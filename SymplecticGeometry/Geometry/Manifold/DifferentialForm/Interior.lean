@@ -16,7 +16,9 @@ For a smooth vector field `X`, given as a smooth section of the tangent bundle,
 `TauCeti.SmoothForm.interiorProduct X` is the real-linear map
 `SmoothForm I M F (k + 1) →ₗ[ℝ] SmoothForm I M F k`, `φ ↦ ι_X φ`, inserting `X` into the first
 slot. Its rough form is Tau Ceti's `TauCeti.RoughForm.interior X` (`coe_interiorProduct`), and it
-is smooth by Tau Ceti's `TauCeti.IsSmoothForm.interior`.
+is smooth by Tau Ceti's `TauCeti.IsSmoothForm.interior`. The definition and
+`coe_interiorProduct` are adapted from Tau Ceti's `TauCeti.SmoothForm.gradInteriorₗ` and
+`TauCeti.SmoothForm.coe_gradInteriorₗ`, with any smooth vector field in place of a gradient.
 
 ## Main results
 
@@ -48,7 +50,7 @@ open scoped ContDiff Manifold
 namespace TauCeti.SmoothForm
 
 variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M]
   [NormedAddCommGroup F] [NormedSpace ℝ F] {k l : ℕ}
 
 /-- The interior product `φ ↦ ι_X φ` with a smooth vector field `X`, as a real-linear map from
@@ -69,7 +71,14 @@ theorem coe_interiorProduct (X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯)
     (interiorProduct X φ : RoughForm I M F k) = RoughForm.interior (F := F) (k := k) X φ.val :=
   (rfl)
 
+/-- The interior product with the zero vector field is zero. -/
+@[simp]
+theorem interiorProduct_zero_field (φ : SmoothForm I M F (k + 1)) :
+    interiorProduct (0 : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯) φ = 0 :=
+  Subtype.ext <| by simp
+
 /-- The interior product is additive in the vector field. -/
+@[simp]
 theorem interiorProduct_add_field (X Y : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯)
     (φ : SmoothForm I M F (k + 1)) :
     interiorProduct (X + Y) φ = interiorProduct X φ + interiorProduct Y φ :=
@@ -78,6 +87,7 @@ theorem interiorProduct_add_field (X Y : Cₛ^∞⟮I; E, TangentSpace I (M := M
       ContMDiffSection.coe_add, RoughForm.interior_add_field]
 
 /-- The interior product commutes with constant multiples of the vector field. -/
+@[simp]
 theorem interiorProduct_smul_field (c : ℝ) (X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯)
     (φ : SmoothForm I M F (k + 1)) :
     interiorProduct (c • X) φ = c • interiorProduct X φ :=
