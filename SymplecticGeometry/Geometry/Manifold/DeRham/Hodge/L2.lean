@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.Riemannian.L2Form
+public import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Chart
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
 public import TauCeti.Analysis.InnerProductSpace.AlternatingForm
@@ -106,7 +107,9 @@ then on all of `L2Form o k` by density.
   `Manifold.integral_mul_laplaceBeltrami`).
 * `SymplecticGeometry.L2Form o k`: the Hilbert space of `L²` `k`-forms, with
   `L2Form.ofSmooth`, `L2Form.inner_ofSmooth`, `L2Form.norm_ofSmooth_sq`,
-  `L2Form.ofSmooth_injective`, `L2Form.denseRange_ofSmooth` and `L2Form.induction_on`.
+  `L2Form.ofSmooth_injective`, `L2Form.denseRange_ofSmooth` and `L2Form.induction_on`, and its
+  isometric inclusion `L2Form.subtypeL` into `TauCeti.L2Form I M k`, with `L2Form.subtypeL_ofSmooth`
+  and `L2Form.range_subtypeL`.
 * `TauCeti.SmoothForm.memLp_localize`: the localization of a smooth form to a chart is in every
   `Lᵖ`, with the pointwise bounds `norm_localize_apply_le` and
   `exists_norm_localize_apply_sq_le`, and `TauCeti.SmoothForm.localizeLp`, the linear map to
@@ -146,13 +149,14 @@ real-valued `L²` functions enter the continuity argument.
 
 Tau Ceti's `TauCeti.L2Form I M k` asks for a measurable structure on `M`, Borel and second
 countable. `L2Form o k` takes the Borel structure, and second countability from compactness
-(Mathlib's `ChartedSpace.secondCountable_of_sigmaCompact`), so that its type, and the statements
+(`ModelWithCorners.secondCountableTopology_of_sigmaCompact`), so that its type, and the statements
 about it, need no measurable structure on `M`. It is the closure of the range of all compactly
 supported forms, which on a compact `M` are all smooth forms
-(`TauCeti.compactlySupportedForms_eq_top`). The names of `ofSmooth`, `inner_ofSmooth`,
-`norm_ofSmooth_sq`, `denseRange_ofSmooth` and `induction_on` follow those of Tau Ceti's
-`TauCeti.Manifold.SobolevH1`. The orientation `o` does not enter the type `L2Form o k`; it is a
-parameter so that `inner_ofSmooth` can name `l2Inner o`.
+(`TauCeti.compactlySupportedForms_eq_top`). The inclusion `L2Form.subtypeL` and its lemmas take
+any proof of second countability, since all are equal, but keep the Borel structure. The names
+of `ofSmooth`, `inner_ofSmooth`, `norm_ofSmooth_sq`, `denseRange_ofSmooth` and `induction_on`
+follow those of Tau Ceti's `TauCeti.Manifold.SobolevH1`. The orientation `o` does not enter
+the type `L2Form o k`; it is a parameter so that `inner_ofSmooth` can name `l2Inner o`.
 
 The definition of `l2Inner` is the integral that Tau Ceti's `Codifferential.lean` writes inline,
 with the integrand `alternatingFormInner`. Tau Ceti's `innerZeroForm` would give the same
@@ -256,6 +260,14 @@ open TauCeti TauCeti.SmoothForm
 
 section L2Form
 
+variable (k) in
+/-- The closure, in Tau Ceti's space `TauCeti.L2Form I M k` of square-integrable `k`-forms, of
+the classes of the compactly supported smooth `k`-forms. -/
+abbrev smoothL2Closure [IsManifold I 1 M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+    [IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x)] [MeasurableSpace M]
+    [BorelSpace M] [SecondCountableTopology M] : Submodule ℝ (TauCeti.L2Form I M k) :=
+  (LinearMap.range (compactlySupportedForms.toL2Form I M k)).topologicalClosure
+
 variable [IsManifold I ∞ M] [CompactSpace M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
   [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
 
@@ -264,12 +276,6 @@ local instance instMeasurableSpaceL2Form : MeasurableSpace M := borel M
 
 local instance instBorelSpaceL2Form : BorelSpace M := ⟨rfl⟩
 
-variable (k) in
-/-- The closure, in Tau Ceti's space `TauCeti.L2Form I M k` of square-integrable `k`-forms for
-the Borel structure of the compact manifold `M`, of the classes of the smooth `k`-forms. -/
-abbrev smoothL2Closure [SecondCountableTopology M] : Submodule ℝ (TauCeti.L2Form I M k) :=
-  (LinearMap.range (compactlySupportedForms.toL2Form I M k)).topologicalClosure
-
 /-- The **Hilbert space of `L²` `k`-forms** on a compact oriented Riemannian manifold: the
 closure of the smooth `k`-forms in Tau Ceti's space `TauCeti.L2Form I M k` of square-integrable
 `k`-forms, taken for the Borel structure of `M`, which is second countable since it is compact.
@@ -277,8 +283,7 @@ Its inner product restricts to `∫_M ⟨α, β⟩ dV` on smooth forms (`L2Form.
 orientation `o` fixes this inner product `l2Inner o` of smooth forms. -/
 @[nolint unusedArguments]
 def L2Form (_o : Manifold.Orientation I M (Fin m)) (k : ℕ) : Type _ :=
-  haveI := I.secondCountableTopology
-  haveI := ChartedSpace.secondCountable_of_sigmaCompact H M
+  haveI := I.secondCountableTopology_of_sigmaCompact M
   smoothL2Closure (I := I) (M := M) k
 
 variable {o : Manifold.Orientation I M (Fin m)}
@@ -286,44 +291,84 @@ variable {o : Manifold.Orientation I M (Fin m)}
 namespace L2Form
 
 instance : NormedAddCommGroup (L2Form o k) :=
-  haveI := I.secondCountableTopology
-  haveI := ChartedSpace.secondCountable_of_sigmaCompact H M
+  haveI := I.secondCountableTopology_of_sigmaCompact M
   inferInstanceAs (NormedAddCommGroup (smoothL2Closure (I := I) (M := M) k))
 
 instance : InnerProductSpace ℝ (L2Form o k) :=
-  haveI := I.secondCountableTopology
-  haveI := ChartedSpace.secondCountable_of_sigmaCompact H M
+  haveI := I.secondCountableTopology_of_sigmaCompact M
   inferInstanceAs (InnerProductSpace ℝ (smoothL2Closure (I := I) (M := M) k))
 
 instance : CompleteSpace (L2Form o k) :=
-  haveI := I.secondCountableTopology
-  haveI := ChartedSpace.secondCountable_of_sigmaCompact H M
+  haveI := I.secondCountableTopology_of_sigmaCompact M
   inferInstanceAs (CompleteSpace (smoothL2Closure (I := I) (M := M) k))
 
 /-- The inclusion of the smooth forms into `L2Form o k`: the class in `TauCeti.L2Form I M k` of
 a smooth form, which is compactly supported since `M` is compact. -/
 def ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] L2Form o k :=
-  haveI := I.secondCountableTopology
-  haveI := ChartedSpace.secondCountable_of_sigmaCompact H M
+  haveI := I.secondCountableTopology_of_sigmaCompact M
   LinearMap.codRestrict (smoothL2Closure (I := I) (M := M) k)
     ((compactlySupportedForms.toL2Form I M k).comp
       (LinearEquiv.ofTop _ (compactlySupportedForms_eq_top I k)).symm.toLinearMap)
     fun _ ↦ Submodule.le_topologicalClosure _ (LinearMap.mem_range_self _ _)
 
+section subtypeL
+
+/- `TauCeti.L2Form I M k` asks for second countability. Any two proofs of it are equal, so the
+statements below, for any of them, apply to `L2Form o k`. -/
+variable [SecondCountableTopology M]
+
+/-- The inclusion of `L2Form o k` into Tau Ceti's space `TauCeti.L2Form I M k` of
+square-integrable `k`-forms, for the Borel structure of `M`. -/
+def subtypeL : L2Form o k →L[ℝ] TauCeti.L2Form I M k :=
+  (smoothL2Closure (I := I) (M := M) k).subtypeL
+
+/-- The inclusion into `TauCeti.L2Form I M k` preserves inner products. -/
+@[simp]
+theorem inner_subtypeL (u v : L2Form o k) : ⟪subtypeL u, subtypeL v⟫_ℝ = ⟪u, v⟫_ℝ :=
+  (rfl)
+
+/-- The inclusion into `TauCeti.L2Form I M k` preserves norms. -/
+@[simp]
+theorem norm_subtypeL (u : L2Form o k) : ‖subtypeL u‖ = ‖u‖ :=
+  (rfl)
+
+/-- The inclusion into `TauCeti.L2Form I M k` is an isometry. -/
+theorem isometry_subtypeL : Isometry (subtypeL : L2Form o k → TauCeti.L2Form I M k) :=
+  AddMonoidHomClass.isometry_of_norm _ norm_subtypeL
+
+/-- The inclusion into `TauCeti.L2Form I M k` is injective. -/
+theorem subtypeL_injective : Function.Injective (subtypeL : L2Form o k → TauCeti.L2Form I M k) :=
+  isometry_subtypeL.injective
+
+/-- The image of `L2Form o k` in `TauCeti.L2Form I M k` is the closure of the classes of the
+compactly supported, here all smooth, `k`-forms. -/
+theorem range_subtypeL : Set.range (subtypeL : L2Form o k → TauCeti.L2Form I M k) =
+    closure (Set.range (compactlySupportedForms.toL2Form I M k)) := by
+  rw [← LinearMap.coe_range, ← Submodule.topologicalClosure_coe]
+  -- `subtypeL` is, by definition, the inclusion of the subspace `smoothL2Closure`.
+  exact Subtype.range_coe
+
+/-- A smooth form in `L2Form o k`, seen in `TauCeti.L2Form I M k`, is its class there as a
+compactly supported form. -/
+@[simp]
+theorem subtypeL_ofSmooth (α : SmoothForm I M ℝ k) :
+    subtypeL (ofSmooth α : L2Form o k) = compactlySupportedForms.toL2Form I M k
+      ((LinearEquiv.ofTop _ (compactlySupportedForms_eq_top I k)).symm α) :=
+  (rfl)
+
+end subtypeL
+
 /-- The inner product of two smooth forms in `L2Form o k` is their `L²` inner product. -/
 @[simp]
 theorem inner_ofSmooth (α β : SmoothForm I M ℝ k) :
     ⟪(ofSmooth α : L2Form o k), ofSmooth β⟫_ℝ = l2Inner o α β := by
-  have := I.secondCountableTopology
-  have := ChartedSpace.secondCountable_of_sigmaCompact H M
+  have := I.secondCountableTopology_of_sigmaCompact M
   have h :=
     compactlySupportedForms.integralTopForm_inner_smul_riemannianVolumeForm_eq_inner_toL2Form o
     ((LinearEquiv.ofTop _ (compactlySupportedForms_eq_top I k)).symm α)
     ((LinearEquiv.ofTop _ (compactlySupportedForms_eq_top I k)).symm β)
   simp only [LinearEquiv.coe_ofTop_symm_apply] at h
-  rw [l2Inner_def, h]
-  -- The inner product of `L2Form o k` is, by definition, that of the subspace `smoothL2Closure`.
-  exact Submodule.coe_inner _ _ _
+  rw [l2Inner_def, h, ← inner_subtypeL, subtypeL_ofSmooth, subtypeL_ofSmooth]
 
 /-- The squared norm of a smooth form in `L2Form o k` is `∫_M |α|² dV`. -/
 theorem norm_ofSmooth_sq (α : SmoothForm I M ℝ k) :
@@ -332,33 +377,24 @@ theorem norm_ofSmooth_sq (α : SmoothForm I M ℝ k) :
 
 /-- The inclusion of the smooth forms into `L2Form o k` is injective. -/
 theorem ofSmooth_injective : Function.Injective (ofSmooth : SmoothForm I M ℝ k → L2Form o k) := by
-  have := I.secondCountableTopology
-  have := ChartedSpace.secondCountable_of_sigmaCompact H M
+  have := I.secondCountableTopology_of_sigmaCompact M
   intro α β h
-  -- The value of `ofSmooth α` in `TauCeti.L2Form I M k` is, by definition, the class of `α`.
-  have h' : compactlySupportedForms.toL2Form I M k
-      ((LinearEquiv.ofTop _ (compactlySupportedForms_eq_top I k)).symm α) =
-      compactlySupportedForms.toL2Form I M k
-        ((LinearEquiv.ofTop _ (compactlySupportedForms_eq_top I k)).symm β) :=
-    congrArg Subtype.val h
+  have h' := congrArg subtypeL h
+  rw [subtypeL_ofSmooth, subtypeL_ofSmooth] at h'
   exact (LinearEquiv.injective _) (compactlySupportedForms.toL2Form_injective h')
 
 /-- The smooth forms are dense in `L2Form o k`. -/
 theorem denseRange_ofSmooth : DenseRange (ofSmooth : SmoothForm I M ℝ k → L2Form o k) := by
-  have := I.secondCountableTopology
-  have := ChartedSpace.secondCountable_of_sigmaCompact H M
-  -- `L2Form o k` is, by definition, the closure of the range of `toL2Form`.
-  change Dense (Set.range (LinearMap.codRestrict (smoothL2Closure (I := I) (M := M) k)
-    ((compactlySupportedForms.toL2Form I M k).comp
-      (LinearEquiv.ofTop _ (compactlySupportedForms_eq_top I k)).symm.toLinearMap)
-    fun _ ↦ Submodule.le_topologicalClosure _ (LinearMap.mem_range_self _ _)))
-  rw [Subtype.dense_iff, ← Set.range_comp]
-  intro x hx
-  rw [Submodule.topologicalClosure_coe] at hx
-  refine closure_mono ?_ hx
-  rintro _ ⟨α, rfl⟩
-  exact ⟨α, congrArg (compactlySupportedForms.toL2Form I M k)
-    ((LinearEquiv.ofTop _ (compactlySupportedForms_eq_top I k)).symm_apply_apply α)⟩
+  have := I.secondCountableTopology_of_sigmaCompact M
+  rw [DenseRange, isometry_subtypeL.isUniformInducing.isInducing.dense_iff]
+  intro u
+  have hr : subtypeL '' Set.range (ofSmooth : SmoothForm I M ℝ k → L2Form o k) =
+      Set.range (compactlySupportedForms.toL2Form I M k) := by
+    rw [← Set.range_comp]
+    exact ((LinearEquiv.ofTop _ (compactlySupportedForms_eq_top I k)).symm.surjective.range_comp
+      _)
+  rw [hr, ← range_subtypeL]
+  exact Set.mem_range_self u
 
 /-- **Induction principle for `L2Form o k`.** A closed property of `L²` forms that holds for
 all smooth forms holds everywhere. -/

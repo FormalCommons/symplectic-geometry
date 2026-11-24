@@ -88,7 +88,8 @@ Tau Ceti has, at the pinned version:
   `inChartAt_mextDeriv` (`Chart.lean`), and the pullback `mpullback` with
   its API (`DifferentialForm/Pullback/`, `DifferentialForm/Naturality.lean`).
 
-Tau Ceti has no Sobolev or $L^2$ space of forms on a manifold, no elliptic
+Tau Ceti has the $L^2$ space of forms on a manifold (`TauCeti.L2Form`),
+but no Sobolev space of forms on a manifold, no elliptic
 regularity on manifolds, no Hodge star or Laplacian of complex-valued
 forms, no Lefschetz operator, and no Kähler identities. Mathlib has only
 the linear `exteriorPower.hodgeStar`. This part adds the analytic half of
