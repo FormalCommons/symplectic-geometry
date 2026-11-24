@@ -98,16 +98,16 @@ instance : TopologicalSpace (InteriorModel I M) :=
   inferInstanceAs (TopologicalSpace (BoundarylessModel I M))
 
 instance [T2Space M] : T2Space (InteriorModel I M) :=
-  inferInstanceAs (T2Space M)
+  inferInstanceAs (T2Space (BoundarylessModel I M))
 
 instance [SecondCountableTopology M] : SecondCountableTopology (InteriorModel I M) :=
   inferInstanceAs (SecondCountableTopology M)
 
 instance [PreconnectedSpace M] : PreconnectedSpace (InteriorModel I M) :=
-  inferInstanceAs (PreconnectedSpace M)
+  inferInstanceAs (PreconnectedSpace (BoundarylessModel I M))
 
 instance [ConnectedSpace M] : ConnectedSpace (InteriorModel I M) :=
-  inferInstanceAs (ConnectedSpace M)
+  inferInstanceAs (ConnectedSpace (BoundarylessModel I M))
 
 /-- The identity of `M`, as a homeomorphism onto its copy `InteriorModel I M`. -/
 def interiorModelHomeomorph : M ≃ₜ InteriorModel I M :=

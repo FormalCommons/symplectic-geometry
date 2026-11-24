@@ -247,8 +247,9 @@ Variables: `[RiemannianBundle (fun x : M ↦ TangentSpace I x)]`,
   `inner_apply_left_eq_neg (hJ) x u w : ⟪J x u, w⟫ = -⟪u, J x w⟫`, the
   page's $\sigma(u,w)=\langle Ju,w\rangle$ and the skew-adjointness of $J$, are in
   *Almost complex manifolds*' `Metric.lean`, with the other consequences of
-  `hJ`. The first is Tau Ceti's, public on its main branch since d0858c89d3,
-  and copied into `Metric/FromTauCeti.lean`, which `Metric.lean` imports.
+  `hJ`. The first is Tau Ceti's, in its `AlmostComplex/Metric.lean`, which
+  `Metric.lean` imports; the library's copy of it was deleted by the move to
+  `c9d170eed5a8` (#2025).
 - `inner_hom_apply_eq_neg (hJ) (hcov : cov.IsMetricCompatible) x u v w :
   ⟪D u v, w⟫ = -⟪v, D u w⟫`: the second identity, from
   `IsMetricCompatible.inner_hom_eq_neg` and `inner_apply_left_eq_neg`.
