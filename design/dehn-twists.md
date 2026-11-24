@@ -244,16 +244,18 @@ The dilations $m_c$ and the family $(z,t)\mapsto m_tz$ are Tau Ceti's
 uniqueness theorems.
 
 ```lean
+-- in `Geometry/Manifold/VectorBundle/RescaledFamily.lean`, for any real vector bundle `V`:
 /-- For `t > 0`, `m_{1/t} ∘ ψ ∘ m_t`; for `t = 0`, the fibre derivative of `ψ` along the
 zero section. -/
-def CotangentBundle.rescaledFamily {U : Opens T*L} (ψ : U → T*L) (p : T*L × unitInterval) : T*L
-theorem CotangentBundle.rescaledFamily_of_pos (ψ) {t : unitInterval} (ht : 0 < (t : ℝ))
-    (z : T*L) (hz : vectorBundleFiberScaling _ _ (z, t) ∈ U) :
-    rescaledFamily ψ (z, t) = m_{1/t} (ψ ⟨vectorBundleFiberScaling _ _ (z, t), hz⟩)
+def vectorBundleRescaledFamily {U : Opens (TotalSpace F V)} (ψ : U → TotalSpace F V)
+    (p : TotalSpace F V × Icc (0 : ℝ) 1) : TotalSpace F V
+theorem vectorBundleRescaledFamily_of_pos (ψ) {t : Icc (0 : ℝ) 1} (ht : 0 < (t : ℝ))
+    (z : TotalSpace F V) (hz : vectorBundleFiberScaling _ _ (z, t) ∈ U) :
+    vectorBundleRescaledFamily ψ (z, t) = m_{1/t} (ψ ⟨vectorBundleFiberScaling _ _ (z, t), hz⟩)
 theorem CotangentBundle.contMDiffOn_rescaledFamily {U' : Opens T*L} (hU' : U' ≤ U)
     (hstar : ∀ z ∈ U', ∀ t, vectorBundleFiberScaling _ _ (z, t) ∈ U')
     (hψ : ContMDiff _ _ ∞ ψ) (hψ0 : ∀ x, ψ ⟨0_x, _⟩ = 0_x) :
-    ContMDiffOn _ _ ∞ (rescaledFamily ψ) (U' ×ˢ univ)
+    ContMDiffOn _ _ ∞ (vectorBundleRescaledFamily ψ) (U' ×ˢ univ)
 
 theorem CotangentBundle.exists_smoothIsotopy_of_eqOn_zeroSection
     [CompactSpace L] {U : Opens T*L} (hU : range (zeroSection …) ⊆ U)
@@ -266,7 +268,7 @@ theorem CotangentBundle.exists_smoothIsotopy_of_eqOn_zeroSection
       (∀ t x, F (t, ⟨0_x, _⟩) = 0_x) ∧ ∀ t, IsOpenEmbedding (F (t, ·))
 ```
 
-The isotopy is `rescaledFamily ψ`, the family $m_{1/t}\circ\psi\circ m_t$
+The isotopy is `vectorBundleRescaledFamily ψ`, the family $m_{1/t}\circ\psi\circ m_t$
 of *Decisions*, on a star-shaped neighbourhood $U'$, which exists because
 `L` is compact. Its smoothness at $t=0$ is Hadamard's lemma in the fibre
 variable, in the trivializations of `T*L`. Those are linear on fibres, so
@@ -643,7 +645,7 @@ In this order; each is blocked by the ones listed. All are sub-issues of
 | # | Issue | Files | Blocked by | Size |
 |---|---|---|---|---|
 | 1 | Whitney's theorem on smooth even functions | `Analysis/Calculus/ContDiff/Even.lean` | — | 250 |
-| 2 | The rescaled family of a symplectic embedding near the zero section | `Cotangent/Bundle/Rescaling.lean` (`rescaledFamily`) | — | 300 |
+| 2 | The rescaled family of a symplectic embedding near the zero section | `VectorBundle/RescaledFamily.lean` (`vectorBundleRescaledFamily`), `Cotangent/Bundle/Rescaling.lean` (smoothness) | — | 300 |
 | 3 | Uniqueness of Lagrangian neighbourhoods up to isotopy | `Cotangent/Bundle/Rescaling.lean` (the two isotopy theorems) | 2 | 200 |
 | 4 | Moving a compactly supported diffeomorphism along a family of embeddings | `Diffeotopy/Extend.lean` | — | 300 |
 | 5 | Euclidean coordinates on the cotangent bundle of the sphere | `DehnTwist/Geodesic.lean` (coordinates, `antipodal`) | — | 300 |
