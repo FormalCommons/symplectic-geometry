@@ -53,15 +53,17 @@ variable [FiniteDimensional ℝ E] [IsManifold I ∞ M]
 
 /-- On a compact boundaryless Hausdorff manifold with an orientation `o` of dimension `k + l`,
 the integral `∫_M γ ∧ β` of a closed `k`-form `γ` against a closed `l`-form `β` depends only on
-the de Rham class of `β`: it is unchanged when `β` is replaced by a closed `η` with `β - η`
-exact. -/
+the de Rham class of `β`: it is unchanged when `β` is replaced by any `η` with `β - η` exact,
+such an `η` being closed as well. -/
 theorem integralTopForm_wedge_eq_of_sub_mem_exactForms_right
     [BoundarylessManifold I M] [T2Space M] [CompactSpace M] {k l : ℕ}
     (o : Manifold.Orientation I M (Fin (k + l))) {γ : SmoothForm I M ℝ k}
     (hγ : γ ∈ closedForms I M k) {β η : SmoothForm I M ℝ l} (hβ : β ∈ closedForms I M l)
-    (hη : η ∈ closedForms I M l) (hβη : β - η ∈ exactForms I M l) :
+    (hβη : β - η ∈ exactForms I M l) :
     integralTopForm o (RoughForm.wedge (γ : RoughForm I M ℝ k) (β : RoughForm I M ℝ l)) =
       integralTopForm o (RoughForm.wedge (γ : RoughForm I M ℝ k) (η : RoughForm I M ℝ l)) := by
+  have hη : η ∈ closedForms I M l := by
+    simpa using sub_mem hβ (exactForms_le_closedForms I l hβη)
   have hc {α : SmoothForm I M ℝ l} (hα : α ∈ closedForms I M l) :
       α ∈ compactlySupportedClosedForms I M l :=
     (mem_compactlySupportedClosedForms I).2 ⟨by simp [compactlySupportedForms_eq_top], hα⟩
@@ -97,8 +99,7 @@ theorem mem_exactForms_of_forall_integralTopForm_wedge_eq_zero
   -- The integral of `γ ∧ β` depends only on the class of `β`, so `∫ γ ∧ η = 0`.
   have hγη0 : integralTopForm o (RoughForm.wedge (γ : RoughForm I M ℝ 1)
       (η : RoughForm I M ℝ l)) = 0 :=
-    (integralTopForm_wedge_eq_of_sub_mem_exactForms_right o hγ hβ
-      (harmonicForms_le_closedForms o hl1 hη) hβη).symm.trans (h γ hγ)
+    (integralTopForm_wedge_eq_of_sub_mem_exactForms_right o hγ hβ hβη).symm.trans (h γ hγ)
   -- Hence `∫ |γ|² vol = 0`, so `γ = 0` and `η = 0`.
   have hnorm := SmoothForm.inner_smul_riemannianVolumeForm_eq_wedge_hodgeStar o rfl γ γ
   have hγ0 : γ = 0 := by
