@@ -55,7 +55,7 @@ $d_\hbar(\sigma-\hbar H) = -\hbar(\iota_X\sigma+dH) = 0$.
   product of rough forms `TauCeti.RoughForm.interior` with
   `interior_self`, its smoothness `IsSmoothForm.interior`
   (`Interior.lean`) and its Leibniz rule `RoughForm.interior_wedge_apply`
-  (`Wedge/Interior.lean`); Lie derivatives with Cartan's formula
+  (`Wedge/Interior.lean`); Lie derivatives, and $L_X=d\iota_X+\iota_Xd$ as
   `TauCeti.mlieDerivForm_eq_interior_mextDeriv_add` (`LieDeriv.lean`); and
   `TauCeti.mlieDerivForm_fundamentalVectorField_eq_zero`
   (`GroupAction/InvariantForm.lean`): a form invariant under the group has
@@ -205,9 +205,10 @@ integral with the Liouville measure, and the formula.
    derivative at $p$ of `Circle.exp (2 * π * t) • ·` to
    $z\mapsto(e^{2\pi ik_{p,j}t}z_j)_j$. This is what a unitary basis of an
    invariant compatible complex structure gives; the theorem does not need
-   the complex structure itself, so it is not a hypothesis, nor are the
-   connectedness of $M$ or the nonvanishing of the weights, which follow
-   from the isolation of the fixed points. The proof uses the chart's
+   the complex structure itself, so it is not a hypothesis. Nor is the
+   connectedness of $M$, which the proof does not use, or the nonvanishing
+   of the weights, which follows from the isolation of the fixed points
+   (issue 8). The proof uses the chart's
    weights. Their product is that of `k`, since both are read off the
    infinitesimal tangent action $A_p$ (the derivative at $t=0$ of the
    tangent action): $\det A_p=\prod_j(2\pi k_{p,j})^2$ gives its absolute
@@ -326,7 +327,7 @@ name. Its symplectic case is
 support, the integral over the closed orthant of $\mathbb R^\iota$ of
 `iteratedDeriv (card ι) F (-∑ i, t i)` is `F 0`; and
 `TauCeti.integral_iteratedDeriv_neg_sum_mul_sq`: for `a i > 0`,
-`∫ z, iteratedDeriv (card ι) F (-∑ i, a i * (z.1 i ^ 2 + z.2 i ^ 2)) = π ^ card ι / ∏ i, a i * F 0`
+`∫ z, iteratedDeriv (card ι) F (-∑ i, a i * (z.1 i ^ 2 + z.2 i ^ 2)) = F 0 * π ^ card ι / ∏ i, a i`
 on `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι`, by
 `map_volume_euclideanSpace_half_sq_add_sq`.
 
@@ -343,7 +344,7 @@ manifold, isolated fixed points are finite).
 ### `Localization/LocalizingForm.lean`
 
 `exists_localizingForm`: for isolated fixed points on a compact `M`, a
-smooth invariant one-form `θ` with `θ(X) ≥ 0`, vanishing exactly at the
+smooth invariant one-form `θ` such that `θ(X) ≥ 0`, with equality exactly at the
 fixed points, and equal near each fixed point `p` to the pullback of the
 model form $\theta_p$ under the weight chart, as in Decision 6. It is an
 existence theorem, not a definition.
@@ -378,7 +379,10 @@ theorem integral_cexp_neg_mul_eq_finsum_fixedPoints [CompactSpace M]
       ∑ᶠ p ∈ fixedPoints, Complex.exp (-ħ * H p) / (ħ ^ n * ∏ j, (k p j : ℂ))
 ```
 
-and the value at $\hbar=0$: under the same hypotheses the right side tends,
+Here the `_` is the smoothness of `g • ·`, `ContMDiffSMul.contMDiff_const_smul g`,
+and the variables are those of *Conventions*.
+
+For the value at $\hbar=0$: under the same hypotheses the right side tends,
 as `ħ → 0` in `𝓝[≠] 0`, to `(σ.liouvilleMeasure n univ).toReal`. Both
 docstrings end with the milestone line. The real theorem has the same
 hypotheses, real `ħ > 0` and `Real.exp`, and the left side as
