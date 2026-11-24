@@ -114,11 +114,6 @@ theorem contMDiffMapMulLeft_apply {n : WithTop ℕ∞} (T s : unitInterval) :
     contMDiffMapMulLeft (n := n) T s = T * s :=
   (rfl)
 
-/-- As a function, the `C^n` map `contMDiffMapMulLeft T` is `s ↦ T s`. -/
-theorem coe_contMDiffMapMulLeft {n : WithTop ℕ∞} (T : unitInterval) :
-    ⇑(contMDiffMapMulLeft (n := n) T) = (T * ·) :=
-  (rfl)
-
 /-- The derivative of `s ↦ T s` on the unit interval sends the unit tangent vector at `t` to `T`
 times the unit tangent vector at `T t`. -/
 theorem mfderiv_mul_left_one (T t : unitInterval) :

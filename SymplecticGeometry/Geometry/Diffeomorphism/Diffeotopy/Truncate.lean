@@ -138,9 +138,10 @@ section Velocity
 velocity of `φ`. -/
 theorem velocity_truncate (Φ : Diffeotopy J n M) (hn : 1 ≤ n) (T t : I) :
     (Φ.truncate T).velocity t = (T : ℝ) • Φ.velocity (T * t) := by
-  have hr := mfderiv_mul_left_one T t
-  rw [← contMDiffMapMulLeft_apply (n := n) T t, ← coe_contMDiffMapMulLeft (n := n)] at hr
-  rw [truncate_def, Φ.velocity_reparam hn t hr, contMDiffMapMulLeft_apply]
+  have hρ : ⇑(contMDiffMapMulLeft (n := n) T) = (T * ·) := funext (contMDiffMapMulLeft_apply T)
+  rw [truncate_def, Φ.velocity_reparam hn t (r := T) (by rw [hρ]; exact mfderiv_mul_left_one T t),
+    contMDiffMapMulLeft_apply]
+
 
 variable [IsManifold J ∞ M]
 
