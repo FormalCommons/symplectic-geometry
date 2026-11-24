@@ -353,8 +353,9 @@ boundaryless, Hausdorff, finite-dimensional manifold $X$:
   `orbitFiber.isContMDiff_atlas` that the atlas is
   `TauCeti.MapFiber.Atlas.IsContMDiff ∞`. A trivialization of the atlas
   sends `x` to `(⟦x⟧, unop (orbitSectionCoord s x))` and has inverse
-  `(q, g) ↦ op g • s q`, both smooth on their domains because `s`, the
-  action and the quotient map are;
+  `(q, g) ↦ op g • s q`. The inverse is smooth because `s` and the action
+  are; it has injective differential, so the inverse function theorem
+  makes the trivialization smooth too;
 - the equivariant diffeomorphism of the total space with $X$ over the
   quotient map is Tau Ceti's `TauCeti.MapFiber.Atlas.totalSpaceDiffeomorph`
   for `orbitFiber.isContMDiff_atlas`, with `totalSpaceDiffeomorph_smul`
