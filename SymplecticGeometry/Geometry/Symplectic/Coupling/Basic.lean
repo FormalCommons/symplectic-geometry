@@ -316,14 +316,12 @@ theorem isNondegenerate (h : IsCouplingForm σ τ) (hτ : ∀ t, (τ t).IsNondeg
     -- the second component of `e` is `1`, and the value lies in `Bundle.Trivial _ ℝ (p, t)`,
     -- which is `ℝ`
     exact congrArg (fun c ↦ -c) (mfderiv_subtypeVal_Icc_one t)
+  have hℓe : ℓ e ≠ 0 := by rw [he]; exact neg_ne_zero.mpr one_ne_zero
   refine LinearMap.BilinForm.IsRefl.nondegenerate_of_ker_restrict_eq_span_singleton
     (SmoothForm.isAlt_bilinFormAt σ (p, t)).isRefl
-    (h.ker_restrict_eq_span_couplingField (hτ t) p) (e := e) ?_
-    (by rw [he]; exact neg_ne_zero.mpr one_ne_zero : ℓ e ≠ 0)
-  refine Submodule.eq_top_iff'.mpr fun v ↦ Submodule.mem_sup.mpr
-    ⟨v + ℓ v • e, ?_, -ℓ v • e, Submodule.smul_mem _ _ (Submodule.mem_span_singleton_self e), ?_⟩
-  · rw [LinearMap.mem_ker, map_add, map_smul, he, smul_eq_mul, mul_neg_one, add_neg_cancel]
-  · rw [neg_smul, add_neg_cancel_right]
+    (h.ker_restrict_eq_span_couplingField (hτ t) p) (e := e) ?_ hℓe
+  rw [sup_comm]
+  exact LinearMap.span_singleton_sup_ker_eq_top ℓ hℓe
 
 /-- **Coupling forms over nondegenerate forms are symplectic.** -/
 theorem isSymplectic (h : IsCouplingForm σ τ) (hτ : ∀ t, (τ t).IsNondegenerate) :
