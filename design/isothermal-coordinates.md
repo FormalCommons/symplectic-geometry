@@ -67,15 +67,14 @@ for the higher orders.
   (`Analysis/Complex/Pompeiu/Basic.lean`, `C¹` data) and
   `conjWirtingerDeriv_cauchyTransform_of_mem_supportedHolderSubmodule`
   (`Pompeiu/Holder/Operator.lean`, Hölder data) give $\bar\partial T h=h$.
-- **Surfaces.** `TauCeti.IsIsothermalChart`, the class
-  `TauCeti.SmoothAlmostComplexStructure.HasIsothermalCharts` and the complex
-  curve `TauCeti.IsothermalSurface` (`Geometry/Manifold/Complex/Isothermal.lean`),
-  with the instance only for complex curves. An isothermal chart there needs
-  only to lie in the `C¹` maximal atlas. Tau Ceti's main branch (commit
-  `659fa713d6`) removes the class and proves instead
-  `TauCeti.SmoothAlmostComplexStructure.exists_isIsothermalChart`: every
-  smooth structure on a surface modelled on `𝓘(ℝ, ℂ)` has isothermal charts,
-  of class `C¹` (Decision 8).
+- **Surfaces.** `TauCeti.IsIsothermalChart`,
+  `TauCeti.SmoothAlmostComplexStructure.exists_isIsothermalChart` and the
+  complex curve `TauCeti.IsothermalSurface`
+  (`Geometry/Manifold/Complex/Isothermal.lean`): every smooth structure on a
+  surface modelled on `𝓘(ℝ, ℂ)` has isothermal charts, of class `C¹`. An
+  isothermal chart there needs only to lie in the `C¹` maximal atlas. Tau
+  Ceti removed its class `HasIsothermalCharts` at commit `659fa713d6`, which
+  the library reached with the move to `c9d170eed5a8` (#2025; Decision 8).
 - **Charts and structures.** `SmoothAlmostComplexStructure.chartPushforward`,
   `mfderiv_comp_toEndomorphism`, `chartPushforward_apply_chartPushforward_apply`
   and `SmoothAlmostComplexStructure.contDiffOn_chartPushforward`
@@ -127,9 +126,8 @@ this file.
    `CkHolderSpace.cutoff` on `ball c (r + 1)`, and then multiplied by `μ` with
    `compCkHolder₂` of complex multiplication. Since `μ` vanishes off
    `closedBall c r`, where `χ = 1`, the product is $\mu\,Bh$ everywhere. Tau
-   Ceti's main branch builds this operator, privately, in
-   `Beltrami/HigherHolder.lean`, which the library copies (*Files taken from
-   Tau Ceti*).
+   Ceti builds this operator, privately, in its
+   `Beltrami/HigherHolder.lean` (*Files taken from Tau Ceti*).
 4. **Statements of finite order are for `J` of class `C^m` at a point, tame
    there**, as in `exists_isothermal_chart_of_contDiffAt`, with `1 ≤ m`; the
    chart is of class `C^m`. This is the natural generality of the route
@@ -154,41 +152,28 @@ this file.
    charts of the rotation structure of the metric and the orientation; the
    rotation structure is built from `contMDiff_rightAngleRotation` with
    `contMDiff_hom_iff`, which needs `[T2Space M]`.
-8. **No instance `HasIsothermalCharts`, and no copy of
-   `exists_isIsothermalChart`.** Tau Ceti's main branch proves the existence
-   of `C¹` isothermal charts for every structure
-   (`SmoothAlmostComplexStructure.exists_isIsothermalChart`) and removes the
-   class, so an instance here would repeat that theorem and break at the
-   move of Tau Ceti past it. Neither issue 3 nor issue 4 uses that theorem:
-   `IsIntegrable` asks for smooth charts, which come from the planar charts of
-   issue 2, while Tau Ceti's charts are only `C¹`. So the part neither copies
-   it nor waits for it; it reaches the library with the move. On the model
-   `𝓘(ℝ, ℂ)`, smooth isothermal charts of the smooth maximal atlas follow
-   from issue 4 through `isIntegrable_iff_forall_exists_isIsothermalChart`
-   (#862). The theorem `IsIntegrable.hasIsothermalCharts` of
-   `Geometry/Manifold/Complex/Integrable.lean` (#862) concludes the class,
-   and nothing in the library uses it. It stays until the move; the pull
-   request of that move deletes it, with no replacement, since
-   `exists_isIsothermalChart` gives its conclusion with no hypothesis, and
-   takes the class out of that file's module docstring and of part 23 of
-   `DESIGN.md`. `isIntegrable_iff_forall_exists_isIsothermalChart` stays.
+8. **Tau Ceti's `exists_isIsothermalChart` is used as it is.** Tau Ceti
+   proves the existence of `C¹` isothermal charts for every structure
+   (`SmoothAlmostComplexStructure.exists_isIsothermalChart`), and no longer
+   has the class `HasIsothermalCharts`. Neither issue 3 nor issue 4 uses
+   that theorem: `IsIntegrable` asks for smooth charts, which come from the
+   planar charts of issue 2, while Tau Ceti's charts are only `C¹`. On the
+   model `𝓘(ℝ, ℂ)`, smooth isothermal charts of the smooth maximal atlas
+   follow from issue 4 through
+   `isIntegrable_iff_forall_exists_isIsothermalChart` (#862). The theorem
+   `IsIntegrable.hasIsothermalCharts` that #862 added, which concluded the
+   class, was deleted by the move to `c9d170eed5a8` (#2025), with no
+   replacement, since `exists_isIsothermalChart` gives its conclusion with no
+   hypothesis. `isIntegrable_iff_forall_exists_isIsothermalChart` stays.
 
 ## Files and their contents
 
 | File | Contents | Issue |
 |---|---|---|
 | `Analysis/Calculus/ContDiff/Holder.lean` | a map of class `C^{k+1}` at a point has a Hölder `k`-th derivative near it | 2 |
-| `Analysis/Calculus/ContinuousLinearMapInverse.lean` | taken from Tau Ceti: invertible strict derivatives of `y ↦ y + f y` | 1 |
-| `Analysis/Calculus/IteratedFDeriv/Basic.lean` | taken from Tau Ceti: iterated derivatives of a continuous linear map plus a function | 1 |
 | `Analysis/Complex/Beltrami/CkHolder.lean` | charts of class `C^{k+1}` for small coefficients | 1 |
-| `Analysis/Complex/Beltrami/HigherHolder.lean` | taken from Tau Ceti: the Beltrami operator on supported $C^{k,\alpha}$ data and the fixed point | 1 |
 | `Analysis/Complex/Beltrami/Regularity.lean` | planar isothermal charts of class `C^m`, smooth planar isothermal charts | 2 |
-| `Analysis/Complex/Pompeiu/Holder/Higher.lean` | taken from Tau Ceti: smoothness of the Cauchy transform of supported $C^{k,\alpha}$ data | 1 |
-| `Analysis/Complex/Wirtinger/Basic.lean` | taken from Tau Ceti: Wirtinger derivatives of `z + f z` | 1 |
-| `Analysis/Holder/Iterated.lean` | taken from Tau Ceti: Hölder continuity of $C^{k,\alpha}$ maps, the supported subspace is closed | 1 |
-| `Analysis/Holder/Normed.lean` | taken from Tau Ceti: Hölder bounds on a subset | 1 |
 | `Analysis/InnerProductSpace/TwoDim.lean` | a nonzero linear map of an oriented Euclidean plane carrying the rotation to `i` is conformal | 4 |
-| `Analysis/Normed/Operator/Basic.lean` | taken from Tau Ceti: the Neumann series for `v + A x = x` | 1 |
 | `Geometry/Manifold/Complex/Isothermal.lean` | smooth isothermal charts on surfaces (issue 3); `IsIntegrable` in dimension two, the rotation structure, isothermal coordinates, the milestone (issue 4) | 3, 4 |
 
 `CkHolder.lean` and `Regularity.lean` avoid the names of Tau Ceti's `Beltrami/` files
@@ -197,19 +182,17 @@ is named like Tau Ceti's, as `DESIGN.md` says.
 
 ### `Analysis/Complex/Beltrami/CkHolder.lean`
 
-Imports `Analysis/Complex/Beltrami/HigherHolder.lean` (below), Tau Ceti's
-`Beltrami/Chart.lean` and `Beltrami/Linear.lean`.
+Imports Tau Ceti's `Beltrami/HigherHolder.lean`, `Beltrami/Chart.lean` and
+`Beltrami/Linear.lean`.
 Write `S k α c r` for
 `supportedCkHolderSubmodule (E := ℂ) (F := ℂ) k α (closedBall c r)`.
 
 The operator of Decision 3 and the fixed point are not in this file: Tau
-Ceti's main branch has them, after the version this library pins, in
-`TauCeti/Analysis/Complex/Beltrami/HigherHolder.lean` (the operator private,
-the fixed point as
+Ceti has them in `Analysis/Complex/Beltrami/HigherHolder.lean` (the
+operator private, the fixed point as
 `TauCeti.exists_ckHolder_conjWirtingerDeriv_eq_mul_wirtingerDeriv`, which
-also gives an invertible strict derivative at every point of the disc). The
-library copies that file, and the declarations of other Tau Ceti files that
-it uses, under *Files taken from Tau Ceti* below. The names
+also gives an invertible strict derivative at every point of the disc; see
+*Files taken from Tau Ceti* below). The names
 `beltramiCkCLM`, `beltramiCkCLM_apply` and
 `exists_contDiff_conjWirtingerDeriv_eq_mul_wirtingerDeriv` are not used.
 
@@ -231,11 +214,12 @@ About 100 lines.
 
 ### Files taken from Tau Ceti
 
-These files copy declarations of Tau Ceti's main branch, from its commit
-`0fef288e2f0539135f050168f1153e762b0189a8`, at the paths of their Tau Ceti
-files with `SymplecticGeometry/` in place of `TauCeti/`, under Tau Ceti's
-names and with Tau Ceti's headers, as `AGENTS.md` asks. A move of Tau Ceti
-past that commit deletes them.
+Issue 1 copied the declarations below from Tau Ceti's main branch, at its
+commit `0fef288e2f0539135f050168f1153e762b0189a8`, which the pinned version
+did not have yet, into files at the paths of their Tau Ceti files. The move
+to `c9d170eed5a8` (#2025) deleted those copies: the declarations are Tau
+Ceti's now, in the files of these paths under `TauCeti/`, and the library
+uses them from there.
 
 - `Analysis/Complex/Beltrami/HigherHolder.lean`: the whole of Tau Ceti's
   file, `exists_ckHolder_conjWirtingerDeriv_eq_mul_wirtingerDeriv` and its
@@ -398,8 +382,8 @@ About 300 lines.
 
 ## What the part uses
 
-- Tau Ceti, as listed under *What there is*, and the declarations of its main
-  branch copied under *Files taken from Tau Ceti*. The chart of
+- Tau Ceti, as listed under *What there is* and under *Files taken from Tau
+  Ceti*. The chart of
   `CkHolder.lean` follows `TauCeti.Beltrami.exists_isComplexLinear_chart`
   (`Beltrami/Chart.lean`), and `Regularity.lean` the proof of
   `TauCeti.Beltrami.exists_isothermal_chart`; their docstrings credit them.
