@@ -164,14 +164,16 @@ About 300 lines.
 Horizontal lifts of curves and parallel transport.
 
 - `TauCeti.IsEhresmannConnection.eqOn_of_isHorizontalMap` (uniqueness): two
-  differentiable horizontal curves `c₁ c₂ : ℝ → P` with `f ∘ c₁ = f ∘ c₂` on
-  `Set.Icc a b`, equal at one point of it, agree on it; with `Set.Icc a b`
+  differentiable horizontal curves `c₁ c₂ : ℝ → P` with `f ∘ c₁ = γ = f ∘ c₂` on
+  `Set.Icc a b`, for a `C²` curve `γ`, a `C²` map `f` and `1 ≤ n`, equal at one
+  point of it, agree on it; with `Set.Icc a b`
   replaced by `univ` as `eq_of_isHorizontalMap`. The velocity of a horizontal
   curve over `γ` is `hD.horizontalLift (c u) (γ' u)` (`eq_horizontalLift_iff`),
   so near each time both curves solve one time-dependent equation, the lift of
   the field that is constant, equal to the chart velocity of `γ`, in a chart of
-  `B`; uniqueness for it (`timeDependentFlowOf_eq_of_hasMFDerivWithinAt`) and
-  connectedness of the interval conclude.
+  `B`; local uniqueness for its suspension (Tau Ceti's
+  `IsMIntegralCurveOn.eventuallyEq_of_isPreconnected`) and connectedness of the
+  interval conclude.
 - `TauCeti.IsEhresmannConnection.exists_isHorizontalMap_lift` (existence),
   under `hf`, `hfp` and `hγ`: for `f x = γ s` there is `c : ℝ → P` with
   `ContMDiff 𝓘(ℝ) I ∞ c`, `TauCeti.IsHorizontalMap 𝓘(ℝ) D c`, `f ∘ c = γ` and
