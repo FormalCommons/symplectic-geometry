@@ -26,8 +26,8 @@ This file is the topological part of the passage from the preimage `Q` of the or
 level, the first step of reduction at a coadjoint orbit through the product:
 
 * `orbitLevel`: the points `x` with `-μ x ∈ O`, as a `SubMulAction` of `G`. In the opposite
-  sign convention, where the moment map is `-μ`, this is the preimage of the orbit `O`.
-  `properSMul_orbitLevel`: a proper action on `M` restricts to it.
+  sign convention, where the moment map is `-μ`, this is the preimage of the orbit `O`. A proper
+  action on `M` restricts to it by the instance `SubMulAction.properSMul`.
 * `orbitLevelGraph`: if `ι` is a topological embedding into `𝔤 → ℝ`, the graph map
   `x ↦ (x, ι⁻¹(-μ x))` is a homeomorphism from `Q` onto the zero level of the product, with
   inverse the first projection; it is `G`-equivariant (`orbitLevelGraph_smul`).
@@ -38,8 +38,7 @@ level, the first step of reduction at a coadjoint orbit through the product:
   `Q`, so that `μ` is transverse to the orbit there.
 
 All declarations are in the namespace `TauCeti.SmoothTwoForm.IsEquivariantMomentMap`, beside
-`zeroLevel`. The proof of `properSMul_orbitLevel` is that of `properSMul_zeroLevel`, adapted from
-Tau Ceti's `properSMul_levelSubMulAction`.
+`zeroLevel`.
 
 ## References
 
@@ -101,11 +100,6 @@ orbit map. -/
 theorem mem_orbitLevel {x : M} :
     x ∈ h.orbitLevel η ↔ -μ x ∈ Set.range ((Lie.coadjointRepresentation ℝ I G).orbitMap η) :=
   Iff.rfl
-
-/-- **Properness on the preimage of the orbit.** If `G` acts properly on `M`, it acts properly on
-the preimage of the orbit of `η`. -/
-theorem properSMul_orbitLevel [ProperSMul G M] : ProperSMul G (h.orbitLevel η) :=
-  Topology.IsEmbedding.subtypeVal.properSMul fun g x ↦ SubMulAction.val_smul g x
 
 /-- **Freeness on the product's zero level.** If `G` acts freely at every point of the preimage
 of the orbit of `η`, it acts freely at every point of the zero level of the product moment map
