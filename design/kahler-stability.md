@@ -137,8 +137,9 @@ may adjust implicit arguments and instance arguments to what elaborates.
    $\theta\in[\tfrac12,1)$; (c) the local normal form in the weak form that
    (d) needs: near every point, a chart of $M$ in which $\|\mu\|^2$ is a
    polynomial in some of the coordinates; (d) the inequality for $f$ on
-   $M$; (e) convergence on a Riemannian manifold, from Tau Ceti's
-   normed-space theorem through charts. The analytic inequality is not
+   $M$; (e) convergence on a Riemannian manifold, which is Tau Ceti's
+   `tendsto_maximalIntegralCurve_neg_mgradient_of_mapClusterPt`, taken
+   from its main branch at `07c8b6b1f5ff`. The analytic inequality is not
    needed and is not proved.
 5. **The limit points $p^+_\xi$** for $\xi\in\Lambda$ do not need (d): the
    orbit $t\mapsto\exp(it\xi)p$ is the negative gradient flow of
@@ -146,7 +147,13 @@ may adjust implicit arguments and instance arguments to what elaborates.
    Ceti's `MomentMap/MorseBott.lean`,
    `exists_isNondegenerateCriticalSubmanifold_fixedPointsOfFinrank_of_compactSpace`),
    so Tau Ceti's Morse–Bott inequality `exists_mul_abs_sub_le_norm_mgradient_sq`
-   with (e) gives the limit. The weights $w_\mu(p,\xi)$ exist for every
+   with (e) gives the limit. Until the library moves to a Tau Ceti commit
+   at or after `07c8b6b1f5ff`, that inequality's file
+   `Morse/Bott/ExponentialConvergence.lean` and (e) cannot be imported
+   together, since (e) rests on copies from Tau Ceti main that clash with
+   the pinned `Morse/ExponentialConvergence.lean`; building issue 11 waits
+   for #2450, which removes the clash by that move or by copying what it
+   needs from main's Bott file. The weights $w_\mu(p,\xi)$ exist for every
    $\xi$, by monotonicity and compactness of $M$.
 6. **Home.** The complexification is Lie theory, so it is
    `Geometry/Lie/Complexification.lean`, beside Tau Ceti's folder
@@ -298,7 +305,7 @@ stable, since $\mathfrak g^*=0$; `M` is nonempty, being connected.
   `mulInvariantExp`; `TauCeti.Lie.exists_isSymm_bilinForm_Ad_invariant`;
   `mgradient` and `maximalIntegralCurve`
   (`Geometry/Manifold/Riemannian/Gradient/`);
-  `IsIntegralCurveOn.exists_tendsto_atTop_of_lojasiewicz`; the Morse–Bott
+  `tendsto_maximalIntegralCurve_neg_mgradient_of_mapClusterPt`; the Morse–Bott
   results named in decision 5; the semialgebraic geometry and the
   symplectic slice named in decision 4.
 - From other parts: none on `main` is needed. The local normal form (c)
