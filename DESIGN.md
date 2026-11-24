@@ -3400,13 +3400,15 @@ Differential topology and complex analysis only; it waits for no part of
   group to $\mathrm{Ham}(F,\sigma)$; 1 ⇔ 2), `FluxHomomorphism.lean` (for a
   closed connection two-form on a fibration trivial over every loop, the
   homomorphism $f_\tau\colon H_1(B;\mathbb Z)\to H^1(F;\mathbb R)/\Gamma_\sigma$
-  and its lifts; the homomorphism $\mu_{\Phi^*a}$ of a class over a
-  trivialization over the 1-skeleton) and `Characterization.lean` (the four
-  conditions of Theorem 6.5.3 with the torsion condition, the induction over
-  skeleta of a triangulation in 3 ⇒ 1).
+  and its lifts) and `Characterization.lean` (the four
+  conditions of Theorem 6.5.3 with the torsion condition, with 3 ⇒ 1 by a
+  shift of the connection by closed one-forms of the base, with no
+  triangulation); the homomorphism $\mu_{\Phi^*a}$ of a class over a
+  trivialization over the 1-skeleton is in `OneSkeleton.lean`.
 - **Builds on:** *Coupling forms*, *Flux homomorphism*, *Symplectic
-  fibrations*; Tau Ceti (smooth triangulations,
-  `Geometry/Manifold/SmoothTriangulation/`, singular homology).
+  fibrations*, *Parallel transport*, *Compatible symplectic forms* (only
+  `Thurston.lean`); Tau Ceti (singular homology; smooth triangulations,
+  `Geometry/Manifold/SmoothTriangulation/`, only in `OneSkeleton.lean`).
 - **Milestones:** *Characterization of Hamiltonian fibrations*, in the
   corrected form with the torsion condition, as the page states it.
 - **The design file decides:** the meaning of a symplectic trivialization
@@ -3541,7 +3543,7 @@ behind.
 | 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles*; `Geometry/Manifold/DifferentialForm/Pullback/Family.lean` of *Moser isotopy*, which is merged |
 | 4 | *Adjunction* | *First Chern number* (only `FirstChernClass.lean`, `ChernNumber/Basic.lean` and `ChernNumber/Axioms.lean`); `NormalSpace/ComplexStructure.lean` and `NormalSplitting.lean` can start at once |
 | 4 | *Chern classes* | *First Chern number* (only `FirstChernClass.lean`, for the comparison of $c_1$); the other issues of its design file can start at once |
-| 4 | *Hamiltonian fibrations* | *Coupling forms*, *Flux homomorphism*, *Symplectic fibrations* |
+| 4 | *Hamiltonian fibrations* | *Coupling forms*, *Flux homomorphism*, *Symplectic fibrations*, *Parallel transport*, *Compatible symplectic forms* (only `Thurston.lean`) |
 | 5 | *Projective hypersurfaces* | *Chern classes*, *First Chern number* (only Poincaré duality, #810); the bundle isomorphisms on $\mathbb CP^{n+1}$, the normal bundle and the Lefschetz theorems can start at once |
 
 The design issues of the parts marked as needing one can start at once, in
