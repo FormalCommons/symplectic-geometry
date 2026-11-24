@@ -40,11 +40,11 @@ derivatives are conformal
 
 The isothermal chart is built as follows. The extended chart of `M` at the point, followed by a
 real linear isomorphism `E ≃L[ℝ] ℂ`, is a smooth partial diffeomorphism `Φ : M → ℂ`, along which
-`J` pushes forward to a smooth field of complex structures on the target of `Φ`
+`J` pushes forward to a smooth field of operators squaring to `-1` on the target of `Φ`
 (`TauCeti.SmoothAlmostComplexStructure.contDiffOn_chartPushforward`). That planar field has a
 smooth isothermal chart `e` at the image of the point
-(`TauCeti.Beltrami.exists_smooth_isothermal_chart`, which composes with complex conjugation
-where the field is not tame for the standard form), and `ψ` is `e ∘ Φ`.
+(`TauCeti.Beltrami.exists_smooth_isothermal_chart_of_contDiffOn_of_sq_eq_neg_one`), and `ψ` is
+`e ∘ Φ`.
 
 This construction adapts the proof of
 `TauCeti.SmoothAlmostComplexStructure.exists_isIsothermalChart`, in Tau Ceti's
@@ -90,7 +90,6 @@ theorem exists_isothermal_partialDiffeomorph (J : SmoothAlmostComplexStructure I
     ∃ ψ : PartialDiffeomorph I 𝓘(ℝ, ℂ) M ℂ ∞, x ∈ ψ.source ∧
       ∀ y ∈ ψ.source, ∀ v : TangentSpace I y,
         mvfderiv I ψ y (J y v) = Complex.I * mvfderiv I ψ y v := by
-  classical
   have : FiniteDimensional ℝ E := Module.finite_of_finrank_eq_succ hE
   have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
   -- The extended chart at `x`, followed by a real linear isomorphism `E ≃L[ℝ] ℂ`.
@@ -100,23 +99,14 @@ theorem exists_isothermal_partialDiffeomorph (J : SmoothAlmostComplexStructure I
     ((chartAt H x).toPartialDiffeomorphOfMemMaximalAtlas
       (IsManifold.chart_mem_maximalAtlas x)).trans L.toDiffeomorph.toPartialDiffeomorph
   have hx : x ∈ Φ.source := by simp [Φ]
-  -- `J` pushed forward along `Φ`, made a field of complex structures on all of `ℂ`.
+  -- `J` pushed forward along `Φ`, a smooth field of operators squaring to `-1` on `Φ.target`.
   set A := J.chartPushforward Φ.toOpenPartialHomeomorph
   have hA (p : ℂ) (hp : p ∈ Φ.target) (w : ℂ) : A p (A p w) = -w :=
     J.chartPushforward_apply_chartPushforward_apply Φ hp w
-  let K : ℂ → AlmostComplexStructure ℂ := fun p ↦
-    if hp : p ∈ Φ.target then ⟨(A p).toLinearMap, LinearMap.ext (hA p hp)⟩
-    else AlmostComplexStructure.ofComplexModule ℂ
-  have hK (p : ℂ) (hp : p ∈ Φ.target) : K p = ⟨(A p).toLinearMap, LinearMap.ext (hA p hp)⟩ := by
-    simp [K, hp]
-  have hKs : ContDiffOn ℝ ∞ (fun p ↦ LinearMap.toContinuousLinearMap (K p).toLinearMap)
-      Φ.target :=
-    (J.contDiffOn_chartPushforward Φ.contMDiffOn Φ.symm.contMDiffOn).congr fun p hp ↦ by
-      rw [hK p hp]
-      exact ContinuousLinearMap.coe_injective (LinearMap.coe_toContinuousLinearMap _)
-  -- A smooth planar isothermal chart for `K` at `Φ x`.
+  -- A smooth planar isothermal chart for `A` at `Φ x`.
   obtain ⟨e, hxe, -, hes, hinv, hlin⟩ :=
-    Beltrami.exists_smooth_isothermal_chart Φ.open_target hKs (Φ.map_source hx)
+    Beltrami.exists_smooth_isothermal_chart_of_contDiffOn_of_sq_eq_neg_one Φ.open_target
+      (J.contDiffOn_chartPushforward Φ.contMDiffOn Φ.symm.contMDiffOn) hA (Φ.map_source hx)
   let D : PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ℂ ℂ ∞ :=
     PartialDiffeomorph.ofOpenPartialHomeomorph e hes (e.contDiffOn_symm_of_isInvertible_fderiv
       hes hinv)
@@ -127,10 +117,9 @@ theorem exists_isothermal_partialDiffeomorph (J : SmoothAlmostComplexStructure I
     simp [D]
   have hed : DifferentiableAt ℝ e (Φ y) :=
     (hes.contDiffAt (e.open_source.mem_nhds hy'.2)).differentiableAt hn
-  -- The derivative of `Φ` carries `J` to `K`.
-  have hJ : mfderiv I 𝓘(ℝ, ℂ) Φ y (J y v) = K (Φ y) (mfderiv I 𝓘(ℝ, ℂ) Φ y v) := by
-    rw [hK _ (Φ.map_source hy'.1)]
-    exact J.mfderiv_apply_eq_chartPushforward_apply Φ hy'.1 v
+  -- The derivative of `Φ` carries `J` to `A`.
+  have hJ : mfderiv I 𝓘(ℝ, ℂ) Φ y (J y v) = A (Φ y) (mfderiv I 𝓘(ℝ, ℂ) Φ y v) :=
+    J.mfderiv_apply_eq_chartPushforward_apply Φ hy'.1 v
   rw [hc, mvfderiv_comp_apply_of_differentiableAt hed (Φ.mdifferentiableAt hn hy'.1),
     mvfderiv_comp_apply_of_differentiableAt hed (Φ.mdifferentiableAt hn hy'.1),
     mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply, hJ]
