@@ -13,7 +13,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Cotangent.Basic
 A family `y ↦ c y` of model covectors, indexed by a manifold `X`, defines the family
 `y ↦ (x, c y)` of covectors at one fixed point `x` of a manifold `M`. This file shows that it is
 `C^n` as a map into the cotangent bundle `T*M` whenever `c` is
-(`TauCeti.CotangentBundle.contMDiff_mk`).
+(`TauCeti.CotangentBundle.contMDiff_mk_comp`).
 
 The proof follows that of Tau Ceti's `contMDiff_tangentBundle_mk_constBase`, for the tangent
 bundle: in the trivialization at `x`, a covector at `x` is its own fibre coordinate
@@ -37,7 +37,8 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
 
 /-- A `C^n` family `c` of model covectors gives a `C^n` map `y ↦ (q, c y)` into the fibre of the
 cotangent bundle over the fixed point `q`. -/
-theorem contMDiff_mk (q : M) {c : X → E →L[𝕜] 𝕜} (hc : ContMDiff IX 𝓘(𝕜, E →L[𝕜] 𝕜) n c) :
+theorem contMDiff_mk_comp (q : M) {c : X → E →L[𝕜] 𝕜}
+    (hc : ContMDiff IX 𝓘(𝕜, E →L[𝕜] 𝕜) n c) :
     ContMDiff IX (I.prod 𝓘(𝕜, E →L[𝕜] 𝕜)) n fun y ↦
       TotalSpace.mk' (E →L[𝕜] 𝕜) (E := fun x : M ↦ TangentSpace I x →L[𝕜] 𝕜) q (c y) := by
   intro y
