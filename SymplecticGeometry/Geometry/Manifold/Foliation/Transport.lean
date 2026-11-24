@@ -31,12 +31,30 @@ restricted to the preimage of the product of balls by
 `TauCeti.SmoothForm.exists_isCharacteristicSubmersion`. Two points of a plaque are joined by the
 preimage of the segment between their images, a curve tangent to `𝓕` (the segment argument of
 Tau Ceti's `TauCeti.Foliation.sameLeaf_ofSubmodule_iff`, read through the chart), so
-`TauCeti.Foliation.sameLeaf_of_contMDiffOn_of_tangent` puts them on one leaf.
+`TauCeti.Foliation.sameLeaf_of_contMDiffOn_of_tangent` puts them on one leaf
+(`TauCeti.Foliation.sameLeaf_symm_of_segment_subset`).
+
+The file then shows that leaves can be followed smoothly
+(`TauCeti.Foliation.SameLeaf.exists_transport`): if `x` and `y` lie on one leaf, a map `φ`,
+smooth near `x`, sends `x` to `y` and every nearby point `z` to a point of the leaf of `z`. In a
+flat chart, translating the image by a vector with second component `0` moves two points of the
+same plaque into each other. Along a curve tangent to `𝓕`, the second coordinate in a flat chart
+has derivative `0`, so by the mean value inequality it is constant on a piece of the curve near
+each parameter; composing such translations and using that `[0, 1]` is connected
+(`IsPreconnected.induction₂'`) handles one curve, and Tau Ceti's `TauCeti.Foliation.sameLeaf_le`
+handles chains of curves. It follows that the union of the leaves through an open set is open
+(`TauCeti.Foliation.isOpen_saturation`): a point of the union is carried back into the open set by
+such a map, and so are the points near it.
 
 ## Main results
 
 * `TauCeti.Foliation.exists_foliatedChart`: a foliated chart of `𝓕` around any point, onto the
   product of the unit balls of `F₁` and `F₂`.
+* `TauCeti.Foliation.sameLeaf_symm_of_segment_subset`: in a flat partial diffeomorphism, the
+  preimages of the ends of a segment in its target with constant second component lie on one
+  leaf.
+* `TauCeti.Foliation.SameLeaf.exists_transport`: smooth local transport along a leaf.
+* `TauCeti.Foliation.isOpen_saturation`: the saturation of an open set is open.
 
 ## References
 
@@ -275,7 +293,7 @@ theorem SameLeaf.exists_transport {x y : M} (h : 𝓕.SameLeaf x y) :
     ⟨fun a ↦ ⟨transportable_refl a, transportable_refl a⟩, fun h ↦ h.symm,
       fun h h' ↦ ⟨h.1.trans h'.1, h'.2.trans h.2⟩⟩
     (fun a b hab ↦ hab.transportable (F₁ := Fin k → ℝ) (F₂ := Fin (finrank ℝ E - k) → ℝ)
-      (by simp) (by simp; omega)) x y h).1
+      (Module.finrank_fin_fun ℝ) (by rw [Module.finrank_fin_fun]; omega)) x y h).1
 
 variable (𝓕) in
 /-- **Saturations of open sets are open.** The union of the leaves of a smooth foliation of a
