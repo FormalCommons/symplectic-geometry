@@ -173,8 +173,9 @@ This file makes it a form.
 - `leftMaurerCartanForm IG G : SmoothForm IG G (GroupLieAlgebra IG G) 1`,
   whose value at $g$ on $v$ is
   `mfderiv IG IG (fun h ↦ g⁻¹ * h) g v` (`leftMaurerCartanForm_apply`).
-  Its smoothness is read in charts from the smoothness of
-  $(g,v)\mapsto d(L_{g^{-1}})_g v$ on the tangent bundle.
+  Its smoothness comes from its components in a basis of $\mathfrak g$,
+  which are Tau Ceti's left-invariant one-forms
+  `Module.Dual.leftInvariantForm` of the coordinate functionals.
 - `leftMaurerCartanForm_apply_mulInvariantVectorField`: the value on the
   left-invariant field of $\xi$ is $\xi$.
 - `mpullback_mul_right_leftMaurerCartanForm`: the pull-back by right
