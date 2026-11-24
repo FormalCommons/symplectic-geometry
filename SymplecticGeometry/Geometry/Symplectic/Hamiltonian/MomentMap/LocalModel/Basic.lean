@@ -11,9 +11,10 @@ public import TauCeti.Geometry.Manifold.ContMDiff.FiniteDimension
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Cotangent.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Coadjoint.LieGroup
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Linear
 
 /-!
-# A smooth family of covectors on a Lie group, moved by left translation
+# Covectors moved by left translation, and the two-form of the local model
 
 Let `G` be a real Lie group with Lie algebra `𝔤`, `N` a manifold and `ν : N → 𝔤*` a family of
 covectors whose components `p ↦ ν p ξ` are smooth. This file studies the map
@@ -24,8 +25,9 @@ which moves the covector `ν p` at the identity to the point `g` by the cotangen
 multiplication (`SymplecticGeometry.leftInvariantCovectorMap`). For each `p`, the map
 `g ↦ Φ_ν (g, p)` is Tau Ceti's left-invariant covector field `(ν p).leftInvariantCovector`.
 
-It is the first piece of the Marle–Guillemin–Sternberg local model of a Hamiltonian action near
-an orbit, where `N = 𝔪* × V` and `ν (η, v) = τ + η + μ_V(v)`.
+The Marle–Guillemin–Sternberg local model of a Hamiltonian action near an orbit takes
+`N = 𝔪* × V` and `ν (η, v) = τ + η + μ_V(v)`; the last part of the file builds its two-form from
+linear data.
 
 ## Main results
 
@@ -47,6 +49,16 @@ an orbit, where `N = 𝔪* × V` and `ν (η, v) = τ + η + μ_V(v)`.
   `(g, p) ↦ (k * g, p)` (`SymplecticGeometry.mpullback_mul_left_leftInvariantCovectorMapForm`),
   and on the slice `G × {p}` it is the left-invariant Kirillov form of `ν p`
   (`SymplecticGeometry.mpullback_prodMk_leftInvariantCovectorMapForm`).
+* `SymplecticGeometry.localModelCovector`: the covectors `ν (η, v) = τ + ι𝔪 η + ι𝔥 (μ_V v)` on
+  `A × V`, given linear maps `ι𝔪 : A → 𝔤*` and `ι𝔥 : 𝔥* → 𝔤*` and the moment map
+  `μ_V = σ.linearMomentMapComp ρ` of a linear map `ρ : 𝔥 → sp(V, σ)`, whose components are smooth
+  (`SymplecticGeometry.contMDiff_localModelCovector_apply`).
+* `SymplecticGeometry.localModelForm`: the form `-d⟨ν, θ⟩ + pr_V^* σ` on `G × (A × V)` of
+  these covectors. It is closed (`SymplecticGeometry.isClosed_localModelForm`), invariant under
+  `(g, η, v) ↦ (k * g, η, v)` (`SymplecticGeometry.mpullback_mul_left_localModelForm`), and on
+  the slice `G × {p}` it is the left-invariant Kirillov form of `ν p`
+  (`SymplecticGeometry.mpullback_prodMk_localModelForm`). The factor `A × V` carries the model
+  `𝓘(ℝ, A × V)`.
 
 The smoothness adapts the proof of Tau Ceti's `Module.Dual.contMDiff_leftInvariantCovector`, and
 the invariance that of `Module.Dual.mpullback_mul_left_leftInvariantForm`, through the
@@ -224,3 +236,112 @@ theorem mpullback_prodMk_leftInvariantCovectorMapForm
     SmoothForm.mpullback_prodMk_left_mpullback_snd, add_zero]
 
 end SymplecticGeometry
+
+/-! ### The local model from linear data -/
+
+section LinearData
+
+variable {𝔥 : Type*} [AddCommGroup 𝔥] [Module ℝ 𝔥]
+  {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V]
+  (σ : SymplecticForm V) (ρ : 𝔥 →ₗ[ℝ] skewAdjointLieSubalgebra σ.toBilinForm)
+  {A : Type*} [NormedAddCommGroup A] [NormedSpace ℝ A]
+
+namespace SymplecticGeometry
+
+section Covector
+
+variable {𝔤 : Type*} [AddCommGroup 𝔤] [Module ℝ 𝔤] (τ : Module.Dual ℝ 𝔤)
+  (ι𝔪 : A →ₗ[ℝ] Module.Dual ℝ 𝔤) (ι𝔥 : Module.Dual ℝ 𝔥 →ₗ[ℝ] Module.Dual ℝ 𝔤)
+
+/-- The family of covectors `ν : A × V → 𝔤*` of the local model,
+`ν (η, v) = τ + ι𝔪 η + ι𝔥 (μ_V v)`, with `μ_V = σ.linearMomentMapComp ρ`. In the local model of a
+Hamiltonian action near an orbit, `A` is `𝔪*`, and `ι𝔪 : 𝔪* → 𝔤*` and `ι𝔥 : 𝔥* → 𝔤*` are the
+extensions by zero given by a splitting `𝔤 = 𝔥 ⊕ 𝔪 ⊕ 𝔮`. -/
+def localModelCovector (p : A × V) : Module.Dual ℝ 𝔤 :=
+  τ + ι𝔪 p.1 + ι𝔥 (σ.linearMomentMapComp ρ p.2)
+
+theorem localModelCovector_def (p : A × V) :
+    localModelCovector σ ρ τ ι𝔪 ι𝔥 p = τ + ι𝔪 p.1 + ι𝔥 (σ.linearMomentMapComp ρ p.2) :=
+  (rfl)
+
+@[simp]
+theorem localModelCovector_apply (η : A) (v : V) (ξ : 𝔤) :
+    localModelCovector σ ρ τ ι𝔪 ι𝔥 (η, v) ξ =
+      τ ξ + ι𝔪 η ξ + ι𝔥 (σ.linearMomentMapComp ρ v) ξ :=
+  (rfl)
+
+variable [FiniteDimensional ℝ A] [FiniteDimensional ℝ V]
+
+/-- Each component `p ↦ ν p ξ` of the covectors `ν = localModelCovector σ ρ τ ι𝔪 ι𝔥` of the local
+model is smooth on `A × V`: it is affine in `η` and quadratic in `v`. -/
+theorem contDiff_localModelCovector_apply (ξ : 𝔤) :
+    ContDiff ℝ ∞ fun p : A × V ↦ localModelCovector σ ρ τ ι𝔪 ι𝔥 p ξ := by
+  have hA : ContDiff ℝ ∞ fun η : A ↦ ι𝔪 η ξ :=
+    (LinearMap.toContinuousLinearMap (Module.Dual.eval ℝ 𝔤 ξ ∘ₗ ι𝔪)).contDiff
+  have hV := σ.contDiff_linearMomentMapComp ρ (Module.Dual.eval ℝ 𝔤 ξ ∘ₗ ι𝔥)
+  simp only [LinearMap.comp_apply, Module.Dual.eval_apply] at hV
+  simp only [localModelCovector_def, LinearMap.add_apply]
+  exact (contDiff_const.add (hA.comp contDiff_fst)).add (hV.comp contDiff_snd)
+
+/-- The components of `ν = localModelCovector σ ρ τ ι𝔪 ι𝔥` are smooth on the manifold `A × V`
+with its model `𝓘(ℝ, A × V)`. -/
+theorem contMDiff_localModelCovector_apply (ξ : 𝔤) :
+    ContMDiff 𝓘(ℝ, A × V) 𝓘(ℝ) ∞ fun p : A × V ↦ localModelCovector σ ρ τ ι𝔪 ι𝔥 p ξ :=
+  (contDiff_localModelCovector_apply σ ρ τ ι𝔪 ι𝔥 ξ).contMDiff
+
+end Covector
+
+section LieGroup
+
+attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
+
+variable [FiniteDimensional ℝ A] [FiniteDimensional ℝ V]
+  {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
+  (τ : Module.Dual ℝ (GroupLieAlgebra I G)) (ι𝔪 : A →ₗ[ℝ] Module.Dual ℝ (GroupLieAlgebra I G))
+  (ι𝔥 : Module.Dual ℝ 𝔥 →ₗ[ℝ] Module.Dual ℝ (GroupLieAlgebra I G))
+
+/-- The two-form of the local model on `G × (A × V)`: the form
+`Φ_ν^* ω + pr_V^* σ = -d⟨ν, θ⟩ + pr_V^* σ` of `SymplecticGeometry.leftInvariantCovectorMapForm`,
+for the covectors `ν = localModelCovector σ ρ τ ι𝔪 ι𝔥` and the constant two-form `σ` on `V`
+pulled back along the projection `pr_V : A × V → V`. -/
+def localModelForm : SmoothForm (I.prod 𝓘(ℝ, A × V)) (G × (A × V)) ℝ 2 :=
+  leftInvariantCovectorMapForm (contMDiff_localModelCovector_apply σ ρ τ ι𝔪 ι𝔥)
+    (SmoothForm.mpullback Prod.snd contDiff_snd.contMDiff σ.constSmooth)
+
+theorem localModelForm_def :
+    localModelForm σ ρ τ ι𝔪 ι𝔥 =
+      leftInvariantCovectorMapForm (contMDiff_localModelCovector_apply σ ρ τ ι𝔪 ι𝔥)
+        (SmoothForm.mpullback Prod.snd contDiff_snd.contMDiff σ.constSmooth) :=
+  (rfl)
+
+/-- The two-form of the local model on `G × (A × V)` is closed. -/
+theorem isClosed_localModelForm : (localModelForm (G := G) σ ρ τ ι𝔪 ι𝔥).IsClosed := by
+  rw [localModelForm_def]
+  exact isClosed_leftInvariantCovectorMapForm _
+    ((SymplecticForm.isClosed_constSmooth σ).mpullback _ _)
+
+/-- The two-form of the local model on `G × (A × V)` is invariant under left translation
+`(g, η, v) ↦ (k * g, η, v)` of the factor `G`. -/
+@[simp]
+theorem mpullback_mul_left_localModelForm (k : G) :
+    SmoothForm.mpullback (Prod.map (k * ·) id) (contMDiff_mul_left.prodMap contMDiff_id)
+        (localModelForm σ ρ τ ι𝔪 ι𝔥) =
+      localModelForm σ ρ τ ι𝔪 ι𝔥 := by
+  rw [localModelForm_def, mpullback_mul_left_leftInvariantCovectorMapForm]
+
+/-- On the slice `G × {p}`, the two-form of the local model is the left-invariant Kirillov form
+of the covector `localModelCovector σ ρ τ ι𝔪 ι𝔥 p`. -/
+@[simp]
+theorem mpullback_prodMk_localModelForm (p : A × V) :
+    SmoothForm.mpullback (fun g : G ↦ (g, p)) (contMDiff_id.prodMk contMDiff_const)
+        (localModelForm σ ρ τ ι𝔪 ι𝔥) =
+      (localModelCovector σ ρ τ ι𝔪 ι𝔥 p).leftInvariantKirillovForm := by
+  rw [localModelForm_def, mpullback_prodMk_leftInvariantCovectorMapForm]
+
+end LieGroup
+
+end SymplecticGeometry
+
+end LinearData
