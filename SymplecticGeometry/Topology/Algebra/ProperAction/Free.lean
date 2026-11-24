@@ -129,6 +129,14 @@ theorem orbitSectionCoord_apply_self {q : orbitRel.Quotient H X}
     (hq : Quotient.mk (orbitRel H X) (s q) = q) : orbitSectionCoord s (s q) = 1 :=
   (orbitSectionCoord_eq_iff (by rw [hq]; exact hq)).2 (by rw [hq, one_smul])
 
+/-- For a free action and a section `s` of the orbit projection, `orbitSectionCoord s` sends
+`g • s q` to `g`. -/
+@[simp]
+theorem orbitSectionCoord_smul_self {q : orbitRel.Quotient H X}
+    (hq : Quotient.mk (orbitRel H X) (s q) = q) (g : H) :
+    orbitSectionCoord s (g • s q) = g := by
+  rw [orbitSectionCoord_smul (by rw [hq]; exact hq), orbitSectionCoord_apply_self hq, mul_one]
+
 variable [TopologicalSpace H] [TopologicalSpace X] [ProperSMul H X]
 
 /-- For a free proper action and a section `s` of the orbit projection over `U`, continuous on
