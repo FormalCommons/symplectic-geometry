@@ -126,9 +126,9 @@ coordinate is `1`. -/
 theorem insertNth_one_affineChart_eq_normalizedRep {n : ℕ} (i : Fin (n + 1))
     {x : ℙ K (Fin (n + 1) → K)} (hx : x ∈ affineOpen i) :
     Fin.insertNth (α := fun _ ↦ K) i 1 (affineChart i x) = normalizedRep (LinearMap.proj i) x := by
-  ext l
-  rw [← rep_div_rep_eq_insertNth_affineChart l hx, normalizedRep_def, LinearMap.proj_apply,
-    Pi.smul_apply, smul_eq_mul, div_eq_inv_mul]
+  conv_lhs => rw [← mk_rep x, affineChart_mk]
+  rw [Fin.insertNth_one_div_eq_inv_smul i _ ((mem_affineOpen_iff i x).1 hx), normalizedRep_def,
+    LinearMap.proj_apply]
 
 end Projectivization
 
