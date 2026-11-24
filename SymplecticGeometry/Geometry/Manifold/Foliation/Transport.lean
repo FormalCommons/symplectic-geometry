@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.Foliation.Leaf
 import SymplecticGeometry.Geometry.Manifold.Distribution.FlatChart
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Analysis.Calculus.MeanValue
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
 /-!
@@ -258,9 +259,8 @@ private theorem eventually_transportable_curve (h₁ : finrank ℝ F₁ = k)
     · simp [Function.comp_def]
     · simp [hv]
   have hconst (s : ℝ) (hs : s ∈ S) : (Φ (γ s)).2 = (Φ (γ t)).2 := by
-    have := (convex_ball t δ).inter (convex_Icc 0 1) |>.norm_image_sub_le_of_norm_hasDerivWithin_le
-      hderiv (fun _ _ ↦ (norm_zero).le) ⟨Metric.mem_ball_self hδ, ht⟩ hs
-    simpa [sub_eq_zero] using this
+    exact ((convex_ball t δ).inter (convex_Icc 0 1)).isPreconnected.eq_of_hasDerivWithinAt_zero
+      hderiv hs ⟨Metric.mem_ball_self hδ, ht⟩
   filter_upwards [inter_mem_nhdsWithin _ (Metric.ball_mem_nhds t hδ)] with s hs
   have hs' : s ∈ S := ⟨hs.2, hs.1⟩
   have hst := hconst s hs'
