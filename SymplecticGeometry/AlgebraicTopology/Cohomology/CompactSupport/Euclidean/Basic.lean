@@ -9,6 +9,7 @@ public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Euclidean.Basi
 public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Extension
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Vanishing
 public import SymplecticGeometry.Analysis.Convex.Opens
+import TauCeti.Topology.Sets.Compacts
 
 /-!
 # Vanishing of cohomology with compact supports on star-convex open sets
@@ -91,7 +92,7 @@ theorem isZero_compactSupportCohomology_of_starConvex {j : U → F} (hj : IsOpen
   have hS : (S : Set F) ⊆ range j := Compacts.starHull_subset hU hy (by
     rintro _ ⟨u, -, rfl⟩
     exact ⟨u, rfl⟩)
-  let K : Compacts (of U) := ⟨j ⁻¹' S, hj.isInducing.isCompact_preimage' S.isCompact hS⟩
+  let K : Compacts (of U) := hj.isInducing.preimageCompacts S.isCompact hS
   have hKS : ((K.map f f.hom.continuous : Compacts (of F)) : Set F) = S :=
     image_preimage_eq_of_subset hS
   have hK₀K : K₀ ≤ K := fun u hu ↦ Compacts.le_starHull (E := F) ℝ y _ ⟨u, hu, rfl⟩
