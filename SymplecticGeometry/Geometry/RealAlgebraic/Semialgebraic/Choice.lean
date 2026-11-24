@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.OneVariable
+public import SymplecticGeometry.Order.Interval.Set.IsoIoo
 
 /-!
 # Semialgebraic choice
@@ -28,8 +29,9 @@ On the way, the file proves tools for showing that a set described by a formula 
 * `TauCeti.isSemialgebraicOn_of_setOf_iff`: a function is semialgebraic on `D` if a
   semialgebraic relation cuts out its graph over `D`.
 * `TauCeti.isSemialgebraic_setOf_mul_one_add_abs_eq` and
-  `TauCeti.isSemialgebraicOn_div_one_sub_abs`: the homeomorphism `t ↦ t / (1 + |t|)` of `ℝ` onto
-  `(-1, 1)` has a semialgebraic graph, and its inverse `u ↦ u / (1 - |u|)` is semialgebraic.
+  `TauCeti.isSemialgebraicOn_div_one_sub_abs`: over an ordered field `R`, the
+  bijection `t ↦ t / (1 + |t|)` of `R` onto `(-1, 1)` has a semialgebraic graph, and its inverse
+  `u ↦ u / (1 - |u|)` is semialgebraic. The graph is described by `mul_one_add_abs_eq_iff`.
 
 ## Proof
 
@@ -55,27 +57,6 @@ the chosen point back.
 public section
 
 open Set Topology MvPolynomial
-
-/-- `u * (1 + |t|) = t` says that `u` lies in `(-1, 1)` and `t = u / (1 - |u|)`: this is the
-graph of the order isomorphism `t ↦ t / (1 + |t|)` of a linear ordered field onto `(-1, 1)`. -/
-theorem mul_one_add_abs_eq_iff {k : Type*} [Field k] [LinearOrder k] [IsStrictOrderedRing k]
-    {u t : k} : u * (1 + |t|) = t ↔ |u| < 1 ∧ u / (1 - |u|) = t := by
-  refine ⟨fun h ↦ ?_, fun ⟨hu, ht⟩ ↦ ?_⟩
-  · have hpos : 0 < 1 + |t| := by positivity
-    have habs : |u| * (1 + |t|) = |t| := by
-      rw [← abs_of_pos hpos, ← abs_mul, h]
-    have hu : |u| < 1 := by nlinarith [abs_nonneg t]
-    refine ⟨hu, div_eq_of_eq_mul (by linarith) ?_⟩
-    -- `t * |u| = u * |t|`, since both equal `|u| * u * (1 + |t|)`.
-    have : t * |u| = u * |t| := by
-      calc t * |u| = u * (|u| * (1 + |t|)) := by nth_rewrite 1 [← h]; ring
-        _ = u * |t| := by rw [habs]
-    linarith
-  · have hpos : 0 < 1 - |u| := sub_pos.2 hu
-    subst ht
-    rw [abs_div, abs_of_pos hpos]
-    field_simp
-    ring
 
 namespace TauCeti
 
@@ -294,7 +275,6 @@ private theorem exists_choicePred {S : Set (σ ⊕ Unit → ℝ)} (hS : IsSemial
   by_contra! h
   exact (le_csSup hBbdd (show c ∈ B from h)).not_gt hc
 
-
 /-- Semialgebraic choice of one coordinate, for a family whose fibers lie in `(-1, 1)`. -/
 private theorem exists_isSemialgebraicOn_of_abs_lt_one {S : Set (σ ⊕ Unit → ℝ)}
     (hS : IsSemialgebraic S) (hS₁ : ∀ z ∈ S, |z (Sum.inr ())| < 1) :
@@ -312,10 +292,12 @@ private theorem exists_isSemialgebraicOn_of_abs_lt_one {S : Set (σ ⊕ Unit →
   refine ⟨fun h ↦ ?_, fun ⟨hx, hy⟩ ↦ hy ▸ hf hx⟩
   have hx : x ∈ {x | ∃ y, Sum.elim x y ∈ S} := ⟨fun _ ↦ y (), h.mem⟩
   exact ⟨hx, funext fun _ ↦ (hf hx).unique h⟩
+
 /-- The graph `u * (1 + |t|) = t` of `t ↦ t / (1 + |t|)`, in two coordinates `u = z i` and
 `t = z j`, is semialgebraic. -/
-theorem isSemialgebraic_setOf_mul_one_add_abs_eq (i j : σ) :
-    IsSemialgebraic {z : σ → ℝ | z i * (1 + |z j|) = z j} := by
+theorem isSemialgebraic_setOf_mul_one_add_abs_eq [Field R] [LinearOrder R]
+    [IsStrictOrderedRing R] (i j : σ) :
+    IsSemialgebraic {z : σ → R | z i * (1 + |z j|) = z j} := by
   refine isSemialgebraic_setOf_of_iff (((isSemialgebraic_eval_nonneg (X j)).inter
     (isSemialgebraic_eval_eq (X i * (1 + X j)) (X j))).union ((isSemialgebraic_eval_neg (X j)).inter
     (isSemialgebraic_eval_eq (X i * (1 - X j)) (X j)))) fun z ↦ ?_
@@ -323,10 +305,11 @@ theorem isSemialgebraic_setOf_mul_one_add_abs_eq (i j : σ) :
   · simp [abs_of_nonneg h, h, h.not_gt]
   · simp [abs_of_neg h, h, h.not_ge, sub_eq_add_neg]
 
-/-- The map `u ↦ u / (1 - |u|)`, on the points `u : Unit → ℝ` with `|u ()| < 1`, is
+/-- The map `u ↦ u / (1 - |u|)`, on the points `u : Unit → R` with `|u ()| < 1`, is
 semialgebraic. -/
-theorem isSemialgebraicOn_div_one_sub_abs :
-    IsSemialgebraicOn (fun (u : Unit → ℝ) (_ : Unit) ↦ u () / (1 - |u ()|)) {u | |u ()| < 1} :=
+theorem isSemialgebraicOn_div_one_sub_abs [Field R] [LinearOrder R] [IsStrictOrderedRing R]
+    [HasSemialgebraicProjections R] :
+    IsSemialgebraicOn (fun (u : Unit → R) (_ : Unit) ↦ u () / (1 - |u ()|)) {u | |u ()| < 1} :=
   isSemialgebraicOn_of_setOf_iff (G := fun u t ↦ u () * (1 + |t ()|) = t ())
     (isSemialgebraic_setOf_mul_one_add_abs_eq (Sum.inl ()) (Sum.inr ())) fun u t ↦ by
       simp [mul_one_add_abs_eq_iff, funext_iff, Unique.forall_iff]
