@@ -2962,18 +2962,20 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
 
 ### 44. Kähler stability (needs `design/kahler-stability.md`)
 
-- **Files:** in `Geometry/Symplectic/Kahler/`: `Complexification.lean`
+- **Files:** `Geometry/Lie/Complexification.lean`
   (the complexification $G^{\mathbb C}$ of a compact connected Lie group,
-  its holomorphic action extending that of $G$, and the decomposition
-  $G^{\mathbb C}=G\exp(i\mathfrak g)$ with the geodesics of
-  $G^{\mathbb C}/G$), `KempfNess.lean` (the Kempf–Ness function $\Phi_p$,
+  given as data with the decomposition
+  $G^{\mathbb C}=\exp(i\mathfrak g)G$), and in
+  `Geometry/Symplectic/Hamiltonian/MomentMap/`: `KempfNess/` (the
+  holomorphic action extending that of $G$, the Kempf–Ness function $\Phi_p$,
   its existence and uniqueness, descent to $G^{\mathbb C}/G$, convexity
-  along geodesics, its critical points, and the three stability conditions
-  with their characterizations), `GradientFlow.lean` (the gradient flow of
-  $\tfrac12\|\mu\|^2$ and its convergence, through a Łojasiewicz inequality)
+  along geodesics, its critical points, the gradient flow of
+  $\tfrac12\|\mu\|^2$ and its convergence, through a Łojasiewicz inequality,
+  and the three stability conditions with their characterizations)
   and `HilbertMumford.lean` (the weights $w_\mu(p,\xi)$ for $\xi\in\Lambda$,
   the limits $p^+_\xi$, the moment-weight inequality and the numerical
-  criteria).
+  criteria); the Łojasiewicz inequality's files are those of
+  `design/kahler-stability.md`.
 - **Builds on:** Tau Ceti (`TauCeti.SmoothTwoForm.IsKahler`, invariant inner
   products `TauCeti.Lie.exists_isSymm_bilinForm_Ad_invariant`, limits of
   gradient trajectories `IsIntegralCurveOn.exists_tendsto_atTop_of_lojasiewicz`).
