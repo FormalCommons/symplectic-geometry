@@ -211,7 +211,7 @@ Further choices of this design:
 | `Analysis/SpecialFunctions/ContinuousFunctionalCalculus/ExpLog.lean` | smoothness of `t ↦ a ^ t` for strictly positive `a` (named like Tau Ceti's file) |
 | `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean` | embeddings near a compact set, uniformly in a compact parameter |
 | `Geometry/Manifold/SmoothIsotopy/Extension.lean` | time extension of an isotopy past its ends, and isotopy extension at every time (named like Tau Ceti's file) |
-| `Geometry/Symplectic/IsotopyExtension/Velocity.lean` | `SmoothIsotopy.IsSymplectic`, velocity forms, their closedness, the link with `HasHamiltonian` |
+| `Geometry/Symplectic/IsotopyExtension/Velocity.lean` | velocity forms (`SmoothIsotopy.IsSymplectic` is in `Geometry/Manifold/SmoothIsotopy/IsSymplectic.lean`), their closedness, the link with `HasHamiltonian` |
 | `Geometry/Symplectic/IsotopyExtension/Flow.lean` | extension of a family of symplectic embeddings by an ambient symplectic or Hamiltonian flow |
 | `Geometry/Symplectic/Moser/Family.lean` | Moser's argument near a compact set along a family, and with a parameter |
 | `Geometry/Manifold/TubularNeighborhood/OneFormCorrection.lean` | the correction lemma: a function whose slices have differential `γ_t` along a compact submanifold where `f^* γ_t` vanishes |
@@ -382,7 +382,9 @@ credits.
 ### `Geometry/Symplectic/IsotopyExtension/Velocity.lean`
 
 For `σ : TauCeti.SmoothTwoForm J P`, `ω : TauCeti.SmoothTwoForm I M` and
-`F : TauCeti.SmoothIsotopy f₀ f₁` from `P` to `M`:
+`F : TauCeti.SmoothIsotopy f₀ f₁` from `P` to `M`. The predicate
+`IsSymplectic` and its API that needs only pullbacks are in
+`Geometry/Manifold/SmoothIsotopy/IsSymplectic.lean`, which this file imports:
 
 ```lean
 /-- Every slice of `F` pulls `ω` back to `σ`. -/
@@ -397,7 +399,7 @@ def TauCeti.SmoothIsotopy.velocityForm (ω : SmoothTwoForm I M) (F : SmoothIsoto
 ```
 
 API:
-- `isSymplectic_def`;
+- `isSymplectic_def` (in `SmoothIsotopy/IsSymplectic.lean`);
 - `velocityForm_def`, and `velocityForm_apply` (its value on `(0, v)` at
   `(t, x)` is $\omega_{F(t,x)}(\partial_tF(t,x),dF_t\,v)$);
 - `mpullback_prodMk_velocityForm` (the slice at `t`, written `α_t` below);
@@ -408,7 +410,7 @@ API:
   of a map pulling `ω` back to `σ`), and `TauCeti.Diffeotopy.isSymplectic_smoothIsotopy`
   (the restriction `Diffeotopy.smoothIsotopy` of a diffeotopy with slices in
   `diffeomorphStabilizer ω` is symplectic). These are the examples of the
-  predicate;
+  predicate, in `SmoothIsotopy/IsSymplectic.lean`;
 - `TauCeti.Diffeotopy.hasHamiltonian_iff_velocityForm`: `Φ.HasHamiltonian ω F`
   if and only if `F` is smooth and the slices of the velocity form of
   `Φ.smoothIsotopy` (the restriction of `Φ` to the identity of `M`) are the

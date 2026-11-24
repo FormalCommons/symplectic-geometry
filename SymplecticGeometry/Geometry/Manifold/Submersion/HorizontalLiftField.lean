@@ -59,6 +59,8 @@ results about general connections apply to it.
 * `TauCeti.IsEhresmannConnection.contMDiff_horizontalLiftField` and
   `TauCeti.IsEhresmannConnection.contMDiff_horizontalLiftField_timeDependent`: the horizontal
   lift of a smooth vector field, or of a time-dependent one, jointly in time and point, is smooth.
+* `TauCeti.IsEhresmannConnection.isDistributionFrameOn_horizontalLiftField`: the lifts of a local
+  frame of the tangent bundle of the base form a local frame of the connection.
 * `TauCeti.IsEhresmannConnection.mdifferentiableAt_horizontalLiftField`: for a `C^n` connection
   with `1 ≤ n`, the horizontal lift of a `C^n` field is differentiable.
 * `TauCeti.IsRiemannianSubmersion.horizontalLift_eq_isEhresmannConnection_horizontalLift`: the
@@ -301,6 +303,35 @@ theorem contMDiff_horizontalLiftField {V : Π b : B, TangentSpace J b}
     (hf : ContMDiff I J (n + 1) f) (hV : ContMDiff J J.tangent n (T% V)) :
     ContMDiff I I.tangent n (T% (hD.horizontalLiftField V)) :=
   fun x ↦ hD.contMDiffAt_horizontalLiftField (hf x) (hV (f x))
+
+/-- **Lifts of a frame of the base form a frame of the connection.** For a `C^n` Ehresmann
+connection on a `C^(n+1)` map `f`, the horizontal lifts of a `C^n` local frame `v` of the tangent
+bundle of `B` on an open set `U` form a `C^n` local frame of `D` on `f ⁻¹' U`. -/
+theorem isDistributionFrameOn_horizontalLiftField {ι : Type*} [Finite ι]
+    {v : ι → Π b : B, TangentSpace J b} {U : Set B} (hU : IsOpen U)
+    (hv : IsDistributionFrameOn J n (fun _ ↦ ⊤) v U) (hf : ContMDiff I J (n + 1) f) :
+    IsDistributionFrameOn I n D (fun i ↦ hD.horizontalLiftField (v i)) (f ⁻¹' U) where
+  contMDiffOn i y hy := (hD.contMDiffAt_horizontalLiftField (hf y)
+    ((hv.contMDiffOn i).contMDiffAt (hU.mem_nhds hy))).contMDiffWithinAt
+  linearIndependent {y} hy := LinearIndependent.of_comp
+    (mfderiv I J f y : TangentSpace I y →ₗ[𝕜] TangentSpace J (f y)) <| by
+    simpa only [comp_def, ContinuousLinearMap.coe_coe, mfderiv_horizontalLiftField] using
+      hv.linearIndependent hy
+  span_eq {y} hy := by
+    refine le_antisymm (Submodule.span_le.2 <| Set.range_subset_iff.2 fun i ↦
+      hD.horizontalLiftField_mem (v i) y) fun w hw ↦ ?_
+    have := Fintype.ofFinite ι
+    -- The projection of `w` is a combination of the frame of the base; `w` is the same
+    -- combination of the lifts.
+    obtain ⟨a, ha⟩ := (Submodule.mem_span_range_iff_exists_fun 𝕜).1
+      ((hv.span_eq hy).ge (Submodule.mem_top (x := mfderiv I J f y w)))
+    have hw' : w = ∑ i, a i • hD.horizontalLiftField (v i) y := by
+      have h := congrArg Subtype.val (hD.horizontalLift_mfderiv y ⟨w, hw⟩)
+      simp only at h
+      rw [← h, ← ha, map_sum]
+      simp
+    rw [hw']
+    exact Submodule.sum_mem _ fun i _ ↦ Submodule.smul_mem _ _ (Submodule.subset_span ⟨i, rfl⟩)
 
 /-- The horizontal lift of a time-dependent vector field `V` on `B`, jointly `C^n` in time and
 point, for a `C^n` Ehresmann connection on a `C^(n+1)` map `f`, is jointly `C^n` in time and
