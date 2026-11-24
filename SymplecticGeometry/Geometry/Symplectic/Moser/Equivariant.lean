@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Moser.Field
 public import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 public import TauCeti.Geometry.Manifold.Algebra.SMul
+public import SymplecticGeometry.Geometry.Symplectic.Moser.Relative
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
 
 /-!
@@ -28,6 +29,16 @@ step of the equivariant Moser argument in which invariant forms, an invariant pr
 invariant cutoff give an equivariant isotopy ([GuilleminSternberg1990], Theorem 22.1;
 [McDuffSalamon2017], §3.2).
 
+The same applies to Moser's argument along the local flow, which need not be complete
+(`TauCeti.SmoothTwoForm.exists_partialDiffeomorph_mpullback_eq_of_mextDeriv_eq_sub`). Its partial
+diffeomorphism is the time-one map of the Moser field of the path `σ₀ + c(t) (σ₁ - σ₀)` and the
+one-forms `c'(t) β` with no cutoff
+(`TauCeti.SmoothTwoForm.exists_partialDiffeomorph_eq_timeDependentFlowOf_moserField`). When the
+action preserves `σ₀`, `σ₁` and `β`, it preserves these slices, so the time-one map commutes with
+the action. Its source, the set of points whose trajectory reaches time one, is invariant, since
+a diffeomorphism relating two fields maps the domain of one flow onto that of the other
+(`Diffeomorph.mem_timeDependentFlowDomain_apply_iff`).
+
 ## Main results
 
 * `SymplecticGeometry.mfderiv_moserField`: a diffeomorphism preserving the slices of `σ` and `β`
@@ -36,6 +47,9 @@ invariant cutoff give an equivariant isotopy ([GuilleminSternberg1990], Theorem 
   field then commutes with the diffeomorphism.
 * `SymplecticGeometry.timeDependentFlowOf_moserField_smul`: for a group acting by such
   diffeomorphisms, the time-dependent flow of the Moser field is equivariant.
+* `TauCeti.SmoothTwoForm.exists_partialDiffeomorph_mpullback_eq_of_mextDeriv_eq_sub_of_smul`:
+  Moser's argument along the local flow for invariant forms and an invariant primitive gives an
+  equivariant partial diffeomorphism with invariant source.
 
 ## References
 
@@ -142,5 +156,68 @@ theorem timeDependentFlowOf_moserField_smul {G : Type*} [Group G] [MulAction G M
     (by simpa only [Diffeomorph.coe_constSmul] using hβ g)
     (by simpa only [Diffeomorph.constSmul_apply] using hρ g) hX s t) x
   simpa only [Function.comp_apply, Diffeomorph.constSmul_apply] using h
-
 end SymplecticGeometry
+
+namespace TauCeti.SmoothTwoForm
+
+open Set
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
+  [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M] [T2Space M]
+
+/-- **Moser's argument along the local flow, equivariantly.** Let a group `G` act on `M` by smooth
+maps, let `σ₀` be closed, `β` a primitive of `σ₁ - σ₀`, and let every form
+`σ₀ + s (σ₁ - σ₀)`, `s ∈ [0, 1]`, be nondegenerate. If `σ₀`, `σ₁` and `β` are invariant under
+every `g : G`, then the partial diffeomorphism `Φ` of
+`TauCeti.SmoothTwoForm.exists_partialDiffeomorph_mpullback_eq_of_mextDeriv_eq_sub` can be chosen
+`G`-equivariant: besides fixing the zeros of `β`, with identity differential where `β` also has
+zero first jet, and pulling `σ₁` back to `σ₀` on its source, it has a `G`-invariant source and
+satisfies `Φ (g • x) = g • Φ x` for every `g` and `x`. -/
+theorem exists_partialDiffeomorph_mpullback_eq_of_mextDeriv_eq_sub_of_smul
+    {G : Type*} [Group G] [MulAction G M] [ContMDiffConstSMul I ∞ G M]
+    {σ₀ σ₁ : SmoothTwoForm I M} (h₀ : σ₀.IsClosed) {β : SmoothForm I M ℝ 1}
+    (hβ : mextDeriv β.val = (σ₁ - σ₀).val)
+    (hnd : ∀ x, ∀ s ∈ Icc (0 : ℝ) 1, ((σ₀ + s • (σ₁ - σ₀)).bilinFormAt x).Nondegenerate)
+    (hσ₀ : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x) (contMDiff_const_smul g) σ₀ = σ₀)
+    (hσ₁ : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x) (contMDiff_const_smul g) σ₁ = σ₁)
+    (hβG : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x) (contMDiff_const_smul g) β = β) :
+    ∃ Φ : PartialDiffeomorph I I M M ∞,
+      (∀ x, β.val x = 0 → x ∈ Φ.source ∧ Φ x = x ∧
+        (HasFDerivAt (RoughForm.inChartAt β.val x) (0 : E →L[ℝ] E [⋀^Fin 1]→L[ℝ] ℝ)
+          (extChartAt I x x) → mfderiv I I Φ x = ContinuousLinearMap.id ℝ (TangentSpace I x))) ∧
+      (∀ x ∈ Φ.source, mpullback I I Φ σ₁.val x = σ₀.val x) ∧
+      (∀ (g : G) x, g • x ∈ Φ.source ↔ x ∈ Φ.source) ∧
+      ∀ (g : G) x, Φ (g • x) = g • Φ x := by
+  obtain ⟨α, hα, hX, Φ, hsrc, hΦ, hfix, hpull⟩ :=
+    exists_partialDiffeomorph_eq_timeDependentFlowOf_moserField h₀ hβ hnd
+  set σ := SmoothForm.lineMapFamily σ₀ σ₁ Real.smoothTransition.contDiff
+  -- The slices `σ₀ + c(t) (σ₁ - σ₀)` and `c'(t) β` are invariant, hence so is the Moser field.
+  have hσG (g : G) (t : ℝ) : SmoothForm.mpullback (fun x : M ↦ g • x) (contMDiff_const_smul g)
+      (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ) =
+        SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) σ := by
+    rw [SmoothForm.mpullback_prodMk_lineMapFamily, map_add, map_smul, map_sub, hσ₀, hσ₁]
+  have hαG (g : G) (t : ℝ) : SmoothForm.mpullback (fun x : M ↦ g • x) (contMDiff_const_smul g)
+      (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α) =
+        SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α := by
+    rw [hα, map_smul, hβG]
+  have hρG (g : G) (t : ℝ) (x : M) : (1 : ℝ × M → ℝ) (t, g • x) = (1 : ℝ × M → ℝ) (t, x) := by
+    rw [Pi.one_apply, Pi.one_apply]
+  have hrel (g : G) (t : ℝ) (x : M) :
+      mfderiv I I (Diffeomorph.constSmul I ∞ g) x (SymplecticGeometry.moserField σ α 1 t x) =
+        SymplecticGeometry.moserField σ α 1 t (Diffeomorph.constSmul I ∞ g x) :=
+    SymplecticGeometry.mfderiv_moserField (Diffeomorph.constSmul I ∞ g)
+      (by simpa only [Diffeomorph.coe_constSmul] using hσG g t)
+      (by simpa only [Diffeomorph.coe_constSmul] using hαG g t)
+      (fun _ ↦ by rw [Pi.one_apply, Pi.one_apply]) x
+  refine ⟨Φ, hfix, hpull, fun g x ↦ ?_, fun g x ↦ ?_⟩
+  · have h := (Diffeomorph.constSmul I ∞ g).mem_timeDependentFlowDomain_apply_iff (by simp)
+      (hrel g) (s := 0) (t := 1) (x := x)
+    rwa [Diffeomorph.constSmul_apply, ← hsrc, ← hsrc] at h
+  · rw [hΦ, hΦ]
+    exact SymplecticGeometry.timeDependentFlowOf_moserField_smul hσG hαG hρG (hX.of_le (by simp))
+      g 0 1 x
+
+end TauCeti.SmoothTwoForm
+
+end
