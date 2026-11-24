@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 public import SymplecticGeometry.Analysis.Sobolev.Wkp.SmoothMultiplicationBound
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.Basic
 public import TauCeti.Analysis.Sobolev.Wkp.SmoothCoefficients
 public import TauCeti.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ContMDiffSection
@@ -81,7 +82,8 @@ section, and it lowers the order.
 * `TauCeti.SobolevSection.chartValueL_contMDiffHomMulL_ae_coord`: if `w` consists of the
   components of a section `s`, then `Φ w` consists of those of `x ↦ Φ x (s x)`.
 * `TauCeti.SobolevSection.contMDiffHomMulL_zero`, `TauCeti.SobolevSection.contMDiffHomMulL_add`,
-  `TauCeti.SobolevSection.contMDiffHomMulL_smul`, `TauCeti.SobolevSection.contMDiffHomMulL_congr`,
+  `TauCeti.SobolevSection.contMDiffHomMulL_sub`, `TauCeti.SobolevSection.contMDiffHomMulL_smul`,
+  `TauCeti.SobolevSection.contMDiffHomMulL_congr`,
   `TauCeti.SobolevSection.lowerOrderL_contMDiffHomMulL`: linearity in `Φ` and compatibility with
   the inclusion `W^{k+1,p} → W^{k,p}`.
 * `TauCeti.SobolevSection.contMDiffHomMulL_ofContMDiffSection`: applied to the Sobolev section of a
@@ -331,14 +333,11 @@ theorem norm_contDiffOnCLMApplyL_le {c : ℝ} (hc0 : 0 ≤ c)
   refine ContinuousLinearMap.opNorm_le_bound _ hc0 fun w ↦ ?_
   rw [← Submodule.norm_coe, ← Submodule.norm_coe]
   refine (pi_norm_le_iff_of_nonneg (by positivity)).2 fun i ↦ ?_
-  rw [show (C.contDiffOnCLMApplyL D μ p k hσ hU hK hKU hg hsec w : D.SobolevData μ p k) i =
-      Wkp.contDiffOnCLMApplyL (hU i) (hK i) (hKU i) k (finBasis ℝ F) (finBasis ℝ F') (hg i)
-        (fun l ↦ Wkp.restrictL (hσ i) k ((w : C.SobolevData μ p k) (σ i) l)) from
-      funext (C.contDiffOnCLMApplyL_apply D μ p k hσ hU hK hKU hg hsec w i)]
+  rw [funext (C.contDiffOnCLMApplyL_apply D μ p k hσ hU hK hKU hg hsec w i)]
   refine (hc i _).trans (mul_le_mul_of_nonneg_left ?_ hc0)
   refine (pi_norm_le_iff_of_nonneg (norm_nonneg _)).2 fun l ↦
     (Wkp.norm_restrictL_le (hσ i) k _).trans ?_
-  exact (norm_le_pi_norm _ l).trans (norm_le_pi_norm (w : C.SobolevData μ p k) (σ i))
+  exact C.norm_component_le w (σ i) l
 
 end HomMul
 
@@ -515,6 +514,16 @@ theorem contMDiffHomMulL_add
     _ _ _ _ _ _ _ _ fun i _ hy ↦ (A.hom (𝕜 := ℝ) h).coord_add i Φ Ψ
       ((image_hom (h := h) i).ge ((image_ofBaseSet (A := A) (h := h) i).le hy))
 
+/-- The map takes differences of hom sections to differences. -/
+theorem contMDiffHomMulL_sub
+    (hΦΨ : ContMDiff 𝓘(ℝ, E) (𝓘(ℝ, E).prod 𝓘(ℝ, F₁ →L[ℝ] F₂)) ∞
+      fun x ↦ TotalSpace.mk' (F₁ →L[ℝ] F₂) x ((Φ - Ψ) x)) :
+    contMDiffHomMulL A h μ p k hΦΨ =
+      contMDiffHomMulL A h μ p k hΦ - contMDiffHomMulL A h μ p k hΨ := by
+  rw [contMDiffHomMulL_congr hΦ (hΦΨ.add_section hΨ) (sub_add_cancel Φ Ψ).symm,
+    contMDiffHomMulL_add hΦΨ hΨ (hΦΨ.add_section hΨ)]
+  exact (add_sub_cancel_right (contMDiffHomMulL A h μ p k hΦΨ) (contMDiffHomMulL A h μ p k hΨ)).symm
+
 /-- The map is homogeneous in the hom section. -/
 theorem contMDiffHomMulL_smul (c : ℝ)
     (hcΦ : ContMDiff 𝓘(ℝ, E) (𝓘(ℝ, E).prod 𝓘(ℝ, F₁ →L[ℝ] F₂)) ∞
@@ -547,16 +556,6 @@ theorem contMDiffHomMulL_ofContMDiffSection (s : Cₛ^k⟮𝓘(ℝ, E); F₁, V�
       rwa [← image_ofBaseSet (A := A) (h := h) i, ← (A.ofBaseSet h).sectionChartData_image i]
         at this)
     fun i ↦ chartValueL_ofContMDiffSection_ae (A.ofBaseSet h) μ p k _ i
-
-omit [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
-  [IsManifold 𝓘(ℝ, E) ∞ M] [NormedSpace ℝ F₁] [FiniteDimensional ℝ F₁]
-  [∀ x, AddCommGroup (V₁ x)] [∀ x, Module ℝ (V₁ x)] [VectorBundle ℝ F₁ V₁]
-  [ContMDiffVectorBundle ∞ F₁ V₁ 𝓘(ℝ, E)] in
-/-- The image of chart `i` lies in the chart target, and the inverse chart takes it into the
-base set of bundle chart `i`. -/
-theorem _root_.TauCeti.FiniteBundleAtlas.image_subset_target_inter_preimage_symm (i : Fin A.n) :
-    (A.image i : Set E) ⊆ (A.chart i).target ∩ (A.chart i).symm ⁻¹' (A.triv i).baseSet :=
-  (A.image_subset_chart_image_closure_dom i).trans (A.chart_image_closure_dom_subset i)
 
 variable (A h k) in
 /-- **A `C^k` bound for a smooth hom section acting on `W^{k,p}`.** There is a constant `c`,
@@ -601,10 +600,8 @@ theorem exists_norm_contMDiffHomMulL_sub_le :
   obtain ⟨c, hc0, hc⟩ := exists_norm_contMDiffHomMulL_le A h k
   refine ⟨c, hc0, fun {μ} _ {p} _ {Φ Ψ} hΦ hΨ {M} hM0 hM ↦ ?_⟩
   have hΦΨ := hΦ.sub_section hΨ
-  rw [contMDiffHomMulL_congr hΦ (hΦΨ.add_section hΨ) (sub_add_cancel Φ Ψ).symm,
-    contMDiffHomMulL_add hΦΨ hΨ (hΦΨ.add_section hΨ)]
-  refine (congrArg norm (add_sub_cancel_right (contMDiffHomMulL A h μ p k hΦΨ)
-    (contMDiffHomMulL A h μ p k hΨ))).trans_le (hc hΦΨ hM0 fun i j hj y hy ↦ ?_)
+  rw [← contMDiffHomMulL_sub hΦ hΨ hΦΨ]
+  refine hc hΦΨ hM0 fun i j hj y hy ↦ ?_
   have hU := ((A.hom (𝕜 := ℝ) h).chart i).isOpen_inter_preimage_symm
     ((A.hom (𝕜 := ℝ) h).triv i).open_baseSet
   have hyU :=
@@ -618,8 +615,7 @@ theorem exists_norm_contMDiffHomMulL_sub_le :
   have hsub : (A.hom (𝕜 := ℝ) h).coord i (Φ - Ψ) =ᶠ[nhds y]
       (A.hom (𝕜 := ℝ) h).coord i Φ - (A.hom (𝕜 := ℝ) h).coord i Ψ := by
     filter_upwards [(A.image i).isOpen.mem_nhds hy] with z hz
-    rw [Pi.sub_apply, eq_sub_iff_add_eq,
-      ← (A.hom (𝕜 := ℝ) h).coord_add i (Φ - Ψ) Ψ ((image_hom (h := h) i).ge hz), sub_add_cancel]
+    exact (A.hom (𝕜 := ℝ) h).coord_sub i Φ Ψ ((image_hom (h := h) i).ge hz)
   rw [(hsub.iteratedFDeriv ℝ j).eq_of_nhds, iteratedFDeriv_sub_apply (hcd hΦ) (hcd hΨ)]
   exact hM i j hj y hy
 
@@ -654,7 +650,7 @@ theorem tendsto_contMDiffHomMulL {ι : Type*} {l : Filter ι} {Φ : ι → ∀ x
   · rw [← dist_eq_norm, dist_comm]
     exact (ht i j (Finset.mem_range.2 (Nat.lt_succ_of_le hj)) y hy).le
   · rw [mul_div_assoc', div_lt_iff₀ (by positivity)]
-    nlinarith
+    linarith
 
 end SobolevSection
 
