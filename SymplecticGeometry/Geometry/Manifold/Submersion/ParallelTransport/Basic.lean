@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Submersion.HorizontalLiftField
 public import TauCeti.Geometry.Manifold.Distribution.Horizontal
 public import TauCeti.Geometry.Manifold.MFDeriv.Curve
+import Mathlib.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 import TauCeti.Geometry.Manifold.IsManifold.Basic

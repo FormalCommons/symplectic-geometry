@@ -214,12 +214,12 @@ take an embedding of any regularity `n` with `hn : n ≠ 0`.
   `f.normalClass x hn v` it gives `f.normalClass x hn (J (f x) v)`, from
   `quotient_mk`; and `@[simp] isComplexLinearMap_normalClass`, from
   `isComplexLinearMap_mkQ`.
-- `normalComplexStructure f hdim J hJ`, of type
+- `contMDiffNormalComplexStructure f hdim J hJ`, of type
   `ContMDiffComplexStructure I' ⊤ P (fun x ↦ f.NormalSpace x hn)` under the
   `letI`s of Tau Ceti's `normalSpaceFiberBundle` and `normalSpaceVectorBundle`,
   the two that the type needs; its value at `x` is
-  `normalAlmostComplexStructureAt` (`normalComplexStructure_apply`,
-  `@[simp] almostComplexStructureAt_normalComplexStructure`). Smoothness as in
+  `normalAlmostComplexStructureAt` (`contMDiffNormalComplexStructure_apply`,
+  `@[simp] almostComplexStructureAt_contMDiffNormalComplexStructure`). Smoothness as in
   *Decisions*.
 
 ### `Geometry/Manifold/SmoothEmbedding/NormalSpace/Exact.lean`
@@ -275,7 +275,7 @@ with `hω : ω.Tames Jf`, and `hω : ω.Compatible Jf` where invariance is used.
   form $\omega_\nu(a,b)=\omega(r\,a, r\,b)$ with $r$ the complement
   representative for $W^\omega$, with `normalForm_normalClass` (its value on
   classes of vectors of $W^\omega$) and `compatible_normalForm`: it is
-  compatible with `normalComplexStructure`.
+  compatible with `contMDiffNormalComplexStructure`.
 - `normalSplitting f hJ ω hω x : (f *ᵖ TangentSpace I) x ≃L[ℝ]
   (TangentSpace I' ×ᵇ NormalSpace) x`, the inverse of `tangentNormalEquiv` for the
   representatives in $W^\omega$, with `normalSplitting_symm_apply`,
@@ -297,7 +297,7 @@ Namespace `TauCeti.SmoothEmbedding`, for a surface `M` in `X` with
 - `selfIntersectionNumber f hE J hJ o : ℤ`, the integer under
   `o.toHomologicalOrientation.evalFundamentalClass _ _ (ContinuousMap.id M)`
   of `TauCeti.complexEulerClass ℂ ν_J _`, with `ν_J` the complex line bundle
-  `(f.normalComplexStructure _ J hJ).toContinuousComplexStructure.Fiber` of
+  `(f.contMDiffNormalComplexStructure _ J hJ).toContinuousComplexStructure.Fiber` of
   model `ℂ`; with `selfIntersectionNumber_def` by `(rfl)`. Its docstring
   says that this is $\langle e(\nu_J), [M, o]\rangle$, the Euler number of the
   normal bundle oriented by its complex structure, and that it is the

@@ -61,7 +61,7 @@ theorem contMDiff_chainsDesc {E H N : Type*} [NormedAddCommGroup E] [NormedSpace
       add_mem' {a b} ha hb := by simpa only [Set.mem_ofPred_eq, map_add, Pi.add_def] using ha.add hb
       zero_mem' := by simpa only [Set.mem_ofPred_eq, map_zero] using contMDiff_const
       neg_mem' {a} ha := by simpa only [Set.mem_ofPred_eq, map_neg, Pi.neg_def] using ha.neg }
-  have hS : QuotientAddGroup.mk' S = 0 := singularChains_addMonoidHom_ext fun s ↦ by
+  have hS : QuotientAddGroup.mk' S = 0 := singularChains_addMonoidHom_ext (.refl ℤ) fun s ↦ by
     simpa [S, QuotientAddGroup.eq_zero_iff, chainsDesc_simplexChain_one] using hf s
   exact (QuotientAddGroup.eq_zero_iff z).mp (DFunLike.congr_fun hS z)
 

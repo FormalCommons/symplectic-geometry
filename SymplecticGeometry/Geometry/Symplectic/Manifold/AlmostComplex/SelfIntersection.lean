@@ -19,9 +19,9 @@ public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smoot
 Let `X` be a manifold of real dimension four with an almost complex structure `J`, and let
 `f : M → X` embed a compact surface `M`, oriented by `o`, so that its tangent planes are
 `J`-invariant. Then `J` descends to a complex structure on the normal bundle `ν` of `f`
-(`TauCeti.SmoothEmbedding.normalComplexStructure`), which makes `ν` a complex line bundle `ν_J`
-with model fibre `ℂ`. The number `TauCeti.SmoothEmbedding.selfIntersectionNumber` is the
-evaluation on the fundamental class of `(M, o)` of Tau Ceti's Euler class
+(`TauCeti.SmoothEmbedding.contMDiffNormalComplexStructure`), which makes `ν` a complex line
+bundle `ν_J` with model fibre `ℂ`. The number `TauCeti.SmoothEmbedding.selfIntersectionNumber`
+is the evaluation on the fundamental class of `(M, o)` of Tau Ceti's Euler class
 `TauCeti.complexEulerClass ℂ ν_J`: the Euler number of `ν` oriented by its complex structure.
 
 When `o` is the orientation of `M` given by `J`, this is the **self-intersection number** `M · M`.
@@ -96,8 +96,9 @@ variable [T2Space M] [CompactSpace M]
 /-- The **self-intersection number** of a compact surface `M` embedded by `f` in a four-dimensional
 manifold `X` with an almost complex structure `J` that preserves its tangent planes. It is the
 evaluation `⟨e(ν_J), [M, o]⟩` of the Euler class of the complex line bundle
-`ν_J = (f.normalComplexStructure _ J hJ).toContinuousComplexStructure.Fiber`, the normal bundle
-oriented by its complex structure, on the fundamental class of `M` for the orientation `o`.
+`ν_J = (f.contMDiffNormalComplexStructure _ J hJ).toContinuousComplexStructure.Fiber`, the
+normal bundle oriented by its complex structure, on the fundamental class of `M` for the
+orientation `o`.
 
 This is the self-intersection number `M · M` when `o` is the orientation of `M` given by `J`,
 for which the frames `(u, J u)` are positive. For the opposite orientation it is `-(M · M)`
@@ -112,7 +113,7 @@ def selfIntersectionNumber (f : SmoothEmbedding (𝓡 2) I ∞ M X) (hE : finran
   ((o.toHomologicalOrientation (finrank_euclideanSpace_fin (𝕜 := ℝ) (n := 2)) :
       HomologicalOrientation M (EuclideanSpace ℝ (Fin 2)) 2).evalFundamentalClass
     finrank_euclideanSpace_fin (ModuleCat.of ℤ (ULift ℤ)) (ContinuousMap.id M)
-    (complexEulerClass (r := 0) ℂ (f.normalComplexStructure
+    (complexEulerClass (r := 0) ℂ (f.contMDiffNormalComplexStructure
       (finrank_real_complex_eq_sub_of_finrank_eq_four hE) J hJ).toContinuousComplexStructure.Fiber
       (finrank_self ℂ))).down
 
@@ -126,7 +127,7 @@ theorem selfIntersectionNumber_def (f : SmoothEmbedding (𝓡 2) I ∞ M X) (hE 
       ((o.toHomologicalOrientation (finrank_euclideanSpace_fin (𝕜 := ℝ) (n := 2)) :
           HomologicalOrientation M (EuclideanSpace ℝ (Fin 2)) 2).evalFundamentalClass
         finrank_euclideanSpace_fin (ModuleCat.of ℤ (ULift ℤ)) (ContinuousMap.id M)
-        (complexEulerClass (r := 0) ℂ (f.normalComplexStructure
+        (complexEulerClass (r := 0) ℂ (f.contMDiffNormalComplexStructure
           (finrank_real_complex_eq_sub_of_finrank_eq_four hE) J
             hJ).toContinuousComplexStructure.Fiber (finrank_self ℂ))).down :=
   (rfl)
@@ -142,7 +143,7 @@ theorem selfIntersectionNumber_eq_chernNumber (f : SmoothEmbedding (𝓡 2) I �
     f.selfIntersectionNumber hE J hJ o =
       chernNumber (o.toHomologicalOrientation finrank_euclideanSpace_fin)
         finrank_euclideanSpace_fin ℂ
-        (f.normalComplexStructure (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
+        (f.contMDiffNormalComplexStructure (finrank_real_complex_eq_sub_of_finrank_eq_four hE)
           J hJ).toContinuousComplexStructure.Fiber := by
   rw [selfIntersectionNumber_def, chernNumber_def, firstChernClass_eq_complexEulerClass]
 
