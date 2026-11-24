@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
@@ -44,6 +45,12 @@ horizontal spaces.
   sum to one is a connection form.
 * `SymplecticGeometry.IsConnectionForm.apply_mfderiv_op_smul`,
   `SymplecticGeometry.IsTensorialForm.apply_mfderiv_op_smul`: the equivariance at a point.
+* `SymplecticGeometry.IsConnectionForm.add_isTensorialForm`,
+  `SymplecticGeometry.IsConnectionForm.isTensorialForm_sub`,
+  `SymplecticGeometry.IsConnectionForm.existsUnique_eq_add`: the connection forms are an affine
+  space over the tensorial one-forms.
+* `SymplecticGeometry.isTensorialForm_iff_isBasic`: for a commutative structure group, the
+  tensorial forms are the forms that are basic for the projection (`TauCeti.RoughForm.IsBasic`).
 * `SymplecticGeometry.IsConnectionForm.isCompl_horizontal`: the horizontal space of a connection
   form is a complement of the vertical space.
 * `SymplecticGeometry.IsConnectionForm.mfderiv_op_smul_mem_horizontal`: the action preserves the
@@ -257,7 +264,69 @@ theorem mfderiv_op_smul_mem_horizontal (hA : IsConnectionForm A) (g : G)
       horizontal A (op g • x) := by
   rw [mem_horizontal_iff, hA.apply_mfderiv_op_smul, mem_horizontal_iff.mp hv, map_zero]
 
+/-! ### The affine structure of connection forms -/
+
+/-- Adding a tensorial one-form to a connection form gives a connection form. -/
+theorem add_isTensorialForm (hA : IsConnectionForm A)
+    {a : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    (ha : IsTensorialForm a) : IsConnectionForm (A + a) where
+  mpullback_op_smul g := by
+    rw [map_add, map_add, hA.mpullback_op_smul, ha.mpullback_op_smul]
+  apply_rightFundamentalVectorField x ξ := by
+    rw [Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
+      hA.apply_rightFundamentalVectorField,
+      ha.apply_eq_zero_of_vertical x _ 0
+        (PrincipalBundle.mfderiv_proj_rightFundamentalVectorField x ξ), add_zero]
+
+/-- The difference of two connection forms is a tensorial one-form. -/
+theorem isTensorialForm_sub (hA : IsConnectionForm A)
+    {A' : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    (hA' : IsConnectionForm A') : IsTensorialForm (A - A') where
+  mpullback_op_smul g := by
+    rw [map_sub, map_sub, hA.mpullback_op_smul, hA'.mpullback_op_smul]
+  apply_eq_zero_of_vertical x v j hv := by
+    -- A vertical vector is the value of the fundamental vector field of some `ξ`.
+    obtain rfl : j = 0 := Subsingleton.elim _ _
+    set ξ := (PrincipalBundle.verticalLinearEquiv IB IG (P := P) x).symm ⟨v 0, hv⟩
+    have hv : v = ![rightFundamentalVectorField (IB.prod IG) ξ x] := by
+      funext i
+      rw [Subsingleton.elim i 0, Matrix.cons_val_zero,
+        PrincipalBundle.rightFundamentalVectorField_verticalLinearEquiv_symm]
+    rw [hv, Submodule.coe_sub, Pi.sub_apply, ContinuousAlternatingMap.sub_apply,
+      hA.apply_rightFundamentalVectorField, hA'.apply_rightFundamentalVectorField, sub_self]
+
+/-- **The connection forms are an affine space over the tensorial one-forms.** Any connection
+form `A'` is the sum of a given connection form `A` and a unique tensorial one-form. -/
+theorem existsUnique_eq_add (hA : IsConnectionForm A)
+    {A' : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    (hA' : IsConnectionForm A') : ∃! a, IsTensorialForm a ∧ A' = A + a :=
+  ⟨A' - A, ⟨hA'.isTensorialForm_sub hA, (add_sub_cancel A A').symm⟩,
+    fun a ⟨_, h⟩ ↦ by rw [h, add_sub_cancel_left]⟩
+
 end IsConnectionForm
+
+/-! ### Tensorial forms for a commutative structure group -/
+
+/-- **Tensorial forms for a commutative structure group are the basic forms.** When `G` is
+commutative, its adjoint action is trivial, and a smooth `𝔤`-valued form on the total space is
+tensorial exactly when it is basic for the projection. -/
+theorem isTensorialForm_iff_isBasic [IsMulCommutative G] {k : ℕ}
+    {a : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) k} :
+    IsTensorialForm a ↔ RoughForm.IsBasic (V := GroupLieAlgebra IG G) IB
+      (fun y : ManifoldTotalSpace G P ↦ ((ManifoldTotalSpace.homeomorph G P).symm y).proj)
+      a.val := by
+  -- The adjoint action of a commutative group is trivial.
+  have hAd (g : G) : SmoothForm.mapCoeff (adjointContinuousLinearMap g⁻¹) a = a := by
+    rw [adjointContinuousLinearMap_eq_id, SmoothForm.mapCoeff_id, LinearMap.id_apply]
+  refine ⟨fun h ↦ PrincipalBundle.isBasic_of_mpullback_op_smul
+      (fun g ↦ (h.mpullback_op_smul g).trans (hAd g)) h.apply_eq_zero_of_vertical,
+    fun h ↦ ⟨fun g ↦ ?_, fun x v j hv ↦ h.apply_eq_zero_of_mfderiv_eq_zero hv⟩⟩
+  rw [hAd]
+  apply Subtype.ext
+  rw [SmoothForm.coe_mpullback]
+  exact h.mpullback_eq ((ManifoldTotalSpace.contMDiff_proj ∞ G P IB IG).mdifferentiable (by simp))
+    ((contMDiff_const_smul (I := IB.prod IG) (n := ∞) (op g)).mdifferentiable (by simp))
+    (PrincipalBundle.proj_comp_op_smul g)
 
 end SymplecticGeometry
 
