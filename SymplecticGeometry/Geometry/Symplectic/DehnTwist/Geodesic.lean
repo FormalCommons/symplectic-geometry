@@ -253,6 +253,13 @@ theorem cotangentNorm_def (z : CotangentBundle (𝓡 n) (𝕊 n)) :
     cotangentNorm z = ‖(cotangentCoord z).2‖ :=
   (rfl)
 
+/-- The norm of `cotangentMk q p` is that of the projection `p - ⟪q, p⟫ q` of `p` onto the
+tangent hyperplane at `q`. -/
+@[simp]
+theorem cotangentNorm_cotangentMk (q : 𝕊 n) (p : 𝔼 n) :
+    cotangentNorm (cotangentMk q p) = ‖p - ⟪(q : 𝔼 n), p⟫_ℝ • (q : 𝔼 n)‖ := by
+  rw [cotangentNorm_def, cotangentCoord_cotangentMk]
+
 theorem cotangentNorm_nonneg (z : CotangentBundle (𝓡 n) (𝕊 n)) : 0 ≤ cotangentNorm z :=
   norm_nonneg _
 
