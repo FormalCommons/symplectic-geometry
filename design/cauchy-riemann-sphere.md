@@ -153,9 +153,13 @@ These settle the points of *The design file decides* of part 45.
    $J\in\mathcal J_\sigma$, for any nondegenerate smooth two-form `σ` that
    tames $i$; part 46 takes its $\mathcal J$ of this form, as the
    conventions *Fibrations, connections and diffeomorphism groups* of
-   `DESIGN.md` say. Two facts follow from taming alone. At every point $J$
+   `DESIGN.md` say. Three facts follow from taming alone. At every point $J$
    is not $-i$: if $J_x v=-i v$ for some $v\ne0$, then $\sigma(v,J_xv)$ and
-   $\sigma(v,iv)$ have opposite signs. And $\mathcal J_\sigma$ is
+   $\sigma(v,iv)$ have opposite signs. At every point the complex
+   orientations of $J$ and of $i$ on the tangent plane agree, since both are
+   the orientation of $\sigma$
+   (`TauCeti.SmoothTwoForm.IsNondegenerate.map_fiberEquiv_complex_eq_orientationAt`);
+   the first fact does not give this one. And $\mathcal J_\sigma$ is
    contractible, hence preconnected, for every frame topology
    (`contractibleSpace_tames`). Continuity statements are for
    `SmoothAlmostComplexStructure.frameTopology e U hU` with arbitrary
@@ -210,9 +214,18 @@ These settle the points of *The design file decides* of part 45.
    `twistCore 1`, so none is defined twice.
 5. **The a priori estimate.** In a chart of `A` the reading of
    $\mathcal D_J u$ is $c_2(\bar\partial u+\mu\,\partial u)+Zu$, where $c_2$,
-   $\mu$ and $Z$ are smooth and $c_2\ne0$; and $|\mu|<1$ at every point,
-   which is Decision 1 again: $|\mu(y)|=1$ exactly where $J$ meets $-i$. On
-   the compact closure of a chart image $\sup|\mu|<1$, and for compactly
+   $\mu$ and $Z$ are smooth and $c_2\ne0$; and $|\mu|<1$ at every point.
+   Write $\nu$ for the Beltrami coefficient of $J$ in the chart, so that the
+   $(1,0)$-forms of $J$ are spanned by $dz+\nu\,d\bar z$. Then
+   $\mu=-\nu$, and $|\nu|<1$ exactly where $J$ induces the orientation of
+   the chart, $|\nu|>1$ where it induces the other one; $J=-i$ is the limit
+   $\nu\to\infty$, so $|\mu|=1$ never occurs. The charts of $A$ are
+   `chartAt` of `OnePoint ℂ`, which are holomorphic and so carry the complex
+   orientation of $i$, and $J$ induces that orientation by the second fact
+   of Decision 1. So the bound comes from taming through the orientation,
+   not from $J\ne-i$: the structure $-J'$, for a $J'$ that differs from $i$
+   at every point and induces the orientation of $i$, is nowhere $-i$, yet
+   $|\mu|>1$ everywhere. On the compact closure of a chart image $\sup|\mu|<1$, and for compactly
    supported $v$ the plane gives
    $\|\partial v\|_{L^2}\le\|\bar\partial v\|_{L^2}$ (the $L^2$ Beurling
    transform has norm one), hence
@@ -410,6 +423,10 @@ Tau Ceti. About 200 lines.
   $(0,1)$-forms for `J` with values in a complex line; and
   `ne_neg_of_tames` (Decision 1). The names are settled in the issue after
   a search of `CauchyRiemann/Basic.lean`.
+- `norm_beltrami_lt_one_of_tames`: if `σ` tames `J` and $i$, then at every
+  point of a chart of `A` the coefficient $\mu$ of Decision 5 has
+  $|\mu|<1$, from the agreement of the complex orientations of `J` and $i$
+  (Decision 1); `ne_neg_of_tames` does not give it. Issue 7 uses it.
 
 About 350 lines.
 
@@ -428,7 +445,7 @@ Issue 6:
 Issue 7:
 
 - `exists_norm_le_twistOneDelBarSobolev`: the estimate of Decision 5, with
-  the lower order norm.
+  the lower order norm, from `norm_beltrami_lt_one_of_tames`.
 - `isClosed_range_twistOneDelBarSobolev` and
   `finiteDimensional_ker_twistOneDelBarSobolev`, by Rellich and
   `isClosed_range_of_compact_estimate`.
