@@ -12,10 +12,11 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.UnitInterval
 /-!
 # Diffeotopies from families of diffeomorphisms
 
-A family `ψ : unitInterval → M ≃ₘ M` of diffeomorphisms of a finite-dimensional boundaryless
-manifold that is jointly smooth in `(t, x)` and starts at the identity is a diffeotopy. The point is
-that the inverses `(t, y) ↦ ψ_t⁻¹ y` are jointly smooth too, also at the ends of the interval,
-where the inverse function theorem on the manifold with boundary `unitInterval × M` does not apply.
+A family `ψ : unitInterval → M ≃ₘ M` of diffeomorphisms of a boundaryless manifold, modelled on
+a complete space, that is jointly smooth in `(t, x)` and starts at the identity is a diffeotopy.
+The point is that the inverses `(t, y) ↦ ψ_t⁻¹ y` are jointly smooth too, also at the ends of the
+interval, where the inverse function theorem on the manifold with boundary `unitInterval × M`
+does not apply.
 
 ## Main definitions
 
@@ -51,12 +52,12 @@ open scoped Manifold ContDiff Topology
 
 section SymmEval
 
-variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
   [IsManifold I ∞ M] [BoundarylessManifold I M]
 
-/-- On a finite-dimensional boundaryless manifold, the inverses of a jointly smooth family of
-diffeomorphisms over `[0, 1]` are jointly smooth: `(t, y) ↦ ψ_t⁻¹ y` is smooth on
+/-- On a boundaryless manifold modelled on a complete space, the inverses of a jointly smooth
+family of diffeomorphisms over `[0, 1]` are jointly smooth: `(t, y) ↦ ψ_t⁻¹ y` is smooth on
 `unitInterval × M`. -/
 theorem Diffeomorph.contMDiff_symm_eval_unitInterval {ψ : unitInterval → M ≃ₘ⟮I, I⟯ M}
     (hψ : ContMDiff ((𝓡∂ 1).prod I) I ∞ (fun p : unitInterval × M ↦ ψ p.1 p.2)) :
@@ -80,7 +81,7 @@ end SymmEval
 
 namespace TauCeti.Diffeotopy
 
-variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
   [IsManifold I ∞ M] [BoundarylessManifold I M]
   (ψ : unitInterval → M ≃ₘ⟮I, I⟯ M)
