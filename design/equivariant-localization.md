@@ -323,10 +323,10 @@ name. Its symplectic case is
 
 ### `HalfSqRadius.lean`
 
-`TauCeti.setIntegral_iteratedDeriv_neg_sum`: for `F` smooth with compact
+`MeasureTheory.setIntegral_iteratedDeriv_neg_sum`: for `F` of class `C^(card ι)` with compact
 support, the integral over the closed orthant of $\mathbb R^\iota$ of
 `iteratedDeriv (card ι) F (-∑ i, t i)` is `F 0`; and
-`TauCeti.integral_iteratedDeriv_neg_sum_mul_sq`: for `a i > 0`,
+`MeasureTheory.integral_iteratedDeriv_neg_sum_mul_sq`: for `a i > 0`,
 `∫ z, iteratedDeriv (card ι) F (-∑ i, a i * (z.1 i ^ 2 + z.2 i ^ 2)) = F 0 * π ^ card ι / ∏ i, a i`
 on `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι`, by
 `map_volume_euclideanSpace_half_sq_add_sq`.
@@ -355,7 +355,7 @@ existence theorem, not a definition.
 |---|---|---|
 | localization lemma | `SymplecticGeometry.integralTopForm_formCalculus_mul` | `Equivariant/Localization.lean` |
 | top forms and their measure | `TauCeti.integralTopForm_smul_eq_integral_measure` | `Integration/Measure.lean` |
-| the model integral | `TauCeti.integral_iteratedDeriv_neg_sum_mul_sq` | `HalfSqRadius.lean` |
+| the model integral | `MeasureTheory.integral_iteratedDeriv_neg_sum_mul_sq` | `HalfSqRadius.lean` |
 | the formula for real $\hbar>0$ | `SymplecticGeometry.integral_exp_neg_mul_eq_finsum_of_pos` | `Localization/Real.lean` |
 | the milestone | `SymplecticGeometry.integral_cexp_neg_mul_eq_finsum_fixedPoints` | `Localization/DuistermaatHeckman.lean` |
 | its value at $\hbar=0$ | `SymplecticGeometry.tendsto_finsum_fixedPoints_liouvilleMeasure` | `Localization/DuistermaatHeckman.lean` |
