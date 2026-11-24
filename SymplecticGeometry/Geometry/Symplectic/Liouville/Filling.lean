@@ -255,7 +255,7 @@ private theorem IsStrongFilling.mem_inter_interior_of_eq_collar (h : IsStrongFil
     Φ (t, x) ∈ U ∩ (𝓡∂ (n + 1)).interior W := by
   refine ⟨?_, (hΦY x).mem_interior_of_isOutwardPointing
     (fun y hy ↦ h.isOutwardPointingField.isOutwardPointing hy)
-    (mem_of_superset (Ioo_mem_nhds ht.1 ht.2) Ioo_subset_Ioc_self)⟩
+    (nhdsWithin_le_nhds (mem_of_superset (Ioo_mem_nhds ht.1 ht.2) Ioo_subset_Ioc_self))⟩
   rw [← SmoothCollar.apply_normalIioRay_eq hε hc (Ioo_subset_Ioc_self ht)]
   exact hcU (mem_range_self _)
 
