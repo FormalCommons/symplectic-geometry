@@ -75,12 +75,12 @@ coefficients. On a preconnected manifold it depends neither on `x`
 (`IsMomentMap.cohomologyClass_eq`) nor on `μ` (`IsMomentMap.cohomologyClass_eq_of_isMomentMap`). -/
 noncomputable def cohomologyClass (h : σ.IsMomentMap a μ) (hσ : σ.IsClosed) (x : M) :
     cohomology ℝ 𝔤 (TrivialLieModule ℝ 𝔤 ℝ) 2 :=
-  twoCocycleClass ℝ 𝔤 _ (σ.momentCocycle a μ x) (h.momentCocycle_mem_twoCocycle hσ x)
+  twoCocycleClass ℝ 𝔤 _ ⟨σ.momentCocycle a μ x, h.momentCocycle_mem_twoCocycle hσ x⟩
 
 /-- The class of a moment map at `x` is the class of its cocycle at `x`. -/
 theorem cohomologyClass_def (h : σ.IsMomentMap a μ) (hσ : σ.IsClosed) (x : M) :
     h.cohomologyClass hσ x =
-      twoCocycleClass ℝ 𝔤 _ (σ.momentCocycle a μ x) (h.momentCocycle_mem_twoCocycle hσ x) :=
+      twoCocycleClass ℝ 𝔤 _ ⟨σ.momentCocycle a μ x, h.momentCocycle_mem_twoCocycle hσ x⟩ :=
   (rfl)
 
 /-- On a preconnected manifold, the class of a moment map does not depend on the point. -/
@@ -88,7 +88,7 @@ theorem cohomologyClass_eq [PreconnectedSpace M] (h : σ.IsMomentMap a μ) (hσ 
     (x x' : M) : h.cohomologyClass hσ x = h.cohomologyClass hσ x' := by
   rw [cohomologyClass_def, cohomologyClass_def]
   congr 1
-  exact h.momentCocycle_eq hσ x x'
+  exact Subtype.ext (h.momentCocycle_eq hσ x x')
 
 /-- Shifting a moment map by a constant does not change its class. -/
 theorem cohomologyClass_add_const (h : σ.IsMomentMap a μ) (hσ : σ.IsClosed)

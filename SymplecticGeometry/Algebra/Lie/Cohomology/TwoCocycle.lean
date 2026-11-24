@@ -15,18 +15,21 @@ Mathlib describes the Lie algebra `2`-cocycles of `L` with coefficients in `M` a
 `LieModule.Cohomology.twoCocycle R L M` of `d₂₃` on alternating bilinear maps, without a second
 cohomology group. Tau Ceti's Chevalley–Eilenberg complex has cohomology in every degree
 (`TauCeti.LieModule.Cohomology.cohomology`), and identifies its degree-two cochains with Mathlib's
-through `TauCeti.LieModule.Cohomology.twoCochainEquiv`. This file sends a Mathlib `2`-cocycle to
-its class in `TauCeti.LieModule.Cohomology.cohomology R L M 2`, and shows that every class arises
-so, and that two cocycles have the same class exactly when they differ by a coboundary `d₁₂ f` of
-a one-cochain `f`.
+through `TauCeti.LieModule.Cohomology.twoCochainEquiv`. This file gives the `R`-linear map that
+sends a Mathlib `2`-cocycle to its class in `TauCeti.LieModule.Cohomology.cohomology R L M 2`,
+and shows that it is surjective, and that two cocycles have the same class exactly when they
+differ by a coboundary `d₁₂ f` of a one-cochain `f`.
+
+The class map is Tau Ceti's `HomologicalComplex.moduleCatHomologyClass` for the kernel of the
+Chevalley–Eilenberg differential `d R L M 2`, precomposed with the restriction of
+`(twoCochainEquiv R L M).symm` to the `2`-cocycles. Its source cannot be `twoCocycle R L M`
+itself, since `moduleCatHomologyClass` needs an `AddCommGroup` on its source and that instance
+does not synthesize on the submodule `twoCocycle R L M`.
 
 ## Main definitions
 
-* `TauCeti.LieModule.Cohomology.twoCocycleCycle`: the cycle `(twoCochainEquiv R L M).symm c` of
-  the Chevalley–Eilenberg complex given by a `2`-cocycle `c`, built with Tau Ceti's
-  `HomologicalComplex.moduleCatCyclesMk`.
-* `TauCeti.LieModule.Cohomology.twoCocycleClass`: the class of a `2`-cocycle, the homology class
-  of that cycle.
+* `TauCeti.LieModule.Cohomology.twoCocycleClass`: the class of a `2`-cocycle, as a linear map
+  `twoCocycle R L M →ₗ[R] cohomology R L M 2`.
 
 ## Main results
 
@@ -37,9 +40,10 @@ a one-cochain `f`.
 * `TauCeti.LieModule.Cohomology.twoCocycleClass_eq_iff`: two `2`-cocycles have the same class
   exactly when they differ by a coboundary `d₁₂ f`.
 * `TauCeti.LieModule.Cohomology.twoCocycleClass_eq_zero_iff`: a `2`-cocycle has class zero exactly
-  when it is a coboundary `d₁₂ f`.
-* `TauCeti.LieModule.Cohomology.exists_twoCocycleClass_eq`: every class is the class of a
-  `2`-cocycle.
+  when it is a coboundary `d₁₂ f`, from Tau Ceti's
+  `HomologicalComplex.moduleCatHomologyClass_eq_zero_iff`.
+* `TauCeti.LieModule.Cohomology.twoCocycleClass_surjective`: every class is the class of a
+  `2`-cocycle, from Tau Ceti's `HomologicalComplex.moduleCatHomologyClass_surjective`.
 
 ## References
 
@@ -89,83 +93,93 @@ theorem cochainComplex_d_succ_apply {n : ℕ} (ω : L [⋀^Fin n]→ₗ[R] M) :
   -- `L [⋀^Fin n]→ₗ[R] M` rather than `ModuleCat.of R _`
   rfl
 
-/-- The degree-two cycle of the Chevalley–Eilenberg complex given by a `2`-cocycle. -/
-noncomputable def twoCocycleCycle (c : twoCochain R L M) (hc : c ∈ twoCocycle R L M) :
-    (cochainComplex R L M).cycles 2 :=
-  (cochainComplex R L M).moduleCatCyclesMk ((twoCochainEquiv R L M).symm c) 3 (by simp) <|
-    (cochainComplex_d_two_eq_zero_iff _).2 (by rwa [LinearEquiv.apply_symm_apply])
+/-- The **cohomology class** of a Lie algebra `2`-cocycle, as an `R`-linear map from Mathlib's
+`2`-cocycles `twoCocycle R L M` to the second Chevalley–Eilenberg cohomology
+`cohomology R L M 2`: a cocycle `c` goes to the class of the cycle
+`(twoCochainEquiv R L M).symm c`. -/
+noncomputable def twoCocycleClass : twoCocycle R L M →ₗ[R] cohomology R L M 2 :=
+  (cochainComplex R L M).moduleCatHomologyClass (n := 2) (m := 3) (by simp)
+      (LinearMap.ker (d R L M 2)).subtype
+      (fun z ↦ (cochainComplex_d_succ_apply (n := 2) _).trans z.property) ∘ₗ
+    ((twoCochainEquiv R L M).symm.toLinearMap ∘ₗ (twoCocycle R L M).subtype).codRestrict _
+      fun c ↦ (d_two_eq_zero_iff _).2 (by simp)
 
-/-- The **cohomology class** of a Lie algebra `2`-cocycle `c`, in the second Chevalley–Eilenberg
-cohomology `cohomology R L M 2`: the class of the cycle `(twoCochainEquiv R L M).symm c`. -/
-noncomputable def twoCocycleClass (c : twoCochain R L M) (hc : c ∈ twoCocycle R L M) :
-    cohomology R L M 2 :=
-  (cochainComplex R L M).homologyπ 2 (twoCocycleCycle R L M c hc)
+variable {R L M} in
+/-- The class map of `2`-cocycles is Tau Ceti's homology class map of the kernel of `d R L M 2`,
+precomposed with the restriction of `(twoCochainEquiv R L M).symm`. -/
+theorem twoCocycleClass_def :
+    twoCocycleClass R L M =
+      (cochainComplex R L M).moduleCatHomologyClass (n := 2) (m := 3) (by simp)
+          (LinearMap.ker (d R L M 2)).subtype
+          (fun z ↦ (cochainComplex_d_succ_apply (n := 2) _).trans z.property) ∘ₗ
+        ((twoCochainEquiv R L M).symm.toLinearMap ∘ₗ (twoCocycle R L M).subtype).codRestrict _
+          fun c ↦ (d_two_eq_zero_iff _).2 (by simp) :=
+  (rfl)
 
 variable {R L M}
 
-/-- The cycle given by a `2`-cocycle `c` has underlying cochain `(twoCochainEquiv R L M).symm c`. -/
-@[simp]
-theorem iCycles_twoCocycleCycle (c : twoCochain R L M) (hc : c ∈ twoCocycle R L M) :
-    (cochainComplex R L M).iCycles 2 (twoCocycleCycle R L M c hc) =
-      (twoCochainEquiv R L M).symm c :=
-  HomologicalComplex.iCycles_moduleCatCyclesMk _ _ _ _ _ _
+/-- The class of a `2`-cocycle `c` is the homology class of the cycle
+`(twoCochainEquiv R L M).symm c`. -/
+theorem twoCocycleClass_apply (c : twoCocycle R L M) :
+    twoCocycleClass R L M c =
+      (cochainComplex R L M).homologyπ 2
+        ((cochainComplex R L M).moduleCatCyclesMk
+          ((twoCochainEquiv R L M).symm (c : twoCochain R L M)) 3 (by simp)
+          ((cochainComplex_d_two_eq_zero_iff _).2 (by simp))) := by
+  rw [twoCocycleClass_def, LinearMap.comp_apply]
+  -- `rw` with `moduleCatHomologyClass_apply` fails: the codomain of the kernel's `subtype` is
+  -- `L [⋀^Fin 2]→ₗ[R] M`, equal to `(cochainComplex R L M).X 2` only up to unfolding
+  exact HomologicalComplex.moduleCatHomologyClass_apply _ _ _ _ _
 
-/-- The class of a `2`-cocycle is the homology class of the cycle it gives. -/
-theorem twoCocycleClass_def (c : twoCochain R L M) (hc : c ∈ twoCocycle R L M) :
-    twoCocycleClass R L M c hc = (cochainComplex R L M).homologyπ 2 (twoCocycleCycle R L M c hc) :=
-  (rfl)
+/-- A `2`-cocycle has class zero exactly when it is the coboundary `d₁₂ f` of a one-cochain. -/
+theorem twoCocycleClass_eq_zero_iff (c : twoCocycle R L M) :
+    twoCocycleClass R L M c = 0 ↔ ∃ f : oneCochain R L M, d₁₂ R L M f = c := by
+  rw [twoCocycleClass_def, LinearMap.comp_apply]
+  refine (HomologicalComplex.moduleCatHomologyClass_eq_zero_iff _ _ _ _ (p := 1) (by simp)
+    _).trans ⟨fun ⟨y, hy⟩ ↦ ⟨oneCochainEquiv R L M y, ?_⟩, fun ⟨f, hf⟩ ↦
+      ⟨(oneCochainEquiv R L M).symm f, (cochainComplex_d_succ_apply (n := 1) _).trans ?_⟩⟩
+  · have h : twoCochainEquiv R L M (d R L M 1 y) = c :=
+      (twoCochainEquiv R L M).eq_symm_apply.1
+        ((cochainComplex_d_succ_apply (n := 1) y).symm.trans hy)
+    rwa [twoCochainEquiv_d_one y] at h
+  · refine (twoCochainEquiv R L M).eq_symm_apply.2 ?_
+    rw [twoCochainEquiv_d_one, LinearEquiv.apply_symm_apply, hf]
+    exact ((twoCocycle R L M).subtype_apply c).symm
 
 /-- Two `2`-cocycles have the same class exactly when they differ by the coboundary `d₁₂ f` of a
 one-cochain `f`. -/
-theorem twoCocycleClass_eq_iff {c c' : twoCochain R L M} (hc : c ∈ twoCocycle R L M)
-    (hc' : c' ∈ twoCocycle R L M) :
-    twoCocycleClass R L M c hc = twoCocycleClass R L M c' hc' ↔
-      ∃ f : oneCochain R L M, c = c' + d₁₂ R L M f := by
-  rw [twoCocycleClass_def, twoCocycleClass_def,
-    HomologicalComplex.moduleCat_homologyπ_eq_iff _ (m := 1) (by simp)]
-  rw [iCycles_twoCocycleCycle, iCycles_twoCocycleCycle]
+theorem twoCocycleClass_eq_iff (c c' : twoCocycle R L M) :
+    twoCocycleClass R L M c = twoCocycleClass R L M c' ↔
+      ∃ f : oneCochain R L M, (c : twoCochain R L M) = c' + d₁₂ R L M f := by
+  -- as in `twoCocycleClass_apply`, `iCycles_moduleCatCyclesMk` applies only up to unfolding
+  have hi : ∀ (c : twoCochain R L M) h, (cochainComplex R L M).iCycles 2
+      ((cochainComplex R L M).moduleCatCyclesMk ((twoCochainEquiv R L M).symm c) 3 (by simp) h) =
+        (twoCochainEquiv R L M).symm c :=
+    fun _ _ ↦ HomologicalComplex.iCycles_moduleCatCyclesMk _ _ _ _ _ _
+  rw [twoCocycleClass_apply, twoCocycleClass_apply,
+    HomologicalComplex.moduleCat_homologyπ_eq_iff _ (m := 1) (by simp), hi, hi]
   refine ⟨fun ⟨y, hy⟩ ↦ ⟨oneCochainEquiv R L M y, ?_⟩, fun ⟨f, hf⟩ ↦
     ⟨(oneCochainEquiv R L M).symm f, (cochainComplex_d_succ_apply (n := 1) _).trans ?_⟩⟩
   · -- the subtraction in `hy` is that of `(cochainComplex R L M).X 2`
-    have h : d R L M 1 y = (twoCochainEquiv R L M).symm (c - c') :=
+    have h : d R L M 1 y = (twoCochainEquiv R L M).symm ((c : twoCochain R L M) - c') :=
       (cochainComplex_d_succ_apply (n := 1) y).symm.trans
-        (hy.trans (map_sub (twoCochainEquiv R L M).symm c c').symm)
-    have h' : twoCochainEquiv R L M (d R L M 1 y) = c - c' :=
+        (hy.trans (map_sub (twoCochainEquiv R L M).symm (c : twoCochain R L M) c').symm)
+    have h' : twoCochainEquiv R L M (d R L M 1 y) = (c : twoCochain R L M) - c' :=
       (twoCochainEquiv R L M).eq_symm_apply.1 h
     rw [twoCochainEquiv_d_one y] at h'
     rw [h']
-    exact (add_sub_cancel c' c).symm
-  · refine Eq.trans ?_ (map_sub (twoCochainEquiv R L M).symm c c')
+    exact (add_sub_cancel (c' : twoCochain R L M) c).symm
+  · refine Eq.trans ?_ (map_sub (twoCochainEquiv R L M).symm (c : twoCochain R L M) c')
     exact (twoCochainEquiv R L M).eq_symm_apply.2 (by
       rw [twoCochainEquiv_d_one, LinearEquiv.apply_symm_apply, hf]
-      exact (add_sub_cancel_left c' _).symm)
-
-/-- The zero cocycle has class zero. -/
-@[simp]
-theorem twoCocycleClass_zero : twoCocycleClass R L M 0 (zero_mem _) = 0 := by
-  rw [twoCocycleClass_def, ← map_zero ((cochainComplex R L M).homologyπ 2).hom]
-  congr 1
-  apply HomologicalComplex.moduleCat_iCycles_injective
-  rw [iCycles_twoCocycleCycle, map_zero]
-  exact (map_zero _).symm
-
-/-- A `2`-cocycle has class zero exactly when it is the coboundary `d₁₂ f` of a one-cochain. -/
-theorem twoCocycleClass_eq_zero_iff {c : twoCochain R L M} (hc : c ∈ twoCocycle R L M) :
-    twoCocycleClass R L M c hc = 0 ↔ ∃ f : oneCochain R L M, d₁₂ R L M f = c := by
-  rw [← twoCocycleClass_zero, twoCocycleClass_eq_iff]
-  simp only [zero_add, eq_comm]
+      exact (add_sub_cancel_left (c' : twoCochain R L M) _).symm)
 
 /-- Every class in the second cohomology is the class of a `2`-cocycle. -/
-theorem exists_twoCocycleClass_eq (x : cohomology R L M 2) :
-    ∃ (c : twoCochain R L M) (hc : c ∈ twoCocycle R L M), twoCocycleClass R L M c hc = x := by
-  obtain ⟨z, rfl⟩ := (cochainComplex R L M).moduleCat_homologyπ_surjective 2 x
-  have hz := (cochainComplex R L M).moduleCat_d_iCycles_apply 2 3 z
-  rw [cochainComplex_d_two_eq_zero_iff] at hz
-  refine ⟨_, hz, ?_⟩
-  rw [twoCocycleClass_def]
-  congr 1
-  apply HomologicalComplex.moduleCat_iCycles_injective
-  rw [iCycles_twoCocycleCycle]
+theorem twoCocycleClass_surjective : Function.Surjective (twoCocycleClass R L M) := by
+  rw [twoCocycleClass_def, LinearMap.coe_comp]
+  refine (HomologicalComplex.moduleCatHomologyClass_surjective _ _ _ _
+    fun x hx ↦ ⟨⟨x, hx⟩, rfl⟩).comp fun z ↦ ?_
+  refine ⟨⟨twoCochainEquiv R L M z, (d_two_eq_zero_iff _).1 z.property⟩, Subtype.ext ?_⟩
   exact LinearEquiv.symm_apply_apply _ _
 
 end TauCeti.LieModule.Cohomology
