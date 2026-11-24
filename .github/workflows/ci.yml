@@ -19,8 +19,11 @@ jobs:
     # run fetches what Tau Ceti's build cache has, compiles the Tau Ceti
     # modules that the cache does not have as they are at the new commit,
     # and builds the library from its source. That can take more than an
-    # hour.
-    timeout-minutes: 120
+    # hour. If Tau Ceti's cache has nothing for the new commit, the run
+    # compiles all of those modules, which has not been timed on a runner;
+    # the limit leaves room for it. The merge queue waits as long for a
+    # check (the ruleset's limit).
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v7
       # The setup follows Tau Ceti. lakefile.toml must be .github/lakefile.toml
@@ -118,17 +121,20 @@ jobs:
       - name: set up Lean and restore the built dependencies
         id: setup
         uses: ./.github/actions/setup-lean
-      # main's latest build of the library, from the cache workflow, whatever
-      # its hour. Lake takes a file's build from it only if the file's source,
-      # its imports' builds, the toolchain and the options are as they were
-      # for that build, and builds every other file. Without a save it builds
-      # them all. The cache workflow builds main from its source about once
-      # an hour.
+      # main's latest build of the library, from the cache workflow: the
+      # latest save of the job that follows main (`-inc-`), which is a few
+      # commits behind, or without one the latest save of any kind. Lake
+      # takes a file's build from it only if the file's source, its imports'
+      # builds, the toolchain and the options are as they were for that
+      # build, and builds every other file. Without a save it builds them
+      # all. The cache workflow builds main from its source about once an
+      # hour. GitHub looks for saves whose names begin with `key` before it
+      # looks at `restore-keys`, so the kind to prefer is in `key`.
       - name: restore main's build of the library
         uses: actions/cache/restore@v6
         with:
           path: .lake/build
-          key: ${{ steps.setup.outputs.build }}
+          key: ${{ steps.setup.outputs.build }}-inc-
           restore-keys: ${{ steps.setup.outputs.build }}-
       # --wfail fails the build on any warning, including a `sorry`.
       - name: build
