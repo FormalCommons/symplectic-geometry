@@ -123,6 +123,7 @@ theorem frameCovariantDerivative_twistCore_localTriv {y x : OnePoint ℂ}
   have hg := ((twistCore (𝕜 := ℂ) k).localTriv y).mdifferentiableAt_section_iff 𝓘(ℝ, ℂ) s
     (by simpa using hx) |>.1 hs
   simp only [twistCore_localTriv_apply] at hg
+  -- `mvfderiv` is `mfderiv` read in the model space `ℂ` through the identity `fromTangentSpace`.
   have hA : HasMFDerivAt 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun p ↦ twistTransition k p y p * s p) x
       (mvfderiv 𝓘(ℝ, ℂ) (fun p ↦ twistTransition k p y p * s p) x) := hg.hasMFDerivAt
   refine frameCovariantDerivative_eq_symmL_comp Complex.basisOneI hA (fun i ↦ ?_)
