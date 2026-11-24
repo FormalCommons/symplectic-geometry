@@ -35,9 +35,9 @@ the diffeotopy, in the sense of McDuff–Salamon, §3.1, and the time derivative
 
 ## Main results
 
-* `TauCeti.Diffeotopy.mfderiv_cylinderMap_time`, `TauCeti.Diffeotopy.mfderiv_cylinderMap_space`:
-  the motion sends `∂ₜ` at `(x, t)` to the velocity of the trajectory `s ↦ φ_s x`, and a spatial
-  vector `(v, 0)` to `dφ_t v`.
+* `TauCeti.Diffeotopy.mfderiv_cylinderMap_time`: the motion sends `∂ₜ` at `(x, t)` to the
+  velocity of the trajectory `s ↦ φ_s x`. Its action `(v, 0) ↦ dφ_t v` on spatial vectors is Tau
+  Ceti's `TauCeti.Diffeotopy.mfderiv_cylinderMap_inl`.
 * `TauCeti.Diffeotopy.forall_velocity_mem_iff`: the velocity lies in a family of subspaces `D_t`
   everywhere if and only if the time derivative of the motion at `(x, t)` lies in `D_t (φ_t x)`.
 * `TauCeti.Diffeotopy.contMDiff_velocity`, `TauCeti.Diffeotopy.contMDiff_smoothVelocity`: `X_t` is
@@ -64,12 +64,9 @@ Its proof follows that of Tau Ceti's `TauCeti.contMDiff_vectorBundleEulerField`:
 built from the zero section and a smooth vector of the other factor, is pushed forward by the
 tangent map of a smooth map.
 
-`mfderiv_cylinderMap_time` and `mfderiv_cylinderMap_space` read the derivative of the motion on
-`(0, ∂ₜ)` and on `(v, 0)` as a partial derivative, by
-`MDifferentiableAt.mfderiv_curry_right_apply` and
-`MDifferentiableAt.mfderiv_curry_left_apply`, as Tau Ceti's
-`TauCeti.Diffeotopy.mfderiv_cylinderMap_globalFlowDiffeotopy_time` and
-`TauCeti.Diffeotopy.mfderiv_cylinderMap_globalFlowDiffeotopy_space` do for a flow. The proof of
+`mfderiv_cylinderMap_time` reads the derivative of the motion on `(0, ∂ₜ)` as a partial
+derivative, by `MDifferentiableAt.mfderiv_curry_right_apply`, as Tau Ceti's
+`TauCeti.Diffeotopy.mfderiv_cylinderMap_globalFlowDiffeotopy_time` does for a flow. The proof of
 `velocity_timeDependentFlowDiffeotopy` follows that of
 `TauCeti.eulerianField_eq_of_coe_eq_timeDependentFlowOf`.
 
@@ -109,16 +106,6 @@ theorem mfderiv_cylinderMap_time (hn : 1 ≤ n) (p : M × unitInterval) :
   have hd := Φ.contMDiff_cylinderMap.mdifferentiableAt (x := p) (zero_lt_one.trans_le hn).ne'
   exact (hd.mfderiv_curry_right_apply _).trans
     (congrArg (fun f ↦ mfderiv (𝓡∂ 1) J f p.2 (1 : TangentSpace (𝓡∂ 1) p.2)) h)
-
-/-- The motion of a `C^n` diffeotopy, `1 ≤ n`, acts on spatial tangent vectors at `(x, t)` by the
-differential of the time-`t` map. -/
-theorem mfderiv_cylinderMap_space (hn : 1 ≤ n) (p : M × unitInterval) (v : E) :
-    mfderiv (J.prod (𝓡∂ 1)) J Φ.cylinderMap p (v, (0 : EuclideanSpace ℝ (Fin 1))) =
-      mfderiv J J (Φ.timeSlice p.2) p.1 v := by
-  have h : (fun z ↦ Φ.cylinderMap (z, p.2)) = Φ.timeSlice p.2 :=
-    funext fun z ↦ (Φ.cylinderMap_apply (z, p.2)).trans (Φ.timeSlice_apply p.2 z).symm
-  have hd := Φ.contMDiff_cylinderMap.mdifferentiableAt (x := p) (zero_lt_one.trans_le hn).ne'
-  exact (hd.mfderiv_curry_left_apply v).trans (congrArg (fun f ↦ mfderiv J J f p.1 v) h)
 
 end Derivative
 
@@ -223,7 +210,7 @@ theorem mfderiv_cylinderMap_curve {c : unitInterval → M} {s : unitInterval}
   -- definitional unfolding: the tangent space of `M × I` is the product of the tangent spaces
   -- by definition, and that lemma does not rewrite across the identification.
   congr 1
-  · exact (hd.mfderiv_curry_left_apply _).symm.trans (Φ.mfderiv_cylinderMap_space (by simp) _ _)
+  · exact (hd.mfderiv_curry_left_apply _).symm.trans (Φ.mfderiv_cylinderMap_inl (by simp) _ _)
   · exact (hd.mfderiv_curry_right_apply _).symm
 
 /-- **The trajectories of a diffeotopy are the solutions of its equation.** A differentiable
@@ -269,15 +256,14 @@ theorem mpullback_timeSlice_interior_velocity_apply {F : Type*} [AddCommGroup F]
         ![((0 : E), (1 : TangentSpace (𝓡∂ 1) t)), (v, (0 : EuclideanSpace ℝ (Fin 1)))] := by
   have h : ⇑(Φ.timeSlice t) = fun z ↦ Φ.cylinderMap (z, t) :=
     funext fun z ↦ (Φ.timeSlice_apply t z).trans (Φ.cylinderMap_apply (z, t)).symm
-  have hx : Φ.symm (t, Φ.cylinderMap (x, t)) = x := by
-    rw [Φ.cylinderMap_apply, symm_apply_mk_apply]
   rw [h, mpullback_apply, mpullback_apply, RoughForm.interior_apply]
   congr 1
   funext i
   fin_cases i
-  -- After moving the base point, `rfl` evaluates the vector `![∂ₜ, (v, 0)]` at `0`.
-  · exact (Φ.velocity_def t _).trans (by rw [hx]; rfl)
-  · exact ((Φ.mfderiv_cylinderMap_space (by simp) (x, t) v).trans
+  -- `exact` evaluates the vector `![∂ₜ, (v, 0)]` at `0`.
+  · rw [Φ.cylinderMap_apply]
+    exact Φ.velocity_apply t x
+  · exact ((Φ.mfderiv_cylinderMap_inl (by simp) (x, t) v).trans
       (congrArg (fun f ↦ mfderiv J J f x v) h)).symm
 
 section Flow

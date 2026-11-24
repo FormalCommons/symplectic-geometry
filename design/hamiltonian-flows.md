@@ -350,9 +350,10 @@ would give `-X₁` there. Further hypotheses are named where they are needed.
   - `mpullback_timeSlice_interior_velocity_apply`: for a two-form `σ`,
     `(φ_t^* ι_{X_t} σ)_x v = (Φ.cylinderMap^* σ)_{(x, t)}(∂ₜ, (v, 0))`, the
     integrand of `fluxForm` and of `HasHamiltonian`.
-  - `mfderiv_cylinderMap_time` and `mfderiv_cylinderMap_space`, for
-    `Φ : Diffeotopy J n M` with `1 ≤ n`: the motion sends `∂ₜ` at `(x, t)` to
-    the velocity of `s ↦ Φ (s, x)` at `t`, and `(v, 0)` to `dφ_t v`.
+  - `mfderiv_cylinderMap_time`, for `Φ : Diffeotopy J n M` with `1 ≤ n`: the
+    motion sends `∂ₜ` at `(x, t)` to the velocity of `s ↦ Φ (s, x)` at `t`;
+    that it sends `(v, 0)` to `dφ_t v` is Tau Ceti's
+    `TauCeti.Diffeotopy.mfderiv_cylinderMap_inl`.
   The velocities of `trans`, `symm` and `transDiffeomorph` are not needed:
   the three rules come from Tau Ceti's `HasHamiltonian` lemmas through the
   translation of Decision 1.

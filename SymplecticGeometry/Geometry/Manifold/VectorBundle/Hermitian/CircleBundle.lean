@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.VectorBundle.FiniteDimensional
-public import TauCeti.Topology.VectorBundle.OrthonormalFrame.Principal
+public import TauCeti.Topology.VectorBundle.OrthonormalFrame.Associated
 public import TauCeti.Topology.VectorBundle.Smul
 public import SymplecticGeometry.Analysis.CStarAlgebra.Unitary.ContinuousLinearMap
 public import SymplecticGeometry.Analysis.Normed.Operator.SpanSingleton
@@ -196,26 +196,11 @@ def circleBundleHomeomorph :
     rw [Fiber.frame_ofFrame, LinearIsometryEquiv.toSpanSingleton_apply, ← map_eq_smul_map_one]
   right_inv p := Subtype.ext <| congrArg (TotalSpace.mk p.val.proj) <| by
     rw [Fiber.frame_ofFrame, LinearIsometryEquiv.toSpanSingleton_one]
-  continuous_toFun := by
-    refine Continuous.subtype_mk ?_ _
-    have h := (continuous_totalSpaceMk_frame (𝕜 := ℂ) (F := F) (E := E) (1 : ℂ)).comp
-      (totalSpaceHomeomorph (V := ℂ)).continuous
-    refine h.congr fun φ ↦ ?_
-    rw [Function.comp_apply, coe_totalSpaceHomeomorph]
-    exact congrArg (fun q : OrthonormalFrameBundle ℂ F E ℂ ↦
-      (⟨q.proj, q.frame 1⟩ : TotalSpace F E)) (totalSpaceEquiv_apply φ)
+  continuous_toFun := (continuous_totalSpace_iff.1 continuous_id 1).subtype_mk fun _ ↦ by simp
   continuous_invFun := by
-    have h : Continuous fun p : {p : TotalSpace F E // ‖p.snd‖ = 1} ↦
-        (⟨p.val.proj, LinearIsometryEquiv.toSpanSingleton ℂ _
-          ((VectorBundle.finrank_eq ℂ F E _).trans Fact.out) p.property⟩ :
-          OrthonormalFrameBundle ℂ F E ℂ) :=
-      continuous_iff.2 fun z ↦ by
-        simpa only [LinearIsometryEquiv.toSpanSingleton_apply] using
-          Continuous.smul_totalSpace (continuous_const (y := z)) continuous_subtypeVal
-    have h' := (totalSpaceHomeomorph (𝕜 := ℂ) (F := F) (E := E) (V := ℂ)).symm.continuous.comp h
-    refine h'.congr fun p ↦ ?_
-    rw [Function.comp_apply, coe_totalSpaceHomeomorph_symm]
-    exact totalSpaceEquiv_symm_apply _
+    refine continuous_totalSpace_iff.2 fun z ↦ ?_
+    simpa only [Fiber.frame_ofFrame, LinearIsometryEquiv.toSpanSingleton_apply] using
+      Continuous.smul_totalSpace (continuous_const (y := z)) continuous_subtypeVal
 
 /-- `circleBundleHomeomorph` sends a frame `φ` of `E x` to the unit vector `φ 1`. -/
 @[simp]
