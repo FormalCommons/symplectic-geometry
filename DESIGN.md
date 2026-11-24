@@ -3149,20 +3149,21 @@ Differential topology and complex analysis only; it waits for no part of
 
 - **Files:** in `Geometry/Diffeomorphism/Sphere/`, beside Tau Ceti's
   files of that folder: `ComplexStructure.lean` (the space $\mathcal J$
-  with its topology, the pull-back $\phi^*J$, its continuity in $\phi$ and
-  $J$, and the contraction of $\mathcal J$ onto $i$), `Uniformization.lean`
+  with its topology, the pull-back $\phi^*J$, its continuity in $\phi$,
+  and the contraction of $\mathcal J$ onto $i$), `Uniformization.lean`
   (the map $\sigma(J)$ built from sections of $E_J$ vanishing at $0$ and
   $\infty$, its continuity, and that it is the unique biholomorphism
-  $(S^2,J)\to(S^2,i)$ fixing $0,1,\infty$, from Tau Ceti's
-  `TauCeti.RiemannSurface.biholomorphOfDegreeEqOne` and
+  $(S^2,J)\to(S^2,i)$ fixing $0,1,\infty$, from the zero count of $E_J$
+  and Tau Ceti's
   `Diffeomorph.eq_refl_of_apply_zero_one_infty_eq_self`), `Mobius.lean`
   ($\mathrm{PSL}(2,\mathbb C)$ as the stabilizer of $i$ in $\mathrm{Diff}^+$,
   from `Diffeomorph.exists_coe_eq_smul`, with its subspace topology equal
   to its Lie group topology, and its deformation retraction onto
   $\mathrm{SO}(3)$ by the polar decomposition), `Trivialization.lean` (the
   homeomorphism $\mathrm{Diff}^+(S^2)\cong\mathcal J\times\mathrm{PSL}(2,\mathbb
-  C)$ over $\mathcal J$) and `Smale.lean` (named like Tau Ceti's file: the
-  strong deformation retraction of $\mathrm{Diff}^+(S^2)$ onto
+  C)$ over $\mathcal J$) and `Smale.lean` (sharing its name with Tau
+  Ceti's `Geometry/Diffeomorphism/Smale.lean`, on the conjecture for $S^3$:
+  the strong deformation retraction of $\mathrm{Diff}^+(S^2)$ onto
   $\mathrm{SO}(3)$, with $\pi_0=0$ and $\pi_1\cong\mathbb Z/2$ from Tau
   Ceti's `TauCeti.specialOrthogonalGroupFundamentalGroupMulEquiv`).
 - **Builds on:** *Cauchy–Riemann operators on the sphere*; the merged
@@ -3410,13 +3411,15 @@ Differential topology and complex analysis only; it waits for no part of
   group to $\mathrm{Ham}(F,\sigma)$; 1 ⇔ 2), `FluxHomomorphism.lean` (for a
   closed connection two-form on a fibration trivial over every loop, the
   homomorphism $f_\tau\colon H_1(B;\mathbb Z)\to H^1(F;\mathbb R)/\Gamma_\sigma$
-  and its lifts; the homomorphism $\mu_{\Phi^*a}$ of a class over a
-  trivialization over the 1-skeleton) and `Characterization.lean` (the four
-  conditions of Theorem 6.5.3 with the torsion condition, the induction over
-  skeleta of a triangulation in 3 ⇒ 1).
+  and its lifts) and `Characterization.lean` (the four
+  conditions of Theorem 6.5.3 with the torsion condition, with 3 ⇒ 1 by a
+  shift of the connection by closed one-forms of the base, with no
+  triangulation); the homomorphism $\mu_{\Phi^*a}$ of a class over a
+  trivialization over the 1-skeleton is in `OneSkeleton.lean`.
 - **Builds on:** *Coupling forms*, *Flux homomorphism*, *Symplectic
-  fibrations*; Tau Ceti (smooth triangulations,
-  `Geometry/Manifold/SmoothTriangulation/`, singular homology).
+  fibrations*, *Parallel transport*, *Compatible symplectic forms* (only
+  `Thurston.lean`); Tau Ceti (singular homology; smooth triangulations,
+  `Geometry/Manifold/SmoothTriangulation/`, only in `OneSkeleton.lean`).
 - **Milestones:** *Characterization of Hamiltonian fibrations*, in the
   corrected form with the torsion condition, as the page states it.
 - **The design file decides:** the meaning of a symplectic trivialization
@@ -3551,7 +3554,7 @@ behind.
 | 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles*; `Geometry/Manifold/DifferentialForm/Pullback/Family.lean` of *Moser isotopy*, which is merged |
 | 4 | *Adjunction* | *First Chern number* (only `FirstChernClass.lean`, `ChernNumber/Basic.lean` and `ChernNumber/Axioms.lean`); `NormalSpace/ComplexStructure.lean` and `NormalSplitting.lean` can start at once |
 | 4 | *Chern classes* | *First Chern number* (only `FirstChernClass.lean`, for the comparison of $c_1$); the other issues of its design file can start at once |
-| 4 | *Hamiltonian fibrations* | *Coupling forms*, *Flux homomorphism*, *Symplectic fibrations* |
+| 4 | *Hamiltonian fibrations* | *Coupling forms*, *Flux homomorphism*, *Symplectic fibrations*, *Parallel transport*, *Compatible symplectic forms* (only `Thurston.lean`) |
 | 5 | *Projective hypersurfaces* | *Chern classes*, *First Chern number* (only Poincaré duality, #810); the bundle isomorphisms on $\mathbb CP^{n+1}$, the normal bundle and the Lefschetz theorems can start at once |
 
 The design issues of the parts marked as needing one can start at once, in
@@ -3765,7 +3768,7 @@ classification of 2-sphere bundles waits for them.
 
 | Milestone | Where |
 |---|---|
-| *Diffeomorphisms of the 2-sphere form a trivial principal bundle over the complex structures* | *Diffeomorphisms of the 2-sphere* (`Trivialization.lean`), with the operators of *Cauchy–Riemann operators on the sphere*. Existing inputs: `TauCeti.RiemannSurface.biholomorphOfDegreeEqOne`, `Diffeomorph.exists_coe_eq_smul`, `Diffeomorph.eq_refl_of_apply_zero_one_infty_eq_self`, `Continuous.index_eq_of_preconnectedSpace`, and the merged integrability theorem `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`. |
+| *Diffeomorphisms of the 2-sphere form a trivial principal bundle over the complex structures* | *Diffeomorphisms of the 2-sphere* (`Trivialization.lean`), with the operators of *Cauchy–Riemann operators on the sphere*. Existing inputs: `Diffeomorph.exists_coe_eq_smul`, `Diffeomorph.eq_refl_of_apply_zero_one_infty_eq_self`, `Continuous.index_eq_of_preconnectedSpace`, and the merged integrability theorem `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`. |
 | *Smale's theorem on the diffeomorphism group of the 2-sphere* | *Diffeomorphisms of the 2-sphere* (`Smale.lean`). Existing inputs: `TauCeti.orthogonalToDiffSphere`, `Diffeomorph.isTopologicalGroup`. |
 
 ## Departures from the plan's advice
