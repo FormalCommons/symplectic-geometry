@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.VectorBundle.Basic
+import TauCeti.Topology.VectorBundle.Trivialization
 
 /-!
 # Zero sets of continuous sections
@@ -46,9 +47,8 @@ theorem isClosed_setOf_eq_zero {b : M → B} {s : ∀ y, E (b y)}
   intro x hx
   let e := trivializationAt F E (b x)
   have hxe : b x ∈ e.baseSet := mem_baseSet_trivializationAt F E (b x)
-  have heq (y : M) (hy : b y ∈ e.baseSet) : (e ⟨b y, s y⟩).2 = 0 ↔ s y = 0 := by
-    rw [e.apply_eq_prod_continuousLinearEquivAt 𝕜 (b y) hy]
-    exact (e.continuousLinearEquivAt 𝕜 (b y) hy).map_eq_zero_iff
+  have heq (y : M) (hy : b y ∈ e.baseSet) : (e ⟨b y, s y⟩).2 = 0 ↔ s y = 0 :=
+    e.snd_apply_eq_zero_iff 𝕜 hy
   have hc : ContinuousAt (fun y ↦ (e ⟨b y, s y⟩).2) x :=
     (e.continuousOn.continuousAt (e.open_source.mem_nhds (e.mem_source.2 hxe))).snd.comp
       hs.continuousAt
