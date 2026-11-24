@@ -275,6 +275,43 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inl (ξ : Group
     fin_cases i
     rfl
 
+/-- The identity of `mextDeriv_apply_rightFundamentalVectorField_prod` on vectors tangent to `N`:
+pulled back along `(s, m) ↦ (x • exp (s ξ), m)`, the form `A` has the same slice `{s} × N` for
+every `s`, so its Lie derivative along `∂ₛ` vanishes on vectors tangent to `N`, and Cartan's
+formula on `ℝ × N` gives the identity. -/
+private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inr (ξ : GroupLieAlgebra IG G)
+    (x : ManifoldTotalSpace G P) (n : N) (v : TangentSpace IN n) :
+    mextDeriv A.val (x, n)
+        ![(rightFundamentalVectorField (IB.prod IG) ξ x, (0 : EN)), ((0 : EB × EG), v)] =
+      -mvfderiv ((IB.prod IG).prod IN) (fun q : ManifoldTotalSpace G P × N ↦
+        A.val q ![(rightFundamentalVectorField (IB.prod IG) ξ q.1, (0 : EN))]) (x, n)
+          ((0 : EB × EG), v) := by
+  have : T2Space G := IG.t2Space_of_lieGroup ∞
+  set γ : ℝ → ManifoldTotalSpace G P := fun s ↦ op (mulInvariantExp (s • ξ)) • x with hγdef
+  have hγs : ContMDiff 𝓘(ℝ) (IB.prod IG) ∞ γ :=
+    contMDiff_op_smul.comp (contMDiff_const.prodMk (contMDiff_mulInvariantExp_smul ξ))
+  have hφ : ContMDiff (𝓘(ℝ).prod IN) ((IB.prod IG).prod IN) ∞
+      (fun q : ℝ × N ↦ (γ q.1, q.2)) :=
+    (hγs.comp contMDiff_fst).prodMk contMDiff_snd
+  have hj : ContMDiff IN ((IB.prod IG).prod IN) ∞ (fun m : N ↦ (x, m)) :=
+    contMDiff_const.prodMk contMDiff_id
+  -- The slices of the pull-back of `A` are all the pull-back of `A` along `m ↦ (x, m)`.
+  have hslice (s : ℝ) : SmoothForm.mpullback (Prod.mk s : N → ℝ × N)
+      (contMDiff_const.prodMk contMDiff_id) (SmoothForm.mpullback _ hφ A) =
+        SmoothForm.mpullback _ hj A := by
+    rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ hj
+        (contMDiff_op_smul_prod (mulInvariantExp (s • ξ))) (by rfl), hA]
+  have hT : MDifferentiableAt 𝓘(ℝ) 𝓘(ℝ).tangent
+      (fun s ↦ (⟨s, constVectorField (1 : ℝ) s⟩ : TangentBundle 𝓘(ℝ) ℝ)) 0 :=
+    (contMDiff_constVectorField (1 : ℝ) (n := 1)).mdifferentiableAt one_ne_zero
+  have hV := DFunLike.congr_fun
+    (mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero (t := 0) (x := n)
+      ((SmoothForm.mpullback _ hφ A).mdifferentiableAt _) hT fun s ↦ by
+        have h := congrArg Subtype.val ((hslice s).trans (hslice 0).symm)
+        rwa [SmoothForm.coe_mpullback (Prod.mk s : N → ℝ × N),
+          SmoothForm.coe_mpullback (Prod.mk (0 : ℝ) : N → ℝ × N)] at h) ![v]
+  sorry
+
 end Prod
 
 end LieDeriv
