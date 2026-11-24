@@ -340,12 +340,6 @@ theorem hasSum_seeleyCoeff_smul_compContinuousLinearMap_timeScale_of_fst_eq_zero
   simp_rw [timeScale_of_fst_eq_zero hz]
   exact hasSum_seeleyCoeff_smul_compContinuousLinearMap_timeScale (p z m)
 
-/-- The dilations by `-2 ^ k` map the lower half of `univ ×ˢ U` to its upper half. -/
-private theorem timeScale_mem_Ici_prod {z : ℝ × E} (hz : z ∈ Iic 0 ×ˢ U) (k : ℕ) :
-    timeScale (-2 ^ k) z ∈ Ici 0 ×ˢ U := by
-  rw [timeScale_apply]
-  exact ⟨mul_nonneg_of_nonpos_of_nonpos (neg_nonpos.2 (pow_nonneg zero_le_two k)) hz.1, hz.2⟩
-
 /-- A sequence whose terms at a point of negative time vanish once the dilated time exceeds `1`
 has finite support, so it is summable. -/
 private theorem summable_of_fst_neg {X : Type*} [AddCommGroup X] [TopologicalSpace X]
@@ -439,7 +433,8 @@ private theorem hasFTaylorSeriesUpToOn_seeleySum (hU : IsOpen U)
       (convex_Iic 0).prod (convex_ball _ _), hnhds hr⟩
   · exact HasFTaylorSeriesUpToOn.sum fun k _ ↦
       ((hp.compContinuousLinearMap (timeScale (-2 ^ k))).const_smul (seeleyCoeff k)).mono
-        fun z hz ↦ timeScale_mem_Ici_prod hz k
+        fun z hz ↦ ⟨mem_upperHalfSpace.1 (timeScale_neg_two_pow_mem_upperHalfSpace k hz.1),
+          by simpa using hz.2⟩
   · refine tendstoLocallyUniformlyOn_of_forall_exists_nhds fun z hz ↦ ?_
     obtain ⟨r, hr, M, hM₀, hrU, hM⟩ := exists_bound_ftaylorSeriesWithin hU hh h1 m hz.2
     refine ⟨_, hnhds hr, tendstoUniformlyOn_finsetSum_of_hasSum
@@ -448,14 +443,14 @@ private theorem hasFTaylorSeriesUpToOn_seeleySum (hU : IsOpen U)
     have hτ : ‖timeScale (E := E) (-2 ^ k)‖ ≤ 2 ^ k := by
       refine (norm_timeScale_le _).trans_eq ?_
       rw [abs_neg, abs_pow, abs_two, max_eq_left (one_le_pow₀ one_le_two)]
-    have hy' := timeScale_mem_Ici_prod (k := k) ⟨hy.1, hrU hy.2⟩
+    have hy' := mem_upperHalfSpace.1 (timeScale_neg_two_pow_mem_upperHalfSpace (E := E) k hy.1)
     calc _ = |seeleyCoeff k| * ‖(p (timeScale (-2 ^ k) y) m).compContinuousLinearMap
           fun _ ↦ timeScale (E := E) (-2 ^ k)‖ := by rw [norm_smul, Real.norm_eq_abs]
       _ ≤ |seeleyCoeff k| * (M * ∏ _i : Fin m, (2 : ℝ) ^ k) := by
         gcongr
         refine (ContinuousMultilinearMap.norm_compContinuousLinearMap_le _ _).trans ?_
         gcongr with i
-        exact hM _ hy'.1 (by simpa using hy.2)
+        exact hM _ hy' (by simpa using hy.2)
       _ = |seeleyCoeff k| * ((2 : ℝ) ^ k) ^ m * M := by
         rw [Finset.prod_const, Finset.card_univ, Fintype.card_fin]
         ring
