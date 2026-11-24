@@ -112,7 +112,7 @@ parametrix glued from charts.
   order on a manifold, neither of which Tau Ceti has. The route here needs
   neither: the Euclidean statements it needs exist, and the abstract
   Fredholm theory exists.
-- **The Hilbert spaces.** `L2Form o k` is the closure of the smooth
+- **The Hilbert spaces.** `L2Form I M k` is the closure of the smooth
   `k`-forms in Tau Ceti's `TauCeti.L2Form I M k`, the square-integrable
   `k`-forms for the Borel structure of the compact `M`, through
   `compactlySupportedForms.toL2Form`; its inner product is
@@ -451,12 +451,12 @@ Named like Tau Ceti's file; used by `L2.lean`.
   `alternatingFormInner` against `riemannianVolumeForm o`, written inline
   in Tau Ceti's `Codifferential.lean`, with `l2Inner_def`, symmetry,
   additivity and `l2Inner_self_eq_zero_iff`, the last two read off the
-  inner product of `L2Form o k` through `inner_ofSmooth`.
-- `L2Form o k`, the closed subspace of `TauCeti.L2Form I M k` described
+  inner product of `L2Form I M k` through `inner_ofSmooth`.
+- `L2Form I M k`, the closed subspace of `TauCeti.L2Form I M k` described
   above, with
-  `L2Form.ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] L2Form o k`,
+  `L2Form.ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] L2Form I M k`,
   `inner_ofSmooth`, `ofSmooth_injective` and `denseRange_ofSmooth`.
-- `L2Form.localize ψ χ hχ : L2Form o k →L[ℝ] Lp Λ 2 volume`, with
+- `L2Form.localize ψ χ hχ : L2Form I M k →L[ℝ] Lp Λ 2 volume`, with
   `Λ = E [⋀^Fin k]→L[ℝ] ℝ` and `volume` an additive Haar measure on `E`, for
   a chart `ψ` and a smooth cutoff `χ` with `hχ : tsupport χ ⊆ ψ.source`. It
   extends `TauCeti.SmoothForm.localize ψ χ`,
@@ -497,7 +497,7 @@ Named like Tau Ceti's file; used by `L2.lean`.
 - `H1Form o hkl`, the completion for
   $\langle\alpha,\beta\rangle+\langle\Delta\alpha,\beta\rangle$, with
   `H1Form.ofSmooth`, `denseRange_ofSmooth`, `H1Form.toL2 : H1Form o hkl
-  →L[ℝ] L2Form o k` extending the identity of smooth forms, and
+  →L[ℝ] L2Form I M k` extending the identity of smooth forms, and
   `H1Form.dirichlet : H1Form o hkl →L[ℝ] H1Form o hkl →L[ℝ] ℝ` extending
   $\langle\Delta\alpha,\beta\rangle$. Then
   `dirichlet_ofSmooth_right`: `dirichlet u (ofSmooth φ) = ⟪toL2 u,

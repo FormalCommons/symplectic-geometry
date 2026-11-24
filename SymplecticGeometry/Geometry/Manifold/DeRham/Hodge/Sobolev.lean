@@ -35,7 +35,7 @@ and it is definite because the `L²` part is. The Hilbert space `SymplecticGeome
 is the completion of the smooth `k`-forms for it.
 
 Its norm dominates the `L²` norm, so the identity of smooth forms extends to a continuous linear
-map `H1Form.toL2 : H1Form o hkl →L[ℝ] L2Form o k` of norm at most one. The
+map `H1Form.toL2 : H1Form o hkl →L[ℝ] L2Form I M k` of norm at most one. The
 **Dirichlet form** `H1Form.dirichlet u v = ⟪u, v⟫ - ⟪toL2 u, toL2 v⟫` is a continuous bilinear
 form on `H1Form o hkl` that extends `⟪Δα, β⟫`, so that `‖u‖ ^ 2 = dirichlet u u + ‖toL2 u‖ ^ 2`
 (Gårding's identity) holds by definition. Against a smooth form it is the weak Laplacian:
@@ -89,7 +89,7 @@ model without boundary, `I.Boundaryless`, and so does this equivalence.
 * `SymplecticGeometry.H1Form o hkl`: the Hilbert space, with `H1Form.ofSmooth`,
   `H1Form.inner_ofSmooth`, `H1Form.norm_ofSmooth_sq`, `H1Form.ofSmooth_injective`,
   `H1Form.denseRange_ofSmooth` and `H1Form.induction_on`.
-* `SymplecticGeometry.H1Form.toL2`: the inclusion into `L2Form o k`, with `toL2_ofSmooth`,
+* `SymplecticGeometry.H1Form.toL2`: the inclusion into `L2Form I M k`, with `toL2_ofSmooth`,
   `norm_toL2_le`, `inner_ofSmooth_right` and `toL2_injective`.
 * `SymplecticGeometry.H1Form.dirichlet`: the Dirichlet form, with `dirichlet_ofSmooth`,
   `dirichlet_comm`, `dirichlet_self_nonneg`, `norm_sq_eq_dirichlet_add`,
@@ -114,7 +114,7 @@ model without boundary, `I.Boundaryless`, and so does this equivalence.
 * `SymplecticGeometry.H1Form.isCompactOperator_localizeCoord_comp_toL2`: Rellich's theorem in a
   chart.
 * `SymplecticGeometry.H1Form.isCompactOperator_toL2`: the inclusion of `H1Form o hkl` into
-  `L2Form o k` is compact.
+  `L2Form I M k` is compact.
 
 ## Implementation notes
 
@@ -131,7 +131,7 @@ Hodge Laplacian in place of smooth functions and the gradient, and `L2Form` in p
 `Lp ℝ 2`. Since the `L²` part of the inner product is definite, the type synonym carries an
 `InnerProductSpace.Core` rather than a `PreInnerProductSpace.Core`, as in `L2.lean`. As
 `L2Form.localize` does, `toL2` is Mathlib's extension `LinearMap.extendOfNorm` of the
-inclusion of smooth forms into `L2Form o k`, which is bounded by `norm_l2FormOfSmooth_le`.
+inclusion of smooth forms into `L2Form I M k`, which is bounded by `norm_l2FormOfSmooth_le`.
 
 The Bessel-potential space `H^1` is a complex space; `H1Form.localizeSobolev` is linear over `ℝ`
 for its real structure. The change of variables along `e⁻¹` in `L2Form.localizeCoord` is Tau
@@ -303,23 +303,23 @@ theorem induction_on {p : H1Form o hkl → Prop} (u : H1Form o hkl) (hp : IsClos
 
 /-- The `L²` norm of a smooth form is at most its `H¹` norm. -/
 theorem norm_l2FormOfSmooth_le (α : SmoothForm I M ℝ k) :
-    ‖(L2Form.ofSmooth α : L2Form o k)‖ ≤ 1 * ‖(ofSmooth α : H1Form o hkl)‖ := by
-  rw [one_mul, ← sq_le_sq₀ (norm_nonneg _) (norm_nonneg _), L2Form.norm_ofSmooth_sq,
+    ‖(L2Form.ofSmooth α : L2Form I M k)‖ ≤ 1 * ‖(ofSmooth α : H1Form o hkl)‖ := by
+  rw [one_mul, ← sq_le_sq₀ (norm_nonneg _) (norm_nonneg _), L2Form.norm_ofSmooth_sq o,
     norm_ofSmooth_sq]
   exact le_add_of_nonneg_right (l2Inner_hodgeLaplacian_self_nonneg o hkl α)
 
-/-- The inclusion `H1Form o hkl → L2Form o k`: the continuous extension of the identity of smooth
+/-- The inclusion `H1Form o hkl → L2Form I M k`: the continuous extension of the identity of smooth
 forms. -/
-def toL2 : H1Form o hkl →L[ℝ] L2Form o k :=
-  (L2Form.ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] L2Form o k).extendOfNorm ofSmooth
+def toL2 : H1Form o hkl →L[ℝ] L2Form I M k :=
+  (L2Form.ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] L2Form I M k).extendOfNorm ofSmooth
 
-/-- On a smooth form, `toL2` is the inclusion of smooth forms into `L2Form o k`. -/
+/-- On a smooth form, `toL2` is the inclusion of smooth forms into `L2Form I M k`. -/
 @[simp]
 theorem toL2_ofSmooth (α : SmoothForm I M ℝ k) :
     toL2 (ofSmooth α : H1Form o hkl) = L2Form.ofSmooth α :=
   LinearMap.extendOfNorm_eq denseRange_ofSmooth ⟨1, norm_l2FormOfSmooth_le⟩ α
 
-/-- The inclusion into `L2Form o k` does not increase norms. -/
+/-- The inclusion into `L2Form I M k` does not increase norms. -/
 theorem norm_toL2_le (u : H1Form o hkl) : ‖toL2 u‖ ≤ ‖u‖ := by
   simpa [toL2] using
     LinearMap.norm_extendOfNorm_apply_le denseRange_ofSmooth 1 norm_l2FormOfSmooth_le u
@@ -340,7 +340,7 @@ theorem dirichlet_apply (u v : H1Form o hkl) :
 @[simp]
 theorem dirichlet_ofSmooth (α β : SmoothForm I M ℝ k) :
     dirichlet (ofSmooth α : H1Form o hkl) (ofSmooth β) = l2Inner o (hodgeLaplacian o hkl α) β := by
-  rw [dirichlet_apply, inner_ofSmooth, toL2_ofSmooth, toL2_ofSmooth, L2Form.inner_ofSmooth,
+  rw [dirichlet_apply, inner_ofSmooth, toL2_ofSmooth, toL2_ofSmooth, L2Form.inner_ofSmooth o,
     add_sub_cancel_left]
 
 /-- The Dirichlet form is symmetric. -/
@@ -366,7 +366,7 @@ theorem dirichlet_ofSmooth_right (u : H1Form o hkl) (φ : SmoothForm I M ℝ k) 
   induction u using induction_on with
   | hp => exact isClosed_eq (by fun_prop) (by fun_prop)
   | h α =>
-    rw [dirichlet_ofSmooth, toL2_ofSmooth, L2Form.inner_ofSmooth,
+    rw [dirichlet_ofSmooth, toL2_ofSmooth, L2Form.inner_ofSmooth o,
       l2Inner_hodgeLaplacian_eq_l2Inner_hodgeLaplacian]
 
 /-- **Green's identity in `H1Form`**: the `H¹` inner product of `u` with a smooth form `φ` is
@@ -377,8 +377,8 @@ theorem inner_ofSmooth_right (u : H1Form o hkl) (φ : SmoothForm I M ℝ k) :
     add_sub_cancel]
 
 /-- **The inclusion into `L2Form` is injective**: an element of `H1Form o hkl` that vanishes in
-`L2Form o k` is orthogonal to every smooth form, by `inner_ofSmooth_right`, hence zero. -/
-theorem toL2_injective : Function.Injective (toL2 : H1Form o hkl → L2Form o k) := by
+`L2Form I M k` is orthogonal to every smooth form, by `inner_ofSmooth_right`, hence zero. -/
+theorem toL2_injective : Function.Injective (toL2 : H1Form o hkl → L2Form I M k) := by
   refine (injective_iff_map_eq_zero toL2).2 fun u hu ↦ ?_
   refine denseRange_ofSmooth.eq_zero_of_inner_left ℝ fun φ ↦ ?_
   rw [inner_ofSmooth_right, hu, inner_zero_left]
@@ -400,13 +400,13 @@ theorem abs_dirichlet_le (u v : H1Form o hkl) : |dirichlet u v| ≤ ‖u‖ * �
 
 /-- The pairing of an element of `H1Form o hkl` with the Laplacian of a smooth form `φ` is
 bounded by its norm times the Hodge `H¹` norm `√(‖φ‖ ^ 2 + ⟪Δφ, φ⟫)` of `φ`, computed in
-`L2Form o k`. This is the hypothesis of `L2Form.isLocallySobolev_one_of_forall_inner` for
+`L2Form I M k`. This is the hypothesis of `L2Form.isLocallySobolev_one_of_forall_inner` for
 `toL2 u`. -/
 theorem abs_inner_toL2_ofSmooth_hodgeLaplacian_le (u : H1Form o hkl) (φ : SmoothForm I M ℝ k) :
     |⟪toL2 u, L2Form.ofSmooth (hodgeLaplacian o hkl φ)⟫_ℝ| ≤
-      ‖u‖ * √(‖(L2Form.ofSmooth φ : L2Form o k)‖ ^ 2 +
-        ⟪(L2Form.ofSmooth (hodgeLaplacian o hkl φ) : L2Form o k), L2Form.ofSmooth φ⟫_ℝ) := by
-  rw [← dirichlet_ofSmooth_right, L2Form.norm_ofSmooth_sq, L2Form.inner_ofSmooth,
+      ‖u‖ * √(‖(L2Form.ofSmooth φ : L2Form I M k)‖ ^ 2 +
+        ⟪(L2Form.ofSmooth (hodgeLaplacian o hkl φ) : L2Form I M k), L2Form.ofSmooth φ⟫_ℝ) := by
+  rw [← dirichlet_ofSmooth_right, L2Form.norm_ofSmooth_sq o, L2Form.inner_ofSmooth o,
     ← norm_ofSmooth_sq (hkl := hkl), Real.sqrt_sq (norm_nonneg _)]
   exact abs_dirichlet_le u (ofSmooth φ)
 
@@ -504,7 +504,7 @@ omit [BoundarylessManifold I M] [T2Space M] in
 `L2Form.localize ψ χ hχ` of an `L²` form, read in the coordinates `e : E ≃L[ℝ] CoordinateSpace n`:
 the `L²` function `x ↦ (bΛ.repr (localize ψ χ hχ u (e⁻¹ x)) p : ℂ)` on `CoordinateSpace n`
 (`L2Form.coeFn_localizeCoord`). -/
-def L2Form.localizeCoord : L2Form o k →L[ℝ] Lp ℂ 2 (volume : Measure (CoordinateSpace n)) :=
+def L2Form.localizeCoord : L2Form I M k →L[ℝ] Lp ℂ 2 (volume : Measure (CoordinateSpace n)) :=
   Lp.compOfMapLeSmul ℝ e.symm.continuous.aemeasurable ENNReal.coe_ne_top
     (C := (((volume : Measure (CoordinateSpace n)).map e.symm).addHaarScalarFactor volume :
       ENNReal))
@@ -515,7 +515,7 @@ def L2Form.localizeCoord : L2Form o k →L[ℝ] Lp ℂ 2 (volume : Measure (Coor
 omit [BoundarylessManifold I M] [T2Space M] in
 /-- `L2Form.localizeCoord ψ χ hχ bΛ p e u` is almost everywhere the complexified `p`-th
 coordinate in `bΛ` of the localization of `u`, read through `e⁻¹`. -/
-theorem L2Form.coeFn_localizeCoord (u : L2Form o k) :
+theorem L2Form.coeFn_localizeCoord (u : L2Form I M k) :
     L2Form.localizeCoord ψ χ hχ bΛ p e u =ᵐ[volume]
       fun x ↦ (bΛ.repr (L2Form.localize ψ χ hχ u (e.symm x)) p : ℂ) := by
   have hq : QuasiMeasurePreserving e.symm volume volume :=
@@ -531,7 +531,7 @@ theorem L2Form.coeFn_localizeCoord (u : L2Form o k) :
 omit [BoundarylessManifold I M] [T2Space M] in
 /-- `L2Form.localizeCoord ψ χ hχ bΛ p e u` vanishes almost everywhere outside the image under `e`
 of the image under `ψ` of the support of `χ`. -/
-theorem L2Form.localizeCoord_ae_eq_zero_of_notMem (u : L2Form o k) :
+theorem L2Form.localizeCoord_ae_eq_zero_of_notMem (u : L2Form I M k) :
     ∀ᵐ x ∂volume, x ∉ e '' (ψ '' tsupport χ) → L2Form.localizeCoord ψ χ hχ bΛ p e u x = 0 := by
   have hq : QuasiMeasurePreserving e.symm volume volume :=
     e.symm.toContinuousAddEquiv.quasiMeasurePreserving_addHaar _ _
@@ -545,7 +545,7 @@ omit [BoundarylessManifold I M] [T2Space M] in
 `L²` norm of the localization `L2Form.localize ψ χ hχ u` is at most `C` times the sum over `p` of
 the `L²` norms of its coordinates `L2Form.localizeCoord ψ χ hχ bΛ p e u`. -/
 theorem L2Form.exists_norm_localize_le_mul_sum_norm_localizeCoord [Fintype κ] :
-    ∃ C, ∀ u : L2Form o k, ‖L2Form.localize ψ χ hχ u‖ ≤
+    ∃ C, ∀ u : L2Form I M k, ‖L2Form.localize ψ χ hχ u‖ ≤
       C * ∑ p, ‖L2Form.localizeCoord ψ χ hχ bΛ p e u‖ := by
   -- Reading a coordinate back through `e` and taking its real part.
   have hmap : (volume : Measure E).map e ≤
@@ -556,7 +556,7 @@ theorem L2Form.exists_norm_localize_le_mul_sum_norm_localizeCoord [Fintype κ] :
   let R : Lp ℂ 2 (volume : Measure (CoordinateSpace n)) →L[ℝ] Lp ℝ 2 (volume : Measure E) :=
     (Complex.reCLM : ℂ →L[ℝ] ℝ).compLpL 2 volume ∘L
       Lp.compOfMapLeSmul ℝ e.continuous.aemeasurable ENNReal.coe_ne_top hmap
-  have hR (q : κ) (u : L2Form o k) : R (L2Form.localizeCoord ψ χ hχ bΛ q e u) =
+  have hR (q : κ) (u : L2Form I M k) : R (L2Form.localizeCoord ψ χ hχ bΛ q e u) =
       (bΛ.coord q).toContinuousLinearMap.compLpL 2 volume (L2Form.localize ψ χ hχ u) := by
     refine Lp.ext ?_
     filter_upwards [(Complex.reCLM : ℂ →L[ℝ] ℝ).coeFn_compLpL (p := 2) (μ := volume)
@@ -572,7 +572,7 @@ theorem L2Form.exists_norm_localize_le_mul_sum_norm_localizeCoord [Fintype κ] :
   let Q : κ → Lp ℂ 2 (volume : Measure (CoordinateSpace n)) →L[ℝ]
       Lp (E [⋀^Fin k]→L[ℝ] ℝ) 2 (volume : Measure E) := fun q ↦
     (ContinuousLinearMap.toSpanSingleton ℝ (bΛ q)).compLpL 2 volume ∘L R
-  have hQ (u : L2Form o k) :
+  have hQ (u : L2Form I M k) :
       L2Form.localize ψ χ hχ u = ∑ q, Q q (L2Form.localizeCoord ψ χ hχ bΛ q e u) := by
     conv_lhs => rw [TauCeti.eq_sum_basis_compLpL bΛ (L2Form.localize ψ χ hχ u)]
     simp only [Q, ContinuousLinearMap.comp_apply, hR]
@@ -587,7 +587,7 @@ omit [BoundarylessManifold I M] [T2Space M] in
 the coordinate distribution `Distribution.coordOfFun` of the localization of `u` is the
 distribution of the `L²` function `L2Form.localizeCoord ψ χ hχ bΛ p e u`, multiplied by the factor
 relating the image of the volume of `E` under `e` to the volume of `CoordinateSpace n`. -/
-theorem L2Form.coordOfFun_localize_eq_smul (u : L2Form o k) :
+theorem L2Form.coordOfFun_localize_eq_smul (u : L2Form I M k) :
     Distribution.coordOfFun (U := ⊤) (Ω := ⊤) e (Set.mapsTo_univ _ _) bΛ
         (L2Form.localize ψ χ hχ u) volume p =
       (((volume : Measure E).map e).addHaarScalarFactor volume : ℝ) •
@@ -605,11 +605,11 @@ omit [BoundarylessManifold I M] in
 Laplacians is bounded in the Hodge `H¹` norm, as in `L2Form.isLocallySobolev_one_of_forall_inner`.
 Then the `p`-th coordinate of its localization to a chart, read in coordinates
 (`L2Form.localizeCoord`), lies in the Bessel-potential space `H^1` of `CoordinateSpace n`. -/
-theorem L2Form.memSobolev_localizeCoord_of_forall_inner [Finite κ] {u : L2Form o k} {C : ℝ}
+theorem L2Form.memSobolev_localizeCoord_of_forall_inner [Finite κ] {u : L2Form I M k} {C : ℝ}
     (hu : ∀ φ : SmoothForm I M ℝ k,
       |⟪u, L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ)⟫_ℝ| ≤
-        C * √(‖(L2Form.ofSmooth φ : L2Form o k)‖ ^ 2 +
-          ⟪(L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ) : L2Form o k),
+        C * √(‖(L2Form.ofSmooth φ : L2Form I M k)‖ ^ 2 +
+          ⟪(L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ) : L2Form I M k),
             L2Form.ofSmooth φ⟫_ℝ)) :
     MemSobolev 1 2 (L2Form.localizeCoord ψ χ hχ bΛ p e u : 𝓢'(CoordinateSpace n, ℂ)) := by
   set K := e '' (ψ '' tsupport χ)
@@ -724,9 +724,9 @@ end Localize
 /-! ### Compactness of the inclusion into `L2Form` -/
 
 /-- **Rellich's theorem for `H1Form`.** On a closed oriented Riemannian manifold, the inclusion
-`H1Form.toL2 : H1Form o hkl →L[ℝ] L2Form o k` is a compact operator. -/
+`H1Form.toL2 : H1Form o hkl →L[ℝ] L2Form I M k` is a compact operator. -/
 theorem H1Form.isCompactOperator_toL2 :
-    IsCompactOperator (toL2 : H1Form o hkl →L[ℝ] L2Form o k) := by
+    IsCompactOperator (toL2 : H1Form o hkl →L[ℝ] L2Form I M k) := by
   -- The localizations are taken in `L²` for a Haar measure on `E`.
   borelize E
   let _ : MeasureSpace E := ⟨Measure.addHaar⟩
@@ -735,9 +735,9 @@ theorem H1Form.isCompactOperator_toL2 :
   obtain ⟨N, c, ρ, hρ⟩ := exists_finite_partialDiffeomorph_cover (I := I) (M := M)
   let bΛ := Module.finBasis ℝ (E [⋀^Fin k]→L[ℝ] ℝ)
   let e : E ≃L[ℝ] CoordinateSpace (Module.finrank ℝ E) := .ofFinrankEq (by simp)
-  obtain ⟨C, hC0, hC⟩ := L2Form.exists_norm_le_sum_norm_localize (o := o) (k := k)
+  obtain ⟨C, hC0, hC⟩ := L2Form.exists_norm_le_sum_norm_localize (k := k)
     (fun i ↦ extChartPartialDiffeomorph I ∞ (c i)) ρ hρ
-  choose D hD using fun i ↦ L2Form.exists_norm_localize_le_mul_sum_norm_localizeCoord (o := o)
+  choose D hD using fun i ↦ L2Form.exists_norm_localize_le_mul_sum_norm_localizeCoord
     (extChartPartialDiffeomorph I ∞ (c i)) (ρ i) (hρ i) bΛ e
   -- `toL2` is dominated by the coordinates of its localizations, which are compact.
   refine IsCompactOperator.of_norm_le_sum
@@ -745,7 +745,7 @@ theorem H1Form.isCompactOperator_toL2 :
     (S := fun ip : Fin N × Fin (Module.finrank ℝ (E [⋀^Fin k]→L[ℝ] ℝ)) ↦
       (L2Form.localizeCoord (extChartPartialDiffeomorph I ∞ (c ip.1)) (ρ ip.1) (hρ ip.1) bΛ ip.2
         e ∘L toL2 : H1Form o hkl →L[ℝ] _).toLinearMap)
-    (fun ip ↦ ?_) (T := (toL2 : H1Form o hkl →L[ℝ] L2Form o k).toLinearMap)
+    (fun ip ↦ ?_) (T := (toL2 : H1Form o hkl →L[ℝ] L2Form I M k).toLinearMap)
     (fun ip ↦ C ip.1 * D ip.1) fun u ↦ ?_
   · exact isCompactOperator_localizeCoord_comp_toL2 _ _ (hρ ip.1) bΛ ip.2 e
   refine (hC (toL2 u)).trans ?_

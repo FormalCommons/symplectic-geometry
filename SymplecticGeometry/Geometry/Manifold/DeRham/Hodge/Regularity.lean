@@ -127,30 +127,31 @@ variable [IsManifold I ∞ M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)
 variable (o hkl) in
 /-- An `L²` form `u` is a **weak solution of `Δu = f`** if `⟪u, Δφ⟫ = ⟪f, φ⟫` for every smooth
 `k`-form `φ`, with `Δ` the Hodge Laplacian and `⟪·, ·⟫` the `L²` inner product. -/
-def IsWeakSolution (u f : L2Form o k) : Prop :=
+def IsWeakSolution (u f : L2Form I M k) : Prop :=
   ∀ φ : SmoothForm I M ℝ k,
     ⟪u, ofSmooth (SmoothForm.hodgeLaplacian o hkl φ)⟫_ℝ = ⟪f, ofSmooth φ⟫_ℝ
 
-theorem isWeakSolution_iff {u f : L2Form o k} : IsWeakSolution o hkl u f ↔ ∀ φ : SmoothForm I M ℝ k,
-    ⟪u, ofSmooth (SmoothForm.hodgeLaplacian o hkl φ)⟫_ℝ = ⟪f, ofSmooth φ⟫_ℝ :=
+theorem isWeakSolution_iff {u f : L2Form I M k} :
+    IsWeakSolution o hkl u f ↔ ∀ φ : SmoothForm I M ℝ k,
+      ⟪u, ofSmooth (SmoothForm.hodgeLaplacian o hkl φ)⟫_ℝ = ⟪f, ofSmooth φ⟫_ℝ :=
   Iff.rfl
 
-theorem isWeakSolution_zero : IsWeakSolution o hkl (0 : L2Form o k) 0 := fun φ ↦ by
+theorem isWeakSolution_zero : IsWeakSolution o hkl (0 : L2Form I M k) 0 := fun φ ↦ by
   simp
 
-theorem IsWeakSolution.add {u f v g : L2Form o k} (hu : IsWeakSolution o hkl u f)
+theorem IsWeakSolution.add {u f v g : L2Form I M k} (hu : IsWeakSolution o hkl u f)
     (hv : IsWeakSolution o hkl v g) : IsWeakSolution o hkl (u + v) (f + g) := fun φ ↦ by
   rw [inner_add_left, inner_add_left, hu φ, hv φ]
 
-theorem IsWeakSolution.smul {u f : L2Form o k} (hu : IsWeakSolution o hkl u f) (c : ℝ) :
+theorem IsWeakSolution.smul {u f : L2Form I M k} (hu : IsWeakSolution o hkl u f) (c : ℝ) :
     IsWeakSolution o hkl (c • u) (c • f) := fun φ ↦ by
   rw [real_inner_smul_left, real_inner_smul_left, hu φ]
 
-theorem IsWeakSolution.neg {u f : L2Form o k} (hu : IsWeakSolution o hkl u f) :
+theorem IsWeakSolution.neg {u f : L2Form I M k} (hu : IsWeakSolution o hkl u f) :
     IsWeakSolution o hkl (-u) (-f) := fun φ ↦ by
   rw [inner_neg_left, inner_neg_left, hu φ]
 
-theorem IsWeakSolution.sub {u f v g : L2Form o k} (hu : IsWeakSolution o hkl u f)
+theorem IsWeakSolution.sub {u f v g : L2Form I M k} (hu : IsWeakSolution o hkl u f)
     (hv : IsWeakSolution o hkl v g) : IsWeakSolution o hkl (u - v) (f - g) := by
   simpa only [sub_eq_add_neg] using hu.add hv.neg
 
@@ -160,10 +161,10 @@ theorem isWeakSolution_ofSmooth_iff [BoundarylessManifold I M] [T2Space M]
     IsWeakSolution o hkl (ofSmooth α) (ofSmooth f) ↔ SmoothForm.hodgeLaplacian o hkl α = f := by
   have hsa (φ : SmoothForm I M ℝ k) :=
     (SmoothForm.l2Inner_hodgeLaplacian_eq_l2Inner_hodgeLaplacian o hkl α φ).symm
-  refine ⟨fun h ↦ ?_, fun h φ ↦ by rw [inner_ofSmooth, inner_ofSmooth, hsa, h]⟩
+  refine ⟨fun h ↦ ?_, fun h φ ↦ by rw [inner_ofSmooth o, inner_ofSmooth o, hsa, h]⟩
   have h0 (φ : SmoothForm I M ℝ k) :
       SmoothForm.l2Inner o (SmoothForm.hodgeLaplacian o hkl α - f) φ = 0 := by
-    rw [SmoothForm.l2Inner_sub_left, ← hsa, ← inner_ofSmooth, ← inner_ofSmooth, h φ, sub_self]
+    rw [SmoothForm.l2Inner_sub_left, ← hsa, ← inner_ofSmooth o, ← inner_ofSmooth o, h φ, sub_self]
   exact sub_eq_zero.1 ((SmoothForm.l2Inner_self_eq_zero_iff o).1 (h0 _))
 
 end L2Form
@@ -257,7 +258,7 @@ theorem L2Form.inner_ofSmooth_hodgeLaplacian_extendByZeroAlong_eq_integral
             C y (mpullback 𝓘(ℝ, E) I ψ.symm α.val y : E [⋀^Fin k]→L[ℝ] ℝ))
     (χ : C^∞⟮I, M; ℝ⟯) (hχ : tsupport χ ⊆ ψ.source) {a : E → E [⋀^Fin k]→L[ℝ] ℝ}
     (ha : ContDiff ℝ ∞ a) (hac : HasCompactSupport a) (hat : tsupport a ⊆ ψ.target)
-    (haχ : ∀ y ∈ tsupport a, χ (ψ.symm y) = 1) (u : L2Form o k) :
+    (haχ : ∀ y ∈ tsupport a, χ (ψ.symm y) = 1) (u : L2Form I M k) :
     ⟪u, ofSmooth (SmoothForm.hodgeLaplacian o hkl
       (SmoothForm.extendByZeroAlong ψ a ha hac hat))⟫_ℝ =
       ∫ y, (b.addHaar.addHaarScalarFactor volume : ℝ) * riemannianJacobian (I := I) b ψ.symm y *
@@ -341,7 +342,7 @@ private theorem exists_locallyIntegrableOn_inner_hodgeLaplacian_eq_integral
             ∑ i, B i y (fderiv ℝ (mpullback 𝓘(ℝ, E) I ψ.symm α.val : E → E [⋀^Fin k]→L[ℝ] ℝ) y
               (b i)) +
             C y (mpullback 𝓘(ℝ, E) I ψ.symm α.val y : E [⋀^Fin k]→L[ℝ] ℝ))
-    (θ : C^∞⟮I, M; ℝ⟯) (hθ : tsupport θ ⊆ ψ.source) (u : L2Form o k) :
+    (θ : C^∞⟮I, M; ℝ⟯) (hθ : tsupport θ ⊆ ψ.source) (u : L2Form I M k) :
     ∃ w : E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] ℝ, LocallyIntegrableOn w ψ.target volume ∧
       (∀ y γ, w y γ = (b.addHaar.addHaarScalarFactor volume : ℝ) *
         riemannianJacobian (I := I) b ψ.symm y *
@@ -383,7 +384,7 @@ private theorem exists_locallyIntegrableOn_inner_hodgeLaplacian_eq_integral
 smooth, `ψ` a chart and `χ` a smooth cutoff supported in its source. On an open set `V` of the
 target of `ψ` on which `χ ∘ ψ.symm = 1`, the localization of `u` to `ψ` with the cutoff `χ` is
 almost everywhere a function smooth on `V`. -/
-theorem L2Form.IsWeakSolution.exists_contDiffOn_ae_eq_localize {u : L2Form o k}
+theorem L2Form.IsWeakSolution.exists_contDiffOn_ae_eq_localize {u : L2Form I M k}
     {f : SmoothForm I M ℝ k} (hu : IsWeakSolution o hkl u (ofSmooth f))
     (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (χ : C^∞⟮I, M; ℝ⟯) (hχ : tsupport χ ⊆ ψ.source)
     {V : Set E} (hV : IsOpen V) (hVt : V ⊆ ψ.target) (hVχ : ∀ y ∈ V, χ (ψ.symm y) = 1) :
@@ -419,7 +420,7 @@ theorem L2Form.IsWeakSolution.exists_contDiffOn_ae_eq_localize {u : L2Form o k}
       rw [SmoothForm.coe_extendByZeroAlong] at hx
       obtain ⟨y, hy, rfl⟩ := RoughForm.tsupport_extendByZeroAlong_subset a hac hat hx
       exact haχ y hy
-    rw [← hinner a ha hac hat haχ, hu, L2Form.inner_ofSmooth,
+    rw [← hinner a ha hac hat haχ, hu, L2Form.inner_ofSmooth o,
       SmoothForm.l2Inner_eq_integral_formInnerInChart ψ o b hχ hφχ,
       SmoothForm.localize_extendByZeroAlong ψ ha hac hat haχ]
     refine integral_congr_ae (Filter.Eventually.of_forall fun y ↦ ?_)
@@ -462,7 +463,7 @@ theorem L2Form.IsWeakSolution.exists_contDiffOn_ae_eq_localize {u : L2Form o k}
 /-- The localization of a weak solution of `Δu = f`, with `f` smooth, to a chart `ψ` with a smooth
 cutoff `ρ` supported in its source, is almost everywhere a smooth flat form with compact support
 in `ψ.target`. -/
-theorem L2Form.IsWeakSolution.exists_contDiff_ae_eq_localize {u : L2Form o k}
+theorem L2Form.IsWeakSolution.exists_contDiff_ae_eq_localize {u : L2Form I M k}
     {f : SmoothForm I M ℝ k} (hu : IsWeakSolution o hkl u (ofSmooth f))
     (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (ρ : C^∞⟮I, M; ℝ⟯) (hρ : tsupport ρ ⊆ ψ.source) :
     ∃ F : E → E [⋀^Fin k]→L[ℝ] ℝ, ContDiff ℝ ∞ F ∧ HasCompactSupport F ∧
@@ -525,7 +526,7 @@ private theorem exists_inner_hodgeLaplacian_extendByZeroAlong_le
     ∃ c, ∀ (a : E → E [⋀^Fin k]→L[ℝ] ℝ) (ha : ContDiff ℝ ∞ a) (hac : HasCompactSupport a)
       (hat : tsupport a ⊆ ψ.target), tsupport a ⊆ K →
       ⟪(L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl
-          (SmoothForm.extendByZeroAlong ψ a ha hac hat)) : L2Form o k),
+          (SmoothForm.extendByZeroAlong ψ a ha hac hat)) : L2Form I M k),
         L2Form.ofSmooth (SmoothForm.extendByZeroAlong ψ a ha hac hat)⟫_ℝ ≤
         c * ((eLpNorm a 2 volume).toReal +
           ∑ i, (eLpNorm (fun y ↦ fderiv ℝ a y (b i)) 2 volume).toReal) ^ 2 := by
@@ -560,11 +561,11 @@ private theorem exists_inner_hodgeLaplacian_extendByZeroAlong_le
 cutoff supported in its source, and `K` a compact subset of `ψ.target` on which
 `θ ∘ ψ.symm = 1`. There is `c` such that for every smooth flat form `a` supported in `K`, with
 extension by zero `φ` along `ψ`, `|⟪u, Δφ⟫| ≤ c * (‖a‖_{L²} + ∑ᵢ ‖∂_{b i} a‖_{L²})`. -/
-private theorem exists_abs_inner_hodgeLaplacian_extendByZeroAlong_le {u : L2Form o k} {C₀ : ℝ}
+private theorem exists_abs_inner_hodgeLaplacian_extendByZeroAlong_le {u : L2Form I M k} {C₀ : ℝ}
     (hu : ∀ φ : SmoothForm I M ℝ k,
       |⟪u, L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ)⟫_ℝ| ≤
-        C₀ * √(‖(L2Form.ofSmooth φ : L2Form o k)‖ ^ 2 +
-          ⟪(L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ) : L2Form o k),
+        C₀ * √(‖(L2Form.ofSmooth φ : L2Form I M k)‖ ^ 2 +
+          ⟪(L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ) : L2Form I M k),
             L2Form.ofSmooth φ⟫_ℝ))
     (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (b : Module.Basis (Fin m) ℝ E)
     {B : Fin m → E → (E [⋀^Fin k]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin k]→L[ℝ] ℝ}
@@ -589,7 +590,7 @@ private theorem exists_abs_inner_hodgeLaplacian_extendByZeroAlong_le {u : L2Form
           ∑ i, (eLpNorm (fun y ↦ fderiv ℝ a y (b i)) 2 volume).toReal) := by
   obtain ⟨c₁, hc₁⟩ := exists_inner_hodgeLaplacian_extendByZeroAlong_le (o := o) hkl ψ b hB hC
     hΔ θ hθ hK hKt hKθ
-  obtain ⟨c₂, hc₂, hc₂'⟩ := L2Form.exists_norm_ofSmooth_extendByZeroAlong_le (k := k) ψ o hK hKt
+  obtain ⟨c₂, hc₂, hc₂'⟩ := L2Form.exists_norm_ofSmooth_extendByZeroAlong_le (k := k) ψ hK hKt
   refine ⟨max C₀ 0 * √(c₂ ^ 2 + max c₁ 0), fun a ha hac hat haK ↦ ?_⟩
   set X := (eLpNorm a 2 volume).toReal +
     ∑ i, (eLpNorm (fun y ↦ fderiv ℝ a y (b i)) 2 volume).toReal
@@ -597,14 +598,14 @@ private theorem exists_abs_inner_hodgeLaplacian_extendByZeroAlong_le {u : L2Form
     le_add_of_nonneg_right (Finset.sum_nonneg fun _ _ ↦ ENNReal.toReal_nonneg)
   have hX0 : 0 ≤ X := ENNReal.toReal_nonneg.trans hX
   set φ := SmoothForm.extendByZeroAlong ψ a ha hac hat
-  have h₁ : ‖(L2Form.ofSmooth φ : L2Form o k)‖ ^ 2 ≤ c₂ ^ 2 * X ^ 2 := by
+  have h₁ : ‖(L2Form.ofSmooth φ : L2Form I M k)‖ ^ 2 ≤ c₂ ^ 2 * X ^ 2 := by
     rw [← mul_pow]
     exact pow_le_pow_left₀ (norm_nonneg _)
       ((hc₂' a ha hac hat haK).trans (mul_le_mul_of_nonneg_left hX hc₂)) 2
   have h₂ := (hc₁ a ha hac hat haK).trans
     (mul_le_mul_of_nonneg_right (le_max_left c₁ 0) (sq_nonneg X))
-  have hs : √(‖(L2Form.ofSmooth φ : L2Form o k)‖ ^ 2 +
-      ⟪(L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ) : L2Form o k),
+  have hs : √(‖(L2Form.ofSmooth φ : L2Form I M k)‖ ^ 2 +
+      ⟪(L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ) : L2Form I M k),
         L2Form.ofSmooth φ⟫_ℝ) ≤ √(c₂ ^ 2 + max c₁ 0) * X := by
     rw [← Real.sqrt_sq hX0, ← Real.sqrt_mul (by positivity)]
     exact Real.sqrt_le_sqrt (by nlinarith)
@@ -620,7 +621,7 @@ chart and `U` the localization of `u` with the cutoff `θ`. Let `bD` be the basi
 `bΛ` of the forms on `E`. If the coordinate distributions of `w` in `bD`, on every open set of
 coordinates mapped into an open subset of `V`, are `H¹` at every point, then so are those of `U`
 in `bΛ`, at every point of an open `Ω` with `e⁻¹ '' Ω ⊆ V`. -/
-private theorem isLocallySobolevAt_one_coordOfFun_localize_of_coordOfFun {u : L2Form o k}
+private theorem isLocallySobolevAt_one_coordOfFun_localize_of_coordOfFun {u : L2Form I M k}
     (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (θ : C^∞⟮I, M; ℝ⟯) (hθ : tsupport θ ⊆ ψ.source)
     {V : TopologicalSpace.Opens E} (hVt : (V : Set E) ⊆ ψ.target) {D : E → ℝ}
     (hD : ContDiffOn ℝ ∞ D V) (hDpos : ∀ y ∈ V, 0 < D y)
@@ -687,11 +688,11 @@ cutoff supported in its source, and `V` an open subset of `ψ.target` on which `
 Then, in coordinates `e : E ≃L[ℝ] CoordinateSpace n` on any open `Ω` with `e⁻¹ '' Ω ⊆ V`, the
 coordinate distributions of the localization of `u` with the cutoff `θ` are `H¹` near every
 point of `Ω`. -/
-private theorem isLocallySobolevAt_one_coordOfFun_localize_of_eq_one {u : L2Form o k} {C₀ : ℝ}
+private theorem isLocallySobolevAt_one_coordOfFun_localize_of_eq_one {u : L2Form I M k} {C₀ : ℝ}
     (hu : ∀ φ : SmoothForm I M ℝ k,
       |⟪u, L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ)⟫_ℝ| ≤
-        C₀ * √(‖(L2Form.ofSmooth φ : L2Form o k)‖ ^ 2 +
-          ⟪(L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ) : L2Form o k),
+        C₀ * √(‖(L2Form.ofSmooth φ : L2Form I M k)‖ ^ 2 +
+          ⟪(L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ) : L2Form I M k),
             L2Form.ofSmooth φ⟫_ℝ))
     (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (θ : C^∞⟮I, M; ℝ⟯) (hθ : tsupport θ ⊆ ψ.source)
     {V : TopologicalSpace.Opens E} (hVt : (V : Set E) ⊆ ψ.target)
@@ -746,11 +747,11 @@ and `χ` a smooth cutoff supported in its source. Then, in any basis `bΛ` of th
 in coordinates `e : E ≃L[ℝ] CoordinateSpace n` on an open `Ω` with `e⁻¹ '' Ω ⊆ U`, the
 coordinate distributions of the localization of `u` with the cutoff `χ` are `H¹` near every
 point of `Ω`. -/
-theorem L2Form.isLocallySobolev_one_of_forall_inner {u : L2Form o k} {C : ℝ}
+theorem L2Form.isLocallySobolev_one_of_forall_inner {u : L2Form I M k} {C : ℝ}
     (hu : ∀ φ : SmoothForm I M ℝ k,
       |⟪u, L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ)⟫_ℝ| ≤
-        C * √(‖(L2Form.ofSmooth φ : L2Form o k)‖ ^ 2 +
-          ⟪(L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ) : L2Form o k),
+        C * √(‖(L2Form.ofSmooth φ : L2Form I M k)‖ ^ 2 +
+          ⟪(L2Form.ofSmooth (SmoothForm.hodgeLaplacian o hkl φ) : L2Form I M k),
             L2Form.ofSmooth φ⟫_ℝ))
     (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (χ : C^∞⟮I, M; ℝ⟯) (hχ : tsupport χ ⊆ ψ.source)
     {n : ℕ} (e : E ≃L[ℝ] CoordinateSpace n) {U : TopologicalSpace.Opens E}
@@ -816,7 +817,7 @@ omit [MeasureSpace E] [BorelSpace E] [(volume : Measure E).IsAddHaarMeasure] in
 /-- **Weak solutions of `Δu = f` with smooth `f` are smooth.** On a closed oriented Riemannian
 manifold, if the `L²` form `u` is a weak solution of `Δu = f` for a smooth form `f`, then `u` is a
 smooth form `α`, and `Δα = f`. -/
-theorem L2Form.exists_eq_ofSmooth_of_isWeakSolution [BoundarylessManifold I M] {u : L2Form o k}
+theorem L2Form.exists_eq_ofSmooth_of_isWeakSolution [BoundarylessManifold I M] {u : L2Form I M k}
     {f : SmoothForm I M ℝ k} (hu : IsWeakSolution o hkl u (ofSmooth f)) :
     ∃ α : SmoothForm I M ℝ k, u = ofSmooth α ∧ SmoothForm.hodgeLaplacian o hkl α = f := by
   -- The localizations are taken in `L²` for a Haar measure on `E`.
