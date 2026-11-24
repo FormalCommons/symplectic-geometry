@@ -351,21 +351,22 @@ About 200 lines.
 
 ### `VectorBundle/Sobolev/SmoothHomMul.lean`
 
-For bundles `V`, `W` with atlases `A`, `B` over the same charts and a smooth
-section `Φ` of $\mathrm{Hom}(V,W)$:
+For bundles `V`, `W`, an atlas `A` of `V` whose chart domains also give the
+atlas `A.ofBaseSet h` of `W`, and a smooth section `Φ` of $\mathrm{Hom}(V,W)$:
 
-- `TauCeti.SobolevSection.smoothHomMulL Φ : SobolevSection A μ p k →L[ℝ] SobolevSection B μ p k`,
+- `TauCeti.SobolevSection.contMDiffHomMulL A h μ p k hΦ : SobolevSection A μ p k →L[ℝ] SobolevSection (A.ofBaseSet h) μ p k`,
   built chartwise from `TauCeti.Wkp.contDiffOnCLMApplyL` as
   `SobolevSection.contMDiffSMulL` is from `Wkp.contDiffOnSMulL`; its
   docstring credits that construction.
-- `chartValueL_smoothHomMulL_ae` and `chartValueL_smoothHomMulL_ae_coord`:
+- `chartValueL_contMDiffHomMulL_ae` and `chartValueL_contMDiffHomMulL_ae_coord`:
   the chart data are $\Phi_i u_i$.
-- `norm_smoothHomMulL_le`: the operator norm is at most a constant,
-  depending on `A`, `B`, `k`, `p`, times the maximum over charts of the
+- `norm_contMDiffHomMulL_le`: the operator norm is at most a constant,
+  depending on `A`, `h`, `k`, `p`, times the maximum over charts of the
   `C^k` norms of the chart readings of `Φ` on the closed chart images. With
   linearity in `Φ` this gives continuity in `Φ` for the `C^k` atlas norm.
 
-Issue 6 needs only `W = V` with `B = A`, for `V` the bundle
+Issue 6 needs only `W = V` with `h = A.closure_dom_subset_baseSet`, where
+`A.ofBaseSet h` is `A`, for `V` the bundle
 `A.tangentHom` of `ZeroOneForm.lean`; if atlases of two bundles on the same
 charts are awkward to state, the issue proves that case alone. About 300
 lines.
@@ -422,11 +423,12 @@ are stated for `TauCeti.HasWeakFDerivOn`. About 200 lines.
 - `twistOneKernel J : Submodule ℂ (OnePoint ℂ → ℂ)`, the smooth sections
   with `twistOneDelBar J s = 0`, with `mem_twistOneKernel_iff`; this is
   $E_J$.
-- `zeroOnePart_ofComplexManifold_injOn`: if `σ` tames `J` and $i$, then at
-  every point the $(0,1)$-projection for $i$ is injective on the
-  $(0,1)$-forms for `J` with values in a complex line; and
-  `ne_neg_of_tames` (Decision 1). The names are settled in the issue after
-  a search of `CauchyRiemann/Basic.lean`.
+- Used here from `Geometry/Symplectic/Manifold/AlmostComplex/Tames.lean`,
+  in the namespace `TauCeti.SmoothAlmostComplexStructure`:
+  `injOn_zeroOnePart_of_tames`: if `σ` tames `J` and `K`, then at every
+  point the $(0,1)$-projection for `K` is injective on the $(0,1)$-forms
+  for `J` with values in a complex vector bundle, applied with $K=i$; and
+  `ne_neg_of_tames` (Decision 1).
 - `norm_beltrami_lt_one_of_tames`: if `σ` tames `J` and $i$, then at every
   point of a chart of `A` the coefficient $\mu$ of Decision 5 has
   $|\mu|<1$, from the agreement of the complex orientations of `J` and $i$
