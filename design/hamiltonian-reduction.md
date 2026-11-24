@@ -400,7 +400,7 @@ orbit projections of `h.orbitLevel η` and of `hP.zeroLevel`.
 - `mpullback_orbitLevelGraph_prod`: the product form pulled back along
   `Subtype.val ∘ orbitLevelGraph` is
   `SmoothForm.mpullback Subtype.val _ σ + SmoothForm.mpullback orbitLevelProj _ η.coadjointOrbitForm`.
-- `existsUnique_isSymplectic_mpullback_quotientMk_orbitLevel (hσ) (hG) … :
+- `existsUnique_isSymplectic_mpullback_quotientMk_orbitLevel_eq_mpullback_add_mpullback (hσ) (hG) … :
   ∃! ω_red, ω_red.IsSymplectic ∧ SmoothForm.mpullback π_Q _ ω_red =
   SmoothForm.mpullback Subtype.val _ σ +
   SmoothForm.mpullback orbitLevelProj _ η.coadjointOrbitForm`: the product's
@@ -413,7 +413,7 @@ orbit projections of `h.orbitLevel η` and of `hP.zeroLevel`.
   finrank ℝ (ProperSMul.QuotientModelSpace E (Fin m → ℝ)) + 2 * finrank ℝ 𝔤 =
   finrank ℝ E' + finrank ℝ (Subgroup.QuotientModelSpace I _)`.
 - **Milestone** `SymplecticGeometry.symplecticReduction_coadjointOrbit`, in
-  the page's sign: for `[ConnectedSpace G]`, `hω`, `hG`,
+  the page's sign: for `hω`, `hG`,
   `h : ω.IsEquivariantMomentMap fun x ↦ -μ x`, `η`, `hemb`, freeness on
   `h.orbitLevel η` (whose points are those with `μ x ∈ Set.range ι`),
   `[ProperSMul G (h.orbitLevel η)]` and `hm`, with the atlases, the
@@ -431,8 +431,8 @@ orbit projections of `h.orbitLevel η` and of `hP.zeroLevel`.
   Its docstring ends with "Milestone: *Reduction at a coadjoint orbit and
   the shifting construction*."
 
-Connectedness is not used by the coadjoint orbit case; the milestone keeps
-the page's hypothesis, and the building lemmas do without it.
+Connectedness is not used by the coadjoint orbit case, so neither the
+milestone nor the building lemmas assume it.
 
 ## What the part uses
 
