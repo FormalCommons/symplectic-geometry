@@ -132,10 +132,7 @@ theorem mixedInterior_mixedInterior (X : Cₛ^∞⟮I; E, TangentSpace I (M := M
   induction γ using DirectSum.induction_on with
   | zero => simp
   | of k φ =>
-    rcases k with _ | _ | k
-    · simp
-    · simp
-    · simp
+    rcases k with _ | _ | k <;> simp
   | add γ δ hγ hδ => simp [hγ, hδ]
 
 /-- The graded Leibniz rule for the exterior derivative of forms of mixed degree, for a
