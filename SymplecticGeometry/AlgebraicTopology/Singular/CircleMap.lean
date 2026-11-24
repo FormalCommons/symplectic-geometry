@@ -130,11 +130,7 @@ theorem singularHomologyMap_eq_circleDegree_smul (w : C(Circle, Circle)) :
       ext z
       simp
     rw [← hpow]
-    -- A path in `C(S¹, S¹)` is a homotopy through maps subject to no condition.
-    obtain ⟨F⟩ := (homotopicWith_iff_joined (P := fun _ ↦ True) trivial trivial).2
-      (Joined.map ⟨γ⟩ (f := fun f ↦ (⟨f, trivial⟩ : Subtype fun _ : C(Circle, Circle) ↦ True))
-        (by fun_prop))
-    exact ⟨F.toHomotopy⟩
+    exact homotopic_iff_joined.2 ⟨γ⟩
   have h := map_zsmul singularHomologyMapAddHom w.circleDegree
     (Additive.ofMul (ContinuousMap.id Circle))
   simp only [singularHomologyMapAddHom, AddMonoidHom.mk'_apply, ← ofMul_zpow, toMul_ofMul,

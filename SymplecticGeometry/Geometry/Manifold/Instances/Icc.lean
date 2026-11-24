@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.Instances.Icc
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 import TauCeti.Geometry.Manifold.Instances.Icc
+import TauCeti.Geometry.Manifold.VectorField.Regularity
 
 /-!
 # The inclusion and the unit vector field of a closed interval
@@ -55,13 +56,8 @@ theorem contMDiff_totalSpaceMk_one_Icc :
   have hT := (contMDiffOn_projIcc (x := x) (y := y) (n := ω)).contMDiffOn_tangentMapWithin
     (m := n) le_top (uniqueDiffOn_Icc (Fact.out : x < y)).uniqueMDiffOn
   have hg : ContMDiff (𝓡∂ 1) 𝓘(ℝ).tangent n
-      (fun z : Icc x y ↦ (⟨z, (1 : TangentSpace 𝓘(ℝ) (z : ℝ))⟩ : TangentBundle 𝓘(ℝ) ℝ)) := by
-    have h : ContMDiff (𝓡∂ 1) 𝓘(ℝ, ℝ × ℝ) n (fun z : Icc x y ↦ ((z : ℝ), (1 : ℝ))) :=
-      contMDiff_subtypeVal_Icc.prodMk_space contMDiff_const
-    rw [modelWithCornersSelf_prod] at h
-    -- `TotalSpace.toProd` has no simp lemma for its inverse; it is `(b, v) ↦ ⟨b, v⟩` by
-    -- definition, and the unit vector of `ℝ` is `(1 : ℝ)` by definition.
-    exact (contMDiff_tangentBundleModelSpaceHomeomorph_symm (I := 𝓘(ℝ))).comp h
+      (fun z : Icc x y ↦ (⟨z, (1 : TangentSpace 𝓘(ℝ) (z : ℝ))⟩ : TangentBundle 𝓘(ℝ) ℝ)) :=
+    contMDiff_tangentBundle_mk_modelSpace contMDiff_subtypeVal_Icc contMDiff_const
   refine (hT.comp_contMDiff hg fun z ↦ z.property).congr fun z ↦ ?_
   simp only [Function.comp_apply, tangentMapWithin]
   rw [mfderivWithin_projIcc_one z.property, projIcc_val]

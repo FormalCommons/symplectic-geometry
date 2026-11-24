@@ -82,7 +82,7 @@ diffeotopies and the cylinder `[0, 1] × M` of isotopies.
 The form `σ` on `M` is not called `ω`, which is a token once the scope `ContDiff` is open. The
 proof of `hasHamiltonian_iff_velocityForm` reads the derivatives of the motion as that of
 `TauCeti.Diffeotopy.hasHamiltonian_iff_isHamiltonianVectorField_velocity` does, through
-`TauCeti.Diffeotopy.mfderiv_cylinderMap_time` and `TauCeti.Diffeotopy.mfderiv_cylinderMap_space`.
+`TauCeti.Diffeotopy.mfderiv_cylinderMap_time` and `TauCeti.Diffeotopy.mfderiv_cylinderMap_inl`.
 
 ## References
 
@@ -422,7 +422,7 @@ theorem hasHamiltonian_iff_velocityForm {σ : SmoothTwoForm I M} {Φ : Diffeotop
     · funext i
       fin_cases i
       · exact (Φ.mfderiv_cylinderMap_time (by simp) (x, t)).symm
-      · exact (Φ.mfderiv_cylinderMap_space (by simp) (x, t) v).symm
+      · exact (Φ.mfderiv_cylinderMap_inl (by simp) (x, t) v).symm
   -- The differentials of the slices of `F` are its partial derivatives in space.
   have hd (hF : ContMDiff (I.prod (𝓡∂ 1)) 𝓘(ℝ) ∞ F) (t : unitInterval) (x : M) (v : E) :
       mextDeriv (RoughForm.ofFunction I fun y ↦ F (y, t)) x ![v] =

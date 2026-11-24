@@ -188,8 +188,8 @@ circle. -/
 theorem continuous_det_clutchingTransition (i : ι) :
     Continuous fun ζ ↦
       LinearMap.det ((clutchingTransition hφ Φ Φout i ζ).toLinearEquiv : G →ₗ[ℂ] G) :=
-  continuous_det_trans_symm (φ i).boundaryCircle (continuous_discFrame_boundaryCircle hΦ i)
-    (continuous_outFrame_boundaryCircle hφ hΦout i)
+  ContinuousLinearMap.continuous_det.comp (TauCeti.continuous_trans_symm_of_continuous_frame
+    (continuous_outFrame_boundaryCircle hφ hΦout i) (continuous_discFrame_boundaryCircle hΦ i))
 
 include hΦ hΦout in
 /-- The normalized determinant of the clutching transition is a continuous loop on the circle. -/
