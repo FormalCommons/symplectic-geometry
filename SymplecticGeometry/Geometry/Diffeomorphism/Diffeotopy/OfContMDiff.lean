@@ -7,7 +7,6 @@ module
 
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
 import Mathlib.Geometry.Manifold.LocalDiffeomorph
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.UnitInterval
 
 /-!
@@ -35,7 +34,10 @@ where the inverse function theorem on the manifold with boundary `unitInterval �
 The map `(t, x) ↦ (t, ψ_t x)` of `unitInterval × M` is a local diffeomorphism, also at the ends
 of the interval (`ContMDiff.isLocalDiffeomorph_prodMk_unitInterval`), and it is bijective, so it
 is a diffeomorphism (`IsLocalDiffeomorph.diffeomorphOfBijective`). Its inverse is
-`(t, y) ↦ (t, ψ_t⁻¹ y)`.
+`(t, y) ↦ (t, ψ_t⁻¹ y)`. This proof of `Diffeomorph.contMDiff_symm_eval_unitInterval` adapts that
+of Tau Ceti's `Diffeomorph.contMDiff_symm_family`, in
+`TauCeti/Geometry/Manifold/Diffeomorph/Family.lean`, which needs a boundaryless parameter
+manifold, to the parameter space `[0, 1]`.
 
 ## References
 
