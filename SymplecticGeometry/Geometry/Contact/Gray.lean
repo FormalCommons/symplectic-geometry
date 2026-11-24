@@ -18,6 +18,7 @@ public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Manifold.Flow.TimeDependent.Opens
 
 /-!
 # The Gray vector field, the Gray isotopy and Gray stability
@@ -95,11 +96,7 @@ the restrictions are contact forms with the same kernels, and naturality of the 
 under the inclusions concludes. The factor between two families with the same kernels in
 `TauCeti.SmoothForm.grayVectorField_eq_of_eventually_kerDistribution_eq` is the one of
 `TauCeti.SmoothForm.grayVectorField_eq_of_kerDistribution_eq`, in Tau Ceti's
-`TauCeti/Geometry/Contact/Gray.lean`. Gray's equation as a rate,
-`TauCeti.SmoothForm.mpullback_prodMk_mlieDerivForm_add_mlieDerivForm_grayVectorField_apply`, is
-the pointwise form of the private lemma
-`TauCeti.SmoothForm.mpullback_prodMk_mlieDerivForm_add_mlieDerivForm_grayVectorField` of the
-pinned Tau Ceti's `TauCeti/Geometry/Contact/Gray.lean`, with its proof.
+`TauCeti/Geometry/Contact/Gray.lean`.
 
 ## Main results
 
@@ -107,10 +104,9 @@ pinned Tau Ceti's `TauCeti/Geometry/Contact/Gray.lean`, with its proof.
   depends only on the kernels of the slices.
 * `SymplecticGeometry.IsLocalDefiningFamily.tangentSpaceOpenEquiv_grayVectorField_eq`: local
   defining families of a family of contact structures have the same Gray vectors.
-* `TauCeti.SmoothForm.mpullback_prodMk_mlieDerivForm_add_mlieDerivForm_grayVectorField_apply`:
-  Gray's equation, in the form of the hypothesis of the rescaling theorems along flows.
-* `TauCeti.SmoothForm.inv_smul_eq_grayVectorField`: its converse, which recognizes a multiple of
-  the Gray vector from the rate of the family along a field in the kernel of `α_t`.
+* `TauCeti.SmoothForm.inv_smul_eq_grayVectorField`: the converse of Gray's equation, which
+  recognizes a multiple of the Gray vector from the rate of the family along a field in the kernel
+  of `α_t`.
 * `SymplecticGeometry.IsContactFamily.exists_grayField`: the Gray field of a smooth family of
   contact structures.
 * `SymplecticGeometry.IsContactFamily.grayDiffeotopy`: the Gray isotopy, with
@@ -184,26 +180,6 @@ theorem grayVectorField_eq_of_eventually_kerDistribution_eq
     refine hc'.apply_ne_zero x ?_
     rw [hmul.self_of_nhdsWithin ⟨ht, Set.mem_univ x⟩]
     exact (congrArg (· • _) h₀).trans (zero_smul ℝ _)
-
-omit [I.Boundaryless] in
-/-- **Gray's equation, as a rate.** If the slice `α_t` of a family of one-forms on `ℝ × M` is a
-contact form, then at each point `y` the rate `ι_t^* L_{∂_t} α + L_{Y_t} α_t` of the family along
-its Gray vector field `Y` is `μ_t(y) • α_t(y)`, where `μ` is the Gray rate. This is the hypothesis
-of the rescaling theorems along one trajectory of a time-dependent flow, in `Flow/Family.lean`. -/
-theorem mpullback_prodMk_mlieDerivForm_add_mlieDerivForm_grayVectorField_apply
-    {α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 1} {t : ℝ}
-    (hc : (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).IsContactForm)
-    (y : M) :
-    (TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t)
-        (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) α.val) +
-      mlieDerivForm (α.grayVectorField t)
-        (TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t) α.val)) y =
-      α.grayRate (t, y) • TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t) α.val y := by
-  ext w
-  have h := mlieDerivForm_grayVectorField_add hc y w
-  simp only [coe_mpullback, coe_timeDeriv, Pi.add_apply, ContinuousAlternatingMap.add_apply,
-    ContinuousAlternatingMap.smul_apply, smul_eq_mul] at h ⊢
-  rw [add_comm, h]
 
 omit [I.Boundaryless] in
 /-- **The converse of Gray's equation.** Let the slice `α_t` of a family of one-forms on `ℝ × M`
@@ -515,12 +491,10 @@ private theorem eventually_comap_mfderiv_timeDependentFlowOf (hξ : IsContactFam
   obtain ⟨a, b, hab, U, hy₀, α, hα⟩ := hξ.exists_local_extension (t₀, y₀)
   have hc := hα.isContactForm
   -- The restriction of `Y` to `U`.
-  set XU : ℝ → (y : U) → TangentSpace I y :=
-    fun u y ↦ (Manifold.tangentSpaceOpenEquiv y).symm (Y u y)
+  set XU : ℝ → (y : U) → TangentSpace I y := fun u y ↦ Y u y
   have hXU : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent ∞
       (fun p : ℝ × U ↦ (⟨p.2, XU p.1 p.2⟩ : TangentBundle I U)) :=
-    Manifold.contMDiff_tangentSpaceOpenEquiv_symm (f := Prod.snd)
-      (hY.comp (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd)))
+    contMDiff_timeDependentField_opens hY
   have hXU₁ := hXU.of_le (m := 1) (by simp)
   have hY₁ := hY.of_le (m := 1) (by simp)
   set y₀' : U := ⟨y₀, hy₀⟩
@@ -528,7 +502,7 @@ private theorem eventually_comap_mfderiv_timeDependentFlowOf (hξ : IsContactFam
     ((isOpen_timeDependentFlowDomain hXU₁).preimage (by fun_prop)).mem_nhds
       (mem_timeDependentFlowDomain_self hXU₁ _ _)
   filter_upwards [hdom, isOpen_Ioo.mem_nhds hab] with t hdom htab ht
-  obtain ⟨hdomM, hpt⟩ := timeDependentFlowOf_restrict_eq hY₁ hdom
+  obtain ⟨hdomM, hpt⟩ := timeDependentFlowOf_restrict_opens hY₁ hdom
   refine ⟨hdomM, ?_⟩
   -- The times between `t₀` and `t` lie in `(a, b) ∩ [0, 1]`, where `XU` is the Gray field of `α`.
   have huIcc : uIcc (t₀ : ℝ) t ⊆ Ioo a b ∩ unitInterval :=
@@ -537,7 +511,7 @@ private theorem eventually_comap_mfderiv_timeDependentFlowOf (hξ : IsContactFam
     funext y
     simp only [XU]
     rw [← hgray u (huIcc hu).2 a b (huIcc hu).1 U y y.property α hα]
-    exact ContinuousLinearEquiv.symm_apply_apply _ _
+    exact Manifold.tangentSpaceOpenEquiv_apply _ _
   have hdomU (u : ℝ) (hu : u ∈ uIcc (t₀ : ℝ) t) :
       (((t₀ : ℝ), u), y₀') ∈ timeDependentFlowDomain XU :=
     (ordConnected_setOf_mem_timeDependentFlowDomain _ _).uIcc_subset
@@ -554,7 +528,7 @@ mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_for
           |>.continuousWithinAt))
       (fun u hu ↦ by
         rw [hXUα u hu]
-        exact mpullback_prodMk_mlieDerivForm_add_mlieDerivForm_grayVectorField_apply (hc u) _)
+        exact congrFun (mpullback_prodMk_mlieDerivForm_add_mlieDerivForm_grayVectorField (hc u)) _)
   -- The rescaling identity, evaluated on a vector at `y₀'`, compares the kernels.
   have hker (v : TangentSpace I y₀') :
       mfderiv I I (timeDependentFlowOf XU t₀ t) y₀' v ∈
@@ -572,9 +546,11 @@ mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_for
       mul_eq_zero_iff_left (Real.exp_pos _).ne']
   -- Read in `M`, through the flow of `Y`.
   ext w
-  have hw := tangentSpaceOpenEquiv_mfderiv_timeDependentFlowOf_restrict hY₁ hdom
-    ((Manifold.tangentSpaceOpenEquiv y₀').symm w)
-  rw [ContinuousLinearEquiv.apply_symm_apply] at hw
+  have hw : Manifold.tangentSpaceOpenEquiv _ (mfderiv I I (timeDependentFlowOf XU t₀ t) y₀'
+      ((Manifold.tangentSpaceOpenEquiv y₀').symm w)) =
+        mfderiv I I (timeDependentFlowOf Y t₀ t) y₀ w := by
+    rw [Manifold.tangentSpaceOpenEquiv_apply, Manifold.tangentSpaceOpenEquiv_symm_apply]
+    exact (mfderiv_timeDependentFlowOf_restrict_opens_apply hY₁ hdom w).symm
   rw [Submodule.mem_comap, ContinuousLinearMap.coe_coe, ← hw]
   refine (mem_iff_mem_of_eq (ξ ⟨t, ht⟩) hpt _).symm.trans ?_
   exact ((hα.mem_kerDistribution_iff ⟨htab, ht⟩ _ _).symm.trans
@@ -592,21 +568,18 @@ private theorem eventuallyEq_mpullback_timeDependentFlowOf_eulerianField_restric
     (y : U) {w : TangentSpace I y}
     (hw : w ∈ (mpullback (Prod.mk (Real.smoothTransition u))
       (contMDiff_const.prodMk contMDiff_id) β).kerDistribution y) :
-    (fun u' ↦ TauCeti.mpullback I I (timeDependentFlowOf (fun v (z : U) ↦
-        (Manifold.tangentSpaceOpenEquiv z).symm
-          (eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) v z)) u u')
+    (fun u' ↦ TauCeti.mpullback I I (timeDependentFlowOf (I := I) (M := U) (fun v z ↦
+        eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) v z) u u')
       (TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u')
         (mpullback (Prod.map Real.smoothTransition id)
           (Real.smoothTransition.contDiff.contMDiff.prodMap contMDiff_id) β).val) y ![w]) =ᶠ[𝓝 u]
       fun _ ↦ 0 := by
   set Z := eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv)
-  set ZU : ℝ → (z : U) → TangentSpace I z :=
-    fun u' z ↦ (Manifold.tangentSpaceOpenEquiv z).symm (Z u' z)
+  set ZU : ℝ → (z : U) → TangentSpace I z := fun u' z ↦ Z u' z
   have hZ₁ := Φ.contMDiff_eulerianField_smoothTransitionFamily.of_le (m := 1) (by simp)
   have hZU₁ : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 1
       (fun p : ℝ × U ↦ (⟨p.2, ZU p.1 p.2⟩ : TangentBundle I U)) :=
-    Manifold.contMDiff_tangentSpaceOpenEquiv_symm (f := Prod.snd)
-      (hZ₁.comp (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd)))
+    contMDiff_timeDependentField_opens hZ₁
   -- Write `y = φ_{s u} x`.
   obtain ⟨y, hxU⟩ := y
   obtain ⟨x, rfl⟩ := (Φ.timeSlice (unitInterval.smoothTransition u)).surjective y
@@ -615,8 +588,12 @@ private theorem eventuallyEq_mpullback_timeDependentFlowOf_eulerianField_restric
       (mem_timeDependentFlowDomain_self hZU₁ _ _)
   filter_upwards [hdom, (isOpen_Ioo.preimage Real.smoothTransition.continuous).mem_nhds hab]
     with u' hdom' hu'
-  obtain ⟨-, hpt⟩ := timeDependentFlowOf_restrict_eq hZ₁ hdom'
-  have hw' := tangentSpaceOpenEquiv_mfderiv_timeDependentFlowOf_restrict hZ₁ hdom' w
+  obtain ⟨-, hpt⟩ := timeDependentFlowOf_restrict_opens hZ₁ hdom'
+  have hw' : Manifold.tangentSpaceOpenEquiv _
+      (mfderiv I I (timeDependentFlowOf ZU u u') ⟨_, hxU⟩ w) =
+        mfderiv I I (timeDependentFlowOf Z u u') _ (Manifold.tangentSpaceOpenEquiv _ w) := by
+    rw [Manifold.tangentSpaceOpenEquiv_apply, Manifold.tangentSpaceOpenEquiv_apply]
+    exact (mfderiv_timeDependentFlowOf_restrict_opens_apply hZ₁ hdom' w).symm
   have hvec : (fun i ↦ mfderiv I I (timeDependentFlowOf ZU u u') ⟨_, hxU⟩ (![w] i)) =
       ![mfderiv I I (timeDependentFlowOf ZU u u') ⟨_, hxU⟩ w] :=
     (FinVec.etaExpand_eq _).symm
@@ -680,20 +657,18 @@ private theorem eulerianField_smoothTransitionFamily_eq (hξ : IsContactFamily �
   set β' := mpullback (Prod.map Real.smoothTransition id) (hs.prodMap contMDiff_id) β
   -- The restriction `ZU` of `Z` to `U`, which lies in the kernels of `β`, since the velocities of
   -- `Φ` lie in `ξ`.
-  set ZU : ℝ → (z : U) → TangentSpace I z :=
-    fun u' z ↦ (Manifold.tangentSpaceOpenEquiv z).symm (Z u' z)
+  set ZU : ℝ → (z : U) → TangentSpace I z := fun u' z ↦ Z u' z
   have hZU : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent ∞
       (fun p : ℝ × U ↦ (⟨p.2, ZU p.1 p.2⟩ : TangentBundle I U)) :=
-    Manifold.contMDiff_tangentSpaceOpenEquiv_symm (f := Prod.snd)
-      (Φ.contMDiff_eulerianField_smoothTransitionFamily.comp
-        (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd)))
+    contMDiff_timeDependentField_opens Φ.contMDiff_eulerianField_smoothTransitionFamily
   have hZker (z : U) : (mpullback (Prod.mk (Real.smoothTransition u))
       (contMDiff_const.prodMk contMDiff_id) β).val z ![ZU u z] = 0 := by
     rw [← mem_kerDistribution, ← unitInterval.coe_smoothTransition u,
       hβ.mem_kerDistribution_iff
         ⟨(unitInterval.coe_smoothTransition u).symm ▸ hab,
           (unitInterval.smoothTransition u).property⟩,
-      ContinuousLinearEquiv.apply_symm_apply, hZeq]
+      Manifold.tangentSpaceOpenEquiv_apply]
+    simp only [ZU, hZeq]
     exact Submodule.smul_mem _ _ (hv _ _)
   set y' : U := ⟨y, hyU⟩
   -- The derivative at `u` of the pullbacks of `β'` along the flow of `ZU` from time `u`.
@@ -728,7 +703,7 @@ private theorem eulerianField_smoothTransitionFamily_eq (hξ : IsContactFamily �
     (unitInterval.coe_smoothTransition u ▸ (unitInterval.smoothTransition u).property) a b hab U y
     hyU β hβ,
     ← hgv, map_smul, smul_inv_smul₀ hd]
-  exact (ContinuousLinearEquiv.apply_symm_apply _ _).symm
+  exact (Manifold.tangentSpaceOpenEquiv_apply _ _).symm
 
 /-- A normalized transporting diffeotopy `Φ`, read over `ℝ` as `u ↦ φ_{s(u)}`, is the
 time-dependent flow from time `0` of the field `s'(u) • Y_{s(u)}`, which depends only on `Y`. -/
