@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.Orientation.Sphere
+public import TauCeti.Geometry.Symplectic.Manifold.Orientation
 public import TauCeti.Geometry.Symplectic.Manifold.Volume
 import SymplecticGeometry.Geometry.Manifold.Orientation.Sphere
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.TwoForm
@@ -28,11 +29,15 @@ this is the outward-normal orientation.
 
 * `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_neg`: for odd `n`, the symplectic
   orientation of `-σ` is the negative of that of `σ`.
+* `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_orientation`: in every dimension,
+  the orientation `volumeOrientation` of `σ` is Tau Ceti's other symplectic orientation
+  `IsNondegenerate.orientation`.
 * `TauCeti.SmoothTwoForm.volumeForm_one`: the volume form `σ¹ / 1!` is `σ`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_ofTopForm`: on a surface, the
   symplectic orientation of `σ` is the orientation defined by `σ` as a top form. This is Tau
   Ceti's `TauCeti.SmoothTwoForm.IsNondegenerate.orientation_eq_ofTopForm`, stated for
-  `volumeOrientation`, which agrees with Tau Ceti's `IsNondegenerate.orientation` at every point.
+  `volumeOrientation`, which equals Tau Ceti's `IsNondegenerate.orientation` by
+  `volumeOrientation_eq_orientation`.
 * `Orientation.volumeOrientation_sphereVolumeForm`: the symplectic orientation of the volume form
   of the unit two-sphere is its outward-normal orientation.
 
@@ -81,6 +86,13 @@ theorem IsNondegenerate.volumeOrientation_neg (h : σ.IsNondegenerate) (hodd : O
   rw [← hb, ← b.orientation_ne_iff_eq_neg]
   exact fun h' ↦ hneg ((h.neg.orientation_eq_orientationAt_volumeOrientation_iff hn b).1 h'.symm)
 
+/-- Tau Ceti's two symplectic orientations of a fiberwise nondegenerate two-form `σ` agree:
+`IsNondegenerate.volumeOrientation`, on which the volume form `σⁿ / n!` is positive, is
+`IsNondegenerate.orientation`, the linear symplectic orientation of each tangent space. -/
+theorem IsNondegenerate.volumeOrientation_eq_orientation (h : σ.IsNondegenerate)
+    (hn : finrank ℝ E = 2 * n) : h.volumeOrientation hn = h.orientation hn :=
+  Manifold.Orientation.ext fun x ↦ by simp
+
 omit [FiniteDimensional ℝ E] in
 /-- The volume form `σ¹ / 1!` of a two-form `σ` is `σ` itself. -/
 @[simp]
@@ -97,10 +109,7 @@ theorem IsNondegenerate.volumeOrientation_eq_ofTopForm (h : σ.IsNondegenerate)
     h.volumeOrientation (n := 1) hE = Manifold.Orientation.ofTopForm hE σ.val
       (σ.isSmoothForm.of_le zero_le)
       (fun x ↦ by simpa using h.volumeForm_apply_ne_zero (n := 1) hE x) :=
-  -- At each point, both orientations are the linear symplectic orientation of the tangent space.
-  (Manifold.Orientation.ext fun x ↦ by
-    rw [orientationAt_orientation]
-    exact h.orientationAt_volumeOrientation (n := 1) hE x).trans (h.orientation_eq_ofTopForm hE)
+  (h.volumeOrientation_eq_orientation hE).trans (h.orientation_eq_ofTopForm hE)
 
 end SmoothTwoForm
 
