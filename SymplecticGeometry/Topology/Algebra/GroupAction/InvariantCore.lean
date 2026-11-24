@@ -20,6 +20,13 @@ An open set `U` that is invariant under the action of a monoid `G` carries the r
 `TopologicalSpace.Opens.mulActionOfForallSMulMem`. The invariant core always is invariant, so it
 carries this action as an instance.
 
+The invariant core and its API follow Tau Ceti's `Submodule.invariantCore`, carried over from
+submodules to open sets, and the proofs of `invariantCore_le`, `smul_mem_invariantCore`,
+`le_invariantCore_iff`, `invariantCore_mono` and `invariantCore_eq_self_iff` take the steps of
+the lemmas of the same names there. The restricted action `mulActionOfForallSMulMem` is Tau Ceti's
+`ContRepresentation.mulActionOpens` for an arbitrary monoid action in place of a continuous linear
+representation, with the same proofs of the action laws.
+
 ## Main definitions
 
 * `TopologicalSpace.Opens.invariantCore G U`: the points whose orbit lies in `U`, as an open set.
@@ -27,9 +34,14 @@ carries this action as an instance.
 
 ## Main results
 
+* `TopologicalSpace.Opens.subset_invariantCore`: a set that every `g • ·` maps into `U`, such as an
+  invariant subset of `U`, lies in the invariant core.
+* `TopologicalSpace.Opens.le_invariantCore_iff`: an open set lies in the invariant core of `U`
+  exactly when every `g • ·` maps it into `U`.
 * `TopologicalSpace.Opens.invariantCore_le`: the invariant core lies in `U`.
 * `TopologicalSpace.Opens.smul_mem_invariantCore`: the invariant core is invariant.
-* `TopologicalSpace.Opens.subset_invariantCore`: it contains every invariant subset of `U`.
+* `TopologicalSpace.Opens.invariantCore_eq_self_iff`: `U` is its own invariant core exactly when
+  it is invariant.
 -/
 
 public section
@@ -57,6 +69,26 @@ theorem coe_invariantCore [SMul G X] [ContinuousSMul G X] (U : Opens X) :
     (U.invariantCore G : Set X) = {x | ∀ g : G, g • x ∈ U} :=
   (rfl)
 
+section SMul
+
+variable [SMul G X] [ContinuousSMul G X] {U : Opens X}
+
+/-- A set lies in the invariant core of `U` once every `g • ·` maps it into `U`. -/
+theorem subset_invariantCore {s : Set X} (hs : ∀ g : G, ∀ x ∈ s, g • x ∈ U) :
+    s ⊆ U.invariantCore G := fun x hx g ↦ hs g x hx
+
+/-- An open set lies in the invariant core of `U` exactly when every `g • ·` maps it into `U`. -/
+theorem le_invariantCore_iff {V : Opens X} :
+    V ≤ U.invariantCore G ↔ ∀ g : G, ∀ x ∈ V, g • x ∈ U :=
+  ⟨fun h g _ hx ↦ mem_invariantCore.1 (h hx) g, subset_invariantCore⟩
+
+variable (G) in
+/-- Taking invariant cores preserves inclusions of open sets. -/
+theorem invariantCore_mono : Monotone (invariantCore G : Opens X → Opens X) :=
+  fun _ _ h ↦ le_invariantCore_iff.2 fun g _ hx ↦ h (mem_invariantCore.1 hx g)
+
+end SMul
+
 variable [Monoid G] [MulAction G X] [ContinuousSMul G X] {U : Opens X}
 
 /-- The invariant core of `U` lies in `U`. -/
@@ -68,13 +100,9 @@ theorem smul_mem_invariantCore {x : X} (hx : x ∈ U.invariantCore G) (g : G) :
     g • x ∈ U.invariantCore G := fun h ↦ by
   simpa [mul_smul] using hx (h * g)
 
-/-- Every invariant subset of `U` lies in the invariant core of `U`. -/
-theorem subset_invariantCore {s : Set X} (hs : ∀ g : G, ∀ x ∈ s, g • x ∈ s) (hsU : s ⊆ U) :
-    s ⊆ U.invariantCore G := fun x hx g ↦ hsU (hs g x hx)
-
-/-- An invariant open set is its own invariant core. -/
-theorem invariantCore_eq_self (hU : ∀ g : G, ∀ x ∈ U, g • x ∈ U) : U.invariantCore G = U :=
-  le_antisymm (invariantCore_le U) (subset_invariantCore hU le_rfl)
+/-- An open set is its own invariant core exactly when it is invariant. -/
+theorem invariantCore_eq_self_iff : U.invariantCore G = U ↔ ∀ g : G, ∀ x ∈ U, g • x ∈ U :=
+  (invariantCore_le U).ge_iff_eq.symm.trans le_invariantCore_iff
 
 end Core
 
