@@ -25,6 +25,7 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
 import TauCeti.Analysis.Calculus.DifferentialForm.Wedge
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
+import TauCeti.Topology.Algebra.Support
 
 /-!
 # Differential forms read through a partial diffeomorphism onto a normed space
@@ -411,9 +412,8 @@ theorem tsupport_extendByZeroAlong_subset [T2Space M]
       ψ.symm '' tsupport a := by
   have hK : IsCompact (ψ.symm '' tsupport a) :=
     ψ.symm.isCompact_image_of_subset_source hc hs
-  refine closure_minimal (fun x hx ↦ ?_) hK.isClosed
-  by_contra h
-  exact hx (extendByZeroAlong_apply_of_notMem_image a h)
+  exact TauCeti.tsupport_subset_of_forall_notMem_eq_zero
+    (fun x h ↦ extendByZeroAlong_apply_of_notMem_image a h) hK.isClosed
 
 /-- On a Hausdorff manifold, the extension by zero of a compactly supported flat form whose
 support lies in the target of `ψ` is compactly supported. -/
