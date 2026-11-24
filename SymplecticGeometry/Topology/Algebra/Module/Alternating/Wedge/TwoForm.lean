@@ -11,7 +11,9 @@ public import TauCeti.Topology.Algebra.Module.Alternating.Wedge.Pow
 # The first wedge power of a two-form
 
 The first wedge power `ω ^ 1 = 1 ∧ ω` of a real alternating two-form `ω` is `ω` itself
-(`ContinuousAlternatingMap.wedgePow_one`). Together with Tau Ceti's
+(`ContinuousAlternatingMap.wedgePow_one`). It is the case `k = 2` of Tau Ceti's
+`ContinuousAlternatingMap.wedgePow_one_apply`: there `2 * 1` reduces to `2`, the reindexing is
+trivial, and the evaluation statement becomes an equality of forms. Together with Tau Ceti's
 `ContinuousAlternatingMap.wedgePow_two_eq` it describes the low wedge powers of two-forms; on a
 surface the symplectic volume form `σ¹ / 1!` of a two-form `σ` is `σ`.
 
@@ -35,8 +37,7 @@ variable {E : Type*} [AddCommGroup E] [Module ℝ E] [TopologicalSpace E]
 @[simp]
 theorem wedgePow_one (ω : E [⋀^Fin 2]→L[ℝ] ℝ) : wedgePow ω 1 = ω := by
   ext v
-  rw [wedgePow_succ, pairedWedge_apply_zero_left, wedgePow_zero_apply]
-  simp only [Fin.cast_refl, CompTriple.comp_eq, ContinuousLinearMap.mul_apply', one_mul]
+  simp only [wedgePow_one_apply, Fin.cast_refl, Function.comp_id]
 
 end ContinuousAlternatingMap
 
