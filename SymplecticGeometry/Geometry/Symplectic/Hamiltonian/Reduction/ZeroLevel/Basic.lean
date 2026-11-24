@@ -8,11 +8,9 @@ module
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Reduction.ReducedSpace
 public import SymplecticGeometry.Topology.Algebra.ProperAction.Basic
 public import SymplecticGeometry.GroupTheory.GroupAction.SubMulAction
-
--- `zeroLevelChartedSpace` is `levelSubMulActionChartedSpace 0`, which needs the two levels to
--- have the same points by definition; that unfolds the body of `levelSubMulAction`.
-import all TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.LevelAction
+public import TauCeti.Geometry.Manifold.PullbackGroupoid
 import TauCeti.Geometry.Lie.Subgroup.Stabilizer
+import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 
 /-!
@@ -28,6 +26,7 @@ on all of `M` is assumed.
 * `zeroLevel`: the level `μ⁻¹(0)` as a `SubMulAction` of `G`. The instance
   `SubMulAction.properSMul` gives properness on it from a proper action on `M`, and
   `SubMulAction.isCancelSMul_of_forall_stabilizer_eq_bot` gives freeness.
+* `zeroLevelHomeomorph`: the zero level has the points of the subtype `{x : M // μ x = 0}`.
 * `zeroLevelChartedSpace`, `isManifold_zeroLevel`, `isSmoothEmbedding_coe_zeroLevel`,
   `range_mfderiv_coe_zeroLevel`: freeness makes `0` a regular value, so `Z` is an embedded
   submanifold of `M`, modelled on `Fin n → ℝ` for `n = dim M - dim 𝔤`, with tangent spaces
@@ -46,16 +45,18 @@ on all of `M` is assumed.
 * `finrank_quotientModelSpace_zeroLevel`: `dim (Z / G) + 2 dim 𝔤 = dim M` once `Z` has a point.
 
 All declarations are in the namespace `TauCeti.SmoothTwoForm.IsEquivariantMomentMap`, beside
-Tau Ceti's `levelSubMulAction`, so that they can move there unchanged. The zero level has the
-points of Tau Ceti's level `levelSubMulAction 0`, so its atlas is `levelSubMulActionChartedSpace 0`
-and `isManifold_zeroLevel`, `isSmoothEmbedding_coe_zeroLevel` and `range_mfderiv_coe_zeroLevel`
-are `isManifold_levelSubMulAction`, `isSmoothEmbedding_coe_levelSubMulAction` and
-`range_mfderiv_coe_levelSubMulAction` at `c = 0`. The proofs of
+Tau Ceti's `levelSubMulAction`, so that they can move there unchanged. The atlas of the zero
+level is Tau Ceti's regular-level atlas `IsMomentMap.levelChartedSpace` of `{x : M // μ x = 0}`,
+pulled back along `zeroLevelHomeomorph`. The proofs of `isManifold_zeroLevel`,
+`isSmoothEmbedding_coe_zeroLevel` and `range_mfderiv_coe_zeroLevel` adapt those of Tau Ceti's
+`isManifold_levelSubMulAction`, `isSmoothEmbedding_coe_levelSubMulAction` and
+`range_mfderiv_coe_levelSubMulAction`, which pull the same atlas back to the
+`G_c`-space `levelSubMulAction c`. The proofs of
 `existsUnique_isSymplectic_mpullback_quotientMk_zeroLevel_eq_mpullback` and
 `finrank_quotientModelSpace_zeroLevel` adapt those of Tau Ceti's
 `existsUnique_isSymplectic_mpullback_quotientMk_eq_mpullback` and
 `finrank_quotientModelSpace_add_finrank_add_finrank_lieAnnihilator`
-(`TauCeti/Geometry/Symplectic/Hamiltonian/Reduction/ReducedSpace.lean`) from the coadjoint
+(all in `TauCeti/Geometry/Symplectic/Hamiltonian/Reduction/ReducedSpace.lean`) from the coadjoint
 stabilizer `G_c` to the whole group `G` at `c = 0`.
 
 ## References
@@ -115,47 +116,114 @@ theorem mem_zeroLevel {x : M} : x ∈ h.zeroLevel ↔ μ x = 0 :=
 theorem coe_zeroLevel : (h.zeroLevel : Set M) = μ ⁻¹' {0} :=
   (rfl)
 
+/-- The points of the zero level are those of the subtype `{x : M // μ x = 0}`, on which Tau
+Ceti's regular-level atlas `IsMomentMap.levelChartedSpace` lives. -/
+def zeroLevelHomeomorph : h.zeroLevel ≃ₜ {x : M // μ x = 0} :=
+  (Homeomorph.refl M).subtype fun _ ↦ h.mem_zeroLevel
+
+/-- `zeroLevelHomeomorph` keeps the point of `M`. -/
+@[simp]
+theorem coe_zeroLevelHomeomorph (z : h.zeroLevel) : (h.zeroLevelHomeomorph z : M) = z :=
+  (rfl)
+
+/-- The inverse of `zeroLevelHomeomorph` keeps the point of `M`. -/
+@[simp]
+theorem coe_zeroLevelHomeomorph_symm (x : {x : M // μ x = 0}) :
+    (h.zeroLevelHomeomorph.symm x : M) = x :=
+  (rfl)
+
 /-! ### The zero level as a manifold -/
 
 variable [I'.Boundaryless] [T2Space M]
 
 /-- **The atlas of the zero level.** If the form is nondegenerate and `G` acts freely at every
-point of `μ⁻¹(0)`, then `0` is a regular value of `μ`, and the zero level carries Tau Ceti's atlas
-`levelSubMulActionChartedSpace` of the level at `0`, modelled on `Fin n → ℝ` for
-`n = dim M - dim 𝔤`; the two `SubMulAction`s have the same points. -/
+point of `μ⁻¹(0)`, then `0` is a regular value of `μ`, and the zero level carries Tau Ceti's
+regular-level atlas `IsMomentMap.levelChartedSpace` of `{x : M // μ x = 0}`, modelled on
+`Fin n → ℝ` for `n = dim M - dim 𝔤`, pulled back along `zeroLevelHomeomorph`. -/
 @[instance_reducible]
 def zeroLevelChartedSpace (hσ : σ.IsNondegenerate)
     (hfree : ∀ x, μ x = 0 → MulAction.stabilizer G x = ⊥)
     (hn : finrank ℝ E' - finrank ℝ (GroupLieAlgebra I G) = n) :
     ChartedSpace (Fin n → ℝ) h.zeroLevel :=
-  h.levelSubMulActionChartedSpace 0
+  letI := h.toIsMomentMap.levelChartedSpace
     (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
+  h.zeroLevelHomeomorph.pullbackChartedSpace
+
+/-- `zeroLevelChartedSpace` is Tau Ceti's regular-level atlas of `{x : M // μ x = 0}`, pulled back
+along `zeroLevelHomeomorph`. -/
+theorem zeroLevelChartedSpace_def (hσ : σ.IsNondegenerate)
+    (hfree : ∀ x, μ x = 0 → MulAction.stabilizer G x = ⊥)
+    (hn : finrank ℝ E' - finrank ℝ (GroupLieAlgebra I G) = n) :
+    h.zeroLevelChartedSpace hσ hfree hn =
+      letI := h.toIsMomentMap.levelChartedSpace
+        (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
+      h.zeroLevelHomeomorph.pullbackChartedSpace :=
+  (rfl)
 
 section Level
 
 variable (hσ : σ.IsNondegenerate) (hfree : ∀ x, μ x = 0 → MulAction.stabilizer G x = ⊥)
   (hn : finrank ℝ E' - finrank ℝ (GroupLieAlgebra I G) = n)
 
+/-- `zeroLevelHomeomorph` as a diffeomorphism, for the atlas `zeroLevelChartedSpace` of the zero
+level and Tau Ceti's regular-level atlas of `{x : M // μ x = 0}`. -/
+private def zeroLevelDiffeomorph :
+    letI := h.zeroLevelChartedSpace hσ hfree hn
+    letI := h.toIsMomentMap.levelChartedSpace
+      (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
+    h.zeroLevel ≃ₘ⟮𝓘(ℝ, Fin n → ℝ), 𝓘(ℝ, Fin n → ℝ)⟯ {x : M // μ x = 0} :=
+  letI := h.toIsMomentMap.levelChartedSpace
+    (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
+  h.zeroLevelHomeomorph.pullbackDiffeomorph _ _
+
+private theorem coe_comp_zeroLevelDiffeomorph :
+    letI := h.zeroLevelChartedSpace hσ hfree hn
+    letI := h.toIsMomentMap.levelChartedSpace
+      (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
+    Subtype.val ∘ h.zeroLevelDiffeomorph hσ hfree hn = (Subtype.val : h.zeroLevel → M) := by
+  let := h.zeroLevelChartedSpace hσ hfree hn
+  let := h.toIsMomentMap.levelChartedSpace
+    (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
+  funext z
+  rw [Function.comp_apply, zeroLevelDiffeomorph, Homeomorph.coe_pullbackDiffeomorph,
+    coe_zeroLevelHomeomorph]
+
 /-- **The zero level is a smooth manifold**, for the atlas `zeroLevelChartedSpace`. -/
 theorem isManifold_zeroLevel :
     letI := h.zeroLevelChartedSpace hσ hfree hn
-    IsManifold 𝓘(ℝ, Fin n → ℝ) ∞ h.zeroLevel :=
-  h.isManifold_levelSubMulAction (c := 0) _ hn
+    IsManifold 𝓘(ℝ, Fin n → ℝ) ∞ h.zeroLevel := by
+  let := h.toIsMomentMap.levelChartedSpace
+    (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
+  have := h.toIsMomentMap.isManifold_level
+    (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
+  rw [zeroLevelChartedSpace_def]
+  exact h.zeroLevelHomeomorph.pullback_isManifold _ _
 
 /-- **The zero level is an embedded submanifold**: its inclusion into `M` is a smooth
 embedding. -/
 theorem isSmoothEmbedding_coe_zeroLevel :
     letI := h.zeroLevelChartedSpace hσ hfree hn
-    Manifold.IsSmoothEmbedding 𝓘(ℝ, Fin n → ℝ) I' ∞ (Subtype.val : h.zeroLevel → M) :=
-  h.isSmoothEmbedding_coe_levelSubMulAction (c := 0) _ hn
+    Manifold.IsSmoothEmbedding 𝓘(ℝ, Fin n → ℝ) I' ∞ (Subtype.val : h.zeroLevel → M) := by
+  let := h.zeroLevelChartedSpace hσ hfree hn
+  let := h.toIsMomentMap.levelChartedSpace
+    (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
+  have := h.isManifold_zeroLevel hσ hfree hn
+  rw [← h.coe_comp_zeroLevelDiffeomorph hσ hfree hn]
+  exact isSmoothEmbedding_comp_diffeomorph _
+    (h.toIsMomentMap.isSmoothEmbedding_coe_level _ hn)
 
 /-- **The tangent space of the zero level is the kernel of `dμ`**: at `z`, the differential of
 the inclusion has range `ker dμ_z`. -/
 theorem range_mfderiv_coe_zeroLevel (z : h.zeroLevel) :
     letI := h.zeroLevelChartedSpace hσ hfree hn
     LinearMap.range (mfderiv 𝓘(ℝ, Fin n → ℝ) I' (Subtype.val : h.zeroLevel → M) z).toLinearMap =
-      LinearMap.ker (h.differential z) :=
-  h.range_mfderiv_coe_levelSubMulAction (c := 0) _ hn z
+      LinearMap.ker (h.differential z) := by
+  let := h.zeroLevelChartedSpace hσ hfree hn
+  let := h.toIsMomentMap.levelChartedSpace
+    (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
+  rw [← h.coe_comp_zeroLevelDiffeomorph hσ hfree hn,
+    Diffeomorph.range_mfderiv_comp_diffeomorph _ (by simp)]
+  exact h.toIsMomentMap.range_mfderiv_coe_level _ hn _
 
 /-- **`G` acts smoothly on the zero level**, for the atlas `zeroLevelChartedSpace`. -/
 theorem contMDiffSMul_zeroLevel :
@@ -197,14 +265,17 @@ private theorem quotient_hypotheses :
 /-- **The atlas of the reduced space** `μ⁻¹(0) / G`: the slice charts of the quotient manifold
 theorem `ProperSMul.orbitRelQuotientChartedSpace`, for the free and proper action of `G` on the
 zero level. -/
-@[instance_reducible]
+-- Exposed so that `orbitLevelQuotientDiffeomorph` (`CoadjointOrbit/Quotient.lean`) can match
+-- its target atlas with that of Tau Ceti's `ProperSMul.orbitRelQuotientDiffeomorph` by definition.
+@[expose, instance_reducible]
 def zeroLevelQuotientChartedSpace :
     ChartedSpace (ProperSMul.QuotientModelSpace E (Fin n → ℝ))
       (MulAction.orbitRel.Quotient G h.zeroLevel) :=
   letI := h.zeroLevelChartedSpace hσ hfree hn
-  haveI := (h.quotient_hypotheses hσ hfree hn).1
-  haveI := (h.quotient_hypotheses hσ hfree hn).2.1
-  haveI := (h.quotient_hypotheses hσ hfree hn).2.2
+  haveI := h.isManifold_zeroLevel hσ hfree hn
+  haveI := h.contMDiffSMul_zeroLevel hσ hfree hn
+  haveI := h.zeroLevel.isCancelSMul_of_forall_stabilizer_eq_bot fun x hx ↦
+    hfree x (h.mem_zeroLevel.1 hx)
   ProperSMul.orbitRelQuotientChartedSpace I G 𝓘(ℝ, Fin n → ℝ) h.zeroLevel
 
 /-- `zeroLevelQuotientChartedSpace` is the atlas `ProperSMul.orbitRelQuotientChartedSpace` of the
