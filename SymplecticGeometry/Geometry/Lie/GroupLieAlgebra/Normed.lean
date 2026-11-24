@@ -6,10 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.GroupLieAlgebra
-public import TauCeti.Geometry.Lie.Adjoint.Basic
-public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
-public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Basic
-public import TauCeti.Topology.Algebra.Lie.Bracket
+import TauCeti.Geometry.Lie.Adjoint.Basic
+import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
+import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Basic
+import TauCeti.Topology.Algebra.Lie.Bracket
 
 /-!
 # The norm on the Lie algebra of a Lie group
