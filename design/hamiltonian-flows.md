@@ -9,8 +9,9 @@ Proposition 3.1.10 and the discussion after it, Definition 3.1.13,
 Exercise 3.1.14 and Remark 3.1.15, with the correction to p. 100 in
 [McDuffSalamon2019Errata].
 
-All declarations of Tau Ceti and Mathlib named below were checked against the
-pinned versions (Tau Ceti `v4.37.0-rc1`, see `lakefile.toml`). Paths of Tau
+All declarations of Tau Ceti and Mathlib named below were checked against
+Tau Ceti `v4.37.0-rc1` and its Mathlib, the versions pinned when this file
+was written; `lakefile.toml` pins Tau Ceti `c9d170eed5a8` now. Paths of Tau
 Ceti files are relative to `.lake/packages/TauCeti/TauCeti/`.
 
 ## What there is, and what is missing
