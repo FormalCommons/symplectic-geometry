@@ -150,18 +150,10 @@ theorem cartanDiff_mul_of_even {α : ⨁ k, SmoothForm I M ℝ k} (hα : ∀ k, 
 along `X`: `d_ħ² φ = -ħ L_X φ`. -/
 theorem cartanDiff_cartanDiff (φ : SmoothForm I M ℝ k) :
     cartanDiff X hX ħ (cartanDiff X hX ħ (DirectSum.of (fun k ↦ SmoothForm I M ℝ k) k φ)) =
-      -ħ • DirectSum.of _ k ⟨mlieDerivForm X φ.val,
-        SmoothForm.mlieDerivForm_mem_smoothBundleForms φ hX⟩ := by
-  -- The field of the bundled section `⟨X, hX⟩` is `X` by definition.
-  have h : mixedExtDeriv I M
-        (mixedInterior ⟨X, hX⟩ (DirectSum.of (fun k ↦ SmoothForm I M ℝ k) k φ)) +
-      mixedInterior ⟨X, hX⟩ (mixedExtDeriv I M (DirectSum.of (fun k ↦ SmoothForm I M ℝ k) k φ)) =
-      DirectSum.of _ k ⟨mlieDerivForm X φ.val,
-        SmoothForm.mlieDerivForm_mem_smoothBundleForms φ hX⟩ :=
-    mixedExtDeriv_mixedInterior_add ⟨X, hX⟩ φ
+      -ħ • DirectSum.of _ k (SmoothForm.lieDeriv ⟨X, hX⟩ φ) := by
   simp only [cartanDiff_def, LinearMap.sub_apply, LinearMap.smul_apply, map_sub, map_smul,
     mixedExtDeriv_mixedExtDeriv, mixedInterior_mixedInterior, smul_zero, sub_zero, zero_sub]
-  rw [← h]
+  rw [← mixedExtDeriv_mixedInterior_add]
   module
 
 /-- The Cartan differential squares to zero on forms of mixed degree each of whose components
@@ -173,11 +165,10 @@ theorem cartanDiff_cartanDiff_of_mlieDerivForm_eq_zero {γ : ⨁ k, SmoothForm I
   rw [← DirectSum.sum_support_of γ]
   simp only [map_sum]
   refine Finset.sum_eq_zero fun k _ ↦ ?_
-  rw [cartanDiff_cartanDiff]
-  have : (⟨mlieDerivForm X (γ k).val,
-      SmoothForm.mlieDerivForm_mem_smoothBundleForms (γ k) hX⟩ : SmoothForm I M ℝ k) = 0 :=
-    Subtype.ext (hγ k)
-  rw [this, map_zero, smul_zero]
+  have : SmoothForm.lieDeriv ⟨X, hX⟩ (γ k) = 0 :=
+    Subtype.ext <| by
+      rw [SmoothForm.coe_lieDeriv, ContMDiffSection.coeFn_mk, hγ k, Submodule.coe_zero]
+  rw [cartanDiff_cartanDiff, this, map_zero, smul_zero]
 
 end
 
