@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.Calculus.FDeriv.Mul
 import Mathlib.Tactic.NoncommRing
+import TauCeti.Analysis.Calculus.FDeriv.Mul
 
 /-!
 # The derivative of the inverse Cayley transform
@@ -18,8 +19,8 @@ differentiable at every `C` with `1 - C` invertible, with derivative
 Cayley transform at `J₀`, and this computes its differential.
 
 The proof is that of Tau Ceti's `TauCeti.hasFDerivAt_cayleyParam`, which differentiates
-the other Cayley parametrization `η ↦ (1 + η)⁻¹ j (1 + η)`: the product rule, and Mathlib's
-`hasFDerivAt_ringInverse` for the inverse.
+the other Cayley parametrization `η ↦ (1 + η)⁻¹ j (1 + η)`: the product rule, and Tau Ceti's
+`HasFDerivAt.ringInverse` for the inverse.
 
 ## Main results
 
@@ -49,12 +50,8 @@ theorem hasFDerivAt_mul_one_add_ringInverse (A : R) {C : R} (hC : IsUnit (1 - C)
   obtain ⟨u, hu⟩ := hC
   have hR : (1 - C) * Ring.inverse (1 - C) = 1 := by
     rw [← hu, Ring.inverse_unit, Units.mul_inv]
-  have hinv : HasFDerivAt (fun x : R => Ring.inverse (1 - x))
-      ((-mulLeftRight 𝕜 R (Ring.inverse (1 - C)) (Ring.inverse (1 - C))).comp
-        (-ContinuousLinearMap.id 𝕜 R)) C := by
-    have h := hasFDerivAt_ringInverse (𝕜 := 𝕜) u
-    rw [← Ring.inverse_unit u, hu] at h
-    exact h.comp C ((hasFDerivAt_id C).const_sub 1)
+  have hinv : HasFDerivAt (fun x : R => Ring.inverse (1 - x)) _ C :=
+    ((hasFDerivAt_id (𝕜 := 𝕜) C).const_sub 1).ringInverse ⟨u, hu⟩
   have hmul : HasFDerivAt (fun x : R => A * (1 + x))
       ((ContinuousLinearMap.mul 𝕜 R A).comp (ContinuousLinearMap.id 𝕜 R)) C :=
     (ContinuousLinearMap.mul 𝕜 R A).hasFDerivAt.comp C ((hasFDerivAt_id C).const_add 1)
@@ -62,7 +59,7 @@ theorem hasFDerivAt_mul_one_add_ringInverse (A : R) {C : R} (hC : IsUnit (1 - C)
   have hX : X * Ring.inverse (1 - C) =
       (1 - C) * Ring.inverse (1 - C) * X * Ring.inverse (1 - C) := by
     rw [hR, one_mul]
-  simp only [add_apply, smul_apply, comp_apply, neg_apply, mulLeftRight_apply, id_apply,
+  simp only [add_apply, smul_apply, comp_apply, neg_apply, mulLeftRight_apply, id_apply, id_eq,
     smul_eq_mul, op_smul_eq_mul, neg_mul, mul_neg, neg_neg, two_smul, mul_apply']
   rw [mul_assoc A X, hX]
   noncomm_ring
