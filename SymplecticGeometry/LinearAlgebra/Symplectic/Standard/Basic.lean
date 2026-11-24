@@ -60,7 +60,10 @@ through `complexToRealEuclidean ι` it is multiplication by `exp (t I)`
 Finally, `isSymplectomorphism_sumEquivProd` and `stdComplexStructure_transport_sumEquivProd`
 compare the model with Tau Ceti's product model `TauCeti.stdSymplecticForm` and
 `TauCeti.AlmostComplexStructure.product` on `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι`
-(complex linearity: `isComplexLinearMap_sumEquivProd`), and
+(complex linearity: `isComplexLinearMap_sumEquivProd`); the two blocks of `sumEquivProd z` are
+the `x`- and `y`-coordinates of `z` (`StdSpace.sumEquivProd_apply_fst`,
+`StdSpace.sumEquivProd_apply_snd`), and their squared norms add up to `‖z‖²`
+(`StdSpace.norm_sq_sumEquivProd`). Also,
 `isSymplectomorphism_piLpCongrLeft_sumCongr` says that relabelling the coordinate pairs along
 `σ : ι ≃ κ` is symplectic, with its coordinates given by `x_piLpCongrLeft_sumCongr` and
 `y_piLpCongrLeft_sumCongr`, and that it commutes with `J₀`
@@ -930,6 +933,26 @@ theorem isSymplectomorphism_sumEquivProd :
   rw [SymplecticForm.isSymplectomorphism_iff]
   intro z w
   simp [PiLp.inner_apply, ← Finset.sum_sub_distrib, mul_comm]
+
+namespace StdSpace
+
+/-- The first block of `EuclideanSpace.sumEquivProd z` is the `x`-coordinates of `z`. -/
+theorem sumEquivProd_apply_fst (z : StdSpace ι) (i : ι) :
+    (EuclideanSpace.sumEquivProd (𝕜 := ℝ) z).1 i = z.x i := (rfl)
+
+/-- The second block of `EuclideanSpace.sumEquivProd z` is the `y`-coordinates of `z`. -/
+theorem sumEquivProd_apply_snd (z : StdSpace ι) (i : ι) :
+    (EuclideanSpace.sumEquivProd (𝕜 := ℝ) z).2 i = z.y i := (rfl)
+
+/-- The squared norms of the two blocks of `EuclideanSpace.sumEquivProd z` add up to `‖z‖²`. -/
+theorem norm_sq_sumEquivProd (z : StdSpace ι) :
+    ‖(EuclideanSpace.sumEquivProd (𝕜 := ℝ) z).1‖ ^ 2 +
+      ‖(EuclideanSpace.sumEquivProd (𝕜 := ℝ) z).2‖ ^ 2 = ‖z‖ ^ 2 := by
+  rw [norm_sq_eq_sum, Finset.sum_add_distrib, EuclideanSpace.norm_sq_eq,
+    EuclideanSpace.norm_sq_eq]
+  simp
+
+end StdSpace
 
 /-- `EuclideanSpace.sumEquivProd` carries `J₀` to Tau Ceti's product complex structure
 `(x, y) ↦ (-y, x)`. -/
