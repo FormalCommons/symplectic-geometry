@@ -21,9 +21,11 @@ against the versions pinned when this file was written (Tau Ceti
 ## What other parts give, and under which names
 
 The parts this one builds on have design files: *Parallel transport*
-(`design/parallel-transport.md`), merged, and *Symplectic fibrations*
-(#2445), *Integration over the fibre* (#2441) and *Flux homomorphism*
-(#2422), under review when this file was written. This file uses the names that those designs give, listed here, and
+(`design/parallel-transport.md`) and *Flux homomorphism*
+(`design/flux-homomorphism.md`), merged, and *Symplectic fibrations*
+(#2445) and *Integration over the fibre* (#2441), under review when this
+file was written. This file uses the names that those designs give, listed
+here, and
 its building issues use the names of the merged designs and code where they
 differ.
 
