@@ -272,7 +272,8 @@ Coisotropy and characteristic leaves, with the atlases of `Basic.lean`.
   `lieAnnihilator ℝ 𝔤 0 = ⊤`.
 - `ker_bilinFormAt_mpullback_coe_zeroLevel`: with `ProperSMul`, the kernel
   of `(i^* σ)_z` is the kernel of `dπ_z`, combining Tau Ceti's
-  `ker_bilinFormAt_mpullback_coe_level` (at `c = 0`) with
+  `IsMomentMap.ker_bilinFormAt_mpullback` (for maps whose tangent images are
+  `ker dμ`, as `range_mfderiv_coe_zeroLevel` says; at `c = 0`) with
   `ker_mfderiv_quotientMk_zeroLevel`.
 - For connected `G`, the leaves of the characteristic foliation
   `IsCoisotropicMap.characteristicFoliation` of the inclusion, with
