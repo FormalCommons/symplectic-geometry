@@ -152,8 +152,9 @@ the predicate `Manifold.IsCleanIntersection`. Following *Submanifolds* of
 need only be a union of components of the intersection, the theorem
 applies to the part of each dimension of an intersection whose components
 have different dimensions. The plan's case of one dimension is
-`range c = f ⁻¹' range g`, where `range (f ∘ c) = range f ∩ range g`. Transversality is the hypothesis that those two ranges span the
-tangent space of `M`; it gets no predicate of its own.
+`range c = f ⁻¹' range g`, where `range (f ∘ c) = range f ∩ range g`.
+Transversality is the hypothesis that those two ranges span the tangent
+space of `M`; it gets no predicate of its own.
 
 **The Lagrangian immersion.** On `C`, the map `leafSpaceMk ∘ c` into the
 leaf space $\bar Q$ has constant rank $n-k$, and the kernel of its
@@ -189,8 +190,12 @@ folder, as the approving review of #2250 asks this file to say.
 
 `DESIGN.md` plans one file `Geometry/Manifold/Foliation/LeafSpace.lean`
 and one file `Geometry/Symplectic/Coisotropic/Lagrangian.lean`. Each would
-exceed what one issue can build, so the part has the files below, and the
-*Files* entry of part 40 in `DESIGN.md` names them. The dependencies and
+exceed what one issue can build, so the part has the files below. The
+*Files* entry of part 40 in `DESIGN.md` names those of transport, the leaf
+space and the two milestones; this file adds
+`Geometry/Manifold/Distribution/ConstantRank.lean`,
+`Geometry/Manifold/CleanIntersection.lean` and a lemma in the merged
+`LinearAlgebra/Symplectic/Reduction.lean`. The dependencies and
 the build order do not change: the part uses only Tau Ceti and merged files
 of the library.
 
