@@ -10,7 +10,6 @@ public import SymplecticGeometry.Geometry.Symplectic.AlmostComplex
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
-import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 
 /-!
 # Two almost complex structures tamed by a common form
@@ -33,9 +32,11 @@ injective on every tangent space. This file draws pointwise consequences.
 On a complex curve `N`, with `K` the complex structure of `N`, this file shows that the two
 structures also induce the same orientation in every holomorphic chart: `J`, read in the chart,
 sends `1` to the open upper half plane
-(`TauCeti.SmoothAlmostComplexStructure.im_inChart_apply_one_pos_of_tames`). The derivative `D` of
-the inverse chart is multiplication by a nonzero complex number, and expanding `σ` in the basis
-`D 1`, `i D 1` gives `σ(D 1, J D 1) = Im (J.inChart y z 1) · σ(D 1, i D 1)`.
+(`TauCeti.SmoothAlmostComplexStructure.im_inChart_apply_one_pos_of_tames`). With `D` the
+derivative of the inverse chart, the complex structure of `N` sends `D 1` to `D i`
+(Tau Ceti's `ofComplexManifold_apply_mfderivWithin_extChartAt_symm_one`),
+and expanding `σ` in the basis `D 1`, `D i` gives
+`σ(D 1, J D 1) = Im (J.inChart y z 1) · σ(D 1, D i)`.
 
 ## Main results
 
@@ -115,13 +116,6 @@ theorem im_inChart_apply_one_pos_of_tames {σ : SmoothTwoForm 𝓘(ℝ, ℂ) N}
     mfderivWithin 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (extChartAt 𝓘(ℝ, ℂ) y).symm (range 𝓘(ℝ, ℂ)) z
   set x := (extChartAt 𝓘(ℝ, ℂ) y).symm z
   set k := J.inChart y z 1 with hkdef
-  -- `D` is complex linear, since the charts are holomorphic, and it is invertible, so it is
-  -- multiplication by `D 1 ≠ 0`.
-  have hD (w : ℂ) : D w = w * D 1 := by
-    have h := mfderivWithin_extChartAt_symm_smul ℝ (𝕜' := ℂ) hz w (1 : ℂ)
-    simp only [FunLike.coe_smul, ContinuousLinearMap.coe_id', Pi.smul_apply, id_eq,
-      smul_eq_mul, mul_one] at h
-    exact h
   have hd : D 1 ≠ 0 := by
     obtain ⟨e, he⟩ := isInvertible_mfderivWithin_extChartAt_symm hz
     exact fun h0 ↦ one_ne_zero (α := ℂ)
@@ -130,22 +124,21 @@ theorem im_inChart_apply_one_pos_of_tames {σ : SmoothTwoForm 𝓘(ℝ, ℂ) N}
   have hk : D k = J x (D 1) := by
     rw [hkdef, J.inChart_apply_eq_mfderiv y hz]
     exact congr($(mfderivWithin_extChartAt_symm_comp_mfderiv_extChartAt hz) _)
-  -- In the basis `D 1, i D 1` of the tangent space at `x`, the value of `σ` on `D 1` and
-  -- `J (D 1) = k D 1` is `Im k` times its value on `D 1` and `i D 1`.
-  have h3 : SmoothBundleForm.eval₂ σ x (D 1) (k * D 1) =
-      k.im * SmoothBundleForm.eval₂ σ x (D 1) (Complex.I * D 1) := by
-    have ha : D 1 = (1 : ℝ) • D 1 + (0 : ℝ) • (Complex.I * D 1) := by simp
-    have hb : k * D 1 = k.re • D 1 + k.im • (Complex.I * D 1) := by
-      conv_lhs => rw [← Complex.re_add_im k]
-      simp only [Complex.real_smul]
-      ring
-    refine (congrArg₂ (fun a b ↦ SmoothBundleForm.eval₂ σ x a b) ha hb).trans ?_
-    refine (SmoothTwoForm.eval₂_smul_add_smul σ x (D 1) (Complex.I * D 1) 1 0 k.re k.im).trans ?_
+  -- The complex structure of `N` sends `D 1` to `D i`, since the charts are holomorphic.
+  have hI : D Complex.I = ofComplexManifold ℂ N x (D 1) :=
+    (ofComplexManifold_apply_mfderivWithin_extChartAt_symm_one hz).symm
+  -- In the basis `D 1, D i` of the tangent space at `x`, the value of `σ` on `D 1` and `D k`
+  -- is `Im k` times its value on `D 1` and `D i`.
+  have h3 : SmoothBundleForm.eval₂ σ x (D 1) (D k) =
+      k.im * SmoothBundleForm.eval₂ σ x (D 1) (D Complex.I) := by
+    have ha : D 1 = (1 : ℝ) • D 1 + (0 : ℝ) • D Complex.I := by simp
+    refine (congrArg₂ (fun a b ↦ SmoothBundleForm.eval₂ σ x a b) ha
+      (D.apply_eq_re_smul_one_add_im_smul_I k)).trans ?_
+    refine (SmoothTwoForm.eval₂_smul_add_smul σ x (D 1) (D Complex.I) 1 0 k.re k.im).trans ?_
     ring
   have h1 := SmoothTwoForm.tames_iff.1 hJ x (D 1) hd
   have h2 := SmoothTwoForm.tames_iff.1 hi x (D 1) hd
-  rw [ofComplexManifold_apply, smul_eq_mul] at h2
-  rw [← hk, hD k, h3] at h1
+  rw [← hk, h3, hI] at h1
   exact pos_of_mul_pos_left h1 h2.le
 
 end TauCeti.SmoothAlmostComplexStructure
