@@ -7,12 +7,15 @@ module
 
 public import TauCeti.Geometry.RealAlgebraic.CAD.Existence
 public import TauCeti.Geometry.RealAlgebraic.Semialgebraic.Image
+public import TauCeti.Geometry.RealAlgebraic.Semialgebraic.Connected
+public import SymplecticGeometry.Topology.Order.OrdConnected
 
 /-!
-# Semialgebraic sets and functions of one variable near a point
+# Semialgebraic sets and functions of one variable
 
-Two facts about semialgebraic data on the line, to the right of a point `a : ℝ`, which curve
-selection and the growth of one-variable semialgebraic functions both use. Points of the line
+Facts about semialgebraic data on the line. The first two concern the points to the right of a
+point `a : ℝ`; curve selection and the growth of one-variable semialgebraic functions both use
+them. The third, the finiteness of frontiers, serves semialgebraic choice. Points of the line
 are written `![t] : Fin 1 → ℝ`, the coordinate space of Tau Ceti's semialgebraic geometry.
 
 * `TauCeti.IsSemialgebraic.eventually_nhdsGT_mem_or_notMem`: a semialgebraic subset of the line
@@ -23,13 +26,23 @@ are written `![t] : Fin 1 → ℝ`, the coordinate space of Tau Ceti's semialgeb
   semialgebraic on a set containing the points `![t]`, `t > a` close to `a`, is continuous at
   these points; `TauCeti.IsSemialgebraicOn.exists_pos_forall_Ioo_continuousAt` is its form with
   an interval `(0, δ)`.
+* `TauCeti.IsSemialgebraic.finite_frontier_of_unique`: a semialgebraic subset of the line
+  `σ → ℝ`, `σ` having one element, has finite frontier;
+  `TauCeti.finite_frontier_of_isSemialgebraic_preimage_funUnique` is its form for a subset of
+  `ℝ`.
 
-Both come from a cylindrical algebraic decomposition. A cell of a decomposition of `ℝ ^ 1` is
-open or a single point (`TauCeti.IsCAD.isOpen_or_subsingleton`), so the points just right of
-`a` lie in one open cell (`TauCeti.IsCAD.exists_isOpen_eventually_mem_nhdsGT`). For a function,
-take a decomposition of the plane adapted to the graph of a coordinate: the cell containing a
-point of the graph just right of `a` lies in the graph and lies over that open cell, and it
-contains the graph of a continuous function on its projection, which is then the coordinate.
+All three come from a cylindrical algebraic decomposition. A cell of a decomposition of
+`ℝ ^ 1` is open or a single point (`TauCeti.IsCAD.isOpen_or_subsingleton`), so the points just
+right of `a` lie in one open cell (`TauCeti.IsCAD.exists_isOpen_eventually_mem_nhdsGT`). For a
+function, take a decomposition of the plane adapted to the graph of a coordinate: the cell
+containing a point of the graph just right of `a` lies in the graph and lies over that open
+cell, and it contains the graph of a continuous function on its projection, which is then the
+coordinate.
+
+For the frontier, a semialgebraic subset of the line is the union of finitely many connected
+semialgebraic sets (`TauCeti.IsSemialgebraic.exists_finite_isConnected_partition`), its frontier
+lies in the union of their frontiers, and each of these is order-connected, so its frontier has
+at most two points (`Set.OrdConnected.encard_frontier_le_two`).
 
 ## References
 
@@ -176,6 +189,27 @@ theorem IsSemialgebraicOn.exists_pos_forall_Ioo_continuousAt {τ : Type*} [Finit
     ∃ δ > 0, ∀ t ∈ Ioo 0 δ, ContinuousAt f ![t] :=
   mem_nhdsGT_iff_exists_Ioo_subset.1 <| hf.eventually_continuousAt_nhdsGT <|
     eventually_of_mem (Ioo_mem_nhdsGT hε₀) hs
+
+/-- A subset of `ℝ` that is semialgebraic as a subset of the line `σ → ℝ`, `σ` having one element,
+has finite frontier. -/
+theorem finite_frontier_of_isSemialgebraic_preimage_funUnique {σ : Type*} [Unique σ] {t : Set ℝ}
+    (ht : IsSemialgebraic (Homeomorph.funUnique σ ℝ ⁻¹' t)) : (frontier t).Finite := by
+  -- `t` is the union of the images of finitely many connected sets, which are order-connected.
+  set e := Homeomorph.funUnique σ ℝ
+  obtain ⟨𝒞, h𝒞, -, hc, hU⟩ := ht.exists_finite_isConnected_partition
+  rw [← e.image_preimage t, ← hU, sUnion_eq_biUnion, image_iUnion₂]
+  exact (h𝒞.biUnion fun E hE ↦ ((hc E hE).1.isPreconnected.image _
+    e.continuous.continuousOn).ordConnected.finite_frontier).subset
+    (h𝒞.frontier_biUnion_subset _)
+
+/-- A semialgebraic subset of the line `σ → ℝ`, `σ` having one element, has finite frontier: it
+is a finite union of connected sets, each of which has at most two frontier points. -/
+theorem IsSemialgebraic.finite_frontier_of_unique {σ : Type*} [Unique σ] {s : Set (σ → ℝ)}
+    (hs : IsSemialgebraic s) : (frontier s).Finite := by
+  set e := Homeomorph.funUnique σ ℝ
+  rw [← e.preimage_image s] at hs ⊢
+  rw [← e.preimage_frontier]
+  exact (finite_frontier_of_isSemialgebraic_preimage_funUnique hs).preimage e.injective.injOn
 
 end TauCeti
 
