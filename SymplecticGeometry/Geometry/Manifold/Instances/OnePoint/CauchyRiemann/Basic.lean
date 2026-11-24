@@ -10,6 +10,9 @@ public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Trivial
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.ZeroOneForm
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Existence
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.LocalFrame
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
+public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+public import SymplecticGeometry.Analysis.Complex.Beltrami.Orientation
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.TwistCore
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 
@@ -56,6 +59,11 @@ of `∇` for `i` is `∂bar` of the coordinate in either frame.
   `isComplexLinearOperator_twistOneDelBar` and `contMDiffCovariantDerivativeOn_twistOneDelBar`.
 * `SymplecticGeometry.twistOneKernel J`: the complex vector space of smooth sections `s` with
   `D_J s = 0`, with `mem_twistOneKernel_iff`.
+* `SymplecticGeometry.norm_beltrami_lt_one_of_tames`: if a two-form tames `J` and `i`, then in
+  every chart `chartAt ℂ y` of the sphere the coefficient `μ` of `∂bar + μ ∂` for `J` has
+  `‖μ‖ < 1`. The derivative of a holomorphic chart is multiplication by a nonzero complex number,
+  so a form taming `i` and `J` makes `J`, read in the chart, induce the standard orientation of
+  `ℂ`; the bound is then `TauCeti.Beltrami.norm_beltrami_lt_one_of_im_pos`.
 
 ## References
 
@@ -368,5 +376,56 @@ theorem mem_twistOneKernel_iff {s : OnePoint ℂ → ℂ} :
       (fun x ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) x (s x)) ∧
         twistOneDelBar J s = 0 :=
   Iff.rfl
+
+/-! ### The Beltrami coefficient in the charts -/
+
+/-- Let a two-form `σ` on the sphere tame both `J` and the standard structure `i`. Read `J` in
+the chart `chartAt ℂ y` of the sphere, at a point `z` of the chart target, as the real-linear
+structure `K = J.inChart y z` on `ℂ`. Then the coefficient `μ = (K 1 - i) / (conj (K 1) - i)` of
+the operator `∂bar + μ ∂` of `K`, the negative of the Beltrami coefficient of `K`, has norm less
+than one. This holds in the chart at `∞`, the inversion `z ↦ 1 / z`, as well as in the affine
+chart. -/
+theorem norm_beltrami_lt_one_of_tames {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)}
+    (hJ : σ.Tames J) (hi : σ.Tames 𝒊) (y : OnePoint ℂ) {z : ℂ}
+    (hz : z ∈ (extChartAt 𝓘(ℝ, ℂ) y).target) :
+    ‖(J.inChart y z 1 - Complex.I) / (starRingEnd ℂ (J.inChart y z 1) - Complex.I)‖ < 1 := by
+  refine Beltrami.norm_beltrami_lt_one_of_im_pos ?_
+  -- The derivative of the inverse chart, as an endomorphism of `ℂ`.
+  set D : ℂ →L[ℝ] ℂ :=
+    mfderivWithin 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (extChartAt 𝓘(ℝ, ℂ) y).symm (range 𝓘(ℝ, ℂ)) z
+  set x := (extChartAt 𝓘(ℝ, ℂ) y).symm z
+  set k := J.inChart y z 1 with hkdef
+  -- `D` is complex linear, since the charts are holomorphic, and it is invertible, so it is
+  -- multiplication by `D 1 ≠ 0`.
+  have hD (w : ℂ) : D w = w * D 1 := by
+    have h := mfderivWithin_extChartAt_symm_smul ℝ (𝕜' := ℂ) hz w (1 : ℂ)
+    simp only [FunLike.coe_smul, ContinuousLinearMap.coe_id', Pi.smul_apply, id_eq,
+      smul_eq_mul, mul_one] at h
+    exact h
+  have hd : D 1 ≠ 0 := by
+    obtain ⟨e, he⟩ := isInvertible_mfderivWithin_extChartAt_symm hz
+    exact fun h0 ↦ one_ne_zero (α := ℂ)
+      (e.injective ((congrArg (· (1 : ℂ)) he).trans (h0.trans e.map_zero.symm)))
+  -- `D` carries the value at `1` of `J` read in the chart to `J (D 1)`.
+  have hk : D k = J x (D 1) := by
+    rw [hkdef, J.inChart_apply_eq_mfderiv y hz]
+    exact congr($(mfderivWithin_extChartAt_symm_comp_mfderiv_extChartAt hz) _)
+  -- In the basis `D 1, i D 1` of the tangent space at `x`, the value of `σ` on `D 1` and
+  -- `J (D 1) = k D 1` is `Im k` times its value on `D 1` and `i D 1`.
+  have h3 : SmoothBundleForm.eval₂ σ x (D 1) (k * D 1) =
+      k.im * SmoothBundleForm.eval₂ σ x (D 1) (Complex.I * D 1) := by
+    have ha : D 1 = (1 : ℝ) • D 1 + (0 : ℝ) • (Complex.I * D 1) := by simp
+    have hb : k * D 1 = k.re • D 1 + k.im • (Complex.I * D 1) := by
+      conv_lhs => rw [← Complex.re_add_im k]
+      simp only [Complex.real_smul]
+      ring
+    refine (congrArg₂ (fun a b ↦ SmoothBundleForm.eval₂ σ x a b) ha hb).trans ?_
+    refine (SmoothTwoForm.eval₂_smul_add_smul σ x (D 1) (Complex.I * D 1) 1 0 k.re k.im).trans ?_
+    ring
+  have h1 := SmoothTwoForm.tames_iff.1 hJ x (D 1) hd
+  have h2 := SmoothTwoForm.tames_iff.1 hi x (D 1) hd
+  rw [SmoothAlmostComplexStructure.ofComplexManifold_apply, smul_eq_mul] at h2
+  rw [← hk, hD k, h3] at h1
+  exact pos_of_mul_pos_left h1 h2.le
 
 end SymplecticGeometry
