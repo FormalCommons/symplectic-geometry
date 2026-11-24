@@ -176,10 +176,12 @@ These settle the questions that `DESIGN.md` leaves to this file.
    periods form a countable set $P_\sigma$. In the period coordinates of
    `homologyPeriods_periodHomologyClass_bijective`, $\Gamma_\sigma$ maps
    into $P_\sigma^b$, which is countable. The comparison of the swept area
-   with a period uses the two-simplex 2-cycle of the square: cut the
-   square along a diagonal into two affine simplices. Their integrals add
-   up to the rectangle integral, and on a doubly periodic map their edges
-   cancel in pairs. This is the content of McDuff–Salamon's description
+   with a period goes through the torus: a map of $\mathbb R^2$ with period
+   1 in both variables descends to $T^2=(\mathbb R/\mathbb Z)^2$, whose
+   integral is a period by
+   `integralTopForm_mpullback_eq_closedFormHomologyPeriod` and equals the
+   rectangle integral by `AddCircle.integralTopForm_prod_eq_setIntegral`.
+   This is the content of McDuff–Salamon's description
    of the flux by swept cylinders, equation (10.2.2) with Lemma 10.2.1.
    The Lagrangian neighbourhood theorem of *Symplectic neighbourhoods* is
    not used, so the part no longer builds on that part.
