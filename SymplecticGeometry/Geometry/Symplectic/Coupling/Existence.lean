@@ -77,15 +77,6 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
 
 /-! ### The one-form `A` -/
 
-/-- The pull-backs `t ↦ π^* β_t` to the total space of a smooth family `β` of forms on the base
-form a smooth family. -/
-private theorem isSmoothFamily_mpullback_proj {β : Set.Icc a b → SmoothForm IB B ℝ 1}
-    (hβ : IsSmoothFamily (𝓡∂ 1) β) :
-    IsSmoothFamily (𝓡∂ 1) fun t ↦ SmoothForm.mpullback (fun y : ManifoldTotalSpace Circle P ↦
-      ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
-        (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) (β t) :=
-  hβ.mpullback _ _
-
 /-- The one-form `A = (2π)⁻¹ (t - a) pr^* α + pr^* π^* β_t` on `P × [a, b]`, for a one-form `α`
 on the total space of `P` and a smooth family `β` of one-forms on `B` indexed by `[a, b]`. Here
 `pr` is the projection to the total space, and the second term is the vertical form of the
@@ -93,25 +84,37 @@ family `t ↦ π^* β_t`, read through the swap of the two factors. -/
 def couplingOneForm (α : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1)
     (β : Set.Icc a b → SmoothForm IB B ℝ 1) (hβ : IsSmoothFamily (𝓡∂ 1) β) :
     SmoothForm ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (ManifoldTotalSpace Circle P × Set.Icc a b) ℝ 1 :=
-  have hc : ContMDiff ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) 𝓘(ℝ, ℝ) ∞
-      fun x : ManifoldTotalSpace Circle P × Set.Icc a b ↦ (2 * Real.pi)⁻¹ * ((x.2 : ℝ) - a) :=
-    contMDiff_const.mul ((contMDiff_subtypeVal_Icc.comp contMDiff_snd).sub contMDiff_const)
-  ⟨fun x ↦ ((2 * Real.pi)⁻¹ * ((x.2 : ℝ) - a)) •
-        (SmoothForm.mpullback Prod.fst contMDiff_fst α).val x +
-      (SmoothForm.mpullback Prod.swap (contMDiff_snd.prodMk contMDiff_fst)
-        (SmoothForm.ofSlices (J := 𝓡∂ 1) _
-          (isSmoothFamily_iff_contMDiff.mp (isSmoothFamily_mpullback_proj hβ)))).val x,
-    (((SmoothForm.mpullback Prod.fst contMDiff_fst α).isSmoothForm.fun_smul hc).add
-      (SmoothForm.mpullback Prod.swap (contMDiff_snd.prodMk contMDiff_fst)
-        (SmoothForm.ofSlices (J := 𝓡∂ 1) _
-          (isSmoothFamily_iff_contMDiff.mp (isSmoothFamily_mpullback_proj hβ)))).isSmoothForm
-      ).mem_smoothBundleForms⟩
+  SmoothForm.funSMulₗ ⟨fun x : ManifoldTotalSpace Circle P × Set.Icc a b ↦
+          (2 * Real.pi)⁻¹ * ((x.2 : ℝ) - a),
+      contMDiff_const.mul ((contMDiff_subtypeVal_Icc.comp contMDiff_snd).sub contMDiff_const)⟩
+    (SmoothForm.mpullback Prod.fst contMDiff_fst α) +
+  SmoothForm.mpullback Prod.swap (contMDiff_snd.prodMk contMDiff_fst)
+    (SmoothForm.ofSlices (J := 𝓡∂ 1) _ (isSmoothFamily_iff_contMDiff.mp
+      (hβ.mpullback (fun y : ManifoldTotalSpace Circle P ↦
+          ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
+        (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)))))
 
 variable {α : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1}
   {β : Set.Icc a b → SmoothForm IB B ℝ 1} (hβ : IsSmoothFamily (𝓡∂ 1) β)
 
-/-- The definition of `SymplecticGeometry.couplingOneForm`, on underlying forms. -/
+/-- The definition of `SymplecticGeometry.couplingOneForm`. -/
 theorem couplingOneForm_def :
+    couplingOneForm α β hβ =
+      SmoothForm.funSMulₗ ⟨fun x : ManifoldTotalSpace Circle P × Set.Icc a b ↦
+          (2 * Real.pi)⁻¹ * ((x.2 : ℝ) - a),
+          contMDiff_const.mul ((contMDiff_subtypeVal_Icc.comp contMDiff_snd).sub contMDiff_const)⟩
+        (SmoothForm.mpullback Prod.fst contMDiff_fst α) +
+      SmoothForm.mpullback Prod.swap (contMDiff_snd.prodMk contMDiff_fst)
+        (SmoothForm.ofSlices (J := 𝓡∂ 1) _ (isSmoothFamily_iff_contMDiff.mp
+          (hβ.mpullback (fun y : ManifoldTotalSpace Circle P ↦
+              ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
+            (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1))))) :=
+  (rfl)
+
+/-- The underlying rough form of `SymplecticGeometry.couplingOneForm`: at `x`, the sum of
+`(2π)⁻¹ (x.2 - a)` times the pull-back of `α` along the first projection, and of the pull-back
+along the swap of the vertical form of `t ↦ π^* β_t`. -/
+theorem coe_couplingOneForm :
     (couplingOneForm α β hβ).val = fun x : ManifoldTotalSpace Circle P × Set.Icc a b ↦
       ((2 * Real.pi)⁻¹ * ((x.2 : ℝ) - a)) • mpullback _ (IB.prod (𝓡 1)) Prod.fst α.val x +
         mpullback _ ((𝓡∂ 1).prod (IB.prod (𝓡 1))) Prod.swap
@@ -119,8 +122,10 @@ theorem couplingOneForm_def :
             (fun y : ManifoldTotalSpace Circle P ↦
               ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
             (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) (β t)).val) x := by
-  rw [couplingOneForm]
-  simp only [SmoothForm.coe_mpullback, SmoothForm.coe_ofSlices]
+  rw [couplingOneForm_def, SmoothForm.add_toRoughForm, SmoothForm.coe_mpullback (f := Prod.swap),
+    SmoothForm.coe_ofSlices]
+  exact congrArg (· + _) ((SmoothForm.coe_funSMulₗ _ _).trans
+    (by rw [SmoothForm.coe_mpullback, ContMDiffMap.coeFn_mk]))
 
 /-- The value of `A = couplingOneForm α β hβ` at `(p, t)` on a tangent vector `v`:
 `(2π)⁻¹ (t - a) α(v₁) + β_t(dπ v₁)`, where `v₁` is the component of `v` along the total space. -/
@@ -139,7 +144,7 @@ theorem couplingOneForm_apply (x : ManifoldTotalSpace Circle P × Set.Icc a b)
   have hcomp : (Prod.snd ∘ Prod.swap :
       ManifoldTotalSpace Circle P × Set.Icc a b → ManifoldTotalSpace Circle P) = Prod.fst :=
     funext fun _ ↦ Prod.snd_swap
-  rw [couplingOneForm_def, ContinuousAlternatingMap.add_apply, hswap, hcomp]
+  rw [coe_couplingOneForm, ContinuousAlternatingMap.add_apply, hswap, hcomp]
   simp only [SmoothForm.coe_mpullback, mfderiv_fst, ContinuousAlternatingMap.smul_apply,
     TauCeti.mpullback_apply, smul_eq_mul, mul_assoc]
   -- the tangent space of the product is the product of the tangent spaces, on which
@@ -157,8 +162,11 @@ theorem mpullback_slice_couplingOneForm (t : Set.Icc a b) :
           (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) (β t) := by
   refine Subtype.ext <| funext fun p ↦ ContinuousAlternatingMap.ext fun v ↦ ?_
   rw [SmoothForm.mpullback_apply, couplingOneForm_apply]
-  simp [mfderiv_prod_left]
-  -- the first component of `ContinuousLinearMap.inl _ _ _ w` is `w`, by definition
+  simp only [mfderiv_prod_left, Submodule.coe_add, SetLike.val_smul, SmoothForm.coe_mpullback,
+    Pi.add_apply, Pi.smul_apply, ContinuousAlternatingMap.add_apply,
+    ContinuousAlternatingMap.coe_smul, smul_eq_mul, mpullback_apply]
+  -- the first component of `ContinuousLinearMap.inl _ _ _ w` is `w`; `inl_apply` does not fire,
+  -- since the components here are typed as tangent spaces of the product
   rfl
 
 variable [∀ b, MulAction Circleᵐᵒᵖ (P b)] [PrincipalBundle Circle P]
