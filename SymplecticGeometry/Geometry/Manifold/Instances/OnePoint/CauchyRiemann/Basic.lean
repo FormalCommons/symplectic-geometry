@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.LineBundle
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Trivial
+public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.ZeroOneForm
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Existence
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.LocalFrame
 public import TauCeti.Geometry.Manifold.VectorBundle.RestrictScalars
@@ -172,5 +173,80 @@ theorem contMDiffCovariantDerivativeOn_twistOneConnection (n : ℕ∞) :
       rw [← OnePoint.twistCore_localTriv_baseSet 1 y]
       exact contMDiffCovariantDerivativeOn_frameCovariantDerivative (m := ω) (k := ω)
         Complex.basisOneI le_top le_top
+
+
+theorem twistPartition_eq_zero {y x : OnePoint ℂ} (hx : x ∉ (chartAt ℂ y).source) :
+    twistPartition y x = 0 :=
+  image_eq_zero_of_notMem_tsupport fun h ↦ hx (twistPartition_isSubordinate y h)
+
+theorem twistCore_localTriv_symmL_smul {y x : OnePoint ℂ} (hx : x ∈ (chartAt ℂ y).source)
+    (c w : ℂ) :
+    ((twistCore (𝕜 := ℂ) k).localTriv y).symmL ℝ x (c • w) =
+      c • ((twistCore (𝕜 := ℂ) k).localTriv y).symmL ℝ x w := by
+  have hb : x ∈ ((twistCore (𝕜 := ℂ) k).localTriv y).baseSet := by simpa using hx
+  rw [Trivialization.symmL_apply _ hb, Trivialization.symmL_apply _ hb,
+    ← Trivialization.symmL_apply (R := ℂ) _ hb, ← Trivialization.symmL_apply (R := ℂ) _ hb,
+    map_smul]
+
+/-- The connection on `𝒪(1)` is complex linear. -/
+theorem twistOneConnection_const_smul (c : ℂ) {s : Π x, (twistCore (𝕜 := ℂ) 1).Fiber x}
+    {x : OnePoint ℂ}
+    (hs : MDifferentiableAt 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ))
+      (fun p ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) p (s p)) x) :
+    twistOneConnection (c • s) x = c • twistOneConnection s x := by
+  rw [twistOneConnection_def, twistOneConnection_def, smul_finsum]
+  refine finsum_congr fun y ↦ ?_
+  by_cases hy : x ∈ (chartAt ℂ y).source
+  · have hcs := hs.const_smul_section c
+    have h := frameCovariantDerivative_twistCore hy hcs
+    rw [smul_comm, h, frameCovariantDerivative_twistCore hy hs]
+    -- The sections of `𝒪(1)` are complex valued functions, and its scalar action on the fibres
+    -- is multiplication in `ℂ`; `s'` is `s` as a complex valued function.
+    let s' : OnePoint ℂ → ℂ := s
+    change twistPartition y x • (((twistCore 1).localTriv y).symmL ℝ x).comp
+        (mvfderiv 𝓘(ℝ, ℂ) (fun p ↦ twistTransition 1 p y p * (c • s') p) x) = _
+    have hfun : (fun p ↦ twistTransition 1 p y p * (c • s') p) =
+        c • fun p ↦ twistTransition 1 p y p * s' p := by
+      funext p
+      simp only [Pi.smul_apply, smul_eq_mul]
+      ring
+    rw [hfun, mvfderiv_const_smul_field]
+    congr 1
+    ext v
+    exact twistCore_localTriv_symmL_smul hy c _
+  · simp [twistPartition_eq_zero hy]
+
+
+/-- In the frame of the chart at `y`, the `(0,1)`-part of the connection on `𝒪(1)` for the
+standard complex structure is `∂bar` of the coordinate of the section. -/
+theorem twistOneConnection_zeroOnePart_eq {y x : OnePoint ℂ} (hx : x ∈ (chartAt ℂ y).source)
+    {s : Π x, (twistCore (𝕜 := ℂ) 1).Fiber x}
+    (hs : MDifferentiableAt 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ))
+      (fun p ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) p (s p)) x) :
+    𝒊.zeroOnePart (twistOneConnection s x) =
+      (((twistCore 1).localTriv y).symmL ℝ x).comp
+        (𝒊.dbarFunction (fun p ↦ ((twistCore (𝕜 := ℂ) 1).localTriv y ⟨p, s p⟩).2) x) := by
+  -- `s'` is `s` as a complex valued function, in which the coordinates are products.
+  let s' : OnePoint ℂ → ℂ := s
+  have hcoord (z : OnePoint ℂ) :
+      (fun p ↦ ((twistCore (𝕜 := ℂ) 1).localTriv z ⟨p, s p⟩).2) =
+        fun p ↦ twistTransition 1 p z p * s' p :=
+    funext fun p ↦ OnePoint.twistCore_localTriv_apply 1 z s' p
+  have hfin : (Function.support fun z ↦ twistPartition z x •
+      frameCovariantDerivative 𝓘(ℝ, ℂ) Complex.basisOneI ((twistCore 1).localTriv z) s x).Finite :=
+    (twistPartition.locallyFinite.point_finite x).subset fun z hz ↦
+      left_ne_zero_of_smul hz
+  rw [hcoord, twistOneConnection_def, ← SmoothAlmostComplexStructure.zeroOnePartLinearMap_apply,
+    map_finsum _ hfin]
+  calc ∑ᶠ z, _ = ∑ᶠ z, twistPartition z x • (((twistCore 1).localTriv y).symmL ℝ x).comp
+        (𝒊.dbarFunction (fun p ↦ twistTransition 1 p y p * s' p) x) := by
+        refine finsum_congr fun z ↦ ?_
+        rw [SmoothAlmostComplexStructure.zeroOnePartLinearMap_apply,
+          SmoothAlmostComplexStructure.zeroOnePart_smul]
+        by_cases hz : x ∈ (chartAt ℂ z).source
+        · rw [zeroOnePart_frameCovariantDerivative_twistCore (s := s') hz hs,
+            symmL_comp_dbarFunction_twistCore_eq hz hx hs]
+        · simp [twistPartition_eq_zero hz]
+    _ = _ := by rw [← finsum_smul, twistPartition.sum_eq_one (mem_univ x), one_smul]
 
 end SymplecticGeometry
