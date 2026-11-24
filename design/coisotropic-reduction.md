@@ -313,14 +313,11 @@ charted space `leafSpaceChartedSpace hR`:
   `f ⁻¹' range g` is open and closed) and `range_mfderiv_comp`.
 - An example: a smooth embedding meets itself cleanly, with `c = id`.
 
-### `LinearAlgebra/Symplectic/Reduction.lean` (merged file)
+### `LinearAlgebra/Symplectic/Subspace.lean` (merged file)
 
 - `TauCeti.SymplecticForm.IsLagrangian.finrank_inf_add_finrank`: for a
-  Lagrangian `Λ` and a coisotropic `W` in `V`,
+  Lagrangian `Λ` and any subspace `W` of `V`,
   `2 * finrank (Λ ⊓ W) + finrank V = 2 * finrank (Λ ⊓ ω.orthogonal W) + 2 * finrank W`.
-  The image of `Λ ⊓ W` in `W ⧸ W^ω` is Lagrangian (`IsLagrangian.reduction_map`),
-  so it has half the dimension that `IsCoisotropic.finrank_reducedSpace_add_finrank`
-  gives, and the kernel of `Λ ⊓ W → W ⧸ W^ω` is `Λ ⊓ W^ω`.
 
 ### `Geometry/Symplectic/Coisotropic/Lagrangian/Basic.lean`
 
@@ -416,7 +413,7 @@ list. Issues 1, 5, 6 and 7 can start at once.
 6. **Clean intersections.** `Geometry/Manifold/CleanIntersection.lean`.
    About 100 lines. Blockers: none.
 7. **A dimension formula for Lagrangian reduction.**
-   `finrank_inf_add_finrank` in `LinearAlgebra/Symplectic/Reduction.lean`.
+   `finrank_inf_add_finrank` in `LinearAlgebra/Symplectic/Subspace.lean`.
    About 80 lines. Blockers: none.
 8. **The reduced Lagrangian, pointwise.** `Coisotropic/Lagrangian/Basic.lean`.
    About 300 lines. Blockers: 4, 6, 7.
