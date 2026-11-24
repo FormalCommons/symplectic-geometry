@@ -268,8 +268,9 @@ These settle the points of *The design file decides* of part 45.
    Ceti's kernel parametrization.** Fix $J_0$ and a continuous projection
    $P$ of $W^{1,2}$ onto $E_{J_0}$ (finite-dimensional, hence complemented).
    At every order $k$, $\mathcal D_J\oplus P$ from $W^{k+1,2}$ to
-   $W^{k,2}\times E_{J_0}$ is invertible at $J_0$, hence for $J$ in a
-   neighbourhood $U_k$ (`ContinuousLinearEquiv.isOpen`), and
+   $W^{k,2}\times E_{J_0}$ is invertible when $J=J_0$; invertibility is an
+   open condition (`ContinuousLinearEquiv.isOpen`), so it holds on some open
+   $U_k\ni J_0$, and
    $T_J e=(\mathcal D_J\oplus P)^{-1}(0,e)$ is the unique $s\in E_J$ with
    $Ps=e$, so it does not depend on $k$. As $J\mapsto T_Je$ is continuous on
    $U_k$ into $W^{k+1,2}$ for every $k$, and $W^{k+2,2}$ embeds in $C^k$ on a
