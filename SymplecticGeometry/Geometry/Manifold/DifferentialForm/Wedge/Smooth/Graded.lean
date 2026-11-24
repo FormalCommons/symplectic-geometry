@@ -37,15 +37,18 @@ cohomology classes. The laws come from Tau Ceti's associativity
 * `TauCeti.SmoothForm.gRing`: the smooth forms of all degrees are a graded ring under the wedge.
 * `TauCeti.SmoothForm.gAlgebra`: they are a graded real algebra; a real number `r` acts as the
   constant function `r`.
+* `TauCeti.SmoothForm.ofFunctionRingHom`: the smooth functions as the forms of degree `0`.
 
 ## Main results
 
 * `TauCeti.SmoothForm.of_mul_of_eq_of_wedge`: the product of homogeneous forms is their wedge.
 * `TauCeti.SmoothForm.algebraMap_apply_eq_of_ofFunction`: the image of `r : ℝ` is the constant
   function `r`, in degree `0`.
-* `TauCeti.SmoothForm.of_pow_eq_of_wedgePow`: powers of a homogeneous form are its wedge powers.
+* `TauCeti.SmoothForm.of_pow_eq_of_wedgePow`: powers of a homogeneous form are its wedge powers,
+  and `TauCeti.SmoothForm.of_pow_eq_zero_of_finrank_lt`: they vanish above the dimension.
 * `TauCeti.SmoothForm.of_mul_of_comm` and `TauCeti.SmoothForm.commute_of_of_of_even`: graded
-  commutativity.
+  commutativity, and `TauCeti.SmoothForm.commute_ofFunctionRingHom`: functions commute with all
+  forms.
 
 ## References
 
@@ -256,6 +259,36 @@ theorem of_mul_of_comm (φ : SmoothForm I M ℝ k) (ψ : SmoothForm I M ℝ l) :
 theorem commute_of_of_of_even (hk : Even k) (φ : SmoothForm I M ℝ k) (ψ : SmoothForm I M ℝ l) :
     Commute (DirectSum.of (fun k ↦ SmoothForm I M ℝ k) k φ) (DirectSum.of _ l ψ) := by
   rw [Commute, SemiconjBy, of_mul_of_comm, (hk.mul_right l).neg_one_pow, one_smul]
+
+/-- A power of a homogeneous smooth form vanishes once its degree exceeds the dimension of the
+model space. -/
+theorem of_pow_eq_zero_of_finrank_lt [FiniteDimensional ℝ E] (φ : SmoothForm I M ℝ k) {m : ℕ}
+    (h : Module.finrank ℝ E < k * m) : DirectSum.of (fun k ↦ SmoothForm I M ℝ k) k φ ^ m = 0 := by
+  rw [of_pow_eq_of_wedgePow, eq_zero_of_finrank_lt h (wedgePow φ m), map_zero]
+
+/-- The smooth functions embed in the algebra of smooth forms as its forms of degree `0`: the ring
+homomorphism sending `g` to its `0`-form. -/
+def ofFunctionRingHom : C^∞⟮I, M; ℝ⟯ →+* ⨁ k, SmoothForm I M ℝ k where
+  toFun g := DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 0 (ofFunction g)
+  map_one' := of_zero_ofFunction_one
+  map_zero' := by rw [← ofFunctionEquiv_apply, map_zero, map_zero]
+  map_add' g g' := by
+    rw [← ofFunctionEquiv_apply, map_add, map_add, ofFunctionEquiv_apply, ofFunctionEquiv_apply]
+  map_mul' g g' := by
+    simp only [of_mul_of_zero_ofFunction, funSMulₗ_ofFunction, mul_comm g']
+
+/-- `ofFunctionRingHom` sends a smooth function `g` to its `0`-form, in degree `0`. -/
+theorem ofFunctionRingHom_apply (g : C^∞⟮I, M; ℝ⟯) :
+    ofFunctionRingHom g = DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 0 (ofFunction g) :=
+  (rfl)
+
+/-- A smooth function, as a form of degree `0`, commutes with every form of mixed degree. -/
+theorem commute_ofFunctionRingHom (g : C^∞⟮I, M; ℝ⟯) (x : ⨁ k, SmoothForm I M ℝ k) :
+    Commute (ofFunctionRingHom g) x := by
+  induction x using DirectSum.induction_on with
+  | zero => exact Commute.zero_right _
+  | of l ψ => exact commute_of_of_of_even Even.zero (ofFunction g) ψ
+  | add x y hx hy => exact hx.add_right hy
 
 end SmoothForm
 

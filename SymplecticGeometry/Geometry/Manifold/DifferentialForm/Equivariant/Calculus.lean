@@ -35,6 +35,8 @@ products (`SymplecticGeometry.cartanDiff_mul_of_even`).
 * `SymplecticGeometry.formCalculus_zero_component`: its component of degree `0` is `F ∘ f`.
 * `SymplecticGeometry.formCalculus_id`: for `F = id` it is `f + τ`, and
   `SymplecticGeometry.formCalculus_const`: for a constant `F = c` it is `c`.
+* `SymplecticGeometry.formCalculus_eq_sum_pow`: `F(f + τ)` as a polynomial in `τ` with
+  coefficients the functions `F⁽ᵏ⁾ ∘ f / k!`, in the algebra of forms of mixed degree.
 * `SymplecticGeometry.formCalculus_mul`: the calculus is multiplicative,
   `(F G)(f + τ) = F(f + τ) G(f + τ)`, by the Leibniz rule
   `SymplecticGeometry.formCalculusCoeff_mul` for its coefficients.
@@ -191,62 +193,51 @@ theorem formCalculusCoeff_mul (G : ℝ → ℝ) (hG : ContDiff ℝ ∞ G) (hFG :
     mul_assoc]
 
 omit [FiniteDimensional ℝ E] in
-/-- `F(f + τ)` as a polynomial in the two-form `τ`, with the functions `F⁽ᵏ⁾ ∘ f / k!` as
-coefficients, in the algebra of forms of mixed degree. -/
-private theorem formCalculus_eq_sum_pow :
+/-- `F(f + τ)` is the polynomial `∑ k ≤ finrank ℝ E, (k!)⁻¹ τ ^ k (F⁽ᵏ⁾ ∘ f)` in the two-form `τ`,
+computed in the algebra of forms of mixed degree, whose coefficients are the functions
+`F⁽ᵏ⁾ ∘ f` as forms of degree `0`. -/
+theorem formCalculus_eq_sum_pow :
     formCalculus F hF f τ = ∑ k ∈ Finset.range (finrank ℝ E + 1),
       (k ! : ℝ)⁻¹ • (DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 2 τ ^ k *
-        DirectSum.of _ 0 (SmoothForm.ofFunction (formCalculusCoeff F hF f k))) := by
+        SmoothForm.ofFunctionRingHom (formCalculusCoeff F hF f k)) := by
   rw [formCalculus_def]
   refine Finset.sum_congr rfl fun k _ ↦ ?_
-  rw [SmoothForm.of_pow_eq_of_wedgePow, SmoothForm.of_mul_of_zero_ofFunction, DirectSum.of_smul]
+  rw [SmoothForm.ofFunctionRingHom_apply, SmoothForm.of_pow_eq_of_wedgePow,
+    SmoothForm.of_mul_of_zero_ofFunction, DirectSum.of_smul]
 
 omit [FiniteDimensional ℝ E] in
 /-- The functional calculus is **multiplicative**: `(F G)(f + τ) = F(f + τ) G(f + τ)`. -/
 theorem formCalculus_mul (G : ℝ → ℝ) (hG : ContDiff ℝ ∞ G) (hFG : ContDiff ℝ ∞ (F * G)) :
     formCalculus (F * G) hFG f τ = formCalculus F hF f τ * formCalculus G hG f τ := by
   let X := DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 2 τ
-  let C : C^∞⟮I, M; ℝ⟯ →+ ⨁ k, SmoothForm I M ℝ k :=
-    AddMonoidHom.mk' (fun g ↦ DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 0
-      (SmoothForm.ofFunction g)) fun g g' ↦ by
-        simp only [SmoothForm.ofFunction_eq_funSMulₗ_one g,
-          SmoothForm.ofFunction_eq_funSMulₗ_one g', SmoothForm.ofFunction_eq_funSMulₗ_one (g + g'),
-          SmoothForm.funSMulₗ_add, map_add]
-  have hC : ∀ g g', C g * C g' = C (g * g') := fun g g' ↦ by
-    simp only [C, AddMonoidHom.mk'_apply, SmoothForm.of_mul_of_zero_ofFunction,
-      SmoothForm.funSMulₗ_ofFunction, mul_comm g']
-  have hCX : ∀ g b, Commute (C g) (X ^ b) := fun g b ↦ by
-    simp only [C, X, AddMonoidHom.mk'_apply]
-    exact (SmoothForm.commute_of_of_of_even Even.zero (SmoothForm.ofFunction g) τ).pow_right b
+  let C := SmoothForm.ofFunctionRingHom (I := I) (M := M)
   let n := finrank ℝ E
-  have hX : ∀ m, n < m → m ≤ 2 * n → X ^ m = 0 := fun m h₁ h₂ ↦ by
-    have : FiniteDimensional ℝ E := Module.finite_of_finrank_pos (by omega)
-    rw [SmoothForm.of_pow_eq_of_wedgePow,
-      SmoothForm.eq_zero_of_finrank_lt (by omega) (τ.wedgePow m), map_zero]
   let cF := formCalculusCoeff F hF f
   let cG := formCalculusCoeff G hG f
   let h : ℕ → ℕ → ⨁ k, SmoothForm I M ℝ k := fun a b ↦
     ((a ! : ℝ)⁻¹ * (b ! : ℝ)⁻¹) • (X ^ (a + b) * C (cF a * cG b))
-  have hFC : formCalculus F hF f τ = ∑ k ∈ Finset.range (n + 1), (k ! : ℝ)⁻¹ • (X ^ k * C (cF k)) :=
-    formCalculus_eq_sum_pow F hF f τ
-  have hGC : formCalculus G hG f τ = ∑ k ∈ Finset.range (n + 1), (k ! : ℝ)⁻¹ • (X ^ k * C (cG k)) :=
-    formCalculus_eq_sum_pow G hG f τ
-  have hFGC : formCalculus (F * G) hFG f τ = ∑ k ∈ Finset.range (n + 1),
-      (k ! : ℝ)⁻¹ • (X ^ k * C (formCalculusCoeff (F * G) hFG f k)) :=
-    formCalculus_eq_sum_pow (F * G) hFG f τ
+  -- Expand the product of the two polynomials in `X` into the terms `h a b`, and drop those
+  -- with `a + b > n`.
   have hprod : formCalculus F hF f τ * formCalculus G hG f τ =
       ∑ a ∈ Finset.range (n + 1), ∑ b ∈ Finset.range (n + 1 - a), h a b := by
-    rw [hFC, hGC, Finset.sum_mul_sum]
+    rw [formCalculus_eq_sum_pow F hF, formCalculus_eq_sum_pow G hG, Finset.sum_mul_sum]
     refine Finset.sum_congr rfl fun a ha ↦ ?_
     rw [Finset.mem_range] at ha
     symm
     refine Finset.sum_subset (fun b hb ↦ by simp only [Finset.mem_range] at hb ⊢; omega)
       (fun b hb hb' ↦ ?_) |>.trans (Finset.sum_congr rfl fun b _ ↦ ?_)
-    · simp only [Finset.mem_range] at hb hb'
-      simp only [h, hX (a + b) (by omega) (by omega), zero_mul, smul_zero]
-    · rw [smul_mul_smul_comm, mul_assoc, ← mul_assoc (C (cF a)), (hCX _ _).eq, mul_assoc, hC,
-        ← mul_assoc, ← pow_add]
-  rw [hprod, ← Finset.sum_range_diag_flip, hFGC]
+    · -- Here `n < a + b` with `a, b ≤ n`, so `n > 0`, the model space is finite-dimensional,
+      -- and `X ^ (a + b)` has degree above its dimension.
+      simp only [Finset.mem_range] at hb hb'
+      have : FiniteDimensional ℝ E := Module.finite_of_finrank_pos (by omega)
+      have hX : X ^ (a + b) = 0 := SmoothForm.of_pow_eq_zero_of_finrank_lt τ (by omega)
+      simp only [h, hX, zero_mul, smul_zero]
+    · -- The functions commute with `X`, so each product of terms is `h a b`.
+      rw [smul_mul_smul_comm, mul_assoc, ← mul_assoc (C (cF a)),
+        (SmoothForm.commute_ofFunctionRingHom _ _).eq, mul_assoc, ← map_mul, ← mul_assoc,
+        ← pow_add]
+  -- Regroup by `m = a + b`, and compare with `F G` term by term through the Leibniz rule.
+  rw [hprod, ← Finset.sum_range_diag_flip, formCalculus_eq_sum_pow (F * G) hFG]
   refine Finset.sum_congr rfl fun m _ ↦ ?_
   rw [formCalculusCoeff_mul F hF f G hG hFG, map_sum, Finset.mul_sum, Finset.smul_sum]
   refine Finset.sum_congr rfl fun i hi ↦ ?_
@@ -254,6 +245,7 @@ theorem formCalculus_mul (G : ℝ → ℝ) (hG : ContDiff ℝ ∞ G) (hFG : Cont
   rw [map_nsmul, ← Nat.cast_smul_eq_nsmul ℝ, mul_smul_comm, smul_smul]
   simp only [h, cF, cG, Nat.add_sub_cancel' hi]
   congr 1
+  -- The coefficients agree: `(m!)⁻¹ (m choose i) = (i!)⁻¹ ((m - i)!)⁻¹`.
   have hm := Nat.choose_mul_factorial_mul_factorial hi
   have : (m ! : ℝ) ≠ 0 := by positivity
   field_simp
