@@ -14,6 +14,7 @@ import TauCeti.Geometry.Manifold.Orientation.Pullback
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.Orientation.Sign
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import TauCeti.Geometry.Manifold.Diffeomorph.NormedSpace
 import TauCeti.Geometry.Manifold.Orientation.Glue
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
@@ -226,12 +227,8 @@ private theorem mfderiv_bandAffine {a b : ℝ} {s₀ : bandInterval} (h : a + b 
     (v : TangentSpace 𝓘(ℝ) s₀) : mfderiv 𝓘(ℝ) 𝓘(ℝ) (bandAffine a b) s₀ v = b • v := by
   have hd : HasFDerivAt (fun r : ℝ ↦ a + b * r) (b • ContinuousLinearMap.id ℝ ℝ) s₀ := by
     simpa [smul_eq_mul] using ((hasFDerivAt_id (s₀ : ℝ)).const_smul b).const_add a
-  have h₁ := TauCeti.Manifold.mfderiv_subtype_val_comp_apply (I := 𝓘(ℝ)) (J := 𝓘(ℝ))
-    (f := bandAffine a b) v
-  have h₂ := TauCeti.Manifold.mfderiv_comp_subtype_val_apply (I := 𝓘(ℝ)) (J := 𝓘(ℝ))
-    (f := fun r : ℝ ↦ a + b * r) v
-  rw [← h₁, (eventuallyEq_bandAffine h).mfderiv_eq, ContinuousLinearMap.comp_apply, h₂,
-    mfderiv_eq_fderiv, hd.fderiv]
+  rw [TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eventuallyEq
+    (eventuallyEq_bandAffine h) v, mfderiv_eq_fderiv, hd.fderiv]
   rfl
 
 /-- The map `(s, x) ↦ (a + b s, x)` of the parameters of the band, near a fixed point. -/
