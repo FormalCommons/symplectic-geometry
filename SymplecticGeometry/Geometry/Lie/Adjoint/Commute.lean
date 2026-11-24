@@ -5,10 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Geometry.Manifold.IsManifold.InteriorBoundary
 public import TauCeti.Geometry.Lie.Adjoint.Basic
 import TauCeti.Geometry.Lie.Adjoint.Exponential.Formula
 import TauCeti.Geometry.Lie.Exponential.Generation
+import TauCeti.Geometry.Lie.Interior
 
 /-!
 # Linear maps commuting with the adjoint action
@@ -37,9 +37,9 @@ namespace TauCeti.Lie
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
-  [T2Space G] [BoundarylessManifold I G]
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
+  ContMDiffMul.boundarylessManifold
 
 /-- On a preconnected Lie group, a linear map of the Lie algebra that commutes with every `ad x`
 commutes with every `Ad g`: `J (Ad g y) = Ad g (J y)`. -/
@@ -47,6 +47,7 @@ theorem map_tangentAd_apply_of_map_lie [PreconnectedSpace G]
     (J : GroupLieAlgebra I G →ₗ[ℝ] GroupLieAlgebra I G)
     (hJ : ∀ x y : GroupLieAlgebra I G, J ⁅x, y⁆ = ⁅x, J y⁆) (g : G) (y : GroupLieAlgebra I G) :
     J (tangentAd (I := I) g y) = tangentAd (I := I) g (J y) := by
+  let _ : T2Space G := I.t2Space_of_lieGroup ∞
   let _ : IsTopologicalGroup G := topologicalGroup_of_lieGroup I ∞
   let S : Subgroup G :=
     { carrier := {g | ∀ y, J (tangentAd (I := I) g y) = tangentAd (I := I) g (J y)}
