@@ -30,7 +30,8 @@ surjective local diffeomorphism (`AddCircle.isLocalDiffeomorph_prodMap_coe`), to
 the torus is the integral over the square `[0, 1) × [0, 1)` of `v^* σ` on the standard frame
 (`AddCircle.integralTopForm_prod_eq_setIntegral`, applied as in Tau Ceti's
 `AddCircle.integralTopForm_wedge_timeForm`). Since the quotient map has the identity as derivative
-(`AddCircle.mfderiv_prodMap_coe`), that integrand is the one of `u^* σ`, and Fubini's theorem
+(`AddCircle.mfderiv_prodMap_coe`), that integrand is the one of `u^* σ`. Up to a null set the square
+is `[0, 1]²`, where Fubini's theorem (`TauCeti.IsSmoothForm.setIntegral_eq_rectangleIntegral`)
 turns the integral into the rectangle integral.
 
 ## Main results
@@ -96,8 +97,7 @@ theorem rectangleIntegral_mem_range_closedFormHomologyPeriod_of_periodic (σ : c
     rectangleIntegral σ.val.val u (0, 0) (1, 1) ∈ range (closedFormHomologyPeriod σ) := by
   set Q := Prod.map ((↑) : ℝ → AddCircle (1 : ℝ)) ((↑) : ℝ → AddCircle (1 : ℝ))
   have hQ := AddCircle.isLocalDiffeomorph_prodMap_coe (1 : ℝ) 1 ∞
-  have hQs : Function.Surjective Q :=
-    QuotientAddGroup.mk_surjective.prodMap QuotientAddGroup.mk_surjective
+  have hQs : Function.Surjective Q := AddCircle.prodMap_coe_surjective (1 : ℝ) 1
   -- `u` is constant on the fibres of `Q`, so it descends to the torus.
   have hfac : Function.FactorsThrough u Q := by
     rintro ⟨a₁, a₂⟩ ⟨b₁, b₂⟩ h
@@ -132,20 +132,16 @@ theorem rectangleIntegral_mem_range_closedFormHomologyPeriod_of_periodic (σ : c
     -- so the lemmas about `ContinuousLinearMap.id` do not apply as rewrites here.
     rfl
   simp_rw [hpt, zero_add] at hper
-  -- Fubini turns the integral over the square into the rectangle integral.
-  have hcont : Continuous fun z ↦ mpullback 𝓘(ℝ, ℝ × ℝ) I u σ.val.val z ![(1, 0), (0, 1)] :=
-    (hσ.of_le zero_le_one).continuous_mpullback_apply (hu.of_le (by simp))
-      ![((1 : ℝ), (0 : ℝ)), (0, 1)]
-  have hInt : IntegrableOn (fun z ↦ mpullback 𝓘(ℝ, ℝ × ℝ) I u σ.val.val z ![(1, 0), (0, 1)])
-      (Ico (0 : ℝ) 1 ×ˢ Ico (0 : ℝ) 1) (volume.prod volume) :=
-    (hcont.continuousOn.integrableOn_compact (isCompact_Icc.prod isCompact_Icc)).mono_set
-      (prod_mono Ico_subset_Icc_self Ico_subset_Icc_self)
-  rw [Measure.volume_eq_prod, setIntegral_prod _ hInt] at hper
-  rw [rectangleIntegral_def, intervalIntegral.integral_of_le zero_le_one,
-    integral_Ioc_eq_integral_Ioo, ← integral_Ico_eq_integral_Ioo]
+  -- By Fubini (`IsSmoothForm.setIntegral_eq_rectangleIntegral`) the rectangle integral is the
+  -- integral over the closed square, which differs from the half-open one by a null set.
+  rw [← (hσ.of_le zero_le_one).setIntegral_eq_rectangleIntegral (hu.of_le (by simp))
+    (a := (0, 0)) (b := (1, 1)) (by simp), Icc_prod_eq, Measure.volume_eq_prod]
+  rw [Measure.volume_eq_prod,
+    setIntegral_congr_set (Measure.set_prod_ae_eq Ico_ae_eq_Icc Ico_ae_eq_Icc)] at hper
   convert hper using 3
-  rw [intervalIntegral.integral_of_le zero_le_one, integral_Ioc_eq_integral_Ioo,
-    ← integral_Ico_eq_integral_Ioo]
+  simp only [mpullback_apply]
+  refine congrArg _ (funext fun j ↦ ?_)
+  fin_cases j <;> simp
 
 end TauCeti
 
