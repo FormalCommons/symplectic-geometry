@@ -17,6 +17,7 @@ public import SymplecticGeometry.Analysis.Quaternion
 public import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 public import Mathlib.Analysis.Normed.Module.Connected
 public import Mathlib.Topology.Homeomorph.Lemmas
+public import TauCeti.Data.Fin.Sum
 import TauCeti.Geometry.Symplectic.Complex.InnerProductSpace
 import TauCeti.Geometry.Symplectic.Complex.OrthonormalBasis
 
@@ -412,23 +413,27 @@ theorem coe_quotientUnitaryHomeomorph_positivelyOrientedHomotopyEquiv
 /-- The identification of `StdSpace (Fin 2) = ℝ⁴` with the quaternions,
 `z ↦ x₁ + y₁ i + x₂ j + y₂ k`; under it `J₀` is left multiplication by `i`. -/
 noncomputable def stdSpaceQuaternionIsometry : StdSpace (Fin 2) ≃ₗᵢ[ℝ] ℍ[ℝ] :=
-  (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ
-      (⟨Sum.elim (fun i ↦ ⟨2 * i.val, by omega⟩) (fun i ↦ ⟨2 * i.val + 1, by omega⟩),
-        ![.inl 0, .inr 0, .inl 1, .inr 1], by decide, by decide⟩ : Fin 2 ⊕ Fin 2 ≃ Fin 4)).trans
+  (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (TauCeti.finSumFinInterleaveEquiv 2)).trans
     Quaternion.linearIsometryEquivTuple.symm
-
-/-- The quaternion of `z ∈ StdSpace (Fin 2)` is `x₁ + y₁ i + x₂ j + y₂ k`. -/
-@[simp]
-theorem stdSpaceQuaternionIsometry_apply (z : StdSpace (Fin 2)) :
-    stdSpaceQuaternionIsometry z = ⟨z (.inl 0), z (.inr 0), z (.inl 1), z (.inr 1)⟩ :=
-  (rfl)
 
 /-- The coordinates of the vector of a quaternion `q`: `x₁ = re q`, `y₁ = imI q`, `x₂ = imJ q`
 and `y₂ = imK q`. -/
 @[simp]
 theorem stdSpaceQuaternionIsometry_symm_apply (q : ℍ[ℝ]) (i : Fin 2 ⊕ Fin 2) :
     stdSpaceQuaternionIsometry.symm q i = Sum.elim ![q.re, q.imJ] ![q.imI, q.imK] i := by
-  rcases i with i | i <;> fin_cases i <;> rfl
+  have hl (i : Fin 2) : TauCeti.finSumFinInterleaveEquiv 2 (.inl i) = ⟨2 * i, by omega⟩ :=
+    Fin.ext (TauCeti.val_finSumFinInterleaveEquiv_inl i)
+  have hr (i : Fin 2) : TauCeti.finSumFinInterleaveEquiv 2 (.inr i) = ⟨2 * i + 1, by omega⟩ :=
+    Fin.ext (TauCeti.val_finSumFinInterleaveEquiv_inr i)
+  rcases i with i | i <;> fin_cases i <;>
+    simp [stdSpaceQuaternionIsometry, LinearIsometryEquiv.piLpCongrLeft_symm, hl, hr]
+
+/-- The quaternion of `z ∈ StdSpace (Fin 2)` is `x₁ + y₁ i + x₂ j + y₂ k`. -/
+@[simp]
+theorem stdSpaceQuaternionIsometry_apply (z : StdSpace (Fin 2)) :
+    stdSpaceQuaternionIsometry z = ⟨z (.inl 0), z (.inr 0), z (.inl 1), z (.inr 1)⟩ := by
+  refine stdSpaceQuaternionIsometry.symm.injective (PiLp.ext fun i ↦ ?_)
+  rcases i with i | i <;> fin_cases i <;> simp
 
 /-- The complex structure on `ℝ⁴` given by a unit vector `u` of `ℝ³`: left multiplication by the
 pure quaternion `u₀ i + u₁ j + u₂ k`, read through `stdSpaceQuaternionIsometry`. -/

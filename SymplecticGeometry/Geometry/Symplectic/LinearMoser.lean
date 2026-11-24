@@ -14,7 +14,8 @@ public import SymplecticGeometry.Analysis.ODE.DysonSeries
 public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 public import SymplecticGeometry.Analysis.Calculus.Deriv.ContinuousLinearMap
 import TauCeti.Analysis.Calculus.FDeriv.Prod
-import SymplecticGeometry.Analysis.Calculus.Deriv.Mul
+import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
+import TauCeti.Analysis.Calculus.FDeriv.Mul
 import TauCeti.Analysis.ODE.Regularity
 import SymplecticGeometry.Analysis.Normed.Operator.BoundedSMul
 
@@ -156,8 +157,7 @@ variable [CompleteSpace V]
 /-- The Moser generator of a `Cⁿ⁺¹` path of invertible forms is `Cⁿ`. -/
 theorem contDiff_moserGenerator {n : WithTop ℕ∞} (hω : ContDiff ℝ (n + 1) ω)
     (hinv : ∀ t, (ω t).IsInvertible) : ContDiff ℝ n (moserGenerator ω) := by
-  have hinv' : ContDiff ℝ n fun t => (ω t).inverse := contDiff_iff_contDiffAt.2 fun t =>
-    (hinv t).contDiffAt_map_inverse.comp t (hω.of_le le_self_add).contDiffAt
+  have hinv' : ContDiff ℝ n fun t => (ω t).inverse := (hω.of_le le_self_add).clm_inverse hinv
   have hd : ContDiff ℝ n (deriv ω) := (contDiff_succ_iff_deriv.1 hω).2.2
   rw [show moserGenerator ω = fun t => -(2⁻¹ : ℝ) • ((ω t).inverse ∘L deriv ω t) from
     funext (moserGenerator_def ω)]
@@ -237,8 +237,7 @@ theorem contDiffOn_parametric_moserGenerator {n : WithTop ℕ∞} (hU : IsOpen U
   have hD : ContDiffOn ℝ n (fun q => fderiv ℝ (Function.uncurry ω) q (0, 1)) (U ×ˢ Set.univ) :=
     (hω.fderiv_of_isOpen hO le_rfl).clm_apply contDiffOn_const
   have hI : ContDiffOn ℝ n (fun q : E × ℝ => (ω q.1 q.2).inverse) (U ×ˢ Set.univ) :=
-    fun q hq => ((hinv q.1 hq.1 q.2).contDiffAt_map_inverse.comp (f := Function.uncurry ω) q
-      ((hω.of_le le_self_add).contDiffAt (hO.mem_nhds hq))).contDiffWithinAt
+    (hω.of_le le_self_add).clm_inverse fun q hq => hinv q.1 hq.1 q.2
   refine ((hI.clm_comp hD).const_smul (-(2⁻¹ : ℝ))).congr fun q hq => ?_
   rw [moserGenerator_def, hderiv q hq]
 
@@ -420,9 +419,10 @@ theorem continuous_complexMoserGenerator (hJ : ContDiff ℝ 1 J) :
 `J̇ t + J t * A t = A t * J t`. -/
 theorem deriv_add_mul_complexMoserGenerator (hsq : ∀ t, J t * J t = -1) (t : ℝ) :
     deriv J t + J t * complexMoserGenerator J t = complexMoserGenerator J t * J t := by
-  have h := deriv_mul_add_mul_deriv_eq_zero (t := t) (.of_forall hsq)
+  have h := TauCeti.mul_fderiv_add_fderiv_mul_eq_zero (𝕜 := ℝ) (x := t) (.of_forall hsq) 1
+  rw [fderiv_apply_one_eq_deriv] at h
   have h' : J t * deriv J t * J t = deriv J t := by
-    rw [mul_assoc, eq_neg_of_add_eq_zero_left h, mul_neg, ← mul_assoc, hsq, neg_one_mul, neg_neg]
+    rw [mul_assoc, eq_neg_of_add_eq_zero_right h, mul_neg, ← mul_assoc, hsq, neg_one_mul, neg_neg]
   rw [complexMoserGenerator_def, mul_smul_comm, smul_mul_assoc, h', ← mul_assoc, hsq,
     neg_one_mul, smul_neg]
   module

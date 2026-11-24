@@ -8,7 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.IntegralCurve.Basic
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import Mathlib.Geometry.Manifold.VectorField.Pullback
-import TauCeti.Geometry.Manifold.IntegralCurve.Basic
+import TauCeti.Geometry.Manifold.Flow.Covering
 import TauCeti.Geometry.Manifold.ContMDiff.MFDeriv
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -42,9 +42,9 @@ The first item has the proof of Tau Ceti's `Diffeomorph.mfderiv_apply_mpullback`
 `TauCeti.IsLocalRiemannianIsometry.mfderiv_apply_mpullback`, which state it for a global
 diffeomorphism and for a local Riemannian isometry. The second follows Mathlib's
 `ContMDiffOn.mpullback_vectorField_preimage`, with the invertibility of the differential given by
-`IsLocalDiffeomorph.isInvertible_mfderiv`. The last follows Tau Ceti's
-`Diffeomorph.isMIntegralCurveOn_comp_iff`, with the inverse of the inclusion of `U` given by Tau
-Ceti's `PartialDiffeomorph.subtypeVal`.
+`IsLocalDiffeomorph.isInvertible_mfderiv`. The last is Mathlib's
+`IsMIntegralCurveOn.map_of_mfderiv_eq` in one direction and Tau Ceti's
+`IsLocalDiffeomorph.isMIntegralCurveOn_of_comp` in the other.
 
 ## References
 
@@ -130,22 +130,9 @@ theorem isMIntegralCurveOn_mpullback_subtypeVal_iff {U : Opens M}
       IsMIntegralCurveOn (Subtype.val ∘ γ) V s := by
   refine ⟨fun h ↦ h.map_of_mfderiv_eq (fun _ _ ↦ SymplecticGeometry.mdifferentiableAt_subtypeVal)
     (fun t _ ↦ mfderiv_subtypeVal_mpullback_subtypeVal V (γ t)), fun h ↦ ?_⟩
-  -- The inverse of the inclusion, a partial diffeomorphism defined on `U`.
-  let g := (PartialDiffeomorph.subtypeVal I 1 U ⟨γ 0⟩).symm
-  have hg (y : U) : g y = y := PartialDiffeomorph.subtypeVal_symm_apply_coe U _ y
-  have hgd (y : U) : MDifferentiableAt I I g y :=
-    g.mdifferentiableAt one_ne_zero (by simp [g])
-  have hgV (y : U) : mfderiv I I g y (V y) = VectorField.mpullback I I Subtype.val V y := by
-    have := mfderiv_comp_apply y (hgd y) SymplecticGeometry.mdifferentiableAt_subtypeVal
-      (VectorField.mpullback I I Subtype.val V y)
-    rw [show g ∘ Subtype.val = id from funext hg, mfderiv_id, ContinuousLinearMap.id_apply,
-      mfderiv_subtypeVal_mpullback_subtypeVal V y] at this
-    exact this.symm
-  have := h.map_of_mfderiv_eq (f := g) (W := VectorField.mpullback I I Subtype.val V)
-    (fun t _ ↦ hgd (γ t)) fun t _ ↦ by
-    rw [hgV (γ t)]
-    exact congrArg (VectorField.mpullback I I Subtype.val V) (hg (γ t)).symm
-  simpa only [Function.comp_def, hg] using this
+  exact (TauCeti.isLocalDiffeomorph_subtype_val (n := 1)).isMIntegralCurveOn_of_comp one_ne_zero
+    (fun t _ ↦ mfderiv_subtypeVal_mpullback_subtypeVal V (γ t))
+    (Topology.IsInducing.subtypeVal.continuousOn_iff.2 h.continuousOn) h
 
 end VectorField
 
