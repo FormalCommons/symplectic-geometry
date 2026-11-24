@@ -15,7 +15,7 @@ public import TauCeti.Geometry.Symplectic.Lagrangian.Manifold
 public import TauCeti.Geometry.Symplectic.Lagrangian.Presymplectic
 
 /-!
-# Coisotropy and characteristic leaves of the zero level of a moment map
+# The zero level of a moment map: coisotropy and characteristic leaves
 
 Let a Lie group `G` act smoothly on a Hausdorff manifold `(M, σ)` with nondegenerate `σ` and
 coadjoint-equivariant moment map `μ : M → 𝔤*`, freely at the points of `Z = μ⁻¹(0)`. With the
