@@ -49,6 +49,11 @@ declarations `TauCeti.le_comp_maximalIntegralCurve_neg_mgradient` and
 same commit, come from this library's copies of those files. The declarations, their docstrings
 and their proofs are unchanged.
 
+Since it imports the copy of `GradientFlow.lean`, this file cannot be imported together with the
+pinned `TauCeti/Geometry/Manifold/Morse/ExponentialConvergence.lean`, nor with any file that
+imports it, such as the pinned `TauCeti/Geometry/Manifold/Morse/Bott/ExponentialConvergence.lean`:
+both declare `TauCeti.le_comp_maximalIntegralCurve_neg_mgradient`.
+
 ## Main results
 
 * `TauCeti.pathELength_maximalIntegralCurve_neg_mgradient_le_of_lojasiewicz`: Łojasiewicz's

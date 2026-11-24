@@ -26,7 +26,10 @@ their docstrings and their proofs are unchanged.
 The pinned version of Tau Ceti has a `TauCeti.le_comp_maximalIntegralCurve_neg_mgradient` of its
 own, in `TauCeti/Geometry/Manifold/Morse/ExponentialConvergence.lean`, which assumes that `γ`
 converges to `z`. Its main branch replaces it by the one here. So this file cannot be imported
-together with that file of the pinned version.
+together with that file of the pinned version, nor with any file that imports it, such as the
+pinned `TauCeti/Geometry/Manifold/Morse/Bott/ExponentialConvergence.lean`,
+`Morse/Trajectory.lean`, `Morse/Sphere/GradientFlow.lean` and
+`Riemannian/Submersion/GradientFlow.lean`.
 
 ## References
 

@@ -36,7 +36,14 @@ stays where the inequality holds, the Łojasiewicz length bound
 lengths, and `TauCeti.Manifold.riemannianEDist_le_of_tendsto_of_forall_pathELength_le` turns that
 into the bound on the distance. This adapts the proof of Tau Ceti's
 `TauCeti.exists_riemannianEDist_le_mul_sqrt_maximalIntegralCurve_neg_mgradient`, the case
-`θ = 1 / 2` for a trajectory converging to a critical point.
+`θ = 1 / 2` for a trajectory converging to a critical point; its last step is that of Tau Ceti's
+private `pathELength_le_of_forall_abs_le`.
+
+Until this library moves to a Tau Ceti commit at or after `07c8b6b1f5ff`, this file cannot be
+imported together with the pinned `TauCeti/Geometry/Manifold/Morse/ExponentialConvergence.lean`,
+nor with any file that imports it, such as the pinned
+`TauCeti/Geometry/Manifold/Morse/Bott/ExponentialConvergence.lean`: through the copies it
+imports, both declare `TauCeti.le_comp_maximalIntegralCurve_neg_mgradient`.
 
 ## Main results
 

@@ -147,7 +147,13 @@ may adjust implicit arguments and instance arguments to what elaborates.
    Ceti's `MomentMap/MorseBott.lean`,
    `exists_isNondegenerateCriticalSubmanifold_fixedPointsOfFinrank_of_compactSpace`),
    so Tau Ceti's Morse–Bott inequality `exists_mul_abs_sub_le_norm_mgradient_sq`
-   with (e) gives the limit. The weights $w_\mu(p,\xi)$ exist for every
+   with (e) gives the limit. Until the library moves to a Tau Ceti commit
+   at or after `07c8b6b1f5ff`, that inequality's file
+   `Morse/Bott/ExponentialConvergence.lean` and (e) cannot be imported
+   together, since (e) rests on copies from Tau Ceti main that clash with
+   the pinned `Morse/ExponentialConvergence.lean`; building issue 11 waits
+   for #2450, which removes the clash by that move or by copying what it
+   needs from main's Bott file. The weights $w_\mu(p,\xi)$ exist for every
    $\xi$, by monotonicity and compactness of $M$.
 6. **Home.** The complexification is Lie theory, so it is
    `Geometry/Lie/Complexification.lean`, beside Tau Ceti's folder
