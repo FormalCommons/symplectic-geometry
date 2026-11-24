@@ -415,6 +415,7 @@ private theorem mpullback_smul_primitive (h : IsCouplingForm σ τ) (s t : Set.I
   have hcomp : segmentMap P s t ∘ Prod.map (fun x ↦ op z • x) id =
       (fun x : ManifoldTotalSpace Circle P × Set.Icc a b ↦ (op z • x.1, x.2)) ∘
         segmentMap P s t :=
+    -- both maps send `(p, u)` to `(op z • p, s + u (t - s))`
     funext fun _ ↦ rfl
   rw [SmoothForm.mpullback_mpullback]
   conv_rhs => rw [← h.mpullback_smul z, SmoothForm.mpullback_mpullback]
