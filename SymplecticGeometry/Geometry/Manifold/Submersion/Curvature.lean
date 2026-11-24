@@ -9,7 +9,8 @@ public import SymplecticGeometry.Geometry.Manifold.Submersion.HorizontalLiftFiel
 public import Mathlib.Geometry.Manifold.VectorField.LieBracket
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.VectorField.Related
-import TauCeti.Geometry.Manifold.Distribution.VectorBundle
+import TauCeti.Geometry.Manifold.ContMDiff.Defs
+import SymplecticGeometry.Geometry.Manifold.Distribution.Frame
 
 /-!
 # The curvature of an Ehresmann connection
@@ -38,11 +39,10 @@ at `f x`, exactly when `D` is involutive in the sense of Tau Ceti's
 `TauCeti.IsInvolutiveDistribution`. If `D` is involutive, the bracket of two lifts is
 horizontal, so the curvature, which is vertical, vanishes. Conversely, near a point the lifts of
 a local frame of the tangent bundle of `B` form a local frame of `D`
-(`TauCeti.IsEhresmannConnection.isDistributionFrameOn_horizontalLiftField`); fields tangent to
-`D` are combinations of it with differentiable coefficients
-(`TauCeti.IsDistributionFrameOn.exists_mdifferentiableAt_coeff`), and the brackets of such
-combinations are horizontal when those of the frame are, by Tau Ceti's
-`TauCeti.mlieBracket_sum_smul_mem`.
+(`TauCeti.IsEhresmannConnection.isDistributionFrameOn_horizontalLiftField`). The brackets of
+this frame are horizontal when the curvature vanishes, and then so are those of all fields
+tangent to `D`, by the local frame criterion
+`TauCeti.IsDistributionFrameOn.mlieBracket_mem_of_forall_mlieBracket_mem`.
 
 On signs: Guillemin–Lerman–Sternberg (§1.3) bracket vector fields as Mathlib does, and their
 curvature agrees with `curvature`. In McDuff–Salamon (§6.4, p. 277) the bracket is minus Mathlib's,
@@ -246,26 +246,21 @@ theorem curvature_smul_right (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J (n + 1
 
 /-! ### Flatness and involutivity -/
 
-/-- If the horizontal distribution of a `C^n` connection on a `C^(n+1)` map `f`, with `1 ≤ n`, is
-involutive, then its curvature vanishes at every point `x` on fields that are `C^n` at
+/-- If the horizontal distribution of a `C^n` connection, with `1 ≤ n`, is involutive, then its
+curvature vanishes at every point `x` where `f` is `C^(n+1)`, on fields that are `C^n` at
 `f x`. -/
-theorem curvature_eq_zero_of_isInvolutiveDistribution (hn : 1 ≤ n)
-    (hf : ContMDiff I J (n + 1) f) (hDi : IsInvolutiveDistribution I D) {x : P}
+theorem curvature_eq_zero_of_isInvolutiveDistribution (hn : 1 ≤ n) {x : P}
+    (hf : ContMDiffAt I J (n + 1) f x) (hDi : IsInvolutiveDistribution I D)
     {v₁ v₂ : Π b : B, TangentSpace J b} (hv₁ : ContMDiffAt J J.tangent n (T% v₁) (f x))
     (hv₂ : ContMDiffAt J J.tangent n (T% v₂) (f x)) :
     hD.curvature v₁ v₂ x = 0 := by
-  have h2 : (2 : ℕ∞ω) ≤ n + 1 := by
-    simpa [one_add_one_eq_two] using add_le_add_left hn 1
-  have hf2 : ContMDiff I J 2 f := hf.of_le h2
-  -- Near `f x` the fields are `C¹`, so near `x` their lifts are differentiable.
+  -- The lifts are `C^n` at `x`, so differentiable near `x`.
   have hnear {v : Π b : B, TangentSpace J b} (hv : ContMDiffAt J J.tangent n (T% v) (f x)) :
-      ∀ᶠ y in nhds x, MDifferentiableAt I I.tangent (T% (hD.horizontalLiftField v)) y := by
-    have h1 := (contMDiffAt_iff_contMDiffAt_nhds (by simp)).1 (hv.of_le hn)
-    filter_upwards [hf.continuous.continuousAt.preimage_mem_nhds h1] with y hy
-    rw [← hD.horizontalLiftField_of_le v hn]
-    exact (hD.of_le hn).mdifferentiableAt_horizontalLiftField le_rfl (hf2 y) hy
+      ∀ᶠ y in nhds x, MDifferentiableAt I I.tangent (T% (hD.horizontalLiftField v)) y :=
+    (hD.contMDiffAt_horizontalLiftField hf hv).eventually_mdifferentiableAt
+      (zero_lt_one.trans_le hn).ne'
   obtain ⟨U, hU, hUo, hxU⟩ := eventually_nhds_iff.1 ((hnear hv₁).and (hnear hv₂))
-  exact (hD.curvature_eq_zero_iff_mem hn (hf x) hv₁ hv₂).2 <| hDi.mlieBracket_mem hUo
+  exact (hD.curvature_eq_zero_iff_mem hn hf hv₁ hv₂).2 <| hDi.mlieBracket_mem hUo
     (fun y hy ↦ (hU y hy).1.mdifferentiableWithinAt)
     (fun y hy ↦ (hU y hy).2.mdifferentiableWithinAt)
     (fun y _ ↦ hD.horizontalLiftField_mem v₁ y) (fun y _ ↦ hD.horizontalLiftField_mem v₂ y) hxU
@@ -287,31 +282,13 @@ theorem isInvolutiveDistribution_of_curvature_eq_zero [FiniteDimensional 𝕜 F]
   have hX := hD.isDistributionFrameOn_horizontalLiftField hO hv hf
   have hOx : f ⁻¹' O ∈ nhds x := hf.continuous.continuousAt.preimage_mem_nhds (hO.mem_nhds hxO)
   have hUx := hU.mem_nhds hx
-  obtain ⟨c, hc, hVc⟩ := hX.exists_mdifferentiableAt_coeff hn hOx (hV.mdifferentiableAt hUx)
-    (eventually_of_mem hUx hVD)
-  obtain ⟨d, hd, hWd⟩ := hX.exists_mdifferentiableAt_coeff hn hOx (hW.mdifferentiableAt hUx)
-    (eventually_of_mem hUx hWD)
   have hvx (i : Fin (Module.finrank 𝕜 F)) : ContMDiffAt J J.tangent n (T% (v i)) (f x) :=
     (hv.contMDiffOn i).contMDiffAt (hO.mem_nhds hxO)
-  -- Near `x`, `V` and `W` are combinations of the lifts, whose brackets are horizontal.
-  have hV' : V =ᶠ[nhds x]
-      (∑ i, c i • hD.horizontalLiftField (v i) : Π y : P, TangentSpace I y) := by
-    filter_upwards [hVc] with y hy
-    simp only [Finset.sum_apply, Pi.smul_apply']
-    -- The two sums differ only in the instance on `TangentSpace I y`, which unfolds to `E`.
-    exact hy
-  have hW' : W =ᶠ[nhds x]
-      (∑ i, d i • hD.horizontalLiftField (v i) : Π y : P, TangentSpace I y) := by
-    filter_upwards [hWd] with y hy
-    simp only [Finset.sum_apply, Pi.smul_apply']
-    -- The two sums differ only in the instance on `TangentSpace I y`, which unfolds to `E`.
-    exact hy
-  rw [hV'.mlieBracket_vectorField_eq hW']
-  exact mlieBracket_sum_smul_mem
-    (fun i _ ↦ hD.mdifferentiableAt_horizontalLiftField hn (hf x) (hvx i))
-    (fun i _ ↦ hD.horizontalLiftField_mem _ x)
-    (fun i _ j _ ↦ (hD.curvature_eq_zero_iff_mem hn (hf x) (hvx i) (hvx j)).1 (h (hvx i) (hvx j)))
-    (fun i _ ↦ hc i) (fun i _ ↦ hd i)
+  -- The brackets of the frame are horizontal, since the curvature vanishes.
+  exact hX.mlieBracket_mem_of_forall_mlieBracket_mem hn hOx
+    (fun i j ↦ (hD.curvature_eq_zero_iff_mem hn (hf x) (hvx i) (hvx j)).1 (h (hvx i) (hvx j)))
+    (hV.mdifferentiableAt hUx) (hW.mdifferentiableAt hUx) (eventually_of_mem hUx hVD)
+    (eventually_of_mem hUx hWD)
 
 /-- **A connection is flat exactly when it is involutive.** For a `C^n` Ehresmann connection
 `D` on a `C^(n+1)` map `f`, with `1 ≤ n`, the curvature vanishes at every point `x` on all
@@ -322,7 +299,7 @@ theorem curvature_eq_zero_iff_isInvolutiveDistribution [FiniteDimensional 𝕜 F
       ContMDiffAt J J.tangent n (T% v₁) (f x) → ContMDiffAt J J.tangent n (T% v₂) (f x) →
         hD.curvature v₁ v₂ x = 0) ↔ IsInvolutiveDistribution I D :=
   ⟨hD.isInvolutiveDistribution_of_curvature_eq_zero hn hf,
-    fun hDi _ _ _ ↦ hD.curvature_eq_zero_of_isInvolutiveDistribution hn hf hDi⟩
+    fun hDi _ _ _ ↦ hD.curvature_eq_zero_of_isInvolutiveDistribution hn (hf _) hDi⟩
 
 end Smooth
 

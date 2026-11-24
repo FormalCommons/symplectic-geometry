@@ -137,13 +137,6 @@ theorem eq_horizontalLiftField_iff {X : Π x : P, TangentSpace I x} :
   exact congrArg Subtype.val
     ((hD.eq_horizontalLift_iff (w := ⟨X x, (h x).1⟩)).2 (h x).2)
 
-/-- The horizontal lift does not depend on the smoothness index at which the connection is
-seen. -/
-theorem horizontalLiftField_of_le {m : ℕ∞ω} (hmn : m ≤ n) :
-    (hD.of_le hmn).horizontalLiftField V = hD.horizontalLiftField V :=
-  (hD.eq_horizontalLiftField_iff V).2 fun x ↦
-    ⟨(hD.of_le hmn).horizontalLiftField_mem V x, (hD.of_le hmn).mfderiv_horizontalLiftField V x⟩
-
 /-- The horizontal lift of `V` vanishes at the points `x` where `V (f x)` vanishes. -/
 theorem horizontalLiftField_eq_zero {x : P} (hx : V (f x) = 0) :
     hD.horizontalLiftField V x = 0 := by
