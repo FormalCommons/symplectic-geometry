@@ -414,6 +414,13 @@ def circle : LieComplexification (𝓡 1) Circle 𝓘(ℝ, ℂ) ℂˣ where
 theorem circle_toHom : circle.toHom = Circle.contMDiffToUnits :=
   (rfl)
 
+/-- The complex structure of the complexification `circle` is that of the complex manifold `ℂˣ`
+at `1`. -/
+theorem circle_cplx :
+    circle.cplx =
+      (SmoothAlmostComplexStructure.ofComplexManifold ℂ ℂˣ).almostComplexStructureAt 1 :=
+  (rfl)
+
 /-- The complex structure of the complexification `circle` is multiplication by `i`, with the Lie
 algebra of `ℂˣ` read in `ℂ`. -/
 @[simp]
