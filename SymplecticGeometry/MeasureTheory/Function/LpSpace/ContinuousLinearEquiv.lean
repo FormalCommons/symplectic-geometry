@@ -15,7 +15,7 @@ import TauCeti.MeasureTheory.Function.Lp.Basic
 
 A continuous linear equivalence `e : E ≃L[𝕜] F` induces, by composition, a continuous linear
 equivalence `e.compLpL p μ : Lp E p μ ≃L[𝕜] Lp F p μ`, whose inverse is induced by `e.symm`. It
-need not be an isometry; for a linear isometry equivalence Mathlib has
+need not be an isometry; for a linear isometry equivalence Tau Ceti has
 `LinearIsometryEquiv.compLpₗᵢ`.
 
 As an application, `L²` with values in a finite-dimensional space is equivalent to `L²` with
