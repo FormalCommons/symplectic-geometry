@@ -216,11 +216,12 @@ theorem isCovariantDerivativeOn_twistOneConnection :
     IsCovariantDerivativeOn ℂ twistOneConnection univ :=
   twistOneConnection.isCovariantDerivativeOn
 
-/-- The connection on `𝒪(1)` is `C^n` for every `n`: it sends `C^(n + 1)` sections to `C^n`
-one-forms. -/
-instance contMDiffCovariantDerivative_twistOneConnection (n : ℕ∞) :
-    CovariantDerivative.ContMDiffCovariantDerivative twistOneConnection n :=
-  CovariantDerivative.contMDiffCovariantDerivative_ofPartitionOfUnity
+/-- The connection on `𝒪(1)` is `C^n` for every finite or infinite order `n ≤ ∞`: it sends
+`C^(n + 1)` sections to `C^n` one-forms. -/
+instance contMDiffCovariantDerivative_twistOneConnection {n : ℕ∞ω} [ENat.LEInfty n] :
+    CovariantDerivative.ContMDiffCovariantDerivative twistOneConnection n := by
+  lift n to ℕ∞ using ENat.LEInfty.ne_top n
+  exact CovariantDerivative.contMDiffCovariantDerivative_ofPartitionOfUnity
     onePointChartPartition_isSubordinate (fun y ↦ (chartAt ℂ y).open_source)
     (OnePoint.isCovariantDerivativeOn_frameCovariantDerivative_twistCore_localTriv 1)
     fun y ↦
