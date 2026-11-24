@@ -41,7 +41,8 @@ agree when they agree on `1` (`ContinuousLinearMap.ext_tangentSpace_Icc`).
 
 Between two points `s` and `t` of `[x, y]`, the affine path `Set.Icc.lineMap s t`, from the
 unit interval, is smooth (`Set.Icc.contMDiff_lineMap`), and its derivative sends the unit vector
-to `t - s` times the unit vector (`Set.Icc.mfderiv_lineMap_one`).
+to `t - s` times the unit vector (`Set.Icc.mfderiv_lineMap_one`). It is also smooth jointly in
+its two ends and its time (`Set.Icc.contMDiff_lineMap_comp`).
 
 On the unit interval, the derivative of left multiplication `s ↦ T s` sends the unit vector at
 `t` to `T` times the unit vector at `T t` (`unitInterval.mfderiv_mul_left_one`).
@@ -182,6 +183,24 @@ theorem contMDiff_lineMap (s t : Icc x y) : ContMDiff (𝓡∂ 1) (𝓡∂ 1) n 
   refine contMDiff_iff_comp_subtypeVal_Icc.mpr ⟨Continuous.subtype_mk (by fun_prop) _, ?_⟩
   rw [val_comp_lineMap]
   exact (AffineMap.contDiff_lineMap _ _).contMDiff.comp contMDiff_subtypeVal_Icc
+
+/-- The affine path between two points of a closed interval that vary smoothly on a manifold
+`M`, evaluated at a time that varies smoothly too, is smooth on `M`. -/
+theorem contMDiff_lineMap_comp {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+    {f g : M → Icc x y} {u : M → Icc (0 : ℝ) 1} (hf : ContMDiff I (𝓡∂ 1) n f)
+    (hg : ContMDiff I (𝓡∂ 1) n g) (hu : ContMDiff I (𝓡∂ 1) n u) :
+    ContMDiff I (𝓡∂ 1) n fun z ↦ lineMap (f z) (g z) (u z) := by
+  have hR : ContMDiff I 𝓘(ℝ) n fun z ↦ AffineMap.lineMap (f z : ℝ) (g z) (u z : ℝ) :=
+    AffineMap.contDiff_lineMap_uncurry.comp_contMDiff
+      ((contMDiff_subtypeVal_Icc.comp hf).prodMk_space
+        ((contMDiff_subtypeVal_Icc.comp hg).prodMk_space (contMDiff_subtypeVal_Icc.comp hu)))
+  have he : (Subtype.val ∘ fun z ↦ lineMap (f z) (g z) (u z)) =
+      fun z ↦ AffineMap.lineMap (f z : ℝ) (g z) (u z : ℝ) :=
+    funext fun z ↦ coe_lineMap _ _ _
+  refine contMDiff_iff_comp_subtypeVal_Icc.mpr ⟨continuous_induced_rng.2 ?_, he ▸ hR⟩
+  rw [he]
+  exact hR.continuous
 
 /-- The derivative of the affine path from `s` to `t` sends the unit tangent vector to `t - s`
 times the unit tangent vector. -/
