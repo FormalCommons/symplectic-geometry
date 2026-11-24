@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.SmoothSingular.Period
 public import TauCeti.Geometry.Manifold.SmoothSingular.TopForm
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
+import SymplecticGeometry.Geometry.Manifold.SmoothSingular.Chains
 import SymplecticGeometry.Geometry.Manifold.SmoothSingular.RelativeCycle
 import SymplecticGeometry.Geometry.Manifold.SmoothSingular.Smoothing
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
@@ -195,8 +196,8 @@ theorem integrationCochain_iCycles_eq_integralTopForm (hE' : finrank ℝ E' = 2)
       (ModuleCat.of ℤ (ULift.{0} ℤ))).d 3 2 b)) = 0 := by
     have h : ((smoothSingularSubcomplex 𝓘(ℝ, E') C : SSet).chainComplex
         (ModuleCat.of ℤ (ULift.{0} ℤ))).d 3 2 ≫ κ.f 2 ≫ integrationCochain (R := ℤ) ψ = 0 := by
-      rw [← HomologicalComplex.Hom.comm_assoc, d_comp_integrationCochain (p := 2) hψ,
-        mextDeriv_eq_zero_of_finrank_le hE'.le, integrationCochain_zero, Limits.comp_zero]
+      rw [← HomologicalComplex.Hom.comm_assoc, d_comp_integrationCochain_eq_zero (p := 2) hψ
+        (mextDeriv_eq_zero_of_finrank_le hE'.le ψ), Limits.comp_zero]
     simpa using ConcreteCategory.congr_hom h b
   have hc : (integrationCochain (R := ℤ) ψ).hom ((κ.f 2).hom ((SSet.chainComplexMap
       (smoothSingularSubcomplexMap (Subtype.val : W → C) (contMDiff_subtypeVal (I := 𝓘(ℝ, E'))))
@@ -295,16 +296,9 @@ theorem integralTopForm_eq_closedFormHomologyPeriod (hE' : finrank ℝ E' = 2)
   have hsupp (i : t) : _root_.tsupport (α := E' [⋀^Fin 2]→L[ℝ] ℝ) (ψ i) ⊆
       g i '' interior (fullSimplex 2) :=
     (tsupport_smul_subset_left (α := E' [⋀^Fin 2]→L[ℝ] ℝ) (ρ i) φ.val.val).trans (hρ i)
-  have hsum (s : Finset t) :
-      integrationCochain (R := ℤ) (∑ i ∈ s, ψ i) = ∑ i ∈ s, integrationCochain (ψ i) := by
-    classical
-    induction s using Finset.induction_on with
-    | empty => rw [Finset.sum_empty, Finset.sum_empty, integrationCochain_zero]
-    | @insert i s hi ih =>
-      rw [Finset.sum_insert hi, Finset.sum_insert hi, integrationCochain_add
-        ((hψ i).of_le (by simp)) (IsSmoothForm.sum _ _ fun j _ ↦ (hψ j).of_le (by simp)), ih]
   rw [hφψ, integralTopForm_sum o ψ Finset.univ fun i _ ↦ (hψ i).integrableTopForm
-      (isClosed_tsupport _).isCompact (finBasisOfFinrankEq ℝ E' hE'), hsum, ModuleCat.hom_sum,
+      (isClosed_tsupport _).isCompact (finBasisOfFinrankEq ℝ E' hE'),
+    integrationCochain_sum ψ Finset.univ fun i _ ↦ (hψ i).of_le (by simp), ModuleCat.hom_sum,
     LinearMap.sum_apply]
   exact Finset.sum_congr rfl fun i _ ↦ (integrationCochain_iCycles_eq_integralTopForm hE' o z
     hz' (hU i) (hgs i) (hg i) (ho i) (hψ i) (hsupp i)).symm
