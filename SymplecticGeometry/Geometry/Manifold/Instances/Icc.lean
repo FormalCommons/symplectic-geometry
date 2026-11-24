@@ -92,7 +92,7 @@ namespace unitInterval
 itself, for every `n`. -/
 noncomputable def contMDiffMapMulLeft {n : WithTop ℕ∞} (T : unitInterval) :
     C^n⟮𝓡∂ 1, unitInterval; 𝓡∂ 1, unitInterval⟯ :=
-  ⟨(T * ·), (contMDiff_mul_left (n := ω)).of_le le_top⟩
+  ⟨(T * ·), contMDiff_mul_left⟩
 
 @[simp]
 theorem contMDiffMapMulLeft_apply {n : WithTop ℕ∞} (T s : unitInterval) :
@@ -103,13 +103,11 @@ theorem contMDiffMapMulLeft_apply {n : WithTop ℕ∞} (T s : unitInterval) :
 times the unit tangent vector at `T t`. -/
 theorem mfderiv_mul_left_one (T t : unitInterval) :
     mfderiv (𝓡∂ 1) (𝓡∂ 1) (T * ·) t 1 = (T : ℝ) • (1 : TangentSpace (𝓡∂ 1) (T * t)) := by
-  have hmul : MDifferentiableAt (𝓡∂ 1) (𝓡∂ 1) (T * ·) t :=
-    ((contMDiff_mul_left (n := ω)).of_le (le_top : (1 : WithTop ℕ∞) ≤ ω)).mdifferentiableAt
-      one_ne_zero
   have hval : (Subtype.val : unitInterval → ℝ) ∘ (T * ·) = (T : ℝ) • Subtype.val :=
     funext fun s ↦ Set.Icc.coe_mul T s
   refine (TauCeti.isInvertible_mfderiv_subtypeVal_Icc (T * t)).injective ?_
-  rw [← mfderiv_comp_apply t (SymplecticGeometry.mdifferentiableAt_subtypeVal_Icc _) hmul, hval,
+  rw [← mfderiv_comp_apply t (SymplecticGeometry.mdifferentiableAt_subtypeVal_Icc _)
+    mdifferentiableAt_mul_left, hval,
     const_smul_mfderiv (SymplecticGeometry.mdifferentiableAt_subtypeVal_Icc t),
     map_smul, mfderiv_subtypeVal_Icc_one]
   -- The tangent spaces of `ℝ` at `T t` and at `(T • Subtype.val) t` are equal only up to

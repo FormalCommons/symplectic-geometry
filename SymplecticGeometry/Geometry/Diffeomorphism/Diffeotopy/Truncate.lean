@@ -105,7 +105,7 @@ theorem truncate_truncate (S : I) : (Φ.truncate T).truncate S = Φ.truncate (T 
 
 /-- Truncation commutes with pointwise composition. -/
 theorem truncate_trans : (Φ.trans Ψ).truncate T = (Φ.truncate T).trans (Ψ.truncate T) :=
-  ext fun p ↦ by simp
+  reparam_trans _ _ (by simp)
 
 /-- Truncation commutes with pointwise inversion. -/
 theorem truncate_symm : Φ.symm.truncate T = (Φ.truncate T).symm := by
@@ -145,13 +145,10 @@ theorem velocity_truncate (Φ : Diffeotopy J n M) (hn : 1 ≤ n) (T t : I) :
   have hd : MDifferentiableAt (𝓡∂ 1) J (fun u : I ↦ Φ (u, x)) (T * t) :=
     (Φ.contMDiff.comp (contMDiff_id.prodMk contMDiff_const)).mdifferentiableAt
       (zero_lt_one.trans_le hn).ne'
-  have hmul : MDifferentiableAt (𝓡∂ 1) (𝓡∂ 1) (fun s : I ↦ T * s) t :=
-    ((contMDiff_mul_left (n := ω)).of_le (le_top : (1 : ℕ∞ω) ≤ ω)).mdifferentiableAt
-      one_ne_zero
   rw [velocity_apply, mfderiv_cylinderMap_time _ hn, Pi.smul_apply, truncate_apply,
     velocity_apply, mfderiv_cylinderMap_time _ hn]
   simp only
-  rw [hcomp, mfderiv_comp_apply t hd hmul, mfderiv_mul_left_one, map_smul]
+  rw [hcomp, mfderiv_comp_apply t hd mdifferentiableAt_mul_left, mfderiv_mul_left_one, map_smul]
 
 variable [IsManifold J ∞ M]
 
