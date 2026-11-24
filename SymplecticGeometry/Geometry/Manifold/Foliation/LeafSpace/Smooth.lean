@@ -56,7 +56,8 @@ Since the smooth structure depends on the proof of regularity, it is a definitio
 * `TauCeti.Foliation.contMDiff_comp_leafSpaceMk_iff`: a map out of the leaf space is smooth
   exactly when its composition with the projection is.
 * `TauCeti.Foliation.isRegular_ofSubmodule`: the foliation of a finite-dimensional space by the
-  translates of a subspace is regular, and its leaf space is Hausdorff.
+  translates of a subspace is regular; `TauCeti.Foliation.t2Space_leafSpace_ofSubmodule`: its leaf
+  space is Hausdorff.
 
 ## References
 
@@ -316,7 +317,8 @@ theorem isRegular_ofSubmodule (hn : (1 : ℕ∞ω) ≤ ∞) : (ofSubmodule S hn)
 
 /-- The leaf space of the foliation of a finite-dimensional space by the translates of a subspace
 is Hausdorff: a projection along the subspace onto a complement separates the leaves. -/
-instance (hn : (1 : ℕ∞ω) ≤ ∞) : T2Space (ofSubmodule S hn).LeafSpace := by
+instance t2Space_leafSpace_ofSubmodule (hn : (1 : ℕ∞ω) ≤ ∞) :
+    T2Space (ofSubmodule S hn).LeafSpace := by
   obtain ⟨C, hSC⟩ := S.exists_isCompl
   refine T2Space.of_injective_continuous
     (f := LeafSpace.lift (Submodule.projectionOnto C S hSC.symm) fun y z hyz ↦ ?_) ?_
