@@ -5,7 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.GroupAction.Quotient
 public import TauCeti.Topology.FiberBundle.MapFiber
+public import SymplecticGeometry.Geometry.Manifold.Algebra.MulOpposite
 public import SymplecticGeometry.Topology.Algebra.ProperAction.Free
 
 /-!
@@ -37,6 +39,28 @@ equivariant in Tau Ceti's sense (`Bundle.Trivialization.IsEquivariant`), which i
 The acting group is an explicit argument of `orbitFiber`: in `TotalSpace G (orbitFiber Gᵐᵒᵖ X)`
 nothing else determines it.
 
+For a free proper smooth right action of a Lie group `G` on a boundaryless finite-dimensional
+manifold `X`, Tau Ceti's quotient manifold theorem gives a smooth local section of the orbit
+projection through every orbit. The trivializations from these sections form a
+`TauCeti.MapFiber.Atlas` (`SymplecticGeometry.orbitFiber.atlas`), so that Tau Ceti's
+`TauCeti.MapFiber.Atlas.fiberBundle` and `TauCeti.MapFiber.Atlas.principalBundle` make
+`orbitFiber Gᵐᵒᵖ X` a principal `G`-bundle. A compact Lie group acts properly
+(`TauCeti.properSMul_of_compactSpace`), so this covers free smooth actions of compact Lie groups.
+
+**Local instances.** The statements about this bundle use two charted spaces that are not global
+instances, and later files should use the same ones:
+* on `Gᵐᵒᵖ`, the charts of `G` (`MulOpposite.chartedSpace`), a local instance of the section, in
+  which the smoothness of the action is `ContMDiffSMul IG IX ∞ Gᵐᵒᵖ X`;
+* on the orbit space, Tau Ceti's slice charts
+  `ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X`, introduced by `letI` in the statements
+  that need them.
+
+The atlas, and so the bundle structure, depends on the models `IG` and `IX`, which the type
+`orbitFiber Gᵐᵒᵖ X` does not determine, so instance search could not find it. The file adds no
+bundle structure of its own: statements put Tau Ceti's in place by
+`letI := (SymplecticGeometry.orbitFiber.atlas IG G IX X).fiberBundle`, and principality is the
+theorem `SymplecticGeometry.orbitFiber.principalBundle IG G IX X`, to be used by `haveI`.
+
 ## Main definitions and results
 
 * `SymplecticGeometry.orbitFiber`: the fibres of the orbit projection.
@@ -44,6 +68,10 @@ nothing else determines it.
   the domain of a continuous local section of the orbit projection of a free proper action of
   `Gᵐᵒᵖ`, with `trivializationOfSection_apply` and `trivializationOfSection_symm_apply`.
 * `SymplecticGeometry.orbitFiber.isEquivariant_trivializationOfSection`: it is equivariant.
+* `SymplecticGeometry.orbitFiber.atlas`: the atlas of the orbit projection of a free proper
+  smooth action, whose trivializations come from smooth local sections
+  (`SymplecticGeometry.orbitFiber.exists_atlas_trivAt_eq`).
+* `SymplecticGeometry.orbitFiber.principalBundle`: its fibre bundle is a principal `G`-bundle.
 
 ## References
 
@@ -56,6 +84,7 @@ nothing else determines it.
 public section
 
 open Bundle MulAction MulOpposite Set Topology TauCeti
+open scoped ContDiff Manifold
 
 namespace SymplecticGeometry
 
@@ -127,6 +156,12 @@ noncomputable def trivializationOfSection (U : Set (orbitRel.Quotient Gᵐᵒᵖ
 variable {hU : IsOpen U} {hs : ContinuousOn s U}
   {hsec : ∀ q ∈ U, Quotient.mk (orbitRel Gᵐᵒᵖ X) (s q) = q}
 
+theorem trivializationOfSection_def :
+    trivializationOfSection U hU s hs hsec =
+      ((orbitTrivializationOfSection U hU s hs hsec).transFiberHomeomorph
+        (opHomeomorph (M := G)).symm).toMapFiber :=
+  (rfl)
+
 @[simp]
 theorem trivializationOfSection_baseSet :
     (trivializationOfSection U hU s hs hsec).baseSet = U := by
@@ -166,6 +201,88 @@ instance isEquivariant_trivializationOfSection :
 end orbitFiber
 
 end Trivialization
+
+/-! ### The principal bundle of a free proper smooth action -/
+
+section Bundle
+
+attribute [local instance] MulOpposite.chartedSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] (IG : ModelWithCorners ℝ E H)
+  (G : Type*) [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup IG ∞ G]
+  [ContinuousInv G]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  {H' : Type*} [TopologicalSpace H'] (IX : ModelWithCorners ℝ E' H') [IX.Boundaryless]
+  (X : Type*) [TopologicalSpace X] [ChartedSpace H' X] [IsManifold IX ∞ X]
+  [MulAction Gᵐᵒᵖ X] [ContMDiffSMul IG IX ∞ Gᵐᵒᵖ X] [ProperSMul Gᵐᵒᵖ X] [IsCancelSMul Gᵐᵒᵖ X]
+
+namespace orbitFiber
+
+omit [ContinuousInv G] in
+/-- Through every orbit passes a smooth local section of the orbit projection, for the slice
+charts of the orbit space. -/
+private theorem exists_section (q : orbitRel.Quotient Gᵐᵒᵖ X) :
+    letI := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X
+    ∃ Us : Set (orbitRel.Quotient Gᵐᵒᵖ X) × (orbitRel.Quotient Gᵐᵒᵖ X → X),
+      IsOpen Us.1 ∧ q ∈ Us.1 ∧
+      ContMDiffOn 𝓘(ℝ, ProperSMul.QuotientModelSpace E E') IX ∞ Us.2 Us.1 ∧
+      ∀ q' ∈ Us.1, Quotient.mk (orbitRel Gᵐᵒᵖ X) (Us.2 q') = q' := by
+  obtain ⟨U, hU, hqU, s, -, hs, hsec⟩ :=
+    ProperSMul.exists_contMDiffOn_section_quotientMk (I := IG) (G := Gᵐᵒᵖ) (I' := IX) q.out
+  rw [Quotient.out_eq] at hqU
+  exact ⟨(U, s), hU, hqU, hs, hsec⟩
+
+/-- The atlas of the orbit projection of a free proper smooth action of `Gᵐᵒᵖ`, with model fibre
+`G`: at each orbit `q`, the trivialization from a smooth local section of the orbit projection over
+a neighbourhood of `q`, for the slice charts `ProperSMul.orbitRelQuotientChartedSpace` of the orbit
+space. -/
+noncomputable def atlas : MapFiber.Atlas G (Quotient.mk (orbitRel Gᵐᵒᵖ X)) :=
+  letI := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X
+  { trivAt q :=
+      (orbitTrivializationOfSection _ (exists_section IG G IX X q).choose_spec.1 _
+        (exists_section IG G IX X q).choose_spec.2.2.1.continuousOn
+        (exists_section IG G IX X q).choose_spec.2.2.2).transFiberHomeomorph
+        (opHomeomorph (M := G)).symm
+    mem_baseSet_trivAt q := by
+      -- `transFiberHomeomorph` keeps the base set by definition; Mathlib states no lemma for it
+      exact (orbitTrivializationOfSection_baseSet (H := Gᵐᵒᵖ) (X := X)).symm ▸
+        (exists_section IG G IX X q).choose_spec.2.1 }
+
+/-- The trivialization of `orbitFiber.atlas` at an orbit `q` is the trivialization
+`orbitTrivializationOfSection`, read with fibre `G`, of a section of the orbit projection over an
+open neighbourhood of `q` that is smooth for the slice charts of the orbit space. -/
+theorem exists_atlas_trivAt_eq (q : orbitRel.Quotient Gᵐᵒᵖ X) :
+    letI := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X
+    ∃ (U : Set (orbitRel.Quotient Gᵐᵒᵖ X)) (hU : IsOpen U) (s : orbitRel.Quotient Gᵐᵒᵖ X → X)
+      (hs : ContMDiffOn 𝓘(ℝ, ProperSMul.QuotientModelSpace E E') IX ∞ s U)
+      (hsec : ∀ q' ∈ U, Quotient.mk (orbitRel Gᵐᵒᵖ X) (s q') = q'),
+      q ∈ U ∧ (atlas IG G IX X).trivAt q =
+        (orbitTrivializationOfSection U hU s hs.continuousOn hsec).transFiberHomeomorph
+          (opHomeomorph (M := G)).symm := by
+  obtain ⟨hU, hq, hs, hsec⟩ := (exists_section IG G IX X q).choose_spec
+  exact ⟨_, hU, _, hs, hsec, hq, rfl⟩
+
+/-- **The orbit bundle of a free proper smooth action is principal.** For a free proper smooth
+right action of a Lie group `G` on a boundaryless manifold `X`, the orbits, with the fibre bundle
+structure of `orbitFiber.atlas` and the right action of `G` on each orbit, form a principal
+`G`-bundle over the orbit space. -/
+theorem principalBundle :
+    letI := (atlas IG G IX X).fiberBundle
+    PrincipalBundle G (orbitFiber Gᵐᵒᵖ X) := by
+  refine (atlas IG G IX X).principalBundle (fun _ _ ↦ orbitRel.Quotient.quotient_smul_eq)
+    fun q x hx g ↦ ?_
+  obtain ⟨U, hU, s, hs, hsec, -, h⟩ := exists_atlas_trivAt_eq IG G IX X q
+  rw [h] at hx
+  -- `transFiberHomeomorph` keeps the base set by definition; Mathlib states no lemma for it
+  replace hx : _ ∈ U := orbitTrivializationOfSection_baseSet (H := Gᵐᵒᵖ) (X := X) ▸ hx
+  simp only [h, Trivialization.transFiberHomeomorph_apply, orbitTrivializationOfSection_apply]
+  rw [orbitSectionCoord_smul (hsec _ hx)]
+  simp
+
+end orbitFiber
+
+end Bundle
 
 end SymplecticGeometry
 
