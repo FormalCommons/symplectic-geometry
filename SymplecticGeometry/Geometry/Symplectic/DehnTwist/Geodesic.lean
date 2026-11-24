@@ -48,7 +48,9 @@ its smoothness is `TauCeti.CotangentBundle.contMDiff_mk_comp_mfderiv`. The secon
 `Riemannian.Tensor.rieszDual` of `z` for the round metric. Its smoothness comes from its
 expansion `∑ⱼ z (∇hⱼ) eⱼ` in the standard basis `eⱼ` of `E`, where `∇hⱼ` is the round gradient
 of the height function `hⱼ = ⟪eⱼ, ·⟫`, read in `E` by
-`TauCeti.mvfderiv_coe_mgradient_inner_coe_sphere`.
+`TauCeti.mvfderiv_coe_mgradient_inner_coe_sphere`. This proof adapts that of
+`TauCeti.contMDiff_sphereTangentEquiv_symm`, which expands in the same basis against the same
+round gradients to show that the inverse direction is smooth.
 
 ## References
 
@@ -121,9 +123,10 @@ theorem cotangentCoord_snd_mem (z : CotangentBundle (𝓡 n) (𝕊 n)) :
     (cotangentCoord z).2 ∈ (ℝ ∙ (z.proj : 𝔼 n))ᗮ :=
   (sphereTangentEquiv z.proj _).property
 
-/-- The two coordinates of a covector are orthogonal. -/
-theorem inner_cotangentCoord_snd_fst (z : CotangentBundle (𝓡 n) (𝕊 n)) :
-    ⟪(cotangentCoord z).1, (cotangentCoord z).2⟫_ℝ = 0 :=
+/-- The second coordinate of a covector is orthogonal to its base point. -/
+@[simp]
+theorem inner_proj_cotangentCoord_snd (z : CotangentBundle (𝓡 n) (𝕊 n)) :
+    ⟪(z.proj : 𝔼 n), (cotangentCoord z).2⟫_ℝ = 0 :=
   Submodule.mem_orthogonal_singleton_iff_inner_right.1 (cotangentCoord_snd_mem z)
 
 /-- The second coordinate `p` of a covector `z` represents it: `z v = ⟪p, dι v⟫`. -/
@@ -167,13 +170,19 @@ theorem cotangentMk_cotangentCoord (z : CotangentBundle (𝓡 n) (𝕊 n)) :
     cotangentMk z.proj (cotangentCoord z).2 = z :=
   CotangentBundle.ext rfl fun v ↦ inner_cotangentCoord_snd z v
 
+/-- A covector is determined by its coordinates. -/
+theorem cotangentCoord_injective : Function.Injective (cotangentCoord (n := n)) := by
+  intro z w h
+  have h1 : z.proj = w.proj := Subtype.ext (by simpa using congrArg Prod.fst h)
+  rw [← cotangentMk_cotangentCoord z, ← cotangentMk_cotangentCoord w, h1, ← h]
+
 /-- The coordinates identify `T*Sⁿ` with `{(q, p) | ‖q‖ = 1, ⟪q, p⟫ = 0}`. -/
 theorem range_cotangentCoord :
     range (cotangentCoord (n := n)) = {x | ‖x.1‖ = 1 ∧ ⟪x.1, x.2⟫_ℝ = 0} := by
   ext x
   refine ⟨?_, fun ⟨h₁, h₂⟩ ↦ ?_⟩
   · rintro ⟨z, rfl⟩
-    exact ⟨norm_eq_of_mem_sphere z.proj, inner_cotangentCoord_snd_fst z⟩
+    exact ⟨norm_eq_of_mem_sphere z.proj, inner_proj_cotangentCoord_snd z⟩
   · refine ⟨cotangentMk ⟨x.1, mem_sphere_zero_iff_norm.2 h₁⟩ x.2, ?_⟩
     rw [cotangentCoord_cotangentMk]
     simp [h₂]
@@ -203,7 +212,7 @@ private theorem inner_basisFun_cotangentCoord_snd (z : CotangentBundle (𝓡 n) 
         (fun q : 𝕊 n ↦ ⟪EuclideanSpace.basisFun (Fin (n + 1)) ℝ j, (q : 𝔼 n)⟫_ℝ) z.proj) := by
   rw [← inner_cotangentCoord_snd, mvfderiv_coe_mgradient_inner_coe_sphere, inner_sub_right,
     real_inner_smul_right, real_inner_comm (z.proj : 𝔼 n) (cotangentCoord z).2,
-    ← cotangentCoord_fst, inner_cotangentCoord_snd_fst, mul_zero, sub_zero, real_inner_comm]
+    inner_proj_cotangentCoord_snd, mul_zero, sub_zero, real_inner_comm]
 
 /-- The coordinates `z ↦ (q, p)` are smooth on `T*Sⁿ`. -/
 theorem contMDiff_cotangentCoord :
