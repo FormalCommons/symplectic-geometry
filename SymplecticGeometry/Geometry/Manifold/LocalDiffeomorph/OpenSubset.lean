@@ -25,8 +25,9 @@ from the open set `Φ.source ∩ Φ ⁻¹' V` onto `V` that agrees with `Φ`
 (`PartialDiffeomorph.exists_diffeomorph_of_subset_target`). It restricts `Φ` with Tau Ceti's
 `PartialDiffeomorph.restrOpen`, reads the restriction as a diffeomorphism between its source and
 target (`PartialDiffeomorph.toDiffeomorphSourceTarget`), and identifies that target with `V`
-(`Diffeomorph.subtype`). Charts adapted to a distribution are restricted in this way to a product
-of balls, where the leaves become slices.
+(`Diffeomorph.subtype`). The proof adapts the restriction step in the proof of Tau Ceti's
+`TauCeti.exists_diffeomorph_opens_of_isInteriorPoint`. Charts adapted to a distribution are
+restricted in this way to a product of balls, where the leaves become slices.
 
 ## Main results
 
@@ -37,10 +38,6 @@ of balls, where the leaves become slices.
   `C^n` local diffeomorphism.
 * `PartialDiffeomorph.exists_diffeomorph_of_subset_target`: a partial diffeomorphism restricts to
   a diffeomorphism onto any open subset of its target.
-
-## References
-
-* J. M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Springer GTM 218 (2013), Chapter 19
 -/
 
 public section
@@ -97,7 +94,7 @@ theorem exists_diffeomorph_of_subset_target (Φ : PartialDiffeomorph I J M N n) 
     ∃ (U : Opens M) (Ψ : U ≃ₘ^n⟮I, J⟯ V),
       (U : Set M) = Φ.source ∩ Φ ⁻¹' V ∧ ∀ u : U, (Ψ u : N) = Φ u := by
   have hs : IsOpen (Φ.source ∩ Φ ⁻¹' V) :=
-    Φ.toOpenPartialHomeomorph.continuousOn.isOpen_inter_preimage Φ.open_source V.isOpen
+    Φ.toOpenPartialHomeomorph.isOpen_inter_preimage V.isOpen
   let Φ' := Φ.restrOpen _ hs
   have htarget (v : N) : v ∈ Φ'.target ↔ v ∈ V := by
     rw [Φ.restrOpen_target]
