@@ -32,12 +32,12 @@ name: cache
 # began an hour ago or more, so about once an hour while pull requests merge,
 # and whenever a run is started by hand. The second job starts from the
 # latest build from source, or from the latest save that descends from it.
-# So each of its saves descends from the build from source that was the
-# latest when its run began, and while both jobs succeed, the saves that CI
-# restores go back to a build from source of the last hours. While there is
-# no build from source for the current dependencies, as in the first runs
-# after a move of Tau Ceti, the second job starts from the latest save of
-# any kind.
+# So each of its saves descends from the build from source that is the
+# latest when the job starts. While pull requests merge and both jobs
+# succeed, that build is at most a few hours old; the first run after a
+# quiet spell still starts from the build before it. While there is no build
+# from source for the current dependencies, as in the first runs after a
+# move of Tau Ceti, the second job starts from the latest save of any kind.
 #
 # If the build from source fails, it saves nothing, and the next run tries
 # again. So a run of this workflow that fails at the third job's build step
