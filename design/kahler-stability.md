@@ -327,11 +327,11 @@ Each is a few hundred lines; each is blocked by the issues it names.
    equivariant tubular neighbourhood of an orbit from the moment map in
    the model.
 9. **The gradient flow of $\|\mu\|^2$.** `KempfNess/NormSquare.lean`.
-   Blocked by 2, 6, 7 and 8.
+   Blocked by 3, 6, 7 and 8.
 10. **The criteria, and the Kempf–Ness milestone.**
     `KempfNess/Stability.lean`. Blocked by 4 and 9.
 11. **Weights and limit points.** The first two items of
-    `HilbertMumford.lean`. Blocked by 2 and 7.
+    `HilbertMumford.lean`. Blocked by 3 and 7.
 12. **Destabilizing directions, and the second milestone.**
     The rest of `HilbertMumford.lean`, from the moment-weight inequality on. Blocked by 10 and 11.
 
