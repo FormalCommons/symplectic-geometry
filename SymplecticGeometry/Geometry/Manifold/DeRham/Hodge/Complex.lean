@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Complexification
 public import TauCeti.Geometry.Manifold.DeRham.ComplexCoefficients
+import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Codifferential
 
 /-!
@@ -233,9 +234,8 @@ theorem complexHarmonicForms.toComplexDeRhamCohomology_bijective
     Function.Bijective (complexHarmonicForms.toComplexDeRhamCohomology o hkl) := by
   refine ⟨fun φ ψ h ↦ ?_, fun c ↦ ?_⟩
   · -- The real and imaginary parts of `φ - ψ` are harmonic and exact, hence zero.
-    rw [toComplexDeRhamCohomology_apply, toComplexDeRhamCohomology_apply, ← sub_eq_zero,
-      ← map_sub, complexDeRhamCohomology.mk_eq_zero_iff, Submodule.coe_sub,
-      mem_complexExactForms_iff_realPart_imaginaryPart] at h
+    rw [toComplexDeRhamCohomology_apply, toComplexDeRhamCohomology_apply,
+      complexDeRhamCohomology.mk_eq_mk_iff, mem_complexExactForms_iff_realPart_imaginaryPart] at h
     have hharm := (mem_complexHarmonicForms_iff_realPart_imaginaryPart o hkl _).1
       (sub_mem φ.property ψ.property)
     have hre := Submodule.disjoint_def.1 (disjoint_harmonicForms_exactForms o hkl) _ hharm.1 h.1
@@ -250,8 +250,7 @@ theorem complexHarmonicForms.toComplexDeRhamCohomology_bijective
     obtain ⟨him, hhim, him'⟩ := exists_mem_harmonicForms_sub_mem_exactForms o hkl
       ((mem_complexClosedForms_iff_realPart_imaginaryPart I ψ.val).1 ψ.property).2
     refine ⟨⟨_, ofReal_add_I_smul_ofReal_mem_complexHarmonicForms o hkl hhre hhim⟩, ?_⟩
-    rw [toComplexDeRhamCohomology_apply, eq_comm, ← sub_eq_zero, ← map_sub,
-      complexDeRhamCohomology.mk_eq_zero_iff, Submodule.coe_sub,
+    rw [toComplexDeRhamCohomology_apply, eq_comm, complexDeRhamCohomology.mk_eq_mk_iff,
       mem_complexExactForms_iff_realPart_imaginaryPart, map_sub, map_sub,
       SmoothForm.realPart_ofReal_add_I_smul_ofReal,
       SmoothForm.imaginaryPart_ofReal_add_I_smul_ofReal]

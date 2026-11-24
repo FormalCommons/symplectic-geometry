@@ -29,6 +29,8 @@ harmonic, hence closed, and since the integral `∫_M γ ∧ β` depends only on
 
 * `TauCeti.integralTopForm_wedge_eq_of_sub_mem_exactForms_right`: on a closed oriented manifold,
   `∫_M γ ∧ β` for closed `γ` and `β` depends only on the de Rham class of `β`.
+* `TauCeti.integralTopForm_wedge_eq_of_sub_mem_exactForms_left`: likewise, it depends only on the
+  de Rham class of `γ`.
 * `TauCeti.mem_exactForms_of_forall_integralTopForm_wedge_eq_zero`: a closed `l`-form on a closed
   oriented `(1 + l)`-manifold that integrates to zero against every closed one-form is exact.
 
@@ -72,6 +74,25 @@ theorem integralTopForm_wedge_eq_of_sub_mem_exactForms_right
     rwa [compactlySupportedDeRhamCohomology.mk_eq_mk_iff,
       exactCompactlySupportedForms_eq_exactForms]
   rw [← poincarePairing_mk o ⟨γ, hγ⟩ ⟨β, hc hβ⟩, hcls, poincarePairing_mk]
+
+/-- On a compact boundaryless Hausdorff manifold with an orientation `o` of dimension `k + l`,
+the integral `∫_M γ ∧ β` of a closed `k`-form `γ` against a closed `l`-form `β` depends only on
+the de Rham class of `γ`: it is unchanged when `γ` is replaced by any `δ` with `γ - δ` exact. -/
+theorem integralTopForm_wedge_eq_of_sub_mem_exactForms_left
+    [BoundarylessManifold I M] [T2Space M] [CompactSpace M] {k l : ℕ}
+    (o : Manifold.Orientation I M (Fin (k + l))) {γ δ : SmoothForm I M ℝ k}
+    (hγ : γ ∈ closedForms I M k) (hγδ : γ - δ ∈ exactForms I M k) {β : SmoothForm I M ℝ l}
+    (hβ : β ∈ closedForms I M l) :
+    integralTopForm o (RoughForm.wedge (γ : RoughForm I M ℝ k) (β : RoughForm I M ℝ l)) =
+      integralTopForm o (RoughForm.wedge (δ : RoughForm I M ℝ k) (β : RoughForm I M ℝ l)) := by
+  have hδ : δ ∈ closedForms I M k := by
+    simpa using sub_mem hγ (exactForms_le_closedForms I k hγδ)
+  have hc : β ∈ compactlySupportedClosedForms I M l :=
+    (mem_compactlySupportedClosedForms I).2 ⟨by simp [compactlySupportedForms_eq_top], hβ⟩
+  have hcls : deRhamCohomology.mk I k ⟨γ, hγ⟩ = deRhamCohomology.mk I k ⟨δ, hδ⟩ := by
+    rw [← sub_eq_zero, ← map_sub, deRhamCohomology.mk_eq_zero_iff]
+    exact hγδ
+  rw [← poincarePairing_mk o ⟨γ, hγ⟩ ⟨β, hc⟩, hcls, poincarePairing_mk]
 
 /-- **Nondegeneracy of the Poincaré pairing in degrees `(1, l)`**: on a compact boundaryless
 Hausdorff manifold with an orientation `o` of dimension `1 + l`, a closed `l`-form `β` such that
