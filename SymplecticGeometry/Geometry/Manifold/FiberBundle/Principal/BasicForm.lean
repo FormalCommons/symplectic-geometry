@@ -280,7 +280,7 @@ pulled back along `(s, m) ↦ (x • exp (s ξ), m)`, the form `A` has the same 
 every `s`, so its Lie derivative along `∂ₛ` vanishes on vectors tangent to `N`, and Cartan's
 formula on `ℝ × N` gives the identity. -/
 private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inr (ξ : GroupLieAlgebra IG G)
-    (x : ManifoldTotalSpace G P) (n : N) (v : TangentSpace IN n) :
+    (x : ManifoldTotalSpace G P) (n : N) (v : EN) :
     mextDeriv A.val (x, n)
         ![(rightFundamentalVectorField (IB.prod IG) ξ x, (0 : EN)), ((0 : EB × EG), v)] =
       -mvfderiv ((IB.prod IG).prod IN) (fun q : ManifoldTotalSpace G P × N ↦
@@ -310,7 +310,56 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inr (ξ : Group
         have h := congrArg Subtype.val ((hslice s).trans (hslice 0).symm)
         rwa [SmoothForm.coe_mpullback (Prod.mk s : N → ℝ × N),
           SmoothForm.coe_mpullback (Prod.mk (0 : ℝ) : N → ℝ × N)] at h) ![v]
-  sorry
+  -- The derivative of `(s, m) ↦ (γ s, m)`, from the integral curves `γ` of `ξ_P`.
+  have hφ' (q : ℝ × N) : HasMFDerivAt (𝓘(ℝ).prod IN) ((IB.prod IG).prod IN)
+      (fun q : ℝ × N ↦ (γ q.1, q.2)) q
+      ((((1 : ℝ →L[ℝ] ℝ).smulRight (rightFundamentalVectorField (IB.prod IG) ξ (γ q.1))).comp
+        (ContinuousLinearMap.fst ℝ ℝ (TangentSpace IN q.2))).prod
+          (ContinuousLinearMap.snd ℝ ℝ (TangentSpace IN q.2))) :=
+    ((isMIntegralCurve_op_mulInvariantExp_smul (IB := IB) ξ x q.1).comp q
+      (hasMFDerivAt_fst q)).prodMk (hasMFDerivAt_snd q)
+  have hW (q : ℝ × N) : Manifold.prodVectorField (constVectorField (1 : ℝ))
+      (0 : Π y : N, TangentSpace IN y) q = ((1 : ℝ), (0 : EN)) :=
+    Manifold.prodVectorField_constVectorField_zero_apply 1 q
+  have hWd : MDifferentiableAt (𝓘(ℝ).prod IN) (𝓘(ℝ).prod IN).tangent
+      (fun q ↦ (⟨q, Manifold.prodVectorField (constVectorField (1 : ℝ))
+        (0 : Π y : N, TangentSpace IN y) q⟩ : TangentBundle (𝓘(ℝ).prod IN) (ℝ × N))) (0, n) :=
+    Manifold.mdifferentiableAt_prodVectorField hT
+      ((contMDiff_zeroSection ℝ (TangentSpace IN)).mdifferentiableAt one_ne_zero)
+  have hC := mlieDerivForm_apply_eq_mextDeriv_add
+    (f := (fun q : ManifoldTotalSpace G P × N ↦
+        A.val q ![(rightFundamentalVectorField (IB.prod IG) ξ q.1, (0 : EN))]) ∘
+      fun q : ℝ × N ↦ (γ q.1, q.2))
+    (fun q ↦ ?_) ((SmoothForm.mpullback _ hφ A).mdifferentiableAt (0, n)) hWd ((0 : ℝ), v)
+  · have hV2 : mlieDerivForm (Manifold.prodVectorField (constVectorField (1 : ℝ))
+        (0 : Π y : N, TangentSpace IN y)) (SmoothForm.mpullback _ hφ A).val (0, n)
+          ![((0 : ℝ), v)] = 0 := by
+      erw [mpullback_apply] at hV
+      convert hV using 2
+      funext i
+      fin_cases i
+      simp [mfderiv_prod_right]
+      rfl
+    rw [hC, SmoothForm.coe_mpullback, ← mpullback_mextDeriv_at
+      (hφ.contMDiffAt.of_le (by simp)) ((A.contMDiff _).of_le (by simp)), mpullback_apply] at hV2
+    erw [mvfderiv_comp_apply _ (mdifferentiable_apply_rightFundamentalVectorField_prod ξ _)
+        (hφ.mdifferentiableAt (by simp))] at hV2
+    rw [(hφ' _).mfderiv] at hV2
+    have hγ0 : γ 0 = x := by simp [hγdef, mulInvariantExp_zero]
+    rw [← hγ0, eq_neg_iff_add_eq_zero, ← hV2]
+    congr 2
+    · funext i
+      fin_cases i
+      · rw [hW]
+        exact Prod.ext (one_smul ℝ _).symm rfl
+      · exact Prod.ext (zero_smul ℝ _).symm rfl
+    · exact Prod.ext (zero_smul ℝ _).symm rfl
+  · rw [SmoothForm.mpullback_apply, (hφ' q).mfderiv]
+    congr 1
+    funext i
+    fin_cases i
+    rw [hW]
+    exact Prod.ext (one_smul ℝ _) rfl
 
 end Prod
 
