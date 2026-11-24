@@ -349,13 +349,12 @@ orientations on both sides). In namespace `SymplecticGeometry`: `northPole`,
 back to `(4 * Real.pi) • OnePoint.fubiniStudyForm`) with its `_symm_` form.
 `Normalization.lean` imports it.
 
-### `Geometry/Manifold/Orientation/Preserving/FromTauCeti.lean`
+### `TauCeti.Manifold.Orientation.IsOrientationPreservingAt.reindex`
 
-Taken from Tau Ceti's main branch, with Tau Ceti's header, as *Files* in
-`AGENTS.md` says, in the sibling `FromTauCeti.lean` of the library's own
-`Orientation/Preserving.lean`: `TauCeti.Manifold.Orientation.IsOrientationPreservingAt.reindex`,
-which the pinned version lacks, for the reindexed orientation `complexCurveOrientation`.
-`Complex/Orientation.lean` imports it.
+Tau Ceti's, in its `Geometry/Manifold/Orientation/Preserving.lean`, for the
+reindexed orientation `complexCurveOrientation`; `Complex/Orientation.lean`
+imports that file. The library had a copy of it from Tau Ceti's main branch,
+which the move to `c9d170eed5a8` (#2025) deleted.
 
 ### `Geometry/Manifold/Orientation/Sphere.lean`
 
