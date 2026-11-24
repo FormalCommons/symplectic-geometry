@@ -502,12 +502,12 @@ parallel transport, principal connections and fibre integrals of parts
 | Quotient manifold of a free proper action | `ProperSMul.orbitRelQuotientChartedSpace`, `ProperSMul.instIsManifoldOrbitRelQuotient` (`Geometry/Manifold/GroupAction/Quotient.lean`) | Tau Ceti |
 | Coadjoint orbit $G/G_\nu$ with its symplectic form | `Module.Dual.coadjointOrbitForm` (`Geometry/Symplectic/Coadjoint/Orbit.lean`) | Tau Ceti |
 | Smooth fibre bundle, principal bundle, associated bundle | `TauCeti.ContMDiffFiberBundle`, `TauCeti.PrincipalBundle`, `TauCeti.AssociatedBundle` | Tau Ceti |
-| Fibration with an atlas of structure group $H$; symplectic fibration; forms restricting to the fibre forms | `SymplecticGeometry.FiberAtlas`, with structure groups and symplectic atlases (see *Fibrations, connections and diffeomorphism groups*) | *Symplectic fibrations* |
+| Fibration with an atlas of structure group $H$; symplectic fibration; forms restricting to the fibre forms | `TauCeti.MapFiber.Atlas` with `IsContMDiff`; structure groups `TauCeti.MapFiber.Atlas.HasStructureGroup`, symplectic atlases, `TauCeti.MapFiber.Atlas.RestrictsTo` (see *Fibrations, connections and diffeomorphism groups*) | Tau Ceti, *Symplectic fibrations* |
 | Connection on a fibration, horizontal lift | `TauCeti.IsEhresmannConnection`, `horizontalLift` | Tau Ceti |
 | Parallel transport, holonomy, curvature of a connection | `TauCeti.IsEhresmannConnection.parallelTransport`, `curvature` | *Parallel transport* |
 | Connection 1-form on a principal bundle, its curvature | `SymplecticGeometry.IsConnectionForm`, `curvature` | *Principal connections* |
 | Flux, flux group, endpoint flux | `TauCeti.Diffeotopy.flux`, `TauCeti.fluxGroup`, `TauCeti.endpointFlux` | Tau Ceti |
-| Integration over the fibre | `SymplecticGeometry.FiberAtlas.fiberIntegral` | *Integration over the fibre* |
+| Integration over the fibre | `TauCeti.MapFiber.Atlas.fiberIntegral` | *Integration over the fibre* |
 | Diffeomorphism group with the $C^\infty$ topology | `TauCeti.Diff` with `Diffeomorph.weakWhitneyTopology` | Tau Ceti |
 
 ### Standard model: the definitions and their API
@@ -3213,20 +3213,25 @@ Differential topology and complex analysis only; it waits for no part of
 
 ### 48. Symplectic fibrations (needs `design/symplectic-fibrations.md`)
 
-- **Files:** in `Geometry/Symplectic/Fibration/`: `Basic.lean` (the
-  atlases of a smooth map `π` with fibre $F$,
-  `SymplecticGeometry.FiberAtlas`, with structure group $H\le\mathrm{Diff}(F)$
-  and its reductions; oriented and symplectic atlases; the bridge from Tau
-  Ceti's `ContMDiffFiberBundle` and `AssociatedBundle`; the predicate that a
+- **Files:** in `Geometry/Manifold/FiberBundle/`: `MapFiber.lean` and
+  `StructureGroup.lean` (the atlases of a smooth map `π` with fibre $F$,
+  Tau Ceti's `TauCeti.MapFiber.Atlas` with `IsContMDiff`, with structure
+  group $H\le\mathrm{Diff}(F)$ and its reductions; oriented and symplectic
+  atlases; the bridge from Tau Ceti's `ContMDiffFiberBundle` and
+  `AssociatedBundle`); in `Geometry/Symplectic/Fibration/`: `Basic.lean`
+  (the predicate that a
   form restricts to the fibre forms, with its independence of the chart;
   compatible symplectic forms, for a symplectic atlas and, with an
-  orientation, for an oriented one), `Connection.lean` (a two-form that
+  orientation, for an oriented one), `HorizontalDistribution.lean` (a
+  two-form that
   restricts to the fibre forms defines the Ehresmann connection
   $\mathrm{Ver}^\tau$; two forms give the same connection exactly when their
-  difference vanishes on vertical vectors; every connection with
-  symplectic parallel transport arises so; connection two-forms, which are
+  difference vanishes on vertical vectors; every connection arises so;
+  connection two-forms, which are
   vertically closed; they exist, by a partition of unity, and form a convex
-  set; and the milestone that $\Gamma_\tau$ is symplectic exactly when
+  set), `Connection.lean` (every connection with symplectic parallel
+  transport comes from a connection two-form;
+  and the milestone that $\Gamma_\tau$ is symplectic exactly when
   $\tau$ is vertically closed, by the page's route through Cartan's
   formula, Tau Ceti's `TauCeti.mlieDerivForm_eq_interior_mextDeriv_add`),
   `LocalForm.lean` (the normal form
@@ -3242,7 +3247,7 @@ Differential topology and complex analysis only; it waits for no part of
 - **Milestones:** *Fibrations with symplectic fibres are symplectic
   fibrations*, *Symplectic connections correspond to vertically closed
   2-forms*.
-- **The design file decides:** the structure `FiberAtlas` (a set of
+- **The design file decides:** the representation of atlases (a set of
   trivializations or an indexed family, how a reduction is compared with
   the given atlas) and how much of the fibre-as-manifold API of Tau Ceti it
   uses.
@@ -3269,7 +3274,7 @@ Differential topology and complex analysis only; it waits for no part of
   from the merged Chern–Weil formula
   `SymplecticGeometry.Bundle.chernNumber_eq_integral_curvature`).
 - **Builds on:** *Symplectic fibrations* (only `Basic.lean` and
-  `Connection.lean`); the merged *Symplectic vector bundles*, *First
+  `HorizontalDistribution.lean`); the merged *Symplectic vector bundles*, *First
   Chern number* and *Moser isotopy*; Tau Ceti (de Rham cohomology and its
   homotopy invariance).
 - **Milestones:** *Thurston's theorem on symplectic fibrations*, *Chern
@@ -3325,13 +3330,13 @@ Differential topology and complex analysis only; it waits for no part of
   operator on a product in `Product/`, then on a fibration
   (for an oriented fibration with closed fibre of dimension $m$, the operator
   $\int_F\colon\Omega^j(M)\to\Omega^{j-m}(B)$,
-  `SymplecticGeometry.FiberAtlas.fiberIntegral`, defined in each chart and
+  `TauCeti.MapFiber.Atlas.fiberIntegral`, defined in each chart and
   glued; its value in a trivialization; it commutes with $d$; the
   projection formula $\int_F(\pi^*\beta\wedge\alpha)=\beta\wedge\int_F\alpha$;
   naturality under pull-back along maps of the base; and, in degree $m$,
   the integral over each fibre).
-- **Builds on:** *Symplectic fibrations* (only `Basic.lean`, for oriented
-  atlases); Tau Ceti (`integralTopForm`, orientations, Stokes's theorem on
+- **Builds on:** *Symplectic fibrations* (only `StructureGroup.lean`, for
+  oriented atlases); Tau Ceti (`integralTopForm`, orientations, Stokes's theorem on
   closed manifolds).
 - **Milestones:** none; it serves *Coupling forms*. Later pages
   (characteristic classes of bundles, Gysin sequences) can use it.
@@ -3537,8 +3542,8 @@ behind.
 | 2 | *Isotopy extension* | *Hamiltonian flows* (only `DeRham/FamilyPrimitive.lean`, `Flux/Hamiltonian.lean` and `Flux/CompactSupport.lean`), *Smooth families* (only `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `DeRham/SmoothFamily/GoodCover.lean`), *Moser isotopy* (only `Moser/Field.lean`); the merged *Standard model* and *Linear Moser*; the issues of its design file that use none of these can start at once |
 | 2 | *Symplectic neighbourhoods* | *Moser isotopy* (only `Relative.lean`); *Symplectic vector spaces* (only `LinearAlgebra/Symplectic/Reduction.lean` and `LinearAlgebra/Symplectic/Subspace.lean`, which are merged); *Compatible complex structures* (only `LinearAlgebra/Symplectic/Compatible.lean`, which is merged); `CharacteristicFoliation.lean` and `AdaptedDarboux.lean` can start at once |
 | 2 | *Complex projective space* | *Complex submanifolds* (only for the corollary in `Kahler.lean`; the other files can start at once) |
-| 2 | *Compatible symplectic forms* | *Symplectic fibrations* (only `Basic.lean` and `Connection.lean`); merged files of *Symplectic vector bundles*, *First Chern number* and *Moser isotopy* |
-| 2 | *Integration over the fibre* | *Symplectic fibrations* (only `Basic.lean`) |
+| 2 | *Compatible symplectic forms* | *Symplectic fibrations* (only `Basic.lean` and `HorizontalDistribution.lean`); merged files of *Symplectic vector bundles*, *First Chern number* and *Moser isotopy* |
+| 2 | *Integration over the fibre* | *Symplectic fibrations* (only `StructureGroup.lean`) |
 | 2 | *Sphere bundles over surfaces* | *Diffeomorphisms of the 2-sphere* (only `Smale.lean`, for `Clutching.lean` and `Classification.lean`), *Symplectic fibrations* (only `Basic.lean`); the constructions of `RuledSurface.lean` can start once `Basic.lean` is merged |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); *Moser isotopy* (only `Darboux/Strict.lean`, through `LocalDiffeomorph/MFDeriv.lean`, merged); the other files of the part can start at once |
