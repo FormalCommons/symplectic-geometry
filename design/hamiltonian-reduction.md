@@ -266,7 +266,8 @@ Coisotropy and characteristic leaves, with the atlases of `Basic.lean`.
 
 - `isCoisotropicMap_coe_zeroLevel (hσ : σ.IsNondegenerate) (hfree) (hn) :
   hσ.IsCoisotropicMap 𝓘(ℝ, Fin n → ℝ) (Subtype.val : h.zeroLevel → M)`, from
-  Tau Ceti's `IsMomentMap.isCoisotropicMap_of_forall_eq` at `c = 0`, with
+  `range_mfderiv_coe_zeroLevel` and Tau Ceti's
+  `IsMomentMap.isCoisotropic_ker_differential_iff`, with
   `lieAnnihilator ℝ 𝔤 0 = ⊤`.
 - `ker_bilinFormAt_mpullback_coe_zeroLevel`: with `ProperSMul`, the kernel
   of `(i^* σ)_z` is the kernel of `dπ_z`, combining Tau Ceti's
