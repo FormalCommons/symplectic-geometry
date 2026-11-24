@@ -78,8 +78,6 @@ here.
   associativity of the cross product of local homology classes and of local orientations, the
   latter stated as Tau Ceti's `TauCeti.LocalOrientation.map_prodAssoc_prod` is for the ordered
   product.
-* `TauCeti.LocalOrientation.zsmul_left_injective`: a local orientation has infinite order. Its
-  statement and proof adapt Tau Ceti's `TauCeti.HomologicalOrientation.zsmul_left_injective`.
 
 ## References
 
@@ -572,14 +570,6 @@ open SymplecticGeometry
 variable {E F E' F' : Type} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedAddCommGroup E'] [NormedSpace ℝ E']
   [NormedAddCommGroup F'] [NormedSpace ℝ F'] {m n d : ℕ}
-
-/-- A local orientation of a real vector space of positive dimension has infinite order: its
-integral multiples with distinct coefficients are distinct. -/
-theorem zsmul_left_injective (hE : finrank ℝ E = m + 1) (w : LocalOrientation E 0 (m + 1)) :
-    Function.Injective fun c : ℤ ↦ c • w.val := by
-  intro c c' (h : c • w.val = c' • w.val)
-  rw [← sub_eq_zero, ← w.property.zsmul_eq_zero_iff (singularHomologyComplSingletonIsoOfFinrankEq _
-    (OpenPartialHomeomorph.refl _) (Set.mem_univ 0) hE), sub_zsmul, h, add_neg_cancel]
 
 /-- **The cross product of local orientations.** For local orientations `z` of `E` and `z'` of
 `F` at the origin, their cross product `z × z'` is a local orientation of `E × F` at the origin
