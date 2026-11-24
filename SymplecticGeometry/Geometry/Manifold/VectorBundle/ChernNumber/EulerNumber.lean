@@ -10,11 +10,10 @@ public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
 public import SymplecticGeometry.Topology.VectorBundle.Complex.Structure
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Derivative
-public import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
-public import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.SmoothZero
 public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Degree
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.ComplexStructure
 
 /-!
 # The first Chern number as a count of zeros
@@ -51,10 +50,10 @@ carries the local orientation of `M` at `z` to the local orientation of `ℂ` se
 of the tangent orientation under `D`
 (`TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation_transHomeomorph`).
 The trivialization of `J.Fiber` is that of `V` followed by a family of linear maps that is only
-continuous; since the section vanishes at `z`, the Jacobian is still the linearization of `s`
-followed by the value of that family at `z` (`TauCeti.mvfderiv_eq_comp_of_eventuallyEq_clm_apply`).
-So the linearization at `z` of `s` seen as a section of `J.Fiber` is that of `s` followed by
-`(J.fiberEquiv z).symm`, and the derivative along the chart of `M` comes from Tau Ceti's
+continuous; since the section vanishes at `z`, the linearization at `z` of `s` seen as a section
+of `J.Fiber` is still that of `s` followed by `(J.fiberEquiv z).symm`
+(`TauCeti.Bundle.ContinuousComplexStructure.sectionLinearization_fiberEquiv_symm`), and the
+derivative along the chart of `M` comes from Tau Ceti's
 `TauCeti.hasFDerivAt_comp_chartAt_symm_sectionLinearization`.
 
 ## Implementation notes
@@ -161,48 +160,15 @@ private theorem exists_hasFDerivAt_trivializationAt {s : ∀ x, V x}
         (trivializationAt ℂ J.Fiber z).linearEquivAt ℝ z (mem_baseSet_trivializationAt ℂ J.Fiber z)
           ((J.fiberEquiv z).symm (sectionLinearization (F := F) 𝓘(ℝ, EM) id s z v)) := by
   set e := trivializationAt ℂ J.Fiber z
-  set eV := trivializationAt F V z
-  have hzV : z ∈ eV.baseSet := mem_baseSet_trivializationAt F V z
   have hze : z ∈ e.baseSet := mem_baseSet_trivializationAt ℂ J.Fiber z
-  have hzu : z ∈ J.unitSet z := J.mem_unitSet_self z
-  -- The section read in `e` is `c x (h x)`, its reading `h` in the trivialization `eV` of `V`
-  -- followed by a family `c` of linear maps continuous at `z`.
-  set h : M → F := fun x ↦ (eV ⟨x, s x⟩).2 with hh
-  set c : M → F →L[ℝ] ℂ := fun x ↦
-    ((J.modelEquiv ℂ z).symm : F →L[ℝ] ℂ).comp (Ring.inverse (J.complexLinearPart z x))
-  set fM : M → ℂ := fun x ↦ (e ⟨x, (J.fiberEquiv x).symm (s x)⟩).2
-  have hfMc : (fun x ↦ c x (h x)) =ᶠ[nhds z] fM := by
-    filter_upwards [(J.isOpen_unitSet z).mem_nhds hzu] with x hx
-    exact (J.trivializationAt_fiberEquiv_symm_apply_snd ℂ hx (s x)).symm
-  have hcz : ContinuousAt c z := continuousAt_const.clm_comp
-    ((J.continuousOn_inverse_complexLinearPart z).continuousAt ((J.isOpen_unitSet z).mem_nhds hzu))
-  have hhd : MDifferentiableAt 𝓘(ℝ, EM) 𝓘(ℝ, F) h z :=
+  have hhd : MDifferentiableAt 𝓘(ℝ, EM) 𝓘(ℝ, F) (fun x ↦ (trivializationAt F V z ⟨x, s x⟩).2) z :=
     ((contMDiffAt_totalSpace_iff.mp (hs z)).2).mdifferentiableAt one_ne_zero
-  have hh0 : h z = 0 := by
-    simp only [hh, hz]
-    exact congrArg Prod.snd (eV.zeroSection ℝ hzV)
-  -- The linearization of the section `σ x = (J.fiberEquiv x).symm (s x)` of `J.Fiber` at `z` is
-  -- that of `s` followed by `(J.fiberEquiv z).symm`.
-  have hσ : sectionLinearization (F := ℂ) 𝓘(ℝ, EM) id (fun x ↦ (J.fiberEquiv x).symm (s x)) z =
-      ((J.fiberEquiv z).symm : V z →L[ℝ] J.Fiber z).comp
-        (sectionLinearization (F := F) 𝓘(ℝ, EM) id s z) := by
-    have hLσ : sectionLinearization (F := ℂ) 𝓘(ℝ, EM) id
-        (fun x ↦ (J.fiberEquiv x).symm (s x)) z = (e.symmL ℝ z).comp (mvfderiv 𝓘(ℝ, EM) fM z) :=
-      sectionLinearization_def
-    have hLzh : sectionLinearization (F := F) 𝓘(ℝ, EM) id s z =
-        (eV.symmL ℝ z).comp (mvfderiv 𝓘(ℝ, EM) h z) := sectionLinearization_def
-    ext v
-    rw [hLσ, hLzh, mvfderiv_eq_comp_of_eventuallyEq_clm_apply hfMc hcz hhd hh0]
-    simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe]
-    rw [Trivialization.symmL_apply _ hze,
-      ← e.symm_apply_apply_mk hze ((J.fiberEquiv z).symm _),
-      J.trivializationAt_fiberEquiv_symm_apply_snd ℂ hzu, Trivialization.symmL_apply _ hzV,
-      eV.apply_mk_symm hzV]
-    rfl
   have hfMf := hasFDerivAt_comp_chartAt_symm_sectionLinearization (e := e) (b := id)
-    (s := fun x ↦ (J.fiberEquiv x).symm (s x)) continuousAt_id hze
-    (mdifferentiableAt_of_eventuallyEq_clm_apply hfMc hcz hhd hh0) (by simp [hz])
-  rw [← D.symm_apply_apply (chartAt EM z z), hσ] at hfMf
+    (s := fun x ↦ (J.fiberEquiv (id x)).symm (s x)) continuousAt_id hze
+    (J.mdifferentiableAt_trivializationAt_fiberEquiv_symm ℂ (b := id) continuousAt_id hhd hz)
+    (by simp [hz])
+  rw [← D.symm_apply_apply (chartAt EM z z),
+    J.sectionLinearization_fiberEquiv_symm ℂ (b := id) continuousAt_id hhd hz] at hfMf
   let D' : TangentSpace 𝓘(ℝ, EM) z ≃L[ℝ] ℂ := D
   refine ⟨((e.continuousLinearMapAt ℝ z).comp (((J.fiberEquiv z).symm : V z →L[ℝ] J.Fiber z).comp
       (sectionLinearization (F := F) 𝓘(ℝ, EM) id s z))).comp
