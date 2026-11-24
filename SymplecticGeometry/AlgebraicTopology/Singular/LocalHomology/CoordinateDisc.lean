@@ -399,8 +399,8 @@ theorem phase_def (x : M) : φ.phase x = Circle.exp (Complex.arg (φ.coord x)) :
   (rfl)
 
 theorem coe_phase {x : M} (hx : φ.coord x ≠ 0) : (φ.phase x : ℂ) = φ.coord x / ‖φ.coord x‖ := by
-  rw [phase_def, Circle.coe_exp, eq_div_iff (by simpa using hx), mul_comm,
-    Complex.norm_mul_exp_arg_mul_I]
+  rw [phase_def, Circle.coe_exp]
+  exact Complex.exp_arg_mul_I hx
 
 /-- At `φ z`, the angular coordinate is `exp (i arg z)`. -/
 @[simp]

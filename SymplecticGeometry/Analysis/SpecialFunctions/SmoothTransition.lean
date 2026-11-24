@@ -7,7 +7,6 @@ module
 
 public import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
-public import Mathlib.Analysis.SpecialFunctions.Sqrt
 import Mathlib.Analysis.Calculus.Deriv.Inv
 public import TauCeti.Geometry.Manifold.Instances.Icc.CollaredSmoothTransition
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
@@ -38,10 +37,10 @@ map is the identity, including the degenerate case `a = b`. Since an open set co
 contains some `(a - ε, b + ε)`, the values can also be kept in any such open set
 (`SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_of_isOpen`).
 
-Finally it gives a smooth odd function `SymplecticGeometry.smoothSign : ℝ → ℝ` that is the
+Finally it fixes a smooth odd function `SymplecticGeometry.smoothSign : ℝ → ℝ` that is the
 identity on `[-1/4, 1/4]`, `1` on `[1/2, ∞)` and `-1` on `(-∞, -1/2]`, and has the sign of its
-argument. It is `s / √(1 - β s * (1 - s ^ 2))` for the even cutoff
-`β s = smoothTransition (16 * s ^ 2 - 1)`, which is `0` for `|s| ≤ 1/4` and `1` for `|s| ≥ 1/2`.
+argument, by choosing one from Tau Ceti's `TauCeti.exists_contDiff_odd_truncation`; only these
+properties are used, so no formula is given.
 -/
 
 public section
@@ -159,87 +158,69 @@ theorem exists_contDiff_eqOn_id_Icc_mem_of_isOpen {a b : ℝ} {U : Set ℝ} (hab
   · exact hIU ⟨ha, hb⟩
   · exact h₁ (by rw [Metric.mem_ball, Real.dist_eq, abs_lt]; constructor <;> linarith)
 
-/-- A smooth odd function `ℝ → ℝ` that is the identity on `[-1/4, 1/4]`, `1` on `[1/2, ∞)` and
-`-1` on `(-∞, -1/2]`, and has the sign of its argument: `s / √(1 - β s * (1 - s ^ 2))` for the
-cutoff `β s = smoothTransition (16 * s ^ 2 - 1)`. -/
-noncomputable def smoothSign (s : ℝ) : ℝ :=
-  s / √(1 - Real.smoothTransition (16 * s ^ 2 - 1) * (1 - s ^ 2))
+/-- The smooth odd truncation of the identity given by Tau Ceti's
+`TauCeti.exists_contDiff_odd_truncation` for `r = 1/4` and `R = 1/2`: a smooth odd function
+`ℝ → ℝ` that is the identity on `[-1/4, 1/4]`, `1` on `[1/2, ∞)` and `-1` on `(-∞, -1/2]`, and
+has the sign of its argument. -/
+noncomputable def smoothSign : ℝ → ℝ :=
+  (TauCeti.exists_contDiff_odd_truncation (r := 1 / 4) (R := 1 / 2) (by norm_num)
+    (by norm_num)).choose
 
-theorem smoothSign_def (s : ℝ) :
-    smoothSign s = s / √(1 - Real.smoothTransition (16 * s ^ 2 - 1) * (1 - s ^ 2)) :=
-  (rfl)
-
-private theorem smoothSign_denom_pos (s : ℝ) :
-    0 < 1 - Real.smoothTransition (16 * s ^ 2 - 1) * (1 - s ^ 2) := by
-  have h0 := Real.smoothTransition.nonneg (16 * s ^ 2 - 1)
-  have h1 := Real.smoothTransition.le_one (16 * s ^ 2 - 1)
-  rcases eq_or_ne s 0 with rfl | hs
-  · rw [Real.smoothTransition.zero_of_nonpos (by norm_num)]
-    norm_num
-  · have := pow_pos (abs_pos.2 hs) 2
-    rw [sq_abs] at this
-    rcases eq_or_lt_of_le h1 with h | h
-    · rw [h]; linarith
-    · nlinarith
-
-private theorem sqrt_smoothSign_denom_pos (s : ℝ) :
-    0 < √(1 - Real.smoothTransition (16 * s ^ 2 - 1) * (1 - s ^ 2)) :=
-  Real.sqrt_pos.2 (smoothSign_denom_pos s)
+private theorem smoothSign_spec :
+    ContDiff ℝ ∞ smoothSign ∧ Function.Odd smoothSign ∧
+      (∀ t, |t| ≤ 1 / 4 → smoothSign t = t) ∧ (∀ t, 1 / 2 ≤ t → smoothSign t = 1) ∧
+      (∀ t, t ≤ -(1 / 2) → smoothSign t = -1) ∧ (∀ t, 0 < t → 0 < smoothSign t) ∧
+      (∀ t, t < 0 → smoothSign t < 0) :=
+  (TauCeti.exists_contDiff_odd_truncation (r := 1 / 4) (R := 1 / 2) (by norm_num)
+    (by norm_num)).choose_spec
 
 /-- `smoothSign` is smooth. -/
-theorem contDiff_smoothSign : ContDiff ℝ ∞ smoothSign := by
-  have hβ : ContDiff ℝ ∞ fun s : ℝ ↦ Real.smoothTransition (16 * s ^ 2 - 1) :=
-    (Real.smoothTransition.contDiff (n := ⊤)).comp (by fun_prop)
-  have hD : ContDiff ℝ ∞ fun s : ℝ ↦ 1 - Real.smoothTransition (16 * s ^ 2 - 1) * (1 - s ^ 2) :=
-    contDiff_const.sub (hβ.mul (by fun_prop))
-  exact contDiff_id.div (hD.sqrt fun s ↦ (smoothSign_denom_pos s).ne')
-    fun s ↦ (sqrt_smoothSign_denom_pos s).ne'
+theorem contDiff_smoothSign : ContDiff ℝ ∞ smoothSign :=
+  smoothSign_spec.1
 
 /-- `smoothSign` is the identity on `[-1/4, 1/4]`. -/
-theorem smoothSign_of_abs_le {s : ℝ} (hs : |s| ≤ 1 / 4) : smoothSign s = s := by
-  rw [smoothSign_def,
-    Real.smoothTransition.zero_of_nonpos (by nlinarith [abs_nonneg s, sq_abs s])]
-  simp
-
-private theorem smoothSign_of_le_abs {s : ℝ} (hs : 1 / 2 ≤ |s|) : smoothSign s = s / |s| := by
-  rw [smoothSign_def,
-    Real.smoothTransition.one_of_one_le (by nlinarith [abs_nonneg s, sq_abs s])]
-  simp [Real.sqrt_sq_eq_abs]
+theorem smoothSign_of_abs_le {s : ℝ} (hs : |s| ≤ 1 / 4) : smoothSign s = s :=
+  smoothSign_spec.2.2.1 s hs
 
 /-- `smoothSign` is `1` on `[1/2, ∞)`. -/
-theorem smoothSign_of_le {s : ℝ} (hs : 1 / 2 ≤ s) : smoothSign s = 1 := by
-  rw [smoothSign_of_le_abs (by rw [abs_of_pos (by linarith)]; exact hs),
-    abs_of_pos (by linarith), div_self (by linarith)]
+theorem smoothSign_of_le {s : ℝ} (hs : 1 / 2 ≤ s) : smoothSign s = 1 :=
+  smoothSign_spec.2.2.2.1 s hs
 
 /-- `smoothSign` is `-1` on `(-∞, -1/2]`. -/
-theorem smoothSign_of_le_neg {s : ℝ} (hs : s ≤ -(1 / 2)) : smoothSign s = -1 := by
-  rw [smoothSign_of_le_abs (by rw [abs_of_neg (by linarith)]; linarith),
-    abs_of_neg (by linarith), div_neg, div_self (by linarith)]
+theorem smoothSign_of_le_neg {s : ℝ} (hs : s ≤ -(1 / 2)) : smoothSign s = -1 :=
+  smoothSign_spec.2.2.2.2.1 s hs
 
 /-- `smoothSign` is odd. -/
 @[simp]
-theorem smoothSign_neg (s : ℝ) : smoothSign (-s) = -smoothSign s := by
-  simp [smoothSign_def, neg_div]
+theorem smoothSign_neg (s : ℝ) : smoothSign (-s) = -smoothSign s :=
+  smoothSign_spec.2.1 s
 
 @[simp]
-theorem smoothSign_zero : smoothSign 0 = 0 := by
-  simp [smoothSign_def]
-
-@[simp]
-theorem smoothSign_lt_zero_iff {s : ℝ} : smoothSign s < 0 ↔ s < 0 := by
-  rw [smoothSign_def, div_lt_iff₀ (sqrt_smoothSign_denom_pos s), zero_mul]
-
-@[simp]
-theorem smoothSign_eq_zero_iff {s : ℝ} : smoothSign s = 0 ↔ s = 0 := by
-  rw [smoothSign_def, div_eq_zero_iff, or_iff_left (sqrt_smoothSign_denom_pos s).ne']
-
-@[simp]
-theorem smoothSign_nonpos_iff {s : ℝ} : smoothSign s ≤ 0 ↔ s ≤ 0 := by
-  rw [le_iff_lt_or_eq, le_iff_lt_or_eq, smoothSign_lt_zero_iff, smoothSign_eq_zero_iff]
+theorem smoothSign_zero : smoothSign 0 = 0 :=
+  smoothSign_of_abs_le (by norm_num)
 
 @[simp]
 theorem smoothSign_pos_iff {s : ℝ} : 0 < smoothSign s ↔ 0 < s := by
-  rw [← not_le, smoothSign_nonpos_iff, not_le]
+  refine ⟨fun h ↦ lt_of_not_ge fun hs ↦ ?_, smoothSign_spec.2.2.2.2.2.1 s⟩
+  rcases hs.lt_or_eq with hs | rfl
+  · exact (smoothSign_spec.2.2.2.2.2.2 s hs).not_gt h
+  · simp at h
+
+@[simp]
+theorem smoothSign_lt_zero_iff {s : ℝ} : smoothSign s < 0 ↔ s < 0 := by
+  rw [← neg_pos, ← smoothSign_neg, smoothSign_pos_iff, neg_pos]
+
+@[simp]
+theorem smoothSign_eq_zero_iff {s : ℝ} : smoothSign s = 0 ↔ s = 0 := by
+  refine ⟨fun h ↦ ?_, fun h ↦ h ▸ smoothSign_zero⟩
+  rcases lt_trichotomy s 0 with hs | hs | hs
+  · exact absurd h (smoothSign_lt_zero_iff.2 hs).ne
+  · exact hs
+  · exact absurd h (smoothSign_pos_iff.2 hs).ne'
+
+@[simp]
+theorem smoothSign_nonpos_iff {s : ℝ} : smoothSign s ≤ 0 ↔ s ≤ 0 := by
+  rw [← not_lt, smoothSign_pos_iff, not_lt]
 
 @[simp]
 theorem smoothSign_nonneg_iff {s : ℝ} : 0 ≤ smoothSign s ↔ 0 ≤ s := by
