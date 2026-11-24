@@ -3439,8 +3439,7 @@ Differential topology and complex analysis only; it waits for no part of
   (`Neighborhood/Lagrangian.lean`), *Isotopy extension* and *Hamiltonian
   flows* (`Flux/CompactSupport.lean`); Tau Ceti (geodesics of the round
   sphere, the weak Whitney topology, isotopy classes of orthogonal maps of
-  a sphere in `Geometry/Diffeomorphism/Sphere/Isotopy.lean`, commuting
-  Hamiltonian flows).
+  a sphere in `Geometry/Diffeomorphism/Sphere/Isotopy.lean`).
 - **Milestones:** *Dehn twist along a framed Lagrangian sphere*. The
   remark that a Lagrangian 2-sphere has one framing, which uses Smale's
   theorem, is not part of the milestone, so the part does not wait for

@@ -9,8 +9,8 @@ the twist along a framed sphere follows the paragraph before Proposition
 are Lemmas 2.1 and 2.2 and Proposition 2.3 of Seidel's thesis
 [Seidel1997Thesis], repeated in [Seidel2008], §1a. McDuff–Salamon
 [McDuffSalamon2017] describe the compactly supported twist on p. 270 and
-prove the Lagrangian neighbourhood theorem as Theorem 3.4.13. The local
-model goes back to Arnold [Arnold1995]. The smoothness of a smooth even
+prove the Lagrangian neighbourhood theorem as Theorem 3.4.13. Arnold
+[Arnold1995] introduced the twist on $T^*S^n$. The smoothness of a smooth even
 function as a function of $t^2$ is Whitney's theorem (H. Whitney,
 *Differentiable even functions*, Duke Mathematical Journal 10 (1943),
 159–160).
@@ -49,20 +49,34 @@ Tau Ceti and the library already have:
   and along a fibrewise rescaling
   (`mpullback_liouvilleForm_apply_of_eq_smul`, `Cotangent/Bundle/Liouville.lean`);
   smooth maps into `T*M` built from a covector field
-  (`TauCeti.CotangentBundle.contMDiff_mk_comp_mfderiv`); the codisc bundle
-  `TauCeti.CotangentBundle.codiscBundle` of a Riemannian manifold, compact
-  over a compact base (`Cotangent/Bundle/Codisc.lean`); the kinetic energy
+  (`TauCeti.CotangentBundle.contMDiff_mk_comp_mfderiv`); the unit codisc
+  bundle `TauCeti.CotangentBundle.codiscBundle` of a Riemannian manifold,
+  compact over a compact base (`isCompact_codiscBundle`,
+  `Cotangent/Bundle/Codisc.lean`); the kinetic energy
   $|p|^2/2$ and its cogeodesic flow (`Cotangent/Bundle/Cogeodesic.lean`,
   `GeodesicSpray.lean`). Tau Ceti has no Hamiltonian flow of $|p|$. Its
   planar twist maps (`TauCeti.hamiltonianFlow_radialHamiltonian`,
   `Hamiltonian/RadialTwist.lean`) rotate $\mathbb C$ about a point, the
   Hamiltonian being a function of the distance to it. They are not maps of
   a cotangent bundle, so the model does not use them.
+- **Fibrewise dilations.** Multiplication of the fibres of a vector bundle
+  by a nowhere-zero smooth function, as a diffeomorphism
+  `TauCeti.vectorBundleScalarDiffeomorph`, with `ContMDiff.smul_totalSpace`
+  and the images of the sets `{v | ‖v‖ ≤ r}`
+  (`TauCeti.vectorBundleScalarDiffeomorph_image_setOf_norm_le`,
+  `Geometry/Manifold/VectorBundle/Scalar.lean`); on a cotangent bundle the
+  dilation by `c ≠ 0` pulls `λ` back to `c • λ` and `symplecticForm` to
+  `c • symplecticForm`
+  (`TauCeti.CotangentBundle.mpullback_vectorBundleScalarDiffeomorph_liouvilleForm`,
+  `mpullback_vectorBundleScalarDiffeomorph_symplecticForm`,
+  `Geometry/Symplectic/Cotangent/Bundle/Fiberwise.lean`); and the family
+  `(v, t) ↦ t • v` for `t ∈ [0, 1]`, smooth on the cylinder
+  (`TauCeti.vectorBundleFiberScaling`, `contMDiff_vectorBundleFiberScaling`,
+  `Geometry/Manifold/VectorBundle/FiberScaling.lean`). Below, $m_c$ is the
+  dilation by $c$, and $N=m_{-1}$ is the fibrewise negation.
 - **Hamiltonian dynamics.** `TauCeti.SmoothTwoForm.hamiltonianVectorField_comp`
-  ($X_{\varphi\circ f}=\varphi'(f)X_f$, `Hamiltonian/Manifold.lean`), and
-  commuting Hamiltonian flows (`IsSymplectic.flowOf_flowOf_comm`,
-  `Hamiltonian/CommutingFlow.lean`). The library's merged *Hamiltonian
-  flows* has `TauCeti.Diffeotopy.IsGeneratedBy`,
+  ($X_{\varphi\circ f}=\varphi'(f)X_f$, `Hamiltonian/Manifold.lean`). The
+  library's merged *Hamiltonian flows* has `TauCeti.Diffeotopy.IsGeneratedBy`,
   `IsCompactlySupportedHamiltonian` and
   `TauCeti.Diffeotopy.exists_isCompactlySupportedHamiltonian` (a smooth
   compactly supported time-dependent function generates a compactly
@@ -101,8 +115,8 @@ of a continuous path in `TauCeti.Diff`. The part adds, in order of
 dependence:
 
 1. Whitney's theorem for smooth even and odd functions;
-2. the fibrewise rescaling of a cotangent bundle and the uniqueness of
-   Lagrangian neighbourhoods up to symplectic isotopy;
+2. the rescaled family of a symplectic embedding near the zero section,
+   and the uniqueness of Lagrangian neighbourhoods up to symplectic isotopy;
 3. the transplant of a compactly supported diffeomorphism along a smooth
    family of open embeddings, as a diffeotopy;
 4. Euclidean coordinates on `T*Sⁿ` and the normalized geodesic flow;
@@ -139,8 +153,8 @@ dependence:
   milestone sees the sign: it pulls `ω` back to
   `-CotangentBundle.symplecticForm`. Tau Ceti's theorem gives $\psi$ with
   $\psi^*\omega=$ `symplecticForm`, and $\iota=\psi\circ N$ for the fibrewise
-  negation $N=$ `fiberScale (-1)` of `Cotangent/Bundle/Rescaling.lean`, as
-  the page says.
+  negation $N=m_{-1}$, Tau Ceti's `vectorBundleScalarDiffeomorph` by $-1$,
+  as the page says.
 - **The isotopy relation of framings.** $f_1\sim f_2$ when
   $f_1=f_2\circ\Phi_1\circ g$ for a smooth isotopy `Φ : TauCeti.Diffeotopy
   (𝓡 n) ∞ Sⁿ` and some $g\in O(n+1)$, acting by `orthogonalToDiffSphere`.
@@ -158,8 +172,8 @@ dependence:
   for the zero section of `T*Sⁿ` only, and the proof works for every `T*L`.
   Let $U\subseteq T^*L$ be open and contain the zero section, and let
   $\psi\colon U\to T^*L$ be an open symplectic embedding that fixes every
-  zero covector. Write $m_c$ for
-  multiplication of covectors by $c$, so that $m_c^*\lambda=c\lambda$.
+  zero covector. With the dilations $m_c$
+  of *What exists*, $m_c^*\lambda=c\lambda$ for $c\ne0$.
   Then $\psi_t:=m_{1/t}\circ\psi\circ m_t$ is symplectic for $t\in(0,1]$,
   and it is defined on every fibrewise star-shaped $U'\subseteq U$. In a
   bundle chart, $\psi(x,p)=(a(x,p),b(x,p))$ with $a(x,0)=x$ and $b(x,0)=0$,
@@ -225,14 +239,21 @@ extends it to $\mathbb R$. The third theorem is the first composed with
 ### `Geometry/Symplectic/Cotangent/Bundle/Rescaling.lean`
 
 For a manifold `L` modelled on `J`, write `T*L := TauCeti.CotangentBundle J L`.
+The dilations $m_c$ and the family $(z,t)\mapsto m_tz$ are Tau Ceti's
+(*What exists*); the file adds the rescaled family of an embedding and the
+uniqueness theorems.
 
 ```lean
-def CotangentBundle.fiberScale (c : ℝ) : T*L → T*L          -- (x, p) ↦ (x, c • p)
-theorem CotangentBundle.contMDiff_fiberScale (c : ℝ) : ContMDiff _ _ ∞ (fiberScale c)
-theorem CotangentBundle.mpullback_fiberScale_liouvilleForm (c : ℝ) :
-    SmoothForm.mpullback (fiberScale c) _ (liouvilleForm J L) = c • liouvilleForm J L
-theorem CotangentBundle.mpullback_fiberScale_symplecticForm (c : ℝ) : …   -- c • symplecticForm
-def CotangentBundle.fiberScaleDiffeomorph {c : ℝ} (hc : c ≠ 0) : T*L ≃ₘ⟮_, _⟯ T*L
+/-- For `t > 0`, `m_{1/t} ∘ ψ ∘ m_t`; for `t = 0`, the fibre derivative of `ψ` along the
+zero section. -/
+def CotangentBundle.rescaledFamily {U : Opens T*L} (ψ : U → T*L) (p : T*L × unitInterval) : T*L
+theorem CotangentBundle.rescaledFamily_of_pos (ψ) {t : unitInterval} (ht : 0 < (t : ℝ))
+    (z : T*L) (hz : vectorBundleFiberScaling _ _ (z, t) ∈ U) :
+    rescaledFamily ψ (z, t) = m_{1/t} (ψ ⟨vectorBundleFiberScaling _ _ (z, t), hz⟩)
+theorem CotangentBundle.contMDiffOn_rescaledFamily {U' : Opens T*L} (hU' : U' ≤ U)
+    (hstar : ∀ z ∈ U', ∀ t, vectorBundleFiberScaling _ _ (z, t) ∈ U')
+    (hψ : ContMDiff _ _ ∞ ψ) (hψ0 : ∀ x, ψ ⟨0_x, _⟩ = 0_x) :
+    ContMDiffOn _ _ ∞ (rescaledFamily ψ) (U' ×ˢ univ)
 
 theorem CotangentBundle.exists_smoothIsotopy_of_eqOn_zeroSection
     [CompactSpace L] {U : Opens T*L} (hU : range (zeroSection …) ⊆ U)
@@ -245,16 +266,14 @@ theorem CotangentBundle.exists_smoothIsotopy_of_eqOn_zeroSection
       (∀ t x, F (t, ⟨0_x, _⟩) = 0_x) ∧ ∀ t, IsOpenEmbedding (F (t, ·))
 ```
 
-`fiberScale` is Tau Ceti's scalar action on the fibres, and its pullback
-formulas are `mpullback_liouvilleForm_apply_of_eq_smul` and its
-derivative. The isotopy is the rescaled family $m_{1/t}\circ\psi\circ m_t$
+The isotopy is `rescaledFamily ψ`, the family $m_{1/t}\circ\psi\circ m_t$
 of *Decisions*, on a star-shaped neighbourhood $U'$, which exists because
 `L` is compact. Its smoothness at $t=0$ is Hadamard's lemma in the fibre
 variable, in the trivializations of `T*L`. Those are linear on fibres, so
 they commute with $m_t$. The first jet along the zero section gives the
 value at $t=0$, as *Decisions* says. For $t>0$ each slice is symplectic by
-`mpullback_fiberScale_symplecticForm`. Each slice is an open embedding,
-being a composite of open embeddings for $t>0$ and the inclusion for
+`mpullback_vectorBundleScalarDiffeomorph_symplecticForm`. Each slice is an
+open embedding, being a composite of open embeddings for $t>0$ and the inclusion for
 $t=0$.
 
 ```lean
@@ -272,9 +291,9 @@ theorem IsLagrangianMap.exists_smoothIsotopy_of_apply_zeroSection_eq
 This is the uniqueness of Lagrangian neighbourhoods up to isotopy, with
 $G_t=\iota_1\circ\psi_t$ for $\psi=\iota_1^{-1}\circ\iota_0$ on a
 neighbourhood of the zero section that $\iota_0$ maps into $V_1$. The same
-statement holds with `-symplecticForm`, by composing with `fiberScale (-1)`.
+statement holds with `-symplecticForm`, by composing with $N=m_{-1}$.
 That is the form used for the twist (*Decisions*, signs). Expected size: 500
-lines, as two issues: `fiberScale` with the rescaled family (300), and the
+lines, as two issues: the rescaled family and its smoothness (300), and the
 two isotopy theorems (200).
 
 ### `Geometry/Diffeomorphism/Diffeotopy/Extend.lean`
@@ -317,6 +336,8 @@ Coordinates on `T*Sⁿ` and the normalized geodesic flow.
 def cotangentMk (q : Sⁿ) (p : E) : T*Sⁿ        -- the covector v ↦ ⟪p, dι v⟫ at q
 def cotangentCoord (z : T*Sⁿ) : E × E          -- (q, p), p ∈ (ℝ ∙ q)ᗮ
 def cotangentNorm (z : T*Sⁿ) : ℝ               -- μ z = ‖(cotangentCoord z).2‖
+theorem cotangentNorm_eq_norm (z : T*Sⁿ) : cotangentNorm z = ‖z.snd‖   -- for sphereRoundMetric
+theorem isCompact_setOf_cotangentNorm_le (r : ℝ) : IsCompact {z : T*Sⁿ | cotangentNorm z ≤ r}
 theorem cotangentCoord_cotangentMk (q : Sⁿ) (p : E) :
     cotangentCoord (cotangentMk q p) = ((q : E), p - ⟪(q : E), p⟫ • q)
 theorem cotangentMk_cotangentCoord (z : T*Sⁿ) : cotangentMk z.proj (cotangentCoord z).2 = z
@@ -345,7 +366,13 @@ theorem isMIntegralCurve_geodesicFlow {z} (hz : cotangentNorm z ≠ 0) :
 `cotangentMk` is built with `TauCeti.CotangentBundle.contMDiff_mk_comp_mfderiv`,
 and the inverse of `cotangentCoord` on its image with
 `TauCeti.sphereTangentEquiv`. `mpullback_cotangentCoord` is
-`mpullback_liouvilleForm_apply_of_proj_comp_eq`. The great circle through
+`mpullback_liouvilleForm_apply_of_proj_comp_eq`. In `cotangentNorm_eq_norm`
+the norm on covectors is that of `TauCeti.sphereRoundMetric`, a `def`, which
+the file installs as a local instance. Write $T(r)$ for
+`{z | cotangentNorm z ≤ r}`. For $r>0$ it is the image of
+`codiscBundle` under $m_r$ (`vectorBundleScalarDiffeomorph_image_setOf_norm_le`),
+hence compact by `isCompact_codiscBundle`; otherwise it is a closed subset
+of $T(1)$. The great circle through
 `q` in the direction `p/‖p‖` is Tau Ceti's `sphereGreatCircle`, whose
 period and antipode give `geodesicFlow_two_pi` and `geodesicFlow_pi`. The
 flow statement is a computation in coordinates: the velocity of the curve is
@@ -432,7 +459,7 @@ between two profiles, $R_s=(1-s)R_0+sR_1$ is a profile for every $s$
 smooth, as $R_1-R_0$ is even, and it vanishes for $\mu\ge r_0$.
 `exists_isCompactlySupportedHamiltonian` gives $\Phi$ generated by $G$
 (constant in time), the identity off $T(r_0)$, which is compact
-(`TauCeti.CotangentBundle.isCompact_codiscBundle`, with the round metric).
+(`isCompact_setOf_cotangentNorm_le`).
 Both $s\mapsto\Phi_s(\tau_{R_0}z)$ and $s\mapsto\tau_{R_s}z$ are integral
 curves of $X_G$ through $\tau_{R_0}z$. Off the zero section this is the flow
 statement. On it both curves are constant, since $dG=0$ there. So
@@ -474,10 +501,11 @@ The twist along a framed Lagrangian sphere.
 /-- The Dehn twist built from a symplectic embedding `ι` of a neighbourhood `U` of the
 zero section and a model twist supported in `U`: `ι ∘ τ ∘ ι⁻¹` on `V`, the identity off it. -/
 def dehnTwist {U : Opens T*Sⁿ} {V : Opens M} (ι : U ≃ₘ⟮_, I⟯ V) (hR : IsTwistProfile R r₀)
-    (hU : codiscBundle r₀ ⊆ U) : M ≃ₘ⟮I, I⟯ M
+    (hU : {z | cotangentNorm z ≤ r₀} ⊆ U) : M ≃ₘ⟮I, I⟯ M
 theorem dehnTwist_apply_val (z : U) : dehnTwist ι hR hU (ι z) = ι ⟨modelTwist hR z, _⟩
-theorem dehnTwist_apply_of_notMem {x} (hx : x ∉ ι '' codiscBundle r₀) : dehnTwist ι hR hU x = x
-theorem isCompact_image_codiscBundle : IsCompact (ι '' codiscBundle r₀)
+theorem dehnTwist_apply_of_notMem {x} (hx : x ∉ ι '' {z | cotangentNorm z ≤ r₀}) :
+    dehnTwist ι hR hU x = x
+theorem isCompact_image_setOf_cotangentNorm_le : IsCompact (ι '' {z | cotangentNorm z ≤ r₀})
 theorem mpullback_dehnTwist (hι : ι^* ω = (-symplecticForm)|U) : (dehnTwist ι hR hU)^* ω = ω
 theorem dehnTwist_apply_embedding (hιf : ∀ q, ι ⟨0_q, _⟩ = f q) (q : Sⁿ) :
     dehnTwist ι hR hU (f q) = f (-q)
@@ -492,18 +520,17 @@ theorem exists_diffeotopy_dehnTwist_eq (hf₁ : IsLagrangianMap f₁) (hf : Fram
       ∀ x, Φ.final (dehnTwist ι₁ hR₁ hU₁ x) = dehnTwist ι₂ hR₂ hU₂ x
 theorem exists_mpullback_dehnTwist_sub_eq (θ : SmoothForm I M ℝ 1) (hθ : mextDeriv θ = ω)
     (hθL : ∃ h : C^∞⟮𝓡 n, Sⁿ; ℝ⟯, mpullback f θ = mextDerivₗ h) (hιf : …) (hι : …) :
-    ∃ K : C^∞⟮I, M; ℝ⟯, (∀ x ∉ ι '' codiscBundle r₀, K x = 0) ∧
+    ∃ K : C^∞⟮I, M; ℝ⟯, (∀ x ∉ ι '' {z | cotangentNorm z ≤ r₀}, K x = 0) ∧
       mpullback (dehnTwist ι hR hU) θ - θ = mextDerivₗ K
 theorem exists_mpullback_dehnTwist_sub_eq_of_two_le (hn : 2 ≤ n) … -- without hθL
 ```
 
 `dehnTwist` takes the diffeomorphism given by
 `IsLocalDiffeomorph.exists_diffeomorph_extend_of_isCompact` for the open
-embedding `ι` and the compact set `codiscBundle r₀`. Its two apply lemmas
-determine it. The codisc bundle is that of `TauCeti.sphereRoundMetric`,
-for which `cotangentNorm` is the norm of a covector.
+embedding `ι` and the compact set $T(r_0)$
+(`isCompact_setOf_cotangentNorm_le`). Its two apply lemmas determine it.
 `exists_symplecticEmbedding` is the Lagrangian neighbourhood theorem
-composed with `fiberScale (-1)`. A model twist with $T(r_0)\subseteq U$
+composed with $N=m_{-1}$. A model twist with $T(r_0)\subseteq U$
 exists by `exists_isTwistProfile` and compactness of the zero section.
 
 `exists_diffeotopy_dehnTwist_eq` follows *Decisions*, in three steps:
@@ -544,7 +571,7 @@ Exactness follows the page's route. The closed one-form
 $\iota^*\theta-\lambda$ on `U` restricts on the zero section to
 $f^*\theta$, which is exact. So on a star-shaped $U'\supseteq T(r_0)$ it is
 $dh$, by `TauCeti.vectorBundlePoincareHomotopy` or by homotopy invariance
-along `fiberScale`. Then $\tau^*\theta-\theta=d(K+h\circ\tau-h)$ on $V$,
+along `vectorBundleFiberScaling`. Then $\tau^*\theta-\theta=d(K+h\circ\tau-h)$ on $V$,
 transported by $\iota$. The function vanishes off $\iota(T(r_0))$, so it
 extends by $0$ to a smooth function on `M`. For $n\ge2$,
 `TauCeti.exists_mextDeriv_eq_of_simplyConnectedSpace` with
@@ -615,7 +642,7 @@ In this order; each is blocked by the ones listed. All are sub-issues of
 | # | Issue | Files | Blocked by | Size |
 |---|---|---|---|---|
 | 1 | Whitney's theorem on smooth even functions | `Analysis/Calculus/ContDiff/Even.lean` | — | 250 |
-| 2 | Fibre rescaling of cotangent bundles | `Cotangent/Bundle/Rescaling.lean` (`fiberScale`, the rescaled family) | — | 300 |
+| 2 | The rescaled family of a symplectic embedding near the zero section | `Cotangent/Bundle/Rescaling.lean` (`rescaledFamily`) | — | 300 |
 | 3 | Uniqueness of Lagrangian neighbourhoods up to isotopy | `Cotangent/Bundle/Rescaling.lean` (the two isotopy theorems) | 2 | 200 |
 | 4 | Moving a compactly supported diffeomorphism along a family of embeddings | `Diffeotopy/Extend.lean` | — | 300 |
 | 5 | Euclidean coordinates on the cotangent bundle of the sphere | `DehnTwist/Geodesic.lean` (coordinates, `antipodal`) | — | 300 |
@@ -623,7 +650,7 @@ In this order; each is blocked by the ones listed. All are sub-issues of
 | 7 | The model Dehn twist | `DehnTwist/Model.lean` (profiles, definition, smoothness) | 1, 6 | 350 |
 | 8 | Exactness and Hamiltonian isotopies of the model twist | `DehnTwist/Model.lean` (the rest) | 7 | 350 |
 | 9 | Framings of a sphere | `DehnTwist/Framing.lean` | — | 200 |
-| 10 | The twist along a Lagrangian sphere | `DehnTwist/Sphere.lean` (definition, properties, choices) | 2, 7 | 300 |
+| 10 | The twist along a Lagrangian sphere | `DehnTwist/Sphere.lean` (definition, properties, choices) | 7, 8 | 300 |
 | 11 | Independence of the choices and exactness | `DehnTwist/Sphere.lean` (the rest, the milestone) | 3, 4, 8, 9, 10 | 350 |
 
 Issues 1, 2, 4, 5 and 9 can start at once. The milestone is proved in
