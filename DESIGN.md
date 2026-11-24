@@ -2883,30 +2883,29 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
 ### 41. Hamiltonian reduction (needs `design/hamiltonian-reduction.md`)
 
 - **Files:** in `Geometry/Symplectic/Hamiltonian/Reduction/`, beside Tau
-  Ceti's files: `ZeroLevel.lean` (Marsden–Weinstein reduction at the zero
+  Ceti's files: `ZeroLevel/` (Marsden–Weinstein reduction at the zero
   level for a connected group acting freely and properly on the level
   only: the quotient manifold theorem applied to the level's own action,
   the unique reduced form, the dimension, that the level is coisotropic
   with the orbits as characteristic leaves, and
   $T_{[p]}(M/\!/G)\cong\ker d\mu(p)/\operatorname{im}L_p$ with the induced
-  form) and `CoadjointOrbit.lean` (reduction at an embedded coadjoint
+  form) and `CoadjointOrbit/` (reduction at an embedded coadjoint
   orbit: transversality, the reduced form with
   $\pi^*\omega_{\mathrm{red}}=i^*\omega+(\mu|_Q)^*\omega_{\mathcal O}$, and
   the symplectomorphism with the reduced space at zero of
   $M\times\mathcal O$, whose moment map is $\mu(p)-\eta$).
 - **Builds on:** Tau Ceti (the quotient
-  manifold theorem, `IsEquivariantMomentMap.levelSubMulAction` and the
-  files of `Hamiltonian/Reduction/`, the reduced form
-  `existsUnique_isSymplectic_mpullback_quotientMk_eq_mpullback`, the
-  shifting results `isRegularValue_sub`, `isCoisotropicMap_fst_sub` and
-  `mpullback_smul_eq_prod_leftInvariantKirillovForm`, the coadjoint orbit
+  manifold theorem, the regular-level atlas `IsMomentMap.levelChartedSpace`,
+  the reduced form of level data
+  `IsEquivariantMomentMap.existsUnique_isSymplectic_mpullback_eq_mpullback`,
+  the product moment map `IsEquivariantMomentMap.prod`, the coadjoint orbit
   `Module.Dual.coadjointOrbitForm`).
 - **Milestones:** *Marsden–Weinstein reduction*, *Reduction at a coadjoint
   orbit and the shifting construction*.
 - **The design file decides:** how the reduction is stated when properness
   holds only on the level (Tau Ceti asks for a proper action on $M$), how
   an embedded coadjoint orbit is given (the orbit map
-  $G/G_\eta\to\mathfrak g^*$ as a smooth embedding), and the comparison of
+  $G/G_\eta\to\mathfrak g^*$ as an embedding), and the comparison of
   the quotient by $G$ with Tau Ceti's quotient by $G_c$.
 
 ### 42. Convexity (needs `design/convexity.md`)
