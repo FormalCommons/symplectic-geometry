@@ -272,7 +272,7 @@ In `SymplecticGeometry`:
   defined on homogeneous forms by
   `cartanDiff_of_zero : cartanDiff X hX ħ (of _ 0 f) = of _ 1 (mextDerivₗ f)` and
   `cartanDiff_of_succ : cartanDiff X hX ħ (of _ (k + 1) φ) = of _ (k + 2) (mextDerivₗ φ) - ħ • of _ k (interiorProduct ⟨X, hX⟩ φ)`;
-- `cartanDiff_zero_param` (at `ħ = 0` it is `d`), `cartanDiff_mul_of`
+- `cartanDiff_zero_param` (at `ħ = 0` it is `d`), `cartanDiff_of_mul`
   (for `φ` of degree `k`,
   `cartanDiff (of _ k φ * β) = cartanDiff (of _ k φ) * β + (-1) ^ k • of _ k φ * cartanDiff β`),
   and `cartanDiff_mul_of_even` for products of forms with even components;
