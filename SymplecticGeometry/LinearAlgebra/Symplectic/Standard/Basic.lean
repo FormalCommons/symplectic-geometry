@@ -10,12 +10,12 @@ public import Mathlib.LinearAlgebra.Matrix.BilinearForm
 public import Mathlib.LinearAlgebra.SymplecticGroup
 public import TauCeti.Analysis.Complex.Euclidean.Space
 public import TauCeti.Geometry.Symplectic.Complex.CoordinateSpace
+public import TauCeti.Geometry.Symplectic.Complex.ImInner.Basic
 public import TauCeti.Geometry.Symplectic.CompatibleMetric
 public import TauCeti.Geometry.Symplectic.Prod.Basic
 public import TauCeti.Geometry.Symplectic.StandardCompatible
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import TauCeti.Geometry.Symplectic.Transport
-import TauCeti.Geometry.Symplectic.Complex.InnerProductSpace
 
 /-!
 # The standard model `(ℝ²ⁿ, ω₀, J₀)`
@@ -410,11 +410,9 @@ theorem _root_.Matrix.re_star_dotProduct_self (z : ι → ℂ) :
 `ω₀(z, w) = Im (star z ⬝ᵥ w)`. -/
 theorem _root_.TauCeti.stdComplexPiSymplecticForm_apply_eq_im (z w : ι → ℂ) :
     stdComplexPiSymplecticForm ι z w = (star z ⬝ᵥ w).im := by
-  simp only [stdComplexPiSymplecticForm_apply, stdComplexSymplecticForm_apply, dotProduct,
-    Complex.im_sum]
-  refine Finset.sum_congr rfl fun i _ ↦ ?_
-  simp only [Pi.star_apply, Complex.star_def, Complex.mul_im, Complex.conj_re, Complex.conj_im]
-  ring
+  rw [← WithLp.ofLp_toLp 2 z, ← WithLp.ofLp_toLp 2 w,
+    ← imInnerSymplecticForm_euclideanSpace_apply, imInnerSymplecticForm_apply,
+    EuclideanSpace.inner_eq_star_dotProduct, dotProduct_comm]
 
 /-- `J₀` is the linear map of the matrix `Matrix.J ι ℝ = !![0, -1; 1, 0]`. -/
 theorem stdComplexStructure_eq_toEuclideanLin_J [DecidableEq ι] :
