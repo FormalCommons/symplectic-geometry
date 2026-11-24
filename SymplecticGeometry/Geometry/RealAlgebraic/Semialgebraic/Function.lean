@@ -20,10 +20,14 @@ file needs no finiteness of the input coordinates.
   semialgebraic on `s`. Its graph is the intersection of inverse images of the graphs of `f`
   and `g`, so no coordinate is eliminated: the statement needs neither finiteness nor projection
   closure. The proof follows that of `TauCeti.IsSemialgebraicOn.sumElim`.
+* `TauCeti.IsSemialgebraicOn.of_sumElim_right`: given projection closure, if
+  `x ↦ Sum.elim (f x) (g x)` is semialgebraic on `s` and `f` has finitely many output
+  coordinates, then `g` is semialgebraic on `s`, with no finiteness of the other coordinates.
+  The proof forgets the coordinates of `f x`, as that of `TauCeti.IsSemialgebraicOn.comp`
+  forgets the intermediate ones.
 * `TauCeti.IsSemialgebraicOn.comp_sumElim`: given projection closure and finitely many
   coordinates for the values of `f`, the composite `x ↦ g (Sum.elim x (f x))` itself is
-  semialgebraic on `s`, for any set of input coordinates. The proof forgets the coordinates of
-  `f x`, as that of `TauCeti.IsSemialgebraicOn.comp` forgets the intermediate ones.
+  semialgebraic on `s`, for any set of input coordinates. It follows from the two lemmas above.
 
 ## References
 
@@ -64,18 +68,15 @@ theorem IsSemialgebraicOn.sumElim_comp_sumElim {f : (σ → R) → (α → R)}
   · rintro ⟨⟨hz, hf'⟩, -, hg'⟩
     exact ⟨hz, hf', hf' ▸ hg'⟩
 
-/-- Given projection closure, if `f` is semialgebraic on `s` with finitely many output
-coordinates, `g` is semialgebraic on `t`, and `Sum.elim x (f x) ∈ t` for every `x ∈ s`, then
-`x ↦ g (Sum.elim x (f x))` is semialgebraic on `s`. The input coordinates `σ` need not be
-finite. -/
-theorem IsSemialgebraicOn.comp_sumElim [HasSemialgebraicProjections R] [Finite α]
-    {f : (σ → R) → (α → R)} {g : (σ ⊕ α → R) → (υ → R)} {s : Set (σ → R)}
-    {t : Set (σ ⊕ α → R)} (hg : IsSemialgebraicOn g t) (hf : IsSemialgebraicOn f s)
-    (hst : ∀ x ∈ s, Sum.elim x (f x) ∈ t) :
-    IsSemialgebraicOn (fun x ↦ g (Sum.elim x (f x))) s := by
-  refine isSemialgebraicOn_def.2 ⟨hf.isSemialgebraic, ?_⟩
+/-- Given projection closure, if `x ↦ Sum.elim (f x) (g x)` is semialgebraic on `s` and `f` has
+finitely many output coordinates, then `g` is semialgebraic on `s`. The coordinates `σ` and `υ`
+need not be finite. -/
+theorem IsSemialgebraicOn.of_sumElim_right [HasSemialgebraicProjections R] [Finite α]
+    {f : (σ → R) → (α → R)} {g : (σ → R) → (υ → R)} {s : Set (σ → R)}
+    (h : IsSemialgebraicOn (fun x ↦ Sum.elim (f x) (g x)) s) : IsSemialgebraicOn g s := by
+  refine isSemialgebraicOn_def.2 ⟨h.isSemialgebraic, ?_⟩
   -- In the coordinates `α ⊕ (σ ⊕ υ)`, forget the coordinates `α` of `f x`.
-  convert ((hg.sumElim_comp_sumElim hf hst).graph.preimage_comp
+  convert (h.graph.preimage_comp
     (Sum.elim (Sum.inr ∘ Sum.inl) (Sum.elim Sum.inl (Sum.inr ∘ Sum.inr)))).image_comp_inr
     using 1
   ext z
@@ -93,6 +94,17 @@ theorem IsSemialgebraicOn.comp_sumElim [HasSemialgebraicProjections R] [Finite �
     rw [Sum.elim_eq_iff] at hfw
     rw [Function.comp_assoc, Function.comp_assoc]
     exact ⟨hw, hfw.2⟩
+
+/-- Given projection closure, if `f` is semialgebraic on `s` with finitely many output
+coordinates, `g` is semialgebraic on `t`, and `Sum.elim x (f x) ∈ t` for every `x ∈ s`, then
+`x ↦ g (Sum.elim x (f x))` is semialgebraic on `s`. The input coordinates `σ` need not be
+finite. -/
+theorem IsSemialgebraicOn.comp_sumElim [HasSemialgebraicProjections R] [Finite α]
+    {f : (σ → R) → (α → R)} {g : (σ ⊕ α → R) → (υ → R)} {s : Set (σ → R)}
+    {t : Set (σ ⊕ α → R)} (hg : IsSemialgebraicOn g t) (hf : IsSemialgebraicOn f s)
+    (hst : ∀ x ∈ s, Sum.elim x (f x) ∈ t) :
+    IsSemialgebraicOn (fun x ↦ g (Sum.elim x (f x))) s :=
+  (hg.sumElim_comp_sumElim hf hst).of_sumElim_right
 
 end TauCeti
 
