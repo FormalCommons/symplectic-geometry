@@ -254,14 +254,16 @@ instance epi_singularChainComplexπOfSubset (A : Set X) :
   inferInstanceAs (Epi ((ofSubset A).singularChainComplexπ R))
 
 /-- The quotient map from the singular chains of `X` to the relative singular chains of `(X, A)`
-is natural in the maps of pairs `TopPair.ofSubsetMap g hA : (X, A) ⟶ (Y, B)`. -/
+is natural in the maps of pairs `TopPair.ofSubsetMap g hA : (X, A) ⟶ (Y, B)`. This is Tau Ceti's
+`TopPair.singularChainComplexπ_ofSubsetMap_naturality`, with the quotient maps written as
+`TopPair.singularChainComplexπOfSubset`, so that it and its `reassoc` form rewrite by `rw`. -/
 @[reassoc]
 lemma singularChainComplexπOfSubset_naturality (g : X ⟶ Y) {A : Set X} {B : Set Y}
     (hA : Set.MapsTo g A B) :
     SSet.chainComplexMap (TopCat.toSSet.map g) R ≫ singularChainComplexπOfSubset R B =
-      singularChainComplexπOfSubset R A ≫ singularChainComplexMap (ofSubsetMap g hA) R := by
-  have h := singularChainComplexπ_pair_naturality (ofSubsetMap g hA) R
-  rwa [ofSubsetMap_fst] at h
+      singularChainComplexπOfSubset R A ≫ singularChainComplexMap (ofSubsetMap g hA) R :=
+  -- The two statements differ only in how the sources of the quotient maps are written.
+  singularChainComplexπ_ofSubsetMap_naturality g hA R
 
 /-- The quotient map from the singular chains of `X` to the relative singular chains of `(X, A)`
 is natural in the coefficient object. -/

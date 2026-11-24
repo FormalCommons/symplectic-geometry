@@ -7,10 +7,10 @@ module
 
 public import TauCeti.AlgebraicTopology.Singular.Circle
 public import TauCeti.AlgebraicTopology.Singular.Homotopy.Invariance
+public import TauCeti.AlgebraicTopology.Singular.ModuleChains.Basic
 public import TauCeti.AlgebraicTopology.Singular.Torus.FirstHomology
 public import TauCeti.AlgebraicTopology.UniversalCover.Circle.FreeLoop.Basic
 public import TauCeti.Topology.Homotopy.Homotopic.With
-public import SymplecticGeometry.AlgebraicTopology.Singular.ModuleChains
 
 /-!
 # Circle-valued maps on first singular homology
@@ -30,10 +30,9 @@ identity in the group `C(S¹, S¹)`.
 Both statements are also given for singular homology with coefficients
 `ModuleCat.of ℤ (ULift ℤ)`, those of Tau Ceti's fundamental classes, by transporting them along the
 isomorphism of coefficients `ULift ℤ ≅ ℤ` and comparing Mathlib's singular homology functor with
-Tau Ceti's induced maps (`AlgebraicTopology.singularHomologyFunctor_obj_map_ofHom_hom`). In that
-form, reading `H₁(S¹)` in `ℤ` through
-`Circle.singularHomologyOneIso`, the image under `u : Y → S¹` of the class of a free loop
-`ℓ : S¹ → Y` is the degree of `u ∘ ℓ`
+Tau Ceti's induced maps (`ContinuousMap.singularHomologyMap_eq_singularHomologyFunctor_map`). In
+that form, reading `H₁(S¹)` in `ℤ` through `Circle.singularHomologyOneIso`, the image under
+`u : Y → S¹` of the class of a free loop `ℓ : S¹ → Y` is the degree of `u ∘ ℓ`
 (`ContinuousMap.singularHomologyOneIso_hom_map_map_inv_one`).
 
 ## Main results
@@ -167,8 +166,9 @@ theorem singularHomologyFunctor_map_mul (u v : C(Y, Circle)) :
         ((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj (ModuleCat.of ℤ ℤ)).map
           (TopCat.ofHom v) := by
     ext1
-    rw [ModuleCat.hom_add, singularHomologyFunctor_obj_map_ofHom_hom,
-      singularHomologyFunctor_obj_map_ofHom_hom, singularHomologyFunctor_obj_map_ofHom_hom]
+    rw [ModuleCat.hom_add, ← singularHomologyMap_eq_singularHomologyFunctor_map,
+      ← singularHomologyMap_eq_singularHomologyFunctor_map,
+      ← singularHomologyMap_eq_singularHomologyFunctor_map]
     -- The two sides differ only in how the homology modules are written.
     exact singularHomologyMap_mul u v
   rw [← NatIso.naturality_2 α, ← NatIso.naturality_2 α, ← NatIso.naturality_2 α, h,
@@ -184,7 +184,8 @@ theorem singularHomologyFunctor_map_eq_circleDegree_smul (w : C(Circle, Circle))
   have h : ((singularHomologyFunctor (ModuleCat.{0} ℤ) 1).obj (ModuleCat.of ℤ ℤ)).map
       (TopCat.ofHom w) = w.circleDegree • 𝟙 _ := by
     ext1
-    rw [ModuleCat.hom_zsmul, ModuleCat.hom_id, singularHomologyFunctor_obj_map_ofHom_hom]
+    rw [ModuleCat.hom_zsmul, ModuleCat.hom_id,
+      ← singularHomologyMap_eq_singularHomologyFunctor_map]
     -- The two sides differ only in how the homology modules are written.
     exact singularHomologyMap_eq_circleDegree_smul w
   rw [← NatIso.naturality_2 α, h, Preadditive.zsmul_comp,

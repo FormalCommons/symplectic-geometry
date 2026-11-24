@@ -1218,11 +1218,6 @@ issues, in an order where each issue's blockers come before it.
      of a free loop `ℓ` to the degree of `u ∘ ℓ`
      (`ContinuousMap.singularHomologyOneIso_hom_map_map_inv_one`). These give
      `boundaryDegree_mul` and `boundaryDegree_eq_sum_degree`.
-   - `AlgebraicTopology/Singular/ModuleChains.lean`, needed by
-     `CircleMap.lean`: with coefficients `k`, Mathlib's
-     `singularHomologyFunctor` induces Tau Ceti's
-     `ContinuousMap.singularHomologyMap`
-     (`AlgebraicTopology.singularHomologyFunctor_obj_map_ofHom_hom`).
    - `AlgebraicTopology/Singular/Circle.lean`, used by
      `Complex.lean`:
      `Circle.singularHomologyOneIso_inv_eq_complexOrientation`, the
