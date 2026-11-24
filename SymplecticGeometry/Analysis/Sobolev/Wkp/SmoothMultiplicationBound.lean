@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Analysis.Sobolev.Wkp.LineDeriv
+public import SymplecticGeometry.Analysis.Sobolev.Wkp.LineDerivNorm
 public import TauCeti.Analysis.Sobolev.Wkp.SmoothCoefficients
 import Mathlib.Analysis.Calculus.ContDiff.Bounds
 
@@ -16,7 +16,7 @@ Let `Ω` be an open set whose closure is compact and contained in a set `U` of u
 differentiability, and let `ψ` be smooth on `U`. Tau Ceti shows that multiplication by `ψ` is a
 bounded operator on `W^{k,p}(Ω)` (`TauCeti.Wkp.contDiffOnSMulL`), through the closed graph
 theorem, which gives no bound on its norm. This file bounds it: there is a constant `C`,
-depending only on `k` and the dimension of `E`, such that
+depending only on `k` and `E`, such that
 
 `‖ψ u‖_{W^{k,p}(Ω)} ≤ C M ‖u‖_{W^{k,p}(Ω)}`
 
@@ -28,27 +28,18 @@ with a constant that also depends on the bases.
 The proof is by induction on `k`, along the proof of Tau Ceti's
 `TauCeti.Wkp.exists_value_ae_eq_mul_of_contDiffOn`: the directional derivative of `ψ u` is
 `ψ ∂ᵥu + (∂ᵥψ) u` (`TauCeti.Wkp.lineDerivL_contDiffOnSMulL`), and both terms are bounded by the
-induction hypothesis. Two estimates, uniform in `Ω`, connect the norm of `W^{k+1,p}(Ω)` with
-directional derivatives: `‖∂ᵥu‖ ≤ (k + 1) ‖v‖ ‖u‖` (`TauCeti.Wkp.norm_lineDerivL_apply_le`), and,
-for an orthonormal basis `(eᵢ)`, `‖u‖ ≤ (k + 1) (‖u‖_{Lᵖ} + ∑ᵢ ‖∂ᵢu‖)`
-(`TauCeti.Wkp.norm_le_mul_norm_value_add_sum_norm_lineDerivL`). The first adapts the induction
-of Tau Ceti's private `TauCeti.Wkp.exists_norm_le_of_hasWeakLineDerivOn`, which gives a bound
-for each `Ω` without naming the constant.
+induction hypothesis. The norm of `W^{k+1,p}(Ω)` is then recovered from the directional
+derivatives by the estimates of `SymplecticGeometry.Analysis.Sobolev.Wkp.LineDerivNorm`.
 
 ## Main declarations
 
-* `TauCeti.Wkp.lowerOrder_lineDerivL`: directional derivatives commute with forgetting the highest
-  weak derivative.
-* `TauCeti.Wkp.norm_lineDerivL_apply_le`: the bound on directional derivatives.
-* `TauCeti.Wkp.norm_le_mul_norm_value_add_sum_norm_lineDerivL`: the norm of `W^{k+1,p}(Ω)` is
-  controlled by the `Lᵖ` norm and the `W^{k,p}` norms of the derivatives along a basis.
 * `TauCeti.Wkp.lineDerivL_contDiffOnSMulL`: the Leibniz rule for smooth multiplication.
 * `TauCeti.Wkp.exists_norm_contDiffOnSMulL_le`,
   `TauCeti.Wkp.exists_norm_contDiffOnCLMApplyL_le`: the `C^k` bounds.
 
 ## References
 
-L. C. Evans, *Partial Differential Equations*, §5.2.3, Theorem 1(iv).
+* L. C. Evans, *Partial Differential Equations*, 2nd ed., AMS, 2010, §5.2.3, Theorem 1(iv)
 -/
 
 public section
@@ -58,43 +49,6 @@ noncomputable section
 open MeasureTheory Module TopologicalSpace
 open scoped ContDiff InnerProductSpace
 
-namespace MeasureTheory.Lp
-
-variable {α F G : Type*} [MeasurableSpace α] {μ : Measure α} {p : ENNReal} [Fact (1 ≤ p)]
-  [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedAddCommGroup G] [NormedSpace ℝ G]
-  {ι : Type*} [Fintype ι]
-
-/-- If `∑ᵢ Qᵢ ∘ Pᵢ` is the identity of `F` and every `Qᵢ` has norm at most one, then the `Lᵖ` norm
-of `f` is at most the sum of the `Lᵖ` norms of the `Pᵢ f`. -/
-theorem norm_le_sum_norm_compLp (P : ι → F →L[ℝ] G) (Q : ι → G →L[ℝ] F)
-    (hPQ : ∀ x, ∑ i, Q i (P i x) = x) (hQ : ∀ i, ‖Q i‖ ≤ 1) (f : Lp F p μ) :
-    ‖f‖ ≤ ∑ i, ‖(P i).compLp f‖ := by
-  have hf : f = ∑ i, (Q i).compLp ((P i).compLp f) := by
-    refine Lp.ext ?_
-    filter_upwards [Lp.coeFn_fun_finsetSum Finset.univ fun i => (Q i).compLp ((P i).compLp f),
-      ae_all_iff.2 fun i => (Q i).coeFn_compLp ((P i).compLp f),
-      ae_all_iff.2 fun i => (P i).coeFn_compLp f] with x hs hQx hPx
-    rw [hs]
-    simp only [hQx, hPx, hPQ]
-  calc ‖f‖ = ‖∑ i, (Q i).compLp ((P i).compLp f)‖ := congrArg _ hf
-    _ ≤ ∑ i, ‖(Q i).compLp ((P i).compLp f)‖ := norm_sum_le _ _
-    _ ≤ ∑ i, ‖(P i).compLp f‖ := Finset.sum_le_sum fun i _ =>
-        ((Q i).norm_compLp_le _).trans (mul_le_of_le_one_left (norm_nonneg _) (hQ i))
-
-end MeasureTheory.Lp
-
-namespace ContinuousLinearMap
-
-/-- Evaluation at `v`, as a continuous linear map on `E →L[𝕜] F`, has norm at most `‖v‖`. -/
-theorem norm_apply_le {𝕜 E F : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E]
-    [NormedSpace 𝕜 E] [NormedAddCommGroup F] [NormedSpace 𝕜 F] (v : E) :
-    ‖apply 𝕜 F v‖ ≤ ‖v‖ :=
-  opNorm_le_bound _ (norm_nonneg v) fun A => by
-    rw [apply_apply, mul_comm]
-    exact A.le_opNorm v
-
-end ContinuousLinearMap
-
 namespace TauCeti
 
 namespace Wkp
@@ -103,99 +57,7 @@ variable {E : Type*} [MeasurableSpace E] [NormedAddCommGroup E] [InnerProductSpa
   [FiniteDimensional ℝ E] [BorelSpace E] {mu : Measure E} [mu.IsAddHaarMeasure]
   {Omega : Opens E} {p : ENNReal} [Fact (1 ≤ p)]
 
-/-! ### Directional derivatives and the norm of `W^{k+1,p}(Ω)` -/
-
-/-- Directional weak derivatives commute with forgetting the highest weak derivative. -/
-theorem lowerOrder_lineDerivL (v : E) (k : ℕ) (u : Wkp mu Omega p (k + 2)) :
-    lowerOrder k (lineDerivL v (k + 1) u) = lineDerivL v k (lowerOrder (k + 1) u) := by
-  symm
-  apply lineDerivL_eq_of_hasWeakLineDerivOn
-  rw [← value_succ, ← value_succ]
-  exact hasWeakLineDerivOn_lineDerivL v (k + 1) u
-
-/-- At order zero, the directional derivative of `u ∈ W^{1,p}(Ω)` in the direction `v` is the
-component `⟪v, ∇u⟫` of its weak gradient. -/
-theorem lineDerivL_zero (v : E) (u : Wkp mu Omega p 1) :
-    lineDerivL v 0 u = (innerSL ℝ v).compLp (iteratedGradient 0 u) :=
-  lineDerivL_eq_of_hasWeakLineDerivOn (hasWeakLineDerivOn_value_innerSL_compLp v u)
-
-/-- **The directional derivative is bounded uniformly in `Ω`.** The weak derivative of
-`u ∈ W^{k+1,p}(Ω)` in the direction `v` has `W^{k,p}` norm at most `(k + 1) ‖v‖ ‖u‖`. -/
-theorem norm_lineDerivL_apply_le (v : E) :
-    ∀ (k : ℕ) (u : Wkp mu Omega p (k + 1)), ‖lineDerivL v k u‖ ≤ (k + 1) * ‖v‖ * ‖u‖
-  | 0, u => by
-    -- `Wkp mu Omega p 0` is `Lp ℝ p (mu.restrict Omega)`, with the same norm
-    rw [lineDerivL_zero, Nat.cast_zero, zero_add, one_mul, ← innerSL_apply_norm ℝ v]
-    exact ((innerSL ℝ v).norm_compLp_le _).trans
-      (mul_le_mul_of_nonneg_left (norm_iteratedGradient_le 0 u) (norm_nonneg _))
-  | k + 1, u => by
-    have hlow : ‖lowerOrder k (lineDerivL v (k + 1) u)‖ ≤ (k + 1) * ‖v‖ * ‖u‖ := by
-      rw [lowerOrder_lineDerivL]
-      exact (norm_lineDerivL_apply_le v k _).trans
-        (mul_le_mul_of_nonneg_left (norm_lowerOrder_le _ u) (by positivity))
-    have htop : ‖iteratedGradient k (lineDerivL v (k + 1) u)‖ ≤ ‖v‖ * ‖u‖ := by
-      rw [iteratedGradient_lineDerivL]
-      exact ((ContinuousLinearMap.apply ℝ (IteratedGradient E k) v).norm_compLp_le _).trans
-        (mul_le_mul (ContinuousLinearMap.norm_apply_le v) (norm_iteratedGradient_le _ u)
-          (norm_nonneg _) (norm_nonneg _))
-    calc ‖lineDerivL v (k + 1) u‖
-        ≤ ‖lowerOrder k (lineDerivL v (k + 1) u)‖ +
-            ‖iteratedGradient k (lineDerivL v (k + 1) u)‖ :=
-          norm_le_norm_lowerOrder_add_norm_iteratedGradient k _
-      _ ≤ (k + 1) * ‖v‖ * ‖u‖ + ‖v‖ * ‖u‖ := add_le_add hlow htop
-      _ = ((k + 1 : ℕ) + 1) * ‖v‖ * ‖u‖ := by push_cast; ring
-
 variable {ι : Type*} [Fintype ι]
-
-/-- **The norm of `W^{k+1,p}(Ω)` from directional derivatives.** For an orthonormal basis
-`(eᵢ)` of `E`, the norm of `u ∈ W^{k+1,p}(Ω)` is at most `k + 1` times the sum of the `Lᵖ` norm
-of `u` and the `W^{k,p}` norms of its weak derivatives `∂ᵢu` along the basis. -/
-theorem norm_le_mul_norm_value_add_sum_norm_lineDerivL (b : OrthonormalBasis ι ℝ E) :
-    ∀ (k : ℕ) (u : Wkp mu Omega p (k + 1)),
-      ‖u‖ ≤ (k + 1) * (‖value (k + 1) u‖ + ∑ i, ‖lineDerivL (b i) k u‖)
-  | 0, u => by
-    have hg : ‖iteratedGradient 0 u‖ ≤ ∑ i, ‖lineDerivL (b i) 0 u‖ := by
-      -- as in `norm_lineDerivL_apply_le`, the norm of `Wkp mu Omega p 0` is the `Lᵖ` norm
-      refine (Lp.norm_le_sum_norm_compLp (fun i => innerSL ℝ (b i))
-        (fun i => ContinuousLinearMap.toSpanSingleton ℝ (b i)) (fun x => ?_) (fun i => ?_)
-        _).trans_eq (Finset.sum_congr rfl fun i _ => by rw [lineDerivL_zero])
-      · simpa only [ContinuousLinearMap.toSpanSingleton_apply, innerSL_apply_apply] using
-          b.sum_repr' x
-      · rw [ContinuousLinearMap.norm_toSpanSingleton, b.norm_eq_one]
-    have hv : ‖lowerOrder 0 u‖ = ‖value 1 u‖ := by rw [value_succ, value_zero]
-    calc ‖u‖ ≤ ‖lowerOrder 0 u‖ + ‖iteratedGradient 0 u‖ :=
-          norm_le_norm_lowerOrder_add_norm_iteratedGradient 0 u
-      _ ≤ ‖value 1 u‖ + ∑ i, ‖lineDerivL (b i) 0 u‖ := by rw [hv]; gcongr
-      _ = ((0 : ℕ) + 1) * (‖value (0 + 1) u‖ + ∑ i, ‖lineDerivL (b i) 0 u‖) := by simp
-  | k + 1, u => by
-    have hlow : ‖lowerOrder (k + 1) u‖ ≤
-        (k + 1) * (‖value (k + 2) u‖ + ∑ i, ‖lineDerivL (b i) (k + 1) u‖) := by
-      refine (norm_le_mul_norm_value_add_sum_norm_lineDerivL b k _).trans ?_
-      rw [← value_succ]
-      gcongr with i
-      rw [← lowerOrder_lineDerivL]
-      exact norm_lowerOrder_le _ _
-    have htop : ‖iteratedGradient (k + 1) u‖ ≤ ∑ i, ‖lineDerivL (b i) (k + 1) u‖ := by
-      refine (Lp.norm_le_sum_norm_compLp
-        (fun i => ContinuousLinearMap.apply ℝ (IteratedGradient E k) (b i))
-        (fun i => StrongDual.smulRightL ℝ E (IteratedGradient E k) (innerSL ℝ (b i))) (fun A => ?_)
-        (fun i => ?_) _).trans (Finset.sum_le_sum fun i _ => ?_)
-      · ext h
-        conv_rhs => rw [← b.sum_repr' h]
-        simp [map_sum, map_smul]
-      · refine ContinuousLinearMap.opNorm_le_bound _ zero_le_one fun c => ?_
-        rw [ContinuousLinearMap.smulRightL_apply_apply, ContinuousLinearMap.norm_smulRight_apply,
-          innerSL_apply_norm, b.norm_eq_one, one_mul]
-      · rw [← iteratedGradient_lineDerivL]
-        exact norm_iteratedGradient_le _ _
-    calc ‖u‖ ≤ ‖lowerOrder (k + 1) u‖ + ‖iteratedGradient (k + 1) u‖ :=
-          norm_le_norm_lowerOrder_add_norm_iteratedGradient (k + 1) u
-      _ ≤ (k + 1) * (‖value (k + 2) u‖ + ∑ i, ‖lineDerivL (b i) (k + 1) u‖) +
-            ∑ i, ‖lineDerivL (b i) (k + 1) u‖ := add_le_add hlow htop
-      _ ≤ ((k + 1 : ℕ) + 1) * (‖value (k + 1 + 1) u‖ + ∑ i, ‖lineDerivL (b i) (k + 1) u‖) := by
-        push_cast
-        nlinarith [norm_nonneg (value (k + 2) u),
-          Finset.sum_nonneg fun i (_ : i ∈ Finset.univ) => norm_nonneg (lineDerivL (b i) (k + 1) u)]
 
 /-! ### Smooth multiplication -/
 
@@ -265,12 +127,10 @@ theorem exists_norm_contDiffOnSMulL_le (k : ℕ) :
     have hφ : ∀ i, ∀ j ≤ k, ∀ x ∈ (Omega : Set E), ‖iteratedFDerivWithin ℝ j
         (fun y => fderivWithin ℝ psi U y (b i)) U x‖ ≤ M := fun i j hj x hx => by
       have hxU : x ∈ U := hΩU (subset_closure hx)
-      have h := (ContinuousLinearMap.apply ℝ ℝ (b i)).norm_iteratedFDerivWithin_comp_left
-        (f := fderivWithin ℝ psi U) (N := ∞) (n := j) ((hpsi.fderivWithin hU (by simp)) x hxU) hU
-        hxU (by exact_mod_cast le_top)
-      rw [norm_iteratedFDerivWithin_fderivWithin hU hxU] at h
-      refine h.trans ((mul_le_of_le_one_left (norm_nonneg _) ?_).trans (hM (j + 1) (by omega) x hx))
-      exact (ContinuousLinearMap.norm_apply_le (b i)).trans (b.norm_eq_one i).le
+      have h := norm_iteratedFDerivWithin_clm_apply_const (N := ∞) (n := j) (c := b i)
+        ((hpsi.fderivWithin hU (by simp)) x hxU) hU hxU (by exact_mod_cast le_top)
+      rw [norm_iteratedFDerivWithin_fderivWithin hU hxU, b.norm_eq_one, one_mul] at h
+      exact h.trans (hM (j + 1) (by omega) x hx)
     have hval : ‖value (k + 1) w‖ ≤ M * ‖u‖ :=
       (norm_value_contDiffOnSMulL_le hU hΩ hΩU (k + 1) hpsi hM0 u).trans
         (mul_le_mul_of_nonneg_left (norm_value_le _ u) hMnn)
