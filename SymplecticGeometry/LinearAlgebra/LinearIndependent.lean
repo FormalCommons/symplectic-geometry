@@ -31,7 +31,7 @@ variable {ι R M N : Type*} [Semiring R] [AddCommMonoid M] [Module R M] [AddComm
 spans the source. -/
 theorem top_le_span_range_comp_iff (e : M ≃ₗ[R] N) (v : ι → M) :
     ⊤ ≤ span R (range (e ∘ v)) ↔ ⊤ ≤ span R (range v) := by
-  rw [top_le_iff, top_le_iff, Set.range_comp, ← e.coe_coe, span_image, Submodule.map_eq_top_iff]
+  simp [Set.range_comp, span_image_linearEquiv]
 
 /-- The image of a family under a linear equivalence is linearly independent and spans the target
 exactly when the family is linearly independent and spans the source. -/
