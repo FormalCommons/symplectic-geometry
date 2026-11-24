@@ -44,9 +44,9 @@ statements take the properties of the chart as hypotheses, so that they apply to
 `exists_weightModelChart_isotropy` and to any other with the same properties.
 
 * `TauCeti.mfderiv_fundamentalVectorField_apply_eq_zero_of_ne_one`: the image of `ξ_M(x)` under
-  the chart's differential has zero coordinates at every index `k` with `χₖ ≠ 1`. Each `g ∈ K`
-  fixes `ξ_M(x)` since `G` is commutative, and acts in the chart by a rotation that fixes only
-  vectors with zero coordinates where `χₖ(g) ≠ 1`.
+  the chart's differential has zero coordinates at every index `k` with `χₖ ≠ 1`. The
+  differential of each `g ∈ K` at `x` fixes `ξ_M(x)` since `G` is commutative, and in the chart it
+  is a rotation that fixes only vectors with zero coordinates where `χₖ(g) ≠ 1`.
 * `TauCeti.SmoothTwoForm.IsMomentMap.fderiv_comp_symm_apply`: in a chart that carries `σ` to the
   standard form `ω₀` of `V × V`, the derivative of `μ^ξ` read in the chart is
   `ω₀(dchart (ξ_M), ·)`, in Tau Ceti's sign `σ(ξ_M, ·) = dμ^ξ`.
