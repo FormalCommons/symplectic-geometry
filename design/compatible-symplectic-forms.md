@@ -477,8 +477,8 @@ ones it waits for.
    `Basic.lean`.
 7. **Thurston's theorem** (`Fibration/Thurston.lean`). Waits for 6.
 8. **The Chern class criterion** (`Fibration/ChernClass.lean`). Waits for
-   4, 7 and *Symplectic fibrations*' `Connection.lean` (existence of
-   connection two-forms).
+   4, 7 and *Symplectic fibrations*' `HorizontalDistribution.lean`
+   (existence of connection two-forms).
 9. **Smooth families of primitives over a manifold parameter**
    (`DifferentialForm/SmoothFamily/Map.lean`, `DeRham/SmoothFamily/`).
    Waits for nothing.
@@ -494,7 +494,7 @@ Issues 1, 2, 5 and 9 can start at once.
 
 - *Symplectic fibrations*: `Basic.lean` (atlases, fibre embeddings, the
   restriction predicate, compatibility, oriented atlases) and
-  `Connection.lean` (existence of connection two-forms).
+  `HorizontalDistribution.lean` (existence of connection two-forms).
 - *Minimal coupling*: `realFirstChernClass` (#2348).
 - Merged files of *First Chern number*: circle connection forms and their
   curvature, `chernNumber_eq_integral_curvature`,
