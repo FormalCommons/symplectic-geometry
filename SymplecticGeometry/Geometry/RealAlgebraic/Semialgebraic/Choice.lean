@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.Function
 public import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.OneVariable
 public import SymplecticGeometry.Order.Interval.Set.IsoIoo
 
@@ -58,7 +59,8 @@ For `α ⊕ Unit`, regroup the coordinates of `S` as `(σ ⊕ α) ⊕ Unit` and 
 be its projection forgetting the last coordinate. Choose `f₁` for `T` by induction, and `g`
 for the last coordinate over `T` by the one-coordinate result; then
 `x ↦ Sum.elim (f₁ x) (g (Sum.elim x (f₁ x)))` is a section. Its graph is the intersection of
-preimages of the graphs of `f₁` and `g` under changes of coordinates, so no projection, and no
+preimages of the graphs of `f₁` and `g` under changes of coordinates
+(`TauCeti.IsSemialgebraicOn.sumElim_comp_sumElim`), so no projection, and no
 finiteness of `σ`, is needed to see that it is semialgebraic.
 
 ## References
@@ -422,28 +424,8 @@ private theorem exists_isSemialgebraicOn_sumElim_mem_sum_unit {α : Type*} [Fini
     refine ⟨fun ⟨y, t, h⟩ ↦ ⟨_, h⟩, fun ⟨y, h⟩ ↦ ⟨y ∘ Sum.inl, y ∘ Sum.inr, ?_⟩⟩
     rwa [Sum.elim_comp_inl_inr]
   rw [hdom] at hf₁ hf₁T
-  refine ⟨fun x ↦ Sum.elim (f₁ x) (g (Sum.elim x (f₁ x))), ?_, fun x hx ↦ ?_⟩
-  · -- The graph is cut out by the graphs of `f₁` and of `g`, without a projection.
-    refine isSemialgebraicOn_of_setOf_iff (G := fun x y ↦
-      (x ∈ {x | ∃ y, Sum.elim x y ∈ S} ∧ f₁ x = y ∘ Sum.inl) ∧
-        (Sum.elim x (y ∘ Sum.inl) ∈ T ∧ g (Sum.elim x (y ∘ Sum.inl)) = y ∘ Sum.inr))
-      ?_ fun x y ↦ ?_
-    · convert (hf₁.graph.preimage_comp (Sum.elim Sum.inl (Sum.inr ∘ Sum.inl))).inter
-        (hg.graph.preimage_comp
-          (Sum.elim (Sum.elim Sum.inl (Sum.inr ∘ Sum.inl)) (Sum.inr ∘ Sum.inr))) using 1
-      ext z
-      rw [mem_inter_iff, mem_preimage, mem_preimage_sumArrowEquivProdArrow_graphOn, mem_preimage,
-        mem_preimage_sumArrowEquivProdArrow_graphOn]
-      simp only [mem_ofPred_eq, Function.comp_assoc, Sum.elim_comp_inl, Sum.elim_comp_inr,
-        Sum.comp_elim, T, S₁]
-    · constructor
-      · rintro ⟨⟨hx, hfy⟩, -, hgy⟩
-        refine ⟨hx, ?_⟩
-        rw [hfy, hgy, Sum.elim_comp_inl_inr]
-      · rintro ⟨hx, rfl⟩
-        simp only [Sum.elim_comp_inl, Sum.elim_comp_inr]
-        exact ⟨⟨hx, trivial⟩, hf₁T x hx, trivial⟩
-  · simpa only [S₁, mem_preimage, key] using hgS _ (hf₁T x hx)
+  exact ⟨_, hg.sumElim_comp_sumElim hf₁ hf₁T, fun x hx ↦ by
+    simpa only [S₁, mem_preimage, key] using hgS _ (hf₁T x hx)⟩
 
 end Finite
 
