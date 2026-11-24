@@ -9,6 +9,7 @@ public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
 public import SymplecticGeometry.Analysis.Matrix.UnitaryGroup.FundamentalGroup
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Maslov.Product
 public import TauCeti.Topology.Algebra.OrthogonalGroup
+import TauCeti.LinearAlgebra.Matrix.OfReal
 
 /-!
 # The Maslov index of loops of Lagrangian subspaces: classification and uniqueness
@@ -109,12 +110,10 @@ theorem maslovIndex_eq_iff_homotopic {Λ : ℒ ι} {γ γ' : Path Λ Λ} :
   obtain ⟨O, hO, hOW⟩ := UnitaryGroup.mem_realSubgroup_iff_exists.1 (hreal δ hδ)
   obtain ⟨O', hO', hOW'⟩ := UnitaryGroup.mem_realSubgroup_iff_exists.1 (hreal δ' hδ')
   have hdet : O.det = O'.det := by
-    have hd (A : Matrix ι ι ℝ) : (A.map ((↑) : ℝ → ℂ)).det = (A.det : ℂ) :=
-      (RingHom.map_det Complex.ofRealHom A).symm
     have h₁ := congrArg ((↑) : Circle → ℂ) (detCircle_inv_mul_eq_exp γ δ hδ)
     have h₂ := congrArg ((↑) : Circle → ℂ) (detCircle_inv_mul_eq_exp γ' δ' hδ')
-    rw [coe_detCircle, ← hOW, hd] at h₁
-    rw [coe_detCircle, ← hOW', hd, ← h] at h₂
+    rw [coe_detCircle, ← hOW, det_map_ofReal] at h₁
+    rw [coe_detCircle, ← hOW', det_map_ofReal, ← h] at h₂
     exact_mod_cast h₁.trans h₂.symm
   -- A path of orthogonal matrices from `W` to `W'`, as unitary matrices.
   let φ : orthogonalGroup ι ℝ → unitaryGroup ι ℂ := fun A ↦

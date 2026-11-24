@@ -15,9 +15,9 @@ public import Mathlib.Topology.Homotopy.Equiv
 public import Mathlib.Topology.Homotopy.Path
 public import SymplecticGeometry.Analysis.Quaternion
 public import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
-public import Mathlib.Analysis.Normed.Module.Connected
 public import Mathlib.Topology.Homeomorph.Lemmas
 public import TauCeti.Data.Fin.Sum
+import TauCeti.Geometry.Sphere.Connected
 import TauCeti.Geometry.Symplectic.Complex.InnerProductSpace
 import TauCeti.Geometry.Symplectic.Complex.OrthonormalBasis
 
@@ -509,9 +509,7 @@ sphere is connected. -/
 theorem isPositivelyOriented_quaternionComplexStructure
     (u : Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1) :
     IsPositivelyOriented (quaternionComplexStructure u) := by
-  have : ConnectedSpace (Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1) :=
-    isConnected_iff_connectedSpace.1 (isConnected_sphere
-      (by rw [← Module.finrank_eq_rank, finrank_euclideanSpace_fin]; norm_num) 0 zero_le_one)
+  have := TauCeti.connectedSpace_euclideanSphere (ι := Fin 3) (by simp)
   have hc := (isClopen_setOf_isPositivelyOriented (ι := Fin 2)).preimage
     continuous_quaternionComplexStructure
   have hu := hc.eq_univ ⟨_, by

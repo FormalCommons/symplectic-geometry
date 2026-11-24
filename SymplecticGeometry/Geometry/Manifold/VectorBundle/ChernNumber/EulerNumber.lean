@@ -62,7 +62,9 @@ a `C^n` complex structure `SymplecticGeometry.Bundle.ContMDiffComplexStructure` 
 is read as the section `x ↦ (J.fiberEquiv x).symm (s x)` of `J.Fiber`. The sign at a zero is
 stated directly, as `1` or `-1` according as a continuous linear equivalence equal to the
 linearization carries the orientation `o.orientationAt z` to the canonical orientation of the
-fibre (`TauCeti.VectorBundleOrientation.complex`), with no new definition.
+fibre (`TauCeti.VectorBundleOrientation.complex`), with no new definition. At a transverse zero the
+linearization is a linear isomorphism by Tau Ceti's
+`TauCeti.exists_continuousLinearEquiv_eq_sectionLinearization_of_surjective`.
 
 This form of the sign, and the case split on it in the private `sign_det_eq_ite` (an orientation
 of a plane is the given one or its negative), follow Tau Ceti's
@@ -238,14 +240,15 @@ private theorem sign_det_eq_ite {s : ∀ x, V x} {z : M}
     exact hn
   -- The linearization, as a linear equivalence `Leq` onto the fibre of `J.Fiber`, and `A` as the
   -- linear equivalence `Aeq = e ∘ Leq ∘ D⁻¹`.
-  set L₁ : TangentSpace 𝓘(ℝ, EM) z →ₗ[ℝ] J.Fiber z :=
-    ((((J.fiberEquiv z).symm : V z →L[ℝ] J.Fiber z).comp
-      (sectionLinearization (F := F) 𝓘(ℝ, EM) id s z) :
-      TangentSpace 𝓘(ℝ, EM) z →L[ℝ] J.Fiber z) : TangentSpace 𝓘(ℝ, EM) z →ₗ[ℝ] J.Fiber z)
-    with hL₁
-  have hL₁s : Function.Surjective L₁ := (J.fiberEquiv z).symm.surjective.comp hsurj
-  set Leq : TangentSpace 𝓘(ℝ, EM) z ≃ₗ[ℝ] J.Fiber z := LinearEquiv.ofBijective L₁
-    ⟨(LinearMap.injective_iff_surjective_of_finrank_eq_finrank hrank).2 hL₁s, hL₁s⟩ with hLeq
+  have hF : finrank ℝ F = 2 := (Fact.out : finrank ℝ F = 2 * finrank ℂ ℂ).trans (by simp)
+  obtain ⟨L, hL⟩ :=
+    exists_continuousLinearEquiv_eq_sectionLinearization_of_surjective (hn.trans hF.symm) hsurj
+  set Leq : TangentSpace 𝓘(ℝ, EM) z ≃ₗ[ℝ] J.Fiber z :=
+    (L.trans (J.fiberEquiv z).symm).toLinearEquiv with hLeq
+  have hLeq_apply (v : TangentSpace 𝓘(ℝ, EM) z) :
+      Leq v = (J.fiberEquiv z).symm (sectionLinearization (F := F) 𝓘(ℝ, EM) id s z v) := by
+    rw [hLeq, ContinuousLinearEquiv.coe_toLinearEquiv, ContinuousLinearEquiv.trans_apply, ← hL,
+      ContinuousLinearEquiv.coe_coe]
   let D' : TangentSpace 𝓘(ℝ, EM) z ≃L[ℝ] ℂ := D
   set Aeq : ℂ ≃ₗ[ℝ] ℂ := (D'.symm.toLinearEquiv.trans Leq).trans (e.linearEquivAt ℝ z hze)
     with hAeq
@@ -256,8 +259,7 @@ private theorem sign_det_eq_ite {s : ∀ x, V x} {z : M}
     refine (hA v).trans ?_
     simp only [hAeq, LinearEquiv.coe_coe, LinearEquiv.trans_apply,
       ContinuousLinearEquiv.coe_toLinearEquiv,
-      ContinuousLinearEquiv.symm_apply_apply, hLeq, LinearEquiv.ofBijective_apply, hL₁,
-      ContinuousLinearMap.coe_coe, ContinuousLinearMap.comp_apply]
+      ContinuousLinearEquiv.symm_apply_apply, hLeq_apply]
     rfl
   have hcard : Fintype.card (Fin 2) = finrank ℝ ℂ := by simp
   -- `Aeq` carries the orientation `ω` of `ℂ` that `e` reads to the image of the tangent
@@ -273,7 +275,7 @@ private theorem sign_det_eq_ite {s : ∀ x, V x} {z : M}
   split_ifs with hP
   · obtain ⟨e', he', hor⟩ := hP
     have hLe : Orientation.map (Fin 2) Leq (o.orientationAt z) = oE z := by
-      have h : Leq = e'.toLinearEquiv := LinearEquiv.ext fun v ↦
+      have h : Leq = e'.toLinearEquiv := LinearEquiv.ext fun v ↦ (hLeq_apply v).trans
         (congrArg (fun f : TangentSpace 𝓘(ℝ, EM) z →L[ℝ] J.Fiber z ↦ f v) he').symm
       rw [h, ← hor]
     have hpos : 0 < A.det := by
@@ -282,8 +284,7 @@ private theorem sign_det_eq_ite {s : ∀ x, V x} {z : M}
   · have hLe : Orientation.map (Fin 2) Leq (o.orientationAt z) = -oE z := by
       refine ((Orientation.map (Fin 2) Leq (o.orientationAt z)).eq_or_eq_neg (oE z)
         (by rw [← hrank]; simp [hn])).resolve_left fun h ↦ hP ?_
-      have : T2Space (J.Fiber z) := FiberBundle.t2Space ℂ J.Fiber z
-      exact ⟨Leq.toContinuousLinearEquiv, by ext v; rfl, h⟩
+      exact ⟨L.trans (J.fiberEquiv z).symm, by ext v; exact hLeq_apply v, h⟩
     have hneg : A.det < 0 := by
       rw [hdetA, ← Orientation.map_eq_neg_iff_det_neg ω Aeq hcard, hωA, hLe,
         Trivialization.mapOrientation_neg]

@@ -582,10 +582,9 @@ table may fall behind.
   stable range, which commutes with $\det$; and its corollary that
   $\mathrm{SU}(n)$ (Mathlib's `Matrix.specialUnitaryGroup`) is simply
   connected, for $n\ge1$ through the continuous retraction
-  `Matrix.UnitaryGroup.toSpecialUnitary` of $\mathrm{U}(n)$ onto $\mathrm{SU}(n)$,
-  $A\mapsto A\operatorname{diag}(1,\dots,\det A^{-1},\dots,1)$ with the
-  correcting entry at a chosen index $i_0$ and the diagonal factor
-  `Matrix.UnitaryGroup.detSection` built by `TauCeti.unitaryTorusHom`: a loop
+  `Matrix.UnitaryGroup.toSpecialUnitaryAt` of Tau Ceti, of $\mathrm{U}(n)$
+  onto $\mathrm{SU}(n)$, $A\mapsto A\operatorname{diag}(1,\dots,\overline{\det A},\dots,1)$
+  with the correcting entry at a chosen index $i_0$: a loop
   in $\mathrm{SU}(n)$ is trivial in $\pi_1(\mathrm{U}(n))$, since its
   determinant is constant, and the retraction carries the null-homotopy back.
   For $n=0$ the group is a point. The two counterexamples for $n=0$, for
@@ -1417,8 +1416,7 @@ it into issues; the overview fixes its folders and its dependencies.
   closed discrete set), `.../VectorBundle/Section/Generic.lean`
   (over a boundaryless manifold, a smooth section of a bundle of rank equal
   to the dimension whose zero set is closed and discrete),
-  `.../VectorBundle/Section/Nonvanishing.lean` (smoothing a continuous
-  nowhere-zero section over a compact base; a smooth nowhere-zero section of
+  `.../VectorBundle/Section/Nonvanishing.lean` (a smooth nowhere-zero section of
   every real bundle of rank at least $2$ over a compact, connected surface
   whose boundary is not empty) and
   `Geometry/Manifold/VectorBundle/Hermitian/Surface.lean` (unitary frames
