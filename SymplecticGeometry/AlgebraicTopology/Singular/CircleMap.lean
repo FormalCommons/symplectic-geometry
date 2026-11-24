@@ -10,6 +10,7 @@ public import TauCeti.AlgebraicTopology.Singular.Homotopy.Invariance
 public import TauCeti.AlgebraicTopology.Singular.ModuleChains.Basic
 public import TauCeti.AlgebraicTopology.Singular.Torus.FirstHomology
 public import TauCeti.AlgebraicTopology.UniversalCover.Circle.FreeLoop.Basic
+public import TauCeti.CategoryTheory.Preadditive.NSMul
 public import TauCeti.Topology.Homotopy.Homotopic.With
 
 /-!
@@ -184,8 +185,7 @@ theorem singularHomologyFunctor_map_eq_circleDegree_smul (w : C(Circle, Circle))
       ← singularHomologyMap_eq_singularHomologyFunctor_map]
     -- The two sides differ only in how the homology modules are written.
     exact singularHomologyMap_eq_circleDegree_smul w
-  rw [← NatIso.naturality_2 α, h, Preadditive.zsmul_comp,
-    Preadditive.comp_zsmul, Category.id_comp, Iso.hom_inv_id_app]
+  exact Iso.eq_zsmul_id_of_zsmul_id_comp_hom (α.app _).symm _ (h ▸ α.inv.naturality _)
 
 /-- **A self-map of the circle acts by its degree**, read in `ℤ` through
 `Circle.singularHomologyOneIso`: on `ULift ℤ`, the map induced by `w` is multiplication by
