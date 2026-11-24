@@ -8,6 +8,7 @@ module
 public import TauCeti.Analysis.Complex.Wirtinger.Beurling.Cauchy
 public import TauCeti.Analysis.Normed.Operator.ComplexLinearPart
 public import TauCeti.Analysis.Sobolev.WeakDeriv.Basic
+import TauCeti.Analysis.Calculus.BumpFunction.Convolution
 import TauCeti.Analysis.Sobolev.Mollification.Basic
 import TauCeti.MeasureTheory.Function.Lp.ApproximateIdentity
 import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
@@ -90,11 +91,8 @@ theorem HasWeakFDerivOn.eLpNorm_complexLinearPart_le_eLpNorm_complexAntilinearPa
       eLpNorm (fun z ↦ (D z).complexAntilinearPart 1) 2 volume := by
   have hvl : LocallyIntegrable v volume := locallyIntegrableOn_univ.1 h.locallyIntegrableOn
   have hDl : LocallyIntegrable D volume := hD.locallyIntegrable one_le_two
-  -- Mollify `v` by normalized bumps of radius `1 / (n + 1)`.
-  let φ : ℕ → ContDiffBump (0 : ℂ) := fun n ↦
-    ⟨1 / ((n : ℝ) + 2), 1 / ((n : ℝ) + 1), by positivity,
-      one_div_lt_one_div_of_lt (by positivity) (by linarith)⟩
-  have hφ : Tendsto (fun n ↦ (φ n).rOut) atTop (𝓝 0) := tendsto_one_div_add_atTop_nhds_zero_nat
+  -- Mollify `v` by Tau Ceti's shrinking normalized bumps.
+  let φ : ℕ → ContDiffBump (0 : ℂ) := ContDiffBump.shrinking one_pos
   let w : ℕ → ℂ → F := fun n ↦ v ⋆[(lsmul ℝ ℝ).flip, volume] (φ n).normed volume
   have hw (n : ℕ) : ContDiff ℝ ∞ (w n) :=
     (φ n).hasCompactSupport_normed.contDiff_convolution_right _ hvl (φ n).contDiff_normed
@@ -103,31 +101,37 @@ theorem HasWeakFDerivOn.eLpNorm_complexLinearPart_le_eLpNorm_complexAntilinearPa
     ext1 z
     rw [h.fderiv_convolution_right hvl hDl _ (φ n).contDiff_normed (φ n).hasCompactSupport_normed
       z fun _ _ ↦ trivial, convolution_flip]
-  have hconv := tendsto_eLpNorm_normed_convolution_sub (by norm_num) hφ hD
+  have hconv :=
+    tendsto_eLpNorm_normed_convolution_sub (by norm_num) (ContDiffBump.tendsto_rOut_shrinking
+      (c := (0 : ℂ)) one_pos) hD
   have hdc (n : ℕ) : Continuous (fderiv ℝ (w n)) := (hw n).continuous_fderiv (by simp)
-  have hP : Continuous fun A : ℂ →L[ℝ] F ↦ A.complexLinearPart 1 :=
-    continuous_complexLinearPart.clm_apply continuous_const
-  have hQ := continuous_complexAntilinearPart_apply (E := ℂ) (F := F) 1
+  -- Applying an additive map `P` with `‖P A‖ ≤ ‖A‖` keeps the convergence of `D w n → D`.
+  have hlim (P : (ℂ →L[ℝ] F) → F) (hPc : Continuous P) (hPs : ∀ A B, P A - P B = P (A - B))
+      (hPn : ∀ A, ‖P A‖ ≤ ‖A‖) :
+      Tendsto (fun n ↦ eLpNorm ((fun z ↦ P (fderiv ℝ (w n) z)) - fun z ↦ P (D z)) 2 volume)
+        atTop (𝓝 0) :=
+    tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hconv (fun _ ↦ zero_le)
+      fun n ↦ eLpNorm_mono ((hPc.comp (hdc n)).aestronglyMeasurable.sub
+        (hPc.comp_aestronglyMeasurable hD.aestronglyMeasurable)) fun z ↦ by
+          simpa only [Pi.sub_apply, hdw, hPs] using hPn _
   refine eLpNorm_le_eLpNorm_of_tendsto one_le_two
     (a' := fun n z ↦ (fderiv ℝ (w n) z).complexLinearPart 1)
-    (b' := fun n z ↦ (fderiv ℝ (w n) z).complexAntilinearPart 1) (fun n ↦ ?_) ?_ ?_
-  · have hcoe : ⇑((hwc n).toSchwartzMap (hw n)) = w n :=
-      funext (HasCompactSupport.toSchwartzMap_toFun _ _)
-    have := eLpNorm_wirtingerDeriv_le_eLpNorm_conjWirtingerDeriv ((hwc n).toSchwartzMap (hw n))
-    simpa only [hcoe, wirtingerDeriv_eq_complexLinearPart,
-      conjWirtingerDeriv_eq_complexAntilinearPart] using this
-  · refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hconv (fun _ ↦ zero_le)
-      fun n ↦ eLpNorm_mono ((hP.comp (hdc n)).aestronglyMeasurable.sub
-        (hP.comp_aestronglyMeasurable hD.aestronglyMeasurable)) fun z ↦ ?_
-    simp only [Pi.sub_apply, hdw]
-    rw [← sub_apply, ← ContinuousLinearMap.complexLinearPart_sub]
-    exact (norm_complexLinearPart_apply_le _ 1).trans_eq (by rw [norm_one, mul_one])
-  · refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hconv (fun _ ↦ zero_le)
-      fun n ↦ eLpNorm_mono ((hQ.comp (hdc n)).aestronglyMeasurable.sub
-        (hQ.comp_aestronglyMeasurable hD.aestronglyMeasurable)) fun z ↦ ?_
-    simp only [Pi.sub_apply, hdw]
-    rw [← sub_apply, ← ContinuousLinearMap.complexAntilinearPart_sub]
-    exact (norm_complexAntilinearPart_apply_le _ 1).trans_eq (by rw [norm_one, mul_one])
+    (b' := fun n z ↦ (fderiv ℝ (w n) z).complexAntilinearPart 1) (.of_forall fun n ↦ ?_)
+    (hlim (fun A ↦ A.complexLinearPart 1)
+      (continuous_complexLinearPart.clm_apply continuous_const)
+      (fun _ _ ↦ by
+        simp only [ContinuousLinearMap.complexLinearPart_sub, sub_apply])
+      fun A ↦ (norm_complexLinearPart_apply_le A 1).trans_eq (by rw [norm_one, mul_one]))
+    (hlim (fun A ↦ A.complexAntilinearPart 1)
+      ((continuous_eval_const 1).comp continuous_complexAntilinearPart)
+      (fun _ _ ↦ by
+        simp only [ContinuousLinearMap.complexAntilinearPart_sub, sub_apply])
+      fun A ↦ (norm_complexAntilinearPart_apply_le A 1).trans_eq (by rw [norm_one, mul_one]))
+  have hcoe : ⇑((hwc n).toSchwartzMap (hw n)) = w n :=
+    funext (HasCompactSupport.toSchwartzMap_toFun _ _)
+  have := eLpNorm_wirtingerDeriv_le_eLpNorm_conjWirtingerDeriv ((hwc n).toSchwartzMap (hw n))
+  simpa only [hcoe, wirtingerDeriv_eq_complexLinearPart,
+    conjWirtingerDeriv_eq_complexAntilinearPart] using this
 
 /-- **The estimate for `∂̄ + μ ∂` on compactly supported `W^{1,2}` maps.** If `D ∈ L²` is a weak
 derivative of a compactly supported `v` on the plane and `‖μ‖ ≤ m` almost everywhere, then
@@ -141,8 +145,9 @@ theorem HasWeakFDerivOn.eLpNorm_complexAntilinearPart_le_of_norm_le
       eLpNorm (fun z ↦ (D z).complexAntilinearPart 1 + μ z • (D z).complexLinearPart 1) 2
         volume := by
   have hQ : MemLp (fun z ↦ (D z).complexAntilinearPart 1) 2 volume :=
-    hD.of_le ((continuous_complexAntilinearPart_apply 1).comp_aestronglyMeasurable
-      hD.aestronglyMeasurable) (.of_forall fun z ↦ by
+    hD.of_le (((continuous_eval_const 1).comp
+      continuous_complexAntilinearPart).comp_aestronglyMeasurable hD.aestronglyMeasurable)
+      (.of_forall fun z ↦ by
         simpa using norm_complexAntilinearPart_apply_le (D z) 1)
   exact one_sub_mul_eLpNorm_le_eLpNorm_add_smul one_le_two
     ((continuous_complexLinearPart.clm_apply
