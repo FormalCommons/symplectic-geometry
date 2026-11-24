@@ -2486,34 +2486,19 @@ complete target and a function on the whole half-space.
 
 - **Files:** `Geometry/Manifold/Complex/Isothermal.lean` (named like Tau
   Ceti's file: every smooth almost complex structure on a surface modelled
-  on `𝓘(ℝ, ℂ)` has smooth isothermal charts, from Tau Ceti's planar
-  `TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt` read through the
-  charts of the surface and made smooth by
-  `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp` with the regularity
-  below; hence every almost
+  on `𝓘(ℝ, ℂ)` has smooth isothermal charts, from Tau Ceti's smooth planar
+  `TauCeti.Beltrami.exists_centered_smooth_isothermal_chart` read through the
+  charts of the surface; hence every almost
   complex structure on a boundaryless manifold of real dimension two, over any
   two-dimensional model, is `IsIntegrable`; and isothermal coordinates for
   a Riemannian metric on an oriented surface, through the structure of
   rotation by a right angle that the metric and the orientation give,
-  Mathlib's `Orientation.rightAngleRotation` fibrewise); and, in
-  `Analysis/Complex/Beltrami/` beside Tau Ceti's files, the regularity of
-  planar isothermal charts.
-- **Missing work: regularity.** Tau Ceti's planar charts are only $C^1$,
-  with Hölder derivative, and
-  `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp` does not produce
-  smoother ones: it assumes that around each point there is, for every
-  $m$, an isothermal chart of class $C^m$, and concludes that a given chart
-  is smooth. `IsIntegrable` asks for smooth charts, so this part proves
-  that assumption: for a smooth tame $J$ on the plane and every $m$, each
-  point has an isothermal chart of class $C^m$. One way is to run Tau
-  Ceti's contraction $h=\mu(1+Bh)$ (`Beltrami/Holder.lean`) in the space
-  of $C^{k,\alpha}$ functions supported in the disc, since the Beurling
-  operator $B$ commutes with derivatives of compactly supported functions
-  and the rescaling of `Beltrami/Isothermal.lean` makes the higher Hölder
-  norms of the coefficient small too; another is Tau Ceti's interior
-  elliptic regularity (`Analysis/Pseudodifferential/InteriorRegularity.lean`)
-  applied to a chart. The design file chooses the route and splits the
-  step into issues.
+  Mathlib's `Orientation.rightAngleRotation` fibrewise).
+- **Regularity.** Tau Ceti's `Beltrami/Isothermal.lean` gives planar
+  isothermal charts of every finite order and smooth ones
+  (`TauCeti.Beltrami.exists_isothermal_chart_finite_order`,
+  `TauCeti.Beltrami.exists_centered_smooth_isothermal_chart`), so the part
+  proves no planar regularity of its own.
 - **Builds on:** *Nijenhuis tensor* (only `Integrable.lean`); Tau Ceti's
   Beltrami files.
 - **Milestones:** *Integrability of almost complex structures on surfaces*.
