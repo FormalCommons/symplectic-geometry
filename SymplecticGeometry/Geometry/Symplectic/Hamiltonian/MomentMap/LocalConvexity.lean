@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
+import SymplecticGeometry.Geometry.Lie.Exponential.CommutativeGroup.Character
 import SymplecticGeometry.Geometry.Lie.Subgroup.IdentityComponent
 import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Restrict
 import TauCeti.Topology.Algebra.ConstMulAction
@@ -30,8 +31,9 @@ algebra is the isotropy algebra `𝔤_x = {ξ | ξ_M(x) = 0}`.
 The proof applies Tau Ceti's `TauCeti.SmoothTwoForm.IsMomentMap.exists_weightModelChart` to the
 torus `K`, with the moment map restricted along the inclusion
 (`TauCeti.SmoothTwoForm.IsMomentMap.comp_monoidHom`), and carries the weights from the Lie algebra
-of `K` to `𝔤_x` by the differential of the inclusion, which is injective with range `𝔤_x`
-(`TauCeti.Lie.EmbeddedLieSubgroupData.range_groupLieAlgebraMap_subtype_stabilizer`).
+of `K` to `𝔤_x` by the differential of the inclusion, a linear equivalence onto `𝔤_x`
+(`TauCeti.Lie.EmbeddedLieSubgroupData.groupLieAlgebraEquivIsotropy`). A character is trivial
+exactly when its weight vanishes by `ContinuousMonoidHom.eq_one_iff_of_forall_mulInvariantExp`.
 
 This is the local model from which the local convexity of `μ` follows.
 
@@ -115,58 +117,32 @@ theorem exists_weightModelChart_isotropy
   obtain ⟨n, χ, α, chart, r, hα, -, hx, h0, hr, htarget, hequiv, hform, hgen, hμ⟩ :=
     hK.exists_weightModelChart hσ (fun g ↦ hG g) (p := x)
       fun g ↦ Subgroup.map_subtype_le _ g.property
-  -- The differential `φ` of the inclusion `K → G` identifies the Lie algebra of `K` with `𝔤ₓ`.
-  let φ := K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I
-  let e : GroupLieAlgebra 𝓘(ℝ, F) K ≃ₗ[ℝ] 𝔤ₓ :=
-    (LinearEquiv.ofInjective φ.toLinearMap d.injective_groupLieAlgebraMap_subtype).trans
-      (LinearEquiv.ofEq _ _ (d.range_groupLieAlgebraMap_subtype_stabilizer (I' := I')))
-  have he (ξ : 𝔤ₓ) : φ (e.symm ξ) = (ξ : E) := by
-    -- `e` is `φ` with its codomain cut down to its range. The rewriting lemmas of
-    -- `LinearEquiv.ofInjective` and `LinearEquiv.ofEq` do not apply here, because `𝔤ₓ` is a
-    -- submodule of `E` while `φ` lands in the type synonym `GroupLieAlgebra I G` of `E`.
-    have he' (η : GroupLieAlgebra 𝓘(ℝ, F) K) : ((e η : 𝔤ₓ) : E) = φ η := rfl
-    rw [← he', e.apply_symm_apply]
+  -- The differential of the inclusion `K → G` identifies the Lie algebra of `K` with `𝔤ₓ`, which
+  -- the statement reads as a submodule of `E`, the model of `GroupLieAlgebra I G`.
+  let e : GroupLieAlgebra 𝓘(ℝ, F) K ≃ₗ[ℝ] 𝔤ₓ := d.groupLieAlgebraEquivIsotropy (I' := I')
+  have he (ξ : 𝔤ₓ) : K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I (e.symm ξ) = (ξ : E) :=
+    d.groupLieAlgebraMap_subtype_groupLieAlgebraEquivIsotropy_symm ξ
+  -- The weights `α k`, functionals on the model `F` of `K`, read on its Lie algebra.
+  let β (k : Fin n) : Module.Dual ℝ (GroupLieAlgebra 𝓘(ℝ, F) K) := (α k : F →ₗ[ℝ] ℝ)
+  have hβ (k : Fin n) (η : GroupLieAlgebra 𝓘(ℝ, F) K) : β k η = α k η :=
+    congrFun (ContinuousLinearMap.coe_coe (α k)) η
   let α' : Fin n → StrongDual ℝ 𝔤ₓ := fun k ↦
-    LinearMap.toContinuousLinearMap ((α k : F →ₗ[ℝ] ℝ) ∘ₗ (e.symm.toLinearMap : 𝔤ₓ →ₗ[ℝ] F))
+    LinearMap.toContinuousLinearMap (β k ∘ₗ e.symm.toLinearMap)
   have hα' (k : Fin n) (ξ : 𝔤ₓ) : α' k ξ = α k (e.symm ξ) := by
-    simp only [α', LinearMap.coe_toContinuousLinearMap']
-    -- `LinearMap.comp_apply` does not fire, as `α k` is a functional on `F` while `e.symm`
-    -- lands in the type synonym `GroupLieAlgebra 𝓘(ℝ, F) K` of `F`.
-    rfl
+    rw [← hβ]
+    simp [α']
   refine ⟨n, χ, α', chart, r, fun k ↦ ?_, hx, h0, hr, htarget, hequiv, hform, fun y hy ξ ↦ ?_,
     fun y hy ξ ↦ ?_⟩
-  · -- Read on left-invariant derivations of `K`, `α k` is the weight of `χ k`.
-    let ε := leftInvariantDerivationEquivGroupLieAlgebra (I := 𝓘(ℝ, F)) (G := K)
-      BoundarylessManifold.isInteriorPoint
-    have hw (X) : ContinuousMonoidHom.lieWeight (χ k) X = α k (ε X) := by
-      have h := ContinuousMonoidHom.eq_lieWeight (χ := χ k)
-        (α := (α k : F →ₗ[ℝ] ℝ) ∘ₗ (ε.toLinearMap : _ →ₗ[ℝ] F)) fun X ↦ by
-          rw [lieExp_eq_mulInvariantExp, hα]
-          -- As for `hα'`: the composite is applied pointwise across the type synonym.
-          rfl
-      rw [← h]
-      rfl
-    rw [← (ContinuousMonoidHom.lieWeight_injective (I := 𝓘(ℝ, F))).eq_iff,
-      ContinuousMonoidHom.lieWeight_one]
-    constructor
-    · intro h0
-      ext ξ
-      have h := hw (ε.symm (e.symm ξ))
-      rw [h0, LinearEquiv.apply_symm_apply, LinearMap.zero_apply] at h
-      rw [hα', ← h, zero_apply]
-    · intro h0
-      ext X
-      have h := congr($h0 (e (ε X)))
-      rw [hα', LinearEquiv.symm_apply_apply] at h
-      rw [hw]
-      exact h
+  · rw [ContinuousMonoidHom.eq_one_iff_of_forall_mulInvariantExp (α := β k)
+      fun η ↦ by rw [hα, hβ]]
+    refine ⟨fun h0 ↦ ContinuousLinearMap.ext fun ξ ↦ by simp [α', h0],
+      fun h0 ↦ LinearMap.ext fun η ↦ by simpa [α'] using congr($h0 (e η))⟩
   · have hξ := hgen y hy (e.symm ξ)
     rw [← K.subtype.fundamentalVectorField_groupLieAlgebraMap hφ fun _ _ ↦ rfl, he] at hξ
     rw [hξ, weightInfinitesimalAction_apply α']
     exact (weightInfinitesimalAction_apply (𝔱 := F) α _ (e.symm ξ)).trans (by simp only [hα'])
-  · have hξ : μ y (φ (e.symm ξ)) = μ x (φ (e.symm ξ)) +
-        weightMomentMap α (chart y) (e.symm ξ : F) := hμ y hy (e.symm ξ)
-    rw [he] at hξ
+  · have hξ := hμ y hy (e.symm ξ)
+    rw [LinearMap.comp_apply, LinearMap.comp_apply, ContinuousLinearMap.coe_coe, he] at hξ
     rw [hξ, weightMomentMap_apply α']
     exact congrArg _ ((weightMomentMap_apply (𝔱 := F) α _ (e.symm ξ)).trans (by simp only [hα']))
 
