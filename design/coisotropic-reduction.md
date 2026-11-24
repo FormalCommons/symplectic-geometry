@@ -94,12 +94,16 @@ settle what the milestones need beyond them.
 **How $Q$ is given.** By a map `f : N → M` with
 `hσ.IsCoisotropicMap J f`, `Manifold.IsImmersion J I ∞ f` and
 `ContMDiff J I ∞ f`, the hypotheses of `IsCoisotropicMap.characteristicFoliation`.
-The proofs use only the presymplectic form `f^* σ` on `N`, never the
-topology that `M` induces on the image, so the reduction theorem is stated
-for coisotropic immersions. An embedded $Q$, Tau Ceti's
+The reduction theorem and the Lagrangian statements use only the
+presymplectic form `f^* σ` on `N`, and state their hypotheses on `N` and
+on the parametrization `C` of the intersection, so they are stated for
+coisotropic immersions. An embedded $Q$, Tau Ceti's
 `IsCoisotropicEmbedding`, gives these hypotheses through its fields
-`isImmersion` and `isCoisotropicMap`; the milestone is the more general
-statement, as `AGENTS.md` allows.
+`isImmersion` and `isCoisotropicMap`; the milestones are the more general
+statements, as `AGENTS.md` allows. The topology that `M` induces on the
+image matters in one place: the plan's connectedness hypothesis of the
+injective case is about subsets of `M`. For an embedded $Q$ a corollary
+turns it into the hypothesis on `C` (see `Lagrangian/Injective.lean`).
 
 **The leaf space and its charts.** The leaf space of a foliation `𝓕` of `N`
 is the quotient `TauCeti.Foliation.LeafSpace 𝓕` of `N` by the setoid of
@@ -123,22 +127,32 @@ space is a definition marked `@[instance_reducible]`, not an instance,
 since it depends on the proof of regularity.
 
 Hausdorffness of the leaf space is not used by the construction, the
-submersion, or the reduced form. The milestone theorem therefore drops the
-plan's hypothesis that the leaf space is Hausdorff; with it, `T2Space`
-holds by assumption and the leaf space is a manifold in the book's sense.
+submersion, or the reduced form. The theorem for *Regular coisotropic
+reduction* therefore drops the plan's hypothesis that the leaf space is
+Hausdorff; with it, `T2Space` holds by assumption and the leaf space is a
+manifold in the book's sense. The injective case of *Clean reduction of
+Lagrangian submanifolds* does need it, and takes `T2Space` of the leaf
+space of $Q$ as a hypothesis, which the plan's regularity includes.
+Without it the image of $L$ can be a line with a doubled point: in
+$\mathbb R^4$ with $\omega=dx\wedge d\xi+dy\wedge d\eta$, take
+$Q=\{\xi=0\}\setminus\{x=y=0\}$ and $L=\{\xi=\eta=0\}$. No injective
+immersion of a Hausdorff 1-manifold has that image. The general and
+transverse cases do not use it.
 Second countability passes from `N` to the leaf space, since the quotient
 map is open.
 
 **Clean intersection for maps.** The Lagrangian submanifold is
 `g : P → M`, over `K : ModelWithCorners ℝ G H''`. Its intersection with $Q$
-is given by a smooth embedding `c : C → N` with `range (f ∘ c) = range f ∩
-range g`, such that whenever `g y = f (c x)` the range of
-`mfderiv (f ∘ c) x` is the intersection of the ranges of `mfderiv f (c x)`
-and `mfderiv g y`. This is the predicate `Manifold.IsCleanIntersection`.
-Following *Submanifolds* of `DESIGN.md`, `C` has one model, so the
-intersection has one dimension; the book's intersections whose components
-have different dimensions are covered by applying the theorem to each
-dimension. Transversality is the hypothesis that those two ranges span the
+is given by a smooth embedding `c : C → N` whose range lies in
+`f ⁻¹' range g` and is open and closed in it, for the topology of `N`,
+such that whenever `g y = f (c x)` the range of `mfderiv (f ∘ c) x` is the
+intersection of the ranges of `mfderiv f (c x)` and `mfderiv g y`. This is
+the predicate `Manifold.IsCleanIntersection`. Following *Submanifolds* of
+`DESIGN.md`, `C` has one model, so it has one dimension. Since `range c`
+need only be a union of components of the intersection, the theorem
+applies to the part of each dimension of an intersection whose components
+have different dimensions. The plan's case of one dimension is
+`range c = f ⁻¹' range g`, where `range (f ∘ c) = range f ∩ range g`. Transversality is the hypothesis that those two ranges span the
 tangent space of `M`; it gets no predicate of its own.
 
 **The Lagrangian immersion.** On `C`, the map `leafSpaceMk ∘ c` into the
@@ -155,10 +169,10 @@ countable; it is the countable union of charts that the page describes.
 In the injective case, the kernels form a foliation of `C`
 (`Foliation.ofConstantRank`), which is regular by the slices on which
 `leafSpaceMk ∘ c` is injective, and its leaf space maps injectively to
-$\bar Q$ when every leaf of $Q$ meets $L$ in a connected set; the
-induced map is then the injective Lagrangian immersion, and its source is
-Hausdorff because the map is injective and continuous into a Hausdorff
-space. The reduced form is passed as a hypothesis
+$\bar Q$ when every fibre of `leafSpaceMk ∘ c` is preconnected; the
+induced map is then the injective Lagrangian immersion. When the leaf
+space of $Q$ is Hausdorff, so is this source, since the map is injective
+and continuous. The reduced form is passed as a hypothesis
 `τ : SmoothTwoForm 𝓘(ℝ, _) (LeafSpace _)` with `τ.IsSymplectic` and
 `mpullback leafSpaceMk τ = mpullback f σ`, which by the first milestone
 determines it; no definition of the reduced form is made.
@@ -293,7 +307,9 @@ charted space `leafSpaceChartedSpace hR`:
 ### `Geometry/Manifold/CleanIntersection.lean`
 
 - `Manifold.IsCleanIntersection f g c`: the structure of *Decisions*, with
-  fields `isSmoothEmbedding`, `range_comp` and `range_mfderiv_comp`.
+  fields `isSmoothEmbedding`, `range_subset` (`range c ⊆ f ⁻¹' range g`),
+  `isClopen_range` (the preimage of `range c` in the subtype
+  `f ⁻¹' range g` is open and closed) and `range_mfderiv_comp`.
 - An example: a smooth embedding meets itself cleanly, with `c = id`.
 
 ### `LinearAlgebra/Symplectic/Reduction.lean` (merged file)
@@ -344,23 +360,33 @@ The pointwise statements. With `f`, `hR` and `τ` as above, `g` with
   slices are small transversals on which `leafSpaceMk ∘ c` is injective
   (`ContMDiffAt.exists_mem_nhds_injOn` applied to the restriction, an
   immersion); two points of one slice on one leaf have the same image.
-- `IsCleanIntersection.injective_leafSpaceLift`: if, for `g` a Lagrangian
-  embedding, `range g ∩ f '' (leafSpaceMk ⁻¹' {b})` is preconnected for
-  every `b`, the map from the leaf space of `C` to the leaf space of `N`
-  induced by `leafSpaceMk ∘ c` is injective. A fibre of `leafSpaceMk ∘ c`
-  is homeomorphic, through the embeddings, to that set, and each of its
-  leaves is open in it, by the rank theorem.
+- `IsCleanIntersection.injective_leafSpaceLift`: if
+  `(leafSpaceMk ∘ c) ⁻¹' {b}` is preconnected for every `b`, the map from
+  the leaf space of `C` to the leaf space of `N` induced by
+  `leafSpaceMk ∘ c` is injective. Each leaf of `C` in such a fibre is open
+  in it, by the rank theorem, so the fibre is a single leaf.
+- `IsCleanIntersection.isPreconnected_preimage_leafSpaceMk_comp`: for an
+  embedded $Q$ (`hσ.IsCoisotropicEmbedding J f`), if
+  `range g ∩ f '' (leafSpaceMk ⁻¹' {b})` is preconnected, so is
+  `(leafSpaceMk ∘ c) ⁻¹' {b}`. The embedding `f ∘ c` maps this fibre
+  homeomorphically onto the part of that set in `f '' range c`, which is
+  open and closed in it by `isClopen_range`.
 - `IsCleanIntersection.exists_isLagrangianImmersion_range_eq_image_and`,
   the milestone, for a Lagrangian embedding `g` and second countable `C`:
   the general statement of `Immersion.lean`; under transversality,
-  `isLagrangianImmersion_leafSpaceMk_comp_of_transverse`; and under the
-  connectedness hypothesis, a Hausdorff second countable manifold with an
-  injective Lagrangian immersion onto `leafSpaceMk '' range c`, the leaf
+  `isLagrangianImmersion_leafSpaceMk_comp_of_transverse`; and, if the leaf
+  space of $Q$ is Hausdorff (`T2Space`) and every fibre of
+  `leafSpaceMk ∘ c` is preconnected, a Hausdorff second countable manifold
+  with an injective Lagrangian immersion onto `leafSpaceMk '' range c`, the leaf
   space of `C` with the induced map (smooth by
   `IsSubmersion.contMDiff_comp_iff`, an immersion by
   `isImmersion_iff_ker_mfderiv_comp`, Lagrangian by
   `isLagrangianMap_comp_submersion_iff`). No embedding is claimed.
   Milestone: *Clean reduction of Lagrangian submanifolds*.
+- `IsCleanIntersection.exists_injective_isLagrangianImmersion_of_isCoisotropicEmbedding`:
+  the injective case with the plan's hypothesis, for an embedded $Q$ with
+  Hausdorff leaf space when `range g ∩ f '' (leafSpaceMk ⁻¹' {b})` is
+  preconnected for every `b`, by `isPreconnected_preimage_leafSpaceMk_comp`.
 
 ## What the part uses
 
