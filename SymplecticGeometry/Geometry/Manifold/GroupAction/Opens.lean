@@ -34,10 +34,9 @@ and equivariant and a form on `M` is invariant under every `g • ·`, its pullb
 invariant under every `g • ·` on `N`. Restricting to `U` is the case of the inclusion.
 
 Equivariance passes to Tau Ceti's `PartialDiffeomorph.liftOpens`: if `G` acts on open subsets
-`U` and `V` with equivariant inclusions, the lift of an equivariant partial diffeomorphism from
-`U` to `V` is equivariant at the points of `U`, and its source is invariant when that of the
-partial diffeomorphism is. A partial equivalence that is equivariant on an invariant source has an
-invariant target.
+`U` and `V` with equivariant inclusions, the lift of a partial diffeomorphism from `U` to `V`
+that is equivariant on its source is equivariant on its own source, and that source is invariant
+when the source of the partial diffeomorphism is.
 
 ## Main results
 
@@ -50,11 +49,9 @@ invariant target.
   equivariant smooth map is invariant.
 * `TauCeti.SmoothForm.mpullback_smul_mpullback_subtypeVal`: the restriction of an invariant form
   to `U` is invariant.
-* `PartialEquiv.smul_mem_target`: an equivariant partial equivalence with invariant source has
-  invariant target.
-* `PartialDiffeomorph.liftOpens_smul_coe`, `PartialDiffeomorph.smul_mem_liftOpens_source`: the
-  lift of an equivariant partial diffeomorphism between open subsets is equivariant, with
-  invariant source.
+* `PartialDiffeomorph.liftOpens_smul`, `PartialDiffeomorph.smul_mem_liftOpens_source`: the
+  lift of a partial diffeomorphism between open subsets that is equivariant on its source is
+  equivariant on its source, with invariant source.
 
 ## References
 
@@ -124,19 +121,6 @@ instance [ContMDiffConstSMul I' n G M] : ContMDiffConstSMul I' n G (U.invariantC
 
 end TopologicalSpace.Opens
 
-namespace PartialEquiv
-
-/-- A partial equivalence that commutes with the actions of `G` at the points of its source, and
-whose source is invariant under `G`, has a target invariant under `G`. -/
-theorem smul_mem_target {α β G : Type*} [SMul G α] [SMul G β] {e : PartialEquiv α β}
-    (he : ∀ (g : G), ∀ x ∈ e.source, e (g • x) = g • e x)
-    (hs : ∀ (g : G), ∀ x ∈ e.source, g • x ∈ e.source) (g : G) {y : β} (hy : y ∈ e.target) :
-    g • y ∈ e.target := by
-  rw [← e.right_inv hy, ← he g _ (e.map_target hy)]
-  exact e.map_source (hs g _ (e.map_target hy))
-
-end PartialEquiv
-
 namespace PartialDiffeomorph
 
 variable {E'' : Type*} [NormedAddCommGroup E''] [NormedSpace 𝕜 E'']
@@ -149,11 +133,14 @@ variable {E'' : Type*} [NormedAddCommGroup E''] [NormedSpace 𝕜 E'']
 
 include hcU hcV in
 /-- Let `G` act on open subsets `U` and `V` so that their inclusions are equivariant. If a partial
-diffeomorphism `Φ` from `U` to `V` commutes with the actions of `G`, then so does
-`Φ.liftOpens` at the points of `U`. -/
-theorem liftOpens_smul_coe (hΦ : ∀ (g : G) (x : U), Φ (g • x) = g • Φ x) (g : G) (x : U) :
-    Φ.liftOpens hU hV (g • (x : M)) = g • Φ.liftOpens hU hV x := by
-  rw [← hcU, liftOpens_apply_coe, liftOpens_apply_coe, hΦ, hcV]
+diffeomorphism `Φ` from `U` to `V` commutes with the actions of `G` at the points of its source,
+then so does `Φ.liftOpens` at the points of its source. -/
+theorem liftOpens_smul (hΦ : ∀ (g : G), ∀ x ∈ Φ.source, Φ (g • x) = g • Φ x) (g : G) :
+    ∀ x ∈ (Φ.liftOpens hU hV).source,
+      Φ.liftOpens hU hV (g • x) = g • Φ.liftOpens hU hV x := by
+  rw [liftOpens_source]
+  rintro _ ⟨y, hy, rfl⟩
+  rw [← hcU, liftOpens_apply_coe, liftOpens_apply_coe, hΦ g y hy, hcV]
 
 omit [SMul G N] [SMul G V] in
 include hcU in

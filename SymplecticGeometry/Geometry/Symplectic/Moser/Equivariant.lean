@@ -14,6 +14,7 @@ import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantPrimitive
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Logic.Equiv.PartialEquiv
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
@@ -454,11 +455,9 @@ theorem exists_equivariant_diffeomorph_opens_of_eq_along (f : SmoothEmbedding J 
   set Ψ := Φ.liftOpens hV hV
   have hsrcG (g : G) : ∀ x ∈ Ψ.source, g • x ∈ Ψ.source := fun _ ↦
     Φ.smul_mem_liftOpens_source Opens.coe_smul_invariantCore hV hV (fun g x ↦ (hsrc g x).2) g
-  have hΨG (g : G) : ∀ x ∈ Ψ.source, Ψ (g • x) = g • Ψ x := by
-    rw [PartialDiffeomorph.liftOpens_source]
-    rintro _ ⟨y, -, rfl⟩
-    exact Φ.liftOpens_smul_coe Opens.coe_smul_invariantCore Opens.coe_smul_invariantCore hV hV
-      hΦG g y
+  have hΨG (g : G) : ∀ x ∈ Ψ.source, Ψ (g • x) = g • Ψ x :=
+    Φ.liftOpens_smul Opens.coe_smul_invariantCore Opens.coe_smul_invariantCore hV hV
+      (fun g x _ ↦ hΦG g x) g
   refine ⟨_, _, Ψ.toDiffeomorphSourceTarget, hsrcG,
     fun g _ ↦ Ψ.toPartialEquiv.smul_mem_target hΨG hsrcG g, fun g x hx ↦ ?_, fun q ↦ ?_,
     Φ.mpullback_toDiffeomorphSourceTarget_liftOpens hV hV hΦ⟩
