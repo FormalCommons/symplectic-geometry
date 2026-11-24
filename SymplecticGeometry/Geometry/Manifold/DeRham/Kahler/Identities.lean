@@ -303,7 +303,7 @@ theorem lefschetz_codifferential_sub (o : Manifold.Orientation I M (Fin m))
     symbolInChart_lefschetz hg ψ α hy
       (ψ.fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero hg hψ hy hgr)]
   convert AlmostComplexStructure.lefschetz_smul_formHodgeStar_alternatizeUncurryFin_sub
-    (SmoothAlmostComplexStructure.inner_almostComplexStructureAt_apply_apply hg (ψ.symm y))
+    (SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq hg (ψ.symm y))
     (o.orientationAt (ψ.symm y))
     (l := l) (l' := l') (by omega) (by omega) (by omega) (by omega) (ψ.symbolInChart α.val y)
     using 4
@@ -341,7 +341,7 @@ theorem lefschetz_codifferential_of_lt (o : Manifold.Orientation I M (Fin m))
   rw [ψ.val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart α hy,
     ψ.val_mextDerivₗ_symm_eq_alternatizeUncurryFin_symbolInChart _ hy]
   convert AlmostComplexStructure.lefschetz_smul_formHodgeStar_alternatizeUncurryFin_of_lt
-    (SmoothAlmostComplexStructure.inner_almostComplexStructureAt_apply_apply hg (ψ.symm y))
+    (SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq hg (ψ.symm y))
     (o.orientationAt (ψ.symm y))
     (l := l) (by omega) (by omega) (by omega) (ψ.symbolInChart α.val y) using 4
   · rw [hm]
@@ -376,7 +376,7 @@ theorem codifferential_lefschetz (o : Manifold.Orientation I M (Fin m))
     symbolInChart_lefschetz hg ψ f hy
       (ψ.fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero hg hψ hy hgr)]
   convert AlmostComplexStructure.smul_formHodgeStar_alternatizeUncurryFin_lefschetz_fin_zero
-    (SmoothAlmostComplexStructure.inner_almostComplexStructureAt_apply_apply hg (ψ.symm y))
+    (SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq hg (ψ.symm y))
     (o.orientationAt (ψ.symm y))
     (l := l) (by omega) (by omega) (ψ.symbolInChart f.val y) using 3
   · rw [hm]
