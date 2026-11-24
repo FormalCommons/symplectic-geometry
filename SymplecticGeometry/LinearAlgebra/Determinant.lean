@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.Determinant
+import TauCeti.LinearAlgebra.Determinant.Basic
 
 /-!
 # Determinants of conjugates written as composites of linear equivalences
@@ -28,8 +29,10 @@ Since `LinearEquiv.trans_assoc` is not a `simp` lemma, the conjugate `e ∘ g �
 * `LinearEquiv.det_coe_trans_symm`: for `e f : N ≃ₗ[R] M`, the automorphisms `e⁻¹ ∘ f` of `N`
   and `f ∘ e⁻¹` of `M` have the same determinant.
 
-All are corollaries of `LinearMap.det_conj`. `LinearEquiv.det_coe_conj` has the shape of
-Mathlib's `LinearEquiv.det_conj`, which is about the unit-valued `LinearEquiv.det`.
+The first two are corollaries of `LinearMap.det_conj`, and `LinearEquiv.det_coe_trans_symm` is
+Tau Ceti's `LinearMap.det_eq_of_comp_eq` for the square that `f` intertwines.
+`LinearEquiv.det_coe_conj` has the shape of Mathlib's `LinearEquiv.det_conj`, which is about the
+unit-valued `LinearEquiv.det`.
 -/
 
 public section
@@ -58,11 +61,8 @@ theorem det_coe_symm_trans_trans (e : N ≃ₗ[R] M) (g : N ≃ₗ[R] N) :
 automorphism `f ∘ e⁻¹` of `M` have the same determinant. -/
 theorem det_coe_trans_symm (e f : N ≃ₗ[R] M) :
     LinearMap.det (f.trans e.symm : N →ₗ[R] N) =
-      LinearMap.det (e.symm.trans f : M →ₗ[R] M) := by
-  rw [← e.det_coe_symm_trans_trans]
-  congr 2
-  ext v
-  simp
+      LinearMap.det (e.symm.trans f : M →ₗ[R] M) :=
+  LinearMap.det_eq_of_comp_eq f (by ext; simp)
 
 end LinearEquiv
 

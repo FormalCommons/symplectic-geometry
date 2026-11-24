@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Velocity
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
+import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Extension
 import SymplecticGeometry.Geometry.Symplectic.Moser.Family
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
@@ -215,8 +216,7 @@ theorem exists_isSymplectic_extension_of_mpullback_eq [SigmaCompactSpace M]
     (i.isImmersion.mfderiv_injective (by simp) (Classical.arbitrary Q))
   have := I.locallyCompactSpace
   have := ChartedSpace.locallyCompactSpace H M
-  have := I.secondCountableTopology
-  have : SecondCountableTopology M := ChartedSpace.secondCountable_of_sigmaCompact H M
+  have := I.secondCountableTopology_of_sigmaCompact M
   -- Isotopy extension over `ℝ`, and a retraction onto `i(Q)`.
   obtain ⟨ψ, hψ, hψ₀, -, -, -, hψe⟩ :=
     e.exists_contMDiff_diffeomorph_forall_apply_eq (isCompact_univ (X := Q))
