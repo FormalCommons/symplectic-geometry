@@ -7,9 +7,11 @@ module
 
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
+public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Velocity
 import TauCeti.Geometry.Manifold.Diffeomorph.Extend
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.UnitInterval
+import TauCeti.Geometry.Diffeomorphism.Group
 
 /-!
 # Moving a compactly supported diffeomorphism along a family of embeddings
@@ -21,11 +23,23 @@ fixes every point outside `G_t '' K`. The family `Λ_t` is smooth in `t`, so
 `Φ_t = Λ_t ∘ Λ₀⁻¹` is a diffeotopy of `M`
 (`TauCeti.SmoothIsotopy.exists_diffeotopy_comp_eq_extend`).
 
+If moreover each `G_t` pulls a form `σ` on `M` back to a form `τ` on `W`, and `Λ` preserves `τ`,
+then `Λ₀` and every `Φ_t` preserve `σ`
+(`TauCeti.SmoothIsotopy.exists_diffeotopy_comp_eq_extend_of_isSymplectic`).
+
 ## Main results
 
 * `TauCeti.SmoothIsotopy.exists_diffeotopy_comp_eq_extend`: a diffeomorphism `Λ₀` of `M` and a
   diffeotopy `Φ` of `M` with `Φ_t (Λ₀ (G_t w)) = G_t (Λ w)`, where `Λ₀` transplants `Λ` along
   `G_0` and `Φ` fixes every point outside the image of `univ ×ˢ K` under `G`.
+* `TauCeti.SmoothIsotopy.exists_diffeotopy_timeSlice_comp_eq_extend`: the same, with the
+  transplant `Φ_t ∘ Λ₀` of `Λ` along `G_t` fixing every point outside `G_t '' K` for each `t`.
+* `TauCeti.SmoothIsotopy.exists_diffeotopy_comp_eq_extend_of_isSymplectic`: for a symplectic
+  isotopy `G` and a diffeomorphism `Λ` preserving the form on `W`, `Λ₀` and every `Φ_t` preserve
+  the form on `M`.
+* `TauCeti.SmoothForm.mem_diffeomorphStabilizer_of_semiconj`: a diffeomorphism `Ψ` of `M` with
+  `Ψ ∘ g = g ∘ Λ` for a local diffeomorphism `g` pulling `σ` back to `τ`, fixing every point
+  outside the compact image of `K`, preserves `σ` when `Λ` preserves `τ`.
 
 ## Implementation notes
 
@@ -41,6 +55,11 @@ diffeomorphism of `Φ` is `Ψ ∘ (id × Λ₀⁻¹)`. This adapts the proof of 
 `TauCeti.Diffeotopy.exists_extend_of_isCompact`, which moves a diffeotopy along one fixed
 embedding, to an embedding that moves with time.
 
+That a transplant `Ψ` preserves `σ` is checked at each point `x`. If `x = g w`, then
+`g^* Ψ^* σ = Λ^* g^* σ = τ = g^* σ` at `w`, and the differential of `g` at `w` is onto. Otherwise
+`x` lies outside the closed set `g '' K`, near which `Ψ` is the identity. The slice `Φ_t` is
+then the transplant `Φ_t ∘ Λ₀` composed with `Λ₀⁻¹`.
+
 ## References
 
 * M. Hirsch, *Differential Topology*, Springer GTM 33 (1976), Chapter 8, §8.1, for
@@ -53,6 +72,50 @@ noncomputable section
 
 open Set Topology
 open scoped Manifold ContDiff
+
+namespace TauCeti.SmoothForm
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  {H : Type*} [TopologicalSpace H] {I' : ModelWithCorners ℝ E H}
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+  {H' : Type*} [TopologicalSpace H'] {I : ModelWithCorners ℝ E' H'}
+  {W : Type*} [TopologicalSpace W] [ChartedSpace H W]
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
+  [IsManifold I' 1 W] [IsManifold I 1 M]
+
+/-- **Transplants of symmetries.** Let `g : W → M` be a local diffeomorphism pulling `σ` back to
+`τ`, and `Λ` a diffeomorphism of `W` preserving `τ`. A diffeomorphism `Ψ` of `M` with
+`Ψ ∘ g = g ∘ Λ` that fixes every point outside `g '' K`, for a compact `K`, preserves `σ`. -/
+theorem mem_diffeomorphStabilizer_of_semiconj [T2Space M] {g : W → M}
+    (hg : IsLocalDiffeomorph I' I ∞ g) {τ : SmoothForm I' W F k} {σ : SmoothForm I M F k}
+    (hgσ : mpullback g hg.contMDiff σ = τ) {Λ : W ≃ₘ⟮I', I'⟯ W}
+    (hΛ : Λ ∈ diffeomorphStabilizer τ) {Ψ : M ≃ₘ⟮I, I⟯ M} (h : Function.Semiconj g Λ Ψ)
+    {K : Set W} (hK : IsCompact K) (hΨ : ∀ x ∉ g '' K, Ψ x = x) :
+    Ψ ∈ diffeomorphStabilizer σ := by
+  have hgσ' := congrArg Subtype.val hgσ
+  rw [coe_mpullback] at hgσ'
+  rw [mem_diffeomorphStabilizer_iff_forall]
+  intro x
+  by_cases hx : x ∈ range g
+  · -- On the range of `g`, compare the pullbacks along `g`, whose differential is onto.
+    obtain ⟨w, rfl⟩ := hx
+    rw [← mpullback_apply_eq_mpullback_apply_iff
+      ((hg.isInvertible_mfderiv (by simp) w).surjective),
+      ← mpullback_comp_at ((hg w).mdifferentiableAt (by simp))
+        (Ψ.contMDiff.mdifferentiable (by simp) _), ← h.comp_eq,
+      mpullback_comp_at (Λ.contMDiff.mdifferentiable (by simp) _)
+        ((hg (Λ w)).mdifferentiableAt (by simp)), hgσ',
+      mem_diffeomorphStabilizer_iff_forall.1 hΛ w]
+  · -- Off the range of `g`, `Ψ` is the identity near `x`, outside the closed set `g '' K`.
+    have hc : _root_.IsClosed (g '' K) := (hK.image hg.contMDiff.continuous).isClosed
+    have hx' : x ∉ g '' K := fun hx' ↦ hx (image_subset_range _ _ hx')
+    have hid : (Ψ : M → M) =ᶠ[𝓝 x] id :=
+      Filter.eventually_of_mem (hc.isOpen_compl.mem_nhds hx') hΨ
+    rw [hid.mpullback_eq, TauCeti.mpullback_id]
+
+end TauCeti.SmoothForm
+
 
 namespace TauCeti.SmoothIsotopy
 
@@ -69,15 +132,15 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E
 diffeomorphisms, and `Λ` a diffeomorphism of `W` fixing every point outside a compact set `K`.
 Then there are a diffeomorphism `Λ₀` of `M` and a diffeotopy `Φ` of `M` such that
 `Φ_t (Λ₀ (G_t w)) = G_t (Λ w)` for all `t` and `w`, `Φ` fixes at all times every point outside
-the image of `univ ×ˢ K` under `G`, `Λ₀ ∘ g₀ = g₀ ∘ Λ`, and `Λ₀` fixes every point outside
-`g₀ '' K`. -/
-theorem exists_diffeotopy_comp_eq_extend [T2Space M] {g₀ g₁ : C^∞⟮I', W; I, M⟯}
+the image of `univ ×ˢ K` under `G`, and, for each `t`, `Φ_t ∘ Λ₀` fixes every point outside
+`G_t '' K`. -/
+theorem exists_diffeotopy_timeSlice_comp_eq_extend [T2Space M] {g₀ g₁ : C^∞⟮I', W; I, M⟯}
     (G : SmoothIsotopy g₀ g₁) (hGd : ∀ t, IsLocalDiffeomorph I' I ∞ (fun w ↦ G (t, w)))
     (Λ : W ≃ₘ⟮I', I'⟯ W) {K : Set W} (hK : IsCompact K) (hΛ : ∀ w ∉ K, Λ w = w) :
     ∃ (Λ₀ : M ≃ₘ⟮I, I⟯ M) (Φ : Diffeotopy I ∞ M),
       (∀ t w, Φ.timeSlice t (Λ₀ (G (t, w))) = G (t, Λ w)) ∧
       (∀ t x, x ∉ (fun p ↦ G p) '' (univ ×ˢ K) → Φ (t, x) = x) ∧
-      (∀ w, Λ₀ (g₀ w) = g₀ (Λ w)) ∧ ∀ x ∉ g₀ '' K, Λ₀ x = x := by
+      ∀ t, ∀ x ∉ (fun w ↦ G (t, w)) '' K, Φ.timeSlice t (Λ₀ x) = x := by
   let χ : unitInterval × W → unitInterval × M := fun p ↦ (p.1, G p)
   have hχ : IsLocalDiffeomorph ((𝓡∂ 1).prod I') ((𝓡∂ 1).prod I) ∞ χ :=
     G.contMDiff.isLocalDiffeomorph_prodMk_unitInterval hGd
@@ -119,7 +182,7 @@ theorem exists_diffeotopy_comp_eq_extend [T2Space M] {g₀ g₁ : C^∞⟮I', W;
       snd_apply_zero' := fun x ↦ by rw [hT, ← hΛ₀, Λ₀.apply_symm_apply] }
   have hΦ (t : unitInterval) (x : M) : Φ (t, x) = (Ψ (t, Λ₀.symm x)).2 := by
     simp only [Φ, hT]
-  refine ⟨Λ₀, Φ, fun t w ↦ ?_, fun t x hx ↦ ?_, fun w ↦ ?_, hΛ₀K⟩
+  refine ⟨Λ₀, Φ, fun t w ↦ ?_, fun t x hx ↦ ?_, fun t x hx ↦ ?_⟩
   · rw [Diffeotopy.timeSlice_apply, hΦ, Λ₀.symm_apply_apply, hΨχ']
   · have hx₀ : x ∉ g₀ '' K := fun ⟨w, hw, h⟩ ↦
       hx ⟨(0, w), ⟨mem_univ _, hw⟩, by rw [← h]; exact G.apply_zero w⟩
@@ -127,6 +190,63 @@ theorem exists_diffeotopy_comp_eq_extend [T2Space M] {g₀ g₁ : C^∞⟮I', W;
       conv_lhs => rw [← hΛ₀K x hx₀]
       exact Λ₀.symm_apply_apply x
     rw [hΦ, hsymm, hfix t x fun w hw h ↦ hx ⟨(t, w), ⟨mem_univ _, hw⟩, h⟩]
-  · rw [hΛ₀, ← G.apply_zero, hΨχ', G.apply_zero]
+  · rw [Diffeotopy.timeSlice_apply, hΦ, Λ₀.symm_apply_apply,
+      hfix t x fun w hw h ↦ hx ⟨w, hw, h⟩]
+
+/-- Let `G` be a smooth isotopy from `g₀` to `g₁` of maps `W → M` whose slices are local
+diffeomorphisms, and `Λ` a diffeomorphism of `W` fixing every point outside a compact set `K`.
+Then there are a diffeomorphism `Λ₀` of `M` and a diffeotopy `Φ` of `M` such that
+`Φ_t (Λ₀ (G_t w)) = G_t (Λ w)` for all `t` and `w`, `Φ` fixes at all times every point outside
+the image of `univ ×ˢ K` under `G`, `Λ₀ ∘ g₀ = g₀ ∘ Λ`, and `Λ₀` fixes every point outside
+`g₀ '' K`. -/
+theorem exists_diffeotopy_comp_eq_extend [T2Space M] {g₀ g₁ : C^∞⟮I', W; I, M⟯}
+    (G : SmoothIsotopy g₀ g₁) (hGd : ∀ t, IsLocalDiffeomorph I' I ∞ (fun w ↦ G (t, w)))
+    (Λ : W ≃ₘ⟮I', I'⟯ W) {K : Set W} (hK : IsCompact K) (hΛ : ∀ w ∉ K, Λ w = w) :
+    ∃ (Λ₀ : M ≃ₘ⟮I, I⟯ M) (Φ : Diffeotopy I ∞ M),
+      (∀ t w, Φ.timeSlice t (Λ₀ (G (t, w))) = G (t, Λ w)) ∧
+      (∀ t x, x ∉ (fun p ↦ G p) '' (univ ×ˢ K) → Φ (t, x) = x) ∧
+      (∀ w, Λ₀ (g₀ w) = g₀ (Λ w)) ∧ ∀ x ∉ g₀ '' K, Λ₀ x = x := by
+  obtain ⟨Λ₀, Φ, h₁, h₂, h₃⟩ := G.exists_diffeotopy_timeSlice_comp_eq_extend hGd Λ hK hΛ
+  refine ⟨Λ₀, Φ, h₁, h₂, fun w ↦ ?_, fun x hx ↦ ?_⟩
+  · simpa [Φ.timeSlice_zero] using h₁ 0 w
+  · simpa [Φ.timeSlice_zero] using h₃ 0 x (by simpa using hx)
+
+/-- **Moving a symplectomorphism along a symplectic family of embeddings.** Let `G` be a smooth
+isotopy from `g₀` to `g₁` of maps `W → M` whose slices are local diffeomorphisms pulling `σ` back
+to `τ`, and `Λ` a diffeomorphism of `W` preserving `τ` and fixing every point outside a compact
+set `K`. Then there are a diffeomorphism `Λ₀` of `M` and a diffeotopy `Φ` of `M` as in
+`TauCeti.SmoothIsotopy.exists_diffeotopy_comp_eq_extend`, and moreover `Λ₀` and every slice `Φ_t`
+preserve `σ`. -/
+theorem exists_diffeotopy_comp_eq_extend_of_isSymplectic [T2Space M] {g₀ g₁ : C^∞⟮I', W; I, M⟯}
+    (G : SmoothIsotopy g₀ g₁) (hGd : ∀ t, IsLocalDiffeomorph I' I ∞ (fun w ↦ G (t, w)))
+    {τ : SmoothTwoForm I' W} {σ : SmoothTwoForm I M} (hG : G.IsSymplectic τ σ)
+    (Λ : W ≃ₘ⟮I', I'⟯ W) (hΛτ : Λ ∈ SmoothForm.diffeomorphStabilizer τ) {K : Set W}
+    (hK : IsCompact K) (hΛ : ∀ w ∉ K, Λ w = w) :
+    ∃ (Λ₀ : M ≃ₘ⟮I, I⟯ M) (Φ : Diffeotopy I ∞ M),
+      (∀ t w, Φ.timeSlice t (Λ₀ (G (t, w))) = G (t, Λ w)) ∧
+      (∀ t x, x ∉ (fun p ↦ G p) '' (univ ×ˢ K) → Φ (t, x) = x) ∧
+      (∀ w, Λ₀ (g₀ w) = g₀ (Λ w)) ∧ (∀ x ∉ g₀ '' K, Λ₀ x = x) ∧
+      Λ₀ ∈ SmoothForm.diffeomorphStabilizer σ ∧
+      ∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ := by
+  obtain ⟨Λ₀, Φ, h₁, h₂, h₃⟩ := G.exists_diffeotopy_timeSlice_comp_eq_extend hGd Λ hK hΛ
+  -- `Φ_t ∘ Λ₀` is the transplant of `Λ` along `G_t`, so it preserves `σ`.
+  have hΛt (t : unitInterval) :
+      Λ₀.trans (Φ.timeSlice t) ∈ SmoothForm.diffeomorphStabilizer σ :=
+    SmoothForm.mem_diffeomorphStabilizer_of_semiconj (hGd t)
+      (by rw [← Subtype.coe_inj, SmoothForm.coe_mpullback, isSymplectic_def.1 hG t]) hΛτ
+      (fun w ↦ by rw [Diffeomorph.coe_trans, Function.comp_apply, h₁]) hK
+      fun x hx ↦ by rw [Diffeomorph.coe_trans, Function.comp_apply, h₃ t x hx]
+  have hΛ₀ : Λ₀ ∈ SmoothForm.diffeomorphStabilizer σ := by
+    simpa [Φ.timeSlice_zero] using hΛt 0
+  refine ⟨Λ₀, Φ, h₁, h₂, fun w ↦ ?_, fun x hx ↦ ?_, hΛ₀, fun t ↦ ?_⟩
+  · simpa [Φ.timeSlice_zero] using h₁ 0 w
+  · simpa [Φ.timeSlice_zero] using h₃ 0 x (by simpa using hx)
+  · have h : Φ.timeSlice t = Λ₀.trans (Φ.timeSlice t) * Λ₀⁻¹ := by
+      ext x
+      simp [Diffeomorph.mul_def, Diffeomorph.inv_def]
+    rw [h]
+    exact mul_mem (hΛt t) (inv_mem hΛ₀)
 
 end TauCeti.SmoothIsotopy
+
+end
