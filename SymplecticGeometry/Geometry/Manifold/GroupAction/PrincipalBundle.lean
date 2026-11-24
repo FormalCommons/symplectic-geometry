@@ -5,9 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.FiberBundle.MapFiber
 public import TauCeti.Geometry.Manifold.GroupAction.Quotient
-public import TauCeti.Topology.FiberBundle.MapFiber
+public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 public import SymplecticGeometry.Geometry.Manifold.Algebra.MulOpposite
+public import SymplecticGeometry.Geometry.Manifold.GroupAction.LocalSection
 public import SymplecticGeometry.Topology.Algebra.ProperAction.Free
 public import SymplecticGeometry.Topology.FiberBundle.ChangeModelFiber
 
@@ -51,6 +53,20 @@ is a principal `G`-bundle because every trivialization of the atlas is equivaria
 acts properly (`TauCeti.properSMul_of_compactSpace`), so this covers free smooth actions of
 compact Lie groups.
 
+**Smoothness.** The trivialization of a smooth local section `s` over `U` has inverse
+`(q, g) ↦ op g • s q`. This is the map `(k, q) ↦ k • s q` after the diffeomorphism
+`(q, g) ↦ (op g, q)` built from `MulOpposite.opDiffeomorph`. The orbit space and `G` have
+dimensions adding up to that of `X`, so that map is a local diffeomorphism on `Gᵐᵒᵖ × U`
+(`SymplecticGeometry.isLocalDiffeomorphOn_smul_section`), and so is the inverse on `U × G`. The
+trivialization, its inverse on its image, is then smooth
+(`IsLocalDiffeomorphOn.contMDiffOn_invFunOn`). So the atlas is smooth
+(`SymplecticGeometry.orbitFiber.isContMDiff_atlas`): Tau Ceti's
+`TauCeti.MapFiber.Atlas.contMDiffFiberBundle` makes `orbitFiber Gᵐᵒᵖ X` a smooth fibre bundle,
+and `TauCeti.MapFiber.Atlas.totalSpaceDiffeomorph` is a diffeomorphism of its total space with
+`X` over the orbit space (`TauCeti.MapFiber.Atlas.proj_totalSpaceDiffeomorph`), equivariant for
+the right action of `G` (`TauCeti.MapFiber.Atlas.totalSpaceDiffeomorph_smul`). The file adds no
+names for these: statements take them from the atlas and `isContMDiff_atlas`.
+
 **Local instances.** The statements about this bundle use two charted spaces that are not global
 instances, and later files should use the same ones:
 * on `Gᵐᵒᵖ`, the charts of `G` (`MulOpposite.chartedSpace`), a local instance of the section, in
@@ -63,7 +79,8 @@ The atlas, and so the bundle structure, depends on the models `IG` and `IX`, whi
 `orbitFiber Gᵐᵒᵖ X` does not determine, so instance search could not find it. The file adds no
 bundle structure of its own: statements put Tau Ceti's in place by
 `letI := (SymplecticGeometry.orbitFiber.atlas IG G IX X).fiberBundle`, and principality is the
-theorem `SymplecticGeometry.orbitFiber.principalBundle IG G IX X`, to be used by `haveI`.
+theorem `SymplecticGeometry.orbitFiber.principalBundle IG G IX X`, to be used by `haveI`, and so
+is the smooth structure, `(atlas IG G IX X).contMDiffFiberBundle (isContMDiff_atlas IG G IX X)`.
 
 ## Main definitions and results
 
@@ -79,11 +96,15 @@ theorem `SymplecticGeometry.orbitFiber.principalBundle IG G IX X`, to be used by
   smooth action, whose trivializations come from smooth local sections
   (`SymplecticGeometry.orbitFiber.exists_atlas_trivAt_eq`).
 * `SymplecticGeometry.orbitFiber.principalBundle`: its fibre bundle is a principal `G`-bundle.
+* `SymplecticGeometry.orbitFiber.isContMDiff_atlas`: the atlas is smooth.
 
 ## References
 
 * D. Husemoller, *Fibre Bundles*, 3rd ed., Graduate Texts in Mathematics 20, Springer, 1994,
   Chapter 4 (principal bundles; the orbit projection of a free action with local cross sections).
+* J. M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Graduate Texts in Mathematics 218,
+  Springer, 2013, Theorem 21.10 and its proof (the quotient manifold theorem: local sections of
+  the orbit projection give the local trivializations of the orbit bundle).
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §5.1
   (minimal coupling, which uses the principal bundle of a free circle action).
 -/
@@ -244,6 +265,91 @@ end orbitFiber
 
 end Trivialization
 
+/-! ### Smoothness of the atlas -/
+
+section Smooth
+
+attribute [local instance] MulOpposite.chartedSpace
+  LieGroup.minSmoothness_of_isRCLikeNormedField ContMDiffMul.boundarylessManifold
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {IG : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup IG ∞ G]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  {H' : Type*} [TopologicalSpace H'] {IX : ModelWithCorners ℝ E' H'} [IX.Boundaryless]
+  {X : Type*} [TopologicalSpace X] [ChartedSpace H' X] [IsManifold IX ∞ X]
+  [MulAction Gᵐᵒᵖ X] [ContMDiffSMul IG IX ∞ Gᵐᵒᵖ X] [ProperSMul Gᵐᵒᵖ X] [IsCancelSMul Gᵐᵒᵖ X]
+  {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
+  {HB : Type*} [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB}
+  [ChartedSpace HB (orbitRel.Quotient Gᵐᵒᵖ X)]
+  {U : Set (orbitRel.Quotient Gᵐᵒᵖ X)} {s : orbitRel.Quotient Gᵐᵒᵖ X → X}
+
+namespace orbitFiber
+
+/-- `(q, g) ↦ op g • s q` is a local diffeomorphism on `U × G`: it is the map
+`(k, q) ↦ k • s q` of `SymplecticGeometry.isLocalDiffeomorphOn_smul_section` after the
+diffeomorphism `(q, g) ↦ (op g, q)`. -/
+private theorem isLocalDiffeomorphOn_op_smul_section [FiniteDimensional ℝ EB] [IB.Boundaryless]
+    [IsManifold IB ∞ (orbitRel.Quotient Gᵐᵒᵖ X)] (hU : IsOpen U) (hs : ContMDiffOn IB IX ∞ s U)
+    (hsec : ∀ q ∈ U, Quotient.mk (orbitRel Gᵐᵒᵖ X) (s q) = q)
+    (hπ : ContMDiff IX IB ∞ (Quotient.mk (orbitRel Gᵐᵒᵖ X)))
+    (hdim : Module.finrank ℝ E + Module.finrank ℝ EB = Module.finrank ℝ E') :
+    IsLocalDiffeomorphOn (IB.prod IG) IX ∞
+      (fun p : orbitRel.Quotient Gᵐᵒᵖ X × G ↦ op p.2 • s p.1) (U ×ˢ univ) := fun p ↦ by
+  let T : (orbitRel.Quotient Gᵐᵒᵖ X × G) ≃ₘ⟮IB.prod IG, IG.prod IB⟯
+      (Gᵐᵒᵖ × orbitRel.Quotient Gᵐᵒᵖ X) :=
+    (Diffeomorph.prodComm IB IG _ G ∞).trans
+      ((opDiffeomorph IG ∞ G).prodCongr (Diffeomorph.refl IB _ ∞))
+  have hT : (fun p : Gᵐᵒᵖ × orbitRel.Quotient Gᵐᵒᵖ X ↦ p.1 • s p.2) ∘ T =
+      fun p : orbitRel.Quotient Gᵐᵒᵖ X × G ↦ op p.2 • s p.1 :=
+    funext fun p ↦ by simp [T]
+  rw [← hT]
+  exact IsLocalDiffeomorphAt.comp (hf := T.isLocalDiffeomorph p)
+    (hg := isLocalDiffeomorphOn_smul_section (IK := IG) hU hs hsec hπ hdim
+      ⟨T p, trivial, p.property.1⟩)
+
+/-- The trivialization `orbitTrivializationOfSectionUnop` of a smooth local section is smooth on
+its source, and so is its inverse on its target: the inverse is `(q, g) ↦ op g • s q`, and the
+trivialization is the inverse of this injective local diffeomorphism. -/
+private theorem contMDiffOn_orbitTrivializationOfSectionUnop [ContinuousInv G]
+    [FiniteDimensional ℝ EB] [IB.Boundaryless] [IsManifold IB ∞ (orbitRel.Quotient Gᵐᵒᵖ X)]
+    (hU : IsOpen U)
+    (hs : ContMDiffOn IB IX ∞ s U) (hsec : ∀ q ∈ U, Quotient.mk (orbitRel Gᵐᵒᵖ X) (s q) = q)
+    (hπ : ContMDiff IX IB ∞ (Quotient.mk (orbitRel Gᵐᵒᵖ X)))
+    (hdim : Module.finrank ℝ E + Module.finrank ℝ EB = Module.finrank ℝ E') :
+    ContMDiffOn IX (IB.prod IG) ∞ (orbitTrivializationOfSectionUnop U hU s hs.continuousOn hsec)
+        (orbitTrivializationOfSectionUnop U hU s hs.continuousOn hsec).source ∧
+      ContMDiffOn (IB.prod IG) IX ∞
+        (orbitTrivializationOfSectionUnop U hU s hs.continuousOn hsec).toOpenPartialHomeomorph.symm
+        (orbitTrivializationOfSectionUnop U hU s hs.continuousOn hsec).target := by
+  set e := orbitTrivializationOfSectionUnop (G := G) U hU s hs.continuousOn hsec
+  set Φ := fun p : orbitRel.Quotient Gᵐᵒᵖ X × G ↦ op p.2 • s p.1
+  have htarget : e.target = U ×ˢ univ := by
+    rw [e.target_eq, orbitTrivializationOfSectionUnop_baseSet]
+  have hsymm : EqOn e.toOpenPartialHomeomorph.symm Φ (U ×ˢ univ) := fun p hp ↦
+    orbitTrivializationOfSectionUnop_symm_apply hp.1 p.2
+  have hloc := isLocalDiffeomorphOn_op_smul_section (IG := IG) hU hs hsec hπ hdim
+  refine ⟨fun x hx ↦ ?_, htarget ▸ hloc.contMDiffOn.congr hsymm⟩
+  have : Nonempty (orbitRel.Quotient Gᵐᵒᵖ X × G) := ⟨e x⟩
+  have hinjOn : InjOn Φ (U ×ˢ univ) :=
+    (htarget ▸ e.toPartialEquiv.symm_source ▸ e.toPartialEquiv.symm.injOn).congr hsymm
+  have himage : Φ '' (U ×ˢ univ) = e.source := by
+    rw [← hsymm.image_eq, ← htarget]
+    exact e.toPartialEquiv.symm_image_target_eq_source
+  have hinv : ∀ y ∈ e.source, Function.invFunOn Φ (U ×ˢ univ) y = e y := fun y hy ↦ by
+    have hm : e y ∈ U ×ˢ univ := htarget ▸ e.map_source hy
+    calc Function.invFunOn Φ (U ×ˢ univ) y = Function.invFunOn Φ (U ×ˢ univ) (Φ (e y)) := by
+          rw [← hsymm hm]
+          exact congrArg _ (e.left_inv hy).symm
+      _ = e y := hinjOn.leftInvOn_invFunOn hm
+  have key := hloc.contMDiffOn_invFunOn (hU.prod isOpen_univ) hinjOn
+  rw [himage] at key
+  exact (key.congr fun y hy ↦ (hinv y hy).symm) x hx
+
+end orbitFiber
+
+end Smooth
+
 /-! ### The principal bundle of a free proper smooth action -/
 
 section Bundle
@@ -315,6 +421,31 @@ theorem principalBundle :
   obtain ⟨U, hU, s, hs, hsec, -, h⟩ := exists_atlas_trivAt_eq IG G IX X q
   rw [h, ← trivializationOfSection_def]
   infer_instance
+
+/-- **The atlas of the orbit projection is smooth.** For a free proper smooth right action of a Lie
+group `G` on a boundaryless manifold `X`, each trivialization of `orbitFiber.atlas` is a smooth
+diffeomorphism from its source, an open set of `X`, onto its target in the product of the orbit
+space, with its slice charts, and `G`. So `TauCeti.MapFiber.Atlas.contMDiffFiberBundle` makes the
+fibres of the orbit projection a smooth fibre bundle, and
+`TauCeti.MapFiber.Atlas.totalSpaceDiffeomorph` identifies its total space with `X`. -/
+theorem isContMDiff_atlas :
+    letI := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X
+    (atlas IG G IX X).IsContMDiff ∞ 𝓘(ℝ, ProperSMul.QuotientModelSpace E E') IG IX := by
+  let := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X
+  have hπ := ProperSMul.contMDiff_quotientMk (I := IG) (G := Gᵐᵒᵖ) (I' := IX) (M := X)
+  have key (q : orbitRel.Quotient Gᵐᵒᵖ X) :
+      ContMDiffOn IX (𝓘(ℝ, ProperSMul.QuotientModelSpace E E').prod IG) ∞
+          ((atlas IG G IX X).trivAt q) ((atlas IG G IX X).trivAt q).source ∧
+        ContMDiffOn (𝓘(ℝ, ProperSMul.QuotientModelSpace E E').prod IG) IX ∞
+          ((atlas IG G IX X).trivAt q).toOpenPartialHomeomorph.symm
+          ((atlas IG G IX X).trivAt q).target := by
+    obtain ⟨U, hU, s, hs, hsec, -, h⟩ := exists_atlas_trivAt_eq IG G IX X q
+    have hle := finrank_le_of_properSMul_of_stabilizer_eq_bot IG IX
+      (IsCancelSMul.stabilizer_eq_bot (G := Gᵐᵒᵖ) q.out)
+    rw [h]
+    exact contMDiffOn_orbitTrivializationOfSectionUnop hU hs hsec hπ
+      (by rw [ProperSMul.finrank_quotientModelSpace]; omega)
+  exact ⟨fun q ↦ (key q).1, fun q ↦ (key q).2⟩
 
 end orbitFiber
 
