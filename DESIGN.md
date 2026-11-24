@@ -3376,9 +3376,9 @@ Differential topology and complex analysis only; it waits for no part of
 
 - **Files:** in `Geometry/Symplectic/Fibration/`: `Holonomy.lean`
   (holonomy of a symplectic connection read in a symplectic chart;
-  contractible loops as boundaries of smooth discs; the symplectic
-  trivialization over a disc, and the holonomy around its boundary as the
-  end of a symplectic isotopy whose flux is computed from $\tau$),
+  contractible loops as boundaries of smooth discs; the holonomies along a
+  smooth disc as a symplectic isotopy, the periods of whose velocity are
+  computed from $d\tau$),
   `Curvature.lean` (the curvature identity
   $\iota(\Omega_\Gamma(v_1,v_2))\tau=d(\tau(v_1^\sharp,v_2^\sharp))-\iota(v_2^\sharp)\iota(v_1^\sharp)d\tau$
   on fibres; the local formula for $\Omega_\Gamma(\partial_i,\partial_j)$;
@@ -3391,10 +3391,10 @@ Differential topology and complex analysis only; it waits for no part of
   $\tau=\tau_\Gamma+\pi^*\beta$) and `SimplyConnected.lean` (the corollary
   for a fibre with $H^1(F;\mathbb R)=0$).
 - **Builds on:** *Symplectic fibrations*, *Parallel transport*,
-  *Integration over the fibre*, *Flux homomorphism* (only `Kernel.lean`
-  and `Countable.lean`); *Compatible symplectic forms* (only
-  `Thurston.lean`, for the corollary's second statement); the merged
-  *Hamiltonian flows* (mean-zero Hamiltonians on a connected fibre).
+  *Integration over the fibre*, *Flux homomorphism* (only `Family.lean`);
+  *Compatible symplectic forms* (only `Thurston.lean`, for the corollary's
+  second statement); the merged *Hamiltonian flows* (its criterion for
+  Hamiltonian diffeotopies).
 - **Milestones:** *Coupling form of a symplectic connection*, *Compatible
   symplectic forms for fibrations with simply connected fibre*, *Curvature
   identity for symplectic connections*.
@@ -3411,13 +3411,15 @@ Differential topology and complex analysis only; it waits for no part of
   group to $\mathrm{Ham}(F,\sigma)$; 1 ⇔ 2), `FluxHomomorphism.lean` (for a
   closed connection two-form on a fibration trivial over every loop, the
   homomorphism $f_\tau\colon H_1(B;\mathbb Z)\to H^1(F;\mathbb R)/\Gamma_\sigma$
-  and its lifts; the homomorphism $\mu_{\Phi^*a}$ of a class over a
-  trivialization over the 1-skeleton) and `Characterization.lean` (the four
-  conditions of Theorem 6.5.3 with the torsion condition, the induction over
-  skeleta of a triangulation in 3 ⇒ 1).
+  and its lifts) and `Characterization.lean` (the four
+  conditions of Theorem 6.5.3 with the torsion condition, with 3 ⇒ 1 by a
+  shift of the connection by closed one-forms of the base, with no
+  triangulation); the homomorphism $\mu_{\Phi^*a}$ of a class over a
+  trivialization over the 1-skeleton is in `OneSkeleton.lean`.
 - **Builds on:** *Coupling forms*, *Flux homomorphism*, *Symplectic
-  fibrations*; Tau Ceti (smooth triangulations,
-  `Geometry/Manifold/SmoothTriangulation/`, singular homology).
+  fibrations*, *Parallel transport*, *Compatible symplectic forms* (only
+  `Thurston.lean`); Tau Ceti (singular homology; smooth triangulations,
+  `Geometry/Manifold/SmoothTriangulation/`, only in `OneSkeleton.lean`).
 - **Milestones:** *Characterization of Hamiltonian fibrations*, in the
   corrected form with the torsion condition, as the page states it.
 - **The design file decides:** the meaning of a symplectic trivialization
@@ -3548,11 +3550,11 @@ behind.
 | 2 | *Sphere bundles over surfaces* | *Diffeomorphisms of the 2-sphere* (only `Smale.lean`, for `Clutching.lean` and `Classification.lean`), *Symplectic fibrations* (only `Basic.lean`); the constructions of `RuledSurface.lean` can start once `Basic.lean` is merged |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); *Moser isotopy* (only `Darboux/Strict.lean`, through `LocalDiffeomorph/MFDeriv.lean`, merged); the other files of the part can start at once |
-| 3 | *Coupling forms* | *Symplectic fibrations*, *Parallel transport*, *Integration over the fibre*, *Flux homomorphism* (only `Kernel.lean` and `Countable.lean`), *Compatible symplectic forms* (only `Thurston.lean`, for `SimplyConnected.lean`); in `Curvature.lean`, the curvature identity and the local curvature formula wait only for *Symplectic fibrations*, and the equivalence also waits for *Parallel transport*, `Holonomy.lean` and *Flux homomorphism* (`Kernel.lean`, `Countable.lean`) |
+| 3 | *Coupling forms* | *Symplectic fibrations*, *Parallel transport*, *Integration over the fibre*, *Flux homomorphism* (only `Family.lean`), *Compatible symplectic forms* (only `Thurston.lean`, for `SimplyConnected.lean`); in `Curvature.lean`, the curvature identity and the local curvature formula wait only for *Symplectic fibrations* and *Parallel transport* (`Curvature.lean`), and the equivalence also waits for `Holonomy.lean` and *Flux homomorphism* (`Family.lean`) |
 | 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles*; `Geometry/Manifold/DifferentialForm/Pullback/Family.lean` of *Moser isotopy*, which is merged |
 | 4 | *Adjunction* | *First Chern number* (only `FirstChernClass.lean`, `ChernNumber/Basic.lean` and `ChernNumber/Axioms.lean`); `NormalSpace/ComplexStructure.lean` and `NormalSplitting.lean` can start at once |
 | 4 | *Chern classes* | *First Chern number* (only `FirstChernClass.lean`, for the comparison of $c_1$); the other issues of its design file can start at once |
-| 4 | *Hamiltonian fibrations* | *Coupling forms*, *Flux homomorphism*, *Symplectic fibrations* |
+| 4 | *Hamiltonian fibrations* | *Coupling forms*, *Flux homomorphism*, *Symplectic fibrations*, *Parallel transport*, *Compatible symplectic forms* (only `Thurston.lean`) |
 | 5 | *Projective hypersurfaces* | *Chern classes*, *First Chern number* (only Poincaré duality, #810); the bundle isomorphisms on $\mathbb CP^{n+1}$, the normal bundle and the Lefschetz theorems can start at once |
 
 The design issues of the parts marked as needing one can start at once, in
@@ -3753,7 +3755,7 @@ existing inputs.
 | *Weinstein's universal construction for associated symplectic fibrations* | *Principal connections* (`Fibration/Associated.lean`). Existing inputs: `TauCeti.AssociatedBundle.contMDiffFiberBundle`, `TauCeti.SmoothTwoForm.IsEquivariantMomentMap`. |
 | *Symplectic connections correspond to vertically closed 2-forms* | *Symplectic fibrations* (`Connection.lean`). Existing input: `TauCeti.mlieDerivForm_eq_interior_mextDeriv_add`. |
 | *Dehn twist along a framed Lagrangian sphere* | *Dehn twists*, on the merged Lagrangian neighbourhood theorem `TauCeti.SmoothTwoForm.IsNondegenerate.IsLagrangianMap.exists_symplectomorphism_cotangent`. |
-| *Coupling form of a symplectic connection* | *Coupling forms* (`Coupling.lean`), with *Flux homomorphism* for McDuff–Salamon, Theorem 10.2.5. |
+| *Coupling form of a symplectic connection* | *Coupling forms* (`Coupling.lean`), with *Flux homomorphism* for McDuff–Salamon, Proposition 10.2.12. |
 | *Compatible symplectic forms for fibrations with simply connected fibre* | *Coupling forms* (`SimplyConnected.lean`), with Thurston's theorem of *Compatible symplectic forms*. |
 | *Curvature identity for symplectic connections* | *Coupling forms* (`Curvature.lean`), with the countability of the flux group from *Flux homomorphism*. |
 | *Characterization of Hamiltonian fibrations* | *Hamiltonian fibrations*. |
