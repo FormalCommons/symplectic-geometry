@@ -2911,22 +2911,24 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
 
 ### 42. Convexity (needs `design/convexity.md`)
 
-- **Files:** `Geometry/Manifold/Morse/Bott/Level.lean` (in Tau Ceti's
-  folder: on a closed connected manifold, a Morse–Bott function whose
-  indices and coindices are never one has connected levels), and
-  `Geometry/Symplectic/Hamiltonian/MomentMap/Convexity.lean` (the fixed set
-  of a torus action as finitely many symplectic submanifolds with $\mu$
-  constant on each, connectedness of the fibres by induction on the
-  dimension of the torus, convexity of the image, and with Tau Ceti's
+- **Files:** `Analysis/Convex/LocalToGlobal/Basic.lean` and `Proper.lean`
+  (Bjorndahl–Karshon's local-to-global theorem: a proper map from a
+  connected Hausdorff space with local convexity at every point has convex
+  image and connected fibres),
+  `Geometry/Symplectic/Manifold/FixedComponent.lean` (the fixed components
+  as symplectic submanifolds),
+  `Geometry/Symplectic/Hamiltonian/MomentMap/LocalConvexity.lean` (local
+  convexity of a torus moment map at every point, from the weight chart of
+  the stabilizer), and
+  `Geometry/Symplectic/Hamiltonian/MomentMap/Convexity.lean` (convexity of
+  the image and connectedness of every fibre, and with Tau Ceti's
   `range_subset_convexHull_image_fixedPoints` the image as the convex hull
   of the values on the fixed components).
-- **Builds on:** Tau Ceti (`MomentMap/ConvexHull.lean`, `FixedPoints.lean`
-  and `MorseBott.lean`, with
-  `exists_isNondegenerateCriticalSubmanifold_fixedPointsOfFinrank_of_compactSpace`,
-  `even_manifoldMorseIndex`, `TauCeti.exists_isSmoothEmbedding_fixedPointsOfFinrank`,
+- **Builds on:** Tau Ceti (`MomentMap/ConvexHull.lean`, `FixedPoints.lean`,
   `TauCeti.finite_connectedComponents_fixedPoints_of_compactSpace`,
-  `isSymplectic_invariants_tangentRepresentation`, and the Morse–Bott
-  deformation `TauCeti.exists_sublevel_union_negativeDiscBundle_deformation`).
+  `IsNondegenerate.exists_isSymplecticSubmanifoldEmbedding_fixedPointsOfFinrank`,
+  the weight chart `IsMomentMap.exists_weightModelChart` and the local
+  convexity of the weight model in `WeightModel/Convexity.lean`).
 - **Milestones:** *Convexity and connectedness of moment-map fibers*,
   including the fibres over critical values.
 - **The design file decides:** the route to connectedness of every fibre,
