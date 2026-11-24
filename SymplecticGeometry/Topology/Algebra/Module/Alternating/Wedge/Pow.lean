@@ -8,6 +8,7 @@ module
 public import Mathlib.LinearAlgebra.Dimension.Finrank
 public import Mathlib.RingTheory.Finiteness.Defs
 public import TauCeti.Topology.Algebra.Module.Alternating.Wedge.Pow
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.Basic
 import TauCeti.Topology.Algebra.Module.Alternating.TopDegree
 
 /-!
@@ -20,13 +21,12 @@ with `v`. Since contraction is an antiderivation
 (`ContinuousAlternatingMap.curryLeftTopological_pairedWedge`) this contraction is
 `γ(v) ω ^ (n + 1) - γ ∧ ι_v (ω ^ (n + 1))`, and the power rule
 `ι_v (ω ^ (n + 1)) = (n + 1) ι_v ω ∧ ω ^ n`
-(`ContinuousAlternatingMap.wedgePow_succ_apply_vecCons`) gives the claim. On a symplectic manifold
-this is the pointwise identity `γ ∧ ι_X ω ∧ ω ^ n = γ(X) ω ^ (n + 1) / (n + 1)` when `γ(X) = 0`.
+(`ContinuousAlternatingMap.wedgePow_succ_apply_vecCons`) gives the claim, since
+`γ(v) = 0` and `n + 1 ≠ 0`. The power rule changes the degree `2 n + 1` into `1 + 2 n`, which
+`ContinuousAlternatingMap.pairedWedge_apply_of_right_eq_smul_cast` handles.
 
 ## Main results
 
-* `ContinuousAlternatingMap.pairedWedge_apply_of_right_eq_smul_cast`: a paired wedge only sees its
-  right factor up to a scalar and a relabelling of its degree.
 * `ContinuousAlternatingMap.pairedWedge_curryLeftTopological_wedgePow_eq_zero`: in dimension
   `2 n + 2`, `γ ∧ ι_v ω ∧ ω ^ n = 0` when `γ(v) = 0`.
 
@@ -43,23 +43,6 @@ open TauCeti
 namespace ContinuousAlternatingMap
 
 variable {E : Type*} [AddCommGroup E] [Module ℝ E] [TopologicalSpace E]
-
-/-- If the right factor `A` of a paired wedge is `c • B`, up to the relabelling `Fin.cast h` of
-its arguments, then `φ ∧ A` is `c • (φ ∧ B)` up to the corresponding relabelling. This is the
-right-hand counterpart of Tau Ceti's
-`ContinuousAlternatingMap.pairedWedge_apply_of_left_eq_smul_cast`. -/
-theorem pairedWedge_apply_of_right_eq_smul_cast {F₁ F₂ F₃ : Type*} [AddCommGroup F₁]
-    [Module ℝ F₁] [TopologicalSpace F₁] [AddCommGroup F₂] [Module ℝ F₂] [TopologicalSpace F₂]
-    [AddCommGroup F₃] [Module ℝ F₃] [TopologicalSpace F₃] [IsTopologicalAddGroup F₃]
-    [ContinuousConstSMul ℝ F₃] {a b k : ℕ}
-    (μ : F₁ →L[ℝ] F₂ →L[ℝ] F₃) (hμ : Continuous (Function.uncurry fun x y ↦ μ x y)) (h : a = b)
-    {A : E [⋀^Fin b]→L[ℝ] F₂} {B : E [⋀^Fin a]→L[ℝ] F₂} (c : ℝ)
-    (hAB : ∀ w, A w = c • B (w ∘ Fin.cast h)) (φ : E [⋀^Fin k]→L[ℝ] F₁) (x : Fin (k + b) → E) :
-    pairedWedge μ hμ φ A x = c • pairedWedge μ hμ φ B (x ∘ Fin.cast (by omega)) := by
-  subst h
-  simp only [pairedWedge_apply, hAB, map_smul, smul_comm _ c, Finset.smul_sum]
-  -- After `subst`, the transport `Fin.cast` is the identity on values, so both tuples agree.
-  rfl
 
 /-- **Contracting a wedge power in top degree.** On a real vector space of dimension `2 n + 2`,
 for a two-form `ω`, a one-form `γ` and a vector `v` with `γ(v) = 0`, the top-degree form

@@ -232,11 +232,10 @@ algebra is used, and for `G` a Lie group on a boundaryless model `J`,
 1. **A Hamiltonian circle action has a fixed point.** On a compact
    nonempty `M` with `σ.IsNondegenerate`, from
    `σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) μ`:
-   the component $\langle\mu,\xi_1\rangle$ has a maximum
-   (`IsCompact.exists_isMaxOn`), which is a critical point, which is a
-   zero of $X_{\xi_1}$ and so a fixed point (`GroupAction/Circle.lean`;
-   or Tau Ceti's `criticalPoints_eq_fixedPoints_of_eq_top`).
-   `exists_mem_fixedPoints_of_isMomentMap`.
+   Tau Ceti's `TauCeti.SmoothTwoForm.IsMomentMap.nonempty_fixedPoints`
+   (`MomentMap/ConvexHull.lean`), for any compact connected commutative
+   Lie group, with a local `IsMulCommutative Circle` instance. The file
+   proves no theorem of its own for it.
 2. **The vanishing integral.**
 
    ```lean
@@ -312,8 +311,6 @@ algebra is used, and for `G` a Lie group on a boundaryless model `J`,
 
 ## What it uses
 
-- From *Lie group actions*: `GroupAction/Circle.lean` (#2256), for the
-  fixed points of the circle as the zeros of $X_{\xi_1}$, in result 1.
 - From *Moment maps*: `MomentMap/WeaklyHamiltonian.lean` (#2258), for the
   moment map in result 3.
 - From *Hodge theory*: the merged `Geometry/Manifold/DeRham/Hodge/Basic.lean`.

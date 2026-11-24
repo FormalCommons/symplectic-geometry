@@ -62,8 +62,8 @@ theorem wedge_interior_wedge_wedgePow_apply_eq_zero {n : ℕ}
       (σ.wedgePow n : RoughForm I M ℝ (2 * n))) x = 0 := by
   have hX : RoughForm.interior (k := 1) X (σ : RoughForm I M ℝ 2) x =
       ContinuousAlternatingMap.curryLeftTopological (σ.val x) (X x) := by
-    ext v
-    rw [RoughForm.interior_apply, ContinuousAlternatingMap.curryLeftTopological_apply_apply]
+    rw [RoughForm.interior_def]
+    exact bundleInterior_apply_eq_curryLeftTopological X _ x
   rw [RoughForm.wedge_def, RoughForm.wedgeWith_apply', RoughForm.wedge_def,
     RoughForm.wedgeWith_apply', hX, wedgePow_apply]
   exact ContinuousAlternatingMap.pairedWedge_curryLeftTopological_wedgePow_eq_zero hE _ _ _ hγ

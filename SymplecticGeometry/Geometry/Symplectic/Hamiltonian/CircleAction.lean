@@ -5,9 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Geometry.Manifold.Instances.Sphere
 public import SymplecticGeometry.Geometry.Manifold.DeRham.PoincarePairing.Nondegenerate
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Wedge
-public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
+public import TauCeti.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap
 public import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Average
@@ -15,7 +16,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Pow
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantForm
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.WeaklyHamiltonian
 import TauCeti.Geometry.Manifold.DeRham.Algebra
-import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.Critical
+import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.ConvexHull
 import TauCeti.Geometry.Symplectic.Manifold.Volume
 import TauCeti.RepresentationTheory.Compact.Haar
 
@@ -28,10 +29,8 @@ cohomological condition on `σ`, which holds for instance on closed Kähler mani
 Lefschetz theorem, a circle action preserving `σ` on a closed connected manifold has a moment map
 exactly when some point is fixed by the whole circle.
 
-One direction holds without the condition. If `μ` is a moment map, the component
-`⟨μ, ξ₁⟩` along the period-one generator `ξ₁` of the Lie algebra of the circle has a maximum on
-the compact manifold `M`; there its differential `ι_{X_{ξ₁}} σ` vanishes, so `X_{ξ₁}` vanishes by
-nondegeneracy, and a zero of `X_{ξ₁}` is a fixed point (`GroupAction/Circle.lean`).
+One direction holds without the condition, and for every compact connected commutative Lie
+group: it is Tau Ceti's `TauCeti.SmoothTwoForm.IsMomentMap.nonempty_fixedPoints`.
 
 For the other direction we follow the proof of McDuff–Salamon, with an integral identity in place
 of the Poincaré dual of an orbit. Let `X = X_ξ` be the fundamental vector field of some `ξ`, so
@@ -56,8 +55,6 @@ The first two steps hold for any compact path-connected Lie group, and are state
 
 ## Main results
 
-* `SymplecticGeometry.exists_mem_fixedPoints_of_isMomentMap`: a Hamiltonian circle action on a
-  compact nonempty manifold has a fixed point.
 * `SymplecticGeometry.integralTopForm_wedge_interior_wedge_wedgePow_eq_zero`: for a symplectic
   action of a compact path-connected Lie group with a fixed point, `∫_M γ ∧ ι_X σ ∧ σ ^ n = 0`
   for every closed one-form `γ`.
@@ -85,24 +82,6 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   [IsManifold I ∞ M]
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
-
-/-- **A Hamiltonian circle action has a fixed point.** If a smooth circle action on a compact
-nonempty boundaryless Hausdorff manifold has a moment map `μ` for a nondegenerate two-form `σ`, then
-some point of the manifold is fixed by every element of the circle. -/
-theorem exists_mem_fixedPoints_of_isMomentMap [BoundarylessManifold I M] [T2Space M]
-    [CompactSpace M] [Nonempty M] [MulAction Circle M] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
-    {σ : SmoothTwoForm I M} (hσ : σ.IsNondegenerate)
-    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
-    (h : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) μ) :
-    ∃ p : M, p ∈ MulAction.fixedPoints Circle M := by
-  obtain ⟨p, -, hp⟩ := isCompact_univ.exists_isMaxOn Set.univ_nonempty
-    (h.contMDiff circlePeriodOneGenerator).continuous.continuousOn
-  refine ⟨p, ?_⟩
-  have hcrit := (hp.isLocalMax Filter.univ_mem).mem_criticalPoints (I := I)
-  rw [h.mem_criticalPoints_iff (hσ.nondegenerate_bilinFormAt p),
-    InfinitesimalAction.fundamental_apply] at hcrit
-  have : ContMDiffSMul (𝓡 1) I 2 Circle M := ContMDiffSMul.of_le (M := M) ENat.LEInfty.out
-  exact mem_fixedPoints_circle_iff_fundamentalVectorField_eq_zero.2 hcrit
 
 section Integral
 
@@ -145,20 +124,17 @@ theorem integralTopForm_wedge_interior_wedge_wedgePow_eq_zero [I.Boundaryless] [
   have hγγ' : γ - γ' ∈ exactForms I M 1 := by
     simpa using neg_mem (SmoothForm.measureAverage_sub_mem_exactForms_one J (haarProb G) hγ)
   -- The form `ι_{X_ξ} σ ∧ σ ^ n` is closed, as `X_ξ` is a symplectic vector field.
-  let X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯ :=
-    ⟨fundamentalVectorField I ξ, contMDiff_fundamentalVectorField (m := ∞) (n := ∞) (by simp) ξ⟩
-  have hX : X ∈ σ.symplecticVectorFields :=
-    (SmoothTwoForm.mem_symplecticVectorFields_iff_mlieDerivForm_eq_zero hσ).2
-      (mlieDerivForm_fundamentalVectorField_eq_zero hinv ξ)
+  set X := (InfinitesimalAction.fundamental J G I M).toSectionLinearMap ξ
   have hη : SmoothForm.wedge (σ.interiorₗ X) (σ.wedgePow n) ∈ closedForms I M (1 + 2 * n) :=
-    SmoothForm.wedge_mem_closedForms ((mem_closedForms I _).2 (by
-      rw [SmoothTwoForm.coe_interiorₗ]; exact SmoothTwoForm.mem_symplecticVectorFields_iff.1 hX))
+    SmoothForm.wedge_mem_closedForms
+      (SmoothTwoForm.interiorₗ_fundamental_toSectionLinearMap_mem_closedForms hσ hinv ξ)
       (SmoothForm.wedgePow_mem_closedForms
         ((mem_closedForms I σ).2 ((SmoothForm.isClosed_def σ).1 hσ)) n)
   have hcoe : RoughForm.wedge (RoughForm.interior (k := 1) (fundamentalVectorField I ξ)
       (σ : RoughForm I M ℝ 2)) (σ.wedgePow n : RoughForm I M ℝ (2 * n)) =
       (SmoothForm.wedge (σ.interiorₗ X) (σ.wedgePow n) : RoughForm I M ℝ (1 + 2 * n)) := by
-    rw [SmoothForm.coe_wedge, SmoothTwoForm.coe_interiorₗ, ContMDiffSection.coeFn_mk]
+    rw [SmoothForm.coe_wedge, SmoothTwoForm.coe_interiorₗ,
+      InfinitesimalAction.coe_fundamental_toSectionLinearMap]
   rw [hcoe, integralTopForm_wedge_eq_of_sub_mem_exactForms_left o hγ hγγ' hη, ← hcoe]
   -- The function `γ'(X_ξ)` is constant and vanishes at the fixed point `p`, so the integrand is
   -- zero.
@@ -190,13 +166,11 @@ theorem exists_isMomentMap_of_mem_fixedPoints [I.Boundaryless] [T2Space M] [Comp
   obtain ⟨m, rfl⟩ : ∃ m, n = m + 1 := ⟨n - 1, by omega⟩
   rw [SmoothTwoForm.exists_isMomentMap_iff]
   intro ξ
-  let X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯ :=
-    ⟨fundamentalVectorField I ξ, contMDiff_fundamentalVectorField (m := ∞) (n := ∞) (by simp) ξ⟩
+  set X := (InfinitesimalAction.fundamental J G I M).toSectionLinearMap ξ
   have hX : X ∈ σ.symplecticVectorFields :=
-    (SmoothTwoForm.mem_symplecticVectorFields_iff_mlieDerivForm_eq_zero hσ.isClosed).2
-      (mlieDerivForm_fundamentalVectorField_eq_zero hinv ξ)
-  have hXc : σ.interiorₗ X ∈ closedForms I M 1 := (mem_closedForms I _).2 (by
-    rw [SmoothTwoForm.coe_interiorₗ]; exact SmoothTwoForm.mem_symplecticVectorFields_iff.1 hX)
+    SmoothTwoForm.fundamental_toSectionLinearMap_mem_symplecticVectorFields hσ.isClosed hinv ξ
+  have hXc : σ.interiorₗ X ∈ closedForms I M 1 :=
+    SmoothTwoForm.interiorₗ_fundamental_toSectionLinearMap_mem_closedForms hσ.isClosed hinv ξ
   have hσc : σ ∈ closedForms I M 2 :=
     (mem_closedForms I σ).2 ((SmoothForm.isClosed_def σ).1 hσ.isClosed)
   -- By the vanishing integral and the nondegeneracy of the pairing, `ι_X σ ∧ σ ^ m` is exact.
@@ -206,7 +180,8 @@ theorem exists_isMomentMap_of_mem_fixedPoints [I.Boundaryless] [T2Space M] [Comp
     refine mem_exactForms_of_forall_integralTopForm_wedge_eq_zero o
       (SmoothForm.wedge_mem_closedForms hXc (SmoothForm.wedgePow_mem_closedForms hσc m))
       fun γ hγ ↦ ?_
-    rw [SmoothForm.coe_wedge, SmoothTwoForm.coe_interiorₗ, ContMDiffSection.coeFn_mk]
+    rw [SmoothForm.coe_wedge, SmoothTwoForm.coe_interiorₗ,
+      InfinitesimalAction.coe_fundamental_toSectionLinearMap]
     exact integralTopForm_wedge_interior_wedge_wedgePow_eq_zero o hσ.isClosed hinv hp ξ hγ
   -- Hence `[σ ^ m] ∧ [ι_X σ] = ± [ι_X σ ∧ σ ^ m] = 0`, and `[ι_X σ] = 0` by injectivity.
   have hcls : σ.interiorClass ⟨X, hX⟩ = 0 := by
@@ -225,7 +200,7 @@ theorem exists_isMomentMap_of_mem_fixedPoints [I.Boundaryless] [T2Space M] [Comp
     rw [SmoothTwoForm.interiorClass_apply]
     exact key (by omega) _ hcomm
   obtain ⟨φ, hφ⟩ := (SmoothTwoForm.interiorClass_eq_zero_iff _).1 hcls
-  rw [Submodule.coe_mk, ContMDiffSection.coeFn_mk] at hφ
+  rw [Submodule.coe_mk, InfinitesimalAction.coe_fundamental_toSectionLinearMap] at hφ
   exact ⟨fun y ↦ φ.val y 0, SmoothForm.contMDiff_apply_zero φ,
     by rw [InfinitesimalAction.fundamental_apply]; exact hφ⟩
 
@@ -248,9 +223,11 @@ theorem exists_isMomentMap_iff_exists_mem_fixedPoints [I.Boundaryless] [T2Space 
     (∃ μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle),
         σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) (fun x ↦ -μ x)) ↔
       ∃ p : M, p ∈ MulAction.fixedPoints Circle M := by
-  refine ⟨fun ⟨μ, h⟩ ↦ exists_mem_fixedPoints_of_isMomentMap hσ.isNondegenerate h,
-    fun ⟨p, hp⟩ ↦ ?_⟩
+  have : IsMulCommutative Circle := ⟨⟨mul_comm⟩⟩
+  refine ⟨fun ⟨μ, h⟩ ↦ h.nonempty_fixedPoints hσ.isNondegenerate, fun ⟨p, hp⟩ ↦ ?_⟩
   obtain ⟨μ, h⟩ := exists_isMomentMap_of_mem_fixedPoints (J := 𝓡 1) hn hE hσ hinv hL hp
   exact ⟨fun x ↦ -μ x, by simpa only [neg_neg] using h⟩
+
 end Integral
+
 end SymplecticGeometry
