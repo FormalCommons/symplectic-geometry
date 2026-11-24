@@ -200,8 +200,7 @@ New files of the library, with the topic of each:
   `orderedGlobalFlowDiffeotopy`, and the velocity of a truncation.
 - `Geometry/Manifold/SmoothSingular/Rectangle.lean`: rectangle integrals of
   closed two-forms over doubly periodic maps are periods on
-  $H_2(M;\mathbb Z)$; the periods of a closed form on a compact
-  boundaryless manifold form a countable set.
+  $H_2(M;\mathbb Z)$.
 - `Geometry/Symplectic/Flux/Kernel.lean`: fluxes of initial pieces, the
   Hamiltonian criterion of Decision 2, Theorem 10.2.5 and the kernel of the
   endpoint flux.
@@ -263,9 +262,11 @@ Throughout, `[FiniteDimensional ℝ E] [J.Boundaryless] [T2Space M]
   Set.range (closedFormHomologyPeriod σ)`. The smoothness hypothesis is
   the one that `Diffeotopy.sweep` satisfies (`contMDiffOn_sweep`, smooth
   within the strip $[0,1]\times\mathbb R$).
-- `TauCeti.countable_range_closedFormHomologyPeriod`: for a compact
-  boundaryless `M` and `φ : closedForms J M p`,
-  `(Set.range (closedFormHomologyPeriod φ)).Countable`.
+
+`SmoothSingular/Period.lean`:
+
+- `TauCeti.countable_range_closedFormHomologyPeriod`: for
+  `φ : closedForms J M p`, `(Set.range (closedFormHomologyPeriod φ)).Countable`.
 
 `Countable.lean`:
 
