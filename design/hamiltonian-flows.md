@@ -190,18 +190,6 @@ These settle the questions that `DESIGN.md` leaves to this file.
    `hasHamiltonian_comp_iff`. Choose a base point in each connected component of $M$ (through
    `ConnectedComponents M`) and let $F_t$ be the primitive of $\alpha_t$
    that vanishes at the base points.
-   - *Local step.* Let $U$ be a smoothly contractible chart neighbourhood,
-     with contraction $G$. Pull $\alpha$, viewed as a form on
-     `unitInterval × U`, back along $((t,x),s)\mapsto(t,G(x,s))$, and apply
-     Tau Ceti's `homotopyOperator` on the cylinder over `unitInterval × U`.
-     The result is a jointly smooth $P$ with $d(P_t)=\alpha_t$ on $U$: by
-     `homotopyOperator_mpullback_prodMap_id_of_isSmoothForm`, $P_t$ is the
-     homotopy operator of $G^*\alpha_t$, and `mextDeriv_homotopyOperator`
-     needs only that $G^*\alpha_t$ is closed, which holds slice by slice.
-     It is the parametric Poincaré lemma of `auxiliary/smooth-primitives.md`
-     in degree $1$. The step is the public lemma
-     `SymplecticGeometry.IsSmoothlyContractible.exists_contMDiff_mextDeriv_eq_of_forall_mem_closedForms`
-     (`DeRham/FamilyPrimitive.lean`), for any parameter manifold.
    - *Gluing.* Each component is open, since manifolds are locally
      path-connected. On a component, Tau
      Ceti's `TauCeti.exists_contMDiff_mvfderiv_eq_of_forall_exists` gives a
@@ -209,6 +197,17 @@ These settle the questions that `DESIGN.md` leaves to this file.
      differs from $F$ by a constant, which is $0$. So $F$ is jointly smooth.
    This is the path integration of the page's proof route, done by Tau
    Ceti's theorem on each component. It needs neither compactness nor nondegeneracy.
+   The construction of $F$ uses no Poincaré lemma on chart neighbourhoods.
+   Separately, `DeRham/FamilyPrimitive.lean` has the library's parametric
+   Poincaré lemma in degree $1$ as a public lemma,
+   `SymplecticGeometry.IsSmoothlyContractible.exists_contMDiff_mextDeriv_eq_of_forall_mem_closedForms`:
+   on a smoothly contractible manifold, a smooth family of closed one-forms
+   over any parameter manifold has a jointly smooth family of primitives. It
+   reads the smooth family of `0`-forms given by
+   `IsSmoothlyContractible.exists_isSmoothFamily_mextDerivₗ_eq` of
+   `DifferentialForm/SmoothFamily/Poincare.lean` as one function on the
+   product. *Isotopy extension* uses it, in `DeRham/HomologyPeriod.lean` and
+   `IsotopyExtension/Ball/Isotopy.lean`; $F$ does not depend on it.
 5. **Uniqueness of the Hamiltonian** is stated in `TauCeti.Diffeotopy`, as
    the review of #420 asks: two Hamiltonians of the same diffeotopy differ
    by `c (ConnectedComponents.mk x) t` for a function `c` smooth in `t`.
@@ -286,7 +285,7 @@ Tau Ceti unchanged.
 | `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` | `Diffeotopy.velocity`, its joint smoothness, its value along the motion, its values for `refl` and the flow diffeotopies, and the pullback of $\iota_{X_t}\sigma$ by $\phi_t$ |
 | `Geometry/Symplectic/Hamiltonian/PoissonAlgebra.lean` | the Leibniz rule, the local time-dependent flow, the kernel and the quotient, the milestone *Hamiltonian flows and the Poisson algebra* |
 | `Geometry/Symplectic/Hamiltonian/SymplecticIsotopy.lean` | symplectic fields and their local flows, the book's bracket, the isotopy criterion, the milestone *Symplectic vector fields and isotopy generators* |
-| `Geometry/Manifold/DeRham/FamilyPrimitive.lean` | smooth primitives of a smooth family of one-forms: the local step on a smoothly contractible manifold and the gluing for exact forms on any manifold |
+| `Geometry/Manifold/DeRham/FamilyPrimitive.lean` | smooth primitives of a smooth family of one-forms: the parametric Poincaré lemma in degree one on a smoothly contractible manifold, and the gluing for exact forms on any manifold |
 | `Geometry/Symplectic/Flux/Hamiltonian.lean` | the page's $H_t$ beside `HasHamiltonian`, the three rules in the page's form, uniqueness, Hamiltonians from exactness |
 | `Geometry/Symplectic/Flux/CompactSupport.lean` | `IsCompactlySupportedHamiltonian`, `compactlySupportedHamiltonianGroup`, the flow of a compactly supported Hamiltonian, the milestone *Hamiltonian isotopies and their composition* |
 
@@ -471,11 +470,7 @@ In `TauCeti.Diffeotopy`, for any two-form `σ` unless said:
   ∀ t, σ.interiorₗ (Φ.smoothVelocity t) ∈ exactForms J M 1`. The backward
   direction builds the Hamiltonian as in Decision 4, with
   `exists_hasHamiltonian_of_forall_mem_exactForms` as the public
-  statement; the local step is the public lemma
-  `SymplecticGeometry.IsSmoothlyContractible.exists_contMDiff_mextDeriv_eq_of_forall_mem_closedForms`
-  of `DeRham/FamilyPrimitive.lean`, for a smooth family of closed
-  one-forms on a smoothly contractible manifold, over any parameter
-  manifold.
+  statement.
 - The gluing of Decision 4 is a public lemma, in the namespace
   `SymplecticGeometry` since its hypothesis is the library's
   `IsSmoothFamily`, in `Geometry/Manifold/DeRham/FamilyPrimitive.lean`,
@@ -647,8 +642,8 @@ Each is a few hundred lines; each is blocked by the issues it names.
    `hasHamiltonian_comp_iff`, the three rules and the uniqueness lemmas.
    About 250 lines. Blocked by 1.
 5. **Hamiltonians from exactness.** In `DeRham/FamilyPrimitive.lean` and
-   `Flux/Hamiltonian.lean`: the local
-   step, the gluing (`exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`),
+   `Flux/Hamiltonian.lean`: the
+   parametric Poincaré lemma in degree one, the gluing (`exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`),
    `exists_hasHamiltonian_of_forall_mem_exactForms` and
    `isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms`. About 350
    lines. Blocked by 4.
