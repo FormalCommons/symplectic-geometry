@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Lie.Functor
 import TauCeti.Geometry.Lie.Subgroup.Kernel
 
@@ -14,7 +15,7 @@ import TauCeti.Geometry.Lie.Subgroup.Kernel
 Tau Ceti states the Lie functor on smooth homomorphisms in two forms: `lieMap φ`, on
 left-invariant derivations, and `ContMDiffMonoidMorphism.groupLieAlgebraLieHom φ`, on the tangent
 spaces at `1`. Its results on the exponential and on injectivity are stated for `lieMap`. This file
-moves them to `groupLieAlgebraLieHom`.
+moves them to `groupLieAlgebraLieHom`, and states there the naturality of the adjoint action.
 
 ## Main results
 
@@ -24,10 +25,14 @@ moves them to `groupLieAlgebraLieHom`.
   `φ (exp ξ) = exp (φ.groupLieAlgebraLieHom ξ)`.
 * `ContMDiffMonoidMorphism.groupLieAlgebraLieHom_injective`: the Lie algebra map of an injective
   smooth homomorphism is injective.
+* `ContMDiffMonoidMorphism.groupLieAlgebraLieHom_tangentAd`: `φ.groupLieAlgebraLieHom` intertwines
+  `Ad g` and `Ad (φ g)`.
 
 The exponential law is the tangent-space form of Tau Ceti's `map_lieExp` (Tau Ceti proves it
 privately, as `monoidHom_mulInvariantExp`); here it is derived from `map_lieExp`. Injectivity is
-derived from Tau Ceti's `ContinuousMonoidHom.lieMap_injective_of_discreteTopology_ker`.
+derived from Tau Ceti's `ContinuousMonoidHom.lieMap_injective_of_discreteTopology_ker`. The
+naturality of `Ad` restates Tau Ceti's `MonoidHom.groupLieAlgebraMap_adjointContinuousLinearMap`
+for `groupLieAlgebraLieHom` and `TauCeti.Lie.tangentAd`.
 -/
 
 public section
@@ -54,6 +59,30 @@ theorem ContMDiffMonoidMorphism.coe_toMonoidHom {n : WithTop ℕ∞}
   (rfl)
 
 end Coe
+
+section Adjoint
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [CompleteSpace E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+  {G' : Type*} [TopologicalSpace G'] [ChartedSpace H' G'] [Group G'] [LieGroup I' ∞ G']
+
+attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
+
+/-- A smooth homomorphism intertwines the adjoint actions through its Lie algebra map:
+`φ.groupLieAlgebraLieHom (Ad g ξ) = Ad (φ g) (φ.groupLieAlgebraLieHom ξ)`. -/
+theorem ContMDiffMonoidMorphism.groupLieAlgebraLieHom_tangentAd
+    (φ : ContMDiffMonoidMorphism I I' ∞ G G') (g : G)
+    (ξ : GroupLieAlgebra I G) :
+    φ.groupLieAlgebraLieHom (TauCeti.Lie.tangentAd (I := I) g ξ) =
+      TauCeti.Lie.tangentAd (I := I') (φ g) (φ.groupLieAlgebraLieHom ξ) := by
+  simpa only [ContMDiffMonoidMorphism.coe_groupLieAlgebraLieHom,
+    TauCeti.Lie.tangentAd_apply, ContMDiffMonoidMorphism.coe_toMonoidHom] using
+    φ.toMonoidHom.groupLieAlgebraMap_adjointContinuousLinearMap g ξ
+
+end Adjoint
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}

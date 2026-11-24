@@ -200,7 +200,7 @@ All in `SymplecticGeometry`, with `C : LieComplexification I G IC Gc`.
 - `C.expI ξ := mulInvariantExp (C.cplx (C.lieMap ξ))`, with `expI_zero`,
   `expI_add_smul` for `s t : ℝ`
   (`expI ((s + t) • ξ) = expI (s • ξ) * expI (t • ξ)`), and
-  `C.toHom u * C.expI ξ * (C.toHom u)⁻¹ = C.expI (Ad u ξ)`.
+  `C.toHom u * C.expI ξ * (C.toHom u)⁻¹ = C.expI (Ad u ξ)` for connected `G`.
 - `IsComplexifiedAction C J` (decision 2), with
   `IsComplexifiedAction.fundamentalVectorField_cplx` and
   `fundamentalVectorField_expI` (the velocity of $t\mapsto\exp(it\xi)p$ is
