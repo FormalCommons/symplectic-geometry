@@ -795,7 +795,7 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
 
 ### `Geometry/Diffeomorphism/Diffeotopy/OfContMDiff.lean`
 
-In `TauCeti.Diffeotopy`, for `[FiniteDimensional ℝ E] [IsManifold I ∞ M]
+In `TauCeti.Diffeotopy`, for `[CompleteSpace E] [IsManifold I ∞ M]
 [BoundarylessManifold I M]`:
 
 - `Diffeomorph.contMDiff_symm_eval_unitInterval {ψ : unitInterval →
