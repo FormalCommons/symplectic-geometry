@@ -66,9 +66,9 @@ theorem mextDerivₗ_measureAverage_of_invariant [MeasurableSpace G] [OpensMeasu
 
 include J in
 /-- **Invariant primitives.** For a compact Hausdorff topological group `G`, which is a smooth
-manifold acting smoothly on a boundaryless manifold `M`, a smooth form `α` on `M` that is exact, `α = d β`, and invariant under
-every element of `G` has a primitive `γ`, `d γ = α`, that is invariant under every element of `G`.
--/
+manifold acting smoothly on a boundaryless manifold `M`, a smooth form `α` on `M` that is exact,
+`α = d β`, and invariant under every element of `G` has a primitive `γ`, `d γ = α`, that is
+invariant under every element of `G`. -/
 theorem exists_invariant_primitive [IsTopologicalGroup G] {α : SmoothForm I M F (k + 1)}
     {β : SmoothForm I M F k} (hβ : mextDerivₗ I k β = α)
     (hα : ∀ a : G, TauCeti.mpullback (F := F) I I (a • ·) α.val = α.val) :
