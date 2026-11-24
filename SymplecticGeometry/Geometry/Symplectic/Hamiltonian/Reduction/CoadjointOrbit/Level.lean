@@ -9,6 +9,7 @@ public import Mathlib.Topology.Homeomorph.Lemmas
 public import TauCeti.Geometry.Manifold.PullbackGroupoid
 public import TauCeti.Geometry.Symplectic.Coadjoint.Orbit
 public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Prod
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Prod
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Reduction.ZeroLevel.Basic
 
 /-!
@@ -50,8 +51,9 @@ of reduction at a coadjoint orbit through the product:
 * `isSmoothEmbedding_coe_orbitLevel`: for that atlas, `Q` is an embedded submanifold of `M`. The
   inclusion is the graph followed by the first projection of the product's zero level, which is a
   smooth embedding (`isSmoothEmbedding_fst_comp_coe_zeroLevelProd`): a tangent vector `(0, w)` of
-  that level has `dι w = 0` (`differential_prod_apply`), so `w = 0` since the orbit map is an
-  immersion (`Module.Dual.injective_differential_orbitMap_coadjointRepresentation`).
+  that level has `dι w = 0` (`IsMomentMap.differential_prod_apply`, in this library's
+  `Hamiltonian/MomentMap/Prod.lean`), so `w = 0` since the orbit map is an immersion
+  (`Module.Dual.injective_differential_orbitMap_coadjointRepresentation`).
 
 All declarations are in the namespace `TauCeti.SmoothTwoForm.IsEquivariantMomentMap`, beside
 `zeroLevel`.
@@ -137,30 +139,6 @@ theorem differential_surjective_of_mem_orbitLevel [BoundarylessManifold I' M] [T
     ∀ x ∈ h.orbitLevel η, Function.Surjective (h.differential x) :=
   fun x hx ↦ h.toIsMomentMap.differential_surjective_of_stabilizer_eq_bot
     (hσ.nondegenerate_bilinFormAt x) (hfree x hx)
-
-/-- **The differential of the product moment map.** For moment maps `μ` on `M` and `ν` on `N`, the
-differential of `(x, y) ↦ μ x + ν y` at `p` sends `v` to `dμ(v.1) + dν(v.2)`. -/
-theorem differential_prod_apply {E'' H'' : Type*} [NormedAddCommGroup E''] [NormedSpace ℝ E'']
-    [CompleteSpace E''] [TopologicalSpace H''] {J : ModelWithCorners ℝ E'' H''} {N : Type*}
-    [TopologicalSpace N] [ChartedSpace H'' N] [IsManifold J ∞ N] [MulAction G N]
-    [ContMDiffSMul I J ∞ G N]
-    {τ : SmoothTwoForm J N} {ν : N → Module.Dual ℝ (GroupLieAlgebra I G)}
-    (hν : τ.IsEquivariantMomentMap ν) (p : M × N) (v : TangentSpace (I'.prod J) p) :
-    (h.prod hν).differential p v = h.differential p.1 v.1 + hν.differential p.2 v.2 := by
-  refine LinearMap.ext fun Z ↦ ?_
-  have h1 : MDifferentiableAt I' 𝓘(ℝ) (fun x ↦ μ x Z) p.1 := h.mdifferentiableAt Z p.1
-  have h2 : MDifferentiableAt J 𝓘(ℝ) (fun y ↦ ν y Z) p.2 := hν.mdifferentiableAt Z p.2
-  have e1 := mvfderiv_comp_apply (g := fun x ↦ μ x Z) (f := Prod.fst) p h1 mdifferentiableAt_fst v
-  have e2 := mvfderiv_comp_apply (g := fun y ↦ ν y Z) (f := Prod.snd) p h2 mdifferentiableAt_snd v
-  rw [mfderiv_fst] at e1
-  rw [mfderiv_snd] at e2
-  simp only [IsMomentMap.differential_apply, LinearMap.add_apply]
-  rw [show (fun q : M × N ↦ μ q.1 Z + ν q.2 Z) = (fun q ↦ μ q.1 Z) + (fun q ↦ ν q.2 Z) from rfl,
-    mvfderiv_add (g := fun q : M × N ↦ μ q.1 Z) (g' := fun q ↦ ν q.2 Z)
-      (h1.comp p mdifferentiableAt_fst) (h2.comp p mdifferentiableAt_snd),
-    add_apply]
-  exact congrArg₂ (· + ·) (e1.trans (h.differential_apply p.1 v.1 Z).symm)
-    (e2.trans (hν.differential_apply p.2 v.2 Z).symm)
 
 /-! ### The graph over the preimage of the orbit -/
 
@@ -445,7 +423,8 @@ theorem isSmoothEmbedding_fst_comp_coe_zeroLevelProd :
   rw [(h.prod η.isEquivariantMomentMap_coadjointOrbitForm).range_mfderiv_coe_zeroLevel
     (hσ.prod η.isSymplectic_coadjointOrbitForm.isNondegenerate)
     (h.stabilizer_zeroLevel_prod_eq_bot η hfree) (n := m) (by rwa [Module.finrank_prod]),
-    LinearMap.mem_ker, h.differential_prod_apply η.isEquivariantMomentMap_coadjointOrbitForm] at hu
+    LinearMap.mem_ker, IsMomentMap.differential_prod_apply h.toIsMomentMap
+      η.isEquivariantMomentMap_coadjointOrbitForm.toIsMomentMap] at hu
   -- `hv` says `(fst ∘L di) v = 0`, which is `u.1 = 0` by definition of composition; `rw` with
   -- `ContinuousLinearMap.comp_apply` fails, since the tangent spaces are only defeq to the models.
   have h1 : u.1 = 0 := hv
