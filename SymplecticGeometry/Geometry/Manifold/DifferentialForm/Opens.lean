@@ -245,9 +245,15 @@ theorem SmoothForm.eval₂_mfderiv_eq_of_mpullback_subtype_val_eq {U : Opens M} 
       SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) (x : U) (a b : TangentSpace I x) :
     SmoothBundleForm.eval₂ σ' (ψ x : M') (mfderiv I I' ψ x a) (mfderiv I I' ψ x b) =
       SmoothBundleForm.eval₂ σ (x : M) a b := by
-  have := congrArg (fun s ↦ SmoothBundleForm.eval₂ s x a b) h
-  simpa only [SmoothForm.eval₂_mpullback, Manifold.mfderiv_subtype_val,
-    ContinuousLinearEquiv.coe_coe, Manifold.tangentSpaceOpenEquiv_apply] using this
+  have hψ' : ContMDiff I I' ∞ (Subtype.val ∘ ψ) := contMDiff_subtypeVal.comp hψ
+  have h' : SmoothForm.mpullback (Subtype.val ∘ ψ) hψ' σ' =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ := by
+    rw [SmoothForm.mpullback_comp ψ Subtype.val hψ contMDiff_subtypeVal, LinearMap.comp_apply, h]
+  have hd : ∀ v, mfderiv I I' (Subtype.val ∘ ψ) x v = mfderiv I I' ψ x v := fun v ↦ by
+    rw [mfderiv_comp_apply x SymplecticGeometry.mdifferentiableAt_subtypeVal
+      ((hψ x).mdifferentiableAt (by simp)), Manifold.mfderiv_subtype_val_apply]
+  rw [← hd, ← hd]
+  exact eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtype_val hψ' h' x a b
 
 end TwoForm
 

@@ -14,6 +14,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 
 /-!
 # Diffeomorphisms of neighbourhoods with a prescribed derivative
@@ -191,15 +192,12 @@ private theorem mfderiv_twistedExp_zeroSection_apply
     ((contMDiffOn_twistedExp f₀ f₁ A hA hdim).contMDiffAt
       ((isOpen_twistedExpDomain f₀ f₁ A hA hdim).mem_nhds
         (zeroSection_mem_twistedExpDomain f₀ f₁ A q))).mdifferentiableAt (by simp)
-  rw [Bundle.zeroSectionTangentEquiv_symm_eq, map_add]
+  rw [show (u, v) = (u, 0) + (0, v) from Prod.ext (add_zero u).symm (zero_add v).symm, map_add,
+    map_add]
   congr 1
   · -- On the zero section the twisted exponential is `f₁`.
-    have h := mfderiv_comp_apply q he (mdifferentiableAt_zeroSection ℝ _) u
-    have hfun : twistedExp (P := P) f₀ f₁ A ∘
-        zeroSection P (fun q ↦ f₀.NormalSpace q infty_ne_zero) = f₁ :=
-      funext (twistedExp_zeroSection f₀ f₁ A)
-    rw [hfun] at h
-    exact h.symm
+    exact Bundle.mfderiv_zeroSectionTangentEquiv_symm_inl he
+      (.of_eq (funext (twistedExp_zeroSection f₀ f₁ A))) u
   · -- On the fibre line `t ↦ t • v` it is `t ↦ exp_{f₁ q} (t • A q (rep₀ v))`.
     rw [Bundle.zeroSectionTangentEquiv_symm_inr]
     let line : ℝ → TotalSpace P (fun q ↦ f₀.NormalSpace q infty_ne_zero) := fun t ↦ ⟨q, t • v⟩

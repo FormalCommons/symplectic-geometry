@@ -237,16 +237,10 @@ private theorem mfderiv_comp_cotangentToNormal (hf : IsLegendrianEmbedding J α.
     hT.comp (contMDiff_cotangentToNormal hf hdim)
   refine ⟨?_, ?_⟩
   · -- Horizontally: the composite is `g` on the zero section.
-    have hfun : (fun p : CotangentBundle J L ↦ T ⟨p.proj, cotangentToNormal hf p.proj p.snd⟩) ∘
-        zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) = g := by
-      funext q
-      rw [Function.comp_apply, ← hT0 q]
-      exact congrArg T (congrArg (TotalSpace.mk' P q) (map_zero _))
-    have h := mfderiv_comp_apply q ((hι _).mdifferentiableAt (by simp))
-      (mdifferentiableAt_zeroSection ℝ _) u
-    rw [hfun] at h
-    rw [Bundle.zeroSectionTangentEquiv_symm_eq, map_add, h, Prod.mk_zero_zero, map_zero, map_zero,
-      add_zero]
+    refine Bundle.mfderiv_zeroSectionTangentEquiv_symm_inl ((hι _).mdifferentiableAt (by simp))
+      (.of_forall fun q ↦ ?_) u
+    rw [Function.comp_apply, ← hT0 q]
+    exact congrArg T (congrArg (TotalSpace.mk' P q) (map_zero _))
   · -- Vertically: the composite maps the line `t ↦ t • p` to the line `t ↦ t • j p`.
     rw [Bundle.zeroSectionTangentEquiv_symm_inr, Bundle.zeroSectionTangentEquiv_symm_inr]
     let line : ℝ → CotangentBundle J L := fun t ↦ ⟨q, t • p⟩
