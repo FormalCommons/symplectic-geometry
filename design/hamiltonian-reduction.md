@@ -471,5 +471,5 @@ In order; each is a few hundred lines.
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
   Example 5.3.11, Propositions 5.4.13 and 5.4.15, Remark 5.4.14.
-* [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001],
+* [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001Lectures],
   Lecture 23.
