@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Data.Set.Card
 public import Mathlib.Topology.Order.OrderClosed
 
 /-!
@@ -17,7 +18,8 @@ lying in its closure, that is, the least or the greatest point of the closure.
 
 * `Set.OrdConnected.frontier_subset`: the frontier of an order-connected set consists of points of
   its closure that are lower or upper bounds of the set.
-* `Set.OrdConnected.finite_frontier`: the frontier of an order-connected set is finite.
+* `Set.OrdConnected.encard_frontier_le_two`: the frontier of an order-connected set has at most
+  two points, so it is finite (`Set.OrdConnected.finite_frontier`).
 
 By `isPreconnected_iff_ordConnected`, this applies to the connected subsets of `ℝ`.
 -/
@@ -51,15 +53,26 @@ theorem OrdConnected.frontier_subset (hs : s.OrdConnected) :
   rw [← inter_union_distrib_left]
   refine ⟨hx.1, ?_⟩
   by_contra h
-  simp only [mem_union, lowerBounds, upperBounds, mem_ofPred_eq, not_or, not_forall, not_le] at h
+  simp only [mem_union, mem_lowerBounds, mem_upperBounds, not_or, not_forall, not_le] at h
   obtain ⟨⟨a, ha, hax⟩, ⟨b, hb, hxb⟩⟩ := h
   exact hx.2 <| mem_interior.2
     ⟨Ioo a b, Ioo_subset_Icc_self.trans (hs.out ha hb), isOpen_Ioo, hax, hxb⟩
 
+/-- The frontier of an order-connected set has at most two points. -/
+theorem OrdConnected.encard_frontier_le_two (hs : s.OrdConnected) : (frontier s).encard ≤ 2 :=
+  calc (frontier s).encard
+      ≤ (closure s ∩ lowerBounds s ∪ closure s ∩ upperBounds s).encard :=
+        encard_le_encard hs.frontier_subset
+    _ ≤ (closure s ∩ lowerBounds s).encard + (closure s ∩ upperBounds s).encard :=
+        encard_union_le _ _
+    _ ≤ 1 + 1 := add_le_add
+        (encard_le_one_iff_subsingleton.2 (subsingleton_closure_inter_lowerBounds s))
+        (encard_le_one_iff_subsingleton.2 (subsingleton_closure_inter_upperBounds s))
+    _ = 2 := one_add_one_eq_two
+
 /-- The frontier of an order-connected set is finite. -/
 theorem OrdConnected.finite_frontier (hs : s.OrdConnected) : (frontier s).Finite :=
-  ((subsingleton_closure_inter_lowerBounds s).finite.union
-    (subsingleton_closure_inter_upperBounds s).finite).subset hs.frontier_subset
+  finite_of_encard_le_coe hs.encard_frontier_le_two
 
 end Set
 

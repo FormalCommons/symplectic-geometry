@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.RealAlgebraic.CAD.Existence
 public import TauCeti.Geometry.RealAlgebraic.Semialgebraic.Image
+public import TauCeti.Geometry.RealAlgebraic.Semialgebraic.Connected
 public import SymplecticGeometry.Topology.Order.OrdConnected
 
 /-!
@@ -38,10 +39,10 @@ containing a point of the graph just right of `a` lies in the graph and lies ove
 cell, and it contains the graph of a continuous function on its projection, which is then the
 coordinate.
 
-For the frontier, a semialgebraic subset of the line is the union of the finitely many cells it
-contains (`TauCeti.IsCAD.sUnion_sep_subset`), its frontier lies in the union of their
-frontiers, and each cell is connected, so its frontier has at most two points
-(`Set.OrdConnected.finite_frontier`).
+For the frontier, a semialgebraic subset of the line is the union of finitely many connected
+semialgebraic sets (`TauCeti.IsSemialgebraic.exists_finite_isConnected_partition`), its frontier
+lies in the union of their frontiers, and each of these is order-connected, so its frontier has
+at most two points (`Set.OrdConnected.encard_frontier_le_two`).
 
 ## References
 
@@ -193,25 +194,16 @@ theorem IsSemialgebraicOn.exists_pos_forall_Ioo_continuousAt {τ : Type*} [Finit
 has finite frontier. -/
 theorem finite_frontier_of_isSemialgebraic_preimage_funUnique {σ : Type*} [Unique σ] {t : Set ℝ}
     (ht : IsSemialgebraic (Homeomorph.funUnique σ ℝ ⁻¹' t)) : (frontier t).Finite := by
-  -- Move to the coordinate space `Fin 1 → ℝ` of cylindrical algebraic decompositions.
-  let e := Homeomorph.funUnique (Fin 1) ℝ
-  have ht' : IsSemialgebraic (e ⁻¹' t) := by
-    convert ht.preimage_comp (fun _ : σ ↦ (0 : Fin 1)) using 1
-    ext x; simp [e]
-  -- `t` is the union of the images of the cells it contains, which are order-connected.
-  obtain ⟨𝒞, h𝒞, hsub⟩ := ht'.exists_isCAD_subset_or_disjoint
-  have hI : {E ∈ 𝒞 | E ⊆ e ⁻¹' t}.Finite := h𝒞.finite.subset fun _ hE ↦ hE.1
-  have hU : t = ⋃ E ∈ {E ∈ 𝒞 | E ⊆ e ⁻¹' t}, e '' E := by
-    rw [← image_iUnion₂, ← sUnion_eq_biUnion, h𝒞.sUnion_sep_subset hsub,
-      e.image_preimage]
-  rw [hU]
-  refine (hI.biUnion fun E hE ↦ ?_).subset (hI.frontier_biUnion_subset _)
-  exact ((h𝒞.isConnected hE.1).isPreconnected.image _
-    e.continuous.continuousOn).ordConnected.finite_frontier
+  -- `t` is the union of the images of finitely many connected sets, which are order-connected.
+  set e := Homeomorph.funUnique σ ℝ
+  obtain ⟨𝒞, h𝒞, -, hc, hU⟩ := ht.exists_finite_isConnected_partition
+  rw [← e.image_preimage t, ← hU, sUnion_eq_biUnion, image_iUnion₂]
+  exact (h𝒞.biUnion fun E hE ↦ ((hc E hE).1.isPreconnected.image _
+    e.continuous.continuousOn).ordConnected.finite_frontier).subset
+    (h𝒞.frontier_biUnion_subset _)
 
 /-- A semialgebraic subset of the line `σ → ℝ`, `σ` having one element, has finite frontier: it
-is a finite union of cells of a cylindrical algebraic decomposition, each of which is connected
-and so has at most two frontier points. -/
+is a finite union of connected sets, each of which has at most two frontier points. -/
 theorem IsSemialgebraic.finite_frontier_of_unique {σ : Type*} [Unique σ] {s : Set (σ → ℝ)}
     (hs : IsSemialgebraic s) : (frontier s).Finite := by
   set e := Homeomorph.funUnique σ ℝ
