@@ -357,6 +357,8 @@ omit [IsMulCommutative G] in
 `M`, with `G` finite-dimensional, `chart` a chart at `x`, and `𝔮` a subspace of the Lie algebra of
 `G`. Then the map `z ↦ (μ (chart⁻¹ z) - μ x)|_𝔮` into `𝔮*` is smooth at `chart x`. -/
 theorem contDiffAt_comp_symm_sub_comp_subtype [FiniteDimensional ℝ E]
+    {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+    {chart : PartialDiffeomorph I' 𝓘(ℝ, F) M F ∞}
     (h : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) μ) (hx : x ∈ chart.source)
     (𝔮 : Submodule ℝ E) :
     ContDiffAt ℝ ∞
@@ -375,12 +377,14 @@ omit [IsMulCommutative G] in
 /-- The derivative of the transverse part `z ↦ (μ (chart⁻¹ z) - μ x)|_𝔮` of the moment map at
 `chart x`, evaluated at `ξ ∈ 𝔮`, is the derivative of `μ^ξ ∘ chart⁻¹`. -/
 theorem fderiv_comp_symm_sub_comp_subtype_apply_apply [FiniteDimensional ℝ E]
+    {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+    {chart : PartialDiffeomorph I' 𝓘(ℝ, F) M F ∞}
     (h : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) μ) (hx : x ∈ chart.source)
-    (𝔮 : Submodule ℝ E) (w : EuclideanSpace ℝ ι × EuclideanSpace ℝ ι) (ξ : 𝔮) :
+    (𝔮 : Submodule ℝ E) (w : F) (ξ : 𝔮) :
     fderiv ℝ (fun z ↦ LinearMap.toContinuousLinearMap ((μ (chart.symm z) - μ x) ∘ₗ 𝔮.subtype))
         (chart x) w ξ =
       fderiv ℝ (fun z ↦ μ (chart.symm z) (ξ : E)) (chart x) w := by
-  set Fq : EuclideanSpace ℝ ι × EuclideanSpace ℝ ι → StrongDual ℝ 𝔮 := fun z ↦
+  set Fq : F → StrongDual ℝ 𝔮 := fun z ↦
     LinearMap.toContinuousLinearMap ((μ (chart.symm z) - μ x) ∘ₗ 𝔮.subtype)
   -- `μ` takes values in the dual of `GroupLieAlgebra I G`, which is `E` only up to unfolding.
   have hFq (z) (ξ : 𝔮) : Fq z ξ = μ (chart.symm z) (ξ : E) - μ x (ξ : E) := rfl
@@ -500,10 +504,8 @@ theorem exists_openPartialHomeomorph_weightMomentMap_prod
     rw [OpenPartialHomeomorph.trans_source, Set.mem_inter_iff, Set.mem_preimage,
       OpenPartialHomeomorph.transHomeomorph_source,
       OpenPartialHomeomorph.transHomeomorph_apply, Function.comp_apply,
-      ContinuousLinearEquiv.coe_toHomeomorph, PartialDiffeomorph.toFun'_toOpenPartialHomeomorph]
-    -- The source of `chart.toOpenPartialHomeomorph` is `chart.source` by definition, and Mathlib
-    -- states no lemma for it.
-    rfl
+      ContinuousLinearEquiv.coe_toHomeomorph, PartialDiffeomorph.toFun'_toOpenPartialHomeomorph,
+      PartialDiffeomorph.toOpenPartialHomeomorph_source]
   have hΘ (y : M) : Θ y = Φ (T.symm (chart y)) := by
     rw [OpenPartialHomeomorph.trans_apply, OpenPartialHomeomorph.transHomeomorph_apply,
       Function.comp_apply, ContinuousLinearEquiv.coe_toHomeomorph,
