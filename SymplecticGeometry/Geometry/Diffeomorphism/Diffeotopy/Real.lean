@@ -79,7 +79,7 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
 
 section OfReal
 
-variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] [BoundarylessManifold I M]
+variable [CompleteSpace E] [IsManifold I ∞ M] [BoundarylessManifold I M]
   (ψ : ℝ → M ≃ₘ⟮I, I⟯ M) (hψ : ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞ (fun p : ℝ × M ↦ ψ p.1 p.2))
   (h₀ : ∀ x, ψ 0 x = x)
 

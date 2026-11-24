@@ -745,8 +745,10 @@ For `[FiniteDimensional ℝ E] [IsManifold I ∞ M] [T2Space M]
 
 ### `Geometry/Diffeomorphism/Diffeotopy/Real.lean`
 
-In `TauCeti.Diffeotopy`, for `[FiniteDimensional ℝ E] [IsManifold I ∞ M]`
-and, where the inverse function theorem is used, `[BoundarylessManifold I M]`.
+In `TauCeti.Diffeotopy`, for `[IsManifold I ∞ M]` and, where the inverse
+function theorem is used, `[BoundarylessManifold I M]`. The restriction
+`ofReal` and its lemmas need only `[CompleteSpace E]`; the flow part needs
+`[FiniteDimensional ℝ E]`.
 
 Below, `∂ₜ` at `(x, t)` is the tangent vector
 `((0 : E), (1 : TangentSpace (𝓡∂ 1) t))` of `M × unitInterval`, as in

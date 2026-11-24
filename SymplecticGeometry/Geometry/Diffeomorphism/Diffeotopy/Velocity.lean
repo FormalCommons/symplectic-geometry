@@ -256,14 +256,13 @@ theorem mpullback_timeSlice_interior_velocity_apply {F : Type*} [AddCommGroup F]
         ![((0 : E), (1 : TangentSpace (𝓡∂ 1) t)), (v, (0 : EuclideanSpace ℝ (Fin 1)))] := by
   have h : ⇑(Φ.timeSlice t) = fun z ↦ Φ.cylinderMap (z, t) :=
     funext fun z ↦ (Φ.timeSlice_apply t z).trans (Φ.cylinderMap_apply (z, t)).symm
-  have hx : Φ.symm (t, Φ.cylinderMap (x, t)) = x := by
-    rw [Φ.cylinderMap_apply, symm_apply_mk_apply]
   rw [h, mpullback_apply, mpullback_apply, RoughForm.interior_apply]
   congr 1
   funext i
   fin_cases i
-  -- After moving the base point, `rfl` evaluates the vector `![∂ₜ, (v, 0)]` at `0`.
-  · exact (Φ.velocity_def t _).trans (by rw [hx]; rfl)
+  -- `exact` evaluates the vector `![∂ₜ, (v, 0)]` at `0`.
+  · rw [Φ.cylinderMap_apply]
+    exact Φ.velocity_apply t x
   · exact ((Φ.mfderiv_cylinderMap_inl (by simp) (x, t) v).trans
       (congrArg (fun f ↦ mfderiv J J f x v) h)).symm
 
