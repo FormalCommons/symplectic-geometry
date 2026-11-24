@@ -27,7 +27,7 @@ for the higher orders.
   `exists_isothermal_chart_of_contDiffAt` (`Analysis/Complex/Beltrami/Isothermal.lean`):
   a field `J : ℂ → AlmostComplexStructure ℂ`, tame for
   `stdComplexSymplecticForm` near `c` with Hölder coefficient (or $C^1$ at
-  `c` and tame at `c`), has an open partial homeomorphism `e` with
+  `c`, tame there or not), has an open partial homeomorphism `e` with
   `c ∈ e.source`, `C¹` on its source with Hölder and invertible derivative,
   and `fderiv ℝ e z (J z v) = I * fderiv ℝ e z v`. The proof normalizes the
   coefficient at `c` with `TauCeti.Beltrami.linearEquiv` and
@@ -128,19 +128,22 @@ this file.
    `closedBall c r`, where `χ = 1`, the product is $\mu\,Bh$ everywhere. Tau
    Ceti builds this operator, privately, in its
    `Beltrami/HigherHolder.lean` (*Files taken from Tau Ceti*).
-4. **Statements of finite order are for `J` of class `C^m` at a point, tame
-   there**, as in `exists_isothermal_chart_of_contDiffAt`, with `1 ≤ m`; the
+4. **Statements of finite order are for `J` of class `C^m` at a point**, as
+   in `exists_isothermal_chart_of_contDiffAt`, with `1 ≤ m`; the
    chart is of class `C^m`. This is the natural generality of the route
    ($J\in C^m$ gives $\mu\in C^{m-1,\alpha}$ near the centre, since the
    $(m-1)$-st derivative is `C¹` there, hence Lipschitz and Hölder on a
    ball), and the conclusion has exactly the shape of the hypothesis of
-   `contDiffOn_infty_of_fderiv_comp` (applied with `max m 1`).
+   `contDiffOn_infty_of_fderiv_comp` (applied with `max m 1`). The route
+   needs `J` tame at the point; where it is not, the chart of the field
+   transported by conjugation is composed with conjugation
+   (`stdComplexSymplecticForm_tames_or_tames_transport_conj`), as Tau Ceti's
+   theorem does.
 5. **Surfaces over any two-dimensional model.** The chart on a surface is
    proved over a boundaryless model `I : ModelWithCorners ℝ E H` with
    `Module.finrank ℝ E = 2`, using a real isomorphism `E ≃L[ℝ] ℂ`
-   (`ContinuousLinearEquiv.ofFinrankEq`). If the pushed-forward structure is
-   not tame at the point, the chart is first composed with conjugation
-   (`stdComplexSymplecticForm_tames_or_tames_transport_conj`).
+   (`ContinuousLinearEquiv.ofFinrankEq`). The planar charts need no
+   tameness (Decision 4).
 6. **`IsIntegrable` uses one linear structure**, the transport of
    multiplication by `i` along `E ≃L[ℝ] ℂ` (`TauCeti.AlmostComplexStructure.transport`),
    whatever conjugation the chart needed at each point. So the remark in
@@ -264,12 +267,11 @@ Tau Ceti's `Beltrami/Isothermal.lean`,
 
 - `exists_contDiffOn_isothermal_chart_of_contDiffAt {m : ℕ} (hm : 1 ≤ m)
   {J : ℂ → AlmostComplexStructure ℂ} {c : ℂ}
-  (hJ : ContDiffAt ℝ m (fun z ↦ toCLM J z) c)
-  (hJc : stdComplexSymplecticForm.Tames (J c)) :
+  (hJ : ContDiffAt ℝ m (fun z ↦ toCLM J z) c) :
   ∃ e : OpenPartialHomeomorph ℂ ℂ, c ∈ e.source ∧ ContDiffOn ℝ m e e.source ∧
     (∀ z ∈ e.source, (fderiv ℝ e z).IsInvertible) ∧
     ∀ z ∈ e.source, ∀ v, fderiv ℝ e z (J z v) = I * fderiv ℝ e z v`.
-  With `k = m - 1`: the coefficient is `C^m` at `c` (`Tames.contMDiffAt_cayley`);
+  Where `J c` is tame, with `k = m - 1`: the coefficient is `C^m` at `c` (`Tames.contMDiffAt_cayley`);
   normalized by `L = linearEquiv (μ c)` and read at `c + L⁻¹ x`, it is
   `C^m` at `0`, vanishes there, and its `k`-th derivative is Lipschitz,
   hence `α`-Hölder, on a ball
@@ -285,10 +287,11 @@ Tau Ceti's `Beltrami/Isothermal.lean`,
   Hölder; the docstring credits it and its private
   `exists_rescaled_coefficient` and `exists_chart_comp_affine`, whose
   `C^m` analogues are steps here (private, or public in Tau Ceti's
-  namespaces if another proof uses them).
+  namespaces if another proof uses them). Where `J c` is not tame, by
+  conjugation (Decision 4).
 - `exists_smooth_isothermal_chart_of_contDiffOn {J : ℂ → AlmostComplexStructure ℂ}
   {U : Set ℂ} (hU : IsOpen U) (hJ : ContDiffOn ℝ ∞ (fun z ↦ toCLM J z) U)
-  (hJU : ∀ z ∈ U, stdComplexSymplecticForm.Tames (J z)) {c : ℂ} (hc : c ∈ U) :
+  {c : ℂ} (hc : c ∈ U) :
   ∃ e : OpenPartialHomeomorph ℂ ℂ, c ∈ e.source ∧ e.source ⊆ U ∧
     ContDiffOn ℝ ∞ e e.source ∧ (∀ z ∈ e.source, (fderiv ℝ e z).IsInvertible) ∧
     ∀ z ∈ e.source, ∀ v, fderiv ℝ e z (J z v) = I * fderiv ℝ e z v`.
@@ -322,14 +325,11 @@ follows from `hE`.
   a smooth field on its target
   (`contDiffOn_chartPushforward`, squaring to `-1` by
   `chartPushforward_apply_chartPushforward_apply` of the library's `Chart.lean`); the smooth planar
-  chart of `TauCeti.Beltrami.exists_smooth_isothermal_chart` composed with
+  chart of `TauCeti.Beltrami.exists_smooth_isothermal_chart_of_contDiffOn_of_sq_eq_neg_one`
+  composed with
   it is `ψ`, its inverse smooth by
   `OpenPartialHomeomorph.contDiffOn_symm_of_isInvertible_fderiv`, its
-  equation from `mfderiv_apply_eq_chartPushforward_apply` of the library's `Chart.lean`. That planar theorem, in
-  `Regularity.lean`, drops the tameness hypothesis of
-  `exists_smooth_isothermal_chart_of_contDiffOn`: where the field is not
-  tame it composes with conjugation (Decision 5), and it restricts to where
-  the field is tame (`SymplecticForm.Tames.eventually_of_continuousAt`).
+  equation from `mfderiv_apply_eq_chartPushforward_apply` of the library's `Chart.lean`.
   The conversions to `PartialDiffeomorph` are Tau Ceti's
   `OpenPartialHomeomorph.toPartialDiffeomorphOfMemMaximalAtlas` and
   `PartialDiffeomorph.ofOpenPartialHomeomorph`, with Mathlib's
