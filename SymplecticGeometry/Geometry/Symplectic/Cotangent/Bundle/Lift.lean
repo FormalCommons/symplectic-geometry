@@ -395,7 +395,8 @@ theorem isMIntegralCurveOn_liftFlow (z : CotangentBundle I L) :
     rw [Function.comp_apply, ← sub_eq_add_neg,
       flowOf_eq_liftFlow_of_isHamiltonianVectorField hY hX hr.2,
       liftFlow_liftFlow hY1 hD hr.1, add_sub_cancel]
-  have hd := (((isMIntegralCurveOn_flowOf hX1 w).isMIntegralCurveAt h₂).comp_add (-t)).hasMFDerivAt
+  have hd :=
+    ((isMIntegralCurveAt_flowOf hX1 (mem_flowDomain_zero hX1 w)).comp_add (-t)).hasMFDerivAt
   have hval : ((fun s ↦ flowOf X s w) ∘ (· + -t)) (0 - -t) = w := by
     simp
   rw [hval, zero_sub, neg_neg] at hd

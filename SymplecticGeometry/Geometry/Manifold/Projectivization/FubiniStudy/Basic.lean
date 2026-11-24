@@ -48,7 +48,7 @@ builds the forms upstairs, and the Fubini–Study form of `ℂPⁿ` as the desce
   the circle action `x ↦ cos t • x + sin t • J₀ x`, whose orbits are the fibres of the Hopf map,
   and at every point its kernel is the kernel of the derivative of the Hopf map
   (`ker_sphereStdForm`), the line `ℝ ∙ J₀ x`. These are the hypotheses of Tau Ceti's
-  `TauCeti.RoughForm.isBasic_of_mpullback_eq`.
+  `TauCeti.SmoothTwoForm.isBasic_of_mpullback_eq_of_ker_mfderiv_le`.
 * `SymplecticGeometry.fubiniStudyForm n` is the Fubini–Study form `ω_FS` of `ℂPⁿ`, defined as
   Tau Ceti's descent `TauCeti.SmoothForm.descendedForm` of `σ` along the Hopf map. It pulls back
   to `σ` (`mpullback_sphereHopf_fubiniStudyForm`) and, since the projection
@@ -327,12 +327,13 @@ theorem ker_sphereStdForm (x : sphere (0 : StdSpace (Fin (n + 1))) 1) :
 
 /-- The restriction `σ` of `ω₀` to the sphere is basic for the Hopf map: its value only depends on
 the images of tangent vectors under the derivative of `sphereHopf n`. It is invariant under the
-circle action `x ↦ cos t • x + sin t • J₀ x`, whose orbits are the fibres, and it vanishes on the
-vertical vectors by `ker_sphereStdForm`. -/
+circle action `x ↦ cos t • x + sin t • J₀ x`, whose orbits are the fibres, and its kernel contains
+the vertical vectors by `ker_sphereStdForm`. These are the hypotheses of Tau Ceti's
+`TauCeti.SmoothTwoForm.isBasic_of_mpullback_eq_of_ker_mfderiv_le`. -/
 theorem isBasic_sphereStdForm :
     RoughForm.IsBasic (V := ℝ) 𝓘(ℝ, Fin n → ℂ) (sphereHopf n) (sphereStdForm n).val := by
-  refine RoughForm.isBasic_of_mpullback_eq
-    (σ := fun t ↦ (stdRotation (Fin (n + 1)) t).unitSphereEquiv)
+  refine SmoothTwoForm.isBasic_of_mpullback_eq_of_ker_mfderiv_le
+    (τ := fun t ↦ (stdRotation (Fin (n + 1)) t).unitSphereEquiv)
     ((contMDiff_sphereHopf n 1).mdifferentiable one_ne_zero)
     (fun t ↦ ((stdRotation (Fin (n + 1)) t).contMDiff_unitSphereEquiv (n := 2 * n + 1)
       (k := 2 * n + 1)).mdifferentiable one_ne_zero)
@@ -341,19 +342,13 @@ theorem isBasic_sphereStdForm :
     (fun x y h ↦ .inr <|
       let ⟨t, ht⟩ := (sphereHopf_eq_sphereHopf_iff n x y).1 h
       ⟨t, Subtype.ext <| (LinearIsometryEquiv.coe_unitSphereEquiv_apply _ _).trans ht.symm⟩)
-    (fun x v j hj ↦ ?_) fun t ↦ ?_
-  · have hv : v = ![v 0, v 1] := (FinVec.etaExpand_eq v).symm
-    have hj' := (ker_sphereStdForm n x).ge hj
-    rw [hv, ← SmoothBundleForm.eval₂_apply, ← SmoothForm.bilinFormAt_apply]
-    fin_cases j
-    · exact LinearMap.congr_fun hj' (v 1)
-    · exact (SmoothForm.isAlt_bilinFormAt _ x).isRefl _ _ (LinearMap.congr_fun hj' (v 0))
-  · rw [← SmoothForm.coe_mpullback _
-      ((stdRotation (Fin (n + 1)) t).contMDiff_unitSphereEquiv (n := 2 * n + 1) (k := 2 * n + 1))]
-    refine congrArg Subtype.val (SmoothBundleForm.ext_eval₂ fun x v w ↦ ?_)
-    rw [SmoothForm.eval₂_mpullback, sphereStdForm_apply, sphereStdForm_apply,
-      LinearIsometryEquiv.mvfderiv_coe_sphere_unitSphereEquiv,
-      LinearIsometryEquiv.mvfderiv_coe_sphere_unitSphereEquiv, stdForm_stdRotation]
+    (fun x ↦ (ker_sphereStdForm n x).ge) fun t ↦ ?_
+  rw [← SmoothForm.coe_mpullback _
+    ((stdRotation (Fin (n + 1)) t).contMDiff_unitSphereEquiv (n := 2 * n + 1) (k := 2 * n + 1))]
+  refine congrArg Subtype.val (SmoothBundleForm.ext_eval₂ fun x v w ↦ ?_)
+  rw [SmoothForm.eval₂_mpullback, sphereStdForm_apply, sphereStdForm_apply,
+    LinearIsometryEquiv.mvfderiv_coe_sphere_unitSphereEquiv,
+    LinearIsometryEquiv.mvfderiv_coe_sphere_unitSphereEquiv, stdForm_stdRotation]
 
 /-- The Fubini–Study form `ω_FS` of `ℂPⁿ = ℙ ℂ (Fin (n + 1) → ℂ)`: the descent of the restriction
 `σ` of `ω₀` to the unit sphere along the Hopf map, that is, the unique two-form whose pull-back

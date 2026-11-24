@@ -7,8 +7,10 @@ module
 
 public import Mathlib.LinearAlgebra.BilinearForm.Properties
 public import Mathlib.LinearAlgebra.Projection
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Compatible
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Reduction
+public import TauCeti.LinearAlgebra.BilinearForm.Orthogonal
 public import TauCeti.LinearAlgebra.Submodule.Compl
 
 /-!
@@ -626,7 +628,12 @@ theorem Compatible.extendAlong_sub_mem {v : V₀} (hv : v ∈ ω₀.orthogonal W
     have h₀ := ω₀.finrank_reducedSpace_orthogonal_add W₀
     have h₁ := ω₁.finrank_reducedSpace_orthogonal_add W₁
     have h₂ := b.finrank_eq
-    have h₃ := finrank_inf_orthogonal_eq_of_forall_apply_eq hb
+    -- Tau Ceti's lemma is stated with `Submodule.orthogonalBilin`, which `ω.orthogonal` unfolds to
+    have h₃ := Submodule.finrank_inf_orthogonalBilin_eq_of_isometry
+      (c := LinearMap.id (R := ℝ) (M := ℝ)) Function.injective_id b fun x y => by
+        rw [LinearMap.id_apply, toBilinForm_apply, toBilinForm_apply, hb]
+    rw [← LinearMap.BilinForm.orthogonal, ← LinearMap.BilinForm.orthogonal, ← orthogonal_def,
+      ← orthogonal_def] at h₃
     omega
   obtain ⟨k, hk, e, he, rfl⟩ := Submodule.mem_sup.1 (hJ₀.inf_sup_normalComplement.ge hv)
   have hLk : L k ∈ W₁ := by
