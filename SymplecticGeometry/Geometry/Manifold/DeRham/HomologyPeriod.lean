@@ -220,15 +220,12 @@ theorem contMDiff_homologyPeriodHom {M : Type} [TopologicalSpace M] [ChartedSpac
   let g : (TopCat.toSSet.obj (.of M)) _⦋1⦌ → C^∞⟮K, N; 𝓘(ℝ), ℝ⟯ := fun s ↦
     ⟨fun t ↦ pathClassIntegral (α t : RoughForm I M ℝ 1) (.mk (path₁ s)),
       hα.contMDiff_pathClassIntegral hcl _⟩
-  have key (t : N) : (chainsDesc fun s ↦ pathClassIntegral (α t : RoughForm I M ℝ 1)
-      (.mk (path₁ s))).toAddMonoidHom =
-      (ContMDiffMap.evalRingHom t).toAddMonoidHom.comp (chainsDesc g).toAddMonoidHom :=
-    singularChains_addMonoidHom_ext fun s ↦ by
-      simp only [LinearMap.toAddMonoidHom_coe, AddMonoidHom.coe_comp, Function.comp_apply,
-        chainsDesc_simplexChain_one]
-      rfl
-  have hval (t : N) := DFunLike.congr_fun (key t) (z : ((singularChains ℤ).obj (.of M)).X 1)
-  simp only [LinearMap.toAddMonoidHom_coe, AddMonoidHom.coe_comp, Function.comp_apply] at hval
+  -- Evaluation at `t` is additive, so it commutes with `chainsDesc`; on `g s` it gives the
+  -- period along `s` by definition of `g`.
+  have hval (t : N) : chainsDesc (fun s ↦ pathClassIntegral (α t : RoughForm I M ℝ 1)
+      (.mk (path₁ s))) (z : ((singularChains ℤ).obj (.of M)).X 1) =
+      chainsDesc g (z : ((singularChains ℤ).obj (.of M)).X 1) t :=
+    (map_chainsDesc (ContMDiffMap.evalRingHom t).toAddMonoidHom.toIntLinearMap g _).symm
   simp_rw [hval]
   exact (chainsDesc g (z : ((singularChains ℤ).obj (.of M)).X 1)).contMDiff
 
