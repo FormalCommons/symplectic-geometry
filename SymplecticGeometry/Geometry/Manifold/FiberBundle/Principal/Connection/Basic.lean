@@ -42,6 +42,8 @@ horizontal spaces.
   tensorial forms are a vector space.
 * `SymplecticGeometry.isConnectionForm_sum_smul`: a combination of connection forms whose weights
   sum to one is a connection form.
+* `SymplecticGeometry.IsConnectionForm.apply_mfderiv_op_smul`,
+  `SymplecticGeometry.IsTensorialForm.apply_mfderiv_op_smul`: the equivariance at a point.
 * `SymplecticGeometry.IsConnectionForm.isCompl_horizontal`: the horizontal space of a connection
   form is a complement of the vertical space.
 * `SymplecticGeometry.IsConnectionForm.mfderiv_op_smul_mem_horizontal`: the action preserves the
@@ -144,6 +146,17 @@ theorem neg (ha : IsTensorialForm a) : IsTensorialForm (-a) := by
   rw [← neg_one_smul ℝ a]
   exact ha.smul (-1)
 
+/-- The equivariance of a tensorial form at a point: its value at `x • g` on the images of
+tangent vectors `v` under the derivative of the action of `g` is `Ad(g⁻¹)` applied to its value
+at `x` on `v`. -/
+theorem apply_mfderiv_op_smul (ha : IsTensorialForm a) (g : G) (x : ManifoldTotalSpace G P)
+    (v : Fin k → TangentSpace (IB.prod IG) x) :
+    a.val (op g • x) (fun i ↦ mfderiv (IB.prod IG) (IB.prod IG) (fun y ↦ op g • y) x (v i)) =
+      adjointContinuousLinearMap g⁻¹ (a.val x v) := by
+  have h := DFunLike.congr_fun (congrFun (congrArg Subtype.val (ha.mpullback_op_smul g)) x) v
+  simp only [SmoothForm.mpullback_apply, SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply] at h
+  exact h
+
 /-- The difference of two tensorial forms is tensorial. -/
 theorem sub (ha : IsTensorialForm a) (hb : IsTensorialForm b) : IsTensorialForm (a - b) := by
   simpa [sub_eq_add_neg] using ha.add hb.neg
@@ -191,6 +204,7 @@ theorem horizontal_def
 
 omit [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P] in
 /-- A tangent vector is horizontal for `A` exactly when `A` vanishes on it. -/
+@[simp]
 theorem mem_horizontal_iff
     {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
     {x : ManifoldTotalSpace G P} {v : TangentSpace (IB.prod IG) x} :
@@ -201,6 +215,18 @@ theorem mem_horizontal_iff
 namespace IsConnectionForm
 
 variable {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+
+/-- The equivariance of a connection form at a point: its value at `x • g` on the image of a
+tangent vector `v` under the derivative of the action of `g` is `Ad(g⁻¹)` applied to its value at
+`x` on `v`. -/
+theorem apply_mfderiv_op_smul (hA : IsConnectionForm A) (g : G) (x : ManifoldTotalSpace G P)
+    (v : TangentSpace (IB.prod IG) x) :
+    A.val (op g • x) ![mfderiv (IB.prod IG) (IB.prod IG) (fun y ↦ op g • y) x v] =
+      adjointContinuousLinearMap g⁻¹ (A.val x ![v]) := by
+  have h := DFunLike.congr_fun (congrFun (congrArg Subtype.val (hA.mpullback_op_smul g)) x) ![v]
+  simp only [SmoothForm.mpullback_apply_one, SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply]
+    at h
+  exact h
 
 /-- The horizontal space of a connection form is a complement of the vertical space, the kernel
 of the derivative of the projection. -/
@@ -229,10 +255,7 @@ theorem mfderiv_op_smul_mem_horizontal (hA : IsConnectionForm A) (g : G)
     {x : ManifoldTotalSpace G P} {v : TangentSpace (IB.prod IG) x} (hv : v ∈ horizontal A x) :
     mfderiv (IB.prod IG) (IB.prod IG) (fun y : ManifoldTotalSpace G P ↦ op g • y) x v ∈
       horizontal A (op g • x) := by
-  have h := DFunLike.congr_fun (congrFun (congrArg Subtype.val (hA.mpullback_op_smul g)) x) ![v]
-  simp only [SmoothForm.mpullback_apply_one, SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply,
-    mem_horizontal_iff.mp hv, map_zero] at h
-  exact mem_horizontal_iff.mpr h
+  rw [mem_horizontal_iff, hA.apply_mfderiv_op_smul, mem_horizontal_iff.mp hv, map_zero]
 
 end IsConnectionForm
 
