@@ -424,7 +424,7 @@ theorem interior_mextDeriv_rightFundamentalVectorField_prod (ξ : GroupLieAlgebr
         ((rightFundamentalVectorField (IB.prod IG) ξ q.1, (0 : EN)) :
           TangentSpace ((IB.prod IG).prod IN) q)) A.val) := by
   set V : (q : ManifoldTotalSpace G P × N) → TangentSpace ((IB.prod IG).prod IN) q :=
-    fun q ↦ (rightFundamentalVectorField (IB.prod IG) ξ q.1, (0 : EN)) with hV
+    fun q ↦ (rightFundamentalVectorField (IB.prod IG) ξ q.1, (0 : EN))
   funext q
   ext v
   have hι : mextDeriv (RoughForm.interior (F := F) (k := 0) V A.val) q =
