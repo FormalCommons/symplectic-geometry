@@ -6,9 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Instances.Real
-public import Mathlib.Geometry.Manifold.PartitionOfUnity
-public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
-public import TauCeti.Geometry.Manifold.VectorBundle.Section.Extension
+public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Discrete
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Push
@@ -17,25 +15,12 @@ import TauCeti.Geometry.Manifold.Boundary.Collar.Topological
 import SymplecticGeometry.Geometry.Manifold.ModelTransport.InteriorModel
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Generic
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Module
+import TauCeti.Geometry.Manifold.VectorBundle.Section.Nonvanishing
 import TauCeti.Topology.FiberBundle.Pullback
 import TauCeti.Topology.VectorBundle.HomotopyInvariance
-import TauCeti.Topology.VectorBundle.Riemannian.Basic
 
 /-!
 # Smooth nowhere-zero sections
-
-A smooth real vector bundle `V` with finite-dimensional fibres over a σ-compact Hausdorff manifold
-`M` (possibly with boundary or corners) modelled on a finite-dimensional space has a smooth
-nowhere-zero section as soon as it has a continuous one
-(`SymplecticGeometry.exists_contMDiffSection_forall_ne_zero_of_continuous`). Compact manifolds,
-with or without boundary, are the main case.
-
-The proof fixes a Riemannian metric `g` on `V` and the continuous nowhere-zero section `s`. In each
-fibre, the vectors `v` with `0 < g x v (s x)` form an open half-space, which is convex and does not
-contain `0`. Near each point `x₀`, a smooth section through `s x₀` lies in these half-spaces, by
-continuity of `g`. Mathlib's `exists_contMDiffSection_forall_mem_convex_of_local` glues such local
-sections with a smooth partition of unity into a global smooth section lying in every half-space,
-hence nowhere zero.
 
 Over a compact connected manifold `M` of dimension `d ≥ 2` with nonempty boundary, every smooth
 real bundle of rank at least `d` has a smooth nowhere-zero section
@@ -56,7 +41,8 @@ every bundle of rank at least two. The argument replaces the book's cutting of t
    homotopic to the identity along which the section `σ` has no zero.
 4. Homotopy invariance of bundles (Tau Ceti's
    `ContinuousMap.Homotopic.exists_continuousLinearEquiv_pullback`) identifies `h^* V` with `V`,
-   so `σ ∘ h` gives a continuous nowhere-zero section of `V`, which is then smoothed.
+   so `σ ∘ h` gives a continuous nowhere-zero section of `V`, which is then smoothed by Tau Ceti's
+   `TauCeti.exists_contMDiffSection_forall_ne_zero_of_continuous`.
 
 ## References
 
@@ -68,37 +54,6 @@ public section
 
 open Bundle
 open scoped Manifold ContDiff Topology
-
-namespace SymplecticGeometry
-
-variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [FiniteDimensional ℝ EB]
-  [TopologicalSpace HB] {I : ModelWithCorners ℝ EB HB}
-  [TopologicalSpace M] [ChartedSpace HB M] [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M]
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
-  {V : M → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)] [∀ x, TopologicalSpace (V x)]
-  [∀ x, ContinuousConstSMul ℝ (V x)] [TopologicalSpace (TotalSpace F V)]
-  [FiberBundle F V] [VectorBundle ℝ F V] {n : ℕ∞} [ContMDiffVectorBundle n F V I]
-
-/-- A `C^n` real vector bundle with finite-dimensional fibres over a σ-compact Hausdorff manifold
-modelled on a finite-dimensional space, for instance a compact manifold with or without boundary,
-has a `C^n` nowhere-zero section if it has a continuous nowhere-zero section. -/
-theorem exists_contMDiffSection_forall_ne_zero_of_continuous {s : ∀ x, V x}
-    (hs : Continuous fun x ↦ TotalSpace.mk' F x (s x)) (hs₀ : ∀ x, s x ≠ 0) :
-    ∃ t : ContMDiffSection I F n V, ∀ x, t x ≠ 0 := by
-  obtain ⟨g⟩ := TauCeti.nonempty_contMDiffRiemannianMetric (IB := I) (n := n) (F := F) (E := V)
-  obtain ⟨t, ht⟩ := exists_contMDiffSection_forall_mem_convex_of_local (n := n) I V
-    (fun x ↦ {v : V x | 0 < g.inner x v (s x)})
-    (fun x ↦ convex_halfSpace_gt ⟨fun v w ↦ by simp, fun c v ↦ by simp⟩ 0) fun x₀ ↦ by
-      let σ := FiberBundle.contMDiffExtend I F (s x₀)
-      have hσ : CMDiff n (T% σ) := FiberBundle.contMDiff_contMDiffExtend I F (s x₀)
-      have hcont : ContinuousAt (fun y ↦ g.inner y (σ y) (s y)) x₀ :=
-        g.toContinuousRiemannianMetric.continuousAt_inner (b := id) hσ.continuous.continuousAt
-          hs.continuousAt
-      refine ⟨_, hcont.eventually (lt_mem_nhds ?_), σ, hσ.contMDiffOn, fun y hy ↦ hy⟩
-      simpa [σ] using g.pos x₀ _ (hs₀ x₀)
-  exact ⟨t, fun x h ↦ by simpa [h] using ht x⟩
-
-end SymplecticGeometry
 
 namespace SymplecticGeometry
 
@@ -230,7 +185,7 @@ theorem exists_contMDiffSection_forall_ne_zero_of_boundary_nonempty
     (𝕜 := ℝ) (F := F) (E := V)
   have h1 : Continuous fun x ↦ TotalSpace.mk' F (E := (h : M → M) *ᵖ V) x (σ (h x)) :=
     Pullback.continuous_iff.2 ⟨continuous_id, σ.contMDiff.continuous.comp h.continuous⟩
-  exact exists_contMDiffSection_forall_ne_zero_of_continuous (n := ⊤)
+  exact TauCeti.exists_contMDiffSection_forall_ne_zero_of_continuous (n := ⊤)
     (s := fun x ↦ Φ x (σ (h x))) ((Pullback.continuous_lift F V _).comp (hΦ.comp h1))
     fun x hx ↦ hh0 x ((Φ x).map_eq_zero_iff.1 hx)
 

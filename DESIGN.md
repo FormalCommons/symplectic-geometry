@@ -535,26 +535,13 @@ table may fall behind.
 
 ### 4. Unitary group topology
 
-- **Files:** first two general files, named like the Tau Ceti files they
-  extend so that the two merge upstream.
-  `Topology/Grassmannian/StiefelFibration/ForgetLast.lean`: over any
-  `RCLike 𝕜`, the homotopy groups of the space of unit vectors
-  `finiteOrthonormalFrame 𝕜 1 N` vanish below degree
-  $\dim_{\mathbb{R}}\mathbb{k}^N-1$, in the namespace
-  `TauCeti.finiteOrthonormalFrame`, beside the real
-  `TauCeti.finiteOrthonormalFrame.subsingleton_homotopyGroup`, under a name
-  of its own that its issue checks is unused there (for example
-  `subsingleton_homotopyGroup_unitVector`). Tau Ceti's
-  `TauCeti.ComplexProjectiveSpace.subsingleton_homotopyGroup_sphere`
-  (`Topology/ComplexProjectiveSpace/Hopf/Exact.lean`) is the sphere-level
-  statement over $\mathbb{C}$. It identifies
-  the space with the unit sphere of `EuclideanSpace 𝕜 (Fin N)` by
-  `TauCeti.finiteOrthonormalFrame.forgetLastFiberSphere` at the $0$-frame
-  (`Topology/Grassmannian/ForgetLast.lean`) and applies
-  `TauCeti.subsingleton_homotopyGroup_sphere_of_lt`
-  (`AlgebraicTopology/Sphere/HomotopyGroup.lean`), which holds in any real
-  normed space of finite dimension, so $\mathbb{C}^N$ is never compared with
-  $\mathbb{R}^{2N}$. `Topology/Grassmannian/StiefelFibration/Stability.lean`:
+- **Files:** first a general file, named like the Tau Ceti file it
+  extends so that the two merge upstream. That the homotopy groups of the
+  space of unit vectors `finiteOrthonormalFrame 𝕜 1 N` vanish below degree
+  $\dim_{\mathbb{R}}\mathbb{k}^N-1$, over any `RCLike 𝕜`, is Tau Ceti's
+  `TauCeti.finiteOrthonormalFrame.subsingleton_homotopyGroup` with $r=1$
+  (`Topology/Grassmannian/StiefelFibration/ForgetLast.lean`).
+  `Topology/Grassmannian/StiefelFibration/Stability.lean`:
   the stable range `Matrix.UnitaryGroup.isNConnected_fromBlocksOne`, in the
   namespace of Tau Ceti's `fromBlocksOne`, `detCircle` and
   `instPathConnectedSpace` for Mathlib's `Matrix.unitaryGroup`. It is stated
@@ -1416,8 +1403,7 @@ it into issues; the overview fixes its folders and its dependencies.
   closed discrete set), `.../VectorBundle/Section/Generic.lean`
   (over a boundaryless manifold, a smooth section of a bundle of rank equal
   to the dimension whose zero set is closed and discrete),
-  `.../VectorBundle/Section/Nonvanishing.lean` (smoothing a continuous
-  nowhere-zero section over a compact base; a smooth nowhere-zero section of
+  `.../VectorBundle/Section/Nonvanishing.lean` (a smooth nowhere-zero section of
   every real bundle of rank at least $2$ over a compact, connected surface
   whose boundary is not empty) and
   `Geometry/Manifold/VectorBundle/Hermitian/Surface.lean` (unitary frames
@@ -2303,7 +2289,8 @@ has either; Tau Ceti's extension across a boundary,
   `J₀ : TauCeti.AlmostComplexStructure E`, one for each chart; on a
   manifold with boundary no boundary point has such a chart; with
   `isIntegrable_ofComplexManifold`, from Tau Ceti's
-  `tangentCoordChange_smul`, invariance under `pullback`, and
+  `MDifferentiableAt.mfderiv_ofComplexManifold_apply`, invariance under
+  `pullback`, and
   `IsIntegrable.nijenhuis_eq_zero`, from Mathlib's
   `VectorField.mpullback_mlieBracket` for constant fields pulled back along a
   chart; on surfaces modelled on `𝓘(ℝ, ℂ)`, the

@@ -113,9 +113,9 @@ theorem exists_isSymplectomorphism_image_eq_stdEllipsoid
     (stdForm ι).exists_isDarbouxBasis_eq_sum_smul_elliptic_of_posDef hQ
   have hcard : Fintype.card (Fin m) = Fintype.card ι := by
     have h := (Module.finrank_eq_card_basis b).symm
-    simp only [finrank_euclideanSpace, Fintype.card_sum, Fintype.card_prod, Fintype.card_fin]
-      at h
-    simpa using (by omega : m = Fintype.card ι)
+    rw [finrank_stdSpace, Fintype.card_prod, Fintype.card_fin, Fintype.card_fin] at h
+    rw [Fintype.card_fin]
+    omega
   let σ : Fin m ≃ ι := Fintype.equivOfCardEq hcard
   -- `e` carries the Williamson basis `b` to the relabelled standard Darboux basis `d`.
   let d := stdDarbouxBasisOf σ

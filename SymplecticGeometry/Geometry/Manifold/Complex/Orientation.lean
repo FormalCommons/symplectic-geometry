@@ -134,9 +134,8 @@ the orientation of the basis `(1, i)`. -/
 theorem complexCurveOrientation_complex :
     complexCurveOrientation ℂ ℂ = Manifold.Orientation.complex := by
   ext x
-  rw [orientationAt_complexCurveOrientation, Manifold.Orientation.orientationAt_complex]
-  -- The tangent space of `ℂ` at `x` is `ℂ`, so this is Tau Ceti's statement on `ℂ`.
-  exact reindex_complexOrientation_complex
+  rw [complexCurveOrientation_def, Manifold.Orientation.orientationAt_complex]
+  exact orientationAt_reindex_complexManifoldOrientation_complex _ x
 
 /-- A biholomorphism `Φ : M → N` of complex curves (a `C^n` diffeomorphism for the complex
 models, `n ≠ 0`) carries `complexCurveOrientation` of `M` to that of `N` at every point. -/
