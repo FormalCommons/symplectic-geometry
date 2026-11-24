@@ -137,9 +137,9 @@ may adjust implicit arguments and instance arguments to what elaborates.
    $\theta\in[\tfrac12,1)$; (c) the local normal form in the weak form that
    (d) needs: near every point, a chart of $M$ in which $\|\mu\|^2$ is a
    polynomial in some of the coordinates; (d) the inequality for $f$ on
-   $M$; (e) convergence on a Riemannian manifold, from Tau Ceti's scalar
-   bound `TauCeti.integral_le_rpow_sub_rpow_of_lojasiewicz` and the
-   Riemannian distance. The analytic inequality is not
+   $M$; (e) convergence on a Riemannian manifold, which is Tau Ceti's
+   `tendsto_maximalIntegralCurve_neg_mgradient_of_mapClusterPt`, taken
+   from its main branch at `07c8b6b1f5ff`. The analytic inequality is not
    needed and is not proved.
 5. **The limit points $p^+_\xi$** for $\xi\in\Lambda$ do not need (d): the
    orbit $t\mapsto\exp(it\xi)p$ is the negative gradient flow of
@@ -299,7 +299,7 @@ stable, since $\mathfrak g^*=0$; `M` is nonempty, being connected.
   `mulInvariantExp`; `TauCeti.Lie.exists_isSymm_bilinForm_Ad_invariant`;
   `mgradient` and `maximalIntegralCurve`
   (`Geometry/Manifold/Riemannian/Gradient/`);
-  `IsIntegralCurveOn.exists_tendsto_atTop_of_lojasiewicz`; the Morse–Bott
+  `tendsto_maximalIntegralCurve_neg_mgradient_of_mapClusterPt`; the Morse–Bott
   results named in decision 5; the semialgebraic geometry and the
   symplectic slice named in decision 4.
 - From other parts: none on `main` is needed. The local normal form (c)
