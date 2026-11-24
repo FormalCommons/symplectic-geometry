@@ -23,7 +23,9 @@ Pulling a form back commutes with negation (`TauCeti.mpullback_neg`), as Tau Cet
 `TauCeti.mpullback_sub` says for subtraction.
 
 The differential of a constant map is zero, so pulling a smooth form of positive degree back
-along a constant map gives the zero form (`TauCeti.SmoothForm.mpullback_const`).
+along a constant map gives the zero form (`TauCeti.SmoothForm.mpullback_const`). So the slice
+`x ↦ (x, p)` of the pullback of such a form along the projection `M × M' → M'` is zero
+(`TauCeti.SmoothForm.mpullback_prodMk_left_mpullback_snd`).
 
 For a map `f : M × M₂ → M'`, the slice `z ↦ f (s, z)` is `f` composed with the inclusion
 `z ↦ (s, z)`, whose differential is `w ↦ (0, w)` (Mathlib's `mfderiv_prod_right`). By the chain
@@ -41,6 +43,8 @@ normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactica
 * `TauCeti.mpullback_neg`: the pullback of `-φ` is minus the pullback of `φ`.
 * `TauCeti.SmoothForm.mpullback_const`: the pullback of a smooth `(k + 1)`-form along a constant
   map is `0`.
+* `TauCeti.SmoothForm.mpullback_prodMk_left_mpullback_snd`: the slice `x ↦ (x, p)` of the
+  pullback of a smooth `(k + 1)`-form along `Prod.snd` is `0`.
 * `TauCeti.mpullback_comp_prodMk_apply`: the pullback along a slice `z ↦ f (s, z)` of a map on a
   product, as the pullback along `f` on the vectors `(0, m i)`.
 * `TauCeti.mpullback_comp_prodMk_apply_modelSpace`: the same, for a map on a product of normed
@@ -124,6 +128,14 @@ theorem mpullback_const (c : M') (hc : ContMDiff I I' ∞ fun _ : M ↦ c)
   refine Subtype.ext (funext fun x ↦ ContinuousAlternatingMap.ext fun v ↦ ?_)
   rw [mpullback_apply, mfderiv_const]
   exact (φ.val c).map_coord_zero 0 rfl
+
+/-- The slice `x ↦ (x, p)` of the pullback of a smooth `(k + 1)`-form `β` on `M'` along the
+projection `M × M' → M'` is zero, since the projection is constant on the slice. -/
+@[simp]
+theorem mpullback_prodMk_left_mpullback_snd (p : M') (β : SmoothForm I' M' F (k + 1)) :
+    mpullback (fun x : M ↦ (x, p)) (contMDiff_id.prodMk contMDiff_const)
+      (mpullback Prod.snd contMDiff_snd β : SmoothForm (I.prod I') (M × M') F (k + 1)) = 0 := by
+  simp [mpullback_mpullback, Function.comp_def]
 
 end SmoothForm
 

@@ -17,10 +17,17 @@ Ceti's `TauCeti.expUnit` (`mulInvariantExp_eq_expUnit`). This is Tau Ceti's
 `mulInvariantOneParameterSubgroup_eq_expUnitHom` evaluated at time `1`. For `ℂˣ` the exponential
 is `Complex.exp` (`coe_mulInvariantExp_eq_exp_complex`).
 
+The Lie algebra `GroupLieAlgebra 𝓘(ℝ, R) Rˣ` is `R` by definition, but `rw` and `simp` do not
+see through `GroupLieAlgebra`. The statements therefore read a tangent vector `v` in `R` through
+Tau Ceti's linear equivalence `groupLieAlgebraEquivModelVectorSpace`, so that their right-hand
+sides are terms of `R`, to which the lemmas about `R` apply.
+
 ## Main results
 
-* `mulInvariantExp_eq_expUnit`: `mulInvariantExp v = TauCeti.expUnit v` on `Rˣ`.
-* `coe_mulInvariantExp_eq_exp_complex`: `(mulInvariantExp v : ℂ) = Complex.exp v` on `ℂˣ`.
+* `mulInvariantExp_eq_expUnit`: `mulInvariantExp v = TauCeti.expUnit v` on `Rˣ`, with `v` read
+  in `R`.
+* `coe_mulInvariantExp_eq_exp_complex`: `(mulInvariantExp v : ℂ) = Complex.exp v` on `ℂˣ`, with
+  `v` read in `ℂ`.
 
 ## References
 
@@ -37,10 +44,10 @@ attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
   TauCeti.normedAlgebraRatOfReal
 
 /-- The exponential of the Lie group `Rˣ` of units of a complete normed real algebra, at a tangent
-vector `v` at `1`, read in `R`, is the exponential `TauCeti.expUnit v` of the algebra. -/
+vector `v` at `1`, is the exponential `TauCeti.expUnit` of the algebra at `v` read in `R`. -/
 theorem mulInvariantExp_eq_expUnit {R : Type*} [NormedRing R] [NormedAlgebra ℝ R]
     [CompleteSpace R] (v : GroupLieAlgebra 𝓘(ℝ, R) Rˣ) :
-    mulInvariantExp v = TauCeti.expUnit (R := R) v := by
+    mulInvariantExp v = TauCeti.expUnit (groupLieAlgebraEquivModelVectorSpace v) := by
   have h := mulInvariantOneParameterSubgroup_eq_mulInvariantExp_smul (I := 𝓘(ℝ, R)) (G := Rˣ) v 1
   have h2 := DFunLike.congr_fun (mulInvariantOneParameterSubgroup_eq_expUnitHom (R := R) v)
     (Multiplicative.ofAdd 1)
@@ -48,9 +55,11 @@ theorem mulInvariantExp_eq_expUnit {R : Type*} [NormedRing R] [NormedAlgebra ℝ
   refine h.symm.trans (h2.trans ?_)
   exact (expUnitHom_apply (R := R) (v : R) 1).trans (congrArg expUnit (one_smul ℝ (v : R)))
 
-/-- The exponential of the Lie group `ℂˣ`, read in `ℂ`, is `Complex.exp`. -/
+/-- The exponential of the Lie group `ℂˣ`, read in `ℂ`, is `Complex.exp` of the tangent vector
+read in `ℂ`. -/
+@[simp]
 theorem coe_mulInvariantExp_eq_exp_complex (v : GroupLieAlgebra 𝓘(ℝ, ℂ) ℂˣ) :
-    ((mulInvariantExp v : ℂˣ) : ℂ) = Complex.exp v :=
+    ((mulInvariantExp v : ℂˣ) : ℂ) = Complex.exp (groupLieAlgebraEquivModelVectorSpace v) :=
   (congrArg Units.val (mulInvariantExp_eq_expUnit v)).trans
     ((TauCeti.expUnit_coe (R := ℂ) v).trans (congrFun Complex.exp_eq_exp_ℂ v).symm)
 
