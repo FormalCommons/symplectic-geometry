@@ -15,16 +15,16 @@ Tau Ceti's `TauCeti.chainsDesc g` is the linear map out of the singular `n`-chai
 coefficients in a ring `k` that takes each singular simplex `s` to `g s`. This file shows that
 composing it with a `k`-linear map `L` gives the map with values `L (g s)`.
 
-It also shows that `chainsDesc` of a family of real-valued functions on the simplices, each
-smooth in a parameter `t` from a manifold, is smooth in `t` on every integral chain: the chains
-on which it is smooth form a subgroup, and the quotient map by that subgroup vanishes on every
-simplex, so it is zero.
+It also shows that `chainsDesc` of a family of functions on the simplices with values in a real
+normed space, each `C^m` in a parameter `t` from a manifold, is `C^m` in `t` on every integral
+chain: the chains on which it is `C^m` form a subgroup, and the quotient map by that subgroup
+vanishes on every simplex, so it is zero.
 
 ## Main results
 
 * `TauCeti.map_chainsDesc`: `L (chainsDesc g z) = chainsDesc (fun s ↦ L (g s)) z`.
-* `TauCeti.contMDiff_chainsDesc`: if `t ↦ f t s` is smooth for every simplex `s`, then
-  `t ↦ chainsDesc (f t) z` is smooth for every integral chain `z`.
+* `TauCeti.contMDiff_chainsDesc`: if `t ↦ f t s` is `C^m` for every simplex `s`, then
+  `t ↦ chainsDesc (f t) z` is `C^m` for every integral chain `z`.
 -/
 
 public section
@@ -46,17 +46,18 @@ theorem map_chainsDesc {k : Type u} [Ring k] {X : TopCat.{u}} {n : ℕ} {V W : T
     (singularChains_linearMap_ext fun s ↦ by simp) z
 
 open scoped Manifold ContDiff in
-/-- If a family `f t` of real values on the singular `n`-simplices of `X` is smooth in the
-parameter `t` on each simplex, then the map out of the integral `n`-chains with values `f t` on
-simplices is smooth in `t` on each chain. -/
+/-- If a family `f t` of values in a real normed space `F` on the singular `n`-simplices of `X`
+is `C^m` in the parameter `t` on each simplex, then the map out of the integral `n`-chains with
+values `f t` on simplices is `C^m` in `t` on each chain. -/
 theorem contMDiff_chainsDesc {E H N : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     [TopologicalSpace H] {K : ModelWithCorners ℝ E H} [TopologicalSpace N] [ChartedSpace H N]
-    {X : TopCat.{0}} {n : ℕ} {f : N → (TopCat.toSSet.obj X) _⦋n⦌ → ℝ}
-    (hf : ∀ s, ContMDiff K 𝓘(ℝ) ∞ fun t ↦ f t s) (z : ((singularChains ℤ).obj X).X n) :
-    ContMDiff K 𝓘(ℝ) ∞ fun t ↦ chainsDesc (f t) z := by
-  -- The chains on which the map is smooth in the parameter.
+    {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F] {m : WithTop ℕ∞}
+    {X : TopCat.{0}} {n : ℕ} {f : N → (TopCat.toSSet.obj X) _⦋n⦌ → F}
+    (hf : ∀ s, ContMDiff K 𝓘(ℝ, F) m fun t ↦ f t s) (z : ((singularChains ℤ).obj X).X n) :
+    ContMDiff K 𝓘(ℝ, F) m fun t ↦ chainsDesc (f t) z := by
+  -- The chains on which the map is `C^m` in the parameter.
   let S : AddSubgroup (((singularChains ℤ).obj X).X n) :=
-    { carrier := {z | ContMDiff K 𝓘(ℝ) ∞ fun t ↦ chainsDesc (f t) z}
+    { carrier := {z | ContMDiff K 𝓘(ℝ, F) m fun t ↦ chainsDesc (f t) z}
       add_mem' {a b} ha hb := by simpa only [Set.mem_ofPred_eq, map_add, Pi.add_def] using ha.add hb
       zero_mem' := by simpa only [Set.mem_ofPred_eq, map_zero] using contMDiff_const
       neg_mem' {a} ha := by simpa only [Set.mem_ofPred_eq, map_neg, Pi.neg_def] using ha.neg }
