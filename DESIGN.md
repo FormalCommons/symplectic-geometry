@@ -2297,9 +2297,11 @@ has either; Tau Ceti's extension across a boundary,
   `Geometry/Symplectic/Manifold/AlmostComplex/Covariant.lean` (the covariant
   derivative $\nabla J$ of an almost complex structure for a covariant
   derivative on $TM$, Tau Ceti's `CovariantDerivative.hom` applied to the
-  section `toEndomorphism`, and $(\nabla_vJ)J+J(\nabla_vJ)=0$ for every
-  covariant derivative, the derivative of $J^2=-1$; *Almost Kähler
-  geometry* uses both) and `Geometry/Manifold/Complex/Integrable.lean`
+  section `toEndomorphism`, with the differentiability of that section that
+  Tau Ceti's `CovariantDerivative.hom_apply_apply_anticomm`,
+  $(\nabla_vJ)J=-J(\nabla_vJ)$ for every covariant derivative, the
+  derivative of $J^2=-1$, takes; *Almost Kähler geometry* uses both) and
+  `Geometry/Manifold/Complex/Integrable.lean`
   (`TauCeti.SmoothAlmostComplexStructure.IsIntegrable J`: every point lies
   in the source of a chart `ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞` on
   whose target Tau Ceti's `chartPushforward` of `J` is a linear structure
