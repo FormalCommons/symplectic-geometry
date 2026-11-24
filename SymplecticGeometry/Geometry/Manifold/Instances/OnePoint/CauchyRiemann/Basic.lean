@@ -45,7 +45,8 @@ of `∇` for `i` is `∂bar` of the coordinate in either frame.
   `i` is `∂bar` of the coordinate; `OnePoint.symmL_comp_dbarFunction_twistCore_localTriv_eq`:
   the latter does not depend on the chart.
 * `SymplecticGeometry.twistOneConnection`: the connection on `𝒪(1)`, with
-  `isCovariantDerivativeOn_twistOneConnection`,
+  `isCovariantDerivativeOn_twistOneConnection`, the instance
+  `contMDiffCovariantDerivative_twistOneConnection`,
   `contMDiffCovariantDerivativeOn_twistOneConnection` and its complex linearity
   `twistOneConnection_const_smul`.
 * `SymplecticGeometry.twistOneConnection_zeroOnePart_eq`: in the frame of either chart, its
@@ -215,15 +216,20 @@ theorem isCovariantDerivativeOn_twistOneConnection :
     IsCovariantDerivativeOn ℂ twistOneConnection univ :=
   twistOneConnection.isCovariantDerivativeOn
 
-/-- The connection on `𝒪(1)` is smooth: it sends `C^(n + 1)` sections to `C^n` one-forms. -/
-theorem contMDiffCovariantDerivativeOn_twistOneConnection (n : ℕ∞) :
-    ContMDiffCovariantDerivativeOn ℂ n twistOneConnection univ :=
-  (CovariantDerivative.contMDiffCovariantDerivative_ofPartitionOfUnity
+/-- The connection on `𝒪(1)` is `C^n` for every `n`: it sends `C^(n + 1)` sections to `C^n`
+one-forms. -/
+instance contMDiffCovariantDerivative_twistOneConnection (n : ℕ∞) :
+    CovariantDerivative.ContMDiffCovariantDerivative twistOneConnection n :=
+  CovariantDerivative.contMDiffCovariantDerivative_ofPartitionOfUnity
     onePointChartPartition_isSubordinate (fun y ↦ (chartAt ℂ y).open_source)
     (OnePoint.isCovariantDerivativeOn_frameCovariantDerivative_twistCore_localTriv 1)
     fun y ↦
       OnePoint.contMDiffCovariantDerivativeOn_frameCovariantDerivative_twistCore_localTriv 1 y n
-    ).contMDiff
+
+/-- The connection on `𝒪(1)` is smooth: it sends `C^(n + 1)` sections to `C^n` one-forms. -/
+theorem contMDiffCovariantDerivativeOn_twistOneConnection (n : ℕ∞) :
+    ContMDiffCovariantDerivativeOn ℂ n twistOneConnection univ :=
+  (inferInstance : CovariantDerivative.ContMDiffCovariantDerivative twistOneConnection n).contMDiff
 
 /-- The connection on `𝒪(1)` is complex linear. -/
 theorem twistOneConnection_const_smul (c : ℂ) {s : Π x, (twistCore (𝕜 := ℂ) 1).Fiber x}
