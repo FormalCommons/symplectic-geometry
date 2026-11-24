@@ -10,6 +10,7 @@ public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Discrete
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Push
+import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Generic
 import TauCeti.Geometry.Manifold.Boundary.Collar.Topological
 import SymplecticGeometry.Geometry.Manifold.ModelTransport.InteriorModel
@@ -148,9 +149,7 @@ vanishing nowhere. The case `n = 0` covers bundles of rank two or more on surfac
 theorem exists_contMDiffSection_forall_ne_zero_of_boundary_nonempty
     (hM : ((𝓡∂ (n + 2)).boundary M).Nonempty) (hF : n + 2 ≤ finrank ℝ F) :
     ∃ t : ContMDiffSection (𝓡∂ (n + 2)) F ∞ V, ∀ x, t x ≠ 0 := by
-  have : SecondCountableTopology M :=
-    have := (𝓡∂ (n + 2)).secondCountableTopology
-    ChartedSpace.secondCountable_of_sigmaCompact (EuclideanHalfSpace (n + 2)) M
+  have := (𝓡∂ (n + 2)).secondCountableTopology_of_sigmaCompact M
   -- A section whose zeros in the interior form a discrete set.
   obtain ⟨σ, hσ⟩ := exists_contMDiffSection_isDiscrete_interior (I := 𝓡∂ (n + 2)) (V := V)
     (by simpa using hF)
