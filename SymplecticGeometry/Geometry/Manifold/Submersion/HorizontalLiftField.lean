@@ -45,6 +45,7 @@ results about general connections apply to it.
 
 ## Main results
 
+* `TauCeti.IsEhresmannConnection.of_le`: a `C^n` connection is a `C^m` one for `m ≤ n`.
 * `TauCeti.IsEhresmannConnection.horizontalLiftField_mem` and
   `TauCeti.IsEhresmannConnection.mfderiv_horizontalLiftField`: the lift is horizontal and
   projects to the field on the base; `TauCeti.IsEhresmannConnection.eq_horizontalLiftField_iff`
@@ -88,6 +89,12 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {B : Type*} [TopologicalSpace B] [ChartedSpace G B]
   {n : ℕ∞ω} {f : P → B} {D : Π x : P, Submodule 𝕜 (TangentSpace I x)}
   (hD : IsEhresmannConnection I J n f D)
+
+include hD in
+/-- A `C^n` Ehresmann connection is a `C^m` Ehresmann connection for every `m ≤ n`. -/
+theorem of_le {m : ℕ∞ω} (hmn : m ≤ n) : IsEhresmannConnection I J m f D :=
+  ⟨hD.mdifferentiable, hD.isCompl_ker, hD.surjective_mfderiv,
+    hD.isContMDiffDistribution.of_le hmn⟩
 
 /-- Given an Ehresmann connection `D` on `f : P → B` and a field `V` on the base `B`, the
 **horizontal lift** of `V` is the field on `P` whose value at `x` is the horizontal lift to `D x`
