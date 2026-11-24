@@ -45,7 +45,8 @@ cohomology classes. The laws come from Tau Ceti's associativity
   function `r`, in degree `0`.
 * `TauCeti.SmoothForm.of_pow_eq_of_wedgePow`: powers of a homogeneous form are its wedge powers.
 * `TauCeti.SmoothForm.of_mul_of_comm` and `TauCeti.SmoothForm.commute_of_of_of_even`: graded
-  commutativity.
+  commutativity, and `TauCeti.SmoothForm.commute_of_of_even`: a form of even degree commutes with
+  every form of mixed degree.
 
 ## References
 
@@ -247,6 +248,13 @@ theorem of_mul_of_comm (φ : SmoothForm I M ℝ k) (ψ : SmoothForm I M ℝ l) :
 theorem commute_of_of_of_even (hk : Even k) (φ : SmoothForm I M ℝ k) (ψ : SmoothForm I M ℝ l) :
     Commute (DirectSum.of (fun k ↦ SmoothForm I M ℝ k) k φ) (DirectSum.of _ l ψ) := by
   rw [Commute, SemiconjBy, of_mul_of_comm, (hk.mul_right l).neg_one_pow, one_smul]
+
+/-- A homogeneous smooth form of even degree commutes with every smooth form of mixed degree. -/
+theorem commute_of_of_even (hk : Even k) (φ : SmoothForm I M ℝ k)
+    (β : ⨁ k, SmoothForm I M ℝ k) : Commute (DirectSum.of (fun k ↦ SmoothForm I M ℝ k) k φ) β := by
+  classical
+  rw [← DirectSum.sum_support_of β]
+  exact Commute.sum_right _ _ _ fun _ _ ↦ commute_of_of_of_even hk φ _
 
 end SmoothForm
 
