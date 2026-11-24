@@ -147,7 +147,7 @@ is given by a smooth embedding `c : C → N` whose range lies in
 `f ⁻¹' range g` and is open and closed in it, for the topology of `N`,
 such that whenever `g y = f (c x)` the range of `mfderiv (f ∘ c) x` is the
 intersection of the ranges of `mfderiv f (c x)` and `mfderiv g y`. This is
-the predicate `Manifold.IsCleanIntersection`. Following *Submanifolds* of
+the predicate `SymplecticGeometry.IsCleanIntersection`. Following *Submanifolds* of
 `DESIGN.md`, `C` has one model, so it has one dimension. Since `range c`
 need only be a union of components of the intersection, the theorem
 applies to the part of each dimension of an intersection whose components
@@ -306,7 +306,8 @@ charted space `leafSpaceChartedSpace hR`:
 
 ### `Geometry/Manifold/CleanIntersection.lean`
 
-- `Manifold.IsCleanIntersection f g c`: the structure of *Decisions*, with
+- `SymplecticGeometry.IsCleanIntersection I J K L f g c`, `L` the model of `C`:
+  the structure of *Decisions*, with
   fields `isSmoothEmbedding`, `range_subset` (`range c ⊆ f ⁻¹' range g`),
   `isClopen_range` (the preimage of `range c` in the subtype
   `f ⁻¹' range g` is open and closed) and `range_mfderiv_comp`.
@@ -325,7 +326,7 @@ charted space `leafSpaceChartedSpace hR`:
 
 The pointwise statements. With `f`, `hR` and `τ` as above, `g` with
 `hσ.IsLagrangianMap K g` and `IsImmersion K I ∞ g`, and
-`hc : IsCleanIntersection f g c`:
+`hc : IsCleanIntersection I J K L f g c`:
 
 - `IsCleanIntersection.ker_mfderiv_leafSpaceMk_comp`: the kernel of the
   derivative of `leafSpaceMk ∘ c` at `x` is the preimage under
