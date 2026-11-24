@@ -5,8 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Analysis.Calculus.Hadamard
+public import TauCeti.Analysis.Calculus.ParametricIntegral.Basic
 
+import TauCeti.Analysis.Calculus.ParametricIntegral.Segment
 import TauCeti.MeasureTheory.Constructions.UnitInterval
 
 /-!
@@ -30,7 +31,12 @@ This is the local, parametrised form of Hadamard's factorization in Tau Ceti
 smooth everywhere; the rescaling formula and its smoothness follow those of Tau Ceti's private
 `linearizationMotion` (`TauCeti/Geometry/Manifold/SmoothIsotopy/Linearization.lean`), adapted
 from a map on the whole space without parameters to a map on an open set with parameters. The
-smoothness of the integral is `TauCeti.contDiffOn_integral_smul_of_contDiffOn`.
+definition, its value lemmas and the open domain on which its regularity is stated follow Tau
+Ceti's `TauCeti.zeroSectionRescale` and `TauCeti.continuousOn_zeroSectionRescale`
+(`TauCeti/Topology/Homotopy/Isotopy/Linearization.lean`), the continuous counterpart of this
+rescaling. The segment formula is Tau Ceti's `StarConvex.sub_eq_intervalIntegral_lineMap_apply`
+in the fibre, and the smoothness of the integral is
+`TauCeti.contDiffOn_integral_smul_of_contDiffOn`.
 
 ## Main definitions and results
 
@@ -38,6 +44,8 @@ smoothness of the integral is `TauCeti.contDiffOn_integral_smul_of_contDiffOn`.
   fibre derivative of `f` at the zero section.
 * `fiberRescale_of_ne_zero`, `fiberRescale_zero`, `fiberRescale_one`: its values for `t ≠ 0`,
   at `t = 0` and at `t = 1`.
+* `ContDiffOn.fderiv_right_of_isOpen`: the partial derivative in the second variable of a map
+  that is `C^(n+1)` on an open set of the product, not necessarily a product set, is `C^n` there.
 * `fiberRescale_eq_integral`: Hadamard's formula for the rescaling.
 * `contDiffOn_fiberRescale`, `contDiffOn_fiberRescale_of_starShaped`: its smoothness.
 
@@ -86,22 +94,29 @@ theorem fiberRescale_one (f : P × F → G) (p : P × F) : fiberRescale f (p, 1)
 
 variable [NormedAddCommGroup P] [NormedSpace ℝ P] {f : P × F → G} {U : Set (P × F)}
 
-/-- If `f` is `C^(n+1)` on an open set `U`, then `fderiv ℝ (fun w ↦ f (p, w)) (s • t • v) v`, the
-integrand of Hadamard's formula for `fiberRescale`, is `C^n` in `(((p, v), t), s)` on the set where
-`(p, s • t • v) ∈ U`. -/
-theorem ContDiffOn.fderiv_snd_smul_smul_apply {n : ℕ∞} (hf : ContDiffOn ℝ (n + 1) f U)
+/-- The partial derivative in the second variable of a map `f : E → F → G` that is `C^(n+1)` on
+an open set `U ⊆ E × F` is `C^n` on `U`. Unlike `ContDiffOn.fderiv_right`, `U` need not be a
+product of sets. -/
+theorem ContDiffOn.fderiv_right_of_isOpen {𝕜 E F G : Type*} [NontriviallyNormedField 𝕜]
+    [NormedAddCommGroup E] [NormedSpace 𝕜 E] [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+    [NormedAddCommGroup G] [NormedSpace 𝕜 G] {f : E → F → G} {U : Set (E × F)} (hU : IsOpen U)
+    {n : ℕ∞ω} (hf : ContDiffOn 𝕜 (n + 1) (Function.uncurry f) U) :
+    ContDiffOn 𝕜 n (fun x : E × F ↦ fderiv 𝕜 (f x.1) x.2) U := by
+  intro x hx
+  refine ContDiffAt.contDiffWithinAt ?_
+  refine ContDiffAt.fderiv (f := fun (y : E × F) w ↦ f y.1 w) ?_ contDiffAt_snd le_rfl
+  exact ContDiffAt.comp (g := Function.uncurry f) (f := fun y : (E × F) × F ↦ (y.1.1, y.2)) _
+    (hf.contDiffAt (hU.mem_nhds hx)) (by fun_prop)
+
+/-- The integrand of Hadamard's formula for `fiberRescale` is `C^n` in all of its variables. -/
+private theorem contDiffOn_fiberRescale_integrand {n : ℕ∞} (hf : ContDiffOn ℝ (n + 1) f U)
     (hU : IsOpen U) :
     ContDiffOn ℝ n (fun x : ((P × F) × ℝ) × ℝ ↦
         fderiv ℝ (fun w ↦ f (x.1.1.1, w)) (x.2 • x.1.2 • x.1.1.2) x.1.1.2)
-      {x | (x.1.1.1, x.2 • x.1.2 • x.1.1.2) ∈ U} := by
-  intro x hx
-  refine ContDiffAt.contDiffWithinAt ?_
-  have hfx : ContDiffAt ℝ (n + 1) f (x.1.1.1, x.2 • x.1.2 • x.1.1.2) :=
-    hf.contDiffAt (hU.mem_nhds hx)
-  refine ContDiffAt.clm_apply (ContDiffAt.fderiv (f := fun (y : ((P × F) × ℝ) × ℝ) w ↦
-      f (y.1.1.1, w)) ?_ (by fun_prop) le_rfl) (by fun_prop)
-  exact ContDiffAt.comp (g := f) (f := fun y : (((P × F) × ℝ) × ℝ) × F ↦ (y.1.1.1.1, y.2)) _
-    hfx (by fun_prop)
+      {x | (x.1.1.1, x.2 • x.1.2 • x.1.1.2) ∈ U} :=
+  ((ContDiffOn.fderiv_right_of_isOpen (f := fun p w ↦ f (p, w)) hU hf).comp
+    (f := fun x : ((P × F) × ℝ) × ℝ ↦ (x.1.1.1, x.2 • x.1.2 • x.1.1.2))
+    (by fun_prop) fun _ hx ↦ hx).clm_apply (by fun_prop)
 
 /-- **Hadamard's formula for the rescaling.** If `f` is `C¹` on an open set `U`, vanishes on
 `U ∩ (P × {0})`, and `U` contains the segment from `(p, 0)` to `(p, t • v)`, then the rescaling
@@ -119,25 +134,22 @@ theorem fiberRescale_eq_integral [CompleteSpace G] (hU : IsOpen U) (hf : ContDif
     simp
   rw [fiberRescale_of_ne_zero f ht]
   dsimp only
-  set D : ℝ → G := fun s ↦ fderiv ℝ (fun w ↦ f (p, w)) (s • t • v) v
-  have hmem : ∀ s ∈ uIcc (0 : ℝ) 1, (p, s • t • v) ∈ U := fun s hs ↦
-    hq ⟨s, by simpa [uIcc_of_le zero_le_one] using hs⟩
-  have hD : ContinuousOn D (uIcc 0 1) := by
-    have h := (ContDiffOn.fderiv_snd_smul_smul_apply (n := 0) (by simpa using hf) hU).continuousOn
-    exact h.comp (f := fun s : ℝ ↦ (((p, v), t), s)) (by fun_prop) fun s hs ↦ hmem s hs
-  have hderiv : ∀ s ∈ uIcc (0 : ℝ) 1,
-      HasDerivAt (fun s : ℝ ↦ f (p, s • t • v)) (t • D s) s := by
-    intro s hs
-    have hdiff : DifferentiableAt ℝ (fun w ↦ f (p, w)) (s • t • v) :=
-      ((hf.contDiffAt (hU.mem_nhds (hmem s hs))).differentiableAt one_ne_zero).comp _
-        (by fun_prop)
-    have h := hdiff.hasFDerivAt.comp_hasDerivAt s ((hasDerivAt_id s).smul_const (t • v))
-    simpa [D, map_smul, Function.comp_def] using h
-  have hFTC := intervalIntegral.integral_eq_sub_of_hasDerivAt hderiv
-    ((hD.const_smul t).intervalIntegrable)
-  rw [intervalIntegral.integral_smul] at hFTC
-  simp only [one_smul, zero_smul, sub_zero, hf0 p (by simpa using hmem 0 (by simp))] at hFTC
-  rw [← hFTC, inv_smul_smul₀ ht]
+  -- the open slice of `U` over `p`, which contains the segment from `0` to `t • v`
+  set S : Set F := {w | (p, w) ∈ U}
+  have hS : IsOpen S := hU.preimage (by fun_prop)
+  have hgS : ContDiffOn ℝ 1 (fun w ↦ f (p, w)) S :=
+    hf.comp (by fun_prop) fun _ hw ↦ hw
+  have hseg : segment ℝ 0 (t • v) ⊆ S := by
+    rw [segment_eq_image_lineMap]
+    rintro _ ⟨s, hs, rfl⟩
+    simpa [S, AffineMap.lineMap_apply_module'] using hq ⟨s, hs⟩
+  have h := (convex_segment (0 : F) (t • v)).starConvex (left_mem_segment ℝ 0 (t • v))
+    |>.sub_eq_intervalIntegral_lineMap_apply ((hgS.continuousOn_fderiv_of_isOpen hS
+      le_rfl).mono hseg) (fun z hz ↦ ((hgS.contDiffAt (hS.mem_nhds (hseg hz))).differentiableAt
+      one_ne_zero).hasFDerivAt.hasFDerivWithinAt) (right_mem_segment ℝ 0 (t • v))
+  simp only [AffineMap.lineMap_apply_module', sub_zero, add_zero, map_smul,
+    intervalIntegral.integral_smul, hf0 p (by simpa using hq 0)] at h
+  rw [h, inv_smul_smul₀ ht]
 
 /-- **Smoothness of the rescaling.** If `f` is `C^(n+1)` on an open set `U` and vanishes on
 `U ∩ (P × {0})`, its rescaling in the fibre variable is `C^n` on the set of `((p, v), t)` such
@@ -150,7 +162,8 @@ theorem contDiffOn_fiberRescale [CompleteSpace G] {n : ℕ∞} (hU : IsOpen U)
     hU.preimage (by fun_prop)
   have h := TauCeti.contDiffOn_integral_smul_of_contDiffOn (μ := (volume : Measure I))
     (g := fun _ ↦ (1 : ℝ)) (integrable_const 1) continuous_subtypeVal hW
-    (hf.fderiv_snd_smul_smul_apply hU) (U := {q | ∀ s : I, (q.1.1, (s : ℝ) • q.2 • q.1.2) ∈ U})
+    (contDiffOn_fiberRescale_integrand hf hU)
+    (U := {q | ∀ s : I, (q.1.1, (s : ℝ) • q.2 • q.1.2) ∈ U})
     fun q hq s ↦ hq s
   refine h.congr fun q hq ↦ ?_
   rw [fiberRescale_eq_integral hU (hf.of_le le_add_self) hf0 hq,
