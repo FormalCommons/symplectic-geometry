@@ -52,8 +52,7 @@ preservation of a symplectic form by local time-dependent Hamiltonian flows.
 
 The file also records how time derivatives of slices behave under pullback along
 `id × f : ℝ × M → ℝ × N`, for a smooth `f : M → N`. The slice of `(id × f)^* α` at time `t` is
-`f^* α_t` (`TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap`, in
-`SymplecticGeometry/Geometry/Manifold/DifferentialForm/Pullback/Family.lean`), and the slice at
+`f^* α_t` (Tau Ceti's `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap`), and the slice at
 time `t` of its time derivative (`TauCeti.SmoothForm.timeDeriv`) is the pullback along `f` of
 the slice of `∂_t α`: both are the velocity of `u ↦ f^* α_u`, by Tau Ceti's
 `TauCeti.SmoothForm.hasDerivAt_mpullback_prodMk_timeDeriv`. The same lemma computes the velocity
@@ -82,10 +81,10 @@ pullback along `id × f`, and it vanishes on forms pulled back from `M` along th
 * `TauCeti.mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`: a closed smooth
   form whose contractions with every `X u` are closed satisfies `(φ_{s,t}^* β)ₓ = βₓ` wherever
   the flow is defined.
-* `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_mpullback_prodMap`: the slices of the time
-  derivative, `ι_t^* ∂_t ((id × f)^* α) = f^* ι_t^* ∂_t α`, and
-  `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_mpullback_prodMap'` for a reparametrization `c`
-  of time, `ι_t^* ∂_t ((c × f)^* α) = c'(t) f^* ι_{c t}^* ∂_t α`.
+* `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_mpullback_prodMap'`: the slices of the time
+  derivative, for a reparametrization `c` of time,
+  `ι_t^* ∂_t ((c × f)^* α) = c'(t) f^* ι_{c t}^* ∂_t α`; the case `c = id` is Tau Ceti's
+  `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_mpullback_prodMap`.
 * `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily`: the velocity of the segment
   `α₀ + c(t) (α₁ - α₀)` at time `t` is `c'(t) (α₁ - α₀)`.
 * `TauCeti.SmoothForm.timeInterior`: the contraction `ι_{∂_t} σ` with the time field.
@@ -372,15 +371,6 @@ theorem mpullback_prodMk_timeDeriv_mpullback_prodMap' {c : ℝ → ℝ}
     -- The two functions differ only by `Function.comp` and `id`, which unfold.
     exact Iff.rfl
 
-/-- The time derivative commutes with pullback along `id × f`, slice by slice: the slice at time
-`t` of `∂_t ((id × f)^* α)` is the pullback along `f` of the slice of `∂_t α` at time `t`. -/
-theorem mpullback_prodMk_timeDeriv_mpullback_prodMap (f : M → N) (hf : ContMDiff I J ∞ f)
-    (α : SmoothForm (𝓘(ℝ, ℝ).prod J) (ℝ × N) F k) (t : ℝ) :
-    mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
-        (mpullback (Prod.map id f) (contMDiff_id.prodMap hf) α).timeDeriv =
-      mpullback f hf
-        (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α.timeDeriv) := by
-  simpa using mpullback_prodMk_timeDeriv_mpullback_prodMap' contMDiff_id f hf α t
 
 /-! ### The velocity of a reparametrized segment -/
 

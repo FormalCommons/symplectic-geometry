@@ -573,17 +573,6 @@ variable {E F E' F' : Type} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedAddCommGroup E'] [NormedSpace ℝ E']
   [NormedAddCommGroup F'] [NormedSpace ℝ F'] {m n d : ℕ}
 
-/-- A real vector space of positive dimension has two local orientations at the origin, opposite
-to each other. -/
-theorem eq_or_eq_neg (hE : finrank ℝ E = m + 1) (z z' : LocalOrientation E 0 (m + 1)) :
-    z' = z ∨ z' = -z := by
-  have := FiniteDimensional.of_finrank_eq_succ hE
-  obtain ⟨ω, rfl⟩ := Orientation.localOrientation_surjective hE z
-  obtain ⟨ω', rfl⟩ := Orientation.localOrientation_surjective hE z'
-  rcases ω'.eq_or_eq_neg ω (by simp [hE]) with rfl | rfl
-  · exact Or.inl rfl
-  · exact Or.inr (Orientation.localOrientation_neg _ _)
-
 /-- A local orientation of a real vector space of positive dimension has infinite order: its
 integral multiples with distinct coefficients are distinct. -/
 theorem zsmul_left_injective (hE : finrank ℝ E = m + 1) (w : LocalOrientation E 0 (m + 1)) :
@@ -734,11 +723,11 @@ private theorem coe_cross_pi_basisFun (m n : ℕ) (hd : m + 1 + (n + 1) = d + 1)
   obtain rfl : d = m + n + 1 := by omega
   have hX : finrank ℝ ((Fin (m + 1) → ℝ) × (Fin (n + 1) → ℝ)) = m + n + 1 + 1 :=
     finrank_prod_eq_succ (Module.finrank_fin_fun ℝ) (Module.finrank_fin_fun ℝ) hd
-  have hor := eq_or_eq_neg hX
-    (prod (Module.finrank_fin_fun ℝ) (Module.finrank_fin_fun ℝ) hd
+  have hor := eq_or_eq_neg (singularHomologyComplZeroIso hX)
+    (cross (Module.finrank_fin_fun ℝ) (Module.finrank_fin_fun ℝ) hd
       ((Pi.basisFun ℝ (Fin (m + 1))).orientation.localOrientation (Module.finrank_fin_fun ℝ))
       ((Pi.basisFun ℝ (Fin (n + 1))).orientation.localOrientation (Module.finrank_fin_fun ℝ)))
-    (cross (Module.finrank_fin_fun ℝ) (Module.finrank_fin_fun ℝ) hd
+    (prod (Module.finrank_fin_fun ℝ) (Module.finrank_fin_fun ℝ) hd
       ((Pi.basisFun ℝ (Fin (m + 1))).orientation.localOrientation (Module.finrank_fin_fun ℝ))
       ((Pi.basisFun ℝ (Fin (n + 1))).orientation.localOrientation (Module.finrank_fin_fun ℝ)))
   rw [crossSign_def]
@@ -770,8 +759,10 @@ theorem coe_cross_eq_crossSign_smul (hE : finrank ℝ E = m + 1) (hF : finrank �
     rw [cross_map_complZeroPairIso (Module.finrank_fin_fun ℝ) (Module.finrank_fin_fun ℝ),
       prod_map_complZeroPairIso (Module.finrank_fin_fun ℝ) (Module.finrank_fin_fun ℝ), coe_map,
       coe_map, coe_cross_pi_basisFun, map_zsmul]
-  rcases eq_or_eq_neg hE (s.map f.complZeroPairIso) z with rfl | rfl <;>
-  rcases eq_or_eq_neg hF (s'.map g.complZeroPairIso) z' with rfl | rfl <;>
+  rcases eq_or_eq_neg (singularHomologyComplZeroIso hE) z (s.map f.complZeroPairIso) with
+    rfl | rfl <;>
+  rcases eq_or_eq_neg (singularHomologyComplZeroIso hF) z' (s'.map g.complZeroPairIso) with
+    rfl | rfl <;>
   simp only [cross_neg_left, cross_neg_right, prod_neg_left, prod_neg_right, coe_neg, zsmul_neg,
     key]
 

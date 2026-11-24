@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.UniversalCover.Circle.FreeLoop.Basic
-public import SymplecticGeometry.Topology.Circle.Degree.Square.FromTauCeti
+public import TauCeti.Topology.Circle.Degree.Square
 public import TauCeti.Topology.Homotopy.Cube.Radius
 
 /-!

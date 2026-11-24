@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Data.Bundle
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Prod
-public import SymplecticGeometry.Topology.Algebra.Module.ComplexSmulI
+public import TauCeti.Topology.Algebra.Module.ComplexSmulI
 public import SymplecticGeometry.Topology.VectorBundle.Pullback
 public import TauCeti.Geometry.Manifold.VectorBundle.Complexification
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
@@ -535,7 +535,7 @@ theorem pullbackFiberEquiv_apply (J : ContMDiffComplexStructure I n F V) (f : K)
       ((J.pullback f hf).toContinuousComplexStructure.fiberEquiv y v) := by
   -- As in `pullbackFiberEquiv`, the `exact` reads the pull-back fibre as `V (f y)`.
   rw [pullbackFiberEquiv]
-  exact congrFun (ContinuousLinearEquiv.coe_complexOfMapISmul _ _) v
+  exact ContinuousLinearEquiv.complexOfMapISmul_apply _ _ v
 
 /-- `pullbackFiberEquiv` is continuous on total spaces, for any complex model `G`. -/
 theorem continuous_pullbackFiberEquiv [FiniteDimensional ℝ F] (G : Type*) [NormedAddCommGroup G]

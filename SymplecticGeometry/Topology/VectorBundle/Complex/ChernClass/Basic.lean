@@ -234,7 +234,6 @@ theorem bijective_integralLerayHirsch_projectiveBundle [CompactSpace B] [FiniteD
   have : Module.Finite ℤ (𝟙_ (ModuleCat.{0} ℤ)) := inferInstanceAs (Module.Finite ℤ ℤ)
   have := Projectivization.projective_singularHomology (V := G) (𝟙_ (ModuleCat.{0} ℤ)) hm
   exact TopCat.integralLerayHirsch_bijective s (Set.univ_subset_iff.1 hs) n _
-    (fun _ _ ↦ inferInstance)
     (fun d _ ↦ TauCeti.finite_singularHomology_of_finiteCWType (ℙ ℂ G) _ d)
     (basis_fiberInclusion_projectiveBundleClassPow G E hm)
 

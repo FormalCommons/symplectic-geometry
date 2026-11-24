@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Orientation.Complex
-public import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving.FromTauCeti
+public import TauCeti.Geometry.Manifold.Orientation.Preserving
 public import TauCeti.Geometry.Manifold.Complex.Orientation
 public import TauCeti.Topology.Algebra.Module.Equiv.RestrictScalars
 

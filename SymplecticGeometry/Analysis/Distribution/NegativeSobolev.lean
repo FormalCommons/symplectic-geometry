@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Analysis.Distribution.WaveFrontSet.Sobolev.Tempered
 public import TauCeti.Analysis.Sobolev.BesselPotential.Schwartz
-import SymplecticGeometry.Analysis.Sobolev.BesselPotential.Duality.FromTauCeti
+import TauCeti.Analysis.Sobolev.BesselPotential.Duality
 import SymplecticGeometry.Analysis.Sobolev.BesselPotential.Schwartz
 import TauCeti.Analysis.Distribution.TestFunction.LineDeriv
 import TauCeti.Analysis.Sobolev.BesselPotential.Multiplication

@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 public import SymplecticGeometry.LinearAlgebra.Complex.Finrank
 public import SymplecticGeometry.Topology.VectorBundle.Thom.ChangeOfCoefficients
-public import SymplecticGeometry.Topology.VectorBundle.Thom.Gysin
+public import TauCeti.Topology.VectorBundle.Thom.Gysin
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 

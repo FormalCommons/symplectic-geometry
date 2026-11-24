@@ -388,14 +388,14 @@ theorem mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul_of_mlieDerivFor
       Real.exp (∫ u in s..t, g (u, timeDependentFlowOf X s u x)) • β.val x
 ```
 
-The file also has, in `TauCeti.SmoothForm`,
+Tau Ceti has, in `TauCeti.SmoothForm`,
 `mpullback_prodMk_timeDeriv_mpullback_prodMap`: the slices of
 `timeDeriv` of a pullback along `Prod.map id f` are the pullbacks along
 `f` of the slices, by uniqueness of the derivative of $u\mapsto f^*\alpha_u$.
 The slices of the pullback itself, `mpullback_prodMk_mpullback_prodMap`
-($\iota_t^*(\mathrm{id}\times f)^*\alpha=f^*\iota_t^*\alpha$), are in
-`Geometry/Manifold/DifferentialForm/Pullback/Family.lean` of *Moser
-isotopy*, which this file imports. `Gray.lean` uses them. The velocity of a reparametrized segment,
+($\iota_t^*(\mathrm{id}\times f)^*\alpha=f^*\iota_t^*\alpha$), are Tau
+Ceti's, in `TauCeti/Geometry/Manifold/DifferentialForm/Flow/Family.lean`,
+which this file imports. `Gray.lean` uses them. The velocity of a reparametrized segment,
 `mpullback_prodMk_timeDeriv_lineMapFamily` (the slice at time `t` of the
 time derivative of `SmoothForm.lineMapFamily α₀ α₁ hc` is
 `deriv c t • (α₁ - α₀)`), follows them; *Moser isotopy* uses it in
@@ -648,13 +648,12 @@ diffeotopies rather than in `Gray.lean`, and imports only Tau Ceti's
 
 Named like Tau Ceti's file. With `[I.Boundaryless] [T2Space M] [CompactSpace M]`.
 
-- First, in `TauCeti.SmoothForm`, with `[I.Boundaryless]` only:
-  `mfderiv_grayVectorField_mpullback_prodMap (hc) (f) (hf) (hdf) (x)`, for
+- First, in `TauCeti.SmoothForm`, with `[I.Boundaryless]` only: Tau Ceti's
+  `mfderiv_grayVectorField_mpullback_prodMap (α) (hc) (f) (hf) (hdf) (x)`, for
   `α` on `ℝ × N` whose slice at `t` is contact and `f` smooth with bijective
   differentials,
-  `mfderiv I J f x ((mpullback (Prod.map id f) _ α).grayVectorField t x) = α.grayVectorField t (f x)`,
-  from the slice lemmas of `Flow/Family.lean` and
-  `mfderiv_contactMoserVectorField_mpullback`; and
+  `mfderiv I J f x ((mpullback (Prod.map id f) _ α).grayVectorField t x) = α.grayVectorField t (f x)`;
+  and
   `tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_subtype_val`, the
   case of an open subset `U`, which compares local Gray fields on different open sets in
   step 2 of *Decisions*.
@@ -786,9 +785,8 @@ Expected size: 650 lines, in two issues (L1 and L2).
   `Geometry/Manifold/Flow/TimeDependent.lean`, for the flow of a field
   restricted to an open subset (in `Gray.lean`).
 - *Hamiltonian flows*: `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean`,
-  for `velocity_timeDependentFlowDiffeotopy` (in `Gray.lean`), and
-  `Geometry/Diffeomorphism/Diffeotopy/Basic.lean`, for
-  `apply_mk_symm_apply` (in `Gray.lean`).
+  for `velocity_timeDependentFlowDiffeotopy` (in `Gray.lean`); Tau Ceti's
+  `Diffeotopy.apply_mk_symm_apply` is used there too.
 - *Symplectic neighbourhoods* (#475, #476): the Lagrangian neighbourhood
   theorem of `Geometry/Symplectic/Neighborhood/Lagrangian.lean`, for a
   Lagrangian embedding into a symplectic manifold, with model
@@ -804,7 +802,7 @@ Expected size: 650 lines, in two issues (L1 and L2).
 - *Moser isotopy*: `PartialDiffeomorph.mvfderiv_trans_toDiffeomorph` of
   `Geometry/Manifold/LocalDiffeomorph/MFDeriv.lean`, already merged (for
   `Darboux/Strict.lean`),
-  `SmoothForm.mpullback_prodMk_mpullback_prodMap` and its variants of
+  `SmoothForm.mpullback_prodMk_mpullback_prodMap'` and its variants of
   `Geometry/Manifold/DifferentialForm/Pullback/Family.lean`, already merged
   (for `Flow/Family.lean`, `Family.lean` and `Gray.lean`), and
   `PartialDiffeomorph.exists_diffeomorph_opens_mpullback_eq` of

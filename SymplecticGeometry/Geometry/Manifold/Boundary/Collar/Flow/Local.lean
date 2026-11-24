@@ -494,7 +494,7 @@ private theorem exists_eqOn_Icc_of_mem_boundary (hY : CMDiff ∞ (T% Y)) {γ δ 
         w y = tangentCoordChange (𝓡∂ (n + 1)) (φ.symm y) (γ 0) (φ.symm y) (Y (φ.symm y)) := by
       have hs : φ.symm y ∈ φ.source := φ.map_target hy.2
       have h := mpullbackWithin_extChartAt_symm_apply Y hs
-      rw [φ.right_inv hy.2, TangentBundle.trivializationAt_apply_tangentCoordChange] at h
+      rw [φ.right_inv hy.2, TangentBundle.trivializationAt_snd_eq_tangentCoordChange] at h
       rw [hwv ⟨hy.1.1, extChartAt_target_subset_range _ hy.2⟩]
       exact h
     intro a ha b hb

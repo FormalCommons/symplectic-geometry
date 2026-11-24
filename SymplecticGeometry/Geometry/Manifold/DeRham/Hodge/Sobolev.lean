@@ -504,7 +504,7 @@ omit [BoundarylessManifold I M] [T2Space M] in
 the `L²` function `x ↦ (bΛ.repr (localize ψ χ hχ u (e⁻¹ x)) p : ℂ)` on `CoordinateSpace n`
 (`L2Form.coeFn_localizeCoord`). -/
 def L2Form.localizeCoord : L2Form o k →L[ℝ] Lp ℂ 2 (volume : Measure (CoordinateSpace n)) :=
-  Lp.compOfMapLeSmul ℝ e.symm.continuous.measurable ENNReal.coe_ne_top
+  Lp.compOfMapLeSmul ℝ e.symm.continuous.aemeasurable ENNReal.coe_ne_top
     (C := (((volume : Measure (CoordinateSpace n)).map e.symm).addHaarScalarFactor volume :
       ENNReal))
     (by rw [← ENNReal.smul_def, ← Measure.isAddLeftInvariant_eq_smul]) ∘L
@@ -554,14 +554,14 @@ theorem L2Form.exists_norm_localize_le_mul_sum_norm_localizeCoord [Fintype κ] :
     e.toContinuousAddEquiv.quasiMeasurePreserving_addHaar _ _
   let R : Lp ℂ 2 (volume : Measure (CoordinateSpace n)) →L[ℝ] Lp ℝ 2 (volume : Measure E) :=
     (Complex.reCLM : ℂ →L[ℝ] ℝ).compLpL 2 volume ∘L
-      Lp.compOfMapLeSmul ℝ e.continuous.measurable ENNReal.coe_ne_top hmap
+      Lp.compOfMapLeSmul ℝ e.continuous.aemeasurable ENNReal.coe_ne_top hmap
   have hR (q : κ) (u : L2Form o k) : R (L2Form.localizeCoord ψ χ hχ bΛ q e u) =
       (bΛ.coord q).toContinuousLinearMap.compLpL 2 volume (L2Form.localize ψ χ hχ u) := by
     refine Lp.ext ?_
     filter_upwards [(Complex.reCLM : ℂ →L[ℝ] ℝ).coeFn_compLpL (p := 2) (μ := volume)
-        (Lp.compOfMapLeSmul ℝ e.continuous.measurable ENNReal.coe_ne_top hmap
+        (Lp.compOfMapLeSmul ℝ e.continuous.aemeasurable ENNReal.coe_ne_top hmap
           (L2Form.localizeCoord ψ χ hχ bΛ q e u)),
-      Lp.coeFn_compOfMapLeSmul (𝕜 := ℝ) e.continuous.measurable ENNReal.coe_ne_top hmap
+      Lp.coeFn_compOfMapLeSmul (𝕜 := ℝ) e.continuous.aemeasurable ENNReal.coe_ne_top hmap
         (L2Form.localizeCoord ψ χ hχ bΛ q e u),
       hq.ae (L2Form.coeFn_localizeCoord ψ χ hχ bΛ q e u),
       (bΛ.coord q).toContinuousLinearMap.coeFn_compLpL (p := 2) (μ := volume)

@@ -21,7 +21,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Normal
 import SymplecticGeometry.Geometry.Contact.Contactization
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Regularity
+import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens

@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Flux.Hamiltonian
-import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.SymplecticIsotopy
@@ -252,12 +251,13 @@ theorem exists_interior_velocity_eq (hσ : SmoothTwoForm.IsSymplectic σ)
     exact SymplecticGeometry.timeExtend_eq_zero (F := E [⋀^Fin 1]→L[ℝ] ℝ) (fun s ↦ hΩL s y hy) u
   have hc := isCompleteVectorField_timeDependentSuspensionField (hX.of_le (by simp)) hL hXL
   set Φ := timeDependentFlowDiffeotopy le_top hX hc
-  have hvel (t : unitInterval) : ⇑(Φ.velocity t) = X t :=
+  have hvel (t : unitInterval) : Φ.velocity t = X t :=
     velocity_timeDependentFlowDiffeotopy hX hc t
   -- The slices of `Φ` preserve `σ`: `d (ι_{X_t} σ) = d Ω_t = 0` for `t ∈ [0, 1]`.
   have hpres : ∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ :=
     (forall_timeSlice_mem_diffeomorphStabilizer_iff Φ hσ.isClosed).2 fun t ↦
-      SmoothTwoForm.mem_symplecticVectorFields_iff.2 (by rw [hvel, hint]; exact hΩ t)
+      SmoothTwoForm.mem_symplecticVectorFields_iff.2
+        (by rw [coe_smoothVelocity, hvel, hint]; exact hΩ t)
   exact ⟨Φ, fun t ↦ by rw [hvel, hint], hpres,
     fun t y hy ↦ timeDependentFlowDiffeotopy_apply_of_forall_eq_zero le_top hX hc
       (fun u ↦ hXL u y hy) t⟩
@@ -446,7 +446,7 @@ finite-dimensional Hausdorff manifold `M` without boundary, and write `X_t` for 
 Milestone: *Hamiltonian isotopies and their composition*. -/
 theorem isHamiltonian_iff_and_normal_hamiltonianGroup (hσ : σ.IsSymplectic) :
     (∀ Φ : Diffeotopy J ∞ M, (∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) →
-      (Φ.IsHamiltonian σ ↔ ∀ t, σ.interiorₗ (Φ.velocity t) ∈ exactForms J M 1) ∧
+      (Φ.IsHamiltonian σ ↔ ∀ t, σ.interiorₗ (Φ.smoothVelocity t) ∈ exactForms J M 1) ∧
         (Φ.IsHamiltonian σ ↔ ∃ G, Φ.IsGeneratedBy σ G)) ∧
     (∀ (Φ : Diffeotopy J ∞ M) (F G : M × unitInterval → ℝ), Φ.IsGeneratedBy σ F →
       Φ.IsGeneratedBy σ G → ∃ c : ConnectedComponents M → unitInterval → ℝ,

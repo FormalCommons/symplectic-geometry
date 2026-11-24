@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Complex
-public import SymplecticGeometry.Topology.VectorBundle.Orientation.Basic
+public import TauCeti.Topology.VectorBundle.Orientation.Basic
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.LocalIndex
 public import TauCeti.Topology.VectorBundle.Orientation.SectionIndex.Degree
 

@@ -210,7 +210,7 @@ No statement of this part is one that the authors' errata
   bridge states its Eulerian fields pointwise along the motion, with the
   time derivative of `Φ` written as the derivative of `Φ.cylinderMap` at
   `(x, t)` on `∂ₜ = ((0 : E), (1 : TangentSpace (𝓡∂ 1) t))`, the vector
-  that `HasHamiltonian` and `velocity_apply_apply` use. With Mathlib's
+  that `HasHamiltonian` and Tau Ceti's `Diffeotopy.velocity_apply` use. With Mathlib's
   `oneTangentSpaceIcc`, the interval's unit vector points towards
   increasing time also at $t=1$, where the chart of the interval reverses
   orientation.
@@ -264,7 +264,7 @@ instead of completeness.
 ### `Analysis/Sobolev/Trace/Reflection/HalfSpace.lean`
 
 Named like Tau Ceti's file; in its namespace `TauCeti.HalfSpaceExtension`.
-`norm_timeScale_le` and `timeScale_of_fst_eq_zero`.
+`timeScale_of_fst_eq_zero`; `norm_timeScale_le` is Tau Ceti's.
 
 ### `LinearAlgebra/Lagrange.lean`
 
@@ -556,8 +556,9 @@ Named like Tau Ceti's file; in `TauCeti`.
 
 ### `Geometry/Manifold/LocalDiffeomorph/Basic.lean`
 
-- `IsLocalDiffeomorphAt.congr_of_eventuallyEq`: a map that agrees near `x`
-  with a local diffeomorphism at `x` is one too; and
+- `IsLocalDiffeomorphAt.congr_of_eventuallyEq`, now Tau Ceti's (in
+  `TauCeti/Geometry/Manifold/LocalDiffeomorph/OpenSubset.lean`): a map that
+  agrees near `x` with a local diffeomorphism at `x` is one too; and
   `PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`: a partial
   diffeomorphism `Θ` between the model vector spaces of `I` and `J` that, on
   its source, maps exactly the points of `range I` into `range J` gives the
@@ -799,8 +800,8 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
   `smoothTransition`. Its form as vector fields,
   `eulerianField_smoothTransitionFamily (u : ℝ) :
   TauCeti.eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) u =
-  ⇑(deriv Real.smoothTransition u • Φ.velocity (s u))`, follows by
-  `velocity_apply_apply`. With `Real.smoothTransition.deriv_pos` and
+  ⇑(deriv Real.smoothTransition u • Φ.smoothVelocity (s u))`, follows by
+  Tau Ceti's `Diffeotopy.velocity_apply`. With `Real.smoothTransition.deriv_pos` and
   `deriv_of_neg`, `deriv_of_one_lt`, the consumers (*Hamiltonian flows*)
   pass between conditions on the velocity for all real times and for all
   $t\in[0,1]$.

@@ -220,7 +220,7 @@ private theorem isLocalDiffeomorphAt_bandAffine {a b : ℝ} (hb : b ≠ 0) {s₀
     exact (Diffeomorph.smulAdd ∞ b a hb).isLocalDiffeomorph
   exact isLocalDiffeomorphAt_subtypeVal_comp_iff.1
     (((isLocalDiffeomorph_subtype_val s₀).comp (hg := hA _)).congr_of_eventuallyEq
-      (eventuallyEq_bandAffine h).symm)
+      (eventuallyEq_bandAffine h))
 
 private theorem mfderiv_bandAffine {a b : ℝ} {s₀ : bandInterval} (h : a + b * s₀ = s₀)
     (v : TangentSpace 𝓘(ℝ) s₀) : mfderiv 𝓘(ℝ) 𝓘(ℝ) (bandAffine a b) s₀ v = b • v := by
@@ -331,7 +331,7 @@ private theorem isLocalDiffeomorphAt_copyParam
     exact ((hj.toOpenPartialHomeomorph j).continuousAt_symm
       (by rwa [hj.toOpenPartialHomeomorph_target])).comp (continuous_bandPoint c).continuousAt
   exact ((hjd _).comp_iff_left hcont).1
-    ((isLocalDiffeomorph_bandPoint c p).congr_of_eventuallyEq (eventuallyEq_copyParam hj hp).symm)
+    ((isLocalDiffeomorph_bandPoint c p).congr_of_eventuallyEq (eventuallyEq_copyParam hj hp))
 
 /-- **The sign at a reference point.** If near a fixed point `(s₀, x)` of `(s, x) ↦ (a + b s, x)`
 the band point is the point of the copy `j` at `bandInterior c (a + b s, x)`, then the band

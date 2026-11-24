@@ -58,9 +58,9 @@ conjugation is tame at `conj c`, and its chart, composed with conjugation, is on
 (`TauCeti.Beltrami.exists_smooth_isothermal_chart_of_tames_transport`, for any real-linear
 automorphism of the plane in place of conjugation). This case split adapts the proof of
 `TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt` and its private step
-`exists_isothermal_chart_of_transport_conj` on Tau Ceti's main branch, in
-`TauCeti/Analysis/Complex/Beltrami/Isothermal.lean` at commit 1179cf0e10, which the pinned
-version of Tau Ceti does not have; here the charts are smooth rather than of class `C¹`.
+`exists_isothermal_chart_of_transport_conj`, in Tau Ceti's
+`TauCeti/Analysis/Complex/Beltrami/Isothermal.lean`; here the charts are smooth rather than of
+class `C¹`.
 
 ## Main results
 
@@ -293,7 +293,7 @@ theorem exists_smooth_isothermal_chart_of_contDiffOn {J : ℂ → AlmostComplexS
     (hJ.contDiffAt (hU.mem_nhds hz)).of_le (by exact_mod_cast le_top)
   -- Tau Ceti's `C¹` chart at `c`, restricted to `U`.
   obtain ⟨e₁, hc₁, hC₁, -, hinv₁, hlin₁⟩ := exists_isothermal_chart_of_contDiffAt
-    (α := 1 / 2) (by norm_num) (by norm_num) (hJat c hc 1) (hJU c hc)
+    (α := 1 / 2) (by norm_num) (by norm_num) (hJat c hc 1)
   set e := e₁.restrOpen U hU
   have he : ⇑e = e₁ := e₁.coe_restrOpen hU
   have hes : e.source = e₁.source ∩ U := e₁.restrOpen_source U hU

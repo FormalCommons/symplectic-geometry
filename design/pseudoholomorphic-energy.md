@@ -356,7 +356,7 @@ identity, which Tau Ceti proves for nondegenerate forms only. The lemmas of
   and `e` with `dvol (e, j e) = 1` (a unit vector for the domain metric), on a plane
   (`Module.finrank ℝ E' = 2`, as for `normSq_eq`),
   `normSq = hc.metric.inner x (L e) (L e) + hc.metric.inner x (L (j e)) (L (j e))`,
-  from `Compatible.metric_inner` of *Almost complex manifolds*' `Metric.lean`.
+  from Tau Ceti's `Compatible.metric_inner`.
   This is the page's reading of $\lvert\eta\rvert^2$ through a unit vector, in
   the metric $g_J$ as a Riemannian metric. Separate from `Density.lean` so
   that only this file waits for `Metric.lean`.
@@ -557,8 +557,8 @@ later.
 
 ## What it uses
 
-- From *Almost complex manifolds*: `Metric.lean` (`Compatible.metric`,
-  `Compatible.metric_inner`), for `Energy/Metric.lean` only.
+- From Tau Ceti: `Compatible.metric` and `Compatible.metric_inner`
+  (`TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/CompatibleMetric.lean`), for `Energy/Metric.lean` only.
 - From Tau Ceti: the declarations of *What there is*; those of its main
   branch through the copies of Decision 8.
 - From Mathlib: `SmoothPartitionOfUnity`,

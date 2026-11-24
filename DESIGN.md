@@ -2270,10 +2270,10 @@ has either; Tau Ceti's extension across a boundary,
   nondegenerate two-form, and the homotopy equivalence gives a bijection
   between the path components of the two spaces) and
   `Geometry/Symplectic/Manifold/AlmostComplex/Metric.lean` (named like Tau
-  Ceti's file: `TauCeti.SmoothTwoForm.Compatible.metric`, the metric $g_J$
-  of a compatible pair as a `Bundle.ContMDiffRiemannianMetric` on $TM$, part
-  12's `Compatible.metric` read through `tangentEquiv`, with
-  `metric_inner`; and, for a fixed $J$, the one-to-one correspondence of
+  Ceti's file: Tau Ceti's `TauCeti.SmoothTwoForm.Compatible.metric`, the
+  metric $g_J$ of a compatible pair as a `Bundle.ContMDiffRiemannianMetric`
+  on $TM$, with `metric_inner`, is part 12's `Compatible.metric` read
+  through `tangentEquiv`; and, for a fixed $J$, the one-to-one correspondence of
   metrics compatible with $J$ and nondegenerate forms compatible with $J$,
   through part 12's `compatibleForm`, with its two evaluation lemmas).
 - **Builds on:** *Symplectic vector bundles* (only the merged
@@ -2310,8 +2310,8 @@ has either; Tau Ceti's extension across a boundary,
   `IsIntegrable.nijenhuis_eq_zero`, from Mathlib's
   `VectorField.mpullback_mlieBracket` for constant fields pulled back along a
   chart; on surfaces modelled on `𝓘(ℝ, ℂ)`, the
-  comparison with Tau Ceti's class
-  `SmoothAlmostComplexStructure.HasIsothermalCharts`); the lemmas on Tau
+  comparison with Tau Ceti's isothermal charts,
+  `isIntegrable_iff_forall_exists_isIsothermalChart`); the lemmas on Tau
   Ceti's `chartPushforward` of a smooth `J` along a smooth chart that
   `Integrable.lean` uses are in
   `Geometry/Symplectic/Manifold/AlmostComplex/Chart.lean`, which imports no
@@ -2336,8 +2336,7 @@ has either; Tau Ceti's extension across a boundary,
 
 - **Files:** `Geometry/Manifold/Complex/Isothermal.lean` (named like Tau
   Ceti's file: every smooth almost complex structure on a surface modelled
-  on `𝓘(ℝ, ℂ)` has smooth isothermal charts, with no instance of Tau
-  Ceti's `HasIsothermalCharts`, from Tau Ceti's planar
+  on `𝓘(ℝ, ℂ)` has smooth isothermal charts, from Tau Ceti's planar
   `TauCeti.Beltrami.exists_isothermal_chart_of_contDiffAt` read through the
   charts of the surface and made smooth by
   `TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp` with the regularity
@@ -2924,12 +2923,12 @@ fixes a choice that would have to change for them.
   Beltrami route gives the charts directly, Tau Ceti reduces their
   smoothness to charts of each finite order
   (`TauCeti.Beltrami.contDiffOn_infty_of_fderiv_comp`), and its
-  `HasIsothermalCharts` and `IsothermalSurface` take the charts from
-  there; the disc route would still have to build a chart from a family of
-  discs and prove that family smooth. What remains is the finite-order
-  regularity, which *Isothermal coordinates* builds, and reading the planar
-  charts through the charts of a surface. Local existence of
-  $J$-holomorphic discs stays available for the later theory of curves.
+  `IsothermalSurface` takes the charts from there; the disc route would
+  still have to build a chart from a family of discs and prove that family
+  smooth. What remains is the finite-order regularity, which *Isothermal
+  coordinates* builds, and reading the planar charts through the charts of
+  a surface. Local existence of $J$-holomorphic discs stays available for
+  the later theory of curves.
 - **Kähler.** The library's Kähler pairs are Tau Ceti's `IsKahler`, with
   $N_J=0$ in place of integrability, and the book's integrability is the
   separate predicate `IsIntegrable` (see *Almost complex structures, Kähler

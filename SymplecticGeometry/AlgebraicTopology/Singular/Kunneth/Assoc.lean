@@ -30,9 +30,9 @@ coefficients in `ULift ℤ` and the multiplication of `ModuleCat.uliftTensorSelf
 
 Tau Ceti proves the absolute statement `TopCat.singularHomologyCross_assoc` by cancelling the
 isomorphism that the Alexander–Whitney map induces on homology. For pairs that argument would need
-the relative Eilenberg–Zilber theorem `TopCat.quasiIso_shufflePair`, which the library's copy of
-Tau Ceti's `Singular/Kunneth/Pair.lean` leaves out. Instead, the two iterated shuffle
-maps are compared at chain level. The natural homotopy `SSet.shuffleAssocHomotopy` between them,
+the relative Eilenberg–Zilber theorem `TopCat.quasiIso_shufflePair` of Tau Ceti's
+`Singular/Kunneth/Pair.lean`. Here, instead, the two iterated shuffle maps are compared at chain
+level. The natural homotopy `SSet.shuffleAssocHomotopy` between them,
 transported to singular chains along the lax monoidal structure of `TopCat.toSSet`, is
 `TopCat.shuffleAssocHomotopy`, natural in the three spaces. By this naturality along the
 inclusions of `A`, `B` and `D`, the homotopy followed by the projection to the relative chains

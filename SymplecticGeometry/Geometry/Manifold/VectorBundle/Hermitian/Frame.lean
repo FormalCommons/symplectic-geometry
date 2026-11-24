@@ -53,18 +53,20 @@ them.
   smooth by `Bundle.ContMDiffRiemannianMetric.contMDiffWithinAt_hermitianPairing`. Their
   versions on a set, `Bundle.ContMDiffRiemannianMetric.contMDiffOn_gramSchmidt` and
   `Bundle.ContMDiffRiemannianMetric.contMDiffOn_gramSchmidtNormed`, follow.
-* `Bundle.Trivialization.contMDiffOn_orthonormalFrameAt`: for a complex linear trivialization `e`
-  in the smooth maximal atlas, every vector `y ↦ e.orthonormalFrameAt c b y w` of Tau Ceti's local
-  unitary frame of `e` is a smooth section over the base set of `e`, in any rank. It and its proof
+* `Bundle.Trivialization.contMDiffOn_totalSpaceMk_orthonormalFrameAt_complex`: for a complex
+  linear trivialization `e` in the smooth maximal atlas, every vector
+  `y ↦ e.orthonormalFrameAt c b y w` of Tau Ceti's local unitary frame of `e` is a smooth section
+  over the base set of `e`, in any rank. It and its proof
   are adapted from Tau Ceti's real
   `Bundle.Trivialization.contMDiffOn_orthonormalBasis_of_mem_maximalAtlas`
   (`TauCeti/Geometry/Manifold/VectorBundle/Riemannian/OrthonormalTrivialization.lean`).
 
-The Gram–Schmidt lemmas, and the proof of `Bundle.Trivialization.contMDiffOn_orthonormalFrameAt`,
-repeat Tau Ceti's real ones almost word for word, with `ℂ` in place of `ℝ`. They would become
-unnecessary if Tau Ceti's `GramSchmidt.lean`, and its
-`Bundle.Trivialization.isLocalFrameOn_symm_of_mem_maximalAtlas` for a basis over a larger field
-of scalars, were stated for fibres with an inner product over any `RCLike` field.
+The Gram–Schmidt lemmas, and the proof of
+`Bundle.Trivialization.contMDiffOn_totalSpaceMk_orthonormalFrameAt_complex`, repeat Tau Ceti's
+real ones almost word for word, with `ℂ` in place of `ℝ`. They would become unnecessary if Tau
+Ceti's `GramSchmidt.lean`, and its `Bundle.Trivialization.isLocalFrameOn_symm_of_mem_maximalAtlas`
+for a basis over a larger field of scalars, were stated for fibres with an inner product over any
+`RCLike` field.
 
 ## References
 
@@ -324,7 +326,7 @@ unitary frame `e.orthonormalFrameAt c b` is a `C^n` section over the base set of
 
 This is the complex counterpart of Tau Ceti's
 `Bundle.Trivialization.contMDiffOn_orthonormalBasis_of_mem_maximalAtlas`. -/
-theorem _root_.Bundle.Trivialization.contMDiffOn_orthonormalFrameAt
+theorem _root_.Bundle.Trivialization.contMDiffOn_totalSpaceMk_orthonormalFrameAt_complex
     (g : ContMDiffRiemannianMetric IB n F V)
     (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w)
     (e : Trivialization F (π F V)) [e.IsLinear ℂ]

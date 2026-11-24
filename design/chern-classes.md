@@ -55,7 +55,7 @@ Gysin sequence (Milnor–Stasheff, §14) or a classifying space:
 
 - **Tau Ceti has the tools.** The Leray–Hirsch theorem for products,
   with global classes restricting to a basis of every fibre
-  (`TopCat.lerayHirschProdOfClasses_bijective`,
+  (`TopCat.lerayHirsch_fst_bijective_of_fiberwise_basis`,
   `AlgebraicTopology/Cohomology/LerayHirsch/FiberwiseBasis.lean`), is the
   local case, and the Mayer–Vietoris step for the Leray–Hirsch map
   (`TopCat.lerayHirschRestrict_union_bijective`,
@@ -327,7 +327,7 @@ homology projective in every degree and finitely generated in degrees
   section): if the restrictions of the classes
   `c p i` to the fibre over every point, read through the trivialization at
   that point, form a basis of `Hᵖ(F; k)`, then it is bijective in degree
-  `n`. Over one trivializing set it is `TopCat.lerayHirschProdOfClasses_bijective`
+  `n`. Over one trivializing set it is `TopCat.lerayHirsch_fst_bijective_of_fiberwise_basis`
   through the trivialization; the finite cover is handled by induction with
   the previous file. The fibre inclusion `Bundle.Trivialization.fiberInclusion`
   comes from `Topology/FiberBundle/Basic.lean` of *Symplectic vector bundles*.
@@ -785,7 +785,7 @@ model fibres:
   projective spaces, under which `L ⊗ L'` is pulled back from the external
   tensor product of the tautological lines on $\mathbb P^N\times\mathbb P^M$.
   There $H^2$ is free on the two pulled-back hyperplane classes (Tau Ceti's
-  `TopCat.lerayHirschProd_bijective`, with the ring of
+  `TopCat.lerayHirsch_fst_bijective`, with the ring of
   `ChernClass/ProjectiveSpace.lean`), and restricting to the two axes
   gives the coefficients.
 - `Projectivization.complexEulerClass_twistCore_one`: on

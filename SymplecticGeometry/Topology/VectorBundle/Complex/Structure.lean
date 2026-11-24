@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Topology.Algebra.Module.ComplexSmulI
+public import TauCeti.Topology.Algebra.Module.ComplexSmulI
 public import TauCeti.Topology.VectorBundle.Complex.Structure
 public import TauCeti.Topology.VectorBundle.Conjugate
 

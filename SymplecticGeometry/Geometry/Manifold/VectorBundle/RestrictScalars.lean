@@ -26,11 +26,11 @@ sections of that real bundle.
 
 ## Main results
 
-* `ContMDiffVectorBundle.restrictScalars`: a `C^n` vector bundle over `𝕜'` for the model
+* `ContMDiffVectorBundle.restrictScalars'`: a `C^n` vector bundle over `𝕜'` for the model
   `𝓘(𝕜', EB)` is a `C^n` vector bundle over `𝕜` for the model `𝓘(𝕜, EB)`.
 * `ContMDiff.restrictScalars_section`: a section that is `C^n` for the models over `𝕜'` is `C^n`
   for the models over `𝕜`.
-* `ContMDiffSection.restrictScalars`: a `C^n` section for the model `𝓘(𝕜', EB)`, as a `C^n`
+* `ContMDiffSection.restrictScalars'`: a `C^n` section for the model `𝓘(𝕜', EB)`, as a `C^n`
   section for the model `𝓘(𝕜, EB)`.
 
 ## Implementation notes
@@ -69,7 +69,7 @@ for the model `𝓘(𝕜', EB)` is `C^n`, as a vector bundle over the smaller fi
 `𝓘(𝕜, EB)`. The `𝕜`-structure is any one, such as `VectorBundle.restrictScalars`: a vector bundle
 structure is a proposition. For instance, a holomorphic vector bundle over a complex manifold is a
 smooth real vector bundle over the underlying real manifold. -/
-theorem ContMDiffVectorBundle.restrictScalars [ContMDiffVectorBundle n F E 𝓘(𝕜', EB)] :
+theorem ContMDiffVectorBundle.restrictScalars' [ContMDiffVectorBundle n F E 𝓘(𝕜', EB)] :
     ContMDiffVectorBundle n F E 𝓘(𝕜, EB) where
   contMDiffOn_coordChangeL e e' _ _ :=
     (((ContinuousLinearMap.restrictScalarsL 𝕜' F F 𝕜 𝕜).contMDiff.comp_contMDiffOn
@@ -95,20 +95,20 @@ namespace ContMDiffSection
 /-- A `C^n` section for the model `𝓘(𝕜', EB)`, as a `C^n` section for the model `𝓘(𝕜, EB)` over
 the smaller field `𝕜`, by `ContMDiff.restrictScalars_section`. For instance, a holomorphic section
 of a holomorphic vector bundle, as a smooth section of the underlying real vector bundle. -/
-def restrictScalars (s : ContMDiffSection 𝓘(𝕜', EB) F n E) :
+def restrictScalars' (s : ContMDiffSection 𝓘(𝕜', EB) F n E) :
     ContMDiffSection 𝓘(𝕜, EB) F n E where
   toFun := s
   contMDiff_toFun := s.contMDiff.restrictScalars_section 𝕜
 
 /-- Restricting the scalars does not change the underlying section. -/
 @[simp]
-theorem coe_restrictScalars (s : ContMDiffSection 𝓘(𝕜', EB) F n E) :
-    ⇑(s.restrictScalars 𝕜) = s :=
+theorem coe_restrictScalars' (s : ContMDiffSection 𝓘(𝕜', EB) F n E) :
+    ⇑(s.restrictScalars' 𝕜) = s :=
   (rfl)
 
 /-- The value of a section with its scalars restricted is that of the section. -/
-theorem restrictScalars_apply (s : ContMDiffSection 𝓘(𝕜', EB) F n E) (x : B) :
-    s.restrictScalars 𝕜 x = s x :=
+theorem restrictScalars'_apply (s : ContMDiffSection 𝓘(𝕜', EB) F n E) (x : B) :
+    s.restrictScalars' 𝕜 x = s x :=
   (rfl)
 
 end ContMDiffSection

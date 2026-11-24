@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.TubularNeighborhood.Existence
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.VectorBundlePoincare
 import Mathlib.Geometry.Manifold.PartitionOfUnity
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
+import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 
 /-!
 # Correcting a family of one-forms to vanish along a submanifold

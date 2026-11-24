@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Linear
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Linear
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Chart
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 import SymplecticGeometry.Topology.Algebra.Module.Equiv.Basic
@@ -36,9 +36,9 @@ For `TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation_
 `D` is followed by a linear identification `L` of `F` with a Euclidean space; Tau Ceti's
 `TauCeti.localOrientationOfManifoldOrientation_eq_localOrientationOfOrientedChart_transHomeomorph`
 reads the local orientation of `M` in the chart followed by `D` and `L`, and
-`OpenPartialHomeomorph.localHomologyMap_chart_localOrientationOfOrientedChart`, from
-`SymplecticGeometry/AlgebraicTopology/Singular/LocalHomology/Orientation/Linear.lean` (a copy of
-Tau Ceti's main branch at commit 55525ca), applied to that chart and `L⁻¹`, carries it to `F`.
+`OpenPartialHomeomorph.localHomologyMap_chart_localOrientationOfOrientedChart`, from Tau Ceti's
+`TauCeti/AlgebraicTopology/Singular/LocalHomology/Orientation/Linear.lean`, applied to that chart
+and `L⁻¹`, carries it to `F`.
 
 ## References
 

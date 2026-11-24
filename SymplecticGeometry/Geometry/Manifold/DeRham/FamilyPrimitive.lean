@@ -9,7 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily
 public import TauCeti.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.DeRham.Map
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Regularity
+import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!

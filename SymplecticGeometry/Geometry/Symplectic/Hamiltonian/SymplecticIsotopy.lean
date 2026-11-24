@@ -131,7 +131,7 @@ theorem mextDeriv_interior_eulerianField_smoothTransitionFamily (σ : SmoothTwoF
     mextDeriv (RoughForm.interior
         (eulerianField J (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) u) σ.val) =
       deriv Real.smoothTransition u •
-        mextDeriv (RoughForm.interior (Φ.velocity (Real.smoothTransitionUnit u)) σ.val) := by
+        mextDeriv (RoughForm.interior (Φ.smoothVelocity (Real.smoothTransitionUnit u)) σ.val) := by
   rw [eulerianField_smoothTransitionFamily, ← SmoothTwoForm.coe_interiorₗ, map_smul,
     Submodule.coe_smul, mextDeriv_smul, SmoothTwoForm.coe_interiorₗ]
 
@@ -142,7 +142,7 @@ a diffeotopy preserves `σ` exactly when its velocity `X_t` is a symplectic vect
 `ι_{X_t} σ` is closed, for every `t ∈ [0, 1]`. -/
 theorem forall_timeSlice_mem_diffeomorphStabilizer_iff (hσ : σ.IsClosed) :
     (∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) ↔
-      ∀ t, Φ.velocity t ∈ σ.symplecticVectorFields := by
+      ∀ t, Φ.smoothVelocity t ∈ σ.symplecticVectorFields := by
   set ψ : ℝ → M ≃ M := fun v ↦ (Φ.smoothTransitionFamily v).toEquiv
   have hψ : ContMDiff (𝓘(ℝ, ℝ).prod J) J 2 (fun p : ℝ × M ↦ ψ p.1 p.2) :=
     Φ.contMDiff_smoothTransitionFamily.of_le (by simp)
@@ -150,8 +150,8 @@ theorem forall_timeSlice_mem_diffeomorphStabilizer_iff (hσ : σ.IsClosed) :
     Φ.contMDiff_smoothTransitionFamily_symm.of_le (by simp)
   have key := forall_mpullback_eq_iff_forall_mextDeriv_interior_eulerianField_eq_zero hψ hψ'
     σ.mdifferentiable ((SmoothForm.isClosed_def σ).1 hσ)
-  have hmem (t : unitInterval) : Φ.velocity t ∈ σ.symplecticVectorFields ↔
-      mextDerivₗ J 1 (σ.interiorₗ (Φ.velocity t)) = 0 := by
+  have hmem (t : unitInterval) : Φ.smoothVelocity t ∈ σ.symplecticVectorFields ↔
+      mextDerivₗ J 1 (σ.interiorₗ (Φ.smoothVelocity t)) = 0 := by
     rw [SmoothTwoForm.mem_symplecticVectorFields_iff, ← SmoothTwoForm.coe_interiorₗ,
       ← mextDerivₗ_apply, ← Submodule.coe_eq_zero]
   have hslice (u : ℝ) : (ψ u : M → M) = Φ.timeSlice (Real.smoothTransitionUnit u) :=
@@ -163,7 +163,7 @@ theorem forall_timeSlice_mem_diffeomorphStabilizer_iff (hσ : σ.IsClosed) :
       rw [hslice, hslice, SmoothForm.mem_diffeomorphStabilizer_iff_forall.1 (h _) x,
         SmoothForm.mem_diffeomorphStabilizer_iff_forall.1 (h _) x]
     -- On `(0, 1)` the factor `s'(u)` is positive, so `ι_{X_t} σ` is closed there.
-    have hzero : EqOn (fun t ↦ mextDerivₗ J 1 (σ.interiorₗ (Φ.velocity t))) (fun _ ↦ 0)
+    have hzero : EqOn (fun t ↦ mextDerivₗ J 1 (σ.interiorₗ (Φ.smoothVelocity t))) (fun _ ↦ 0)
         (Ioo 0 1) := by
       intro t ht
       obtain ⟨u, ⟨hu₀, hu₁⟩, rfl⟩ := Real.surjOn_smoothTransitionUnit_Ioo ht
@@ -171,7 +171,8 @@ theorem forall_timeSlice_mem_diffeomorphStabilizer_iff (hσ : σ.IsClosed) :
       rw [mextDeriv_interior_eulerianField_smoothTransitionFamily] at h0
       exact (hmem _).1 (SmoothTwoForm.mem_symplecticVectorFields_iff.2
         ((smul_eq_zero.1 h0).resolve_left (Real.smoothTransition.deriv_pos hu₀ hu₁).ne'))
-    have hfam := (SymplecticGeometry.isSmoothFamily_interiorₗ σ Φ.contMDiff_velocity).mextDeriv
+    have hfam :=
+      (SymplecticGeometry.isSmoothFamily_interiorₗ σ Φ.contMDiff_smoothVelocity).mextDeriv
     intro t
     rw [hmem]
     exact congrFun (hfam.ext_on (SymplecticGeometry.isSmoothFamily_const 0)
@@ -215,7 +216,8 @@ theorem IsSymplectic.symplecticVectorFields_and_isotopies [FiniteDimensional ℝ
       mem_symplecticVectorFields_iff_mlieDerivForm_eq_zero hσ.isClosed,
       mem_symplecticVectorFields_iff_forall_mpullback_flowOf_apply hσ.isClosed⟩,
     fun Φ ↦ (Φ.forall_timeSlice_mem_diffeomorphStabilizer_iff hσ.isClosed).trans
-      (forall_congr' fun _ ↦ mem_symplecticVectorFields_iff),
+      (forall_congr' fun _ ↦ by
+        rw [mem_symplecticVectorFields_iff, TauCeti.Diffeotopy.coe_smoothVelocity]),
     fun _ hX _ hY ↦ isHamiltonianVectorField_neg_mlieBracket hσ.isClosed hX hY⟩
 
 end SmoothTwoForm

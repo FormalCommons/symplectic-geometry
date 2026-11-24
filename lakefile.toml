@@ -19,7 +19,7 @@ warningAsError = true
 [[require]]
 name = "TauCeti"
 git = "https://github.com/TauCetiProject/TauCeti"
-rev = "e0e414ce57522ba17560057ad0d7f2edab91bf0c" # tag v4.37.0-rc1
+rev = "c9d170eed5a83c81de038eb30829b2de8c3baaf4"
 
 [[lean_lib]]
 name = "SymplecticGeometry"

@@ -161,7 +161,7 @@ theorem contMDiff_cliffordTorusLift (r : ℕ∞ω) :
   cases j using Fin.cases with
   | zero => simpa [comp_def] using contMDiff_const
   | succ k =>
-    simpa [comp_def] using (contMDiff_toCircle r).comp (contMDiff_apply (i := k))
+    simpa [comp_def] using (contMDiff_coe_toCircle r).comp (contMDiff_apply (i := k))
 
 /-- The Clifford torus is smooth. -/
 theorem contMDiff_cliffordTorus (r : ℕ∞ω) :

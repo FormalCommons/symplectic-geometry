@@ -35,10 +35,10 @@ contact forms defines one.
 A local defining family over `ℝ` of `ξ` (`SymplecticGeometry.IsLocalDefiningFamily ξ U α a b`)
 is a one-form `α` on `ℝ × U`, for an open `U ⊆ M`, all of whose slices are contact forms and
 whose kernels are those of `ξ` at the times of `(a, b) ∩ [0, 1]`. It plays the part of Tau Ceti's
-`TauCeti.IsLocalContactFormFamily` (in `TauCeti/Geometry/Contact/Gray/Distribution.lean`, which
-the pinned version of Tau Ceti does not have) for a family indexed by `[0, 1]` rather than by
-`ℝ`: Tau Ceti's predicate asks the kernels to be those of the family at all real times near a
-given time, which a family over `[0, 1]` does not prescribe near `0` and `1`.
+`TauCeti.IsLocalContactFormFamily` (in `TauCeti/Geometry/Contact/Gray/Distribution.lean`) for a
+family indexed by `[0, 1]` rather than by `ℝ`: Tau Ceti's predicate asks the kernels to be
+those of the family at all real times near a given time, which a
+family over `[0, 1]` does not prescribe near `0` and `1`.
 
 A local defining family restricts to smaller open sets
 (`SymplecticGeometry.IsLocalDefiningFamily.mpullback_inclusion`). The proof is that of Tau Ceti's
@@ -351,8 +351,8 @@ theorem mpullback_inclusion (hα : IsLocalDefiningFamily ξ U α a b) {V : Opens
     rw [Submodule.mem_map_equiv, ContinuousLinearEquiv.coe_symm_toLinearEquiv,
       mpullback_prodMk_mpullback_prodMap _ (contMDiff_inclusion hV), kerDistribution_mpullback,
       Submodule.mem_comap, ContinuousLinearMap.coe_coe, hα.mem_kerDistribution_iff ht,
-      Manifold.tangentSpaceOpenEquiv_mfderiv_apply (f := Opens.inclusion hV) (A := id) rfl,
-      mfderiv_id, ContinuousLinearMap.id_apply, ContinuousLinearEquiv.apply_symm_apply]
+      Manifold.tangentSpaceOpenEquiv_mfderiv_inclusion_apply,
+      ContinuousLinearEquiv.apply_symm_apply]
 
 end IsLocalDefiningFamily
 

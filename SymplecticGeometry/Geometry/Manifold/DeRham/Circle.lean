@@ -13,11 +13,10 @@ import SymplecticGeometry.Analysis.Complex.RadialProjection
 # The angular forms of the circle and of the plane
 
 The angular form `dθ` on the unit circle (`TauCeti.circleAngularForm`), the restriction of
-`x dy - y dx`, is invariant under the rotations of the circle: for every `a : Circle`, the
-pull-back of `dθ` along `w ↦ a * w`, and along `w ↦ w * a`, is `dθ`. In the plane this is the
-invariance of `x dy - y dx = Im (conj z dz)` under multiplication by a complex number of modulus
-one. The form also takes the value `1` on the velocity of `Circle.exp` at `0`, the generator of
-the Lie algebra of the circle.
+`x dy - y dx`, is invariant under the rotations of the circle (Tau Ceti's
+`TauCeti.mpullback_mul_left_circleAngularForm`). In the plane, `x dy - y dx = Im (conj z dz)`
+is invariant under multiplication by a complex number of modulus one. The form also takes the
+value `1` on the velocity of `Circle.exp` at `0`, the generator of the Lie algebra of the circle.
 
 The plane form also transforms simply under the maps that read the angle off a point of the
 plane: at a point of the unit circle its pull-back along `z ↦ z ^ k` is `k (x dy - y dx)`, and
@@ -28,8 +27,6 @@ away from `0` its pull-back along the radial projection `z ↦ z / ‖z‖` is t
 
 * `TauCeti.mpullback_mul_planeAngularForm`: multiplication by a complex number of modulus one
   preserves `x dy - y dx`.
-* `TauCeti.mpullback_mul_left_circleAngularForm`, `TauCeti.mpullback_mul_right_circleAngularForm`:
-  the rotations of the circle preserve `dθ`.
 * `SymplecticGeometry.circleAngularForm_one_circleLieGenerator`: `dθ` takes the value `1` on the
   generator `SymplecticGeometry.circleLieGenerator` of the Lie algebra of the circle.
 * `TauCeti.mpullback_zpow_planeAngularForm_apply`,
@@ -85,30 +82,6 @@ theorem mpullback_mul_planeAngularForm {a : ℂ} (ha : ‖a‖ = 1) :
   rw [show (starRingEnd ℂ) a * (starRingEnd ℂ) z * (a * v) =
       ((starRingEnd ℂ) a * a) * ((starRingEnd ℂ) z * v) by ring, Complex.conj_mul', ha]
   simp
-
-/-- The rotations `w ↦ a * w` of the circle preserve its angular form. -/
-@[simp]
-theorem mpullback_mul_left_circleAngularForm (a : Circle) :
-    mpullback (𝓡 1) (𝓡 1) (fun w : Circle ↦ a * w) circleAngularForm = circleAngularForm := by
-  have hcoe : MDifferentiable (𝓡 1) 𝓘(ℝ, ℂ) (fun z : Circle ↦ (z : ℂ)) :=
-    (contMDiff_coe_sphere (m := 1)).mdifferentiable one_ne_zero
-  have hmul : MDifferentiable (𝓡 1) (𝓡 1) (fun w : Circle ↦ a * w) :=
-    (contMDiff_mul_left (n := 1)).mdifferentiable one_ne_zero
-  have hmulℂ : MDifferentiable 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (fun z : ℂ ↦ (a : ℂ) * z) :=
-    (contDiff_const.mul contDiff_id).contMDiff.mdifferentiable (n := 1) (by simp)
-  have hcomp : (fun z : Circle ↦ (z : ℂ)) ∘ (fun w : Circle ↦ a * w) =
-      (fun z : ℂ ↦ (a : ℂ) * z) ∘ fun z : Circle ↦ (z : ℂ) := by
-    funext w
-    simp
-  rw [circleAngularForm_def, ← mpullback_comp hmul hcoe, hcomp, mpullback_comp hcoe hmulℂ,
-    mpullback_mul_planeAngularForm (by simp)]
-
-/-- The rotations `w ↦ w * a` of the circle preserve its angular form. -/
-@[simp]
-theorem mpullback_mul_right_circleAngularForm (a : Circle) :
-    mpullback (𝓡 1) (𝓡 1) (fun w : Circle ↦ w * a) circleAngularForm = circleAngularForm := by
-  simp_rw [mul_comm _ a]
-  exact mpullback_mul_left_circleAngularForm a
 
 /-! ### The plane angular form under powers and radial projection -/
 

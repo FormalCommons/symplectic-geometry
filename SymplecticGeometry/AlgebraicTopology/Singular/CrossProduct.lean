@@ -5,15 +5,15 @@ Authors: The Tau Ceti contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.Shuffle
 public import TauCeti.AlgebraicTopology.Singular.CrossProduct
+public import TauCeti.AlgebraicTopology.Singular.Shuffle
 
 /-!
 # The shuffle product with a vertex, on chains
 
 This file is a part of Tau Ceti's file `TauCeti/AlgebraicTopology/Singular/CrossProduct.lean`, as
-of the commit `ef2c0780f7` of Tau Ceti's main branch, which the pinned release does not have yet.
-It contains only one lemma that this commit adds there,
+of the commit `ef2c0780f7` of Tau Ceti's main branch. It contains only one lemma that this commit
+adds there,
 `TopCat.rightUnitor_inv_whiskerLeft_shuffle_f_fst`: on chains in degree `p`, the shuffle product
 with a vertex `y`, weighted by `t : 𝟙_ C ⟶ S`, followed by the projection `X × Y ⟶ X`, is the
 coefficient map `r ↦ r ⊗ t`. Tau Ceti uses it to compute the cross product with the class of a
@@ -26,9 +26,9 @@ be deleted only once Tau Ceti makes the lemma public and gives it `@[reassoc]`. 
 * the lemma is public, where Tau Ceti's is `private`, since
   `SymplecticGeometry/AlgebraicTopology/Singular/Kunneth/RelativePoint.lean` uses it;
 * it is tagged `@[reassoc]`, which gives the form that file uses;
-* the imports are replaced by the import of the pinned version of Tau Ceti's file and of the copy
-  of `TopCat.ιChainComplex_tensorHom_ιChainComplex_shuffle_f_fst`
-  (`SymplecticGeometry/AlgebraicTopology/Singular/Shuffle.lean`), which the proof uses.
+* the imports are replaced by the import of the pinned version of Tau Ceti's file and of Tau
+  Ceti's `TauCeti/AlgebraicTopology/Singular/Shuffle.lean`, for
+  `TopCat.ιChainComplex_tensorHom_ιChainComplex_shuffle_f_fst`, which the proof uses.
 
 The variables are those of Tau Ceti's file.
 

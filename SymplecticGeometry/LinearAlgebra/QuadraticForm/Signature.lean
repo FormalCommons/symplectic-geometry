@@ -22,7 +22,7 @@ quadratic form `Q` over a linearly ordered ring. This file names their differenc
 
 * `QuadraticForm.signature_neg`: `(-Q).signature = -Q.signature`.
 * `QuadraticForm.signature_smul_of_pos`: scaling by a positive scalar keeps the signature.
-* `QuadraticForm.sigPos_zero`: the zero form has positive index of inertia zero.
+* `QuadraticForm.sigPos_zero_of_nontrivial`: the zero form has positive index of inertia zero.
 * `QuadraticForm.signature_zero`: the zero form has signature zero.
 * `QuadraticMap.Equivalent.signature_eq`: equivalent forms have the same signature.
 -/
@@ -55,7 +55,7 @@ theorem signature_smul_of_pos [IsStrictOrderedRing R] (Q : QuadraticForm R M) {a
 
 /-- The zero quadratic form has positive index of inertia zero. -/
 @[simp]
-theorem sigPos_zero [Nontrivial R] : sigPos (0 : QuadraticForm R M) = 0 := by
+theorem sigPos_zero_of_nontrivial [Nontrivial R] : sigPos (0 : QuadraticForm R M) = 0 := by
   obtain ⟨V, hV, hpos⟩ := exists_submodule_finrank_eq_sigPos_and_posDef (0 : QuadraticForm R M)
   have : Subsingleton V := (subsingleton_iff_forall_eq 0).mpr fun x ↦ by
     by_contra hx
@@ -65,7 +65,8 @@ theorem sigPos_zero [Nontrivial R] : sigPos (0 : QuadraticForm R M) = 0 := by
 /-- The zero quadratic form has signature zero. -/
 @[simp]
 theorem signature_zero [Nontrivial R] : (0 : QuadraticForm R M).signature = 0 := by
-  rw [signature_def, sigPos_zero, ← sigPos_neg, neg_zero, sigPos_zero, Nat.cast_zero, sub_zero]
+  rw [signature_def, sigPos_zero_of_nontrivial, ← sigPos_neg, neg_zero, sigPos_zero_of_nontrivial,
+    Nat.cast_zero, sub_zero]
 
 end QuadraticForm
 

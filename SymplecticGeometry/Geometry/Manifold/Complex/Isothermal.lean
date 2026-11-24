@@ -48,10 +48,9 @@ smooth isothermal chart `e` at the image of the point
 where the field is not tame for the standard form), and `ψ` is `e ∘ Φ`.
 
 This construction adapts the proof of
-`TauCeti.SmoothAlmostComplexStructure.exists_isIsothermalChart` on Tau Ceti's main branch, in
-`TauCeti/Geometry/Manifold/Complex/Isothermal.lean` at commit 1179cf0e10, which the pinned version
-of Tau Ceti does not have: the pushforward of `J` along a chart, its smoothness and square, the
-planar chart, and the equation from
+`TauCeti.SmoothAlmostComplexStructure.exists_isIsothermalChart`, in Tau Ceti's
+`TauCeti/Geometry/Manifold/Complex/Isothermal.lean`: the pushforward of `J` along a chart, its
+smoothness and square, the planar chart, and the equation from
 `TauCeti.ContMDiffAlmostComplexStructure.mfderiv_comp_toEndomorphism`. Here the model space is any
 real two-dimensional space with smooth charts, and the chart is a partial diffeomorphism.
 

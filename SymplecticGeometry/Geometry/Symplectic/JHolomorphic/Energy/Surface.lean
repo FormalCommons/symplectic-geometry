@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.MFDeriv.Constancy
 public import SymplecticGeometry.Geometry.Symplectic.JHolomorphic.Energy.Density
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.TopForm
-public import SymplecticGeometry.Geometry.Symplectic.Manifold.Energy.Surface
+public import TauCeti.Geometry.Symplectic.Manifold.Energy.Surface
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.Regularity
 
 /-!

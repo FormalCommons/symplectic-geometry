@@ -9,7 +9,7 @@ public import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
 public import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Basic
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Regularity
+public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 
 /-!
 # Smooth forms: bilinear forms of two-forms, multiplication by smooth functions, `0`-forms

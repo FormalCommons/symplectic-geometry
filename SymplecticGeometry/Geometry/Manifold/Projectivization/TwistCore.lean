@@ -40,7 +40,7 @@ polynomials that express sections of `𝒪(d)` in the standard charts.
   coordinates in the standard charts are (`Projectivization.contMDiff_section_twistPiCore_iff`).
   For `𝕜 = ℂ`, it is also a smooth real vector bundle over the underlying real manifold, by
   restriction of scalars (the scoped instance `VectorBundle.ComplexToReal.vectorBundle` and the
-  library's `ContMDiffVectorBundle.restrictScalars`); files using its real structure
+  library's `ContMDiffVectorBundle.restrictScalars'`); files using its real structure
   `open scoped VectorBundle.ComplexToReal`.
 * `Projectivization.twistPiCoreOptionEquiv k ι x`: the splitting
   `𝒪(k) ⊗ 𝕜^{Option ι} ≅ 𝒪(k) ⊕ (𝒪(k) ⊗ 𝕜^ι)` into Mathlib's direct sum `×ᵇ` of bundles,
@@ -446,7 +446,7 @@ instance :
   have : ContMDiffVectorBundle ∞ (ι → ℂ) (twistPiCore (𝕜 := ℂ) (n := n) k ι).Fiber
       𝓘(ℂ, Fin n → ℂ) :=
     ContMDiffVectorBundle.of_le le_top
-  ContMDiffVectorBundle.restrictScalars (𝕜' := ℂ) ℝ _ _
+  ContMDiffVectorBundle.restrictScalars' (𝕜' := ℂ) ℝ _ _
 
 end RestrictScalars
 

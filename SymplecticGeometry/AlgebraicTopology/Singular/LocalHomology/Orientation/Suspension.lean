@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Orientation.Linear
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Linear
 public import SymplecticGeometry.Topology.Homotopy.PuncturedStarConvex
 public import TauCeti.AlgebraicTopology.Singular.Sphere
 

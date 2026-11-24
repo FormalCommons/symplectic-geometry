@@ -338,9 +338,9 @@ About 250 lines.
 
 ## What it uses
 
-- From *Almost complex manifolds*: `Metric.lean` (#860), for
-  `Compatible.metric` and `metric_inner`, in the milestone of
-  `LeviCivita.lean`, and for `inner_apply_left_of_inner_eq` and
+- From Tau Ceti: `Compatible.metric` and `metric_inner` (`TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/CompatibleMetric.lean`), in the
+  milestone of `LeviCivita.lean`.
+- From *Almost complex manifolds*: `Metric.lean` (#860), for `inner_apply_left_of_inner_eq` and
   `inner_apply_left_eq_neg`, in its identities.
 - From *Nijenhuis tensor*: `Covariant.lean`, for $\nabla J$ and the first
   identity, in `LeviCivita.lean`; `Nijenhuis.lean`, for the formula of $N_J$

@@ -379,11 +379,10 @@ private theorem exists_isCharacteristicSubmersion_of_partialDiffeomorph
       mfderiv I 𝓘(ℝ, F₂) p u v = (mfderiv I 𝓘(ℝ, F₁ × F₂) Φ u v).2 := by
     have hD := (ContinuousLinearMap.snd ℝ F₁ F₂).hasMFDerivAt.comp (u : M)
       (Φ.mdifferentiableAt (by simp) (huΦ u)).hasMFDerivAt
-    have h := TauCeti.Manifold.tangentSpaceOpenEquiv_mfderiv_apply (I := I) (I' := 𝓘(ℝ, F₂))
+    have h := TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq (I := I) (I' := 𝓘(ℝ, F₂))
       (f := p) (A := ContinuousLinearMap.snd ℝ F₁ F₂ ∘ Φ)
       (funext fun u ↦ congrArg Prod.snd (hΨ u)) v
-    rw [TauCeti.Manifold.tangentSpaceOpenEquiv_apply, TauCeti.Manifold.tangentSpaceOpenEquiv_apply,
-      hD.mfderiv] at h
+    rw [hD.mfderiv] at h
     exact h
   have hpc : ContMDiff I 𝓘(ℝ, F₂) ∞ p :=
     (ContMDiff.subtypeVal_comp_iff _ _).1
