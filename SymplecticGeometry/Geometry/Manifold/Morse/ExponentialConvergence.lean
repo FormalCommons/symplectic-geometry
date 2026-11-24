@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.Morse.GradientFlow
 import SymplecticGeometry.Geometry.Manifold.Morse.GradientFlow
 import SymplecticGeometry.Geometry.Manifold.Riemannian.Distance
 import TauCeti.Analysis.Calculus.Lojasiewicz
+import TauCeti.Analysis.Calculus.Lojasiewicz.Comparison
 import TauCeti.Geometry.Manifold.Riemannian.ArcLength
 import TauCeti.Geometry.Manifold.Riemannian.Distance
 import TauCeti.Topology.Order.Interval
@@ -18,8 +19,8 @@ import TauCeti.Topology.Order.Interval
 # Łojasiewicz's convergence theorem for negative gradient trajectories on a manifold
 
 This file is a part of Tau Ceti's `TauCeti/Geometry/Manifold/Morse/ExponentialConvergence.lean`,
-copied from Tau Ceti's main branch at commit `07c8b6b1f5ff5bdab8363e207e59d68eccc82bef`, which
-the pinned version of Tau Ceti does not have yet.
+copied from Tau Ceti's main branch at commit `07c8b6b1f5ff5bdab8363e207e59d68eccc82bef`. The
+pinned version of Tau Ceti does not have Łojasiewicz's convergence theorem yet.
 
 Let `f` be a `C²` function on a boundaryless finite-dimensional manifold `M` with a `C¹`
 Riemannian metric, and let `γ` be the maximal integral curve of `-grad f` through `x`. Along any
@@ -39,7 +40,13 @@ comes close enough to `p`, at a time when `e ^ (1 - θ)` is small, it cannot tra
 leave a Riemannian ball about `p` on which the inequality holds, and its remaining length is
 small. Nothing is assumed about the other critical points: they need not be isolated.
 
-Changes from Tau Ceti's file: only the two theorems listed below and the two private steps of
+A Łojasiewicz inequality with exponent `1/2` in the preferred chart at `p` gives one for the
+Riemannian gradient
+(`TauCeti.exists_mul_abs_sub_le_norm_mgradient_sq_of_fderiv_comp_extChartAt_symm`), since in
+that chart the differential of `f` is bounded by a multiple of the length of its gradient
+(`TauCeti.Manifold.eventually_norm_fderiv_comp_extChartAt_symm_le_mul_norm_mgradient`).
+
+Changes from Tau Ceti's file: only the three theorems listed below and the two private steps of
 their proofs, `pathELength_le_of_forall_abs_le` and `riemannianEDist_lt_of_lojasiewicz`, are taken,
 with the sections and `variable` lines they need and the imports they use; this module docstring
 replaces Tau Ceti's, and keeps the parts of its text that concern these declarations. The
@@ -52,10 +59,17 @@ and their proofs are unchanged.
 Since it imports the copy of `GradientFlow.lean`, this file cannot be imported together with the
 pinned `TauCeti/Geometry/Manifold/Morse/ExponentialConvergence.lean`, nor with any file that
 imports it, such as the pinned `TauCeti/Geometry/Manifold/Morse/Bott/ExponentialConvergence.lean`:
-both declare `TauCeti.le_comp_maximalIntegralCurve_neg_mgradient`.
+both declare `TauCeti.le_comp_maximalIntegralCurve_neg_mgradient`. The pinned
+`TauCeti/Geometry/Manifold/Morse/ExponentialConvergence.lean` also declares
+`TauCeti.exists_mul_abs_sub_le_norm_mgradient_sq_of_fderiv_comp_extChartAt_symm`; it is copied here
+so that the Morse–Bott inequality can be stated next to these theorems, in this library's copy of
+`TauCeti/Geometry/Manifold/Morse/Bott/ExponentialConvergence.lean`.
 
 ## Main results
 
+* `TauCeti.exists_mul_abs_sub_le_norm_mgradient_sq_of_fderiv_comp_extChartAt_symm`: a
+  Łojasiewicz inequality with exponent `1/2` in the preferred chart at `p` gives one for the
+  Riemannian gradient.
 * `TauCeti.pathELength_maximalIntegralCurve_neg_mgradient_le_of_lojasiewicz`: Łojasiewicz's
   bound on the length of a trajectory along which a Łojasiewicz inequality with any exponent
   `θ < 1` holds.
@@ -77,6 +91,31 @@ open Bundle Filter MeasureTheory Set Topology TauCeti.Manifold
 open scoped ContDiff ENNReal Manifold NNReal
 
 namespace TauCeti
+
+section Lojasiewicz
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M]
+  [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+  [IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x)]
+  {f : M → ℝ} {p : M}
+
+/-- **Łojasiewicz's gradient inequality passes from the preferred chart to the Riemannian
+gradient.** If near `p` the absolute energy difference `|f y - f p|` is bounded by a multiple of
+the squared norm of the differential of `f` read in the preferred extended chart at `p`, then it is
+bounded by a multiple of the squared Riemannian length of the gradient of `f` at `y`, for any
+continuous Riemannian metric. -/
+theorem exists_mul_abs_sub_le_norm_mgradient_sq_of_fderiv_comp_extChartAt_symm
+    (h : ∃ lam > 0, ∀ᶠ y in 𝓝 p, lam * |f y - f p| ≤
+      ‖fderiv ℝ (f ∘ (extChartAt I p).symm) (extChartAt I p y)‖ ^ 2) :
+    ∃ lam > 0, ∀ᶠ y in 𝓝 p, lam * |f y - f p| ≤ ‖mgradient I f y‖ ^ 2 := by
+  obtain ⟨C, -, hbd⟩ :=
+    eventually_norm_fderiv_comp_extChartAt_symm_le_mul_norm_mgradient (I := I) p
+  exact exists_mul_le_sq_of_eventually_le_mul h (.of_forall fun _ ↦ norm_nonneg _)
+    (hbd.mono fun y hy ↦ hy f)
+
+end Lojasiewicz
 
 section Decay
 

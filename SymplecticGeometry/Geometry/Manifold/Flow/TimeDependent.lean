@@ -11,9 +11,10 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
+import TauCeti.Geometry.Manifold.Flow.Diffeomorph
 
 /-!
-# Time-dependent flows: joint smoothness, uniqueness on intervals, open subsets
+# Time-dependent flows: joint smoothness, uniqueness on intervals, open subsets, naturality
 
 Let `X` be a `C^n` time-dependent vector field, `1 ≤ n`, on a finite-dimensional boundaryless
 manifold `M`, whose suspension on `ℝ × M` is complete. Tau Ceti's
@@ -53,6 +54,11 @@ follows Tau Ceti's: both curves are lifted through their clocks to integral curv
 suspension, and these agree by Tau Ceti's uniqueness theorem for integral curves on preconnected
 sets, `IsMIntegralCurveOn.eqOn_of_isPreconnected`.
 
+A diffeomorphism `ψ` that carries one time-dependent field to another at every time carries the
+suspension of the first to that of the second through `id × ψ`, so Tau Ceti's naturality of
+flows, `Diffeomorph.apply_flowOf` (`TauCeti/Geometry/Manifold/Flow/Diffeomorph.lean`), gives
+`Diffeomorph.apply_timeDependentFlowOf`.
+
 ## Main results
 
 * `TauCeti.contMDiff_timeDependentFlowDiffeomorph`: the map
@@ -67,6 +73,8 @@ sets, `IsMIntegralCurveOn.eqOn_of_isPreconnected`.
   the tangent spaces of `U` and `M` being identified.
 * `TauCeti.timeDependentFlowOf_eq_of_hasMFDerivWithinAt`: uniqueness of solutions on a
   preconnected set of times.
+* `Diffeomorph.apply_timeDependentFlowOf`: a diffeomorphism relating two time-dependent fields
+  conjugates their flows.
 -/
 
 public section
@@ -267,5 +275,53 @@ theorem tangentSpaceOpenEquiv_mfderiv_timeDependentFlowOf_restrict [CompleteSpac
 end Opens
 
 end TauCeti
+
+/-! ### Naturality under diffeomorphisms -/
+
+namespace Diffeomorph
+
+open TauCeti
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M'] [ChartedSpace H' M']
+  [T2Space M'] [IsManifold I' 1 M'] [BoundarylessManifold I' M']
+
+/-- **Naturality of time-dependent flows.** A diffeomorphism `ψ` that carries the time-dependent
+vector field `X` to a `C¹` time-dependent field `Y` at every time conjugates their flows:
+`ψ (φˣ_{s, t} x) = φʸ_{s, t} (ψ x)`. Outside the flow domains both sides are the junk value
+`ψ x`. -/
+theorem apply_timeDependentFlowOf {n : ℕ∞ω} (ψ : M ≃ₘ^n⟮I, I'⟯ M') (hn : n ≠ 0)
+    {X : ℝ → (x : M) → TangentSpace I x} {Y : ℝ → (y : M') → TangentSpace I' y}
+    (hY : ContMDiff (𝓘(ℝ, ℝ).prod I') I'.tangent 1
+      (fun p : ℝ × M' ↦ (⟨p.2, Y p.1 p.2⟩ : TangentBundle I' M')))
+    (hXY : ∀ t x, mfderiv I I' ψ x (X t x) = Y t (ψ x)) (s t : ℝ) (x : M) :
+    ψ (timeDependentFlowOf X s t x) = timeDependentFlowOf Y s t (ψ x) := by
+  -- The diffeomorphism `id × ψ` of the extended phase spaces carries one suspension to the other.
+  let Ψ : (ℝ × M) ≃ₘ^n⟮𝓘(ℝ, ℝ).prod I, 𝓘(ℝ, ℝ).prod I'⟯ ℝ × M' :=
+    { toEquiv := (Equiv.refl ℝ).prodCongr ψ.toEquiv
+      contMDiff_toFun := contMDiff_fst.prodMk (ψ.contMDiff.comp contMDiff_snd)
+      contMDiff_invFun := contMDiff_fst.prodMk (ψ.symm.contMDiff.comp contMDiff_snd) }
+  have hΨ : ⇑Ψ = Prod.map id ψ := rfl
+  have hrel : ∀ p : ℝ × M, mfderiv (𝓘(ℝ, ℝ).prod I) (𝓘(ℝ, ℝ).prod I') Ψ p
+      (timeDependentSuspensionField X p) = timeDependentSuspensionField Y (Ψ p) := by
+    rintro ⟨u, y⟩
+    have h := Manifold.mfderiv_prodMap_apply (I := 𝓘(ℝ, ℝ)) (I' := 𝓘(ℝ, ℝ)) (p := (u, y))
+      mdifferentiableAt_id (ψ.mdifferentiable hn y) ((1 : ℝ), X u y)
+    rw [Manifold.tangentSpaceProdEquiv_symm_apply, Manifold.tangentSpaceProdEquiv_symm_apply,
+      mfderiv_id, hXY] at h
+    rw [hΨ]
+    exact (congrArg _ (Prod.ext (timeDependentSuspensionField_fst X (u, y))
+      (timeDependentSuspensionField_snd X (u, y)))).trans (h.trans (Prod.ext
+        (timeDependentSuspensionField_fst Y _).symm
+        (timeDependentSuspensionField_snd Y (u, ψ y)).symm))
+  -- The time-dependent flows are read off the flows of the suspensions.
+  have h := Ψ.apply_flowOf hn (contMDiff_timeDependentSuspensionField hY) hrel (t - s) (s, x)
+  rw [hΨ] at h
+  rw [timeDependentFlowOf_def, timeDependentFlowOf_def]
+  simpa using congrArg Prod.snd h
+
+end Diffeomorph
 
 end
