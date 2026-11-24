@@ -87,9 +87,14 @@ theorem IsSemialgebraicOn.eventually_analyticAt_nhdsGT {f : (Fin 1 → ℝ) → 
       (Ioo_mem_nhds ht.1 ht.2)] with y hy
     rw [hQ, ← show ![y 0] = y from FinVec.etaExpand_eq y]
     exact (hb hy).1.2
+  -- `f ![t]` is a simple root, since `P (t, ·)` is separable.
+  have hsep : (Q.map (MvPolynomial.eval ![t])).Separable := by
+    rw [hQ]; exact (separable_map_iff_map_discr_ne_zero P (evalRingHom _) hDt.2).2 hDt.1
+  have hd := hsep.aeval_derivative_ne_zero (x := f ![t])
+    (by simpa [aeval_def] using hroots.self_of_nhds)
   have hN : IsNashAt f ![t] :=
     isNashAt_of_eventually_isRoot (continuousAt_iff_continuousAt_vecCons_fin_one.2 hcont) hroots
-      (by rw [hQ]; exact (separable_map_iff_map_discr_ne_zero P (evalRingHom _) hDt.2).2 hDt.1)
+      (by simpa [aeval_def] using hd)
   have hv : AnalyticAt ℝ (fun s : ℝ ↦ ![s]) t := by
     simp only [Matrix.vec_single_eq_const]
     exact (ContinuousLinearEquiv.funUnique (Fin 1) ℝ ℝ).symm.toContinuousLinearMap.analyticAt t
