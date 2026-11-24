@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Reduction.ReducedSpace
+public import SymplecticGeometry.Topology.Algebra.ProperAction.Basic
 
 -- `zeroLevelChartedSpace` is `levelSubMulActionChartedSpace 0`, which needs the two levels to
 -- have the same points by definition; that unfolds the body of `levelSubMulAction`.
@@ -23,8 +24,9 @@ Since `0 ∈ 𝔤*` is fixed by the coadjoint action, the level `Z = μ⁻¹(0)`
 reduced space `Z / G` when `G` acts freely at the points of `Z` and properly on `Z`; no properness
 on all of `M` is assumed.
 
-* `zeroLevel`: the level `μ⁻¹(0)` as a `SubMulAction` of `G`; `properSMul_zeroLevel` and
-  `isCancelSMul_zeroLevel` give properness from a proper action on `M`, and freeness.
+* `zeroLevel`: the level `μ⁻¹(0)` as a `SubMulAction` of `G`. The instance
+  `SubMulAction.properSMul` gives properness on it from a proper action on `M`, and
+  `isCancelSMul_zeroLevel` gives freeness.
 * `zeroLevelChartedSpace`, `isManifold_zeroLevel`, `isSmoothEmbedding_coe_zeroLevel`,
   `range_mfderiv_coe_zeroLevel`: freeness makes `0` a regular value, so `Z` is an embedded
   submanifold of `M`, modelled on `Fin n → ℝ` for `n = dim M - dim 𝔤`, with tangent spaces
@@ -47,9 +49,9 @@ Tau Ceti's `levelSubMulAction`, so that they can move there unchanged. The zero 
 points of Tau Ceti's level `levelSubMulAction 0`, so its atlas is `levelSubMulActionChartedSpace 0`
 and `isManifold_zeroLevel`, `isSmoothEmbedding_coe_zeroLevel` and `range_mfderiv_coe_zeroLevel`
 are `isManifold_levelSubMulAction`, `isSmoothEmbedding_coe_levelSubMulAction` and
-`range_mfderiv_coe_levelSubMulAction` at `c = 0`. The proofs of `properSMul_zeroLevel`,
+`range_mfderiv_coe_levelSubMulAction` at `c = 0`. The proofs of
 `existsUnique_isSymplectic_mpullback_quotientMk_zeroLevel_eq_mpullback` and
-`finrank_quotientModelSpace_zeroLevel` adapt those of Tau Ceti's `properSMul_levelSubMulAction`,
+`finrank_quotientModelSpace_zeroLevel` adapt those of Tau Ceti's
 `existsUnique_isSymplectic_mpullback_quotientMk_eq_mpullback` and
 `finrank_quotientModelSpace_add_finrank_add_finrank_lieAnnihilator`
 (`TauCeti/Geometry/Symplectic/Hamiltonian/Reduction/ReducedSpace.lean` and
@@ -112,11 +114,6 @@ theorem mem_zeroLevel {x : M} : x ∈ h.zeroLevel ↔ μ x = 0 :=
 @[simp]
 theorem coe_zeroLevel : (h.zeroLevel : Set M) = μ ⁻¹' {0} :=
   (rfl)
-
-/-- **Properness on the zero level.** If `G` acts properly on `M`, it acts properly on the zero
-level. -/
-theorem properSMul_zeroLevel [ProperSMul G M] : ProperSMul G h.zeroLevel :=
-  Topology.IsEmbedding.subtypeVal.properSMul fun g z ↦ SubMulAction.val_smul g z
 
 /-- **Freeness on the zero level.** If `G` acts freely at every point of `μ⁻¹(0)`, it acts freely
 on the zero level. -/

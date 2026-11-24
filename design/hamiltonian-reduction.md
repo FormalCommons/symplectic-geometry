@@ -115,8 +115,9 @@ product $M\times\mathcal O$.
   action, which is exactly the page's assumption, and freeness is
   `∀ x, μ x = 0 → MulAction.stabilizer G x = ⊥`, the form of Tau Ceti's
   `forall_differential_surjective_of_stabilizer_eq_bot`. When `G` acts
-  properly on `M`, `properSMul_zeroLevel` supplies the hypothesis, by the
-  argument of Tau Ceti's `properSMul_levelSubMulAction`. The level's atlas
+  properly on `M`, the instance `SubMulAction.properSMul`
+  (`Topology/Algebra/ProperAction/Basic.lean`) supplies the hypothesis, by
+  the argument of Tau Ceti's `properSMul_levelSubMulAction`. The level's atlas
   is Tau Ceti's `IsMomentMap.levelChartedSpace` carried along the identity
   of points, as `levelSubMulActionChartedSpace` does for `G_c`, and the
   quotient's atlas is `ProperSMul.orbitRelQuotientChartedSpace` for `G`
@@ -204,7 +205,8 @@ and let `hfree : ∀ x, μ x = 0 → MulAction.stabilizer G x = ⊥`.
 - `def zeroLevel : SubMulAction G M`, carrier `μ ⁻¹' {0}`, invariant by
   `h.apply_smul` and `map_zero`; `@[simp] mem_zeroLevel :
   x ∈ h.zeroLevel ↔ μ x = 0`, `coe_zeroLevel`.
-- `properSMul_zeroLevel [ProperSMul G M] : ProperSMul G h.zeroLevel`.
+- Properness on the zero level is the instance `SubMulAction.properSMul
+  [ProperSMul G M] (S : SubMulAction G M) : ProperSMul G S`.
 - `isCancelSMul_zeroLevel (hfree) : IsCancelSMul G h.zeroLevel`.
 - `def zeroLevelChartedSpace (hσ : σ.IsNondegenerate) (hfree) (hn) :
   ChartedSpace (Fin n → ℝ) h.zeroLevel`, which is
@@ -353,8 +355,9 @@ moment map `fun p ↦ μ p.1 + ι p.2` of `σ.prod η.coadjointOrbitForm`),
 `hfree : ∀ x ∈ h.orbitLevel η, MulAction.stabilizer G x = ⊥`.
 
 - `def orbitLevel (η) : SubMulAction G M`, carrier `{x | -μ x ∈ Set.range ι}`
-  (invariant since `ι` is equivariant); `@[simp] mem_orbitLevel`,
-  `properSMul_orbitLevel [ProperSMul G M]`.
+  (invariant since `ι` is equivariant); `@[simp] mem_orbitLevel`;
+  properness from `[ProperSMul G M]` is the instance
+  `SubMulAction.properSMul`.
 - `def orbitLevelGraph (hemb) : h.orbitLevel η ≃ₜ hP.zeroLevel`,
   `x ↦ (x, q)` with `ι q = -μ x`, inverse `Prod.fst`; `orbitLevelGraph_fst`,
   `orbitMap_orbitLevelGraph_snd : ι (h.orbitLevelGraph hemb x).2 = -μ x`
