@@ -12,6 +12,7 @@ public import TauCeti.AlgebraicTopology.Cohomology.IntegralCup
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 public import TauCeti.Algebra.Category.ModuleCat.Monoidal.Unit
 public import TauCeti.CategoryTheory.Linear.Int
+import all TauCeti.AlgebraicTopology.Cohomology.IntegralCup
 
 /-!
 # Integral cohomology with values in `ULift ℤ`
@@ -30,21 +31,21 @@ the multiplication `ModuleCat.uliftTensorSelfIso ℤ` of `ULift ℤ` to the mult
 
 Singular cohomology with chain coefficients and cochain values `ℤ`, in the form that
 `TopCat.lerayHirsch` takes for `k = ℤ`, is also identified with integral cohomology, by
-`TopCat.integralCohomologyLinearEquiv`. The two differ in two ways: the chain coefficients are
-`ℤ` rather than `ULift ℤ`, changed along `TauCeti.integralCoeffIso`; and the former uses the
-structure of `ModuleCat ℤ` as a linear category over the commutative ring `ℤ`, the latter the
-structure that every preadditive category has over `ℤ`. These two structures are not
-definitionally equal, but they are equal (`CategoryTheory.Linear.subsingletonInt`), and the
-identification transports classes, pull-backs and cup products along that equality, by
-`TopCat.singularCohomologyLinearCongr` (`LinearCongr.lean`).
+Tau Ceti's `TopCat.integralCohomologyEquiv`, whose inverse this file uses. The two differ in two
+ways: the chain coefficients are `ℤ` rather than `ULift ℤ`, changed along
+`TauCeti.integralCoeffIso`; and the former uses the structure of `ModuleCat ℤ` as a linear
+category over the commutative ring `ℤ`, the latter the structure that every preadditive category
+has over `ℤ`. These two structures are not definitionally equal, but they are equal
+(`CategoryTheory.Linear.subsingletonInt`), and the identification transports classes, pull-backs
+and cup products along that equality, by
+`TopCat.singularCohomologyLinearCongr` (`LinearCongr.lean`). Tau Ceti gives the equivalence
+with its naturality and its Kronecker pairings; this file adds its values, its compatibility with
+cup products and its value on the unit class. The values are read off Tau Ceti's definition, which
+is why the file imports all of `TauCeti.AlgebraicTopology.Cohomology.IntegralCup`.
 
 ## Main definitions
 
 * `TopCat.uliftIntegralCohomologyIso`: the isomorphism `Hⁿ(X; ULift ℤ) ≅ Hⁿ(X; ℤ)`.
-* `TopCat.integralCohomologyLinearEquiv`: the linear equivalence from cohomology with chain
-  coefficients and values `ℤ` to `TopCat.integralCohomology`; its value and that of its inverse
-  are given by `TopCat.integralCohomologyLinearEquiv_apply` and
-  `TopCat.integralCohomologyLinearEquiv_symm_apply`.
 
 ## Main results
 
@@ -57,12 +58,15 @@ identification transports classes, pull-backs and cup products along that equali
   states it on a class.
 * `TopCat.uliftIntegralCohomologyIso_singularCup`: `TopCat.uliftIntegralCohomologyIso` carries the
   cup product with values in `ULift ℤ` to `TopCat.integralCup`.
-* `TopCat.integralCohomologyLinearEquiv_naturality` and
-  `TopCat.integralCohomologyLinearEquiv_singularCup`: `TopCat.integralCohomologyLinearEquiv`
-  commutes with pull-backs and carries cup products to `TopCat.integralCup`.
-* `TopCat.bijective_integralCup_integralCohomologyLinearEquiv_iff`: cup product with a class is
+* `TopCat.integralCohomologyEquiv_apply` and `TopCat.integralCohomologyEquiv_symm_apply`: the
+  values of Tau Ceti's `TopCat.integralCohomologyEquiv` and of its inverse.
+* `TopCat.integralCohomologyEquiv_symm_naturality` and
+  `TopCat.integralCohomologyEquiv_symm_singularCup`: the inverse of
+  `TopCat.integralCohomologyEquiv` commutes with pull-backs and carries cup products to
+  `TopCat.integralCup`.
+* `TopCat.bijective_integralCup_integralCohomologyEquiv_symm_iff`: cup product with a class is
   bijective in integral cohomology exactly when it is with coefficients `ℤ`.
-* `TopCat.integralCohomologyLinearEquiv_singularCohomologyZeroOne`: the equivalence sends the
+* `TopCat.integralCohomologyEquiv_symm_singularCohomologyZeroOne`: the equivalence sends the
   unit class to the unit class; so `TopCat.bijective_zsmul_integralCohomologyOne`: on a
   path-connected space, `m ↦ m • 1` is a bijection from `ℤ` onto `H⁰(X; ℤ)`, by Tau Ceti's
   `TauCeti.singularCohomologyZeroEvalEquiv`.
@@ -181,157 +185,120 @@ open TauCeti
 
 attribute [local instance] MonoidalPreadditive.monoidalLinearInt
 
-/-! The cohomology with chain coefficients and values `ℤ` uses the structure of `ModuleCat ℤ` as a
-linear category over the commutative ring `ℤ`, and integral cohomology the structure every
-preadditive category has over `ℤ`. The declarations below pass from one to the other by
-`TopCat.singularCohomologyLinearCongr`. -/
-
-/-- From cohomology with coefficients `ℤ`, for the linear structure `ModuleCat.instLinear`, to
-integral cohomology: the change of linear structure, then the change of chain coefficients along
-`TauCeti.integralCoeffIso`. -/
-private def toIntegral (X : TopCat.{0}) (n : ℕ) :
-    @TopCat.singularCohomology (ModuleCat.{0} ℤ) _ _ _ (𝟙_ (ModuleCat.{0} ℤ)) ℤ _
-        ModuleCat.instLinear (𝟙_ (ModuleCat.{0} ℤ)) X n ≃ₗ[ℤ] X.integralCohomology n :=
-  (singularCohomologyLinearCongr (Subsingleton.elim _ _) X _ _ n).trans
-    (X.singularCohomologyChainCoefficientIso ℤ (ModuleCat.of ℤ ℤ) integralCoeffIso n).toLinearEquiv
-
-private lemma toIntegral_apply (X : TopCat.{0}) (n : ℕ)
-    (a : @TopCat.singularCohomology (ModuleCat.{0} ℤ) _ _ _ (𝟙_ (ModuleCat.{0} ℤ)) ℤ _
-      ModuleCat.instLinear (𝟙_ (ModuleCat.{0} ℤ)) X n) :
-    toIntegral X n a = X.singularCohomologyChainCoefficientMap ℤ (ModuleCat.of ℤ ℤ)
-      integralCoeffIso.hom n
-        (singularCohomologyLinearCongr (Subsingleton.elim _ _) X (𝟙_ _) (𝟙_ _) n a) := by
-  rw [toIntegral, LinearEquiv.trans_apply, Iso.toLinearEquiv_apply,
-    singularCohomologyChainCoefficientIso_hom]
-
-private lemma toIntegral_naturality {X Y : TopCat.{0}} (f : X ⟶ Y) (n : ℕ)
-    (a : @TopCat.singularCohomology (ModuleCat.{0} ℤ) _ _ _ (𝟙_ (ModuleCat.{0} ℤ)) ℤ _
-      ModuleCat.instLinear (𝟙_ (ModuleCat.{0} ℤ)) Y n) :
-    toIntegral X n (@TopCat.singularCohomologyMap (ModuleCat.{0} ℤ) _ _ _ (𝟙_ (ModuleCat.{0} ℤ))
-        ℤ _ ModuleCat.instLinear (𝟙_ (ModuleCat.{0} ℤ)) X Y f n a) =
-      TopCat.singularCohomologyMap f n (toIntegral Y n a) := by
-  rw [toIntegral_apply, toIntegral_apply, singularCohomologyLinearCongr_naturality]
-  exact ConcreteCategory.congr_hom (singularCohomologyChainCoefficientMap_naturality f ℤ
-    (ModuleCat.of ℤ ℤ) integralCoeffIso.hom n) _
-
-private lemma toIntegral_singularCup (X : TopCat.{0}) (p q n : ℕ) (h : p + q = n)
-    (a : @TopCat.singularCohomology (ModuleCat.{0} ℤ) _ _ _ (𝟙_ (ModuleCat.{0} ℤ)) ℤ _
-      ModuleCat.instLinear (𝟙_ (ModuleCat.{0} ℤ)) X p)
-    (b : @TopCat.singularCohomology (ModuleCat.{0} ℤ) _ _ _ (𝟙_ (ModuleCat.{0} ℤ)) ℤ _
-      ModuleCat.instLinear (𝟙_ (ModuleCat.{0} ℤ)) X q) :
-    toIntegral X n (@TopCat.singularCup (ModuleCat.{0} ℤ) _ _ _ _ _ (𝟙_ (ModuleCat.{0} ℤ))
-        (𝟙_ (ModuleCat.{0} ℤ)) (𝟙_ (ModuleCat.{0} ℤ)) (𝟙_ (ModuleCat.{0} ℤ))
-        (𝟙_ (ModuleCat.{0} ℤ)) (𝟙_ (ModuleCat.{0} ℤ)) X ℤ _ ModuleCat.instLinear _
-        (λ_ _).inv (λ_ _).hom p q n h a b) =
-      X.integralCup p q n h (toIntegral X p a) (toIntegral X q b) := by
-  rw [toIntegral_apply, toIntegral_apply, toIntegral_apply,
-    singularCohomologyLinearCongr_singularCup, integralCup_singularCohomologyChainCoefficientMap]
-  -- The two sides differ only in writing the cochain values as the unit `𝟙_ (ModuleCat ℤ)` or as
-  -- `ModuleCat.of ℤ ℤ`, which Mathlib defines it to be.
-  rfl
-
 /- The cohomology with coefficients `ℤ` below uses the structure `ModuleCat.instLinear`, the one
-that `TopCat.lerayHirsch` uses for `k = ℤ`. With Tau Ceti's integral cohomology imported, instance
-search would otherwise find `CategoryTheory.Linear.preadditiveIntLinear`, the structure that
-integral cohomology uses; the pull-back on integral cohomology names that structure. -/
+that `TopCat.lerayHirsch` uses for `k = ℤ` and the target of Tau Ceti's
+`TopCat.integralCohomologyEquiv`. With Tau Ceti's integral cohomology imported, instance search
+would otherwise find `CategoryTheory.Linear.preadditiveIntLinear`, the structure that integral
+cohomology uses; the pull-back on integral cohomology names that structure. -/
 attribute [local instance high] ModuleCat.instLinear
 
-/-- The linear equivalence `Hⁿ(X; ℤ) ≃ X.integralCohomology n` from singular cohomology with chain
-coefficients and cochain values `ℤ`, for the structure `ModuleCat.instLinear` of `ModuleCat ℤ` as
-a linear category over the commutative ring `ℤ`, to integral cohomology. It is the change of
-linear structure, then the change of chain coefficients along `TauCeti.integralCoeffIso`. -/
-def integralCohomologyLinearEquiv (X : TopCat.{0}) (n : ℕ) :
-    X.singularCohomology (𝟙_ (ModuleCat.{0} ℤ)) ℤ (𝟙_ (ModuleCat.{0} ℤ)) n ≃ₗ[ℤ]
-      X.integralCohomology n :=
-  toIntegral X n
-
-private lemma integralCohomologyLinearEquiv_eq (X : TopCat.{0}) (n : ℕ) :
-    X.integralCohomologyLinearEquiv n = toIntegral X n :=
-  (rfl)
-
-/-- The value of `TopCat.integralCohomologyLinearEquiv`: the change of linear structure
+/-- The inverse of Tau Ceti's `TopCat.integralCohomologyEquiv`, from cohomology with chain
+coefficients and values `ℤ` to integral cohomology: the change of linear structure
 `TopCat.singularCohomologyLinearCongr`, from `ModuleCat.instLinear` to
 `CategoryTheory.Linear.preadditiveIntLinear`, followed by the change of chain coefficients
 `TopCat.singularCohomologyChainCoefficientMap` along `TauCeti.integralCoeffIso`. -/
-theorem integralCohomologyLinearEquiv_apply (X : TopCat.{0}) (n : ℕ)
+theorem integralCohomologyEquiv_symm_apply (X : TopCat.{0}) (n : ℕ)
     (a : X.singularCohomology (𝟙_ (ModuleCat.{0} ℤ)) ℤ (𝟙_ (ModuleCat.{0} ℤ)) n) :
-    X.integralCohomologyLinearEquiv n a =
+    (X.integralCohomologyEquiv n).symm a =
       @TopCat.singularCohomologyChainCoefficientMap _ _ _ _ _ _ X ℤ _
         Linear.preadditiveIntLinear (ModuleCat.of ℤ ℤ) integralCoeffIso.hom n
         (singularCohomologyLinearCongr (Subsingleton.elim ModuleCat.instLinear _) X (𝟙_ _) (𝟙_ _) n
           a) := by
-  rw [integralCohomologyLinearEquiv_eq, toIntegral_apply]
+  rw [LinearEquiv.symm_apply_eq, integralCohomologyEquiv.eq_1]
+  simp only [Iso.toLinearEquiv_apply, Iso.trans_hom, Iso.symm_hom,
+    singularCohomologyChainCoefficientIso_inv, ConcreteCategory.comp_apply, eqToIso.hom]
+  -- The two linear structures are equal but not the same term; for variables in their place the
+  -- round trip is the identity.
+  have key (L₁ L₂ : Linear ℤ (ModuleCat.{0} ℤ)) (e : L₁ = L₂) (e' : L₂ = L₁)
+      (a : @TopCat.singularCohomology _ _ _ _ (𝟙_ (ModuleCat.{0} ℤ)) ℤ _ L₁
+        (𝟙_ (ModuleCat.{0} ℤ)) X n) :
+      a = @TopCat.singularCohomologyChainCoefficientMap _ _ _ _ _ _ X ℤ _ L₁ (ModuleCat.of ℤ ℤ)
+        integralCoeffIso.inv n
+        (eqToHom (congrArg (fun L : Linear ℤ (ModuleCat.{0} ℤ) ↦
+          @TopCat.singularCohomology _ _ _ _ (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ _ L
+            (ModuleCat.of ℤ ℤ) X n) e')
+          (@TopCat.singularCohomologyChainCoefficientMap _ _ _ _ _ _ X ℤ _ L₂ (ModuleCat.of ℤ ℤ)
+            integralCoeffIso.hom n (singularCohomologyLinearCongr e X _ _ n a))) := by
+    subst e
+    rw [singularCohomologyLinearCongr_refl, LinearEquiv.refl_apply, eqToHom_refl,
+      ConcreteCategory.id_apply, ← ConcreteCategory.comp_apply,
+      ← singularCohomologyChainCoefficientMap_comp]
+    simp
+  exact key _ _ (Subsingleton.elim _ _) (Subsingleton.elim _ _) a
 
-/-- The inverse of `TopCat.integralCohomologyLinearEquiv`: the change of chain coefficients
+/-- Tau Ceti's `TopCat.integralCohomologyEquiv`, from integral cohomology to cohomology with chain
+coefficients and values `ℤ`: the change of chain coefficients
 `TopCat.singularCohomologyChainCoefficientMap` along the inverse of `TauCeti.integralCoeffIso`,
 followed by the change of linear structure `TopCat.singularCohomologyLinearCongr`, from
 `CategoryTheory.Linear.preadditiveIntLinear` to `ModuleCat.instLinear`. -/
-theorem integralCohomologyLinearEquiv_symm_apply (X : TopCat.{0}) (n : ℕ)
-    (y : X.integralCohomology n) :
-    (X.integralCohomologyLinearEquiv n).symm y =
+theorem integralCohomologyEquiv_apply (X : TopCat.{0}) (n : ℕ) (y : X.integralCohomology n) :
+    X.integralCohomologyEquiv n y =
       singularCohomologyLinearCongr (Subsingleton.elim _ ModuleCat.instLinear) X (𝟙_ _) (𝟙_ _) n
         (@TopCat.singularCohomologyChainCoefficientMap _ _ _ _ _ _ X ℤ _
           Linear.preadditiveIntLinear (ModuleCat.of ℤ ℤ) integralCoeffIso.symm.hom n y) := by
-  rw [LinearEquiv.symm_apply_eq, integralCohomologyLinearEquiv_apply,
+  apply (X.integralCohomologyEquiv n).symm.injective
+  rw [LinearEquiv.symm_apply_apply, integralCohomologyEquiv_symm_apply,
     singularCohomologyLinearCongr_apply_apply, singularCohomologyLinearCongr_refl,
     LinearEquiv.refl_apply, Iso.symm_hom, ← singularCohomologyChainCoefficientIso_inv,
     ← singularCohomologyChainCoefficientIso_hom]
   exact (Iso.inv_hom_id_apply _ y).symm
 
-/-- **Naturality of `TopCat.integralCohomologyLinearEquiv`**: it commutes with the maps induced by
-a continuous map `f : X ⟶ Y`. -/
-theorem integralCohomologyLinearEquiv_naturality {X Y : TopCat.{0}} (f : X ⟶ Y) (n : ℕ)
+/-- **Naturality of the inverse of `TopCat.integralCohomologyEquiv`**: it commutes with the maps
+induced by a continuous map `f : X ⟶ Y`. -/
+theorem integralCohomologyEquiv_symm_naturality {X Y : TopCat.{0}} (f : X ⟶ Y) (n : ℕ)
     (a : Y.singularCohomology (𝟙_ (ModuleCat.{0} ℤ)) ℤ (𝟙_ (ModuleCat.{0} ℤ)) n) :
-    X.integralCohomologyLinearEquiv n (TopCat.singularCohomologyMap f n a) =
+    (X.integralCohomologyEquiv n).symm (TopCat.singularCohomologyMap f n a) =
       @TopCat.singularCohomologyMap _ _ _ _ (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ _
         Linear.preadditiveIntLinear (ModuleCat.of ℤ ℤ) X Y f n
-        (Y.integralCohomologyLinearEquiv n a) := by
-  rw [integralCohomologyLinearEquiv_eq, integralCohomologyLinearEquiv_eq]
-  exact toIntegral_naturality f n a
+        ((Y.integralCohomologyEquiv n).symm a) := by
+  rw [LinearEquiv.symm_apply_eq, integralCohomologyEquiv_naturality, LinearEquiv.apply_symm_apply]
 
-/-- **`TopCat.integralCohomologyLinearEquiv` carries cup products to cup products**: the cup
-product with coefficients `ℤ`, along the unitors, is carried to the integral cup product
+/-- **The inverse of `TopCat.integralCohomologyEquiv` carries cup products to cup products**: the
+cup product with coefficients `ℤ`, along the unitors, is carried to the integral cup product
 `TopCat.integralCup`. -/
-theorem integralCohomologyLinearEquiv_singularCup (X : TopCat.{0}) (p q n : ℕ) (h : p + q = n)
+theorem integralCohomologyEquiv_symm_singularCup (X : TopCat.{0}) (p q n : ℕ) (h : p + q = n)
     (a : X.singularCohomology (𝟙_ (ModuleCat.{0} ℤ)) ℤ (𝟙_ (ModuleCat.{0} ℤ)) p)
     (b : X.singularCohomology (𝟙_ (ModuleCat.{0} ℤ)) ℤ (𝟙_ (ModuleCat.{0} ℤ)) q) :
-    X.integralCohomologyLinearEquiv n (X.singularCup ℤ (λ_ _).inv (λ_ _).hom p q n h a b) =
-      X.integralCup p q n h (X.integralCohomologyLinearEquiv p a)
-        (X.integralCohomologyLinearEquiv q b) := by
-  rw [integralCohomologyLinearEquiv_eq, integralCohomologyLinearEquiv_eq,
-    integralCohomologyLinearEquiv_eq]
-  exact toIntegral_singularCup X p q n h a b
+    (X.integralCohomologyEquiv n).symm (X.singularCup ℤ (λ_ _).inv (λ_ _).hom p q n h a b) =
+      X.integralCup p q n h ((X.integralCohomologyEquiv p).symm a)
+        ((X.integralCohomologyEquiv q).symm b) := by
+  rw [integralCohomologyEquiv_symm_apply, integralCohomologyEquiv_symm_apply,
+    integralCohomologyEquiv_symm_apply, singularCohomologyLinearCongr_singularCup,
+    integralCup_singularCohomologyChainCoefficientMap]
+  -- The two sides differ only in writing the cochain values as the unit `𝟙_ (ModuleCat ℤ)` or as
+  -- `ModuleCat.of ℤ ℤ`, which Mathlib defines it to be.
+  rfl
 
 /-- Cup product with a class is bijective in integral cohomology exactly when it is in cohomology
 with chain coefficients and values `ℤ`: for `b` of degree `q`, `a ↦ a ⌣ b` is a bijection
 `Hᵖ(X; ℤ) → Hⁿ(X; ℤ)` of `TopCat.integralCohomology`, for the image of `b` under
-`TopCat.integralCohomologyLinearEquiv`, if and only if it is one for `b`. -/
-theorem bijective_integralCup_integralCohomologyLinearEquiv_iff (X : TopCat.{0}) (p q n : ℕ)
+the inverse of `TopCat.integralCohomologyEquiv`, if and only if it is one for `b`. -/
+theorem bijective_integralCup_integralCohomologyEquiv_symm_iff (X : TopCat.{0}) (p q n : ℕ)
     (h : p + q = n) (b : X.singularCohomology (𝟙_ (ModuleCat.{0} ℤ)) ℤ (𝟙_ (ModuleCat.{0} ℤ)) q) :
     Function.Bijective (fun a : X.integralCohomology p ↦
-        X.integralCup p q n h a (X.integralCohomologyLinearEquiv q b)) ↔
+        X.integralCup p q n h a ((X.integralCohomologyEquiv q).symm b)) ↔
       Function.Bijective (fun a ↦ X.singularCup ℤ (λ_ _).inv (λ_ _).hom p q n h a b) := by
   have hf : (fun a : X.integralCohomology p ↦
-      X.integralCup p q n h a (X.integralCohomologyLinearEquiv q b)) =
-      X.integralCohomologyLinearEquiv n ∘
+      X.integralCup p q n h a ((X.integralCohomologyEquiv q).symm b)) =
+      (X.integralCohomologyEquiv n).symm ∘
         (fun a ↦ X.singularCup ℤ (λ_ _).inv (λ_ _).hom p q n h a b) ∘
-        (X.integralCohomologyLinearEquiv p).symm := by
+        X.integralCohomologyEquiv p := by
     funext a
-    conv_lhs => rw [← LinearEquiv.apply_symm_apply (X.integralCohomologyLinearEquiv p) a]
-    rw [← integralCohomologyLinearEquiv_singularCup]
+    conv_lhs => rw [← LinearEquiv.symm_apply_apply (X.integralCohomologyEquiv p) a]
+    rw [← integralCohomologyEquiv_symm_singularCup]
     simp only [Function.comp_apply]
   rw [hf, Function.Bijective.of_comp_iff' (LinearEquiv.bijective _),
     Function.Bijective.of_comp_iff _ (LinearEquiv.bijective _)]
 
-/-- `TopCat.integralCohomologyLinearEquiv` sends the unit class `TopCat.singularCohomologyZeroOne`
-of cohomology with coefficients `ℤ` to the unit class `TopCat.integralCohomologyOne` of integral
-cohomology. -/
-theorem integralCohomologyLinearEquiv_singularCohomologyZeroOne (X : TopCat.{0}) :
-    X.integralCohomologyLinearEquiv 0 X.singularCohomologyZeroOne = X.integralCohomologyOne := by
+/-- The inverse of `TopCat.integralCohomologyEquiv` sends the unit class
+`TopCat.singularCohomologyZeroOne` of cohomology with coefficients `ℤ` to the unit class
+`TopCat.integralCohomologyOne` of integral cohomology. -/
+theorem integralCohomologyEquiv_symm_singularCohomologyZeroOne (X : TopCat.{0}) :
+    (X.integralCohomologyEquiv 0).symm X.singularCohomologyZeroOne = X.integralCohomologyOne := by
   -- Both are units for the cup product, which the equivalence carries to `TopCat.integralCup`.
-  have h := X.integralCohomologyLinearEquiv_singularCup 0 0 0 rfl X.singularCohomologyZeroOne
-    ((X.integralCohomologyLinearEquiv 0).symm X.integralCohomologyOne)
-  rw [singularCup_singularCohomologyZeroOne_left, LinearEquiv.apply_symm_apply,
+  have h := X.integralCohomologyEquiv_symm_singularCup 0 0 0 rfl X.singularCohomologyZeroOne
+    (X.integralCohomologyEquiv 0 X.integralCohomologyOne)
+  rw [singularCup_singularCohomologyZeroOne_left, LinearEquiv.symm_apply_apply,
     integralCup_integralCohomologyOne_right] at h
   exact h.symm
 
@@ -340,10 +307,10 @@ theorem integralCohomologyLinearEquiv_singularCohomologyZeroOne (X : TopCat.{0})
 theorem bijective_zsmul_integralCohomologyOne (X : TopCat.{0}) [PathConnectedSpace X] :
     Function.Bijective fun m : ℤ ↦ m • X.integralCohomologyOne := by
   convert ((singularCohomologyZeroEvalEquiv (k := ℤ) (Classical.arbitrary X)).symm.trans
-    (X.integralCohomologyLinearEquiv 0)).bijective using 1
+    ((X.integralCohomologyEquiv 0).symm)).bijective using 1
   funext m
   rw [LinearEquiv.trans_apply, singularCohomologyZeroEvalEquiv_symm_apply, LinearEquiv.map_smul,
-    integralCohomologyLinearEquiv_singularCohomologyZeroOne]
+    integralCohomologyEquiv_symm_singularCohomologyZeroOne]
   -- The two sides use the `ℤ`-action of the module structure and that of the group structure.
   exact (int_smul_eq_zsmul _ _ _).symm
 
