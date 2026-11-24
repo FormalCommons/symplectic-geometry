@@ -44,7 +44,8 @@ transition `ρ` (`TauCeti.collaredSmoothTransition`) is `0` near `0` and `1` nea
 `(t, s) ↦ u (ρ (fract t), ρ (fract s))` has period `1` in both variables. It is smooth: by the
 edge conditions, `u ∘ Prod.map ρ ρ` is periodic in each variable just below `0`, so near any point
 the periodization in that variable is a translate (Tau Ceti's
-`TauCeti.apply_fract_snd_eventuallyEq`, used once for each variable). On the unit square the
+`TauCeti.apply_fract_snd_eventuallyEq`, used once for each variable, as in Tau Ceti's
+`TauCeti.contMDiff_loopwiseTrans`). On the unit square the
 periodized map agrees with `u ∘ Prod.map ρ ρ`, whose rectangle integral is that of `u`
 (`TauCeti.rectangleIntegral_comp_prodMap_of_contDiff` and
 `TauCeti.rectangleIntegral_comp_prodMap_snd_of_contDiff`).
