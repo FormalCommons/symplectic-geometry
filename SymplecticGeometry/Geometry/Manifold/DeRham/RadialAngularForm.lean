@@ -15,6 +15,7 @@ import Mathlib.MeasureTheory.Constructions.HaarToSphere
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
 import TauCeti.MeasureTheory.Measure.Haar.OfBasis
+import TauCeti.Topology.Algebra.Support
 
 /-!
 # The angular form cut off near the origin
@@ -204,9 +205,9 @@ theorem tsupport_mextDeriv_radialAngularForm_subset (hβ : Differentiable ℝ β
     (hβa : ∀ t ≤ a, β t = 0) (hβb : ∀ t ≥ b, β t = 1) :
     _root_.tsupport (α := ℂ [⋀^Fin 2]→L[ℝ] ℝ) (mextDeriv (radialAngularForm β)) ⊆
       {z : ℂ | ‖z‖ ∈ Icc a b} := by
-  refine closure_minimal (fun z hz ↦ ?_) (isClosed_Icc.preimage continuous_norm)
-  by_contra h
-  refine hz (ContinuousAlternatingMap.ext fun v ↦ ?_)
+  refine TauCeti.tsupport_subset_of_forall_notMem_eq_zero (fun z h ↦ ?_)
+    (isClosed_Icc.preimage continuous_norm)
+  refine ContinuousAlternatingMap.ext fun v ↦ ?_
   refine (mextDeriv_radialAngularForm_apply hβ ha hβa z v).trans ?_
   rw [deriv_eq_zero_of_notMem_Icc hβa hβb h, zero_div, zero_mul]
   -- The zero alternating map, applied to vectors of the tangent space of `ℂ` at `z`.

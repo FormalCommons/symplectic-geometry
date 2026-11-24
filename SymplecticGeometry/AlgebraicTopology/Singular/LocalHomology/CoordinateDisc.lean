@@ -22,6 +22,7 @@ import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
 import SymplecticGeometry.Geometry.Manifold.Orientation.CoordinateBall
 import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 import TauCeti.Geometry.Manifold.CoordinateBall
+import TauCeti.Geometry.Manifold.MFDeriv.ModelChart
 import TauCeti.Geometry.Manifold.ModelTransport.Finrank
 import TauCeti.Topology.OpenPartialHomeomorph.Constructions
 
@@ -976,13 +977,11 @@ private theorem toHomologicalOrientation_apply_ofChart
   obtain ⟨D, hD, hω⟩ := (Manifold.Orientation.isOrientationPreservingAt_iff _ _ _ _).1 he
   -- `D` is the derivative of `e` at `x`, between tangent spaces that are `ℝ²`.
   let D' : EuclideanSpace ℝ (Fin 2) ≃L[ℝ] EuclideanSpace ℝ (Fin 2) := D
-  have hfd : HasFDerivAt (e ∘ (extChartAt (𝓡 2) x).symm)
-      (D' : EuclideanSpace ℝ (Fin 2) →L[ℝ] EuclideanSpace ℝ (Fin 2)) (extChartAt (𝓡 2) x x) := by
-    have h := (mdifferentiableAt_of_isInvertible_mfderiv ⟨D, hD⟩).hasMFDerivAt.2
-    have hext : writtenInExtChartAt (𝓡 2) (𝓡 2) x e = e ∘ (extChartAt (𝓡 2) x).symm := by
-      ext y
-      simp [writtenInExtChartAt]
-    rwa [hext, ModelWithCorners.range_eq_univ, hasFDerivWithinAt_univ, ← hD] at h
+  have hfd : HasFDerivAt (e ∘ (chartAt (EuclideanSpace ℝ (Fin 2)) x).symm)
+      (D' : EuclideanSpace ℝ (Fin 2) →L[ℝ] EuclideanSpace ℝ (Fin 2))
+      (chartAt (EuclideanSpace ℝ (Fin 2)) x x) :=
+    TauCeti.hasMFDerivAt_iff_hasFDerivAt_comp_chartAt_symm.1
+      (hD ▸ (mdifferentiableAt_of_isInvertible_mfderiv ⟨D, hD⟩).hasMFDerivAt)
   have h := (hasFDerivAt_ofChartHomeomorph_symm c hr _).comp _ hfd
   rw [ContinuousLinearEquiv.comp_coe] at h
   refine Manifold.Orientation.toHomologicalOrientation_apply_eq_localOrientationOfOrientedChart

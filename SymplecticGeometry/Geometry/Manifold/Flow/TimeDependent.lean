@@ -10,6 +10,7 @@ import TauCeti.Geometry.Manifold.Flow.Parametric
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # Time-dependent flows: joint smoothness, uniqueness on intervals, open subsets
@@ -260,10 +261,8 @@ theorem tangentSpaceOpenEquiv_mfderiv_timeDependentFlowOf_restrict [CompleteSpac
     filter_upwards [((isOpen_timeDependentFlowDomain hXU).preimage (by fun_prop)).mem_nhds h]
       with y hy
     exact (timeDependentFlowOf_restrict_eq hX hy).2
-  rw [Manifold.tangentSpaceOpenEquiv_apply, Manifold.tangentSpaceOpenEquiv_apply,
-    ← Manifold.mfderiv_subtype_val_comp_apply]
-  exact (congrArg (fun L ↦ L v) (heq.mfderiv_eq (I := I) (I' := I))).trans
-    (Manifold.mfderiv_comp_subtype_val_apply (f := timeDependentFlowOf X s t) v)
+  rw [Manifold.tangentSpaceOpenEquiv_apply, Manifold.tangentSpaceOpenEquiv_apply]
+  exact Manifold.mfderiv_apply_of_subtype_val_comp_eventuallyEq heq v
 
 end Opens
 

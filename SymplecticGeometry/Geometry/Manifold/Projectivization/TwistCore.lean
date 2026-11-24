@@ -10,7 +10,7 @@ public import Mathlib.Topology.VectorBundle.Constructions
 public import TauCeti.Geometry.Manifold.Projectivization.LineBundle
 public import TauCeti.Topology.Algebra.Module.Equiv.Pi
 public import TauCeti.Topology.VectorBundle.Core.Trivial
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.RestrictScalars
+public import TauCeti.Geometry.Manifold.VectorBundle.RestrictScalars
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Core.Section
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 public import TauCeti.Topology.VectorBundle.Hom
@@ -39,9 +39,9 @@ polynomials that express sections of `𝒪(d)` in the standard charts.
   (`Projectivization.isContMDiff_twistPiCore`), and a section of it is `C^r` exactly when its
   coordinates in the standard charts are (`Projectivization.contMDiff_section_twistPiCore_iff`).
   For `𝕜 = ℂ`, it is also a smooth real vector bundle over the underlying real manifold, by
-  restriction of scalars (the scoped instance `VectorBundle.ComplexToReal.vectorBundle` and the
-  library's `ContMDiffVectorBundle.restrictScalars'`); files using its real structure
-  `open scoped VectorBundle.ComplexToReal`.
+  restriction of scalars (the scoped instance `VectorBundle.ComplexToReal.vectorBundle` and Tau
+  Ceti's `ContMDiffVectorBundle.restrictScalars_modelWithCornersSelf`); files using its real
+  structure `open scoped VectorBundle.ComplexToReal`.
 * `Projectivization.twistPiCoreOptionEquiv k ι x`: the splitting
   `𝒪(k) ⊗ 𝕜^{Option ι} ≅ 𝒪(k) ⊕ (𝒪(k) ⊗ 𝕜^ι)` into Mathlib's direct sum `×ᵇ` of bundles,
   continuous on total spaces in both directions, so that, by induction on `r`, `𝒪(k)^{⊕ r}` is
@@ -446,7 +446,7 @@ instance :
   have : ContMDiffVectorBundle ∞ (ι → ℂ) (twistPiCore (𝕜 := ℂ) (n := n) k ι).Fiber
       𝓘(ℂ, Fin n → ℂ) :=
     ContMDiffVectorBundle.of_le le_top
-  ContMDiffVectorBundle.restrictScalars' (𝕜' := ℂ) ℝ _ _
+  ContMDiffVectorBundle.restrictScalars_modelWithCornersSelf ℝ this
 
 end RestrictScalars
 

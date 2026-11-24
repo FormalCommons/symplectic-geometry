@@ -74,10 +74,10 @@ The construction:
   the differential of `ι` is injective with the Reeb field outside its range is an open
   neighbourhood of the zero section (`ContMDiffAt.eventually_injective_mfderiv_and_notMem_range`).
 
-The fibrewise identification of the normal bundle with a bundle built from `T^* L`, its smoothness
-through `TauCeti.SmoothEmbedding.contMDiff_normalBundle_iff` and the smoothness of its inverse
-adapt Tau Ceti's `TauCeti.SmoothEmbedding.normalBundleDiffeomorphOfIsLagrangianMap`, with the
-covector `dα(df ·, w)` of `TauCeti.SmoothEmbedding.pairingCovector` completed by the value `α w`.
+The fibrewise identification of the normal bundle with a bundle built from `T^* L` is Tau Ceti's
+`TauCeti.SmoothEmbedding.normalSpaceEquivOfKer` for the map `w ↦ (dα(df ·, w), α w)`, whose
+first component is `TauCeti.SmoothEmbedding.pairingCovector`; its smoothness is
+`TauCeti.SmoothEmbedding.contMDiff_normalSpaceEquivOfKer`.
 The splitting of the differential of `T ∘ j` along the zero section into a horizontal and a
 vertical part follows the proof of Tau Ceti's
 `TauCeti.SmoothEmbedding.mfderiv_normalExp_zeroSection_apply`.
@@ -212,33 +212,35 @@ private theorem mem_of_normalMap_eq_zero (hα : α.IsContactForm)
   rw [ContinuousAlternatingMap.apply_vecCons_swap]
   simpa using this
 
+omit [FiniteDimensional ℝ E'] in
+/-- The kernel of `normalMap g α q` is the tangent range of `g` at `q`. -/
+private theorem normalMap_eq_zero_iff (hα : α.IsContactForm)
+    (hf : IsLegendrianEmbedding J α.kerDistribution g) (q : L) (w : TangentSpace I (g q)) :
+    normalMap g α q w = 0 ↔ w ∈ g.tangentRange q infty_ne_zero :=
+  ⟨mem_of_normalMap_eq_zero hα hf q w, normalMap_eq_zero_of_mem hf q w⟩
+
+omit [IsManifold J ∞ L] in
+/-- The normal space of a Legendrian embedding at `q` has the dimension of `T_q^* L × ℝ`. -/
+private theorem finrank_normalSpace_eq (hf : IsLegendrianEmbedding J α.kerDistribution g)
+    (q : L) : finrank ℝ (g.NormalSpace q infty_ne_zero) =
+      finrank ℝ ((TangentSpace J q →L[ℝ] ℝ) × ℝ) := by
+  have h2 := hf.two_mul_finrank_add_one
+  rw [g.finrank_normalSpace q infty_ne_zero, Module.finrank_prod,
+    ← LinearMap.toContinuousLinearMap.finrank_eq, Subspace.dual_finrank_eq,
+    finrank_tangentSpace, finrank_tangentSpace, Module.finrank_self]
+  omega
+
 /-- The normal space of a Legendrian embedding at `q`, identified with `T_q^* L × ℝ` by
 `[w] ↦ (dα(dg ·, w), α w)`. -/
 private def normalEquiv (hα : α.IsContactForm) (hf : IsLegendrianEmbedding J α.kerDistribution g)
     (q : L) : g.NormalSpace q infty_ne_zero ≃L[ℝ] (TangentSpace J q →L[ℝ] ℝ) × ℝ :=
-  let φ := g.normalLiftL q infty_ne_zero (normalMap g α q) (normalMap_eq_zero_of_mem hf q)
-  have hφ (w) : φ (g.normalClass q infty_ne_zero w) = normalMap g α q w :=
-    g.normalLiftL_normalClass q infty_ne_zero _ _ w
-  have hinj : Injective φ := by
-    refine (injective_iff_map_eq_zero φ).2 fun v hv ↦ ?_
-    obtain ⟨w, rfl⟩ := g.normalClass_surjective q infty_ne_zero v
-    rw [hφ] at hv
-    exact (g.normalClass_eq_zero_iff q infty_ne_zero w).2 (mem_of_normalMap_eq_zero hα hf q w hv)
-  have hdim : finrank ℝ (g.NormalSpace q infty_ne_zero) =
-      finrank ℝ ((TangentSpace J q →L[ℝ] ℝ) × ℝ) := by
-    have h2 := hf.two_mul_finrank_add_one
-    rw [g.finrank_normalSpace q infty_ne_zero, Module.finrank_prod,
-      ← LinearMap.toContinuousLinearMap.finrank_eq, Subspace.dual_finrank_eq,
-      finrank_tangentSpace, finrank_tangentSpace, Module.finrank_self]
-    omega
-  (φ.toLinearMap.linearEquivOfInjective hinj hdim).toContinuousLinearEquiv
+  g.normalSpaceEquivOfKer q infty_ne_zero (normalMap g α q) (normalMap_eq_zero_iff hα hf q)
+    (finrank_normalSpace_eq hf q)
 
 private theorem normalEquiv_normalClass (hα : α.IsContactForm)
     (hf : IsLegendrianEmbedding J α.kerDistribution g) (q : L) (w : TangentSpace I (g q)) :
-    normalEquiv hα hf q (g.normalClass q infty_ne_zero w) = normalMap g α q w := by
-  rw [normalEquiv, LinearEquiv.coe_toContinuousLinearEquiv',
-    LinearMap.linearEquivOfInjective_apply, ContinuousLinearMap.coe_coe,
-    SmoothEmbedding.normalLiftL_normalClass]
+    normalEquiv hα hf q (g.normalClass q infty_ne_zero w) = normalMap g α q w :=
+  g.normalSpaceEquivOfKer_normalClass q infty_ne_zero _ _ _ w
 
 variable {P : Type*} [NormedAddCommGroup P] [NormedSpace ℝ P] [FiniteDimensional ℝ P]
 
@@ -252,19 +254,9 @@ private theorem contMDiff_normalEquiv (hα : α.IsContactForm)
         TotalSpace.mk' ((E' →L[ℝ] ℝ) × ℝ)
           (E := (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) ×ᵇ Trivial L ℝ) p.proj
           (normalEquiv hα hf p.proj p.snd)) := by
-  let := g.normalSpaceFiberBundle infty_ne_zero hdim
-  rw [g.contMDiff_normalBundle_iff infty_ne_zero (m := ∞) (by simp) hdim]
-  have heq : ((fun p : TotalSpace P (fun q ↦ g.NormalSpace q infty_ne_zero) ↦
-      TotalSpace.mk' ((E' →L[ℝ] ℝ) × ℝ)
-        (E := (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) ×ᵇ Trivial L ℝ) p.proj
-        (normalEquiv hα hf p.proj p.snd)) ∘ g.normalQuotientMap infty_ne_zero) =
-      fun p ↦ TotalSpace.mk' ((E' →L[ℝ] ℝ) × ℝ)
-        (E := (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) ×ᵇ Trivial L ℝ) p.proj
-        (normalMap g α p.proj p.snd) := by
-    funext p
-    rw [Function.comp_apply, SmoothEmbedding.normalQuotientMap_apply]
-    exact congrArg (TotalSpace.mk' _ p.proj) (normalEquiv_normalClass hα hf p.proj p.snd)
-  rw [heq]
+  refine g.contMDiff_normalSpaceEquivOfKer (m := ∞) infty_ne_zero (by simp) hdim
+    (E₂ := (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) ×ᵇ Trivial L ℝ) (normalMap g α)
+    (normalMap_eq_zero_iff hα hf) (finrank_normalSpace_eq hf) ?_
   -- Evaluating `α` on ambient tangent vectors along `g` is smooth.
   have hαg : ContMDiff (J.prod 𝓘(ℝ, E)) 𝓘(ℝ) ∞
       (fun p : TotalSpace E ((g : L → M) *ᵖ (TangentSpace I)) ↦ α.val (g p.proj) ![p.snd]) := by

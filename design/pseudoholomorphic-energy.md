@@ -395,17 +395,18 @@ It imports Tau Ceti's `Manifold/Energy/Surface.lean`, and
 - `TauCeti.deRhamCohomology.singularHomologyPeriod : deRhamCohomology I M p →ₗ[ℝ]
   (((singularHomologyFunctor (ModuleCat.{0} ℤ) p).obj (ModuleCat.of ℤ (ULift ℤ))).obj (TopCat.of M) →+ ℝ)`
   (the name avoids Tau Ceti's degree-one `deRhamCohomology.homologyPeriod`).
-  Built from the inverse of `smoothSingularHomologyIso I M (ModuleCat.of ℤ (ULift ℤ)) p`
-  and the integral of a closed form over smooth integral chains, which on a
-  chain $\sum n_i\sigma_i$ is $\sum n_i\int_{\sigma_i}\varphi$ (Tau Ceti's real
-  `integrationCochain` after the change of coefficients $\mathbb Z\to\mathbb R$,
-  or `SmoothSimplex.integral` summed directly), well defined by Stokes'
-  theorem for chains. API: `singularHomologyPeriod_mk_apply_smoothCycle` (on
+  Built from Tau Ceti's `deRhamCohomology.smoothHomologyPeriod`, the inverse of
+  `smoothSingularHomologyIso I M (ModuleCat.of ℤ ℤ) p` and the change of
+  coefficients `uliftIntHomologyIso`; on a smooth chain
+  $\sum n_i\sigma_i$ the integral is $\sum n_i\int_{\sigma_i}\varphi$
+  (`intIntegrationCochain`, Tau Ceti's integer `integrationCochain` after the
+  change of coefficients `uliftIntIso` on chains).
+  API: `singularHomologyPeriod_mk_apply_smoothCycle` (on
   the image of the class of a smooth integral cycle it is the integral over
   the cycle; the exact form of the cycle's class is the issue's), and
   `singularHomologyPeriod_map` ($\langle f^*c,A\rangle=\langle c,f_*A\rangle$
-  for smooth `f`, from `integrationCochain_naturality` and the naturality of
-  the smoothing isomorphism, `smoothSingularHomologyIso_inv_naturality`).
+  for smooth `f`, from `closedFormHomologyPeriod_mpullback` and
+  `homologyMap_comp_uliftIntHomologyIso_hom`).
   The issue first checks whether Tau Ceti has such a map since the pin
   (Decision 5).
 

@@ -6,15 +6,22 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.MFDeriv.Basic
+public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import Mathlib.Geometry.Manifold.ContMDiff.Basic
 
 /-!
-# Differentiability of the inclusion of an open subset
+# The inclusion of an open subset, and differentials of maps between open subsets
 
 The inclusion `Subtype.val : U → M` of an open subset `U` of a charted space `M` is differentiable
 (`mdifferentiableAt_subtypeVal`, `mdifferentiable_subtypeVal`), since it is smooth at every
 regularity (Mathlib's `contMDiff_subtypeVal`). Its differential is Tau Ceti's
 `TauCeti.Manifold.mfderiv_subtype_val`.
+
+A map between open subsets that agrees near a point with a map `A` of the ambient manifolds has the
+differential of `A` there (`TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eventuallyEq`). This
+generalizes Tau Ceti's `TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq`, which asks for the
+maps to agree everywhere, and its proof is that of Tau Ceti's lemma with
+`Filter.EventuallyEq.mfderiv_eq` in place of a rewrite.
 -/
 
 public section
@@ -36,5 +43,29 @@ theorem mdifferentiable_subtypeVal : MDifferentiable I I (Subtype.val : U → M)
   fun _ ↦ mdifferentiableAt_subtypeVal
 
 end SymplecticGeometry
+
+namespace TauCeti.Manifold
+
+open TopologicalSpace
+open scoped Topology
+
+variable {𝕜 E H M E' H' M' : Type*} [NontriviallyNormedField 𝕜]
+  [NormedAddCommGroup E] [NormedSpace 𝕜 E] [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
+  [TopologicalSpace M] [ChartedSpace H M]
+  [NormedAddCommGroup E'] [NormedSpace 𝕜 E'] [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'}
+  [TopologicalSpace M'] [ChartedSpace H' M']
+
+/-- If a map `f` between open subsets agrees near `x`, read in the ambient manifolds, with a map
+`A` of the ambient manifolds, then the differential of `f` at `x` is that of `A` at `x`, on the
+common model spaces of the tangent spaces (both are `0` when `f` is not differentiable at `x`). -/
+theorem mfderiv_apply_of_subtype_val_comp_eventuallyEq {U : Opens M} {V : Opens M'} {f : U → V}
+    {A : M → M'} {x : U} (hcomp : Subtype.val ∘ f =ᶠ[𝓝 x] A ∘ Subtype.val)
+    (v : TangentSpace I x) :
+    mfderiv I I' f x v = mfderiv I I' A x v := by
+  rw [← mfderiv_subtype_val_comp_apply, hcomp.mfderiv_eq]
+  -- `tangentSpaceCast` is the identity of the model space, and Mathlib states no lemma for it.
+  exact mfderiv_comp_subtype_val_apply v
+
+end TauCeti.Manifold
 
 end

@@ -134,7 +134,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Analysis/InnerProductSpace/GramSchmidtOrtho.lean` | Gram–Schmidt turns `u₀, J u₀, u₁, …` into `e₀, J e₀, e₁, …` for a skew-adjoint orthogonal `J` | 9 |
 | `Topology/VectorBundle/LinearIndependent.lean` | `Bundle.Trivialization.eventually_linearIndependent`: sections continuous and linearly independent at a point stay independent near it | 9 |
 | `Geometry/Manifold/VectorBundle/Symplectic/Classification.lean` | the first milestone | 11 |
-| `Geometry/Manifold/VectorBundle/Hom.lean` | `contMDiff_hom_bundle_symm`: the fibrewise inverses of a $C^n$ isomorphism of bundles as a $C^n$ section of the hom bundle; `Bundle.Trivial.contMDiff_comp_mk_iff` (with its `At`, `WithinAt` and `On` forms): $C^n$ maps out of the total space of a trivial bundle read on $M \times W$; `Bundle.Trivial.contMDiff_totalSpaceMk_clm`: a fixed continuous linear map, applied in each fibre, as a $C^n$ map of total spaces of trivial bundles | 1, 3, 25 |
+| `Geometry/Manifold/VectorBundle/Hom.lean` | `contMDiff_hom_bundle_symm`: the fibrewise inverses of a $C^n$ isomorphism of bundles as a $C^n$ section of the hom bundle; `Bundle.Trivial.contMDiff_comp_mk_iff` (with its `At`, `WithinAt` and `On` forms): $C^n$ maps out of the total space of a trivial bundle read on $M \times W$ | 1, 3 |
 | `Geometry/Manifold/VectorBundle/ContinuousAlternatingMap.lean` | `contMDiff_compContinuousLinearMap_totalSpace`: precomposition by a $C^n$ hom-bundle section is $C^n$ on total spaces of alternating bundles; `Bundle.flatAt` and `Bundle.alternatingMapOfBilin`, which carry a point of the bundle of alternating maps of two vectors to the bundle of bilinear maps and back, with their smoothness along a map (`contMDiffAt_sectionAlong_flatAt`, `contMDiffAt_sectionAlong_continuousAlternatingMap_of_bilinear`) | 3, 27 |
 | `Geometry/Manifold/VectorBundle/Pullback.lean` | smoothness of sections of the alternating bundle of a pull-back | 18 |
 | `Geometry/Manifold/VectorBundle/Prod.lean` | `Bundle.Prod.contMDiff_prodMap` and `Bundle.Prod.contMDiff_swap`: smoothness on total spaces of the fibrewise product of two maps and of the swap, for fibres with only a zero; `Bundle.Prod.contMDiff_prodCongr` and `Bundle.Prod.contMDiff_prodComm`: the same for bundle isomorphisms | 22 |
@@ -1784,8 +1784,7 @@ Hausdorff σ-compact base.
     is a symplectic isomorphism from `(ofComplexModule I n _ _).compatibleForm g`
     to `const (stdForm ι)` (`pushforward` of the one is the other). The
     smoothness of `c` on total spaces, which `pushforward` takes, is
-    `Bundle.Trivial.contMDiff_totalSpaceMk_clm`, which the issue adds to
-    `Geometry/Manifold/VectorBundle/Hom.lean` in the root namespace. The
+    Tau Ceti's `TauCeti.contMDiff_bundleMap_of_constant_coordinates`. The
     proof uses `stdComplexStructure_complexToRealEuclidean`
     (`J₀ (c v) = c (i • v)`), which the issue adds to
     `LinearAlgebra/Symplectic/Standard/Basic.lean`, next to
@@ -2384,8 +2383,7 @@ of *Constructions* for *First Chern number*.
     `Unitary.continuousLinearMapSelfEquiv` with its API. Blockers: none.
 25. **The symplectic form of a Hermitian bundle.**
     `Riemannian/Trivial.lean`: `Bundle.ContMDiffRiemannianMetric.const` and
-    `constComplexEuclidean`; `Bundle.Trivial.contMDiff_totalSpaceMk_clm` in
-    `Hom.lean`;
+    `constComplexEuclidean`;
     then `Hermitian/Basic.lean`: the lemmas on
     `(ofComplexModule I n F V).compatibleForm g` and the standard case.
     Blockers: 5, 20.

@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
+public import TauCeti.Geometry.Manifold.VectorBundle.Hom
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Trivial
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
@@ -38,7 +38,7 @@ nondegeneracy, and its smoothness are those of `compatibleForm`. This file compu
   the constant metric `Bundle.ContMDiffRiemannianMetric.constComplexEuclidean ι`.
 
 The smoothness of the fibrewise map `TauCeti.complexToRealEuclidean ι` on total spaces is
-`Bundle.Trivial.contMDiff_totalSpaceMk_clm`.
+Tau Ceti's `TauCeti.contMDiff_bundleMap_of_constant_coordinates`.
 
 ## References
 
@@ -114,8 +114,9 @@ theorem compatibleForm_ofComplexModule_trivial
     (hg : ∀ x (u v : ι → ℂ), g.inner x u v =
       inner ℝ (TauCeti.complexToRealEuclidean ι u) (TauCeti.complexToRealEuclidean ι v)) :
     ContMDiffTwoForm.pushforward (fun _ ↦ TauCeti.complexToRealEuclidean ι)
-        (Trivial.contMDiff_totalSpaceMk_clm
-          (TauCeti.complexToRealEuclidean ι).toContinuousLinearMap)
+        (TauCeti.contMDiff_bundleMap_of_constant_coordinates (E₁ := Trivial M (ι → ℂ))
+          (E₂ := Trivial M (StdSpace ι)) (fun _ ↦ TauCeti.complexToRealEuclidean ι)
+          (TauCeti.complexToRealEuclidean ι).toContinuousLinearMap fun _ _ _ _ ↦ by simp)
         ((ofComplexModule I n (ι → ℂ) (Trivial M (ι → ℂ))).compatibleForm g) =
       ContMDiffTwoForm.const (stdForm ι) := by
   refine (ContMDiffTwoForm.pushforward_eq_iff _ _).2 fun x v w ↦ ?_
@@ -131,8 +132,9 @@ carries the form of `g₀` and of multiplication by `Complex.I` to the constant 
 `stdForm ι` on `M × StdSpace ι`. -/
 theorem compatibleForm_ofComplexModule_constComplexEuclidean :
     ContMDiffTwoForm.pushforward (fun _ ↦ TauCeti.complexToRealEuclidean ι)
-        (Trivial.contMDiff_totalSpaceMk_clm
-          (TauCeti.complexToRealEuclidean ι).toContinuousLinearMap)
+        (TauCeti.contMDiff_bundleMap_of_constant_coordinates (E₁ := Trivial M (ι → ℂ))
+          (E₂ := Trivial M (StdSpace ι)) (fun _ ↦ TauCeti.complexToRealEuclidean ι)
+          (TauCeti.complexToRealEuclidean ι).toContinuousLinearMap fun _ _ _ _ ↦ by simp)
         ((ofComplexModule I n (ι → ℂ) (Trivial M (ι → ℂ))).compatibleForm
           (ContMDiffRiemannianMetric.constComplexEuclidean ι)) =
       ContMDiffTwoForm.const (stdForm ι) :=
