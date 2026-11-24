@@ -20,10 +20,10 @@ against the versions pinned when this file was written (Tau Ceti
 
 ## What other parts give, and under which names
 
-The parts this one builds on have design files that were under review when
-this file was written: *Symplectic fibrations* (#2445), *Parallel transport*
-(#2420), *Integration over the fibre* (#2441) and *Flux homomorphism*
-(#2422). This file uses the names that those designs give, listed here, and
+The parts this one builds on have design files: *Parallel transport*
+(`design/parallel-transport.md`), merged, and *Symplectic fibrations*
+(#2445), *Integration over the fibre* (#2441) and *Flux homomorphism*
+(#2422), under review when this file was written. This file uses the names that those designs give, listed here, and
 its building issues use the names of the merged designs and code where they
 differ.
 
@@ -148,13 +148,6 @@ These settle the points that part 53 of `DESIGN.md` leaves to this file.
   bounds a smooth map of the closed disc. That is the predicate
   `BoundsSmoothDisc` below; the proofs pass to Tau Ceti's `IsSmoothDisc`
   by `BoundsSmoothDisc.exists_isSmoothDisc`.
-- **Smooth Hamiltonians in families.** The fibrewise primitives must
-  depend smoothly on the base point. The library's smooth primitives
-  (`exists_primitiveMap_of_hasFiniteGoodCover`) preserve only families over
-  the unit interval (`PreservesSmoothFamilies`), and the parameter here is a
-  coordinate patch. Degree one suffices, and there a primitive is a path
-  integral from a base point, so the part adds that lemma for any parameter
-  manifold rather than generalize the good-cover machinery.
 - **Names.** `IsCouplingForm` is taken by *Minimal coupling*; the coupling
   form of a connection is characterized by the predicate
   `TauCeti.IsEhresmannConnection.IsCouplingTwoForm`. No definition chooses
@@ -166,22 +159,6 @@ These settle the points that part 53 of `DESIGN.md` leaves to this file.
   No circle action occurs, so `circlePeriodOneGenerator` is not used.
 
 ## Files
-
-### `Geometry/Manifold/DeRham/SmoothFamily/Primitive.lean`
-
-Smooth families of primitives of exact one-forms. About 200 lines.
-
-- `exists_isSmoothFamily_mextDerivₗ_eq_of_degree_one`: for a manifold `N`
-  (any model), a connected manifold `F`, a point `y₀ : F` and a smooth
-  family `η : N → SmoothForm IF F ℝ 1` (`IsSmoothFamily IN η`) of exact
-  forms, there is a smooth family `f : N → SmoothForm IF F ℝ 0` with
-  `mextDerivₗ IF 0 (f a) = η a` and `(f a).val y₀ = 0` for every `a`. The
-  value at `y` is Tau Ceti's `pathIntegral` of `η a` along a smooth path
-  from `y₀` to `y`; near a point `y₁` it is the integral along one fixed
-  path to `y₁` plus the integral along a segment in a chart, so it is
-  jointly smooth by differentiation under the integral sign. The uniqueness
-  on a connected `F` and the vanishing at `y₀` make the choice of path
-  irrelevant.
 
 ### `Geometry/Symplectic/Fibration/Holonomy.lean`
 
@@ -364,9 +341,11 @@ turn.
   `LocalForm.lean`, over a coordinate patch `U` and with `σ` constant in
   the chart, if each $\partial_i\alpha_j-\partial_j\alpha_i$ has a primitive
   on `F` at every `x`, there is a closed form on `U ×ˢ univ` with the same $\sigma$
-  and $\alpha_i$. The functions $f_{ij}$ are the primitives of
-  `exists_isSmoothFamily_mextDerivₗ_eq_of_degree_one` that vanish at a base
-  point $y_0$. Closedness in the directions (fibre, fibre, base) is
+  and $\alpha_i$. The functions $f_{ij}$ are jointly smooth primitives
+  from the library's `exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`
+  (`Geometry/Manifold/DeRham/FamilyPrimitive.lean`), with the patch as
+  parameter manifold, made to vanish at a base point $y_0$ by passing to
+  $f(x,y)-f(x,y_0)$. Closedness in the directions (fibre, fibre, base) is
   vertical closedness; in (fibre, base, base) it is the choice of $f_{ij}$;
   and in (base, base, base) the cyclic sum of $\partial_kf_{ij}$ has zero
   derivative along `F`, so it is constant on the connected `F`, and it
@@ -381,19 +360,26 @@ turn.
   normalized forms agree on overlaps by the pointwise argument of
   `IsCouplingTwoForm.unique`, and the form defined pointwise by them is
   smooth and closed, being so near every point.
-- The milestone, `TauCeti.IsEhresmannConnection.exists_isClosed_iff_hasHamiltonianDiscHolonomy`
-  together with `IsCouplingTwoForm.unique`, `exists_isCouplingTwoForm` and
-  `eq_add_mpullback_of_isClosed`: for `[CompactSpace M]`,
-  `[ConnectedSpace F]`, a symplectic atlas and a symplectic connection `hD`,
-  there is a closed `τ` with `A.RestrictsTo σ τ` and
-  `τ.horizontalDistribution π = D` exactly when
-  `hD.HasHamiltonianDiscHolonomy A σ`; then a coupling two-form exists, it
-  is unique, and every such `τ` is the coupling two-form plus `π^*β` for a
-  unique closed `β`. The direction 1 ⇒ 2 is
+- The milestone,
+  `TauCeti.IsEhresmannConnection.exists_isClosed_iff_and_existsUnique_isCouplingTwoForm`:
+  for `[CompactSpace M]`, `[ConnectedSpace F]`, a symplectic atlas and a
+  symplectic connection `hD`, the conjunction of
+  - `(∃ τ, τ.IsClosed ∧ A.RestrictsTo σ τ ∧ τ.horizontalDistribution π = D) ↔
+    hD.HasHamiltonianDiscHolonomy A σ`;
+  - `hD.HasHamiltonianDiscHolonomy A σ → ∃! τ, hD.IsCouplingTwoForm A σ τ`
+    (by the first conjunct, a closed `τ` as there gives the hypothesis too);
+  - for every `τ` with `hD.IsCouplingTwoForm A σ τ` and every closed `τ'`
+    with `A.RestrictsTo σ τ'` and `τ'.horizontalDistribution π = D`,
+    `∃! β : SmoothTwoForm IB B, β.IsClosed ∧ τ' = τ + π^*β`.
+
+  The direction ⇒ of the first conjunct is
   `hasHamiltonianCurvature_of_isClosed` and
-  `hasHamiltonianDiscHolonomy_of_hasHamiltonianCurvature`; the direction
-  2 ⇒ 1 is `hasHamiltonianCurvature_of_hasHamiltonianDiscHolonomy` and the
-  previous item. The docstring of the main theorem ends with "Milestone:
+  `hasHamiltonianDiscHolonomy_of_hasHamiltonianCurvature`; the direction ⇐
+  and the existence in the second are
+  `hasHamiltonianCurvature_of_hasHamiltonianDiscHolonomy` and
+  `exists_isCouplingTwoForm_of_hasHamiltonianCurvature`; the uniqueness in
+  the second is `IsCouplingTwoForm.unique`, and the third is
+  `eq_add_mpullback_of_isClosed`. Its docstring ends with "Milestone:
   *Coupling form of a symplectic connection*."
 
 ### `Geometry/Symplectic/Fibration/SimplyConnected.lean`
@@ -437,7 +423,8 @@ The corollary. About 150 lines.
   and its change of variables, and
   `subsingleton_deRhamCohomology_one_of_simplyConnectedSpace`.
 - The library, merged: `isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms`
-  (*Hamiltonian flows*) and smooth families of forms (*Smooth families*).
+  and `exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`
+  (*Hamiltonian flows*), and smooth families of forms (*Smooth families*).
 - Other parts: *Symplectic fibrations* (`Basic.lean`,
   `HorizontalDistribution.lean`, `Connection.lean`, `LocalForm.lean`),
   *Parallel transport* (`HorizontalLiftField.lean`,
@@ -453,10 +440,7 @@ The corollary. About 150 lines.
 In the order they can be done; each is one pull request of a few hundred
 lines, and waits only for what it names.
 
-1. **Smooth primitives of exact one-forms.**
-   `Geometry/Manifold/DeRham/SmoothFamily/Primitive.lean`. Waits for
-   nothing.
-2. **The curvature identity and the local formula.** The first five items
+1. **The curvature identity and the local formula.** The first five items
    of `Fibration/Curvature.lean`:
    `apply_curvature_eq_mvfderiv_sub_mextDeriv` (milestone line),
    `curvatureIn`, `HasHamiltonianCurvature`,
@@ -464,30 +448,29 @@ lines, and waits only for what it names.
    `hasHamiltonianCurvature_iff_local`. Waits for *Symplectic fibrations*
    (`HorizontalDistribution.lean`, `LocalForm.lean`) and *Parallel
    transport* (`Curvature.lean`).
-3. **Holonomy around discs.** `Fibration/Holonomy.lean`. Waits for
+2. **Holonomy around discs.** `Fibration/Holonomy.lean`. Waits for
    *Symplectic fibrations* (`Connection.lean`) and *Parallel transport*
    (`ParallelTransport/Smooth.lean`).
-4. **Hamiltonian holonomy and Hamiltonian curvature.** The rest of
+3. **Hamiltonian holonomy and Hamiltonian curvature.** The rest of
    `Fibration/Curvature.lean`: both directions and
-   `hasHamiltonianDiscHolonomy_tfae` (milestone line). Waits for 2, 3 and
+   `hasHamiltonianDiscHolonomy_tfae` (milestone line). Waits for 1, 2 and
    *Flux homomorphism* (`Family.lean`).
-5. **Normalization and uniqueness.** In `Fibration/Coupling.lean`: the
+4. **Normalization and uniqueness.** In `Fibration/Coupling.lean`: the
    wedge-power lemma, the orientation lemma of *Setting*, `fiberMean`,
    `fiberIntegral_wedgePow_apply`, `IsCouplingTwoForm`,
    `eq_add_mpullback_of_isClosed` and `IsCouplingTwoForm.unique`. Waits for
    *Integration over the fibre* (`FiberIntegral/Basic.lean`) and
    *Symplectic fibrations* (`HorizontalDistribution.lean`).
-6. **Existence of the coupling form.** In `Fibration/Coupling.lean`:
+5. **Existence of the coupling form.** In `Fibration/Coupling.lean`:
    `exists_isClosed_local` and
-   `exists_isCouplingTwoForm_of_hasHamiltonianCurvature`. Waits for 1, 2
-   and 5.
-7. **The coupling form theorem.** The milestone in
-   `Fibration/Coupling.lean`. Waits for 4 and 6.
-8. **Simply connected fibres.** `Fibration/SimplyConnected.lean`. Waits for
-   6 and *Compatible symplectic forms* (`Thurston.lean`).
+   `exists_isCouplingTwoForm_of_hasHamiltonianCurvature`. Waits for 1 and 4.
+6. **The coupling form theorem.** The milestone in
+   `Fibration/Coupling.lean`. Waits for 3 and 5.
+7. **Simply connected fibres.** `Fibration/SimplyConnected.lean`. Waits for
+   5 and *Compatible symplectic forms* (`Thurston.lean`).
 
-Issues 1, 2, 3 and 5 can start as soon as the files they wait for are
-merged; 8 does not wait for the holonomy issues.
+Issues 1, 2 and 4 can start as soon as the files they wait for are
+merged; 7 does not wait for the holonomy issues.
 
 ## References
 
