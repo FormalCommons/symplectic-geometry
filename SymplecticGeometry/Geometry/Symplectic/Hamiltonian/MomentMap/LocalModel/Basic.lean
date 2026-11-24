@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Symplectic.Coadjoint.LieGroup
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Lift
 public import TauCeti.Geometry.Manifold.ContMDiff.FiniteDimension
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Cotangent.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Coadjoint.LieGroup
 
@@ -39,6 +40,13 @@ an orbit, where `N = 𝔪* × V` and `ν (η, v) = τ + η + μ_V(v)`.
   `Φ_ν^* ω` is invariant under `(g, p) ↦ (k * g, p)`.
 * `SymplecticGeometry.mpullback_prodMk_mpullback_leftInvariantCovectorMap_symplecticForm`:
   restricted to the slice `G × {p}`, `Φ_ν^* ω` is the left-invariant Kirillov form of `ν p`.
+* `SymplecticGeometry.leftInvariantCovectorMapForm`: for a two-form `β` on `N`, the two-form
+  `Φ_ν^* ω + pr_N^* β` on `G × N`, which is `-d⟨ν, θ⟩ + β` with `θ` the left-invariant
+  Maurer–Cartan form. It is closed when `β` is
+  (`SymplecticGeometry.isClosed_leftInvariantCovectorMapForm`), invariant under
+  `(g, p) ↦ (k * g, p)` (`SymplecticGeometry.mpullback_mul_left_leftInvariantCovectorMapForm`),
+  and on the slice `G × {p}` it is the left-invariant Kirillov form of `ν p`
+  (`SymplecticGeometry.mpullback_prodMk_leftInvariantCovectorMapForm`).
 
 The smoothness adapts the proof of Tau Ceti's `Module.Dual.contMDiff_leftInvariantCovector`, and
 the invariance that of `Module.Dual.mpullback_mul_left_leftInvariantForm`, through the
@@ -162,5 +170,57 @@ theorem mpullback_prodMk_mpullback_leftInvariantCovectorMap_symplecticForm
     funext fun g ↦ leftInvariantCovectorMap_apply ν g p
   simp only [SmoothForm.mpullback_mpullback, h,
     Module.Dual.leftInvariantKirillovForm_eq_mpullback_symplecticForm]
+
+/-! ### Adding the pullback of a two-form on `N` -/
+
+/-- The two-form `Φ_ν^* ω + pr_N^* β` on `G × N`: the sum of the pullback of the canonical
+symplectic form `ω` of `T*G` along `Φ_ν = leftInvariantCovectorMap ν` and the pullback of a
+two-form `β` on `N` along the projection `pr_N = Prod.snd`. -/
+def leftInvariantCovectorMapForm (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ)
+    (β : SmoothForm J N ℝ 2) : SmoothForm (I.prod J) (G × N) ℝ 2 :=
+  SmoothForm.mpullback (leftInvariantCovectorMap ν) (contMDiff_leftInvariantCovectorMap hν)
+      (CotangentBundle.symplecticForm I G) +
+    SmoothForm.mpullback Prod.snd contMDiff_snd β
+
+theorem leftInvariantCovectorMapForm_def (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ)
+    (β : SmoothForm J N ℝ 2) :
+    leftInvariantCovectorMapForm hν β =
+      SmoothForm.mpullback (leftInvariantCovectorMap ν) (contMDiff_leftInvariantCovectorMap hν)
+          (CotangentBundle.symplecticForm I G) +
+        SmoothForm.mpullback Prod.snd contMDiff_snd β :=
+  (rfl)
+
+/-- The form `Φ_ν^* ω + pr_N^* β` on `G × N` is closed when `β` is. -/
+theorem isClosed_leftInvariantCovectorMapForm [IsManifold J 2 N]
+    (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ) {β : SmoothForm J N ℝ 2} (hβ : β.IsClosed) :
+    (leftInvariantCovectorMapForm hν β).IsClosed := by
+  rw [leftInvariantCovectorMapForm_def]
+  exact (isClosed_mpullback_leftInvariantCovectorMap_symplecticForm hν).add
+    (hβ.mpullback _ contMDiff_snd)
+
+/-- The form `Φ_ν^* ω + pr_N^* β` on `G × N` is invariant under left translation
+`(g, p) ↦ (k * g, p)` of the factor `G`. -/
+@[simp]
+theorem mpullback_mul_left_leftInvariantCovectorMapForm
+    (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ) (β : SmoothForm J N ℝ 2) (k : G) :
+    SmoothForm.mpullback (Prod.map (k * ·) id) (contMDiff_mul_left.prodMap contMDiff_id)
+        (leftInvariantCovectorMapForm hν β) =
+      leftInvariantCovectorMapForm hν β := by
+  rw [leftInvariantCovectorMapForm_def, map_add,
+    mpullback_mul_left_mpullback_leftInvariantCovectorMap_symplecticForm hν,
+    SmoothForm.mpullback_prodMap_mpullback_snd contMDiff_mul_left contMDiff_id,
+    SmoothForm.mpullback_id, LinearMap.id_apply]
+
+/-- On the slice `G × {p}`, the form `Φ_ν^* ω + pr_N^* β` on `G × N` is the left-invariant
+Kirillov form of `ν p`: the term `pr_N^* β` vanishes there, as `pr_N` is constant on the slice. -/
+@[simp]
+theorem mpullback_prodMk_leftInvariantCovectorMapForm
+    (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ) (β : SmoothForm J N ℝ 2) (p : N) :
+    SmoothForm.mpullback (fun g : G ↦ (g, p)) (contMDiff_id.prodMk contMDiff_const)
+        (leftInvariantCovectorMapForm hν β) =
+      (ν p).leftInvariantKirillovForm := by
+  rw [leftInvariantCovectorMapForm_def, map_add,
+    mpullback_prodMk_mpullback_leftInvariantCovectorMap_symplecticForm hν,
+    SmoothForm.mpullback_prodMk_left_mpullback_snd, add_zero]
 
 end SymplecticGeometry
