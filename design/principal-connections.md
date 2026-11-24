@@ -137,7 +137,7 @@ This file corrects part 50 of `DESIGN.md` in the same pull request:
 
 - `Principal/Connection.lean` becomes the folder `Principal/Connection/`,
   with `Basic.lean` (connection forms, horizontal spaces, the affine
-  structure, the circle comparison), `Existence.lean` and `Curvature.lean`,
+  structure), `Existence.lean` and `Curvature.lean`,
   so that three issues do not write one file. The comparison of curvatures
   with the circle case is in `Curvature.lean`.
 - The curvature is `connectionCurvature A`, defined for every
@@ -157,7 +157,7 @@ diffeomorphism $\Phi$ above).
 | File | Contents |
 |---|---|
 | `Geometry/Lie/MaurerCartan.lean` | the left Maurer–Cartan form of a Lie group as a smooth $\mathfrak g$-valued one-form |
-| `Geometry/Manifold/FiberBundle/Principal/Connection/Basic.lean` | `IsConnectionForm`, `IsTensorialForm`, horizontal spaces, the affine structure, the circle comparison |
+| `Geometry/Manifold/FiberBundle/Principal/Connection/Basic.lean` | `IsConnectionForm`, `IsTensorialForm`, horizontal spaces, the affine structure |
 | `Geometry/Manifold/FiberBundle/Principal/Connection/Existence.lean` | existence over a paracompact base |
 | `Geometry/Manifold/FiberBundle/Principal/Connection/Curvature.lean` | `connectionCurvature` and its properties |
 | `Geometry/Manifold/FiberBundle/Associated/PullbackPrincipal.lean` | $P\times F$ as the pull-back of $P$ to $P\times_GF$; descent along $q$ |
@@ -209,12 +209,14 @@ This file makes it a form.
   (`∃! a, IsTensorialForm a ∧ A' = A + a`).
 - `isTensorialForm_iff_isBasic` for commutative $G$: a tensorial form is a
   basic form, with the merged `isBasic_of_mpullback_op_smul`.
-- The circle comparison, for `G = Circle`:
+- The circle comparison, for `G = Circle`, in
+  `Principal/Connection/Circle.lean`:
   `isConnectionForm_mapCoeff_iff : IsConnectionForm
-  (SmoothForm.mapCoeff ((ContinuousLinearMap.id ℝ ℝ).smulRight
+  (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ
   circleLieGenerator) α) ↔ IsCircleConnectionForm α`, and every
   $\mathfrak g$-valued connection form is of this form for a unique
-  $\alpha$ (`IsConnectionForm.exists_eq_mapCoeff`).
+  $\alpha$, a circle connection form
+  (`IsConnectionForm.existsUnique_eq_mapCoeff`).
 
 ### `Geometry/Manifold/FiberBundle/Principal/Connection/Existence.lean`
 

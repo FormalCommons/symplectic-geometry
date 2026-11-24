@@ -44,6 +44,8 @@ Proposition 10.2.12.
 
 * `TauCeti.Diffeotopy.homologyPeriod_flux_truncate`: the periods of the flux of the truncation at
   time `T` are the integrals over `[0, T]` of the periods of the contractions `ι_{X_t} σ`.
+* `TauCeti.Diffeotopy.continuous_homologyPeriodHom_interiorₗ_smoothVelocity`: these periods of
+  the contractions are continuous in time.
 * `TauCeti.Diffeotopy.isHamiltonian_of_forall_flux_truncate_eq_zero`: a diffeotopy preserving
   `σ` all of whose truncations have zero flux is Hamiltonian.
 
@@ -110,6 +112,21 @@ theorem homologyPeriod_flux_truncate
     intervalIntegral.integral_congr hstep, intervalIntegral.integral_const_mul,
     intervalIntegral.mul_integral_comp_mul_left, mul_zero, mul_one]
 
+/-- **The periods of the contractions are continuous in time.** If every map of the diffeotopy
+`φ_t` preserves the closed two-form `σ`, then for each class `c ∈ H₁(M; ℤ)` the period on `c` of
+the contraction `ι_{X_t} σ`, with `X_t` the velocity, is a continuous function of real time `t`,
+read through the projection of `ℝ` onto `[0, 1]`. -/
+theorem continuous_homologyPeriodHom_interiorₗ_smoothVelocity
+    (hΦ : ∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ.val)
+    (c : ((singularChains ℤ).obj (.of M)).homology 1) :
+    Continuous fun s : ℝ ↦ homologyPeriodHom (SmoothTwoForm.interiorₗ σ.val
+      (Φ.smoothVelocity (projIcc 0 1 zero_le_one s)) : RoughForm J M ℝ 1) c :=
+  (SymplecticGeometry.IsSmoothFamily.contMDiff_homologyPeriodHom
+    (SymplecticGeometry.isSmoothFamily_interiorₗ σ.val Φ.contMDiff_smoothVelocity)
+    (Φ.interiorₗ_smoothVelocity_mem_closedForms
+      ((SmoothForm.isClosed_iff_mem_closedForms σ.val).2 σ.property) hΦ) c).continuous.comp
+    continuous_projIcc
+
 /-- **The Hamiltonian criterion by truncations.** If every map of the diffeotopy `φ_t` preserves
 the closed two-form `σ`, and the truncation `t ↦ φ_{T t}` has zero flux for every `T ∈ [0, 1]`,
 then `φ_t` is Hamiltonian. -/
@@ -126,10 +143,7 @@ theorem isHamiltonian_of_forall_flux_truncate_eq_zero
   -- The periods on `c` of the contractions, as a continuous function of real time.
   set g : ℝ → ℝ := fun s ↦ homologyPeriodHom (SmoothTwoForm.interiorₗ σ.val
     (Φ.smoothVelocity (projIcc 0 1 zero_le_one s)) : RoughForm J M ℝ 1) c
-  have hg : Continuous g :=
-    (SymplecticGeometry.IsSmoothFamily.contMDiff_homologyPeriodHom
-      (SymplecticGeometry.isSmoothFamily_interiorₗ σ.val Φ.contMDiff_smoothVelocity)
-      hX c).continuous.comp continuous_projIcc
+  have hg : Continuous g := continuous_homologyPeriodHom_interiorₗ_smoothVelocity hΦ c
   -- Its integrals over the intervals `[0, s]`, `s ∈ [0, 1]`, vanish, so it vanishes on `[0, 1]`.
   have hzero := hg.continuousOn.eqOn_zero_of_forall_intervalIntegral_eq_zero zero_lt_one
     fun s hs ↦ by
