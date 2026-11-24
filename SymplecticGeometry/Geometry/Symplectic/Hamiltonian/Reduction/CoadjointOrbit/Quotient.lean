@@ -9,14 +9,6 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Reduction.Coadj
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.Prod
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Reduction.Naturality
 public import SymplecticGeometry.GroupTheory.GroupAction.SubMulAction
--- `orbitLevelQuotientDiffeomorph` is `ProperSMul.orbitRelQuotientDiffeomorph`, whose target atlas
--- must be `zeroLevelProdQuotientChartedSpace` by definition. That needs the bodies of
--- `zeroLevelQuotientChartedSpace`, `zeroLevelChartedSpace` and `zeroLevelProdChartedSpace`: the
--- atlases are data, so rewriting the type with their `_def` lemmas would put a cast into the
--- diffeomorphism, and `zeroLevelChartedSpace` has no `_def` lemma, as its body is an atlas on
--- Tau Ceti's `levelSubMulAction 0`, a type that is the zero level only by definition.
-import all SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Reduction.CoadjointOrbit.Level
-import all SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Reduction.ZeroLevel.Basic
 
 /-!
 # Reduction at a coadjoint orbit
@@ -163,6 +155,8 @@ def orbitLevelQuotientChartedSpace :
   haveI := (h.quotient_hypotheses hemb hσ hfree hm).2.2
   ProperSMul.orbitRelQuotientChartedSpace I G 𝓘(ℝ, Fin m → ℝ) (h.orbitLevel η)
 
+/-- `orbitLevelQuotientChartedSpace` is the atlas `ProperSMul.orbitRelQuotientChartedSpace` of the
+quotient manifold theorem, for the atlas `orbitLevelChartedSpace` of the preimage of the orbit. -/
 theorem orbitLevelQuotientChartedSpace_def :
     h.orbitLevelQuotientChartedSpace hemb hσ hfree hm =
       letI := h.orbitLevelChartedSpace hemb hσ hfree hm
@@ -209,6 +203,8 @@ def zeroLevelProdQuotientChartedSpace :
     (hσ.prod η.isSymplectic_coadjointOrbitForm.isNondegenerate)
     (h.stabilizer_zeroLevel_prod_eq_bot η hfree) (n := m) (by rwa [Module.finrank_prod])
 
+/-- `zeroLevelProdQuotientChartedSpace` is the atlas `zeroLevelQuotientChartedSpace` of the product
+form. -/
 theorem zeroLevelProdQuotientChartedSpace_def :
     h.zeroLevelProdQuotientChartedSpace hemb hσ hfree hm =
       haveI : T2Space (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η) := hemb.t2Space
