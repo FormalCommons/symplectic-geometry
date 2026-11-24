@@ -43,6 +43,10 @@ Between two points `s` and `t` of `[x, y]`, the affine path `Set.Icc.lineMap s t
 unit interval, is smooth (`Set.Icc.contMDiff_lineMap`), and its derivative sends the unit vector
 to `t - s` times the unit vector (`Set.Icc.mfderiv_lineMap_one`).
 
+Mathlib's affine homeomorphism `iccHomeoI x y h : [x, y] ≃ₜ [0, 1]` and its inverse are smooth,
+up to both ends (`contMDiff_iccHomeoI`, `contMDiff_iccHomeoI_symm`), since their composites with
+the inclusions into `ℝ` are affine.
+
 On the unit interval, the derivative of left multiplication `s ↦ T s` sends the unit vector at
 `t` to `T` times the unit vector at `T t` (`unitInterval.mfderiv_mul_left_one`).
 -/
@@ -145,6 +149,32 @@ theorem ContinuousLinearMap.ext_tangentSpace_Icc {F : Type*} [AddCommGroup F] [M
   ext1 v
   obtain ⟨r, hr⟩ : ∃ r : ℝ, mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc x y → ℝ) z v = r := ⟨_, rfl⟩
   rw [SymplecticGeometry.eq_smul_one_of_mfderiv_subtypeVal_Icc hr, map_smul, map_smul, h]
+
+section iccHomeoI
+
+/-- Mathlib's affine homeomorphism `iccHomeoI x y h : Icc x y ≃ₜ unitInterval`,
+`z ↦ (z - x) / (y - x)`, is smooth, up to both ends. -/
+theorem contMDiff_iccHomeoI (h : x < y) :
+    ContMDiff (𝓡∂ 1) (𝓡∂ 1) n (iccHomeoI x y h) := by
+  refine contMDiff_iff_comp_subtypeVal_Icc.mpr ⟨(iccHomeoI x y h).continuous, ?_⟩
+  have hval : Subtype.val ∘ iccHomeoI x y h = (fun z : ℝ ↦ (z - x) / (y - x)) ∘ Subtype.val :=
+    funext (iccHomeoI_apply_coe x y h)
+  rw [hval]
+  exact ((contDiff_id.sub contDiff_const).div_const _).contMDiff.comp contMDiff_subtypeVal_Icc
+
+/-- The inverse `u ↦ (y - x) u + x` of Mathlib's affine homeomorphism
+`iccHomeoI x y h : Icc x y ≃ₜ unitInterval` is smooth, up to both ends. -/
+theorem contMDiff_iccHomeoI_symm (h : x < y) :
+    ContMDiff (𝓡∂ 1) (𝓡∂ 1) n (iccHomeoI x y h).symm := by
+  refine contMDiff_iff_comp_subtypeVal_Icc.mpr ⟨(iccHomeoI x y h).symm.continuous, ?_⟩
+  have hval : Subtype.val ∘ (iccHomeoI x y h).symm =
+      (fun u : ℝ ↦ (y - x) * u + x) ∘ Subtype.val :=
+    funext (iccHomeoI_symm_apply_coe x y h)
+  rw [hval]
+  exact ((contDiff_const.mul contDiff_id).add contDiff_const).contMDiff.comp
+    contMDiff_subtypeVal_Icc
+
+end iccHomeoI
 
 namespace Set.Icc
 
