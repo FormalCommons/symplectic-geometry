@@ -243,16 +243,16 @@ whose declarations they extend; upstream they merge.
 
 ### `Wedge/Smooth/Graded.lean`
 
-In `TauCeti.SmoothForm`, on a `C²` manifold: instances `gMul`, `gOne`
+In `TauCeti.SmoothForm`, on a `C¹` manifold: instances `gMul`, `gOne`
 (the constant function `1`), `gMonoid`, `gRing` and `gAlgebra` on
 `fun k ↦ SmoothForm I M ℝ k`, proved from Tau Ceti's wedge associativity,
 unit laws and bilinearity, as `DeRham/Algebra.lean` does for cohomology.
-API: `of_mul_of` in the form
+API: `of_mul_of_eq_of_wedge` in the form
 `DirectSum.of _ k φ * DirectSum.of _ l ψ = DirectSum.of _ (k + l) (wedge φ ψ)`
-(`@[simp]`), `of_zero_one`, `algebraMap_apply`, and
-`of_pow : DirectSum.of _ k φ ^ m = DirectSum.of _ (k * m) (wedgePow φ m)`.
-Two even homogeneous forms commute (`commute_of_of_of_even`, from
-`wedge_eq_smul_cast_wedge_comm`).
+(`@[simp]`), `of_zero_ofFunction_one`, `algebraMap_apply_eq_of_ofFunction`, and
+`of_pow_eq_of_wedgePow : DirectSum.of _ k φ ^ m = DirectSum.of _ (k * m) (wedgePow φ m)`.
+A homogeneous form of even degree commutes with every homogeneous form
+(`commute_of_of_of_even`, from `wedge_eq_smul_cast_wedge_comm`).
 
 ### `Interior.lean`
 
