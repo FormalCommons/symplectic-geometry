@@ -177,8 +177,7 @@ private lemma isZero_integralCohomology_zeroSectionCompl (hV : finrank ℂ V = n
   have : FiniteDimensional ℂ V := Module.finite_of_finrank_eq_succ hV
   have : FiniteDimensional ℝ V := .complexToReal V
   let e : zeroSectionCompl ℂ (Tautological ℂ V) ≃ₜ ({0}ᶜ : Set V) :=
-    (Homeomorph.subtype (.refl _) fun _ ↦ mem_zeroSectionCompl).trans
-      (tautologicalComplZeroHomeomorph ℂ V)
+    tautologicalComplZeroHomeomorph ℂ V
   exact (isZero_singularCohomology_complSingleton_subtype_of_ne _ _ (0 : V)
     (SymplecticGeometry.finrank_real_of_finrank_complex_eq_add_one hV) hm hmn).of_iso
     ((singularCohomologyFunctor _ ℤ _ m).mapIso (TopCat.isoOfHomeo e.symm).op)

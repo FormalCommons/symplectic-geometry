@@ -108,6 +108,7 @@ public section
 noncomputable section
 
 open Bundle Set Topology
+open TauCeti (zeroSectionCompl mem_zeroSectionCompl)
 open scoped LinearAlgebra.Projectivization
 
 namespace Projectivization
@@ -163,13 +164,13 @@ theorem continuous_snd_tautological :
 /-- The complement of the zero section of the tautological line is homeomorphic to the nonzero
 vectors of `V`, by `(ℓ, v) ↦ v`; the inverse sends `v` to `([v], v)`. -/
 def tautologicalComplZeroHomeomorph :
-    {v : TotalSpace 𝕜 (Tautological 𝕜 V) // v.snd ≠ 0} ≃ₜ {v : V // v ≠ 0} where
-  toFun v := ⟨v.val.snd, fun h ↦ v.property (Subtype.ext h)⟩
+    zeroSectionCompl 𝕜 (Tautological 𝕜 V) ≃ₜ {v : V // v ≠ 0} where
+  toFun v := ⟨v.val.snd, fun h ↦ mem_zeroSectionCompl.1 v.property (Subtype.ext h)⟩
   invFun v := ⟨⟨mk 𝕜 v.val v.property, ⟨v.val, mem_submodule_mk v.property⟩⟩,
-    fun h ↦ v.property (congrArg Subtype.val h)⟩
+    mem_zeroSectionCompl.2 fun h ↦ v.property (congrArg Subtype.val h)⟩
   left_inv := by
     rintro ⟨⟨ℓ, v, hv⟩, h₀⟩
-    have hv₀ : v ≠ 0 := fun h ↦ h₀ (Subtype.ext h)
+    have hv₀ : v ≠ 0 := fun h ↦ mem_zeroSectionCompl.1 h₀ (Subtype.ext h)
     obtain rfl := mk_eq_of_mem_submodule hv₀ hv
     rfl
   right_inv _ := rfl
@@ -182,7 +183,7 @@ def tautologicalComplZeroHomeomorph :
 variable {V} in
 @[simp]
 theorem coe_tautologicalComplZeroHomeomorph_apply
-    (v : {v : TotalSpace 𝕜 (Tautological 𝕜 V) // v.snd ≠ 0}) :
+    (v : zeroSectionCompl 𝕜 (Tautological 𝕜 V)) :
     (tautologicalComplZeroHomeomorph 𝕜 V v : V) = v.val.snd :=
   (rfl)
 
