@@ -142,6 +142,7 @@ theorem trivializationOfSection_apply (p : TotalSpace G (orbitFiber Gᵐᵒᵖ X
 
 /-- Over a point `q` of `U`, the inverse of `trivializationOfSection` sends `(q, g)` to the
 point `s q` moved by `g` on the right, `op g • s q`. -/
+@[simp]
 theorem trivializationOfSection_symm_apply {q : orbitRel.Quotient Gᵐᵒᵖ X} (hq : q ∈ U) (g : G) :
     (trivializationOfSection U hU s hs hsec).toOpenPartialHomeomorph.symm (q, g) =
       ⟨q, op g • ⟨s q, hsec q hq⟩⟩ := by

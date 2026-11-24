@@ -178,6 +178,7 @@ theorem orbitTrivializationOfSection_apply (x : X) :
 
 /-- Over a point `q` of `U`, the inverse of `orbitTrivializationOfSection` sends `(q, g)` to
 `g • s q`. -/
+@[simp]
 theorem orbitTrivializationOfSection_symm_apply {q : orbitRel.Quotient H X} (hq : q ∈ U)
     (g : H) :
     (orbitTrivializationOfSection U hU s hs hsec).toOpenPartialHomeomorph.symm (q, g) =
