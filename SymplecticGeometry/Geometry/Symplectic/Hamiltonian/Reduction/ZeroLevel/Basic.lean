@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Symplectic.Hamiltonian.Reduction.ReducedSpace
 -- have the same points by definition; that unfolds the body of `levelSubMulAction`.
 import all TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.LevelAction
 import TauCeti.Geometry.Lie.Subgroup.Stabilizer
+import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 
 /-!
 # The zero level of an equivariant moment map and its quotient by the group
@@ -253,20 +254,11 @@ theorem ker_mfderiv_quotientMk_zeroLevel (z : h.zeroLevel) :
   set di := (mfderiv 𝓘(ℝ, Fin n → ℝ) I' (Subtype.val : h.zeroLevel → M) z).toLinearMap
   rw [ProperSMul.ker_mfderiv_quotientMk]
   have hdi : Function.Injective di := hemb.isImmersion.mfderiv_injective (by simp) z
-  -- `di` carries the fundamental vector fields of the zero level to those of `M`.
-  have heval : di ∘ₗ (InfinitesimalAction.fundamental I G 𝓘(ℝ, Fin n → ℝ) h.zeroLevel).eval z =
-      (InfinitesimalAction.fundamental I G I' M).eval (z : M) := by
-    ext ξ
-    rw [LinearMap.comp_apply, InfinitesimalAction.eval_apply, InfinitesimalAction.eval_apply,
-      InfinitesimalAction.fundamental_apply, InfinitesimalAction.fundamental_apply]
-    exact mfderiv_fundamentalVectorField_of_map_smul (I := I)
-      (hemb.contMDiff.mdifferentiableAt (by simp))
-      ((ContMDiffSMul.contMDiff_smul_const (I := I) (I' := 𝓘(ℝ, Fin n → ℝ)) (n := ∞)
-        z).mdifferentiableAt (by simp)) (fun g ↦ SubMulAction.val_smul g z) ξ
+  -- `di` carries the orbit tangent spaces of the zero level onto those of `M`.
   have hVW : ((InfinitesimalAction.fundamental I G 𝓘(ℝ, Fin n → ℝ) h.zeroLevel).orbitTangent z).map
-      di = (InfinitesimalAction.fundamental I G I' M).orbitTangent (z : M) := by
-    rw [InfinitesimalAction.orbitTangent_eq_range, InfinitesimalAction.orbitTangent_eq_range,
-      ← LinearMap.range_comp, heval]
+      di = (InfinitesimalAction.fundamental I G I' M).orbitTangent (z : M) :=
+    InfinitesimalAction.map_orbitTangent_fundamental_of_map_smul
+      (hemb.contMDiff.mdifferentiableAt (by simp)) (fun g ↦ SubMulAction.val_smul g z)
   rw [← hVW, Submodule.comap_map_eq_of_injective hdi]
 
 /-- **The vertical directions of the reduced space, through the annihilator of `0`.** The kernel
