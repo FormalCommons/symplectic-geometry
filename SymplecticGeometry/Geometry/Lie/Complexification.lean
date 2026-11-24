@@ -6,10 +6,16 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.LinearAlgebra.Projection
+public import SymplecticGeometry.Geometry.Lie.Exponential.Circle
+public import SymplecticGeometry.Geometry.Lie.Exponential.Units
+public import TauCeti.Geometry.Lie.Subgroup.Commutative
+public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Symplectic.AlmostComplex
 public import TauCeti.LinearAlgebra.TotallyReal.Basic
 public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
+public import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
+import TauCeti.LinearAlgebra.TotallyReal.Finrank
 import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
 import SymplecticGeometry.Geometry.Lie.Adjoint.Commute
 
@@ -38,6 +44,11 @@ The complex structure `cplx` is not determined by the other fields.
 * `SymplecticGeometry.LieComplexification.re`, `SymplecticGeometry.LieComplexification.im`: the
   two components of an element of the Lie algebra of `Gc` in the decomposition
   `lieMap 𝔤 ⊕ cplx (lieMap 𝔤)`.
+* `SymplecticGeometry.LieComplexification.circle`: the example `Circle` in `ℂˣ`, with the
+  inclusion `Circle.contMDiffToUnits`, the complex structure of the complex manifold `ℂˣ` at `1`
+  (Tau Ceti's `TauCeti.SmoothAlmostComplexStructure.ofComplexManifold`), which is multiplication
+  by `i`, and the polar decomposition `(ξ, u) ↦ exp (i ξ) * u`, built from
+  `Circle.polarDiffeo`.
 
 ## Main results
 
@@ -51,10 +62,21 @@ The complex structure `cplx` is not determined by the other fields.
   embedding.
 * `SymplecticGeometry.LieComplexification.toHom_mul_expI_mul_inv`: for connected `G`, conjugation
   by `toHom u` sends `expI ξ` to `expI (Ad u ξ)`.
+* `SymplecticGeometry.LieComplexification.circle_cplx_apply`,
+  `SymplecticGeometry.LieComplexification.re_circle_lieMap`,
+  `SymplecticGeometry.LieComplexification.circle_lieMap_circleLieGenerator`,
+  `SymplecticGeometry.LieComplexification.coe_circle_polar_apply`,
+  `SymplecticGeometry.LieComplexification.coe_circle_polar_smul_circleLieGenerator`: for
+  `circle`, `cplx` is multiplication by `i`, the Lie algebra of `Circle` goes to `i ℝ`, with
+  `circleLieGenerator` going to `i`, and `polar (ξ, u) = Complex.exp (i ξ) * u`, so that
+  `polar (t • circleLieGenerator, u) = exp (-t) * u`.
 
 The conjugation formula combines Tau Ceti's `TauCeti.Lie.conj_mulInvariantExp`, the naturality of
 `Ad` along `toHom`, and the fact that `cplx`, which commutes with every `ad`, commutes with every
 `Ad` of the connected group `Gc` (`TauCeti.Lie.map_tangentAd_apply_of_map_lie`).
+
+The proof that the image of the Lie algebra of `Circle` is maximal totally real counts
+dimensions, by Tau Ceti's `TauCeti.IsTotallyReal.isMaximalTotallyReal`.
 
 ## References
 
@@ -265,5 +287,170 @@ theorem toHom_mul_expI_mul_inv [FiniteDimensional ℝ EC] [ConnectedSpace G] (u 
 end LieComplexification
 
 end SymplecticGeometry
+
+section Circle
+
+/-! ### `Circle` in `ℂˣ` -/
+
+open Function Manifold TauCeti Complex
+
+attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
+
+namespace SymplecticGeometry.LieComplexification
+
+/-- The Lie algebra map of the inclusion of `Circle`, with values in `ℂ`. -/
+-- The Lie algebras `GroupLieAlgebra (𝓡 1) Circle` and `GroupLieAlgebra 𝓘(ℝ, ℂ) ℂˣ` are the model
+-- spaces `EuclideanSpace ℝ (Fin 1)` and `ℂ` by definition, but `rw` does not see through
+-- `TangentSpace`. The steps below are stated on the model spaces, and the proofs pass between the
+-- two readings by term-mode `trans` and `exact`, which unfold `TangentSpace` and `lieHomC`.
+private def lieHomC : EuclideanSpace ℝ (Fin 1) →ₗ[ℝ] ℂ :=
+  Circle.contMDiffToUnits.groupLieAlgebraLieHom.toLinearMap
+
+/-- The Lie algebra map of the inclusion of `Circle` is purely imaginary. -/
+private theorem re_lieHomC (ξ : EuclideanSpace ℝ (Fin 1)) : (lieHomC ξ).re = 0 := by
+  have h := congrArg (fun z : ℂˣ ↦ ‖(z : ℂ)‖) (Circle.contMDiffToUnits.map_mulInvariantExp ξ)
+  simp only [Circle.coe_contMDiffToUnits_apply, Circle.norm_coe,
+    coe_mulInvariantExp_eq_exp_complex] at h
+  exact Real.exp_eq_one_iff _ |>.1 ((Complex.norm_exp (lieHomC ξ)).symm.trans h.symm)
+
+/-- The Lie algebra map of the inclusion of `Circle` sends the generator to `i`. -/
+private theorem lieHomC_circleLieGenerator : lieHomC circleLieGenerator = I := by
+  have h (t : ℝ) : Complex.exp (t * lieHomC circleLieGenerator) = Complex.exp (t * I) := by
+    have h := congrArg Units.val
+      (Circle.contMDiffToUnits.map_mulInvariantExp (t • circleLieGenerator))
+    simp only [mulInvariantExp_smul_circleLieGenerator, Circle.coe_contMDiffToUnits_apply,
+      Circle.coe_exp, coe_mulInvariantExp_eq_exp_complex, map_smul] at h
+    exact (congrArg Complex.exp (Complex.real_smul (x := t))).symm.trans h.symm
+  have hd (c : ℂ) : HasDerivAt (fun t : ℝ ↦ Complex.exp (t * c)) c 0 := by
+    simpa using ((hasDerivAt_id (0 : ℝ)).ofReal_comp.mul_const c).cexp
+  exact (funext h ▸ hd (lieHomC circleLieGenerator)).unique (hd I)
+
+private theorem lieHomC_injective : Injective lieHomC :=
+  Circle.contMDiffToUnits.groupLieAlgebraLieHom_injective
+    Circle.injective_contMDiffToUnits
+
+/-- The imaginary part of `lieHomC`, a linear isomorphism from the Lie algebra of `Circle` to
+`ℝ`. -/
+private def imLieHom : EuclideanSpace ℝ (Fin 1) ≃ₗ[ℝ] ℝ :=
+  LinearEquiv.ofBijective (imLm ∘ₗ lieHomC) <| by
+    have hinj : Injective (imLm ∘ₗ lieHomC) := fun ξ η h ↦
+      lieHomC_injective (Complex.ext (by rw [re_lieHomC, re_lieHomC]) h)
+    refine ⟨hinj, ?_⟩
+    rwa [← LinearMap.injective_iff_surjective_of_finrank_eq_finrank]
+    simp
+
+private theorem imLieHom_apply (ξ : EuclideanSpace ℝ (Fin 1)) :
+    imLieHom ξ = (lieHomC ξ).im :=
+  (rfl)
+
+private theorem lieHomC_eq (ξ : EuclideanSpace ℝ (Fin 1)) :
+    lieHomC ξ = (imLieHom ξ : ℂ) * I := by
+  apply Complex.ext
+  · simp [re_lieHomC]
+  · simp [imLieHom_apply]
+
+/-- The complex structure of the complex manifold `ℂˣ` at `1`, multiplication by `i`. -/
+private def cplxUnits : AlmostComplexStructure (GroupLieAlgebra 𝓘(ℝ, ℂ) ℂˣ) :=
+  (SmoothAlmostComplexStructure.ofComplexManifold ℂ ℂˣ).almostComplexStructureAt 1
+
+private theorem cplxUnits_apply (x : ℂ) : cplxUnits x = I * x :=
+  (SmoothAlmostComplexStructure.almostComplexStructureAt_apply _ 1 x).trans
+    ((SmoothAlmostComplexStructure.ofComplexManifold_apply (E := ℂ) (M := ℂˣ) 1 x).trans
+      (smul_eq_mul (α := ℂ) _ _))
+
+private theorem cplxUnits_lieHomC (ξ : EuclideanSpace ℝ (Fin 1)) :
+    cplxUnits (lieHomC ξ) = -(imLieHom ξ : ℂ) := by
+  refine (cplxUnits_apply (lieHomC ξ)).trans ?_
+  rw [lieHomC_eq, mul_left_comm, I_mul_I, mul_neg_one]
+
+private theorem isMaximalTotallyReal_range_lieHom :
+    IsMaximalTotallyReal cplxUnits.toLinearMap
+      (LinearMap.range Circle.contMDiffToUnits.groupLieAlgebraLieHom.toLinearMap) := by
+  refine IsTotallyReal.isMaximalTotallyReal ?_
+    (fun _ _ h ↦ Subtype.ext (cplxUnits.injective h)) ?_
+  · rw [isTotallyReal_iff, Submodule.disjoint_def]
+    rintro _ ⟨ξ, rfl⟩ ⟨_, ⟨η, rfl⟩, h⟩
+    have h' : lieHomC ξ = -(imLieHom η : ℂ) := h.symm.trans (cplxUnits_lieHomC η)
+    exact Complex.ext (re_lieHomC ξ) ((congrArg Complex.im h').trans
+      ((by simp : (-(imLieHom η : ℂ)).im = 0).trans Complex.zero_im.symm))
+  · refine (congrArg (2 * ·) (LinearMap.finrank_range_of_inj lieHomC_injective)).trans ?_
+    exact (congrArg (2 * ·) (finrank_euclideanSpace_fin (𝕜 := ℝ) (n := 1))).trans
+      Complex.finrank_real_complex.symm
+
+/-- The rescaling `ξ ↦ -im (lieHomC ξ)` of the Lie algebra of `Circle` onto `ℝ`. -/
+private def negImLieHom : EuclideanSpace ℝ (Fin 1) ≃L[ℝ] ℝ :=
+  (imLieHom.trans (LinearEquiv.neg ℝ)).toContinuousLinearEquiv
+
+private theorem negImLieHom_apply (ξ : EuclideanSpace ℝ (Fin 1)) :
+    negImLieHom ξ = -imLieHom ξ :=
+  (rfl)
+
+/-- `Circle` in `ℂˣ` as a complexification: the inclusion `Circle.contMDiffToUnits`, the complex
+structure of the complex manifold `ℂˣ` at `1`, which is multiplication by `i`
+(`circle_cplx_apply`), and the polar decomposition `(ξ, u) ↦ exp (i ξ) * u`, where the
+exponential is `Complex.exp` (`coe_circle_polar_apply`). It is `Circle.polarDiffeo` after the
+rescaling of the Lie algebra of `Circle` that sends `t • circleLieGenerator` to `-t`, so that
+`polar (t • circleLieGenerator, u) = exp (-t) * u` (`coe_circle_polar_smul_circleLieGenerator`). -/
+def circle : LieComplexification (𝓡 1) Circle 𝓘(ℝ, ℂ) ℂˣ where
+  toHom := Circle.contMDiffToUnits
+  toHom_injective := Circle.injective_contMDiffToUnits
+  cplx := cplxUnits
+  cplx_lie x y := by
+    rw [trivial_lie_zero, trivial_lie_zero, AlmostComplexStructure.apply_zero]
+  isMaximalTotallyReal_range := isMaximalTotallyReal_range_lieHom
+  polar := (negImLieHom.toDiffeomorph.prodCongr (Diffeomorph.refl (𝓡 1) Circle ∞)).trans
+    Circle.polarDiffeo
+  polar_apply' ξ u := by
+    refine Units.ext ?_
+    rw [Diffeomorph.coe_trans, comp_apply, Diffeomorph.coe_prodCongr, Prod.map_apply,
+      Diffeomorph.coe_refl, id, ContinuousLinearEquiv.coe_toDiffeomorph, negImLieHom_apply,
+      Circle.coe_polarDiffeo_apply, Units.val_mul, Circle.coe_contMDiffToUnits_apply,
+      coe_mulInvariantExp_eq_exp_complex, ofReal_neg]
+    exact congrArg (fun z ↦ Complex.exp z * u) (cplxUnits_lieHomC ξ).symm
+
+@[simp]
+theorem circle_toHom : circle.toHom = Circle.contMDiffToUnits :=
+  (rfl)
+
+/-- The complex structure of the complexification `circle` is multiplication by `i`. -/
+@[simp]
+-- The product is written with explicit types: `v` has type `GroupLieAlgebra 𝓘(ℝ, ℂ) ℂˣ`, which
+-- is `ℂ` by definition but carries no multiplication of its own.
+theorem circle_cplx_apply (v : GroupLieAlgebra 𝓘(ℝ, ℂ) ℂˣ) :
+    circle.cplx v = @HMul.hMul ℂ ℂ ℂ _ I v :=
+  cplxUnits_apply v
+
+/-- The Lie algebra map of the complexification `circle` is purely imaginary. -/
+theorem re_circle_lieMap (ξ : GroupLieAlgebra (𝓡 1) Circle) : Complex.re (circle.lieMap ξ) = 0 :=
+  re_lieHomC ξ
+
+/-- The Lie algebra map of the complexification `circle` sends the generator `circleLieGenerator`
+of the Lie algebra of `Circle` to `i`. -/
+theorem circle_lieMap_circleLieGenerator :
+    circle.lieMap circleLieGenerator = (I : ℂ) :=
+  lieHomC_circleLieGenerator
+
+/-- The polar decomposition of the complexification `circle`, with the exponential of `ℂˣ`
+written as `Complex.exp`: `polar (ξ, u) = exp (i ξ) * u`. -/
+theorem coe_circle_polar_apply (ξ : EuclideanSpace ℝ (Fin 1)) (u : Circle) :
+    (circle.polar (ξ, u) : ℂ) = Complex.exp (circle.cplx (circle.lieMap ξ)) * u := by
+  rw [polar_apply, Units.val_mul, circle_toHom, Circle.coe_contMDiffToUnits_apply]
+  exact congrArg (· * (u : ℂ))
+    ((congrArg Units.val (circle.expI_def ξ)).trans (coe_mulInvariantExp_eq_exp_complex _))
+
+/-- The polar decomposition of the complexification `circle` in the coordinate of
+`circleLieGenerator`: `polar (t • circleLieGenerator, u) = exp (-t) * u`. -/
+theorem coe_circle_polar_smul_circleLieGenerator (t : ℝ) (u : Circle) :
+    (circle.polar (t • circleLieGenerator, u) : ℂ) = Complex.exp (-t) * u := by
+  have h : lieHomC (t • circleLieGenerator) = t * I :=
+    (map_smul lieHomC t circleLieGenerator).trans
+      ((congrArg (t • ·) lieHomC_circleLieGenerator).trans (Complex.real_smul (x := t)))
+  have hc : cplxUnits (lieHomC (t • circleLieGenerator)) = -(t : ℂ) := by
+    rw [cplxUnits_apply, h, mul_left_comm, I_mul_I, mul_neg_one]
+  exact (coe_circle_polar_apply _ u).trans (congrArg (fun z ↦ Complex.exp z * u) hc)
+
+end SymplecticGeometry.LieComplexification
+
+end Circle
 
 end
