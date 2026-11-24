@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Prod
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Representative
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Pullback
 public import TauCeti.Geometry.Symplectic.Manifold.Volume
+public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Dual
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Volume
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import TauCeti.LinearAlgebra.BilinearForm.Orthogonal

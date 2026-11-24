@@ -367,8 +367,7 @@ namespace ContMDiffComplexStructure
 /-- The bilinear section `x ↦ compatibleBilinAt g x (J x)` of a metric and a complex structure. -/
 private def compatibleBilin (g : ContMDiffRiemannianMetric I n F V)
     (J : ContMDiffComplexStructure I n F V) : TauCeti.Manifold.BilinearSection I F V ℝ n :=
-  ⟨fun x ↦ g.compatibleBilinAt x (J x),
-    g.contMDiff_compatibleBilinAt.comp J.toEndomorphism.contMDiff⟩
+  ContMDiffSection.map g.compatibleBilinAt g.contMDiff_compatibleBilinAt J.toEndomorphism
 
 variable [FiniteDimensional ℝ F]
 
@@ -378,8 +377,9 @@ inner product and the standard complex structure of `StdSpace ι` the formula gi
 (`SymplecticGeometry.stdForm_apply_eq_inner_sub_inner`). -/
 def compatibleForm (g : ContMDiffRiemannianMetric I n F V)
     (J : ContMDiffComplexStructure I n F V) : ContMDiffTwoForm I n F V :=
-  ContMDiffTwoForm.ofBilinearSection (compatibleBilin g J) fun x v ↦
-    g.isAlt_compatibleBilinAt x (J x) v
+  ContMDiffTwoForm.ofBilinearSection (compatibleBilin g J) fun x v ↦ by
+    rw [compatibleBilin, ContMDiffSection.map_apply]
+    exact g.isAlt_compatibleBilinAt x (J x) v
 
 /-- The value of `ω_{g,J}` on two vectors `v 0`, `v 1` is
 `(g(J (v 0), v 1) - g(v 0, J (v 1))) / 2`. -/
@@ -389,7 +389,7 @@ theorem compatibleForm_apply (g : ContMDiffRiemannianMetric I n F V)
     compatibleForm g J x v =
       (2 : ℝ)⁻¹ * (g.inner x (J x (v 0)) (v 1) - g.inner x (v 0) (J x (v 1))) :=
   (ContMDiffTwoForm.ofBilinearSection_apply _ _ x v).trans <| by
-    rw [compatibleBilin, ContMDiffSection.coeFn_mk, g.compatibleBilinAt_apply]
+    rw [compatibleBilin, ContMDiffSection.map_apply, g.compatibleBilinAt_apply]
 
 /-- For a metric `g` invariant under `J`, `g(J u, J v) = g(u, v)`, the form `ω_{g,J}` is
 `ω_{g,J}(u, v) = g(J u, v)`. -/
