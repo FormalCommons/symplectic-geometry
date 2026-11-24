@@ -54,6 +54,8 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
 
 * `SymplecticGeometry.isSmoothFamily_iff_contMDiff`: a family is smooth exactly when its slice
   section is smooth.
+* `SymplecticGeometry.IsSmoothFamily.contMDiff_val_apply`: the value of a smooth family at a
+  point is smooth in the parameter.
 * `SymplecticGeometry.IsSmoothFamily.contMDiff_apply`: the values of a smooth family at a point,
   on fixed tangent vectors, are smooth in the parameter.
 * `SymplecticGeometry.IsSmoothFamily.continuous_apply_one`: the values of a smooth family of
@@ -259,10 +261,10 @@ namespace IsSmoothFamily
 
 variable {α β : N → SmoothForm I M F k}
 
-/-- The values of a smooth family at a point `x` on fixed tangent vectors depend smoothly on the
-parameter. -/
-theorem contMDiff_apply (h : IsSmoothFamily J α) (x : M) (v : Fin k → TangentSpace I x) :
-    ContMDiff J 𝓘(ℝ, F) ∞ (fun t ↦ (α t).val x v) := by
+/-- The value of a smooth family at a point, as an alternating map on the tangent space there,
+depends smoothly on the parameter. -/
+theorem contMDiff_val_apply (h : IsSmoothFamily J α) (x : M) :
+    ContMDiff (M' := E [⋀^Fin k]→L[ℝ] F) J 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F) ∞ fun t ↦ (α t).val x := by
   have hS := (isSmoothFamily_iff_contMDiff.mp h).comp
     (contMDiff_id.prodMk contMDiff_const : ContMDiff J (J.prod I) ∞ fun t ↦ (t, x))
   intro t
@@ -271,12 +273,25 @@ theorem contMDiff_apply (h : IsSmoothFamily J α) (x : M) (v : Fin k → Tangent
     FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd] at hc
   have hx : x ∈ (trivializationAt E (TangentSpace I) x).baseSet :=
     FiberBundle.mem_baseSet_trivializationAt' x
-  have := ((ContinuousAlternatingMap.apply ℝ E F
-    fun i ↦ (trivializationAt E (TangentSpace I) x).continuousLinearMapAt ℝ x (v i)
-      ).contMDiff.contMDiffAt).comp t hc
-  simpa only [Function.comp_def, ContinuousAlternatingMap.apply_apply,
-    ContinuousAlternatingMap.compContinuousLinearMap_apply,
-    Trivialization.symmL_continuousLinearMapAt _ hx] using this
+  -- Undo the trivialization at `x` by precomposing with its inverse on the fibre.
+  let L : (E [⋀^Fin k]→L[ℝ] F) →L[ℝ] E [⋀^Fin k]→L[ℝ] F :=
+    ContinuousAlternatingMap.compContinuousLinearMapCLM
+      ((trivializationAt E (TangentSpace I) x).continuousLinearMapAt ℝ x)
+  have hL (φ : E [⋀^Fin k]→L[ℝ] F) : L φ = φ.compContinuousLinearMap
+      ((trivializationAt E (TangentSpace I) x).continuousLinearMapAt ℝ x) :=
+    ContinuousAlternatingMap.compContinuousLinearMapCLM_apply _ φ
+  refine (L.contMDiff.contMDiffAt.comp t hc).congr_of_eventuallyEq
+    (Filter.Eventually.of_forall fun s ↦ ?_)
+  rw [Function.comp_apply, hL]
+  ext v
+  simp only [ContinuousAlternatingMap.compContinuousLinearMap_apply, Function.comp_def,
+    Trivialization.symmL_continuousLinearMapAt _ hx]
+
+/-- The values of a smooth family at a point `x` on fixed tangent vectors depend smoothly on the
+parameter. -/
+theorem contMDiff_apply (h : IsSmoothFamily J α) (x : M) (v : Fin k → TangentSpace I x) :
+    ContMDiff J 𝓘(ℝ, F) ∞ (fun t ↦ (α t).val x v) :=
+  (ContinuousAlternatingMap.apply ℝ E F v).contMDiff.comp (h.contMDiff_val_apply x)
 
 /-- For a smooth family `α` of one-forms on `ℝ`, the value of `α t` at `s` on the unit tangent
 vector `1` depends jointly continuously on `(t, s)`. -/
