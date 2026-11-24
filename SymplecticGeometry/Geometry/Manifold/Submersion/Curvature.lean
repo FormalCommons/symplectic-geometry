@@ -20,17 +20,21 @@ Let `D` be an Ehresmann connection on a map `f : P → B` (Tau Ceti's
 
 The lifts are `f`-related to the fields they lift, so by the naturality of the bracket
 (`TauCeti.mfderiv_mlieBracket_of_eventually_related`) the bracket of two lifts projects to the
-bracket on the base, and the curvature is vertical. Since `[v₁, v₂]♯` is the horizontal part of
-`[v₁♯, v₂♯]`, the curvature is its vertical part, and it vanishes at a point exactly when the
-bracket of the lifts is horizontal there.
+bracket on the base, and the curvature is vertical. The proof of
+`TauCeti.IsEhresmannConnection.mfderiv_mlieBracket_horizontalLiftField` adapts that of Tau Ceti's
+`TauCeti.IsRiemannianSubmersion.mfderiv_mlieBracket_horizontalLift` from the horizontal lifts of
+a Riemannian submersion to those of an Ehresmann connection.
+
+Since `[v₁, v₂]♯` is the horizontal part of `[v₁♯, v₂♯]`, the curvature is its vertical part,
+and it vanishes at a point exactly when the bracket of the lifts is horizontal there.
 
 The curvature is alternating, additive in each argument, and linear over differentiable functions
 on the base: `g • v₁` has curvature `(g ∘ f) • curvature v₁ v₂`, by the Leibniz rule for the
 bracket (`VectorField.mlieBracket_smul_left`) on `B` and on `P`.
 
-Mathlib's bracket has the usual sign, and so has Guillemin–Lerman–Sternberg's (§1.3), whose
-curvature is this one. McDuff–Salamon (§6.4, p. 277) write the same formula with the bracket of
-the opposite sign, so their curvature is the negative of this one.
+On signs: Guillemin–Lerman–Sternberg (§1.3) bracket vector fields as Mathlib does, and their
+curvature agrees with `curvature`. In McDuff–Salamon (§6.4, p. 277) the bracket is minus Mathlib's,
+and their curvature is `-curvature`.
 
 ## Main definitions
 
@@ -102,8 +106,8 @@ theorem curvature_apply (x : P) :
 /-- The curvature is alternating. -/
 theorem curvature_swap : hD.curvature v₁ v₂ = -hD.curvature v₂ v₁ := by
   rw [curvature_def, curvature_def, mlieBracket_swap (V := hD.horizontalLiftField v₁),
-    mlieBracket_swap (V := v₁), horizontalLiftField_neg, neg_sub, sub_neg_eq_add,
-    neg_add_eq_sub]
+    mlieBracket_swap (V := v₁), horizontalLiftField_neg]
+  abel
 
 theorem curvature_swap_apply (x : P) : hD.curvature v₁ v₂ x = -hD.curvature v₂ v₁ x := by
   rw [curvature_swap, Pi.neg_apply]
@@ -111,6 +115,14 @@ theorem curvature_swap_apply (x : P) : hD.curvature v₁ v₂ x = -hD.curvature 
 @[simp]
 theorem curvature_self : hD.curvature v₁ v₁ = 0 := by
   simp [curvature_def, mlieBracket_self]
+
+@[simp]
+theorem curvature_zero_left : hD.curvature 0 v₂ = 0 := by
+  simp [curvature_def, horizontalLiftField_zero]
+
+@[simp]
+theorem curvature_zero_right : hD.curvature v₁ 0 = 0 := by
+  simp [curvature_def, horizontalLiftField_zero]
 
 section Smooth
 
@@ -205,11 +217,7 @@ theorem curvature_smul_left (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J (n + 1)
     (hD.mdifferentiableAt_horizontalLiftField hn hf hv₁)
   have hB := mlieBracket_smul_left (W := v₂) hg ((hv₁.of_le hn).mdifferentiableAt one_ne_zero)
   rw [mvfderiv_comp_apply x hg hfx, mfderiv_horizontalLiftField] at hP
-  rw [curvature_apply, curvature_apply, horizontalLiftField_smul, hP,
-    horizontalLiftField_apply _ (mlieBracket J _ _), hB, map_add, map_smul, map_smul,
-    Submodule.coe_add, Submodule.coe_smul, Submodule.coe_smul, ← horizontalLiftField_apply,
-    ← horizontalLiftField_apply, comp_apply, smul_sub]
-  abel
+  simp [curvature_apply, horizontalLiftField_smul, hP, hB, smul_sub]
 
 /-- The curvature is linear over functions on the base in its second argument: for a function
 `g` on `B` differentiable at `f x`, `g • v₂` has curvature `g (f x) • curvature v₁ v₂` at `x`,
