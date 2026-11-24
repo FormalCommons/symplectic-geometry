@@ -32,6 +32,10 @@ fixed point. This file reads Tau Ceti's weight chart
 
 Zero weights are allowed, and neither compactness of `M` nor isolatedness of `p` is assumed.
 
+The proof of `TauCeti.weightRotation_arg_sumEquivProd_complexToRealEuclidean` follows the step of
+`TauCeti.SymplecticForm.exists_continuousLinearEquiv_weightRotation` that computes the cosine and
+sine of the argument of a unit complex number.
+
 ## References
 
 * [A. Cannas da Silva, *Symplectic Toric Manifolds*][CannasdaSilva2001], Theorems 3.1.1–3.1.2
@@ -180,10 +184,15 @@ theorem exists_weightChart
       rw [mvfderiv_apply_eq_mfderiv_apply, hc,
         mfderiv_comp z (chart.symm.mdifferentiableAt (by simp) (by simpa using hmem hz))
           A.mdifferentiableAt, A.mfderiv_eq]
+      -- The base point is `chart.symm (A z)` and the vector `d(chart.symm) (A u)`, unfolded
+      -- through `Function.comp` and `ContinuousLinearMap.comp`, which `rw` cannot reach in the
+      -- dependent tangent spaces.
       exact h
     rw [hform _ (hΦsrc hz), hd v, hd w]
     exact (SymplecticForm.isSymplectomorphism_iff.1 isSymplectomorphism_sumEquivProd) v w
-  · intro z hz (ξ : E)
+  · -- Tau Ceti's weights are functionals on the model space `E` of `𝔤`; read `ξ` there, as
+    -- tactics do not see through `GroupLieAlgebra I G`.
+    intro z hz (ξ : E)
     have h := hmom (Φ z) (hΦsrc hz) ξ
     rw [hchartΦ hz] at h
     simp only [weightMomentMap_apply] at h
