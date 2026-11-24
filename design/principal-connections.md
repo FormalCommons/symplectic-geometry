@@ -194,11 +194,11 @@ This file makes it a form.
   `apply_rightFundamentalVectorField (x) (ξ) :
   A.val x ![rightFundamentalVectorField (IB.prod IG) ξ x] = ξ`; the page's
   $A_p(p\xi)=\xi$ and $A_{pg}(vg)=\mathrm{Ad}(g^{-1})A_p(v)$.
-- `structure IsTensorialForm (a) : Prop`: the same equivariance, and
-  `a.val x ![v] = 0` for every vertical $v$ (in the kernel of the
-  derivative of the projection).
-- `IsConnectionForm.horizontal hA x : Submodule ℝ (TangentSpace _ x)`, the
-  kernel of $A_x$, with `mem_horizontal_iff`;
+- `structure IsTensorialForm (a) : Prop`, for a `k`-form `a`: the same
+  equivariance, and `a.val x v = 0` whenever some `v j` is vertical (in the
+  kernel of the derivative of the projection).
+- `horizontal A x : Submodule ℝ (TangentSpace _ x)`, the kernel of $A_x$,
+  for any one-form `A`, with `mem_horizontal_iff`;
   `IsConnectionForm.isCompl_horizontal`: it is a complement of the
   vertical space, through Tau Ceti's `verticalLinearEquiv`;
   `IsConnectionForm.mfderiv_op_smul_mem_horizontal`: the action preserves
