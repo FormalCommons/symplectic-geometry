@@ -285,8 +285,8 @@ finite-dimensional `F`:
 - `Distribution.exists_contDiffOn_ae_eq_of_singularSupport_coordOfFun_eq_empty`:
   if also `MapsTo e U Ω` and every coordinate distribution has empty
   singular support, then `w` is a.e. on `U` a function smooth on `U`. The
-  local representatives are glued by Tau Ceti's
-  `TauCeti.exists_contDiffOn_ae_eq_of_locally`.
+  smooth representatives come from Tau Ceti's
+  `Distribution.singularSupport_eq_empty_iff`.
 
 ### `Geometry/Manifold/DifferentialForm/PartialDiffeomorph.lean`
 

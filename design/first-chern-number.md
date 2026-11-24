@@ -927,6 +927,9 @@ issues, in an order where each issue's blockers come before it.
    Tau Ceti's connecting square of the duality maps and the Mayer–Vietoris
    connecting maps comes in the same way, in
    `AlgebraicTopology/Cohomology/Cap/MayerVietoris/{Local,Basic}.lean`.
+   The move to `c9d170eed5a8` (#2025) deleted all these copies: their
+   declarations are Tau Ceti's now, in the files of the same paths under
+   `TauCeti/`.
    The Mayer–Vietoris step of duality is the library's own
    `AlgebraicTopology/Cohomology/CompactSupport/Duality/Union.lean`, not a
    file of Tau Ceti's: `TauCeti.HomologicalOrientation.bijective_dualityMap_of_sup_eq_top`
@@ -1129,10 +1132,11 @@ issues, in an order where each issue's blockers come before it.
    `Orientation/Smooth.lean` also holds
    `TauCeti.Manifold.Orientation.localHomologyMap_toHomologicalOrientation`,
    which part *Pseudoholomorphic energy*'s `Orientation/Simplex.lean` uses,
-   and for it imports
-   `AlgebraicTopology/Singular/LocalHomology/LocalIndex.lean`, a copy of
+   and for it imports Tau Ceti's
+   `AlgebraicTopology/Singular/LocalHomology/LocalIndex.lean`, for
    `TauCeti.HomologicalOrientation.localIndex_eq_iff_of_preimage_subset`
-   from Tau Ceti's main branch. Done when this API is proved.
+   (the library had a copy of it from Tau Ceti's main branch until the move
+   to `c9d170eed5a8`, #2025). Done when this API is proved.
 6. **Argument principle for discs.**
    `AlgebraicTopology/Singular/LocalHomology/ArgumentPrinciple.lean`:
    `SymplecticGeometry.sum_degree_boundary_eq_zero`. Let `φ i`, `i : ι`
@@ -1255,26 +1259,22 @@ issues, in an order where each issue's blockers come before it.
      the centred chart of an oriented manifold at `z` carries its local
      orientation at `z` to that of the model at the origin selected by the
      orientation of the fibre at `z`.
-   - `Topology/OpenPartialHomeomorph/Basic.lean`, used by
-     `LocalHomology/System.lean` and `Orientation/Chart.lean`: from Tau
-     Ceti's main branch, `OpenPartialHomeomorph.sourceRestrict`, an open
-     partial homeomorphism restricted to its source, and
-     `OpenPartialHomeomorph.mem_refl_source`.
-   - `AlgebraicTopology/Singular/LocalHomology/System.lean`, used by
-     `Orientation/Chart.lean`: from Tau Ceti's main branch,
-     `TauCeti.localHomologyMap_subtypeVal_comp_singularHomologyComplSingletonIsoOfChart_hom`,
+   - Tau Ceti's `Topology/OpenPartialHomeomorph/Basic.lean`
+     (`OpenPartialHomeomorph.sourceRestrict`, an open partial homeomorphism
+     restricted to its source, and `OpenPartialHomeomorph.mem_refl_source`),
+     `AlgebraicTopology/Singular/LocalHomology/System.lean`
+     (`TauCeti.localHomologyMap_subtypeVal_comp_singularHomologyComplSingletonIsoOfChart_hom`,
      the local homology isomorphism of a chart is the map induced by its
-     source restriction.
-   - `AlgebraicTopology/Singular/LocalHomology/Orientation/Chart.lean`, used
-     by `Orientation/Linear.lean`: from Tau Ceti's main branch, which the
-     pinned version lags,
-     `LinearIsometryEquiv.snd_ofSubsetMap_comp_complSingletonHomotopyEquivSphere`,
-     linear isometries commute with radial projection.
-   - `AlgebraicTopology/Singular/LocalHomology/Orientation/Linear.lean`, used
-     by `Complex.lean` and `EulerNumber.lean`: from Tau Ceti's main branch,
-     `Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl`,
+     source restriction),
+     `AlgebraicTopology/Singular/LocalHomology/Orientation/Chart.lean`
+     (`LinearIsometryEquiv.snd_ofSubsetMap_comp_complSingletonHomotopyEquivSphere`,
+     linear isometries commute with radial projection) and
+     `AlgebraicTopology/Singular/LocalHomology/Orientation/Linear.lean`
+     (`Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl`,
      on an inner product space the local orientation that an orientation
-     selects is the one of the identity chart.
+     selects is the one of the identity chart; used by `Complex.lean` and
+     `EulerNumber.lean`). The library had copies of these from Tau Ceti's
+     main branch, which the move to `c9d170eed5a8` (#2025) deleted.
    - `AlgebraicTopology/Singular/LocalHomology/BoundaryClass.lean`, imported
      by `BoundaryDegree.lean`: in any dimension `n + 1`,
      `TauCeti.HomologicalOrientation.boundaryClass`, the image of

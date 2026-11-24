@@ -243,7 +243,7 @@ and two rows of its milestone table.
   - `Neighborhood/Frames.lean`: the smooth frames of the pieces of the
     splitting along `Q`, a step of `Neighborhood/Extension.lean`.
   - `Topology/Sets/Opens/Basic.lean`: the `IsEmpty` instance of
-    `⊥ : Opens X`, beside the Tau Ceti copy `Topology/Sets/Opens.lean`.
+    `⊥ : Opens X`, beside Tau Ceti's `Topology/Sets/Opens.lean`.
 - `Lagrangian.lean` no longer uses *Cotangent bundles* or
   `normalBundleDiffeomorphOfIsLagrangianMap`, since the comparison theorem
   needs only that the zero section is Lagrangian. The part therefore no

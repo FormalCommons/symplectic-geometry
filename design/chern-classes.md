@@ -274,12 +274,13 @@ values that intertwine two pairings, and
 `cup_homologyMap_linearYonedaObjMap`, the same on cohomology. The latter
 adapts Tau Ceti's `cup_naturality`.
 
-### `AlgebraicTopology/Cohomology/LerayHirsch/MayerVietoris.lean`
+### Tau Ceti's `AlgebraicTopology/Cohomology/LerayHirsch/MayerVietoris.lean`
 
-The Mayer–Vietoris step for the Leray–Hirsch map of a family of classes,
-copied from Tau Ceti's main branch (commit `ee1e8aa`), which has it and
-the pinned release does not; the files keep Tau Ceti's paths, names and
-statements, so moving Tau Ceti past them deletes them. For `p : E ⟶ B`,
+The Mayer–Vietoris step for the Leray–Hirsch map of a family of classes.
+Issue 3 copied it from Tau Ceti's main branch (commit `ee1e8aa`), before
+the pinned version had it; the move to `c9d170eed5a8` (#2025) deleted that
+copy and those listed below, and the library uses Tau Ceti's files of the
+same paths. For `p : E ⟶ B`,
 classes `e d : ι d → Hᵈ(E; k)` and `S ⊆ B`, `TopCat.lerayHirschRestrict p e S n`
 is the map `⨁_{d + q = n} ⨁_{i : ι d} H^q(S; k) ⟶ Hⁿ(p⁻¹ S; k)`,
 `(a_{d,i}) ↦ ∑ p^*a_{d,i} ⌣ e_{d,i}|`. The theorem
@@ -288,7 +289,8 @@ if the maps over `U`, `V` and `U ∩ V` are bijective in all degrees `m ≤ n`,
 so is the map over `U ∪ V`; `TopCat.lerayHirsch_bijective_of_union_eq_univ`
 is the case `U ∪ V = B`. The proof compares the two Mayer–Vietoris
 sequences, with a direct sum of copies of the sequence of the base, one for
-each class. It uses these copies of Tau Ceti's files of the same commit:
+each class. It uses these files of Tau Ceti, which the library also had
+copies of until that move:
 
 - `Algebra/DirectSum/Prod.lean`: `DirectSum.prodLinearEquiv`.
 - `AlgebraicTopology/Cohomology/LerayHirsch/Defs.lean`:
@@ -445,29 +447,21 @@ The topology of the second line is Tau Ceti's `TauCeti.subbundleTopology`
 (`Topology/VectorBundle/Subbundle.lean`), for the lines as subspaces of the
 fibres of that pull-back. The file imports the three files above.
 
-### `Topology/VectorBundle/Smul.lean`
+### Tau Ceti's Euler class and Gysin files
 
-Copied from Tau Ceti's main branch (commit `aa1b4e9e2a`), under Tau Ceti's
-header: `TauCeti.VectorBundle.totalSpaceHomotopyEquiv`, the projection of a
-real vector bundle as a homotopy equivalence.
+The library uses these declarations of Tau Ceti, which it had copied from
+Tau Ceti's main branch (commit `aa1b4e9e2a`) before the pinned version had
+them; the move to `c9d170eed5a8` (#2025) deleted the copies.
 
-### `Topology/VectorBundle/EulerClass.lean`
-
-Copied from Tau Ceti's main branch (commit `aa1b4e9e2a`), under Tau Ceti's
-header: `TauCeti.zeroSectionComplProjHom` and the exact sequence of the
-Thom pair with `Hᵐ(B)` in place of `Hᵐ(E)`. Imports `Smul.lean` above, and
-the pinned Tau Ceti's `Thom/Connectivity.lean` for `TauCeti.zeroSectionComplProj`.
-
-### `Topology/VectorBundle/Thom/Isomorphism.lean`
-
-Copied from Tau Ceti's main branch (commit `aa1b4e9e2a`), under Tau Ceti's
-header: `TauCeti.eulerClass_thomMap`. Imports `EulerClass.lean` above.
-
-### `Topology/VectorBundle/Thom/Gysin.lean`
-
-Copied from Tau Ceti's main branch (commit `aa1b4e9e2a`), under Tau Ceti's
-header: `TauCeti.exact_singularCup_eulerClass_singularCohomologyMap`, the
-exactness of the Gysin sequence at `Hᵐ(B)`. Imports `Thom/Isomorphism.lean` above.
+- `Topology/VectorBundle/Smul.lean`:
+  `TauCeti.VectorBundle.totalSpaceHomotopyEquiv`, the projection of a real
+  vector bundle as a homotopy equivalence.
+- `Topology/VectorBundle/EulerClass.lean`: `TauCeti.zeroSectionComplProjHom`
+  and the exact sequence of the Thom pair with `Hᵐ(B)` in place of `Hᵐ(E)`.
+- `Topology/VectorBundle/Thom/Isomorphism.lean`: `TauCeti.eulerClass_thomMap`.
+- `Topology/VectorBundle/Thom/Gysin.lean`:
+  `TauCeti.exact_singularCup_eulerClass_singularCohomologyMap`, the
+  exactness of the Gysin sequence at `Hᵐ(B)`.
 
 ### `AlgebraicTopology/Cohomology/PairChangeOfCoefficients.lean`
 
@@ -495,8 +489,8 @@ the Thom map of `u` is injective, surjective or bijective and the cohomology
 of `E₀` vanishes in the degree below the target, in the target, or both; and
 `TauCeti.bijective_integralCup_complexEulerClass`, the bijective case for
 `complexEulerClass` over a compact base, in `TopCat.integralCohomology`.
-Imports `Thom/Gysin.lean`, `Thom/ChangeOfCoefficients.lean`,
-`IntegralCohomologyULift.lean` and Tau Ceti's `Orientation/Complex/EulerClass.lean`.
+Imports `Thom/ChangeOfCoefficients.lean`, `IntegralCohomologyULift.lean`
+and Tau Ceti's `Thom/Gysin.lean` and `Orientation/Complex/EulerClass.lean`.
 
 ### `AlgebraicTopology/Cohomology/ComplSingleton.lean`
 
@@ -624,16 +618,16 @@ from Tau Ceti's shuffle map `TopCat.shufflePair`, with `_def`,
 (`whiskerLeft_singularHomologyπ_comp_singularHomologyCrossRelPair`) and with
 `TopCat.singularHomologyCross`
 (`singularHomologyCross_comp_singularHomologyπ_eq_singularHomologyCrossRelPair`).
-It uses these copies of Tau Ceti's files of the commit `c9d170eed5`:
+It uses these Tau Ceti files, of which the library had copies until the
+move to `c9d170eed5a8` (#2025):
 
 - `AlgebraicTopology/Singular/Kunneth/Pair.lean`: `TopCat.shufflePair`
   with its characterization and naturality, without the quasi-isomorphism
   results.
 - `AlgebraicTopology/Singular/Excision.lean`: `TopPair.prodUnionTripleFst`
   and `TopPair.prodExcisionFst`.
-- `AlgebraicTopology/Singular/Relative.lean`, the existing copy, to which
-  `TopPair.singularChainComplexπ_comp_singularChainComplexMap_of_fst_eq_id`
-  is added.
+- `AlgebraicTopology/Singular/Relative.lean`:
+  `TopPair.singularChainComplexπ_comp_singularChainComplexMap_of_fst_eq_id`.
 
 ### `AlgebraicTopology/Cohomology/Cup/RelativeKronecker.lean`
 
@@ -746,8 +740,8 @@ boundary of the one of `(ℝ ∙ p)ᗮ` selected by
 `SymplecticGeometry.complZeroOrthogonalInclusion p`, with sign `1` for every `m`;
 `SymplecticGeometry.singularHomologyComplSingletonIsoOfOrientation_inv_singularHomologyδ_mayerVietorisδ`
 is the same for the oriented local homology isomorphisms, with any
-coefficients. The file imports Tau Ceti's `Singular/Sphere.lean`, the
-library's `Orientation/Linear.lean`, and
+coefficients. The file imports Tau Ceti's `Singular/Sphere.lean` and
+`LocalHomology/Orientation/Linear.lean`, and
 `Topology/Homotopy/PuncturedStarConvex.lean`, which defines
 `SymplecticGeometry.complRay` and `SymplecticGeometry.complZeroOrthogonalInclusion`.
 
