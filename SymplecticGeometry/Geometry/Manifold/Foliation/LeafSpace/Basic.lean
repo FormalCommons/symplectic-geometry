@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Foliation.Transport
 public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import Mathlib.Topology.Bases
+import SymplecticGeometry.LinearAlgebra.FiniteDimensional.IsCompl
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 
 /-!
@@ -221,18 +222,14 @@ omit [BoundarylessManifold I M] in
 dimension `k` in a space of dimension `finrank ℝ E`. -/
 theorem injective_mfderiv (hs : 𝓕.IsSlice s) (u : U) :
     Injective (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) I s u) := by
-  set L := mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) I s u
-  have hc : finrank ℝ (LinearMap.range L.toLinearMap) + k = finrank ℝ (TangentSpace I (s u)) := by
-    have := Submodule.finrank_add_eq_of_isCompl (hs.isCompl_range_mfderiv u)
-    rwa [𝓕.finrank_distribution] at this
-  have hE : finrank ℝ (TangentSpace I (s u)) = finrank ℝ E := rfl
-  have hG : finrank ℝ (TangentSpace 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) u) =
-      finrank ℝ E - k := finrank_euclideanSpace_fin
-  have hrk := LinearMap.finrank_range_add_finrank_ker L.toLinearMap
-  rw [hG] at hrk
-  rw [hE] at hc
-  rw [← ContinuousLinearMap.coe_coe, ← LinearMap.ker_eq_bot]
-  exact Submodule.finrank_eq_zero.1 (by omega)
+  have hk : k ≤ finrank ℝ E := 𝓕.finrank_distribution (s u) ▸ Submodule.finrank_le _
+  rw [← ContinuousLinearMap.coe_coe]
+  refine LinearMap.injective_of_isCompl_range (hs.isCompl_range_mfderiv u) ?_
+  rw [𝓕.finrank_distribution]
+  -- The tangent spaces are the model spaces, by the definition of `TangentSpace`.
+  change finrank ℝ (EuclideanSpace ℝ (Fin (finrank ℝ E - k))) + k = finrank ℝ E
+  rw [finrank_euclideanSpace_fin]
+  omega
 
 /-- **The retraction onto a slice along the leaves.** Near a point `s u` of a slice `s` of a smooth
 foliation of a boundaryless manifold, there is a map `r` to the domain of `s`, smooth at `s u`,
