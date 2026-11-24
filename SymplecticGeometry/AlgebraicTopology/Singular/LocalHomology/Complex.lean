@@ -51,12 +51,12 @@ open CategoryTheory Metric TauCeti AlgebraicTopology
 theorem TauCeti.complexHomologicalOrientation_apply_zero :
     complexHomologicalOrientation ℂ 0 =
       Complex.orientation.localOrientation Complex.finrank_real_complex := by
-  have h0 : (0 : ℂ) ∈ (OpenPartialHomeomorph.refl ℂ).source := by simp
   -- The preferred chart of `ℂ` is the identity.
   have hrefl :
       OpenPartialHomeomorph.refl ℂ ∈ IsManifold.maximalAtlas (modelWithCornersSelf ℂ ℂ) 1 ℂ := by
     simpa using IsManifold.chart_mem_maximalAtlas (I := modelWithCornersSelf ℂ ℂ) (n := 1) (0 : ℂ)
-  rw [complexHomologicalOrientation_apply_of_mem_maximalAtlas hrefl h0,
+  rw [complexHomologicalOrientation_apply_of_mem_maximalAtlas hrefl
+    (OpenPartialHomeomorph.mem_refl_source 0),
     Orientation.localOrientation_eq_localOrientationOfOrientedChart_refl]
 
 namespace SymplecticGeometry

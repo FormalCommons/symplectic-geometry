@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Topology.Compactness.LocallyCompact
 public import Mathlib.Topology.Compactness.SigmaCompact
+import TauCeti.Topology.Compactness.SigmaCompact
 
 /-!
 # σ-compact open neighbourhoods of compact sets
@@ -15,7 +16,8 @@ In a locally compact space, a compact set `K` contained in an open set `U` has a
 neighbourhood inside `U` that is σ-compact
 (`IsCompact.exists_isOpen_isSigmaCompact_subset`). Applying Mathlib's `exists_compact_between`
 repeatedly gives compact sets `K = L₀ ⊆ interior L₁ ⊆ L₁ ⊆ interior L₂ ⊆ ⋯` inside `U`, and their
-union is open and σ-compact. No separation axiom is needed.
+union is σ-compact, and open by Tau Ceti's `TauCeti.isOpen_of_subset_interior_succ`. No
+separation axiom is needed.
 
 ## Main results
 
@@ -44,10 +46,7 @@ theorem IsCompact.exists_isOpen_isSigmaCompact_subset [LocallyCompactSpace X] {K
   have hL (n : ℕ) : (L n).val ⊆ interior (L (n + 1)).val := by
     simp only [L, Function.iterate_succ_apply']
     exact hnext _
-  refine ⟨⋃ n, (L n).val, ?_, subset_iUnion (fun n ↦ (L n).val) 0,
-    iUnion_subset fun n ↦ (L n).property.2,
+  exact ⟨⋃ n, (L n).val,
+    TauCeti.isOpen_of_subset_interior_succ (subset_iUnion (fun n ↦ (L n).val)) hL subset_rfl,
+    subset_iUnion (fun n ↦ (L n).val) 0, iUnion_subset fun n ↦ (L n).property.2,
     isSigmaCompact_iUnion_of_isCompact _ fun n ↦ (L n).property.1⟩
-  refine isOpen_iff_mem_nhds.2 fun x hx ↦ ?_
-  obtain ⟨n, hn⟩ := mem_iUnion.1 hx
-  exact Filter.mem_of_superset (mem_interior_iff_mem_nhds.1 (hL n hn)) <|
-    subset_iUnion (fun n ↦ (L n).val) (n + 1)

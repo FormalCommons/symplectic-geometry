@@ -18,7 +18,7 @@ import TauCeti.Analysis.Calculus.InverseFunctionTheorem
 import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
-import TauCeti.Geometry.Manifold.VectorBundle.Hom
+import TauCeti.Geometry.Manifold.Riemannian.Orientation.AlmostComplex
 
 /-!
 # Smooth isothermal charts on surfaces, and integrability in dimension two
@@ -31,11 +31,10 @@ chart `ψ : M → ℂ`, a partial diffeomorphism onto an open subset of `ℂ`, w
 real linear isomorphism `ℂ ≃L[ℝ] E`, these charts make `J` integrable
 (`TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`).
 
-On an oriented surface with a smooth Riemannian metric, rotation by a right angle in each oriented
-tangent plane is a smooth almost complex structure
-(`TauCeti.Manifold.Orientation.rightAngleRotationStructure`, smooth by Tau Ceti's
-`TauCeti.Manifold.Orientation.contMDiff_rightAngleRotation`). Its isothermal charts are isothermal
-coordinates of the metric: their derivatives are conformal
+On an oriented surface with a smooth Riemannian metric, Tau Ceti's
+`TauCeti.Manifold.Orientation.rightAngleAlmostComplexStructure` turns each oriented tangent plane
+by a right angle. Its isothermal charts are isothermal coordinates of the metric: their
+derivatives are conformal
 (`TauCeti.Manifold.Orientation.exists_isothermal_coordinates`), by the pointwise
 `Orientation.isConformalMap_of_map_rightAngleRotation`.
 
@@ -60,8 +59,6 @@ real two-dimensional space with smooth charts, and the chart is a partial diffeo
   charts on a surface.
 * `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`: integrability of every
   smooth almost complex structure on a surface.
-* `TauCeti.Manifold.Orientation.rightAngleRotationStructure`: the almost complex structure of an
-  oriented Riemannian surface.
 * `TauCeti.Manifold.Orientation.exists_isothermal_coordinates`: isothermal coordinates for a
   Riemannian metric on an oriented surface.
 
@@ -166,30 +163,6 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   [T2Space M] [IsManifold I ∞ M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
   [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
 
-/-- The almost complex structure of an oriented Riemannian surface: at each point it rotates the
-tangent plane by a right angle, positively for the orientation of that plane that `o` gives. -/
-noncomputable def rightAngleRotationStructure (o : Manifold.Orientation I M (Fin 2)) :
-    SmoothAlmostComplexStructure I M where
-  toEndomorphism :=
-    { toFun := fun x ↦ letI := o.fact_finrank_tangentSpace x
-        (o.orientationAt x).rightAngleRotation.toContinuousLinearEquiv.toContinuousLinearMap
-      contMDiff_toFun :=
-        have : IsManifold I (∞ + 1) M := .of_le (n := ∞) (by simp)
-        (contMDiff_hom_iff _).2 fun _ hs ↦ o.contMDiff_rightAngleRotation hs }
-  square_neg x := by
-    let := o.fact_finrank_tangentSpace x
-    ext v
-    simp
-
-/-- The rotation structure at `x` is the rotation by a right angle of the oriented tangent
-plane at `x`. -/
-@[simp]
-theorem rightAngleRotationStructure_apply (o : Manifold.Orientation I M (Fin 2)) (x : M)
-    (v : TangentSpace I x) :
-    o.rightAngleRotationStructure x v =
-      (letI := o.fact_finrank_tangentSpace x; (o.orientationAt x).rightAngleRotation v) :=
-  (rfl)
-
 /-- **Isothermal coordinates.** On a boundaryless oriented surface with a smooth Riemannian
 metric, every point `x` lies in the source of a smooth partial diffeomorphism `ψ : M → ℂ` whose
 derivative is conformal at every point of its source: it multiplies the metric by a positive
@@ -201,11 +174,12 @@ theorem exists_isothermal_coordinates [I.Boundaryless] (o : Manifold.Orientation
     (x : M) : ∃ ψ : PartialDiffeomorph I 𝓘(ℝ, ℂ) M ℂ ∞, x ∈ ψ.source ∧
       ∀ y ∈ ψ.source, IsConformalMap (mvfderiv I ψ y) := by
   have hE : Module.finrank ℝ E = 2 := (o.fact_finrank_tangentSpace x).out
-  obtain ⟨ψ, hx, hψ⟩ := o.rightAngleRotationStructure.exists_isothermal_partialDiffeomorph hE x
+  obtain ⟨ψ, hx, hψ⟩ :=
+    o.rightAngleAlmostComplexStructure.exists_isothermal_partialDiffeomorph hE x
   refine ⟨ψ, hx, fun y hy ↦ ?_⟩
   let := o.fact_finrank_tangentSpace y
   refine (o.orientationAt y).isConformalMap_of_map_rightAngleRotation (fun v ↦ ?_) ?_
-  · rw [← rightAngleRotationStructure_apply, hψ y hy v, smul_eq_mul]
+  · rw [← rightAngleAlmostComplexStructure_apply, hψ y hy v, smul_eq_mul]
   · -- The derivative of a partial diffeomorphism is injective, and the tangent plane is not zero.
     intro h
     have hinj := (ψ.isInvertible_mfderiv (by simp) hy).injective

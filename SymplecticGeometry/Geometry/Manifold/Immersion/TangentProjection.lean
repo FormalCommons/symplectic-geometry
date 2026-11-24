@@ -12,6 +12,7 @@ import TauCeti.Analysis.InnerProductSpace.RangeProjection
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Topology.Compactness.Compact
 import SymplecticGeometry.Analysis.Calculus.TangentGraphChart
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
@@ -59,7 +60,8 @@ where `e` becomes a map `g` on an open subset of `E`, and
 `ContDiffOn.exists_uniform_inverse_starProjection` gives, for all `x` near `x₀` at once, local
 inverses of the charts on one ball, with uniform derivative bounds. Since `M` is compact and `e`
 is injective, `e` is a closed embedding, so the points `z` with `e z` close to `e x` stay in that
-ball. Finitely many such neighbourhoods cover `M`.
+ball. Tau Ceti's `IsCompact.exists_forall_of_forall_exists_eventually` then gives one radius
+and one bound for all of `M`.
 
 ## References
 
@@ -423,20 +425,25 @@ theorem exists_uniform_tangentProjectionChart [CompactSpace M]
         (∀ z ∈ Φ.source, Φ z = (mvfderiv I e x).range.orthogonalProjectionOnto (e z - e x)) ∧
         {z | dist (e z) (e x) < r} ⊆ Φ.source ∧ ball 0 r ⊆ Φ.target ∧
         ∀ u ∈ Φ.target, ∀ j, ‖iteratedFDeriv ℝ j (e ∘ Φ.symm) u‖ ≤ C j := by
-  rcases isEmpty_or_nonempty M with hM | ⟨⟨x₀⟩⟩
-  · exact ⟨1, one_pos, 0, fun x ↦ isEmptyElim x⟩
-  choose W hW r hr C hC using exists_uniform_tangentProjectionChart_nhds he hinj he'
-  obtain ⟨t, -, ht⟩ := isCompact_univ.elim_nhds_subcover W fun x _ ↦ hW x
-  have htne : t.Nonempty := by
-    obtain ⟨i, hi, -⟩ := mem_iUnion₂.1 (ht (mem_univ x₀))
-    exact ⟨i, hi⟩
-  refine ⟨t.inf' htne r, (Finset.lt_inf'_iff htne).2 fun i _ ↦ hr i,
-    fun j ↦ t.sup' htne (C · j), fun x ↦ ?_⟩
-  obtain ⟨i, hi, hxi⟩ := mem_iUnion₂.1 (ht (mem_univ x))
-  obtain ⟨Φ, h₁, h₂, h₃, h₄⟩ := hC i x hxi
-  have hri : t.inf' htne r ≤ r i := Finset.inf'_le _ hi
-  exact ⟨Φ, h₁, fun z hz ↦ h₂ (lt_of_lt_of_le hz hri), (ball_subset_ball hri).trans h₃,
-    fun u hu j ↦ (h₄ u hu j).trans (Finset.le_sup' (f := (C · j)) hi)⟩
+  -- The constants `(r, C)` are ordered so that larger means a smaller radius and larger bounds;
+  -- the charts at `x` for some constants serve for every larger ones.
+  obtain ⟨⟨r, C⟩, h⟩ := isCompact_univ.exists_forall_of_forall_exists_eventually
+    (α := {r : ℝ // 0 < r}ᵒᵈ × (ℕ → ℝ)) (r := (· ≤ ·))
+    (p := fun a x ↦
+      ∃ Φ : PartialDiffeomorph I 𝓘(ℝ, (mvfderiv I e x).range) M (mvfderiv I e x).range ∞,
+        (∀ z ∈ Φ.source, Φ z = (mvfderiv I e x).range.orthogonalProjectionOnto (e z - e x)) ∧
+        {z | dist (e z) (e x) < (OrderDual.ofDual a.1).val} ⊆ Φ.source ∧
+        ball 0 (OrderDual.ofDual a.1).val ⊆ Φ.target ∧
+        ∀ u ∈ Φ.target, ∀ j, ‖iteratedFDeriv ℝ j (e ∘ Φ.symm) u‖ ≤ a.2 j)
+    (fun a b hab x ⟨Φ, h₁, h₂, h₃, h₄⟩ ↦
+      have hr : (OrderDual.ofDual b.1).val ≤ (OrderDual.ofDual a.1).val :=
+        Subtype.coe_le_coe.2 (OrderDual.ofDual_le_ofDual.2 hab.1)
+      ⟨Φ, h₁, fun z hz ↦ h₂ (lt_of_lt_of_le hz hr), (ball_subset_ball hr).trans h₃,
+        fun u hu j ↦ (h₄ u hu j).trans (hab.2 j)⟩)
+    fun x₀ _ ↦ by
+      obtain ⟨W, hW, r, hr, C, hC⟩ := exists_uniform_tangentProjectionChart_nhds he hinj he' x₀
+      exact ⟨(OrderDual.toDual ⟨r, hr⟩, C), nhdsWithin_univ x₀ ▸ Filter.mem_of_superset hW hC⟩
+  exact ⟨_, (OrderDual.ofDual r).property, C, fun x ↦ h x (mem_univ x)⟩
 
 end Uniform
 
