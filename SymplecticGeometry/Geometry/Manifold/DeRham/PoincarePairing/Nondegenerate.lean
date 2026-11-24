@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.DeRham.PoincarePairing.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
+import SymplecticGeometry.Geometry.Manifold.DeRham.CompactSupport
 
 /-!
 # Nondegeneracy of the Poincaré pairing in degrees `1` and `m - 1`
@@ -26,8 +27,8 @@ harmonic, hence closed, and since the integral `∫_M γ ∧ β` depends only on
 
 ## Main results
 
-* `TauCeti.exactCompactlySupportedForms_eq_exactForms`: on a compact manifold, every exact form is
-  the exterior derivative of a compactly supported form.
+* `TauCeti.integralTopForm_wedge_eq_of_sub_mem_exactForms_right`: on a closed oriented manifold,
+  `∫_M γ ∧ β` for closed `γ` and `β` depends only on the de Rham class of `β`.
 * `TauCeti.mem_exactForms_of_forall_integralTopForm_wedge_eq_zero`: a closed `l`-form on a closed
   oriented `(1 + l)`-manifold that integrates to zero against every closed one-form is exact.
 
@@ -48,24 +49,27 @@ namespace TauCeti
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
 
-section CompactSupport
-
-variable [IsManifold I 2 M]
-
-variable (I M) in
-/-- On a compact manifold every exact form is the exterior derivative of a compactly supported
-form, since every form is compactly supported. -/
-theorem exactCompactlySupportedForms_eq_exactForms [CompactSpace M] (k : ℕ) :
-    exactCompactlySupportedForms I M k = exactForms I M k := by
-  cases k with
-  | zero => rw [exactCompactlySupportedForms_zero, exactForms_zero]
-  | succ k =>
-    rw [exactCompactlySupportedForms_succ, exactForms_succ, compactlySupportedForms_eq_top,
-      Submodule.map_top]
-
-end CompactSupport
-
 variable [FiniteDimensional ℝ E] [IsManifold I ∞ M]
+
+/-- On a compact boundaryless Hausdorff manifold with an orientation `o` of dimension `k + l`,
+the integral `∫_M γ ∧ β` of a closed `k`-form `γ` against a closed `l`-form `β` depends only on
+the de Rham class of `β`: it is unchanged when `β` is replaced by a closed `η` with `β - η`
+exact. -/
+theorem integralTopForm_wedge_eq_of_sub_mem_exactForms_right
+    [BoundarylessManifold I M] [T2Space M] [CompactSpace M] {k l : ℕ}
+    (o : Manifold.Orientation I M (Fin (k + l))) {γ : SmoothForm I M ℝ k}
+    (hγ : γ ∈ closedForms I M k) {β η : SmoothForm I M ℝ l} (hβ : β ∈ closedForms I M l)
+    (hη : η ∈ closedForms I M l) (hβη : β - η ∈ exactForms I M l) :
+    integralTopForm o (RoughForm.wedge (γ : RoughForm I M ℝ k) (β : RoughForm I M ℝ l)) =
+      integralTopForm o (RoughForm.wedge (γ : RoughForm I M ℝ k) (η : RoughForm I M ℝ l)) := by
+  have hc {α : SmoothForm I M ℝ l} (hα : α ∈ closedForms I M l) :
+      α ∈ compactlySupportedClosedForms I M l :=
+    (mem_compactlySupportedClosedForms I).2 ⟨by simp [compactlySupportedForms_eq_top], hα⟩
+  have hcls : compactlySupportedDeRhamCohomology.mk I l ⟨β, hc hβ⟩ =
+      compactlySupportedDeRhamCohomology.mk I l ⟨η, hc hη⟩ := by
+    rwa [compactlySupportedDeRhamCohomology.mk_eq_mk_iff,
+      exactCompactlySupportedForms_eq_exactForms]
+  rw [← poincarePairing_mk o ⟨γ, hγ⟩ ⟨β, hc hβ⟩, hcls, poincarePairing_mk]
 
 /-- **Nondegeneracy of the Poincaré pairing in degrees `(1, l)`**: on a compact boundaryless
 Hausdorff manifold with an orientation `o` of dimension `1 + l`, a closed `l`-form `β` such that
@@ -91,21 +95,10 @@ theorem mem_exactForms_of_forall_integralTopForm_wedge_eq_zero
   have hγη : SmoothForm.hodgeStar o rfl γ = (-1 : ℝ) ^ l • η := by
     rw [hγ_def, SmoothForm.hodgeStar_hodgeStar, mul_one]
   -- The integral of `γ ∧ β` depends only on the class of `β`, so `∫ γ ∧ η = 0`.
-  have hc {α : SmoothForm I M ℝ l} (hα : α ∈ closedForms I M l) :
-      α ∈ compactlySupportedClosedForms I M l :=
-    (mem_compactlySupportedClosedForms I).2 ⟨by simp [compactlySupportedForms_eq_top], hα⟩
-  have hηc := hc (harmonicForms_le_closedForms o hl1 hη)
-  have hcls : compactlySupportedDeRhamCohomology.mk I l ⟨β, hc hβ⟩ =
-      compactlySupportedDeRhamCohomology.mk I l ⟨η, hηc⟩ := by
-    rw [compactlySupportedDeRhamCohomology.mk_eq_mk_iff,
-      exactCompactlySupportedForms_eq_exactForms]
-    exact hβη
   have hγη0 : integralTopForm o (RoughForm.wedge (γ : RoughForm I M ℝ 1)
-      (η : RoughForm I M ℝ l)) = 0 := by
-    have e := poincarePairing_mk o ⟨γ, hγ⟩ ⟨β, hc hβ⟩
-    rw [hcls, poincarePairing_mk] at e
-    rw [← h γ hγ]
-    exact e
+      (η : RoughForm I M ℝ l)) = 0 :=
+    (integralTopForm_wedge_eq_of_sub_mem_exactForms_right o hγ hβ
+      (harmonicForms_le_closedForms o hl1 hη) hβη).symm.trans (h γ hγ)
   -- Hence `∫ |γ|² vol = 0`, so `γ = 0` and `η = 0`.
   have hnorm := SmoothForm.inner_smul_riemannianVolumeForm_eq_wedge_hodgeStar o rfl γ γ
   have hγ0 : γ = 0 := by
