@@ -78,7 +78,7 @@ section Cylinder
 
 variable {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   {J : ModelWithCorners ℝ E' H'} {P : Type*} [TopologicalSpace P] [ChartedSpace H' P]
-  [IsManifold J ∞ P]
+  [IsManifold J 1 P]
 
 /-- The unit time field `∂ₜ = (1, 0)` of the cylinder `[0, 1] × P` is smooth, up to both ends. -/
 theorem contMDiff_prodVectorField_one_zero :
