@@ -168,19 +168,17 @@ theorem range_groupLieAlgebraMap_subtype (d : EmbeddedLieSubgroupData I K F)
   let eK := leftInvariantDerivationLieEquivGroupLieAlgebra (I := 𝓘(ℝ, F)) (G := K)
     (ContMDiffMul.isInteriorPoint (n := ∞) (by simp) 1)
   let e := leftInvariantDerivationLieEquivGroupLieAlgebra (I := I) (G := G) h₁
-  have key : (K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I).toLinearMap ∘ₗ
-      (eK.toLinearEquiv : LeftInvariantDerivation 𝓘(ℝ, F) K →ₗ[ℝ] GroupLieAlgebra 𝓘(ℝ, F) K) =
-      (e.toLinearEquiv : LeftInvariantDerivation I G →ₗ[ℝ] GroupLieAlgebra I G) ∘ₗ
-        d.lieMapSubtypeVal.toLinearMap := by
-    refine LinearMap.ext fun D ↦ ?_
-    rw [LinearMap.comp_apply, LinearMap.comp_apply, LinearEquiv.coe_coe, LinearEquiv.coe_coe,
-      LieEquiv.coe_toLinearEquiv, LieEquiv.coe_toLinearEquiv, ContinuousLinearMap.coe_coe,
-      LieHom.coe_toLinearMap, lieMapSubtypeVal_apply,
-      leftInvariantDerivationLieEquivGroupLieAlgebra_lieMap,
+  have key₀ (D : LeftInvariantDerivation 𝓘(ℝ, F) K) :
+      K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I (eK D) = e (d.lieMapSubtypeVal D) := by
+    rw [lieMapSubtypeVal_apply, leftInvariantDerivationLieEquivGroupLieAlgebra_lieMap,
       MonoidHom.groupLieAlgebraMap_apply,
       mfderiv_congr (funext fun k ↦ d.subtypeVal_apply k), Subgroup.coe_subtype]
     -- The two sides differ only by unfolding the local abbreviation `eK`.
     rfl
+  have key : (K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I).toLinearMap ∘ₗ
+      (eK.toLinearEquiv : LeftInvariantDerivation 𝓘(ℝ, F) K →ₗ[ℝ] GroupLieAlgebra 𝓘(ℝ, F) K) =
+      (e.toLinearEquiv : LeftInvariantDerivation I G →ₗ[ℝ] GroupLieAlgebra I G) ∘ₗ
+        d.lieMapSubtypeVal.toLinearMap := LinearMap.ext key₀
   rw [← d.range_lieMapSubtypeVal_eq, ← LinearMap.range_comp_of_range_eq_top _
     (LinearEquiv.range eK.toLinearEquiv), key, LinearMap.range_comp,
     LieHom.range_toSubmodule]
