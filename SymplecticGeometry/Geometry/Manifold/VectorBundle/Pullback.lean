@@ -147,9 +147,8 @@ theorem contMDiff_bilinear_section_iff (f : K) (hf : ContMDiff IX IB n f)
         (FiberBundle.mem_baseSet_trivializationAt F V (f x)))] with y hy
     have hy' : y ∈ (trivializationAt F ((f : X → B) *ᵖ V) x).baseSet := hy
     have hs (u : F) : (trivializationAt F ((f : X → B) *ᵖ V) x).symm y u =
-        (trivializationAt F V (f x)).symm (f y) u := by
-      rw [Trivialization.symm_apply _ hy']
-      exact cast_eq _ _
+        (trivializationAt F V (f x)).symm (f y) u :=
+      (trivializationAt F V (f x)).symm_pullback f hy u
     ext v w
     -- The fibres of the pull-back carry the module instances of `V` under other names; `erw`
     -- sees through them.

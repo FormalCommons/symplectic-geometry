@@ -141,31 +141,25 @@ variable {V W : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V] [FiniteD
   [NormedAddCommGroup W] [InnerProductSpace ℝ W] [FiniteDimensional ℝ W]
 
 /-- Two norm-preserving complex structures `J` on `V` and `J'` on `W`, inner product spaces of the
-same finite dimension, are conjugate by a linear isometry `Φ`: `Φ ∘ J = J' ∘ Φ`. The isometry
-sends an adapted orthonormal basis `(u₁, J u₁, …)` of `J` to one of `J'`. -/
+same finite dimension, are conjugate by a linear isometry `Φ`: `Φ ∘ J = J' ∘ Φ`. Both are
+multiplication by `i` on `ℂⁿ` in a linear isometry, with the same `n`. -/
 theorem exists_linearIsometryEquiv_transport_eq (J : AlmostComplexStructure V)
     (J' : AlmostComplexStructure W) (hJ : ∀ v, ‖J v‖ = ‖v‖) (hJ' : ∀ w, ‖J' w‖ = ‖w‖)
     (h : Module.finrank ℝ V = Module.finrank ℝ W) :
     ∃ Φ : V ≃ₗᵢ[ℝ] W, J.transport Φ.toLinearEquiv = J' := by
-  obtain ⟨n, hn⟩ := J.even_finrank_real
-  obtain ⟨b, hb⟩ := J.exists_adapted_orthonormalBasis hJ n (by omega)
-  obtain ⟨b', hb'⟩ := J'.exists_adapted_orthonormalBasis hJ' n (by omega)
-  set Φ := b.equiv b' (Equiv.refl _)
-  have hΦ (i : Fin (2 * n)) : Φ (J (b i)) = J' (Φ (b i)) := by
-    obtain ⟨k, hk⟩ :
-        ∃ k : Fin n, i = ⟨2 * k.val, by omega⟩ ∨ i = ⟨2 * k.val + 1, by omega⟩ := by
-      refine ⟨⟨i / 2, by omega⟩, ?_⟩
-      rcases Nat.even_or_odd' i.val with ⟨m, hm | hm⟩
-      · exact Or.inl (Fin.ext (by simp; omega))
-      · exact Or.inr (Fin.ext (by simp; omega))
-    have e1 := b.equiv_apply_basis b' (Equiv.refl _) ⟨2 * k.val, by omega⟩
-    have e2 := b.equiv_apply_basis b' (Equiv.refl _) ⟨2 * k.val + 1, by omega⟩
-    rw [Equiv.refl_apply] at e1 e2
-    rcases hk with rfl | rfl
-    · rw [← hb, e2, e1, hb']
-    · rw [e2, hb' k, apply_apply, hb k, apply_apply, map_neg, e1]
-  exact ⟨Φ, (transport_eq_iff_isComplexLinearMap _).2
-    (b.toBasis.ext fun i ↦ by simpa using hΦ i)⟩
+  obtain ⟨m, Ψ, hΨ⟩ := J.exists_linearIsometryEquiv_euclideanSpace hJ
+  obtain ⟨k, Ψ', hΨ'⟩ := J'.exists_linearIsometryEquiv_euclideanSpace hJ'
+  obtain rfl : m = k := by
+    have h₁ := Ψ.toLinearEquiv.finrank_eq
+    have h₂ := Ψ'.toLinearEquiv.finrank_eq
+    rw [← Module.finrank_mul_finrank ℝ ℂ, Complex.finrank_real_complex,
+      finrank_euclideanSpace_fin] at h₁ h₂
+    omega
+  refine ⟨Ψ.symm.trans Ψ', (transport_eq_iff_isComplexLinearMap _).2 ?_⟩
+  rw [isComplexLinearMap_iff_apply]
+  intro v
+  obtain ⟨x, rfl⟩ := Ψ.surjective v
+  simp [← hΨ, ← hΨ']
 
 end InnerProductSpace
 

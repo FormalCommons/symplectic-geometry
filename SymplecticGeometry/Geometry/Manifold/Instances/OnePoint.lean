@@ -15,6 +15,7 @@ public import TauCeti.Geometry.Manifold.Orientation.Sphere
 public import TauCeti.Geometry.Manifold.Orientation.TopForm
 public import TauCeti.Geometry.Manifold.Projectivization.ProjectiveLine
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
+import TauCeti.Analysis.InnerProductSpace.Euclidean.CoordinateHyperplane
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 import TauCeti.Geometry.Symplectic.Manifold.Sphere
 
@@ -271,11 +272,10 @@ theorem coe_equatorIsometry_apply (z : ℂ) :
 orthogonal to the north pole as `p 0 - i p 1`. -/
 theorem equatorIsometry_symm_orthogonalProjectionOnto (p : ℝ³) :
     equatorIsometry.symm ((ℝ ∙ (northPole : ℝ³))ᗮ.orthogonalProjectionOnto p) = ⟨p 0, -p 1⟩ := by
-  rw [LinearIsometryEquiv.symm_apply_eq]
+  have h := TauCeti.coe_orthogonalProjectionOnto_single_one_apply (2 : Fin 3) p
+  rw [← coe_northPole] at h
+  rw [LinearIsometryEquiv.symm_apply_eq, Subtype.ext_iff, h, coe_equatorIsometry_apply]
   ext i
-  have hn : ‖(northPole : ℝ³)‖ = 1 := by simp
-  simp only [Submodule.orthogonalProjectionOnto_orthogonal,
-    Submodule.starProjection_unit_singleton ℝ hn, inner_northPole, coe_equatorIsometry_apply]
   fin_cases i <;> simp
 
 /-- Off the north pole, the third coordinate of a point of the unit sphere is not `1`. -/

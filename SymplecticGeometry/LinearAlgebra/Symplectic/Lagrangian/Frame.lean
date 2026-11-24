@@ -262,8 +262,8 @@ open StdSpace
 of the Hermitian inner product of `ℂⁿ`: `ω₀(v, w) = Im ⟪v, w⟫`. -/
 theorem stdForm_apply_eq_im_inner (v w : EuclideanSpace ℂ ι) :
     stdForm ι (complexEuclideanEquiv ι v) (complexEuclideanEquiv ι w) = (inner ℂ v w).im := by
-  simp only [stdForm_apply, x_complexEuclideanEquiv, y_complexEuclideanEquiv]
-  simp [PiLp.inner_apply, Complex.im_sum, mul_comm, sub_eq_add_neg, add_comm]
+  rw [← imInnerSymplecticForm_apply, imInnerSymplecticForm_euclideanSpace_apply]
+  simp [complexEuclideanEquiv_def]
 
 /-! ### Graphs are Lagrangian exactly for symmetric matrices -/
 

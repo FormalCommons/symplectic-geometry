@@ -14,6 +14,7 @@ public import TauCeti.Topology.Homotopy.DeformationRetract
 public import TauCeti.Topology.VectorBundle.Hom
 public import TauCeti.Topology.VectorBundle.Pullback
 public import TauCeti.Topology.VectorBundle.Smul
+public import TauCeti.Topology.VectorBundle.ZeroSection
 public import SymplecticGeometry.Topology.FiberBundle.Compact
 public import SymplecticGeometry.Topology.VectorBundle.ZeroSet
 
@@ -29,7 +30,8 @@ map of projective spaces induced by a linear map depends jointly continuously on
 point (Tau Ceti's `Projectivization.continuousAt_linearProjection`). Mathlib's `FiberPrebundle`
 turns these into the topology and the `FiberBundle (ℙ 𝕜 G)` structure of the projective bundle.
 
-The map `ProjectiveBundle.mk'` sending a nonzero vector of `E` to the line it spans is an open
+The map `ProjectiveBundle.mk'` sending a nonzero vector of `E`, a point of Tau Ceti's
+`TauCeti.zeroSectionCompl G E`, to the line it spans is an open
 quotient map onto the projective bundle (`ProjectiveBundle.isOpenQuotientMap_mk'`), as
 `Projectivization.mk'` is for a single projective space. So a map out of the projective bundle is
 continuous as soon as it is continuous on nonzero vectors (`ProjectiveBundle.continuous_iff`);
@@ -97,6 +99,7 @@ public section
 noncomputable section
 
 open Bundle Set Topology
+open TauCeti (zeroSectionCompl mem_zeroSectionCompl)
 open scoped LinearAlgebra.Projectivization
 
 namespace SymplecticGeometry.Bundle
@@ -144,17 +147,18 @@ theorem mk_eq_mk_iff {b : B} {v w : E b} (hv : v ≠ 0) (hw : w ≠ 0) :
 variable (𝕜 G E) in
 /-- The line spanned by a nonzero vector of `E`, as a map from the nonzero vectors of `E` onto the
 projective bundle. -/
-def mk' (v : {v : TotalSpace G E // v.snd ≠ 0}) : ProjectiveBundle 𝕜 G E :=
-  mk 𝕜 v.val v.property
+def mk' (v : zeroSectionCompl G E) : ProjectiveBundle 𝕜 G E :=
+  mk 𝕜 v.val (mem_zeroSectionCompl.1 v.property)
 
-theorem mk'_eq_mk (v : {v : TotalSpace G E // v.snd ≠ 0}) : mk' 𝕜 G E v = mk 𝕜 v.val v.property :=
+theorem mk'_eq_mk (v : zeroSectionCompl G E) :
+    mk' 𝕜 G E v = mk 𝕜 v.val (mem_zeroSectionCompl.1 v.property) :=
   (rfl)
 
 theorem mk_rep (p : ProjectiveBundle 𝕜 G E) : mk 𝕜 ⟨p.proj, p.snd.rep⟩ p.snd.rep_ne_zero = p := by
   rw [mk_mk, Projectivization.mk_rep]
 
 theorem mk'_surjective : Function.Surjective (mk' 𝕜 G E) := fun p ↦
-  ⟨⟨⟨p.proj, p.snd.rep⟩, p.snd.rep_ne_zero⟩, mk_rep p⟩
+  ⟨⟨⟨p.proj, p.snd.rep⟩, mem_zeroSectionCompl.2 p.snd.rep_ne_zero⟩, mk_rep p⟩
 
 variable [TopologicalSpace B] [TopologicalSpace (TotalSpace G E)] [∀ b, TopologicalSpace (E b)]
   [FiberBundle G E]
@@ -360,17 +364,18 @@ theorem continuous_mk' : Continuous (mk' 𝕜 G E) := by
   rw [FiberBundle.continuousAt_totalSpace]
   refine ⟨((FiberBundle.continuous_proj G E).comp continuous_subtypeVal).continuousAt, ?_⟩
   let e := trivializationAt G E v.val.proj
-  let U := {w : {v : TotalSpace G E // v.snd ≠ 0} | w.val.proj ∈ e.baseSet}
+  let U := {w : zeroSectionCompl G E | w.val.proj ∈ e.baseSet}
   have hU : IsOpen U :=
     e.open_baseSet.preimage ((FiberBundle.continuous_proj G E).comp continuous_subtypeVal)
   refine ContinuousOn.continuousAt ?_ (hU.mem_nhds (mem_baseSet_trivializationAt G E _))
-  have he : ContinuousOn (fun w : {v : TotalSpace G E // v.snd ≠ 0} ↦ (e w.val).2) U :=
+  have he : ContinuousOn (fun w : zeroSectionCompl G E ↦ (e w.val).2) U :=
     (e.continuousOn.comp continuous_subtypeVal.continuousOn fun w hw ↦ e.mem_source.2 hw).snd
   rw [continuousOn_iff_continuous_domRestrict]
   refine (Projectivization.continuous_mk (K := 𝕜) he.domRestrict fun w ↦
     (map_ne_zero_iff _ (e.continuousLinearEquivAt 𝕜 _ w.property).injective).2
-      w.val.property).congr fun w ↦ ?_
-  exact (congrArg Prod.snd (trivializationAt_mk w.val.val w.val.property w.property)).symm
+      (mem_zeroSectionCompl.1 w.val.property)).congr fun w ↦ ?_
+  exact (congrArg Prod.snd (trivializationAt_mk w.val.val (mem_zeroSectionCompl.1 w.val.property)
+    w.property)).symm
 
 /-- The lines spanned by an open set of nonzero vectors form an open set. -/
 theorem isOpenMap_mk' : IsOpenMap (mk' 𝕜 G E) := by
@@ -384,9 +389,9 @@ theorem isOpenMap_mk' : IsOpenMap (mk' 𝕜 G E) := by
         ⟨q.val.1, (e.continuousLinearEquivAt 𝕜 _ q.property).symm q.val.2.val⟩ :=
     e.symm_apply_eq_mk_continuousLinearEquivAt_symm _ q.property _
   -- The nonzero vectors over the base set of `e`, in the coordinates of `e`.
-  let σ (q : {q : B × {w : G // w ≠ 0} // q.1 ∈ e.baseSet}) : {v : TotalSpace G E // v.snd ≠ 0} :=
+  let σ (q : {q : B × {w : G // w ≠ 0} // q.1 ∈ e.baseSet}) : zeroSectionCompl G E :=
     ⟨e.toOpenPartialHomeomorph.symm (q.val.1, q.val.2.val), by
-      rw [hsymm]
+      rw [hsymm, mem_zeroSectionCompl]
       exact (map_ne_zero_iff _ (e.continuousLinearEquivAt 𝕜 _ q.property).symm.injective).2
         q.val.2.property⟩
   have hσ : Continuous σ :=
@@ -415,7 +420,8 @@ theorem isOpenMap_mk' : IsOpenMap (mk' 𝕜 G E) := by
     exact congrArg Prod.snd h2
   · exact eP.mem_source.2 hv
   · have hv0 : (e v.val).2 ≠ 0 :=
-      (map_ne_zero_iff _ (e.continuousLinearEquivAt 𝕜 _ hv).injective).2 v.property
+      (map_ne_zero_iff _ (e.continuousLinearEquivAt 𝕜 _ hv).injective).2
+        (mem_zeroSectionCompl.1 v.property)
     let qv : {q : B × {w : G // w ≠ 0} // q.1 ∈ e.baseSet} := ⟨(v.val.proj, ⟨_, hv0⟩), hv⟩
     have hσv : σ qv = v := Subtype.ext ((congrArg _ (e.mk_proj_snd' hv)).trans
       (e.symm_apply_apply (e.mem_source.2 hv)))
@@ -438,7 +444,7 @@ theorem continuous_iff {X : Type*} [TopologicalSpace X] {g : ProjectiveBundle �
 parameter. -/
 theorem continuous_mk {X : Type*} [TopologicalSpace X] {g : X → TotalSpace G E}
     (hg : Continuous g) (hg₀ : ∀ x, (g x).snd ≠ 0) : Continuous fun x ↦ mk 𝕜 (g x) (hg₀ x) :=
-  continuous_mk'.comp (f := fun x ↦ ⟨g x, hg₀ x⟩) (hg.subtype_mk _)
+  continuous_mk'.comp (f := fun x ↦ ⟨g x, mem_zeroSectionCompl.2 (hg₀ x)⟩) (hg.subtype_mk _)
 
 /-! ### The projection -/
 
@@ -467,7 +473,7 @@ theorem continuous_mapProjectivization_of_continuous {φ : ∀ b, E b ≃L[𝕜]
       (⟨p.proj, (φ p.proj).mapProjectivization p.snd⟩ : ProjectiveBundle 𝕜 G' E') := by
   rw [continuous_iff]
   refine (continuous_mk (hφ.comp continuous_subtypeVal) fun v ↦
-    (map_ne_zero_iff _ (φ _).injective).2 v.property).congr fun v ↦ ?_
+    (map_ne_zero_iff _ (φ _).injective).2 (mem_zeroSectionCompl.1 v.property)).congr fun v ↦ ?_
   conv_rhs => rw [Function.comp_apply, mk'_eq_mk, mk_def]
   rw [mk_def]
   simp only [ContinuousLinearEquiv.mapProjectivization_mk]
@@ -526,7 +532,7 @@ in the fibre `E (f b')` over `b'` goes to the same line over `f b'`. -/
   continuous_toFun := by
     rw [continuous_iff]
     exact (continuous_mk ((Pullback.continuous_lift G E f).comp continuous_subtypeVal)
-      fun v ↦ v.property).congr fun v ↦ (rfl)
+      fun v ↦ (mem_zeroSectionCompl.1 v.property : v.val.snd ≠ 0)).congr fun v ↦ (rfl)
 
 @[simp]
 theorem pullbackMap_apply (p : ProjectiveBundle 𝕜 G (f *ᵖ E)) :
@@ -608,7 +614,7 @@ variable (G₂ E₂) in
       (continuous_subtypeVal.prodMk ((Trivialization.continuous_zeroSection 𝕜).comp
         ((FiberBundle.continuous_proj G₁ E₁).comp continuous_subtypeVal)))) fun v ↦ ?_).congr
           fun v ↦ ?_
-    · simpa using v.property
+    · simpa using mem_zeroSectionCompl.1 v.property
     · rw [Function.comp_apply, mk'_eq_mk, mk_def, mk_def]
       simp [Projectivization.map_mk]
 
@@ -625,7 +631,7 @@ variable (G₁ E₁) in
       (((Trivialization.continuous_zeroSection 𝕜).comp
         ((FiberBundle.continuous_proj G₂ E₂).comp continuous_subtypeVal)).prodMk
           continuous_subtypeVal)) fun v ↦ ?_).congr fun v ↦ ?_
-    · simpa using v.property
+    · simpa using mem_zeroSectionCompl.1 v.property
     · rw [Function.comp_apply, mk'_eq_mk, mk_def, mk_def]
       simp [Projectivization.map_mk]
 
@@ -714,8 +720,10 @@ def inlRetraction :
     refine (continuous_mk (g := fun v ↦ TotalSpace.mk' G₁ v.val.val.proj v.val.val.snd.1)
       ((continuous_fst.comp (FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous).comp
         (continuous_subtypeVal.comp continuous_subtypeVal))
-      fun v ↦ (mk_mem_range_inr_iff _ v.val.property).not.1 v.property).congr fun v ↦ ?_
-    obtain ⟨⟨⟨b, w⟩, hw⟩, hv⟩ := v
+      fun v ↦ (mk_mem_range_inr_iff _ (mem_zeroSectionCompl.1 v.val.property)).not.1
+        v.property).congr fun v ↦ ?_
+    obtain ⟨⟨⟨b, w⟩, hw'⟩, hv⟩ := v
+    have hw : w ≠ 0 := mem_zeroSectionCompl.1 hw'
     have hw₁ : LinearMap.fst 𝕜 (E₁ b) (E₂ b) w ≠ 0 := (mk_mem_range_inr_iff _ hw).not.1 hv
     have : Nonempty (ℙ 𝕜 (E₁ b)) := ⟨Projectivization.mk 𝕜 _ hw₁⟩
     simp only [Function.comp_apply, restrictPreimage_mk, mk_def]
@@ -762,8 +770,9 @@ theorem coe_inlCompl_apply (p : ProjectiveBundle 𝕜 G₁ E₁) :
 /-- `inlRetraction` is a left inverse of `inl`. -/
 theorem inlRetraction_inlCompl (p : ProjectiveBundle 𝕜 G₁ E₁) :
     inlRetraction (inlCompl G₂ E₂ p) = p := by
-  obtain ⟨⟨v, hv⟩, rfl⟩ := mk'_surjective p
-  have h : inlCompl G₂ E₂ (mk' 𝕜 G₁ E₁ ⟨v, hv⟩) =
+  obtain ⟨⟨v, hv'⟩, rfl⟩ := mk'_surjective p
+  have hv : v.snd ≠ 0 := mem_zeroSectionCompl.1 hv'
+  have h : inlCompl G₂ E₂ (mk' 𝕜 G₁ E₁ ⟨v, hv'⟩) =
       ⟨mk 𝕜 (TotalSpace.mk' (G₁ × G₂) (E := E₁ ×ᵇ E₂) v.proj (v.snd, 0)) (by simpa using hv),
         by rw [← inl_mk v hv]; exact (inlCompl G₂ E₂ _).property⟩ :=
     Subtype.ext (inl_mk v hv)
@@ -777,7 +786,7 @@ theorem isEmbedding_inlCompl : IsEmbedding (inlCompl G₂ E₂ : ProjectiveBundl
 theorem isOpen_compl_range_inl :
     IsOpen (range (inl G₂ E₂ : ProjectiveBundle 𝕜 G₁ E₁ → _))ᶜ := by
   rw [← isOpenQuotientMap_mk'.isQuotientMap.isOpen_preimage]
-  have hs : Continuous fun v : {v : TotalSpace (G₁ × G₂) (E₁ ×ᵇ E₂) // v.snd ≠ 0} ↦
+  have hs : Continuous fun v : zeroSectionCompl (G₁ × G₂) (E₁ ×ᵇ E₂) ↦
       TotalSpace.mk' G₂ v.val.proj v.val.snd.2 :=
     (continuous_snd.comp (FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous).comp
       continuous_subtypeVal
@@ -882,13 +891,16 @@ theorem homotopic_inlCompl_comp_inlRetraction :
           (continuous_subtypeVal.comp continuous_fst))
           ((continuous_snd.comp (FiberBundle.Prod.isInducing_diag G₁ E₁ G₂ E₂).continuous).comp
             hv)))
-    refine ((continuous_mk hg fun x h ↦ (mk_mem_range_inr_iff _ x.2.val.property).not.1 x.2.property
-      (congrArg Prod.fst h)).subtype_mk
+    refine ((continuous_mk hg fun x h ↦
+      (mk_mem_range_inr_iff _ (mem_zeroSectionCompl.1 x.2.val.property)).not.1 x.2.property
+        (congrArg Prod.fst h)).subtype_mk
       fun x ↦ by
         rw [mem_compl_iff, mk_mem_range_inr_iff]
-        exact (mk_mem_range_inr_iff _ x.2.val.property).not.1 x.2.property).congr
+        exact (mk_mem_range_inr_iff _ (mem_zeroSectionCompl.1 x.2.val.property)).not.1
+          x.2.property).congr
       fun x ↦ Subtype.ext ?_
-    obtain ⟨t, ⟨⟨b, w⟩, hw⟩, hx⟩ := x
+    obtain ⟨t, ⟨⟨b, w⟩, hw'⟩, hx⟩ := x
+    have hw : w ≠ 0 := mem_zeroSectionCompl.1 hw'
     have hw₁ : L t b w ≠ 0 := hL t ((mk_mem_range_inr_iff _ hw).not.1 hx)
     have : Nonempty (ℙ 𝕜 (E₁ b × E₂ b)) := ⟨Projectivization.mk 𝕜 _ hw₁⟩
     simp only [H, Function.comp_apply, Prod.map_apply, id_eq, restrictPreimage_mk, mk_def]

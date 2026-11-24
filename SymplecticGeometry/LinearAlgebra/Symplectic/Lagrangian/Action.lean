@@ -81,8 +81,9 @@ theorem isLagrangian_map_toEuclideanLin {A : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ}
     (stdForm ι).IsLagrangian (L.map (toEuclideanLin A)) := by
   let e := (A.toEuclideanCLE (SymplecticGroup.symplectic_det hA).ne_zero).toLinearEquiv
   rw [← coe_toLinearEquiv_toEuclideanCLE A (SymplecticGroup.symplectic_det hA).ne_zero]
-  exact (SymplecticForm.isLagrangian_map_iff_of_apply_eq_mul e one_ne_zero fun v w ↦ by
-    simpa [e] using mem_symplecticGroup_iff_forall_stdForm.1 hA v w).2 hL
+  exact (SymplecticForm.IsSymplectomorphism.isLagrangian_map_iff
+    (SymplecticForm.isSymplectomorphism_iff.2 fun v w ↦ by
+      simpa [e] using mem_symplecticGroup_iff_forall_stdForm.1 hA v w)).2 hL
 
 namespace LagrangianGrassmannian
 

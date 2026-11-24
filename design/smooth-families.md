@@ -75,7 +75,8 @@ No statement of this part is one that the authors' errata
   with distinct $\lambda_j>0$ matches every derivative at $t=0$ only if
   $\sum_jc_j(-\lambda_j)^n=1$ for every $n$, that is
   $\sum_jc_j/(1+\lambda_jz)=1/(1-z)$ as rational functions, which the poles
-  forbid. So the $C^\infty$ extension is Seeley's series, new here. It reuses `timeScale`, `map_timeScale_eq_sum_pow_card_smul` for the
+  forbid. So the $C^\infty$ extension is Seeley's series, with Tau Ceti's coefficients
+  `TauCeti.HalfSpaceExtension.seeleyCoeff`. It reuses `timeScale`, `map_timeScale_eq_sum_pow_card_smul` for the
   derivatives of the dilated terms, and glues at $t=0$ as
   `HasFTaylorSeriesUpToOn.union_of_isClosed` does, by `HasFTaylorSeriesUpToOn.union`
   for sets closed only in their union, but not the reflection itself. Mathlib has neither.
@@ -268,8 +269,7 @@ Named like Tau Ceti's file; in its namespace `TauCeti.HalfSpaceExtension`.
 
 ### `LinearAlgebra/Lagrange.lean`
 
-Evaluation of Mathlib's Lagrange basis, in Mathlib's namespace `Lagrange`,
-for `Seeley/Coefficients.lean`.
+Evaluation of Mathlib's Lagrange basis, in Mathlib's namespace `Lagrange`.
 
 - `Lagrange.eval_basis (s : Finset ι) (v : ι → F) (i : ι) (x : F) :
   (basis s v i).eval x = ∏ j ∈ s.erase i, (x - v j) / (v i - v j)`.
@@ -278,20 +278,11 @@ for `Seeley/Coefficients.lean`.
 - `Lagrange.sum_eval_basis_mul_pow (hvs : Set.InjOn v s) (hn : n < #s) (x : F) :
   ∑ i ∈ s, (basis s v i).eval x * v i ^ n = x ^ n`.
 
-### `Analysis/Calculus/ContDiff/Seeley/Coefficients.lean`
+### Seeley's coefficients
 
-Seeley's coefficients: a real sequence $a_k$ with
-$\sum_ka_k(-2^k)^n=1$ for every $n\ge0$ and $\sum_k|a_k|2^{kn}<\infty$ for every
-$n$. Seeley takes the limit of the Lagrange weights at the nodes $-2^k$,
-$a_k=\prod_{j\ne k}(1+2^j)/(2^j-2^k)$, and bounds it.
-
-- `SymplecticGeometry.seeleyCoeff : ℕ → ℝ`, with `seeleyCoeff_def` and
-  `hasProd_seeleyCoeff (k : ℕ) : HasProd (fun j : ({k}ᶜ : Set ℕ) ↦
-  (1 + 2 ^ (j : ℕ)) / (2 ^ (j : ℕ) - 2 ^ k)) (seeleyCoeff k)`.
-- `summable_seeleyCoeff_mul_pow (n : ℕ) :
-  Summable fun k ↦ |seeleyCoeff k| * 2 ^ (k * n)`.
-- `tsum_seeleyCoeff_mul_neg_two_pow (n : ℕ) :
-  ∑' k, seeleyCoeff k * (-2 ^ k) ^ n = 1`.
+Seeley's coefficients $a_k$ are Tau Ceti's `TauCeti.HalfSpaceExtension.seeleyCoeff`
+(`TauCeti/Analysis/Sobolev/Trace/Reflection/Seeley.lean`), with
+`summable_abs_seeleyCoeff_mul_pow` and `tsum_seeleyCoeff_mul_neg_pow`.
 
 ### `Analysis/Calculus/ContDiff/Seeley/Extension.lean`
 
@@ -320,10 +311,10 @@ reflection $t\mapsto1-t$.
   (hf : ContDiffOn ℝ ∞ f (Icc 0 1 ×ˢ U)) : ContDiffOn ℝ ∞
   (fun p : ℝ × E ↦ seeleyIccExtend (fun s ↦ f (s, p.2)) p.1) (univ ×ˢ U)`,
   with the analogue `contDiffOn_seeleyExtend` from `Ici 0 ×ˢ U`. The proof
-  bounds the derivatives of the terms by `summable_seeleyCoeff_mul_pow`
+  bounds the derivatives of the terms by `summable_abs_seeleyCoeff_mul_pow`
   (`map_timeScale_eq_sum_pow_card_smul` for the dilated terms), so the series
   of derivatives converges locally uniformly on $t<0$; its Taylor series at
-  $t=0$ is that of $f$ by `tsum_seeleyCoeff_mul_neg_two_pow`; and
+  $t=0$ is that of $f$ by `tsum_seeleyCoeff_mul_neg_pow`; and
   `HasFTaylorSeriesUpToOn.union` glues the two sides on `univ ×ˢ U`, where
   they are closed only relative to their union.
 - `exists_contDiff_eqOn_of_contDiffOn_halfSpace [HasContDiffBump E]`:
@@ -745,23 +736,20 @@ For `[FiniteDimensional ℝ E] [IsManifold I ∞ M] [T2Space M]
 
 ### `Geometry/Diffeomorphism/Diffeotopy/Real.lean`
 
-In `TauCeti.Diffeotopy`, for `[FiniteDimensional ℝ E] [IsManifold I ∞ M]`
-and, where the inverse function theorem is used, `[BoundarylessManifold I M]`.
+In `TauCeti.Diffeotopy`, for `[IsManifold I ∞ M]` and, where the inverse
+function theorem is used, `[BoundarylessManifold I M]`. The restriction
+`ofReal` and its lemmas need only `[CompleteSpace E]`; the flow part needs
+`[FiniteDimensional ℝ E]`.
 
 Below, `∂ₜ` at `(x, t)` is the tangent vector
 `((0 : E), (1 : TangentSpace (𝓡∂ 1) t))` of `M × unitInterval`, as in
 *Decisions*.
 
-- Joint smoothness of inverses, over any finite-dimensional boundaryless
-  parameter manifold `P` (model `J`) and for any `1 ≤ n`, in Mathlib's
-  namespace `Diffeomorph`, as it is about Mathlib's notion, and in
-  `Geometry/Manifold/Diffeomorph/Family.lean`, as it uses no diffeotopy:
-  `Diffeomorph.contMDiff_symm_eval {ψ : P → M ≃ₘ^n⟮I, I⟯ M} (hn : 1 ≤ n)
-  (hψ : ContMDiff (J.prod I) I n (fun p : P × M ↦ ψ p.1 p.2)) :
-  ContMDiff (J.prod I) I n (fun p : P × M ↦ (ψ p.1).symm p.2)`, named like
-  Tau Ceti's `TauCeti.continuous_equiv_symm_eval`, by
-  `isLocalDiffeomorphAt_of_injective_mfderiv` and `diffeomorphOfBijective`
-  applied to `(p, x) ↦ (p, ψ p x)`; this is the hypothesis `hφ'` of Tau Ceti's
+- Joint smoothness of inverses: Tau Ceti's
+  `Diffeomorph.contMDiff_symm_family` (in
+  `TauCeti/Geometry/Manifold/Diffeomorph/Family.lean`), for a jointly `C^n`
+  family `f : P → M ≃ₘ^n⟮I, J⟯ N`, `1 ≤ n`, over a boundaryless parameter
+  manifold; this is the hypothesis `hφ'` of Tau Ceti's
   `forall_mpullback_eq_iff_forall_mextDeriv_interior_eulerianField_eq_zero`.
 - Restriction: `ofReal (ψ : ℝ → M ≃ₘ⟮I, I⟯ M) (hψ : …) (h₀ : ∀ x, ψ 0 x = x) :
   Diffeotopy I ∞ M`, with `ofReal_apply`, `toDiffeomorph_symm_ofReal_apply`,
@@ -814,7 +802,7 @@ In `TauCeti.Diffeotopy`, for `[FiniteDimensional ℝ E] [IsManifold I ∞ M]
 - `Diffeomorph.contMDiff_symm_eval_unitInterval {ψ : unitInterval →
   M ≃ₘ⟮I, I⟯ M} (hψ : ContMDiff ((𝓡∂ 1).prod I) I ∞ (fun p ↦ ψ p.1 p.2)) :
   ContMDiff ((𝓡∂ 1).prod I) I ∞ (fun p ↦ (ψ p.1).symm p.2)`, in Mathlib's
-  namespace `Diffeomorph` as `Diffeomorph.contMDiff_symm_eval` is, by the
+  namespace `Diffeomorph` as Tau Ceti's `Diffeomorph.contMDiff_symm_family` is, by the
   local argument of *Decisions*, with Tau Ceti's
   `HasStrictFDerivAt.jointImplicitFunctionOfProdDomain` for the extended
   chart map and `contDiffOn_seeleyIccExtend`.
@@ -900,7 +888,6 @@ can start at once; each issue's blockers come before it.
 14. **Isotopies over `ℝ` and diffeotopies.**
     `Analysis/SpecialFunctions/SmoothTransition.lean`,
     `Geometry/Manifold/SmoothTransition.lean`,
-    `Geometry/Manifold/Diffeomorph/Family.lean`,
     `Geometry/Manifold/Flow/TimeDependent.lean` and
     `Geometry/Diffeomorphism/Diffeotopy/Real.lean`.
 15. **Diffeotopies from families of diffeomorphisms.**

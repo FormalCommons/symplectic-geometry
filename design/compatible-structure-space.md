@@ -394,19 +394,19 @@ coordinate change is the identity), `mfderiv_chartAt_of_chartAt_eq` and
 `mfderiv_chartAt_symm_of_chartAt_eq` (the differentials of the chart and of
 its inverse are the identity).
 
-### `Geometry/Manifold/SmoothEmbedding/Basic/FromTauCeti.lean`
+### `Manifold.IsSmoothEmbedding.contMDiffAt_iff_comp`
 
-Tau Ceti main's `Manifold.IsSmoothEmbedding.contMDiffAt_iff_comp` (commit
-`223a7bc65a`), copied with Tau Ceti's header for the file below, which proves
-`contMDiffAt_compatibleCLM_comp_iff` from it.
+Tau Ceti's, in its `Geometry/Manifold/SmoothEmbedding/Basic.lean`; the file
+below proves `contMDiffAt_compatibleCLM_comp_iff` from it. The library had a
+copy of it from Tau Ceti's main branch (commit `223a7bc65a`), which the move
+to `c9d170eed5a8` (#2025) deleted.
 
 ### `Geometry/Manifold/Instances/CompatibleComplexStructures.lean`
 
 The manifold, in `TauCeti.SymplecticForm`. Besides Mathlib, Tau Ceti,
 `CompatibleTangent/Finrank.lean` and `Compatible/Cayley.lean`, it imports
-`Analysis/Calculus/FDeriv/Cayley.lean`, *Linear complex structures*'
-`Topology/ComplexStructure/Basic.lean` and
-`Geometry/Manifold/SmoothEmbedding/Basic/FromTauCeti.lean`.
+`Analysis/Calculus/FDeriv/Cayley.lean` and *Linear complex structures*'
+`Topology/ComplexStructure/Basic.lean`.
 
 - `instance : ChartedSpace ω.compatibleModel (𝒥 ω)` and
   `instance : IsManifold 𝓘 n (𝒥 ω)` for every `n`, from the open embedding

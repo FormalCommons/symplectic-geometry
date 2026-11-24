@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Topology.Algebra.Star.LinearMap
 public import TauCeti.Analysis.Normed.Operator.ExteriorPowerCoords
+import TauCeti.LinearAlgebra.Matrix.ConjTranspose
 
 /-!
 # Compound matrices and entrywise conjugation
@@ -39,6 +40,7 @@ theorem exteriorPowerCoords_intrinsicStar (j : ℕ) {m n : ℕ}
     LinearMap.exteriorPowerCoords_single_apply, ContinuousLinearMap.intrinsicStar_apply,
     Pi.star_single, star_one, Pi.star_apply]
   rw [← starRingEnd_apply, RingHom.map_det, RingHom.mapMatrix_apply]
-  exact congrArg Matrix.det (Matrix.ext fun i k ↦ (starRingEnd_apply _).symm)
+  -- The left side is `Matrix.of fun i k ↦ star _`, which is `Matrix.map _ star` by definition.
+  exact congrArg Matrix.det (Matrix.map_star_eq_map_starRingEnd _).symm
 
 end ContinuousLinearMap

@@ -15,8 +15,8 @@ space charted on `H`. Composing the charts of `M` with `Φ` charts `M` on `H'`
 (Tau Ceti's `Homeomorph.chartedSpaceComp`), and a `C^n` manifold modelled on `I` becomes a
 `C^n` manifold modelled on `I'` (Tau Ceti's `Diffeomorph.isManifold_chartedSpaceComp`). This
 file names that manifold, as a type synonym of `M` carrying the new atlas as an instance, and the
-identity of `M` as a `C^n` diffeomorphism onto it (by Tau Ceti's
-`Diffeomorph.contMDiff_chartedSpaceComp_iff`). For instance, a product of an interval and a
+identity of `M` as a `C^n` diffeomorphism onto it (the inverse of Tau Ceti's
+`Diffeomorph.chartedSpaceCompDiffeomorph`). For instance, a product of an interval and a
 manifold over `ℝⁿ`, or an open subset of `ℂ`, can so be modelled on a Euclidean space
 `EuclideanSpace ℝ (Fin m)`, as a piece of a gluing over it.
 
@@ -88,20 +88,29 @@ variable [ChartedSpace H M]
 
 /-- The identity of `M`, as a `C^n` diffeomorphism from `M`, modelled on `I`, to `Remodel Φ M`,
 modelled on `I'`. -/
-def remodelDiffeomorph : M ≃ₘ^n⟮I, I'⟯ Remodel Φ M where
-  toEquiv := (remodelHomeomorph Φ M).toEquiv
-  contMDiff_toFun :=
-    (Φ.contMDiff_chartedSpaceComp_iff (M := M) (f := id)).2 contMDiff_id
-  contMDiff_invFun :=
-    (Φ.contMDiff_chartedSpaceComp_iff (X := Remodel Φ M) (M := M)
-      (f := (id : Remodel Φ M → M))).1 contMDiff_id
+def remodelDiffeomorph : M ≃ₘ^n⟮I, I'⟯ Remodel Φ M :=
+  letI := Φ.toHomeomorph.chartedSpaceComp M
+  (Φ.chartedSpaceCompDiffeomorph M).symm
+
+theorem remodelDiffeomorph_def :
+    remodelDiffeomorph Φ M =
+      letI := Φ.toHomeomorph.chartedSpaceComp M
+      (Φ.chartedSpaceCompDiffeomorph M).symm :=
+  (rfl)
 
 @[simp]
-theorem coe_remodelDiffeomorph : ⇑(remodelDiffeomorph Φ M) = remodelHomeomorph Φ M := (rfl)
+theorem coe_remodelDiffeomorph : ⇑(remodelDiffeomorph Φ M) = remodelHomeomorph Φ M := by
+  rw [remodelDiffeomorph_def, coe_remodelHomeomorph]
+  -- `exact`, not `rw`: Tau Ceti states the lemma on `M`, whose type synonym is `Remodel Φ M`.
+  exact Φ.coe_chartedSpaceCompDiffeomorph_symm M
 
 @[simp]
 theorem coe_remodelDiffeomorph_symm :
-    ⇑(remodelDiffeomorph Φ M).symm = (remodelHomeomorph Φ M).symm := (rfl)
+    ⇑(remodelDiffeomorph Φ M).symm = (remodelHomeomorph Φ M).symm := by
+  rw [remodelDiffeomorph_def, coe_remodelHomeomorph_symm]
+  -- `exact`, not `rw`: Tau Ceti states the lemma on `M`, whose type synonym is `Remodel Φ M`,
+  -- and the double inverse of a diffeomorphism is the diffeomorphism itself by definition.
+  exact Φ.coe_chartedSpaceCompDiffeomorph M
 
 end SymplecticGeometry
 

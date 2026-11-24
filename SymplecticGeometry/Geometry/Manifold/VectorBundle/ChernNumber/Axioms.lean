@@ -318,7 +318,7 @@ pulled-back form. -/
     SymplecticSurfaceBundle S where
   n := n
   F := StdSpace (Fin n)
-  finrank_eq := by rw [finrank_euclideanSpace, Fintype.card_sum, Fintype.card_fin, two_mul]
+  finrank_eq := by rw [finrank_stdSpace, Fintype.card_fin]
   V := Trivial S (StdSpace (Fin n))
   form := ContMDiffTwoForm.const (stdForm (Fin n))
   isNondegenerate := ContMDiffTwoForm.isNondegenerate_const _
