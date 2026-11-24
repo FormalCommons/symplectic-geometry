@@ -32,14 +32,12 @@ slice section `(t, y) ↦ σ t y`.
 
 ## Implementation notes
 
-The converse direction of `TauCeti.contMDiffAt_verticalForm_iff` is Tau Ceti's
-`ContMDiffAt.mpullback_form_family`, applied to the family of inclusions `y ↦ (t, y)`; the direct
+The direct direction of `TauCeti.contMDiffAt_verticalForm_iff` is Tau Ceti's
+`ContMDiffAt.mpullback_form_family`, applied to the family of inclusions `y ↦ (t, y)`; the converse
 one is `ContMDiffAt.mpullback_form_family_of_family`, applied to the projection.
 -/
 
 public section
-
-noncomputable section
 
 open Bundle Filter
 open scoped Manifold ContDiff
