@@ -80,11 +80,12 @@ two more.
   form is then the equation of forms
   `mpullback (op g • ·) A = mapCoeff (adjointContinuousLinearMap g⁻¹) A`.
 - **The bracket $[A\wedge A]$.** It is
-  `SmoothForm.wedgeWith (LieAlgebra.lieCLM 𝔤) A A`, where
-  `LieAlgebra.lieCLM L : L →L[ℝ] L →L[ℝ] L` is the bracket of a
-  finite-dimensional real normed Lie algebra as a continuous bilinear map
-  (neither Mathlib nor Tau Ceti has it; Tau Ceti's
-  `continuousCommutator` is for normed algebras). With Tau Ceti's
+  `SmoothForm.wedgeWith (TauCeti.lieL ℝ 𝔤 𝔤) A A`, where Tau Ceti's
+  `TauCeti.lieL 𝕜 L M : L →L[𝕜] M →L[𝕜] M`
+  (`Topology/Algebra/Lie/Bracket.lean`, with `@[simp] lieL_apply`) is the
+  action of a finite-dimensional Lie algebra on a Lie module as a
+  continuous bilinear map, so `TauCeti.lieL ℝ 𝔤 𝔤` is the bracket of
+  $\mathfrak g$. With Tau Ceti's
   normalization of the wedge, `wedgeWith_apply_one_one`, one has
   $[A\wedge A](v,w)=2[A v,A w]$, so the curvature
   $F_A=dA+\tfrac12[A\wedge A]$ has
@@ -158,7 +159,6 @@ diffeomorphism $\Phi$ above).
 | `Geometry/Lie/MaurerCartan.lean` | the left Maurer–Cartan form of a Lie group as a smooth $\mathfrak g$-valued one-form |
 | `Geometry/Manifold/FiberBundle/Principal/Connection/Basic.lean` | `IsConnectionForm`, `IsTensorialForm`, horizontal spaces, the affine structure, the circle comparison |
 | `Geometry/Manifold/FiberBundle/Principal/Connection/Existence.lean` | existence over a paracompact base |
-| `Topology/Algebra/Lie/Bracket.lean` | `LieAlgebra.lieCLM` |
 | `Geometry/Manifold/FiberBundle/Principal/Connection/Curvature.lean` | `connectionCurvature` and its properties |
 | `Geometry/Manifold/FiberBundle/Associated/PullbackPrincipal.lean` | $P\times F$ as the pull-back of $P$ to $P\times_GF$; descent along $q$ |
 | `Geometry/Manifold/FiberBundle/Associated/Connection.lean` | the connection induced on $P\times_GF$ |
@@ -234,16 +234,10 @@ This file makes it a form.
   partition of unity of the base, as the merged
   `exists_isCircleConnectionForm`, whose proof it adapts and credits.
 
-### `Topology/Algebra/Lie/Bracket.lean`
-
-- `LieAlgebra.lieCLM (L) [FiniteDimensional ℝ L] : L →L[ℝ] L →L[ℝ] L` for
-  a real normed Lie algebra, with `@[simp] lieCLM_apply_apply :
-  lieCLM L x y = ⁅x, y⁆`.
-
 ### `Geometry/Manifold/FiberBundle/Principal/Connection/Curvature.lean`
 
 - `connectionCurvature A := mextDerivₗ _ 1 A + (1/2 : ℝ) •
-  SmoothForm.wedgeWith (LieAlgebra.lieCLM 𝔤) A A`, with
+  SmoothForm.wedgeWith (TauCeti.lieL ℝ 𝔤 𝔤) A A`, with
   `connectionCurvature_def` and
   `connectionCurvature_apply : (connectionCurvature A).val x ![v, w] =
   mextDeriv A x ![v, w] + ⁅A.val x ![v], A.val x ![w]⁆`.
@@ -370,8 +364,8 @@ ones it waits for.
    (`Principal/Connection/Basic.lean`). Waits for nothing.
 3. **Existence of connection forms** (`Principal/Connection/Existence.lean`).
    Waits for 1 and 2.
-4. **The curvature of a connection form** (`Topology/Algebra/Lie/Bracket.lean`
-   and `Principal/Connection/Curvature.lean`). Waits for 2.
+4. **The curvature of a connection form**
+   (`Principal/Connection/Curvature.lean`). Waits for 2.
 5. **$P\times F$ as a principal bundle over $P\times_GF$**
    (`Associated/PullbackPrincipal.lean`). Waits for nothing.
 6. **Weinstein's construction** (`Fibration/Associated.lean`). Waits for
