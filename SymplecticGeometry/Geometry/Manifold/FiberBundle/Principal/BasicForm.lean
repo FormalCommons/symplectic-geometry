@@ -11,7 +11,6 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
 import TauCeti.Geometry.Lie.Exponential.Derivative.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow
-import TauCeti.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # Basic forms on smooth principal bundles
@@ -34,9 +33,6 @@ applies: the points of a fibre are related by the action, through the division m
 * `TauCeti.PrincipalBundle.isBasic_of_mpullback_op_smul`: an invariant form that vanishes on
   vertical vectors is basic for the projection. It is Tau Ceti's
   `TauCeti.RoughForm.isBasic_of_mpullback_eq` for the right translations of a principal bundle.
-* `TauCeti.RoughForm.IsBasic.apply_eq_zero_of_mfderiv_eq_zero`,
-  `TauCeti.RoughForm.IsBasic.mpullback_eq`: conversely, a form basic for any map `f` vanishes on
-  the kernel of its derivative, and is invariant under the self-maps over `f`.
 * `TauCeti.PrincipalBundle.mlieDerivForm_rightFundamentalVectorField_eq_zero`: an invariant form
   has vanishing Lie derivative along every fundamental vector field.
 
@@ -62,41 +58,6 @@ noncomputable section
 
 open Bundle Manifold MulOpposite
 open scoped Manifold ContDiff
-
-namespace TauCeti.RoughForm
-
-variable {E H M E' H' M' : Type*}
-  [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
-  [TopologicalSpace M] [ChartedSpace H M]
-  [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
-  [TopologicalSpace M'] [ChartedSpace H' M']
-  {V : Type*} [AddCommGroup V] [Module ℝ V] [TopologicalSpace V] {k : ℕ} {f : M → M'}
-  {α : RoughForm I M V k}
-
-/-- A form that is basic for `f` vanishes as soon as one of its arguments lies in the kernel of
-the derivative of `f`. -/
-theorem IsBasic.apply_eq_zero_of_mfderiv_eq_zero (hα : IsBasic I' f α) {x : M}
-    {v : Fin k → TangentSpace I x} {j : Fin k} (hv : mfderiv I I' f x (v j) = 0) :
-    α x v = 0 := by
-  classical
-  rw [isBasic_iff.mp hα rfl v (Function.update v j 0) fun i ↦ ?_, (α x).map_update_zero]
-  rcases eq_or_ne i j with rfl | hi
-  · simp [hv]
-  · simp [Function.update_of_ne hi, tangentSpaceCast_self]
-
-/-- A form that is basic for a differentiable map `f` is invariant under every differentiable
-self-map `σ` over `f`, that is, with `f ∘ σ = f`. -/
-theorem IsBasic.mpullback_eq (hα : IsBasic I' f α) (hf : MDifferentiable I I' f) {σ : M → M}
-    (hσ : MDifferentiable I I σ) (hfσ : f ∘ σ = f) : mpullback I I σ α = α := by
-  ext x v
-  rw [mpullback_apply]
-  refine isBasic_iff.mp hα (congrFun hfσ x) _ _ fun i ↦ ?_
-  -- By the chain rule, `df_x` factors through the derivative of `σ`.
-  have hcomp := mfderiv_comp x (hf (σ x)) (hσ x)
-  rw [hfσ] at hcomp
-  exact (congrArg (· (v i)) hcomp).symm
-
-end TauCeti.RoughForm
 
 namespace TauCeti.PrincipalBundle
 

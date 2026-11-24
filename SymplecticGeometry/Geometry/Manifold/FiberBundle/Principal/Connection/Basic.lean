@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
