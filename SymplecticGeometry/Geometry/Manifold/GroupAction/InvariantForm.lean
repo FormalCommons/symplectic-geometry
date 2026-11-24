@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.GroupAction.InvariantForm
 public import TauCeti.Geometry.Manifold.MFDeriv.Constancy
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
 
 /-!
 # Closed invariant one-forms on fundamental vector fields
@@ -80,13 +81,8 @@ theorem apply_fundamentalVectorField_eq_of_preconnectedSpace [PreconnectedSpace 
       (ContMDiffSMul.contMDiff_const_smul (I := I) (I' := I') g) γ = γ)
     (ξ : GroupLieAlgebra I G) (x y : M) :
     γ.val x ![fundamentalVectorField I' ξ x] = γ.val y ![fundamentalVectorField I' ξ y] := by
-  -- The pairing is the `0`-form `ι_{X_ξ} γ`, which is smooth.
-  have hsmooth : IsSmoothForm I' ∞ (RoughForm.interior (fundamentalVectorField I' ξ) γ.val) :=
-    γ.isSmoothForm.interior (contMDiff_fundamentalVectorField (m := ∞) (n := ∞) (by simp) ξ)
-  have hf : ContMDiff I' 𝓘(ℝ, F) ∞ fun z ↦ γ.val z ![fundamentalVectorField I' ξ z] := by
-    convert SmoothForm.contMDiff_apply_zero
-      (⟨_, hsmooth.mem_smoothBundleForms⟩ : SmoothForm I' M F 0) using 2 with z
-    simp [RoughForm.interior_apply, Matrix.empty_eq]
+  have hf := SmoothForm.contMDiff_apply_contMDiffSection γ
+    ⟨_, contMDiff_fundamentalVectorField (m := ∞) (n := ∞) (by simp) ξ⟩
   refine (hf.mdifferentiable (by simp)).apply_eq_of_mfderiv_eq_zero (fun z ↦ ?_) x y
   exact mvfderiv_eq_zero_iff.mp (mvfderiv_apply_fundamentalVectorField_eq_zero hγ hinv ξ z)
 
