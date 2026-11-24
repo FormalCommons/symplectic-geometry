@@ -2853,17 +2853,19 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
 
 ### 40. Coisotropic reduction (needs `design/coisotropic-reduction.md`)
 
-- **Files:** `Geometry/Manifold/Foliation/LeafSpace.lean` (in Tau Ceti's
-  folder of foliations: the page's regularity condition on a foliation,
-  through slices meeting every leaf at most once, and, with a Hausdorff
-  leaf space, the unique smooth structure on it for which the projection
+- **Files:** `Geometry/Manifold/Foliation/Transport.lean`,
+  `Foliation/LeafSpace/Basic.lean` and `Foliation/LeafSpace/Smooth.lean`
+  (in Tau Ceti's folder of foliations: the page's regularity condition on a
+  foliation, through slices meeting every leaf at most once, and the unique
+  smooth structure on it for which the projection
   is a submersion whose vertical spaces are the leaf directions), and in
   `Geometry/Symplectic/Coisotropic/`: `Reduction.lean` (regular coisotropic
   reduction: the leaf space of Tau Ceti's characteristic foliation, of
   dimension $2n-2k$, with the unique symplectic form pulling back to
   $i^*\omega$, from `TauCeti.SmoothTwoForm.existsUnique_isSymplectic_mpullback_eq`)
-  and `Lagrangian.lean` (clean intersections of a Lagrangian embedding with
-  a coisotropic one, the characteristic directions of the intersection,
+  and `Lagrangian/Basic.lean`, `Lagrangian/Immersion.lean` and
+  `Lagrangian/Injective.lean` (clean intersections of a Lagrangian
+  embedding with a coisotropic one, the characteristic directions of the intersection,
   their local leaf spaces, the Lagrangian immersion from a countable
   disjoint union of them, the transverse case, and injectivity when every
   leaf meets $L$ in a connected set).
@@ -2875,9 +2877,9 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   embeddings).
 - **Milestones:** *Regular coisotropic reduction*, *Clean reduction of
   Lagrangian submanifolds*.
-- **The design file decides:** how $Q$ is given (an embedding, Tau Ceti's
-  `IsCoisotropicEmbedding`), the type of the leaf space and how its charts
-  come from the slices, and the form of "clean intersection" for
+- **The design file decides:** how $Q$ is given (a coisotropic immersion, of
+  which Tau Ceti's `IsCoisotropicEmbedding` is a case), the type of the
+  leaf space and how its charts come from the slices, and the form of "clean intersection" for
   embeddings.
 
 ### 41. Hamiltonian reduction (needs `design/hamiltonian-reduction.md`)
