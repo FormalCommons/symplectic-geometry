@@ -392,7 +392,8 @@ bracket is negated.
   coordinate changes lie in $H$ at each base point; no topology on $H$ is
   used. The fibre over $b$ is read through a chart $e$ of the atlas, as
   the embedding $v\mapsto e^{-1}(b,v)$ of $F$ into $M$; Tau Ceti's
-  `TauCeti.ManifoldTotalSpace.fiberChartedSpace` is used only where a
+  `TauCeti.ManifoldTotalSpace.fiberChartedSpace`, or for the fibre of a
+  submersion `TauCeti.regularFiberChartedSpace`, is used only where a
   statement needs a fibre as a manifold of its own.
 - **Fibre forms.** As the page's formalization note allows, a symplectic
   fibration is a fibration with an atlas for $(F,\sigma)$ whose coordinate
@@ -2959,7 +2960,7 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   `Foliation/LeafSpace/Basic.lean` and `Foliation/LeafSpace/Smooth.lean`
   (in Tau Ceti's folder of foliations: the page's regularity condition on a
   foliation, through slices meeting every leaf at most once, and the unique
-  smooth structure on it for which the projection
+  smooth structure on the leaf space for which the projection
   is a submersion whose vertical spaces are the leaf directions), and in
   `Geometry/Symplectic/Coisotropic/`: `Reduction.lean` (regular coisotropic
   reduction: the leaf space of Tau Ceti's characteristic foliation, of
@@ -2967,10 +2968,10 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   $i^*\omega$, from `TauCeti.SmoothTwoForm.existsUnique_isSymplectic_mpullback_eq`)
   and `Lagrangian/Basic.lean`, `Lagrangian/Immersion.lean` and
   `Lagrangian/Injective.lean` (clean intersections of a Lagrangian
-  embedding with a coisotropic one, the characteristic directions of the intersection,
+  embedding with a coisotropic immersion, the characteristic directions of the intersection,
   their local leaf spaces, the Lagrangian immersion from a countable
-  disjoint union of them, the transverse case, and injectivity when every
-  leaf meets $L$ in a connected set).
+  disjoint union of them, the transverse case, and injectivity when the leaf
+  space of $Q$ is Hausdorff and every leaf meets $L$ in a connected set).
 - **Builds on:** Tau Ceti (`TauCeti.SmoothForm.characteristicFoliation`,
   `TauCeti.Foliation.leaf`, `TauCeti.IsInvolutiveDistribution.exists_flatChart`,
   coisotropic and Lagrangian maps, `IsLagrangianMap.isLagrangianImmersion_of_comp_submersion`,
@@ -2982,7 +2983,7 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
 - **The design file decides:** how $Q$ is given (a coisotropic immersion, of
   which Tau Ceti's `IsCoisotropicEmbedding` is a case), the type of the
   leaf space and how its charts come from the slices, and the form of "clean intersection" for
-  embeddings.
+  maps.
 
 ### 41. Hamiltonian reduction (needs `design/hamiltonian-reduction.md`)
 
@@ -3079,7 +3080,7 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   `design/kahler-stability.md`.
 - **Builds on:** Tau Ceti (`TauCeti.SmoothTwoForm.IsKahler`, invariant inner
   products `TauCeti.Lie.exists_isSymm_bilinForm_Ad_invariant`, limits of
-  gradient trajectories `IsIntegralCurveOn.exists_tendsto_atTop_of_lojasiewicz`).
+  gradient trajectories `tendsto_maximalIntegralCurve_neg_mgradient_of_mapClusterPt`).
 - **Milestones:** *Kempf–Ness correspondence*, *Hilbert–Mumford numerical
   criteria*.
 - **The design file decides:** how $G^{\mathbb C}$ and its action are
@@ -3105,10 +3106,11 @@ Differential topology and complex analysis only; it waits for no part of
   projection, an isomorphism
   because $J\ne-i$ at every point), `Sobolev.lean` (only what Tau Ceti's
   `Geometry/Manifold/VectorBundle/Sobolev/` lacks: its
-  `TauCeti.IsRealCauchyRiemannOperator.sobolevL` realizes an operator for
-  the fixed complex structure as a bounded map from `TauCeti.SobolevSection`
-  ($W^{1,p}$) to `TauCeti.zeroOneSobolevSections` ($L^p$); this file
-  realizes $D_J$ in these spaces for every $J$, shows that it depends
+  `TauCeti.IsRealCauchyRiemannOperator.sobolevL` realizes only operators of
+  the fixed complex structure; this file realizes $D_J$ for every $J$, by
+  the projection of `Basic.lean`, as a bounded map from
+  `TauCeti.SobolevSection` ($W^{k+1,2}$) to `TauCeti.zeroOneSobolevSections`
+  ($W^{k,2}$) for every $k$, shows that it depends
   continuously on $J$ in the operator norm, and gives the elliptic
   regularity of its kernel), `Standard.lean` ($D_i$ is
   surjective with kernel $H^0(\mathcal O(1))$ of dimension two, from Tau
@@ -3116,14 +3118,14 @@ Differential topology and complex analysis only; it waits for no part of
   $\bar\partial$ on $(0,1)$-forms,
   `TauCeti.SmoothForm.IsOfType.exists_delBar_eq_projectivization`, extended
   to $\mathcal O(1)$ by the splitting into two charts that the page
-  describes) and `Kernel.lean` (index two for all $J$, by Tau Ceti's
+  describes) and `Kernel.lean` (real index four for all $J$, by Tau Ceti's
   `Continuous.index_eq_of_preconnectedSpace` on the connected $\mathcal
   J$; every nonzero element of $E_J=\ker D_J$ has exactly one zero, which
-  is simple, from integrability and Tau Ceti's local holomorphic frames,
-  `Geometry/Manifold/VectorBundle/CauchyRiemann/HolomorphicFrame/`; hence
+  is simple, from integrability, read in isothermal charts of $J$, and the
+  local solution of $\bar\partial$; hence
   $\dim E_J=2$ and $D_J$ onto; the spaces $E_J$ form a continuous rank-two
-  family in $C^\infty(L)$, from
-  `ContinuousLinearMap.IsFredholm.exists_continuousOn_ker_parametrization`).
+  family in $C^\infty(L)$, from the inverse of $D_J$ stabilized by a
+  projection onto $E_{J_0}$).
 - **Builds on:** the merged *Isothermal coordinates* (integrability of $J$,
   `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`) and
   *Symplectic vector bundles* (contractibility of the tamed structures,
@@ -3140,8 +3142,8 @@ Differential topology and complex analysis only; it waits for no part of
   suffices; the form of elliptic regularity it needs; and the zero count,
   which the page reduces to integrability, local
   solvability of $\bar\partial$ on a disc and the sum of indices of the
-  zeros of a section, given by the merged
-  `VectorBundle/ChernNumber/EulerNumber.lean`.
+  zeros of a section, given by Tau Ceti's
+  `TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_analyticOrderNatAt`.
 
 ### 46. Diffeomorphisms of the 2-sphere (needs `design/sphere-diffeomorphisms.md`)
 
@@ -3181,7 +3183,9 @@ Differential topology and complex analysis only; it waits for no part of
 ### 47. Parallel transport (needs `design/parallel-transport.md`)
 
 - **Files:** in Tau Ceti's folder `Geometry/Manifold/Submersion/`:
-  `ParallelTransport.lean` (for an Ehresmann connection
+  `HorizontalLiftField.lean` (horizontal lifts of vector fields),
+  `ParallelTransport/Basic.lean` and `ParallelTransport/Smooth.lean` (for
+  an Ehresmann connection
   `TauCeti.IsEhresmannConnection` on a proper submersion, horizontal lifts
   of smooth paths of the base exist and are unique; parallel transport
   `TauCeti.IsEhresmannConnection.parallelTransport` between fibres is a
@@ -3345,15 +3349,15 @@ Differential topology and complex analysis only; it waits for no part of
   homotopic with fixed ends to a Hamiltonian one: McDuff–Salamon, Theorem
   10.2.5, so that `TauCeti.endpointFlux` has kernel
   $\mathrm{Ham}$), `Countable.lean` (the flux group `TauCeti.fluxGroup` is
-  countable, from the Weinstein chart of the diagonal given by the merged
-  Lagrangian neighbourhood theorem), `Family.lean` (each smooth family in
-  $\mathrm{Ham}$ has a time-dependent Hamiltonian generating it,
+  countable, since the flux of a loop has periods among those of the
+  symplectic form on integral 2-classes), `Family.lean` (each smooth
+  family in $\mathrm{Ham}$ has a time-dependent Hamiltonian generating it,
   McDuff–Salamon, Proposition 10.2.12) and `Loop.lean` (the orbits
   of a loop in $\mathrm{Ham}$ are null-homologous over $\mathbb R$,
   Proposition 10.2.19).
-- **Builds on:** the merged *Hamiltonian flows* and *Symplectic
-  neighbourhoods*; Tau Ceti (`TauCeti.Diffeotopy.flux`,
-  `flux_trans`, `fluxGroup`, `endpointFlux`, `mem_ker_endpointFlux_iff`,
+- **Builds on:** the merged *Hamiltonian flows*; Tau Ceti
+  (`TauCeti.Diffeotopy.flux`, `flux_trans`, `fluxGroup`, `endpointFlux`,
+  `mem_ker_endpointFlux_iff`,
   `hamiltonianGroup_subgroupOf_le_ker_endpointFlux`).
 - **Milestones:** none; it serves *Coupling forms* and *Hamiltonian
   fibrations*. These results are McDuff–Salamon's Chapter 10, which a later
@@ -3499,14 +3503,14 @@ behind.
 | 0 | *Lie group actions* | — |
 | 0 | *Moment maps* | — |
 | 0 | *Equivariant normal forms* | — (it uses only merged files of *Standard model*) |
-| 0 | *Coisotropic reduction* | — (it uses only merged files of *Symplectic neighbourhoods*) |
+| 0 | *Coisotropic reduction* | — (it uses only merged files of *Symplectic neighbourhoods* and `LinearAlgebra/Symplectic/Reduction.lean` of *Symplectic vector spaces*, which is merged) |
 | 0 | *Hamiltonian reduction* | — |
 | 0 | *Convexity* | — |
 | 0 | *Kähler stability* | — |
 | 0 | *Cauchy–Riemann operators on the sphere* | — (it uses only merged files of *Isothermal coordinates* and *Symplectic vector bundles*) |
 | 0 | *Parallel transport* | — |
 | 0 | *Principal connections* | — (it uses only merged files of *First Chern number*; no file of *Lie group actions* or *Moment maps*) |
-| 0 | *Flux homomorphism* | — (it uses only merged files of *Hamiltonian flows* and *Symplectic neighbourhoods*) |
+| 0 | *Flux homomorphism* | — (it uses only merged files of *Hamiltonian flows*) |
 | 0 | *Dehn twists* | — (it uses only merged files of *Symplectic neighbourhoods*, *Isotopy extension* and *Hamiltonian flows*) |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
 | 1 | *Symplectic vector spaces* | *Standard model*, *Symplectic group* |
@@ -3756,7 +3760,7 @@ classification of 2-sphere bundles waits for them.
 
 | Milestone | Where |
 |---|---|
-| *Diffeomorphisms of the 2-sphere form a trivial principal bundle over the complex structures* | *Diffeomorphisms of the 2-sphere* (`Trivialization.lean`), with the operators of *Cauchy–Riemann operators on the sphere*. Existing inputs: `Diffeomorph.exists_coe_eq_smul`, `Diffeomorph.eq_refl_of_apply_zero_one_infty_eq_self`, `Continuous.index_eq_of_preconnectedSpace`, `ContinuousLinearMap.IsFredholm.exists_continuousOn_ker_parametrization`, and the merged integrability theorem `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`. |
+| *Diffeomorphisms of the 2-sphere form a trivial principal bundle over the complex structures* | *Diffeomorphisms of the 2-sphere* (`Trivialization.lean`), with the operators of *Cauchy–Riemann operators on the sphere*. Existing inputs: `Diffeomorph.exists_coe_eq_smul`, `Diffeomorph.eq_refl_of_apply_zero_one_infty_eq_self`, `Continuous.index_eq_of_preconnectedSpace`, and the merged integrability theorem `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`. |
 | *Smale's theorem on the diffeomorphism group of the 2-sphere* | *Diffeomorphisms of the 2-sphere* (`Smale.lean`). Existing inputs: `TauCeti.orthogonalToDiffSphere`, `Diffeomorph.isTopologicalGroup`. |
 
 ## Departures from the plan's advice
