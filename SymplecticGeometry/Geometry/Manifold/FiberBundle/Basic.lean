@@ -24,6 +24,8 @@ the trivialization of a principal bundle given by a local section.
 
 * `TauCeti.ManifoldTotalSpace.continuousOn_of_contMDiffOn_homeomorph`: a map into the total space
   whose composite with `homeomorph F E` is `C^n` on a set is continuous on that set.
+* `TauCeti.ManifoldTotalSpace.projContMDiffMap`: the projection to the base as a `C^n` map, along
+  which bundles over the base pull back to the total space.
 * `TauCeti.ManifoldTotalSpace.mfderiv_proj_mfderiv_section_apply`: the derivative of a section is
   a right inverse of the derivative of the projection.
 * `TauCeti.ManifoldTotalSpace.mpullback_mpullback_proj_apply`: a section pulls `π^* a` back to
@@ -59,6 +61,18 @@ variable {n : ℕ∞ω} {𝕜 B F M : Type*} {E : B → Type*} [NontriviallyNorm
 theorem continuousOn_of_contMDiffOn_homeomorph {f : M → TotalSpace F E} {s : Set M}
     (h : ContMDiffOn IM (IB.prod IF) n (fun x ↦ homeomorph F E (f x)) s) : ContinuousOn f s :=
   ((homeomorph F E).comp_continuousOn_iff f s).1 h.continuousOn
+
+variable (n F E IB IF) in
+/-- The projection of the charted total space of a fibre bundle to its base, as a `C^n` map. -/
+-- Exposed so that the fibre of a bundle pulled back along it over `x` is, by definition, the
+-- fibre over the projection of `x`.
+@[expose] def projContMDiffMap : C^n⟮IB.prod IF, ManifoldTotalSpace F E; IB, B⟯ :=
+  ⟨fun x ↦ ((homeomorph F E).symm x).proj, contMDiff_proj n F E IB IF⟩
+
+/-- The `C^n` projection is the projection, read through `homeomorph F E`. -/
+@[simp]
+theorem coe_projContMDiffMap :
+    ⇑(projContMDiffMap n F E IB IF) = fun x ↦ ((homeomorph F E).symm x).proj := (rfl)
 
 /-- A section `τ` of a fibre bundle, differentiable at `x` as a map into the charted total space, is
 a right inverse of the projection to first order at `x`: `dπ (dτ v) = v`. -/
