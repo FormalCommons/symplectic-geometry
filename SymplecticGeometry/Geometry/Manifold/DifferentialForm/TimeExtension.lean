@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 
 /-!
@@ -35,6 +36,9 @@ The extension keeps the slices of `Ω`, not its components along the time direct
 
 * `TauCeti.SmoothForm.mpullback_prodMk_timeExtend`: the slice of `timeExtend Ω` at a time
   `t ∈ [0, 1]` is the slice of `Ω` at `t`.
+* `TauCeti.SmoothForm.timeExtendSlice_mpullback_prodMap`,
+  `TauCeti.SmoothForm.timeExtend_mpullback_prodMap`: the time extension commutes with pullback
+  along `Prod.map id g` for a smooth map `g` of the space factor.
 * `SymplecticGeometry.isSmoothFamily_timeExtendSlice`: the slices of the extension form a smooth
   family over `ℝ`.
 * `SymplecticGeometry.IsSmoothFamily.exists_extend`: a smooth family of forms over
@@ -216,6 +220,60 @@ theorem mpullback_prodMk_timeExtend (t : unitInterval) :
     mpullback (Prod.mk (t : ℝ)) (contMDiff_const.prodMk contMDiff_id) (timeExtend Ω) =
       mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) Ω := by
   rw [mpullback_prodMk_timeExtend_eq_timeExtendSlice, timeExtendSlice_coe]
+
+section Naturality
+
+variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  [TopologicalSpace M'] [ChartedSpace H' M'] {I' : ModelWithCorners ℝ E' H'} [IsManifold I' ∞ M']
+  [BoundarylessManifold I' M'] {g : M → M'}
+
+/-- **Naturality of the slices of the time extension.** For a smooth map `g : M → M'` and a
+smooth form `Ω` on `unitInterval × M'`, the slices of the time extension of the pullback of `Ω`
+along `id × g` are the pullbacks along `g` of the slices of the time extension of `Ω`. -/
+theorem timeExtendSlice_mpullback_prodMap (hg : ContMDiff I I' ∞ g)
+    (Ω : SmoothForm ((𝓡∂ 1).prod I') (unitInterval × M') F k) (s : ℝ) :
+    timeExtendSlice (mpullback (Prod.map id g) (contMDiff_id.prodMap hg) Ω) s =
+      mpullback g hg (timeExtendSlice Ω s) := by
+  refine Subtype.ext <| funext fun x ↦ ?_
+  set G : unitInterval × M' → E' [⋀^Fin k]→L[ℝ] F := fun q ↦
+    (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) Ω).val q.2
+  -- Composing with the differential of `g` at `x`, on the values of the forms at `g x`.
+  obtain ⟨L, hL⟩ : ∃ L : (E' [⋀^Fin k]→L[ℝ] F) →ₗ[ℝ] (E [⋀^Fin k]→L[ℝ] F),
+      ∀ φ, L φ = φ.compContinuousLinearMap (mfderiv I I' g x : E →L[ℝ] E') :=
+    ⟨_, ContinuousAlternatingMap.compContinuousLinearMapₗ_apply _⟩
+  rw [coe_timeExtendSlice, coe_mpullback, TauCeti.mpullback_apply_eq_compContinuousLinearMap,
+    coe_timeExtendSlice]
+  refine (SymplecticGeometry.timeExtend_congr (g := L ∘ G ∘ Prod.map id g) (fun t ↦ ?_) s).trans ?_
+  · -- The slice at `t` of the pullback is the pullback of the slice at `t`.
+    have h : mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
+        (mpullback (Prod.map id g) (contMDiff_id.prodMap hg) Ω) =
+          mpullback g hg (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) Ω) :=
+      mpullback_mpullback_of_comp_eq (contMDiff_const.prodMk contMDiff_id)
+        (contMDiff_id.prodMap hg) hg (contMDiff_const.prodMk contMDiff_id) (by rfl) Ω
+    dsimp only
+    rw [h, coe_mpullback, TauCeti.mpullback_apply_eq_compContinuousLinearMap, Function.comp_apply,
+      Function.comp_apply, hL]
+    -- The two sides agree after unfolding the local abbreviation `G`.
+    rfl
+  · rw [← L.map_timeExtend, SymplecticGeometry.timeExtend_comp_prodMap_id, hL]
+    -- As above, the two sides agree after unfolding `G`.
+    rfl
+
+/-- **Naturality of the time extension.** For a smooth map `g : M → M'` and a smooth form `Ω` on
+`unitInterval × M'`, the time extension of the pullback of `Ω` along `id × g` is the pullback
+along `id × g` of the time extension of `Ω`. -/
+theorem timeExtend_mpullback_prodMap (hg : ContMDiff I I' ∞ g)
+    (Ω : SmoothForm ((𝓡∂ 1).prod I') (unitInterval × M') F k) :
+    timeExtend (mpullback (Prod.map id g) (contMDiff_id.prodMap hg) Ω) =
+      mpullback (Prod.map id g) (contMDiff_id.prodMap hg) (timeExtend Ω) := by
+  refine Subtype.ext ?_
+  rw [coe_mpullback, timeExtend_def, timeExtend_def, coe_ofSlices, coe_ofSlices,
+    TauCeti.mpullback_prodMap_verticalForm _ mdifferentiable_id (hg.mdifferentiable (by simp))]
+  congr 1
+  funext t
+  rw [timeExtendSlice_mpullback_prodMap hg, coe_mpullback, id_eq]
+
+end Naturality
 
 end TauCeti.SmoothForm
 
