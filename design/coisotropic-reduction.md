@@ -152,8 +152,9 @@ the predicate `SymplecticGeometry.IsCleanIntersection`. Following *Submanifolds*
 need only be a union of components of the intersection, the theorem
 applies to the part of each dimension of an intersection whose components
 have different dimensions. The plan's case of one dimension is
-`range c = f ⁻¹' range g`, where `range (f ∘ c) = range f ∩ range g`. Transversality is the hypothesis that those two ranges span the
-tangent space of `M`; it gets no predicate of its own.
+`range c = f ⁻¹' range g`, where `range (f ∘ c) = range f ∩ range g`.
+Transversality is the hypothesis that those two ranges span the tangent
+space of `M`; it gets no predicate of its own.
 
 **The Lagrangian immersion.** On `C`, the map `leafSpaceMk ∘ c` into the
 leaf space $\bar Q$ has constant rank $n-k$, and the kernel of its
@@ -187,10 +188,11 @@ folder, as the approving review of #2250 asks this file to say.
 
 ## Departures from `DESIGN.md`
 
-`DESIGN.md` plans one file `Geometry/Manifold/Foliation/LeafSpace.lean`
-and one file `Geometry/Symplectic/Coisotropic/Lagrangian.lean`. Each would
-exceed what one issue can build, so the part has the files below, and the
-*Files* entry of part 40 in `DESIGN.md` names them. The dependencies and
+The *Files* entry of part 40 in `DESIGN.md` names the files of transport,
+the leaf space and the two milestones. This file adds
+`Geometry/Manifold/Distribution/ConstantRank.lean`,
+`Geometry/Manifold/CleanIntersection.lean` and a lemma in the merged
+`LinearAlgebra/Symplectic/Reduction.lean`. The dependencies and
 the build order do not change: the part uses only Tau Ceti and merged files
 of the library.
 
@@ -313,14 +315,11 @@ charted space `leafSpaceChartedSpace hR`:
   `f ⁻¹' range g` is open and closed) and `range_mfderiv_comp`.
 - An example: a smooth embedding meets itself cleanly, with `c = id`.
 
-### `LinearAlgebra/Symplectic/Reduction.lean` (merged file)
+### `LinearAlgebra/Symplectic/Subspace.lean` (merged file)
 
 - `TauCeti.SymplecticForm.IsLagrangian.finrank_inf_add_finrank`: for a
-  Lagrangian `Λ` and a coisotropic `W` in `V`,
+  Lagrangian `Λ` and any subspace `W` of `V`,
   `2 * finrank (Λ ⊓ W) + finrank V = 2 * finrank (Λ ⊓ ω.orthogonal W) + 2 * finrank W`.
-  The image of `Λ ⊓ W` in `W ⧸ W^ω` is Lagrangian (`IsLagrangian.reduction_map`),
-  so it has half the dimension that `IsCoisotropic.finrank_reducedSpace_add_finrank`
-  gives, and the kernel of `Λ ⊓ W → W ⧸ W^ω` is `Λ ⊓ W^ω`.
 
 ### `Geometry/Symplectic/Coisotropic/Lagrangian/Basic.lean`
 
@@ -416,7 +415,7 @@ list. Issues 1, 5, 6 and 7 can start at once.
 6. **Clean intersections.** `Geometry/Manifold/CleanIntersection.lean`.
    About 100 lines. Blockers: none.
 7. **A dimension formula for Lagrangian reduction.**
-   `finrank_inf_add_finrank` in `LinearAlgebra/Symplectic/Reduction.lean`.
+   `finrank_inf_add_finrank` in `LinearAlgebra/Symplectic/Subspace.lean`.
    About 80 lines. Blockers: none.
 8. **The reduced Lagrangian, pointwise.** `Coisotropic/Lagrangian/Basic.lean`.
    About 300 lines. Blockers: 4, 6, 7.
