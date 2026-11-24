@@ -124,14 +124,17 @@ These settle the points that `DESIGN.md` leaves to this file.
    one-forms $\alpha_k$ on $M$ whose restriction to each fibre is closed,
    in a class that is flat and equals $c_k$ at `b₀` (*Fibre classes*
    below). Then
-   $$\tau'=\tau-\sum_k\pi^*b_k\wedge\alpha_k$$
+   $$\tau'=\tau+\sum_k\pi^*b_k\wedge\alpha_k$$
    restricts to $\sigma$ on the fibres and is vertically closed: on two
    vertical vectors and any third one, $d\tau'$ is a sum of terms
    $b_k(v)\,d\alpha_k(\eta_1,\eta_2)$, and $d\alpha_k$ vanishes on the
    fibres. So $\Gamma_{\tau'}$ is symplectic, by the milestone of
    *Symplectic fibrations*. Its holonomy along a loop $\beta$ at `b₀`, read
    in a normalized trivialization, has the flux of that of $\Gamma_\tau$
-   minus $\sum_k(\int_\beta b_k)\,c_k=\widetilde f([\beta])$. So its flux lies
+   minus $\sum_k(\int_\beta b_k)\,c_k=\widetilde f([\beta])$ (the sign
+   is that of `flux_holonomyDiffeotopy` below, where the flux is
+   $-[\int_0^1\theta_t\,dt]$, and the added term adds to $\theta_t$, as
+   in Decision 5). So its flux lies
    in $\Gamma_\sigma$, and $\Gamma_{\tau'}$ is Hamiltonian by Decision 3.
    $\tau'$ need not be closed. Statement 1 asks only for a Hamiltonian
    connection.
@@ -144,7 +147,9 @@ These settle the points that `DESIGN.md` leaves to this file.
    $\pm[\int_0^1\theta_t\,dt]$. This integral is Tau Ceti's
    `TauCeti.homotopyOperator` of the pull-back of $\tau$ to
    $F\times[0,1]$. The one formula gives two results. One is the shift of
-   Decision 4, since $\theta_t$ changes by $\sum_kb_k(\beta'(t))\,\Phi_t^*\alpha_k$.
+   Decision 4: for $\tau+\sum_k\pi^*b_k\wedge\alpha_k$, $\theta_t$ gains
+   $\sum_kb_k(\beta'(t))\,\Phi_t^*\alpha_k$, so the flux loses
+   $\sum_k(\int_\beta b_k)\,c_k$.
    The other is the page's description of $\mu_{\Phi^*a}$ by integrals over
    tori, when $\tau$ is closed. For a closed $\tau$ the class depends only
    on $[\tau]$: by the homotopy formula
@@ -260,11 +265,11 @@ The flux of a holonomy as a transgression. About 350 lines.
   of the page's note, with the orientation of the torus as `rectangleIntegral` takes it.
   The proof finds the Eulerian field of the holonomy diffeotopy from the
   horizontal lift in `Φ` and applies `flux_eq_mk_eulerianFluxForm`.
-- `flux_holonomyDiffeotopy_sub_wedge` (the shift of Decision 4): for
+- `flux_holonomyDiffeotopy_add_wedge` (the shift of Decision 4): for
   closed one-forms `b k` on `B` and one-forms `α k` on `M` whose pull-backs
   along every `Φ_t` are closed in a class `c k`, the holonomy flux of
-  `τ - ∑ k, π^* (b k) ∧ α k` along `Φ` is that of `τ` plus or minus, with the
-  sign the formula fixes, `∑ k, (∫ b k along γ on [0, 1]) • c k`.
+  `τ + ∑ k, π^* (b k) ∧ α k` along `Φ` is that of `τ` minus
+  `∑ k, (∫ b k along γ on [0, 1]) • c k`.
 
 ### `Geometry/Symplectic/Fibration/Hamiltonian.lean`
 
@@ -477,7 +482,7 @@ lines.
    *Flux homomorphism* (`Kernel.lean`) and for *Coupling forms*
    (`Coupling.lean`).
 7. **The characterization over loops.** `Characterization.lean`. Waits for
-   2, 5, 6 and for *Compatible symplectic forms* (`Thurston.lean`).
+   2, 4, 5, 6 and for *Compatible symplectic forms* (`Thurston.lean`).
 8. **The 1-skeleton form, and the milestone.** `OneSkeleton.lean`. Waits
    for 7.
 
