@@ -122,7 +122,7 @@ theorem stabilizer_zeroLevel_prod_eq_bot
 
 /-- **Regularity on the preimage of the orbit.** If the form is nondegenerate and `G` acts freely
 at every point of the preimage of the orbit of `η`, then `dμ` is onto at each of its points. -/
-theorem differential_surjective_of_mem_orbitLevel [I'.Boundaryless] [T2Space M]
+theorem differential_surjective_of_mem_orbitLevel [BoundarylessManifold I' M] [T2Space M]
     (hσ : σ.IsNondegenerate) (hfree : ∀ x ∈ h.orbitLevel η, MulAction.stabilizer G x = ⊥) :
     ∀ x ∈ h.orbitLevel η, Function.Surjective (h.differential x) :=
   fun x hx ↦ h.toIsMomentMap.differential_surjective_of_stabilizer_eq_bot
