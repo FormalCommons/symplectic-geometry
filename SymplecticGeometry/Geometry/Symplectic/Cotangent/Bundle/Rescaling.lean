@@ -15,11 +15,8 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.ZeroSection
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
-import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Fiberwise
-import TauCeti.Geometry.Symplectic.Manifold.Opens
-import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 import TauCeti.Topology.VectorBundle.Radial
 
 /-!
@@ -49,17 +46,17 @@ inclusion of `U'` to `ψ`, when `ψ` is moreover an open embedding and `L` is fi
 slice is `m_{1/t} ∘ ψ ∘ m_t`, and `m_c^* ω = c ω`
 (`TauCeti.CotangentBundle.mpullback_vectorBundleScalarDiffeomorph_symplecticForm`), so every
 slice pulls `ω` back to its restriction to `U'`. Hence each slice has injective differential
-(`TauCeti.SmoothTwoForm.IsSymplecticMap.mfderiv_injective`), so is a local diffeomorphism by the
-inverse function theorem (`TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv`), and being an
-open embedding it is a smooth embedding.
+(`TauCeti.SmoothTwoForm.IsSymplecticMap.mfderiv_injective`), and, being an open embedding, it is
+a smooth embedding (`TauCeti.SmoothTwoForm.IsSymplecticMap.isSmoothEmbedding`).
 
 ## Main results
 
 * `SymplecticGeometry.CotangentBundle.vectorBundleRescaledFamily_zero_eq_self`: the slice at
   `t = 0` of the rescaled family of a symplectic map fixing the zero section is the identity.
-* `SymplecticGeometry.CotangentBundle.exists_smoothIsotopy_of_eqOn_zeroSection`: a symplectic
-  open embedding of a neighbourhood of the zero section that fixes the zero section is joined to
-  the inclusion of a smaller neighbourhood by a symplectic smooth isotopy fixing the zero section.
+* `SymplecticGeometry.CotangentBundle.exists_smoothIsotopy_of_eqOn_zeroSection`: an open
+  symplectic embedding `ψ : U → T*L`, `U ⊇ 0_L` open, that is the identity on `0_L` is joined
+  to the inclusion of some open `U' ⊆ U` containing `0_L` by a symplectic smooth isotopy that
+  is the identity on `0_L`.
 
 ## References
 
@@ -145,8 +142,8 @@ theorem vectorBundleRescaledFamily_zero_eq_self [IsManifold J ∞ L] [J.Boundary
   simpa using this
 
 /-- **A symplectic embedding fixing the zero section is isotopic to the inclusion.** Let `L` be a
-finite-dimensional Hausdorff manifold without boundary, `U` an open neighbourhood of the zero
-section of `T*L` and `ψ : U → T*L` a smooth open embedding that fixes every point of the zero
+finite-dimensional Hausdorff manifold without boundary, `U` an open set of `T*L` containing
+every zero covector, and `ψ : U → T*L` a smooth open embedding that fixes every point of the zero
 section and pulls the canonical symplectic form `ω` back to its restriction to `U`. Then there is
 an open neighbourhood `U' ⊆ U` of the zero section and a smooth isotopy from the inclusion of `U'`
 to the restriction of `ψ` to `U'` whose slices pull `ω` back to its restriction to `U'`, fix every
@@ -236,18 +233,12 @@ theorem exists_smoothIsotopy_of_eqOn_zeroSection [IsManifold J ∞ L] [J.Boundar
         refine (U.isOpen.isOpenEmbedding_subtypeVal.of_comp_iff g).1 ?_
         exact (congrArg IsOpenEmbedding hgm).mpr
           (m.toHomeomorph.isOpenEmbedding.comp U'.isOpen.isOpenEmbedding_subtypeVal)
-  -- a slice is a local diffeomorphism, since it pulls back a nondegenerate form
-  have hnd := isSymplectic_symplecticForm.isNondegenerate.mpullback_subtype_val U'
+  -- so every slice is a smooth embedding, since it pulls back a nondegenerate form
   have hemb : ∀ t : unitInterval, Manifold.IsSmoothEmbedding (J.prod 𝓘(ℝ, E →L[ℝ] ℝ))
-      (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ∞ fun z : U' ↦ R (t, z) := fun t ↦ by
-    have hloc : IsLocalDiffeomorph (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ∞
-        fun z : U' ↦ R (t, z) := fun z ↦
-      isLocalDiffeomorphAt_of_injective_mfderiv (hf t).contMDiffOn isOpen_univ (mem_univ z)
-        BoundarylessManifold.isInteriorPoint (by simp)
-        (((SmoothTwoForm.isSymplecticMap_iff_mpullback_eq (hf t)).2
-          (hslice t).1).mfderiv_injective hnd z) rfl
-    exact isSmoothEmbedding_comp_isLocalDiffeomorph (f := id) (g := fun z : U' ↦ R (t, z)) hloc
-      (hslice t).2.isEmbedding Manifold.IsSmoothEmbedding.id
+      (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ∞ fun z : U' ↦ R (t, z) := fun t ↦
+    ((SmoothTwoForm.isSymplecticMap_iff_mpullback_eq (hf t)).2 (hslice t).1).isSmoothEmbedding
+      (isSymplectic_symplecticForm.isNondegenerate.mpullback_subtype_val U') (hf t)
+      (hslice t).2.isEmbedding
   refine ⟨U', hU', hzero,
     { toContMDiffMap := ⟨R, hR⟩
       map_zero_left := fun z ↦ by

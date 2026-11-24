@@ -5,7 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Geometry.Manifold.SmoothEmbedding
 public import TauCeti.Geometry.Symplectic.Manifold.Opens
+public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
+
+import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 
 /-!
 # Pull-back of a nondegenerate two-form by a map with symplectic differential
@@ -32,11 +37,17 @@ differential pairs to zero under `ω₀` with every vector. The proof is that of
 `TauCeti.SmoothTwoForm.IsNondegenerate.injective_mvfderiv`, for maps into a manifold rather than
 a vector space.
 
+A smooth map between manifolds of the same finite dimension that is symplectic out of a
+nondegenerate form is therefore a local diffeomorphism, by the inverse function theorem
+(`TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv`), and a smooth embedding as soon as it is a
+topological embedding (`TauCeti.SmoothTwoForm.IsSymplecticMap.isSmoothEmbedding`).
+
 ## Main results
 
 * `TauCeti.SmoothTwoForm.coe_mpullback_apply_eq_of_mfderiv_eq`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.isSymplectomorphism_mpullback_subtype_val`.
 * `TauCeti.SmoothTwoForm.injective_mfderiv_of_mpullback_apply_eq`.
+* `TauCeti.SmoothTwoForm.IsSymplecticMap.isSmoothEmbedding`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.symplecticFormAt_mfderiv_mfderiv`: the symplectic form
   of `ω₁` at `f x₀` on two differentials of `f` is the pull-back `f^* ω₁` at `x₀`.
 
@@ -126,6 +137,21 @@ theorem IsNondegenerate.symplecticFormAt_mfderiv_mfderiv {ω₁ : SmoothTwoForm 
       (SmoothForm.mpullback f hf ω₁).bilinFormAt x₀ v w := by
   rw [IsNondegenerate.symplecticFormAt_apply, SmoothForm.bilinFormAt_apply,
     SmoothForm.eval₂_mpullback]
+
+/-- **A symplectic topological embedding is a smooth embedding.** Let `M₀` and `M` be manifolds
+without boundary modelled on the same finite-dimensional space, and `ω₀` a nondegenerate two-form
+on `M₀`. A smooth map `f : M₀ → M` that is a symplectic map from `ω₀` to a two-form `σ` on `M` and
+a topological embedding is a smooth embedding. -/
+theorem IsSymplecticMap.isSmoothEmbedding [FiniteDimensional ℝ E₀] [I₀.Boundaryless]
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H₀ M] [IsManifold I₀ ∞ M]
+    {ω₀ : SmoothTwoForm I₀ M₀} {σ : SmoothTwoForm I₀ M} {f : M₀ → M}
+    (h : ω₀.IsSymplecticMap σ f) (hω₀ : ω₀.IsNondegenerate) (hf : ContMDiff I₀ I₀ ∞ f)
+    (hfe : Topology.IsEmbedding f) : Manifold.IsSmoothEmbedding I₀ I₀ ∞ f := by
+  -- by the inverse function theorem, `f` is a local diffeomorphism
+  have hloc : IsLocalDiffeomorph I₀ I₀ ∞ f := fun x ↦
+    isLocalDiffeomorphAt_of_injective_mfderiv hf.contMDiffOn isOpen_univ (Set.mem_univ x)
+      BoundarylessManifold.isInteriorPoint (by simp) (h.mfderiv_injective hω₀ x) rfl
+  exact isSmoothEmbedding_comp_isLocalDiffeomorph (f := id) hloc hfe Manifold.IsSmoothEmbedding.id
 
 end TauCeti.SmoothTwoForm
 
