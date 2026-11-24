@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
 public import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
 public import TauCeti.Geometry.Manifold.DeRham.HomologyPeriod
 public import TauCeti.AlgebraicTopology.Singular.Homotopy.Invariance
@@ -209,25 +208,13 @@ theorem pathClassIntegral_eq_intervalIntegral (hα : IsSmoothFamily K α)
 /-- **The periods of a smooth family of closed one-forms on a class of `H₁(M; ℤ)` depend smoothly
 on the parameter**, on a Hausdorff boundaryless manifold. -/
 theorem contMDiff_homologyPeriodHom {M : Type} [TopologicalSpace M] [ChartedSpace H M]
-    [IsManifold I ∞ M] [T2Space M] {N : Type} [TopologicalSpace N] [ChartedSpace HN N]
-    [IsManifold K ∞ N] {α : N → SmoothForm I M ℝ 1} (hα : IsSmoothFamily K α)
+    [IsManifold I ∞ M] [T2Space M] {α : N → SmoothForm I M ℝ 1} (hα : IsSmoothFamily K α)
     (hcl : ∀ t, α t ∈ closedForms I M 1) (c : ((singularChains ℤ).obj (.of M)).homology 1) :
     ContMDiff K 𝓘(ℝ) ∞ fun t ↦ homologyPeriodHom (α t : RoughForm I M ℝ 1) c := by
   obtain ⟨z, rfl⟩ := (H₁AddEquivHomology ℤ (.of M)).surjective c
   obtain ⟨z, rfl⟩ := H₁.mk_surjective z
   simp_rw [homologyPeriodHom_H₁AddEquivHomology_mk]
-  -- The periods along the simplices, as smooth functions of the parameter.
-  let g : (TopCat.toSSet.obj (.of M)) _⦋1⦌ → C^∞⟮K, N; 𝓘(ℝ), ℝ⟯ := fun s ↦
-    ⟨fun t ↦ pathClassIntegral (α t : RoughForm I M ℝ 1) (.mk (path₁ s)),
-      hα.contMDiff_pathClassIntegral hcl _⟩
-  -- Evaluation at `t` is additive, so it commutes with `chainsDesc`; on `g s` it gives the
-  -- period along `s` by definition of `g`.
-  have hval (t : N) : chainsDesc (fun s ↦ pathClassIntegral (α t : RoughForm I M ℝ 1)
-      (.mk (path₁ s))) (z : ((singularChains ℤ).obj (.of M)).X 1) =
-      chainsDesc g (z : ((singularChains ℤ).obj (.of M)).X 1) t :=
-    (map_chainsDesc (ContMDiffMap.evalRingHom t).toAddMonoidHom.toIntLinearMap g _).symm
-  simp_rw [hval]
-  exact (chainsDesc g (z : ((singularChains ℤ).obj (.of M)).X 1)).contMDiff
+  exact contMDiff_chainsDesc (fun s ↦ hα.contMDiff_pathClassIntegral hcl _) _
 
 /-- **Periods of a time integral of closed one-forms.** If the closed `C¹` form `β` is, pointwise,
 the integral `∫ₐᵇ α_{u t} dt` of a smooth family of closed one-forms along a continuous path `u`

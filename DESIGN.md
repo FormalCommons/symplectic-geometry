@@ -2133,7 +2133,7 @@ complete target and a function on the whole half-space.
 ### 18. Isotopy extension (needs `design/isotopy-extension.md`)
 
 - **Files:** in `Geometry/Symplectic/IsotopyExtension/`: `Velocity.lean`
-  (symplectic families of embeddings and their velocity forms), `Flow.lean`
+  (velocity forms of symplectic families of embeddings), `Flow.lean`
   (extension of such a family by an ambient symplectic or Hamiltonian flow),
   `Ball/Basic.lean` and `Ball/Isotopy.lean` (symplectic ball extension, on
   closed balls of `StdSpace (Fin n)` with `stdForm`, as *Conventions* asks

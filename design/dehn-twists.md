@@ -89,7 +89,7 @@ Tau Ceti and the library already have:
   merged neighbourhood extension of isotopies of submanifolds
   `TauCeti.SmoothIsotopy.exists_isSymplectic_extension_of_mpullback_eq`
   (`IsotopyExtension/Submanifold.lean`), with
-  `TauCeti.SmoothIsotopy.IsSymplectic` (`IsotopyExtension/Velocity.lean`);
+  `TauCeti.SmoothIsotopy.IsSymplectic` (`Geometry/Manifold/SmoothIsotopy/IsSymplectic.lean`);
   Tau Ceti's extension of a compactly supported diffeomorphism of an open
   set by the identity (`IsLocalDiffeomorph.exists_diffeomorph_extend_of_isCompact`,
   `Diffeomorph.exists_extend_of_isCompact`,
@@ -338,7 +338,7 @@ Coordinates on `T*Sⁿ` and the normalized geodesic flow.
 def cotangentMk (q : Sⁿ) (p : E) : T*Sⁿ        -- the covector v ↦ ⟪p, dι v⟫ at q
 def cotangentCoord (z : T*Sⁿ) : E × E          -- (q, p), p ∈ (ℝ ∙ q)ᗮ
 def cotangentNorm (z : T*Sⁿ) : ℝ               -- μ z = ‖(cotangentCoord z).2‖
-theorem cotangentNorm_eq_norm (z : T*Sⁿ) : cotangentNorm z = ‖z.snd‖   -- for sphereRoundMetric
+theorem cotangentNorm_eq_norm (z : T*Sⁿ) : cotangentNorm z = ‖z.snd‖   -- round metric
 theorem isCompact_setOf_cotangentNorm_le (r : ℝ) : IsCompact {z : T*Sⁿ | cotangentNorm z ≤ r}
 theorem cotangentCoord_cotangentMk (q : Sⁿ) (p : E) :
     cotangentCoord (cotangentMk q p) = ((q : E), p - ⟪(q : E), p⟫ • q)
@@ -369,12 +369,11 @@ theorem isMIntegralCurve_geodesicFlow {z} (hz : cotangentNorm z ≠ 0) :
 and the inverse of `cotangentCoord` on its image with
 `TauCeti.sphereTangentEquiv`. `mpullback_cotangentCoord` is
 `mpullback_liouvilleForm_apply_of_proj_comp_eq`. In `cotangentNorm_eq_norm`
-the norm on covectors is that of `TauCeti.sphereRoundMetric`, a `def`, which
-the file installs as a local instance. Write $T(r)$ for
-`{z | cotangentNorm z ≤ r}`. For $r>0$ it is the image of
-`codiscBundle` under $m_r$ (`vectorBundleScalarDiffeomorph_image_setOf_norm_le`),
-hence compact by `isCompact_codiscBundle`; otherwise it is a closed subset
-of $T(1)$. The great circle through
+the norm on covectors is that of Tau Ceti's round metric, the global instance
+`TauCeti.instRiemannianBundleSphere`. Write $T(r)$ for
+`{z | cotangentNorm z ≤ r}`. It is closed and lies in the image of
+`codiscBundle` under $m_{\max(r,1)}$ (`vectorBundleScalarDiffeomorph`),
+hence is compact by `isCompact_codiscBundle`. The great circle through
 `q` in the direction `p/‖p‖` is Tau Ceti's `sphereGreatCircle`, whose
 period and antipode give `geodesicFlow_two_pi` and `geodesicFlow_pi`. The
 flow statement is a computation in coordinates: the velocity of the curve is
@@ -627,7 +626,7 @@ isotopic to an element of $O(2)$.
 - *Symplectic neighbourhoods*: `Neighborhood/Lagrangian.lean` (the
   Lagrangian neighbourhood theorem).
 - *Isotopy extension*: `IsotopyExtension/Submanifold.lean`,
-  `IsotopyExtension/Velocity.lean` (`SmoothIsotopy.IsSymplectic`) and
+  `Geometry/Manifold/SmoothIsotopy/IsSymplectic.lean` (`SmoothIsotopy.IsSymplectic`) and
   `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean`.
 - *Hamiltonian flows*: `Flux/CompactSupport.lean` and `Flux/Hamiltonian.lean`.
 - *Smooth families*: `Diffeotopy/OfContMDiff.lean` and

@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.VectorField.Prod
 public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
+public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.IsSymplectic
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
@@ -26,8 +27,10 @@ import TauCeti.Geometry.Symplectic.Manifold.Flat
 
 Let `F : [0, 1] × P → M` be a smooth isotopy of embeddings (`TauCeti.SmoothIsotopy`), and let `τ`
 and `σ` be two-forms on `P` and `M`. The isotopy is symplectic
-(`TauCeti.SmoothIsotopy.IsSymplectic τ σ F`) when every slice `F_t = F (t, ·)` pulls `σ` back to
-`τ`. Its velocity form (`TauCeti.SmoothIsotopy.velocityForm σ F`) is the one-form `ι_{∂ₜ} F^* σ` on
+(`TauCeti.SmoothIsotopy.IsSymplectic τ σ F`, in
+`SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.IsSymplectic`) when every slice
+`F_t = F (t, ·)` pulls `σ` back to `τ`. Its velocity form
+(`TauCeti.SmoothIsotopy.velocityForm σ F`) is the one-form `ι_{∂ₜ} F^* σ` on
 the cylinder `[0, 1] × P`, the interior product (`TauCeti.SmoothForm.interiorProduct`) of `F^* σ`
 with the unit time field `∂ₜ = (1, 0)`, a smooth section of the tangent bundle
 (`SymplecticGeometry.unitIntervalTimeField`). Its slice at time `t` is the one-form
@@ -50,7 +53,6 @@ diffeotopies and the cylinder `[0, 1] × M` of isotopies.
 
 ## Main definitions
 
-* `TauCeti.SmoothIsotopy.IsSymplectic τ σ F`: every slice of `F` pulls `σ` back to `τ`.
 * `TauCeti.SmoothIsotopy.velocityForm σ F`: the one-form `ι_{∂ₜ} F^* σ` on `[0, 1] × P`.
 * `TauCeti.SmoothIsotopy.restrict G h`: the restriction of an isotopy `G` of an open `W ⊆ P` to
   an open `V ⊆ W`.
@@ -65,13 +67,6 @@ diffeotopies and the cylinder `[0, 1] × M` of isotopies.
   velocity form.
 * `TauCeti.SmoothIsotopy.IsSymplectic.mextDeriv_mpullback_prodMk_velocityForm`: for a closed `σ`,
   the slices of the velocity form of a symplectic isotopy are closed.
-* `TauCeti.SmoothIsotopy.IsSymplectic.refl`, `TauCeti.Diffeotopy.isSymplectic_smoothIsotopy`: the
-  constant isotopy of a map pulling `σ` back to `τ`, and the restriction of a diffeotopy whose
-  slices preserve `σ` to an embedding `f`, are symplectic (for `f^* σ`).
-* `TauCeti.SmoothIsotopy.IsSymplectic.of_apply_eq_diffeotopy_apply`,
-  `TauCeti.SmoothIsotopy.IsSymplectic.of_apply_eq_apply_diffeomorph`: an isotopy that is a
-  symplectic isotopy composed with a diffeotopy preserving `σ`, or with a diffeomorphism of the
-  source, is symplectic.
 * `TauCeti.Diffeotopy.hasHamiltonian_iff_velocityForm`: Hamiltonians of a diffeotopy are the
   smooth functions whose slices are primitives of the slices of its velocity form.
 * `TauCeti.SmoothIsotopy.mpullback_prodMk_velocityForm_restrict`: the slices of the velocity form
@@ -112,20 +107,6 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSp
 namespace SmoothIsotopy
 
 variable [IsManifold I ∞ M] [IsManifold J ∞ P] {f₀ f₁ : C^∞⟮J, P; I, M⟯}
-
-/-! ### Symplectic isotopies -/
-
-/-- A smooth isotopy `F` from `P` to `M` is **symplectic** for two-forms `τ` on `P` and `σ` on
-`M` when every slice `F_t = F (t, ·)` pulls `σ` back to `τ`. -/
-def IsSymplectic (τ : SmoothTwoForm J P) (σ : SmoothTwoForm I M) (F : SmoothIsotopy f₀ f₁) :
-    Prop :=
-  ∀ t, mpullback J I (fun x ↦ F (t, x)) σ.val = τ.val
-
-/-- Unfolding `TauCeti.SmoothIsotopy.IsSymplectic`. -/
-theorem isSymplectic_def {τ : SmoothTwoForm J P} {σ : SmoothTwoForm I M}
-    {F : SmoothIsotopy f₀ f₁} :
-    F.IsSymplectic τ σ ↔ ∀ t, mpullback J I (fun x ↦ F (t, x)) σ.val = τ.val :=
-  Iff.rfl
 
 /-! ### Velocity forms -/
 
@@ -236,60 +217,8 @@ theorem IsSymplectic.mextDeriv_mpullback_prodMk_velocityForm [CompleteSpace E']
     have hι : MDifferentiable J ((𝓡∂ 1).prod J) (Prod.mk s : P → unitInterval × P) :=
       mdifferentiable_const.prodMk mdifferentiable_id
     rw [SmoothForm.coe_mpullback, ← mpullback_comp hι (F.contMDiff.mdifferentiable (by simp))]
-    exact hF s
+    exact isSymplectic_def.1 hF s
   rw [hs, hs]
-
-/-! ### Examples and invariance of symplectic isotopies -/
-
-/-- The constant isotopy of a smooth embedding that pulls `σ` back to `τ` is symplectic. -/
-theorem IsSymplectic.refl {τ : SmoothTwoForm J P} {σ : SmoothTwoForm I M}
-    {f : C^∞⟮J, P; I, M⟯} (hf : Manifold.IsSmoothEmbedding J I ∞ f)
-    (h : mpullback J I f σ.val = τ.val) : (f.smoothIsotopyRefl hf).IsSymplectic τ σ :=
-  fun _ ↦ by simpa only [ContMDiffMap.smoothIsotopyRefl_apply] using h
-
-/-- A slice of a symplectic isotopy, as a smooth embedding, pulls `σ` back to `τ`. -/
-theorem IsSymplectic.mpullback_timeSlice {τ : SmoothTwoForm J P} {σ : SmoothTwoForm I M}
-    {F : SmoothIsotopy f₀ f₁} (hF : F.IsSymplectic τ σ) (t : unitInterval) :
-    mpullback J I (F.timeSlice t) σ.val = τ.val := by
-  simpa only [← timeSlice_apply] using hF t
-
-/-- Reversing time keeps an isotopy symplectic. -/
-theorem IsSymplectic.symm {τ : SmoothTwoForm J P} {σ : SmoothTwoForm I M}
-    {F : SmoothIsotopy f₀ f₁} (hF : F.IsSymplectic τ σ) : F.symm.IsSymplectic τ σ := fun t ↦ by
-  simpa only [symm_apply] using hF (unitInterval.symm t)
-
-/-- **Composition with a symplectic diffeotopy.** If `F` is symplectic and every slice of the
-diffeotopy `Φ` of `M` preserves `σ`, then an isotopy `G` with `G (t, x) = Φ (t, F (t, x))` is
-symplectic. -/
-theorem IsSymplectic.of_apply_eq_diffeotopy_apply {g₀ g₁ : C^∞⟮J, P; I, M⟯}
-    {τ : SmoothTwoForm J P} {σ : SmoothTwoForm I M} {F : SmoothIsotopy f₀ f₁}
-    {G : SmoothIsotopy g₀ g₁} (hF : F.IsSymplectic τ σ) {Φ : Diffeotopy I ∞ M}
-    (hΦ : ∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ)
-    (hG : ∀ t x, G (t, x) = Φ (t, F (t, x))) : G.IsSymplectic τ σ := fun t ↦ by
-  have hfun : (fun x ↦ G (t, x)) = Φ.timeSlice t ∘ F.timeSlice t :=
-    funext fun x ↦ by rw [hG, Function.comp_apply, Diffeotopy.timeSlice_apply, timeSlice_apply]
-  have hΦt : mpullback I I (Φ.timeSlice t) σ.val = σ.val := by
-    rw [← SmoothForm.coe_mpullback _ (Φ.timeSlice t).contMDiff,
-      SmoothForm.mem_diffeomorphStabilizer.1 (hΦ t)]
-  rw [hfun, mpullback_comp ((F.timeSlice t).contMDiff.mdifferentiable (by simp))
-    ((Φ.timeSlice t).contMDiff.mdifferentiable (by simp)), hΦt]
-  exact hF.mpullback_timeSlice t
-
-/-- **Composition with a diffeomorphism of the source.** If `F` is symplectic for `τ` and `σ`, and
-`χ : Q → P` is a diffeomorphism, then an isotopy `G` with `G (t, y) = F (t, χ y)` is symplectic for
-`χ^* τ` and `σ`. -/
-theorem IsSymplectic.of_apply_eq_apply_diffeomorph {E'' H'' : Type*} [NormedAddCommGroup E'']
-    [NormedSpace ℝ E''] [TopologicalSpace H''] {J' : ModelWithCorners ℝ E'' H''} {Q : Type*}
-    [TopologicalSpace Q] [ChartedSpace H'' Q] [IsManifold J' ∞ Q] {g₀ g₁ : C^∞⟮J', Q; I, M⟯}
-    {τ : SmoothTwoForm J P} {σ : SmoothTwoForm I M} {F : SmoothIsotopy f₀ f₁}
-    {G : SmoothIsotopy g₀ g₁} (hF : F.IsSymplectic τ σ) (χ : Q ≃ₘ⟮J', J⟯ P)
-    (hG : ∀ t y, G (t, y) = F (t, χ y)) :
-    G.IsSymplectic (SmoothForm.mpullback χ χ.contMDiff τ) σ := fun t ↦ by
-  have hfun : (fun y ↦ G (t, y)) = F.timeSlice t ∘ χ :=
-    funext fun y ↦ by rw [hG, Function.comp_apply, timeSlice_apply]
-  rw [hfun, mpullback_comp (χ.contMDiff.mdifferentiable (by simp))
-    ((F.timeSlice t).contMDiff.mdifferentiable (by simp)), hF.mpullback_timeSlice t,
-    SmoothForm.coe_mpullback]
 
 /-! ### Restriction to an open subset -/
 
@@ -373,16 +302,6 @@ end SmoothIsotopy
 namespace Diffeotopy
 
 variable [IsManifold I ∞ M] [IsManifold J ∞ P]
-
-/-- The restriction `t ↦ φ_t ∘ f` of a diffeotopy whose slices preserve `σ` to a smooth embedding
-`f` is a symplectic isotopy, for `f^* σ` on the source. -/
-theorem isSymplectic_smoothIsotopy {σ : SmoothTwoForm I M} {Φ : Diffeotopy I ∞ M}
-    (hΦ : ∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) (f : C^∞⟮J, P; I, M⟯)
-    (hf : Manifold.IsSmoothEmbedding J I ∞ f) :
-    (Φ.smoothIsotopy f hf).IsSymplectic (SmoothForm.mpullback f f.contMDiff σ) σ :=
-  SmoothIsotopy.IsSymplectic.of_apply_eq_diffeotopy_apply
-    (SmoothIsotopy.IsSymplectic.refl hf (SmoothForm.coe_mpullback _ _ _).symm) hΦ
-    fun _ _ ↦ by simp
 
 /-- **Hamiltonians and velocity forms.** A function `F` on `M × [0, 1]` is a Hamiltonian of the
 diffeotopy `φ_t`, read along the motion as in `TauCeti.Diffeotopy.HasHamiltonian`, exactly when
