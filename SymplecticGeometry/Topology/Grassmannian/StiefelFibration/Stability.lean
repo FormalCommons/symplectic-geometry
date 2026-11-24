@@ -7,9 +7,9 @@ module
 
 public import TauCeti.Topology.Algebra.OrthogonalGroup
 public import TauCeti.Topology.Algebra.UnitaryGroup
+public import TauCeti.Topology.Grassmannian.StiefelFibration.ForgetLast
 public import TauCeti.Topology.Grassmannian.StiefelFibration.Unitary
 public import TauCeti.Topology.Homotopy.SerreFibration.Connected
-public import SymplecticGeometry.Topology.Grassmannian.StiefelFibration.ForgetLast
 
 /-!
 # The stable range of the unitary groups
@@ -20,7 +20,7 @@ basis vector of the Serre fibration `U(1 + m, 𝕜) → S(𝕜^(1 + m))` that ta
 its first column (`TauCeti.unitaryFrameMap` with `r = 1`, and
 `TauCeti.unitaryFrameFiberHomeomorph`). The base is a real sphere of dimension `d * (m + 1) - 1`,
 so its homotopy groups vanish up to degree `d * (m + 1) - 2`
-(`TauCeti.finiteOrthonormalFrame.subsingleton_homotopyGroup_unitVector`). The inclusion of the
+(`TauCeti.finiteOrthonormalFrame.subsingleton_homotopyGroup` for `r = 1`). The inclusion of the
 fibre is then `(d * (m + 1) - 2)`-connected
 (`TauCeti.TopCat.isNConnected_fiberι_of_mem_serreFibrations`). Over `ℂ` this says that
 `U(m) → U(m + 1)` is `2m`-connected; over `ℝ` it is the stable range of `O(m) → O(m + 1)`.
@@ -70,8 +70,8 @@ theorem isNConnected_fromBlocksOne (h : 2 ≤ Module.finrank ℝ 𝕜 * (m + 1))
   have hfib : (p.fiberι (unitaryFrameMap 1 m 1)).hom.IsNConnected
       (Module.finrank ℝ 𝕜 * (m + 1) - 2) :=
     TopCat.isNConnected_fiberι_of_mem_serreFibrations unitaryFrameMap_mem_serreFibrations
-      fun k hk ↦ finiteOrthonormalFrame.subsingleton_homotopyGroup_unitVector
-        (by rw [Nat.card_fin, add_comm 1 m]; omega) _
+      fun k hk ↦ finiteOrthonormalFrame.subsingleton_homotopyGroup
+        (by rw [Nat.card_fin, mul_one, add_comm 1 m, mul_add _ (m + 1)]; omega) _
   -- The block embedding is the fibre inclusion after the homeomorphism of `U(m)` with the fibre.
   let φ := unitaryFrameFiberHomeomorph 𝕜 1 m
   convert hfib.comp (φ.toHomotopyEquiv.isWeakHomotopyEquivalence.isNConnected _) using 1
