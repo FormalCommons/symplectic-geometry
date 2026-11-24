@@ -90,7 +90,7 @@ theorem mfderiv_moserField (g : M ≃ₘ⟮I, I⟯ M) {t : N}
       (SmoothTwoForm.flat σt (g x)).inverse (-SmoothForm.degreeOneEquiv βt (g x)) := by
     conv_lhs => rw [← hσ]
     rw [hc, SmoothTwoForm.mfderiv_flat_mpullback_inverse_apply g.contMDiff σt
-      ⟨g.mfderivToContinuousLinearEquiv (by simp) x, g.mfderivToContinuousLinearEquiv_coe _⟩]
+      (g.isInvertible_mfderiv (by simp))]
   rw [moserField_def, moserField_def, map_smul, hρ]
   exact congrArg _ key
 
