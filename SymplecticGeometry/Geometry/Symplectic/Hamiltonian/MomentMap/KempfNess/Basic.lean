@@ -145,34 +145,38 @@ theorem momentSharp_neg : momentSharp B hB (fun x ↦ -μ x) x = -momentSharp B 
 variable (B hB μ) in
 /-- The norm square `‖μ x‖² = B^∨ (μ x) (μ x)` of the moment map, for the form
 `B^∨ = B.dualForm hB` on the dual of the Lie algebra that the nondegenerate form `B` induces.
-It is `B (μ♯ x) (μ♯ x)` (`momentNormSq_def`). -/
+It is `B (μ♯ x) (μ♯ x)` (`momentNormSq_eq_momentSharp`). -/
 def momentNormSq (x : M) : ℝ :=
   B.dualForm hB (μ x) (μ x)
 
-theorem momentNormSq_def :
+theorem momentNormSq_def : momentNormSq B hB μ x = B.dualForm hB (μ x) (μ x) :=
+  (rfl)
+
+/-- The norm square of `μ x` is `B (μ♯ x) (μ♯ x)`. -/
+theorem momentNormSq_eq_momentSharp :
     momentNormSq B hB μ x = B (momentSharp B hB μ x) (momentSharp B hB μ x) := by
-  rw [momentNormSq, LinearMap.BilinForm.dualForm_apply, momentSharp_def]
+  rw [momentNormSq_def, LinearMap.BilinForm.dualForm_apply, momentSharp_def]
 
 /-- The norm square of `μ x` is `μ x` evaluated at `μ♯ x`. -/
 theorem momentNormSq_eq_apply_momentSharp :
     momentNormSq B hB μ x = μ x (momentSharp B hB μ x) := by
-  rw [momentNormSq, LinearMap.BilinForm.dualForm_apply_eq, momentSharp_def]
+  rw [momentNormSq_def, LinearMap.BilinForm.dualForm_apply_eq, momentSharp_def]
 
 /-- The norm square of `-μ` is that of `μ`. -/
 @[simp]
 theorem momentNormSq_neg : momentNormSq B hB (fun x ↦ -μ x) x = momentNormSq B hB μ x := by
-  simp [momentNormSq_def, momentSharp_neg]
+  simp [momentNormSq_eq_momentSharp, momentSharp_neg]
 
 /-- For a nonnegative form `B`, the norm square of `μ x` is nonnegative. -/
 theorem momentNormSq_nonneg (hpos : B.IsNonneg) : 0 ≤ momentNormSq B hB μ x := by
-  rw [momentNormSq_def]
+  rw [momentNormSq_eq_momentSharp]
   exact hpos.nonneg _
 
 /-- For an anisotropic form `B`, such as a positive definite one, the norm square of `μ x`
 vanishes exactly when `μ x` does. -/
 theorem momentNormSq_eq_zero_iff (hB' : B.toQuadraticMap.Anisotropic) :
     momentNormSq B hB μ x = 0 ↔ μ x = 0 := by
-  rw [momentNormSq_def, ← momentSharp_eq_zero_iff (hB := hB)]
+  rw [momentNormSq_eq_momentSharp, ← momentSharp_eq_zero_iff (hB := hB)]
   exact ⟨hB' _, fun h ↦ by simp [h]⟩
 
 /-- For a coadjoint-equivariant `μ` and an `Ad`-invariant form `B`, the dual vector is
@@ -192,8 +196,9 @@ theorem momentNormSq_smul [LieGroup I 1 G] [MulAction G M]
     (hBG : Representation.IsInvariantForm (Lie.adjointRepresentation ℝ I G) B)
     (hμ : ∀ (g : G) (x : M), μ (g • x) = Lie.coadjointRepresentation ℝ I G g (μ x))
     (g : G) (x : M) : momentNormSq B hB μ (g • x) = momentNormSq B hB μ x := by
-  rw [momentNormSq_def, momentSharp_smul hBG hμ, ← Lie.adjointRepresentation_apply (𝕜 := ℝ),
-    Representation.isInvariantForm_iff.1 hBG, momentNormSq_def]
+  rw [momentNormSq_eq_momentSharp, momentSharp_smul hBG hμ,
+    ← Lie.adjointRepresentation_apply (𝕜 := ℝ), Representation.isInvariantForm_iff.1 hBG,
+    momentNormSq_eq_momentSharp]
 
 /-- In a basis `b` of the Lie algebra, the norm square of `μ x` is
 `∑ i, μ x (b i) * μ x (B♯ (b.coord i))`, with `B♯` the inverse of `B.toDual hB`. -/
