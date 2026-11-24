@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily
 public import TauCeti.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import TauCeti.Geometry.Manifold.DifferentialForm.ParametricPrimitive
+import TauCeti.Geometry.Manifold.Topology
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 
@@ -31,8 +32,7 @@ The file has two results.
   be closed.
 * *Exact forms on any manifold.* Choose primitives `g_t` of the `α_t` and a point `r i` in each
   connected component `i`, and let `f (t, x) = g_t x - g_t (r i)` for `x` in the component `i`.
-  Every point has a smoothly contractible, hence connected, open neighbourhood, so the
-  components are open. On the component `i`, Tau Ceti's
+  Manifolds are locally path-connected, so the components are open. On the component `i`, Tau Ceti's
   `TauCeti.exists_contMDiff_mvfderiv_eq_of_forall_exists`, applied to the family restricted to
   the component and pulled back to `component × N` by the swap of the factors, gives a jointly
   smooth family of primitives vanishing at `r i`. Two primitives of the same form on a connected
@@ -137,10 +137,8 @@ private theorem exists_contMDiff_eq_sub_of_preconnectedSpace {α : N → SmoothF
       -- Both sides are the `0`-form of `z ↦ g t z`, written with and without `∘`.
       rfl
     have h1 : mvfderiv I (fun z : U ↦ g t z) z v =
-        mextDeriv (RoughForm.ofFunction I fun z : U ↦ g t z) z ![v] := by
-      rw [mextDeriv_ofFunction, ContinuousAlternatingMap.ofSubsingleton_apply_apply]
-      -- `![v] 0` is `v`.
-      rfl
+        mextDeriv (RoughForm.ofFunction I fun z : U ↦ g t z) z ![v] :=
+      ((mextDeriv_ofFunction_apply _ z v).trans (mvfderiv_apply_eq_mfderiv_apply ..).symm).symm
     rw [h1, hd, ← hΩ t, SmoothForm.mpullback_apply, SmoothForm.mpullback_apply]
     congr 1
     funext i
@@ -179,16 +177,9 @@ theorem exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms {α : N → Smoot
   have hr (i : ConnectedComponents M) : ConnectedComponents.mk (r i) = i :=
     Function.surjInv_eq _ i
   let f : N × M → ℝ := fun p ↦ g p.1 p.2 - g p.1 (r (ConnectedComponents.mk p.2))
-  -- Every connected component is open, as every point has a smoothly contractible, hence
-  -- connected, open neighbourhood.
-  have hCo (x : M) : IsOpen (connectedComponent x) :=
-    isOpen_iff_forall_mem_open.2 fun y hy ↦ by
-      obtain ⟨U, hyU, hU⟩ := exists_mem_isSmoothlyContractible (I := I) y
-      have := hU.connectedSpace
-      have hsub := (isConnected_range (continuous_subtypeVal (p := (· ∈ U)))).isPreconnected
-        |>.subset_connectedComponent (x := y) ⟨⟨y, hyU⟩, rfl⟩
-      rw [Subtype.range_coe, ← connectedComponent_eq hy] at hsub
-      exact ⟨U, hsub, U.isOpen, hyU⟩
+  -- Every connected component is open, as manifolds are locally path-connected.
+  have : LocallyPathConnectedSpace M := I.locallyPathConnectedSpace_of_chartedSpace M
+  have hCo (x : M) : IsOpen (connectedComponent x) := isOpen_connectedComponent
   let C (x : M) : Opens M := ⟨connectedComponent x, hCo x⟩
   have hmkC (x : M) (y : M) (hy : y ∈ C x) : ConnectedComponents.mk y = ConnectedComponents.mk x :=
     ConnectedComponents.coe_eq_coe'.2 hy
