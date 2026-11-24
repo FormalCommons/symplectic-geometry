@@ -8,6 +8,7 @@ module
 public import TauCeti.Analysis.Matrix.UnitaryGroup.Connected
 public import TauCeti.AlgebraicTopology.UniversalCover.Circle.FundamentalGroup
 public import TauCeti.Topology.Algebra.Matrix.UnitaryGroup
+import TauCeti.Topology.Algebra.UnitaryGroup
 public import TauCeti.Topology.Homotopy.HomotopyGroup.BasepointChange
 public import SymplecticGeometry.AlgebraicTopology.FundamentalGroup
 public import SymplecticGeometry.Analysis.Matrix.UnitaryGroup.Basic
@@ -30,8 +31,8 @@ homeomorphism `U(1) ≃ S¹` (`Matrix.UnitaryGroup.detCircleEquivOfUnique`). The
 preserves the determinant; this carries the statement from `m` to `1 + m`. Path-connectedness of
 `U(n)` moves the base point, and reindexing passes from `Fin (card ι)` to `ι`.
 
-For `SU(ι)`, the map `A ↦ A · diag(1, …, (det A)⁻¹, …, 1)` is a retraction of `U(ι)` onto `SU(ι)`
-(`Matrix.UnitaryGroup.toSpecialUnitary`).
+For `SU(ι)`, the map `A ↦ A · diag(1, …, star (det A), …, 1)` is a retraction of `U(ι)` onto
+`SU(ι)` (Tau Ceti's `Matrix.UnitaryGroup.toSpecialUnitaryAt`).
 A loop in `SU(ι)` has constant determinant, so it is null-homotopic in `U(ι)` by injectivity on
 `π₁`, and the retraction carries this null-homotopy back into `SU(ι)`.
 
@@ -207,16 +208,19 @@ private theorem simplyConnectedSpace_specialUnitaryGroup_of_nonempty [Nonempty �
     SimplyConnectedSpace (specialUnitaryGroup ι ℂ) := by
   let i₀ : ι := Classical.arbitrary ι
   let r : C(unitaryGroup ι ℂ, specialUnitaryGroup ι ℂ) :=
-    ⟨toSpecialUnitary i₀, continuous_toSpecialUnitary i₀⟩
+    ⟨toSpecialUnitaryAt i₀, continuous_toSpecialUnitaryAt i₀⟩
   let s : C(specialUnitaryGroup ι ℂ, unitaryGroup ι ℂ) :=
     ⟨Submonoid.inclusion specialUnitaryGroup_le_unitaryGroup,
       continuous_inclusion specialUnitaryGroup_le_unitaryGroup⟩
   let d : C(unitaryGroup ι ℂ, Circle) := ⟨detCircle, continuous_detCircle⟩
+  -- A special unitary matrix is its own correction.
+  have hret (A : specialUnitaryGroup ι ℂ) : r (s A) = A :=
+    Subtype.ext (toSpecialUnitaryAt_of_det_eq_one i₀ (mem_specialUnitaryGroup_iff.1 A.property).2)
   have hrs : r.comp s = ContinuousMap.id _ :=
-    ContinuousMap.ext (toSpecialUnitary_inclusion i₀)
+    ContinuousMap.ext hret
   have : PathConnectedSpace (specialUnitaryGroup ι ℂ) :=
     Function.Surjective.pathConnectedSpace (f := r)
-      (fun A ↦ ⟨s A, toSpecialUnitary_inclusion i₀ A⟩) r.continuous
+      (fun A ↦ ⟨s A, hret A⟩) r.continuous
   -- A loop in `SU(ι)` becomes, in `U(ι)`, a loop with constant determinant, so it is trivial in
   -- `π_1(U(ι))`; the retraction brings it back.
   have : Subsingleton (HomotopyGroup (Fin 1) (specialUnitaryGroup ι ℂ) 1) := by
@@ -230,7 +234,7 @@ private theorem simplyConnectedSpace_specialUnitaryGroup_of_nonempty [Nonempty �
           (detCircle_inclusion_specialUnitaryGroup 1).symm
       exact (HomotopyGroup.map_congr hds _ rfl c).trans
         (HomotopyGroup.map_continuousMap_const_apply_eq_one _ _ _)
-    have hr1 : r (s 1) = 1 := toSpecialUnitary_inclusion i₀ 1
+    have hr1 : r (s 1) = 1 := hret 1
     rw [← HomotopyGroup.map_map_of_comp_eq_id r s rfl hr1 hrs a,
       ← HomotopyGroup.map_map_of_comp_eq_id r s rfl hr1 hrs b, key, key]
   have : Subsingleton (FundamentalGroup (specialUnitaryGroup ι ℂ) 1) :=
