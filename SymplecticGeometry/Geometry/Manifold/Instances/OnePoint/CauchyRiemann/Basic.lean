@@ -5,14 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.Instances.OnePoint.LineBundle
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.LocalFrame
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Trivial
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.ZeroOneForm
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Existence
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.LocalFrame
-public import TauCeti.Geometry.Manifold.VectorBundle.RestrictScalars
-public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.TwistCore
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 
 /-!
@@ -25,10 +23,11 @@ affine frame, the value at `∞` the coordinate in the inverted frame. This file
 linear connection `∇` on `L` and defines, for every almost complex structure `J` on the sphere,
 the real Cauchy–Riemann operator `D_J s = (∇ s)^{0,1}` and the space `E_J` of its smooth zeros.
 
-The connection is glued, by a smooth partition of unity subordinate to the two chart domains,
-from the flat connections `TauCeti.Manifold.frameCovariantDerivative` of the frames of the
-trivializations of `L` (the gluing is Tau Ceti's
-`PartitionOfUnity.IsSubordinate.isCovariantDerivativeOn_finsum_smul`). In the frame of a chart
+The connection is Tau Ceti's `CovariantDerivative.ofPartitionOfUnity`: it glues, along a smooth
+partition of unity subordinate to the two chart domains, the flat connections
+`TauCeti.Manifold.frameCovariantDerivative` of the frames of the trivializations of `L`. The
+real bundle structure of `L` that this uses is in
+`SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.TwistCore`. In the frame of a chart
 the flat connection differentiates the coordinate of a section, so its `(0,1)`-part for the
 standard complex structure `i` is `∂bar` of the coordinate. Since the transition functions of
 `L` are holomorphic, these readings agree on the overlap of the charts, and so the `(0,1)`-part
@@ -36,6 +35,10 @@ of `∇` for `i` is `∂bar` of the coordinate in either frame.
 
 ## Main definitions and results
 
+* `OnePoint.isCovariantDerivativeOn_frameCovariantDerivative_twistCore_localTriv` and
+  `OnePoint.contMDiffCovariantDerivativeOn_frameCovariantDerivative_twistCore_localTriv`: the
+  flat connection of the frame of the chart at `y` is a smooth covariant derivative over that
+  chart, for `𝒪(k)`.
 * `OnePoint.frameCovariantDerivative_twistCore_localTriv` and
   `OnePoint.frameCauchyRiemannOperator_twistCore_localTriv`: in the frame of the chart at `y`,
   the flat connection of `𝒪(k)` is the differential of the coordinate, and its `(0,1)`-part for
@@ -47,9 +50,9 @@ of `∇` for `i` is `∂bar` of the coordinate in either frame.
   `twistOneConnection_const_smul`.
 * `SymplecticGeometry.twistOneConnection_zeroOnePart_eq`: in the frame of either chart, its
   `(0,1)`-part for `i` is `∂bar` of the coordinate.
-* `SymplecticGeometry.twistOneDelBar J`: the operator `D_J`, with
-  `isRealCauchyRiemannOperator_twistOneDelBar`, `isComplexLinearOperator_twistOneDelBar` and
-  `contMDiffCovariantDerivativeOn_twistOneDelBar`.
+* `SymplecticGeometry.twistOneDelBar J`: the operator `D_J`, with `twistOneDelBar_zero`,
+  `twistOneDelBar_const_smul`, `isRealCauchyRiemannOperator_twistOneDelBar`,
+  `isComplexLinearOperator_twistOneDelBar` and `contMDiffCovariantDerivativeOn_twistOneDelBar`.
 * `SymplecticGeometry.twistOneKernel J`: the complex vector space of smooth sections `s` with
   `D_J s = 0`, with `mem_twistOneKernel_iff`.
 
@@ -74,42 +77,26 @@ namespace OnePoint
 
 variable {k : ℤ}
 
-/-- The fibres of `𝒪(k)` on the Riemann sphere carry the topology of `ℂ`, for which multiplication
-by real scalars is continuous. -/
-instance (k : ℤ) (x : OnePoint ℂ) : ContinuousSMul ℝ ((twistCore (𝕜 := ℂ) k).Fiber x) :=
-  inferInstanceAs (ContinuousSMul ℝ ℂ)
+/-- The flat connection of the frame of the trivialization of `𝒪(k)` at `y` is a covariant
+derivative over the chart at `y`. -/
+theorem isCovariantDerivativeOn_frameCovariantDerivative_twistCore_localTriv (k : ℤ)
+    (y : OnePoint ℂ) :
+    IsCovariantDerivativeOn ℂ
+      (frameCovariantDerivative 𝓘(ℝ, ℂ) Complex.basisOneI ((twistCore k).localTriv y))
+      (chartAt ℂ y).source := by
+  rw [← twistCore_localTriv_baseSet k y]
+  exact isCovariantDerivativeOn_frameCovariantDerivative Complex.basisOneI
 
-/-- `𝒪(k)` on the Riemann sphere is a `C^n` real vector bundle over the underlying real
-surface, for every `n`. -/
-instance (k : ℤ) {n : ℕ∞ω} : ContMDiffVectorBundle n ℂ (twistCore (𝕜 := ℂ) k).Fiber 𝓘(ℝ, ℂ) :=
-  have : ContMDiffVectorBundle n ℂ (twistCore (𝕜 := ℂ) k).Fiber 𝓘(ℂ, ℂ) :=
-    ContMDiffVectorBundle.of_le le_top
-  ContMDiffVectorBundle.restrictScalars_modelWithCornersSelf ℝ this
-
-/-- The local trivializations of `𝒪(k)` belong to its trivialization atlas. -/
-instance (k : ℤ) (y : OnePoint ℂ) :
-    MemTrivializationAtlas ((twistCore (𝕜 := ℂ) k).localTriv y) :=
-  ⟨⟨y, rfl⟩⟩
-
-/-- Over the chart at `y`, the frame of the trivialization of `𝒪(k)` at `y` is multiplication by
-the transition function from the chart at `y` to the chart at the point. -/
-theorem twistCore_localTriv_symmL_apply {y x : OnePoint ℂ} (hx : x ∈ (chartAt ℂ y).source)
-    (v : ℂ) :
-    ((twistCore (𝕜 := ℂ) k).localTriv y).symmL ℝ x v = twistTransition k y x x * v := by
-  have hb : x ∈ ((twistCore (𝕜 := ℂ) k).localTriv y).baseSet := by simpa using hx
-  rw [Trivialization.symmL_apply _ hb]
-  have h := (twistCore (𝕜 := ℂ) k).localTriv_symm_apply y hb v
-  rwa [twistCore_indexAt, twistCore_coordChange_apply] at h
-
-/-- The real frame of a trivialization of `𝒪(k)` commutes with complex scalars. -/
-theorem twistCore_localTriv_symmL_smul {y x : OnePoint ℂ} (hx : x ∈ (chartAt ℂ y).source)
-    (c w : ℂ) :
-    ((twistCore (𝕜 := ℂ) k).localTriv y).symmL ℝ x (c • w) =
-      c • ((twistCore (𝕜 := ℂ) k).localTriv y).symmL ℝ x w := by
-  have hb : x ∈ ((twistCore (𝕜 := ℂ) k).localTriv y).baseSet := by simpa using hx
-  rw [Trivialization.symmL_apply _ hb, Trivialization.symmL_apply _ hb,
-    ← Trivialization.symmL_apply (R := ℂ) _ hb, ← Trivialization.symmL_apply (R := ℂ) _ hb,
-    map_smul]
+/-- The flat connection of the frame of the trivialization of `𝒪(k)` at `y` sends `C^(n + 1)`
+sections to `C^n` one-forms over the chart at `y`. -/
+theorem contMDiffCovariantDerivativeOn_frameCovariantDerivative_twistCore_localTriv (k : ℤ)
+    (y : OnePoint ℂ) (n : ℕ∞) :
+    ContMDiffCovariantDerivativeOn ℂ n
+      (frameCovariantDerivative 𝓘(ℝ, ℂ) Complex.basisOneI ((twistCore k).localTriv y))
+      (chartAt ℂ y).source := by
+  rw [← twistCore_localTriv_baseSet k y]
+  exact contMDiffCovariantDerivativeOn_frameCovariantDerivative (m := ω) (k := ω)
+    Complex.basisOneI le_top le_top
 
 /-- In the frame of the chart at `y`, the flat connection of `𝒪(k)` differentiates the coordinate
 `p ↦ twistTransition k p y p * s p` of a section `s` differentiable at a point of the chart. -/
@@ -151,7 +138,7 @@ theorem frameCauchyRiemannOperator_twistCore_localTriv {y x : OnePoint ℂ}
   simp only [SmoothAlmostComplexStructure.zeroOnePart_apply,
     SmoothAlmostComplexStructure.dbarFunction_apply, ContinuousLinearMap.comp_apply, map_add,
     map_smul]
-  rw [twistCore_localTriv_symmL_smul hx]
+  rw [twistCore_localTriv_symmL_smul]
 
 /-- The reading of `∂bar` of a section of `𝒪(k)` through the frame of a chart does not depend on
 the chart: the transition functions of `𝒪(k)` are holomorphic. -/
@@ -211,32 +198,32 @@ theorem onePointChartPartition_eq_zero_of_notMem {y x : OnePoint ℂ}
 
 /-- The connection on `𝒪(1)` glued from the flat connections of the affine and of the inverted
 frame by a partition of unity subordinate to the two charts. -/
-def twistOneConnection (s : Π x, (twistCore (𝕜 := ℂ) 1).Fiber x) (x : OnePoint ℂ) :
-    TangentSpace 𝓘(ℝ, ℂ) x →L[ℝ] (twistCore (𝕜 := ℂ) 1).Fiber x :=
-  ∑ᶠ y, onePointChartPartition y x •
-    frameCovariantDerivative 𝓘(ℝ, ℂ) Complex.basisOneI ((twistCore 1).localTriv y) s x
+def twistOneConnection : CovariantDerivative 𝓘(ℝ, ℂ) ℂ (twistCore (𝕜 := ℂ) 1).Fiber :=
+  CovariantDerivative.ofPartitionOfUnity onePointChartPartition.toPartitionOfUnity
+    onePointChartPartition_isSubordinate.toPartitionOfUnity
+    (OnePoint.isCovariantDerivativeOn_frameCovariantDerivative_twistCore_localTriv 1)
 
-theorem twistOneConnection_def (s : Π x, (twistCore (𝕜 := ℂ) 1).Fiber x) (x : OnePoint ℂ) :
-    twistOneConnection s x = ∑ᶠ y, onePointChartPartition y x •
-      frameCovariantDerivative 𝓘(ℝ, ℂ) Complex.basisOneI ((twistCore 1).localTriv y) s x :=
+theorem twistOneConnection_def :
+    twistOneConnection = CovariantDerivative.ofPartitionOfUnity
+      onePointChartPartition.toPartitionOfUnity
+      onePointChartPartition_isSubordinate.toPartitionOfUnity
+      (OnePoint.isCovariantDerivativeOn_frameCovariantDerivative_twistCore_localTriv 1) :=
   (rfl)
 
 /-- The connection on `𝒪(1)` is a covariant derivative. -/
 theorem isCovariantDerivativeOn_twistOneConnection :
     IsCovariantDerivativeOn ℂ twistOneConnection univ :=
-  onePointChartPartition_isSubordinate.toPartitionOfUnity.isCovariantDerivativeOn_finsum_smul
-    fun y ↦ by
-      rw [← OnePoint.twistCore_localTriv_baseSet 1 y]
-      exact isCovariantDerivativeOn_frameCovariantDerivative Complex.basisOneI
+  twistOneConnection.isCovariantDerivativeOn
 
 /-- The connection on `𝒪(1)` is smooth: it sends `C^(n + 1)` sections to `C^n` one-forms. -/
 theorem contMDiffCovariantDerivativeOn_twistOneConnection (n : ℕ∞) :
     ContMDiffCovariantDerivativeOn ℂ n twistOneConnection univ :=
-  onePointChartPartition_isSubordinate.contMDiffCovariantDerivativeOn_finsum_smul
-    (fun y ↦ (chartAt ℂ y).open_source) fun y ↦ by
-      rw [← OnePoint.twistCore_localTriv_baseSet 1 y]
-      exact contMDiffCovariantDerivativeOn_frameCovariantDerivative (m := ω) (k := ω)
-        Complex.basisOneI le_top le_top
+  (CovariantDerivative.contMDiffCovariantDerivative_ofPartitionOfUnity
+    onePointChartPartition_isSubordinate (fun y ↦ (chartAt ℂ y).open_source)
+    (OnePoint.isCovariantDerivativeOn_frameCovariantDerivative_twistCore_localTriv 1)
+    fun y ↦
+      OnePoint.contMDiffCovariantDerivativeOn_frameCovariantDerivative_twistCore_localTriv 1 y n
+    ).contMDiff
 
 /-- The connection on `𝒪(1)` is complex linear. -/
 theorem twistOneConnection_const_smul (c : ℂ) {s : Π x, (twistCore (𝕜 := ℂ) 1).Fiber x}
@@ -244,7 +231,9 @@ theorem twistOneConnection_const_smul (c : ℂ) {s : Π x, (twistCore (𝕜 := �
     (hs : MDifferentiableAt 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ))
       (fun p ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) p (s p)) x) :
     twistOneConnection (c • s) x = c • twistOneConnection s x := by
-  rw [twistOneConnection_def, twistOneConnection_def, smul_finsum]
+  rw [twistOneConnection_def, CovariantDerivative.ofPartitionOfUnity_apply,
+    CovariantDerivative.ofPartitionOfUnity_apply, smul_finsum]
+  simp only [SmoothPartitionOfUnity.toPartitionOfUnity_toFun_apply]
   refine finsum_congr fun y ↦ ?_
   by_cases hy : x ∈ (chartAt ℂ y).source
   · have hcs := hs.const_smul_section c
@@ -263,7 +252,7 @@ theorem twistOneConnection_const_smul (c : ℂ) {s : Π x, (twistCore (𝕜 := �
     rw [hfun, mvfderiv_const_smul_field]
     congr 1
     ext v
-    exact OnePoint.twistCore_localTriv_symmL_smul hy c _
+    exact OnePoint.twistCore_localTriv_symmL_smul y x c _
   · simp [onePointChartPartition_eq_zero_of_notMem hy]
 
 /-- In the frame of the chart at `y`, the `(0,1)`-part of the connection on `𝒪(1)` for the
@@ -285,8 +274,9 @@ theorem twistOneConnection_zeroOnePart_eq {y x : OnePoint ℂ} (hx : x ∈ (char
       frameCovariantDerivative 𝓘(ℝ, ℂ) Complex.basisOneI ((twistCore 1).localTriv z) s x).Finite :=
     (onePointChartPartition.locallyFinite.point_finite x).subset fun z hz ↦
       left_ne_zero_of_smul hz
-  rw [hcoord, twistOneConnection_def, ← SmoothAlmostComplexStructure.zeroOnePartLinearMap_apply,
-    map_finsum _ hfin]
+  rw [hcoord, twistOneConnection_def, CovariantDerivative.ofPartitionOfUnity_apply]
+  simp only [SmoothPartitionOfUnity.toPartitionOfUnity_toFun_apply]
+  rw [← SmoothAlmostComplexStructure.zeroOnePartLinearMap_apply, map_finsum _ hfin]
   calc ∑ᶠ z, _ = ∑ᶠ z, onePointChartPartition z x • (((twistCore 1).localTriv y).symmL ℝ x).comp
         (𝒊.dbarFunction (fun p ↦ twistTransition 1 p y p * s' p) x) := by
         refine finsum_congr fun z ↦ ?_
@@ -312,6 +302,22 @@ def twistOneDelBar (s : Π x, (twistCore (𝕜 := ℂ) 1).Fiber x) (x : OnePoint
 theorem twistOneDelBar_def (s : Π x, (twistCore (𝕜 := ℂ) 1).Fiber x) (x : OnePoint ℂ) :
     twistOneDelBar J s x = J.zeroOnePart (twistOneConnection s x) :=
   (rfl)
+
+/-- `D_J` sends the zero section to zero. -/
+@[simp]
+theorem twistOneDelBar_zero : twistOneDelBar J 0 = 0 := by
+  funext x
+  rw [twistOneDelBar_def, twistOneConnection.zero, Pi.zero_apply,
+    SmoothAlmostComplexStructure.zeroOnePart_zero]
+
+/-- `D_J` commutes with complex scalars at a point where the section is differentiable. -/
+theorem twistOneDelBar_const_smul (c : ℂ) {s : Π x, (twistCore (𝕜 := ℂ) 1).Fiber x}
+    {x : OnePoint ℂ}
+    (hs : MDifferentiableAt 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ))
+      (fun p ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) p (s p)) x) :
+    twistOneDelBar J (c • s) x = c • twistOneDelBar J s x := by
+  rw [twistOneDelBar_def, twistOneDelBar_def, twistOneConnection_const_smul c hs,
+    SmoothAlmostComplexStructure.zeroOnePart_complex_smul]
 
 /-- `D_J` is a real Cauchy–Riemann operator for `J`. -/
 theorem isRealCauchyRiemannOperator_twistOneDelBar :
@@ -342,26 +348,12 @@ def twistOneKernel : Submodule ℂ (OnePoint ℂ → ℂ) where
     exact ((isRealCauchyRiemannOperator_twistOneDelBar J).add
       (hs.1.mdifferentiableAt (by simp)) (ht.1.mdifferentiableAt (by simp))).trans
       (by rw [congrFun hs.2 x, congrFun ht.2 x, Pi.zero_apply, add_zero])
-  zero_mem' := by
-    have h0 : ContMDiff 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) ∞
-        (fun x ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) x
-          ((0 : Π x, (twistCore (𝕜 := ℂ) 1).Fiber x) x)) :=
-      contMDiff_zeroSection ℝ _
-    refine ⟨h0, funext fun x ↦ ?_⟩
-    have h := (isRealCauchyRiemannOperator_twistOneDelBar J).add (x := x)
-      (h0.mdifferentiableAt (by simp)) (h0.mdifferentiableAt (by simp))
-    rw [add_zero] at h
-    exact left_eq_add.mp h
+  zero_mem' := ⟨contMDiff_zeroSection ℝ _, twistOneDelBar_zero J⟩
   smul_mem' c s hs := by
     refine ⟨(contMDiff_const (c := c)).smul_totalSpace hs.1, funext fun x ↦ ?_⟩
-    have h := (twistOneConnection_const_smul c (s := s) (x := x)
-      (hs.1.mdifferentiableAt (by simp)))
-    have h2 := congrArg J.zeroOnePart h
-    rw [SmoothAlmostComplexStructure.zeroOnePart_complex_smul] at h2
-    refine h2.trans ?_
-    have h3 : J.zeroOnePart (twistOneConnection s x) = 0 := congrFun hs.2 x
-    exact (congrArg (c • ·) h3).trans (smul_zero c)
-
+    -- The scalar action on sections of `𝒪(1)` is that on functions `OnePoint ℂ → ℂ`.
+    exact (twistOneDelBar_const_smul J c (s := s) (hs.1.mdifferentiableAt (by simp))).trans
+      (by rw [congrFun hs.2 x, Pi.zero_apply, smul_zero])
 
 /-- A section lies in `E_J` exactly when it is smooth and `D_J` sends it to zero. -/
 theorem mem_twistOneKernel_iff {s : OnePoint ℂ → ℂ} :
