@@ -16,10 +16,12 @@ positive, and let `M` carry a two-form `ω` (`form` in the code) and an almost c
 `J`. A smooth map `u : C → M` represents the class `A = u_* [C]` of the integral singular homology
 `H₂(M; ℤ)`, where `[C]` is the fundamental class of the homological orientation of `-o` (Tau Ceti's
 homological orientation of `o` has the opposite sign to the classes of positively oriented
-simplices; see `TauCeti.Manifold.Orientation.integralTopForm_eq_singularHomologyPeriod`).
+simplices; see `TauCeti.Manifold.Orientation.integralTopForm_eq_closedFormHomologyPeriod`).
 
-For closed `ω` the integral `∫_C u^* ω` depends only on `A`: it is the period `⟨[ω], A⟩`
-(`TauCeti.Manifold.Orientation.integralTopForm_mpullback_eq_singularHomologyPeriod`). Since the
+For closed `ω` the integral `∫_C u^* ω` depends only on `A`: it is the period `⟨[ω], A⟩`, Tau
+Ceti's `TauCeti.closedFormHomologyPeriod` on `A` read with coefficients `ℤ` through
+`TauCeti.uliftIntHomologyIso`
+(`TauCeti.Manifold.Orientation.integralTopForm_mpullback_eq_closedFormHomologyPeriod`). Since the
 energy of a pseudoholomorphic map is `∫_C u^* ω`, it follows that such maps have energy
 `⟨[ω], A⟩`; for a compatible pair they minimize the energy among smooth maps representing `A`
 (by the Wirtinger inequality `∫_C v^* ω ≤ E(v)`), and under tameness `⟨[ω], A⟩ > 0` unless `u` is
@@ -27,12 +29,12 @@ locally constant.
 
 ## Main results
 
-* `TauCeti.SmoothTwoForm.energy_eq_singularHomologyPeriod`: a pseudoholomorphic `u` representing
+* `TauCeti.SmoothTwoForm.energy_eq_closedFormHomologyPeriod`: a pseudoholomorphic `u` representing
   `A` has energy `⟨[ω], A⟩`.
 * `TauCeti.SmoothTwoForm.Compatible.energy_le_energy`: for a compatible pair, a pseudoholomorphic
   map has the least energy among the smooth maps representing the same class.
-* `TauCeti.SmoothTwoForm.Tames.singularHomologyPeriod_pos`: under tameness, a pseudoholomorphic map
-  that is not locally constant represents a class on which `[ω]` is positive.
+* `TauCeti.SmoothTwoForm.Tames.closedFormHomologyPeriod_pos`: under tameness, a pseudoholomorphic
+  map that is not locally constant represents a class on which `[ω]` is positive.
 * `TauCeti.SmoothTwoForm.Compatible.energy_identity_and_homology`: the energy identity of
   `TauCeti.SmoothTwoForm.Compatible.energy_identity` together with the three statements above,
   with the energy written as `½ ∫_C |du|² dvol`.
@@ -71,14 +73,15 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensi
 /-- **The energy of a pseudoholomorphic curve is topological.** For a closed two-form `ω` and a
 smooth pseudoholomorphic map `u` from a closed surface `C`, oriented by `o`, that represents
 `A ∈ H₂(M; ℤ)`, the energy of `u` is `⟨[ω], A⟩`. -/
-theorem energy_eq_singularHomologyPeriod (hform : form ∈ closedForms I M 2)
+theorem energy_eq_closedFormHomologyPeriod (hform : form ∈ closedForms I M 2)
     (hu : ContMDiff 𝓘(ℝ, E') I ∞ u)
     (hA : ((-o).toHomologicalOrientation hE').mapFundamentalClass hE' ⟨u, hu.continuous⟩ = A)
     (hhol : ∀ c, IsPseudoholomorphicAt j J u c) :
     form.energy J j o u =
-      deRhamCohomology.singularHomologyPeriod (deRhamCohomology.mk I 2 ⟨form, hform⟩) A := by
+      closedFormHomologyPeriod ⟨form, hform⟩
+        ((uliftIntHomologyIso (TopCat.of M) 2).hom.hom A) := by
   rw [energy_eq_integralTopForm_mpullback hhol, ← hA]
-  exact o.integralTopForm_mpullback_eq_singularHomologyPeriod hE' ⟨form, hform⟩ hu
+  exact o.integralTopForm_mpullback_eq_closedFormHomologyPeriod hE' ⟨form, hform⟩ hu
 
 /-- **Pseudoholomorphic curves minimize the energy in their class.** Let `ω` be closed and
 compatible with `J`, and orient the closed surface `C` by `o` so that the frames `(e, j e)` are
@@ -92,23 +95,24 @@ theorem Compatible.energy_le_energy (hc : form.Compatible J) (hform : form ∈ c
     (hhol : ∀ c, IsPseudoholomorphicAt j J u c) {v : C → M} (hv : ContMDiff 𝓘(ℝ, E') I ∞ v)
     (hvA : ((-o).toHomologicalOrientation hE').mapFundamentalClass hE' ⟨v, hv.continuous⟩ = A) :
     form.energy J j o u ≤ form.energy J j o v := by
-  rw [energy_eq_singularHomologyPeriod hE' hform hu hA hhol,
-    ← hvA, ← o.integralTopForm_mpullback_eq_singularHomologyPeriod hE' ⟨form, hform⟩ hv]
+  rw [energy_eq_closedFormHomologyPeriod hE' hform hu hA hhol,
+    ← hvA, ← o.integralTopForm_mpullback_eq_closedFormHomologyPeriod hE' ⟨form, hform⟩ hv]
   exact hc.integralTopForm_mpullback_le_energy ho (hv.of_le (by simp))
 
 /-- **Positivity of the class of a nonconstant pseudoholomorphic curve.** Let `ω` be closed and
 tame `J`, and orient the closed surface `C` by `o` so that the frames `(e, j e)` are positive. If
 a smooth pseudoholomorphic map `u` represents `A ∈ H₂(M; ℤ)` and is not locally constant, then
 `⟨[ω], A⟩ > 0`. -/
-theorem Tames.singularHomologyPeriod_pos (htame : form.Tames J)
+theorem Tames.closedFormHomologyPeriod_pos (htame : form.Tames J)
     (hform : form ∈ closedForms I M 2)
     (ho : ∀ c (b : Basis (Fin 2) ℝ (TangentSpace 𝓘(ℝ, E') c)), b 1 = j c (b 0) →
       b.orientation = o.orientationAt c)
     (hu : ContMDiff 𝓘(ℝ, E') I ∞ u)
     (hA : ((-o).toHomologicalOrientation hE').mapFundamentalClass hE' ⟨u, hu.continuous⟩ = A)
     (hhol : ∀ c, IsPseudoholomorphicAt j J u c) (hlc : ¬IsLocallyConstant u) :
-    0 < deRhamCohomology.singularHomologyPeriod (deRhamCohomology.mk I 2 ⟨form, hform⟩) A := by
-  rw [← energy_eq_singularHomologyPeriod hE' hform hu hA hhol]
+    0 < closedFormHomologyPeriod ⟨form, hform⟩
+      ((uliftIntHomologyIso (TopCat.of M) 2).hom.hom A) := by
+  rw [← energy_eq_closedFormHomologyPeriod hE' hform hu hA hhol]
   refine (htame.energy_nonneg ho).lt_of_ne fun h ↦ hlc ?_
   exact (htame.energy_eq_zero_iff_isLocallyConstant ho (hu.of_le (by simp))).1 h.symm
 
@@ -155,7 +159,8 @@ theorem Compatible.energy_identity_and_homology (hc : form.Compatible J)
       (∀ c, IsPseudoholomorphicAt j J u c) →
       (1 / 2 * integralTopForm o
           (fun c ↦ form.normSq J j dvol (mfderiv 𝓘(ℝ, E') I u c).toLinearMap • dvol.val c) =
-        deRhamCohomology.singularHomologyPeriod (deRhamCohomology.mk I 2 ⟨form, hform⟩) A) ∧
+        closedFormHomologyPeriod ⟨form, hform⟩
+          ((uliftIntHomologyIso (TopCat.of M) 2).hom.hom A)) ∧
       (∀ v : C → M, ∀ hv : ContMDiff 𝓘(ℝ, E') I ∞ v,
         ((-o).toHomologicalOrientation hE').mapFundamentalClass hE' ⟨v, hv.continuous⟩ = A →
         1 / 2 * integralTopForm o
@@ -163,13 +168,14 @@ theorem Compatible.energy_identity_and_homology (hc : form.Compatible J)
           1 / 2 * integralTopForm o
             (fun c ↦ form.normSq J j dvol (mfderiv 𝓘(ℝ, E') I v c).toLinearMap • dvol.val c)) ∧
       (¬IsLocallyConstant u →
-        0 < deRhamCohomology.singularHomologyPeriod (deRhamCohomology.mk I 2 ⟨form, hform⟩) A) := by
+        0 < closedFormHomologyPeriod ⟨form, hform⟩
+          ((uliftIntHomologyIso (TopCat.of M) 2).hom.hom A)) := by
   obtain ⟨h₁, h₂, h₃⟩ := hc.energy_identity hdvol (hu.of_le (by simp))
   refine ⟨h₁, h₂, h₃, fun hform hA hhol ↦ ?_⟩
   simp only [← energy_eq_half_integralTopForm_normSq hdvol]
-  exact ⟨energy_eq_singularHomologyPeriod hE' hform hu hA hhol,
+  exact ⟨energy_eq_closedFormHomologyPeriod hE' hform hu hA hhol,
     fun _ hv hvA ↦ hc.energy_le_energy hE' hform ho hu hA hhol hv hvA,
-    hc.tames.singularHomologyPeriod_pos hE' hform ho hu hA hhol⟩
+    hc.tames.closedFormHomologyPeriod_pos hE' hform ho hu hA hhol⟩
 
 end SmoothTwoForm
 
