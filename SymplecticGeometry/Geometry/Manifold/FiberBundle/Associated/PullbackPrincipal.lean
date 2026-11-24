@@ -5,9 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Lie.FundamentalVectorField
+public import TauCeti.Geometry.Lie.FundamentalVectorField.Right
 public import TauCeti.Geometry.Manifold.FiberBundle.Associated.Pullback
 public import TauCeti.Geometry.Manifold.FiberBundle.Associated.Section
 public import TauCeti.Geometry.Manifold.FiberBundle.Pullback.Basic
+public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
+public import TauCeti.Geometry.Manifold.Submersion.Split
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
 
 /-!
@@ -21,6 +25,8 @@ of `P` through `x`. The map `Φ (x, v) = ([x, v], x)` identifies `P × F` with t
 the class `[x, v]` and the point `y = x` of its fibre recover `v` as the unique `w` with
 `[y, w] = [x, v]`. Under `Φ`, the projection of `Q` becomes the quotient map `q (x, v) = [x, v]`,
 and the principal action of `G` on `Q` becomes the diagonal action `(x, v) · g = (x · g, g⁻¹ v)`.
+So the derivative of `Φ` carries the fundamental vectors `(x ξ, -X_ξ(v))` of the diagonal action to
+those of `Q`, and `q`, being `π_Q ∘ Φ`, is a surjective submersion.
 
 ## Main definitions and results
 
@@ -37,6 +43,10 @@ and the principal action of `G` on `Q` becomes the diagonal action `(x, v) · g 
 * `TauCeti.AssociatedBundle.sectionFunction_pullbackProjSection_eq_iff` and
   `TauCeti.AssociatedBundle.pullbackProjDiffeomorph_symm_snd_eq_iff`: the second coordinate of
   `Φ⁻¹ (m, y)` is the `w` with `[y, w] = m`.
+* `TauCeti.AssociatedBundle.mfderiv_pullbackProjDiffeomorph_fundamental`: the derivative of `Φ`
+  sends `(x ξ, -X_ξ(v))` to the fundamental vector of `ξ` on `Q` at `Φ (x, v)`.
+* `TauCeti.AssociatedBundle.surjective_totalSpaceMk_mk` and
+  `TauCeti.AssociatedBundle.isSubmersion_totalSpaceMk_mk`: `q` is a surjective submersion.
 
 ## Implementation notes
 
@@ -48,6 +58,17 @@ equivariant function `TauCeti.AssociatedBundle.sectionFunction` of the tautologi
 is smooth by `TauCeti.AssociatedBundle.contMDiff_sectionFunction`; the section itself is smooth
 since Tau Ceti's comparison `TauCeti.AssociatedBundle.pullbackHomeomorph` of `Q ×_G F` with the
 pull-back of `M` to `M` is smooth (`TauCeti.AssociatedBundle.contMDiff_pullbackHomeomorph_iff`).
+
+Tau Ceti's lemmas composing a submersion with a local diffeomorphism need one model on both
+sides, and `Φ` changes the model. So the submersion property of `q` is read off its derivative,
+which is surjective as that of `π_Q` composed with an isomorphism; Tau Ceti's
+`ContMDiff.isSubmersionOfComplement_of_surjective_mfderiv` turns this into a submersion, for
+finite-dimensional manifolds without boundary.
+
+The derivative of `Φ` on fundamental vectors comes from the chain rule along the orbit map of the
+diagonal action, which `Φ` turns into the orbit map of `Q` (`pullbackProjDiffeomorph_smul`). Its
+second component `g ↦ g⁻¹ • v` is differentiated through inversion, as in Tau Ceti's
+`TauCeti.LeftToRightAction.mfderiv_equiv_symm_rightFundamentalVectorField_of_mdifferentiableAt`.
 
 ## References
 
@@ -106,6 +127,21 @@ theorem lift_pullbackProjMk (x : ManifoldTotalSpace G P × F) :
     Pullback.lift πM (pullbackProjMk n IB IF x) = (ManifoldTotalSpace.homeomorph G P).symm x.1 := by
   refine (Pullback.lift_mk _ _ _).trans ?_
   exact (TotalSpace.mk_cast (by simp) _).trans (TotalSpace.eta _)
+
+/-- **The quotient map onto the associated bundle is surjective**: every point of `P ×_G F` is a
+class `[x, v]`. -/
+theorem surjective_totalSpaceMk_mk :
+    Function.Surjective fun x : ManifoldTotalSpace G P × F ↦
+      ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
+        ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
+          mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩ := by
+  intro y
+  obtain ⟨⟨p, v⟩, hp⟩ := (isOpenQuotientMap_totalSpaceMk_mk G P F).surjective
+    ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm y)
+  refine ⟨(ManifoldTotalSpace.homeomorph G P p, v), ?_⟩
+  beta_reduce
+  rw [Homeomorph.symm_apply_apply]
+  exact (congrArg _ hp).trans (Homeomorph.apply_symm_apply _ _)
 
 variable [∀ b, Nonempty (P b)]
 
@@ -267,5 +303,103 @@ theorem pullbackProjDiffeomorph_smul (g : G) (x : ManifoldTotalSpace G P × F) :
     -- rewrite here, since the fibre of `Q` is not reducibly that of `P`.
     exact congrArg (fun y : TotalSpace G P ↦ (⟨y.proj, op g • y.snd⟩ : TotalSpace G P))
       (lift_pullbackProjMk n IB IF x).symm
+
+/-- **`Φ` carries fundamental fields to fundamental fields.** The derivative of `Φ` at `(x, v)`
+sends the fundamental vector `(x ξ, -X_ξ(v))` of `ξ` for the diagonal action to the fundamental
+vector of `ξ` for the principal action on `Q` at `Φ (x, v)`. -/
+theorem mfderiv_pullbackProjDiffeomorph_fundamental (hn : 1 ≤ n) (ξ : GroupLieAlgebra IG G)
+    (x : ManifoldTotalSpace G P × F) :
+    mfderiv ((IB.prod IG).prod IF) ((IB.prod IF).prod IG) (pullbackProjDiffeomorph n IB IG IF) x
+        (rightFundamentalVectorField (IB.prod IG) ξ x.1, -fundamentalVectorField IF ξ x.2) =
+      rightFundamentalVectorField ((IB.prod IF).prod IG) ξ
+        (pullbackProjDiffeomorph n IB IG IF x) := by
+  have hn₀ : n ≠ 0 := (zero_lt_one.trans_le hn).ne'
+  have : LieGroup IG 1 G := .of_le hn
+  have : ContMDiffSMul IG IF 1 G F := .of_le hn
+  have h₁ : MDifferentiableAt IG (IB.prod IG) (fun g : G ↦ op g • x.1) 1 :=
+    PrincipalBundle.mdifferentiableAt_orbit (n := 1) one_ne_zero x.1 1
+  have hinv : MDifferentiableAt IG IG (fun g : G ↦ g⁻¹) 1 :=
+    (contMDiff_inv IG 1).mdifferentiableAt one_ne_zero
+  have horbit : MDifferentiableAt IG IF (fun g : G ↦ g • x.2) 1 :=
+    (ContMDiffSMul.contMDiff_smul_const (n := 1) x.2).mdifferentiableAt one_ne_zero
+  have h₂ : MDifferentiableAt IG IF ((fun g : G ↦ g • x.2) ∘ fun g : G ↦ g⁻¹) 1 :=
+    MDifferentiableAt.comp 1 (by simpa only [inv_one] using horbit) hinv
+  -- The orbit map of `x` for the diagonal action sends `ξ` to `(x ξ, -X_ξ(v))`.
+  have hγ : mfderiv IG ((IB.prod IG).prod IF)
+      (fun g : G ↦ (op g • x.1, ((fun g : G ↦ g • x.2) ∘ fun g : G ↦ g⁻¹) g)) 1 ξ =
+        (rightFundamentalVectorField (IB.prod IG) ξ x.1, -fundamentalVectorField IF ξ x.2) := by
+    rw [mfderiv_prodMk h₁ h₂]
+    -- `(f.prod g) ξ` is `(f ξ, g ξ)` by definition; `ContinuousLinearMap.prod_apply` does not
+    -- rewrite, since the tangent space of the product model is not reducibly a product.
+    refine Prod.ext (rightFundamentalVectorField_apply ξ x.1).symm ?_
+    change mfderiv IG IF ((fun g : G ↦ g • x.2) ∘ fun g : G ↦ g⁻¹) 1 ξ =
+      -fundamentalVectorField IF ξ x.2
+    -- The derivative of `g ↦ g⁻¹ • v` goes through inversion.
+    rw [mfderiv_comp_apply_of_eq 1 horbit hinv inv_one, GroupLieAlgebra.mfderiv_inv_one_apply,
+      map_neg, fundamentalVectorField_apply]
+    -- The two sides differ only in the negation used: that of the tangent space or of `EF`.
+    rfl
+  -- The orbit map of `Φ x` is `Φ` composed with the orbit map of `x` for the diagonal action.
+  have hcomp : (fun g : G ↦ op g • pullbackProjDiffeomorph n IB IG IF x) =
+      pullbackProjDiffeomorph n IB IG IF ∘
+        fun g : G ↦ (op g • x.1, ((fun g : G ↦ g • x.2) ∘ fun g : G ↦ g⁻¹) g) :=
+    funext fun g ↦ (pullbackProjDiffeomorph_smul g x).symm
+  calc _ = mfderiv ((IB.prod IG).prod IF) ((IB.prod IF).prod IG)
+        (pullbackProjDiffeomorph n IB IG IF) x (mfderiv IG ((IB.prod IG).prod IF)
+          (fun g : G ↦ (op g • x.1, ((fun g : G ↦ g • x.2) ∘ fun g : G ↦ g⁻¹) g)) 1 ξ) := by
+        -- After the rewrite, the two vectors differ only in the tangent space they are typed in.
+        rw [hγ]
+        rfl
+    _ = _ := by
+        rw [rightFundamentalVectorField_apply, hcomp]
+        exact (mfderiv_comp_apply_of_eq 1
+          ((pullbackProjDiffeomorph n IB IG IF).mdifferentiable hn₀ x) (h₁.prodMk h₂)
+          (by simp) ξ).symm
+
+section Submersion
+
+/-! ### The quotient map is a submersion -/
+
+variable {n : ℕ∞ω} {𝕜 B G F : Type*} [RCLike 𝕜]
+  {EB : Type*} [NormedAddCommGroup EB] [NormedSpace 𝕜 EB] [FiniteDimensional 𝕜 EB]
+  {HB : Type*} [TopologicalSpace HB] {IB : ModelWithCorners 𝕜 EB HB} [IB.Boundaryless]
+  [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB n B]
+  {EG : Type*} [NormedAddCommGroup EG] [NormedSpace 𝕜 EG] [FiniteDimensional 𝕜 EG]
+  {HG : Type*} [TopologicalSpace HG] {IG : ModelWithCorners 𝕜 EG HG} [IG.Boundaryless]
+  [Group G] [TopologicalSpace G] [ChartedSpace HG G] [LieGroup IG n G]
+  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace 𝕜 EF] [FiniteDimensional 𝕜 EF]
+  {HF : Type*} [TopologicalSpace HF] {IF : ModelWithCorners 𝕜 EF HF} [IF.Boundaryless]
+  [TopologicalSpace F] [ChartedSpace HF F] [IsManifold IF n F] [MulAction G F]
+  [ContinuousSMul G F] [ContMDiffSMul IG IF n G F]
+  {P : B → Type*} [TopologicalSpace (TotalSpace G P)] [∀ b, TopologicalSpace (P b)]
+  [FiberBundle G P] [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P] [∀ b, Nonempty (P b)]
+  [ContMDiffFiberBundle n G P IB IG]
+
+/-- **The quotient map onto the associated bundle is a submersion.** For a `C^n` principal bundle
+`P` (`1 ≤ n`) with finite-dimensional base and structure group, and a `C^n` action of `G` on a
+finite-dimensional manifold `F`, all without boundary, the map `(x, v) ↦ [x, v]` from `P × F`
+onto `P ×_G F` is a `C^n` submersion. -/
+theorem isSubmersion_totalSpaceMk_mk (hn : 1 ≤ n) :
+    Manifold.IsSubmersion ((IB.prod IG).prod IF) (IB.prod IF) n
+      fun x : ManifoldTotalSpace G P × F ↦
+        ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
+          ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
+            mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩ := by
+  have hn₀ : n ≠ 0 := (zero_lt_one.trans_le hn).ne'
+  have : ContMDiffFiberBundle n F (AssociatedBundle G P F) IB IF := contMDiffFiberBundle IG
+  -- The quotient map is the projection of `Q` composed with the diffeomorphism `Φ`.
+  set Φ := pullbackProjDiffeomorph n IB IG IF (G := G) (F := F) (P := P)
+  have hπ := ManifoldTotalSpace.isSubmersion_proj n G
+    ((ManifoldTotalSpace.projContMDiffMap n F (AssociatedBundle G P F) IB IF :
+      ManifoldTotalSpace F (AssociatedBundle G P F) → B) *ᵖ P) (IB.prod IF) IG
+  rw [← funext (proj_pullbackProjDiffeomorph (n := n) (IB := IB) (IG := IG) (IF := IF) (G := G)
+    (F := F) (P := P))]
+  refine (ContMDiff.isSubmersionOfComplement_of_surjective_mfderiv
+    (hπ.contMDiff.comp Φ.contMDiff) hn fun x ↦ ?_).isSubmersion
+  rw [mfderiv_comp x (hπ.contMDiff.mdifferentiableAt hn₀) (Φ.mdifferentiable hn₀ x)]
+  exact (hπ.surjective_mfderiv hn₀ _).comp
+    ((Φ.isLocalDiffeomorph x).isInvertible_mfderiv hn₀).surjective
+
+end Submersion
 
 end TauCeti.AssociatedBundle
