@@ -149,10 +149,8 @@ theorem graphY_zero : graphY (0 : Matrix ι ι ℝ) = LinearMap.ker x := by
 /-- Every graph `{(x, A x)}` is complementary to the vertical subspace `{x = 0}`. This is
 `LinearMap.isCompl_graph_ker_fst` carried to `StdSpace ι` by `equivProd`. -/
 theorem isCompl_graph_ker_x (A : Matrix ι ι ℝ) : IsCompl (graph A) (LinearMap.ker x) := by
-  have h := (Submodule.orderIsoMapComap (equivProd ι).symm).isCompl
-    (LinearMap.isCompl_graph_ker_fst A.mulVecLin)
-  rwa [Submodule.orderIsoMapComap_apply, Submodule.orderIsoMapComap_apply, ← graph_def,
-    Submodule.map_equiv_eq_comap_symm, LinearEquiv.symm_symm, ← LinearMap.ker_comp, ← x_def] at h
+  convert Submodule.isCompl_map (equivProd ι).symm (LinearMap.isCompl_graph_ker_fst A.mulVecLin)
+    <;> ext z <;> simp [Submodule.mem_map_equiv]
 
 /-- A matrix is determined by its graph over the `y`-coordinates. -/
 theorem graphY_injective :
