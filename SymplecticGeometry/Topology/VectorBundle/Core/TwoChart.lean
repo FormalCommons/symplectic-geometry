@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Normed.Operator.Completeness
-public import Mathlib.Analysis.Normed.Ring.Units
 public import Mathlib.Topology.VectorBundle.Basic
 public import SymplecticGeometry.Algebra.GroupWithZero.Units.Lemmas
 public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
