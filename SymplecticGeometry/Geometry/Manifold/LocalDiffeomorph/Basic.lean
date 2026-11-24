@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.Algebra.SMul
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Diffeomorph
+public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import SymplecticGeometry.Topology.OpenPartialHomeomorph.Compact
 
@@ -21,16 +22,14 @@ public import SymplecticGeometry.Topology.OpenPartialHomeomorph.Compact
 A map `f` is a `C^n` local diffeomorphism at `x` when it agrees, on the source of some `C^n`
 partial diffeomorphism containing `x`, with that partial diffeomorphism. Mathlib's
 `IsLocalDiffeomorphAt` is defined this way, but its body is not exposed to other modules, which
-only see the chosen local inverse `Λ = IsLocalDiffeomorphAt.localInverse`. This file shows that
-`f` agrees with `Λ.symm` on the target of `Λ`, since `f ∘ Λ` is the identity on the source of
+only see the chosen local inverse `Λ = IsLocalDiffeomorphAt.localInverse`. Tau Ceti's
+`IsLocalDiffeomorphAt.eqOn_localInverse_symm` says that `f` agrees with `Λ.symm` on the target of
 `Λ`. So `Λ.symm` is a partial diffeomorphism that `f` agrees with (the converse is Tau Ceti's
 `TauCeti.isLocalDiffeomorphAt_of_eqOn`), and `f` is a local diffeomorphism at every point of the
 target of `Λ`, not only at `x`.
 
 ## Main results
 
-* `IsLocalDiffeomorphAt.eqOn_localInverse_symm`: `f` agrees with the inverse of its local inverse
-  on the target of the local inverse.
 * `IsLocalDiffeomorphAt.isLocalDiffeomorphOn_localInverse_target`: a local diffeomorphism `f` at
   `x` is a local diffeomorphism on the target of `hf.localInverse`.
 * `IsLocalDiffeomorphAt.comp_iff_left`: composing on the left with a local diffeomorphism at the
@@ -74,13 +73,6 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {n : WithTop ℕ∞} {f : M → N} {x : M}
 
 namespace IsLocalDiffeomorphAt
-
-/-- A local diffeomorphism `f` at `x` agrees with the inverse of its local inverse
-`hf.localInverse` on the target of `hf.localInverse`. -/
-theorem eqOn_localInverse_symm (hf : IsLocalDiffeomorphAt I J n f x) :
-    EqOn f hf.localInverse.symm hf.localInverse.target :=
-  eqOn_of_leftInvOn_of_rightInvOn hf.localInverse_eqOn_right
-    hf.localInverse.toPartialEquiv.rightInvOn hf.localInverse.toPartialEquiv.mapsTo_symm
 
 /-- A local diffeomorphism `f` at `x` is a local diffeomorphism at every point of the target of
 its local inverse. -/

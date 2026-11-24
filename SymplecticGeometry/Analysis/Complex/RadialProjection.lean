@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
-public import TauCeti.Analysis.Complex.Circle
+public import TauCeti.Analysis.Complex.Circle.Basic
 public import TauCeti.Topology.Homotopy.PuncturedStarConvex
 import Mathlib.Analysis.Calculus.Deriv.ZPow
 import TauCeti.Analysis.SpecialFunctions.Complex.Arg

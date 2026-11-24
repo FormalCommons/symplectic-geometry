@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Analysis.Pseudodifferential.DistributionalRegularity
 import TauCeti.Analysis.Distribution.WaveFrontSet.Sobolev.LineDeriv
+import TauCeti.Analysis.Distribution.WaveFrontSet.Sobolev.SingularSupport
 import TauCeti.Analysis.Distribution.WaveFrontSet.Sobolev.Smoothness
 
 /-!
@@ -40,8 +41,6 @@ terms are `H^(r + 1 - M)` near `x`
 
 ## Main results
 
-* `Distribution.IsLocallySobolevAt.sum`: a finite sum of distributions that are `H^s` near `x` is
-  `H^s` near `x`.
 * `Distribution.singularSupport_eq_empty_of_forall_isLocallySobolevAt`: a distribution that is,
   near every point, `M` orders more regular than a family of smooth distributions is smooth.
 * `Distribution.IsLocallySobolevAt.of_ellipticSystem`,
@@ -65,14 +64,6 @@ section Sum
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
   [MeasurableSpace E] [BorelSpace E] {Ω : Opens E}
-
-/-- A finite sum of distributions that are `H^s` near a point `x ∈ Ω` is `H^s` near `x`. -/
-theorem IsLocallySobolevAt.sum {ι : Type*} {u : Finset ι} {s : ℝ} {T : ι → 𝓓'(Ω, ℂ)} {x : E}
-    (hx : x ∈ Ω) (h : ∀ i ∈ u, (T i).IsLocallySobolevAt s x) :
-    (∑ i ∈ u, T i).IsLocallySobolevAt s x := by
-  refine (notMem_sobolevSingularSupport_iff hx).1 fun hmem ↦ ?_
-  obtain ⟨i, hi, hiT⟩ := Set.mem_iUnion₂.1 (sobolevSingularSupport_sum_subset s u T hmem)
-  exact (notMem_sobolevSingularSupport_iff hx).2 (h i hi) hiT
 
 /-- Let `T` and the `S b` be distributions on `Ω`, with every `S b` smooth on `Ω`. If, at every
 `x ∈ Ω` and for every `s`, `T` is `H^(s + M)` near `x` whenever every `S b` is `H^s` near `x`,

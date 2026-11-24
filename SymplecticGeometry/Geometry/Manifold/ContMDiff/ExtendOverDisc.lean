@@ -9,7 +9,7 @@ public import Mathlib.Analysis.Complex.Circle
 public import Mathlib.Geometry.Manifold.ContMDiff.Defs
 public import Mathlib.Topology.Homotopy.Contractible
 import SymplecticGeometry.Topology.Homotopy.Disc
-import TauCeti.Geometry.Manifold.SmoothApprox
+import TauCeti.Geometry.Manifold.SmoothApprox.Basic
 
 /-!
 # Extending maps from an annulus over the disc

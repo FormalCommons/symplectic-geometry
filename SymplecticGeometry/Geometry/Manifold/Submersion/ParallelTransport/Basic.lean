@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Submersion.HorizontalLiftField
 public import TauCeti.Geometry.Manifold.Distribution.Horizontal
 public import TauCeti.Geometry.Manifold.MFDeriv.Curve
+import Mathlib.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 import TauCeti.Geometry.Manifold.IsManifold.Basic
@@ -111,7 +112,7 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
 /-- The local step of `TauCeti.IsEhresmannConnection.eqOn_of_isHorizontalMap`: the two curves
 agree near a time of `Set.Icc a b` at which they agree. -/
-private theorem eventuallyEq_of_isHorizontalMap [BoundarylessManifold I P]
+private theorem eventuallyEq_of_isHorizontalMap
     (hD : IsEhresmannConnection I J 1 f D) (hf : ContMDiff I J 2 f) {γ : ℝ → B}
     (hγ : ContMDiff 𝓘(ℝ, ℝ) J 2 γ) {c₁ c₂ : ℝ → P}
     (hc₁ : MDifferentiable 𝓘(ℝ, ℝ) I c₁) (hc₂ : MDifferentiable 𝓘(ℝ, ℝ) I c₂)
@@ -184,17 +185,17 @@ private theorem eventuallyEq_of_isHorizontalMap [BoundarylessManifold I P]
       exact (hasMFDerivAt_curveVelocity (hc u)).hasMFDerivWithinAt
     exact hasMFDerivWithinAt_prodMk_timeDependentSuspensionField hcu
   have heq := (hcurve hc₁ hh₁ hγ₁).eventuallyEq_of_isPreconnected (hcurve hc₂ hh₂ hγ₂) hS htS
-    BoundarylessManifold.isInteriorPoint hW (by rw [h])
+    hW (by rw [h])
   rw [← nhdsWithin_inter_of_mem'
     (mem_nhdsWithin_of_mem_nhds (Metric.ball_mem_nhds t hε))]
   exact heq.mono fun r hr ↦ congrArg Prod.snd hr
 
 include hD in
 /-- **Uniqueness of horizontal lifts on an interval.** Let `D` be a `C^n` Ehresmann connection,
-`1 ≤ n`, on a `C²` map `f : P → B` from a boundaryless Hausdorff manifold, and `γ` a `C²` curve
+`1 ≤ n`, on a `C²` map `f : P → B` from a Hausdorff manifold, and `γ` a `C²` curve
 in `B`. Two differentiable horizontal curves `c₁ c₂ : ℝ → P` that lie over `γ` on `Set.Icc a b`
 and agree at one time of `Set.Icc a b` agree on all of it. -/
-theorem eqOn_of_isHorizontalMap [T2Space P] [BoundarylessManifold I P] (hn : 1 ≤ n)
+theorem eqOn_of_isHorizontalMap [T2Space P] (hn : 1 ≤ n)
     (hf : ContMDiff I J 2 f) {γ : ℝ → B} (hγ : ContMDiff 𝓘(ℝ, ℝ) J 2 γ) {c₁ c₂ : ℝ → P}
     (hc₁ : MDifferentiable 𝓘(ℝ, ℝ) I c₁) (hc₂ : MDifferentiable 𝓘(ℝ, ℝ) I c₂)
     (hh₁ : IsHorizontalMap 𝓘(ℝ, ℝ) D c₁) (hh₂ : IsHorizontalMap 𝓘(ℝ, ℝ) D c₂) {a b t₀ : ℝ}
@@ -224,9 +225,9 @@ theorem eqOn_of_isHorizontalMap [T2Space P] [BoundarylessManifold I P] (hn : 1 �
 
 include hD in
 /-- **Uniqueness of horizontal lifts.** Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on a
-`C²` map `f : P → B` from a boundaryless Hausdorff manifold, and `γ` a `C²` curve in `B`. Two
+`C²` map `f : P → B` from a Hausdorff manifold, and `γ` a `C²` curve in `B`. Two
 differentiable horizontal curves `c₁ c₂ : ℝ → P` over `γ` that agree at one time are equal. -/
-theorem eq_of_isHorizontalMap [T2Space P] [BoundarylessManifold I P] (hn : 1 ≤ n)
+theorem eq_of_isHorizontalMap [T2Space P] (hn : 1 ≤ n)
     (hf : ContMDiff I J 2 f) {γ : ℝ → B} (hγ : ContMDiff 𝓘(ℝ, ℝ) J 2 γ) {c₁ c₂ : ℝ → P}
     (hc₁ : MDifferentiable 𝓘(ℝ, ℝ) I c₁) (hc₂ : MDifferentiable 𝓘(ℝ, ℝ) I c₂)
     (hh₁ : IsHorizontalMap 𝓘(ℝ, ℝ) D c₁) (hh₂ : IsHorizontalMap 𝓘(ℝ, ℝ) D c₂)

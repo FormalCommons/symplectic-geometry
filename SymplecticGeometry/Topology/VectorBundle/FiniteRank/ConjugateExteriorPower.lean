@@ -52,7 +52,7 @@ of `A`, by the identity on every fibre. -/
 noncomputable def exteriorPowerConjugateIso (k : ℕ) (A : FiniteRankBundleCore ℂ B) :
     (exteriorPower ℂ B k).obj ((conjugate B).obj A) ≅
       (conjugate B).obj ((exteriorPower ℂ B k).obj A) :=
-  constIso (fun _ => rfl) (ContinuousLinearEquiv.refl ℂ _) fun i j x _ _ => by
+  constIso (fun _ => subset_rfl) (ContinuousLinearEquiv.refl ℂ _) fun i j x _ _ => by
     simp only [coordChange_exteriorPower_obj, coordChange_conjugate_obj]
     -- State the identity on standard coordinates to fix the inherited fibre instances.
     have h : (ContinuousLinearMap.id ℂ (Fin (A.rank.choose k) → ℂ)).comp

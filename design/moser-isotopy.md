@@ -186,10 +186,8 @@ The file has the name of Tau Ceti's file that defines
 The velocity of the same segment,
 `SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily` (the slice at time
 `t` of the time derivative of `SmoothForm.lineMapFamily α₀ α₁ hc` is
-`deriv c t • (α₁ - α₀)`), is in
-`Geometry/Manifold/DifferentialForm/Flow/Family.lean` of *Contact
-geometry*, beside the other consequences of Tau Ceti's
-`hasDerivAt_mpullback_prodMk_timeDeriv`.
+`deriv c t • (α₁ - α₀)`), is Tau Ceti's, in its
+`Geometry/Manifold/DifferentialForm/Flow/Family.lean`.
 
 ### `Geometry/Manifold/DifferentialForm/Smooth.lean`
 
@@ -659,7 +657,7 @@ pullbacks commute with `d`. That theorem gives
   `Manifold.IsSmoothEmbedding.of_opens`, `PartialDiffeomorph`, `Diffeomorph`.
 - *Smooth families* (#466, #467), for `Stability.lean` only: (★), the time
   extension, the reparametrization, and the restriction to a `Diffeotopy`.
-- *Contact geometry*, merged: `Geometry/Manifold/DifferentialForm/Flow/Family.lean`,
+- Tau Ceti: `Geometry/Manifold/DifferentialForm/Flow/Family.lean`,
   for `SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily` in `Relative.lean`
   and `Isotopy.lean`.
 - *Liouville structures*: `Geometry/Manifold/MFDeriv/Opens.lean`

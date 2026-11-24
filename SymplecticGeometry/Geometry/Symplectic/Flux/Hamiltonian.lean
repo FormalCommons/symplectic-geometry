@@ -33,9 +33,9 @@ also shows that a diffeotopy has a Hamiltonian as soon as every `ι_{X_t} σ` is
 
 ## Main results
 
-* `TauCeti.Diffeotopy.hasHamiltonian_iff_isHamiltonianVectorField_velocity`: `F` is a Hamiltonian
-  read along the motion exactly when it is smooth and `F_t ∘ φ_t⁻¹` has Hamiltonian vector field
-  `X_t` for every `t`.
+* `TauCeti.Diffeotopy.hasHamiltonian_iff_contMDiff_and_isHamiltonianVectorField_velocity`: `F` is
+  a Hamiltonian read along the motion exactly when it is smooth and `F_t ∘ φ_t⁻¹` has Hamiltonian
+  vector field `X_t` for every `t`.
 * `TauCeti.Diffeotopy.hasHamiltonian_comp_iff`: `(x, t) ↦ G (φ_t x, t)` is a Hamiltonian read along
   the motion exactly when `G` generates `φ_t`.
 * `TauCeti.Diffeotopy.IsGeneratedBy.trans`, `TauCeti.Diffeotopy.IsGeneratedBy.symm`,
@@ -143,7 +143,7 @@ private theorem mvfderiv_apply_eq_mvfderiv_comp_symm (hF : ContMDiff (J.prod (�
 /-- **The two readings of a Hamiltonian.** A function `F` on `M × [0, 1]` is a Hamiltonian of
 `φ_t` read along the motion exactly when it is smooth and, for every `t`, the velocity `X_t` is a
 Hamiltonian vector field of `H_t = F_t ∘ φ_t⁻¹`. -/
-theorem hasHamiltonian_iff_isHamiltonianVectorField_velocity :
+theorem hasHamiltonian_iff_contMDiff_and_isHamiltonianVectorField_velocity :
     Φ.HasHamiltonian σ F ↔ ContMDiff (J.prod (𝓡∂ 1)) 𝓘(ℝ) ∞ F ∧
       ∀ t, σ.IsHamiltonianVectorField (fun y ↦ F (Φ.symm (t, y), t)) (Φ.velocity t) := by
   refine ⟨fun h ↦ ⟨h.contMDiff, fun t ↦ SmoothTwoForm.isHamiltonianVectorField_iff.2
@@ -166,7 +166,7 @@ theorem hasHamiltonian_comp_iff :
     Φ.HasHamiltonian σ (fun p ↦ G (Φ.cylinderMap p, p.2)) ↔ Φ.IsGeneratedBy σ G := by
   have hG : ∀ (t : unitInterval) (y : M), G (Φ.cylinderMap (Φ.symm (t, y), t), t) = G (y, t) :=
     fun t y ↦ by rw [cylinderMap_apply, apply_mk_symm_apply]
-  rw [hasHamiltonian_iff_isHamiltonianVectorField_velocity, isGeneratedBy_iff]
+  rw [hasHamiltonian_iff_contMDiff_and_isHamiltonianVectorField_velocity, isGeneratedBy_iff]
   simp only [hG]
   refine and_congr_left' ⟨fun h ↦ ?_, fun h ↦ h.comp Φ.contMDiff_cylinderMap_prodMk_snd⟩
   refine (h.comp Φ.symm.contMDiff_cylinderMap_prodMk_snd).congr fun p ↦ ?_
@@ -285,7 +285,7 @@ theorem isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms
   refine ⟨fun h t ↦ ?_, fun h ↦
     isHamiltonian_iff.2 ⟨hΦ, exists_hasHamiltonian_of_forall_mem_exactForms h⟩⟩
   obtain ⟨F, hF⟩ := h.exists_hasHamiltonian
-  obtain ⟨hFs, hX⟩ := hasHamiltonian_iff_isHamiltonianVectorField_velocity.1 hF
+  obtain ⟨hFs, hX⟩ := hasHamiltonian_iff_contMDiff_and_isHamiltonianVectorField_velocity.1 hF
   have hs : ContMDiff J 𝓘(ℝ) ∞ fun y ↦ F (Φ.symm (t, y), t) :=
     hFs.comp ((Φ.symm.contMDiff.comp (contMDiff_const.prodMk contMDiff_id)).prodMk
       contMDiff_const)

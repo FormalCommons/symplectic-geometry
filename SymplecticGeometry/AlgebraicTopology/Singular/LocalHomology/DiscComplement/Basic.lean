@@ -9,7 +9,7 @@ public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Coordi
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Global
 import SymplecticGeometry.Analysis.Normed.Module.Ball.Collar
 import SymplecticGeometry.Topology.MetricSpace.ProperSpace.Lemmas
-import TauCeti.Analysis.Complex.Circle
+import TauCeti.Analysis.Complex.Circle.Basic
 
 /-!
 # The complement of disjoint coordinate discs
