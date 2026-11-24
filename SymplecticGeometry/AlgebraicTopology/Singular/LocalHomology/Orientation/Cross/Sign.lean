@@ -26,7 +26,7 @@ The computation is an induction on `n`, starting from `crossSign m 0 = (-1) ^ (m
   with `z × (z' × z'')` both ways gives the cocycle relation
   `crossSign m n * crossSign (m + n + 1) p = crossSign n p * crossSign m (n + p + 1)`
   (`TauCeti.LocalOrientation.crossSign_mul_crossSign`), since a local orientation has infinite
-  order (`TauCeti.LocalOrientation.zsmul_left_injective`).
+  order (`TauCeti.IsLocalOrientation.linearEquiv`).
 * With `p = 0` this gives `crossSign m (n + 1) = crossSign m n * (-1) ^ (m + 1)`
   (`TauCeti.LocalOrientation.crossSign_succ_right`).
 
@@ -116,8 +116,9 @@ theorem crossSign_mul_crossSign (m n p : ℕ) :
     coe_cross_eq_crossSign_smul hE hFG he',
     coe_prod_right_of_coe_eq_units_smul hE hFG he' s (coe_cross_eq_crossSign_smul hF hG hf s' s''),
     smul_smul, ← Units.val_mul, ← Units.val_mul] at hL
-  rw [mul_comm (crossSign m n),
-    Units.ext (zsmul_left_injective (finrank_prod_eq_succ hE hFG he') _ hL), mul_comm]
+  simp only [← IsLocalOrientation.linearEquiv_apply
+    (singularHomologyComplZeroIso (finrank_prod_eq_succ hE hFG he')) (Subtype.property _)] at hL
+  rw [mul_comm (crossSign m n), Units.ext (LinearEquiv.injective _ hL), mul_comm]
 
 /-- The sign of the cross product grows by `(-1) ^ (m + 1)` when the dimension of the second
 factor grows by one. -/

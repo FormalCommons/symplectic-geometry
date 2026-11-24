@@ -12,6 +12,7 @@ public import TauCeti.GroupTheory.GroupAction.Transitive
 public import Mathlib.LinearAlgebra.SymplecticGroup
 public import TauCeti.LinearAlgebra.Matrix.Realify
 public import SymplecticGeometry.Analysis.Complex.SiegelUpperHalfSpace.Basic
+import TauCeti.Analysis.Calculus.FDeriv.Inv
 import TauCeti.Analysis.Matrix.Sqrt
 import TauCeti.Data.Matrix.Block
 import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Unitary
@@ -338,9 +339,8 @@ theorem differentiableOn_num_mul_inv_denom (Ψ : Matrix (ι ⊕ ι) (ι ⊕ ι) 
       {Z : Matrix ι ι ℂ | IsUnit (denom Ψ Z).det} := by
   intro Z hZ
   refine DifferentiableAt.differentiableWithinAt ?_
-  simp_rw [nonsing_inv_eq_ringInverse]
   exact (differentiable_num Ψ Z).mul
-    ((differentiableAt_inverse ((isUnit_iff_isUnit_det _).2 hZ)).comp Z (differentiable_denom Ψ Z))
+    ((Matrix.hasFDerivAt_inv hZ).differentiableAt.comp Z (differentiable_denom Ψ Z))
 
 end Holomorphy
 

@@ -9,7 +9,6 @@ public import SymplecticGeometry.Analysis.Distribution.LinearEquiv
 public import SymplecticGeometry.Analysis.Distribution.OfFun
 public import TauCeti.Analysis.Distribution.Restriction
 public import TauCeti.Analysis.Distribution.SingularSupport
-import TauCeti.MeasureTheory.Function.LocalRepresentative
 
 /-!
 # Coordinate distributions of a vector-valued locally integrable function
@@ -50,15 +49,14 @@ the interior regularity of elliptic systems applies.
   into `Ω` and every coordinate distribution has empty singular support, then `w` agrees almost
   everywhere on `U` with a function smooth on `U`.
 
-For the last result, near each point the singular support hypothesis gives a function, smooth near
-the image of the point, that represents the coordinate distribution for the volume of `E'`.
-Changing variables along `e` (`Distribution.transportCLM_ofFun` and
-`Distribution.transportCLM_ofFun_of_isAddHaarMeasure`) turns it into a smooth local representative
-of the coordinate of `w` for `μ`, up to the constant factor relating the image of the volume to
-`μ`; Mathlib's `Distribution.ofFun_injective` identifies the two, and Tau Ceti's
-`TauCeti.exists_contDiffOn_ae_eq_of_locally` glues the local representatives. The same change of
-variables, with Tau Ceti's `Distribution.singularSupport_ofFun_eq_empty`, shows that the
-coordinate distributions of a smooth function have empty singular support
+For the last result, Tau Ceti's `Distribution.singularSupport_eq_empty_iff` gives, for each
+coordinate, a function smooth on `Ω` whose distribution for the volume of `E'` is the coordinate
+distribution. Changing variables along `e` (`Distribution.transportCLM_ofFun` and
+`Distribution.transportCLM_ofFun_of_isAddHaarMeasure`) turns it, times the constant factor
+relating the image of the volume to `μ`, into a function smooth on `U` with the same distribution
+for `μ` as the coordinate of `w`; Mathlib's `Distribution.ofFun_injective` identifies the two. The
+same change of variables, with Tau Ceti's `Distribution.singularSupport_ofFun_eq_empty`, shows
+that the coordinate distributions of a smooth function have empty singular support
 (`Distribution.singularSupport_coordOfFun_eq_empty`).
 
 ## References
@@ -266,50 +264,6 @@ variable [FiniteDimensional ℝ E] [NormedAddCommGroup E'] [InnerProductSpace �
   {Ω : Opens E'} [μ.IsAddHaarMeasure]
   (e : E ≃L[ℝ] E') (hΩ : MapsTo e.symm Ω U) (b : Module.Basis ι ℝ F)
 
-/-- Near a point `x` that `e` sends into `Ω` but outside the singular support of the `i`-th
-coordinate distribution, the `i`-th coordinate of `w` agrees almost everywhere with a smooth
-function. -/
-private theorem exists_contDiffOn_ae_eq_repr (hw : LocallyIntegrableOn w U μ) (i : ι) {x : E}
-    (hx : e x ∈ Ω) (hsing : e x ∉ (coordOfFun e hΩ b w μ i).singularSupport) :
-    ∃ N ∈ 𝓝 x, ∃ g : E → ℂ, ContDiffOn ℝ ∞ g N ∧
-      (fun x ↦ (b.repr (w x) i : ℂ)) =ᵐ[μ.restrict N] g := by
-  obtain ⟨V, hV, hxV, f, hf, hT⟩ := (notMem_singularSupport_iff hx).1 hsing
-  have hwi := hw.ofReal_basis_repr b i
-  set W : Opens E' := ⟨V ∩ Ω, hV.inter Ω.isOpen⟩
-  set O : Opens E := ⟨e ⁻¹' W, W.isOpen.preimage e.continuous⟩
-  have hOU : MapsTo (e.trans e.symm) O U := fun z hz ↦ by simpa using hΩ hz.2
-  have hOW : MapsTo e O W := fun _ hz ↦ hz
-  have hO : ∀ {z}, z ∈ O → e z ∈ V ∧ e z ∈ Ω := fun hz ↦ by simpa [O, W] using hz
-  have hOΩ : MapsTo e O Ω := fun _ hz ↦ (hO hz).2
-  have hfW : LocallyIntegrableOn f W :=
-    (hf.mono inter_subset_left).continuousOn.locallyIntegrableOn W.isOpen.measurableSet
-  -- The factor relating the image of the volume of `E'` under `e⁻¹` to `μ`.
-  set κ : ℝ := (((volume : Measure E').map e.symm).addHaarScalarFactor μ : ℝ)
-  have hfe : ContDiffOn ℝ ∞ (fun z ↦ κ • f (e z)) O :=
-    (hf.comp e.contDiff.contDiffOn fun _ hz ↦ (hO hz).1).const_smul _
-  refine ⟨O, O.isOpen.mem_nhds ⟨hxV, hx⟩, _, hfe, ofFun_injective (n := ⊤)
-    (hwi.mono_set fun z hz ↦ by simpa using hOU hz)
-    (hfe.continuousOn.locallyIntegrableOn O.isOpen.measurableSet) ?_⟩
-  -- Both sides are transports along `e`: the left one of the coordinate distribution, the right
-  -- one of the distribution of `f` on `W`.
-  have h₁ : ofFun O (fun x ↦ (b.repr (w x) i : ℂ)) μ ⊤ =
-      transportCLM e hOΩ (coordOfFun e hΩ b w μ i) := by
-    rw [coordOfFun_def, ← transportCLM_trans e e.symm hOΩ hΩ hOU, transportCLM_ofFun _ _ hwi]
-    simp
-  have h₂ : ofFun O (fun z ↦ κ • f (e z)) μ ⊤ = transportCLM e hOW (ofFun W f volume ⊤) := by
-    rw [transportCLM_ofFun_of_isAddHaarMeasure e hOW volume μ hfW, ← ofFun_smul, Pi.smul_def]
-  rw [h₁, h₂]
-  ext ψ
-  -- Both test functions on `E'` are `ψ ∘ e⁻¹`.
-  have hφ : ∀ (W' : Opens E') (h : MapsTo e O W'),
-      ⇑(e.transportTestFunction h ψ) = ψ ∘ e.symm :=
-    fun _ _ ↦ funext fun y ↦ by simp
-  have hψ : tsupport (e.transportTestFunction hOΩ ψ) ⊆ V := by
-    rw [hφ]
-    refine (tsupport_comp_subset_preimage _ e.symm.continuous).trans fun y hy ↦ ?_
-    simpa using (hO (ψ.tsupport_subset hy)).1
-  rw [transportCLM_apply, transportCLM_apply, hT _ hψ, ofFun_apply hfW, hφ, hφ]
-
 /-- **Smooth representatives from coordinate distributions.** If `e` maps `U` into `Ω` and every
 coordinate distribution of `w`, locally integrable on `U` for an additive Haar measure, has empty
 singular support, then `w` agrees almost everywhere on `U` with a function smooth on `U`. -/
@@ -319,11 +273,30 @@ theorem exists_contDiffOn_ae_eq_of_singularSupport_coordOfFun_eq_empty
     ∃ g : E → F, ContDiffOn ℝ ∞ g U ∧ w =ᵐ[μ.restrict U] g := by
   have := Module.Finite.finite_basis b
   have := Fintype.ofFinite ι
-  -- Glue the local smooth representatives of each coordinate.
-  choose g hg hwg using fun i ↦ TauCeti.exists_contDiffOn_ae_eq_of_locally (μ := μ)
-    (Ω := (U : Set E)) fun x hx ↦
-      exists_contDiffOn_ae_eq_repr e hΩ b hw i (hU hx) (by simp [h i])
-  refine ⟨fun x ↦ ∑ i, (g i x).re • b i,
+  -- Each coordinate distribution is the distribution of a function `f i` smooth on `Ω`.
+  choose f hf hT using fun i ↦ singularSupport_eq_empty_iff.1 (h i)
+  -- The factor relating the image of the volume of `E'` under `e⁻¹` to `μ`.
+  set κ : ℝ := (((volume : Measure E').map e.symm).addHaarScalarFactor μ : ℝ)
+  have hg : ∀ i, ContDiffOn ℝ ∞ (fun z ↦ κ • f i (e z)) U := fun i ↦
+    ((hf i).comp e.contDiff.contDiffOn hU).const_smul _
+  have hUU : MapsTo (e.trans e.symm) U U := fun z hz ↦ by simpa using hz
+  -- Changing variables along `e` turns `f i` into a representative of the `i`-th coordinate.
+  have hwg : ∀ i, (fun x ↦ (b.repr (w x) i : ℂ)) =ᵐ[μ.restrict U] fun z ↦ κ • f i (e z) := by
+    intro i
+    have hwi := hw.ofReal_basis_repr b i
+    refine ofFun_injective (n := ⊤) hwi
+      ((hg i).continuousOn.locallyIntegrableOn U.isOpen.measurableSet) ?_
+    have h₁ : ofFun U (fun x ↦ (b.repr (w x) i : ℂ)) μ ⊤ =
+        transportCLM e hU (coordOfFun e hΩ b w μ i) := by
+      rw [coordOfFun_def, ← transportCLM_trans e e.symm hU hΩ hUU, transportCLM_ofFun _ _ hwi]
+      simp
+    have h₂ : ofFun U (fun z ↦ κ • f i (e z)) μ ⊤ =
+        transportCLM e hU (ofFun Ω (f i) volume ⊤) := by
+      rw [transportCLM_ofFun_of_isAddHaarMeasure e hU volume μ
+        ((hf i).continuousOn.locallyIntegrableOn Ω.isOpen.measurableSet), ← ofFun_smul,
+        Pi.smul_def]
+    rw [h₁, h₂, hT i]
+  refine ⟨fun x ↦ ∑ i, (κ • f i (e x)).re • b i,
     ContDiffOn.sum fun i _ ↦ (Complex.reCLM.contDiff.comp_contDiffOn (hg i)).smul contDiffOn_const,
     ?_⟩
   filter_upwards [ae_all_iff.2 hwg] with x hx
