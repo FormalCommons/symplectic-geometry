@@ -28,6 +28,9 @@ Tau Ceti defines the leaves of a foliation, each leaf lies in a fibre of `f`.
   kernels `ker (mfderiv f x)` form a `C^m` distribution of rank `dim E - r` when `m + 1 ≤ n`.
 * `TauCeti.Foliation.ofConstantRank`: the foliation of `M` by these kernels, with
   `TauCeti.Foliation.ofConstantRank_distribution`.
+* `TauCeti.Foliation.apply_eq_of_contMDiffOn_of_tangent`: a real map whose derivative vanishes
+  on the tangent spaces of a foliation over a set `U` is constant along each piece of a tangent
+  curve that stays in `U`.
 * `TauCeti.Foliation.SameLeaf.apply_eq_of_le_ker`: a real map whose derivative vanishes on the
   tangent spaces of a foliation is constant on each leaf.
 * `TauCeti.Foliation.SameLeaf.apply_eq_of_ofConstantRank`: a real map of constant rank is
@@ -207,6 +210,29 @@ variable {E F H G M N : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [TopologicalSpace M] [ChartedSpace H M] [TopologicalSpace N] [ChartedSpace G N]
   {n : ℕ∞ω} [IsManifold I (n + 1) M] {f : M → N} {x y : M}
 
+/-- Let `f` be a real map, differentiable at each point of a set `U`, whose derivative at each
+point of `U` kills the tangent space of a foliation there. Along a `C¹` curve `γ` tangent to the
+foliation on `[0, 1]`, `f ∘ γ` is constant on each convex subset `S` of `[0, 1]` that `γ` maps
+into `U`. -/
+theorem apply_eq_of_contMDiffOn_of_tangent [IsManifold J 1 N] {k : ℕ} {𝓕 : Foliation I n M k}
+    {U : Set M} (hf : ∀ x ∈ U, MDifferentiableAt I J f x)
+    (hD : ∀ x ∈ U, 𝓕.distribution x ≤ (mfderiv I J f x).ker) {γ : ℝ → M}
+    (hγ : ContMDiffOn 𝓘(ℝ, ℝ) I 1 γ (Icc 0 1))
+    (htan : ∀ t ∈ Icc (0 : ℝ) 1, curveVelocityWithin I γ (Icc 0 1) t ∈ 𝓕.distribution (γ t))
+    {S : Set ℝ} (hS : Convex ℝ S) (hS₁ : S ⊆ Icc 0 1) (hγS : MapsTo γ S U) {a b : ℝ}
+    (ha : a ∈ S) (hb : b ∈ S) : f (γ a) = f (γ b) := by
+  -- Along `γ`, the derivative of `f ∘ γ` vanishes.
+  refine Convex.apply_eq_of_hasMFDerivWithinAt_zero (J := J) (g := f ∘ γ) hS
+    (fun t ht ↦ ?_) ha hb
+  have hft : MDifferentiableAt I J f (γ t) := hf (γ t) (hγS ht)
+  have hγt := hγ.mdifferentiableOn one_ne_zero t (hS₁ ht)
+  have hv := hD (γ t) (hγS ht) (htan t (hS₁ ht))
+  rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe] at hv
+  have hd := hasMFDerivWithinAt_curveVelocityWithin (hft.comp_mdifferentiableWithinAt t hγt)
+  rw [curveVelocityWithin_map hft (uniqueDiffOn_Icc zero_lt_one t (hS₁ ht)) hγt, hv,
+    ContinuousLinearMap.smulRight_zero] at hd
+  exact hd.mono hS₁
+
 /-- A differentiable real map whose derivative kills the tangent spaces of a foliation is constant
 on each leaf of the foliation. -/
 theorem SameLeaf.apply_eq_of_le_ker [IsManifold J 1 N] {k : ℕ} {𝓕 : Foliation I n M k}
@@ -214,17 +240,10 @@ theorem SameLeaf.apply_eq_of_le_ker [IsManifold J 1 N] {k : ℕ} {𝓕 : Foliati
     (h : 𝓕.SameLeaf x y) : f x = f y := by
   refine sameLeaf_le (r := fun x y ↦ f x = f y) ⟨fun _ ↦ rfl, Eq.symm, Eq.trans⟩
     (fun x y hxy ↦ ?_) x y h
-  -- Along a curve tangent to the foliation, the derivative of `f ∘ γ` vanishes.
   obtain ⟨γ, hγ, htan, rfl, rfl⟩ := joinedByTangentCurve_iff.mp hxy
-  refine Convex.apply_eq_of_hasMFDerivWithinAt_zero (J := J) (g := f ∘ γ) (convex_Icc 0 1)
-    (fun t ht ↦ ?_) (left_mem_Icc.2 zero_le_one) (right_mem_Icc.2 zero_le_one)
-  have hft : MDifferentiableAt I J f (γ t) := hf (γ t)
-  have hγt := hγ.mdifferentiableOn one_ne_zero t ht
-  have hv := hD (γ t) (htan t ht)
-  rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe] at hv
-  have hd := hasMFDerivWithinAt_curveVelocityWithin (hft.comp_mdifferentiableWithinAt t hγt)
-  rwa [curveVelocityWithin_map hft (uniqueDiffOn_Icc zero_lt_one t ht) hγt, hv,
-    ContinuousLinearMap.smulRight_zero] at hd
+  exact apply_eq_of_contMDiffOn_of_tangent (U := univ) (fun x _ ↦ hf x) (fun x _ ↦ hD x) hγ htan
+    (convex_Icc 0 1) subset_rfl (mapsTo_univ _ _) (left_mem_Icc.2 zero_le_one)
+    (right_mem_Icc.2 zero_le_one)
 
 /-- A real map of constant rank is constant on each leaf of its kernel foliation. -/
 theorem SameLeaf.apply_eq_of_ofConstantRank [FiniteDimensional ℝ E] [CompleteSpace F]

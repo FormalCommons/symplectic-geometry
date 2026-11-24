@@ -6,9 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.Foliation.Leaf
+import SymplecticGeometry.Geometry.Manifold.Distribution.ConstantRank
 import SymplecticGeometry.Geometry.Manifold.Distribution.FlatChart
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
-import TauCeti.Analysis.Calculus.MeanValue
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
 /-!
@@ -40,12 +40,12 @@ The file then shows that leaves can be followed smoothly
 smooth near `x`, sends `x` to `y` and every nearby point `z` to a point of the leaf of `z`. In a
 flat chart, translating the image by a vector with second component `0` moves two points of the
 same plaque into each other. Along a curve tangent to `𝓕`, the second coordinate in a flat chart
-has derivative `0`, so by the mean value inequality it is constant on a piece of the curve near
-each parameter; composing such translations and using that `[0, 1]` is connected
-(`IsPreconnected.induction₂'`) handles one curve, and Tau Ceti's `TauCeti.Foliation.sameLeaf_le`
-handles chains of curves. It follows that the union of the leaves through an open set is open
-(`TauCeti.Foliation.isOpen_saturation`): a point of the union is carried back into the open set by
-such a map, and so are the points near it.
+has derivative `0`, so it is constant on a piece of the curve near each parameter
+(`TauCeti.Foliation.apply_eq_of_contMDiffOn_of_tangent`); composing such translations and using
+that `[0, 1]` is connected (`IsPreconnected.induction₂'`) handles one curve, and Tau Ceti's
+`TauCeti.Foliation.sameLeaf_le` handles chains of curves. It follows that the union of the leaves
+through an open set is open (`TauCeti.Foliation.isOpen_saturation`): a point of the union is
+carried back into the open set by such a map, and so are the points near it.
 
 ## Main results
 
@@ -234,27 +234,23 @@ private theorem eventually_transportable_curve (h₁ : finrank ℝ F₁ = k)
     (hγ t ht).continuousWithinAt.preimage_mem_nhdsWithin (hO.mem_nhds ⟨hx, by simp [h0]⟩)
   obtain ⟨δ, hδ, hδO⟩ := Metric.mem_nhdsWithin_iff.mp hγO
   set S := Metric.ball t δ ∩ Icc 0 1
-  -- On the convex set `S`, the second coordinate of `Φ ∘ γ` has derivative `0`.
-  have hderiv (r : ℝ) (hr : r ∈ S) :
-      HasDerivWithinAt (fun s ↦ (Φ (γ s)).2) 0 S r := by
-    have hγr : γ r ∈ Φ.source := (hδO hr).1
-    have hΦ := Φ.mdifferentiableAt (by simp) hγr
-    have hγr' := (hγ r hr.2).mdifferentiableWithinAt one_ne_zero
-    have hg : DifferentiableWithinAt ℝ (Φ ∘ γ) (Icc 0 1) r :=
-      mdifferentiableWithinAt_iff_differentiableWithinAt.mp
-        (hΦ.comp_mdifferentiableWithinAt r hγr')
-    have hv : (derivWithin (Φ ∘ γ) (Icc 0 1) r).2 = 0 := by
-      rw [← curveVelocityWithin_eq_derivWithin,
-        curveVelocityWithin_map hΦ (uniqueDiffOn_Icc zero_lt_one r hr.2) hγr']
-      exact (hflat _ hγr _).2 (htan r hr.2)
-    have := ((ContinuousLinearMap.snd ℝ F₁ F₂).hasFDerivAt.comp_hasDerivWithinAt r
-      hg.hasDerivWithinAt).mono (inter_subset_right : S ⊆ Icc 0 1)
-    convert this using 1
-    · simp [Function.comp_def]
-    · simp [hv]
+  -- The second coordinate of `Φ` has derivative `0` along `𝓕`, so it is constant along `γ`
+  -- on the convex set `S`.
+  have hsnd (y : M) (hy : y ∈ Φ.source) :
+      MDifferentiableAt I 𝓘(ℝ, F₂) (ContinuousLinearMap.snd ℝ F₁ F₂ ∘ Φ) y :=
+    (ContinuousLinearMap.snd ℝ F₁ F₂).mdifferentiableAt.comp y (Φ.mdifferentiableAt (by simp) hy)
   have hconst (s : ℝ) (hs : s ∈ S) : (Φ (γ s)).2 = (Φ (γ t)).2 := by
-    exact ((convex_ball t δ).inter (convex_Icc 0 1)).isPreconnected.eq_of_hasDerivWithinAt_zero
-      hderiv hs ⟨Metric.mem_ball_self hδ, ht⟩
+    have hker (y : M) (hy : y ∈ Φ.source) :
+        𝓕.distribution y ≤ (mfderiv I 𝓘(ℝ, F₂) (ContinuousLinearMap.snd ℝ F₁ F₂ ∘ Φ) y).ker :=
+      fun v hv ↦ by
+        rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe,
+          mfderiv_comp_apply y (ContinuousLinearMap.snd ℝ F₁ F₂).mdifferentiableAt
+            (Φ.mdifferentiableAt (by simp) hy), ContinuousLinearMap.mfderiv_eq]
+        exact (hflat y hy v).2 hv
+    simpa only [comp_apply, ContinuousLinearMap.coe_snd'] using
+      apply_eq_of_contMDiffOn_of_tangent hsnd hker hγ htan
+        ((convex_ball t δ).inter (convex_Icc 0 1)) inter_subset_right (fun r hr ↦ (hδO hr).1) hs
+        ⟨Metric.mem_ball_self hδ, ht⟩
   filter_upwards [inter_mem_nhdsWithin _ (Metric.ball_mem_nhds t hδ)] with s hs
   have hs' : s ∈ S := ⟨hs.2, hs.1⟩
   have hst := hconst s hs'
