@@ -40,8 +40,8 @@ All in the namespace `TauCeti.SmoothTwoForm.IsNondegenerate`:
   of a regular characteristic foliation is a characteristic submersion of the presymplectic form.
 * `IsCoisotropicMap.existsUnique_isSymplectic_mpullback_eq`: the presymplectic form is the
   pullback of a unique symplectic form on the leaf space.
-* `IsCoisotropicMap.isSubmersion_leafSpaceMk_and_existsUnique_mpullback_eq`: regular coisotropic
-  reduction.
+* `IsCoisotropicMap.isSubmersion_leafSpaceMk_and_existsUnique_isSymplectic_mpullback_eq`:
+  regular coisotropic reduction.
 
 ## References
 
@@ -119,7 +119,8 @@ If its foliation, the characteristic foliation of `f`, is regular, then:
   `f^* σ`.
 
 Milestone: *Regular coisotropic reduction*. -/
-theorem IsCoisotropicMap.isSubmersion_leafSpaceMk_and_existsUnique_mpullback_eq {n k : ℕ}
+theorem IsCoisotropicMap.isSubmersion_leafSpaceMk_and_existsUnique_isSymplectic_mpullback_eq
+    {n k : ℕ}
     (hE : finrank ℝ E = 2 * n) (hk : finrank ℝ F + k = finrank ℝ E)
     (hR : (h.characteristicFoliation hi hf hσc hn).IsRegular) :
     IsInvolutiveDistribution J
