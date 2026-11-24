@@ -45,8 +45,11 @@ group; the definitions take any nondegenerate `B`, and each result assumes only 
   with `J` multiplication by `i`, is a complexified action of the rotation action of `Circle`, for
   the complexification `LieComplexification.circle`.
 * `SymplecticGeometry.momentNormSq_nonneg`, `SymplecticGeometry.momentNormSq_eq_zero_iff`: for a
-  positive semidefinite, respectively anisotropic, `B`, the norm square is nonnegative, and it
+  nonnegative, respectively anisotropic, `B`, the norm square is nonnegative, and it
   vanishes exactly where `μ` does.
+* `SymplecticGeometry.momentSharp_neg`, `SymplecticGeometry.momentNormSq_neg`: replacing `μ`
+  by `-μ`, as the sign convention of an equivariant moment map may require, negates `μ♯` and
+  leaves the norm square unchanged.
 * `SymplecticGeometry.momentSharp_smul`, `SymplecticGeometry.momentNormSq_smul`: for an
   `Ad`-invariant `B` and a coadjoint-equivariant `μ`, `μ♯` is equivariant and the norm square
   is `G`-invariant.
@@ -110,6 +113,11 @@ theorem momentSharp_eq_iff {v : GroupLieAlgebra I G} :
 theorem momentSharp_eq_zero_iff : momentSharp B hB μ x = 0 ↔ μ x = 0 := by
   rw [momentSharp_def, LinearEquiv.map_eq_zero_iff]
 
+/-- The dual vector of `-μ` is the negative of that of `μ`. -/
+@[simp]
+theorem momentSharp_neg : momentSharp B hB (fun x ↦ -μ x) x = -momentSharp B hB μ x := by
+  simp [momentSharp_def]
+
 variable (B hB μ) in
 /-- The norm square `‖μ x‖² = B (μ♯ x) (μ♯ x)` of the moment map, for the form on the dual of
 the Lie algebra that the nondegenerate form `B` induces. -/
@@ -125,9 +133,14 @@ theorem momentNormSq_eq_apply_momentSharp :
     momentNormSq B hB μ x = μ x (momentSharp B hB μ x) := by
   rw [momentNormSq_def, apply_momentSharp]
 
-/-- For a positive semidefinite form `B`, the norm square of `μ x` is nonnegative. -/
-theorem momentNormSq_nonneg (hpos : ∀ ξ, 0 ≤ B ξ ξ) : 0 ≤ momentNormSq B hB μ x :=
-  hpos _
+/-- The norm square of `-μ` is that of `μ`. -/
+@[simp]
+theorem momentNormSq_neg : momentNormSq B hB (fun x ↦ -μ x) x = momentNormSq B hB μ x := by
+  simp [momentNormSq_def, momentSharp_neg]
+
+/-- For a nonnegative form `B`, the norm square of `μ x` is nonnegative. -/
+theorem momentNormSq_nonneg (hpos : B.IsNonneg) : 0 ≤ momentNormSq B hB μ x :=
+  hpos.nonneg _
 
 /-- For an anisotropic form `B`, such as a positive definite one, the norm square of `μ x`
 vanishes exactly when `μ x` does. -/
@@ -144,12 +157,8 @@ theorem momentSharp_smul [LieGroup I 1 G] [MulAction G M]
     (g : G) (x : M) :
     momentSharp B hB μ (g • x) = Lie.adjointContinuousLinearMap g (momentSharp B hB μ x) := by
   refine momentSharp_eq_iff.2 fun ξ ↦ ?_
-  have hξ : ξ = Lie.adjointRepresentation ℝ I G g (Lie.adjointContinuousLinearMap g⁻¹ ξ) := by
-    rw [Lie.adjointRepresentation_apply, ← ContinuousLinearMap.comp_apply,
-      ← Lie.adjointContinuousLinearMap_mul, mul_inv_cancel, Lie.adjointContinuousLinearMap_one,
-      ContinuousLinearMap.id_apply]
-  rw [hμ, Lie.coadjointRepresentation_apply, hξ, ← Lie.adjointRepresentation_apply (𝕜 := ℝ),
-    Representation.isInvariantForm_iff.1 hBG, apply_momentSharp, ← hξ]
+  rw [← Lie.adjointRepresentation_apply (𝕜 := ℝ), hBG.apply_left, apply_momentSharp, hμ,
+    Lie.coadjointRepresentation_apply, Lie.adjointRepresentation_apply]
 
 /-- For a coadjoint-equivariant `μ` and an `Ad`-invariant form `B`, the norm square of the moment
 map is invariant under `G`. -/
