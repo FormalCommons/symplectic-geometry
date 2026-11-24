@@ -208,9 +208,8 @@ variable {ω : SymplecticForm V} {J : AlmostComplexStructure V}
 subspaces. -/
 theorem Invariant.isLagrangian_map (h : ω.Invariant J) {L : Submodule ℝ V}
     (hL : ω.IsLagrangian L) : ω.IsLagrangian (L.map J.toLinearMap) :=
-  (isLagrangian_map_iff_of_apply_eq_mul J.linearEquiv one_ne_zero fun v w ↦ by
-    rw [one_mul]
-    exact (ω.invariant_iff J).1 h v w).2 hL
+  (IsSymplectomorphism.isLagrangian_map_iff (e := J.linearEquiv)
+    (isSymplectomorphism_iff.2 ((ω.invariant_iff J).1 h))).2 hL
 
 /-- If a linear map `f` sends the Lagrangian subspaces of `ω` to Lagrangian subspaces of `ω'`,
 then it sends `ω`-orthogonal pairs to `ω'`-orthogonal pairs: `ω(v, w) = 0` implies
