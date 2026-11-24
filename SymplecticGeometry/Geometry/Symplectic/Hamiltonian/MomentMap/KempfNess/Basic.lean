@@ -11,10 +11,14 @@ public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.Algebra.ComplexSmoothFunctions
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
+public import TauCeti.Geometry.Manifold.MFDeriv.Curve
+public import TauCeti.Geometry.Manifold.Riemannian.Gradient.Basic
+public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 public import TauCeti.RepresentationTheory.InvariantForm
 
 /-!
-# Complexified actions, the norm square of the moment map and stability
+# Complexified actions, the norm square of the moment map, stability and the gradient
 
 Let `C : LieComplexification I G IC Gc` be a complexification of a real Lie group `G`, and suppose
 that `G` and `Gc` both act on `M`, which carries the almost complex structure `J`. The action of
@@ -75,6 +79,11 @@ and the moment weights.
 * `SymplecticGeometry.isSemistable_of_moment_eq_zero`: a zero of `μ` is semistable.
 * `SymplecticGeometry.isStable_of_moment_eq_zero`: a zero of `μ` whose stabilizer in `Gc` is
   discrete is stable.
+* `SymplecticGeometry.mgradient_moment_apply`: if `-μ` is a moment map for `σ` and the metric is
+  `g(u, w) = σ(u, J w)`, the gradient of `x ↦ μ x ξ` is `-J X_ξ`.
+* `SymplecticGeometry.hasDerivAt_moment_expI`, `SymplecticGeometry.antitone_moment_expI`: for a
+  complexified action, `t ↦ μ (C.expI (t • ξ) • p) ξ` has derivative `-‖X_ξ‖²` at the moving
+  point, so it is antitone.
 
 The integral curve is Tau Ceti's `TauCeti.isMIntegralCurve_mulInvariantExp_smul_smul` for the
 action of `Gc` and the direction `C.cplx (C.lieMap ξ)`. In the example, the orbit maps of `ℂˣ` are
@@ -83,6 +92,16 @@ holomorphic, so their real differentials commute with multiplication by `i`
 for the real structures, which the results on complexified actions assume, is found by instance
 search: Mathlib's `Units.contMDiffSMul` and `ContMDiffMul.contMDiffSMul` from Tau Ceti's
 `TauCeti.realComplexContMDiffRing`.
+
+The gradient of `x ↦ μ x ξ` is computed as in Tau Ceti's
+`TauCeti.SmoothTwoForm.IsNondegenerate.apply_hamiltonianVectorField_eq_mgradient`, read for the
+component `-μ_ξ` with Hamiltonian vector field `X_ξ`; no nondegeneracy is needed, since the
+gradient is tested directly against the moment map identity. The derivative along `exp(itξ)`
+follows Tau Ceti's `TauCeti.Manifold.hasDerivAt_comp_maximalIntegralCurve_neg_mgradient`: the
+chain rule along the integral curve `isMIntegralCurve_expI_smul` of `J X_ξ`, and `J` is
+orthogonal for `g` (`TauCeti.SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq`).
+These results take any metric with `g(u, w) = σ(u, J w)`; for a compatible pair, Tau Ceti's
+`TauCeti.SmoothTwoForm.Compatible.inner_eq_eval₂` says that `Compatible.metric` is one.
 
 ## References
 
@@ -387,6 +406,68 @@ theorem isMIntegralCurve_expI_smul (h : IsComplexifiedAction C J) (ξ : GroupLie
   exact isMIntegralCurve_mulInvariantExp_smul_smul (I' := I') (C.cplx (C.lieMap ξ)) p
 
 end IsComplexifiedAction
+
+/-! ### The gradient of a component of the moment map -/
+
+section Gradient
+
+open Bundle
+open scoped RealInnerProductSpace
+
+variable [FiniteDimensional ℝ E'] [ContMDiffSMul I I' ∞ G M]
+  [RiemannianBundle (fun x : M ↦ TangentSpace I' x)]
+  {σ : SmoothTwoForm I' M} {J : SmoothAlmostComplexStructure I' M}
+  {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+
+/-- **The gradient of a component of the moment map.** Let `-μ` be a moment map for `σ` of the
+action of `G` by fundamental vector fields, and let the metric be `g(u, w) = σ(u, J w)`. Then the
+gradient of `x ↦ μ x ξ` is `-J X_ξ`, where `X_ξ` is the fundamental vector field of `ξ`. -/
+theorem mgradient_moment_apply
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    (ξ : GroupLieAlgebra I G) (x : M) :
+    Manifold.mgradient I' (fun y ↦ μ y ξ) x = -J x (fundamentalVectorField I' ξ x) := by
+  refine (Manifold.eq_mgradient_iff.2 fun v ↦ ?_).symm
+  -- `⟪-J X_ξ, v⟫ = σ(v, -J J X_ξ) = σ(v, X_ξ) = -σ(X_ξ, v)`, and `σ(X_ξ, v) = -dμ_ξ(v)`.
+  have h := hμ.eval₂_apply ξ x v
+  simp only [InfinitesimalAction.fundamental_apply, LinearMap.neg_apply, mvfderiv_fun_neg,
+    neg_apply] at h
+  rw [real_inner_comm, hg]
+  simp only [map_neg, SmoothAlmostComplexStructure.apply_apply, neg_neg]
+  rw [SmoothBundleForm.eval₂_swap, h, neg_neg]
+
+/-- **The derivative of `⟨μ, ξ⟩` along `exp(itξ)`.** For a complexified action, with `-μ` a
+moment map for `σ` and the metric `g(u, w) = σ(u, J w)`, the function
+`t ↦ μ (C.expI (t • ξ) • p) ξ` has derivative `-‖X_ξ‖²` at the point `C.expI (t • ξ) • p`. -/
+theorem hasDerivAt_moment_expI [ContMDiffSMul IC I' ∞ Gc M] {C : LieComplexification I G IC Gc}
+    (h : IsComplexifiedAction C J)
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    (ξ : GroupLieAlgebra I G) (p : M) (t : ℝ) :
+    HasDerivAt (fun s : ℝ ↦ μ (C.expI (s • ξ) • p) ξ)
+      (-‖fundamentalVectorField I' ξ (C.expI (t • ξ) • p)‖ ^ 2) t := by
+  have hd : MDifferentiableAt I' 𝓘(ℝ) (fun y ↦ μ y ξ) (C.expI (t • ξ) • p) := by
+    convert (hμ.mdifferentiableAt ξ (C.expI (t • ξ) • p)).neg using 1
+    funext y
+    simp
+  have hD := Manifold.hasDerivAt_comp_curve hd (h.isMIntegralCurve_expI_smul ξ p t)
+  rwa [← Manifold.inner_mgradient, mgradient_moment_apply hμ hg, inner_neg_left,
+    SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq hg,
+    real_inner_self_eq_norm_sq] at hD
+
+/-- **`⟨μ, ξ⟩` decreases along `exp(itξ)`.** For a complexified action, with `-μ` a moment map
+for `σ` and the metric `g(u, w) = σ(u, J w)`, the function `t ↦ μ (C.expI (t • ξ) • p) ξ` is
+antitone. -/
+theorem antitone_moment_expI [ContMDiffSMul IC I' ∞ Gc M] {C : LieComplexification I G IC Gc}
+    (h : IsComplexifiedAction C J)
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    (ξ : GroupLieAlgebra I G) (p : M) :
+    Antitone fun t : ℝ ↦ μ (C.expI (t • ξ) • p) ξ :=
+  antitone_of_hasDerivAt_nonpos (hasDerivAt_moment_expI h hμ hg ξ p)
+    fun _ ↦ neg_nonpos.2 (sq_nonneg _)
+
+end Gradient
 
 /-! ### The example: `ℂˣ` acting on `ℂ` -/
 
