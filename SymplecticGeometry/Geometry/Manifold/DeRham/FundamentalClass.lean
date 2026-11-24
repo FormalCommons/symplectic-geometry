@@ -239,9 +239,7 @@ theorem intIntegrationCochain_iCycles_eq_integralTopForm (hE' : finrank ℝ E' =
     σ.integral_eq_integralTopForm o hU hgσ hg ho
       (hψ.integrableTopForm hK (finBasisOfFinrankEq ℝ E' hE'))
       (hsupp.trans (image_mono interior_subset))]
-  simp only [ULift.one_down, one_smul, add_zero]
-  -- The sum is taken in `ℝ` with scalars restricted to `ℤ`.
-  exact zero_add _
+  simp only [ULift.one_down, one_smul, add_zero, zero_add]
 
 /-- **Integration against the fundamental class of a surface.** For a closed surface `C`, oriented
 by `o`, and a closed smooth two-form `φ`, the integral of `φ` over `C` is the period of its de Rham
