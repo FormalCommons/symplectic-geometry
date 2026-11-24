@@ -33,7 +33,7 @@ periods of the contractions
 
 As a consequence, if every truncation of `φ` has zero flux, then every period of every
 `ι_{X_t} σ` vanishes: a continuous function whose integrals over every `[0, T]` vanish is the
-derivative of zero, hence zero (`Continuous.eqOn_zero_of_forall_intervalIntegral_eq_zero`). Every
+derivative of zero, hence zero (`ContinuousOn.eqOn_zero_of_forall_intervalIntegral_eq_zero`). Every
 `ι_{X_t} σ` is then exact (Tau Ceti's
 `TauCeti.mem_exactForms_one_iff_homologyPeriodHom_eq_zero`), so `φ` is Hamiltonian
 (`TauCeti.Diffeotopy.isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms`). This is the
@@ -131,10 +131,11 @@ theorem isHamiltonian_of_forall_flux_truncate_eq_zero
       (SymplecticGeometry.isSmoothFamily_interiorₗ σ.val Φ.contMDiff_smoothVelocity)
       hX c).continuous.comp continuous_projIcc
   -- Its integrals over the intervals `[0, s]`, `s ∈ [0, 1]`, vanish, so it vanishes on `[0, 1]`.
-  have hzero := hg.eqOn_zero_of_forall_intervalIntegral_eq_zero zero_lt_one fun s hs ↦ by
-    have := homologyPeriod_flux_truncate hΦ ⟨s, hs⟩ c
-    rw [h, map_zero, AddMonoidHom.zero_apply] at this
-    exact this.symm
+  have hzero := hg.continuousOn.eqOn_zero_of_forall_intervalIntegral_eq_zero zero_lt_one
+    fun s hs ↦ by
+      have := homologyPeriod_flux_truncate hΦ ⟨s, hs⟩ c
+      rw [h, map_zero, AddMonoidHom.zero_apply] at this
+      exact this.symm
   simpa only [g, projIcc_val, Pi.zero_apply, AddMonoidHom.zero_apply] using hzero t.property
 
 end TauCeti.Diffeotopy
