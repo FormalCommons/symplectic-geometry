@@ -18,9 +18,10 @@ differentiable at every `C` with `1 - C` invertible, with derivative
 `Ẋ ↦ 2 A (1 - C)⁻¹ Ẋ (1 - C)⁻¹`. With `A` a complex structure `J₀`, this map is the inverse
 Cayley transform at `J₀`, and this computes its differential.
 
-The proof is that of Tau Ceti's `TauCeti.hasFDerivAt_cayleyParam`, which differentiates
-the other Cayley parametrization `η ↦ (1 + η)⁻¹ j (1 + η)`: the product rule, and Tau Ceti's
-`HasFDerivAt.ringInverse` for the inverse.
+The proof follows Tau Ceti's `TauCeti.hasFDerivAt_cayleyParam`, which differentiates
+the other Cayley parametrization `η ↦ (1 + η)⁻¹ j (1 + η)` by the product rule and the derivative
+of the inverse. Here the derivative of `x ↦ (1 - x)⁻¹` comes from Tau Ceti's chain rule
+`HasFDerivAt.ringInverse`.
 
 ## Main results
 
