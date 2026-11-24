@@ -34,6 +34,9 @@ and the principal action of `G` on `Q` becomes the diagonal action `(x, v) · g 
 * `TauCeti.AssociatedBundle.pullbackProjSection`: the tautological section `m ↦ m` of the
   bundle `Q ×_G F` over `M`, and `TauCeti.AssociatedBundle.contMDiff_pullbackProjSection`:
   it is `C^n`.
+* `TauCeti.AssociatedBundle.sectionFunction_pullbackProjSection_eq_iff` and
+  `TauCeti.AssociatedBundle.pullbackProjDiffeomorph_symm_snd_eq_iff`: the second coordinate of
+  `Φ⁻¹ (m, y)` is the `w` with `[y, w] = m`.
 
 ## Implementation notes
 
@@ -144,8 +147,10 @@ theorem contMDiff_pullbackProjSection :
   -- the point of `M` that `m` stands for; `Pullback.lift_mk` does not rewrite here.
   exact (ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).apply_symm_apply m
 
-/-- The value of the tautological section at `z = (m, y)` is the `w` with `[y, w] = m`. -/
-private theorem sectionFunction_pullbackProjSection_eq_iff (z : TotalSpace G Q) (w : F) :
+/-- The equivariant function of the tautological section takes the value `w` at a point
+`z = (m, y)` of the total space of `Q` exactly when `m` is the class `[y, w]`, with `y` read in
+the total space of `P`. -/
+theorem sectionFunction_pullbackProjSection_eq_iff (z : TotalSpace G Q) (w : F) :
     sectionFunction (pullbackProjSection n IB IF) z = w ↔
       (ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm z.proj =
         ⟨(Pullback.lift πM z).proj, mk G (Pullback.lift πM z).snd w⟩ := by
@@ -208,6 +213,16 @@ theorem pullbackProjDiffeomorph_symm_apply (z : ManifoldTotalSpace G Q) :
           (Pullback.lift πM ((ManifoldTotalSpace.homeomorph G Q).symm z)),
         sectionFunction (pullbackProjSection n IB IF)
           ((ManifoldTotalSpace.homeomorph G Q).symm z)) := (rfl)
+
+/-- The second coordinate of `Φ⁻¹ z`, for `z = (m, y)`, is `w` exactly when `m` is the class
+`[y, w]`, with `y` read in the total space of `P`. -/
+theorem pullbackProjDiffeomorph_symm_snd_eq_iff (z : ManifoldTotalSpace G Q) (w : F) :
+    ((pullbackProjDiffeomorph n IB IG IF).symm z).2 = w ↔
+      (ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm
+          ((ManifoldTotalSpace.homeomorph G Q).symm z).proj =
+        ⟨(Pullback.lift πM ((ManifoldTotalSpace.homeomorph G Q).symm z)).proj,
+          mk G (Pullback.lift πM ((ManifoldTotalSpace.homeomorph G Q).symm z)).snd w⟩ := by
+  rw [pullbackProjDiffeomorph_symm_apply, sectionFunction_pullbackProjSection_eq_iff]
 
 /-- **The projection of `Q` composed with `Φ` is the quotient map** `(x, v) ↦ [x, v]`. -/
 -- Not `@[simp]`: at a point `(homeomorph G P p, v)` it leaves a dependent pair that `simp` cannot

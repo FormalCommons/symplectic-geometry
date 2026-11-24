@@ -277,8 +277,11 @@ projection as a smooth map, and `Q := πM *ᵖ P`.
   `pullbackProjDiffeomorph_smul` (equivariance for the diagonal action). Its
   forward map is smooth by Tau Ceti's
   `ManifoldTotalSpace.contMDiff_pullback_iff`; its inverse
-  $([x,v],y)\mapsto(y,\ \text{the } w \text{ with } [y,w]=[x,v])$ is read in
-  one trivialization of $P$ at the base point, where $w=(e\,y)_2^{-1}(e\,x)_2\,v$.
+  $([x,v],y)\mapsto(y,\ \text{the } w \text{ with } [y,w]=[x,v])$ has as
+  second coordinate Tau Ceti's `sectionFunction` of the tautological section
+  `pullbackProjSection` of $Q\times_GF$ over $M$, smooth by Tau Ceti's
+  `contMDiff_sectionFunction`; in a trivialization $e$ of $P$,
+  $w=(e\,y)_2^{-1}(e\,x)_2\,v$ by `sectionFunction_eq_inv_smul`.
 - `mfderiv_pullbackProjDiffeomorph_fundamental`: $\Phi$ carries
   $(x\xi,-X_\xi(v))$ to the fundamental field of $\xi$ on $Q$.
 - `isSubmersion_totalSpaceMk_mk` and `surjective_totalSpaceMk_mk`: $q$ is
