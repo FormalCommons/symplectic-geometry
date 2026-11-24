@@ -151,8 +151,7 @@ review of #420 raise four more.
      needed).
      Two such forms live on `ℝ × U` and `ℝ × U'`; they are compared on
      `ℝ × (U ∩ U')` after restriction, which commutes with the Gray field
-     (`tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_subtype_val`,
-     `Gray.lean`).
+     (Tau Ceti's `mfderiv_grayVectorField_mpullback_prodMap`).
   3. Finitely many of the products cover `[0, 1] × M` when `M` is compact.
      Together with `ℝ × M` minus `[0, 1] × M`, on which the field is taken
      to be `0`, they form an open cover of `ℝ × M`; a smooth partition of
@@ -653,10 +652,8 @@ Named like Tau Ceti's file. With `[I.Boundaryless] [T2Space M] [CompactSpace M]`
   `mfderiv_grayVectorField_mpullback_prodMap (α) (hc) (f) (hf) (hdf) (x)`, for
   `α` on `ℝ × N` whose slice at `t` is contact and `f` smooth with bijective
   differentials,
-  `mfderiv I J f x ((mpullback (Prod.map id f) _ α).grayVectorField t x) = α.grayVectorField t (f x)`;
-  and
-  `tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_subtype_val`, the
-  case of an open subset `U`, which compares local Gray fields on different open sets in
+  `mfderiv I J f x ((mpullback (Prod.map id f) _ α).grayVectorField t x) = α.grayVectorField t (f x)`,
+  which compares local Gray fields on different open sets in
   step 2 of *Decisions*.
 - `IsContactFamily.exists_grayField (hξ)`: a time-dependent field
   `Y : ℝ → Π x, TangentSpace I x`, jointly smooth on `ℝ × M`, with, for
