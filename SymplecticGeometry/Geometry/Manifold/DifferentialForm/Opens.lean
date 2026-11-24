@@ -43,7 +43,9 @@ and the pull-back of restricted forms along a partial diffeomorphism of open sub
   form `TauCeti.SmoothForm.restrictInterior γ Z hZ`.
 * A smooth map `ψ` between open subsets that pulls the restriction of a two-form `σ'` back to the
   restriction of a two-form `σ` preserves the forms on tangent vectors at each point
-  (`TauCeti.SmoothForm.eval₂_mfderiv_eq_of_mpullback_subtype_val_eq`).
+  (`TauCeti.SmoothForm.eval₂_mfderiv_eq_of_mpullback_subtype_val_eq`). The same holds for a smooth
+  map `ψ : U → M'` that pulls `σ'` itself back to the restriction of `σ`
+  (`TauCeti.SmoothForm.eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtype_val`).
 * Restriction commutes with the exterior derivative, with no regularity assumption
   (`TauCeti.mpullback_subtype_val_mextDeriv`), since near every point of `U` the coordinate
   expressions of a form and of its restriction agree
@@ -219,6 +221,19 @@ section TwoForm
 
 variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M'] [ChartedSpace H' M'] [IsManifold I' 1 M']
+
+/-- Let `ψ : U → M'` be a smooth map from an open subset of `M` that pulls a two-form `σ'` on `M'`
+back to the restriction of a two-form `σ` on `M`. Then at each point `x` of `U`, `σ'` at `ψ x`
+takes the same values on `dψ a` and `dψ b` as `σ` at `x` on `a` and `b`. -/
+theorem SmoothForm.eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtype_val {U : Opens M}
+    {ψ : U → M'} (hψ : ContMDiff I I' ∞ ψ) {σ : SmoothForm I M F 2} {σ' : SmoothForm I' M' F 2}
+    (h : SmoothForm.mpullback ψ hψ σ' = SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ)
+    (x : U) (a b : TangentSpace I x) :
+    SmoothBundleForm.eval₂ σ' (ψ x) (mfderiv I I' ψ x a) (mfderiv I I' ψ x b) =
+      SmoothBundleForm.eval₂ σ (x : M) a b := by
+  have := congrArg (fun s ↦ SmoothBundleForm.eval₂ s x a b) h
+  simpa only [SmoothForm.eval₂_mpullback, Manifold.mfderiv_subtype_val,
+    ContinuousLinearEquiv.coe_coe, Manifold.tangentSpaceOpenEquiv_apply] using this
 
 /-- Let `ψ : U → V` be a smooth map between open subsets of `M` and `M'` that pulls the restriction
 of a two-form `σ'` on `M'` back to the restriction of a two-form `σ` on `M`. Then at each point
