@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.GroupAction.Quotient
 public import TauCeti.Topology.FiberBundle.MapFiber
 public import SymplecticGeometry.Geometry.Manifold.Algebra.MulOpposite
 public import SymplecticGeometry.Topology.Algebra.ProperAction.Free
+public import SymplecticGeometry.Topology.FiberBundle.ChangeModelFiber
 
 /-!
 # The principal bundle of a free proper action
@@ -43,10 +44,12 @@ nothing else determines it.
 For a free proper smooth right action of a Lie group `G` on a boundaryless finite-dimensional
 manifold `X`, Tau Ceti's quotient manifold theorem gives a smooth local section of the orbit
 projection through every orbit. The trivializations from these sections form a
-`TauCeti.MapFiber.Atlas` (`SymplecticGeometry.orbitFiber.atlas`), so that Tau Ceti's
-`TauCeti.MapFiber.Atlas.fiberBundle` and `TauCeti.MapFiber.Atlas.principalBundle` make
-`orbitFiber Gᵐᵒᵖ X` a principal `G`-bundle. A compact Lie group acts properly
-(`TauCeti.properSMul_of_compactSpace`), so this covers free smooth actions of compact Lie groups.
+`TauCeti.MapFiber.Atlas` (`SymplecticGeometry.orbitFiber.atlas`), and Tau Ceti's
+`TauCeti.MapFiber.Atlas.fiberBundle` makes `orbitFiber Gᵐᵒᵖ X` a fibre bundle with fibre `G`. It
+is a principal `G`-bundle because every trivialization of the atlas is equivariant
+(`SymplecticGeometry.orbitFiber.isEquivariant_trivializationOfSection`). A compact Lie group
+acts properly (`TauCeti.properSMul_of_compactSpace`), so this covers free smooth actions of
+compact Lie groups.
 
 **Local instances.** The statements about this bundle use two charted spaces that are not global
 instances, and later files should use the same ones:
@@ -166,9 +169,8 @@ theorem orbitTrivializationOfSectionUnop_def :
 @[simp]
 theorem orbitTrivializationOfSectionUnop_baseSet :
     (orbitTrivializationOfSectionUnop U hU s hs hsec).baseSet = U := by
-  rw [orbitTrivializationOfSectionUnop_def]
-  -- `transFiberHomeomorph` keeps the base set by definition; Mathlib states no lemma for it
-  exact orbitTrivializationOfSection_baseSet
+  rw [orbitTrivializationOfSectionUnop_def, Trivialization.transFiberHomeomorph_baseSet,
+    orbitTrivializationOfSection_baseSet]
 
 /-- `orbitTrivializationOfSectionUnop` sends `x` to its orbit together with
 `unop (orbitSectionCoord s x)`. -/
@@ -177,6 +179,15 @@ theorem orbitTrivializationOfSectionUnop_apply (x : X) :
     orbitTrivializationOfSectionUnop U hU s hs hsec x =
       (Quotient.mk (orbitRel Gᵐᵒᵖ X) x, unop (orbitSectionCoord s x)) := by
   simp [orbitTrivializationOfSectionUnop_def, Trivialization.transFiberHomeomorph_apply]
+
+/-- Over a point `q` of `U`, the inverse of `orbitTrivializationOfSectionUnop` sends `(q, g)` to
+`s q` moved by `g` on the right, `op g • s q`. -/
+@[simp]
+theorem orbitTrivializationOfSectionUnop_symm_apply {q : orbitRel.Quotient Gᵐᵒᵖ X} (hq : q ∈ U)
+    (g : G) :
+    (orbitTrivializationOfSectionUnop U hU s hs hsec).toOpenPartialHomeomorph.symm (q, g) =
+      op g • s q := by
+  simp [orbitTrivializationOfSectionUnop_def, orbitTrivializationOfSection_symm_apply hq]
 
 namespace orbitFiber
 
@@ -216,10 +227,7 @@ theorem trivializationOfSection_symm_apply {q : orbitRel.Quotient Gᵐᵒᵖ X} 
       ⟨q, op g • ⟨s q, hsec q hq⟩⟩ := by
   rw [trivializationOfSection_def, Trivialization.toMapFiber_symm_apply, Homeomorph.symm_apply_eq,
     MapFiber.totalSpaceHomeomorph_apply, MapFiber.coe_smul]
-  -- Mathlib states no lemma for the inverse of `transFiberHomeomorph`, so its definition is
-  -- unfolded to reach `OpenPartialHomeomorph.transHomeomorph_symm_apply`
-  simp [orbitTrivializationOfSectionUnop_def, Trivialization.transFiberHomeomorph,
-    orbitTrivializationOfSection_symm_apply hq]
+  rw [orbitTrivializationOfSectionUnop_symm_apply hq]
 
 /-- **The trivialization from a local section is equivariant.** Left multiplication by
 `g : Gᵐᵒᵖ` on the fibre `Gᵐᵒᵖ` of `orbitTrivializationOfSection` is right multiplication by

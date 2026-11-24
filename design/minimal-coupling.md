@@ -344,10 +344,10 @@ boundaryless, Hausdorff, finite-dimensional manifold $X$:
   `X`, which nothing determines where the atlas is put in place by `letI`;
 - the bundle structures are Tau Ceti's, built from that atlas, and the file
   adds none of its own: `FiberBundle G (orbitFiber Gᵐᵒᵖ X)` is
-  `TauCeti.MapFiber.Atlas.fiberBundle`; `PrincipalBundle G` is
-  `TauCeti.MapFiber.Atlas.principalBundle`, whose hypotheses are the
-  invariance of the orbit projection and `orbitSectionCoord_smul`, and whose
-  fibrewise action is the one of `orbitFiber.instMulAction`;
+  `TauCeti.MapFiber.Atlas.fiberBundle`; `PrincipalBundle G`, with
+  the fibrewise action of `orbitFiber.instMulAction`, holds because every
+  trivialization of the atlas is equivariant
+  (`orbitFiber.isEquivariant_trivializationOfSection`);
   `ContMDiffFiberBundle ∞ G (orbitFiber Gᵐᵒᵖ X) 𝓘(ℝ, ProperSMul.QuotientModelSpace _ _) IG`
   is `TauCeti.MapFiber.Atlas.contMDiffFiberBundle`, for a theorem
   `orbitFiber.isContMDiff_atlas` that the atlas is
