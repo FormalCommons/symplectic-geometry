@@ -73,7 +73,10 @@ the invariance that of `Module.Dual.mpullback_mul_left_leftInvariantForm`, throu
 equivariance of `Φ_ν` and `TauCeti.CotangentBundle.mpullback_smul_symplecticForm`. The value on
 left-trivialized tangent vectors adapts the proof of Tau Ceti's
 `Module.Dual.eval₂_leftInvariantKirillovForm_mulInvariantVectorField` to product vector fields on
-`G × N`, through `TauCeti.Manifold.mlieBracket_prodVectorField`.
+`G × N`, through `TauCeti.Manifold.mlieBracket_prodVectorField`; its two first steps, the
+pullback of the Liouville form and `Φ_ν^* ω = -d(Φ_ν^* λ)`, follow the proofs of
+`Module.Dual.leftInvariantForm_apply` and
+`Module.Dual.leftInvariantKirillovForm_eq_mpullback_symplecticForm`.
 
 ## References
 
@@ -261,9 +264,8 @@ theorem mpullback_leftInvariantCovectorMap_liouvilleForm_apply
     CotangentBundle.mpullback_liouvilleForm_apply_of_proj_comp_eq (g := Prod.fst)
       (proj_leftInvariantCovectorMap ν)
       ((contMDiff_leftInvariantCovectorMap hν).mdifferentiableAt (by simp)),
-    mfderiv_fst, leftInvariantCovectorMap_snd_apply, tangentSpaceProdEquiv_apply]
-  -- `ContinuousLinearMap.fst` is the first projection of the product.
-  rfl
+    mfderiv_fst_apply, tangentSpaceProdEquiv_apply]
+  exact leftInvariantCovectorMap_snd_apply ν q.1 q.2 _
 
 /-- The pullback `Φ_ν^* ω` of the canonical symplectic form `ω = -dλ` of `T*G` is `-d(Φ_ν^* λ)`,
 minus the exterior derivative of the pullback of the Liouville form. -/
@@ -368,7 +370,8 @@ theorem eval₂_leftInvariantCovectorMapForm_of_tangentSpaceProdEquiv_eq {F : Ty
 
 /-- The form `Φ_ν^* ω + pr_N^* β` on `G × F`, for `F` a normed space, on arbitrary tangent vectors
 `uᵢ = (vᵢ, wᵢ)` at `(g, p)`: with `ξᵢ = d(L_{g⁻¹})_g vᵢ`, it is
-`(ν p).kirillovForm ξ₁ ξ₂ = ν p ⁅ξ₁, ξ₂⁆ - d(ν · ξ₂)_p w₁ + d(ν · ξ₁)_p w₂ + β_p (w₁, w₂)`. -/
+`(ν p).kirillovForm ξ₁ ξ₂ - d(ν · ξ₂)_p w₁ + d(ν · ξ₁)_p w₂ + β_p (w₁, w₂)`, where
+`(ν p).kirillovForm ξ₁ ξ₂ = ν p ⁅ξ₁, ξ₂⁆`. -/
 theorem eval₂_leftInvariantCovectorMapForm {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
     [CompleteSpace F] {ν : F → Module.Dual ℝ (GroupLieAlgebra I G)}
     (hν : ∀ ξ, ContMDiff 𝓘(ℝ, F) 𝓘(ℝ) ∞ fun p ↦ ν p ξ) (β : SmoothForm 𝓘(ℝ, F) F ℝ 2)
