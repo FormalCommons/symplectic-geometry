@@ -2741,7 +2741,7 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   `Geometry/Symplectic/Hamiltonian/MomentMap/Obstruction.lean` (on a
   connected $M$: the class of `momentCocycle` of $-\mu$ in Tau Ceti's
   `TauCeti.LieModule.Cohomology.cohomology ℝ 𝔤 (TrivialLieModule ℝ 𝔤 ℝ) 2`,
-  reached through `(twoCochainEquiv ℝ 𝔤 _).symm` and `moduleCatHomologyClass`,
+  reached through `(twoCochainEquiv ℝ 𝔤 _).symm` and `moduleCatKerHomologyClass`,
   a cycle by `momentCocycle_mem_twoCocycle` and `d₂₃_twoCochainEquiv`; its
   independence of $\mu$; and that it vanishes, by
   `moduleCatHomologyClass_eq_zero_iff` and `twoCochainEquiv_d_one`, exactly
@@ -2753,9 +2753,8 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   `TauCeti.LieModule.Cohomology.cohomology`, `twoCochainEquiv`,
   `twoCochainEquiv_d_one`, `d₂₃_twoCochainEquiv`;
   `TauCeti/Algebra/Homology/ModuleCat/Basic.lean`:
-  `HomologicalComplex.moduleCatHomologyClass`,
-  `HomologicalComplex.moduleCatHomologyClass_eq_zero_iff`,
-  `HomologicalComplex.moduleCat_homologyπ_eq_iff`;
+  `HomologicalComplex.moduleCatKerHomologyClass`,
+  `HomologicalComplex.moduleCatHomologyClass_eq_zero_iff`;
   `TauCeti.SmoothTwoForm.momentCocycle` with
   `IsMomentMap.momentCocycle_eq`, `momentCocycle_mem_twoCocycle`,
   `momentCocycle_add_const`, `momentCocycle_apply_eq_poissonBracket`,

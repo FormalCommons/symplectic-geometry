@@ -20,11 +20,11 @@ sends a Mathlib `2`-cocycle to its class in `TauCeti.LieModule.Cohomology.cohomo
 and shows that it is surjective, and that two cocycles have the same class exactly when they
 differ by a coboundary `d₁₂ f` of a one-cochain `f`.
 
-The class map is Tau Ceti's `HomologicalComplex.moduleCatHomologyClass` for the kernel of the
-Chevalley–Eilenberg differential `d R L M 2`, precomposed with the restriction of
-`(twoCochainEquiv R L M).symm` to the `2`-cocycles. Its source cannot be `twoCocycle R L M`
-itself, since `moduleCatHomologyClass` needs an `AddCommGroup` on its source and that instance
-does not synthesize on the submodule `twoCocycle R L M`.
+The class map is Tau Ceti's `HomologicalComplex.moduleCatKerHomologyClass` on the kernel of the
+Chevalley–Eilenberg differential in degree two, precomposed with the restriction of
+`(twoCochainEquiv R L M).symm` to the `2`-cocycles. Its source is not `twoCocycle R L M` itself:
+an `AddCommGroup` instance on the submodule `twoCocycle R L M` does not synthesize, and a
+linear map out of it needs only its `Module` structure.
 
 ## Main definitions
 
@@ -38,12 +38,14 @@ does not synthesize on the submodule `twoCocycle R L M`.
   `TauCeti.LieModule.Cohomology.twoCochainEquiv_mem_continuousTwoCocycle_iff` that compares the
   two differentials, without the continuity conditions.
 * `TauCeti.LieModule.Cohomology.twoCocycleClass_eq_iff`: two `2`-cocycles have the same class
-  exactly when they differ by a coboundary `d₁₂ f`.
+  exactly when they differ by a coboundary `d₁₂ f`, from the zero criterion and linearity, as in
+  Tau Ceti's `HomologicalComplex.moduleCatCohomologyClassOfIso_eq_iff`.
 * `TauCeti.LieModule.Cohomology.twoCocycleClass_eq_zero_iff`: a `2`-cocycle has class zero exactly
   when it is a coboundary `d₁₂ f`, from Tau Ceti's
-  `HomologicalComplex.moduleCatHomologyClass_eq_zero_iff`.
+  `HomologicalComplex.moduleCatHomologyClass_eq_zero_iff` through
+  `HomologicalComplex.moduleCatKerHomologyClass_eq_moduleCatHomologyClass`.
 * `TauCeti.LieModule.Cohomology.twoCocycleClass_surjective`: every class is the class of a
-  `2`-cocycle, from Tau Ceti's `HomologicalComplex.moduleCatHomologyClass_surjective`.
+  `2`-cocycle, from Tau Ceti's `HomologicalComplex.moduleCatKerHomologyClass_surjective`.
 
 ## References
 
@@ -98,22 +100,25 @@ theorem cochainComplex_d_succ_apply {n : ℕ} (ω : L [⋀^Fin n]→ₗ[R] M) :
 `cohomology R L M 2`: a cocycle `c` goes to the class of the cycle
 `(twoCochainEquiv R L M).symm c`. -/
 noncomputable def twoCocycleClass : twoCocycle R L M →ₗ[R] cohomology R L M 2 :=
-  (cochainComplex R L M).moduleCatHomologyClass (n := 2) (m := 3) (by simp)
-      (LinearMap.ker (d R L M 2)).subtype
-      (fun z ↦ (cochainComplex_d_succ_apply (n := 2) _).trans z.property) ∘ₗ
-    ((twoCochainEquiv R L M).symm.toLinearMap ∘ₗ (twoCocycle R L M).subtype).codRestrict _
-      fun c ↦ (d_two_eq_zero_iff _).2 (by simp)
+  (cochainComplex R L M).moduleCatKerHomologyClass (n := 2) (m := 3) (by simp) ∘ₗ
+    ((twoCochainEquiv R L M).symm.toLinearMap ∘ₗ (twoCocycle R L M).subtype :
+        twoCocycle R L M →ₗ[R] (cochainComplex R L M).X 2).codRestrict _
+      fun c ↦ LinearMap.mem_ker.2 ((cochainComplex_d_two_eq_zero_iff _).2
+        ((congrArg (· ∈ twoCocycle R L M)
+          ((twoCochainEquiv R L M).apply_symm_apply c.val)).mpr c.property))
 
 variable {R L M} in
-/-- The class map of `2`-cocycles is Tau Ceti's homology class map of the kernel of `d R L M 2`,
-precomposed with the restriction of `(twoCochainEquiv R L M).symm`. -/
+/-- The class map of `2`-cocycles is Tau Ceti's homology class map of the kernel of the
+Chevalley–Eilenberg differential in degree two, precomposed with the restriction of
+`(twoCochainEquiv R L M).symm`. -/
 theorem twoCocycleClass_def :
     twoCocycleClass R L M =
-      (cochainComplex R L M).moduleCatHomologyClass (n := 2) (m := 3) (by simp)
-          (LinearMap.ker (d R L M 2)).subtype
-          (fun z ↦ (cochainComplex_d_succ_apply (n := 2) _).trans z.property) ∘ₗ
-        ((twoCochainEquiv R L M).symm.toLinearMap ∘ₗ (twoCocycle R L M).subtype).codRestrict _
-          fun c ↦ (d_two_eq_zero_iff _).2 (by simp) :=
+      (cochainComplex R L M).moduleCatKerHomologyClass (n := 2) (m := 3) (by simp) ∘ₗ
+        ((twoCochainEquiv R L M).symm.toLinearMap ∘ₗ (twoCocycle R L M).subtype :
+            twoCocycle R L M →ₗ[R] (cochainComplex R L M).X 2).codRestrict _
+          fun c ↦ LinearMap.mem_ker.2 ((cochainComplex_d_two_eq_zero_iff _).2
+            ((congrArg (· ∈ twoCocycle R L M)
+              ((twoCochainEquiv R L M).apply_symm_apply c.val)).mpr c.property)) :=
   (rfl)
 
 variable {R L M}
@@ -126,15 +131,17 @@ theorem twoCocycleClass_apply (c : twoCocycle R L M) :
         ((cochainComplex R L M).moduleCatCyclesMk
           ((twoCochainEquiv R L M).symm (c : twoCochain R L M)) 3 (by simp)
           ((cochainComplex_d_two_eq_zero_iff _).2 (by simp))) := by
-  rw [twoCocycleClass_def, LinearMap.comp_apply]
-  -- `rw` with `moduleCatHomologyClass_apply` fails: the codomain of the kernel's `subtype` is
-  -- `L [⋀^Fin 2]→ₗ[R] M`, equal to `(cochainComplex R L M).X 2` only up to unfolding
+  rw [twoCocycleClass_def, LinearMap.comp_apply,
+    HomologicalComplex.moduleCatKerHomologyClass_eq_moduleCatHomologyClass]
+  -- `rw` with `moduleCatHomologyClass_apply` finds no instance of its pattern: the kernel and its
+  -- cycle condition here match those of the lemma only up to unfolding
   exact HomologicalComplex.moduleCatHomologyClass_apply _ _ _ _ _
 
 /-- A `2`-cocycle has class zero exactly when it is the coboundary `d₁₂ f` of a one-cochain. -/
 theorem twoCocycleClass_eq_zero_iff (c : twoCocycle R L M) :
     twoCocycleClass R L M c = 0 ↔ ∃ f : oneCochain R L M, d₁₂ R L M f = c := by
-  rw [twoCocycleClass_def, LinearMap.comp_apply]
+  rw [twoCocycleClass_def, LinearMap.comp_apply,
+    HomologicalComplex.moduleCatKerHomologyClass_eq_moduleCatHomologyClass]
   refine (HomologicalComplex.moduleCatHomologyClass_eq_zero_iff _ _ _ _ (p := 1) (by simp)
     _).trans ⟨fun ⟨y, hy⟩ ↦ ⟨oneCochainEquiv R L M y, ?_⟩, fun ⟨f, hf⟩ ↦
       ⟨(oneCochainEquiv R L M).symm f, (cochainComplex_d_succ_apply (n := 1) _).trans ?_⟩⟩
@@ -151,35 +158,17 @@ one-cochain `f`. -/
 theorem twoCocycleClass_eq_iff (c c' : twoCocycle R L M) :
     twoCocycleClass R L M c = twoCocycleClass R L M c' ↔
       ∃ f : oneCochain R L M, (c : twoCochain R L M) = c' + d₁₂ R L M f := by
-  -- as in `twoCocycleClass_apply`, `iCycles_moduleCatCyclesMk` applies only up to unfolding
-  have hi : ∀ (c : twoCochain R L M) h, (cochainComplex R L M).iCycles 2
-      ((cochainComplex R L M).moduleCatCyclesMk ((twoCochainEquiv R L M).symm c) 3 (by simp) h) =
-        (twoCochainEquiv R L M).symm c :=
-    fun _ _ ↦ HomologicalComplex.iCycles_moduleCatCyclesMk _ _ _ _ _ _
-  rw [twoCocycleClass_apply, twoCocycleClass_apply,
-    HomologicalComplex.moduleCat_homologyπ_eq_iff _ (m := 1) (by simp), hi, hi]
-  refine ⟨fun ⟨y, hy⟩ ↦ ⟨oneCochainEquiv R L M y, ?_⟩, fun ⟨f, hf⟩ ↦
-    ⟨(oneCochainEquiv R L M).symm f, (cochainComplex_d_succ_apply (n := 1) _).trans ?_⟩⟩
-  · -- the subtraction in `hy` is that of `(cochainComplex R L M).X 2`
-    have h : d R L M 1 y = (twoCochainEquiv R L M).symm ((c : twoCochain R L M) - c') :=
-      (cochainComplex_d_succ_apply (n := 1) y).symm.trans
-        (hy.trans (map_sub (twoCochainEquiv R L M).symm (c : twoCochain R L M) c').symm)
-    have h' : twoCochainEquiv R L M (d R L M 1 y) = (c : twoCochain R L M) - c' :=
-      (twoCochainEquiv R L M).eq_symm_apply.1 h
-    rw [twoCochainEquiv_d_one y] at h'
-    rw [h']
-    exact (add_sub_cancel (c' : twoCochain R L M) c).symm
-  · refine Eq.trans ?_ (map_sub (twoCochainEquiv R L M).symm (c : twoCochain R L M) c')
-    exact (twoCochainEquiv R L M).eq_symm_apply.2 (by
-      rw [twoCochainEquiv_d_one, LinearEquiv.apply_symm_apply, hf]
-      exact (add_sub_cancel_left (c' : twoCochain R L M) _).symm)
+  -- `AddCommGroup ↥(twoCocycle R L M)` does not synthesize, see the module docstring
+  let _ : AddCommGroup (twoCocycle R L M) := Submodule.addCommGroup (M := twoCochain R L M) _
+  rw [← sub_eq_zero, ← LinearMap.map_sub, twoCocycleClass_eq_zero_iff]
+  exact exists_congr fun f ↦ eq_comm.trans sub_eq_iff_eq_add'
 
 /-- Every class in the second cohomology is the class of a `2`-cocycle. -/
 theorem twoCocycleClass_surjective : Function.Surjective (twoCocycleClass R L M) := by
   rw [twoCocycleClass_def, LinearMap.coe_comp]
-  refine (HomologicalComplex.moduleCatHomologyClass_surjective _ _ _ _
-    fun x hx ↦ ⟨⟨x, hx⟩, rfl⟩).comp fun z ↦ ?_
-  refine ⟨⟨twoCochainEquiv R L M z, (d_two_eq_zero_iff _).1 z.property⟩, Subtype.ext ?_⟩
+  refine (HomologicalComplex.moduleCatKerHomologyClass_surjective _ _).comp fun z ↦ ?_
+  refine ⟨⟨twoCochainEquiv R L M z.val, (cochainComplex_d_two_eq_zero_iff _).1 z.property⟩,
+    Subtype.ext ?_⟩
   exact LinearEquiv.symm_apply_apply _ _
 
 end TauCeti.LieModule.Cohomology
