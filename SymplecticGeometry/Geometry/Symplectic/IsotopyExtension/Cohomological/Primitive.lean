@@ -133,7 +133,7 @@ theorem exists_closedForms_periods_eq [I.Boundaryless] [CompactSpace M] {Q : Set
         (ContinuousMap.singularHomologyMap ℤ 1
           (⟨Subtype.val, continuous_subtypeVal⟩ : C(Q, M))).toAddMonoidHom = f)
     {EN HN : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [TopologicalSpace HN]
-    {K : ModelWithCorners ℝ EN HN} {N : Type} [TopologicalSpace N] [ChartedSpace HN N]
+    {K : ModelWithCorners ℝ EN HN} {N : Type*} [TopologicalSpace N] [ChartedSpace HN N]
     [IsManifold K ∞ N] {α : N → SmoothForm I U ℝ 1} (hα : IsSmoothFamily K α)
     (hcl : ∀ t, α t ∈ closedForms I U 1) :
     ∃ β : N → SmoothForm I M ℝ 1, IsSmoothFamily K β ∧ (∀ t, β t ∈ closedForms I M 1) ∧
