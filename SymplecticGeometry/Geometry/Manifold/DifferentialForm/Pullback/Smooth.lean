@@ -19,6 +19,11 @@ same equality on the model spaces.
 So two maps with the same value and the same differential at `x` pull every form back to the
 same value at `x` (`TauCeti.mpullback_apply_eq_of_mfderiv_eq`).
 
+If `f : M → M` preserves a function `ρ`, and the pullback of `φ` along `f` agrees with `φ` where
+`ρ` does not vanish, then `f` pulls `ρ • φ` back to itself
+(`TauCeti.mpullback_fun_smul_eq_self`): a form cut off by an invariant function is invariant as
+soon as it is so on the support of the cut-off.
+
 Pulling a form back commutes with negation (`TauCeti.mpullback_neg`), as Tau Ceti's
 `TauCeti.mpullback_sub` says for subtraction.
 
@@ -40,6 +45,8 @@ normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactica
   `(φ (f x)).compContinuousLinearMap (mfderiv I I' f x)`.
 * `TauCeti.mpullback_apply_eq_of_mfderiv_eq`: the pullback at `x` depends only on the value and
   the differential of the map at `x`.
+* `TauCeti.mpullback_fun_smul_eq_self`: a form multiplied by a function `ρ` is invariant under a
+  map that preserves `ρ`, if the form is so where `ρ` does not vanish.
 * `TauCeti.mpullback_neg`: the pullback of `-φ` is minus the pullback of `φ`.
 * `TauCeti.SmoothForm.mpullback_const`: the pullback of a smooth `(k + 1)`-form along a constant
   map is `0`.
@@ -78,6 +85,18 @@ theorem mpullback_apply_eq_of_mfderiv_eq {f g : M → M'} {x : M} (h : f x = g x
     mpullback I I' f φ x = mpullback I I' g φ x := by
   rw [mpullback_apply_eq_compContinuousLinearMap, mpullback_apply_eq_compContinuousLinearMap, hd,
     h]
+
+/-- Let `f : M → M` preserve `ρ : M → ℝ`, and let the pullback of a form `φ` along `f` agree with
+`φ` wherever `ρ` does not vanish. Then the pullback of `ρ • φ` along `f` is `ρ • φ`. -/
+theorem mpullback_fun_smul_eq_self {f : M → M} {ρ : M → ℝ} {φ : RoughForm I M F k}
+    (hρ : ∀ x, ρ (f x) = ρ x) (hφ : ∀ x, ρ x ≠ 0 → mpullback I I f φ x = φ x) :
+    mpullback I I f (fun x ↦ ρ x • φ x) = fun x ↦ ρ x • φ x := by
+  rw [mpullback_fun_smul]
+  funext x
+  rw [hρ]
+  by_cases hx : ρ x = 0
+  · simp [hx]
+  · rw [hφ x hx]
 
 /-- Pullback commutes with negation. -/
 @[simp]

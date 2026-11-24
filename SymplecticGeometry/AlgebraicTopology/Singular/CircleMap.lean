@@ -76,23 +76,23 @@ private theorem singularHomologyMap_fst_mul_snd :
   simp only [map_add, map_zsmul, LinearMap.add_apply, singularHomologyMap_torusClass]
   -- On each coordinate loop, the product is the nonconstant factor, and the other factor is the
   -- constant loop at `1`, of class zero.
-  have h₁₀ : loopClass (X := .of Circle)
+  have h₁₀ : loopClass ℤ (X := .of Circle)
         ((torusCurve 1 0).map (fst * snd : C(Circle × Circle, Circle)).continuous) =
-      loopClass (X := .of Circle)
+      loopClass ℤ (X := .of Circle)
           ((torusCurve 1 0).map (fst : C(Circle × Circle, Circle)).continuous) +
-        loopClass (X := .of Circle)
+        loopClass ℤ (X := .of Circle)
           ((torusCurve 1 0).map (snd : C(Circle × Circle, Circle)).continuous) := by
-    rw [loopClass_eq_of_apply_eq (X := .of Circle)
+    rw [loopClass_eq_of_apply_eq (R := ℤ) (X := .of Circle)
         ((torusCurve 1 0).map (snd : C(Circle × Circle, Circle)).continuous)
         (Path.refl 1) fun t ↦ by simp [torusCurve_apply], loopClass_refl, add_zero]
     exact loopClass_eq_of_apply_eq _ _ fun t ↦ by simp [torusCurve_apply]
-  have h₀₁ : loopClass (X := .of Circle)
+  have h₀₁ : loopClass ℤ (X := .of Circle)
         ((torusCurve 0 1).map (fst * snd : C(Circle × Circle, Circle)).continuous) =
-      loopClass (X := .of Circle)
+      loopClass ℤ (X := .of Circle)
           ((torusCurve 0 1).map (fst : C(Circle × Circle, Circle)).continuous) +
-        loopClass (X := .of Circle)
+        loopClass ℤ (X := .of Circle)
           ((torusCurve 0 1).map (snd : C(Circle × Circle, Circle)).continuous) := by
-    rw [loopClass_eq_of_apply_eq (X := .of Circle)
+    rw [loopClass_eq_of_apply_eq (R := ℤ) (X := .of Circle)
         ((torusCurve 0 1).map (fst : C(Circle × Circle, Circle)).continuous)
         (Path.refl 1) fun t ↦ by simp [torusCurve_apply], loopClass_refl, zero_add]
     exact loopClass_eq_of_apply_eq _ _ fun t ↦ by simp [torusCurve_apply]

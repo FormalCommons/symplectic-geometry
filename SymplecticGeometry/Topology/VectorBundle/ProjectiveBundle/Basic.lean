@@ -8,6 +8,7 @@ module
 public import Mathlib.Topology.LocalAtTarget
 public import Mathlib.Topology.VectorBundle.Constructions
 public import TauCeti.Topology.Algebra.Projectivization
+public import TauCeti.Topology.FiberBundle.Proper
 public import TauCeti.Topology.FiberBundle.Pullback
 public import TauCeti.Topology.FiberBundle.Separation
 public import TauCeti.Topology.Homotopy.DeformationRetract
@@ -15,7 +16,6 @@ public import TauCeti.Topology.VectorBundle.Hom
 public import TauCeti.Topology.VectorBundle.Pullback
 public import TauCeti.Topology.VectorBundle.Smul
 public import TauCeti.Topology.VectorBundle.ZeroSection
-public import SymplecticGeometry.Topology.FiberBundle.Compact
 public import SymplecticGeometry.Topology.VectorBundle.ZeroSet
 
 /-!

@@ -20,8 +20,9 @@ of dimension `2 * n`. Then `-σ` is nondegenerate too, and its volume form `(-σ
 `(-1)ⁿ` times the volume form `σⁿ / n!` of `σ`. So when `n` is odd, the symplectic orientation of
 `-σ` is the opposite of that of `σ`. (When `n` is even the two orientations agree.)
 
-On a surface (`n = 1`) the volume form `σ¹ / 1!` is `σ` itself, so the symplectic orientation of a
-nondegenerate two-form `σ` is the orientation `TauCeti.Manifold.Orientation.ofTopForm` on which
+On a surface (`n = 1`) the volume form `σ¹ / 1!` is `σ` itself (Tau Ceti's
+`TauCeti.SmoothTwoForm.volumeForm_one`), so the symplectic orientation of a nondegenerate
+two-form `σ` is the orientation `TauCeti.Manifold.Orientation.ofTopForm` on which
 `σ` is positive. For the volume form of the unit sphere of an oriented three-dimensional space,
 this is the outward-normal orientation.
 
@@ -32,7 +33,6 @@ this is the outward-normal orientation.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_orientation`: in every dimension,
   the orientation `volumeOrientation` of `σ` is Tau Ceti's other symplectic orientation
   `IsNondegenerate.orientation`.
-* `TauCeti.SmoothTwoForm.volumeForm_one`: the volume form `σ¹ / 1!` is `σ`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_ofTopForm`: on a surface, the
   symplectic orientation of `σ` is the orientation defined by `σ` as a top form. This is Tau
   Ceti's `TauCeti.SmoothTwoForm.IsNondegenerate.orientation_eq_ofTopForm`, stated for
@@ -92,14 +92,6 @@ theorem IsNondegenerate.volumeOrientation_neg (h : σ.IsNondegenerate) (hodd : O
 theorem IsNondegenerate.volumeOrientation_eq_orientation (h : σ.IsNondegenerate)
     (hn : finrank ℝ E = 2 * n) : h.volumeOrientation hn = h.orientation hn :=
   Manifold.Orientation.ext fun x ↦ by simp
-
-omit [FiniteDimensional ℝ E] in
-/-- The volume form `σ¹ / 1!` of a two-form `σ` is `σ` itself. -/
-@[simp]
-theorem volumeForm_one (σ : SmoothTwoForm I M) : σ.volumeForm 1 = σ :=
-  Subtype.ext (funext fun x ↦ by
-    rw [volumeForm_apply, ContinuousAlternatingMap.wedgePow_one, Nat.factorial_one, Nat.cast_one,
-      inv_one, one_smul])
 
 /-- **The symplectic orientation of a surface.** On a manifold modelled on a plane, the symplectic
 orientation of a fiberwise nondegenerate two-form `σ` is the orientation on which `σ`, as a

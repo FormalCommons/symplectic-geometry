@@ -50,10 +50,6 @@ the diffeotopy, in the sense of McDuff–Salamon, §3.1, and the time derivative
 * `TauCeti.Diffeotopy.apply_eq_of_mfderiv_eq_velocity`: a differentiable curve `γ` on `[0, 1]` with
   `γ' t = X_t (γ t)` is the trajectory `t ↦ φ_t (γ 0)`.
 * `TauCeti.Diffeotopy.smoothVelocity_refl`: the constant diffeotopy has velocity zero.
-* `TauCeti.Diffeotopy.timeSlice_timeDependentFlowDiffeotopy`: the slice at time `t` of the
-  diffeotopy of a time-dependent field `X` is its flow from time `0` to time `t`.
-* `TauCeti.Diffeotopy.velocity_timeDependentFlowDiffeotopy`: the diffeotopy of a time-dependent
-  field `X` has velocity `X t` at time `t`.
 * `TauCeti.Diffeotopy.mpullback_timeSlice_interior_velocity_apply`: `φ_t^* (ι_{X_t} σ)` on a
   vector `v` is `(Φ^* σ)(∂ₜ, (v, 0))`, the integrand of the flux form and of `HasHamiltonian`.
 
@@ -69,9 +65,7 @@ tangent map of a smooth map.
 
 `mfderiv_cylinderMap_time` reads the derivative of the motion on `(0, ∂ₜ)` as a partial
 derivative, by `MDifferentiableAt.mfderiv_curry_right_apply`, as Tau Ceti's
-`TauCeti.Diffeotopy.mfderiv_cylinderMap_globalFlowDiffeotopy_time` does for a flow. The proof of
-`velocity_timeDependentFlowDiffeotopy` follows that of
-`TauCeti.eulerianField_eq_of_coe_eq_timeDependentFlowOf`.
+`TauCeti.Diffeotopy.mfderiv_cylinderMap_globalFlowDiffeotopy_time` does for a flow.
 
 For `apply_eq_of_mfderiv_eq_velocity`, no uniqueness theorem for differential equations is
 needed: the derivative `c' s` of the curve `c s = φ_s⁻¹ (γ s)` satisfies
@@ -133,24 +127,6 @@ theorem velocity_reparam (hn : 1 ≤ n) {ρ : C^n⟮𝓡∂ 1, unitInterval; �
     map_smul]
 
 end Derivative
-
-section TimeDependentFlow
-
-variable [FiniteDimensional ℝ E] [T2Space M] [BoundarylessManifold J M] {n : ℕ∞}
-  [IsManifold J n M] [IsManifold J 1 M]
-
-/-- The slice at time `t` of the diffeotopy of a time-dependent field `X` is the time-dependent
-flow of `X` from time `0` to time `t`. -/
-@[simp]
-theorem timeSlice_timeDependentFlowDiffeotopy {X : ℝ → (x : M) → TangentSpace J x} (hn : 1 ≤ n)
-    (hX : ContMDiff (𝓘(ℝ, ℝ).prod J) J.tangent n
-      (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle J M)))
-    (hc : IsCompleteVectorField (timeDependentSuspensionField X)) (t : unitInterval) :
-    ⇑((timeDependentFlowDiffeotopy hn hX hc).timeSlice t) = timeDependentFlowOf X 0 t := by
-  funext x
-  rw [timeSlice_apply, timeDependentFlowDiffeotopy_apply]
-
-end TimeDependentFlow
 
 variable [IsManifold J ∞ M] (Φ : Diffeotopy J ∞ M)
 
@@ -290,40 +266,6 @@ theorem mpullback_timeSlice_interior_velocity_apply {F : Type*} [AddCommGroup F]
     exact Φ.velocity_apply t x
   · exact ((Φ.mfderiv_cylinderMap_inl (by simp) (x, t) v).trans
       (congrArg (fun f ↦ mfderiv J J f x v) h)).symm
-
-section Flow
-
-variable [FiniteDimensional ℝ E] [T2Space M] [BoundarylessManifold J M]
-
-/-- The diffeotopy of a time-dependent vector field `X` with complete suspension has velocity
-`X t` at time `t`, the ends included. -/
-theorem velocity_timeDependentFlowDiffeotopy {X : ℝ → (x : M) → TangentSpace J x}
-    (hX : ContMDiff (𝓘(ℝ, ℝ).prod J) J.tangent ∞
-      (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle J M)))
-    (hc : IsCompleteVectorField (timeDependentSuspensionField X)) (t : unitInterval) :
-    (timeDependentFlowDiffeotopy le_top hX hc).velocity t = X t := by
-  set Φ := timeDependentFlowDiffeotopy le_top hX hc
-  funext y
-  obtain ⟨x, rfl⟩ : ∃ x, Φ (t, x) = y :=
-    ⟨Φ.symm (t, y), Φ.apply_mk_symm_apply t y⟩
-  refine (Φ.velocity_apply t x).trans ((Φ.mfderiv_cylinderMap_time (by simp) (x, t)).trans ?_)
-  have hγ := hasMFDerivAt_timeDependentFlowOf (hX.of_le (by simp))
-    ((timeDependentFlowDomain_eq_univ hc).symm ▸ mem_univ ((0, (t : ℝ)), x))
-  have hfun : (fun s : unitInterval ↦ Φ (s, x)) =
-      (fun u ↦ timeDependentFlowOf X 0 u x) ∘ Subtype.val :=
-    funext fun s ↦ timeDependentFlowDiffeotopy_apply le_top hX hc (s, x)
-  have hval : MDifferentiableAt (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : unitInterval → ℝ) t :=
-    SymplecticGeometry.mdifferentiableAt_subtypeVal_Icc _
-  refine (congrArg (fun f ↦ mfderiv (𝓡∂ 1) J f t (1 : TangentSpace (𝓡∂ 1) t)) hfun).trans ?_
-  rw [mfderiv_comp t hγ.mdifferentiableAt hval, ContinuousLinearMap.comp_apply,
-    mfderiv_subtypeVal_Icc_one, hγ.mfderiv]
-  have hx : Φ (t, x) = timeDependentFlowOf X 0 t x :=
-    timeDependentFlowDiffeotopy_apply le_top hX hc (t, x)
-  rw [hx]
-  -- The derivative `1 ↦ 1 • X t (φ_t x)` of the flow curve, evaluated at `1`.
-  exact one_smul ℝ _
-
-end Flow
 
 end TauCeti.Diffeotopy
 

@@ -23,8 +23,8 @@ Tau Ceti's `TauCeti.SmoothTwoForm.IsNondegenerate.contMDiff_hamiltonianVectorFie
 For any two-form, the relation `ι_X σ = df` is linear in the pair `(f, X)`: the zero field is a
 Hamiltonian vector field of the zero function
 (`TauCeti.SmoothTwoForm.IsHamiltonianVectorField.zero`), and sums of differentiable functions and
-real multiples of functions have the sums and multiples of their Hamiltonian vector fields
-(`TauCeti.SmoothTwoForm.IsHamiltonianVectorField.add`,
+real multiples of functions have the sums and multiples of their Hamiltonian vector fields (Tau
+Ceti's `TauCeti.SmoothTwoForm.IsHamiltonianVectorField.add` and
 `TauCeti.SmoothTwoForm.IsHamiltonianVectorField.const_smul`). More generally than the first, the
 zero field is a Hamiltonian vector field of every locally constant function
 (`TauCeti.SmoothTwoForm.isHamiltonianVectorField_zero_of_isLocallyConstant`).
@@ -44,29 +44,12 @@ namespace TauCeti.SmoothTwoForm.IsHamiltonianVectorField
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
-  {σ : SmoothTwoForm I M} {f g : M → ℝ} {X Y : (x : M) → TangentSpace I x}
+  {σ : SmoothTwoForm I M}
 
 /-- The zero vector field is a Hamiltonian vector field of the zero function. -/
 theorem zero : σ.IsHamiltonianVectorField 0 0 :=
   isHamiltonianVectorField_iff_flat.2 fun x ↦ by
     rw [Pi.zero_apply, map_zero, mvfderiv_zero]
-
-/-- If `X` and `Y` are Hamiltonian vector fields of the differentiable functions `f` and `g`,
-then `X + Y` is a Hamiltonian vector field of `f + g`. -/
-theorem add (hX : σ.IsHamiltonianVectorField f X) (hY : σ.IsHamiltonianVectorField g Y)
-    (hf : MDifferentiable I 𝓘(ℝ) f) (hg : MDifferentiable I 𝓘(ℝ) g) :
-    σ.IsHamiltonianVectorField (f + g) (X + Y) :=
-  isHamiltonianVectorField_iff_flat.2 fun x ↦ by
-    rw [Pi.add_apply, map_add, mvfderiv_add (hf x) (hg x),
-      isHamiltonianVectorField_iff_flat.1 hX, isHamiltonianVectorField_iff_flat.1 hY]
-
-/-- If `X` is a Hamiltonian vector field of `f`, then `c • X` is a Hamiltonian vector field of
-`c • f` for every real number `c`. -/
-theorem const_smul (hX : σ.IsHamiltonianVectorField f X) (c : ℝ) :
-    σ.IsHamiltonianVectorField (c • f) (c • X) :=
-  isHamiltonianVectorField_iff_flat.2 fun x ↦ by
-    rw [Pi.smul_apply, map_smul, mvfderiv_const_smul_field,
-      isHamiltonianVectorField_iff_flat.1 hX]
 
 end TauCeti.SmoothTwoForm.IsHamiltonianVectorField
 

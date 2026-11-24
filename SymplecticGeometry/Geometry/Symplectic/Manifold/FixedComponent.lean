@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.PullbackGroupoid
 public import TauCeti.Geometry.Manifold.Riemannian.Invariant
 public import TauCeti.Geometry.Manifold.Riemannian.Isometry.FixedPoints.Components
 public import TauCeti.Geometry.Symplectic.Manifold.Invariants.FixedLocus
@@ -22,25 +21,25 @@ two-form (`IsNondegenerate.exists_isSymplecticSubmanifoldEmbedding_fixedPointsOf
 
 This file passes from these parts to the connected components of `M^K`:
 
-* a connected component of `M^K` is open in each part `M^K_d`, since components of a locally
-  connected space are open; it lies in the part whose `d` is the dimension of the fixed tangent
-  subspace at any of its points (`TauCeti.subset_fixedPointsOfFinrank_of_isPreconnected`);
+* a connected component of `M^K` is open in each part `M^K_d`, since it is open in `M^K`
+  (Tau Ceti's `TauCeti.isOpen_preimage_val_connectedComponentIn_fixedPoints`);
 * for a compact Lie group acting smoothly on a σ-compact manifold and preserving a nondegenerate
-  two-form `σ`, the connected component of `M^K` through a fixed point `x` is therefore a
-  symplectic submanifold, modelled on any subspace of `E` of the dimension of the fixed tangent
-  subspace at `x`, with tangent spaces the fixed tangent subspaces. Its manifold structure is that
-  of an open subset of the part `M^K_d`, carried over to the component by Tau Ceti's
-  `Homeomorph.pullbackChartedSpace`, and the invariant metric is an average
+  two-form `σ`, the connected component of `M^K` through a fixed point `x` is a symplectic
+  submanifold, modelled on any subspace of `E` of the dimension of the fixed tangent subspace at
+  `x`, with tangent spaces the fixed tangent subspaces. Tau Ceti proves this for a group of
+  isometries
+  (`IsNondegenerate.exists_isSymplecticSubmanifoldEmbedding_connectedComponentIn_fixedPoints`);
+  a compact group preserves the average of any metric
   (`TauCeti.of_forall_riemannianBundle_inner_mfderiv`), as in Tau Ceti's
   `TauCeti.finite_connectedComponents_fixedPoints_of_compactSpace`.
 
 ## Main results
 
-* `TauCeti.isOpen_preimage_val_connectedComponentIn_fixedPoints`: a connected component of the
-  fixed set of a group of isometries is open in each part `M^K_d`.
-* `IsNondegenerate.exists_isSymplecticSubmanifoldEmbedding_connectedComponentIn_fixedPoints`:
-  the connected components of the fixed set of a compact group of symplectomorphisms are
-  symplectic submanifolds.
+* `TauCeti.isOpen_preimage_val_fixedPointsOfFinrank_connectedComponentIn`: a connected component
+  of the fixed set of a group of isometries is open in each part `M^K_d`.
+* `exists_isSymplecticSubmanifoldEmbedding_connectedComponentIn_fixedPoints_of_compactSpace`
+  (in the namespace `TauCeti.SmoothTwoForm.IsNondegenerate`): the connected components of the
+  fixed set of a compact group of symplectomorphisms are symplectic submanifolds.
 
 ## References
 
@@ -60,7 +59,7 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
 /-- **A component of the fixed set is open in each part of a given dimension.** For a group
 acting by isometries, the connected component of the fixed set `M^K` through any point is open in
 the part `M^K_d` of `M^K` where the fixed tangent subspace has dimension `d`, for every `d`. -/
-theorem isOpen_preimage_val_connectedComponentIn_fixedPoints
+theorem isOpen_preimage_val_fixedPointsOfFinrank_connectedComponentIn
     [RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x)]
     [IsContMDiffRiemannianBundle 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x)]
     {K : Type*} [Group K] [MulAction K M] [ContMDiffConstSMul 𝓘(ℝ, E) ∞ K M]
@@ -70,16 +69,10 @@ theorem isOpen_preimage_val_connectedComponentIn_fixedPoints
     (x : M) (d : ℕ) :
     IsOpen ((↑) ⁻¹' connectedComponentIn (fixedPoints K M) x :
       Set (fixedPointsOfFinrank 𝓘(ℝ, E) K M d)) := by
-  have := locallyConnectedSpace_fixedPoints hK
-  -- The component is open in the fixed set, which is locally connected.
-  have hopen : IsOpen ((↑) ⁻¹' connectedComponentIn (fixedPoints K M) x :
-      Set (fixedPoints K M)) := by
-    by_cases hx : x ∈ fixedPoints K M
-    · rw [connectedComponentIn_eq_image hx,
-        Subtype.val_injective.preimage_image]
-      exact isOpen_connectedComponent
-    · simp [connectedComponentIn_eq_empty hx]
-  exact hopen.preimage (continuous_inclusion (fixedPointsOfFinrank_subset_fixedPoints d))
+  by_cases hx : x ∈ fixedPoints K M
+  · exact (isOpen_preimage_val_connectedComponentIn_fixedPoints hK hx).preimage
+      (continuous_inclusion (fixedPointsOfFinrank_subset_fixedPoints d))
+  · simp [connectedComponentIn_eq_empty hx]
 
 namespace SmoothTwoForm
 
@@ -89,15 +82,16 @@ variable [SigmaCompactSpace M] {EG : Type*} [NormedAddCommGroup EG] [NormedSpace
   [ChartedSpace HG G] [IsManifold IG ∞ G] [MulAction G M] [ContMDiffSMul IG 𝓘(ℝ, E) ∞ G M]
   {σ : SmoothTwoForm 𝓘(ℝ, E) M}
 
+namespace IsNondegenerate
+
 /-- **The fixed components of a compact group of symplectomorphisms are symplectic
 submanifolds.** Let a compact Lie group `G` act smoothly on a σ-compact manifold `M`, preserving a
 nondegenerate two-form `σ`, and let `x` be a fixed point. For a subspace `L` of the model whose
 dimension is that of the fixed tangent subspace at `x`, the connected component of the fixed set
 through `x` is a smooth manifold modelled on `L` whose inclusion into `M` is a symplectic
 submanifold embedding, with tangent image the fixed tangent subspace at every point. -/
-theorem IsNondegenerate.exists_isSymplecticSubmanifoldEmbedding_connectedComponentIn_fixedPoints
-    (hσ : σ.IsNondegenerate)
-    (hσG : ∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
+theorem exists_isSymplecticSubmanifoldEmbedding_connectedComponentIn_fixedPoints_of_compactSpace
+    (hσ : σ.IsNondegenerate) (hσG : ∀ g : G, SmoothForm.mpullback (fun y : M ↦ g • y)
       (ContMDiffSMul.contMDiff_const_smul (I := IG) (I' := 𝓘(ℝ, E)) g) σ = σ)
     {x : M} (hx : x ∈ fixedPoints G M) {L : Submodule ℝ E}
     (hL : Module.finrank ℝ L = Module.finrank ℝ (fixedTangentSubspace 𝓘(ℝ, E) G x)) :
@@ -110,39 +104,9 @@ theorem IsNondegenerate.exists_isSymplecticSubmanifoldEmbedding_connectedCompone
           fixedTangentSubspace 𝓘(ℝ, E) G (y : M) := by
   have : ContMDiffConstSMul 𝓘(ℝ, E) ∞ G M := ContMDiffSMul.contMDiffConstSMul IG
   refine of_forall_riemannianBundle_inner_mfderiv (I := 𝓘(ℝ, E)) (M := M) IG G fun hG ↦ ?_
-  set S := connectedComponentIn (fixedPoints G M) x
-  set d := Module.finrank ℝ (fixedTangentSubspace 𝓘(ℝ, E) G x)
-  set N := fixedPointsOfFinrank 𝓘(ℝ, E) G M d
-  have hSN : S ⊆ N := subset_fixedPointsOfFinrank_of_isPreconnected hG
-    isPreconnected_connectedComponentIn (connectedComponentIn_subset _ _)
-    (mem_connectedComponentIn hx)
-  obtain ⟨C, hman, hemb, hrange⟩ :=
-    hσ.exists_isSymplecticSubmanifoldEmbedding_fixedPointsOfFinrank hG hσG hL
-  let := C
-  -- The component is an open subset `U` of the manifold `N`, homeomorphic to it by `e`.
-  let U : TopologicalSpace.Opens N :=
-    ⟨(↑) ⁻¹' S, isOpen_preimage_val_connectedComponentIn_fixedPoints hG x d⟩
-  let e : S ≃ₜ U :=
-    { toFun := fun y ↦ ⟨⟨y, hSN y.property⟩, y.property⟩
-      invFun := fun y ↦ ⟨y.val, y.property⟩
-      left_inv := fun _ ↦ rfl
-      right_inv := fun _ ↦ rfl
-      continuous_toFun := (continuous_subtypeVal.subtype_mk _).subtype_mk _
-      continuous_invFun := continuous_subtypeVal.subtypeVal.subtype_mk _ }
-  let := e.pullbackChartedSpace (H := L)
-  have hmanS : IsManifold 𝓘(ℝ, L) ∞ S := e.pullback_isManifold 𝓘(ℝ, L) ∞
-  let φ := e.pullbackDiffeomorph 𝓘(ℝ, L) ∞
-  -- The inclusion of `S` is that of `U` into `N`, then of `N` into `M`, after `φ`, whose
-  -- underlying map is `e`.
-  have hval : (Subtype.val : S → M) = ((Subtype.val : N → M) ∘ (Subtype.val : U → N)) ∘ φ := by
-    rw [Homeomorph.coe_pullbackDiffeomorph]
-    rfl
-  refine ⟨_, hmanS, ?_, fun y ↦ ?_⟩
-  · rw [hval, φ.isSymplecticSubmanifoldEmbedding_comp_diffeomorph_iff]
-    exact hemb.comp_subtype_val U
-  · rw [hval, φ.range_mfderiv_comp_diffeomorph (by simp),
-      Manifold.range_mfderiv_comp_subtype_val]
-    exact hrange _
+  exact hσ.exists_isSymplecticSubmanifoldEmbedding_connectedComponentIn_fixedPoints hG hσG hx hL
+
+end IsNondegenerate
 
 end SmoothTwoForm
 

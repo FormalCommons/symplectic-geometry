@@ -7,6 +7,8 @@ module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
+import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LeftInverse
 import TauCeti.Geometry.Manifold.VectorBundle.Submersion
 
@@ -18,14 +20,16 @@ without boundary, with finite-dimensional model, the zero section `B → TotalSp
 embedding: the bundle projection is a smooth left inverse of it. This file bundles it as
 `SymplecticGeometry.Bundle.zeroSectionEmbedding`, so that results about submanifolds, such as the
 neighbourhood theorems, apply to it, and shows that its image is closed. It also reads the zero
-section in the preferred charts of the total space.
+section in the preferred charts of the total space, and computes the differential of a map along
+the zero section on horizontal vectors.
 
 The file has the path of Tau Ceti's `Geometry/Manifold/VectorBundle/ZeroSection.lean`, which
 splits the tangent spaces along the zero section. The zero section as an embedding is the
-library's own definition, in `SymplecticGeometry.Bundle`. Of the lemmas about Mathlib's notions
-alone, `isClosed_range_zeroSection` is in Tau Ceti's namespace `TauCeti.Bundle`, and
-`extChartAt_symm_apply_zero_of_mem_baseSet`, about the charts of the total space, in Mathlib's
-namespace `Bundle`.
+library's own definition, in `SymplecticGeometry.Bundle`. Of the other lemmas,
+`isClosed_range_zeroSection`, about Mathlib's notions alone, and
+`mfderiv_zeroSectionTangentEquiv_symm_inl`, about Tau Ceti's splitting, are in Tau Ceti's
+namespace `TauCeti.Bundle`, and `extChartAt_symm_apply_zero_of_mem_baseSet`, about the charts of
+the total space, in Mathlib's namespace `Bundle`.
 
 ## Main definitions
 
@@ -38,6 +42,9 @@ namespace `Bundle`.
   total space is Hausdorff.
 * `Bundle.extChartAt_symm_apply_zero_of_mem_baseSet`: the inverse of the preferred chart of the
   total space sends `(y, 0)` to the zero vector over the base point with coordinate `y`.
+* `TauCeti.Bundle.mfderiv_zeroSectionTangentEquiv_symm_inl`: a map on the total space that agrees
+  with a map `g` on the zero section near `b` has, at `0_b`, a differential that sends the
+  horizontal vector `(u, 0)` of Tau Ceti's splitting to `dg u`.
 -/
 
 public section
@@ -111,5 +118,32 @@ theorem extChartAt_symm_apply_zero_of_mem_baseSet (p : TotalSpace F V) {y : EB}
     map_zero, zeroSection]
 
 end Bundle
+
+namespace TauCeti.Bundle
+
+open scoped Topology
+
+variable {𝕜 F EB HB EM HM M : Type*} [NontriviallyNormedField 𝕜] {V : B → Type*}
+  [NormedAddCommGroup F] [NormedSpace 𝕜 F] [TopologicalSpace (TotalSpace F V)]
+  [∀ x, TopologicalSpace (V x)] [∀ x, AddCommMonoid (V x)] [∀ x, Module 𝕜 (V x)]
+  [NormedAddCommGroup EB] [NormedSpace 𝕜 EB] [TopologicalSpace HB]
+  {IB : ModelWithCorners 𝕜 EB HB} [ChartedSpace HB B] [FiberBundle F V] [VectorBundle 𝕜 F V]
+  [NormedAddCommGroup EM] [NormedSpace 𝕜 EM] [TopologicalSpace HM]
+  {IM : ModelWithCorners 𝕜 EM HM} [TopologicalSpace M] [ChartedSpace HM M]
+
+/-- Let `f` be a map on the total space, differentiable at the zero vector `0_b`, which agrees with
+a map `g` on the zero section near `b`. Then the differential of `f` at `0_b` sends the horizontal
+vector `(u, 0)` of the splitting `zeroSectionTangentEquiv b` to `dg u`. -/
+theorem mfderiv_zeroSectionTangentEquiv_symm_inl {f : TotalSpace F V → M} {g : B → M} {b : B}
+    (hf : MDifferentiableAt (IB.prod 𝓘(𝕜, F)) IM f (zeroSection F V b))
+    (hfg : f ∘ zeroSection F V =ᶠ[𝓝 b] g) (u : TangentSpace IB b) :
+    mfderiv (IB.prod 𝓘(𝕜, F)) IM f (zeroSection F V b)
+        ((zeroSectionTangentEquiv (I := IB) b).symm (u, 0)) = mfderiv IB IM g b u := by
+  rw [zeroSectionTangentEquiv_symm_eq, Prod.mk_zero_zero, map_zero, add_zero,
+    ← mfderiv_comp_apply b hf (mdifferentiableAt_zeroSection 𝕜 V), hfg.mfderiv_eq,
+    ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe]
+  exact eq_of_heq (heq_tangentSpaceCast hfg.eq_of_nhds.symm _)
+
+end TauCeti.Bundle
 
 end

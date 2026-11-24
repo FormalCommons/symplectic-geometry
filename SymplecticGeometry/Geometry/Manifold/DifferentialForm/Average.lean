@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Average
 public import TauCeti.Geometry.Manifold.DeRham.PathIntegral
-import TauCeti.Geometry.Manifold.SmoothApprox
+import TauCeti.Geometry.Manifold.SmoothApprox.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic

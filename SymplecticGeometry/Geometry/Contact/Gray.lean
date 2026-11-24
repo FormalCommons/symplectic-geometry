@@ -166,7 +166,9 @@ theorem grayVectorField_eq_of_eventually_kerDistribution_eq
         (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) α).kerDistribution q.2) :
     α'.grayVectorField t x = α.grayVectorField t x := by
   -- The multiplier is the value of `α'_u` on the Reeb field of `α_u`, smooth in `(u, y)`.
-  have hf := contMDiffAt_apply_reebVectorField_mpullback_prodMk α α' (p := (t, x)) hc
+  have hf := contMDiffAt_apply_reebVectorField_mpullback_prodMk α α' (p := (t, x))
+    ((continuous_fst.continuousAt.eventually hc).mono fun q hq ↦
+      SmoothForm.isContactForm_iff_forall_isContactFormAt.1 hq q.2)
   have hmul : ∀ᶠ q in 𝓝[s ×ˢ Set.univ] (t, x),
       (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) α').val q.2 =
         (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) α').val q.2
@@ -265,7 +267,7 @@ theorem Transports.exists_mpullback_eq_smul {Φ : Diffeotopy I ∞ M}
   set β := SmoothForm.mpullback Φ.toDiffeomorph Φ.toDiffeomorph.contMDiff α
   have hκ (t : unitInterval) :
       SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) κ = α₀ :=
-    mpullback_prodMk_mpullback_snd t α₀
+    mpullback_prodMk_mpullback_snd α₀ t
   have hβ (t : unitInterval) :
       SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) β =
         SmoothForm.mpullback (Φ.timeSlice t) (Φ.timeSlice t).contMDiff

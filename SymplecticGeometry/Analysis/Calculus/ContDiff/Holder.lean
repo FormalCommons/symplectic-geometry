@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Analysis.Calculus.ContDiff.Bounds
-public import TauCeti.Analysis.Holder.JetBounds
+public import TauCeti.Analysis.Holder.Jet.Bounds
 
 /-!
 # Hölder top derivative of a map of class `C^{k+1}` at a point
