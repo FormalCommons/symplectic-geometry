@@ -7,7 +7,11 @@ module
 
 public import TauCeti.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
 import SymplecticGeometry.Geometry.Lie.Exponential.CommutativeGroup.Character
+import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Lie.Subgroup.IdentityComponent
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Chart
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Restrict
 import TauCeti.Topology.Algebra.ConstMulAction
 
@@ -37,17 +41,86 @@ exactly when its weight vanishes by `ContinuousMonoidHom.eq_one_iff_of_forall_mu
 
 This is the local model from which the local convexity of `μ` follows.
 
+The file then reads the orbit directions and the derivative of `μ` in such a chart. The
+statements take the properties of the chart as hypotheses, so that they apply to the chart of
+`exists_weightModelChart_isotropy` and to any other with the same properties.
+
+* `TauCeti.mfderiv_fundamentalVectorField_apply_eq_zero_of_ne_one`: the image of `ξ_M(x)` under
+  the chart's differential has zero coordinates at every index `k` with `χₖ ≠ 1`. The
+  differential of each `g ∈ K` at `x` fixes `ξ_M(x)` since `G` is commutative, and in the chart it
+  is a rotation that fixes only vectors with zero coordinates where `χₖ(g) ≠ 1`.
+* `TauCeti.SmoothTwoForm.IsMomentMap.fderiv_comp_symm_apply_eq_zero`: in the weight chart, the
+  derivative of `μ^ξ` read in the chart vanishes on the vectors supported on the indices with
+  `χₖ ≠ 1`. It is `ω₀(dchart (ξ_M), ·)` by
+  `TauCeti.SmoothTwoForm.IsMomentMap.fderiv_comp_symm_apply` (in `MomentMap/Chart.lean`), in Tau
+  Ceti's sign `σ(ξ_M, ·) = dμ^ξ`.
+* `TauCeti.SmoothTwoForm.IsMomentMap.exists_fderiv_comp_symm_apply_eq`: for a subspace `𝔮` of the
+  Lie algebra meeting the isotropy algebra only in `0`, every linear form on `𝔮` is
+  `ξ ↦ d(μ^ξ ∘ chart⁻¹)(w)` for a vector `w` supported on the indices with `χₖ = 1`. That is, the
+  derivative of the `𝔮*`-part of `μ` is onto from the weight-zero coordinates: `ξ ↦ ξ_M(x)` is
+  injective on `𝔮`, and the vectors supported on those indices form a subspace stable under the
+  complex structure, on which `ω₀` is nondegenerate by
+  `TauCeti.SymplecticForm.Tames.isSymplectic_of_mem_invtSubmodule`.
+
 ## References
 
 * [C. Bjorndahl and Y. Karshon, *Revisiting Tietze–Nakajima: local and global convexity for
   maps*][BjorndahlKarshon2010], Proposition 29.
+* [M. F. Atiyah, *Convexity and commuting Hamiltonians*][Atiyah1982], §2.
 -/
 
 public section
 
 noncomputable section
 
-open scoped ContDiff Manifold
+open scoped ContDiff Manifold Topology
+
+namespace TauCeti
+
+section WeightCoordinates
+
+variable {ι : Type*} [Fintype ι]
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I 1 G]
+  [IsMulCommutative G]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [MulAction G M] [ContMDiffSMul I I' 1 G M]
+
+/-- **Orbit directions lie in the weight-zero coordinates.** Let a commutative Lie group `G` act
+on `M`, let `K` be a subgroup fixing `x`, and let `f : M → ℂ^ι`, differentiable at `x`, turn
+the action of each `g ∈ K` near `x` into the rotation `zₖ ↦ χₖ(g) zₖ`. Then for every `ξ` in the
+Lie algebra of `G`, the vector `df_x (ξ_M(x))` has both coordinates zero at each index `k` with
+`χₖ ≠ 1`. -/
+theorem mfderiv_fundamentalVectorField_apply_eq_zero_of_ne_one {K : Subgroup G}
+    {χ : ι → K →ₜ* Circle} {f : M → EuclideanSpace ℝ ι × EuclideanSpace ℝ ι} {x : M}
+    (hf : MDifferentiableAt I' 𝓘(ℝ, EuclideanSpace ℝ ι × EuclideanSpace ℝ ι) f x)
+    (hK : ∀ g : K, (g : G) • x = x)
+    (hχ : ∀ g : K, ∀ᶠ y in 𝓝 x,
+      f ((g : G) • y) = weightRotation (fun k ↦ Complex.arg (χ k g)) (f y))
+    (ξ : GroupLieAlgebra I G) {k : ι} (hk : χ k ≠ 1) :
+    (mfderiv I' 𝓘(ℝ, EuclideanSpace ℝ ι × EuclideanSpace ℝ ι) f x
+        (fundamentalVectorField I' ξ x)).1 k = 0 ∧
+      (mfderiv I' 𝓘(ℝ, EuclideanSpace ℝ ι × EuclideanSpace ℝ ι) f x
+        (fundamentalVectorField I' ξ x)).2 k = 0 := by
+  obtain ⟨g, hg⟩ : ∃ g, χ k g ≠ 1 := by
+    by_contra! h
+    exact hk (ContinuousMonoidHom.ext fun g ↦ by simpa using h g)
+  set v := mfderiv I' 𝓘(ℝ, EuclideanSpace ℝ ι × EuclideanSpace ℝ ι) f x
+    (fundamentalVectorField I' ξ x)
+  have hR := mfderiv_fundamentalVectorField_eq_of_eventually_smul_eq hf (hK g) _ (hχ g) ξ
+  have hv := (weightRotation_apply_eq_self_iff_apply _ v k).1
+    ⟨congrArg (fun z ↦ z.1 k) hR, congrArg (fun z ↦ z.2 k) hR⟩
+  by_contra hne
+  -- The rotation angle `arg (χₖ g)` lies in `2πℤ`, so `χₖ g = 1`.
+  obtain ⟨m, hm⟩ := hv (by tauto)
+  exact hg (by rw [← Circle.exp_arg (χ k g), ← hm, Circle.exp_int_mul_two_pi])
+
+end WeightCoordinates
+
+end TauCeti
 
 namespace TauCeti.SmoothTwoForm.IsMomentMap
 
@@ -145,5 +218,116 @@ theorem exists_weightModelChart_isotropy
     rw [LinearMap.comp_apply, LinearMap.comp_apply, ContinuousLinearMap.coe_coe, he] at hξ
     rw [hξ, weightMomentMap_apply α']
     exact congrArg _ ((weightMomentMap_apply (𝔱 := F) α _ (e.symm ξ)).trans (by simp only [hα']))
+
+end TauCeti.SmoothTwoForm.IsMomentMap
+
+namespace TauCeti.SmoothTwoForm.IsMomentMap
+
+section WeightChart
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
+  [IsMulCommutative G]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [CompleteSpace E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M]
+  [MulAction G M] [ContMDiffSMul I I' ∞ G M]
+  {σ : SmoothTwoForm I' M} {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+  {ι : Type*} [Fintype ι] {K : Subgroup G} {χ : ι → K →ₜ* Circle}
+  {chart : PartialDiffeomorph I' 𝓘(ℝ, EuclideanSpace ℝ ι × EuclideanSpace ℝ ι) M
+    (EuclideanSpace ℝ ι × EuclideanSpace ℝ ι) ∞} {x : M}
+
+attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
+
+/-- **The moment map in a weight chart is flat in the nontrivial weight directions.** Let a
+commutative Lie group `G` act on `M` with moment map `μ` for `σ`, let `K ≤ G` fix `x`, and let
+`chart` be a chart at `x` into `ℂ^ι` that carries `σ` at `x` to the standard form and in which
+each `g ∈ K` acts near `x` by the rotation `zₖ ↦ χₖ(g) zₖ`. Then for every `ξ`, the derivative at
+`chart x` of `μ^ξ` read in the chart vanishes on every vector whose coordinates are zero at each
+index `k` with `χₖ = 1`. -/
+theorem fderiv_comp_symm_apply_eq_zero
+    (h : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) μ) (hx : x ∈ chart.source)
+    (hform : ∀ v w : TangentSpace I' x,
+      σ.eval₂ x v w = stdSymplecticForm (mvfderiv I' chart x v) (mvfderiv I' chart x w))
+    (hK : ∀ g : K, (g : G) • x = x)
+    (hχ : ∀ g : K, ∀ᶠ y in 𝓝 x,
+      chart ((g : G) • y) = weightRotation (fun k ↦ Complex.arg (χ k g)) (chart y))
+    (ξ : GroupLieAlgebra I G) {w : EuclideanSpace ℝ ι × EuclideanSpace ℝ ι}
+    (hw : ∀ k, χ k = 1 → w.1 k = 0 ∧ w.2 k = 0) :
+    fderiv ℝ (fun z ↦ μ (chart.symm z) ξ) (chart x) w = 0 := by
+  have : LieGroup I 1 G := LieGroup.of_le ENat.LEInfty.out
+  have : ContMDiffSMul I I' 1 G M := ContMDiffSMul.of_le (M := M) ENat.LEInfty.out
+  rw [h.fderiv_comp_symm_apply chart hx hform, InfinitesimalAction.fundamental_apply]
+  refine stdSymplecticForm_eq_zero_of_forall fun k ↦ ?_
+  by_cases hk : χ k = 1
+  · exact Or.inr (hw k hk)
+  · exact Or.inl (mfderiv_fundamentalVectorField_apply_eq_zero_of_ne_one
+      (chart.mdifferentiableAt (by simp) hx) hK hχ ξ hk)
+
+/-- **The derivative of the transverse part of the moment map is onto from the weight-zero
+coordinates.** In the setting of `fderiv_comp_symm_apply_eq_zero`, with `G` finite-dimensional, let
+`𝔮` be a subspace of the Lie algebra of `G` that meets the isotropy algebra `𝔤ₓ = {ξ | ξ_M(x) = 0}`
+only in `0`, for instance a linear complement of it. Then every linear form `φ` on `𝔮` is
+`ξ ↦ d(μ^ξ ∘ chart⁻¹)_{chart x} w` for some vector `w` whose coordinates vanish at each index `k`
+with `χₖ ≠ 1`. -/
+theorem exists_fderiv_comp_symm_apply_eq [FiniteDimensional ℝ E]
+    (h : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) μ) (hx : x ∈ chart.source)
+    (hform : ∀ v w : TangentSpace I' x,
+      σ.eval₂ x v w = stdSymplecticForm (mvfderiv I' chart x v) (mvfderiv I' chart x w))
+    (hK : ∀ g : K, (g : G) • x = x)
+    (hχ : ∀ g : K, ∀ᶠ y in 𝓝 x,
+      chart ((g : G) • y) = weightRotation (fun k ↦ Complex.arg (χ k g)) (chart y))
+    {𝔮 : Submodule ℝ (GroupLieAlgebra I G)}
+    (h𝔮 : Disjoint 𝔮 ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule)
+    (φ : Module.Dual ℝ 𝔮) :
+    ∃ w : EuclideanSpace ℝ ι × EuclideanSpace ℝ ι, (∀ k, χ k ≠ 1 → w.1 k = 0 ∧ w.2 k = 0) ∧
+      ∀ ξ : 𝔮, fderiv ℝ (fun z ↦ μ (chart.symm z) ξ) (chart x) w = φ ξ := by
+  have : LieGroup I 1 G := LieGroup.of_le ENat.LEInfty.out
+  have : ContMDiffSMul I I' 1 G M := ContMDiffSMul.of_le (M := M) ENat.LEInfty.out
+  set D := mfderiv I' 𝓘(ℝ, EuclideanSpace ℝ ι × EuclideanSpace ℝ ι) chart x
+  -- The vectors with zero coordinates at the nontrivial weights, and `ξ ↦ D (ξ_M x)`.
+  let W : Submodule ℝ (EuclideanSpace ℝ ι × EuclideanSpace ℝ ι) :=
+    { carrier := {w | ∀ k, χ k ≠ 1 → w.1 k = 0 ∧ w.2 k = 0}
+      add_mem' := fun ha hb k hk ↦ by simp [(ha k hk).1, (ha k hk).2, (hb k hk).1, (hb k hk).2]
+      zero_mem' := fun k _ ↦ by simp
+      smul_mem' := fun c a ha k hk ↦ by simp [(ha k hk).1, (ha k hk).2] }
+  let v : GroupLieAlgebra I G →ₗ[ℝ] EuclideanSpace ℝ ι × EuclideanSpace ℝ ι :=
+    D.toLinearMap ∘ₗ (InfinitesimalAction.fundamental I G I' M).eval x
+  have hv (ξ : GroupLieAlgebra I G) : v ξ = D (fundamentalVectorField I' ξ x) :=
+    congrArg D ((InfinitesimalAction.eval_apply _ x ξ).trans
+      (congrFun (InfinitesimalAction.fundamental_apply ξ) x))
+  have hvW (ξ : GroupLieAlgebra I G) : v ξ ∈ W := fun k hk ↦ hv ξ ▸
+    mfderiv_fundamentalVectorField_apply_eq_zero_of_ne_one (chart.mdifferentiableAt (by simp) hx)
+      hK hχ ξ hk
+  -- `W` is `J₀`-stable, so `ω₀` is nondegenerate on it, and the pairing
+  -- `(ξ, w) ↦ ω₀(D (ξ_M x), w)` on `𝔮 × W` is injective in `ξ`.
+  have hWs : (stdSymplecticForm (V := EuclideanSpace ℝ ι)).IsSymplectic W :=
+    stdSymplecticForm_tames_product.isSymplectic_of_mem_invtSubmodule <|
+      (Module.End.mem_invtSubmodule _).2 fun u hu k hk ↦ by simp [(hu k hk).1, (hu k hk).2]
+  let B : 𝔮 →ₗ[ℝ] W →ₗ[ℝ] ℝ :=
+    (stdSymplecticForm (V := EuclideanSpace ℝ ι)).toBilinForm.compl₁₂ (v ∘ₗ 𝔮.subtype) W.subtype
+  have hB (ξ : 𝔮) (w : W) : B ξ w = stdSymplecticForm (v ξ) w := rfl
+  have hBinj : Function.Injective B := by
+    rw [← LinearMap.ker_eq_bot, Submodule.eq_bot_iff]
+    intro ξ hξ
+    have hv0 : v ξ = 0 := Submodule.disjoint_def.1 (SymplecticForm.isSymplectic_iff_disjoint.1 hWs)
+      _ (hvW ξ) (SymplecticForm.mem_orthogonal_iff'.2 fun w hw ↦
+        LinearMap.congr_fun (LinearMap.mem_ker.1 hξ) ⟨w, hw⟩)
+    have hfund : fundamentalVectorField I' (ξ : GroupLieAlgebra I G) x = 0 := by
+      rw [← chart.mfderiv_symm_apply_mfderiv_apply (by simp) hx
+        (fundamentalVectorField I' (ξ : GroupLieAlgebra I G) x), ← hv, hv0]
+      exact map_zero _
+    have hiso : (ξ : GroupLieAlgebra I G) ∈
+        ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule := by
+      rw [LieSubalgebra.mem_toSubmodule, InfinitesimalAction.mem_isotropy_iff,
+        InfinitesimalAction.fundamental_apply, hfund]
+    exact Subtype.ext (Submodule.disjoint_def.1 h𝔮 _ ξ.property hiso)
+  obtain ⟨w, hw⟩ := LinearMap.flip_surjective_iff₁.2 hBinj φ
+  refine ⟨w, w.property, fun ξ ↦ ?_⟩
+  rw [h.fderiv_comp_symm_apply chart hx hform, InfinitesimalAction.fundamental_apply, ← hv, ← hB,
+    ← LinearMap.flip_apply, hw]
+
+end WeightChart
 
 end TauCeti.SmoothTwoForm.IsMomentMap
