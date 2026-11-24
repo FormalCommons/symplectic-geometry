@@ -30,12 +30,26 @@ endpoints, to one with a smooth extension to `ℝ` (Tau Ceti's
 is represented by a cycle, a finite combination of singular simplices, and the period of the
 class is the same combination of the periods along the simplices.
 
+The periods also commute with integration in the parameter. If a closed form `β` is, pointwise,
+the time integral `∫ₐᵇ α_{u t} dt` along a continuous path `u` of parameters, then each period
+of `β` is the time integral of the periods of the `α_{u t}`. Along a smooth curve this is
+Fubini's theorem (`intervalIntegral_intervalIntegral_swap`) for the integrand
+`(s, t) ↦ (c^* α_{u t})_s(1)`, continuous on the plane, once evaluation on the velocity has been
+taken inside the time integral; that needs the continuity of `t ↦ α_t x`
+(`SymplecticGeometry.IsSmoothFamily.continuous_val_apply`). The path classes and the homology
+classes then follow as before, the periods along the simplices being continuous in the time.
+
 ## Main results
 
 * `SymplecticGeometry.IsSmoothFamily.contMDiff_pathIntegral`: line integrals along a smooth curve.
 * `SymplecticGeometry.IsSmoothFamily.contMDiff_pathClassIntegral`: integrals over a path class.
 * `SymplecticGeometry.IsSmoothFamily.contMDiff_homologyPeriodHom`: periods on a class of
   `H₁(M; ℤ)`.
+* `SymplecticGeometry.IsSmoothFamily.pathIntegral_eq_intervalIntegral`,
+  `SymplecticGeometry.IsSmoothFamily.pathClassIntegral_eq_intervalIntegral`,
+  `SymplecticGeometry.IsSmoothFamily.homologyPeriodHom_eq_intervalIntegral`: line integrals,
+  integrals over path classes, and periods on `H₁(M; ℤ)` of a time integral of the family are the
+  time integrals of those of its forms.
 * `TauCeti.homologyPeriodHom_sub`: the periods of a difference of closed one-forms are the
   differences of their periods.
 * `TauCeti.homologyPeriodHom_mpullback_eq_of_homotopic`: homotopic maps pull a closed one-form
@@ -49,9 +63,9 @@ class is the same combination of the periods along the simplices.
 
 public section
 
-open TauCeti TauCeti.HurewiczOne CategoryTheory TauCeti.TopCat
+open TauCeti TauCeti.HurewiczOne CategoryTheory TauCeti.TopCat MeasureTheory Set
 open scoped Simplicial
-open scoped Manifold ContDiff
+open scoped Manifold ContDiff Interval
 
 namespace TauCeti
 
@@ -119,6 +133,36 @@ theorem contMDiff_pathIntegral (hα : IsSmoothFamily K α) {c : ℝ → M}
   exact (hf.comp (contMDiff_id.prodMk contMDiff_const)).sub
     (hf.comp (contMDiff_id.prodMk contMDiff_const))
 
+/-- **Line integrals of a time integral of a smooth family of one-forms.** If the form `β` is,
+pointwise, the integral `∫ₐᵇ α_{u t} dt` of a smooth family of one-forms along a continuous path
+`u` of parameters, then the line integral of `β` along a smooth curve is the integral over
+`t ∈ [a, b]` of the line integrals of the `α_{u t}`. -/
+theorem pathIntegral_eq_intervalIntegral {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+    [CompleteSpace F] {α : N → SmoothForm I M F 1} (hα : IsSmoothFamily K α) {u : ℝ → N}
+    (hu : Continuous u) {a b : ℝ} {β : RoughForm I M F 1}
+    (h : ∀ x, β x = intervalIntegral (E := E [⋀^Fin 1]→L[ℝ] F)
+      (fun t ↦ (α (u t) : RoughForm I M F 1) x) a b volume)
+    {c : ℝ → M} (hc : ContMDiff 𝓘(ℝ) I ∞ c) (a' b' : ℝ) :
+    pathIntegral β c a' b' = ∫ t in a..b, pathIntegral (α (u t) : RoughForm I M F 1) c a' b' := by
+  -- The pullbacks of the forms of the family to the parameter line, on the unit vector.
+  set G : ℝ → ℝ → F := fun s t ↦ mpullback (F := F) 𝓘(ℝ, ℝ) I c (α (u t)).val s fun _ ↦ 1
+  have hG : Continuous (Function.uncurry G) := by
+    simp only [G, ← SmoothForm.coe_mpullback c hc]
+    exact (hα.mpullback c hc).continuous_apply_one.comp (f := fun p : ℝ × ℝ ↦ (u p.2, p.1))
+      ((hu.comp continuous_snd).prodMk continuous_fst)
+  have hβG (s : ℝ) : mpullback 𝓘(ℝ, ℝ) I c β s (fun _ ↦ 1) = ∫ t in a..b, G s t := by
+    simp only [G, mpullback_apply, h]
+    -- Evaluation on the velocity is a continuous linear map, so it commutes with the integral.
+    exact (ContinuousLinearMap.intervalIntegral_comp_comm
+      (ContinuousAlternatingMap.apply ℝ E F fun _ : Fin 1 ↦ mfderiv 𝓘(ℝ, ℝ) I c s 1)
+      (((hα.continuous_val_apply (c s)).comp hu).intervalIntegrable a b)).symm
+  -- `G` is continuous, so Fubini applies on the compact rectangle.
+  have hint : IntegrableOn (Function.uncurry G) (Ι a' b' ×ˢ Ι a b) :=
+    (hG.continuousOn.integrableOn_compact (isCompact_uIcc.prod isCompact_uIcc)).mono_set
+      (prod_mono uIoc_subset_uIcc uIoc_subset_uIcc)
+  simp_rw [pathIntegral_eq_integral_mpullback, hβG]
+  exact intervalIntegral_intervalIntegral_swap hint
+
 variable [FiniteDimensional ℝ E] [I.Boundaryless] [T2Space M]
 
 /-- **Integrals of a smooth family of closed one-forms over a path class depend smoothly on the
@@ -137,6 +181,29 @@ theorem contMDiff_pathClassIntegral (hα : IsSmoothFamily K α)
       fun s ↦ (γ'.extend_extends' s).symm
   simp_rw [key]
   exact hα.contMDiff_pathIntegral hγ' 0 1
+
+/-- **Integrals over a path class of a time integral of closed one-forms.** If the closed `C¹`
+form `β` is, pointwise, the integral `∫ₐᵇ α_{u t} dt` of a smooth family of closed one-forms along
+a continuous path `u` of parameters, then the integral of `β` over a path class is the integral
+over `t ∈ [a, b]` of the integrals of the `α_{u t}` over it, on a Hausdorff boundaryless manifold.
+-/
+theorem pathClassIntegral_eq_intervalIntegral (hα : IsSmoothFamily K α)
+    (hcl : ∀ t, α t ∈ closedForms I M 1) {u : ℝ → N} (hu : Continuous u) {a b : ℝ}
+    {β : RoughForm I M ℝ 1} (hβ : IsSmoothForm I 1 β) (hβc : mextDeriv β = 0)
+    (h : ∀ x, β x = intervalIntegral (E := E [⋀^Fin 1]→L[ℝ] ℝ)
+      (fun t ↦ (α (u t) : RoughForm I M ℝ 1) x) a b volume)
+    {x y : M} (q : Path.Homotopic.Quotient x y) :
+    pathClassIntegral β q = ∫ t in a..b, pathClassIntegral (α (u t) : RoughForm I M ℝ 1) q := by
+  induction q using Path.Homotopic.Quotient.ind with | mk γ =>
+  -- Replace `γ` by a homotopic path with a smooth extension to `ℝ`.
+  obtain ⟨γ', hγγ', hγ'⟩ := γ.exists_homotopic_contMDiff_extend (J := I) ⊤
+  have hext (s : unitInterval) : γ' s = γ'.extend s := (γ'.extend_extends' s).symm
+  rw [Path.Homotopic.Quotient.eq.2 hγγ',
+    pathClassIntegral_mk_eq_pathIntegral hβ hβc (hγ'.of_le (by simp)) hext,
+    hα.pathIntegral_eq_intervalIntegral hu h hγ']
+  refine intervalIntegral.integral_congr fun t _ ↦ ?_
+  exact (pathClassIntegral_mk_eq_pathIntegral ((α (u t)).isSmoothForm.of_le (by simp))
+    ((mem_closedForms I _).mp (hcl (u t))) (hγ'.of_le (by simp)) hext).symm
 
 /-- **The periods of a smooth family of closed one-forms on a class of `H₁(M; ℤ)` depend smoothly
 on the parameter**, on a Hausdorff boundaryless manifold. -/
@@ -163,6 +230,56 @@ theorem contMDiff_homologyPeriodHom {M : Type} [TopologicalSpace M] [ChartedSpac
   simp only [LinearMap.toAddMonoidHom_coe, AddMonoidHom.coe_comp, Function.comp_apply] at hval
   simp_rw [hval]
   exact (chainsDesc g (z : ((singularChains ℤ).obj (.of M)).X 1)).contMDiff
+
+/-- **Periods of a time integral of closed one-forms.** If the closed `C¹` form `β` is, pointwise,
+the integral `∫ₐᵇ α_{u t} dt` of a smooth family of closed one-forms along a continuous path `u`
+of parameters, then the periods of `β` on `H₁(M; ℤ)` are the integrals over `t ∈ [a, b]` of the
+periods of the `α_{u t}`, on a Hausdorff boundaryless manifold. -/
+theorem homologyPeriodHom_eq_intervalIntegral {M : Type} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [T2Space M] {N : Type} [TopologicalSpace N] [ChartedSpace HN N]
+    [IsManifold K ∞ N] {α : N → SmoothForm I M ℝ 1} (hα : IsSmoothFamily K α)
+    (hcl : ∀ t, α t ∈ closedForms I M 1) {u : ℝ → N} (hu : Continuous u) {a b : ℝ}
+    {β : RoughForm I M ℝ 1} (hβ : IsSmoothForm I 1 β) (hβc : mextDeriv β = 0)
+    (h : ∀ x, β x = intervalIntegral (E := E [⋀^Fin 1]→L[ℝ] ℝ)
+      (fun t ↦ (α (u t) : RoughForm I M ℝ 1) x) a b volume)
+    (c : ((singularChains ℤ).obj (.of M)).homology 1) :
+    homologyPeriodHom β c = ∫ t in a..b, homologyPeriodHom (α (u t) : RoughForm I M ℝ 1) c := by
+  obtain ⟨z, rfl⟩ := (H₁AddEquivHomology (.of M)).surjective c
+  obtain ⟨z, rfl⟩ := H₁.mk_surjective z
+  simp_rw [homologyPeriodHom_H₁AddEquivHomology_mk]
+  -- The periods along the simplices, as continuous functions of the time.
+  let g : (TopCat.toSSet.obj (.of M)) _⦋1⦌ → C(ℝ, ℝ) := fun s ↦
+    ⟨fun t ↦ pathClassIntegral (α (u t) : RoughForm I M ℝ 1) (.mk (path₁ s)),
+      (hα.contMDiff_pathClassIntegral hcl _).continuous.comp hu⟩
+  -- The integral over `[a, b]` of continuous functions.
+  let L : C(ℝ, ℝ) →+ ℝ :=
+    { toFun f := ∫ t in a..b, f t
+      map_zero' := by simp
+      map_add' f₁ f₂ := intervalIntegral.integral_add (f₁.continuous.intervalIntegrable a b)
+        (f₂.continuous.intervalIntegrable a b) }
+  have hval (t : ℝ) : (chainsDesc fun s ↦ pathClassIntegral (α (u t) : RoughForm I M ℝ 1)
+      (.mk (path₁ s))).toAddMonoidHom =
+      (ContinuousMap.evalCLM ℝ t).toLinearMap.toAddMonoidHom.comp (chainsDesc g).toAddMonoidHom :=
+    singularChains_addMonoidHom_ext fun s ↦ by
+      simp only [LinearMap.toAddMonoidHom_coe, AddMonoidHom.coe_comp, Function.comp_apply,
+        chainsDesc_simplexChain_one, ContinuousLinearMap.coe_coe, ContinuousMap.evalCLM_apply, g,
+        ContinuousMap.coe_mk]
+  have hβval : (chainsDesc fun s ↦ pathClassIntegral β (.mk (path₁ s))).toAddMonoidHom =
+      L.comp (chainsDesc g).toAddMonoidHom :=
+    singularChains_addMonoidHom_ext fun s ↦ by
+      simp only [LinearMap.toAddMonoidHom_coe, AddMonoidHom.coe_comp, Function.comp_apply,
+        chainsDesc_simplexChain_one, L, g, AddMonoidHom.coe_mk, ZeroHom.coe_mk,
+        ContinuousMap.coe_mk]
+      exact hα.pathClassIntegral_eq_intervalIntegral hcl hu hβ hβc h _
+  have hz := DFunLike.congr_fun hβval (z : ((singularChains ℤ).obj (.of M)).X 1)
+  simp only [LinearMap.toAddMonoidHom_coe, AddMonoidHom.coe_comp, Function.comp_apply, L,
+    AddMonoidHom.coe_mk, ZeroHom.coe_mk] at hz
+  rw [hz]
+  refine intervalIntegral.integral_congr fun t _ ↦ ?_
+  have ht := DFunLike.congr_fun (hval t) (z : ((singularChains ℤ).obj (.of M)).X 1)
+  simp only [LinearMap.toAddMonoidHom_coe, AddMonoidHom.coe_comp, Function.comp_apply,
+    ContinuousLinearMap.coe_coe, ContinuousMap.evalCLM_apply] at ht
+  exact ht.symm
 
 end IsSmoothFamily
 

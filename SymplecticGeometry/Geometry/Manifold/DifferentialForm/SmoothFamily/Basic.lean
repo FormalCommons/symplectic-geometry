@@ -56,6 +56,8 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
   section is smooth.
 * `SymplecticGeometry.IsSmoothFamily.contMDiff_apply`: the values of a smooth family at a point,
   on fixed tangent vectors, are smooth in the parameter.
+* `SymplecticGeometry.IsSmoothFamily.continuous_val_apply`: the value of a smooth family at a
+  point is continuous in the parameter.
 * `SymplecticGeometry.IsSmoothFamily.continuous_apply_one`: the values of a smooth family of
   one-forms on `ℝ` on the unit vector are jointly continuous in the parameter and the point.
 * `SymplecticGeometry.IsSmoothFamily.ext_on`: two smooth families that agree on a dense set of
@@ -277,6 +279,16 @@ theorem contMDiff_apply (h : IsSmoothFamily J α) (x : M) (v : Fin k → Tangent
   simpa only [Function.comp_def, ContinuousAlternatingMap.apply_apply,
     ContinuousAlternatingMap.compContinuousLinearMap_apply,
     Trivialization.symmL_continuousLinearMapAt _ hx] using this
+
+/-- The value of a smooth family at a point, as an alternating map on the tangent space there,
+depends continuously on the parameter. -/
+theorem continuous_val_apply (h : IsSmoothFamily J α) (x : M) :
+    Continuous (Y := E [⋀^Fin k]→L[ℝ] F) fun t ↦ (α t).val x := by
+  have hS := ((isSmoothFamily_iff_contMDiff.mp h).comp
+    (contMDiff_id.prodMk contMDiff_const : ContMDiff J (J.prod I) ∞ fun t ↦ (t, x))).continuous
+  -- The inclusion of the fibre over `x` into the total space is an embedding.
+  exact (FiberBundle.totalSpaceMk_isInducing (E [⋀^Fin k]→L[ℝ] F)
+    (fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) x).continuous_iff.mpr hS
 
 /-- For a smooth family `α` of one-forms on `ℝ`, the value of `α t` at `s` on the unit tangent
 vector `1` depends jointly continuously on `(t, s)`. -/
