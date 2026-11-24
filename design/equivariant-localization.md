@@ -313,7 +313,9 @@ manifold of dimension `m`, for `F 0 = 1` and `cartanDiff X hX ħ β = 0`,
 ### `Integration/Measure.lean` and `LiouvilleMeasure.lean`
 
 `TauCeti.integralTopForm_smul_eq_integral_measure`: for a continuous top
-form `φ` that is nonnegative on every positively oriented basis of `o`,
+form `φ` that is nonnegative on every positively oriented basis of `o`
+and nonpositive on every negatively oriented one (stated with
+`Orientation.signBasis`, so that it holds in dimension `0`),
 and a continuous compactly supported `f`,
 `integralTopForm o (fun x ↦ f x • φ x) = ∫ x, f x ∂φ.measure`. The proof is
 that of `TauCeti.integralTopForm_smul_riemannianVolumeForm`, credited by
