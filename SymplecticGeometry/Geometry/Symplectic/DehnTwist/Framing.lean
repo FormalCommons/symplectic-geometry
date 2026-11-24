@@ -24,7 +24,9 @@ relation, and defines the type `FramedSphere` of its classes.
 * `SymplecticGeometry.FramingRel f₁ f₂`: `f₁ = f₂ ∘ Φ₁ ∘ A` for a smooth diffeotopy `Φ` of `Sⁿ`
   and an orthogonal matrix `A`, acting on `Sⁿ` by `TauCeti.orthogonalToDiffSphere`.
 * `SymplecticGeometry.framingSetoid`: the setoid of `FramingRel`.
-* `SymplecticGeometry.FramedSphere`: smooth embeddings `Sⁿ → M` up to `FramingRel`.
+* `SymplecticGeometry.FramedSphere`: smooth embeddings `Sⁿ → M` up to `FramingRel`, with
+  `FramedSphere.lift`, which makes a function of parametrizations that respects `FramingRel` a
+  function of framed spheres.
 
 ## Main results
 
@@ -181,6 +183,7 @@ def mk (f : SmoothEmbedding (𝓡 n) I ∞ (Metric.sphere (0 : EuclideanSpace �
   Quotient.mk _ f
 
 /-- Two parametrizations give the same framed sphere exactly when they define the same framing. -/
+@[simp]
 theorem mk_eq_mk_iff : mk f₁ = mk f₂ ↔ FramingRel f₁ f₂ :=
   Quotient.eq
 
@@ -193,15 +196,28 @@ theorem mk_surjective : Function.Surjective (mk : _ → FramedSphere n I M) :=
 theorem ind {p : FramedSphere n I M → Prop} (h : ∀ f, p (mk f)) (L : FramedSphere n I M) : p L :=
   Quotient.ind h L
 
+/-- A function on parametrizations that takes the same value on any two that define the same
+framing, as a function on framed spheres. -/
+def lift {α : Sort*}
+    (g : SmoothEmbedding (𝓡 n) I ∞ (Metric.sphere (0 : EuclideanSpace ℝ (Fin (n + 1))) 1) M → α)
+    (hg : ∀ f₁ f₂, FramingRel f₁ f₂ → g f₁ = g f₂) : FramedSphere n I M → α :=
+  Quotient.lift (s := framingSetoid n I M) g hg
+
+/-- The function `lift g hg` takes the value `g f` at the framed sphere of `f`. -/
+@[simp]
+theorem lift_mk {α : Sort*}
+    (g : SmoothEmbedding (𝓡 n) I ∞ (Metric.sphere (0 : EuclideanSpace ℝ (Fin (n + 1))) 1) M → α)
+    (hg : ∀ f₁ f₂, FramingRel f₁ f₂ → g f₁ = g f₂) : lift g hg (mk f) = g f :=
+  (rfl)
+
 /-- The image in `M` of a framed sphere, the image of any of its parametrizations. -/
-def range (L : FramedSphere n I M) : Set M :=
-  Quotient.lift (s := framingSetoid n I M) (fun f ↦ Set.range f)
-    (fun _ _ h ↦ FramingRel.range_eq h) L
+def range : FramedSphere n I M → Set M :=
+  lift (fun f ↦ Set.range f) fun _ _ h ↦ h.range_eq
 
 /-- The image of the framed sphere of `f` is the image of `f`. -/
 @[simp]
 theorem range_mk : (mk f).range = Set.range f := by
-  rw [range, mk, Quotient.lift_mk]
+  rw [range, lift_mk]
 
 end FramedSphere
 
