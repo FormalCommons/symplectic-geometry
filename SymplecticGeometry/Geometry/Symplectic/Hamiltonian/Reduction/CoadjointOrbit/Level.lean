@@ -289,6 +289,15 @@ def zeroLevelProdChartedSpace :
     (hσ.prod η.isSymplectic_coadjointOrbitForm.isNondegenerate)
     (h.stabilizer_zeroLevel_prod_eq_bot η hfree) (n := m) (by rwa [Module.finrank_prod])
 
+/-- `zeroLevelProdChartedSpace` is the atlas `zeroLevelChartedSpace` of the product form. -/
+theorem zeroLevelProdChartedSpace_def :
+    h.zeroLevelProdChartedSpace hemb hσ hfree hm =
+      haveI : T2Space (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η) := hemb.t2Space
+      (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).zeroLevelChartedSpace
+        (hσ.prod η.isSymplectic_coadjointOrbitForm.isNondegenerate)
+        (h.stabilizer_zeroLevel_prod_eq_bot η hfree) (n := m) (by rwa [Module.finrank_prod]) :=
+  (rfl)
+
 /-- The zero level of the product moment map is a smooth manifold, for the atlas
 `zeroLevelProdChartedSpace`. -/
 theorem isManifold_zeroLevelProd :
@@ -323,6 +332,14 @@ product moment map on `M × (G ⧸ G_η)`, pulled back along the graph homeomorp
 def orbitLevelChartedSpace : ChartedSpace (Fin m → ℝ) (h.orbitLevel η) :=
   letI := h.zeroLevelProdChartedSpace hemb hσ hfree hm
   (h.orbitLevelGraph hemb).pullbackChartedSpace
+
+/-- `orbitLevelChartedSpace` is the atlas `zeroLevelProdChartedSpace` pulled back along the graph
+homeomorphism `orbitLevelGraph`. -/
+theorem orbitLevelChartedSpace_def :
+    h.orbitLevelChartedSpace hemb hσ hfree hm =
+      letI := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+      (h.orbitLevelGraph hemb).pullbackChartedSpace :=
+  (rfl)
 
 /-- **The preimage of an embedded orbit is a smooth manifold**, for the atlas
 `orbitLevelChartedSpace`. -/

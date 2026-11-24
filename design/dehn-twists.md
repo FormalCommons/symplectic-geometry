@@ -89,7 +89,7 @@ Tau Ceti and the library already have:
   merged neighbourhood extension of isotopies of submanifolds
   `TauCeti.SmoothIsotopy.exists_isSymplectic_extension_of_mpullback_eq`
   (`IsotopyExtension/Submanifold.lean`), with
-  `TauCeti.SmoothIsotopy.IsSymplectic` (`IsotopyExtension/Velocity.lean`);
+  `TauCeti.SmoothIsotopy.IsSymplectic` (`Geometry/Manifold/SmoothIsotopy/IsSymplectic.lean`);
   Tau Ceti's extension of a compactly supported diffeomorphism of an open
   set by the identity (`IsLocalDiffeomorph.exists_diffeomorph_extend_of_isCompact`,
   `Diffeomorph.exists_extend_of_isCompact`,
@@ -629,7 +629,7 @@ isotopic to an element of $O(2)$.
 - *Symplectic neighbourhoods*: `Neighborhood/Lagrangian.lean` (the
   Lagrangian neighbourhood theorem).
 - *Isotopy extension*: `IsotopyExtension/Submanifold.lean`,
-  `IsotopyExtension/Velocity.lean` (`SmoothIsotopy.IsSymplectic`) and
+  `Geometry/Manifold/SmoothIsotopy/IsSymplectic.lean` (`SmoothIsotopy.IsSymplectic`) and
   `Geometry/Manifold/SmoothEmbedding/Neighborhood.lean`.
 - *Hamiltonian flows*: `Flux/CompactSupport.lean` and `Flux/Hamiltonian.lean`.
 - *Smooth families*: `Diffeotopy/OfContMDiff.lean` and

@@ -7,7 +7,7 @@ module
 
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
-public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Velocity
+public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.IsSymplectic
 import TauCeti.Geometry.Manifold.Diffeomorph.Extend
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.UnitInterval
