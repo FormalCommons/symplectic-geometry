@@ -76,12 +76,17 @@ def ofFstEq : Diffeotopy J n M where
       Diffeomorph.coe_refl, Prod.map_apply, id_eq, ← Diffeomorph.slice_apply Ψ hΨ,
       Diffeomorph.apply_symm_apply]
 
+/-- The total diffeomorphism of `ofFstEq Ψ hΨ` is `Ψ ∘ (id × Ψ_0⁻¹)`. -/
+theorem toDiffeomorph_ofFstEq : (ofFstEq Ψ hΨ).toDiffeomorph =
+    ((Diffeomorph.refl (𝓡∂ 1) unitInterval n).prodCongr (Ψ.slice hΨ 0).symm).trans Ψ :=
+  (rfl)
+
 /-- The diffeotopy `ofFstEq Ψ hΨ` sends `(t, x)` to `Ψ_t (Ψ_0⁻¹ x)`. -/
 @[simp]
 theorem ofFstEq_apply (p : unitInterval × M) :
     ofFstEq Ψ hΨ p = Ψ.slice hΨ p.1 ((Ψ.slice hΨ 0).symm p.2) := by
-  rw [coe_apply, ofFstEq, Diffeomorph.slice_apply, Diffeomorph.coe_trans, Function.comp_apply,
-    Diffeomorph.coe_prodCongr, Diffeomorph.coe_refl, Prod.map_apply, id_eq]
+  rw [coe_apply, toDiffeomorph_ofFstEq, Diffeomorph.slice_apply, Diffeomorph.coe_trans,
+    Function.comp_apply, Diffeomorph.coe_prodCongr, Diffeomorph.coe_refl, Prod.map_apply, id_eq]
 
 /-- The time-`t` slice of `ofFstEq Ψ hΨ` is `Ψ_t ∘ Ψ_0⁻¹`. -/
 @[simp]
