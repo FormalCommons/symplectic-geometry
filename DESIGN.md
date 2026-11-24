@@ -2792,19 +2792,18 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   $m$-manifold, a closed $(m-1)$-form whose wedge with every closed
   one-form has integral zero is exact), and
   `Geometry/Symplectic/Hamiltonian/CircleAction.lean` (a Hamiltonian circle
-  action on a closed manifold has a fixed point, at an extremum of $H$;
-  $\iota_X(\omega^n)=n\,\iota_X\omega\wedge\omega^{n-1}$; if the action has
-  a fixed point, then $\int_M\gamma(X)\,\omega^n=0$ for every closed
-  one-form $\gamma$, since the average of $\gamma(X)$ over each orbit is the
-  period of $\gamma$ on an orbit loop, and these loops are all freely
-  homotopic to a constant one; with the cup-product hypothesis, the action
-  is Hamiltonian).
-- **Builds on:** *Lie group actions* (only `Circle.lean`); Tau Ceti
+  action on a closed manifold has a fixed point, at an extremum of $H$; if
+  the action has a fixed point, then $\int_M\gamma(X)\,\omega^n=0$ for every
+  closed one-form $\gamma$, since $\gamma$ is cohomologous to its average
+  over the circle, which pairs $X$ to a constant, zero at the fixed point;
+  with the cup-product hypothesis, the action is Hamiltonian).
+- **Builds on:** *Lie group actions* (only `Circle.lean`); *Moment maps*
+  (only `MomentMap/WeaklyHamiltonian.lean`); Tau Ceti
   (`TauCeti.deRhamCohomology` with
   `wedge`, `TauCeti.poincarePairing`, `interiorClass_eq_zero_iff`,
-  `integralTopForm_mextDeriv_eq_zero`, periods of closed one-forms); the
-  merged orientation of a symplectic manifold
-  (`Geometry/Symplectic/Orientation.lean`).
+  `integralTopForm_mextDeriv_eq_zero`, periods of closed one-forms,
+  averaging of forms); the merged Hodge theorem of *Hodge theory*
+  (`Geometry/Manifold/DeRham/Hodge/Basic.lean`).
 - **Milestones:** *Frankel–Ono Hamiltonianity criterion*.
 - **The design file decides:** the route to the nondegeneracy of the
   pairing in degrees $(1,m-1)$: through the library's singular duality
@@ -2853,17 +2852,19 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
 
 ### 40. Coisotropic reduction (needs `design/coisotropic-reduction.md`)
 
-- **Files:** `Geometry/Manifold/Foliation/LeafSpace.lean` (in Tau Ceti's
-  folder of foliations: the page's regularity condition on a foliation,
-  through slices meeting every leaf at most once, and, with a Hausdorff
-  leaf space, the unique smooth structure on it for which the projection
+- **Files:** `Geometry/Manifold/Foliation/Transport.lean`,
+  `Foliation/LeafSpace/Basic.lean` and `Foliation/LeafSpace/Smooth.lean`
+  (in Tau Ceti's folder of foliations: the page's regularity condition on a
+  foliation, through slices meeting every leaf at most once, and the unique
+  smooth structure on it for which the projection
   is a submersion whose vertical spaces are the leaf directions), and in
   `Geometry/Symplectic/Coisotropic/`: `Reduction.lean` (regular coisotropic
   reduction: the leaf space of Tau Ceti's characteristic foliation, of
   dimension $2n-2k$, with the unique symplectic form pulling back to
   $i^*\omega$, from `TauCeti.SmoothTwoForm.existsUnique_isSymplectic_mpullback_eq`)
-  and `Lagrangian.lean` (clean intersections of a Lagrangian embedding with
-  a coisotropic one, the characteristic directions of the intersection,
+  and `Lagrangian/Basic.lean`, `Lagrangian/Immersion.lean` and
+  `Lagrangian/Injective.lean` (clean intersections of a Lagrangian
+  embedding with a coisotropic one, the characteristic directions of the intersection,
   their local leaf spaces, the Lagrangian immersion from a countable
   disjoint union of them, the transverse case, and injectivity when every
   leaf meets $L$ in a connected set).
@@ -2875,58 +2876,57 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   embeddings).
 - **Milestones:** *Regular coisotropic reduction*, *Clean reduction of
   Lagrangian submanifolds*.
-- **The design file decides:** how $Q$ is given (an embedding, Tau Ceti's
-  `IsCoisotropicEmbedding`), the type of the leaf space and how its charts
-  come from the slices, and the form of "clean intersection" for
+- **The design file decides:** how $Q$ is given (a coisotropic immersion, of
+  which Tau Ceti's `IsCoisotropicEmbedding` is a case), the type of the
+  leaf space and how its charts come from the slices, and the form of "clean intersection" for
   embeddings.
 
 ### 41. Hamiltonian reduction (needs `design/hamiltonian-reduction.md`)
 
 - **Files:** in `Geometry/Symplectic/Hamiltonian/Reduction/`, beside Tau
-  Ceti's files: `ZeroLevel.lean` (Marsden–Weinstein reduction at the zero
+  Ceti's files: `ZeroLevel/` (Marsden–Weinstein reduction at the zero
   level for a connected group acting freely and properly on the level
   only: the quotient manifold theorem applied to the level's own action,
   the unique reduced form, the dimension, that the level is coisotropic
   with the orbits as characteristic leaves, and
   $T_{[p]}(M/\!/G)\cong\ker d\mu(p)/\operatorname{im}L_p$ with the induced
-  form) and `CoadjointOrbit.lean` (reduction at an embedded coadjoint
+  form) and `CoadjointOrbit/` (reduction at an embedded coadjoint
   orbit: transversality, the reduced form with
   $\pi^*\omega_{\mathrm{red}}=i^*\omega+(\mu|_Q)^*\omega_{\mathcal O}$, and
   the symplectomorphism with the reduced space at zero of
   $M\times\mathcal O$, whose moment map is $\mu(p)-\eta$).
 - **Builds on:** Tau Ceti (the quotient
-  manifold theorem, `IsEquivariantMomentMap.levelSubMulAction` and the
-  files of `Hamiltonian/Reduction/`, the reduced form
-  `existsUnique_isSymplectic_mpullback_quotientMk_eq_mpullback`, the
-  shifting results `isRegularValue_sub`, `isCoisotropicMap_fst_sub` and
-  `mpullback_smul_eq_prod_leftInvariantKirillovForm`, the coadjoint orbit
+  manifold theorem, the regular-level atlas `IsMomentMap.levelChartedSpace`,
+  the reduced form of level data
+  `IsEquivariantMomentMap.existsUnique_isSymplectic_mpullback_eq_mpullback`,
+  the product moment map `IsEquivariantMomentMap.prod`, the coadjoint orbit
   `Module.Dual.coadjointOrbitForm`).
 - **Milestones:** *Marsden–Weinstein reduction*, *Reduction at a coadjoint
   orbit and the shifting construction*.
 - **The design file decides:** how the reduction is stated when properness
   holds only on the level (Tau Ceti asks for a proper action on $M$), how
   an embedded coadjoint orbit is given (the orbit map
-  $G/G_\eta\to\mathfrak g^*$ as a smooth embedding), and the comparison of
+  $G/G_\eta\to\mathfrak g^*$ as an embedding), and the comparison of
   the quotient by $G$ with Tau Ceti's quotient by $G_c$.
 
 ### 42. Convexity (needs `design/convexity.md`)
 
-- **Files:** `Geometry/Manifold/Morse/Bott/Level.lean` (in Tau Ceti's
-  folder: on a closed connected manifold, a Morse–Bott function whose
-  indices and coindices are never one has connected levels), and
-  `Geometry/Symplectic/Hamiltonian/MomentMap/Convexity.lean` (the fixed set
-  of a torus action as finitely many symplectic submanifolds with $\mu$
-  constant on each, connectedness of the fibres by induction on the
-  dimension of the torus, convexity of the image, and with Tau Ceti's
+- **Files:** `Geometry/Symplectic/Manifold/FixedComponent.lean` (the fixed
+  components as symplectic submanifolds),
+  `Geometry/Symplectic/Hamiltonian/MomentMap/LocalConvexity.lean` (local
+  convexity of a torus moment map at every point, from the weight chart of
+  the stabilizer), and
+  `Geometry/Symplectic/Hamiltonian/MomentMap/Convexity.lean` (convexity of
+  the image and connectedness of every fibre, and with Tau Ceti's
   `range_subset_convexHull_image_fixedPoints` the image as the convex hull
   of the values on the fixed components).
-- **Builds on:** Tau Ceti (`MomentMap/ConvexHull.lean`, `FixedPoints.lean`
-  and `MorseBott.lean`, with
-  `exists_isNondegenerateCriticalSubmanifold_fixedPointsOfFinrank_of_compactSpace`,
-  `even_manifoldMorseIndex`, `TauCeti.exists_isSmoothEmbedding_fixedPointsOfFinrank`,
+- **Builds on:** Tau Ceti (the local-to-global theorem of
+  `Analysis/Convex/LocalToGlobal.lean`, `MomentMap/ConvexHull.lean`,
+  `FixedPoints.lean`,
   `TauCeti.finite_connectedComponents_fixedPoints_of_compactSpace`,
-  `isSymplectic_invariants_tangentRepresentation`, and the Morse–Bott
-  deformation `TauCeti.exists_sublevel_union_negativeDiscBundle_deformation`).
+  `IsNondegenerate.exists_isSymplecticSubmanifoldEmbedding_fixedPointsOfFinrank`,
+  the weight chart `IsMomentMap.exists_weightModelChart` and the local
+  convexity of the weight model in `WeightModel/Convexity.lean`).
 - **Milestones:** *Convexity and connectedness of moment-map fibers*,
   including the fibres over critical values.
 - **The design file decides:** the route to connectedness of every fibre,
@@ -2941,20 +2941,18 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   `Basic.lean` (invariant forms of a circle action with the Cartan
   differential $d-\hbar\,\iota_X$, its square on invariant forms, and
   equivariantly closed forms) and `Localization.lean` (the localization
-  lemma: for $\hbar\ne0$, an equivariantly closed form is, away from the
-  fixed points, $d_\hbar$ of an invariant form, and its integral is a sum of local
-  contributions at isolated fixed points); and
-  `Geometry/Symplectic/Hamiltonian/Localization.lean` (the
+  lemma: the integral of an equivariantly closed form does not change
+  when it is multiplied by $F(d_\hbar\theta)$, for an invariant one-form
+  $\theta$ and $F(0)=1$, which concentrates it near the fixed points); and
+  `Geometry/Symplectic/Hamiltonian/Localization/` (the
   Duistermaat–Heckman formula for $e^{\omega-\hbar H}$ at isolated fixed
   points, with the actual period-one tangent weights, and its value at
   $\hbar=0$ as the symplectic volume).
-- **Builds on:** *Lie group actions* (`Circle.lean`,
-  `InvariantPrimitive.lean`); *Equivariant normal forms* (the period-one
-  weights at a fixed point); Tau Ceti (the Cartan identity
-  `TauCeti.mlieDerivForm_eq_interior_mextDeriv_add`, Stokes' theorem
-  `TauCeti.integralTopForm_mextDeriv_eq_zero`, invariant compatible almost
-  complex structures
-  `IsNondegenerate.exists_compatible_mfderiv_smul_apply_of_compactSpace`).
+- **Builds on:** *Lie group actions* (`Circle.lean`); *Equivariant normal
+  forms* (the period-one weights at a fixed point); Tau Ceti (the Cartan
+  identity `TauCeti.mlieDerivForm_eq_interior_mextDeriv_add`, Stokes'
+  theorem `TauCeti.integralTopForm_mextDeriv_eq_zero`, invariant metrics
+  `TauCeti.exists_contMDiffRiemannianMetric_inner_mfderiv`).
 - **Milestones:** *Duistermaat–Heckman localization*.
 - **The design file decides:** how forms with a complex parameter $\hbar$
   are represented (Tau Ceti integrates real top forms), and how the local
@@ -2962,18 +2960,20 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
 
 ### 44. Kähler stability (needs `design/kahler-stability.md`)
 
-- **Files:** in `Geometry/Symplectic/Kahler/`: `Complexification.lean`
+- **Files:** `Geometry/Lie/Complexification.lean`
   (the complexification $G^{\mathbb C}$ of a compact connected Lie group,
-  its holomorphic action extending that of $G$, and the decomposition
-  $G^{\mathbb C}=G\exp(i\mathfrak g)$ with the geodesics of
-  $G^{\mathbb C}/G$), `KempfNess.lean` (the Kempf–Ness function $\Phi_p$,
+  given as data with the decomposition
+  $G^{\mathbb C}=\exp(i\mathfrak g)G$), and in
+  `Geometry/Symplectic/Hamiltonian/MomentMap/`: `KempfNess/` (the
+  holomorphic action extending that of $G$, the Kempf–Ness function $\Phi_p$,
   its existence and uniqueness, descent to $G^{\mathbb C}/G$, convexity
-  along geodesics, its critical points, and the three stability conditions
-  with their characterizations), `GradientFlow.lean` (the gradient flow of
-  $\tfrac12\|\mu\|^2$ and its convergence, through a Łojasiewicz inequality)
+  along geodesics, its critical points, the gradient flow of
+  $\tfrac12\|\mu\|^2$ and its convergence, through a Łojasiewicz inequality,
+  and the three stability conditions with their characterizations)
   and `HilbertMumford.lean` (the weights $w_\mu(p,\xi)$ for $\xi\in\Lambda$,
   the limits $p^+_\xi$, the moment-weight inequality and the numerical
-  criteria).
+  criteria); the Łojasiewicz inequality's files are those of
+  `design/kahler-stability.md`.
 - **Builds on:** Tau Ceti (`TauCeti.SmoothTwoForm.IsKahler`, invariant inner
   products `TauCeti.Lie.exists_isSymm_bilinForm_Ad_invariant`, limits of
   gradient trajectories `IsIntegralCurveOn.exists_tendsto_atTop_of_lojasiewicz`).
@@ -3027,9 +3027,9 @@ behind.
 | 1 | *Space of compatible complex structures* | *Nijenhuis tensor* (only `Integrable.lean`), *Almost complex manifolds* (only `Metric.lean`); the merged *Siegel upper half space* and *Compatible complex structures* |
 | 1 | *Energy of pseudoholomorphic curves* | *Almost complex manifolds* (only `Metric.lean`) |
 | 1 | *Hodge theory* | *Nijenhuis tensor* (only `Integrable.lean`), *Almost complex manifolds* (only `Metric.lean`), each for one issue of its design file; the Hodge theorem for the Laplacian can start at once |
-| 1 | *Hamiltonian circle actions* | *Lie group actions* (only `Circle.lean`); the nondegeneracy of the pairing can start at once |
+| 1 | *Hamiltonian circle actions* | *Lie group actions* (only `Circle.lean`), *Moment maps* (only `MomentMap/WeaklyHamiltonian.lean`); the nondegeneracy of the pairing can start at once |
 | 1 | *Minimal coupling* | *Lie group actions*; merged files of *First Chern number* and *Smooth families* |
-| 1 | *Equivariant localization* | *Lie group actions*, *Equivariant normal forms* (only `WeightModel/NormalForm.lean`); the Cartan complex can start at once |
+| 1 | *Equivariant localization* | *Lie group actions* (only `Circle.lean`), *Equivariant normal forms* (only `WeightModel/NormalForm.lean`); the Cartan complex can start at once |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `Topology/ComplexStructure/Basic.lean`, which besides it imports only Tau Ceti and the merged `LinearAlgebra/Matrix/NonsingularInverse.lean` and `Analysis/CStarAlgebra/Matrix.lean`, which import only Mathlib and merged files that do, and `LinearAlgebra/ComplexStructure/Standard.lean`, which besides `Action.lean` imports only `LinearAlgebra/Symplectic/Compatible.lean` of this part, `LinearAlgebra/Symplectic/Standard/Matrix.lean` of *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`, which imports only Tau Ceti, and Tau Ceti; and `Topology/ComplexStructure/Orthogonal.lean`, which besides `Topology/ComplexStructure/Basic.lean` imports only `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model*, `Analysis/Matrix/Polar/Deformation.lean` of *Symplectic group* and Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged, and `Analysis/Matrix/Polar/Deformation.lean`, through `Orthogonal.lean`, which is merged) |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
 | 2 | *Isotopy extension* | *Hamiltonian flows* (only `DeRham/FamilyPrimitive.lean`, `Flux/Hamiltonian.lean` and `Flux/CompactSupport.lean`), *Smooth families* (only `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `DeRham/SmoothFamily/GoodCover.lean`), *Moser isotopy* (only `Moser/Field.lean`); the merged *Standard model* and *Linear Moser*; the issues of its design file that use none of these can start at once |
