@@ -6,8 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.OneVariable
-public import SymplecticGeometry.RingTheory.Polynomial.Discriminant
+public import SymplecticGeometry.RingTheory.Polynomial.Irreducible
+public import SymplecticGeometry.RingTheory.UniqueFactorizationDomain
 public import TauCeti.Geometry.RealAlgebraic.Nash.OfSemialgebraic
+public import TauCeti.RingTheory.Polynomial.Resultant.Discriminant
 
 /-!
 # A one-variable semialgebraic function is a root branch near a point
@@ -24,17 +26,17 @@ of a polynomial takes.
   value with polynomial coefficients, form a semialgebraic set.
 * `TauCeti.IsSemialgebraicOn.exists_polynomial_eventually_isRoot_nhdsGT`: the main result, near
   `a` from the right.
-* `TauCeti.IsSemialgebraicOn.exists_polynomial_isRoot_nhdsGT`: its form on an interval `(0, ε)`.
+* `TauCeti.IsSemialgebraicOn.exists_pos_polynomial_forall_Ioo_isRoot`: its form on an interval
+  `(0, ε)`.
 
 The proof: Tau Ceti's `TauCeti.IsSemialgebraicOn.exists_ne_zero_polynomial_relation` gives a
 nonzero polynomial relation `P (x, f x) = 0`. Each point is a root of one of the irreducible
-factors of `P`; the points where a given factor vanishes form a semialgebraic set, so one of
-these sets contains all points just right of `a`
-(`TauCeti.IsSemialgebraic.eventually_nhdsGT_mem_or_notMem`). That factor `Q` has positive degree
-in the value, since otherwise it would be a nonzero polynomial in `t` with infinitely many
-roots, and it is not divisible by the value variable, since `f` does not vanish identically. So
-its constant coefficient is nonzero, and its discriminant is nonzero
-(`Irreducible.discr_ne_zero`).
+factors of `P` (`UniqueFactorizationMonoid.map_eq_zero_iff_exists_mem_factors`); the points where
+a given factor vanishes form a semialgebraic set, so one of these sets contains all points just
+right of `a` (`TauCeti.IsSemialgebraic.eventually_nhdsGT_mem_or_notMem`). That factor `Q` is not
+associated to the value variable, since `f` does not vanish identically, so its constant
+coefficient is nonzero (`Polynomial.associated_X_iff_coeff_zero_eq_zero`). Being irreducible, it
+is squarefree, so its discriminant is nonzero (Tau Ceti's `Squarefree.discr_ne_zero`).
 
 ## References
 
@@ -104,20 +106,10 @@ theorem IsSemialgebraicOn.exists_polynomial_eventually_isRoot_nhdsGT {f : (Fin 1
   have hPrel (x : Fin 1 → ℝ) (hx : x ∈ s) : (P.map (evalRingHom (x 0))).eval (f x) = 0 := by
     rw [← hmap, hPP]
     exact hrel x hx
-  -- Every point of `s` is a root of an irreducible factor of `P`.
   have hev (Q : ℝ[X][X]) (t y : ℝ) :
       eval₂RingHom (evalRingHom t) y Q = (Q.map (evalRingHom t)).eval y :=
     (eval_map _ _).symm
-  obtain ⟨u, hu⟩ := UniqueFactorizationMonoid.factors_prod hP
-  have hcover (x : Fin 1 → ℝ) (hx : x ∈ s) : ∃ Q ∈ UniqueFactorizationMonoid.factors P,
-      (Q.map (evalRingHom (x 0))).eval (f x) = 0 := by
-    have h0 := hPrel x hx
-    rw [← hu, ← hev, map_mul, map_multiset_prod] at h0
-    rcases mul_eq_zero.1 h0 with h | h
-    · obtain ⟨y, hy, hy0⟩ := Multiset.prod_eq_zero_iff.1 h |> Multiset.mem_map.1
-      exact ⟨y, hy, by rwa [← hev]⟩
-    · exact absurd h (u.isUnit.map _).ne_zero
-  -- One factor `Q` vanishes along the graph at all points just right of `a`.
+  -- One irreducible factor `Q` of `P` vanishes along the graph at all points just right of `a`.
   set S : ℝ[X][X] → Set (Fin 1 → ℝ) :=
     fun Q ↦ s ∩ {x | ((Q.map e.symm.toRingHom).map (MvPolynomial.eval x)).eval (f x) = 0}
   have hex :
@@ -128,38 +120,31 @@ theorem IsSemialgebraicOn.exists_polynomial_eventually_isRoot_nhdsGT {f : (Fin 1
       ((hf.isSemialgebraic_inter_setOf_eval_map_eq_zero _).eventually_nhdsGT_mem_or_notMem
         a).resolve_left fun hQ' ↦ h ⟨Q, Multiset.mem_toFinset.1 hQ, hQ'⟩
     obtain ⟨t, ht, hts⟩ := ((eventually_all_finset _).2 h').and hs |>.exists
-    obtain ⟨Q, hQ, hQ0⟩ := hcover _ hts
+    -- The point `![t]` is a root of an irreducible factor of `P`.
+    obtain ⟨Q, hQ, hQ0⟩ := (UniqueFactorizationMonoid.map_eq_zero_iff_exists_mem_factors
+      (eval₂RingHom (evalRingHom (![t] 0)) (f ![t])) hP).1 (by rw [hev]; exact hPrel _ hts)
     refine ht Q (Multiset.mem_toFinset.2 hQ) ⟨hts, ?_⟩
-    rwa [mem_ofPred_eq, hmap]
+    rwa [mem_ofPred_eq, hmap, ← hev]
   obtain ⟨Q, hQP, hQev⟩ := hex
   have hQ := UniqueFactorizationMonoid.irreducible_of_factor Q hQP
   have hroot : ∀ᶠ t in 𝓝[>] a, (Q.map (evalRingHom t)).eval (f ![t]) = 0 :=
     hQev.mono fun t ht ↦ by
       have h := ht.2
       rwa [mem_ofPred_eq, hmap, Matrix.cons_val_zero] at h
-  -- `Q` has positive degree in the value variable.
-  have hd : Q.natDegree ≠ 0 := by
-    intro hd
-    rw [eq_C_of_natDegree_eq_zero hd] at hroot hQ
-    obtain ⟨b, hab, hb⟩ := mem_nhdsGT_iff_exists_Ioo_subset.1 hroot
-    have hc : Q.coeff 0 = 0 := eq_zero_of_infinite_isRoot _ <|
-      (Ioo_infinite (mem_Ioi.1 hab)).mono fun t ht ↦ by simpa using hb ht
-    rw [hc, C_0] at hQ
-    exact not_irreducible_zero hQ
-  -- `Q` is not divisible by the value variable, since `f` does not vanish identically.
+  -- `Q` is not associated to the value variable, since `f` does not vanish identically.
   have hc0 : Q.coeff 0 ≠ 0 := by
     intro h0
-    obtain ⟨R, rfl⟩ := X_dvd_iff.2 h0
-    have hR : IsUnit R := (hQ.isUnit_or_isUnit rfl).resolve_left not_isUnit_X
+    obtain ⟨u, hu⟩ := (associated_X_iff_coeff_zero_eq_zero hQ).2 h0
     refine hne (hroot.mono fun t ht ↦ ?_)
-    have hRt : (R.map (evalRingHom t)).eval (f ![t]) ≠ 0 := by
+    have hut : ((u : ℝ[X][X]).map (evalRingHom t)).eval (f ![t]) ≠ 0 := by
       rw [← hev]
-      exact (hR.map _).ne_zero
-    simpa [hRt] using ht
+      exact (u.isUnit.map _).ne_zero
+    rw [← hu] at ht
+    simpa [hut] using ht
   have hcont : ∀ᶠ t in 𝓝[>] a, ContinuousAt (fun t ↦ f ![t]) t :=
     (hf.eventually_continuousAt_nhdsGT hs).mono fun t ht ↦
       ContinuousAt.comp (g := f) (f := fun t : ℝ ↦ ![t]) (continuousAt_pi.1 ht ()) (by fun_prop)
-  exact ⟨Q, hQ.discr_ne_zero hd, hc0, hcont.and hroot⟩
+  exact ⟨Q, hQ.squarefree.discr_ne_zero, hc0, hcont.and hroot⟩
 
 open _root_.Polynomial in
 /-- A real function `f` of one variable that is semialgebraic on a set containing the points
@@ -167,7 +152,7 @@ open _root_.Polynomial in
 interval `(0, ε)`, a continuous root branch of one polynomial `P : ℝ[X][X]`: the outer variable
 of `P` is the value and the inner one is `t`, and `P` has nonzero discriminant and nonzero
 constant coefficient. -/
-theorem IsSemialgebraicOn.exists_polynomial_isRoot_nhdsGT {f : (Fin 1 → ℝ) → ℝ}
+theorem IsSemialgebraicOn.exists_pos_polynomial_forall_Ioo_isRoot {f : (Fin 1 → ℝ) → ℝ}
     {s : Set (Fin 1 → ℝ)} (hf : IsSemialgebraicOn (fun x (_ : Unit) ↦ f x) s) {ε₀ : ℝ}
     (hε₀ : 0 < ε₀) (hs : ∀ t ∈ Ioo 0 ε₀, ![t] ∈ s)
     (hne : ∀ ε > 0, ∃ t ∈ Ioo 0 ε, f ![t] ≠ 0) :
