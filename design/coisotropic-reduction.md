@@ -244,7 +244,8 @@ The leaf space as a topological space, and slices.
   `𝓕.distribution (s u)` are complements) and `injective_of_sameLeaf`.
   `TauCeti.Foliation.IsRegular 𝓕`: every point is in the range of a slice.
 - `IsSlice.exists_retraction`: near `s u`, a map `r` into `U`, smooth there,
-  with `r (s v) = v` near `u` and `𝓕.SameLeaf z (s (r z))`. In a plaque
+  with `r (s v) = v` near `u`, `𝓕.SameLeaf z (s (r z))`, and
+  `mfderiv r (s u)` zero on `𝓕.distribution (s u)`. In a plaque
   chart at `s u`, the second coordinate composed with `s` is a local
   diffeomorphism at `u`, by the complement condition and the inverse
   function theorem; `r` is its local inverse after the second coordinate.
