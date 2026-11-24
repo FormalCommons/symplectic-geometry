@@ -27,6 +27,7 @@ import TauCeti.Geometry.Manifold.Riemannian.DivergenceTheorem
 import TauCeti.Geometry.Manifold.Riemannian.FormMetric
 import TauCeti.Geometry.Manifold.Riemannian.VolumeDensity.Support
 import TauCeti.Geometry.Manifold.Riemannian.VolumeForm.Measure
+import TauCeti.MeasureTheory.Function.Lp.Restriction
 import TauCeti.MeasureTheory.Function.LpSeminorm.Lintegral
 import TauCeti.MeasureTheory.Integral.ContinuousMap
 import Mathlib.MeasureTheory.Function.Holder
@@ -877,19 +878,8 @@ theorem localize_ae_eq_indicator_smul_localize {χ₁ χ₂ : C^∞⟮I, M; ℝ�
 image `ψ '' tsupport χ` of the support of `χ`. -/
 theorem localize_ae_eq_zero_of_notMem (u : L2Form o k) :
     ∀ᵐ y ∂volume, y ∉ ψ '' tsupport χ → localize ψ χ hχ u y = 0 := by
-  set K := ψ '' tsupport χ
-  have hK : MeasurableSet Kᶜ := (ψ.isCompact_image_of_subset_source
-    (isClosed_tsupport _).isCompact hχ).isClosed.isOpen_compl.measurableSet
-  -- The property says that the restriction of the localization to `Kᶜ` vanishes.
-  have hP (v : Lp (E [⋀^Fin k]→L[ℝ] ℝ) 2 (volume : Measure E)) :
-      (∀ᵐ y ∂volume, y ∉ K → v y = 0) ↔ LpToLpRestrictCLM E _ ℝ volume 2 Kᶜ v = 0 := by
-    rw [Lp.eq_zero_iff_ae_eq_zero]
-    refine (ae_restrict_iff' hK).symm.trans ?_
-    exact ⟨fun h ↦ (LpToLpRestrictCLM_coeFn ℝ Kᶜ v).trans h,
-      fun h ↦ (LpToLpRestrictCLM_coeFn ℝ Kᶜ v).symm.trans h⟩
-  rw [hP]
-  refine induction_on u (isClosed_eq (by fun_prop) continuous_const) fun α ↦ ?_
-  rw [← hP]
+  refine induction_on u ((Lp.isClosed_setOf_ae_notMem_imp_eq_zero _).preimage
+    (localize ψ χ hχ).continuous) fun α ↦ ?_
   filter_upwards [localize_ofSmooth ψ χ hχ α] with y hy hyK
   rw [hy, SmoothForm.localize_apply_eq_zero_of_notMem _ _ _ hyK]
 
