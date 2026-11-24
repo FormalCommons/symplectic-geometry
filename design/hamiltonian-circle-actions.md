@@ -226,7 +226,7 @@ Names in Tau Ceti's style:
 In `SymplecticGeometry`, with `attribute [local instance]
 LieGroup.minSmoothness_of_isRCLikeNormedField` where the group's Lie
 algebra is used, and for `G` a Lie group on a boundaryless model `J`,
-`[CompactSpace G] [PathConnectedSpace G] [MulAction G M]
+`[T2Space G] [CompactSpace G] [PathConnectedSpace G] [MulAction G M]
 [ContMDiffSMul J I ∞ G M]`:
 
 1. **A Hamiltonian circle action has a fixed point.** On a compact
@@ -241,7 +241,7 @@ algebra is used, and for `G` a Lie group on a boundaryless model `J`,
 
    ```lean
    theorem integralTopForm_wedge_interior_wedge_wedgePow_eq_zero
-       [BoundarylessManifold I M] [T2Space M] [CompactSpace M] [ConnectedSpace M] {n : ℕ}
+       [I.Boundaryless] [T2Space M] [CompactSpace M] [ConnectedSpace M] {n : ℕ}
        (o : Manifold.Orientation I M (Fin (1 + (1 + 2 * n))))
        {σ : SmoothTwoForm I M} (hσ : σ.IsClosed) (hinv : …)
        {p : M} (hp : p ∈ MulAction.fixedPoints G M) (ξ : GroupLieAlgebra J G)
@@ -265,12 +265,13 @@ algebra is used, and for `G` a Lie group on a boundaryless model `J`,
 
    ```lean
    theorem exists_isMomentMap_of_mem_fixedPoints
-       [BoundarylessManifold I M] [T2Space M] [CompactSpace M] [ConnectedSpace M]
+       [I.Boundaryless] [T2Space M] [CompactSpace M] [ConnectedSpace M]
        {n : ℕ} (hn : 1 ≤ n) (hE : finrank ℝ E = 2 * n)
        {σ : SmoothTwoForm I M} (hσ : σ.IsSymplectic) (hinv : …)
        (hL : Function.Injective (deRhamCohomology.wedge I M (2 * (n - 1)) 1
          (deRhamCohomology.mk I _ ⟨σ.wedgePow (n - 1),
-           SmoothForm.wedgePow_mem_closedForms ((mem_closedForms I σ).mpr hσ.isClosed) _⟩)))
+           SmoothForm.wedgePow_mem_closedForms
+             ((mem_closedForms I σ).mpr ((SmoothForm.isClosed_def σ).1 hσ.isClosed)) _⟩)))
        {p : M} (hp : p ∈ MulAction.fixedPoints G M) :
        ∃ μ : M → Module.Dual ℝ (GroupLieAlgebra J G),
          σ.IsMomentMap (InfinitesimalAction.fundamental J G I M) μ
@@ -289,7 +290,7 @@ algebra is used, and for `G` a Lie group on a boundaryless model `J`,
 
    ```lean
    theorem exists_isMomentMap_iff_exists_mem_fixedPoints
-       [BoundarylessManifold I M] [T2Space M] [CompactSpace M] [ConnectedSpace M]
+       [I.Boundaryless] [T2Space M] [CompactSpace M] [ConnectedSpace M]
        {n : ℕ} (hn : 1 ≤ n) (hE : finrank ℝ E = 2 * n)
        {σ : SmoothTwoForm I M} (hσ : σ.IsSymplectic)
        [MulAction Circle M] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
@@ -297,7 +298,8 @@ algebra is used, and for `G` a Lie group on a boundaryless model `J`,
          (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) (I' := I) g) σ = σ)
        (hL : Function.Injective (deRhamCohomology.wedge I M (2 * (n - 1)) 1
          (deRhamCohomology.mk I _ ⟨σ.wedgePow (n - 1),
-           SmoothForm.wedgePow_mem_closedForms ((mem_closedForms I σ).mpr hσ.isClosed) _⟩))) :
+           SmoothForm.wedgePow_mem_closedForms
+             ((mem_closedForms I σ).mpr ((SmoothForm.isClosed_def σ).1 hσ.isClosed)) _⟩))) :
        (∃ μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle),
            σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) (fun x ↦ -μ x)) ↔
          ∃ p : M, p ∈ MulAction.fixedPoints Circle M
