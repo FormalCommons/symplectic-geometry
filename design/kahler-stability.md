@@ -199,7 +199,7 @@ All in `SymplecticGeometry`, with `C : LieComplexification I G IC Gc`.
   `C.toHom u * C.expI ξ * (C.toHom u)⁻¹ = C.expI (Ad u ξ)` for connected `G`.
 - `IsComplexifiedAction C J` (decision 2), with
   `IsComplexifiedAction.fundamentalVectorField_cplx` and
-  `fundamentalVectorField_expI` (the velocity of $t\mapsto\exp(it\xi)p$ is
+  `isMIntegralCurve_expI_smul` (the velocity of $t\mapsto\exp(it\xi)p$ is
   $JX_\xi$ at the moving point).
 - `momentSharp B hB μ x : 𝔤` and `momentNormSq B μ x : ℝ`, with
   `B (momentSharp …) ξ = μ x ξ`, `momentNormSq_nonneg`,

@@ -7,8 +7,8 @@ module
 
 public import TauCeti.Geometry.Manifold.Foliation.Leaf
 import SymplecticGeometry.Geometry.Manifold.Distribution.FlatChart
+import SymplecticGeometry.Geometry.Manifold.Foliation.Constancy
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
-import TauCeti.Analysis.Calculus.MeanValue
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
 /-!
@@ -40,17 +40,20 @@ The file then shows that leaves can be followed smoothly
 smooth near `x`, sends `x` to `y` and every nearby point `z` to a point of the leaf of `z`. In a
 flat chart, translating the image by a vector with second component `0` moves two points of the
 same plaque into each other. Along a curve tangent to `𝓕`, the second coordinate in a flat chart
-has derivative `0`, so by the mean value inequality it is constant on a piece of the curve near
-each parameter; composing such translations and using that `[0, 1]` is connected
-(`IsPreconnected.induction₂'`) handles one curve, and Tau Ceti's `TauCeti.Foliation.sameLeaf_le`
-handles chains of curves. It follows that the union of the leaves through an open set is open
-(`TauCeti.Foliation.isOpen_saturation`): a point of the union is carried back into the open set by
-such a map, and so are the points near it.
+has derivative `0`, so it is constant on a piece of the curve near each parameter
+(`TauCeti.Foliation.apply_eq_of_contMDiffOn_of_tangent`); composing such translations and using
+that `[0, 1]` is connected (`IsPreconnected.induction₂'`) handles one curve, and Tau Ceti's
+`TauCeti.Foliation.sameLeaf_le` handles chains of curves. It follows that the union of the leaves
+through an open set is open (`TauCeti.Foliation.isOpen_saturation`): a point of the union is
+carried back into the open set by such a map, and so are the points near it.
 
 ## Main results
 
 * `TauCeti.Foliation.exists_foliatedChart`: a foliated chart of `𝓕` around any point, onto the
   product of the unit balls of `F₁` and `F₂`.
+* `TauCeti.Foliation.exists_transverseCoordinate`: the second coordinate of a foliated chart, a
+  map to `F₂` that is smooth near `x`, whose derivative has kernel the tangent space of `𝓕`, and
+  whose fibres near `x` lie in leaves.
 * `TauCeti.Foliation.sameLeaf_symm_of_segment_subset`: in a flat partial diffeomorphism, the
   preimages of the ends of a segment in its target with constant second component lie on one
   leaf.
@@ -164,6 +167,51 @@ theorem exists_foliatedChart (𝓕 : Foliation I ∞ M k) (h₁ : finrank ℝ F�
     (by simp only [← hΨ, huu'])
   simpa [Φ.left_inv (huΦ u).1, Φ.left_inv (huΦ u').1] using h
 
+/-- **Transverse coordinates of a foliation.** Let `𝓕` be a smooth foliation of rank `k` of a
+boundaryless manifold modelled on `E`, and let `F₂` be a normed space with
+`dim E = k + dim F₂`. Every point `x` has an open neighbourhood `V` with a map `ψ : M → F₂`,
+smooth at every point of `V`, such that
+* at every `z ∈ V`, the kernel of `dψ_z` is the tangent space of `𝓕`;
+* two points of `V` with the same image under `ψ` lie on the same leaf of `𝓕`.
+
+The map `ψ` is the second coordinate of a foliated chart (`exists_foliatedChart`), extended by
+`0` outside its domain. -/
+theorem exists_transverseCoordinate (𝓕 : Foliation I ∞ M k)
+    (h₂ : finrank ℝ E = k + finrank ℝ F₂) (x : M) :
+    ∃ (V : Opens M) (ψ : M → F₂), x ∈ V ∧ (∀ z ∈ V, ContMDiffAt I 𝓘(ℝ, F₂) ∞ ψ z) ∧
+      (∀ z ∈ V, ∀ v : TangentSpace I z,
+        mfderiv I 𝓘(ℝ, F₂) ψ z v = 0 ↔ v ∈ 𝓕.distribution z) ∧
+      ∀ z ∈ V, ∀ z' ∈ V, ψ z = ψ z' → 𝓕.SameLeaf z z' := by
+  classical
+  have : IsManifold I ∞ M := .of_le (n := ∞ + 1) le_self_add
+  obtain ⟨V, hxV, Ψ, -, hflat, hleaf⟩ := 𝓕.exists_foliatedChart
+    (F₁ := EuclideanSpace ℝ (Fin k)) (F₂ := F₂) finrank_euclideanSpace_fin h₂ x
+  let Ψ' : V → EuclideanSpace ℝ (Fin k) × F₂ := fun w ↦ Ψ w
+  let ψ : M → F₂ := fun z ↦ if h : z ∈ V then (Ψ' ⟨z, h⟩).2 else 0
+  have hψV : ψ ∘ Subtype.val = ContinuousLinearMap.snd ℝ _ _ ∘ Ψ' :=
+    funext fun w ↦ by simp [ψ, w.property]
+  have hΨ : ContMDiff I 𝓘(ℝ, EuclideanSpace ℝ (Fin k) × F₂) ∞ Ψ' :=
+    contMDiff_subtypeVal.comp Ψ.contMDiff
+  have hψ (z : V) : ContMDiffAt I 𝓘(ℝ, F₂) ∞ ψ z := by
+    have := (ContinuousLinearMap.snd ℝ _ _).contMDiff.contMDiffAt.comp z (hΨ z)
+    rw [← hψV] at this
+    exact contMDiffAt_subtype_iff.1 this
+  refine ⟨V, ψ, hxV, fun z hz ↦ hψ ⟨z, hz⟩, fun z hz v ↦ ?_, fun z hz z' hz' h ↦
+    hleaf ⟨z, hz⟩ ⟨z', hz'⟩ (by simpa [ψ, hz, hz'] using h)⟩
+  -- On `V`, the derivative of `ψ` is the second component of that of the chart.
+  have e : mfderiv I 𝓘(ℝ, F₂) ψ z v = (mfderiv I 𝓘(ℝ, EuclideanSpace ℝ (Fin k) × F₂) Ψ' ⟨z, hz⟩ v :
+      EuclideanSpace ℝ (Fin k) × F₂).2 := by
+    refine (mfderiv_comp_subtype_val_apply (U := V) (f := ψ) (x := ⟨z, hz⟩) v).symm.trans ?_
+    rw [hψV]
+    refine (mfderiv_comp_apply _ (ContinuousLinearMap.snd ℝ _ _).mdifferentiableAt
+      ((hΨ ⟨z, hz⟩).mdifferentiableAt (by simp)) v).trans ?_
+    refine (DFunLike.congr_fun ((ContinuousLinearMap.snd ℝ (EuclideanSpace ℝ (Fin k)) F₂).mfderiv_eq
+      (x := Ψ' ⟨z, hz⟩)) _).trans ?_
+    exact congrFun (ContinuousLinearMap.coe_snd' (R := ℝ) (M₁ := EuclideanSpace ℝ (Fin k))
+      (M₂ := F₂)) _
+  rw [e]
+  exact hflat ⟨z, hz⟩ v
+
 omit [FiniteDimensional ℝ E] [BoundarylessManifold I M] [FiniteDimensional ℝ F₁]
   [FiniteDimensional ℝ F₂] in
 /-- The point `x` can be carried to `y` along the leaves of `𝓕` by a map that is smooth near `x`:
@@ -234,27 +282,23 @@ private theorem eventually_transportable_curve (h₁ : finrank ℝ F₁ = k)
     (hγ t ht).continuousWithinAt.preimage_mem_nhdsWithin (hO.mem_nhds ⟨hx, by simp [h0]⟩)
   obtain ⟨δ, hδ, hδO⟩ := Metric.mem_nhdsWithin_iff.mp hγO
   set S := Metric.ball t δ ∩ Icc 0 1
-  -- On the convex set `S`, the second coordinate of `Φ ∘ γ` has derivative `0`.
-  have hderiv (r : ℝ) (hr : r ∈ S) :
-      HasDerivWithinAt (fun s ↦ (Φ (γ s)).2) 0 S r := by
-    have hγr : γ r ∈ Φ.source := (hδO hr).1
-    have hΦ := Φ.mdifferentiableAt (by simp) hγr
-    have hγr' := (hγ r hr.2).mdifferentiableWithinAt one_ne_zero
-    have hg : DifferentiableWithinAt ℝ (Φ ∘ γ) (Icc 0 1) r :=
-      mdifferentiableWithinAt_iff_differentiableWithinAt.mp
-        (hΦ.comp_mdifferentiableWithinAt r hγr')
-    have hv : (derivWithin (Φ ∘ γ) (Icc 0 1) r).2 = 0 := by
-      rw [← curveVelocityWithin_eq_derivWithin,
-        curveVelocityWithin_map hΦ (uniqueDiffOn_Icc zero_lt_one r hr.2) hγr']
-      exact (hflat _ hγr _).2 (htan r hr.2)
-    have := ((ContinuousLinearMap.snd ℝ F₁ F₂).hasFDerivAt.comp_hasDerivWithinAt r
-      hg.hasDerivWithinAt).mono (inter_subset_right : S ⊆ Icc 0 1)
-    convert this using 1
-    · simp [Function.comp_def]
-    · simp [hv]
+  -- The second coordinate of `Φ` has derivative `0` along `𝓕`, so it is constant along `γ`
+  -- on the convex set `S`.
+  have hsnd (y : M) (hy : y ∈ Φ.source) :
+      MDifferentiableAt I 𝓘(ℝ, F₂) (ContinuousLinearMap.snd ℝ F₁ F₂ ∘ Φ) y :=
+    (ContinuousLinearMap.snd ℝ F₁ F₂).mdifferentiableAt.comp y (Φ.mdifferentiableAt (by simp) hy)
   have hconst (s : ℝ) (hs : s ∈ S) : (Φ (γ s)).2 = (Φ (γ t)).2 := by
-    exact ((convex_ball t δ).inter (convex_Icc 0 1)).isPreconnected.eq_of_hasDerivWithinAt_zero
-      hderiv hs ⟨Metric.mem_ball_self hδ, ht⟩
+    have hker (y : M) (hy : y ∈ Φ.source) :
+        𝓕.distribution y ≤ (mfderiv I 𝓘(ℝ, F₂) (ContinuousLinearMap.snd ℝ F₁ F₂ ∘ Φ) y).ker :=
+      fun v hv ↦ by
+        rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe,
+          mfderiv_comp_apply y (ContinuousLinearMap.snd ℝ F₁ F₂).mdifferentiableAt
+            (Φ.mdifferentiableAt (by simp) hy), ContinuousLinearMap.mfderiv_eq]
+        exact (hflat y hy v).2 hv
+    simpa only [comp_apply, ContinuousLinearMap.coe_snd'] using
+      apply_eq_of_contMDiffOn_of_tangent hsnd hker hγ
+        ((convex_ball t δ).inter (convex_Icc 0 1)) inter_subset_right (fun r hr ↦ (hδO hr).1)
+        (fun r hr ↦ htan r hr.2) hs ⟨Metric.mem_ball_self hδ, ht⟩
   filter_upwards [inter_mem_nhdsWithin _ (Metric.ball_mem_nhds t hδ)] with s hs
   have hs' : s ∈ S := ⟨hs.2, hs.1⟩
   have hst := hconst s hs'

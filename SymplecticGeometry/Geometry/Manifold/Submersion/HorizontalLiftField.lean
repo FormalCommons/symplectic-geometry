@@ -58,6 +58,8 @@ results about general connections apply to it.
 * `TauCeti.IsEhresmannConnection.contMDiff_horizontalLiftField` and
   `TauCeti.IsEhresmannConnection.contMDiff_horizontalLiftField_timeDependent`: the horizontal
   lift of a smooth vector field, or of a time-dependent one, jointly in time and point, is smooth.
+* `TauCeti.IsEhresmannConnection.mdifferentiableAt_horizontalLiftField`: for a `C^n` connection
+  with `1 ≤ n`, the horizontal lift of a `C^n` field is differentiable.
 * `TauCeti.IsRiemannianSubmersion.horizontalLift_eq_isEhresmannConnection_horizontalLift`: the
   horizontal lift of a Riemannian submersion is that of its orthogonal Ehresmann connection.
 
@@ -271,6 +273,13 @@ theorem contMDiffAt_horizontalLiftField {V : Π b : B, TangentSpace J b} {x : P}
     ContMDiffAt I I.tangent n (T% (hD.horizontalLiftField V)) x :=
   hD.contMDiffAt_horizontalLift (g := id) (w := fun y ↦ ⟨f y, V (f y)⟩) (fun _ ↦ rfl) hf
     contMDiffAt_id (hV.comp x (hf.of_le le_self_add))
+
+/-- For a `C^n` Ehresmann connection on `f`, with `1 ≤ n` and `f` of class `C^(n+1)` at `x`, the
+horizontal lift of a field that is `C^n` at `f x` is differentiable at `x`. -/
+theorem mdifferentiableAt_horizontalLiftField (hn : 1 ≤ n) {V : Π b : B, TangentSpace J b}
+    {x : P} (hf : ContMDiffAt I J (n + 1) f x) (hV : ContMDiffAt J J.tangent n (T% V) (f x)) :
+    MDifferentiableAt I I.tangent (T% (hD.horizontalLiftField V)) x :=
+  ((hD.contMDiffAt_horizontalLiftField hf hV).of_le hn).mdifferentiableAt one_ne_zero
 
 /-- The horizontal lift of a `C^n` vector field on `B`, for a `C^n` Ehresmann connection on a
 `C^(n+1)` map `f`, is `C^n`. -/

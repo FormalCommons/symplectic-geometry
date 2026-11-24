@@ -30,8 +30,8 @@ on the whole tangent space `T_{f q} M`, and that `σ₀` is nondegenerate there.
 containing `f(Q)` and a diffeomorphism `φ : U₀ → U₁` with `φ^* σ₁ = σ₀`, which fixes every point
 of `f(Q)` and whose differential at each of them is the identity of `T_{f q} M`
 ([McDuffSalamon2017], Lemma 3.2.1, with the first-order conclusion of
-[McDuffSalamon2019Errata], p. 109; [CannasdaSilva2001], Theorem 7.4). The source `Q` need not be
-compact, and the image `f(Q)` need not be closed.
+[McDuffSalamon2019Errata], p. 109; [CannasdaSilva2001Lectures], Theorem 7.4). The source `Q` need
+not be compact, and the image `f(Q)` need not be closed.
 
 The proof is Moser's argument along a flow that is only partially defined.
 
@@ -82,7 +82,7 @@ time-one map in `M`, follow Tau Ceti's
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017]
 * [D. McDuff and D. Salamon, *Errata*][McDuffSalamon2019Errata]
-* [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001]
+* [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001Lectures]
 -/
 
 public section

@@ -55,7 +55,7 @@ the slice of `∂_t α`: both are the velocity of `u ↦ f^* α_u`, by Tau Ceti'
 Finally, the file contracts forms on `ℝ × M` with the time field `∂_t = (1, 0)`. The field is
 smooth by the argument that Tau Ceti writes inline in the definition of
 `TauCeti.SmoothForm.timeDeriv`, through `TauCeti.contMDiff_const_prod_field`, so it is a smooth
-section of the tangent bundle, and the contraction `ι_{∂_t} σ` of a smooth form
+section `TauCeti.timeField` of the tangent bundle, and the contraction `ι_{∂_t} σ` of a smooth form
 (`TauCeti.SmoothForm.timeInterior`) is the library's bundled interior product
 `TauCeti.SmoothForm.interiorProduct` with it, which is linear in `σ`. For closed `σ`,
 Cartan's formula `TauCeti.mlieDerivForm_eq_mextDeriv_interior` makes its exterior derivative
@@ -75,6 +75,7 @@ pullback along `id × f`, and it vanishes on forms pulled back from `M` along th
   derivative, for a reparametrization `c` of time,
   `ι_t^* ∂_t ((c × f)^* α) = c'(t) f^* ι_{c t}^* ∂_t α`; the case `c = id` is Tau Ceti's
   `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_mpullback_prodMap`.
+* `TauCeti.timeField`: the time field `∂_t = (1, 0)`, a smooth section of the tangent bundle.
 * `TauCeti.SmoothForm.timeInterior`: the contraction `ι_{∂_t} σ` with the time field.
 * `TauCeti.SmoothForm.mextDerivₗ_timeInterior`: `d (ι_{∂_t} σ) = ∂_t σ` for closed `σ`.
 * `TauCeti.SmoothForm.mpullback_prodMap_timeInterior`:
@@ -215,17 +216,30 @@ theorem _root_.TauCeti.contMDiff_timeField [IsManifold I 1 M] :
   contMDiff_const_prod_field 1 (X := 0)
     ((contMDiff_zeroSection ℝ (TangentSpace I)).comp contMDiff_snd)
 
+omit [IsManifold I ∞ M] in
+/-- The time field `∂_t = (1, 0)` on `ℝ × M`, as a smooth section of the tangent bundle. -/
+def _root_.TauCeti.timeField [IsManifold I 1 M] :
+    Cₛ^∞⟮𝓘(ℝ, ℝ).prod I; ℝ × E, TangentSpace (𝓘(ℝ, ℝ).prod I) (M := ℝ × M)⟯ :=
+  ⟨fun _ ↦ ((1 : ℝ), (0 : E)), contMDiff_timeField⟩
+
+omit [IsManifold I ∞ M] in
+/-- The time field is `(1, 0)` at every point. -/
+@[simp]
+theorem _root_.TauCeti.coe_timeField [IsManifold I 1 M] :
+    ⇑(timeField : Cₛ^∞⟮𝓘(ℝ, ℝ).prod I; ℝ × E, TangentSpace (𝓘(ℝ, ℝ).prod I) (M := ℝ × M)⟯) =
+      fun _ ↦ ((1 : ℝ), (0 : E)) :=
+  (rfl)
+
 /-- The contraction `ι_{∂_t} σ` of a smooth form `σ` on `ℝ × M` with the time field
 `∂_t = (1, 0)`, as a smooth form of one degree less: the interior product
-`TauCeti.SmoothForm.interiorProduct` with `∂_t`, seen as a smooth section of the tangent bundle by
-`TauCeti.contMDiff_timeField`. -/
+`TauCeti.SmoothForm.interiorProduct` with the section `TauCeti.timeField`. -/
 def timeInterior (σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)) :
     SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F k :=
-  interiorProduct ⟨fun _ ↦ ((1 : ℝ), (0 : E)), contMDiff_timeField⟩ σ
+  interiorProduct timeField σ
 
 /-- `ι_{∂_t} σ` is the interior product of `σ` with the time field. -/
 theorem timeInterior_def (σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)) :
-    σ.timeInterior = interiorProduct ⟨fun _ ↦ ((1 : ℝ), (0 : E)), contMDiff_timeField⟩ σ :=
+    σ.timeInterior = interiorProduct timeField σ :=
   (rfl)
 
 /-- The underlying form of `ι_{∂_t} σ` is the contraction of `σ` with `∂_t = (1, 0)`. -/
@@ -233,9 +247,7 @@ theorem timeInterior_def (σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (
 theorem coe_timeInterior (σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)) :
     σ.timeInterior.val = RoughForm.interior (I := 𝓘(ℝ, ℝ).prod I) (F := F) (k := k)
       (fun _ ↦ ((1 : ℝ), (0 : E))) σ.val := by
-  rw [timeInterior_def, coe_interiorProduct]
-  exact congrArg (fun X ↦ RoughForm.interior (F := F) (k := k) X σ.val)
-    (ContMDiffSection.coeFn_mk _ _)
+  rw [timeInterior_def, coe_interiorProduct, coe_timeField]
 
 /-- The contraction with the time field is additive. -/
 @[simp]

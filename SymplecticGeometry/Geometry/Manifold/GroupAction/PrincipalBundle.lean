@@ -5,8 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.GroupAction.Quotient
 public import TauCeti.Topology.FiberBundle.MapFiber
+public import SymplecticGeometry.Geometry.Manifold.Algebra.MulOpposite
 public import SymplecticGeometry.Topology.Algebra.ProperAction.Free
+public import SymplecticGeometry.Topology.FiberBundle.ChangeModelFiber
 
 /-!
 # The principal bundle of a free proper action
@@ -24,7 +27,8 @@ structure the topological principal bundle needs, before any manifold structure 
   (`SymplecticGeometry.orbitFiber.totalSpaceHomeomorph_smul`);
 * for a free proper action of `Gᵐᵒᵖ` and a section `s` of the orbit projection continuous on an
   open set `U`, the trivialization `SymplecticGeometry.orbitTrivializationOfSection` of the orbit
-  projection, read with fibre `G` through `MulOpposite.opHomeomorph` and passed to the fibres by
+  projection, read with fibre `G` through `MulOpposite.opHomeomorph`
+  (`SymplecticGeometry.orbitTrivializationOfSectionUnop`) and passed to the fibres by
   `Bundle.Trivialization.toMapFiber`, is a trivialization of `orbitFiber Gᵐᵒᵖ X` over `U`
   (`SymplecticGeometry.orbitFiber.trivializationOfSection`).
 
@@ -37,13 +41,44 @@ equivariant in Tau Ceti's sense (`Bundle.Trivialization.IsEquivariant`), which i
 The acting group is an explicit argument of `orbitFiber`: in `TotalSpace G (orbitFiber Gᵐᵒᵖ X)`
 nothing else determines it.
 
+For a free proper smooth right action of a Lie group `G` on a boundaryless finite-dimensional
+manifold `X`, Tau Ceti's quotient manifold theorem gives a smooth local section of the orbit
+projection through every orbit. The trivializations from these sections form a
+`TauCeti.MapFiber.Atlas` (`SymplecticGeometry.orbitFiber.atlas`), and Tau Ceti's
+`TauCeti.MapFiber.Atlas.fiberBundle` makes `orbitFiber Gᵐᵒᵖ X` a fibre bundle with fibre `G`. It
+is a principal `G`-bundle because every trivialization of the atlas is equivariant
+(`SymplecticGeometry.orbitFiber.isEquivariant_trivializationOfSection`). A compact Lie group
+acts properly (`TauCeti.properSMul_of_compactSpace`), so this covers free smooth actions of
+compact Lie groups.
+
+**Local instances.** The statements about this bundle use two charted spaces that are not global
+instances, and later files should use the same ones:
+* on `Gᵐᵒᵖ`, the charts of `G` (`MulOpposite.chartedSpace`), a local instance of the section, in
+  which the smoothness of the action is `ContMDiffSMul IG IX ∞ Gᵐᵒᵖ X`;
+* on the orbit space, Tau Ceti's slice charts
+  `ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X`, introduced by `letI` in the statements
+  that need them.
+
+The atlas, and so the bundle structure, depends on the models `IG` and `IX`, which the type
+`orbitFiber Gᵐᵒᵖ X` does not determine, so instance search could not find it. The file adds no
+bundle structure of its own: statements put Tau Ceti's in place by
+`letI := (SymplecticGeometry.orbitFiber.atlas IG G IX X).fiberBundle`, and principality is the
+theorem `SymplecticGeometry.orbitFiber.principalBundle IG G IX X`, to be used by `haveI`.
+
 ## Main definitions and results
 
 * `SymplecticGeometry.orbitFiber`: the fibres of the orbit projection.
+* `SymplecticGeometry.orbitTrivializationOfSectionUnop`: the trivialization with fibre `G` of the
+  orbit projection over the domain of a continuous local section, for a free proper action of
+  `Gᵐᵒᵖ`.
 * `SymplecticGeometry.orbitFiber.trivializationOfSection`: the trivialization with fibre `G` over
   the domain of a continuous local section of the orbit projection of a free proper action of
   `Gᵐᵒᵖ`, with `trivializationOfSection_apply` and `trivializationOfSection_symm_apply`.
 * `SymplecticGeometry.orbitFiber.isEquivariant_trivializationOfSection`: it is equivariant.
+* `SymplecticGeometry.orbitFiber.atlas`: the atlas of the orbit projection of a free proper
+  smooth action, whose trivializations come from smooth local sections
+  (`SymplecticGeometry.orbitFiber.exists_atlas_trivAt_eq`).
+* `SymplecticGeometry.orbitFiber.principalBundle`: its fibre bundle is a principal `G`-bundle.
 
 ## References
 
@@ -56,6 +91,7 @@ nothing else determines it.
 public section
 
 open Bundle MulAction MulOpposite Set Topology TauCeti
+open scoped ContDiff Manifold
 
 namespace SymplecticGeometry
 
@@ -110,35 +146,78 @@ variable {G X : Type*} [Group G] [TopologicalSpace G] [ContinuousInv G] [Topolog
   [MulAction Gᵐᵒᵖ X] [ProperSMul Gᵐᵒᵖ X] [IsCancelSMul Gᵐᵒᵖ X]
   {U : Set (orbitRel.Quotient Gᵐᵒᵖ X)} {s : orbitRel.Quotient Gᵐᵒᵖ X → X}
 
+/-- The trivialization, with fibre `G`, of the orbit projection of a free proper action of `Gᵐᵒᵖ`
+over an open set `U` of orbits, determined by a section `s` of the orbit projection over `U` that
+is continuous on `U`: `orbitTrivializationOfSection` read with fibre `G` through
+`MulOpposite.opHomeomorph`. It sends `x` to `(⟦x⟧, unop (orbitSectionCoord s x))`. -/
+noncomputable def orbitTrivializationOfSectionUnop (U : Set (orbitRel.Quotient Gᵐᵒᵖ X))
+    (hU : IsOpen U) (s : orbitRel.Quotient Gᵐᵒᵖ X → X) (hs : ContinuousOn s U)
+    (hsec : ∀ q ∈ U, Quotient.mk (orbitRel Gᵐᵒᵖ X) (s q) = q) :
+    Bundle.Trivialization G (Quotient.mk (orbitRel Gᵐᵒᵖ X)) :=
+  (orbitTrivializationOfSection U hU s hs hsec).transFiberHomeomorph (opHomeomorph (M := G)).symm
+
+variable {hU : IsOpen U} {hs : ContinuousOn s U}
+  {hsec : ∀ q ∈ U, Quotient.mk (orbitRel Gᵐᵒᵖ X) (s q) = q}
+
+theorem orbitTrivializationOfSectionUnop_def :
+    orbitTrivializationOfSectionUnop U hU s hs hsec =
+      (orbitTrivializationOfSection U hU s hs hsec).transFiberHomeomorph
+        (opHomeomorph (M := G)).symm :=
+  (rfl)
+
+/-- The base of `orbitTrivializationOfSectionUnop` is the domain of the section. -/
+@[simp]
+theorem orbitTrivializationOfSectionUnop_baseSet :
+    (orbitTrivializationOfSectionUnop U hU s hs hsec).baseSet = U := by
+  rw [orbitTrivializationOfSectionUnop_def, Trivialization.transFiberHomeomorph_baseSet,
+    orbitTrivializationOfSection_baseSet]
+
+/-- `orbitTrivializationOfSectionUnop` sends `x` to its orbit together with
+`unop (orbitSectionCoord s x)`. -/
+@[simp]
+theorem orbitTrivializationOfSectionUnop_apply (x : X) :
+    orbitTrivializationOfSectionUnop U hU s hs hsec x =
+      (Quotient.mk (orbitRel Gᵐᵒᵖ X) x, unop (orbitSectionCoord s x)) := by
+  simp [orbitTrivializationOfSectionUnop_def, Trivialization.transFiberHomeomorph_apply]
+
+/-- Over a point `q` of `U`, the inverse of `orbitTrivializationOfSectionUnop` sends `(q, g)` to
+`s q` moved by `g` on the right, `op g • s q`. -/
+@[simp]
+theorem orbitTrivializationOfSectionUnop_symm_apply {q : orbitRel.Quotient Gᵐᵒᵖ X} (hq : q ∈ U)
+    (g : G) :
+    (orbitTrivializationOfSectionUnop U hU s hs hsec).toOpenPartialHomeomorph.symm (q, g) =
+      op g • s q := by
+  simp [orbitTrivializationOfSectionUnop_def, orbitTrivializationOfSection_symm_apply hq]
+
 namespace orbitFiber
 
 /-- The trivialization of the fibres of the orbit projection of a free proper action of `Gᵐᵒᵖ`
 over an open set `U` of orbits, with fibre `G`, determined by a section `s` of the orbit projection
 over `U` that is continuous on `U`. It sends a point `x` over `q ∈ U` to
 `(q, unop (orbitSectionCoord s x))`, where `orbitSectionCoord s x • s q = x`. It is
-`orbitTrivializationOfSection` read with fibre `G` and passed to the fibres. -/
+`orbitTrivializationOfSectionUnop` passed to the fibres. -/
 noncomputable def trivializationOfSection (U : Set (orbitRel.Quotient Gᵐᵒᵖ X)) (hU : IsOpen U)
     (s : orbitRel.Quotient Gᵐᵒᵖ X → X) (hs : ContinuousOn s U)
     (hsec : ∀ q ∈ U, Quotient.mk (orbitRel Gᵐᵒᵖ X) (s q) = q) :
     Bundle.Trivialization G (π G (orbitFiber Gᵐᵒᵖ X)) :=
-  ((orbitTrivializationOfSection U hU s hs hsec).transFiberHomeomorph
-    (opHomeomorph (M := G)).symm).toMapFiber
+  (orbitTrivializationOfSectionUnop U hU s hs hsec).toMapFiber
 
-variable {hU : IsOpen U} {hs : ContinuousOn s U}
-  {hsec : ∀ q ∈ U, Quotient.mk (orbitRel Gᵐᵒᵖ X) (s q) = q}
+theorem trivializationOfSection_def :
+    trivializationOfSection U hU s hs hsec =
+      (orbitTrivializationOfSectionUnop U hU s hs hsec).toMapFiber :=
+  (rfl)
 
 @[simp]
 theorem trivializationOfSection_baseSet :
     (trivializationOfSection U hU s hs hsec).baseSet = U := by
-  rw [trivializationOfSection, Trivialization.toMapFiber_baseSet]
-  -- `transFiberHomeomorph` keeps the base set by definition; Mathlib states no lemma for it
-  exact orbitTrivializationOfSection_baseSet
+  rw [trivializationOfSection_def, Trivialization.toMapFiber_baseSet,
+    orbitTrivializationOfSectionUnop_baseSet]
 
 /-- `trivializationOfSection` sends a point `x` over `q` to `(q, unop (orbitSectionCoord s x))`. -/
 @[simp]
 theorem trivializationOfSection_apply (p : TotalSpace G (orbitFiber Gᵐᵒᵖ X)) :
     trivializationOfSection U hU s hs hsec p = (p.proj, unop (orbitSectionCoord s p.snd.val)) := by
-  simp [trivializationOfSection, Trivialization.transFiberHomeomorph_apply]
+  simp [trivializationOfSection_def]
 
 /-- Over a point `q` of `U`, the inverse of `trivializationOfSection` sends `(q, g)` to the
 point `s q` moved by `g` on the right, `op g • s q`. -/
@@ -146,11 +225,9 @@ point `s q` moved by `g` on the right, `op g • s q`. -/
 theorem trivializationOfSection_symm_apply {q : orbitRel.Quotient Gᵐᵒᵖ X} (hq : q ∈ U) (g : G) :
     (trivializationOfSection U hU s hs hsec).toOpenPartialHomeomorph.symm (q, g) =
       ⟨q, op g • ⟨s q, hsec q hq⟩⟩ := by
-  rw [trivializationOfSection, Trivialization.toMapFiber_symm_apply, Homeomorph.symm_apply_eq,
+  rw [trivializationOfSection_def, Trivialization.toMapFiber_symm_apply, Homeomorph.symm_apply_eq,
     MapFiber.totalSpaceHomeomorph_apply, MapFiber.coe_smul]
-  -- Mathlib states no lemma for the inverse of `transFiberHomeomorph`, so its definition is
-  -- unfolded to reach `OpenPartialHomeomorph.transHomeomorph_symm_apply`
-  simp [Trivialization.transFiberHomeomorph, orbitTrivializationOfSection_symm_apply hq]
+  rw [orbitTrivializationOfSectionUnop_symm_apply hq]
 
 /-- **The trivialization from a local section is equivariant.** Left multiplication by
 `g : Gᵐᵒᵖ` on the fibre `Gᵐᵒᵖ` of `orbitTrivializationOfSection` is right multiplication by
@@ -166,6 +243,82 @@ instance isEquivariant_trivializationOfSection :
 end orbitFiber
 
 end Trivialization
+
+/-! ### The principal bundle of a free proper smooth action -/
+
+section Bundle
+
+attribute [local instance] MulOpposite.chartedSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] (IG : ModelWithCorners ℝ E H)
+  (G : Type*) [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup IG ∞ G]
+  [ContinuousInv G]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  {H' : Type*} [TopologicalSpace H'] (IX : ModelWithCorners ℝ E' H') [IX.Boundaryless]
+  (X : Type*) [TopologicalSpace X] [ChartedSpace H' X] [IsManifold IX ∞ X]
+  [MulAction Gᵐᵒᵖ X] [ContMDiffSMul IG IX ∞ Gᵐᵒᵖ X] [ProperSMul Gᵐᵒᵖ X] [IsCancelSMul Gᵐᵒᵖ X]
+
+namespace orbitFiber
+
+omit [ContinuousInv G] in
+/-- Through every orbit passes a smooth local section of the orbit projection, for the slice
+charts of the orbit space. -/
+private theorem exists_section (q : orbitRel.Quotient Gᵐᵒᵖ X) :
+    letI := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X
+    ∃ Us : Set (orbitRel.Quotient Gᵐᵒᵖ X) × (orbitRel.Quotient Gᵐᵒᵖ X → X),
+      IsOpen Us.1 ∧ q ∈ Us.1 ∧
+      ContMDiffOn 𝓘(ℝ, ProperSMul.QuotientModelSpace E E') IX ∞ Us.2 Us.1 ∧
+      ∀ q' ∈ Us.1, Quotient.mk (orbitRel Gᵐᵒᵖ X) (Us.2 q') = q' := by
+  obtain ⟨U, hU, hqU, s, -, hs, hsec⟩ :=
+    ProperSMul.exists_contMDiffOn_section_quotientMk (I := IG) (G := Gᵐᵒᵖ) (I' := IX) q.out
+  rw [Quotient.out_eq] at hqU
+  exact ⟨(U, s), hU, hqU, hs, hsec⟩
+
+/-- The atlas of the orbit projection of a free proper smooth action of `Gᵐᵒᵖ`, with model fibre
+`G`: at each orbit `q`, the trivialization from a smooth local section of the orbit projection over
+a neighbourhood of `q`, for the slice charts `ProperSMul.orbitRelQuotientChartedSpace` of the orbit
+space. -/
+noncomputable def atlas : MapFiber.Atlas G (Quotient.mk (orbitRel Gᵐᵒᵖ X)) :=
+  letI := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X
+  { trivAt q :=
+      orbitTrivializationOfSectionUnop _ (exists_section IG G IX X q).choose_spec.1 _
+        (exists_section IG G IX X q).choose_spec.2.2.1.continuousOn
+        (exists_section IG G IX X q).choose_spec.2.2.2
+    mem_baseSet_trivAt q := by
+      rw [orbitTrivializationOfSectionUnop_baseSet]
+      exact (exists_section IG G IX X q).choose_spec.2.1 }
+
+/-- The trivialization of `orbitFiber.atlas` at an orbit `q` is the trivialization
+`orbitTrivializationOfSectionUnop` of a section of the orbit projection over an open
+neighbourhood of `q` that is smooth for the slice charts of the orbit space. -/
+theorem exists_atlas_trivAt_eq (q : orbitRel.Quotient Gᵐᵒᵖ X) :
+    letI := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X
+    ∃ (U : Set (orbitRel.Quotient Gᵐᵒᵖ X)) (hU : IsOpen U) (s : orbitRel.Quotient Gᵐᵒᵖ X → X)
+      (hs : ContMDiffOn 𝓘(ℝ, ProperSMul.QuotientModelSpace E E') IX ∞ s U)
+      (hsec : ∀ q' ∈ U, Quotient.mk (orbitRel Gᵐᵒᵖ X) (s q') = q'),
+      q ∈ U ∧ (atlas IG G IX X).trivAt q =
+        orbitTrivializationOfSectionUnop U hU s hs.continuousOn hsec := by
+  obtain ⟨hU, hq, hs, hsec⟩ := (exists_section IG G IX X q).choose_spec
+  exact ⟨_, hU, _, hs, hsec, hq, rfl⟩
+
+/-- **The orbit bundle of a free proper smooth action is principal.** For a free proper smooth
+right action of a Lie group `G` on a boundaryless manifold `X`, the orbits, with the fibre bundle
+structure of `orbitFiber.atlas` and the right action of `G` on each orbit, form a principal
+`G`-bundle over the orbit space. -/
+theorem principalBundle :
+    letI := (atlas IG G IX X).fiberBundle
+    PrincipalBundle G (orbitFiber Gᵐᵒᵖ X) := by
+  let := (atlas IG G IX X).fiberBundle
+  refine ⟨fun e he ↦ ?_⟩
+  obtain ⟨q, rfl⟩ := ((atlas IG G IX X).mem_trivializationAtlas_iff e).1 he.out
+  obtain ⟨U, hU, s, hs, hsec, -, h⟩ := exists_atlas_trivAt_eq IG G IX X q
+  rw [h, ← trivializationOfSection_def]
+  infer_instance
+
+end orbitFiber
+
+end Bundle
 
 end SymplecticGeometry
 

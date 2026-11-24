@@ -20,7 +20,9 @@ structure of the unit interval, by Tau Ceti's `ContMDiff.smoothTransition`. Its 
 the unit vector `1` of `ℝ` to `deriv Real.smoothTransition u` times the unit tangent vector of the
 interval (`unitInterval.mfderiv_smoothTransition_one`). Tau Ceti's
 `TauCeti.collaredSmoothTransitionUnit` is the analogous map for the reparametrization
-`t ↦ Real.smoothTransition (2 * t - 1 / 2)`.
+`t ↦ Real.smoothTransition (2 * t - 1 / 2)`. Since that map is constant near both ends of the
+unit interval, Tau Ceti's `TauCeti.collaredFirstHalf` composed with the clamp `Set.projIcc 0 1`
+is `t ↦ collaredSmoothTransitionUnit (2 * t)` on all of `ℝ` (`TauCeti.collaredFirstHalf_projIcc`).
 -/
 
 public noncomputable section
@@ -57,21 +59,36 @@ theorem contMDiff_smoothTransition {n : ℕ∞ω} (hn : n ≤ ∞) :
 `s' = deriv Real.smoothTransition`. -/
 theorem mfderiv_smoothTransition_one (u : ℝ) :
     mfderiv 𝓘(ℝ) (𝓡∂ 1) smoothTransition u 1 = deriv Real.smoothTransition u • 1 := by
-  have hσu : MDifferentiableAt 𝓘(ℝ) (𝓡∂ 1) smoothTransition u :=
-    (contMDiff_smoothTransition le_rfl).mdifferentiableAt (by simp)
-  have hval : MDifferentiableAt (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : unitInterval → ℝ)
-      (smoothTransition u) :=
-    SymplecticGeometry.mdifferentiableAt_subtypeVal_Icc _
-  -- The inclusion of the interval has injective derivative, and sends both sides to `s'(u)`.
-  refine (TauCeti.isInvertible_mfderiv_subtypeVal_Icc (smoothTransition u)).injective ?_
-  rw [map_smul, mfderiv_subtypeVal_Icc_one, ← mfderiv_comp_apply u hval hσu]
+  refine SymplecticGeometry.mfderiv_apply_eq_smul_one_Icc
+    ((contMDiff_smoothTransition le_rfl).mdifferentiableAt (by simp)) ?_
   have hc : Subtype.val ∘ smoothTransition = Real.smoothTransition :=
     funext coe_smoothTransition
   rw [hc, mfderiv_eq_fderiv]
   -- `NormedSpace.fromTangentSpace` is the identity by definition and has no apply lemma.
-  change fderiv ℝ Real.smoothTransition u 1 = deriv Real.smoothTransition u • (1 : ℝ)
-  rw [fderiv_apply_one_eq_deriv, smul_eq_mul, mul_one]
+  change fderiv ℝ Real.smoothTransition u 1 = deriv Real.smoothTransition u
+  exact fderiv_apply_one_eq_deriv
 
 end unitInterval
+
+namespace TauCeti
+
+/-- Clamping the time to `[0, 1]` does not change the first half of a stationary-time
+concatenation: `collaredFirstHalf` at the clamp `Set.projIcc 0 1 t` of a real number `t` is
+`collaredSmoothTransitionUnit (2 * t)`. -/
+theorem collaredFirstHalf_projIcc {n : ℕ∞ω} (hn : n ≤ ∞) (t : ℝ) :
+    collaredFirstHalf hn (Set.projIcc 0 1 zero_le_one t) =
+      collaredSmoothTransitionUnit (2 * t) := by
+  rw [collaredFirstHalf_apply, Set.coe_projIcc]
+  rcases le_total t 0 with h | h
+  · rw [max_eq_left (min_le_of_right_le h),
+      collaredSmoothTransitionUnit_eq_zero_of_le (by norm_num),
+      collaredSmoothTransitionUnit_eq_zero_of_le (by linarith)]
+  rcases le_total t 1 with h' | h'
+  · rw [min_eq_right h', max_eq_right h]
+  · rw [min_eq_left h', max_eq_right zero_le_one,
+      collaredSmoothTransitionUnit_eq_one_of_ge (by norm_num),
+      collaredSmoothTransitionUnit_eq_one_of_ge (by linarith)]
+
+end TauCeti
 
 end

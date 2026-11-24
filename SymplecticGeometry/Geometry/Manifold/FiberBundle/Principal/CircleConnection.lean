@@ -101,17 +101,18 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
 
 omit [IsManifold IB ∞ B] in
 /-- A vertical tangent vector of the total space of a principal `Circle`-bundle is a multiple of
-the fundamental vector field of `1`. -/
+the fundamental vector field of any nonzero element `ξ` of the Lie algebra of `Circle`. -/
 theorem exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero
+    {ξ : GroupLieAlgebra (𝓡 1) Circle} (hξ : ξ ≠ 0)
     {x : ManifoldTotalSpace Circle P} {v : TangentSpace (IB.prod (𝓡 1)) x}
     (hv : mfderiv (IB.prod (𝓡 1)) IB (fun y : ManifoldTotalSpace Circle P ↦
       ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj) x v = 0) :
-    ∃ c : ℝ, v = c • rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x := by
+    ∃ c : ℝ, v = c • rightFundamentalVectorField (IB.prod (𝓡 1)) ξ x := by
   have hv' : v ∈ LinearMap.range (PrincipalBundle.rightFundamentalLinearMap IB (𝓡 1) x) := by
     rw [PrincipalBundle.range_rightFundamentalLinearMap_eq_ker_mfderiv_proj]
     exact hv
   obtain ⟨η, rfl⟩ := hv'
-  obtain ⟨c, hc⟩ := (finrank_eq_one_iff_of_ne_zero' _ circleLieGenerator_ne_zero).mp
+  obtain ⟨c, hc⟩ := (finrank_eq_one_iff_of_ne_zero' _ hξ).mp
     (finrank_euclideanSpace_fin (𝕜 := ℝ) (n := 1)) η
   refine ⟨c, ?_⟩
   rw [PrincipalBundle.rightFundamentalLinearMap_apply, ← hc]
@@ -178,7 +179,8 @@ private theorem IsCircleConnectionForm.mextDeriv_apply_eq_zero_of_vertical
       ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj) x (v j) = 0) :
     mextDeriv α.val x v = 0 := by
   set ξ := rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x
-  obtain ⟨c, hc⟩ := exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero hv
+  obtain ⟨c, hc⟩ := exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero
+    circleLieGenerator_ne_zero hv
   have hv01 : v = ![v 0, v 1] := (FinVec.etaExpand_eq _).symm
   have hfirst (w : TangentSpace (IB.prod (𝓡 1)) x) : mextDeriv α.val x ![c • ξ, w] = 0 := by
     rw [ContinuousAlternatingMap.vecCons_smul, hα.mextDeriv_apply_rightFundamentalVectorField,
@@ -285,7 +287,8 @@ theorem IsCircleConnectionForm.existsUnique_eq_add_mpullback (hα : IsCircleConn
     (fun z ↦ by rw [map_sub, hα.mpullback_op_smul, hβ.mpullback_op_smul]) fun x v j hv ↦ by
       set ξ := rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x
       obtain rfl : j = 0 := Subsingleton.elim _ _
-      obtain ⟨c, hc⟩ := exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero hv
+      obtain ⟨c, hc⟩ := exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero
+        circleLieGenerator_ne_zero hv
       have hv0 : v = ![0 + c • ξ] := by
         funext i
         fin_cases i
@@ -433,7 +436,8 @@ private theorem IsCircleConnectionForm.sub_apply_eq_of_mfderiv_proj_eq
     rw [show p ∘ (fun z ↦ op g • z) = p from PrincipalBundle.proj_comp_op_smul g] at h
     rw [map_sub, hvw, h]
     exact sub_eq_zero.mpr rfl
-  obtain ⟨c, hc⟩ := exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero hvert
+  obtain ⟨c, hc⟩ := exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero
+    circleLieGenerator_ne_zero hvert
   have hvu : v = u + c • rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator
       (op g • y) := by
     rw [← hc, add_sub_cancel]

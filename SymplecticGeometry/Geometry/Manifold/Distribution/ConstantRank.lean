@@ -12,7 +12,7 @@ public import TauCeti.Geometry.Manifold.Submersion.Basic
 import TauCeti.Geometry.Manifold.Distribution.Diffeomorph
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 import TauCeti.Geometry.Manifold.RegularValue
-import SymplecticGeometry.Geometry.Manifold.MFDeriv.Constancy
+import SymplecticGeometry.Geometry.Manifold.Foliation.Constancy
 
 /-!
 # The kernel foliation of a map of constant rank
@@ -28,8 +28,6 @@ Tau Ceti defines the leaves of a foliation, each leaf lies in a fibre of `f`.
   kernels `ker (mfderiv f x)` form a `C^m` distribution of rank `dim E - r` when `m + 1 ≤ n`.
 * `TauCeti.Foliation.ofConstantRank`: the foliation of `M` by these kernels, with
   `TauCeti.Foliation.ofConstantRank_distribution`.
-* `TauCeti.Foliation.SameLeaf.apply_eq_of_le_ker`: a real map whose derivative vanishes on the
-  tangent spaces of a foliation is constant on each leaf.
 * `TauCeti.Foliation.SameLeaf.apply_eq_of_ofConstantRank`: a real map of constant rank is
   constant on each leaf of its kernel foliation.
 * `Manifold.IsSubmersion.mfderivRank_eq`: a submersion has constant rank `dim F`, so the fibres
@@ -206,25 +204,6 @@ variable {E F H G M N : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {I : ModelWithCorners ℝ E H} {J : ModelWithCorners ℝ F G}
   [TopologicalSpace M] [ChartedSpace H M] [TopologicalSpace N] [ChartedSpace G N]
   {n : ℕ∞ω} [IsManifold I (n + 1) M] {f : M → N} {x y : M}
-
-/-- A differentiable real map whose derivative kills the tangent spaces of a foliation is constant
-on each leaf of the foliation. -/
-theorem SameLeaf.apply_eq_of_le_ker [IsManifold J 1 N] {k : ℕ} {𝓕 : Foliation I n M k}
-    (hf : MDifferentiable I J f) (hD : ∀ x, 𝓕.distribution x ≤ (mfderiv I J f x).ker)
-    (h : 𝓕.SameLeaf x y) : f x = f y := by
-  refine sameLeaf_le (r := fun x y ↦ f x = f y) ⟨fun _ ↦ rfl, Eq.symm, Eq.trans⟩
-    (fun x y hxy ↦ ?_) x y h
-  -- Along a curve tangent to the foliation, the derivative of `f ∘ γ` vanishes.
-  obtain ⟨γ, hγ, htan, rfl, rfl⟩ := joinedByTangentCurve_iff.mp hxy
-  refine Convex.apply_eq_of_hasMFDerivWithinAt_zero (J := J) (g := f ∘ γ) (convex_Icc 0 1)
-    (fun t ht ↦ ?_) (left_mem_Icc.2 zero_le_one) (right_mem_Icc.2 zero_le_one)
-  have hft : MDifferentiableAt I J f (γ t) := hf (γ t)
-  have hγt := hγ.mdifferentiableOn one_ne_zero t ht
-  have hv := hD (γ t) (htan t ht)
-  rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe] at hv
-  have hd := hasMFDerivWithinAt_curveVelocityWithin (hft.comp_mdifferentiableWithinAt t hγt)
-  rwa [curveVelocityWithin_map hft (uniqueDiffOn_Icc zero_lt_one t ht) hγt, hv,
-    ContinuousLinearMap.smulRight_zero] at hd
 
 /-- A real map of constant rank is constant on each leaf of its kernel foliation. -/
 theorem SameLeaf.apply_eq_of_ofConstantRank [FiniteDimensional ℝ E] [CompleteSpace F]
