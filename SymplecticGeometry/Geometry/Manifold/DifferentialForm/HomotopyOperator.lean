@@ -39,6 +39,12 @@ on a smooth manifold `M` possibly with boundary or corners. Smoothness of `h φ`
 * `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator_mpullback_of_contraction`: for a smooth
   `Φ : M × [0, 1] → M` from a constant map to the identity and a closed form `z` of positive
   degree with values in a Banach space, `h (Φ^* z)` is a primitive of `z`.
+* `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator_mpullback`: for a smooth
+  `Φ : M × [0, 1] → M` from a smooth map `g` to the identity and a closed form `z` with values
+  in a Banach space, `d (h (Φ^* z)) = z - g^* z`.
+* `TauCeti.SmoothForm.mpullback_homotopyOperator`: naturality, `g^* (h φ) = h ((g × id)^* φ)`;
+  it is Tau Ceti's `TauCeti.homotopyOperator_mpullback_prodMap_id_of_isSmoothForm` on smooth
+  forms.
 
 ## References
 
@@ -122,6 +128,35 @@ theorem mextDerivₗ_homotopyOperator_mpullback_of_contraction [CompleteSpace F]
   have hid : Φ ∘ (fun x : M ↦ (x, (1 : unitInterval))) = id := funext h₁
   have hconst : Φ ∘ (fun x : M ↦ (x, (0 : unitInterval))) = fun _ ↦ c := funext h₀
   simp_rw [hid, hconst, mpullback_id, mpullback_const, LinearMap.id_apply, sub_zero]
+
+/-- **The homotopy formula for a homotopy to the identity.** Let `Φ : M × [0, 1] → M` be a smooth
+homotopy from a smooth map `g`, `Φ (x, 0) = g x`, to the identity, `Φ (x, 1) = x`. For a closed
+`(k + 1)`-form `z` with values in a Banach space, `d (h (Φ^* z)) = z - g^* z`. -/
+theorem mextDerivₗ_homotopyOperator_mpullback [CompleteSpace F] {g : M → M}
+    (hg : ContMDiff I I ∞ g) {Φ : M × unitInterval → M} (hΦ : ContMDiff (I.prod (𝓡∂ 1)) I ∞ Φ)
+    (h₀ : ∀ x, Φ (x, 0) = g x) (h₁ : ∀ x, Φ (x, 1) = x) {z : SmoothForm I M F (k + 1)}
+    (hz : mextDerivₗ I (k + 1) z = 0) :
+    mextDerivₗ I k (homotopyOperator (mpullback Φ hΦ z)) = z - mpullback g hg z := by
+  have hclosed : mextDerivₗ (I.prod (𝓡∂ 1)) (k + 1) (mpullback Φ hΦ z) = 0 := by
+    rw [mextDerivₗ_mpullback, hz, map_zero]
+  rw [mextDerivₗ_homotopyOperator hclosed, mpullback_mpullback, mpullback_mpullback]
+  -- The end slices of the homotopy are the identity and `g`.
+  have hid : Φ ∘ (fun x : M ↦ (x, (1 : unitInterval))) = id := funext h₁
+  have hg' : Φ ∘ (fun x : M ↦ (x, (0 : unitInterval))) = g := funext h₀
+  simp_rw [hid, hg', mpullback_id, LinearMap.id_apply]
+
+/-- **Naturality of the homotopy operator.** For a smooth map `g : M' → M` and a smooth form `φ`
+on `M × [0, 1]`, `g^* (h φ) = h ((g × id)^* φ)`. -/
+theorem mpullback_homotopyOperator {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+    [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M']
+    [ChartedSpace H' M'] [IsManifold I' ∞ M'] [CompleteSpace F] {g : M' → M}
+    (hg : ContMDiff I' I ∞ g) (φ : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc (0 : ℝ) 1) F (k + 1)) :
+    mpullback g hg (homotopyOperator φ) =
+      homotopyOperator (mpullback (Prod.map g id) (hg.prodMap contMDiff_id) φ) :=
+  Subtype.ext <| by
+    rw [coe_mpullback, coe_homotopyOperator, coe_homotopyOperator, coe_mpullback,
+      homotopyOperator_mpullback_prodMap_id_of_isSmoothForm (hg.mdifferentiable (by simp))
+        (φ.isSmoothForm.of_le (by simp))]
 
 end SmoothForm
 

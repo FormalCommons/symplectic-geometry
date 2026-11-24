@@ -346,9 +346,12 @@ theorem cotangentMk_cotangentCoord (z : T*Sⁿ) : cotangentMk z.proj (cotangentC
 theorem range_cotangentCoord : range cotangentCoord = {x | ‖x.1‖ = 1 ∧ ⟪x.1, x.2⟫ = 0}
 theorem contMDiff_cotangentMk : ContMDiff ((𝓡 n).prod 𝓘(ℝ, E)) _ ∞ (fun x ↦ cotangentMk x.1 x.2)
 theorem contMDiff_cotangentCoord : ContMDiff _ 𝓘(ℝ, E × E) ∞ cotangentCoord
-theorem mpullback_cotangentCoord : mpullback cotangentCoord (Σⱼ pⱼ dqⱼ) = liouvilleForm (𝓡 n) Sⁿ
+theorem mpullback_cotangentCoord :     -- cotangentLiouvilleForm is Σⱼ pⱼ dqⱼ on E × E*
+    mpullback _ _ (cotangentInnerEquiv ∘ cotangentCoord) cotangentLiouvilleForm =
+      (liouvilleForm (𝓡 n) Sⁿ).val
 theorem cotangentCoord_cotangent_orthogonal (A : O(n+1)) (z : T*Sⁿ) :
-    cotangentCoord ((orthogonalToDiffSphere n ∞ A).cotangent z) = (A • q, A • p)
+    cotangentCoord ((orthogonalToDiffSphere n ∞ A).cotangent z) =
+      (UnitaryGroup.toLinearIsometryEquiv A q, UnitaryGroup.toLinearIsometryEquiv A p)
 
 def antipodal : T*Sⁿ ≃ₘ⟮_, _⟯ T*Sⁿ             -- the cotangent lift of -1 ∈ O(n+1)
 theorem cotangentCoord_antipodal (z) : cotangentCoord (antipodal z) = -cotangentCoord z
@@ -367,8 +370,8 @@ theorem isMIntegralCurve_geodesicFlow {z} (hz : cotangentNorm z ≠ 0) :
 
 `cotangentMk` is built with `TauCeti.CotangentBundle.contMDiff_mk_comp_mfderiv`,
 and the inverse of `cotangentCoord` on its image with
-`TauCeti.sphereTangentEquiv`. `mpullback_cotangentCoord` is
-`mpullback_liouvilleForm_apply_of_proj_comp_eq`. In `cotangentNorm_eq_norm`
+`TauCeti.sphereTangentEquiv`. `mpullback_cotangentCoord` is the chain rule
+for the inclusion composed with the bundle projection. In `cotangentNorm_eq_norm`
 the norm on covectors is that of Tau Ceti's round metric, the global instance
 `TauCeti.instRiemannianBundleSphere`. Write $T(r)$ for
 `{z | cotangentNorm z ≤ r}`. It is closed and lies in the image of

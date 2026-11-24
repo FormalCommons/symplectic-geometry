@@ -92,8 +92,9 @@ These statements are in the namespace `TauCeti.SmoothTwoForm.IsNondegenerate`:
   the pullback of a unique symplectic form on the base.
 * `TauCeti.SmoothForm.exists_isCharacteristicSubmersion`: characteristic charts onto a product of
   balls, around every point, for a closed form of constant rank.
-* `TauCeti.SmoothForm.exists_isCharacteristicSubmersion_and_existsUnique_mpullback_eq`: the three
-  statements together: involutivity, characteristic charts, and local symplectic quotients.
+* The three statements together, involutivity, characteristic charts and local symplectic
+  quotients:
+  `TauCeti.SmoothForm.exists_isCharacteristicSubmersion_and_existsUnique_isSymplectic_mpullback_eq`
 * `TauCeti.SmoothForm.exists_partialDiffeomorph_eval₂_eq_stdForm`: Darboux coordinates for a
   closed form of constant rank.
 * `IsCoisotropicMap.exists_isCharacteristicSubmersion`,
@@ -431,7 +432,8 @@ boundaryless manifold of dimension `k + 2r` whose kernels all have dimension `k`
   `σ` on `U`, there is a unique symplectic form `τ` on `B` with `p^* τ = σ` on `U`.
 
 Milestone: *Characteristic foliations and local symplectic quotients*. -/
-theorem exists_isCharacteristicSubmersion_and_existsUnique_mpullback_eq (σ : SmoothForm I M ℝ 2)
+theorem exists_isCharacteristicSubmersion_and_existsUnique_isSymplectic_mpullback_eq
+    (σ : SmoothForm I M ℝ 2)
     (hσ : σ.IsClosed) {k r : ℕ} (hk : ∀ x, finrank ℝ (LinearMap.ker (σ.bilinFormAt x)) = k)
     (hr : finrank ℝ E = k + 2 * r) :
     IsInvolutiveDistribution I (fun x ↦ LinearMap.ker (σ.bilinFormAt x)) ∧
