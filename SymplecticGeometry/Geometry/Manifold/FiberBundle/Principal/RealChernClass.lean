@@ -21,8 +21,9 @@ their curvatures differ by the exact form `d a`.
 
 The connection forms of the library take the value `1` on the fundamental vector field of
 `circleLieGenerator`, so `F_α` is the curvature of McDuff–Salamon divided by `i`, and the
-normalization `-(2π)⁻¹` agrees with that of the first Chern number: over a closed oriented surface
-the integral of `-(2π)⁻¹ F_α` is the Chern number
+normalization `-(2π)⁻¹` agrees with that of the first Chern number: when `P` is the bundle of
+unitary frames of a Hermitian complex line bundle `V` over a closed oriented surface, the integral
+of `-(2π)⁻¹ F_α` is the first Chern number of `V`
 (`SymplecticGeometry.Bundle.chernNumber_eq_integral_curvature`).
 
 ## Main definitions and results
