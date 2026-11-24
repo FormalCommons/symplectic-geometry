@@ -346,8 +346,9 @@ theorem cotangentMk_cotangentCoord (z : T*Sⁿ) : cotangentMk z.proj (cotangentC
 theorem range_cotangentCoord : range cotangentCoord = {x | ‖x.1‖ = 1 ∧ ⟪x.1, x.2⟫ = 0}
 theorem contMDiff_cotangentMk : ContMDiff ((𝓡 n).prod 𝓘(ℝ, E)) _ ∞ (fun x ↦ cotangentMk x.1 x.2)
 theorem contMDiff_cotangentCoord : ContMDiff _ 𝓘(ℝ, E × E) ∞ cotangentCoord
-theorem mpullback_cotangentCoord :     -- innerLiouvilleForm E is Σⱼ pⱼ dqⱼ, a rough form
-    mpullback _ _ cotangentCoord (innerLiouvilleForm E) = (liouvilleForm (𝓡 n) Sⁿ).val
+theorem mpullback_cotangentCoord :     -- cotangentLiouvilleForm is Σⱼ pⱼ dqⱼ on E × E*
+    mpullback _ _ (cotangentInnerEquiv ∘ cotangentCoord) cotangentLiouvilleForm =
+      (liouvilleForm (𝓡 n) Sⁿ).val
 theorem cotangentCoord_cotangent_orthogonal (A : O(n+1)) (z : T*Sⁿ) :
     cotangentCoord ((orthogonalToDiffSphere n ∞ A).cotangent z) =
       (UnitaryGroup.toLinearIsometryEquiv A q, UnitaryGroup.toLinearIsometryEquiv A p)

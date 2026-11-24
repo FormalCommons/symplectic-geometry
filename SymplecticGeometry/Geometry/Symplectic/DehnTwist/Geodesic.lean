@@ -11,6 +11,8 @@ public import TauCeti.Geometry.Manifold.Riemannian.Sphere.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Cotangent.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Riesz
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Liouville
+public import TauCeti.Geometry.Symplectic.Cotangent.InnerProduct
+public import TauCeti.Geometry.Symplectic.Cotangent.Liouville
 import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Codisc
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Manifold.Riemannian.Sphere.Gradient
@@ -34,8 +36,6 @@ twist is written down.
   `p ∈ E`.
 * `SymplecticGeometry.cotangentCoord z`: the pair `(q, p) ∈ E × E` with `p ⊥ q` representing `z`.
 * `SymplecticGeometry.cotangentNorm z`: the norm `‖p‖` of its second coordinate.
-* `SymplecticGeometry.innerLiouvilleForm V`: the one-form `∑ⱼ pⱼ dqⱼ`, `(δq, δp) ↦ ⟪p, δq⟫` at
-  `(q, p)`, on `V × V` for a real inner product space `V`.
 * `SymplecticGeometry.antipodal`: the cotangent lift of the antipodal map of `Sⁿ`.
 
 ## Main results
@@ -49,10 +49,13 @@ twist is written down.
   maps are smooth.
 * `SymplecticGeometry.cotangentNorm_eq_norm`: `‖p‖` is the norm of `z` for the round metric.
 * `SymplecticGeometry.isCompact_setOf_cotangentNorm_le`: the sets `{z | ‖p‖ ≤ r}` are compact.
-* `SymplecticGeometry.mpullback_cotangentCoord`: the coordinates pull `∑ⱼ pⱼ dqⱼ` back to the
-  Liouville form of `T*Sⁿ`.
-* `SymplecticGeometry.cotangentCoord_cotangent_orthogonal`: the cotangent lift of an orthogonal
-  transformation `A` of the sphere acts by `(q, p) ↦ (A q, A p)`, and
+* `SymplecticGeometry.mpullback_cotangentCoord`: the coordinates, read in `E × E*` through
+  `TauCeti.cotangentInnerEquiv`, pull the form `∑ⱼ pⱼ dqⱼ` (`TauCeti.cotangentLiouvilleForm`)
+  back to the Liouville form of `T*Sⁿ`.
+* `SymplecticGeometry.cotangentCoord_cotangent_unitSphereDiffeomorph`: the cotangent lift of the
+  diffeomorphism of the sphere induced by a linear isometry `e` of `E` acts by
+  `(q, p) ↦ (e q, e p)`; `SymplecticGeometry.cotangentCoord_cotangent_orthogonal` is its case of
+  an orthogonal matrix `A`, and
   `SymplecticGeometry.cotangentCoord_antipodal`: `antipodal` acts by `(q, p) ↦ (-q, -p)`.
 
 ## Implementation notes
@@ -70,7 +73,8 @@ round gradients to show that the inverse direction is smooth.
 The Liouville form evaluates a covector on the differential of the base point, and the first
 coordinate is the base point read in `E`, so `mpullback_cotangentCoord` is the chain rule for
 `ι ∘ π`. Cotangent lifts are Tau Ceti's `Diffeomorph.cotangent`, which sends a covector `p` at `x`
-to `p ∘ (dh_x)⁻¹`; for an orthogonal `A` this is the covector of `A p` at `A q`, with no inverse.
+to `p ∘ (dh_x)⁻¹`; for a linear isometry `e` this is the covector of `e p` at `e q`, with no
+inverse.
 
 ## References
 
@@ -292,52 +296,61 @@ theorem isCompact_setOf_cotangentNorm_le (r : ℝ) :
     IsCompact {z : CotangentBundle (𝓡 n) (𝕊 n) | cotangentNorm z ≤ r} := by
   simpa only [cotangentNorm_eq_norm] using CotangentBundle.isCompact_setOf_norm_snd_le r
 
-section Liouville
-
-variable (V : Type*) [NormedAddCommGroup V] [InnerProductSpace ℝ V]
-
-/-- The one-form `∑ⱼ pⱼ dqⱼ` on `V × V` for a real inner product space `V`: at `(q, p)` it sends
-a tangent vector `(δq, δp)` to `⟪p, δq⟫`. -/
-def innerLiouvilleForm : RoughForm 𝓘(ℝ, V × V) (V × V) ℝ 1 :=
-  fun x ↦ ContinuousAlternatingMap.ofSubsingleton ℝ (V × V) ℝ 0
-    (innerSL ℝ x.2 ∘L ContinuousLinearMap.fst ℝ V V)
-
-variable {V}
-
-/-- The one-form `∑ⱼ pⱼ dqⱼ` sends `(δq, δp)` at `(q, p)` to `⟪p, δq⟫`. -/
-@[simp]
-theorem innerLiouvilleForm_apply (x : V × V) (v : Fin 1 → TangentSpace 𝓘(ℝ, V × V) x) :
-    innerLiouvilleForm V x v = ⟪x.2, (v 0).1⟫_ℝ :=
-  (rfl)
-
-end Liouville
-
-/-- The pullback along the coordinates `cotangentCoord` of the one-form `∑ⱼ pⱼ dqⱼ` on
-`ℝⁿ⁺¹ × ℝⁿ⁺¹` is the Liouville form of `T*Sⁿ`. -/
+/-- The coordinates `cotangentCoord`, followed by Tau Ceti's identification
+`(q, p) ↦ (q, ⟪p, ·⟫)` of `ℝⁿ⁺¹ × ℝⁿ⁺¹` with `ℝⁿ⁺¹ × (ℝⁿ⁺¹)*`, pull the linear Liouville form
+`TauCeti.cotangentLiouvilleForm`, the form `∑ⱼ pⱼ dqⱼ`, back to the Liouville form of `T*Sⁿ`. -/
 theorem mpullback_cotangentCoord :
-    TauCeti.mpullback ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
-        cotangentCoord (innerLiouvilleForm (𝔼 n)) =
+    TauCeti.mpullback ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
+        𝓘(ℝ, (𝔼 n) × StrongDual ℝ (𝔼 n)) (TauCeti.cotangentInnerEquiv ∘ cotangentCoord)
+        (fun x ↦ TauCeti.cotangentLiouvilleForm x) =
       (CotangentBundle.liouvilleForm (𝓡 n) (𝕊 n)).val := by
   funext z
   ext v
-  have hfst := mfderiv_comp_apply z (g := ContinuousLinearMap.fst ℝ (𝔼 n) (𝔼 n))
-    (ContinuousLinearMap.fst ℝ (𝔼 n) (𝔼 n)).mdifferentiableAt
-    (contMDiff_cotangentCoord.mdifferentiableAt (by simp) : MDifferentiableAt
-      ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n) cotangentCoord z)
-    (v 0)
+  have hf : MDifferentiableAt ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
+      𝓘(ℝ, (𝔼 n) × StrongDual ℝ (𝔼 n)) (TauCeti.cotangentInnerEquiv ∘ cotangentCoord) z :=
+    ((TauCeti.cotangentInnerEquiv (V := 𝔼 n)).contDiff.contMDiff.comp
+      contMDiff_cotangentCoord).mdifferentiableAt (by simp)
+  have hfst := mfderiv_comp_apply z
+    (g := ContinuousLinearMap.fst ℝ (𝔼 n) (StrongDual ℝ (𝔼 n)))
+    (ContinuousLinearMap.fst ℝ (𝔼 n) (StrongDual ℝ (𝔼 n))).mdifferentiableAt hf (v 0)
   have hproj := mfderiv_comp_apply z (g := ((↑) : (𝕊 n) → 𝔼 n))
     (contMDiff_coe_sphere.mdifferentiableAt one_ne_zero)
     ((contMDiff_proj (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ)).mdifferentiableAt
       one_ne_zero : MDifferentiableAt ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) (𝓡 n)
         (π (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ) (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ)) z)
     (v 0)
-  have hcomp : Prod.fst ∘ cotangentCoord (n := n) = ((↑) : (𝕊 n) → 𝔼 n) ∘ TotalSpace.proj :=
-    funext cotangentCoord_fst
+  have hcomp : Prod.fst ∘ TauCeti.cotangentInnerEquiv ∘ cotangentCoord (n := n) =
+      ((↑) : (𝕊 n) → 𝔼 n) ∘ TotalSpace.proj :=
+    funext fun z ↦ by simp [cotangentCoord_fst]
   rw [ContinuousLinearMap.mfderiv_eq, ContinuousLinearMap.coe_fst', hcomp] at hfst
-  rw [TauCeti.mpullback_apply, CotangentBundle.liouvilleForm_apply, innerLiouvilleForm_apply,
-    ← inner_cotangentCoord_snd, mvfderiv_apply_eq_mfderiv_apply, ← hproj, hfst]
-  -- A tangent vector of the model space `𝔼 n × 𝔼 n` is a pair, on which `fst` is `Prod.fst`.
+  -- The form has the type of a model-space form only up to unfolding `TangentSpace`, so the
+  -- evaluation lemmas are applied by unification rather than by `rw`.
+  refine ((TauCeti.mpullback_apply _ _ z v).trans
+    (TauCeti.cotangentLiouvilleForm_apply _ _)).trans ?_
+  rw [CotangentBundle.liouvilleForm_apply, Function.comp_apply,
+    TauCeti.cotangentInnerEquiv_apply_snd_apply, ← inner_cotangentCoord_snd,
+    mvfderiv_apply_eq_mfderiv_apply, ← hproj, hfst]
+  -- A tangent vector of the model space `𝔼 n × (𝔼 n)*` is a pair, on which `fst` is `Prod.fst`.
   rfl
+
+/-- The cotangent lift of the diffeomorphism of `Sⁿ` induced by a linear isometry `e` of `ℝⁿ⁺¹`
+acts in coordinates by `(q, p) ↦ (e q, e p)`. -/
+@[simp]
+theorem cotangentCoord_cotangent_unitSphereDiffeomorph (e : (𝔼 n) ≃ₗᵢ[ℝ] 𝔼 n)
+    (z : CotangentBundle (𝓡 n) (𝕊 n)) :
+    cotangentCoord ((e.unitSphereDiffeomorph (n := n) (k := n) ∞).cotangent z) =
+      (e (cotangentCoord z).1, e (cotangentCoord z).2) := by
+  refine Prod.ext ?_ (cotangentCoord_snd_eq ?_ fun w ↦ ?_)
+  · rw [cotangentCoord_fst, Diffeomorph.proj_cotangent,
+      LinearIsometryEquiv.coe_unitSphereDiffeomorph_apply, cotangentCoord_fst]
+  · rw [Diffeomorph.proj_cotangent, LinearIsometryEquiv.coe_unitSphereDiffeomorph_apply,
+      LinearIsometryEquiv.inner_map_map, inner_proj_cotangentCoord_snd]
+  obtain ⟨v, rfl⟩ := ((e.unitSphereDiffeomorph (n := n) (k := n) ∞).isInvertible_mfderiv (by simp)
+    (x := z.proj)).surjective w
+  have key := LinearIsometryEquiv.mvfderiv_coe_sphere_unitSphereEquiv (n := n) (k := n) e z.proj v
+  rw [← LinearIsometryEquiv.coe_unitSphereDiffeomorph (n := n) (k := n) (m := ∞)] at key
+  rw [Diffeomorph.cotangent_snd_apply_mfderiv, ← inner_cotangentCoord_snd,
+    Diffeomorph.proj_cotangent, key, LinearIsometryEquiv.inner_map_map]
 
 /-- The cotangent lift of the diffeomorphism of `Sⁿ` induced by an orthogonal matrix `A` acts in
 coordinates by `(q, p) ↦ (A q, A p)`. -/
@@ -346,22 +359,8 @@ theorem cotangentCoord_cotangent_orthogonal (A : Matrix.orthogonalGroup (Fin (n 
     cotangentCoord ((orthogonalToDiffSphere n ∞ A).cotangent z) =
       (Matrix.UnitaryGroup.toLinearIsometryEquiv A (cotangentCoord z).1,
         Matrix.UnitaryGroup.toLinearIsometryEquiv A (cotangentCoord z).2) := by
-  set e := Matrix.UnitaryGroup.toLinearIsometryEquiv A
-  have hh : ⇑(orthogonalToDiffSphere n ∞ A) = LinearIsometryEquiv.unitSphereEquiv e := by
-    rw [orthogonalToDiffSphere_apply, LinearIsometryEquiv.unitSphereDiffHom_apply,
-      LinearIsometryEquiv.coe_unitSphereDiffeomorph]
-  have hq (x : 𝕊 n) : (orthogonalToDiffSphere n ∞ A x : 𝔼 n) = e x := by
-    rw [hh, LinearIsometryEquiv.coe_unitSphereEquiv_apply]
-  refine Prod.ext ?_ (cotangentCoord_snd_eq ?_ fun w ↦ ?_)
-  · rw [cotangentCoord_fst, Diffeomorph.proj_cotangent, hq, cotangentCoord_fst]
-  · rw [Diffeomorph.proj_cotangent, hq, LinearIsometryEquiv.inner_map_map,
-      inner_proj_cotangentCoord_snd]
-  obtain ⟨v, rfl⟩ :=
-    ((orthogonalToDiffSphere n ∞ A).isInvertible_mfderiv (by simp) (x := z.proj)).surjective w
-  have key := LinearIsometryEquiv.mvfderiv_coe_sphere_unitSphereEquiv (n := n) (k := n) e z.proj v
-  rw [← hh] at key
-  rw [Diffeomorph.cotangent_snd_apply_mfderiv, ← inner_cotangentCoord_snd,
-    Diffeomorph.proj_cotangent, key, LinearIsometryEquiv.inner_map_map]
+  rw [orthogonalToDiffSphere_apply, LinearIsometryEquiv.unitSphereDiffHom_apply,
+    cotangentCoord_cotangent_unitSphereDiffeomorph]
 
 /-- The antipodal map of `T*Sⁿ`: the cotangent lift of the diffeomorphism `x ↦ -x` of the unit
 sphere, induced by `-1 ∈ O(n + 1)`. -/
