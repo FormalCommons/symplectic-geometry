@@ -34,6 +34,8 @@ where it is `contDiffOn_seeleyIccExtend`; the time coordinate needs only `projIc
 
 * `SymplecticGeometry.timeExtend_apply_coe`: the extension agrees with `f` on
   `unitInterval × M`.
+* `SymplecticGeometry.timeExtend_comp_prodMap_id`: extending `f ∘ Prod.map id g` is extending
+  `f` at the image under `g` of the point of space.
 * `SymplecticGeometry.timeExtend_eq_zero`: the extension vanishes at a point where `f` vanishes
   at every time.
 * `ContMDiffOn.timeExtend`, `ContMDiff.timeExtend`: the extension of a smooth map is smooth.
@@ -109,6 +111,11 @@ theorem _root_.LinearMap.map_timeExtend (L : F →ₗ[ℝ] G) (f : unitInterval 
 theorem timeExtend_congr {f g : unitInterval × M → F} {x : M} (h : ∀ s, f (s, x) = g (s, x))
     (t : ℝ) : timeExtend f (t, x) = timeExtend g (t, x) := by
   simp only [timeExtend_def, h]
+
+/-- Extending `f ∘ Prod.map id g` in time at `(t, x)` is extending `f` at `(t, g x)`. -/
+theorem timeExtend_comp_prodMap_id {M' : Type*} (f : unitInterval × M' → F) (g : M → M')
+    (p : ℝ × M) : timeExtend (f ∘ Prod.map id g) p = timeExtend f (p.1, g p.2) := by
+  simp only [timeExtend_def, Function.comp_apply, Prod.map_apply, id_eq]
 
 /-- If `f` vanishes at `x` at every time, so does its time extension. -/
 theorem timeExtend_eq_zero {f : unitInterval × M → F} {x : M} (h : ∀ s, f (s, x) = 0) (t : ℝ) :

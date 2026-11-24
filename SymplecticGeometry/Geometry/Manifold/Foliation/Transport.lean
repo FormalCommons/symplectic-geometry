@@ -49,6 +49,8 @@ carried back into the open set by such a map, and so are the points near it.
 
 ## Main results
 
+* `TauCeti.Foliation.rank_le_finrank`: the rank of a foliation is at most the dimension of the
+  model space.
 * `TauCeti.Foliation.exists_foliatedChart`: a foliated chart of `𝓕` around any point, onto the
   product of the unit balls of `F₁` and `F₂`.
 * `TauCeti.Foliation.exists_transverseCoordinate`: the second coordinate of a foliated chart, a
@@ -77,6 +79,19 @@ open scoped Manifold ContDiff Topology
 namespace TauCeti
 
 namespace Foliation
+
+section Rank
+
+variable {𝕜 E H M : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+  [FiniteDimensional 𝕜 E] [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H} {n : ℕ∞ω}
+  [TopologicalSpace M] [ChartedSpace H M] [IsManifold I (n + 1) M] {k : ℕ}
+
+/-- The rank of a foliation of a nonempty manifold modelled on `E` is at most the dimension of
+`E`. The point `x` only makes `M` nonempty: the empty manifold has foliations of every rank. -/
+theorem rank_le_finrank (𝓕 : Foliation I n M k) (x : M) : k ≤ finrank 𝕜 E :=
+  𝓕.finrank_distribution x ▸ Submodule.finrank_le _
+
+end Rank
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M]
@@ -326,7 +341,7 @@ boundaryless manifold, there are a neighbourhood `V` of `x` and a map `φ : M �
 with `φ x = y` and such that every `z ∈ V` lies on the same leaf as `φ z`. -/
 theorem SameLeaf.exists_transport {x y : M} (h : 𝓕.SameLeaf x y) :
     ∃ V ∈ 𝓝 x, ∃ φ : M → M, ContMDiffOn I I ∞ φ V ∧ φ x = y ∧ ∀ z ∈ V, 𝓕.SameLeaf z (φ z) := by
-  have hk : k ≤ finrank ℝ E := 𝓕.finrank_distribution x ▸ Submodule.finrank_le _
+  have hk := 𝓕.rank_le_finrank x
   refine (sameLeaf_le (r := fun a b ↦ Transportable 𝓕 a b ∧ Transportable 𝓕 b a)
     ⟨fun a ↦ ⟨transportable_refl a, transportable_refl a⟩, fun h ↦ h.symm,
       fun h h' ↦ ⟨h.1.trans h'.1, h'.2.trans h.2⟩⟩
