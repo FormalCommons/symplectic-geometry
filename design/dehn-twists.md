@@ -252,9 +252,9 @@ def vectorBundleRescaledFamily {U : Opens (TotalSpace F V)} (ψ : U → TotalSpa
 theorem vectorBundleRescaledFamily_of_pos (ψ) {t : Icc (0 : ℝ) 1} (ht : 0 < (t : ℝ))
     (z : TotalSpace F V) (hz : vectorBundleFiberScaling _ _ (z, t) ∈ U) :
     vectorBundleRescaledFamily ψ (z, t) = m_{1/t} (ψ ⟨vectorBundleFiberScaling _ _ (z, t), hz⟩)
-theorem CotangentBundle.contMDiffOn_rescaledFamily {U' : Opens T*L} (hU' : U' ≤ U)
-    (hstar : ∀ z ∈ U', ∀ t, vectorBundleFiberScaling _ _ (z, t) ∈ U')
-    (hψ : ContMDiff _ _ ∞ ψ) (hψ0 : ∀ x, ψ ⟨0_x, _⟩ = 0_x) :
+theorem contMDiffOn_vectorBundleRescaledFamily [IB.Boundaryless] [CompleteSpace F] [T2Space B]
+    {U' : Set (TotalSpace F V)} (hstar : ∀ z ∈ U', ∀ t, vectorBundleFiberScaling _ _ (z, t) ∈ U)
+    (hψ : ContMDiff _ _ ∞ ψ) (hψ0 : ∀ x (hx : 0_x ∈ U), ψ ⟨0_x, hx⟩ = 0_x) :
     ContMDiffOn _ _ ∞ (vectorBundleRescaledFamily ψ) (U' ×ˢ univ)
 
 theorem CotangentBundle.exists_smoothIsotopy_of_eqOn_zeroSection
@@ -645,7 +645,7 @@ In this order; each is blocked by the ones listed. All are sub-issues of
 | # | Issue | Files | Blocked by | Size |
 |---|---|---|---|---|
 | 1 | Whitney's theorem on smooth even functions | `Analysis/Calculus/ContDiff/Even.lean` | — | 250 |
-| 2 | The rescaled family of a symplectic embedding near the zero section | `VectorBundle/RescaledFamily.lean` (`vectorBundleRescaledFamily`), `Cotangent/Bundle/Rescaling.lean` (smoothness) | — | 300 |
+| 2 | The rescaled family of a symplectic embedding near the zero section | `VectorBundle/RescaledFamily.lean` (`vectorBundleRescaledFamily` and its smoothness) | — | 300 |
 | 3 | Uniqueness of Lagrangian neighbourhoods up to isotopy | `Cotangent/Bundle/Rescaling.lean` (the two isotopy theorems) | 2 | 200 |
 | 4 | Moving a compactly supported diffeomorphism along a family of embeddings | `Diffeotopy/Extend.lean` | — | 300 |
 | 5 | Euclidean coordinates on the cotangent bundle of the sphere | `DehnTwist/Geodesic.lean` (coordinates, `antipodal`) | — | 300 |

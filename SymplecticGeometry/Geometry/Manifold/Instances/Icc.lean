@@ -6,6 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Instances.Icc
+public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
+public import TauCeti.Geometry.Manifold.VectorField.Prod
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 import TauCeti.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.VectorField.Regularity
@@ -23,6 +25,11 @@ vector field `z ↦ 1` is smooth, up to both ends (`contMDiff_totalSpaceMk_one_I
 constant field of the model space `EuclideanSpace ℝ (Fin 1)`, since the chart at the right end
 reverses orientation. It is the tangent map of the projection `Set.projIcc` applied to the
 constant field `1` of `ℝ`, which is how the smoothness is proved.
+
+On a cylinder `[0, 1] × P`, the product (Tau Ceti's `TauCeti.Manifold.prodVectorField`) of this
+field with the zero field of `P` is the unit time field `∂ₜ = (1, 0)`. It is smooth, up to both
+ends (`contMDiff_prodVectorField_one_zero`), so it is a smooth section of the tangent bundle
+(`unitIntervalTimeField`).
 
 Every tangent vector of the interval is a real multiple of `1`: a vector that the inclusion sends
 to `r` is `r • 1` (`eq_smul_one_of_mfderiv_subtypeVal_Icc`). So the derivative of a map into the
@@ -66,6 +73,40 @@ theorem contMDiff_totalSpaceMk_one_Icc :
   refine (hT.comp_contMDiff hg fun z ↦ z.property).congr fun z ↦ ?_
   simp only [Function.comp_apply, tangentMapWithin]
   rw [mfderivWithin_projIcc_one z.property, projIcc_val]
+
+section Cylinder
+
+variable {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {J : ModelWithCorners ℝ E' H'} {P : Type*} [TopologicalSpace P] [ChartedSpace H' P]
+  [IsManifold J 1 P]
+
+/-- The unit time field `∂ₜ = (1, 0)` of the cylinder `[0, 1] × P` is smooth, up to both ends. -/
+theorem contMDiff_prodVectorField_one_zero :
+    ContMDiff ((𝓡∂ 1).prod J) ((𝓡∂ 1).prod J).tangent ∞ (fun p : unitInterval × P ↦
+      (⟨p, TauCeti.Manifold.prodVectorField (fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
+        (0 : Π y : P, TangentSpace J y) p⟩ : TangentBundle ((𝓡∂ 1).prod J) (unitInterval × P))) :=
+  TauCeti.Manifold.contMDiff_prodVectorField contMDiff_totalSpaceMk_one_Icc
+    (Bundle.contMDiff_zeroSection ℝ (TangentSpace J))
+
+/-- The unit time field `∂ₜ = (1, 0)` of the cylinder `[0, 1] × P`, as a smooth section of the
+tangent bundle. -/
+noncomputable def unitIntervalTimeField :
+    Cₛ^∞⟮(𝓡∂ 1).prod J; EuclideanSpace ℝ (Fin 1) × E',
+      TangentSpace ((𝓡∂ 1).prod J) (M := unitInterval × P)⟯ :=
+  ⟨TauCeti.Manifold.prodVectorField (fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
+    (0 : Π y : P, TangentSpace J y), contMDiff_prodVectorField_one_zero⟩
+
+/-- The unit time field of the cylinder is the product field of `1` on `[0, 1]` and `0` on
+`P`. -/
+@[simp]
+theorem coe_unitIntervalTimeField :
+    ⇑(unitIntervalTimeField : Cₛ^∞⟮(𝓡∂ 1).prod J; EuclideanSpace ℝ (Fin 1) × E',
+      TangentSpace ((𝓡∂ 1).prod J) (M := unitInterval × P)⟯) =
+      TauCeti.Manifold.prodVectorField (fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
+        (0 : Π y : P, TangentSpace J y) :=
+  (rfl)
+
+end Cylinder
 
 /-- A tangent vector `v` of a closed interval `[x, y]`, `x < y`, is `r` times the unit tangent
 vector `1` when the inclusion `Icc x y → ℝ` sends it to `r`. -/
