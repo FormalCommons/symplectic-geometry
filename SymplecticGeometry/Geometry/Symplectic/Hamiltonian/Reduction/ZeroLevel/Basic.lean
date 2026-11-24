@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Reduction.ReducedSpace
 public import SymplecticGeometry.Topology.Algebra.ProperAction.Basic
+public import SymplecticGeometry.GroupTheory.GroupAction.SubMulAction
 
 -- `zeroLevelChartedSpace` is `levelSubMulActionChartedSpace 0`, which needs the two levels to
 -- have the same points by definition; that unfolds the body of `levelSubMulAction`.
@@ -26,7 +27,7 @@ on all of `M` is assumed.
 
 * `zeroLevel`: the level `μ⁻¹(0)` as a `SubMulAction` of `G`. The instance
   `SubMulAction.properSMul` gives properness on it from a proper action on `M`, and
-  `isCancelSMul_zeroLevel` gives freeness.
+  `SubMulAction.isCancelSMul_of_forall_stabilizer_eq_bot` gives freeness.
 * `zeroLevelChartedSpace`, `isManifold_zeroLevel`, `isSmoothEmbedding_coe_zeroLevel`,
   `range_mfderiv_coe_zeroLevel`: freeness makes `0` a regular value, so `Z` is an embedded
   submanifold of `M`, modelled on `Fin n → ℝ` for `n = dim M - dim 𝔤`, with tangent spaces
@@ -114,14 +115,6 @@ theorem mem_zeroLevel {x : M} : x ∈ h.zeroLevel ↔ μ x = 0 :=
 theorem coe_zeroLevel : (h.zeroLevel : Set M) = μ ⁻¹' {0} :=
   (rfl)
 
-/-- **Freeness on the zero level.** If `G` acts freely at every point of `μ⁻¹(0)`, it acts freely
-on the zero level. -/
-theorem isCancelSMul_zeroLevel (hfree : ∀ x, μ x = 0 → MulAction.stabilizer G x = ⊥) :
-    IsCancelSMul G h.zeroLevel :=
-  isCancelSMul_iff_stabilizer_eq_bot.2 fun z ↦ by
-    rw [SubMulAction.stabilizer_of_subMul]
-    exact hfree z z.property
-
 /-! ### The zero level as a manifold -/
 
 variable [I'.Boundaryless] [T2Space M]
@@ -198,7 +191,8 @@ private theorem quotient_hypotheses :
     IsManifold 𝓘(ℝ, Fin n → ℝ) ∞ h.zeroLevel ∧
       ContMDiffSMul I 𝓘(ℝ, Fin n → ℝ) ∞ G h.zeroLevel ∧ IsCancelSMul G h.zeroLevel :=
   ⟨h.isManifold_zeroLevel hσ hfree hn, h.contMDiffSMul_zeroLevel hσ hfree hn,
-    h.isCancelSMul_zeroLevel hfree⟩
+    h.zeroLevel.isCancelSMul_of_forall_stabilizer_eq_bot fun x hx ↦
+      hfree x (h.mem_zeroLevel.1 hx)⟩
 
 /-- **The atlas of the reduced space** `μ⁻¹(0) / G`: the slice charts of the quotient manifold
 theorem `ProperSMul.orbitRelQuotientChartedSpace`, for the free and proper action of `G` on the
@@ -212,6 +206,18 @@ def zeroLevelQuotientChartedSpace :
   haveI := (h.quotient_hypotheses hσ hfree hn).2.1
   haveI := (h.quotient_hypotheses hσ hfree hn).2.2
   ProperSMul.orbitRelQuotientChartedSpace I G 𝓘(ℝ, Fin n → ℝ) h.zeroLevel
+
+/-- `zeroLevelQuotientChartedSpace` is the atlas `ProperSMul.orbitRelQuotientChartedSpace` of the
+quotient manifold theorem, for the atlas `zeroLevelChartedSpace` of the zero level. -/
+theorem zeroLevelQuotientChartedSpace_def :
+    h.zeroLevelQuotientChartedSpace hσ hfree hn =
+      letI := h.zeroLevelChartedSpace hσ hfree hn
+      haveI := h.isManifold_zeroLevel hσ hfree hn
+      haveI := h.contMDiffSMul_zeroLevel hσ hfree hn
+      haveI := h.zeroLevel.isCancelSMul_of_forall_stabilizer_eq_bot fun x hx ↦
+        hfree x (h.mem_zeroLevel.1 hx)
+      ProperSMul.orbitRelQuotientChartedSpace I G 𝓘(ℝ, Fin n → ℝ) h.zeroLevel :=
+  (rfl)
 
 /-- **The reduced space `μ⁻¹(0) / G` is a smooth manifold**, for the atlas
 `zeroLevelQuotientChartedSpace`. -/
