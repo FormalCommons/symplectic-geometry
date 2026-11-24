@@ -252,13 +252,6 @@ theorem maslovIndex_eq_of_maslovPhase_apply {A : GLSymplectic ι ℝ} (γ : Path
     (fun t ↦ by rw [Path.map_coe, Function.comp_apply, h]) (by
       simp only [Set.Icc.coe_one, Set.Icc.coe_zero]; ring)
 
-/-- Changing the base point of a loop along an equality keeps its Maslov index. -/
-@[simp]
-theorem maslovIndex_cast {A B : GLSymplectic ι ℝ} (γ : Path B B) (h : A = B) :
-    maslovIndex (γ.cast h h) = maslovIndex γ := by
-  subst h
-  rfl
-
 end TauCeti.GLSymplectic
 
 namespace SymplecticGeometry
@@ -337,7 +330,9 @@ theorem maslovPhase_symplecticRotationLoop_apply (k : ℤ) (t : I) :
 @[simp]
 theorem maslovIndex_symplecticRotationLoop (k : ℤ) :
     maslovIndex (symplecticRotationLoop k) = k := by
-  rw [symplecticRotationLoop_def, maslovIndex_cast, maslovIndex_toBasedLoop_circlePowLoop]
+  rw [symplecticRotationLoop_def,
+    maslovIndex_congr _ _ fun t ↦ congrFun (Path.cast_coe _ _ _) t,
+    maslovIndex_toBasedLoop_circlePowLoop]
 
 /-! ### Uniqueness -/
 
