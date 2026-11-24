@@ -25,9 +25,12 @@ outputs:
   imports:
     description: A hash of the list of Tau Ceti modules that the library imports.
     value: ${{ steps.names.outputs.imports }}
-  # A save of `.lake/build` has this name, then the number of its hour, the
-  # commit and the run. lakefile.toml is in the hash because Lake's record
-  # of a build does not cover everything a lakefile can set.
+  # A save of `.lake/build` has this name, then its kind (`-src-` for a
+  # build from source, `-inc-` for one that follows main), the time at
+  # which the build from source began that it is or descends from (`none`
+  # without one), the commit and the run; see the cache workflow.
+  # lakefile.toml is in the hash because Lake's record of a build does not
+  # cover everything a lakefile can set.
   build:
     description: The start of the name of the saves of the library's build.
     value: ${{ steps.names.outputs.build }}
