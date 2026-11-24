@@ -51,6 +51,9 @@ such a map, and so are the points near it.
 
 * `TauCeti.Foliation.exists_foliatedChart`: a foliated chart of `𝓕` around any point, onto the
   product of the unit balls of `F₁` and `F₂`.
+* `TauCeti.Foliation.exists_transverseCoordinate`: the second coordinate of a foliated chart, a
+  map to `F₂` that is smooth near `x`, whose derivative has kernel the tangent space of `𝓕`, and
+  whose fibres near `x` lie in leaves.
 * `TauCeti.Foliation.sameLeaf_symm_of_segment_subset`: in a flat partial diffeomorphism, the
   preimages of the ends of a segment in its target with constant second component lie on one
   leaf.
@@ -163,6 +166,51 @@ theorem exists_foliatedChart (𝓕 : Foliation I ∞ M k) (h₁ : finrank ℝ F�
   have h := sameLeaf_symm_of_segment_subset (fun y hy v ↦ (hflat y hy v).1) hseg
     (by simp only [← hΨ, huu'])
   simpa [Φ.left_inv (huΦ u).1, Φ.left_inv (huΦ u').1] using h
+
+/-- **Transverse coordinates of a foliation.** Let `𝓕` be a smooth foliation of rank `k` of a
+boundaryless manifold modelled on `E`, and let `F₂` be a normed space with
+`dim E = k + dim F₂`. Every point `x` has an open neighbourhood `V` with a map `ψ : M → F₂`,
+smooth at every point of `V`, such that
+* at every `z ∈ V`, the kernel of `dψ_z` is the tangent space of `𝓕`;
+* two points of `V` with the same image under `ψ` lie on the same leaf of `𝓕`.
+
+The map `ψ` is the second coordinate of a foliated chart (`exists_foliatedChart`), extended by
+`0` outside its domain. -/
+theorem exists_transverseCoordinate (𝓕 : Foliation I ∞ M k)
+    (h₂ : finrank ℝ E = k + finrank ℝ F₂) (x : M) :
+    ∃ (V : Opens M) (ψ : M → F₂), x ∈ V ∧ (∀ z ∈ V, ContMDiffAt I 𝓘(ℝ, F₂) ∞ ψ z) ∧
+      (∀ z ∈ V, ∀ v : TangentSpace I z,
+        mfderiv I 𝓘(ℝ, F₂) ψ z v = 0 ↔ v ∈ 𝓕.distribution z) ∧
+      ∀ z ∈ V, ∀ z' ∈ V, ψ z = ψ z' → 𝓕.SameLeaf z z' := by
+  classical
+  have : IsManifold I ∞ M := .of_le (n := ∞ + 1) le_self_add
+  obtain ⟨V, hxV, Ψ, -, hflat, hleaf⟩ := 𝓕.exists_foliatedChart
+    (F₁ := EuclideanSpace ℝ (Fin k)) (F₂ := F₂) finrank_euclideanSpace_fin h₂ x
+  let Ψ' : V → EuclideanSpace ℝ (Fin k) × F₂ := fun w ↦ Ψ w
+  let ψ : M → F₂ := fun z ↦ if h : z ∈ V then (Ψ' ⟨z, h⟩).2 else 0
+  have hψV : ψ ∘ Subtype.val = ContinuousLinearMap.snd ℝ _ _ ∘ Ψ' :=
+    funext fun w ↦ by simp [ψ, w.property]
+  have hΨ : ContMDiff I 𝓘(ℝ, EuclideanSpace ℝ (Fin k) × F₂) ∞ Ψ' :=
+    contMDiff_subtypeVal.comp Ψ.contMDiff
+  have hψ (z : V) : ContMDiffAt I 𝓘(ℝ, F₂) ∞ ψ z := by
+    have := (ContinuousLinearMap.snd ℝ _ _).contMDiff.contMDiffAt.comp z (hΨ z)
+    rw [← hψV] at this
+    exact contMDiffAt_subtype_iff.1 this
+  refine ⟨V, ψ, hxV, fun z hz ↦ hψ ⟨z, hz⟩, fun z hz v ↦ ?_, fun z hz z' hz' h ↦
+    hleaf ⟨z, hz⟩ ⟨z', hz'⟩ (by simpa [ψ, hz, hz'] using h)⟩
+  -- On `V`, the derivative of `ψ` is the second component of that of the chart.
+  have e : mfderiv I 𝓘(ℝ, F₂) ψ z v = (mfderiv I 𝓘(ℝ, EuclideanSpace ℝ (Fin k) × F₂) Ψ' ⟨z, hz⟩ v :
+      EuclideanSpace ℝ (Fin k) × F₂).2 := by
+    refine (mfderiv_comp_subtype_val_apply (U := V) (f := ψ) (x := ⟨z, hz⟩) v).symm.trans ?_
+    rw [hψV]
+    refine (mfderiv_comp_apply _ (ContinuousLinearMap.snd ℝ _ _).mdifferentiableAt
+      ((hΨ ⟨z, hz⟩).mdifferentiableAt (by simp)) v).trans ?_
+    refine (DFunLike.congr_fun ((ContinuousLinearMap.snd ℝ (EuclideanSpace ℝ (Fin k)) F₂).mfderiv_eq
+      (x := Ψ' ⟨z, hz⟩)) _).trans ?_
+    exact congrFun (ContinuousLinearMap.coe_snd' (R := ℝ) (M₁ := EuclideanSpace ℝ (Fin k))
+      (M₂ := F₂)) _
+  rw [e]
+  exact hflat ⟨z, hz⟩ v
 
 omit [FiniteDimensional ℝ E] [BoundarylessManifold I M] [FiniteDimensional ℝ F₁]
   [FiniteDimensional ℝ F₂] in

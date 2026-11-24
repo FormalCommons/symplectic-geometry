@@ -8,9 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Foliation.Transport
 public import Mathlib.Analysis.InnerProductSpace.PiL2
 public import Mathlib.Topology.Bases
-import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
-import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
 /-!
 # The leaf space of a foliation, and slices
@@ -27,12 +25,14 @@ map `s` from an open set of `EuclideanSpace ℝ (Fin (finrank ℝ E - k))` to `M
 at each point has range complementary to the tangent space of `𝓕`, and which meets each leaf
 at most once. The foliation is regular (condition (R) of McDuff–Salamon, §5.4) when every point
 lies in the range of a slice. Near a point of a slice, the leaves give a smooth retraction onto
-the slice (`TauCeti.Foliation.IsSlice.exists_retraction`): in a foliated chart, the transverse
-coordinate along the slice is a local diffeomorphism by the inverse function theorem
+the slice (`TauCeti.Foliation.IsSlice.exists_retraction`): the transverse coordinate of a
+foliated chart (`TauCeti.Foliation.exists_transverseCoordinate`), restricted to the slice, is a
+local diffeomorphism by the inverse function theorem
 (`TauCeti.isLocalDiffeomorphAt_of_injective_mfderiv`). It follows that the composition of a slice
 with the projection to the leaf space is an open embedding
-(`TauCeti.Foliation.IsSlice.isOpenEmbedding_leafSpaceMk_comp`); these maps are the charts of the
-smooth structure on the leaf space of a regular foliation.
+(`TauCeti.Foliation.IsSlice.isOpenEmbedding_leafSpaceMk_comp`). For a regular foliation these
+open embeddings cover the leaf space (`TauCeti.Foliation.IsRegular.exists_isOpenEmbedding`), so
+their inverses can serve as the charts of a smooth structure on the leaf space.
 
 ## Main definitions
 
@@ -47,6 +47,8 @@ smooth structure on the leaf space of a regular foliation.
 * `TauCeti.Foliation.IsSlice.exists_retraction`: the retraction along leaves onto a slice.
 * `TauCeti.Foliation.IsSlice.isOpenEmbedding_leafSpaceMk_comp`: a slice followed by the
   projection is an open embedding.
+* `TauCeti.Foliation.IsRegular.exists_isOpenEmbedding`: for a regular foliation, such open
+  embeddings cover the leaf space.
 
 ## References
 
@@ -127,6 +129,12 @@ theorem LeafSpace.lift_leafSpaceMk {α : Sort*} (f : M → α)
     LeafSpace.lift f hf (𝓕.leafSpaceMk x) = f x :=
   (rfl)
 
+/-- The map induced on the leaf space, composed with the projection, is the original map. -/
+@[simp]
+theorem LeafSpace.lift_comp_leafSpaceMk {α : Sort*} (f : M → α)
+    (hf : ∀ x y, 𝓕.SameLeaf x y → f x = f y) : LeafSpace.lift f hf ∘ 𝓕.leafSpaceMk = f :=
+  funext (LeafSpace.lift_leafSpaceMk f hf)
+
 /-- The projection to the leaf space is a quotient map. -/
 theorem isQuotientMap_leafSpaceMk : IsQuotientMap 𝓕.leafSpaceMk :=
   isQuotientMap_quotient_mk'
@@ -135,6 +143,18 @@ theorem isQuotientMap_leafSpaceMk : IsQuotientMap 𝓕.leafSpaceMk :=
 @[continuity, fun_prop]
 theorem continuous_leafSpaceMk : Continuous 𝓕.leafSpaceMk :=
   continuous_quotient_mk'
+
+/-- A map on `M` that is constant on each leaf is continuous exactly when the map it induces on
+the leaf space is. -/
+theorem LeafSpace.continuous_lift_iff {α : Type*} [TopologicalSpace α] {f : M → α}
+    {hf : ∀ x y, 𝓕.SameLeaf x y → f x = f y} : Continuous (LeafSpace.lift f hf) ↔ Continuous f := by
+  rw [isQuotientMap_leafSpaceMk.continuous_iff, LeafSpace.lift_comp_leafSpaceMk]
+
+/-- The map that a continuous map constant on each leaf induces on the leaf space is continuous. -/
+theorem LeafSpace.continuous_lift {α : Type*} [TopologicalSpace α] {f : M → α}
+    {hf : ∀ x y, 𝓕.SameLeaf x y → f x = f y} (h : Continuous f) :
+    Continuous (LeafSpace.lift f hf) :=
+  LeafSpace.continuous_lift_iff.2 h
 
 /-- The preimage of the image of a set under the projection is the union of the leaves through
 its points. -/
@@ -214,83 +234,49 @@ theorem injective_mfderiv (hs : 𝓕.IsSlice s) (u : U) :
   rw [← ContinuousLinearMap.coe_coe, ← LinearMap.ker_eq_bot]
   exact Submodule.finrank_eq_zero.1 (by omega)
 
-
 /-- **The retraction onto a slice along the leaves.** Near a point `s u` of a slice `s` of a smooth
 foliation of a boundaryless manifold, there is a map `r` to the domain of `s`, smooth at `s u`,
 such that `r (s v) = v` for `v` near `u` and every `z` near `s u` lies on the leaf of `s (r z)`. -/
 theorem exists_retraction (hs : 𝓕.IsSlice s) (u : U) :
     ∃ r : M → U, ContMDiffAt I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) ∞ r (s u) ∧
       (∀ᶠ v in 𝓝 u, r (s v) = v) ∧ ∀ᶠ z in 𝓝 (s u), 𝓕.SameLeaf z (s (r z)) := by
-  classical
-  have : IsManifold I ∞ M := .of_le (n := ∞ + 1) le_self_add
   have hk : k ≤ finrank ℝ E := 𝓕.finrank_distribution (s u) ▸ Submodule.finrank_le _
-  obtain ⟨V, hxV, Ψ, -, hflat, hleaf⟩ := 𝓕.exists_foliatedChart
-    (F₁ := EuclideanSpace ℝ (Fin k)) (F₂ := EuclideanSpace ℝ (Fin (finrank ℝ E - k)))
-    finrank_euclideanSpace_fin (by rw [finrank_euclideanSpace_fin]; omega) (s u)
-  -- The transverse coordinate of the foliated chart, extended by `0` outside its domain.
-  let Ψ' : V → EuclideanSpace ℝ (Fin k) × EuclideanSpace ℝ (Fin (finrank ℝ E - k)) :=
-    fun w ↦ Ψ w
-  let ψ : M → EuclideanSpace ℝ (Fin (finrank ℝ E - k)) := fun z ↦
-    if h : z ∈ V then ContinuousLinearMap.snd ℝ _ _ (Ψ' ⟨z, h⟩) else 0
-  have hψV : ψ ∘ Subtype.val = ContinuousLinearMap.snd ℝ _ _ ∘ Ψ' :=
-    funext fun w ↦ by simp [ψ, w.property]
-  have hΨ : ContMDiff I 𝓘(ℝ, EuclideanSpace ℝ (Fin k) × EuclideanSpace ℝ (Fin (finrank ℝ E - k)))
-      ∞ Ψ' :=
-    contMDiff_subtypeVal.comp Ψ.contMDiff
-  have hψ (z : V) : ContMDiffAt I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) ∞ ψ z := by
-    have := (ContinuousLinearMap.snd ℝ _ _).contMDiff.contMDiffAt.comp z (hΨ z)
-    rw [← hψV] at this
-    exact contMDiffAt_subtype_iff.1 this
-  have hdψ (z : V) (w : TangentSpace I z) :
-      mfderiv I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) ψ z w =
-        ContinuousLinearMap.snd ℝ _ _ (mfderiv I
-          𝓘(ℝ, EuclideanSpace ℝ (Fin k) × EuclideanSpace ℝ (Fin (finrank ℝ E - k))) Ψ' z w) := by
-    refine (mfderiv_comp_subtype_val_apply (U := V) (f := ψ) (x := z) w).symm.trans ?_
-    rw [hψV]
-    refine (mfderiv_comp_apply z (ContinuousLinearMap.snd ℝ _ _).mdifferentiableAt
-      ((hΨ z).mdifferentiableAt (by simp)) w).trans ?_
-    rw [ContinuousLinearMap.mfderiv_eq]
-    rfl
+  obtain ⟨V, ψ, hxV, hψ, hker, hleaf⟩ := 𝓕.exists_transverseCoordinate
+    (F₂ := EuclideanSpace ℝ (Fin (finrank ℝ E - k))) (by rw [finrank_euclideanSpace_fin]; omega)
+    (s u)
   -- The transverse coordinate along the slice is a local diffeomorphism at `u`.
-  let h : U → EuclideanSpace ℝ (Fin (finrank ℝ E - k)) := ψ ∘ s
   have hW : IsOpen (s ⁻¹' V) := V.isOpen.preimage hs.contMDiff.continuous
-  have hh : ContMDiffOn 𝓘(ℝ, _) 𝓘(ℝ, _) ∞ h (s ⁻¹' V) := fun v hv ↦
-    ((hψ ⟨s v, hv⟩).comp v (hs.contMDiff v)).contMDiffWithinAt
+  have hh : ContMDiffOn 𝓘(ℝ, _) 𝓘(ℝ, _) ∞ (ψ ∘ s) (s ⁻¹' V) := fun v hv ↦
+    ((hψ _ hv).comp v (hs.contMDiff v)).contMDiffWithinAt
   have hinj : Injective (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k)))
-      𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) h u) := by
+      𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) (ψ ∘ s) u) := by
     rw [← ContinuousLinearMap.coe_coe, ← LinearMap.ker_eq_bot, LinearMap.ker_eq_bot']
     intro w hw
-    rw [ContinuousLinearMap.coe_coe, show h = ψ ∘ s from rfl, mfderiv_comp_apply u
-      ((hψ ⟨s u, hxV⟩).mdifferentiableAt (by simp))
+    rw [ContinuousLinearMap.coe_coe, mfderiv_comp_apply u
+      ((hψ _ hxV).mdifferentiableAt (by simp))
       ((hs.contMDiff u).mdifferentiableAt (by simp))] at hw
-    have hmem := (hflat ⟨s u, hxV⟩ _).1 ((hdψ ⟨s u, hxV⟩ _).symm.trans hw)
     have h0 := Submodule.disjoint_def.1 (hs.isCompl_range_mfderiv u).disjoint _
-      (LinearMap.mem_range_self _ w) hmem
+      (LinearMap.mem_range_self _ w) ((hker _ hxV _).1 hw)
     exact (hs.injective_mfderiv u) (h0.trans (map_zero _).symm)
-  have hL : IsLocalDiffeomorphAt 𝓘(ℝ, _) 𝓘(ℝ, _) ∞ h u :=
+  have hL : IsLocalDiffeomorphAt 𝓘(ℝ, _) 𝓘(ℝ, _) ∞ (ψ ∘ s) u :=
     isLocalDiffeomorphAt_of_injective_mfderiv hh hW hxV BoundarylessManifold.isInteriorPoint
       (by simp) hinj rfl
   -- The retraction is the local inverse after the transverse coordinate.
   set Λ := hL.localInverse
   have hr : ContMDiffAt I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) ∞ (fun z ↦ Λ (ψ z))
       (s u) :=
-    hL.contMDiffAt_localInverse.comp (s u) (hψ ⟨s u, hxV⟩)
+    hL.contMDiffAt_localInverse.comp (s u) (hψ _ hxV)
   have hru : Λ (ψ (s u)) = u := hL.localInverse_left_inv hL.localInverse_mem_target
   refine ⟨fun z ↦ Λ (ψ z), hr, hL.localInverse_eventuallyEq_left.mono fun v hv ↦ hv, ?_⟩
   have h₁ : ∀ᶠ z in 𝓝 (s u), ψ z ∈ Λ.source :=
-    (hψ ⟨s u, hxV⟩).continuousAt.preimage_mem_nhds
+    (hψ _ hxV).continuousAt.preimage_mem_nhds
       (hL.localInverse_open_source.mem_nhds hL.localInverse_mem_source)
   have h₂ : ∀ᶠ z in 𝓝 (s u), s (Λ (ψ z)) ∈ V := by
     have hc : ContinuousAt (fun z ↦ s (Λ (ψ z))) (s u) :=
       hs.contMDiff.continuous.continuousAt.comp hr.continuousAt
     exact hc.preimage_mem_nhds (by simpa only [hru] using V.isOpen.mem_nhds hxV)
   filter_upwards [V.isOpen.mem_nhds hxV, h₁, h₂] with z hz hz₁ hz₂
-  have e : ψ (s (Λ (ψ z))) = ψ z := hL.localInverse_right_inv hz₁
-  refine hleaf ⟨z, hz⟩ ⟨_, hz₂⟩ ?_
-  have e₁ : ψ z = (Ψ' ⟨z, hz⟩).2 := congrFun hψV ⟨z, hz⟩
-  have e₂ : ψ (s (Λ (ψ z))) = (Ψ' ⟨_, hz₂⟩).2 :=
-    congrFun hψV ⟨_, hz₂⟩
-  rw [← e₁, ← e₂, e]
+  exact hleaf z hz _ hz₂ (hL.localInverse_right_inv hz₁).symm
 
 /-- A slice of a smooth foliation of a boundaryless manifold, followed by the projection to the
 leaf space, is an open embedding. -/
@@ -310,6 +296,15 @@ theorem isOpenEmbedding_leafSpaceMk_comp (hs : 𝓕.IsSlice s) :
   exact ⟨r z, (hOsub hz).1, leafSpaceMk_eq_leafSpaceMk_iff.2 (hOsub hz).2.symm⟩
 
 end IsSlice
+
+/-- For a regular foliation, every leaf lies in the image of the composition `𝓕.leafSpaceMk ∘ s` of
+a slice `s` with the projection, and this composition is an open embedding. -/
+theorem IsRegular.exists_isOpenEmbedding (h𝓕 : 𝓕.IsRegular) (q : 𝓕.LeafSpace) :
+    ∃ (U : Opens (EuclideanSpace ℝ (Fin (finrank ℝ E - k)))) (s : U → M), 𝓕.IsSlice s ∧
+      IsOpenEmbedding (𝓕.leafSpaceMk ∘ s) ∧ q ∈ range (𝓕.leafSpaceMk ∘ s) := by
+  obtain ⟨x, rfl⟩ := leafSpaceMk_surjective q
+  obtain ⟨U, s, hs, u, rfl⟩ := h𝓕 x
+  exact ⟨U, s, hs, hs.isOpenEmbedding_leafSpaceMk_comp, u, rfl⟩
 
 end Foliation
 
