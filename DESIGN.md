@@ -3106,10 +3106,11 @@ Differential topology and complex analysis only; it waits for no part of
   projection, an isomorphism
   because $J\ne-i$ at every point), `Sobolev.lean` (only what Tau Ceti's
   `Geometry/Manifold/VectorBundle/Sobolev/` lacks: its
-  `TauCeti.IsRealCauchyRiemannOperator.sobolevL` realizes an operator for
-  the fixed complex structure as a bounded map from `TauCeti.SobolevSection`
-  ($W^{1,p}$) to `TauCeti.zeroOneSobolevSections` ($L^p$); this file
-  realizes $D_J$ in these spaces for every $J$, shows that it depends
+  `TauCeti.IsRealCauchyRiemannOperator.sobolevL` realizes only operators of
+  the fixed complex structure; this file realizes $D_J$ for every $J$, by
+  the projection of `Basic.lean`, as a bounded map from
+  `TauCeti.SobolevSection` ($W^{k+1,2}$) to `TauCeti.zeroOneSobolevSections`
+  ($W^{k,2}$) for every $k$, shows that it depends
   continuously on $J$ in the operator norm, and gives the elliptic
   regularity of its kernel), `Standard.lean` ($D_i$ is
   surjective with kernel $H^0(\mathcal O(1))$ of dimension two, from Tau
@@ -3117,14 +3118,14 @@ Differential topology and complex analysis only; it waits for no part of
   $\bar\partial$ on $(0,1)$-forms,
   `TauCeti.SmoothForm.IsOfType.exists_delBar_eq_projectivization`, extended
   to $\mathcal O(1)$ by the splitting into two charts that the page
-  describes) and `Kernel.lean` (index two for all $J$, by Tau Ceti's
+  describes) and `Kernel.lean` (real index four for all $J$, by Tau Ceti's
   `Continuous.index_eq_of_preconnectedSpace` on the connected $\mathcal
   J$; every nonzero element of $E_J=\ker D_J$ has exactly one zero, which
-  is simple, from integrability and Tau Ceti's local holomorphic frames,
-  `Geometry/Manifold/VectorBundle/CauchyRiemann/HolomorphicFrame/`; hence
+  is simple, from integrability, read in isothermal charts of $J$, and the
+  local solution of $\bar\partial$; hence
   $\dim E_J=2$ and $D_J$ onto; the spaces $E_J$ form a continuous rank-two
-  family in $C^\infty(L)$, from
-  `ContinuousLinearMap.IsFredholm.exists_continuousOn_ker_parametrization`).
+  family in $C^\infty(L)$, from the inverse of $D_J$ stabilized by a
+  projection onto $E_{J_0}$).
 - **Builds on:** the merged *Isothermal coordinates* (integrability of $J$,
   `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`) and
   *Symplectic vector bundles* (contractibility of the tamed structures,
@@ -3141,8 +3142,8 @@ Differential topology and complex analysis only; it waits for no part of
   suffices; the form of elliptic regularity it needs; and the zero count,
   which the page reduces to integrability, local
   solvability of $\bar\partial$ on a disc and the sum of indices of the
-  zeros of a section, given by the merged
-  `VectorBundle/ChernNumber/EulerNumber.lean`.
+  zeros of a section, given by Tau Ceti's
+  `TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_analyticOrderNatAt`.
 
 ### 46. Diffeomorphisms of the 2-sphere (needs `design/sphere-diffeomorphisms.md`)
 
@@ -3758,7 +3759,7 @@ classification of 2-sphere bundles waits for them.
 
 | Milestone | Where |
 |---|---|
-| *Diffeomorphisms of the 2-sphere form a trivial principal bundle over the complex structures* | *Diffeomorphisms of the 2-sphere* (`Trivialization.lean`), with the operators of *Cauchy–Riemann operators on the sphere*. Existing inputs: `TauCeti.RiemannSurface.biholomorphOfDegreeEqOne`, `Diffeomorph.exists_coe_eq_smul`, `Diffeomorph.eq_refl_of_apply_zero_one_infty_eq_self`, `Continuous.index_eq_of_preconnectedSpace`, `ContinuousLinearMap.IsFredholm.exists_continuousOn_ker_parametrization`, and the merged integrability theorem `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`. |
+| *Diffeomorphisms of the 2-sphere form a trivial principal bundle over the complex structures* | *Diffeomorphisms of the 2-sphere* (`Trivialization.lean`), with the operators of *Cauchy–Riemann operators on the sphere*. Existing inputs: `TauCeti.RiemannSurface.biholomorphOfDegreeEqOne`, `Diffeomorph.exists_coe_eq_smul`, `Diffeomorph.eq_refl_of_apply_zero_one_infty_eq_self`, `Continuous.index_eq_of_preconnectedSpace`, and the merged integrability theorem `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`. |
 | *Smale's theorem on the diffeomorphism group of the 2-sphere* | *Diffeomorphisms of the 2-sphere* (`Smale.lean`). Existing inputs: `TauCeti.orthogonalToDiffSphere`, `Diffeomorph.isTopologicalGroup`. |
 
 ## Departures from the plan's advice
