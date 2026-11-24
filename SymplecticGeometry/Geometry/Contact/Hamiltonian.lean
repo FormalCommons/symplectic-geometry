@@ -133,18 +133,6 @@ namespace IsContactForm
 variable [FiniteDimensional ℝ E] (hα : α.IsContactForm)
 include hα
 
-/-- A one-form `β` that vanishes on the contact hyperplane `ker α_x` of a contact form is, at
-`x`, the multiple `β(R_x) α_x` of `α_x`, where `R` is the Reeb field. -/
-theorem apply_eq_apply_reebVectorField_smul_of_kerDistribution_le {β : RoughForm I M ℝ 1}
-    {x : M} (hβ : α.kerDistribution x ≤ β.ker x) :
-    β x = β x ![α.reebVectorField x] • α.val x := by
-  ext w
-  -- Subtract the Reeb component of `w` to land in the contact hyperplane.
-  have h := RoughForm.mem_ker.1 (hβ (hα.sub_smul_reebVectorField_mem_kerDistribution w))
-  rw [← RoughForm.eval_apply, map_sub, map_smul, RoughForm.eval_apply, RoughForm.eval_apply,
-    sub_eq_zero] at h
-  rw [h, ContinuousAlternatingMap.smul_apply, smul_eq_mul, smul_eq_mul, mul_comm]
-
 /-- **The multiplier of a contact vector field.** For a contact form `α` with Reeb field `R`, a
 smooth vector field `X` is a contact vector field exactly when `L_X α = R(α(X)) α`. -/
 theorem mem_contactVectorFields_iff_mlieDerivForm_eq {X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯} :
@@ -154,14 +142,6 @@ theorem mem_contactVectorFields_iff_mlieDerivForm_eq {X : Cₛ^∞⟮I; E, Tange
   rw [hg, ← hα.eq_mvfderiv_reebVectorField_of_mlieDerivForm_apply_eq_smul (fun _ ↦ rfl)
     (X.mdifferentiableAt (x := x)) (congrFun hg x)]
 
-
-/-- A smooth contact vector field of a contact form is the contact Hamiltonian vector field of
-its value `α(X)`. -/
-theorem isContactHamiltonianVectorField_of_mem_contactVectorFields
-    {X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯} (hX : X ∈ α.contactVectorFields) :
-    α.IsContactHamiltonianVectorField (fun x ↦ α.val x ![X x]) X :=
-  (hα.isContactHamiltonianVectorField_iff_mlieDerivForm
-    X.mdifferentiable).2 ⟨fun _ ↦ rfl, hX⟩
 
 /-- The contact Hamiltonian vector field of a smooth function is a contact vector field. -/
 theorem mem_contactVectorFields_contactHamiltonianVectorField (f : C^∞⟮I, M; ℝ⟯) :
@@ -181,8 +161,9 @@ theorem mem_contactVectorFields_iff_kerDistribution_mpullback_flowOf [I.Boundary
       (TauCeti.mpullback I I (flowOf X t) α.val).ker x = α.kerDistribution x := by
   refine ⟨fun hX t x hx ↦ ?_, fun h ↦ ?_⟩
   · -- The flow of the contact Hamiltonian field of `α(X)` rescales `α` by a positive factor.
-    have hpull := (hα.isContactHamiltonianVectorField_of_mem_contactVectorFields hX
-      ).mpullback_flowOf_apply hα ((contMDiff_apply_contMDiffSection α X).of_le (by simp)) hx
+    have hpull := ((hα.isContactHamiltonianVectorField_iff_mlieDerivForm X.mdifferentiable).2
+      ⟨fun _ ↦ rfl, hX⟩).mpullback_flowOf_apply hα
+      ((contMDiff_apply_contMDiffSection α X).of_le (by simp)) hx
     ext v
     rw [RoughForm.mem_ker, mem_kerDistribution, hpull, ContinuousAlternatingMap.smul_apply,
       smul_eq_mul, mul_eq_zero, or_iff_right (Real.exp_pos _).ne']
@@ -204,7 +185,8 @@ theorem mem_contactVectorFields_iff_kerDistribution_mpullback_flowOf [I.Boundary
         (mem_flowDomain_zero hZ1 x)
     refine hd.unique (hc.congr_of_eventuallyEq ?_)
     filter_upwards [hopen] with s hs
-    exact hα.apply_eq_apply_reebVectorField_smul_of_kerDistribution_le (h s x hs).ge
+    exact RoughForm.apply_eq_smul_of_ker_le
+      ((kerDistribution_eq_ker α x).symm.trans_le (h s x hs).ge) (hα.apply_reebVectorField x)
 
 /-- **The contact Hamiltonian of a contact vector field.** For a contact form `α`, the map
 `X ↦ α(X)` is a linear equivalence from the contact vector fields to the smooth functions. Its
@@ -225,8 +207,9 @@ def contactHamiltonianEquiv : α.contactVectorFields ≃ₗ[ℝ] C^∞⟮I, M; �
   invFun f := ⟨_, hα.mem_contactVectorFields_contactHamiltonianVectorField f⟩
   left_inv X := by
     refine Subtype.ext (ContMDiffSection.ext fun x ↦ ?_)
-    exact (congrFun ((hα.isContactHamiltonianVectorField_iff_eq).1
-      (hα.isContactHamiltonianVectorField_of_mem_contactVectorFields X.prop)) x).symm
+    obtain ⟨g, hg⟩ := X.prop
+    exact (congrFun (hα.eq_contactHamiltonianVectorField_of_mlieDerivForm_eq_smul
+      X.val.mdifferentiable hg) x).symm
   right_inv f := by
     ext x
     exact hα.apply_contactHamiltonianVectorField f x
