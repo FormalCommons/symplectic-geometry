@@ -35,9 +35,6 @@ statement for a coisotropic subspace `W` needs on top of it:
   subspace `Λ`, as `((Λ ∩ W) + W^ω) ⧸ W^ω`, is Lagrangian.
 * `TauCeti.SymplecticForm.IsCoisotropic.existsUnique_reduction_and_isLagrangian`: the three
   statements together.
-* `TauCeti.SymplecticForm.IsLagrangian.finrank_inf_add_finrank`: for coisotropic `W` and
-  Lagrangian `Λ`, `2 dim (Λ ∩ W) + dim V = 2 dim (Λ ∩ W^ω) + 2 dim W`, since the image of
-  `Λ ∩ W` in `W ⧸ W^ω` is half-dimensional and the kernel of `Λ ∩ W → W ⧸ W^ω` is `Λ ∩ W^ω`.
 * `TauCeti.SymplecticForm.ker_restrict_orthogonal`: in finite dimension, the radical of `W^ω`
   is `W ∩ W^ω`.
 * `TauCeti.SymplecticForm.ker_restrict_le_comap_of_forall_apply_eq`,
@@ -49,8 +46,7 @@ statement for a coisotropic subspace `W` needs on top of it:
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Lemma 2.1.7, and §5.4 (the linear step of Proposition 5.4.7) for
-  `TauCeti.SymplecticForm.IsLagrangian.finrank_inf_add_finrank`.
+  Lemma 2.1.7.
 -/
 
 public section
@@ -137,32 +133,6 @@ theorem IsCoisotropic.existsUnique_reduction_and_isLagrangian [FiniteDimensional
           (LinearMap.ker (ω.toBilinForm.restrict W)).mkQ) :=
   ⟨hW.map_subtype_ker_restrict, existsUnique_reduction ω W,
     fun _ hL => hL.reduction_map_sup hW⟩
-
-/-- **Dimension count for a reduced Lagrangian subspace.** For a Lagrangian subspace `Λ` and a
-coisotropic subspace `W` of a finite-dimensional symplectic vector space `V`,
-`2 dim (Λ ∩ W) + dim V = 2 dim (Λ ∩ W^ω) + 2 dim W`. -/
-theorem IsLagrangian.finrank_inf_add_finrank [FiniteDimensional ℝ V] (hL : ω.IsLagrangian L)
-    (hW : ω.IsCoisotropic W) :
-    2 * Module.finrank ℝ ↥(L ⊓ W) + Module.finrank ℝ V =
-      2 * Module.finrank ℝ ↥(L ⊓ ω.orthogonal W) + 2 * Module.finrank ℝ W := by
-  -- rank-nullity for `Λ ∩ W → W → W ⧸ W^ω`: its range is the image of `Λ ∩ W`, its kernel
-  -- is `Λ ∩ W^ω`
-  have h₁ := LinearMap.finrank_range_add_finrank_ker
-    ((LinearMap.ker (ω.toBilinForm.restrict W)).mkQ ∘ₗ (L.comap W.subtype).subtype)
-  rw [LinearMap.range_comp, Submodule.range_subtype, LinearMap.ker_comp, Submodule.ker_mkQ] at h₁
-  have h₂ : Module.finrank ℝ ↥(L.comap W.subtype) = Module.finrank ℝ ↥(L ⊓ W) := by
-    rw [← Submodule.finrank_map_subtype_eq, Submodule.map_comap_subtype, inf_comm]
-  have h₃ : Module.finrank ℝ
-      ↥((LinearMap.ker (ω.toBilinForm.restrict W)).comap (L.comap W.subtype).subtype) =
-      Module.finrank ℝ ↥(L ⊓ ω.orthogonal W) := by
-    rw [← Submodule.finrank_map_subtype_eq, Submodule.map_comap_subtype,
-      ← Submodule.finrank_map_subtype_eq, Submodule.map_inf _ W.injective_subtype,
-      Submodule.map_comap_subtype, hW.map_subtype_ker_restrict, inf_comm W L, inf_assoc,
-      inf_eq_right.2 (isCoisotropic_iff_le.1 hW)]
-  have h₄ := (hL.reduction_map hW).two_mul_finrank
-  have h₅ := hW.finrank_reducedSpace_add_finrank
-  rw [← h₂, ← h₃, ← h₁, ← h₅, ← h₄]
-  ring
 
 section Orthogonal
 
