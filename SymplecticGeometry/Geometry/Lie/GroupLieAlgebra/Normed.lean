@@ -6,6 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.GroupLieAlgebra
+import TauCeti.Geometry.Lie.Adjoint.Basic
+import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
+import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Basic
+import TauCeti.Topology.Algebra.Lie.Bracket
 
 /-!
 # The norm on the Lie algebra of a Lie group
@@ -16,7 +20,8 @@ space, such as the connection forms of principal bundles and the Maurer–Cartan
 normed space of values. This file gives `GroupLieAlgebra I G` the norm of `E`, once, so that every
 file which takes forms with values in the Lie algebra uses the same instances. The underlying
 additive group, module and topology are those of the tangent space, so the instances agree with
-the ones that Mathlib puts on `TangentSpace I 1`.
+the ones that Mathlib puts on `TangentSpace I 1`. Two examples at the end check that, with these
+instances, Mathlib's bracket and Tau Ceti's adjoint action rewrite inside Tau Ceti's forms.
 
 ## Implementation notes
 
@@ -71,5 +76,40 @@ def instNormedSpace : NormedSpace 𝕜 (GroupLieAlgebra I G) :=
 scoped[GroupLieAlgebra] attribute [instance] GroupLieAlgebra.instNormedSpace
 
 end GroupLieAlgebra
+
+/-! ### Tests: forms with values in the Lie algebra
+
+With the scoped instances above, Mathlib's bracket and Tau Ceti's adjoint action combine with Tau
+Ceti's vector-valued forms without an instance mismatch: the bracket wedge `[A ∧ A]` of a
+Lie-algebra-valued one-form `A` evaluates to `2 [A v, A w]`, and the adjoint action changes the
+values of `A`. -/
+
+section Tests
+
+open TauCeti TauCeti.Lie
+open scoped Manifold ContDiff GroupLieAlgebra
+
+attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
+
+variable {EG HG : Type*} [NormedAddCommGroup EG] [NormedSpace ℝ EG] [FiniteDimensional ℝ EG]
+  [TopologicalSpace HG] {IG : ModelWithCorners ℝ EG HG}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace HG G] [Group G] [LieGroup IG ∞ G]
+  {EM HM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] [TopologicalSpace HM]
+  {IM : ModelWithCorners ℝ EM HM} {M : Type*} [TopologicalSpace M] [ChartedSpace HM M]
+  [IsManifold IM ∞ M]
+
+example (A : SmoothForm IM M (GroupLieAlgebra IG G) 1) (x : M) (v w : TangentSpace IM x) :
+    (SmoothForm.wedgeWith (lieL ℝ _ _) A A).val x ![v, w] =
+      (2 : ℕ) • ⁅A.val x ![v], A.val x ![w]⁆ := by
+  rw [SmoothForm.wedgeWith_apply_one_one, lieL_apply, lieL_apply, ← lie_skew (A.val x ![w]),
+    sub_neg_eq_add, two_smul]
+
+example (g : G) (A : SmoothForm IM M (GroupLieAlgebra IG G) 1) (x : M)
+    (v : TangentSpace IM x) :
+    (SmoothForm.mapCoeff (adjointContinuousLinearMap g) A).val x ![v] =
+      adjointContinuousLinearMap g (A.val x ![v]) := by
+  rw [SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply]
+
+end Tests
 
 end
