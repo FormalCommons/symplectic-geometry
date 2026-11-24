@@ -18,6 +18,12 @@ its additive version is `ContMDiffMap.addLeft`. This is the version for any `n` 
 ## Main definitions
 
 * `ContMDiffMap.mulLeft`: left multiplication by `g`, as a `C^n` map.
+
+## Main results
+
+* `ContMDiffMap.mulLeft_mul`: in a semigroup, left multiplication by `g * h` is left
+  multiplication by `h` followed by left multiplication by `g`. It is the version for any `n` of
+  Mathlib's `L_mul`, and has its proof.
 -/
 
 public section
@@ -28,8 +34,11 @@ namespace ContMDiffMap
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {H : Type*} [TopologicalSpace H]
   {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] {I : ModelWithCorners 𝕜 E H}
-  {G : Type*} [Mul G] [TopologicalSpace G] [ChartedSpace H G] {n : WithTop ℕ∞}
-  [ContMDiffMul I n G]
+  {n : WithTop ℕ∞}
+
+section Mul
+
+variable {G : Type*} [Mul G] [TopologicalSpace G] [ChartedSpace H G] [ContMDiffMul I n G]
 
 /-- Left multiplication `h ↦ g * h` by `g`, as a `C^n` map of `G` into itself, for a `G` whose
 multiplication is `C^n`. -/
@@ -41,6 +50,22 @@ def mulLeft (g : G) : C^n⟮I, G; I, G⟯ :=
 @[to_additive (attr := simp)]
 theorem mulLeft_apply (g h : G) : mulLeft (I := I) (n := n) g h = g * h :=
   (rfl)
+
+@[to_additive (attr := simp)]
+theorem coe_mulLeft (g : G) : ⇑(mulLeft (I := I) (n := n) g) = (g * ·) :=
+  (rfl)
+
+end Mul
+
+/-- Left multiplication by `g * h` is left multiplication by `h` followed by left multiplication
+by `g`. -/
+@[to_additive (attr := simp) /-- Left addition of `g + h` is left addition of `h` followed by
+left addition of `g`. -/]
+theorem mulLeft_mul {G : Type*} [Semigroup G] [TopologicalSpace G] [ChartedSpace H G]
+    [ContMDiffMul I n G] (g h : G) :
+    mulLeft (I := I) (n := n) (g * h) = (mulLeft g).comp (mulLeft h) := by
+  ext
+  simp [mul_assoc]
 
 end ContMDiffMap
 
