@@ -13,6 +13,7 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
 import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantPrimitive
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
@@ -448,42 +449,23 @@ theorem exists_equivariant_diffeomorph_opens_of_eq_along (f : SmoothEmbedding J 
     have : IsEmpty Q := ⟨fun q ↦ hV.false ⟨f q, (hΦf q).1⟩⟩
     refine ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, by simp, by simp, fun _ x ↦ isEmptyElim x, isEmptyElim,
       Subsingleton.elim _ _⟩
-  -- Read `Φ` in `M`, as a partial diffeomorphism `Ψ`, and then as a diffeomorphism `φ` between
-  -- the source and the target of `Ψ`; both are invariant, and `Ψ` is equivariant.
-  let Ψ := Φ.liftOpens hV hV
-  have hΨΦ : ⇑Ψ ∘ (Subtype.val : W.invariantCore G → M) = Subtype.val ∘ ⇑Φ :=
-    funext (Φ.liftOpens_apply_coe hV hV)
-  let φ := Ψ.toDiffeomorphSourceTarget
-  have hφΨ : Subtype.val ∘ ⇑φ = ⇑Ψ ∘ Subtype.val := funext Ψ.toDiffeomorphSourceTarget_apply_coe
-  have hΨG (g : G) (y : W.invariantCore G) : Ψ (g • (y : M)) = g • Ψ y := by
-    rw [← Opens.coe_smul_invariantCore, Φ.liftOpens_apply_coe, Φ.liftOpens_apply_coe, hΦG,
-      Opens.coe_smul_invariantCore]
-  have hsrcG (g : G) : ∀ x ∈ Ψ.source, g • x ∈ Ψ.source := by
+  -- Read `Φ` in `M`, as a partial diffeomorphism `Ψ`, and then as a diffeomorphism between the
+  -- source and the target of `Ψ`; both are invariant, and `Ψ` is equivariant.
+  set Ψ := Φ.liftOpens hV hV
+  have hsrcG (g : G) : ∀ x ∈ Ψ.source, g • x ∈ Ψ.source := fun _ ↦
+    Φ.smul_mem_liftOpens_source Opens.coe_smul_invariantCore hV hV (fun g x ↦ (hsrc g x).2) g
+  have hΨG (g : G) : ∀ x ∈ Ψ.source, Ψ (g • x) = g • Ψ x := by
     rw [PartialDiffeomorph.liftOpens_source]
-    rintro _ ⟨y, hy, rfl⟩
-    exact ⟨g • y, (hsrc g y).2 hy, Opens.coe_smul_invariantCore g y⟩
-  have htgtG (g : G) : ∀ x ∈ Ψ.target, g • x ∈ Ψ.target := by
-    rw [PartialDiffeomorph.liftOpens_target]
-    rintro _ ⟨z, hz, rfl⟩
-    refine ⟨g • z, ?_, Opens.coe_smul_invariantCore g z⟩
-    rw [← Φ.right_inv hz, ← hΦG]
-    exact Φ.map_source ((hsrc g _).2 (Φ.map_target hz))
-  refine ⟨_, _, φ, hsrcG, htgtG, fun g x hx ↦ ?_, fun q ↦ ?_, ?_⟩
-  · obtain ⟨y, -, hy⟩ : (x : M) ∈ Subtype.val '' Φ.source := Φ.liftOpens_source hV hV ▸ x.property
-    rw [Ψ.toDiffeomorphSourceTarget_apply_coe, Ψ.toDiffeomorphSourceTarget_apply_coe]
-    simp only [← hy]
-    exact hΨG g y
-  · obtain ⟨hqV, hq, hfix, hjet⟩ := hΦf q
-    have hqΨ : f q ∈ Ψ.source := by
-      rw [PartialDiffeomorph.liftOpens_source]
-      exact ⟨_, hq, rfl⟩
-    refine ⟨hqΨ, ?_, ?_⟩
-    · rw [Ψ.toDiffeomorphSourceTarget_apply_coe]
-      exact (Φ.liftOpens_apply_coe hV hV _).trans (congrArg Subtype.val hfix)
-    · -- The differential of `Φ` at `f q` is the identity, read in `M`, then on the opens.
-      exact (Manifold.mfderiv_eq_id_iff_of_comp_subtype_val hφΨ).2
-        ((Manifold.mfderiv_eq_id_iff_of_comp_subtype_val hΨΦ.symm).1 hjet)
-  · exact Φ.mpullback_toDiffeomorphSourceTarget_liftOpens hV hV hΦ
+    rintro _ ⟨y, -, rfl⟩
+    exact Φ.liftOpens_smul_coe Opens.coe_smul_invariantCore Opens.coe_smul_invariantCore hV hV
+      hΦG g y
+  refine ⟨_, _, Ψ.toDiffeomorphSourceTarget, hsrcG,
+    fun g _ ↦ Ψ.toPartialEquiv.smul_mem_target hΨG hsrcG g, fun g x hx ↦ ?_, fun q ↦ ?_,
+    Φ.mpullback_toDiffeomorphSourceTarget_liftOpens hV hV hΦ⟩
+  · rw [Ψ.toDiffeomorphSourceTarget_apply_coe, Ψ.toDiffeomorphSourceTarget_apply_coe]
+    exact hΨG g x x.property
+  · obtain ⟨_, hq, hfix, hjet⟩ := hΦf q
+    exact Φ.exists_toDiffeomorphSourceTarget_liftOpens_eq_and_mfderiv_eq_id hV hq hfix hjet
 
 end TauCeti.SmoothEmbedding
 

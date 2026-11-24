@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
 /-!
 # Maps into open subsets, and inclusions between them, as local diffeomorphisms
@@ -30,6 +31,15 @@ target (`PartialDiffeomorph.toDiffeomorphSourceTarget`), and identifies that tar
 restricted in this way to a product of balls, where the leaves become slices
 (`PartialDiffeomorph.exists_diffeomorph_ball_prod_ball`).
 
+Tau Ceti reads a partial diffeomorphism `Φ` between open subsets `U` and `V` in the ambient
+manifolds as `PartialDiffeomorph.liftOpens`. The points of the source of `Φ` lie in the source
+of the lift (`PartialDiffeomorph.coe_mem_liftOpens_source`), and there the diffeomorphism between
+the source and the target of the lift takes the values of `Φ`
+(`PartialDiffeomorph.coe_toDiffeomorphSourceTarget_liftOpens_mk`). When `U = V`, it has identity
+differential at a point exactly when `Φ` has, by Tau Ceti's
+`TauCeti.Manifold.mfderiv_eq_id_iff_of_comp_subtype_val`; so a point that `Φ` fixes with identity
+differential is fixed by it, with identity differential.
+
 ## Main results
 
 * `TauCeti.isLocalDiffeomorphAt_subtypeVal_comp_iff`,
@@ -42,6 +52,9 @@ restricted in this way to a product of balls, where the leaves become slices
 * `PartialDiffeomorph.exists_diffeomorph_ball_prod_ball`: a partial diffeomorphism into `F₁ × F₂`
   that sends `x` to `0` and whose target contains the unit ball restricts to a diffeomorphism from
   a neighbourhood of `x` onto the product of the unit balls of `F₁` and `F₂`.
+* `PartialDiffeomorph.exists_toDiffeomorphSourceTarget_liftOpens_eq_and_mfderiv_eq_id`: a fixed
+  point of a partial diffeomorphism of an open subset with identity differential stays one when
+  the partial diffeomorphism is read in the ambient manifold.
 -/
 
 public section
@@ -131,6 +144,59 @@ theorem exists_diffeomorph_ball_prod_ball {F₁ F₂ : Type*} [NormedAddCommGrou
     rw [← SetLike.mem_coe, hU, Set.mem_inter_iff, Set.mem_preimage, Opens.coe_mk]
   have hxU : x ∈ U := (hmem x).2 ⟨hx, by simp [h0]⟩
   exact ⟨U, hxU, Ψ, by rw [hΨ, h0], fun u ↦ ⟨((hmem u).1 u.property).1, hΨ u⟩⟩
+
+section LiftOpens
+
+variable {U : Opens M} {V : Opens N} (Φ : PartialDiffeomorph I J U V n) (hU : Nonempty U)
+  (hV : Nonempty V)
+
+/-- A point of the source of a partial diffeomorphism `Φ` between open subsets lies, as a point of
+the ambient manifold, in the source of `Φ.liftOpens`. -/
+theorem coe_mem_liftOpens_source {x : U} (hx : x ∈ Φ.source) :
+    (x : M) ∈ (Φ.liftOpens hU hV).source := by
+  rw [liftOpens_source]
+  exact ⟨x, hx, rfl⟩
+
+/-- At a point `x` of `U`, the diffeomorphism between the source and the target of `Φ.liftOpens`
+takes the value of `Φ`. -/
+theorem coe_toDiffeomorphSourceTarget_liftOpens_mk (x : U)
+    (hx : (x : M) ∈ (Φ.liftOpens hU hV).source) :
+    ((Φ.liftOpens hU hV).toDiffeomorphSourceTarget ⟨x, hx⟩ : N) = Φ x :=
+  ((Φ.liftOpens hU hV).toDiffeomorphSourceTarget_apply_coe _).trans
+    (Φ.liftOpens_apply_coe hU hV x)
+
+/-- Let `Φ` be a partial diffeomorphism of an open subset `U` of `M`. At a point `x` of `U` in the
+source of `Φ.liftOpens`, the diffeomorphism between the source and the target of `Φ.liftOpens`
+has identity differential if and only if `Φ` has identity differential at `x`. -/
+theorem mfderiv_toDiffeomorphSourceTarget_liftOpens_eq_id_iff (Φ : PartialDiffeomorph I I U U n)
+    (hU : Nonempty U) (x : U) (hx : (x : M) ∈ (Φ.liftOpens hU hU).source) :
+    mfderiv I I (Φ.liftOpens hU hU).toDiffeomorphSourceTarget ⟨x, hx⟩ =
+        ContinuousLinearMap.id 𝕜 (TangentSpace I (x : M)) ↔
+      mfderiv I I Φ x = ContinuousLinearMap.id 𝕜 (TangentSpace I x) := by
+  have hΦ : Subtype.val ∘ ⇑Φ = ⇑(Φ.liftOpens hU hU) ∘ (Subtype.val : U → M) :=
+    (funext (Φ.liftOpens_apply_coe hU hU)).symm
+  have hφ : Subtype.val ∘ ⇑(Φ.liftOpens hU hU).toDiffeomorphSourceTarget =
+      ⇑(Φ.liftOpens hU hU) ∘ Subtype.val :=
+    funext (Φ.liftOpens hU hU).toDiffeomorphSourceTarget_apply_coe
+  exact (TauCeti.Manifold.mfderiv_eq_id_iff_of_comp_subtype_val hφ).trans
+    (TauCeti.Manifold.mfderiv_eq_id_iff_of_comp_subtype_val hΦ).symm
+
+/-- If a partial diffeomorphism `Φ` of an open subset `U` of `M` fixes a point `x` of its source,
+with identity differential there, then `x` lies in the source of `Φ.liftOpens`, and the
+diffeomorphism between the source and the target of `Φ.liftOpens` fixes `x`, with identity
+differential there. -/
+theorem exists_toDiffeomorphSourceTarget_liftOpens_eq_and_mfderiv_eq_id
+    (Φ : PartialDiffeomorph I I U U n) (hU : Nonempty U) {x : U} (hx : x ∈ Φ.source)
+    (hfix : Φ x = x) (hd : mfderiv I I Φ x = ContinuousLinearMap.id 𝕜 (TangentSpace I x)) :
+    ∃ h : (x : M) ∈ (Φ.liftOpens hU hU).source,
+      ((Φ.liftOpens hU hU).toDiffeomorphSourceTarget ⟨x, h⟩ : M) = x ∧
+      mfderiv I I (Φ.liftOpens hU hU).toDiffeomorphSourceTarget ⟨x, h⟩ =
+        ContinuousLinearMap.id 𝕜 (TangentSpace I (x : M)) :=
+  ⟨Φ.coe_mem_liftOpens_source hU hU hx,
+    (Φ.coe_toDiffeomorphSourceTarget_liftOpens_mk hU hU x _).trans (congrArg Subtype.val hfix),
+    (Φ.mfderiv_toDiffeomorphSourceTarget_liftOpens_eq_id_iff hU x _).2 hd⟩
+
+end LiftOpens
 
 end PartialDiffeomorph
 

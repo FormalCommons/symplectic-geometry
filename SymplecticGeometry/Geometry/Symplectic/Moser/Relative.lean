@@ -13,6 +13,7 @@ import TauCeti.Geometry.Manifold.Flow.TimeDependent.RestPoint
 import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
@@ -335,24 +336,11 @@ theorem exists_diffeomorph_opens_of_eq_along (f : SmoothEmbedding J I ∞ Q M)
   · -- If the tube is empty, so is `Q`, and the empty opens will do.
     have : IsEmpty Q := ⟨fun q ↦ hW.false ⟨f q, (hΦf q).1⟩⟩
     exact ⟨⊥, ⊥, Diffeomorph.ofIsEmpty, isEmptyElim, Subsingleton.elim _ _⟩
-  -- Read `Φ` in `M`, as a partial diffeomorphism `Ψ`, and then as a diffeomorphism `φ` between
-  -- the source and the target of `Ψ`.
-  let Ψ := Φ.liftOpens hW hW
-  have hΨΦ : ⇑Ψ ∘ (Subtype.val : W → M) = Subtype.val ∘ ⇑Φ := funext (Φ.liftOpens_apply_coe hW hW)
-  let φ := Ψ.toDiffeomorphSourceTarget
-  have hφΨ : Subtype.val ∘ ⇑φ = ⇑Ψ ∘ Subtype.val := funext Ψ.toDiffeomorphSourceTarget_apply_coe
-  refine ⟨_, _, φ, fun q ↦ ?_, ?_⟩
-  · obtain ⟨hqW, hq, hfix, hjet⟩ := hΦf q
-    have hqΨ : f q ∈ Ψ.source := by
-      rw [PartialDiffeomorph.liftOpens_source]
-      exact ⟨_, hq, rfl⟩
-    refine ⟨hqΨ, ?_, ?_⟩
-    · rw [Ψ.toDiffeomorphSourceTarget_apply_coe]
-      exact (Φ.liftOpens_apply_coe hW hW _).trans (congrArg Subtype.val hfix)
-    · -- The differential of `Φ` at `f q` is the identity, read in `M`, then on the opens.
-      exact (Manifold.mfderiv_eq_id_iff_of_comp_subtype_val hφΨ).2
-        ((Manifold.mfderiv_eq_id_iff_of_comp_subtype_val hΨΦ.symm).1 hjet)
-  · exact Φ.mpullback_toDiffeomorphSourceTarget_liftOpens hW hW hΦ
+  -- Read `Φ` in `M`, as a diffeomorphism between the source and the target of its lift.
+  refine ⟨_, _, (Φ.liftOpens hW hW).toDiffeomorphSourceTarget, fun q ↦ ?_,
+    Φ.mpullback_toDiffeomorphSourceTarget_liftOpens hW hW hΦ⟩
+  obtain ⟨_, hq, hfix, hjet⟩ := hΦf q
+  exact Φ.exists_toDiffeomorphSourceTarget_liftOpens_eq_and_mfderiv_eq_id hW hq hfix hjet
 
 end SmoothEmbedding
 
