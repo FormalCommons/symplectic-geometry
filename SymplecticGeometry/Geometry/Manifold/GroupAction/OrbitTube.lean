@@ -38,6 +38,10 @@ an open subset `U` of `V` inside the target of `e` that is invariant under every
   structure `TauCeti.BalancedProduct.rightTranslationChartedSpace`, `G`-equivariant, and sends
   `[1, 0]` to `x`.
 
+The equivariance `e.symm (dh_x v) = h • e.symm v` of the slice map
+(`SymplecticGeometry.LinearizingChart.symm_mfderiv_smul`) adapts a step of the
+proof of Tau Ceti's `TauCeti.exists_equivariant_slice_of_isCompact_stabilizer`, stated on its own.
+
 Nothing here asks `U` to be small or `V` to be a complement of `𝔤 · x`; those are needed for the
 tube map to be a local diffeomorphism.
 
