@@ -49,7 +49,8 @@ statement for a coisotropic subspace `W` needs on top of it:
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Lemma 2.1.7.
+  Lemma 2.1.7, and §5.4 (the linear step of Proposition 5.4.7) for
+  `TauCeti.SymplecticForm.IsLagrangian.finrank_inf_add_finrank`.
 -/
 
 public section
