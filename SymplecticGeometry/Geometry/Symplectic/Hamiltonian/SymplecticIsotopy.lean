@@ -38,7 +38,8 @@ given.
   derivative of the contraction of `σ` with the Eulerian field of the family `u ↦ φ_{s(u)}` over
   `ℝ`, `s = Real.smoothTransition`, is `s'(u)` times `d(ι_{X_{s(u)}} σ)`.
 * `TauCeti.Diffeotopy.forall_timeSlice_mem_diffeomorphStabilizer_iff`: every `φ_t` preserves `σ`
-  exactly when every velocity `X_t` is symplectic.
+  exactly when every velocity `X_t` is symplectic, and then every `ι_{X_t} σ` is closed
+  (`TauCeti.Diffeotopy.interiorₗ_smoothVelocity_mem_closedForms`).
 * `TauCeti.SmoothTwoForm.IsSymplectic.symplecticVectorFields_and_isotopies`: the milestone, which
   collects these results for a symplectic form.
 
@@ -187,6 +188,15 @@ theorem forall_timeSlice_mem_diffeomorphStabilizer_iff (hσ : σ.IsClosed) :
     rw [← hslice, hu u 0, hslice, unitInterval.smoothTransition_of_nonpos le_rfl, timeSlice_zero]
     exact congrFun (mpullback_id σ.val) x
 
+
+/-- If every map of a diffeotopy preserves a closed two-form `σ`, then every contraction
+`ι_{X_t} σ` of `σ` with its velocity is a closed one-form. -/
+theorem interiorₗ_smoothVelocity_mem_closedForms (hσ : σ.IsClosed)
+    (hΦ : ∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) (t : unitInterval) :
+    σ.interiorₗ (Φ.smoothVelocity t) ∈ closedForms J M 1 := by
+  rw [mem_closedForms, SmoothTwoForm.coe_interiorₗ]
+  exact SmoothTwoForm.mem_symplecticVectorFields_iff.1
+    ((Φ.forall_timeSlice_mem_diffeomorphStabilizer_iff hσ).1 hΦ t)
 end Diffeotopy
 
 namespace SmoothTwoForm
