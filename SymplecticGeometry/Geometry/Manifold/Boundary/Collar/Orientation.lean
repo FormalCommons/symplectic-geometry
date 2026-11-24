@@ -112,18 +112,15 @@ private theorem proj_zero_mfderiv_inr_pos (hk : k ≠ 0) (y : (𝓡∂ (n + 1)).
     have hc := ((c.contMDiff p).mdifferentiableAt hk).hasMFDerivAt
     rw [← hD] at hc
     exact π.hasFDerivAt.comp_hasFDerivWithinAt z hc.2
-  have hnonneg (w) : 0 ≤ f w := by
-    simp only [f, writtenInExtChartAt, Function.comp_apply, extChartAt_coe,
-      modelWithCornersEuclideanHalfSpace_toFun, π, PiLp.proj_apply]
-    exact (chartAt (EuclideanHalfSpace (n + 1)) (c p) _).property
-  have hz : f z = 0 := by
-    have hcp : c p ∈ (𝓡∂ (n + 1)).boundary M := by
-      rw [show c p = y from c.apply_zero y]
-      exact y.property
-    simpa only [f, z, writtenInExtChartAt, Function.comp_apply, extChartAt_to_inv, π,
-      PiLp.proj_apply] using extChartAt_self_apply_zero hcp
-  have hmin : IsLocalMinOn f (range I) z :=
-    Filter.Eventually.of_forall fun w ↦ hz ▸ hnonneg w
+  have hcp : c p ∈ (𝓡∂ (n + 1)).boundary M := by
+    rw [show c p = y from c.apply_zero y]
+    exact y.property
+  have hmin : IsLocalMinOn f (range I) z := Filter.Eventually.of_forall fun w ↦ by
+    simp only [f, z, writtenInExtChartAt, Function.comp_apply, extChartAt_to_inv]
+    simpa only [extChartAt_coe, Function.comp_apply, modelWithCornersEuclideanHalfSpace_toFun, π,
+      PiLp.proj_apply] using
+      normal_le_of_mem_boundary hcp (mem_chart_source _ (c p))
+        (c ((extChartAt I p).symm w))
   have hzr : z ∈ range I := extChartAt_target_subset_range p (mem_extChartAt_target p)
   have hcone (v : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin 1)) (hv : 0 ≤ v.2 0) :
       v ∈ posTangentConeAt (range I) z := by
@@ -148,19 +145,15 @@ private theorem proj_zero_mfderiv_inr_pos (hk : k ≠ 0) (y : (𝓡∂ (n + 1)).
   rw [D.apply_symm_apply] at h3
   simp [π, e] at h3
 
-variable [IsManifold (𝓡∂ (n + 1)) 1 M]
-
 /-- On the zero slice of a smooth collar, minus the image of the depth direction `∂ₜ` under the
 derivative points outward. -/
 theorem isOutwardPointing_neg_mfderiv_inr (hk : k ≠ 0) (y : (𝓡∂ (n + 1)).boundary M) :
     IsOutwardPointing (y : M)
       (-mfderiv ((𝓡 n).prod (𝓡∂ 1)) (𝓡∂ (n + 1)) c (y, normalIioOpensZero one_pos)
-        (0, EuclideanSpace.single 0 1)) := by
-  refine (isOutwardPointing_iff_tangentCoordChange y.property
-    (mem_extChartAt_source (y : M)) _).2 ?_
-  refine (congrArg (fun w : EuclideanSpace ℝ (Fin (n + 1)) ↦ w 0)
-    (tangentCoordChange_self (I := 𝓡∂ (n + 1)) (mem_extChartAt_source (y : M)))).trans_lt ?_
-  exact neg_neg_of_pos (c.proj_zero_mfderiv_inr_pos hk y)
+        (0, EuclideanSpace.single 0 1)) :=
+  (isOutwardPointing_neg_iff_proj y.property).2 (c.proj_zero_mfderiv_inr_pos hk y)
+
+variable [IsManifold (𝓡∂ (n + 1)) 1 M]
 
 variable (o : Manifold.Orientation (𝓡∂ (n + 1)) M (Fin (n + 1)))
 
