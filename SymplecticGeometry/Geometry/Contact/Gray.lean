@@ -27,12 +27,9 @@ Let `α` be a one-form on `ℝ × N`, representing the family of its slices `α_
 the pullbacks `f^* α_t`, and the slices of its time derivative are the pullbacks of the slices of
 `∂_t α`. So if `α_t` is a contact form, the differential of `f` carries the Gray vector of the
 pulled-back family at time `t` and point `x` to the Gray vector of `α` at time `t` and point
-`f x` (Tau Ceti's `TauCeti.SmoothForm.mfderiv_grayVectorField_mpullback_prodMap`). The case of
-an open subset `U ⊆ N`, `f = Subtype.val`, says that the Gray vector field of a family
-restricted to `ℝ × U` is the restriction of the Gray vector field
-(`TauCeti.SmoothForm.tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_subtype_val`).
-This lets one compare Gray vector fields of local defining families of a contact family that
-live on different open sets.
+`f x` (Tau Ceti's `TauCeti.SmoothForm.mfderiv_grayVectorField_mpullback_prodMap`). Applied to the
+inclusion of a smaller open set, this lets one compare Gray vector fields of local defining
+families of a contact family that live on different open sets.
 
 The Gray vector at `(t, x)` only depends on the kernels of the slices near `(t, x)`, at the times
 of a set such as `[0, 1]`
@@ -106,8 +103,6 @@ pinned Tau Ceti's `TauCeti/Geometry/Contact/Gray.lean`, with its proof.
 
 ## Main results
 
-* `TauCeti.SmoothForm.tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_subtype_val`: the
-  Gray vector field restricts to open subsets.
 * `TauCeti.SmoothForm.grayVectorField_eq_of_eventually_kerDistribution_eq`: the Gray vector
   depends only on the kernels of the slices.
 * `SymplecticGeometry.IsLocalDefiningFamily.tangentSpaceOpenEquiv_grayVectorField_eq`: local
@@ -150,86 +145,43 @@ open scoped ContDiff Manifold Topology
 
 namespace TauCeti.SmoothForm
 
-variable {E H M F H' N : Type*}
-  [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
-  [NormedAddCommGroup F] [NormedSpace ℝ F] [TopologicalSpace H']
-  {J : ModelWithCorners ℝ F H'} [TopologicalSpace N] [ChartedSpace H' N]
-  [IsManifold I ∞ M] [IsManifold J ∞ N] [I.Boundaryless] [J.Boundaryless]
-  {α : SmoothForm (𝓘(ℝ, ℝ).prod J) (ℝ × N) ℝ 1}
-
-/-- **The Gray vector field restricts to open subsets.** Let `α` be a one-form on `ℝ × N` whose
-slice `α_t` at time `t` is a contact form, and let `U ⊆ N` be open. Under the canonical
-identification of tangent spaces, the Gray vector at time `t` and point `x ∈ U` of the
-restriction of `α` to `ℝ × U` is the Gray vector of `α` at time `t` and point `x`. -/
-theorem tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_subtype_val
-    [FiniteDimensional ℝ F] {t : ℝ}
-    (hc : (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).IsContactForm)
-    (U : Opens N) (x : U) :
-    Manifold.tangentSpaceOpenEquiv x
-        ((mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal)
-          α).grayVectorField t x) =
-      α.grayVectorField t x := by
-  simpa only [Manifold.mfderiv_subtype_val, ContinuousLinearEquiv.coe_coe] using
-    mfderiv_grayVectorField_mpullback_prodMap _ hc Subtype.val contMDiff_subtypeVal
-      (fun y ↦ TauCeti.bijective_mfderiv_subtype_val (I := J) y) x
-
-end TauCeti.SmoothForm
-
-namespace TauCeti.SmoothForm
-
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
   [IsManifold I ∞ M] [I.Boundaryless]
 
 /-- **The Gray vector depends only on the hyperplanes.** Let `α` and `α'` be one-forms on `ℝ × M`
-such that every slice `α_u` and the slice `α'_t` are contact forms, and let `s ∋ t` be a set of
+such that the slices `α_u` at all times `u` near `t` and the slice `α'_t` are contact forms, and let
+`s ∋ t` be a set of
 times on which derivatives at `t` are unique, such as `[0, 1]`. If the slices of `α` and `α'`
 have the same kernels at the points `(u, y)` of `s × M` near `(t, x)`, then the Gray vector fields
 of `α` and `α'` agree at time `t` and the point `x`. -/
 theorem grayVectorField_eq_of_eventually_kerDistribution_eq
     {α α' : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 1} {s : Set ℝ} {t : ℝ} {x : M}
     (hs : UniqueDiffWithinAt ℝ s t) (ht : t ∈ s)
-    (hc : ∀ u, (mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) α).IsContactForm)
+    (hc : ∀ᶠ u in 𝓝 t,
+      (mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) α).IsContactForm)
     (hc' : (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α').IsContactForm)
     (h : ∀ᶠ q in 𝓝[s ×ˢ Set.univ] (t, x),
       (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) α').kerDistribution q.2 =
         (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) α).kerDistribution q.2) :
     α'.grayVectorField t x = α.grayVectorField t x := by
   -- The multiplier is the value of `α'_u` on the Reeb field of `α_u`, smooth in `(u, y)`.
-  have hf := contMDiff_apply_reebVectorField_mpullback_prodMk α α' hc
+  have hf := contMDiffAt_apply_reebVectorField_mpullback_prodMk α α' (p := (t, x)) hc
   have hmul : ∀ᶠ q in 𝓝[s ×ˢ Set.univ] (t, x),
       (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) α').val q.2 =
         (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) α').val q.2
           ![(mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) α).reebVectorField
             q.2] • (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) α).val q.2 :=
-    h.mono fun q hq ↦ apply_eq_smul_of_kerDistribution_le hq.ge
-      ((hc q.1).apply_reebVectorField q.2)
-  refine grayVectorField_eq_of_eventuallyEq_smul hs ht (hc t) hc' ?_
-    ((hf.comp (contMDiff_const.prodMk contMDiff_id)).mdifferentiableAt (by simp)) ?_ hmul
-  · exact ((contMDiff_iff_contDiff.1 (hf.comp (contMDiff_id.prodMk contMDiff_const))).differentiable
-      (by simp) t).differentiableWithinAt
+    (h.and (nhdsWithin_le_nhds (continuous_fst.continuousAt.eventually hc))).mono
+      fun q hq ↦ apply_eq_smul_of_kerDistribution_le hq.1.ge (hq.2.apply_reebVectorField q.2)
+  refine grayVectorField_eq_of_eventuallyEq_smul hs ht hc.self_of_nhds hc' ?_
+    ((hf.comp x (contMDiffAt_const.prodMk contMDiffAt_id)).mdifferentiableAt (by simp)) ?_ hmul
+  · exact ((contMDiffAt_iff_contDiffAt.1 (hf.comp t (contMDiffAt_id.prodMk contMDiffAt_const))
+      ).differentiableAt (by simp)).differentiableWithinAt
   · intro h₀
     refine hc'.apply_ne_zero x ?_
     rw [hmul.self_of_nhdsWithin ⟨ht, Set.mem_univ x⟩]
     exact (congrArg (· • _) h₀).trans (zero_smul ℝ _)
-
-/-- **The Gray vector field restricts to smaller open subsets.** Let `α` be a one-form on `ℝ × U`,
-for an open subset `U` of `M`, whose slice `α_t` is a contact form, and let `V ⊆ U` be open. Read
-in the tangent space of `M`, the Gray vector at time `t` and point `x ∈ V` of the restriction of
-`α` to `ℝ × V` is the Gray vector of `α` at time `t` and point `x`. -/
-theorem tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_inclusion {U V : Opens M}
-    (hVU : V ≤ U) {α : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × U) ℝ 1} {t : ℝ}
-    (hc : (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) α).IsContactForm)
-    (x : V) :
-    Manifold.tangentSpaceOpenEquiv x ((mpullback (Prod.map id (Opens.inclusion hVU))
-        (contMDiff_id.prodMap (contMDiff_inclusion hVU)) α).grayVectorField t x) =
-      Manifold.tangentSpaceOpenEquiv (Opens.inclusion hVU x)
-        (α.grayVectorField t (Opens.inclusion hVU x)) := by
-  rw [← mfderiv_grayVectorField_mpullback_prodMap _ hc (Opens.inclusion hVU)
-    (contMDiff_inclusion hVU)
-    (fun y ↦ TauCeti.bijective_mfderiv_inclusion hVU y) x,
-    Manifold.tangentSpaceOpenEquiv_mfderiv_inclusion_apply]
 
 omit [I.Boundaryless] in
 /-- **Gray's equation, as a rate.** If the slice `α_t` of a family of one-forms on `ℝ × M` is a
@@ -425,11 +377,21 @@ theorem IsLocalDefiningFamily.tangentSpaceOpenEquiv_grayVectorField_eq {a b a' b
     filter_upwards [self_mem_nhdsWithin, mem_nhdsWithin_of_mem_nhds hJ] with q hq hq'
     ext v
     rw [hβ'.mem_kerDistribution_iff ⟨hq'.1.2, hq.1⟩, hβ.mem_kerDistribution_iff ⟨hq'.1.1, hq.1⟩]
+  -- Read in `M`, the Gray field of each restriction is that of the family it restricts.
+  have hres {W : Opens M} (hW : U ⊓ U' ≤ W) {γ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × W) ℝ 1}
+      (hγ : (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) γ).IsContactForm) :
+      Manifold.tangentSpaceOpenEquiv (⟨x, hx, hx'⟩ : (U ⊓ U' : Opens M))
+          ((mpullback (Prod.map id (Opens.inclusion hW)) (contMDiff_id.prodMap
+            (contMDiff_inclusion hW)) γ).grayVectorField t ⟨x, hx, hx'⟩) =
+        Manifold.tangentSpaceOpenEquiv (Opens.inclusion hW ⟨x, hx, hx'⟩)
+          (γ.grayVectorField t (Opens.inclusion hW ⟨x, hx, hx'⟩)) := by
+    rw [← mfderiv_grayVectorField_mpullback_prodMap _ hγ (Opens.inclusion hW)
+      (contMDiff_inclusion hW) (TauCeti.bijective_mfderiv_inclusion hW),
+      Manifold.tangentSpaceOpenEquiv_mfderiv_inclusion_apply]
   have h := congrArg (Manifold.tangentSpaceOpenEquiv _)
     (grayVectorField_eq_of_eventually_kerDistribution_eq (uniqueDiffOn_Icc zero_lt_one t ht)
-      ht hβ.isContactForm (hβ'.isContactForm t) hker)
-  rw [tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_inclusion hV' (hc' t),
-    tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_inclusion hV (hc t)] at h
+      ht (.of_forall hβ.isContactForm) (hβ'.isContactForm t) hker)
+  rw [hres hV' (hc' t), hres hV (hc t)] at h
   -- `Opens.inclusion hV ⟨x, hx, hx'⟩` is `⟨x, hx⟩` by definition; `Set.inclusion_mk` cannot rewrite
   -- it in `h`, where the tangent spaces depend on the point.
   exact h.symm
