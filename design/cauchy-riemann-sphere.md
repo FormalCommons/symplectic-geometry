@@ -354,13 +354,13 @@ About 200 lines.
 For bundles `V`, `W` with atlases `A`, `B` over the same charts and a smooth
 section `Φ` of $\mathrm{Hom}(V,W)$:
 
-- `TauCeti.SobolevSection.smoothHomMulL Φ : SobolevSection A μ p k →L[ℝ] SobolevSection B μ p k`,
+- `TauCeti.SobolevSection.contMDiffHomMulL A h μ p k hΦ : SobolevSection A μ p k →L[ℝ] SobolevSection (A.ofBaseSet h) μ p k`,
   built chartwise from `TauCeti.Wkp.contDiffOnCLMApplyL` as
   `SobolevSection.contMDiffSMulL` is from `Wkp.contDiffOnSMulL`; its
   docstring credits that construction.
-- `chartValueL_smoothHomMulL_ae` and `chartValueL_smoothHomMulL_ae_coord`:
+- `chartValueL_contMDiffHomMulL_ae` and `chartValueL_contMDiffHomMulL_ae_coord`:
   the chart data are $\Phi_i u_i$.
-- `norm_smoothHomMulL_le`: the operator norm is at most a constant,
+- `norm_contMDiffHomMulL_le`: the operator norm is at most a constant,
   depending on `A`, `B`, `k`, `p`, times the maximum over charts of the
   `C^k` norms of the chart readings of `Φ` on the closed chart images. With
   linearity in `Φ` this gives continuity in `Φ` for the `C^k` atlas norm.
