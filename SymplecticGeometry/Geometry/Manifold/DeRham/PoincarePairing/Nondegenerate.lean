@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.DeRham.PoincarePairing.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
-import SymplecticGeometry.Geometry.Manifold.DeRham.CompactSupport
+import TauCeti.Geometry.Manifold.DeRham.CompactSupport
 
 /-!
 # Nondegeneracy of the Poincaré pairing in degrees `1` and `m - 1`

@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.ConstantRank
+public import TauCeti.Geometry.Manifold.ConstantRank.Basic
 public import TauCeti.Geometry.Manifold.Distribution.Kernel
 public import TauCeti.Geometry.Manifold.Foliation.Leaf
 public import TauCeti.Geometry.Manifold.Submersion.Basic

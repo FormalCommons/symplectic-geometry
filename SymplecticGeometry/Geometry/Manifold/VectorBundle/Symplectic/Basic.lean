@@ -14,7 +14,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hom
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.Section
 public import TauCeti.Geometry.Manifold.VectorBundle.ContinuousAlternatingMap
-public import TauCeti.Geometry.Manifold.VectorBundle.Section.Map
+public import TauCeti.Geometry.Manifold.VectorBundle.Section.Map.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Trivial
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm

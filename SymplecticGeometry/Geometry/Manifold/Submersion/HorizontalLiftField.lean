@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection
+public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Basic
 public import TauCeti.Geometry.Manifold.Riemannian.Submersion.Basic
 import TauCeti.Analysis.Normed.Module.ContinuousInverse
 import TauCeti.Geometry.Manifold.ContMDiff.LeftInverse

@@ -8,7 +8,7 @@ module
 public import Mathlib.Topology.Homotopy.Basic
 public import TauCeti.Geometry.Manifold.Instances.SymplecticGroup
 public import TauCeti.Topology.Algebra.SymplecticGroup
-import TauCeti.Geometry.Manifold.SmoothApprox
+import TauCeti.Geometry.Manifold.SmoothApprox.Basic
 
 /-!
 # Smooth representatives of maps into the symplectic group

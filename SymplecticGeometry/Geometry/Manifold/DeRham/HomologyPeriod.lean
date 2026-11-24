@@ -9,7 +9,7 @@ import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
 public import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
 public import TauCeti.Geometry.Manifold.DeRham.HomologyPeriod
 public import TauCeti.AlgebraicTopology.Singular.Homotopy.Invariance
-import TauCeti.Geometry.Manifold.SmoothApprox
+import TauCeti.Geometry.Manifold.SmoothApprox.Basic
 
 /-!
 # Periods of smooth families of closed one-forms

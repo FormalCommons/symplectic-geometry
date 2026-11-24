@@ -6,8 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.Morse.GradientFlow
-import SymplecticGeometry.Geometry.Manifold.Morse.ExponentialConvergence
-import SymplecticGeometry.Geometry.Manifold.Morse.GradientFlow
+import TauCeti.Geometry.Manifold.Morse.ExponentialConvergence
 import TauCeti.Geometry.Manifold.Riemannian.Basic
 import TauCeti.Geometry.Manifold.Riemannian.Distance
 
