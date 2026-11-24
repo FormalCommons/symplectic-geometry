@@ -6,8 +6,13 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Reduction.ZeroLevel.Basic
+public import TauCeti.Geometry.Lie.Exponential.Derivative.Basic
+public import TauCeti.Geometry.Lie.Exponential.Generation
+public import TauCeti.Geometry.Lie.FundamentalVectorField
+public import TauCeti.Geometry.Manifold.Foliation.Leaf
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.Level
 public import TauCeti.Geometry.Symplectic.Lagrangian.Manifold
+public import TauCeti.Geometry.Symplectic.Lagrangian.Presymplectic
 
 /-!
 # The zero level of an equivariant moment map is coisotropic
@@ -96,6 +101,104 @@ theorem ker_bilinFormAt_mpullback_coe_zeroLevel [ProperSMul G h.zeroLevel] (z : 
     h.toIsMomentMap.ker_bilinFormAt_mpullback _ (hσ.nondegenerate_bilinFormAt z)
       (h.momentCocycle_eq_zero z) (h.range_mfderiv_coe_zeroLevel hσ hfree hn z),
     h.mem_zeroLevel.1 z.property]
+
+/-! ### Orbits lie in characteristic leaves -/
+
+section Leaves
+
+variable (hσ : σ.IsSymplectic) [ProperSMul G h.zeroLevel]
+
+/-- **Exponential translates stay on the characteristic leaf.** If `σ` is symplectic and `G` acts
+freely at every point of `μ⁻¹(0)` and properly on the zero level, then for every `ξ` in the Lie
+algebra of `G` and every point `z` of the zero level, `exp ξ • z` lies on the leaf through `z` of
+the characteristic foliation of the inclusion of the zero level. -/
+theorem mulInvariantExp_smul_mem_leaf_characteristicFoliation_zeroLevel [T2Space G]
+    [BoundarylessManifold I G] (ξ : GroupLieAlgebra I G) (z : h.zeroLevel) :
+    letI := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
+    haveI := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
+    haveI : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
+    mulInvariantExp ξ • z ∈
+      ((h.isCoisotropicMap_coe_zeroLevel hσ.isNondegenerate hfree hn).characteristicFoliation
+        (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).isImmersion
+        (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).contMDiff hσ.isClosed
+        le_rfl).leaf z := by
+  let := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
+  have := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
+  have : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
+  have := h.contMDiffSMul_zeroLevel hσ.isNondegenerate hfree hn
+  have hemb := h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn
+  -- The curve `t ↦ exp (t ξ) • z` in the zero level is an integral curve of `ξ_Z`.
+  set γ : ℝ → h.zeroLevel := fun t ↦ mulInvariantExp (t • ξ) • z with hγ_def
+  have hγ : IsMIntegralCurve γ (fundamentalVectorField 𝓘(ℝ, Fin n → ℝ) ξ) :=
+    isMIntegralCurve_mulInvariantExp_smul_smul ξ z
+  have key := Foliation.sameLeaf_of_contMDiffOn_of_tangent (F :=
+    (h.isCoisotropicMap_coe_zeroLevel hσ.isNondegenerate hfree hn).characteristicFoliation
+      hemb.isImmersion hemb.contMDiff hσ.isClosed le_rfl) (γ := γ) (a := 0) (b := 1)
+    (((ContMDiffSMul.contMDiff_smul_const (I := I) (n := ∞) z).comp
+      (contMDiff_mulInvariantExp_smul ξ)).contMDiffOn.of_le ENat.LEInfty.out) ?_
+    (Set.left_mem_Icc.2 zero_le_one) (Set.right_mem_Icc.2 zero_le_one)
+  · simpa [hγ_def] using key
+  intro u hu
+  rw [Manifold.curveVelocityWithin_eq_of_hasMFDerivWithinAt (hγ u).hasMFDerivWithinAt
+      (uniqueDiffOn_Icc zero_lt_one u hu),
+    IsNondegenerate.IsCoisotropicMap.characteristicFoliation_distribution,
+    h.ker_bilinFormAt_mpullback_coe_zeroLevel, h.ker_mfderiv_quotientMk_zeroLevel,
+    Submodule.mem_comap, ContinuousLinearMap.coe_coe,
+    mfderiv_fundamentalVectorField_of_map_smul (hemb.contMDiff.mdifferentiableAt (by simp))
+      ((ContMDiffSMul.contMDiff_smul_const (I := I) (n := ∞) _).mdifferentiableAt (by simp))
+      (fun g ↦ SubMulAction.val_smul g _)]
+  rw [← InfinitesimalAction.fundamental_apply]
+  exact (InfinitesimalAction.fundamental I G I' M).mem_orbitTangent _ ξ
+
+/-- **Orbits of the zero level lie in characteristic leaves.** If `σ` is symplectic and the
+connected group `G` acts freely at every point of `μ⁻¹(0)` and properly on the zero level, then
+the orbit of each point `z` of the zero level is contained in the leaf through `z` of the
+characteristic foliation of the inclusion of the zero level. -/
+theorem orbit_subset_leaf_characteristicFoliation_zeroLevel [ConnectedSpace G]
+    (z : h.zeroLevel) :
+    letI := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
+    haveI := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
+    haveI : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
+    MulAction.orbit G z ⊆
+      ((h.isCoisotropicMap_coe_zeroLevel hσ.isNondegenerate hfree hn).characteristicFoliation
+        (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).isImmersion
+        (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).contMDiff hσ.isClosed
+        le_rfl).leaf z := by
+  let := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
+  have := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
+  have : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
+  have : T2Space G := I.t2Space_of_lieGroup ∞
+  have : BoundarylessManifold I G := ContMDiffMul.boundarylessManifold
+  set F := (h.isCoisotropicMap_coe_zeroLevel hσ.isNondegenerate hfree hn).characteristicFoliation
+    (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).isImmersion
+    (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).contMDiff hσ.isClosed le_rfl
+  -- The elements `g` with `g • y` on the leaf of `y` for every `y` contain `range lieExp` and are
+  -- closed under products and inverses, so they are all of `G`.
+  suffices hall : ∀ g : G, ∀ y : h.zeroLevel, g • y ∈ F.leaf y by
+    rintro _ ⟨g, rfl⟩
+    exact hall g z
+  intro g
+  have hg : g ∈ Subgroup.closure (Set.range (lieExp (I := I) (G := G))) := by
+    rw [closure_range_lieExp_eq_top]
+    exact Subgroup.mem_top g
+  induction hg using Subgroup.closure_induction with
+  | mem g hg =>
+    obtain ⟨X, rfl⟩ := hg
+    intro y
+    rw [lieExp_eq_mulInvariantExp]
+    exact h.mulInvariantExp_smul_mem_leaf_characteristicFoliation_zeroLevel hfree hn hσ _ y
+  | one => simp
+  | mul g k _ _ hg hk =>
+    intro y
+    rw [mul_smul, ← F.leaf_eq_of_mem (hk y)]
+    exact hg (k • y)
+  | inv g _ hg =>
+    intro y
+    have := hg (g⁻¹ • y)
+    rw [smul_inv_smul] at this
+    exact F.mem_leaf.2 (F.mem_leaf.1 this).symm
+
+end Leaves
 
 end IsEquivariantMomentMap
 
