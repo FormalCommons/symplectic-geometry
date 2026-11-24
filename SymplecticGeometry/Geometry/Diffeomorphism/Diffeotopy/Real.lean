@@ -10,8 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 public import SymplecticGeometry.Geometry.Manifold.SmoothTransition
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 public import TauCeti.Geometry.Manifold.Flow.Eulerian
-import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Family
-import SymplecticGeometry.Geometry.Manifold.Instances.Icc
+import TauCeti.Geometry.Manifold.Diffeomorph.Family
 import TauCeti.Geometry.Manifold.Instances.Icc
 
 /-!
@@ -52,13 +51,14 @@ Time derivatives of a diffeotopy are taken, as in Tau Ceti's `TauCeti.Diffeotopy
 through `Φ.cylinderMap` on the vector `∂ₜ = (0, 1)` at `(x, t)`, where `1` is the unit tangent
 vector of the interval, which points towards increasing time at both ends. That derivative is the
 velocity of the trajectory `s ↦ Φ (s, x)`, by `TauCeti.Diffeotopy.mfderiv_cylinderMap_time`.
-The inverse of `ofReal` is smooth by `Diffeomorph.contMDiff_symm_eval`, and the time-dependent
+The inverse of `ofReal` is smooth by `Diffeomorph.contMDiff_symm_family`, and the time-dependent
 flow is a jointly smooth family by `TauCeti.contMDiff_timeDependentFlowDiffeomorph`.
 
-The proofs of `mfderiv_cylinderMap_ofReal` and `eulerianField_smoothTransitionFamily_apply`
-follow Tau Ceti's `TauCeti.Diffeotopy.mfderiv_cylinderMap_globalFlowDiffeotopy_time`, which reads
-the time derivative of the motion on a trajectory and differentiates through the inclusion of the
-interval.
+`mfderiv_cylinderMap_ofReal` reads Tau Ceti's velocity of the diffeotopy as the Eulerian field
+of `ψ`, by `TauCeti.Diffeotopy.velocity_apply` and `TauCeti.Diffeotopy.velocity_eq_eulerianField`.
+The proof of `eulerianField_smoothTransitionFamily_apply` follows Tau Ceti's
+`TauCeti.Diffeotopy.mfderiv_cylinderMap_globalFlowDiffeotopy_time`, which reads the time
+derivative of the motion on a trajectory and differentiates through the inclusion of the interval.
 
 ## References
 
@@ -79,13 +79,13 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
 
 section OfReal
 
-variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] [BoundarylessManifold I M]
+variable [CompleteSpace E] [IsManifold I ∞ M] [BoundarylessManifold I M]
   (ψ : ℝ → M ≃ₘ⟮I, I⟯ M) (hψ : ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞ (fun p : ℝ × M ↦ ψ p.1 p.2))
   (h₀ : ∀ x, ψ 0 x = x)
 
 /-- The restriction to `[0, 1]` of a jointly smooth family `ψ` of diffeomorphisms over `ℝ` with
 `ψ 0 = id`, as a diffeotopy: `(t, x) ↦ ψ_t x`. Its inverse is jointly smooth by
-`Diffeomorph.contMDiff_symm_eval`. -/
+`Diffeomorph.contMDiff_symm_family`. -/
 def ofReal : Diffeotopy I ∞ M where
   toDiffeomorph :=
     { toFun := fun p ↦ (p.1, ψ p.1 p.2)
@@ -95,7 +95,7 @@ def ofReal : Diffeotopy I ∞ M where
       contMDiff_toFun := contMDiff_fst.prodMk
         (hψ.comp ((contMDiff_subtypeVal_Icc.comp contMDiff_fst).prodMk contMDiff_snd))
       contMDiff_invFun := contMDiff_fst.prodMk
-        ((Diffeomorph.contMDiff_symm_eval (by simp) hψ).comp
+        ((Diffeomorph.contMDiff_symm_family hψ (by simp)).comp
           ((contMDiff_subtypeVal_Icc.comp contMDiff_fst).prodMk contMDiff_snd)) }
   fst_apply _ := rfl
   snd_apply_zero' := h₀
@@ -133,18 +133,14 @@ theorem mfderiv_cylinderMap_ofReal (x : M) (t : unitInterval) :
     mfderiv (I.prod (𝓡∂ 1)) I (ofReal ψ hψ h₀).cylinderMap (x, t)
       ((0 : E), (1 : TangentSpace (𝓡∂ 1) t)) =
       eulerianField I (fun u ↦ (ψ u).toEquiv) t (ψ t x) := by
-  have hcyl : (fun s ↦ ofReal ψ hψ h₀ (s, x)) = (fun u ↦ ψ u x) ∘ Subtype.val :=
-    funext fun s ↦ by rw [ofReal_apply, Function.comp_apply]
-  have hval : MDifferentiableAt (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : unitInterval → ℝ) t :=
-    SymplecticGeometry.mdifferentiableAt_subtypeVal_Icc _
   have hγ : MDifferentiableAt 𝓘(ℝ) I (fun u ↦ ψ u x) t :=
     (hψ.comp (contMDiff_id.prodMk contMDiff_const)).mdifferentiableAt (by simp)
-  refine ((ofReal ψ hψ h₀).mfderiv_cylinderMap_time (by simp) (x, t)).trans ?_
-  refine (congrArg (fun f ↦ mfderiv (𝓡∂ 1) I f t (1 : TangentSpace (𝓡∂ 1) t)) hcyl).trans
-    ((mfderiv_comp_apply t hγ hval _).trans ?_)
-  rw [mfderiv_subtypeVal_Icc_one]
-  exact Manifold.curveVelocity_apply.symm.trans
-    (eulerianField_apply_apply (φ := fun u ↦ (ψ u).toEquiv) x).symm
+  have hd : MDifferentiableAt 𝓘(ℝ) I
+      (fun u ↦ (ψ u).toEquiv ((ψ (t : ℝ)).toEquiv.symm (ψ t x))) t := by
+    simpa only [Diffeomorph.toEquiv_coe_symm, Diffeomorph.coe_toEquiv,
+      Diffeomorph.symm_apply_apply] using hγ
+  rw [← velocity_apply, ofReal_apply]
+  exact velocity_eq_eulerianField _ (by simp) (fun s y ↦ (ofReal_apply ψ hψ h₀ (s, y)).symm) hd
 
 end OfReal
 

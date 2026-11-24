@@ -97,13 +97,16 @@ derivative on $TM$. In the statements,
 - **Kähler pairs.** `TauCeti.SmoothTwoForm.IsKahler` with `isKahler_iff`
   (closed, compatible, `J.nijenhuis = 0`), and `TauCeti.SmoothForm.IsClosed`
   (`mextDeriv σ.val = 0`).
-- **Missing.** None of the identities of either milestone is in Mathlib or
-  Tau Ceti (the atlas page's Lean correspondence finds none, and a search of
-  the pinned trees for `hom` applied to `toEndomorphism`, *almost Kähler*
-  and *nearly Kähler* finds only prose in Tau Ceti's Seiberg–Witten files).
-  The anticommutation $(\nabla_vJ)J+J(\nabla_vJ)=0$ and the formula of $N_J$
-  through a torsion-free connection are built by *Nijenhuis tensor*
-  (`Covariant.lean`, `Nijenhuis.lean`, #863).
+- **Missing.** Apart from the anticommutation below, none of the identities
+  of either milestone is in Mathlib or Tau Ceti (the atlas page's Lean
+  correspondence finds none, and a search of the pinned trees for `hom`
+  applied to `toEndomorphism`, *almost Kähler* and *nearly Kähler* finds
+  only prose in Tau Ceti's Seiberg–Witten files).
+  The anticommutation $(\nabla_vJ)J+J(\nabla_vJ)=0$ is Tau Ceti's
+  `CovariantDerivative.hom_apply_apply_anticomm`, in pointwise form, with
+  the differentiability of `J` from `Covariant.lean`; the formula of $N_J$
+  through a torsion-free connection is built by *Nijenhuis tensor*
+  (`Nijenhuis.lean`, #863).
 
 ## Decisions
 
@@ -268,8 +271,9 @@ Variables: `[RiemannianBundle (fun x : M ↦ TangentSpace I x)]`,
   (hσ : σ.IsClosed) x v : D (J x v) = -(J.toEndomorphism x).comp (D v)`:
   the fourth identity, from `LinearMap.apply_left_eq_apply_right_of_cyclic`
   for $\alpha(u,v,w)=\langle(\nabla_uJ)v,w\rangle$, whose hypotheses are
-  the first identity (`Covariant.lean`) with the skew-adjointness
-  of $J$, and the third identity with $d\sigma=0$.
+  the first identity (Tau Ceti's `CovariantDerivative.hom_apply_apply_anticomm`,
+  with the differentiability of `J` from `Covariant.lean`) with the
+  skew-adjointness of $J$, and the third identity with $d\sigma=0$.
 
 In the namespace `TauCeti.SmoothTwoForm`, the milestone:
 
@@ -343,8 +347,10 @@ About 250 lines.
   milestone of `LeviCivita.lean`.
 - From *Almost complex manifolds*: `Metric.lean` (#860), for `inner_apply_left_of_inner_eq` and
   `inner_apply_left_eq_neg`, in its identities.
-- From *Nijenhuis tensor*: `Covariant.lean`, for $\nabla J$ and the first
-  identity, in `LeviCivita.lean`; `Nijenhuis.lean`, for the formula of $N_J$
+- From *Nijenhuis tensor*: `Covariant.lean`, for the differentiability of
+  `J` as a section of `End(TM)`, which Tau Ceti's $\nabla J$ and its
+  anticommutation lemma `CovariantDerivative.hom_apply_apply_anticomm` take,
+  in `LeviCivita.lean`; `Nijenhuis.lean`, for the formula of $N_J$
   through a torsion-free connection, in `Kahler.lean` (both #863, or the
   issue it splits off for `Covariant.lean`).
 - From Tau Ceti and Mathlib: the declarations of *What there is*.

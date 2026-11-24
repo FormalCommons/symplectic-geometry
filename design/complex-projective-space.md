@@ -136,8 +136,9 @@ The page's advice is followed: the form is built on the sphere and descends.
    along the inclusion. It is closed, being $d$ of `sphereContactForm`. It
    is invariant under the circle, kills the generator $J_0x$, and its kernel
    at $x$ is exactly $\mathbb R J_0x$, the kernel of the derivative of the
-   Hopf map. So it is basic (`isBasic_of_mpullback_eq`, with the circle
-   acting by $x\mapsto\cos t\,x+\sin t\,J_0x$), and `fubiniStudyForm` is
+   Hopf map. So it is basic
+   (`isBasic_of_mpullback_eq_of_ker_mfderiv_le`, with the circle acting by
+   $x\mapsto\cos t\,x+\sin t\,J_0x$), and `fubiniStudyForm` is
    defined as `SmoothForm.descendedForm` along the sphere Hopf map. It is
    symplectic by `isSymplectic_descendedForm_iff`.
 3. The projection from $\mathbb C^{n+1}\setminus0$ is the sphere Hopf map

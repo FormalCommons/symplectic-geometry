@@ -64,9 +64,9 @@ times the determinant of `Ψ y ∘ (Φ y)⁻¹` (`detCoreFrameSection_eq_det_smu
 rule follows Tau Ceti's `TauCeti.clutchingFunction_eq_mul_normalizedDet_inv`, which compares the
 clutching functions of two frames through the automorphism `(φ y)⁻¹ ∘ ψ y` of the model fibre.
 The same factor is the determinant of `(Φ y)⁻¹ ∘ Ψ y` on the model `G`
-(`ContinuousLinearEquiv.det_coe_trans_symm`), and it depends continuously on `y`
-(`continuous_det_trans_symm`), since it is the coordinate of the change of trivialization
-`detCoreFrameIso f Ψ hΨ ≪≫ (detCoreFrameIso f Φ hΦ).symm` of the trivial line.
+(`ContinuousLinearEquiv.det_coe_trans_symm`). It depends continuously on `y`, since
+`(Φ y)⁻¹ ∘ Ψ y` does (Tau Ceti's `TauCeti.continuous_trans_symm_of_continuous_frame`) and the
+determinant is continuous (`ContinuousLinearMap.continuous_det`).
 
 In coordinates, the value of the section at `y` is the top compound matrix of `Φ y` read in the
 preferred trivialization of `E` at `f y` (`detCoreFrameSection_apply`); each of its coordinates
@@ -515,20 +515,6 @@ theorem detCoreFrameSection_eq_det_smul (y : X) :
       LinearMap.det ((Φ y).symm.trans (Ψ y) : E (f y) →ₗ[𝕜] E (f y)) •
         detCoreFrameSection f Φ hΦ y :=
   isoFiberEquiv_apply_eq_smul _ _ (fiberMap_detCoreFrameIso_trans_symm_hom f hΦ hΨ y) _
-
-include hΦ hΨ in
-/-- The determinant of the change of frame `(Φ y)⁻¹ ∘ Ψ y` between two frames along `f`, an
-automorphism of the model `G`, depends continuously on `y`. -/
-theorem continuous_det_trans_symm :
-    Continuous fun y ↦ LinearMap.det (((Ψ y).trans (Φ y).symm).toLinearEquiv : G →ₗ[𝕜] G) := by
-  -- The determinant is the coordinate of the change of trivialization of the determinant line.
-  have h : Continuous fun y ↦
-      isoFiberEquiv (detCoreFrameIso f Ψ hΨ ≪≫ (detCoreFrameIso f Φ hΦ).symm) y fun _ ↦ 1 :=
-    (continuous_trivial_iff.1 (continuous_isoFiberEquiv_const _ _)).2
-  refine ((continuous_apply (⟨0, by simp⟩ : Fin (trivial 𝕜 X 1).rank)).comp h).congr fun y ↦ ?_
-  rw [Function.comp_apply, isoFiberEquiv_apply, fiberMap_detCoreFrameIso_trans_symm_hom,
-    ← ContinuousLinearEquiv.det_coe_trans_symm]
-  simp
 
 /-- **The determinant section of a frame in coordinates.** The value at `y` of the determinant
 section of a frame `Φ` along `f` is the top compound matrix of the automorphism of
