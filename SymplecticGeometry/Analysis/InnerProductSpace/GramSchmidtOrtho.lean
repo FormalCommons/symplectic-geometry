@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.InnerProductSpace.GramSchmidtOrtho
+import TauCeti.Analysis.InnerProductSpace.SkewSymmetric.Basic
 
 /-!
 # Gram–Schmidt and skew-adjoint maps
@@ -96,9 +97,7 @@ theorem gramSchmidt_eq_apply_gramSchmidt {J : E →ₗ[ℝ] E} (hJ : ∀ u v, �
     rcases hk.lt_or_eq with hk | rfl
     · rw [← neg_eq_zero, ← hJ, real_inner_comm]
       exact hperp _ (subset_span (mem_image_of_mem _ hk))
-    · have := hJ (g k) (g k)
-      rw [real_inner_comm] at this
-      linarith
+    · exact TauCeti.inner_self_apply_eq_zero_of_skew hJ (g k)
   have hdd : ∀ v ∈ span ℝ (g '' Iio j), ⟪v, d⟫ = 0 := by
     intro v hv
     induction hv using span_induction with
