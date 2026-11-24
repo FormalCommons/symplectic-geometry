@@ -59,10 +59,10 @@ the restrictions of the classes through two trivializations differ by the coordi
 homeomorphism of `F`, so the hypothesis at the trivialization of each point gives it through every
 trivialization of the atlas.
 
-The integral form follows from the case `k = ℤ`, through the linear equivalence
-`TopCat.integralCohomologyLinearEquiv` of cohomology with coefficients `ℤ` with integral
-cohomology, which commutes with pull-backs and carries the cup product to the integral cup product
-(`TopCat.integralLerayHirsch_integralCohomologyLinearEquiv`).
+The integral form follows from the case `k = ℤ`, through the inverse of Tau Ceti's linear
+equivalence `TopCat.integralCohomologyEquiv` of integral cohomology with cohomology with
+coefficients `ℤ`. The inverse commutes with pull-backs and carries the cup product to the
+integral cup product (`TopCat.integralLerayHirsch_integralCohomologyEquiv_symm`).
 
 ## References
 
@@ -427,19 +427,20 @@ theorem singularCohomologyMap_injective_of_integralLerayHirsch_injective
 section LinearEquiv
 
 /- `TopCat.lerayHirsch` for `k = ℤ` uses the structure `ModuleCat.instLinear`, which instance
-search would not find here (`TopCat.integralCohomologyLinearEquiv`). -/
+search would not find here (`TopCat.integralCohomologyEquiv`). -/
 attribute [local instance high] ModuleCat.instLinear
 
 /-- The integral Leray–Hirsch map is the Leray–Hirsch map with coefficients `ℤ`, read through
-`TopCat.integralCohomologyLinearEquiv` on the summands, on the classes and on the target. -/
-theorem integralLerayHirsch_integralCohomologyLinearEquiv
+the inverse of `TopCat.integralCohomologyEquiv` on the summands, on the classes and on the
+target. -/
+theorem integralLerayHirsch_integralCohomologyEquiv_symm
     (c : ∀ d, ι d → E.singularCohomology (𝟙_ (ModuleCat.{0} ℤ)) ℤ (𝟙_ (ModuleCat.{0} ℤ)) d)
     (x : ⨁ j : Σ pq : {pq : ℕ × ℕ // pq.1 + pq.2 = n}, ι pq.val.1,
       B.singularCohomology (𝟙_ (ModuleCat.{0} ℤ)) ℤ (𝟙_ (ModuleCat.{0} ℤ)) j.1.val.2) :
-    integralLerayHirsch p n (fun d i ↦ E.integralCohomologyLinearEquiv d (c d i))
+    integralLerayHirsch p n (fun d i ↦ (E.integralCohomologyEquiv d).symm (c d i))
         (DirectSum.map (fun j : Σ pq : {pq : ℕ × ℕ // pq.1 + pq.2 = n}, ι pq.val.1 ↦
-          (B.integralCohomologyLinearEquiv j.1.val.2).toLinearMap.toAddMonoidHom) x) =
-      E.integralCohomologyLinearEquiv n (lerayHirsch p n c x) := by
+          (B.integralCohomologyEquiv j.1.val.2).symm.toLinearMap.toAddMonoidHom) x) =
+      (E.integralCohomologyEquiv n).symm (lerayHirsch p n c x) := by
   induction x using DirectSum.induction_on with
   | zero => simp only [map_zero]
   | add x y hx hy => simp only [map_add, hx, hy]
@@ -447,30 +448,30 @@ theorem integralLerayHirsch_integralCohomologyLinearEquiv
     obtain ⟨⟨⟨d, q⟩, h⟩, i⟩ := j
     rw [DirectSum.map_of, LinearMap.toAddMonoidHom_coe, LinearEquiv.coe_coe,
       integralLerayHirsch_of, ← DirectSum.lof_eq_of ℤ, lerayHirsch_lof,
-      integralCohomologyLinearEquiv_singularCup, integralCohomologyLinearEquiv_naturality]
+      integralCohomologyEquiv_symm_singularCup, integralCohomologyEquiv_symm_naturality]
 
 /-- The integral Leray–Hirsch map of classes `c` with coefficients `ℤ`, read through
-`TopCat.integralCohomologyLinearEquiv`, is bijective exactly when the Leray–Hirsch map with
-coefficients `ℤ` of `c` is. -/
+the inverse of `TopCat.integralCohomologyEquiv`, is bijective exactly when the Leray–Hirsch map
+with coefficients `ℤ` of `c` is. -/
 theorem integralLerayHirsch_bijective_iff
     (c : ∀ d, ι d → E.singularCohomology (𝟙_ (ModuleCat.{0} ℤ)) ℤ (𝟙_ (ModuleCat.{0} ℤ)) d) :
     Function.Bijective
-        (integralLerayHirsch p n fun d i ↦ E.integralCohomologyLinearEquiv d (c d i)) ↔
+        (integralLerayHirsch p n fun d i ↦ (E.integralCohomologyEquiv d).symm (c d i)) ↔
       Function.Bijective (lerayHirsch p n c) := by
   have hmap : Function.Bijective (DirectSum.map
       fun j : Σ pq : {pq : ℕ × ℕ // pq.1 + pq.2 = n}, ι pq.val.1 ↦
-        (B.integralCohomologyLinearEquiv j.1.val.2).toLinearMap.toAddMonoidHom) :=
-    ⟨(DirectSum.map_injective _).2 fun j ↦ (integralCohomologyLinearEquiv _ _).injective,
-      (DirectSum.map_surjective _).2 fun j ↦ (integralCohomologyLinearEquiv _ _).surjective⟩
-  have hcomp : ⇑(integralLerayHirsch p n fun d i ↦ E.integralCohomologyLinearEquiv d (c d i)) ∘
+        (B.integralCohomologyEquiv j.1.val.2).symm.toLinearMap.toAddMonoidHom) :=
+    ⟨(DirectSum.map_injective _).2 fun j ↦ (integralCohomologyEquiv _ _).symm.injective,
+      (DirectSum.map_surjective _).2 fun j ↦ (integralCohomologyEquiv _ _).symm.surjective⟩
+  have hcomp : ⇑(integralLerayHirsch p n fun d i ↦ (E.integralCohomologyEquiv d).symm (c d i)) ∘
       ⇑(DirectSum.map fun j : Σ pq : {pq : ℕ × ℕ // pq.1 + pq.2 = n}, ι pq.val.1 ↦
-        (B.integralCohomologyLinearEquiv j.1.val.2).toLinearMap.toAddMonoidHom) =
-      ⇑(E.integralCohomologyLinearEquiv n) ∘ ⇑(lerayHirsch p n c) := by
+        (B.integralCohomologyEquiv j.1.val.2).symm.toLinearMap.toAddMonoidHom) =
+      ⇑((E.integralCohomologyEquiv n).symm) ∘ ⇑(lerayHirsch p n c) := by
     funext x
     rw [Function.comp_apply, Function.comp_apply,
-      integralLerayHirsch_integralCohomologyLinearEquiv]
+      integralLerayHirsch_integralCohomologyEquiv_symm]
   rw [← Function.Bijective.of_comp_iff _ hmap, hcomp,
-    Function.Bijective.of_comp_iff' (integralCohomologyLinearEquiv _ n).bijective]
+    Function.Bijective.of_comp_iff' (integralCohomologyEquiv _ n).symm.bijective]
 
 end LinearEquiv
 
@@ -491,19 +492,19 @@ theorem integralLerayHirsch_fst_bijective (X F : TopCat.{0}) {ι : ℕ → Type}
     Function.Bijective (integralLerayHirsch (fst X F) n
       fun d i ↦ TopCat.singularCohomologyMap (snd X F) d (b d i)) := by
   -- The classes with coefficients `ℤ` that correspond to `b`.
-  let b' (d : ℕ) (i : ι d) := (F.integralCohomologyLinearEquiv d).symm (b d i)
+  let b' (d : ℕ) (i : ι d) := F.integralCohomologyEquiv d (b d i)
   -- Their pull-backs, for the structure `ModuleCat.instLinear` that `TopCat.lerayHirsch` uses,
   -- which instance search would not find here.
   let c' (d : ℕ) (i : ι d) :=
     @TopCat.singularCohomologyMap _ _ _ _ (𝟙_ (ModuleCat.{0} ℤ)) ℤ _ ModuleCat.instLinear
       (𝟙_ (ModuleCat.{0} ℤ)) _ _ (snd X F) d (b' d i)
   have hbb' : (fun d i ↦ TopCat.singularCohomologyMap (snd X F) d (b d i)) = fun d i ↦
-      (X ⊗ F).integralCohomologyLinearEquiv d (c' d i) := by
+      ((X ⊗ F).integralCohomologyEquiv d).symm (c' d i) := by
     funext d i
-    rw [integralCohomologyLinearEquiv_naturality, LinearEquiv.apply_symm_apply]
+    rw [integralCohomologyEquiv_symm_naturality, LinearEquiv.symm_apply_apply]
   have hb' (d : ℕ) (hd : d ≤ n) :
       LinearIndependent ℤ (b' d) ∧ ⊤ ≤ Submodule.span ℤ (Set.range (b' d)) :=
-    ((F.integralCohomologyLinearEquiv d).symm.linearIndependent_comp_and_top_le_span_iff
+    ((F.integralCohomologyEquiv d).linearIndependent_comp_and_top_le_span_iff
       (b d)).mpr (hb d hd)
   rw [hbb', integralLerayHirsch_bijective_iff]
   exact lerayHirsch_fst_bijective X b' hb' hF
@@ -542,14 +543,14 @@ theorem integralLerayHirsch_bijective (s : Finset Y)
     Function.Bijective
       (integralLerayHirsch (ofHom ⟨π F Z, FiberBundle.continuous_proj F Z⟩) n c) := by
   -- The classes with coefficients `ℤ` that correspond to `c`.
-  let c' (d : ℕ) (i : ι d) := ((of (TotalSpace F Z)).integralCohomologyLinearEquiv d).symm (c d i)
-  have hcc' : c = fun d i ↦ (of (TotalSpace F Z)).integralCohomologyLinearEquiv d (c' d i) := by
+  let c' (d : ℕ) (i : ι d) := (of (TotalSpace F Z)).integralCohomologyEquiv d (c d i)
+  have hcc' : c = fun d i ↦ ((of (TotalSpace F Z)).integralCohomologyEquiv d).symm (c' d i) := by
     funext d i
-    rw [LinearEquiv.apply_symm_apply]
+    rw [LinearEquiv.symm_apply_apply]
   have hc' (y : Y) (d : ℕ) (hd : d ≤ n) := by
     -- The pull-back with coefficients `ℤ`, for the structure `ModuleCat.instLinear` that
     -- `TopCat.lerayHirsch` uses, which instance search would not find here.
-    have hb : (((of F).integralCohomologyLinearEquiv d).symm ∘ fun i ↦
+    have hb : ((of F).integralCohomologyEquiv d ∘ fun i ↦
         TopCat.singularCohomologyMap
           (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
           d (c d i)) = fun i ↦
@@ -558,8 +559,7 @@ theorem integralLerayHirsch_bijective (s : Finset Y)
           (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
           d (c' d i) := by
       ext i
-      rw [Function.comp_apply, LinearEquiv.symm_apply_eq,
-        integralCohomologyLinearEquiv_naturality, LinearEquiv.apply_symm_apply]
+      rw [Function.comp_apply, integralCohomologyEquiv_naturality]
     exact hb ▸ (LinearEquiv.linearIndependent_comp_and_top_le_span_iff _ _).mpr (hc y d hd)
   rw [hcc', integralLerayHirsch_bijective_iff]
   exact lerayHirsch_bijective (k := ℤ) s hs n c' hF hc'
