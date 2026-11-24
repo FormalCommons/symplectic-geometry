@@ -92,11 +92,11 @@ two more.
   $F_A(v,w)=dA(v,w)+[Av,Aw]$, the page's pointwise formula. Tau Ceti's
   $d$ of a one-form is $V(A W)-W(A V)-A[V,W]$, so on horizontal fields
   $F_A(X,Y)=-A([X,Y])$ with `mlieBracket`, as the page says.
-- **Descent along $P\times F\to P\times_GF$.** It is reduced to the merged
-  descent along a principal bundle projection
-  (`TauCeti.PrincipalBundle.isBasic_of_mpullback_op_smul`, with Tau
-  Ceti's `SmoothForm.descendedForm`) by the pull-back principal bundle
-  $Q=\pi_M^*P$ over $M$, where $\pi_M:M\to B$ is the projection. Tau Ceti
+- **Descent along $P\times F\to P\times_GF$.** Tau Ceti's
+  `RoughForm.isBasic_of_mpullback_eq`, with the diagonal action, and
+  `IsSubmersion.exists_smoothForm_mpullback_eq_iff` give it once the
+  kernel of $dq$ is known; that kernel is found with the pull-back principal
+  bundle $Q=\pi_M^*P$ over $M$, where $\pi_M:M\to B$ is the projection. Tau Ceti
   makes it a smooth principal `G`-bundle (`TauCeti.PrincipalBundle.pullback`
   and `TauCeti.ContMDiffFiberBundle.pullback`), and the map
   $\Phi(x,v)=\big([x,v],x\big)$ is a $G$-equivariant diffeomorphism from
@@ -289,8 +289,9 @@ projection as a smooth map, and `Q := πM *ᵖ P`.
 - `exists_mpullback_totalSpaceMk_mk_eq`: a smooth form on $P\times F$
   invariant under the diagonal action and vanishing when one argument is
   $(x\xi,-X_\xi(v))$ is `mpullback q` of a form on $M$, unique by Tau
-  Ceti's `mpullback_injective_of_surjective`. It is the merged
-  `isBasic_of_mpullback_op_smul` for $Q$, transported along $\Phi$.
+  Ceti's `mpullback_injective_of_surjective`. It is Tau Ceti's
+  `RoughForm.isBasic_of_mpullback_eq` for $q$ and the diagonal action,
+  with the kernel of $dq$ found through $\Phi$.
 
 ### `Geometry/Manifold/FiberBundle/Associated/Connection.lean`
 
