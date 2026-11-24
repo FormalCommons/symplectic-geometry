@@ -33,6 +33,8 @@ two trivializations, these inclusions differ by the coordinate change.
 * `FiberBundle.isOpen_of_forall_mem_iff_snd_mem`: a set of the total space that every
   trivialization `trivializationAt F E b` reads, on its source, as the preimage of an open set of
   the model fibre under the fibre coordinate, is open.
+* `FiberBundle.nonempty_fiber`: the fibres of a fibre bundle with a nonempty model fibre are
+  nonempty.
 
 ## Implementation notes
 
@@ -101,6 +103,15 @@ theorem isOpen_of_forall_mem_iff_snd_mem {s : Set (TotalSpace F E)} {t : Set F}
     fun q hq ↦ (h p.proj q hq.1).2 hq.2,
     e.continuousOn.isOpen_inter_preimage e.open_source (ht.preimage continuous_snd),
     hpe, (h p.proj p hpe).1 hp⟩
+
+variable (F E) in
+/-- Every fibre of a fibre bundle whose model fibre `F` is nonempty, such as a group, is
+nonempty, since it is homeomorphic to `F`.
+
+This is not an instance: `F` does not occur in the conclusion, so instance search could not
+find it. -/
+theorem nonempty_fiber [Nonempty F] (b : B) : Nonempty (E b) :=
+  ⟨(homeomorphAt F E b).symm (Classical.arbitrary F)⟩
 
 end FiberBundle
 

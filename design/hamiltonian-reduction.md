@@ -302,26 +302,19 @@ Coisotropy and characteristic leaves, with the atlases of `Basic.lean`.
 
 The tangent spaces of the quotient, and the first milestone.
 
-- With `K z := LinearMap.ker (h.differential z)`:
-
-  ```lean
-  def zeroLevelTangentEquiv (z : h.zeroLevel) :
-      (hσ.symplecticFormAt z).ReducedSpace (K z) ≃ₗ[ℝ]
-        TangentSpace 𝓘(ℝ, ProperSMul.QuotientModelSpace E (Fin n → ℝ)) (π z)
-  ```
-
-  from Tau Ceti's linear reduction `K z ⧸ (K z ∩ (K z)^σ)`
-  (`Geometry/Symplectic/LinearReduction.lean`): `v ↦ [di v]` maps `T_z Z`
-  onto it, by `range_mfderiv_coe_zeroLevel`, with kernel the kernel of
-  `(i^* σ)_z`, which is the kernel of `dπ_z` by
-  `ker_bilinFormAt_mpullback_coe_zeroLevel`; `dπ_z` is onto
-  (`LinearMap.quotKerEquivOfSurjective`).
-- `zeroLevelTangentEquiv_mk`: for `v : T_z Z`, the class of `di v` goes to
-  `dπ_z v`.
-- `eval₂_zeroLevelTangentEquiv`: if `SmoothForm.mpullback π _ η =
-  SmoothForm.mpullback Subtype.val _ σ`, then for `v w : K z`,
-  `η.eval₂ (π z) (e (Submodule.Quotient.mk v)) (e (Submodule.Quotient.mk w)) =
-  σ.eval₂ z v w`, with `e = h.zeroLevelTangentEquiv z`.
+- With `K z := LinearMap.ker (h.differential z)`, the equivalence
+  `(hσ.symplecticFormAt z).ReducedSpace (K z) ≃ₗ[ℝ]
+  TangentSpace 𝓘(ℝ, ProperSMul.QuotientModelSpace E (Fin n → ℝ)) (π z)` is
+  `TauCeti.SmoothTwoForm.IsNondegenerate.reducedSpaceEquivTangentSpace`, of
+  `Reduction/Tangent.lean`, for the data `(Subtype.val, π)`, with
+  `range_mfderiv_coe_zeroLevel`, `ker_bilinFormAt_mpullback_coe_zeroLevel`
+  and the surjectivity of `dπ_z`. That file states it, with
+  `reducedSpaceEquivTangentSpace_mk` (the class of `di v` goes to `dp v`),
+  `eval₂_reducedSpaceEquivTangentSpace` and
+  `isSymplectomorphism_reducedSpaceEquivTangentSpace`, for any smooth
+  `i : Z → M`, map `p : Z → Q` and point `z` with
+  `range di_z = W`, `ker (i^* σ)_z = ker dp_z` and `dp_z` onto, so at any
+  level of Tau Ceti's reduction data.
 - **Milestone** `SymplecticGeometry.symplecticReduction_zeroLevel`, in the
   page's sign: for `[ConnectedSpace G]`, `hσ : σ.IsSymplectic`, `hG`,
   `h : σ.IsEquivariantMomentMap fun x ↦ -μ x`,
@@ -342,7 +335,7 @@ The tangent spaces of the quotient, and the first milestone.
      finrank ℝ (ProperSMul.QuotientModelSpace E (Fin n → ℝ)) + 2 * finrank ℝ 𝔤 = finrank ℝ E'`;
   7. at each `z`, the kernel of `σ_z` on `K z`, mapped into `T_z M`, is the
      orbit tangent space, and for every symplectic `η` with the pullback
-     equation, `zeroLevelTangentEquiv z` is a symplectomorphism
+     equation, `reducedSpaceEquivTangentSpace` at `z` is a symplectomorphism
      (`SymplecticForm.IsSymplectomorphism`) from `SymplecticForm.reduction`
      to `η` at `π z`.
 
@@ -407,7 +400,7 @@ orbit projections of `h.orbitLevel η` and of `hP.zeroLevel`.
 - `mpullback_orbitLevelGraph_prod`: the product form pulled back along
   `Subtype.val ∘ orbitLevelGraph` is
   `SmoothForm.mpullback Subtype.val _ σ + SmoothForm.mpullback orbitLevelProj _ η.coadjointOrbitForm`.
-- `existsUnique_isSymplectic_mpullback_quotientMk_orbitLevel (hσ) (hG) … :
+- `existsUnique_isSymplectic_mpullback_quotientMk_orbitLevel_eq_mpullback_add_mpullback (hσ) (hG) … :
   ∃! ω_red, ω_red.IsSymplectic ∧ SmoothForm.mpullback π_Q _ ω_red =
   SmoothForm.mpullback Subtype.val _ σ +
   SmoothForm.mpullback orbitLevelProj _ η.coadjointOrbitForm`: the product's
@@ -420,7 +413,7 @@ orbit projections of `h.orbitLevel η` and of `hP.zeroLevel`.
   finrank ℝ (ProperSMul.QuotientModelSpace E (Fin m → ℝ)) + 2 * finrank ℝ 𝔤 =
   finrank ℝ E' + finrank ℝ (Subgroup.QuotientModelSpace I _)`.
 - **Milestone** `SymplecticGeometry.symplecticReduction_coadjointOrbit`, in
-  the page's sign: for `[ConnectedSpace G]`, `hω`, `hG`,
+  the page's sign: for `hω`, `hG`,
   `h : ω.IsEquivariantMomentMap fun x ↦ -μ x`, `η`, `hemb`, freeness on
   `h.orbitLevel η` (whose points are those with `μ x ∈ Set.range ι`),
   `[ProperSMul G (h.orbitLevel η)]` and `hm`, with the atlases, the
@@ -438,8 +431,8 @@ orbit projections of `h.orbitLevel η` and of `hP.zeroLevel`.
   Its docstring ends with "Milestone: *Reduction at a coadjoint orbit and
   the shifting construction*."
 
-Connectedness is not used by the coadjoint orbit case; the milestone keeps
-the page's hypothesis, and the building lemmas do without it.
+Connectedness is not used by the coadjoint orbit case, so neither the
+milestone nor the building lemmas assume it.
 
 ## What the part uses
 
@@ -464,7 +457,7 @@ In order; each is a few hundred lines.
    dimension. Waits for nothing.
 2. **`ZeroLevel/Leaves.lean`**: coisotropy of the level and its
    characteristic leaves as orbits. Waits for issue 1.
-3. **`ZeroLevel/Tangent.lean`**: `zeroLevelTangentEquiv` with its API and
+3. **`ZeroLevel/Tangent.lean`**: the tangent spaces of the quotient and
    the milestone *Marsden–Weinstein reduction*. Waits for issues 1 and 2.
 4. **`CoadjointOrbit/Level.lean`**: the preimage of an embedded orbit, the
    graph homeomorphism with the product's zero level, its atlas, the
