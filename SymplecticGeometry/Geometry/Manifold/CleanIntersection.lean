@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
+public import SymplecticGeometry.Data.Set.Image
 
 /-!
 # Clean intersections of maps
@@ -23,11 +24,11 @@ intersection allows components of different dimensions to be treated one dimensi
 
 * `SymplecticGeometry.IsCleanIntersection I J K L f g c`: `f` and `g` intersect cleanly along `c`.
 * `SymplecticGeometry.IsCleanIntersection.of_range_eq`: the constructor for the case where
-  `range c` is the whole intersection `f ⁻¹' range g`.
-* `Set.range_comp_eq_range_inter_of_range_eq_preimage`: in that case,
-  `range (f ∘ c) = range f ∩ range g`.
-* `SymplecticGeometry.IsCleanIntersection.self_id`: an injective map, such as a smooth embedding,
-  meets itself cleanly along the identity.
+  `range c` is the whole intersection `f ⁻¹' range g`. In that case
+  `Set.range_comp_eq_range_inter_of_range_eq_preimage`, from `SymplecticGeometry.Data.Set.Image`,
+  gives `range (f ∘ c) = range f ∩ range g`.
+* `SymplecticGeometry.IsCleanIntersection.self_id`: an injective map satisfies the predicate with
+  itself along the identity.
 
 ## References
 
@@ -39,12 +40,6 @@ public section
 
 open Set
 open scoped ContDiff Manifold
-
-/-- If the range of `c` is the preimage of `t` under `f`, then the range of `f ∘ c` is the part of
-`t` in the range of `f`. -/
-theorem Set.range_comp_eq_range_inter_of_range_eq_preimage {α β γ : Type*} {f : β → γ}
-    {c : α → β} {t : Set γ} (h : range c = f ⁻¹' t) : range (f ∘ c) = range f ∩ t := by
-  rw [range_comp, h, image_preimage_eq_range_inter]
 
 namespace SymplecticGeometry
 
@@ -61,7 +56,12 @@ variable (I J K L) in
 /-- The maps `f : N → M` and `g : P → M` intersect cleanly along `c : C → N`: `c` is a smooth
 embedding whose range lies in `f ⁻¹' range g` and is open and closed in it, for the topology that
 `N` induces, and whenever `g y = f (c x)`, the range of the derivative of `f ∘ c` at `x` is the
-intersection of the ranges of the derivatives of `f` at `c x` and of `g` at `y`. -/
+intersection of the ranges of the derivatives of `f` at `c x` and of `g` at `y`.
+
+Nothing is assumed of `f` and `g`: they need not be smooth, nor immersions. When they are smooth
+embeddings, this is the usual clean intersection of `range f` and `range g` along `f '' range c`;
+for other maps the condition on derivatives says less, since `mfderiv` may vanish, as it does at
+every point where a map is not differentiable. -/
 structure IsCleanIntersection (f : N → M) (g : P → M) (c : C → N) : Prop where
   /-- The parametrization of the intersection is a smooth embedding. -/
   isSmoothEmbedding : Manifold.IsSmoothEmbedding L J ∞ c
@@ -93,8 +93,10 @@ theorem of_range_eq (hc : Manifold.IsSmoothEmbedding L J ∞ c) (hrange : range 
     exact isClopen_univ
   range_mfderiv_comp := hd
 
-/-- An injective map `f`, for instance a smooth embedding, intersects itself cleanly along the
-identity of its source. -/
+/-- For an injective map `f`, the pair `f`, `f` satisfies `IsCleanIntersection` along the identity
+of `N`: the intersection `f ⁻¹' range f` is all of `N`, and both derivative ranges are that of
+`mfderiv J I f`. This is a clean self-intersection in the usual sense only when `f` is a smooth
+embedding: `t ↦ t ^ 3` on `ℝ` satisfies the predicate, although its derivative vanishes at `0`. -/
 theorem self_id [IsManifold J ∞ N] (hf : Function.Injective f) :
     IsCleanIntersection I J J J f f id :=
   of_range_eq .id (by rw [range_id, preimage_range]) fun x y hxy => by
