@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 public import TauCeti.Geometry.Manifold.DifferentialForm.Vertical
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Vertical
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 
@@ -70,11 +71,8 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
 
 ## Implementation notes
 
-The pullback of a family of forms along a family of maps
-(`ContMDiffAt.mpullback_form_family_of_family`) is proved as Tau Ceti's
-`ContMDiffAt.mpullback_form_family`, which is its case of a fixed form, with the coefficients of
-the family in place of those of the form. The form with prescribed slices is smooth by this
-lemma (`TauCeti.contMDiffAt_verticalForm_iff`). The constant family is the pullback along
+The form with prescribed slices is smooth by `TauCeti.contMDiffAt_verticalForm_iff`
+(`Geometry/Manifold/DifferentialForm/Vertical.lean`). The constant family is the pullback along
 the projection (`TauCeti.SmoothForm.mpullback_prodMk_mpullback_snd`), as in Tau Ceti's
 `TauCeti.SmoothForm.mpullback_prodMk_lineMapFamily`. Locality in `M` comes from Tau Ceti's
 `IsLocalDiffeomorphAt.contMDiffAt_mpullback_form_iff`, applied to `id × (U ↪ W)`, and the proof
@@ -102,96 +100,6 @@ variable {E H M EN HN N F : Type*}
   [NormedAddCommGroup EN] [NormedSpace ℝ EN] [TopologicalSpace HN]
   [TopologicalSpace N] [ChartedSpace HN N] {J : ModelWithCorners ℝ EN HN} [IsManifold J 1 N]
   [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
-
-section Family
-
-variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
-  [TopologicalSpace M'] [ChartedSpace H' M'] {I' : ModelWithCorners ℝ E' H'} [IsManifold I' 1 M']
-  {m n : WithTop ℕ∞}
-
-/-- **Pullback of a family of forms along a family of maps.** Let `f : N → M → M'` be jointly
-`C^n` at `(p₀, g p₀)` and `g : N → M` be `C^m` at `p₀`, with `m + 1 ≤ n`, and let `φ` be a family
-of rough forms on `M'` over `N` such that `p ↦ φ p (f p (g p))` is a `C^m` section along
-`p ↦ f p (g p)` at `p₀`. Then the pullbacks `(f p)^* (φ p)` at `g p` form a `C^m` section along
-`g` at `p₀`. -/
-theorem _root_.ContMDiffAt.mpullback_form_family_of_family {φ : N → RoughForm I' M' F k}
-    {f : N → M → M'} {g : N → M} {p₀ : N}
-    (hφ : ContMDiffAt J (I'.prod 𝓘(ℝ, E' [⋀^Fin k]→L[ℝ] F)) m
-      (fun p ↦ TotalSpace.mk' (E' [⋀^Fin k]→L[ℝ] F)
-        (E := fun y : M' ↦ TangentSpace I' y [⋀^Fin k]→L[ℝ] Trivial M' F y) (f p (g p))
-        (φ p (f p (g p)))) p₀)
-    (hf : ContMDiffAt (J.prod I) I' n (Function.uncurry f) (p₀, g p₀))
-    (hg : ContMDiffAt J I m g p₀) (hmn : m + 1 ≤ n) :
-    ContMDiffAt J (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) m
-      (fun p ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
-        (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) (g p)
-        (mpullback I I' (f p) (φ p) (g p))) p₀ := by
-  have hfg : ContMDiffAt J I' m (fun p ↦ f p (g p)) p₀ :=
-    (hf.of_le ((le_add_of_nonneg_right zero_le_one).trans hmn)).comp p₀
-      (contMDiffAt_id.prodMk hg)
-  have hc := ((contMDiffAt_continuousAlternatingMap_bundle _).mp hφ).2
-  have hd := hf.mfderiv f g hg hmn
-  have hpre := ContinuousAlternatingMap.contDiff_compContinuousLinearMapCLM
-    (𝕜 := ℝ) (E := E) (F := E') (G := F) (ι := Fin k) m
-  have hp := (hpre.comp_contMDiffAt hd).clm_apply hc
-  apply (contMDiffAt_continuousAlternatingMap_bundle _).mpr
-  refine ⟨hg, hp.congr_of_eventuallyEq ?_⟩
-  have hmem : (fun p ↦ f p (g p)) ⁻¹'
-      (trivializationAt E' (TangentSpace I') (f p₀ (g p₀))).baseSet ∈ 𝓝 p₀ :=
-    hfg.continuousAt.preimage_mem_nhds
-      ((trivializationAt E' (TangentSpace I') (f p₀ (g p₀))).open_baseSet.mem_nhds
-        (FiberBundle.mem_baseSet_trivializationAt' (f p₀ (g p₀))))
-  filter_upwards [hmem] with p hp
-  simpa only [Function.comp_apply, ContinuousAlternatingMap.compContinuousLinearMapCLM_apply]
-    using inCoordinates_mpullback_family (I := I) (φ p) f g p₀ p hp
-
-end Family
-
-omit [IsManifold I 1 M] [IsManifold J 1 N] in
-/-- The value of the vertical form `TauCeti.verticalForm J β` at `p` is the pullback of `β p.1`
-along the projection `N × M → M`, at `p`. -/
-theorem verticalForm_apply_eq_mpullback_snd (β : N → RoughForm I M F k) (p : N × M) :
-    verticalForm J β p = mpullback (J.prod I) I Prod.snd (β p.1) p := by
-  ext v
-  rw [verticalForm_apply, mpullback_apply, mfderiv_snd]
-  -- `ContinuousLinearMap.snd` is the second projection.
-  rfl
-
-omit [IsManifold I 1 M] [IsManifold J 1 N] in
-/-- Pulling back the vertical form `TauCeti.verticalForm J β` of a family `β` along a map `f`
-gives, at `x`, the pullback of `β (f x).1` along the second component of `f`. -/
-theorem mpullback_verticalForm_apply {EX HX X : Type*} [NormedAddCommGroup EX]
-    [NormedSpace ℝ EX] [TopologicalSpace HX] [TopologicalSpace X] [ChartedSpace HX X]
-    {IX : ModelWithCorners ℝ EX HX} (β : N → RoughForm I M F k) {f : X → N × M} {x : X}
-    (hf : MDifferentiableAt IX (J.prod I) f x) :
-    mpullback IX (J.prod I) f (verticalForm J β) x =
-      mpullback IX I (Prod.snd ∘ f) (β (f x).1) x := by
-  rw [mpullback_comp_at hf mdifferentiableAt_snd]
-  -- Both sides only read the value at `f x` of the form on `N × M`.
-  ext v
-  simp only [mpullback_apply, verticalForm_apply_eq_mpullback_snd]
-
-/-- **Smoothness of vertical forms.** The vertical form `TauCeti.verticalForm J β` of a family `β`
-of rough forms on `M` over `N` is `C^m` at `p` exactly when the slice section `(t, y) ↦ β t y`,
-along the projection, is. -/
-theorem contMDiffAt_verticalForm_iff {m : WithTop ℕ∞} (β : N → RoughForm I M F k)
-    (p : N × M) :
-    ContMDiffAt (J.prod I) ((J.prod I).prod 𝓘(ℝ, (EN × E) [⋀^Fin k]→L[ℝ] F)) m
-        (fun q ↦ TotalSpace.mk' ((EN × E) [⋀^Fin k]→L[ℝ] F) q (verticalForm J β q)) p ↔
-      ContMDiffAt (J.prod I) (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) m
-        (fun q : N × M ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
-          (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) q.2
-          (β q.1 q.2)) p := by
-  refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
-  · have := ContMDiffAt.mpullback_form_family (hφ := h) (f := fun q : N × M ↦ Prod.mk q.1)
-      (g := Prod.snd) (n := ω) (p₀ := p)
-      ((contMDiff_fst.comp contMDiff_fst).prodMk contMDiff_snd).contMDiffAt contMDiffAt_snd le_top
-    simpa only [mpullback_prodMk_verticalForm] using this
-  · have := ContMDiffAt.mpullback_form_family_of_family (φ := fun q : N × M ↦ β q.1)
-      (f := fun _ ↦ Prod.snd) (g := id) (n := ω) h
-      (contMDiff_snd.comp contMDiff_snd).contMDiffAt contMDiffAt_id le_top
-    refine this.congr_of_eventuallyEq (Eventually.of_forall fun q ↦ ?_)
-    simp only [id_eq, verticalForm_apply_eq_mpullback_snd]
 
 /-- **Slice sections are local in `M`.** For a family `β` of rough forms on an open subset `W`
 of `M` and an open subset `U ≤ W`, the slice section of the restrictions of the `β t` to `U` is
@@ -263,8 +171,7 @@ the tangent vectors at `(t, y)`. -/
 theorem ofSlices_apply (p : N × M) (v : Fin k → TangentSpace (J.prod I) p) :
     (ofSlices α hα).val p v =
       (α p.1).val p.2 (fun i ↦ (Manifold.tangentSpaceProdEquiv p (v i)).2) := by
-  rw [coe_ofSlices, verticalForm_apply_eq_mpullback_snd, ← mpullback_snd_apply (I := J) (α p.1) p v,
-    coe_mpullback]
+  simp only [coe_ofSlices, verticalForm_apply, Manifold.tangentSpaceProdEquiv_apply]
 
 /-- The slice at `t` of `TauCeti.SmoothForm.ofSlices α hα` is `α t`. -/
 @[simp]
@@ -406,10 +313,8 @@ protected theorem fun_smul (hα : IsSmoothFamily J α) {c : N → ℝ}
     (hc : ContMDiff J 𝓘(ℝ) ∞ c) :
     IsSmoothFamily J (fun t ↦ c t • α t) := by
   rw [isSmoothFamily_iff_isSmoothForm] at hα ⊢
-  convert hα.fun_smul (hc.comp contMDiff_fst) using 1
-  funext p
-  simp only [verticalForm_apply_eq_mpullback_snd, Submodule.coe_smul, mpullback_smul,
-    Pi.smul_apply, Function.comp_apply]
+  simp only [Submodule.coe_smul, verticalForm_fun_smul_fst]
+  exact hα.fun_smul (hc.comp contMDiff_fst)
 
 /-- The product of a smooth family with a fixed smooth function on `M` is smooth. -/
 protected theorem funSMul (hα : IsSmoothFamily J α) (g : C^∞⟮I, M; ℝ⟯) :

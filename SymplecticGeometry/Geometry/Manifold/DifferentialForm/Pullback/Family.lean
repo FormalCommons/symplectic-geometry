@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Family
 
 /-!
-# Slices of families of forms: linear interpolation and pullback along `c × f`
+# Slices of families of forms, and pullbacks of families along families of maps
 
 Tau Ceti's `TauCeti.SmoothForm.lineMapFamily α₀ α₁ hc` is the smooth form on `ℝ × M` whose slice
 at time `t` is `α₀ + c(t) (α₁ - α₀)`, and `TauCeti.SmoothForm.mpullback_prodMk_lineMapFamily`
@@ -21,6 +21,12 @@ reparametrization `c : ℝ → ℝ` of time and a smooth map `f : M → N`: sinc
 `(c × f) ∘ ι_t = ι_{c t} ∘ f`, where `ι_t x = (t, x)`, functoriality of the pullback
 (`TauCeti.SmoothForm.mpullback_comp`) gives `ι_t^* (c × f)^* α = f^* ι_{c t}^* α`.
 
+Finally, it extends Tau Ceti's `ContMDiffAt.mpullback_form_family`, the smoothness of the
+pullbacks `(f p)^* φ` of one form `φ` along a smooth family of maps `f`, to a family of forms
+`φ p` that varies smoothly with the parameter
+(`ContMDiffAt.mpullback_form_family_of_family`). The proof is that of Tau Ceti's lemma, with the
+coefficients of the family in place of those of the fixed form.
+
 ## Main results
 
 * `TauCeti.SmoothForm.coe_mpullback_prodMk_lineMapFamily`: the slices of
@@ -29,11 +35,14 @@ reparametrization `c : ℝ → ℝ` of time and a smooth map `f : M → N`: sinc
   for a reparametrization `c` of time, with its case `f = id`,
   `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap_id_right`; the case `c = id` is Tau
   Ceti's `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap`.
+* `ContMDiffAt.mpullback_form_family_of_family`: the pullbacks `(f p)^* (φ p)` of a smooth
+  family of forms along a smooth family of maps form a smooth section.
 -/
 
 public section
 
-open scoped ContDiff Manifold
+open Bundle Filter
+open scoped ContDiff Manifold Topology
 
 namespace TauCeti.SmoothForm
 
@@ -81,6 +90,55 @@ theorem mpullback_prodMk_mpullback_prodMap_id_right {c : ℝ → ℝ}
   exact LinearMap.congr_fun SmoothForm.mpullback_id _
 
 end prodMap
+
+/-! ### Pullback of a family of forms along a family of maps -/
+
+section family
+
+variable {EN HN N E' H' M' : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN]
+  [TopologicalSpace HN] {J : ModelWithCorners ℝ EN HN} [TopologicalSpace N] [ChartedSpace HN N]
+  [IsManifold J 1 N] [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  [TopologicalSpace M'] [ChartedSpace H' M'] {I' : ModelWithCorners ℝ E' H'} [IsManifold I' 1 M']
+  {m n : WithTop ℕ∞}
+
+/-- **Pullback of a family of forms along a family of maps.** Let `f : N → M → M'` be jointly
+`C^n` at `(p₀, g p₀)` and `g : N → M` be `C^m` at `p₀`, with `m + 1 ≤ n`, and let `φ` be a family
+of rough forms on `M'` over `N` such that `p ↦ φ p (f p (g p))` is a `C^m` section along
+`p ↦ f p (g p)` at `p₀`. Then the pullbacks `(f p)^* (φ p)` at `g p` form a `C^m` section along
+`g` at `p₀`. -/
+theorem _root_.ContMDiffAt.mpullback_form_family_of_family {φ : N → RoughForm I' M' F k}
+    {f : N → M → M'} {g : N → M} {p₀ : N}
+    (hφ : ContMDiffAt J (I'.prod 𝓘(ℝ, E' [⋀^Fin k]→L[ℝ] F)) m
+      (fun p ↦ TotalSpace.mk' (E' [⋀^Fin k]→L[ℝ] F)
+        (E := fun y : M' ↦ TangentSpace I' y [⋀^Fin k]→L[ℝ] Trivial M' F y) (f p (g p))
+        (φ p (f p (g p)))) p₀)
+    (hf : ContMDiffAt (J.prod I) I' n (Function.uncurry f) (p₀, g p₀))
+    (hg : ContMDiffAt J I m g p₀) (hmn : m + 1 ≤ n) :
+    ContMDiffAt J (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) m
+      (fun p ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F)
+        (E := fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) (g p)
+        (TauCeti.mpullback I I' (f p) (φ p) (g p))) p₀ := by
+  have hfg : ContMDiffAt J I' m (fun p ↦ f p (g p)) p₀ :=
+    (hf.of_le ((le_add_of_nonneg_right zero_le_one).trans hmn)).comp p₀
+      (contMDiffAt_id.prodMk hg)
+  have hc := ((contMDiffAt_continuousAlternatingMap_bundle _).mp hφ).2
+  have hd := hf.mfderiv f g hg hmn
+  have hpre := ContinuousAlternatingMap.contDiff_compContinuousLinearMapCLM
+    (𝕜 := ℝ) (E := E) (F := E') (G := F) (ι := Fin k) m
+  have hp := (hpre.comp_contMDiffAt hd).clm_apply hc
+  apply (contMDiffAt_continuousAlternatingMap_bundle _).mpr
+  refine ⟨hg, hp.congr_of_eventuallyEq ?_⟩
+  have hmem : (fun p ↦ f p (g p)) ⁻¹'
+      (trivializationAt E' (TangentSpace I') (f p₀ (g p₀))).baseSet ∈ 𝓝 p₀ :=
+    hfg.continuousAt.preimage_mem_nhds
+      ((trivializationAt E' (TangentSpace I') (f p₀ (g p₀))).open_baseSet.mem_nhds
+        (FiberBundle.mem_baseSet_trivializationAt' (f p₀ (g p₀))))
+  filter_upwards [hmem] with p hp
+  simpa only [Function.comp_apply, ContinuousAlternatingMap.compContinuousLinearMapCLM_apply]
+    using inCoordinates_mpullback_family (I := I) (φ p) f g p₀ p hp
+
+
+end family
 
 end TauCeti.SmoothForm
 
