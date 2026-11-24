@@ -156,11 +156,10 @@ symplectic group, the Maslov index of the based loop of the pointwise product `f
 those of the based loops of `f` and `g`. -/
 theorem maslovIndex_toBasedLoop_mul (f g : C(Circle, GLSymplectic ι ℝ)) :
     maslovIndex (f * g).toBasedLoop = maslovIndex f.toBasedLoop + maslovIndex g.toBasedLoop := by
-  rw [← maslovIndex_mul, maslovIndex_def, maslovIndex_def]
-  refine Circle.degree_congr _ _ fun t ↦ ?_
-  rw [Path.map_coe, Function.comp_apply, ContinuousMap.toBasedLoop_apply, Path.map_coe,
-    Function.comp_apply, Path.mul_apply, ContinuousMap.toBasedLoop_apply,
-    ContinuousMap.toBasedLoop_apply, ContinuousMap.mul_apply]
+  rw [← maslovIndex_mul]
+  exact maslovIndex_congr _ _ fun t ↦ by
+    rw [Path.mul_apply, ContinuousMap.toBasedLoop_apply,
+      ContinuousMap.toBasedLoop_apply, ContinuousMap.toBasedLoop_apply, ContinuousMap.mul_apply]
 
 /-! ### Complex-linear symplectic matrices -/
 
