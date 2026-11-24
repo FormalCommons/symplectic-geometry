@@ -15,7 +15,7 @@ import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.Submersion.Split
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import TauCeti.Geometry.Symplectic.Manifold.Darboux
@@ -62,8 +62,9 @@ distribution (Tau Ceti's `TauCeti.SmoothForm.isInvolutiveDistribution_ker_bilinF
 `TauCeti.IsInvolutiveDistribution.exists_flatPartialDiffeomorph`, a form of the Frobenius theorem,
 gives a partial diffeomorphism into `ℝᵏ × ℝ²ʳ`, centred at the point and with the unit ball in its
 target, whose derivative sends the kernels to the vectors with second component `0`. Restrict it
-to the preimage of the unit ball. In these coordinates the fibres of the second projection are
-slices `ball × {b}`, which are convex.
+to the preimage of the unit ball (`PartialDiffeomorph.exists_diffeomorph_of_subset_target`).
+In these coordinates the fibres of the second projection are slices `ball × {b}`, which are
+convex.
 
 Combined with a Darboux chart of the descended form on the ball, a characteristic chart gives
 Darboux coordinates for a closed form of constant rank
@@ -350,27 +351,14 @@ private theorem exists_isCharacteristicSubmersion_of_partialDiffeomorph
   let V : Opens (F₁ × F₂) :=
     ⟨Metric.ball 0 1 ×ˢ Metric.ball 0 1, Metric.isOpen_ball.prod Metric.isOpen_ball⟩
   have hV : (V : Set (F₁ × F₂)) = Metric.ball 0 1 := ball_prod_same _ _ _
-  have hs : IsOpen (Φ.source ∩ Φ ⁻¹' V) :=
-    Φ.contMDiffOn.continuousOn.isOpen_inter_preimage Φ.open_source V.isOpen
-  let Φ' := Φ.restrOpen _ hs
-  have htarget (v) : v ∈ Φ'.target ↔ v ∈ V := by
-    rw [Φ.restrOpen_target]
-    refine ⟨fun hv ↦ Φ.right_inv hv.1 ▸ hv.2.2, fun hv ↦ ?_⟩
-    have hvt : v ∈ Φ.target := hball (hV ▸ hv)
-    exact ⟨hvt, Φ.map_target hvt, by simpa [Φ.right_inv hvt] using hv⟩
-  let U : Opens M := ⟨Φ'.source, Φ'.open_source⟩
-  let Ψ : U ≃ₘ^∞⟮I, 𝓘(ℝ, F₁ × F₂)⟯ V :=
-    Φ'.toDiffeomorphSourceTarget.trans
-      (Diffeomorph.subtype (Diffeomorph.refl _ _ ∞) fun v ↦ htarget v)
-  have hΨ (u : U) : (Ψ u : F₁ × F₂) = Φ u := by
-    rw [Diffeomorph.coe_trans, Function.comp_apply]
-    refine (Diffeomorph.subtype_apply_coe _ _ _).trans ?_
-    rw [Diffeomorph.coe_refl, id, PartialDiffeomorph.toDiffeomorphSourceTarget_apply_coe,
-      PartialDiffeomorph.coe_restrOpen]
-  have hU (y : M) : y ∈ U ↔ y ∈ Φ.source ∧ Φ y ∈ V := by
-    simp [U, Φ']
-  have hxU : x ∈ U := (hU x).2 ⟨hx, by simp [h0, V]⟩
-  have huΦ (u : U) : (u : M) ∈ Φ.source := ((hU u).1 u.property).1
+  obtain ⟨U, Ψ, hU, hΨ⟩ := Φ.exists_diffeomorph_of_subset_target V (hV ▸ hball)
+  have hxU : x ∈ U := by
+    rw [← SetLike.mem_coe, hU]
+    exact ⟨hx, by simp [h0, V]⟩
+  have huΦ (u : U) : (u : M) ∈ Φ.source := by
+    have hu := u.property
+    rw [← SetLike.mem_coe, hU] at hu
+    exact hu.1
   refine ⟨U, hxU, Ψ, by rw [hΨ, h0], ?_⟩
   let B : Opens F₂ := ⟨Metric.ball 0 1, Metric.isOpen_ball⟩
   let p : U → B := fun u ↦ ⟨(Ψ u : F₁ × F₂).2, (Ψ u).property.2⟩
