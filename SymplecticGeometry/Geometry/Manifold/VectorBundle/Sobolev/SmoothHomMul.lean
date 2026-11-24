@@ -615,6 +615,7 @@ theorem exists_norm_contMDiffHomMulL_sub_le :
   have hsub : (A.hom (𝕜 := ℝ) h).coord i (Φ - Ψ) =ᶠ[nhds y]
       (A.hom (𝕜 := ℝ) h).coord i Φ - (A.hom (𝕜 := ℝ) h).coord i Ψ := by
     filter_upwards [(A.image i).isOpen.mem_nhds hy] with z hz
+    rw [Pi.sub_apply]
     exact (A.hom (𝕜 := ℝ) h).coord_sub i Φ Ψ ((image_hom (h := h) i).ge hz)
   rw [(hsub.iteratedFDeriv ℝ j).eq_of_nhds, iteratedFDeriv_sub_apply (hcd hΦ) (hcd hΨ)]
   exact hM i j hj y hy
