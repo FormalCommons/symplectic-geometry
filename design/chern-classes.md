@@ -302,9 +302,8 @@ copies of until that move:
 - `AlgebraicTopology/Cohomology/MayerVietoris/Basic.lean`,
   `AlgebraicTopology/Cohomology/MayerVietoris/Cup.lean`,
   `AlgebraicTopology/Cohomology/MayerVietoris/Pair.lean` and
-  `AlgebraicTopology/Cohomology/Relative.lean`: only the declarations that
-  the pin lacks and that the proof of
-  `TopCat.singularCohomologyMayerVietorisδ_singularCup` needs.
+  `AlgebraicTopology/Cohomology/Relative.lean`: the declarations that the
+  proof of `TopCat.singularCohomologyMayerVietorisδ_singularCup` needs.
 - `AlgebraicTopology/Cohomology/MayerVietoris/Module.lean`: the
   Mayer–Vietoris sequence with product middle term and `Function.Exact`.
 
@@ -450,8 +449,9 @@ fibres of that pull-back. The file imports the three files above.
 ### Tau Ceti's Euler class and Gysin files
 
 The library uses these declarations of Tau Ceti, which it had copied from
-Tau Ceti's main branch (commit `aa1b4e9e2a`) before the pinned version had
-them; the move to `c9d170eed5a8` (#2025) deleted the copies.
+Tau Ceti's main branch (commit `aa1b4e9e2a`, later than the pinned
+`c9d170eed5a8`, which has all of them too) before the version then pinned
+had them; the move to `c9d170eed5a8` (#2025) deleted the copies.
 
 - `Topology/VectorBundle/Smul.lean`:
   `TauCeti.VectorBundle.totalSpaceHomotopyEquiv`, the projection of a real
@@ -622,8 +622,8 @@ It uses these Tau Ceti files, of which the library had copies until the
 move to `c9d170eed5a8` (#2025):
 
 - `AlgebraicTopology/Singular/Kunneth/Pair.lean`: `TopCat.shufflePair`
-  with its characterization and naturality, without the quasi-isomorphism
-  results.
+  with its characterization and naturality. Tau Ceti's file also has
+  the quasi-isomorphism results, such as `TopCat.quasiIso_shufflePair`.
 - `AlgebraicTopology/Singular/Excision.lean`: `TopPair.prodUnionTripleFst`
   and `TopPair.prodExcisionFst`.
 - `AlgebraicTopology/Singular/Relative.lean`:

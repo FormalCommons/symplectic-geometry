@@ -17,7 +17,9 @@ symplectic isomorphisms and frames in which they are stated.
 The mathematics is McDuff–Salamon [McDuffSalamon2017], §2.6: Theorem 2.6.3
 and Exercise 2.6.2 (first milestone), Proposition 2.6.4 (second milestone)
 and Proposition 2.6.7 (third milestone). All Tau Ceti and Mathlib names below
-were checked against the pinned versions (Tau Ceti `v4.37.0-rc1`). Tau Ceti
+were checked against Tau Ceti `v4.37.0-rc1` and its Mathlib, the versions
+pinned when this file was written; `lakefile.toml` pins Tau Ceti
+`c9d170eed5a8` now. Tau Ceti
 paths are relative to `.lake/packages/TauCeti/TauCeti/`, and the library's
 paths to `SymplecticGeometry/`.
 
