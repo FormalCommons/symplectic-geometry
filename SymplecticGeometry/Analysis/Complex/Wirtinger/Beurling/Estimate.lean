@@ -11,6 +11,7 @@ public import TauCeti.Analysis.Sobolev.WeakDeriv.Basic
 import TauCeti.Analysis.Calculus.BumpFunction.Convolution
 import TauCeti.Analysis.Sobolev.Mollification.Basic
 import TauCeti.MeasureTheory.Function.Lp.ApproximateIdentity
+import TauCeti.MeasureTheory.Function.UnifTight
 import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
 import SymplecticGeometry.MeasureTheory.Function.LpSeminorm.TriangleInequality
 
@@ -35,7 +36,9 @@ almost everywhere then changes `∂̄` by a term of norm at most `m ‖∂̄v‖
   complex-linear and complex-antilinear parts of `D`. Mollification reduces them to the
   Schwartz case.
 The absorption step is `MeasureTheory.one_sub_mul_eLpNorm_le_eLpNorm_add_smul`, and the passage
-to the limit `MeasureTheory.eLpNorm_le_eLpNorm_of_tendsto`.
+to the limit `MeasureTheory.eLpNorm_le_eLpNorm_of_tendsto`, with Tau Ceti's
+`MeasureTheory.tendsto_eLpNorm_comp_sub_comp_of_tendsto` for the convergence of `∂` and `∂̄` of
+the mollified maps.
 
 ## References
 
@@ -104,28 +107,22 @@ theorem HasWeakFDerivOn.eLpNorm_complexLinearPart_le_eLpNorm_complexAntilinearPa
   have hconv :=
     tendsto_eLpNorm_normed_convolution_sub (by norm_num) (ContDiffBump.tendsto_rOut_shrinking
       (c := (0 : ℂ)) one_pos) hD
-  have hdc (n : ℕ) : Continuous (fderiv ℝ (w n)) := (hw n).continuous_fderiv (by simp)
-  -- Applying an additive map `P` with `‖P A‖ ≤ ‖A‖` keeps the convergence of `D w n → D`.
-  have hlim (P : (ℂ →L[ℝ] F) → F) (hPc : Continuous P) (hPs : ∀ A B, P A - P B = P (A - B))
-      (hPn : ∀ A, ‖P A‖ ≤ ‖A‖) :
-      Tendsto (fun n ↦ eLpNorm ((fun z ↦ P (fderiv ℝ (w n) z)) - fun z ↦ P (D z)) 2 volume)
-        atTop (𝓝 0) :=
-    tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hconv (fun _ ↦ zero_le)
-      fun n ↦ eLpNorm_mono ((hPc.comp (hdc n)).aestronglyMeasurable.sub
-        (hPc.comp_aestronglyMeasurable hD.aestronglyMeasurable)) fun z ↦ by
-          simpa only [Pi.sub_apply, hdw, hPs] using hPn _
+  have hdm (n : ℕ) : MemLp (fderiv ℝ (w n)) 2 volume :=
+    ((hw n).continuous_fderiv (by simp)).memLp_of_hasCompactSupport ((hwc n).fderiv (𝕜 := ℝ))
+  have hconv' : Tendsto (fun n ↦ eLpNorm (fderiv ℝ (w n) - D) 2 volume) atTop (𝓝 0) := by
+    simpa only [hdw] using hconv
+  -- A continuous `P` with `‖P A‖ ≤ ‖A‖` keeps the convergence of `D w n → D`.
+  have hlim (P : (ℂ →L[ℝ] F) → F) (hPc : Continuous P) (hPn : ∀ A, ‖P A‖ ≤ ‖A‖) :
+      Tendsto (fun n ↦ eLpNorm (P ∘ fderiv ℝ (w n) - P ∘ D) 2 volume) atTop (𝓝 0) :=
+    tendsto_eLpNorm_comp_sub_comp_of_tendsto one_le_two (by norm_num) hPc hPn hdm hD hconv'
   refine eLpNorm_le_eLpNorm_of_tendsto one_le_two
     (a' := fun n z ↦ (fderiv ℝ (w n) z).complexLinearPart 1)
     (b' := fun n z ↦ (fderiv ℝ (w n) z).complexAntilinearPart 1) (.of_forall fun n ↦ ?_)
     (hlim (fun A ↦ A.complexLinearPart 1)
-      (continuous_complexLinearPart.clm_apply continuous_const)
-      (fun _ _ ↦ by
-        simp only [ContinuousLinearMap.complexLinearPart_sub, sub_apply])
+      ((continuous_eval_const 1).comp continuous_complexLinearPart)
       fun A ↦ (norm_complexLinearPart_apply_le A 1).trans_eq (by rw [norm_one, mul_one]))
     (hlim (fun A ↦ A.complexAntilinearPart 1)
       ((continuous_eval_const 1).comp continuous_complexAntilinearPart)
-      (fun _ _ ↦ by
-        simp only [ContinuousLinearMap.complexAntilinearPart_sub, sub_apply])
       fun A ↦ (norm_complexAntilinearPart_apply_le A 1).trans_eq (by rw [norm_one, mul_one]))
   have hcoe : ⇑((hwc n).toSchwartzMap (hw n)) = w n :=
     funext (HasCompactSupport.toSchwartzMap_toFun _ _)
@@ -150,9 +147,8 @@ theorem HasWeakFDerivOn.eLpNorm_complexAntilinearPart_le_of_norm_le
       (.of_forall fun z ↦ by
         simpa using norm_complexAntilinearPart_apply_le (D z) 1)
   exact one_sub_mul_eLpNorm_le_eLpNorm_add_smul one_le_two
-    ((continuous_complexLinearPart.clm_apply
-      (continuous_const (y := (1 : ℂ)))).comp_aestronglyMeasurable
-      hD.aestronglyMeasurable)
+    (((continuous_eval_const 1).comp
+      continuous_complexLinearPart).comp_aestronglyMeasurable hD.aestronglyMeasurable)
     hμ hμm (h.eLpNorm_complexLinearPart_le_eLpNorm_complexAntilinearPart hv hD)
     hQ.eLpNorm_ne_top
 
