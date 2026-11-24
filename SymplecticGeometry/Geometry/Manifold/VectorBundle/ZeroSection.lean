@@ -27,9 +27,10 @@ The file has the path of Tau Ceti's `Geometry/Manifold/VectorBundle/ZeroSection.
 splits the tangent spaces along the zero section. The zero section as an embedding is the
 library's own definition, in `SymplecticGeometry.Bundle`. Of the other lemmas,
 `isClosed_range_zeroSection`, about Mathlib's notions alone, and
-`mfderiv_zeroSectionTangentEquiv_symm_inl`, about Tau Ceti's splitting, are in Tau Ceti's
-namespace `TauCeti.Bundle`, and `extChartAt_symm_apply_zero_of_mem_baseSet`, about the charts of
-the total space, in Mathlib's namespace `Bundle`.
+`zeroSectionTangentEquiv_symm_inl` and `mfderiv_zeroSectionTangentEquiv_symm_inl`, about Tau
+Ceti's splitting, are in Tau Ceti's namespace `TauCeti.Bundle`, and
+`extChartAt_symm_apply_zero_of_mem_baseSet`, about the charts of the total space, in Mathlib's
+namespace `Bundle`.
 
 ## Main definitions
 
@@ -42,6 +43,9 @@ the total space, in Mathlib's namespace `Bundle`.
   total space is Hausdorff.
 * `Bundle.extChartAt_symm_apply_zero_of_mem_baseSet`: the inverse of the preferred chart of the
   total space sends `(y, 0)` to the zero vector over the base point with coordinate `y`.
+* `TauCeti.Bundle.zeroSectionTangentEquiv_symm_inl`: the inverse of Tau Ceti's splitting sends
+  the horizontal vector `(u, 0)` at `b` to the image of `u` under the differential of the zero
+  section.
 * `TauCeti.Bundle.mfderiv_zeroSectionTangentEquiv_symm_inl`: a map on the total space that agrees
   with a map `g` on the zero section near `b` has, at `0_b`, a differential that sends the
   horizontal vector `(u, 0)` of Tau Ceti's splitting to `dg u`.
