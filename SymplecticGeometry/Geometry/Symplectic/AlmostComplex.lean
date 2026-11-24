@@ -12,14 +12,15 @@ public import TauCeti.Geometry.Symplectic.AlmostComplex
 
 Let `ω` be a symplectic form on a finite-dimensional real vector space `V` that tames two
 almost complex structures `J` and `K`. Tau Ceti's `TauCeti.SymplecticForm.Tames.injective_add`
-shows that `J + K` is injective, hence bijective. A real linear map `F : V → W` into a space
-with a complex structure `J'` that is complex antilinear for `J` and complex linear for `K`
+shows that `J + K` is injective, hence bijective. A real linear map `F : V → W`, for an
+endomorphism `J'` of `W`, that is complex antilinear for `J` and complex linear for `K`
 satisfies `F ((J + K) v) = -J' (F v) + J' (F v) = 0`, so it vanishes
 (`TauCeti.SymplecticForm.Tames.eq_zero_of_isComplexAntilinear_of_isComplexLinear`).
 
-On a surface this says that, for two almost complex structures tamed by a common form, the
-`(0,1)`-projection for one is injective on the `(0,1)`-forms of the other: this is used to
-compare Cauchy–Riemann operators of different structures on the Riemann sphere.
+Applied on each tangent space of a manifold, this says that, for two almost complex structures
+tamed by a common form, the `(0,1)`-projection for one is injective on the `(0,1)`-forms of the
+other: this is used to compare Cauchy–Riemann operators of different structures on the Riemann
+sphere.
 
 ## Main results
 
