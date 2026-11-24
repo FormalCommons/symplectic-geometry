@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.GroupTheory.GroupAction.Defs
+public import Mathlib.GroupTheory.GroupAction.Basic
 public import Mathlib.Topology.Algebra.Monoid.Defs
 public import Mathlib.Topology.Constructions
 
@@ -31,17 +31,13 @@ is. -/
 theorem MulAction.discreteTopology_stabilizer_smul_iff {G α : Type*} [Group G]
     [TopologicalSpace G] [ContinuousMul G] [MulAction G α] (g : G) (a : α) :
     DiscreteTopology (stabilizer G (g • a)) ↔ DiscreteTopology (stabilizer G a) := by
-  -- Conjugation by `g⁻¹` sends the stabilizer of `g • b` continuously and injectively into that
-  -- of `b`.
-  have key : ∀ (g : G) (b : α), DiscreteTopology (stabilizer G b) →
-      DiscreteTopology (stabilizer G (g • b)) := fun g b _ ↦
-    DiscreteTopology.of_continuous_injective
-      (f := fun x : stabilizer G (g • b) ↦ (⟨g⁻¹ * x * g, by
-        rw [mem_stabilizer_iff, mul_smul, mul_smul, x.property, inv_smul_smul]⟩ : stabilizer G b))
-      (by fun_prop)
-      fun x y h ↦ Subtype.ext <| by simpa using congrArg Subtype.val h
-  refine ⟨fun h ↦ ?_, key g a⟩
-  have := key g⁻¹ (g • a) h
-  rwa [inv_smul_smul] at this
+  -- `MulAction.stabilizerEquivStabilizer` maps the stabilizer of `b` into that of `c = h • b` by
+  -- a conjugation, which is injective and continuous.
+  have key {h : G} {b c : α} (hb : c = h • b) [DiscreteTopology (stabilizer G c)] :
+      DiscreteTopology (stabilizer G b) :=
+    .of_continuous_injective (continuous_induced_rng.2 <| by
+      simp_rw [Function.comp_def, stabilizerEquivStabilizer_apply, MulAut.conj_apply]; fun_prop)
+      (stabilizerEquivStabilizer hb).injective
+  exact ⟨fun _ ↦ key (h := g) rfl, fun _ ↦ key (inv_smul_smul g a).symm⟩
 
 end

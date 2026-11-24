@@ -71,8 +71,10 @@ and the moment weights.
 * `SymplecticGeometry.isSemistable_smul_iff`, `SymplecticGeometry.isPolystable_smul_iff`,
   `SymplecticGeometry.isStable_smul_iff`: each predicate holds at `g • p` exactly when it holds
   at `p`.
-* `SymplecticGeometry.isPolystable_of_moment_eq_zero`: a zero of `μ` is polystable, hence
-  semistable, and stable if its stabilizer is discrete.
+* `SymplecticGeometry.isPolystable_of_moment_eq_zero`: a zero of `μ` is polystable.
+* `SymplecticGeometry.isSemistable_of_moment_eq_zero`: a zero of `μ` is semistable.
+* `SymplecticGeometry.isStable_of_moment_eq_zero`: a zero of `μ` whose stabilizer in `Gc` is
+  discrete is stable.
 
 The integral curve is Tau Ceti's `TauCeti.isMIntegralCurve_mulInvariantExp_smul_smul` for the
 action of `Gc` and the direction `C.cplx (C.lieMap ξ)`. In the example, the orbit maps of `ℂˣ` are
@@ -253,6 +255,7 @@ theorem isStable_iff :
     IsStable C μ p ↔ IsPolystable C μ p ∧ DiscreteTopology (MulAction.stabilizer Gc p) :=
   Iff.rfl
 
+/-- A stable point is polystable. -/
 theorem IsStable.isPolystable (h : IsStable C μ p) : IsPolystable C μ p :=
   h.1
 
@@ -291,6 +294,10 @@ def polystableLocus (C : LieComplexification I G IC Gc)
 theorem mem_polystableLocus : p ∈ polystableLocus C μ ↔ IsPolystable C μ p :=
   Iff.rfl
 
+@[simp]
+theorem coe_polystableLocus : (polystableLocus C μ : Set M) = {p | IsPolystable C μ p} :=
+  (rfl)
+
 /-- The zero level set of `μ` lies in the polystable locus. -/
 theorem setOf_moment_eq_zero_subset_polystableLocus :
     {x | μ x = 0} ⊆ (polystableLocus C μ : Set M) :=
@@ -301,6 +308,7 @@ variable [TopologicalSpace M]
 theorem isSemistable_iff : IsSemistable C μ p ↔ ∃ x ∈ closure (MulAction.orbit Gc p), μ x = 0 :=
   Iff.rfl
 
+/-- A polystable point is semistable. -/
 theorem IsPolystable.isSemistable (h : IsPolystable C μ p) : IsSemistable C μ p :=
   let ⟨x, hx, hμ⟩ := h
   ⟨x, subset_closure hx, hμ⟩
