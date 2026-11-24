@@ -203,9 +203,11 @@ of the library.
 Transport along the leaves of a foliation `𝓕 : TauCeti.Foliation I ∞ M k`
 of a boundaryless manifold.
 
-- `TauCeti.Foliation.exists_plaqueChart`: around every point `x`, an open
+- `TauCeti.Foliation.exists_foliatedChart`: around every point `x`, an open
   `U ∋ x` and a diffeomorphism of `U` onto the product of the unit balls of
-  `EuclideanSpace ℝ (Fin k)` and `EuclideanSpace ℝ (Fin (finrank ℝ E - k))`,
+  `F₁` and `F₂`, finite-dimensional with `finrank ℝ F₁ = k` and
+  `finrank ℝ E = k + finrank ℝ F₂` (such as `EuclideanSpace ℝ (Fin k)` and
+  `EuclideanSpace ℝ (Fin (finrank ℝ E - k))`),
   sending `x` to `0`, whose derivative carries the distribution onto the
   first factor, and such that two points of `U` with the same second
   coordinate lie on the same leaf. From `exists_flatPartialDiffeomorph`,
