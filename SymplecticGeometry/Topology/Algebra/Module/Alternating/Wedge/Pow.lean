@@ -64,8 +64,7 @@ theorem pairedWedge_apply_of_right_eq_smul_cast {F₁ F₂ F₃ : Type*} [AddCom
 /-- **Contracting a wedge power in top degree.** On a real vector space of dimension `2 n + 2`,
 for a two-form `ω`, a one-form `γ` and a vector `v` with `γ(v) = 0`, the top-degree form
 `γ ∧ (ι_v ω ∧ ω ^ n)` is zero. -/
-theorem pairedWedge_curryLeftTopological_wedgePow_eq_zero [IsTopologicalAddGroup E]
-    [ContinuousConstSMul ℝ E] [Module.Finite ℝ E] {n : ℕ}
+theorem pairedWedge_curryLeftTopological_wedgePow_eq_zero [Module.Finite ℝ E] {n : ℕ}
     (hE : Module.finrank ℝ E = 2 * n + 2) (γ : E [⋀^Fin 1]→L[ℝ] ℝ) (ω : E [⋀^Fin 2]→L[ℝ] ℝ)
     (v : E) (hγ : γ ![v] = 0) :
     pairedWedge (ContinuousLinearMap.mul ℝ ℝ) (ContinuousLinearMap.mul ℝ ℝ).continuous₂ γ

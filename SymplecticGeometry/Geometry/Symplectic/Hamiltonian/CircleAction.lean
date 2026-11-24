@@ -10,18 +10,65 @@ public import SymplecticGeometry.Geometry.Manifold.DeRham.Wedge
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap
 public import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
-public import TauCeti.Geometry.Symplectic.Manifold.Volume
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Average
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Pow
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantForm
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.WeaklyHamiltonian
 import TauCeti.Geometry.Manifold.DeRham.Algebra
 import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.Critical
+import TauCeti.Geometry.Symplectic.Manifold.Volume
 import TauCeti.RepresentationTheory.Compact.Haar
 
 /-!
 # Hamiltonian circle actions
 
+A smooth action of a Lie group `G` on a symplectic manifold `(M, σ)` that preserves `σ` is
+Hamiltonian when it has a moment map. This file proves the Frankel–Ono criterion: under a
+cohomological condition on `σ`, which holds for instance on closed Kähler manifolds by the hard
+Lefschetz theorem, a circle action preserving `σ` on a closed connected manifold has a moment map
+exactly when some point is fixed by the whole circle.
+
+One direction holds without the condition. If `μ` is a moment map, the component
+`⟨μ, ξ₁⟩` along the period-one generator `ξ₁` of the Lie algebra of the circle has a maximum on
+the compact manifold `M`; there its differential `ι_{X_{ξ₁}} σ` vanishes, so `X_{ξ₁}` vanishes by
+nondegeneracy, and a zero of `X_{ξ₁}` is a fixed point (`GroupAction/Circle.lean`).
+
+For the other direction we follow the proof of McDuff–Salamon, with an integral identity in place
+of the Poincaré dual of an orbit. Let `X = X_ξ` be the fundamental vector field of some `ξ`, so
+that `ι_X σ` is closed, and let `M` have dimension `2 n + 2`.
+
+* For every closed one-form `γ`, the integral of `γ ∧ ι_X σ ∧ σ ^ n` vanishes when the action has
+  a fixed point `p`. The integral depends only on the class of `γ`, and averaging `γ` over the
+  compact connected group gives a cohomologous invariant form `γ'`
+  (`TauCeti.SmoothForm.measureAverage_sub_mem_exactForms_one`). By Cartan's formula the function
+  `γ'(X)` is constant (`TauCeti.apply_fundamentalVectorField_eq_of_preconnectedSpace`), and it
+  vanishes at `p`, where `X` does. A top-degree computation
+  (`TauCeti.SmoothForm.wedge_interior_wedge_wedgePow_apply_eq_zero`) then makes the integrand
+  `γ' ∧ ι_X σ ∧ σ ^ n` vanish.
+* By the nondegeneracy of the Poincaré pairing in degrees `(1, 2 n + 1)`
+  (`TauCeti.mem_exactForms_of_forall_integralTopForm_wedge_eq_zero`), the form
+  `ι_X σ ∧ σ ^ n` is exact. If the wedge product with `[σ ^ n]` is injective on `H¹(M)`, it
+  follows that `[ι_X σ] = 0`, so `X` is a Hamiltonian vector field
+  (`TauCeti.SmoothTwoForm.interiorClass_eq_zero_iff`), and the Hamiltonians of all the `X_ξ`
+  assemble into a moment map (`TauCeti.SmoothTwoForm.exists_isMomentMap_iff`).
+
+The first two steps hold for any compact path-connected Lie group, and are stated so.
+
+## Main results
+
+* `SymplecticGeometry.exists_mem_fixedPoints_of_isMomentMap`: a Hamiltonian circle action on a
+  compact nonempty manifold has a fixed point.
+* `SymplecticGeometry.integralTopForm_wedge_interior_wedge_wedgePow_eq_zero`: for a symplectic
+  action of a compact path-connected Lie group with a fixed point, `∫_M γ ∧ ι_X σ ∧ σ ^ n = 0`
+  for every closed one-form `γ`.
+* `SymplecticGeometry.exists_isMomentMap_of_mem_fixedPoints`: under the cohomological condition,
+  such an action with a fixed point has a moment map.
+* `SymplecticGeometry.exists_isMomentMap_iff_exists_mem_fixedPoints`: the Frankel–Ono criterion.
+
+## References
+
+* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
+  Theorem 5.1.6 and its proof.
 -/
 
 public section
@@ -39,7 +86,9 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 
-/-- **A Hamiltonian circle action has a fixed point.** -/
+/-- **A Hamiltonian circle action has a fixed point.** If a smooth circle action on a compact
+nonempty boundaryless Hausdorff manifold has a moment map `μ` for a nondegenerate two-form `σ`, then
+some point of the manifold is fixed by every element of the circle. -/
 theorem exists_mem_fixedPoints_of_isMomentMap [BoundarylessManifold I M] [T2Space M]
     [CompactSpace M] [Nonempty M] [MulAction Circle M] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
     {σ : SmoothTwoForm I M} (hσ : σ.IsNondegenerate)
@@ -54,7 +103,6 @@ theorem exists_mem_fixedPoints_of_isMomentMap [BoundarylessManifold I M] [T2Spac
     InfinitesimalAction.fundamental_apply] at hcrit
   have : ContMDiffSMul (𝓡 1) I 2 Circle M := ContMDiffSMul.of_le (M := M) ENat.LEInfty.out
   exact mem_fixedPoints_circle_iff_fundamentalVectorField_eq_zero.2 hcrit
-
 
 section Integral
 
@@ -105,7 +153,8 @@ theorem integralTopForm_wedge_interior_wedge_wedgePow_eq_zero [I.Boundaryless] [
   have hη : SmoothForm.wedge (σ.interiorₗ X) (σ.wedgePow n) ∈ closedForms I M (1 + 2 * n) :=
     SmoothForm.wedge_mem_closedForms ((mem_closedForms I _).2 (by
       rw [SmoothTwoForm.coe_interiorₗ]; exact SmoothTwoForm.mem_symplecticVectorFields_iff.1 hX))
-      (SmoothForm.wedgePow_mem_closedForms ((mem_closedForms I σ).2 ((SmoothForm.isClosed_def σ).1 hσ)) n)
+      (SmoothForm.wedgePow_mem_closedForms
+        ((mem_closedForms I σ).2 ((SmoothForm.isClosed_def σ).1 hσ)) n)
   have hcoe : RoughForm.wedge (RoughForm.interior (k := 1) (fundamentalVectorField I ξ)
       (σ : RoughForm I M ℝ 2)) (σ.wedgePow n : RoughForm I M ℝ (2 * n)) =
       (SmoothForm.wedge (σ.interiorₗ X) (σ.wedgePow n) : RoughForm I M ℝ (1 + 2 * n)) := by
@@ -122,7 +171,6 @@ theorem integralTopForm_wedge_interior_wedge_wedgePow_eq_zero [I.Boundaryless] [
         (σ.wedgePow n : RoughForm I M ℝ (2 * n))) = 0 :=
     funext fun x ↦ SmoothForm.wedge_interior_wedge_wedgePow_apply_eq_zero hE _ σ _ (hγ'X x)
   rw [h0, integralTopForm_zero]
-
 
 /-- **A symplectic action with a fixed point is Hamiltonian.** Let a compact path-connected Lie
 group `G` act on a compact connected boundaryless symplectic manifold `(M, σ)` of dimension `2 n`,
