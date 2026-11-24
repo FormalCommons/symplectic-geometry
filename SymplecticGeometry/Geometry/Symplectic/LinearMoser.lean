@@ -237,8 +237,7 @@ theorem contDiffOn_parametric_moserGenerator {n : WithTop ℕ∞} (hU : IsOpen U
   have hD : ContDiffOn ℝ n (fun q => fderiv ℝ (Function.uncurry ω) q (0, 1)) (U ×ˢ Set.univ) :=
     (hω.fderiv_of_isOpen hO le_rfl).clm_apply contDiffOn_const
   have hI : ContDiffOn ℝ n (fun q : E × ℝ => (ω q.1 q.2).inverse) (U ×ˢ Set.univ) :=
-    fun q hq => ((hinv q.1 hq.1 q.2).contDiffAt_map_inverse.comp (f := Function.uncurry ω) q
-      ((hω.of_le le_self_add).contDiffAt (hO.mem_nhds hq))).contDiffWithinAt
+    (hω.of_le le_self_add).clm_inverse fun q hq => hinv q.1 hq.1 q.2
   refine ((hI.clm_comp hD).const_smul (-(2⁻¹ : ℝ))).congr fun q hq => ?_
   rw [moserGenerator_def, hderiv q hq]
 

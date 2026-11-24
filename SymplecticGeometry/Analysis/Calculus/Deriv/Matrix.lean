@@ -12,7 +12,6 @@ public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
 public import Mathlib.Topology.Instances.Matrix
 import Mathlib.Analysis.Calculus.Deriv.Comp
 import Mathlib.Analysis.Calculus.Deriv.Shift
-import Mathlib.Analysis.Calculus.FDeriv.Mul
 import Mathlib.Analysis.Matrix.Normed
 import TauCeti.Analysis.Calculus.FDeriv.Inv
 
