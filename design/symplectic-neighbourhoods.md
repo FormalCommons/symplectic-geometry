@@ -332,7 +332,7 @@ On an open `U`, it is applied to `U` and the restriction
   (`Geometry/Manifold/Submersion/Split.lean`). The kernel of `dp` is the
   flat directions, so it is the kernel of `σ`.
 - The milestone, as one theorem:
-  `exists_isCharacteristicSubmersion_and_existsUnique_mpullback_eq`. It
+  `exists_isCharacteristicSubmersion_and_existsUnique_isSymplectic_mpullback_eq`. It
   states the involutivity of the kernel (Tau Ceti's), the charts of
   `exists_isCharacteristicSubmersion` around every point, and for every
   open `U`, every open `B ⊆ StdSpace (Fin r)` and every
