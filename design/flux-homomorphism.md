@@ -165,10 +165,12 @@ These settle the questions that `DESIGN.md` leaves to this file.
    periods form a countable set $P_\sigma$. In the period coordinates of
    `homologyPeriods_periodHomologyClass_bijective`, $\Gamma_\sigma$ maps
    into $P_\sigma^b$, which is countable. The comparison of the swept area
-   with a period uses the two-simplex 2-cycle of the square: cut the
-   square along a diagonal into two affine simplices. Their integrals add
-   up to the rectangle integral, and on a doubly periodic map their edges
-   cancel in pairs. This is the content of McDuff–Salamon's description
+   with a period goes through the torus: a map of $\mathbb R^2$ with period
+   1 in both variables descends to $T^2=(\mathbb R/\mathbb Z)^2$, whose
+   integral is a period by
+   `integralTopForm_mpullback_eq_closedFormHomologyPeriod` and equals the
+   rectangle integral by `AddCircle.integralTopForm_prod_eq_setIntegral`.
+   This is the content of McDuff–Salamon's description
    of the flux by swept cylinders, equation (10.2.2) with Lemma 10.2.1.
    The Lagrangian neighbourhood theorem of *Symplectic neighbourhoods* is
    not used, so the part no longer builds on that part.
@@ -200,8 +202,7 @@ New files of the library, with the topic of each:
   `orderedGlobalFlowDiffeotopy`, and the velocity of a truncation.
 - `Geometry/Manifold/SmoothSingular/Rectangle.lean`: rectangle integrals of
   closed two-forms over doubly periodic maps are periods on
-  $H_2(M;\mathbb Z)$; the periods of a closed form on a compact
-  boundaryless manifold form a countable set.
+  $H_2(M;\mathbb Z)$.
 - `Geometry/Symplectic/Flux/Kernel.lean`: fluxes of initial pieces, the
   Hamiltonian criterion of Decision 2, Theorem 10.2.5 and the kernel of the
   endpoint flux.
@@ -263,9 +264,11 @@ Throughout, `[FiniteDimensional ℝ E] [J.Boundaryless] [T2Space M]
   Set.range (closedFormHomologyPeriod σ)`. The smoothness hypothesis is
   the one that `Diffeotopy.sweep` satisfies (`contMDiffOn_sweep`, smooth
   within the strip $[0,1]\times\mathbb R$).
-- `TauCeti.countable_range_closedFormHomologyPeriod`: for a compact
-  boundaryless `M` and `φ : closedForms J M p`,
-  `(Set.range (closedFormHomologyPeriod φ)).Countable`.
+
+`SmoothSingular/Period.lean`:
+
+- `TauCeti.countable_range_closedFormHomologyPeriod`: for
+  `φ : closedForms J M p`, `(Set.range (closedFormHomologyPeriod φ)).Countable`.
 
 `Countable.lean`:
 
