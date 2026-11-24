@@ -29,6 +29,9 @@ and the pull-back of restricted forms along a partial diffeomorphism of open sub
 
 * Every form on `U` is the restriction of a form on `M`, its extension by zero
   (`TauCeti.mpullback_subtype_val_surjective`).
+* Restricting to an open subset `W` and then to an open subset `V ≤ W` is restricting to `V`
+  (`TauCeti.mpullback_inclusion_mpullback_subtype_val`, and
+  `TauCeti.SmoothForm.mpullback_inclusion_mpullback_subtype_val` for smooth forms).
 * At a point of `U`, a form and its restriction have the same regularity
   (`TauCeti.contMDiffAt_mpullback_subtype_val_iff`), since `Subtype.val` is a local
   diffeomorphism.
@@ -107,6 +110,17 @@ theorem mpullback_subtype_val_surjective (U : Opens M) :
   rw [mpullback_subtype_val_apply]
   exact dite_eq_left x.property
 
+/-- Restricting a form on `M` to an open subset `W`, and then to an open subset `V ≤ W`, is
+restricting it to `V`. -/
+@[simp]
+theorem mpullback_inclusion_mpullback_subtype_val {V W : Opens M} (h : V ≤ W)
+    (γ : RoughForm I M F k) :
+    mpullback I I (Opens.inclusion h) (mpullback I I (Subtype.val : W → M) γ) =
+      mpullback I I (Subtype.val : V → M) γ := by
+  funext x
+  rw [mpullback_inclusion_apply, mpullback_subtype_val_apply, mpullback_subtype_val_apply,
+    Set.coe_inclusion h]
+
 /-- At a point of an open subset `U`, a form on `M` is `C^n` exactly when its restriction to `U`
 is. -/
 theorem contMDiffAt_mpullback_subtype_val_iff [IsManifold I 1 M] {U : Opens M}
@@ -119,6 +133,17 @@ theorem contMDiffAt_mpullback_subtype_val_iff [IsManifold I 1 M] {U : Opens M}
   (isLocalDiffeomorph_subtype_val (n := ω) x).contMDiffAt_mpullback_form_iff (by simp)
 
 variable [IsManifold I 1 M]
+
+/-- Restricting a smooth form on `M` to an open subset `W`, and then to an open subset `V ≤ W`,
+is restricting it to `V`. -/
+@[simp]
+theorem SmoothForm.mpullback_inclusion_mpullback_subtype_val {V W : Opens M} (h : V ≤ W)
+    (σ : SmoothForm I M F k) :
+    SmoothForm.mpullback (Opens.inclusion h) (contMDiff_inclusion h)
+        (SmoothForm.mpullback (Subtype.val : W → M) contMDiff_subtypeVal σ) =
+      SmoothForm.mpullback (Subtype.val : V → M) contMDiff_subtypeVal σ :=
+  Subtype.ext <| by
+    simp only [SmoothForm.coe_mpullback, TauCeti.mpullback_inclusion_mpullback_subtype_val]
 
 /-- A form on `M` that is `C^n` on an open subset `U` restricts to a `C^n` form on `U`. -/
 theorem isSmoothForm_mpullback_subtype_val_of_contMDiffOn {U : Opens M} {n : WithTop ℕ∞}

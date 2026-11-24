@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Velocity
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Extension
 import SymplecticGeometry.Geometry.Symplectic.Moser.Family
@@ -274,10 +275,8 @@ theorem exists_isSymplectic_extension_of_mpullback_eq [SigmaCompactSpace M]
     rw [← SmoothForm.coe_mpullback _ hψt, ← SmoothForm.coe_mpullback _ hΨt]
     ext v
     rw [TauCeti.mpullback_apply, hVΨ _ (hinclV x) t, ← TauCeti.mpullback_apply,
-      SmoothForm.coe_mpullback, ← TauCeti.mpullback_comp (hincl.mdifferentiable (by simp))
-        ((contMDiff_subtypeVal (n := ∞)).mdifferentiable (by simp)), SmoothForm.coe_mpullback]
-    -- `Subtype.val ∘ incl` is `Subtype.val` on `U` by definition of `Opens.inclusion`.
-    rfl
+      SmoothForm.coe_mpullback, TauCeti.mpullback_inclusion_mpullback_subtype_val,
+      SmoothForm.coe_mpullback]
   · -- The point `⟨i q, _⟩` of `U` is sent by the inclusion to `f q`, which `Ψ` fixes.
     -- `F` is the motion `m` by construction.
     change ψ t (Ψ (t, incl _)) = e (t, q)
