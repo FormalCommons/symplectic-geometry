@@ -188,11 +188,8 @@ folder, as the approving review of #2250 asks this file to say.
 
 ## Departures from `DESIGN.md`
 
-`DESIGN.md` plans one file `Geometry/Manifold/Foliation/LeafSpace.lean`
-and one file `Geometry/Symplectic/Coisotropic/Lagrangian.lean`. Each would
-exceed what one issue can build, so the part has the files below. The
-*Files* entry of part 40 in `DESIGN.md` names those of transport, the leaf
-space and the two milestones; this file adds
+The *Files* entry of part 40 in `DESIGN.md` names the files of transport,
+the leaf space and the two milestones. This file adds
 `Geometry/Manifold/Distribution/ConstantRank.lean`,
 `Geometry/Manifold/CleanIntersection.lean` and a lemma in the merged
 `LinearAlgebra/Symplectic/Reduction.lean`. The dependencies and
