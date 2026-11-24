@@ -284,7 +284,7 @@ charted space `leafSpaceChartedSpace hR`:
   are path-connected (`isPathConnected_leaf`), and its kernels are those of
   the form (`ker_mfderiv_leafSpaceMk`,
   `characteristicFoliation_distribution`).
-- `IsCoisotropicMap.isSubmersion_leafSpaceMk_and_existsUnique_mpullback_eq`,
+- `IsCoisotropicMap.isSubmersion_leafSpaceMk_and_existsUnique_isSymplectic_mpullback_eq`,
   the milestone, with `n k : ℕ`, `finrank ℝ E = 2 * n` and
   `finrank ℝ F + k = finrank ℝ E`: the kernels of `f^* σ` form an
   involutive distribution; the leaf space is a manifold and `leafSpaceMk` a

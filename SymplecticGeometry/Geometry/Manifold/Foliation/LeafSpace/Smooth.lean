@@ -232,7 +232,7 @@ theorem ker_mfderiv_leafSpaceMk (h : 𝓕.IsRegular) (x : M) :
   refine (Submodule.eq_of_le_of_finrank_eq (fun v hv ↦ hker ▸ hrd v hv) ?_).symm
   have hrk := (isRegularPoint_iff.2
     (surjective_mfderiv_leafSpaceMk h (s u))).finrank_ker_mfderiv_add_finrank
-  have hk : k ≤ finrank ℝ E := 𝓕.finrank_distribution (s u) ▸ Submodule.finrank_le _
+  have hk := 𝓕.rank_le_finrank (s u)
   rw [finrank_euclideanSpace_fin] at hrk
   rw [𝓕.finrank_distribution]
   omega
