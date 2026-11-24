@@ -9,9 +9,12 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Reduction.Coadj
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.Prod
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Reduction.Naturality
 public import SymplecticGeometry.GroupTheory.GroupAction.SubMulAction
--- The atlases of the product's zero level and of its quotient here must agree by definition with
--- those of `ZeroLevel/Basic.lean`, which unfolds the bodies of `zeroLevelProdChartedSpace`,
--- `zeroLevelChartedSpace` and `zeroLevelQuotientChartedSpace`.
+-- `orbitLevelQuotientDiffeomorph` is `ProperSMul.orbitRelQuotientDiffeomorph`, whose target atlas
+-- must be `zeroLevelProdQuotientChartedSpace` by definition. That needs the bodies of
+-- `zeroLevelQuotientChartedSpace`, `zeroLevelChartedSpace` and `zeroLevelProdChartedSpace`: the
+-- atlases are data, so rewriting the type with their `_def` lemmas would put a cast into the
+-- diffeomorphism, and `zeroLevelChartedSpace` has no `_def` lemma, as its body is an atlas on
+-- Tau Ceti's `levelSubMulAction 0`, a type that is the zero level only by definition.
 import all SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Reduction.CoadjointOrbit.Level
 import all SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Reduction.ZeroLevel.Basic
 
@@ -267,8 +270,10 @@ def orbitLevelQuotientDiffeomorph :
     (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).contMDiffSMul_zeroLevel
     (hσ.prod η.isSymplectic_coadjointOrbitForm.isNondegenerate)
     (h.stabilizer_zeroLevel_prod_eq_bot η hfree) (n := m) (by rwa [Module.finrank_prod])
-  haveI := (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).isCancelSMul_zeroLevel
-    (h.stabilizer_zeroLevel_prod_eq_bot η hfree)
+  haveI := SubMulAction.isCancelSMul_of_forall_stabilizer_eq_bot
+    (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).zeroLevel fun x hx ↦
+      h.stabilizer_zeroLevel_prod_eq_bot η hfree x
+        ((h.prod η.isEquivariantMomentMap_coadjointOrbitForm).mem_zeroLevel.1 hx)
   ProperSMul.orbitRelQuotientDiffeomorph I I le_rfl (MulEquiv.refl G)
     (h.orbitLevelGraphDiffeomorph hemb hσ hfree hm) fun g x ↦ by
       rw [coe_orbitLevelGraphDiffeomorph, orbitLevelGraph_smul, MulEquiv.refl_apply]

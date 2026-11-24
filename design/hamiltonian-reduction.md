@@ -207,7 +207,8 @@ and let `hfree : ∀ x, μ x = 0 → MulAction.stabilizer G x = ⊥`.
   x ∈ h.zeroLevel ↔ μ x = 0`, `coe_zeroLevel`.
 - Properness on the zero level is the instance `SubMulAction.properSMul
   [ProperSMul G M] (S : SubMulAction G M) : ProperSMul G S`.
-- `isCancelSMul_zeroLevel (hfree) : IsCancelSMul G h.zeroLevel`.
+- Freeness on the zero level is
+  `SubMulAction.isCancelSMul_of_forall_stabilizer_eq_bot`.
 - `def zeroLevelChartedSpace (hσ : σ.IsNondegenerate) (hfree) (hn) :
   ChartedSpace (Fin n → ℝ) h.zeroLevel`, which is
   `h.levelSubMulActionChartedSpace 0` with the regularity of
