@@ -32,6 +32,7 @@ import TauCeti.MeasureTheory.Function.Lp.Restriction
 import TauCeti.MeasureTheory.Function.LpSeminorm.Lintegral
 import TauCeti.MeasureTheory.Integral.ContinuousMap
 import Mathlib.MeasureTheory.Function.Holder
+import TauCeti.Topology.Algebra.Support
 
 /-!
 # The Hilbert space of `L²` differential forms
@@ -1065,11 +1066,9 @@ theorem eq_ofSmooth_of_localize {ι : Type*} [Fintype ι]
   have hg (i : ι) : ContDiff ℝ ∞ (g i) := β.contDiff_localize (ψ i) (ρ i).contMDiff (hKρ i) (hρ i)
   have hgc (i : ι) : HasCompactSupport (g i) := β.hasCompactSupport_localize (ψ i) (hKρ i) (hρ i)
   have hsub (i : ι) : tsupport (g i - f i) ⊆ K i := by
-    refine closure_minimal (fun y hy ↦ ?_) (hK i).isClosed
-    by_contra h
+    refine TauCeti.tsupport_subset_of_forall_notMem_eq_zero (fun y h ↦ ?_) (hK i).isClosed
     simp only [K, Set.mem_union, not_or] at h
-    exact hy (by simp [g, image_eq_zero_of_notMem_tsupport h.1,
-      localize_apply_eq_zero_of_notMem _ _ _ h.2])
+    simp [g, image_eq_zero_of_notMem_tsupport h.1, localize_apply_eq_zero_of_notMem _ _ _ h.2]
   -- The difference of `β` and the glued form is the sum of the extensions of `g i - f i`.
   have hdiff : ofSmooth β - ofSmooth (∑ i, SmoothForm.extendByZeroAlong (ψ i) (f i) (hf i)
       (hfc i) (hfs i)) = ∑ i, (ofSmooth (SmoothForm.extendByZeroAlong (ψ i) (g i - f i)
