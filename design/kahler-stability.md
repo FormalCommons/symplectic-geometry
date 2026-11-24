@@ -47,15 +47,14 @@ may adjust implicit arguments and instance arguments to what elaborates.
   derivative $-|X_\xi|^2$. This fixes every sign of both milestones as the
   page states them: semistability is $w_\mu\le0$, stability $w_\mu<0$.
 - **Inner product.** `B : LinearMap.BilinForm ℝ 𝔤`, symmetric, positive
-  definite and `Ad`-invariant, as `TauCeti.Lie.exists_isSymm_bilinForm_Ad_invariant`
-  gives it. That theorem is stated on `LeftInvariantDerivation I G`, with
-  Tau Ceti's `continuousAdjointRepresentation`; `KempfNess/Basic.lean`
-  carries it to `GroupLieAlgebra I G`, the tangent space `E` at `1` on which
-  `IsEquivariantMomentMap` and `Lie.adjointRepresentation` live, along
-  Tau Ceti's public `leftInvariantDerivationLinearIsometryEquivModelVectorSpace`
-  (both representations are `adjointContinuousLinearMap`, read on either
-  side). `B` gives $\mu^\sharp(x)\in\mathfrak g$
-  (`B.toDual` inverted on `μ x`) and $\|\mu(x)\|^2=B(\mu^\sharp x,\mu^\sharp x)$.
+  definite and `Ad`-invariant, as
+  `TauCeti.Lie.exists_isSymm_posDef_continuousBilinearMap_adjoint_invariant`
+  gives it, already on `GroupLieAlgebra I G`, the tangent space `E` at `1`
+  on which `IsEquivariantMomentMap` and `Lie.adjointRepresentation` live
+  (as a continuous bilinear map, invariant under
+  `adjointContinuousLinearMap`). `B` gives $\mu^\sharp(x)\in\mathfrak g$
+  (`B.toDual` inverted on `μ x`) and $\|\mu(x)\|^2=B(\mu^\sharp x,\mu^\sharp x)$,
+  in `MomentMap/NormSq.lean`.
 - **No holomorphic charts.** The proofs use only that `σ` is closed and
   that `J` is compatible with it, together with the infinitesimal
   holomorphicity $X_{i\xi}=JX_\xi$ of the complexified action. The
@@ -177,9 +176,11 @@ may adjust implicit arguments and instance arguments to what elaborates.
 - `Geometry/Manifold/Riemannian/Gradient/Lojasiewicz.lean`: decision 4 (e).
 - `Geometry/Symplectic/Hamiltonian/MomentMap/LocalNormalForm.lean`:
   decision 4 (c).
+- `Geometry/Symplectic/Hamiltonian/MomentMap/NormSq.lean`: $\mu^\sharp$
+  and $\|\mu\|^2$, for any Lie group and any map `μ`.
 - In `Geometry/Symplectic/Hamiltonian/MomentMap/KempfNess/`:
-  `Basic.lean` (`IsComplexifiedAction`, $\mu^\sharp$ and $\|\mu\|^2$, the
-  stability predicates, the gradient of $\langle\mu,\xi\rangle$ and the
+  `Basic.lean` (`IsComplexifiedAction`, the stability predicates, the
+  gradient of $\langle\mu,\xi\rangle$ and the
   derivative along $\exp(it\xi)$), `Function.lean` ($\Phi_p$ and the
   first half of the milestone), `NormSquare.lean` (the gradient flow of
   $f$, its Łojasiewicz inequality, convergence and the moment limit), and
@@ -300,7 +301,8 @@ stable, since $\mathfrak g^*=0$; `M` is nonempty, being connected.
 
 - From Tau Ceti: `TauCeti.SmoothTwoForm.IsKahler` and `Compatible.metric`;
   `IsEquivariantMomentMap`, `levelSubMulAction`; `fundamentalVectorField`;
-  `mulInvariantExp`; `TauCeti.Lie.exists_isSymm_bilinForm_Ad_invariant`;
+  `mulInvariantExp`;
+  `TauCeti.Lie.exists_isSymm_posDef_continuousBilinearMap_adjoint_invariant`;
   `mgradient` and `maximalIntegralCurve`
   (`Geometry/Manifold/Riemannian/Gradient/`);
   `tendsto_maximalIntegralCurve_neg_mgradient_of_mapClusterPt`; the Morse–Bott
