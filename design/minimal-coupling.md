@@ -203,7 +203,7 @@ and `τ : Set.Icc a b → SmoothTwoForm IB B`:
   and $\omega(X,\partial_\lambda)=-1$. The issue searches Tau Ceti's linear
   symplectic reduction for this step before stating it, publicly, in a
   linear-algebra file.
-- `IsCouplingForm.sub_eq_realFirstChernClass (h)`: the page's condition,
+- `IsCouplingForm.mk_sub_mk_eq_neg_smul_realFirstChernClass (h)`: the page's condition,
   `mk (τ λ) - mk (τ ν) = -((λ : ℝ) - ν) • realFirstChernClass IB P` for all
   $\lambda,\nu$. Proof: along the segment $s\mapsto(p,\nu+s(\lambda-\nu))$
   the homotopy formula of `DifferentialForm/HomotopyOperator.lean` writes
@@ -236,7 +236,7 @@ its data: `IsCouplingForm.lineMap (h₀ h₁) (s : ℝ)`, that
   -((λ : ℝ) - ν) • realFirstChernClass IB P) : ∃ ω, IsCouplingForm ω τ ∧
   ω.IsSymplectic`, the existence half of the milestone. The page asks for a
   closed connected $B$; connectedness is not used and the statement drops
-  it. Together with `IsCouplingForm.sub_eq_realFirstChernClass` this is the
+  it. Together with `IsCouplingForm.mk_sub_mk_eq_neg_smul_realFirstChernClass` this is the
   "exactly under the cohomological condition" of `DESIGN.md`.
 
 Proof, with no derivative of a family. Fix a connection form $\alpha^0$
@@ -353,8 +353,9 @@ boundaryless, Hausdorff, finite-dimensional manifold $X$:
   `orbitFiber.isContMDiff_atlas` that the atlas is
   `TauCeti.MapFiber.Atlas.IsContMDiff ∞`. A trivialization of the atlas
   sends `x` to `(⟦x⟧, unop (orbitSectionCoord s x))` and has inverse
-  `(q, g) ↦ op g • s q`, both smooth on their domains because `s`, the
-  action and the quotient map are;
+  `(q, g) ↦ op g • s q`. The inverse is smooth because `s` and the action
+  are; it has injective differential, so the inverse function theorem
+  makes the trivialization smooth too;
 - the equivariant diffeomorphism of the total space with $X$ over the
   quotient map is Tau Ceti's `TauCeti.MapFiber.Atlas.totalSpaceDiffeomorph`
   for `orbitFiber.isContMDiff_atlas`, with `totalSpaceDiffeomorph_smul`
@@ -391,7 +392,7 @@ smooth runs long, it goes in a second issue after the topological bundle.
   $\tau$ and a smooth equivariant injective map
   $\psi:P\times[a,b]\to M$ with range $K$, $H\circ\psi=\lambda$ and
   $\psi^*\omega=\omega'$. The family $\tau$ satisfies the page's condition,
-  by `IsCouplingForm.sub_eq_realFirstChernClass`. Milestone line:
+  by `IsCouplingForm.mk_sub_mk_eq_neg_smul_realFirstChernClass`. Milestone line:
   *Minimal coupling*.
 
 Proof:
