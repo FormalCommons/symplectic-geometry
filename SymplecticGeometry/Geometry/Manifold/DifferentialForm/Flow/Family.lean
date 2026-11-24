@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 import TauCeti.Analysis.ODE.ScalarLinear
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Product
@@ -63,8 +64,10 @@ computation is the one in the private `moserRate_eq_zero` of Tau Ceti's
 
 Finally, the file contracts forms on `ℝ × M` with the time field `∂_t = (1, 0)`. The field is
 smooth by the argument that Tau Ceti writes inline in the definition of
-`TauCeti.SmoothForm.timeDeriv`, through `TauCeti.contMDiff_const_prod_field`, so the contraction
-`ι_{∂_t} σ` of a smooth form is smooth (`TauCeti.SmoothForm.timeInterior`). For closed `σ`,
+`TauCeti.SmoothForm.timeDeriv`, through `TauCeti.contMDiff_const_prod_field`, so it is a smooth
+section of the tangent bundle, and the contraction `ι_{∂_t} σ` of a smooth form
+(`TauCeti.SmoothForm.timeInterior`) is the library's bundled interior product
+`TauCeti.SmoothForm.interiorProduct` with it, which is linear in `σ`. For closed `σ`,
 Cartan's formula `TauCeti.mlieDerivForm_eq_mextDeriv_interior` makes its exterior derivative
 the time derivative of `σ`. Since `id × f` sends `∂_t` to `∂_t`, the contraction commutes with
 pullback along `id × f`, and it vanishes on forms pulled back from `M` along the projection.
@@ -250,52 +253,56 @@ theorem _root_.TauCeti.contMDiff_timeField [IsManifold I 1 M] :
     ((contMDiff_zeroSection ℝ (TangentSpace I)).comp contMDiff_snd)
 
 /-- The contraction `ι_{∂_t} σ` of a smooth form `σ` on `ℝ × M` with the time field
-`∂_t = (1, 0)`, as a smooth form of one degree less. -/
+`∂_t = (1, 0)`, as a smooth form of one degree less: the interior product
+`TauCeti.SmoothForm.interiorProduct` with `∂_t`, seen as a smooth section of the tangent bundle by
+`TauCeti.contMDiff_timeField`. -/
 def timeInterior (σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)) :
     SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F k :=
-  ⟨RoughForm.interior (I := 𝓘(ℝ, ℝ).prod I) (F := F) (k := k)
-    (fun _ ↦ ((1 : ℝ), (0 : E))) σ.val,
-    (σ.isSmoothForm.interior contMDiff_timeField).mem_smoothBundleForms⟩
+  interiorProduct ⟨fun _ ↦ ((1 : ℝ), (0 : E)), contMDiff_timeField⟩ σ
+
+/-- `ι_{∂_t} σ` is the interior product of `σ` with the time field. -/
+theorem timeInterior_def (σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)) :
+    σ.timeInterior = interiorProduct ⟨fun _ ↦ ((1 : ℝ), (0 : E)), contMDiff_timeField⟩ σ :=
+  (rfl)
 
 /-- The underlying form of `ι_{∂_t} σ` is the contraction of `σ` with `∂_t = (1, 0)`. -/
 @[simp]
 theorem coe_timeInterior (σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)) :
     σ.timeInterior.val = RoughForm.interior (I := 𝓘(ℝ, ℝ).prod I) (F := F) (k := k)
-      (fun _ ↦ ((1 : ℝ), (0 : E))) σ.val :=
-  (rfl)
+      (fun _ ↦ ((1 : ℝ), (0 : E))) σ.val := by
+  rw [timeInterior_def, coe_interiorProduct]
+  exact congrArg (fun X ↦ RoughForm.interior (F := F) (k := k) X σ.val)
+    (ContMDiffSection.coeFn_mk _ _)
 
 /-- The contraction with the time field is additive. -/
 @[simp]
 theorem timeInterior_add (σ τ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)) :
     (σ + τ).timeInterior = σ.timeInterior + τ.timeInterior :=
-  -- The underlying forms of the contractions are those of `coe_timeInterior`, and the sums are
-  -- the sums of the underlying rough forms.
-  Subtype.ext (RoughForm.interior_add _ _ _)
+  map_add _ σ τ
 
 /-- The contraction with the time field commutes with multiplication by a constant. -/
 @[simp]
 theorem timeInterior_smul (c : ℝ) (σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)) :
     (c • σ).timeInterior = c • σ.timeInterior :=
-  -- As in `timeInterior_add`, with multiples in place of sums.
-  Subtype.ext (RoughForm.interior_smul _ _ _)
+  map_smul _ c σ
 
 /-- The contraction of the zero form with the time field is zero. -/
 @[simp]
 theorem timeInterior_zero :
-    (0 : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)).timeInterior = 0 := by
-  simpa using timeInterior_smul (0 : ℝ) (0 : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1))
+    (0 : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)).timeInterior = 0 :=
+  map_zero _
 
 /-- The contraction with the time field commutes with negation. -/
 @[simp]
 theorem timeInterior_neg (σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)) :
-    (-σ).timeInterior = -σ.timeInterior := by
-  rw [eq_neg_iff_add_eq_zero, ← timeInterior_add, neg_add_cancel, timeInterior_zero]
+    (-σ).timeInterior = -σ.timeInterior :=
+  map_neg _ σ
 
 /-- The contraction with the time field commutes with subtraction. -/
 @[simp]
 theorem timeInterior_sub (σ τ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)) :
-    (σ - τ).timeInterior = σ.timeInterior - τ.timeInterior := by
-  simp [sub_eq_add_neg]
+    (σ - τ).timeInterior = σ.timeInterior - τ.timeInterior :=
+  map_sub _ σ τ
 
 /-- **Cartan's formula for the time field.** For a closed form `σ` on `ℝ × M`, the exterior
 derivative of `ι_{∂_t} σ` is the time derivative `∂_t σ = L_{∂_t} σ`. -/
