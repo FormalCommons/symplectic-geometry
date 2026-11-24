@@ -40,6 +40,8 @@ where it is `contDiffOn_seeleyIccExtend`; the time coordinate needs only `projIc
 * `Continuous.exists_Icc_prod_extChartAt`: for a continuous `f : unitInterval × M → N`, a
   neighbourhood `[a, b] × U` of a point, read in the chart at a point of `M`, that `f` maps into
   the chart at the image point.
+* `ContMDiffOn.comp_projIcc_extChartAt_symm`: a map smooth on `univ ×ˢ U`, read through
+  `projIcc` in the time variable and the inverse chart of `M`, is smooth on `[a, b] × V`.
 * `ContMDiff.contDiffOn_extChartAt_comp_projIcc`: a smooth `f` read in these charts, through
   `projIcc` in the time variable, is smooth on `[a, b] × U`, so that Seeley's extension applies.
 
@@ -118,6 +120,23 @@ section Smooth
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
 
+/-- A map `f` on `unitInterval × M` that is smooth on `univ ×ˢ U`, read through `projIcc` in the
+time variable and through the inverse chart of `M` at `x₀`, is smooth on `[a, b] × V`, for
+`[a, b] ⊆ [0, 1]` and `V` a subset of the chart's target that the inverse chart maps into `U`. -/
+theorem _root_.ContMDiffOn.comp_projIcc_extChartAt_symm {E' H' N : Type*}
+    [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+    {J : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N] [IsManifold I ∞ M]
+    {f : unitInterval × M → N} {U : Set M} (hf : ContMDiffOn ((𝓡∂ 1).prod I) J ∞ f (univ ×ˢ U))
+    {x₀ : M} {a b : ℝ} {V : Set E} (hab : Icc a b ⊆ Icc 0 1)
+    (hV : ∀ u ∈ V, u ∈ (extChartAt I x₀).target ∧ (extChartAt I x₀).symm u ∈ U) :
+    ContMDiffOn 𝓘(ℝ, ℝ × E) J ∞
+      (fun q : ℝ × E ↦ f (projIcc 0 1 zero_le_one q.1, (extChartAt I x₀).symm q.2))
+      (Icc a b ×ˢ V) :=
+  hf.comp (((contMDiffOn_projIcc.mono hab).comp contDiff_fst.contMDiff.contMDiffOn
+      fun q (hq : q ∈ Icc a b ×ˢ V) ↦ hq.1).prodMk ((contMDiffOn_extChartAt_symm x₀).comp
+        contDiff_snd.contMDiff.contMDiffOn fun q (hq : q ∈ Icc a b ×ˢ V) ↦ (hV _ hq.2).1))
+    fun _ hq ↦ ⟨trivial, (hV _ hq.2).2⟩
+
 /-- On a boundaryless manifold, the time extension of a map that is smooth on `univ ×ˢ U`, for
 an open `U`, is smooth on `univ ×ˢ U`. -/
 theorem _root_.ContMDiffOn.timeExtend [IsManifold I ∞ M] [BoundarylessManifold I M]
@@ -137,12 +156,8 @@ theorem _root_.ContMDiffOn.timeExtend [IsManifold I ∞ M] [BoundarylessManifold
     by simpa [φ, extChartAt_to_inv] using hz.2⟩
   -- `f` read in the chart.
   set g : ℝ × E → F := fun q ↦ f (projIcc 0 1 zero_le_one q.1, φ.symm q.2)
-  have hg : ContDiffOn ℝ ∞ g (Icc 0 1 ×ˢ V) := by
-    rw [← contMDiffOn_iff_contDiffOn]
-    refine hf.comp (((contMDiffOn_projIcc (x := (0 : ℝ)) (y := 1)).comp
-      contDiff_fst.contMDiff.contMDiffOn fun q (hq : q ∈ Icc 0 1 ×ˢ V) ↦ hq.1).prodMk
-      ((contMDiffOn_extChartAt_symm z.2).comp contDiff_snd.contMDiff.contMDiffOn
-        fun q hq ↦ interior_subset (s := φ.target) hq.2.1)) fun q hq ↦ ⟨trivial, hq.2.2⟩
+  have hg : ContDiffOn ℝ ∞ g (Icc 0 1 ×ˢ V) := contMDiffOn_iff_contDiffOn.1 <|
+    hf.comp_projIcc_extChartAt_symm subset_rfl fun _ hu ↦ ⟨interior_subset hu.1, hu.2⟩
   have hext := (contMDiffOn_iff_contDiffOn.2 (contDiffOn_seeleyIccExtend hV hg))
   have hφ : ContMDiffOn (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ, ℝ × E) ∞ (fun p : ℝ × M ↦ (p.1, φ p.2))
       (univ ×ˢ W) :=
@@ -231,14 +246,10 @@ theorem ContMDiff.contDiffOn_extChartAt_comp_projIcc [IsManifold I ∞ M] [IsMan
       (Icc a b ×ˢ U) := by
   have hU' {q : ℝ × E} (hq : q ∈ Icc a b ×ˢ U) := hU (projIcc 0 1 zero_le_one q.1)
     (by rw [projIcc_of_mem _ (hab hq.1)]; exact hq.1) q.2 hq.2
-  refine contMDiffOn_iff_contDiffOn.1 ?_
-  have hP : ContMDiffOn 𝓘(ℝ, ℝ × E) ((𝓡∂ 1).prod I) ∞
-      (fun q : ℝ × E ↦ (projIcc 0 1 zero_le_one q.1, (extChartAt I x₀).symm q.2))
-      (Icc a b ×ˢ U) :=
-    ((contMDiffOn_projIcc.mono hab).comp contDiff_fst.contMDiff.contMDiffOn
-      fun q (hq : q ∈ Icc a b ×ˢ U) ↦ hq.1).prodMk ((contMDiffOn_extChartAt_symm x₀).comp
-        contDiff_snd.contMDiff.contMDiffOn fun q (hq : q ∈ Icc a b ×ˢ U) ↦ (hU' hq).1)
-  refine contMDiffOn_extChartAt.comp (hf.comp_contMDiffOn hP) fun q hq ↦ ?_
+  have hf' := (hf.contMDiffOn (s := univ ×ˢ univ)).comp_projIcc_extChartAt_symm (x₀ := x₀)
+    (V := U ∩ (extChartAt I x₀).target) hab fun _ hu ↦ ⟨hu.2, trivial⟩
+  refine contMDiffOn_iff_contDiffOn.1 (contMDiffOn_extChartAt.comp
+    (hf'.mono fun q hq ↦ ⟨hq.1, hq.2, (hU' hq).1⟩) fun q hq ↦ ?_)
   rw [← extChartAt_source J]
   exact (hU' hq).2
 
