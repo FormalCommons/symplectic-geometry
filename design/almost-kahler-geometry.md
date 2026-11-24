@@ -90,7 +90,7 @@ derivative on $TM$. In the statements,
   `hJ : ∀ x u v, ⟪u, v⟫ = σ.eval₂ x u (J x v)`, and proves
   `TauCeti.SmoothTwoForm.compatible_of_inner_eq` (such a `J` is compatible
   with `σ`). Its steps $g(Ju,w)=\sigma(u,w)$ and $g(Ju,Jw)=g(u,w)$ are
-  private there. *Almost complex manifolds*' `Metric.lean` (#860) adds
+  private there. Tau Ceti's `CompatibleMetric.lean` has
   `TauCeti.SmoothTwoForm.Compatible.metric`, the metric $g_J$ of a
   compatible pair as a `Bundle.ContMDiffRiemannianMetric I ∞ E (TangentSpace I)`,
   with `metric_inner`.
@@ -193,8 +193,7 @@ tensor*'s `Nijenhuis.lean`.
 None. The part states its results with Mathlib's and Tau Ceti's objects:
 `leviCivitaConnection`, `IsLeviCivitaConnection`, `CovariantDerivative.hom`,
 `CovariantDerivative.trivial`, `SmoothTwoForm.flat`, `mextDeriv`,
-`nijenhuis`, `IsClosed`, `IsKahler`, and *Almost complex manifolds*'
-`Compatible.metric`.
+`nijenhuis`, `IsClosed`, `IsKahler`, and `Compatible.metric`.
 
 ## Main results
 

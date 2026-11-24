@@ -202,7 +202,7 @@ parametrix glued from charts.
   `ω.IsKahler J` and `J.IsIntegrable` (*Nijenhuis tensor*'s
   `Integrable.lean`), with `finrank ℝ E = 2 * n`, as `DESIGN.md` says.
   The metric $g_J$ is installed inside the proof, as a local instance,
-  from *Almost complex manifolds*' `TauCeti.SmoothTwoForm.Compatible.metric`
+  from Tau Ceti's `TauCeti.SmoothTwoForm.Compatible.metric`
   with `metric_inner`. The orientation is the symplectic one,
   `IsNondegenerate.orientation`. Harmonic forms do not depend on the
   orientation (`harmonicForms_neg_orientation`), and the Kähler identities

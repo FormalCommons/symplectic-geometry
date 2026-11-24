@@ -170,8 +170,8 @@ diffeomorphism. No Mathlib or Tau Ceti notion is redefined.
    $\Omega$ with $\hat J\mapsto-J\hat J$ is
    $\Omega(\hat J_1,-J\hat J_2)=\tfrac12\operatorname{tr}(\hat J_1\hat J_2)$
    and positivity of $\operatorname{tr}(\hat J^2)$ for a nonzero
-   $g_J$-self-adjoint $\hat J$. The metric is then *Almost complex
-   manifolds*' `TauCeti.SmoothTwoForm.Compatible.metric` of the compatible
+   $g_J$-self-adjoint $\hat J$. The metric is then Tau Ceti's
+   `TauCeti.SmoothTwoForm.Compatible.metric` of the compatible
    pair, $g(a,b)=\Omega(a,J b)$, which is the page's and `DESIGN.md`'s
    convention $g_J(v,w)=\omega(v,Jw)$; the trace formula is a lemma. It is
    installed as a global `RiemannianBundle` instance on the tangent bundle
