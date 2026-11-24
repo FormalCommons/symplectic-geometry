@@ -21,6 +21,7 @@ import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.SmulRight
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
 import TauCeti.Geometry.Manifold.VectorBundle.Translate
+import TauCeti.Geometry.Manifold.VectorBundle.SectionAlongMap.Regularity
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.Topology.Algebra.Module.BilinearForm
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.ArctanDeriv

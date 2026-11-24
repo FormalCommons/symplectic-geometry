@@ -9,7 +9,7 @@ public import Mathlib.Analysis.SpecialFunctions.Complex.Circle
 public import TauCeti.Geometry.Manifold.Instances.AddCircle
 import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 import Mathlib.LinearAlgebra.Complex.FiniteDimensional
-import TauCeti.Analysis.Complex.Circle
+import TauCeti.Analysis.Complex.Circle.Basic
 import TauCeti.Geometry.Manifold.Instances.AddCircle.Cover
 import TauCeti.Geometry.Manifold.Instances.AddCircle.Circle
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic

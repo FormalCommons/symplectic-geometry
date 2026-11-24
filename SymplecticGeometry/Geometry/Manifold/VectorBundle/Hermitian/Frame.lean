@@ -15,7 +15,7 @@ import Mathlib.Geometry.Manifold.Algebra.LieGroup
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Norm
 import TauCeti.Geometry.Manifold.VectorBundle.MaximalAtlas
-import TauCeti.Geometry.Manifold.VectorBundle.Translate
+import TauCeti.Geometry.Manifold.VectorBundle.SectionAlongMap.Regularity
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 
 /-!

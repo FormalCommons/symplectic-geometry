@@ -335,7 +335,7 @@ preserve it). `Instances/OnePoint.lean` imports it.
 ### `Geometry/Manifold/Instances/OnePoint.lean`
 
 In namespace `OnePoint`, for the Riemann sphere read as a real surface:
-`contMDiff_coe_real`, `mvfderiv_coe_apply`,
+`mvfderiv_coe_apply`,
 `contMDiff_equivProjectivization_real` with its `_symm_` form,
 `equivProjectivization_apply_coe_eq_affineParam`,
 `ofTopForm_fubiniStudyForm` (the orientation of `fubiniStudyForm` is

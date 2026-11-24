@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.SmulRight
 public import TauCeti.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 public import TauCeti.Geometry.Manifold.VectorBundle.Translate
+public import TauCeti.Geometry.Manifold.VectorBundle.SectionAlongMap.Regularity
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
@@ -174,7 +175,7 @@ theorem mem_contactVectorFields_iff_kerDistribution_mpullback_flowOf [I.Boundary
     have hZ1 := hZ.of_le one_le_two
     have hd : HasDerivAt (F := E [⋀^Fin 1]→L[ℝ] ℝ)
         (fun s ↦ TauCeti.mpullback I I (flowOf X s) α.val x) (mlieDerivForm X α.val x) 0 :=
-      hasDerivAt_mpullback_flowOf_zero hZ x (α.mdifferentiableAt x)
+      hasDerivAt_mpullback_flowOf_zero hZ1 x (α.mdifferentiableAt x)
     have hc : HasDerivAt (F := E [⋀^Fin 1]→L[ℝ] ℝ)
         (fun s ↦ TauCeti.mpullback I I (flowOf X s) α.val x ![α.reebVectorField x] • α.val x)
         (mlieDerivForm X α.val x ![α.reebVectorField x] • α.val x) 0 :=

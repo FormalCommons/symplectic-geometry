@@ -27,7 +27,6 @@ inclusion `ℂ → OnePoint ℂ`, and by the inverted coordinate. This file reco
 reads for the underlying real surface, modelled on `𝓘(ℝ, ℂ)`, and compares the Riemann sphere with
 `ℂP¹` and with the round sphere of `ℝ³`:
 
-* `OnePoint.contMDiff_coe_real`: the inclusion is real-analytic;
 * `OnePoint.mvfderiv_coe_apply`: the derivative at a finite point of a map from the sphere to a
   normed space is the derivative of its restriction to `ℂ`, since the derivative of the inclusion
   is the identity (Tau Ceti's `OnePoint.hasMFDerivAt_coe`);
@@ -76,10 +75,6 @@ local notation "o₃" =>
 attribute [local instance] TauCeti.finrank_euclideanSpace_fin_succ_fact
 
 namespace OnePoint
-
-/-- The inclusion `ℂ → OnePoint ℂ` is real-analytic for the underlying real surfaces. -/
-theorem contMDiff_coe_real : ContMDiff 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ω ((↑) : ℂ → OnePoint ℂ) :=
-  (contMDiff_coe (𝕜 := ℂ)).restrictScalars' ℝ
 
 /-- At a finite point `z`, the derivative of a map `F` from the Riemann sphere to a real normed
 space is the derivative of `F` restricted to `ℂ`. -/
@@ -146,8 +141,10 @@ theorem isOrientationPreservingAt_equivProjectivization (x : OnePoint ℂ) :
   have hpt (v : ℂ) : mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 1 → ℂ) (equivProjectivization ℂ) x v =
       mfderiv 𝓘(ℂ, ℂ) 𝓘(ℂ, Fin 1 → ℂ) P₀ x v := by
     rw [coe_diffeomorphProjectivization]
-    exact DFunLike.congr_fun (((contMDiff_equivProjectivization (𝕜 := ℂ) x
-      ).mdifferentiableAt (by simp)).mfderiv_restrictScalars ℝ) v
+    have h := ((contMDiff_equivProjectivization (𝕜 := ℂ) x).mdifferentiableAt
+      (by simp)).mfderiv_restrictScalars ℝ
+    rw [modelWithCornersSelf_restrictScalars, modelWithCornersSelf_restrictScalars] at h
+    exact (DFunLike.congr_fun h v).trans (ContinuousLinearMap.restrictScalarsTangent_apply _ v)
   let Lc : ℂ ≃L[ℂ] (Fin 1 → ℂ) := P₀.mfderivToContinuousLinearEquiv (by simp) x
   refine (Manifold.Orientation.isOrientationPreservingAt_iff _ _ _ _).2
     ⟨Lc.restrictScalars' ℝ, ?_, ?_⟩

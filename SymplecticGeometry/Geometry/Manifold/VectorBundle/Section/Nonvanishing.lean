@@ -84,7 +84,8 @@ private theorem exists_contMDiffSection_isDiscrete_interior [SecondCountableTopo
     ⟨InteriorModel.val, InteriorModel.isLocalDiffeomorph_val.contMDiff⟩
   have : ContMDiffVectorBundle ∞ F ((j : C(N, M)) *ᵖ V) 𝓘(ℝ, E) :=
     ContMDiffVectorBundle.pullback F V 𝓘(ℝ, E) j
-  obtain ⟨k, s, hspan⟩ := exists_fin_spanning_contMDiffSection (I := I) (F := F) (V := V)
+  obtain ⟨k, s, hspan⟩ :=
+    exists_fin_spanning_contMDiffSection (I := I) (F := F) (V := V) (n := ∞)
   let t i := (s i).pullback j
   have ht (i) (y : N) : t i y = s i (j y) := pullback_apply (s i) j y
   have hspan' (y : N) : Submodule.span ℝ (range fun i ↦ t i y) = ⊤ := by

@@ -45,10 +45,13 @@ zero.
 * `SymplecticGeometry.formCalculus_zero_component`: its component of degree `0` is `F ∘ f`.
 * `SymplecticGeometry.formCalculus_id`: for `F = id` it is `f + τ`, and
   `SymplecticGeometry.formCalculus_const`: for a constant `F = c` it is `c`.
+* `SymplecticGeometry.formCalculus_eq_sum_pow`: `F(f + τ)` as a polynomial in `τ` with
+  coefficients the functions `F⁽ᵏ⁾ ∘ f / k!`, in the algebra of forms of mixed degree.
+* `SymplecticGeometry.formCalculus_mul`: the calculus is multiplicative,
+  `(F G)(f + τ) = F(f + τ) G(f + τ)`, by the Leibniz rule
+  `SymplecticGeometry.formCalculusCoeff_mul` for its coefficients.
 * `SymplecticGeometry.tsupport_formCalculus_subset`: each component vanishes outside
   `f ⁻¹' tsupport F`.
-* `SymplecticGeometry.formCalculus_eq_sum_mul`: `F(f + τ)` as a sum of products of forms of mixed
-  degree.
 * `SymplecticGeometry.cartanDiff_of_formCalculusCoeff`: the Cartan differential of the
   coefficients `F⁽ᵏ⁾(f)`.
 * `SymplecticGeometry.cartanDiff_formCalculus`: `F(f + τ)` is equivariantly closed when `f + τ`
@@ -121,19 +124,6 @@ theorem formCalculus_apply_of_odd : ∀ k, Odd k → formCalculus F hF f τ k = 
   rintro rfl
   exact Nat.not_odd_iff_even.mpr (even_two_mul m) hk
 
-/-- The functional calculus as a sum of products in the algebra of forms of mixed degree:
-`F(f + τ) = ∑ k, (k !)⁻¹ • τ ^ k F⁽ᵏ⁾(f)`. -/
-theorem formCalculus_eq_sum_mul :
-    formCalculus F hF f τ = ∑ k ∈ Finset.range (finrank ℝ E + 1), (k ! : ℝ)⁻¹ •
-      (DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 2 τ ^ k *
-        DirectSum.of _ 0 (SmoothForm.ofFunction (formCalculusCoeff F hF f k))) := by
-  rw [formCalculus_def]
-  refine Finset.sum_congr rfl fun k _ ↦ ?_
-  rw [SmoothForm.of_pow_eq_of_wedgePow, SmoothForm.of_mul_of_eq_of_wedge,
-    SmoothForm.wedge_ofFunction, ← DirectSum.of_smul]
-  -- The degree `2 * k + 0` of the product reduces to `2 * k`.
-  rfl
-
 variable [FiniteDimensional ℝ E]
 
 /-- The component of degree `2 k` of `F(f + τ)` is `F⁽ᵏ⁾(f) τ ^ k / k!`, for every `k`. -/
@@ -201,6 +191,82 @@ theorem formCalculus_const (c : ℝ) :
     rw [this, SmoothForm.funSMulₗ_zero, smul_zero, map_zero]
   · simp
 
+omit [IsManifold I 1 M] [FiniteDimensional ℝ E] in
+/-- The **Leibniz rule** for the coefficients of the functional calculus:
+`(F G)⁽ᵐ⁾ ∘ f = ∑ i ≤ m, (m choose i) (F⁽ⁱ⁾ ∘ f) (G⁽ᵐ⁻ⁱ⁾ ∘ f)`. -/
+theorem formCalculusCoeff_mul (G : ℝ → ℝ) (hG : ContDiff ℝ ∞ G) (hFG : ContDiff ℝ ∞ (F * G))
+    (m : ℕ) :
+    formCalculusCoeff (F * G) hFG f m =
+      ∑ i ∈ Finset.range (m + 1),
+        m.choose i • (formCalculusCoeff F hF f i * formCalculusCoeff G hG f (m - i)) := by
+  ext x
+  rw [formCalculusCoeff_apply, iteratedDeriv_mul (hF.contDiffAt.of_le (by simp))
+    (hG.contDiffAt.of_le (by simp))]
+  conv_rhs => rw [← ContMDiffMap.coeFnRingHom_apply, map_sum, Finset.sum_apply]
+  refine Finset.sum_congr rfl fun i _ ↦ ?_
+  rw [map_nsmul, Pi.smul_apply, map_mul, Pi.mul_apply, ContMDiffMap.coeFnRingHom_apply,
+    ContMDiffMap.coeFnRingHom_apply, formCalculusCoeff_apply, formCalculusCoeff_apply, nsmul_eq_mul,
+    mul_assoc]
+
+omit [FiniteDimensional ℝ E] in
+/-- `F(f + τ)` is the polynomial `∑ k ≤ finrank ℝ E, (k!)⁻¹ τ ^ k (F⁽ᵏ⁾ ∘ f)` in the two-form `τ`,
+computed in the algebra of forms of mixed degree, whose coefficients are the functions
+`F⁽ᵏ⁾ ∘ f` as forms of degree `0`. -/
+theorem formCalculus_eq_sum_pow :
+    formCalculus F hF f τ = ∑ k ∈ Finset.range (finrank ℝ E + 1),
+      (k ! : ℝ)⁻¹ • (DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 2 τ ^ k *
+        SmoothForm.ofFunctionRingHom (formCalculusCoeff F hF f k)) := by
+  rw [formCalculus_def]
+  refine Finset.sum_congr rfl fun k _ ↦ ?_
+  rw [SmoothForm.ofFunctionRingHom_apply, SmoothForm.of_pow_eq_of_wedgePow,
+    SmoothForm.of_mul_of_zero_ofFunction, DirectSum.of_smul]
+
+omit [FiniteDimensional ℝ E] in
+/-- The functional calculus is **multiplicative**: `(F G)(f + τ) = F(f + τ) G(f + τ)`. -/
+theorem formCalculus_mul (G : ℝ → ℝ) (hG : ContDiff ℝ ∞ G) (hFG : ContDiff ℝ ∞ (F * G)) :
+    formCalculus (F * G) hFG f τ = formCalculus F hF f τ * formCalculus G hG f τ := by
+  let X := DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 2 τ
+  let C := SmoothForm.ofFunctionRingHom (I := I) (M := M)
+  let n := finrank ℝ E
+  let cF := formCalculusCoeff F hF f
+  let cG := formCalculusCoeff G hG f
+  let h : ℕ → ℕ → ⨁ k, SmoothForm I M ℝ k := fun a b ↦
+    ((a ! : ℝ)⁻¹ * (b ! : ℝ)⁻¹) • (X ^ (a + b) * C (cF a * cG b))
+  -- Expand the product of the two polynomials in `X` into the terms `h a b`, and drop those
+  -- with `a + b > n`.
+  have hprod : formCalculus F hF f τ * formCalculus G hG f τ =
+      ∑ a ∈ Finset.range (n + 1), ∑ b ∈ Finset.range (n + 1 - a), h a b := by
+    rw [formCalculus_eq_sum_pow F hF, formCalculus_eq_sum_pow G hG, Finset.sum_mul_sum]
+    refine Finset.sum_congr rfl fun a ha ↦ ?_
+    rw [Finset.mem_range] at ha
+    symm
+    refine Finset.sum_subset (fun b hb ↦ by simp only [Finset.mem_range] at hb ⊢; omega)
+      (fun b hb hb' ↦ ?_) |>.trans (Finset.sum_congr rfl fun b _ ↦ ?_)
+    · -- Here `n < a + b` with `a, b ≤ n`, so `n > 0`, the model space is finite-dimensional,
+      -- and `X ^ (a + b)` has degree above its dimension.
+      simp only [Finset.mem_range] at hb hb'
+      have : FiniteDimensional ℝ E := Module.finite_of_finrank_pos (by omega)
+      have hX : X ^ (a + b) = 0 := SmoothForm.of_pow_eq_zero_of_finrank_lt τ (by omega)
+      simp only [h, hX, zero_mul, smul_zero]
+    · -- The functions commute with `X`, so each product of terms is `h a b`.
+      rw [smul_mul_smul_comm, mul_assoc, ← mul_assoc (C (cF a)),
+        (SmoothForm.commute_ofFunctionRingHom _ _).eq, mul_assoc, ← map_mul, ← mul_assoc,
+        ← pow_add]
+  -- Regroup by `m = a + b`, and compare with `F G` term by term through the Leibniz rule.
+  rw [hprod, ← Finset.sum_range_diag_flip, formCalculus_eq_sum_pow (F * G) hFG]
+  refine Finset.sum_congr rfl fun m _ ↦ ?_
+  rw [formCalculusCoeff_mul F hF f G hG hFG, map_sum, Finset.mul_sum, Finset.smul_sum]
+  refine Finset.sum_congr rfl fun i hi ↦ ?_
+  rw [Finset.mem_range, Nat.lt_succ_iff] at hi
+  rw [map_nsmul, ← Nat.cast_smul_eq_nsmul ℝ, mul_smul_comm, smul_smul]
+  simp only [h, cF, cG, Nat.add_sub_cancel' hi]
+  congr 1
+  -- The coefficients agree: `(m!)⁻¹ (m choose i) = (i!)⁻¹ ((m - i)!)⁻¹`.
+  have hm := Nat.choose_mul_factorial_mul_factorial hi
+  have : (m ! : ℝ) ≠ 0 := by positivity
+  field_simp
+  exact_mod_cast hm
+
 /-- Each component of `F(f + τ)` vanishes outside `f ⁻¹' tsupport F`. -/
 theorem tsupport_formCalculus_subset (k : ℕ) :
     tsupport (α := E [⋀^Fin k]→L[ℝ] ℝ) (formCalculus F hF f τ k).val ⊆ f ⁻¹' tsupport F := by
@@ -243,7 +309,7 @@ theorem cartanDiff_of_formCalculusCoeff (F : ℝ → ℝ) (hF : ContDiff ℝ ∞
         (WithTop.coe_lt_coe.mpr (ENat.natCast_lt_top k))).differentiableAt).hasDerivAt
   rw [cartanDiff_of_zero, SmoothForm.mextDerivₗ_ofFunction_comp_of_hasDerivAt
       (fun x ↦ formCalculusCoeff_apply F hF f k x) hd, ← hf, map_smul,
-    SmoothForm.of_mul_of_eq_of_wedge, SmoothForm.wedge_ofFunction, ← DirectSum.of_smul]
+    SmoothForm.of_mul_of_zero_ofFunction, DirectSum.of_smul]
 
 /-- **The functional calculus preserves equivariant closedness.** If a two-form `τ` is closed and
 a smooth function `f` satisfies `ħ ι_X τ = d f`, so that `f + τ` is equivariantly closed, then
@@ -292,8 +358,8 @@ theorem cartanDiff_formCalculus [FiniteDimensional ℝ E] (F : ℝ → ℝ) (hF 
   have hB : B (finrank ℝ E) = 0 := by
     simp only [B, T, U, C, SmoothForm.of_pow_eq_of_wedgePow, SmoothForm.of_mul_of_eq_of_wedge]
     rw [SmoothForm.eq_zero_of_finrank_lt (by omega) (SmoothForm.wedge _ _), map_zero]
-  rw [formCalculus_eq_sum_mul, map_sum]
-  simp only [map_smul]
+  rw [formCalculus_eq_sum_pow, map_sum]
+  simp only [SmoothForm.ofFunctionRingHom_apply, map_smul]
   rw [hsum, hB, smul_zero]
 
 end CartanDiff

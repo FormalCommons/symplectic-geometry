@@ -298,13 +298,13 @@ theorem ofComplexStructureMatrix_def (M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) :
 theorem map_re_ofComplexStructureMatrix (M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) :
     (ofComplexStructureMatrix M).map Complex.re = M.toBlocks₁₁ * M.toBlocks₂₁⁻¹ := by
   ext i j
-  simp [ofComplexStructureMatrix_def]
+  simp [ofComplexStructureMatrix_def, -Matrix.map_ofReal_mul]
 
 @[simp]
 theorem map_im_ofComplexStructureMatrix (M : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) :
     (ofComplexStructureMatrix M).map Complex.im = M.toBlocks₂₁⁻¹ := by
   ext i j
-  simp [ofComplexStructureMatrix_def]
+  simp [ofComplexStructureMatrix_def, -Matrix.map_ofReal_mul]
 
 /-- `ofComplexStructureMatrix` is a left inverse of `complexStructureMatrix` on the Siegel upper
 half space. -/

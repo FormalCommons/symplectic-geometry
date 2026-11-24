@@ -12,7 +12,7 @@ import SymplecticGeometry.Geometry.Manifold.SmoothSingular.Period
 import SymplecticGeometry.Geometry.Manifold.SmoothSingular.Rectangle
 import SymplecticGeometry.Geometry.Manifold.SmoothTransition
 import TauCeti.Geometry.Manifold.DeRham.FiniteDimensional
-import TauCeti.Geometry.Manifold.SmoothApprox
+import TauCeti.Geometry.Manifold.SmoothApprox.Basic
 import TauCeti.Geometry.Manifold.Topology
 import TauCeti.Geometry.Symplectic.Flux.Reparam
 
@@ -120,7 +120,8 @@ theorem homologyPeriod_mem_range_closedFormHomologyPeriod_of_mem_fluxGroup [Sigm
   have := J.pathConnectedSpace M
   obtain ⟨x⟩ : Nonempty M := inferInstance
   obtain ⟨Φ, hΦ, h₁, rfl⟩ := mem_fluxGroup.mp hc
-  obtain ⟨b, rfl⟩ := (HurewiczOne.hurewiczHomologyAddEquiv (X := .of M) x).surjective a
+  obtain ⟨b, rfl⟩ :=
+    (HurewiczOne.hurewiczHomologyAddEquiv (X := .of M) x (RingEquiv.refl ℤ)).surjective a
   obtain ⟨g, rfl⟩ := Group.Abelianization.exists_eq_ofMul_of b
   rw [HurewiczOne.hurewiczHomologyAddEquiv_apply, HurewiczOne.hurewiczAb_ofMul_of,
     deRhamCohomology.homologyPeriod_hurewicz₁]

@@ -10,7 +10,7 @@ public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Coordi
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Frame
 public import SymplecticGeometry.Topology.VectorBundle.Section
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Winding
-public import TauCeti.Analysis.Complex.Circle
+public import TauCeti.Analysis.Complex.Circle.Basic
 public import TauCeti.Topology.Circle.Normalize
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars

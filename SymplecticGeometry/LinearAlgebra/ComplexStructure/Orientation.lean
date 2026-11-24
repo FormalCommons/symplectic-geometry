@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.LinearAlgebra.ComplexStructure.Hom
+public import TauCeti.Geometry.Symplectic.Orientation
 public import TauCeti.Geometry.Symplectic.Prod.Basic
 public import TauCeti.LinearAlgebra.Complex.Orientation
 public import TauCeti.LinearAlgebra.Exact
@@ -17,18 +18,14 @@ public import TauCeti.LinearAlgebra.Orientation.ShortExact
 Let `V` be a finite-dimensional real vector space. Each almost complex structure `J` on `V`
 makes it a complex vector space (Tau Ceti's `TauCeti.AlmostComplexStructure.complexModule`),
 which carries Tau Ceti's canonical real orientation `TauCeti.complexOrientation`: the orientation of
-`(v₁, J v₁, …, vₙ, J vₙ)` for any complex basis `(v₁, …, vₙ)`. This file names it
-`TauCeti.AlmostComplexStructure.orientation`, indexed by `Fin (finrank ℝ V)`, and shows how it
-meets complex-linear isomorphisms, direct sums, and short exact sequences of complex-linear maps.
-
-## Main definitions
-
-* `TauCeti.AlmostComplexStructure.orientation`: the real orientation induced by `J`.
+`(v₁, J v₁, …, vₙ, J vₙ)` for any complex basis `(v₁, …, vₙ)`. This file shows that it is Tau
+Ceti's complex orientation `TauCeti.AlmostComplexStructure.orientation` of `J`, and how that
+orientation meets direct sums and short exact sequences of complex-linear maps.
 
 ## Main results
 
-* `TauCeti.AlmostComplexStructure.map_orientation`: a real-linear isomorphism that intertwines
-  two almost complex structures carries the orientation of one to that of the other.
+* `TauCeti.AlmostComplexStructure.orientation_eq_complexOrientation`: the complex orientation of
+  `J` is the canonical orientation of the complex vector space `(V, J)`.
 * `TauCeti.AlmostComplexStructure.orientation_prod`: the orientation of the direct sum `J₁ × J₂`
   is the product of the orientations of `J₁` and `J₂`.
 * `TauCeti.AlmostComplexStructure.orientation_eq_of_apply_one_eq`: in real dimension two, a
@@ -63,68 +60,44 @@ theorem finiteDimensional_complexModule (J : AlmostComplexStructure V) :
   have := J.complexModule_isScalarTower
   .of_restrictScalars_finite ℝ ℂ V
 
-/-- The **orientation induced by an almost complex structure** `J` on `V`: the canonical real
-orientation `TauCeti.complexOrientation` of `V` as a complex vector space with `i` acting as `J`,
-the orientation of `(v₁, J v₁, …, vₙ, J vₙ)` for any complex basis `(v₁, …, vₙ)`. -/
-def orientation (J : AlmostComplexStructure V) : Orientation ℝ V (Fin (finrank ℝ V)) :=
-  let := J.complexModule
-  have := J.complexModule_isScalarTower
-  have := J.finiteDimensional_complexModule
-  Orientation.reindex ℝ V (finCongr finrank_real_eq_two_mul_finrank_complex.symm)
-    (complexOrientation V)
-
-theorem orientation_def (J : AlmostComplexStructure V) :
+/-- Tau Ceti's complex orientation `TauCeti.AlmostComplexStructure.orientation` of `J`, indexed by
+`Fin (finrank ℝ V)`, is the canonical real orientation `TauCeti.complexOrientation` of `V` as a
+complex vector space with `i` acting as `J`. -/
+theorem orientation_eq_complexOrientation (J : AlmostComplexStructure V) :
     letI := J.complexModule
     haveI := J.complexModule_isScalarTower
     haveI := J.finiteDimensional_complexModule
-    J.orientation = Orientation.reindex ℝ V
-      (finCongr finrank_real_eq_two_mul_finrank_complex.symm) (complexOrientation V) :=
-  (rfl)
-
-/-- A real-linear isomorphism `e` that intertwines `J` and `J'` carries the orientation of `J` to
-that of `J'`. -/
-theorem map_orientation {J : AlmostComplexStructure V} {J' : AlmostComplexStructure V'}
-    (e : V ≃ₗ[ℝ] V') (he : IsComplexLinearMap J J' e.toLinearMap) :
-    Orientation.map _ e J.orientation =
-      Orientation.reindex ℝ V' (finCongr e.finrank_eq.symm) J'.orientation := by
+    J.orientation rfl = Orientation.reindex ℝ V
+      (finCongr finrank_real_eq_two_mul_finrank_complex.symm) (complexOrientation V) := by
   let := J.complexModule
-  let := J'.complexModule
   have := J.complexModule_isScalarTower
-  have := J'.complexModule_isScalarTower
   have := J.finiteDimensional_complexModule
-  have := J'.finiteDimensional_complexModule
-  -- `e` as a complex-linear isomorphism, whose restriction of scalars is `e` again.
-  let ec : V ≃ₗ[ℂ] V' := { he.toComplexLinearMap, e with }
-  have hec : ec.restrictScalars ℝ = e := LinearEquiv.ext fun _ ↦ rfl
-  rw [orientation_def, orientation_def, Orientation.map_reindex, ← hec,
-    LinearEquiv.map_complexOrientation, ← Orientation.reindex_trans, ← Orientation.reindex_trans]
-  -- Both sides reindex the same orientation along casts between the same index types.
-  rfl
+  have h := orientation_ofComplexModule V (k := finrank ℝ V) rfl
+  rwa [ofComplexModule_complexModule] at h
+
+/-- Tau Ceti's complex orientation for a given dimension `k` is that for `finrank ℝ V`,
+reindexed. -/
+theorem orientation_eq_reindex (J : AlmostComplexStructure V) {k : ℕ} (hk : finrank ℝ V = k) :
+    J.orientation hk = Orientation.reindex ℝ V (finCongr hk) (J.orientation rfl) := by
+  subst hk
+  rw [finCongr_refl, Orientation.reindex_refl, Equiv.refl_apply]
 
 /-- If the complex structure induced by `J` is a given complex module structure on `V`, the
 orientation of `J` is the canonical orientation of that complex vector space. -/
 theorem orientation_eq_of_complexModule_eq (J : AlmostComplexStructure V) [m : Module ℂ V]
     [IsScalarTower ℝ ℂ V] (h : J.complexModule = m) :
     haveI : FiniteDimensional ℂ V := .of_restrictScalars_finite ℝ ℂ V
-    J.orientation = Orientation.reindex ℝ V
+    J.orientation rfl = Orientation.reindex ℝ V
       (finCongr finrank_real_eq_two_mul_finrank_complex.symm) (complexOrientation V) := by
   subst h
-  rfl
-
-/-- On a complex vector space, the orientation of multiplication by `i` is the canonical
-orientation `TauCeti.complexOrientation`. -/
-theorem orientation_ofComplexModule [Module ℂ V] [IsScalarTower ℝ ℂ V] :
-    haveI : FiniteDimensional ℂ V := .of_restrictScalars_finite ℝ ℂ V
-    (ofComplexModule V).orientation = Orientation.reindex ℝ V
-      (finCongr finrank_real_eq_two_mul_finrank_complex.symm) (complexOrientation V) :=
-  (ofComplexModule V).orientation_eq_of_complexModule_eq complexModule_ofComplexModule
+  exact J.orientation_eq_complexOrientation
 
 /-- The orientation of the direct sum `J₁ × J₂` of two almost complex structures is the ordered
 product of their orientations, the directions of the first factor before those of the second. -/
 theorem orientation_prod (J₁ : AlmostComplexStructure V) (J₂ : AlmostComplexStructure V') :
-    (J₁.prod J₂).orientation =
+    (J₁.prod J₂).orientation rfl =
       Orientation.reindex ℝ (V × V') (finCongr finrank_prod.symm)
-        (J₁.orientation.prod J₂.orientation rfl rfl) := by
+        ((J₁.orientation rfl).prod (J₂.orientation rfl) rfl rfl) := by
   let := J₁.complexModule
   let := J₂.complexModule
   have := J₁.complexModule_isScalarTower
@@ -134,7 +107,8 @@ theorem orientation_prod (J₁ : AlmostComplexStructure V) (J₂ : AlmostComplex
   -- `J₁ × J₂` is multiplication by `i` on the product of the complex spaces `(V, J₁)`, `(V', J₂)`.
   have hJ : J₁.prod J₂ = ofComplexModule (V × V') := by
     ext p <;> simp
-  rw [hJ, orientation_ofComplexModule, orientation_def, orientation_def,
+  rw [hJ, orientation_ofComplexModule, orientation_eq_complexOrientation,
+    orientation_eq_complexOrientation,
     Orientation.prod_reindex_finCongr, prod_complexOrientation, ← Orientation.reindex_trans,
     ← Orientation.reindex_trans]
   -- Both sides reindex the same orientation along casts between the same index types.
@@ -143,7 +117,7 @@ theorem orientation_prod (J₁ : AlmostComplexStructure V) (J₂ : AlmostComplex
 /-- In real dimension two, a basis `(e, J e)` induces the orientation of `J`. -/
 theorem orientation_eq_of_apply_one_eq (J : AlmostComplexStructure V) (hV : finrank ℝ V = 2)
     (b : Basis (Fin 2) ℝ V) (hb : b 1 = J (b 0)) :
-    b.orientation = Orientation.reindex ℝ V (finCongr hV) J.orientation := by
+    b.orientation = Orientation.reindex ℝ V (finCongr hV) (J.orientation rfl) := by
   let := J.complexModule
   have := J.complexModule_isScalarTower
   have := J.finiteDimensional_complexModule
@@ -163,8 +137,8 @@ theorem orientation_eq_of_apply_one_eq (J : AlmostComplexStructure V) (hV : finr
     fin_cases k
     · simp [c]
     · simp [c, hb]
-  rw [orientation_def, ← Orientation.reindex_trans, ← hc, Basis.orientation_reindex,
-    c.complexOrientation_eq_reindex h1]
+  rw [orientation_eq_complexOrientation, ← Orientation.reindex_trans, ← hc,
+    Basis.orientation_reindex, c.complexOrientation_eq_reindex h1]
   -- Both sides reindex the same orientation along equal equivalences of index types.
   rfl
 
@@ -177,8 +151,8 @@ theorem shortExact_orientation {U W : Type*} [AddCommGroup U] [Module ℝ U] [Fi
     {g : V →ₗ[ℝ] W} (hf : Function.Injective f) (hfg : Function.Exact f g)
     (hg : Function.Surjective g) (hJf : IsComplexLinearMap J₁ J f)
     (hJg : IsComplexLinearMap J J₂ g) :
-    Orientation.shortExact hf hfg hg J₁.orientation J₂.orientation rfl rfl =
-      Orientation.reindex ℝ V (finCongr (hfg.finrank_eq_add hf hg)) J.orientation := by
+    Orientation.shortExact hf hfg hg (J₁.orientation rfl) (J₂.orientation rfl) rfl rfl =
+      Orientation.reindex ℝ V (finCongr (hfg.finrank_eq_add hf hg)) (J.orientation rfl) := by
   -- A complex-linear section `s` of `g`.
   obtain ⟨s, hJs, hs⟩ := hJg.exists_rightInverse_of_surjective hg
   rw [Orientation.shortExact_eq_map_prod _ _ _ _ _ _ _ s hs]
@@ -193,12 +167,13 @@ theorem shortExact_orientation {U W : Type*} [AddCommGroup U] [Module ℝ U] [Fi
     rintro ⟨u, w⟩
     simp [he₁, (isComplexLinearMap_iff_apply _ _ _).1 hJf,
       (isComplexLinearMap_iff_apply _ _ _).1 hJs]
-  have hp : J₁.orientation.prod J₂.orientation rfl rfl =
-      Orientation.reindex ℝ _ (finCongr finrank_prod) (J₁.prod J₂).orientation := by
+  have hp : (J₁.orientation rfl).prod (J₂.orientation rfl) rfl rfl =
+      Orientation.reindex ℝ _ (finCongr finrank_prod) ((J₁.prod J₂).orientation rfl) := by
     rw [orientation_prod, ← Orientation.reindex_trans,
       show (finCongr finrank_prod.symm).trans (finCongr finrank_prod) = Equiv.refl _ from
         Equiv.ext fun _ ↦ rfl, Orientation.reindex_refl, Equiv.refl_apply]
-  rw [hp, Orientation.map_reindex, map_orientation e he, ← Orientation.reindex_trans]
+  rw [hp, Orientation.map_reindex, map_orientation he, orientation_eq_reindex,
+    ← Orientation.reindex_trans]
   -- Both sides reindex the same orientation along casts between the same index types.
   rfl
 

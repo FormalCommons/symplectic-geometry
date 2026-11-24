@@ -29,7 +29,7 @@ construction at one point of a pseudoholomorphic map between vector spaces.
 
 * `TauCeti.SmoothEmbedding.normalAlmostComplexStructureAt`: the almost complex structure that
   `J` induces on the normal space at a point.
-* `TauCeti.SmoothEmbedding.normalComplexStructure`: these structures, as a smooth complex
+* `TauCeti.SmoothEmbedding.contMDiffNormalComplexStructure`: these structures, as a smooth complex
   structure on the normal bundle of a smooth embedding.
 
 ## Main results
@@ -164,7 +164,7 @@ private theorem contMDiff_normalAlmostComplexStructureAt (f : SmoothEmbedding I'
 almost complex structure `J` for which the tangent images of `f` are invariant: at each point it
 is `f.normalAlmostComplexStructureAt J hJ`. The normal bundle carries Tau Ceti's bundle structure
 with model fibre `P`, of dimension `hdim`. -/
-def normalComplexStructure (f : SmoothEmbedding I' I ∞ M X)
+def contMDiffNormalComplexStructure (f : SmoothEmbedding I' I ∞ M X)
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') (J : SmoothAlmostComplexStructure I X)
     (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn) :
     letI := f.normalSpaceFiberBundle hn hdim
@@ -182,29 +182,30 @@ def normalComplexStructure (f : SmoothEmbedding I' I ∞ M X)
 /-- The complex structure on the normal bundle acts at `x` as
 `f.normalAlmostComplexStructureAt J hJ x`. -/
 @[simp]
-theorem normalComplexStructure_apply (f : SmoothEmbedding I' I ∞ M X)
+theorem contMDiffNormalComplexStructure_apply (f : SmoothEmbedding I' I ∞ M X)
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') (J : SmoothAlmostComplexStructure I X)
     (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn) (x : M)
     (v : f.NormalSpace x hn) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
-    f.normalComplexStructure hdim J hJ x v = f.normalAlmostComplexStructureAt J hJ x v :=
+    f.contMDiffNormalComplexStructure hdim J hJ x v = f.normalAlmostComplexStructureAt J hJ x v :=
   (rfl)
 
 /-- The value of the complex structure on the normal bundle at `x` is
 `f.normalAlmostComplexStructureAt J hJ x`. -/
 @[simp]
-theorem almostComplexStructureAt_normalComplexStructure (f : SmoothEmbedding I' I ∞ M X)
+theorem almostComplexStructureAt_contMDiffNormalComplexStructure (f : SmoothEmbedding I' I ∞ M X)
     (hdim : finrank ℝ P = finrank ℝ E - finrank ℝ E') (J : SmoothAlmostComplexStructure I X)
     (hJ : ∀ x, ∀ v ∈ f.tangentRange x hn, J (f x) v ∈ f.tangentRange x hn) (x : M) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
-    (f.normalComplexStructure hdim J hJ).almostComplexStructureAt x =
+    (f.contMDiffNormalComplexStructure hdim J hJ).almostComplexStructureAt x =
       f.normalAlmostComplexStructureAt J hJ x := by
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
   ext v
-  rw [ContMDiffComplexStructure.almostComplexStructureAt_apply, normalComplexStructure_apply]
+  rw [ContMDiffComplexStructure.almostComplexStructureAt_apply,
+    contMDiffNormalComplexStructure_apply]
 
 end Smooth
 

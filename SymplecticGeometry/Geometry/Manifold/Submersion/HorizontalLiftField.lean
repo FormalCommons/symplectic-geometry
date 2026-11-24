@@ -5,13 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection
-public import TauCeti.Geometry.Manifold.Riemannian.Submersion.Basic
+public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Basic
 import TauCeti.Analysis.Normed.Module.ContinuousInverse
 import TauCeti.Geometry.Manifold.ContMDiff.LeftInverse
 import TauCeti.Geometry.Manifold.ContMDiff.MFDeriv
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
-import TauCeti.Geometry.Manifold.VectorBundle.Translate
+import TauCeti.Geometry.Manifold.VectorBundle.SectionAlongMap.Regularity
 
 /-!
 # Horizontal lifts of vector fields
@@ -35,8 +34,9 @@ in a frame are recovered in the same way.
 For a Riemannian submersion, Tau Ceti lifts tangent vectors through the metric adjoint of the
 derivative (`TauCeti.IsRiemannianSubmersion.horizontalLift`). That lift is the horizontal lift
 of the Ehresmann connection formed by the orthogonal complements of the vertical spaces
-(`TauCeti.IsRiemannianSubmersion.horizontalLift_eq_isEhresmannConnection_horizontalLift`), so
-results about general connections apply to it.
+(`TauCeti.IsRiemannianSubmersion.horizontalLift_eq_isEhresmannConnection_horizontalLift`, in
+Tau Ceti's `TauCeti.Geometry.Manifold.Riemannian.Submersion.Ehresmann`), so results about
+general connections apply to it.
 
 ## Main definitions
 
@@ -63,8 +63,6 @@ results about general connections apply to it.
   frame of the tangent bundle of the base form a local frame of the connection.
 * `TauCeti.IsEhresmannConnection.mdifferentiableAt_horizontalLiftField`: for a `C^n` connection
   with `1 ≤ n`, the horizontal lift of a `C^n` field is differentiable.
-* `TauCeti.IsRiemannianSubmersion.horizontalLift_eq_isEhresmannConnection_horizontalLift`: the
-  horizontal lift of a Riemannian submersion is that of its orthogonal Ehresmann connection.
 
 ## References
 
@@ -349,32 +347,5 @@ theorem contMDiff_horizontalLiftField_timeDependent {V : 𝕜 → Π b : B, Tang
 end Smooth
 
 end IsEhresmannConnection
-
-namespace IsRiemannianSubmersion
-
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
-  {P : Type*} [TopologicalSpace P] [ChartedSpace H P] [IsManifold I 1 P]
-  [RiemannianBundle (fun x : P ↦ TangentSpace I x)]
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
-  {G : Type*} [TopologicalSpace G] {J : ModelWithCorners ℝ F G}
-  {B : Type*} [TopologicalSpace B] [ChartedSpace G B]
-  [RiemannianBundle (fun b : B ↦ TangentSpace J b)]
-  {n : ℕ∞ω} {f : P → B}
-
-/-- The horizontal lift of a Riemannian submersion, by the metric adjoint of its derivative, is
-the horizontal lift of the Ehresmann connection formed by the orthogonal complements of its
-vertical spaces, such as the one given by
-`Manifold.IsSubmersion.isEhresmannConnection_orthogonal_ker_mfderiv`. -/
-theorem horizontalLift_eq_isEhresmannConnection_horizontalLift
-    (h : IsRiemannianSubmersion I J f)
-    (hD : IsEhresmannConnection I J n f (fun x ↦ (mfderiv I J f x).kerᗮ))
-    (x : P) (v : TangentSpace J (f x)) :
-    h.horizontalLift x v = hD.horizontalLift x v :=
-  congrArg Subtype.val ((hD.eq_horizontalLift_iff
-    (w := ⟨h.horizontalLift x v, h.horizontalLift_mem_orthogonal_ker x v⟩)).2
-    (h.mfderiv_horizontalLift x v))
-
-end IsRiemannianSubmersion
 
 end TauCeti
