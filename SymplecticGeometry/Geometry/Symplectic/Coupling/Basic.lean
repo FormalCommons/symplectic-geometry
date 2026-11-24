@@ -363,8 +363,8 @@ private theorem contMDiff_segmentMap (s t : Set.Icc a b) :
       (segmentMap P s t) :=
   contMDiff_id.prodMap (contMDiff_const.convexComb contMDiff_const contMDiff_id)
 
-/-- The primitive `h (Φ^* σ)` of `π^* (τ t - τ s)`, for `Φ` the map `(p, u) ↦ (p, s + u (t - s))`
-and `h` the homotopy operator. -/
+/-- The primitive `h (Φ^* σ)` of `π^* (τ t - τ s)`, for `Φ` the map
+`(p, u) ↦ (p, (1 - u) s + u t)` and `h` the homotopy operator. -/
 private def primitive
     (σ : SmoothTwoForm ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (ManifoldTotalSpace Circle P × Set.Icc a b))
     (s t : Set.Icc a b) : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1 :=
