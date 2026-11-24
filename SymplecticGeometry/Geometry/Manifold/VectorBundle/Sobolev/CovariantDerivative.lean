@@ -6,8 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.CovariantDerivative.Chart
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.LowerOrder
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.TangentHom
-public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Chart.Deriv
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ContMDiffSection
 import TauCeti.Analysis.Calculus.FDeriv.ContinuousLinearMap
 import TauCeti.Analysis.Sobolev.Wkp.SmoothCoefficients
@@ -56,7 +56,8 @@ real Cauchy–Riemann operator on a complex curve, from the complex antilinear p
 to the whole derivative, and from the model `ℂ` to any finite-dimensional inner product space.
 Unlike `sobolevSuccL`, which reduces membership in the Sobolev sections to the order-one
 realization, the cocycle relation is proved here directly at every order, from the order-one
-relation of the section regarded as one of order one. The proofs of
+relation of the section regarded as one of order one
+(`TauCeti.SectionChartData.toOrderOne`). The proofs of
 `IsCovariantDerivativeOn.chartValueL_sobolevL_ofContMDiffSection_ae` and
 `IsCovariantDerivativeOn.lowerOrderL_sobolevL` follow those of
 `TauCeti.IsRealCauchyRiemannOperator.chartValueL_sobolevSuccL_ofContMDiffSection_ae` and
@@ -193,18 +194,15 @@ private theorem dataL_apply (w : A.sectionChartData.SobolevData μ p (k + 1)) (i
         (chartL A hcov hcovs μ p k i c w) :=
   rfl
 
-/-- The weak derivative of the chart data in chart `i`, assembled from its components. -/
-private def chartDeriv (i : Fin A.n) (w : A.sectionChartData.SobolevData μ p (k + 1)) (y : E) :
-    E →L[ℝ] F :=
-  ∑ a, Wkp.value k (A.sectionChartData.chartDerivDataL μ p k i w a) y •
-    finBasis ℝ (E →L[ℝ] F) a
-
 /-- In chart `i`, the chart data of the components of the realization of `w` are `Duᵢ + Γᵢ uᵢ`
-almost everywhere, for the assembled weak derivative `Duᵢ` of the chart data `uᵢ` of `w`. -/
+almost everywhere, for the weak derivative `Duᵢ` of the chart data `uᵢ` of `w` assembled from its
+components `chartDerivDataL`. -/
 private theorem chartValueL_dataL_ae (w : A.sectionChartData.SobolevData μ p (k + 1))
     (i : Fin A.n) :
     A.tangentHom.sectionChartData.chartValueL μ p k i (dataL A hcov hcovs μ p k w)
-      =ᵐ[μ.restrict (A.image i)] fun y ↦ chartDeriv A μ p k i w y +
+      =ᵐ[μ.restrict (A.image i)] fun y ↦
+        (∑ a, Wkp.value k (A.sectionChartData.chartDerivDataL μ p k i w a) y •
+          finBasis ℝ (E →L[ℝ] F) a) +
         A.chartZeroOrder cov i y (A.sectionChartData.chartValueL μ p (k + 1) i w y) := by
   have h₀ := (ae_image_tangentHom_iff' A μ i).1
     (A.tangentHom.sectionChartData.chartValueL_apply_ae μ p k i (dataL A hcov hcovs μ p k w))
@@ -224,30 +222,7 @@ private theorem chartValueL_dataL_ae (w : A.sectionChartData.SobolevData μ p (k
     rw [dataL_apply, h₂ c, chartL_apply]
     refine (h₃ c).trans ?_
     rw [Pi.add_apply, h₄ c]
-  simp_rw [hc, add_smul, Finset.sum_add_distrib, Basis.sum_repr, chartDeriv]
-
-/-- The order-one Sobolev section underlying a Sobolev section of order `k + 1`. -/
-private def toOrderOne (w : SobolevSection A μ p (k + 1)) : SobolevSection A μ p 1 :=
-  A.sectionChartData.lowerOrdersL μ p 1 k ((Nat.add_comm k 1) ▸ w)
-
-omit [IsManifold 𝓘(ℝ, E) ∞ M] [T2Space M] [∀ x, IsTopologicalAddGroup (V x)]
-  [∀ x, ContinuousSMul ℝ (V x)] [ContMDiffVectorBundle ∞ F V 𝓘(ℝ, E)] in
-private theorem chartValueL_toOrderOne (w : SobolevSection A μ p (k + 1)) (i : Fin A.n) :
-    A.sectionChartData.chartValueL μ p 1 i (toOrderOne A μ p k w) =
-      A.sectionChartData.chartValueL μ p (k + 1) i w :=
-  (A.sectionChartData.chartValueL_lowerOrdersL μ p 1 k _ i).trans
-    (A.sectionChartData.chartValueL_eqRec μ p (Nat.add_comm k 1) w i)
-
-omit [IsManifold 𝓘(ℝ, E) ∞ M] [T2Space M] [∀ x, IsTopologicalAddGroup (V x)]
-  [∀ x, ContinuousSMul ℝ (V x)] [ContMDiffVectorBundle ∞ F V 𝓘(ℝ, E)] in
-/-- The order-one weak derivative of the section regarded as one of order one is the assembled
-weak derivative. -/
-private theorem chartDerivL_toOrderOne_ae (w : SobolevSection A μ p (k + 1)) (i : Fin A.n) :
-    A.sectionChartData.chartDerivL μ p i (toOrderOne A μ p k w)
-      =ᵐ[μ.restrict (A.image i)] chartDeriv A μ p k i w := by
-  have hDu := A.sectionChartData.hasWeakFDerivOn_chartValueL_chartDerivDataL μ p k i w
-  rw [← chartValueL_toOrderOne A μ p k w i] at hDu
-  exact (A.sectionChartData.hasWeakFDerivOn_chartValueL μ p i (toOrderOne A μ p k w)).ae_eq hDu
+  simp_rw [hc, add_smul, Finset.sum_add_distrib, Basis.sum_repr]
 
 include hcov in
 omit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] [T2Space M] in
@@ -297,19 +272,21 @@ private theorem compatible_dataL (w : SobolevSection A μ p (k + 1)) (i i' : Fin
   have h₂ := (A.sectionChartData.aeTransition_iff.1 hC) (i := i) (i' := i')
     (chartValueL_dataL_ae A hcov hcovs μ p k w i)
   have h₃ := (A.sectionChartData.compatible_iff μ p 1).1
-    (SectionChartData.compatible_of_mem hC (toOrderOne A μ p k w).property i i')
+    (SectionChartData.compatible_of_mem hC (A.sectionChartData.toOrderOne μ p k w).property i i')
   have h₅ := ae_restrict_of_ae_restrict_of_subset (A.overlap_subset_image i i')
-    (chartDerivL_toOrderOne_ae A μ p k w i')
+    (A.sectionChartData.sum_value_chartDerivDataL_ae_eq_chartDerivL_toOrderOne μ p k i' w).symm
   have h₆ := (A.sectionChartData.aeTransition_iff.1 hC) (i := i) (i' := i')
-    (chartDerivL_toOrderOne_ae A μ p k w i)
+    (A.sectionChartData.sum_value_chartDerivDataL_ae_eq_chartDerivL_toOrderOne μ p k i w).symm
   refine (A.tangentHom.sectionChartData.compatible_iff μ p k).2 ?_
   refine (ae_overlap_tangentHom_iff' A μ i i').2 ?_
-  filter_upwards [h₁, h₂, h₃, chartDerivL_ae_overlap A μ p (toOrderOne A μ p k w) i i', h₅, h₆,
+  filter_upwards [h₁, h₂, h₃,
+    chartDerivL_ae_overlap A μ p (A.sectionChartData.toOrderOne μ p k w) i i', h₅, h₆,
     ae_restrict_mem (A.isOpen_overlap i i').measurableSet] with y h₁ h₂ h₃ h₄ h₅ h₆ hy
   rw [A.sectionChartData_transition_of_mem hy] at h₂ h₆
   rw [A.sectionChartData_coordChange_of_mem hy, A.sectionChartData_transition_of_mem hy,
-    chartValueL_toOrderOne, chartValueL_toOrderOne] at h₃
-  rw [h₅, h₆, chartValueL_toOrderOne] at h₄
+    A.sectionChartData.chartValueL_toOrderOne μ p k w i,
+    A.sectionChartData.chartValueL_toOrderOne μ p k w i'] at h₃
+  rw [h₅, h₆, A.sectionChartData.chartValueL_toOrderOne μ p k w i] at h₄
   rw [sectionChartData_transition_tangentHom' A hy,
     sectionChartData_coordChange_tangentHom_apply' A hy, h₁, h₂]
   exact chartData_overlap_eq A hcov hy h₄ h₃
@@ -381,6 +358,7 @@ theorem chartValueL_sobolevL_ofContMDiffSection_ae
 /-- **Compatibility with the order.** Forgetting the highest weak derivative of the realization of
 a Sobolev section of order `k + 2` gives the realization of the section regarded as one of order
 `k + 1`. -/
+@[simp]
 theorem lowerOrderL_sobolevL (w : SobolevSection A μ p (k + 1 + 1)) :
     A.tangentHom.sectionChartData.lowerOrderL μ p k (hcov.sobolevL A hcovs μ p (k + 1) w) =
       hcov.sobolevL A hcovs μ p k (A.sectionChartData.lowerOrderL μ p (k + 1) w) := by
