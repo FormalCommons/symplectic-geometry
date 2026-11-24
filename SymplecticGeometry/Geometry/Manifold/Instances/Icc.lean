@@ -8,6 +8,8 @@ module
 public import Mathlib.Geometry.Manifold.Instances.Icc
 public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
 public import TauCeti.Geometry.Manifold.VectorField.Prod
+import Mathlib.Analysis.Calculus.AddTorsor.AffineMap
+import Mathlib.Analysis.Calculus.Deriv.AffineMap
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 import TauCeti.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.VectorField.Regularity
@@ -36,6 +38,10 @@ to `r` is `r • 1` (`eq_smul_one_of_mfderiv_subtypeVal_Icc`). So the derivative
 interval is read off from that of its composite with the inclusion
 (`mfderiv_apply_eq_smul_one_Icc`), and continuous linear maps on a tangent space of the interval
 agree when they agree on `1` (`ContinuousLinearMap.ext_tangentSpace_Icc`).
+
+Between two points `s` and `t` of `[x, y]`, the affine path `Set.Icc.lineMap s t`, from the
+unit interval, is smooth (`Set.Icc.contMDiff_lineMap`), and its derivative sends the unit vector
+to `t - s` times the unit vector (`Set.Icc.mfderiv_lineMap_one`).
 
 On the unit interval, the derivative of left multiplication `s ↦ T s` sends the unit vector at
 `t` to `T` times the unit vector at `T t` (`unitInterval.mfderiv_mul_left_one`).
@@ -139,6 +145,64 @@ theorem ContinuousLinearMap.ext_tangentSpace_Icc {F : Type*} [AddCommGroup F] [M
   ext1 v
   obtain ⟨r, hr⟩ : ∃ r : ℝ, mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc x y → ℝ) z v = r := ⟨_, rfl⟩
   rw [SymplecticGeometry.eq_smul_one_of_mfderiv_subtypeVal_Icc hr, map_smul, map_smul, h]
+
+namespace Set.Icc
+
+/-- The affine path `u ↦ AffineMap.lineMap s t u = s + u (t - s)` from `s` to `t` in a closed
+interval `[x, y]`, as a map from the unit interval. It stays in `[x, y]` by convexity. -/
+def lineMap (s t : Icc x y) (u : Icc (0 : ℝ) 1) : Icc x y :=
+  ⟨AffineMap.lineMap (s : ℝ) t (u : ℝ),
+    (convex_Icc x y).lineMap_mem s.property t.property u.property⟩
+
+omit [Fact (x < y)] in
+@[simp]
+theorem coe_lineMap (s t : Icc x y) (u : Icc (0 : ℝ) 1) :
+    (lineMap s t u : ℝ) = AffineMap.lineMap (s : ℝ) t (u : ℝ) :=
+  (rfl)
+
+omit [Fact (x < y)] in
+@[simp]
+theorem lineMap_zero (s t : Icc x y) : lineMap s t 0 = s :=
+  Subtype.ext (AffineMap.lineMap_apply_zero _ _)
+
+omit [Fact (x < y)] in
+@[simp]
+theorem lineMap_one (s t : Icc x y) : lineMap s t 1 = t :=
+  Subtype.ext (AffineMap.lineMap_apply_one _ _)
+
+omit [Fact (x < y)] in
+/-- Followed by the inclusion into `ℝ`, the affine path from `s` to `t` is Mathlib's
+`AffineMap.lineMap (s : ℝ) t` applied to the inclusion of the unit interval. -/
+theorem val_comp_lineMap (s t : Icc x y) :
+    Subtype.val ∘ lineMap s t = AffineMap.lineMap (s : ℝ) t ∘ Subtype.val :=
+  funext (coe_lineMap s t)
+
+/-- The affine path between two points of a closed interval is smooth, up to both ends. -/
+theorem contMDiff_lineMap (s t : Icc x y) : ContMDiff (𝓡∂ 1) (𝓡∂ 1) n (lineMap s t) := by
+  refine contMDiff_iff_comp_subtypeVal_Icc.mpr ⟨Continuous.subtype_mk (by fun_prop) _, ?_⟩
+  rw [val_comp_lineMap]
+  exact (AffineMap.contDiff_lineMap _ _).contMDiff.comp contMDiff_subtypeVal_Icc
+
+/-- The derivative of the affine path from `s` to `t` sends the unit tangent vector to `t - s`
+times the unit tangent vector. -/
+theorem mfderiv_lineMap_one (s t : Icc x y) (u : Icc (0 : ℝ) 1) :
+    mfderiv (𝓡∂ 1) (𝓡∂ 1) (lineMap s t) u 1 =
+      ((t : ℝ) - s) • (1 : TangentSpace (𝓡∂ 1) (lineMap s t u)) := by
+  refine SymplecticGeometry.mfderiv_apply_eq_smul_one_Icc
+    ((contMDiff_lineMap (n := 1) s t).mdifferentiable one_ne_zero u) ?_
+  have hf : MDifferentiableAt 𝓘(ℝ) 𝓘(ℝ) (AffineMap.lineMap (s : ℝ) (t : ℝ)) (u : ℝ) :=
+    (AffineMap.hasDerivAt_lineMap (a := (s : ℝ)) (b := t) (x := (u : ℝ))).differentiableAt
+      |>.mdifferentiableAt
+  rw [val_comp_lineMap, mfderiv_comp_apply u hf
+    (SymplecticGeometry.mdifferentiableAt_subtypeVal_Icc u), mfderiv_subtypeVal_Icc_one,
+    mfderiv_eq_fderiv, AffineMap.hasDerivAt_lineMap.hasFDerivAt.fderiv]
+  simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
+    ContinuousLinearMap.toSpanSingleton_apply]
+  -- The tangent spaces of `ℝ` are `ℝ` itself, through `NormedSpace.fromTangentSpace`, which is
+  -- the identity; Mathlib has no lemma that evaluates it.
+  exact one_smul ℝ ((t : ℝ) - s)
+
+end Set.Icc
 
 namespace unitInterval
 

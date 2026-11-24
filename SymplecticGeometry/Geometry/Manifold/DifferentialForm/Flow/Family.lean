@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
+public import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import TauCeti.Analysis.ODE.ScalarLinear
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Product
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
@@ -52,10 +53,8 @@ time `t` of its time derivative (`TauCeti.SmoothForm.timeDeriv`) is the pullback
 the slice of `∂_t α`: both are the velocity of `u ↦ f^* α_u`, by Tau Ceti's
 `TauCeti.SmoothForm.hasDerivAt_mpullback_prodMk_timeDeriv`.
 
-Finally, the file contracts forms on `ℝ × M` with the time field `∂_t = (1, 0)`. The field is
-smooth by the argument that Tau Ceti writes inline in the definition of
-`TauCeti.SmoothForm.timeDeriv`, through `TauCeti.contMDiff_const_prod_field`, so it is a smooth
-section `SymplecticGeometry.timeField` of the tangent bundle, and the contraction `ι_{∂_t} σ` of a
+Finally, the file contracts forms on `ℝ × M` with the time field `∂_t = (1, 0)`, the smooth
+section `SymplecticGeometry.timeField` of the tangent bundle. The contraction `ι_{∂_t} σ` of a
 smooth form (`TauCeti.SmoothForm.timeInterior`) is the library's bundled interior product
 `TauCeti.SmoothForm.interiorProduct` with it, which is linear in `σ`. For closed `σ`,
 Cartan's formula `TauCeti.mlieDerivForm_eq_mextDeriv_interior` makes its exterior derivative
@@ -75,8 +74,6 @@ pullback along `id × f`, and it vanishes on forms pulled back from `M` along th
   derivative, for a reparametrization `c` of time,
   `ι_t^* ∂_t ((c × f)^* α) = c'(t) f^* ι_{c t}^* ∂_t α`; the case `c = id` is Tau Ceti's
   `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_mpullback_prodMap`.
-* `SymplecticGeometry.timeField`: the time field `∂_t = (1, 0)`, a smooth section of the tangent
-  bundle.
 * `TauCeti.SmoothForm.timeInterior`: the contraction `ι_{∂_t} σ` with the time field.
 * `TauCeti.SmoothForm.mextDerivₗ_timeInterior`: `d (ι_{∂_t} σ) = ∂_t σ` for closed `σ`.
 * `TauCeti.SmoothForm.mpullback_prodMap_timeInterior`:
@@ -208,29 +205,6 @@ variable {E H M E' H' N F : Type*}
   [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
 
 /-! ### The contraction with the time field -/
-
-omit [IsManifold I ∞ M] in
-/-- The time field `∂_t = (1, 0)` on `ℝ × M` is a smooth section of the tangent bundle. -/
-theorem _root_.SymplecticGeometry.contMDiff_timeField [IsManifold I 1 M] :
-    ContMDiff (𝓘(ℝ, ℝ).prod I) (𝓘(ℝ, ℝ).prod I).tangent ∞
-      (fun p : ℝ × M ↦ (⟨p, ((1 : ℝ), (0 : E))⟩ : TangentBundle (𝓘(ℝ, ℝ).prod I) (ℝ × M))) :=
-  contMDiff_const_prod_field 1 (X := 0)
-    ((contMDiff_zeroSection ℝ (TangentSpace I)).comp contMDiff_snd)
-
-omit [IsManifold I ∞ M] in
-/-- The time field `∂_t = (1, 0)` on `ℝ × M`, as a smooth section of the tangent bundle. -/
-def _root_.SymplecticGeometry.timeField [IsManifold I 1 M] :
-    Cₛ^∞⟮𝓘(ℝ, ℝ).prod I; ℝ × E, TangentSpace (𝓘(ℝ, ℝ).prod I) (M := ℝ × M)⟯ :=
-  ⟨fun _ ↦ ((1 : ℝ), (0 : E)), SymplecticGeometry.contMDiff_timeField⟩
-
-omit [IsManifold I ∞ M] in
-/-- The time field is `(1, 0)` at every point. -/
-@[simp]
-theorem _root_.SymplecticGeometry.coe_timeField [IsManifold I 1 M] :
-    ⇑(SymplecticGeometry.timeField :
-        Cₛ^∞⟮𝓘(ℝ, ℝ).prod I; ℝ × E, TangentSpace (𝓘(ℝ, ℝ).prod I) (M := ℝ × M)⟯) =
-      fun _ ↦ ((1 : ℝ), (0 : E)) :=
-  (rfl)
 
 /-- The contraction `ι_{∂_t} σ` of a smooth form `σ` on `ℝ × M` with the time field
 `∂_t = (1, 0)`, as a smooth form of one degree less: the interior product

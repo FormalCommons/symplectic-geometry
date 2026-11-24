@@ -10,7 +10,11 @@ public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Trivial
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.ZeroOneForm
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Existence
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.LocalFrame
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
+public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.TwistCore
+import SymplecticGeometry.Analysis.Complex.Beltrami.Orientation
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Tames
 import TauCeti.Geometry.Manifold.MFDeriv.RestrictScalars
 
 /-!
@@ -56,6 +60,12 @@ of `∇` for `i` is `∂bar` of the coordinate in either frame.
   `isComplexLinearOperator_twistOneDelBar` and `contMDiffCovariantDerivativeOn_twistOneDelBar`.
 * `SymplecticGeometry.twistOneKernel J`: the complex vector space of smooth sections `s` with
   `D_J s = 0`, with `mem_twistOneKernel_iff`.
+* `SymplecticGeometry.norm_beltrami_lt_one_of_tames`: if a two-form tames `J` and `i`, then in
+  every chart `chartAt ℂ y` of the sphere the Beltrami coefficient `ν` of `J` has `‖ν‖ < 1`,
+  and so has the coefficient `μ = -ν` of `∂bar + μ ∂`. A form taming `i` and `J` makes `J`, read
+  in the chart, induce the standard orientation of `ℂ`
+  (`TauCeti.SmoothAlmostComplexStructure.im_inChart_apply_one_pos_of_tames`); the bound is then
+  `TauCeti.Beltrami.norm_beltrami_lt_one_of_im_pos`.
 
 ## References
 
@@ -369,5 +379,20 @@ theorem mem_twistOneKernel_iff {s : OnePoint ℂ → ℂ} :
       (fun x ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) x (s x)) ∧
         twistOneDelBar J s = 0 :=
   Iff.rfl
+
+/-! ### The Beltrami coefficient in the charts -/
+
+/-- Let a two-form `σ` on the sphere tame both `J` and the standard structure `i`. Read `J` in
+the chart `chartAt ℂ y` of the sphere, at a point `z` of the chart target, as the real-linear
+structure `K = J.inChart y z` on `ℂ`. Then the Beltrami coefficient
+`ν = (i - K 1) / (conj (K 1) - i)` of `K` has norm less than one, and so has the coefficient
+`μ = -ν` of the operator `∂bar + μ ∂` of `K`. This holds in the chart at `∞`, the inversion
+`z ↦ 1 / z`, as well as in the affine chart. -/
+theorem norm_beltrami_lt_one_of_tames {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)}
+    (hJ : σ.Tames J) (hi : σ.Tames 𝒊) (y : OnePoint ℂ) {z : ℂ}
+    (hz : z ∈ (extChartAt 𝓘(ℝ, ℂ) y).target) :
+    ‖(Complex.I - J.inChart y z 1) / (starRingEnd ℂ (J.inChart y z 1) - Complex.I)‖ < 1 :=
+  Beltrami.norm_beltrami_lt_one_of_im_pos
+    (SmoothAlmostComplexStructure.im_inChart_apply_one_pos_of_tames hJ hi y hz)
 
 end SymplecticGeometry

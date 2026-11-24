@@ -9,6 +9,7 @@ public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Basic
+public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
@@ -59,6 +60,14 @@ space at `z` (meant for `z = f x`). When that differential is invertible, a form
 value at `f x` is this one pulls back to `α x`
 (`TauCeti.mpullback_apply_eq_of_apply_eq_pushforwardAt`). Reading a form through an inverse of a
 differential is what Tau Ceti's `TauCeti.RoughForm.descendedForm` does through a right inverse.
+
+Let `g : M → M'` be a local diffeomorphism pulling a form `σ` back to `τ`, and `Λ` a
+diffeomorphism of `M` preserving `τ`. A diffeomorphism `Ψ` of `M'` with `Ψ ∘ g = g ∘ Λ` that
+fixes every point outside a closed subset of the range of `g` preserves `σ`
+(`TauCeti.SmoothForm.mem_diffeomorphStabilizer_of_semiconj`). At a point `g w` this is
+`g^* Ψ^* σ = Λ^* g^* σ = τ = g^* σ`, by Tau Ceti's
+`TauCeti.SmoothForm.mpullback_mpullback_of_comp_eq`, and the differential of `g` at `w` is onto;
+elsewhere `Ψ` is the identity near the point.
 -/
 
 public section
@@ -243,5 +252,39 @@ theorem interior_mextDeriv_mpullback_of_interior_mextDeriv (hf : IsLocalDiffeomo
   rw [hd, ← mpullback_interior _ _ _ _ hY, hYα]
 
 end IsLocalDiffeomorph
+
+namespace TauCeti.SmoothForm
+
+open scoped ContDiff
+
+/-- **Transplants of symmetries.** Let `g : M → M'` be a smooth local diffeomorphism pulling `σ`
+back to `τ`, and `Λ` a diffeomorphism of `M` preserving `τ`. A diffeomorphism `Ψ` of `M'` with
+`Ψ ∘ g = g ∘ Λ` that fixes every point outside a closed set `C` contained in the range of `g`
+preserves `σ`. -/
+theorem mem_diffeomorphStabilizer_of_semiconj [IsManifold I 1 M] [IsManifold I' 1 M']
+    {g : M → M'} (hg : IsLocalDiffeomorph I I' ∞ g) {τ : SmoothForm I M F k}
+    {σ : SmoothForm I' M' F k} (hgσ : mpullback g hg.contMDiff σ = τ) {Λ : M ≃ₘ⟮I, I⟯ M}
+    (hΛ : Λ ∈ diffeomorphStabilizer τ) {Ψ : M' ≃ₘ⟮I', I'⟯ M'} (h : Function.Semiconj g Λ Ψ)
+    {C : Set M'} (hC : _root_.IsClosed C) (hCg : C ⊆ range g) (hΨ : ∀ x ∉ C, Ψ x = x) :
+    Ψ ∈ diffeomorphStabilizer σ := by
+  rw [mem_diffeomorphStabilizer_iff_forall]
+  intro x
+  by_cases hx : x ∈ range g
+  · -- On the range of `g`, compare the pullbacks along `g`, whose differential is onto.
+    obtain ⟨w, rfl⟩ := hx
+    have hgΨ : mpullback g hg.contMDiff (mpullback Ψ Ψ.contMDiff σ) =
+        mpullback g hg.contMDiff σ := by
+      rw [mpullback_mpullback_of_comp_eq _ _ Λ.contMDiff hg.contMDiff h.comp_eq.symm, hgσ,
+        mem_diffeomorphStabilizer.1 hΛ]
+    exact (mpullback_apply_eq_mpullback_apply_iff
+      (hg.isInvertible_mfderiv (by simp) w).surjective).1
+      (by simpa only [coe_mpullback] using congrFun (congrArg Subtype.val hgΨ) w)
+  · -- Off the range of `g`, `Ψ` is the identity near `x`, outside the closed set `C`.
+    have hx' : x ∉ C := fun hx' ↦ hx (hCg hx')
+    have hid : (Ψ : M' → M') =ᶠ[𝓝 x] id :=
+      Filter.eventually_of_mem (hC.isOpen_compl.mem_nhds hx') hΨ
+    rw [hid.mpullback_eq, TauCeti.mpullback_id]
+
+end TauCeti.SmoothForm
 
 end

@@ -11,6 +11,10 @@ public import SymplecticGeometry.Topology.VectorBundle.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.FiberScaling
 
 import Mathlib.Analysis.Calculus.LineDeriv.Basic
+import SymplecticGeometry.Analysis.Calculus.FiberRescale
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
+import TauCeti.Geometry.Manifold.ContMDiff.Subtype
+import TauCeti.Geometry.Manifold.VectorBundle.Submersion
 import TauCeti.Topology.FiberBundle.Separation
 
 /-!
@@ -32,6 +36,17 @@ on the trivialization. If `ψ` fixes a point of the zero section, so does every 
 This is the vector bundle version of Tau Ceti's `TauCeti.zeroSectionRescale`, which
 rescales a map of a product `S × V` and takes the value at `t = 0` as an argument.
 
+If the base is Hausdorff and modelled without boundary, the model fibre is complete, and `ψ` is
+smooth and fixes the points of the zero section in `U`, then the rescaled family is smooth on
+`U' × [0, 1]` for every set `U'` with `m_t z ∈ U` for `z ∈ U'` and `t ∈ [0, 1]`, such as a
+subset of `U` that is star-shaped in the fibres
+(`SymplecticGeometry.contMDiffOn_vectorBundleRescaledFamily`). For `t > 0` it is a fibrewise
+product of the smooth scalar `t⁻¹` with `ψ ∘ m_t` (`ContMDiffAt.smul_totalSpace`). Near a
+point `(z₀, 0)`, read in the preferred chart of the total space at `z₀`, whose fibre coordinate
+is that of a linear trivialization, the family becomes the rescaling `fiberRescale` of the fibre
+coordinate of `ψ` (`Analysis/Calculus/FiberRescale.lean`), which is smooth by Hadamard's lemma
+with parameters.
+
 ## Main definitions
 
 * `SymplecticGeometry.vectorBundleRescaledFamily ψ`: the rescaled family of `ψ`.
@@ -46,6 +61,8 @@ rescales a map of a product `S × V` and takes the value at `t = 0` as an argume
   derivative of `ψ` as `t → 0⁺`, which is the slice at `t = 0`.
 * `SymplecticGeometry.vectorBundleRescaledFamily_zeroSection`: the slices fix every point of the
   zero section that `ψ` fixes.
+* `SymplecticGeometry.contMDiffOn_vectorBundleRescaledFamily`: the rescaled family is smooth on
+  `U' × [0, 1]` whenever `m_t` sends `U'` into `U` for every `t ∈ [0, 1]`.
 
 Along the way: fibre scaling read in a linear trivialization,
 `TauCeti.vectorBundleFiberScaling_eq_trivialization_symm`.
@@ -263,5 +280,303 @@ theorem vectorBundleRescaledFamily_of_pos (ψ : U → TotalSpace F V) {t : Icc (
   rw [vectorBundleRescaledFamily_of_ne_zero ψ ht.ne' z hz, vectorBundleScalarDiffeomorph_apply]
 
 end Manifold
+
+section Smooth
+
+variable {EB HB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
+  {IB : ModelWithCorners ℝ EB HB} [TopologicalSpace B] [ChartedSpace HB B]
+  [NormedAddCommGroup F] [NormedSpace ℝ F] [∀ b, TopologicalSpace (V b)] [FiberBundle F V]
+  [VectorBundle ℝ F V]
+
+/-- Away from `t = 0` the rescaled family is smooth, as a fibrewise rescaling of `ψ ∘ m_t`. -/
+private theorem contMDiffWithinAt_vectorBundleRescaledFamily_of_ne_zero
+    {U' : Set (TotalSpace F V)}
+    (hstar : ∀ z ∈ U', ∀ t, vectorBundleFiberScaling F V (z, t) ∈ (U : Set (TotalSpace F V)))
+    (ψ : U → TotalSpace F V)
+    {ψ' : TotalSpace F V → TotalSpace F V}
+    (hψ' : ContMDiffOn (IB.prod 𝓘(ℝ, F)) (IB.prod 𝓘(ℝ, F)) ∞ ψ' U)
+    (hψψ' : ∀ z (hz : z ∈ U), ψ' z = ψ ⟨z, hz⟩)
+    {z₀ : TotalSpace F V} (hz₀ : z₀ ∈ U') {t₀ : Icc (0 : ℝ) 1} (ht₀ : (t₀ : ℝ) ≠ 0) :
+    ContMDiffWithinAt ((IB.prod 𝓘(ℝ, F)).prod (𝓡∂ 1)) (IB.prod 𝓘(ℝ, F)) ∞
+      (vectorBundleRescaledFamily ψ) (U' ×ˢ univ) (z₀, t₀) := by
+  have hm : ContMDiffAt ((IB.prod 𝓘(ℝ, F)).prod (𝓡∂ 1)) (IB.prod 𝓘(ℝ, F)) ∞
+      (fun p ↦ ψ' (vectorBundleFiberScaling F V p)) (z₀, t₀) :=
+    (hψ'.contMDiffAt (U.isOpen.mem_nhds (hstar z₀ hz₀ t₀))).comp
+      _ contMDiff_vectorBundleFiberScaling.contMDiffAt
+  have ha : ContMDiffAt ((IB.prod 𝓘(ℝ, F)).prod (𝓡∂ 1)) 𝓘(ℝ, ℝ) ∞
+      (fun p : TotalSpace F V × Icc (0 : ℝ) 1 ↦ ((p.2 : ℝ))⁻¹) (z₀, t₀) :=
+    (contMDiff_subtypeVal_Icc.comp contMDiff_snd).contMDiffAt.inv₀ ht₀
+  have heq : ∀ p : TotalSpace F V × Icc (0 : ℝ) 1, p.1 ∈ U' → (p.2 : ℝ) ≠ 0 →
+      vectorBundleRescaledFamily ψ p = ⟨(ψ' (vectorBundleFiberScaling F V p)).proj,
+        ((p.2 : ℝ))⁻¹ • (ψ' (vectorBundleFiberScaling F V p)).snd⟩ := by
+    rintro ⟨z, t⟩ hz ht
+    rw [vectorBundleRescaledFamily_of_ne_zero ψ ht z (hstar z hz t),
+      hψψ' _ (hstar z hz t)]
+  refine (ha.smul_totalSpace hm).contMDiffWithinAt.congr_of_eventuallyEq ?_ (heq _ hz₀ ht₀)
+  have hne : ∀ᶠ p in 𝓝 (z₀, t₀), ((p.2 : Icc (0 : ℝ) 1) : ℝ) ≠ 0 :=
+    (continuous_subtypeVal.comp continuous_snd).continuousAt.eventually_ne ht₀
+  filter_upwards [nhdsWithin_le_nhds hne, self_mem_nhdsWithin] with p hp hpU
+  exact heq p hpU.1 hp
+
+/-! ### Smoothness near `t = 0`
+
+Near a point `(z₀, 0)`, read `ψ` in the preferred chart `Φ` of the total space at `z₀` and the
+trivialization `e` at the base point of `z₀`: its fibre coordinate `chartFiber IB ψ' z₀` is
+smooth on the open set `chartDomain U IB ψ' z₀`, and vanishes on the zero section. In these
+coordinates the rescaled family is `fiberRescale` of that fibre coordinate. Here `ψ'` is `ψ`
+extended to the whole total space. -/
+
+variable {U' : Set (TotalSpace F V)} {ψ : U → TotalSpace F V} {ψ' : TotalSpace F V → TotalSpace F V}
+  {z₀ : TotalSpace F V}
+
+variable (IB U) in
+/-- The points of the target of the chart at `z₀` whose image under the inverse chart lies in `U`
+and is sent by `ψ'` into the domain of the trivialization at the base point of `z₀`. -/
+private def chartDomain (ψ' : TotalSpace F V → TotalSpace F V) (z₀ : TotalSpace F V) :
+    Set (EB × F) :=
+  (extChartAt (IB.prod 𝓘(ℝ, F)) z₀).target ∩ (extChartAt (IB.prod 𝓘(ℝ, F)) z₀).symm ⁻¹'
+    (U ∩ ψ' ⁻¹' (trivializationAt F V z₀.proj).source)
+
+variable (IB) in
+/-- The fibre coordinate of `ψ'` in the trivialization at the base point of `z₀`, read in the
+chart at `z₀`. -/
+private def chartFiber (ψ' : TotalSpace F V → TotalSpace F V) (z₀ : TotalSpace F V)
+    (y : EB × F) : F :=
+  (trivializationAt F V z₀.proj (ψ' ((extChartAt (IB.prod 𝓘(ℝ, F)) z₀).symm y))).2
+
+private theorem isOpen_chartDomain [IsManifold IB ∞ B]
+    [ContMDiffVectorBundle ∞ F V IB] [IB.Boundaryless]
+    (hψ' : ContMDiffOn (IB.prod 𝓘(ℝ, F)) (IB.prod 𝓘(ℝ, F)) ∞ ψ' U) :
+    IsOpen (chartDomain U IB ψ' z₀) :=
+  (contMDiffOn_extChartAt_symm (n := ∞) z₀).continuousOn.isOpen_inter_preimage
+    (isOpen_extChartAt_target z₀)
+    (hψ'.continuousOn.isOpen_inter_preimage U.isOpen (trivializationAt F V z₀.proj).open_source)
+
+private theorem contDiffOn_chartFiber [IsManifold IB ∞ B]
+    [ContMDiffVectorBundle ∞ F V IB] [IB.Boundaryless]
+    (hψ' : ContMDiffOn (IB.prod 𝓘(ℝ, F)) (IB.prod 𝓘(ℝ, F)) ∞ ψ' U) :
+    ContDiffOn ℝ ∞ (chartFiber IB ψ' z₀) (chartDomain U IB ψ' z₀) := by
+  refine ContMDiffOn.contDiffOn fun y hy ↦ ?_
+  have : ContMDiffAt 𝓘(ℝ, EB × F) (IB.prod 𝓘(ℝ, F)) ∞
+      (fun y ↦ ψ' ((extChartAt (IB.prod 𝓘(ℝ, F)) z₀).symm y)) y :=
+    (hψ'.contMDiffAt (U.isOpen.mem_nhds hy.2.1)).comp y
+      ((contMDiffOn_extChartAt_symm (n := ∞) z₀).contMDiffAt
+        ((isOpen_extChartAt_target z₀).mem_nhds hy.1))
+  exact (((trivializationAt F V z₀.proj).contMDiffAt_iff
+    (f := fun y ↦ ψ' ((extChartAt (IB.prod 𝓘(ℝ, F)) z₀).symm y)) hy.2.2).1 this).2.contMDiffWithinAt
+
+private theorem chartFiber_zero
+    (hψ0 : ∀ x (hx : zeroSection F V x ∈ U), ψ ⟨_, hx⟩ = zeroSection F V x)
+    (hψψ' : ∀ z (hz : z ∈ U), ψ' z = ψ ⟨z, hz⟩) {p : EB}
+    (hp : (p, (0 : F)) ∈ chartDomain U IB ψ' z₀) : chartFiber IB ψ' z₀ (p, 0) = 0 := by
+  have hp' := hp.1
+  rw [FiberBundle.extChartAt_target] at hp'
+  have hb : (extChartAt IB z₀.proj).symm p ∈ (trivializationAt F V z₀.proj).baseSet := hp'.1.2
+  have hz0 := Bundle.extChartAt_symm_apply_zero_of_mem_baseSet z₀ hb
+  have hU0 : zeroSection F V ((extChartAt IB z₀.proj).symm p) ∈ U := hz0 ▸ hp.2.1
+  simp only [chartFiber, hz0, hψψ' _ hU0, hψ0]
+  rw [(trivializationAt F V z₀.proj).zeroSection ℝ hb]
+
+private theorem extChartAt_mk_zero_mem_chartDomain
+    (hstar : ∀ z ∈ U', ∀ t, vectorBundleFiberScaling F V (z, t) ∈ (U : Set (TotalSpace F V)))
+    (hψ0 : ∀ x (hx : zeroSection F V x ∈ U), ψ ⟨_, hx⟩ = zeroSection F V x)
+    (hψψ' : ∀ z (hz : z ∈ U), ψ' z = ψ ⟨z, hz⟩) {z : TotalSpace F V} (hz : z ∈ U')
+    (hxb : z.proj ∈ (trivializationAt F V z₀.proj).baseSet)
+    (hxs : z.proj ∈ (chartAt HB z₀.proj).source) :
+    (extChartAt IB z₀.proj z.proj, (0 : F)) ∈ chartDomain U IB ψ' z₀ := by
+  have hxs' : z.proj ∈ (extChartAt IB z₀.proj).source := by simpa using hxs
+  have hxb' : (extChartAt IB z₀.proj).symm (extChartAt IB z₀.proj z.proj) ∈
+      (trivializationAt F V z₀.proj).baseSet := by
+    rwa [(extChartAt IB z₀.proj).left_inv hxs']
+  have hz0 := Bundle.extChartAt_symm_apply_zero_of_mem_baseSet z₀ hxb'
+  rw [(extChartAt IB z₀.proj).left_inv hxs'] at hz0
+  have h0 : zeroSection F V z.proj ∈ U := by
+    have := hstar z hz 0
+    rwa [vectorBundleFiberScaling_zero] at this
+  refine ⟨?_, ?_, ?_⟩
+  · rw [FiberBundle.extChartAt_target]
+    exact ⟨⟨(extChartAt IB z₀.proj).map_source hxs', hxb'⟩, mem_univ _⟩
+  · rw [hz0]
+    exact h0
+  · rw [mem_preimage, hz0, hψψ' _ h0, hψ0, Trivialization.mem_source]
+    exact hxb
+
+/-- The slice at `t = 0`, near `z₀`, is the fibre derivative of `chartFiber` at the zero
+section. -/
+private theorem vectorBundleRescaledFamily_zero_eq_chartFiber [IsManifold IB ∞ B]
+    [ContMDiffVectorBundle ∞ F V IB] [IB.Boundaryless] [T2Space B]
+    (hstar : ∀ z ∈ U', ∀ t, vectorBundleFiberScaling F V (z, t) ∈ (U : Set (TotalSpace F V)))
+    (hψ : ContMDiff (IB.prod 𝓘(ℝ, F)) (IB.prod 𝓘(ℝ, F)) ∞ ψ)
+    (hψ0 : ∀ x (hx : zeroSection F V x ∈ U), ψ ⟨_, hx⟩ = zeroSection F V x)
+    (hψ' : ContMDiffOn (IB.prod 𝓘(ℝ, F)) (IB.prod 𝓘(ℝ, F)) ∞ ψ' U)
+    (hψψ' : ∀ z (hz : z ∈ U), ψ' z = ψ ⟨z, hz⟩) {z : TotalSpace F V} (hz : z ∈ U')
+    (hxb : z.proj ∈ (trivializationAt F V z₀.proj).baseSet)
+    (hxs : z.proj ∈ (chartAt HB z₀.proj).source) :
+    vectorBundleRescaledFamily ψ (z, 0) = ⟨z.proj, (trivializationAt F V z₀.proj).symm z.proj
+      (fderiv ℝ (fun w ↦ chartFiber IB ψ' z₀ (extChartAt IB z₀.proj z.proj, w)) 0
+        (trivializationAt F V z₀.proj z).2)⟩ := by
+  have h0 : zeroSection F V z.proj ∈ U := by
+    have := hstar z hz 0
+    rwa [vectorBundleFiberScaling_zero] at this
+  have hdiff : DifferentiableAt ℝ
+      (fun w ↦ chartFiber IB ψ' z₀ (extChartAt IB z₀.proj z.proj, w)) 0 :=
+    (((contDiffOn_chartFiber hψ').differentiableOn (by simp)).differentiableAt
+      ((isOpen_chartDomain hψ').mem_nhds
+        (extChartAt_mk_zero_mem_chartDomain hstar hψ0 hψψ' hz hxb hxs))).comp (0 : F)
+      (by fun_prop)
+  refine vectorBundleRescaledFamily_zero_eq _ hxb h0 (hψ0 _ h0) hψ.continuous.continuousAt
+    hdiff.hasFDerivAt (Eventually.of_forall fun w hw ↦ ?_)
+  simp only [chartFiber,
+    Bundle.extChartAt_symm_apply_extChartAt_of_mem_baseSet z₀ hxb (by simpa using hxs),
+    hψψ' _ hw]
+
+/-- Near `z₀`, the base point of the rescaled family at `(z, t)` is that of `ψ (m_t z)`, and its
+fibre coordinate in the trivialization at the base point of `z₀` is `fiberRescale` of
+`chartFiber` at the chart coordinates of `z` and `t`. -/
+private theorem vectorBundleRescaledFamily_eq_chartFiber [IsManifold IB ∞ B]
+    [ContMDiffVectorBundle ∞ F V IB] [IB.Boundaryless] [T2Space B]
+    (hstar : ∀ z ∈ U', ∀ t, vectorBundleFiberScaling F V (z, t) ∈ (U : Set (TotalSpace F V)))
+    (hψ : ContMDiff (IB.prod 𝓘(ℝ, F)) (IB.prod 𝓘(ℝ, F)) ∞ ψ)
+    (hψ0 : ∀ x (hx : zeroSection F V x ∈ U), ψ ⟨_, hx⟩ = zeroSection F V x)
+    (hψ' : ContMDiffOn (IB.prod 𝓘(ℝ, F)) (IB.prod 𝓘(ℝ, F)) ∞ ψ' U)
+    (hψψ' : ∀ z (hz : z ∈ U), ψ' z = ψ ⟨z, hz⟩) {z : TotalSpace F V} (hz : z ∈ U')
+    (hxb : z.proj ∈ (trivializationAt F V z₀.proj).baseSet)
+    (hxs : z.proj ∈ (chartAt HB z₀.proj).source) (t : Icc (0 : ℝ) 1) :
+    (vectorBundleRescaledFamily ψ (z, t)).proj = (ψ' (vectorBundleFiberScaling F V (z, t))).proj ∧
+      ((ψ' (vectorBundleFiberScaling F V (z, t))).proj ∈ (trivializationAt F V z₀.proj).baseSet →
+        (trivializationAt F V z₀.proj (vectorBundleRescaledFamily ψ (z, t))).2 =
+          fiberRescale (chartFiber IB ψ' z₀) (extChartAt (IB.prod 𝓘(ℝ, F)) z₀ z, (t : ℝ))) := by
+  set e := trivializationAt F V z₀.proj
+  have hzt := hstar z hz t
+  rw [Bundle.extChartAt_apply_of_mem_baseSet z₀ hxb]
+  rcases eq_or_ne (t : ℝ) 0 with ht | ht
+  · obtain rfl : t = 0 := Subtype.ext ht
+    have h0 : zeroSection F V z.proj ∈ U := by rwa [vectorBundleFiberScaling_zero] at hzt
+    rw [vectorBundleRescaledFamily_zero_eq_chartFiber hstar hψ hψ0 hψ' hψψ' hz hxb hxs,
+      vectorBundleFiberScaling_zero, hψψ' _ h0, hψ0, e.apply_mk_symm hxb]
+    exact ⟨rfl, fun _ ↦ by simp⟩
+  · rw [vectorBundleRescaledFamily_of_ne_zero ψ ht z hzt, hψψ' _ hzt]
+    refine ⟨rfl, fun hb ↦ ?_⟩
+    rw [fiberRescale_of_ne_zero _ ht]
+    simp only [chartFiber]
+    rw [Bundle.extChartAt_symm_apply_extChartAt_of_mem_baseSet z₀ hxb (by simpa using hxs),
+      ← vectorBundleFiberScaling_eq_trivialization_symm e hxb t, hψψ' _ hzt]
+    exact (e.linear ℝ hb).map_smul _ _
+
+/-- The fibre coordinate of the rescaled family near `(z₀, 0)`, as read in the chart: the rescaling
+`fiberRescale` of `chartFiber` at the chart coordinates, which is smooth at `(z₀, 0)`. -/
+private theorem contMDiffAt_fiberRescale_chartFiber [IsManifold IB ∞ B]
+    [ContMDiffVectorBundle ∞ F V IB] [IB.Boundaryless] [CompleteSpace F]
+    (hstar : ∀ z ∈ U', ∀ t, vectorBundleFiberScaling F V (z, t) ∈ (U : Set (TotalSpace F V)))
+    (hψ0 : ∀ x (hx : zeroSection F V x ∈ U), ψ ⟨_, hx⟩ = zeroSection F V x)
+    (hψ' : ContMDiffOn (IB.prod 𝓘(ℝ, F)) (IB.prod 𝓘(ℝ, F)) ∞ ψ' U)
+    (hψψ' : ∀ z (hz : z ∈ U), ψ' z = ψ ⟨z, hz⟩) (hz₀ : z₀ ∈ U') :
+    ContMDiffAt ((IB.prod 𝓘(ℝ, F)).prod (𝓡∂ 1)) 𝓘(ℝ, F) ∞
+      (fun p : TotalSpace F V × Icc (0 : ℝ) 1 ↦ fiberRescale (chartFiber IB ψ' z₀)
+        (extChartAt (IB.prod 𝓘(ℝ, F)) z₀ p.1, (p.2 : ℝ))) (z₀, 0) := by
+  have hb₀ : z₀.proj ∈ (trivializationAt F V z₀.proj).baseSet :=
+    mem_baseSet_trivializationAt F V z₀.proj
+  have hs₀ : z₀.proj ∈ (chartAt HB z₀.proj).source := mem_chart_source HB z₀.proj
+  set W := chartDomain U IB ψ' z₀
+  set S : Set ((EB × F) × ℝ) := {q | ∀ s : unitInterval, (q.1.1, (s : ℝ) • q.2 • q.1.2) ∈ W}
+    with hS_def
+  have hS : IsOpen S := by
+    have : S = (fun q : (EB × F) × ℝ ↦ (q.2, q.1)) ⁻¹' TauCeti.normalSegmentDomain W := by
+      ext q
+      simp [hS_def, Subtype.forall, unitInterval]
+    rw [this]
+    exact (TauCeti.isOpen_normalSegmentDomain (isOpen_chartDomain hψ')).preimage (by fun_prop)
+  have hfr : ContDiffOn ℝ ∞ (fiberRescale (chartFiber IB ψ' z₀)) S :=
+    contDiffOn_fiberRescale (n := ⊤) (isOpen_chartDomain hψ')
+      (by simpa using contDiffOn_chartFiber hψ') fun p hp ↦ chartFiber_zero hψ0 hψψ' hp
+  have hκ : ContMDiffAt ((IB.prod 𝓘(ℝ, F)).prod (𝓡∂ 1)) 𝓘(ℝ, (EB × F) × ℝ) ∞
+      (fun p : TotalSpace F V × Icc (0 : ℝ) 1 ↦
+        (extChartAt (IB.prod 𝓘(ℝ, F)) z₀ p.1, (p.2 : ℝ))) (z₀, 0) :=
+    ((contMDiffAt_extChartAt (I := IB.prod 𝓘(ℝ, F)) (x := z₀) (n := ∞)).comp
+      (z₀, (0 : Icc (0 : ℝ) 1)) contMDiffAt_fst).prodMk_space
+      (contMDiff_subtypeVal_Icc.comp contMDiff_snd).contMDiffAt
+  have hκS : (extChartAt (IB.prod 𝓘(ℝ, F)) z₀ z₀, ((0 : Icc (0 : ℝ) 1) : ℝ)) ∈ S := by
+    intro s
+    rw [Bundle.extChartAt_apply_of_mem_baseSet (IB := IB) z₀ hb₀, Icc.coe_zero, zero_smul,
+      smul_zero]
+    exact extChartAt_mk_zero_mem_chartDomain (IB := IB) (z₀ := z₀) hstar hψ0 hψψ' hz₀ hb₀ hs₀
+  exact (hfr.contDiffAt (hS.mem_nhds hκS)).contMDiffAt.comp (z₀, 0) hκ
+
+/-- Near `t = 0` the rescaled family is smooth: read in the preferred chart at `z₀`, it is the
+rescaling `fiberRescale` of the fibre coordinate of `ψ`. -/
+private theorem contMDiffWithinAt_vectorBundleRescaledFamily_zero [IsManifold IB ∞ B]
+    [ContMDiffVectorBundle ∞ F V IB] [IB.Boundaryless]
+    [CompleteSpace F] [T2Space B]
+    (hstar : ∀ z ∈ U', ∀ t, vectorBundleFiberScaling F V (z, t) ∈ (U : Set (TotalSpace F V)))
+    (hψ : ContMDiff (IB.prod 𝓘(ℝ, F)) (IB.prod 𝓘(ℝ, F)) ∞ ψ)
+    (hψ0 : ∀ x (hx : zeroSection F V x ∈ U), ψ ⟨_, hx⟩ = zeroSection F V x)
+    (hψ' : ContMDiffOn (IB.prod 𝓘(ℝ, F)) (IB.prod 𝓘(ℝ, F)) ∞ ψ' U)
+    (hψψ' : ∀ z (hz : z ∈ U), ψ' z = ψ ⟨z, hz⟩) (hz₀ : z₀ ∈ U') :
+    ContMDiffWithinAt ((IB.prod 𝓘(ℝ, F)).prod (𝓡∂ 1)) (IB.prod 𝓘(ℝ, F)) ∞
+      (vectorBundleRescaledFamily ψ) (U' ×ˢ univ) (z₀, 0) := by
+  set e := trivializationAt F V z₀.proj
+  have heq := fun z (hz : z ∈ U') ↦
+    vectorBundleRescaledFamily_eq_chartFiber (z₀ := z₀) hstar hψ hψ0 hψ' hψψ' hz
+  have hb₀ : z₀.proj ∈ e.baseSet := mem_baseSet_trivializationAt F V z₀.proj
+  have hs₀ : z₀.proj ∈ (chartAt HB z₀.proj).source := mem_chart_source HB z₀.proj
+  have hm : ContMDiffAt ((IB.prod 𝓘(ℝ, F)).prod (𝓡∂ 1)) (IB.prod 𝓘(ℝ, F)) ∞
+      (fun p ↦ ψ' (vectorBundleFiberScaling F V p)) (z₀, 0) :=
+    (hψ'.contMDiffAt (U.isOpen.mem_nhds (hstar z₀ hz₀ 0))).comp _
+      contMDiff_vectorBundleFiberScaling.contMDiffAt
+  have hproj₀ : (ψ' (vectorBundleFiberScaling F V (z₀, 0))).proj = z₀.proj :=
+    (heq _ hz₀ hb₀ hs₀ 0).1.symm.trans (by
+      rw [vectorBundleRescaledFamily_zero_eq_chartFiber hstar hψ hψ0 hψ' hψψ' hz₀ hb₀ hs₀])
+  have hN : ∀ᶠ p in 𝓝[U' ×ˢ univ] (z₀, 0), p.1 ∈ U' ∧ p.1.proj ∈ e.baseSet ∧
+      p.1.proj ∈ (chartAt HB z₀.proj).source ∧
+      (ψ' (vectorBundleFiberScaling F V p)).proj ∈ e.baseSet := by
+    have h1 : ∀ᶠ p : TotalSpace F V × Icc (0 : ℝ) 1 in 𝓝 (z₀, 0),
+        p.1.proj ∈ e.baseSet ∩ (chartAt HB z₀.proj).source :=
+      ((FiberBundle.continuous_proj F V).comp continuous_fst).continuousAt.preimage_mem_nhds
+        ((e.open_baseSet.inter (chartAt HB z₀.proj).open_source).mem_nhds ⟨hb₀, hs₀⟩)
+    have h2 : ∀ᶠ p in 𝓝 (z₀, 0), (ψ' (vectorBundleFiberScaling F V p)).proj ∈ e.baseSet :=
+      ((FiberBundle.continuous_proj F V).continuousAt.comp hm.continuousAt).preimage_mem_nhds
+        (by rw [Function.comp_apply, hproj₀]; exact e.open_baseSet.mem_nhds hb₀)
+    filter_upwards [self_mem_nhdsWithin, nhdsWithin_le_nhds h1, nhdsWithin_le_nhds h2]
+      with p hp h1 h2
+    exact ⟨hp.1, h1.1, h1.2, h2⟩
+  rw [contMDiffWithinAt_totalSpace_iff, (heq _ hz₀ hb₀ hs₀ 0).1, hproj₀]
+  constructor
+  · refine ((contMDiff_proj (E := V) (IB := IB) (F := F) (n := ∞)).contMDiffAt.comp _
+      hm).contMDiffWithinAt.congr_of_eventuallyEq ?_ (heq _ hz₀ hb₀ hs₀ 0).1
+    filter_upwards [hN] with p hp
+    exact (heq _ hp.1 hp.2.1 hp.2.2.1 p.2).1
+  · refine (contMDiffAt_fiberRescale_chartFiber hstar hψ0 hψ' hψψ'
+      hz₀).contMDiffWithinAt.congr_of_eventuallyEq ?_
+      ((heq _ hz₀ hb₀ hs₀ 0).2 (by rw [hproj₀]; exact hb₀))
+    filter_upwards [hN] with p hp
+    exact (heq _ hp.1 hp.2.1 hp.2.2.1 p.2).2 hp.2.2.2
+
+/-- **Smoothness of the rescaled family.** Let `V → B` be a smooth real vector bundle with
+complete model fibre over a Hausdorff manifold without boundary, `U` an open set of its total
+space and `ψ : U → V` a smooth map that fixes each point of the zero section lying in `U`. If
+`U'` is a set with `m_t z ∈ U` for every `z ∈ U'` and `t ∈ [0, 1]` (for instance a subset of `U`
+that is star-shaped in the fibres), then the rescaled family of `ψ` is smooth on `U' × [0, 1]`,
+including at `t = 0`. -/
+theorem contMDiffOn_vectorBundleRescaledFamily [IsManifold IB ∞ B]
+    [ContMDiffVectorBundle ∞ F V IB] [IB.Boundaryless] [CompleteSpace F] [T2Space B]
+    {U' : Set (TotalSpace F V)}
+    (hstar : ∀ z ∈ U', ∀ t, vectorBundleFiberScaling F V (z, t) ∈ (U : Set (TotalSpace F V)))
+    {ψ : U → TotalSpace F V} (hψ : ContMDiff (IB.prod 𝓘(ℝ, F)) (IB.prod 𝓘(ℝ, F)) ∞ ψ)
+    (hψ0 : ∀ x (hx : zeroSection F V x ∈ U), ψ ⟨_, hx⟩ = zeroSection F V x) :
+    ContMDiffOn ((IB.prod 𝓘(ℝ, F)).prod (𝓡∂ 1)) (IB.prod 𝓘(ℝ, F)) ∞
+      (vectorBundleRescaledFamily ψ) (U' ×ˢ univ) := by
+  -- `ψ`, extended by the identity outside `U`
+  set ψ' := Subtype.val.extend ψ id
+  have hψψ' : ∀ z (hz : z ∈ U), ψ' z = ψ ⟨z, hz⟩ := fun z hz ↦
+    Subtype.val_injective.extend_apply ψ id ⟨z, hz⟩
+  have hψ' : ContMDiffOn (IB.prod 𝓘(ℝ, F)) (IB.prod 𝓘(ℝ, F)) ∞ ψ' U := fun z hz ↦
+    ((hψ ⟨z, hz⟩).extend_subtypeVal id).contMDiffWithinAt
+  rintro ⟨z, t⟩ ⟨hz, -⟩
+  rcases eq_or_ne (t : ℝ) 0 with ht | ht
+  · obtain rfl : t = 0 := Subtype.ext ht
+    exact contMDiffWithinAt_vectorBundleRescaledFamily_zero hstar hψ hψ0 hψ' hψψ' hz
+  · exact contMDiffWithinAt_vectorBundleRescaledFamily_of_ne_zero hstar ψ hψ' hψψ' hz ht
+
+end Smooth
 
 end SymplecticGeometry
