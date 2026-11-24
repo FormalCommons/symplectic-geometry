@@ -124,11 +124,11 @@ theorem funSMulₗ_one (φ : SmoothForm I M F k) : funSMulₗ 1 φ = φ := by
   ext1
   simp
 
-/-- Multiplying the `0`-form of the constant function `1` by a smooth function `g` gives the
-`0`-form of `g`. -/
+/-- Multiplying the `0`-form of a smooth function `h` by a smooth function `g` gives the `0`-form
+of the product `g * h`. -/
 @[simp]
-theorem funSMulₗ_ofFunction_one (g : C^∞⟮I, M; ℝ⟯) :
-    funSMulₗ g (ofFunction (1 : C^∞⟮I, M; ℝ⟯)) = ofFunction g := by
+theorem funSMulₗ_ofFunction (g h : C^∞⟮I, M; ℝ⟯) :
+    funSMulₗ g (ofFunction h) = ofFunction (g * h) := by
   ext x v
   simp [RoughForm.ofFunction_apply]
 

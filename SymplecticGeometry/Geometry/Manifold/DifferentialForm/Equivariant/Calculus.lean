@@ -106,6 +106,7 @@ theorem formCalculus_apply_of_odd : ∀ k, Odd k → formCalculus F hF f τ k = 
 variable [FiniteDimensional ℝ E]
 
 /-- The component of degree `2 k` of `F(f + τ)` is `F⁽ᵏ⁾(f) τ ^ k / k!`, for every `k`. -/
+@[simp]
 theorem formCalculus_apply (k : ℕ) :
     formCalculus F hF f τ (2 * k) =
       (k ! : ℝ)⁻¹ • SmoothForm.funSMulₗ (formCalculusCoeff F hF f k) (τ.wedgePow k) := by
@@ -119,15 +120,17 @@ theorem formCalculus_apply (k : ℕ) :
       map_zero, DirectSum.zero_apply]
 
 /-- The component of degree `0` of `F(f + τ)` is the function `F ∘ f`. -/
+@[simp]
 theorem formCalculus_zero_component :
     formCalculus F hF f τ 0 = SmoothForm.ofFunction ⟨F ∘ f, hF.contMDiff.comp f.contMDiff⟩ := by
   -- The degree `2 * 0` of `formCalculus_apply` reduces to `0`.
   refine (formCalculus_apply F hF f τ 0).trans ?_
   rw [Nat.factorial_zero, Nat.cast_one, inv_one, one_smul, SmoothForm.wedgePow_zero,
-    SmoothForm.funSMulₗ_ofFunction_one]
+    SmoothForm.funSMulₗ_ofFunction, mul_one]
   exact congrArg _ (ContMDiffMap.ext fun x ↦ by simp)
 
 /-- The functional calculus of the identity is `f + τ`. -/
+@[simp]
 theorem formCalculus_id :
     formCalculus id contDiff_id f τ =
       DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 0 (SmoothForm.ofFunction f) +
@@ -140,7 +143,7 @@ theorem formCalculus_id :
   · simp only [hcoeff, Nat.factorial_zero, Nat.factorial_one, Nat.cast_one, inv_one, one_smul,
       SmoothForm.funSMulₗ_one, SmoothForm.wedgePow_one, SmoothForm.wedgePow_zero, one_ne_zero,
       ↓reduceIte]
-    rw [SmoothForm.funSMulₗ_ofFunction_one]
+    rw [SmoothForm.funSMulₗ_ofFunction, mul_one]
     -- The degrees `2 * 0` and `2 * 1` reduce to `0` and `2`.
     rfl
   · intro k _ ⟨h0, h1⟩
@@ -153,11 +156,12 @@ theorem formCalculus_id :
 
 omit [FiniteDimensional ℝ E] in
 /-- The functional calculus of the constant function `c` is the constant `c`. -/
+@[simp]
 theorem formCalculus_const (c : ℝ) :
     formCalculus (fun _ ↦ c) contDiff_const f τ = algebraMap ℝ (⨁ k, SmoothForm I M ℝ k) c := by
   rw [formCalculus_def, Finset.sum_eq_single 0, SmoothForm.algebraMap_apply_eq_of_ofFunction]
   · rw [Nat.factorial_zero, Nat.cast_one, inv_one, one_smul, SmoothForm.wedgePow_zero,
-      SmoothForm.funSMulₗ_ofFunction_one]
+      SmoothForm.funSMulₗ_ofFunction, mul_one]
     exact congrArg _ (congrArg _ (ContMDiffMap.ext fun x ↦ by simp))
   · intro k _ hk
     have : formCalculusCoeff (fun _ ↦ c) contDiff_const f k = 0 := by
