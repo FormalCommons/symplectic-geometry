@@ -28,6 +28,7 @@ under Tau Ceti's `leftInvariantDerivationEquivGroupLieAlgebra`.
 ## Main results
 
 * `SymplecticGeometry.circleLieGenerator_ne_zero`: the generator is nonzero.
+* `SymplecticGeometry.exists_smul_circleLieGenerator_eq`: the generator spans the Lie algebra.
 * `SymplecticGeometry.leftInvariantDerivationEquivGroupLieAlgebra_circleExpGenerator`: Tau Ceti's
   `circleExpGenerator` corresponds to `circleLieGenerator`.
 * `SymplecticGeometry.mulInvariantExp_smul_circleLieGenerator`: the one-parameter subgroup of
@@ -59,6 +60,12 @@ theorem circleLieGenerator_def : circleLieGenerator = mfderiv 𝓘(ℝ) (𝓡 1)
 /-- The generator of the Lie algebra of `Circle` is nonzero. -/
 theorem circleLieGenerator_ne_zero : circleLieGenerator ≠ 0 := fun h ↦
   one_ne_zero (α := ℝ) <| injective_mfderiv_circleExp 0 (h.trans (map_zero _).symm)
+
+/-- Every element of the Lie algebra of `Circle` is a real multiple of `circleLieGenerator`. -/
+theorem exists_smul_circleLieGenerator_eq (ξ : GroupLieAlgebra (𝓡 1) Circle) :
+    ∃ c : ℝ, c • circleLieGenerator = ξ :=
+  (finrank_eq_one_iff_of_ne_zero' _ circleLieGenerator_ne_zero).mp
+    (finrank_euclideanSpace_fin (𝕜 := ℝ) (n := 1)) ξ
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField in
 /-- Tau Ceti's generator `circleExpGenerator` of `Circle.exp`, a left-invariant derivation, is
