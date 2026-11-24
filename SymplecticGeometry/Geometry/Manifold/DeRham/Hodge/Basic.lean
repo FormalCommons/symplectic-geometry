@@ -159,8 +159,9 @@ theorem exists_mem_harmonicForms_add_hodgeLaplacian (o : Manifold.Orientation I 
     ∃ h ∈ harmonicForms o hkl, ∃ γ : SmoothForm I M ℝ k,
       α = h + SmoothForm.hodgeLaplacian o hkl γ := by
   -- Project `α` in `L²` onto the finite-dimensional space of harmonic forms.
-  set K : Submodule ℝ (L2Form o k) :=
-    (harmonicForms o hkl).map (L2Form.ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] L2Form o k)
+  set K : Submodule ℝ (SymplecticGeometry.L2Form o k) :=
+    (harmonicForms o hkl).map
+      (L2Form.ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] SymplecticGeometry.L2Form o k)
   obtain ⟨_, ⟨h, hh, rfl⟩, z, hz, hα⟩ := K.exists_add_mem_mem_orthogonal (L2Form.ofSmooth α)
   have hperp : L2Form.ofSmooth (α - h) ∈ Kᗮ := by rwa [map_sub, hα, add_sub_cancel_left]
   -- The functional `v ↦ ⟪α - h, toL2 v⟫` vanishes on the kernel of the Dirichlet form.

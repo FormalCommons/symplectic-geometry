@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.InnerProductSpace.Completion
+public import TauCeti.Geometry.Manifold.Riemannian.L2Form
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Chart
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
 public import TauCeti.Analysis.InnerProductSpace.AlternatingForm
@@ -225,41 +225,6 @@ theorem l2Inner_smul_left (o : Manifold.Orientation I M (Fin m)) (c : ℝ)
     l2Inner o (c • α) β = c * l2Inner o α β :=
   integralTopForm_inner_smul_left o c α β
 
-omit [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] in
-/-- The `L²` inner product is homogeneous in its second argument. -/
-theorem l2Inner_smul_right (o : Manifold.Orientation I M (Fin m)) (c : ℝ)
-    (α β : SmoothForm I M ℝ k) :
-    l2Inner o α (c • β) = c * l2Inner o α β := by
-  rw [l2Inner_comm, l2Inner_smul_left, l2Inner_comm]
-
-omit [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] in
-/-- The `L²` inner product vanishes when its first argument is zero. -/
-@[simp]
-theorem l2Inner_zero_left (o : Manifold.Orientation I M (Fin m)) (β : SmoothForm I M ℝ k) :
-    l2Inner o 0 β = 0 := by
-  simpa using l2Inner_smul_left o 0 0 β
-
-omit [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] in
-/-- The `L²` inner product vanishes when its second argument is zero. -/
-@[simp]
-theorem l2Inner_zero_right (o : Manifold.Orientation I M (Fin m)) (α : SmoothForm I M ℝ k) :
-    l2Inner o α 0 = 0 := by
-  rw [l2Inner_comm, l2Inner_zero_left]
-
-omit [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] in
-/-- The `L²` inner product changes sign with its first argument. -/
-@[simp]
-theorem l2Inner_neg_left (o : Manifold.Orientation I M (Fin m)) (α β : SmoothForm I M ℝ k) :
-    l2Inner o (-α) β = -l2Inner o α β := by
-  rw [← neg_one_smul ℝ α, l2Inner_smul_left, neg_one_mul]
-
-omit [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] in
-/-- The `L²` inner product changes sign with its second argument. -/
-@[simp]
-theorem l2Inner_neg_right (o : Manifold.Orientation I M (Fin m)) (α β : SmoothForm I M ℝ k) :
-    l2Inner o α (-β) = -l2Inner o α β := by
-  rw [l2Inner_comm, l2Inner_neg_left, l2Inner_comm]
-
 variable [CompactSpace M]
 
 /-- On a compact manifold, the `L²` inner product of smooth forms is the integral of their
@@ -278,50 +243,160 @@ theorem l2Inner_zero_eq_integral [MeasurableSpace M] [BorelSpace M]
     l2Inner o α β = ∫ x, α.val x 0 * β.val x 0 ∂riemannianVolume I M := by
   simp only [l2Inner_eq_integral, alternatingFormInner_zero_apply _ _ 0]
 
+end TauCeti.SmoothForm
+
+namespace SymplecticGeometry
+
+open TauCeti TauCeti.SmoothForm
+
+section L2Form
+
+variable [IsManifold I ∞ M] [CompactSpace M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+  [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
+
+/-- On the compact manifold `M`, Tau Ceti's `L2Form` is taken for the Borel structure. -/
+local instance instMeasurableSpaceL2Form : MeasurableSpace M := borel M
+
+local instance instBorelSpaceL2Form : BorelSpace M := ⟨rfl⟩
+
+variable (k) in
+/-- The closure, in Tau Ceti's space `TauCeti.L2Form I M k` of square-integrable `k`-forms for
+the Borel structure of the compact manifold `M`, of the classes of the smooth `k`-forms. -/
+abbrev smoothL2Closure [SecondCountableTopology M] : Submodule ℝ (TauCeti.L2Form I M k) :=
+  (LinearMap.range (compactlySupportedForms.toL2Form I M k)).topologicalClosure
+
+/-- The **Hilbert space of `L²` `k`-forms** on a compact oriented Riemannian manifold: the
+closure of the smooth `k`-forms in Tau Ceti's space `TauCeti.L2Form I M k` of square-integrable
+`k`-forms, taken for the Borel structure of `M`, which is second countable since it is compact.
+Its inner product restricts to `∫_M ⟨α, β⟩ dV` on smooth forms (`L2Form.inner_ofSmooth`); the
+orientation `o` fixes this inner product `l2Inner o` of smooth forms. -/
+@[nolint unusedArguments]
+def L2Form (_o : Manifold.Orientation I M (Fin m)) (k : ℕ) : Type _ :=
+  haveI := I.secondCountableTopology
+  haveI := ChartedSpace.secondCountable_of_sigmaCompact H M
+  smoothL2Closure (I := I) (M := M) k
+
+variable {o : Manifold.Orientation I M (Fin m)}
+
+namespace L2Form
+
+instance : NormedAddCommGroup (L2Form o k) :=
+  haveI := I.secondCountableTopology
+  haveI := ChartedSpace.secondCountable_of_sigmaCompact H M
+  inferInstanceAs (NormedAddCommGroup (smoothL2Closure (I := I) (M := M) k))
+
+instance : InnerProductSpace ℝ (L2Form o k) :=
+  haveI := I.secondCountableTopology
+  haveI := ChartedSpace.secondCountable_of_sigmaCompact H M
+  inferInstanceAs (InnerProductSpace ℝ (smoothL2Closure (I := I) (M := M) k))
+
+instance : CompleteSpace (L2Form o k) :=
+  haveI := I.secondCountableTopology
+  haveI := ChartedSpace.secondCountable_of_sigmaCompact H M
+  inferInstanceAs (CompleteSpace (smoothL2Closure (I := I) (M := M) k))
+
+/-- The inclusion of the smooth forms into `L2Form o k`: the class in `TauCeti.L2Form I M k` of
+a smooth form, which is compactly supported since `M` is compact. -/
+def ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] L2Form o k :=
+  haveI := I.secondCountableTopology
+  haveI := ChartedSpace.secondCountable_of_sigmaCompact H M
+  LinearMap.codRestrict (smoothL2Closure (I := I) (M := M) k)
+    ((compactlySupportedForms.toL2Form I M k).comp
+      (LinearEquiv.ofTop _ (compactlySupportedForms_eq_top I k)).symm.toLinearMap)
+    fun _ ↦ Submodule.le_topologicalClosure _ (LinearMap.mem_range_self _ _)
+
+/-- The inner product of two smooth forms in `L2Form o k` is their `L²` inner product. -/
+@[simp]
+theorem inner_ofSmooth (α β : SmoothForm I M ℝ k) :
+    ⟪(ofSmooth α : L2Form o k), ofSmooth β⟫_ℝ = l2Inner o α β := by
+  have := I.secondCountableTopology
+  have := ChartedSpace.secondCountable_of_sigmaCompact H M
+  have h :=
+    compactlySupportedForms.integralTopForm_inner_smul_riemannianVolumeForm_eq_inner_toL2Form o
+    ((LinearEquiv.ofTop _ (compactlySupportedForms_eq_top I k)).symm α)
+    ((LinearEquiv.ofTop _ (compactlySupportedForms_eq_top I k)).symm β)
+  simp only [LinearEquiv.coe_ofTop_symm_apply] at h
+  rw [l2Inner_def, h]
+  -- The inner product of `L2Form o k` is, by definition, that of the subspace `smoothL2Closure`.
+  exact Submodule.coe_inner _ _ _
+
+/-- The squared norm of a smooth form in `L2Form o k` is `∫_M |α|² dV`. -/
+theorem norm_ofSmooth_sq (α : SmoothForm I M ℝ k) :
+    ‖(ofSmooth α : L2Form o k)‖ ^ 2 = l2Inner o α α := by
+  rw [← real_inner_self_eq_norm_sq, inner_ofSmooth]
+
+/-- The inclusion of the smooth forms into `L2Form o k` is injective. -/
+theorem ofSmooth_injective : Function.Injective (ofSmooth : SmoothForm I M ℝ k → L2Form o k) := by
+  have := I.secondCountableTopology
+  have := ChartedSpace.secondCountable_of_sigmaCompact H M
+  intro α β h
+  -- The value of `ofSmooth α` in `TauCeti.L2Form I M k` is, by definition, the class of `α`.
+  have h' : compactlySupportedForms.toL2Form I M k
+      ((LinearEquiv.ofTop _ (compactlySupportedForms_eq_top I k)).symm α) =
+      compactlySupportedForms.toL2Form I M k
+        ((LinearEquiv.ofTop _ (compactlySupportedForms_eq_top I k)).symm β) :=
+    congrArg Subtype.val h
+  exact (LinearEquiv.injective _) (compactlySupportedForms.toL2Form_injective h')
+
+/-- The smooth forms are dense in `L2Form o k`. -/
+theorem denseRange_ofSmooth : DenseRange (ofSmooth : SmoothForm I M ℝ k → L2Form o k) := by
+  have := I.secondCountableTopology
+  have := ChartedSpace.secondCountable_of_sigmaCompact H M
+  -- `L2Form o k` is, by definition, the closure of the range of `toL2Form`.
+  change Dense (Set.range (LinearMap.codRestrict (smoothL2Closure (I := I) (M := M) k)
+    ((compactlySupportedForms.toL2Form I M k).comp
+      (LinearEquiv.ofTop _ (compactlySupportedForms_eq_top I k)).symm.toLinearMap)
+    fun _ ↦ Submodule.le_topologicalClosure _ (LinearMap.mem_range_self _ _)))
+  rw [Subtype.dense_iff, ← Set.range_comp]
+  intro x hx
+  rw [Submodule.topologicalClosure_coe] at hx
+  refine closure_mono ?_ hx
+  rintro _ ⟨α, rfl⟩
+  exact ⟨α, congrArg (compactlySupportedForms.toL2Form I M k)
+    ((LinearEquiv.ofTop _ (compactlySupportedForms_eq_top I k)).symm_apply_apply α)⟩
+
+/-- **Induction principle for `L2Form o k`.** A closed property of `L²` forms that holds for
+all smooth forms holds everywhere. -/
+@[elab_as_elim]
+theorem induction_on {p : L2Form o k → Prop} (u : L2Form o k) (hp : IsClosed {u | p u})
+    (h : ∀ α : SmoothForm I M ℝ k, p (ofSmooth α)) : p u :=
+  denseRange_ofSmooth.induction_on u hp h
+
+end L2Form
+
+end L2Form
+
+end SymplecticGeometry
+
+namespace TauCeti.SmoothForm
+
+open SymplecticGeometry
+
+variable [IsManifold I ∞ M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+  [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] [CompactSpace M]
+
 /-- The `L²` inner product is additive in its first argument. -/
 theorem l2Inner_add_left (o : Manifold.Orientation I M (Fin m)) (α β γ : SmoothForm I M ℝ k) :
     l2Inner o (α + β) γ = l2Inner o α γ + l2Inner o β γ := by
-  borelize M
-  simp only [l2Inner_eq_integral, Submodule.coe_add, Pi.add_apply, LinearMap.map_add₂]
-  exact integral_add (continuous_alternatingFormInner α γ).integrable_of_compactSpace
-    (continuous_alternatingFormInner β γ).integrable_of_compactSpace
-
-/-- The `L²` inner product is additive in its second argument. -/
-theorem l2Inner_add_right (o : Manifold.Orientation I M (Fin m)) (α β γ : SmoothForm I M ℝ k) :
-    l2Inner o α (β + γ) = l2Inner o α β + l2Inner o α γ := by
-  rw [l2Inner_comm, l2Inner_add_left, l2Inner_comm _ β, l2Inner_comm _ γ]
+  simp only [← L2Form.inner_ofSmooth, map_add, inner_add_left]
 
 /-- The `L²` inner product respects subtraction in its first argument. -/
 theorem l2Inner_sub_left (o : Manifold.Orientation I M (Fin m)) (α β γ : SmoothForm I M ℝ k) :
     l2Inner o (α - β) γ = l2Inner o α γ - l2Inner o β γ := by
-  rw [sub_eq_add_neg, l2Inner_add_left, l2Inner_neg_left, sub_eq_add_neg]
-
-/-- The `L²` inner product respects subtraction in its second argument. -/
-theorem l2Inner_sub_right (o : Manifold.Orientation I M (Fin m)) (α β γ : SmoothForm I M ℝ k) :
-    l2Inner o α (β - γ) = l2Inner o α β - l2Inner o α γ := by
-  rw [l2Inner_comm, l2Inner_sub_left, l2Inner_comm _ β, l2Inner_comm _ γ]
+  simp only [← L2Form.inner_ofSmooth, map_sub, inner_sub_left]
 
 /-- The `L²` inner product of a smooth form with itself is nonnegative. -/
 theorem l2Inner_self_nonneg (o : Manifold.Orientation I M (Fin m)) (α : SmoothForm I M ℝ k) :
     0 ≤ l2Inner o α α := by
-  borelize M
-  rw [l2Inner_eq_integral]
-  exact integral_nonneg fun x ↦ alternatingFormInner_self_nonneg _
+  rw [← L2Form.inner_ofSmooth]
+  exact real_inner_self_nonneg
 
 /-- The `L²` inner product is definite: `∫_M |α|² dV = 0` exactly when `α = 0`, in every
 dimension. -/
 theorem l2Inner_self_eq_zero_iff (o : Manifold.Orientation I M (Fin m))
     {α : SmoothForm I M ℝ k} : l2Inner o α α = 0 ↔ α = 0 := by
-  borelize M
-  have hc := continuous_alternatingFormInner α α
-  rw [l2Inner_eq_integral, integral_eq_zero_iff_of_nonneg
-    (fun x ↦ alternatingFormInner_self_nonneg _) hc.integrable_of_compactSpace,
-    hc.ae_eq_iff_eq _ (continuous_zero (X := M) (M := ℝ))]
-  refine ⟨fun h ↦ Subtype.ext (funext fun x ↦ alternatingFormInner_self_eq_zero.1
-    (congrFun h x)), fun h ↦ ?_⟩
-  subst h
-  funext x
-  exact LinearMap.map_zero₂ _ _
+  rw [← L2Form.inner_ofSmooth (o := o), inner_self_eq_zero, ← map_zero L2Form.ofSmooth,
+    L2Form.ofSmooth_injective.eq_iff]
 
 section Laplacian
 
@@ -626,112 +701,11 @@ namespace SymplecticGeometry
 
 open TauCeti TauCeti.SmoothForm
 
-variable [IsManifold I ∞ M]
-
-/-- The smooth real `k`-forms, as the space on which the `L²` inner product of the orientation
-`o` is defined before completion. -/
-@[nolint unusedArguments]
-def PreL2Form (_o : Manifold.Orientation I M (Fin m)) (k : ℕ) : Type _ := SmoothForm I M ℝ k
-
-variable (o : Manifold.Orientation I M (Fin m)) (k)
-
-instance : AddCommGroup (PreL2Form o k) := inferInstanceAs (AddCommGroup (SmoothForm I M ℝ k))
-
-instance : Module ℝ (PreL2Form o k) := inferInstanceAs (Module ℝ (SmoothForm I M ℝ k))
-
-variable {o k}
-
-namespace PreL2Form
-
-/-- A smooth form, as an element of `PreL2Form`. -/
-def toPreL2Form : SmoothForm I M ℝ k ≃ₗ[ℝ] PreL2Form o k := LinearEquiv.refl ℝ _
-
-/-- An element of `PreL2Form`, as a smooth form. -/
-def ofPreL2Form : PreL2Form o k ≃ₗ[ℝ] SmoothForm I M ℝ k := toPreL2Form.symm
-
-@[simp]
-theorem toPreL2Form_ofPreL2Form (u : PreL2Form o k) : toPreL2Form (ofPreL2Form u) = u :=
-  (rfl)
-
-@[simp]
-theorem ofPreL2Form_toPreL2Form (α : SmoothForm I M ℝ k) :
-    ofPreL2Form (toPreL2Form α : PreL2Form o k) = α :=
-  (rfl)
-
-variable [CompactSpace M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+variable [IsManifold I ∞ M] [CompactSpace M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
   [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
-
-/-- The `L²` inner product on `PreL2Form o k`. -/
-abbrev innerCore : InnerProductSpace.Core ℝ (PreL2Form o k) where
-  inner u v := l2Inner o (ofPreL2Form u) (ofPreL2Form v)
-  conj_inner_symm u v := by simp only [conj_trivial, l2Inner_comm]
-  re_inner_nonneg u := l2Inner_self_nonneg o _
-  add_left u v w := by simp only [map_add, l2Inner_add_left]
-  smul_left u v r := by simp only [map_smul, l2Inner_smul_left, conj_trivial]
-  definite u h := ofPreL2Form.injective <| by
-    rw [map_zero]
-    exact (l2Inner_self_eq_zero_iff o).1 h
-
-instance : NormedAddCommGroup (PreL2Form o k) :=
-  InnerProductSpace.Core.toNormedAddCommGroup (cd := innerCore)
-
-instance : InnerProductSpace ℝ (PreL2Form o k) :=
-  InnerProductSpace.ofCore innerCore.toCore
-
-/-- The inner product of two smooth forms in `PreL2Form` is their `L²` inner product. -/
-theorem inner_toPreL2Form (α β : SmoothForm I M ℝ k) :
-    ⟪(toPreL2Form α : PreL2Form o k), toPreL2Form β⟫_ℝ = l2Inner o α β :=
-  (rfl)
-
-end PreL2Form
-
-open PreL2Form
-
-variable [CompactSpace M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
-  [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
-
-/-- The **Hilbert space of `L²` `k`-forms** on a compact oriented Riemannian manifold: the
-completion of the smooth real `k`-forms for the inner product `∫_M ⟨α, β⟩ dV`. -/
-abbrev L2Form (o : Manifold.Orientation I M (Fin m)) (k : ℕ) :=
-  UniformSpace.Completion (PreL2Form o k)
+  {o : Manifold.Orientation I M (Fin m)}
 
 namespace L2Form
-
-/-- The inclusion of the smooth forms into `L2Form o k`. -/
-def ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] L2Form o k :=
-  UniformSpace.Completion.toComplL.toLinearMap ∘ₗ toPreL2Form.toLinearMap
-
-/-- A smooth form in `L2Form o k` is the image of its copy in the pre-completion space. -/
-theorem ofSmooth_apply (α : SmoothForm I M ℝ k) :
-    (ofSmooth α : L2Form o k) = ((toPreL2Form α : PreL2Form o k) : L2Form o k) :=
-  (rfl)
-
-/-- The inner product of two smooth forms in `L2Form o k` is their `L²` inner product. -/
-@[simp]
-theorem inner_ofSmooth (α β : SmoothForm I M ℝ k) :
-    ⟪(ofSmooth α : L2Form o k), ofSmooth β⟫_ℝ = l2Inner o α β := by
-  rw [ofSmooth_apply, ofSmooth_apply, UniformSpace.Completion.inner_coe, inner_toPreL2Form]
-
-/-- The squared norm of a smooth form in `L2Form o k` is `∫_M |α|² dV`. -/
-theorem norm_ofSmooth_sq (α : SmoothForm I M ℝ k) :
-    ‖(ofSmooth α : L2Form o k)‖ ^ 2 = l2Inner o α α := by
-  rw [← real_inner_self_eq_norm_sq, inner_ofSmooth]
-
-/-- The inclusion of the smooth forms into `L2Form o k` is injective. -/
-theorem ofSmooth_injective : Function.Injective (ofSmooth : SmoothForm I M ℝ k → L2Form o k) :=
-  UniformSpace.Completion.coe_injective _ |>.comp toPreL2Form.injective
-
-/-- The smooth forms are dense in `L2Form o k`. -/
-theorem denseRange_ofSmooth : DenseRange (ofSmooth : SmoothForm I M ℝ k → L2Form o k) :=
-  UniformSpace.Completion.denseRange_coe.comp toPreL2Form.surjective.denseRange
-    (UniformSpace.Completion.continuous_coe _)
-
-/-- **Induction principle for `L2Form o k`.** A closed property of `L²` forms that holds for
-all smooth forms holds everywhere. -/
-@[elab_as_elim]
-theorem induction_on {p : L2Form o k → Prop} (u : L2Form o k) (hp : IsClosed {u | p u})
-    (h : ∀ α : SmoothForm I M ℝ k, p (ofSmooth α)) : p u :=
-  denseRange_ofSmooth.induction_on u hp h
 
 section Localize
 
