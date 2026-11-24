@@ -253,8 +253,7 @@ theorem vectorBundleRescaledFamily_of_pos (ψ) {t : Icc (0 : ℝ) 1} (ht : 0 < (
     (z : TotalSpace F V) (hz : vectorBundleFiberScaling _ _ (z, t) ∈ U) :
     vectorBundleRescaledFamily ψ (z, t) = m_{1/t} (ψ ⟨vectorBundleFiberScaling _ _ (z, t), hz⟩)
 theorem contMDiffOn_vectorBundleRescaledFamily [IB.Boundaryless] [CompleteSpace F] [T2Space B]
-    {U' : Set (TotalSpace F V)} (hU' : U' ⊆ U)
-    (hstar : ∀ z ∈ U', ∀ t, vectorBundleFiberScaling _ _ (z, t) ∈ U')
+    {U' : Set (TotalSpace F V)} (hstar : ∀ z ∈ U', ∀ t, vectorBundleFiberScaling _ _ (z, t) ∈ U)
     (hψ : ContMDiff _ _ ∞ ψ) (hψ0 : ∀ x (hx : 0_x ∈ U), ψ ⟨0_x, hx⟩ = 0_x) :
     ContMDiffOn _ _ ∞ (vectorBundleRescaledFamily ψ) (U' ×ˢ univ)
 
