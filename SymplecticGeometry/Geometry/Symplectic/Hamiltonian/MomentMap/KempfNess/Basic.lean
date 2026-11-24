@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Lie.Complexification
+public import SymplecticGeometry.Topology.Algebra.GroupAction.Stabilizer
 public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.Algebra.ComplexSmoothFunctions
@@ -13,7 +14,7 @@ public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.RepresentationTheory.InvariantForm
 
 /-!
-# Complexified actions and the norm square of the moment map
+# Complexified actions, the norm square of the moment map and stability
 
 Let `C : LieComplexification I G IC Gc` be a complexification of a real Lie group `G`, and suppose
 that `G` and `Gc` both act on `M`, which carries the almost complex structure `J`. The action of
@@ -29,12 +30,21 @@ Kempf–Ness theory takes for `B` an `Ad`-invariant inner product, such as the o
 `TauCeti.Lie.exists_isSymm_posDef_continuousBilinearMap_adjoint_invariant` gives on a compact
 group; the definitions take any nondegenerate `B`, and each result assumes only what it uses.
 
+For an action of `Gc` on `M`, a point `p` is *polystable* for `μ` if its `Gc`-orbit meets the
+zero set of `μ`, *semistable* if the closure of that orbit does, and *stable* if it is
+polystable with a discrete stabilizer in `Gc`, following [McDuffSalamon2017], §5.7, and
+[GeorgoulasRobbinSalamon2021]. Later files characterize them through the Kempf–Ness function
+and the moment weights.
+
 ## Main definitions
 
 * `SymplecticGeometry.IsComplexifiedAction C J`: the action of `Gc` on `M` is a complexified
   action of that of `G`, for `C` and `J`.
 * `SymplecticGeometry.momentSharp B hB μ x`: the vector of `𝔤` dual to `μ x` under `B`.
 * `SymplecticGeometry.momentNormSq B hB μ x`: the norm square `B (μ♯ x) (μ♯ x)` of `μ x`.
+* `SymplecticGeometry.IsSemistable C μ p`, `SymplecticGeometry.IsPolystable C μ p`,
+  `SymplecticGeometry.IsStable C μ p`: the stability predicates.
+* `SymplecticGeometry.polystableLocus C μ`: the polystable points, as a sub-action of `Gc`.
 
 ## Main results
 
@@ -56,6 +66,15 @@ group; the definitions take any nondegenerate `B`, and each result assumes only 
   is `G`-invariant.
 * `SymplecticGeometry.contMDiff_momentNormSq`: if each component `x ↦ μ x ξ` is `C^n`, so is the
   norm square.
+* `SymplecticGeometry.IsStable.isPolystable`, `SymplecticGeometry.IsPolystable.isSemistable`:
+  stable points are polystable, and polystable points semistable.
+* `SymplecticGeometry.isSemistable_smul_iff`, `SymplecticGeometry.isPolystable_smul_iff`,
+  `SymplecticGeometry.isStable_smul_iff`: each predicate holds at `g • p` exactly when it holds
+  at `p`.
+* `SymplecticGeometry.isPolystable_of_moment_eq_zero`: a zero of `μ` is polystable.
+* `SymplecticGeometry.isSemistable_of_moment_eq_zero`: a zero of `μ` is semistable.
+* `SymplecticGeometry.isStable_of_moment_eq_zero`: a zero of `μ` whose stabilizer in `Gc` is
+  discrete is stable.
 
 The integral curve is Tau Ceti's `TauCeti.isMIntegralCurve_mulInvariantExp_smul_smul` for the
 action of `Gc` and the direction `C.cplx (C.lieMap ξ)`. In the example, the orbit maps of `ℂˣ` are
@@ -190,6 +209,123 @@ theorem contMDiff_momentNormSq [TopologicalSpace M] [ChartedSpace H' M] {n : Wit
   exact ContMDiff.sum fun i _ ↦ (hμ _).mul (hμ _)
 
 end MomentSharp
+
+/-! ### The stability predicates -/
+
+section Stability
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
+  {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC}
+  {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
+  [T2Space Gc] [BoundarylessManifold IC Gc]
+  {M : Type*} [MulAction Gc M]
+
+/-- A point `p` is *polystable* for `μ` if its orbit under the complexification `Gc` meets the
+zero level set of `μ`. -/
+def IsPolystable (_C : LieComplexification I G IC Gc)
+    (μ : M → Module.Dual ℝ (GroupLieAlgebra I G)) (p : M) : Prop :=
+  ∃ x ∈ MulAction.orbit Gc p, μ x = 0
+
+/-- A point `p` is *stable* for `μ` if it is polystable and its stabilizer in the
+complexification `Gc` is discrete. -/
+def IsStable (C : LieComplexification I G IC Gc)
+    (μ : M → Module.Dual ℝ (GroupLieAlgebra I G)) (p : M) : Prop :=
+  IsPolystable C μ p ∧ DiscreteTopology (MulAction.stabilizer Gc p)
+
+/-- A point `p` is *semistable* for `μ` if the closure of its orbit under the complexification
+`Gc` meets the zero level set of `μ`. -/
+def IsSemistable [TopologicalSpace M] (_C : LieComplexification I G IC Gc)
+    (μ : M → Module.Dual ℝ (GroupLieAlgebra I G)) (p : M) : Prop :=
+  ∃ x ∈ closure (MulAction.orbit Gc p), μ x = 0
+
+variable {C : LieComplexification I G IC Gc} {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
+  {p : M}
+
+theorem isPolystable_iff : IsPolystable C μ p ↔ ∃ x ∈ MulAction.orbit Gc p, μ x = 0 :=
+  Iff.rfl
+
+/-- `p` is polystable exactly when `μ` vanishes at `g • p` for some `g` in `Gc`. -/
+theorem isPolystable_iff_exists_smul : IsPolystable C μ p ↔ ∃ g : Gc, μ (g • p) = 0 := by
+  simp [isPolystable_iff, MulAction.mem_orbit_iff]
+
+theorem isStable_iff :
+    IsStable C μ p ↔ IsPolystable C μ p ∧ DiscreteTopology (MulAction.stabilizer Gc p) :=
+  Iff.rfl
+
+/-- A stable point is polystable. -/
+theorem IsStable.isPolystable (h : IsStable C μ p) : IsPolystable C μ p :=
+  h.1
+
+theorem IsStable.discreteTopology_stabilizer (h : IsStable C μ p) :
+    DiscreteTopology (MulAction.stabilizer Gc p) :=
+  h.2
+
+/-- A zero of `μ` is polystable. -/
+theorem isPolystable_of_moment_eq_zero (h : μ p = 0) : IsPolystable C μ p :=
+  ⟨p, MulAction.mem_orbit_self p, h⟩
+
+/-- A zero of `μ` with a discrete stabilizer in `Gc` is stable. -/
+theorem isStable_of_moment_eq_zero (h : μ p = 0) [DiscreteTopology (MulAction.stabilizer Gc p)] :
+    IsStable C μ p :=
+  ⟨isPolystable_of_moment_eq_zero h, ‹_›⟩
+
+/-- Polystability is invariant along the orbits of `Gc`. -/
+@[simp]
+theorem isPolystable_smul_iff (g : Gc) : IsPolystable C μ (g • p) ↔ IsPolystable C μ p := by
+  simp only [isPolystable_iff, MulAction.orbit_smul]
+
+/-- Stability is invariant along the orbits of `Gc`. -/
+@[simp]
+theorem isStable_smul_iff (g : Gc) : IsStable C μ (g • p) ↔ IsStable C μ p := by
+  have := continuousMul_of_contMDiffMul IC ∞ (G := Gc)
+  rw [isStable_iff, isStable_iff, isPolystable_smul_iff,
+    MulAction.discreteTopology_stabilizer_smul_iff]
+
+/-- The *polystable locus*: the set of polystable points, as a sub-action of `Gc`. -/
+def polystableLocus (C : LieComplexification I G IC Gc)
+    (μ : M → Module.Dual ℝ (GroupLieAlgebra I G)) : SubMulAction Gc M where
+  carrier := {p | IsPolystable C μ p}
+  smul_mem' g _ hp := (isPolystable_smul_iff (C := C) g).2 hp
+
+@[simp]
+theorem mem_polystableLocus : p ∈ polystableLocus C μ ↔ IsPolystable C μ p :=
+  Iff.rfl
+
+@[simp]
+theorem coe_polystableLocus : (polystableLocus C μ : Set M) = {p | IsPolystable C μ p} :=
+  (rfl)
+
+/-- The zero level set of `μ` lies in the polystable locus. -/
+theorem setOf_moment_eq_zero_subset_polystableLocus :
+    {x | μ x = 0} ⊆ (polystableLocus C μ : Set M) :=
+  fun _ hx ↦ isPolystable_of_moment_eq_zero (C := C) hx
+
+variable [TopologicalSpace M]
+
+theorem isSemistable_iff : IsSemistable C μ p ↔ ∃ x ∈ closure (MulAction.orbit Gc p), μ x = 0 :=
+  Iff.rfl
+
+/-- A polystable point is semistable. -/
+theorem IsPolystable.isSemistable (h : IsPolystable C μ p) : IsSemistable C μ p :=
+  let ⟨x, hx, hμ⟩ := h
+  ⟨x, subset_closure hx, hμ⟩
+
+theorem IsStable.isSemistable (h : IsStable C μ p) : IsSemistable C μ p :=
+  h.isPolystable.isSemistable
+
+/-- A zero of `μ` is semistable. -/
+theorem isSemistable_of_moment_eq_zero (h : μ p = 0) : IsSemistable C μ p :=
+  (isPolystable_of_moment_eq_zero h).isSemistable
+
+/-- Semistability is invariant along the orbits of `Gc`. -/
+@[simp]
+theorem isSemistable_smul_iff (g : Gc) : IsSemistable C μ (g • p) ↔ IsSemistable C μ p := by
+  simp only [isSemistable_iff, MulAction.orbit_smul]
+
+end Stability
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
