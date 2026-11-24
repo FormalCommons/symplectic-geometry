@@ -173,18 +173,20 @@ def velocityForm (σ : SmoothTwoForm I M) (F : SmoothIsotopy f₀ f₁) :
 variable (σ : SmoothTwoForm I M) (F : SmoothIsotopy f₀ f₁)
 
 /-- The velocity form is the interior product of `F^* σ` with the unit time field. -/
-theorem velocityForm_eq_interiorProduct :
+theorem velocityForm_def :
     F.velocityForm σ =
       SmoothForm.interiorProduct unitIntervalTimeField (SmoothForm.mpullback F F.contMDiff σ) :=
   (rfl)
 
-/-- The velocity form is the contraction of `F^* σ` with the unit time field. -/
-theorem velocityForm_def :
+/-- The underlying form of the velocity form is the contraction of `F^* σ` with the unit time
+field. -/
+@[simp]
+theorem coe_velocityForm :
     (F.velocityForm σ).val = RoughForm.interior
       (Manifold.prodVectorField (fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
         (0 : Π y : P, TangentSpace J y))
       (mpullback ((𝓡∂ 1).prod J) I (F : unitInterval × P → M) σ.val) := by
-  rw [velocityForm_eq_interiorProduct, SmoothForm.coe_interiorProduct, coe_unitIntervalTimeField,
+  rw [velocityForm_def, SmoothForm.coe_interiorProduct, coe_unitIntervalTimeField,
     SmoothForm.coe_mpullback]
 
 /-- The value of the velocity form at `(t, x)` on a spatial vector `(0, v)` is
@@ -197,7 +199,7 @@ theorem velocityForm_apply (t : unitInterval) (x : P) (v : E') :
   have hT : Manifold.prodVectorField (fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
       (0 : Π y : P, TangentSpace J y) (t, x) = ((1 : TangentSpace (𝓡∂ 1) t), (0 : E')) :=
     Manifold.prodVectorField_apply _ _ _
-  rw [velocityForm_def, RoughForm.interior_apply, mpullback_apply, hT]
+  rw [coe_velocityForm, RoughForm.interior_apply, mpullback_apply, hT]
   congr 1
   funext i
   fin_cases i
@@ -253,7 +255,7 @@ theorem IsSymplectic.mextDeriv_mpullback_prodMk_velocityForm [CompleteSpace E']
   have hd : mextDeriv (F.velocityForm σ).val = mlieDerivForm
       (Manifold.prodVectorField (fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
         (0 : Π y : P, TangentSpace J y)) β.val := by
-    rw [velocityForm_def, ← SmoothForm.coe_mpullback _ F.contMDiff]
+    rw [velocityForm_def, SmoothForm.coe_interiorProduct, coe_unitIntervalTimeField]
     exact (mlieDerivForm_eq_mextDeriv_interior (fun p ↦ β.mdifferentiableAt p)
       (contMDiff_prodVectorField_one_zero.mdifferentiable (by simp)) hβ).symm
   rw [← mextDerivₗ_apply, SmoothForm.mextDerivₗ_mpullback,
