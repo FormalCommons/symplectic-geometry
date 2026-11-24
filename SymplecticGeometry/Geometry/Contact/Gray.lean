@@ -166,7 +166,9 @@ theorem grayVectorField_eq_of_eventually_kerDistribution_eq
         (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) α).kerDistribution q.2) :
     α'.grayVectorField t x = α.grayVectorField t x := by
   -- The multiplier is the value of `α'_u` on the Reeb field of `α_u`, smooth in `(u, y)`.
-  have hf := contMDiffAt_apply_reebVectorField_mpullback_prodMk α α' (p := (t, x)) hc
+  have hf := contMDiffAt_apply_reebVectorField_mpullback_prodMk α α' (p := (t, x))
+    ((continuous_fst.continuousAt.eventually hc).mono fun q hq ↦
+      SmoothForm.isContactForm_iff_forall_isContactFormAt.1 hq q.2)
   have hmul : ∀ᶠ q in 𝓝[s ×ˢ Set.univ] (t, x),
       (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) α').val q.2 =
         (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) α').val q.2
