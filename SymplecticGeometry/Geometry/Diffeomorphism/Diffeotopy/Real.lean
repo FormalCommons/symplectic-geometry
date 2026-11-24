@@ -10,8 +10,8 @@ public import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 public import SymplecticGeometry.Geometry.Manifold.SmoothTransition
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 public import TauCeti.Geometry.Manifold.Flow.Eulerian
-import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Family
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
+import TauCeti.Geometry.Manifold.Diffeomorph.Family
 import TauCeti.Geometry.Manifold.Instances.Icc
 
 /-!
@@ -52,7 +52,7 @@ Time derivatives of a diffeotopy are taken, as in Tau Ceti's `TauCeti.Diffeotopy
 through `Φ.cylinderMap` on the vector `∂ₜ = (0, 1)` at `(x, t)`, where `1` is the unit tangent
 vector of the interval, which points towards increasing time at both ends. That derivative is the
 velocity of the trajectory `s ↦ Φ (s, x)`, by `TauCeti.Diffeotopy.mfderiv_cylinderMap_time`.
-The inverse of `ofReal` is smooth by `Diffeomorph.contMDiff_symm_eval`, and the time-dependent
+The inverse of `ofReal` is smooth by `Diffeomorph.contMDiff_symm_family`, and the time-dependent
 flow is a jointly smooth family by `TauCeti.contMDiff_timeDependentFlowDiffeomorph`.
 
 The proofs of `mfderiv_cylinderMap_ofReal` and `eulerianField_smoothTransitionFamily_apply`
@@ -85,7 +85,7 @@ variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] [BoundarylessManifold I 
 
 /-- The restriction to `[0, 1]` of a jointly smooth family `ψ` of diffeomorphisms over `ℝ` with
 `ψ 0 = id`, as a diffeotopy: `(t, x) ↦ ψ_t x`. Its inverse is jointly smooth by
-`Diffeomorph.contMDiff_symm_eval`. -/
+`Diffeomorph.contMDiff_symm_family`. -/
 def ofReal : Diffeotopy I ∞ M where
   toDiffeomorph :=
     { toFun := fun p ↦ (p.1, ψ p.1 p.2)
@@ -95,7 +95,7 @@ def ofReal : Diffeotopy I ∞ M where
       contMDiff_toFun := contMDiff_fst.prodMk
         (hψ.comp ((contMDiff_subtypeVal_Icc.comp contMDiff_fst).prodMk contMDiff_snd))
       contMDiff_invFun := contMDiff_fst.prodMk
-        ((Diffeomorph.contMDiff_symm_eval (by simp) hψ).comp
+        ((Diffeomorph.contMDiff_symm_family hψ (by simp)).comp
           ((contMDiff_subtypeVal_Icc.comp contMDiff_fst).prodMk contMDiff_snd)) }
   fst_apply _ := rfl
   snd_apply_zero' := h₀

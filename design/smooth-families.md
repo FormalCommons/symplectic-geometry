@@ -752,16 +752,11 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
 `((0 : E), (1 : TangentSpace (𝓡∂ 1) t))` of `M × unitInterval`, as in
 *Decisions*.
 
-- Joint smoothness of inverses, over any finite-dimensional boundaryless
-  parameter manifold `P` (model `J`) and for any `1 ≤ n`, in Mathlib's
-  namespace `Diffeomorph`, as it is about Mathlib's notion, and in
-  `Geometry/Manifold/Diffeomorph/Family.lean`, as it uses no diffeotopy:
-  `Diffeomorph.contMDiff_symm_eval {ψ : P → M ≃ₘ^n⟮I, I⟯ M} (hn : 1 ≤ n)
-  (hψ : ContMDiff (J.prod I) I n (fun p : P × M ↦ ψ p.1 p.2)) :
-  ContMDiff (J.prod I) I n (fun p : P × M ↦ (ψ p.1).symm p.2)`, named like
-  Tau Ceti's `TauCeti.continuous_equiv_symm_eval`, by
-  `isLocalDiffeomorphAt_of_injective_mfderiv` and `diffeomorphOfBijective`
-  applied to `(p, x) ↦ (p, ψ p x)`; this is the hypothesis `hφ'` of Tau Ceti's
+- Joint smoothness of inverses: Tau Ceti's
+  `Diffeomorph.contMDiff_symm_family` (in
+  `TauCeti/Geometry/Manifold/Diffeomorph/Family.lean`), for a jointly `C^n`
+  family `f : P → M ≃ₘ^n⟮I, J⟯ N`, `1 ≤ n`, over a boundaryless parameter
+  manifold; this is the hypothesis `hφ'` of Tau Ceti's
   `forall_mpullback_eq_iff_forall_mextDeriv_interior_eulerianField_eq_zero`.
 - Restriction: `ofReal (ψ : ℝ → M ≃ₘ⟮I, I⟯ M) (hψ : …) (h₀ : ∀ x, ψ 0 x = x) :
   Diffeotopy I ∞ M`, with `ofReal_apply`, `toDiffeomorph_symm_ofReal_apply`,
@@ -814,7 +809,7 @@ In `TauCeti.Diffeotopy`, for `[FiniteDimensional ℝ E] [IsManifold I ∞ M]
 - `Diffeomorph.contMDiff_symm_eval_unitInterval {ψ : unitInterval →
   M ≃ₘ⟮I, I⟯ M} (hψ : ContMDiff ((𝓡∂ 1).prod I) I ∞ (fun p ↦ ψ p.1 p.2)) :
   ContMDiff ((𝓡∂ 1).prod I) I ∞ (fun p ↦ (ψ p.1).symm p.2)`, in Mathlib's
-  namespace `Diffeomorph` as `Diffeomorph.contMDiff_symm_eval` is, by the
+  namespace `Diffeomorph` as Tau Ceti's `Diffeomorph.contMDiff_symm_family` is, by the
   local argument of *Decisions*, with Tau Ceti's
   `HasStrictFDerivAt.jointImplicitFunctionOfProdDomain` for the extended
   chart map and `contDiffOn_seeleyIccExtend`.
@@ -900,7 +895,6 @@ can start at once; each issue's blockers come before it.
 14. **Isotopies over `ℝ` and diffeotopies.**
     `Analysis/SpecialFunctions/SmoothTransition.lean`,
     `Geometry/Manifold/SmoothTransition.lean`,
-    `Geometry/Manifold/Diffeomorph/Family.lean`,
     `Geometry/Manifold/Flow/TimeDependent.lean` and
     `Geometry/Diffeomorphism/Diffeotopy/Real.lean`.
 15. **Diffeotopies from families of diffeomorphisms.**

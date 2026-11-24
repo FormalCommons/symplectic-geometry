@@ -1774,7 +1774,7 @@ has either; Tau Ceti's extension across a boundary,
   `Geometry/Diffeomorphism/Diffeotopy/Real.lean` (the bridge: an
   isotopy `ψ : ℝ → M ≃ₘ⟮I, I⟯ M` over `ℝ` restricts to a
   `TauCeti.Diffeotopy I ∞ M`, its inverse being smooth by the inverse
-  function theorem, in `Geometry/Manifold/Diffeomorph/Family.lean`; how its `TauCeti.eulerianField` reads in the velocity
+  function theorem, by Tau Ceti's `Diffeomorph.contMDiff_symm_family`; how its `TauCeti.eulerianField` reads in the velocity
   along the motion that `TauCeti.Diffeotopy.HasHamiltonian` uses; and how the
   restriction compares with `TauCeti.timeDependentFlowDiffeotopy`, whose
   family over `ℝ` is jointly smooth by
