@@ -45,7 +45,7 @@ inverse of the tube, as a map on `M` smooth on `W`, is built as in Tau Ceti's
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017]
-* [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001], §6.2
+* [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001Lectures], §6.2
 -/
 
 public section

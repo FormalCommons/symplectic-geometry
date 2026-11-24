@@ -9,6 +9,7 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
 import Mathlib.Analysis.Calculus.Deriv.Prod
 import Mathlib.LinearAlgebra.QuadraticForm.Signature
+import SymplecticGeometry.Geometry.Manifold.GroupAction.FixedPoints
 import SymplecticGeometry.Geometry.Symplectic.Complex.CoordinateSpace
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.Basic
 import TauCeti.Algebra.Order.BigOperators.Ring.Finset
@@ -58,6 +59,12 @@ symplectic form and the action of `t` to `zⱼ ↦ e^{2π i kⱼ t} zⱼ`.
   `TauCeti.morseIndex_weightMomentMap_apply`, through
   `TauCeti.equivalent_hessianQuadraticForm_weightMomentMap_apply`, for a linear conjugacy in
   place of a Hessian.
+* `SymplecticGeometry.weights_ne_zero_of_isolated`: at a fixed point that is isolated among the
+  fixed points, no weight is zero. A zero weight `k j = 0` makes the derivatives of the action
+  fix the nonzero tangent vector `L⁻¹ eⱼ`
+  (`SymplecticGeometry.IsTangentWeights.mfderiv_smul_symm_single_of_eq_zero`). For actions of
+  compact groups, such an invariant nonzero vector at `p` yields fixed points distinct from `p`
+  arbitrarily close to it (`SymplecticGeometry.frequently_mem_fixedPoints_of_mfderiv_smul_eq_self`).
 
 ## References
 
@@ -71,7 +78,7 @@ public section
 
 noncomputable section
 
-open Real
+open Real Filter Topology
 open scoped Manifold ContDiff
 
 namespace SymplecticGeometry
@@ -208,6 +215,35 @@ theorem prod_weights_eq {p : M} {k k' : Fin n → ℤ} {L L' : TangentSpace I p 
   · simp only [ContinuousLinearEquiv.trans_apply]
     refine (h'.1 _ _).symm.trans ((h.1 _ _).trans ?_)
     rw [L.apply_symm_apply, L.apply_symm_apply]
+
+/-- If `k j = 0` is one of the weights at `p`, realized by `L`, then the whole circle fixes the
+tangent vector `L⁻¹ eⱼ` at `p` that `L` sends to the `j`-th coordinate vector. -/
+theorem IsTangentWeights.mfderiv_smul_symm_single_of_eq_zero {p : M} {k : Fin n → ℤ}
+    {L : TangentSpace I p ≃L[ℝ] (Fin n → ℂ)} (h : IsTangentWeights σ p k L) {j : Fin n}
+    (hkj : k j = 0) (g : Circle) :
+    mfderiv I I (fun x : M ↦ g • x) p (L.symm (Pi.single j 1)) = L.symm (Pi.single j 1) := by
+  obtain ⟨θ, rfl⟩ := Circle.exp_surjective g
+  obtain ⟨t, rfl⟩ : ∃ t : ℝ, 2 * π * t = θ := ⟨θ / (2 * π), mul_div_cancel₀ _ (by positivity)⟩
+  apply L.injective
+  rw [h.2 t, L.apply_symm_apply]
+  funext i
+  rcases eq_or_ne i j with rfl | hij
+  · simp [hkj]
+  · simp [hij]
+
+/-- **No weight vanishes at an isolated fixed point.** Let the circle act smoothly on a manifold
+`M` without boundary, modelled on a complete space, and let `p` be a fixed point that is isolated
+among the fixed points. Then every family of weights `k` at `p`, realized by some `L` as in
+`IsTangentWeights`, has `k j ≠ 0` for every `j`. -/
+theorem weights_ne_zero_of_isolated [CompleteSpace E] [I.Boundaryless]
+    [ContMDiffSMul (𝓡 1) I ∞ Circle M] {p : M} (hp : p ∈ MulAction.fixedPoints Circle M)
+    (hiso : ∀ᶠ x in 𝓝[≠] p, x ∉ MulAction.fixedPoints Circle M)
+    {k : Fin n → ℤ} {L : TangentSpace I p ≃L[ℝ] (Fin n → ℂ)} (h : IsTangentWeights σ p k L)
+    (j : Fin n) : k j ≠ 0 := fun hkj ↦
+  (frequently_mem_fixedPoints_of_mfderiv_smul_eq_self (𝓡 1) le_top hp
+    (by simp : L.symm (Pi.single j 1) ≠ 0)
+    (h.mfderiv_smul_symm_single_of_eq_zero hkj)).and_eventually hiso |>.exists.elim
+    fun _ hx ↦ hx.2 hx.1
 
 variable [FiniteDimensional ℝ E] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
 
