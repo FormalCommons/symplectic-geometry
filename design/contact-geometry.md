@@ -399,9 +399,11 @@ which this file imports. `Gray.lean` uses them. The velocity of a reparametrized
 time derivative of `SmoothForm.lineMapFamily α₀ α₁ hc` is
 `deriv c t • (α₁ - α₀)`), follows them; *Moser isotopy* uses it in
 `Moser/Relative.lean` and `Moser/Isotopy.lean`.
-After them come `SymplecticGeometry.contMDiff_timeField`, the smoothness of the time field
-$\partial_t=(1,0)$ on $\mathbb R\times M$, the contraction
-`SmoothForm.timeInterior σ` $=\iota_{\partial_t}\sigma$ with `coe_timeInterior`,
+After them come the contraction
+`SmoothForm.timeInterior σ` $=\iota_{\partial_t}\sigma$ with the time field
+$\partial_t=(1,0)$ on $\mathbb R\times M$, whose smoothness
+`SymplecticGeometry.contMDiff_timeField` is in
+`Geometry/Manifold/VectorField/Prod.lean`, with `coe_timeInterior`,
 and `mextDerivₗ_timeInterior`: for closed `σ`, $d\,\iota_{\partial_t}\sigma$ is
 `σ.timeDeriv`. `Contact/StableHamiltonian.lean` of *Liouville structures*
 uses them.

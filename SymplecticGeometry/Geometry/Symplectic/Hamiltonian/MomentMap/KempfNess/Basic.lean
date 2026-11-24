@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Lie.Complexification
 public import TauCeti.Geometry.Lie.FundamentalVectorField
+public import TauCeti.Geometry.Manifold.Algebra.ComplexSmoothFunctions
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 
 /-!
@@ -38,7 +39,10 @@ Kempf–Ness theory uses it.
 The integral curve is Tau Ceti's `TauCeti.isMIntegralCurve_mulInvariantExp_smul_smul` for the
 action of `Gc` and the direction `C.cplx (C.lieMap ξ)`. In the example, the orbit maps of `ℂˣ` are
 holomorphic, so their real differentials commute with multiplication by `i`
-(`MDifferentiableAt.mfderiv_ofComplexManifold_apply`).
+(`MDifferentiableAt.mfderiv_ofComplexManifold_apply`). The smoothness of the action of `ℂˣ` on `ℂ`
+for the real structures, which the results on complexified actions assume, is found by instance
+search: Mathlib's `Units.contMDiffSMul` and `ContMDiffMul.contMDiffSMul` from Tau Ceti's
+`TauCeti.realComplexContMDiffRing`.
 
 ## References
 
@@ -122,14 +126,6 @@ end IsComplexifiedAction
 section Circle
 
 open Complex
-
-/-- The action of `ℂˣ` on `ℂ` by multiplication is smooth, for the real manifold structures. -/
-instance _root_.Complex.instContMDiffSMulUnitsReal :
-    ContMDiffSMul 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ∞ ℂˣ ℂ where
-  contMDiff_smul :=
-    ((contDiff_mul (𝕜 := ℝ)).contMDiff.comp
-      ((Units.contMDiff_val.comp contMDiff_fst).prodMk_space contMDiff_snd)).congr
-      fun p ↦ Units.smul_def p.1 p.2
 
 /-- **`ℂˣ` acting on `ℂ` is a complexified action.** The action of `ℂˣ` on `ℂ` by multiplication,
 with the almost complex structure of `ℂ` given by multiplication by `i`

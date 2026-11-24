@@ -11,8 +11,9 @@ public import Mathlib.Analysis.Calculus.IteratedDeriv.Defs
 # Support of iterated derivatives
 
 The iterated derivatives of a compactly supported function of one variable have compact support
-(`HasCompactSupport.iteratedDeriv`), the one-variable form of Mathlib's
-`HasCompactSupport.iteratedFDeriv`, from which it follows.
+(`HasCompactSupport.iteratedDeriv`), and their supports lie in the topological support of the
+function (`support_iteratedDeriv_subset`): the one-variable forms of Mathlib's
+`HasCompactSupport.iteratedFDeriv` and `support_iteratedFDeriv_subset`, from which they follow.
 -/
 
 public section
@@ -27,5 +28,10 @@ protected theorem HasCompactSupport.iteratedDeriv (hf : HasCompactSupport f) (n 
     funext fun _ ↦ iteratedDeriv_eq_iteratedFDeriv
   rw [h]
   exact (hf.iteratedFDeriv n).comp_left (by simp)
+
+/-- The support of an iterated derivative lies in the topological support of the function. -/
+theorem support_iteratedDeriv_subset (n : ℕ) :
+    Function.support (iteratedDeriv n f) ⊆ tsupport f := fun x hx ↦
+  support_iteratedFDeriv_subset (𝕜 := 𝕜) n fun h ↦ hx (by simp [iteratedDeriv_eq_iteratedFDeriv, h])
 
 end

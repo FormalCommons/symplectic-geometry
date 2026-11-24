@@ -7,6 +7,8 @@ module
 
 public import TauCeti.Geometry.Manifold.VectorField.ModelChart
 public import TauCeti.Geometry.Manifold.VectorField.Prod
+public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
+import TauCeti.Geometry.Manifold.Flow.TimeDependent
 
 /-!
 # Values of product vector fields
@@ -22,11 +24,18 @@ In particular, let `v` be a vector of a real normed space `E` and `N` a manifold
 `(1, 0)` its image under a differential is the derivative of a slice `s ↦ f (s, y)`
 (`MDifferentiableAt.mfderiv_curry_left_apply`).
 
+The time field `∂_t = (1, 0)` on `ℝ × M` is smooth by Tau Ceti's
+`TauCeti.contMDiff_const_prod_field`, applied to the zero field, the argument that Tau Ceti writes
+inline in the definition of `TauCeti.SmoothForm.timeDeriv`. So it is a smooth section
+`SymplecticGeometry.timeField` of the tangent bundle of `ℝ × M`.
+
 ## Main results
 
 * `TauCeti.Manifold.prodVectorField_apply`: the value of a product field `(X, Y)` at `p` is the
   pair `(X p.1, Y p.2)` of the model space.
 * `TauCeti.Manifold.prodVectorField_constVectorField_zero_apply`: the value of `(v, 0)`.
+* `SymplecticGeometry.contMDiff_timeField`: the time field `∂_t = (1, 0)` on `ℝ × M` is smooth.
+* `SymplecticGeometry.timeField`: the time field, as a smooth section of the tangent bundle.
 
 ## References
 
@@ -74,5 +83,35 @@ theorem prodVectorField_constVectorField_zero_apply (v : E) (p : E × N) :
   rfl
 
 end TauCeti.Manifold
+
+namespace SymplecticGeometry
+
+open Bundle
+open scoped ContDiff
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M]
+
+/-- The time field `∂_t = (1, 0)` on `ℝ × M` is a smooth section of the tangent bundle. -/
+theorem contMDiff_timeField :
+    ContMDiff (𝓘(ℝ, ℝ).prod I) (𝓘(ℝ, ℝ).prod I).tangent ∞
+      (fun p : ℝ × M ↦ (⟨p, ((1 : ℝ), (0 : E))⟩ : TangentBundle (𝓘(ℝ, ℝ).prod I) (ℝ × M))) :=
+  TauCeti.contMDiff_const_prod_field 1 (X := 0)
+    ((contMDiff_zeroSection ℝ (TangentSpace I)).comp contMDiff_snd)
+
+/-- The time field `∂_t = (1, 0)` on `ℝ × M`, as a smooth section of the tangent bundle. -/
+noncomputable def timeField :
+    Cₛ^∞⟮𝓘(ℝ, ℝ).prod I; ℝ × E, TangentSpace (𝓘(ℝ, ℝ).prod I) (M := ℝ × M)⟯ :=
+  ⟨fun _ ↦ ((1 : ℝ), (0 : E)), contMDiff_timeField⟩
+
+/-- The time field is `(1, 0)` at every point. -/
+@[simp]
+theorem coe_timeField :
+    ⇑(timeField : Cₛ^∞⟮𝓘(ℝ, ℝ).prod I; ℝ × E, TangentSpace (𝓘(ℝ, ℝ).prod I) (M := ℝ × M)⟯) =
+      fun _ ↦ ((1 : ℝ), (0 : E)) :=
+  (rfl)
+
+end SymplecticGeometry
 
 end
