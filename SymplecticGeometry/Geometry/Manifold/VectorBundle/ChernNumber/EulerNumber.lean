@@ -53,6 +53,9 @@ of the tangent orientation under `D`
 The trivialization of `J.Fiber` is that of `V` followed by a family of linear maps that is only
 continuous; since the section vanishes at `z`, the Jacobian is still the linearization of `s`
 followed by the value of that family at `z` (`TauCeti.mvfderiv_eq_comp_of_eventuallyEq_clm_apply`).
+So the linearization at `z` of `s` seen as a section of `J.Fiber` is that of `s` followed by
+`(J.fiberEquiv z).symm`, and the derivative along the chart of `M` comes from Tau Ceti's
+`TauCeti.hasFDerivAt_comp_chartAt_symm_sectionLinearization`.
 
 ## Implementation notes
 
@@ -160,6 +163,7 @@ private theorem exists_hasFDerivAt_trivializationAt {s : ∀ x, V x}
   set e := trivializationAt ℂ J.Fiber z
   set eV := trivializationAt F V z
   have hzV : z ∈ eV.baseSet := mem_baseSet_trivializationAt F V z
+  have hze : z ∈ e.baseSet := mem_baseSet_trivializationAt ℂ J.Fiber z
   have hzu : z ∈ J.unitSet z := J.mem_unitSet_self z
   -- The section read in `e` is `c x (h x)`, its reading `h` in the trivialization `eV` of `V`
   -- followed by a family `c` of linear maps continuous at `z`.
@@ -177,28 +181,40 @@ private theorem exists_hasFDerivAt_trivializationAt {s : ∀ x, V x}
   have hh0 : h z = 0 := by
     simp only [hh, hz]
     exact congrArg Prod.snd (eV.zeroSection ℝ hzV)
-  have hfMd := mvfderiv_eq_comp_of_eventuallyEq_clm_apply hfMc hcz hhd hh0
-  have hLzh : sectionLinearization (F := F) 𝓘(ℝ, EM) id s z =
-      (eV.symmL ℝ z).comp (mvfderiv 𝓘(ℝ, EM) h z) := sectionLinearization_def
-  have hfMf : HasFDerivAt (fM ∘ (extChartAt 𝓘(ℝ, EM) z).symm) (mvfderiv 𝓘(ℝ, EM) fM z)
-      (D.symm (D (chartAt EM z z))) := by
-    rw [D.symm_apply_apply, TauCeti.mvfderiv_eq_fderiv_comp_extChartAt_symm]
-    exact (TauCeti.mdifferentiableAt_iff_differentiableAt_comp_extChartAt_symm.1
-      (mdifferentiableAt_of_eventuallyEq_clm_apply hfMc hcz hhd hh0)).hasFDerivAt
+  -- The linearization of the section `σ x = (J.fiberEquiv x).symm (s x)` of `J.Fiber` at `z` is
+  -- that of `s` followed by `(J.fiberEquiv z).symm`.
+  have hσ : sectionLinearization (F := ℂ) 𝓘(ℝ, EM) id (fun x ↦ (J.fiberEquiv x).symm (s x)) z =
+      ((J.fiberEquiv z).symm : V z →L[ℝ] J.Fiber z).comp
+        (sectionLinearization (F := F) 𝓘(ℝ, EM) id s z) := by
+    have hLσ : sectionLinearization (F := ℂ) 𝓘(ℝ, EM) id
+        (fun x ↦ (J.fiberEquiv x).symm (s x)) z = (e.symmL ℝ z).comp (mvfderiv 𝓘(ℝ, EM) fM z) :=
+      sectionLinearization_def
+    have hLzh : sectionLinearization (F := F) 𝓘(ℝ, EM) id s z =
+        (eV.symmL ℝ z).comp (mvfderiv 𝓘(ℝ, EM) h z) := sectionLinearization_def
+    ext v
+    rw [hLσ, hLzh, mvfderiv_eq_comp_of_eventuallyEq_clm_apply hfMc hcz hhd hh0]
+    simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe]
+    rw [Trivialization.symmL_apply _ hze,
+      ← e.symm_apply_apply_mk hze ((J.fiberEquiv z).symm _),
+      J.trivializationAt_fiberEquiv_symm_apply_snd ℂ hzu, Trivialization.symmL_apply _ hzV,
+      eV.apply_mk_symm hzV]
+    rfl
+  have hfMf := hasFDerivAt_comp_chartAt_symm_sectionLinearization (e := e) (b := id)
+    (s := fun x ↦ (J.fiberEquiv x).symm (s x)) continuousAt_id hze
+    (mdifferentiableAt_of_eventuallyEq_clm_apply hfMc hcz hhd hh0) (by simp [hz])
+  rw [← D.symm_apply_apply (chartAt EM z z), hσ] at hfMf
   let D' : TangentSpace 𝓘(ℝ, EM) z ≃L[ℝ] ℂ := D
-  refine ⟨(mvfderiv 𝓘(ℝ, EM) fM z).comp (D'.symm : ℂ →L[ℝ] TangentSpace 𝓘(ℝ, EM) z),
+  refine ⟨((e.continuousLinearMapAt ℝ z).comp (((J.fiberEquiv z).symm : V z →L[ℝ] J.Fiber z).comp
+      (sectionLinearization (F := F) 𝓘(ℝ, EM) id s z))).comp
+      (D'.symm : ℂ →L[ℝ] TangentSpace 𝓘(ℝ, EM) z),
     (hfMf.comp _ D.symm.hasFDerivAt).congr_of_eventuallyEq
       (Filter.Eventually.of_forall fun y ↦ ?_), fun v ↦ ?_⟩
   · rw [OpenPartialHomeomorph.transHomeomorph_symm_apply]
     rfl
-  · have h₁ : (mvfderiv 𝓘(ℝ, EM) fM z).comp (D'.symm : ℂ →L[ℝ] TangentSpace 𝓘(ℝ, EM) z) (D v) =
-        mvfderiv 𝓘(ℝ, EM) fM z v :=
-      congrArg (mvfderiv 𝓘(ℝ, EM) fM z) (D.symm_apply_apply v)
-    rw [h₁, hfMd, Trivialization.linearEquivAt_apply,
-      J.trivializationAt_fiberEquiv_symm_apply_snd ℂ hzu, hLzh,
-      ContinuousLinearMap.comp_apply (eV.symmL ℝ z), Trivialization.symmL_apply _ hzV,
-      eV.apply_mk_symm hzV]
-    rfl
+  · simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe]
+    have hv : D'.symm (D v) = v := D.symm_apply_apply v
+    rw [hv, Trivialization.continuousLinearMapAt_apply_of_mem (R := ℝ) (hb := hze),
+      Trivialization.linearEquivAt_apply]
 
 omit [T2Space M] [CompactSpace M] [ContMDiffVectorBundle 1 F V 𝓘(ℝ, EM)] in
 include hn in
