@@ -10,13 +10,11 @@ public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.Riemannia
 public import TauCeti.Geometry.Contact.Contactization
 public import TauCeti.Geometry.Contact.Flat
 public import TauCeti.Geometry.Contact.Isotropic
-public import TauCeti.Geometry.Contact.Levi
 public import TauCeti.Geometry.Contact.Pullback
 public import TauCeti.Geometry.Contact.Reeb
 public import TauCeti.Geometry.Manifold.Flow.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Cotangent.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Prod
-public import TauCeti.Geometry.Manifold.VectorBundle.Trivial
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Normal
 import SymplecticGeometry.Geometry.Contact.Contactization
