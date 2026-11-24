@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.Flow.TimeDependent
 import TauCeti.Geometry.Manifold.Flow.Parametric
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
+import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Restriction
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import TauCeti.Geometry.Manifold.Flow.Diffeomorph
@@ -37,7 +37,7 @@ of `X`, wherever the flow of the restriction is defined: a trajectory of the res
 trajectory of `X`, and Tau Ceti's uniqueness theorem
 `TauCeti.timeDependentFlowOf_eq_of_hasMFDerivAt` applies. The two flows then agree near the
 initial point, so their differentials agree too. The restriction is `C¹` by
-`TauCeti.Manifold.contMDiff_tangentSpaceOpenEquiv_symm`.
+`TauCeti.Manifold.contMDiffAt_tangentBundle_opens_iff`.
 
 The proofs of `TauCeti.timeDependentFlowOf_restrict_eq` and
 `TauCeti.tangentSpaceOpenEquiv_mfderiv_timeDependentFlowOf_restrict` adapt those of
@@ -275,8 +275,10 @@ theorem timeDependentFlowOf_restrict_eq
     fun u y ↦ (Manifold.tangentSpaceOpenEquiv y).symm (X u y)
   have hXU : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 1
       (fun p : ℝ × U ↦ (⟨p.2, XU p.1 p.2⟩ : TangentBundle I U)) :=
-    Manifold.contMDiff_tangentSpaceOpenEquiv_symm (f := Prod.snd)
-      (hX.comp (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd)))
+    fun p ↦ by
+      simpa only [XU, Manifold.tangentSpaceOpenEquiv_symm_apply, Function.comp_apply] using
+        Manifold.contMDiffAt_tangentBundle_opens_iff.2
+          ((hX.comp (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd))) p)
   obtain ⟨a, b, hs, ht, hab⟩ := exists_Ioo_of_mem_timeDependentFlowDomain h
   -- The trajectory of `XU`, read in `M`, solves the equation of `X`.
   have hγ : ∀ u ∈ Ioo a b, HasMFDerivAt 𝓘(ℝ, ℝ) I
@@ -307,8 +309,10 @@ theorem tangentSpaceOpenEquiv_mfderiv_timeDependentFlowOf_restrict [CompleteSpac
     fun u y ↦ (Manifold.tangentSpaceOpenEquiv y).symm (X u y)
   have hXU : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 1
       (fun p : ℝ × U ↦ (⟨p.2, XU p.1 p.2⟩ : TangentBundle I U)) :=
-    Manifold.contMDiff_tangentSpaceOpenEquiv_symm (f := Prod.snd)
-      (hX.comp (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd)))
+    fun p ↦ by
+      simpa only [XU, Manifold.tangentSpaceOpenEquiv_symm_apply, Function.comp_apply] using
+        Manifold.contMDiffAt_tangentBundle_opens_iff.2
+          ((hX.comp (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd))) p)
   -- Near `z`, the flow of `XU`, read in `M`, is the flow of `X`.
   have heq : Subtype.val ∘ timeDependentFlowOf XU s t =ᶠ[𝓝 z]
       timeDependentFlowOf X s t ∘ Subtype.val := by

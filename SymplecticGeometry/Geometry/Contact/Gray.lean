@@ -18,6 +18,7 @@ public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Restriction
 
 /-!
 # The Gray vector field, the Gray isotopy and Gray stability
@@ -519,8 +520,10 @@ private theorem eventually_comap_mfderiv_timeDependentFlowOf (hξ : IsContactFam
     fun u y ↦ (Manifold.tangentSpaceOpenEquiv y).symm (Y u y)
   have hXU : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent ∞
       (fun p : ℝ × U ↦ (⟨p.2, XU p.1 p.2⟩ : TangentBundle I U)) :=
-    Manifold.contMDiff_tangentSpaceOpenEquiv_symm (f := Prod.snd)
-      (hY.comp (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd)))
+    fun p ↦ by
+      simpa only [XU, Manifold.tangentSpaceOpenEquiv_symm_apply, Function.comp_apply] using
+        Manifold.contMDiffAt_tangentBundle_opens_iff.2
+          ((hY.comp (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd))) p)
   have hXU₁ := hXU.of_le (m := 1) (by simp)
   have hY₁ := hY.of_le (m := 1) (by simp)
   set y₀' : U := ⟨y₀, hy₀⟩
@@ -605,8 +608,10 @@ private theorem eventuallyEq_mpullback_timeDependentFlowOf_eulerianField_restric
   have hZ₁ := Φ.contMDiff_eulerianField_smoothTransitionFamily.of_le (m := 1) (by simp)
   have hZU₁ : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 1
       (fun p : ℝ × U ↦ (⟨p.2, ZU p.1 p.2⟩ : TangentBundle I U)) :=
-    Manifold.contMDiff_tangentSpaceOpenEquiv_symm (f := Prod.snd)
-      (hZ₁.comp (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd)))
+    fun p ↦ by
+      simpa only [ZU, Manifold.tangentSpaceOpenEquiv_symm_apply, Function.comp_apply] using
+        Manifold.contMDiffAt_tangentBundle_opens_iff.2
+          ((hZ₁.comp (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd))) p)
   -- Write `y = φ_{s u} x`.
   obtain ⟨y, hxU⟩ := y
   obtain ⟨x, rfl⟩ := (Φ.timeSlice (unitInterval.smoothTransition u)).surjective y
@@ -684,9 +689,11 @@ private theorem eulerianField_smoothTransitionFamily_eq (hξ : IsContactFamily �
     fun u' z ↦ (Manifold.tangentSpaceOpenEquiv z).symm (Z u' z)
   have hZU : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent ∞
       (fun p : ℝ × U ↦ (⟨p.2, ZU p.1 p.2⟩ : TangentBundle I U)) :=
-    Manifold.contMDiff_tangentSpaceOpenEquiv_symm (f := Prod.snd)
-      (Φ.contMDiff_eulerianField_smoothTransitionFamily.comp
-        (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd)))
+    fun p ↦ by
+      simpa only [ZU, Manifold.tangentSpaceOpenEquiv_symm_apply, Function.comp_apply] using
+        Manifold.contMDiffAt_tangentBundle_opens_iff.2
+          ((Φ.contMDiff_eulerianField_smoothTransitionFamily.comp
+            (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd))) p)
   have hZker (z : U) : (mpullback (Prod.mk (Real.smoothTransition u))
       (contMDiff_const.prodMk contMDiff_id) β).val z ![ZU u z] = 0 := by
     rw [← mem_kerDistribution, ← unitInterval.coe_smoothTransition u,

@@ -7,8 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
-public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
-public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Restriction
+public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
 /-!
 # Vector fields along open subsets, moved to the ambient manifold
@@ -20,13 +19,6 @@ extended by `0` to the points of `N × M` outside `N × U`. If the family is smo
 tangent bundle of `U`, the family on `N × M` is smooth on `N × U`
 (`TauCeti.Manifold.contMDiffOn_tangentSpaceOpenEquiv_dite`). With `N = ℝ`, this moves a
 time-dependent vector field on `U` to `M`.
-
-Conversely, a smooth family of tangent vectors of `M` along a map `f : N → U`, read in the tangent
-spaces of `U`, is smooth as a map into the tangent bundle of `U`
-(`TauCeti.Manifold.contMDiff_tangentSpaceOpenEquiv_symm`). With `N = ℝ × U` and `f = Prod.snd`,
-this restricts a time-dependent vector field on `M` to `U`. It is the global form of Tau Ceti's
-`TauCeti.Manifold.contMDiffAt_tangentBundle_opens_iff`, as `tangentSpaceOpenEquiv` is the
-identity on vectors.
 
 The proof of `TauCeti.Manifold.contMDiffOn_tangentSpaceOpenEquiv_dite` adapts that of
 `TauCeti.IsContactDistributionFamily.contMDiff_distributionGrayVectorField`, in Tau Ceti's file
@@ -65,19 +57,6 @@ theorem contMDiffOn_tangentSpaceOpenEquiv_dite [IsManifold I ∞ M] {U : Opens M
   refine ContMDiff.contMDiffOn_prod_opens_of_eq ((ContMDiff.contMDiff_tangentMap (m := ∞)
     (contMDiff_subtypeVal (I := I) (U := U) (n := ∞)) (by simp)).comp hY) fun t x hx ↦ ?_
   simp only [Function.comp_apply, tangentMap_subtype_val, hx, ↓reduceDIte]
-
-/-- **A tangent vector field of `M`, read on an open subset.** Let `f : N → U` be a map into an
-open subset `U` of `M` and `V z ∈ T_{f z} M` a family of tangent vectors of `M` along it, smooth
-as a `C^n` map into the tangent bundle of `M`. Then the same vectors, read in the tangent spaces
-of `U` through `tangentSpaceOpenEquiv`, form a `C^n` map into the tangent bundle of `U`. With
-`N = ℝ × U` and `f = Prod.snd`, this restricts a `C^n` time-dependent vector field to `U`. -/
-theorem contMDiff_tangentSpaceOpenEquiv_symm [IsManifold I 1 M] {n : WithTop ℕ∞} {U : Opens M}
-    {f : N → U} {V : (z : N) → TangentSpace I (f z : M)}
-    (hV : ContMDiff J I.tangent n fun z ↦ (⟨f z, V z⟩ : TangentBundle I M)) :
-    ContMDiff J I.tangent n fun z ↦
-      (⟨f z, (tangentSpaceOpenEquiv (f z)).symm (V z)⟩ : TangentBundle I U) := by
-  intro z
-  simpa only [tangentSpaceOpenEquiv_symm_apply] using contMDiffAt_tangentBundle_opens_iff.2 (hV z)
 
 end TauCeti.Manifold
 
