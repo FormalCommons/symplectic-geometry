@@ -267,8 +267,9 @@ section Atlas
 
 /-! The atlas of the product's zero level is `zeroLevelChartedSpace` for the product form, which
 is nondegenerate (`TauCeti.SmoothTwoForm.IsNondegenerate.prod`), with freeness from
-`stabilizer_zeroLevel_prod_eq_bot`; the orbit is Hausdorff since it embeds into `𝔤 → ℝ`, and
-`dim (M × O) = dim M + dim O` (`Module.finrank_prod`). -/
+`stabilizer_zeroLevel_prod_eq_bot`; the orbit `G ⧸ G_η` is Hausdorff by Tau Ceti's instance
+`Module.Dual.instT2SpaceQuotientStabilizer`, and `dim (M × O) = dim M + dim O`
+(`Module.finrank_prod`). -/
 
 variable [I'.Boundaryless] [T2Space M] {m : ℕ} (hσ : σ.IsNondegenerate)
   (hfree : ∀ x ∈ h.orbitLevel η, MulAction.stabilizer G x = ⊥)
@@ -286,15 +287,13 @@ orbit (`stabilizer_zeroLevel_prod_eq_bot`). It is modelled on `Fin m → ℝ` fo
 @[expose, instance_reducible]
 def zeroLevelProdChartedSpace :
     ChartedSpace (Fin m → ℝ) (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).zeroLevel :=
-  haveI : T2Space (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η) := hemb.t2Space
   (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).zeroLevelChartedSpace
     (hσ.prod η.isSymplectic_coadjointOrbitForm.isNondegenerate)
     (h.stabilizer_zeroLevel_prod_eq_bot η hfree) (n := m) (by rwa [Module.finrank_prod])
 
 /-- `zeroLevelProdChartedSpace` is the atlas `zeroLevelChartedSpace` of the product form. -/
 theorem zeroLevelProdChartedSpace_def :
-    h.zeroLevelProdChartedSpace hemb hσ hfree hm =
-      haveI : T2Space (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η) := hemb.t2Space
+    h.zeroLevelProdChartedSpace hσ hfree hm =
       (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).zeroLevelChartedSpace
         (hσ.prod η.isSymplectic_coadjointOrbitForm.isNondegenerate)
         (h.stabilizer_zeroLevel_prod_eq_bot η hfree) (n := m) (by rwa [Module.finrank_prod]) :=
@@ -303,9 +302,8 @@ theorem zeroLevelProdChartedSpace_def :
 /-- The zero level of the product moment map is a smooth manifold, for the atlas
 `zeroLevelProdChartedSpace`. -/
 theorem isManifold_zeroLevelProd :
-    letI := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+    letI := h.zeroLevelProdChartedSpace hσ hfree hm
     IsManifold 𝓘(ℝ, Fin m → ℝ) ∞ (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).zeroLevel :=
-  haveI : T2Space (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η) := hemb.t2Space
   (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).isManifold_zeroLevel
     (hσ.prod η.isSymplectic_coadjointOrbitForm.isNondegenerate)
     (h.stabilizer_zeroLevel_prod_eq_bot η hfree) (n := m) (by rwa [Module.finrank_prod])
@@ -313,13 +311,12 @@ theorem isManifold_zeroLevelProd :
 /-- The inclusion of the zero level of the product moment map into `M × (G ⧸ G_η)` is a smooth
 embedding, for the atlas `zeroLevelProdChartedSpace`. -/
 theorem isSmoothEmbedding_coe_zeroLevelProd :
-    letI := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+    letI := h.zeroLevelProdChartedSpace hσ hfree hm
     Manifold.IsSmoothEmbedding 𝓘(ℝ, Fin m → ℝ)
       (I'.prod 𝓘(ℝ, Subgroup.QuotientModelSpace I
         ((Lie.coadjointRepresentation ℝ I G).stabilizer η))) ∞
       (Subtype.val : (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).zeroLevel →
         M × (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η)) :=
-  haveI : T2Space (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η) := hemb.t2Space
   (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).isSmoothEmbedding_coe_zeroLevel
     (hσ.prod η.isSymplectic_coadjointOrbitForm.isNondegenerate)
     (h.stabilizer_zeroLevel_prod_eq_bot η hfree) (n := m) (by rwa [Module.finrank_prod])
@@ -332,14 +329,14 @@ product moment map on `M × (G ⧸ G_η)`, pulled back along the graph homeomorp
 `orbitLevelGraph`. It is modelled on `Fin m → ℝ` for `m = dim M + dim (G ⧸ G_η) - dim 𝔤`. -/
 @[instance_reducible]
 def orbitLevelChartedSpace : ChartedSpace (Fin m → ℝ) (h.orbitLevel η) :=
-  letI := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+  letI := h.zeroLevelProdChartedSpace hσ hfree hm
   (h.orbitLevelGraph hemb).pullbackChartedSpace
 
 /-- `orbitLevelChartedSpace` is the atlas `zeroLevelProdChartedSpace` pulled back along the graph
 homeomorphism `orbitLevelGraph`. -/
 theorem orbitLevelChartedSpace_def :
     h.orbitLevelChartedSpace hemb hσ hfree hm =
-      letI := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+      letI := h.zeroLevelProdChartedSpace hσ hfree hm
       (h.orbitLevelGraph hemb).pullbackChartedSpace :=
   (rfl)
 
@@ -348,8 +345,8 @@ theorem orbitLevelChartedSpace_def :
 theorem isManifold_orbitLevel :
     letI := h.orbitLevelChartedSpace hemb hσ hfree hm
     IsManifold 𝓘(ℝ, Fin m → ℝ) ∞ (h.orbitLevel η) :=
-  letI := h.zeroLevelProdChartedSpace hemb hσ hfree hm
-  haveI := h.isManifold_zeroLevelProd hemb hσ hfree hm
+  letI := h.zeroLevelProdChartedSpace hσ hfree hm
+  haveI := h.isManifold_zeroLevelProd hσ hfree hm
   (h.orbitLevelGraph hemb).pullback_isManifold _ _
 
 /-- **The graph is a diffeomorphism** from the preimage of an embedded orbit, with the atlas
@@ -357,28 +354,28 @@ theorem isManifold_orbitLevel :
 `zeroLevelProdChartedSpace`. -/
 def orbitLevelGraphDiffeomorph :
     letI := h.orbitLevelChartedSpace hemb hσ hfree hm
-    letI := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+    letI := h.zeroLevelProdChartedSpace hσ hfree hm
     h.orbitLevel η ≃ₘ⟮𝓘(ℝ, Fin m → ℝ), 𝓘(ℝ, Fin m → ℝ)⟯
       (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).zeroLevel :=
-  letI := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+  letI := h.zeroLevelProdChartedSpace hσ hfree hm
   (h.orbitLevelGraph hemb).pullbackDiffeomorph _ _
 
 /-- The diffeomorphism `orbitLevelGraphDiffeomorph` is the graph map `orbitLevelGraph`. -/
 @[simp]
 theorem coe_orbitLevelGraphDiffeomorph :
     letI := h.orbitLevelChartedSpace hemb hσ hfree hm
-    letI := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+    letI := h.zeroLevelProdChartedSpace hσ hfree hm
     ⇑(h.orbitLevelGraphDiffeomorph hemb hσ hfree hm) = h.orbitLevelGraph hemb :=
-  letI := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+  letI := h.zeroLevelProdChartedSpace hσ hfree hm
   (h.orbitLevelGraph hemb).coe_pullbackDiffeomorph _ _
 
 /-- The inverse of `orbitLevelGraphDiffeomorph` is the inverse of `orbitLevelGraph`. -/
 @[simp]
 theorem coe_orbitLevelGraphDiffeomorph_symm :
     letI := h.orbitLevelChartedSpace hemb hσ hfree hm
-    letI := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+    letI := h.zeroLevelProdChartedSpace hσ hfree hm
     ⇑(h.orbitLevelGraphDiffeomorph hemb hσ hfree hm).symm = (h.orbitLevelGraph hemb).symm :=
-  letI := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+  letI := h.zeroLevelProdChartedSpace hσ hfree hm
   (h.orbitLevelGraph hemb).coe_pullbackDiffeomorph_symm _ _
 
 /-- **`G` acts smoothly on the preimage of an embedded orbit**, for the atlas
@@ -386,13 +383,13 @@ theorem coe_orbitLevelGraphDiffeomorph_symm :
 theorem contMDiffSMul_orbitLevel :
     letI := h.orbitLevelChartedSpace hemb hσ hfree hm
     ContMDiffSMul I 𝓘(ℝ, Fin m → ℝ) ∞ G (h.orbitLevel η) :=
-  letI := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+  letI := h.zeroLevelProdChartedSpace hσ hfree hm
   letI := h.orbitLevelChartedSpace hemb hσ hfree hm
-  haveI := h.isManifold_zeroLevelProd hemb hσ hfree hm
+  haveI := h.isManifold_zeroLevelProd hσ hfree hm
   haveI := h.isManifold_orbitLevel hemb hσ hfree hm
   -- Through the graph, the action on the preimage is the action on the product's level.
   (isSmoothEmbedding_comp_diffeomorph (h.orbitLevelGraphDiffeomorph hemb hσ hfree hm)
-    (h.isSmoothEmbedding_coe_zeroLevelProd hemb hσ hfree hm)).contMDiffSMul contMDiff_id
+    (h.isSmoothEmbedding_coe_zeroLevelProd hσ hfree hm)).contMDiffSMul contMDiff_id
     fun g x ↦ by simp [h.orbitLevelGraph_smul hemb g x]
 
 /-- **The map to the orbit is smooth**: `orbitLevelProj` is smooth for the atlas
@@ -402,16 +399,17 @@ theorem contMDiff_orbitLevelProj :
     ContMDiff 𝓘(ℝ, Fin m → ℝ)
       𝓘(ℝ, Subgroup.QuotientModelSpace I ((Lie.coadjointRepresentation ℝ I G).stabilizer η)) ∞
       (h.orbitLevelProj hemb) := by
-  let := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+  let := h.zeroLevelProdChartedSpace hσ hfree hm
   let := h.orbitLevelChartedSpace hemb hσ hfree hm
   let Φ := h.orbitLevelGraphDiffeomorph hemb hσ hfree hm
   have hΦ : ⇑Φ = h.orbitLevelGraph hemb := h.coe_orbitLevelGraphDiffeomorph hemb hσ hfree hm
   -- `orbitLevelProj` is the inclusion of the product's level, then `Prod.snd`, after the graph.
   have hsmooth := contMDiff_snd.comp <|
-    (h.isSmoothEmbedding_coe_zeroLevelProd hemb hσ hfree hm).contMDiff.comp Φ.contMDiff
+    (h.isSmoothEmbedding_coe_zeroLevelProd hσ hfree hm).contMDiff.comp Φ.contMDiff
   rw [hΦ] at hsmooth
   exact hsmooth.congr (h.orbitLevelProj_apply hemb)
 
+include hemb in
 /-- **The first projection of the product's zero level is a smooth embedding.** For the atlas
 `zeroLevelProdChartedSpace`, the map `(x, q) ↦ x` from the zero level of the product moment map
 `(x, q) ↦ μ x + ι q` into `M` is a smooth embedding. It is an immersion since a tangent vector
@@ -419,14 +417,13 @@ theorem contMDiff_orbitLevelProj :
 it is the inverse of the graph `orbitLevelGraph` followed by the inclusion of the preimage of the
 orbit. -/
 theorem isSmoothEmbedding_fst_comp_coe_zeroLevelProd :
-    letI := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+    letI := h.zeroLevelProdChartedSpace hσ hfree hm
     Manifold.IsSmoothEmbedding 𝓘(ℝ, Fin m → ℝ) I' ∞
       (Prod.fst ∘ (Subtype.val : (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).zeroLevel →
         M × (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η))) := by
-  let := h.zeroLevelProdChartedSpace hemb hσ hfree hm
-  have := h.isManifold_zeroLevelProd hemb hσ hfree hm
-  have : T2Space (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η) := hemb.t2Space
-  have hj := h.isSmoothEmbedding_coe_zeroLevelProd hemb hσ hfree hm
+  let := h.zeroLevelProdChartedSpace hσ hfree hm
+  have := h.isManifold_zeroLevelProd hσ hfree hm
+  have hj := h.isSmoothEmbedding_coe_zeroLevelProd hσ hfree hm
   refine ⟨contMDiff_fst.comp hj.contMDiff |>.isImmersion_of_injective_mfderiv (by simp)
     fun z ↦ ?_, Topology.IsEmbedding.subtypeVal.comp (h.orbitLevelGraph hemb).symm.isEmbedding⟩
   rw [mfderiv_comp z mdifferentiableAt_fst (hj.contMDiff.mdifferentiableAt (by simp)),
@@ -459,7 +456,7 @@ embedding. -/
 theorem isSmoothEmbedding_coe_orbitLevel :
     letI := h.orbitLevelChartedSpace hemb hσ hfree hm
     Manifold.IsSmoothEmbedding 𝓘(ℝ, Fin m → ℝ) I' ∞ (Subtype.val : h.orbitLevel η → M) := by
-  let := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+  let := h.zeroLevelProdChartedSpace hσ hfree hm
   let := h.orbitLevelChartedSpace hemb hσ hfree hm
   have := h.isManifold_orbitLevel hemb hσ hfree hm
   -- The inclusion is the graph diffeomorphism followed by the first projection of the level.
