@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
 public import TauCeti.Geometry.Manifold.DeRham.Basic
+import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 
 /-!
 # The real first Chern class of a principal circle bundle
@@ -62,7 +63,7 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
 `TauCeti.closedForms`. -/
 theorem IsCircleConnectionForm.curvature_mem_closedForms (hα : IsCircleConnectionForm α) :
     hα.curvature ∈ closedForms IB B 2 :=
-  (mem_closedForms IB _).mpr ((SmoothForm.isClosed_def _).mp hα.isClosed_curvature)
+  hα.isClosed_curvature.mem_closedForms
 
 /-- The de Rham class of the curvature of a connection form `α` does not depend on `α`. -/
 theorem IsCircleConnectionForm.deRhamCohomology_mk_curvature_eq (hα : IsCircleConnectionForm α)
@@ -73,8 +74,8 @@ theorem IsCircleConnectionForm.deRhamCohomology_mk_curvature_eq (hα : IsCircleC
   obtain ⟨a, rfl, -⟩ := hα.existsUnique_eq_add_mpullback hβ
   -- `hβ` and `hα.add_mpullback a` are proofs of the same proposition.
   have h : hβ.curvature = hα.curvature + mextDerivₗ IB 1 a := hα.curvature_add_mpullback a
-  rw [← sub_eq_zero, ← map_sub, deRhamCohomology.mk_eq_zero_iff, Submodule.coe_sub,
-    Submodule.coe_mk, Submodule.coe_mk, h, add_sub_cancel_left, exactForms_succ]
+  rw [deRhamCohomology.mk_eq_mk_iff, Submodule.coe_mk, Submodule.coe_mk, h, add_sub_cancel_left,
+    exactForms_succ]
   exact LinearMap.mem_range_self _ a
 
 variable [FiniteDimensional ℝ EB] [T2Space B] [SigmaCompactSpace B]

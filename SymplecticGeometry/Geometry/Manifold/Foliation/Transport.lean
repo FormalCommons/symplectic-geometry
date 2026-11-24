@@ -28,7 +28,7 @@ which the second coordinate is constant are the plaques of the chart.
 The chart is the flat partial diffeomorphism of
 `TauCeti.IsInvolutiveDistribution.exists_flatPartialDiffeomorph` (a form of the Frobenius theorem),
 restricted to the preimage of the product of balls by
-`PartialDiffeomorph.exists_diffeomorph_of_subset_target`, as in the proof of
+`PartialDiffeomorph.exists_diffeomorph_ball_prod_ball`, as in the proof of
 `TauCeti.SmoothForm.exists_isCharacteristicSubmersion`. Two points of a plaque are joined by the
 preimage of the segment between their images, a curve tangent to `𝓕` (the segment argument of
 Tau Ceti's `TauCeti.Foliation.sameLeaf_ofSubmodule_iff`, read through the chart), so
@@ -142,19 +142,13 @@ theorem exists_foliatedChart (𝓕 : Foliation I ∞ M k) (h₁ : finrank ℝ F�
   have : IsManifold I ∞ M := .of_le (n := ∞ + 1) le_self_add
   obtain ⟨Φ, hx, h0, hball, hflat⟩ :=
     𝓕.isInvolutiveDistribution.exists_flatPartialDiffeomorph 𝓕.isContMDiffDistribution h₁ h₂ x
-  let V : Opens (F₁ × F₂) :=
-    ⟨Metric.ball 0 1 ×ˢ Metric.ball 0 1, Metric.isOpen_ball.prod Metric.isOpen_ball⟩
-  have hV : (V : Set (F₁ × F₂)) = Metric.ball 0 1 := ball_prod_same _ _ _
-  have hVt : (V : Set (F₁ × F₂)) ⊆ Φ.target := hV ▸ hball
-  obtain ⟨U, Ψ, hU, hΨ⟩ := Φ.exists_diffeomorph_of_subset_target V hVt
-  have huΦ (u : U) : (u : M) ∈ Φ.source ∧ Φ u ∈ V := by
-    have hu := u.property
-    rw [← SetLike.mem_coe, hU] at hu
-    exact hu
-  have hxU : x ∈ U := by
-    rw [← SetLike.mem_coe, hU]
-    exact ⟨hx, by simp [h0, V]⟩
-  refine ⟨U, hxU, Ψ, by rw [hΨ, h0], fun u v ↦ ?_, fun u u' huu' ↦ ?_⟩
+  obtain ⟨U, hxU, Ψ, hΨ0, hUΨ⟩ := Φ.exists_diffeomorph_ball_prod_ball hx h0 hball
+  have hΨ (u : U) : (Ψ u : F₁ × F₂) = Φ u := (hUΨ u).2
+  have huΦ (u : U) : (u : M) ∈ Φ.source ∧ Φ u ∈ Metric.ball 0 1 ×ˢ Metric.ball 0 1 :=
+    ⟨(hUΨ u).1, hΨ u ▸ (Ψ u).property⟩
+  have hVt : Metric.ball (0 : F₁) 1 ×ˢ Metric.ball (0 : F₂) 1 ⊆ Φ.target :=
+    (ball_prod_same (0 : F₁) (0 : F₂) 1).symm ▸ hball
+  refine ⟨U, hxU, Ψ, hΨ0, fun u v ↦ ?_, fun u u' huu' ↦ ?_⟩
   · -- `Ψ` is `Φ` on `U`, read in the tangent spaces of `F₁ × F₂`.
     have hcomp : ∀ g : U → F₁ × F₂, g = Φ ∘ Subtype.val →
         (mfderiv I 𝓘(ℝ, F₁ × F₂) g u v : F₁ × F₂) = mfderiv I 𝓘(ℝ, F₁ × F₂) Φ u v := by

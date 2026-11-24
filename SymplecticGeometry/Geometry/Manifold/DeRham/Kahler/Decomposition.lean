@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.DeRham.Hodge.Complex
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Kahler.Identities
 public import TauCeti.Geometry.Hodge.Decomposition
 public import TauCeti.Geometry.Hodge.Dimension
+import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.AlmostComplexType
 
 /-!
@@ -269,8 +270,8 @@ theorem hodgePiece_eq_map_complexHarmonicForms (o : Manifold.Orientation I M (Fi
         ← map_add, ← hγ, ← hψ, SmoothAlmostComplexStructure.typeProjection_typeProjection,
         ite_eq_left rfl]
     refine ⟨⟨_, hph⟩, ⟨h, rfl⟩, ?_⟩
-    rw [complexHarmonicForms.toComplexDeRhamCohomology_apply, eq_comm, ← sub_eq_zero, ← map_sub,
-      mk_eq_zero_iff, Submodule.coe_sub, hφ]
+    rw [complexHarmonicForms.toComplexDeRhamCohomology_apply, eq_comm,
+      complexDeRhamCohomology.mk_eq_mk_iff, hφ]
     refine mem_complexExactForms_of_complexHodgeLaplacian_mem_complexClosedForms o hkl ?_
     rw [← hφ]
     exact sub_mem φ.property (complexHarmonicForms_le_complexClosedForms o hkl hph)

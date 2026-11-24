@@ -13,11 +13,6 @@ fibrations* (page `atlas/symplectic-fibrations.md`) use:
   Definition 10.2.9).
 - Proposition 10.2.12: a smooth path of Hamiltonian diffeomorphisms is a
   Hamiltonian isotopy.
-- Proposition 10.2.19, as the page uses it: if a Hamiltonian isotopy of a
-  closed connected symplectic manifold is a loop, then every closed
-  one-form integrates to zero along the orbit $t\mapsto\phi_t(x)$ of each
-  point. In homological terms, each orbit is a loop whose class in
-  $H_1(M;\mathbb R)$ is zero.
 
 All declarations of Tau Ceti and Mathlib named below were checked against
 the pinned Tau Ceti `c9d170eed5a8` and its Mathlib. Paths of Tau Ceti files
@@ -89,24 +84,18 @@ Below, `σ : TauCeti.closedForms J M 2` is a closed two-form on a manifold
   `SmoothSimplex.integral_eq_setIntegral_mpullback` (the integral over a
   simplex computed from a map on $\mathbb R^p$ agreeing with it on the
   simplex) and `integral_δ` (faces).
-- **Liouville measure** (`Geometry/Symplectic/Manifold/LiouvilleMeasure.lean`):
-  `TauCeti.SmoothTwoForm.liouvilleMeasure`, finite on compact manifolds,
-  positive on nonempty open sets for a nondegenerate form, and preserved by
-  diffeomorphisms that preserve the form.
 - **The library**: `TauCeti.Diffeotopy.smoothVelocity`
   (`Geometry/Diffeomorphism/Diffeotopy/Velocity.lean`);
   `isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms`
   (`Geometry/Symplectic/Flux/Hamiltonian.lean`); smooth dependence of
-  periods on a parameter, `IsSmoothFamily.contMDiff_homologyPeriodHom`, and
-  `homologyPeriodHom_mpullback_eq_of_homotopic`
+  periods on a parameter, `IsSmoothFamily.contMDiff_homologyPeriodHom`
   (`Geometry/Manifold/DeRham/HomologyPeriod.lean`).
 
 Missing, and built here: fluxes of the initial pieces of a diffeotopy;
 Theorem 10.2.5 and the kernel of the endpoint flux; the identification of
 rectangle integrals over doubly periodic maps with periods on
-$H_2(M;\mathbb Z)$; the countability of $\Gamma_\sigma$; Proposition
-10.2.12; the orbit of a point under a diffeotopy as a path, and
-Proposition 10.2.19.
+$H_2(M;\mathbb Z)$; the countability of $\Gamma_\sigma$; and Proposition
+10.2.12.
 
 ## Decisions
 
@@ -119,8 +108,8 @@ These settle the questions that `DESIGN.md` leaves to this file.
    manifold is `[CompactSpace M] [T2Space M] [J.Boundaryless]
    [FiniteDimensional ℝ E]`. Each statement takes only the hypotheses its
    proof uses: Theorem 10.2.5 and Proposition 10.2.12 need a symplectic
-   `σ` but not a connected `M`, the countability needs only a closed `σ`,
-   and Proposition 10.2.19 needs a connected `M`.
+   `σ` but not a connected `M`, and the countability needs only a closed
+   `σ`.
 
 2. **Initial pieces of a diffeotopy.** For `T : unitInterval`,
    `Φ.truncate T` is the diffeotopy $t\mapsto\phi_{Tt}$, the
@@ -176,24 +165,24 @@ These settle the questions that `DESIGN.md` leaves to this file.
    periods form a countable set $P_\sigma$. In the period coordinates of
    `homologyPeriods_periodHomologyClass_bijective`, $\Gamma_\sigma$ maps
    into $P_\sigma^b$, which is countable. The comparison of the swept area
-   with a period uses the two-simplex 2-cycle of the square: cut the
-   square along a diagonal into two affine simplices. Their integrals add
-   up to the rectangle integral, and on a doubly periodic map their edges
-   cancel in pairs. This is the content of McDuff–Salamon's description
+   with a period goes through the torus: a map of $\mathbb R^2$ with period
+   1 in both variables descends to $T^2=(\mathbb R/\mathbb Z)^2$, whose
+   integral is a period by
+   `integralTopForm_mpullback_eq_closedFormHomologyPeriod` and equals the
+   rectangle integral by `AddCircle.integralTopForm_prod_eq_setIntegral`.
+   This is the content of McDuff–Salamon's description
    of the flux by swept cylinders, equation (10.2.2) with Lemma 10.2.1.
    The Lagrangian neighbourhood theorem of *Symplectic neighbourhoods* is
    not used, so the part no longer builds on that part.
 
-5. **`Family.lean` and `Loop.lean` are kept.** *Coupling forms* uses only
-   `Family.lean`: Proposition 10.2.12, for the equivalence of Hamiltonian
-   holonomy and Hamiltonian curvature (`design/coupling-forms.md`).
-   *Hamiltonian fibrations* uses `Family.lean` and `Loop.lean`, as the
-   page's proofs do. Proposition 10.2.12 is
-   used for 2 ⇒ 1, to show that, read in a trivialization, the
-   connection comes from Hamiltonian functions. Proposition 10.2.19 is
-   used for 3 ⇒ 1. If the
-   design of *Hamiltonian fibrations* finds routes without them, it
-   proposes to drop their issues.
+5. **`Family.lean` is kept; Proposition 10.2.19 is not built.** *Coupling
+   forms* uses only `Family.lean`: Proposition 10.2.12, for the
+   equivalence of Hamiltonian holonomy and Hamiltonian curvature
+   (`design/coupling-forms.md`). *Hamiltonian fibrations* uses
+   `Kernel.lean` and `Family.lean` (`design/hamiltonian-fibrations.md`).
+   Its route for 3 ⇒ 1 shifts the connection by closed one-forms of the
+   base and does not need Proposition 10.2.19, and no other part uses that
+   proposition, so this part has no file for it.
 
 6. **The proof of Proposition 10.2.12** goes through the countability. If
    every $\phi_t$ lies in $\mathrm{Ham}$, the flux of each initial piece
@@ -204,19 +193,6 @@ These settle the questions that `DESIGN.md` leaves to this file.
    at $T=0$, so it is $0$ for all $T$. Decision 2 then makes the path
    Hamiltonian.
 
-7. **The proof of Proposition 10.2.19** averages over $M$. Let `Φ` be a
-   Hamiltonian loop generated by $H_t$, let $\alpha$ be a closed one-form,
-   and let $Y$ be the symplectic field with $\iota_Y\sigma=\alpha$. Write
-   $I(x)$ for the integral of $\alpha$ along the orbit of $x$. Two points
-   joined by a path have orbits that are freely homotopic through the
-   orbits of the points on the path, so $I$ is constant on the connected
-   `M` (`homologyPeriodHom_mpullback_eq_of_homotopic`). From the
-   generator, $I(x)=-\int_0^1(dH_t(Y))(\phi_t(x))\,dt$. Integrate against
-   the Liouville measure $\mu$ of `σ`. Each $\phi_t$ preserves $\mu$, and
-   so does the flow of $Y$, so $\int_M dH_t(Y)\,d\mu=0$. Hence
-   $I\cdot\mu(M)=0$, and $\mu(M)>0$. Stokes' theorem and orientations are
-   not used.
-
 ## Files
 
 New files of the library, with the topic of each:
@@ -224,19 +200,15 @@ New files of the library, with the topic of each:
 - `Geometry/Diffeomorphism/Diffeotopy/Truncate.lean`: `Diffeotopy.truncate`
   and its API, including the truncations of `trans`, `symm` and
   `orderedGlobalFlowDiffeotopy`, and the velocity of a truncation.
-- `Geometry/Diffeomorphism/Diffeotopy/Orbit.lean`: `Diffeotopy.orbit`, the
-  path $t\mapsto\phi_t(x)$ from $x$ to $\phi_1(x)$.
 - `Geometry/Manifold/SmoothSingular/Rectangle.lean`: rectangle integrals of
   closed two-forms over doubly periodic maps are periods on
-  $H_2(M;\mathbb Z)$; the periods of a closed form on a compact
-  boundaryless manifold form a countable set.
+  $H_2(M;\mathbb Z)$.
 - `Geometry/Symplectic/Flux/Kernel.lean`: fluxes of initial pieces, the
   Hamiltonian criterion of Decision 2, Theorem 10.2.5 and the kernel of the
   endpoint flux.
 - `Geometry/Symplectic/Flux/Countable.lean`: periods of fluxes of loops,
   and the countability of $\Gamma_\sigma$.
 - `Geometry/Symplectic/Flux/Family.lean`: Proposition 10.2.12.
-- `Geometry/Symplectic/Flux/Loop.lean`: Proposition 10.2.19.
 
 All declarations are about Tau Ceti's notions, so they are in the `TauCeti`
 namespace (`TauCeti.Diffeotopy` for those that dot notation on a diffeotopy
@@ -253,8 +225,6 @@ finds), as `AGENTS.md` asks.
   `truncate_orderedGlobalFlowDiffeotopy` (the ordered flow with times
   $t\mapsto A_i(Tt)$), and `velocity_truncate`
   ($T\cdot X_{Tt}$, with `smoothVelocity_truncate`).
-- `TauCeti.Diffeotopy.orbit (Φ : Diffeotopy J n M) (x : M) : Path x (Φ.final x)`,
-  $t\mapsto\phi_t(x)$, with `orbit_apply` (`@[simp]`) and `orbit_refl`.
 
 No other definition is added: the flux group, the endpoint flux and
 $\mathrm{Ham}$ are Tau Ceti's.
@@ -294,9 +264,11 @@ Throughout, `[FiniteDimensional ℝ E] [J.Boundaryless] [T2Space M]
   Set.range (closedFormHomologyPeriod σ)`. The smoothness hypothesis is
   the one that `Diffeotopy.sweep` satisfies (`contMDiffOn_sweep`, smooth
   within the strip $[0,1]\times\mathbb R$).
-- `TauCeti.countable_range_closedFormHomologyPeriod`: for a compact
-  boundaryless `M` and `φ : closedForms J M p`,
-  `(Set.range (closedFormHomologyPeriod φ)).Countable`.
+
+`SmoothSingular/Period.lean`:
+
+- `TauCeti.countable_range_closedFormHomologyPeriod`: for
+  `φ : closedForms J M p`, `(Set.range (closedFormHomologyPeriod φ)).Countable`.
 
 `Countable.lean`:
 
@@ -318,17 +290,6 @@ Throughout, `[FiniteDimensional ℝ E] [J.Boundaryless] [T2Space M]
   `∀ t, Φ.timeSlice t ∈ SmoothForm.hamiltonianGroup σ.val`,
   `Φ.IsHamiltonian σ.val`.
 
-`Loop.lean` (with `[ConnectedSpace M]`):
-
-- `TauCeti.Diffeotopy.IsHamiltonian.period_orbit_eq_zero`
-  (Proposition 10.2.19): for `σ` nondegenerate, `Φ.IsHamiltonian σ.val`
-  and `h : Φ.final = 1`, the orbit `Φ.orbit x` is a loop at `x` (cast
-  along `h` with `Path.cast`), and every class
-  `c : deRhamCohomology J M 1` has period zero on it.
-- `TauCeti.Diffeotopy.period_orbit_eq_zero_of_forall_timeSlice_mem_hamiltonianGroup`:
-  the same for a loop all of whose slices lie in `hamiltonianGroup`, by
-  `Family.lean`.
-
 ## What it uses
 
 - From Tau Ceti and Mathlib: the declarations listed under *What there is*.
@@ -336,9 +297,8 @@ Throughout, `[FiniteDimensional ℝ E] [J.Boundaryless] [T2Space M]
   (`Diffeotopy/Velocity.lean`, `Flux/Hamiltonian.lean`) and
   `DeRham/HomologyPeriod.lean`. Nothing of *Symplectic neighbourhoods*
   (Decision 4).
-- Used by: *Coupling forms* (`Family.lean`) and
-  *Hamiltonian fibrations* (all four files of `Geometry/Symplectic/Flux/`
-  above).
+- Used by: *Coupling forms* (`Family.lean`) and *Hamiltonian
+  fibrations* (`Kernel.lean`, and `Family.lean` with what it builds on).
 
 ## Building issues
 
@@ -360,19 +320,16 @@ Each is a few hundred lines; each is blocked by the issues it names.
    Blocked by 4.
 6. **Smooth paths in $\mathrm{Ham}$.** `Family.lean`. About 200 lines.
    Blocked by 2 and 5.
-7. **Orbits of Hamiltonian loops.** `Diffeotopy/Orbit.lean` and
-   `Loop.lean`. About 350 lines. Blocked by 6, since the last lemma of
-   `Loop.lean` uses `Family.lean`.
 
 Issues 1 and 4 can start at once. *Coupling forms* waits for 6;
-*Hamiltonian fibrations* waits for all seven.
+*Hamiltonian fibrations* waits for 3 and 6.
 
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
   §10.2: equation (10.2.1), Lemma 10.2.1 and equation (10.2.2), Theorem
-  10.2.5, Definition 10.2.9 and the paragraph after it, Propositions
-  10.2.12 and 10.2.19.
+  10.2.5, Definition 10.2.9 and the paragraph after it, and Proposition
+  10.2.12.
 * A. Banyaga, *The Structure of Classical Diffeomorphism Groups*, Kluwer,
   1997, Chapter 3 (the flux homomorphism), which Tau Ceti's flux files also
   cite.

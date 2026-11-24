@@ -62,7 +62,7 @@ distribution (Tau Ceti's `TauCeti.SmoothForm.isInvolutiveDistribution_ker_bilinF
 `TauCeti.IsInvolutiveDistribution.exists_flatPartialDiffeomorph`, a form of the Frobenius theorem,
 gives a partial diffeomorphism into `ℝᵏ × ℝ²ʳ`, centred at the point and with the unit ball in its
 target, whose derivative sends the kernels to the vectors with second component `0`. Restrict it
-to the preimage of the unit ball (`PartialDiffeomorph.exists_diffeomorph_of_subset_target`).
+to the preimage of the unit ball (`PartialDiffeomorph.exists_diffeomorph_ball_prod_ball`).
 In these coordinates the fibres of the second projection are slices `ball × {b}`, which are
 convex.
 
@@ -348,18 +348,12 @@ private theorem exists_isCharacteristicSubmersion_of_partialDiffeomorph
         (SmoothForm.mpullback (Subtype.val : U → M) contMDiff_subtypeVal σ)
         (fun u ↦ (⟨(Ψ u : F₁ × F₂).2, (Ψ u).property.2⟩ :
           (⟨Metric.ball 0 1, Metric.isOpen_ball⟩ : Opens F₂))) := by
+  obtain ⟨U, hxU, Ψ, hΨ0, hUΨ⟩ := Φ.exists_diffeomorph_ball_prod_ball hx h0 hball
+  have huΦ (u : U) : (u : M) ∈ Φ.source := (hUΨ u).1
+  have hΨ (u : U) : (Ψ u : F₁ × F₂) = Φ u := (hUΨ u).2
+  refine ⟨U, hxU, Ψ, hΨ0, ?_⟩
   let V : Opens (F₁ × F₂) :=
     ⟨Metric.ball 0 1 ×ˢ Metric.ball 0 1, Metric.isOpen_ball.prod Metric.isOpen_ball⟩
-  have hV : (V : Set (F₁ × F₂)) = Metric.ball 0 1 := ball_prod_same _ _ _
-  obtain ⟨U, Ψ, hU, hΨ⟩ := Φ.exists_diffeomorph_of_subset_target V (hV ▸ hball)
-  have hxU : x ∈ U := by
-    rw [← SetLike.mem_coe, hU]
-    exact ⟨hx, by simp [h0, V]⟩
-  have huΦ (u : U) : (u : M) ∈ Φ.source := by
-    have hu := u.property
-    rw [← SetLike.mem_coe, hU] at hu
-    exact hu.1
-  refine ⟨U, hxU, Ψ, by rw [hΨ, h0], ?_⟩
   let B : Opens F₂ := ⟨Metric.ball 0 1, Metric.isOpen_ball⟩
   let p : U → B := fun u ↦ ⟨(Ψ u : F₁ × F₂).2, (Ψ u).property.2⟩
   -- The derivative of `p` is the second component of the derivative of `Φ`.
@@ -390,7 +384,7 @@ private theorem exists_isCharacteristicSubmersion_of_partialDiffeomorph
         mem_singleton_iff]
       exact ⟨fun ⟨h, hc⟩ ↦ ⟨h.1, hc⟩, fun ⟨ha, hc⟩ ↦ ⟨⟨ha, hc ▸ b.property⟩, hc⟩⟩
     have hpS : p ⁻¹' {b} = Ψ.toHomeomorph.symm '' S := by
-      rw [Homeomorph.image_symm]; ext u; simp [p, S, Subtype.ext_iff]
+      rw [Homeomorph.image_symm]; ext u; simp [p, S, V, Subtype.ext_iff]
     rw [hpS]
     refine IsPreconnected.image ?_ _ Ψ.toHomeomorph.symm.continuous.continuousOn
     rw [← Topology.IsInducing.subtypeVal.isPreconnected_image]

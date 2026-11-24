@@ -226,22 +226,21 @@ Names in Tau Ceti's style:
 In `SymplecticGeometry`, with `attribute [local instance]
 LieGroup.minSmoothness_of_isRCLikeNormedField` where the group's Lie
 algebra is used, and for `G` a Lie group on a boundaryless model `J`,
-`[CompactSpace G] [PathConnectedSpace G] [MulAction G M]
+`[T2Space G] [CompactSpace G] [PathConnectedSpace G] [MulAction G M]
 [ContMDiffSMul J I ∞ G M]`:
 
 1. **A Hamiltonian circle action has a fixed point.** On a compact
    nonempty `M` with `σ.IsNondegenerate`, from
    `σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) μ`:
-   the component $\langle\mu,\xi_1\rangle$ has a maximum
-   (`IsCompact.exists_isMaxOn`), which is a critical point, which is a
-   zero of $X_{\xi_1}$ and so a fixed point (`GroupAction/Circle.lean`;
-   or Tau Ceti's `criticalPoints_eq_fixedPoints_of_eq_top`).
-   `exists_mem_fixedPoints_of_isMomentMap`.
+   Tau Ceti's `TauCeti.SmoothTwoForm.IsMomentMap.nonempty_fixedPoints`
+   (`MomentMap/ConvexHull.lean`), for any compact connected commutative
+   Lie group; Mathlib already makes `Circle` commutative. The file
+   proves no theorem of its own for it.
 2. **The vanishing integral.**
 
    ```lean
    theorem integralTopForm_wedge_interior_wedge_wedgePow_eq_zero
-       [BoundarylessManifold I M] [T2Space M] [CompactSpace M] [ConnectedSpace M] {n : ℕ}
+       [I.Boundaryless] [T2Space M] [CompactSpace M] [ConnectedSpace M] {n : ℕ}
        (o : Manifold.Orientation I M (Fin (1 + (1 + 2 * n))))
        {σ : SmoothTwoForm I M} (hσ : σ.IsClosed) (hinv : …)
        {p : M} (hp : p ∈ MulAction.fixedPoints G M) (ξ : GroupLieAlgebra J G)
@@ -265,12 +264,13 @@ algebra is used, and for `G` a Lie group on a boundaryless model `J`,
 
    ```lean
    theorem exists_isMomentMap_of_mem_fixedPoints
-       [BoundarylessManifold I M] [T2Space M] [CompactSpace M] [ConnectedSpace M]
+       [I.Boundaryless] [T2Space M] [CompactSpace M] [ConnectedSpace M]
        {n : ℕ} (hn : 1 ≤ n) (hE : finrank ℝ E = 2 * n)
        {σ : SmoothTwoForm I M} (hσ : σ.IsSymplectic) (hinv : …)
        (hL : Function.Injective (deRhamCohomology.wedge I M (2 * (n - 1)) 1
          (deRhamCohomology.mk I _ ⟨σ.wedgePow (n - 1),
-           SmoothForm.wedgePow_mem_closedForms ((mem_closedForms I σ).mpr hσ.isClosed) _⟩)))
+           SmoothForm.wedgePow_mem_closedForms
+             ((mem_closedForms I σ).mpr ((SmoothForm.isClosed_def σ).1 hσ.isClosed)) _⟩)))
        {p : M} (hp : p ∈ MulAction.fixedPoints G M) :
        ∃ μ : M → Module.Dual ℝ (GroupLieAlgebra J G),
          σ.IsMomentMap (InfinitesimalAction.fundamental J G I M) μ
@@ -289,7 +289,7 @@ algebra is used, and for `G` a Lie group on a boundaryless model `J`,
 
    ```lean
    theorem exists_isMomentMap_iff_exists_mem_fixedPoints
-       [BoundarylessManifold I M] [T2Space M] [CompactSpace M] [ConnectedSpace M]
+       [I.Boundaryless] [T2Space M] [CompactSpace M] [ConnectedSpace M]
        {n : ℕ} (hn : 1 ≤ n) (hE : finrank ℝ E = 2 * n)
        {σ : SmoothTwoForm I M} (hσ : σ.IsSymplectic)
        [MulAction Circle M] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
@@ -297,7 +297,8 @@ algebra is used, and for `G` a Lie group on a boundaryless model `J`,
          (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) (I' := I) g) σ = σ)
        (hL : Function.Injective (deRhamCohomology.wedge I M (2 * (n - 1)) 1
          (deRhamCohomology.mk I _ ⟨σ.wedgePow (n - 1),
-           SmoothForm.wedgePow_mem_closedForms ((mem_closedForms I σ).mpr hσ.isClosed) _⟩))) :
+           SmoothForm.wedgePow_mem_closedForms
+             ((mem_closedForms I σ).mpr ((SmoothForm.isClosed_def σ).1 hσ.isClosed)) _⟩))) :
        (∃ μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle),
            σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) (fun x ↦ -μ x)) ↔
          ∃ p : M, p ∈ MulAction.fixedPoints Circle M
@@ -310,8 +311,6 @@ algebra is used, and for `G` a Lie group on a boundaryless model `J`,
 
 ## What it uses
 
-- From *Lie group actions*: `GroupAction/Circle.lean` (#2256), for the
-  fixed points of the circle as the zeros of $X_{\xi_1}$, in result 1.
 - From *Moment maps*: `MomentMap/WeaklyHamiltonian.lean` (#2258), for the
   moment map in result 3.
 - From *Hodge theory*: the merged `Geometry/Manifold/DeRham/Hodge/Basic.lean`.

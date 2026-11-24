@@ -256,11 +256,12 @@ Two even homogeneous forms commute (`commute_of_of_of_even`, from
 
 ### `Interior.lean`
 
-`TauCeti.SmoothForm.interiorₗ X hX : SmoothForm I M F (k + 1) →ₗ[ℝ] SmoothForm I M F k`,
-the interior product with a smooth vector field, with `coe_interiorₗ`
-(its rough form is `RoughForm.interior X`), `interiorₗ_interiorₗ`
-($\iota_X\iota_X=0$), `interiorₗ_wedge` (the graded Leibniz rule, from
-`RoughForm.interior_wedge_apply`) and `interiorₗ_apply_zero_degree_one`
+`TauCeti.SmoothForm.interiorProduct X : SmoothForm I M F (k + 1) →ₗ[ℝ] SmoothForm I M F k`,
+the interior product with a smooth vector field
+`X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯`, with `coe_interiorProduct`
+(its rough form is `RoughForm.interior X`), `interiorProduct_interiorProduct`
+($\iota_X\iota_X=0$), `interiorProduct_wedge` (the graded Leibniz rule, from
+`RoughForm.interior_wedge_apply`) and `interiorProduct_apply_degree_one`
 (on a one-form it is evaluation on `X`).
 
 ### `Equivariant/Basic.lean`
@@ -270,7 +271,7 @@ In `SymplecticGeometry`:
 - `cartanDiff X hX ħ : (⨁ k, SmoothForm I M ℝ k) →ₗ[ℝ] ⨁ k, SmoothForm I M ℝ k`,
   defined on homogeneous forms by
   `cartanDiff_of_zero : cartanDiff X hX ħ (of _ 0 f) = of _ 1 (mextDerivₗ f)` and
-  `cartanDiff_of_succ : cartanDiff X hX ħ (of _ (k + 1) φ) = of _ (k + 2) (mextDerivₗ φ) - ħ • of _ k (interiorₗ X hX φ)`;
+  `cartanDiff_of_succ : cartanDiff X hX ħ (of _ (k + 1) φ) = of _ (k + 2) (mextDerivₗ φ) - ħ • of _ k (interiorProduct ⟨X, hX⟩ φ)`;
 - `cartanDiff_zero_param` (at `ħ = 0` it is `d`), `cartanDiff_mul_of`
   (for `φ` of degree `k`,
   `cartanDiff (of _ k φ * β) = cartanDiff (of _ k φ) * β + (-1) ^ k • of _ k φ * cartanDiff β`),
@@ -294,7 +295,7 @@ In `SymplecticGeometry`:
 (`of _ 0 f + of _ 2 τ`), `formCalculus_const`, `tsupport_formCalculus_subset`
 (each component vanishes outside `f ⁻¹' tsupport F`), and
 `cartanDiff_formCalculus`: if `τ` is closed and
-`ħ • interiorₗ X hX τ = mextDerivₗ f`, then
+`ħ • interiorProduct ⟨X, hX⟩ τ = mextDerivₗ f`, then
 `cartanDiff X hX ħ (formCalculus F hF f τ) = 0`. The exponential
 `formCalculus Real.exp _ (-ħ • H) σ` is the page's $e^{\sigma-\hbar H}$;
 it gets no name of its own.
@@ -325,10 +326,10 @@ name. Its symplectic case is
 
 ### `HalfSqRadius.lean`
 
-`TauCeti.setIntegral_iteratedDeriv_neg_sum`: for `F` smooth with compact
+`MeasureTheory.setIntegral_iteratedDeriv_neg_sum`: for `F` of class `C^(card ι)` with compact
 support, the integral over the closed orthant of $\mathbb R^\iota$ of
 `iteratedDeriv (card ι) F (-∑ i, t i)` is `F 0`; and
-`TauCeti.integral_iteratedDeriv_neg_sum_mul_sq`: for `a i > 0`,
+`MeasureTheory.integral_iteratedDeriv_neg_sum_mul_sq`: for `a i > 0`,
 `∫ z, iteratedDeriv (card ι) F (-∑ i, a i * (z.1 i ^ 2 + z.2 i ^ 2)) = F 0 * π ^ card ι / ∏ i, a i`
 on `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι`, by
 `map_volume_euclideanSpace_half_sq_add_sq`.
@@ -338,10 +339,11 @@ on `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι`, by
 For a symplectic circle action with a moment map, at a fixed point `p`:
 `prod_weights_eq` (two families of weights given as in Decision 8 have the
 same product), `weights_ne_zero_of_isolated` (at an isolated fixed point
-no weight vanishes, since a zero weight gives a fixed disc in the chart),
-`exists_weights` (weights as in Decision 8 exist, from the chart of
-`WeightModel/NormalForm.lean`), and `finite_fixedPoints` (on a compact
-manifold, isolated fixed points are finite).
+no weight vanishes, since a zero weight gives a fixed disc in the chart), and
+`exists_weights` (weights as in Decision 8 exist, from the linear normal form
+`TauCeti.SymplecticForm.exists_continuousLinearEquiv_weightRotation`). The
+finiteness of isolated fixed points on a compact space is the root-namespace
+`finite_fixedPoints`, in `Topology/Algebra/ConstMulAction.lean`.
 
 ### `Localization/LocalizingForm.lean`
 
@@ -357,7 +359,7 @@ existence theorem, not a definition.
 |---|---|---|
 | localization lemma | `SymplecticGeometry.integralTopForm_formCalculus_mul` | `Equivariant/Localization.lean` |
 | top forms and their measure | `TauCeti.integralTopForm_smul_eq_integral_measure` | `Integration/Measure.lean` |
-| the model integral | `TauCeti.integral_iteratedDeriv_neg_sum_mul_sq` | `HalfSqRadius.lean` |
+| the model integral | `MeasureTheory.integral_iteratedDeriv_neg_sum_mul_sq` | `HalfSqRadius.lean` |
 | the formula for real $\hbar>0$ | `SymplecticGeometry.integral_exp_neg_mul_eq_finsum_of_pos` | `Localization/Real.lean` |
 | the milestone | `SymplecticGeometry.integral_cexp_neg_mul_eq_finsum_fixedPoints` | `Localization/DuistermaatHeckman.lean` |
 | its value at $\hbar=0$ | `SymplecticGeometry.tendsto_finsum_fixedPoints_liouvilleMeasure` | `Localization/DuistermaatHeckman.lean` |
