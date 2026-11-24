@@ -14,7 +14,6 @@ import SymplecticGeometry.Geometry.Manifold.SmoothSingular.Rectangle
 import SymplecticGeometry.Geometry.Manifold.SmoothTransition
 import TauCeti.Geometry.Manifold.DeRham.FiniteDimensional
 import TauCeti.Geometry.Manifold.SmoothApprox.Basic
-import TauCeti.Geometry.Manifold.Topology
 import TauCeti.Geometry.Symplectic.Flux.Reparam
 
 /-!
