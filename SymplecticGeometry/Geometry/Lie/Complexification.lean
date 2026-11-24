@@ -69,7 +69,9 @@ The complex structure `cplx` is not determined by the other fields.
   `SymplecticGeometry.LieComplexification.coe_circle_polar_smul_circleLieGenerator`: for
   `circle`, `cplx` is multiplication by `i`, the Lie algebra of `Circle` goes to `i ℝ`, with
   `circleLieGenerator` going to `i`, and `polar (ξ, u) = Complex.exp (i ξ) * u`, so that
-  `polar (t • circleLieGenerator, u) = exp (-t) * u`.
+  `polar (t • circleLieGenerator, u) = exp (-t) * u`. They read the Lie algebras of `ℂˣ` and
+  `Circle` in `ℂ` through Tau Ceti's `groupLieAlgebraEquivModelVectorSpace`, and `polar_apply`
+  takes its argument in the Lie algebra, so that `rw` and `simp` chain them.
 
 The conjugation formula combines Tau Ceti's `TauCeti.Lie.conj_mulInvariantExp`, the naturality of
 `Ad` along `toHom`, and the fact that `cplx`, which commutes with every `ad`, commutes with every
@@ -225,26 +227,24 @@ theorem expI_def (ξ : GroupLieAlgebra I G) : C.expI ξ = mulInvariantExp (C.cpl
 theorem expI_zero : C.expI 0 = 1 := by
   rw [expI_def, map_zero, AlmostComplexStructure.apply_zero, mulInvariantExp_zero (I := IC)]
 
-/-- `expI_zero` with `0` written in the model space `E`, the form in which `polar_apply` gives
-`C.polar (0, u)`. -/
-@[simp]
-theorem expI_zero' : C.expI (0 : E) = 1 :=
-  -- The zeros of `E` and of `GroupLieAlgebra I G` agree only after unfolding `TangentSpace`.
-  C.expI_zero
-
 theorem expI_add_smul (ξ : GroupLieAlgebra I G) (s t : ℝ) :
     C.expI ((s + t) • ξ) = C.expI (s • ξ) * C.expI (t • ξ) := by
   simp only [expI_def, map_smul, mulInvariantExp_add_smul (I := IC)]
 
-/-- The polar decomposition: `polar (ξ, u) = expI ξ * toHom u`. -/
+/-- The polar decomposition: `polar (ξ, u) = expI ξ * toHom u`. Unlike the field `polar_apply'`,
+it takes `ξ` in the Lie algebra `GroupLieAlgebra I G`, so that it rewrites `C.polar (ξ, u)` for
+the elements of the Lie algebra, such as `t • ξ`. -/
 @[simp]
-theorem polar_apply (ξ : E) (u : G) :
+theorem polar_apply (ξ : GroupLieAlgebra I G) (u : G) :
     C.polar (ξ, u) = C.expI ξ * C.toHom u :=
   C.polar_apply' ξ u
 
 /-- The polar decomposition at `ξ = 0` is the inclusion `toHom`. -/
-theorem polar_zero_apply (u : G) : C.polar (0, u) = C.toHom u := by
-  rw [polar_apply, expI_zero', one_mul]
+@[simp]
+theorem polar_zero_apply (u : G) : C.polar (0, u) = C.toHom u :=
+  -- `polar_apply` at the zero of the Lie algebra, which is the zero `0 : E` of the statement
+  -- after unfolding `TangentSpace`.
+  (C.polar_apply 0 u).trans (by rw [expI_zero, one_mul])
 
 /-- A complexification is determined by its inclusion and its complex structure. -/
 @[ext]
@@ -302,7 +302,9 @@ namespace SymplecticGeometry.LieComplexification
 -- The Lie algebras `GroupLieAlgebra (𝓡 1) Circle` and `GroupLieAlgebra 𝓘(ℝ, ℂ) ℂˣ` are the model
 -- spaces `EuclideanSpace ℝ (Fin 1)` and `ℂ` by definition, but `rw` does not see through
 -- `TangentSpace`. The steps below are stated on the model spaces, and the proofs pass between the
--- two readings by term-mode `trans` and `exact`, which unfold `TangentSpace` and `lieHomC`.
+-- two readings by term-mode `trans` and `exact`, which unfold `TangentSpace` and `lieHomC`. The
+-- public lemmas read the Lie algebras in the model spaces through Tau Ceti's
+-- `groupLieAlgebraEquivModelVectorSpace` instead, so that `rw` and `simp` chain them.
 private def lieHomC : EuclideanSpace ℝ (Fin 1) →ₗ[ℝ] ℂ :=
   Circle.contMDiffToUnits.groupLieAlgebraLieHom.toLinearMap
 
@@ -412,42 +414,42 @@ def circle : LieComplexification (𝓡 1) Circle 𝓘(ℝ, ℂ) ℂˣ where
 theorem circle_toHom : circle.toHom = Circle.contMDiffToUnits :=
   (rfl)
 
-/-- The complex structure of the complexification `circle` is multiplication by `i`. -/
+/-- The complex structure of the complexification `circle` is multiplication by `i`, with the Lie
+algebra of `ℂˣ` read in `ℂ`. -/
 @[simp]
--- The product is written with explicit types: `v` has type `GroupLieAlgebra 𝓘(ℝ, ℂ) ℂˣ`, which
--- is `ℂ` by definition but carries no multiplication of its own.
 theorem circle_cplx_apply (v : GroupLieAlgebra 𝓘(ℝ, ℂ) ℂˣ) :
-    circle.cplx v = @HMul.hMul ℂ ℂ ℂ _ I v :=
+    groupLieAlgebraEquivModelVectorSpace (circle.cplx v) =
+      I * groupLieAlgebraEquivModelVectorSpace v :=
   cplxUnits_apply v
 
-/-- The Lie algebra map of the complexification `circle` is purely imaginary. -/
-theorem re_circle_lieMap (ξ : GroupLieAlgebra (𝓡 1) Circle) : Complex.re (circle.lieMap ξ) = 0 :=
+/-- The Lie algebra map of the complexification `circle`, read in `ℂ`, is purely imaginary. -/
+@[simp]
+theorem re_circle_lieMap (ξ : GroupLieAlgebra (𝓡 1) Circle) :
+    (groupLieAlgebraEquivModelVectorSpace (circle.lieMap ξ)).re = 0 :=
   re_lieHomC ξ
 
 /-- The Lie algebra map of the complexification `circle` sends the generator `circleLieGenerator`
-of the Lie algebra of `Circle` to `i`. -/
+of the Lie algebra of `Circle` to `i`, read in `ℂ`. -/
+@[simp]
 theorem circle_lieMap_circleLieGenerator :
-    circle.lieMap circleLieGenerator = (I : ℂ) :=
+    groupLieAlgebraEquivModelVectorSpace (circle.lieMap circleLieGenerator) = I :=
   lieHomC_circleLieGenerator
 
 /-- The polar decomposition of the complexification `circle`, with the exponential of `ℂˣ`
-written as `Complex.exp`: `polar (ξ, u) = exp (i ξ) * u`. -/
-theorem coe_circle_polar_apply (ξ : EuclideanSpace ℝ (Fin 1)) (u : Circle) :
-    (circle.polar (ξ, u) : ℂ) = Complex.exp (circle.cplx (circle.lieMap ξ)) * u := by
-  rw [polar_apply, Units.val_mul, circle_toHom, Circle.coe_contMDiffToUnits_apply]
-  exact congrArg (· * (u : ℂ))
-    ((congrArg Units.val (circle.expI_def ξ)).trans (coe_mulInvariantExp_eq_exp_complex _))
+written as `Complex.exp`: `polar (ξ, u) = exp (i ξ) * u`, with `ξ` read in `ℂ` through
+`circle.lieMap`. -/
+theorem coe_circle_polar_apply (ξ : GroupLieAlgebra (𝓡 1) Circle) (u : Circle) :
+    (circle.polar (ξ, u) : ℂ) =
+      Complex.exp (I * groupLieAlgebraEquivModelVectorSpace (circle.lieMap ξ)) * u := by
+  rw [polar_apply, Units.val_mul, expI_def, coe_mulInvariantExp_eq_exp_complex, circle_cplx_apply,
+    circle_toHom, Circle.coe_contMDiffToUnits_apply]
 
 /-- The polar decomposition of the complexification `circle` in the coordinate of
 `circleLieGenerator`: `polar (t • circleLieGenerator, u) = exp (-t) * u`. -/
 theorem coe_circle_polar_smul_circleLieGenerator (t : ℝ) (u : Circle) :
     (circle.polar (t • circleLieGenerator, u) : ℂ) = Complex.exp (-t) * u := by
-  have h : lieHomC (t • circleLieGenerator) = t * I :=
-    (map_smul lieHomC t circleLieGenerator).trans
-      ((congrArg (t • ·) lieHomC_circleLieGenerator).trans (Complex.real_smul (x := t)))
-  have hc : cplxUnits (lieHomC (t • circleLieGenerator)) = -(t : ℂ) := by
-    rw [cplxUnits_apply, h, mul_left_comm, I_mul_I, mul_neg_one]
-  exact (coe_circle_polar_apply _ u).trans (congrArg (fun z ↦ Complex.exp z * u) hc)
+  rw [coe_circle_polar_apply, map_smul, map_smul, circle_lieMap_circleLieGenerator,
+    Complex.real_smul, mul_left_comm, I_mul_I, mul_neg_one]
 
 end SymplecticGeometry.LieComplexification
 
