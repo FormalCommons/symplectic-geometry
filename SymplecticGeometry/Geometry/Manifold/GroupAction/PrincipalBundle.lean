@@ -351,8 +351,7 @@ private theorem injective_mfderiv_smul_section (hU : IsOpen U) (hs : ContMDiffOn
     (MulOpposite.contMDiff_unop (I := IG) (n := ∞) (op g)).mdifferentiableAt (by simp)
   have h4 := mfderiv_comp_apply _ hunop hop w
   rw [h3, map_zero] at h4
-  have h5 : (unop ∘ op : G → G) = id := rfl
-  rw [h5, mfderiv_id] at h4
+  rw [unop_comp_op, mfderiv_id] at h4
   rw [ContinuousLinearMap.id_apply] at h4
   exact Prod.ext h1 h4
 
