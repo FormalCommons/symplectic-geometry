@@ -207,7 +207,7 @@ All in `SymplecticGeometry`, with `C : LieComplexification I G IC Gc`.
   `IsComplexifiedAction.fundamentalVectorField_cplx` and
   `isMIntegralCurve_expI_smul` (the velocity of $t\mapsto\exp(it\xi)p$ is
   $JX_\xi$ at the moving point).
-- `momentSharp B hB μ x : 𝔤` and `momentNormSq B μ x : ℝ`, with
+- `momentSharp B hB μ x : 𝔤` and `momentNormSq B hB μ x : ℝ`, with
   `B (momentSharp …) ξ = μ x ξ`, `momentNormSq_nonneg`,
   `momentNormSq_eq_zero_iff`, invariance under `G`, and smoothness.
 - `IsSemistable C μ p : Prop` ($\exists x\in\overline{G^{\mathbb C}p}$ with
