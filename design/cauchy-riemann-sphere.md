@@ -430,9 +430,10 @@ are stated for `TauCeti.HasWeakFDerivOn`. About 200 lines.
   for `J` with values in a complex vector bundle, applied with $K=i$; and
   `ne_neg_of_tames` (Decision 1).
 - `norm_beltrami_lt_one_of_tames`: if `σ` tames `J` and $i$, then at every
-  point of a chart of `A` the coefficient $\mu$ of Decision 5 has
-  $|\mu|<1$, from the agreement of the complex orientations of `J` and $i$
-  (Decision 1); `ne_neg_of_tames` does not give it. Issue 7 uses it.
+  point of a chart of `A` the Beltrami coefficient $\nu$ of Decision 5 has
+  $|\nu|<1$, so that $|\mu|=|\nu|<1$, from the agreement of the complex
+  orientations of `J` and $i$ (Decision 1); `ne_neg_of_tames` does not give
+  it. Issue 7 uses it.
 
 About 350 lines.
 
