@@ -22,7 +22,8 @@ predicates as `fun x ↦ -μ x`.
 ## What exists, and what the part adds
 
 Tau Ceti has every statement of the milestone except two: that the image is
-convex, and that the fibres are connected.
+convex, and that the fibres are connected. It also has the topological
+local-to-global theorem that gives both from local convexity at every point.
 
 - **The fixed set.** `TauCeti.finite_connectedComponents_fixedPoints_of_compactSpace`
   (`Geometry/Manifold/Riemannian/Isometry/FixedPoints/Components.lean`): a
@@ -64,16 +65,24 @@ convex, and that the fibres are connected.
   moment map restricts along a homomorphism of Lie groups. The Lie group
   structure on a closed connected subgroup of a torus is that of
   `Geometry/Lie/Subgroup/Torus.lean`.
+- **The local-to-global theorem.** `Analysis/Convex/LocalToGlobal.lean`:
+  the predicate `TauCeti.IsConvexChart f U` (an open `U` on which `f` is open
+  onto a convex image, with preconnected fibres), with
+  `IsConvexChart.continuousLinearEquiv_comp`;
+  `TauCeti.exists_isConvexChart_inter_preimage_ball`, which turns an open set
+  on which `f` is open onto a convex set `C ⊇ f '' U`, with preconnected
+  fibres, into a convexity chart around each of its points; and
+  `IsProperMap.convex_range_of_isConvexChart` and
+  `IsProperMap.isPreconnected_preimage_singleton_of_isConvexChart`, for a
+  proper map from a preconnected Hausdorff space to a finite-dimensional real
+  normed space covered by convexity charts.
 
-Neither Mathlib nor Tau Ceti has a local-to-global convexity theorem. Tau
-Ceti's `WeightModel/Convexity.lean` cites the one of Hilgert–Neeb–Plank but
-does not prove it. Neither library has local convexity of a moment map at a
-point that is not fixed by the whole group.
+Neither library has local convexity of a moment map at a point that is not
+fixed by the whole group.
 
-The part adds three things: the topological local-to-global theorem, local
-convexity of a torus moment map at every point, and the fixed components as
-symplectic submanifolds. The milestone follows from them and the results
-above.
+The part adds two things: local convexity of a torus moment map at every
+point, and the fixed components as symplectic submanifolds. The milestone
+follows from them and the results above.
 
 ## Decisions
 
@@ -126,15 +135,15 @@ every fibre, and the form of the induction on the torus.
     open onto the cone $\mu(x)+\operatorname{range}\Phi\times\mathfrak q^*$,
     and its fibres are products of a ball with a fibre of $\Phi$ inside a ball,
     preconnected by Tau Ceti's `isPreconnected_preimage_weightMomentMap_inter`.
-  This is local convexity in the sense below, at every point of a manifold
-  with a symplectic torus action and a moment map, compact or not.
-- **The local-to-global theorem is topology.** It is stated for a continuous
-  map `f : X → V` from a topological space to a finite-dimensional real normed
-  space, and knows nothing of manifolds. Its local hypothesis is a predicate,
-  `HasLocalConvexityAt f x`, made precise below; it is Bjorndahl–Karshon's
-  local convexity data together with local fibre connectedness, asked for on a
-  basis of neighbourhoods. The global hypotheses are those of their
-  Theorem 10 in this setting: `X` Hausdorff and connected, `f` proper.
+  With the cone as `C`, Tau Ceti's `exists_isConvexChart_inter_preimage_ball`
+  then gives a convexity chart around $x$, at every point of a manifold with a
+  symplectic torus action and a moment map, compact or not.
+- **The local-to-global theorem is Tau Ceti's.** The part defines no
+  predicate of local convexity: the local result is stated with Tau Ceti's
+  `IsConvexChart`, and the global one applies Tau Ceti's two `IsProperMap`
+  theorems, whose hypotheses (a preconnected Hausdorff source, a proper map,
+  a convexity chart around every point) are those of [BjorndahlKarshon2010],
+  Theorem 10, in this setting.
 - **The dual of the Lie algebra carries no norm.** Tau Ceti's moment maps take
   values in `Module.Dual ℝ (GroupLieAlgebra I G)`, which has no topology
   instance. The moment-map statements therefore compose $\mu$ with an arbitrary
@@ -159,61 +168,6 @@ every fibre, and the form of the induction on the torus.
   and reads the results for $-\mu$, negating images.
 
 ## Files
-
-### `Analysis/Convex/LocalToGlobal/Basic.lean`
-
-Local convexity of a map into a vector space. With `X` a topological space and
-`V` a finite-dimensional real normed space:
-
-```lean
-def HasLocalConvexityAt (f : X → V) (x : X) : Prop :=
-  ∀ N ∈ 𝓝 x, ∃ U ⊆ N, IsOpen U ∧ x ∈ U ∧ ∃ C : Set V,
-    Convex ℝ C ∧ (∀ v ∈ C, ∀ t : ℝ, 0 ≤ t → f x + t • (v - f x) ∈ C) ∧
-    f '' U ⊆ C ∧ (∀ W ⊆ U, IsOpen W → ∀ y ∈ W, f '' W ∈ 𝓝[C] f y) ∧
-    ∀ v, IsPreconnected (U ∩ f ⁻¹' {v})
-```
-
-that is, arbitrarily small open neighbourhoods $U$ of $x$ on which $f$ is an
-open map into a convex cone with apex $f(x)$ and has preconnected fibres. API:
-
-- `hasLocalConvexityAt_def` (by `(rfl)`);
-- `HasLocalConvexityAt.continuousLinearEquiv_comp` and the `iff` form
-  `hasLocalConvexityAt_continuousLinearEquiv_comp_iff`, for
-  `e : V ≃L[ℝ] V'`, and the same for a translation `f + const`;
-- `HasLocalConvexityAt.comp_homeomorph` (a homeomorphism of sources), and
-  restriction to an open subset, `HasLocalConvexityAt.restrict_isOpen`;
-- `hasLocalConvexityAt_const` and the example
-  `TauCeti.hasLocalConvexityAt_weightMomentMap_zero`: the weight model has
-  local convexity at `0`, with the invariant balls around `0` as the
-  neighbourhoods and its image as the cone, from
-  `image_mem_nhdsWithin_range_weightMomentMap` and
-  `isPreconnected_preimage_weightMomentMap_inter`. The point `0` is all that
-  the later files use.
-
-Its module docstring cites [BjorndahlKarshon2010].
-
-### `Analysis/Convex/LocalToGlobal/Proper.lean`
-
-The local-to-global theorem ([BjorndahlKarshon2010], Theorem 10):
-
-```lean
-theorem convex_range_of_isProperMap [T2Space X] [ConnectedSpace X]
-    {f : X → V} (hf : IsProperMap f) (h : ∀ x, HasLocalConvexityAt f x) :
-    Convex ℝ (range f)
-
-theorem isPreconnected_preimage_singleton_of_isProperMap
-    [T2Space X] [ConnectedSpace X] {f : X → V} (hf : IsProperMap f)
-    (h : ∀ x, HasLocalConvexityAt f x) (v : V) :
-    IsPreconnected (f ⁻¹' {v})
-```
-
-The building issue follows Bjorndahl–Karshon's proof, which generalizes the
-Tietze–Nakajima theorem that a closed connected locally convex subset of a
-vector space is convex. If it finds that their Theorem 10 needs a hypothesis that
-`HasLocalConvexityAt` does not give, it strengthens the predicate (it has no
-other users yet) rather than weakening the conclusion, and corrects this file.
-This file may need more than one issue: the quotient and its induced map can
-go first, in the same file or in a sibling, as the building issue decides.
 
 ### `Geometry/Symplectic/Manifold/FixedComponent.lean`
 
@@ -246,13 +200,15 @@ by `I'` on a finite-dimensional space, `σ.IsSymplectic`, `hG` as above, and
 `h : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) μ`:
 
 ```lean
-theorem TauCeti.SmoothTwoForm.IsMomentMap.hasLocalConvexityAt
+theorem TauCeti.SmoothTwoForm.IsMomentMap.exists_isConvexChart
     (h : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) μ) (hσ : σ.IsSymplectic)
     (hG : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
       (ContMDiffSMul.contMDiff_const_smul (I := I) g) σ = σ)
     (e : Module.Dual ℝ (GroupLieAlgebra I G) ≃ₗ[ℝ] V) (x : M) :
-    HasLocalConvexityAt (e ∘ μ) x
+    ∃ U, x ∈ U ∧ TauCeti.IsConvexChart (e ∘ μ) U
 ```
+
+with `V` a finite-dimensional real normed space.
 
 The proof is the one under *Decisions*. Its steps, each a lemma of the file
 unless Mathlib or Tau Ceti has it:
@@ -269,15 +225,17 @@ unless Mathlib or Tau Ceti has it:
 4. the change of the weight-zero coordinates by the inverse function theorem
    (`HasStrictFDerivAt.toOpenPartialHomeomorph`), and the product form of
    $\mu$;
-5. local convexity of the product form, from
+5. a convexity chart of the product form, from
    `image_mem_nhdsWithin_range_weightMomentMap`,
-   `isPreconnected_preimage_weightMomentMap_inter` and the API of
-   `LocalToGlobal/Basic.lean`.
+   `isPreconnected_preimage_weightMomentMap_inter` and
+   `exists_isConvexChart_inter_preimage_ball`, with the cone
+   $\mu(x)+\operatorname{range}\Phi\times\mathfrak q^*$ as `C`.
 
 If step 4 or 5 grows, the product form can go first, as a separate lemma about
 a map $(u,w,z_+)\mapsto(\Phi(z_+),u)$ with no moment map in it. The file cites
 [BjorndahlKarshon2010], Proposition 29, and [Atiyah1982], §2, and credits Tau
-Ceti's `exists_weightModelChart` by name.
+Ceti's `exists_weightModelChart` and `exists_isConvexChart_inter_preimage_ball`
+by name.
 
 ### `Geometry/Symplectic/Hamiltonian/MomentMap/Convexity.lean`
 
@@ -285,11 +243,14 @@ The global results and the milestone. With `G` a torus acting smoothly on a
 compact connected boundaryless manifold, `σ.IsSymplectic` and `hG`:
 
 - `TauCeti.SmoothTwoForm.IsMomentMap.convex_range`: the image of $\mu$ is
-  convex. From `IsMomentMap.hasLocalConvexityAt` and `convex_range_of_isProperMap`
-  for `e ∘ μ` with `e` the equivalence of a basis (`isProperMap` of a
-  continuous map on a compact space), and `Convex.linear_image` for `e.symm`;
+  convex. From `IsMomentMap.exists_isConvexChart` and Tau Ceti's
+  `IsProperMap.convex_range_of_isConvexChart` for `e ∘ μ` with `e` the
+  equivalence of a basis (`Continuous.isProperMap` on a compact space), and
+  `Convex.linear_image` for `e.symm`;
 - `TauCeti.SmoothTwoForm.IsMomentMap.isConnected_preimage_singleton`: every
-  nonempty fibre is connected;
+  nonempty fibre is connected, from Tau Ceti's
+  `IsProperMap.isPreconnected_preimage_singleton_of_isConvexChart` in the same
+  way;
 - `TauCeti.SmoothTwoForm.IsMomentMap.range_eq_convexHull_image_fixedPoints`:
   `range μ = convexHull ℝ (μ '' MulAction.fixedPoints G M)`, from `convex_range`,
   Tau Ceti's `range_subset_convexHull_image_fixedPoints` and
@@ -340,16 +301,12 @@ The file cites [Atiyah1982], [McDuffSalamon2017], Theorem 5.5.1,
 
 In order; each waits only for those it names.
 
-1. **`Analysis/Convex/LocalToGlobal/Basic.lean`**: `HasLocalConvexityAt`, its
-   API and the weight-model example. Waits for nothing.
-2. **`Geometry/Symplectic/Manifold/FixedComponent.lean`**: the fixed
+1. **`Geometry/Symplectic/Manifold/FixedComponent.lean`**: the fixed
    components as symplectic submanifolds. Waits for nothing.
-3. **`Analysis/Convex/LocalToGlobal/Proper.lean`**: the local-to-global
-   theorem. Waits for issue 1. It may be split further, as said above.
-4. **`Geometry/Symplectic/Hamiltonian/MomentMap/LocalConvexity.lean`**: local
-   convexity of a torus moment map. Waits for issue 1.
-5. **`Geometry/Symplectic/Hamiltonian/MomentMap/Convexity.lean`**: convexity,
+2. **`Geometry/Symplectic/Hamiltonian/MomentMap/LocalConvexity.lean`**: local
+   convexity of a torus moment map. Waits for nothing.
+3. **`Geometry/Symplectic/Hamiltonian/MomentMap/Convexity.lean`**: convexity,
    connected fibres, the image as a convex hull, and the milestone. Waits for
-   issues 2, 3 and 4.
+   issues 1 and 2.
 
-Issues 1 and 2 can start at once, and 3 and 4 in parallel after 1.
+Issues 1 and 2 can start at once.
