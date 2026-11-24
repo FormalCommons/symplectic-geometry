@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
-import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
+import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
 # The product rule for functions with values in a normed algebra
@@ -18,9 +18,8 @@ this rule for `HasMFDerivAt` as `HasMFDerivAt.mul'`
 (`Mathlib/Geometry/Manifold/MFDeriv/SpecificFunctions.lean`); the lemma here is its form for
 `mvfderiv`, applied to a tangent vector.
 
-The proof writes the product as the bilinear map `ContinuousLinearMap.mul` applied to the two
-factors, and uses Tau Ceti's product rule `TauCeti.mvfderiv_clm_apply` for the application of a
-family of continuous linear maps.
+It is Tau Ceti's Leibniz rule `TauCeti.mvfderiv_smul_algebra`, for the algebra acting on itself by
+left multiplication, evaluated at a tangent vector.
 -/
 
 public section
@@ -41,10 +40,9 @@ theorem mvfderiv_fun_mul_apply' {p q : M → F} {x : M}
     (hp : MDifferentiableAt I 𝓘(𝕜, F) p x) (hq : MDifferentiableAt I 𝓘(𝕜, F) q x)
     (v : TangentSpace I x) :
     mvfderiv I (fun y ↦ p y * q y) x v = mvfderiv I p x v * q x + p x * mvfderiv I q x v := by
-  have hA : MDifferentiableAt I 𝓘(𝕜, F →L[𝕜] F) (ContinuousLinearMap.mul 𝕜 F ∘ p) x :=
-    (ContinuousLinearMap.mul 𝕜 F).mdifferentiableAt.comp x hp
-  have h := TauCeti.mvfderiv_clm_apply hA hq v
-  simp only [Function.comp_apply, ContinuousLinearMap.mul_apply'] at h
-  rw [h, (ContinuousLinearMap.mul 𝕜 F).mvfderiv_comp_apply hp, ContinuousLinearMap.mul_apply']
+  have h := congr($(TauCeti.mvfderiv_smul_algebra (𝕜' := F) hp hq) v)
+  rw [add_apply, smul_apply,
+    ContinuousLinearMap.smulRight_apply, smul_eq_mul, smul_eq_mul, add_comm] at h
+  exact h
 
 end SymplecticGeometry

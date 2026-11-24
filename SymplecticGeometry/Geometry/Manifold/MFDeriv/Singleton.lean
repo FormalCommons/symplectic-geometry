@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.MFDeriv.Tangent
 import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
+import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 
 /-!
 # Tangent coordinate changes and chart differentials when charts coincide
@@ -91,10 +92,8 @@ theorem mfderiv_chartAt_symm_eq_tangentCoordChange {x : M} {z : H}
   -- `M` carry different instances, though both are those of `E`; the sides agree by definition.
   have hv : v = tangentCoordChange I ((chartAt H x).symm z) x ((chartAt H x).symm z)
       (mfderiv I I (chartAt H x).symm z v) := congr($hcomp v)
-  have key : ∀ u : E, tangentCoordChange I x ((chartAt H x).symm z) ((chartAt H x).symm z)
-      (tangentCoordChange I ((chartAt H x).symm z) x ((chartAt H x).symm z) u) = u := fun u => by
-    rw [tangentCoordChange_comp ⟨⟨hpp, hpx⟩, hpp⟩, tangentCoordChange_self hpp]
-  have hk := key (mfderiv I I (chartAt H x).symm z v)
+  have hk := TauCeti.tangentCoordChange_tangentCoordChange hpp hpx
+    (mfderiv I I (chartAt H x).symm z v)
   rw [← hv] at hk
   exact hk.symm
 
