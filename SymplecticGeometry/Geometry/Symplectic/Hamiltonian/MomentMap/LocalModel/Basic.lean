@@ -221,8 +221,6 @@ theorem mpullback_prodMk_leftInvariantCovectorMapForm
       (ν p).leftInvariantKirillovForm := by
   rw [leftInvariantCovectorMapForm_def, map_add,
     mpullback_prodMk_mpullback_leftInvariantCovectorMap_symplecticForm hν,
-    SmoothForm.mpullback_mpullback_of_comp_eq _ contMDiff_snd contMDiff_const contMDiff_id
-      (f := fun g : G ↦ (g, p)) (f' := fun _ : G ↦ p) (g' := id) (funext fun _ ↦ rfl),
-    SmoothForm.mpullback_const, add_zero]
+    SmoothForm.mpullback_prodMk_left_mpullback_snd, add_zero]
 
 end SymplecticGeometry
