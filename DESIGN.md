@@ -3477,15 +3477,18 @@ Differential topology and complex analysis only; it waits for no part of
   bundles, and $P\times_{S^1}S^2$ trivial exactly for even Euler number,
   with the circle bundles and Euler numbers of the merged *First Chern
   number*); and `Geometry/Symplectic/RuledSurface.lean` (the sections
-  $B_k$, $H^2(X_B;\mathbb R)$ with the basis $b_\pm$ through the merged
-  Leray–Hirsch files, the intersection numbers, and the three parts of the
+  $B_k$, $H^2(X_B;\mathbb R)$ with the basis $b_\pm$ through a de Rham
+  Leray–Hirsch theorem, the intersection numbers, and the three parts of the
   milestone: the necessary condition, the $S^1$-invariant form of
   Exercise 6.2.6, and the form on $\widetilde B\times_\rho S^2$ of Exercise
   6.2.9 for positive genus).
-- **Builds on:** *Diffeomorphisms of the 2-sphere* (only `Smale.lean`,
-  for $\pi_0$ and $\pi_1$); *Symplectic fibrations* (only `Basic.lean`, for
-  oriented fibrations and compatible forms); the merged *First Chern
-  number* and the library's cohomology (`AlgebraicTopology/Cohomology/`).
+- **Builds on:** *Diffeomorphisms of the 2-sphere* (`ComplexStructure.lean`,
+  `Mobius.lean` and `Trivialization.lean`, for `diffPlus` and the Möbius
+  rotations, and `Smale.lean`, for $\pi_0$ and $\pi_1$); *Symplectic
+  fibrations* (only `Basic.lean`, for oriented fibrations and compatible
+  forms); *Principal connections* (only
+  `Fibration/Associated.lean`, for the form of Exercise 6.2.6); the merged
+  *First Chern number* and the library's de Rham cohomology.
 - **Milestones:** *Classification of oriented 2-sphere bundles over
   surfaces*, by clutching; *Symplectic classes on the nontrivial 2-sphere
   bundle over a surface*.
@@ -3554,7 +3557,7 @@ behind.
 | 2 | *Complex projective space* | *Complex submanifolds* (only for the corollary in `Kahler.lean`; the other files can start at once) |
 | 2 | *Compatible symplectic forms* | *Symplectic fibrations* (only `Basic.lean` and `HorizontalDistribution.lean`), *Minimal coupling* (only `RealChernClass.lean`); merged files of *Symplectic vector bundles*, *First Chern number*, *Moser isotopy* and *Smooth families* |
 | 2 | *Integration over the fibre* | *Symplectic fibrations* (only `StructureGroup.lean`) |
-| 2 | *Sphere bundles over surfaces* | *Diffeomorphisms of the 2-sphere* (only `Smale.lean`, for `Clutching.lean` and `Classification.lean`), *Symplectic fibrations* (only `Basic.lean`); the constructions of `RuledSurface.lean` can start once `Basic.lean` is merged |
+| 2 | *Sphere bundles over surfaces* | *Diffeomorphisms of the 2-sphere* (`ComplexStructure.lean` for `DeRham/SphereBundle.lean`; up to `Trivialization.lean` for `SphereBundle/Basic.lean` and the files after it; `Smale.lean` for `Clutching.lean` and `Classification.lean`), *Symplectic fibrations* (only `Basic.lean`), *Principal connections* (only `Fibration/Associated.lean`, for `RuledSurface.lean`); `Smoothing.lean` can start at once |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); *Moser isotopy* (only `Darboux/Strict.lean`, through `LocalDiffeomorph/MFDeriv.lean`, merged); the other files of the part can start at once |
 | 3 | *Coupling forms* | *Symplectic fibrations*, *Parallel transport*, *Integration over the fibre*, *Flux homomorphism* (only `Family.lean`), *Compatible symplectic forms* (only `Thurston.lean`, for `SimplyConnected.lean`); in `Curvature.lean`, the curvature identity and the local curvature formula wait only for *Symplectic fibrations* and *Parallel transport* (`Curvature.lean`), and the equivalence also waits for `Holonomy.lean` and *Flux homomorphism* (`Family.lean`) |
