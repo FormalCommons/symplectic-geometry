@@ -14,15 +14,15 @@ public import TauCeti.Geometry.Symplectic.Complex.CoordinateSpace
 
 For real weights `k : ι → ℝ`, the quadratic form `z ↦ Σⱼ kⱼ |zⱼ|²` on `ι → ℂ` arises in two ways:
 from Tau Ceti's standard symplectic form, as `z ↦ ω₀(z, (i kⱼ zⱼ)ⱼ)`, and, in the real coordinates
-`(Re zⱼ)ⱼ ⊔ (Im zⱼ)ⱼ` given by `TauCeti.complexToRealEuclidean`, as the weighted sum of squares in
+`(Re zⱼ)ⱼ ⊔ (Im zⱼ)ⱼ` given by `TauCeti.complexToRealPi`, as the weighted sum of squares in
 which `kⱼ` is attached to both `Re zⱼ` and `Im zⱼ`.
 
 ## Main results
 
 * `TauCeti.stdComplexPiSymplecticForm_apply_ofReal_mul_I_mul`:
   `ω₀(v, (i kⱼ vⱼ)ⱼ) = Σⱼ kⱼ |vⱼ|²`. It generalizes Tau Ceti's
-  `TauCeti.stdComplexPiBilin_apply_ofComplexModule`, the case of weights all `1`.
-* `TauCeti.weightedSumSquares_complexToRealEuclidean`: the weighted sum of squares with weights
+  `TauCeti.stdComplexPiSymplecticForm_apply_ofComplexModule`, the case of weights all `1`.
+* `TauCeti.weightedSumSquares_complexToRealPi`: the weighted sum of squares with weights
   `Sum.elim k k`, in the real coordinates of `v`, is `Σⱼ kⱼ |vⱼ|²`.
 -/
 
@@ -44,11 +44,11 @@ theorem stdComplexPiSymplecticForm_apply_ofReal_mul_I_mul (k : ι → ℝ) (v : 
 
 /-- In the real coordinates `(Re vⱼ)ⱼ ⊔ (Im vⱼ)ⱼ`, the weighted sum of squares with the weight `kⱼ`
 on both `Re vⱼ` and `Im vⱼ` is `Σⱼ kⱼ |vⱼ|²`. -/
-theorem weightedSumSquares_complexToRealEuclidean (k : ι → ℝ) (v : ι → ℂ) :
-    QuadraticMap.weightedSumSquares ℝ (Sum.elim k k) (complexToRealEuclidean ι v).ofLp =
+theorem weightedSumSquares_complexToRealPi (k : ι → ℝ) (v : ι → ℂ) :
+    QuadraticMap.weightedSumSquares ℝ (Sum.elim k k) (complexToRealPi ι v) =
       ∑ j, k j * Complex.normSq (v j) := by
   simp only [QuadraticMap.weightedSumSquares_apply, Fintype.sum_sum_type,
-    complexToRealEuclidean_apply, Sum.elim_inl, Sum.elim_inr, smul_eq_mul,
+    complexToRealPi_apply, Sum.elim_inl, Sum.elim_inr, smul_eq_mul,
     ← Finset.sum_add_distrib, Complex.normSq_apply]
   refine Finset.sum_congr rfl fun j _ ↦ ?_
   ring

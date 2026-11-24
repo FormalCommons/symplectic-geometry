@@ -9,15 +9,14 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
 import Mathlib.Analysis.Calculus.Deriv.Prod
 import Mathlib.LinearAlgebra.QuadraticForm.Signature
-import Mathlib.RingTheory.Complex
-import Mathlib.RingTheory.Norm.Transitivity
-import SymplecticGeometry.Algebra.Order.BigOperators.Ring.Finset
 import SymplecticGeometry.Geometry.Symplectic.Complex.CoordinateSpace
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.Basic
+import TauCeti.Algebra.Order.BigOperators.Ring.Finset
 import TauCeti.Analysis.Fourier.AddCircle
 import TauCeti.Data.Set.Card
 import TauCeti.Geometry.Manifold.GroupAction.TangentRepresentation
 import TauCeti.Geometry.Symplectic.Manifold.Invariants
+import TauCeti.LinearAlgebra.Complex.Determinant
 
 /-!
 # Weights of a circle action at a fixed point
@@ -46,16 +45,19 @@ symplectic form and the action of `t` to `zⱼ ↦ e^{2π i kⱼ t} zⱼ`.
   `TauCeti.SmoothTwoForm.IsNondegenerate.exists_continuousLinearEquiv_mfderiv_smul`, for the
   circle.
 * `SymplecticGeometry.prod_weights_eq`: two families of weights at the same point have the same
-  product. It is the case `Φ = L' ∘ L⁻¹` of the linear statement
-  `SymplecticGeometry.prod_eq_prod_of_intertwines_rotation`: a real-linear automorphism `Φ` of
-  `ℂ^ι` that preserves the standard symplectic form `ω₀` and conjugates the rotations with weights
-  `k` to those with weights `k'` gives `∏ⱼ kⱼ = ∏ⱼ k'ⱼ`. Differentiating at `t = 0`
-  (`SymplecticGeometry.map_mul_I_of_intertwines_rotation`), `Φ` conjugates `z ↦ (i kⱼ zⱼ)ⱼ` to
-  `z ↦ (i k'ⱼ zⱼ)ⱼ`. Their determinants `∏ⱼ kⱼ²` and `∏ⱼ k'ⱼ²` agree, which gives the absolute
-  values of the products, and `Φ` carries the quadratic form `z ↦ ω₀(z, (i kⱼ zⱼ)ⱼ)`, which is
-  `Σⱼ kⱼ |zⱼ|²`, to the one for `k'`, so by Sylvester's law of inertia
-  (`QuadraticForm.sigNeg_of_equiv_weightedSumSquares`) both families have as many negative
-  weights, which gives the signs.
+  product. Differentiating the rotations at `t = 0`
+  (`SymplecticGeometry.map_mul_I_of_intertwines_rotation`), `Φ = L' ∘ L⁻¹` conjugates
+  `z ↦ (i kⱼ zⱼ)ⱼ` to `z ↦ (i k'ⱼ zⱼ)ⱼ`, so the theorem is a case of the linear statement
+  `SymplecticGeometry.prod_eq_prod_of_map_mul_I`: a real-linear automorphism `Φ` of `ℂ^ι` that
+  preserves the standard symplectic form `ω₀` and conjugates these two maps gives
+  `∏ⱼ kⱼ = ∏ⱼ k'ⱼ`. The real determinants `∏ⱼ kⱼ²` and `∏ⱼ k'ⱼ²` of the two maps agree, which
+  gives the absolute values of the products, and `Φ` carries the quadratic form
+  `z ↦ ω₀(z, (i kⱼ zⱼ)ⱼ)`, which is `Σⱼ kⱼ |zⱼ|²`, to the one for `k'`, so by Sylvester's law of
+  inertia (`QuadraticForm.sigNeg_of_equiv_weightedSumSquares`) both families have as many negative
+  weights, which gives the signs. This sign step follows the proof of Tau Ceti's
+  `TauCeti.morseIndex_weightMomentMap_apply`, through
+  `TauCeti.equivalent_hessianQuadraticForm_weightMomentMap_apply`, for a linear conjugacy in
+  place of a Hessian.
 
 ## References
 
@@ -130,24 +132,20 @@ theorem map_mul_I_of_intertwines_rotation {k k' : ι → ℝ} (Φ : (ι → ℂ)
   simpa [map_smul, Real.pi_ne_zero] using h
 
 /-- **The product of the weights is determined by the rotations.** Let `Φ` be a real-linear
-automorphism of `ℂ^ι` that preserves the standard symplectic form `ω₀` and conjugates the rotation
-`z ↦ (e^{2π i kⱼ t} zⱼ)ⱼ` to `z ↦ (e^{2π i k'ⱼ t} zⱼ)ⱼ` for every real `t`. Then
-`∏ⱼ kⱼ = ∏ⱼ k'ⱼ`. -/
-theorem prod_eq_prod_of_intertwines_rotation {k k' : ι → ℝ} (Φ : (ι → ℂ) ≃L[ℝ] (ι → ℂ))
+automorphism of `ℂ^ι` that preserves the standard symplectic form `ω₀` and conjugates
+`z ↦ (i kⱼ zⱼ)ⱼ` to `z ↦ (i k'ⱼ zⱼ)ⱼ`. Then `∏ⱼ kⱼ = ∏ⱼ k'ⱼ`. -/
+theorem prod_eq_prod_of_map_mul_I {k k' : ι → ℝ} (Φ : (ι → ℂ) ≃L[ℝ] (ι → ℂ))
     (hω : ∀ v w, stdComplexPiSymplecticForm ι (Φ v) (Φ w) = stdComplexPiSymplecticForm ι v w)
-    (hrot : ∀ (t : ℝ) v, Φ (fun j ↦ Complex.exp (2 * π * k j * t * Complex.I) * v j) =
-      fun j ↦ Complex.exp (2 * π * k' j * t * Complex.I) * Φ v j) :
+    (hJ : ∀ v, Φ (fun j ↦ (k j * Complex.I) * v j) = fun j ↦ (k' j * Complex.I) * Φ v j) :
     ∏ j, k j = ∏ j, k' j := by
   classical
-  have hJ (v : ι → ℂ) : Φ (fun j ↦ (k j * Complex.I) * v j) = fun j ↦ (k' j * Complex.I) * Φ v j :=
-    map_mul_I_of_intertwines_rotation (Φ : (ι → ℂ) →L[ℝ] (ι → ℂ)) hrot v
-  refine Finset.prod_eq_prod_of_abs_eq ?_ ?_
-  · -- The determinant of `z ↦ (i kⱼ zⱼ)ⱼ` is `∏ⱼ kⱼ²`, and `Φ` conjugates the two maps.
+  -- The determinant of `z ↦ (i kⱼ zⱼ)ⱼ` is `∏ⱼ kⱼ²`, and `Φ` conjugates the two maps.
+  have habs : |∏ j, k j| = |∏ j, k' j| := by
     have hdet (k : ι → ℝ) : LinearMap.det
         ((Matrix.diagonal fun j ↦ (k j * Complex.I : ℂ)).toLin'.restrictScalars ℝ) =
           ∏ j, k j ^ 2 := by
-      rw [LinearMap.det_restrictScalars, LinearMap.det_toLin', Matrix.det_diagonal,
-        Algebra.norm_complex_apply, map_prod]
+      rw [LinearMap.det_restrictScalars_eq_normSq, LinearMap.det_toLin', Matrix.det_diagonal,
+        map_prod]
       simp [Complex.normSq_mul, _root_.sq]
     have hconj : (Φ.toLinearEquiv : (ι → ℂ) →ₗ[ℝ] (ι → ℂ)) ∘ₗ
         (Matrix.diagonal fun j ↦ (k j * Complex.I : ℂ)).toLin'.restrictScalars ℝ ∘ₗ
@@ -161,23 +159,21 @@ theorem prod_eq_prod_of_intertwines_rotation {k k' : ι → ℝ} (Φ : (ι → �
       ((Matrix.diagonal fun j ↦ (k j * Complex.I : ℂ)).toLin'.restrictScalars ℝ) Φ.toLinearEquiv
     rw [hconj, hdet, hdet, Finset.prod_pow, Finset.prod_pow] at h
     exact (sq_eq_sq_iff_abs_eq_abs _ _).1 h.symm
-  · -- By Sylvester's law of inertia, both counts are half the negative index of
-    -- `z ↦ ω₀(z, (i kⱼ zⱼ)ⱼ)`, which `Φ` carries to `z ↦ ω₀(z, (i k'ⱼ zⱼ)ⱼ)`.
-    -- The real coordinates `(Re zⱼ)ⱼ ⊔ (Im zⱼ)ⱼ` of `ℂ^ι`.
-    obtain ⟨C, hC⟩ : ∃ C : (ι → ℂ) ≃ₗ[ℝ] (ι ⊕ ι → ℝ),
-        ∀ v, C v = (complexToRealEuclidean ι v).ofLp :=
-      ⟨(complexToRealEuclidean ι).toLinearEquiv.trans (WithLp.linearEquiv 2 ℝ _), fun _ ↦ by simp⟩
+  -- By Sylvester's law of inertia, both counts are half the negative index of
+  -- `z ↦ ω₀(z, (i kⱼ zⱼ)ⱼ)`, which `Φ` carries to `z ↦ ω₀(z, (i k'ⱼ zⱼ)ⱼ)`, read in the real
+  -- coordinates `(Re zⱼ)ⱼ ⊔ (Im zⱼ)ⱼ` of `ℂ^ι`.
+  have hneg : (Finset.univ.filter (k · < 0)).card = (Finset.univ.filter (k' · < 0)).card := by
+    let C := (complexToRealPi ι).toLinearEquiv
     let e : (weightedSumSquares ℝ (Sum.elim k' k')).IsometryEquiv
         (weightedSumSquares ℝ (Sum.elim k k)) :=
       { (C.symm.trans Φ.toLinearEquiv.symm).trans C with
         map_app' x := by
           obtain ⟨u, rfl⟩ : ∃ u, C (Φ u) = x :=
             ⟨Φ.symm (C.symm x), by rw [Φ.apply_symm_apply, C.apply_symm_apply]⟩
-          simp only [LinearEquiv.toFun_eq_coe, LinearEquiv.trans_apply,
-            LinearEquiv.symm_apply_apply, ContinuousLinearEquiv.coe_symm_toLinearEquiv,
-            ContinuousLinearEquiv.symm_apply_apply]
-          rw [hC, hC, weightedSumSquares_complexToRealEuclidean,
-            weightedSumSquares_complexToRealEuclidean,
+          simp only [C, LinearEquiv.toFun_eq_coe, LinearEquiv.trans_apply,
+            ContinuousLinearEquiv.coe_symm_toLinearEquiv,
+            ContinuousLinearEquiv.symm_apply_apply, ContinuousLinearEquiv.coe_toLinearEquiv]
+          rw [weightedSumSquares_complexToRealPi, weightedSumSquares_complexToRealPi,
             ← stdComplexPiSymplecticForm_apply_ofReal_mul_I_mul,
             ← stdComplexPiSymplecticForm_apply_ofReal_mul_I_mul, ← hJ, hω] }
     have h := sigNeg_of_equiv_weightedSumSquares ⟨e⟩
@@ -185,6 +181,10 @@ theorem prod_eq_prod_of_intertwines_rotation {k k' : ι → ℝ} (Φ : (ι → �
       Set.ncard_setOf_sumElim k (· < 0)] at h
     rw [← Set.ncard_coe_finset, ← Set.ncard_coe_finset]
     simpa using (Nat.eq_of_mul_eq_mul_left two_pos h).symm
+  have h := Finset.prod_abs_eq_neg_one_pow_card_filter_neg_mul_prod Finset.univ k
+  rw [← Finset.abs_prod, habs, Finset.abs_prod,
+    Finset.prod_abs_eq_neg_one_pow_card_filter_neg_mul_prod, hneg] at h
+  exact ((isUnit_neg_one.pow _).mul_left_cancel h).symm
 
 end Linear
 
@@ -194,16 +194,20 @@ isomorphisms `L` and `L'`, have the same product: `∏ⱼ kⱼ = ∏ⱼ k'ⱼ`. 
 theorem prod_weights_eq {p : M} {k k' : Fin n → ℤ} {L L' : TangentSpace I p ≃L[ℝ] (Fin n → ℂ)}
     (h : IsTangentWeights σ p k L) (h' : IsTangentWeights σ p k' L') :
     ∏ j, k j = ∏ j, k' j := by
-  have key := prod_eq_prod_of_intertwines_rotation (k := fun j ↦ (k j : ℝ))
-    (k' := fun j ↦ (k' j : ℝ)) (L.symm.trans L') (fun v w ↦ ?_) (fun t v ↦ ?_)
+  have hrot (t : ℝ) (v : Fin n → ℂ) : (L.symm.trans L')
+      (fun j ↦ Complex.exp (2 * π * (k j : ℝ) * t * Complex.I) * v j) =
+        fun j ↦ Complex.exp (2 * π * (k' j : ℝ) * t * Complex.I) * (L.symm.trans L') v j := by
+    obtain ⟨u, rfl⟩ := L.surjective v
+    simp only [ContinuousLinearEquiv.trans_apply, Complex.ofReal_intCast]
+    rw [← h.2 t u, L.symm_apply_apply]
+    exact (congrArg L' (L.symm_apply_apply _)).trans (h'.2 t u)
+  have key := prod_eq_prod_of_map_mul_I (k := fun j ↦ (k j : ℝ))
+    (k' := fun j ↦ (k' j : ℝ)) (L.symm.trans L') (fun v w ↦ ?_)
+    (map_mul_I_of_intertwines_rotation (L.symm.trans L' : (Fin n → ℂ) →L[ℝ] (Fin n → ℂ)) hrot)
   · exact_mod_cast key
   · simp only [ContinuousLinearEquiv.trans_apply]
     refine (h'.1 _ _).symm.trans ((h.1 _ _).trans ?_)
     rw [L.apply_symm_apply, L.apply_symm_apply]
-  · obtain ⟨u, rfl⟩ := L.surjective v
-    simp only [ContinuousLinearEquiv.trans_apply, Complex.ofReal_intCast]
-    rw [← h.2 t u, L.symm_apply_apply]
-    exact (congrArg L' (L.symm_apply_apply _)).trans (h'.2 t u)
 
 variable [FiniteDimensional ℝ E] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
 
