@@ -87,8 +87,8 @@ differ.
   $\iota_X\sigma=df$, the book's sign, so the page's $X_H$ is Tau Ceti's
   field of $-H$. The page's statement that $\Omega_\Gamma(v_1,v_2)$ is the
   Hamiltonian field of $-\tau(v_1^\sharp,v_2^\sharp)$ reads, in Tau Ceti's
-  terms, that $\Omega_\Gamma(v_1,v_2)$ is a Hamiltonian vector field of
-  $\tau(v_1^\sharp,v_2^\sharp)$ restricted to the fibre. Statements below
+  terms, that on each fibre the restriction of $\tau(v_1^\sharp,v_2^\sharp)$
+  generates $\Omega_\Gamma(v_1,v_2)$ in Tau Ceti's sign. Statements below
   use Tau Ceti's predicate, so no sign is changed by hand.
 
 ## Decisions
@@ -106,8 +106,9 @@ These settle the points that part 53 of `DESIGN.md` leaves to this file.
   form, as fibrewise mean value zero of $\tau(v_1^\sharp,v_2^\sharp)$, which
   is equivalent to $\int_F\tau^{k+1}=0$ and does not depend on the chart.
   Normalized local forms agree on overlaps by uniqueness, so they glue.
-  The route through the Lie algebra of fibrewise symplectic vector fields
-  (Guillemin–Lerman–Sternberg, the book's second proof) is not taken.
+  The second route, Guillemin–Lerman–Sternberg's and the book's second
+  proof, which works with vector fields whose flows preserve the fibre
+  forms, is not taken.
 - **Exercises 6.4.4, 6.4.5 and 6.4.7 are not needed.** They serve only the
   second proof, which is not taken. What the chosen route needs from the
   curvature is the identity of Lemma 6.4.8 (in the page's form) and the
@@ -139,7 +140,7 @@ These settle the points that part 53 of `DESIGN.md` leaves to this file.
   zero-flux theorem is not needed. Conversely, if every holonomy around a
   disc is Hamiltonian, the isotopy is a path in $\mathrm{Ham}$, hence
   Hamiltonian by Proposition 10.2.12 (*Flux homomorphism*, `Family.lean`,
-  which rests on the countability of the flux group as the page's route
+  whose proof uses that the flux group is countable, as the page's route
   does). So the part uses `Family.lean` of *Flux homomorphism*, and
   `Kernel.lean` and `Countable.lean` only through it; `DESIGN.md` is
   corrected.
@@ -277,7 +278,7 @@ About 500 lines.
   the formula of the page's corrected hint to Exercise 6.4.9. Then
   `hasHamiltonianCurvature_iff_local`: the curvature is Hamiltonian exactly
   when, in every symplectic chart over a coordinate patch,
-  $\partial_i\alpha_j-\partial_j\alpha_i$ is exact on `F` for all `i j` at
+  every $\partial_i\alpha_j-\partial_j\alpha_i$ has a primitive on `F`, at
   every `x` (the page's 2 ⇔ 3).
 - `hasHamiltonianDiscHolonomy_of_hasHamiltonianCurvature` (2 ⇒ 1): for a
   symplectic connection with `π` proper, take a connection two-form `τ` for
@@ -361,8 +362,8 @@ turn.
   equal (the `β` of the previous item has `V • β = 0`).
 - `exists_isClosed_local` (local existence): in the setting of
   `LocalForm.lean`, over a coordinate patch `U` and with `σ` constant in
-  the chart, if $\partial_i\alpha_j-\partial_j\alpha_i$ is exact on `F` at
-  every `x`, there is a closed form on `U ×ˢ univ` with the same $\sigma$
+  the chart, if each $\partial_i\alpha_j-\partial_j\alpha_i$ has a primitive
+  on `F` at every `x`, there is a closed form on `U ×ˢ univ` with the same $\sigma$
   and $\alpha_i$. The functions $f_{ij}$ are the primitives of
   `exists_isSmoothFamily_mextDerivₗ_eq_of_degree_one` that vanish at a base
   point $y_0$. Closedness in the directions (fibre, fibre, base) is
