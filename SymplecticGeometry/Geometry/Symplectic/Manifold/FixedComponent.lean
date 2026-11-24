@@ -71,8 +71,6 @@ theorem isOpen_preimage_val_connectedComponentIn_fixedPoints
     IsOpen ((↑) ⁻¹' connectedComponentIn (fixedPoints K M) x :
       Set (fixedPointsOfFinrank 𝓘(ℝ, E) K M d)) := by
   have := locallyConnectedSpace_fixedPoints hK
-  have hsub : fixedPointsOfFinrank 𝓘(ℝ, E) K M d ⊆ fixedPoints K M :=
-    fun _ hy ↦ (mem_fixedPointsOfFinrank.1 hy).1
   -- The component is open in the fixed set, which is locally connected.
   have hopen : IsOpen ((↑) ⁻¹' connectedComponentIn (fixedPoints K M) x :
       Set (fixedPoints K M)) := by
@@ -81,7 +79,7 @@ theorem isOpen_preimage_val_connectedComponentIn_fixedPoints
         Subtype.val_injective.preimage_image]
       exact isOpen_connectedComponent
     · simp [connectedComponentIn_eq_empty hx]
-  exact hopen.preimage (continuous_inclusion hsub)
+  exact hopen.preimage (continuous_inclusion (fixedPointsOfFinrank_subset_fixedPoints d))
 
 namespace SmoothTwoForm
 
@@ -139,19 +137,12 @@ theorem IsNondegenerate.exists_isSymplecticSubmanifoldEmbedding_connectedCompone
   have hval : (Subtype.val : S → M) = ((Subtype.val : N → M) ∘ (Subtype.val : U → N)) ∘ φ := by
     rw [Homeomorph.coe_pullbackDiffeomorph]
     rfl
-  have hembS : IsSmoothEmbedding 𝓘(ℝ, L) 𝓘(ℝ, E) ∞ (Subtype.val : S → M) := by
-    rw [hval]
-    exact isSmoothEmbedding_comp_diffeomorph φ (hemb.isSmoothEmbedding.comp_subtypeVal U)
-  have hrangeS (y : S) :
-      LinearMap.range (mfderiv 𝓘(ℝ, L) 𝓘(ℝ, E) Subtype.val y).toLinearMap =
-        fixedTangentSubspace 𝓘(ℝ, E) G (y : M) := by
-    rw [hval, φ.range_mfderiv_comp_diffeomorph (by simp),
+  refine ⟨_, hmanS, ?_, fun y ↦ ?_⟩
+  · rw [hval, φ.isSymplecticSubmanifoldEmbedding_comp_diffeomorph_iff]
+    exact hemb.comp_subtype_val U
+  · rw [hval, φ.range_mfderiv_comp_diffeomorph (by simp),
       Manifold.range_mfderiv_comp_subtype_val]
     exact hrange _
-  refine ⟨_, hmanS, (isSymplecticSubmanifoldEmbedding_iff_of_isSmoothEmbedding hembS).2
-    (hasSymplecticTangentImages_iff_forall.2 fun y ↦ ?_), hrangeS⟩
-  rw [hrangeS y]
-  exact hσ.isSymplectic_fixedTangentSubspace hG hσG _
 
 end SmoothTwoForm
 
