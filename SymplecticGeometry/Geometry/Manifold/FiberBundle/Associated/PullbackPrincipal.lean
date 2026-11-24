@@ -49,6 +49,11 @@ is smooth by `TauCeti.AssociatedBundle.contMDiff_sectionFunction`; the section i
 since Tau Ceti's comparison `TauCeti.AssociatedBundle.pullbackHomeomorph` of `Q ×_G F` with the
 pull-back of `M` to `M` is smooth (`TauCeti.AssociatedBundle.contMDiff_pullbackHomeomorph_iff`).
 
+From `pullbackProjSection` on, the declarations take `[∀ b, Nonempty (P b)]`. Their statements
+need it, not only their proofs: Mathlib's and Tau Ceti's fibre bundle structure on the pull-back
+`Q` asks for it, and so does `pullbackEquiv`. A caller supplies it with
+`have := FiberBundle.nonempty_fiber G (E := P)`, since `G` is nonempty.
+
 ## References
 
 * S. Kobayashi and K. Nomizu, *Foundations of Differential Geometry*, Vol. I, Interscience, 1963,
