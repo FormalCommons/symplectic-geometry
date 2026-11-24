@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Symplectic.Manifold.EquivariantDarboux
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Logic.Equiv.PartialEquiv
 
 /-!
 # Equivariant Darboux parametrizations at a fixed point
@@ -84,20 +85,15 @@ theorem IsSymplectic.exists_equivariant_symplectomorphism_tangentSpace
     hform.exists_equivariant_darbouxChart (IG := IG) hG hp
   have h0 : (0 : E) ∈ chart.target := hc0 ▸ chart.map_source hpc
   have hsymm0 : chart.symm 0 = p := by rw [← hc0]; exact chart.left_inv hpc
-  refine ⟨chart.symm, h0, hsymm0, fun g u hu ↦ ?_, fun g x hx ↦ (hequiv g x hx).1,
-    fun u hu v w ↦ ?_⟩
-  · have hx : chart.symm u ∈ chart.source := chart.map_target hu
-    have hu' : chart (chart.symm u) = u := chart.right_inv hu
-    obtain ⟨hgx, hcg⟩ := hequiv g _ hx
-    rw [hu'] at hcg
-    rw [← hcg]
-    exact ⟨chart.map_source hgx, chart.left_inv hgx⟩
-  · have hdiff (a : E) :
-        mvfderiv I chart (chart.symm u) (mfderiv 𝓘(ℝ, E) I chart.symm u a) = a := by
-      rw [mvfderiv_apply_eq_mfderiv_apply]
-      exact chart.mfderiv_apply_mfderiv_symm_apply (by simp) hu a
-    refine (hform' (chart.symm u) (chart.map_target hu) _ _).trans ?_
-    rw [hdiff, hdiff]
+  refine ⟨chart.symm, h0, hsymm0,
+    fun g u hu ↦ chart.toPartialEquiv.symm_map_of_intertwines (hequiv g) hu,
+    fun g x hx ↦ (hequiv g x hx).1, fun u hu v w ↦ ?_⟩
+  have hdiff (a : E) :
+      mvfderiv I chart (chart.symm u) (mfderiv 𝓘(ℝ, E) I chart.symm u a) = a := by
+    rw [mvfderiv_apply_eq_mfderiv_apply]
+    exact chart.mfderiv_apply_mfderiv_symm_apply (by simp) hu a
+  refine (hform' (chart.symm u) (chart.map_target hu) _ _).trans ?_
+  rw [hdiff, hdiff]
 
 end SmoothTwoForm
 
