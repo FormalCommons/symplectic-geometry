@@ -10,7 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Foliation.Orbit
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.Level
 public import TauCeti.Geometry.Symplectic.Lagrangian.Manifold
 public import TauCeti.Geometry.Symplectic.Lagrangian.Presymplectic
-import SymplecticGeometry.Geometry.Manifold.Distribution.ConstantRank
+import SymplecticGeometry.Geometry.Manifold.Foliation.Constancy
 
 /-!
 # The zero level of a moment map: coisotropy and characteristic leaves
