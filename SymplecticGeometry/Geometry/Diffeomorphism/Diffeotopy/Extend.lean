@@ -11,7 +11,7 @@ public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Velocity
 import TauCeti.Geometry.Manifold.Diffeomorph.Extend
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.UnitInterval
-import TauCeti.Geometry.Diffeomorphism.Group
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 
 /-!
 # Moving a compactly supported diffeomorphism along a family of embeddings
@@ -37,9 +37,6 @@ then `Λ₀` and every `Φ_t` preserve `σ`
 * `TauCeti.SmoothIsotopy.exists_diffeotopy_comp_eq_extend_of_isSymplectic`: for a symplectic
   isotopy `G` and a diffeomorphism `Λ` preserving the form on `W`, `Λ₀` and every `Φ_t` preserve
   the form on `M`.
-* `TauCeti.SmoothForm.mem_diffeomorphStabilizer_of_semiconj`: a diffeomorphism `Ψ` of `M` with
-  `Ψ ∘ g = g ∘ Λ` for a local diffeomorphism `g` pulling `σ` back to `τ`, fixing every point
-  outside the compact image of `K`, preserves `σ` when `Λ` preserves `τ`.
 
 ## Implementation notes
 
@@ -55,10 +52,10 @@ diffeomorphism of `Φ` is `Ψ ∘ (id × Λ₀⁻¹)`. This adapts the proof of 
 `TauCeti.Diffeotopy.exists_extend_of_isCompact`, which moves a diffeotopy along one fixed
 embedding, to an embedding that moves with time.
 
-That a transplant `Ψ` preserves `σ` is checked at each point `x`. If `x = g w`, then
-`g^* Ψ^* σ = Λ^* g^* σ = τ = g^* σ` at `w`, and the differential of `g` at `w` is onto. Otherwise
-`x` lies outside the closed set `g '' K`, near which `Ψ` is the identity. The slice `Φ_t` is
-then the transplant `Φ_t ∘ Λ₀` composed with `Λ₀⁻¹`.
+That `Φ_t ∘ Λ₀` preserves `σ` follows from the lemma on transplants along the local diffeomorphism
+`G_t` (`TauCeti.SmoothForm.mem_diffeomorphStabilizer_of_semiconj`, in
+`Pullback/LocalDiffeomorph.lean`, with the closed set
+`G_t '' K`); the slice `Φ_t` is then `(Φ_t ∘ Λ₀) ∘ Λ₀⁻¹`.
 
 ## References
 
@@ -72,50 +69,6 @@ noncomputable section
 
 open Set Topology
 open scoped Manifold ContDiff
-
-namespace TauCeti.SmoothForm
-
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-  {H : Type*} [TopologicalSpace H] {I' : ModelWithCorners ℝ E H}
-  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
-  {H' : Type*} [TopologicalSpace H'] {I : ModelWithCorners ℝ E' H'}
-  {W : Type*} [TopologicalSpace W] [ChartedSpace H W]
-  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M]
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
-  [IsManifold I' 1 W] [IsManifold I 1 M]
-
-/-- **Transplants of symmetries.** Let `g : W → M` be a local diffeomorphism pulling `σ` back to
-`τ`, and `Λ` a diffeomorphism of `W` preserving `τ`. A diffeomorphism `Ψ` of `M` with
-`Ψ ∘ g = g ∘ Λ` that fixes every point outside `g '' K`, for a compact `K`, preserves `σ`. -/
-theorem mem_diffeomorphStabilizer_of_semiconj [T2Space M] {g : W → M}
-    (hg : IsLocalDiffeomorph I' I ∞ g) {τ : SmoothForm I' W F k} {σ : SmoothForm I M F k}
-    (hgσ : mpullback g hg.contMDiff σ = τ) {Λ : W ≃ₘ⟮I', I'⟯ W}
-    (hΛ : Λ ∈ diffeomorphStabilizer τ) {Ψ : M ≃ₘ⟮I, I⟯ M} (h : Function.Semiconj g Λ Ψ)
-    {K : Set W} (hK : IsCompact K) (hΨ : ∀ x ∉ g '' K, Ψ x = x) :
-    Ψ ∈ diffeomorphStabilizer σ := by
-  have hgσ' := congrArg Subtype.val hgσ
-  rw [coe_mpullback] at hgσ'
-  rw [mem_diffeomorphStabilizer_iff_forall]
-  intro x
-  by_cases hx : x ∈ range g
-  · -- On the range of `g`, compare the pullbacks along `g`, whose differential is onto.
-    obtain ⟨w, rfl⟩ := hx
-    rw [← mpullback_apply_eq_mpullback_apply_iff
-      ((hg.isInvertible_mfderiv (by simp) w).surjective),
-      ← mpullback_comp_at ((hg w).mdifferentiableAt (by simp))
-        (Ψ.contMDiff.mdifferentiable (by simp) _), ← h.comp_eq,
-      mpullback_comp_at (Λ.contMDiff.mdifferentiable (by simp) _)
-        ((hg (Λ w)).mdifferentiableAt (by simp)), hgσ',
-      mem_diffeomorphStabilizer_iff_forall.1 hΛ w]
-  · -- Off the range of `g`, `Ψ` is the identity near `x`, outside the closed set `g '' K`.
-    have hc : _root_.IsClosed (g '' K) := (hK.image hg.contMDiff.continuous).isClosed
-    have hx' : x ∉ g '' K := fun hx' ↦ hx (image_subset_range _ _ hx')
-    have hid : (Ψ : M → M) =ᶠ[𝓝 x] id :=
-      Filter.eventually_of_mem (hc.isOpen_compl.mem_nhds hx') hΨ
-    rw [hid.mpullback_eq, TauCeti.mpullback_id]
-
-end TauCeti.SmoothForm
-
 
 namespace TauCeti.SmoothIsotopy
 
@@ -229,23 +182,21 @@ theorem exists_diffeotopy_comp_eq_extend_of_isSymplectic [T2Space M] {g₀ g₁ 
       Λ₀ ∈ SmoothForm.diffeomorphStabilizer σ ∧
       ∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ := by
   obtain ⟨Λ₀, Φ, h₁, h₂, h₃⟩ := G.exists_diffeotopy_timeSlice_comp_eq_extend hGd Λ hK hΛ
-  -- `Φ_t ∘ Λ₀` is the transplant of `Λ` along `G_t`, so it preserves `σ`.
+  -- `Φ_t * Λ₀ = Φ_t ∘ Λ₀` is the transplant of `Λ` along `G_t`, so it preserves `σ`.
   have hΛt (t : unitInterval) :
-      Λ₀.trans (Φ.timeSlice t) ∈ SmoothForm.diffeomorphStabilizer σ :=
+      Φ.timeSlice t * Λ₀ ∈ SmoothForm.diffeomorphStabilizer σ :=
     SmoothForm.mem_diffeomorphStabilizer_of_semiconj (hGd t)
       (by rw [← Subtype.coe_inj, SmoothForm.coe_mpullback, isSymplectic_def.1 hG t]) hΛτ
-      (fun w ↦ by rw [Diffeomorph.coe_trans, Function.comp_apply, h₁]) hK
-      fun x hx ↦ by rw [Diffeomorph.coe_trans, Function.comp_apply, h₃ t x hx]
+      (fun w ↦ by rw [Diffeomorph.mul_def, Diffeomorph.coe_trans, Function.comp_apply, h₁])
+      (hK.image (hGd t).contMDiff.continuous).isClosed (image_subset_range _ _)
+      fun x hx ↦ by
+        rw [Diffeomorph.mul_def, Diffeomorph.coe_trans, Function.comp_apply, h₃ t x hx]
   have hΛ₀ : Λ₀ ∈ SmoothForm.diffeomorphStabilizer σ := by
     simpa [Φ.timeSlice_zero] using hΛt 0
   refine ⟨Λ₀, Φ, h₁, h₂, fun w ↦ ?_, fun x hx ↦ ?_, hΛ₀, fun t ↦ ?_⟩
   · simpa [Φ.timeSlice_zero] using h₁ 0 w
   · simpa [Φ.timeSlice_zero] using h₃ 0 x (by simpa using hx)
-  · have h : Φ.timeSlice t = Λ₀.trans (Φ.timeSlice t) * Λ₀⁻¹ := by
-      ext x
-      simp [Diffeomorph.mul_def, Diffeomorph.inv_def]
-    rw [h]
-    exact mul_mem (hΛt t) (inv_mem hΛ₀)
+  · exact (Subgroup.mul_mem_cancel_right _ hΛ₀).1 (hΛt t)
 
 end TauCeti.SmoothIsotopy
 
