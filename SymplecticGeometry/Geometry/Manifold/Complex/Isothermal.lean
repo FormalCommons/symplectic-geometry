@@ -45,10 +45,11 @@ smooth isothermal chart `e` at the image of the point
 (`TauCeti.Beltrami.exists_centered_smooth_isothermal_chart`), with smooth inverse, and `ψ` is
 `e ∘ Φ`.
 
-This construction adapts the proof of
-`TauCeti.SmoothAlmostComplexStructure.exists_isIsothermalChart`, in Tau Ceti's
+This construction adapts the proofs of Tau Ceti's private
+`TauCeti.SmoothAlmostComplexStructure.exists_smooth_isIsothermalChart` and
+`TauCeti.isIsothermalChart_trans_of_fderiv_comp`, in Tau Ceti's
 `TauCeti/Geometry/Manifold/Complex/Isothermal.lean`: the pushforward of `J` along a chart, its
-smoothness and square, the planar chart, and the equation from
+smoothness and square, the smooth planar chart on the target of the chart, and the equation from
 `TauCeti.ContMDiffAlmostComplexStructure.mfderiv_comp_toEndomorphism`. Here the model space is any
 real two-dimensional space with smooth charts, and the chart is a partial diffeomorphism.
 
