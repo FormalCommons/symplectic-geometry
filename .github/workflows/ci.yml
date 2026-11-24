@@ -128,15 +128,14 @@ jobs:
       # builds, the toolchain and the options are as they were for that
       # build, and builds every other file. Without a save it builds them
       # all. The cache workflow builds main from its source about once an
-      # hour.
+      # hour. GitHub looks for saves whose names begin with `key` before it
+      # looks at `restore-keys`, so the kind to prefer is in `key`.
       - name: restore main's build of the library
         uses: actions/cache/restore@v6
         with:
           path: .lake/build
-          key: ${{ steps.setup.outputs.build }}
-          restore-keys: |
-            ${{ steps.setup.outputs.build }}-inc-
-            ${{ steps.setup.outputs.build }}-
+          key: ${{ steps.setup.outputs.build }}-inc-
+          restore-keys: ${{ steps.setup.outputs.build }}-
       # --wfail fails the build on any warning, including a `sorry`.
       - name: build
         run: lake build --wfail

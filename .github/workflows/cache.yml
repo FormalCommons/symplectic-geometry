@@ -32,11 +32,16 @@ name: cache
 # began an hour ago or more, so about once an hour while pull requests merge,
 # and whenever a run is started by hand. The second job starts from the
 # latest build from source, or from the latest save that descends from it,
-# and from no other save, so the saves that CI restores do not descend from
-# an older build from source than the one before the latest. If the build
-# from source fails, nothing is saved, and the next run tries again. So a
-# run of this workflow that fails at the third job's build step says that
-# main does not build from its source.
+# so the saves that CI restores do not descend from an older build from
+# source than the one before the latest. While there is no build from source
+# for the current dependencies, as in the first runs after a move of Tau
+# Ceti, it starts from the latest save of any kind.
+#
+# If the build from source fails, it saves nothing, and the next run tries
+# again. So a run of this workflow that fails at the third job's build step
+# says that main does not build from its source. The second job then goes on
+# from the last build from source that succeeded, and warns in its log once
+# that build is more than three hours old.
 on:
   push:
     branches: [main]
@@ -46,14 +51,15 @@ permissions:
   contents: read
 
 # No job is cancelled once it runs, so a save that has begun always
-# finishes. Each job waits only for a running job of its own kind, and
-# GitHub keeps only the newest waiting one.
+# finishes. Each job waits only for a running job of its own kind on the
+# same branch, and GitHub keeps only the newest waiting one. A run started
+# by hand on another branch does not hold up main's.
 jobs:
   cache:
     runs-on: ubuntu-latest
     timeout-minutes: 180
     concurrency:
-      group: cache-dependencies
+      group: cache-dependencies-${{ github.ref }}
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
@@ -94,7 +100,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 150
     concurrency:
-      group: cache-library
+      group: cache-library-${{ github.ref }}
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
@@ -112,9 +118,9 @@ jobs:
           lookup-only: true
       # A save of this job is named after the build from source that it
       # descends from, then the commit and the run. It starts from the latest
-      # save with that name, or from the build from source itself. Before the
-      # first build from source, which is after a move of Tau Ceti, it starts
-      # from the latest save there is.
+      # save with that name, or from the build from source itself. While
+      # there is no build from source, it starts from the latest save there
+      # is.
       - name: name the save
         id: name
         env:
@@ -125,8 +131,11 @@ jobs:
             from=${SOURCE#"$BUILD-src-"}
             from=${from%%-*}
             printf '%s\n' "from=$from" 'restore<<END' "$BUILD-inc-$from-" "$BUILD-src-$from-" END >> "$GITHUB_OUTPUT"
+            if [[ $from =~ ^[0-9]+$ ]] && [ $(( $(date +%s) - from )) -ge 10800 ]; then
+              echo "::warning::The latest build of main from its source began $(( ($(date +%s) - from) / 60 )) minutes ago. See the job 'source' of the latest runs of this workflow."
+            fi
           else
-            printf '%s\n' 'from=none' 'restore<<END' "$BUILD-inc-none-" "$BUILD-" END >> "$GITHUB_OUTPUT"
+            printf '%s\n' 'from=none' "restore=$BUILD-" >> "$GITHUB_OUTPUT"
           fi
       - name: restore the latest build of the library
         uses: actions/cache/restore@v6
@@ -148,7 +157,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 150
     concurrency:
-      group: cache-source
+      group: cache-source-${{ github.ref }}
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
