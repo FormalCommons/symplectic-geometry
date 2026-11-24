@@ -230,10 +230,10 @@ review of #420 raise four more.
      $\nu_q=T_{f(q)}M/df(T_qL)$, is well defined and injective (its kernel
      consists of the classes of $w\in\xi\cap(df\,T_qL)^{d\alpha}=df\,T_qL$,
      because $L$ is Legendrian), hence bijective by dimension; these maps
-     form a smooth bundle isomorphism, by Tau Ceti's
-     `TauCeti.SmoothEmbedding.contMDiff_normalBundle_iff` and
-     `TauCeti.contMDiff_bundle_symm`, as in Tau Ceti's
-     `TauCeti.SmoothEmbedding.normalBundleDiffeomorphOfIsLagrangianMap`, and
+     form a smooth bundle isomorphism, Tau Ceti's
+     `TauCeti.SmoothEmbedding.normalSpaceEquivOfKer`, smooth by
+     `TauCeti.SmoothEmbedding.contMDiff_normalSpaceEquivOfKer` and
+     `TauCeti.contMDiff_bundle_symm`, and
      its inverse restricted to $T_q^*L\times\{0\}$ is a smooth, fibrewise
      linear, injective bundle map $j:T^*L\to\nu$. The tubular map is not the
      diffeomorphism of `TauCeti.SmoothEmbedding.exists_diffeomorph_normalBundle_subset`,
