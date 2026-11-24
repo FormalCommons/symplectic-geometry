@@ -645,10 +645,8 @@ theorem IsCircleConnectionForm.mpullback_apply_eq_mpullback_division_add
       TauCeti.mpullback IB (IB.prod (𝓡 1)) t
         (TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) θ circleAngularForm +
           TauCeti.mpullback (IB.prod (𝓡 1)) IB p (TauCeti.mpullback IB (IB.prod (𝓡 1))
-            (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) α.val)) x := by
-    ext v
-    rw [mpullback_apply, mpullback_apply, hloc]
-    rfl
+            (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) α.val)) x :=
+    mpullback_apply_congr hloc
   rw [h, mpullback_add, Pi.add_apply, ← mpullback_comp_at hτ hθd, hθt,
     ManifoldTotalSpace.mpullback_mpullback_proj_apply _ hτ]
 

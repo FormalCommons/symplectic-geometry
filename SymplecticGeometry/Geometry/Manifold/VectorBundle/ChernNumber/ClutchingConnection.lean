@@ -134,10 +134,8 @@ private theorem mpullback_eq_smul_of_eqOn_openDisc (φ : CoordinateDisc o)
       (hcoord.contMDiffAt (φ.isOpenEmbedding.isOpen_range.mem_nhds
         (mem_range_self z))).mdifferentiableAt (by simp)
     have h : mpullback 𝓘(ℝ, ℂ) (𝓡 2) φ f z = mpullback 𝓘(ℝ, ℂ) (𝓡 2) φ
-        (c • mpullback (𝓡 2) 𝓘(ℝ, ℂ) φ.coord (mextDeriv (radialAngularForm β))) z := by
-      ext v
-      rw [mpullback_apply, mpullback_apply, hdisc _ (φ.apply_mem_openDisc_iff.2 hz)]
-      rfl
+        (c • mpullback (𝓡 2) 𝓘(ℝ, ℂ) φ.coord (mextDeriv (radialAngularForm β))) z :=
+      mpullback_apply_congr (hdisc _ (φ.apply_mem_openDisc_iff.2 hz))
     rw [h, mpullback_smul, Pi.smul_apply, ← mpullback_comp_at (hφ z) hcx, hcomp]
   · -- outside the unit disc both sides vanish
     have hd : mextDeriv (radialAngularForm β) (z : ℂ) = 0 :=
