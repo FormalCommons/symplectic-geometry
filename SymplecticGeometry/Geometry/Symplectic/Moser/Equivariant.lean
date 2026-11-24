@@ -17,7 +17,8 @@ Let `σ` be a two-form and `β` a one-form on `N × M`, with slices `σ_t` and `
 `ρ : N × M → ℝ` be a cutoff. If a diffeomorphism `g` of `M` preserves every slice `σ_t` and `β_t`
 and every function `ρ(t, ·)`, then the cut-off Moser field `X_t = ρ(t, ·) (σ_t♭)⁻¹(-β_t)` of
 `SymplecticGeometry.moserField` is `g`-related to itself at every time: inverse flat maps are
-natural under diffeomorphisms (`TauCeti.SmoothTwoForm.mfderiv_flat_mpullback_inverse_apply`).
+natural under maps with invertible differential
+(`TauCeti.SmoothTwoForm.mfderiv_flat_mpullback_inverse_apply`).
 
 For `N = ℝ`, the time-dependent flow of a `C¹` Moser field then commutes with `g`, by the
 naturality of time-dependent flows (`Diffeomorph.apply_timeDependentFlowOf`, which applies Tau
@@ -83,13 +84,13 @@ theorem mfderiv_moserField (g : M ≃ₘ⟮I, I⟯ M) {t : N}
       (-SmoothForm.degreeOneEquiv βt (g x)) ∘L mfderiv I I g x := by
     ext v
     conv_lhs => rw [← hβ]
-    rw [neg_apply, ContinuousLinearMap.comp_apply,
-      neg_apply, SmoothForm.degreeOneEquiv_apply_apply,
-      SmoothForm.degreeOneEquiv_apply_apply, SmoothForm.mpullback_apply]
+    rw [neg_apply, ContinuousLinearMap.comp_apply, neg_apply,
+      SmoothForm.degreeOneEquiv_mpullback_apply]
   have key : mfderiv I I g x ((SmoothTwoForm.flat σt x).inverse (-SmoothForm.degreeOneEquiv βt x)) =
       (SmoothTwoForm.flat σt (g x)).inverse (-SmoothForm.degreeOneEquiv βt (g x)) := by
     conv_lhs => rw [← hσ]
-    rw [hc, SmoothTwoForm.mfderiv_flat_mpullback_inverse_apply]
+    rw [hc, SmoothTwoForm.mfderiv_flat_mpullback_inverse_apply g.contMDiff σt
+      ⟨g.mfderivToContinuousLinearEquiv (by simp) x, g.mfderivToContinuousLinearEquiv_coe _⟩]
   rw [moserField_def, moserField_def, map_smul, hρ]
   exact congrArg _ key
 
