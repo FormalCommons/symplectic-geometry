@@ -5,7 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.FiberBundle.Associated.Basic
+public import TauCeti.Geometry.Manifold.FiberBundle.Associated.Pullback
+public import TauCeti.Geometry.Manifold.FiberBundle.Associated.Section
 public import TauCeti.Geometry.Manifold.FiberBundle.Pullback.Basic
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
 
@@ -27,18 +28,23 @@ and the principal action of `G` on `Q` becomes the diagonal action `(x, v) · g 
   `ManifoldTotalSpace G P × F` onto the charted total space of `Q`.
 * `TauCeti.AssociatedBundle.pullbackProjDiffeomorph_apply` and
   `TauCeti.AssociatedBundle.pullbackProjDiffeomorph_symm_apply`: `Φ` and its inverse on points.
-* `TauCeti.AssociatedBundle.proj_pullbackProjDiffeomorph`: `π_Q ∘ Φ = q`.
+* `TauCeti.AssociatedBundle.proj_pullbackProjDiffeomorph`: `π_Q ∘ Φ = q`, at each point.
 * `TauCeti.AssociatedBundle.pullbackProjDiffeomorph_smul`: `Φ` is equivariant for the diagonal
   action on the source and the principal action on the target.
+* `TauCeti.AssociatedBundle.pullbackProjSection`: the tautological section `m ↦ m` of the
+  bundle `Q ×_G F` over `M`, and `TauCeti.AssociatedBundle.contMDiff_pullbackProjSection`:
+  it is `C^n`.
 
 ## Implementation notes
 
 The fibre of `Q` over `Φ (x, v)` is that of `P` over the projection of `[x, v]`, which is the base
 point of `x` only up to an equation (`TauCeti.ManifoldTotalSpace.homeomorph` does not unfold), so
-`Φ` transports `x` along it. The inverse is smooth since, in the trivialization `e` of `P` at the
-base point, the `w` with `[y, w] = m` is `(e y)₂⁻¹ • (e_M m)₂` for the corresponding chart `e_M`
-of `M` (`TauCeti.AssociatedBundle.trivializationAt_mk_snd`); the forward map is smooth by the
-universal property of the pull-back (`TauCeti.ManifoldTotalSpace.contMDiff_pullback_iff`).
+`Φ` transports `x` along it. The forward map is smooth by the universal property of the pull-back
+(`TauCeti.ManifoldTotalSpace.contMDiff_pullback_iff`). The second coordinate of the inverse is the
+equivariant function `TauCeti.AssociatedBundle.sectionFunction` of the tautological section, so it
+is smooth by `TauCeti.AssociatedBundle.contMDiff_sectionFunction`; the section itself is smooth
+since Tau Ceti's comparison `TauCeti.AssociatedBundle.pullbackHomeomorph` of `Q ×_G F` with the
+pull-back of `M` to `M` is smooth (`TauCeti.AssociatedBundle.contMDiff_pullbackHomeomorph_iff`).
 
 ## References
 
@@ -73,6 +79,7 @@ local notation "πM" => ManifoldTotalSpace.projContMDiffMap n F (AssociatedBundl
 /-- The pull-back `Q = π_M^* P` of `P` to the associated bundle. -/
 local notation "Q" => (πM : ManifoldTotalSpace F (AssociatedBundle G P F) → B) *ᵖ P
 
+variable (n IB IF) in
 /-- The point `([x, v], x)` of the total space of `Q`, before transport to its charted copy. -/
 def pullbackProjMk (x : ManifoldTotalSpace G P × F) : TotalSpace G Q :=
   ⟨ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
@@ -80,45 +87,79 @@ def pullbackProjMk (x : ManifoldTotalSpace G P × F) : TotalSpace G Q :=
       mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩,
     cast (congrArg P (by simp)) ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd⟩
 
+variable (n IB IF) in
 /-- The projection of `([x, v], x)` is the class `[x, v]`. -/
+@[simp]
 theorem pullbackProjMk_proj (x : ManifoldTotalSpace G P × F) :
-    (pullbackProjMk (n := n) (IB := IB) (IF := IF) x).proj =
+    (pullbackProjMk n IB IF x).proj =
       ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
         ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
           mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩ := (rfl)
 
+variable (n IB IF) in
 /-- The image of `([x, v], x)` in the total space of `P` is `x`. -/
+@[simp]
 theorem lift_pullbackProjMk (x : ManifoldTotalSpace G P × F) :
-    Pullback.lift πM (pullbackProjMk (n := n) (IB := IB) (IF := IF) x) =
-      (ManifoldTotalSpace.homeomorph G P).symm x.1 := by
+    Pullback.lift πM (pullbackProjMk n IB IF x) = (ManifoldTotalSpace.homeomorph G P).symm x.1 := by
   refine (Pullback.lift_mk _ _ _).trans ?_
   exact (TotalSpace.mk_cast (by simp) _).trans (TotalSpace.eta _)
 
-/-- For a point `(m, y)` of the total space of `Q`, the unique `w : F` with `[y, w] = m`. -/
-def pullbackProjFiber (z : TotalSpace G Q) : F :=
-  (Equiv.ofBijective _ (mk_bijective (F := F) (G := G) (Pullback.lift πM z).snd)).symm
-    ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm z.proj).snd
+variable [∀ b, Nonempty (P b)]
 
-/-- `pullbackProjFiber z` is the `w` with `[y, w] = m`, for `z = (m, y)`. -/
-theorem pullbackProjFiber_eq_iff (z : TotalSpace G Q) (w : F) :
-    pullbackProjFiber z = w ↔
+variable (n IB IF) in
+/-- The tautological section of the bundle associated with `Q` over `M`: at `m` it is `m`
+itself, read in the fibre of `Q ×_G F` over `m` through Tau Ceti's `pullbackEquiv`. -/
+def pullbackProjSection (m : ManifoldTotalSpace F (AssociatedBundle G P F)) :
+    AssociatedBundle G Q F m :=
+  (pullbackEquiv πM m).symm ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm m).snd
+
+variable (n IB IF) in
+/-- Read in the fibre of `M` over `π_M m`, the tautological section at `m` is `m`. -/
+@[simp]
+theorem pullbackEquiv_pullbackProjSection (m : ManifoldTotalSpace F (AssociatedBundle G P F)) :
+    pullbackEquiv πM m (pullbackProjSection n IB IF m) =
+      ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm m).snd :=
+  Equiv.apply_symm_apply _ _
+
+variable (n IB IF) in
+/-- The tautological section is `C^n`, as a map into the charted total space of `Q ×_G F`. -/
+theorem contMDiff_pullbackProjSection :
+    ContMDiff (IB.prod IF) ((IB.prod IF).prod IF) n fun m ↦
+      ManifoldTotalSpace.homeomorph F (AssociatedBundle G Q F)
+        ⟨m, pullbackProjSection n IB IF m⟩ := by
+  rcases isEmpty_or_nonempty F with hF | hF
+  · -- With `F` empty, so is `M`.
+    intro m
+    obtain ⟨-, w, -⟩ :=
+      exists_mk ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm m).snd
+    exact isEmptyElim w
+  refine (contMDiff_pullbackHomeomorph_iff πM).2 <|
+    (ManifoldTotalSpace.contMDiff_pullback_iff πM (πM).contMDiff).2
+      ⟨contMDiff_id.congr fun m ↦ by simp only [pullbackHomeomorph_apply, id], ?_⟩
+  refine contMDiff_id.congr fun m ↦ ?_
+  rw [pullbackHomeomorph_apply]
+  dsimp only
+  rw [pullbackEquiv_pullbackProjSection]
+  -- The image in `M` of `⟨m, a⟩` is `⟨π_M m, a⟩` by definition, and `π_M m` is the projection of
+  -- the point of `M` that `m` stands for; `Pullback.lift_mk` does not rewrite here.
+  exact (ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).apply_symm_apply m
+
+/-- The value of the tautological section at `z = (m, y)` is the `w` with `[y, w] = m`. -/
+private theorem sectionFunction_pullbackProjSection_eq_iff (z : TotalSpace G Q) (w : F) :
+    sectionFunction (pullbackProjSection n IB IF) z = w ↔
       (ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm z.proj =
-        ⟨(Pullback.lift πM z).proj, mk G (Pullback.lift πM z).snd w⟩ :=
-  (Equiv.symm_apply_eq _).trans <| eq_comm.trans <| TotalSpace.mk_inj.symm.trans <|
-    eq_comm.trans Iff.rfl
+        ⟨(Pullback.lift πM z).proj, mk G (Pullback.lift πM z).snd w⟩ := by
+  obtain ⟨m, y⟩ := z
+  rw [sectionFunction_eq_iff, ← (pullbackEquiv πM m).injective.eq_iff,
+    pullbackEquiv_pullbackProjSection, pullbackEquiv_mk πM m y w]
+  have key (t : TotalSpace F (AssociatedBundle G P F)) (a : AssociatedBundle G P F t.proj) :
+      a = t.snd ↔ t = ⟨t.proj, a⟩ := by
+    rw [eq_comm, ← TotalSpace.mk_inj (b := t.proj)]
+  -- The image of `⟨m, y⟩` in `P` is `⟨π_M m, y⟩` by definition, and `π_M m` is the projection
+  -- of the point of `M` that `m` stands for; `Pullback.lift_mk` does not rewrite here.
+  exact key _ _
 
-/-- In the trivialization `e` of `P` at a point `b₀`, over its base set, the `w` with
-`[y, w] = m` is `(e y)₂⁻¹ • (e_M m)₂`, for the chart `e_M` of the associated bundle at `b₀`. -/
-theorem pullbackProjFiber_eq_of_mem_baseSet (z : TotalSpace G Q) {b₀ : B}
-    (hb : πM z.proj ∈ (trivializationAt G P b₀).baseSet) :
-    pullbackProjFiber z = ((trivializationAt G P b₀ (Pullback.lift πM z)).2)⁻¹ •
-      (trivializationAt F (AssociatedBundle G P F) b₀
-        ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm z.proj)).2 := by
-  have hb' : (Pullback.lift πM z).proj ∈ (trivializationAt G P b₀).baseSet := hb
-  rw [(pullbackProjFiber_eq_iff z _).1 rfl, trivializationAt_mk_snd hb', TotalSpace.eta,
-    inv_smul_smul]
-
-variable [∀ b, Nonempty (P b)] [LieGroup IG n G] [ContMDiffSMul IG IF n G F]
+variable [LieGroup IG n G] [ContMDiffSMul IG IF n G F]
 
 variable (n IB IG IF) in
 /-- **`P × F` is the pull-back of `P` to the associated bundle.** The `C^n` diffeomorphism
@@ -127,15 +168,15 @@ variable (n IB IG IF) in
 def pullbackProjDiffeomorph :
     (ManifoldTotalSpace G P × F) ≃ₘ^n⟮(IB.prod IG).prod IF, (IB.prod IF).prod IG⟯
       ManifoldTotalSpace G Q where
-  toFun x := ManifoldTotalSpace.homeomorph G Q (pullbackProjMk x)
+  toFun x := ManifoldTotalSpace.homeomorph G Q (pullbackProjMk n IB IF x)
   invFun z :=
     (ManifoldTotalSpace.homeomorph G P
         (Pullback.lift πM ((ManifoldTotalSpace.homeomorph G Q).symm z)),
-      pullbackProjFiber ((ManifoldTotalSpace.homeomorph G Q).symm z))
+      sectionFunction (pullbackProjSection n IB IF) ((ManifoldTotalSpace.homeomorph G Q).symm z))
   left_inv x := by
     refine Prod.ext ?_ ?_
     · simp [lift_pullbackProjMk]
-    · refine (pullbackProjFiber_eq_iff _ _).2 ?_
+    · refine (sectionFunction_pullbackProjSection_eq_iff _ _).2 ?_
       rw [Homeomorph.symm_apply_apply, lift_pullbackProjMk, pullbackProjMk_proj,
         Homeomorph.symm_apply_apply]
   right_inv z := by
@@ -144,7 +185,7 @@ def pullbackProjDiffeomorph :
     congr 1
     refine Pullback.totalSpace_ext ?_ ?_
     · rw [pullbackProjMk_proj, Homeomorph.symm_apply_apply,
-        ← (pullbackProjFiber_eq_iff y _).1 rfl, Homeomorph.apply_symm_apply]
+        ← (sectionFunction_pullbackProjSection_eq_iff y _).1 rfl, Homeomorph.apply_symm_apply]
     · rw [lift_pullbackProjMk, Homeomorph.symm_apply_apply]
   contMDiff_toFun := by
     refine (ManifoldTotalSpace.contMDiff_pullback_iff πM (πM).contMDiff).2 ⟨?_, ?_⟩
@@ -152,49 +193,48 @@ def pullbackProjDiffeomorph :
     · simp only [lift_pullbackProjMk, Homeomorph.apply_symm_apply]
       exact contMDiff_fst
   contMDiff_invFun := by
-    refine (ManifoldTotalSpace.contMDiff_pullbackLift n IG πM (πM).contMDiff).prodMk fun z₀ ↦ ?_
-    set y₀ := (ManifoldTotalSpace.homeomorph G Q).symm z₀
-    set b₀ := πM y₀.proj
-    have hproj : ContMDiff ((IB.prod IF).prod IG) IB n
-        fun z ↦ πM ((ManifoldTotalSpace.homeomorph G Q).symm z).proj :=
-      (πM).contMDiff.comp (ManifoldTotalSpace.contMDiff_proj n G Q (IB.prod IF) IG)
-    -- The coordinate of the point of `P`, in the trivialization of `P` at `b₀`.
-    have hP := (ManifoldTotalSpace.contMDiffAt_trivializationAt_snd n IB IG
-      (ManifoldTotalSpace.homeomorph G P (Pullback.lift πM y₀))).comp z₀
-      (ManifoldTotalSpace.contMDiff_pullbackLift n IG πM (πM).contMDiff z₀)
-    -- The coordinate of the point of `M`, in the trivialization of `M` at `b₀`.
-    have hM := (ManifoldTotalSpace.contMDiffAt_trivializationAt_snd n IB IF y₀.proj).comp z₀
-      (ManifoldTotalSpace.contMDiff_proj n G Q (IB.prod IF) IG z₀)
-    simp only [Function.comp_def, Homeomorph.symm_apply_apply, Pullback.lift_proj] at hP hM
-    refine (hP.inv.smul hM).congr_of_eventuallyEq ?_
-    filter_upwards [hproj.continuous.continuousAt.preimage_mem_nhds
-      ((trivializationAt G P b₀).open_baseSet.mem_nhds (mem_baseSet_trivializationAt G P b₀))]
-      with z hz
-    exact pullbackProjFiber_eq_of_mem_baseSet _ hz
+    refine (ManifoldTotalSpace.contMDiff_pullbackLift n IG πM (πM).contMDiff).prodMk ?_
+    exact contMDiff_sectionFunction _ (contMDiff_pullbackProjSection n IB IF)
 
 /-- `Φ (x, v)` is the point `([x, v], x)`. -/
 theorem pullbackProjDiffeomorph_apply (x : ManifoldTotalSpace G P × F) :
     pullbackProjDiffeomorph n IB IG IF x =
-      ManifoldTotalSpace.homeomorph G Q (pullbackProjMk x) := (rfl)
+      ManifoldTotalSpace.homeomorph G Q (pullbackProjMk n IB IF x) := (rfl)
 
 /-- The inverse of `Φ` sends `(m, y)` to `(y, w)` with `[y, w] = m`. -/
 theorem pullbackProjDiffeomorph_symm_apply (z : ManifoldTotalSpace G Q) :
     (pullbackProjDiffeomorph n IB IG IF).symm z =
       (ManifoldTotalSpace.homeomorph G P
           (Pullback.lift πM ((ManifoldTotalSpace.homeomorph G Q).symm z)),
-        pullbackProjFiber ((ManifoldTotalSpace.homeomorph G Q).symm z)) := (rfl)
+        sectionFunction (pullbackProjSection n IB IF)
+          ((ManifoldTotalSpace.homeomorph G Q).symm z)) := (rfl)
 
 /-- **The projection of `Q` composed with `Φ` is the quotient map** `(x, v) ↦ [x, v]`. -/
-theorem proj_pullbackProjDiffeomorph :
-    (fun z : ManifoldTotalSpace G Q ↦ ((ManifoldTotalSpace.homeomorph G Q).symm z).proj) ∘
-        pullbackProjDiffeomorph n IB IG IF =
-      fun x : ManifoldTotalSpace G P × F ↦
-        ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
-          ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
-            mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩ := by
-  funext x
-  rw [Function.comp_apply, pullbackProjDiffeomorph_apply, Homeomorph.symm_apply_apply,
-    pullbackProjMk_proj]
+-- Not `@[simp]`: at a point `(homeomorph G P p, v)` it leaves a dependent pair that `simp` cannot
+-- reduce, where `proj_pullbackProjDiffeomorph_homeomorph` gives `[p, v]`.
+theorem proj_pullbackProjDiffeomorph (x : ManifoldTotalSpace G P × F) :
+    ((ManifoldTotalSpace.homeomorph G Q).symm (pullbackProjDiffeomorph n IB IG IF x)).proj =
+      ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
+        ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
+          mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩ := by
+  rw [pullbackProjDiffeomorph_apply, Homeomorph.symm_apply_apply, pullbackProjMk_proj]
+
+/-- The projection of `Φ (p, v)` is the class `[p, v]`, for a point `p` of the total space
+of `P`. -/
+@[simp]
+theorem proj_pullbackProjDiffeomorph_homeomorph (p : TotalSpace G P) (v : F) :
+    ((ManifoldTotalSpace.homeomorph G Q).symm
+        (pullbackProjDiffeomorph n IB IG IF (ManifoldTotalSpace.homeomorph G P p, v))).proj =
+      ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F) ⟨p.proj, mk G p.snd v⟩ := by
+  rw [proj_pullbackProjDiffeomorph, Homeomorph.symm_apply_apply]
+
+/-- The image of `Φ (p, v)` in the total space of `P` is `p`. -/
+@[simp]
+theorem lift_pullbackProjDiffeomorph_homeomorph (p : TotalSpace G P) (v : F) :
+    Pullback.lift πM ((ManifoldTotalSpace.homeomorph G Q).symm
+        (pullbackProjDiffeomorph n IB IG IF (ManifoldTotalSpace.homeomorph G P p, v))) = p := by
+  rw [pullbackProjDiffeomorph_apply, Homeomorph.symm_apply_apply, lift_pullbackProjMk,
+    Homeomorph.symm_apply_apply]
 
 /-- **`Φ` is equivariant**, for the diagonal action `(x, v) · g = (x · g, g⁻¹ • v)` on
 `P × F` and the principal action on `Q`. -/
@@ -211,6 +251,6 @@ theorem pullbackProjDiffeomorph_smul (g : G) (x : ManifoldTotalSpace G P × F) :
     -- `Pullback.lift` of a point `⟨m, s⟩` is `⟨πM m, s⟩` by definition; `Pullback.lift_mk` does not
     -- rewrite here, since the fibre of `Q` is not reducibly that of `P`.
     exact congrArg (fun y : TotalSpace G P ↦ (⟨y.proj, op g • y.snd⟩ : TotalSpace G P))
-      (lift_pullbackProjMk x).symm
+      (lift_pullbackProjMk n IB IF x).symm
 
 end TauCeti.AssociatedBundle
