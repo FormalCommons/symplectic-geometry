@@ -25,6 +25,10 @@ Ceti's `TauCeti/Geometry/Lie/FundamentalVectorField.lean`, put in the language o
 Ceti's namespace, beside `TauCeti.orbitTangent_fundamental_smul`, its analogue for the translation
 `y ↦ g • y` (which intertwines the actions only up to conjugation by `g`), so that they can move
 there unchanged.
+
+The file also has `TauCeti.InfinitesimalAction.coe_fundamental_toSectionLinearMap`: the smooth
+section `(InfinitesimalAction.fundamental I G I' M).toSectionLinearMap ξ` is, as a function, the
+fundamental vector field `fundamentalVectorField I' ξ`.
 -/
 
 public section
@@ -47,6 +51,13 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E
   {f : M → N} {x : M}
 
 namespace InfinitesimalAction
+
+/-- The smooth section of the tangent bundle given by the fundamental vector field of `ξ` is, as a
+function, that vector field. -/
+@[simp]
+theorem coe_fundamental_toSectionLinearMap (ξ : GroupLieAlgebra I G) :
+    ⇑((fundamental I G I' M).toSectionLinearMap ξ) = fundamentalVectorField I' ξ :=
+  funext fun x ↦ by rw [toSectionLinearMap_apply, fundamental_apply]
 
 /-- **Equivariant maps intertwine the infinitesimal actions.** If `f : M → N` is differentiable
 at `x` and `f (g • x) = g • f x` for every `g : G`, then composing the evaluation `ξ ↦ ξ_M(x)` of

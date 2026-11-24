@@ -434,7 +434,8 @@ bracket is negated.
   integration map (`Geometry/Manifold/SmoothSingular/DeRham.lean`). The
   real first Chern class of the vertical bundle is a de Rham class, built
   by Chern–Weil in *Compatible symplectic forms*, and compared with the
-  library's integral `SymplecticGeometry.Bundle.firstChernClass` there.
+  library's integral `SymplecticGeometry.Bundle.firstChernClass` there
+  over closed oriented surfaces, through Chern numbers.
 - **Diffeomorphism groups.** $\mathrm{Diff}(M)$ is Tau Ceti's `TauCeti.Diff`
   with the weak Whitney topology (`Diffeomorph.weakWhitneyTopology`,
   `Geometry/Diffeomorphism/Topology.lean`), which for a compact source is
@@ -446,10 +447,12 @@ bracket is negated.
   almost complex structures compatible with the orientation is the subtype
   of `TauCeti.SmoothAlmostComplexStructure` tamed by one area form, in Tau
   Ceti's `frameTopology`; on a surface the two conditions agree.
-- **Cotangent model of the Dehn twist.** The page's $T^*S^n$ is the
-  submanifold $\{|q|=1,\ \langle q,p\rangle=0\}$ of
-  $\mathbb R^{n+1}\times\mathbb R^{n+1}$, carrying
-  $\omega_{\mathrm{can}}=d\lambda_{\mathrm{can}}$. Tau Ceti's cotangent
+- **Cotangent model of the Dehn twist.** The page's $T^*S^n$, the set
+  $\{|q|=1,\ \langle q,p\rangle=0\}$ of
+  $\mathbb R^{n+1}\times\mathbb R^{n+1}$ with
+  $\omega_{\mathrm{can}}=d\lambda_{\mathrm{can}}$, is Tau Ceti's cotangent
+  bundle of the sphere, read in these coordinates through a smooth
+  injective map onto that set (`design/dehn-twists.md`). Tau Ceti's cotangent
   bundles carry $-d\lambda$, so the Lagrangian neighbourhood theorem of
   *Symplectic neighbourhoods* is composed with $(q,p)\mapsto(q,-p)$, as
   the page's formalization note says.
@@ -505,7 +508,7 @@ parallel transport, principal connections and fibre integrals of parts
 | Fibration with an atlas of structure group $H$; symplectic fibration; forms restricting to the fibre forms | `TauCeti.MapFiber.Atlas` with `IsContMDiff`; structure groups `TauCeti.MapFiber.Atlas.HasStructureGroup`, symplectic atlases, `TauCeti.MapFiber.Atlas.RestrictsTo` (see *Fibrations, connections and diffeomorphism groups*) | Tau Ceti, *Symplectic fibrations* |
 | Connection on a fibration, horizontal lift | `TauCeti.IsEhresmannConnection`, `horizontalLift` | Tau Ceti |
 | Parallel transport, holonomy, curvature of a connection | `TauCeti.IsEhresmannConnection.parallelTransport`, `curvature` | *Parallel transport* |
-| Connection 1-form on a principal bundle, its curvature | `SymplecticGeometry.IsConnectionForm`, `curvature` | *Principal connections* |
+| Connection 1-form on a principal bundle, its curvature | `SymplecticGeometry.IsConnectionForm`, `SymplecticGeometry.connectionCurvature` | *Principal connections* |
 | Flux, flux group, endpoint flux | `TauCeti.Diffeotopy.flux`, `TauCeti.fluxGroup`, `TauCeti.endpointFlux` | Tau Ceti |
 | Integration over the fibre | `TauCeti.MapFiber.Atlas.fiberIntegral` | *Integration over the fibre* |
 | Diffeomorphism group with the $C^\infty$ topology | `TauCeti.Diff` with `Diffeomorph.weakWhitneyTopology` | Tau Ceti |
@@ -3255,28 +3258,32 @@ Differential topology and complex analysis only; it waits for no part of
 
 ### 49. Compatible symplectic forms (needs `design/compatible-symplectic-forms.md`)
 
-- **Files:** in `Geometry/Symplectic/Fibration/`: `Thurston.lean` (a closed
-  extension $\tau$ of the fibre forms in a class $a$ with
+- **Files:** in `Geometry/Symplectic/Fibration/`: `ClosedExtension.lean` (a
+  closed extension $\tau$ of the fibre forms in a class $a$ with
   $\iota_b^*a=[\sigma_b]$, by the page's step 1, through the homotopy
   invariance `TauCeti.deRhamCohomology.map_eq_of_homotopy` on the preimage
-  of a contractible open set; then $\tau+K\pi^*\beta$ symplectic for large
-  $K$ on a compact $M$; and the converse, that a compatible form gives $a$),
+  of a contractible open set; and the converse, that a compatible form
+  gives $a$), `Thurston.lean` ($\tau+K\pi^*\beta$ symplectic for large
+  $K$ on a compact $M$, and the milestone),
   `ChernClass.lean` (the vertical bundle of a symplectic fibration as a
   symplectic vector bundle over $M$, with the merged `Subbundle.lean` and
-  `Symplectic/Basic.lean`; its real first Chern class as a de Rham class,
-  by Chern–Weil for the determinant line, natural under pull-back and equal
-  to the image of the library's `SymplecticGeometry.Bundle.firstChernClass`;
+  `Symplectic/Basic.lean`; its real first Chern class as a de Rham class;
   its restriction to a fibre is $c_1(TF_b)$; the criterion) and
-  `Surface.lean` (on an oriented fibration with closed connected surface
-  fibre, a smooth family of area forms of total area one, by convexity and
-  a partition of unity, made symplectic in each trivialization by Moser's
-  argument with a parameter, from the merged `Moser/Family.lean`; and
-  $c_1(TF)=\chi(F)/\mathrm{area}\cdot[\sigma]$ with $H^2(F;\mathbb R)\cong\mathbb R$,
-  from the merged Chern–Weil formula
-  `SymplecticGeometry.Bundle.chernNumber_eq_integral_curvature`).
+  `Surface.lean` (the surface milestone, with compatibility with the
+  orientation). The real first Chern class, built by Chern–Weil for the
+  determinant line, natural under pull-back, and compared with the
+  library's `SymplecticGeometry.Bundle.firstChernClass` only over closed
+  oriented surfaces, through Chern numbers; the formula
+  $c_1(TF)=\chi(F)/\mathrm{area}\cdot[\sigma]$; and the family of area
+  forms made symplectic by Moser's argument with a parameter in the base
+  (`Geometry/Symplectic/Moser/Parameter.lean`) are in files that the
+  design file gives.
 - **Builds on:** *Symplectic fibrations* (only `Basic.lean` and
-  `HorizontalDistribution.lean`); the merged *Symplectic vector bundles*, *First
-  Chern number* and *Moser isotopy*; Tau Ceti (de Rham cohomology and its
+  `HorizontalDistribution.lean`), *Minimal coupling* (only
+  `RealChernClass.lean`); the merged *Symplectic vector bundles*, *First
+  Chern number*, *Moser isotopy* and *Smooth families*
+  (`DeRham/SmoothFamily/GoodCover.lean`, which an issue of the design file
+  generalizes to a manifold parameter); Tau Ceti (de Rham cohomology and its
   homotopy invariance).
 - **Milestones:** *Thurston's theorem on symplectic fibrations*, *Chern
   class criterion for compatible symplectic forms*, *Symplectic forms on
@@ -3292,8 +3299,9 @@ Differential topology and complex analysis only; it waits for no part of
 ### 50. Principal connections (needs `design/principal-connections.md`)
 
 - **Files:** in `Geometry/Manifold/FiberBundle/Principal/`, beside the
-  merged `CircleConnection.lean` and `BasicForm.lean`: `Connection.lean`
-  (connection one-forms with values in `GroupLieAlgebra I G`,
+  merged `CircleConnection.lean` and `BasicForm.lean`: `Connection/`
+  (`Basic.lean`, `Existence.lean` and `Curvature.lean`: connection
+  one-forms with values in `GroupLieAlgebra I G`,
   `SymplecticGeometry.IsConnectionForm`: $A(p\xi)=\xi$ and
   $A_{pg}(vg)=\mathrm{Ad}(g^{-1})A_p(v)$; their horizontal spaces; existence
   over a paracompact base and the affine structure over
@@ -3356,11 +3364,9 @@ Differential topology and complex analysis only; it waits for no part of
   10.2.5, so that `TauCeti.endpointFlux` has kernel
   $\mathrm{Ham}$), `Countable.lean` (the flux group `TauCeti.fluxGroup` is
   countable, since the flux of a loop has periods among those of the
-  symplectic form on integral 2-classes), `Family.lean` (each smooth
+  symplectic form on integral 2-classes), and `Family.lean` (each smooth
   family in $\mathrm{Ham}$ has a time-dependent Hamiltonian generating it,
-  McDuff–Salamon, Proposition 10.2.12) and `Loop.lean` (the orbits
-  of a loop in $\mathrm{Ham}$ are null-homologous over $\mathbb R$,
-  Proposition 10.2.19).
+  McDuff–Salamon, Proposition 10.2.12).
 - **Builds on:** the merged *Hamiltonian flows*; Tau Ceti
   (`TauCeti.Diffeotopy.flux`, `flux_trans`, `fluxGroup`, `endpointFlux`,
   `mem_ker_endpointFlux_iff`,
@@ -3429,15 +3435,17 @@ Differential topology and complex analysis only; it waits for no part of
 
 ### 55. Dehn twists (needs `design/dehn-twists.md`)
 
-- **Files:** in `Geometry/Symplectic/DehnTwist/`: `Model.lean` (the
-  manifold $T=T^*S^n\subset\mathbb R^{n+1}\times\mathbb R^{n+1}$ with
-  $d\lambda_{\mathrm{can}}$; the normalized geodesic flow as the
-  Hamiltonian flow of $|p|$, from Tau Ceti's great circles
-  `TauCeti.isGeodesicCurve_sphereGreatCircle`; the model twist for $R$ with
+- **Files:** in `Geometry/Symplectic/DehnTwist/`: `Geodesic.lean` (the
+  manifold $T=T^*S^n$ with coordinates in
+  $\mathbb R^{n+1}\times\mathbb R^{n+1}$ and $d\lambda_{\mathrm{can}}$;
+  the normalized geodesic flow as the Hamiltonian flow of $|p|$, from Tau
+  Ceti's great circles `TauCeti.isGeodesicCurve_sphereGreatCircle`),
+  `Model.lean` (the model twist for $R$ with
   $R(-t)=R(t)-t$, its smoothness across the zero section through
-  $R(t)=t/2+E(t^2)$, its support, $O(n+1)$-equivariance, the primitive $K$
+  Whitney's theorem on even functions, its support, $O(n+1)$-equivariance,
+  the primitive $K$
   of $\tau^*\lambda-\lambda$, and the compactly supported Hamiltonian
-  isotopy between two models, with Tau Ceti's commuting Hamiltonian flows),
+  isotopy between two models, generated by $2\pi(R_1-R_0)(|p|)$),
   `Framing.lean` (framings of a Lagrangian sphere, as classes of
   parametrizations modulo isotopy and $O(n+1)$, with Tau Ceti's
   `TauCeti.orthogonalToDiffSphere`) and `Sphere.lean` (the twist along a
@@ -3448,8 +3456,7 @@ Differential topology and complex analysis only; it waits for no part of
   (`Neighborhood/Lagrangian.lean`), *Isotopy extension* and *Hamiltonian
   flows* (`Flux/CompactSupport.lean`); Tau Ceti (geodesics of the round
   sphere, the weak Whitney topology, isotopy classes of orthogonal maps of
-  a sphere in `Geometry/Diffeomorphism/Sphere/Isotopy.lean`, commuting
-  Hamiltonian flows).
+  a sphere in `Geometry/Diffeomorphism/Sphere/Isotopy.lean`).
 - **Milestones:** *Dehn twist along a framed Lagrangian sphere*. The
   remark that a Lagrangian 2-sphere has one framing, which uses Smale's
   theorem, is not part of the milestone, so the part does not wait for
@@ -3545,7 +3552,7 @@ behind.
 | 2 | *Isotopy extension* | *Hamiltonian flows* (only `DeRham/FamilyPrimitive.lean`, `Flux/Hamiltonian.lean` and `Flux/CompactSupport.lean`), *Smooth families* (only `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `DeRham/SmoothFamily/GoodCover.lean`), *Moser isotopy* (only `Moser/Field.lean`); the merged *Standard model* and *Linear Moser*; the issues of its design file that use none of these can start at once |
 | 2 | *Symplectic neighbourhoods* | *Moser isotopy* (only `Relative.lean`); *Symplectic vector spaces* (only `LinearAlgebra/Symplectic/Reduction.lean` and `LinearAlgebra/Symplectic/Subspace.lean`, which are merged); *Compatible complex structures* (only `LinearAlgebra/Symplectic/Compatible.lean`, which is merged); `CharacteristicFoliation.lean` and `AdaptedDarboux.lean` can start at once |
 | 2 | *Complex projective space* | *Complex submanifolds* (only for the corollary in `Kahler.lean`; the other files can start at once) |
-| 2 | *Compatible symplectic forms* | *Symplectic fibrations* (only `Basic.lean` and `HorizontalDistribution.lean`); merged files of *Symplectic vector bundles*, *First Chern number* and *Moser isotopy* |
+| 2 | *Compatible symplectic forms* | *Symplectic fibrations* (only `Basic.lean` and `HorizontalDistribution.lean`), *Minimal coupling* (only `RealChernClass.lean`); merged files of *Symplectic vector bundles*, *First Chern number*, *Moser isotopy* and *Smooth families* |
 | 2 | *Integration over the fibre* | *Symplectic fibrations* (only `StructureGroup.lean`) |
 | 2 | *Sphere bundles over surfaces* | *Diffeomorphisms of the 2-sphere* (only `Smale.lean`, for `Clutching.lean` and `Classification.lean`), *Symplectic fibrations* (only `Basic.lean`); the constructions of `RuledSurface.lean` can start once `Basic.lean` is merged |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
@@ -3747,9 +3754,9 @@ existing inputs.
 | Milestone | Where |
 |---|---|
 | *Fibrations with symplectic fibres are symplectic fibrations* | *Symplectic fibrations* (`SymplecticFibres.lean`), by parallel transport of *Parallel transport*. |
-| *Thurston's theorem on symplectic fibrations* | *Compatible symplectic forms* (`Thurston.lean`). Existing inputs: `TauCeti.deRhamCohomology.map_eq_of_homotopy`, `SmoothPartitionOfUnity`. |
-| *Chern class criterion for compatible symplectic forms* | *Compatible symplectic forms* (`ChernClass.lean`), on the merged `SymplecticGeometry.Bundle.firstChernClass`. |
-| *Symplectic forms on surface bundles with fibre genus different from one* | *Compatible symplectic forms* (`Surface.lean`), with the merged parametric Moser argument of `Moser/Family.lean`. |
+| *Thurston's theorem on symplectic fibrations* | *Compatible symplectic forms* (`Thurston.lean`, with step 1 in `ClosedExtension.lean`). Existing inputs of `ClosedExtension.lean`: `TauCeti.deRhamCohomology.map_eq_of_homotopy`, `SmoothPartitionOfUnity`. |
+| *Chern class criterion for compatible symplectic forms* | *Compatible symplectic forms* (`ChernClass.lean`), on the de Rham class `realFirstChernClass` of *Minimal coupling* for the determinant line. |
+| *Symplectic forms on surface bundles with fibre genus different from one* | *Compatible symplectic forms* (`Surface.lean`), with the parametric Moser argument of `Moser/Parameter.lean`. |
 | *Classification of oriented 2-sphere bundles over surfaces* | *Sphere bundles over surfaces* (`Classification.lean`), from *Smale's theorem on the diffeomorphism group of the 2-sphere*. Existing input: `TauCeti.specialOrthogonalGroupFundamentalGroupMulEquiv`. |
 | *Symplectic classes on the nontrivial 2-sphere bundle over a surface* | *Sphere bundles over surfaces* (`RuledSurface.lean`). |
 | *Weinstein's universal construction for associated symplectic fibrations* | *Principal connections* (`Fibration/Associated.lean`). Existing inputs: `TauCeti.AssociatedBundle.contMDiffFiberBundle`, `TauCeti.SmoothTwoForm.IsEquivariantMomentMap`. |
@@ -3897,11 +3904,12 @@ classification of 2-sphere bundles waits for them.
 - **Proof routes on `atlas/symplectic-fibrations.md`.** Where the page
   offers two routes, the library takes: parallel transport for
   *Fibrations with symplectic fibres are symplectic fibrations*, since
-  *Coupling forms* needs parallel transport anyway and the parametric Moser
-  theorem would have to depend smoothly on the base point; the elementary
+  *Coupling forms* needs parallel transport anyway; the elementary
   route through families of area forms for surface bundles of genus
   different from one, so that no principal bundle with an
-  infinite-dimensional structure group is built; the direct verification
+  infinite-dimensional structure group is built, at the price of a Moser
+  argument that depends smoothly on a parameter in the base
+  (`Geometry/Symplectic/Moser/Parameter.lean`); the direct verification
   for Weinstein's construction, which needs no reduction; and clutching for
   the classification of 2-sphere bundles, which needs Smale's theorem only
   for $\pi_0$ and $\pi_1$. The principal bundle with structure group
@@ -3911,8 +3919,9 @@ classification of 2-sphere bundles waits for them.
   in real cohomology, which it identifies with de Rham cohomology. Tau
   Ceti maps de Rham classes to singular ones but has no de Rham theorem
   back, so the library builds the real class directly as a de Rham class by
-  Chern–Weil and compares it with the integral class, instead of taking
-  the image of the integral class.
+  Chern–Weil, instead of taking the image of the integral class, and
+  compares the two only over closed oriented surfaces, through Chern
+  numbers.
 - **Diffeomorphisms of the 2-sphere.** The library takes the proof through
   the bundle over complex structures that the auxiliary page proposes, with
   the page's variant of step 1 that uses only the standard sphere, the
