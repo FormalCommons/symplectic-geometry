@@ -27,6 +27,10 @@ instance.
 * `Bundle.Trivialization.transFiberHomeomorph_baseSet`, `_source`, `_target`, `_symm_apply`: the
   base set, source, target and inverse of Mathlib's `Bundle.Trivialization.transFiberHomeomorph`,
   which composes a trivialization with a homeomorphism of the model fibre.
+* `Bundle.Trivialization.compHomeomorph_apply`, `_baseSet`, `_source`, `_target`, `_symm_apply`:
+  the map, base set, source, target and inverse of Mathlib's
+  `Bundle.Trivialization.compHomeomorph`, which precomposes a trivialization with a homeomorphism
+  of the total space.
 * `FiberBundle.changeModelFiber`: a fibre bundle with fibre `F` is a fibre bundle with fibre `F'`,
   its atlas being the image of the atlas with fibre `F`.
 
@@ -120,6 +124,37 @@ theorem transFiberHomeomorph_symm_apply (q : B × F') :
 
 end transFiberHomeomorph
 
+section compHomeomorph
+
+variable {B F Z Z' : Type*} [TopologicalSpace B] [TopologicalSpace F] [TopologicalSpace Z]
+  [TopologicalSpace Z'] {proj : Z → B} (e : Trivialization F proj) (h : Z' ≃ₜ Z)
+
+@[simp]
+theorem compHomeomorph_apply (x : Z') : e.compHomeomorph h x = e (h x) :=
+  (rfl)
+
+@[simp]
+theorem compHomeomorph_baseSet : (e.compHomeomorph h).baseSet = e.baseSet :=
+  (rfl)
+
+@[simp]
+theorem compHomeomorph_source : (e.compHomeomorph h).source = h ⁻¹' e.source :=
+  (rfl)
+
+@[simp]
+theorem compHomeomorph_target : (e.compHomeomorph h).target = e.target :=
+  (rfl)
+
+/-- The inverse of `e.compHomeomorph h` sends `x` to the image under `h.symm` of the image of `x`
+under the inverse of `e`. -/
+@[simp]
+theorem compHomeomorph_symm_apply (x : B × F) :
+    (e.compHomeomorph h).toOpenPartialHomeomorph.symm x =
+      h.symm (e.toOpenPartialHomeomorph.symm x) :=
+  (rfl)
+
+end compHomeomorph
+
 variable {B F F' : Type*} [TopologicalSpace B] [TopologicalSpace F] [TopologicalSpace F']
   {E : B → Type*} [TopologicalSpace (TotalSpace F E)] [TopologicalSpace (TotalSpace F' E)]
 
@@ -142,15 +177,12 @@ theorem changeModelFiber_symm_apply (q : B × F') :
     (t.changeModelFiber e h).toOpenPartialHomeomorph.symm q =
       (TotalSpace.modelFiberEquiv F F' E).symm
         (t.toOpenPartialHomeomorph.symm (q.1, e.symm q.2)) := by
-  rw [changeModelFiber, transFiberHomeomorph_symm_apply]
-  -- Mathlib states no lemma for the inverse of `Bundle.Trivialization.compHomeomorph`
-  rfl
+  rw [changeModelFiber, transFiberHomeomorph_symm_apply, compHomeomorph_symm_apply,
+    TotalSpace.coe_modelFiberHomeomorph_symm]
 
 @[simp]
 theorem baseSet_changeModelFiber : (t.changeModelFiber e h).baseSet = t.baseSet := by
-  rw [changeModelFiber, transFiberHomeomorph_baseSet]
-  -- Mathlib states no lemma for the base set of `Bundle.Trivialization.compHomeomorph`
-  rfl
+  rw [changeModelFiber, transFiberHomeomorph_baseSet, compHomeomorph_baseSet]
 
 end Bundle.Trivialization
 
