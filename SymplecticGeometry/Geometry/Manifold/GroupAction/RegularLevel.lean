@@ -45,9 +45,9 @@ and `P₀ = {x // f x = c}`:
 
 * `letI := TauCeti.regularLevelChartedSpace (fun x hx ↦ (hf x hx).of_le (by simp)) hreg hn`
   and `letI := SymplecticGeometry.levelOpMulAction c hinv`, the atlas and the action on `P₀`;
-* `haveI` for `TauCeti.isManifold_regularLevel`, `contMDiffSMul_levelOpMulAction`,
-  `ContMDiffSMul.continuousSMul`, `properSMul_levelOpMulAction` and
-  `isCancelSMul_levelOpMulAction`;
+* `haveI` for `TauCeti.isManifold_regularLevel (by simp) hf hreg hn`,
+  `contMDiffSMul_levelOpMulAction (by simp) hf hreg hn hinv`, `ContMDiffSMul.continuousSMul`,
+  `properSMul_levelOpMulAction` and `isCancelSMul_levelOpMulAction`;
 * then those of `GroupAction/PrincipalBundle.lean`:
   `letI := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ 𝓘(ℝ, Fin n → ℝ) P₀`,
   `letI := (orbitFiber.atlas IG G 𝓘(ℝ, Fin n → ℝ) P₀).fiberBundle`,
@@ -150,29 +150,31 @@ section Smooth
 
 attribute [local instance] MulOpposite.chartedSpace
 
-variable {EG : Type*} [NormedAddCommGroup EG] [NormedSpace ℝ EG]
-  {HG : Type*} [TopologicalSpace HG] {IG : ModelWithCorners ℝ EG HG}
+variable {𝕜 : Type*} [RCLike 𝕜] {m : ℕ∞ω}
+  {EG : Type*} [NormedAddCommGroup EG] [NormedSpace 𝕜 EG]
+  {HG : Type*} [TopologicalSpace HG] {IG : ModelWithCorners 𝕜 EG HG}
   {G : Type*} [TopologicalSpace G] [ChartedSpace HG G] [CommGroup G]
-  {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
-  {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
-  [MulAction G M] [ContMDiffSMul IG I ∞ G M]
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] [FiniteDimensional 𝕜 E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H} [I.Boundaryless]
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I m M]
+  [MulAction G M] [ContMDiffSMul IG I m G M]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] [FiniteDimensional 𝕜 F]
   {f : M → F} {c : F} {n : ℕ}
 
-/-- **The action on a regular level is smooth.** For the regular-level atlas of `{x // f x = c}`
-and the charts of `G` on `Gᵐᵒᵖ`, the right action `levelOpMulAction` of a commutative group `G`
-acting smoothly on `M` is smooth. -/
-theorem contMDiffSMul_levelOpMulAction (hf : ∀ x, f x = c → ContMDiffAt I 𝓘(ℝ, F) ∞ f x)
-    (hreg : IsRegularValue I 𝓘(ℝ, F) f c) (hn : Module.finrank ℝ E - Module.finrank ℝ F = n)
+/-- **The action on a regular level is `C^m`.** Let `1 ≤ m`. For the regular-level atlas of
+`{x // f x = c}` and the charts of `G` on `Gᵐᵒᵖ`, the right action `levelOpMulAction` of a
+commutative group `G` acting `C^m` on `M` is `C^m`. -/
+theorem contMDiffSMul_levelOpMulAction (hm : 1 ≤ m)
+    (hf : ∀ x, f x = c → ContMDiffAt I 𝓘(𝕜, F) m f x)
+    (hreg : IsRegularValue I 𝓘(𝕜, F) f c) (hn : Module.finrank 𝕜 E - Module.finrank 𝕜 F = n)
     (hinv : ∀ (g : G) (x : M), f (g • x) = f x) :
-    letI := regularLevelChartedSpace (fun x hx ↦ (hf x hx).of_le (by simp)) hreg hn
+    letI := regularLevelChartedSpace (fun x hx ↦ (hf x hx).of_le hm) hreg hn
     letI := levelOpMulAction c hinv
-    ContMDiffSMul IG 𝓘(ℝ, Fin n → ℝ) ∞ Gᵐᵒᵖ {x : M // f x = c} :=
-  letI := regularLevelChartedSpace (fun x hx ↦ (hf x hx).of_le (by simp)) hreg hn
+    ContMDiffSMul IG 𝓘(𝕜, Fin n → 𝕜) m Gᵐᵒᵖ {x : M // f x = c} :=
+  letI := regularLevelChartedSpace (fun x hx ↦ (hf x hx).of_le hm) hreg hn
   letI := levelOpMulAction c hinv
-  (isSmoothEmbedding_coe_regularLevel (by simp) hf hreg hn).contMDiffSMul
-    (contMDiff_unop IG ∞) fun g x ↦ coe_levelOpMulAction_smul hinv g x
+  (isSmoothEmbedding_coe_regularLevel hm hf hreg hn).contMDiffSMul
+    (contMDiff_unop IG m) fun g x ↦ coe_levelOpMulAction_smul hinv g x
 
 end Smooth
 
@@ -204,7 +206,7 @@ example
     letI := regularLevelChartedSpace (fun x hx ↦ (hf x hx).of_le (by simp)) hreg hn
     letI := levelOpMulAction c hinv
     haveI := isManifold_regularLevel (by simp) hf hreg hn
-    haveI := contMDiffSMul_levelOpMulAction hf hreg hn hinv (IG := IG)
+    haveI := contMDiffSMul_levelOpMulAction (by simp) hf hreg hn hinv (IG := IG)
     haveI := ContMDiffSMul.continuousSMul (I := IG) (I' := I) (G := G) (M := M) ∞
     haveI := properSMul_levelOpMulAction (c := c) hinv
     haveI := isCancelSMul_levelOpMulAction hinv hfree
@@ -235,7 +237,7 @@ example
   letI := regularLevelChartedSpace (fun x hx ↦ (hf x hx).of_le (by simp)) hreg hn
   letI := levelOpMulAction c hinv
   haveI := isManifold_regularLevel (by simp) hf hreg hn
-  haveI := contMDiffSMul_levelOpMulAction hf hreg hn hinv (IG := IG)
+  haveI := contMDiffSMul_levelOpMulAction (by simp) hf hreg hn hinv (IG := IG)
   haveI := ContMDiffSMul.continuousSMul (I := IG) (I' := I) (G := G) (M := M) ∞
   haveI := properSMul_levelOpMulAction (c := c) hinv
   haveI := isCancelSMul_levelOpMulAction hinv hfree
