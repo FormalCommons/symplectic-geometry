@@ -28,6 +28,10 @@ Every tangent vector of the interval is a real multiple of `1`, so continuous li
 tangent space of the interval agree when they agree on `1`
 (`ContinuousLinearMap.ext_tangentSpace_Icc`).
 
+Between two points `s` and `t` of `[x, y]`, the affine path `Set.Icc.lineMap s t`, from the
+unit interval, is smooth (`Set.Icc.contMDiff_lineMap`), and its derivative sends the unit vector
+to `t - s` times the unit vector (`Set.Icc.mfderiv_lineMap_one`).
+
 On the unit interval, the derivative of left multiplication `s ↦ T s` sends the unit vector at
 `t` to `T` times the unit vector at `T t` (`unitInterval.mfderiv_mul_left_one`).
 -/
@@ -83,6 +87,67 @@ theorem ContinuousLinearMap.ext_tangentSpace_Icc {F : Type*} [AddCommGroup F] [M
   ext1 v
   obtain ⟨r, hr⟩ : ∃ r : ℝ, mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc x y → ℝ) z v = r := ⟨_, rfl⟩
   rw [hv v r hr, map_smul, map_smul, h]
+
+namespace Set.Icc
+
+/-- The affine path `u ↦ s + u (t - s)` from `s` to `t` in a closed interval `[x, y]`, as a map
+from the unit interval. It stays in `[x, y]` by convexity. -/
+def lineMap (s t : Icc x y) (u : Icc (0 : ℝ) 1) : Icc x y :=
+  ⟨s + u * (t - s), by
+    obtain ⟨⟨hs₁, hs₂⟩, ⟨ht₁, ht₂⟩, ⟨hu₁, hu₂⟩⟩ :=
+      And.intro s.property (And.intro t.property u.property)
+    constructor <;> nlinarith⟩
+
+omit [Fact (x < y)] in
+@[simp]
+theorem coe_lineMap (s t : Icc x y) (u : Icc (0 : ℝ) 1) :
+    (lineMap s t u : ℝ) = s + u * (t - s) :=
+  (rfl)
+
+omit [Fact (x < y)] in
+@[simp]
+theorem lineMap_zero (s t : Icc x y) : lineMap s t 0 = s :=
+  Subtype.ext (by simp)
+
+omit [Fact (x < y)] in
+@[simp]
+theorem lineMap_one (s t : Icc x y) : lineMap s t 1 = t :=
+  Subtype.ext (by simp)
+
+/-- The affine path between two points of a closed interval is smooth, up to both ends. -/
+theorem contMDiff_lineMap (s t : Icc x y) : ContMDiff (𝓡∂ 1) (𝓡∂ 1) n (lineMap s t) := by
+  have hc : (Subtype.val : Icc x y → ℝ) ∘ lineMap s t =
+      (fun r : ℝ ↦ (s : ℝ) + r * ((t : ℝ) - s)) ∘ Subtype.val :=
+    funext fun u ↦ coe_lineMap s t u
+  refine contMDiff_iff_comp_subtypeVal_Icc.mpr ⟨Continuous.subtype_mk (by fun_prop) _, ?_⟩
+  rw [hc]
+  exact (contDiff_const.add (contDiff_id.mul contDiff_const)).contMDiff.comp
+    contMDiff_subtypeVal_Icc
+
+/-- The derivative of the affine path from `s` to `t` sends the unit tangent vector to `t - s`
+times the unit tangent vector. -/
+theorem mfderiv_lineMap_one (s t : Icc x y) (u : Icc (0 : ℝ) 1) :
+    mfderiv (𝓡∂ 1) (𝓡∂ 1) (lineMap s t) u 1 =
+      ((t : ℝ) - s) • (1 : TangentSpace (𝓡∂ 1) (lineMap s t u)) := by
+  have hc : (Subtype.val : Icc x y → ℝ) ∘ lineMap s t =
+      (fun r : ℝ ↦ (s : ℝ) + r * ((t : ℝ) - s)) ∘ Subtype.val :=
+    funext fun u ↦ coe_lineMap s t u
+  have hf : MDifferentiable 𝓘(ℝ) 𝓘(ℝ) fun r : ℝ ↦ (s : ℝ) + r * ((t : ℝ) - s) :=
+    (contDiff_const.add (contDiff_id.mul contDiff_const) :
+      ContDiff ℝ 1 fun r : ℝ ↦ (s : ℝ) + r * ((t : ℝ) - s)).contMDiff.mdifferentiable one_ne_zero
+  refine (TauCeti.isInvertible_mfderiv_subtypeVal_Icc (lineMap s t u)).injective ?_
+  rw [← mfderiv_comp_apply u (SymplecticGeometry.mdifferentiableAt_subtypeVal_Icc _)
+    ((contMDiff_lineMap (n := 1) s t).mdifferentiable one_ne_zero u), hc,
+    mfderiv_comp_apply u (hf _) (SymplecticGeometry.mdifferentiableAt_subtypeVal_Icc u),
+    mfderiv_subtypeVal_Icc_one, mfderiv_eq_fderiv, map_smul, mfderiv_subtypeVal_Icc_one]
+  simp only [fderiv_const_add, ContinuousLinearMap.comp_apply,
+    ContinuousLinearEquiv.coe_coe, fderiv_eq_smul_deriv, differentiableAt_fun_id,
+    differentiableAt_const, deriv_fun_mul, deriv_id'', one_mul, deriv_fun_sub, deriv_const',
+    sub_self, mul_zero, add_zero, smul_eq_mul]
+  -- The tangent spaces of `ℝ` are `ℝ` itself, through `NormedSpace.fromTangentSpace`.
+  exact (one_mul ((t : ℝ) - s)).trans (mul_one ((t : ℝ) - s)).symm
+
+end Set.Icc
 
 namespace unitInterval
 
