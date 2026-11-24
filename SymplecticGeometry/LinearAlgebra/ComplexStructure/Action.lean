@@ -7,6 +7,7 @@ module
 
 public import Mathlib.LinearAlgebra.UnitaryGroup
 public import TauCeti.Analysis.Matrix.EuclideanLin
+public import TauCeti.Data.Fin.Sum
 public import TauCeti.Geometry.Symplectic.Complex.OrthonormalBasis
 public import TauCeti.Geometry.Symplectic.Finrank
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
@@ -154,10 +155,9 @@ theorem exists_linearIsometryEquiv_transport_eq (J : AlmostComplexStructure V)
   have hΦ (i : Fin (2 * n)) : Φ (J (b i)) = J' (Φ (b i)) := by
     obtain ⟨k, hk⟩ :
         ∃ k : Fin n, i = ⟨2 * k.val, by omega⟩ ∨ i = ⟨2 * k.val + 1, by omega⟩ := by
-      refine ⟨⟨i / 2, by omega⟩, ?_⟩
-      rcases Nat.even_or_odd' i.val with ⟨m, hm | hm⟩
-      · exact Or.inl (Fin.ext (by simp; omega))
-      · exact Or.inr (Fin.ext (by simp; omega))
+      obtain ⟨k | k, rfl⟩ := (TauCeti.finSumFinInterleaveEquiv n).surjective i
+      · exact ⟨k, Or.inl (Fin.ext (TauCeti.val_finSumFinInterleaveEquiv_inl k))⟩
+      · exact ⟨k, Or.inr (Fin.ext (TauCeti.val_finSumFinInterleaveEquiv_inr k))⟩
     have e1 := b.equiv_apply_basis b' (Equiv.refl _) ⟨2 * k.val, by omega⟩
     have e2 := b.equiv_apply_basis b' (Equiv.refl _) ⟨2 * k.val + 1, by omega⟩
     rw [Equiv.refl_apply] at e1 e2

@@ -1104,7 +1104,7 @@ it into issues; the overview fixes its folders and its dependencies.
   two general facts it uses: the derivative of a path of skew forms is skew
   (`Analysis/Calculus/Deriv/ContinuousLinearMap.lean`), and the derivative of
   a path with locally constant square anticommutes with it
-  (`Analysis/Calculus/Deriv/Mul.lean`). Given nondegenerate
+  (Tau Ceti's `TauCeti.mul_fderiv_add_fderiv_mul_eq_zero`). Given nondegenerate
   forms $\omega_t$ on $V$ that depend smoothly on $t\in\mathbb{R}$, the first file builds
   invertible $\Psi_t$, smooth in $t$, starting at the identity and pulling
   each $\omega_t$ back to $\omega_0$: $\Psi_t$ solves $\dot\Psi_t=A_t\Psi_t$,

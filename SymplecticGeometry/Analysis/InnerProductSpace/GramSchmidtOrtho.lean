@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.InnerProductSpace.GramSchmidtOrtho
+public import TauCeti.Data.Fin.Sum
 import TauCeti.Analysis.InnerProductSpace.SkewSymmetric.Basic
 
 /-!
@@ -19,8 +20,9 @@ inputs before `i` is `J`-invariant, then Mathlib's Gram–Schmidt process gives
 when `J` also preserves norms (`InnerProductSpace.gramSchmidtNormed_eq_apply_gramSchmidtNormed`).
 
 For a complex structure `J` that is orthogonal for the inner product, applied to the inputs
-`u₀, J u₀, u₁, J u₁, …`, this says that the output has the form `e₀, J e₀, e₁, J e₁, …`
-(`InnerProductSpace.gramSchmidtNormed_two_mul_add_one`): the
+`u₀, J u₀, u₁, J u₁, …`, indexed through Tau Ceti's interleaving
+`TauCeti.finSumFinInterleaveEquiv`, this says that the output has the form
+`e₀, J e₀, e₁, J e₁, …` (`InnerProductSpace.gramSchmidtNormed_finSumFinInterleaveEquiv_inr`): the
 real Gram–Schmidt process is then a complex one. This is the step of the construction of
 Darboux frames in McDuff–Salamon, §2.6, that orthonormalizes a complex basis.
 
@@ -120,44 +122,42 @@ theorem gramSchmidtNormed_eq_apply_gramSchmidtNormed {J : E →ₗ[ℝ] E}
     map_smul]
 
 /-- Let `J` be skew-adjoint and norm-preserving, so that `J` is an orthogonal complex structure.
-Apply Gram–Schmidt to the inputs `u₀, J u₀, u₁, J u₁, …`, indexed by `Fin (2 * k)`. Then each
-output at an odd index `2 i + 1` is `J` applied to the output at `2 i`. -/
-theorem gramSchmidtNormed_two_mul_add_one {J : E →ₗ[ℝ] E} (hJ : ∀ u v, ⟪J u, v⟫ = -⟪u, J v⟫)
-    (hJn : ∀ v, ‖J v‖ = ‖v‖) {k : ℕ} (u : Fin k → E) (i : Fin k) :
-    gramSchmidtNormed ℝ (fun j : Fin (2 * k) ↦
-        if (j : ℕ) % 2 = 0 then u ⟨j / 2, by omega⟩ else J (u ⟨j / 2, by omega⟩))
-        ⟨2 * i + 1, by omega⟩ =
-      J (gramSchmidtNormed ℝ (fun j : Fin (2 * k) ↦
-        if (j : ℕ) % 2 = 0 then u ⟨j / 2, by omega⟩ else J (u ⟨j / 2, by omega⟩))
-        ⟨2 * i, by omega⟩) := by
-  set w : Fin (2 * k) → E := fun j ↦
-    if (j : ℕ) % 2 = 0 then u ⟨j / 2, by omega⟩ else J (u ⟨j / 2, by omega⟩)
+Apply Gram–Schmidt to the inputs `u₀, J u₀, u₁, J u₁, …`, indexed by `Fin (2 * k)` through the
+interleaving `TauCeti.finSumFinInterleaveEquiv k`. Then each output at an odd index `2 i + 1` is
+`J` applied to the output at `2 i`. -/
+theorem gramSchmidtNormed_finSumFinInterleaveEquiv_inr {J : E →ₗ[ℝ] E}
+    (hJ : ∀ u v, ⟪J u, v⟫ = -⟪u, J v⟫) (hJn : ∀ v, ‖J v‖ = ‖v‖) {k : ℕ} (u : Fin k → E)
+    (i : Fin k) :
+    gramSchmidtNormed ℝ (Sum.elim u (J ∘ u) ∘ (TauCeti.finSumFinInterleaveEquiv k).symm)
+        (TauCeti.finSumFinInterleaveEquiv k (.inr i)) =
+      J (gramSchmidtNormed ℝ (Sum.elim u (J ∘ u) ∘ (TauCeti.finSumFinInterleaveEquiv k).symm)
+        (TauCeti.finSumFinInterleaveEquiv k (.inl i))) := by
+  set e := TauCeti.finSumFinInterleaveEquiv k
+  set w : Fin (2 * k) → E := Sum.elim u (J ∘ u) ∘ e.symm
   -- `J` squares to `-1`, being skew-adjoint and orthogonal.
   have hJJ (v : E) : J (J v) = -v := by
     refine ext_inner_right ℝ fun x ↦ ?_
     have := LinearIsometry.inner_map_map (⟨J, hJn⟩ : E →ₗᵢ[ℝ] E) v x
     simp only [LinearIsometry.coe_mk] at this
     rw [hJ, this, inner_neg_left]
-  have hw (j : ℕ) (hj : j < k) :
-      w ⟨2 * j, by omega⟩ = u ⟨j, hj⟩ ∧ w ⟨2 * j + 1, by omega⟩ = J (u ⟨j, hj⟩) := by
-    have h₀ : (2 * j) / 2 = j := by omega
-    have h₁ : (2 * j + 1) / 2 = j := by omega
-    simp [w, h₀, h₁, Nat.mul_mod_right, Nat.add_mod]
+  have hw₀ (m : Fin k) : w (e (.inl m)) = u m := by simp [w]
+  have hw₁ (m : Fin k) : w (e (.inr m)) = J (u m) := by simp [w]
+  have he₀ (m : Fin k) : (e (.inl m) : ℕ) = 2 * m := TauCeti.val_finSumFinInterleaveEquiv_inl m
+  have he₁ (m : Fin k) : (e (.inr m) : ℕ) = 2 * m + 1 :=
+    TauCeti.val_finSumFinInterleaveEquiv_inr m
   refine gramSchmidtNormed_eq_apply_gramSchmidtNormed hJ hJn
-    (Fin.covBy_iff.2 (Nat.covBy_iff_add_one_eq.2 rfl)) ((hw i i.isLt).2.trans ?_) ?_
-  · rw [(hw i i.isLt).1]
+    (Fin.covBy_iff.2 (Nat.covBy_iff_add_one_eq.2 (by rw [he₀, he₁]))) ((hw₁ i).trans ?_) ?_
+  · rw [hw₀]
   -- The span of the inputs before `2 i` is `J`-invariant.
-  suffices h : w '' Iio ⟨2 * i, by omega⟩ ⊆
-      (span ℝ (w '' Iio ⟨2 * i, by omega⟩)).comap J from fun v hv ↦ span_le.2 h hv
-  rintro _ ⟨⟨j, hj⟩, hji, rfl⟩
-  simp only [mem_Iio, Fin.mk_lt_mk] at hji
-  obtain ⟨m, rfl | rfl⟩ := Nat.even_or_odd' j
-  · refine subset_span ⟨⟨2 * m + 1, by omega⟩, by simp only [mem_Iio, Fin.mk_lt_mk]; omega, ?_⟩
-    rw [(hw m (by omega)).1, (hw m (by omega)).2]
-  · have h : J (w ⟨2 * m + 1, hj⟩) = -w ⟨2 * m, by omega⟩ := by
-      rw [(hw m (by omega)).2, hJJ, (hw m (by omega)).1]
-    rw [SetLike.mem_coe, mem_comap, h]
-    exact neg_mem (subset_span ⟨⟨2 * m, by omega⟩, by simp only [mem_Iio, Fin.mk_lt_mk]; omega,
-      rfl⟩)
+  suffices h : w '' Iio (e (.inl i)) ⊆ (span ℝ (w '' Iio (e (.inl i)))).comap J from
+    fun v hv ↦ span_le.2 h hv
+  rintro _ ⟨j, hji, rfl⟩
+  obtain ⟨m | m, rfl⟩ := e.surjective j
+  · rw [mem_Iio, Fin.lt_def, he₀, he₀] at hji
+    refine subset_span ⟨e (.inr m), by rw [mem_Iio, Fin.lt_def, he₀, he₁]; omega, ?_⟩
+    rw [hw₀, hw₁]
+  · rw [mem_Iio, Fin.lt_def, he₁, he₀] at hji
+    rw [SetLike.mem_coe, mem_comap, hw₁, hJJ, ← hw₀]
+    exact neg_mem (subset_span ⟨e (.inl m), by rw [mem_Iio, Fin.lt_def, he₀, he₀]; omega, rfl⟩)
 
 end InnerProductSpace
