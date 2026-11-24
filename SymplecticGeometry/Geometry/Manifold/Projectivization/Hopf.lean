@@ -196,15 +196,13 @@ theorem mfderiv_mkNonzero_smul_self (v : TauCeti.puncturedSpace (Fin (n + 1) →
     funext a
     exact (mk_eq_mk_iff' 𝕜 _ _ _ _).2 ⟨a, rfl⟩
   have hderiv : mfderiv 𝓘(ℝ, 𝕜) 𝓘(ℝ, Fin (n + 1) → 𝕜) φ one c = c • (v : Fin (n + 1) → 𝕜) := by
-    have h₁ := TauCeti.Manifold.mfderiv_subtype_val_comp_apply (I := 𝓘(ℝ, Fin (n + 1) → 𝕜))
-      (J := 𝓘(ℝ, 𝕜)) (f := φ) (x := one) c
-    have h₂ := TauCeti.Manifold.mfderiv_comp_subtype_val_apply (I := 𝓘(ℝ, Fin (n + 1) → 𝕜))
-      (J := 𝓘(ℝ, 𝕜)) (f := fun a : 𝕜 ↦ a • (v : Fin (n + 1) → 𝕜)) (x := one) c
-    have h₃ : fderiv ℝ (fun a : 𝕜 ↦ a • (v : Fin (n + 1) → 𝕜)) 1 c = c • (v : Fin (n + 1) → 𝕜) := by
-      exact congrArg (fun L ↦ L c)
-        ((hasFDerivAt_id (𝕜 := ℝ) (1 : 𝕜)).smul_const (v : Fin (n + 1) → 𝕜)).fderiv
-    rw [mfderiv_eq_fderiv] at h₂
-    exact h₁.symm.trans (h₂.trans h₃)
+    -- `φ` is the restriction of `a ↦ a • v` to the punctured spaces.
+    have h := TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq (I := 𝓘(ℝ, 𝕜))
+      (I' := 𝓘(ℝ, Fin (n + 1) → 𝕜)) (A := fun a : 𝕜 ↦ a • (v : Fin (n + 1) → 𝕜))
+      (f := φ) (x := one) rfl c
+    rw [mfderiv_eq_fderiv] at h
+    exact h.trans <| congrArg (fun L ↦ L c)
+      ((hasFDerivAt_id (𝕜 := ℝ) (1 : 𝕜)).smul_const (v : Fin (n + 1) → 𝕜)).fderiv
   have h := TauCeti.mfderiv_apply_mfderiv_of_eventuallyEq_comp (Filter.EventuallyEq.of_eq hconst)
     ((contMDiff_mkNonzero 𝕜 n 1 (φ one)).mdifferentiableAt one_ne_zero)
     ((hφ one).mdifferentiableAt one_ne_zero) c
