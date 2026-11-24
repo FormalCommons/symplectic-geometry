@@ -3090,15 +3090,23 @@ Differential topology and complex analysis only; it waits for no part of
 `atlas/symplectic-fibrations.md`.
 
 - **Files:** in `Geometry/Manifold/Instances/OnePoint/CauchyRiemann/`:
-  `Basic.lean` (for $J\in\mathcal J$, the operator
-  $D_Js=\tfrac12(\nabla s+i\,\nabla s\circ J)$ on sections of the degree-one
-  line bundle $L=\mathcal O(1)$, Tau Ceti's `OnePoint.twistCore`, with a
-  fixed connection whose $(0,1)$-part for $i$ is its $\bar\partial$; the
-  identification of $\Lambda^{0,1}_J$ with $\Lambda^{0,1}_i$ by projection,
-  an isomorphism because $J\ne-i$ at every point), `Sobolev.lean` (the
-  Sobolev spaces $W^{k,2}$ of sections over the sphere, in which $D_J$ is a
-  bounded operator depending continuously on $J$ in the operator norm, and
-  elliptic regularity of its kernel), `Standard.lean` ($D_i$ is
+  `Basic.lean` (for $J\in\mathcal J$, the operator $D_J$ on sections of the
+  degree-one line bundle $L=\mathcal O(1)$, Tau Ceti's `OnePoint.twistCore`,
+  taken as Tau Ceti's real Cauchy–Riemann operator for $J$: the
+  $(0,1)$-part `TauCeti.SmoothAlmostComplexStructure.zeroOnePart` of a fixed
+  connection on $L$, a `TauCeti.IsRealCauchyRiemannOperator` by
+  `IsCovariantDerivativeOn.isRealCauchyRiemannOperator_zeroOnePart`; the
+  connection is chosen so that $D_i$ is the $\bar\partial$-operator of $L$;
+  the identification of $\Lambda^{0,1}_J$ with $\Lambda^{0,1}_i$ by
+  projection, an isomorphism
+  because $J\ne-i$ at every point), `Sobolev.lean` (only what Tau Ceti's
+  `Geometry/Manifold/VectorBundle/Sobolev/` lacks: its
+  `TauCeti.IsRealCauchyRiemannOperator.sobolevL` realizes an operator for
+  the fixed complex structure as a bounded map from `TauCeti.SobolevSection`
+  ($W^{1,p}$) to `TauCeti.zeroOneSobolevSections` ($L^p$); this file
+  realizes $D_J$ in these spaces for every $J$, shows that it depends
+  continuously on $J$ in the operator norm, and gives the elliptic
+  regularity of its kernel), `Standard.lean` ($D_i$ is
   surjective with kernel $H^0(\mathcal O(1))$ of dimension two, from Tau
   Ceti's `OnePoint.finrank_holomorphicTwistSections` and the solution of
   $\bar\partial$ on $(0,1)$-forms,
@@ -3107,7 +3115,8 @@ Differential topology and complex analysis only; it waits for no part of
   describes) and `Kernel.lean` (index two for all $J$, by Tau Ceti's
   `Continuous.index_eq_of_preconnectedSpace` on the connected $\mathcal
   J$; every nonzero element of $E_J=\ker D_J$ has exactly one zero, which
-  is simple, from integrability and local holomorphic frames; hence
+  is simple, from integrability and Tau Ceti's local holomorphic frames,
+  `Geometry/Manifold/VectorBundle/CauchyRiemann/HolomorphicFrame/`; hence
   $\dim E_J=2$ and $D_J$ onto; the spaces $E_J$ form a continuous rank-two
   family in $C^\infty(L)$, from
   `ContinuousLinearMap.IsFredholm.exists_continuousOn_ker_parametrization`).
@@ -3115,13 +3124,17 @@ Differential topology and complex analysis only; it waits for no part of
   `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`) and
   *Symplectic vector bundles* (contractibility of the tamed structures,
   which makes $\mathcal J$ connected); Tau Ceti (line bundles on
-  `OnePoint ℂ`, Fredholm families in `Analysis/Fredholm/`).
+  `OnePoint ℂ`, real Cauchy–Riemann operators and Sobolev sections in
+  `Geometry/Manifold/VectorBundle/`, Fredholm families in
+  `Analysis/Fredholm/`).
 - **Milestones:** none; it serves *Diffeomorphisms of the 2-sphere*.
-- **The design file decides:** the Sobolev spaces (Tau Ceti has none for
-  sections of bundles over a manifold; the merged
-  `DeRham/Hodge/Sobolev.lean` of *Hodge theory* builds $H^1$ forms by
-  completion, which may be reused), the form of elliptic regularity it
-  needs, and the zero count, which the page reduces to integrability, local
+- **The design file decides:** how $D_J$ for a varying $J$ meets Tau
+  Ceti's realization, which is for one complex structure (by the projection
+  of `Basic.lean`, or by `sobolevL` for the complex atlas that $J$
+  defines, with a comparison of the spaces); whether higher Sobolev orders
+  are needed or $W^{1,p}$ with Tau Ceti's Rellich and Morrey results
+  suffices; the form of elliptic regularity it needs; and the zero count,
+  which the page reduces to integrability, local
   solvability of $\bar\partial$ on a disc and the sum of indices of the
   zeros of a section, given by the merged
   `VectorBundle/ChernNumber/EulerNumber.lean`.
@@ -3520,7 +3533,7 @@ behind.
 | 2 | *Sphere bundles over surfaces* | *Diffeomorphisms of the 2-sphere* (only `Smale.lean`, for `Clutching.lean` and `Classification.lean`), *Symplectic fibrations* (only `Basic.lean`); the constructions of `RuledSurface.lean` can start once `Basic.lean` is merged |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); *Moser isotopy* (only `Darboux/Strict.lean`, through `LocalDiffeomorph/MFDeriv.lean`, merged); the other files of the part can start at once |
-| 3 | *Coupling forms* | *Symplectic fibrations*, *Parallel transport*, *Integration over the fibre*, *Flux homomorphism* (only `Kernel.lean` and `Countable.lean`), *Compatible symplectic forms* (only `Thurston.lean`, for `SimplyConnected.lean`); `Curvature.lean` waits only for *Symplectic fibrations* |
+| 3 | *Coupling forms* | *Symplectic fibrations*, *Parallel transport*, *Integration over the fibre*, *Flux homomorphism* (only `Kernel.lean` and `Countable.lean`), *Compatible symplectic forms* (only `Thurston.lean`, for `SimplyConnected.lean`); in `Curvature.lean`, the curvature identity and the local curvature formula wait only for *Symplectic fibrations*, and the equivalence also waits for *Parallel transport*, `Holonomy.lean` and *Flux homomorphism* (`Kernel.lean`, `Countable.lean`) |
 | 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles*; `Geometry/Manifold/DifferentialForm/Pullback/Family.lean` of *Moser isotopy*, which is merged |
 | 4 | *Adjunction* | *First Chern number* (only `FirstChernClass.lean`, `ChernNumber/Basic.lean` and `ChernNumber/Axioms.lean`); `NormalSpace/ComplexStructure.lean` and `NormalSplitting.lean` can start at once |
 | 4 | *Chern classes* | *First Chern number* (only `FirstChernClass.lean`, for the comparison of $c_1$); the other issues of its design file can start at once |
