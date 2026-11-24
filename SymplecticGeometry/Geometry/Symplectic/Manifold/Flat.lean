@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Symplectic.Lagrangian.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
 import TauCeti.Analysis.Normed.Module.Alternating.Curry
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
+import Mathlib.Geometry.Manifold.LocalDiffeomorph
 
 /-!
 # Inverse flat maps of covector fields
@@ -36,6 +37,8 @@ what makes the Moser flow fix `x` to first order ([McDuffSalamon2017], §3.2;
   `σ♭` is invertible, and
   `TauCeti.SmoothTwoForm.IsNondegenerate.interior_flat_inverse_ofSubsingleton`, the identity of
   rough one-forms for a nondegenerate `σ`.
+* `TauCeti.SmoothTwoForm.mfderiv_flat_mpullback_inverse_apply`: inverse flat maps commute with
+  diffeomorphisms, the form being pulled back and the covector composed with the differential.
 * `TauCeti.SmoothTwoForm.contMDiffAt_sectionAlong_flat_inverse_apply` and
   `TauCeti.SmoothTwoForm.contMDiffAt_flat_inverse_apply`: the field `(σ♭)⁻¹ c`, for a family of
   two-forms along a map or for one two-form, is smooth where `c` and the forms are and the flat
@@ -288,6 +291,43 @@ theorem contMDiff_flatComp_pullback (σ : SmoothTwoForm I M)
     ((σ.flatComp C).contMDiff.comp hf)
 
 end Pullback
+
+section Diffeomorph
+
+variable {E E' H H' M M' : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+  [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+  [TopologicalSpace M'] [ChartedSpace H' M'] [IsManifold I' ∞ M']
+
+/-- **Naturality of inverse flat maps.** For a diffeomorphism `ψ : M → M'`, a two-form `σ` on
+`M'` and a covector `c` at `ψ x`, the differential of `ψ` carries `((ψ^* σ)♭_x)⁻¹ (c ∘ dψ_x)` to
+`(σ♭_{ψ x})⁻¹ c`. Both sides are `0` when the flat maps are not invertible, as they then both
+are not. -/
+theorem mfderiv_flat_mpullback_inverse_apply (ψ : M ≃ₘ⟮I, I'⟯ M') (σ : SmoothTwoForm I' M')
+    (x : M) (c : TangentSpace I' (ψ x) →L[ℝ] ℝ) :
+    mfderiv I I' ψ x ((flat (SmoothForm.mpullback ψ ψ.contMDiff σ) x).inverse
+        (c ∘L mfderiv I I' ψ x)) =
+      (σ.flat (ψ x)).inverse c := by
+  set e := ψ.mfderivToContinuousLinearEquiv (by simp) x
+  have he : (e : TangentSpace I x →L[ℝ] TangentSpace I' (ψ x)) = mfderiv I I' ψ x :=
+    ψ.mfderivToContinuousLinearEquiv_coe _
+  -- Precomposition with `dψ_x`, from covectors at `ψ x` to covectors at `x`.
+  set P := e.symm.arrowCongr (ContinuousLinearEquiv.refl ℝ ℝ)
+  have hP (f : TangentSpace I' (ψ x) →L[ℝ] ℝ) : P f = f ∘L mfderiv I I' ψ x := by
+    ext v
+    simp [P, ← he]
+  -- The flat map of `ψ^* σ` at `x` is that of `σ` at `ψ x`, conjugated by `dψ_x`.
+  have hflat : flat (SmoothForm.mpullback ψ ψ.contMDiff σ) x =
+      (P : _ →L[ℝ] _) ∘L σ.flat (ψ x) ∘L (e : TangentSpace I x →L[ℝ] TangentSpace I' (ψ x)) := by
+    ext v w
+    rw [flat_apply, SmoothForm.eval₂_mpullback]
+    simp [hP, he]
+  rw [hflat, ContinuousLinearMap.inverse_equiv_comp, ContinuousLinearMap.inverse_comp_equiv,
+    ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe, P.symm_apply_eq.2 (hP c).symm,
+    ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe, ← he,
+    ContinuousLinearEquiv.coe_coe, ContinuousLinearEquiv.apply_symm_apply]
+
+end Diffeomorph
 
 end SmoothTwoForm
 
