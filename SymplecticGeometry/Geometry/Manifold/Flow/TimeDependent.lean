@@ -10,6 +10,7 @@ import TauCeti.Geometry.Manifold.Flow.Parametric
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Opens
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!
 # Time-dependent flows: joint smoothness, uniqueness on intervals, open subsets

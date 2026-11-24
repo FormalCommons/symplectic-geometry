@@ -34,41 +34,14 @@ The proof of `TauCeti.Manifold.contMDiffOn_tangentSpaceOpenEquiv_dite` adapts th
 product as a manifold, map it into `N × U` by `q ↦ (q.1, ⟨q.2, _⟩)`, and compose with the tangent
 map of the inclusion `U → M`; here the first two steps are those of
 `ContMDiff.contMDiffOn_prod_opens_of_eq`.
-
-Finally, `TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eventuallyEq` says that a map between
-open subsets that agrees near a point with a map `A` of the ambient manifolds has the differential
-of `A` there. It generalizes Tau Ceti's `TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq`,
-which asks for the maps to agree everywhere, and its proof is that of Tau Ceti's lemma with
-`Filter.EventuallyEq.mfderiv_eq` in place of a rewrite.
 -/
 
 public section
 
 open Bundle Set TopologicalSpace
-open scoped Manifold ContDiff Topology
+open scoped Manifold ContDiff
 
 namespace TauCeti.Manifold
-
-section EventuallyEq
-
-variable {𝕜 E H M E' H' M' : Type*} [NontriviallyNormedField 𝕜]
-  [NormedAddCommGroup E] [NormedSpace 𝕜 E] [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
-  [TopologicalSpace M] [ChartedSpace H M]
-  [NormedAddCommGroup E'] [NormedSpace 𝕜 E'] [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'}
-  [TopologicalSpace M'] [ChartedSpace H' M']
-
-/-- If a map `f` between open subsets agrees near `x`, read in the ambient manifolds, with a map
-`A` of the ambient manifolds, then the differential of `f` at `x` is that of `A` at `x`, on the
-common model spaces of the tangent spaces (both are `0` when `f` is not differentiable at `x`). -/
-theorem mfderiv_apply_of_subtype_val_comp_eventuallyEq {U : Opens M} {V : Opens M'} {f : U → V}
-    {A : M → M'} {x : U} (hcomp : Subtype.val ∘ f =ᶠ[𝓝 x] A ∘ Subtype.val)
-    (v : TangentSpace I x) :
-    mfderiv I I' f x v = mfderiv I I' A x v := by
-  rw [← mfderiv_subtype_val_comp_apply, hcomp.mfderiv_eq]
-  -- `tangentSpaceCast` is the identity of the model space, and Mathlib states no lemma for it.
-  exact mfderiv_comp_subtype_val_apply v
-
-end EventuallyEq
 
 variable {E H M EN HN N : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
