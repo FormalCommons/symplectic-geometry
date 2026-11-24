@@ -40,6 +40,10 @@ applies: the points of a fibre are related by the action, through the division m
   `TauCeti.RoughForm.isBasic_of_mpullback_eq` for the right translations of a principal bundle.
 * `TauCeti.PrincipalBundle.mlieDerivForm_rightFundamentalVectorField_eq_zero`: an invariant form
   has vanishing Lie derivative along every fundamental vector field.
+* `TauCeti.PrincipalBundle.mextDeriv_apply_rightFundamentalVectorField_prod`,
+  `TauCeti.PrincipalBundle.interior_mextDeriv_rightFundamentalVectorField_prod`: on a product
+  `P × N` with a manifold `N` that may have boundary, a one-form `A` invariant under the action
+  on the first factor satisfies `ι_{(ξ_P, 0)} dA = -d (A (ξ_P, 0))`.
 
 ## Implementation notes
 
@@ -50,11 +54,23 @@ the fundamental vector field of `ξ`
 (`TauCeti.PrincipalBundle.isMIntegralCurve_op_mulInvariantExp_smul`), and its Lie derivative is
 the velocity at `0` of its pull-backs along this flow (`TauCeti.hasDerivAt_mpullback_of_eq_id`).
 
+That argument needs a boundaryless model, which a product `P × N` does not have when `N` has
+boundary, so the identity on `P × N` is proved one component of the tangent vector at a time.
+On vectors tangent to a slice `P × {n}`, it is Cartan's formula
+`TauCeti.mlieDerivForm_apply_eq_mextDeriv_add` on `P` for the invariant slice of `A`, by
+naturality of `d` (`TauCeti.mpullback_mextDeriv_at`). On vectors tangent to `N`, pull `A` back
+along `(s, m) ↦ (x • exp (s ξ), m)` to `ℝ × N`: by invariance all its slices `{s} × N` agree,
+so its Lie derivative along `∂ₛ` vanishes on vectors tangent to `N`
+(`TauCeti.mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero`, which needs no
+boundaryless model), and Cartan's formula on `ℝ × N` gives the identity.
+
 ## References
 
 * S. Kobayashi and K. Nomizu, *Foundations of Differential Geometry*, Vol. I, Interscience, 1963,
   Chapter II, §5 (tensorial forms of type `ad` on a principal bundle; basic forms are the
   pull-backs of forms on the base).
+* John M. Lee, *Introduction to Smooth Manifolds*, 2nd ed., Graduate Texts in Mathematics 218,
+  Springer, 2013, Theorem 14.35 (Cartan's formula for the Lie derivative of forms).
 -/
 
 public section
@@ -185,14 +201,14 @@ theorem mlieDerivForm_rightFundamentalVectorField_eq_zero [IB.Boundaryless] [IG.
 
 section Prod
 
-variable [IB.Boundaryless] [IG.Boundaryless] [CompleteSpace EB]
+variable [IB.Boundaryless] [IG.Boundaryless]
   {EN : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [CompleteSpace EN]
   {HN : Type*} [TopologicalSpace HN] {IN : ModelWithCorners ℝ EN HN}
   {N : Type*} [TopologicalSpace N] [ChartedSpace HN N] [IsManifold IN ∞ N]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
   {A : SmoothForm ((IB.prod IG).prod IN) (ManifoldTotalSpace G P × N) F 1}
 
-omit [CompleteSpace EG] [IB.Boundaryless] [IG.Boundaryless] [CompleteSpace EB] [CompleteSpace EN] in
+omit [CompleteSpace EG] [IB.Boundaryless] [IG.Boundaryless] [CompleteSpace EN] in
 /-- The field `(ξ_P, 0)` on `P × N` is differentiable. -/
 theorem mdifferentiable_rightFundamentalVectorField_prod (ξ : GroupLieAlgebra IG G) :
     MDifferentiable ((IB.prod IG).prod IN) ((IB.prod IG).prod IN).tangent
@@ -200,8 +216,8 @@ theorem mdifferentiable_rightFundamentalVectorField_prod (ξ : GroupLieAlgebra I
         (⟨x, (rightFundamentalVectorField (IB.prod IG) ξ x.1, (0 : EN))⟩ :
           TangentBundle ((IB.prod IG).prod IN) (ManifoldTotalSpace G P × N))) := by
   intro x
-  have hX := ((contMDiff_rightFundamentalVectorField (IB := IB) (n := ∞) (m := 1) (by simp) ξ).mdifferentiable
-    one_ne_zero x.1)
+  have hX := (contMDiff_rightFundamentalVectorField (IB := IB) (n := ∞) (m := 1) (by simp)
+    ξ).mdifferentiable one_ne_zero x.1
   have h0 : MDifferentiableAt IN IN.tangent
       (fun y ↦ (⟨y, (0 : Π y : N, TangentSpace IN y) y⟩ : TangentBundle IN N)) x.2 :=
     (contMDiff_zeroSection ℝ (TangentSpace IN)).mdifferentiableAt one_ne_zero
@@ -211,14 +227,14 @@ theorem mdifferentiable_rightFundamentalVectorField_prod (ξ : GroupLieAlgebra I
   rfl
 
 omit [IsManifold IB ∞ B] [CompleteSpace EG] [ContMDiffFiberBundle ∞ G P IB IG] [IB.Boundaryless]
-  [IG.Boundaryless] [CompleteSpace EB] [CompleteSpace EN] [IsManifold IN ∞ N] in
+  [IG.Boundaryless] [CompleteSpace EN] [IsManifold IN ∞ N] in
 /-- The right action of `G` on the first factor of `P × N` is smooth. -/
 theorem contMDiff_op_smul_prod (g : G) :
     ContMDiff ((IB.prod IG).prod IN) ((IB.prod IG).prod IN) ∞
       (fun x : ManifoldTotalSpace G P × N ↦ (op g • x.1, x.2)) :=
   ((contMDiff_const_smul (op g)).comp contMDiff_fst).prodMk contMDiff_snd
 
-omit [IB.Boundaryless] [IG.Boundaryless] [CompleteSpace EB] [CompleteSpace EN] in
+omit [CompleteSpace EG] [IB.Boundaryless] [IG.Boundaryless] [CompleteSpace EN] in
 /-- The evaluation `A(ξ_P, 0)` of a smooth one-form on `P × N` is differentiable. -/
 theorem mdifferentiable_apply_rightFundamentalVectorField_prod (ξ : GroupLieAlgebra IG G) :
     MDifferentiable ((IB.prod IG).prod IN) 𝓘(ℝ, F) (fun q : ManifoldTotalSpace G P × N ↦
@@ -234,10 +250,12 @@ theorem mdifferentiable_apply_rightFundamentalVectorField_prod (ξ : GroupLieAlg
   fin_cases i
   rfl
 
-variable (hA : ∀ g : G, SmoothForm.mpullback (fun x : ManifoldTotalSpace G P × N ↦ (op g • x.1, x.2))
-  (contMDiff_op_smul_prod g) A = A)
+variable (hA : ∀ g : G,
+  SmoothForm.mpullback (fun x : ManifoldTotalSpace G P × N ↦ (op g • x.1, x.2))
+    (contMDiff_op_smul_prod g) A = A)
 include hA
 
+omit [CompleteSpace EN] in
 /-- The identity of `mextDeriv_apply_rightFundamentalVectorField_prod` on vectors tangent to a
 slice `P × {n}`: the slice of `A` is invariant on the boundaryless `P`. -/
 private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inl (ξ : GroupLieAlgebra IG G)
@@ -275,6 +293,7 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inl (ξ : Group
     fin_cases i
     rfl
 
+omit [IB.Boundaryless] in
 /-- The identity of `mextDeriv_apply_rightFundamentalVectorField_prod` on vectors tangent to `N`:
 pulled back along `(s, m) ↦ (x • exp (s ξ), m)`, the form `A` has the same slice `{s} × N` for
 every `s`, so its Lie derivative along `∂ₛ` vanishes on vectors tangent to `N`, and Cartan's
@@ -378,7 +397,8 @@ theorem mextDeriv_apply_rightFundamentalVectorField_prod (ξ : GroupLieAlgebra I
       ((u, (0 : EN)) : TangentSpace ((IB.prod IG).prod IN) (x, n)) + ((0 : EB × EG), v) := by
     simp
   have e1 : mextDeriv A.val (x, n)
-      ![(rightFundamentalVectorField (IB.prod IG) ξ x, (0 : EN)), (u, (0 : EN)) + ((0 : EB × EG), v)] =
+      ![(rightFundamentalVectorField (IB.prod IG) ξ x, (0 : EN)),
+        (u, (0 : EN)) + ((0 : EB × EG), v)] =
         mextDeriv A.val (x, n) ![(rightFundamentalVectorField (IB.prod IG) ξ x, (0 : EN)),
           (u, (0 : EN))] +
         mextDeriv A.val (x, n) ![(rightFundamentalVectorField (IB.prod IG) ξ x, (0 : EN)),
@@ -407,8 +427,9 @@ theorem interior_mextDeriv_rightFundamentalVectorField_prod (ξ : GroupLieAlgebr
     fun q ↦ (rightFundamentalVectorField (IB.prod IG) ξ q.1, (0 : EN)) with hV
   funext q
   ext v
-  have hι : mextDeriv (RoughForm.interior (F := F) (k := 0) V A.val) q = mextDeriv (RoughForm.ofFunction _
-      fun y ↦ RoughForm.interior (F := F) (k := 0) V A.val y 0) q := by
+  have hι : mextDeriv (RoughForm.interior (F := F) (k := 0) V A.val) q =
+      mextDeriv (RoughForm.ofFunction _
+        fun y ↦ RoughForm.interior (F := F) (k := 0) V A.val y 0) q := by
     congr 1
     exact RoughForm.eq_ofFunction _
   have hv : v = ![v 0] := by
