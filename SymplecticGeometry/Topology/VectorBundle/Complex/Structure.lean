@@ -32,7 +32,10 @@ continuous when `Ψ` is.
 The trivialization of `J.Fiber` at `b₀` is read in that of `V` at `b₀`
 (`TauCeti.Bundle.ContinuousComplexStructure.trivializationAt_fiberEquiv_symm_apply_snd`): over
 `J.unitSet b₀`, a coordinate in `V` is sent to the inverse of `J.complexLinearPart b₀ b` applied to
-it, followed by `J.modelEquiv G b₀`.
+it, followed by `J.modelEquiv G b₀`. For a section of `V` along a map `b : X → B` continuous at
+`x`, this holds near `x` (`eventuallyEq_trivializationAt_fiberEquiv_symm_apply_snd`),
+with a family of linear maps continuous at `x`
+(`continuousAt_modelEquiv_symm_comp_inverse_complexLinearPart`).
 
 ## References
 
@@ -45,6 +48,7 @@ public section
 noncomputable section
 
 open Bundle Module TauCeti.Conjugate
+open scoped Topology
 
 namespace TauCeti.Bundle.ContinuousComplexStructure
 
@@ -220,6 +224,33 @@ theorem trivializationAt_fiberEquiv_symm_apply_snd {b₀ b : B} (hb : b ∈ J.un
   rw [h₁, ContinuousLinearEquiv.apply_symm_apply] at h₂
   rw [h₂, (trivializationAt F V b₀).apply_mk_symm hb',
     J.inverse_complexLinearPart_complexLinearPart_apply hb, ContinuousLinearEquiv.symm_apply_apply]
+
+variable {X : Type*} [TopologicalSpace X] {b : X → B} {s : ∀ y, V (b y)} {x : X}
+
+/-- Over `J.unitSet (b x)`, hence near `x` when `b` is continuous at `x`, the section
+`y ↦ (J.fiberEquiv (b y)).symm (s y)` of `J.Fiber` read in the trivialization of `J.Fiber` at
+`b x` is the reading of `s` in the trivialization of `V` at `b x` followed by the inverse of
+`J.complexLinearPart (b x) (b y)` and by `(J.modelEquiv G (b x)).symm`. -/
+theorem eventuallyEq_trivializationAt_fiberEquiv_symm_apply_snd (hb : ContinuousAt b x) :
+    (fun y ↦ (((J.modelEquiv G (b x)).symm : F →L[ℝ] G).comp
+        (Ring.inverse (J.complexLinearPart (b x) (b y)))) (trivializationAt F V (b x) ⟨b y, s y⟩).2)
+      =ᶠ[𝓝 x]
+        fun y ↦ (trivializationAt G J.Fiber (b x) ⟨b y, (J.fiberEquiv (b y)).symm (s y)⟩).2 := by
+  have := FiniteDimensional.completeSpace ℝ F
+  filter_upwards [hb.preimage_mem_nhds
+    ((J.isOpen_unitSet (b x)).mem_nhds (J.mem_unitSet_self _))] with y hy
+  exact (J.trivializationAt_fiberEquiv_symm_apply_snd G hy (s y)).symm
+
+/-- If `b` is continuous at `x`, the family of linear maps
+`y ↦ (J.modelEquiv G (b x)).symm ∘ (J.complexLinearPart (b x) (b y))⁻¹`, that of
+`eventuallyEq_trivializationAt_fiberEquiv_symm_apply_snd`, is continuous at `x`. -/
+theorem continuousAt_modelEquiv_symm_comp_inverse_complexLinearPart
+    (hb : ContinuousAt b x) :
+    ContinuousAt (fun y ↦ ((J.modelEquiv G (b x)).symm : F →L[ℝ] G).comp
+      (Ring.inverse (J.complexLinearPart (b x) (b y)))) x := by
+  have := FiniteDimensional.completeSpace ℝ F
+  exact continuousAt_const.clm_comp (((J.continuousOn_inverse_complexLinearPart (b x)).continuousAt
+    ((J.isOpen_unitSet (b x)).mem_nhds (J.mem_unitSet_self _))).comp hb)
 
 end Trivialization
 

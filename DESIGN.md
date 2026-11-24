@@ -18,9 +18,11 @@ parts 14–21. The third is `atlas/almost-complex-structures.md`
 their mathematics, not after a page, so that the next pages extend them or
 add parts beside them.
 
-All statements about Tau Ceti and Mathlib below were checked against the
-pinned versions: Tau Ceti `v4.37.0-rc1` (commit `e0e414c`, see
-`lakefile.toml`) and the Mathlib it pins. Paths of Tau Ceti files are given
+All statements about Tau Ceti and Mathlib below were checked, when they
+were written, against the versions then pinned: at first Tau Ceti
+`v4.37.0-rc1` (commit `e0e414c`) and the Mathlib it pins. Since the move
+to `c9d170eed5a8` (#2025), `lakefile.toml` pins Tau Ceti `c9d170eed5a8`.
+Paths of Tau Ceti files are given
 relative to `.lake/packages/TauCeti/TauCeti/`.
 
 ## Principles

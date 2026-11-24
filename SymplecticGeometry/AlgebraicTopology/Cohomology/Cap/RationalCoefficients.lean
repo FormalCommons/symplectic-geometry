@@ -515,11 +515,10 @@ theorem singularCap_singularCohomologyRatIso_hom {p q n : ℕ} (h : p + q = n)
         ((X.singularCohomologyRatIso p).hom α)).hom μ =
       (X.singularHomologyRatIso q).hom
         (X.singularCapLinearMap ℚ h (X.singularHomologyIntToRat n μ) α) := by
-  obtain ⟨φ, rfl⟩ := (ModuleCat.epi_iff_surjective
-    ((X.singularCochainComplex (𝟙_ (ModuleCat.{0} ℚ)) ℚ (𝟙_ (ModuleCat.{0} ℚ))).homologyπ p)).1
-      inferInstance α
-  obtain ⟨z, rfl⟩ := (ModuleCat.epi_iff_surjective
-    (((toSSet.obj X).chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).homologyπ n)).1 inferInstance μ
+  obtain ⟨φ, rfl⟩ := (X.singularCochainComplex (𝟙_ (ModuleCat.{0} ℚ)) ℚ
+    (𝟙_ (ModuleCat.{0} ℚ))).moduleCat_homologyπ_surjective p α
+  obtain ⟨z, rfl⟩ := ((toSSet.obj X).chainComplex
+    (ModuleCat.of ℤ (ULift.{0} ℤ))).moduleCat_homologyπ_surjective n μ
   have hρ : X.singularHomologyIntToRat n
       (((toSSet.obj X).chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).homologyπ n z) =
       ((toSSet.obj X).chainComplex (𝟙_ (ModuleCat.{0} ℚ))).homologyπ n

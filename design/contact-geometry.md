@@ -604,7 +604,8 @@ Named like Tau Ceti's file, in `SymplecticGeometry`.
   `IsLocalDefiningFamily.mpullback_inclusion` (restriction to an open
   `V ≤ U`, as Tau Ceti's `IsLocalContactFormFamily.mpullback_inclusion`). Tau Ceti's
   `TauCeti.IsLocalContactFormFamily` (`Contact/Gray/Distribution.lean`,
-  after the pinned version) is for a family indexed by `ℝ`, with the
+  pinned since the move to `c9d170eed5a8`, #2025) is for a family indexed
+  by `ℝ`, with the
   kernels prescribed at all real times near a given time, so it does not
   cover the ends of `[0, 1]`.
 - `IsContactFamily.exists_local_extension (hξ) (p)` (`[BoundarylessManifold I M]`): step 1

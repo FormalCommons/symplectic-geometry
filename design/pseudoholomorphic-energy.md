@@ -15,11 +15,11 @@ Lee, *Introduction to Smooth Manifolds*, 2nd ed., Chapters 16 and 18
 A. Hatcher, *Algebraic Topology*, §§2.1 and 3.3 (the class of a simplex,
 local orientations and fundamental classes along compact sets).
 
-All declarations of Tau Ceti and Mathlib named below were checked against the
-pinned versions (Tau Ceti `v4.37.0-rc1`, see `lakefile.toml`), except those
-said to be on Tau Ceti's main branch, which were checked against its commit
-`464618e8a5`. Paths of Tau Ceti files are relative to
-`.lake/packages/TauCeti/TauCeti/`.
+The declarations and files of Tau Ceti named under *What there is* were
+checked against the pinned Tau Ceti `c9d170eed5a8` (see `lakefile.toml`).
+The rest of the file was written against Tau Ceti `v4.37.0-rc1` and its
+later commit `464618e8a5`, both of which `c9d170eed5a8` contains. Paths of
+Tau Ceti files are relative to `.lake/packages/TauCeti/TauCeti/`.
 
 ## What there is, and what is missing
 
@@ -33,8 +33,8 @@ said to be on Tau Ceti's main branch, which were checked against its commit
   $v=F\partial_s+JF\partial_t$, for $J$-invariant $\omega$), and the
   tameness lemmas `Tames.stdComplexLineEnergyDensity_nonneg`, `_eq_zero_iff`.
   The integrated energy there, `stdComplexLineEnergy`, lives on
-  $\mathbb R^2$ with a measure; the pinned version has no energy of a map
-  from a closed surface.
+  $\mathbb R^2$ with a measure; the energy of a map from a closed surface
+  is in the file of the next item.
 - **The energy of a map from a surface**
   (`Geometry/Symplectic/Manifold/Energy/Surface.lean`, added in Tau Ceti's
   commit `464618e8a5` and pinned since the move to `c9d170eed5a8`, #2025),
@@ -64,7 +64,7 @@ said to be on Tau Ceti's main branch, which were checked against its commit
   `Diffeomorph.mfderiv_ne_zero` (`Geometry/Manifold/Diffeomorph/Basic.lean`),
   which the file uses, and gives `SmoothAlmostComplexStructure.complexFrame`
   the hypothesis `finrank ℝ (TangentSpace I c) = 2` in place of an
-  orientation `o` (Decision 8).
+  orientation `o`.
 - **The Cauchy–Riemann operator, linearly**
   (`LinearAlgebra/Complex/LinearPart.lean`):
   `TauCeti.complexAntilinearPart J J' F` $=\tfrac12(F+J'\circ F\circ J)$ for
@@ -111,17 +111,21 @@ said to be on Tau Ceti's main branch, which were checked against its commit
   smooth orientation, `TauCeti.Manifold.Orientation.toHomologicalOrientation`
   (`Orientation/Smooth.lean`), with `toHomologicalOrientation_neg`.
 
-Missing, even on Tau Ceti's main branch: the first display of the milestone
-for maps that are not pseudoholomorphic (the $\bar\partial$ term), the
-reading of the energy through an area form and its independence of it, and
-any link between `integralTopForm` and fundamental classes. On Tau Ceti's main branch
-(after the pin), `Geometry/Manifold/SmoothSingular/Period.lean` pairs de Rham
+Missing at the pin: the first display of the milestone for maps that are
+not pseudoholomorphic (the $\bar\partial$ term), the reading of the energy
+through an area form and its independence of it, and the comparison
+$\int_\Sigma\varphi=\langle[\varphi],[\Sigma]\rangle$ of `integralTopForm`
+with the pairing against a fundamental class. Tau Ceti's one result that
+involves both is the degree formula
+`TauCeti.Manifold.Orientation.integralTopForm_mpullback_eq_degree_toHomologicalOrientation_mul`
+(`Geometry/Manifold/Degree/Homological.lean`), which does not give that
+comparison. Pinned since the move to `c9d170eed5a8` (#2025),
+`Geometry/Manifold/SmoothSingular/Period.lean` pairs de Rham
 classes with integral *smooth* singular homology
 (`deRhamCohomology.smoothHomologyPeriod`, built on a version of
 `integrationCochain` generalized to integer coefficients) and
 `SingularCohomology.lean` adds the de Rham homomorphism `deRhamHom` into
-real singular cohomology. The comparison with fundamental classes is a target
-of Tau Ceti's roadmap that no one has started.
+real singular cohomology.
 
 ## Decisions
 
@@ -168,8 +172,8 @@ of Tau Ceti's roadmap that no one has started.
    on positively oriented bases exactly when it is positive on every frame
    $(e,je)$, which is Tau Ceti's `dvol.Tames j`. The statements take
    `hdvol : dvol.Tames j`; no new predicate.
-4. **Regularity.** Integrals are added only for integrable forms. Tau Ceti
-   main's `isSmoothForm_energyForm` says that the energy form of a $C^1$ map
+4. **Regularity.** Integrals are added only for integrable forms. Tau Ceti's
+   `isSmoothForm_energyForm` says that the energy form of a $C^1$ map
    is a continuous form (`IsSmoothForm I' 0`). The forms
    $c\mapsto\varepsilon_{\bar\partial(du_c)}$ and
    $c\mapsto\lvert du_c\rvert^2\mathrm{dvol}_\Sigma$ are then continuous by
