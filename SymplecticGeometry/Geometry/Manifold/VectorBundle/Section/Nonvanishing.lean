@@ -19,6 +19,7 @@ import TauCeti.Geometry.Manifold.VectorBundle.Section.Generic
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Module
 import TauCeti.Topology.FiberBundle.Pullback
 import TauCeti.Topology.VectorBundle.HomotopyInvariance
+import TauCeti.Topology.VectorBundle.Riemannian.Basic
 
 /-!
 # Smooth nowhere-zero sections
@@ -85,18 +86,15 @@ theorem exists_contMDiffSection_forall_ne_zero_of_continuous {s : ∀ x, V x}
     (hs : Continuous fun x ↦ TotalSpace.mk' F x (s x)) (hs₀ : ∀ x, s x ≠ 0) :
     ∃ t : ContMDiffSection I F n V, ∀ x, t x ≠ 0 := by
   obtain ⟨g⟩ := TauCeti.nonempty_contMDiffRiemannianMetric (IB := I) (n := n) (F := F) (E := V)
-  have hg : Continuous fun x ↦ TotalSpace.mk' (F →L[ℝ] F →L[ℝ] ℝ)
-      (E := fun x ↦ V x →L[ℝ] V x →L[ℝ] ℝ) x (g.inner x) := g.contMDiff.continuous
   obtain ⟨t, ht⟩ := exists_contMDiffSection_forall_mem_convex_of_local (n := n) I V
     (fun x ↦ {v : V x | 0 < g.inner x v (s x)})
     (fun x ↦ convex_halfSpace_gt ⟨fun v w ↦ by simp, fun c v ↦ by simp⟩ 0) fun x₀ ↦ by
       let σ := FiberBundle.contMDiffExtend I F (s x₀)
       have hσ : CMDiff n (T% σ) := FiberBundle.contMDiff_contMDiffExtend I F (s x₀)
-      have hcont : ContinuousAt (fun y ↦ TotalSpace.mk' ℝ (E := Trivial M ℝ) y
-          (g.inner y (σ y) (s y))) x₀ :=
-        hg.continuousAt.clm_bundle_apply₂ hσ.continuous.continuousAt hs.continuousAt
-      rw [FiberBundle.continuousAt_totalSpace] at hcont
-      refine ⟨_, hcont.2.eventually (lt_mem_nhds ?_), σ, hσ.contMDiffOn, fun y hy ↦ hy⟩
+      have hcont : ContinuousAt (fun y ↦ g.inner y (σ y) (s y)) x₀ :=
+        g.toContinuousRiemannianMetric.continuousAt_inner (b := id) hσ.continuous.continuousAt
+          hs.continuousAt
+      refine ⟨_, hcont.eventually (lt_mem_nhds ?_), σ, hσ.contMDiffOn, fun y hy ↦ hy⟩
       simpa [σ] using g.pos x₀ _ (hs₀ x₀)
   exact ⟨t, fun x h ↦ by simpa [h] using ht x⟩
 
