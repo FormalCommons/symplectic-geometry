@@ -338,10 +338,11 @@ on `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι`, by
 For a symplectic circle action with a moment map, at a fixed point `p`:
 `prod_weights_eq` (two families of weights given as in Decision 8 have the
 same product), `weights_ne_zero_of_isolated` (at an isolated fixed point
-no weight vanishes, since a zero weight gives a fixed disc in the chart),
-`exists_weights` (weights as in Decision 8 exist, from the chart of
-`WeightModel/NormalForm.lean`), and `finite_fixedPoints` (on a compact
-manifold, isolated fixed points are finite).
+no weight vanishes, since a zero weight gives a fixed disc in the chart), and
+`exists_weights` (weights as in Decision 8 exist, from the linear normal form
+`TauCeti.SymplecticForm.exists_continuousLinearEquiv_weightRotation`). The
+finiteness of isolated fixed points on a compact space is the root-namespace
+`finite_fixedPoints`, in `Topology/Algebra/ConstMulAction.lean`.
 
 ### `Localization/LocalizingForm.lean`
 
