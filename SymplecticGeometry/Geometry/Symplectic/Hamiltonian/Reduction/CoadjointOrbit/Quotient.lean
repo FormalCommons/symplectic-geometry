@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Reduction.CoadjointOrbit.Level
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.Prod
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Reduction.Naturality
+public import SymplecticGeometry.GroupTheory.GroupAction.SubMulAction
 -- The atlases of the product's zero level and of its quotient here must agree by definition with
 -- those of `ZeroLevel/Basic.lean`, which unfolds the bodies of `zeroLevelProdChartedSpace`,
 -- `zeroLevelChartedSpace` and `zeroLevelQuotientChartedSpace`.
@@ -86,14 +87,6 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensi
   {σ : SmoothTwoForm I' M} {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
   (h : σ.IsEquivariantMomentMap μ) {η : Module.Dual ℝ (GroupLieAlgebra I G)}
 
-/-- **Freeness on the preimage of the orbit.** If `G` acts freely at every point of the preimage
-of the orbit of `η`, it acts freely on that preimage. -/
-theorem isCancelSMul_orbitLevel (hfree : ∀ x ∈ h.orbitLevel η, MulAction.stabilizer G x = ⊥) :
-    IsCancelSMul G (h.orbitLevel η) :=
-  isCancelSMul_iff_stabilizer_eq_bot.2 fun x ↦ by
-    rw [SubMulAction.stabilizer_of_subMul]
-    exact hfree x x.property
-
 variable [I.Boundaryless] [I'.Boundaryless] [T2Space M] {m : ℕ}
   (hemb : Topology.IsEmbedding fun q : G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η ↦
     ⇑((Lie.coadjointRepresentation ℝ I G).orbitMap η q))
@@ -151,7 +144,7 @@ private theorem quotient_hypotheses :
     IsManifold 𝓘(ℝ, Fin m → ℝ) ∞ (h.orbitLevel η) ∧
       ContMDiffSMul I 𝓘(ℝ, Fin m → ℝ) ∞ G (h.orbitLevel η) ∧ IsCancelSMul G (h.orbitLevel η) :=
   ⟨h.isManifold_orbitLevel hemb hσ hfree hm, h.contMDiffSMul_orbitLevel hemb hσ hfree hm,
-    h.isCancelSMul_orbitLevel hfree⟩
+    (h.orbitLevel η).isCancelSMul_of_forall_stabilizer_eq_bot hfree⟩
 
 include hσ hfree hm in
 /-- **The atlas of the reduced space at the orbit** `Q / G`: the slice charts of the quotient
@@ -166,6 +159,15 @@ def orbitLevelQuotientChartedSpace :
   haveI := (h.quotient_hypotheses hemb hσ hfree hm).2.1
   haveI := (h.quotient_hypotheses hemb hσ hfree hm).2.2
   ProperSMul.orbitRelQuotientChartedSpace I G 𝓘(ℝ, Fin m → ℝ) (h.orbitLevel η)
+
+theorem orbitLevelQuotientChartedSpace_def :
+    h.orbitLevelQuotientChartedSpace hemb hσ hfree hm =
+      letI := h.orbitLevelChartedSpace hemb hσ hfree hm
+      haveI := h.isManifold_orbitLevel hemb hσ hfree hm
+      haveI := h.contMDiffSMul_orbitLevel hemb hσ hfree hm
+      haveI := (h.orbitLevel η).isCancelSMul_of_forall_stabilizer_eq_bot hfree
+      ProperSMul.orbitRelQuotientChartedSpace I G 𝓘(ℝ, Fin m → ℝ) (h.orbitLevel η) :=
+  (rfl)
 
 /-- **The reduced space at the orbit is a smooth manifold**, for the atlas
 `orbitLevelQuotientChartedSpace`. -/
@@ -203,6 +205,15 @@ def zeroLevelProdQuotientChartedSpace :
   (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).zeroLevelQuotientChartedSpace
     (hσ.prod η.isSymplectic_coadjointOrbitForm.isNondegenerate)
     (h.stabilizer_zeroLevel_prod_eq_bot η hfree) (n := m) (by rwa [Module.finrank_prod])
+
+theorem zeroLevelProdQuotientChartedSpace_def :
+    h.zeroLevelProdQuotientChartedSpace hemb hσ hfree hm =
+      haveI : T2Space (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η) := hemb.t2Space
+      haveI := h.properSMul_zeroLevel_prod hemb
+      (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).zeroLevelQuotientChartedSpace
+        (hσ.prod η.isSymplectic_coadjointOrbitForm.isNondegenerate)
+        (h.stabilizer_zeroLevel_prod_eq_bot η hfree) (n := m) (by rwa [Module.finrank_prod]) :=
+  (rfl)
 
 /-- The quotient by `G` of the zero level of the product moment map is a smooth manifold, for the
 atlas `zeroLevelProdQuotientChartedSpace`. -/
@@ -420,13 +431,13 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensi
   {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M] [T2Space M]
   [MulAction G M] [ContMDiffSMul I I' ∞ G M] {m : ℕ}
 
-/-- **Reduction at a coadjoint orbit.** Let a connected Lie group `G` act smoothly by
+/-- **Reduction at a coadjoint orbit.** Let a Lie group `G` act smoothly by
 symplectomorphisms on a symplectic manifold `(M, σ)` with coadjoint-equivariant moment map `μ`, in
 the sign where `d⟨μ, ξ⟩ = -ι_{ξ_M} σ` (so that `fun x ↦ -μ x` is a moment map in Tau Ceti's sign).
 Let `η ∈ 𝔤*` have an embedded coadjoint orbit `O`, with orbit map `ι : G ⧸ G_η → 𝔤*` and KKS form
 `ω_O`, and let `G` act freely and properly on `Q = μ⁻¹(O)`. Then, for the atlases of
 `Q` (`orbitLevelChartedSpace`, of dimension `m = dim M + dim O - dim 𝔤`), of `Q / G`, and of the
-quotient of the zero level `P` of the moment map `(x, q) ↦ ι q - μ x` of `σ.prod ω_O` on `M × O`:
+quotient of the zero level `P` of the moment map `(x, q) ↦ μ x - ι q` of `σ.prod ω_O` on `M × O`:
 1. `dμ` is onto at every point of `Q`, so that `μ` is transverse to `O`;
 2. `Q` is a manifold and its inclusion `i` into `M` is a smooth embedding;
 3. `Q / G` is a manifold with a unique symplectic form `ω_red` such that
@@ -437,7 +448,7 @@ quotient of the zero level `P` of the moment map `(x, q) ↦ ι q - μ x` of `σ
    `P / G` back to that of `Q / G`.
 
 Milestone: *Reduction at a coadjoint orbit and the shifting construction*. -/
-theorem symplecticReduction_coadjointOrbit [ConnectedSpace G] {σ : SmoothTwoForm I' M}
+theorem symplecticReduction_coadjointOrbit {σ : SmoothTwoForm I' M}
     {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)} (hσ : σ.IsSymplectic)
     (hG : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
       (ContMDiffSMul.contMDiff_const_smul (I := I) g) σ = σ)
