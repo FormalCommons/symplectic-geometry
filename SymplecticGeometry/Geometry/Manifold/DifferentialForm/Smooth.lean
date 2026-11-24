@@ -105,6 +105,12 @@ theorem funSMulₗ_add (f g : C^∞⟮I, M; ℝ⟯) (φ : SmoothForm I M F k) :
   ext1
   simp [add_smul]
 
+/-- Multiplying a smooth form by the zero function gives the zero form. -/
+@[simp]
+theorem funSMulₗ_zero (φ : SmoothForm I M F k) : funSMulₗ 0 φ = 0 := by
+  ext1
+  simp
+
 /-- Multiplying a smooth form by the constant function `c` is multiplying it by the scalar `c`. -/
 @[simp]
 theorem funSMulₗ_const (c : ℝ) (φ : SmoothForm I M F k) :
@@ -117,6 +123,14 @@ theorem funSMulₗ_const (c : ℝ) (φ : SmoothForm I M F k) :
 theorem funSMulₗ_one (φ : SmoothForm I M F k) : funSMulₗ 1 φ = φ := by
   ext1
   simp
+
+/-- Multiplying the `0`-form of the constant function `1` by a smooth function `g` gives the
+`0`-form of `g`. -/
+@[simp]
+theorem funSMulₗ_ofFunction_one (g : C^∞⟮I, M; ℝ⟯) :
+    funSMulₗ g (ofFunction (1 : C^∞⟮I, M; ℝ⟯)) = ofFunction g := by
+  ext x v
+  simp [RoughForm.ofFunction_apply]
 
 variable {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   [TopologicalSpace M'] [ChartedSpace H' M'] {I' : ModelWithCorners ℝ E' H'} [IsManifold I' 1 M']
