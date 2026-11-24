@@ -107,9 +107,9 @@ These settle the questions that `DESIGN.md` leaves to this file.
    cohomology*. The flux is Tau Ceti's, with the page's sign. A closed
    manifold is `[CompactSpace M] [T2Space M] [J.Boundaryless]
    [FiniteDimensional ℝ E]`. Each statement takes only the hypotheses its
-   proof uses: Theorem 10.2.5 and Proposition 10.2.12 need a symplectic
-   `σ` but not a connected `M`, and the countability needs only a closed
-   `σ`.
+   proof uses: Theorem 10.2.5 needs a symplectic `σ` but not a connected
+   `M`, and Proposition 10.2.12 and the countability need only a closed
+   `σ`, on a connected `M`.
 
 2. **Initial pieces of a diffeotopy.** For `T : unitInterval`,
    `Φ.truncate T` is the diffeotopy $t\mapsto\phi_{Tt}$, the
@@ -289,7 +289,7 @@ Throughout, `[FiniteDimensional ℝ E] [J.Boundaryless] [T2Space M]
 `Family.lean`:
 
 - `TauCeti.Diffeotopy.isHamiltonian_of_forall_timeSlice_mem_hamiltonianGroup`
-  (Proposition 10.2.12): for `σ` nondegenerate and
+  (Proposition 10.2.12): for `[ConnectedSpace M]` and
   `∀ t, Φ.timeSlice t ∈ SmoothForm.hamiltonianGroup σ.val`,
   `Φ.IsHamiltonian σ.val`.
 
