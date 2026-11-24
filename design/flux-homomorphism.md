@@ -157,8 +157,7 @@ These settle the questions that `DESIGN.md` leaves to this file.
    so `Φ` is homotopic to $\Psi$ (`Homotopic.trans_congr`).
    The homotopy is stated with Tau Ceti's `Diffeotopy.Homotopic`, which
    does not ask that the intermediate maps preserve `σ`. The construction
-   gives that as well, but nothing downstream uses it. *Coupling forms*
-   uses only the endpoint statement.
+   gives that as well, but nothing downstream uses it.
 
 4. **The route to countability is through periods, not the Weinstein
    chart.** McDuff–Salamon argue that $\mathrm{Symp}_0$ is locally
@@ -186,10 +185,10 @@ These settle the questions that `DESIGN.md` leaves to this file.
    not used, so the part no longer builds on that part.
 
 5. **`Family.lean` and `Loop.lean` are kept.** *Coupling forms* uses only
-   `Kernel.lean` and `Countable.lean`: the endpoint statement for the
-   holonomy around a disc, and the countability for the equivalence of
-   Hamiltonian holonomy and Hamiltonian curvature. *Hamiltonian fibrations*
-   uses the other two, as the page's proofs do. Proposition 10.2.12 is
+   `Family.lean`: Proposition 10.2.12, for the equivalence of Hamiltonian
+   holonomy and Hamiltonian curvature (`design/coupling-forms.md`).
+   *Hamiltonian fibrations* uses `Family.lean` and `Loop.lean`, as the
+   page's proofs do. Proposition 10.2.12 is
    used for 2 ⇒ 1, to show that, read in a trivialization, the
    connection comes from Hamiltonian functions. Proposition 10.2.19 is
    used for 3 ⇒ 1. If the
@@ -337,7 +336,7 @@ Throughout, `[FiniteDimensional ℝ E] [J.Boundaryless] [T2Space M]
   (`Diffeotopy/Velocity.lean`, `Flux/Hamiltonian.lean`) and
   `DeRham/HomologyPeriod.lean`. Nothing of *Symplectic neighbourhoods*
   (Decision 4).
-- Used by: *Coupling forms* (`Kernel.lean`, `Countable.lean`) and
+- Used by: *Coupling forms* (`Family.lean`) and
   *Hamiltonian fibrations* (all four files of `Geometry/Symplectic/Flux/`
   above).
 
@@ -365,7 +364,7 @@ Each is a few hundred lines; each is blocked by the issues it names.
    `Loop.lean`. About 350 lines. Blocked by 6, since the last lemma of
    `Loop.lean` uses `Family.lean`.
 
-Issues 1 and 4 can start at once. *Coupling forms* waits for 3 and 5;
+Issues 1 and 4 can start at once. *Coupling forms* waits for 6;
 *Hamiltonian fibrations* waits for all seven.
 
 ## References
