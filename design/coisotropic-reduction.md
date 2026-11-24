@@ -234,7 +234,7 @@ The leaf space as a topological space, and slices.
   `TauCeti.Foliation.leafSpaceMk 𝓕 : M → 𝓕.LeafSpace`.
 - API: `leafSpaceMk_eq_leafSpaceMk_iff` (equal exactly on one leaf),
   `preimage_leafSpaceMk_singleton` (the fibre is `𝓕.leaf x`),
-  `surjective_leafSpaceMk`, `continuous_leafSpaceMk`,
+  `leafSpaceMk_surjective`, `continuous_leafSpaceMk`,
   `isOpenMap_leafSpaceMk` (from `isOpen_saturation`),
   `isOpenQuotientMap_leafSpaceMk`, and the instance
   `SecondCountableTopology 𝓕.LeafSpace` for second countable `M`.
