@@ -46,6 +46,8 @@ fixing `x`, be read on the isotropy algebra of `G` itself.
   inclusion of an embedded Lie subgroup is injective, with range its Lie algebra.
 * `TauCeti.Lie.EmbeddedLieSubgroupData.range_groupLieAlgebraMap_subtype_stabilizer`: for the
   identity component of `G_x`, that range is `𝔤_x`.
+* `TauCeti.Lie.EmbeddedLieSubgroupData.groupLieAlgebraEquivIsotropy`: that differential, as a
+  linear equivalence from the tangent space at `1` of the identity component of `G_x` onto `𝔤_x`.
 
 ## References
 
@@ -207,6 +209,57 @@ theorem range_groupLieAlgebraMap_subtype_stabilizer {x : M}
     lieSubalgebraOfSubgroup_map_connectedComponentOfOne_stabilizer (I' := I') h₁ x]
   exact Submodule.map_comap_eq_of_surjective
     (leftInvariantDerivationLieEquivGroupLieAlgebra (I := I) (G := G) h₁).toLinearEquiv.surjective _
+
+/-- **The tangent space at `1` of the identity component of a stabilizer, as the isotropy
+algebra.** For an embedded Lie subgroup structure on the identity component `K` of `G_x`, the
+differential at `1` of the inclusion `K → G`, with its codomain cut down to its range
+`𝔤_x = {ξ | ξ_M(x) = 0}`, as a linear equivalence from `T₁K` onto `𝔤_x`. -/
+def groupLieAlgebraEquivIsotropy {x : M}
+    (d : EmbeddedLieSubgroupData I ((Subgroup.connectedComponentOfOne
+      (MulAction.stabilizer G x)).map (MulAction.stabilizer G x).subtype) F) :
+    let _ := d.chartedSpace
+    GroupLieAlgebra 𝓘(ℝ, F) ((Subgroup.connectedComponentOfOne
+      (MulAction.stabilizer G x)).map (MulAction.stabilizer G x).subtype) ≃ₗ[ℝ]
+      ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule :=
+  let _ := d.chartedSpace
+  (LinearEquiv.ofInjective _ d.injective_groupLieAlgebraMap_subtype).trans
+    (LinearEquiv.ofEq _ _ (d.range_groupLieAlgebraMap_subtype_stabilizer (I' := I')))
+
+theorem groupLieAlgebraEquivIsotropy_def {x : M}
+    (d : EmbeddedLieSubgroupData I ((Subgroup.connectedComponentOfOne
+      (MulAction.stabilizer G x)).map (MulAction.stabilizer G x).subtype) F) :
+    let _ := d.chartedSpace
+    d.groupLieAlgebraEquivIsotropy (I' := I') =
+      (LinearEquiv.ofInjective _ d.injective_groupLieAlgebraMap_subtype).trans
+        (LinearEquiv.ofEq _ _ (d.range_groupLieAlgebraMap_subtype_stabilizer (I' := I'))) :=
+  (rfl)
+
+/-- `TauCeti.Lie.EmbeddedLieSubgroupData.groupLieAlgebraEquivIsotropy` is the differential at `1`
+of the inclusion `K → G`. -/
+@[simp]
+theorem coe_groupLieAlgebraEquivIsotropy {x : M}
+    (d : EmbeddedLieSubgroupData I ((Subgroup.connectedComponentOfOne
+      (MulAction.stabilizer G x)).map (MulAction.stabilizer G x).subtype) F) :
+    let _ := d.chartedSpace
+    ∀ η, (d.groupLieAlgebraEquivIsotropy (I' := I') η : GroupLieAlgebra I G) =
+      ((Subgroup.connectedComponentOfOne (MulAction.stabilizer G x)).map
+        (MulAction.stabilizer G x).subtype).subtype.groupLieAlgebraMap 𝓘(ℝ, F) I η :=
+  fun _ ↦ rfl
+
+/-- The differential at `1` of the inclusion `K → G` sends the inverse of
+`TauCeti.Lie.EmbeddedLieSubgroupData.groupLieAlgebraEquivIsotropy` at `ξ ∈ 𝔤_x` back to `ξ`. -/
+@[simp]
+theorem groupLieAlgebraMap_subtype_groupLieAlgebraEquivIsotropy_symm {x : M}
+    (d : EmbeddedLieSubgroupData I ((Subgroup.connectedComponentOfOne
+      (MulAction.stabilizer G x)).map (MulAction.stabilizer G x).subtype) F) :
+    let _ := d.chartedSpace
+    ∀ ξ, ((Subgroup.connectedComponentOfOne (MulAction.stabilizer G x)).map
+        (MulAction.stabilizer G x).subtype).subtype.groupLieAlgebraMap 𝓘(ℝ, F) I
+          ((d.groupLieAlgebraEquivIsotropy (I' := I')).symm ξ) = (ξ : GroupLieAlgebra I G) := by
+  let _ := d.chartedSpace
+  dsimp only
+  intro ξ
+  rw [← coe_groupLieAlgebraEquivIsotropy (I' := I'), LinearEquiv.apply_symm_apply]
 
 end EmbeddedLieSubgroupData
 
