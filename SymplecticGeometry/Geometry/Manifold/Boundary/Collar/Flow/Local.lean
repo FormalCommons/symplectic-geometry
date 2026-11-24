@@ -103,22 +103,14 @@ theorem _root_.IsMIntegralCurveOn.mem_interior_of_isOutwardPointing
   rw [← ModelWithCorners.compl_boundary]
   intro hb
   set φ := extChartAt (𝓡∂ (n + 1)) (γ t)
-  -- The zeroth chart coordinate along `γ` has a local minimum `0` at `t` ...
-  have hmin : IsLocalMin (fun r ↦ φ (γ r) 0) t := by
-    have hc : ContinuousAt γ t := (hγ.continuousWithinAt (mem_of_mem_nhds hs)).continuousAt hs
-    filter_upwards [hc.preimage_mem_nhds (extChartAt_source_mem_nhds (I := 𝓡∂ (n + 1)) (γ t))]
-      with r hr
-    have h := extChartAt_target_subset_range (γ t) (φ.map_source hr)
-    rw [range_modelWithCornersEuclideanHalfSpace] at h
-    rw [extChartAt_self_apply_zero hb]
-    exact h
+  -- The zeroth chart coordinate along `γ` has a minimum at `t` ...
+  have hmin : IsLocalMin (fun r ↦ φ (γ r) 0) t :=
+    Filter.Eventually.of_forall fun r ↦ isMinOn_extChartAt_apply_zero hb univ (mem_univ (γ r))
   -- ... but its derivative there is the zeroth coordinate of `Y (γ t)`, which is negative.
   have hd :=
     (PiLp.proj 2 (fun _ : Fin (n + 1) ↦ ℝ) 0).hasFDerivAt.comp_hasDerivAt t
       ((Manifold.hasDerivWithinAt_extChartAt_comp_curve (hγ t (mem_of_mem_nhds hs))).hasDerivAt hs)
-  have hneg := (isOutwardPointing_iff.1 (hY _ hb)).2
-  rw [mfderiv_extChartAt_self] at hneg
-  exact hneg.ne (hmin.hasDerivAt_eq_zero hd)
+  exact ((isOutwardPointing_iff_proj hb).1 (hY _ hb)).ne (hmin.hasDerivAt_eq_zero hd)
 
 variable [IsManifold (𝓡∂ (n + 1)) ∞ W]
 
@@ -389,8 +381,7 @@ theorem exists_isMIntegralCurveOn_of_isOutwardPointing (hY : IsOutwardPointingFi
   obtain ⟨w, hw, V, hV, hpV, hVt, hwv⟩ :=
     exists_contDiff_eqOn_mpullbackWithin_extChartAt_symm hYs p.property
   have hw₀ : w (φ p) 0 < 0 := by
-    have h := (isOutwardPointing_iff.1 (hYb p p.property)).2
-    rw [mfderiv_extChartAt_self] at h
+    have h := (isOutwardPointing_iff_proj p.property).1 (hYb p p.property)
     rwa [← mpullbackWithin_extChartAt_symm_self Y (p : W),
       ← hwv ⟨hpV, extChartAt_target_subset_range _ (mem_extChartAt_target _)⟩] at h
   obtain ⟨η₀, hη₀, r, hr, hbox⟩ := exists_flowOf_box (hw.of_le (by simp)) hV hpV hw₀
