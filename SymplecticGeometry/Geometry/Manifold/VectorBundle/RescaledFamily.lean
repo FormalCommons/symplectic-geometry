@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.Calculus.FDeriv.Basic
 public import Mathlib.Topology.Sets.Opens
+public import SymplecticGeometry.Topology.VectorBundle.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.FiberScaling
 
 import Mathlib.Analysis.Calculus.LineDeriv.Basic
@@ -46,9 +47,8 @@ rescales a map of a product `S × V` and takes the value at `t = 0` as an argume
 * `SymplecticGeometry.vectorBundleRescaledFamily_zeroSection`: the slices fix every point of the
   zero section that `ψ` fixes.
 
-Along the way: `Bundle.Trivialization.symm_smul_snd` (a linear trivialization carries scaling of
-the fibre coordinate to scaling in the fibre), its reading of fibre scaling
-`TauCeti.vectorBundleFiberScaling_eq_trivialization_symm`, and `Subtype.tendsto_val_nhdsGT`.
+Along the way: fibre scaling read in a linear trivialization,
+`TauCeti.vectorBundleFiberScaling_eq_trivialization_symm`.
 
 ## References
 
@@ -62,27 +62,6 @@ noncomputable section
 
 open Set Bundle Filter Topology TopologicalSpace TauCeti
 open scoped Manifold ContDiff
-
-/-- The inclusion of a subset of a preorder maps right neighbourhoods of a point to right
-neighbourhoods of its image. -/
-theorem Subtype.tendsto_val_nhdsGT {α : Type*} [Preorder α] [TopologicalSpace α] {s : Set α}
-    (a : s) : Tendsto Subtype.val (𝓝[>] a) (𝓝[>] (a : α)) :=
-  tendsto_nhdsWithin_iff.2 ⟨continuous_subtypeVal.continuousAt.tendsto.mono_left
-    nhdsWithin_le_nhds, eventually_nhdsWithin_of_forall fun _ ht ↦ Subtype.coe_lt_coe.2 ht⟩
-
-namespace Bundle.Trivialization
-
-variable {R B F : Type*} {E : B → Type*} [Semiring R] [TopologicalSpace F] [TopologicalSpace B]
-  [AddCommMonoid F] [Module R F] [∀ b, AddCommMonoid (E b)] [∀ b, Module R (E b)]
-  [TopologicalSpace (TotalSpace F E)]
-
-/-- For a linear trivialization `e` and a point `y` over its base set, the point of the fibre of
-`y` with fibre coordinate `c` times that of `y` is `c • y`. -/
-theorem symm_smul_snd (e : Trivialization F (π F E)) [e.IsLinear R] {y : TotalSpace F E}
-    (hy : y.proj ∈ e.baseSet) (c : R) : e.symm y.proj (c • (e y).2) = c • y.snd := by
-  rw [← e.symmₗ_apply (R := R) hy, map_smul, e.symmₗ_apply hy, e.symm_proj_apply y hy]
-
-end Bundle.Trivialization
 
 namespace TauCeti
 
@@ -202,8 +181,8 @@ theorem tendsto_vectorBundleRescaledFamily_zero (e : Trivialization F (π F V)) 
     e.continuousOn_symm.continuousAt (prod_mem_nhds (e.open_baseSet.mem_nhds hz) univ_mem)
   have hG0 : G (x, 0) = zeroSection F V x := by
     simp [hG, zeroSection, ← Trivialization.symmₗ_apply (R := ℝ) _ hz]
-  have hcoe : Tendsto (fun t : Icc (0 : ℝ) 1 ↦ (t : ℝ)) (𝓝[>] 0) (𝓝[>] 0) := by
-    simpa using Subtype.tendsto_val_nhdsGT (0 : Icc (0 : ℝ) 1)
+  have hcoe : Tendsto (fun t : Icc (0 : ℝ) 1 ↦ (t : ℝ)) (𝓝[>] 0) (𝓝[>] 0) :=
+    continuous_subtypeVal.continuousWithinAt.tendsto_nhdsWithin fun _ ↦ id
   have hsmall : Tendsto (fun t : Icc (0 : ℝ) 1 ↦ (t : ℝ) • w₀) (𝓝[>] 0) (𝓝 0) := by
     simpa using (hcoe.mono_right nhdsWithin_le_nhds).smul_const w₀
   have hscale : ∀ t, vectorBundleFiberScaling F V (z, t) = G (x, (t : ℝ) • w₀) :=
