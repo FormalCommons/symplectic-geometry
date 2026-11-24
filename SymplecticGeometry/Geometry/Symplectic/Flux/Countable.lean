@@ -120,7 +120,7 @@ theorem homologyPeriod_mem_range_closedFormHomologyPeriod_of_mem_fluxGroup [Sigm
   have := J.pathConnectedSpace M
   obtain ⟨x⟩ : Nonempty M := inferInstance
   obtain ⟨Φ, hΦ, h₁, rfl⟩ := mem_fluxGroup.mp hc
-  obtain ⟨b, rfl⟩ := (HurewiczOne.hurewiczHomologyAddEquiv (X := .of M) x).surjective a
+  obtain ⟨b, rfl⟩ := (HurewiczOne.hurewiczHomologyAddEquiv (X := .of M) x (RingEquiv.refl ℤ)).surjective a
   obtain ⟨g, rfl⟩ := Group.Abelianization.exists_eq_ofMul_of b
   rw [HurewiczOne.hurewiczHomologyAddEquiv_apply, HurewiczOne.hurewiczAb_ofMul_of,
     deRhamCohomology.homologyPeriod_hurewicz₁]

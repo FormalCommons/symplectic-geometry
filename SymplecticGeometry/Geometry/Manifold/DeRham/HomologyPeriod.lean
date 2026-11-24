@@ -244,7 +244,7 @@ theorem homologyPeriodHom_eq_intervalIntegral {M : Type} [TopologicalSpace M] [C
       (fun t ↦ (α (u t) : RoughForm I M ℝ 1) x) a b volume)
     (c : ((singularChains ℤ).obj (.of M)).homology 1) :
     homologyPeriodHom β c = ∫ t in a..b, homologyPeriodHom (α (u t) : RoughForm I M ℝ 1) c := by
-  obtain ⟨z, rfl⟩ := (H₁AddEquivHomology (.of M)).surjective c
+  obtain ⟨z, rfl⟩ := (H₁AddEquivHomology ℤ (.of M)).surjective c
   obtain ⟨z, rfl⟩ := H₁.mk_surjective z
   simp_rw [homologyPeriodHom_H₁AddEquivHomology_mk]
   -- The periods along the simplices, as continuous functions of the time.
