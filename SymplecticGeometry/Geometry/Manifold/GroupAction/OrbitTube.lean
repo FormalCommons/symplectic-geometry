@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.LocallyConvex.HahnBanach
+public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Submodule
 public import TauCeti.Geometry.Lie.Subgroup.BalancedProduct
 public import TauCeti.Geometry.Manifold.GroupAction.EquivariantSlice
 
@@ -27,9 +28,10 @@ an open subset `U` of `V` inside the target of `e` that is invariant under every
 `V ∩ e.target` when `V` is invariant
 (`SymplecticGeometry.LinearizingChart.SliceDomain.interTarget`). Then:
 
-* `H` acts on `U` by `h • v = dh_x v`, smoothly for any manifold structure on `H` for which
-  `H` acts smoothly on `M`, such as the closed-subgroup structure
-  `TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed`: in the chart, `dh_x v = e (h • e.symm v)`;
+* `H` acts on `U` by `h • v = dh_x v`; when `V` is finite-dimensional, smoothly for any
+  manifold structure on `H` for which `H` acts smoothly on `M`, such as the closed-subgroup
+  structure `TauCeti.Lie.EmbeddedLieSubgroupData.ofIsClosed`: in the chart,
+  `dh_x v = e (h • e.symm v)`;
 * the slice map `v ↦ e.symm v` is a smooth `H`-equivariant map `U → M`
   (`SymplecticGeometry.LinearizingChart.SliceDomain.sliceMap`);
 * the *tube map* `[g, v] ↦ g • e.symm v` on the balanced product `G ×_H U`, Tau Ceti's
@@ -91,6 +93,7 @@ variable (G I') in
 in the model space `E' = T_x M`, smooth with smooth inverse, with `e x = 0` and derivative the
 identity at `x`, whose source is invariant under the stabilizer of `x` and in which every `g` of
 the stabilizer acts by its differential: `e (g • z) = dg_x (e z)`. -/
+@[ext]
 structure LinearizingChart (x : M) where
   /-- the chart -/
   chart : OpenPartialHomeomorph M E'
@@ -154,6 +157,7 @@ theorem nonempty {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteD
 /-- A **slice domain** for a linearizing chart `e` at `x` and a linear subspace `V` of `E'`: a
 subset `U` of `V`, open in `V`, contained in the target of `e`, and invariant under the
 differential `dg_x` of every `g` of the stabilizer of `x`. -/
+@[ext]
 structure SliceDomain (V : Submodule ℝ E') where
   /-- the subset of `E'` -/
   carrier : Set E'
@@ -254,25 +258,20 @@ theorem contMDiff_coe : ContMDiff 𝓘(ℝ, V) 𝓘(ℝ, E') ∞ fun z : U ↦ (
 theorem contMDiff_sliceMap : ContMDiff 𝓘(ℝ, V) I' ∞ U.sliceMap :=
   e.contMDiffOn_symm.comp_contMDiff U.contMDiff_coe U.coe_mem_target
 
-/-- **The stabilizer acts smoothly on a slice domain**, for any manifold structure on the
-stabilizer for which its action on `M` is smooth. -/
+/-- **The stabilizer acts smoothly on a slice domain** of a finite-dimensional subspace `V`, for
+any manifold structure on the stabilizer for which its action on `M` is smooth. -/
 instance instContMDiffSMul [TopologicalSpace G] [FiniteDimensional ℝ V] {F : Type*}
     [NormedAddCommGroup F] [NormedSpace ℝ F] {HF : Type*} [TopologicalSpace HF]
     {IF : ModelWithCorners ℝ F HF} [ChartedSpace HF (stabilizer G x)]
     [ContMDiffSMul IF I' ∞ (stabilizer G x) M] :
     ContMDiffSMul IF 𝓘(ℝ, V) ∞ (stabilizer G x) U where
   contMDiff_smul := by
-    obtain ⟨p, hp⟩ := Submodule.ClosedComplemented.of_finiteDimensional V
-    rw [← ContMDiff.subtypeVal_comp_iff]
-    -- In the chart the action is `(g, z) ↦ e (g • e.symm z)`, projected back to `V` by `p`.
-    have hcomp : (Subtype.val ∘ fun q : stabilizer G x × U ↦ q.1 • q.2) =
-        fun q : stabilizer G x × U ↦ p (e.chart (q.1 • U.sliceMap q.2)) := by
-      funext q
-      rw [comp_apply, sliceMap_apply, Subgroup.smul_def, ← coe_smul_eq_chart, hp]
-    rw [hcomp]
-    refine p.contMDiff.comp (e.contMDiffOn.comp_contMDiff
-      (contMDiff_fst.smul (U.contMDiff_sliceMap.comp contMDiff_snd)) fun q ↦ ?_)
-    rw [sliceMap_apply, Subgroup.smul_def]
+    rw [← ContMDiff.subtypeVal_comp_iff,
+      (Submodule.ClosedComplemented.of_finiteDimensional V).contMDiff_iff_subtypeL_comp]
+    -- In the chart the action is `(g, z) ↦ e (g • e.symm z)`.
+    simp only [comp_apply, Submodule.subtypeL_apply, coe_smul_eq_chart]
+    refine e.contMDiffOn.comp_contMDiff
+      (contMDiff_fst.smul (U.contMDiff_sliceMap.comp contMDiff_snd)) fun q ↦ ?_
     exact e.smul_mem_source _ q.1.property _ (e.chart.map_target (U.coe_mem_target q.2))
 
 /-! ### The tube map -/
@@ -292,6 +291,7 @@ theorem tubeMap_mk (g : G) (z : U) :
   rw [tubeMap_def, BalancedProduct.liftRightTranslation_mk, sliceMap_apply]
 
 /-- The tube map is `G`-equivariant. -/
+@[simp]
 theorem tubeMap_smul (g : G)
     (y : BalancedProduct (stabilizer G x) (stabilizer G x).RightTranslation U) :
     U.tubeMap (g • y) = g • U.tubeMap y :=
