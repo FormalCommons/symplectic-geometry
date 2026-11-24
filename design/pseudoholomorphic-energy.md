@@ -184,12 +184,13 @@ real singular cohomology.
    over a smooth integral cycle representing $A$, which exists and is
    unique up to smooth boundaries by the smoothing theorem. The part needs
    this map only through two properties: its value on such a cycle, and
-   naturality under smooth maps. It is
-   `TauCeti.deRhamCohomology.singularHomologyPeriod` below, unless Tau Ceti
-   has a map with these properties by the time its issue starts. Tau
-   Ceti's `smoothHomologyPeriod`, pinned since the move to `c9d170eed5a8`
-   (#2025), is defined on smooth singular homology only;
-   `singularHomologyPeriod` composes it with the smoothing isomorphism.
+   naturality under smooth maps. It is Tau Ceti's
+   `closedFormHomologyPeriod φ`, on `H₂(M; ℤ)` with coefficients the ring
+   `ℤ`; since `mapFundamentalClass` has coefficients `ULift ℤ`, a class `A`
+   is read in it as `(uliftIntHomologyIso (TopCat.of M) 2).hom.hom A`. The
+   two properties are `closedFormHomologyPeriod_homologyMap_ι_homologyπ`
+   and `closedFormHomologyPeriod_mpullback` (with
+   `homologyMap_comp_uliftIntHomologyIso_hom`).
 6. **The comparison with the fundamental class, and its sign.** The library
    proves that for a closed oriented surface $\Sigma$ and a smooth top form
    $\varphi$, $\int_\Sigma\varphi=\langle[\varphi],[\Sigma]\rangle$, where the
@@ -268,7 +269,6 @@ real singular cohomology.
 | `Geometry/Symplectic/JHolomorphic/Energy/Surface.lean` | Tau Ceti's energy form read through `energyDensity`, the energy through an area form, the integrated identity, zero energy and local constancy |
 | `Geometry/Manifold/MFDeriv/Constancy.lean` | a locally constant map has zero differential, `IsLocallyConstant.mfderiv_eq_zero`, for the file above |
 | `AlgebraicTopology/SimplicialSet/Homology/RestrictScalars.lean` | the change of coefficients on simplicial chains along a restriction of scalars, `SSet.restrictScalarsChainMap`, and its isomorphism form `SSet.restrictScalarsChainIso` |
-| `Geometry/Manifold/SmoothSingular/SingularPeriod.lean` | the pairing of de Rham classes with integral singular homology |
 | `Geometry/Manifold/SmoothSingular/RelativeCycle.lean` | the relative step of Decision 7 |
 | `AlgebraicTopology/SimplicialSet/Homology/RelativeClass.lean` | the relative class of a simplex whose faces lie in the subcomplex of a pair of simplicial sets, `SSetPair.relClass` |
 | `AlgebraicTopology/SimplicialSet/Homology/One.lean` | naturality of the class of a closed $1$-simplex under maps of simplicial sets, `SSet.ιHomology₁_homologyMap` |
@@ -393,26 +393,6 @@ It imports Tau Ceti's `Manifold/Energy/Surface.lean`, and
   case, and the independence of `dvol`. No milestone line; the milestone is
   in `Homology.lean`.
 
-### `SmoothSingular/SingularPeriod.lean`
-
-- `TauCeti.deRhamCohomology.singularHomologyPeriod : deRhamCohomology I M p →ₗ[ℝ]
-  (((singularHomologyFunctor (ModuleCat.{0} ℤ) p).obj (ModuleCat.of ℤ (ULift ℤ))).obj (TopCat.of M) →+ ℝ)`
-  (the name avoids Tau Ceti's degree-one `deRhamCohomology.homologyPeriod`).
-  Built from Tau Ceti's `deRhamCohomology.smoothHomologyPeriod`, the inverse of
-  `smoothSingularHomologyIso I M (ModuleCat.of ℤ ℤ) p` and the change of
-  coefficients `uliftIntHomologyIso`; on a smooth chain
-  $\sum n_i\sigma_i$ the integral is $\sum n_i\int_{\sigma_i}\varphi$
-  (`intIntegrationCochain`, Tau Ceti's integer `integrationCochain` after the
-  change of coefficients `uliftIntIso` on chains).
-  API: `singularHomologyPeriod_mk_apply_smoothCycle` (on
-  the image of the class of a smooth integral cycle it is the integral over
-  the cycle; the exact form of the cycle's class is the issue's), and
-  `singularHomologyPeriod_map` ($\langle f^*c,A\rangle=\langle c,f_*A\rangle$
-  for smooth `f`, from `closedFormHomologyPeriod_mpullback` and
-  `homologyMap_comp_uliftIntHomologyIso_hom`).
-  The issue first checks whether Tau Ceti has such a map since the pin
-  (Decision 5).
-
 ### `SmoothSingular/RelativeCycle.lean`
 
 - The lemma of Decision 7, for an open `U : Opens M` of a Hausdorff
@@ -475,11 +455,11 @@ It imports Tau Ceti's `Manifold/Energy/Surface.lean`, and
 
 ### `DeRham/FundamentalClass.lean`
 
-- `TauCeti.Manifold.Orientation.integralTopForm_eq_singularHomologyPeriod`
+- `TauCeti.Manifold.Orientation.integralTopForm_eq_closedFormHomologyPeriod`
   (the name follows the orientation used): for a closed surface `C` as in
   *Conventions*, oriented by `o`, and `φ : closedForms 𝓘(ℝ, E') C 2` (every two-form
   is closed, by `mextDeriv_eq_zero_of_finrank_le`),
-  `integralTopForm o φ.val.val = deRhamCohomology.singularHomologyPeriod (mk φ) (oₕ.fundamentalClass hE')`
+  `integralTopForm o φ.val.val = closedFormHomologyPeriod φ ((uliftIntHomologyIso (TopCat.of C) 2).hom.hom (oₕ.fundamentalClass hE'))`
   with `oₕ` the correctly signed homological orientation. Route: every
   point has a positively oriented simplex chart (the inverse of an oriented
   chart, `exists_partialDiffeomorph_isOrientationPreservingAt` of Tau Ceti, and a
@@ -493,31 +473,33 @@ It imports Tau Ceti's `Manifold/Energy/Surface.lean`, and
   $\int_z\rho_i\varphi=\int_{\sigma_i}\rho_i\varphi$ (Stokes for `b`, and
   `ρᵢ • φ` vanishes on `c`), which is `integralTopForm o (ρᵢ • φ)` by
   `SmoothSimplex.integral_eq_integralTopForm`.
-- `TauCeti.Manifold.Orientation.integralTopForm_mpullback_eq_singularHomologyPeriod`:
+- `TauCeti.Manifold.Orientation.integralTopForm_mpullback_eq_closedFormHomologyPeriod`:
   for `hE'`, `o`, `φ : closedForms I M 2` and smooth `u : C → M`,
-  `integralTopForm o (mpullback I' I u φ.val.val) = singularHomologyPeriod (mk φ) (oₕ.mapFundamentalClass hE' ⟨u, hu.continuous⟩)`,
-  from the previous result for `u^* φ` and `singularHomologyPeriod_map`.
+  `integralTopForm o (mpullback I' I u φ.val.val) = closedFormHomologyPeriod φ ((uliftIntHomologyIso (TopCat.of M) 2).hom.hom (oₕ.mapFundamentalClass hE' ⟨u, hu.continuous⟩))`,
+  from the previous result for `u^* φ`, `closedFormHomologyPeriod_mpullback`
+  and `homologyMap_comp_uliftIntHomologyIso_hom`.
 
 ### `Energy/Homology.lean`
 
 With `oₕ` as above, `A` an integral class of $H_2(M)$, `hω : ω` closed, and
 `hA : oₕ.mapFundamentalClass hE' ⟨u, hu.continuous⟩ = A` ("$u$ represents
-$A$"):
+$A$"), with `Aℤ = (uliftIntHomologyIso (TopCat.of M) 2).hom.hom A` its class with
+coefficients the ring `ℤ`:
 
-- `energy_eq_singularHomologyPeriod`: for `∀ c, IsPseudoholomorphicAt j J u c`,
-  `ω.energy J j o u = singularHomologyPeriod (mk ω) A`.
+- `energy_eq_closedFormHomologyPeriod`: for `∀ c, IsPseudoholomorphicAt j J u c`,
+  `ω.energy J j o u = closedFormHomologyPeriod ⟨ω, hω⟩ Aℤ`.
 - `Compatible.energy_le_energy`: for `hc`, `ho`, pseudoholomorphic `u` and
   any smooth `v : C → M` representing the same `A`,
   `ω.energy J j o u ≤ ω.energy J j o v` (both areas are the period of `A`,
   and Tau Ceti's `Compatible.integralTopForm_mpullback_le_energy` bounds
   that of `v` by its energy).
-- `Tames.singularHomologyPeriod_pos`: for `ω.Tames J` (a compatible pair
+- `Tames.closedFormHomologyPeriod_pos`: for `ω.Tames J` (a compatible pair
   gives it), `ho` and pseudoholomorphic `u`
-  that is not locally constant, `0 < singularHomologyPeriod (mk ω) A`.
+  that is not locally constant, `0 < closedFormHomologyPeriod ⟨ω, hω⟩ Aℤ`.
 - **Milestone** `Compatible.energy_identity_and_homology`: the conjunction of
   `Compatible.energy_identity` and, for closed `ω`,
-  `energy_eq_singularHomologyPeriod`, `Compatible.energy_le_energy` and
-  `Tames.singularHomologyPeriod_pos`, with the energy written as in
+  `energy_eq_closedFormHomologyPeriod`, `Compatible.energy_le_energy` and
+  `Tames.closedFormHomologyPeriod_pos`, with the energy written as in
   `Compatible.energy_identity`, through
   `energy_eq_half_integralTopForm_normSq`. Milestone: *Energy identity for
   J-holomorphic curves*.
@@ -531,7 +513,7 @@ $A$"):
 | integrated identity | `TauCeti.SmoothTwoForm.Invariant.energy_eq_integralTopForm_add` | `JHolomorphic/Energy/Surface.lean` |
 | pseudoholomorphic case | `TauCeti.SmoothTwoForm.energy_eq_integralTopForm_mpullback` (Tau Ceti) | Tau Ceti's `Manifold/Energy/Surface.lean` |
 | zero energy | `TauCeti.SmoothTwoForm.Tames.energy_eq_zero_iff_isLocallyConstant` | `JHolomorphic/Energy/Surface.lean` |
-| integration against $[\Sigma]$ | `TauCeti.Manifold.Orientation.integralTopForm_eq_singularHomologyPeriod` | `DeRham/FundamentalClass.lean` |
+| integration against $[\Sigma]$ | `TauCeti.Manifold.Orientation.integralTopForm_eq_closedFormHomologyPeriod` | `DeRham/FundamentalClass.lean` |
 | the milestone | `TauCeti.SmoothTwoForm.Compatible.energy_identity_and_homology` | `Homology.lean` |
 
 The tame case of the page's notes (the symmetrized metric) is not a
@@ -566,7 +548,8 @@ Each is a few hundred lines; each is blocked by the issues it names.
 5. **Periods of closed forms on integral singular homology.**
    `SmoothSingular/SingularPeriod.lean`, with the change of coefficients on
    chains in `SimplicialSet/Homology/RestrictScalars.lean`. About 300 lines.
-   No blockers.
+   No blockers. Tau Ceti's `closedFormHomologyPeriod` has since replaced
+   `SingularPeriod.lean`, which was deleted (#2211).
 6. **Relative cycles and smooth chains.** `SmoothSingular/RelativeCycle.lean`.
    About 250 lines. No blockers.
 7. **Positively oriented simplices in local homology.**

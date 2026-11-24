@@ -516,7 +516,7 @@ Bundles from clutching data, and isomorphisms from homotopies.
   sign $s$ compares Tau Ceti's local orientations with the class of a
   positively oriented singular simplex, so only a comparison through
   singular chains meets it, such as
-  `integralTopForm_eq_singularHomologyPeriod`. This proof forms no singular
+  `integralTopForm_eq_closedFormHomologyPeriod`. This proof forms no singular
   chain. The integral is computed in polar coordinates in charts positive
   for `o`. The Chern number is computed by the clutching formula, whose
   signs come from Tau Ceti's local indices for `o.toHomologicalOrientation`
