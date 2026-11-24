@@ -379,7 +379,7 @@ def compatibleForm (g : ContMDiffRiemannianMetric I n F V)
     (J : ContMDiffComplexStructure I n F V) : ContMDiffTwoForm I n F V :=
   ContMDiffTwoForm.ofBilinearSection (compatibleBilin g J) fun x v ↦ by
     rw [compatibleBilin, ContMDiffSection.map_apply]
-    exact g.isAlt_compatibleBilinAt x (J x) v
+    exact g.isAlt_compatibleBilinAt x (J.toEndomorphism x) v
 
 /-- The value of `ω_{g,J}` on two vectors `v 0`, `v 1` is
 `(g(J (v 0), v 1) - g(v 0, J (v 1))) / 2`. -/
