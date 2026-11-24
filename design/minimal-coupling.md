@@ -333,7 +333,7 @@ boundaryless, Hausdorff, finite-dimensional manifold $X$:
   trivializations from equivariant maps
   (`Topology/Algebra/GroupAction/OrbitTrivialization.lean`) with the
   equivariant maps given by the smooth local sections of the slice charts;
-- `orbitBundleDiffeomorph : ManifoldTotalSpace G (orbitFiber X) ≃ₘ X`, an
+- `orbitBundleDiffeomorph : ManifoldTotalSpace G (orbitFiber Gᵐᵒᵖ X) ≃ₘ X`, an
   equivariant diffeomorphism over the quotient map.
 
 A compact group acts properly. For `Circle` the converse feeds it the
