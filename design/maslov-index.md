@@ -13,8 +13,9 @@ index for paths of Lagrangian subspaces*. The sources are McDuff–Salamon
 [McDuffSalamon2017], §2.2 (Theorem 2.2.12) and §2.3 (Theorem 2.3.7 and
 pp. 49, 53–54), and Robbin–Salamon [RobbinSalamon1993], §§1–2 and Remarks
 2.5–2.6. Paths of Tau Ceti files are relative to
-`.lake/packages/TauCeti/TauCeti/`; every Tau Ceti name below was checked at the
-pinned commit `e0e414c`.
+`.lake/packages/TauCeti/TauCeti/`; every Tau Ceti name below was checked at
+commit `e0e414c`, the version pinned when this file was written;
+`lakefile.toml` pins Tau Ceti `c9d170eed5a8` now.
 
 ## What exists, and what the part adds
 

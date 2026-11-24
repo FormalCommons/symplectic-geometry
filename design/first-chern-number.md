@@ -897,24 +897,30 @@ issues, in an order where each issue's blockers come before it.
    (`design/pseudoholomorphic-energy.md`), which it imports.
    That injectivity is the degree-one case of Poincaré duality, which
    Tau Ceti prepares in `AlgebraicTopology/Cohomology/CompactSupport/`
-   (`HomologicalOrientation.dualityMap` and its criterion in `Duality.lean`)
-   but does not finish. The issue first checks whether Tau Ceti has finished
-   it since the pin. If not, duality for closed oriented manifolds from that
-   criterion is likely several issues, and is split into them when the issues
-   are created. Done when the evenness theorem is proved.
-   The first of them brings from Tau Ceti's main branch, under Tau Ceti's
-   names and namespaces so that a move of Tau Ceti past them deletes the
-   files, the duality maps on open subsets, the two Mayer–Vietoris squares
-   and duality for disjoint and directed unions of open sets, in
+   (`HomologicalOrientation.dualityMap` and its criterion
+   `bijective_dualityMap_of_cofinal`, in `Duality/Basic.lean`) but does not
+   finish. The pinned `c9d170eed5a8` has, besides these, duality for
+   disjoint and directed unions of open sets (`Duality/Basic.lean`,
+   `Duality/DirectedUnion.lean`), the Mayer–Vietoris squares
+   (`Duality/MayerVietoris.lean` and
+   `AlgebraicTopology/Cohomology/Cap/MayerVietoris/Basic.lean`) and
+   duality for convex and star-convex open subsets of a vector space
+   (`Euclidean/Duality.lean`), but not duality for a manifold, which the
+   library proves (below). Done when the evenness theorem is proved.
+   Before the move to `c9d170eed5a8`, the library had copied from Tau
+   Ceti's main branch, under Tau Ceti's names and namespaces so that a
+   move of Tau Ceti past them would delete the files, the duality maps on
+   open subsets, the two Mayer–Vietoris squares and duality for disjoint
+   and directed unions of open sets, in
    `AlgebraicTopology/Cohomology/CompactSupport/Duality/{Basic,MayerVietoris,DirectedUnion}.lean`.
-   The lemmas they use from other Tau Ceti files of the main branch go in
+   The lemmas they used from other Tau Ceti files of the main branch went in
    files at those files' paths:
    `AlgebraicTopology/Cohomology/CompactSupport/{Extension,MayerVietoris,DirectedUnion}.lean`,
    `AlgebraicTopology/Singular/{DirectedUnion,MayerVietoris/Basic}.lean`,
    `AlgebraicTopology/Singular/LocalHomology/Orientation/OpenEmbedding.lean`,
    `Geometry/Manifold/Opens.lean` and `Topology/Sets/Opens.lean`.
    The chain and cohomology lemmas that Tau Ceti uses for the connecting
-   square of Poincaré duality and Mayer–Vietoris go, in the same way, in
+   square of Poincaré duality and Mayer–Vietoris went, in the same way, in
    `Algebra/Homology/ModuleCat/Basic.lean`,
    `AlgebraicTopology/Cohomology/{Cap/Relative,MayerVietoris/Compl}.lean`,
    `AlgebraicTopology/SimplicialSet/Homology/{Basic,MayerVietoris}.lean`,
@@ -922,10 +928,10 @@ issues, in an order where each issue's blockers come before it.
    `AlgebraicTopology/Singular/Subdivision/Small/{Chains,Relative}.lean` and
    `Topology/Sets/Compacts.lean`.
    Tau Ceti's caps of chains supported in an open subspace, and their
-   relative forms, come in the same way, in
+   relative forms, came in the same way, in
    `AlgebraicTopology/Cohomology/Cap/Support.lean`.
    Tau Ceti's connecting square of the duality maps and the Mayer–Vietoris
-   connecting maps comes in the same way, in
+   connecting maps came in the same way, in
    `AlgebraicTopology/Cohomology/Cap/MayerVietoris/{Local,Basic}.lean`.
    The move to `c9d170eed5a8` (#2025) deleted all these copies: their
    declarations are Tau Ceti's now, in the files of the same paths under

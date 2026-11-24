@@ -19,7 +19,9 @@ replaces is Hirsch, *Differential Topology*, Chapter 4, Theorem 6.1, and Lee,
 *Introduction to Smooth Manifolds*, 2nd ed., Theorem 9.25.
 
 Paths of Tau Ceti files are relative to `.lake/packages/TauCeti/TauCeti/`,
-and every Tau Ceti name below was checked at the pinned commit `e0e414c`.
+and every Tau Ceti name below was checked at commit `e0e414c`, the version
+pinned when this file was written; `lakefile.toml` pins Tau Ceti
+`c9d170eed5a8` now.
 Paths of new files are under `SymplecticGeometry/`. Names are written in
 full; a new name without a namespace is in `SymplecticGeometry`.
 
