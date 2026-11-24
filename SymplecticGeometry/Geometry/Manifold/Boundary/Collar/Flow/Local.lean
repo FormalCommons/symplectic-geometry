@@ -99,7 +99,7 @@ at every time `t` of its domain `s` from which it is defined for a while forward
 `s ∈ 𝓝[≥] t`. -/
 theorem _root_.IsMIntegralCurveOn.mem_interior_of_isOutwardPointing
     (hY : ∀ x ∈ (𝓡∂ (n + 1)).boundary W, IsOutwardPointing x (Y x)) {γ : ℝ → W} {s : Set ℝ}
-    (hγ : IsMIntegralCurveOn γ Y s) {t : ℝ} (ht : t ∈ s) (hs : s ∈ 𝓝[≥] t) :
+    (hγ : IsMIntegralCurveOn γ Y s) {t : ℝ} (hs : s ∈ 𝓝[≥] t) :
     γ t ∈ (𝓡∂ (n + 1)).interior W := by
   rw [← ModelWithCorners.compl_boundary]
   intro hb
@@ -107,7 +107,8 @@ theorem _root_.IsMIntegralCurveOn.mem_interior_of_isOutwardPointing
   -- running forward from `t` has an outward velocity there.
   apply not_isOutwardPointing_curveVelocityWithin_Ici (n := n) γ t
   rw [Manifold.curveVelocityWithin_eq_of_hasMFDerivWithinAt
-    ((hγ t ht).mono_of_mem_nhdsWithin hs) (uniqueDiffOn_Ici t t self_mem_Ici)]
+    ((hγ t (mem_of_mem_nhdsWithin self_mem_Ici hs)).mono_of_mem_nhdsWithin hs)
+    (uniqueDiffOn_Ici t t self_mem_Ici)]
   exact hY _ hb
 
 variable [IsManifold (𝓡∂ (n + 1)) ∞ W]
@@ -528,7 +529,7 @@ theorem _root_.IsMIntegralCurveOn.eqOn_of_isOutwardPointing [T2Space W]
     fun t _ ↦ (hYs.of_le (by simp)).contMDiffAt
   -- At negative times, both curves are in the interior.
   have hint : ∀ t ∈ Ioo (-η) 0, γ t ∈ (𝓡∂ (n + 1)).interior W := fun t ht ↦
-    hγ.mem_interior_of_isOutwardPointing hYb (Ioo_subset_Ioc_self ht)
+    hγ.mem_interior_of_isOutwardPointing hYb
       (nhdsWithin_le_nhds (mem_of_superset (Ioo_mem_nhds ht.1 ht.2) Ioo_subset_Ioc_self))
   by_cases hb : γ 0 ∈ (𝓡∂ (n + 1)).boundary W
   · obtain ⟨l, hl, hEq⟩ := exists_eqOn_Icc_of_mem_boundary hYs hη hγ hδ h0 hb

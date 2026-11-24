@@ -196,7 +196,7 @@ theorem collarFlow_mem_interior (h : IsStrongFilling σ U Y) {s : ℝ}
     (hs : s ∈ Ioo (-h.collarWidth) 0) (x : (𝓡∂ (n + 1)).boundary W) :
     h.collarFlow (s, x) ∈ (𝓡∂ (n + 1)).interior W :=
   (h.isMIntegralCurveOn_collarFlow x).mem_interior_of_isOutwardPointing
-    (fun _ hy ↦ h.isOutwardPointingField.isOutwardPointing hy) (Ioo_subset_Ioc_self hs)
+    (fun _ hy ↦ h.isOutwardPointingField.isOutwardPointing hy)
     (nhdsWithin_le_nhds (Filter.mem_of_superset (Ioo_mem_nhds hs.1 hs.2) Ioo_subset_Ioc_self))
 
 /-! ### The completion as a manifold -/
