@@ -71,12 +71,10 @@ theorem isTorus_map_connectedComponentOfOne {S : Subgroup G} (hS : IsCompact (S 
     [IsMulCommutative S] :
     IsTorus ((Subgroup.connectedComponentOfOne S).map S.subtype) := by
   have : CompactSpace S := isCompact_iff_compactSpace.mp hS
-  have hK : ((Subgroup.connectedComponentOfOne S).map S.subtype : Set G) =
-      Subtype.val '' connectedComponent (1 : S) := by
-    rw [Subgroup.coe_map, Subgroup.coe_connectedComponentOfOne, Subgroup.coe_subtype]
-  refine ⟨?_, ?_, inferInstance⟩ <;> rw [hK]
-  · exact isClosed_connectedComponent.isCompact.image continuous_subtypeVal
-  · exact isConnected_connectedComponent.image _ continuous_subtypeVal.continuousOn
+  refine IsTorus.map ⟨?_, ?_, inferInstance⟩ S.subtype continuous_subtypeVal <;>
+    rw [Subgroup.coe_connectedComponentOfOne]
+  · exact isClosed_connectedComponent.isCompact
+  · exact isConnected_connectedComponent
 
 end Topological
 
@@ -170,21 +168,22 @@ theorem range_groupLieAlgebraMap_subtype (d : EmbeddedLieSubgroupData I K F)
   let eK := leftInvariantDerivationLieEquivGroupLieAlgebra (I := 𝓘(ℝ, F)) (G := K)
     (ContMDiffMul.isInteriorPoint (n := ∞) (by simp) 1)
   let e := leftInvariantDerivationLieEquivGroupLieAlgebra (I := I) (G := G) h₁
-  have key (D : LeftInvariantDerivation 𝓘(ℝ, F) K) :
-      K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I (eK D) = e (d.lieMapSubtypeVal D) := by
-    rw [lieMapSubtypeVal_apply, leftInvariantDerivationLieEquivGroupLieAlgebra_lieMap,
+  have key : (K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I).toLinearMap ∘ₗ
+      (eK.toLinearEquiv : LeftInvariantDerivation 𝓘(ℝ, F) K →ₗ[ℝ] GroupLieAlgebra 𝓘(ℝ, F) K) =
+      (e.toLinearEquiv : LeftInvariantDerivation I G →ₗ[ℝ] GroupLieAlgebra I G) ∘ₗ
+        d.lieMapSubtypeVal.toLinearMap := by
+    refine LinearMap.ext fun D ↦ ?_
+    rw [LinearMap.comp_apply, LinearMap.comp_apply, LinearEquiv.coe_coe, LinearEquiv.coe_coe,
+      LieEquiv.coe_toLinearEquiv, LieEquiv.coe_toLinearEquiv, ContinuousLinearMap.coe_coe,
+      LieHom.coe_toLinearMap, lieMapSubtypeVal_apply,
+      leftInvariantDerivationLieEquivGroupLieAlgebra_lieMap,
       MonoidHom.groupLieAlgebraMap_apply,
       mfderiv_congr (funext fun k ↦ d.subtypeVal_apply k), Subgroup.coe_subtype]
     -- The two sides differ only by unfolding the local abbreviation `eK`.
     rfl
-  rw [← d.range_lieMapSubtypeVal_eq]
-  ext v
-  constructor
-  · rintro ⟨w, rfl⟩
-    obtain ⟨D, rfl⟩ := eK.surjective w
-    exact ⟨d.lieMapSubtypeVal D, ⟨D, rfl⟩, (key D).symm⟩
-  · rintro ⟨X, ⟨D, rfl⟩, rfl⟩
-    exact ⟨eK D, key D⟩
+  rw [← d.range_lieMapSubtypeVal_eq, ← LinearMap.range_comp_of_range_eq_top _
+    (LinearEquiv.range eK.toLinearEquiv), key, LinearMap.range_comp,
+    LieHom.range_toSubmodule]
 
 variable [IsTopologicalGroup G]
   {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [CompleteSpace E']
@@ -208,16 +207,8 @@ theorem range_groupLieAlgebraMap_subtype_stabilizer {x : M}
   have h₁ : I.IsInteriorPoint (1 : G) := BoundarylessManifold.isInteriorPoint
   rw [d.range_groupLieAlgebraMap_subtype h₁,
     lieSubalgebraOfSubgroup_map_connectedComponentOfOne_stabilizer (I' := I') h₁ x]
-  ext ξ
-  let e := leftInvariantDerivationLieEquivGroupLieAlgebra (I := I) (G := G) h₁
-  constructor
-  · rintro ⟨X, hX, rfl⟩
-    rwa [SetLike.mem_coe, LieSubalgebra.mem_toSubmodule, LieSubalgebra.mem_comap,
-      LieEquiv.coe_toLieHom] at hX
-  · intro hξ
-    refine ⟨e.symm ξ, ?_, e.apply_symm_apply ξ⟩
-    rwa [SetLike.mem_coe, LieSubalgebra.mem_toSubmodule, LieSubalgebra.mem_comap,
-      LieEquiv.coe_toLieHom, e.apply_symm_apply]
+  exact Submodule.map_comap_eq_of_surjective
+    (leftInvariantDerivationLieEquivGroupLieAlgebra (I := I) (G := G) h₁).toLinearEquiv.surjective _
 
 end EmbeddedLieSubgroupData
 
