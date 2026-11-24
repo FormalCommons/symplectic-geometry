@@ -304,7 +304,7 @@ along a smooth family of open embeddings.
 ```lean
 theorem TauCeti.SmoothIsotopy.exists_diffeotopy_comp_eq_extend
     [T2Space M] {W : Type*} … {g₀ g₁ : C^∞⟮I', W; I, M⟯} (G : SmoothIsotopy g₀ g₁)
-    (hG : ∀ t, IsOpenEmbedding (G (t, ·))) (hGd : ∀ t, IsLocalDiffeomorph I' I ∞ (G (t, ·)))
+    (hGd : ∀ t, IsLocalDiffeomorph I' I ∞ (G (t, ·)))
     (Λ : W ≃ₘ⟮I', I'⟯ W) {K : Set W} (hK : IsCompact K) (hΛ : ∀ w ∉ K, Λ w = w) :
     ∃ (Λ₀ : M ≃ₘ⟮I, I⟯ M) (Φ : Diffeotopy I ∞ M),
       (∀ t w, Φ.timeSlice t (Λ₀ (G (t, w))) = G (t, Λ w)) ∧
@@ -317,7 +317,7 @@ transplant along $G_t$. The proof applies
 `IsLocalDiffeomorph.exists_diffeomorph_extend_of_isCompact` once, on the
 manifold `unitInterval × M`, to the open embedding $(t,w)\mapsto(t,G_t w)$
 and the diffeomorphism $(t,w)\mapsto(t,\Lambda w)$. The result preserves
-the time coordinate, and the library's `Diffeotopy.ofContMDiff` makes
+the time coordinate, and composing it with $\mathrm{id}\times\Lambda_0^{-1}$ makes
 $\Phi_t=\Lambda_t\circ\Lambda_0^{-1}$ a diffeotopy. If Tau Ceti's theorem
 needs a model without boundary, the same is done on `ℝ × M` after
 extending `G` past both ends of the interval, as *Manifolds, families and
