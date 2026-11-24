@@ -407,7 +407,7 @@ orbit projections of `h.orbitLevel η` and of `hP.zeroLevel`.
 - `mpullback_orbitLevelGraph_prod`: the product form pulled back along
   `Subtype.val ∘ orbitLevelGraph` is
   `SmoothForm.mpullback Subtype.val _ σ + SmoothForm.mpullback orbitLevelProj _ η.coadjointOrbitForm`.
-- `existsUnique_isSymplectic_mpullback_quotientMk_orbitLevel (hσ) (hG) … :
+- `existsUnique_isSymplectic_mpullback_quotientMk_orbitLevel_eq_mpullback_add_mpullback (hσ) (hG) … :
   ∃! ω_red, ω_red.IsSymplectic ∧ SmoothForm.mpullback π_Q _ ω_red =
   SmoothForm.mpullback Subtype.val _ σ +
   SmoothForm.mpullback orbitLevelProj _ η.coadjointOrbitForm`: the product's
