@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.OrderedFlow
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Reparam
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
+public import SymplecticGeometry.Geometry.Manifold.Algebra.Monoid
 public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 
 /-!
@@ -67,16 +68,16 @@ variable (Φ Ψ : Diffeotopy J n M) (T : I)
 which runs through the motion of `φ` up to time `T`, rescaled to the unit interval. It is the
 reparametrization of `φ` along `s ↦ T s`. -/
 def truncate : Diffeotopy J n M :=
-  Φ.reparam (contMDiffMapMulLeft T)
+  Φ.reparam (ContMDiffMap.mulLeft T)
 
 /-- The truncation at time `T` is the reparametrization along `s ↦ T s`. -/
-theorem truncate_def : Φ.truncate T = Φ.reparam (contMDiffMapMulLeft T) :=
+theorem truncate_def : Φ.truncate T = Φ.reparam (ContMDiffMap.mulLeft T) :=
   (rfl)
 
 /-- The truncation at time `T` is `φ_{T t}` at time `t`. -/
 @[simp]
 theorem truncate_apply (p : I × M) : Φ.truncate T p = Φ (T * p.1, p.2) := by
-  rw [truncate_def, reparam_apply_of_map_zero _ (by simp), contMDiffMapMulLeft_apply]
+  rw [truncate_def, reparam_apply_of_map_zero _ (by simp), ContMDiffMap.mulLeft_apply]
 
 /-- The time slices of the truncation at time `T` are `φ_{T t}`. -/
 @[simp]

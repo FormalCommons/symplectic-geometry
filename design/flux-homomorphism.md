@@ -257,13 +257,16 @@ Throughout, `[FiniteDimensional ℝ E] [J.Boundaryless] [T2Space M]
 
 `Rectangle.lean` (`[FiniteDimensional ℝ E] [T2Space M] [SigmaCompactSpace M]`):
 
-- `TauCeti.rectangleIntegral_mem_range_closedFormHomologyPeriod`: for
-  `u : ℝ × ℝ → M` smooth on the unit square with `u (0, s) = u (1, s)` and
-  `u (t, 0) = u (t, 1)` for `s, t ∈ [0, 1]`,
+- `TauCeti.rectangleIntegral_mem_range_closedFormHomologyPeriod`: for a
+  smooth `u : ℝ × ℝ → M` with `u (1, s) = u (0, s)` and
+  `u (t, 1) = u (t, 0)` for `s, t ∈ [0, 1]` (the edge conditions of
+  `VanishesOnTori`),
   `rectangleIntegral σ.val.val u (0, 0) (1, 1) ∈
-  Set.range (closedFormHomologyPeriod σ)`. The smoothness hypothesis is
-  the one that `Diffeotopy.sweep` satisfies (`contMDiffOn_sweep`, smooth
-  within the strip $[0,1]\times\mathbb R$).
+  Set.range (closedFormHomologyPeriod σ)`. The map must be smooth on all
+  of $\mathbb R^2$, which `Diffeotopy.sweep` is not (`contMDiffOn_sweep`
+  gives smoothness within the strip $[0,1]\times\mathbb R$ only), so
+  `Countable.lean` first reparametrizes `Φ` along a transition function
+  that is flat at both ends (`flux_reparam`).
 
 `SmoothSingular/Period.lean`:
 

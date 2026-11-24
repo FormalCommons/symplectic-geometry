@@ -30,10 +30,8 @@ interval is read off from that of its composite with the inclusion
 (`mfderiv_apply_eq_smul_one_Icc`), and continuous linear maps on a tangent space of the interval
 agree when they agree on `1` (`ContinuousLinearMap.ext_tangentSpace_Icc`).
 
-On the unit interval, left multiplication `s ↦ T s` is a `C^n` map for every `n`
-(`unitInterval.contMDiffMapMulLeft`, from Tau Ceti's `ContMDiffMul` instance), and its
-derivative sends the unit vector at `t` to `T` times the unit vector at `T t`
-(`unitInterval.mfderiv_mul_left_one`).
+On the unit interval, the derivative of left multiplication `s ↦ T s` sends the unit vector at
+`t` to `T` times the unit vector at `T t` (`unitInterval.mfderiv_mul_left_one`).
 -/
 
 public section
@@ -102,17 +100,6 @@ theorem ContinuousLinearMap.ext_tangentSpace_Icc {F : Type*} [AddCommGroup F] [M
   rw [SymplecticGeometry.eq_smul_one_of_mfderiv_subtypeVal_Icc hr, map_smul, map_smul, h]
 
 namespace unitInterval
-
-/-- Left multiplication `s ↦ T s` by `T ∈ [0, 1]`, as a `C^n` map of the unit interval into
-itself, for every `n`. -/
-noncomputable def contMDiffMapMulLeft {n : WithTop ℕ∞} (T : unitInterval) :
-    C^n⟮𝓡∂ 1, unitInterval; 𝓡∂ 1, unitInterval⟯ :=
-  ⟨(T * ·), contMDiff_mul_left⟩
-
-@[simp]
-theorem contMDiffMapMulLeft_apply {n : WithTop ℕ∞} (T s : unitInterval) :
-    contMDiffMapMulLeft (n := n) T s = T * s :=
-  (rfl)
 
 /-- The derivative of `s ↦ T s` on the unit interval sends the unit tangent vector at `t` to `T`
 times the unit tangent vector at `T t`. -/
