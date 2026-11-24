@@ -303,8 +303,7 @@ private theorem sectionIndex_eq_ite {s : ∀ x, V x}
   set ω := e.mapOrientation (Fin (1 + 1)) hze (oE z)
   have ho : ∀ x (hx : x ∈ e.baseSet), e.mapOrientation (Fin (1 + 1)) hx (oE x) = ω := by
     intro x hx
-    simp only [ω, oE, VectorBundleOrientation.reindex_apply, Trivialization.mapOrientation_reindex,
-      VectorBundleOrientation.mapOrientation_complex]
+    simp only [ω, oE, VectorBundleOrientation.mapOrientation_reindex_complex]
   -- A linear identification `D` of the model with `ℂ` that carries the orientation of the tangent
   -- space at `z` to `ω`, and the chart `φ` of `M` at `z` with values in `ℂ` that it gives.
   obtain ⟨D, hD⟩ : ∃ D : EM ≃L[ℝ] ℂ, (o.orientationAt z).map (Fin 2) D.toLinearEquiv = ω := by
