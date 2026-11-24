@@ -10,7 +10,9 @@ description: >-
 # finds no save and builds everything.
 inputs:
   names-only:
-    description: With 'true', only names the saves, and installs and restores nothing.
+    description: >-
+      With 'true', only names the saves and lists the imported Tau Ceti
+      modules, and installs and restores nothing.
     default: 'false'
 outputs:
   # A save of `.lake/packages` has this name, then a hash of the list of Tau
@@ -70,15 +72,17 @@ runs:
     # hour. Tau Ceti publishes the builds of some of its commits in a public
     # cache, which Lake reads without a key; Mathlib's files are not in it.
     # Lake looks for the list of the pinned commit's builds, then for that
-    # of each commit before it, up to 500, and takes the first it finds.
-    # `lake build` then fetches each module that the list has as the pinned
-    # commit would build it, with the same source and the same imports, and
-    # compiles the others: those that changed since, and those that import
-    # them. Only this step reads the cache. It leaves the modules in
-    # `.lake/packages` as a build without the cache would, so the steps after
-    # it, and a save of `.lake/packages`, are as before. If the cache has
-    # nothing, or the step fails, the build that follows compiles what is
-    # missing.
+    # of each commit before it, as `git rev-list` orders them, 500 commits
+    # in all, and takes the first it finds. `lake build` then fetches each
+    # module that the list has as the pinned commit would build it, with the
+    # same source and the same imports, and compiles the others: those that
+    # changed since, and those that import them. Only this step reads the
+    # cache. A later build without the cache accepts what the step leaves in
+    # `.lake/packages` and compiles nothing again, so the steps after it,
+    # and a save of `.lake/packages`, work as before. If the cache has
+    # nothing, or fetching or building from it fails, the step gives a
+    # warning, and the build that follows compiles what is missing. Lake
+    # sets no limit on a download, so each command has one here.
     - name: take the imported Tau Ceti modules from Tau Ceti's build cache
       if: inputs.names-only != 'true' && steps.restore.outputs.cache-matched-key == ''
       shell: bash
@@ -95,12 +99,16 @@ runs:
           'kind = "s3"' \
           'artifactEndpoint = "https://cache.taucetiproject.org/artifacts"' \
           'revisionEndpoint = "https://cache.taucetiproject.org/revisions"' > "$LAKE_CONFIG"
-        if lake cache get --service tauceti-public --repo TauCetiProject/TauCeti \
+        if timeout 10m lake cache get --service tauceti-public --repo TauCetiProject/TauCeti \
             --package TauCeti --mappings-only --max-revs=500 > "$RUNNER_TEMP/lake-cache-get.log" 2>&1; then
           grep 'downloading build outputs' "$RUNNER_TEMP/lake-cache-get.log" | tail -n 1 || true
-          LAKE_ARTIFACT_CACHE=true LAKE_RESTORE_ARTIFACTS=true lake build "${modules[@]}" ||
-            echo "::warning::the build from Tau Ceti's cache failed; the build that follows compiles what is missing"
+          LAKE_ARTIFACT_CACHE=true LAKE_RESTORE_ARTIFACTS=true timeout 90m lake build "${modules[@]}" ||
+            echo "::warning::the build from Tau Ceti's cache failed or took too long; the build that follows compiles what is missing"
         else
           tail -n 5 "$RUNNER_TEMP/lake-cache-get.log"
-          echo "::warning::Tau Ceti's cache has no builds for the pinned commit or the 500 before it; the Tau Ceti modules are compiled from source"
+          if grep -q 'no outputs found' "$RUNNER_TEMP/lake-cache-get.log"; then
+            echo "::warning::Tau Ceti's cache has no builds for the pinned commit or the 499 before it; the Tau Ceti modules are compiled from source"
+          else
+            echo "::warning::reading Tau Ceti's cache failed, see the lines above; the Tau Ceti modules are compiled from source"
+          fi
         fi
