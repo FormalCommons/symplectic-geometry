@@ -251,7 +251,7 @@ theorem Tames.invariant_of_forall_isLagrangian_map (hJ : ω.Tames J)
     have h₁ : c * ω v (J v) = ω (J v) (J (J v)) := hc' (J v)
     have h₂ : ω (J v) (J (J v)) = ω v (J v) := by
       rw [J.apply_apply]
-      exact (LinearMap.map_neg (ω.toBilinForm (J v)) v).trans (ω.neg_eq (J v) v)
+      exact (ω.apply_neg (J v) v).trans (ω.neg_eq (J v) v)
     rw [h₂] at h₁
     exact mul_right_cancel₀ (hJ v hv).ne' (h₁.trans (one_mul _).symm)
   rw [← hc' w, hc1, one_mul]
