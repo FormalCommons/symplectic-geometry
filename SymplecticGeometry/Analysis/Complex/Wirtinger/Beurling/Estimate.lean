@@ -10,7 +10,8 @@ public import TauCeti.Analysis.Normed.Operator.ComplexLinearPart
 public import TauCeti.Analysis.Sobolev.WeakDeriv.Basic
 import TauCeti.Analysis.Sobolev.Mollification.Basic
 import TauCeti.MeasureTheory.Function.Lp.ApproximateIdentity
-import TauCeti.Analysis.Normed.Module.RCLike.Basic
+import SymplecticGeometry.Analysis.Normed.Operator.ComplexLinearPart
+import SymplecticGeometry.MeasureTheory.Function.LpSeminorm.TriangleInequality
 
 /-!
 # The `L²` estimate for `∂̄ + μ ∂` in the plane
@@ -32,12 +33,8 @@ almost everywhere then changes `∂̄` by a term of norm at most `m ‖∂̄v‖
   for a compactly supported `v` with a weak derivative `D ∈ L²`, where `∂v` and `∂̄v` are the
   complex-linear and complex-antilinear parts of `D`. Mollification reduces them to the
   Schwartz case.
-* `MeasureTheory.one_sub_mul_eLpNorm_le_eLpNorm_add_smul`: the absorption step, for any measure
-  and exponent.
-* `ContinuousLinearMap.norm_complexLinearPart_le` and
-  `ContinuousLinearMap.norm_complexAntilinearPart_le`: both parts of a real-linear operator have
-  norm at most its norm. Their proofs follow the bound in Tau Ceti's
-  `ContinuousLinearMap.continuous_complexAntilinearPart`.
+The absorption step is `MeasureTheory.one_sub_mul_eLpNorm_le_eLpNorm_add_smul`, and the passage
+to the limit `MeasureTheory.eLpNorm_le_eLpNorm_of_tendsto`.
 
 ## References
 
@@ -49,94 +46,6 @@ public section
 
 open MeasureTheory Complex Filter Topology ContinuousLinearMap
 open scoped ENNReal NNReal SchwartzMap Convolution ContDiff
-
-/-- The complex-linear part of a real-linear operator has norm at most that of the operator. -/
-theorem ContinuousLinearMap.norm_complexLinearPart_le {E F : Type*} [NormedAddCommGroup E]
-    [NormedSpace ℂ E] [NormedAddCommGroup F] [NormedSpace ℂ F] (Ψ : E →L[ℝ] F) :
-    ‖Ψ.complexLinearPart‖ ≤ ‖Ψ‖ := by
-  refine opNorm_le_bound _ (norm_nonneg Ψ) fun v ↦ ?_
-  have h := Ψ.le_opNorm_of_le (x := Complex.I • v) (c := ‖v‖) (by simp [norm_smul])
-  rw [complexLinearPart_apply, sub_eq_add_neg]
-  exact TauCeti.norm_two_inv_smul_add_le (𝕜 := ℝ) (Ψ.le_opNorm v) (by simpa [norm_smul] using h)
-
-/-- The complex-antilinear part of a real-linear operator has norm at most that of the
-operator. -/
-theorem ContinuousLinearMap.norm_complexAntilinearPart_le {E F : Type*} [NormedAddCommGroup E]
-    [NormedSpace ℂ E] [NormedAddCommGroup F] [NormedSpace ℂ F] (Ψ : E →L[ℝ] F) :
-    ‖Ψ.complexAntilinearPart‖ ≤ ‖Ψ‖ := by
-  refine opNorm_le_bound _ (norm_nonneg Ψ) fun v ↦ ?_
-  have h := Ψ.le_opNorm_of_le (x := Complex.I • v) (c := ‖v‖) (by simp [norm_smul])
-  rw [complexAntilinearPart_apply]
-  exact TauCeti.norm_two_inv_smul_add_le (𝕜 := ℝ) (Ψ.le_opNorm v) (by simpa [norm_smul] using h)
-
-/-- Pointwise form of `ContinuousLinearMap.norm_complexLinearPart_le`. -/
-theorem ContinuousLinearMap.norm_complexLinearPart_apply_le {E F : Type*} [NormedAddCommGroup E]
-    [NormedSpace ℂ E] [NormedAddCommGroup F] [NormedSpace ℂ F] (Ψ : E →L[ℝ] F) (v : E) :
-    ‖Ψ.complexLinearPart v‖ ≤ ‖Ψ‖ * ‖v‖ :=
-  (Ψ.complexLinearPart.le_opNorm v).trans (by gcongr; exact Ψ.norm_complexLinearPart_le)
-
-/-- Pointwise form of `ContinuousLinearMap.norm_complexAntilinearPart_le`. -/
-theorem ContinuousLinearMap.norm_complexAntilinearPart_apply_le {E F : Type*}
-    [NormedAddCommGroup E] [NormedSpace ℂ E] [NormedAddCommGroup F] [NormedSpace ℂ F]
-    (Ψ : E →L[ℝ] F) (v : E) : ‖Ψ.complexAntilinearPart v‖ ≤ ‖Ψ‖ * ‖v‖ :=
-  (Ψ.complexAntilinearPart.le_opNorm v).trans (by gcongr; exact Ψ.norm_complexAntilinearPart_le)
-
-/-- The value of the complex-antilinear part at a fixed vector depends continuously on the
-operator. -/
-theorem ContinuousLinearMap.continuous_complexAntilinearPart_apply {E F : Type*}
-    [NormedAddCommGroup E] [NormedSpace ℂ E] [NormedAddCommGroup F] [NormedSpace ℂ F] (v : E) :
-    Continuous fun Ψ : E →L[ℝ] F ↦ Ψ.complexAntilinearPart v := by
-  simp only [complexAntilinearPart_apply]
-  fun_prop
-
-namespace MeasureTheory
-
-/-- **Absorbing a small multiple.** If `‖μ‖ ≤ m` almost everywhere and `‖g‖_p ≤ ‖f‖_p < ∞`,
-then `(1 - m) ‖f‖_p ≤ ‖f + μ g‖_p`. -/
-theorem one_sub_mul_eLpNorm_le_eLpNorm_add_smul {α E : Type*} [MeasurableSpace α]
-    {ν : Measure α} [NormedAddCommGroup E] [NormedSpace ℂ E] {p : ℝ≥0∞} (hp : 1 ≤ p)
-    {f g : α → E} {μ : α → ℂ} {m : ℝ≥0} (hg : AEStronglyMeasurable g ν)
-    (hμ : AEStronglyMeasurable μ ν)
-    (hμm : ∀ᵐ x ∂ν, ‖μ x‖ ≤ m) (hgf : eLpNorm g p ν ≤ eLpNorm f p ν)
-    (hf_top : eLpNorm f p ν ≠ ⊤) :
-    (1 - (m : ℝ≥0∞)) * eLpNorm f p ν ≤ eLpNorm (fun x ↦ f x + μ x • g x) p ν := by
-  have h₁ : eLpNorm f p ν ≤
-      eLpNorm (fun x ↦ f x + μ x • g x) p ν + eLpNorm (fun x ↦ μ x • g x) p ν := by
-    have h := eLpNorm_sub_le (f := fun x ↦ f x + μ x • g x) (g := fun x ↦ μ x • g x) (μ := ν) hp
-    rwa [show ((fun x ↦ f x + μ x • g x) - fun x ↦ μ x • g x) = f from
-      funext fun x ↦ add_sub_cancel_right _ _] at h
-  have h₂ : eLpNorm (fun x ↦ μ x • g x) p ν ≤ m * eLpNorm f p ν := by
-    have hμg : AEStronglyMeasurable (fun x ↦ μ x • g x) ν := hμ.smul hg
-    refine (eLpNorm_le_nnreal_smul_eLpNorm_of_ae_le_mul (g := g) (c := m) hμg ?_ p).trans ?_
-    · filter_upwards [hμm] with x hx
-      rw [nnNorm_smul]
-      exact mul_le_mul_of_nonneg_right (by exact_mod_cast hx) zero_le
-    · rw [ENNReal.smul_def, smul_eq_mul]
-      gcongr
-  rw [ENNReal.sub_mul fun _ _ ↦ hf_top, one_mul, tsub_le_iff_right]
-  exact h₁.trans (by gcongr)
-
-/-- **Passing an `Lᵖ` norm inequality to the limit.** If `a' n → a` and `b' n → b` in `Lᵖ` and
-`‖a' n‖_p ≤ ‖b' n‖_p` for every `n`, then `‖a‖_p ≤ ‖b‖_p`. -/
-theorem eLpNorm_le_eLpNorm_of_tendsto {α E : Type*} [MeasurableSpace α] {ν : Measure α}
-    [NormedAddCommGroup E] {p : ℝ≥0∞} (hp : 1 ≤ p) {a b : α → E} {a' b' : ℕ → α → E}
-    (hle : ∀ n, eLpNorm (a' n) p ν ≤ eLpNorm (b' n) p ν)
-    (hta : Tendsto (fun n ↦ eLpNorm (a' n - a) p ν) atTop (𝓝 0))
-    (htb : Tendsto (fun n ↦ eLpNorm (b' n - b) p ν) atTop (𝓝 0)) :
-    eLpNorm a p ν ≤ eLpNorm b p ν := by
-  refine ge_of_tendsto' (by simpa using (hta.add htb).add tendsto_const_nhds) fun n ↦ ?_
-  calc eLpNorm a p ν = eLpNorm ((a - a' n) + a' n) p ν := by rw [sub_add_cancel]
-    _ ≤ eLpNorm (a - a' n) p ν + eLpNorm (a' n) p ν := eLpNorm_add_le hp
-    _ ≤ eLpNorm (a' n - a) p ν + eLpNorm ((b' n - b) + b) p ν := by
-        rw [eLpNorm_sub_comm, sub_add_cancel]
-        gcongr
-        exact hle n
-    _ ≤ eLpNorm (a' n - a) p ν + eLpNorm (b' n - b) p ν + eLpNorm b p ν := by
-        rw [add_assoc]
-        gcongr
-        exact eLpNorm_add_le hp
-
-end MeasureTheory
 
 namespace TauCeti
 
