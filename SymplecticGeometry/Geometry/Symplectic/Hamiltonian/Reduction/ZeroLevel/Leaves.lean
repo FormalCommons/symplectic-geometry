@@ -6,11 +6,13 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Reduction.ZeroLevel.Basic
+public import SymplecticGeometry.Geometry.Manifold.Foliation.Orbit
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.Level
 public import TauCeti.Geometry.Symplectic.Lagrangian.Manifold
+public import TauCeti.Geometry.Symplectic.Lagrangian.Presymplectic
 
 /-!
-# The zero level of an equivariant moment map is coisotropic
+# The zero level of a moment map: coisotropy and characteristic leaves
 
 Let a Lie group `G` act smoothly on a Hausdorff manifold `(M, σ)` with nondegenerate `σ` and
 coadjoint-equivariant moment map `μ : M → 𝔤*`, freely at the points of `Z = μ⁻¹(0)`. With the
@@ -26,6 +28,17 @@ through the inclusion `i : Z → M`.
   the null directions of the level are its orbit directions. This combines Tau Ceti's
   `IsMomentMap.ker_bilinFormAt_mpullback` at `c = 0` with
   `ker_mfderiv_quotientMk_zeroLevel_eq_comap_map_lieAnnihilator`.
+* `fundamentalVectorField_mem_distribution_characteristicFoliation_zeroLevel`: if `σ` is
+  symplectic, the fundamental vector fields of the action on `Z` are tangent to the
+  characteristic foliation of `i`. The inclusion sends them into the orbit directions of `M`, and
+  at a point of `Z` these are the null directions of `i^* σ` (Tau Ceti's
+  `IsMomentMap.ker_bilinFormAt_mpullback` at `c = 0`); no properness is needed.
+* `mulInvariantExp_smul_mem_leaf_characteristicFoliation_zeroLevel` and
+  `orbit_subset_leaf_characteristicFoliation_zeroLevel`: for `ξ` in the Lie algebra of `G` and `z`
+  in `Z`, the point `exp ξ • z` lies on the leaf through `z` of the characteristic foliation of
+  `i`, and for connected `G` so does the whole orbit of `z`. These are
+  `TauCeti.Foliation.mulInvariantExp_smul_mem_leaf` and `TauCeti.Foliation.orbit_subset_leaf`
+  of `Foliation/Orbit.lean`, applied with the previous item.
 
 All declarations are in the namespace `TauCeti.SmoothTwoForm.IsEquivariantMomentMap`, beside those
 of `ZeroLevel/Basic.lean`.
@@ -96,6 +109,88 @@ theorem ker_bilinFormAt_mpullback_coe_zeroLevel [ProperSMul G h.zeroLevel] (z : 
     h.toIsMomentMap.ker_bilinFormAt_mpullback _ (hσ.nondegenerate_bilinFormAt z)
       (h.momentCocycle_eq_zero z) (h.range_mfderiv_coe_zeroLevel hσ hfree hn z),
     h.mem_zeroLevel.1 z.property]
+
+/-! ### Orbits lie in characteristic leaves -/
+
+section Leaves
+
+variable (hσ : σ.IsSymplectic)
+
+/-- **The fundamental vector fields are tangent to the characteristic foliation.** If `σ` is
+symplectic and `G` acts freely at every point of `μ⁻¹(0)`, then for every `ξ` in the Lie algebra
+of `G` and every point `z` of the zero level, the value at `z` of the fundamental vector field of
+`ξ` on the zero level lies in the tangent space at `z` of the characteristic foliation of the
+inclusion of the zero level. -/
+theorem fundamentalVectorField_mem_distribution_characteristicFoliation_zeroLevel
+    (ξ : GroupLieAlgebra I G) (z : h.zeroLevel) :
+    letI := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
+    haveI := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
+    haveI : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
+    fundamentalVectorField 𝓘(ℝ, Fin n → ℝ) ξ z ∈
+      ((h.isCoisotropicMap_coe_zeroLevel hσ.isNondegenerate hfree hn).characteristicFoliation
+        (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).isImmersion
+        (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).contMDiff hσ.isClosed
+        le_rfl).distribution z := by
+  let := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
+  have := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
+  have : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
+  have := h.contMDiffSMul_zeroLevel hσ.isNondegenerate hfree hn
+  have hemb := h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn
+  rw [IsNondegenerate.IsCoisotropicMap.characteristicFoliation_distribution,
+    h.toIsMomentMap.ker_bilinFormAt_mpullback _
+      (hσ.isNondegenerate.nondegenerate_bilinFormAt _) (h.momentCocycle_eq_zero _)
+      (h.range_mfderiv_coe_zeroLevel hσ.isNondegenerate hfree hn _),
+    h.mem_zeroLevel.1 z.property, lieAnnihilator_zero, LieSubalgebra.top_toSubmodule,
+    Submodule.map_top, ← InfinitesimalAction.orbitTangent_eq_range, Submodule.mem_comap,
+    ContinuousLinearMap.coe_coe,
+    mfderiv_fundamentalVectorField_of_map_smul (hemb.contMDiff.mdifferentiableAt (by simp))
+      ((ContMDiffSMul.contMDiff_smul_const (I := I) (n := ∞) _).mdifferentiableAt (by simp))
+      (fun g ↦ SubMulAction.val_smul g _), ← InfinitesimalAction.fundamental_apply]
+  exact (InfinitesimalAction.fundamental I G I' M).mem_orbitTangent _ ξ
+
+/-- **Exponential translates stay on the characteristic leaf.** If `σ` is symplectic and `G` acts
+freely at every point of `μ⁻¹(0)`, then for every `ξ` in the Lie algebra of `G` and every point
+`z` of the zero level, `exp ξ • z` lies on the leaf through `z` of the characteristic foliation of
+the inclusion of the zero level. -/
+theorem mulInvariantExp_smul_mem_leaf_characteristicFoliation_zeroLevel [T2Space G]
+    [BoundarylessManifold I G] (ξ : GroupLieAlgebra I G) (z : h.zeroLevel) :
+    letI := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
+    haveI := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
+    haveI : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
+    mulInvariantExp ξ • z ∈
+      ((h.isCoisotropicMap_coe_zeroLevel hσ.isNondegenerate hfree hn).characteristicFoliation
+        (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).isImmersion
+        (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).contMDiff hσ.isClosed
+        le_rfl).leaf z := by
+  let := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
+  have := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
+  have : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
+  have := h.contMDiffSMul_zeroLevel hσ.isNondegenerate hfree hn
+  exact Foliation.mulInvariantExp_smul_mem_leaf _
+    (h.fundamentalVectorField_mem_distribution_characteristicFoliation_zeroLevel hfree hn hσ) ξ z
+
+/-- **Orbits of the zero level lie in characteristic leaves.** If `σ` is symplectic and the
+connected group `G` acts freely at every point of `μ⁻¹(0)`, then the orbit of each point `z` of
+the zero level is contained in the leaf through `z` of the characteristic foliation of the
+inclusion of the zero level. -/
+theorem orbit_subset_leaf_characteristicFoliation_zeroLevel [ConnectedSpace G]
+    (z : h.zeroLevel) :
+    letI := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
+    haveI := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
+    haveI : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
+    MulAction.orbit G z ⊆
+      ((h.isCoisotropicMap_coe_zeroLevel hσ.isNondegenerate hfree hn).characteristicFoliation
+        (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).isImmersion
+        (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).contMDiff hσ.isClosed
+        le_rfl).leaf z := by
+  let := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
+  have := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
+  have : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
+  have := h.contMDiffSMul_zeroLevel hσ.isNondegenerate hfree hn
+  exact Foliation.orbit_subset_leaf _
+    (h.fundamentalVectorField_mem_distribution_characteristicFoliation_zeroLevel hfree hn hσ) z
+
+end Leaves
 
 end IsEquivariantMomentMap
 

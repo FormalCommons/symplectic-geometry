@@ -15,8 +15,8 @@ public import SymplecticGeometry.Topology.Order.OrdConnected
 
 Facts about semialgebraic data on the line. The first two concern the points to the right of a
 point `a : ℝ`; curve selection and the growth of one-variable semialgebraic functions both use
-them. The third, the finiteness of frontiers, serves semialgebraic choice. Points of the line
-are written `![t] : Fin 1 → ℝ`, the coordinate space of Tau Ceti's semialgebraic geometry.
+them. The third is the finiteness of frontiers. Points of the line are written
+`![t] : Fin 1 → ℝ`, the coordinate space of Tau Ceti's semialgebraic geometry.
 
 * `TauCeti.IsSemialgebraic.eventually_nhdsGT_mem_or_notMem`: a semialgebraic subset of the line
   contains, or misses, every point `![t]` with `t > a` close enough to `a`;
