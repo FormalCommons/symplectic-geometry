@@ -12,9 +12,12 @@ public import TauCeti.Geometry.Lie.Subgroup.Commutative
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Symplectic.AlmostComplex
 public import TauCeti.LinearAlgebra.TotallyReal.Basic
+public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
 public import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
 import TauCeti.LinearAlgebra.TotallyReal.Finrank
+import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
+import SymplecticGeometry.Geometry.Lie.Adjoint.Commute
 
 /-!
 # Complexifications of Lie groups
@@ -57,6 +60,8 @@ The complex structure `cplx` is not determined by the other fields.
 * `SymplecticGeometry.LieComplexification.connectedSpace`: `Gc` is connected if `G` is.
 * `SymplecticGeometry.LieComplexification.isClosedEmbedding_toHom`: `toHom` is a closed
   embedding.
+* `SymplecticGeometry.LieComplexification.toHom_mul_expI_mul_inv`: for connected `G`, conjugation
+  by `toHom u` sends `expI ξ` to `expI (Ad u ξ)`.
 * `SymplecticGeometry.LieComplexification.circle_cplx_apply`,
   `SymplecticGeometry.LieComplexification.re_circle_lieMap`,
   `SymplecticGeometry.LieComplexification.circle_lieMap_circleLieGenerator`,
@@ -65,6 +70,10 @@ The complex structure `cplx` is not determined by the other fields.
   `circle`, `cplx` is multiplication by `i`, the Lie algebra of `Circle` goes to `i ℝ`, with
   `circleLieGenerator` going to `i`, and `polar (ξ, u) = Complex.exp (i ξ) * u`, so that
   `polar (t • circleLieGenerator, u) = exp (-t) * u`.
+
+The conjugation formula combines Tau Ceti's `TauCeti.Lie.conj_mulInvariantExp`, the naturality of
+`Ad` along `toHom`, and the fact that `cplx`, which commutes with every `ad`, commutes with every
+`Ad` of the connected group `Gc` (`TauCeti.Lie.map_tangentAd_apply_of_map_lie`).
 
 The proof that the image of the Lie algebra of `Circle` is maximal totally real counts
 dimensions, by Tau Ceti's `TauCeti.IsTotallyReal.isMaximalTotallyReal`.
@@ -264,6 +273,16 @@ theorem isClosedEmbedding_toHom : Topology.IsClosedEmbedding C.toHom := by
 theorem connectedSpace (C : LieComplexification I G IC Gc) [ConnectedSpace G] : ConnectedSpace Gc :=
   Function.Surjective.connectedSpace C.polar.toHomeomorph.surjective
     C.polar.toHomeomorph.continuous
+
+/-- For connected `G`, conjugation by the inclusion of `u` acts on `expI` through the adjoint
+action of `G`: `toHom u * expI ξ * (toHom u)⁻¹ = expI (Ad u ξ)`. -/
+theorem toHom_mul_expI_mul_inv [FiniteDimensional ℝ EC] [ConnectedSpace G] (u : G)
+    (ξ : GroupLieAlgebra I G) :
+    C.toHom u * C.expI ξ * (C.toHom u)⁻¹ = C.expI (Lie.tangentAd (I := I) u ξ) := by
+  have := C.connectedSpace
+  rw [expI_def, expI_def, Lie.conj_mulInvariantExp, lieMap_def,
+    ContMDiffMonoidMorphism.groupLieAlgebraLieHom_tangentAd, ← lieMap_def,
+    Lie.map_tangentAd_apply_of_map_lie C.cplx.toLinearMap C.cplx_lie]
 
 end LieComplexification
 

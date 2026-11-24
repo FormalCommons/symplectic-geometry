@@ -190,7 +190,8 @@ These settle the points that `DESIGN.md` leaves to this file.
 8. **Statement 4.** 3 ⇒ 4 takes $a=[\tau]$: for a loop whose class is
    torsion, $\widetilde f$ vanishes on it, so the holonomy flux, which is
    $\pm$ `loopTransgression Φ a`, lies in $\Gamma_\sigma$. For 4 ⇒ 3,
-   Thurston's first step (*Compatible symplectic forms*, `Thurston.lean`)
+   Thurston's first step (*Compatible symplectic forms*,
+   `ClosedExtension.lean`)
    gives a closed $\tau$ in the class $a$ that restricts to the fibre
    forms. The same formula shows that $f_\tau$ vanishes on torsion classes,
    and a homomorphism from a finitely generated abelian group to
@@ -444,7 +445,8 @@ The page's form of statement 4. About 400 lines. Waits for the other files.
   `isHamiltonian_of_forall_timeSlice_mem_hamiltonianGroup` (`Family.lean`,
   which waits for `Countable.lean`). The route does not use
   Proposition 10.2.19 (`Loop.lean`).
-- *Compatible symplectic forms*: Thurston's first step (`Thurston.lean`),
+- *Compatible symplectic forms*: Thurston's first step
+  (`ClosedExtension.lean`),
   for 4 ⇒ 3.
 - Tau Ceti: `TauCeti.endpointFlux`, `fluxGroup`, `endpointFlux_mul_mul_inv`,
   `map_symm_mem_fluxGroup`, `flux_eq_mk_eulerianFluxForm`,

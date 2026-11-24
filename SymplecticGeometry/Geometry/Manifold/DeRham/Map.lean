@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.DeRham.Basic
 public import TauCeti.Geometry.Manifold.DeRham.HomotopyInvariance
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 
 /-!
@@ -60,7 +61,7 @@ theorem mpullback_sub_mem_exactForms_of_homotopy [IsManifold I ∞ M] {f g : M �
   have h := congrArg (· (deRhamCohomology.mk I' k ⟨γ, hγ⟩))
     (deRhamCohomology.map_eq_of_homotopy hf hg hF h₀ h₁ k)
   simp only [deRhamCohomology.map_mk] at h
-  rw [← sub_eq_zero, ← map_sub, deRhamCohomology.mk_eq_zero_iff] at h
+  rw [deRhamCohomology.mk_eq_mk_iff] at h
   simpa using h
 
 end TauCeti.SmoothForm
