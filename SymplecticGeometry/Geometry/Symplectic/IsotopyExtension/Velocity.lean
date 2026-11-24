@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Diffeotopy
 public import TauCeti.Geometry.Manifold.VectorField.Prod
 public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
@@ -27,9 +28,11 @@ Let `F : [0, 1] × P → M` be a smooth isotopy of embeddings (`TauCeti.SmoothIs
 and `σ` be two-forms on `P` and `M`. The isotopy is symplectic
 (`TauCeti.SmoothIsotopy.IsSymplectic τ σ F`) when every slice `F_t = F (t, ·)` pulls `σ` back to
 `τ`. Its velocity form (`TauCeti.SmoothIsotopy.velocityForm σ F`) is the one-form `ι_{∂ₜ} F^* σ` on
-the cylinder `[0, 1] × P`, the contraction of `F^* σ` with the unit time field `∂ₜ = (1, 0)`. Its
-slice at time `t` is the one-form `v ↦ σ (∂ₜ F (t, x), dF_t v)` on `P`, the velocity one-form of
-the isotopy at that time, as in McDuff–Salamon, §3.3.
+the cylinder `[0, 1] × P`, the interior product (`TauCeti.SmoothForm.interiorProduct`) of `F^* σ`
+with the unit time field `∂ₜ = (1, 0)`, a smooth section of the tangent bundle
+(`TauCeti.unitIntervalTimeField`). Its slice at time `t` is the one-form
+`v ↦ σ (∂ₜ F (t, x), dF_t v)` on `P`, the velocity one-form of the isotopy at that time, as in
+McDuff–Salamon, §3.3.
 
 When `σ` is closed and `F` is symplectic, every slice of the velocity form is closed. The form
 `F^* σ` on the cylinder is closed, so Cartan's formula makes `d ι_{∂ₜ} F^* σ` the Lie derivative
@@ -48,6 +51,7 @@ diffeotopies and the cylinder `[0, 1] × M` of isotopies.
 ## Main definitions
 
 * `TauCeti.SmoothIsotopy.IsSymplectic τ σ F`: every slice of `F` pulls `σ` back to `τ`.
+* `TauCeti.unitIntervalTimeField`: the unit time field `∂ₜ = (1, 0)` of `[0, 1] × P`.
 * `TauCeti.SmoothIsotopy.velocityForm σ F`: the one-form `ι_{∂ₜ} F^* σ` on `[0, 1] × P`.
 * `TauCeti.SmoothIsotopy.restrict G h`: the restriction of an isotopy `G` of an open `W ⊆ P` to
   an open `V ⊆ W`.
@@ -117,6 +121,24 @@ theorem contMDiff_prodVectorField_one_zero :
   Manifold.contMDiff_prodVectorField SymplecticGeometry.contMDiff_totalSpaceMk_one_Icc
     (contMDiff_zeroSection ℝ (TangentSpace J))
 
+/-- The unit time field `∂ₜ = (1, 0)` of the cylinder `[0, 1] × P`, as a smooth section of the
+tangent bundle. -/
+def unitIntervalTimeField :
+    Cₛ^∞⟮(𝓡∂ 1).prod J; EuclideanSpace ℝ (Fin 1) × E',
+      TangentSpace ((𝓡∂ 1).prod J) (M := unitInterval × P)⟯ :=
+  ⟨Manifold.prodVectorField (fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
+    (0 : Π y : P, TangentSpace J y), contMDiff_prodVectorField_one_zero⟩
+
+/-- The unit time field of the cylinder is the product field of `1` on `[0, 1]` and `0` on
+`P`. -/
+@[simp]
+theorem coe_unitIntervalTimeField :
+    ⇑(unitIntervalTimeField : Cₛ^∞⟮(𝓡∂ 1).prod J; EuclideanSpace ℝ (Fin 1) × E',
+      TangentSpace ((𝓡∂ 1).prod J) (M := unitInterval × P)⟯) =
+      Manifold.prodVectorField (fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
+        (0 : Π y : P, TangentSpace J y) :=
+  (rfl)
+
 end TimeField
 
 namespace SmoothIsotopy
@@ -146,23 +168,24 @@ time field `∂ₜ = (1, 0)`. At `(t, x)` it sends `(0, v)` to `σ (∂ₜ F (t,
 `α_t = ι_t^* ι_{∂ₜ} F^* σ` of `F` at that time. -/
 def velocityForm (σ : SmoothTwoForm I M) (F : SmoothIsotopy f₀ f₁) :
     SmoothForm ((𝓡∂ 1).prod J) (unitInterval × P) ℝ 1 :=
-  ⟨RoughForm.interior
-      (Manifold.prodVectorField (fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
-        (0 : Π y : P, TangentSpace J y))
-      (mpullback ((𝓡∂ 1).prod J) I (F : unitInterval × P → M) σ.val), by
-    rw [← SmoothForm.coe_mpullback _ F.contMDiff]
-    exact ((SmoothForm.mpullback F F.contMDiff σ).isSmoothForm.interior
-      contMDiff_prodVectorField_one_zero).mem_smoothBundleForms⟩
+  SmoothForm.interiorProduct unitIntervalTimeField (SmoothForm.mpullback F F.contMDiff σ)
 
 variable (σ : SmoothTwoForm I M) (F : SmoothIsotopy f₀ f₁)
+
+/-- The velocity form is the interior product of `F^* σ` with the unit time field. -/
+theorem velocityForm_eq_interiorProduct :
+    F.velocityForm σ =
+      SmoothForm.interiorProduct unitIntervalTimeField (SmoothForm.mpullback F F.contMDiff σ) :=
+  (rfl)
 
 /-- The velocity form is the contraction of `F^* σ` with the unit time field. -/
 theorem velocityForm_def :
     (F.velocityForm σ).val = RoughForm.interior
       (Manifold.prodVectorField (fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
         (0 : Π y : P, TangentSpace J y))
-      (mpullback ((𝓡∂ 1).prod J) I (F : unitInterval × P → M) σ.val) :=
-  (rfl)
+      (mpullback ((𝓡∂ 1).prod J) I (F : unitInterval × P → M) σ.val) := by
+  rw [velocityForm_eq_interiorProduct, SmoothForm.coe_interiorProduct, coe_unitIntervalTimeField,
+    SmoothForm.coe_mpullback]
 
 /-- The value of the velocity form at `(t, x)` on a spatial vector `(0, v)` is
 `σ (∂ₜ F (t, x), dF_t v)`. -/
