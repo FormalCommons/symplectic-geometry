@@ -95,10 +95,10 @@ is `π^* (τ t)`, whose radical is the vertical line spanned by `X`
 endpoints too, the argument is the same on the boundary.
 
 The cohomological condition is proved with the homotopy operator
-`TauCeti.SmoothForm.homotopyOperator`. Pull `σ` back along `Φ (p, u) = (p, s + u (t - s))`,
+`TauCeti.SmoothForm.homotopyOperator`. Pull `σ` back along `Φ (p, u) = (p, (1 - u) s + u t)`,
 from `P × [0, 1]`; the homotopy formula makes `β = h (Φ^* σ)` a primitive of
 `π^* (τ t - τ s)`, the difference of the end slices. The form `β` is invariant, by naturality of
-the homotopy operator (`TauCeti.homotopyOperator_mpullback_prodMap_id_of_isSmoothForm`), and by
+the homotopy operator (`TauCeti.SmoothForm.mpullback_homotopyOperator`), and by
 the Hamiltonian identity it takes the value `(2π)⁻¹ (t - s)` on the fundamental field of
 `circleLieGenerator`. So for a connection form `α`, the form `β - (2π)⁻¹ (t - s) α` is the
 pull-back `π^* γ` of a form on `B`
@@ -350,10 +350,10 @@ theorem isSymplectic (h : IsCouplingForm σ τ) (hτ : ∀ t, (τ t).IsNondegene
 section Cohomology
 
 variable (P) in
-/-- The map `(p, u) ↦ (p, s + u (t - s))` from `P × [0, 1]` to `P × [a, b]`. -/
+/-- The map `(p, u) ↦ (p, (1 - u) s + u t)` from `P × [0, 1]` to `P × [a, b]`. -/
 private def segmentMap (s t : Set.Icc a b) :
     ManifoldTotalSpace Circle P × Set.Icc (0 : ℝ) 1 → ManifoldTotalSpace Circle P × Set.Icc a b :=
-  Prod.map id (Set.Icc.lineMap s t)
+  Prod.map id (Set.Icc.convexComb s t)
 
 omit [∀ b, MulAction Circleᵐᵒᵖ (P b)] [IsManifold IB ∞ B] [PrincipalBundle Circle P]
   [ContMDiffFiberBundle ∞ Circle P IB (𝓡 1)] in
@@ -361,7 +361,7 @@ variable (P) in
 private theorem contMDiff_segmentMap (s t : Set.Icc a b) :
     ContMDiff ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) ∞
       (segmentMap P s t) :=
-  contMDiff_id.prodMap (Set.Icc.contMDiff_lineMap s t)
+  contMDiff_id.prodMap (contMDiff_const.convexComb contMDiff_const contMDiff_id)
 
 /-- The primitive `h (Φ^* σ)` of `π^* (τ t - τ s)`, for `Φ` the map `(p, u) ↦ (p, s + u (t - s))`
 and `h` the homotopy operator. -/
@@ -383,9 +383,9 @@ private theorem mextDerivₗ_primitive (h : IsCouplingForm σ τ) (s t : Set.Icc
     rw [SmoothForm.mextDerivₗ_mpullback,
       (SmoothForm.isClosed_iff_mextDerivₗ_eq_zero σ).mp h.isClosed, map_zero]
   have h₁ : segmentMap P s t ∘ (fun x ↦ (x, (1 : Set.Icc (0 : ℝ) 1))) = fun p ↦ (p, t) :=
-    funext fun p ↦ by simp [segmentMap, Set.Icc.lineMap_one]
+    funext fun p ↦ by simp [segmentMap]
   have h₀ : segmentMap P s t ∘ (fun x ↦ (x, (0 : Set.Icc (0 : ℝ) 1))) = fun p ↦ (p, s) :=
-    funext fun p ↦ by simp [segmentMap, Set.Icc.lineMap_zero]
+    funext fun p ↦ by simp [segmentMap]
   rw [primitive, SmoothForm.mextDerivₗ_homotopyOperator hcl, SmoothForm.mpullback_mpullback,
     SmoothForm.mpullback_mpullback, map_sub, ← h.mpullback_slice, ← h.mpullback_slice]
   simp only [h₁, h₀]
@@ -396,25 +396,14 @@ private theorem mpullback_smul_primitive (h : IsCouplingForm σ τ) (s t : Set.I
     (z : Circle) :
     SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P ↦ op z • x)
       (contMDiff_const_smul (op z)) (primitive σ s t) = primitive σ s t := by
-  have hz : ContMDiff (IB.prod (𝓡 1)) (IB.prod (𝓡 1)) ∞
-      (fun x : ManifoldTotalSpace Circle P ↦ op z • x) := contMDiff_const_smul (op z)
-  have hzc : ContMDiff ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) ∞
-      (Prod.map (fun x : ManifoldTotalSpace Circle P ↦ op z • x)
-        (id : Set.Icc (0 : ℝ) 1 → Set.Icc (0 : ℝ) 1)) := hz.prodMap contMDiff_id
-  refine Subtype.ext ?_
-  rw [primitive, SmoothForm.coe_mpullback, SmoothForm.coe_homotopyOperator,
-    ← homotopyOperator_mpullback_prodMap_id_of_isSmoothForm (hz.mdifferentiable (by simp))
-      ((SmoothForm.mpullback (segmentMap P s t) (contMDiff_segmentMap P s t) σ).isSmoothForm.of_le
-        (by simp)),
-    ← SmoothForm.coe_mpullback _ hzc, ← SmoothForm.coe_homotopyOperator]
+  rw [primitive, SmoothForm.mpullback_homotopyOperator]
   have hcomp : segmentMap P s t ∘ Prod.map (fun x ↦ op z • x) id =
       (fun x : ManifoldTotalSpace Circle P × Set.Icc a b ↦ (op z • x.1, x.2)) ∘
         segmentMap P s t :=
-    -- both maps send `(p, u)` to `(op z • p, s + u (t - s))`
+    -- both maps send `(p, u)` to `(op z • p, (1 - u) s + u t)`
     funext fun _ ↦ rfl
   rw [SmoothForm.mpullback_mpullback]
   conv_rhs => rw [← h.mpullback_smul z, SmoothForm.mpullback_mpullback]
-  rw [SmoothForm.coe_homotopyOperator]
   simp only [hcomp]
 
 /-- The primitive takes the value `(2π)⁻¹ (t - s)` on the fundamental vector field of `1`. -/
@@ -437,33 +426,34 @@ private theorem primitive_apply_rightFundamentalVectorField (h : IsCouplingForm 
   have hD : mfderiv ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
       (segmentMap P s t) (p, u) =
       (mfderiv (IB.prod (𝓡 1)) (IB.prod (𝓡 1)) id p).prodMap
-        (mfderiv (𝓡∂ 1) (𝓡∂ 1) (Set.Icc.lineMap s t) u) :=
+        (mfderiv (𝓡∂ 1) (𝓡∂ 1) (Set.Icc.convexComb s t) u) :=
     mfderiv_prodMap mdifferentiableAt_id
-      ((Set.Icc.contMDiff_lineMap (n := 1) s t).mdifferentiable one_ne_zero u)
+      ((contMDiff_const.convexComb (n := 1) contMDiff_const contMDiff_id).mdifferentiable
+        one_ne_zero u)
   rw [SmoothForm.mpullback_apply, hD]
-  let w₀ : TangentSpace ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (p, Set.Icc.lineMap s t u) :=
-    (0, mfderiv (𝓡∂ 1) (𝓡∂ 1) (Set.Icc.lineMap s t) u 1)
-  have hw₀ := h.apply_couplingField_eq_neg_mfderiv_snd (p, Set.Icc.lineMap s t u) w₀
-  have hd : mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Set.Icc a b → ℝ) (Set.Icc.lineMap s t u)
-      (mfderiv (𝓡∂ 1) (𝓡∂ 1) (Set.Icc.lineMap s t) u 1) = (t : ℝ) - (s : ℝ) := by
-    rw [Set.Icc.mfderiv_lineMap_one, map_smul, mfderiv_subtypeVal_Icc_one]
+  let w₀ : TangentSpace ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (p, Set.Icc.convexComb s t u) :=
+    (0, mfderiv (𝓡∂ 1) (𝓡∂ 1) (Set.Icc.convexComb s t) u 1)
+  have hw₀ := h.apply_couplingField_eq_neg_mfderiv_snd (p, Set.Icc.convexComb s t u) w₀
+  have hd : mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Set.Icc a b → ℝ) (Set.Icc.convexComb s t u)
+      (mfderiv (𝓡∂ 1) (𝓡∂ 1) (Set.Icc.convexComb s t) u 1) = (t : ℝ) - (s : ℝ) := by
+    rw [Set.Icc.mfderiv_convexComb_one, map_smul, mfderiv_subtypeVal_Icc_one]
     -- the tangent spaces of `ℝ` are `ℝ` itself
     exact mul_one ((t : ℝ) - s)
-  -- the second component of `w₀` is `d(lineMap) 1`, by definition
-  rw [show w₀.2 = mfderiv (𝓡∂ 1) (𝓡∂ 1) (Set.Icc.lineMap s t) u 1 from rfl, hd] at hw₀
+  -- the second component of `w₀` is `d(convexComb) 1`, by definition
+  rw [show w₀.2 = mfderiv (𝓡∂ 1) (𝓡∂ 1) (Set.Icc.convexComb s t) u 1 from rfl, hd] at hw₀
   convert congrArg (fun c ↦ (2 * Real.pi)⁻¹ * c) (neg_eq_iff_eq_neg.mpr hw₀) using 1
   rw [mul_neg, ← smul_eq_mul, ← ContinuousAlternatingMap.vecCons_smul,
     ← ContinuousAlternatingMap.apply_vecCons_swap]
   congr 1
   funext i
   fin_cases i
-  · -- `(id, d(lineMap)) (0, 1) = (0, d(lineMap) 1)`, by definition of `prodMap`
+  · -- `(id, d(convexComb)) (0, 1) = (0, d(convexComb) 1)`, by definition of `prodMap`
     simp only [id_eq, mfderiv_id, Fin.zero_eta, Fin.isValue, Matrix.cons_val, mul_inv_rev, w₀]
     rfl
   · simp only [id_eq, mfderiv_id, Fin.mk_one, Fin.isValue, Matrix.cons_val,
       Matrix.cons_val_one, Matrix.cons_val_fin_one]
     -- the components of `prodMap` are the two maps, by definition
-    exact Prod.ext hX ((map_zero (mfderiv (𝓡∂ 1) (𝓡∂ 1) (Set.Icc.lineMap s t) u)).trans
+    exact Prod.ext hX ((map_zero (mfderiv (𝓡∂ 1) (𝓡∂ 1) (Set.Icc.convexComb s t) u)).trans
       (smul_zero ((2 * Real.pi)⁻¹ : ℝ)).symm)
 
 variable [IB.Boundaryless] [FiniteDimensional ℝ EB] [T2Space B] [SigmaCompactSpace B]
