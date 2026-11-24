@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Algebra.Category.ModuleCat.Monoidal.TensorMk
 public import TauCeti.Algebra.Category.ModuleCat.Monoidal.Unit
 
 /-!
@@ -15,7 +16,8 @@ Tau Ceti's `ModuleCat.uliftTensorSelfIso R` identifies `ULift R ⊗ ULift R` wit
 (`ModuleCat.uliftTensorSelfIso_hom_assoc`): the two ways of multiplying three factors agree after
 the associator of the tensor product. It has `1` as a right unit
 (`ModuleCat.rightUnitor_inv_whiskerLeft_uliftTensorSelfIso_hom`): `a ↦ a ⊗ 1 ↦ a * 1` is the
-identity.
+identity. Its proof evaluates `a ↦ a ⊗ 1` with Tau Ceti's
+`TauCeti.ModuleCat.rightUnitor_inv_whiskerLeft_toSpanSingleton_apply`.
 -/
 
 public section
@@ -51,9 +53,12 @@ theorem rightUnitor_inv_whiskerLeft_uliftTensorSelfIso_hom :
     ((ρ_ (of R (ULift.{u} R))).inv ≫
         of R (ULift.{u} R) ◁ ofHom (ULift.moduleEquiv.symm : R ≃ₗ[R] ULift.{u} R).toLinearMap) ≫
       (uliftTensorSelfIso R).hom = 𝟙 _ := by
+  have h : (ULift.moduleEquiv.symm : R ≃ₗ[R] ULift.{u} R).toLinearMap =
+      LinearMap.toSpanSingleton R (of R (ULift.{u} R)) (ULift.up 1) :=
+    LinearMap.ext_ring (by simp)
   refine hom_ext (LinearMap.ext fun a ↦ ?_)
-  -- `ρ⁻¹` sends `a` to `a ⊗ 1`, and the coefficient map sends `1` to `ULift.up 1`, by definition
-  change (uliftTensorSelfIso R).hom (a ⊗ₜ ULift.up 1) = a
-  rw [uliftTensorSelfIso_hom_tmul, mul_one]
+  rw [h, ConcreteCategory.comp_apply,
+    TauCeti.ModuleCat.rightUnitor_inv_whiskerLeft_toSpanSingleton_apply,
+    uliftTensorSelfIso_hom_tmul, mul_one, hom_id, LinearMap.id_apply]
 
 end ModuleCat

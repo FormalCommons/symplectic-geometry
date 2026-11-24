@@ -62,7 +62,7 @@ general connections apply to it.
 * `TauCeti.IsEhresmannConnection.isDistributionFrameOn_horizontalLiftField`: the lifts of a local
   frame of the tangent bundle of the base form a local frame of the connection.
 * `TauCeti.IsEhresmannConnection.mdifferentiableAt_horizontalLiftField`: for a `C^n` connection
-  with `1 ≤ n`, the horizontal lift of a `C^n` field is differentiable.
+  with `1 ≤ n`, the horizontal lift of a `C^1` field is differentiable where `f` is `C^2`.
 
 ## References
 
@@ -288,12 +288,15 @@ theorem contMDiffAt_horizontalLiftField {V : Π b : B, TangentSpace J b} {x : P}
   hD.contMDiffAt_horizontalLift (g := id) (w := fun y ↦ ⟨f y, V (f y)⟩) (fun _ ↦ rfl) hf
     contMDiffAt_id (hV.comp x (hf.of_le le_self_add))
 
-/-- For a `C^n` Ehresmann connection on `f`, with `1 ≤ n` and `f` of class `C^(n+1)` at `x`, the
-horizontal lift of a field that is `C^n` at `f x` is differentiable at `x`. -/
+/-- For a `C^n` Ehresmann connection on `f`, with `1 ≤ n` and `f` of class `C^2` at `x`, the
+horizontal lift of a field that is `C^1` at `f x` is differentiable at `x`. -/
 theorem mdifferentiableAt_horizontalLiftField (hn : 1 ≤ n) {V : Π b : B, TangentSpace J b}
-    {x : P} (hf : ContMDiffAt I J (n + 1) f x) (hV : ContMDiffAt J J.tangent n (T% V) (f x)) :
-    MDifferentiableAt I I.tangent (T% (hD.horizontalLiftField V)) x :=
-  ((hD.contMDiffAt_horizontalLiftField hf hV).of_le hn).mdifferentiableAt one_ne_zero
+    {x : P} (hf : ContMDiffAt I J 2 f x) (hV : ContMDiffAt J J.tangent 1 (T% V) (f x)) :
+    MDifferentiableAt I I.tangent (T% (hD.horizontalLiftField V)) x := by
+  -- The lift is that of `D` seen as a `C^1` connection, which is `C^1` at `x`.
+  rw [← hD.horizontalLiftField_of_le V hn]
+  exact ((hD.of_le hn).contMDiffAt_horizontalLiftField (by rwa [one_add_one_eq_two]) hV
+    ).mdifferentiableAt one_ne_zero
 
 /-- The horizontal lift of a `C^n` vector field on `B`, for a `C^n` Ehresmann connection on a
 `C^(n+1)` map `f`, is `C^n`. -/
