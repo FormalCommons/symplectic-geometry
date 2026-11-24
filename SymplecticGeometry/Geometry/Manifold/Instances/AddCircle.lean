@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.Instances.AddCircle
 import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 import Mathlib.LinearAlgebra.Complex.FiniteDimensional
 import TauCeti.Geometry.Manifold.Instances.AddCircle.Cover
+import TauCeti.Geometry.Manifold.Instances.AddCircle.Circle
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 
@@ -27,7 +28,7 @@ to `(u, r) ↦ r · exp (2π u / p · i)`, whose derivative is injective for `r 
 with Tau Ceti's inverse function theorem `TauCeti.isLocalDiffeomorphAt_of_eqOn_comp`. The same
 lift gives, by the chain rule, the derivative of polar coordinates: at `(θ, r)` it sends `(a, b)`
 to `(2π r a / p · i + b) · toCircle θ`. Their smoothness follows from that of `toCircle`
-(`AddCircle.contMDiff_coe_toCircle`), which lifts along the quotient map `ℝ → AddCircle p`.
+(`AddCircle.contMDiff_coe_toCircle`), Tau Ceti's `AddCircle.contMDiff_toCircle` read in `ℂ`.
 
 ## Main results
 
@@ -102,13 +103,8 @@ private theorem injective_fderiv_polarLift {x : ℝ × ℝ} (hx : x.2 ≠ 0) :
 of every order. -/
 theorem contMDiff_coe_toCircle (r : ℕ∞ω) :
     ContMDiff 𝓘(ℝ) 𝓘(ℝ, ℂ) r fun x : AddCircle p ↦ (toCircle x : ℂ) := by
-  rw [← (isLocalDiffeomorph_coe p r).contMDiff_comp_iff QuotientAddGroup.mk_surjective le_rfl]
-  have h : (fun x : AddCircle p ↦ (toCircle x : ℂ)) ∘ ((↑) : ℝ → AddCircle p) =
-      fun t ↦ Complex.exp (((2 * π / p * t : ℝ) : ℂ) * Complex.I) :=
-    funext fun t ↦ by rw [comp_apply, toCircle_apply_mk, Circle.coe_exp]
-  rw [h]
-  exact ContDiff.contMDiff (Complex.contDiff_exp.comp
-    ((Complex.ofRealCLM.contDiff.comp (contDiff_const.mul contDiff_id)).mul contDiff_const))
+  have := finrank_real_complex_fact'
+  exact contMDiff_coe_sphere.comp (contMDiff_toCircle p r)
 
 variable (p n) in
 /-- Polar coordinates `(θ, r) ↦ r · toCircle θ` on `AddCircle p × ℝ` are `C^n`. -/
