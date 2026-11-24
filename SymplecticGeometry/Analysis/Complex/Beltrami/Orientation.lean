@@ -18,19 +18,19 @@ complex-linear functionals for `K` are the multiples of `dz + ν dz̄`. For a st
 standard area form this `ν` is Tau Ceti's scalar coefficient `TauCeti.Beltrami.coefficientEquiv`
 (`TauCeti.Beltrami.coefficientEquiv_eq_div`).
 
-The operator `∂bar + μ ∂` with `μ = -ν = (K 1 - i) / (conj (K 1) - i)` is the one whose kernel
-consists of the functions with `K`-complex-linear differential. Its coefficient is the Cayley
-transform of `K 1` up to a conjugate denominator, so `‖μ‖ < 1` exactly when `K 1` lies in the
-upper half plane, that is, when `K` induces the standard orientation of `ℂ`, or equivalently when
-the standard area form tames `K` (`TauCeti.stdComplexSymplecticForm_tames_iff_im_pos`). This is
-`TauCeti.Beltrami.norm_beltrami_lt_one_of_im_pos`; it does not ask that `K` square to `-1`.
+The operator `∂bar + μ ∂` with `μ = -ν` is the one whose kernel consists of the functions with
+`K`-complex-linear differential. Up to sign and a conjugate denominator, `ν` is the Cayley
+transform of `w = K 1`, so `‖ν‖ = ‖μ‖ < 1` as soon as `w` lies in the open upper half plane, that
+is, when `K` induces the standard orientation of `ℂ`, or equivalently when the standard area form
+tames `K` (`TauCeti.stdComplexSymplecticForm_tames_iff_im_pos`). This is
+`TauCeti.Beltrami.norm_beltrami_lt_one_of_im_pos`, stated for the complex number `w`.
 
 ## Main results
 
 * `TauCeti.Beltrami.coefficientEquiv_eq_div`: Tau Ceti's coefficient of a tame structure `J` is
   `(i - J 1) / (conj (J 1) - i)`.
-* `TauCeti.Beltrami.norm_beltrami_lt_one_of_im_pos`: if `0 < Im (K 1)`, then
-  `‖(K 1 - i) / (conj (K 1) - i)‖ < 1`.
+* `TauCeti.Beltrami.norm_beltrami_lt_one_of_im_pos`: if `0 < Im w`, then
+  `‖(i - w) / (conj w - i)‖ < 1`.
 
 ## References
 
@@ -56,16 +56,15 @@ theorem coefficientEquiv_eq_div (J : AlmostComplexStructure ℂ)
   simp only [sub_im, conj_im, I_im, zero_im] at him
   linarith [(stdComplexSymplecticForm_tames_iff_im_pos J).1 hJ]
 
-/-- If a real-linear endomorphism `K` of `ℂ` sends `1` to the open upper half plane, as a complex
-structure inducing the standard orientation does, then the coefficient
-`μ = (K 1 - i) / (conj (K 1) - i)` of the operator `∂bar + μ ∂` of `K`, the negative of its
-Beltrami coefficient, has norm less than one. -/
-theorem norm_beltrami_lt_one_of_im_pos {K : ℂ →L[ℝ] ℂ} (hK : 0 < (K 1).im) :
-    ‖(K 1 - I) / (conj (K 1) - I)‖ < 1 := by
-  have hc : conj (K 1) - I = conj (K 1 + I) := by simp [sub_eq_add_neg]
-  rw [hc, norm_div, Complex.norm_conj, norm_sub_I_div_norm_add_I_lt_one_iff
-    (add_I_ne_zero_of_im_nonneg hK.le)]
-  exact hK
+/-- If `w` lies in the open upper half plane, as `K 1` does for a complex structure `K` on `ℂ`
+inducing the standard orientation, then the Beltrami coefficient `ν = (i - w) / (conj w - i)`
+has norm less than one. -/
+theorem norm_beltrami_lt_one_of_im_pos {w : ℂ} (hw : 0 < w.im) :
+    ‖(I - w) / (conj w - I)‖ < 1 := by
+  have hc : conj w - I = conj (w + I) := by simp [sub_eq_add_neg]
+  rw [← neg_sub, neg_div, norm_neg, hc, norm_div, Complex.norm_conj,
+    norm_sub_I_div_norm_add_I_lt_one_iff (add_I_ne_zero_of_im_nonneg hw.le)]
+  exact hw
 
 end TauCeti.Beltrami
 
