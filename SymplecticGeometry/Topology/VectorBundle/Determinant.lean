@@ -12,7 +12,6 @@ public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Conjugate
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.ConjugateExteriorPower
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.OfBundle
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Tensor
-public import TauCeti.LinearAlgebra.Complex.Finrank
 
 /-!
 # The determinant line of a vector bundle
