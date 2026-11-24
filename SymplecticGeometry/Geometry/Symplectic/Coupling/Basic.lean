@@ -7,9 +7,11 @@ module
 
 public import Mathlib.Geometry.Manifold.Instances.Icc
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
+public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
+import Mathlib.Tactic.Module
 
 /-!
 # Coupling forms
@@ -22,7 +24,9 @@ for a family `τ : Set.Icc a b → SmoothTwoForm IB B` of two-forms on the base 
 * is invariant under the circle action `(p, t) ↦ (p • z, t)`;
 * has the coordinate `t ↦ t` of the interval as Hamiltonian for the period-one circle action, in
   the sign `ι_{(X, 0)} σ = -dt`, where `X` is the fundamental vector field of the period-one
-  action;
+  action. This is the library's sign `ι_{X_H} ω = -dH` (`DESIGN.md`, *The Hamiltonian sign*).
+  McDuff–Salamon use the opposite sign (Remark 3.1.6), so in their convention the Hamiltonian
+  of a coupling form is `-t`;
 * has slice `π^* (τ t)` at each level `t`: its pull-back along `p ↦ (p, t)` is the pull-back of
   `τ t` along `π`.
 
@@ -33,7 +37,7 @@ becoming the slices `t = const`, and the reduced form at level `t` becoming `τ 
 ## Main definitions
 
 * `SymplecticGeometry.couplingField IB P a b`: the field `(X, 0)` on the product, where
-  `X = 2π • rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator` is the fundamental
+  `X = rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator` is the fundamental
   vector field of the period-one circle action.
 * `SymplecticGeometry.IsCouplingForm σ τ`: `σ` is a coupling form for `τ`.
 
@@ -56,8 +60,9 @@ on `N × M`; results stated in that order are reached from this one through `Pro
 The interval `Set.Icc a b` carries Mathlib's structure of a manifold with boundary, modelled on
 `𝓡∂ 1`, and its tangent spaces are all of `EuclideanSpace ℝ (Fin 1)`, endpoints included.
 
-The circle of McDuff–Salamon has period one, so its generator is `2π • circleLieGenerator`. The
-connection forms of this library (`SymplecticGeometry.IsCircleConnectionForm`) are normalized on
+The circle of McDuff–Salamon has period one, so its generator is
+`SymplecticGeometry.circlePeriodOneGenerator`, that is `2π • circleLieGenerator`. The connection
+forms of this library (`SymplecticGeometry.IsCircleConnectionForm`) are normalized on
 `circleLieGenerator` instead, so a connection form that takes the value `1` on `X` is `(2π)⁻¹`
 times one of them; part 39 of `DESIGN.md` records this choice.
 
@@ -75,7 +80,7 @@ public section
 
 noncomputable section
 
-open Bundle Manifold MulOpposite TauCeti Real
+open Bundle Manifold MulOpposite TauCeti
 open scoped Manifold ContDiff
 
 namespace SymplecticGeometry
@@ -90,16 +95,16 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
 
 variable (IB P a b) in
 /-- The vector field `(X, 0)` on `P × [a, b]`, where
-`X = 2π • rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator` is the fundamental
+`X = rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator` is the fundamental
 vector field of the circle action of period one on the total space of `P`. -/
 def couplingField (x : ManifoldTotalSpace Circle P × Set.Icc a b) :
     TangentSpace ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) x :=
-  ((2 * π) • rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x.1,
+  (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator x.1,
     (0 : EuclideanSpace ℝ (Fin 1)))
 
 theorem couplingField_def (x : ManifoldTotalSpace Circle P × Set.Icc a b) :
     couplingField IB P a b x =
-      ((2 * π) • rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x.1,
+      (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator x.1,
         (0 : EuclideanSpace ℝ (Fin 1))) :=
   (rfl)
 
@@ -107,7 +112,7 @@ theorem couplingField_def (x : ManifoldTotalSpace Circle P × Set.Icc a b) :
 @[simp]
 theorem couplingField_fst (x : ManifoldTotalSpace Circle P × Set.Icc a b) :
     (couplingField IB P a b x).1 =
-      (2 * π) • rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x.1 :=
+      rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator x.1 :=
   (rfl)
 
 /-- The component of `couplingField` along the interval vanishes. -/
@@ -124,7 +129,8 @@ variable [IsManifold IB ∞ B] [PrincipalBundle Circle P] [ContMDiffFiberBundle 
 two-form `σ` on `P × [a, b]` that is invariant under the circle action on the first factor, whose
 contraction with the period-one fundamental field `(X, 0)` is `-dt`, the differential of minus the
 coordinate of the interval, and whose slice at each `t` is the pull-back of `τ t` along the
-projection of `P`. -/
+projection of `P`. The sign `ι_{(X, 0)} σ = -dt` is the library's Hamiltonian sign
+`ι_{X_H} ω = -dH`. -/
 structure IsCouplingForm
     (σ : SmoothTwoForm ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (ManifoldTotalSpace Circle P × Set.Icc a b))
     (τ : Set.Icc a b → SmoothTwoForm IB B) : Prop where
@@ -168,11 +174,9 @@ theorem apply_couplingField (h : IsCouplingForm σ τ)
 /-- Each form `τ t` of a coupling form is closed: its pull-back along the projection is the slice
 of the closed form `σ` at `t`, and pull-back along the submersion `π` detects closedness. -/
 theorem isClosed_apply (h : IsCouplingForm σ τ) (t : Set.Icc a b) : (τ t).IsClosed := by
-  rw [← SmoothForm.isClosed_mpullback_iff_of_surjective
-    (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1))
+  rw [← (ManifoldTotalSpace.isSubmersion_proj ∞ Circle P IB (𝓡 1)).isClosed_mpullback_iff
     ((FiberBundle.surjective_proj Circle P).comp
-      (ManifoldTotalSpace.homeomorph Circle P).symm.surjective)
-    ((ManifoldTotalSpace.isSubmersion_proj ∞ Circle P IB (𝓡 1)).surjective_mfderiv (by simp)),
+      (ManifoldTotalSpace.homeomorph Circle P).symm.surjective),
     ← h.mpullback_slice t]
   exact h.isClosed.mpullback _ _
 
@@ -184,15 +188,10 @@ theorem lineMap (h₀ : IsCouplingForm σ₀ τ) (h₁ : IsCouplingForm σ₁ τ
   mpullback_smul z := by
     rw [map_add, map_smul, map_sub, h₀.mpullback_smul, h₁.mpullback_smul]
   interior_eq := by
-    funext x
-    refine ContinuousAlternatingMap.ext fun v ↦ ?_
-    have e₀ := congrArg (fun β ↦ β x v) h₀.interior_eq
-    have e₁ := congrArg (fun β ↦ β x v) h₁.interior_eq
-    simp only [RoughForm.interior_apply] at e₀ e₁ ⊢
-    simp only [Submodule.coe_add, Submodule.coe_smul, Submodule.coe_sub, Pi.add_apply,
-      Pi.smul_apply, Pi.sub_apply, ContinuousAlternatingMap.add_apply,
-      ContinuousAlternatingMap.smul_apply, ContinuousAlternatingMap.sub_apply, e₀, e₁, sub_self,
-      smul_zero, add_zero]
+    have e : σ₀ + s • (σ₁ - σ₀) = (1 - s) • σ₀ + s • σ₁ := by module
+    rw [e]
+    simp [h₀.interior_eq, h₁.interior_eq]
+    module
   mpullback_slice t := by
     rw [map_add, map_smul, map_sub, h₀.mpullback_slice, h₁.mpullback_slice, sub_self, smul_zero,
       add_zero]
