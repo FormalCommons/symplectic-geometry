@@ -90,19 +90,26 @@ notes of the reviews of #2280 and #2445.
    paths.** The route is the clutching proof of `DESIGN.md`, in three
    steps.
    - *Triviality away from the maxima.* Take a Morse function `f` on `S`
-     (`TauCeti.exists_isMorse`) and a regular value `a` above every
-     critical value except those of the local maxima. Then every oriented
-     $S^2$-bundle is trivial over `{f ≤ a}`, a compact surface whose
-     complement is a finite union of small open discs `D i` around the
-     maxima, each inside a Morse chart and inside the base set of a chart
-     of the atlas. The proof is Milnor's handle induction: across a band
-     `f⁻¹[c, c']` without critical values, the flow of a gradient-like
-     field (as in `TauCeti.exists_sublevelHomotopyEquiv`), lifted to `M`
+     (`TauCeti.exists_isMorse`). Its local maxima need not lie above its
+     other critical values, and Tau Ceti's `Morse/` does not rearrange
+     critical values, so the discs are cut out first: take small open
+     discs `D i` around the local maxima $p_i$, with disjoint closures,
+     each the disc $\{f>f(p_i)-r_i^2\}$ of a Morse chart at $p_i$, so that
+     its boundary circle is a regular level circle, and each inside the
+     base set of a chart of the atlas; put `S' = S \ ⋃ i, D i`. Then every
+     oriented $S^2$-bundle is trivial over `S'`. The proof is Milnor's
+     handle induction on the
+     sets `{f ≤ c} ∩ S'`: across a band `f⁻¹[c, c']` without critical
+     values, the flow of a gradient-like field (as in
+     `TauCeti.exists_sublevelHomotopyEquiv`), lifted to `M`
      by the horizontal lift of an Ehresmann connection (Tau Ceti's
      `IsSubmersion.exists_isEhresmannConnection`,
      `Submersion/EhresmannConnection.lean`), carries the bundle over
-     `{f ≤ c'}` to the bundle over `{f ≤ c}`; an index-0 critical point adds
-     a small disc, over which a chart of the atlas trivializes; an index-1
+     `{f ≤ c'} ∩ S'` to the bundle over `{f ≤ c} ∩ S'`; with the discs
+     removed, the level of a maximum adds only a collar on the boundary
+     circle of `D i`, which this band step covers, and no handle; an
+     index-0 critical point adds a small disc, over which a chart of the
+     atlas trivializes; an index-1
      point adds a band $[-1,1]\times[-1,1]$ along $\{\pm1\}\times[-1,1]$,
      and the trivialization extends across it exactly when a smooth map
      from $\{\pm1\}\times[-1,1]$ to `diffPlus` extends smoothly over the
@@ -112,7 +119,7 @@ notes of the reviews of #2280 and #2445.
      the surface is never cut along curves: this answers the first point
      of the comment on #2393.
    - *Clutching loops.* On the boundary circle of each `D i`, the
-     trivialization over `{f ≤ a}` and a chart over `D i` differ by a
+     trivialization over `S'` and a chart over `D i` differ by a
      smooth loop in `diffPlus`. By Smale's theorem (π₁ of `diffPlus` is
      `Multiplicative (ZMod 2)`, and the inclusion of the rotations is a
      homotopy equivalence) the loop is homotopic to a rotation loop
@@ -128,7 +135,8 @@ notes of the reviews of #2280 and #2445.
      `Bundle.chernNumber_eq_sum_degree_clutching`, which allows finitely
      many discs. By `symplecticChernNumber_nonempty_iso_iff` the circle
      bundle is that of `clutchingLineBundle φ n`, $n=\sum_i\varepsilon_i$.
-   So the several maxima need no Morse function with one maximum.
+   So neither one maximum nor maxima above the other critical values
+   is needed of the Morse function.
 4. **Continuous homotopies made smooth.** A new file
    `Geometry/Diffeomorphism/Smoothing.lean` proves that a continuous map
    from a compact finite-dimensional manifold with corners `K` to
@@ -239,10 +247,11 @@ notes of the reviews of #2280 and #2445.
    coefficients are $\mu_\pm=s'\pm t'$ for positive multiples $s',t'$ of
    $s,t$, by Decision 7 (with $\Theta_\rho\wedge\Theta_\rho=0$ and
    $\int_F\pi^*\omega_S=0$), which covers $\mu_+>|\mu_-|$. Nontriviality
-   is Decision 5 for a section of the sphere bundle, which exists by
-   Tau Ceti's
-   `Bundle.ContMDiffRiemannianMetric.exists_orthonormal_contMDiffSection_of_finrank_lt` (rank
-   three over a surface); its vertical bundle is the orthogonal
+   is Decision 5 for a section of the sphere bundle: Tau Ceti's
+   `TauCeti.exists_contMDiffSection_forall_ne_zero_of_finrank_lt`
+   (`VectorBundle/Section/Generic.lean`; real rank three over a surface)
+   gives a nowhere-zero section of $\ell_u\oplus\ell_v\oplus\ell_{uv}$,
+   and its normalization is one. Its vertical bundle is the orthogonal
    complement, whose first Chern number is $\langle a\cup b,[S]\rangle$
    mod 2. This is the largest computation of the part, and the one to
    check first.
@@ -261,7 +270,9 @@ notes of the reviews of #2280 and #2445.
 Leray–Hirsch theorem of Decision 7, not through the merged singular
 Leray–Hirsch files. *Builds on* and the build-order row gain part 50,
 *Principal connections*, only for `Fibration/Associated.lean`, which
-`RuledSurface.lean` uses (Decision 8). Part 50 is at level 0, so part 56
+`RuledSurface.lean` uses (Decision 8), and they name the files of part 46
+before `Smale.lean` that `diffPlus`, `mobiusSubgroup` and
+`mobiusSubgroup_le_diffPlus` come from. Part 50 is at level 0, so part 56
 stays at level 2. Of part 48 the part uses `MapFiber.lean`,
 `StructureGroup.lean` and `Basic.lean`, which `DESIGN.md` already allows.
 The new blocker of the building issue is proposed in an issue.
@@ -301,13 +312,13 @@ About 350 lines.
 
 ### `Geometry/Manifold/FiberBundle/SphereBundle/Clutching.lean`
 
-- `exists_trivialization_sublevel`: Decision 3, first step; for an
-  oriented $S^2$-bundle over a closed surface and `f`, `a` as there, a
-  smooth trivialization over a neighbourhood of `{f ≤ a}` whose coordinate
+- `exists_trivialization_compl_discs`: Decision 3, first step; for an
+  oriented $S^2$-bundle over a closed surface and `f`, `D i` as there, a
+  smooth trivialization over a neighbourhood of `S'` whose coordinate
   changes with the atlas lie in `diffPlus`. Split in two issues: the band
   step (flow lift) and the handle steps.
 - `exists_rotationClutching`: Decision 3, second step: the bundle is
-  isomorphic over `S` to the bundle glued from the product over `{f ≤ a}`
+  isomorphic over `S` to the bundle glued from the product over `S'`
   and over the discs `D i` by `rotationLoop (ε i)`.
 - `rotationClutching_iso_associated`: Decision 3, third step: that bundle
   is `TauCeti.AssociatedBundle Circle P (OnePoint ℂ)` for the circle bundle
@@ -423,13 +434,13 @@ estimate, and `RuledSurface.lean` becomes `RuledSurface/Basic.lean`.
   (`Geometry/Manifold/Morse/`), Ehresmann connections, associated bundles,
   de Rham cohomology (Mayer–Vietoris, homotopy invariance, spheres, top
   degree), smooth approximation, circle-valued maps with prescribed
-  periods, and orthonormal sections of bundles of rank above the
+  periods, and nowhere-zero sections of real bundles of rank above the
   dimension.
 
 ## Building issues
 
 In this order. All are sub-issues of #2396, *Build the part Sphere bundles
-over surfaces*. Sizes are estimates. "P46-8", "P46-9" are issues 8 and 9 of
+over surfaces*. Sizes are estimates. "P46-n" is issue `n` of
 `design/sphere-diffeomorphisms.md` (#2383 until it is split); "P48-n" is
 issue `n` of `design/symplectic-fibrations.md`; "P50" is the issue of
 *Principal connections* (#2375 until it is split) that builds
@@ -438,18 +449,20 @@ issue `n` of `design/symplectic-fibrations.md`; "P50" is the issue of
 | # | Issue | Files | Blocked by | Size |
 |---|---|---|---|---|
 | 1 | Smoothing families of diffeomorphisms | `Smoothing.lean` | — | 450 |
-| 2 | The product, the rotation action and gluing | `SphereBundle/Basic.lean` | P48-2 | 350 |
+| 2 | The product, the rotation action and gluing | `SphereBundle/Basic.lean` | P48-2; P46-1, P46-3, P46-7 | 350 |
 | 3 | Bundles across bands without critical points | `Clutching.lean` | 2 | 300 |
 | 4 | Handles of index 0 and 1; triviality away from the maxima | `Clutching.lean` | 1, 3; P46-9 | 350 |
 | 5 | Clutching loops and the finite-disc line bundle | `Clutching.lean` | 4 | 300 |
-| 6 | Parity of Euler numbers and the vertical invariant | `Classification.lean` | 2 | 300 |
+| 6 | Parity of Euler numbers and the vertical invariant | `Classification.lean` | 2; P46-8 | 300 |
 | 7 | The classification | `Classification.lean` | 5, 6 | 200 |
-| 8 | De Rham Leray–Hirsch for $S^2$-bundles | `DeRham/SphereBundle.lean` | P48-2 | 450 |
+| 8 | De Rham Leray–Hirsch for $S^2$-bundles | `DeRham/SphereBundle.lean` | P48-2; P46-1 | 450 |
 | 9 | $H^2(X_B)$, the coefficients and part 1 | `RuledSurface.lean` | 7, 8; P48-3; P50 | 350 |
 | 10 | Part 2: Weinstein's form | `RuledSurface.lean` | 9 | 250 |
 | 11 | The flat model and part 3; the milestone | `RuledSurface.lean` | 9 | 450 |
 
-Issues 1, 6 (once P48-2 is merged) and 8 can start in parallel. The
+Issue 1 can start at once, and issue 8 once P48-2 and P46-1 are merged.
+Issues 2 to 7, and so 9 to 11, wait for part 46 up to its
+`Trivialization.lean` (P46-7), and issue 4 for Smale's theorem (P46-9). The
 milestones are proved in issues 7 and 11.
 
 ## References
