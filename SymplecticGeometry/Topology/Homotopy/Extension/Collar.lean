@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Topology.Collar.Compact
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Deformation
 public import TauCeti.Topology.Homotopy.Extension.NDRPair
+import TauCeti.Topology.Algebra.Support
 
 /-!
 # A collared subset is a closed cofibration
@@ -87,10 +88,9 @@ private lemma continuous_depthControlFun [CompactSpace N] [T2Space X] :
       (2 * ((hc.collarCoord 1 y).2 : ℝ))) (by fun_prop) fun y ↦ ?_
     exact (hc.depthControlFun_of_mem y.property).symm
   · -- The function is `1` off the closed set `c(N × [0, 1/2])`, which lies in the collar.
-    refine (closure_minimal (fun x hx ↦ ?_)
+    refine (TauCeti.mulTSupport_subset_of_forall_notMem_eq_one (fun x hxK ↦ ?_)
       (hc.isCompact_image_setOf_le (t := 1 / 2) (by norm_num)).isClosed).trans ?_
-    · by_contra hxK
-      refine hx (hc.depthControlFun_eq_one fun hx' ↦ hxK ?_)
+    · refine hc.depthControlFun_eq_one fun hx' ↦ hxK ?_
       obtain ⟨p, hp, rfl⟩ := mem_collarPart_iff.1 hx'
       exact ⟨p, show (p.2 : ℝ) ≤ 1 / 2 from hp.le, rfl⟩
     · rintro _ ⟨p, hp, rfl⟩

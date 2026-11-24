@@ -11,6 +11,7 @@ public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.Holomo
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Analysis.Complex.RadialProjection
 import TauCeti.Topology.Circle.Normalize
+import TauCeti.Topology.Algebra.Support
 
 /-!
 # The boundary degree of one disc's angle on the complement of coordinate discs
@@ -114,9 +115,9 @@ private lemma continuous_testFun (hδ : δ ∈ Ioo (0 : ℝ) 1) : Continuous (te
       · rw [testFun, ite_eq_left (show (x : M) ∈ range (φ i) from hx), sub_add_cancel]
     · have hK := ((φ i).isCompact_image_closedBall (ρ := 1 + 3 * δ / 4)
         (by linarith [hδ.2])).isClosed
-      refine (closure_minimal ?_ (hK.preimage continuous_subtypeVal)).trans
+      refine (TauCeti.tsupport_subset_of_forall_notMem_eq_zero
+        (fun x hxK ↦ by_contra fun hx ↦ hxK ?_) (hK.preimage continuous_subtypeVal)).trans
         (preimage_mono (image_subset_range _ _))
-      intro x hx
       by_cases hxr : (x : M) ∈ range (φ i)
       · obtain ⟨w, hw⟩ := hxr
         refine ⟨w, show ‖(w : ℂ)‖ ≤ 1 + 3 * δ / 4 from not_lt.1 fun h ↦ hx ?_, hw⟩
