@@ -259,9 +259,10 @@ theorem homologyPeriodHom_eq_intervalIntegral {M : Type} [TopologicalSpace M] [C
         (f₂.continuous.intervalIntegrable a b) }
   have hβg : (fun s ↦ pathClassIntegral β (.mk (path₁ s))) = fun s ↦ L (g s) :=
     funext fun s ↦ hα.pathClassIntegral_eq_intervalIntegral hcl hu hβ hβc h _
-  rw [hβg, ← map_chainsDesc]
+  rw [hβg, ← L.coe_toIntLinearMap, ← map_chainsDesc L.toIntLinearMap]
   exact intervalIntegral.integral_congr fun t _ ↦ map_chainsDesc
-    ((Pi.evalAddMonoidHom (fun _ : ℝ ↦ ℝ) t).comp ContinuousMap.coeFnAddMonoidHom) g _
+    ((Pi.evalAddMonoidHom (fun _ : ℝ ↦ ℝ) t).comp
+      ContinuousMap.coeFnAddMonoidHom).toIntLinearMap g _
 
 end IsSmoothFamily
 

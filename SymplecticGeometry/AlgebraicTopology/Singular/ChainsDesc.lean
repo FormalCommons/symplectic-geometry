@@ -8,11 +8,11 @@ module
 public import TauCeti.AlgebraicTopology.Singular.ModuleChains.Basic
 
 /-!
-# Additive maps after a map out of the singular chains
+# Linear maps after a map out of the singular chains
 
-Tau Ceti's `TauCeti.chainsDesc g` is the map out of the singular `n`-chains that takes each
-singular simplex `s` to `g s`. This file shows that composing it with an additive map `L` gives
-the map with values `L (g s)`, for integer coefficients.
+Tau Ceti's `TauCeti.chainsDesc g` is the linear map out of the singular `n`-chains with
+coefficients in a ring `k` that takes each singular simplex `s` to `g s`. This file shows that
+composing it with a `k`-linear map `L` gives the map with values `L (g s)`.
 
 ## Main results
 
@@ -25,15 +25,17 @@ open scoped Simplicial
 
 namespace TauCeti
 
-/-- An additive map applied after the map out of the integral singular chains with values `g` on
-simplices is the map with values `L ∘ g` on simplices. -/
-theorem map_chainsDesc {X : TopCat.{0}} {n : ℕ} {V W : Type} [AddCommGroup V] [AddCommGroup W]
-    {F : Type*} [FunLike F V W] [AddMonoidHomClass F V W] (L : F)
-    (g : (TopCat.toSSet.obj X) _⦋n⦌ → V) (z : ((singularChains ℤ).obj X).X n) :
+universe u
+
+/-- A `k`-linear map applied after the map out of the singular chains with coefficients in `k`
+with values `g` on simplices is the map with values `L ∘ g` on simplices. -/
+theorem map_chainsDesc {k : Type u} [Ring k] {X : TopCat.{u}} {n : ℕ} {V W : Type u}
+    [AddCommGroup V] [Module k V] [AddCommGroup W] [Module k W]
+    {F : Type*} [FunLike F V W] [LinearMapClass F k V W] (L : F)
+    (g : (TopCat.toSSet.obj X) _⦋n⦌ → V) (z : ((singularChains k).obj X).X n) :
     L (chainsDesc g z) = chainsDesc (fun s ↦ L (g s)) z :=
-  DFunLike.congr_fun (f := (L : V →+ W).comp (chainsDesc g).toAddMonoidHom)
-    (g := (chainsDesc fun s ↦ L (g s)).toAddMonoidHom)
-    (singularChains_addMonoidHom_ext fun s ↦ by simp) z
+  LinearMap.congr_fun (f := (L : V →ₗ[k] W) ∘ₗ chainsDesc g)
+    (singularChains_linearMap_ext fun s ↦ by simp) z
 
 end TauCeti
 
