@@ -361,6 +361,73 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inr (ξ : Group
     rw [hW]
     exact Prod.ext (one_smul ℝ _) rfl
 
+/-- **Cartan's identity for invariant one-forms on `P × N`.** Let `A` be a smooth one-form on
+`P × N`, for a smooth principal bundle `P` whose base and structure group are modelled without
+boundary and any manifold `N`, possibly with boundary or corners. If `A` is invariant under the
+right action `(x, m) ↦ (x • g, m)` of `G` on the first factor, then for every `ξ` in the Lie
+algebra the contraction of `dA` with the field `(ξ_P, 0)` is minus the differential of the
+function `A(ξ_P, 0)`: `dA ((ξ_P, 0), w) = -d (A (ξ_P, 0)) w`. -/
+theorem mextDeriv_apply_rightFundamentalVectorField_prod (ξ : GroupLieAlgebra IG G)
+    (p : ManifoldTotalSpace G P × N) (w : TangentSpace ((IB.prod IG).prod IN) p) :
+    mextDeriv A.val p ![(rightFundamentalVectorField (IB.prod IG) ξ p.1, (0 : EN)), w] =
+      -mvfderiv ((IB.prod IG).prod IN) (fun q : ManifoldTotalSpace G P × N ↦
+        A.val q ![(rightFundamentalVectorField (IB.prod IG) ξ q.1, (0 : EN))]) p w := by
+  obtain ⟨x, n⟩ := p
+  obtain ⟨u, v⟩ := w
+  have hw : ((u, v) : TangentSpace ((IB.prod IG).prod IN) (x, n)) =
+      ((u, (0 : EN)) : TangentSpace ((IB.prod IG).prod IN) (x, n)) + ((0 : EB × EG), v) := by
+    simp
+  have e1 : mextDeriv A.val (x, n)
+      ![(rightFundamentalVectorField (IB.prod IG) ξ x, (0 : EN)), (u, (0 : EN)) + ((0 : EB × EG), v)] =
+        mextDeriv A.val (x, n) ![(rightFundamentalVectorField (IB.prod IG) ξ x, (0 : EN)),
+          (u, (0 : EN))] +
+        mextDeriv A.val (x, n) ![(rightFundamentalVectorField (IB.prod IG) ξ x, (0 : EN)),
+          ((0 : EB × EG), v)] := by
+    have := (mextDeriv A.val (x, n)).map_update_add
+      ![(rightFundamentalVectorField (IB.prod IG) ξ x, (0 : EN)), (u, (0 : EN))] 1
+      (u, (0 : EN)) ((0 : EB × EG), v)
+    convert this using 3 <;> funext i <;> fin_cases i <;> rfl
+  rw [hw, e1]
+  refine (congrArg₂ (· + ·) (mextDeriv_apply_rightFundamentalVectorField_prod_inl hA ξ x n u)
+    (mextDeriv_apply_rightFundamentalVectorField_prod_inr hA ξ x n v)).trans ?_
+  rw [← neg_add]
+  exact congrArg Neg.neg (map_add _ _ _).symm
+
+/-- **Cartan's identity for invariant one-forms on `P × N`**, as an identity of forms:
+`ι_{(ξ_P, 0)} dA = -d (ι_{(ξ_P, 0)} A)` for a smooth one-form `A` on `P × N` invariant under the
+right action of `G` on the first factor, where `N` may have boundary or corners. -/
+theorem interior_mextDeriv_rightFundamentalVectorField_prod (ξ : GroupLieAlgebra IG G) :
+    RoughForm.interior (fun q : ManifoldTotalSpace G P × N ↦
+        ((rightFundamentalVectorField (IB.prod IG) ξ q.1, (0 : EN)) :
+          TangentSpace ((IB.prod IG).prod IN) q)) (mextDeriv A.val) =
+      -mextDeriv (RoughForm.interior (fun q : ManifoldTotalSpace G P × N ↦
+        ((rightFundamentalVectorField (IB.prod IG) ξ q.1, (0 : EN)) :
+          TangentSpace ((IB.prod IG).prod IN) q)) A.val) := by
+  set V : (q : ManifoldTotalSpace G P × N) → TangentSpace ((IB.prod IG).prod IN) q :=
+    fun q ↦ (rightFundamentalVectorField (IB.prod IG) ξ q.1, (0 : EN)) with hV
+  funext q
+  ext v
+  have hι : mextDeriv (RoughForm.interior (F := F) (k := 0) V A.val) q = mextDeriv (RoughForm.ofFunction _
+      fun y ↦ RoughForm.interior (F := F) (k := 0) V A.val y 0) q := by
+    congr 1
+    exact RoughForm.eq_ofFunction _
+  have hv : v = ![v 0] := by
+    funext i
+    fin_cases i
+    rfl
+  rw [RoughForm.interior_apply, Pi.neg_apply, ContinuousAlternatingMap.neg_apply, hι, hv,
+    mextDeriv_ofFunction_apply, ← mvfderiv_apply_eq_mfderiv_apply]
+  have hf : (fun y ↦ RoughForm.interior (F := F) (k := 0) V A.val y 0) =
+      fun y ↦ A.val y ![V y] := by
+    funext y
+    rw [RoughForm.interior_apply]
+    congr 1
+    funext i
+    fin_cases i
+    rfl
+  rw [hf]
+  exact mextDeriv_apply_rightFundamentalVectorField_prod hA ξ q (v 0)
+
 end Prod
 
 end LieDeriv
