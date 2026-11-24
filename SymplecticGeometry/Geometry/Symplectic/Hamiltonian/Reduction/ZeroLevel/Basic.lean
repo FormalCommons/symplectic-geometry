@@ -54,9 +54,8 @@ are `isManifold_levelSubMulAction`, `isSmoothEmbedding_coe_levelSubMulAction` an
 `finrank_quotientModelSpace_zeroLevel` adapt those of Tau Ceti's
 `existsUnique_isSymplectic_mpullback_quotientMk_eq_mpullback` and
 `finrank_quotientModelSpace_add_finrank_add_finrank_lieAnnihilator`
-(`TauCeti/Geometry/Symplectic/Hamiltonian/Reduction/ReducedSpace.lean` and
-`TauCeti/Geometry/Symplectic/Hamiltonian/EquivariantMomentMap/LevelAction.lean`) from the
-coadjoint stabilizer `G_c` to the whole group `G` at `c = 0`.
+(`TauCeti/Geometry/Symplectic/Hamiltonian/Reduction/ReducedSpace.lean`) from the coadjoint
+stabilizer `G_c` to the whole group `G` at `c = 0`.
 
 ## References
 
