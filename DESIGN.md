@@ -2939,20 +2939,18 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   `Basic.lean` (invariant forms of a circle action with the Cartan
   differential $d-\hbar\,\iota_X$, its square on invariant forms, and
   equivariantly closed forms) and `Localization.lean` (the localization
-  lemma: for $\hbar\ne0$, an equivariantly closed form is, away from the
-  fixed points, $d_\hbar$ of an invariant form, and its integral is a sum of local
-  contributions at isolated fixed points); and
-  `Geometry/Symplectic/Hamiltonian/Localization.lean` (the
+  lemma: the integral of an equivariantly closed form does not change
+  when it is multiplied by $F(d_\hbar\theta)$, for an invariant one-form
+  $\theta$ and $F(0)=1$, which concentrates it near the fixed points); and
+  `Geometry/Symplectic/Hamiltonian/Localization/` (the
   Duistermaat–Heckman formula for $e^{\omega-\hbar H}$ at isolated fixed
   points, with the actual period-one tangent weights, and its value at
   $\hbar=0$ as the symplectic volume).
-- **Builds on:** *Lie group actions* (`Circle.lean`,
-  `InvariantPrimitive.lean`); *Equivariant normal forms* (the period-one
-  weights at a fixed point); Tau Ceti (the Cartan identity
-  `TauCeti.mlieDerivForm_eq_interior_mextDeriv_add`, Stokes' theorem
-  `TauCeti.integralTopForm_mextDeriv_eq_zero`, invariant compatible almost
-  complex structures
-  `IsNondegenerate.exists_compatible_mfderiv_smul_apply_of_compactSpace`).
+- **Builds on:** *Lie group actions* (`Circle.lean`); *Equivariant normal
+  forms* (the period-one weights at a fixed point); Tau Ceti (the Cartan
+  identity `TauCeti.mlieDerivForm_eq_interior_mextDeriv_add`, Stokes'
+  theorem `TauCeti.integralTopForm_mextDeriv_eq_zero`, invariant metrics
+  `TauCeti.exists_contMDiffRiemannianMetric_inner_mfderiv`).
 - **Milestones:** *Duistermaat–Heckman localization*.
 - **The design file decides:** how forms with a complex parameter $\hbar$
   are represented (Tau Ceti integrates real top forms), and how the local
@@ -3027,7 +3025,7 @@ behind.
 | 1 | *Hodge theory* | *Nijenhuis tensor* (only `Integrable.lean`), *Almost complex manifolds* (only `Metric.lean`), each for one issue of its design file; the Hodge theorem for the Laplacian can start at once |
 | 1 | *Hamiltonian circle actions* | *Lie group actions* (only `Circle.lean`), *Moment maps* (only `MomentMap/WeaklyHamiltonian.lean`); the nondegeneracy of the pairing can start at once |
 | 1 | *Minimal coupling* | *Lie group actions*; merged files of *First Chern number* and *Smooth families* |
-| 1 | *Equivariant localization* | *Lie group actions*, *Equivariant normal forms* (only `WeightModel/NormalForm.lean`); the Cartan complex can start at once |
+| 1 | *Equivariant localization* | *Lie group actions* (only `Circle.lean`), *Equivariant normal forms* (only `WeightModel/NormalForm.lean`); the Cartan complex can start at once |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `Topology/ComplexStructure/Basic.lean`, which besides it imports only Tau Ceti and the merged `LinearAlgebra/Matrix/NonsingularInverse.lean` and `Analysis/CStarAlgebra/Matrix.lean`, which import only Mathlib and merged files that do, and `LinearAlgebra/ComplexStructure/Standard.lean`, which besides `Action.lean` imports only `LinearAlgebra/Symplectic/Compatible.lean` of this part, `LinearAlgebra/Symplectic/Standard/Matrix.lean` of *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`, which imports only Tau Ceti, and Tau Ceti; and `Topology/ComplexStructure/Orthogonal.lean`, which besides `Topology/ComplexStructure/Basic.lean` imports only `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model*, `Analysis/Matrix/Polar/Deformation.lean` of *Symplectic group* and Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged, and `Analysis/Matrix/Polar/Deformation.lean`, through `Orthogonal.lean`, which is merged) |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
 | 2 | *Isotopy extension* | *Hamiltonian flows* (only `DeRham/FamilyPrimitive.lean`, `Flux/Hamiltonian.lean` and `Flux/CompactSupport.lean`), *Smooth families* (only `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `DeRham/SmoothFamily/GoodCover.lean`), *Moser isotopy* (only `Moser/Field.lean`); the merged *Standard model* and *Linear Moser*; the issues of its design file that use none of these can start at once |
