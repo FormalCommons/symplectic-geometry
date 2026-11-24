@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.Riemannian.Sphere.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Cotangent.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Riesz
+import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Codisc
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Manifold.Riemannian.Sphere.Gradient
 import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.SmulRight
@@ -29,6 +30,7 @@ twist is written down.
 * `SymplecticGeometry.cotangentMk q p`: the covector `v ↦ ⟪p, dι v⟫` at `q`, defined for every
   `p ∈ E`.
 * `SymplecticGeometry.cotangentCoord z`: the pair `(q, p) ∈ E × E` with `p ⊥ q` representing `z`.
+* `SymplecticGeometry.cotangentNorm z`: the norm `‖p‖` of its second coordinate.
 
 ## Main results
 
@@ -39,6 +41,8 @@ twist is written down.
   `{(q, p) | ‖q‖ = 1, ⟪q, p⟫ = 0}`.
 * `SymplecticGeometry.contMDiff_cotangentMk`, `SymplecticGeometry.contMDiff_cotangentCoord`: both
   maps are smooth.
+* `SymplecticGeometry.cotangentNorm_eq_norm`: `‖p‖` is the norm of `z` for the round metric.
+* `SymplecticGeometry.isCompact_setOf_cotangentNorm_le`: the sets `{z | ‖p‖ ≤ r}` are compact.
 
 ## Implementation notes
 
@@ -239,6 +243,31 @@ theorem contMDiff_cotangentCoord :
       (fun z ↦ ∑ j, ⟪b j, (cotangentCoord z).2⟫_ℝ • b j) :=
     contMDiff_finsetSum fun j _ ↦ (hcoeff j).smul contMDiff_const
   exact hsum.congr fun z ↦ (b.sum_repr' _).symm
+
+/-- The norm `‖p‖` of the second coordinate of a covector on the unit sphere. It is the norm of
+the covector for the round metric (`cotangentNorm_eq_norm`). -/
+def cotangentNorm (z : CotangentBundle (𝓡 n) (𝕊 n)) : ℝ :=
+  ‖(cotangentCoord z).2‖
+
+theorem cotangentNorm_def (z : CotangentBundle (𝓡 n) (𝕊 n)) :
+    cotangentNorm z = ‖(cotangentCoord z).2‖ :=
+  (rfl)
+
+theorem cotangentNorm_nonneg (z : CotangentBundle (𝓡 n) (𝕊 n)) : 0 ≤ cotangentNorm z :=
+  norm_nonneg _
+
+/-- The norm `‖p‖` of the coordinates of a covector is its norm for the round metric. -/
+theorem cotangentNorm_eq_norm (z : CotangentBundle (𝓡 n) (𝕊 n)) : cotangentNorm z = ‖z.snd‖ := by
+  rw [cotangentNorm_def, cotangentCoord_snd, Submodule.norm_coe, LinearIsometryEquiv.norm_map,
+    LinearIsometryEquiv.norm_map]
+
+theorem continuous_cotangentNorm : Continuous (cotangentNorm (n := n)) :=
+  continuous_norm.comp (continuous_snd.comp contMDiff_cotangentCoord.continuous)
+
+/-- The covectors on the unit sphere with `‖p‖ ≤ r` form a compact set. -/
+theorem isCompact_setOf_cotangentNorm_le (r : ℝ) :
+    IsCompact {z : CotangentBundle (𝓡 n) (𝕊 n) | cotangentNorm z ≤ r} := by
+  simpa only [cotangentNorm_eq_norm] using CotangentBundle.isCompact_setOf_norm_snd_le r
 
 end SymplecticGeometry
 
