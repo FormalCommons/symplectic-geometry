@@ -7,7 +7,7 @@ module
 
 public import Mathlib.LinearAlgebra.Projection
 public import TauCeti.Geometry.Lie.Functor
-import TauCeti.Geometry.Lie.Exponential.Derivative.Basic
+import TauCeti.Geometry.Lie.Subgroup.Kernel
 
 /-!
 # Complexifications of Lie groups
@@ -76,7 +76,9 @@ homomorphism `toHom : G → Gc`, a real-linear map `cplx` on the Lie algebra of 
 `cplx ∘ cplx = -1` that commutes with every `ad` (so that the Lie algebra of `Gc` is a complex
 Lie algebra), for which the Lie algebra of `Gc` is the direct sum of the image of the Lie algebra
 `𝔤` of `G` and of its image under `cplx`, and a diffeomorphism
-`polar : 𝔤 × G ≃ Gc`, `(ξ, u) ↦ exp (cplx ξ) * toHom u`.
+`polar : 𝔤 × G ≃ Gc`, `(ξ, u) ↦ exp (cplx ξ) * toHom u`. The source of `polar` is written
+`E × G`: the Lie algebra `GroupLieAlgebra I G` is the model space `E` by definition, but carries
+no charted-space instance of its own.
 
 The laws of the structure do not determine `cplx`: for `Circle` in `ℂˣ`, multiplication by any
 `a + i b` with `a ≠ 0` on the Lie algebra `ℂ` satisfies all of them. What ties `cplx` to a
@@ -115,24 +117,23 @@ theorem isCompl_range_lieMap : IsCompl (LinearMap.range C.lieMap.toLinearMap)
     (LinearMap.range (C.cplx ∘ₗ C.lieMap.toLinearMap)) :=
   C.isCompl_range
 
-@[simp]
-theorem cplx_lie_left (x y : GroupLieAlgebra IC Gc) : C.cplx ⁅x, y⁆ = ⁅x, C.cplx y⁆ :=
-  C.cplx_lie x y
+attribute [simp] cplx_cplx
 
-/-- The complex structure also commutes with right brackets. -/
-theorem cplx_lie_right (x y : GroupLieAlgebra IC Gc) : C.cplx ⁅x, y⁆ = ⁅C.cplx x, y⁆ := by
+/-- The complex structure also commutes with brackets on the right: `cplx ⁅x, y⁆ = ⁅cplx x, y⁆`.
+-/
+theorem cplx_lie' (x y : GroupLieAlgebra IC Gc) : C.cplx ⁅x, y⁆ = ⁅C.cplx x, y⁆ := by
   rw [← lie_skew, map_neg, C.cplx_lie, ← lie_skew, neg_neg]
 
 theorem injective_cplx : Injective C.cplx := fun x y h ↦ by
-  simpa [C.cplx_cplx] using congrArg C.cplx h
+  simpa using congrArg C.cplx h
 
 section FiniteDimensional
 
-variable [T2Space G] [BoundarylessManifold I G] [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC]
+variable [T2Space G] [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC]
 
 /-- The inclusion of `G` into its complexification intertwines the exponentials:
 `toHom (exp ξ) = exp (lieMap ξ)`. -/
-theorem toHom_mulInvariantExp (ξ : GroupLieAlgebra I G) :
+theorem toHom_mulInvariantExp [BoundarylessManifold I G] (ξ : GroupLieAlgebra I G) :
     C.toHom (mulInvariantExp ξ) = mulInvariantExp (C.lieMap ξ) := by
   obtain ⟨X, rfl⟩ := (leftInvariantDerivationEquivGroupLieAlgebra (I := I) (G := G)
     BoundarylessManifold.isInteriorPoint).surjective ξ
@@ -145,16 +146,25 @@ theorem toHom_mulInvariantExp (ξ : GroupLieAlgebra I G) :
 
 /-- The Lie algebra map of the inclusion of `G` into its complexification is injective. -/
 theorem injective_lieMap : Injective C.lieMap := by
-  refine (injective_iff_map_eq_zero C.lieMap).2 fun ξ hξ ↦ ?_
-  have hconst : (fun t : ℝ ↦ mulInvariantExp (I := I) (G := G) (t • ξ)) = fun _ ↦ 1 := by
-    funext t
-    apply C.injective_toHom
-    rw [toHom_mulInvariantExp, map_smul, hξ, smul_zero, mulInvariantExp_zero, map_one]
-  have h := hasMFDerivAt_mulInvariantExp_smul_zero (I := I) (G := G) ξ
-  rw [hconst] at h
-  have h0 : (1 : ℝ →L[ℝ] ℝ).smulRight ξ = 0 :=
-    h.mfderiv.symm.trans (hasMFDerivAt_const (I := 𝓘(ℝ, ℝ)) (I' := I) (1 : G) (0 : ℝ)).mfderiv
-  simpa using congrArg (fun L : ℝ →L[ℝ] GroupLieAlgebra I G ↦ L (1 : ℝ)) h0
+  let f : G →ₜ* Gc := ⟨C.toHom.toMonoidHom, C.toHom.contMDiff_toFun.continuous⟩
+  have hf : f.toContMDiffMonoidMorphism I IC = C.toHom :=
+    DFunLike.ext _ _ fun _ ↦
+      ContinuousMonoidHom.coe_toContMDiffMonoidMorphism (I := I) (I' := IC) f ▸ rfl
+  have : Subsingleton f.ker :=
+    ⟨fun a b ↦ Subtype.ext (C.injective_toHom (a.property.trans b.property.symm))⟩
+  have hinj := ContinuousMonoidHom.lieMap_injective_of_discreteTopology_ker (I := I) (I' := IC) f
+  rw [ContinuousMonoidHom.lieMap_def, hf] at hinj
+  intro ξ η h
+  let e := leftInvariantDerivationLieEquivGroupLieAlgebra
+    (ContMDiffMul.isInteriorPoint (I := I) (n := ∞) (by simp) (1 : G))
+  let e' := leftInvariantDerivationLieEquivGroupLieAlgebra
+    (ContMDiffMul.isInteriorPoint (I := IC) (n := ∞) (by simp) (1 : Gc))
+  have key (ξ : GroupLieAlgebra I G) : C.lieMap ξ = e' (_root_.lieMap C.toHom (e.symm ξ)) := by
+    rw [leftInvariantDerivationLieEquivGroupLieAlgebra_lieMap, LieEquiv.apply_symm_apply]
+    -- The two sides differ only in reading the tangent space at `C.toHom 1` as the one at `1`.
+    exact C.lieMap_apply ξ
+  rw [key, key] at h
+  exact e.symm.injective (hinj (e'.injective h))
 
 theorem injective_cplx_comp_lieMap : Injective (C.cplx ∘ₗ C.lieMap.toLinearMap) :=
   C.injective_cplx.comp C.injective_lieMap

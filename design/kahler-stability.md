@@ -83,7 +83,8 @@ may adjust implicit arguments and instance arguments to what elaborates.
    `cplx` is a real-linear map on `GroupLieAlgebra IC Gc` with square
    `-1` that commutes with each `ad` (a complex Lie algebra). The ranges of
    `lieMap` and of `cplx ∘ lieMap` are complementary. Finally there is
-   `polar : 𝔤 × G ≃ₘ⟮_, IC⟯ Gc`, a diffeomorphism with
+   `polar : (E × G) ≃ₘ⟮_, IC⟯ Gc`, with `𝔤` read as its model space `E` (the
+   tangent space has no charted-space instance), a diffeomorphism with
    `polar (ξ, u) = mulInvariantExp (cplx (lieMap ξ)) * toHom u`. All the
    milestones' conclusions are about $\Phi_p$, $\mu$ and orbits, and none of
    these fields is one of them, as the review of #2250 asks. The complex
