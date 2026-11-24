@@ -1850,8 +1850,8 @@ has either; Tau Ceti's extension across a boundary,
   `normal_hamiltonianGroup_subgroupOf_diffeomorphStabilizer`. The library
   adds what is missing, in Tau Ceti's namespaces: a diffeotopy of slices in
   the stabilizer is Hamiltonian exactly when each $\iota_{X_t}\omega$ is
-  exact, with a smooth Hamiltonian built from primitives on smoothly
-  contractible chart neighbourhoods, glued over each component (the
+  exact, with a smooth Hamiltonian built from Tau Ceti's smooth families of
+  primitives on each connected component (the
   primitive of a smooth family of exact one-forms being a public lemma on
   any manifold, in the namespace `SymplecticGeometry` and the file
   `Geometry/Manifold/DeRham/FamilyPrimitive.lean`, which *Isotopy
