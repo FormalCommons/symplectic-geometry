@@ -257,8 +257,8 @@ Declarations about Tau Ceti's type go in its namespace
   `Φ ≪≫ₗ Ψ.symm` is complex linear for `J`.
 - `exists_linearIsometryEquiv_transport_eq`: two norm-preserving complex
   structures on finite-dimensional real inner product spaces of equal
-  dimension are conjugate by a linear isometry (it matches adapted orthonormal
-  bases from `exists_adapted_orthonormalBasis`, and concludes with
+  dimension are conjugate by a linear isometry (it composes the isometries with
+  `ℂⁿ` from `exists_linearIsometryEquiv_euclideanSpace`, and concludes with
   `transport_eq_iff_isComplexLinearMap`); the transitivity of `SO(2n)` in
   `Oriented.lean` uses it.
 - `instance instMulActionSpecialOrthogonalGroup :
