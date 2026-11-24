@@ -392,7 +392,8 @@ bracket is negated.
   coordinate changes lie in $H$ at each base point; no topology on $H$ is
   used. The fibre over $b$ is read through a chart $e$ of the atlas, as
   the embedding $v\mapsto e^{-1}(b,v)$ of $F$ into $M$; Tau Ceti's
-  `TauCeti.ManifoldTotalSpace.fiberChartedSpace` is used only where a
+  `TauCeti.ManifoldTotalSpace.fiberChartedSpace`, or for the fibre of a
+  submersion `TauCeti.regularFiberChartedSpace`, is used only where a
   statement needs a fibre as a manifold of its own.
 - **Fibre forms.** As the page's formalization note allows, a symplectic
   fibration is a fibration with an atlas for $(F,\sigma)$ whose coordinate
@@ -3180,7 +3181,9 @@ Differential topology and complex analysis only; it waits for no part of
 ### 47. Parallel transport (needs `design/parallel-transport.md`)
 
 - **Files:** in Tau Ceti's folder `Geometry/Manifold/Submersion/`:
-  `ParallelTransport.lean` (for an Ehresmann connection
+  `HorizontalLiftField.lean` (horizontal lifts of vector fields),
+  `ParallelTransport/Basic.lean` and `ParallelTransport/Smooth.lean` (for
+  an Ehresmann connection
   `TauCeti.IsEhresmannConnection` on a proper submersion, horizontal lifts
   of smooth paths of the base exist and are unique; parallel transport
   `TauCeti.IsEhresmannConnection.parallelTransport` between fibres is a
