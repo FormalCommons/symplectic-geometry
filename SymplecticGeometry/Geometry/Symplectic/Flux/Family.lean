@@ -62,9 +62,9 @@ theorem isHamiltonian_of_forall_timeSlice_mem_hamiltonianGroup [CompactSpace M]
     [ConnectedSpace M] {σ : closedForms J M 2} {Φ : Diffeotopy J ∞ M}
     (h : ∀ t, Φ.timeSlice t ∈ SmoothForm.hamiltonianGroup σ.val) :
     Φ.IsHamiltonian σ.val := by
-  have hΦ (t : unitInterval) : Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ.val := by
-    obtain ⟨Ψ, hΨ, hΨt⟩ := SmoothForm.mem_hamiltonianGroup.mp (h t)
-    exact hΨt ▸ SmoothForm.final_mem_diffeomorphStabilizer hΨ.timeSlice_mem_diffeomorphStabilizer
+  have hΦ (t : unitInterval) : Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ.val :=
+    (SmoothForm.hamiltonianGroup_le_isotopyStabilizer.trans
+      SmoothForm.isotopyStabilizer_le_diffeomorphStabilizer) (h t)
   -- The flux of every truncation lies in the flux group.
   have hmem (T : unitInterval) : (Φ.truncate T).flux σ (SmoothForm.final_mem_diffeomorphStabilizer
       (SmoothForm.timeSlice_truncate_mem_diffeomorphStabilizer hΦ T)) ∈ fluxGroup σ := by
