@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Algebra.DirectSum.Algebra
+public import SymplecticGeometry.Algebra.GradedMonoid
 public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Pow
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
@@ -66,24 +67,13 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
   [TopologicalSpace M] [ChartedSpace H M] {I : ModelWithCorners ℝ E H} [IsManifold I 1 M]
   {k l : ℕ}
 
-
-/-- Transporting a smooth form along an equality of degrees does not change it as an element of
-the graded monoid of smooth forms. -/
-theorem gradedMonoid_mk_cast {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {i j : ℕ}
-    (h : i = j) (φ : SmoothForm I M F i) :
-    GradedMonoid.mk (A := fun q ↦ SmoothForm I M F q) j
-        (LinearEquiv.cast (R := ℝ) (M := fun q : ℕ ↦ SmoothForm I M F q) h φ) =
-      GradedMonoid.mk i φ := by
-  cases h
-  rfl
-
 /-- Smooth forms of equal degrees that agree once the tangent tuples are transported along the
 equality of degrees are the same element of the graded monoid of smooth forms. -/
 theorem gradedMonoid_mk_eq_mk {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {i j : ℕ}
     (h : i = j) {φ : SmoothForm I M F i} {ψ : SmoothForm I M F j}
     (hφψ : ∀ x (v : Fin j → TangentSpace I x), φ.val x (v ∘ Fin.cast h) = ψ.val x v) :
     GradedMonoid.mk (A := fun q ↦ SmoothForm I M F q) i φ = GradedMonoid.mk j ψ := by
-  rw [← gradedMonoid_mk_cast h φ]
+  rw [← GradedMonoid.mk_linearEquivCast (R := ℝ) h φ]
   congr 1
   ext x v
   rw [cast_apply, hφψ]
@@ -136,7 +126,7 @@ instance gMonoid : GradedMonoid.GMonoid (fun k ↦ SmoothForm I M ℝ k) where
   one_mul a := by
     change GradedMonoid.mk _ (wedge (ofFunction 1) a.2) =
       GradedMonoid.mk a.1 a.2
-    rw [ofFunction_wedge, funSMulₗ_one, gradedMonoid_mk_cast]
+    rw [ofFunction_wedge, funSMulₗ_one, GradedMonoid.mk_linearEquivCast]
   mul_one a := by
     change GradedMonoid.mk _ (wedge a.2 (ofFunction 1)) =
       GradedMonoid.mk a.1 a.2
@@ -176,7 +166,7 @@ theorem gradedMonoid_mk_smul_ofFunction_one_wedge (r : ℝ) (φ : SmoothForm I M
     GradedMonoid.mk (A := fun q ↦ SmoothForm I M ℝ q) _
         (wedge (r • ofFunction 1) φ) = GradedMonoid.mk k (r • φ) := by
   rw [map_smul, LinearMap.smul_apply, ofFunction_wedge, funSMulₗ_one, ← map_smul,
-    gradedMonoid_mk_cast]
+    GradedMonoid.mk_linearEquivCast]
 
 /-- Smooth forms are a graded real algebra; a real number `r` acts as the constant
 function `r`. -/
@@ -200,10 +190,12 @@ instance gAlgebra : DirectSum.GAlgebra ℝ (fun k ↦ SmoothForm I M ℝ k) wher
       GradedMonoid.mk (0 + a.1) (wedge (r • ofFunction 1) a.2)
     rw [gradedMonoid_mk_smul_ofFunction_one_wedge]
 
--- Elaborating `algebraMap ℝ (⨁ k, SmoothForm I M ℝ k)` in a statement leaves the search for this
--- instance through `DirectSum.semiring` stuck; stating it directly makes the search immediate.
-/-- The semiring structure of the smooth forms of all degrees. -/
-instance semiring : Semiring (⨁ k : ℕ, SmoothForm I M ℝ k) := DirectSum.semiring _
+-- Instance search finds `DirectSum.ring (SmoothForm I M ℝ)`, with the family eta-reduced, and that
+-- does not unify with the `fun k ↦ SmoothForm I M ℝ k` of the statements: `algebraMap ℝ` into the
+-- direct sum then fails to elaborate, and ring lemmas such as `mul_sub` do not rewrite. Stating
+-- the ring structure for the family as written makes both work.
+/-- The ring structure of the smooth forms of all degrees. -/
+instance ring : Ring (⨁ k : ℕ, SmoothForm I M ℝ k) := DirectSum.ring _
 
 /-- The scalar map of the graded algebra of smooth forms sends `r` to the constant
 function `r`. -/
@@ -221,6 +213,7 @@ theorem of_mul_of_eq_of_wedge (φ : SmoothForm I M ℝ k) (ψ : SmoothForm I M �
   rw [DirectSum.of_mul_of, gMul_mul]
 
 /-- The unit of the algebra of smooth forms is the constant function `1`, in degree `0`. -/
+@[simp]
 theorem of_zero_ofFunction_one :
     DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 0 (ofFunction 1) = 1 :=
   DirectSum.of_zero_one _
@@ -239,6 +232,7 @@ theorem of_pow_eq_of_wedgePow (φ : SmoothForm I M ℝ k) (m : ℕ) :
       DirectSum.of _ (k * m) (wedgePow φ m) := by
   induction m with
   | zero => rw [pow_zero, wedgePow_zero]; exact of_zero_ofFunction_one.symm
+  -- The degree `k * m + k` of the product reduces to `k * (m + 1)`.
   | succ m ih => rw [pow_succ, ih, of_mul_of_eq_of_wedge, wedgePow_succ]; rfl
 
 /-- Homogeneous smooth forms of degrees `k` and `l` commute up to the sign `(-1) ^ (k * l)`. -/
@@ -247,7 +241,7 @@ theorem of_mul_of_comm (φ : SmoothForm I M ℝ k) (ψ : SmoothForm I M ℝ l) :
       (-1 : ℝ) ^ (k * l) • (DirectSum.of _ l ψ * DirectSum.of _ k φ) := by
   rw [of_mul_of_eq_of_wedge, of_mul_of_eq_of_wedge, ← DirectSum.of_smul]
   refine DirectSum.of_eq_of_gradedMonoid_eq ?_
-  rw [wedge_eq_smul_cast_wedge_comm, ← map_smul, gradedMonoid_mk_cast]
+  rw [wedge_eq_smul_cast_wedge_comm, ← map_smul, GradedMonoid.mk_linearEquivCast]
 
 /-- A homogeneous smooth form of even degree commutes with every homogeneous smooth form. -/
 theorem commute_of_of_of_even (hk : Even k) (φ : SmoothForm I M ℝ k) (ψ : SmoothForm I M ℝ l) :

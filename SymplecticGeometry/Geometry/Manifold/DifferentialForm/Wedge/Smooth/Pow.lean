@@ -42,6 +42,7 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
   [TopologicalSpace M] [ChartedSpace H M] {I : ModelWithCorners ℝ E H} [IsManifold I 1 M]
 
 /-- The zeroth wedge power of a smooth form is the `0`-form of the constant function `1`. -/
+@[simp]
 theorem wedgePow_zero {k : ℕ} (φ : SmoothForm I M ℝ k) :
     φ.wedgePow 0 = ofFunction (1 : C^∞⟮I, M; ℝ⟯) := by
   ext x v
