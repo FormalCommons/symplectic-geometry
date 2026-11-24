@@ -256,11 +256,12 @@ Two even homogeneous forms commute (`commute_of_of_of_even`, from
 
 ### `Interior.lean`
 
-`TauCeti.SmoothForm.interiorₗ X hX : SmoothForm I M F (k + 1) →ₗ[ℝ] SmoothForm I M F k`,
-the interior product with a smooth vector field, with `coe_interiorₗ`
-(its rough form is `RoughForm.interior X`), `interiorₗ_interiorₗ`
-($\iota_X\iota_X=0$), `interiorₗ_wedge` (the graded Leibniz rule, from
-`RoughForm.interior_wedge_apply`) and `interiorₗ_apply_zero_degree_one`
+`TauCeti.SmoothForm.interiorProduct X : SmoothForm I M F (k + 1) →ₗ[ℝ] SmoothForm I M F k`,
+the interior product with a smooth vector field
+`X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯`, with `coe_interiorProduct`
+(its rough form is `RoughForm.interior X`), `interiorProduct_interiorProduct`
+($\iota_X\iota_X=0$), `interiorProduct_wedge` (the graded Leibniz rule, from
+`RoughForm.interior_wedge_apply`) and `interiorProduct_apply_degree_one`
 (on a one-form it is evaluation on `X`).
 
 ### `Equivariant/Basic.lean`
@@ -270,7 +271,7 @@ In `SymplecticGeometry`:
 - `cartanDiff X hX ħ : (⨁ k, SmoothForm I M ℝ k) →ₗ[ℝ] ⨁ k, SmoothForm I M ℝ k`,
   defined on homogeneous forms by
   `cartanDiff_of_zero : cartanDiff X hX ħ (of _ 0 f) = of _ 1 (mextDerivₗ f)` and
-  `cartanDiff_of_succ : cartanDiff X hX ħ (of _ (k + 1) φ) = of _ (k + 2) (mextDerivₗ φ) - ħ • of _ k (interiorₗ X hX φ)`;
+  `cartanDiff_of_succ : cartanDiff X hX ħ (of _ (k + 1) φ) = of _ (k + 2) (mextDerivₗ φ) - ħ • of _ k (interiorProduct ⟨X, hX⟩ φ)`;
 - `cartanDiff_zero_param` (at `ħ = 0` it is `d`), `cartanDiff_mul_of`
   (for `φ` of degree `k`,
   `cartanDiff (of _ k φ * β) = cartanDiff (of _ k φ) * β + (-1) ^ k • of _ k φ * cartanDiff β`),
@@ -294,7 +295,7 @@ In `SymplecticGeometry`:
 (`of _ 0 f + of _ 2 τ`), `formCalculus_const`, `tsupport_formCalculus_subset`
 (each component vanishes outside `f ⁻¹' tsupport F`), and
 `cartanDiff_formCalculus`: if `τ` is closed and
-`ħ • interiorₗ X hX τ = mextDerivₗ f`, then
+`ħ • interiorProduct ⟨X, hX⟩ τ = mextDerivₗ f`, then
 `cartanDiff X hX ħ (formCalculus F hF f τ) = 0`. The exponential
 `formCalculus Real.exp _ (-ħ • H) σ` is the page's $e^{\sigma-\hbar H}$;
 it gets no name of its own.
