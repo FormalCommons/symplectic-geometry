@@ -45,7 +45,9 @@ subspace `W`, this file adds to Tau Ceti's theory of the symplectic complement `
   subspaces of `ω` onto those of `ω'` (for `c = -1`: an anti-symplectic map);
 * `TauCeti.SymplecticForm.orthogonal_sup`: `(L ⊔ L')^ω = L^ω ⊓ L'^ω`;
 * `TauCeti.SymplecticForm.isIsotropic_inf_orthogonal`: the radical `W ∩ W^ω` of a subspace is
-  isotropic.
+  isotropic;
+* `TauCeti.SymplecticForm.IsLagrangian.finrank_inf_add_finrank`: in finite dimension, for a
+  Lagrangian `L` and any subspace `W`, `2 dim (L ∩ W) + dim V = 2 dim (L ∩ W^ω) + 2 dim W`.
 
 It then collects these with Tau Ceti's results into two theorems:
 `TauCeti.SymplecticForm.orthogonal_properties`, in finite dimension (dimension of the
@@ -58,7 +60,8 @@ bases).
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Lemma 2.1.1 and Lemma 2.1.5.
+  Lemma 2.1.1 and Lemma 2.1.5, and §5.4 (Remark 5.4.6 and Proposition 5.4.7) for
+  `TauCeti.SymplecticForm.IsLagrangian.finrank_inf_add_finrank`.
 -/
 
 public section
@@ -204,6 +207,17 @@ isotropic subspaces `L` with `2 · dim L = dim V`. -/
 theorem isLagrangian_iff_isIsotropic_and_two_mul_finrank_eq :
     ω.IsLagrangian L ↔ ω.IsIsotropic L ∧ 2 * finrank ℝ L = finrank ℝ V :=
   ⟨fun h => ⟨h.isIsotropic, h.two_mul_finrank⟩, fun h => h.1.isLagrangian_of_finrank h.2⟩
+
+/-- For a Lagrangian subspace `L` and any subspace `W` of a finite-dimensional symplectic vector
+space `V`, `2 dim (L ∩ W) + dim V = 2 dim (L ∩ W^ω) + 2 dim W`. -/
+theorem IsLagrangian.finrank_inf_add_finrank (hL : ω.IsLagrangian L) (W : Submodule ℝ V) :
+    2 * finrank ℝ ↥(L ⊓ W) + finrank ℝ V =
+      2 * finrank ℝ ↥(L ⊓ ω.orthogonal W) + 2 * finrank ℝ W := by
+  have h₁ := ω.finrank_add_finrank_orthogonal (L ⊔ W)
+  rw [orthogonal_sup, hL.orthogonal_eq] at h₁
+  have h₂ := Submodule.finrank_sup_add_finrank_inf_eq L W
+  have h₃ := hL.two_mul_finrank
+  omega
 
 /-- **Symplectic complements.** For a subspace `W` of a finite-dimensional symplectic vector
 space `(V, ω)`: `dim W + dim W^ω = dim V`; `W^ωω = W`; `W` and `W^ω` are symplectic together;

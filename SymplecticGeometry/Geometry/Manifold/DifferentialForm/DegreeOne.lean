@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.DegreeOne
-import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.SmulRight
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
@@ -17,11 +16,12 @@ If the kernel of a one-form `α` at `x` lies in that of `β`, and `α_x(v) = 1`,
 with no smoothness asked. Its proof adapts that of Tau Ceti's
 `TauCeti.SmoothForm.apply_eq_smul_of_kerDistribution_le`, which is stated for smooth forms only.
 
-The value `x ↦ α_x (X x)` of a smooth real one-form `α` on a smooth vector field `X` is a smooth
-function (`TauCeti.SmoothForm.contMDiff_apply_contMDiffSection`). Through Tau Ceti's
-`TauCeti.SmoothForm.degreeOneEquiv`, `α` is a smooth section of the cotangent bundle, and the
-pairing of smooth sections of a dual bundle and of the bundle is smooth
-(`ContMDiffAt.clm_bundle_apply_scalar`).
+The value `x ↦ α_x (X x)` of a smooth one-form `α` with values in a real normed space `F` on a
+smooth vector field `X` is a smooth `F`-valued function
+(`TauCeti.SmoothForm.contMDiff_apply_contMDiffSection`). Through Tau Ceti's
+`TauCeti.SmoothForm.degreeOneEquiv`, `α` is a smooth section of the bundle of continuous linear
+maps from the tangent bundle to `F`, and applying a smooth section of a bundle of linear maps to a
+smooth section of its source bundle is smooth (`ContMDiffAt.clm_bundle_apply`).
 
 ## References
 
@@ -60,13 +60,16 @@ namespace TauCeti.SmoothForm
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
 
-/-- The value `α(X)` of a smooth one-form on a smooth vector field is a smooth function. -/
-theorem contMDiff_apply_contMDiffSection (α : SmoothForm I M ℝ 1)
+/-- The value `α(X)` of a smooth `F`-valued one-form on a smooth vector field is a smooth
+`F`-valued function. -/
+theorem contMDiff_apply_contMDiffSection (α : SmoothForm I M F 1)
     (X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯) :
-    ContMDiff I 𝓘(ℝ) ∞ fun x ↦ α.val x ![X x] := fun x ↦ by
-  simpa [degreeOneEquiv_apply_apply_vec] using
-    ((degreeOneEquiv α).contMDiff x).clm_bundle_apply_scalar (X.contMDiff x)
+    ContMDiff I 𝓘(ℝ, F) ∞ fun x ↦ α.val x ![X x] := fun x ↦ by
+  have h := ((degreeOneEquiv α).contMDiff x).clm_bundle_apply (X.contMDiff x)
+  simp only [degreeOneEquiv_apply_apply_vec] at h
+  exact (Bundle.contMDiffAt_totalSpace_iff.mp h).2
 
 end TauCeti.SmoothForm
 
