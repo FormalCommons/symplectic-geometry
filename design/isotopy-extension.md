@@ -915,8 +915,12 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Extension.lean`); the parametric radial primitives
   `exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex` in
   `Geometry/Manifold/DifferentialForm/SmoothFamily/Poincare.lean`
-  (used by `Ball/Isotopy.lean`, through *Hamiltonian flows*'
-  `DeRham/FamilyPrimitive.lean`); the homotopy operator on smooth families
+  (used directly by `Ball/Moser.lean`; *Hamiltonian flows*'
+  `DeRham/FamilyPrimitive.lean` builds instead on that file's
+  `IsSmoothlyContractible.exists_isSmoothFamily_mextDerivₗ_eq`, and
+  `Ball/Isotopy.lean` uses the resulting
+  `IsSmoothlyContractible.exists_contMDiff_mextDeriv_eq_of_forall_mem_closedForms`);
+  the homotopy operator on smooth families
   `SymplecticGeometry.IsSmoothFamily.homotopyOperator` in
   `Geometry/Manifold/DifferentialForm/SmoothFamily/HomotopyOperator.lean`
   (used by `DifferentialForm/VectorBundlePoincare.lean`); and the
@@ -941,11 +945,11 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Geometry/Manifold/DifferentialForm/Pullback/Smooth.lean` for
   `TauCeti.mpullback_apply_eq_of_mfderiv_eq`, a lemma this part adds there.
 - *Hamiltonian flows*: in `DeRham/FamilyPrimitive.lean`, the smooth primitive of a
-  smooth family of exact one-forms over $[0,1]$, which that part's design
+  smooth family of exact one-forms over any parameter manifold `N`, which that part's design
   (`design/hamiltonian-flows.md`, Decision 4) builds on each connected
   component with Tau Ceti's theorem. This part needs it on any manifold, so that it
-  applies on an open subset (`Cohomological/Primitive.lean`). This pull
-  request records it in `design/hamiltonian-flows.md` as the public lemma
+  applies on an open subset (`Cohomological/Primitive.lean`).
+  `design/hamiltonian-flows.md` records it as the public lemma
   `SymplecticGeometry.exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`, part of
   that part's building issue 5. It also uses the predicate
   `TauCeti.Diffeotopy.IsCompactlySupportedHamiltonian` of
