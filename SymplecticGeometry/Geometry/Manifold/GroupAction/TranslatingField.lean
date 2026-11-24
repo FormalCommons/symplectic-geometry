@@ -32,7 +32,8 @@ non-equivariant one of Tau Ceti's `TauCeti.exists_vectorField_eq_inv_smul_of_mvf
 and `TauCeti.exists_flow_apply_eq_sub_of_mvfderiv_lt_zero`.
 
 The flow of such a field commutes with the action (`TauCeti.smul_flowOf`), and `f` increases at
-unit speed along every piece of trajectory inside `W` (`TauCeti.apply_flowOf_eq_add`).
+unit speed along every piece of trajectory inside `W` (`TauCeti.apply_flowOf_eq_add`); both are
+in `SymplecticGeometry.Geometry.Manifold.Flow.Basic`.
 
 ## Main results
 

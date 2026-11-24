@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.ContMDiff.ParametricIntegral
 public import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
 public import TauCeti.RepresentationTheory.Compact.Haar
+public import TauCeti.Topology.Algebra.ConstMulAction
 
 /-!
 # Invariant cutoffs around compact sets
@@ -37,7 +38,7 @@ public section
 noncomputable section
 
 open Function MeasureTheory Set TauCeti Topology
-open scoped ContDiff Manifold
+open scoped ContDiff Manifold Pointwise
 
 namespace SymplecticGeometry
 
@@ -59,42 +60,33 @@ theorem exists_invariant_contMDiff_eq_one_of_isCompact {K U : Set M} (hK : IsCom
     ∃ (ρ : M → ℝ) (W : Set M), ContMDiff I 𝓘(ℝ) ∞ ρ ∧ (∀ (g : G) (x : M), ρ (g • x) = ρ x) ∧
       IsOpen W ∧ K ⊆ W ∧ (∀ (g : G) (x : M), x ∈ W → g • x ∈ W) ∧ (∀ x ∈ W, ρ x = 1) ∧
       HasCompactSupport ρ ∧ tsupport ρ ⊆ U := by
-  have hsmul : Continuous (fun p : G × M ↦ p.1 • p.2) :=
-    (contMDiff_smul (I := J) (I' := I) (n := ∞)).continuous
+  have : ContinuousSMul G M := ⟨(contMDiff_smul (I := J) (I' := I) (n := ∞)).continuous⟩
   -- The saturation `G • K` is compact and lies in `U`.
-  set C := (fun p : G × M ↦ p.1 • p.2) '' (univ ×ˢ K)
-  have hC : IsCompact C := (isCompact_univ.prod hK).image hsmul
-  have hCU : C ⊆ U := by
-    rintro _ ⟨⟨a, y⟩, ⟨-, hy⟩, rfl⟩
+  have hC : IsCompact ((univ : Set G) • K) := isCompact_univ.smul_set hK
+  have hCU : (univ : Set G) • K ⊆ U := by
+    rintro _ ⟨a, -, y, hy, rfl⟩
     exact hUinv a y (hKU hy)
   obtain ⟨σ, hσ, hσ1, hσc, hσU, -⟩ := hC.exists_contMDiff_one_nhds_tsupport_subset I hU hCU
-  -- The open set where `σ = 1` contains `C`; `W` is the set of points whose orbit lies in it.
+  -- The open set where `σ = 1` contains `G • K`; `W` is the set of points whose orbit lies in it.
   set V := interior {x | σ x = 1}
-  have hCV : C ⊆ V := subset_interior_iff_mem_nhdsSet.2 hσ1
+  have hCV : (univ : Set G) • K ⊆ V := subset_interior_iff_mem_nhdsSet.2 hσ1
   set W := {x : M | ∀ a : G, a • x ∈ V}
-  have hW : IsOpen W := by
-    have hcl : IsClosed {p : G × M | p.1 • p.2 ∈ Vᶜ} :=
-      isOpen_interior.isClosed_compl.preimage hsmul
-    have : Wᶜ = Prod.snd '' {p : G × M | p.1 • p.2 ∈ Vᶜ} := by
-      ext x
-      simp [W]
-    rw [← isClosed_compl_iff, this]
-    exact isClosedMap_snd_of_compactSpace _ hcl
-  have hKW : K ⊆ W := fun y hy a ↦ hCV ⟨(a, y), ⟨mem_univ _, hy⟩, rfl⟩
+  have hW : IsOpen W := isOpen_setOf_forall_smul_mem isOpen_interior
+  have hKW : K ⊆ W := fun y hy a ↦ hCV (smul_mem_smul (mem_univ a) hy)
   have hWinv (g : G) (x : M) (hx : x ∈ W) : g • x ∈ W := fun a ↦ by
     rw [smul_smul]
     exact hx (a * g)
   -- The saturation `D` of `tsupport σ` is compact and lies in `U`.
-  set D := (fun p : G × M ↦ p.1 • p.2) '' (univ ×ˢ tsupport σ)
-  have hD : IsCompact D := (isCompact_univ.prod hσc).image hsmul
+  set D := (univ : Set G) • tsupport σ
+  have hD : IsCompact D := isCompact_univ.smul_set hσc
   have hDU : D ⊆ U := by
-    rintro _ ⟨⟨a, y⟩, ⟨-, hy⟩, rfl⟩
+    rintro _ ⟨a, -, y, hy, rfl⟩
     exact hUinv a y (hσU hy)
   borelize G
   set ρ : M → ℝ := fun x ↦ ∫ a, σ (a • x) ∂haarProb G
   have hρD (x : M) (hx : x ∉ D) : ρ x = 0 := by
     have : ∀ a : G, σ (a • x) = 0 := fun a ↦ image_eq_zero_of_notMem_tsupport fun ha ↦ hx
-      ⟨(a⁻¹, a • x), ⟨mem_univ _, ha⟩, by simp [smul_smul]⟩
+      ⟨a⁻¹, mem_univ _, a • x, ha, by simp [smul_smul]⟩
     simp [ρ, this]
   have hρsupp : tsupport ρ ⊆ D :=
     closure_minimal (support_subset_iff'.2 hρD) hD.isClosed

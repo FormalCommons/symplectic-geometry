@@ -13,7 +13,7 @@ public import TauCeti.Geometry.Manifold.Flow.Basic
 public import TauCeti.Geometry.Manifold.Flow.Diffeomorph
 
 /-!
-# Maximal flows: differentials of the time maps, and integral curves
+# Maximal flows: time-map differentials, integral curves, equivariance, translation
 
 Let `v` be a `C¹` vector field on a Hausdorff boundaryless manifold modelled on a complete space,
 with maximal flow `φ` (`TauCeti.flowOf`). If time `t` is defined at `x`, the differentials
@@ -203,15 +203,19 @@ theorem smul_flowOf {G : Type*} [Group G] [MulAction G M] [ContMDiffConstSMul I 
   simpa [Diffeomorph.coe_constSmul] using (Diffeomorph.constSmul I 1 g).apply_flowOf one_ne_zero
     hv (by rw [Diffeomorph.coe_constSmul]; exact hinv g) t x
 
-/-- If a `C¹` vector field `v` satisfies `df(v) = 1` on a set `W` where `f` is differentiable,
-then `f (φ_t x) = f x + t` for the maximal flow `φ` of `v`, whenever `(t, x)` is in the flow
-domain and the trajectory from time `0` to time `t` stays in `W`. -/
+/-- If a `C¹` vector field `v` satisfies `df(v) = 1` on a set `W`, then
+`f (φ_t x) = f x + t` for the maximal flow `φ` of `v`, whenever `(t, x)` is in the flow domain
+and the trajectory from time `0` to time `t` stays in `W`. -/
 theorem apply_flowOf_eq_add
     (hv : ContMDiff I I.tangent 1 (fun x ↦ (⟨x, v x⟩ : TangentBundle I M)))
-    {f : M → ℝ} {W : Set M} (hf : ∀ y ∈ W, MDifferentiableAt I 𝓘(ℝ) f y)
-    (hfv : ∀ y ∈ W, mfderiv I 𝓘(ℝ) f y (v y) = 1) {t : ℝ} {x : M}
+    {f : M → ℝ} {W : Set M} (hfv : ∀ y ∈ W, mfderiv I 𝓘(ℝ) f y (v y) = 1) {t : ℝ} {x : M}
     (ht : (t, x) ∈ flowDomain v) (htW : ∀ s ∈ uIcc 0 t, flowOf v s x ∈ W) :
     f (flowOf v t x) = f x + t := by
+  -- `df(v) = 1 ≠ 0` on `W`, so `f` is differentiable there.
+  have hf (y : M) (hy : y ∈ W) : MDifferentiableAt I 𝓘(ℝ) f y :=
+    mdifferentiableAt_of_mvfderiv_apply_ne_zero (v := v y) (by
+      rw [mvfderiv_apply_eq_mfderiv_apply, hfv y hy]
+      exact one_ne_zero)
   have hderiv : ∀ s ∈ uIcc 0 t,
       HasDerivWithinAt (fun s ↦ f (flowOf v s x) - s) 0 (uIcc 0 t) s := by
     intro s hs
