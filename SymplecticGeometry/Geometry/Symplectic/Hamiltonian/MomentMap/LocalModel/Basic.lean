@@ -119,7 +119,7 @@ theorem contMDiff_leftInvariantCovectorMap (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) 
       simp only [LinearMap.coe_toContinuousLinearMap']
       exact hν v p
   rw [h]
-  exact contMDiff_fst.smul ((CotangentBundle.contMDiff_mk (1 : G) hc).comp contMDiff_snd)
+  exact contMDiff_fst.smul ((CotangentBundle.contMDiff_mk_comp (1 : G) hc).comp contMDiff_snd)
 
 /-! ### The pullback of the canonical symplectic form -/
 

@@ -299,10 +299,11 @@ except the second:
 
 ### `Geometry/Symplectic/Moser/Relative.lean`
 
-In the namespace `TauCeti.SmoothEmbedding`, except for the public step
+In the namespace `TauCeti.SmoothEmbedding`, except for the public steps
 `exists_partialDiffeomorph_mpullback_eq_of_mextDeriv_eq_sub` (Moser's
-argument along the local flow), which mentions no embedding and is in
-`TauCeti.SmoothTwoForm`. The milestone's name is that of Tau Ceti's
+argument along the local flow) and
+`exists_partialDiffeomorph_eq_timeDependentFlowOf_moserField`, which mention no
+embedding and are in `TauCeti.SmoothTwoForm`. The milestone's name is that of Tau Ceti's
 compact theorem `TauCeti.SmoothTwoForm.exists_diffeomorph_opens_of_eq_along`,
 in another namespace. It generalizes that theorem and would replace it
 upstream. It is reached by dot notation on `f`, as the relative primitive
