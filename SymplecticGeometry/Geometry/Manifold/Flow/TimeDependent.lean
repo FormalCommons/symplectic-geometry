@@ -60,7 +60,8 @@ suspension of the first to that of the second through `id × ψ`
 flows, `Diffeomorph.apply_flowOf` (`TauCeti/Geometry/Manifold/Flow/Diffeomorph.lean`), gives
 `Diffeomorph.apply_timeDependentFlowOf`. Since `id × ψ⁻¹` relates the suspensions the other way,
 Tau Ceti's `MDifferentiable.maximalIntegralCurveInterval_subset` shows that the flow domains
-correspond (`Diffeomorph.mem_timeDependentFlowDomain_apply_iff`).
+correspond (`Diffeomorph.mem_timeDependentFlowDomain_apply_iff`). The proof follows that of Tau
+Ceti's `Diffeomorph.maximalIntegralCurveInterval_apply`, applied to the suspensions.
 
 ## Main results
 
