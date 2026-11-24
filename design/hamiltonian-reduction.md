@@ -239,7 +239,7 @@ and let `hfree : ∀ x, μ x = 0 → MulAction.stabilizer G x = ⊥`.
 - The reduced form:
 
   ```lean
-  theorem existsUnique_isSymplectic_mpullback_quotientMk_zeroLevel
+  theorem existsUnique_isSymplectic_mpullback_quotientMk_zeroLevel_eq_mpullback
       (hσ : σ.IsSymplectic) (hG) (hfree) (hn) [ProperSMul G h.zeroLevel] :
       letI := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
       letI := h.zeroLevelQuotientChartedSpace hσ.isNondegenerate hfree hn
@@ -254,8 +254,8 @@ and let `hfree : ∀ x, μ x = 0 → MulAction.stabilizer G x = ⊥`.
   `φ = id`.
 - `finrank_quotientModelSpace_zeroLevel (z : h.zeroLevel) :
   finrank ℝ (ProperSMul.QuotientModelSpace E (Fin n → ℝ)) + 2 * finrank ℝ 𝔤 =
-  finrank ℝ E'`, from `ProperSMul.finrank_quotientModelSpace` and
-  `finrank_add_finrank_zeroLevel`.
+  finrank ℝ E'`, from Tau Ceti's
+  `IsMomentMap.finrank_add_finrank_add_finrank_lieAnnihilator` at `c = 0`.
 
 The file credits Tau Ceti's `levelSubMulActionChartedSpace`,
 `isManifold_levelSubMulAction`, `ker_mfderiv_quotientMk_levelSubMulAction`
@@ -333,7 +333,7 @@ The tangent spaces of the quotient, and the first milestone.
   3. the inclusion is a coisotropic map;
   4. every leaf of its characteristic foliation is a `G`-orbit, as in
      `leaf_characteristicFoliation_zeroLevel`;
-  5. the `∃!` of `existsUnique_isSymplectic_mpullback_quotientMk_zeroLevel`;
+  5. the `∃!` of `existsUnique_isSymplectic_mpullback_quotientMk_zeroLevel_eq_mpullback`;
   6. `Nonempty h.zeroLevel →
      finrank ℝ (ProperSMul.QuotientModelSpace E (Fin n → ℝ)) + 2 * finrank ℝ 𝔤 = finrank ℝ E'`;
   7. `eval₂_zeroLevelTangentEquiv` for every `η` with the pullback equation.
