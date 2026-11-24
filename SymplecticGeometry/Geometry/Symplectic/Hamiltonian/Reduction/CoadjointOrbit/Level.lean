@@ -9,6 +9,7 @@ public import Mathlib.Topology.Homeomorph.Lemmas
 public import TauCeti.Geometry.Manifold.PullbackGroupoid
 public import TauCeti.Geometry.Symplectic.Coadjoint.Orbit
 public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Prod
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Prod
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Reduction.ZeroLevel.Basic
 
 /-!
@@ -47,6 +48,12 @@ of reduction at a coadjoint orbit through the product:
   `orbitLevelGraphDiffeomorph`: the graph is then a diffeomorphism onto that level, and
   `contMDiffSMul_orbitLevel`, `contMDiff_orbitLevelProj`: the action of `G` on `Q` and the map
   `orbitLevelProj` are smooth.
+* `isSmoothEmbedding_coe_orbitLevel`: for that atlas, `Q` is an embedded submanifold of `M`. The
+  inclusion is the graph followed by the first projection of the product's zero level, which is a
+  smooth embedding (`isSmoothEmbedding_fst_comp_coe_zeroLevelProd`): a tangent vector `(0, w)` of
+  that level has `dι w = 0` (`IsMomentMap.differential_prod_apply`, in this library's
+  `Hamiltonian/MomentMap/Prod.lean`), so `w = 0` since the orbit map is an immersion
+  (`Module.Dual.injective_differential_orbitMap_coadjointRepresentation`).
 
 All declarations are in the namespace `TauCeti.SmoothTwoForm.IsEquivariantMomentMap`, beside
 `zeroLevel`.
@@ -385,6 +392,63 @@ theorem contMDiff_orbitLevelProj :
     (h.isSmoothEmbedding_coe_zeroLevelProd hemb hσ hfree hm).contMDiff.comp Φ.contMDiff
   rw [hΦ] at hsmooth
   exact hsmooth.congr (h.orbitLevelProj_apply hemb)
+
+/-- **The first projection of the product's zero level is a smooth embedding.** For the atlas
+`zeroLevelProdChartedSpace`, the map `(x, q) ↦ x` from the zero level of the product moment map
+`(x, q) ↦ μ x + ι q` into `M` is a smooth embedding. It is an immersion since a tangent vector
+`(0, w)` of the level has `dι w = 0`, and `dι` is injective; it is a topological embedding since
+it is the inverse of the graph `orbitLevelGraph` followed by the inclusion of the preimage of the
+orbit. -/
+theorem isSmoothEmbedding_fst_comp_coe_zeroLevelProd :
+    letI := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+    Manifold.IsSmoothEmbedding 𝓘(ℝ, Fin m → ℝ) I' ∞
+      (Prod.fst ∘ (Subtype.val : (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).zeroLevel →
+        M × (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η))) := by
+  let := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+  have := h.isManifold_zeroLevelProd hemb hσ hfree hm
+  have : T2Space (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η) := hemb.t2Space
+  have hj := h.isSmoothEmbedding_coe_zeroLevelProd hemb hσ hfree hm
+  refine ⟨contMDiff_fst.comp hj.contMDiff |>.isImmersion_of_injective_mfderiv (by simp)
+    fun z ↦ ?_, Topology.IsEmbedding.subtypeVal.comp (h.orbitLevelGraph hemb).symm.isEmbedding⟩
+  rw [mfderiv_comp z mdifferentiableAt_fst (hj.contMDiff.mdifferentiableAt (by simp)),
+    mfderiv_fst, injective_iff_map_eq_zero]
+  intro v hv
+  refine hj.isImmersion.mfderiv_injective (by simp) z (Eq.trans ?_ (map_zero _).symm)
+  set u := mfderiv 𝓘(ℝ, Fin m → ℝ) (I'.prod 𝓘(ℝ, Subgroup.QuotientModelSpace I
+    ((Lie.coadjointRepresentation ℝ I G).stabilizer η))) Subtype.val z v
+  -- The tangent vector `u = (0, w)` lies in the kernel of the product moment map's differential.
+  have hu : u ∈ LinearMap.range (mfderiv 𝓘(ℝ, Fin m → ℝ) _ (Subtype.val :
+      (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).zeroLevel → _) z).toLinearMap :=
+    LinearMap.mem_range_self _ v
+  rw [(h.prod η.isEquivariantMomentMap_coadjointOrbitForm).range_mfderiv_coe_zeroLevel
+    (hσ.prod η.isSymplectic_coadjointOrbitForm.isNondegenerate)
+    (h.stabilizer_zeroLevel_prod_eq_bot η hfree) (n := m) (by rwa [Module.finrank_prod]),
+    LinearMap.mem_ker, IsMomentMap.differential_prod_apply h.toIsMomentMap
+      η.isEquivariantMomentMap_coadjointOrbitForm.toIsMomentMap] at hu
+  -- `hv` says `(fst ∘L di) v = 0`, which is `u.1 = 0` by definition of composition; `rw` with
+  -- `ContinuousLinearMap.comp_apply` fails, since the tangent spaces are only defeq to the models.
+  have h1 : u.1 = 0 := hv
+  have h0 : h.differential z.val.1 u.1 = 0 := by
+    rw [show u.1 = (0 : TangentSpace I' z.val.1) from h1, map_zero]
+  rw [h0, zero_add] at hu
+  exact Prod.ext h1
+    (η.injective_differential_orbitMap_coadjointRepresentation _ (hu.trans (map_zero _).symm))
+
+/-- **The preimage of an embedded orbit is an embedded submanifold**: for the atlas
+`orbitLevelChartedSpace`, the inclusion of the preimage of the orbit into `M` is a smooth
+embedding. -/
+theorem isSmoothEmbedding_coe_orbitLevel :
+    letI := h.orbitLevelChartedSpace hemb hσ hfree hm
+    Manifold.IsSmoothEmbedding 𝓘(ℝ, Fin m → ℝ) I' ∞ (Subtype.val : h.orbitLevel η → M) := by
+  let := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+  let := h.orbitLevelChartedSpace hemb hσ hfree hm
+  have := h.isManifold_orbitLevel hemb hσ hfree hm
+  -- The inclusion is the graph diffeomorphism followed by the first projection of the level.
+  have := isSmoothEmbedding_comp_diffeomorph (h.orbitLevelGraphDiffeomorph hemb hσ hfree hm)
+    (h.isSmoothEmbedding_fst_comp_coe_zeroLevelProd hemb hσ hfree hm)
+  have hval : (Prod.fst ∘ Subtype.val) ∘ h.orbitLevelGraph hemb = Subtype.val :=
+    funext (h.orbitLevelGraph_fst hemb)
+  rwa [coe_orbitLevelGraphDiffeomorph, hval] at this
 
 end Atlas
 

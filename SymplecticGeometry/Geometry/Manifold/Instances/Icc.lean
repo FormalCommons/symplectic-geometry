@@ -24,9 +24,11 @@ constant field of the model space `EuclideanSpace ℝ (Fin 1)`, since the chart 
 reverses orientation. It is the tangent map of the projection `Set.projIcc` applied to the
 constant field `1` of `ℝ`, which is how the smoothness is proved.
 
-Every tangent vector of the interval is a real multiple of `1`, so continuous linear maps on a
-tangent space of the interval agree when they agree on `1`
-(`ContinuousLinearMap.ext_tangentSpace_Icc`).
+Every tangent vector of the interval is a real multiple of `1`: a vector that the inclusion sends
+to `r` is `r • 1` (`eq_smul_one_of_mfderiv_subtypeVal_Icc`). So the derivative of a map into the
+interval is read off from that of its composite with the inclusion
+(`mfderiv_apply_eq_smul_one_Icc`), and continuous linear maps on a tangent space of the interval
+agree when they agree on `1` (`ContinuousLinearMap.ext_tangentSpace_Icc`).
 
 Between two points `s` and `t` of `[x, y]`, the affine path `Set.Icc.lineMap s t`, from the
 unit interval, is smooth (`Set.Icc.contMDiff_lineMap`), and its derivative sends the unit vector
@@ -69,6 +71,27 @@ theorem contMDiff_totalSpaceMk_one_Icc :
   simp only [Function.comp_apply, tangentMapWithin]
   rw [mfderivWithin_projIcc_one z.property, projIcc_val]
 
+/-- A tangent vector `v` of a closed interval `[x, y]`, `x < y`, is `r` times the unit tangent
+vector `1` when the inclusion `Icc x y → ℝ` sends it to `r`. -/
+theorem eq_smul_one_of_mfderiv_subtypeVal_Icc {z : Icc x y} {v : TangentSpace (𝓡∂ 1) z} {r : ℝ}
+    (h : mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc x y → ℝ) z v = r) :
+    v = r • (1 : TangentSpace (𝓡∂ 1) z) := by
+  -- The inclusion has invertible derivative, which sends `1` to `1`.
+  refine (TauCeti.isInvertible_mfderiv_subtypeVal_Icc z).injective ?_
+  rw [map_smul, mfderiv_subtypeVal_Icc_one, h]
+  exact (mul_one (M := ℝ) _).symm
+
+/-- Let `f` be a map from a manifold `M` into a closed interval `[x, y]`, `x < y`, differentiable
+at `t`. If the derivative at `t` of `Subtype.val ∘ f : M → ℝ` sends `v` to `r`, then the
+derivative of `f` at `t` sends `v` to `r` times the unit tangent vector `1` at `f t`. -/
+theorem mfderiv_apply_eq_smul_one_Icc {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+    {f : M → Icc x y} {t : M} (hf : MDifferentiableAt I (𝓡∂ 1) f t) {v : TangentSpace I t}
+    {r : ℝ} (h : mfderiv I 𝓘(ℝ) (Subtype.val ∘ f) t v = r) :
+    mfderiv I (𝓡∂ 1) f t v = r • (1 : TangentSpace (𝓡∂ 1) (f t)) := by
+  refine eq_smul_one_of_mfderiv_subtypeVal_Icc ?_
+  rw [← mfderiv_comp_apply t (mdifferentiableAt_subtypeVal_Icc _) hf, h]
+
 end SymplecticGeometry
 
 /-- Two continuous linear maps on a tangent space of a closed interval `[x, y]`, `x < y`, are equal
@@ -76,17 +99,9 @@ when they agree on the unit tangent vector `1`. -/
 theorem ContinuousLinearMap.ext_tangentSpace_Icc {F : Type*} [AddCommGroup F] [Module ℝ F]
     [TopologicalSpace F] {z : Icc x y} {f g : TangentSpace (𝓡∂ 1) z →L[ℝ] F} (h : f 1 = g 1) :
     f = g := by
-  -- The inclusion has invertible derivative, which sends `1` to `1`, so `v = r • 1` for the image
-  -- `r` of `v` in `ℝ`.
-  have hv (v : TangentSpace (𝓡∂ 1) z) (r : ℝ)
-      (hr : mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc x y → ℝ) z v = r) :
-      v = r • (1 : TangentSpace (𝓡∂ 1) z) := by
-    refine (TauCeti.isInvertible_mfderiv_subtypeVal_Icc z).injective ?_
-    rw [map_smul, mfderiv_subtypeVal_Icc_one, hr]
-    exact (mul_one (M := ℝ) _).symm
   ext1 v
   obtain ⟨r, hr⟩ : ∃ r : ℝ, mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc x y → ℝ) z v = r := ⟨_, rfl⟩
-  rw [hv v r hr, map_smul, map_smul, h]
+  rw [SymplecticGeometry.eq_smul_one_of_mfderiv_subtypeVal_Icc hr, map_smul, map_smul, h]
 
 namespace Set.Icc
 
@@ -155,16 +170,13 @@ namespace unitInterval
 times the unit tangent vector at `T t`. -/
 theorem mfderiv_mul_left_one (T t : unitInterval) :
     mfderiv (𝓡∂ 1) (𝓡∂ 1) (T * ·) t 1 = (T : ℝ) • (1 : TangentSpace (𝓡∂ 1) (T * t)) := by
+  refine SymplecticGeometry.mfderiv_apply_eq_smul_one_Icc mdifferentiableAt_mul_left ?_
   have hval : (Subtype.val : unitInterval → ℝ) ∘ (T * ·) = (T : ℝ) • Subtype.val :=
     funext fun s ↦ Set.Icc.coe_mul T s
-  refine (TauCeti.isInvertible_mfderiv_subtypeVal_Icc (T * t)).injective ?_
-  rw [← mfderiv_comp_apply t (SymplecticGeometry.mdifferentiableAt_subtypeVal_Icc _)
-    mdifferentiableAt_mul_left, hval,
-    const_smul_mfderiv (SymplecticGeometry.mdifferentiableAt_subtypeVal_Icc t),
-    map_smul, mfderiv_subtypeVal_Icc_one]
-  -- The tangent spaces of `ℝ` at `T t` and at `(T • Subtype.val) t` are equal only up to
+  rw [hval, const_smul_mfderiv (SymplecticGeometry.mdifferentiableAt_subtypeVal_Icc t)]
+  -- The tangent spaces of `ℝ` at `t` and at `(T • Subtype.val) t` are equal only up to
   -- unfolding, so `smul_apply` does not rewrite the left side.
-  exact congrArg ((T : ℝ) • ·) (mfderiv_subtypeVal_Icc_one t)
+  exact (congrArg ((T : ℝ) • ·) (mfderiv_subtypeVal_Icc_one t)).trans (mul_one (M := ℝ) _)
 
 end unitInterval
 

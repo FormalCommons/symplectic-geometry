@@ -57,20 +57,14 @@ theorem contMDiff_smoothTransition {n : ℕ∞ω} (hn : n ≤ ∞) :
 `s' = deriv Real.smoothTransition`. -/
 theorem mfderiv_smoothTransition_one (u : ℝ) :
     mfderiv 𝓘(ℝ) (𝓡∂ 1) smoothTransition u 1 = deriv Real.smoothTransition u • 1 := by
-  have hσu : MDifferentiableAt 𝓘(ℝ) (𝓡∂ 1) smoothTransition u :=
-    (contMDiff_smoothTransition le_rfl).mdifferentiableAt (by simp)
-  have hval : MDifferentiableAt (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : unitInterval → ℝ)
-      (smoothTransition u) :=
-    SymplecticGeometry.mdifferentiableAt_subtypeVal_Icc _
-  -- The inclusion of the interval has injective derivative, and sends both sides to `s'(u)`.
-  refine (TauCeti.isInvertible_mfderiv_subtypeVal_Icc (smoothTransition u)).injective ?_
-  rw [map_smul, mfderiv_subtypeVal_Icc_one, ← mfderiv_comp_apply u hval hσu]
+  refine SymplecticGeometry.mfderiv_apply_eq_smul_one_Icc
+    ((contMDiff_smoothTransition le_rfl).mdifferentiableAt (by simp)) ?_
   have hc : Subtype.val ∘ smoothTransition = Real.smoothTransition :=
     funext coe_smoothTransition
   rw [hc, mfderiv_eq_fderiv]
   -- `NormedSpace.fromTangentSpace` is the identity by definition and has no apply lemma.
-  change fderiv ℝ Real.smoothTransition u 1 = deriv Real.smoothTransition u • (1 : ℝ)
-  rw [fderiv_apply_one_eq_deriv, smul_eq_mul, mul_one]
+  change fderiv ℝ Real.smoothTransition u 1 = deriv Real.smoothTransition u
+  exact fderiv_apply_one_eq_deriv
 
 end unitInterval
 
