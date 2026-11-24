@@ -418,11 +418,12 @@ Tau Ceti. About 200 lines.
 - `twistOneKernel J : Submodule ℂ (OnePoint ℂ → ℂ)`, the smooth sections
   with `twistOneDelBar J s = 0`, with `mem_twistOneKernel_iff`; this is
   $E_J$.
-- `zeroOnePart_ofComplexManifold_injOn`: if `σ` tames `J` and $i$, then at
-  every point the $(0,1)$-projection for $i$ is injective on the
-  $(0,1)$-forms for `J` with values in a complex line; and
-  `ne_neg_of_tames` (Decision 1). The names are settled in the issue after
-  a search of `CauchyRiemann/Basic.lean`.
+- Used here from `Geometry/Symplectic/Manifold/AlmostComplex/Tames.lean`,
+  in the namespace `TauCeti.SmoothAlmostComplexStructure`:
+  `injOn_zeroOnePart_of_tames`: if `σ` tames `J` and `K`, then at every
+  point the $(0,1)$-projection for `K` is injective on the $(0,1)$-forms
+  for `J` with values in a complex vector bundle, applied with $K=i$; and
+  `ne_neg_of_tames` (Decision 1).
 - `norm_beltrami_lt_one_of_tames`: if `σ` tames `J` and $i$, then at every
   point of a chart of `A` the coefficient $\mu$ of Decision 5 has
   $|\mu|<1$, from the agreement of the complex orientations of `J` and $i$
