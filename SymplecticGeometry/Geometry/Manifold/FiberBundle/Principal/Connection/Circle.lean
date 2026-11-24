@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.MapCoeff
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
 
@@ -22,8 +23,6 @@ under this identification.
 
 ## Main results
 
-* `TauCeti.SmoothForm.mapCoeff_injective`: changing the values of forms along an injective
-  continuous linear map is injective.
 * `SymplecticGeometry.isConnectionForm_mapCoeff_iff`: `α ξ₀` is a connection form exactly when
   `α` is a circle connection form.
 * `SymplecticGeometry.IsConnectionForm.existsUnique_eq_mapCoeff`: every `𝔤`-valued connection form
@@ -41,23 +40,6 @@ noncomputable section
 
 open Bundle Manifold MulOpposite TauCeti TauCeti.Lie
 open scoped Manifold ContDiff GroupLieAlgebra
-
-namespace TauCeti.SmoothForm
-
-variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-  [IsManifold I 1 M]
-  {F F' : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedAddCommGroup F']
-  [NormedSpace ℝ F'] {k : ℕ}
-
-/-- Changing the values of smooth forms along an injective continuous linear map is injective. -/
-theorem mapCoeff_injective {L : F →L[ℝ] F'} (hL : Function.Injective L) :
-    Function.Injective (mapCoeff (I := I) (M := M) (k := k) L) := fun φ ψ h ↦
-  SmoothBundleForm.ext fun x v ↦ hL <| by
-    simpa only [coe_mapCoeff, RoughForm.mapCoeff_apply] using
-      DFunLike.congr_fun (congrFun (congrArg Subtype.val h) x) v
-
-end TauCeti.SmoothForm
 
 namespace SymplecticGeometry
 
