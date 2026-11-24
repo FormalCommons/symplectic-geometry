@@ -110,12 +110,12 @@ theorem transFiberHomeomorph_target :
     (e.transFiberHomeomorph h).target = e.baseSet ×ˢ Set.univ := by
   rw [target_eq, transFiberHomeomorph_baseSet]
 
-/-- The inverse of `e.transFiberHomeomorph h` sends `(b, f)` to the image of `(b, h.symm f)`
+/-- The inverse of `e.transFiberHomeomorph h` sends `q` to the image of `(q.1, h.symm q.2)`
 under the inverse of `e`. -/
 @[simp]
-theorem transFiberHomeomorph_symm_apply (b : B) (f : F') :
-    (e.transFiberHomeomorph h).toOpenPartialHomeomorph.symm (b, f) =
-      e.toOpenPartialHomeomorph.symm (b, h.symm f) :=
+theorem transFiberHomeomorph_symm_apply (q : B × F') :
+    (e.transFiberHomeomorph h).toOpenPartialHomeomorph.symm q =
+      e.toOpenPartialHomeomorph.symm (q.1, h.symm q.2) :=
   (rfl)
 
 end transFiberHomeomorph
