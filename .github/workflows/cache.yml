@@ -1,7 +1,12 @@
 name: cache
 
-# Saves two builds on main for CI to restore. Only this workflow saves; GitHub
-# lets runs on any branch restore main's caches.
+# Saves builds on main for CI to restore. Only this workflow saves; GitHub
+# lets runs on any branch restore main's caches, and a run of CI could not
+# save one for later runs: a pull request's run and a merge queue's run can
+# restore only their own saves and main's.
+#
+# The three jobs do not wait for each other, and each has its own queue, so
+# a slow run of one does not hold up the saves of another.
 #
 # The first job builds the dependencies that the library imports: Mathlib's
 # files from its cache, and the Tau Ceti modules that the library's files
@@ -10,22 +15,28 @@ name: cache
 # build cache where that has them, and compiles the rest; see the setup
 # action. It builds only those dependencies, never the library's own code,
 # and saves again only when the list of Tau Ceti modules that the library
-# imports has changed.
+# imports has changed. Until it has saved, the other jobs and CI compile the
+# modules that the latest save lacks.
 #
-# The second job builds the library and saves `.lake/build`. CI restores the
-# latest save, and Lake then builds only the files that differ from it and
-# the files that import them, directly or through other files. Lake takes a
-# file's build from a save only if the hash of the file's source, of its
-# imports' builds, of the toolchain and of the options is the one recorded
-# with that build; it does not go by the files' times. The job itself reads
-# the hour from the clock when it names its save, which is after any wait
-# for an earlier run and after the first job, and starts from the latest
-# save of that hour. The first run to name a save in an hour finds none and
-# builds every file from its source, so main is built in full about once an
-# hour while pull requests merge, and no save descends from a save of an
-# earlier hour. If that build fails, nothing is saved, and each later run
-# builds in full again. So a run of this workflow that fails at the
-# library's build step says that main does not build from its source.
+# The second job keeps a build of the library, `.lake/build`, close to main:
+# it restores the latest save, builds what main has changed since, and saves
+# again. CI restores the latest of these saves, and Lake then builds only the
+# files that differ from it and the files that import them, directly or
+# through other files. Lake takes a file's build from a save only if the hash
+# of the file's source, of its imports' builds, of the toolchain and of the
+# options is the one recorded with that build; it does not go by the files'
+# times.
+#
+# The third job builds main from its source, with no build of the library
+# restored, and saves that build. It does so when the latest such build
+# began an hour ago or more, so about once an hour while pull requests merge,
+# and whenever a run is started by hand. The second job starts from the
+# latest build from source, or from the latest save that descends from it,
+# and from no other save, so the saves that CI restores do not descend from
+# an older build from source than the one before the latest. If the build
+# from source fails, nothing is saved, and the next run tries again. So a
+# run of this workflow that fails at the third job's build step says that
+# main does not build from its source.
 on:
   push:
     branches: [main]
@@ -34,16 +45,16 @@ on:
 permissions:
   contents: read
 
-# One run at a time, and GitHub keeps only the newest waiting run, so a save
-# that has begun always finishes.
-concurrency:
-  group: cache
-  cancel-in-progress: false
-
+# No job is cancelled once it runs, so a save that has begun always
+# finishes. Each job waits only for a running job of its own kind, and
+# GitHub keeps only the newest waiting one.
 jobs:
   cache:
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    concurrency:
+      group: cache-dependencies
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
       - name: name the saves
@@ -77,34 +88,106 @@ jobs:
           key: ${{ steps.names.outputs.packages }}-${{ steps.names.outputs.imports }}
 
   # Saves only `.lake/build`. The dependencies come from the first job's
-  # save, as in CI.
+  # latest save, as in CI. After a move of Tau Ceti there is none yet, and
+  # the setup then takes as long here as in CI, hence the limit.
   library:
-    needs: cache
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 150
+    concurrency:
+      group: cache-library
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
       - name: set up Lean and restore the built dependencies
         id: setup
         uses: ./.github/actions/setup-lean
-      # A save's name has the number of the hour, read from the clock at this
-      # step and not when the run began, then the commit and the run.
-      - name: name the save
-        id: name
-        run: echo "hour=${{ steps.setup.outputs.build }}-$(( $(date +%s) / 3600 ))-" >> "$GITHUB_OUTPUT"
-      # Only saves of that hour, so the first run to name a save in an hour
-      # restores nothing. A run started by hand restores nothing either.
-      - name: restore the latest build of the library
-        if: github.event_name == 'push'
+      # The name of a build from source has the time it began, in seconds.
+      - name: look for the latest build from source
+        id: source
         uses: actions/cache/restore@v6
         with:
           path: .lake/build
-          key: ${{ steps.name.outputs.hour }}${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: ${{ steps.name.outputs.hour }}
+          key: ${{ steps.setup.outputs.build }}-src-
+          restore-keys: ${{ steps.setup.outputs.build }}-src-
+          lookup-only: true
+      # A save of this job is named after the build from source that it
+      # descends from, then the commit and the run. It starts from the latest
+      # save with that name, or from the build from source itself. Before the
+      # first build from source, which is after a move of Tau Ceti, it starts
+      # from the latest save there is.
+      - name: name the save
+        id: name
+        env:
+          BUILD: ${{ steps.setup.outputs.build }}
+          SOURCE: ${{ steps.source.outputs.cache-matched-key }}
+        run: |
+          if [ -n "$SOURCE" ]; then
+            from=${SOURCE#"$BUILD-src-"}
+            from=${from%%-*}
+            printf '%s\n' "from=$from" 'restore<<END' "$BUILD-inc-$from-" "$BUILD-src-$from-" END >> "$GITHUB_OUTPUT"
+          else
+            printf '%s\n' 'from=none' 'restore<<END' "$BUILD-inc-none-" "$BUILD-" END >> "$GITHUB_OUTPUT"
+          fi
+      - name: restore the latest build of the library
+        uses: actions/cache/restore@v6
+        with:
+          path: .lake/build
+          key: ${{ steps.setup.outputs.build }}-inc-${{ steps.name.outputs.from }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: ${{ steps.name.outputs.restore }}
       - name: build
         run: lake build --wfail
       - name: save the build of the library
         uses: actions/cache/save@v6
         with:
           path: .lake/build
-          key: ${{ steps.name.outputs.hour }}${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: ${{ steps.setup.outputs.build }}-inc-${{ steps.name.outputs.from }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+  # Builds main from its source and saves `.lake/build`, at most once an
+  # hour. The limit is as for the second job.
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    concurrency:
+      group: cache-source
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+      - name: name the saves
+        id: names
+        uses: ./.github/actions/setup-lean
+        with:
+          names-only: true
+      - name: look for the latest build from source
+        id: look
+        uses: actions/cache/restore@v6
+        with:
+          path: .lake/build
+          key: ${{ steps.names.outputs.build }}-src-
+          restore-keys: ${{ steps.names.outputs.build }}-src-
+          lookup-only: true
+      # The clock is read here, which is after any wait for an earlier run
+      # of this job, and the time goes into the name of the save.
+      - name: see whether a build from source is due
+        id: due
+        env:
+          BUILD: ${{ steps.names.outputs.build }}
+          SOURCE: ${{ steps.look.outputs.cache-matched-key }}
+        run: |
+          now=$(date +%s)
+          last=${SOURCE#"$BUILD-src-"}
+          last=${last%%-*}
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] || ! [[ $last =~ ^[0-9]+$ ]] || [ $(( now - last )) -ge 3600 ]; then
+            echo "key=$BUILD-src-$now-$GITHUB_SHA-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+          fi
+      - name: set up Lean and restore the built dependencies
+        if: steps.due.outputs.key != ''
+        uses: ./.github/actions/setup-lean
+      - name: build
+        if: steps.due.outputs.key != ''
+        run: lake build --wfail
+      - name: save the build of the library
+        if: steps.due.outputs.key != ''
+        uses: actions/cache/save@v6
+        with:
+          path: .lake/build
+          key: ${{ steps.due.outputs.key }}
