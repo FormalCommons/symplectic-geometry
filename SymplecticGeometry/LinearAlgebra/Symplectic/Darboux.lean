@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Symplectic.WittExtension
 public import TauCeti.LinearAlgebra.BilinearForm.Basic
 public import TauCeti.LinearAlgebra.BilinearForm.Isometry
 public import TauCeti.LinearAlgebra.BilinearForm.SymplecticBasis
+public import TauCeti.LinearAlgebra.Dimension.Basis
 public import TauCeti.RepresentationTheory.ClassicalGroups.Symplectic
 public import SymplecticGeometry.LinearAlgebra.Matrix.SymplecticGroup.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
@@ -170,7 +171,7 @@ theorem equivalent_neg_stdSymplecticBilinForm (hB : B.IsAlt)
     (-stdSymplecticBilinForm k n).Equivalent B := by
   obtain ⟨m, b, hb⟩ := hB.exists_basis_toMatrix_eq_J hnd
   obtain rfl : m = n := by
-    rw [finrank_eq_card_basis b, Fintype.card_sum, Fintype.card_fin] at hn
+    rw [finrank_eq_two_mul_card_of_basis_sum b, Fintype.card_fin] at hn
     omega
   exact ⟨((Pi.basisFun k _).reindex (Equiv.sumComm _ _)).isometryEquivOfToMatrixEq b
     ((toMatrix_reindex_sumComm_neg_stdSymplecticBilinForm k m).trans hb.symm)⟩
@@ -206,7 +207,7 @@ theorem exists_basis_and_equivalent (hB : B.IsAlt) (hnd : B.Nondegenerate) :
         C.IsAlt → C.Nondegenerate → finrank k V' = finrank k V → B.Equivalent C := by
   obtain ⟨n, b, hb⟩ := hB.exists_basis_toMatrix_eq_J hnd
   have hn : finrank k V = 2 * n := by
-    rw [finrank_eq_card_basis b, Fintype.card_sum, Fintype.card_fin, two_mul]
+    rw [finrank_eq_two_mul_card_of_basis_sum b, Fintype.card_fin]
   exact ⟨n, hn, ⟨b, apply_basis_of_toMatrix_eq_J hb⟩,
     hB.equivalent_neg_stdSymplecticBilinForm hnd hn,
     fun _ _ _ _ C hC hndC hdim ↦ (hB.equivalent_iff_finrank_eq hnd hC hndC).mpr hdim.symm⟩
