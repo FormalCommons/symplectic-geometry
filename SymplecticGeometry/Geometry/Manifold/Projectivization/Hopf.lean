@@ -524,15 +524,11 @@ theorem ker_mfderiv_sphereHopf (x : sphere (0 : StdSpace (Fin (n + 1))) 1) :
     simpa using ne_zero_of_mem_unit_sphere x
   have hmem : stdComplexStructure (Fin (n + 1)) (x : StdSpace (Fin (n + 1))) ∈
       (LinearMap.ker L).map D := by
-    have hrange : stdComplexStructure (Fin (n + 1)) (x : StdSpace (Fin (n + 1))) ∈
-        LinearMap.range D := by
-      -- `D` is the derivative of the inclusion of the sphere, whose range Mathlib computes.
-      change _ ∈ (mvfderiv (𝓡 (2 * n + 1))
-        (Subtype.val : sphere (0 : StdSpace (Fin (n + 1))) 1 → StdSpace (Fin (n + 1))) x).range
-      rw [range_mvfderiv_subtypeVal, Submodule.mem_orthogonal_singleton_iff_inner_right,
-        real_inner_comm, ← stdForm_apply_eq_inner]
-      exact (stdForm (Fin (n + 1))).isAlt _
-    obtain ⟨w, hw⟩ := hrange
+    -- The tangent vector is read in the model space, the domain of `D`.
+    obtain ⟨w, hw⟩ : ∃ w : EuclideanSpace ℝ (Fin (2 * n + 1)),
+        D w = stdComplexStructure (Fin (n + 1)) (x : StdSpace (Fin (n + 1))) :=
+      exists_mvfderiv_coe_sphere_eq x (by
+        rw [real_inner_comm, ← stdForm_apply_eq_inner]; exact (stdForm (Fin (n + 1))).isAlt _)
     refine ⟨w, ?_, hw⟩
     let w' : TangentSpace (𝓡 (2 * n + 1)) x := w
     have hι : mfderiv (𝓡 (2 * n + 1)) 𝓘(ℝ, Fin (n + 1) → ℂ) (sphereToPuncturedSpace n) x w' =

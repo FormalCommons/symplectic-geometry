@@ -26,8 +26,8 @@ and its time-dependent flows use, and a `TauCeti.Diffeotopy`, a level-preserving
 * `TauCeti.Diffeotopy.ofReal ψ hψ h₀`: the restriction to `[0, 1]` of a jointly smooth family
   `ψ` over `ℝ` with `ψ 0 = id`, as a diffeotopy.
 * `TauCeti.Diffeotopy.smoothTransitionFamily Φ`: the family `u ↦ φ_{s(u)}` over `ℝ` of a
-  diffeotopy `Φ`, with `s = Real.smoothTransitionUnit`; it is the identity for `u ≤ 0` and the final
-  map `Φ.final` for `u ≥ 1`.
+  diffeotopy `Φ`, with `s = unitInterval.smoothTransition`; it is the identity for `u ≤ 0` and the
+  final map `Φ.final` for `u ≥ 1`.
 
 ## Main results
 
@@ -176,41 +176,42 @@ variable (Φ : Diffeotopy I ∞ M)
 /-- The family `u ↦ φ_{s(u)}` over `ℝ` of a diffeotopy `Φ`, where `s = Real.smoothTransition`:
 the identity for `u ≤ 0`, the final map for `u ≥ 1`, and a reparametrization of `Φ` in between. -/
 def smoothTransitionFamily (u : ℝ) : M ≃ₘ⟮I, I⟯ M :=
-  Φ.timeSlice (Real.smoothTransitionUnit u)
+  Φ.timeSlice (unitInterval.smoothTransition u)
 
 /-- The family `u ↦ φ_{s(u)}` at `u` is the time slice of `Φ` at `s(u)`. -/
 theorem smoothTransitionFamily_def (u : ℝ) :
-    Φ.smoothTransitionFamily u = Φ.timeSlice (Real.smoothTransitionUnit u) :=
+    Φ.smoothTransitionFamily u = Φ.timeSlice (unitInterval.smoothTransition u) :=
   (rfl)
 
 /-- The family `u ↦ φ_{s(u)}` sends `x` to `Φ (s(u), x)`. -/
 @[simp]
 theorem smoothTransitionFamily_apply (u : ℝ) (x : M) :
-    Φ.smoothTransitionFamily u x = Φ (Real.smoothTransitionUnit u, x) :=
+    Φ.smoothTransitionFamily u x = Φ (unitInterval.smoothTransition u, x) :=
   Φ.timeSlice_apply _ x
 
 /-- For `u ≤ 0`, the map `φ_{s(u)}` is the identity. -/
 theorem smoothTransitionFamily_of_nonpos {u : ℝ} (hu : u ≤ 0) :
     Φ.smoothTransitionFamily u = Diffeomorph.refl I M ∞ := by
-  rw [smoothTransitionFamily_def, Real.smoothTransitionUnit_of_nonpos hu, timeSlice_zero]
+  rw [smoothTransitionFamily_def, unitInterval.smoothTransition_of_nonpos hu, timeSlice_zero]
 
 /-- For `u ≥ 1`, the map `φ_{s(u)}` is the final map of `Φ`. -/
 theorem smoothTransitionFamily_of_one_le {u : ℝ} (hu : 1 ≤ u) :
     Φ.smoothTransitionFamily u = Φ.final := by
-  rw [smoothTransitionFamily_def, Real.smoothTransitionUnit_of_one_le hu, final_def]
+  rw [smoothTransitionFamily_def, unitInterval.smoothTransition_of_one_le hu, final_def]
 
 /-- The family `u ↦ φ_{s(u)}` is jointly smooth in `(u, x)`. -/
 theorem contMDiff_smoothTransitionFamily :
     ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞ (fun p : ℝ × M ↦ Φ.smoothTransitionFamily p.1 p.2) :=
-  Φ.contMDiff.comp (((Real.contMDiff_smoothTransitionUnit le_rfl).comp contMDiff_fst).prodMk
+  Φ.contMDiff.comp (((unitInterval.contMDiff_smoothTransition le_rfl).comp contMDiff_fst).prodMk
     contMDiff_snd) |>.congr
     fun p ↦ Φ.smoothTransitionFamily_apply p.1 p.2
 
 /-- The inverses of the family `u ↦ φ_{s(u)}` are jointly smooth in `(u, y)`. -/
 theorem contMDiff_smoothTransitionFamily_symm :
     ContMDiff (𝓘(ℝ, ℝ).prod I) I ∞ (fun p : ℝ × M ↦ (Φ.smoothTransitionFamily p.1).symm p.2) :=
-  Φ.symm.contMDiff.comp (((Real.contMDiff_smoothTransitionUnit le_rfl).comp contMDiff_fst).prodMk
-    contMDiff_snd) |>.congr
+  Φ.symm.contMDiff.comp
+    (((unitInterval.contMDiff_smoothTransition le_rfl).comp contMDiff_fst).prodMk
+      contMDiff_snd) |>.congr
     fun _ ↦ symm_timeSlice_apply _ _ _
 
 /-- The Eulerian field of the family `u ↦ φ_{s(u)}`, `s = Real.smoothTransition`, at the point
@@ -219,10 +220,10 @@ theorem eulerianField_smoothTransitionFamily_apply (u : ℝ) (x : M) :
     eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) u
       (Φ.smoothTransitionFamily u x) =
       deriv Real.smoothTransition u •
-        mfderiv (I.prod (𝓡∂ 1)) I Φ.cylinderMap (x, Real.smoothTransitionUnit u)
-          ((0 : E), (1 : TangentSpace (𝓡∂ 1) (Real.smoothTransitionUnit u))) := by
-  set σ : ℝ → unitInterval := Real.smoothTransitionUnit
-  have hσ : ContMDiff 𝓘(ℝ) (𝓡∂ 1) ∞ σ := Real.contMDiff_smoothTransitionUnit le_rfl
+        mfderiv (I.prod (𝓡∂ 1)) I Φ.cylinderMap (x, unitInterval.smoothTransition u)
+          ((0 : E), (1 : TangentSpace (𝓡∂ 1) (unitInterval.smoothTransition u))) := by
+  set σ : ℝ → unitInterval := unitInterval.smoothTransition
+  have hσ : ContMDiff 𝓘(ℝ) (𝓡∂ 1) ∞ σ := unitInterval.contMDiff_smoothTransition le_rfl
   have hσu : MDifferentiableAt 𝓘(ℝ) (𝓡∂ 1) σ u := hσ.mdifferentiableAt (by simp)
   have hg : MDifferentiableAt (𝓡∂ 1) I (fun r ↦ Φ (r, x)) (σ u) :=
     (Φ.contMDiff.comp (contMDiff_id.prodMk contMDiff_const)).mdifferentiableAt (by simp)
@@ -233,7 +234,7 @@ theorem eulerianField_smoothTransitionFamily_apply (u : ℝ) (x : M) :
   rw [← Diffeomorph.coe_toEquiv, eulerianField_apply_apply, Manifold.curveVelocity_apply, hfun]
   refine (mfderiv_comp_apply u hg hσu _).trans
     ((congrArg (mfderiv (𝓡∂ 1) I (fun r ↦ Φ (r, x)) (σ u))
-      (Real.mfderiv_smoothTransitionUnit_one u)).trans
+      (unitInterval.mfderiv_smoothTransition_one u)).trans
     ((map_smul _ _ _).trans ?_))
   exact congrArg (deriv Real.smoothTransition u • ·)
     (Φ.mfderiv_cylinderMap_time (by simp) (x, σ u)).symm
@@ -242,7 +243,7 @@ theorem eulerianField_smoothTransitionFamily_apply (u : ℝ) (x : M) :
 `s = Real.smoothTransition`, is `s'(u)` times the velocity `X_{s(u)}` of `Φ`. -/
 theorem eulerianField_smoothTransitionFamily [IsManifold I ∞ M] (u : ℝ) :
     eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) u =
-      ⇑(deriv Real.smoothTransition u • Φ.smoothVelocity (Real.smoothTransitionUnit u)) := by
+      ⇑(deriv Real.smoothTransition u • Φ.smoothVelocity (unitInterval.smoothTransition u)) := by
   funext y
   obtain ⟨x, rfl⟩ : ∃ x, Φ.smoothTransitionFamily u x = y :=
     ⟨(Φ.smoothTransitionFamily u).symm y, (Φ.smoothTransitionFamily u).apply_symm_apply y⟩

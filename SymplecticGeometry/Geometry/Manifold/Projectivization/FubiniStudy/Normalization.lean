@@ -17,6 +17,7 @@ public import TauCeti.Geometry.Manifold.Instances.OnePoint.Projectivization
 public import TauCeti.Geometry.Manifold.Instances.OnePoint.Sphere
 public import TauCeti.Geometry.Manifold.Orientation.Sphere
 public import TauCeti.Geometry.Manifold.Projectivization.ProjectiveLine
+import TauCeti.Geometry.Manifold.Instances.OnePoint.Tangent.Basic
 
 /-!
 # The Fubini–Study form of `ℂP¹`: affine formula, stereographic coordinates, area of lines
@@ -156,7 +157,9 @@ theorem mpullback_equivProjectivization_fubiniStudyForm :
   have hd (u : ℂ) : (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 1 → ℂ) P z ∘L
       mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ((↑) : ℂ → OnePoint ℂ) z) u =
         mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 1 → ℂ) P z u :=
-    congrArg (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 1 → ℂ) P z) (OnePoint.mfderiv_coe_apply z u)
+    -- The derivative of the inclusion is the identity, read between `ℂ` and the tangent spaces.
+    congrArg (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 1 → ℂ) P z)
+      (DFunLike.congr_fun (OnePoint.hasMFDerivAt_coe z).mfderiv u)
   refine (SmoothForm.eval₂_mpullback _ _ _ _ _ _).trans ((Eq.trans ?_ key).trans ?_)
   · rw [hd, hd, Function.comp_apply]
   · clear key hd

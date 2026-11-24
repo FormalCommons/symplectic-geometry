@@ -760,12 +760,14 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
   `Geometry/Manifold/Flow/TimeDependent.lean`). The velocity
   of the flow diffeotopy is `velocity_timeDependentFlowDiffeotopy` of
   *Hamiltonian flows*, and is not stated here.
-- The reading over `ℝ`: writing `s u` for `Real.smoothTransitionUnit u :=
+- The reading over `ℝ`: writing `s u` for `unitInterval.smoothTransition u :=
   ⟨Real.smoothTransition u, _, _⟩ : unitInterval`, with
-  `Real.coe_smoothTransitionUnit`, `Real.smoothTransitionUnit_of_nonpos`,
-  `Real.smoothTransitionUnit_of_one_le`, `Real.contMDiff_smoothTransitionUnit` and
-  `Real.mfderiv_smoothTransitionUnit_one` (all in `Geometry/Manifold/SmoothTransition.lean`, which imports, of
-  the library, only `Geometry/Manifold/Instances/Icc.lean` of *Hamiltonian flows*),
+  `unitInterval.coe_smoothTransition`, `unitInterval.smoothTransition_of_nonpos` and
+  `unitInterval.smoothTransition_of_one_le` (Tau Ceti's, in
+  `TauCeti/Geometry/Manifold/Instances/Icc.lean`), and `unitInterval.contMDiff_smoothTransition`
+  and `unitInterval.mfderiv_smoothTransition_one` (in `Geometry/Manifold/SmoothTransition.lean`,
+  which imports, of the library, only `Geometry/Manifold/Instances/Icc.lean` of *Hamiltonian
+  flows*),
   `smoothTransitionFamily (Φ : Diffeotopy I ∞ M)
   (t : ℝ) : M ≃ₘ⟮I, I⟯ M := Φ.timeSlice (s t)`,
   with `smoothTransitionFamily_def`, `smoothTransitionFamily_apply`,
@@ -773,7 +775,7 @@ Below, `∂ₜ` at `(x, t)` is the tangent vector
   (the identity), `smoothTransitionFamily_of_one_le` (`Φ.final`),
   `contMDiff_smoothTransitionFamily` and
   `contMDiff_smoothTransitionFamily_symm` (both jointly smooth, by
-  `Real.contMDiff_smoothTransitionUnit` and `Φ.symm`, with no inverse function
+  `unitInterval.contMDiff_smoothTransition` and `Φ.symm`, with no inverse function
   theorem), and
   `eulerianField_smoothTransitionFamily_apply (u : ℝ) (x : M) :
   TauCeti.eulerianField I (fun v ↦ (Φ.smoothTransitionFamily v).toEquiv) u
