@@ -33,8 +33,10 @@ coefficients `Aᵢⱼ` and
 `∫ w (P a) dμ = ∫ (P' w) a dμ` whenever `w` is `C²` on `U` and `a` is `C²` with compact support in
 `U`. The second-order coefficients carry over because they are scalars.
 
-The proof integrates by parts once for each first-order term and twice for each second-order
-term, with Tau Ceti's `TauCeti.integral_bilinear_fderiv_right_eq_neg_left_of_hasCompactSupport`,
+The proof integrates by parts once for each first-order term, with Tau Ceti's
+`TauCeti.integral_bilinear_fderiv_right_eq_neg_left_of_hasCompactSupport`, and twice for each
+second-order term, with Tau Ceti's
+`TauCeti.integral_bilinear_fderiv_fderiv_apply_eq_integral_fderiv_fderiv_apply`,
 and expands the derivatives of the products `Aᵢⱼ w` by Tau Ceti's Leibniz rule
 `TauCeti.fderiv_fderiv_fun_smul_apply`.
 
@@ -169,22 +171,18 @@ theorem integral_apply_smul_fderiv_fderiv_eq_integral_fderiv_fderiv_apply (hU : 
       ∫ y, fderiv ℝ (fun z ↦ fderiv ℝ (fun z ↦ φ z • w z) z u') y u (a y) ∂μ := by
   have hφw (y : E) (hy : y ∈ tsupport a) : ContDiffAt ℝ 2 (fun z ↦ φ z • w z) y :=
     (hφ.contDiffAt (hU.mem_nhds (haU hy))).smul (hw.contDiffAt (hU.mem_nhds (haU hy)))
-  have hda : ContDiff ℝ 1 fun z ↦ fderiv ℝ a z u :=
-    (ha.fderiv_right (m := 1) (by norm_num)).clm_apply contDiff_const
-  -- The first integration by parts, in the direction `u'`.
-  have h₁ := TauCeti.integral_bilinear_fderiv_right_eq_neg_left_of_hasCompactSupport (μ := μ)
-    (ContinuousLinearMap.id ℝ (F →L[ℝ] ℝ)) (f := fun y ↦ φ y • w y)
-    (fun y hy ↦ (hφw y (tsupport_fderiv_apply_subset ℝ u hy)).of_le (by norm_num)) hda
-    (hac.fderiv_apply (𝕜 := ℝ) u) u'
-  -- The second one, in the direction `u`.
-  have h₂ := TauCeti.integral_bilinear_fderiv_right_eq_neg_left_of_hasCompactSupport (μ := μ)
-    (ContinuousLinearMap.id ℝ (F →L[ℝ] ℝ)) (f := fun y ↦ fderiv ℝ (fun z ↦ φ z • w z) y u')
-    (fun y hy ↦ ((hφw y hy).fderiv_right (m := 1) (by norm_num)).clm_apply contDiffAt_const)
-    (ha.of_le (by norm_num)) hac u
-  simp only [ContinuousLinearMap.id_apply] at h₁ h₂
-  calc ∫ y, w y (φ y • fderiv ℝ (fun z ↦ fderiv ℝ a z u) y u') ∂μ
-      = ∫ y, (φ y • w y) (fderiv ℝ (fun z ↦ fderiv ℝ a z u) y u') ∂μ := by simp
-    _ = _ := by rw [h₁, h₂, neg_neg]
+  have h := TauCeti.integral_bilinear_fderiv_fderiv_apply_eq_integral_fderiv_fderiv_apply (μ := μ)
+    (ContinuousLinearMap.id ℝ (F →L[ℝ] ℝ)) hφw ha hac u' u
+  simp only [ContinuousLinearMap.id_apply, smul_apply] at h
+  simp only [TauCeti.fderiv_clm_apply_const_apply
+    (((ha.fderiv_right (m := 1) (by norm_num)).differentiable one_ne_zero) _), map_smul]
+  rw [h]
+  -- On the support of `a` the two second derivatives agree; off it, both sides vanish.
+  refine integral_congr_ae (Filter.Eventually.of_forall fun y ↦ ?_)
+  by_cases hy : y ∈ tsupport a
+  · simp [TauCeti.fderiv_clm_apply_const_apply
+      (((hφw y hy).fderiv_right (m := 1) (by norm_num)).differentiableAt one_ne_zero)]
+  · simp [image_eq_zero_of_notMem_tsupport hy]
 
 /-- **The formal transpose of a second-order operator.** Let `U` be an open subset of `E`,
 `v : ι → E` a finite family, and `P a = ∑ᵢⱼ Aᵢⱼ ∂_{v_j} ∂_{v_i} a + ∑ᵢ Bᵢ ∂_{v_i} a + C a` an
