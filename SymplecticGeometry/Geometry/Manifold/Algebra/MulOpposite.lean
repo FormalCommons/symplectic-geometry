@@ -70,12 +70,16 @@ def chartedSpace : ChartedSpace H Mᵐᵒᵖ :=
   (opHomeomorph (M := M)).symm.pullbackChartedSpace
 
 /-- The chart of `Mᵐᵒᵖ` at `x` is the chart of `M` at `unop x`, precomposed with `unop`. -/
+-- `high`: these must fire before Tau Ceti's `Homeomorph.pullbackChartedSpace_chartAt` and
+-- `_atlas`, which leave `opHomeomorph.symm x` and `opHomeomorph.symm.symm` in their place.
+@[mfld_simps high]
 theorem chartedSpace_chartAt (x : Mᵐᵒᵖ) :
     letI := chartedSpace H M
     chartAt H x = (opHomeomorph (M := M)).symm.transOpenPartialHomeomorph (chartAt H (unop x)) :=
   (rfl)
 
 /-- The atlas of `Mᵐᵒᵖ` consists of the charts of `M`, precomposed with `unop`. -/
+@[mfld_simps high]
 theorem chartedSpace_atlas :
     letI := chartedSpace H M
     atlas H Mᵐᵒᵖ = ((opHomeomorph (M := M)).symm.transOpenPartialHomeomorph ·) '' atlas H M :=
