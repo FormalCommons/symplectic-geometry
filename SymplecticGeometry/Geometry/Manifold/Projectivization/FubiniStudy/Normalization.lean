@@ -153,11 +153,10 @@ theorem mpullback_equivProjectivization_fubiniStudyForm :
   have key := (SmoothForm.eval₂_mpullback _ _ _ _ _ _).symm.trans
     (eval₂_fubiniStudyForm_affineParam 1 z v w)
   -- The derivative of the inclusion `ℂ → OnePoint ℂ` is the identity.
-  rw [← hcomp, (hP.hasMFDerivAt.comp z (OnePoint.hasMFDerivAt_coe z)).mfderiv] at key
+  rw [← hcomp, ((hP.hasMFDerivAt.comp z (OnePoint.hasMFDerivAt_coe z)).mfderiv.trans
+    (ContinuousLinearMap.comp_id _))] at key
   refine (SmoothForm.eval₂_mpullback _ _ _ _ _ _).trans ((Eq.trans ?_ key).trans ?_)
-  · -- The tangent spaces at `z` are `ℂ` by definition; `simp` does not see through them to
-    -- apply `ContinuousLinearMap.comp_id`, so `rfl` unfolds the composite with the identity.
-    rfl
+  · rfl
   · clear key
     -- Read `v` and `w` as tangent vectors at `z`, so that the evaluation lemmas apply to them.
     revert v w
