@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Flux.Hamiltonian
-import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.SymplecticIsotopy

@@ -10,7 +10,6 @@ public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Velocity
 public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
-import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Geometry.Manifold.MFDeriv.Constancy

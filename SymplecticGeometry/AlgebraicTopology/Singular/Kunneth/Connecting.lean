@@ -49,10 +49,9 @@ pair is the first factor, and that of
 `TauCeti/AlgebraicTopology/Singular/Cubical/Kunneth/Relative.lean`), its cubical analogue with the
 pair in the second factor.
 
-Two private declarations of Tau Ceti's main branch, in
-`TauCeti/AlgebraicTopology/Singular/Kunneth/Pair.lean` (commit `c9d170eed5`), are built again
-here as public ones. The library's `Kunneth/Pair.lean` copies only the sections `Construction`
-and `Naturality` of that file and keeps them private, so they are not visible from this file:
+Two private declarations of Tau Ceti's
+`TauCeti/AlgebraicTopology/Singular/Kunneth/Pair.lean` are built again here as public ones,
+since private declarations are not visible from this file:
 * `TopCat.id_tensorHom_chainComplexMap_shuffleRel` adapts `TopCat.shufflePair_comm₁₂` (section
   `Construction`);
 * `TopCat.shufflePairShortComplexMap` adapts `TopCat.shufflePairShortComplexMap` (section

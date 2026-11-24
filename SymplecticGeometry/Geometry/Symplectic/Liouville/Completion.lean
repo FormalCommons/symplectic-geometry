@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.End
-import SymplecticGeometry.Geometry.Contact.Symplectization.Basic
+import TauCeti.Geometry.Contact.Symplectization.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Liouville.Filling
 public import TauCeti.Geometry.Manifold.VectorField.ModelChart
 public import TauCeti.Geometry.Manifold.VectorField.Prod

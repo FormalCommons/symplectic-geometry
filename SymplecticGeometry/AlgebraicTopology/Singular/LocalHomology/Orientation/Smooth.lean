@@ -44,8 +44,7 @@ map whose derivative is the identity.
 The proof of `TauCeti.Manifold.Orientation.localHomologyMap_toHomologicalOrientation` reads Tau
 Ceti's `TauCeti.Manifold.Orientation.localIndex_toHomologicalOrientation`, a local index of `1`,
 on the whole source by `TauCeti.HomologicalOrientation.localIndex_eq_iff_of_preimage_subset`,
-which `SymplecticGeometry/AlgebraicTopology/Singular/LocalHomology/LocalIndex.lean` copies from
-Tau Ceti's main branch.
+from Tau Ceti's `TauCeti/AlgebraicTopology/Singular/LocalHomology/LocalIndex.lean`.
 
 The proof of `TauCeti.Manifold.Orientation.comap_toHomologicalOrientation` opens as Tau Ceti's
 `TauCeti.comap_complexHomologicalOrientation` does, reducing to local

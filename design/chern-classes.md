@@ -785,7 +785,7 @@ model fibres:
   projective spaces, under which `L ⊗ L'` is pulled back from the external
   tensor product of the tautological lines on $\mathbb P^N\times\mathbb P^M$.
   There $H^2$ is free on the two pulled-back hyperplane classes (Tau Ceti's
-  `TopCat.lerayHirschProd_bijective`, with the ring of
+  `TopCat.lerayHirsch_fst_bijective`, with the ring of
   `ChernClass/ProjectiveSpace.lean`), and restricting to the two axes
   gives the coefficients.
 - `Projectivization.complexEulerClass_twistCore_one`: on

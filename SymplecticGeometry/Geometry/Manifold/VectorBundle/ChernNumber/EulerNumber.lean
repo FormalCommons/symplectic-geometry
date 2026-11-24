@@ -67,9 +67,8 @@ fibre (`TauCeti.VectorBundleOrientation.complex`), with no new definition.
 This form of the sign, and the case split on it in the private `sign_det_eq_ite` (an orientation
 of a plane is the given one or its negative), follow Tau Ceti's
 `TauCeti.VectorBundleOrientation.sectionIndex_toHomologicalOrientation_eq_ite` and
-`TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sign`, in
-`TauCeti/Geometry/Manifold/VectorBundle/Section/EulerNumber.lean` of Tau Ceti's main branch at
-commit 55525ca, which the pinned version of Tau Ceti does not have. Those state the sign for an
+`TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sign`, in Tau Ceti's
+`TauCeti/Geometry/Manifold/VectorBundle/Section/EulerNumber.lean`. Those state the sign for an
 oriented real bundle and a chart with values in an inner product space; here the bundle is
 `J.Fiber` with its complex orientation, and the chart takes values in `ℂ`.
 

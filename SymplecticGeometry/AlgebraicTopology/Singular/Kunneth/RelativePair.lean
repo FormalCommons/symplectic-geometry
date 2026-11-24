@@ -71,8 +71,8 @@ Tau Ceti's `TopCat.singularHomologyCross_coefficient_naturality`
 of `TopCat.shufflePair` as in `TopCat.shufflePair_naturality`.
 
 The two-step descent of the shuffle map to the small chains follows the construction of
-`TopCat.shufflePair` (`SymplecticGeometry/AlgebraicTopology/Singular/Kunneth/Pair.lean`, from Tau
-Ceti), whose two private identities between the projections of tensor products are restated here
+`TopCat.shufflePair` (Tau Ceti's `TauCeti/AlgebraicTopology/Singular/Kunneth/Pair.lean`), whose
+two private identities between the projections of tensor products are restated here
 as `TopCat.singularChainComplexπ_tensorHom_singularChainComplexπ_eq_comp` and
 `TopCat.singularChainComplexπ_tensorHom_id_comp_id_tensorHom_chainComplexMap`.
 `TopCat.alexanderWhitneyDiagonal_comp_tensorHom_fst_snd` is a step of the proof of

@@ -30,11 +30,10 @@ a vector in the tangent charts of `U` and of `M`, as the proof of Tau Ceti's
 
 The proof of `TauCeti.Manifold.contMDiffOn_tangentSpaceOpenEquiv_dite` adapts that of
 `TauCeti.IsContactDistributionFamily.contMDiff_distributionGrayVectorField`, in Tau Ceti's file
-`TauCeti/Geometry/Contact/Gray/Distribution.lean` at commit
-034344347f0ca1144bf5ae35c82e3edaf848fca5 (Tau Ceti pull request #773), which the pinned version
-of Tau Ceti does not have. Both proofs read the open subset of the product as a manifold, map it
-into `N × U` by `q ↦ (q.1, ⟨q.2, _⟩)`, and compose with the tangent map of the inclusion `U → M`;
-here the first two steps are those of `ContMDiff.contMDiffOn_prod_opens_of_eq`.
+`TauCeti/Geometry/Contact/Gray/Distribution.lean`. Both proofs read the open subset of the
+product as a manifold, map it into `N × U` by `q ↦ (q.1, ⟨q.2, _⟩)`, and compose with the tangent
+map of the inclusion `U → M`; here the first two steps are those of
+`ContMDiff.contMDiffOn_prod_opens_of_eq`.
 -/
 
 public section

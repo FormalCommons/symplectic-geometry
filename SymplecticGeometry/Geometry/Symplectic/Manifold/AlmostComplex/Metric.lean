@@ -59,11 +59,8 @@ For any `RiemannianBundle` metric on `TM` with `⟪u, v⟫ = σ(u, J v)`, the hy
 
 The skew-adjointness uses `TauCeti.SmoothAlmostComplexStructure.inner_apply_left_of_inner_eq`
 (`⟪J u, w⟫ = σ(u, w)`), which rests on
-`TauCeti.SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq` (`J` is orthogonal). Tau
-Ceti's main branch has made both public, and this file imports them from its copy
-`SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric.FromTauCeti`. The Kähler
-form of `J` as a smooth form, `TauCeti.SmoothAlmostComplexStructure.kahlerTwoForm_eq_of_inner_eq`,
-is in Tau Ceti's main branch too, and is not copied since nothing here uses it.
+`TauCeti.SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq` (`J` is orthogonal), both
+from Tau Ceti's `TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/Metric.lean`.
 
 ## References
 

@@ -16,7 +16,6 @@ public import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Transports
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
-import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
 
 /-!
@@ -92,15 +91,13 @@ existence and uniqueness this is Gray stability
 The comparison of two local defining families,
 `SymplecticGeometry.IsLocalDefiningFamily.tangentSpaceOpenEquiv_grayVectorField_eq`, follows the
 proof of `TauCeti.IsLocalContactFormFamily.mfderiv_grayVectorField_eq`, in Tau Ceti's file
-`TauCeti/Geometry/Contact/Gray/Distribution.lean` at commit
-034344347f0ca1144bf5ae35c82e3edaf848fca5 (Tau Ceti pull request #773), which the pinned version
-of Tau Ceti does not have: both families are restricted to the intersection of their open sets
-(`SymplecticGeometry.IsLocalDefiningFamily.mpullback_inclusion`), the restrictions are contact
-forms with the same kernels, and naturality of the Gray vector field
+`TauCeti/Geometry/Contact/Gray/Distribution.lean`: both families are restricted to the
+intersection of their open sets (`SymplecticGeometry.IsLocalDefiningFamily.mpullback_inclusion`),
+the restrictions are contact forms with the same kernels, and naturality of the Gray vector field
 under the inclusions concludes. The factor between two families with the same kernels in
 `TauCeti.SmoothForm.grayVectorField_eq_of_eventually_kerDistribution_eq` is the one of
 `TauCeti.SmoothForm.grayVectorField_eq_of_kerDistribution_eq`, in Tau Ceti's
-`TauCeti/Geometry/Contact/Gray.lean` at the same commit. Gray's equation as a rate,
+`TauCeti/Geometry/Contact/Gray.lean`. Gray's equation as a rate,
 `TauCeti.SmoothForm.mpullback_prodMk_mlieDerivForm_add_mlieDerivForm_grayVectorField_apply`, is
 the pointwise form of the private lemma
 `TauCeti.SmoothForm.mpullback_prodMk_mlieDerivForm_add_mlieDerivForm_grayVectorField` of the
