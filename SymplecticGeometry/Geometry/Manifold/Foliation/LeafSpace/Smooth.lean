@@ -8,6 +8,8 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Foliation.LeafSpace.Basic
 public import TauCeti.Geometry.Manifold.Gluing.Basic
 public import TauCeti.Geometry.Manifold.Submersion.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
+import TauCeti.Geometry.Manifold.RegularValue
 import TauCeti.Geometry.Manifold.Submersion.Split
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
@@ -49,6 +51,8 @@ Since the smooth structure depends on the proof of regularity, it is a definitio
 * `TauCeti.Foliation.isManifold_leafSpace`: the leaf space is a smooth manifold.
 * `TauCeti.Foliation.IsSlice.isLocalDiffeomorph_leafSpaceMk_comp`: a slice followed by the
   projection is a local diffeomorphism.
+* `TauCeti.Foliation.surjective_mfderiv_leafSpaceMk`: the differential of the projection is
+  surjective.
 * `TauCeti.Foliation.contMDiff_leafSpaceMk`, `TauCeti.Foliation.isSubmersion_leafSpaceMk`: the
   projection is a smooth submersion.
 * `TauCeti.Foliation.ker_mfderiv_leafSpaceMk`: the kernel of the differential of the projection
@@ -171,65 +175,27 @@ theorem contMDiff_leafSpaceMk (h : 𝓕.IsRegular) :
   filter_upwards [hrl] with z hz
   exact leafSpaceMk_eq_leafSpaceMk_iff.2 hz
 
-/-- The differential of the projection onto the leaf space of a regular foliation is surjective,
-and its kernel is the tangent space of the foliation. -/
-private theorem surjective_mfderiv_leafSpaceMk_and_ker (h : 𝓕.IsRegular) (x : M) :
+/-- The differential of the projection onto the leaf space of a regular foliation is surjective. -/
+theorem surjective_mfderiv_leafSpaceMk (h : 𝓕.IsRegular) (x : M) :
     letI := leafSpaceChartedSpace h
-    Surjective (mfderiv I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) 𝓕.leafSpaceMk x) ∧
-      LinearMap.ker
-        (mfderiv I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) 𝓕.leafSpaceMk x).toLinearMap =
-        𝓕.distribution x := by
+    Surjective (mfderiv I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) 𝓕.leafSpaceMk x) := by
   let := leafSpaceChartedSpace h
   obtain ⟨U, s, hs, u, rfl⟩ := isRegular_def.1 h x
-  obtain ⟨r, hr, hrs, hrl, hrd⟩ := hs.exists_retraction u
+  obtain ⟨r, hr, hrs, hrl, -⟩ := hs.exists_retraction u
   have hL := (hs.isLocalDiffeomorph_leafSpaceMk_comp h) (r (s u))
-  have hrx : MDifferentiableAt I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) r (s u) :=
-    hr.mdifferentiableAt (by simp)
-  -- Near `s u`, the projection is the retraction followed by `𝓕.leafSpaceMk ∘ s`.
-  have he : 𝓕.leafSpaceMk =ᶠ[𝓝 (s u)] (𝓕.leafSpaceMk ∘ s) ∘ r := by
-    filter_upwards [hrl] with z hz
-    exact leafSpaceMk_eq_leafSpaceMk_iff.2 hz
-  have hd : mfderiv I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) 𝓕.leafSpaceMk (s u) =
-      (mfderiv 𝓘(ℝ, _) 𝓘(ℝ, _) (𝓕.leafSpaceMk ∘ s) (r (s u))).comp
-        (mfderiv I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) r (s u)) := by
-    rw [he.mfderiv_eq]
-    exact mfderiv_comp (s u) (hL.contMDiffAt.mdifferentiableAt (by simp)) hrx
   have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
-  have hD := hL.mfderivToContinuousLinearEquiv_coe hn
-  -- The retraction is a left inverse of the slice, so its differential is surjective.
-  have hrsurj :
-      Surjective (mfderiv I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) r (s u)) := by
-    intro w
-    have hsx : MDifferentiableAt 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) I s u :=
-      (hs.contMDiff u).mdifferentiableAt (by simp)
-    have hrs' : r ∘ s =ᶠ[𝓝 u] id := hrs
-    have hid := ((hasMFDerivAt_id (I := 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k)))) u)
-      |>.congr_of_eventuallyEq hrs').mfderiv
-    refine ⟨mfderiv 𝓘(ℝ, _) I s u w, ?_⟩
-    exact congrArg (· w) ((mfderiv_comp u hrx hsx).symm.trans hid)
-  refine ⟨?_, ?_⟩
-  · rw [hd, ← hD]
-    exact (hL.mfderivToContinuousLinearEquiv hn).surjective.comp hrsurj
-  · have hker : LinearMap.ker
-        (mfderiv I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) 𝓕.leafSpaceMk (s u)).toLinearMap =
-        LinearMap.ker
-          (mfderiv I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) r (s u)).toLinearMap := by
-      rw [hd, ← hD]
-      ext v
-      simp only [LinearMap.mem_ker, ContinuousLinearMap.coe_coe]
-      exact (hL.mfderivToContinuousLinearEquiv hn).map_eq_zero_iff
-    rw [hker]
-    refine (Submodule.eq_of_le_of_finrank_eq (fun v hv ↦ hrd v hv) ?_).symm
-    have hrk := LinearMap.finrank_range_add_finrank_ker
-      (mfderiv I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) r (s u)).toLinearMap
-    rw [LinearMap.range_eq_top.2 hrsurj, finrank_top] at hrk
-    have hk : k ≤ finrank ℝ E := 𝓕.finrank_distribution (s u) ▸ Submodule.finrank_le _
-    have hE : finrank ℝ (TangentSpace I (s u)) = finrank ℝ E := rfl
-    have hG : finrank ℝ (TangentSpace 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) (r (s u))) =
-        finrank ℝ E - k := finrank_euclideanSpace_fin
-    rw [𝓕.finrank_distribution]
-    rw [hE, hG] at hrk
-    omega
+  have hLr : IsRegularPoint 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k)))
+      𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) (𝓕.leafSpaceMk ∘ s) (r (s u)) := by
+    rw [isRegularPoint_iff, ← hL.mfderivToContinuousLinearEquiv_coe hn]
+    exact (hL.mfderivToContinuousLinearEquiv hn).surjective
+  -- The retraction is a left inverse of the slice near `u`, so it is regular at `s u`.
+  have hrr : IsRegularPoint I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) r (s u) :=
+    (isRegularValue_iff.1 (isRegularValue_id (I := 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))))
+      u) u rfl |>.congr_of_eventuallyEq hrs).of_comp (hr.mdifferentiableAt (by simp))
+      ((hs.contMDiff u).mdifferentiableAt (by simp))
+  refine isRegularPoint_iff.1 ((hLr.comp hrr).congr_of_eventuallyEq ?_)
+  filter_upwards [hrl] with z hz
+  exact leafSpaceMk_eq_leafSpaceMk_iff.2 hz
 
 /-- **The projection onto the leaf space is a submersion.** -/
 theorem isSubmersion_leafSpaceMk [I.Boundaryless] (h : 𝓕.IsRegular) :
@@ -239,7 +205,7 @@ theorem isSubmersion_leafSpaceMk [I.Boundaryless] (h : 𝓕.IsRegular) :
   have : IsManifold I ∞ M := .of_le (n := ∞ + 1) le_self_add
   have := isManifold_leafSpace h
   exact ((contMDiff_leafSpaceMk h).isSubmersionOfComplement_of_surjective_mfderiv (by simp)
-    fun x ↦ (surjective_mfderiv_leafSpaceMk_and_ker h x).1).isSubmersion
+    (surjective_mfderiv_leafSpaceMk h)).isSubmersion
 
 /-- The kernel of the differential at `x` of the projection onto the leaf space of a regular
 foliation `𝓕` is the tangent space of `𝓕` at `x`. -/
@@ -247,8 +213,29 @@ theorem ker_mfderiv_leafSpaceMk (h : 𝓕.IsRegular) (x : M) :
     letI := leafSpaceChartedSpace h
     LinearMap.ker
       (mfderiv I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) 𝓕.leafSpaceMk x).toLinearMap =
-      𝓕.distribution x :=
-  (surjective_mfderiv_leafSpaceMk_and_ker h x).2
+      𝓕.distribution x := by
+  let := leafSpaceChartedSpace h
+  obtain ⟨U, s, hs, u, rfl⟩ := isRegular_def.1 h x
+  obtain ⟨r, hr, -, hrl, hrd⟩ := hs.exists_retraction u
+  have he : 𝓕.leafSpaceMk =ᶠ[𝓝 (s u)] (𝓕.leafSpaceMk ∘ s) ∘ r := by
+    filter_upwards [hrl] with z hz
+    exact leafSpaceMk_eq_leafSpaceMk_iff.2 hz
+  -- Postcomposing with the local diffeomorphism `𝓕.leafSpaceMk ∘ s` keeps the kernel.
+  have hker : LinearMap.ker
+      (mfderiv I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) 𝓕.leafSpaceMk (s u)).toLinearMap =
+      LinearMap.ker
+        (mfderiv I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) r (s u)).toLinearMap := by
+    rw [he.mfderiv_eq]
+    exact ((hs.isLocalDiffeomorph_leafSpaceMk_comp h) (r (s u))).ker_mfderiv_comp (by simp)
+      (hr.mdifferentiableAt (by simp))
+  -- The kernel contains the tangent space of the foliation, and both have dimension `k`.
+  refine (Submodule.eq_of_le_of_finrank_eq (fun v hv ↦ hker ▸ hrd v hv) ?_).symm
+  have hrk := (isRegularPoint_iff.2
+    (surjective_mfderiv_leafSpaceMk h (s u))).finrank_ker_mfderiv_add_finrank
+  have hk : k ≤ finrank ℝ E := 𝓕.finrank_distribution (s u) ▸ Submodule.finrank_le _
+  rw [finrank_euclideanSpace_fin] at hrk
+  rw [𝓕.finrank_distribution]
+  omega
 
 /-- **Smooth maps out of the leaf space.** A map out of the leaf space of a regular foliation is
 `C^m`, for `m ≤ ∞`, exactly when its composition with the projection is. -/
@@ -317,7 +304,7 @@ theorem isRegular_ofSubmodule (hn : (1 : ℕ∞ω) ≤ ∞) : (ofSubmodule S hn)
 
 /-- The leaf space of the foliation of a finite-dimensional space by the translates of a subspace
 is Hausdorff: a projection along the subspace onto a complement separates the leaves. -/
-instance t2Space_leafSpace_ofSubmodule (hn : (1 : ℕ∞ω) ≤ ∞) :
+instance t2Space_leafSpace_ofSubmodule {n : ℕ∞ω} (hn : 1 ≤ n) :
     T2Space (ofSubmodule S hn).LeafSpace := by
   obtain ⟨C, hSC⟩ := S.exists_isCompl
   refine T2Space.of_injective_continuous
