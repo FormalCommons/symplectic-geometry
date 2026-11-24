@@ -3356,11 +3356,9 @@ Differential topology and complex analysis only; it waits for no part of
   10.2.5, so that `TauCeti.endpointFlux` has kernel
   $\mathrm{Ham}$), `Countable.lean` (the flux group `TauCeti.fluxGroup` is
   countable, since the flux of a loop has periods among those of the
-  symplectic form on integral 2-classes), `Family.lean` (each smooth
+  symplectic form on integral 2-classes), and `Family.lean` (each smooth
   family in $\mathrm{Ham}$ has a time-dependent Hamiltonian generating it,
-  McDuff–Salamon, Proposition 10.2.12) and `Loop.lean` (the orbits
-  of a loop in $\mathrm{Ham}$ are null-homologous over $\mathbb R$,
-  Proposition 10.2.19).
+  McDuff–Salamon, Proposition 10.2.12).
 - **Builds on:** the merged *Hamiltonian flows*; Tau Ceti
   (`TauCeti.Diffeotopy.flux`, `flux_trans`, `fluxGroup`, `endpointFlux`,
   `mem_ker_endpointFlux_iff`,
