@@ -334,12 +334,14 @@ boundaryless, Hausdorff, finite-dimensional manifold $X$:
   equivariant maps given by local sections, read with fibre `G`;
   `orbitFiber.trivializationOfSection` passes them to the fibres by
   `Bundle.Trivialization.toMapFiber`;
-- `orbitFiber.atlas IG IX : TauCeti.MapFiber.Atlas G (Quotient.mk (orbitRel Gᵐᵒᵖ X))`,
+- `orbitFiber.atlas IG G IX X :
+  TauCeti.MapFiber.Atlas G (Quotient.mk (orbitRel Gᵐᵒᵖ X))`,
   whose trivialization at `q` is the one of the orbit projection given by
   the smooth local section `ProperSMul.exists_contMDiffOn_section_quotientMk`
   through `q.out`, so that its `toMapFiber` is
   `orbitFiber.trivializationOfSection`. The models are explicit arguments,
-  since the choice of smooth sections depends on them;
+  since the choice of smooth sections depends on them, and so are `G` and
+  `X`, which nothing determines where the atlas is put in place by `letI`;
 - the bundle structures are Tau Ceti's, built from that atlas, and the file
   adds none of its own: `FiberBundle G (orbitFiber Gᵐᵒᵖ X)` is
   `TauCeti.MapFiber.Atlas.fiberBundle`; `PrincipalBundle G` is
@@ -363,7 +365,7 @@ Instance search cannot recover the models `IG` and `IX` from
 `ProperSMul.orbitRelQuotientChartedSpace`, so these structures are not
 global instances. A statement about the bundle puts them in place by
 `letI := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X`,
-`letI := (orbitFiber.atlas IG IX).fiberBundle`, and `haveI` for the
+`letI := (orbitFiber.atlas IG G IX X).fiberBundle`, and `haveI` for the
 principal and the smooth structure, as Tau Ceti's statements about
 `Atlas.fiberBundle` do; the module docstring says so, and the converse
 uses the same ones.

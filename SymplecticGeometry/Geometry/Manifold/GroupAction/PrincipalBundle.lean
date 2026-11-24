@@ -26,7 +26,8 @@ structure the topological principal bundle needs, before any manifold structure 
   (`SymplecticGeometry.orbitFiber.totalSpaceHomeomorph_smul`);
 * for a free proper action of `Gᵐᵒᵖ` and a section `s` of the orbit projection continuous on an
   open set `U`, the trivialization `SymplecticGeometry.orbitTrivializationOfSection` of the orbit
-  projection, read with fibre `G` through `MulOpposite.opHomeomorph` and passed to the fibres by
+  projection, read with fibre `G` through `MulOpposite.opHomeomorph`
+  (`SymplecticGeometry.orbitTrivializationOfSectionUnop`) and passed to the fibres by
   `Bundle.Trivialization.toMapFiber`, is a trivialization of `orbitFiber Gᵐᵒᵖ X` over `U`
   (`SymplecticGeometry.orbitFiber.trivializationOfSection`).
 
@@ -64,6 +65,9 @@ theorem `SymplecticGeometry.orbitFiber.principalBundle IG G IX X`, to be used by
 ## Main definitions and results
 
 * `SymplecticGeometry.orbitFiber`: the fibres of the orbit projection.
+* `SymplecticGeometry.orbitTrivializationOfSectionUnop`: the trivialization with fibre `G` of the
+  orbit projection over the domain of a continuous local section, for a free proper action of
+  `Gᵐᵒᵖ`.
 * `SymplecticGeometry.orbitFiber.trivializationOfSection`: the trivialization with fibre `G` over
   the domain of a continuous local section of the orbit projection of a free proper action of
   `Gᵐᵒᵖ`, with `trivializationOfSection_apply` and `trivializationOfSection_symm_apply`.
@@ -139,41 +143,70 @@ variable {G X : Type*} [Group G] [TopologicalSpace G] [ContinuousInv G] [Topolog
   [MulAction Gᵐᵒᵖ X] [ProperSMul Gᵐᵒᵖ X] [IsCancelSMul Gᵐᵒᵖ X]
   {U : Set (orbitRel.Quotient Gᵐᵒᵖ X)} {s : orbitRel.Quotient Gᵐᵒᵖ X → X}
 
+/-- The trivialization, with fibre `G`, of the orbit projection of a free proper action of `Gᵐᵒᵖ`
+over an open set `U` of orbits, determined by a section `s` of the orbit projection over `U` that
+is continuous on `U`: `orbitTrivializationOfSection` read with fibre `G` through
+`MulOpposite.opHomeomorph`. It sends `x` to `(⟦x⟧, unop (orbitSectionCoord s x))`. -/
+noncomputable def orbitTrivializationOfSectionUnop (U : Set (orbitRel.Quotient Gᵐᵒᵖ X))
+    (hU : IsOpen U) (s : orbitRel.Quotient Gᵐᵒᵖ X → X) (hs : ContinuousOn s U)
+    (hsec : ∀ q ∈ U, Quotient.mk (orbitRel Gᵐᵒᵖ X) (s q) = q) :
+    Bundle.Trivialization G (Quotient.mk (orbitRel Gᵐᵒᵖ X)) :=
+  (orbitTrivializationOfSection U hU s hs hsec).transFiberHomeomorph (opHomeomorph (M := G)).symm
+
+variable {hU : IsOpen U} {hs : ContinuousOn s U}
+  {hsec : ∀ q ∈ U, Quotient.mk (orbitRel Gᵐᵒᵖ X) (s q) = q}
+
+theorem orbitTrivializationOfSectionUnop_def :
+    orbitTrivializationOfSectionUnop U hU s hs hsec =
+      (orbitTrivializationOfSection U hU s hs hsec).transFiberHomeomorph
+        (opHomeomorph (M := G)).symm :=
+  (rfl)
+
+/-- The base of `orbitTrivializationOfSectionUnop` is the domain of the section. -/
+@[simp]
+theorem orbitTrivializationOfSectionUnop_baseSet :
+    (orbitTrivializationOfSectionUnop U hU s hs hsec).baseSet = U := by
+  rw [orbitTrivializationOfSectionUnop_def]
+  -- `transFiberHomeomorph` keeps the base set by definition; Mathlib states no lemma for it
+  exact orbitTrivializationOfSection_baseSet
+
+/-- `orbitTrivializationOfSectionUnop` sends `x` to its orbit together with
+`unop (orbitSectionCoord s x)`. -/
+@[simp]
+theorem orbitTrivializationOfSectionUnop_apply (x : X) :
+    orbitTrivializationOfSectionUnop U hU s hs hsec x =
+      (Quotient.mk (orbitRel Gᵐᵒᵖ X) x, unop (orbitSectionCoord s x)) := by
+  simp [orbitTrivializationOfSectionUnop_def, Trivialization.transFiberHomeomorph_apply]
+
 namespace orbitFiber
 
 /-- The trivialization of the fibres of the orbit projection of a free proper action of `Gᵐᵒᵖ`
 over an open set `U` of orbits, with fibre `G`, determined by a section `s` of the orbit projection
 over `U` that is continuous on `U`. It sends a point `x` over `q ∈ U` to
 `(q, unop (orbitSectionCoord s x))`, where `orbitSectionCoord s x • s q = x`. It is
-`orbitTrivializationOfSection` read with fibre `G` and passed to the fibres. -/
+`orbitTrivializationOfSectionUnop` passed to the fibres. -/
 noncomputable def trivializationOfSection (U : Set (orbitRel.Quotient Gᵐᵒᵖ X)) (hU : IsOpen U)
     (s : orbitRel.Quotient Gᵐᵒᵖ X → X) (hs : ContinuousOn s U)
     (hsec : ∀ q ∈ U, Quotient.mk (orbitRel Gᵐᵒᵖ X) (s q) = q) :
     Bundle.Trivialization G (π G (orbitFiber Gᵐᵒᵖ X)) :=
-  ((orbitTrivializationOfSection U hU s hs hsec).transFiberHomeomorph
-    (opHomeomorph (M := G)).symm).toMapFiber
-
-variable {hU : IsOpen U} {hs : ContinuousOn s U}
-  {hsec : ∀ q ∈ U, Quotient.mk (orbitRel Gᵐᵒᵖ X) (s q) = q}
+  (orbitTrivializationOfSectionUnop U hU s hs hsec).toMapFiber
 
 theorem trivializationOfSection_def :
     trivializationOfSection U hU s hs hsec =
-      ((orbitTrivializationOfSection U hU s hs hsec).transFiberHomeomorph
-        (opHomeomorph (M := G)).symm).toMapFiber :=
+      (orbitTrivializationOfSectionUnop U hU s hs hsec).toMapFiber :=
   (rfl)
 
 @[simp]
 theorem trivializationOfSection_baseSet :
     (trivializationOfSection U hU s hs hsec).baseSet = U := by
-  rw [trivializationOfSection, Trivialization.toMapFiber_baseSet]
-  -- `transFiberHomeomorph` keeps the base set by definition; Mathlib states no lemma for it
-  exact orbitTrivializationOfSection_baseSet
+  rw [trivializationOfSection_def, Trivialization.toMapFiber_baseSet,
+    orbitTrivializationOfSectionUnop_baseSet]
 
 /-- `trivializationOfSection` sends a point `x` over `q` to `(q, unop (orbitSectionCoord s x))`. -/
 @[simp]
 theorem trivializationOfSection_apply (p : TotalSpace G (orbitFiber Gᵐᵒᵖ X)) :
     trivializationOfSection U hU s hs hsec p = (p.proj, unop (orbitSectionCoord s p.snd.val)) := by
-  simp [trivializationOfSection, Trivialization.transFiberHomeomorph_apply]
+  simp [trivializationOfSection_def]
 
 /-- Over a point `q` of `U`, the inverse of `trivializationOfSection` sends `(q, g)` to the
 point `s q` moved by `g` on the right, `op g • s q`. -/
@@ -181,11 +214,12 @@ point `s q` moved by `g` on the right, `op g • s q`. -/
 theorem trivializationOfSection_symm_apply {q : orbitRel.Quotient Gᵐᵒᵖ X} (hq : q ∈ U) (g : G) :
     (trivializationOfSection U hU s hs hsec).toOpenPartialHomeomorph.symm (q, g) =
       ⟨q, op g • ⟨s q, hsec q hq⟩⟩ := by
-  rw [trivializationOfSection, Trivialization.toMapFiber_symm_apply, Homeomorph.symm_apply_eq,
+  rw [trivializationOfSection_def, Trivialization.toMapFiber_symm_apply, Homeomorph.symm_apply_eq,
     MapFiber.totalSpaceHomeomorph_apply, MapFiber.coe_smul]
   -- Mathlib states no lemma for the inverse of `transFiberHomeomorph`, so its definition is
   -- unfolded to reach `OpenPartialHomeomorph.transHomeomorph_symm_apply`
-  simp [Trivialization.transFiberHomeomorph, orbitTrivializationOfSection_symm_apply hq]
+  simp [orbitTrivializationOfSectionUnop_def, Trivialization.transFiberHomeomorph,
+    orbitTrivializationOfSection_symm_apply hq]
 
 /-- **The trivialization from a local section is equivariant.** Left multiplication by
 `g : Gᵐᵒᵖ` on the fibre `Gᵐᵒᵖ` of `orbitTrivializationOfSection` is right multiplication by
@@ -240,26 +274,23 @@ space. -/
 noncomputable def atlas : MapFiber.Atlas G (Quotient.mk (orbitRel Gᵐᵒᵖ X)) :=
   letI := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X
   { trivAt q :=
-      (orbitTrivializationOfSection _ (exists_section IG G IX X q).choose_spec.1 _
+      orbitTrivializationOfSectionUnop _ (exists_section IG G IX X q).choose_spec.1 _
         (exists_section IG G IX X q).choose_spec.2.2.1.continuousOn
-        (exists_section IG G IX X q).choose_spec.2.2.2).transFiberHomeomorph
-        (opHomeomorph (M := G)).symm
+        (exists_section IG G IX X q).choose_spec.2.2.2
     mem_baseSet_trivAt q := by
-      -- `transFiberHomeomorph` keeps the base set by definition; Mathlib states no lemma for it
-      exact (orbitTrivializationOfSection_baseSet (H := Gᵐᵒᵖ) (X := X)).symm ▸
-        (exists_section IG G IX X q).choose_spec.2.1 }
+      rw [orbitTrivializationOfSectionUnop_baseSet]
+      exact (exists_section IG G IX X q).choose_spec.2.1 }
 
 /-- The trivialization of `orbitFiber.atlas` at an orbit `q` is the trivialization
-`orbitTrivializationOfSection`, read with fibre `G`, of a section of the orbit projection over an
-open neighbourhood of `q` that is smooth for the slice charts of the orbit space. -/
+`orbitTrivializationOfSectionUnop` of a section of the orbit projection over an open
+neighbourhood of `q` that is smooth for the slice charts of the orbit space. -/
 theorem exists_atlas_trivAt_eq (q : orbitRel.Quotient Gᵐᵒᵖ X) :
     letI := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X
     ∃ (U : Set (orbitRel.Quotient Gᵐᵒᵖ X)) (hU : IsOpen U) (s : orbitRel.Quotient Gᵐᵒᵖ X → X)
       (hs : ContMDiffOn 𝓘(ℝ, ProperSMul.QuotientModelSpace E E') IX ∞ s U)
       (hsec : ∀ q' ∈ U, Quotient.mk (orbitRel Gᵐᵒᵖ X) (s q') = q'),
       q ∈ U ∧ (atlas IG G IX X).trivAt q =
-        (orbitTrivializationOfSection U hU s hs.continuousOn hsec).transFiberHomeomorph
-          (opHomeomorph (M := G)).symm := by
+        orbitTrivializationOfSectionUnop U hU s hs.continuousOn hsec := by
   obtain ⟨hU, hq, hs, hsec⟩ := (exists_section IG G IX X q).choose_spec
   exact ⟨_, hU, _, hs, hsec, hq, rfl⟩
 
@@ -270,15 +301,12 @@ structure of `orbitFiber.atlas` and the right action of `G` on each orbit, form 
 theorem principalBundle :
     letI := (atlas IG G IX X).fiberBundle
     PrincipalBundle G (orbitFiber Gᵐᵒᵖ X) := by
-  refine (atlas IG G IX X).principalBundle (fun _ _ ↦ orbitRel.Quotient.quotient_smul_eq)
-    fun q x hx g ↦ ?_
+  let := (atlas IG G IX X).fiberBundle
+  refine ⟨fun e he ↦ ?_⟩
+  obtain ⟨q, rfl⟩ := ((atlas IG G IX X).mem_trivializationAtlas_iff e).1 he.out
   obtain ⟨U, hU, s, hs, hsec, -, h⟩ := exists_atlas_trivAt_eq IG G IX X q
-  rw [h] at hx
-  -- `transFiberHomeomorph` keeps the base set by definition; Mathlib states no lemma for it
-  replace hx : _ ∈ U := orbitTrivializationOfSection_baseSet (H := Gᵐᵒᵖ) (X := X) ▸ hx
-  simp only [h, Trivialization.transFiberHomeomorph_apply, orbitTrivializationOfSection_apply]
-  rw [orbitSectionCoord_smul (hsec _ hx)]
-  simp
+  rw [h, ← trivializationOfSection_def]
+  infer_instance
 
 end orbitFiber
 
