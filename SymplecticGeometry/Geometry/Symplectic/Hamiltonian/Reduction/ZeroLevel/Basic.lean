@@ -26,7 +26,9 @@ on all of `M` is assumed.
 * `zeroLevel`: the level `μ⁻¹(0)` as a `SubMulAction` of `G`. The instance
   `SubMulAction.properSMul` gives properness on it from a proper action on `M`, and
   `SubMulAction.isCancelSMul_of_forall_stabilizer_eq_bot` gives freeness.
-* `zeroLevelHomeomorph`: the zero level has the points of the subtype `{x : M // μ x = 0}`.
+* `zeroLevelHomeomorph`: the zero level has the points of the subtype `{x : M // μ x = 0}`, and
+  `zeroLevelDiffeomorph`: for the atlas `zeroLevelChartedSpace` below, this is a diffeomorphism
+  onto Tau Ceti's regular level.
 * `zeroLevelChartedSpace`, `isManifold_zeroLevel`, `isSmoothEmbedding_coe_zeroLevel`,
   `range_mfderiv_coe_zeroLevel`: freeness makes `0` a regular value, so `Z` is an embedded
   submanifold of `M`, modelled on `Fin n → ℝ` for `n = dim M - dim 𝔤`, with tangent spaces
@@ -51,7 +53,8 @@ pulled back along `zeroLevelHomeomorph`. The proofs of `isManifold_zeroLevel`,
 `isSmoothEmbedding_coe_zeroLevel` and `range_mfderiv_coe_zeroLevel` adapt those of Tau Ceti's
 `isManifold_levelSubMulAction`, `isSmoothEmbedding_coe_levelSubMulAction` and
 `range_mfderiv_coe_levelSubMulAction`, which pull the same atlas back to the
-`G_c`-space `levelSubMulAction c`. The proofs of
+`G_c`-space `levelSubMulAction c`; `zeroLevelHomeomorph` and `zeroLevelDiffeomorph` follow Tau
+Ceti's `levelSubMulActionHomeomorph` and `levelSubMulActionDiffeomorph`. The proofs of
 `existsUnique_isSymplectic_mpullback_quotientMk_zeroLevel_eq_mpullback` and
 `finrank_quotientModelSpace_zeroLevel` adapt those of Tau Ceti's
 `existsUnique_isSymplectic_mpullback_quotientMk_eq_mpullback` and
@@ -165,9 +168,10 @@ section Level
 variable (hσ : σ.IsNondegenerate) (hfree : ∀ x, μ x = 0 → MulAction.stabilizer G x = ⊥)
   (hn : finrank ℝ E' - finrank ℝ (GroupLieAlgebra I G) = n)
 
-/-- `zeroLevelHomeomorph` as a diffeomorphism, for the atlas `zeroLevelChartedSpace` of the zero
-level and Tau Ceti's regular-level atlas of `{x : M // μ x = 0}`. -/
-private def zeroLevelDiffeomorph :
+/-- **The zero level is diffeomorphic to Tau Ceti's regular level.** `zeroLevelHomeomorph` is a
+diffeomorphism from the zero level, with the atlas `zeroLevelChartedSpace`, onto
+`{x : M // μ x = 0}`, with Tau Ceti's regular-level atlas `IsMomentMap.levelChartedSpace`. -/
+def zeroLevelDiffeomorph :
     letI := h.zeroLevelChartedSpace hσ hfree hn
     letI := h.toIsMomentMap.levelChartedSpace
       (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
@@ -176,17 +180,27 @@ private def zeroLevelDiffeomorph :
     (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
   h.zeroLevelHomeomorph.pullbackDiffeomorph _ _
 
-private theorem coe_comp_zeroLevelDiffeomorph :
+/-- The diffeomorphism `zeroLevelDiffeomorph` is the homeomorphism `zeroLevelHomeomorph`. -/
+@[simp]
+theorem coe_zeroLevelDiffeomorph :
     letI := h.zeroLevelChartedSpace hσ hfree hn
     letI := h.toIsMomentMap.levelChartedSpace
       (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
-    Subtype.val ∘ h.zeroLevelDiffeomorph hσ hfree hn = (Subtype.val : h.zeroLevel → M) := by
-  let := h.zeroLevelChartedSpace hσ hfree hn
-  let := h.toIsMomentMap.levelChartedSpace
+    ⇑(h.zeroLevelDiffeomorph hσ hfree hn) = h.zeroLevelHomeomorph :=
+  letI := h.toIsMomentMap.levelChartedSpace
     (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
-  funext z
-  rw [Function.comp_apply, zeroLevelDiffeomorph, Homeomorph.coe_pullbackDiffeomorph,
-    coe_zeroLevelHomeomorph]
+  h.zeroLevelHomeomorph.coe_pullbackDiffeomorph _ _
+
+/-- The inverse of `zeroLevelDiffeomorph` is the inverse of `zeroLevelHomeomorph`. -/
+@[simp]
+theorem coe_zeroLevelDiffeomorph_symm :
+    letI := h.zeroLevelChartedSpace hσ hfree hn
+    letI := h.toIsMomentMap.levelChartedSpace
+      (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
+    ⇑(h.zeroLevelDiffeomorph hσ hfree hn).symm = h.zeroLevelHomeomorph.symm :=
+  letI := h.toIsMomentMap.levelChartedSpace
+    (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
+  h.zeroLevelHomeomorph.coe_pullbackDiffeomorph_symm _ _
 
 /-- **The zero level is a smooth manifold**, for the atlas `zeroLevelChartedSpace`. -/
 theorem isManifold_zeroLevel :
@@ -208,9 +222,9 @@ theorem isSmoothEmbedding_coe_zeroLevel :
   let := h.toIsMomentMap.levelChartedSpace
     (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
   have := h.isManifold_zeroLevel hσ hfree hn
-  rw [← h.coe_comp_zeroLevelDiffeomorph hσ hfree hn]
-  exact isSmoothEmbedding_comp_diffeomorph _
-    (h.toIsMomentMap.isSmoothEmbedding_coe_level _ hn)
+  -- The inclusion is the inclusion of Tau Ceti's level after `zeroLevelDiffeomorph`.
+  simpa [Function.comp_def] using isSmoothEmbedding_comp_diffeomorph
+    (h.zeroLevelDiffeomorph hσ hfree hn) (h.toIsMomentMap.isSmoothEmbedding_coe_level _ hn)
 
 /-- **The tangent space of the zero level is the kernel of `dμ`**: at `z`, the differential of
 the inclusion has range `ker dμ_z`. -/
@@ -221,9 +235,10 @@ theorem range_mfderiv_coe_zeroLevel (z : h.zeroLevel) :
   let := h.zeroLevelChartedSpace hσ hfree hn
   let := h.toIsMomentMap.levelChartedSpace
     (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
-  rw [← h.coe_comp_zeroLevelDiffeomorph hσ hfree hn,
-    Diffeomorph.range_mfderiv_comp_diffeomorph _ (by simp)]
-  exact h.toIsMomentMap.range_mfderiv_coe_level _ hn _
+  -- The inclusion is the inclusion of Tau Ceti's level after `zeroLevelDiffeomorph`.
+  rw [show (Subtype.val : h.zeroLevel → M) = Subtype.val ∘ h.zeroLevelDiffeomorph hσ hfree hn from
+    funext fun z ↦ by simp, Diffeomorph.range_mfderiv_comp_diffeomorph _ (by simp)]
+  simpa using h.toIsMomentMap.range_mfderiv_coe_level _ hn (h.zeroLevelDiffeomorph hσ hfree hn z)
 
 /-- **`G` acts smoothly on the zero level**, for the atlas `zeroLevelChartedSpace`. -/
 theorem contMDiffSMul_zeroLevel :
