@@ -3081,8 +3081,9 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   criteria); the Łojasiewicz inequality's files are those of
   `design/kahler-stability.md`.
 - **Builds on:** Tau Ceti (`TauCeti.SmoothTwoForm.IsKahler`, invariant inner
-  products `TauCeti.Lie.exists_isSymm_bilinForm_Ad_invariant`, limits of
-  gradient trajectories `tendsto_maximalIntegralCurve_neg_mgradient_of_mapClusterPt`).
+  products
+  `TauCeti.Lie.exists_isSymm_posDef_continuousBilinearMap_adjoint_invariant`,
+  limits of gradient trajectories `tendsto_maximalIntegralCurve_neg_mgradient_of_mapClusterPt`).
 - **Milestones:** *Kempf–Ness correspondence*, *Hilbert–Mumford numerical
   criteria*.
 - **The design file decides:** how $G^{\mathbb C}$ and its action are
