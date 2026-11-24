@@ -42,7 +42,8 @@ derivative of zero, hence zero (`ContinuousOn.eqOn_zero_of_forall_intervalIntegr
 way McDuff–Salamon pass from fluxes to Hamiltonian isotopies in the proofs of Theorem 10.2.5 and
 Proposition 10.2.12.
 
-On a closed manifold, the periods on Tau Ceti's period classes `c_i`
+When `H¹_dR(M)` is finite-dimensional, as on a closed manifold, the periods on Tau Ceti's period
+classes `c_i`
 (`TauCeti.deRhamCohomology.periodHomologyClass`) are the coordinates in the period-dual basis
 `θ_i` (`TauCeti.deRhamCohomology.periodDualBasis`). So the flux of `φ` up to time `T` is
 `∑ i, A i T • θ_i`, where `A i T = ∫₀ᵀ ⟨[ι_{X_t} σ], c_i⟩ dt`. The integrand is a smooth function
@@ -61,9 +62,9 @@ ordered flow in McDuff–Salamon's proof of Theorem 10.2.5.
   the contractions are continuous in time.
 * `TauCeti.Diffeotopy.isHamiltonian_of_forall_flux_truncate_eq_zero`: a diffeotopy preserving
   `σ` all of whose truncations have zero flux is Hamiltonian.
-* `TauCeti.Diffeotopy.exists_contDiff_flux_truncate_eq_sum_smul_periodDualBasis`: on a closed
-  manifold, if the velocity vanishes near both ends, the fluxes of the truncations are
-  `∑ i, A i T • θ_i` for smooth functions `A i` with `A i 0 = 0`.
+* `TauCeti.Diffeotopy.exists_contDiff_flux_truncate_eq_sum_smul_periodDualBasis`: when
+  `H¹_dR(M)` is finite-dimensional, if the velocity vanishes near both ends, the fluxes of the
+  truncations are `∑ i, A i T • θ_i` for smooth functions `A i` with `A i 0 = 0`.
 
 ## References
 
@@ -168,12 +169,14 @@ theorem isHamiltonian_of_forall_flux_truncate_eq_zero
       exact this.symm
   simpa only [g, projIcc_val, Pi.zero_apply, AddMonoidHom.zero_apply] using hzero t.property
 
-/-- **Smooth time functions for the fluxes of truncations.** Let `M` be closed, let every map of
-the diffeotopy `φ_t` preserve the closed two-form `σ`, and let its velocity vanish near both ends
-of the time interval. Then there are smooth functions `A i : ℝ → ℝ`, one for each vector `θ_i` of
-the period-dual basis of `H¹_dR(M)`, with `A i 0 = 0`, such that for every `T ∈ [0, 1]` the flux
-of the truncation `t ↦ φ_{T t}` is `∑ i, A i T • θ_i`. -/
-theorem exists_contDiff_flux_truncate_eq_sum_smul_periodDualBasis [CompactSpace M]
+/-- **Smooth time functions for the fluxes of truncations.** Let `H¹_dR(M)` be
+finite-dimensional, as it is when `M` is closed, let every map of the diffeotopy `φ_t` preserve
+the closed two-form `σ`, and let its velocity vanish near both ends of the time interval.
+Then there are smooth functions `A i : ℝ → ℝ`, one for each vector `θ_i` of the period-dual basis
+of `H¹_dR(M)`, with `A i 0 = 0`, such that for every `T ∈ [0, 1]` the flux of the truncation
+`t ↦ φ_{T t}` is `∑ i, A i T • θ_i`. -/
+theorem exists_contDiff_flux_truncate_eq_sum_smul_periodDualBasis
+    [FiniteDimensional ℝ (deRhamCohomology J M 1)]
     (hΦ : ∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ.val)
     (h₀ : ∀ᶠ t in 𝓝 0, Φ.velocity t = 0) (h₁ : ∀ᶠ t in 𝓝 1, Φ.velocity t = 0) :
     ∃ A : Fin (finrank ℝ (deRhamCohomology J M 1)) → ℝ → ℝ,
