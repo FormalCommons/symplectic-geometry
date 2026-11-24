@@ -9,8 +9,10 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.RescaledFamily
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Liouville
 
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.ZeroSection
-import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 
 /-!
 # Rescaling symplectic maps of a cotangent bundle towards the zero section
@@ -39,7 +41,7 @@ of `ω` at `0_x` evaluated on `(v, 0)` and `(0, a)` reads `a' v = a v` for every
 
 ## References
 
-* [P. Seidel, *Floer homology and the symplectic isotopy problem*][Seidel1997Thesis], Lemma 2.2.
+* [P. Seidel, *Floer homology and the symplectic isotopy problem*][Seidel1997Thesis], Lemma 2.2(b).
 -/
 
 public section
@@ -86,18 +88,13 @@ theorem vectorBundleRescaledFamily_zero_eq_self [IsManifold J ∞ L] [J.Boundary
   change (T (D (T.symm (0, a)))).2 = a
   -- `ψ` extended by the identity outside `U`
   set ψ' : CotangentBundle J L → CotangentBundle J L := Subtype.val.extend ψ id
-  have hψψ' : ψ = ψ' ∘ Subtype.val :=
-    funext fun z ↦ (Subtype.val_injective.extend_apply _ _ _).symm
   have hD : ∀ v, D v =
       mfderiv (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ψ' (Z x) v := by
     intro v
     simp only [D]
-    rw [hψψ']
+    rw [show ψ = ψ' ∘ Subtype.val from
+      funext fun z ↦ (Subtype.val_injective.extend_apply _ _ _).symm]
     exact Manifold.mfderiv_comp_subtype_val_apply (x := p) v
-  have hψ' : MDifferentiableAt (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ψ' (Z x) := by
-    have := hψ.mdifferentiableAt (x := p) (by simp)
-    rw [hψψ'] at this
-    exact Manifold.mdifferentiableAt_comp_subtype_val_iff.1 this
   -- `dψ` fixes the horizontal vectors `(v, 0)`, since `ψ` fixes the zero section near `0_x`
   have hZ : ψ' ∘ Z =ᶠ[𝓝 x] Z := by
     filter_upwards [(contMDiff_zeroSection ℝ (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) (IB := J)
@@ -106,26 +103,14 @@ theorem vectorBundleRescaledFamily_zero_eq_self [IsManifold J ∞ L] [J.Boundary
       show ψ' (Z y) = ψ ⟨_, hy⟩ from Subtype.val_injective.extend_apply ψ id ⟨_, hy⟩, hψ0]
   have hhor : ∀ v, D (T.symm (v, 0)) = T.symm (v, 0) := by
     intro v
-    have hT : T.symm (v, 0) = mfderiv J (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) Z x v := by
-      rw [Bundle.zeroSectionTangentEquiv_symm_eq, Prod.mk_zero_zero, map_zero, add_zero]
-    rw [hT, hD, ← mfderiv_comp_apply x hψ' (mdifferentiableAt_zeroSection ℝ _ (IB := J)),
-      hZ.mfderiv_eq]
-    -- `mfderiv_comp_apply` inserts the identity `tangentSpaceCast` between two equal points
-    rfl
+    rw [hD, Bundle.mfderiv_zeroSectionTangentEquiv_symm_inl
+      ((ContMDiffAt.extend_subtypeVal (hψ p) id).mdifferentiableAt (by simp)) hZ,
+      Bundle.zeroSectionTangentEquiv_symm_eq, Prod.mk_zero_zero, map_zero, add_zero]
   -- `dψ` preserves `ω` at `0_x`
-  have hpt : ∀ {y y' : CotangentBundle J L} (_ : y = y') (A B : E × (E →L[ℝ] ℝ)),
-      SmoothBundleForm.eval₂ σ y A B = SmoothBundleForm.eval₂ σ y' A B := by
-    rintro _ _ rfl _ _
-    rfl
   have hσ : ∀ ξ η, SmoothBundleForm.eval₂ σ (Z x) (D ξ) (D η) =
-      SmoothBundleForm.eval₂ σ (Z x) ξ η := by
-    intro ξ η
-    have := congrArg (fun φ ↦ SmoothBundleForm.eval₂ φ p ξ η) hψω
-    rw [SmoothForm.eval₂_mpullback ψ hψ σ p ξ η, SmoothForm.eval₂_mpullback _ _ σ p ξ η,
-      Manifold.mfderiv_subtype_val, ContinuousLinearEquiv.coe_coe] at this
-    -- `tangentSpaceOpenEquiv` is the identity of the model space, but its body is not exposed
-    erw [Manifold.tangentSpaceOpenEquiv_apply, Manifold.tangentSpaceOpenEquiv_apply] at this
-    exact (hpt (hψ0 x hz) _ _).symm.trans this
+      SmoothBundleForm.eval₂ σ (Z x) ξ η := fun ξ η ↦
+    (congrArg (fun y ↦ SmoothBundleForm.eval₂ σ y (D ξ) (D η)) (hψ0 x hz)).symm.trans
+      (SmoothForm.eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtype_val hψ hψω p ξ η)
   -- evaluate on `(v, 0)` and `(0, a)`
   obtain ⟨⟨u, a'⟩, hua⟩ : ∃ q, q = T (D (T.symm (0, a))) := ⟨_, rfl⟩
   rw [← hua]

@@ -313,9 +313,8 @@ theorem vectorBundleRescaledFamily_zero_eq_mfderiv [IB.Boundaryless] [T2Space B]
   -- `ψ'` read in the chart at `0_x`, which `ψ'` fixes
   set W := writtenInExtChartAt (IB.prod 𝓘(ℝ, F)) (IB.prod 𝓘(ℝ, F)) (zeroSection F V x) ψ'
   set c := extChartAt IB x x
-  have hc : extChartAt (IB.prod 𝓘(ℝ, F)) (zeroSection F V x) (zeroSection F V x) = (c, 0) := by
-    rw [Bundle.extChartAt_apply_of_mem_baseSet _ hx]
-    exact Prod.ext rfl (e.zeroSection ℝ hx ▸ rfl)
+  have hc : extChartAt (IB.prod 𝓘(ℝ, F)) (zeroSection F V x) (zeroSection F V x) = (c, 0) :=
+    Bundle.extChartAt_zeroSection_self x
   have hW : DifferentiableAt ℝ W (c, 0) := by
     have := hψ'.differentiableWithinAt_writtenInExtChartAt
     rwa [hc, (IB.prod 𝓘(ℝ, F)).range_eq_univ, differentiableWithinAt_univ] at this
