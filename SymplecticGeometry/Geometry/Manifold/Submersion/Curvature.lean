@@ -8,6 +8,8 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Submersion.HorizontalLiftField
 public import Mathlib.Geometry.Manifold.VectorField.LieBracket
 import TauCeti.Geometry.Manifold.IsManifold.Basic
+import TauCeti.Geometry.Manifold.VectorBundle.Section.Extension
+import TauCeti.Geometry.Manifold.VectorBundle.Tensoriality
 import TauCeti.Geometry.Manifold.VectorField.Related
 import TauCeti.Geometry.Manifold.ContMDiff.Defs
 import SymplecticGeometry.Geometry.Manifold.Distribution.Frame
@@ -34,6 +36,15 @@ The curvature is alternating, additive in each argument, and linear over differe
 on the base: `g • v₁` has curvature `(g ∘ f) • curvature v₁ v₂`, by the Leibniz rule for the
 bracket (`VectorField.mlieBracket_smul_left`) on `B` and on `P`.
 
+Over `ℝ`, on a finite-dimensional Hausdorff base, these laws make the curvature at `x` of smooth
+fields depend only on their values at `f x` (`curvature_congr`), by Tau Ceti's tensoriality
+criterion `TauCeti.Manifold.eq_of_contMDiff_tensorial`. Every tangent vector of the base is the
+value of a smooth global field (Tau Ceti's `FiberBundle.contMDiffExtend`), so the curvature at
+`x` is a bilinear map on `TangentSpace J (f x)` with values in `TangentSpace I x`,
+`curvatureTensor`; it is alternating and its values are vertical. The construction follows that
+of Tau Ceti's `CovariantDerivative.curvatureTensor` from
+`CovariantDerivative.curvatureOperator_congr`.
+
 The connection is flat, its curvature vanishing at every point `x` on all fields that are `C^n`
 at `f x`, exactly when `D` is involutive in the sense of Tau Ceti's
 `TauCeti.IsInvolutiveDistribution`. If `D` is involutive, the bracket of two lifts is
@@ -52,6 +63,8 @@ and their curvature is `-curvature`.
 
 * `TauCeti.IsEhresmannConnection.curvature`: the curvature of an Ehresmann connection on two
   vector fields of the base.
+* `TauCeti.IsEhresmannConnection.curvatureTensor`: the curvature at a point of `P`, as a
+  bilinear map on the tangent space of the base.
 
 ## Main results
 
@@ -66,6 +79,11 @@ and their curvature is `-curvature`.
   curvature is alternating and linear over functions on the base.
 * `TauCeti.IsEhresmannConnection.curvature_eq_zero_iff_isInvolutiveDistribution`: the connection
   is flat exactly when its horizontal distribution is involutive.
+* `TauCeti.IsEhresmannConnection.curvature_congr`: the curvature at `x` of smooth fields depends
+  only on their values at `f x`.
+* `TauCeti.IsEhresmannConnection.curvatureTensor_apply` and `eq_curvatureTensor_iff`: the
+  curvature tensor computes the curvature of smooth fields, and is characterized by this;
+  `curvatureTensor_mem_ker`, `curvatureTensor_self` and `curvatureTensor_swap`.
 
 ## References
 
@@ -129,6 +147,13 @@ theorem curvature_swap_apply (x : P) : hD.curvature v₁ v₂ x = -hD.curvature 
 @[simp]
 theorem curvature_self : hD.curvature v₁ v₁ = 0 := by
   simp [curvature_def, mlieBracket_self]
+
+/-- The curvature does not depend on the smoothness index at which the connection is seen. -/
+theorem curvature_of_le {m : ℕ∞ω} (hmn : m ≤ n) :
+    (hD.of_le hmn).curvature = hD.curvature := by
+  ext v₁ v₂ : 2
+  rw [curvature_def, curvature_def, hD.horizontalLiftField_of_le _ hmn,
+    hD.horizontalLiftField_of_le _ hmn, hD.horizontalLiftField_of_le _ hmn]
 
 @[simp]
 theorem curvature_zero_left : hD.curvature 0 v₂ = 0 := by
@@ -302,6 +327,130 @@ theorem curvature_eq_zero_iff_isInvolutiveDistribution [FiniteDimensional 𝕜 F
     fun hDi _ _ _ ↦ hD.curvature_eq_zero_of_isInvolutiveDistribution hn (hf _) hDi⟩
 
 end Smooth
+
+section Pointwise
+
+/-! ### Pointwise dependence and the curvature tensor -/
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {P : Type*} [TopologicalSpace P] [ChartedSpace H P] [IsManifold I 2 P]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+  {G : Type*} [TopologicalSpace G] {J : ModelWithCorners ℝ F G}
+  {B : Type*} [TopologicalSpace B] [ChartedSpace G B] [T2Space B] [IsManifold J ∞ B]
+  {n : ℕ∞ω} {f : P → B} {D : Π x : P, Submodule ℝ (TangentSpace I x)}
+  (hD : IsEhresmannConnection I J n f D)
+
+/-- The curvature is a tensor: for a `C^n` connection with `1 ≤ n` and `f` of class `C^2` at
+`x`, the curvature at `x` of smooth vector fields `v₁ v₂` on the base depends only on their values
+at `f x`. -/
+theorem curvature_congr (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x)
+    {v₁ v₁' v₂ v₂' : Π b : B, TangentSpace J b}
+    (hv₁ : CMDiff ∞ (T% v₁)) (hv₁' : CMDiff ∞ (T% v₁'))
+    (hv₂ : CMDiff ∞ (T% v₂)) (hv₂' : CMDiff ∞ (T% v₂'))
+    (h₁ : v₁ (f x) = v₁' (f x)) (h₂ : v₂ (f x) = v₂' (f x)) :
+    hD.curvature v₁ v₂ x = hD.curvature v₁' v₂' x := by
+  -- The curvature of `hD` is that of `hD` seen as a `C^1` connection.
+  rw [← hD.curvature_of_le hn]
+  set hD₁ := hD.of_le hn
+  have hf₁ : ContMDiffAt I J (1 + 1) f x := by rwa [one_add_one_eq_two]
+  have hsm {v : Π b : B, TangentSpace J b} (hv : CMDiff ∞ (T% v)) :
+      ContMDiffAt J J.tangent 1 (T% v) (f x) :=
+    (hv (f x)).of_le (by exact_mod_cast le_top)
+  calc hD₁.curvature v₁ v₂ x = hD₁.curvature v₁' v₂ x :=
+        Manifold.eq_of_contMDiff_tensorial (G := F) (W := TangentSpace J)
+          (fun v ↦ hD₁.curvature v v₂ x) (f x)
+          (fun hv hv' ↦ hD₁.curvature_add_left le_rfl hf₁ v₂ (hsm hv) (hsm hv'))
+          (fun hg hv ↦ hD₁.curvature_smul_left le_rfl hf₁ (hg.mdifferentiableAt (by simp)) v₂
+            (hsm hv))
+          hv₁ hv₁' h₁
+    _ = hD₁.curvature v₁' v₂' x :=
+        Manifold.eq_of_contMDiff_tensorial (G := F) (W := TangentSpace J)
+          (fun v ↦ hD₁.curvature v₁' v x) (f x)
+          (fun hv hv' ↦ hD₁.curvature_add_right le_rfl hf₁ v₁' (hsm hv) (hsm hv'))
+          (fun hg hv ↦ hD₁.curvature_smul_right le_rfl hf₁ (hg.mdifferentiableAt (by simp)) v₁'
+            (hsm hv))
+          hv₂ hv₂' h₂
+
+/-- The **curvature tensor** of an Ehresmann connection `D` at `x`, for a `C^n` connection with
+`1 ≤ n` and `f` of class `C^2` at `x`: the bilinear map on `TangentSpace J (f x)` whose value on
+`v₁ (f x)` and `v₂ (f x)` is the curvature `hD.curvature v₁ v₂ x`, for smooth vector fields
+`v₁ v₂` on the base (`curvatureTensor_apply`). -/
+def curvatureTensor (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x) :
+    TangentSpace J (f x) →ₗ[ℝ] TangentSpace J (f x) →ₗ[ℝ] TangentSpace I x :=
+  -- The linearity laws are those of the curvature of `hD` seen as a `C^1` connection.
+  have hf₁ : ContMDiffAt I J (1 + 1) f x := by rwa [one_add_one_eq_two]
+  have hsm (u : TangentSpace J (f x)) :
+      ContMDiffAt J J.tangent 1 (T% (FiberBundle.contMDiffExtend J F u)) (f x) :=
+    (FiberBundle.contMDiff_contMDiffExtend (n := ∞) J F u (f x)).of_le
+      (by exact_mod_cast le_top)
+  have hc (c : ℝ) (s : Π b : B, TangentSpace J b) : c • s = (fun _ : B ↦ c) • s :=
+    funext fun y ↦ by rw [Pi.smul_apply, Pi.smul_apply']
+  LinearMap.mk₂ ℝ
+    (fun u v ↦ hD.curvature (FiberBundle.contMDiffExtend J F u)
+      (FiberBundle.contMDiffExtend J F v) x)
+    (fun u u' v ↦ by
+      rw [FiberBundle.contMDiffExtend_add, ← hD.curvature_of_le hn]
+      exact (hD.of_le hn).curvature_add_left le_rfl hf₁ _ (hsm u) (hsm u'))
+    (fun c u v ↦ by
+      rw [FiberBundle.contMDiffExtend_smul, hc, ← hD.curvature_of_le hn]
+      exact (hD.of_le hn).curvature_smul_left le_rfl hf₁ mdifferentiableAt_const _ (hsm u))
+    (fun u v v' ↦ by
+      rw [FiberBundle.contMDiffExtend_add, ← hD.curvature_of_le hn]
+      exact (hD.of_le hn).curvature_add_right le_rfl hf₁ _ (hsm v) (hsm v'))
+    (fun c u v ↦ by
+      rw [FiberBundle.contMDiffExtend_smul, hc, ← hD.curvature_of_le hn]
+      exact (hD.of_le hn).curvature_smul_right le_rfl hf₁ mdifferentiableAt_const _ (hsm v))
+
+/-- The curvature tensor at `x` computes the curvature at `x` of smooth vector fields on the
+base, from their values at `f x`. -/
+theorem curvatureTensor_apply (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x)
+    {v₁ v₂ : Π b : B, TangentSpace J b} (hv₁ : CMDiff ∞ (T% v₁)) (hv₂ : CMDiff ∞ (T% v₂)) :
+    hD.curvatureTensor hn hf (v₁ (f x)) (v₂ (f x)) = hD.curvature v₁ v₂ x :=
+  hD.curvature_congr hn hf (FiberBundle.contMDiff_contMDiffExtend (n := ∞) J F _) hv₁
+    (FiberBundle.contMDiff_contMDiffExtend (n := ∞) J F _) hv₂
+    (FiberBundle.contMDiffExtend_apply_self J F _) (FiberBundle.contMDiffExtend_apply_self J F _)
+
+/-- The curvature tensor is the only bilinear map on `TangentSpace J (f x)` that computes the
+curvature at `x` of smooth vector fields on the base from their values at `f x`. -/
+theorem eq_curvatureTensor_iff (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x)
+    (R : TangentSpace J (f x) →ₗ[ℝ] TangentSpace J (f x) →ₗ[ℝ] TangentSpace I x) :
+    R = hD.curvatureTensor hn hf ↔
+      ∀ v₁ v₂ : Π b : B, TangentSpace J b, CMDiff ∞ (T% v₁) → CMDiff ∞ (T% v₂) →
+        R (v₁ (f x)) (v₂ (f x)) = hD.curvature v₁ v₂ x := by
+  refine ⟨fun h v₁ v₂ hv₁ hv₂ ↦ h ▸ hD.curvatureTensor_apply hn hf hv₁ hv₂, fun h ↦ ?_⟩
+  ext u v
+  obtain ⟨v₁, hv₁, rfl⟩ := FiberBundle.exists_contMDiff_section_eq J F ∞ u
+  obtain ⟨v₂, hv₂, rfl⟩ := FiberBundle.exists_contMDiff_section_eq J F ∞ v
+  rw [h v₁ v₂ hv₁ hv₂, hD.curvatureTensor_apply hn hf hv₁ hv₂]
+
+/-- The values of the curvature tensor are vertical: they lie in the kernel of the derivative
+of `f` at `x`. -/
+theorem curvatureTensor_mem_ker (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x)
+    (u v : TangentSpace J (f x)) :
+    hD.curvatureTensor hn hf u v ∈ (mfderiv I J f x).ker := by
+  obtain ⟨v₁, hv₁, rfl⟩ := FiberBundle.exists_contMDiff_section_eq J F ∞ u
+  obtain ⟨v₂, hv₂, rfl⟩ := FiberBundle.exists_contMDiff_section_eq J F ∞ v
+  rw [hD.curvatureTensor_apply hn hf hv₁ hv₂, ← hD.curvature_of_le hn]
+  exact (hD.of_le hn).curvature_mem_ker le_rfl (by rwa [one_add_one_eq_two])
+    ((hv₁ (f x)).of_le (by exact_mod_cast le_top)) ((hv₂ (f x)).of_le (by exact_mod_cast le_top))
+
+/-- The curvature tensor is alternating. -/
+@[simp]
+theorem curvatureTensor_self (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x)
+    (u : TangentSpace J (f x)) : hD.curvatureTensor hn hf u u = 0 := by
+  obtain ⟨v, hv, rfl⟩ := FiberBundle.exists_contMDiff_section_eq J F ∞ u
+  rw [hD.curvatureTensor_apply hn hf hv hv, curvature_self, Pi.zero_apply]
+
+/-- The curvature tensor is antisymmetric. -/
+theorem curvatureTensor_swap (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x)
+    (u v : TangentSpace J (f x)) :
+    hD.curvatureTensor hn hf u v = -hD.curvatureTensor hn hf v u := by
+  obtain ⟨v₁, hv₁, rfl⟩ := FiberBundle.exists_contMDiff_section_eq J F ∞ u
+  obtain ⟨v₂, hv₂, rfl⟩ := FiberBundle.exists_contMDiff_section_eq J F ∞ v
+  rw [hD.curvatureTensor_apply hn hf hv₁ hv₂, hD.curvatureTensor_apply hn hf hv₂ hv₁,
+    curvature_swap_apply]
+end Pointwise
 
 end IsEhresmannConnection
 
