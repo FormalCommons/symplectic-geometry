@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Algebra.MvPolynomial.Rename
 public import TauCeti.Geometry.RealAlgebraic.Nash.Implicit
 
 /-!
@@ -48,10 +49,8 @@ theorem isNashAt_of_eventually_isRoot {σ : Type*} [Fintype σ] {f : (σ → ℝ
   have hF : F = fun p ↦ MvPolynomial.eval p
       (P.eval₂ (MvPolynomial.rename Sum.inl).toRingHom (MvPolynomial.X (.inr ()))) := by
     ext p
-    rw [Polynomial.hom_eval₂, ← eval_map]
-    simp only [F, MvPolynomial.eval_X]
-    congr 2
-    ext <;> simp
+    rw [Polynomial.hom_eval₂, ← eval_map, ← Polynomial.map_map, map_eval_map_rename,
+      MvPolynomial.eval_X]
   have hFN : IsNashAt F (Sum.elim x fun _ ↦ f x) := by
     rw [hF]
     exact MvPolynomial.isNashAt_eval _
