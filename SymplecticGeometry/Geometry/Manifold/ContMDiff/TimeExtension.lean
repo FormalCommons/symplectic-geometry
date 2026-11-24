@@ -37,6 +37,11 @@ where it is `contDiffOn_seeleyIccExtend`; the time coordinate needs only `projIc
 * `SymplecticGeometry.timeExtend_eq_zero`: the extension vanishes at a point where `f` vanishes
   at every time.
 * `ContMDiffOn.timeExtend`, `ContMDiff.timeExtend`: the extension of a smooth map is smooth.
+* `Continuous.exists_Icc_prod_extChartAt`: for a continuous `f : unitInterval × M → N`, a
+  neighbourhood `[a, b] × U` of a point, read in the chart at a point of `M`, that `f` maps into
+  the chart at the image point.
+* `ContMDiff.contDiffOn_extChartAt_comp_projIcc`: a smooth `f` read in these charts, through
+  `projIcc` in the time variable, is smooth on `[a, b] × U`, so that Seeley's extension applies.
 
 ## References
 
@@ -158,5 +163,85 @@ theorem _root_.ContMDiff.timeExtend [IsManifold I ∞ M] [BoundarylessManifold I
 end Smooth
 
 end SymplecticGeometry
+
+section Charts
+
+/-! ### Maps on `unitInterval × M` read in charts -/
+
+variable {E H M E' H' N : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'}
+  [TopologicalSpace N] [ChartedSpace H' N]
+
+open Filter
+open scoped Topology
+
+/-- For a continuous `f` on `unitInterval × M` and a point `(t₀, x₀)`, there are an interval
+`[a, b] ⊆ [0, 1]` that is a neighbourhood of `t₀` in `[0, 1]` and an open `U` in the target of the
+chart at `x₀`, containing the image of `x₀`, such that `f` maps `[a, b] × U`, read through the
+chart at `x₀`, into the source of the chart at `f (t₀, x₀)`. -/
+theorem Continuous.exists_Icc_prod_extChartAt [BoundarylessManifold I M]
+    {f : unitInterval × M → N} (hf : Continuous f) (t₀ : unitInterval) (x₀ : M) :
+    ∃ a b : ℝ, ∃ U : Set E, 0 ≤ a ∧ a < b ∧ b ≤ 1 ∧ IsOpen U ∧ extChartAt I x₀ x₀ ∈ U ∧
+      {s : unitInterval | (s : ℝ) ∈ Icc a b} ∈ 𝓝 t₀ ∧
+      ∀ s : unitInterval, (s : ℝ) ∈ Icc a b → ∀ u ∈ U, u ∈ (extChartAt I x₀).target ∧
+        f (s, (extChartAt I x₀).symm u) ∈ (extChartAt J (f (t₀, x₀))).source := by
+  set e := extChartAt I x₀
+  have htarget : e.target ∈ 𝓝 (e x₀) :=
+    nhdsWithin_eq_nhds.2 (range_mem_nhds_isInteriorPoint
+      (BoundarylessManifold.isInteriorPoint (I := I) (x := x₀))) ▸
+      extChartAt_target_mem_nhdsWithin x₀
+  have hc : ContinuousAt (fun q : unitInterval × E ↦ f (q.1, e.symm q.2)) (t₀, e x₀) :=
+    hf.continuousAt.comp (continuousAt_fst.prodMk (ContinuousAt.comp (f := Prod.snd)
+      (continuousAt_extChartAt_symm'' (mem_extChartAt_target x₀)) continuousAt_snd))
+  have hS : Prod.snd ⁻¹' e.target ∩
+      (fun q : unitInterval × E ↦ f (q.1, e.symm q.2)) ⁻¹' (extChartAt J (f (t₀, x₀))).source ∈
+      𝓝 (t₀, e x₀) := by
+    refine inter_mem ((continuous_snd.continuousAt (x := (t₀, e x₀))).preimage_mem_nhds htarget)
+      (hc.preimage_mem_nhds ?_)
+    simp only [e, extChartAt_to_inv]
+    exact extChartAt_source_mem_nhds _
+  obtain ⟨V, hV, W, hW, hVW⟩ := mem_nhds_prod_iff.1 hS
+  obtain ⟨δ, hδ, hδV⟩ := Metric.mem_nhds_iff.1 hV
+  have h₀ := t₀.property.1
+  have h₁ := t₀.property.2
+  refine ⟨max 0 (t₀ - δ / 2), min 1 (t₀ + δ / 2), interior W, le_max_left _ _, ?_,
+    min_le_left _ _, isOpen_interior,
+    mem_interior_iff_mem_nhds.2 hW, mem_of_superset (Metric.ball_mem_nhds t₀ (half_pos hδ)) ?_,
+    fun s hs u hu ↦ hVW (mk_mem_prod (hδV ?_) (interior_subset hu))⟩
+  · simp only [max_lt_iff, lt_min_iff]
+    refine ⟨⟨?_, ?_⟩, ?_, ?_⟩ <;> linarith
+  · intro s hs
+    have h := abs_lt.1 (Real.dist_eq _ _ ▸ Subtype.dist_eq s t₀ ▸ Metric.mem_ball.1 hs)
+    exact ⟨max_le s.property.1 (by linarith), le_min s.property.2 (by linarith)⟩
+  · rw [Metric.mem_ball, Subtype.dist_eq, Real.dist_eq, abs_lt]
+    have := le_of_max_le_right hs.1
+    have := le_min_iff.1 hs.2
+    constructor <;> linarith
+
+/-- A smooth map `f` on `unitInterval × M`, read in charts on `[a, b] × U` as in
+`Continuous.exists_Icc_prod_extChartAt`, is smooth there. -/
+theorem ContMDiff.contDiffOn_extChartAt_comp_projIcc [IsManifold I ∞ M] [IsManifold J ∞ N]
+    {f : unitInterval × M → N} (hf : ContMDiff ((𝓡∂ 1).prod I) J ∞ f) {x₀ : M} {y₀ : N}
+    {a b : ℝ} {U : Set E} (hab : Icc a b ⊆ Icc 0 1)
+    (hU : ∀ s : unitInterval, (s : ℝ) ∈ Icc a b → ∀ u ∈ U, u ∈ (extChartAt I x₀).target ∧
+      f (s, (extChartAt I x₀).symm u) ∈ (extChartAt J y₀).source) :
+    ContDiffOn ℝ ∞ (fun q : ℝ × E ↦
+      extChartAt J y₀ (f (projIcc 0 1 zero_le_one q.1, (extChartAt I x₀).symm q.2)))
+      (Icc a b ×ˢ U) := by
+  have hU' {q : ℝ × E} (hq : q ∈ Icc a b ×ˢ U) := hU (projIcc 0 1 zero_le_one q.1)
+    (by rw [projIcc_of_mem _ (hab hq.1)]; exact hq.1) q.2 hq.2
+  refine contMDiffOn_iff_contDiffOn.1 ?_
+  have hP : ContMDiffOn 𝓘(ℝ, ℝ × E) ((𝓡∂ 1).prod I) ∞
+      (fun q : ℝ × E ↦ (projIcc 0 1 zero_le_one q.1, (extChartAt I x₀).symm q.2))
+      (Icc a b ×ˢ U) :=
+    ((contMDiffOn_projIcc.mono hab).comp contDiff_fst.contMDiff.contMDiffOn
+      fun q (hq : q ∈ Icc a b ×ˢ U) ↦ hq.1).prodMk ((contMDiffOn_extChartAt_symm x₀).comp
+        contDiff_snd.contMDiff.contMDiffOn fun q (hq : q ∈ Icc a b ×ˢ U) ↦ (hU' hq).1)
+  refine contMDiffOn_extChartAt.comp (hf.comp_contMDiffOn hP) fun q hq ↦ ?_
+  rw [← extChartAt_source J]
+  exact (hU' hq).2
+
+end Charts
 
 end
