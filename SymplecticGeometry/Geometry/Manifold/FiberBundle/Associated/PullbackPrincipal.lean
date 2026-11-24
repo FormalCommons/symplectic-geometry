@@ -331,7 +331,7 @@ theorem mfderiv_pullbackProjDiffeomorph_fundamental (hn : 1 ≤ n) (ξ : GroupLi
     -- `(f.prod g) ξ` is `(f ξ, g ξ)` by definition; `ContinuousLinearMap.prod_apply` does not
     -- rewrite, since the tangent space of the product model is not reducibly a product.
     exact Prod.ext (rightFundamentalVectorField_apply ξ x.1).symm
-      (mfderiv_inv_smul_one_apply horbit ξ)
+      (mfderiv_inv_smul_one_apply ξ)
   -- The orbit map of `Φ x` is `Φ` composed with the orbit map of `x` for the diagonal action.
   have hcomp : (fun g : G ↦ op g • pullbackProjDiffeomorph n IB IG IF x) =
       pullbackProjDiffeomorph n IB IG IF ∘ fun g : G ↦ (op g • x.1, g⁻¹ • x.2) :=

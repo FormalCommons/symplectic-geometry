@@ -37,9 +37,11 @@ follows from Tau Ceti's `TauCeti.mfderiv_smul_fundamentalVectorField`, since `Ad
 identity (`TauCeti.Lie.adjointContinuousLinearMap_eq_id`).
 
 Last, `TauCeti.mfderiv_inv_smul_one_apply` says that the derivative at `1` of `g ↦ g⁻¹ • x`
-sends `ξ` to `-ξ_M(x)`, over any nontrivially normed field. It differentiates through inversion
-(Tau Ceti's `TauCeti.GroupLieAlgebra.mfderiv_inv_one_apply`), with the steps of Tau Ceti's
-`TauCeti.LeftToRightAction.mfderiv_equiv_symm_rightFundamentalVectorField_of_mdifferentiableAt`.
+sends `ξ` to `-ξ_M(x)`, for any action of a Lie group over a nontrivially normed field. When the
+orbit map is differentiable at `1`, it differentiates through inversion (Tau Ceti's
+`TauCeti.GroupLieAlgebra.mfderiv_inv_one_apply`), with the steps of Tau Ceti's
+`TauCeti.LeftToRightAction.mfderiv_equiv_symm_rightFundamentalVectorField_of_mdifferentiableAt`;
+when it is not, neither is `g ↦ g⁻¹ • x`, and both sides are zero.
 -/
 
 public section
@@ -112,16 +114,23 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'}
   {M : Type*} [TopologicalSpace M] [ChartedSpace H' M]
 
-/-- **The inverse orbit map differentiates to minus the fundamental vector field.** If the orbit
-map `g ↦ g • x` of a Lie group `G` acting on `M` is differentiable at `1`, then the derivative at
-`1` of `g ↦ g⁻¹ • x` sends `ξ` to `-ξ_M(x)`. -/
+/-- **The inverse orbit map differentiates to minus the fundamental vector field.** For a Lie
+group `G` acting on `M`, the derivative at `1` of `g ↦ g⁻¹ • x` sends `ξ` to `-ξ_M(x)`. -/
 theorem mfderiv_inv_smul_one_apply [LieGroup I 1 G] [MulAction G M] {x : M}
-    (horbit : MDifferentiableAt I I' (fun g : G ↦ g • x) 1) (ξ : GroupLieAlgebra I G) :
+    (ξ : GroupLieAlgebra I G) :
     mfderiv I I' (fun g : G ↦ g⁻¹ • x) 1 ξ = -fundamentalVectorField I' ξ x := by
-  have h := mfderiv_comp_apply_of_eq 1 horbit
-    ((contMDiff_inv I 1).mdifferentiableAt one_ne_zero) inv_one ξ
-  rw [GroupLieAlgebra.mfderiv_inv_one_apply, map_neg, ← fundamentalVectorField_apply] at h
-  exact h
+  have hinv : MDifferentiableAt I I (fun g : G ↦ g⁻¹) 1 :=
+    (contMDiff_inv I 1).mdifferentiableAt one_ne_zero
+  by_cases horbit : MDifferentiableAt I I' (fun g : G ↦ g • x) 1
+  · have h := mfderiv_comp_apply_of_eq 1 horbit hinv inv_one ξ
+    rw [GroupLieAlgebra.mfderiv_inv_one_apply, map_neg, ← fundamentalVectorField_apply] at h
+    exact h
+  · -- Inversion is its own inverse, so `g ↦ g⁻¹ • x` is not differentiable at `1` either.
+    have h : ¬ MDifferentiableAt I I' (fun g : G ↦ g⁻¹ • x) 1 := fun h ↦ horbit <| by
+      simpa [Function.comp_def] using h.comp_of_eq (x := 1) hinv inv_one
+    rw [mfderiv_zero_of_not_mdifferentiableAt h, fundamentalVectorField_apply,
+      mfderiv_zero_of_not_mdifferentiableAt horbit]
+    exact neg_zero.symm
 
 end TauCeti
 
