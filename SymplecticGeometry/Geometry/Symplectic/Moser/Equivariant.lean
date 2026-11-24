@@ -156,6 +156,7 @@ theorem timeDependentFlowOf_moserField_smul {G : Type*} [Group G] [MulAction G M
     (by simpa only [Diffeomorph.coe_constSmul] using hβ g)
     (by simpa only [Diffeomorph.constSmul_apply] using hρ g) hX s t) x
   simpa only [Function.comp_apply, Diffeomorph.constSmul_apply] using h
+
 end SymplecticGeometry
 
 namespace TauCeti.SmoothTwoForm
@@ -209,7 +210,7 @@ theorem exists_partialDiffeomorph_mpullback_eq_of_mextDeriv_eq_sub_of_smul
     SymplecticGeometry.mfderiv_moserField (Diffeomorph.constSmul I ∞ g)
       (by simpa only [Diffeomorph.coe_constSmul] using hσG g t)
       (by simpa only [Diffeomorph.coe_constSmul] using hαG g t)
-      (fun _ ↦ by rw [Pi.one_apply, Pi.one_apply]) x
+      (hρG g t) x
   refine ⟨Φ, hfix, hpull, fun g x ↦ ?_, fun g x ↦ ?_⟩
   · have h := (Diffeomorph.constSmul I ∞ g).mem_timeDependentFlowDomain_apply_iff (by simp)
       (hrel g) (s := 0) (t := 1) (x := x)
