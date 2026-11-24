@@ -176,12 +176,12 @@ submanifolds. For a compact Lie group `G` acting smoothly on a σ-compact
 manifold modelled on a finite-dimensional `E'`, preserving a nondegenerate
 `σ`, and `x ∈ MulAction.fixedPoints G M`:
 
-- `TauCeti.isOpen_connectedComponentIn_fixedPoints_inter_fixedPointsOfFinrank`
-  (name to fit Tau Ceti's): the component of the fixed set through `x` is an
-  open subset of the part `fixedPointsOfFinrank 𝓘(ℝ, E') G M d` containing it,
-  `d` the dimension of the fixed tangent subspace at `x`; it is contained in
-  that part by `subset_fixedPointsOfFinrank_of_isPreconnected`, and open since
-  that part is a manifold, hence locally connected;
+- `TauCeti.isOpen_preimage_val_connectedComponentIn_fixedPoints`, for any
+  group of isometries and every `d`: the component of the fixed set through `x`
+  is open in the part `fixedPointsOfFinrank 𝓘(ℝ, E') G M d`, since the fixed
+  set is locally connected (`locallyConnectedSpace_fixedPoints`); it is
+  contained in the part with `d` the dimension of the fixed tangent subspace
+  at `x` by `subset_fixedPointsOfFinrank_of_isPreconnected`;
 - `TauCeti.SmoothTwoForm.IsNondegenerate.exists_isSymplecticSubmanifoldEmbedding_connectedComponentIn_fixedPoints`:
   for `L : Submodule ℝ E'` of that dimension, there is a manifold structure on
   `connectedComponentIn (MulAction.fixedPoints G M) x` modelled on `L` whose
