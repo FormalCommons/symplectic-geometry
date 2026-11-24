@@ -8,10 +8,12 @@ module
 public import Mathlib.Geometry.Manifold.Diffeomorph
 
 /-!
-# The product of the identity with a diffeomorphism
+# Diffeomorphisms of products
 
 For a diffeomorphism `ψ : M ≃ₘ^n⟮I, I'⟯ M'` and a manifold `N` modelled on `J`, the map
-`Prod.map id ψ` is a diffeomorphism of `N × M` onto `N × M'`.
+`Prod.map id ψ` is a diffeomorphism of `N × M` onto `N × M'`. Conversely, a diffeomorphism of
+`N × M` onto `N × M'` that preserves the first coordinate has, at each `t : N`, a slice: a
+diffeomorphism of `M` onto `M'`.
 
 Mathlib's `Diffeomorph.prodCongr` builds the product of two diffeomorphisms, but asks that the
 models of the second factor's source and target share their vector space, so
@@ -21,11 +23,14 @@ different spaces. This file gives that product with the models of `ψ` free.
 ## Main definitions
 
 * `Diffeomorph.reflProdCongr N ψ`: the diffeomorphism `id × ψ` of `N × M` onto `N × M'`.
+* `Diffeomorph.slice Ψ hΨ t`: the slice at `t` of a diffeomorphism `Ψ` of `N × M` onto `N × M'`
+  that preserves the first coordinate.
 
 ## Implementation notes
 
-The definition is Mathlib's `Diffeomorph.prodCongr` of `Diffeomorph.refl` and `ψ`, with the models
-of `ψ` freed. It belongs upstream as a generalization of that definition.
+The definition of `Diffeomorph.reflProdCongr` is Mathlib's `Diffeomorph.prodCongr` of
+`Diffeomorph.refl` and `ψ`, with the models of `ψ` freed. It belongs upstream as a
+generalization of that definition.
 -/
 
 public section
@@ -59,6 +64,44 @@ theorem coe_reflProdCongr (ψ : M ≃ₘ^n⟮I, I'⟯ M') :
 theorem reflProdCongr_symm (ψ : M ≃ₘ^n⟮I, I'⟯ M') :
     (ψ.reflProdCongr N (J := J)).symm = ψ.symm.reflProdCongr N :=
   (rfl)
+
+section slice
+
+variable (Ψ : (N × M) ≃ₘ^n⟮J.prod I, J.prod I'⟯ N × M') (hΨ : ∀ p, (Ψ p).1 = p.1)
+
+/-- The slice at `t` of a diffeomorphism `Ψ` of `N × M` onto `N × M'` that preserves the first
+coordinate: the diffeomorphism of `M` onto `M'` that sends `x` to the second coordinate of
+`Ψ (t, x)`. -/
+def slice (t : N) : M ≃ₘ^n⟮I, I'⟯ M' where
+  toFun x := (Ψ (t, x)).2
+  invFun y := (Ψ.symm (t, y)).2
+  left_inv x := by
+    have hp : (t, (Ψ (t, x)).2) = Ψ (t, x) := Prod.ext (hΨ (t, x)).symm rfl
+    simp only
+    rw [hp, Ψ.symm_apply_apply]
+  right_inv y := by
+    have hp : (t, (Ψ.symm (t, y)).2) = Ψ.symm (t, y) :=
+      Prod.ext (by simpa using hΨ (Ψ.symm (t, y))) rfl
+    simp only
+    rw [hp, Ψ.apply_symm_apply]
+  contMDiff_toFun := contMDiff_snd.comp (Ψ.contMDiff.comp (contMDiff_const.prodMk contMDiff_id))
+  contMDiff_invFun :=
+    contMDiff_snd.comp (Ψ.symm.contMDiff.comp (contMDiff_const.prodMk contMDiff_id))
+
+@[simp]
+theorem slice_apply (t : N) (x : M) : Ψ.slice hΨ t x = (Ψ (t, x)).2 :=
+  (rfl)
+
+@[simp]
+theorem symm_slice_apply (t : N) (y : M') : (Ψ.slice hΨ t).symm y = (Ψ.symm (t, y)).2 :=
+  (rfl)
+
+/-- A diffeomorphism that preserves the first coordinate acts on `(t, x)` through its slice
+at `t`. -/
+theorem apply_eq_slice (p : N × M) : Ψ p = (p.1, Ψ.slice hΨ p.1 p.2) :=
+  Prod.ext (hΨ p) rfl
+
+end slice
 
 end Diffeomorph
 
