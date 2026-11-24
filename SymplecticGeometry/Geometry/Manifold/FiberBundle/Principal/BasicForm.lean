@@ -11,6 +11,11 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
 import TauCeti.Geometry.Lie.Exponential.Derivative.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow
+import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
+import TauCeti.Geometry.Manifold.VectorField.Prod
+import TauCeti.Geometry.Manifold.MFDeriv.Prod
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
+import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 
 /-!
 # Basic forms on smooth principal bundles
@@ -175,6 +180,102 @@ theorem mlieDerivForm_rightFundamentalVectorField_eq_zero [IB.Boundaryless] [IG.
     rw [← SmoothForm.coe_mpullback _ (contMDiff_const_smul (op (mulInvariantExp (t • ξ)))), hβ]
   rw [hconst] at h
   exact h.unique (hasDerivAt_const 0 _)
+
+/-! ### Invariant one-forms on a product `P × N` -/
+
+section Prod
+
+variable [IB.Boundaryless] [IG.Boundaryless] [CompleteSpace EB]
+  {EN : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [CompleteSpace EN]
+  {HN : Type*} [TopologicalSpace HN] {IN : ModelWithCorners ℝ EN HN}
+  {N : Type*} [TopologicalSpace N] [ChartedSpace HN N] [IsManifold IN ∞ N]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+  {A : SmoothForm ((IB.prod IG).prod IN) (ManifoldTotalSpace G P × N) F 1}
+
+omit [CompleteSpace EG] [IB.Boundaryless] [IG.Boundaryless] [CompleteSpace EB] [CompleteSpace EN] in
+/-- The field `(ξ_P, 0)` on `P × N` is differentiable. -/
+theorem mdifferentiable_rightFundamentalVectorField_prod (ξ : GroupLieAlgebra IG G) :
+    MDifferentiable ((IB.prod IG).prod IN) ((IB.prod IG).prod IN).tangent
+      (fun x : ManifoldTotalSpace G P × N ↦
+        (⟨x, (rightFundamentalVectorField (IB.prod IG) ξ x.1, (0 : EN))⟩ :
+          TangentBundle ((IB.prod IG).prod IN) (ManifoldTotalSpace G P × N))) := by
+  intro x
+  have hX := ((contMDiff_rightFundamentalVectorField (IB := IB) (n := ∞) (m := 1) (by simp) ξ).mdifferentiable
+    one_ne_zero x.1)
+  have h0 : MDifferentiableAt IN IN.tangent
+      (fun y ↦ (⟨y, (0 : Π y : N, TangentSpace IN y) y⟩ : TangentBundle IN N)) x.2 :=
+    (contMDiff_zeroSection ℝ (TangentSpace IN)).mdifferentiableAt one_ne_zero
+  have h := Manifold.mdifferentiableAt_prodVectorField hX h0
+  convert h using 3 with y
+  rw [Manifold.prodVectorField_apply]
+  rfl
+
+omit [IsManifold IB ∞ B] [CompleteSpace EG] [ContMDiffFiberBundle ∞ G P IB IG] [IB.Boundaryless]
+  [IG.Boundaryless] [CompleteSpace EB] [CompleteSpace EN] [IsManifold IN ∞ N] in
+/-- The right action of `G` on the first factor of `P × N` is smooth. -/
+theorem contMDiff_op_smul_prod (g : G) :
+    ContMDiff ((IB.prod IG).prod IN) ((IB.prod IG).prod IN) ∞
+      (fun x : ManifoldTotalSpace G P × N ↦ (op g • x.1, x.2)) :=
+  ((contMDiff_const_smul (op g)).comp contMDiff_fst).prodMk contMDiff_snd
+
+omit [IB.Boundaryless] [IG.Boundaryless] [CompleteSpace EB] [CompleteSpace EN] in
+/-- The evaluation `A(ξ_P, 0)` of a smooth one-form on `P × N` is differentiable. -/
+theorem mdifferentiable_apply_rightFundamentalVectorField_prod (ξ : GroupLieAlgebra IG G) :
+    MDifferentiable ((IB.prod IG).prod IN) 𝓘(ℝ, F) (fun q : ManifoldTotalSpace G P × N ↦
+      A.val q ![(rightFundamentalVectorField (IB.prod IG) ξ q.1, (0 : EN))]) := by
+  intro q
+  have h := SmoothForm.mdifferentiableAt_apply_vectorField A
+    (V := ![fun q : ManifoldTotalSpace G P × N ↦
+      (((rightFundamentalVectorField (IB.prod IG) ξ q.1 : EB × EG), (0 : EN)) :
+        TangentSpace ((IB.prod IG).prod IN) q)]) (x := q)
+    (fun i ↦ by fin_cases i; exact mdifferentiable_rightFundamentalVectorField_prod ξ q)
+  convert h using 3 with y
+  ext i
+  fin_cases i
+  rfl
+
+variable (hA : ∀ g : G, SmoothForm.mpullback (fun x : ManifoldTotalSpace G P × N ↦ (op g • x.1, x.2))
+  (contMDiff_op_smul_prod g) A = A)
+include hA
+
+/-- The identity of `mextDeriv_apply_rightFundamentalVectorField_prod` on vectors tangent to a
+slice `P × {n}`: the slice of `A` is invariant on the boundaryless `P`. -/
+private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inl (ξ : GroupLieAlgebra IG G)
+    (x : ManifoldTotalSpace G P) (n : N) (u : TangentSpace (IB.prod IG) x) :
+    mextDeriv A.val (x, n)
+        ![(rightFundamentalVectorField (IB.prod IG) ξ x, (0 : EN)), (u, (0 : EN))] =
+      -mvfderiv ((IB.prod IG).prod IN) (fun q : ManifoldTotalSpace G P × N ↦
+        A.val q ![(rightFundamentalVectorField (IB.prod IG) ξ q.1, (0 : EN))]) (x, n)
+          (u, (0 : EN)) := by
+  have hι : ContMDiff (IB.prod IG) ((IB.prod IG).prod IN) ∞
+      (fun y : ManifoldTotalSpace G P ↦ (y, n)) := contMDiff_id.prodMk contMDiff_const
+  have hα (g : G) : SmoothForm.mpullback (fun y : ManifoldTotalSpace G P ↦ op g • y)
+      (contMDiff_const_smul (op g)) (SmoothForm.mpullback _ hι A) =
+        SmoothForm.mpullback _ hι A := by
+    rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ hι (contMDiff_op_smul_prod g) (by rfl), hA]
+  have hL := mlieDerivForm_rightFundamentalVectorField_eq_zero hα ξ
+  have hX := (contMDiff_rightFundamentalVectorField (IB := IB) (n := ∞) (m := 1) (by simp)
+    ξ).mdifferentiable one_ne_zero x
+  have hC := mlieDerivForm_apply_eq_mextDeriv_add
+    (f := (fun q : ManifoldTotalSpace G P × N ↦
+        A.val q ![(rightFundamentalVectorField (IB.prod IG) ξ q.1, (0 : EN))]) ∘
+      fun y : ManifoldTotalSpace G P ↦ (y, n))
+    (fun y ↦ ?_) ((SmoothForm.mpullback _ hι A).mdifferentiableAt x) hX u
+  · rw [hL, SmoothForm.coe_mpullback, ← mpullback_mextDeriv_at (hι.contMDiffAt.of_le (by simp))
+      ((A.contMDiff _).of_le (by simp)), mpullback_apply_pair,
+      mvfderiv_comp_apply x (mdifferentiable_apply_rightFundamentalVectorField_prod ξ _)
+        (hι.mdifferentiableAt (by simp)), mfderiv_prod_left] at hC
+    simp only [Pi.zero_apply, ContinuousAlternatingMap.coe_zero] at hC
+    rw [eq_neg_iff_add_eq_zero]
+    exact hC.symm
+  · rw [SmoothForm.mpullback_apply, mfderiv_prod_left]
+    simp only [Function.comp_apply]
+    congr 1
+    ext i
+    fin_cases i
+    rfl
+
+end Prod
 
 end LieDeriv
 
