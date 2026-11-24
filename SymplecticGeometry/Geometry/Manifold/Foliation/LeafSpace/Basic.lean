@@ -208,6 +208,13 @@ def IsRegular : Prop :=
   ∀ x : M, ∃ (U : Opens (EuclideanSpace ℝ (Fin (finrank ℝ E - k)))) (s : U → M), 𝓕.IsSlice s ∧
     x ∈ range s
 
+omit [FiniteDimensional ℝ E] [BoundarylessManifold I M] in
+/-- A foliation is regular exactly when every point lies in the range of a slice. -/
+theorem isRegular_def : 𝓕.IsRegular ↔ ∀ x : M,
+    ∃ (U : Opens (EuclideanSpace ℝ (Fin (finrank ℝ E - k)))) (s : U → M), 𝓕.IsSlice s ∧
+      x ∈ range s :=
+  Iff.rfl
+
 namespace IsSlice
 
 variable {U : Opens (EuclideanSpace ℝ (Fin (finrank ℝ E - k)))} {s : U → M}
@@ -233,10 +240,13 @@ theorem injective_mfderiv (hs : 𝓕.IsSlice s) (u : U) :
 
 /-- **The retraction onto a slice along the leaves.** Near a point `s u` of a slice `s` of a smooth
 foliation of a boundaryless manifold, there is a map `r` to the domain of `s`, smooth at `s u`,
-such that `r (s v) = v` for `v` near `u` and every `z` near `s u` lies on the leaf of `s (r z)`. -/
+such that `r (s v) = v` for `v` near `u`, every `z` near `s u` lies on the leaf of `s (r z)`, and
+the differential of `r` at `s u` vanishes on the tangent space of `𝓕`. -/
 theorem exists_retraction (hs : 𝓕.IsSlice s) (u : U) :
     ∃ r : M → U, ContMDiffAt I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) ∞ r (s u) ∧
-      (∀ᶠ v in 𝓝 u, r (s v) = v) ∧ ∀ᶠ z in 𝓝 (s u), 𝓕.SameLeaf z (s (r z)) := by
+      (∀ᶠ v in 𝓝 u, r (s v) = v) ∧ (∀ᶠ z in 𝓝 (s u), 𝓕.SameLeaf z (s (r z))) ∧
+      ∀ v ∈ 𝓕.distribution (s u),
+        mfderiv I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) r (s u) v = 0 := by
   have hk : k ≤ finrank ℝ E := 𝓕.finrank_distribution (s u) ▸ Submodule.finrank_le _
   obtain ⟨V, ψ, hxV, hψ, hker, hleaf⟩ := 𝓕.exists_transverseCoordinate
     (F₂ := EuclideanSpace ℝ (Fin (finrank ℝ E - k))) (by rw [finrank_euclideanSpace_fin]; omega)
@@ -264,7 +274,14 @@ theorem exists_retraction (hs : 𝓕.IsSlice s) (u : U) :
       (s u) :=
     hL.contMDiffAt_localInverse.comp (s u) (hψ _ hxV)
   have hru : Λ (ψ (s u)) = u := hL.localInverse_left_inv hL.localInverse_mem_target
-  refine ⟨fun z ↦ Λ (ψ z), hr, hL.localInverse_eventuallyEq_left.mono fun v hv ↦ hv, ?_⟩
+  refine ⟨fun z ↦ Λ (ψ z), hr, hL.localInverse_eventuallyEq_left.mono fun v hv ↦ hv, ?_, ?_⟩
+  rotate_left
+  · intro v hv
+    have hΛ : MDifferentiableAt 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k)))
+        𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) Λ (ψ (s u)) :=
+      hL.contMDiffAt_localInverse.mdifferentiableAt (by simp)
+    refine (mfderiv_comp_apply (s u) hΛ ((hψ _ hxV).mdifferentiableAt (by simp)) v).trans ?_
+    rw [(hker _ hxV v).2 hv, map_zero]
   have h₁ : ∀ᶠ z in 𝓝 (s u), ψ z ∈ Λ.source :=
     (hψ _ hxV).continuousAt.preimage_mem_nhds
       (hL.localInverse_open_source.mem_nhds hL.localInverse_mem_source)
@@ -283,7 +300,7 @@ theorem isOpenEmbedding_leafSpaceMk_comp (hs : 𝓕.IsSlice s) :
     (fun u v huv ↦ hs.injective_of_sameLeaf u v (leafSpaceMk_eq_leafSpaceMk_iff.1 huv))
     fun W hW ↦ isOpen_iff_forall_mem_open.2 ?_
   rintro _ ⟨u, hu, rfl⟩
-  obtain ⟨r, hr, hrs, hleaf⟩ := hs.exists_retraction u
+  obtain ⟨r, hr, hrs, hleaf, -⟩ := hs.exists_retraction u
   have hru : r (s u) = u := hrs.self_of_nhds
   have hrW : r ⁻¹' W ∈ 𝓝 (s u) :=
     hr.continuousAt.preimage_mem_nhds (by rw [hru]; exact hW.mem_nhds hu)
