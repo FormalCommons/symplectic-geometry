@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.SmoothSingular.Smoothing
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 public import TauCeti.AlgebraicTopology.SimplicialSet.Homology.Basic
 public import TauCeti.Geometry.Manifold.SmoothSingular.Period
@@ -28,6 +29,7 @@ are.
   `TauCeti.integrationCochain` after the change of coefficients `ULift ℤ ≅ ℤ` on chains.
 * `SymplecticGeometry.intIntegrationCochain_sum_apply`: additivity in finitely many continuous
   forms.
+* `SymplecticGeometry.intIntegrationCochain_smul_apply`: homogeneity in the form.
 * `SymplecticGeometry.d_comp_intIntegrationCochain`: Stokes' theorem for these chains.
 * `SymplecticGeometry.intIntegrationCochain_naturality`: naturality under smooth maps.
 * `TauCeti.deRhamCohomology.singularHomologyPeriod`: the pairing of `Hᵖ_dR(M)` with
@@ -116,6 +118,15 @@ theorem intIntegrationCochain_sum_apply [IsManifold I 1 M] {ι : Type*} (s : Fin
       (IsSmoothForm.sum _ _ fun j hj ↦ hφ j (Finset.mem_insert_of_mem hj)), ModuleCat.hom_add,
       LinearMap.add_apply, ih fun j hj ↦ hφ j (Finset.mem_insert_of_mem hj), Finset.sum_insert hi]
 
+/-- The integral over chains with coefficients `ULift ℤ` is homogeneous in the form. -/
+theorem intIntegrationCochain_smul_apply (a : ℝ) (φ : RoughForm I M F p)
+    (c : ((smoothSingularSubcomplex I M : SSet).chainComplex
+      (ModuleCat.of ℤ (ULift.{0} ℤ))).X p) :
+    (intIntegrationCochain (a • φ)).hom c = a • ((intIntegrationCochain φ).hom c : F) := by
+  rw [intIntegrationCochain_def, integrationCochain_smul, ModuleCat.hom_comp, ModuleCat.hom_smul,
+    LinearMap.comp_apply, LinearMap.smul_apply, ← LinearMap.comp_apply, ← ModuleCat.hom_comp,
+    ← intIntegrationCochain_def]
+
 variable {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   {J : ModelWithCorners ℝ E' H'} {N : Type} [TopologicalSpace N] [ChartedSpace H' N]
 
@@ -187,23 +198,6 @@ theorem singularHomologyPeriod_mk_apply (φ : closedForms I M p)
     ((uliftIntHomologyIso (TopCat.of M) p).hom.hom A))) (smoothHomologyPeriod_mk φ)).trans
       (closedFormHomologyPeriod_apply φ _).symm
 
-/-- Changing coefficients from `ULift ℤ` to `ℤ` commutes with the inclusion of smooth singular
-chains into singular chains, on homology. -/
-private theorem smoothSingularHomologyIso_hom_comp_uliftIntHomologyIso_hom :
-    (smoothSingularHomologyIso I M (ModuleCat.of ℤ (ULift.{0} ℤ)) p).hom ≫
-        (uliftIntHomologyIso (TopCat.of M) p).hom =
-      HomologicalComplex.homologyMap
-        (((SSet.chainComplexFunctor (ModuleCat.{0} ℤ)).map uliftIntIso.hom).app
-          (smoothSingularSubcomplex I M : SSet)) p ≫
-        (smoothSingularHomologyIso I M (ModuleCat.of ℤ ℤ) p).hom := by
-  rw [smoothSingularHomologyIso_hom, smoothSingularHomologyIso_hom, uliftIntHomologyIso_hom]
-  -- The change of coefficients on singular homology is, by definition of `singularHomologyFunctor`,
-  -- the map on homology of the change of coefficients on the chains of `TopCat.toSSet`.
-  exact (HomologicalComplex.homologyMap_comp _ _ p).symm.trans
-    ((congrArg (HomologicalComplex.homologyMap · p)
-      (((SSet.chainComplexFunctor (ModuleCat.{0} ℤ)).map uliftIntIso.hom).naturality
-        (smoothSingularSubcomplex I M).ι)).trans (HomologicalComplex.homologyMap_comp _ _ p))
-
 /-- The period of the class of a closed form `φ` on the image in `Hₚ(M; ULift ℤ)` of the class of
 a smooth cycle `z = ∑ nᵢ σᵢ` is the integral `∑ nᵢ ∫_{σᵢ} φ`. -/
 theorem singularHomologyPeriod_mk_apply_smoothCycle (φ : closedForms I M p)
@@ -219,8 +213,16 @@ theorem singularHomologyPeriod_mk_apply_smoothCycle (φ : closedForms I M p)
   refine (singularHomologyPeriod_mk_apply φ _).trans ?_
   set κ := ((SSet.chainComplexFunctor (ModuleCat.{0} ℤ)).map uliftIntIso.hom).app
     (smoothSingularSubcomplex I M : SSet)
-  have h := ConcreteCategory.congr_hom
-    (smoothSingularHomologyIso_hom_comp_uliftIntHomologyIso_hom (I := I) (M := M) (p := p))
+  have hκ : (smoothSingularHomologyIso I M (ModuleCat.of ℤ (ULift.{0} ℤ)) p).hom ≫
+      (uliftIntHomologyIso (TopCat.of M) p).hom =
+        HomologicalComplex.homologyMap κ p ≫
+          (smoothSingularHomologyIso I M (ModuleCat.of ℤ ℤ) p).hom := by
+    rw [uliftIntHomologyIso_hom]
+    -- The change of coefficients on singular homology is, by definition of
+    -- `singularHomologyFunctor`, the map on homology of the change of coefficients on the chains
+    -- of `TopCat.toSSet`.
+    exact smoothSingularHomologyIso_hom_comp_homologyMap_coefficients I M uliftIntIso.hom p
+  have h := ConcreteCategory.congr_hom hκ
     ((((smoothSingularSubcomplex I M : SSet).chainComplex
       (ModuleCat.of ℤ (ULift.{0} ℤ))).homologyπ p).hom z)
   rw [ConcreteCategory.comp_apply, ConcreteCategory.comp_apply,
