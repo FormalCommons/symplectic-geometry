@@ -195,10 +195,10 @@ No statement of this part is one that the authors' errata
   of $M$ at $x_0$ and one at $\psi_{t_0}(x_0)$, for $s$ in an interval
   $[a,b]$ that is a neighbourhood of $t_0$ in $[0,1]$, and extended to all
   $s\in\mathbb R$ by Seeley's operator, giving $\tilde G$. Its partial
-  derivative in $u$ at $(t_0,u_0)$ is invertible, so the implicit function
-  theorem with a moving level solves $\tilde G(s,u)=v$ by a smooth
-  $u=\varphi(s,v)$, and $\varphi(s,v)=\psi_s^{-1}v$ in charts for
-  $s\in[a,b]$, because $\tilde G=G$ there. The slices being bijective, no
+  derivative in $u$ at $(t_0,u_0)$ is invertible, so the inverse function
+  theorem makes $(s,u)\mapsto(s,\tilde G(s,u))$ a local diffeomorphism, and
+  in charts it restricts to $(t,x)\mapsto(t,\psi_t x)$ for $t\in[a,b]$,
+  because $\tilde G=G$ there. The slices being bijective, no
   injectivity of the extension and no compactness are needed. A version taking a
   `TauCeti.SmoothIsotopy` from the identity with surjective slices would need
   the same argument to see that the slices are diffeomorphisms, so it is not
@@ -802,9 +802,9 @@ In `TauCeti.Diffeotopy`, for `[FiniteDimensional ℝ E] [IsManifold I ∞ M]
   M ≃ₘ⟮I, I⟯ M} (hψ : ContMDiff ((𝓡∂ 1).prod I) I ∞ (fun p ↦ ψ p.1 p.2)) :
   ContMDiff ((𝓡∂ 1).prod I) I ∞ (fun p ↦ (ψ p.1).symm p.2)`, in Mathlib's
   namespace `Diffeomorph` as Tau Ceti's `Diffeomorph.contMDiff_symm_family` is, by the
-  local argument of *Decisions*, with Tau Ceti's
-  `HasStrictFDerivAt.jointImplicitFunctionOfProdDomain` for the extended
-  chart map and `contDiffOn_seeleyIccExtend`.
+  local argument of *Decisions*, through
+  `ContMDiff.isLocalDiffeomorph_prodMk_unitInterval` and Mathlib's
+  `IsLocalDiffeomorph.diffeomorphOfBijective`.
 - `ofContMDiff (ψ : unitInterval → M ≃ₘ⟮I, I⟯ M) (hψ : …) (h₀ : ∀ x, ψ 0 x =
   x) : Diffeotopy I ∞ M`, with `ofContMDiff_apply` and `timeSlice_ofContMDiff
   : (ofContMDiff ψ hψ h₀).timeSlice t = ψ t`.
