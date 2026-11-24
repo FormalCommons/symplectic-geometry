@@ -17,7 +17,12 @@ parts 14–21. The third is `atlas/almost-complex-structures.md`
 (McDuff–Salamon, Chapter 4), with parts 22–34. The fourth is
 `atlas/symplectic-group-actions.md` (McDuff–Salamon, Chapter 5, with
 Cannas da Silva [CannasdaSilva2001] for the local models), with parts
-35–44. The parts are named after
+35–44. The fifth is `atlas/symplectic-fibrations.md` (McDuff–Salamon,
+Chapter 6, with Guillemin–Lerman–Sternberg
+[GuilleminLermanSternberg1996] and Seidel [Seidel1997Thesis;
+Seidel2003]), with parts 47–56, together with the auxiliary page
+`auxiliary/diffeomorphisms-of-the-2-sphere.md` that it relies on, with
+parts 45–46. The parts are named after
 their mathematics, not after a page, so that the next pages extend them or
 add parts beside them.
 
@@ -364,13 +369,99 @@ are, and state each milestone in the page's conventions through them.
   a proof needs holomorphic charts, *Kähler stability*'s design file says
   which hypothesis it adds.
 
+### Fibrations, connections and diffeomorphism groups
+
+These conventions serve parts 45–56, for `atlas/symplectic-fibrations.md`
+and `auxiliary/diffeomorphisms-of-the-2-sphere.md`. The fibrations page
+takes its signs from `auxiliary/02-signs.md`, as
+`atlas/symplectic-group-actions.md` does, so the rules of *Group actions,
+moment maps and periods* hold here unchanged: the page's $X_H$ is
+`hamiltonianVectorField` of $-H$, its $\mu$ is minus Tau Ceti's, and no
+bracket is negated.
+
+- **Fibrations.** A fibration with fibre $F$ is given by `π : M → B`, smooth,
+  of manifolds with local trivializations `e : Bundle.Trivialization F π`
+  (Mathlib) that are smooth with smooth inverses between
+  `π ⁻¹' e.baseSet` and `e.baseSet ×ˢ univ`. Tau Ceti's smooth fibre
+  bundles (`TauCeti.ContMDiffFiberBundle`, charted by
+  `TauCeti.ManifoldTotalSpace`) and associated bundles
+  (`TauCeti.AssociatedBundle`) are fibrations in this sense, by a bridge
+  that *Symplectic fibrations* proves once, so that milestones stated for
+  a given manifold $M$ apply to them. A structure group
+  $H\le\mathrm{Diff}(F)$ is an atlas of trivializations covering $B$ whose
+  coordinate changes lie in $H$ at each base point; no topology on $H$ is
+  used. The fibre over $b$ is read through a chart $e$ of the atlas, as
+  the embedding $v\mapsto e^{-1}(b,v)$ of $F$ into $M$; Tau Ceti's
+  `TauCeti.ManifoldTotalSpace.fiberChartedSpace` is used only where a
+  statement needs a fibre as a manifold of its own.
+- **Fibre forms.** As the page's formalization note allows, a symplectic
+  fibration is a fibration with an atlas for $(F,\sigma)$ whose coordinate
+  changes lie in `TauCeti.SmoothForm.diffeomorphStabilizer σ`, and the fibre
+  forms $\sigma_b$ are not data. A form $\tau$ on $M$ *restricts to the
+  fibre forms* when it pulls back to $\sigma$ along $v\mapsto e^{-1}(b,v)$
+  for every chart $e$ of the atlas and every $b$ in its base set.
+  Compatible symplectic forms, connection 2-forms and coupling forms are
+  stated with this predicate.
+- **Connections.** A connection on a fibration is Tau Ceti's
+  `TauCeti.IsEhresmannConnection` on `π`
+  (`Geometry/Manifold/Submersion/EhresmannConnection.lean`) with its
+  pointwise `horizontalLift`. Its curvature is the page's
+  $\Omega_\Gamma(v_1,v_2)=[v_1^\sharp,v_2^\sharp]^{\mathrm{Ver}}$ with
+  Mathlib's `VectorField.mlieBracket`, which is the page's bracket. The
+  holonomy around a loop at $b$ is read in a chart $e$ of the atlas at
+  $b$, as a diffeomorphism of $F$. It is *Hamiltonian* when that
+  diffeomorphism lies in `TauCeti.SmoothForm.hamiltonianGroup σ`; the chart
+  does not matter, since that group is normal among the symplectomorphisms
+  (`TauCeti.SmoothForm.normal_hamiltonianGroup_subgroupOf_diffeomorphStabilizer`).
+- **Principal connections.** Principal bundles are Tau Ceti's
+  `TauCeti.PrincipalBundle`, whose right action is an action of the
+  opposite group, with the fundamental fields $p\xi$ of
+  `TauCeti.PrincipalBundle.rightFundamentalLinearMap`. The Lie algebra is
+  Mathlib's `GroupLieAlgebra I G`, whose bracket is that of left-invariant
+  fields; so $[p\xi,p\eta]=p[\xi,\eta]$, and the page's $F_A(X,Y)=-A([X,Y])$
+  on horizontal fields holds with `mlieBracket`. The library's circle
+  connection forms (`SymplecticGeometry.IsCircleConnectionForm`) are real
+  valued and normalized on `circleLieGenerator`; *Principal connections*
+  proves the comparison with its connection forms for `G = Circle` and
+  keeps them.
+- **Flux and cohomology.** The flux is Tau Ceti's `TauCeti.Diffeotopy.flux`
+  and the flux group `TauCeti.fluxGroup`
+  (`Geometry/Symplectic/Flux/Endpoint.lean`), with the page's sign. Real
+  cohomology is de Rham cohomology (`TauCeti.deRhamCohomology`), as on the
+  page. Integral classes ($H_1(B;\mathbb Z)$, the Euler number of a circle
+  bundle) are singular, and are compared with de Rham classes by Tau Ceti's
+  integration map (`Geometry/Manifold/SmoothSingular/DeRham.lean`). The
+  real first Chern class of the vertical bundle is a de Rham class, built
+  by Chern–Weil in *Compatible symplectic forms*, and compared with the
+  library's integral `SymplecticGeometry.Bundle.firstChernClass` there.
+- **Diffeomorphism groups.** $\mathrm{Diff}(M)$ is Tau Ceti's `TauCeti.Diff`
+  with the weak Whitney topology (`Diffeomorph.weakWhitneyTopology`,
+  `Geometry/Diffeomorphism/Topology.lean`), which for a compact source is
+  the $C^\infty$ topology of the auxiliary page, and a topological group
+  there (`Diffeomorph.isTopologicalGroup`). $S^2$ is the Riemann sphere
+  `OnePoint ℂ` with Tau Ceti's complex manifold structure, compared with
+  the unit sphere of `EuclideanSpace ℝ (Fin 3)` by stereographic projection
+  where `TauCeti.orthogonalToDiffSphere` is used. The space $\mathcal J$ of
+  almost complex structures compatible with the orientation is the subtype
+  of `TauCeti.SmoothAlmostComplexStructure` tamed by one area form, in Tau
+  Ceti's `frameTopology`; on a surface the two conditions agree.
+- **Cotangent model of the Dehn twist.** The page's $T^*S^n$ is the
+  submanifold $\{|q|=1,\ \langle q,p\rangle=0\}$ of
+  $\mathbb R^{n+1}\times\mathbb R^{n+1}$, carrying
+  $\omega_{\mathrm{can}}=d\lambda_{\mathrm{can}}$. Tau Ceti's cotangent
+  bundles carry $-d\lambda$, so the Lagrangian neighbourhood theorem of
+  *Symplectic neighbourhoods* is composed with $(q,p)\mapsto(q,-p)$, as
+  the page's formalization note says.
+
 ## Shared definitions
 
 These notions are used by several parts. All are reused from Tau Ceti or
 Mathlib, except the three definitions of *Standard model* and the bundle
 complex structures of *Symplectic vector bundles*, which *First Chern number*
-also uses, the first Chern class of *First Chern number* and the
-integrability predicate of *Nijenhuis tensor*.
+also uses, the first Chern class of *First Chern number*, the
+integrability predicate of *Nijenhuis tensor*, and the fibrations,
+parallel transport, principal connections and fibre integrals of parts
+47, 48, 50 and 51.
 
 | Notion | Representation | Where |
 |---|---|---|
@@ -409,6 +500,14 @@ integrability predicate of *Nijenhuis tensor*.
 | Average of a form over a compact group | `TauCeti.SmoothForm.measureAverage` with `TauCeti.haarProb` (`Geometry/Manifold/DifferentialForm/Average.lean`) | Tau Ceti |
 | Quotient manifold of a free proper action | `ProperSMul.orbitRelQuotientChartedSpace`, `ProperSMul.instIsManifoldOrbitRelQuotient` (`Geometry/Manifold/GroupAction/Quotient.lean`) | Tau Ceti |
 | Coadjoint orbit $G/G_\nu$ with its symplectic form | `Module.Dual.coadjointOrbitForm` (`Geometry/Symplectic/Coadjoint/Orbit.lean`) | Tau Ceti |
+| Smooth fibre bundle, principal bundle, associated bundle | `TauCeti.ContMDiffFiberBundle`, `TauCeti.PrincipalBundle`, `TauCeti.AssociatedBundle` | Tau Ceti |
+| Fibration with an atlas of structure group $H$; symplectic fibration; forms restricting to the fibre forms | `SymplecticGeometry.FiberAtlas`, with structure groups and symplectic atlases (see *Fibrations, connections and diffeomorphism groups*) | *Symplectic fibrations* |
+| Connection on a fibration, horizontal lift | `TauCeti.IsEhresmannConnection`, `horizontalLift` | Tau Ceti |
+| Parallel transport, holonomy, curvature of a connection | `TauCeti.IsEhresmannConnection.parallelTransport`, `curvature` | *Parallel transport* |
+| Connection 1-form on a principal bundle, its curvature | `SymplecticGeometry.IsConnectionForm`, `curvature` | *Principal connections* |
+| Flux, flux group, endpoint flux | `TauCeti.Diffeotopy.flux`, `TauCeti.fluxGroup`, `TauCeti.endpointFlux` | Tau Ceti |
+| Integration over the fibre | `SymplecticGeometry.FiberAtlas.fiberIntegral` | *Integration over the fibre* |
+| Diffeomorphism group with the $C^\infty$ topology | `TauCeti.Diff` with `Diffeomorph.weakWhitneyTopology` | Tau Ceti |
 
 ### Standard model: the definitions and their API
 
@@ -2989,6 +3088,393 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   flow needs and which neither library has; and the split of the part into
   issues, the Kempf–Ness milestone first.
 
+### 45. Cauchy–Riemann operators on the sphere (needs `design/cauchy-riemann-sphere.md`)
+
+Differential topology and complex analysis only; it waits for no part of
+`atlas/symplectic-fibrations.md`.
+
+- **Files:** in `Geometry/Manifold/Instances/OnePoint/CauchyRiemann/`:
+  `Basic.lean` (for $J\in\mathcal J$, the operator $D_J$ on sections of the
+  degree-one line bundle $L=\mathcal O(1)$, Tau Ceti's `OnePoint.twistCore`,
+  taken as Tau Ceti's real Cauchy–Riemann operator for $J$: the
+  $(0,1)$-part `TauCeti.SmoothAlmostComplexStructure.zeroOnePart` of a fixed
+  connection on $L$, a `TauCeti.IsRealCauchyRiemannOperator` by
+  `IsCovariantDerivativeOn.isRealCauchyRiemannOperator_zeroOnePart`; the
+  connection is chosen so that $D_i$ is the $\bar\partial$-operator of $L$;
+  the identification of $\Lambda^{0,1}_J$ with $\Lambda^{0,1}_i$ by
+  projection, an isomorphism
+  because $J\ne-i$ at every point), `Sobolev.lean` (only what Tau Ceti's
+  `Geometry/Manifold/VectorBundle/Sobolev/` lacks: its
+  `TauCeti.IsRealCauchyRiemannOperator.sobolevL` realizes an operator for
+  the fixed complex structure as a bounded map from `TauCeti.SobolevSection`
+  ($W^{1,p}$) to `TauCeti.zeroOneSobolevSections` ($L^p$); this file
+  realizes $D_J$ in these spaces for every $J$, shows that it depends
+  continuously on $J$ in the operator norm, and gives the elliptic
+  regularity of its kernel), `Standard.lean` ($D_i$ is
+  surjective with kernel $H^0(\mathcal O(1))$ of dimension two, from Tau
+  Ceti's `OnePoint.finrank_holomorphicTwistSections` and the solution of
+  $\bar\partial$ on $(0,1)$-forms,
+  `TauCeti.SmoothForm.IsOfType.exists_delBar_eq_projectivization`, extended
+  to $\mathcal O(1)$ by the splitting into two charts that the page
+  describes) and `Kernel.lean` (index two for all $J$, by Tau Ceti's
+  `Continuous.index_eq_of_preconnectedSpace` on the connected $\mathcal
+  J$; every nonzero element of $E_J=\ker D_J$ has exactly one zero, which
+  is simple, from integrability and Tau Ceti's local holomorphic frames,
+  `Geometry/Manifold/VectorBundle/CauchyRiemann/HolomorphicFrame/`; hence
+  $\dim E_J=2$ and $D_J$ onto; the spaces $E_J$ form a continuous rank-two
+  family in $C^\infty(L)$, from
+  `ContinuousLinearMap.IsFredholm.exists_continuousOn_ker_parametrization`).
+- **Builds on:** the merged *Isothermal coordinates* (integrability of $J$,
+  `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`) and
+  *Symplectic vector bundles* (contractibility of the tamed structures,
+  which makes $\mathcal J$ connected); Tau Ceti (line bundles on
+  `OnePoint ℂ`, real Cauchy–Riemann operators and Sobolev sections in
+  `Geometry/Manifold/VectorBundle/`, Fredholm families in
+  `Analysis/Fredholm/`).
+- **Milestones:** none; it serves *Diffeomorphisms of the 2-sphere*.
+- **The design file decides:** how $D_J$ for a varying $J$ meets Tau
+  Ceti's realization, which is for one complex structure (by the projection
+  of `Basic.lean`, or by `sobolevL` for the complex atlas that $J$
+  defines, with a comparison of the spaces); whether higher Sobolev orders
+  are needed or $W^{1,p}$ with Tau Ceti's Rellich and Morrey results
+  suffices; the form of elliptic regularity it needs; and the zero count,
+  which the page reduces to integrability, local
+  solvability of $\bar\partial$ on a disc and the sum of indices of the
+  zeros of a section, given by the merged
+  `VectorBundle/ChernNumber/EulerNumber.lean`.
+
+### 46. Diffeomorphisms of the 2-sphere (needs `design/sphere-diffeomorphisms.md`)
+
+- **Files:** in `Geometry/Diffeomorphism/Sphere/`, beside Tau Ceti's
+  files of that folder: `ComplexStructure.lean` (the space $\mathcal J$
+  with its topology, the pull-back $\phi^*J$, its continuity in $\phi$ and
+  $J$, and the contraction of $\mathcal J$ onto $i$), `Uniformization.lean`
+  (the map $\sigma(J)$ built from sections of $E_J$ vanishing at $0$ and
+  $\infty$, its continuity, and that it is the unique biholomorphism
+  $(S^2,J)\to(S^2,i)$ fixing $0,1,\infty$, from Tau Ceti's
+  `TauCeti.RiemannSurface.biholomorphOfDegreeEqOne` and
+  `Diffeomorph.eq_refl_of_apply_zero_one_infty_eq_self`), `Mobius.lean`
+  ($\mathrm{PSL}(2,\mathbb C)$ as the stabilizer of $i$ in $\mathrm{Diff}^+$,
+  from `Diffeomorph.exists_coe_eq_smul`, with its subspace topology equal
+  to its Lie group topology, and its deformation retraction onto
+  $\mathrm{SO}(3)$ by the polar decomposition), `Trivialization.lean` (the
+  homeomorphism $\mathrm{Diff}^+(S^2)\cong\mathcal J\times\mathrm{PSL}(2,\mathbb
+  C)$ over $\mathcal J$) and `Smale.lean` (named like Tau Ceti's file: the
+  strong deformation retraction of $\mathrm{Diff}^+(S^2)$ onto
+  $\mathrm{SO}(3)$, with $\pi_0=0$ and $\pi_1\cong\mathbb Z/2$ from Tau
+  Ceti's `TauCeti.specialOrthogonalGroupFundamentalGroupMulEquiv`).
+- **Builds on:** *Cauchy–Riemann operators on the sphere*; the merged
+  *Symplectic vector bundles*; Tau Ceti (`TauCeti.Diff`, the weak Whitney
+  topology, `TauCeti.orthogonalToDiffSphere`, Möbius transformations of
+  `OnePoint ℂ`).
+- **Milestones:** *Diffeomorphisms of the 2-sphere form a trivial principal
+  bundle over the complex structures*, *Smale's theorem on the
+  diffeomorphism group of the 2-sphere*, both by the proof that the page
+  proposes, which reads $\mathrm{Diff}^+(S^2)$ as a product over
+  $\mathcal J$.
+- **The design file decides:** the orientation-preserving subgroup
+  $\mathrm{Diff}^+(S^2)$ (through Tau Ceti's orientations or the degree,
+  `Geometry/Diffeomorphism/Degree.lean`), the comparison of `OnePoint ℂ`
+  with the unit sphere, and the form of "strong deformation retract".
+
+### 47. Parallel transport (needs `design/parallel-transport.md`)
+
+- **Files:** in Tau Ceti's folder `Geometry/Manifold/Submersion/`:
+  `ParallelTransport.lean` (for an Ehresmann connection
+  `TauCeti.IsEhresmannConnection` on a proper submersion, horizontal lifts
+  of smooth paths of the base exist and are unique; parallel transport
+  `TauCeti.IsEhresmannConnection.parallelTransport` between fibres is a
+  diffeomorphism, independent of the parametrization, compatible with
+  concatenation and inversion, and smooth in a smooth family of paths),
+  `RadialTrivialization.lean` (transport along rays from the centre of
+  a chart ball trivializes the submersion over the ball, so a proper
+  surjective submersion is locally trivial, the direction of Exercise 6.1.1
+  that Tau Ceti lacks) and `Curvature.lean` (the curvature
+  $[v_1^\sharp,v_2^\sharp]^{\mathrm{Ver}}=[v_1^\sharp,v_2^\sharp]-[v_1,v_2]^\sharp$,
+  tensorial in $v_1,v_2$; it vanishes exactly when the horizontal
+  distribution is involutive). A connection given by a two-form
+  nondegenerate on the fibres, $\mathrm{Hor}=\mathrm{Ver}^\tau$, is
+  *Symplectic fibrations*' and not this part's.
+- **Builds on:** Tau Ceti (`TauCeti.IsEhresmannConnection` with
+  `horizontalLift`, time-dependent flows and their completeness criteria,
+  `Manifold.IsSubmersion`).
+- **Milestones:** none; it serves *Symplectic fibrations* and *Coupling
+  forms*.
+- **The design file decides:** whether the transport is stated for proper
+  submersions or for locally trivial maps with compact fibre (the two agree
+  by `RadialTrivialization.lean`), how fibres are given as manifolds (Tau
+  Ceti's regular-fibre atlas `TauCeti.ManifoldTotalSpace.fiberChartedSpace`
+  or reading in charts), and the smoothness in parameters that the
+  trivialization needs.
+
+### 48. Symplectic fibrations (needs `design/symplectic-fibrations.md`)
+
+- **Files:** in `Geometry/Symplectic/Fibration/`: `Basic.lean` (the
+  atlases of a smooth map `π` with fibre $F$,
+  `SymplecticGeometry.FiberAtlas`, with structure group $H\le\mathrm{Diff}(F)$
+  and its reductions; oriented and symplectic atlases; the bridge from Tau
+  Ceti's `ContMDiffFiberBundle` and `AssociatedBundle`; the predicate that a
+  form restricts to the fibre forms, with its independence of the chart;
+  compatible symplectic forms, for a symplectic atlas and, with an
+  orientation, for an oriented one), `Connection.lean` (a two-form that
+  restricts to the fibre forms defines the Ehresmann connection
+  $\mathrm{Ver}^\tau$; two forms give the same connection exactly when their
+  difference vanishes on vertical vectors; every connection with
+  symplectic parallel transport arises so; connection two-forms, which are
+  vertically closed; they exist, by a partition of unity, and form a convex
+  set; and the milestone that $\Gamma_\tau$ is symplectic exactly when
+  $\tau$ is vertically closed, by the page's route through Cartan's
+  formula, Tau Ceti's `TauCeti.mlieDerivForm_eq_interior_mextDeriv_add`),
+  `LocalForm.lean` (the normal form
+  $\tau=\sigma+\sum_i\alpha_i\wedge dx_i+\sum_{i<j}f_{ij}\,dx_i\wedge dx_j$
+  in a symplectic chart over a coordinate patch, and the horizontal lifts
+  $(\partial_i,X_i)$ with $\iota(X_i)\sigma=\alpha_i$, reused by *Coupling
+  forms*) and `SymplecticFibres.lean` (a closed manifold fibred over $B$
+  with a closed two-form symplectic on every fibre is a symplectic
+  fibration with these fibre forms, by parallel transport of
+  $\mathrm{Ver}^\omega$ along radial lines, the page's second route).
+- **Builds on:** *Parallel transport*; Tau Ceti (fibre bundles, Lie
+  derivatives and Cartan's formula, smooth partitions of unity of Mathlib).
+- **Milestones:** *Fibrations with symplectic fibres are symplectic
+  fibrations*, *Symplectic connections correspond to vertically closed
+  2-forms*.
+- **The design file decides:** the structure `FiberAtlas` (a set of
+  trivializations or an indexed family, how a reduction is compared with
+  the given atlas) and how much of the fibre-as-manifold API of Tau Ceti it
+  uses.
+
+### 49. Compatible symplectic forms (needs `design/compatible-symplectic-forms.md`)
+
+- **Files:** in `Geometry/Symplectic/Fibration/`: `Thurston.lean` (a closed
+  extension $\tau$ of the fibre forms in a class $a$ with
+  $\iota_b^*a=[\sigma_b]$, by the page's step 1, through the homotopy
+  invariance `TauCeti.deRhamCohomology.map_eq_of_homotopy` on the preimage
+  of a contractible open set; then $\tau+K\pi^*\beta$ symplectic for large
+  $K$ on a compact $M$; and the converse, that a compatible form gives $a$),
+  `ChernClass.lean` (the vertical bundle of a symplectic fibration as a
+  symplectic vector bundle over $M$, with the merged `Subbundle.lean` and
+  `Symplectic/Basic.lean`; its real first Chern class as a de Rham class,
+  by Chern–Weil for the determinant line, natural under pull-back and equal
+  to the image of the library's `SymplecticGeometry.Bundle.firstChernClass`;
+  its restriction to a fibre is $c_1(TF_b)$; the criterion) and
+  `Surface.lean` (on an oriented fibration with closed connected surface
+  fibre, a smooth family of area forms of total area one, by convexity and
+  a partition of unity, made symplectic in each trivialization by Moser's
+  argument with a parameter, from the merged `Moser/Family.lean`; and
+  $c_1(TF)=\chi(F)/\mathrm{area}\cdot[\sigma]$ with $H^2(F;\mathbb R)\cong\mathbb R$,
+  from the merged Chern–Weil formula
+  `SymplecticGeometry.Bundle.chernNumber_eq_integral_curvature`).
+- **Builds on:** *Symplectic fibrations* (only `Basic.lean` and
+  `Connection.lean`); the merged *Symplectic vector bundles*, *First
+  Chern number* and *Moser isotopy*; Tau Ceti (de Rham cohomology and its
+  homotopy invariance).
+- **Milestones:** *Thurston's theorem on symplectic fibrations*, *Chern
+  class criterion for compatible symplectic forms*, *Symplectic forms on
+  surface bundles with fibre genus different from one*. The last follows
+  the page's elementary route, not the book's reduction of a principal
+  bundle with structure group $\mathrm{Diff}^+(F)$.
+- **The design file decides:** the de Rham first Chern class over a
+  general base (the merged Chern–Weil file treats circle bundles over
+  surfaces; the general case needs a connection on the unit circle bundle
+  of the determinant line and the comparison with the integral class), and
+  how the hypothesis $c_1(TF)=\lambda[\sigma]$ is stated with it.
+
+### 50. Principal connections (needs `design/principal-connections.md`)
+
+- **Files:** in `Geometry/Manifold/FiberBundle/Principal/`, beside the
+  merged `CircleConnection.lean` and `BasicForm.lean`: `Connection.lean`
+  (connection one-forms with values in `GroupLieAlgebra I G`,
+  `SymplecticGeometry.IsConnectionForm`: $A(p\xi)=\xi$ and
+  $A_{pg}(vg)=\mathrm{Ad}(g^{-1})A_p(v)$; their horizontal spaces; existence
+  over a paracompact base and the affine structure over
+  $\Omega^1(B,\mathrm{ad}P)$; the curvature $F_A=dA+\tfrac12[A\wedge A]$,
+  horizontal and equivariant, with $F_A(X,Y)=-A([X,Y])$ on horizontal
+  $X,Y$; and the comparison with `IsCircleConnectionForm` for
+  `G = Circle`); in `Geometry/Manifold/FiberBundle/Associated/`:
+  `Connection.lean` (the connection induced on $P\times_GF$, Exercise
+  6.3.2); and `Geometry/Symplectic/Fibration/Associated.lean` (Weinstein's
+  form: for a Hamiltonian action with equivariant moment map, in the
+  page's sign `ω.IsEquivariantMomentMap (fun x ↦ -μ x)`, the form
+  $\sigma+d\langle\mu,A\rangle$ on $P\times F$ equals
+  $\pi_A^*\sigma+\langle\mu,F_A\rangle$, is closed, invariant and
+  horizontal, so it descends to a closed form on $P\times_GF$ restricting
+  to $\sigma$ along each fibre inclusion $x\mapsto[p,x]$; $F$ need not be
+  compact).
+- **Builds on:** Tau Ceti (principal and associated bundles, their
+  fundamental fields and smooth structure, equivariant moment maps); the
+  merged `Principal/BasicForm.lean` (basic forms descend) and
+  `CircleConnection.lean`.
+- **Milestones:** *Weinstein's universal construction for associated
+  symplectic fibrations*, by the page's direct route.
+- It uses Tau Ceti's moment map predicates as *Moment maps* states them
+  and needs no file of *Lie group actions* or *Moment maps*, so it waits for
+  no issue of `atlas/symplectic-group-actions.md`.
+- **The design file decides:** how forms with values in `GroupLieAlgebra`
+  are written (Tau Ceti's vector-valued `SmoothForm` or a basis), how
+  $[A\wedge A]$ is formed, and how the descent along
+  $P\times F\to P\times_GF$ is reduced to the merged descent along a
+  principal bundle projection.
+
+### 51. Integration over the fibre (needs `design/fiber-integration.md`)
+
+- **Files:** `Geometry/Manifold/DifferentialForm/FiberIntegral.lean`
+  (for an oriented fibration with closed fibre of dimension $m$, the operator
+  $\int_F\colon\Omega^j(M)\to\Omega^{j-m}(B)$,
+  `SymplecticGeometry.FiberAtlas.fiberIntegral`, defined in each chart and
+  glued; its value in a trivialization; it commutes with $d$; the
+  projection formula $\int_F(\pi^*\beta\wedge\alpha)=\beta\wedge\int_F\alpha$;
+  naturality under pull-back along maps of the base; and, in degree $m$,
+  the integral over each fibre).
+- **Builds on:** *Symplectic fibrations* (only `Basic.lean`, for oriented
+  atlases); Tau Ceti (`integralTopForm`, orientations, Stokes's theorem on
+  closed manifolds).
+- **Milestones:** none; it serves *Coupling forms*. Later pages
+  (characteristic classes of bundles, Gysin sequences) can use it.
+- **The design file decides:** the sign convention for the fibre
+  integral of a product (the page refers to Bott–Tu [BottTu1982]), and
+  whether the fibre has to be closed or compactly supported forms are
+  allowed.
+
+### 52. Flux homomorphism (needs `design/flux-homomorphism.md`)
+
+- **Files:** in Tau Ceti's folder `Geometry/Symplectic/Flux/`, beside the
+  library's `Hamiltonian.lean` and `CompactSupport.lean`: `Kernel.lean`
+  (on a closed connected symplectic manifold, a symplectic diffeotopy with
+  zero flux ends in `TauCeti.SmoothForm.hamiltonianGroup`, and is
+  homotopic with fixed ends to a Hamiltonian one: McDuff–Salamon, Theorem
+  10.2.5, so that `TauCeti.endpointFlux` has kernel
+  $\mathrm{Ham}$), `Countable.lean` (the flux group `TauCeti.fluxGroup` is
+  countable, from the Weinstein chart of the diagonal given by the merged
+  Lagrangian neighbourhood theorem), `Family.lean` (each smooth family in
+  $\mathrm{Ham}$ has a time-dependent Hamiltonian generating it,
+  McDuff–Salamon, Proposition 10.2.12) and `Loop.lean` (the orbits
+  of a loop in $\mathrm{Ham}$ are null-homologous over $\mathbb R$,
+  Proposition 10.2.19).
+- **Builds on:** the merged *Hamiltonian flows* and *Symplectic
+  neighbourhoods*; Tau Ceti (`TauCeti.Diffeotopy.flux`,
+  `flux_trans`, `fluxGroup`, `endpointFlux`, `mem_ker_endpointFlux_iff`,
+  `hamiltonianGroup_subgroupOf_le_ker_endpointFlux`).
+- **Milestones:** none; it serves *Coupling forms* and *Hamiltonian
+  fibrations*. These results are McDuff–Salamon's Chapter 10, which a later
+  page may cover; they are built here as library results.
+- **The design file decides:** the route to countability, and whether
+  `Family.lean` and `Loop.lean` are needed by the routes that *Coupling
+  forms* and *Hamiltonian fibrations* take.
+
+### 53. Coupling forms (needs `design/coupling-forms.md`)
+
+- **Files:** in `Geometry/Symplectic/Fibration/`: `Holonomy.lean`
+  (holonomy of a symplectic connection read in a symplectic chart;
+  contractible loops as boundaries of smooth discs; the symplectic
+  trivialization over a disc, and the holonomy around its boundary as the
+  end of a symplectic isotopy whose flux is computed from $\tau$),
+  `Curvature.lean` (the curvature identity
+  $\iota(\Omega_\Gamma(v_1,v_2))\tau=d(\tau(v_1^\sharp,v_2^\sharp))-\iota(v_2^\sharp)\iota(v_1^\sharp)d\tau$
+  on fibres; the local formula for $\Omega_\Gamma(\partial_i,\partial_j)$;
+  and the equivalence of Hamiltonian holonomy around contractible loops,
+  Hamiltonian curvature and exactness of $\partial_i\alpha_j-\partial_j\alpha_i$),
+  `Coupling.lean` (the coupling form: existence of a closed connection
+  two-form exactly under Hamiltonian holonomy around contractible loops,
+  the normalization $\int_F\tau_\Gamma^{k+1}=0$, its equivalence with
+  fibrewise mean value zero of $\tau_\Gamma(v_1^\sharp,v_2^\sharp)$, uniqueness, and
+  $\tau=\tau_\Gamma+\pi^*\beta$) and `SimplyConnected.lean` (the corollary
+  for a fibre with $H^1(F;\mathbb R)=0$).
+- **Builds on:** *Symplectic fibrations*, *Parallel transport*,
+  *Integration over the fibre*, *Flux homomorphism* (only `Kernel.lean`
+  and `Countable.lean`); *Compatible symplectic forms* (only
+  `Thurston.lean`, for the corollary's second statement); the merged
+  *Hamiltonian flows* (mean-zero Hamiltonians on a connected fibre).
+- **Milestones:** *Coupling form of a symplectic connection*, *Compatible
+  symplectic forms for fibrations with simply connected fibre*, *Curvature
+  identity for symplectic connections*.
+- **The design file decides:** the proof of 2 ⇒ 1 (through the curvature,
+  following Guillemin–Lerman–Sternberg, or in local coordinates with the
+  normalization that the page corrects), and the form of the three facts
+  that the book leaves as Exercises 6.4.4, 6.4.5 and 6.4.7, which the page
+  says no source proves in full.
+
+### 54. Hamiltonian fibrations (needs `design/hamiltonian-fibrations.md`)
+
+- **Files:** in `Geometry/Symplectic/Fibration/`: `Hamiltonian.lean`
+  (Hamiltonian connections and fibrations; a reduction of the structure
+  group to $\mathrm{Ham}(F,\sigma)$; 1 ⇔ 2), `FluxHomomorphism.lean` (for a
+  closed connection two-form on a fibration trivial over every loop, the
+  homomorphism $f_\tau\colon H_1(B;\mathbb Z)\to H^1(F;\mathbb R)/\Gamma_\sigma$
+  and its lifts; the homomorphism $\mu_{\Phi^*a}$ of a class over a
+  trivialization over the 1-skeleton) and `Characterization.lean` (the four
+  conditions of Theorem 6.5.3 with the torsion condition, the induction over
+  skeleta of a triangulation in 3 ⇒ 1).
+- **Builds on:** *Coupling forms*, *Flux homomorphism*, *Symplectic
+  fibrations*; Tau Ceti (smooth triangulations,
+  `Geometry/Manifold/SmoothTriangulation/`, singular homology).
+- **Milestones:** *Characterization of Hamiltonian fibrations*, in the
+  corrected form with the torsion condition, as the page states it.
+- **The design file decides:** the meaning of a symplectic trivialization
+  over the 1-skeleton (a trivialization over an open neighbourhood, as the
+  page suggests), the reading of $H_1(B;\mathbb Z)$ and of torsion, and the
+  steps of 3 ⇒ 1 that the book leaves to the reader.
+
+### 55. Dehn twists (needs `design/dehn-twists.md`)
+
+- **Files:** in `Geometry/Symplectic/DehnTwist/`: `Model.lean` (the
+  manifold $T=T^*S^n\subset\mathbb R^{n+1}\times\mathbb R^{n+1}$ with
+  $d\lambda_{\mathrm{can}}$; the normalized geodesic flow as the
+  Hamiltonian flow of $|p|$, from Tau Ceti's great circles
+  `TauCeti.isGeodesicCurve_sphereGreatCircle`; the model twist for $R$ with
+  $R(-t)=R(t)-t$, its smoothness across the zero section through
+  $R(t)=t/2+E(t^2)$, its support, $O(n+1)$-equivariance, the primitive $K$
+  of $\tau^*\lambda-\lambda$, and the compactly supported Hamiltonian
+  isotopy between two models, with Tau Ceti's commuting Hamiltonian flows),
+  `Framing.lean` (framings of a Lagrangian sphere, as classes of
+  parametrizations modulo isotopy and $O(n+1)$, with Tau Ceti's
+  `TauCeti.orthogonalToDiffSphere`) and `Sphere.lean` (the twist along a
+  framed Lagrangian sphere, its independence of the choices up to
+  compactly supported symplectic isotopy, through uniqueness up to isotopy
+  in the Lagrangian neighbourhood theorem, and its exactness).
+- **Builds on:** the merged *Symplectic neighbourhoods*
+  (`Neighborhood/Lagrangian.lean`), *Isotopy extension* and *Hamiltonian
+  flows* (`Flux/CompactSupport.lean`); Tau Ceti (geodesics of the round
+  sphere, the weak Whitney topology, isotopy classes of orthogonal maps of
+  a sphere in `Geometry/Diffeomorphism/Sphere/Isotopy.lean`, commuting
+  Hamiltonian flows).
+- **Milestones:** *Dehn twist along a framed Lagrangian sphere*. The
+  remark that a Lagrangian 2-sphere has one framing, which uses Smale's
+  theorem, is not part of the milestone, so the part does not wait for
+  *Diffeomorphisms of the 2-sphere*.
+- **The design file decides:** how $T$ is built (as a submanifold of
+  $\mathbb R^{2n+2}$ or as Tau Ceti's cotangent bundle of the sphere with
+  the sign change), the isotopy relation in the framing (smooth isotopies
+  or paths in the weak Whitney topology), and the uniqueness of Lagrangian
+  neighbourhoods, which the merged part proves only as existence.
+
+### 56. Sphere bundles over surfaces (needs `design/sphere-bundles-over-surfaces.md`)
+
+- **Files:** in `Geometry/Manifold/FiberBundle/SphereBundle/`:
+  `Clutching.lean` (oriented $S^2$-bundles over a surface with boundary
+  are trivial, and over a closed surface they are classified by the
+  homotopy class of a clutching loop in $\mathrm{Diff}^+(S^2)$, with
+  continuous homotopies made smooth) and `Classification.lean` (the two
+  bundles, and $P\times_{S^1}S^2$ trivial exactly for even Euler number,
+  with the circle bundles and Euler numbers of the merged *First Chern
+  number*); and `Geometry/Symplectic/RuledSurface.lean` (the sections
+  $B_k$, $H^2(X_B;\mathbb R)$ with the basis $b_\pm$ through the merged
+  Leray–Hirsch files, the intersection numbers, and the three parts of the
+  milestone: the necessary condition, the $S^1$-invariant form of
+  Exercise 6.2.6, and the form on $\widetilde B\times_\rho S^2$ of Exercise
+  6.2.9 for positive genus).
+- **Builds on:** *Diffeomorphisms of the 2-sphere* (only `Smale.lean`,
+  for $\pi_0$ and $\pi_1$); *Symplectic fibrations* (only `Basic.lean`, for
+  oriented fibrations and compatible forms); the merged *First Chern
+  number* and the library's cohomology (`AlgebraicTopology/Cohomology/`).
+- **Milestones:** *Classification of oriented 2-sphere bundles over
+  surfaces*, by clutching; *Symplectic classes on the nontrivial 2-sphere
+  bundle over a surface*.
+- **The design file decides:** the models of $X_B$ that the constructions
+  use and the isomorphisms between them, and how the coefficients
+  $\mu_\pm$ are read (as the integrals of $a$ over $B_{\pm1}$, which
+  avoids Poincaré duality in the statement), and how the singular
+  Leray–Hirsch theorem is brought to de Rham classes.
+
 ## Dependencies and build order
 
 Each part depends only on the parts listed, besides Mathlib and Tau Ceti.
@@ -3016,6 +3502,11 @@ behind.
 | 0 | *Hamiltonian reduction* | — |
 | 0 | *Convexity* | — |
 | 0 | *Kähler stability* | — |
+| 0 | *Cauchy–Riemann operators on the sphere* | — (it uses only merged files of *Isothermal coordinates* and *Symplectic vector bundles*) |
+| 0 | *Parallel transport* | — |
+| 0 | *Principal connections* | — (it uses only merged files of *First Chern number*; no file of *Lie group actions* or *Moment maps*) |
+| 0 | *Flux homomorphism* | — (it uses only merged files of *Hamiltonian flows* and *Symplectic neighbourhoods*) |
+| 0 | *Dehn twists* | — (it uses only merged files of *Symplectic neighbourhoods*, *Isotopy extension* and *Hamiltonian flows*) |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
 | 1 | *Symplectic vector spaces* | *Standard model*, *Symplectic group* |
 | 1 | *Lagrangian Grassmannian* | *Standard model*, *Symplectic vector spaces* (only `Subspace.lean`, which is merged) |
@@ -3034,16 +3525,23 @@ behind.
 | 1 | *Hamiltonian circle actions* | *Lie group actions* (only `Circle.lean`), *Moment maps* (only `MomentMap/WeaklyHamiltonian.lean`); the nondegeneracy of the pairing can start at once |
 | 1 | *Minimal coupling* | *Lie group actions* (only `Circle.lean`); merged files of *First Chern number* and *Smooth families* |
 | 1 | *Equivariant localization* | *Lie group actions* (only `Circle.lean`), *Equivariant normal forms* (only `WeightModel/NormalForm.lean`); the Cartan complex can start at once |
+| 1 | *Diffeomorphisms of the 2-sphere* | *Cauchy–Riemann operators on the sphere*; `ComplexStructure.lean` and `Mobius.lean` can start at once |
+| 1 | *Symplectic fibrations* | *Parallel transport* (only for `Connection.lean` and `SymplecticFibres.lean`; `Basic.lean` and `LocalForm.lean` can start at once) |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `Topology/ComplexStructure/Basic.lean`, which besides it imports only Tau Ceti and the merged `LinearAlgebra/Matrix/NonsingularInverse.lean` and `Analysis/CStarAlgebra/Matrix.lean`, which import only Mathlib and merged files that do, and `LinearAlgebra/ComplexStructure/Standard.lean`, which besides `Action.lean` imports only `LinearAlgebra/Symplectic/Compatible.lean` of this part, `LinearAlgebra/Symplectic/Standard/Matrix.lean` of *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`, which imports only Tau Ceti, and Tau Ceti; and `Topology/ComplexStructure/Orthogonal.lean`, which besides `Topology/ComplexStructure/Basic.lean` imports only `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model*, `Analysis/Matrix/Polar/Deformation.lean` of *Symplectic group* and Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged, and `Analysis/Matrix/Polar/Deformation.lean`, through `Orthogonal.lean`, which is merged) |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
 | 2 | *Isotopy extension* | *Hamiltonian flows* (only `DeRham/FamilyPrimitive.lean`, `Flux/Hamiltonian.lean` and `Flux/CompactSupport.lean`), *Smooth families* (only `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `DeRham/SmoothFamily/GoodCover.lean`), *Moser isotopy* (only `Moser/Field.lean`); the merged *Standard model* and *Linear Moser*; the issues of its design file that use none of these can start at once |
 | 2 | *Symplectic neighbourhoods* | *Moser isotopy* (only `Relative.lean`); *Symplectic vector spaces* (only `LinearAlgebra/Symplectic/Reduction.lean` and `LinearAlgebra/Symplectic/Subspace.lean`, which are merged); *Compatible complex structures* (only `LinearAlgebra/Symplectic/Compatible.lean`, which is merged); `CharacteristicFoliation.lean` and `AdaptedDarboux.lean` can start at once |
 | 2 | *Complex projective space* | *Complex submanifolds* (only for the corollary in `Kahler.lean`; the other files can start at once) |
+| 2 | *Compatible symplectic forms* | *Symplectic fibrations* (only `Basic.lean` and `Connection.lean`); merged files of *Symplectic vector bundles*, *First Chern number* and *Moser isotopy* |
+| 2 | *Integration over the fibre* | *Symplectic fibrations* (only `Basic.lean`) |
+| 2 | *Sphere bundles over surfaces* | *Diffeomorphisms of the 2-sphere* (only `Smale.lean`, for `Clutching.lean` and `Classification.lean`), *Symplectic fibrations* (only `Basic.lean`); the constructions of `RuledSurface.lean` can start once `Basic.lean` is merged |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); *Moser isotopy* (only `Darboux/Strict.lean`, through `LocalDiffeomorph/MFDeriv.lean`, merged); the other files of the part can start at once |
+| 3 | *Coupling forms* | *Symplectic fibrations*, *Parallel transport*, *Integration over the fibre*, *Flux homomorphism* (only `Kernel.lean` and `Countable.lean`), *Compatible symplectic forms* (only `Thurston.lean`, for `SimplyConnected.lean`); in `Curvature.lean`, the curvature identity and the local curvature formula wait only for *Symplectic fibrations*, and the equivalence also waits for *Parallel transport*, `Holonomy.lean` and *Flux homomorphism* (`Kernel.lean`, `Countable.lean`) |
 | 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles*; `Geometry/Manifold/DifferentialForm/Pullback/Family.lean` of *Moser isotopy*, which is merged |
 | 4 | *Adjunction* | *First Chern number* (only `FirstChernClass.lean`, `ChernNumber/Basic.lean` and `ChernNumber/Axioms.lean`); `NormalSpace/ComplexStructure.lean` and `NormalSplitting.lean` can start at once |
 | 4 | *Chern classes* | *First Chern number* (only `FirstChernClass.lean`, for the comparison of $c_1$); the other issues of its design file can start at once |
+| 4 | *Hamiltonian fibrations* | *Coupling forms*, *Flux homomorphism*, *Symplectic fibrations* |
 | 5 | *Projective hypersurfaces* | *Chern classes*, *First Chern number* (only Poincaré duality, #810); the bundle isomorphisms on $\mathbb CP^{n+1}$, the normal bundle and the Lefschetz theorems can start at once |
 
 The design issues of the parts marked as needing one can start at once, in
@@ -3219,9 +3717,46 @@ theorem with the page's hypotheses.
 
 **Shared with `atlas/symplectic-fibrations.md`.** That page builds on
 *Lie group actions* and *Moment maps*, and adds its parts beside them. Its
-connections on principal bundles with any structure group are left to its
-design; this page needs only the circle case, which the library has
+connections on principal bundles with any structure group are those of
+*Principal connections*; this page needs only the circle case, which the library has
 (`Geometry/Manifold/FiberBundle/Principal/CircleConnection.lean`).
+
+### `atlas/symplectic-fibrations.md`
+
+Every milestone of `atlas/symplectic-fibrations.md` except the deferred
+*Symplectic classes on the nontrivial 2-sphere bundle over the 2-sphere
+(deferred)*, which gets no part. The statements are in the page's
+conventions (*Fibrations, connections and diffeomorphism groups*), with the
+page's added hypotheses of a connected fibre and a connected base surface.
+None is existing at the pinned Tau Ceti or Mathlib; the rows name the
+existing inputs.
+
+| Milestone | Where |
+|---|---|
+| *Fibrations with symplectic fibres are symplectic fibrations* | *Symplectic fibrations* (`SymplecticFibres.lean`), by parallel transport of *Parallel transport*. |
+| *Thurston's theorem on symplectic fibrations* | *Compatible symplectic forms* (`Thurston.lean`). Existing inputs: `TauCeti.deRhamCohomology.map_eq_of_homotopy`, `SmoothPartitionOfUnity`. |
+| *Chern class criterion for compatible symplectic forms* | *Compatible symplectic forms* (`ChernClass.lean`), on the merged `SymplecticGeometry.Bundle.firstChernClass`. |
+| *Symplectic forms on surface bundles with fibre genus different from one* | *Compatible symplectic forms* (`Surface.lean`), with the merged parametric Moser argument of `Moser/Family.lean`. |
+| *Classification of oriented 2-sphere bundles over surfaces* | *Sphere bundles over surfaces* (`Classification.lean`), from *Smale's theorem on the diffeomorphism group of the 2-sphere*. Existing input: `TauCeti.specialOrthogonalGroupFundamentalGroupMulEquiv`. |
+| *Symplectic classes on the nontrivial 2-sphere bundle over a surface* | *Sphere bundles over surfaces* (`RuledSurface.lean`). |
+| *Weinstein's universal construction for associated symplectic fibrations* | *Principal connections* (`Fibration/Associated.lean`). Existing inputs: `TauCeti.AssociatedBundle.contMDiffFiberBundle`, `TauCeti.SmoothTwoForm.IsEquivariantMomentMap`. |
+| *Symplectic connections correspond to vertically closed 2-forms* | *Symplectic fibrations* (`Connection.lean`). Existing input: `TauCeti.mlieDerivForm_eq_interior_mextDeriv_add`. |
+| *Dehn twist along a framed Lagrangian sphere* | *Dehn twists*, on the merged Lagrangian neighbourhood theorem `TauCeti.SmoothTwoForm.IsNondegenerate.IsLagrangianMap.exists_symplectomorphism_cotangent`. |
+| *Coupling form of a symplectic connection* | *Coupling forms* (`Coupling.lean`), with *Flux homomorphism* for McDuff–Salamon, Theorem 10.2.5. |
+| *Compatible symplectic forms for fibrations with simply connected fibre* | *Coupling forms* (`SimplyConnected.lean`), with Thurston's theorem of *Compatible symplectic forms*. |
+| *Curvature identity for symplectic connections* | *Coupling forms* (`Curvature.lean`), with the countability of the flux group from *Flux homomorphism*. |
+| *Characterization of Hamiltonian fibrations* | *Hamiltonian fibrations*. |
+
+### `auxiliary/diffeomorphisms-of-the-2-sphere.md`
+
+Both milestones, proved in full. Their parts wait for no part of
+`atlas/symplectic-fibrations.md`; of that page's milestones, only the
+classification of 2-sphere bundles waits for them.
+
+| Milestone | Where |
+|---|---|
+| *Diffeomorphisms of the 2-sphere form a trivial principal bundle over the complex structures* | *Diffeomorphisms of the 2-sphere* (`Trivialization.lean`), with the operators of *Cauchy–Riemann operators on the sphere*. Existing inputs: `TauCeti.RiemannSurface.biholomorphOfDegreeEqOne`, `Diffeomorph.exists_coe_eq_smul`, `Diffeomorph.eq_refl_of_apply_zero_one_infty_eq_self`, `Continuous.index_eq_of_preconnectedSpace`, `ContinuousLinearMap.IsFredholm.exists_continuousOn_ker_parametrization`, and the merged integrability theorem `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`. |
+| *Smale's theorem on the diffeomorphism group of the 2-sphere* | *Diffeomorphisms of the 2-sphere* (`Smale.lean`). Existing inputs: `TauCeti.orthogonalToDiffSphere`, `Diffeomorph.isTopologicalGroup`. |
 
 ## Departures from the plan's advice
 
@@ -3346,3 +3881,28 @@ design; this page needs only the circle case, which the library has
   $\gamma(X)\,\omega^n$ vanishes for every closed one-form $\gamma$ when
   there is a fixed point, which needs only the nondegeneracy of the de Rham
   pairing in degrees $(1,2n-1)$ and no homology class of an orbit.
+- **Proof routes on `atlas/symplectic-fibrations.md`.** Where the page
+  offers two routes, the library takes: parallel transport for
+  *Fibrations with symplectic fibres are symplectic fibrations*, since
+  *Coupling forms* needs parallel transport anyway and the parametric Moser
+  theorem would have to depend smoothly on the base point; the elementary
+  route through families of area forms for surface bundles of genus
+  different from one, so that no principal bundle with an
+  infinite-dimensional structure group is built; the direct verification
+  for Weinstein's construction, which needs no reduction; and clutching for
+  the classification of 2-sphere bundles, which needs Smale's theorem only
+  for $\pi_0$ and $\pi_1$. The principal bundle with structure group
+  $\mathrm{Symp}(F,\sigma)$, which the page calls motivation only, is not
+  built.
+- **Real Chern classes.** The page uses only the image of $c_1(\mathrm{Ver})$
+  in real cohomology, which it identifies with de Rham cohomology. Tau
+  Ceti maps de Rham classes to singular ones but has no de Rham theorem
+  back, so the library builds the real class directly as a de Rham class by
+  Chern–Weil and compares it with the integral class, instead of taking
+  the image of the integral class.
+- **Diffeomorphisms of the 2-sphere.** The library takes the proof through
+  the bundle over complex structures that the auxiliary page proposes, with
+  the page's variant of step 1 that uses only the standard sphere, the
+  constancy of the Fredholm index and the zero count, since Tau Ceti has
+  the index and the sections of $\mathcal O(1)$ but no Riemann–Roch for the
+  operators $D_J$.
