@@ -18,7 +18,7 @@ import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Represen
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Orthogonal
 import TauCeti.Geometry.Manifold.VectorBundle.Prod
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
-import TauCeti.Geometry.Manifold.VectorBundle.Translate
+import TauCeti.Geometry.Manifold.VectorBundle.SectionAlongMap.Regularity
 import TauCeti.Geometry.Symplectic.Lagrangian.Basic
 
 /-!
@@ -526,18 +526,19 @@ theorem compatible_normalForm (hdim : finrank ℝ P = finrank ℝ E - finrank �
     (hω : ω.Compatible (J.pullbackComplexStructure f f.contMDiff)) :
     letI := f.normalSpaceFiberBundle hn hdim
     letI := f.normalSpaceVectorBundle hn hdim
-    (f.normalForm hdim hJ ω hω.tames).Compatible (f.normalComplexStructure hdim J hJ) := by
+    (f.normalForm hdim hJ ω hω.tames).Compatible (f.contMDiffNormalComplexStructure hdim J hJ) := by
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
   refine ⟨ContMDiffTwoForm.invariant_def.2 fun x a b ↦ ?_,
     ContMDiffTwoForm.tames_def.2 fun x a ha ↦ ?_⟩
-  · rw [normalComplexStructure_apply, normalComplexStructure_apply, bilinFormAt_normalForm,
-      bilinFormAt_normalForm, complementRepresentative_normalAlmostComplexStructureAt hJ hω,
+  · rw [contMDiffNormalComplexStructure_apply, contMDiffNormalComplexStructure_apply,
+      bilinFormAt_normalForm, bilinFormAt_normalForm,
+      complementRepresentative_normalAlmostComplexStructureAt hJ hω,
       complementRepresentative_normalAlmostComplexStructureAt hJ hω,
       ← pullbackComplexStructure_apply J f f.contMDiff,
       ← pullbackComplexStructure_apply J f f.contMDiff]
     exact ContMDiffTwoForm.invariant_def.1 hω.invariant x _ _
-  · rw [normalComplexStructure_apply, bilinFormAt_normalForm,
+  · rw [contMDiffNormalComplexStructure_apply, bilinFormAt_normalForm,
       complementRepresentative_normalAlmostComplexStructureAt hJ hω,
       ← pullbackComplexStructure_apply J f f.contMDiff]
     refine ContMDiffTwoForm.tames_def.1 hω.tames x _ fun h ↦ ha ?_

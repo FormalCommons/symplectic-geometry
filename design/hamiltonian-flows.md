@@ -135,7 +135,7 @@ These settle the questions that `DESIGN.md` leaves to this file.
    $\Phi$ past both ends and a proof that the choice does not matter. The
    bridge is used only inside the proof of the isotopy criterion.
    - The page's $H_t$ and Tau Ceti's $F$ are related by
-     `hasHamiltonian_iff_isHamiltonianVectorField_velocity`:
+     `hasHamiltonian_iff_contMDiff_and_isHamiltonianVectorField_velocity`:
      `Φ.HasHamiltonian σ F` holds exactly when `F` is smooth and
      `F (Φ.symm (t, ·), t)` has Hamiltonian vector field `Φ.velocity t` for
      every `t`. The milestones are stated with `Φ.velocity` and the page's
@@ -342,11 +342,6 @@ would give `-X₁` there. Further hypotheses are named where they are needed.
     Mathlib's `ContMDiff.contMDiff_tangentMap` and
     `contMDiff_totalSpaceMk_one_Icc`; the smoothness of each slice, used
     to build the section, is its composite with `Prod.mk t`;
-  - `velocity_timeDependentFlowDiffeotopy`, under
-    `[FiniteDimensional ℝ E] [BoundarylessManifold J M] [T2Space M]`: the velocity of
-    `timeDependentFlowDiffeotopy le_top hX hc` at `t` is `X t`, from
-    `hasMFDerivAt_timeDependentFlowOf` (at the ends, the one-sided
-    derivative on `I` is the restriction of the derivative on `ℝ`);
   - `mpullback_timeSlice_interior_velocity_apply`: for a two-form `σ`,
     `(φ_t^* ι_{X_t} σ)_x v = (Φ.cylinderMap^* σ)_{(x, t)}(∂ₜ, (v, 0))`, the
     integrand of `fluxForm` and of `HasHamiltonian`.
@@ -360,17 +355,9 @@ would give `-X₁` there. Further hypotheses are named where they are needed.
 
 ### `Geometry/Symplectic/Hamiltonian/PoissonAlgebra.lean`
 
-For any two-form `σ`, in the namespace `TauCeti.SmoothTwoForm` like Tau
-Ceti's `hamiltonianVectorField_add`, since `X_f` is linear in `df` and
-needs neither nondegeneracy nor finite dimension:
-
-- `hamiltonianVectorField_mul`: for `f`, `g` differentiable at `x`,
-  `σ.hamiltonianVectorField (f * g) x = f x • σ.hamiltonianVectorField g x +
-  g x • σ.hamiltonianVectorField f x`.
-- `poissonBracket_mul_left`, `poissonBracket_mul_right` (the Leibniz rule):
-  `σ.poissonBracket (f * g) k x = f x * σ.poissonBracket g k x +
-  g x * σ.poissonBracket f k x`, and the same in the second slot, for
-  differentiable `f`, `g`, from `hamiltonianVectorField_mul`.
+The Leibniz rule (`hamiltonianVectorField_mul`, `poissonBracket_mul_left`,
+`poissonBracket_mul_right`) is Tau Ceti's, in its
+`Geometry/Symplectic/Hamiltonian/Manifold.lean`.
 
 In the namespace `TauCeti.SmoothTwoForm`, under the hypotheses of Tau
 Ceti's time-dependent flows (`[FiniteDimensional ℝ E] [J.Boundaryless]
@@ -379,14 +366,8 @@ Ceti's time-dependent flows (`[FiniteDimensional ℝ E] [J.Boundaryless]
 
 - `mpullback_timeDependentFlowOf_apply_of_isHamiltonianVectorField`: for
   closed `σ`, `(timeDependentFlowOf X s t)^* σ` equals `σ` at every `x` with
-  `((s, t), x) ∈ timeDependentFlowDomain X`; no completeness. Through the
-  general `TauCeti.mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`
-  (a closed smooth form whose contractions with every `X t` are closed), the
-  case `g = 0`, by Cartan's formula, of
-  `mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul_of_mlieDerivForm_eq`,
-  in `Geometry/Manifold/DifferentialForm/Flow/Family.lean` of *Contact geometry*. Tau
-  Ceti's `mpullback_timeDependentFlowOf_of_isHamiltonianVectorField` is the
-  complete case.
+  `((s, t), x) ∈ timeDependentFlowDomain X`; no completeness. This is Tau
+  Ceti's, in `Geometry/Symplectic/Hamiltonian/CommutingFlow.lean`.
 
 For symplectic `σ` (`hσ : σ.IsSymplectic`):
 
@@ -437,7 +418,7 @@ For symplectic `σ` (`hσ : σ.IsSymplectic`):
 
 In `TauCeti.Diffeotopy`, for any two-form `σ` unless said:
 
-- `hasHamiltonian_iff_isHamiltonianVectorField_velocity`:
+- `hasHamiltonian_iff_contMDiff_and_isHamiltonianVectorField_velocity`:
   `Φ.HasHamiltonian σ F ↔ ContMDiff (J.prod (𝓡∂ 1)) 𝓘(ℝ) ∞ F ∧
   ∀ t, σ.IsHamiltonianVectorField (fun y ↦ F (Φ.symm (t, y), t)) (Φ.velocity t)`,
   from `mpullback_timeSlice_interior_velocity_apply`; and its form with the
@@ -639,7 +620,7 @@ Each is a few hundred lines; each is blocked by the issues it names.
    About 300 lines. Blocked by 1 and by the issue of *Smooth families* that
    builds `Diffeotopy/Real.lean` (#467 until it is split).
 4. **Hamiltonians of a diffeotopy in the page's form.** In
-   `Flux/Hamiltonian.lean`: `hasHamiltonian_iff_isHamiltonianVectorField_velocity`,
+   `Flux/Hamiltonian.lean`: `hasHamiltonian_iff_contMDiff_and_isHamiltonianVectorField_velocity`,
    `hasHamiltonian_comp_iff`, the three rules and the uniqueness lemmas.
    About 250 lines. Blocked by 1.
 5. **Hamiltonians from exactness.** In `DeRham/FamilyPrimitive.lean` and

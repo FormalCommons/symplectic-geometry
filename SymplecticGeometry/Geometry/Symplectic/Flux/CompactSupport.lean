@@ -228,7 +228,7 @@ theorem exists_interior_velocity_eq (hσ : SmoothTwoForm.IsSymplectic σ)
     SmoothForm.mpullback Prod.snd contMDiff_snd σ
   have hσ' (u : ℝ) : SmoothForm.mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) σ' =
       σ :=
-    SmoothForm.mpullback_prodMk_mpullback_snd u σ
+    SmoothForm.mpullback_prodMk_mpullback_snd σ u
   have hnd (u : ℝ) : SmoothTwoForm.IsNondegenerate
       (SmoothForm.mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) σ') :=
     (hσ' u).symm ▸ hσ.isNondegenerate
@@ -252,7 +252,7 @@ theorem exists_interior_velocity_eq (hσ : SmoothTwoForm.IsSymplectic σ)
   have hc := isCompleteVectorField_timeDependentSuspensionField (hX.of_le (by simp)) hL hXL
   set Φ := timeDependentFlowDiffeotopy le_top hX hc
   have hvel (t : unitInterval) : Φ.velocity t = X t :=
-    velocity_timeDependentFlowDiffeotopy hX hc t
+    funext (velocity_timeDependentFlowDiffeotopy le_top hX hc t)
   -- The slices of `Φ` preserve `σ`: `d (ι_{X_t} σ) = d Ω_t = 0` for `t ∈ [0, 1]`.
   have hpres : ∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ :=
     (forall_timeSlice_mem_diffeomorphStabilizer_iff Φ hσ.isClosed).2 fun t ↦

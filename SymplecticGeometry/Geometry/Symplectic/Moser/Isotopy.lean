@@ -110,7 +110,7 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq (f : SmoothEmbedding J I �
   set γ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × W) ℝ 1 := SmoothForm.mpullback Prod.snd contMDiff_snd βW
   have hβt (u : ℝ) :
       SmoothForm.mpullback (Prod.mk u) (contMDiff_const.prodMk contMDiff_id) γ = βW :=
-    SmoothForm.mpullback_prodMk_mpullback_snd u βW
+    SmoothForm.mpullback_prodMk_mpullback_snd βW u
   obtain ⟨Λ, ⟨C, hC, hΛC⟩, hΛK, hΛ⟩ :=
     g.exists_diffeotopy_fix_eventually_mpullback_eq_of_timeDeriv
     (SmoothForm.lineMapFamily τ₀ τ₁ (contDiff_id (n := ∞)))

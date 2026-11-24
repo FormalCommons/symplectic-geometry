@@ -15,7 +15,7 @@ public import TauCeti.AlgebraicTopology.Homotopy.Hurewicz.One.Comparison
 public import TauCeti.AlgebraicTopology.Singular.Circle
 public import TauCeti.AlgebraicTopology.Singular.Contractible
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Chart
-public import TauCeti.Analysis.Complex.Circle
+public import TauCeti.Analysis.Complex.Circle.Basic
 public import TauCeti.Topology.Circle.Degree
 import TauCeti.Analysis.SpecialFunctions.Trigonometric.UnitInterval
 

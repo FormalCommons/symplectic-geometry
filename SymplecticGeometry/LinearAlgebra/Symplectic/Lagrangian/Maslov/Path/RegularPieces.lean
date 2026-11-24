@@ -228,6 +228,7 @@ theorem range_rotationFrame {Λ : ℒ ι} {Z : Matrix (ι ⊕ ι) ι ℝ}
     LinearMap.range (toEuclideanLin (rotationFrame Z θ)) = rotate θ Λ := by
   rw [rotate_def, unitary_smul_def, coe_smul_of_coe_eq _ hZ.symm, GLSymplectic.coe_ofUnitary,
     Unitary.coe_smul, OneMemClass.coe_one, circleEquivUnitary_smul, realify_smul_one,
+    RCLike.re_to_complex, RCLike.im_to_complex,
     Circle.coe_exp, Complex.exp_ofReal_mul_I_re, Complex.exp_ofReal_mul_I_im, rotationFrame_def]
 
 /-- Rotating a Lagrangian `Λ` by a small nonzero angle makes it transverse to any given

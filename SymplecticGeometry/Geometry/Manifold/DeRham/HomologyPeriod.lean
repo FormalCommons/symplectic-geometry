@@ -9,7 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
 public import TauCeti.Geometry.Manifold.DeRham.HomologyPeriod
 public import TauCeti.AlgebraicTopology.Singular.Homotopy.Invariance
 public import SymplecticGeometry.AlgebraicTopology.Singular.ChainsDesc
-import TauCeti.Geometry.Manifold.SmoothApprox
+import TauCeti.Geometry.Manifold.SmoothApprox.Basic
 
 /-!
 # Periods of smooth families of closed one-forms
@@ -211,7 +211,7 @@ theorem contMDiff_homologyPeriodHom {M : Type} [TopologicalSpace M] [ChartedSpac
     [IsManifold I ∞ M] [T2Space M] {α : N → SmoothForm I M ℝ 1} (hα : IsSmoothFamily K α)
     (hcl : ∀ t, α t ∈ closedForms I M 1) (c : ((singularChains ℤ).obj (.of M)).homology 1) :
     ContMDiff K 𝓘(ℝ) ∞ fun t ↦ homologyPeriodHom (α t : RoughForm I M ℝ 1) c := by
-  obtain ⟨z, rfl⟩ := (H₁AddEquivHomology (.of M)).surjective c
+  obtain ⟨z, rfl⟩ := (H₁AddEquivHomology ℤ (.of M)).surjective c
   obtain ⟨z, rfl⟩ := H₁.mk_surjective z
   simp_rw [homologyPeriodHom_H₁AddEquivHomology_mk]
   exact contMDiff_chainsDesc (fun s ↦ hα.contMDiff_pathClassIntegral hcl _) _
@@ -228,7 +228,7 @@ theorem homologyPeriodHom_eq_intervalIntegral {M : Type} [TopologicalSpace M] [C
       (fun t ↦ (α (u t) : RoughForm I M ℝ 1) x) a b volume)
     (c : ((singularChains ℤ).obj (.of M)).homology 1) :
     homologyPeriodHom β c = ∫ t in a..b, homologyPeriodHom (α (u t) : RoughForm I M ℝ 1) c := by
-  obtain ⟨z, rfl⟩ := (H₁AddEquivHomology (.of M)).surjective c
+  obtain ⟨z, rfl⟩ := (H₁AddEquivHomology ℤ (.of M)).surjective c
   obtain ⟨z, rfl⟩ := H₁.mk_surjective z
   simp_rw [homologyPeriodHom_H₁AddEquivHomology_mk]
   -- The periods along the simplices, as continuous functions of the time.

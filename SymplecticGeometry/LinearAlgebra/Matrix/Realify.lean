@@ -14,7 +14,7 @@ public import TauCeti.LinearAlgebra.Matrix.Realify
 Tau Ceti's `Matrix.realify` turns a matrix over `ℝ` or `ℂ` into the real block matrix
 `[[Re A, -Im A], [Im A, Re A]]`, indexed by `m ⊕ m` and `n ⊕ n`. This file shows that it commutes
 with taking submatrices, and so with reindexing: the rows and columns of each block are
-selected in the same way. It also computes the realification of a complex scalar matrix.
+selected in the same way.
 
 ## Main results
 
@@ -22,7 +22,6 @@ selected in the same way. It also computes the realification of a complex scalar
   `Sum.map f f` and columns by `Sum.map g g`.
 * `Matrix.realify_reindex`: realifying `reindex e e A` is reindexing `A.realify` along
   `e.sumCongr e`.
-* `Matrix.realify_smul_one`: the realification of `z • 1` is `Re z • 1 + Im z • J`.
 
 ## References
 
@@ -48,15 +47,6 @@ theorem realify_reindex (A : Matrix m m 𝕜) (e : m ≃ n) :
     (reindex e e A).realify = reindex (e.sumCongr e) (e.sumCongr e) A.realify := by
   rw [reindex_apply, reindex_apply, realify_submatrix, Equiv.sumCongr_symm,
     show ⇑(e.symm.sumCongr e.symm) = Sum.map e.symm e.symm from funext (Equiv.sumCongr_apply _ _)]
-
-/-- The realification of the complex scalar matrix `z • 1` is `Re z • 1 + Im z • J`, with Tau
-Ceti's standard alternating matrix `J`. -/
-theorem realify_smul_one [DecidableEq m] (z : ℂ) :
-    (z • (1 : Matrix m m ℂ)).realify = z.re • (1 : Matrix (m ⊕ m) (m ⊕ m) ℝ) + z.im • J m ℝ := by
-  have h : z • (1 : Matrix m m ℂ) = z.re • (1 : Matrix m m ℂ) + z.im • (Complex.I • 1) := by
-    ext i j
-    rcases eq_or_ne i j with rfl | hij <;> simp [one_apply_ne, *]
-  rw [h, realify_add, realify_smul, realify_smul, realify_I_smul_one, realify_one]
 
 end Matrix
 

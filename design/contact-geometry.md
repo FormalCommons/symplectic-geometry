@@ -355,27 +355,17 @@ module docstring credits both. The rate `c` is a function of time only,
 because along one trajectory nothing else is needed. Expected size: 100
 lines.
 
-The second, added by *Hamiltonian flows* for `PoissonAlgebra.lean`, under
-the same `[IsManifold I 2 M]`, is the invariance of a closed form whose
-contractions are closed. By Cartan's formula
-(`mlieDerivForm_eq_mextDeriv_interior`) such a form satisfies the eigenform
-equation of the third theorem with $g=0$, and the proof applies that theorem:
-
-```lean
-theorem mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero
-    (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 2 (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)))
-    {β : SmoothForm I M F (k + 1)} (hβ : β.IsClosed)
-    (hXβ : ∀ t, mextDeriv (RoughForm.interior (X t) β.val) = 0)
-    {s t : ℝ} {x : M} (h : ((s, t), x) ∈ timeDependentFlowDomain X) :
-    mpullback I I (timeDependentFlowOf X s t) β.val x = β.val x
-```
+The invariance of a closed form whose contractions are closed, which
+*Hamiltonian flows* uses, is Tau Ceti's
+`mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`, in
+`TauCeti/Geometry/Manifold/DifferentialForm/Flow/TimeDependent.lean`.
 
 The third, added by *Contact geometry* for `Contact/Hamiltonian.lean`, is
 Tau Ceti's
 `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem`
 for the constant family of a form satisfying the eigenform equation, whose
-slices `SmoothForm.mpullback_prodMk_mpullback_snd` of *Smooth families*
-identifies; it comes before the second in the file:
+slices Tau Ceti's `SmoothForm.mpullback_prodMk_mpullback_snd`
+identifies:
 
 ```lean
 theorem mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul_of_mlieDerivForm_eq
@@ -397,7 +387,7 @@ Ceti's, in `TauCeti/Geometry/Manifold/DifferentialForm/Flow/Family.lean`,
 which this file imports. `Gray.lean` uses them. The velocity of a reparametrized segment,
 `mpullback_prodMk_timeDeriv_lineMapFamily` (the slice at time `t` of the
 time derivative of `SmoothForm.lineMapFamily α₀ α₁ hc` is
-`deriv c t • (α₁ - α₀)`), follows them; *Moser isotopy* uses it in
+`deriv c t • (α₁ - α₀)`), is Tau Ceti's, in the same file; *Moser isotopy* uses it in
 `Moser/Relative.lean` and `Moser/Isotopy.lean`.
 After them come the contraction
 `SmoothForm.timeInterior σ` $=\iota_{\partial_t}\sigma$ with the time field
@@ -768,9 +758,6 @@ Expected size: 650 lines, in two issues (L1 and L2).
 ## What the part uses from other parts
 
 - *Smooth families* (#466, #467):
-  `Geometry/Manifold/DifferentialForm/SmoothFamily/Basic.lean`, already
-  merged, for `SmoothForm.mpullback_prodMk_mpullback_snd` (in
-  `Flow/Family.lean`);
   `Geometry/Manifold/DifferentialForm/TimeExtension.lean`, the extension of
   a smooth form on `unitInterval × M` to `ℝ × M` (for
   `IsContactFamily.exists_local_extension`, with
@@ -785,8 +772,9 @@ Expected size: 650 lines, in two issues (L1 and L2).
   `Geometry/Manifold/Flow/TimeDependent.lean`, for the flow of a field
   restricted to an open subset (in `Gray.lean`).
 - *Hamiltonian flows*: `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean`,
-  for `velocity_timeDependentFlowDiffeotopy` (in `Gray.lean`); Tau Ceti's
-  `Diffeotopy.apply_mk_symm_apply` is used there too.
+  for the velocity (in `Gray.lean`); Tau Ceti's
+  `Diffeotopy.velocity_timeDependentFlowDiffeotopy` and
+  `Diffeotopy.apply_mk_symm_apply` are used there too.
 - *Symplectic neighbourhoods* (#475, #476): the Lagrangian neighbourhood
   theorem of `Geometry/Symplectic/Neighborhood/Lagrangian.lean`, for a
   Lagrangian embedding into a symplectic manifold, with model

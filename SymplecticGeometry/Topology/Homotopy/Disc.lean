@@ -77,7 +77,7 @@ theorem ContinuousMap.Nullhomotopic.exists_extension_closedBall {M : Type*} [Top
     simp [abs_of_pos hr, norm_radialRetraction hr.le, inv_mul_le_one₀ hr]
   refine ⟨fun z ↦ D₁ ⟨r⁻¹ • radialRetraction r z, hin z⟩, Continuous.continuousOn ?_, fun ζ ↦ ?_⟩
   · have h : Continuous fun z : ℂ ↦ radialRetraction r z :=
-      continuous_const.radialRetraction (fun _ ↦ hr.le) continuous_id
+      continuous_const.radialRetraction (fun _ ↦ Or.inr hr.le) continuous_id
     exact D₁.continuous.comp ((h.const_smul r⁻¹).subtype_mk hin)
   · have hζ : r⁻¹ • radialRetraction r ((r : ℂ) * ζ) = ζ := by
       rw [radialRetraction_of_norm_le (by simp [abs_of_pos hr]), Complex.real_smul, ← mul_assoc]
@@ -111,14 +111,15 @@ theorem ContinuousOn.exists_continuousMap_eq_of_nullhomotopic {M : Type*} [Topol
   -- `F` is given by `D` after the radial retraction onto the closed disc of radius `r` inside the
   -- circle of radius `r`, and by `f` after the radial retraction onto the closed disc of radius
   -- `R` outside it
-  have hκ (t : ℝ) (ht : 0 ≤ t) : Continuous fun z : ℂ ↦ radialRetraction t z :=
-    continuous_const.radialRetraction (fun _ ↦ ht) continuous_id
+  have hκ (t : ℝ) (ht : 0 ≤ t) : Continuous fun z : ℂ ↦ TauCeti.radialRetraction t z :=
+    continuous_const.radialRetraction (fun _ ↦ Or.inr ht) continuous_id
   have hκ_norm {z : ℂ} (hz : r ≤ ‖z‖) :
-      r ≤ ‖radialRetraction R z‖ ∧ ‖radialRetraction R z‖ ≤ R := by
+      r ≤ ‖TauCeti.radialRetraction R z‖ ∧ ‖TauCeti.radialRetraction R z‖ ≤ R := by
     rw [norm_radialRetraction hR.le]
     exact ⟨le_min hz (by linarith), min_le_right _ _⟩
   classical
-  let Fc : ℂ → M := fun z ↦ if ‖z‖ ≤ r then D (radialRetraction r z) else f (radialRetraction R z)
+  let Fc : ℂ → M := fun z ↦
+    if ‖z‖ ≤ r then D (TauCeti.radialRetraction r z) else f (TauCeti.radialRetraction R z)
   have hagree {z : ℂ} (hz : ‖z‖ = r) : D z = f z := by
     have hζ : (r : ℂ)⁻¹ * z ∈ Submonoid.unitSphere ℂ := by
       simp [Submonoid.unitSphere, abs_of_pos hr, hz, hr.ne']
@@ -145,7 +146,7 @@ theorem ContinuousOn.exists_continuousMap_eq_of_nullhomotopic {M : Type*} [Topol
     rintro _ ⟨z, rfl⟩
     by_cases hz : ‖z‖ ≤ r
     · exact Or.inl ⟨_, radialRetraction_mem_closedBall hr.le z, (ite_eq_left hz).symm⟩
-    · exact Or.inr ⟨radialRetraction R z, hκ_norm (not_le.1 hz).le, (ite_eq_right hz).symm⟩
+    · exact Or.inr ⟨TauCeti.radialRetraction R z, hκ_norm (not_le.1 hz).le, (ite_eq_right hz).symm⟩
   · by_cases h : ‖z‖ ≤ r
     · exact (ite_eq_left h).trans <| by
         rw [radialRetraction_of_norm_le h, hagree (le_antisymm h h₁)]
