@@ -23,8 +23,8 @@ that it is again parametrized by `[0, 1]`.
 
 Truncation commutes with the pointwise operations `trans` and `symm`, and the truncation of an
 ordered flow `ψ^(v 0)_(A 0 t) ∘ ⋯ ∘ ψ^(v (k-1))_(A (k-1) t)` is the ordered flow of the time
-functions `t ↦ A i (T t)`. By the chain rule, the velocity of the truncation at time `t` is
-`T X_{T t}`, where `X` is the velocity of `Φ`.
+functions `t ↦ A i (T t)`. By `TauCeti.Diffeotopy.velocity_reparam`, the velocity of the
+truncation at time `t` is `T X_{T t}`, where `X` is the velocity of `Φ`.
 
 The truncations are the initial pieces of a diffeotopy, whose fluxes McDuff–Salamon differentiate
 in time in the proofs of Theorem 10.2.5 and Proposition 10.2.12.
@@ -139,17 +139,8 @@ section Velocity
 velocity of `φ`. -/
 theorem velocity_truncate (Φ : Diffeotopy J n M) (hn : 1 ≤ n) (T t : I) :
     (Φ.truncate T).velocity t = (T : ℝ) • Φ.velocity (T * t) := by
-  funext y
-  obtain ⟨x, rfl⟩ : ∃ x, Φ.truncate T (t, x) = y := ⟨_, (Φ.truncate T).apply_mk_symm_apply t y⟩
-  have hcomp : (fun s : I ↦ Φ.truncate T (s, x)) = (fun u : I ↦ Φ (u, x)) ∘ (fun s : I ↦ T * s) :=
-    funext fun s ↦ Φ.truncate_apply T (s, x)
-  have hd : MDifferentiableAt (𝓡∂ 1) J (fun u : I ↦ Φ (u, x)) (T * t) :=
-    (Φ.contMDiff.comp (contMDiff_id.prodMk contMDiff_const)).mdifferentiableAt
-      (zero_lt_one.trans_le hn).ne'
-  rw [velocity_apply, mfderiv_cylinderMap_time _ hn, Pi.smul_apply, truncate_apply,
-    velocity_apply, mfderiv_cylinderMap_time _ hn]
-  simp only
-  rw [hcomp, mfderiv_comp_apply t hd mdifferentiableAt_mul_left, mfderiv_mul_left_one, map_smul]
+  rw [truncate_def, Φ.velocity_reparam hn t (r := T)
+    (by rw [ContMDiffMap.coe_mulLeft]; exact mfderiv_mul_left_one T t), ContMDiffMap.mulLeft_apply]
 
 variable [IsManifold J ∞ M]
 
