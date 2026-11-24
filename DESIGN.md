@@ -392,7 +392,8 @@ bracket is negated.
   coordinate changes lie in $H$ at each base point; no topology on $H$ is
   used. The fibre over $b$ is read through a chart $e$ of the atlas, as
   the embedding $v\mapsto e^{-1}(b,v)$ of $F$ into $M$; Tau Ceti's
-  `TauCeti.ManifoldTotalSpace.fiberChartedSpace` is used only where a
+  `TauCeti.ManifoldTotalSpace.fiberChartedSpace`, or for the fibre of a
+  submersion `TauCeti.regularFiberChartedSpace`, is used only where a
   statement needs a fibre as a manifold of its own.
 - **Fibre forms.** As the page's formalization note allows, a symplectic
   fibration is a fibration with an atlas for $(F,\sigma)$ whose coordinate
@@ -2959,7 +2960,7 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   `Foliation/LeafSpace/Basic.lean` and `Foliation/LeafSpace/Smooth.lean`
   (in Tau Ceti's folder of foliations: the page's regularity condition on a
   foliation, through slices meeting every leaf at most once, and the unique
-  smooth structure on it for which the projection
+  smooth structure on the leaf space for which the projection
   is a submersion whose vertical spaces are the leaf directions), and in
   `Geometry/Symplectic/Coisotropic/`: `Reduction.lean` (regular coisotropic
   reduction: the leaf space of Tau Ceti's characteristic foliation, of
@@ -2967,10 +2968,10 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   $i^*\omega$, from `TauCeti.SmoothTwoForm.existsUnique_isSymplectic_mpullback_eq`)
   and `Lagrangian/Basic.lean`, `Lagrangian/Immersion.lean` and
   `Lagrangian/Injective.lean` (clean intersections of a Lagrangian
-  embedding with a coisotropic one, the characteristic directions of the intersection,
+  embedding with a coisotropic immersion, the characteristic directions of the intersection,
   their local leaf spaces, the Lagrangian immersion from a countable
-  disjoint union of them, the transverse case, and injectivity when every
-  leaf meets $L$ in a connected set).
+  disjoint union of them, the transverse case, and injectivity when the leaf
+  space of $Q$ is Hausdorff and every leaf meets $L$ in a connected set).
 - **Builds on:** Tau Ceti (`TauCeti.SmoothForm.characteristicFoliation`,
   `TauCeti.Foliation.leaf`, `TauCeti.IsInvolutiveDistribution.exists_flatChart`,
   coisotropic and Lagrangian maps, `IsLagrangianMap.isLagrangianImmersion_of_comp_submersion`,
@@ -2982,7 +2983,7 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
 - **The design file decides:** how $Q$ is given (a coisotropic immersion, of
   which Tau Ceti's `IsCoisotropicEmbedding` is a case), the type of the
   leaf space and how its charts come from the slices, and the form of "clean intersection" for
-  embeddings.
+  maps.
 
 ### 41. Hamiltonian reduction (needs `design/hamiltonian-reduction.md`)
 
@@ -3079,7 +3080,7 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   `design/kahler-stability.md`.
 - **Builds on:** Tau Ceti (`TauCeti.SmoothTwoForm.IsKahler`, invariant inner
   products `TauCeti.Lie.exists_isSymm_bilinForm_Ad_invariant`, limits of
-  gradient trajectories `IsIntegralCurveOn.exists_tendsto_atTop_of_lojasiewicz`).
+  gradient trajectories `tendsto_maximalIntegralCurve_neg_mgradient_of_mapClusterPt`).
 - **Milestones:** *Kempf–Ness correspondence*, *Hilbert–Mumford numerical
   criteria*.
 - **The design file decides:** how $G^{\mathbb C}$ and its action are
@@ -3180,7 +3181,9 @@ Differential topology and complex analysis only; it waits for no part of
 ### 47. Parallel transport (needs `design/parallel-transport.md`)
 
 - **Files:** in Tau Ceti's folder `Geometry/Manifold/Submersion/`:
-  `ParallelTransport.lean` (for an Ehresmann connection
+  `HorizontalLiftField.lean` (horizontal lifts of vector fields),
+  `ParallelTransport/Basic.lean` and `ParallelTransport/Smooth.lean` (for
+  an Ehresmann connection
   `TauCeti.IsEhresmannConnection` on a proper submersion, horizontal lifts
   of smooth paths of the base exist and are unique; parallel transport
   `TauCeti.IsEhresmannConnection.parallelTransport` between fibres is a
@@ -3498,7 +3501,7 @@ behind.
 | 0 | *Lie group actions* | — |
 | 0 | *Moment maps* | — |
 | 0 | *Equivariant normal forms* | — (it uses only merged files of *Standard model*) |
-| 0 | *Coisotropic reduction* | — (it uses only merged files of *Symplectic neighbourhoods*) |
+| 0 | *Coisotropic reduction* | — (it uses only merged files of *Symplectic neighbourhoods* and `LinearAlgebra/Symplectic/Reduction.lean` of *Symplectic vector spaces*, which is merged) |
 | 0 | *Hamiltonian reduction* | — |
 | 0 | *Convexity* | — |
 | 0 | *Kähler stability* | — |
