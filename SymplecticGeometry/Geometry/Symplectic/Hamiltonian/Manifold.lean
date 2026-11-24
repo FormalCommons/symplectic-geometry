@@ -6,9 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
+import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Constancy
 
 /-!
-# Regularity of Hamiltonian vector fields
+# Regularity and linearity of Hamiltonian vector fields
 
 For a nondegenerate two-form `σ` on a manifold modelled on a finite-dimensional space, every
 Hamiltonian vector field `X` of a `C^(n+1)` function `f`, that is every `X` with `ι_X σ = df`, is a
@@ -18,7 +20,16 @@ nondegenerate, `X` is the Hamiltonian vector field `X_f`
 (`TauCeti.SmoothTwoForm.IsNondegenerate.isHamiltonianVectorField_iff_eq`), whose regularity is
 Tau Ceti's `TauCeti.SmoothTwoForm.IsNondegenerate.contMDiff_hamiltonianVectorField`.
 
-The result extends Tau Ceti's file of the same path, in its namespace.
+For any two-form, the relation `ι_X σ = df` is linear in the pair `(f, X)`: the zero field is a
+Hamiltonian vector field of the zero function
+(`TauCeti.SmoothTwoForm.IsHamiltonianVectorField.zero`), and sums of differentiable functions and
+real multiples of functions have the sums and multiples of their Hamiltonian vector fields
+(`TauCeti.SmoothTwoForm.IsHamiltonianVectorField.add`,
+`TauCeti.SmoothTwoForm.IsHamiltonianVectorField.const_smul`). More generally than the first, the
+zero field is a Hamiltonian vector field of every locally constant function
+(`TauCeti.SmoothTwoForm.isHamiltonianVectorField_zero_of_isLocallyConstant`).
+
+The results extend Tau Ceti's file of the same path, in its namespace.
 
 ## References
 
@@ -28,6 +39,50 @@ The result extends Tau Ceti's file of the same path, in its namespace.
 public section
 
 open scoped ContDiff Manifold
+
+namespace TauCeti.SmoothTwoForm.IsHamiltonianVectorField
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+  {σ : SmoothTwoForm I M} {f g : M → ℝ} {X Y : (x : M) → TangentSpace I x}
+
+/-- The zero vector field is a Hamiltonian vector field of the zero function. -/
+theorem zero : σ.IsHamiltonianVectorField 0 0 :=
+  isHamiltonianVectorField_iff_flat.2 fun x ↦ by
+    rw [Pi.zero_apply, map_zero, mvfderiv_zero]
+
+/-- If `X` and `Y` are Hamiltonian vector fields of the differentiable functions `f` and `g`,
+then `X + Y` is a Hamiltonian vector field of `f + g`. -/
+theorem add (hX : σ.IsHamiltonianVectorField f X) (hY : σ.IsHamiltonianVectorField g Y)
+    (hf : MDifferentiable I 𝓘(ℝ) f) (hg : MDifferentiable I 𝓘(ℝ) g) :
+    σ.IsHamiltonianVectorField (f + g) (X + Y) :=
+  isHamiltonianVectorField_iff_flat.2 fun x ↦ by
+    rw [Pi.add_apply, map_add, mvfderiv_add (hf x) (hg x),
+      isHamiltonianVectorField_iff_flat.1 hX, isHamiltonianVectorField_iff_flat.1 hY]
+
+/-- If `X` is a Hamiltonian vector field of `f`, then `c • X` is a Hamiltonian vector field of
+`c • f` for every real number `c`. -/
+theorem const_smul (hX : σ.IsHamiltonianVectorField f X) (c : ℝ) :
+    σ.IsHamiltonianVectorField (c • f) (c • X) :=
+  isHamiltonianVectorField_iff_flat.2 fun x ↦ by
+    rw [Pi.smul_apply, map_smul, mvfderiv_const_smul_field,
+      isHamiltonianVectorField_iff_flat.1 hX]
+
+end TauCeti.SmoothTwoForm.IsHamiltonianVectorField
+
+namespace TauCeti.SmoothTwoForm
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+  {σ : SmoothTwoForm I M} {f : M → ℝ}
+
+/-- The zero vector field is a Hamiltonian vector field of every locally constant function. -/
+theorem isHamiltonianVectorField_zero_of_isLocallyConstant (hf : IsLocallyConstant f) :
+    σ.IsHamiltonianVectorField f 0 :=
+  isHamiltonianVectorField_iff_flat.2 fun x ↦ by
+    rw [Pi.zero_apply, map_zero, eq_comm, mvfderiv_eq_zero_iff, hf.mfderiv_eq_zero]
+
+end TauCeti.SmoothTwoForm
 
 namespace TauCeti.SmoothTwoForm.IsNondegenerate
 
