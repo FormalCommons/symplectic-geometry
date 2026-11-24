@@ -9,8 +9,11 @@ public import SymplecticGeometry.Geometry.Manifold.DeRham.FundamentalClass
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Homotopy
 public import TauCeti.Geometry.Manifold.Orientation.AddCircle
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.AddCircle
+import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Cylinder
+import TauCeti.Geometry.Manifold.Instances.Icc.CollaredSmoothTransition
 import TauCeti.Geometry.Manifold.Instances.AddCircle
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
+import TauCeti.Topology.Algebra.Order.Floor
 
 /-!
 # Rectangle integrals of closed two-forms as periods
@@ -34,6 +37,18 @@ the torus is the integral over the square `[0, 1) × [0, 1)` of `v^* σ` on the 
 is `[0, 1]²`, where Fubini's theorem (`TauCeti.IsSmoothForm.setIntegral_eq_rectangleIntegral`)
 turns the integral into the rectangle integral.
 
+A smooth map `u` of the plane that only agrees on opposite edges of the unit square,
+`u (1, t) = u (0, t)` and `u (s, 1) = u (s, 0)` for `s, t ∈ [0, 1]` (the edge conditions of
+Tau Ceti's `TauCeti.VanishesOnTori`), is first flattened near the edges. The collared smooth
+transition `ρ` (`TauCeti.collaredSmoothTransition`) is `0` near `0` and `1` near `1`, so the map
+`(t, s) ↦ u (ρ (fract t), ρ (fract s))` has period `1` in both variables. It is smooth: by the
+edge conditions, `u ∘ Prod.map ρ ρ` is periodic in each variable just below `0`, so near any point
+the periodization in that variable is a translate (Tau Ceti's
+`TauCeti.apply_fract_snd_eventuallyEq`, used once for each variable). On the unit square the
+periodized map agrees with `u ∘ Prod.map ρ ρ`, whose rectangle integral is that of `u`
+(`TauCeti.rectangleIntegral_comp_prodMap_of_contDiff` and
+`TauCeti.rectangleIntegral_comp_prodMap_snd_of_contDiff`).
+
 ## Main results
 
 * `AddCircle.integralTopForm_mpullback_mem_range_closedFormHomologyPeriod`: the integral over the
@@ -42,6 +57,8 @@ turns the integral into the rectangle integral.
 * `TauCeti.rectangleIntegral_mem_range_closedFormHomologyPeriod_of_periodic`: the rectangle
   integral of a closed two-form over a smooth map of `ℝ²` with period `1` in both variables is a
   period of the form on `H₂(M; ℤ)`.
+* `TauCeti.rectangleIntegral_mem_range_closedFormHomologyPeriod`: the same for a smooth map of
+  `ℝ²` that agrees on opposite edges of the unit square.
 
 ## References
 
@@ -51,7 +68,7 @@ turns the integral into the rectangle integral.
 public section
 
 open Set MeasureTheory
-open scoped Manifold ContDiff
+open scoped Manifold ContDiff Interval
 
 noncomputable section
 
@@ -142,6 +159,73 @@ theorem rectangleIntegral_mem_range_closedFormHomologyPeriod_of_periodic (σ : c
   simp only [mpullback_apply]
   refine congrArg _ (funext fun j ↦ ?_)
   fin_cases j <;> simp
+
+/-- **Rectangle integrals over maps agreeing on opposite edges are periods.** Let `σ` be a closed
+two-form on `M` and `u : ℝ × ℝ → M` a smooth map with `u (1, t) = u (0, t)` and
+`u (s, 1) = u (s, 0)` for `s, t ∈ [0, 1]`. Then `∫_{[0,1]²} u^* σ` is the period of `σ` on some
+class of `H₂(M; ℤ)`. -/
+theorem rectangleIntegral_mem_range_closedFormHomologyPeriod (σ : closedForms I M 2)
+    {u : ℝ × ℝ → M} (hu : ContMDiff 𝓘(ℝ, ℝ × ℝ) I ∞ u)
+    (h₁ : ∀ t ∈ Icc (0 : ℝ) 1, u (1, t) = u (0, t))
+    (h₂ : ∀ s ∈ Icc (0 : ℝ) 1, u (s, 1) = u (s, 0)) :
+    rectangleIntegral σ.val.val u (0, 0) (1, 1) ∈ range (closedFormHomologyPeriod σ) := by
+  set ρ := collaredSmoothTransition
+  have hρ : ContDiff ℝ ∞ ρ := contDiff_collaredSmoothTransition le_rfl
+  have hρ₀ {t : ℝ} (ht : t ≤ 0) : ρ t = 0 := collaredSmoothTransition_eq_zero_of_le (by linarith)
+  have hρ₁ {t : ℝ} (ht : -(1 / 4) < t) : ρ (t + 1) = 1 :=
+    collaredSmoothTransition_eq_one_of_ge (by linarith)
+  -- Periodizing a smooth map in the second coordinate keeps it smooth if the map is periodic
+  -- just below `0`, since near each point the periodization is a translate of the map.
+  have hfract {F : ℝ × ℝ → M} (hF : ContMDiff 𝓘(ℝ, ℝ × ℝ) I ∞ F)
+      (hF₁ : ∀ y {t : ℝ}, -(1 / 4) < t → t < 0 → F (y, t + 1) = F (y, t)) :
+      ContMDiff 𝓘(ℝ, ℝ × ℝ) I ∞ fun w : ℝ × ℝ ↦ F (w.1, Int.fract w.2) := fun z ↦
+    ((hF.comp (contDiff_fst.prodMk (contDiff_snd.sub contDiff_const)).contMDiff)
+      z).congr_of_eventuallyEq (apply_fract_snd_eventuallyEq (by norm_num) hF₁ z)
+  -- Flatten `u` by `ρ` and periodize it in the second coordinate, then in the first.
+  set G : ℝ × ℝ → M := fun w ↦ u (ρ w.1, ρ (Int.fract w.2))
+  have hG : ContMDiff 𝓘(ℝ, ℝ × ℝ) I ∞ G :=
+    hfract (F := fun w ↦ u (ρ w.1, ρ w.2)) (hu.comp (hρ.prodMap hρ).contMDiff)
+      fun y t ht₀ ht₁ ↦ by
+        simp only [hρ₁ ht₀, hρ₀ ht₁.le]
+        exact h₂ _ (collaredSmoothTransition_mem _)
+  have hsw : ContMDiff 𝓘(ℝ, ℝ × ℝ) 𝓘(ℝ, ℝ × ℝ) ∞ fun w : ℝ × ℝ ↦ (w.2, w.1) :=
+    (contDiff_snd.prodMk contDiff_fst).contMDiff
+  set W : ℝ × ℝ → M := fun w ↦ u (ρ (Int.fract w.1), ρ (Int.fract w.2))
+  have hW : ContMDiff 𝓘(ℝ, ℝ × ℝ) I ∞ W :=
+    (hfract (F := fun w ↦ G (w.2, w.1)) (hG.comp hsw)
+      fun y t ht₀ ht₁ ↦ by
+        simp only [G, hρ₁ ht₀, hρ₀ ht₁.le]
+        exact h₁ _ (collaredSmoothTransition_mem _)).comp hsw
+  have hper := rectangleIntegral_mem_range_closedFormHomologyPeriod_of_periodic σ hW
+    (fun t s ↦ by simp [W]) (fun t s ↦ by simp [W])
+  have h0 : ρ 0 = 0 := hρ₀ (t := 0) le_rfl
+  have h1 : ρ 1 = 1 := by simpa using hρ₁ (t := 0) (by norm_num)
+  -- On the unit square the periodized map is `u ∘ Prod.map ρ ρ`.
+  have hfr (t : ℝ) (ht : t ∈ Icc (0 : ℝ) 1) :
+      ρ t = ρ (Int.fract t) ∨ ρ t = 1 ∧ ρ (Int.fract t) = 0 := by
+    rcases ht.2.lt_or_eq with h | rfl
+    · exact Or.inl (by rw [Int.fract_eq_self.2 ⟨ht.1, h⟩])
+    · exact Or.inr ⟨h1, by simpa using h0⟩
+  have hsq : EqOn (u ∘ Prod.map ρ ρ) W
+      ([[((0 : ℝ), (0 : ℝ)).1, ((1 : ℝ), (1 : ℝ)).1]] ×ˢ
+        [[((0 : ℝ), (0 : ℝ)).2, ((1 : ℝ), (1 : ℝ)).2]]) := by
+    rintro ⟨s, t⟩ ⟨hs, ht⟩
+    simp only [uIcc_of_le zero_le_one] at hs ht
+    simp only [Function.comp_apply, Prod.map_apply, W]
+    have m := collaredSmoothTransition_mem
+    rcases hfr s hs with hs' | ⟨hs₁, hs₀⟩ <;> rcases hfr t ht with ht' | ⟨ht₁, ht₀⟩
+    · rw [hs', ht']
+    · rw [hs', ht₁, ht₀, h₂ _ (m _)]
+    · rw [hs₁, hs₀, ht', h₁ _ (m _)]
+    · rw [hs₁, hs₀, ht₁, ht₀, h₁ _ ⟨zero_le_one, le_rfl⟩, h₂ _ ⟨le_rfl, zero_le_one⟩]
+  -- Reparametrizing by `ρ` in each coordinate does not change the rectangle integral.
+  have hφ : IsSmoothForm I 0 σ.val.val := σ.val.isSmoothForm.of_le (by simp)
+  have hu₁ : ContMDiff 𝓘(ℝ, ℝ × ℝ) I 1 u := hu.of_le (by simp)
+  have hρ₁' : ContDiff ℝ 1 ρ := hρ.of_le (by simp)
+  have hcomp : u ∘ Prod.map ρ ρ = (u ∘ Prod.map id ρ) ∘ Prod.map ρ id := rfl
+  rwa [← rectangleIntegral_congr hsq, hcomp, rectangleIntegral_comp_prodMap_of_contDiff hφ
+    (hu₁.comp (contDiff_id.prodMap hρ₁').contMDiff) hρ₁',
+    rectangleIntegral_comp_prodMap_snd_of_contDiff hφ hu₁ hρ₁', h0, h1] at hper
 
 end TauCeti
 
