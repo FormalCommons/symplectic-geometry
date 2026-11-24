@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Contact.Distribution
 public import TauCeti.Geometry.Contact.Flat
 public import TauCeti.Geometry.Contact.Gray
 public import TauCeti.Topology.VectorBundle.Hom
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
 # Smooth families of contact structures
@@ -271,7 +272,7 @@ theorem isContactFormAt_mpullback_subtype_val_iff {U : TopologicalSpace.Opens M}
       IsContactFormAt α.val x := by
   rw [coe_mpullback, isContactFormAt_mpullback_iff contMDiff_subtypeVal.contMDiffAt
     (((SmoothForm.contMDiff _) _).of_le (mod_cast le_top))
-    (Manifold.mfderiv_subtype_val (I := I) x ▸ (Manifold.tangentSpaceOpenEquiv x).bijective)]
+    (TauCeti.bijective_mfderiv_subtype_val (I := I) x)]
 
 omit [FiniteDimensional ℝ E] in
 /-- **Kernels restrict to open subsets.** Under the canonical identification of tangent spaces,

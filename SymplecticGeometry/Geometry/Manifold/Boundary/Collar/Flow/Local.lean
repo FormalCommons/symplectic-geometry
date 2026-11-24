@@ -301,8 +301,8 @@ private theorem exists_partialDiffeomorph_flowOf_boundaryParam (hw : ContDiff �
       (∀ q ∈ Θ.source, Θ q = flowOf (I := 𝓘(ℝ, EuclideanSpace ℝ (Fin (n + 1)))) w (-q.2 0)
         (euclideanHalfSpaceBoundaryParam n q.1)) ∧
       ∀ q ∈ Θ.source, Θ q ∈ range (𝓡∂ (n + 1)) ↔ q ∈ range ((𝓡 n).prod (𝓡∂ 1)) := by
-  obtain ⟨Θ, hΘ0, hΘR, hGΘ⟩ := IsLocalDiffeomorphAt.exists_partialDiffeomorph_source_subset
-    (isLocalDiffeomorphAt_flowOf_euclideanHalfSpaceBoundaryParam hw z₀ hw₀) (hR.mem_nhds hz₀R)
+  obtain ⟨Θ, hΘ0, hΘR, hGΘ⟩ := IsLocalDiffeomorphAt.exists_partialDiffeomorph_eqOn
+    (isLocalDiffeomorphAt_flowOf_euclideanHalfSpaceBoundaryParam hw z₀ hw₀) hR hz₀R
   refine ⟨Θ, hΘ0, hΘR, fun q hq ↦ (hGΘ hq).symm, ?_⟩
   rintro ⟨z, τ⟩ hq
   rw [← hGΘ hq, ModelWithCorners.range_prod, range_modelWithCornersEuclideanHalfSpace,

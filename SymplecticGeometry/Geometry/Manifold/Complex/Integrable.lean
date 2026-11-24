@@ -128,13 +128,14 @@ theorem isIntegrable_of_forall_exists_isLocalDiffeomorphAt
   intro x
   obtain ⟨φ, s, J₀, hs, hφ, hJ⟩ := h x
   -- A partial diffeomorphism that agrees with `φ` on its source, inside `s`, is the chart.
-  obtain ⟨Φ, hxΦ, hΦs, hφΦ⟩ := hφ.exists_partialDiffeomorph_source_subset hs
+  obtain ⟨t, hts, ht, hxt⟩ := mem_nhds_iff.1 hs
+  obtain ⟨Φ, hxΦ, hΦt, hφΦ⟩ := hφ.exists_partialDiffeomorph_eqOn ht hxt
   refine ⟨Φ, J₀, hxΦ, fun y hy v ↦ ?_⟩
   have hd : mfderiv I 𝓘(ℝ, E) Φ y = mfderiv I 𝓘(ℝ, E) φ y :=
     Filter.EventuallyEq.mfderiv_eq <|
       Filter.eventually_of_mem (Φ.open_source.mem_nhds hy) fun z hz ↦ (hφΦ hz).symm
   rw [hd]
-  exact hJ y (hΦs hy) v
+  exact hJ y (hts (hΦt hy)) v
 
 /-- **The Nijenhuis tensor of an integrable structure vanishes.** -/
 theorem IsIntegrable.nijenhuis_eq_zero [FiniteDimensional ℝ E]
