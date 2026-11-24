@@ -11,7 +11,10 @@ public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
+public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import Mathlib.Tactic.Module
+import SymplecticGeometry.LinearAlgebra.BilinearForm.Nondegenerate
+import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # Coupling forms
@@ -48,6 +51,11 @@ becoming the slices `t = const`, and the reduced form at level `t` becoming `τ 
   along the submersion `π` is the closed slice of `σ`; so it has a de Rham class.
 * `SymplecticGeometry.IsCouplingForm.lineMap`: coupling forms for the same `τ` form an affine
   space: `σ₀ + s • (σ₁ - σ₀)` is one for every real `s`.
+* `SymplecticGeometry.IsCouplingForm.eval₂_inl_inl`: on vectors tangent to a slice, `σ` is the
+  pull-back of `τ t`.
+* `SymplecticGeometry.IsCouplingForm.isNondegenerate` and `isSymplectic`: a coupling form for a
+  family of nondegenerate forms is nondegenerate, hence symplectic, at every point of
+  `P × [a, b]`, the boundary included.
 
 ## Implementation notes
 
@@ -69,6 +77,14 @@ times one of them; part 39 of `DESIGN.md` records this choice.
 The Hamiltonian condition is written out with `TauCeti.RoughForm.interior` rather than with Tau
 Ceti's moment maps, which are stated for left actions, while the action here is the right action
 of a principal bundle.
+
+Nondegeneracy is proved at each point `(p, t)` with
+`LinearMap.BilinForm.IsRefl.nondegenerate_of_ker_restrict_eq_span_singleton`. The hyperplane is
+the `σ`-orthogonal of `(X, 0)`, which is the kernel of `dt` by the Hamiltonian identity. On it `σ`
+is `π^* (τ t)`, whose radical is the vertical line spanned by `X`
+(`SymplecticGeometry.exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero`), and
+`σ((X, 0), ∂_t) = -1`. Since the tangent spaces of `Set.Icc a b` are the whole model space at the
+endpoints too, the argument is the same on the boundary.
 
 ## References
 
@@ -195,6 +211,124 @@ theorem lineMap (h₀ : IsCouplingForm σ₀ τ) (h₁ : IsCouplingForm σ₁ τ
   mpullback_slice t := by
     rw [map_add, map_smul, map_sub, h₀.mpullback_slice, h₁.mpullback_slice, sub_self, smul_zero,
       add_zero]
+
+/-- On vectors tangent to the slice at `t`, a coupling form is the pull-back of `τ t` along the
+projection: `σ((v, 0), (w, 0)) = τ t (dπ v, dπ w)`. -/
+theorem eval₂_inl_inl (h : IsCouplingForm σ τ) (p : ManifoldTotalSpace Circle P)
+    (t : Set.Icc a b) (v w : TangentSpace (IB.prod (𝓡 1)) p) :
+    SmoothBundleForm.eval₂ σ (p, t)
+        ((v, 0) : TangentSpace ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (p, t)) (w, 0) =
+      SmoothBundleForm.eval₂ (τ t) ((ManifoldTotalSpace.homeomorph Circle P).symm p).proj
+        (mfderiv (IB.prod (𝓡 1)) IB (fun y : ManifoldTotalSpace Circle P ↦
+          ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj) p v)
+        (mfderiv (IB.prod (𝓡 1)) IB (fun y : ManifoldTotalSpace Circle P ↦
+          ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj) p w) := by
+  have := congrArg (fun φ ↦ SmoothBundleForm.eval₂ φ p v w) (h.mpullback_slice t)
+  simp only [SmoothForm.eval₂_mpullback, mfderiv_prod_left] at this
+  -- `ContinuousLinearMap.inl _ _ _ v` is `(v, 0)`, and `(p, t).1` is `p`, by definition
+  exact this
+
+/-- The Hamiltonian identity of a coupling form in terms of the second component:
+`σ((X, 0), v) = -v₂`, where `v₂` is the component of `v` along the interval, read in `ℝ` through
+the inclusion `[a, b] → ℝ`. -/
+theorem apply_couplingField_eq_neg_mfderiv_snd (h : IsCouplingForm σ τ)
+    (x : ManifoldTotalSpace Circle P × Set.Icc a b)
+    (v : TangentSpace ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) x) :
+    σ.val x ![couplingField IB P a b x, v] =
+      -mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Set.Icc a b → ℝ) x.2 v.2 := by
+  rw [h.apply_couplingField]
+  -- `fun y ↦ (y.2 : ℝ)` is `Subtype.val ∘ Prod.snd` by definition of composition
+  exact congrArg (fun c ↦ -c) (DFunLike.congr_fun
+    (mfderiv_comp_snd (I := IB.prod (𝓡 1)) (I'' := 𝓘(ℝ)) Subtype.val x) v)
+
+/-- At a point `(p, t)`, the radical of a coupling form over a nondegenerate `τ t`, restricted to
+the `σ`-orthogonal of `(X, 0)` (the kernel of `dt`), is the line spanned by `(X, 0)`. -/
+private theorem ker_restrict_eq_span_couplingField (h : IsCouplingForm σ τ) {t : Set.Icc a b}
+    (hτ : (τ t).IsNondegenerate) (p : ManifoldTotalSpace Circle P) :
+    LinearMap.ker ((σ.bilinFormAt (p, t)).restrict
+      (LinearMap.ker (σ.bilinFormAt (p, t) (couplingField IB P a b (p, t))))) =
+      ℝ ∙ ⟨couplingField IB P a b (p, t),
+        LinearMap.mem_ker.mpr (SmoothForm.isAlt_bilinFormAt σ (p, t) _)⟩ := by
+  ext ⟨w, hw⟩
+  rw [LinearMap.mem_ker, Submodule.mem_span_singleton]
+  constructor
+  · intro hk
+    -- `w` has no component along the interval, since the inclusion `[a, b] → ℝ` has injective
+    -- derivative
+    have hw0 : w.2 = 0 := by
+      have hw' := LinearMap.mem_ker.mp hw
+      rw [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply,
+        h.apply_couplingField_eq_neg_mfderiv_snd] at hw'
+      exact (isImmersionOfComplement_subtypeVal_Icc (n := 1)).mfderiv_injective one_ne_zero _
+        (((neg_eq_zero (α := ℝ)).mp hw').trans (map_zero _).symm)
+    have hwe : ((w.1, 0) : TangentSpace ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (p, t)) = w :=
+      Prod.ext rfl hw0.symm
+    have hd : mfderiv (IB.prod (𝓡 1)) IB (fun y : ManifoldTotalSpace Circle P ↦
+        ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj) p w.1 = 0 := by
+      refine (SmoothTwoForm.isNondegenerate_iff_separatingLeft.mp hτ) _ _ fun z ↦ ?_
+      obtain ⟨u, rfl⟩ :=
+        (ManifoldTotalSpace.isSubmersion_proj ∞ Circle P IB (𝓡 1)).surjective_mfderiv (by simp) p z
+      let u₀ : TangentSpace ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (p, t) := (u, 0)
+      have hu0 : u₀ ∈ LinearMap.ker (σ.bilinFormAt (p, t) (couplingField IB P a b (p, t))) := by
+        refine LinearMap.mem_ker.mpr ?_
+        rw [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply,
+          h.apply_couplingField_eq_neg_mfderiv_snd]
+        -- the second component of `u₀` is `0`, by definition of the product tangent space
+        exact neg_eq_zero.mpr (map_zero _)
+      refine (h.eval₂_inl_inl p t w.1 u).symm.trans ?_
+      rw [hwe]
+      exact (SmoothForm.bilinFormAt_apply σ (p, t) w _).symm.trans
+        (LinearMap.congr_fun hk ⟨u₀, hu0⟩)
+    obtain ⟨c, hc⟩ := exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero hd
+    have hX : ((2 * Real.pi)⁻¹ * c) •
+        rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator p =
+          c • rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator p := by
+      rw [circlePeriodOneGenerator_def, rightFundamentalVectorField_smul, Pi.smul_apply, smul_smul]
+      congr 1
+      field_simp
+    refine ⟨(2 * Real.pi)⁻¹ * c, Subtype.ext ?_⟩
+    refine Eq.trans ?_ hwe
+    simp only [Submodule.coe_smul]
+    rw [hc, couplingField_def]
+    -- the tangent space of the product is the product of the tangent spaces, by definition
+    exact Prod.ext hX (smul_zero _)
+  · rintro ⟨c, hc⟩
+    refine LinearMap.ext fun u ↦ ?_
+    simp only [← hc, LinearMap.BilinForm.restrict_apply, LinearMap.domRestrict_apply,
+      map_smul, LinearMap.smul_apply, LinearMap.mem_ker.mp u.property, smul_zero,
+      LinearMap.zero_apply]
+
+/-- **Coupling forms over nondegenerate forms are nondegenerate.** If every `τ t` is
+nondegenerate, then so is a coupling form for `τ`, at every point of `P × [a, b]`, the two
+boundary levels included. -/
+theorem isNondegenerate (h : IsCouplingForm σ τ) (hτ : ∀ t, (τ t).IsNondegenerate) :
+    σ.IsNondegenerate := by
+  refine SmoothTwoForm.isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.mpr fun ⟨p, t⟩ ↦
+    LinearMap.BilinForm.Nondegenerate.ker_eq_bot ?_
+  -- `ℓ = σ((X, 0), ·)`, which is `-dt`
+  set ℓ := σ.bilinFormAt (p, t) (couplingField IB P a b (p, t))
+  -- the vector `∂_t`, on which `ℓ` is `-1`
+  let e : TangentSpace ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (p, t) :=
+    LinearMap.inr ℝ (TangentSpace (IB.prod (𝓡 1)) p) (TangentSpace (𝓡∂ 1) t) 1
+  have he : ℓ e = -1 := by
+    rw [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply,
+      h.apply_couplingField_eq_neg_mfderiv_snd]
+    -- the second component of `e` is `1`, and the value lies in `Bundle.Trivial _ ℝ (p, t)`,
+    -- which is `ℝ`
+    exact congrArg (fun c ↦ -c) (mfderiv_subtypeVal_Icc_one t)
+  refine LinearMap.BilinForm.IsRefl.nondegenerate_of_ker_restrict_eq_span_singleton
+    (SmoothForm.isAlt_bilinFormAt σ (p, t)).isRefl
+    (h.ker_restrict_eq_span_couplingField (hτ t) p) (e := e) ?_
+    (by rw [he]; exact neg_ne_zero.mpr one_ne_zero : ℓ e ≠ 0)
+  refine Submodule.eq_top_iff'.mpr fun v ↦ Submodule.mem_sup.mpr
+    ⟨v + ℓ v • e, ?_, -ℓ v • e, Submodule.smul_mem _ _ (Submodule.mem_span_singleton_self e), ?_⟩
+  · rw [LinearMap.mem_ker, map_add, map_smul, he, smul_eq_mul, mul_neg_one, add_neg_cancel]
+  · rw [neg_smul, add_neg_cancel_right]
+
+/-- **Coupling forms over nondegenerate forms are symplectic.** -/
+theorem isSymplectic (h : IsCouplingForm σ τ) (hτ : ∀ t, (τ t).IsNondegenerate) :
+    σ.IsSymplectic :=
+  ⟨h.isClosed, h.isNondegenerate hτ⟩
 
 end IsCouplingForm
 
