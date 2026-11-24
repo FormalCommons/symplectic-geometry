@@ -113,9 +113,10 @@ then on all of `L2Form I M k` by density.
   `Manifold.integral_mul_laplaceBeltrami`).
 * `SymplecticGeometry.L2Form I M k`: the Hilbert space of `L²` `k`-forms, with
   `L2Form.ofSmooth`, `L2Form.inner_ofSmooth`, `L2Form.inner_ofSmooth_eq_integral`,
-  `L2Form.norm_ofSmooth_sq`, `L2Form.ofSmooth_injective`, `L2Form.denseRange_ofSmooth` and
-  `L2Form.induction_on`, and its isometric inclusion `L2Form.subtypeL` into
-  `TauCeti.L2Form I M k`, with `L2Form.subtypeL_ofSmooth` and `L2Form.range_subtypeL`.
+  `L2Form.norm_ofSmooth_sq`, `L2Form.norm_ofSmooth_sq_eq_integral`, `L2Form.ofSmooth_injective`,
+  `L2Form.denseRange_ofSmooth` and `L2Form.induction_on`, and its isometric inclusion
+  `L2Form.subtypeL` into `TauCeti.L2Form I M k`, with `L2Form.subtypeL_ofSmooth` and
+  `L2Form.range_subtypeL`.
 * `TauCeti.SmoothForm.memLp_localize`: the localization of a smooth form to a chart is in every
   `Lᵖ`, with the pointwise bounds `norm_localize_apply_le` and
   `exists_norm_localize_apply_sq_le`, and `TauCeti.SmoothForm.localizeLp`, the linear map to
@@ -393,6 +394,14 @@ theorem inner_ofSmooth_eq_integral [MeasurableSpace M] [BorelSpace M]
 theorem norm_ofSmooth_sq (o : Manifold.Orientation I M (Fin m)) (α : SmoothForm I M ℝ k) :
     ‖(ofSmooth α : L2Form I M k)‖ ^ 2 = l2Inner o α α := by
   rw [← real_inner_self_eq_norm_sq, inner_ofSmooth o]
+
+/-- The squared norm of a smooth form in `L2Form I M k` is the integral of `⟨α, α⟩` against the
+Riemannian volume measure, for any Borel measurable structure on `M`. -/
+theorem norm_ofSmooth_sq_eq_integral [MeasurableSpace M] [BorelSpace M]
+    (α : SmoothForm I M ℝ k) :
+    ‖(ofSmooth α : L2Form I M k)‖ ^ 2 =
+      ∫ x, alternatingFormInner (TangentSpace I x) k (α.val x) (α.val x) ∂riemannianVolume I M := by
+  rw [← real_inner_self_eq_norm_sq, inner_ofSmooth_eq_integral]
 
 /-- The inclusion of the smooth forms into `L2Form I M k` is injective. -/
 theorem ofSmooth_injective : Function.Injective (ofSmooth : SmoothForm I M ℝ k → L2Form I M k) := by
@@ -816,8 +825,8 @@ private theorem lintegral_enorm_localize_sq_le_addHaar
           (ψ.symm.setLIntegral_riemannianVolume_eq hn b fun x ↦ ENNReal.ofReal (B * a x)).symm
     _ ≤ ∫⁻ x, ENNReal.ofReal (B * a x) ∂riemannianVolume I M := setLIntegral_le_lintegral _ _
     _ = ENNReal.ofReal (B * ‖(ofSmooth α : L2Form I M k)‖ ^ 2) := by
-        rw [← ofReal_integral_eq_lintegral_ofReal, integral_const_mul, ← real_inner_self_eq_norm_sq,
-          inner_ofSmooth_eq_integral]
+        rw [← ofReal_integral_eq_lintegral_ofReal, integral_const_mul,
+          norm_ofSmooth_sq_eq_integral]
         · exact ((continuous_alternatingFormInner α α).integrable_of_compactSpace).const_mul B
         · exact Filter.Eventually.of_forall fun x ↦
             mul_nonneg hB (alternatingFormInner_self_nonneg _)
@@ -1029,8 +1038,7 @@ private theorem exists_ofReal_norm_ofSmooth_extendByZeroAlong_sq_le
     simpa only [g, γ, SmoothForm.coe_extendByZeroAlong] using hB a haK y hy
   calc ENNReal.ofReal (‖(ofSmooth γ : L2Form I M k)‖ ^ 2)
       = ∫⁻ x, ENNReal.ofReal (g x) ∂riemannianVolume I M := by
-        rw [← real_inner_self_eq_norm_sq, inner_ofSmooth_eq_integral,
-          ofReal_integral_eq_lintegral_ofReal]
+        rw [norm_ofSmooth_sq_eq_integral, ofReal_integral_eq_lintegral_ofReal]
         · exact (continuous_alternatingFormInner γ γ).integrable_of_compactSpace
         · exact Filter.Eventually.of_forall fun x ↦ alternatingFormInner_self_nonneg _
     _ = ∫⁻ x in ψ.source, ENNReal.ofReal (g x) ∂riemannianVolume I M := by
