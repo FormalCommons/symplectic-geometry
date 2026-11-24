@@ -356,7 +356,7 @@ moment map `fun p ↦ μ p.1 + ι p.2` of `σ.prod η.coadjointOrbitForm`),
   `properSMul_orbitLevel [ProperSMul G M]`.
 - `def orbitLevelGraph (hemb) : h.orbitLevel η ≃ₜ hP.zeroLevel`,
   `x ↦ (x, q)` with `ι q = -μ x`, inverse `Prod.fst`; `orbitLevelGraph_fst`,
-  `orbit_orbitLevelGraph_snd : ι (h.orbitLevelGraph hemb x).2 = -μ x`
+  `orbitMap_orbitLevelGraph_snd : ι (h.orbitLevelGraph hemb x).2 = -μ x`
   (names of the components to be fixed by the implementation), and
   `orbitLevelGraph_smul` (equivariance). Continuity of the inverse of `ι` on
   its image is `hemb`.
