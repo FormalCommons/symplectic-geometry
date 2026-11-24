@@ -31,11 +31,13 @@ name: cache
 # restored, and saves that build. It does so when the latest such build
 # began an hour ago or more, so about once an hour while pull requests merge,
 # and whenever a run is started by hand. The second job starts from the
-# latest build from source, or from the latest save that descends from it,
-# so the saves that CI restores do not descend from an older build from
-# source than the one before the latest. While there is no build from source
-# for the current dependencies, as in the first runs after a move of Tau
-# Ceti, it starts from the latest save of any kind.
+# latest build from source, or from the latest save that descends from it.
+# So each of its saves descends from the build from source that was the
+# latest when its run began, and while both jobs succeed, the saves that CI
+# restores go back to a build from source of the last hours. While there is
+# no build from source for the current dependencies, as in the first runs
+# after a move of Tau Ceti, the second job starts from the latest save of
+# any kind.
 #
 # If the build from source fails, it saves nothing, and the next run tries
 # again. So a run of this workflow that fails at the third job's build step
@@ -132,7 +134,7 @@ jobs:
             from=${from%%-*}
             printf '%s\n' "from=$from" 'restore<<END' "$BUILD-inc-$from-" "$BUILD-src-$from-" END >> "$GITHUB_OUTPUT"
             if [[ $from =~ ^[0-9]+$ ]] && [ $(( $(date +%s) - from )) -ge 10800 ]; then
-              echo "::warning::The latest build of main from its source began $(( ($(date +%s) - from) / 60 )) minutes ago. See the job 'source' of the latest runs of this workflow."
+              echo "::warning::The latest build of main from its source began $(( ($(date +%s) - from) / 60 )) minutes ago. That is expected after hours without a merge. Otherwise see the job 'source' of the latest runs of this workflow."
             fi
           else
             printf '%s\n' 'from=none' "restore=$BUILD-" >> "$GITHUB_OUTPUT"
@@ -151,8 +153,9 @@ jobs:
           path: .lake/build
           key: ${{ steps.setup.outputs.build }}-inc-${{ steps.name.outputs.from }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
 
-  # Builds main from its source and saves `.lake/build`, at most once an
-  # hour. The limit is as for the second job.
+  # Builds main from its source and saves `.lake/build`, when the latest
+  # build from source began an hour ago or more, or when the run is started
+  # by hand. The limit is as for the second job.
   source:
     runs-on: ubuntu-latest
     timeout-minutes: 150
