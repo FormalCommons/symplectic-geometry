@@ -9,12 +9,14 @@ public import Mathlib.Analysis.Calculus.FDeriv.Basic
 public import Mathlib.Topology.Sets.Opens
 public import SymplecticGeometry.Topology.VectorBundle.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.FiberScaling
+public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
 
 import Mathlib.Analysis.Calculus.LineDeriv.Basic
 import SymplecticGeometry.Analysis.Calculus.FiberRescale
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.VectorBundle.Submersion
+import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import TauCeti.Topology.FiberBundle.Separation
 
 /-!
@@ -59,6 +61,9 @@ with parameters.
 * `SymplecticGeometry.tendsto_vectorBundleRescaledFamily_zero`,
   `SymplecticGeometry.vectorBundleRescaledFamily_zero_eq`: the slices tend to the fibre
   derivative of `ψ` as `t → 0⁺`, which is the slice at `t = 0`.
+* `SymplecticGeometry.vectorBundleRescaledFamily_zero_eq_mfderiv`: over a base without boundary,
+  the slice at `t = 0` is the vertical part of the differential of `ψ` at the zero section, read
+  in Tau Ceti's splitting `TauCeti.Bundle.zeroSectionTangentEquiv`.
 * `SymplecticGeometry.vectorBundleRescaledFamily_zeroSection`: the slices fix every point of the
   zero section that `ψ` fixes.
 * `SymplecticGeometry.contMDiffOn_vectorBundleRescaledFamily`: the rescaled family is smooth on
@@ -278,6 +283,68 @@ theorem vectorBundleRescaledFamily_of_pos (ψ : U → TotalSpace F V) {t : Icc (
       vectorBundleScalarDiffeomorph (I := IB) (n := ∞) (fun _ ↦ (t : ℝ)⁻¹) contMDiff_const
         (fun _ ↦ inv_ne_zero ht.ne') (ψ ⟨_, hz⟩) := by
   rw [vectorBundleRescaledFamily_of_ne_zero ψ ht.ne' z hz, vectorBundleScalarDiffeomorph_apply]
+
+/-- **The slice at `t = 0` through the differential.** Let `ψ` fix the point `0_x` of the zero
+section and be differentiable there, the base being a Hausdorff manifold without boundary. Then the
+rescaled family sends `(a, 0)`, for `a` in the fibre over `x`, to the vertical part of `dψ` at
+`0_x` applied to `a`: the fibre component, in the splitting
+`TauCeti.Bundle.zeroSectionTangentEquiv x` of the tangent space at `0_x` as `T_x B × V_x`, of
+the image under `dψ` of the vertical vector `(0, a)`. -/
+theorem vectorBundleRescaledFamily_zero_eq_mfderiv [IB.Boundaryless] [T2Space B]
+    {ψ : U → TotalSpace F V} {x : B} (h0 : zeroSection F V x ∈ U)
+    (hψ0 : ψ ⟨_, h0⟩ = zeroSection F V x)
+    (hψ : MDifferentiableAt (IB.prod 𝓘(ℝ, F)) (IB.prod 𝓘(ℝ, F)) ψ ⟨_, h0⟩) (a : V x) :
+    vectorBundleRescaledFamily ψ (⟨x, a⟩, 0) =
+      ⟨x, (Bundle.zeroSectionTangentEquiv (I := IB) x
+        (mfderiv (IB.prod 𝓘(ℝ, F)) (IB.prod 𝓘(ℝ, F)) ψ ⟨_, h0⟩
+          ((Bundle.zeroSectionTangentEquiv (I := IB) x).symm (0, a)))).2⟩ := by
+  set e := trivializationAt F V x
+  have hx : x ∈ e.baseSet := mem_baseSet_trivializationAt F V x
+  have hxs : x ∈ (extChartAt IB x).source := mem_extChartAt_source x
+  -- `ψ` extended by the identity outside `U`
+  set ψ' : TotalSpace F V → TotalSpace F V := Subtype.val.extend ψ id
+  have hψψ' : ψ = ψ' ∘ Subtype.val :=
+    funext fun z ↦ (Subtype.val_injective.extend_apply _ _ _).symm
+  have hψ' : MDifferentiableAt (IB.prod 𝓘(ℝ, F)) (IB.prod 𝓘(ℝ, F)) ψ' (zeroSection F V x) := by
+    rw [hψψ'] at hψ
+    exact Manifold.mdifferentiableAt_comp_subtype_val_iff.1 hψ
+  have hψ'0 : ψ' (zeroSection F V x) = zeroSection F V x :=
+    (Subtype.val_injective.extend_apply ψ id ⟨_, h0⟩).trans hψ0
+  -- `ψ'` read in the chart at `0_x`, which `ψ'` fixes
+  set W := writtenInExtChartAt (IB.prod 𝓘(ℝ, F)) (IB.prod 𝓘(ℝ, F)) (zeroSection F V x) ψ'
+  set c := extChartAt IB x x
+  have hc : extChartAt (IB.prod 𝓘(ℝ, F)) (zeroSection F V x) (zeroSection F V x) = (c, 0) :=
+    Bundle.extChartAt_zeroSection_self x
+  have hW : DifferentiableAt ℝ W (c, 0) := by
+    have := hψ'.differentiableWithinAt_writtenInExtChartAt
+    rwa [hc, (IB.prod 𝓘(ℝ, F)).range_eq_univ, differentiableWithinAt_univ] at this
+  have hD : ∀ v, mfderiv (IB.prod 𝓘(ℝ, F)) (IB.prod 𝓘(ℝ, F)) ψ ⟨_, h0⟩ v =
+      fderiv ℝ W (c, 0) v := by
+    intro v
+    rw [hψψ', Manifold.mfderiv_comp_subtype_val_apply, hψ'.mfderiv, hc,
+      (IB.prod 𝓘(ℝ, F)).range_eq_univ, fderivWithin_univ]
+    -- `mfderiv` wraps the derivative in the chart into the identity `tangentSpaceCastModel`
+    rfl
+  -- the fibre coordinate of `ψ'` along the fibre over `x`, and its derivative at `0`
+  have hg : HasFDerivAt (fun w ↦ (W (c, w)).2)
+      (ContinuousLinearMap.snd ℝ EB F ∘L fderiv ℝ W (c, 0) ∘L ContinuousLinearMap.inr ℝ EB F) 0 :=
+    hasFDerivAt_snd.comp _ (hW.hasFDerivAt.comp _ (hasFDerivAt_prodMk_right c 0))
+  rw [vectorBundleRescaledFamily_zero_eq e hx h0 hψ0 hψ.continuousAt hg ?_]
+  · -- the tangent spaces at `ψ ⟨0_x, h0⟩` and at `0_x` are both the model space
+    erw [Bundle.zeroSectionTangentEquiv_apply, Bundle.zeroSectionTangentEquiv_symm_apply, hD,
+      Trivialization.continuousLinearMapAt_apply_of_mem ℝ _ hx, Trivialization.symmL_apply]
+    · rfl
+    · exact hx
+  · refine Eventually.of_forall fun w hw ↦ ?_
+    have hs : (extChartAt (IB.prod 𝓘(ℝ, F)) (zeroSection F V x)).symm (c, w) =
+        ⟨x, e.symm x w⟩ :=
+      Bundle.extChartAt_symm_apply_extChartAt_of_mem_baseSet (zeroSection F V x) hx hxs w
+    simp only [W, writtenInExtChartAt, Function.comp_apply, hψ'0, hs,
+      show ψ' ⟨x, e.symm x w⟩ = ψ ⟨_, hw⟩ from Subtype.val_injective.extend_apply ψ id ⟨_, hw⟩]
+    simp only [FiberBundle.extChartAt, PartialEquiv.coe_trans, Function.comp_apply,
+      PartialEquiv.prod_coe, PartialEquiv.refl_coe, id_eq, e]
+    -- the trivialization at `(zeroSection F V x).proj` is that at `x`
+    rfl
 
 end Manifold
 

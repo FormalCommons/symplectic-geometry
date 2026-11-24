@@ -37,6 +37,8 @@ a vector space.
 * `TauCeti.SmoothTwoForm.coe_mpullback_apply_eq_of_mfderiv_eq`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.isSymplectomorphism_mpullback_subtype_val`.
 * `TauCeti.SmoothTwoForm.injective_mfderiv_of_mpullback_apply_eq`.
+* `TauCeti.SmoothTwoForm.IsNondegenerate.symplecticFormAt_mfderiv_mfderiv`: the symplectic form
+  of `ω₁` at `f x₀` on two differentials of `f` is the pull-back `f^* ω₁` at `x₀`.
 
 ## References
 
@@ -113,6 +115,17 @@ theorem injective_mfderiv_of_mpullback_apply_eq {ω₀ : SmoothTwoForm I₀ M₀
   refine (injective_iff_map_eq_zero (mfderiv I₀ I₁ f x₀)).2 fun v hv ↦ hω₀.1 v fun w ↦ ?_
   rw [SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply, ← h, mpullback_apply]
   exact (ω₁.val (f x₀)).map_coord_zero 0 (by simp [hv])
+
+/-- For a smooth map `f : M₀ → M₁` and a nondegenerate two-form `ω₁` on `M₁`, the symplectic
+form of `ω₁` at `f x₀` on the differentials `df_{x₀} v` and `df_{x₀} w` is the pull-back
+`(f^* ω₁)_{x₀}` on `v` and `w`. -/
+theorem IsNondegenerate.symplecticFormAt_mfderiv_mfderiv {ω₁ : SmoothTwoForm I₁ M₁}
+    (hω₁ : ω₁.IsNondegenerate) {f : M₀ → M₁} (hf : ContMDiff I₀ I₁ ∞ f) (x₀ : M₀)
+    (v w : TangentSpace I₀ x₀) :
+    hω₁.symplecticFormAt (f x₀) (mfderiv I₀ I₁ f x₀ v) (mfderiv I₀ I₁ f x₀ w) =
+      (SmoothForm.mpullback f hf ω₁).bilinFormAt x₀ v w := by
+  rw [IsNondegenerate.symplecticFormAt_apply, SmoothForm.bilinFormAt_apply,
+    SmoothForm.eval₂_mpullback]
 
 end TauCeti.SmoothTwoForm
 
