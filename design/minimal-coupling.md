@@ -325,22 +325,54 @@ finite-dimensional) acting smoothly and freely on the right
 (`[MulAction Gᵐᵒᵖ X]`, as Tau Ceti's principal bundles act) on a
 boundaryless, Hausdorff, finite-dimensional manifold $X$:
 
-- the fibres `fun q : X ⧸ Gᵐᵒᵖ ↦ {x : X // ⟦x⟧ = q}` over Tau Ceti's
+- the fibres `orbitFiber Gᵐᵒᵖ X`, an `abbrev` for Tau Ceti's
+  `TauCeti.MapFiber (Quotient.mk (orbitRel Gᵐᵒᵖ X))`, over Tau Ceti's
   quotient manifold (`Geometry/Manifold/GroupAction/Quotient.lean`, with
-  its charted space `ProperSMul.orbitRelQuotientChartedSpace` as a local
-  instance) form a `FiberBundle G`, a `PrincipalBundle G` and a
-  `ContMDiffFiberBundle ∞`. The trivializations are Tau Ceti's
-  trivializations from equivariant maps
-  (`Topology/Algebra/GroupAction/OrbitTrivialization.lean`) with the
-  equivariant maps given by the smooth local sections of the slice charts;
-- `orbitBundleDiffeomorph : ManifoldTotalSpace G (orbitFiber Gᵐᵒᵖ X) ≃ₘ X`, an
-  equivariant diffeomorphism over the quotient map.
+  its charted space `ProperSMul.orbitRelQuotientChartedSpace`). The
+  trivializations are Tau Ceti's trivializations from equivariant maps
+  (`Topology/Algebra/GroupAction/OrbitTrivialization.lean`), with the
+  equivariant maps given by local sections, read with fibre `G`;
+  `orbitFiber.trivializationOfSection` passes them to the fibres by
+  `Bundle.Trivialization.toMapFiber`;
+- `orbitFiber.atlas IG IX : TauCeti.MapFiber.Atlas G (Quotient.mk (orbitRel Gᵐᵒᵖ X))`,
+  whose trivialization at `q` is the one of the orbit projection given by
+  the smooth local section `ProperSMul.exists_contMDiffOn_section_quotientMk`
+  through `q.out`, so that its `toMapFiber` is
+  `orbitFiber.trivializationOfSection`. The models are explicit arguments,
+  since the choice of smooth sections depends on them;
+- the bundle structures are Tau Ceti's, built from that atlas, and the file
+  adds none of its own: `FiberBundle G (orbitFiber Gᵐᵒᵖ X)` is
+  `TauCeti.MapFiber.Atlas.fiberBundle`; `PrincipalBundle G` is
+  `TauCeti.MapFiber.Atlas.principalBundle`, whose hypotheses are the
+  invariance of the orbit projection and `orbitSectionCoord_smul`, and whose
+  fibrewise action is the one of `orbitFiber.instMulAction`;
+  `ContMDiffFiberBundle ∞ G (orbitFiber Gᵐᵒᵖ X) 𝓘(ℝ, ProperSMul.QuotientModelSpace _ _) IG`
+  is `TauCeti.MapFiber.Atlas.contMDiffFiberBundle`, for a theorem
+  `orbitFiber.isContMDiff_atlas` that the atlas is
+  `TauCeti.MapFiber.Atlas.IsContMDiff ∞`. A trivialization of the atlas
+  sends `x` to `(⟦x⟧, unop (orbitSectionCoord s x))` and has inverse
+  `(q, g) ↦ op g • s q`, both smooth on their domains because `s`, the
+  action and the quotient map are;
+- the equivariant diffeomorphism of the total space with $X$ over the
+  quotient map is Tau Ceti's `TauCeti.MapFiber.Atlas.totalSpaceDiffeomorph`
+  for `orbitFiber.isContMDiff_atlas`, with `totalSpaceDiffeomorph_smul`
+  and `proj_totalSpaceDiffeomorph`.
+
+Instance search cannot recover the models `IG` and `IX` from
+`orbitFiber Gᵐᵒᵖ X`, as it cannot for
+`ProperSMul.orbitRelQuotientChartedSpace`, so these structures are not
+global instances. A statement about the bundle puts them in place by
+`letI := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X`,
+`letI := (orbitFiber.atlas IG IX).fiberBundle`, and `haveI` for the
+principal and the smooth structure, as Tau Ceti's statements about
+`Atlas.fiberBundle` do; the module docstring says so, and the converse
+uses the same ones.
 
 A compact group acts properly. For `Circle` the converse feeds it the
 right action `op z • x = z • x` of the commutative circle. The file is
 general, and the parts of `atlas/symplectic-fibrations.md` and *Hamiltonian
-reduction* may use it. About 600 lines; if the smooth-bundle instance runs
-long, it goes in a second issue after the topological bundle.
+reduction* may use it. About 600 lines; if the proof that the atlas is
+smooth runs long, it goes in a second issue after the topological bundle.
 
 ### `Geometry/Symplectic/Coupling/Converse.lean`
 
@@ -370,7 +402,7 @@ Proof:
 2. Its flow $\Phi$ commutes with the action (`Flow/Related.lean`) and
    $H(\Phi_t(x))=H(x)+t$ while the trajectory stays near $K$. The map
    $\psi(p,\lambda)=\Phi_{\lambda-a}(p)$, read on the total space through
-   `orbitBundleDiffeomorph`, is smooth, injective (by $H$ and the flow
+   `TauCeti.MapFiber.Atlas.totalSpaceDiffeomorph`, is smooth, injective (by $H$ and the flow
    property), onto $K$ (flowing back to $P_0$), equivariant, and has
    $H\circ\psi=\lambda$.
 3. $\psi^*\omega$ is closed and invariant, and $\iota_X\psi^*\omega=-d\lambda$
