@@ -42,7 +42,7 @@ map to the homology of `(F × ℝ) ∖ {0}` relative to `(F ∖ {0}) × ℝ`, wh
   (`TopCat.singularHomology₀Section_singularHomologyCrossRel`).
 
 A local orientation of `F × ℝ` has infinite order
-(`TauCeti.LocalOrientation.zsmul_left_injective`), so the sign is `(-1) ^ (m + 1)`.
+(`TauCeti.IsLocalOrientation.linearEquiv`), so the sign is `(-1) ^ (m + 1)`.
 
 ## Main results
 
@@ -437,7 +437,9 @@ theorem LocalOrientation.crossSign_zero_right (m : ℕ) :
     exact (congrArg Φ hc.symm).trans ((h₁.trans (congrArg _ h₂.symm)).trans (map_zsmul Φ _ _).symm)
   -- A local orientation of `F × ℝ` has infinite order, so the two signs agree.
   have hFR : finrank ℝ ((Fin (m + 1) → ℝ) × ℝ) = m + 1 + 1 := by simp
-  exact Units.ext (by simpa using LocalOrientation.zsmul_left_injective hFR w key)
+  exact Units.ext (by
+    simpa using (w.property.linearEquiv (singularHomologyComplZeroIso hFR)).injective
+      (by simpa using key))
 
 end Prod
 

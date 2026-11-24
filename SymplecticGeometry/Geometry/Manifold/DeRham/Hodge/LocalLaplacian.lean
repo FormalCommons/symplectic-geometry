@@ -264,8 +264,9 @@ private theorem exists_mpullback_symm_mextDeriv_codifferential_eq
     extProdCLM k (LinearMap.toContinuousLinearMap (b.coord i))
   -- `κ l` is the interior product with `b l`.
   set κ : Fin m → (E [⋀^Fin (k + 1)]→L[ℝ] ℝ) →L[ℝ] E [⋀^Fin k]→L[ℝ] ℝ := fun l ↦
-    (curryLeftLI (𝕜 := ℝ) (E := E) (F := ℝ) (n := k)).toContinuousLinearMap.flip (b l)
-  have hκ (l : Fin m) (w : E [⋀^Fin (k + 1)]→L[ℝ] ℝ) : κ l w = w.curryLeft (b l) := rfl
+    curryLeftFlipL (b l)
+  have hκ (l : Fin m) (w : E [⋀^Fin (k + 1)]→L[ℝ] ℝ) : κ l w = w.curryLeft (b l) :=
+    curryLeftFlipL_apply_apply _ _
   set g : E → Matrix (Fin m) (Fin m) ℝ := fun z ↦
     (Matrix.of fun i j ↦ ψ.gramInChart z (b i) (b j))⁻¹
   have hgs (j l : Fin m) : ContDiffOn ℝ ∞ (fun z ↦ g z j l) ψ.target :=
@@ -291,7 +292,9 @@ private theorem exists_mpullback_symm_mextDeriv_codifferential_eq
     -∑ j, ∑ l, g z j l • κ l (fderiv ℝ a z (b j)) + C₀ z (a z)
   have hev : (mpullback 𝓘(ℝ, E) I ψ.symm (SmoothForm.codifferential o hkl α).val :
       E → E [⋀^Fin k]→L[ℝ] ℝ) =ᶠ[𝓝 y] F :=
-    Filter.eventually_of_mem hT fun z hz ↦ hδ α z hz
+    -- After `hκ`, the two sides differ only by the local abbreviations `g` and `a` and by
+    -- `TangentSpace 𝓘(ℝ, E) z` standing for `E`, which `rfl` sees through.
+    Filter.eventually_of_mem hT fun z hz ↦ (hδ α z hz).trans (by simp only [F, hκ]; rfl)
   have hF : HasFDerivAt F
       (-∑ j, ∑ l, (g y j l • (κ l).comp (fderiv ℝ (fun z ↦ fderiv ℝ a z (b j)) y) +
           (fderiv ℝ (fun z ↦ g z j l) y).smulRight (κ l (fderiv ℝ a y (b j)))) +

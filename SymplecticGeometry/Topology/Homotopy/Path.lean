@@ -9,6 +9,7 @@ public import Mathlib.Topology.Homotopy.Contractible
 public import Mathlib.Topology.Homotopy.Path
 public import TauCeti.Topology.Circle.Loop
 import TauCeti.AlgebraicTopology.FundamentalGroup.FreeLoop
+import TauCeti.Topology.Homotopy.Homotopic.With
 
 /-!
 # Homotopies of loops with fixed and with free base point
@@ -52,12 +53,9 @@ theorem homotopicWith {γ γ' : Path x x} (h : γ.Homotopic γ') :
 map from the circle (`Path.toCircle`). -/
 theorem nullhomotopic_toCircle {γ : Path x x} (h : γ.Homotopic (Path.refl x)) :
     γ.toCircle.Nullhomotopic := by
-  -- A homotopy with fixed ends gives a path from `γ.toCircle` to the constant map in `C(S¹, X)`.
-  obtain ⟨p⟩ := h.joined_toCircle
-  refine ⟨x, ⟨{ toFun := fun q ↦ p q.1 q.2
-                continuous_toFun := by fun_prop
-                map_zero_left := fun ζ ↦ by simp
-                map_one_left := fun ζ ↦ ?_ }⟩⟩
+  refine ⟨x, ContinuousMap.homotopic_iff_joined.2 ?_⟩
+  convert h.joined_toCircle
+  ext ζ
   obtain ⟨t, rfl⟩ := TauCeti.unitToCircle_surjective ζ
   simp [Path.toCircle_unitToCircle]
 
