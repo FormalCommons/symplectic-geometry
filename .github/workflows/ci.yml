@@ -14,7 +14,13 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # A move of Tau Ceti finds no save of the dependencies and none of the
+    # library's build, since lake-manifest.json is in the names of both. Its
+    # run fetches what Tau Ceti's build cache has, compiles the Tau Ceti
+    # modules that the cache does not have as they are at the new commit,
+    # and builds the library from its source. That can take more than an
+    # hour.
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v7
       # The setup follows Tau Ceti. lakefile.toml must be .github/lakefile.toml
@@ -108,7 +114,7 @@ jobs:
           done
           exit $fail
       # elan, then the latest save of the built dependencies, or Mathlib's
-      # build cache without one; see the cache workflow.
+      # build cache and Tau Ceti's without one; see the cache workflow.
       - name: set up Lean and restore the built dependencies
         id: setup
         uses: ./.github/actions/setup-lean
