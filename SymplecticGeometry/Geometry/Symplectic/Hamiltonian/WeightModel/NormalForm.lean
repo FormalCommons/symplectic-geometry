@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.Analysis.InnerProductSpace.PiL2
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Darboux
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
@@ -135,7 +136,7 @@ theorem exists_weightChart
     rw [hα k ξ, ← hm]
     exact ((β k).map_smul ((2 * π)⁻¹) ξ).symm
   · ext z
-    rw [hsrc, Set.mem_preimage, htarget, Set.mem_ofPred_eq, StdSpace.norm_sq_sumEquivProd,
+    rw [hsrc, Set.mem_preimage, htarget, Set.mem_ofPred_eq, EuclideanSpace.norm_sq_sumEquivProd,
       mem_ball_zero_iff, sq_lt_sq₀ (norm_nonneg _) hr.le]
   · rw [hΦ, map_zero, ← hchartp]; exact chart.left_inv hpchart
   · intro g x hx
