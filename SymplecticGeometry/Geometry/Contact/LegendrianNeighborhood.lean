@@ -46,7 +46,9 @@ contactomorphic to an open set around the zero section of `T^* L × ℝ`, with t
 `λ_can - dz`, by a diffeomorphism that is `f` on the zero section
 (`TauCeti.IsLegendrianEmbedding.exists_diffeomorph_opens_mpullback_eq_neg_contactization`). It
 follows the route through a hypersurface of McDuff–Salamon, Exercise 3.5.22(i). Neither
-compactness of `L` nor closedness of `f(L)` is assumed.
+compactness of `L` nor closedness of `f(L)` is assumed. Nor is `α` assumed to be a contact
+form: a one-form whose kernel has a Legendrian immersion is one
+(`TauCeti.IsLegendrianImmersion.isContactForm`).
 
 ## A slice through `f(L)`
 
@@ -116,6 +118,8 @@ handled with the empty open sets (`TopologicalSpace.Opens.isEmpty_bot`).
 
 ## Main results
 
+* `TauCeti.IsLegendrianImmersion.finrank_prod_dual_add_one`: the model of `T^* L` has one
+  dimension less than that of `M`.
 * `TauCeti.IsLegendrianEmbedding.exists_contactSlice`: a smooth injective map `ι : T^* L → M`
   with `ι (0_q) = f q`, which is an immersion transverse to the Reeb field on some open set
   containing the zero section, and whose differential at `0_q` has range `ker α_(f q)`.
@@ -123,8 +127,6 @@ handled with the empty open sets (`TopologicalSpace.Opens.isEmpty_bot`).
   that is everywhere an immersion transverse to the Reeb field, `-d(ι^* α)` is symplectic.
 * `TauCeti.SmoothForm.IsContactForm.mpullback_flowOf_neg_sub_apply`: if `κ^* α = β + dg`, the map
   `(s, z) ↦ φ^R_{-z - g s} (κ s)` pulls `α` back to minus the contactization form of `β`.
-* `TauCeti.IsLegendrianImmersion.finrank_prod_dual_add_one`: the model of `T^* L` has one
-  dimension less than that of `M`.
 * `TauCeti.IsLegendrianEmbedding.exists_diffeomorph_opens_mpullback_eq_neg_contactization`: the
   Legendrian neighbourhood theorem.
 
@@ -155,6 +157,15 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   {α : SmoothForm I M ℝ 1}
 
 private theorem infty_ne_zero : (∞ : ℕ∞ω) ≠ 0 := by simp
+
+omit [IsManifold J ∞ L] in
+/-- For a Legendrian immersion `f : L → M`, the model `E' × E'^*` of the cotangent bundle of `L`
+has dimension one less than the model `E` of `M`. -/
+theorem _root_.TauCeti.IsLegendrianImmersion.finrank_prod_dual_add_one
+    {D : Π x : M, Submodule ℝ (TangentSpace I x)} {f : L → M}
+    (hf : IsLegendrianImmersion J D f) : finrank ℝ (E' × (E' →L[ℝ] ℝ)) + 1 = finrank ℝ E := by
+  rw [finrank_prod, ContinuousLinearMap.dual_finrank_eq, ← hf.two_mul_finrank_add_one]
+  ring
 
 variable {g : SmoothEmbedding J I ∞ L M}
 
@@ -345,14 +356,15 @@ private theorem sliceDeriv_mem_kerDistribution_and_injective
       (hX.trans (map_zero _).symm)
     rw [Prod.mk_zero_zero, map_zero]
 
-/-- **A slice through a Legendrian submanifold.** Let `f : L → M` be a Legendrian embedding for a
-contact form `α`, between boundaryless manifolds, `M` Hausdorff and second countable. There are a
+/-- **A slice through a Legendrian submanifold.** Let `f : L → M` be a Legendrian embedding for
+the kernel of a one-form `α`, which is then a contact form, between boundaryless manifolds, `M`
+Hausdorff and second countable. There are a
 smooth injective map `ι : T^* L → M` with `ι (0_q) = f q`, and an open neighbourhood `N` of the
 zero section, such that at each point of `N` the differential of `ι` is injective and the Reeb
 vector field of `α` is not in its range, and at `0_q` the range of the differential is the
 contact hyperplane `ker α` at `f q`. -/
 theorem exists_contactSlice [I.Boundaryless] [J.Boundaryless] [T2Space M]
-    [SecondCountableTopology M] {f : L → M} (hα : α.IsContactForm)
+    [SecondCountableTopology M] {f : L → M}
     (hf : IsLegendrianEmbedding J α.kerDistribution f) :
     ∃ (ι : CotangentBundle J L → M) (N : Set (CotangentBundle J L)),
       ContMDiff (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ∞ ι ∧ Injective ι ∧ IsOpen N ∧
@@ -363,6 +375,7 @@ theorem exists_contactSlice [I.Boundaryless] [J.Boundaryless] [T2Space M]
       ∀ q, (mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ι
         (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q)).range =
           α.kerDistribution (f q) := by
+  have hα := hf.isContactForm
   let g : SmoothEmbedding J I ∞ L M := .ofIsSmoothEmbedding f hf.isSmoothEmbedding
   have hg : ⇑g = f := SmoothEmbedding.coe_ofIsSmoothEmbedding f _
   have hf' : IsLegendrianEmbedding J α.kerDistribution g := hg ▸ hf
@@ -389,10 +402,9 @@ theorem exists_contactSlice [I.Boundaryless] [J.Boundaryless] [T2Space M]
   have hrange (q : L) : (sliceDeriv hf' hdim T q).range = α.kerDistribution (g q) := by
     have : FiniteDimensional ℝ (TangentSpace I (g q)) := inferInstanceAs (FiniteDimensional ℝ E)
     refine Submodule.eq_of_le_of_finrank_eq (by rintro _ ⟨X, rfl⟩; exact (hD q).1 X) ?_
-    rw [LinearMap.finrank_range_of_inj (hD q).2, finrank_tangentSpace, Module.finrank_prod,
-      ← LinearMap.toContinuousLinearMap.finrank_eq, Subspace.dual_finrank_eq]
+    rw [LinearMap.finrank_range_of_inj (hD q).2, finrank_tangentSpace]
     have h1 := hα.finrank_kerDistribution_add_one (g q)
-    have h2 := hf.two_mul_finrank_add_one
+    have h2 := hf.finrank_prod_dual_add_one
     omega
   let N := {p | Injective (mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ι p) ∧
     α.reebVectorField (ι p) ∉ (mfderiv (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ι p).range}
@@ -508,15 +520,6 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   [IsManifold J ∞ L]
   {α : SmoothForm I M ℝ 1}
 
-omit [IsManifold J ∞ L] in
-/-- For a Legendrian immersion `f : L → M`, the model `E' × E'^*` of the cotangent bundle of `L`
-has dimension one less than the model `E` of `M`. -/
-theorem _root_.TauCeti.IsLegendrianImmersion.finrank_prod_dual_add_one
-    {D : Π x : M, Submodule ℝ (TangentSpace I x)} {f : L → M}
-    (hf : IsLegendrianImmersion J D f) : finrank ℝ (E' × (E' →L[ℝ] ℝ)) + 1 = finrank ℝ E := by
-  rw [finrank_prod, ContinuousLinearMap.dual_finrank_eq, ← hf.two_mul_finrank_add_one]
-  ring
-
 /-- The zero section of `T^* L`, as a smooth embedding into an open set `N` that contains it. -/
 private def zeroSectionOpens [J.Boundaryless] (N : Opens (CotangentBundle J L))
     (hN : ∀ q, zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q ∈ N) :
@@ -591,7 +594,7 @@ private theorem exists_mextDerivₗ_eq_of_isSymplectic [I.Boundaryless] [J.Bound
 section into `M`, equal to `f` on the zero section, with `d(κ^* α) = dλ`. -/
 private theorem exists_slice_mextDerivₗ_eq [I.Boundaryless] [J.Boundaryless] [T2Space M]
     [SecondCountableTopology M] [T2Space L] [SecondCountableTopology L] {f : L → M}
-    (hα : α.IsContactForm) (hf : IsLegendrianEmbedding J α.kerDistribution f) :
+    (hf : IsLegendrianEmbedding J α.kerDistribution f) :
     ∃ (U : Opens (CotangentBundle J L)) (κ : U → M)
       (hκ : ContMDiff (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) I ∞ κ),
       (∀ q, ∃ h : zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q ∈ U,
@@ -599,7 +602,8 @@ private theorem exists_slice_mextDerivₗ_eq [I.Boundaryless] [J.Boundaryless] [
       mextDerivₗ _ 1 (SmoothForm.mpullback κ hκ α) = mextDerivₗ _ 1
         (SmoothForm.mpullback (Subtype.val : U → CotangentBundle J L) contMDiff_subtypeVal
           (CotangentBundle.liouvilleForm J L)) := by
-  obtain ⟨ι, N, hι, -, hN, hzN, hι0, hNι, -⟩ := exists_contactSlice hα hf
+  have hα := hf.isContactForm
+  obtain ⟨ι, N, hι, -, hN, hzN, hι0, hNι, -⟩ := exists_contactSlice hf
   -- On `N`, `-d(ι^* α)` is symplectic, since `ι` is an immersion transverse to the Reeb field.
   refine exists_mextDerivₗ_eq_of_isSymplectic (N := ⟨N, hN⟩) hf hzN (hι.comp contMDiff_subtypeVal)
     (fun q ↦ hι0 q) (hα.isSymplectic_neg_mextDerivₗ_mpullback hf.finrank_prod_dual_add_one _
@@ -692,7 +696,7 @@ over the zero section, the map `(s, z) ↦ φ^R_{-z - g s} (κ s)` restricts to 
 diffeomorphism near the points `(s₀ q, 0)`, which sends them to `f q` and pulls `α` back to minus
 the contactization form of `e^* λ`, that is to `e^* λ - dz`. -/
 private theorem exists_partialDiffeomorph_of_primitive [I.Boundaryless] [J.Boundaryless]
-    [T2Space M] [SecondCountableTopology M] [Nonempty L] {f : L → M} (hα : α.IsContactForm)
+    [T2Space M] [SecondCountableTopology M] [Nonempty L] {f : L → M}
     (hf : IsLegendrianEmbedding J α.kerDistribution f) [T2Space S] [SecondCountableTopology S]
     {e : S → CotangentBundle J L}
     (he : IsLocalDiffeomorph (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) ∞ e)
@@ -710,6 +714,7 @@ private theorem exists_partialDiffeomorph_of_primitive [I.Boundaryless] [J.Bound
       ∀ x ∈ Φ.source, TauCeti.mpullback _ I Φ α.val x =
         (-(SmoothForm.mpullback e he.contMDiff
           (CotangentBundle.liouvilleForm J L)).contactization).val x := by
+  have hα := hf.isContactForm
   have hR := hα.contMDiff_reebVectorField
   have : LocallyCompactSpace H := I.locallyCompactSpace
   have := ChartedSpace.locallyCompactSpace H M
@@ -775,7 +780,7 @@ private theorem exists_partialDiffeomorph_of_primitive [I.Boundaryless] [J.Bound
 that sends `(0_q, 0)` to `f q` and pulls `α` back to minus the contactization form of `λ`. The
 partial diffeomorphism of step 4 is moved to `T^* L × ℝ` along `(s, z) ↦ (e s, z)`. -/
 private theorem exists_diffeomorph_opens_of_primitive [I.Boundaryless] [J.Boundaryless]
-    [T2Space M] [SecondCountableTopology M] [Nonempty L] {f : L → M} (hα : α.IsContactForm)
+    [T2Space M] [SecondCountableTopology M] [Nonempty L] {f : L → M}
     (hf : IsLegendrianEmbedding J α.kerDistribution f) [T2Space S] [SecondCountableTopology S]
     {e : S → CotangentBundle J L}
     (he : IsLocalDiffeomorph (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) ∞ e)
@@ -798,7 +803,7 @@ private theorem exists_diffeomorph_opens_of_primitive [I.Boundaryless] [J.Bounda
         -SmoothForm.mpullback (Subtype.val : U → CotangentBundle J L × ℝ) contMDiff_subtypeVal
           (CotangentBundle.liouvilleForm J L).contactization := by
   obtain ⟨Φ, hsΦ, hΦs, hΦα⟩ :=
-    exists_partialDiffeomorph_of_primitive hα hf he hκ hg hs₀ hes₀ hκs₀ hgs₀ hκα
+    exists_partialDiffeomorph_of_primitive hf he hκ hg hs₀ hes₀ hκs₀ hgs₀ hκα
   have hk : IsLocalDiffeomorph ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ))
       ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ)) ∞ (Prod.map e id) :=
     he.prodMap (by
@@ -816,8 +821,9 @@ private theorem exists_diffeomorph_opens_of_primitive [I.Boundaryless] [J.Bounda
 
 end Flow
 
-/-- **The Legendrian neighbourhood theorem.** Let `f : L → M` be a Legendrian embedding for a
-contact form `α`, between boundaryless manifolds, `M` Hausdorff and second countable. Then an
+/-- **The Legendrian neighbourhood theorem.** Let `f : L → M` be a Legendrian embedding for the
+kernel of a one-form `α`, which is then a contact form, between boundaryless manifolds, `M`
+Hausdorff and second countable. Then an
 open set around the zero section of `T^* L × ℝ` is diffeomorphic to an open set around `f (L)`
 by a map `Φ` with `Φ (0_q, 0) = f q` that pulls `α` back to `λ_can - dz`, minus the
 contactization form `dz - λ_can` of the Liouville form. Neither compactness of `L` nor closedness
@@ -825,7 +831,7 @@ of `f (L)` is assumed.
 
 Milestone: *Legendrian neighbourhood theorem*. -/
 theorem exists_diffeomorph_opens_mpullback_eq_neg_contactization [I.Boundaryless]
-    [J.Boundaryless] [T2Space M] [SecondCountableTopology M] {f : L → M} (hα : α.IsContactForm)
+    [J.Boundaryless] [T2Space M] [SecondCountableTopology M] {f : L → M}
     (hf : IsLegendrianEmbedding J α.kerDistribution f) :
     ∃ (U : Opens (CotangentBundle J L × ℝ)) (V : Opens M)
       (Φ : U ≃ₘ⟮(J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ), I⟯ V),
@@ -840,7 +846,7 @@ theorem exists_diffeomorph_opens_mpullback_eq_neg_contactization [I.Boundaryless
       Subtype.ext (funext fun x ↦ (IsEmpty.false x).elim)⟩
   have := hf.isEmbedding.t2Space
   have := hf.isEmbedding.isInducing.secondCountableTopology
-  obtain ⟨U, κ, hκ, hκ0, hdκ⟩ := exists_slice_mextDerivₗ_eq hα hf
+  obtain ⟨U, κ, hκ, hκ0, hdκ⟩ := exists_slice_mextDerivₗ_eq hf
   obtain ⟨W, g, hg, s₀, hs₀, hes₀, hκs₀, hgs₀, hκα⟩ := exists_primitive hf hκ hκ0 hdκ
   let e := (Subtype.val : U → CotangentBundle J L) ∘ (Subtype.val : W → U)
   have he : IsLocalDiffeomorph (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) ∞ e :=
@@ -852,7 +858,7 @@ theorem exists_diffeomorph_opens_mpullback_eq_neg_contactization [I.Boundaryless
     refine Subtype.ext ?_
     rw [Submodule.coe_add, SmoothForm.coe_mpullback, SmoothForm.coe_mpullback, mextDerivₗ_apply]
     exact hκα
-  exact exists_diffeomorph_opens_of_primitive hα hf he
+  exact exists_diffeomorph_opens_of_primitive hf he
     (Subtype.val_injective.comp Subtype.val_injective) (hκ.comp contMDiff_subtypeVal) hg hs₀ hes₀
     hκs₀ hgs₀ hκα'
 
