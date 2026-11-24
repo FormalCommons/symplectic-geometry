@@ -287,9 +287,7 @@ theorem exists_compatible_symplecticChernNumber_eq_chernNumber [Nonempty M]
   have : Fact (finrank ℝ F = 2 * finrank ℂ (κ → ℂ)) := by
     refine ⟨?_⟩
     rw [← (VectorBundle.continuousLinearEquivAt ℝ F V x₀).toLinearEquiv.finrank_eq,
-      ← Θ.toLinearEquiv.finrank_eq, finrank_euclideanSpace, Fintype.card_sum,
-      Module.finrank_fintype_fun_eq_card]
-    ring
+      ← Θ.toLinearEquiv.finrank_eq, finrank_stdSpace, Module.finrank_fintype_fun_eq_card]
   refine ⟨J, this, hJ, ?_⟩
   rw [← symplecticChernNumber_congr_model o hn G (κ → ℂ) ω,
     symplecticChernNumber_eq_chernNumber o hn (κ → ℂ) hJ.tames]
