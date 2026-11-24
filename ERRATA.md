@@ -114,4 +114,24 @@ Each entry has this form:
   has genus $0$, while $(d-1)(d-2)=2$ (`surfaceGenus_fermat_zero`).
 - **Issue:** #1148.
 
+## atlas/symplectic-group-actions.md
+
+### The centre of the equivariant Darboux chart is a fixed point
+
+- **Where:** `atlas/symplectic-group-actions.md`, *Equivariant Darboux
+  theorem and quadratic local moment maps*.
+- **Error:** the milestone lets the point $p$ be any point of $M$, but asks
+  for $G$ to act on $T_pM$ through the derivatives of its elements and for
+  an equivariant $\Phi$ with $\Phi(0)=p$. Both need $g\cdot p=p$ for every
+  $g$: the derivative of $g$ at $p$ maps $T_pM$ to $T_{g\cdot p}M$, and
+  equivariance gives $g\cdot p=g\cdot\Phi(0)=\Phi(g\cdot 0)=\Phi(0)=p$. For
+  the rotations of $S^2$ about an axis and a point $p$ off the axis, no such
+  $\Phi$ exists. The sources state the theorem at a fixed point.
+- **Fix:** the library states the milestone for a point fixed by $G$, the
+  hypothesis of Tau Ceti's
+  `TauCeti.SmoothTwoForm.IsSymplectic.exists_equivariant_darbouxChart` and
+  `TauCeti.SmoothTwoForm.IsMomentMap.exists_weightModelChart`, which
+  *Equivariant normal forms* translates (see `DESIGN.md`).
+- **Issue:** #2247.
+
 ## Other sources
