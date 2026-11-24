@@ -3045,9 +3045,9 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
 ### 43. Equivariant localization (needs `design/equivariant-localization.md`)
 
 - **Files:** in `Geometry/Manifold/DifferentialForm/Equivariant/`:
-  `Basic.lean` (invariant forms of a circle action with the Cartan
-  differential $d-\hbar\,\iota_X$, its square on invariant forms, and
-  equivariantly closed forms) and `Localization.lean` (the localization
+  `Basic.lean` (the Cartan differential $d-\hbar\,\iota_X$ of a smooth
+  vector field on forms of mixed degree, and its square, which vanishes on
+  invariant forms) and `Localization.lean` (the localization
   lemma: the integral of an equivariantly closed form does not change
   when it is multiplied by $F(d_\hbar\theta)$, for an invariant one-form
   $\theta$ and $F(0)=1$, which concentrates it near the fixed points); and
