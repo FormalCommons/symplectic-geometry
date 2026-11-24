@@ -336,7 +336,9 @@ follows from `hE`.
   `PartialDiffeomorph.ofOpenPartialHomeomorph`, with Mathlib's
   `Diffeomorph.toPartialDiffeomorph` and `PartialDiffeomorph.trans`.
 
-No instance `HasIsothermalCharts` (Decision 8).
+This issue gives no isothermal-chart instance; Tau Ceti's
+`exists_isIsothermalChart` gives `C¹` charts for every structure
+(Decision 8).
 
 About 250 lines.
 
