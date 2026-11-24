@@ -5,29 +5,28 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Calculus.Deriv.Prod
+public import SymplecticGeometry.Analysis.Calculus.Deriv.FinOne
 public import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.RootBranch
+public import SymplecticGeometry.Topology.Constructions.FinOne
 public import TauCeti.Geometry.RealAlgebraic.Nash.Implicit
 public import TauCeti.Geometry.RealAlgebraic.Semialgebraic.Derivative
 
-
 /-!
-# A one-variable semialgebraic function is differentiable near a point
+# A one-variable semialgebraic function is analytic near a point
 
 Let `f` be a real function of one variable, semialgebraic on a set containing the points `![t]`,
-`t > a` close to `a`. Then `t ↦ f ![t]` is differentiable at every `t > a` close to `a`, and its
-derivative is again semialgebraic there.
+`t > a` close to `a`. Then `t ↦ f ![t]` is analytic, so differentiable, at every `t > a` close to
+`a`, and its derivative is again semialgebraic there.
 
-* `differentiableAt_iff_differentiableAt_vecCons_fin_one`: a function on `Fin 1 → 𝕜` is
-  differentiable at `x` exactly when `t ↦ f ![t]` is differentiable at `x 0`.
-* `TauCeti.IsSemialgebraicOn.eventually_differentiableAt_nhdsGT`: differentiability just to the
-  right of `a`.
+* `TauCeti.isNashAt_of_eventually_isRoot`: a continuous function whose values are roots of a
+  polynomial `P (t, ·)` that is separable at the base point is a Nash germ there.
+* `TauCeti.IsSemialgebraicOn.eventually_analyticAt_nhdsGT`: analyticity just to the right of `a`.
 * `TauCeti.IsSemialgebraicOn.deriv`: the derivative of a one-variable semialgebraic function
   that is differentiable on an open set is semialgebraic there.
 * `TauCeti.IsSemialgebraicOn.exists_pos_differentiableOn_Ioo`: both together, on an interval
   `(0, ε)`, in the form that `TauCeti.IsSemialgebraicOn.exists_tendsto_div_rpow_nhdsGT` takes.
 
-The proof of differentiability: if `f` vanishes on some interval `(a, b)` there is nothing to
+The proof of analyticity: if `f` vanishes on some interval `(a, b)` there is nothing to
 show. Otherwise, to the right of `a`, `f` is a continuous root branch of a polynomial
 `P : ℝ[X][X]` with nonzero discriminant
 (`TauCeti.IsSemialgebraicOn.exists_polynomial_eventually_isRoot_nhdsGT`). Away from the finitely
@@ -49,67 +48,16 @@ public section
 
 open Filter Set Topology
 
-/-- A function on `Fin 1` is the one-entry vector of its value at `0`. -/
-theorem Matrix.vecCons_apply_zero_fin_one {α : Type*} (x : Fin 1 → α) : ![x 0] = x := by
-  ext i
-  fin_cases i
-  rfl
-
-section VecCons
-
-variable {𝕜 F : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup F] [NormedSpace 𝕜 F]
-
-/-- The derivative of `t ↦ ![t]` is `![1]`. -/
-theorem hasDerivAt_vecCons_fin_one (t : 𝕜) : HasDerivAt (fun t : 𝕜 ↦ ![t]) ![1] t :=
-  hasDerivAt_pi.2 fun i ↦ by
-    fin_cases i
-    simpa using hasDerivAt_id' t
-
-/-- A function `f` on `Fin 1 → 𝕜` is differentiable at `x` exactly when `t ↦ f ![t]` is
-differentiable at `x 0`. -/
-theorem differentiableAt_iff_differentiableAt_vecCons_fin_one {f : (Fin 1 → 𝕜) → F}
-    {x : Fin 1 → 𝕜} :
-    DifferentiableAt 𝕜 f x ↔ DifferentiableAt 𝕜 (fun t ↦ f ![t]) (x 0) := by
-  constructor
-  · intro h
-    rw [← Matrix.vecCons_apply_zero_fin_one x] at h
-    exact h.comp (x 0) (hasDerivAt_vecCons_fin_one (x 0)).differentiableAt
-  · intro h
-    have hf : f = (fun t ↦ f ![t]) ∘ fun y : Fin 1 → 𝕜 ↦ y 0 :=
-      funext fun y ↦ by rw [Function.comp_apply, Matrix.vecCons_apply_zero_fin_one]
-    rw [hf]
-    exact h.comp x (differentiableAt_apply (𝕜 := 𝕜) 0 x)
-
-end VecCons
-
 namespace TauCeti
-open _root_.Polynomial in
-/-- A real function `f` of one variable that is semialgebraic on a set containing the points
-`![t]`, `t > a` close to `a`, is differentiable at every `t > a` close to `a`, as the function
-`t ↦ f ![t]`. -/
-theorem IsSemialgebraicOn.eventually_differentiableAt_nhdsGT {f : (Fin 1 → ℝ) → ℝ}
-    {s : Set (Fin 1 → ℝ)} (hf : IsSemialgebraicOn (fun x (_ : Unit) ↦ f x) s) {a : ℝ}
-    (hs : ∀ᶠ t in 𝓝[>] a, ![t] ∈ s) :
-    ∀ᶠ t in 𝓝[>] a, DifferentiableAt ℝ (fun t ↦ f ![t]) t := by
-  by_cases hne : ∃ᶠ t in 𝓝[>] a, f ![t] ≠ 0
-  swap
-  · -- `f` vanishes on an interval `(a, b)`.
-    obtain ⟨b, hab, hb⟩ := mem_nhdsGT_iff_exists_Ioo_subset.1 (not_frequently.1 hne)
-    filter_upwards [Ioo_mem_nhdsGT hab] with t ht
-    refine (differentiableAt_const (0 : ℝ)).congr_of_eventuallyEq ?_
-    filter_upwards [Ioo_mem_nhds ht.1 ht.2] with u hu
-    simpa using hb hu
-  obtain ⟨P, hdisc, hc0, hev⟩ := hf.exists_polynomial_eventually_isRoot_nhdsGT hs hne
-  have hP : P ≠ 0 := fun h ↦ hc0 (by simp [h])
-  -- Away from the zeros of the discriminant and of the leading coefficient of `P`.
-  have hD : ∀ᶠ t in 𝓝[>] a, (P.discr * P.leadingCoeff).eval t ≠ 0 :=
-    ((eventually_eval_ne_zero_codiscrete
-      (mul_ne_zero hdisc (leadingCoeff_ne_zero.2 hP))).filter_mono (nhdsNE_le_codiscrete a))
-      |>.filter_mono (nhdsWithin_mono _ fun _ ht ↦ ne_of_gt ht)
-  obtain ⟨b, hab, hb⟩ := mem_nhdsGT_iff_exists_Ioo_subset.1 (hev.and hD)
-  filter_upwards [Ioo_mem_nhdsGT hab] with t ht
-  obtain ⟨⟨hcont, hroot⟩, hDt⟩ := hb ht
-  rw [eval_mul, mul_ne_zero_iff] at hDt
+open _root_.Polynomial
+
+/-- A real function `f` of one variable, continuous at `x`, whose value `f y` is a root of
+`P (y 0, ·)` for every `y` near `x`, is a Nash germ at `x` when `P (x 0, ·)` is separable. -/
+theorem isNashAt_of_eventually_isRoot {f : (Fin 1 → ℝ) → ℝ} {P : ℝ[X][X]} {x : Fin 1 → ℝ}
+    (hcont : ContinuousAt f x)
+    (hroot : ∀ᶠ y in 𝓝 x, (P.map (evalRingHom (y 0))).IsRoot (f y))
+    (hsep : (P.map (evalRingHom (x 0))).Separable) :
+    IsNashAt f x := by
   -- The equation `P (t, y) = 0` as a polynomial function of `(t, y)`.
   set F : (Fin 1 ⊕ Unit → ℝ) → ℝ :=
     fun p ↦ (P.map (evalRingHom (p (.inl 0)))).eval (p (.inr ()))
@@ -120,28 +68,55 @@ theorem IsSemialgebraicOn.eventually_differentiableAt_nhdsGT {f : (Fin 1 → ℝ
     simp only [F, MvPolynomial.eval_X]
     congr 2
     ext <;> simp
-  have hFN : IsNashAt F (Sum.elim ![t] fun _ ↦ f ![t]) := by
+  have hFN : IsNashAt F (Sum.elim x fun _ ↦ f x) := by
     rw [hF]
     exact MvPolynomial.isNashAt_eval _
-  -- The root `f ![t]` of `P (t, ·)` is simple.
-  have hsep : (P.map (evalRingHom t)).Separable :=
-    (separable_map_iff_map_discr_ne_zero P (evalRingHom t) hDt.2).2 hDt.1
-  have hd : deriv (fun y ↦ F (Sum.elim ![t] fun _ ↦ y)) (f ![t]) ≠ 0 := by
-    simp only [F, Sum.elim_inl, Sum.elim_inr, Matrix.cons_val_zero, Polynomial.deriv]
-    have := hsep.aeval_derivative_ne_zero (x := f ![t]) (by simpa [aeval_def] using hroot)
+  -- The root `f x` of `P (x 0, ·)` is simple.
+  have hd : deriv (fun y ↦ F (Sum.elim x fun _ ↦ y)) (f x) ≠ 0 := by
+    simp only [F, Sum.elim_inl, Sum.elim_inr, Polynomial.deriv]
+    have := hsep.aeval_derivative_ne_zero (x := f x)
+      (by simpa [aeval_def] using hroot.self_of_nhds)
     simpa [aeval_def] using this
-  have hcont' : ContinuousAt f ![t] := by
-    have hf' : f = (fun t ↦ f ![t]) ∘ fun y : Fin 1 → ℝ ↦ y 0 :=
-      funext fun y ↦ by rw [Function.comp_apply, Matrix.vecCons_apply_zero_fin_one]
-    rw [hf']
-    exact hcont.comp (continuous_apply 0).continuousAt
-  have hroots : ∀ᶠ y in 𝓝 ![t], F (Sum.elim y fun _ ↦ f y) = 0 := by
+  exact hFN.implicit hcont hroot hd
+
+/-- A real function `f` of one variable that is semialgebraic on a set containing the points
+`![t]`, `t > a` close to `a`, is analytic at every `t > a` close to `a`, as the function
+`t ↦ f ![t]`. -/
+theorem IsSemialgebraicOn.eventually_analyticAt_nhdsGT {f : (Fin 1 → ℝ) → ℝ}
+    {s : Set (Fin 1 → ℝ)} (hf : IsSemialgebraicOn (fun x (_ : Unit) ↦ f x) s) {a : ℝ}
+    (hs : ∀ᶠ t in 𝓝[>] a, ![t] ∈ s) :
+    ∀ᶠ t in 𝓝[>] a, AnalyticAt ℝ (fun t ↦ f ![t]) t := by
+  by_cases hne : ∃ᶠ t in 𝓝[>] a, f ![t] ≠ 0
+  swap
+  · -- `f` vanishes on an interval `(a, b)`.
+    obtain ⟨b, hab, hb⟩ := mem_nhdsGT_iff_exists_Ioo_subset.1 (not_frequently.1 hne)
+    filter_upwards [Ioo_mem_nhdsGT hab] with t ht
+    refine (analyticAt_const (v := (0 : ℝ))).congr ?_
+    filter_upwards [Ioo_mem_nhds ht.1 ht.2] with u hu
+    exact (by simpa using hb hu : f ![u] = 0).symm
+  obtain ⟨P, hdisc, hc0, hev⟩ := hf.exists_polynomial_eventually_isRoot_nhdsGT hs hne
+  have hP : P ≠ 0 := fun h ↦ hc0 (by simp [h])
+  -- Away from the zeros of the discriminant and of the leading coefficient of `P`.
+  have hD : ∀ᶠ t in 𝓝[>] a, (P.discr * P.leadingCoeff).eval t ≠ 0 :=
+    ((eventually_eval_ne_zero_codiscrete
+      (mul_ne_zero hdisc (leadingCoeff_ne_zero.2 hP))).filter_mono (nhdsNE_le_codiscrete a))
+      |>.filter_mono (nhdsWithin_mono _ fun _ ht ↦ ne_of_gt ht)
+  obtain ⟨b, hab, hb⟩ := mem_nhdsGT_iff_exists_Ioo_subset.1 (hev.and hD)
+  filter_upwards [Ioo_mem_nhdsGT hab] with t ht
+  obtain ⟨⟨hcont, -⟩, hDt⟩ := hb ht
+  rw [eval_mul, mul_ne_zero_iff] at hDt
+  have hroots : ∀ᶠ y in 𝓝 ![t], (P.map (evalRingHom (y 0))).IsRoot (f y) := by
     filter_upwards [(continuous_apply 0).continuousAt.preimage_mem_nhds
       (Ioo_mem_nhds ht.1 ht.2)] with y hy
-    rw [← Matrix.vecCons_apply_zero_fin_one y] at hy ⊢
+    rw [← show ![y 0] = y from FinVec.etaExpand_eq y]
     exact (hb hy).1.2
-  have := ((hFN.implicit hcont' hroots hd).analyticAt.differentiableAt)
-  exact differentiableAt_iff_differentiableAt_vecCons_fin_one.1 this
+  have hN : IsNashAt f ![t] :=
+    isNashAt_of_eventually_isRoot (continuousAt_iff_continuousAt_vecCons_fin_one.2 hcont) hroots
+      ((separable_map_iff_map_discr_ne_zero P (evalRingHom t) hDt.2).2 hDt.1)
+  have hv : AnalyticAt ℝ (fun s : ℝ ↦ ![s]) t := by
+    simp only [Matrix.vec_single_eq_const]
+    exact (ContinuousLinearEquiv.funUnique (Fin 1) ℝ ℝ).symm.toContinuousLinearMap.analyticAt t
+  exact hN.analyticAt.comp (f := fun s : ℝ ↦ ![s]) hv
 
 /-- The derivative of a real function `f` of one variable that is semialgebraic on the points
 `![t]`, `t ∈ u`, of an open set `u` and differentiable on `u`, as the function `t ↦ f ![t]`, is
@@ -159,7 +134,7 @@ theorem IsSemialgebraicOn.deriv {f : (Fin 1 → ℝ) → ℝ} {u : Set ℝ}
   refine (hf.fderiv_apply hU (fun x hx ↦ (hdU x hx).differentiableWithinAt) ![1]).congr
     fun x hx ↦ funext fun _ ↦ ?_
   have hx : HasFDerivAt f (fderiv ℝ f x) ![x 0] := by
-    rw [Matrix.vecCons_apply_zero_fin_one]
+    rw [show ![x 0] = x from FinVec.etaExpand_eq x]
     exact (hdU x hx).hasFDerivAt
   exact ((hx.comp_hasDerivAt (x 0) (hasDerivAt_vecCons_fin_one (x 0))).deriv).symm
 
@@ -173,10 +148,10 @@ theorem IsSemialgebraicOn.exists_pos_differentiableOn_Ioo {f : (Fin 1 → ℝ) �
       IsSemialgebraicOn (fun x (_ : Unit) ↦ _root_.deriv (fun t ↦ f ![t]) (x 0))
         {x : Fin 1 → ℝ | x 0 ∈ Ioo 0 ε} := by
   obtain ⟨b, hb, hsub⟩ := mem_nhdsGT_iff_exists_Ioo_subset.1
-    (hf.eventually_differentiableAt_nhdsGT (eventually_of_mem (Ioo_mem_nhdsGT hε₀) hs))
+    (hf.eventually_analyticAt_nhdsGT (eventually_of_mem (Ioo_mem_nhdsGT hε₀) hs))
   set ε := min b ε₀
   have hd : DifferentiableOn ℝ (fun t ↦ f ![t]) (Ioo 0 ε) := fun t ht ↦
-    (hsub (Ioo_subset_Ioo_right (min_le_left _ _) ht)).differentiableWithinAt
+    (hsub (Ioo_subset_Ioo_right (min_le_left _ _) ht)).differentiableAt.differentiableWithinAt
   have hI : IsSemialgebraic {x : Fin 1 → ℝ | x 0 ∈ Ioo 0 ε} := by
     have h : {x : Fin 1 → ℝ | x 0 ∈ Ioo 0 ε} = {x | MvPolynomial.eval x (MvPolynomial.C 0) <
         MvPolynomial.eval x (MvPolynomial.X 0)} ∩
@@ -184,7 +159,7 @@ theorem IsSemialgebraicOn.exists_pos_differentiableOn_Ioo {f : (Fin 1 → ℝ) �
       ext x; simp
     exact h ▸ (isSemialgebraic_eval_lt _ _).inter (isSemialgebraic_eval_lt _ _)
   refine ⟨ε, lt_min hb hε₀, hd, (hf.mono hI fun x hx ↦ ?_).deriv isOpen_Ioo hd⟩
-  rw [← Matrix.vecCons_apply_zero_fin_one x]
+  rw [← show ![x 0] = x from FinVec.etaExpand_eq x]
   exact hs _ (Ioo_subset_Ioo_right (min_le_right _ _) hx)
 
 end TauCeti
