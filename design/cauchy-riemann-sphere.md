@@ -360,7 +360,7 @@ atlas `A.ofBaseSet h` of `W`, and a smooth section `Φ` of $\mathrm{Hom}(V,W)$:
   docstring credits that construction.
 - `chartValueL_contMDiffHomMulL_ae` and `chartValueL_contMDiffHomMulL_ae_coord`:
   the chart data are $\Phi_i u_i$.
-- `norm_contMDiffHomMulL_le`: the operator norm is at most a constant,
+- `exists_norm_contMDiffHomMulL_le`: the operator norm is at most a constant,
   depending on `A`, `h`, `k`, `p`, times the maximum over charts of the
   `C^k` norms of the chart readings of `Φ` on the closed chart images. With
   linearity in `Φ` this gives continuity in `Φ` for the `C^k` atlas norm.

@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.Hom
+public import SymplecticGeometry.Analysis.Sobolev.Wkp.SmoothMultiplicationBound
 public import TauCeti.Analysis.Sobolev.Wkp.SmoothCoefficients
 public import TauCeti.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ContMDiffSection
@@ -24,6 +25,16 @@ domains also serve as an atlas `A.ofBaseSet h` of `V₂`. A smooth section `Φ` 
 the chart reading `(A.hom h).coord i Φ` of `Φ` to the chart data, and on actual sections it is
 `s ↦ (x ↦ Φ x (s x))`
 (`TauCeti.SobolevSection.chartValueL_contMDiffHomMulL_ae_coord`).
+
+The operator norm of the action is at most a constant times a bound `M` on the derivatives of
+order at most `k` of the chart readings of `Φ` on the chart images
+(`TauCeti.SobolevSection.exists_norm_contMDiffHomMulL_le`). This is the local estimate
+`TauCeti.Wkp.exists_norm_contDiffOnCLMApplyL_le` of
+`SymplecticGeometry.Analysis.Sobolev.Wkp.SmoothMultiplicationBound` in each chart, glued along the
+norm of the Sobolev sections, which is the largest norm of their components
+(`TauCeti.SectionChartData.norm_contDiffOnCLMApplyL_le`). With the linearity in `Φ`, the action
+is then continuous in `Φ` for the `C^k` convergence of the chart readings on the chart images
+(`TauCeti.SobolevSection.tendsto_contMDiffHomMulL`).
 
 The construction is first carried out for general chart data
 (`TauCeti.SectionChartData.contDiffOnCLMApplyL`): from the chart data `C` of one bundle to the
@@ -75,6 +86,13 @@ section, and it lowers the order.
   the inclusion `W^{k+1,p} → W^{k,p}`.
 * `TauCeti.SobolevSection.contMDiffHomMulL_ofContMDiffSection`: applied to the Sobolev section of a
   `Cᵏ` section `s`, the map gives the Sobolev section of `x ↦ Φ x (s x)`.
+* `TauCeti.SectionChartData.norm_contDiffOnCLMApplyL_le`: a bound on the chartwise products
+  bounds the product between the Sobolev sections.
+* `TauCeti.SobolevSection.exists_norm_contMDiffHomMulL_le`,
+  `TauCeti.SobolevSection.exists_norm_contMDiffHomMulL_sub_le`: the operator norm, and the distance
+  between the actions of two hom sections, are bounded by a constant times the `C^k` size of the
+  chart readings on the chart images.
+* `TauCeti.SobolevSection.tendsto_contMDiffHomMulL`: continuity in the hom section.
 
 ## References
 
@@ -302,6 +320,26 @@ theorem lowerOrderL_contDiffOnCLMApplyL (w : C.sobolevSections μ p (k + 1)) :
   exact congrArg (fun u ↦ Wkp.contDiffOnCLMApplyL (hU i) (hK i) (hKU i) k (finBasis ℝ F)
     (finBasis ℝ F') (hg i) u m) (funext fun l ↦ by rw [Wkp.lowerOrder_restrictL, lowerOrderL_apply])
 
+/-- **The norm from the charts.** If, on the image of each chart `i` of `D`, multiplication by
+`g i` with `TauCeti.Wkp.contDiffOnCLMApplyL` has norm at most `c`, then so has the chartwise
+product between the Sobolev sections. -/
+theorem norm_contDiffOnCLMApplyL_le {c : ℝ} (hc0 : 0 ≤ c)
+    (hc : ∀ i (u : Fin (finrank ℝ F) → Wkp μ (D.image i) p k),
+      ‖Wkp.contDiffOnCLMApplyL (hU i) (hK i) (hKU i) k (finBasis ℝ F) (finBasis ℝ F') (hg i) u‖ ≤
+        c * ‖u‖) :
+    ‖C.contDiffOnCLMApplyL D μ p k hσ hU hK hKU hg hsec‖ ≤ c := by
+  refine ContinuousLinearMap.opNorm_le_bound _ hc0 fun w ↦ ?_
+  rw [← Submodule.norm_coe, ← Submodule.norm_coe]
+  refine (pi_norm_le_iff_of_nonneg (by positivity)).2 fun i ↦ ?_
+  rw [show (C.contDiffOnCLMApplyL D μ p k hσ hU hK hKU hg hsec w : D.SobolevData μ p k) i =
+      Wkp.contDiffOnCLMApplyL (hU i) (hK i) (hKU i) k (finBasis ℝ F) (finBasis ℝ F') (hg i)
+        (fun l ↦ Wkp.restrictL (hσ i) k ((w : C.SobolevData μ p k) (σ i) l)) from
+      funext (C.contDiffOnCLMApplyL_apply D μ p k hσ hU hK hKU hg hsec w i)]
+  refine (hc i _).trans (mul_le_mul_of_nonneg_left ?_ hc0)
+  refine (pi_norm_le_iff_of_nonneg (norm_nonneg _)).2 fun l ↦
+    (Wkp.norm_restrictL_le (hσ i) k _).trans ?_
+  exact (norm_le_pi_norm _ l).trans (norm_le_pi_norm (w : C.SobolevData μ p k) (σ i))
+
 end HomMul
 
 end SectionChartData
@@ -509,6 +547,115 @@ theorem contMDiffHomMulL_ofContMDiffSection (s : Cₛ^k⟮𝓘(ℝ, E); F₁, V�
       rwa [← image_ofBaseSet (A := A) (h := h) i, ← (A.ofBaseSet h).sectionChartData_image i]
         at this)
     fun i ↦ chartValueL_ofContMDiffSection_ae (A.ofBaseSet h) μ p k _ i
+
+
+omit [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+  [IsManifold 𝓘(ℝ, E) ∞ M] [FiniteDimensional ℝ F₁] [ContMDiffVectorBundle ∞ F₁ V₁ 𝓘(ℝ, E)]
+  [FiniteDimensional ℝ F₂] [ContMDiffVectorBundle ∞ F₂ V₂ 𝓘(ℝ, E)] in
+/-- The image of chart `i` lies in the open set on which the chart reading of a smooth hom
+section is smooth. -/
+private theorem image_subset_coord_hom_domain (i : Fin A.n) :
+    (A.image i : Set E) ⊆ ((A.hom (𝕜 := ℝ) h).chart i).target ∩
+      ((A.hom (𝕜 := ℝ) h).chart i).symm ⁻¹' ((A.hom (𝕜 := ℝ) h).triv i).baseSet := fun _ hy ↦
+  (A.hom (𝕜 := ℝ) h).chart_image_closure_dom_subset i
+    ((A.hom (𝕜 := ℝ) h).image_subset_chart_image_closure_dom i ((image_hom (h := h) i).ge hy))
+
+variable (A h k) in
+/-- **A `C^k` bound for a smooth hom section acting on `W^{k,p}`.** There is a constant `c`,
+depending only on the atlas, `h` and `k`, such that for every Haar measure, every exponent
+`1 ≤ p ≤ ∞` and every smooth hom section `Φ` whose chart readings have, on the image of every
+chart, derivatives of order at most `k` bounded by `M ≥ 0`, the operator norm of `Φ` acting on
+`W^{k,p}` is at most `c M`. -/
+theorem exists_norm_contMDiffHomMulL_le :
+    ∃ c : ℝ, 0 ≤ c ∧ ∀ {μ : Measure E} [μ.IsAddHaarMeasure] {p : ℝ≥0∞} [Fact (1 ≤ p)]
+      {Φ : ∀ x, V₁ x →L[ℝ] V₂ x}
+      (hΦ : ContMDiff 𝓘(ℝ, E) (𝓘(ℝ, E).prod 𝓘(ℝ, F₁ →L[ℝ] F₂)) ∞
+        fun x ↦ TotalSpace.mk' (F₁ →L[ℝ] F₂) x (Φ x)) {M : ℝ}, 0 ≤ M →
+      (∀ i, ∀ j ≤ k, ∀ y ∈ A.image i, ‖iteratedFDeriv ℝ j ((A.hom (𝕜 := ℝ) h).coord i Φ) y‖ ≤ M) →
+      ‖contMDiffHomMulL A h μ p k hΦ‖ ≤ c * M := by
+  obtain ⟨c, hc0, hc⟩ := Wkp.exists_norm_contDiffOnCLMApplyL_le E k (finBasis ℝ F₁) (finBasis ℝ F₂)
+  refine ⟨c, hc0, fun {μ} _ {p} _ {Φ} hΦ {M} hM0 hM ↦
+    A.sectionChartData.norm_contDiffOnCLMApplyL_le (A.ofBaseSet h).sectionChartData μ p k _ _ _ _ _
+      _ (mul_nonneg hc0 hM0) fun i u ↦ hc _ _ _ _ (fun j hj y hy ↦ ?_) u⟩
+  have hy' : y ∈ A.image i := (image_ofBaseSet (A := A) (h := h) i).le hy
+  rw [iteratedFDerivWithin_of_isOpen j (((A.hom (𝕜 := ℝ) h).chart i).isOpen_inter_preimage_symm
+    ((A.hom (𝕜 := ℝ) h).triv i).open_baseSet)
+    (image_subset_coord_hom_domain (A := A) (h := h) i hy')]
+  exact hM i j hj y hy'
+
+variable (A h k) in
+/-- **A `C^k` bound for the difference of two hom sections.** There is a constant `c`, depending
+only on the atlas, `h` and `k`, such that for every Haar measure and every exponent `1 ≤ p ≤ ∞`,
+two smooth hom sections whose chart readings have, on the image of every chart, derivatives of
+order at most `k` that differ by at most `M ≥ 0` act on `W^{k,p}` by operators at distance at
+most `c M`. -/
+theorem exists_norm_contMDiffHomMulL_sub_le :
+    ∃ c : ℝ, 0 ≤ c ∧ ∀ {μ : Measure E} [μ.IsAddHaarMeasure] {p : ℝ≥0∞} [Fact (1 ≤ p)]
+      {Φ Ψ : ∀ x, V₁ x →L[ℝ] V₂ x}
+      (hΦ : ContMDiff 𝓘(ℝ, E) (𝓘(ℝ, E).prod 𝓘(ℝ, F₁ →L[ℝ] F₂)) ∞
+        fun x ↦ TotalSpace.mk' (F₁ →L[ℝ] F₂) x (Φ x))
+      (hΨ : ContMDiff 𝓘(ℝ, E) (𝓘(ℝ, E).prod 𝓘(ℝ, F₁ →L[ℝ] F₂)) ∞
+        fun x ↦ TotalSpace.mk' (F₁ →L[ℝ] F₂) x (Ψ x)) {M : ℝ}, 0 ≤ M →
+      (∀ i, ∀ j ≤ k, ∀ y ∈ A.image i,
+        ‖iteratedFDeriv ℝ j ((A.hom (𝕜 := ℝ) h).coord i Φ) y -
+          iteratedFDeriv ℝ j ((A.hom (𝕜 := ℝ) h).coord i Ψ) y‖ ≤ M) →
+      ‖contMDiffHomMulL A h μ p k hΦ - contMDiffHomMulL A h μ p k hΨ‖ ≤ c * M := by
+  obtain ⟨c, hc0, hc⟩ := exists_norm_contMDiffHomMulL_le A h k
+  refine ⟨c, hc0, fun {μ} _ {p} _ {Φ Ψ} hΦ hΨ {M} hM0 hM ↦ ?_⟩
+  have hΦΨ := hΦ.sub_section hΨ
+  rw [contMDiffHomMulL_congr hΦ (hΦΨ.add_section hΨ) (sub_add_cancel Φ Ψ).symm,
+    contMDiffHomMulL_add hΦΨ hΨ (hΦΨ.add_section hΨ)]
+  refine (congrArg norm (add_sub_cancel_right (contMDiffHomMulL A h μ p k hΦΨ)
+    (contMDiffHomMulL A h μ p k hΨ))).trans_le (hc hΦΨ hM0 fun i j hj y hy ↦ ?_)
+  have hU := ((A.hom (𝕜 := ℝ) h).chart i).isOpen_inter_preimage_symm
+    ((A.hom (𝕜 := ℝ) h).triv i).open_baseSet
+  have hyU := image_subset_coord_hom_domain (A := A) (h := h) i hy
+  have hcd {Θ : ∀ x, V₁ x →L[ℝ] V₂ x}
+      (hΘ : ContMDiff 𝓘(ℝ, E) (𝓘(ℝ, E).prod 𝓘(ℝ, F₁ →L[ℝ] F₂)) ∞
+        fun x ↦ TotalSpace.mk' (F₁ →L[ℝ] F₂) x (Θ x)) :
+      ContDiffAt ℝ j ((A.hom (𝕜 := ℝ) h).coord i Θ) y :=
+    ((A.hom (𝕜 := ℝ) h).contDiffOn_coord (hΘ.of_le (by exact_mod_cast le_top)) i).contDiffAt
+      (hU.mem_nhds hyU)
+  have hsub : (A.hom (𝕜 := ℝ) h).coord i (Φ - Ψ) =ᶠ[nhds y]
+      (A.hom (𝕜 := ℝ) h).coord i Φ - (A.hom (𝕜 := ℝ) h).coord i Ψ := by
+    filter_upwards [(A.image i).isOpen.mem_nhds hy] with z hz
+    rw [Pi.sub_apply, eq_sub_iff_add_eq,
+      ← (A.hom (𝕜 := ℝ) h).coord_add i (Φ - Ψ) Ψ ((image_hom (h := h) i).ge hz), sub_add_cancel]
+  rw [(hsub.iteratedFDeriv ℝ j).eq_of_nhds, iteratedFDeriv_sub_apply (hcd hΦ) (hcd hΨ)]
+  exact hM i j hj y hy
+
+/-- **Continuity in the hom section.** If the derivatives of order at most `k` of the chart
+readings of smooth hom sections `Φ t` converge uniformly on the image of every chart to those of
+`Φ₀`, then the action of `Φ t` on `W^{k,p}` converges in operator norm to that of `Φ₀`. -/
+theorem tendsto_contMDiffHomMulL {ι : Type*} {l : Filter ι} {Φ : ι → ∀ x, V₁ x →L[ℝ] V₂ x}
+    (hΦ : ∀ t, ContMDiff 𝓘(ℝ, E) (𝓘(ℝ, E).prod 𝓘(ℝ, F₁ →L[ℝ] F₂)) ∞
+      fun x ↦ TotalSpace.mk' (F₁ →L[ℝ] F₂) x (Φ t x)) {Φ₀ : ∀ x, V₁ x →L[ℝ] V₂ x}
+    (hΦ₀ : ContMDiff 𝓘(ℝ, E) (𝓘(ℝ, E).prod 𝓘(ℝ, F₁ →L[ℝ] F₂)) ∞
+      fun x ↦ TotalSpace.mk' (F₁ →L[ℝ] F₂) x (Φ₀ x))
+    (hlim : ∀ i, ∀ j ≤ k, TendstoUniformlyOn
+      (fun t ↦ iteratedFDeriv ℝ j ((A.hom (𝕜 := ℝ) h).coord i (Φ t)))
+      (iteratedFDeriv ℝ j ((A.hom (𝕜 := ℝ) h).coord i Φ₀)) l (A.image i)) :
+    Filter.Tendsto (fun t ↦ contMDiffHomMulL A h μ p k (hΦ t)) l
+      (nhds (contMDiffHomMulL A h μ p k hΦ₀)) := by
+  obtain ⟨c, hc0, hc⟩ := exists_norm_contMDiffHomMulL_sub_le A h k
+  refine (Metric.tendsto_nhds
+    (α := SobolevSection A μ p k →L[ℝ] SobolevSection (A.ofBaseSet h) μ p k)).2
+    fun ε hε ↦ ?_
+  have hδ : 0 < ε / (c + 1) := div_pos hε (by positivity)
+  have hev : ∀ᶠ t in l, ∀ i, ∀ j ∈ Finset.range (k + 1), ∀ y ∈ A.image i,
+      dist (iteratedFDeriv ℝ j ((A.hom (𝕜 := ℝ) h).coord i Φ₀) y)
+        (iteratedFDeriv ℝ j ((A.hom (𝕜 := ℝ) h).coord i (Φ t)) y) < ε / (c + 1) :=
+    Filter.eventually_all.2 fun i ↦ (Filter.eventually_all_finset _).2 fun j hj ↦
+      Metric.tendstoUniformlyOn_iff.1
+        (hlim i j (Nat.lt_succ_iff.1 (Finset.mem_range.1 hj))) _ hδ
+  filter_upwards [hev] with t ht
+  refine (dist_eq_norm (contMDiffHomMulL A h μ p k (hΦ t))
+    (contMDiffHomMulL A h μ p k hΦ₀)).trans_lt
+    ((hc (hΦ t) hΦ₀ hδ.le fun i j hj y hy ↦ ?_).trans_lt ?_)
+  · rw [← dist_eq_norm, dist_comm]
+    exact (ht i j (Finset.mem_range.2 (Nat.lt_succ_of_le hj)) y hy).le
+  · rw [mul_div_assoc', div_lt_iff₀ (by positivity)]
+    nlinarith
 
 end SobolevSection
 
