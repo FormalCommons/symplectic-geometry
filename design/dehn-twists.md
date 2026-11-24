@@ -53,7 +53,11 @@ Tau Ceti and the library already have:
   `TauCeti.CotangentBundle.codiscBundle` of a Riemannian manifold, compact
   over a compact base (`Cotangent/Bundle/Codisc.lean`); the kinetic energy
   $|p|^2/2$ and its cogeodesic flow (`Cotangent/Bundle/Cogeodesic.lean`,
-  `GeodesicSpray.lean`). Tau Ceti has no Hamiltonian flow of $|p|$.
+  `GeodesicSpray.lean`). Tau Ceti has no Hamiltonian flow of $|p|$. Its
+  planar twist maps (`TauCeti.hamiltonianFlow_radialHamiltonian`,
+  `Hamiltonian/RadialTwist.lean`) rotate $\mathbb C$ about a point, the
+  Hamiltonian being a function of the distance to it. They are not maps of
+  a cotangent bundle, so the model does not use them.
 - **Hamiltonian dynamics.** `TauCeti.SmoothTwoForm.hamiltonianVectorField_comp`
   ($X_{\varphi\circ f}=\varphi'(f)X_f$, `Hamiltonian/Manifold.lean`), and
   commuting Hamiltonian flows (`IsSymplectic.flowOf_flowOf_comm`,
