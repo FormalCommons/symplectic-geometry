@@ -22,7 +22,8 @@ embedding (`Manifold.IsSmoothEmbedding.of_opens`), and a map into a smoothly emb
 `C^n` once its composite with the embedding is (Tau Ceti's
 `Manifold.IsSmoothEmbedding.contMDiffSMul` and `Manifold.IsSmoothEmbedding.contMDiff_iff_comp`).
 Tau Ceti's `ContRepresentation.contMDiffConstSMul_mulActionOpens` is the case of a linear
-representation on an invariant open subset of its space, and its proof is adapted here.
+representation on an invariant open subset of its space; its proof, which composes with the
+inclusion, is adapted here.
 
 Restricting a form to `U` keeps invariance: the restriction of a form on `M` invariant under every
 `g • ·` is invariant under every `g • ·` on `U`.
