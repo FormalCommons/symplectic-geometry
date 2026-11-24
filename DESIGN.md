@@ -2792,19 +2792,18 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   $m$-manifold, a closed $(m-1)$-form whose wedge with every closed
   one-form has integral zero is exact), and
   `Geometry/Symplectic/Hamiltonian/CircleAction.lean` (a Hamiltonian circle
-  action on a closed manifold has a fixed point, at an extremum of $H$;
-  $\iota_X(\omega^n)=n\,\iota_X\omega\wedge\omega^{n-1}$; if the action has
-  a fixed point, then $\int_M\gamma(X)\,\omega^n=0$ for every closed
-  one-form $\gamma$, since the average of $\gamma(X)$ over each orbit is the
-  period of $\gamma$ on an orbit loop, and these loops are all freely
-  homotopic to a constant one; with the cup-product hypothesis, the action
-  is Hamiltonian).
-- **Builds on:** *Lie group actions* (only `Circle.lean`); Tau Ceti
+  action on a closed manifold has a fixed point, at an extremum of $H$; if
+  the action has a fixed point, then $\int_M\gamma(X)\,\omega^n=0$ for every
+  closed one-form $\gamma$, since $\gamma$ is cohomologous to its average
+  over the circle, which pairs $X$ to a constant, zero at the fixed point;
+  with the cup-product hypothesis, the action is Hamiltonian).
+- **Builds on:** *Lie group actions* (only `Circle.lean`); *Moment maps*
+  (only `MomentMap/WeaklyHamiltonian.lean`); Tau Ceti
   (`TauCeti.deRhamCohomology` with
   `wedge`, `TauCeti.poincarePairing`, `interiorClass_eq_zero_iff`,
-  `integralTopForm_mextDeriv_eq_zero`, periods of closed one-forms); the
-  merged orientation of a symplectic manifold
-  (`Geometry/Symplectic/Orientation.lean`).
+  `integralTopForm_mextDeriv_eq_zero`, periods of closed one-forms,
+  averaging of forms); the merged Hodge theorem of *Hodge theory*
+  (`Geometry/Manifold/DeRham/Hodge/Basic.lean`).
 - **Milestones:** *Frankel–Ono Hamiltonianity criterion*.
 - **The design file decides:** the route to the nondegeneracy of the
   pairing in degrees $(1,m-1)$: through the library's singular duality
@@ -3027,7 +3026,7 @@ behind.
 | 1 | *Space of compatible complex structures* | *Nijenhuis tensor* (only `Integrable.lean`), *Almost complex manifolds* (only `Metric.lean`); the merged *Siegel upper half space* and *Compatible complex structures* |
 | 1 | *Energy of pseudoholomorphic curves* | *Almost complex manifolds* (only `Metric.lean`) |
 | 1 | *Hodge theory* | *Nijenhuis tensor* (only `Integrable.lean`), *Almost complex manifolds* (only `Metric.lean`), each for one issue of its design file; the Hodge theorem for the Laplacian can start at once |
-| 1 | *Hamiltonian circle actions* | *Lie group actions* (only `Circle.lean`); the nondegeneracy of the pairing can start at once |
+| 1 | *Hamiltonian circle actions* | *Lie group actions* (only `Circle.lean`), *Moment maps* (only `MomentMap/WeaklyHamiltonian.lean`); the nondegeneracy of the pairing can start at once |
 | 1 | *Minimal coupling* | *Lie group actions*; merged files of *First Chern number* and *Smooth families* |
 | 1 | *Equivariant localization* | *Lie group actions*, *Equivariant normal forms* (only `WeightModel/NormalForm.lean`); the Cartan complex can start at once |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `Topology/ComplexStructure/Basic.lean`, which besides it imports only Tau Ceti and the merged `LinearAlgebra/Matrix/NonsingularInverse.lean` and `Analysis/CStarAlgebra/Matrix.lean`, which import only Mathlib and merged files that do, and `LinearAlgebra/ComplexStructure/Standard.lean`, which besides `Action.lean` imports only `LinearAlgebra/Symplectic/Compatible.lean` of this part, `LinearAlgebra/Symplectic/Standard/Matrix.lean` of *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`, which imports only Tau Ceti, and Tau Ceti; and `Topology/ComplexStructure/Orthogonal.lean`, which besides `Topology/ComplexStructure/Basic.lean` imports only `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model*, `Analysis/Matrix/Polar/Deformation.lean` of *Symplectic group* and Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged, and `Analysis/Matrix/Polar/Deformation.lean`, through `Orthogonal.lean`, which is merged) |
