@@ -2732,24 +2732,30 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
 
 Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
 
-- **Files:** `Algebra/Lie/Cochain.lean` (named like Tau Ceti's file, which
-  shows that coboundaries are cocycles, `range_d₁₂_le_twoCocycle`, and
-  gives cocycles a quotient: the second cohomology of a Lie algebra with
-  coefficients in a module, as `twoCocycle` modulo the range of `d₁₂`, in
-  Mathlib's namespace `LieModule.Cohomology`, with its quotient map and the
-  lemma that a class vanishes exactly when the cocycle is a coboundary),
+- **Files:**
   `Geometry/Symplectic/Hamiltonian/MomentMap/WeaklyHamiltonian.lean` (if
   every $X_\xi$ of a symplectic action is Hamiltonian, the Hamiltonians can
   be chosen linear in $\xi$, so that a moment map exists, by choosing them
   on a basis; two such choices differ by a linear map to the locally
-  constant functions), and
+  constant functions) and
   `Geometry/Symplectic/Hamiltonian/MomentMap/Obstruction.lean` (on a
-  connected $M$: the class of `momentCocycle` of $-\mu$ in the second
-  cohomology, its independence of $\mu$, and that it vanishes exactly when
-  $\mu$ can be shifted by a constant to one whose cocycle is zero, which
-  for connected $G$ is equivariant).
-- **Builds on:** Mathlib (`LieModule.Cohomology.twoCocycle`, `d₁₂`), Tau
-  Ceti (`TauCeti.SmoothTwoForm.momentCocycle` with
+  connected $M$: the class of `momentCocycle` of $-\mu$ in Tau Ceti's
+  `TauCeti.LieModule.Cohomology.cohomology ℝ 𝔤 (TrivialLieModule ℝ 𝔤 ℝ) 2`,
+  reached through `(twoCochainEquiv ℝ 𝔤 _).symm` and `moduleCatCyclesMk`,
+  a cycle by `momentCocycle_mem_twoCocycle` and `d₂₃_twoCochainEquiv`; its
+  independence of $\mu$; and that it vanishes, by
+  `moduleCat_homologyπ_eq_zero_iff` and `twoCochainEquiv_d_one`, exactly
+  when $\mu$ can be shifted by a constant to one whose cocycle is zero,
+  which for connected $G$ is equivariant).
+  No second cohomology of its own is defined.
+- **Builds on:** Mathlib (`LieModule.Cohomology.twoCocycle`, `d₁₂`, `d₂₃`),
+  Tau Ceti (`TauCeti/Algebra/Lie/Cohomology/ChevalleyEilenberg.lean`:
+  `TauCeti.LieModule.Cohomology.cohomology`, `twoCochainEquiv`,
+  `twoCochainEquiv_d_one`, `d₂₃_twoCochainEquiv`;
+  `TauCeti/Algebra/Homology/ModuleCat/Basic.lean`:
+  `HomologicalComplex.moduleCatCyclesMk`,
+  `HomologicalComplex.moduleCat_homologyπ_eq_zero_iff`;
+  `TauCeti.SmoothTwoForm.momentCocycle` with
   `IsMomentMap.momentCocycle_eq`, `momentCocycle_mem_twoCocycle`,
   `momentCocycle_add_const`, `momentCocycle_apply_eq_poissonBracket`,
   `IsEquivariantMomentMap.momentCocycle_eq_zero`,
