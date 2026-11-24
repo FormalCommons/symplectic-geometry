@@ -22,12 +22,13 @@ The localizing one-form of the Duistermaat–Heckman formula is glued from model
 fixed points and an averaged form elsewhere. This file gives the cut-offs of that gluing.
 
 * `PartialDiffeomorph.exists_smul_invariant_cutoff`: let `Φ` be a smooth partial diffeomorphism
-  from a finite-dimensional real inner product space `V` to a Hausdorff manifold `M`, on which a
-  group `G` acts, such that `g • Φ z = Φ z'` for some `z'` of the source with `‖z'‖ = ‖z‖`. Then
-  for `0 ≤ a < b` with `closedBall 0 b` in the source, some smooth `ρ : M → [0, 1]`, invariant
-  under `G`, equals `1` on `Φ '' closedBall 0 a` and has its support in `Φ '' closedBall 0 b`.
-  It is the radial profile `smoothTransition ((b² - ‖z‖²) / (b² - a²))` read through `Φ⁻¹`, and
-  extended by zero off the target of `Φ`.
+  from `V`, a real inner product space of finite dimension, to a Hausdorff manifold `M`, on
+  which a group `G` acts, such that `g • Φ z = Φ z'` for some `z'` of the source with
+  `‖z'‖ = ‖z‖`. Then for `0 ≤ a < b` with `closedBall 0 b` in the source, some smooth
+  `ρ : M → [0, 1]`, invariant under `G`, equals `1` on `Φ '' closedBall 0 a` and has its
+  support in `Φ '' closedBall 0 b`. It is the radial profile
+  `smoothTransition ((b² - ‖z‖²) / (b² - a²))` read through `Φ⁻¹`, and extended by zero off the
+  target of `Φ`.
 * `SymplecticGeometry.exists_smul_invariant_cutoff_weightChart`: the same for a chart that is
   equivariant in the form that `SymplecticGeometry.exists_weightChart` gives, where `g`
   multiplies each complex coordinate by a unit complex number, which preserves the norm.
@@ -60,9 +61,9 @@ variable {E H M V : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topologic
   [T2Space M] [NormedAddCommGroup V] [InnerProductSpace ℝ V] [FiniteDimensional ℝ V]
   {G : Type*} [Group G] [MulAction G M]
 
-/-- **An invariant cut-off in a chart.** Let `Φ` be a smooth partial diffeomorphism from a
-finite-dimensional real inner product space `V` to a Hausdorff manifold `M`, and let a group `G`
-act on `M` so that for every `g` and every `z` in the source of `Φ`, `g • Φ z = Φ z'` for some
+/-- **An invariant cut-off in a chart.** Let `Φ` be a smooth partial diffeomorphism from
+`V`, a real inner product space of finite dimension, to a Hausdorff manifold `M`, and let a group
+`G` act on `M` so that for every `g` and every `z` in the source of `Φ`, `g • Φ z = Φ z'` for some
 `z'` in the source with `‖z'‖ = ‖z‖`. For `0 ≤ a < b` with `closedBall 0 b` in the source of `Φ`,
 there is a smooth function `ρ : M → ℝ` with values in `[0, 1]`, invariant under `G`, equal to `1`
 on `Φ '' closedBall 0 a`, and whose support lies in `Φ '' closedBall 0 b`. -/
