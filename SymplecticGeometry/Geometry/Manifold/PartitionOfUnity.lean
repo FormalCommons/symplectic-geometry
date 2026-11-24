@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.PartitionOfUnity
+import TauCeti.Topology.Algebra.Support
 
 /-!
 # Smooth partitions of unity: gluing sections, and cutoff functions
@@ -88,7 +89,7 @@ theorem IsClosed.exists_contMDiffMap_tsupport_subset_eventually_eq_one {A U : Se
   obtain ⟨θ, hθ0, hθ1, hθ⟩ := exists_contMDiffMap_zero_one_nhds_of_isClosed I (n := ⊤)
     hU.isClosed_compl hA (disjoint_compl_left_iff_subset.2 hAU)
   obtain ⟨O, hO, hUO, hθO⟩ := eventually_nhdsSet_iff_exists.1 hθ0
-  have hsupp : Function.support θ ⊆ Oᶜ := fun x hx hxO ↦ hx (hθO x hxO)
-  exact ⟨θ, (closure_minimal hsupp hO.isClosed_compl).trans (compl_subset_comm.1 hUO), hθ1, hθ⟩
+  exact ⟨θ, (TauCeti.tsupport_subset_of_forall_notMem_eq_zero (fun x hx ↦ hθO x (not_not.1 hx))
+    hO.isClosed_compl).trans (compl_subset_comm.1 hUO), hθ1, hθ⟩
 
 end Cutoff
