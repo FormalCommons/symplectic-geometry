@@ -8,6 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.VectorBundle.CovariantDerivative.Torsion
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Covariant
+public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.ComplexStructure
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Eigenbundle.Involutive
 public import TauCeti.Geometry.Symplectic.Manifold.Surface
 import TauCeti.Geometry.Manifold.VectorField.Related
@@ -33,7 +34,7 @@ of a smooth almost complex structure `J`, which with Mathlib's bracket `mlieBrac
   `N_J(v, w) = (∇_{Jv} J) w - (∇_{Jw} J) v + (∇_v J) (J w) - (∇_w J) (J v)` at `x`, where
   `∇J` is the induced connection `CovariantDerivative.hom` applied to `J`. The brackets are
   replaced by `[X, Y] = ∇_X Y - ∇_Y X`, and the anticommutation of `∇_v J` with `J`
-  (`apply_hom_toEndomorphism_apply`) brings the result to this form;
+  (Tau Ceti's `CovariantDerivative.hom_apply_apply_anticomm`) brings the result to this form;
 * the theorem `nijenhuis_tensor` that collects these with the properties of `N_J` that Tau Ceti and
   `IsIntegrable.nijenhuis_eq_zero` prove.
 
@@ -173,8 +174,8 @@ theorem nijenhuis_eq_hom_toEndomorphism {x : M} (hcov : cov.torsion x = 0)
     exact (sub_eq_zero.1 h.symm).symm
   -- The Leibniz rule `∇_u (J B) = (∇_u J) B + J (∇_u B)`.
   have hJ {B : Π y : M, TangentSpace I y} (hB : MDiffAt (T% B) x) (u : TangentSpace I x) :
-      cov (fun y ↦ J y (B y)) x u = cov.hom cov J.toEndomorphism x u (B x) + J x (cov B x u) := by
-    rw [cov.hom_apply cov (J.mdifferentiableAt_toEndomorphism x) hB u, sub_add_cancel]
+      cov (fun y ↦ J y (B y)) x u = cov.hom cov J.toEndomorphism x u (B x) + J x (cov B x u) :=
+    cov.covariantDerivative_clm_apply cov (J.mdifferentiableAt_toEndomorphism x) hB u
   set X := extend E v
   set Y := extend E w
   have hX : MDiffAt (T% X) x := mdifferentiableAt_extend ..
@@ -186,8 +187,8 @@ theorem nijenhuis_eq_hom_toEndomorphism {x : M} (hcov : cov.torsion x = 0)
   conv_lhs => rw [← hXx, ← hYx]
   rw [J.nijenhuis_apply hX hY, hbr hJX hJY, hbr hX hY, hbr hJX hY, hbr hX hJY, hJ hX, hJ hY,
     hJ hX, hJ hY, hXx, hYx]
-  have h₁ := J.apply_hom_toEndomorphism_apply cov x w v
-  have h₂ := J.apply_hom_toEndomorphism_apply cov x v w
+  have h₁ := cov.hom_apply_apply_anticomm (J.mdifferentiableAt_toEndomorphism x) J.square_neg w v
+  have h₂ := cov.hom_apply_apply_anticomm (J.mdifferentiableAt_toEndomorphism x) J.square_neg v w
   beta_reduce at h₁ h₂
   simp only [map_add, map_sub, apply_apply, h₁, h₂]
   abel
