@@ -92,11 +92,11 @@ two more.
   $F_A(v,w)=dA(v,w)+[Av,Aw]$, the page's pointwise formula. Tau Ceti's
   $d$ of a one-form is $V(A W)-W(A V)-A[V,W]$, so on horizontal fields
   $F_A(X,Y)=-A([X,Y])$ with `mlieBracket`, as the page says.
-- **Descent along $P\times F\to P\times_GF$.** It is reduced to the merged
-  descent along a principal bundle projection
-  (`TauCeti.PrincipalBundle.isBasic_of_mpullback_op_smul`, with Tau
-  Ceti's `SmoothForm.descendedForm`) by the pull-back principal bundle
-  $Q=\pi_M^*P$ over $M$, where $\pi_M:M\to B$ is the projection. Tau Ceti
+- **Descent along $P\times F\to P\times_GF$.** Tau Ceti's
+  `RoughForm.isBasic_of_mpullback_eq`, with the diagonal action, and
+  the smooth descent `SmoothForm.descendedForm` give it once the
+  kernel of $dq$ is known; that kernel is found with the pull-back principal
+  bundle $Q=\pi_M^*P$ over $M$, where $\pi_M:M\to B$ is the projection. Tau Ceti
   makes it a smooth principal `G`-bundle (`TauCeti.PrincipalBundle.pullback`
   and `TauCeti.ContMDiffFiberBundle.pullback`), and the map
   $\Phi(x,v)=\big([x,v],x\big)$ is a $G$-equivariant diffeomorphism from
@@ -137,7 +137,7 @@ This file corrects part 50 of `DESIGN.md` in the same pull request:
 
 - `Principal/Connection.lean` becomes the folder `Principal/Connection/`,
   with `Basic.lean` (connection forms, horizontal spaces, the affine
-  structure, the circle comparison), `Existence.lean` and `Curvature.lean`,
+  structure), `Existence.lean` and `Curvature.lean`,
   so that three issues do not write one file. The comparison of curvatures
   with the circle case is in `Curvature.lean`.
 - The curvature is `connectionCurvature A`, defined for every
@@ -157,7 +157,7 @@ diffeomorphism $\Phi$ above).
 | File | Contents |
 |---|---|
 | `Geometry/Lie/MaurerCartan.lean` | the left Maurer–Cartan form of a Lie group as a smooth $\mathfrak g$-valued one-form |
-| `Geometry/Manifold/FiberBundle/Principal/Connection/Basic.lean` | `IsConnectionForm`, `IsTensorialForm`, horizontal spaces, the affine structure, the circle comparison |
+| `Geometry/Manifold/FiberBundle/Principal/Connection/Basic.lean` | `IsConnectionForm`, `IsTensorialForm`, horizontal spaces, the affine structure |
 | `Geometry/Manifold/FiberBundle/Principal/Connection/Existence.lean` | existence over a paracompact base |
 | `Geometry/Manifold/FiberBundle/Principal/Connection/Curvature.lean` | `connectionCurvature` and its properties |
 | `Geometry/Manifold/FiberBundle/Associated/PullbackPrincipal.lean` | $P\times F$ as the pull-back of $P$ to $P\times_GF$; descent along $q$ |
@@ -209,12 +209,14 @@ This file makes it a form.
   (`∃! a, IsTensorialForm a ∧ A' = A + a`).
 - `isTensorialForm_iff_isBasic` for commutative $G$: a tensorial form is a
   basic form, with the merged `isBasic_of_mpullback_op_smul`.
-- The circle comparison, for `G = Circle`:
+- The circle comparison, for `G = Circle`, in
+  `Principal/Connection/Circle.lean`:
   `isConnectionForm_mapCoeff_iff : IsConnectionForm
-  (SmoothForm.mapCoeff ((ContinuousLinearMap.id ℝ ℝ).smulRight
+  (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ
   circleLieGenerator) α) ↔ IsCircleConnectionForm α`, and every
   $\mathfrak g$-valued connection form is of this form for a unique
-  $\alpha$ (`IsConnectionForm.exists_eq_mapCoeff`).
+  $\alpha$, a circle connection form
+  (`IsConnectionForm.existsUnique_eq_mapCoeff`).
 
 ### `Geometry/Manifold/FiberBundle/Principal/Connection/Existence.lean`
 
@@ -286,11 +288,12 @@ projection as a smooth map, and `Q := πM *ᵖ P`.
   $(x\xi,-X_\xi(v))$ to the fundamental field of $\xi$ on $Q$.
 - `isSubmersion_totalSpaceMk_mk` and `surjective_totalSpaceMk_mk`: $q$ is
   a surjective submersion.
-- `exists_mpullback_totalSpaceMk_mk_eq`: a smooth form on $P\times F$
+- `existsUnique_mpullback_totalSpaceMk_mk_eq`: a smooth form on $P\times F$
   invariant under the diagonal action and vanishing when one argument is
   $(x\xi,-X_\xi(v))$ is `mpullback q` of a form on $M$, unique by Tau
-  Ceti's `mpullback_injective_of_surjective`. It is the merged
-  `isBasic_of_mpullback_op_smul` for $Q$, transported along $\Phi$.
+  Ceti's `SmoothForm.eq_descendedForm_iff`. It is Tau Ceti's
+  `RoughForm.isBasic_of_mpullback_eq` for $q$ and the diagonal action,
+  with the kernel of $dq$ found through $\Phi$.
 
 ### `Geometry/Manifold/FiberBundle/Associated/Connection.lean`
 
@@ -345,7 +348,7 @@ pulled back to `ManifoldTotalSpace G P × F` along `Prod.fst` and
   second expression, since $\hat x+X_{A v}$ vanishes on $(x\xi,-X_\xi)$ and
   $F_A$ vanishes on vertical vectors.
 - `associatedForm σ hμ hσG hA : SmoothForm (IB.prod IF) M ℝ 2`, the descended
-  form of `exists_mpullback_totalSpaceMk_mk_eq`, with
+  form of `existsUnique_mpullback_totalSpaceMk_mk_eq`, with
   `mpullback_totalSpaceMk_mk_associatedForm` (its pull-back along $q$ is
   `weinsteinForm`), `isClosed_associatedForm`, and
   `mpullback_associatedForm_fiber`: for every point $x$ of the total space

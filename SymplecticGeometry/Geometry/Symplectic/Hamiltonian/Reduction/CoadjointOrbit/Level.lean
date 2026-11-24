@@ -281,7 +281,9 @@ include hσ hfree hm in
 when `σ` is, with freeness at every point of that level given by freeness on the preimage of the
 orbit (`stabilizer_zeroLevel_prod_eq_bot`). It is modelled on `Fin m → ℝ` for
 `m = dim M + dim (G ⧸ G_η) - dim 𝔤`. -/
-@[instance_reducible]
+-- Exposed so that `orbitLevelQuotientDiffeomorph` (`CoadjointOrbit/Quotient.lean`) can match
+-- its target atlas with that of Tau Ceti's `ProperSMul.orbitRelQuotientDiffeomorph` by definition.
+@[expose, instance_reducible]
 def zeroLevelProdChartedSpace :
     ChartedSpace (Fin m → ℝ) (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).zeroLevel :=
   haveI : T2Space (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η) := hemb.t2Space

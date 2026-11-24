@@ -27,6 +27,8 @@ slice section `(t, y) ↦ σ t y`.
   `σ p.1` along `Prod.snd`.
 * `TauCeti.mpullback_verticalForm_apply`: the pullback of a vertical form along a map
   `f : X → N × M`.
+* `TauCeti.mpullback_prodMap_verticalForm`: the pullback of a vertical form along a product map
+  `Prod.map f g` is the vertical form of the pulled-back family.
 * `TauCeti.contMDiffAt_verticalForm_iff`: a vertical form is `C^m` at a point exactly when the
   slice section of its family is.
 
@@ -86,6 +88,23 @@ theorem mpullback_verticalForm_apply {EX HX X : Type*} [NormedAddCommGroup EX]
   -- Both sides only read the value at `f x` of the form on `N × M`.
   ext v
   simp only [mpullback_apply, verticalForm_apply_eq_mpullback_snd]
+
+omit [IsManifold I 1 M] [IsManifold J 1 N] in
+/-- Pulling back the vertical form of a family `β` along a product map `Prod.map f g` of
+differentiable maps gives the vertical form of the family `t ↦ g^* (β (f t))`. -/
+theorem mpullback_prodMap_verticalForm {EX HX X EY HY Y : Type*} [NormedAddCommGroup EX]
+    [NormedSpace ℝ EX] [TopologicalSpace HX] [TopologicalSpace X] [ChartedSpace HX X]
+    {IX : ModelWithCorners ℝ EX HX} [NormedAddCommGroup EY] [NormedSpace ℝ EY]
+    [TopologicalSpace HY] [TopologicalSpace Y] [ChartedSpace HY Y]
+    {IY : ModelWithCorners ℝ EY HY} (β : N → RoughForm I M F k) {f : X → N} {g : Y → M}
+    (hf : MDifferentiable IX J f) (hg : MDifferentiable IY I g) :
+    mpullback (IX.prod IY) (J.prod I) (Prod.map f g) (verticalForm J β) =
+      verticalForm IX fun t ↦ mpullback IY I g (β (f t)) := by
+  funext p
+  rw [mpullback_verticalForm_apply β ((hf p.1).prodMap (hg p.2)),
+    verticalForm_apply_eq_mpullback_snd, ← mpullback_comp_at mdifferentiableAt_snd (hg p.2)]
+  -- `Prod.snd ∘ Prod.map f g` is `g ∘ Prod.snd`.
+  rfl
 
 /-- **Smoothness of vertical forms.** The vertical form `TauCeti.verticalForm J β` of a family `β`
 of rough forms on `M` over `N` is `C^m` at `p` exactly when the slice section `(t, y) ↦ β t y`,
