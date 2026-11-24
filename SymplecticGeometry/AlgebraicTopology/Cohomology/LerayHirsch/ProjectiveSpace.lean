@@ -80,7 +80,8 @@ theorem exists_eq_add_zsmul_hyperplaneClass (hV : finrank ℂ V = n + 1) (X : To
   have : FiniteDimensional ℂ V := Module.finite_of_finrank_eq_succ hV
   classical
   let b (d : ℕ) := Module.Free.chooseBasis ℤ ((TopCat.of (ℙ ℂ V)).integralCohomology d)
-  obtain ⟨g, rfl⟩ := (TopCat.integralLerayHirsch_fst_bijective (n := 2) X (TopCat.of (ℙ ℂ V)) b
+  obtain ⟨g, rfl⟩ := (TopCat.integralLerayHirsch_fst_bijective (n := 2) X (TopCat.of (ℙ ℂ V))
+    (fun d ↦ b d) (fun d _ ↦ ⟨(b d).linearIndependent, (b d).span_eq.ge⟩)
     fun d _ ↦ finite_singularHomology_of_finiteCWType _ _ d).2 c
   have h0 {Y : TopCat.{0}} [PathConnectedSpace Y] (y : Y.integralCohomology 0) :
       ∃ m : ℤ, y = m • Y.integralCohomologyOne :=

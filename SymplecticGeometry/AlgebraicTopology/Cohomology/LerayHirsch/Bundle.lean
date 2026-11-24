@@ -36,8 +36,9 @@ The integral form, for `TopCat.integralCohomology` and the integral cup product
 `TopCat.integralLerayHirschEquiv` and
 `TopCat.singularCohomologyMap_injective_of_integralLerayHirsch_injective`. Its Leray–Hirsch map
 `TopCat.integralLerayHirsch` is an additive map, which over `ℤ` is the same as a linear one.
-For a product `X × F` and the pull-backs `pr₂^* b` of bases `b` of the integral cohomology of
-`F`, its bijectivity is `TopCat.integralLerayHirsch_fst_bijective`, from Tau Ceti's
+For a product `X × F` and the pull-backs `pr₂^* b` of classes `b` that form bases of the integral
+cohomology of `F` in degrees up to `n`, its bijectivity is
+`TopCat.integralLerayHirsch_fst_bijective`, from Tau Ceti's
 `TopCat.lerayHirsch_fst_bijective`. Both bijectivity results reduce to coefficients `ℤ` by
 `TopCat.integralLerayHirsch_bijective_iff`.
 
@@ -475,22 +476,23 @@ theorem integralLerayHirsch_bijective_iff
 end LinearEquiv
 
 /-- **The integral Leray–Hirsch theorem for a product.** Suppose that the homology `H_d(F; ℤ)` is
-projective in every degree and finitely generated in degrees `d ≤ n`, and that `b d` is a basis of
-`Hᵈ(F; ℤ)` for every `d`. Then the integral Leray–Hirsch map of the projection `X × F ⟶ X` with
-the classes `pr₂^* (b d i)`,
+projective in every degree and finitely generated in degrees `d ≤ n`, and that the classes `b d i`
+form a basis of `Hᵈ(F; ℤ)` for each `d ≤ n`. Then the integral Leray–Hirsch map of the projection
+`X × F ⟶ X` with the classes `pr₂^* (b d i)`,
 `⨁_{d + q = n} ⨁_{i : ι d} H^q(X; ℤ) ⟶ Hⁿ(X × F; ℤ)`, `(a_{d,i}) ↦ ∑ pr₁^* a_{d,i} ⌣ pr₂^* b_{d,i}`,
 is bijective. -/
 theorem integralLerayHirsch_fst_bijective (X F : TopCat.{0}) {ι : ℕ → Type}
     [∀ d, DecidableEq (ι d)]
     [∀ d, Projective (((singularHomologyFunctor (ModuleCat.{0} ℤ) d).obj
       (𝟙_ (ModuleCat.{0} ℤ))).obj F)]
-    (b : ∀ d, Module.Basis (ι d) ℤ (F.integralCohomology d))
+    (b : ∀ d, ι d → F.integralCohomology d)
+    (hb : ∀ d ≤ n, LinearIndependent ℤ (b d) ∧ ⊤ ≤ Submodule.span ℤ (Set.range (b d)))
     (hF : ∀ d ≤ n, Module.Finite ℤ (((singularHomologyFunctor (ModuleCat.{0} ℤ) d).obj
       (𝟙_ (ModuleCat.{0} ℤ))).obj F)) :
     Function.Bijective (integralLerayHirsch (fst X F) n
       fun d i ↦ TopCat.singularCohomologyMap (snd X F) d (b d i)) := by
-  -- The bases with coefficients `ℤ` that correspond to `b`.
-  let b' (d : ℕ) := (b d).map (F.integralCohomologyLinearEquiv d).symm
+  -- The classes with coefficients `ℤ` that correspond to `b`.
+  let b' (d : ℕ) (i : ι d) := (F.integralCohomologyLinearEquiv d).symm (b d i)
   -- Their pull-backs, for the structure `ModuleCat.instLinear` that `TopCat.lerayHirsch` uses,
   -- which instance search would not find here.
   let c' (d : ℕ) (i : ι d) :=
@@ -499,11 +501,16 @@ theorem integralLerayHirsch_fst_bijective (X F : TopCat.{0}) {ι : ℕ → Type}
   have hbb' : (fun d i ↦ TopCat.singularCohomologyMap (snd X F) d (b d i)) = fun d i ↦
       (X ⊗ F).integralCohomologyLinearEquiv d (c' d i) := by
     funext d i
-    rw [integralCohomologyLinearEquiv_naturality, Module.Basis.map_apply,
-      LinearEquiv.apply_symm_apply]
+    rw [integralCohomologyLinearEquiv_naturality, LinearEquiv.apply_symm_apply]
+  have hb' (d : ℕ) (hd : d ≤ n) :
+      LinearIndependent ℤ (b' d) ∧ ⊤ ≤ Submodule.span ℤ (Set.range (b' d)) := by
+    let e := Module.Basis.mk (hb d hd).1 (hb d hd).2
+    have he : ⇑(e.map (F.integralCohomologyLinearEquiv d).symm) = b' d := by
+      ext i
+      rw [Module.Basis.map_apply, Module.Basis.mk_apply]
+    exact he ▸ And.intro (e.map _).linearIndependent (e.map _).span_eq.ge
   rw [hbb', integralLerayHirsch_bijective_iff]
-  exact lerayHirsch_fst_bijective X (fun d ↦ b' d)
-    (fun d _ ↦ ⟨(b' d).linearIndependent, (b' d).span_eq.ge⟩) hF
+  exact lerayHirsch_fst_bijective X b' hb' hF
 
 end Integral
 
