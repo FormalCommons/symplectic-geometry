@@ -5,60 +5,39 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.SimplicialSet.Homology.RestrictScalars
-public import TauCeti.Algebra.Category.ModuleCat.RestrictScalars
+public import SymplecticGeometry.Geometry.Manifold.SmoothSingular.Smoothing
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
-public import TauCeti.Geometry.Manifold.SmoothSingular.DeRham
-public import TauCeti.Geometry.Manifold.SmoothSingular.Smoothing
+public import TauCeti.AlgebraicTopology.SimplicialSet.Homology.Basic
+public import TauCeti.Geometry.Manifold.SmoothSingular.Period
 
 /-!
-# Periods of closed forms on integral singular homology
+# Periods of closed forms on singular homology with coefficients `ULift ℤ`
 
-For a closed smooth real `p`-form `φ` on a Hausdorff `σ`-compact manifold `M` and a class
-`A ∈ Hₚ(M; ℤ)` of ordinary (continuous) singular homology, the period `⟨[φ], A⟩` is the integral
-of `φ` over any smooth integral cycle `z = ∑ nᵢ σᵢ` representing `A`, that is `∑ nᵢ ∫_{σᵢ} φ`.
-Such a cycle exists, and is unique up to smooth boundaries, by the smoothing theorem
-(`TauCeti.smoothSingularHomologyIso`), and the integral does not depend on the choice by Stokes'
-theorem. Exact forms integrate to zero on cycles, so the period depends only on the de Rham class.
+Tau Ceti's fundamental classes (`TauCeti.HomologicalOrientation.fundamentalClass` and
+`TauCeti.HomologicalOrientation.mapFundamentalClass`) live in singular homology with coefficients
+the `ℤ`-module `ULift ℤ`, while Tau Ceti's periods of closed forms
+(`TauCeti.integrationCochain` with integer coefficients, `TauCeti.smoothHomologyPeriodHom`,
+`TauCeti.deRhamCohomology.smoothHomologyPeriod` and `TauCeti.closedFormHomologyPeriod`) are
+stated for the coefficient module `ℤ`. This file restates them for `ULift ℤ`, through Tau Ceti's
+coefficient isomorphism `TauCeti.uliftIntIso`, so that they apply to fundamental classes as they
+are.
 
 ## Main declarations
 
-* `SymplecticGeometry.intIntegrationCochain φ`: the integral of a `p`-form over integral smooth
-  singular `p`-chains, `∑ nᵢ σᵢ ↦ ∑ nᵢ ∫_{σᵢ} φ`: Tau Ceti's real `TauCeti.integrationCochain` after
-  the change of coefficients.
+* `SymplecticGeometry.intIntegrationCochain φ`: the integral of a `p`-form over smooth singular
+  `p`-chains with coefficients `ULift ℤ`, `∑ nᵢ σᵢ ↦ ∑ nᵢ ∫_{σᵢ} φ`: Tau Ceti's integer
+  `TauCeti.integrationCochain` after the change of coefficients `ULift ℤ ≅ ℤ` on chains.
 * `SymplecticGeometry.intIntegrationCochain_sum_apply`: additivity in finitely many continuous
   forms.
-* `SymplecticGeometry.d_comp_intIntegrationCochain`: Stokes' theorem for integral smooth chains.
+* `SymplecticGeometry.intIntegrationCochain_smul_apply`: homogeneity in the form.
+* `SymplecticGeometry.d_comp_intIntegrationCochain`: Stokes' theorem for these chains.
 * `SymplecticGeometry.intIntegrationCochain_naturality`: naturality under smooth maps.
-* `TauCeti.deRhamCohomology.singularHomologyPeriod`: the pairing of `Hᵖ_dR(M)` with the integral
-  singular homology `Hₚ(M; ℤ)`, in the model of Tau Ceti's fundamental classes
-  (`TauCeti.HomologicalOrientation.mapFundamentalClass`).
+* `TauCeti.deRhamCohomology.singularHomologyPeriod`: the pairing of `Hᵖ_dR(M)` with
+  `Hₚ(M; ULift ℤ)`, which is Tau Ceti's `TauCeti.closedFormHomologyPeriod` after the change of
+  coefficients (`TauCeti.deRhamCohomology.singularHomologyPeriod_mk_apply`).
 * `TauCeti.deRhamCohomology.singularHomologyPeriod_mk_apply_smoothCycle`: on the image of the class
-  of a smooth integral cycle, the period of a closed form is its integral over the cycle.
+  of a smooth cycle, the period of a closed form is its integral over the cycle.
 * `TauCeti.deRhamCohomology.singularHomologyPeriod_map`: `⟨f^* c, A⟩ = ⟨c, f_* A⟩` for smooth `f`.
-
-## Implementation notes
-
-Integral homology is written as Mathlib's `singularHomologyFunctor` with coefficients
-`ModuleCat.of ℤ (ULift ℤ)`, the type of `TauCeti.HomologicalOrientation.mapFundamentalClass`, so
-that the period applies to fundamental classes as they are. The target of the smoothing
-isomorphism is the same module, written as the simplicial homology of
-`TopCat.toSSet.obj (TopCat.of M)`; the two are equal by definition, and no cast is needed.
-
-The integral cochain is the composite of the change of coefficients `ℤ → ℝ` on chains,
-`SSet.restrictScalarsChainMap` along `algebraMap ℤ ℝ` applied to Tau Ceti's coefficient map
-`TauCeti.intToRealCoeff` (with `ℝ` read as the restriction of scalars of the `ℝ`-module `ℝ`), with
-the restriction of scalars of Tau Ceti's real-coefficient `TauCeti.integrationCochain`. Its value
-on a simplex, Stokes' theorem and naturality are then derived from Tau Ceti's
-`TauCeti.integrationCochain_ιChainComplex`, `TauCeti.d_comp_integrationCochain` and
-`TauCeti.integrationCochain_naturality`. Its target is `ℝ` (or `F`) viewed as a `ℤ`-module.
-
-In degree one, Tau Ceti's `TauCeti.deRhamCohomology.homologyPeriod` pairs `H¹_dR(M)` with the
-homology of the chains `TauCeti.singularChains ℤ` (coefficients `ModuleCat.of ℤ ℤ`, not
-`ULift ℤ`) and integrates along paths rather than over smooth simplices; relating the two needs
-the change of coefficients `ULift ℤ ≅ ℤ` on homology and a comparison of the path integral with
-the simplex integral on smooth `1`-simplices, which Tau Ceti does not provide, so it is not done
-here.
 
 ## References
 
@@ -72,7 +51,7 @@ public section
 noncomputable section
 
 open AlgebraicTopology CategoryTheory
-open scoped Manifold ContDiff Simplicial
+open scoped Manifold ContDiff
 
 namespace SymplecticGeometry
 
@@ -84,49 +63,47 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSp
   {I : ModelWithCorners ℝ E H} {M : Type} [TopologicalSpace M] [ChartedSpace H M]
   {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F] {p : ℕ}
 
-/-- The integral of a `p`-form over integral smooth singular `p`-chains: the `ℤ`-linear map
-`∑ nᵢ σᵢ ↦ ∑ nᵢ ∫_{σᵢ} φ`, Tau Ceti's real integration cochain after the change of coefficients
-`ℤ → ℝ`. -/
+/-- The integral of a `p`-form over smooth singular `p`-chains with coefficients `ULift ℤ`: the
+`ℤ`-linear map `∑ nᵢ σᵢ ↦ ∑ nᵢ ∫_{σᵢ} φ`, Tau Ceti's integer integration cochain after the change
+of coefficients `ULift ℤ ≅ ℤ`. -/
 def intIntegrationCochain (φ : RoughForm I M F p) :
     ((smoothSingularSubcomplex I M : SSet).chainComplex (ModuleCat.of ℤ (ULift.{0} ℤ))).X p ⟶
-      (ModuleCat.restrictScalars (algebraMap ℤ ℝ)).obj (ModuleCat.of ℝ F) :=
-  (SSet.restrictScalarsChainMap (algebraMap ℤ ℝ)
-      (intToRealCoeff ≫ (ModuleCat.restrictScalarsAlgebraMapIso ℝ).inv) _).f p ≫
-    (ModuleCat.restrictScalars (algebraMap ℤ ℝ)).map (integrationCochain (R := ℝ) φ)
+      ModuleCat.of ℤ F :=
+  (((SSet.chainComplexFunctor (ModuleCat.{0} ℤ)).map uliftIntIso.hom).app _).f p ≫
+    integrationCochain (R := ℤ) φ
 
-/-- The integral over an integral chain is the real integral over the same chain with its
-coefficients cast to `ℝ`. -/
-theorem intIntegrationCochain_apply (φ : RoughForm I M F p)
-    (c : ((smoothSingularSubcomplex I M : SSet).chainComplex
-      (ModuleCat.of ℤ (ULift.{0} ℤ))).X p) :
-    (intIntegrationCochain φ).hom c =
-      (integrationCochain (R := ℝ) φ).hom (((SSet.restrictScalarsChainMap (algebraMap ℤ ℝ)
-        (intToRealCoeff ≫ (ModuleCat.restrictScalarsAlgebraMapIso ℝ).inv) _).f p).hom c) :=
+/-- The integral over a chain with coefficients `ULift ℤ` is the integral over the same chain with
+its coefficients read in `ℤ`. -/
+theorem intIntegrationCochain_def (φ : RoughForm I M F p) :
+    intIntegrationCochain φ =
+      (((SSet.chainComplexFunctor (ModuleCat.{0} ℤ)).map uliftIntIso.hom).app _).f p ≫
+        integrationCochain (R := ℤ) φ :=
   (rfl)
 
-/-- The integral of `φ` over a simplex with integral coefficient `n` is `n` times its integral. -/
+/-- The integral of `φ` over a simplex with coefficient `n` is `n` times its integral. -/
 theorem intIntegrationCochain_ιChainComplex (φ : RoughForm I M F p) (σ : SmoothSimplex I M p)
     (n : ULift.{0} ℤ) :
     (intIntegrationCochain φ).hom (((smoothSingularSubcomplex I M : SSet).ιChainComplex
       (R := ModuleCat.of ℤ (ULift.{0} ℤ)) σ).hom n) = n.down • σ.integral φ := by
-  rw [intIntegrationCochain_apply, SSet.restrictScalarsChainMap_f_ιChainComplex,
-    ModuleCat.comp_apply, ModuleCat.restrictScalarsAlgebraMapIso_inv_apply, intToRealCoeff_apply,
-    integrationCochain_ιChainComplex, Int.cast_smul_eq_zsmul]
+  rw [← ConcreteCategory.comp_apply, intIntegrationCochain_def,
+    SSet.ιChainComplex_chainComplexFunctor_map_app_f_assoc]
+  simp only [ConcreteCategory.comp_apply]
+  rw [integrationCochain_ιChainComplex, uliftIntIso_hom_apply]
 
-/-- The integral of the zero form over integral chains is zero. -/
+/-- The integral of the zero form over chains with coefficients `ULift ℤ` is zero. -/
 @[simp]
 theorem intIntegrationCochain_zero : intIntegrationCochain (0 : RoughForm I M F p) = 0 := by
-  rw [intIntegrationCochain, integrationCochain_zero, Functor.map_zero, Limits.comp_zero]
+  rw [intIntegrationCochain_def, integrationCochain_zero, Limits.comp_zero]
 
-/-- The integral over integral chains is additive in continuous forms. -/
+/-- The integral over chains with coefficients `ULift ℤ` is additive in continuous forms. -/
 theorem intIntegrationCochain_add [IsManifold I 1 M] {φ ψ : RoughForm I M F p}
     (hφ : IsSmoothForm I 0 φ) (hψ : IsSmoothForm I 0 ψ) :
     intIntegrationCochain (φ + ψ) = intIntegrationCochain φ + intIntegrationCochain ψ := by
-  rw [intIntegrationCochain, integrationCochain_add hφ hψ, Functor.map_add,
-    Preadditive.comp_add, intIntegrationCochain, intIntegrationCochain]
+  rw [intIntegrationCochain_def, integrationCochain_add hφ hψ, Preadditive.comp_add,
+    intIntegrationCochain_def, intIntegrationCochain_def]
 
-/-- The integral over an integral chain of a finite sum of continuous forms is the sum of their
-integrals. -/
+/-- The integral over a chain with coefficients `ULift ℤ` of a finite sum of continuous forms is
+the sum of their integrals. -/
 theorem intIntegrationCochain_sum_apply [IsManifold I 1 M] {ι : Type*} (s : Finset ι)
     (φ : ι → RoughForm I M F p) (hφ : ∀ i ∈ s, IsSmoothForm I 0 (φ i))
     (c : ((smoothSingularSubcomplex I M : SSet).chainComplex
@@ -141,175 +118,88 @@ theorem intIntegrationCochain_sum_apply [IsManifold I 1 M] {ι : Type*} (s : Fin
       (IsSmoothForm.sum _ _ fun j hj ↦ hφ j (Finset.mem_insert_of_mem hj)), ModuleCat.hom_add,
       LinearMap.add_apply, ih fun j hj ↦ hφ j (Finset.mem_insert_of_mem hj), Finset.sum_insert hi]
 
-/-- The integral over integral chains is homogeneous in the form. -/
+/-- The integral over chains with coefficients `ULift ℤ` is homogeneous in the form. -/
 theorem intIntegrationCochain_smul_apply (a : ℝ) (φ : RoughForm I M F p)
     (c : ((smoothSingularSubcomplex I M : SSet).chainComplex
       (ModuleCat.of ℤ (ULift.{0} ℤ))).X p) :
     (intIntegrationCochain (a • φ)).hom c = a • ((intIntegrationCochain φ).hom c : F) := by
-  rw [intIntegrationCochain_apply, intIntegrationCochain_apply, integrationCochain_smul,
-    ModuleCat.hom_smul]
-  exact LinearMap.smul_apply a (integrationCochain (R := ℝ) φ).hom _
+  rw [intIntegrationCochain_def, integrationCochain_smul, ModuleCat.hom_comp, ModuleCat.hom_smul,
+    LinearMap.comp_apply, LinearMap.smul_apply, ← LinearMap.comp_apply, ← ModuleCat.hom_comp,
+    ← intIntegrationCochain_def]
 
 variable {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   {J : ModelWithCorners ℝ E' H'} {N : Type} [TopologicalSpace N] [ChartedSpace H' N]
 
-/-- The integral over integral chains is natural for the chain map induced by a smooth map:
-integrating `ψ` over the image of a chain is integrating its pullback over the chain. -/
+/-- The integral over chains with coefficients `ULift ℤ` is natural for the chain map induced by a
+smooth map: integrating `ψ` over the image of a chain is integrating its pullback over the
+chain. -/
 @[reassoc]
 theorem intIntegrationCochain_naturality {f : M → N} (hf : ContMDiff I J ∞ f)
     (ψ : RoughForm J N F p) :
     (SSet.chainComplexMap (smoothSingularSubcomplexMap f hf)
       (ModuleCat.of ℤ (ULift.{0} ℤ))).f p ≫ intIntegrationCochain ψ =
         intIntegrationCochain (mpullback I J f ψ) := by
-  rw [intIntegrationCochain, SSet.chainComplexMap_f_restrictScalarsChainMap_assoc,
-    ← Functor.map_comp, integrationCochain_naturality, intIntegrationCochain]
+  rw [intIntegrationCochain_def, SSet.chainComplexMap_f_chainComplexFunctor_map_app_f_assoc,
+    integrationCochain_naturality, intIntegrationCochain_def]
 
-section Stokes
-
-variable [IsManifold I 2 M]
-
-/-- **Stokes' theorem for integral smooth chains.** The integral of a `C¹` form over the boundary
-of an integral smooth singular chain is the integral of its exterior derivative over the chain. -/
+/-- **Stokes' theorem for smooth chains with coefficients `ULift ℤ`.** The integral of a `C¹` form
+over the boundary of such a chain is the integral of its exterior derivative over the chain. -/
 @[reassoc]
-theorem d_comp_intIntegrationCochain {φ : RoughForm I M F p} (hφ : IsSmoothForm I 1 φ) :
+theorem d_comp_intIntegrationCochain [IsManifold I 2 M] {φ : RoughForm I M F p}
+    (hφ : IsSmoothForm I 1 φ) :
     ((smoothSingularSubcomplex I M : SSet).chainComplex
       (ModuleCat.of ℤ (ULift.{0} ℤ))).d (p + 1) p ≫ intIntegrationCochain φ =
         intIntegrationCochain (mextDeriv φ) := by
-  rw [intIntegrationCochain, ← (SSet.restrictScalarsChainMap _ _ _).comm_assoc,
-    Functor.mapHomologicalComplex_obj_d, ← Functor.map_comp, d_comp_integrationCochain hφ,
-    intIntegrationCochain]
-
-/-- A closed `C¹` form integrates to zero over the boundary of every integral smooth chain. -/
-theorem d_comp_intIntegrationCochain_eq_zero {φ : RoughForm I M F p} (hφ : IsSmoothForm I 1 φ)
-    (hdφ : mextDeriv φ = 0) :
-    ((smoothSingularSubcomplex I M : SSet).chainComplex
-      (ModuleCat.of ℤ (ULift.{0} ℤ))).d (p + 1) p ≫ intIntegrationCochain φ = 0 := by
-  rw [d_comp_intIntegrationCochain hφ, hdφ, intIntegrationCochain_zero]
-
-end Stokes
+  rw [intIntegrationCochain_def, ← HomologicalComplex.Hom.comm_assoc, d_comp_integrationCochain hφ,
+    intIntegrationCochain_def]
 
 end Cochain
 
 end SymplecticGeometry
 
-/-! ### The period of a de Rham class on integral singular homology -/
+/-! ### The period of a de Rham class on singular homology with coefficients `ULift ℤ` -/
 
 namespace TauCeti.deRhamCohomology
 
 open SymplecticGeometry
 
-variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  {I : ModelWithCorners ℝ E H} {M : Type} [TopologicalSpace M] [ChartedSpace H M] {p : ℕ}
+variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} {M : Type} [TopologicalSpace M]
+  [ChartedSpace H M] [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M] {p : ℕ}
 
-section Smooth
-
-variable [IsManifold I 2 M]
-
-/-- The integral of a closed form over integral smooth singular cycles, on their homology. -/
-private def smoothPeriod (φ : closedForms I M p) :
-    (smoothSingularSubcomplex I M : SSet).homology (ModuleCat.of ℤ (ULift.{0} ℤ)) p ⟶
-      (ModuleCat.restrictScalars (algebraMap ℤ ℝ)).obj (ModuleCat.of ℝ ℝ) :=
-  HomologicalComplex.homologyι _ p ≫ HomologicalComplex.descOpcycles _
-    (intIntegrationCochain φ.val.val) (p + 1) (by simp)
-    (d_comp_intIntegrationCochain_eq_zero (φ.val.isSmoothForm.of_le (by simp))
-      ((mem_closedForms I φ.val).mp φ.property))
-
-private theorem homologyπ_comp_smoothPeriod (φ : closedForms I M p) :
-    HomologicalComplex.homologyπ _ p ≫ smoothPeriod φ =
-      HomologicalComplex.iCycles _ p ≫ intIntegrationCochain φ.val.val := by
-  simp [smoothPeriod]
-
-private theorem smoothPeriod_add (φ ψ : closedForms I M p) :
-    smoothPeriod (φ + ψ) = smoothPeriod φ + smoothPeriod ψ := by
-  rw [← cancel_epi (HomologicalComplex.homologyπ _ p), Preadditive.comp_add,
-    homologyπ_comp_smoothPeriod, homologyπ_comp_smoothPeriod, homologyπ_comp_smoothPeriod,
-    ← Preadditive.comp_add, Submodule.coe_add, Submodule.coe_add,
-    intIntegrationCochain_add (φ.val.isSmoothForm.of_le (by simp))
-      (ψ.val.isSmoothForm.of_le (by simp))]
-
-private theorem smoothPeriod_smul_apply (a : ℝ) (φ : closedForms I M p) (x) :
-    (smoothPeriod (a • φ)).hom x = a • (smoothPeriod φ).hom x := by
-  obtain ⟨z, rfl⟩ :=
-    (ModuleCat.epi_iff_surjective (HomologicalComplex.homologyπ _ p)).mp inferInstance x
-  rw [← ConcreteCategory.comp_apply, homologyπ_comp_smoothPeriod, ← ConcreteCategory.comp_apply,
-    homologyπ_comp_smoothPeriod, ConcreteCategory.comp_apply, ConcreteCategory.comp_apply,
-    Submodule.coe_smul, Submodule.coe_smul, intIntegrationCochain_smul_apply]
-
-private theorem smoothPeriod_eq_zero_of_mem_exactForms (φ : closedForms I M p)
-    (hφ : φ.val ∈ exactForms I M p) : smoothPeriod φ = 0 := by
-  rw [← cancel_epi (HomologicalComplex.homologyπ _ p), homologyπ_comp_smoothPeriod,
-    Limits.comp_zero]
-  cases p with
-  | zero =>
-    rw [exactForms_zero, Submodule.mem_bot] at hφ
-    simp [hφ]
-  | succ k =>
-    obtain ⟨ψ, hψ⟩ := (exactForms_succ I k).le hφ
-    rw [← hψ, mextDerivₗ_apply, ← d_comp_intIntegrationCochain (ψ.isSmoothForm.of_le (by simp)),
-      HomologicalComplex.iCycles_d_assoc, Limits.zero_comp]
-
-end Smooth
-
-variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M]
-
-/-- The periods of closed forms on integral singular homology, linear in the form. -/
-private def singularHomologyPeriodClosedForms :
-    closedForms I M p →ₗ[ℝ] (((singularHomologyFunctor (ModuleCat.{0} ℤ) p).obj
-      (ModuleCat.of ℤ (ULift.{0} ℤ))).obj (TopCat.of M) →+ ℝ) where
-  toFun φ := ((smoothSingularHomologyIso I M (ModuleCat.of ℤ (ULift.{0} ℤ)) p).inv ≫
-    smoothPeriod φ).hom.toAddMonoidHom
-  map_add' φ ψ := by
-    ext A
-    simp only [LinearMap.toAddMonoidHom_coe, ModuleCat.hom_comp, LinearMap.comp_apply,
-      smoothPeriod_add, ModuleCat.hom_add, LinearMap.add_apply]
-    -- Values of a sum of additive maps are sums of values, by definition.
-    rfl
-  map_smul' a φ := by
-    ext A
-    simp only [LinearMap.toAddMonoidHom_coe, ModuleCat.hom_comp, LinearMap.comp_apply]
-    rw [smoothPeriod_smul_apply]
-    -- Values of a multiple of an additive map are multiples of values, by definition.
-    rfl
-
-private theorem singularHomologyPeriodClosedForms_apply (φ : closedForms I M p) (A) :
-    singularHomologyPeriodClosedForms φ A =
-      (smoothPeriod φ).hom
-        ((smoothSingularHomologyIso I M (ModuleCat.of ℤ (ULift.{0} ℤ)) p).inv.hom A) :=
-  rfl
-
-private theorem ker_mk_le_ker_singularHomologyPeriodClosedForms :
-    LinearMap.ker (mk I (M := M) p) ≤
-      LinearMap.ker (singularHomologyPeriodClosedForms (I := I) (M := M) (p := p)) := by
-  intro φ hφ
-  rw [LinearMap.mem_ker, mk_eq_zero_iff] at hφ
-  rw [LinearMap.mem_ker]
-  ext A
-  rw [singularHomologyPeriodClosedForms_apply, smoothPeriod_eq_zero_of_mem_exactForms φ hφ,
-    ModuleCat.hom_zero, LinearMap.zero_apply, AddMonoidHom.zero_apply]
-  -- The zero of `ℝ` with scalars restricted to `ℤ` is the zero of `ℝ`, by definition.
-  rfl
-
-/-- The **period of a de Rham class on integral singular homology**: `⟨[φ], A⟩` is the integral
-of the closed form `φ` over a smooth integral cycle representing `A ∈ Hₚ(M; ℤ)`. Such a cycle
-exists, and the integral does not depend on it, by the smoothing theorem and Stokes' theorem. -/
+/-- The **period of a de Rham class on singular homology with coefficients `ULift ℤ`**: `⟨[φ], A⟩`
+is Tau Ceti's period `TauCeti.closedFormHomologyPeriod φ` on the class `A` read with coefficients
+`ℤ`, that is the integral of `φ` over a smooth integral cycle representing `A`. -/
 def singularHomologyPeriod :
     deRhamCohomology I M p →ₗ[ℝ] (((singularHomologyFunctor (ModuleCat.{0} ℤ) p).obj
-      (ModuleCat.of ℤ (ULift.{0} ℤ))).obj (TopCat.of M) →+ ℝ) :=
-  LinearMap.liftOfSurjective (R := ℝ) (M := closedForms I M p) (M₂ := deRhamCohomology I M p)
-    (M₃ := ((singularHomologyFunctor (ModuleCat.{0} ℤ) p).obj
-      (ModuleCat.of ℤ (ULift.{0} ℤ))).obj (TopCat.of M) →+ ℝ)
-    (f := mk I (M := M) p) (mk_surjective I p)
-    ⟨singularHomologyPeriodClosedForms, ker_mk_le_ker_singularHomologyPeriodClosedForms⟩
+      (ModuleCat.of ℤ (ULift.{0} ℤ))).obj (TopCat.of M) →+ ℝ) where
+  toFun c := (smoothHomologyPeriod c).comp ((uliftIntHomologyIso (TopCat.of M) p).hom ≫
+    (smoothSingularHomologyIso I M (ModuleCat.of ℤ ℤ) p).inv).hom.toAddMonoidHom
+  map_add' c d := by
+    ext A
+    rw [map_add]
+    -- Both sides evaluate the sum `smoothHomologyPeriod c + smoothHomologyPeriod d` at the same
+    -- class.
+    rfl
+  map_smul' a c := by
+    ext A
+    rw [map_smul]
+    -- Both sides evaluate the multiple `a • smoothHomologyPeriod c` at the same class.
+    rfl
 
-private theorem singularHomologyPeriod_mk_apply (φ : closedForms I M p) (A) :
+/-- The period of the class of a closed form `φ` on `A ∈ Hₚ(M; ULift ℤ)` is Tau Ceti's period of
+`φ` on `A` read in `Hₚ(M; ℤ)`. -/
+theorem singularHomologyPeriod_mk_apply (φ : closedForms I M p)
+    (A : ((singularHomologyFunctor (ModuleCat.{0} ℤ) p).obj
+      (ModuleCat.of ℤ (ULift.{0} ℤ))).obj (TopCat.of M)) :
     singularHomologyPeriod (mk I p φ) A =
-      (smoothPeriod φ).hom
-        ((smoothSingularHomologyIso I M (ModuleCat.of ℤ (ULift.{0} ℤ)) p).inv.hom A) := by
-  rw [singularHomologyPeriod, LinearMap.equivOfSurjective_apply]
-  rfl
+      closedFormHomologyPeriod φ ((uliftIntHomologyIso (TopCat.of M) p).hom.hom A) :=
+  (congrArg (fun f : _ →+ ℝ ↦ f ((smoothSingularHomologyIso I M (ModuleCat.of ℤ ℤ) p).inv.hom
+    ((uliftIntHomologyIso (TopCat.of M) p).hom.hom A))) (smoothHomologyPeriod_mk φ)).trans
+      (closedFormHomologyPeriod_apply φ _).symm
 
-/-- The period of the class of a closed form `φ` on the image in `Hₚ(M; ℤ)` of the class of an
-integral smooth cycle `z = ∑ nᵢ σᵢ` is the integral `∑ nᵢ ∫_{σᵢ} φ`. -/
+/-- The period of the class of a closed form `φ` on the image in `Hₚ(M; ULift ℤ)` of the class of
+a smooth cycle `z = ∑ nᵢ σᵢ` is the integral `∑ nᵢ ∫_{σᵢ} φ`. -/
 theorem singularHomologyPeriod_mk_apply_smoothCycle (φ : closedForms I M p)
     (z : ((smoothSingularSubcomplex I M : SSet).chainComplex
       (ModuleCat.of ℤ (ULift.{0} ℤ))).cycles p) :
@@ -317,30 +207,40 @@ theorem singularHomologyPeriod_mk_apply_smoothCycle (φ : closedForms I M p)
         ((smoothSingularHomologyIso I M (ModuleCat.of ℤ (ULift.{0} ℤ)) p).hom.hom
           ((((smoothSingularSubcomplex I M : SSet).chainComplex
             (ModuleCat.of ℤ (ULift.{0} ℤ))).homologyπ p).hom z)) =
-      (intIntegrationCochain φ.val.val).hom ((((smoothSingularSubcomplex I M : SSet).chainComplex
-        (ModuleCat.of ℤ (ULift.{0} ℤ))).iCycles p).hom z) := by
+      (intIntegrationCochain (φ.val : RoughForm I M ℝ p)).hom
+        ((((smoothSingularSubcomplex I M : SSet).chainComplex
+          (ModuleCat.of ℤ (ULift.{0} ℤ))).iCycles p).hom z) := by
   refine (singularHomologyPeriod_mk_apply φ _).trans ?_
-  rw [Iso.hom_inv_id_apply, ← ConcreteCategory.comp_apply, homologyπ_comp_smoothPeriod,
-    ConcreteCategory.comp_apply]
+  set κ := ((SSet.chainComplexFunctor (ModuleCat.{0} ℤ)).map uliftIntIso.hom).app
+    (smoothSingularSubcomplex I M : SSet)
+  have hκ : (smoothSingularHomologyIso I M (ModuleCat.of ℤ (ULift.{0} ℤ)) p).hom ≫
+      (uliftIntHomologyIso (TopCat.of M) p).hom =
+        HomologicalComplex.homologyMap κ p ≫
+          (smoothSingularHomologyIso I M (ModuleCat.of ℤ ℤ) p).hom := by
+    rw [uliftIntHomologyIso_hom]
+    -- The change of coefficients on singular homology is, by definition of
+    -- `singularHomologyFunctor`, the map on homology of the change of coefficients on the chains
+    -- of `TopCat.toSSet`.
+    exact smoothSingularHomologyIso_hom_comp_homologyMap_coefficients I M uliftIntIso.hom p
+  have h := ConcreteCategory.congr_hom hκ
+    ((((smoothSingularSubcomplex I M : SSet).chainComplex
+      (ModuleCat.of ℤ (ULift.{0} ℤ))).homologyπ p).hom z)
+  rw [ConcreteCategory.comp_apply, ConcreteCategory.comp_apply,
+    ← ConcreteCategory.comp_apply _ (HomologicalComplex.homologyMap κ p),
+    HomologicalComplex.homologyπ_naturality, ConcreteCategory.comp_apply,
+    smoothSingularHomologyIso_hom I M (ModuleCat.of ℤ ℤ)] at h
+  refine (congrArg (closedFormHomologyPeriod φ) h).trans ?_
+  rw [closedFormHomologyPeriod_homologyMap_ι_homologyπ, ← ConcreteCategory.comp_apply,
+    ← ConcreteCategory.comp_apply, HomologicalComplex.cyclesMap_i_assoc, intIntegrationCochain_def,
+    ConcreteCategory.comp_apply, ConcreteCategory.comp_apply]
 
 variable {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
   [TopologicalSpace H'] {J : ModelWithCorners ℝ E' H'}
   {N : Type} [TopologicalSpace N] [ChartedSpace H' N] [IsManifold J ∞ N]
   [T2Space N] [SigmaCompactSpace N]
 
-omit [FiniteDimensional ℝ E] [T2Space M] [SigmaCompactSpace M] [FiniteDimensional ℝ E']
-  [T2Space N] [SigmaCompactSpace N] in
-private theorem homologyMap_comp_smoothPeriod {f : M → N} (hf : ContMDiff I J ∞ f)
-    (ψ : closedForms J N p) :
-    SSet.homologyMap (smoothSingularSubcomplexMap f hf) (ModuleCat.of ℤ (ULift.{0} ℤ)) p ≫
-        smoothPeriod ψ = smoothPeriod (closedForms.mpullback f hf p ψ) := by
-  rw [← cancel_epi (HomologicalComplex.homologyπ _ p), homologyπ_comp_smoothPeriod,
-    HomologicalComplex.homologyπ_naturality_assoc, homologyπ_comp_smoothPeriod,
-    HomologicalComplex.cyclesMap_i_assoc, intIntegrationCochain_naturality,
-    closedForms.coe_mpullback, SmoothForm.coe_mpullback]
-
 /-- **Naturality of periods**: for a smooth map `f : M → N`, a de Rham class `c` of `N` and
-`A ∈ Hₚ(M; ℤ)`, `⟨f^* c, A⟩ = ⟨c, f_* A⟩`. -/
+`A ∈ Hₚ(M; ULift ℤ)`, `⟨f^* c, A⟩ = ⟨c, f_* A⟩`. -/
 theorem singularHomologyPeriod_map {f : M → N} (hf : ContMDiff I J ∞ f)
     (c : deRhamCohomology J N p)
     (A : ((singularHomologyFunctor (ModuleCat.{0} ℤ) p).obj
@@ -352,11 +252,11 @@ theorem singularHomologyPeriod_map {f : M → N} (hf : ContMDiff I J ∞ f)
   rw [map_mk]
   refine (singularHomologyPeriod_mk_apply _ A).trans
     (Eq.trans ?_ (singularHomologyPeriod_mk_apply ψ _).symm)
-  rw [← homologyMap_comp_smoothPeriod hf]
+  refine (closedFormHomologyPeriod_mpullback hf ψ _).trans ?_
+  rw [ContinuousMap.singularHomologyMap_eq_homologyMap_toSSet_map]
   -- `singularHomologyFunctor` is by definition the simplicial homology of `TopCat.toSSet`, so its
   -- map on homology is `SSet.homologyMap` of the induced map of simplicial sets.
-  exact ConcreteCategory.congr_hom
-    (smoothSingularHomologyIso_inv_naturality_assoc (ModuleCat.of ℤ (ULift.{0} ℤ)) hf p
-      (smoothPeriod ψ)) A
+  exact congrArg (closedFormHomologyPeriod ψ) (ConcreteCategory.congr_hom
+    (homologyMap_comp_uliftIntHomologyIso_hom (TopCat.ofHom ⟨f, hf.continuous⟩) p) A).symm
 
 end TauCeti.deRhamCohomology
