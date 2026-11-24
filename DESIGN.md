@@ -2744,7 +2744,7 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   reached through `(twoCochainEquiv ℝ 𝔤 _).symm` and `moduleCatCyclesMk`,
   a cycle by `momentCocycle_mem_twoCocycle` and `d₂₃_twoCochainEquiv`; its
   independence of $\mu$; and that it vanishes, by
-  `moduleCat_homologyπ_eq_zero_iff` and `twoCochainEquiv_d_one`, exactly
+  `moduleCat_homologyπ_eq_iff` and `twoCochainEquiv_d_one`, exactly
   when $\mu$ can be shifted by a constant to one whose cocycle is zero,
   which for connected $G$ is equivariant).
   No second cohomology of its own is defined.
@@ -2754,7 +2754,7 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   `twoCochainEquiv_d_one`, `d₂₃_twoCochainEquiv`;
   `TauCeti/Algebra/Homology/ModuleCat/Basic.lean`:
   `HomologicalComplex.moduleCatCyclesMk`,
-  `HomologicalComplex.moduleCat_homologyπ_eq_zero_iff`;
+  `HomologicalComplex.moduleCat_homologyπ_eq_iff`;
   `TauCeti.SmoothTwoForm.momentCocycle` with
   `IsMomentMap.momentCocycle_eq`, `momentCocycle_mem_twoCocycle`,
   `momentCocycle_add_const`, `momentCocycle_apply_eq_poissonBracket`,
