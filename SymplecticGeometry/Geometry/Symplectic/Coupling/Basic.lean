@@ -458,7 +458,7 @@ private theorem primitive_apply_rightFundamentalVectorField (h : IsCouplingForm 
   funext i
   fin_cases i
   · -- `(id, d(lineMap)) (0, 1) = (0, d(lineMap) 1)`, by definition of `prodMap`
-    simp [w₀]
+    simp only [id_eq, mfderiv_id, Fin.zero_eta, Fin.isValue, Matrix.cons_val, mul_inv_rev, w₀]
     rfl
   · simp only [id_eq, mfderiv_id, Fin.mk_one, Fin.isValue, Matrix.cons_val,
       Matrix.cons_val_one, Matrix.cons_val_fin_one]
