@@ -46,6 +46,10 @@ rescales a map of a product `S × V` and takes the value at `t = 0` as an argume
 * `SymplecticGeometry.vectorBundleRescaledFamily_zeroSection`: the slices fix every point of the
   zero section that `ψ` fixes.
 
+Along the way: `Bundle.Trivialization.symm_smul_snd` (a linear trivialization carries scaling of
+the fibre coordinate to scaling in the fibre), its reading of fibre scaling
+`TauCeti.vectorBundleFiberScaling_eq_trivialization_symm`, and `Subtype.tendsto_val_nhdsGT`.
+
 ## References
 
 * [M. W. Hirsch, *Differential Topology*][Hirsch1976], Chapter 4, §5.
@@ -59,6 +63,42 @@ noncomputable section
 open Set Bundle Filter Topology TopologicalSpace TauCeti
 open scoped Manifold ContDiff
 
+/-- The inclusion of a subset of a preorder maps right neighbourhoods of a point to right
+neighbourhoods of its image. -/
+theorem Subtype.tendsto_val_nhdsGT {α : Type*} [Preorder α] [TopologicalSpace α] {s : Set α}
+    (a : s) : Tendsto Subtype.val (𝓝[>] a) (𝓝[>] (a : α)) :=
+  tendsto_nhdsWithin_iff.2 ⟨continuous_subtypeVal.continuousAt.tendsto.mono_left
+    nhdsWithin_le_nhds, eventually_nhdsWithin_of_forall fun _ ht ↦ Subtype.coe_lt_coe.2 ht⟩
+
+namespace Bundle.Trivialization
+
+variable {R B F : Type*} {E : B → Type*} [Semiring R] [TopologicalSpace F] [TopologicalSpace B]
+  [AddCommMonoid F] [Module R F] [∀ b, AddCommMonoid (E b)] [∀ b, Module R (E b)]
+  [TopologicalSpace (TotalSpace F E)]
+
+/-- For a linear trivialization `e` and a point `y` over its base set, the point of the fibre of
+`y` with fibre coordinate `c` times that of `y` is `c • y`. -/
+theorem symm_smul_snd (e : Trivialization F (π F E)) [e.IsLinear R] {y : TotalSpace F E}
+    (hy : y.proj ∈ e.baseSet) (c : R) : e.symm y.proj (c • (e y).2) = c • y.snd := by
+  rw [← e.symmₗ_apply (R := R) hy, map_smul, e.symmₗ_apply hy, e.symm_proj_apply y hy]
+
+end Bundle.Trivialization
+
+namespace TauCeti
+
+variable {B F : Type*} {V : B → Type*} [∀ b, AddCommMonoid (V b)] [∀ b, Module ℝ (V b)]
+  [TopologicalSpace B] [TopologicalSpace F] [AddCommMonoid F] [Module ℝ F]
+  [TopologicalSpace (TotalSpace F V)]
+
+/-- Fibre scaling read in a linear trivialization `e`: over the base set of `e`, it multiplies the
+fibre coordinate by the time. -/
+theorem vectorBundleFiberScaling_eq_trivialization_symm (e : Trivialization F (π F V))
+    [e.IsLinear ℝ] {z : TotalSpace F V} (hz : z.proj ∈ e.baseSet) (t : Icc (0 : ℝ) 1) :
+    vectorBundleFiberScaling F V (z, t) = ⟨z.proj, e.symm z.proj ((t : ℝ) • (e z).2)⟩ := by
+  rw [vectorBundleFiberScaling_apply, e.symm_smul_snd hz]
+
+end TauCeti
+
 namespace SymplecticGeometry
 
 variable {B F : Type*} {V : B → Type*} [∀ b, AddCommMonoid (V b)] [∀ b, Module ℝ (V b)]
@@ -68,9 +108,9 @@ open scoped Classical in
 /-- The **rescaled family** of a map `ψ : U → V` defined on an open set of the total space of a
 vector bundle. For `t > 0` it is `m_{1/t} ∘ ψ ∘ m_t`, where `m_c` multiplies the fibres by `c`
 (the junk value `z` is taken at `(z, t)` when `m_t z ∉ U`); at `t = 0` it is the limit of these
-maps as `t → 0⁺` (a junk value if there is none), which is the fibre derivative of `ψ` along the
-zero section when `ψ` is differentiable there
-(`SymplecticGeometry.vectorBundleRescaledFamily_zero_eq`). -/
+maps as `t → 0⁺` (a junk value if there is none). At a point over `x`, that value is the fibre
+derivative of `ψ` at `0_x` when `ψ` fixes `0_x`, is continuous there and is differentiable along
+the fibre (`SymplecticGeometry.vectorBundleRescaledFamily_zero_eq`). -/
 def vectorBundleRescaledFamily (ψ : U → TotalSpace F V) (p : TotalSpace F V × Icc (0 : ℝ) 1) :
     TotalSpace F V :=
   let f : Icc (0 : ℝ) 1 → TotalSpace F V := fun t ↦
@@ -91,10 +131,12 @@ theorem vectorBundleRescaledFamily_of_ne_zero (ψ : U → TotalSpace F V)
   rfl
 
 /-- At `t = 1` the rescaled family is `ψ`. -/
-theorem vectorBundleRescaledFamily_one (ψ : U → TotalSpace F V) {z : TotalSpace F V}
-    (hz : z ∈ U) : vectorBundleRescaledFamily ψ (z, 1) = ψ ⟨z, hz⟩ := by
+@[simp]
+theorem vectorBundleRescaledFamily_one (ψ : U → TotalSpace F V) (z : U) :
+    vectorBundleRescaledFamily ψ (z, 1) = ψ z := by
   have hz' : vectorBundleFiberScaling F V (z, 1) ∈ U := by
-    rwa [vectorBundleFiberScaling_one]
+    rw [vectorBundleFiberScaling_one]
+    exact z.property
   rw [vectorBundleRescaledFamily_of_ne_zero ψ (by simp) z hz']
   simp only [Icc.coe_one, inv_one, one_smul]
   congr 2 <;> simp
@@ -160,17 +202,12 @@ theorem tendsto_vectorBundleRescaledFamily_zero (e : Trivialization F (π F V)) 
     e.continuousOn_symm.continuousAt (prod_mem_nhds (e.open_baseSet.mem_nhds hz) univ_mem)
   have hG0 : G (x, 0) = zeroSection F V x := by
     simp [hG, zeroSection, ← Trivialization.symmₗ_apply (R := ℝ) _ hz]
-  have hcoe : Tendsto (fun t : Icc (0 : ℝ) 1 ↦ (t : ℝ)) (𝓝[>] 0) (𝓝[>] 0) :=
-    tendsto_nhdsWithin_iff.2 ⟨(continuous_subtypeVal.tendsto' 0 0 rfl).mono_left
-      nhdsWithin_le_nhds, eventually_nhdsWithin_of_forall fun t ht ↦ Subtype.coe_lt_coe.2 ht⟩
+  have hcoe : Tendsto (fun t : Icc (0 : ℝ) 1 ↦ (t : ℝ)) (𝓝[>] 0) (𝓝[>] 0) := by
+    simpa using Subtype.tendsto_val_nhdsGT (0 : Icc (0 : ℝ) 1)
   have hsmall : Tendsto (fun t : Icc (0 : ℝ) 1 ↦ (t : ℝ) • w₀) (𝓝[>] 0) (𝓝 0) := by
     simpa using (hcoe.mono_right nhdsWithin_le_nhds).smul_const w₀
-  -- fibre scaling, read in `e`
-  have hscale : ∀ t, vectorBundleFiberScaling F V (z, t) = G (x, (t : ℝ) • w₀) := by
-    intro t
-    simp only [vectorBundleFiberScaling_apply, hG, w₀, x,
-      ← Trivialization.symmₗ_apply (R := ℝ) _ hz, map_smul]
-    rw [Trivialization.symmₗ_apply _ hz, e.symm_proj_apply z hz]
+  have hscale : ∀ t, vectorBundleFiberScaling F V (z, t) = G (x, (t : ℝ) • w₀) :=
+    vectorBundleFiberScaling_eq_trivialization_symm e hz
   have hm : Tendsto (fun t ↦ vectorBundleFiberScaling F V (z, t)) (𝓝[>] 0)
       (𝓝 (zeroSection F V x)) := by
     simp_rw [hscale, ← hG0]
@@ -210,8 +247,7 @@ theorem tendsto_vectorBundleRescaledFamily_zero (e : Trivialization F (π F V)) 
   have hw : G (x, (t : ℝ) • w₀) ∈ U := hscale t ▸ htU
   have hzw : (⟨_, hw⟩ : U) = ⟨_, htU⟩ := Subtype.ext (hscale t).symm
   rw [← htg hw, hzw]
-  simp only [hG, ← Trivialization.symmₗ_apply (R := ℝ) _ htb, map_smul]
-  rw [Trivialization.symmₗ_apply _ htb, e.symm_proj_apply _ htb]
+  exact congrArg _ (e.symm_smul_snd htb _)
 
 /-- **The slice at `t = 0` is the fibre derivative.** Under the hypotheses of
 `SymplecticGeometry.tendsto_vectorBundleRescaledFamily_zero`, the rescaled family at `(z, 0)` is
