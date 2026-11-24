@@ -46,6 +46,8 @@ signs of an orientation lift.
   measurable subset of a chart source, in coordinates.
 * `TauCeti.signBasis_mul_signedInChartAt_eq_abs`: for a form nonnegative for the orientation,
   the signed chart coefficient is the absolute value of the chart coefficient.
+* `TauCeti.signBasis_orientationAt_mul_nonneg_of_iff`: the sign condition on `φ`, for an
+  orientation described by the bases on which `φ` is positive.
 * `TauCeti.integralTopForm_smul_eq_integral_measure`: `∫_M f φ = ∫ f d|φ|`.
 
 ## References
@@ -182,6 +184,24 @@ theorem setIntegral_measure_of_subset {F : Type*} [NormedAddCommGroup F] [Normed
     exact ENNReal.ofReal_lt_top
 
 end RoughForm
+
+/-- **The sign condition from a description of the orientation.** If a top form `φ` is positive
+on a tangent basis exactly when the basis is positively oriented for `o`, then at every point
+`φ` is nonnegative on the positively oriented bases and nonpositive on the negatively oriented
+ones: the product of `φ(c)` with the sign of `c` against `o` is nonnegative. -/
+theorem signBasis_orientationAt_mul_nonneg_of_iff (o : Manifold.Orientation I M (Fin k))
+    {φ : RoughForm I M ℝ k}
+    (hpos : ∀ x (c : Basis (Fin k) ℝ (TangentSpace I x)),
+      c.orientation = o.orientationAt x ↔ 0 < φ x c)
+    (x : M) (c : Basis (Fin k) ℝ (TangentSpace I x)) :
+    0 ≤ (Orientation.signBasis (o.orientationAt x) c : ℝ) * φ x c := by
+  rcases c.orientation_eq_or_eq_neg (o.orientationAt x) with ho | ho
+  · rw [ho, Orientation.signBasis_orientation, Units.val_one, Int.cast_one, one_mul]
+    exact ((hpos x c).1 ho.symm).le
+  · rw [ho, Orientation.signBasis_neg, Orientation.signBasis_orientation, Units.val_neg,
+      Units.val_one, Int.cast_neg, Int.cast_one, neg_one_mul, neg_nonneg]
+    refine not_lt.1 fun hp ↦ Module.Ray.ne_neg_self c.orientation ?_
+    exact ((hpos x c).2 hp).trans ho
 
 section Integral
 

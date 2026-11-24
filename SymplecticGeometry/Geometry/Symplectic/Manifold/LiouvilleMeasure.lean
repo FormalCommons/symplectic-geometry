@@ -57,18 +57,10 @@ theorem IsNondegenerate.integralTopForm_smul_volumeForm (h : σ.IsNondegenerate)
     integralTopForm (h.volumeOrientation hn.out) (fun x ↦ f x • (σ.volumeForm n).val x) =
       ∫ x, f x ∂σ.liouvilleMeasure n := by
   rw [liouvilleMeasure_def]
-  refine integralTopForm_smul_eq_integral_measure _ ((σ.volumeForm n).isSmoothForm.of_le bot_le)
-    (fun x c ↦ ?_) hf hc
   -- The volume form is positive exactly on the bases of the symplectic orientation.
-  have hpos := h.orientation_eq_orientationAt_volumeOrientation_iff hn.out c
-  rcases c.orientation_eq_or_eq_neg
-      (Manifold.Orientation.orientationAt (h.volumeOrientation hn.out) x) with ho | ho
-  · rw [ho, Orientation.signBasis_orientation, Units.val_one, Int.cast_one, one_mul]
-    exact (hpos.1 ho.symm).le
-  · rw [ho, Orientation.signBasis_neg, Orientation.signBasis_orientation, Units.val_neg,
-      Units.val_one, Int.cast_neg, Int.cast_one, neg_one_mul, neg_nonneg]
-    refine not_lt.1 fun hp ↦ Module.Ray.ne_neg_self c.orientation ?_
-    exact (hpos.2 hp).trans ho
+  exact integralTopForm_smul_eq_integral_measure _ ((σ.volumeForm n).isSmoothForm.of_le bot_le)
+    (signBasis_orientationAt_mul_nonneg_of_iff _
+      fun _ c ↦ h.orientation_eq_orientationAt_volumeOrientation_iff hn.out c) hf hc
 
 end SmoothTwoForm
 
