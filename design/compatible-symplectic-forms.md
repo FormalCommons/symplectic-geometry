@@ -25,17 +25,22 @@ against the versions pinned when this file was written (Tau Ceti
   statement needs it (step 2 of Thurston's theorem and the milestones that
   use it); then $B$ and $F$ are compact too, as the page says.
 - **Atlases and fibre forms.** These are *Symplectic fibrations*'
-  (`Geometry/Symplectic/Fibration/Basic.lean`), as the conventions
-  *Fibrations* and *Fibre forms* of `DESIGN.md` describe them: an atlas
-  `A` of `π` with fibre $F$ (`SymplecticGeometry.FiberAtlas`); for a chart
-  `e` of `A` and `b ∈ e.baseSet`, the fibre embedding
-  $j_{e,b}:F\to M$, $v\mapsto e^{-1}(b,v)$; symplectic atlases for
-  $(F,\sigma)$, whose coordinate changes lie in
-  `TauCeti.SmoothForm.diffeomorphStabilizer σ`; the predicate that a
+  as the conventions *Fibrations* and *Fibre forms* of `DESIGN.md`
+  describe them. In `Geometry/Manifold/FiberBundle/MapFiber.lean`: an
+  atlas `A` of `π` with fibre $F$ (`TauCeti.MapFiber.Atlas`), smooth in
+  the sense of `A.IsContMDiff`, and for a chart `e` of `A` and
+  `b ∈ e.baseSet` the fibre inclusion `e.fiberInclusion hb`, written
+  $j_{e,b}:F\to M$, $v\mapsto e^{-1}(b,v)$. In
+  `Geometry/Manifold/FiberBundle/StructureGroup.lean`: structure groups,
+  so that symplectic atlases for $(F,\sigma)$ are those with structure
+  group `TauCeti.SmoothForm.diffeomorphStabilizer σ`, and oriented atlases
+  for an orientation of $F$ those with structure group
+  `Diffeomorph.orientationPreservingSubgroup`. In
+  `Geometry/Symplectic/Fibration/Basic.lean`: the predicate that a
   two-form $\tau$ on $M$ *restricts to the fibre forms*, $j_{e,b}^*\tau=\sigma$
-  for every chart and base point; compatible symplectic forms; oriented
-  atlases for an orientation of $F$, and compatibility of a symplectic form
-  with an oriented atlas and an orientation of $B$. This file uses these
+  for every chart and base point; compatible symplectic forms; and
+  compatibility of a symplectic form with an oriented atlas and an
+  orientation of $B$. This file uses these
   notions under the names that *Symplectic fibrations*' design gives them,
   and names below only its own declarations. Where this file writes
   "restricts to the fibre forms of `A`", the Lean statement uses that
@@ -492,8 +497,10 @@ Issues 1, 2, 5 and 9 can start at once.
 
 ## Uses
 
-- *Symplectic fibrations*: `Basic.lean` (atlases, fibre embeddings, the
-  restriction predicate, compatibility, oriented atlases) and
+- *Symplectic fibrations*: `MapFiber.lean` (smooth atlases, fibre
+  inclusions), `StructureGroup.lean` (symplectic and oriented atlases),
+  `Basic.lean` (the restriction predicate, compatibility, compatibility
+  with an orientation) and
   `HorizontalDistribution.lean` (existence of connection two-forms).
 - *Minimal coupling*: `realFirstChernClass` (#2348).
 - Merged files of *First Chern number*: circle connection forms and their
