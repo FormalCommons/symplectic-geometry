@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Manifold.Riemannian.Invariant
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
-public import SymplecticGeometry.Geometry.Manifold.Riemannian.OneForm
+public import SymplecticGeometry.Geometry.Manifold.Riemannian.OneForm.Flat
 
 /-!
 # An invariant one-form dual to a fundamental vector field

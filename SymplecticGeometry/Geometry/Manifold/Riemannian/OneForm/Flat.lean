@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.DegreeOne
-public import TauCeti.Geometry.Manifold.Riemannian.Basic
+public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Dual
 
 /-!
 # The one-form metrically dual to a smooth vector field
@@ -14,9 +14,9 @@ public import TauCeti.Geometry.Manifold.Riemannian.Basic
 On a manifold `M` whose tangent bundle carries a smooth Riemannian metric `g`, a smooth vector
 field `X` defines the smooth real one-form `X♭ = g(X, ·)`, the musical "flat" of `X`
 (`TauCeti.SmoothForm.flat`). It is built as the smooth section `x ↦ g_x(X x, ·)` of the bundle
-of linear maps from the tangent bundle to `ℝ` (`ContMDiffAt.clm_bundle_apply`), read as a
-one-form through Tau Ceti's `TauCeti.SmoothForm.degreeOneEquiv`. Neither a finite-dimensional
-model nor a boundaryless one is needed.
+of linear maps from the tangent bundle to `ℝ` (Tau Ceti's `ContMDiffWithinAt.innerSL_bundle`),
+read as a one-form through Tau Ceti's `TauCeti.SmoothForm.degreeOneEquiv`. Neither a
+finite-dimensional model nor a boundaryless one is needed.
 
 Tau Ceti's `TauCeti.RoughForm.metricDual` goes the other way, from one-forms to vector fields,
 and `TauCeti.ContMDiffNondegenerateMetric.flat` is the pointwise linear map, not a smooth form.
@@ -54,12 +54,9 @@ sends `v` to the inner product `g_x(X x, v)`. -/
 def flat (X : (x : M) → TangentSpace I x)
     (hX : ContMDiff I I.tangent ∞ (fun x ↦ (⟨x, X x⟩ : TangentBundle I M))) :
     SmoothForm I M ℝ 1 :=
-  degreeOneEquiv.symm
-    ⟨fun x ↦ (ContMDiffRiemannianMetric.ofIsContMDiffRiemannianBundle
-        (IB := I) (n := ∞) (F := E) (V := fun x : M ↦ TangentSpace I x)).inner x (X x),
-      (ContMDiffRiemannianMetric.ofIsContMDiffRiemannianBundle
-        (IB := I) (n := ∞) (F := E) (V := fun x : M ↦ TangentSpace I x)).contMDiff.clm_bundle_apply
-          hX⟩
+  degreeOneEquiv.symm ⟨fun x ↦ innerSL ℝ (X x), fun x ↦
+    contMDiffWithinAt_univ.1 <| ContMDiffWithinAt.innerSL_bundle (I := I) (F := E)
+      (V := fun x : M ↦ TangentSpace I x) (contMDiffWithinAt_univ.2 (hX x))⟩
 
 variable {X : (x : M) → TangentSpace I x}
   {hX : ContMDiff I I.tangent ∞ (fun x ↦ (⟨x, X x⟩ : TangentBundle I M))}
@@ -67,11 +64,8 @@ variable {X : (x : M) → TangentSpace I x}
 /-- The flat of `X` sends a tangent vector `v` at `x` to `g_x(X x, v)`. -/
 @[simp]
 theorem flat_apply (x : M) (v : TangentSpace I x) : (flat X hX).val x ![v] = inner ℝ (X x) v := by
-  rw [flat, degreeOneEquiv_symm_apply_apply, ContMDiffSection.coeFn_mk, Matrix.cons_val_zero,
-    ContMDiffRiemannianMetric.ofIsContMDiffRiemannianBundle_inner]
-  -- `RiemannianBundle` installs `RiemannianBundle.g.inner` as the inner product of each fibre,
-  -- and Mathlib states no lemma for this.
-  rfl
+  rw [flat, degreeOneEquiv_symm_apply_apply]
+  exact innerSL_apply_apply ℝ (X x) v
 
 /-- The section of the flat of `X` sends a tangent vector `v` at `x` to `g_x(X x, v)`. -/
 theorem degreeOneEquiv_flat_apply (x : M) (v : TangentSpace I x) :
