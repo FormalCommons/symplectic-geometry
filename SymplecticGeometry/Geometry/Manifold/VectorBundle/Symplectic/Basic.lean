@@ -862,7 +862,8 @@ theorem isSymplecticFrameOn_const {W' : Type*} [NormedAddCommGroup W'] [NormedSp
     (he : σ.IsSymplectomorphism ω' e.toLinearEquiv) :
     (const (I := I) (n := n) (M := M) ω').IsSymplecticFrameOn σ Set.univ fun _ ↦ e := by
   refine ⟨(Trivial.contMDiff_comp_mk_iff.2
-      (Trivial.contMDiff_totalSpaceMk_clm (e : W →L[ℝ] W'))).contMDiffOn,
+      (TauCeti.contMDiff_bundleMap_of_constant_coordinates (E₁ := Trivial M W)
+        (E₂ := Trivial M W') (fun _ ↦ e) (e : W →L[ℝ] W') fun _ _ _ _ ↦ by simp)).contMDiffOn,
     fun x _ v w ↦ ?_⟩
   rw [bilinFormAt_const]
   exact he.apply v w

@@ -29,10 +29,6 @@ the smoothness of `Φ` as a section of the hom bundle from the trivial bundle wi
 product `M × W` (`contMDiffAt_hom_trivial_iff`, and `contMDiffOn_hom_trivial_iff` over an open
 set), through
 `TauCeti.contMDiffAt_hom_bundle_iff` and `Bundle.Trivial.contMDiffAt_comp_mk_iff` above.
-
-Last, a fixed continuous linear map `f : W →L W'`, applied in each fibre, is a `C^n` map from the
-total space of the trivial bundle with fibre `W` to that with fibre `W'`
-(`Bundle.Trivial.contMDiff_totalSpaceMk_clm`).
 -/
 
 public section
@@ -162,17 +158,6 @@ theorem contMDiffOn_hom_trivial_iff (Φ : ∀ x, W →L[𝕜] V₂ x) {U : Set M
       h.contMDiffAt ((hU.prod isOpen_univ).mem_nhds ⟨hx, Set.mem_univ v⟩)).contMDiffWithinAt
 
 end SymplecticGeometry
-
-omit [CompleteSpace 𝕜] [FiniteDimensional 𝕜 W] in
-/-- A fixed continuous linear map `f : W →L W'`, applied in each fibre, is a `C^n` map from the
-total space of the trivial bundle with fibre `W` to that of the trivial bundle with fibre `W'`. -/
-theorem Bundle.Trivial.contMDiff_totalSpaceMk_clm {W' : Type*} [NormedAddCommGroup W']
-    [NormedSpace 𝕜 W'] (f : W →L[𝕜] W') :
-    ContMDiff (I.prod 𝓘(𝕜, W)) (I.prod 𝓘(𝕜, W')) n
-      (fun p : TotalSpace W (Trivial M W) ↦ TotalSpace.mk' W' (E := Trivial M W') p.proj
-        (f p.snd)) :=
-  Trivial.contMDiff_mk_iff.2
-    ⟨contMDiff_proj _, f.contDiff.contMDiff.comp (Trivial.contMDiff_mk_iff.1 contMDiff_id).2⟩
 
 end Trivial
 
