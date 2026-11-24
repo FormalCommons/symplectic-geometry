@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.GroupAction.Restrict
 public import SymplecticGeometry.Topology.Algebra.GroupAction.InvariantCore
+public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 
 /-!
@@ -32,6 +33,11 @@ Pulling back along an equivariant smooth map keeps invariance of forms: if `f : 
 and equivariant and a form on `M` is invariant under every `g • ·`, its pullback to `N` is
 invariant under every `g • ·` on `N`. Restricting to `U` is the case of the inclusion.
 
+Equivariance passes to Tau Ceti's `PartialDiffeomorph.liftOpens`: if `G` acts on open subsets
+`U` and `V` with equivariant inclusions, the lift of a partial diffeomorphism from `U` to `V`
+that is equivariant on its source is equivariant on its own source, and that source is invariant
+when the source of the partial diffeomorphism is.
+
 ## Main results
 
 * `Manifold.IsSmoothEmbedding.contMDiffConstSMul`: an action by `C^n` maps restricts to an
@@ -43,6 +49,9 @@ invariant under every `g • ·` on `N`. Restricting to `U` is the case of the i
   equivariant smooth map is invariant.
 * `TauCeti.SmoothForm.mpullback_smul_mpullback_subtypeVal`: the restriction of an invariant form
   to `U` is invariant.
+* `PartialDiffeomorph.liftOpens_smul`, `PartialDiffeomorph.smul_mem_liftOpens_source`: the
+  lift of a partial diffeomorphism between open subsets that is equivariant on its source is
+  equivariant on its source, with invariant source.
 
 ## References
 
@@ -111,6 +120,41 @@ instance [ContMDiffConstSMul I' n G M] : ContMDiffConstSMul I' n G (U.invariantC
   contMDiffConstSMul_of_coe_smul coe_smul_invariantCore
 
 end TopologicalSpace.Opens
+
+namespace PartialDiffeomorph
+
+variable {E'' : Type*} [NormedAddCommGroup E''] [NormedSpace 𝕜 E'']
+  {H'' : Type*} [TopologicalSpace H''] {J : ModelWithCorners 𝕜 E'' H''}
+  {N : Type*} [TopologicalSpace N] [ChartedSpace H'' N] {G : Type*} [SMul G M] [SMul G N]
+  {U : TopologicalSpace.Opens M} {V : TopologicalSpace.Opens N} [SMul G U] [SMul G V]
+  (hcU : ∀ (g : G) (x : U), ((g • x : U) : M) = g • (x : M))
+  (hcV : ∀ (g : G) (y : V), ((g • y : V) : N) = g • (y : N))
+  (Φ : PartialDiffeomorph I' J U V n) (hU : Nonempty U) (hV : Nonempty V)
+
+include hcU hcV in
+/-- Let `G` act on open subsets `U` and `V` so that their inclusions are equivariant. If a partial
+diffeomorphism `Φ` from `U` to `V` commutes with the actions of `G` at the points of its source,
+then so does `Φ.liftOpens` at the points of its source. -/
+theorem liftOpens_smul (hΦ : ∀ (g : G), ∀ x ∈ Φ.source, Φ (g • x) = g • Φ x) (g : G) :
+    ∀ x ∈ (Φ.liftOpens hU hV).source,
+      Φ.liftOpens hU hV (g • x) = g • Φ.liftOpens hU hV x := by
+  rw [liftOpens_source]
+  rintro _ ⟨y, hy, rfl⟩
+  rw [← hcU, liftOpens_apply_coe, liftOpens_apply_coe, hΦ g y hy, hcV]
+
+omit [SMul G N] [SMul G V] in
+include hcU in
+/-- Let `G` act on an open subset `U` so that its inclusion is equivariant. If the source of a
+partial diffeomorphism `Φ` from `U` to `V` is invariant under `G`, so is the source of
+`Φ.liftOpens`. -/
+theorem smul_mem_liftOpens_source (hs : ∀ (g : G) (x : U), x ∈ Φ.source → g • x ∈ Φ.source)
+    (g : G) {x : M} (hx : x ∈ (Φ.liftOpens hU hV).source) :
+    g • x ∈ (Φ.liftOpens hU hV).source := by
+  rw [liftOpens_source] at hx ⊢
+  obtain ⟨y, hy, rfl⟩ := hx
+  exact ⟨g • y, hs g y hy, hcU g y⟩
+
+end PartialDiffeomorph
 
 namespace TauCeti.SmoothForm
 

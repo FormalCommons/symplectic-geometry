@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.OrderedFlow
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Reparam
+public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Stabilizer
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 public import SymplecticGeometry.Geometry.Manifold.Algebra.Monoid
 public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
@@ -44,6 +45,8 @@ in time in the proofs of Theorem 10.2.5 and Proposition 10.2.12.
 * `TauCeti.Diffeotopy.truncate_orderedGlobalFlowDiffeotopy`: truncations of ordered flows.
 * `TauCeti.Diffeotopy.velocity_truncate`, `smoothVelocity_truncate`: the velocity of the
   truncation is `T X_{T t}`.
+* `TauCeti.SmoothForm.timeSlice_truncate_mem_diffeomorphStabilizer`: the truncations of a
+  diffeotopy preserving a form `τ` preserve `τ`.
 
 ## References
 
@@ -154,5 +157,20 @@ theorem smoothVelocity_truncate (Φ : Diffeotopy J ∞ M) (T t : I) :
 end Velocity
 
 end TauCeti.Diffeotopy
+
+namespace TauCeti.SmoothForm
+
+variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {J : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold J 1 M]
+  [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ} {τ : SmoothForm J M F k}
+
+/-- If a diffeotopy preserves `τ` at every time, so does each of its truncations. -/
+theorem timeSlice_truncate_mem_diffeomorphStabilizer {Φ : Diffeotopy J ∞ M}
+    (hΦ : ∀ t, Φ.timeSlice t ∈ diffeomorphStabilizer τ) (T t : I) :
+    (Φ.truncate T).timeSlice t ∈ diffeomorphStabilizer τ := by
+  rw [Diffeotopy.timeSlice_truncate]
+  exact hΦ _
+
+end TauCeti.SmoothForm
 
 end
