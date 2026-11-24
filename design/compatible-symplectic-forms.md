@@ -123,15 +123,16 @@ Two further choices:
 
 This pull request corrects part 49 and the conventions of `DESIGN.md`:
 
-- Files are added: `ClosedExtension.lean` and `AreaForm.lean` in
-  `Geometry/Symplectic/Fibration/`; `Geometry/Manifold/VectorBundle/Determinant.lean`;
-  `Geometry/Manifold/VectorBundle/ChernNumber/RealChernClass.lean`, next to
-  `ChernWeil.lean`; `Geometry/Manifold/VectorBundle/Symplectic/RealChernClass.lean`,
-  next to `FirstChernClass.lean`; and `Geometry/Symplectic/Moser/Parameter.lean`.
+- Step 1 of Thurston's theorem moves from `Thurston.lean` to
+  `ClosedExtension.lean`. `ChernClass.lean` keeps the vertical bundle, its
+  class and the criterion, and `Surface.lean` the surface milestone; the
+  real Chern classes of bundles, the surface formula and the reduction to a
+  symplectic atlas go in the files of *Files* below.
 - The real first Chern class is compared with the integral class over closed
   oriented surfaces only, as above, not over a general base.
 - The part also builds on *Minimal coupling*'s `RealChernClass.lean`
-  (#2348).
+  (#2348), and on the merged *Smooth families*' `GoodCover.lean`, which
+  issue 9 below generalizes to a manifold parameter.
 - The parametric Moser argument is the new `Moser/Parameter.lean`, not the
   merged `Moser/Family.lean`; and the departure *Proof routes on
   `atlas/symplectic-fibrations.md`* now says that the surface case runs
@@ -146,6 +147,7 @@ This pull request corrects part 49 and the conventions of `DESIGN.md`:
 | `Geometry/Manifold/VectorBundle/Determinant.lean` | the determinant line of a smooth complex bundle as a smooth line bundle, with a Hermitian metric |
 | `Geometry/Manifold/VectorBundle/ChernNumber/RealChernClass.lean` | the real first Chern class of a smooth complex vector bundle |
 | `Geometry/Manifold/VectorBundle/Symplectic/RealChernClass.lean` | the real class of a bundle with a nondegenerate two-form; surfaces |
+| `Geometry/Manifold/DeRham/SmoothFamily/GoodCover.lean` | (of *Smooth families*) smooth families of primitives over a manifold parameter |
 | `Geometry/Symplectic/Moser/Parameter.lean` | Moser stability on a closed manifold with a parameter in a manifold |
 | `Geometry/Symplectic/Fibration/ClosedExtension.lean` | closed extensions of the fibre forms (step 1); the cohomological condition |
 | `Geometry/Symplectic/Fibration/Thurston.lean` | step 2 and Thurston's theorem |
@@ -155,7 +157,7 @@ This pull request corrects part 49 and the conventions of `DESIGN.md`:
 
 ### Naturality in `FiberBundle/Principal/RealChernClass.lean`
 
-Added to *Minimal coupling*'s file once #2348 has merged it. For principal
+Added to *Minimal coupling*'s file, which #2403 merged. For principal
 `Circle`-bundles $Q\to B'$ and $P\to B$ as in that file, a smooth
 $f:B'\to B$ and a smooth map $\Phi$ of total spaces with
 $\pi_P\circ\Phi=f\circ\pi_Q$ and $\Phi(q\cdot z)=\Phi(q)\cdot z$:
@@ -257,6 +259,37 @@ About 400 lines.
   positive.
 
 About 300 lines.
+
+### Smooth families over a manifold parameter
+
+The merged *Smooth families* states its parametric results for families
+over the unit interval only: `PreservesSmoothFamilies`
+(`DifferentialForm/SmoothFamily/Map.lean`) quantifies over families
+`unitInterval → D`, and so do the Mayer–Vietoris steps of
+`DeRham/SmoothFamily/MayerVietoris.lean` and
+`exists_isSmoothFamily_mextDerivₗ_eq` (`DeRham/SmoothFamily/GoodCover.lean`).
+The reduction in `AreaForm.lean` needs primitives of a family over a ball
+of the base, on a closed fibre, which is not contractible, so
+`IsSmoothlyContractible.exists_isSmoothFamily_mextDerivₗ_eq` does not
+apply. Issue 9 below is a refactor of those files:
+
+- `PreservesSmoothFamilies T` quantifies over smooth families over every
+  parameter manifold `N` with a model `J` on a finite-dimensional space
+  (boundary allowed, so that the unit interval is a case), in a universe
+  that the definition takes as a parameter; its closure lemmas, the
+  homotopy operator's and the Mayer–Vietoris steps are proved slice by
+  slice and carry over;
+- `exists_isSmoothFamily_mextDerivₗ_eq` takes a family `η : N → SmoothForm I M ℝ (k + 1)`
+  with `IsSmoothFamily J η`, and gives `α : N → SmoothForm I M ℝ k` with
+  `IsSmoothFamily J α`; the milestone *Smooth families of primitives*
+  stays `exists_primitiveMap_of_hasFiniteGoodCover`, with the stronger
+  `PreservesSmoothFamilies`.
+
+Every use is updated in the same pull request, and
+`design/smooth-families.md` where it states these declarations for the
+unit interval. If the generalized `PreservesSmoothFamilies` cannot be
+stated in one universe, issue 9 adds instead a predicate for a given
+parameter model and keeps the unit-interval one as its case.
 
 ### `Geometry/Symplectic/Moser/Parameter.lean`
 
@@ -390,9 +423,9 @@ $(F,o)$:
   fibre forms. Over a chart ball $U$ inside a base set of `e`, the slices
   $\sigma_b=j_{e,b}^*\tau$ have the integral of $\sigma_0$, so
   $\sigma_b-\sigma_0$ is exact; a smooth family of primitives over $U$ is
-  `exists_isSmoothFamily_mextDerivₗ_eq` (a closed manifold has a finite
-  good cover); segments of positive area forms stay positive, hence
-  nondegenerate; `Moser/Parameter.lean` gives $\hat\chi$ on $U\times F$,
+  `exists_isSmoothFamily_mextDerivₗ_eq` with the manifold parameter $U$
+  of issue 9 (a closed manifold has a finite good cover); segments of
+  positive area forms stay positive, hence nondegenerate; `Moser/Parameter.lean` gives $\hat\chi$ on $U\times F$,
   and the new chart is $e$ followed by $\hat\chi^{-1}$.
 
 About 400 lines.
@@ -430,7 +463,7 @@ Each issue is a few hundred lines, in an order where each comes after the
 ones it waits for.
 
 1. **Naturality of the real first Chern class of a circle bundle**
-   (`FiberBundle/Principal/RealChernClass.lean`). Waits for #2348.
+   (`FiberBundle/Principal/RealChernClass.lean`). Waits for nothing.
 2. **The smooth determinant line** (`VectorBundle/Determinant.lean`).
    Waits for nothing.
 3. **The real first Chern class of a complex vector bundle**
@@ -446,13 +479,16 @@ ones it waits for.
 8. **The Chern class criterion** (`Fibration/ChernClass.lean`). Waits for
    4, 7 and *Symplectic fibrations*' `Connection.lean` (existence of
    connection two-forms).
-9. **Symplectic atlases of oriented surface fibrations**
-   (`Fibration/AreaForm.lean`). Waits for 5 and *Symplectic fibrations*'
-   `Basic.lean`.
-10. **Surface bundles of genus different from one**
-    (`Fibration/Surface.lean`). Waits for 8 and 9.
+9. **Smooth families of primitives over a manifold parameter**
+   (`DifferentialForm/SmoothFamily/Map.lean`, `DeRham/SmoothFamily/`).
+   Waits for nothing.
+10. **Symplectic atlases of oriented surface fibrations**
+    (`Fibration/AreaForm.lean`). Waits for 5, 9 and *Symplectic
+    fibrations*' `Basic.lean`.
+11. **Surface bundles of genus different from one**
+    (`Fibration/Surface.lean`). Waits for 8 and 10.
 
-Issues 2 and 5 can start at once, and 1 once #2348 is merged.
+Issues 1, 2, 5 and 9 can start at once.
 
 ## Uses
 
@@ -468,7 +504,8 @@ Issues 2 and 5 can start at once, and 1 once #2348 is merged.
   structures on bundles, `polarComplexStructure`,
   `Tames.exists_complex_bundleEquiv`, pull-backs, `detCore`.
 - Merged files of *Moser isotopy* and *Smooth families*: `moserField`,
-  `exists_isSmoothFamily_mextDerivₗ_eq`, the time extensions.
+  the time extensions, and `PreservesSmoothFamilies` and
+  `exists_isSmoothFamily_mextDerivₗ_eq` as issue 9 generalizes them.
 - Tau Ceti: de Rham cohomology and its homotopy invariance, smooth
   subbundles from local frames, finite-rank bundle cores and their
   determinant, top forms of an orientation, `surfaceGenus`.

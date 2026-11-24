@@ -3258,23 +3258,23 @@ Differential topology and complex analysis only; it waits for no part of
   $K$ on a compact $M$, and the milestone),
   `ChernClass.lean` (the vertical bundle of a symplectic fibration as a
   symplectic vector bundle over $M$, with the merged `Subbundle.lean` and
-  `Symplectic/Basic.lean`; its real first Chern class as a de Rham class,
-  by Chern–Weil for the determinant line, natural under pull-back, and
-  compared with the library's `SymplecticGeometry.Bundle.firstChernClass`
-  only over closed oriented surfaces, through Chern numbers;
+  `Symplectic/Basic.lean`; its real first Chern class as a de Rham class;
   its restriction to a fibre is $c_1(TF_b)$; the criterion) and
-  `Surface.lean` (on an oriented fibration with closed connected surface
-  fibre, a smooth family of area forms of total area one, by convexity and
-  a partition of unity, made symplectic in each trivialization by Moser's
-  argument with a parameter in the base, from
-  `Geometry/Symplectic/Moser/Parameter.lean`; and
-  $c_1(TF)=\chi(F)/\mathrm{area}\cdot[\sigma]$ with $H^2(F;\mathbb R)\cong\mathbb R$,
-  from the merged Chern–Weil formula
-  `SymplecticGeometry.Bundle.chernNumber_eq_integral_curvature`).
+  `Surface.lean` (the surface milestone, with compatibility with the
+  orientation). The real first Chern class, built by Chern–Weil for the
+  determinant line, natural under pull-back, and compared with the
+  library's `SymplecticGeometry.Bundle.firstChernClass` only over closed
+  oriented surfaces, through Chern numbers; the formula
+  $c_1(TF)=\chi(F)/\mathrm{area}\cdot[\sigma]$; and the family of area
+  forms made symplectic by Moser's argument with a parameter in the base
+  (`Geometry/Symplectic/Moser/Parameter.lean`) are in files that the
+  design file gives.
 - **Builds on:** *Symplectic fibrations* (only `Basic.lean` and
   `Connection.lean`), *Minimal coupling* (only `RealChernClass.lean`); the
-  merged *Symplectic vector bundles*, *First Chern number* and *Moser
-  isotopy*; Tau Ceti (de Rham cohomology and its homotopy invariance).
+  merged *Symplectic vector bundles*, *First Chern number*, *Moser
+  isotopy* and *Smooth families* (`DeRham/SmoothFamily/GoodCover.lean`,
+  which an issue of the design file generalizes to a manifold parameter);
+  Tau Ceti (de Rham cohomology and its homotopy invariance).
 - **Milestones:** *Thurston's theorem on symplectic fibrations*, *Chern
   class criterion for compatible symplectic forms*, *Symplectic forms on
   surface bundles with fibre genus different from one*. The last follows
@@ -3539,7 +3539,7 @@ behind.
 | 2 | *Isotopy extension* | *Hamiltonian flows* (only `DeRham/FamilyPrimitive.lean`, `Flux/Hamiltonian.lean` and `Flux/CompactSupport.lean`), *Smooth families* (only `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `DeRham/SmoothFamily/GoodCover.lean`), *Moser isotopy* (only `Moser/Field.lean`); the merged *Standard model* and *Linear Moser*; the issues of its design file that use none of these can start at once |
 | 2 | *Symplectic neighbourhoods* | *Moser isotopy* (only `Relative.lean`); *Symplectic vector spaces* (only `LinearAlgebra/Symplectic/Reduction.lean` and `LinearAlgebra/Symplectic/Subspace.lean`, which are merged); *Compatible complex structures* (only `LinearAlgebra/Symplectic/Compatible.lean`, which is merged); `CharacteristicFoliation.lean` and `AdaptedDarboux.lean` can start at once |
 | 2 | *Complex projective space* | *Complex submanifolds* (only for the corollary in `Kahler.lean`; the other files can start at once) |
-| 2 | *Compatible symplectic forms* | *Symplectic fibrations* (only `Basic.lean` and `Connection.lean`), *Minimal coupling* (only `RealChernClass.lean`); merged files of *Symplectic vector bundles*, *First Chern number* and *Moser isotopy* |
+| 2 | *Compatible symplectic forms* | *Symplectic fibrations* (only `Basic.lean` and `Connection.lean`), *Minimal coupling* (only `RealChernClass.lean`); merged files of *Symplectic vector bundles*, *First Chern number*, *Moser isotopy* and *Smooth families* |
 | 2 | *Integration over the fibre* | *Symplectic fibrations* (only `Basic.lean`) |
 | 2 | *Sphere bundles over surfaces* | *Diffeomorphisms of the 2-sphere* (only `Smale.lean`, for `Clutching.lean` and `Classification.lean`), *Symplectic fibrations* (only `Basic.lean`); the constructions of `RuledSurface.lean` can start once `Basic.lean` is merged |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
@@ -3741,7 +3741,7 @@ existing inputs.
 | Milestone | Where |
 |---|---|
 | *Fibrations with symplectic fibres are symplectic fibrations* | *Symplectic fibrations* (`SymplecticFibres.lean`), by parallel transport of *Parallel transport*. |
-| *Thurston's theorem on symplectic fibrations* | *Compatible symplectic forms* (`Thurston.lean`). Existing inputs: `TauCeti.deRhamCohomology.map_eq_of_homotopy`, `SmoothPartitionOfUnity`. |
+| *Thurston's theorem on symplectic fibrations* | *Compatible symplectic forms* (`Thurston.lean`, with step 1 in `ClosedExtension.lean`). Existing inputs of `ClosedExtension.lean`: `TauCeti.deRhamCohomology.map_eq_of_homotopy`, `SmoothPartitionOfUnity`. |
 | *Chern class criterion for compatible symplectic forms* | *Compatible symplectic forms* (`ChernClass.lean`), on the de Rham class `realFirstChernClass` of *Minimal coupling* for the determinant line. |
 | *Symplectic forms on surface bundles with fibre genus different from one* | *Compatible symplectic forms* (`Surface.lean`), with the parametric Moser argument of `Moser/Parameter.lean`. |
 | *Classification of oriented 2-sphere bundles over surfaces* | *Sphere bundles over surfaces* (`Classification.lean`), from *Smale's theorem on the diffeomorphism group of the 2-sphere*. Existing input: `TauCeti.specialOrthogonalGroupFundamentalGroupMulEquiv`. |
