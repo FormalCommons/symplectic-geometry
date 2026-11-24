@@ -35,6 +35,9 @@ products (`SymplecticGeometry.cartanDiff_mul_of_even`).
 * `SymplecticGeometry.formCalculus_zero_component`: its component of degree `0` is `F ∘ f`.
 * `SymplecticGeometry.formCalculus_id`: for `F = id` it is `f + τ`, and
   `SymplecticGeometry.formCalculus_const`: for a constant `F = c` it is `c`.
+* `SymplecticGeometry.formCalculus_mul`: the calculus is multiplicative,
+  `(F G)(f + τ) = F(f + τ) G(f + τ)`, by the Leibniz rule
+  `SymplecticGeometry.formCalculusCoeff_mul` for its coefficients.
 * `SymplecticGeometry.tsupport_formCalculus_subset`: each component vanishes outside
   `f ⁻¹' tsupport F`.
 
@@ -169,6 +172,92 @@ theorem formCalculus_const (c : ℝ) :
       simp [iteratedDeriv_const, hk]
     rw [this, SmoothForm.funSMulₗ_zero, smul_zero, map_zero]
   · simp
+
+omit [IsManifold I 1 M] [FiniteDimensional ℝ E] in
+/-- The **Leibniz rule** for the coefficients of the functional calculus:
+`(F G)⁽ᵐ⁾ ∘ f = ∑ i ≤ m, (m choose i) (F⁽ⁱ⁾ ∘ f) (G⁽ᵐ⁻ⁱ⁾ ∘ f)`. -/
+theorem formCalculusCoeff_mul (G : ℝ → ℝ) (hG : ContDiff ℝ ∞ G) (hFG : ContDiff ℝ ∞ (F * G))
+    (m : ℕ) :
+    formCalculusCoeff (F * G) hFG f m =
+      ∑ i ∈ Finset.range (m + 1),
+        m.choose i • (formCalculusCoeff F hF f i * formCalculusCoeff G hG f (m - i)) := by
+  ext x
+  rw [formCalculusCoeff_apply, iteratedDeriv_mul (hF.contDiffAt.of_le (by simp))
+    (hG.contDiffAt.of_le (by simp))]
+  conv_rhs => rw [← ContMDiffMap.coeFnRingHom_apply, map_sum, Finset.sum_apply]
+  refine Finset.sum_congr rfl fun i _ ↦ ?_
+  rw [map_nsmul, Pi.smul_apply, map_mul, Pi.mul_apply, ContMDiffMap.coeFnRingHom_apply,
+    ContMDiffMap.coeFnRingHom_apply, formCalculusCoeff_apply, formCalculusCoeff_apply, nsmul_eq_mul,
+    mul_assoc]
+
+omit [FiniteDimensional ℝ E] in
+/-- `F(f + τ)` as a polynomial in the two-form `τ`, with the functions `F⁽ᵏ⁾ ∘ f / k!` as
+coefficients, in the algebra of forms of mixed degree. -/
+private theorem formCalculus_eq_sum_pow :
+    formCalculus F hF f τ = ∑ k ∈ Finset.range (finrank ℝ E + 1),
+      (k ! : ℝ)⁻¹ • (DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 2 τ ^ k *
+        DirectSum.of _ 0 (SmoothForm.ofFunction (formCalculusCoeff F hF f k))) := by
+  rw [formCalculus_def]
+  refine Finset.sum_congr rfl fun k _ ↦ ?_
+  rw [SmoothForm.of_pow_eq_of_wedgePow, SmoothForm.of_mul_of_zero_ofFunction, DirectSum.of_smul]
+
+omit [FiniteDimensional ℝ E] in
+/-- The functional calculus is **multiplicative**: `(F G)(f + τ) = F(f + τ) G(f + τ)`. -/
+theorem formCalculus_mul (G : ℝ → ℝ) (hG : ContDiff ℝ ∞ G) (hFG : ContDiff ℝ ∞ (F * G)) :
+    formCalculus (F * G) hFG f τ = formCalculus F hF f τ * formCalculus G hG f τ := by
+  let X := DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 2 τ
+  let C : C^∞⟮I, M; ℝ⟯ →+ ⨁ k, SmoothForm I M ℝ k :=
+    AddMonoidHom.mk' (fun g ↦ DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 0
+      (SmoothForm.ofFunction g)) fun g g' ↦ by
+        simp only [SmoothForm.ofFunction_eq_funSMulₗ_one g,
+          SmoothForm.ofFunction_eq_funSMulₗ_one g', SmoothForm.ofFunction_eq_funSMulₗ_one (g + g'),
+          SmoothForm.funSMulₗ_add, map_add]
+  have hC : ∀ g g', C g * C g' = C (g * g') := fun g g' ↦ by
+    simp only [C, AddMonoidHom.mk'_apply, SmoothForm.of_mul_of_zero_ofFunction,
+      SmoothForm.funSMulₗ_ofFunction, mul_comm g']
+  have hCX : ∀ g b, Commute (C g) (X ^ b) := fun g b ↦ by
+    simp only [C, X, AddMonoidHom.mk'_apply]
+    exact (SmoothForm.commute_of_of_of_even Even.zero (SmoothForm.ofFunction g) τ).pow_right b
+  let n := finrank ℝ E
+  have hX : ∀ m, n < m → m ≤ 2 * n → X ^ m = 0 := fun m h₁ h₂ ↦ by
+    have : FiniteDimensional ℝ E := Module.finite_of_finrank_pos (by omega)
+    rw [SmoothForm.of_pow_eq_of_wedgePow,
+      SmoothForm.eq_zero_of_finrank_lt (by omega) (τ.wedgePow m), map_zero]
+  let cF := formCalculusCoeff F hF f
+  let cG := formCalculusCoeff G hG f
+  let h : ℕ → ℕ → ⨁ k, SmoothForm I M ℝ k := fun a b ↦
+    ((a ! : ℝ)⁻¹ * (b ! : ℝ)⁻¹) • (X ^ (a + b) * C (cF a * cG b))
+  have hFC : formCalculus F hF f τ = ∑ k ∈ Finset.range (n + 1), (k ! : ℝ)⁻¹ • (X ^ k * C (cF k)) :=
+    formCalculus_eq_sum_pow F hF f τ
+  have hGC : formCalculus G hG f τ = ∑ k ∈ Finset.range (n + 1), (k ! : ℝ)⁻¹ • (X ^ k * C (cG k)) :=
+    formCalculus_eq_sum_pow G hG f τ
+  have hFGC : formCalculus (F * G) hFG f τ = ∑ k ∈ Finset.range (n + 1),
+      (k ! : ℝ)⁻¹ • (X ^ k * C (formCalculusCoeff (F * G) hFG f k)) :=
+    formCalculus_eq_sum_pow (F * G) hFG f τ
+  have hprod : formCalculus F hF f τ * formCalculus G hG f τ =
+      ∑ a ∈ Finset.range (n + 1), ∑ b ∈ Finset.range (n + 1 - a), h a b := by
+    rw [hFC, hGC, Finset.sum_mul_sum]
+    refine Finset.sum_congr rfl fun a ha ↦ ?_
+    rw [Finset.mem_range] at ha
+    symm
+    refine Finset.sum_subset (fun b hb ↦ by simp only [Finset.mem_range] at hb ⊢; omega)
+      (fun b hb hb' ↦ ?_) |>.trans (Finset.sum_congr rfl fun b _ ↦ ?_)
+    · simp only [Finset.mem_range] at hb hb'
+      simp only [h, hX (a + b) (by omega) (by omega), zero_mul, smul_zero]
+    · rw [smul_mul_smul_comm, mul_assoc, ← mul_assoc (C (cF a)), (hCX _ _).eq, mul_assoc, hC,
+        ← mul_assoc, ← pow_add]
+  rw [hprod, ← Finset.sum_range_diag_flip, hFGC]
+  refine Finset.sum_congr rfl fun m _ ↦ ?_
+  rw [formCalculusCoeff_mul F hF f G hG hFG, map_sum, Finset.mul_sum, Finset.smul_sum]
+  refine Finset.sum_congr rfl fun i hi ↦ ?_
+  rw [Finset.mem_range, Nat.lt_succ_iff] at hi
+  rw [map_nsmul, ← Nat.cast_smul_eq_nsmul ℝ, mul_smul_comm, smul_smul]
+  simp only [h, cF, cG, Nat.add_sub_cancel' hi]
+  congr 1
+  have hm := Nat.choose_mul_factorial_mul_factorial hi
+  have : (m ! : ℝ) ≠ 0 := by positivity
+  field_simp
+  exact_mod_cast hm
 
 /-- Each component of `F(f + τ)` vanishes outside `f ⁻¹' tsupport F`. -/
 theorem tsupport_formCalculus_subset (k : ℕ) :

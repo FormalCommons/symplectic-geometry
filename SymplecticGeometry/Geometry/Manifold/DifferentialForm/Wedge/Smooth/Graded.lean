@@ -212,6 +212,15 @@ theorem of_mul_of_eq_of_wedge (φ : SmoothForm I M ℝ k) (ψ : SmoothForm I M �
       DirectSum.of _ (k + l) (wedge φ ψ) := by
   rw [DirectSum.of_mul_of, gMul_mul]
 
+/-- The product of a homogeneous smooth form `φ` with the `0`-form of a smooth function `g`
+on the right is the form `g φ`, of the degree of `φ`. -/
+theorem of_mul_of_zero_ofFunction (φ : SmoothForm I M ℝ k) (g : C^∞⟮I, M; ℝ⟯) :
+    DirectSum.of (fun k ↦ SmoothForm I M ℝ k) k φ * DirectSum.of _ 0 (ofFunction g) =
+      DirectSum.of _ k (funSMulₗ g φ) := by
+  rw [of_mul_of_eq_of_wedge, wedge_ofFunction]
+  -- The degree `k + 0` of the product reduces to `k`.
+  rfl
+
 /-- The unit of the algebra of smooth forms is the constant function `1`, in degree `0`. -/
 @[simp]
 theorem of_zero_ofFunction_one :
