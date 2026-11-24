@@ -13,6 +13,7 @@ public import SymplecticGeometry.Analysis.Matrix.UnitaryGroup.Basic
 public import SymplecticGeometry.Data.Matrix.Basis
 public import SymplecticGeometry.LinearAlgebra.Matrix.Realify
 import TauCeti.Analysis.Matrix.ContDiff
+import TauCeti.Analysis.SpecialFunctions.Trigonometric.UnitInterval
 
 /-!
 # Regular pieces of paths of Lagrangian subspaces
@@ -388,11 +389,10 @@ theorem coordinateHalfTurn_inf_horizontal_ne_bot_iff (i : ι) (t : I) :
     isUnit_one_add_single_iff, add_sub_cancel, isUnit_iff_ne_zero, not_not]
   constructor
   · intro h
-    have hπ := Real.pi_pos
-    have := Real.injOn_cos ⟨by have := t.property.1; positivity, by nlinarith [t.property.2]⟩
-      ⟨by positivity, by linarith⟩ (h.trans Real.cos_pi_div_two.symm)
-    field_simp at this
-    linarith
+    have ht : t = ⟨1 / 2, by norm_num, by norm_num⟩ :=
+      TauCeti.cos_pi_mul_strictAnti.injective <|
+        h.trans (mul_one_div Real.pi 2 ▸ Real.cos_pi_div_two).symm
+    rw [ht]
   · intro h
     rw [h, mul_one_div, Real.cos_pi_div_two]
 

@@ -37,7 +37,7 @@ two trivializations, these inclusions differ by the coordinate change.
 ## Implementation notes
 
 The proof is the trivialization argument of Tau Ceti's `TauCeti.isOpen_zeroSectionCompl`
-(`TauCeti/Topology/VectorBundle/EulerClass.lean`): the preimage of `Prod.snd ⁻¹' t` under a
+(`TauCeti/Topology/VectorBundle/ZeroSection.lean`): the preimage of `Prod.snd ⁻¹' t` under a
 trivialization is open in its source, by `ContinuousOn.isOpen_inter_preimage`.
 
 ## References

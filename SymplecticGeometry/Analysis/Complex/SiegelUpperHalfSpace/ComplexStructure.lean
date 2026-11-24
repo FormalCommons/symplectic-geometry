@@ -13,6 +13,7 @@ public import TauCeti.Analysis.Matrix.EuclideanLin
 public import TauCeti.Analysis.Matrix.Normed
 public import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Basic
 import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
+import TauCeti.Analysis.Calculus.FDeriv.Inv
 import TauCeti.Analysis.Matrix.Sqrt
 import TauCeti.Geometry.Symplectic.Complex.Line
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.Standard
@@ -540,18 +541,16 @@ theorem hasFDerivAt_complexStructureMatrix {Z : Matrix ι ι ℂ}
     rw [this]
     exact imReBlocks.hasFDerivAt.add_const _
   have hPu : IsUnit P := by simp [hP_def, isUnit_iff_isUnit_det, hZ.ne_zero]
-  have hR := (hasFDerivAt_ringInverse (𝕜 := ℝ) hPu.unit).comp Z hP
+  have hR := (Matrix.hasFDerivAt_inv ((isUnit_iff_isUnit_det P).1 hPu)).comp Z hP
   have h := (hP.mul_const' (J ι ℝ)).mul' hR
   refine (h.congr_of_eventuallyEq ?_).congr_fderiv ?_
   · filter_upwards [Matrix.isOpen_setOf_isUnit_det_map_im.mem_nhds hZ] with W hW
-    simp only [Pi.mul_apply, Function.comp_apply, ← nonsing_inv_eq_ringInverse]
+    simp only [Pi.mul_apply, Function.comp_apply]
     exact complexStructureMatrix_eq_mul_J_mul hW
   · ext1 dZ
-    have hu : ((hPu.unit⁻¹ : (Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ)ˣ) : Matrix (ι ⊕ ι) (ι ⊕ ι) ℝ) = P⁻¹ := by
-      rw [← Ring.inverse_unit, IsUnit.unit_spec, nonsing_inv_eq_ringInverse]
     simp only [add_apply, smul_apply, ContinuousLinearMap.comp_apply, neg_apply,
       ContinuousLinearMap.mulLeftRight_apply, complexStructureMatrixDeriv_apply,
-      Function.comp_apply, hu, ← nonsing_inv_eq_ringInverse, MulOpposite.smul_eq_mul_unop,
+      Function.comp_apply, MulOpposite.smul_eq_mul_unop,
       MulOpposite.unop_op, smul_eq_mul]
     rw [complexStructureMatrix_eq_mul_J_mul hZ, ← hP_def]
     rw [Matrix.mul_assoc _ P⁻¹, ← Matrix.mul_assoc P⁻¹, ← Matrix.mul_assoc P⁻¹,

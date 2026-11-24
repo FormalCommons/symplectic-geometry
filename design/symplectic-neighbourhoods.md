@@ -243,7 +243,7 @@ and two rows of its milestone table.
   - `Neighborhood/Frames.lean`: the smooth frames of the pieces of the
     splitting along `Q`, a step of `Neighborhood/Extension.lean`.
   - `Topology/Sets/Opens/Basic.lean`: the `IsEmpty` instance of
-    `⊥ : Opens X`, beside the Tau Ceti copy `Topology/Sets/Opens.lean`.
+    `⊥ : Opens X`, beside Tau Ceti's `Topology/Sets/Opens.lean`.
 - `Lagrangian.lean` no longer uses *Cotangent bundles* or
   `normalBundleDiffeomorphOfIsLagrangianMap`, since the comparison theorem
   needs only that the zero section is Lagrangian. The part therefore no
@@ -398,9 +398,9 @@ the table of *Conventions*), and `W : Submodule ℝ V`.
   dimension count that makes $L(K_0)\subseteq K_1$ automatic, is
   `exists_isSymplectomorphism_reducedSpace_of_forall_apply_eq`, with
   `ker_restrict_le_comap_of_forall_apply_eq` for $L(K_0)\subseteq K_1$; they
-  are in `LinearAlgebra/Symplectic/Reduction.lean`, as is
-  `finrank_inf_orthogonal_eq_of_forall_apply_eq` (an isometry `b` preserves
-  the dimension of the radical).
+  are in `LinearAlgebra/Symplectic/Reduction.lean`. That an isometry `b`
+  preserves the dimension of the radical is Tau Ceti's
+  `Submodule.finrank_inf_orthogonalBilin_eq_of_isometry`.
   Tau Ceti's Witt extension is the existence
   statement; this file gives a formula, so that the next file can prove it
   smooth.

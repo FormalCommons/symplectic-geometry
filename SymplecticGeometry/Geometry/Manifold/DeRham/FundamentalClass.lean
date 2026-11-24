@@ -12,9 +12,8 @@ public import TauCeti.Geometry.Manifold.SmoothSingular.TopForm
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
 import SymplecticGeometry.Geometry.Manifold.SmoothSingular.RelativeCycle
-import TauCeti.Analysis.InnerProductSpace.Reflection
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Regularity
-import TauCeti.Geometry.Manifold.Orientation.Pullback
+import TauCeti.Geometry.Manifold.Orientation.Chart
 import TauCeti.Topology.OpenPartialHomeomorph.Constructions
 
 /-!
@@ -40,11 +39,9 @@ The proof is local.
 * Every point lies in the image of the interior of the standard simplex `Δ²` under a map
   `g : ℝ² → C` that is, on a neighbourhood of `Δ²`, a smooth open embedding preserving orientation
   (`TauCeti.Manifold.Orientation.exists_isOpenEmbedding_isOrientationPreservingAt_fullSimplex`):
-  a chart, a linear equivalence of `ℝ²` with `E'` matching the orientations at the point, and a
-  small copy of `Δ²` around it. As in the proof of Tau Ceti's
-  `exists_isOpenEmbedding_isLocalDiffeomorph_isOrientationPreservingAt` (namespace
-  `TauCeti.Manifold.Orientation`), a linear equivalence that reverses orientation is
-  precomposed with a reflection.
+  the inverse of an oriented chart from Tau Ceti
+  (`TauCeti.Manifold.Orientation.exists_partialDiffeomorph_isOrientationPreservingAt`), composed
+  with an affine map that puts a small copy of `Δ²` in its target.
 * Let `z` be a smooth integral cycle representing the fundamental class (smoothing), and `ψ` a
   form supported in a compact `K ⊆ g(interior Δ²)`. The image of `z` in `H₂(C, C ∖ K)` is the
   fundamental class along `K`, and so is the class of the simplex `σ` given by `g`
@@ -90,89 +87,55 @@ variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimens
   {C : Type*} [TopologicalSpace C] [ChartedSpace E' C] [IsManifold 𝓘(ℝ, E') ∞ C]
   {p : ℕ} [NeZero p]
 
-/-- In the chart at `x`, some linear equivalence `L : ℝᵖ ≃ E'` makes `w ↦ c⁻¹ (c x + L w)`
-preserve orientation at `0`. -/
-private lemma exists_isOrientationPreservingAt_chartAt_symm (hE' : finrank ℝ E' = p)
-    (o : Manifold.Orientation 𝓘(ℝ, E') C (Fin p)) (x : C) :
-    ∃ L : EuclideanSpace ℝ (Fin p) ≃L[ℝ] E', IsOrientationPreservingAt (euclideanSpace p) o
-      (fun w ↦ (chartAt E' x).symm (chartAt E' x x + L w)) 0 := by
-  set c := chartAt E' x
-  have hx0 (L : EuclideanSpace ℝ (Fin p) ≃L[ℝ] E') : c x + L 0 ∈ c.target := by
-    simpa using c.map_source (mem_chart_source E' x)
-  -- The derivative of `w ↦ c⁻¹ (c x + L w)` at `0` is invertible.
-  have hinv (L : EuclideanSpace ℝ (Fin p) ≃L[ℝ] E') :
-      (mfderiv (𝓡 p) 𝓘(ℝ, E') (fun w ↦ c.symm (c x + L w)) 0).IsInvertible := by
-    have hT : HasMFDerivAt (𝓡 p) 𝓘(ℝ, E') (fun w ↦ c x + L w) 0
-        (L : EuclideanSpace ℝ (Fin p) →L[ℝ] E') :=
-      ((L : EuclideanSpace ℝ (Fin p) →L[ℝ] E').hasFDerivAt.const_add (c x)).hasMFDerivAt
-    have h := (mdifferentiableAt_atlas_symm (chart_mem_atlas E' x) (hx0 L)).hasMFDerivAt.comp 0 hT
-    rw [Function.comp_def] at h
-    rw [h.mfderiv]
-    have hc : (mfderiv 𝓘(ℝ, E') 𝓘(ℝ, E') c.symm (c x + L 0)).IsInvertible :=
-      ⟨(mdifferentiable_chart (I := 𝓘(ℝ, E')) x).symm.mfderiv (e := c.symm) (hx0 L), rfl⟩
-    exact hc.comp ⟨L, rfl⟩
-  let L₀ : EuclideanSpace ℝ (Fin p) ≃L[ℝ] E' := ContinuousLinearEquiv.ofFinrankEq (by simp [hE'])
-  obtain ⟨D, hD⟩ := hinv L₀
-  rcases isOrientationPreservingAt_or_isOrientationReversingAt _ o _ 0 D hD with h | h
-  · exact ⟨L₀, h⟩
-  -- If `L₀` reverses orientation, precompose it with a reflection.
-  obtain ⟨R, hR⟩ := TauCeti.exists_det_neg (F := EuclideanSpace ℝ (Fin p))
-  let R' : EuclideanSpace ℝ (Fin p) ≃L[ℝ] EuclideanSpace ℝ (Fin p) := R.toContinuousLinearEquiv
-  have h' : IsOrientationReversingAt (euclideanSpace p) o (fun w ↦ c.symm (c x + L₀ w)) (R' 0) := by
-    rw [map_zero]
-    exact h
-  exact ⟨R'.trans L₀, h'.comp (isOrientationReversingAt_of_det_neg (euclideanSpace p) R' hR 0)⟩
-
 /-- **Positively oriented simplices.** Every point `x` of a smooth manifold of positive dimension
 `p`, oriented by `o`, lies in the image of the interior of the standard simplex `Δᵖ` under a map
 `g : ℝᵖ → C` which, on an open neighbourhood `U` of `Δᵖ`, is smooth, an open embedding, and
 orientation preserving from the standard orientation of `ℝᵖ` to `o`. -/
-theorem exists_isOpenEmbedding_isOrientationPreservingAt_fullSimplex (hE' : finrank ℝ E' = p)
+theorem exists_isOpenEmbedding_isOrientationPreservingAt_fullSimplex
     (o : Manifold.Orientation 𝓘(ℝ, E') C (Fin p)) (x : C) :
     ∃ (U : Opens (EuclideanSpace ℝ (Fin p))) (g : EuclideanSpace ℝ (Fin p) → C),
       fullSimplex p ⊆ U ∧ ContMDiffOn (𝓡 p) 𝓘(ℝ, E') ∞ g U ∧
       IsOpenEmbedding (g ∘ ((↑) : U → EuclideanSpace ℝ (Fin p))) ∧
       (∀ y ∈ U, IsOrientationPreservingAt (euclideanSpace p) o g y) ∧
       x ∈ g '' interior (fullSimplex p) := by
-  set c := chartAt E' x
-  obtain ⟨L, hL⟩ := exists_isOrientationPreservingAt_chartAt_symm hE' o x
-  set h : EuclideanSpace ℝ (Fin p) → C := fun w ↦ c.symm (c x + L w)
-  have hT : ContMDiff (𝓡 p) 𝓘(ℝ, E') ∞ (fun w : EuclideanSpace ℝ (Fin p) ↦ c x + L w) :=
-    (contDiff_const.add L.contDiff).contMDiff
-  have hsm (w : EuclideanSpace ℝ (Fin p)) (hw : c x + L w ∈ c.target) :
-      ContMDiffAt (𝓡 p) 𝓘(ℝ, E') ∞ h w :=
-    ((contMDiffOn_chart_symm (x := x)).contMDiffAt (c.open_target.mem_nhds hw)).comp w (hT w)
-  have hx0 : c x + L 0 ∈ c.target := by simpa using c.map_source (mem_chart_source E' x)
-  -- On a ball about `0`, `h` lands in the chart target and preserves orientation.
-  obtain ⟨r, hr, hball⟩ := Metric.eventually_nhds_iff_ball.1
-    (((hT.continuous.tendsto 0).eventually (c.open_target.mem_nhds hx0)).and
-      (eventually_isOrientationPreservingAt ((hsm 0 hx0).of_le (by simp)) hL))
-  -- Shrink `Δᵖ` into that ball by `A y = ε • (y - p₀)` around an interior point `p₀`.
+  -- An oriented chart `φ : C → ℝᵖ` at `x`; its inverse preserves orientation on its target.
+  obtain ⟨φ, hxφ, -, hφo⟩ := o.exists_partialDiffeomorph_isOrientationPreservingAt
+    (n := ∞) (euclideanSpace p) isOpen_univ (mem_univ x)
+  have hsymm (z) (hz : z ∈ φ.target) : IsOrientationPreservingAt (euclideanSpace p) o φ.symm z :=
+    (hφo _ (φ.map_target hz)).partialDiffeomorph_symm hz (by simp)
+  -- A ball about `φ x` inside the target of `φ`.
+  obtain ⟨r, hr, hball⟩ := Metric.isOpen_iff.1 φ.open_target (φ x) (φ.map_source hxφ)
+  -- Shrink `Δᵖ` into that ball by `A y = φ x + ε • (y - p₀)` around an interior point `p₀`.
   obtain ⟨p₀, hp₀⟩ := nonempty_interior_fullSimplex p
   obtain ⟨R, hR, hsub⟩ := (isCompact_fullSimplex p).isBounded.subset_ball_lt 0 p₀
   set ε := r / R
   have hε : 0 < ε := div_pos hr hR
-  set A : EuclideanSpace ℝ (Fin p) → EuclideanSpace ℝ (Fin p) := fun y ↦ ε • (y - p₀) with hAdef
-  have hA (y) (hy : y ∈ Metric.ball p₀ R) : A y ∈ Metric.ball 0 r := by
-    rw [mem_ball_zero_iff, hAdef, norm_smul, Real.norm_of_nonneg hε.le]
+  set A : EuclideanSpace ℝ (Fin p) → EuclideanSpace ℝ (Fin p) := fun y ↦ φ x + ε • (y - p₀)
+    with hAdef
+  have hA (y) (hy : y ∈ Metric.ball p₀ R) : A y ∈ φ.target := by
+    refine hball ?_
+    rw [Metric.mem_ball, hAdef, dist_eq_norm, add_sub_cancel_left, norm_smul,
+      Real.norm_of_nonneg hε.le]
     rw [Metric.mem_ball, dist_eq_norm] at hy
     calc ε * ‖y - p₀‖ < ε * R := by gcongr
       _ = r := div_mul_cancel₀ r hR.ne'
   have hAd (y : EuclideanSpace ℝ (Fin p)) :
       HasFDerivAt A (ε • ContinuousLinearMap.id ℝ (EuclideanSpace ℝ (Fin p))) y :=
-    ((hasFDerivAt_id y).sub_const p₀).const_smul ε
-  let T : EuclideanSpace ℝ (Fin p) ≃ₜ E' := (Homeomorph.subRight p₀).trans
-    ((Homeomorph.smulOfNeZero ε hε.ne').trans (L.toHomeomorph.trans (Homeomorph.addLeft (c x))))
-  refine ⟨⟨Metric.ball p₀ R, Metric.isOpen_ball⟩, h ∘ A, hsub, fun y hy ↦ ?_, ?_, fun y hy ↦ ?_,
-    ⟨p₀, hp₀, by simpa [A, h] using c.left_inv (mem_chart_source E' x)⟩⟩
-  · exact ((hsm _ (hball _ (hA y hy)).1).comp y
-      ((contDiff_id.sub contDiff_const).const_smul ε).contMDiff.contMDiffAt).contMDiffWithinAt
-  · -- On the ball, `h ∘ A` is the chart inverse after the affine homeomorphism `T`.
-    refine c.symm.isOpenEmbedding_comp (g := T ∘ ((↑) : Metric.ball p₀ R → _))
+    (((hasFDerivAt_id y).sub_const p₀).const_smul ε).const_add (φ x)
+  let T : EuclideanSpace ℝ (Fin p) ≃ₜ EuclideanSpace ℝ (Fin p) := (Homeomorph.subRight p₀).trans
+    ((Homeomorph.smulOfNeZero ε hε.ne').trans (Homeomorph.addLeft (φ x)))
+  refine ⟨⟨Metric.ball p₀ R, Metric.isOpen_ball⟩, φ.symm ∘ A, hsub, fun y hy ↦ ?_, ?_,
+    fun y hy ↦ ?_, ⟨p₀, hp₀, by simpa [A] using φ.left_inv hxφ⟩⟩
+  · exact ((φ.symm.contMDiffOn.contMDiffAt (φ.open_target.mem_nhds (hA y hy))).comp y
+      (contDiff_const.add
+        ((contDiff_id.sub contDiff_const).const_smul ε)).contMDiff.contMDiffAt).contMDiffWithinAt
+  · -- On the ball, `φ.symm ∘ A` is the inverse of `φ` after the affine homeomorphism `T`.
+    refine φ.symm.toOpenPartialHomeomorph.isOpenEmbedding_comp
+      (g := T ∘ ((↑) : Metric.ball p₀ R → _))
       (T.isOpenEmbedding.comp Metric.isOpen_ball.isOpenEmbedding_subtypeVal) ?_
     rintro _ ⟨y, rfl⟩
-    exact (hball _ (hA y y.prop)).1
-  · refine (hball _ (hA y hy)).2.comp (isOrientationPreservingAt_of_det_fderiv_pos _ ?_)
+    exact hA y y.prop
+  · refine (hsymm _ (hA y hy)).comp (isOrientationPreservingAt_of_det_fderiv_pos _ ?_)
     rw [(hAd y).fderiv, ContinuousLinearMap.det,
       ContinuousLinearMap.toLinearMap_smul, LinearMap.det_smul]
     simp only [ContinuousLinearMap.coe_id, LinearMap.det_id, mul_one]
@@ -265,7 +228,7 @@ theorem integralTopForm_eq_singularHomologyPeriod (hE' : finrank ℝ E' = 2)
   rw [← hz', deRhamCohomology.singularHomologyPeriod_mk_apply_smoothCycle]
   -- A finite cover of `C` by images of interiors of positively oriented simplices.
   choose U g hU hgs hg ho hx using
-    exists_isOpenEmbedding_isOrientationPreservingAt_fullSimplex hE' o
+    exists_isOpenEmbedding_isOrientationPreservingAt_fullSimplex o
   have hV (x : C) : IsOpen (g x '' interior (fullSimplex 2)) := by
     have e : g x '' interior (fullSimplex 2) =
         (g x ∘ ((↑) : U x → EuclideanSpace ℝ (Fin 2))) '' ((↑) ⁻¹' interior (fullSimplex 2)) := by

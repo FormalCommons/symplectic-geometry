@@ -7,6 +7,7 @@ module
 
 public import Mathlib.LinearAlgebra.SymplecticGroup
 public import TauCeti.LinearAlgebra.SymplecticGroup
+import TauCeti.LinearAlgebra.Matrix.ConjTranspose
 
 /-!
 # The matrix `J` and the symplectic group
@@ -110,7 +111,7 @@ variable {l : Type*} [Fintype l] [DecidableEq l] {R : Type*} [CommRing R] [StarR
 /-- The conjugate transpose `Aᴴ` of a symplectic matrix over a commutative star ring is
 symplectic, being the transpose of the entrywise conjugate of `A`. -/
 theorem star_mem (hA : A ∈ symplecticGroup l R) : star A ∈ symplecticGroup l R := by
-  rw [star_eq_conjTranspose, conjTranspose]
+  rw [star_eq_conjTranspose, conjTranspose, map_star_eq_map_starRingEnd]
   exact transpose_mem (map_mem hA (starRingEnd R))
 
 /-- A matrix is symplectic exactly when its conjugate transpose is. -/
