@@ -137,8 +137,9 @@ may adjust implicit arguments and instance arguments to what elaborates.
    $\theta\in[\tfrac12,1)$; (c) the local normal form in the weak form that
    (d) needs: near every point, a chart of $M$ in which $\|\mu\|^2$ is a
    polynomial in some of the coordinates; (d) the inequality for $f$ on
-   $M$; (e) convergence on a Riemannian manifold, from Tau Ceti's
-   normed-space theorem through charts. The analytic inequality is not
+   $M$; (e) convergence on a Riemannian manifold, from Tau Ceti's scalar
+   bound `TauCeti.integral_le_rpow_sub_rpow_of_lojasiewicz` and the
+   Riemannian distance. The analytic inequality is not
    needed and is not proved.
 5. **The limit points $p^+_\xi$** for $\xi\in\Lambda$ do not need (d): the
    orbit $t\mapsto\exp(it\xi)p$ is the negative gradient flow of
