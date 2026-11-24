@@ -5,8 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Analysis.SpecialFunctions.Complex.Circle
 public import Mathlib.Geometry.Manifold.Instances.Sphere
+public import Mathlib.Geometry.Manifold.Instances.UnitsOfNormedAlgebra
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
+import Mathlib.Analysis.InnerProductSpace.Calculus
+import Mathlib.Analysis.SpecialFunctions.ExpDeriv
+import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 import TauCeti.Geometry.Manifold.Instances.Sphere
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
@@ -28,6 +33,12 @@ It also shows that `Circle.exp : ℝ → S¹` is an analytic local diffeomorphis
 derivative of `Circle.exp` is injective (`TauCeti.injective_mfderiv_circleExp`), and that the
 direction `z ↦ z / ‖z‖ = exp (i arg z)` is a smooth map from `ℂ \ {0}` to the circle
 (`Circle.contMDiffOn_exp_arg`), by Tau Ceti's `Complex.contDiffOn_div_norm_pow`.
+
+Last, it makes the inclusion `Circle → ℂˣ` a smooth group homomorphism
+(`Circle.contMDiffToUnits`), and gives the polar decomposition of `ℂˣ` as a global
+diffeomorphism `Circle.polarDiffeo : ℝ × Circle ≃ ℂˣ`, `(t, u) ↦ exp t * u`, whose inverse is
+`z ↦ (log ‖z‖, exp (i arg z))` (`Circle.polarDiffeo_symm_apply`). Mathlib's `Complex.polarCoord`
+is a partial homeomorphism of `ℂ` only.
 -/
 
 public section
@@ -101,5 +112,89 @@ theorem Circle.contMDiffOn_exp_arg {n : ℕ∞ω} :
   refine ContMDiffOn.of_coe_sphere (E := ℂ) (contMDiffOn_iff_contDiffOn.2 ?_)
   refine (Complex.contDiffOn_div_norm_pow 1).congr fun z hz ↦ ?_
   simp [Circle.coe_exp, Complex.exp_arg_mul_I (show z ≠ 0 from hz)]
+
+
+noncomputable section
+
+namespace Circle
+
+open Complex
+
+/-- The inclusion of the unit circle into `ℂˣ`, as a smooth group homomorphism. -/
+def contMDiffToUnits : ContMDiffMonoidMorphism (𝓡 1) 𝓘(ℝ, ℂ) ∞ Circle ℂˣ where
+  toMonoidHom := Circle.toUnits
+  contMDiff_toFun :=
+    ContMDiff.of_comp_isOpenEmbedding Units.isOpenEmbedding_val contMDiff_coe_sphere
+
+@[simp]
+theorem coe_contMDiffToUnits_apply (u : Circle) : ((contMDiffToUnits u : ℂˣ) : ℂ) = u :=
+  (rfl)
+
+/-- The inclusion of the unit circle into `ℂˣ` is injective. -/
+theorem injective_contMDiffToUnits : Function.Injective contMDiffToUnits := fun u v h ↦
+  Circle.ext <| by simpa using congrArg Units.val h
+
+/-- The map `(t, u) ↦ exp t * u` from `ℝ × Circle` to `ℂˣ`. -/
+private def polarFun (p : ℝ × Circle) : ℂˣ :=
+  Units.mk0 (Complex.exp p.1 * p.2) (mul_ne_zero (Complex.exp_ne_zero _) p.2.coe_ne_zero)
+
+/-- The map `z ↦ (log ‖z‖, exp (i arg z))` from `ℂˣ` to `ℝ × Circle`. -/
+private def polarInv (z : ℂˣ) : ℝ × Circle :=
+  (Real.log ‖(z : ℂ)‖, Circle.exp (arg z))
+
+private theorem polarInv_polarFun (p : ℝ × Circle) : polarInv (polarFun p) = p := by
+  refine Prod.ext ?_ ?_
+  · simp [polarInv, polarFun, Complex.norm_exp]
+  · rw [polarInv, polarFun, Units.val_mk0, ← ofReal_exp, arg_ofReal_mul (Real.exp_pos _),
+      Circle.exp_arg]
+
+private theorem polarFun_polarInv (z : ℂˣ) : polarFun (polarInv z) = z := by
+  refine Units.ext ?_
+  rw [polarFun, polarInv, Units.val_mk0, ← ofReal_exp, Real.exp_log (norm_pos_iff.2 z.ne_zero),
+    Circle.coe_exp, norm_mul_exp_arg_mul_I]
+
+private theorem contMDiff_polarFun : ContMDiff (𝓘(ℝ).prod (𝓡 1)) 𝓘(ℝ, ℂ) ∞ polarFun := by
+  refine ContMDiff.of_comp_isOpenEmbedding Units.isOpenEmbedding_val ?_
+  have h : Units.val ∘ polarFun = (fun q : ℂ × ℂ ↦ q.1 * q.2) ∘
+      fun p : ℝ × Circle ↦ (Complex.exp p.1, (p.2 : ℂ)) :=
+    funext fun _ ↦ Units.val_mk0 _
+  rw [h]
+  refine (contMDiff_iff_contDiff.2 contDiff_mul).comp (ContMDiff.prodMk_space ?_
+    (contMDiff_coe_sphere.comp contMDiff_snd))
+  exact (ContDiff.contMDiff (Complex.contDiff_exp.comp ofRealCLM.contDiff)).comp contMDiff_fst
+
+private theorem contMDiff_polarInv : ContMDiff 𝓘(ℝ, ℂ) (𝓘(ℝ).prod (𝓡 1)) ∞ polarInv := by
+  refine ContMDiff.prodMk (fun z ↦ ?_) (fun z ↦ ?_)
+  · have hz : (z : ℂ) ≠ 0 := z.ne_zero
+    refine ContMDiffAt.comp (g := fun w : ℂ ↦ Real.log ‖w‖) z
+      (ContDiffAt.contMDiffAt ?_) Units.contMDiff_val.contMDiffAt
+    exact (Real.contDiffAt_log.2 (norm_ne_zero_iff.2 hz)).comp _ (contDiffAt_norm ℝ hz)
+  · exact (Circle.contMDiffOn_exp_arg.contMDiffAt
+      (isOpen_compl_singleton.mem_nhds z.ne_zero)).comp z Units.contMDiff_val.contMDiffAt
+
+/-- The polar decomposition of `ℂˣ`: the diffeomorphism `ℝ × Circle ≃ ℂˣ`, `(t, u) ↦ exp t * u`.
+-/
+def polarDiffeo : (ℝ × Circle) ≃ₘ⟮𝓘(ℝ).prod (𝓡 1), 𝓘(ℝ, ℂ)⟯ ℂˣ where
+  toFun := polarFun
+  invFun := polarInv
+  left_inv := polarInv_polarFun
+  right_inv := polarFun_polarInv
+  contMDiff_toFun := contMDiff_polarFun
+  contMDiff_invFun := contMDiff_polarInv
+
+@[simp]
+theorem coe_polarDiffeo_apply (t : ℝ) (u : Circle) :
+    (polarDiffeo (t, u) : ℂ) = Complex.exp t * u :=
+  -- `polarDiffeo` is `polarFun` by definition.
+  Units.val_mk0 (mul_ne_zero (Complex.exp_ne_zero _) u.coe_ne_zero)
+
+@[simp]
+theorem polarDiffeo_symm_apply (z : ℂˣ) :
+    polarDiffeo.symm z = (Real.log ‖(z : ℂ)‖, Circle.exp (arg z)) :=
+  (rfl)
+
+end Circle
+
+end
 
 end
