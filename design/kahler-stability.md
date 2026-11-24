@@ -329,8 +329,8 @@ Each is a few hundred lines; each is blocked by the issues it names.
     `KempfNess/Stability.lean`. Blocked by 4 and 9.
 11. **Weights and limit points.** The first two items of
     `HilbertMumford.lean`. Blocked by 2 and 7.
-12. **The moment-weight inequality and the Hilbert–Mumford milestone.**
-    The rest of `HilbertMumford.lean`. Blocked by 10 and 11.
+12. **Destabilizing directions, and the second milestone.**
+    The rest of `HilbertMumford.lean`, from the moment-weight inequality on. Blocked by 10 and 11.
 
 Issues 1, 5, 7 and 8 can start at once; the Kempf–Ness milestone
 (issue 10) comes before the Hilbert–Mumford one (issue 12).
