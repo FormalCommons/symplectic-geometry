@@ -207,8 +207,8 @@ and let `hfree : ∀ x, μ x = 0 → MulAction.stabilizer G x = ⊥`.
 - `properSMul_zeroLevel [ProperSMul G M] : ProperSMul G h.zeroLevel`.
 - `isCancelSMul_zeroLevel (hfree) : IsCancelSMul G h.zeroLevel`.
 - `def zeroLevelChartedSpace (hσ : σ.IsNondegenerate) (hfree) (hn) :
-  ChartedSpace (Fin n → ℝ) h.zeroLevel`, the pullback of
-  `h.toIsMomentMap.levelChartedSpace` with the regularity of
+  ChartedSpace (Fin n → ℝ) h.zeroLevel`, which is
+  `h.levelSubMulActionChartedSpace 0` with the regularity of
   `forall_differential_surjective_of_stabilizer_eq_bot`.
 - With it: `isManifold_zeroLevel`, `isSmoothEmbedding_coe_zeroLevel`
   (`Subtype.val : Z → M` is a smooth embedding), `range_mfderiv_coe_zeroLevel`
@@ -231,15 +231,14 @@ and let `hfree : ∀ x, μ x = 0 → MulAction.stabilizer G x = ⊥`.
   ```
 
   from `ProperSMul.ker_mfderiv_quotientMk`: `di` carries the orbit tangent
-  space of `Z` into that of `M` (`mfderiv_fundamentalVectorField_of_map_smul`),
-  both have dimension `dim 𝔤` by freeness
-  (`InfinitesimalAction.finrank_orbitTangent_of_isotropy_eq_bot`), and `di` is
-  injective. This is the hypothesis `hker` of the level-data theorem, since
+  space of `Z` onto that of `M`, since `di ∘ eval_Z z = eval_M z`
+  (`mfderiv_fundamentalVectorField_of_map_smul`), and `di` is injective. This
+  is the hypothesis `hker` of the level-data theorem, since
   `lieAnnihilator ℝ 𝔤 0 = ⊤`.
 - The reduced form:
 
   ```lean
-  theorem existsUnique_isSymplectic_mpullback_quotientMk_zeroLevel
+  theorem existsUnique_isSymplectic_mpullback_quotientMk_zeroLevel_eq_mpullback
       (hσ : σ.IsSymplectic) (hG) (hfree) (hn) [ProperSMul G h.zeroLevel] :
       letI := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
       letI := h.zeroLevelQuotientChartedSpace hσ.isNondegenerate hfree hn
@@ -254,13 +253,12 @@ and let `hfree : ∀ x, μ x = 0 → MulAction.stabilizer G x = ⊥`.
   `φ = id`.
 - `finrank_quotientModelSpace_zeroLevel (z : h.zeroLevel) :
   finrank ℝ (ProperSMul.QuotientModelSpace E (Fin n → ℝ)) + 2 * finrank ℝ 𝔤 =
-  finrank ℝ E'`, from `ProperSMul.finrank_quotientModelSpace` and
-  `finrank_add_finrank_zeroLevel`.
+  finrank ℝ E'`, from Tau Ceti's
+  `IsMomentMap.finrank_add_finrank_add_finrank_lieAnnihilator` at `c = 0`.
 
-The file credits Tau Ceti's `levelSubMulActionChartedSpace`,
-`isManifold_levelSubMulAction`, `ker_mfderiv_quotientMk_levelSubMulAction`
-and `existsUnique_isSymplectic_mpullback_quotientMk_eq_mpullback`, whose
-proofs it adapts from `G_c` to `G`.
+The file credits Tau Ceti's
+`existsUnique_isSymplectic_mpullback_quotientMk_eq_mpullback`, whose proof
+it adapts from `G_c` to `G`.
 
 ### `ZeroLevel/Leaves.lean`
 
@@ -333,7 +331,7 @@ The tangent spaces of the quotient, and the first milestone.
   3. the inclusion is a coisotropic map;
   4. every leaf of its characteristic foliation is a `G`-orbit, as in
      `leaf_characteristicFoliation_zeroLevel`;
-  5. the `∃!` of `existsUnique_isSymplectic_mpullback_quotientMk_zeroLevel`;
+  5. the `∃!` of `existsUnique_isSymplectic_mpullback_quotientMk_zeroLevel_eq_mpullback`;
   6. `Nonempty h.zeroLevel →
      finrank ℝ (ProperSMul.QuotientModelSpace E (Fin n → ℝ)) + 2 * finrank ℝ 𝔤 = finrank ℝ E'`;
   7. `eval₂_zeroLevelTangentEquiv` for every `η` with the pullback equation.
