@@ -961,8 +961,7 @@ theorem inner_ofSmooth_eq_integral_localize [T2Space M] {ι : Type*} [Fintype ι
           simp [G, Function.notMem_support.1 hy])).trans hβt)
       exact ((contDiffOn_const.mul (ψ.contDiffOn_riemannianJacobian_symm b)).mul
         (ψ.contDiffOn_formInnerInChart subset_rfl contDiffOn_const hβl.contDiffOn)).continuousOn
-    · exact hβc.mono (Function.support_subset_iff'.2 fun y hy ↦ by
-        simp [G, Function.notMem_support.1 hy])
+    · exact hβc.mono_of_eq_zero fun y hy ↦ by simp [G, hy]
   let B := ContinuousLinearMap.mul ℝ ℝ
   have key (v : L2Form I M k) : ∫ y, D y * ψ.formInnerInChart y (localize ψ χ hχ v y)
       (β.localize ψ χ y) =

@@ -716,7 +716,8 @@ The route keeps the times of `e` exactly:
    ($i=0,1$). The forms are compared on $\mathbb R^{2n}$, as the published
    errata correct the source.
 4. *Hamiltonian.* The velocity forms of $\hat k$ are closed on a ball, and
-   their parametric radial primitives $h_t$ are smooth in $(t,z)$. `Flow.lean`
+   since the ball is smoothly contractible, they have primitives $h_t$ smooth
+   in $(t,z)$. `Flow.lean`
    (`exists_hasHamiltonian_forall_apply_eq`, with $K=B(\rho)$ for
    $\lambda<\rho<\rho_2$) concludes. This step is the theorem
    `IsSymplecticBallFamily.exists_hasHamiltonian_forall_apply_eq`, for any
@@ -986,8 +987,8 @@ this design already follows. `Ball/Isotopy.lean` cites
   design planned it for the linear segment between two forms with a fixed
   primitive. #551 generalizes it to a smooth family of two-forms
   over a parameter manifold with a time-dependent primitive, the segment being the family
-  `SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id`, and this pull request records
-  that choice in `design/moser-isotopy.md`. So the library adapts Tau Ceti's
+  `SmoothForm.lineMapFamily σ₀ σ₁ contDiff_id`; `design/moser-isotopy.md`
+  records that choice. So the library adapts Tau Ceti's
   private field of `RelativeMoser.lean` once. `Moser/Family.lean` also imports
   `Geometry/Symplectic/Manifold/Family.lean`, for the openness of the set
   where the slices of a family are nondegenerate, and `Moser/Isotopy.lean`

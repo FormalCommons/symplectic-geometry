@@ -152,17 +152,12 @@ theorem mpullback_equivProjectivization_fubiniStudyForm :
     funext OnePoint.equivProjectivization_apply_coe_eq_affineParam
   have key := (SmoothForm.eval₂_mpullback _ _ _ _ _ _).symm.trans
     (eval₂_fubiniStudyForm_affineParam 1 z v w)
-  rw [← hcomp, mfderiv_comp z hP ((OnePoint.contMDiff_coe_real z).mdifferentiableAt (by simp))]
-    at key
-  have hd (u : ℂ) : (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 1 → ℂ) P z ∘L
-      mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ((↑) : ℂ → OnePoint ℂ) z) u =
-        mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 1 → ℂ) P z u :=
-    -- The derivative of the inclusion is the identity, read between `ℂ` and the tangent spaces.
-    congrArg (mfderiv 𝓘(ℝ, ℂ) 𝓘(ℝ, Fin 1 → ℂ) P z)
-      (DFunLike.congr_fun (OnePoint.hasMFDerivAt_coe z).mfderiv u)
+  -- The derivative of the inclusion `ℂ → OnePoint ℂ` is the identity.
+  rw [← hcomp, ((hP.hasMFDerivAt.comp z (OnePoint.hasMFDerivAt_coe z)).mfderiv.trans
+    (ContinuousLinearMap.comp_id _))] at key
   refine (SmoothForm.eval₂_mpullback _ _ _ _ _ _).trans ((Eq.trans ?_ key).trans ?_)
-  · rw [hd, hd, Function.comp_apply]
-  · clear key hd
+  · rfl
+  · clear key
     -- Read `v` and `w` as tangent vectors at `z`, so that the evaluation lemmas apply to them.
     revert v w
     intro (v : TangentSpace 𝓘(ℝ, ℂ) (z : OnePoint ℂ)) (w : TangentSpace 𝓘(ℝ, ℂ) (z : OnePoint ℂ))

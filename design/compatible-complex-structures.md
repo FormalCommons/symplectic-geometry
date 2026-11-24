@@ -10,8 +10,9 @@ symplectic forms*, *Compact subgroups of the symplectic group* and
 Lemma 2.5.5, Proposition 2.5.6, Corollary 2.5.7, Proposition 2.5.8,
 Proposition 2.5.13).
 
-All statements about Tau Ceti were checked against the pinned `v4.37.0-rc1`
-(commit `e0e414c`). Tau Ceti paths are relative to
+All statements about Tau Ceti were checked against `v4.37.0-rc1` (commit
+`e0e414c`), the version pinned when this file was written; `lakefile.toml`
+pins Tau Ceti `c9d170eed5a8` now. Tau Ceti paths are relative to
 `.lake/packages/TauCeti/TauCeti/`, and the library's paths are relative to
 `SymplecticGeometry/`.
 

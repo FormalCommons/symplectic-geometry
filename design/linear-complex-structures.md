@@ -5,8 +5,9 @@ proves the milestone *Linear complex structures are standard* of
 `atlas/linear-symplectic-geometry.md`, following McDuff–Salamon
 [McDuffSalamon2017], Propositions 2.5.1 and 2.5.2.
 
-All declarations of Tau Ceti and Mathlib named below were checked against the
-pinned versions (Tau Ceti `v4.37.0-rc1`, see `lakefile.toml`). Paths of Tau
+All declarations of Tau Ceti and Mathlib named below were checked against
+Tau Ceti `v4.37.0-rc1` and its Mathlib, the versions pinned when this file
+was written; `lakefile.toml` pins Tau Ceti `c9d170eed5a8` now. Paths of Tau
 Ceti files are relative to `.lake/packages/TauCeti/TauCeti/`.
 
 ## What there is, and what is missing
