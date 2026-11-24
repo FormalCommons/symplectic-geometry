@@ -91,8 +91,10 @@ may adjust implicit arguments and instance arguments to what elaborates.
    these fields is one of them, as the review of #2250 asks. The complex
    manifold structure of $G^{\mathbb C}$ is not needed: the proofs use only
    the complex structure of its Lie algebra and the polar decomposition.
-   The structure has an example: `Circle` in `ℂˣ`, with
-   `polar (t, u) = exp t * u` (Mathlib's `Complex.exp`, `Circle`).
+   The structure has an example: `Circle` in `ℂˣ`, with `cplx`
+   multiplication by `I` and `polar (ξ, u) = exp (I * lieMap ξ) * u`
+   (Mathlib's `Complex.exp`, `Circle`), which is `exp (-t) * u` where
+   `lieMap ξ = t I`.
 2. **The holomorphic extension of the action** is a predicate
    `IsComplexifiedAction C J` on
    `[MulAction Gc M] [ContMDiffSMul IC I' ∞ Gc M]`. It says that
