@@ -90,9 +90,8 @@ second component `g ↦ g⁻¹ • v` has derivative `ξ ↦ -X_ξ(v)` at `1`, b
 The declarations from `pullbackProjSection` to `mfderiv_pullbackProjDiffeomorph_fundamental` take
 `[∀ b, Nonempty (P b)]`. Their statements need it, not only their proofs: Mathlib's and Tau
 Ceti's fibre bundle structure on the pull-back `Q` asks for it, and so does `pullbackEquiv`. A
-caller supplies it with `have := FiberBundle.nonempty_fiber G P`, since `G` is nonempty.
-`isSubmersion_totalSpaceMk_mk` takes it as well. The statements after it do not mention `Q`, and
-their proofs derive the hypothesis in this way.
+caller supplies it with `have := FiberBundle.nonempty_fiber G P`, since `G` is nonempty. The
+statements after them do not mention `Q`, and their proofs derive the hypothesis in this way.
 
 The descent does not transport the descent of basic forms on principal bundles along `Φ`: Tau
 Ceti's `TauCeti.RoughForm.isBasic_of_mpullback_eq` applies to `q` directly, with the diagonal
@@ -448,12 +447,13 @@ local notation "Q" => (πM : ManifoldTotalSpace F (AssociatedBundle G P F) → B
 `P` (`1 ≤ n`) with finite-dimensional base and structure group, and a `C^n` action of `G` on a
 finite-dimensional manifold `F`, all without boundary, the map `(x, v) ↦ [x, v]` from `P × F`
 onto `P ×_G F` is a `C^n` submersion. -/
-theorem isSubmersion_totalSpaceMk_mk [∀ b, Nonempty (P b)] (hn : 1 ≤ n) :
+theorem isSubmersion_totalSpaceMk_mk (hn : 1 ≤ n) :
     Manifold.IsSubmersion ((IB.prod IG).prod IF) (IB.prod IF) n
       fun x : ManifoldTotalSpace G P × F ↦
         ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
           ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
             mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩ := by
+  have := FiberBundle.nonempty_fiber G P
   have hn₀ : n ≠ 0 := (zero_lt_one.trans_le hn).ne'
   have : ContMDiffFiberBundle n F (AssociatedBundle G P F) IB IF := contMDiffFiberBundle IG
   -- The quotient map is the projection of `Q` composed with the diffeomorphism `Φ`.
@@ -592,7 +592,6 @@ theorem existsUnique_mpullback_totalSpaceMk_mk_eq [FiniteDimensional ℝ EB] [IB
             ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
               mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩)
         (contMDiff_totalSpaceMk_mk ∞ G F IB IG IF P) γ = β := by
-  have := FiberBundle.nonempty_fiber G P
   have hq := isSubmersion_totalSpaceMk_mk (n := ∞) (IB := IB) (IG := IG) (IF := IF) (G := G)
     (F := F) (P := P) ENat.LEInfty.out
   exact ⟨_, SmoothForm.mpullback_descendedForm (hf := hq) (hsurj := surjective_totalSpaceMk_mk)
