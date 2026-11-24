@@ -2818,22 +2818,26 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
 ### 39. Minimal coupling (needs `design/minimal-coupling.md`)
 
 - **Files:** in `Geometry/Symplectic/Coupling/`: `Basic.lean` (given a
-  circle bundle $P\to B$, principal, with a smooth family of connection forms
-  $\alpha_\lambda$ with $d\alpha_\lambda=\pi^*\dot\tau_\lambda$, the form
-  $\pi^*\tau_\lambda+d\lambda\wedge\alpha_\lambda$ on $P\times[a,b]$: closed,
-  nondegenerate, invariant, with $\iota_X\omega=-d\lambda$ and reduced forms
-  $\tau_\lambda$; and existence of such a family exactly under the
-  cohomological condition), `Uniqueness.lean` (two such forms for the same
+  circle bundle $P\to B$, principal, and a family $\tau_\lambda$ on $B$, the
+  coupling forms on $P\times[a,b]$: closed, invariant, with
+  $\iota_X\omega=-d\lambda$ and reduced forms $\tau_\lambda$; they are
+  nondegenerate when the $\tau_\lambda$ are, and their existence forces the
+  cohomological condition), `Existence.lean` (their existence under that
+  condition), `Uniqueness.lean` (two such forms for the same
   $P$ and $\tau_\lambda$ are related by an equivariant symplectomorphism
   preserving $\lambda$, by an equivariant Moser isotopy tangent to the
-  levels) and `Converse.lean` (a compact connected symplectic manifold with
-  boundary, with a free Hamiltonian circle action whose $H$ has image
-  $[a,b]$ and boundary $H^{-1}(a)\cup H^{-1}(b)$, is of this form); and
+  levels) and `Converse.lean` (a compact band
+  $H^{-1}([a,b])$ of a symplectic manifold with a Hamiltonian circle
+  action, free on the band, with $H$ of image $[a,b]$ there, is of this
+  form; the band is a manifold with boundary $H^{-1}(a)\cup H^{-1}(b)$);
   `Geometry/Symplectic/Moser/Equivariant.lean` (a Moser isotopy built from
-  invariant primitives of a family of invariant forms is equivariant).
-- **Builds on:** *Lie group actions* (`Circle.lean`,
-  `InvariantPrimitive.lean`); the merged circle connection forms of *First
-  Chern number*
+  invariant primitives of a family of invariant forms is equivariant);
+  `Geometry/Manifold/FiberBundle/Principal/RealChernClass.lean` (the real
+  first Chern class $-(2\pi)^{-1}[F_\alpha]$ of a circle bundle); and
+  `Geometry/Manifold/GroupAction/PrincipalBundle.lean` (a free action of a
+  compact Lie group makes a principal bundle over the quotient manifold).
+- **Builds on:** *Lie group actions* (only `Circle.lean`); the merged circle
+  connection forms of *First Chern number*
   (`Geometry/Manifold/FiberBundle/Principal/CircleConnection.lean`,
   `SymplecticGeometry.IsCircleConnectionForm` with its curvature, which is
   normalized on `circleLieGenerator`, so that the page's connection form is
@@ -3028,7 +3032,7 @@ behind.
 | 1 | *Energy of pseudoholomorphic curves* | *Almost complex manifolds* (only `Metric.lean`) |
 | 1 | *Hodge theory* | *Nijenhuis tensor* (only `Integrable.lean`), *Almost complex manifolds* (only `Metric.lean`), each for one issue of its design file; the Hodge theorem for the Laplacian can start at once |
 | 1 | *Hamiltonian circle actions* | *Lie group actions* (only `Circle.lean`), *Moment maps* (only `MomentMap/WeaklyHamiltonian.lean`); the nondegeneracy of the pairing can start at once |
-| 1 | *Minimal coupling* | *Lie group actions*; merged files of *First Chern number* and *Smooth families* |
+| 1 | *Minimal coupling* | *Lie group actions* (only `Circle.lean`); merged files of *First Chern number* and *Smooth families* |
 | 1 | *Equivariant localization* | *Lie group actions* (only `Circle.lean`), *Equivariant normal forms* (only `WeightModel/NormalForm.lean`); the Cartan complex can start at once |
 | 2 | *Compatible complex structures* | *Standard model*, *Symplectic vector spaces*; *Linear complex structures* (only `LinearAlgebra/ComplexStructure/Action.lean`, which imports only Mathlib and Tau Ceti, `Topology/ComplexStructure/Basic.lean`, which besides it imports only Tau Ceti and the merged `LinearAlgebra/Matrix/NonsingularInverse.lean` and `Analysis/CStarAlgebra/Matrix.lean`, which import only Mathlib and merged files that do, and `LinearAlgebra/ComplexStructure/Standard.lean`, which besides `Action.lean` imports only `LinearAlgebra/Symplectic/Compatible.lean` of this part, `LinearAlgebra/Symplectic/Standard/Matrix.lean` of *Standard model*, the library's `Geometry/Symplectic/Orientation.lean`, which imports only Tau Ceti, and Tau Ceti; and `Topology/ComplexStructure/Orthogonal.lean`, which besides `Topology/ComplexStructure/Basic.lean` imports only `LinearAlgebra/Symplectic/Standard/Basic.lean` of *Standard model*, `Analysis/Matrix/Polar/Deformation.lean` of *Symplectic group* and Tau Ceti; all of them are merged); *Symplectic group* (only `LinearAlgebra/Matrix/SymplecticGroup/Basic.lean`, which imports only Mathlib and Tau Ceti and is merged, and `Analysis/Matrix/Polar/Deformation.lean`, through `Orthogonal.lean`, which is merged) |
 | 2 | *Maslov index* | *Standard model*, *Symplectic group*, *Unitary group topology*; its Lagrangian issues also *Lagrangian Grassmannian* |
