@@ -122,11 +122,11 @@ theorem mem_exactForms_of_forall_integralTopForm_wedge_eq_zero
       (η : RoughForm I M ℝ l)) = 0 :=
     (integralTopForm_wedge_eq_of_sub_mem_exactForms_right o hγ hβ hβη).symm.trans (h γ hγ)
   -- Hence `∫ |γ|² vol = 0`, so `γ = 0` and `η = 0`.
-  have hnorm := SmoothForm.inner_smul_riemannianVolumeForm_eq_wedge_hodgeStar o rfl γ γ
   have hγ0 : γ = 0 := by
-    refine (SmoothForm.integralTopForm_inner_self_smul_riemannianVolumeForm_eq_zero_iff o rfl
-      (by simp [compactlySupportedForms_eq_top])).1 ?_
-    rw [hnorm, hγη, map_smul, map_smul, Submodule.coe_smul, integralTopForm_smul]
+    by_contra hγ0
+    refine SmoothForm.integralTopForm_wedge_hodgeStar_self_ne_zero o rfl
+      (by simp [compactlySupportedForms_eq_top]) hγ0 ?_
+    rw [hγη, map_smul, map_smul, Submodule.coe_smul, integralTopForm_smul]
     simpa using hγη0
   have hη0 : η = 0 := by
     have := congrArg ((-1 : ℝ) ^ l • ·) hγη
