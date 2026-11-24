@@ -45,11 +45,10 @@ the segment is tangent to the levels of `t`.
 
 ## Implementation notes
 
-The invariance of `K η` follows the proof of the invariance of the primitive in
-`Coupling/Basic.lean` (`SymplecticGeometry.IsCouplingForm.mk_sub_mk_eq_neg_smul_realFirstChernClass`),
-by the naturality of the homotopy operator
-(`TauCeti.homotopyOperator_mpullback_prodMap_id_of_isSmoothForm`), with the contraction in place
-of the segment map there.
+The proof of `SymplecticGeometry.mpullback_smul_couplingHomotopy` adapts that of the private
+lemma `SymplecticGeometry.IsCouplingForm.mpullback_smul_primitive` of `Coupling/Basic.lean`,
+with the contraction in place of the segment map there: both follow from the naturality of the
+homotopy operator (`TauCeti.homotopyOperator_mpullback_prodMap_id_of_isSmoothForm`).
 
 ## References
 
@@ -116,6 +115,7 @@ theorem couplingContraction_smul [∀ b, MulAction Circleᵐᵒᵖ (P b)] (z : C
   (rfl)
 
 variable (IB P a b) in
+/-- The contraction of `P × [a, b]` onto its bottom level is smooth, up to the boundary. -/
 theorem contMDiff_couplingContraction :
     ContMDiff (((IB.prod (𝓡 1)).prod (𝓡∂ 1)).prod (𝓡∂ 1)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) ∞
       (couplingContraction P a b) :=
