@@ -7,12 +7,15 @@ module
 
 public import Mathlib.Geometry.Manifold.Instances.Icc
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
+public import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.RealChernClass
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import Mathlib.Tactic.Module
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.HomotopyOperator
 import SymplecticGeometry.LinearAlgebra.BilinearForm.Nondegenerate
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
@@ -327,6 +330,218 @@ theorem isNondegenerate (h : IsCouplingForm σ τ) (hτ : ∀ t, (τ t).IsNondeg
 theorem isSymplectic (h : IsCouplingForm σ τ) (hτ : ∀ t, (τ t).IsNondegenerate) :
     σ.IsSymplectic :=
   ⟨h.isClosed, h.isNondegenerate hτ⟩
+
+/-! ### The cohomological condition -/
+
+section Cohomology
+
+/-- The affine path `u ↦ s + u (t - s)` from `s` to `t` in `[a, b]`, parametrized by `[0, 1]`. -/
+private def segmentPath (s t : Set.Icc a b) (u : Set.Icc (0 : ℝ) 1) : Set.Icc a b :=
+  ⟨s + u * (t - s), by
+    obtain ⟨⟨hs₁, hs₂⟩, ⟨ht₁, ht₂⟩, ⟨hu₁, hu₂⟩⟩ :=
+      And.intro s.property (And.intro t.property u.property)
+    constructor <;> nlinarith⟩
+
+omit [Fact (a < b)] in
+private theorem coe_segmentPath (s t : Set.Icc a b) (u : Set.Icc (0 : ℝ) 1) :
+    (segmentPath s t u : ℝ) = s + u * (t - s) :=
+  (rfl)
+
+omit [Fact (a < b)] in
+private theorem segmentPath_zero (s t : Set.Icc a b) : segmentPath s t 0 = s :=
+  Subtype.ext (by simp [coe_segmentPath])
+
+omit [Fact (a < b)] in
+private theorem segmentPath_one (s t : Set.Icc a b) : segmentPath s t 1 = t :=
+  Subtype.ext (by simp [coe_segmentPath])
+
+omit [Fact (a < b)] in
+private theorem contDiff_affine (s t : Set.Icc a b) :
+    ContDiff ℝ ∞ fun r : ℝ ↦ (s : ℝ) + r * ((t : ℝ) - s) :=
+  contDiff_const.add (contDiff_id.mul contDiff_const)
+
+private theorem contMDiff_segmentPath (s t : Set.Icc a b) :
+    ContMDiff (𝓡∂ 1) (𝓡∂ 1) ∞ (segmentPath s t) := by
+  have hc : (Subtype.val : Set.Icc a b → ℝ) ∘ segmentPath s t =
+      (fun r : ℝ ↦ (s : ℝ) + r * ((t : ℝ) - s)) ∘ Subtype.val :=
+    funext fun u ↦ coe_segmentPath s t u
+  refine contMDiff_iff_comp_subtypeVal_Icc.mpr ⟨?_, ?_⟩
+  · exact Continuous.subtype_mk (by fun_prop) _
+  · rw [hc]
+    exact (contDiff_affine s t).contMDiff.comp contMDiff_subtypeVal_Icc
+
+/-- The derivative of the affine path from `s` to `t`, read in `ℝ`, is `t - s`. -/
+private theorem mfderiv_subtypeVal_mfderiv_segmentPath (s t : Set.Icc a b)
+    (u : Set.Icc (0 : ℝ) 1) :
+    mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Set.Icc a b → ℝ) (segmentPath s t u)
+      (mfderiv (𝓡∂ 1) (𝓡∂ 1) (segmentPath s t) u 1) = (t : ℝ) - (s : ℝ) := by
+  have hc : (Subtype.val : Set.Icc a b → ℝ) ∘ segmentPath s t =
+      (fun r : ℝ ↦ (s : ℝ) + r * ((t : ℝ) - s)) ∘ Subtype.val :=
+    funext fun u ↦ coe_segmentPath s t u
+  have hf : MDifferentiable 𝓘(ℝ) 𝓘(ℝ) fun r : ℝ ↦ (s : ℝ) + r * ((t : ℝ) - s) :=
+    (contDiff_affine s t).contMDiff.mdifferentiable (by simp)
+  have hv : MDifferentiable (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Set.Icc (0 : ℝ) 1 → ℝ) :=
+    (contMDiff_subtypeVal_Icc (n := ∞)).mdifferentiable (by simp)
+  refine (mfderiv_comp_apply u
+    ((contMDiff_subtypeVal_Icc (n := ∞)).mdifferentiable (by simp) _)
+    ((contMDiff_segmentPath s t).mdifferentiable (by simp) u) 1).symm.trans ?_
+  rw [hc, mfderiv_comp_apply u (hf _) (hv u), mfderiv_subtypeVal_Icc_one, mfderiv_eq_fderiv]
+  -- the tangent spaces of `ℝ` are `ℝ` itself, through `NormedSpace.fromTangentSpace`
+  simp only [Function.comp_apply, fderiv_const_add, ContinuousLinearMap.comp_apply,
+    ContinuousLinearEquiv.coe_coe, fderiv_eq_smul_deriv, differentiableAt_fun_id,
+    differentiableAt_const, deriv_fun_mul, deriv_id'', one_mul, deriv_fun_sub, deriv_const',
+    sub_self, mul_zero, add_zero, smul_eq_mul]
+  exact one_mul ((t : ℝ) - s)
+
+variable (P) in
+/-- The map `(p, u) ↦ (p, s + u (t - s))` from `P × [0, 1]` to `P × [a, b]`. -/
+private def segmentMap (s t : Set.Icc a b) :
+    ManifoldTotalSpace Circle P × Set.Icc (0 : ℝ) 1 → ManifoldTotalSpace Circle P × Set.Icc a b :=
+  Prod.map id (segmentPath s t)
+
+omit [∀ b, MulAction Circleᵐᵒᵖ (P b)] [IsManifold IB ∞ B] [PrincipalBundle Circle P]
+  [ContMDiffFiberBundle ∞ Circle P IB (𝓡 1)] in
+variable (P) in
+private theorem contMDiff_segmentMap (s t : Set.Icc a b) :
+    ContMDiff ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) ∞
+      (segmentMap P s t) :=
+  contMDiff_id.prodMap (contMDiff_segmentPath s t)
+
+
+/-- The primitive `h (Φ^* σ)` of `π^* (τ t - τ s)`, for `Φ` the map `(p, u) ↦ (p, s + u (t - s))`
+and `h` the homotopy operator. -/
+private def primitive
+    (σ : SmoothTwoForm ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (ManifoldTotalSpace Circle P × Set.Icc a b))
+    (s t : Set.Icc a b) : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1 :=
+  SmoothForm.homotopyOperator
+    (SmoothForm.mpullback (segmentMap P s t) (contMDiff_segmentMap P s t) σ)
+
+private theorem mextDerivₗ_primitive (h : IsCouplingForm σ τ) (s t : Set.Icc a b) :
+    mextDerivₗ (IB.prod (𝓡 1)) 1 (primitive σ s t) =
+      SmoothForm.mpullback (fun y : ManifoldTotalSpace Circle P ↦
+          ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
+        (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) (τ t - τ s) := by
+  have hcl : mextDerivₗ ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) 2
+      (SmoothForm.mpullback (segmentMap P s t) (contMDiff_segmentMap P s t) σ) = 0 := by
+    rw [SmoothForm.mextDerivₗ_mpullback,
+      (SmoothForm.isClosed_iff_mextDerivₗ_eq_zero σ).mp h.isClosed, map_zero]
+  have h₁ : segmentMap P s t ∘ (fun x ↦ (x, (1 : Set.Icc (0 : ℝ) 1))) = fun p ↦ (p, t) :=
+    funext fun p ↦ by simp [segmentMap, segmentPath_one]
+  have h₀ : segmentMap P s t ∘ (fun x ↦ (x, (0 : Set.Icc (0 : ℝ) 1))) = fun p ↦ (p, s) :=
+    funext fun p ↦ by simp [segmentMap, segmentPath_zero]
+  rw [primitive, SmoothForm.mextDerivₗ_homotopyOperator hcl, SmoothForm.mpullback_mpullback,
+    SmoothForm.mpullback_mpullback, map_sub, ← h.mpullback_slice, ← h.mpullback_slice]
+  simp only [h₁, h₀]
+
+private theorem mpullback_smul_primitive (h : IsCouplingForm σ τ) (s t : Set.Icc a b)
+    (z : Circle) :
+    SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P ↦ op z • x)
+      (contMDiff_const_smul (op z)) (primitive σ s t) = primitive σ s t := by
+  have hz : ContMDiff (IB.prod (𝓡 1)) (IB.prod (𝓡 1)) ∞
+      (fun x : ManifoldTotalSpace Circle P ↦ op z • x) := contMDiff_const_smul (op z)
+  have hzc : ContMDiff ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) ∞
+      (Prod.map (fun x : ManifoldTotalSpace Circle P ↦ op z • x)
+        (id : Set.Icc (0 : ℝ) 1 → Set.Icc (0 : ℝ) 1)) := hz.prodMap contMDiff_id
+  refine Subtype.ext ?_
+  rw [primitive, SmoothForm.coe_mpullback, SmoothForm.coe_homotopyOperator,
+    ← homotopyOperator_mpullback_prodMap_id_of_isSmoothForm (hz.mdifferentiable (by simp))
+      ((SmoothForm.mpullback (segmentMap P s t) (contMDiff_segmentMap P s t) σ).isSmoothForm.of_le
+        (by simp)),
+    ← SmoothForm.coe_mpullback _ hzc, ← SmoothForm.coe_homotopyOperator]
+  have hcomp : segmentMap P s t ∘ Prod.map (fun x ↦ op z • x) id =
+      (fun x : ManifoldTotalSpace Circle P × Set.Icc a b ↦ (op z • x.1, x.2)) ∘
+        segmentMap P s t :=
+    funext fun _ ↦ rfl
+  rw [SmoothForm.mpullback_mpullback]
+  conv_rhs => rw [← h.mpullback_smul z, SmoothForm.mpullback_mpullback]
+  rw [SmoothForm.coe_homotopyOperator]
+  simp only [hcomp]
+
+/-- The primitive takes the value `(2π)⁻¹ (t - s)` on the fundamental vector field of `1`. -/
+private theorem primitive_apply_rightFundamentalVectorField (h : IsCouplingForm σ τ)
+    (s t : Set.Icc a b) (p : ManifoldTotalSpace Circle P) :
+    (primitive σ s t).val p ![rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator p] =
+      (2 * Real.pi)⁻¹ * ((t : ℝ) - s) := by
+  set X := rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator p
+  have hX : X = (2 * Real.pi)⁻¹ •
+      rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator p := by
+    rw [circlePeriodOneGenerator_def, rightFundamentalVectorField_smul, Pi.smul_apply,
+      smul_smul, inv_mul_cancel₀ (by positivity), one_smul]
+  rw [primitive, SmoothForm.coe_homotopyOperator]
+  refine (homotopyOperator_apply_apply (k := 1) ((SmoothForm.mpullback (segmentMap P s t)
+      (contMDiff_segmentMap P s t) σ).isSmoothForm.of_le (by simp)) p ![X]).trans ?_
+  refine (intervalIntegral.integral_congr (g := fun _ ↦ (2 * Real.pi)⁻¹ * ((t : ℝ) - s))
+    fun r _ ↦ ?_).trans (by simp)
+  dsimp only
+  generalize Set.projIcc (0 : ℝ) 1 zero_le_one r = u
+  have hD : mfderiv ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
+      (segmentMap P s t) (p, u) =
+      (mfderiv (IB.prod (𝓡 1)) (IB.prod (𝓡 1)) id p).prodMap
+        (mfderiv (𝓡∂ 1) (𝓡∂ 1) (segmentPath s t) u) :=
+    mfderiv_prodMap mdifferentiableAt_id
+      ((contMDiff_segmentPath s t).mdifferentiable (by simp) u)
+  rw [SmoothForm.mpullback_apply, hD]
+  let w₀ : TangentSpace ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (p, segmentPath s t u) :=
+    (0, mfderiv (𝓡∂ 1) (𝓡∂ 1) (segmentPath s t) u 1)
+  have hw₀ := h.apply_couplingField_eq_neg_mfderiv_snd (p, segmentPath s t u) w₀
+  rw [show w₀.2 = mfderiv (𝓡∂ 1) (𝓡∂ 1) (segmentPath s t) u 1 from rfl,
+    mfderiv_subtypeVal_mfderiv_segmentPath] at hw₀
+  convert congrArg (fun c ↦ (2 * Real.pi)⁻¹ * c) (neg_eq_iff_eq_neg.mpr hw₀) using 1
+  rw [mul_neg, ← smul_eq_mul, ← ContinuousAlternatingMap.vecCons_smul,
+    ← ContinuousAlternatingMap.apply_vecCons_swap]
+  congr 1
+  funext i
+  fin_cases i
+  · -- `(id, d(segmentPath)) (0, 1) = (0, d(segmentPath) 1)`, by definition of `prodMap`
+    simp [w₀]
+    rfl
+  · simp only [id_eq, mfderiv_id, Fin.mk_one, Fin.isValue, Matrix.cons_val,
+      Matrix.cons_val_one, Matrix.cons_val_fin_one]
+    -- the components of `prodMap` are the two maps, by definition
+    exact Prod.ext hX ((map_zero (mfderiv (𝓡∂ 1) (𝓡∂ 1) (segmentPath s t) u)).trans
+      (smul_zero ((2 * Real.pi)⁻¹ : ℝ)).symm)
+
+variable [IB.Boundaryless] [FiniteDimensional ℝ EB] [T2Space B] [SigmaCompactSpace B]
+
+/-- **The cohomological condition on a coupling form.** If `σ` is a coupling form for `τ`, then
+the de Rham classes of the forms `τ t` move linearly with `t`, with slope minus the real first
+Chern class of `P`: `[τ t] - [τ s] = -(t - s) c₁(P)`. -/
+theorem mk_sub_mk_eq_neg_smul_realFirstChernClass (h : IsCouplingForm σ τ) (t s : Set.Icc a b) :
+    deRhamCohomology.mk IB 2 ⟨τ t, (h.isClosed_apply t).mem_closedForms⟩ -
+        deRhamCohomology.mk IB 2 ⟨τ s, (h.isClosed_apply s).mem_closedForms⟩ =
+      -((t : ℝ) - s) • realFirstChernClass IB P := by
+  obtain ⟨α, hα⟩ := exists_isCircleConnectionForm (IB := IB) (P := P)
+  set c : ℝ := (2 * Real.pi)⁻¹ * ((t : ℝ) - s)
+  set β := primitive σ s t
+  -- `α + (β - c α)` is a connection form, so `β - c α` is the pull-back of a form `γ` on `B`
+  have hα' : IsCircleConnectionForm (α + (β - c • α)) := by
+    refine ⟨fun z ↦ ?_, fun x ↦ ?_⟩
+    · rw [map_add, map_sub, map_smul, hα.mpullback_op_smul, mpullback_smul_primitive h]
+    · simp only [Submodule.coe_add, Submodule.coe_sub, Submodule.coe_smul, Pi.add_apply,
+        Pi.sub_apply, Pi.smul_apply, ContinuousAlternatingMap.add_apply,
+        ContinuousAlternatingMap.sub_apply, ContinuousAlternatingMap.smul_apply,
+        hα.apply_rightFundamentalVectorField]
+      simp [β, c, primitive_apply_rightFundamentalVectorField h]
+  obtain ⟨γ, hγ, -⟩ := hα.existsUnique_eq_add_mpullback hα'
+  have hβ := add_left_cancel hγ
+  -- so `τ t - τ s = c F + d γ`, by injectivity of the pull-back along `π`
+  have hτ : τ t - τ s = c • hα.curvature + mextDerivₗ IB 1 γ := by
+    refine SmoothForm.mpullback_injective_of_surjective
+      (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1))
+      ((FiberBundle.surjective_proj Circle P).comp
+        (ManifoldTotalSpace.homeomorph Circle P).symm.surjective)
+      ((ManifoldTotalSpace.isSubmersion_proj ∞ Circle P IB (𝓡 1)).surjective_mfderiv (by simp))
+      ?_
+    rw [← mextDerivₗ_primitive h, map_add, map_smul, hα.mpullback_curvature,
+      ← SmoothForm.mextDerivₗ_mpullback, ← hβ]
+    simp [β, map_sub, map_smul]
+  rw [← map_sub, hα.realFirstChernClass_eq, smul_smul,
+    show -((t : ℝ) - s) * -(2 * Real.pi)⁻¹ = c by ring, ← map_smul,
+    deRhamCohomology.mk_eq_mk_iff]
+  simp only [Submodule.coe_sub, Submodule.coe_smul, hτ, add_sub_cancel_left, exactForms_succ]
+  exact LinearMap.mem_range_self _ γ
+
+end Cohomology
 
 end IsCouplingForm
 
