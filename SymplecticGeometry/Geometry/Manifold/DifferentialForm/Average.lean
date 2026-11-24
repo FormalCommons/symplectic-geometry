@@ -6,9 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Average
-public import TauCeti.Geometry.Manifold.DeRham.HomotopyInvariance
 public import TauCeti.Geometry.Manifold.DeRham.PathIntegral
 import TauCeti.Geometry.Manifold.SmoothApprox
+import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 
 /-!
@@ -27,13 +27,13 @@ The argument has three steps.
 
 * Each `g ∈ G` is joined to `1` by a path, which can be taken smooth
   (`Path.exists_homotopic_contMDiff_extend`). Acting along it is a smooth homotopy from the
-  identity of `M` to `g • ·`, so by homotopy invariance (`deRhamCohomology.map_eq_of_homotopy`)
-  the closed form `(g •)^* γ - γ` is exact, in every degree.
+  identity of `M` to `g • ·`, so by homotopy invariance
+  (`TauCeti.SmoothForm.mpullback_sub_mem_exactForms_of_homotopy`) the closed form
+  `(g •)^* γ - γ` is exact, in every degree.
 * Along a smooth curve `c`, the integrand `(g •)^* γ` evaluated on the velocity of `c` is jointly
-  continuous in the time and in `g`. It is the slice section of a smooth family of forms on `ℝ`
-  indexed by `G` (`SymplecticGeometry.IsSmoothFamily`), read in the trivial chart of `ℝ`, as in
-  the proof of `SymplecticGeometry.IsSmoothFamily.contMDiff_apply`, which it adapts. Fubini's
-  theorem on the compact `[a, b] × G` then exchanges the line integral and the average.
+  continuous in the time and in `g`: it comes from a smooth family of one-forms on `ℝ` indexed by
+  `G` (`SymplecticGeometry.IsSmoothFamily.continuous_apply_one`). Fubini's theorem on the compact
+  `[a, b] × G` then exchanges the line integral and the average.
 * Around a smooth loop, each `(g •)^* γ` has the same integral as `γ`, hence so does their
   average against a probability measure. A closed one-form on a preconnected manifold whose loop
   integrals vanish is exact (`mem_exactForms_one_iff_forall_pathIntegral_eq_zero`).
@@ -84,13 +84,9 @@ theorem mpullback_smul_sub_mem_exactForms [FiniteDimensional ℝ E'] [J.Boundary
   have hF : ContMDiff (I.prod (𝓡∂ 1)) I ∞ fun q : M × Icc (0 : ℝ) 1 ↦ p.extend q.2 • q.1 :=
     (contMDiff_smul (I := J) (I' := I)).comp
       ((hp.comp (contMDiff_subtypeVal_Icc.comp contMDiff_snd)).prodMk contMDiff_fst)
-  have h := congrArg (· (deRhamCohomology.mk I k ⟨γ, hγ⟩))
-    (deRhamCohomology.map_eq_of_homotopy contMDiff_id
-      (ContMDiffSMul.contMDiff_const_smul (I := J) (I' := I) g) hF
-      (fun x ↦ by simp) (fun x ↦ by simp) k)
-  simp only [deRhamCohomology.map_id, LinearMap.id_apply, deRhamCohomology.map_mk] at h
-  rw [← sub_eq_zero, ← map_sub, deRhamCohomology.mk_eq_zero_iff] at h
-  simpa using neg_mem h
+  simpa using neg_mem (mpullback_sub_mem_exactForms_of_homotopy contMDiff_id
+    (ContMDiffSMul.contMDiff_const_smul (I := J) (I' := I) g) hF (fun x ↦ by simp)
+    (fun x ↦ by simp) hγ)
 
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
 
@@ -104,8 +100,6 @@ theorem continuous_mpullback_smul_apply_curveVelocity (γ : SmoothForm I M F 1)
         (fun _ ↦ Manifold.curveVelocity I c q.1) := by
   have hf : ContMDiff (J.prod 𝓘(ℝ, ℝ)) I ∞ fun q : G × ℝ ↦ q.1 • c q.2 :=
     (contMDiff_smul (I := J) (I' := I)).comp (contMDiff_fst.prodMk (hc.comp contMDiff_snd))
-  have hS := SymplecticGeometry.isSmoothFamily_iff_contMDiff.mp
-    ((SymplecticGeometry.isSmoothFamily_const (J := J) (N := G) γ).mpullback_family hf)
   have key : ∀ q : ℝ × G, TauCeti.mpullback (F := F) I I (q.2 • ·) γ.val (c q.1)
       (fun _ ↦ Manifold.curveVelocity I c q.1) =
       (SmoothForm.mpullback (fun s ↦ q.2 • c s)
@@ -117,20 +111,9 @@ theorem continuous_mpullback_smul_apply_curveVelocity (γ : SmoothForm I M F 1)
     exact (mfderiv_comp_apply (I' := I) q.1
       ((ContMDiffSMul.contMDiff_const_smul (I := J) (I' := I) q.2).mdifferentiableAt (n := ∞)
         (by simp)) ((hc q.1).mdifferentiableAt (by simp)) 1).symm
-  have hcont : Continuous fun p : G × ℝ ↦ (SmoothForm.mpullback (fun s ↦ p.1 • c s)
-      (hf.comp (contMDiff_const.prodMk contMDiff_id)) γ).val p.2 (fun _ ↦ 1) := by
-    refine continuous_iff_continuousAt.2 fun p₀ ↦ ?_
-    have hc' := (Bundle.contMDiffAt_totalSpace_iff.mp (hS p₀)).2
-    simp only [FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
-      TangentBundle.symmL_model_space] at hc'
-    refine ((ContinuousAlternatingMap.apply ℝ ℝ F fun _ ↦ (1 : ℝ)).continuous.continuousAt.comp
-      hc'.continuousAt).congr (Filter.Eventually.of_forall fun p ↦ ?_)
-    simp only [Function.comp_apply, ContinuousAlternatingMap.apply_apply]
-    -- The trivialization at `p₀` is the identity `1 : ℝ →L[ℝ] TangentSpace 𝓘(ℝ, ℝ) p.2`; its
-    -- target is `ℝ` only definitionally, so `ContinuousLinearMap.one_apply` does not apply.
-    exact (ContinuousAlternatingMap.compContinuousLinearMap_apply _ _ _).trans rfl
   simp_rw [key]
-  exact hcont.comp continuous_swap
+  exact ((SymplecticGeometry.isSmoothFamily_const (J := J) (N := G) γ).mpullback_family
+    hf).continuous_apply_one.comp continuous_swap
 
 variable [MeasurableSpace G] [OpensMeasurableSpace G] [CompactSpace G] [T2Space G] (μ : Measure G)
 
