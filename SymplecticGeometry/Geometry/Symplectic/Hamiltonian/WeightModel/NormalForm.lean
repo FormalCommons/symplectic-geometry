@@ -7,7 +7,8 @@ module
 
 public import TauCeti.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
-import TauCeti.Analysis.InnerProductSpace.PiL2
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.Basic
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Darboux
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 
@@ -32,10 +33,6 @@ fixed point. This file reads Tau Ceti's weight chart
 
 Zero weights are allowed, and neither compactness of `M` nor isolatedness of `p` is assumed.
 
-The proof of `TauCeti.weightRotation_arg_sumEquivProd_complexToRealEuclidean` follows the step of
-`TauCeti.SymplecticForm.exists_continuousLinearEquiv_weightRotation` that computes the cosine and
-sine of the argument of a unit complex number.
-
 ## References
 
 * [A. Cannas da Silva, *Symplectic Toric Manifolds*][CannasdaSilva2001], Theorems 3.1.1–3.1.2
@@ -49,24 +46,6 @@ noncomputable section
 
 open Real
 open scoped Manifold ContDiff
-
-namespace TauCeti
-
-/-- Read through `EuclideanSpace.sumEquivProd` and `complexToRealEuclidean`, the rotation of
-`ℂ^ι` by the arguments of unit complex numbers `cₖ` is the multiplication `uₖ ↦ cₖ uₖ`. -/
-theorem weightRotation_arg_sumEquivProd_complexToRealEuclidean {ι : Type*} [Fintype ι]
-    (c : ι → Circle) (u : ι → ℂ) :
-    weightRotation (fun k ↦ Complex.arg (c k))
-        (EuclideanSpace.sumEquivProd (complexToRealEuclidean ι u)) =
-      EuclideanSpace.sumEquivProd (complexToRealEuclidean ι fun k ↦ (c k : ℂ) * u k) := by
-  have hcos (k : ι) : cos (Complex.arg (c k)) = (c k : ℂ).re := by
-    rw [Complex.cos_arg (Circle.coe_ne_zero _), Circle.norm_coe, div_one]
-  have hsin (k : ι) : sin (Complex.arg (c k)) = (c k : ℂ).im := by
-    rw [Complex.sin_arg, Circle.norm_coe, div_one]
-  ext k <;> simp [complexToRealEuclidean_apply, hcos, hsin]
-  ring
-
-end TauCeti
 
 namespace SymplecticGeometry
 
@@ -125,22 +104,17 @@ theorem exists_weightChart
   obtain ⟨n, χ, β, chart, r, hβ, hβℤ, hpchart, hchartp, hr, htarget, hequiv, hform, -, hmom⟩ :=
     hμ.exists_weightModelChart hσ hG hp
   let A : StdSpace (Fin n) ≃L[ℝ] EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n) :=
-    EuclideanSpace.sumEquivProd.toContinuousLinearEquiv
-  let Φ := (A.toPartialDiffeomorph (n := ∞)).trans chart.symm
-  have hΦ : ∀ z, Φ z = chart.symm (A z) := fun z ↦ by
-    rw [PartialDiffeomorph.coe_trans, ContinuousLinearEquiv.coe_toPartialDiffeomorph,
-      Function.comp_apply]
+    EuclideanSpace.sumEquivProd
+  -- Compose Tau Ceti's chart with `A⁻¹`, a symplectomorphism onto the standard model.
+  obtain ⟨-, -, -, hform'⟩ := SmoothTwoForm.trans_toDiffeomorph_darbouxChart hform A.symm
+    isSymplectomorphism_sumEquivProd.symm
+  let chart' := chart.trans A.symm.toDiffeomorph.toPartialDiffeomorph
+  let Φ := chart'.symm
+  have hΦ : ∀ z, Φ z = chart.symm (A z) := fun z ↦ by simp [Φ, chart']
   have hsrc : Φ.source = A ⁻¹' chart.target := by
-    rw [PartialDiffeomorph.trans_source]; simp
+    ext z; simp [Φ, chart']
   have htgt : Φ.target = chart.source := by
-    rw [PartialDiffeomorph.trans_target]; simp
-  have hA (z : StdSpace (Fin n)) (k : Fin n) : (A z).1 k = z.x k ∧ (A z).2 k = z.y k :=
-    ⟨(EuclideanSpace.sumEquivProd_apply_fst z k).trans (StdSpace.x_apply z k).symm,
-      (EuclideanSpace.sumEquivProd_apply_snd z k).trans (StdSpace.y_apply z k).symm⟩
-  have hnorm (z : StdSpace (Fin n)) : ‖(A z).1‖ ^ 2 + ‖(A z).2‖ ^ 2 = ‖z‖ ^ 2 := by
-    rw [StdSpace.norm_sq_eq_sum, Finset.sum_add_distrib, EuclideanSpace.norm_sq_eq,
-      EuclideanSpace.norm_sq_eq]
-    simp only [Real.norm_eq_abs, sq_abs, (hA z _).1, (hA z _).2]
+    simp [Φ, chart']
   -- On the source, `chart ∘ Φ` is `A`.
   have hmem {z : StdSpace (Fin n)} (hz : z ∈ Φ.source) : A z ∈ chart.target := by
     rwa [hsrc] at hz
@@ -161,8 +135,8 @@ theorem exists_weightChart
     rw [hα k ξ, ← hm]
     exact ((β k).map_smul ((2 * π)⁻¹) ξ).symm
   · ext z
-    rw [hsrc, Set.mem_preimage, htarget, Set.mem_ofPred_eq, hnorm, mem_ball_zero_iff,
-      sq_lt_sq₀ (norm_nonneg _) hr.le]
+    rw [hsrc, Set.mem_preimage, htarget, Set.mem_ofPred_eq, StdSpace.norm_sq_sumEquivProd,
+      mem_ball_zero_iff, sq_lt_sq₀ (norm_nonneg _) hr.le]
   · rw [hΦ, map_zero, ← hchartp]; exact chart.left_inv hpchart
   · intro g x hx
     rw [htgt] at hx ⊢; exact (hequiv g x hx).1
@@ -170,33 +144,25 @@ theorem exists_weightChart
     obtain ⟨h₁, h₂⟩ := hequiv g _ (hΦsrc hu)
     have hrot : A (complexToRealEuclidean (Fin n) fun k ↦ (χ k g : ℂ) * u k) =
         chart (g • Φ (complexToRealEuclidean (Fin n) u)) := by
-      rw [h₂, hchartΦ hu]
-      exact (weightRotation_arg_sumEquivProd_complexToRealEuclidean (fun k ↦ χ k g) u).symm
+      rw [h₂, hchartΦ hu, weightRotation_sumEquivProd_complexToRealEuclidean]
+      simp only [A, ← Circle.coe_exp, Circle.exp_arg]
     refine ⟨?_, ?_⟩
     · rw [hsrc, Set.mem_preimage, hrot]; exact chart.map_source h₁
     · rw [hΦ, hrot]; exact chart.left_inv h₁
   · intro z hz v w
-    -- `Φ` is `chart.symm ∘ A`, and `chart` undoes the differential of `chart.symm`.
+    -- `chart'` undoes the differential of its inverse `Φ`.
     have hd (u : StdSpace (Fin n)) :
-        mvfderiv I' chart (Φ z) (mfderiv 𝓘(ℝ, StdSpace (Fin n)) I' Φ z u) = A u := by
-      have hc : (Φ : StdSpace (Fin n) → M) = chart.symm ∘ A := funext hΦ
-      have h := chart.mfderiv_apply_mfderiv_symm_apply (by simp) (hmem hz) (A u)
-      rw [mvfderiv_apply_eq_mfderiv_apply, hc,
-        mfderiv_comp z (chart.symm.mdifferentiableAt (by simp) (by simpa using hmem hz))
-          A.mdifferentiableAt, A.mfderiv_eq]
-      -- The base point is `chart.symm (A z)` and the vector `d(chart.symm) (A u)`, unfolded
-      -- through `Function.comp` and `ContinuousLinearMap.comp`, which `rw` cannot reach in the
-      -- dependent tangent spaces.
-      exact h
-    rw [hform _ (hΦsrc hz), hd v, hd w]
-    exact (SymplecticForm.isSymplectomorphism_iff.1 isSymplectomorphism_sumEquivProd) v w
+        mvfderiv I' chart' (Φ z) (mfderiv 𝓘(ℝ, StdSpace (Fin n)) I' Φ z u) = u := by
+      rw [mvfderiv_apply_eq_mfderiv_apply]
+      exact chart'.mfderiv_apply_mfderiv_symm_apply (by simp) hz u
+    rw [hform' _ (hΦsrc hz), hd v, hd w]
   · -- Tau Ceti's weights are functionals on the model space `E` of `𝔤`; read `ξ` there, as
     -- tactics do not see through `GroupLieAlgebra I G`.
     intro z hz (ξ : E)
     have h := hmom (Φ z) (hΦsrc hz) ξ
     rw [hchartΦ hz] at h
     simp only [weightMomentMap_apply] at h
-    simp only [(hA z _).1, (hA z _).2, hβα] at h
+    simp only [A, StdSpace.sumEquivProd_apply_fst, StdSpace.sumEquivProd_apply_snd, hβα] at h
     have hs : ∑ i, 2 * π * α i ξ * (z.x i ^ 2 + z.y i ^ 2) =
         2 * (π * ∑ i, α i ξ * (z.x i ^ 2 + z.y i ^ 2)) := by
       rw [Finset.mul_sum, Finset.mul_sum]; exact Finset.sum_congr rfl fun i _ ↦ by ring
