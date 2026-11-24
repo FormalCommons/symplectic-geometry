@@ -19,7 +19,8 @@ finite-dimensional over `𝕜`: `Manifold.IsImmersion.restrictScalars`. The same
 embeddings: `Manifold.IsSmoothEmbedding.restrictScalars`. For instance, a holomorphic embedding
 of complex manifolds is a smooth embedding of the underlying real manifolds. The immersion
 statement combines `ContMDiff.restrictScalars'`,
-`MDifferentiableAt.mfderiv_modelWithCornersSelf_restrictScalars_apply` and `ContMDiff.isImmersion_of_injective_mfderiv`.
+`MDifferentiableAt.mfderiv_modelWithCornersSelf_restrictScalars_apply` and
+`ContMDiff.isImmersion_of_injective_mfderiv`.
 -/
 
 public section

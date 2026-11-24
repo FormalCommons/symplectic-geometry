@@ -87,17 +87,17 @@ theorem mem_symplecticVectorFields_iff_forall_mpullback_flowOf_apply [FiniteDime
     [J.Boundaryless] [T2Space M] (hσ : σ.IsClosed) {X : Cₛ^∞⟮J; E, TangentSpace J (M := M)⟯} :
     X ∈ σ.symplecticVectorFields ↔
       ∀ t x, (t, x) ∈ flowDomain X → mpullback J J (flowOf X t) σ.val x = σ.val x := by
-  have hX : ContMDiff J J.tangent 2 (fun y ↦ (⟨y, X y⟩ : TangentBundle J M)) :=
+  have hX : ContMDiff J J.tangent 1 (fun y ↦ (⟨y, X y⟩ : TangentBundle J M)) :=
     X.contMDiff.of_le (by simp)
-  refine ⟨fun h t x hx ↦ mpullback_flowOf_apply_of_mextDeriv_interior_eq_zero hX hσ
-    (mem_symplecticVectorFields_iff.1 h) hx, fun h ↦ ?_⟩
+  refine ⟨fun h t x hx ↦ mpullback_flowOf_apply_of_mextDeriv_interior_eq_zero
+    hX hσ (mem_symplecticVectorFields_iff.1 h) hx, fun h ↦ ?_⟩
   rw [mem_symplecticVectorFields_iff_mlieDerivForm_eq_zero hσ]
   funext y
   -- Near `t = 0` the pulled-back forms at `y` are constant, so their derivative there vanishes.
   have hopen : {s | (s, y) ∈ flowDomain X} ∈ 𝓝 (0 : ℝ) :=
-    ((isOpen_flowDomain (hX.of_le one_le_two)).preimage
+    ((isOpen_flowDomain hX).preimage
       (continuous_id.prodMk continuous_const)).mem_nhds
-      (mem_flowDomain_zero (hX.of_le one_le_two) y)
+      (mem_flowDomain_zero hX y)
   have hconst : (fun s ↦ mpullback J J (flowOf X s) σ.val y) =ᶠ[𝓝 0] fun _ ↦ σ.val y :=
     Filter.mem_of_superset hopen fun s hs ↦ h s y hs
   exact ((hasDerivAt_mpullback_flowOf_zero hX y (σ.mdifferentiableAt y)).congr_of_eventuallyEq

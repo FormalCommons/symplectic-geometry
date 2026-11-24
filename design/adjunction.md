@@ -327,11 +327,10 @@ Namespace `TauCeti.SmoothEmbedding`, for a surface `M` in `X` with
 Namespace `TauCeti.AlmostComplexStructure`, for an almost complex structure
 `J` on a finite-dimensional real vector space `V`.
 
-- `orientation J`, indexed by `Fin (finrank ℝ V)`: Tau Ceti's
-  `complexOrientation` of `V` with the complex structure `J.complexModule`,
-  with `orientation_def`.
-- `map_orientation` (complex-linear isomorphisms carry one orientation to
-  the other), `orientation_prod` (the orientation of `J₁.prod J₂` is the
+- `orientation_eq_complexOrientation`: Tau Ceti's `J.orientation rfl` is
+  its `complexOrientation` of `V` with the complex structure
+  `J.complexModule`.
+- `orientation_prod` (the orientation of `J₁.prod J₂` is the
   product orientation) and `orientation_eq_of_apply_one_eq` (in real
   dimension two, a basis $(e, Je)$ gives the orientation of `J`).
 - `shortExact_orientation`: for a short exact sequence

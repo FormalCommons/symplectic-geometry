@@ -190,7 +190,8 @@ theorem exists_coordinateDisc_unitSection_eq_phase_zpow_smul
     rw [← Module.finrank_mul_finrank ℝ ℂ F, Complex.finrank_real_complex,
       Fact.out (p := finrank ℂ F = 1)]
   obtain ⟨s, -, hfin⟩ := exists_contMDiffSection_regular_finite_zero_of_finrank_eq
-    (X := EuclideanSpace ℝ (Fin 2)) (F := F) (V := V) (by rw [finrank_euclideanSpace_fin, hF])
+    (n := ∞) (X := EuclideanSpace ℝ (Fin 2)) (F := F) (V := V)
+    (by rw [finrank_euclideanSpace_fin, hF])
   have hsc : IsClosed {x | s x = 0} := hfin.isClosed
   let ι : Type := {x | s x = 0}
   let : Fintype ι := hfin.fintype

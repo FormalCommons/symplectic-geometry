@@ -45,22 +45,12 @@ for every time `u`, with `g` continuous, then
 Ceti's `TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem`
 for the constant family. Contact Hamiltonian flows use it.
 
-When `β` is closed and its contractions `ι_{X_u} β` are all closed, Cartan's formula gives
-`L_{X_u} β = 0`, so the case `g = 0` shows that the local time-dependent flow preserves `β`
-wherever it is defined, with no completeness. This is the local form of Tau Ceti's
-`TauCeti.mpullback_timeDependentFlowOf_of_mextDeriv_interior_eq_zero`, and gives the
-preservation of a symplectic form by local time-dependent Hamiltonian flows.
-
 The file also records how time derivatives of slices behave under pullback along
 `id × f : ℝ × M → ℝ × N`, for a smooth `f : M → N`. The slice of `(id × f)^* α` at time `t` is
 `f^* α_t` (Tau Ceti's `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap`), and the slice at
 time `t` of its time derivative (`TauCeti.SmoothForm.timeDeriv`) is the pullback along `f` of
 the slice of `∂_t α`: both are the velocity of `u ↦ f^* α_u`, by Tau Ceti's
-`TauCeti.SmoothForm.hasDerivAt_mpullback_prodMk_timeDeriv`. The same lemma computes the velocity
-of the reparametrized segment `α₀ + c(t) (α₁ - α₀)` of forms
-(`TauCeti.SmoothForm.lineMapFamily`): its slice at time `t` is `c'(t) (α₁ - α₀)`. The
-computation is the one in the private `moserRate_eq_zero` of Tau Ceti's
-`TauCeti/Geometry/Symplectic/Manifold/RelativeMoser.lean`.
+`TauCeti.SmoothForm.hasDerivAt_mpullback_prodMk_timeDeriv`.
 
 Finally, the file contracts forms on `ℝ × M` with the time field `∂_t = (1, 0)`. The field is
 smooth by the argument that Tau Ceti writes inline in the definition of
@@ -81,15 +71,10 @@ pullback along `id × f`, and it vanishes on forms pulled back from `M` along th
 * `TauCeti.mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul_of_mlieDerivForm_eq`: a smooth
   form with `L_{X_u} β = g_u • β` satisfies `(φ_{s,t}^* β)ₓ = exp (∫ₛᵗ g (u, φ_{s,u} x) du) • βₓ`
   wherever the flow is defined.
-* `TauCeti.mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`: a closed smooth
-  form whose contractions with every `X u` are closed satisfies `(φ_{s,t}^* β)ₓ = βₓ` wherever
-  the flow is defined.
 * `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_mpullback_prodMap'`: the slices of the time
   derivative, for a reparametrization `c` of time,
   `ι_t^* ∂_t ((c × f)^* α) = c'(t) f^* ι_{c t}^* ∂_t α`; the case `c = id` is Tau Ceti's
   `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_mpullback_prodMap`.
-* `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily`: the velocity of the segment
-  `α₀ + c(t) (α₁ - α₀)` at time `t` is `c'(t) (α₁ - α₀)`.
 * `TauCeti.SmoothForm.timeInterior`: the contraction `ι_{∂_t} σ` with the time field.
 * `TauCeti.SmoothForm.mextDerivₗ_timeInterior`: `d (ι_{∂_t} σ) = ∂_t σ` for closed `σ`.
 * `TauCeti.SmoothForm.mpullback_prodMap_timeInterior`:
@@ -205,31 +190,9 @@ theorem mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul_of_mlieDerivFor
     -- The zero derivative is taken in the model space of forms, the sum in the fibre at `y`.
     exact zero_add _
   simpa only [hslice] using
-    mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem hX hg
-      (α.contMDiff.of_le (by simp)) hL h
-
-/-- **Local time-dependent flows preserve closed forms with closed contractions.** Let `X` be a
-jointly `C²` time-dependent vector field and `β` a closed smooth form whose contraction
-`ι_{X_t} β` is closed for every time `t`. Wherever the time-dependent flow `φ` of `X` from
-`(s, x)` is defined up to time `t`, it satisfies `(φ_{s,t}^* β)ₓ = βₓ`. The suspension of `X`
-need not be complete. -/
-theorem mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero
-    (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 2
-      (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)))
-    {β : SmoothForm I M F (k + 1)} (hβ : β.IsClosed)
-    (hXβ : ∀ t, mextDeriv (RoughForm.interior (X t) β.val) = 0)
-    {s t : ℝ} {x : M} (h : ((s, t), x) ∈ timeDependentFlowDomain X) :
-    mpullback I I (timeDependentFlowOf X s t) β.val x = β.val x := by
-  -- By Cartan's formula, `β` is an eigenform of every `L_{X_u}`, with eigenvalue `0`.
-  have hL (u : ℝ) : mlieDerivForm (X u) β.val = fun y ↦ (0 : ℝ) • β.val y := by
-    have hXu : MDifferentiable I I.tangent (fun y ↦ (⟨y, X u y⟩ : TangentBundle I M)) :=
-      (hX.comp ((contMDiff_const (c := u)).prodMk contMDiff_id)).mdifferentiable two_ne_zero
-    rw [mlieDerivForm_eq_mextDeriv_interior β.mdifferentiable hXu
-      ((SmoothForm.isClosed_def β).1 hβ), hXβ u]
-    funext y
-    exact (zero_smul ℝ _).symm
-  simpa using mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul_of_mlieDerivForm_eq hX
-    (g := fun _ ↦ 0) continuous_const hL h
+    mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem hX
+      ordConnected_univ hg.continuousOn (α.contMDiff.of_le (by simp)) (fun u _ ↦ hL u)
+      (mem_univ s) (mem_univ t) h
 
 end TauCeti
 
@@ -377,26 +340,6 @@ theorem mpullback_prodMk_timeDeriv_mpullback_prodMap' {c : ℝ → ℝ}
   · rw [map_smul, ContinuousAlternatingMap.compContinuousLinearMapCLM_apply]
     -- The two functions differ only by `Function.comp` and `id`, which unfold.
     exact Iff.rfl
-
-
-/-! ### The velocity of a reparametrized segment -/
-
-/-- **The velocity of a reparametrized segment of forms.** The slice at time `t` of the time
-derivative of `TauCeti.SmoothForm.lineMapFamily α₀ α₁ hc`, the family `α₀ + c(t) (α₁ - α₀)`, is
-`c'(t) (α₁ - α₀)`. -/
-theorem mpullback_prodMk_timeDeriv_lineMapFamily (α₀ α₁ : SmoothForm I M F k) {c : ℝ → ℝ}
-    (hc : ContDiff ℝ ∞ c) (t : ℝ) :
-    mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
-      (lineMapFamily α₀ α₁ hc).timeDeriv = deriv c t • (α₁ - α₀) := by
-  apply Subtype.ext
-  funext x
-  have h := (lineMapFamily α₀ α₁ hc).hasDerivAt_mpullback_prodMk_timeDeriv t x
-  simp only [mpullback_prodMk_lineMapFamily] at h
-  refine h.unique ?_
-  simp only [Submodule.coe_add, Submodule.coe_smul, Pi.add_apply, Pi.smul_apply]
-  have hct : HasDerivAt c (deriv c t) t :=
-    ((hc.of_le (by simp) : ContDiff ℝ 1 c).differentiable one_ne_zero t).hasDerivAt
-  exact (hct.smul_const _).const_add _
 
 end TauCeti.SmoothForm
 

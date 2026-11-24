@@ -18,7 +18,7 @@ import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Represen
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Orthogonal
 import TauCeti.Geometry.Manifold.VectorBundle.Prod
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
-import TauCeti.Geometry.Manifold.VectorBundle.Translate
+import TauCeti.Geometry.Manifold.VectorBundle.SectionAlongMap.Regularity
 import TauCeti.Geometry.Symplectic.Lagrangian.Basic
 
 /-!

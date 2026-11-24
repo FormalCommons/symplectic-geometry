@@ -355,27 +355,17 @@ module docstring credits both. The rate `c` is a function of time only,
 because along one trajectory nothing else is needed. Expected size: 100
 lines.
 
-The second, added by *Hamiltonian flows* for `PoissonAlgebra.lean`, under
-the same `[IsManifold I 2 M]`, is the invariance of a closed form whose
-contractions are closed. By Cartan's formula
-(`mlieDerivForm_eq_mextDeriv_interior`) such a form satisfies the eigenform
-equation of the third theorem with $g=0$, and the proof applies that theorem:
-
-```lean
-theorem mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero
-    (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 2 (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)))
-    {β : SmoothForm I M F (k + 1)} (hβ : β.IsClosed)
-    (hXβ : ∀ t, mextDeriv (RoughForm.interior (X t) β.val) = 0)
-    {s t : ℝ} {x : M} (h : ((s, t), x) ∈ timeDependentFlowDomain X) :
-    mpullback I I (timeDependentFlowOf X s t) β.val x = β.val x
-```
+The invariance of a closed form whose contractions are closed, which
+*Hamiltonian flows* uses, is Tau Ceti's
+`mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`, in
+`TauCeti/Geometry/Manifold/DifferentialForm/Flow/TimeDependent.lean`.
 
 The third, added by *Contact geometry* for `Contact/Hamiltonian.lean`, is
 Tau Ceti's
 `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem`
 for the constant family of a form satisfying the eigenform equation, whose
 slices Tau Ceti's `SmoothForm.mpullback_prodMk_mpullback_snd`
-identifies; it comes before the second in the file:
+identifies:
 
 ```lean
 theorem mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul_of_mlieDerivForm_eq
@@ -397,7 +387,7 @@ Ceti's, in `TauCeti/Geometry/Manifold/DifferentialForm/Flow/Family.lean`,
 which this file imports. `Gray.lean` uses them. The velocity of a reparametrized segment,
 `mpullback_prodMk_timeDeriv_lineMapFamily` (the slice at time `t` of the
 time derivative of `SmoothForm.lineMapFamily α₀ α₁ hc` is
-`deriv c t • (α₁ - α₀)`), follows them; *Moser isotopy* uses it in
+`deriv c t • (α₁ - α₀)`), is Tau Ceti's, in the same file; *Moser isotopy* uses it in
 `Moser/Relative.lean` and `Moser/Isotopy.lean`.
 After them come `TauCeti.contMDiff_timeField`, the smoothness of the time field
 $\partial_t=(1,0)$ on $\mathbb R\times M$, the contraction

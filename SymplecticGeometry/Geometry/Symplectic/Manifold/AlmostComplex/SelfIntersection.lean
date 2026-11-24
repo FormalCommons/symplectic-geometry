@@ -180,15 +180,15 @@ theorem shortExact_orientationAt_normalSpace {k : ℕ} (hk : finrank ℝ E' = k)
     {o : Manifold.Orientation I' N (Fin k)} {c : N}
     (ho : o.orientationAt c = Orientation.reindex ℝ _
       (finCongr (n := finrank ℝ (TangentSpace I' c)) hk)
-      ((J.restrict f hJ).almostComplexStructureAt c).orientation) :
+      (((J.restrict f hJ).almostComplexStructureAt c).orientation rfl)) :
     Orientation.shortExact (f.isSmoothEmbedding_toFun.isImmersion.mfderiv_injective hn c)
         (f.exact_mfderiv_normalClass c hn) (f.normalClass_surjective c hn) (o.orientationAt c)
-        (f.normalAlmostComplexStructureAt J hJ c).orientation hk rfl =
+        ((f.normalAlmostComplexStructureAt J hJ c).orientation rfl) hk rfl =
       Orientation.reindex ℝ _ (finCongr (by
         have h : finrank ℝ (TangentSpace I' c) = k := hk
         have := f.finrank_normalSpace_add_finrank c hn
         omega))
-        (J.almostComplexStructureAt (f c)).orientation := by
+        ((J.almostComplexStructureAt (f c)).orientation rfl) := by
   rw [ho]
   refine (Orientation.shortExact_reindex_finCongr_left _ _ _ _ _ _ _ _).trans ?_
   rw [AlmostComplexStructure.shortExact_orientation _ _ _

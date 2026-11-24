@@ -145,7 +145,7 @@ theorem contMDiff_homologyPeriodHom {M : Type} [TopologicalSpace M] [ChartedSpac
     [IsManifold K ∞ N] {α : N → SmoothForm I M ℝ 1} (hα : IsSmoothFamily K α)
     (hcl : ∀ t, α t ∈ closedForms I M 1) (c : ((singularChains ℤ).obj (.of M)).homology 1) :
     ContMDiff K 𝓘(ℝ) ∞ fun t ↦ homologyPeriodHom (α t : RoughForm I M ℝ 1) c := by
-  obtain ⟨z, rfl⟩ := (H₁AddEquivHomology (.of M)).surjective c
+  obtain ⟨z, rfl⟩ := (H₁AddEquivHomology ℤ (.of M)).surjective c
   obtain ⟨z, rfl⟩ := H₁.mk_surjective z
   simp_rw [homologyPeriodHom_H₁AddEquivHomology_mk]
   -- The periods along the simplices, as smooth functions of the parameter.
@@ -155,7 +155,7 @@ theorem contMDiff_homologyPeriodHom {M : Type} [TopologicalSpace M] [ChartedSpac
   have key (t : N) : (chainsDesc fun s ↦ pathClassIntegral (α t : RoughForm I M ℝ 1)
       (.mk (path₁ s))).toAddMonoidHom =
       (ContMDiffMap.evalRingHom t).toAddMonoidHom.comp (chainsDesc g).toAddMonoidHom :=
-    singularChains_addMonoidHom_ext fun s ↦ by
+    singularChains_addMonoidHom_ext (RingEquiv.refl ℤ) fun s ↦ by
       simp only [LinearMap.toAddMonoidHom_coe, AddMonoidHom.coe_comp, Function.comp_apply,
         chainsDesc_simplexChain_one]
       rfl

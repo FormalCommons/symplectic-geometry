@@ -26,12 +26,6 @@ Poisson algebra on which Hamiltonian flows act, and collects the whole statement
   (`TauCeti.SmoothTwoForm.poissonBracket_mul_left`,
   `TauCeti.SmoothTwoForm.poissonBracket_mul_right`). Since `X_f` is a linear function of `df`,
   neither nondegeneracy nor finite dimension is needed.
-* **Local time-dependent Hamiltonian flows** preserve a closed `σ` at every point where the
-  flow is defined, with no completeness
-  (`TauCeti.SmoothTwoForm.mpullback_timeDependentFlowOf_apply_of_isHamiltonianVectorField`),
-  from the general statement for closed forms with closed contractions
-  (`TauCeti.mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`, in
-  `SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family`).
 * The **kernel of `f ↦ -X_f`** on the Poisson Lie algebra of a symplectic form consists of the
   locally constant functions
   (`TauCeti.SmoothTwoForm.mem_ker_negHamiltonianLieHom_iff_isLocallyConstant`), and of the
@@ -52,9 +46,7 @@ quotient of `f ↦ -X_f`.
 
 The proofs of the Leibniz rule follow those of Tau Ceti's
 `TauCeti.SmoothTwoForm.hamiltonianVectorField_add` and
-`TauCeti.SmoothTwoForm.poissonBracket_add_left`, and that of
-`TauCeti.SmoothTwoForm.mpullback_timeDependentFlowOf_apply_of_isHamiltonianVectorField` follows
-Tau Ceti's `TauCeti.SmoothTwoForm.mpullback_timeDependentFlowOf_of_isHamiltonianVectorField`.
+`TauCeti.SmoothTwoForm.poissonBracket_add_left`.
 
 ## References
 
@@ -105,25 +97,6 @@ theorem poissonBracket_mul_right (hf : MDifferentiableAt I 𝓘(ℝ) f x)
     σ.poissonBracket k (f * g) x = f x * σ.poissonBracket k g x + g x * σ.poissonBracket k f x := by
   simp only [poissonBracket_def, hamiltonianVectorField_mul hf hg,
     ← SmoothForm.bilinFormAt_apply, map_add, map_smul, smul_eq_mul]
-
-/-! ### Local time-dependent Hamiltonian flows -/
-
-/-- **Local time-dependent Hamiltonian flows are symplectic.** For a closed two-form `σ` and a
-jointly `C²` time-dependent vector field `X` such that each `X t` is a Hamiltonian vector field of
-a `C²` function `H t`, the time-dependent flow `φ` satisfies `(φ_{s,t}^* σ)ₓ = σₓ` wherever it is
-defined from `(s, x)` up to time `t`. Neither completeness nor nondegeneracy is needed. -/
-theorem mpullback_timeDependentFlowOf_apply_of_isHamiltonianVectorField [FiniteDimensional ℝ E]
-    [I.Boundaryless] [T2Space M] {H : ℝ → M → ℝ} {X : ℝ → (x : M) → TangentSpace I x}
-    (hX : ∀ t, σ.IsHamiltonianVectorField (H t) (X t)) (hσ : σ.IsClosed)
-    (hH : ∀ t, ContMDiff I 𝓘(ℝ) 2 (H t))
-    (hv : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 2
-      (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)))
-    {s t : ℝ} {x : M} (h : ((s, t), x) ∈ timeDependentFlowDomain X) :
-    TauCeti.mpullback I I (timeDependentFlowOf X s t) σ.val x = σ.val x :=
-  TauCeti.mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero hv hσ
-    (fun u ↦ by
-      rw [isHamiltonianVectorField_iff_interior_eq.1 (hX u), mextDeriv_mextDeriv_ofFunction (hH u)])
-    h
 
 /-! ### The kernel of `f ↦ -X_f` -/
 
@@ -269,8 +242,8 @@ theorem hamiltonianFlow_and_poissonAlgebra [I.Boundaryless] [T2Space M] (hσ : �
     exact (isFirstIntegral_self f).apply_maximalIntegralCurve hnd (hf.of_le (by simp))
       (hf.mdifferentiable (by simp)) (mem_flowDomain.1 hx)
   · exact mpullback_timeDependentFlowOf_apply_of_isHamiltonianVectorField
-      (fun u ↦ hnd.isHamiltonianVectorField_hamiltonianVectorField (H u)) hσ.isClosed
-      (fun u ↦ (hH.comp (contMDiff_const.prodMk contMDiff_id)).of_le (by simp)) (hv hH) hx
+      (fun u _ ↦ hnd.isHamiltonianVectorField_hamiltonianVectorField (H u)) hσ.isClosed
+      (fun u _ ↦ (hH.comp (contMDiff_const.prodMk contMDiff_id)).of_le (by simp)) (hv hH) hx
   · exact IsHamiltonianVectorField.hasDerivAt_apply_self_of_hasMFDerivAt
       (X := fun u ↦ σ.hamiltonianVectorField (H u))
       (hnd.isHamiltonianVectorField_hamiltonianVectorField (H t)) (hH.mdifferentiableAt (by simp))

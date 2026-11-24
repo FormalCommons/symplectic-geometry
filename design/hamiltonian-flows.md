@@ -135,7 +135,7 @@ These settle the questions that `DESIGN.md` leaves to this file.
    $\Phi$ past both ends and a proof that the choice does not matter. The
    bridge is used only inside the proof of the isotopy criterion.
    - The page's $H_t$ and Tau Ceti's $F$ are related by
-     `hasHamiltonian_iff_isHamiltonianVectorField_velocity`:
+     `hasHamiltonian_iff_contMDiff_and_isHamiltonianVectorField_velocity`:
      `Φ.HasHamiltonian σ F` holds exactly when `F` is smooth and
      `F (Φ.symm (t, ·), t)` has Hamiltonian vector field `Φ.velocity t` for
      every `t`. The milestones are stated with `Φ.velocity` and the page's
@@ -374,14 +374,8 @@ Ceti's time-dependent flows (`[FiniteDimensional ℝ E] [J.Boundaryless]
 
 - `mpullback_timeDependentFlowOf_apply_of_isHamiltonianVectorField`: for
   closed `σ`, `(timeDependentFlowOf X s t)^* σ` equals `σ` at every `x` with
-  `((s, t), x) ∈ timeDependentFlowDomain X`; no completeness. Through the
-  general `TauCeti.mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`
-  (a closed smooth form whose contractions with every `X t` are closed), the
-  case `g = 0`, by Cartan's formula, of
-  `mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul_of_mlieDerivForm_eq`,
-  in `Geometry/Manifold/DifferentialForm/Flow/Family.lean` of *Contact geometry*. Tau
-  Ceti's `mpullback_timeDependentFlowOf_of_isHamiltonianVectorField` is the
-  complete case.
+  `((s, t), x) ∈ timeDependentFlowDomain X`; no completeness. This is Tau
+  Ceti's, in `Geometry/Symplectic/Hamiltonian/CommutingFlow.lean`.
 
 For symplectic `σ` (`hσ : σ.IsSymplectic`):
 
@@ -432,7 +426,7 @@ For symplectic `σ` (`hσ : σ.IsSymplectic`):
 
 In `TauCeti.Diffeotopy`, for any two-form `σ` unless said:
 
-- `hasHamiltonian_iff_isHamiltonianVectorField_velocity`:
+- `hasHamiltonian_iff_contMDiff_and_isHamiltonianVectorField_velocity`:
   `Φ.HasHamiltonian σ F ↔ ContMDiff (J.prod (𝓡∂ 1)) 𝓘(ℝ) ∞ F ∧
   ∀ t, σ.IsHamiltonianVectorField (fun y ↦ F (Φ.symm (t, y), t)) (Φ.velocity t)`,
   from `mpullback_timeSlice_interior_velocity_apply`; and its form with the
@@ -634,7 +628,7 @@ Each is a few hundred lines; each is blocked by the issues it names.
    About 300 lines. Blocked by 1 and by the issue of *Smooth families* that
    builds `Diffeotopy/Real.lean` (#467 until it is split).
 4. **Hamiltonians of a diffeotopy in the page's form.** In
-   `Flux/Hamiltonian.lean`: `hasHamiltonian_iff_isHamiltonianVectorField_velocity`,
+   `Flux/Hamiltonian.lean`: `hasHamiltonian_iff_contMDiff_and_isHamiltonianVectorField_velocity`,
    `hasHamiltonian_comp_iff`, the three rules and the uniqueness lemmas.
    About 250 lines. Blocked by 1.
 5. **Hamiltonians from exactness.** In `DeRham/FamilyPrimitive.lean` and
