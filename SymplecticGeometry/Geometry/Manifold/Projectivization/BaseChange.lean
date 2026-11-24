@@ -105,10 +105,9 @@ theorem mfderiv_puncturedSpaceOfReal_apply (x : puncturedSpace (Fin (n + 1) → 
     (v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℝ) x) :
     mfderiv 𝓘(ℝ, Fin (n + 1) → ℝ) 𝓘(ℝ, Fin (n + 1) → ℂ) (puncturedSpaceOfReal n) x v =
       (ContinuousLinearMap.piMap fun _ : Fin (n + 1) ↦ Complex.ofRealCLM) v := by
-  have h := (TauCeti.Manifold.mfderiv_subtype_val_comp_apply (I := 𝓘(ℝ, Fin (n + 1) → ℂ))
-    (f := puncturedSpaceOfReal n) v).symm
-  rwa [subtypeVal_comp_puncturedSpaceOfReal, TauCeti.Manifold.mfderiv_comp_subtype_val_apply,
-    mfderiv_eq_fderiv, ContinuousLinearMap.fderiv] at h
+  have h := TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq (I := 𝓘(ℝ, Fin (n + 1) → ℝ))
+    (I' := 𝓘(ℝ, Fin (n + 1) → ℂ)) subtypeVal_comp_puncturedSpaceOfReal v
+  rwa [mfderiv_eq_fderiv, ContinuousLinearMap.fderiv] at h
 
 /-- Changing the field of the line through a real vector `x` gives the complex line through `x`. -/
 theorem mapProjective_ofReal_mkNonzero (x : puncturedSpace (Fin (n + 1) → ℝ)) :
