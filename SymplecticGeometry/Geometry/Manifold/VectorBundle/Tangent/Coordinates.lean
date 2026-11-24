@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.Tangent
+import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 
 /-!
 # Constant endomorphisms of the tangent bundle in tangent coordinates
@@ -17,8 +18,8 @@ source at which `J₀` commutes with the tangent coordinate change from the char
 chart at `x₀` (`inTangentCoordinates_const`).
 
 The proof writes the reading by Mathlib's `inTangentCoordinates_eq` as a conjugate of `J₀` by
-tangent coordinate changes, and cancels them with `tangentCoordChange_comp` and
-`tangentCoordChange_self`. It follows that of the private lemma
+tangent coordinate changes, and cancels them with Tau Ceti's
+`TauCeti.tangentCoordChange_tangentCoordChange`. It follows that of the private lemma
 `inTangentCoordinates_I_smul_id` of Tau Ceti's
 `TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/Basic.lean`, the case of multiplication by
 `i` on a complex model space.
@@ -44,12 +45,9 @@ theorem inTangentCoordinates_const (J₀ : E →L[𝕜] E) {x₀ x : M} (hx : x 
         (fun x : M ↦ (J₀ : TangentSpace I x →L[𝕜] TangentSpace I x)) x₀ x = J₀ := by
   refine (inTangentCoordinates_eq (I := I) (I' := I) id id _ hx hx).trans
     (ContinuousLinearMap.ext fun v ↦ ?_)
-  have hx' : x ∈ (extChartAt I x₀).source ∩ (extChartAt I x).source ∩
-      (extChartAt I x₀).source := by
-    simp [hx]
   simp only [ContinuousLinearMap.comp_apply]
   exact (h _).trans
-    (congrArg J₀ ((tangentCoordChange_comp hx').trans (tangentCoordChange_self (by simp [hx]))))
+    (congrArg J₀ (TauCeti.tangentCoordChange_tangentCoordChange (by simp [hx]) (by simp) _))
 
 end SymplecticGeometry
 

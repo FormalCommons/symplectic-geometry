@@ -88,7 +88,8 @@ Tau Ceti has, at the pinned version:
   `inChartAt_mextDeriv` (`Chart.lean`), and the pullback `mpullback` with
   its API (`DifferentialForm/Pullback/`, `DifferentialForm/Naturality.lean`).
 
-Tau Ceti has no Sobolev or $L^2$ space of forms on a manifold, no elliptic
+Tau Ceti has the $L^2$ space of forms on a manifold (`TauCeti.L2Form`),
+but no Sobolev space of forms on a manifold, no elliptic
 regularity on manifolds, no Hodge star or Laplacian of complex-valued
 forms, no Lefschetz operator, and no Kähler identities. Mathlib has only
 the linear `exteriorPower.hodgeStar`. This part adds the analytic half of
@@ -111,12 +112,17 @@ parametrix glued from charts.
   order on a manifold, neither of which Tau Ceti has. The route here needs
   neither: the Euclidean statements it needs exist, and the abstract
   Fredholm theory exists.
-- **The Hilbert spaces.** `L2Form o k` is the completion of the smooth
-  `k`-forms for the inner product $\int_M\langle\alpha,\beta\rangle\,
-  \mathrm{vol}$. `H1Form o hkl` is the completion for
+- **The Hilbert spaces.** `L2Form o k` is the closure of the smooth
+  `k`-forms in Tau Ceti's `TauCeti.L2Form I M k`, the square-integrable
+  `k`-forms for the Borel structure of the compact `M`, through
+  `compactlySupportedForms.toL2Form`; its inner product is
+  $\int_M\langle\alpha,\beta\rangle\,\mathrm{vol}$ on smooth forms, by
+  Tau Ceti's
+  `integralTopForm_inner_smul_riemannianVolumeForm_eq_inner_toL2Form`.
+  `H1Form o hkl` is the completion for
   $\langle\alpha,\beta\rangle+\langle\Delta\alpha,\beta\rangle$, which is an
-  inner product by Tau Ceti's Green's formulas. Both are
-  `UniformSpace.Completion`s of type synonyms of `SmoothForm I M ℝ k`
+  inner product by Tau Ceti's Green's formulas: the
+  `UniformSpace.Completion` of a type synonym of `SmoothForm I M ℝ k`
   carrying `InnerProductSpace.ofCore`. The Dirichlet form
   $\langle\Delta\alpha,\beta\rangle$ extends to a bounded bilinear form on
   `H1Form`, and the inclusion `H1Form.toL2` is the map $J$. Gårding's
@@ -444,10 +450,10 @@ Named like Tau Ceti's file; used by `L2.lean`.
 - `TauCeti.SmoothForm.l2Inner o (α β : SmoothForm I M ℝ k) : ℝ`, the integral of
   `alternatingFormInner` against `riemannianVolumeForm o`, written inline
   in Tau Ceti's `Codifferential.lean`, with `l2Inner_def`, symmetry,
-  bilinearity and `l2Inner_self_eq_zero_iff` (through
-  `l2Inner_eq_integral`, the integral against `riemannianVolume I M`,
-  so in every dimension).
-- `L2Form o k`, the Hilbert space completion described above, with
+  additivity and `l2Inner_self_eq_zero_iff`, the last two read off the
+  inner product of `L2Form o k` through `inner_ofSmooth`.
+- `L2Form o k`, the closed subspace of `TauCeti.L2Form I M k` described
+  above, with
   `L2Form.ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] L2Form o k`,
   `inner_ofSmooth`, `ofSmooth_injective` and `denseRange_ofSmooth`.
 - `L2Form.localize ψ χ hχ : L2Form o k →L[ℝ] Lp Λ 2 volume`, with

@@ -22,7 +22,9 @@ import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
 import SymplecticGeometry.Geometry.Manifold.Orientation.CoordinateBall
 import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 import TauCeti.Geometry.Manifold.CoordinateBall
+import TauCeti.Geometry.Manifold.MFDeriv.ModelChart
 import TauCeti.Geometry.Manifold.ModelTransport.Finrank
+import TauCeti.LinearAlgebra.Orientation.Basic
 import TauCeti.Topology.OpenPartialHomeomorph.Constructions
 
 /-!
@@ -926,9 +928,9 @@ private theorem hasFDerivAt_ofChartHomeomorph (c : EuclideanSpace ℝ (Fin 2)) {
 private theorem orientation_map_ofChartLinearEquiv {r : ℝ} (hr : 0 < r) :
     Complex.orientation.map (Fin 2) (ofChartLinearEquiv hr).toLinearEquiv =
       (EuclideanSpace.basisFun (Fin 2) ℝ).toBasis.orientation := by
-  have hs : (((ContinuousLinearEquiv.smulLeft (Units.mk0 (r / 2) (by positivity))) :
-      EuclideanSpace ℝ (Fin 2) ≃L[ℝ] EuclideanSpace ℝ (Fin 2)).toLinearEquiv :
-        EuclideanSpace ℝ (Fin 2) →ₗ[ℝ] EuclideanSpace ℝ (Fin 2)) = (r / 2) • LinearMap.id := by
+  have hs : ((ContinuousLinearEquiv.smulLeft (Units.mk0 (r / 2) (by positivity))) :
+      EuclideanSpace ℝ (Fin 2) ≃L[ℝ] EuclideanSpace ℝ (Fin 2)).toLinearEquiv =
+        LinearEquiv.smulOfNeZero ℝ _ (r / 2) (by positivity) := by
     ext
     simp
   -- The underlying linear equivalence of `Complex.orthonormalBasisOneI.repr`, through either
@@ -937,10 +939,8 @@ private theorem orientation_map_ofChartLinearEquiv {r : ℝ} (hr : 0 < r) :
       Complex.orthonormalBasisOneI.repr.toLinearEquiv :=
     (rfl)
   rw [ofChartLinearEquiv, ContinuousLinearEquiv.trans_toLinearEquiv, Orientation.map_trans,
-    hrepr, Complex.orientation_map_orthonormalBasisOneI_repr,
-    Orientation.map_eq_iff_det_pos _ _ (by simp), hs, LinearMap.det_smul, LinearMap.det_id,
-    finrank_euclideanSpace_fin]
-  positivity
+    hrepr, Complex.orientation_map_orthonormalBasisOneI_repr, hs,
+    Orientation.map_smulOfNeZero_of_pos _ (by positivity)]
 
 /-- **The parametrization of a coordinate disc from a chart preserves orientation.** For `r > 0`,
 the map `w ↦ c + (r / 2) (re w, im w)` from the ball of radius `2` of `ℂ` to `ℝ²` preserves
@@ -976,13 +976,11 @@ private theorem toHomologicalOrientation_apply_ofChart
   obtain ⟨D, hD, hω⟩ := (Manifold.Orientation.isOrientationPreservingAt_iff _ _ _ _).1 he
   -- `D` is the derivative of `e` at `x`, between tangent spaces that are `ℝ²`.
   let D' : EuclideanSpace ℝ (Fin 2) ≃L[ℝ] EuclideanSpace ℝ (Fin 2) := D
-  have hfd : HasFDerivAt (e ∘ (extChartAt (𝓡 2) x).symm)
-      (D' : EuclideanSpace ℝ (Fin 2) →L[ℝ] EuclideanSpace ℝ (Fin 2)) (extChartAt (𝓡 2) x x) := by
-    have h := (mdifferentiableAt_of_isInvertible_mfderiv ⟨D, hD⟩).hasMFDerivAt.2
-    have hext : writtenInExtChartAt (𝓡 2) (𝓡 2) x e = e ∘ (extChartAt (𝓡 2) x).symm := by
-      ext y
-      simp [writtenInExtChartAt]
-    rwa [hext, ModelWithCorners.range_eq_univ, hasFDerivWithinAt_univ, ← hD] at h
+  have hfd : HasFDerivAt (e ∘ (chartAt (EuclideanSpace ℝ (Fin 2)) x).symm)
+      (D' : EuclideanSpace ℝ (Fin 2) →L[ℝ] EuclideanSpace ℝ (Fin 2))
+      (chartAt (EuclideanSpace ℝ (Fin 2)) x x) :=
+    TauCeti.hasMFDerivAt_iff_hasFDerivAt_comp_chartAt_symm.1
+      (hD ▸ (mdifferentiableAt_of_isInvertible_mfderiv ⟨D, hD⟩).hasMFDerivAt)
   have h := (hasFDerivAt_ofChartHomeomorph_symm c hr _).comp _ hfd
   rw [ContinuousLinearEquiv.comp_coe] at h
   refine Manifold.Orientation.toHomologicalOrientation_apply_eq_localOrientationOfOrientedChart

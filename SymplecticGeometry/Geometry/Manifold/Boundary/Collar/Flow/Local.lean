@@ -53,9 +53,10 @@ hyperplane in place of an immersion; see also Lee, Theorem 9.20. Near that point
 half-space models (`PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`), and in the
 charts of `∂W × [0, ∞)` and `W` this is the map `(x, t) ↦ γ (-t, x)`.
 
-Uniqueness: an integral curve of an outward field cannot meet the boundary at a time near which
-it is defined on both sides, since the zeroth chart coordinate would have a local minimum with
-negative derivative (`IsMIntegralCurveOn.mem_interior_of_isOutwardPointing`); so two integral
+Uniqueness: an integral curve of an outward field cannot meet the boundary at a time from which
+it is defined for a while forward, since its velocity there within `[t, ∞)` would be outward,
+which Tau Ceti's `TauCeti.not_isOutwardPointing_curveVelocityWithin_Ici` rules out
+(`IsMIntegralCurveOn.mem_interior_of_isOutwardPointing`); so two integral
 curves on `(-η, 0]` are in the interior at negative times, where Tau Ceti's uniqueness theorem
 `IsMIntegralCurveOn.eqOn_of_isPreconnected` applies. When they start at a boundary point, they
 first agree on some `[l, 0]` by Tau Ceti's
@@ -94,31 +95,21 @@ variable {n : ℕ} {W : Type*} [TopologicalSpace W] [ChartedSpace (EuclideanHalf
   {Y : (x : W) → TangentSpace (𝓡∂ (n + 1)) x}
 
 /-- An integral curve of a vector field that points outward along the boundary is in the interior
-at every time near which it is defined on both sides. -/
+at every time `t` of its domain `s` from which it is defined for a while forward, that is with
+`s ∈ 𝓝[≥] t`. -/
 theorem _root_.IsMIntegralCurveOn.mem_interior_of_isOutwardPointing
-    [IsManifold (𝓡∂ (n + 1)) 1 W]
     (hY : ∀ x ∈ (𝓡∂ (n + 1)).boundary W, IsOutwardPointing x (Y x)) {γ : ℝ → W} {s : Set ℝ}
-    (hγ : IsMIntegralCurveOn γ Y s) {t : ℝ} (hs : s ∈ 𝓝 t) :
+    (hγ : IsMIntegralCurveOn γ Y s) {t : ℝ} (hs : s ∈ 𝓝[≥] t) :
     γ t ∈ (𝓡∂ (n + 1)).interior W := by
   rw [← ModelWithCorners.compl_boundary]
   intro hb
-  set φ := extChartAt (𝓡∂ (n + 1)) (γ t)
-  -- The zeroth chart coordinate along `γ` has a local minimum `0` at `t` ...
-  have hmin : IsLocalMin (fun r ↦ φ (γ r) 0) t := by
-    have hc : ContinuousAt γ t := (hγ.continuousWithinAt (mem_of_mem_nhds hs)).continuousAt hs
-    filter_upwards [hc.preimage_mem_nhds (extChartAt_source_mem_nhds (I := 𝓡∂ (n + 1)) (γ t))]
-      with r hr
-    have h := extChartAt_target_subset_range (γ t) (φ.map_source hr)
-    rw [range_modelWithCornersEuclideanHalfSpace] at h
-    rw [extChartAt_self_apply_zero hb]
-    exact h
-  -- ... but its derivative there is the zeroth coordinate of `Y (γ t)`, which is negative.
-  have hd :=
-    (PiLp.proj 2 (fun _ : Fin (n + 1) ↦ ℝ) 0).hasFDerivAt.comp_hasDerivAt t
-      ((Manifold.hasDerivWithinAt_extChartAt_comp_curve (hγ t (mem_of_mem_nhds hs))).hasDerivAt hs)
-  have hneg := (isOutwardPointing_iff.1 (hY _ hb)).2
-  rw [mfderiv_extChartAt_self] at hneg
-  exact hneg.ne (hmin.hasDerivAt_eq_zero hd)
+  -- The velocity of `γ` at `t` within `[t, ∞)` is `Y (γ t)`, which is outward, but no curve
+  -- running forward from `t` has an outward velocity there.
+  apply not_isOutwardPointing_curveVelocityWithin_Ici (n := n) γ t
+  rw [Manifold.curveVelocityWithin_eq_of_hasMFDerivWithinAt
+    ((hγ t (mem_of_mem_nhdsWithin self_mem_Ici hs)).mono_of_mem_nhdsWithin hs)
+    (uniqueDiffOn_Ici t t self_mem_Ici)]
+  exact hY _ hb
 
 variable [IsManifold (𝓡∂ (n + 1)) ∞ W]
 
@@ -301,8 +292,8 @@ private theorem exists_partialDiffeomorph_flowOf_boundaryParam (hw : ContDiff �
       (∀ q ∈ Θ.source, Θ q = flowOf (I := 𝓘(ℝ, EuclideanSpace ℝ (Fin (n + 1)))) w (-q.2 0)
         (euclideanHalfSpaceBoundaryParam n q.1)) ∧
       ∀ q ∈ Θ.source, Θ q ∈ range (𝓡∂ (n + 1)) ↔ q ∈ range ((𝓡 n).prod (𝓡∂ 1)) := by
-  obtain ⟨Θ, hΘ0, hΘR, hGΘ⟩ := IsLocalDiffeomorphAt.exists_partialDiffeomorph_source_subset
-    (isLocalDiffeomorphAt_flowOf_euclideanHalfSpaceBoundaryParam hw z₀ hw₀) (hR.mem_nhds hz₀R)
+  obtain ⟨Θ, hΘ0, hΘR, hGΘ⟩ := IsLocalDiffeomorphAt.exists_partialDiffeomorph_eqOn
+    (isLocalDiffeomorphAt_flowOf_euclideanHalfSpaceBoundaryParam hw z₀ hw₀) hR hz₀R
   refine ⟨Θ, hΘ0, hΘR, fun q hq ↦ (hGΘ hq).symm, ?_⟩
   rintro ⟨z, τ⟩ hq
   rw [← hGΘ hq, ModelWithCorners.range_prod, range_modelWithCornersEuclideanHalfSpace,
@@ -389,8 +380,7 @@ theorem exists_isMIntegralCurveOn_of_isOutwardPointing (hY : IsOutwardPointingFi
   obtain ⟨w, hw, V, hV, hpV, hVt, hwv⟩ :=
     exists_contDiff_eqOn_mpullbackWithin_extChartAt_symm hYs p.property
   have hw₀ : w (φ p) 0 < 0 := by
-    have h := (isOutwardPointing_iff.1 (hYb p p.property)).2
-    rw [mfderiv_extChartAt_self] at h
+    have h := (isOutwardPointing_iff_proj p.property).1 (hYb p p.property)
     rwa [← mpullbackWithin_extChartAt_symm_self Y (p : W),
       ← hwv ⟨hpV, extChartAt_target_subset_range _ (mem_extChartAt_target _)⟩] at h
   obtain ⟨η₀, hη₀, r, hr, hbox⟩ := exists_flowOf_box (hw.of_le (by simp)) hV hpV hw₀
@@ -540,7 +530,7 @@ theorem _root_.IsMIntegralCurveOn.eqOn_of_isOutwardPointing [T2Space W]
   -- At negative times, both curves are in the interior.
   have hint : ∀ t ∈ Ioo (-η) 0, γ t ∈ (𝓡∂ (n + 1)).interior W := fun t ht ↦
     hγ.mem_interior_of_isOutwardPointing hYb
-      (mem_of_superset (Ioo_mem_nhds ht.1 ht.2) Ioo_subset_Ioc_self)
+      (nhdsWithin_le_nhds (mem_of_superset (Ioo_mem_nhds ht.1 ht.2) Ioo_subset_Ioc_self))
   by_cases hb : γ 0 ∈ (𝓡∂ (n + 1)).boundary W
   · obtain ⟨l, hl, hEq⟩ := exists_eqOn_Icc_of_mem_boundary hYs hη hγ hδ h0 hb
     have hIoo := IsMIntegralCurveOn.eqOn_of_isPreconnected (hγ.mono Ioo_subset_Ioc_self)

@@ -17,6 +17,7 @@ public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Transports
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
 # The Gray vector field, the Gray isotopy and Gray stability
@@ -171,8 +172,7 @@ theorem tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_subtype_val
       α.grayVectorField t x := by
   simpa only [Manifold.mfderiv_subtype_val, ContinuousLinearEquiv.coe_coe] using
     mfderiv_grayVectorField_mpullback_prodMap _ hc Subtype.val contMDiff_subtypeVal
-      (fun y ↦ Manifold.mfderiv_subtype_val (I := J) y ▸
-        (Manifold.tangentSpaceOpenEquiv (I := J) y).bijective) x
+      (fun y ↦ TauCeti.bijective_mfderiv_subtype_val (I := J) y) x
 
 end TauCeti.SmoothForm
 
@@ -228,8 +228,7 @@ theorem tangentSpaceOpenEquiv_grayVectorField_mpullback_prodMap_inclusion {U V :
         (α.grayVectorField t (Opens.inclusion hVU x)) := by
   rw [← mfderiv_grayVectorField_mpullback_prodMap _ hc (Opens.inclusion hVU)
     (contMDiff_inclusion hVU)
-    (fun y ↦ ((isLocalDiffeomorph_inclusion (n := ∞) hVU y).isInvertible_mfderiv
-      (by simp)).bijective) x,
+    (fun y ↦ TauCeti.bijective_mfderiv_inclusion hVU y) x,
     Manifold.tangentSpaceOpenEquiv_mfderiv_inclusion_apply]
 
 omit [I.Boundaryless] in
