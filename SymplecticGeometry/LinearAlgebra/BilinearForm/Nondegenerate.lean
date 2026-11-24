@@ -19,12 +19,14 @@ the radical of the restriction of `B` to `W` is the line spanned by a vector `x 
 Over a field this applies to a hyperplane `W` and any `e ∉ W`; the hypotheses force `e ∉ W`
 anyway, since `x` pairs to zero with all of `W`. For alternating forms this is the step, on each
 tangent space, of the proof that the coupling forms of the minimal coupling construction of
-Sternberg and Weinstein are symplectic (McDuff–Salamon, Theorem 6.3.3): there `W` is the kernel
-of the differential of the coupling parameter, and `x` is the generator of the circle action.
+Sternberg and Weinstein are symplectic (McDuff–Salamon, Proposition 5.1.9): there `W` is the
+kernel of the differential of the coupling parameter, and `x` is the generator of the circle
+action.
 
 ## References
 
-* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017]
+* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
+  Proposition 5.1.9
 -/
 
 public section
