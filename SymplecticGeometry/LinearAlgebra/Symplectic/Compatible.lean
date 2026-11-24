@@ -208,9 +208,8 @@ variable {ω : SymplecticForm V} {J : AlmostComplexStructure V}
 subspaces. -/
 theorem Invariant.isLagrangian_map (h : ω.Invariant J) {L : Submodule ℝ V}
     (hL : ω.IsLagrangian L) : ω.IsLagrangian (L.map J.toLinearMap) :=
-  (isLagrangian_map_iff_of_apply_eq_mul J.linearEquiv one_ne_zero fun v w ↦ by
-    rw [one_mul]
-    exact (ω.invariant_iff J).1 h v w).2 hL
+  (IsSymplectomorphism.isLagrangian_map_iff (e := J.linearEquiv)
+    (isSymplectomorphism_iff.2 ((ω.invariant_iff J).1 h))).2 hL
 
 /-- If a linear map `f` sends the Lagrangian subspaces of `ω` to Lagrangian subspaces of `ω'`,
 then it sends `ω`-orthogonal pairs to `ω'`-orthogonal pairs: `ω(v, w) = 0` implies
@@ -333,10 +332,9 @@ theorem Invariant.orthogonal_map (hJ : ω.Invariant J) (U : Submodule ℝ V) :
 
 /-- For a `J`-invariant form, the image under `J` of an isotropic subspace is isotropic. -/
 theorem Invariant.isIsotropic_map (hJ : ω.Invariant J) {U : Submodule ℝ V}
-    (hU : ω.IsIsotropic U) : ω.IsIsotropic (U.map J.toLinearMap) := by
-  rw [isIsotropic_iff] at hU ⊢
-  rintro _ ⟨u, hu, rfl⟩ _ ⟨v, hv, rfl⟩
-  exact ((ω.invariant_iff J).1 hJ u v).trans (hU u hu v hv)
+    (hU : ω.IsIsotropic U) : ω.IsIsotropic (U.map J.toLinearMap) :=
+  (IsSymplectomorphism.isIsotropic_map_iff (e := J.linearEquiv)
+    (isSymplectomorphism_iff.2 ((ω.invariant_iff J).1 hJ))).2 hU
 
 /-- For a compatible pair on a finite-dimensional space, every subspace is complementary to its
 orthogonal for the associated inner product `g = ω(·, J ·)`. -/
