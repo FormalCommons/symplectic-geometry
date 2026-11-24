@@ -27,9 +27,10 @@ instance.
 * `Bundle.Trivialization.transFiberHomeomorph_baseSet`, `_source`, `_target`, `_symm_apply`: the
   base set, source, target and inverse of Mathlib's `Bundle.Trivialization.transFiberHomeomorph`,
   which composes a trivialization with a homeomorphism of the model fibre.
-* `Bundle.Trivialization.compHomeomorph_baseSet`, `_source`, `_target`, `_symm_apply`: the base
-  set, source, target and inverse of Mathlib's `Bundle.Trivialization.compHomeomorph`, which
-  precomposes a trivialization with a homeomorphism of the total space.
+* `Bundle.Trivialization.compHomeomorph_apply`, `_baseSet`, `_source`, `_target`, `_symm_apply`:
+  the map, base set, source, target and inverse of Mathlib's
+  `Bundle.Trivialization.compHomeomorph`, which precomposes a trivialization with a homeomorphism
+  of the total space.
 * `FiberBundle.changeModelFiber`: a fibre bundle with fibre `F` is a fibre bundle with fibre `F'`,
   its atlas being the image of the atlas with fibre `F`.
 
@@ -127,6 +128,10 @@ section compHomeomorph
 
 variable {B F Z Z' : Type*} [TopologicalSpace B] [TopologicalSpace F] [TopologicalSpace Z]
   [TopologicalSpace Z'] {proj : Z → B} (e : Trivialization F proj) (h : Z' ≃ₜ Z)
+
+@[simp]
+theorem compHomeomorph_apply (x : Z') : e.compHomeomorph h x = e (h x) :=
+  (rfl)
 
 @[simp]
 theorem compHomeomorph_baseSet : (e.compHomeomorph h).baseSet = e.baseSet :=
