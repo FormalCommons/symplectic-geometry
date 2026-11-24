@@ -75,9 +75,12 @@ may adjust implicit arguments and instance arguments to what elaborates.
    of $\mathrm{GL}(n,\mathbb C)$, would need Chevalley's algebraicity
    theorem, which the milestones do not use. So the part has a structure
    `LieComplexification I G IC Gc` with the following fields. `Gc` is a
-   real Lie group over `IC`, and `toHom : G →* Gc` is smooth and injective.
-   `lieMap : 𝔤 →ₗ⁅ℝ⁆ GroupLieAlgebra IC Gc` is the derivative of `toHom` at
-   `1`. `cplx` is a real-linear map on `GroupLieAlgebra IC Gc` with square
+   real Lie group over `IC`, and `toHom` is an injective
+   `ContMDiffMonoidMorphism` from `G` to `Gc`. Its derivative at `1`,
+   `C.lieMap`, is a definition and not a field: Tau Ceti's
+   `ContMDiffMonoidMorphism.groupLieAlgebraLieHom`, with `map_lieExp` for
+   its exponential (`Geometry/Lie/Functor.lean`). Then
+   `cplx` is a real-linear map on `GroupLieAlgebra IC Gc` with square
    `-1` that commutes with each `ad` (a complex Lie algebra). The ranges of
    `lieMap` and of `cplx ∘ lieMap` are complementary. Finally there is
    `polar : 𝔤 × G ≃ₘ⟮_, IC⟯ Gc`, a diffeomorphism with
@@ -155,7 +158,7 @@ may adjust implicit arguments and instance arguments to what elaborates.
    are moment-map theory and go in Tau Ceti's folder
    `Geometry/Symplectic/Hamiltonian/MomentMap/`, under `KempfNess/` and
    `HilbertMumford.lean`. This replaces the folder `Geometry/Symplectic/Kahler/`
-   of `DESIGN.md`, which this pull request corrects.
+   that `DESIGN.md` first gave, and `DESIGN.md` now names these files.
 
 ## Files
 
