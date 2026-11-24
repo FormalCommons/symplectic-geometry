@@ -12,8 +12,7 @@ public import SymplecticGeometry.LinearAlgebra.Complex.FiniteDimensional
 import SymplecticGeometry.Analysis.SpecialFunctions.Complex.CircleLog
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.CoordinateDisc
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
-import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Generic
-import TauCeti.Geometry.Manifold.VectorBundle.Section.FiniteSpan
+import TauCeti.Geometry.Manifold.VectorBundle.Section.Generic
 
 /-!
 # Unit sections of a Hermitian line bundle with transitions `(z / ‖z‖) ^ k`
@@ -33,10 +32,8 @@ the first Chern number of `V`, by
 
 The construction:
 
-* a smooth section `s` of `V` with finitely many zeros, a linear combination of a finite spanning
-  family (Tau Ceti's `TauCeti.exists_fin_spanning_contMDiffSection` and
-  `ContMDiffSection.exists_mem_span_isClosed_isDiscrete_zero`); its zero set is closed and
-  discrete in a compact space;
+* a smooth section `s` of `V` with finitely many zeros (Tau Ceti's
+  `TauCeti.exists_contMDiffSection_regular_finite_zero_of_finrank_eq`);
 * disjoint oriented coordinate discs `φ i` about the zeros, each inside the domain of a smooth
   local unit section `σ i`
   (`SymplecticGeometry.CoordinateDisc.exists_ofChart_pairwise_disjoint`,
@@ -192,11 +189,11 @@ theorem exists_coordinateDisc_unitSection_eq_phase_zpow_smul
   have hF : finrank ℝ F = 2 := by
     rw [← Module.finrank_mul_finrank ℝ ℂ F, Complex.finrank_real_complex,
       Fact.out (p := finrank ℂ F = 1)]
-  obtain ⟨n, t, ht⟩ := exists_fin_spanning_contMDiffSection (I := 𝓡 2) (F := F) (V := V)
-  obtain ⟨s, -, hsc, hsd⟩ := ContMDiffSection.exists_mem_span_isClosed_isDiscrete_zero
-    (by rw [finrank_euclideanSpace_fin, hF]) t ht
+  obtain ⟨s, -, hfin⟩ := exists_contMDiffSection_regular_finite_zero_of_finrank_eq
+    (X := EuclideanSpace ℝ (Fin 2)) (F := F) (V := V) (by rw [finrank_euclideanSpace_fin, hF])
+  have hsc : IsClosed {x | s x = 0} := hfin.isClosed
   let ι : Type := {x | s x = 0}
-  let : Fintype ι := (hsc.isCompact.finite hsd).fintype
+  let : Fintype ι := hfin.fintype
   -- smooth unit sections `τ x` near each point, and oriented charts `e i` about the zeros
   choose U hUo hxU τ hτ using fun x : M ↦ exists_contMDiffOn_circleFiber (n := ∞) g hI x
   obtain ⟨e, r, hr, hc, he, hatlas, -, -, -, hφ0, -, -, hrU, hrdisj⟩ :=
