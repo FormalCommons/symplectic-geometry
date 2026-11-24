@@ -9,6 +9,9 @@ public import Mathlib.Analysis.LocallyConvex.HahnBanach
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Submodule
 public import TauCeti.Geometry.Lie.Subgroup.BalancedProduct
 public import TauCeti.Geometry.Manifold.GroupAction.EquivariantSlice
+public import TauCeti.Geometry.Manifold.GroupAction.TransverseSlice
+public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
 /-!
 # The tube map of an orbit
@@ -37,15 +40,22 @@ an open subset `U` of `V` inside the target of `e` that is invariant under every
 * the *tube map* `[g, v] ↦ g • e.symm v` on the balanced product `G ×_H U`, Tau Ceti's
   `TauCeti.BalancedProduct.liftRightTranslation` of the slice map
   (`SymplecticGeometry.LinearizingChart.SliceDomain.tubeMap`), is smooth for the manifold
-  structure `TauCeti.BalancedProduct.rightTranslationChartedSpace`, `G`-equivariant, and sends
-  `[1, 0]` to `x`.
+  structure `TauCeti.BalancedProduct.rightTranslationChartedSpace`, is `G`-equivariant and
+  sends `[1, 0]` to `x`;
+* composed with the differential at `(1, 0)` of the projection `π : G × U → G ×_H U`, a
+  submersion, the differential of the tube map at `[1, 0]` is `(ξ, v) ↦ ξ_M(x) + v`. This is
+  the differential at `(1, 0)` of `(g, v) ↦ g • e.symm v` on `G × V`, so Tau Ceti's
+  `TauCeti.surjective_mfderiv_smul_slice` and `TauCeti.mfderiv_smul_slice_eq_zero_iff` give that
+  it is onto `T_x M` when `V + 𝔤 · x = T_x M`, and that it vanishes exactly on `𝔤_x × 0` when
+  `V ∩ 𝔤 · x = 0`.
 
 The equivariance `e.symm (dh_x v) = h • e.symm v` of the slice map
-(`SymplecticGeometry.LinearizingChart.symm_mfderiv_smul`) adapts a step of the
-proof of Tau Ceti's `TauCeti.exists_equivariant_slice_of_isCompact_stabilizer`, stated on its own.
+(`SymplecticGeometry.LinearizingChart.symm_mfderiv_smul`) and the derivative of `e.symm` at `0`
+(`SymplecticGeometry.LinearizingChart.hasMFDerivAt_symm`) adapt steps of the proof of Tau Ceti's
+`TauCeti.exists_equivariant_slice_of_isCompact_stabilizer`, stated on their own.
 
-Nothing here asks `U` to be small or `V` to be a complement of `𝔤 · x`; those are needed for the
-tube map to be a local diffeomorphism.
+Nothing here asks `U` to be small; that is needed for the tube map to be a local
+diffeomorphism.
 
 ## Main definitions
 
@@ -67,6 +77,12 @@ tube map to be a local diffeomorphism.
   `SymplecticGeometry.LinearizingChart.SliceDomain.tubeMap_smul`,
   `SymplecticGeometry.LinearizingChart.SliceDomain.tubeMap_mk_one_zero`: the tube map is smooth,
   `G`-equivariant, and sends `[1, 0]` to `x`.
+* `SymplecticGeometry.LinearizingChart.SliceDomain.mfderiv_tubeMap_mfderiv_quotientMk`: the
+  differential of the tube map at `[1, 0]`, composed with that of the projection, is
+  `(ξ, v) ↦ ξ_M(x) + v`.
+* `SymplecticGeometry.LinearizingChart.SliceDomain.surjective_mfderiv_tubeMap_mfderiv_quotientMk`,
+  `SymplecticGeometry.LinearizingChart.SliceDomain.mfderiv_tubeMap_mfderiv_quotientMk_eq_zero_iff`:
+  this composite is onto `T_x M`, and has kernel `𝔤_x × 0`, for suitable `V`.
 
 ## References
 
@@ -137,6 +153,26 @@ theorem symm_mfderiv_smul {g : G} (hg : g ∈ stabilizer G x) {v : E'}
     e.chart.symm (mfderiv I' I' (fun y : M ↦ g • y) x v) = g • e.chart.symm v := by
   rw [e.mfderiv_smul_eq hg hv,
     e.chart.left_inv (e.smul_mem_source g hg _ (e.chart.map_target hv))]
+
+/-- The inverse of a linearizing chart at `x` has derivative the identity at `0`. -/
+theorem hasMFDerivAt_symm :
+    HasMFDerivAt 𝓘(ℝ, E') I' e.chart.symm 0 (ContinuousLinearMap.id ℝ E') := by
+  have hsd : MDifferentiableAt 𝓘(ℝ, E') I' e.chart.symm 0 :=
+    (e.contMDiffOn_symm.contMDiffAt (e.chart.open_target.mem_nhds e.zero_mem_target))
+      |>.mdifferentiableAt (by simp)
+  have hed : MDifferentiableAt I' 𝓘(ℝ, E') e.chart (e.chart.symm 0) :=
+    by rw [e.symm_zero]; exact e.hasMFDerivAt.mdifferentiableAt
+  refine hsd.hasMFDerivAt.congr_mfderiv (ContinuousLinearMap.ext fun w ↦ ?_)
+  -- `de_x` is the identity, and it undoes the derivative of `e.symm` at `0`.
+  have h := e.chart.mfderiv_apply_mfderiv_symm_apply e.zero_mem_target hed hsd w
+  rwa [e.symm_zero, e.hasMFDerivAt.mfderiv] at h
+
+/-- The inverse of a linearizing chart at `x`, restricted to a subspace `V`, has derivative the
+inclusion of `V` at `0`. -/
+theorem hasMFDerivAt_symm_comp_subtype (V : Submodule ℝ E') :
+    HasMFDerivAt 𝓘(ℝ, V) I' (fun v : V ↦ e.chart.symm (v : E')) 0 V.subtypeL := by
+  have h := e.hasMFDerivAt_symm.comp (0 : V) V.subtypeL.hasMFDerivAt
+  exact h.congr_mfderiv (ContinuousLinearMap.id_comp _)
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField in
 /-- **Linearizing charts exist at points with compact stabilizer**, for a smooth action of a
@@ -258,6 +294,18 @@ theorem contMDiff_coe : ContMDiff 𝓘(ℝ, V) 𝓘(ℝ, E') ∞ fun z : U ↦ (
 theorem contMDiff_sliceMap : ContMDiff 𝓘(ℝ, V) I' ∞ U.sliceMap :=
   e.contMDiffOn_symm.comp_contMDiff U.contMDiff_coe U.coe_mem_target
 
+/-- At a point `z` of a slice domain of `V` with `z = 0` in `V`, the slice map has derivative the
+inclusion of `V`. -/
+theorem hasMFDerivAt_sliceMap {z : U} (hz : (z : V) = 0) :
+    HasMFDerivAt 𝓘(ℝ, V) I' U.sliceMap z V.subtypeL := by
+  have h := e.hasMFDerivAt_symm_comp_subtype V
+  rw [← hz] at h
+  refine (U.contMDiff_sliceMap z |>.mdifferentiableAt (by simp)).hasMFDerivAt.congr_mfderiv
+    (ContinuousLinearMap.ext fun v ↦ ?_)
+  -- The slice map is the restriction of `v ↦ e.symm v` to the open subset `U` of `V`.
+  rw [← h.mfderiv]
+  exact Manifold.mfderiv_comp_subtype_val_apply (f := fun v : V ↦ e.chart.symm (v : E')) v
+
 /-- **The stabilizer acts smoothly on a slice domain** of a finite-dimensional subspace `V`, for
 any manifold structure on the stabilizer for which its action on `M` is smooth. -/
 instance instContMDiffSMul [TopologicalSpace G] [FiniteDimensional ℝ V] {F : Type*}
@@ -322,6 +370,125 @@ theorem tubeMap_mk_one_zero (h0 : (0 : E') ∈ U.carrier) :
       (⟨0, (U.mem_toOpens_iff).2 h0⟩ : U)) = x := by
   rw [tubeMap_mk, one_smul]
   exact e.symm_zero
+
+/-- On representatives, the tube map is the slice map `(g, v) ↦ g • e.symm v`: its composite with
+the projection `G × U → G ×_H U`. -/
+theorem tubeMap_comp_quotientMk :
+    U.tubeMap ∘ Quotient.mk (orbitRel (stabilizer G x) ((stabilizer G x).RightTranslation × U)) =
+      fun p ↦ (stabilizer G x).toRightTranslation.symm p.1 • e.chart.symm ((p.2 : V) : E') :=
+  funext fun p ↦ by
+    rw [comp_apply, BalancedProduct.quotientMk_eq_mk_toRightTranslation, tubeMap_mk]
+
+/-! ### The differential of the tube map at `[1, 0]` -/
+
+section Differential
+
+attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
+  [TopologicalSpace G] [ChartedSpace H G] [LieGroup I ∞ G] [ContMDiffSMul I I' ∞ G M]
+  [IsClosed (stabilizer G x : Set G)] [FiniteDimensional ℝ V]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+  [ChartedSpace F (stabilizer G x)] [LieGroup 𝓘(ℝ, F) ∞ (stabilizer G x)]
+  [ContMDiffSMul 𝓘(ℝ, F) I ∞ (stabilizer G x) G]
+  [ContMDiffSMul 𝓘(ℝ, F) I' ∞ (stabilizer G x) M] {z : U}
+
+variable (F) in
+/-- **The differential of the tube map at `[1, 0]`.** Composed with the differential at `(1, 0)`
+of the projection `π : G × U → G ×_H U`, a submersion
+(`TauCeti.BalancedProduct.isSubmersion_quotientMk_rightTranslation`), the differential of the tube
+map at `[1, 0]` sends `(ξ, v)` to `ξ_M(x) + v`. Here `0` is any point `z` of `U` that is `0` in
+`V`, and the hypotheses are those of `contMDiff_tubeMap`. -/
+theorem mfderiv_tubeMap_mfderiv_quotientMk (hz : (z : V) = 0) (ξ : GroupLieAlgebra I G)
+    (v : V) :
+    letI := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) U I 𝓘(ℝ, V) F
+    mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V)) I' U.tubeMap
+        (Quotient.mk _ ((stabilizer G x).toRightTranslation 1, z))
+        (mfderiv (I.prod 𝓘(ℝ, V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V))
+          (Quotient.mk (orbitRel (stabilizer G x) ((stabilizer G x).RightTranslation × U)))
+          ((stabilizer G x).toRightTranslation 1, z) (ξ, v)) =
+      HAdd.hAdd (α := TangentSpace I' x) (β := TangentSpace I' x)
+        (fundamentalVectorField I' ξ x) (v : E') := by
+  let _ := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) U I 𝓘(ℝ, V) F
+  have hπ := (BalancedProduct.isSubmersion_quotientMk_rightTranslation (K := stabilizer G x)
+    (Z := U) (I := I) (IZ := 𝓘(ℝ, V)) (F := F)).contMDiff.mdifferentiableAt
+      (x := ((stabilizer G x).toRightTranslation 1, z)) (by simp)
+  have hΦ := (U.contMDiff_tubeMap (I := I) (F := F)).mdifferentiableAt
+    (x := Quotient.mk _ ((stabilizer G x).toRightTranslation 1, z)) (by simp)
+  have : ContMDiffSMul I I' 1 G M := ContMDiffSMul.of_le (M := M) ENat.LEInfty.out
+  have hσ := U.hasMFDerivAt_sliceMap hz
+  refine (mfderiv_comp_apply _ hΦ hπ _).symm.trans ?_
+  rw [U.tubeMap_comp_quotientMk]
+  -- `(stabilizer G x).RightTranslation` is `G` with the same charts, and `toRightTranslation` is
+  -- the identity, so this is the differential of `(g, v) ↦ g • e.symm v` on `G × U` at `(1, z)`.
+  refine (mfderiv_smul_slice_apply (σ := U.sliceMap) hσ.mdifferentiableAt ξ v).trans ?_
+  rw [hσ.mfderiv, sliceMap_apply, hz, ZeroMemClass.coe_zero, e.symm_zero]
+  exact congrArg (fundamentalVectorField I' ξ x + ·) (V.subtypeL_apply v)
+
+variable (F) in
+/-- The composite of the differentials of the tube map at `[1, 0]` and of the projection
+`G × U → G ×_H U` at `(1, 0)` is the differential at `(1, 0)` of the map
+`(g, v) ↦ g • e.symm v` on `G × V`. -/
+theorem mfderiv_tubeMap_mfderiv_quotientMk_eq_mfderiv_smul_symm (hz : (z : V) = 0)
+    (ξ : GroupLieAlgebra I G) (v : V) :
+    letI := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) U I 𝓘(ℝ, V) F
+    mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V)) I' U.tubeMap
+        (Quotient.mk _ ((stabilizer G x).toRightTranslation 1, z))
+        (mfderiv (I.prod 𝓘(ℝ, V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V))
+          (Quotient.mk (orbitRel (stabilizer G x) ((stabilizer G x).RightTranslation × U)))
+          ((stabilizer G x).toRightTranslation 1, z) (ξ, v)) =
+      mfderiv (I.prod 𝓘(ℝ, V)) I' (fun p : G × V ↦ p.1 • e.chart.symm (p.2 : E')) (1, 0)
+        (ξ, v) := by
+  have : ContMDiffSMul I I' 1 G M := ContMDiffSMul.of_le (M := M) ENat.LEInfty.out
+  have hσ := e.hasMFDerivAt_symm_comp_subtype V
+  refine (U.mfderiv_tubeMap_mfderiv_quotientMk F hz ξ v).trans
+    (Eq.trans ?_ (mfderiv_smul_slice_apply hσ.mdifferentiableAt ξ v).symm)
+  rw [hσ.mfderiv, ZeroMemClass.coe_zero, e.symm_zero]
+  exact congrArg (fundamentalVectorField I' ξ x + ·) (V.subtypeL_apply v).symm
+
+variable (F) in
+/-- For a subspace `V` that spans `T_x M` together with the orbit tangent space `𝔤 · x`, the
+composite of the differentials of the tube map at `[1, 0]` and of the projection
+`G × U → G ×_H U` at `(1, 0)` is onto `T_x M`. -/
+theorem surjective_mfderiv_tubeMap_mfderiv_quotientMk [CompleteSpace E'] [IsManifold I' ∞ M]
+    (hV : (InfinitesimalAction.fundamental I G I' M).orbitTangent x ⊔ V = ⊤)
+    (hz : (z : V) = 0) :
+    letI := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) U I 𝓘(ℝ, V) F
+    Surjective fun p : GroupLieAlgebra I G × V ↦
+      mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V)) I' U.tubeMap
+        (Quotient.mk _ ((stabilizer G x).toRightTranslation 1, z))
+        (mfderiv (I.prod 𝓘(ℝ, V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V))
+          (Quotient.mk (orbitRel (stabilizer G x) ((stabilizer G x).RightTranslation × U)))
+          ((stabilizer G x).toRightTranslation 1, z) p) := by
+  have hσ := e.hasMFDerivAt_symm_comp_subtype V
+  intro w
+  obtain ⟨p, hp⟩ := surjective_mfderiv_smul_slice hV hσ.mdifferentiableAt
+    (by rw [ZeroMemClass.coe_zero, e.symm_zero])
+    (fun v ↦ (DFunLike.congr_fun hσ.mfderiv v).trans (V.subtypeL_apply v)) w
+  exact ⟨p, (U.mfderiv_tubeMap_mfderiv_quotientMk_eq_mfderiv_smul_symm F hz p.1 p.2).trans hp⟩
+
+variable (F) in
+/-- For a subspace `V` that meets the orbit tangent space `𝔤 · x` only in `0`, the composite of
+the differentials of the tube map at `[1, 0]` and of the projection `G × U → G ×_H U` at `(1, 0)`
+vanishes exactly on `𝔤_x × 0`, where `𝔤_x` is the isotropy algebra of `x`. -/
+theorem mfderiv_tubeMap_mfderiv_quotientMk_eq_zero_iff [CompleteSpace E'] [IsManifold I' ∞ M]
+    (hV : Disjoint ((InfinitesimalAction.fundamental I G I' M).orbitTangent x) V)
+    (hz : (z : V) = 0) (ξ : GroupLieAlgebra I G) (v : V) :
+    letI := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) U I 𝓘(ℝ, V) F
+    mfderiv 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V)) I' U.tubeMap
+        (Quotient.mk _ ((stabilizer G x).toRightTranslation 1, z))
+        (mfderiv (I.prod 𝓘(ℝ, V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V))
+          (Quotient.mk (orbitRel (stabilizer G x) ((stabilizer G x).RightTranslation × U)))
+          ((stabilizer G x).toRightTranslation 1, z) (ξ, v)) = 0 ↔
+      ξ ∈ (InfinitesimalAction.fundamental I G I' M).isotropy x ∧ v = 0 := by
+  have hσ := e.hasMFDerivAt_symm_comp_subtype V
+  rw [U.mfderiv_tubeMap_mfderiv_quotientMk_eq_mfderiv_smul_symm F hz ξ v]
+  exact mfderiv_smul_slice_eq_zero_iff hV hσ.mdifferentiableAt
+    (by rw [ZeroMemClass.coe_zero, e.symm_zero])
+    (fun v ↦ (DFunLike.congr_fun hσ.mfderiv v).trans (V.subtypeL_apply v)) ξ v
+
+end Differential
 
 end SliceDomain
 

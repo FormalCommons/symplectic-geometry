@@ -8,7 +8,10 @@ module
 public import Mathlib.LinearAlgebra.Projection
 public import TauCeti.Geometry.Symplectic.AlmostComplex
 public import TauCeti.LinearAlgebra.TotallyReal.Basic
+public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebraLieHom
+import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
+import SymplecticGeometry.Geometry.Lie.Adjoint.Commute
 
 /-!
 # Complexifications of Lie groups
@@ -46,6 +49,12 @@ The complex structure `cplx` is not determined by the other fields.
 * `SymplecticGeometry.LieComplexification.connectedSpace`: `Gc` is connected if `G` is.
 * `SymplecticGeometry.LieComplexification.isClosedEmbedding_toHom`: `toHom` is a closed
   embedding.
+* `SymplecticGeometry.LieComplexification.toHom_mul_expI_mul_inv`: for connected `G`, conjugation
+  by `toHom u` sends `expI ξ` to `expI (Ad u ξ)`.
+
+The conjugation formula combines Tau Ceti's `TauCeti.Lie.conj_mulInvariantExp`, the naturality of
+`Ad` along `toHom`, and the fact that `cplx`, which commutes with every `ad`, commutes with every
+`Ad` of the connected group `Gc` (`TauCeti.Lie.map_tangentAd_apply_of_map_lie`).
 
 ## References
 
@@ -242,6 +251,16 @@ theorem isClosedEmbedding_toHom : Topology.IsClosedEmbedding C.toHom := by
 theorem connectedSpace (C : LieComplexification I G IC Gc) [ConnectedSpace G] : ConnectedSpace Gc :=
   Function.Surjective.connectedSpace C.polar.toHomeomorph.surjective
     C.polar.toHomeomorph.continuous
+
+/-- For connected `G`, conjugation by the inclusion of `u` acts on `expI` through the adjoint
+action of `G`: `toHom u * expI ξ * (toHom u)⁻¹ = expI (Ad u ξ)`. -/
+theorem toHom_mul_expI_mul_inv [FiniteDimensional ℝ EC] [ConnectedSpace G] (u : G)
+    (ξ : GroupLieAlgebra I G) :
+    C.toHom u * C.expI ξ * (C.toHom u)⁻¹ = C.expI (Lie.tangentAd (I := I) u ξ) := by
+  have := C.connectedSpace
+  rw [expI_def, expI_def, Lie.conj_mulInvariantExp, lieMap_def,
+    ContMDiffMonoidMorphism.groupLieAlgebraLieHom_tangentAd, ← lieMap_def,
+    Lie.map_tangentAd_apply_of_map_lie C.cplx.toLinearMap C.cplx_lie]
 
 end LieComplexification
 
