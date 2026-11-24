@@ -13,7 +13,7 @@ import TauCeti.GroupTheory.GroupAction.Closure
 /-!
 # Orbits of a group action inside the leaves of a foliation
 
-Let a Lie group `G` act smoothly on a manifold `Z` with a `C¹` foliation `F`, and suppose that
+Let a Lie group `G` act smoothly on a manifold `Z` with a foliation `F`, and suppose that
 every fundamental vector field of the action is tangent to `F`. This file shows that the orbits
 of `G` then lie in the leaves of `F`, when `G` is connected.
 
@@ -48,8 +48,8 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   {J : ModelWithCorners ℝ E' H'}
-  {Z : Type*} [TopologicalSpace Z] [ChartedSpace H' Z] [IsManifold J (1 + 1) Z]
-  [MulAction G Z] [ContMDiffSMul I J ∞ G Z] {k : ℕ} (F : Foliation J 1 Z k)
+  {Z : Type*} [TopologicalSpace Z] [ChartedSpace H' Z] {n : ℕ∞ω} [IsManifold J (n + 1) Z]
+  [MulAction G Z] [ContMDiffSMul I J ∞ G Z] {k : ℕ} (F : Foliation J n Z k)
 
 /-- **Exponential translates stay on a leaf.** If every fundamental vector field of the action of
 `G` on `Z` is tangent to the foliation `F`, then for every `ξ` in the Lie algebra of `G` and every
