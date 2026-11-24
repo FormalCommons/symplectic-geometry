@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.Orientation.Sphere
 public import TauCeti.Geometry.Symplectic.Manifold.Volume
 import SymplecticGeometry.Geometry.Manifold.Orientation.Sphere
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.TwoForm
+import TauCeti.Geometry.Symplectic.Manifold.Surface
 
 /-!
 # The symplectic orientation of a negated two-form, and of a two-form on a surface
@@ -29,7 +30,9 @@ this is the outward-normal orientation.
   orientation of `-σ` is the negative of that of `σ`.
 * `TauCeti.SmoothTwoForm.volumeForm_one`: the volume form `σ¹ / 1!` is `σ`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.volumeOrientation_eq_ofTopForm`: on a surface, the
-  symplectic orientation of `σ` is the orientation defined by `σ` as a top form.
+  symplectic orientation of `σ` is the orientation defined by `σ` as a top form. This is Tau
+  Ceti's `TauCeti.SmoothTwoForm.IsNondegenerate.orientation_eq_ofTopForm`, stated for
+  `volumeOrientation`, which agrees with Tau Ceti's `IsNondegenerate.orientation` at every point.
 * `Orientation.volumeOrientation_sphereVolumeForm`: the symplectic orientation of the volume form
   of the unit two-sphere is its outward-normal orientation.
 
@@ -93,20 +96,11 @@ theorem IsNondegenerate.volumeOrientation_eq_ofTopForm (h : σ.IsNondegenerate)
     (hE : finrank ℝ E = 2) :
     h.volumeOrientation (n := 1) hE = Manifold.Orientation.ofTopForm hE σ.val
       (σ.isSmoothForm.of_le zero_le)
-      (fun x ↦ by simpa using h.volumeForm_apply_ne_zero (n := 1) hE x) := by
-  ext x
-  have : Nonempty (Fin 2) := ⟨0⟩
-  -- A basis of the tangent space (the model space `E`) that is positive for the orientation of
-  -- `σ` as a top form; `σ` and `σ¹ / 1!` are positive on it.
-  let b := (Module.finBasisOfFinrankEq ℝ (TangentSpace I x) (by exact hE)).adjustToOrientation
-    (Manifold.Orientation.orientationAt (Manifold.Orientation.ofTopForm hE σ.val
-      (σ.isSmoothForm.of_le zero_le)
-      (fun x ↦ by simpa using h.volumeForm_apply_ne_zero (n := 1) hE x)) x)
-  have hb : b.orientation = _ := Basis.orientation_adjustToOrientation _ _
-  rw [← hb]
-  refine ((h.orientation_eq_orientationAt_volumeOrientation_iff (n := 1) hE b).2 ?_).symm
-  rw [volumeForm_one]
-  exact (Manifold.Orientation.orientation_eq_orientationAt_ofTopForm_iff hE _ _ b).1 hb
+      (fun x ↦ by simpa using h.volumeForm_apply_ne_zero (n := 1) hE x) :=
+  -- At each point, both orientations are the linear symplectic orientation of the tangent space.
+  (Manifold.Orientation.ext fun x ↦ by
+    rw [orientationAt_orientation]
+    exact h.orientationAt_volumeOrientation (n := 1) hE x).trans (h.orientation_eq_ofTopForm hE)
 
 end SmoothTwoForm
 
