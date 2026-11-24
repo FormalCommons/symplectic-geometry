@@ -63,17 +63,20 @@ variable {E : Type u} [NormedAddCommGroup E] [NormedSpace ℝ E] {M : Type*} [To
   (A : FiniteBundleAtlas E M F V)
 
 /-- The chart images of the section chart data of `V`-valued one-forms are those of `A`. -/
+@[simp]
 theorem sectionChartData_image_tangentHom' (i : Fin A.n) :
     (A.tangentHom.sectionChartData.image i : Set E) = A.image i :=
   congrArg SetLike.coe ((A.tangentHom.sectionChartData_image i).trans (image_tangentHom A i))
 
 /-- The chart overlaps of the section chart data of `V`-valued one-forms are those of `A`. -/
+@[simp]
 theorem sectionChartData_overlap_tangentHom' (i i' : Fin A.n) :
     A.tangentHom.sectionChartData.overlap i i' = A.overlap i i' :=
   (A.tangentHom.sectionChartData_overlap i i').trans (overlap_tangentHom A i i')
 
 /-- On an overlap, the chart transitions of the section chart data of `V`-valued one-forms are
 those of `A`. -/
+@[simp]
 theorem sectionChartData_transition_tangentHom' {i i' : Fin A.n} {y : E}
     (hy : y ∈ A.overlap i i') :
     A.tangentHom.sectionChartData.transition i i' y = A.transition i i' y :=
