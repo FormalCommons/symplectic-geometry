@@ -389,7 +389,7 @@ which this file imports. `Gray.lean` uses them. The velocity of a reparametrized
 time derivative of `SmoothForm.lineMapFamily α₀ α₁ hc` is
 `deriv c t • (α₁ - α₀)`), is Tau Ceti's, in the same file; *Moser isotopy* uses it in
 `Moser/Relative.lean` and `Moser/Isotopy.lean`.
-After them come `TauCeti.contMDiff_timeField`, the smoothness of the time field
+After them come `SymplecticGeometry.contMDiff_timeField`, the smoothness of the time field
 $\partial_t=(1,0)$ on $\mathbb R\times M$, the contraction
 `SmoothForm.timeInterior σ` $=\iota_{\partial_t}\sigma$ with `coe_timeInterior`,
 and `mextDerivₗ_timeInterior`: for closed `σ`, $d\,\iota_{\partial_t}\sigma$ is
