@@ -480,8 +480,9 @@ def FramingRel (f₁ f₂ : SmoothEmbedding (𝓡 n) I ∞ Sⁿ M) : Prop :=
     ∀ q, f₁ q = f₂ (Φ.final (orthogonalToDiffSphere n ∞ A q))
 theorem framingRel_iff, FramingRel.range_eq, framingRel_equivalence :
   Equivalence (FramingRel (I := I) (M := M) (n := n)),
-  framingRel_comp_orthogonal (f) (A) : FramingRel (f.comp (orthogonal A)) f,
-  framingRel_comp_final (f) (Φ) : FramingRel (f.comp Φ.final) f
+  framingRel_comp_orthogonal (f) (A) :
+    FramingRel (f.compDiffeomorph (orthogonalToDiffSphere n ∞ A)) f,
+  framingRel_comp_final (f) (Φ) : FramingRel (f.compDiffeomorph Φ.final) f
 def framingSetoid : Setoid (SmoothEmbedding (𝓡 n) I ∞ Sⁿ M)
 /-- A framed sphere: a parametrized sphere up to `FramingRel`. -/
 def FramedSphere := Quotient (framingSetoid (n := n) (I := I) (M := M))

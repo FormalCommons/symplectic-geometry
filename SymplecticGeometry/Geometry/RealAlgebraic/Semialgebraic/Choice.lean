@@ -14,10 +14,14 @@ public import SymplecticGeometry.Order.Interval.Set.IsoIoo
 A semialgebraic family of subsets of `ℝ`, given as a semialgebraic set
 `S : Set (σ ⊕ Unit → ℝ)` whose fiber over `x : σ → ℝ` is `{t | Sum.elim x (fun _ ↦ t) ∈ S}`, has a
 semialgebraic section: a function `f`, semialgebraic on the set of parameters with nonempty fiber,
-with `Sum.elim x (f x) ∈ S` there. This is definable choice for one coordinate.
+with `Sum.elim x (f x) ∈ S` there. This is definable choice for one coordinate; by induction on
+the number of coordinates it extends to a semialgebraic family `S : Set (σ ⊕ τ → ℝ)` of subsets
+of `τ → ℝ` for any finite `τ`.
 
 * `TauCeti.IsSemialgebraic.exists_isSemialgebraicOn_sumElim_mem_unit`: semialgebraic choice for
   one output coordinate. The parameters `σ` need not be finite.
+* `TauCeti.IsSemialgebraic.exists_isSemialgebraicOn_sumElim_mem`: semialgebraic choice for
+  finitely many output coordinates `τ`. Again `σ` need not be finite.
 
 On the way, the file proves tools for showing that a set described by a formula is semialgebraic:
 
@@ -46,6 +50,16 @@ for the quantifiers and `TauCeti.IsSemialgebraic.preimage_comp` for the changes 
 In general, the homeomorphism `t ↦ t / (1 + |t|)` moves the fibers into `(-1, 1)`, and composing
 the choice there with the inverse `u ↦ u / (1 - |u|)` (`TauCeti.IsSemialgebraicOn.comp`) brings
 the chosen point back.
+
+For finitely many output coordinates we induct on `τ` (`Finite.induction_empty_option`),
+transporting the statement along bijections of `τ`
+(`TauCeti.isSemialgebraicOn_comp_equiv_iff`). With no output coordinates the section is constant.
+For `α ⊕ Unit`, regroup the coordinates of `S` as `(σ ⊕ α) ⊕ Unit` and let `T ⊆ (σ ⊕ α → ℝ)`
+be its projection forgetting the last coordinate. Choose `f₁` for `T` by induction, and `g`
+for the last coordinate over `T` by the one-coordinate result; then
+`x ↦ Sum.elim (f₁ x) (g (Sum.elim x (f₁ x)))` is a section. Its graph is the intersection of
+preimages of the graphs of `f₁` and `g` under changes of coordinates, so no projection, and no
+finiteness of `σ`, is needed to see that it is semialgebraic.
 
 ## References
 
@@ -345,6 +359,107 @@ theorem IsSemialgebraic.exists_isSemialgebraicOn_sumElim_mem_unit {S : Set (σ �
   obtain ⟨t, ht, hgt⟩ := hgS x hx
   simp only [Sum.elim_comp_inl, Sum.elim_inr] at ht hgt
   simpa only [Function.comp_apply, (mul_one_add_abs_eq_iff.1 hgt).2] using ht
+
+/-! ### Finitely many output coordinates -/
+
+section Finite
+
+/-- Semialgebraic choice transfers along a bijection `τ ≃ τ'` of the output coordinates. -/
+private theorem exists_isSemialgebraicOn_sumElim_mem_of_equiv {τ' : Type*} (e : τ ≃ τ')
+    (h : ∀ S : Set (σ ⊕ τ → ℝ), IsSemialgebraic S →
+      ∃ f : (σ → ℝ) → (τ → ℝ), IsSemialgebraicOn f {x | ∃ y, Sum.elim x y ∈ S} ∧
+        ∀ x ∈ {x | ∃ y, Sum.elim x y ∈ S}, Sum.elim x (f x) ∈ S)
+    (S : Set (σ ⊕ τ' → ℝ)) (hS : IsSemialgebraic S) :
+    ∃ f : (σ → ℝ) → (τ' → ℝ), IsSemialgebraicOn f {x | ∃ y, Sum.elim x y ∈ S} ∧
+      ∀ x ∈ {x | ∃ y, Sum.elim x y ∈ S}, Sum.elim x (f x) ∈ S := by
+  have key (x : σ → ℝ) (y : τ → ℝ) :
+      Sum.elim x y ∘ Sum.elim Sum.inl (Sum.inr ∘ e.symm) = Sum.elim x (y ∘ e.symm) := by
+    ext (i | i) <;> rfl
+  obtain ⟨f, hf, hfS⟩ := h _ (hS.preimage_comp (Sum.elim Sum.inl (Sum.inr ∘ e.symm)))
+  have hdom : {x | ∃ y, Sum.elim x y ∈
+      (fun z ↦ z ∘ Sum.elim Sum.inl (Sum.inr ∘ e.symm)) ⁻¹' S} =
+      {x | ∃ y, Sum.elim x y ∈ S} := by
+    ext x
+    simp only [mem_ofPred_eq, mem_preimage, key]
+    exact ⟨fun ⟨y, hy⟩ ↦ ⟨_, hy⟩, fun ⟨y, hy⟩ ↦ ⟨y ∘ e, by simpa [Function.comp_assoc] using hy⟩⟩
+  rw [hdom] at hf hfS
+  refine ⟨fun x ↦ f x ∘ e.symm, (isSemialgebraicOn_comp_equiv_iff e.symm).2 hf, fun x hx ↦ ?_⟩
+  simpa only [mem_preimage, key] using hfS x hx
+
+/-- Semialgebraic choice with no output coordinates. -/
+private theorem exists_isSemialgebraicOn_sumElim_mem_of_isEmpty [IsEmpty τ]
+    (S : Set (σ ⊕ τ → ℝ)) (hS : IsSemialgebraic S) :
+    ∃ f : (σ → ℝ) → (τ → ℝ), IsSemialgebraicOn f {x | ∃ y, Sum.elim x y ∈ S} ∧
+      ∀ x ∈ {x | ∃ y, Sum.elim x y ∈ S}, Sum.elim x (f x) ∈ S := by
+  refine ⟨fun _ ↦ isEmptyElim, isSemialgebraicOn_const _ hS.setOf_exists_sumElim, ?_⟩
+  rintro x ⟨y, hy⟩
+  rwa [Subsingleton.elim y isEmptyElim] at hy
+
+/-- Semialgebraic choice for the output coordinates `α ⊕ Unit` follows from semialgebraic choice
+for `α`: choose the coordinates `α` over the projection that forgets the last one, then the last
+one by `IsSemialgebraic.exists_isSemialgebraicOn_sumElim_mem_unit`. -/
+private theorem exists_isSemialgebraicOn_sumElim_mem_sum_unit {α : Type*} [Finite α]
+    (h : ∀ S : Set (σ ⊕ α → ℝ), IsSemialgebraic S →
+      ∃ f : (σ → ℝ) → (α → ℝ), IsSemialgebraicOn f {x | ∃ y, Sum.elim x y ∈ S} ∧
+        ∀ x ∈ {x | ∃ y, Sum.elim x y ∈ S}, Sum.elim x (f x) ∈ S)
+    (S : Set (σ ⊕ (α ⊕ Unit) → ℝ)) (hS : IsSemialgebraic S) :
+    ∃ f : (σ → ℝ) → (α ⊕ Unit → ℝ), IsSemialgebraicOn f {x | ∃ y, Sum.elim x y ∈ S} ∧
+      ∀ x ∈ {x | ∃ y, Sum.elim x y ∈ S}, Sum.elim x (f x) ∈ S := by
+  -- `S` with its coordinates regrouped as `(σ ⊕ α) ⊕ Unit`.
+  set r : σ ⊕ (α ⊕ Unit) → (σ ⊕ α) ⊕ Unit :=
+    Sum.elim (Sum.inl ∘ Sum.inl) (Sum.elim (Sum.inl ∘ Sum.inr) Sum.inr)
+  have key (x : σ → ℝ) (y : α → ℝ) (t : Unit → ℝ) :
+      Sum.elim (Sum.elim x y) t ∘ r = Sum.elim x (Sum.elim y t) := by
+    ext (i | i | i) <;> rfl
+  set S₁ : Set ((σ ⊕ α) ⊕ Unit → ℝ) := (fun w ↦ w ∘ r) ⁻¹' S
+  set T := {w : σ ⊕ α → ℝ | ∃ t, Sum.elim w t ∈ S₁}
+  have hT : IsSemialgebraic T := (hS.preimage_comp r).setOf_exists_sumElim
+  obtain ⟨g, hg, hgS⟩ := (hS.preimage_comp r).exists_isSemialgebraicOn_sumElim_mem_unit
+  obtain ⟨f₁, hf₁, hf₁T⟩ := h T hT
+  have hdom : {x | ∃ y, Sum.elim x y ∈ T} = {x | ∃ y, Sum.elim x y ∈ S} := by
+    ext x
+    simp only [T, S₁, mem_ofPred_eq, mem_preimage, key]
+    refine ⟨fun ⟨y, t, h⟩ ↦ ⟨_, h⟩, fun ⟨y, h⟩ ↦ ⟨y ∘ Sum.inl, y ∘ Sum.inr, ?_⟩⟩
+    rwa [Sum.elim_comp_inl_inr]
+  rw [hdom] at hf₁ hf₁T
+  refine ⟨fun x ↦ Sum.elim (f₁ x) (g (Sum.elim x (f₁ x))), ?_, fun x hx ↦ ?_⟩
+  · -- The graph is cut out by the graphs of `f₁` and of `g`, without a projection.
+    refine isSemialgebraicOn_of_setOf_iff (G := fun x y ↦
+      (x ∈ {x | ∃ y, Sum.elim x y ∈ S} ∧ f₁ x = y ∘ Sum.inl) ∧
+        (Sum.elim x (y ∘ Sum.inl) ∈ T ∧ g (Sum.elim x (y ∘ Sum.inl)) = y ∘ Sum.inr))
+      ?_ fun x y ↦ ?_
+    · convert (hf₁.graph.preimage_comp (Sum.elim Sum.inl (Sum.inr ∘ Sum.inl))).inter
+        (hg.graph.preimage_comp
+          (Sum.elim (Sum.elim Sum.inl (Sum.inr ∘ Sum.inl)) (Sum.inr ∘ Sum.inr))) using 1
+      ext z
+      rw [mem_inter_iff, mem_preimage, mem_preimage_sumArrowEquivProdArrow_graphOn, mem_preimage,
+        mem_preimage_sumArrowEquivProdArrow_graphOn]
+      simp only [mem_ofPred_eq, Function.comp_assoc, Sum.elim_comp_inl, Sum.elim_comp_inr,
+        Sum.comp_elim, T, S₁]
+    · constructor
+      · rintro ⟨⟨hx, hfy⟩, -, hgy⟩
+        refine ⟨hx, ?_⟩
+        rw [hfy, hgy, Sum.elim_comp_inl_inr]
+      · rintro ⟨hx, rfl⟩
+        simp only [Sum.elim_comp_inl, Sum.elim_comp_inr]
+        exact ⟨⟨hx, trivial⟩, hf₁T x hx, trivial⟩
+  · simpa only [S₁, mem_preimage, key] using hgS _ (hf₁T x hx)
+
+end Finite
+
+/-- **Semialgebraic choice**: a semialgebraic family `S` of subsets of `ℝ^τ`, `τ` finite,
+indexed by `x : σ → ℝ`, has a semialgebraic section over the set of parameters whose fiber is
+nonempty. -/
+theorem IsSemialgebraic.exists_isSemialgebraicOn_sumElim_mem [Finite τ] {S : Set (σ ⊕ τ → ℝ)}
+    (hS : IsSemialgebraic S) :
+    ∃ f : (σ → ℝ) → (τ → ℝ), IsSemialgebraicOn f {x | ∃ y, Sum.elim x y ∈ S} ∧
+      ∀ x ∈ {x | ∃ y, Sum.elim x y ∈ S}, Sum.elim x (f x) ∈ S := by
+  induction τ using Finite.induction_empty_option with
+  | of_equiv e h => exact exists_isSemialgebraicOn_sumElim_mem_of_equiv e (fun S hS ↦ h hS) S hS
+  | h_empty => exact exists_isSemialgebraicOn_sumElim_mem_of_isEmpty S hS
+  | h_option h =>
+    exact exists_isSemialgebraicOn_sumElim_mem_of_equiv (Equiv.optionEquivSumPUnit _).symm
+      (exists_isSemialgebraicOn_sumElim_mem_sum_unit fun S hS ↦ h hS) S hS
 
 end TauCeti
 
