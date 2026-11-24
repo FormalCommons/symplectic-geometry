@@ -30,8 +30,8 @@ Below, `σ : TauCeti.closedForms J M 2` is a closed two-form on a manifold
 `M` modelled on `J : ModelWithCorners ℝ E H`.
 
 - **Flux** (`Geometry/Symplectic/Flux.lean` and `Flux/`):
-  `TauCeti.Diffeotopy.fluxForm`, `flux` (the class of
-  $\int_0^1\phi_t^*\iota_{X_t}\sigma\,dt$, the page's sign),
+  `TauCeti.Diffeotopy.fluxForm`, `flux` (with the page's sign, the de Rham class
+  $[\int_0^1\phi_t^*\iota_{X_t}\sigma\,dt]$),
   `Homotopic.flux_eq`, `flux_trans` (`(Φ.trans Ψ).flux = Ψ.flux + Φ.flux`),
   `flux_symm`, `flux_reparam`, `flux_concat`; `flux_eq_mk_eulerianFluxForm`
   (`Flux/Eulerian.lean`: the flux is the class of
@@ -190,8 +190,9 @@ These settle the questions that `DESIGN.md` leaves to this file.
    holonomy around a disc, and the countability for the equivalence of
    Hamiltonian holonomy and Hamiltonian curvature. *Hamiltonian fibrations*
    uses the other two, as the page's proofs do. Proposition 10.2.12 is
-   used for 2 ⇒ 1, where the connection is given in a trivialization by
-   Hamiltonian functions. Proposition 10.2.19 is used for 3 ⇒ 1. If the
+   used for 2 ⇒ 1, to show that, read in a trivialization, the
+   connection comes from Hamiltonian functions. Proposition 10.2.19 is
+   used for 3 ⇒ 1. If the
    design of *Hamiltonian fibrations* finds routes without them, it
    proposes to drop their issues.
 
