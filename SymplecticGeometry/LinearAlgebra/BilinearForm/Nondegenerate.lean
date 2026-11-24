@@ -45,7 +45,7 @@ theorem IsRefl.nondegenerate_of_ker_restrict_eq_span_singleton {B : LinearMap.Bi
   obtain ⟨w, hw, z, hz, rfl⟩ := Submodule.mem_sup.mp (hWe ▸ Submodule.mem_top : v ∈ W ⊔ R ∙ e)
   obtain ⟨c, rfl⟩ := Submodule.mem_span_singleton.mp hz
   have hx : x ∈ LinearMap.ker (B.restrict W) := hW ▸ Submodule.mem_span_singleton_self x
-  have hxw : B x w = 0 := LinearMap.congr_fun hx ⟨w, hw⟩
+  have hxw : B x w = 0 := by simpa using LinearMap.congr_fun hx ⟨w, hw⟩
   have hc : c = 0 := by
     have h := hv x
     rw [map_add, LinearMap.add_apply, hB _ _ hxw, zero_add, map_smul, LinearMap.smul_apply,
@@ -54,7 +54,7 @@ theorem IsRefl.nondegenerate_of_ker_restrict_eq_span_singleton {B : LinearMap.Bi
   subst hc
   rw [zero_smul, add_zero] at hv ⊢
   have hwker : (⟨w, hw⟩ : W) ∈ LinearMap.ker (B.restrict W) :=
-    LinearMap.ext fun w' ↦ hv w'
+    LinearMap.ext fun w' ↦ by simpa using hv w'
   rw [hW] at hwker
   obtain ⟨a, ha⟩ := Submodule.mem_span_singleton.mp hwker
   have hw' : w = a • (x : M) := by simpa using congrArg Subtype.val ha.symm
