@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.CStarAlgebra.Matrix
-public import SymplecticGeometry.Analysis.InnerProductSpace.Projection.Basic
+public import TauCeti.Analysis.InnerProductSpace.Projection.Basic
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Action
 public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Basic
 public import TauCeti.Topology.Algebra.GroupAction.Transitive
@@ -72,7 +72,12 @@ theorem starProjection_unitaryFrame (U : unitaryGroup ι ℂ) :
   have hu : ((u : StdSpace ι →L[ℝ] StdSpace ι) : StdSpace ι →ₗ[ℝ] StdSpace ι) =
       toEuclideanLin (U : Matrix ι ι ℂ).realify :=
     coe_toEuclideanCLM_eq_toEuclideanLin _
-  rw [unitaryFrame_def, coe_unitary_smul, ← hu, Submodule.starProjection_map_unitary, map_star]
+  have he : ((Unitary.linearIsometryEquiv u).toLinearEquiv : StdSpace ι →ₗ[ℝ] StdSpace ι) =
+      (u : StdSpace ι →L[ℝ] StdSpace ι) :=
+    LinearMap.ext fun x ↦ DFunLike.congr_fun (Unitary.coe_linearIsometryEquiv_apply u) x
+  rw [unitaryFrame_def, coe_unitary_smul, ← hu, ← he,
+    ← LinearIsometryEquiv.conjStarAlgEquiv_starProjection,
+    Unitary.conjStarAlgEquiv_unitaryLinearIsometryEquiv, Unitary.conjStarAlgAut_apply, map_star]
 
 /-- The Lagrangian framed by a unitary matrix depends continuously on it. -/
 theorem continuous_unitaryFrame : Continuous (unitaryFrame : unitaryGroup ι ℂ → ℒ ι) := by

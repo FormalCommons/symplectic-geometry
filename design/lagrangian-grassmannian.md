@@ -234,21 +234,6 @@ Three facts about complex frames:
   equivalence.
   The milestone uses the case `R = ℝ`.
 
-### `Analysis/InnerProductSpace/Projection/Basic.lean`
-
-A general fact about orthogonal projections, beside Mathlib's file of that
-name, in the namespace `Submodule`, for a complete inner product space over
-`RCLike 𝕜`:
-
-- `Submodule.HasOrthogonalProjection.map_unitary`: an instance, the image of
-  `K` under `u : unitary (E →L[𝕜] E)` has an orthogonal projection when `K`
-  does (Mathlib's `HasOrthogonalProjection.map_linearIsometryEquiv` along
-  `Unitary.linearIsometryEquiv u`).
-- `Submodule.starProjection_map_unitary`: the projection onto `u K` is
-  `u * K.starProjection * star u`, Mathlib's pointwise
-  `Submodule.starProjection_map_apply` as an identity of operators.
-  `Quotient.lean` uses it for `continuous_unitaryFrame`.
-
 ### `Analysis/InnerProductSpace/PiL2.lean`
 
 A general fact about matrices acting on Euclidean space, beside Mathlib's
@@ -747,7 +732,9 @@ The topology of `ℒ ι` in terms of unitary frames.
 
 - `ℒ.continuous_unitaryFrame`: the projection is $R P_0 R^T$ with
   `R = Matrix.realify U`, by `TauCeti.GLSymplectic.coe_ofUnitary` and
-  `TauCeti.conj_complexToRealEuclidean_toLin'` (`Action.lean`).
+  `TauCeti.conj_complexToRealEuclidean_toLin'` (`Action.lean`), with Tau
+  Ceti's `LinearIsometryEquiv.conjStarAlgEquiv_starProjection` for the
+  projection onto the image of a subspace under a unitary operator.
 - `instance : CompactSpace (ℒ ι)`, as the image of a compact space.
 - `ℒ.isQuotientMap_unitaryFrame` and `ℒ.isOpenQuotientMap_unitaryFrame`. The
   map is open because it is the orbit map of a group action up to the

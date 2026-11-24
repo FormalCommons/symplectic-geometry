@@ -76,8 +76,6 @@ theorem exists_eq_add_zsmul_hyperplaneClass (hV : finrank ℂ V = n + 1) (X : To
         m • TopCat.singularCohomologyMap (snd X _) 2 (hyperplaneClass V) := by
   have : Nontrivial V := Module.nontrivial_of_finrank_eq_succ hV
   have := fun d ↦ free_integralCohomology hV d
-  have : Module.Projective ℤ (𝟙_ (ModuleCat.{0} ℤ)) := inferInstanceAs (Module.Projective ℤ ℤ)
-  have : Module.Finite ℤ (𝟙_ (ModuleCat.{0} ℤ)) := inferInstanceAs (Module.Finite ℤ ℤ)
   have := fun d ↦ projective_singularHomology (𝟙_ (ModuleCat.{0} ℤ)) hV d
   have : FiniteDimensional ℂ V := Module.finite_of_finrank_eq_succ hV
   classical

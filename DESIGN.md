@@ -746,12 +746,8 @@ it into issues; the overview fixes its folders and its dependencies.
   `Matrix.toEuclideanLin (Matrix.fromRows X Y)`), and
   `LinearAlgebra/Matrix/SelfAdjoint.lean` (`Matrix.finrank_selfAdjoint`:
   the symmetric $n\times n$ matrices have dimension $n(n+1)/2$, from Tau
-  Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). Four more general
+  Ceti's `LinearMap.BilinForm.finrank_symmSubmodule`). More general
   files serve it too:
-  `Analysis/InnerProductSpace/Projection/Basic.lean`
-  (`Submodule.starProjection_map_unitary`: the projection onto `u K`, for a
-  unitary `u`, is `u P_K u⋆`; with the instance
-  `Submodule.HasOrthogonalProjection.map_unitary`),
   `Analysis/InnerProductSpace/PiL2.lean`
   (`Matrix.piLpCongrLeft_toEuclideanLin_apply`: relabelling coordinates
   along `e` turns the action of `M` into that of `reindex e e M`),
@@ -1108,7 +1104,7 @@ it into issues; the overview fixes its folders and its dependencies.
   two general facts it uses: the derivative of a path of skew forms is skew
   (`Analysis/Calculus/Deriv/ContinuousLinearMap.lean`), and the derivative of
   a path with locally constant square anticommutes with it
-  (`Analysis/Calculus/Deriv/Mul.lean`). Given nondegenerate
+  (Tau Ceti's `TauCeti.mul_fderiv_add_fderiv_mul_eq_zero`). Given nondegenerate
   forms $\omega_t$ on $V$ that depend smoothly on $t\in\mathbb{R}$, the first file builds
   invertible $\Psi_t$, smooth in $t$, starting at the identity and pulling
   each $\omega_t$ back to $\omega_0$: $\Psi_t$ solves $\dot\Psi_t=A_t\Psi_t$,
@@ -1774,7 +1770,7 @@ has either; Tau Ceti's extension across a boundary,
   `Geometry/Diffeomorphism/Diffeotopy/Real.lean` (the bridge: an
   isotopy `ψ : ℝ → M ≃ₘ⟮I, I⟯ M` over `ℝ` restricts to a
   `TauCeti.Diffeotopy I ∞ M`, its inverse being smooth by the inverse
-  function theorem, in `Geometry/Manifold/Diffeomorph/Family.lean`; how its `TauCeti.eulerianField` reads in the velocity
+  function theorem, by Tau Ceti's `Diffeomorph.contMDiff_symm_family`; how its `TauCeti.eulerianField` reads in the velocity
   along the motion that `TauCeti.Diffeotopy.HasHamiltonian` uses; and how the
   restriction compares with `TauCeti.timeDependentFlowDiffeotopy`, whose
   family over `ℝ` is jointly smooth by
@@ -1850,8 +1846,8 @@ has either; Tau Ceti's extension across a boundary,
   `normal_hamiltonianGroup_subgroupOf_diffeomorphStabilizer`. The library
   adds what is missing, in Tau Ceti's namespaces: a diffeotopy of slices in
   the stabilizer is Hamiltonian exactly when each $\iota_{X_t}\omega$ is
-  exact, with a smooth Hamiltonian built from primitives on smoothly
-  contractible chart neighbourhoods, glued over each component (the
+  exact, with a smooth Hamiltonian built from Tau Ceti's smooth families of
+  primitives on each connected component (the
   primitive of a smooth family of exact one-forms being a public lemma on
   any manifold, in the namespace `SymplecticGeometry` and the file
   `Geometry/Manifold/DeRham/FamilyPrimitive.lean`, which *Isotopy
@@ -2297,9 +2293,11 @@ has either; Tau Ceti's extension across a boundary,
   `Geometry/Symplectic/Manifold/AlmostComplex/Covariant.lean` (the covariant
   derivative $\nabla J$ of an almost complex structure for a covariant
   derivative on $TM$, Tau Ceti's `CovariantDerivative.hom` applied to the
-  section `toEndomorphism`, and $(\nabla_vJ)J+J(\nabla_vJ)=0$ for every
-  covariant derivative, the derivative of $J^2=-1$; *Almost Kähler
-  geometry* uses both) and `Geometry/Manifold/Complex/Integrable.lean`
+  section `toEndomorphism`, with the differentiability of that section that
+  Tau Ceti's `CovariantDerivative.hom_apply_apply_anticomm`,
+  $(\nabla_vJ)J=-J(\nabla_vJ)$ for every covariant derivative, the
+  derivative of $J^2=-1$, takes; *Almost Kähler geometry* uses both) and
+  `Geometry/Manifold/Complex/Integrable.lean`
   (`TauCeti.SmoothAlmostComplexStructure.IsIntegrable J`: every point lies
   in the source of a chart `ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞` on
   whose target Tau Ceti's `chartPushforward` of `J` is a linear structure

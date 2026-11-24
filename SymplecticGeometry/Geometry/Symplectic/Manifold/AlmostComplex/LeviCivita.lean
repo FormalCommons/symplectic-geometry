@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CovariantDerivat
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Covariant
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
+public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.ComplexStructure
 public import TauCeti.Geometry.Manifold.VectorBundle.CovariantDerivative.Metric.Hom
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.Trilinear
 
@@ -27,7 +28,7 @@ covariant derivative `∇J` of `J` (Tau Ceti's induced connection `cov.hom cov J
 * if moreover `σ` is closed, `∇_{J v} J = -J ∘ ∇_v J`.
 
 Together with the anticommutation `(∇_v J) ∘ J + J ∘ (∇_v J) = 0`
-(`TauCeti.SmoothAlmostComplexStructure.hom_toEndomorphism_comp_add_comp_hom`), these give the
+(from Tau Ceti's `CovariantDerivative.hom_apply_apply_anticomm`), these give the
 statement for a two-form `σ` compatible with `J` and the Levi-Civita connection of the metric
 `g_J = σ(·, J ·)`.
 
@@ -99,9 +100,8 @@ theorem inner_hom_apply_apply_eq (hJ : ∀ x u v, ⟪u, v⟫ = σ.eval₂ x u (J
     (u v w : TangentSpace I x) :
     ⟪cov.hom cov J.toEndomorphism x u (J x v), w⟫ =
       ⟪cov.hom cov J.toEndomorphism x u v, J x w⟫ := by
-  rw [← _root_.neg_neg (cov.hom cov J.toEndomorphism x u (J x v)),
-    ← J.apply_hom_toEndomorphism_apply cov, inner_neg_left, inner_apply_left_eq_neg hJ,
-    _root_.neg_neg]
+  rw [CovariantDerivative.hom_apply_apply_anticomm (J.mdifferentiableAt_toEndomorphism x)
+    J.square_neg, inner_neg_left, inner_apply_left_eq_neg hJ, _root_.neg_neg]
 
 /-- If `⟪u, v⟫ = σ(u, J v)` and `∇` is a metric connection, then `∇_u J` is skew-adjoint:
 `⟪(∇_u J) v, w⟫ = -⟪v, (∇_u J) w⟫`. -/
@@ -216,9 +216,13 @@ theorem Compatible.leviCivita_hom_comp_add_and_inner_add_and_mextDeriv_and_apply
   have hg := hJ.inner_eq_eval₂
   have hL := CovariantDerivative.isLeviCivitaConnection_leviCivitaConnection I (M := M)
   intro x u v w
-  refine ⟨J.hom_toEndomorphism_comp_add_comp_hom _ x v, ?_,
+  refine ⟨ContinuousLinearMap.ext fun a ↦ ?_, ?_,
     SmoothAlmostComplexStructure.mextDeriv_apply_eq_inner hg hL x u v w,
     fun hσ ↦ SmoothAlmostComplexStructure.hom_apply_eq_neg_comp hg hL hσ x v⟩
+  · rw [_root_.add_apply, ContinuousLinearMap.comp_apply,
+      ContinuousLinearMap.comp_apply, CovariantDerivative.hom_apply_apply_anticomm
+        (J.mdifferentiableAt_toEndomorphism x) J.square_neg, neg_add_cancel,
+      _root_.zero_apply]
   rw [SmoothAlmostComplexStructure.inner_hom_apply_eq_neg hg hL.isMetricCompatible, neg_add_cancel]
 
 end SmoothTwoForm

@@ -8,10 +8,10 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.EulerCharacteristic
 public import TauCeti.AlgebraicTopology.Singular.BettiNumber
 
-import SymplecticGeometry.Algebra.BigOperators.Parity
 import SymplecticGeometry.AlgebraicTopology.Cellular.ComplexProjective.BettiNumber
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Cap.RationalCoefficients
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Lefschetz
+import TauCeti.Algebra.BigOperators.Finset.Range
 import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.Manifold
 import TauCeti.Geometry.Manifold.Morse.BettiNumber
 import TauCeti.Topology.ComplexProjectiveSpace.Projectivization
@@ -35,7 +35,7 @@ one is determined by the Euler characteristic: `(-1)ⁿ b_n = χ(X) - (n + 1) + 
   (`TauCeti.bettiNumber_eq_zero_of_finrank_lt`).
 * The Euler characteristic is the alternating sum of the Betti numbers up to the dimension
   (`TauCeti.eulerChar_eq_sum_range_finrank_singularHomology`), and the terms other than `b_n`
-  contribute `n + 1 - [n even]` (`Finset.sum_range_two_mul_add_one_ite_even`).
+  contribute `n + 1 - [n even]` (`Finset.sum_range_ite_even`).
 
 For `d = 0` the hypersurface is empty and both formulas fail when `n ≠ 0`. For `n = 0` they hold,
 `X` being `d` points.
@@ -122,7 +122,8 @@ theorem bettiNumber_middle (hd : d ≠ 0) :
     rw [X.bettiNumber_of_ne hd (Finset.ne_of_mem_erase hi)]
     split_ifs <;> simp_all
   rw [h, ← Finset.add_sum_erase _ _ hn, Finset.sum_congr rfl hterm, Finset.sum_erase_eq_sub hn,
-    Finset.sum_range_two_mul_add_one_ite_even]
+    Finset.sum_range_ite_even (fun _ ↦ (1 : ℤ)), show (2 * n + 1 + 1) / 2 = n + 1 by omega]
+  simp only [Finset.sum_const, Finset.card_range, nsmul_eq_mul, mul_one, Nat.cast_add, Nat.cast_one]
   ring
 
 end SmoothProjectiveHypersurface
