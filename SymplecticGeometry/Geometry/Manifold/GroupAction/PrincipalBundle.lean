@@ -145,13 +145,11 @@ point `s q` moved by `g` on the right, `op g • s q`. -/
 theorem trivializationOfSection_symm_apply {q : orbitRel.Quotient Gᵐᵒᵖ X} (hq : q ∈ U) (g : G) :
     (trivializationOfSection U hU s hs hsec).toOpenPartialHomeomorph.symm (q, g) =
       ⟨q, op g • ⟨s q, hsec q hq⟩⟩ := by
-  set e := trivializationOfSection U hU s hs hsec
-  have hq' : q ∈ e.baseSet := by rwa [trivializationOfSection_baseSet]
-  refine ((e.toOpenPartialHomeomorph.eq_symm_apply (e.mem_source.2 hq')
-    (e.mem_target.2 hq')).2 ?_).symm
-  rw [e.coe_coe, trivializationOfSection_apply, MapFiber.coe_smul,
-    orbitSectionCoord_smul (by rw [hsec q hq, hsec q hq]),
-    orbitSectionCoord_apply_self (hsec q hq), mul_one, unop_op]
+  rw [trivializationOfSection, Trivialization.toMapFiber_symm_apply, Homeomorph.symm_apply_eq,
+    MapFiber.totalSpaceHomeomorph_apply, MapFiber.coe_smul]
+  -- Mathlib states no lemma for the inverse of `transFiberHomeomorph`, so its definition is
+  -- unfolded to reach `OpenPartialHomeomorph.transHomeomorph_symm_apply`
+  simp [Trivialization.transFiberHomeomorph, orbitTrivializationOfSection_symm_apply hq]
 
 /-- **The trivialization from a local section is equivariant.** Left multiplication by
 `g : Gᵐᵒᵖ` on the fibre `Gᵐᵒᵖ` of `orbitTrivializationOfSection` is right multiplication by

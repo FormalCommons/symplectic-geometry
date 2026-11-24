@@ -176,6 +176,18 @@ theorem orbitTrivializationOfSection_apply (x : X) :
       (Quotient.mk (orbitRel H X) x, orbitSectionCoord s x) :=
   TauCeti.orbitTrivialization_apply x
 
+/-- Over a point `q` of `U`, the inverse of `orbitTrivializationOfSection` sends `(q, g)` to
+`g • s q`. -/
+theorem orbitTrivializationOfSection_symm_apply {q : orbitRel.Quotient H X} (hq : q ∈ U)
+    (g : H) :
+    (orbitTrivializationOfSection U hU s hs hsec).toOpenPartialHomeomorph.symm (q, g) =
+      g • s q := by
+  have h := TauCeti.orbitTrivialization_symm_apply_mk (hW := hU)
+    (hu := continuousOn_orbitSectionCoord hs hsec)
+    (hu_smul := fun g _ hx ↦ orbitSectionCoord_smul (hsec _ hx) g)
+    (show Quotient.mk (orbitRel H X) (s q) ∈ U by rwa [hsec q hq]) g
+  rwa [hsec q hq, orbitSectionCoord_apply_self (hsec q hq), inv_one, mul_one] at h
+
 end Trivialization
 
 end SymplecticGeometry
