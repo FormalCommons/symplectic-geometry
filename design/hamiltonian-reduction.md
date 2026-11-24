@@ -100,8 +100,8 @@ group `G` and its quotient by `G` when `G` acts freely and properly on the
 level only; coisotropy of the level and its characteristic leaves; the
 identification of the tangent spaces of the quotient; the preimage of an
 embedded coadjoint orbit as a manifold, its quotient, the formula for its
-reduced form, and its comparison with the zero-level reduction of
-$M\times\mathcal O$.
+reduced form, and its comparison with the reduced space at zero of the
+product $M\times\mathcal O$.
 
 ## Decisions
 
