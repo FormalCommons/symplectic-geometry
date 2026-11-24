@@ -5,13 +5,13 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Lie.FundamentalVectorField.Right
 public import TauCeti.Geometry.Manifold.FiberBundle.Associated.Pullback
 public import TauCeti.Geometry.Manifold.FiberBundle.Associated.Section
 public import TauCeti.Geometry.Manifold.FiberBundle.Pullback.Basic
 public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
 public import TauCeti.Geometry.Manifold.Submersion.Split
+public import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
 
 /-!
@@ -67,8 +67,8 @@ finite-dimensional manifolds without boundary.
 
 The derivative of `Φ` on fundamental vectors comes from the chain rule along the orbit map of the
 diagonal action, which `Φ` turns into the orbit map of `Q` (`pullbackProjDiffeomorph_smul`). Its
-second component `g ↦ g⁻¹ • v` is differentiated through inversion, as in Tau Ceti's
-`TauCeti.LeftToRightAction.mfderiv_equiv_symm_rightFundamentalVectorField_of_mdifferentiableAt`.
+second component `g ↦ g⁻¹ • v` has derivative `ξ ↦ -X_ξ(v)` at `1`, by
+`TauCeti.mfderiv_inv_smul_one_apply`.
 
 ## References
 
@@ -85,6 +85,8 @@ open Bundle MulOpposite TauCeti
 open scoped Manifold ContDiff
 
 namespace TauCeti.AssociatedBundle
+
+section
 
 variable {n : ℕ∞ω} {𝕜 B G F : Type*} [NontriviallyNormedField 𝕜]
   {EB : Type*} [NormedAddCommGroup EB] [NormedSpace 𝕜 EB] {HB : Type*} [TopologicalSpace HB]
@@ -318,35 +320,25 @@ theorem mfderiv_pullbackProjDiffeomorph_fundamental (hn : 1 ≤ n) (ξ : GroupLi
   have : ContMDiffSMul IG IF 1 G F := .of_le hn
   have h₁ : MDifferentiableAt IG (IB.prod IG) (fun g : G ↦ op g • x.1) 1 :=
     PrincipalBundle.mdifferentiableAt_orbit (n := 1) one_ne_zero x.1 1
-  have hinv : MDifferentiableAt IG IG (fun g : G ↦ g⁻¹) 1 :=
-    (contMDiff_inv IG 1).mdifferentiableAt one_ne_zero
   have horbit : MDifferentiableAt IG IF (fun g : G ↦ g • x.2) 1 :=
     (ContMDiffSMul.contMDiff_smul_const (n := 1) x.2).mdifferentiableAt one_ne_zero
-  have h₂ : MDifferentiableAt IG IF ((fun g : G ↦ g • x.2) ∘ fun g : G ↦ g⁻¹) 1 :=
-    MDifferentiableAt.comp 1 (by simpa only [inv_one] using horbit) hinv
+  have h₂ : MDifferentiableAt IG IF (fun g : G ↦ g⁻¹ • x.2) 1 :=
+    horbit.comp_of_eq 1 ((contMDiff_inv IG 1).mdifferentiableAt one_ne_zero) inv_one
   -- The orbit map of `x` for the diagonal action sends `ξ` to `(x ξ, -X_ξ(v))`.
-  have hγ : mfderiv IG ((IB.prod IG).prod IF)
-      (fun g : G ↦ (op g • x.1, ((fun g : G ↦ g • x.2) ∘ fun g : G ↦ g⁻¹) g)) 1 ξ =
-        (rightFundamentalVectorField (IB.prod IG) ξ x.1, -fundamentalVectorField IF ξ x.2) := by
+  have hγ : mfderiv IG ((IB.prod IG).prod IF) (fun g : G ↦ (op g • x.1, g⁻¹ • x.2)) 1 ξ =
+      (rightFundamentalVectorField (IB.prod IG) ξ x.1, -fundamentalVectorField IF ξ x.2) := by
     rw [mfderiv_prodMk h₁ h₂]
     -- `(f.prod g) ξ` is `(f ξ, g ξ)` by definition; `ContinuousLinearMap.prod_apply` does not
     -- rewrite, since the tangent space of the product model is not reducibly a product.
-    refine Prod.ext (rightFundamentalVectorField_apply ξ x.1).symm ?_
-    change mfderiv IG IF ((fun g : G ↦ g • x.2) ∘ fun g : G ↦ g⁻¹) 1 ξ =
-      -fundamentalVectorField IF ξ x.2
-    -- The derivative of `g ↦ g⁻¹ • v` goes through inversion.
-    rw [mfderiv_comp_apply_of_eq 1 horbit hinv inv_one, GroupLieAlgebra.mfderiv_inv_one_apply,
-      map_neg, fundamentalVectorField_apply]
-    -- The two sides differ only in the negation used: that of the tangent space or of `EF`.
-    rfl
+    exact Prod.ext (rightFundamentalVectorField_apply ξ x.1).symm
+      (mfderiv_inv_smul_one_apply horbit ξ)
   -- The orbit map of `Φ x` is `Φ` composed with the orbit map of `x` for the diagonal action.
   have hcomp : (fun g : G ↦ op g • pullbackProjDiffeomorph n IB IG IF x) =
-      pullbackProjDiffeomorph n IB IG IF ∘
-        fun g : G ↦ (op g • x.1, ((fun g : G ↦ g • x.2) ∘ fun g : G ↦ g⁻¹) g) :=
+      pullbackProjDiffeomorph n IB IG IF ∘ fun g : G ↦ (op g • x.1, g⁻¹ • x.2) :=
     funext fun g ↦ (pullbackProjDiffeomorph_smul g x).symm
   calc _ = mfderiv ((IB.prod IG).prod IF) ((IB.prod IF).prod IG)
         (pullbackProjDiffeomorph n IB IG IF) x (mfderiv IG ((IB.prod IG).prod IF)
-          (fun g : G ↦ (op g • x.1, ((fun g : G ↦ g • x.2) ∘ fun g : G ↦ g⁻¹) g)) 1 ξ) := by
+          (fun g : G ↦ (op g • x.1, g⁻¹ • x.2)) 1 ξ) := by
         -- After the rewrite, the two vectors differ only in the tangent space they are typed in.
         rw [hγ]
         rfl
@@ -355,6 +347,8 @@ theorem mfderiv_pullbackProjDiffeomorph_fundamental (hn : 1 ≤ n) (ξ : GroupLi
         exact (mfderiv_comp_apply_of_eq 1
           ((pullbackProjDiffeomorph n IB IG IF).mdifferentiable hn₀ x) (h₁.prodMk h₂)
           (by simp) ξ).symm
+
+end
 
 section Submersion
 
@@ -375,6 +369,12 @@ variable {n : ℕ∞ω} {𝕜 B G F : Type*} [RCLike 𝕜]
   [FiberBundle G P] [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P] [∀ b, Nonempty (P b)]
   [ContMDiffFiberBundle n G P IB IG]
 
+/-- The projection `π_M` of the associated bundle, as a `C^n` map. -/
+local notation "πM" => ManifoldTotalSpace.projContMDiffMap n F (AssociatedBundle G P F) IB IF
+
+/-- The pull-back `Q = π_M^* P` of `P` to the associated bundle. -/
+local notation "Q" => (πM : ManifoldTotalSpace F (AssociatedBundle G P F) → B) *ᵖ P
+
 /-- **The quotient map onto the associated bundle is a submersion.** For a `C^n` principal bundle
 `P` (`1 ≤ n`) with finite-dimensional base and structure group, and a `C^n` action of `G` on a
 finite-dimensional manifold `F`, all without boundary, the map `(x, v) ↦ [x, v]` from `P × F`
@@ -389,11 +389,8 @@ theorem isSubmersion_totalSpaceMk_mk (hn : 1 ≤ n) :
   have : ContMDiffFiberBundle n F (AssociatedBundle G P F) IB IF := contMDiffFiberBundle IG
   -- The quotient map is the projection of `Q` composed with the diffeomorphism `Φ`.
   set Φ := pullbackProjDiffeomorph n IB IG IF (G := G) (F := F) (P := P)
-  have hπ := ManifoldTotalSpace.isSubmersion_proj n G
-    ((ManifoldTotalSpace.projContMDiffMap n F (AssociatedBundle G P F) IB IF :
-      ManifoldTotalSpace F (AssociatedBundle G P F) → B) *ᵖ P) (IB.prod IF) IG
-  rw [← funext (proj_pullbackProjDiffeomorph (n := n) (IB := IB) (IG := IG) (IF := IF) (G := G)
-    (F := F) (P := P))]
+  have hπ := ManifoldTotalSpace.isSubmersion_proj n G Q (IB.prod IF) IG
+  rw [← funext (proj_pullbackProjDiffeomorph (n := n) (IB := IB) (IG := IG) (IF := IF))]
   refine (ContMDiff.isSubmersionOfComplement_of_surjective_mfderiv
     (hπ.contMDiff.comp Φ.contMDiff) hn fun x ↦ ?_).isSubmersion
   rw [mfderiv_comp x (hπ.contMDiff.mdifferentiableAt hn₀) (Φ.mdifferentiable hn₀ x)]

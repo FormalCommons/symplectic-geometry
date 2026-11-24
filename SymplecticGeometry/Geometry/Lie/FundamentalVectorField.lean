@@ -35,6 +35,11 @@ says that an element `g` fixing `x` fixes the orbit directions `ξ_M(x)`, read t
 `f` that turns `y ↦ g • y` into a linear map `L` near `x`: `L (df_x ξ_M(x)) = df_x ξ_M(x)`. It
 follows from Tau Ceti's `TauCeti.mfderiv_smul_fundamentalVectorField`, since `Ad_g` is the
 identity (`TauCeti.Lie.adjointContinuousLinearMap_eq_id`).
+
+Last, `TauCeti.mfderiv_inv_smul_one_apply` says that the derivative at `1` of `g ↦ g⁻¹ • x`
+sends `ξ` to `-ξ_M(x)`, over any nontrivially normed field. It differentiates through inversion
+(Tau Ceti's `TauCeti.GroupLieAlgebra.mfderiv_inv_one_apply`), with the steps of Tau Ceti's
+`TauCeti.LeftToRightAction.mfderiv_equiv_symm_rightFundamentalVectorField_of_mdifferentiableAt`.
 -/
 
 public section
@@ -95,6 +100,32 @@ end InfinitesimalAction
 
 end TauCeti
 
+section Inverse
+
+namespace TauCeti
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace 𝕜 E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M]
+
+/-- **The inverse orbit map differentiates to minus the fundamental vector field.** If the orbit
+map `g ↦ g • x` of a Lie group `G` acting on `M` is differentiable at `1`, then the derivative at
+`1` of `g ↦ g⁻¹ • x` sends `ξ` to `-ξ_M(x)`. -/
+theorem mfderiv_inv_smul_one_apply [LieGroup I 1 G] [MulAction G M] {x : M}
+    (horbit : MDifferentiableAt I I' (fun g : G ↦ g • x) 1) (ξ : GroupLieAlgebra I G) :
+    mfderiv I I' (fun g : G ↦ g⁻¹ • x) 1 ξ = -fundamentalVectorField I' ξ x := by
+  have h := mfderiv_comp_apply_of_eq 1 horbit
+    ((contMDiff_inv I 1).mdifferentiableAt one_ne_zero) inv_one ξ
+  rw [GroupLieAlgebra.mfderiv_inv_one_apply, map_neg, ← fundamentalVectorField_apply] at h
+  exact h
+
+end TauCeti
+
+end Inverse
 
 section Commutative
 
