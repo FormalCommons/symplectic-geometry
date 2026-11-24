@@ -8,8 +8,7 @@ module
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import SymplecticGeometry.Analysis.Calculus.ContDiff.FTaylorSeries
 public import SymplecticGeometry.Analysis.Normed.Group.FunctionSeries
-public import SymplecticGeometry.Analysis.Sobolev.Trace.Reflection.HalfSpace
-public import TauCeti.Analysis.Sobolev.Trace.Reflection.Seeley
+public import SymplecticGeometry.Analysis.Sobolev.Trace.Reflection.Seeley
 
 /-!
 # Seeley's extension
@@ -33,8 +32,9 @@ Seeley's infinite sum in place of Hestenes' finite one: the Taylor series of the
 `aₖ (χ f) (timeScale (-2 ^ k) z)` on the lower half are bounded by `|aₖ| (2 ^ k) ^ m` times a
 local bound of the derivatives of `χ f`, so by Tau Ceti's `summable_abs_seeleyCoeff_mul_pow` their
 sums converge locally uniformly (`HasFTaylorSeriesUpToOn.of_tendstoLocallyUniformlyOn_of_convex`);
-at `t = 0` the moment identities `tsum_seeleyCoeff_mul_neg_pow` and
-`map_timeScale_eq_sum_pow_card_smul` make the limit series agree with that of `f`, as Tau Ceti's
+at `t = 0` the moment identities `hasSum_seeleyCoeff_smul_compContinuousLinearMap_timeScale`, from
+`tsum_seeleyCoeff_mul_neg_pow` and `map_timeScale_eq_sum_pow_card_smul`, make the limit series
+agree with that of `f`, as Tau Ceti's
 `sum_higherReflectionCoeff_smul_compContinuousLinearMap_timeScale` does for a finite sum; and the
 two series glue across `t = 0` by `HasFTaylorSeriesUpToOn.union`. The uniform convergence uses
 `tendstoUniformlyOn_finsetSum_of_hasSum`, which needs no completeness.
@@ -287,58 +287,6 @@ theorem _root_.LinearMap.map_seeleyIccExtend (L : F →ₗ[ℝ] G) (f : ℝ → 
 section Smooth
 
 variable {U : Set E} {h : ℝ × E → F}
-
-/-- The moment identities for multilinear maps: `∑ₖ aₖ A (timeScale (-2 ^ k) ·, …)` sums to
-`A`. Unlike Tau Ceti's `tsum_seeleyCoeff_smul_compContinuousLinearMap_timeScale`, this needs no
-completeness of `F`. -/
-theorem hasSum_seeleyCoeff_smul_compContinuousLinearMap_timeScale {m : ℕ}
-    (A : (ℝ × E) [×m]→L[ℝ] F) :
-    HasSum (fun k ↦ seeleyCoeff k •
-      A.compContinuousLinearMap (fun _ ↦ timeScale (E := E) (-2 ^ k))) A := by
-  classical
-  let B : Finset (Fin m) → (ℝ × E) [×m]→L[ℝ] F := fun s ↦ A.compContinuousLinearMap fun i ↦
-    if i ∈ s then (ContinuousLinearMap.inl ℝ ℝ E).comp (ContinuousLinearMap.fst ℝ ℝ E)
-    else (ContinuousLinearMap.inr ℝ ℝ E).comp (ContinuousLinearMap.snd ℝ ℝ E)
-  have hB (a : ℝ) :
-      A.compContinuousLinearMap (fun _ ↦ timeScale (E := E) a) = ∑ s, a ^ s.card • B s := by
-    ext v
-    simp only [B, ContinuousMultilinearMap.compContinuousLinearMap_apply,
-      sum_apply, smul_apply,
-      map_timeScale_eq_sum_pow_card_smul]
-    refine Finset.sum_congr rfl fun s _ ↦ ?_
-    congr 2
-    funext i
-    by_cases hi : i ∈ s <;> simp [hi]
-  have hA : A = ∑ s, B s := by
-    have h1 : A.compContinuousLinearMap (fun _ ↦ timeScale (E := E) 1) = A := by
-      ext v
-      simp
-    simpa using ((hB 1).symm.trans h1).symm
-  have hsum : HasSum (fun k ↦ ∑ s, (seeleyCoeff k * (-2 ^ k) ^ s.card) • B s) (∑ s, B s) :=
-    hasSum_sum fun s _ ↦ by
-      simpa using ((summable_seeleyCoeff_mul_neg_pow s.card).hasSum_iff.mpr
-        (tsum_seeleyCoeff_mul_neg_pow s.card)).smul_const (B s)
-  rw [← hA] at hsum
-  convert hsum using 2 with k
-  rw [hB, Finset.smul_sum]
-  simp_rw [smul_smul]
-
-/-- At time `0`, Seeley's sum `∑ₖ aₖ h (timeScale (-2 ^ k) z)` sums to `h z`. -/
-theorem hasSum_seeleyCoeff_smul_timeScale_of_fst_eq_zero (h : ℝ × E → F) {z : ℝ × E}
-    (hz : z.1 = 0) : HasSum (fun k ↦ seeleyCoeff k • h (timeScale (-2 ^ k) z)) (h z) := by
-  simp_rw [timeScale_of_fst_eq_zero hz]
-  simpa using ((summable_seeleyCoeff_mul_neg_pow 0).hasSum_iff.mpr
-    (tsum_seeleyCoeff_mul_neg_pow 0)).smul_const (h z)
-
-/-- At time `0`, Seeley's sum of the dilated coefficients of order `m` of a series `p` sums to
-`p z m`. -/
-theorem hasSum_seeleyCoeff_smul_compContinuousLinearMap_timeScale_of_fst_eq_zero
-    (p : ℝ × E → FormalMultilinearSeries ℝ (ℝ × E) F) {z : ℝ × E} (hz : z.1 = 0) (m : ℕ) :
-    HasSum (fun k ↦ seeleyCoeff k •
-      (p (timeScale (-2 ^ k) z) m).compContinuousLinearMap fun _ ↦ timeScale (-2 ^ k))
-      (p z m) := by
-  simp_rw [timeScale_of_fst_eq_zero hz]
-  exact hasSum_seeleyCoeff_smul_compContinuousLinearMap_timeScale (p z m)
 
 /-- A sequence whose terms at a point of negative time vanish once the dilated time exceeds `1`
 has finite support, so it is summable. -/
