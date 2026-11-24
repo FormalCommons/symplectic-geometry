@@ -52,7 +52,7 @@ pull-back of `M` to `M` is smooth (`TauCeti.AssociatedBundle.contMDiff_pullbackH
 From `pullbackProjSection` on, the declarations take `[∀ b, Nonempty (P b)]`. Their statements
 need it, not only their proofs: Mathlib's and Tau Ceti's fibre bundle structure on the pull-back
 `Q` asks for it, and so does `pullbackEquiv`. A caller supplies it with
-`have := FiberBundle.nonempty_fiber G (E := P)`, since `G` is nonempty.
+`have := FiberBundle.nonempty_fiber G P`, since `G` is nonempty.
 
 ## References
 

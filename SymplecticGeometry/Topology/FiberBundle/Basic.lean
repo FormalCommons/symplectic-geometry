@@ -104,7 +104,7 @@ theorem isOpen_of_forall_mem_iff_snd_mem {s : Set (TotalSpace F E)} {t : Set F}
     e.continuousOn.isOpen_inter_preimage e.open_source (ht.preimage continuous_snd),
     hpe, (h p.proj p hpe).1 hp⟩
 
-variable (F) in
+variable (F E) in
 /-- Every fibre of a fibre bundle whose model fibre `F` is nonempty, such as a group, is
 nonempty, since it is homeomorphic to `F`.
 
