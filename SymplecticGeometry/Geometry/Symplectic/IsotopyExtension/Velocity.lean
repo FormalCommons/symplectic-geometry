@@ -10,11 +10,11 @@ public import TauCeti.Geometry.Manifold.SmoothIsotopy.Diffeotopy
 public import TauCeti.Geometry.Manifold.VectorField.Prod
 public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
+public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
-import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
@@ -30,7 +30,7 @@ and `σ` be two-forms on `P` and `M`. The isotopy is symplectic
 `τ`. Its velocity form (`TauCeti.SmoothIsotopy.velocityForm σ F`) is the one-form `ι_{∂ₜ} F^* σ` on
 the cylinder `[0, 1] × P`, the interior product (`TauCeti.SmoothForm.interiorProduct`) of `F^* σ`
 with the unit time field `∂ₜ = (1, 0)`, a smooth section of the tangent bundle
-(`TauCeti.unitIntervalTimeField`). Its slice at time `t` is the one-form
+(`SymplecticGeometry.unitIntervalTimeField`). Its slice at time `t` is the one-form
 `v ↦ σ (∂ₜ F (t, x), dF_t v)` on `P`, the velocity one-form of the isotopy at that time, as in
 McDuff–Salamon, §3.3.
 
@@ -51,7 +51,6 @@ diffeotopies and the cylinder `[0, 1] × M` of isotopies.
 ## Main definitions
 
 * `TauCeti.SmoothIsotopy.IsSymplectic τ σ F`: every slice of `F` pulls `σ` back to `τ`.
-* `TauCeti.unitIntervalTimeField`: the unit time field `∂ₜ = (1, 0)` of `[0, 1] × P`.
 * `TauCeti.SmoothIsotopy.velocityForm σ F`: the one-form `ι_{∂ₜ} F^* σ` on `[0, 1] × P`.
 * `TauCeti.SmoothIsotopy.restrict G h`: the restriction of an isotopy `G` of an open `W ⊆ P` to
   an open `V ⊆ W`.
@@ -99,6 +98,8 @@ public noncomputable section
 
 open Set Bundle VectorField
 open scoped Manifold ContDiff
+open SymplecticGeometry (unitIntervalTimeField coe_unitIntervalTimeField
+  contMDiff_prodVectorField_one_zero)
 
 namespace TauCeti
 
@@ -106,40 +107,6 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSp
   {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
   {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   {J : ModelWithCorners ℝ E' H'} {P : Type*} [TopologicalSpace P] [ChartedSpace H' P]
-
-/-! ### The unit time field of the cylinder -/
-
-section TimeField
-
-variable [IsManifold J ∞ P]
-
-/-- The unit time field `∂ₜ = (1, 0)` of the cylinder `[0, 1] × P` is smooth, up to both ends. -/
-theorem contMDiff_prodVectorField_one_zero :
-    ContMDiff ((𝓡∂ 1).prod J) ((𝓡∂ 1).prod J).tangent ∞ (fun p : unitInterval × P ↦
-      (⟨p, Manifold.prodVectorField (fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
-        (0 : Π y : P, TangentSpace J y) p⟩ : TangentBundle ((𝓡∂ 1).prod J) (unitInterval × P))) :=
-  Manifold.contMDiff_prodVectorField SymplecticGeometry.contMDiff_totalSpaceMk_one_Icc
-    (contMDiff_zeroSection ℝ (TangentSpace J))
-
-/-- The unit time field `∂ₜ = (1, 0)` of the cylinder `[0, 1] × P`, as a smooth section of the
-tangent bundle. -/
-def unitIntervalTimeField :
-    Cₛ^∞⟮(𝓡∂ 1).prod J; EuclideanSpace ℝ (Fin 1) × E',
-      TangentSpace ((𝓡∂ 1).prod J) (M := unitInterval × P)⟯ :=
-  ⟨Manifold.prodVectorField (fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
-    (0 : Π y : P, TangentSpace J y), contMDiff_prodVectorField_one_zero⟩
-
-/-- The unit time field of the cylinder is the product field of `1` on `[0, 1]` and `0` on
-`P`. -/
-@[simp]
-theorem coe_unitIntervalTimeField :
-    ⇑(unitIntervalTimeField : Cₛ^∞⟮(𝓡∂ 1).prod J; EuclideanSpace ℝ (Fin 1) × E',
-      TangentSpace ((𝓡∂ 1).prod J) (M := unitInterval × P)⟯) =
-      Manifold.prodVectorField (fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
-        (0 : Π y : P, TangentSpace J y) :=
-  (rfl)
-
-end TimeField
 
 namespace SmoothIsotopy
 

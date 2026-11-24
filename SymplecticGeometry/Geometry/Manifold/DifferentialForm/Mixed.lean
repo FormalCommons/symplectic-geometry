@@ -6,9 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Algebra.GradedMonoid
-public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Graded
-public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.DifferentialForm.Squared
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
 
@@ -37,8 +36,9 @@ degree, and proves the identities of the Cartan calculus for these extensions.
 * `SymplecticGeometry.mixedExtDeriv_of_mul`, `SymplecticGeometry.mixedInterior_of_mul`: the graded
   Leibniz rules for a homogeneous left factor.
 * `SymplecticGeometry.mixedExtDeriv_mixedInterior_add`: Cartan's formula `d ι_X + ι_X d = L_X` on
-  homogeneous forms, from Tau Ceti's `TauCeti.mlieDerivForm_eq_interior_mextDeriv_add` and, in
-  degree `0`, `TauCeti.mlieDerivForm_eq_interior_mextDeriv`.
+  homogeneous forms, with the bundled Lie derivative `TauCeti.SmoothForm.lieDeriv`, from its
+  Cartan formulas `TauCeti.SmoothForm.lieDeriv_eq_interiorProduct_add` and, in degree `0`,
+  `TauCeti.SmoothForm.lieDeriv_eq_interiorProduct_mextDerivₗ`.
 
 ## References
 
@@ -189,22 +189,13 @@ theorem mixedExtDeriv_mixedInterior_add (X : Cₛ^∞⟮I; E, TangentSpace I (M 
     (φ : SmoothForm I M ℝ k) :
     mixedExtDeriv I M (mixedInterior X (DirectSum.of (fun k ↦ SmoothForm I M ℝ k) k φ)) +
         mixedInterior X (mixedExtDeriv I M (DirectSum.of _ k φ)) =
-      DirectSum.of _ k ⟨mlieDerivForm X φ.val,
-        SmoothForm.mlieDerivForm_mem_smoothBundleForms φ X.contMDiff⟩ := by
+      DirectSum.of _ k (SmoothForm.lieDeriv X φ) := by
   rcases k with _ | k
-  · rw [mixedInterior_of_zero, map_zero, zero_add, mixedExtDeriv_of, mixedInterior_of_succ]
-    congr 1
-    refine Subtype.ext ?_
-    rw [SmoothForm.coe_interiorProduct, mextDerivₗ_apply]
-    exact (mlieDerivForm_eq_interior_mextDeriv _ _).symm
+  · rw [mixedInterior_of_zero, map_zero, zero_add, mixedExtDeriv_of, mixedInterior_of_succ,
+      SmoothForm.lieDeriv_eq_interiorProduct_mextDerivₗ]
   · rw [mixedInterior_of_succ, mixedExtDeriv_of, mixedExtDeriv_of, mixedInterior_of_succ,
-      ← map_add]
-    congr 1
-    refine Subtype.ext ?_
-    rw [Submodule.coe_add, SmoothForm.coe_interiorProduct, mextDerivₗ_apply, mextDerivₗ_apply,
-      SmoothForm.coe_interiorProduct]
-    exact (add_comm _ _).trans (SmoothForm.mlieDerivForm_eq_interior_mextDeriv_add
-      (X.contMDiff.mdifferentiable (by simp))).symm
+      ← map_add, SmoothForm.lieDeriv_eq_interiorProduct_add,
+      add_comm (mextDerivₗ I k _)]
 
 /-- The component of degree `m + 1` of the exterior derivative of a form of mixed degree is the
 exterior derivative of its component of degree `m`. -/
