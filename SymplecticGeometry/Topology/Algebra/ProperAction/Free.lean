@@ -125,6 +125,7 @@ theorem orbitSectionCoord_smul
 
 /-- For a free action and a section `s` of the orbit projection, `orbitSectionCoord s` is one
 at the points of the image of `s`. -/
+@[simp]
 theorem orbitSectionCoord_apply_self {q : orbitRel.Quotient H X}
     (hq : Quotient.mk (orbitRel H X) (s q) = q) : orbitSectionCoord s (s q) = 1 :=
   (orbitSectionCoord_eq_iff (by rw [hq]; exact hq)).2 (by rw [hq, one_smul])
