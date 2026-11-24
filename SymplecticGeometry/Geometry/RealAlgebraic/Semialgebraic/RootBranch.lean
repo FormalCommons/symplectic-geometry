@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Algebra.MvPolynomial.Polynomial
 public import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.OneVariable
 public import SymplecticGeometry.RingTheory.Polynomial.Irreducible
 public import SymplecticGeometry.RingTheory.UniqueFactorizationDomain
@@ -66,15 +67,10 @@ theorem IsSemialgebraicOn.isSemialgebraic_inter_setOf_eval_map_eq_zero {σ R : T
     simp only [eval_X] at hid
     exact hid.sumElim hf
   set q : MvPolynomial (σ ⊕ Unit) R := Q.eval₂ (rename Sum.inl).toRingHom (X (Sum.inr ()))
-  have hq (x : σ → R) :
-      eval (Sum.elim x fun _ : Unit ↦ f x) q = (Q.map (eval x)).eval (f x) := by
-    rw [Polynomial.eval_map, Polynomial.hom_eval₂]
-    congr 1
-    · ext p <;> simp [RingHom.comp_apply]
-    · simp
   convert (hF.eval_comp fun _ : Unit ↦ q).isSemialgebraic_inter_setOf_eq_const 0 using 2
   ext x
-  simp [hq, funext_iff]
+  simp only [q, eval_eval₂_rename_inl_X_inr, Sum.elim_comp_inl, Sum.elim_inr]
+  simp [funext_iff]
 
 open _root_.Polynomial in
 /-- A real function `f` of one variable that is semialgebraic on a set containing the points
