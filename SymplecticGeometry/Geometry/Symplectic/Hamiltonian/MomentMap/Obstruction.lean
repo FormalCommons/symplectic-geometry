@@ -11,8 +11,8 @@ public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Basic
 /-!
 # The cohomological obstruction to an equivariant moment map
 
-Let `a : Z ↦ Z_M` be an infinitesimal action of a real Lie algebra `𝔤` on a manifold `M` with a
-closed two-form `σ`, and `μ : M → 𝔤*` a moment map of `a` in Tau Ceti's sign
+Throughout, `a : Z ↦ Z_M` is an infinitesimal action of a real Lie algebra `𝔤` on a manifold `M`
+with a closed two-form `σ`, and `μ : M → 𝔤*` is a moment map of `a` in Tau Ceti's sign
 (`TauCeti.SmoothTwoForm.IsMomentMap`). Tau Ceti shows that the cocycle
 `c(Z, Z') = σ(Z_M, Z'_M) - μ_{⁅Z, Z'⁆}` of `μ` (`TauCeti.SmoothTwoForm.momentCocycle`) is a Lie
 algebra `2`-cocycle with trivial coefficients at every point, and constant on a preconnected
@@ -143,9 +143,9 @@ attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 
 namespace TauCeti.SmoothTwoForm.IsMomentMap
 
-/-- **The obstruction to an equivariant moment map.** Let a connected Lie group act on a connected
-manifold, preserving a closed two-form. A moment map of the action by fundamental vector fields has
-class zero exactly when a constant shift of it is coadjoint-equivariant. -/
+/-- **The class obstructs equivariance.** For a connected Lie group acting on a connected
+manifold and preserving a closed two-form, a moment map of the action by fundamental vector
+fields has class zero exactly when a constant shift of it is coadjoint-equivariant. -/
 theorem cohomologyClass_eq_zero_iff_exists_isEquivariantMomentMap [PreconnectedSpace G]
     [PreconnectedSpace M] (h : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) μ)
     (hσ : σ.IsClosed) (hG : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
