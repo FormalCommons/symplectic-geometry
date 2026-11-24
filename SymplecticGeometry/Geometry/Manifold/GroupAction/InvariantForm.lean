@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.GroupAction.InvariantForm
 public import TauCeti.Geometry.Manifold.MFDeriv.Constancy
 public import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
+import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
 
 /-!
@@ -38,8 +39,6 @@ fundamental vector field symplectic, so that `ι_{X_ξ} σ` is closed.
 * `TauCeti.SmoothTwoForm.fundamental_toSectionLinearMap_mem_symplecticVectorFields` and
   `TauCeti.SmoothTwoForm.interiorₗ_fundamental_toSectionLinearMap_mem_closedForms`: for a closed
   invariant two-form `σ`, each fundamental vector field is symplectic and `ι_{X_ξ} σ` is closed.
-* `TauCeti.InfinitesimalAction.coe_fundamental_toSectionLinearMap`: the fundamental vector field
-  of `ξ`, as a smooth section, is `X_ξ`.
 
 ## References
 
@@ -95,15 +94,6 @@ theorem apply_fundamentalVectorField_eq_of_preconnectedSpace [PreconnectedSpace 
     ⟨_, contMDiff_fundamentalVectorField (m := ∞) (n := ∞) (by simp) ξ⟩
   refine (hf.mdifferentiable (by simp)).apply_eq_of_mfderiv_eq_zero (fun z ↦ ?_) x y
   exact mvfderiv_eq_zero_iff.mp (mvfderiv_apply_fundamentalVectorField_eq_zero hγ hinv ξ z)
-
-omit [T2Space G] [BoundarylessManifold I G] [I'.Boundaryless] [T2Space M] in
-/-- The smooth section of the tangent bundle given by the fundamental vector field of `ξ` is that
-vector field. -/
-theorem InfinitesimalAction.coe_fundamental_toSectionLinearMap (ξ : GroupLieAlgebra I G) :
-    ⇑((InfinitesimalAction.fundamental I G I' M).toSectionLinearMap ξ) =
-      fundamentalVectorField I' ξ :=
-  funext fun x ↦ by
-    rw [InfinitesimalAction.toSectionLinearMap_apply, InfinitesimalAction.fundamental_apply]
 
 /-- A closed two-form `σ` invariant under every element of `G` makes the fundamental vector field
 of each `ξ` in the Lie algebra of `G` a symplectic vector field of `σ`. -/

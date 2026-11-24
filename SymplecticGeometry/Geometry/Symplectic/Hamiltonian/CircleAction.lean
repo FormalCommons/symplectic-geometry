@@ -11,6 +11,7 @@ public import SymplecticGeometry.Geometry.Manifold.DeRham.Wedge
 public import TauCeti.Geometry.Lie.FundamentalVectorField
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap
 public import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
+import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Average
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Pow
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantForm
@@ -223,7 +224,6 @@ theorem exists_isMomentMap_iff_exists_mem_fixedPoints [I.Boundaryless] [T2Space 
     (∃ μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle),
         σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) (fun x ↦ -μ x)) ↔
       ∃ p : M, p ∈ MulAction.fixedPoints Circle M := by
-  have : IsMulCommutative Circle := ⟨⟨mul_comm⟩⟩
   refine ⟨fun ⟨μ, h⟩ ↦ h.nonempty_fixedPoints hσ.isNondegenerate, fun ⟨p, hp⟩ ↦ ?_⟩
   obtain ⟨μ, h⟩ := exists_isMomentMap_of_mem_fixedPoints (J := 𝓡 1) hn hE hσ hinv hL hp
   exact ⟨fun x ↦ -μ x, by simpa only [neg_neg] using h⟩

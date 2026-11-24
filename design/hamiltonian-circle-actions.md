@@ -234,7 +234,7 @@ algebra is used, and for `G` a Lie group on a boundaryless model `J`,
    `σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) μ`:
    Tau Ceti's `TauCeti.SmoothTwoForm.IsMomentMap.nonempty_fixedPoints`
    (`MomentMap/ConvexHull.lean`), for any compact connected commutative
-   Lie group, with a local `IsMulCommutative Circle` instance. The file
+   Lie group; Mathlib already makes `Circle` commutative. The file
    proves no theorem of its own for it.
 2. **The vanishing integral.**
 
