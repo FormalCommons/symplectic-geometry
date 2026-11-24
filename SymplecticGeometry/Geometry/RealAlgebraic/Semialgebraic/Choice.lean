@@ -18,6 +18,19 @@ with `Sum.elim x (f x) ∈ S` there. This is definable choice for one coordinate
 * `TauCeti.IsSemialgebraic.exists_isSemialgebraicOn_sumElim_mem_unit`: semialgebraic choice for
   one output coordinate. The parameters `σ` need not be finite.
 
+On the way, the file proves tools for showing that a set described by a formula is semialgebraic:
+
+* `TauCeti.IsSemialgebraic.setOf_sumElim_mem`: the fibers of a semialgebraic set are
+  semialgebraic.
+* `TauCeti.isSemialgebraic_setOf_apply_lt`: the set where one coordinate is less than another.
+* `TauCeti.IsSemialgebraic.setOf_exists_scalar`, `TauCeti.IsSemialgebraic.setOf_forall_scalar`:
+  a quantifier over one more coordinate.
+* `TauCeti.isSemialgebraicOn_of_setOf_iff`: a function is semialgebraic on `D` if a
+  semialgebraic relation cuts out its graph over `D`.
+* `TauCeti.isSemialgebraic_setOf_mul_one_add_abs_eq` and
+  `TauCeti.isSemialgebraicOn_div_one_sub_abs`: the homeomorphism `t ↦ t / (1 + |t|)` of `ℝ` onto
+  `(-1, 1)` has a semialgebraic graph, and its inverse `u ↦ u / (1 - |u|)` is semialgebraic.
+
 ## Proof
 
 First assume that every fiber lies in `(-1, 1)`. Let `a` be the infimum of a nonempty fiber. If
@@ -28,9 +41,9 @@ one first-order formula in the coordinates, with quantifiers over single real nu
 determines the chosen point; so the graph of the choice is semialgebraic, by
 `TauCeti.IsSemialgebraic.setOf_exists_sumElim` and `TauCeti.IsSemialgebraic.setOf_forall_sumElim`
 for the quantifiers and `TauCeti.IsSemialgebraic.preimage_comp` for the changes of coordinates.
-In general, the homeomorphism `t ↦ t / (1 + |t|)` of `ℝ` onto `(-1, 1)`, whose graph is the
-semialgebraic set `u * (1 + |t|) = t`, moves the fibers into `(-1, 1)`, and the inverse
-`u ↦ u / (1 - |u|)` brings the chosen point back.
+In general, the homeomorphism `t ↦ t / (1 + |t|)` moves the fibers into `(-1, 1)`, and composing
+the choice there with the inverse `u ↦ u / (1 - |u|)` (`TauCeti.IsSemialgebraicOn.comp`) brings
+the chosen point back.
 
 ## References
 
@@ -43,59 +56,114 @@ public section
 
 open Set Topology MvPolynomial
 
+/-- `u * (1 + |t|) = t` says that `u` lies in `(-1, 1)` and `t = u / (1 - |u|)`: this is the
+graph of the order isomorphism `t ↦ t / (1 + |t|)` of a linear ordered field onto `(-1, 1)`. -/
+theorem mul_one_add_abs_eq_iff {k : Type*} [Field k] [LinearOrder k] [IsStrictOrderedRing k]
+    {u t : k} : u * (1 + |t|) = t ↔ |u| < 1 ∧ u / (1 - |u|) = t := by
+  refine ⟨fun h ↦ ?_, fun ⟨hu, ht⟩ ↦ ?_⟩
+  · have hpos : 0 < 1 + |t| := by positivity
+    have habs : |u| * (1 + |t|) = |t| := by
+      rw [← abs_of_pos hpos, ← abs_mul, h]
+    have hu : |u| < 1 := by nlinarith [abs_nonneg t]
+    refine ⟨hu, div_eq_of_eq_mul (by linarith) ?_⟩
+    -- `t * |u| = u * |t|`, since both equal `|u| * u * (1 + |t|)`.
+    have : t * |u| = u * |t| := by
+      calc t * |u| = u * (|u| * (1 + |t|)) := by nth_rewrite 1 [← h]; ring
+        _ = u * |t| := by rw [habs]
+    linarith
+  · have hpos : 0 < 1 - |u| := sub_pos.2 hu
+    subst ht
+    rw [abs_div, abs_of_pos hpos]
+    field_simp
+    ring
+
 namespace TauCeti
 
-variable {σ : Type*}
+variable {σ τ R : Type*}
 
 /-! ### Sets cut out by formulas in one more coordinate -/
 
-private theorem isSemialgebraic_setOf_of_iff {P : (σ → ℝ) → Prop} {s : Set (σ → ℝ)}
+section Formula
+
+variable [CommRing R] [LinearOrder R]
+
+private theorem isSemialgebraic_setOf_of_iff {P : (σ → R) → Prop} {s : Set (σ → R)}
     (hs : IsSemialgebraic s) (h : ∀ z, P z ↔ z ∈ s) : IsSemialgebraic {z | P z} := by
   convert hs using 1
   ext z
   exact h z
 
-private theorem isSemialgebraic_setOf_mem_of_eq_comp {τ : Type*} {s : Set (τ → ℝ)}
-    (hs : IsSemialgebraic s) (e : τ → σ) {g : (σ → ℝ) → τ → ℝ} (hg : ∀ z, g z = z ∘ e) :
+private theorem isSemialgebraic_setOf_mem_of_eq_comp {s : Set (τ → R)}
+    (hs : IsSemialgebraic s) (e : τ → σ) {g : (σ → R) → τ → R} (hg : ∀ z, g z = z ∘ e) :
     IsSemialgebraic {z | g z ∈ s} :=
   isSemialgebraic_setOf_of_iff (hs.preimage_comp e) fun z ↦ by simp [hg]
 
-private theorem isSemialgebraic_setOf_and {P Q : (σ → ℝ) → Prop}
+private theorem isSemialgebraic_setOf_and {P Q : (σ → R) → Prop}
     (hP : IsSemialgebraic {z | P z}) (hQ : IsSemialgebraic {z | Q z}) :
     IsSemialgebraic {z | P z ∧ Q z} :=
   hP.inter hQ
 
-private theorem isSemialgebraic_setOf_or {P Q : (σ → ℝ) → Prop}
+private theorem isSemialgebraic_setOf_or {P Q : (σ → R) → Prop}
     (hP : IsSemialgebraic {z | P z}) (hQ : IsSemialgebraic {z | Q z}) :
     IsSemialgebraic {z | P z ∨ Q z} :=
   hP.union hQ
 
-private theorem isSemialgebraic_setOf_not {P : (σ → ℝ) → Prop}
+private theorem isSemialgebraic_setOf_not {P : (σ → R) → Prop}
     (hP : IsSemialgebraic {z | P z}) : IsSemialgebraic {z | ¬ P z} :=
   hP.compl
 
-private theorem isSemialgebraic_setOf_imp {P Q : (σ → ℝ) → Prop}
+private theorem isSemialgebraic_setOf_imp {P Q : (σ → R) → Prop}
     (hP : IsSemialgebraic {z | P z}) (hQ : IsSemialgebraic {z | Q z}) :
     IsSemialgebraic {z | P z → Q z} :=
   isSemialgebraic_setOf_of_iff (hP.compl.union hQ) fun z ↦ by
     simp [imp_iff_not_or]
 
-private theorem isSemialgebraic_setOf_exists {P : (σ → ℝ) → ℝ → Prop}
-    (h : IsSemialgebraic {z : σ ⊕ Unit → ℝ | P (z ∘ Sum.inl) (z (Sum.inr ()))}) :
-    IsSemialgebraic {x : σ → ℝ | ∃ t, P x t} :=
+/-- A fiber `{y | Sum.elim x y ∈ S}` of a semialgebraic set `S` of points `σ ⊕ τ → R` is
+semialgebraic. -/
+theorem IsSemialgebraic.setOf_sumElim_mem {S : Set (σ ⊕ τ → R)} (hS : IsSemialgebraic S)
+    (x : σ → R) : IsSemialgebraic {y : τ → R | Sum.elim x y ∈ S} := by
+  refine isSemialgebraic_setOf_of_iff
+    (hS.preimage_eval (Sum.elim (fun i ↦ C (x i)) X)) fun y ↦ ?_
+  rw [mem_preimage]
+  convert Iff.rfl using 2
+  ext (i | i) <;> simp
+
+/-- The set of points `z : σ → R` with `z i < z j` is semialgebraic. -/
+theorem isSemialgebraic_setOf_apply_lt [IsOrderedAddMonoid R] (i j : σ) :
+    IsSemialgebraic {z : σ → R | z i < z j} :=
+  isSemialgebraic_setOf_of_iff (isSemialgebraic_eval_lt (X i) (X j)) fun z ↦ by simp
+
+variable [HasSemialgebraicProjections R]
+
+/-- If a relation `P x t` between `x : σ → R` and one more coordinate `t : R` cuts out a
+semialgebraic subset of `σ ⊕ Unit → R`, then `{x | ∃ t, P x t}` is semialgebraic. -/
+theorem IsSemialgebraic.setOf_exists_scalar {P : (σ → R) → R → Prop}
+    (h : IsSemialgebraic {z : σ ⊕ Unit → R | P (z ∘ Sum.inl) (z (Sum.inr ()))}) :
+    IsSemialgebraic {x : σ → R | ∃ t, P x t} :=
   isSemialgebraic_setOf_of_iff h.setOf_exists_sumElim fun x ↦ by
     simp only [mem_ofPred_eq, Sum.elim_comp_inl, Sum.elim_inr]
     exact ⟨fun ⟨t, ht⟩ ↦ ⟨fun _ ↦ t, ht⟩, fun ⟨y, hy⟩ ↦ ⟨y (), hy⟩⟩
 
-private theorem isSemialgebraic_setOf_forall {P : (σ → ℝ) → ℝ → Prop}
-    (h : IsSemialgebraic {z : σ ⊕ Unit → ℝ | P (z ∘ Sum.inl) (z (Sum.inr ()))}) :
-    IsSemialgebraic {x : σ → ℝ | ∀ t, P x t} :=
+/-- If a relation `P x t` between `x : σ → R` and one more coordinate `t : R` cuts out a
+semialgebraic subset of `σ ⊕ Unit → R`, then `{x | ∀ t, P x t}` is semialgebraic. -/
+theorem IsSemialgebraic.setOf_forall_scalar {P : (σ → R) → R → Prop}
+    (h : IsSemialgebraic {z : σ ⊕ Unit → R | P (z ∘ Sum.inl) (z (Sum.inr ()))}) :
+    IsSemialgebraic {x : σ → R | ∀ t, P x t} :=
   isSemialgebraic_setOf_of_iff h.setOf_forall_sumElim fun x ↦ by
     simp only [mem_ofPred_eq, Sum.elim_comp_inl, Sum.elim_inr]
     exact ⟨fun h y ↦ h (y ()), fun h t ↦ h fun _ ↦ t⟩
 
-private theorem isSemialgebraic_setOf_lt (i j : σ) : IsSemialgebraic {z : σ → ℝ | z i < z j} :=
-  isSemialgebraic_setOf_of_iff (isSemialgebraic_eval_lt (X i) (X j)) fun z ↦ by simp
+/-- A function `f : (σ → R) → (τ → R)`, `τ` finite, is semialgebraic on `D` if a relation `G`,
+which holds for `x` and `y` exactly when `x ∈ D` and `y = f x`, cuts out a semialgebraic subset
+of `σ ⊕ τ → R`. -/
+theorem isSemialgebraicOn_of_setOf_iff [Finite τ] {D : Set (σ → R)} {f : (σ → R) → τ → R}
+    {G : (σ → R) → (τ → R) → Prop}
+    (hG : IsSemialgebraic {z : σ ⊕ τ → R | G (z ∘ Sum.inl) (z ∘ Sum.inr)})
+    (h : ∀ x y, G x y ↔ x ∈ D ∧ f x = y) : IsSemialgebraicOn f D :=
+  isSemialgebraicOn_iff_graph.2 (isSemialgebraic_setOf_of_iff hG fun _ ↦
+    mem_preimage_sumArrowEquivProdArrow_graphOn.trans (h _ _).symm)
+
+end Formula
 
 /-- The formula that picks a point `t` of the fiber `{t | Sum.elim x (fun _ ↦ t) ∈ S}`: `t` is its
 least point, or the fiber has no point at or below some `a`, contains `(a, b)`, contains no longer
@@ -111,39 +179,40 @@ private theorem isSemialgebraic_choicePred {S : Set (σ ⊕ Unit → ℝ)} (hS :
   unfold ChoicePred
   refine isSemialgebraic_setOf_or (isSemialgebraic_setOf_and ?_ ?_) ?_
   · exact isSemialgebraic_setOf_mem_of_eq_comp hS id fun z ↦ by ext (i | i) <;> rfl
-  · refine isSemialgebraic_setOf_forall (isSemialgebraic_setOf_imp ?_ ?_)
-    · exact isSemialgebraic_setOf_lt _ _
+  · refine IsSemialgebraic.setOf_forall_scalar (isSemialgebraic_setOf_imp ?_ ?_)
+    · exact isSemialgebraic_setOf_apply_lt _ _
     · exact isSemialgebraic_setOf_not (isSemialgebraic_setOf_mem_of_eq_comp hS
         (Sum.elim (Sum.inl ∘ Sum.inl) fun _ ↦ Sum.inr ()) fun z ↦ by ext (i | i) <;> rfl)
-  · refine isSemialgebraic_setOf_exists (isSemialgebraic_setOf_exists ?_)
+  · refine IsSemialgebraic.setOf_exists_scalar (IsSemialgebraic.setOf_exists_scalar ?_)
     refine isSemialgebraic_setOf_and ?_ (isSemialgebraic_setOf_and ?_
       (isSemialgebraic_setOf_and ?_ (isSemialgebraic_setOf_and ?_
         (isSemialgebraic_setOf_and ?_ ?_))))
-    · exact isSemialgebraic_setOf_lt (Sum.inl (Sum.inr ())) (Sum.inr ())
+    · exact isSemialgebraic_setOf_apply_lt (Sum.inl (Sum.inr ())) (Sum.inr ())
     · exact isSemialgebraic_setOf_of_iff
         (isSemialgebraic_eval_eq (2 * X (Sum.inl (Sum.inl (Sum.inr ()))))
           (X (Sum.inl (Sum.inr ())) + X (Sum.inr ()))) fun z ↦ by simp
-    · refine isSemialgebraic_setOf_forall (isSemialgebraic_setOf_imp ?_ ?_)
-      · exact isSemialgebraic_setOf_lt (Sum.inr ()) (Sum.inl (Sum.inl (Sum.inr ())))
+    · refine IsSemialgebraic.setOf_forall_scalar (isSemialgebraic_setOf_imp ?_ ?_)
+      · exact isSemialgebraic_setOf_apply_lt (Sum.inr ()) (Sum.inl (Sum.inl (Sum.inr ())))
       · exact isSemialgebraic_setOf_not (isSemialgebraic_setOf_mem_of_eq_comp hS
           (Sum.elim (Sum.inl ∘ Sum.inl ∘ Sum.inl ∘ Sum.inl) fun _ ↦ Sum.inr ())
           fun z ↦ by ext (i | i) <;> rfl)
     · exact isSemialgebraic_setOf_not (isSemialgebraic_setOf_mem_of_eq_comp hS
         (Sum.elim (Sum.inl ∘ Sum.inl ∘ Sum.inl) fun _ ↦ Sum.inl (Sum.inr ()))
         fun z ↦ by ext (i | i) <;> rfl)
-    · refine isSemialgebraic_setOf_forall (isSemialgebraic_setOf_imp ?_
+    · refine IsSemialgebraic.setOf_forall_scalar (isSemialgebraic_setOf_imp ?_
         (isSemialgebraic_setOf_imp ?_ ?_))
-      · exact isSemialgebraic_setOf_lt (Sum.inl (Sum.inl (Sum.inr ()))) (Sum.inr ())
-      · exact isSemialgebraic_setOf_lt (Sum.inr ()) (Sum.inl (Sum.inr ()))
+      · exact isSemialgebraic_setOf_apply_lt (Sum.inl (Sum.inl (Sum.inr ()))) (Sum.inr ())
+      · exact isSemialgebraic_setOf_apply_lt (Sum.inr ()) (Sum.inl (Sum.inr ()))
       · exact isSemialgebraic_setOf_mem_of_eq_comp hS
           (Sum.elim (Sum.inl ∘ Sum.inl ∘ Sum.inl ∘ Sum.inl) fun _ ↦ Sum.inr ())
           fun z ↦ by ext (i | i) <;> rfl
-    · refine isSemialgebraic_setOf_forall (isSemialgebraic_setOf_imp ?_
-        (isSemialgebraic_setOf_exists (isSemialgebraic_setOf_and ?_
+    · refine IsSemialgebraic.setOf_forall_scalar (isSemialgebraic_setOf_imp ?_
+        (IsSemialgebraic.setOf_exists_scalar (isSemialgebraic_setOf_and ?_
           (isSemialgebraic_setOf_and ?_ ?_))))
-      · exact isSemialgebraic_setOf_lt (Sum.inl (Sum.inr ())) (Sum.inr ())
-      · exact isSemialgebraic_setOf_lt (Sum.inl (Sum.inl (Sum.inl (Sum.inr ())))) (Sum.inr ())
-      · exact isSemialgebraic_setOf_lt (Sum.inr ()) (Sum.inl (Sum.inr ()))
+      · exact isSemialgebraic_setOf_apply_lt (Sum.inl (Sum.inr ())) (Sum.inr ())
+      · exact isSemialgebraic_setOf_apply_lt (Sum.inl (Sum.inl (Sum.inl (Sum.inr ()))))
+          (Sum.inr ())
+      · exact isSemialgebraic_setOf_apply_lt (Sum.inr ()) (Sum.inl (Sum.inr ()))
       · exact isSemialgebraic_setOf_not (isSemialgebraic_setOf_mem_of_eq_comp hS
           (Sum.elim (Sum.inl ∘ Sum.inl ∘ Sum.inl ∘ Sum.inl ∘ Sum.inl) fun _ ↦ Sum.inr ())
           fun z ↦ by ext (i | i) <;> rfl)
@@ -188,15 +257,6 @@ private theorem ChoicePred.unique {S : Set (σ ⊕ Unit → ℝ)} {x : σ → �
     subst hbb
     linarith
 
-/-- A fiber of a semialgebraic family is semialgebraic as a subset of the line `Fin 1 → ℝ`. -/
-private theorem isSemialgebraic_fiber {S : Set (σ ⊕ Unit → ℝ)} (hS : IsSemialgebraic S)
-    (x : σ → ℝ) : IsSemialgebraic {v : Fin 1 → ℝ | Sum.elim x (fun _ ↦ v 0) ∈ S} := by
-  refine isSemialgebraic_setOf_of_iff
-    (hS.preimage_eval (Sum.elim (fun i ↦ C (x i)) fun _ ↦ X 0)) fun v ↦ ?_
-  rw [mem_preimage]
-  convert Iff.rfl using 2
-  ext (i | i) <;> simp
-
 private theorem exists_choicePred {S : Set (σ ⊕ Unit → ℝ)} (hS : IsSemialgebraic S)
     (hS₁ : ∀ z ∈ S, |z (Sum.inr ())| < 1) {x : σ → ℝ} {t₀ : ℝ}
     (ht₀ : Sum.elim x (fun _ ↦ t₀) ∈ S) : ∃ t, ChoicePred S x t := by
@@ -210,13 +270,16 @@ private theorem exists_choicePred {S : Set (σ ⊕ Unit → ℝ)} (hS : IsSemial
   · exact ⟨a, .inl ⟨ha, hlow⟩⟩
   -- Right of `a`, the fiber contains an interval `(a, c₀)`.
   obtain ⟨c₀, hac₀, hc₀⟩ : ∃ c₀, a < c₀ ∧ ∀ s, a < s → s < c₀ → s ∈ A := by
-    rcases (isSemialgebraic_fiber hS x).eventually_nhdsGT_mem_or_notMem a with h | h
+    -- The fiber, as a subset of the line `Fin 1 → ℝ`.
+    have hA : IsSemialgebraic {v : Fin 1 → ℝ | Sum.elim x (v ∘ fun _ ↦ 0) ∈ S} :=
+      (hS.setOf_sumElim_mem x).preimage_comp fun _ ↦ 0
+    rcases hA.eventually_nhdsGT_mem_or_notMem a with h | h
     · obtain ⟨c₀, hc₀, hsub⟩ := mem_nhdsGT_iff_exists_Ioo_subset.1 h
-      exact ⟨c₀, hc₀, fun s h₁ h₂ ↦ by simpa [A] using hsub ⟨h₁, h₂⟩⟩
+      exact ⟨c₀, hc₀, fun s h₁ h₂ ↦ by simpa [A, Function.comp_def] using hsub ⟨h₁, h₂⟩⟩
     · obtain ⟨c₀, hc₀, hsub⟩ := mem_nhdsGT_iff_exists_Ioo_subset.1 h
       obtain ⟨s, hs, hsc⟩ := exists_lt_of_csInf_lt hne (mem_Ioi.1 hc₀)
       have has : a < s := (csInf_le hbdd hs).lt_of_ne fun h ↦ ha (by rwa [show a = s from h])
-      exact (hsub ⟨has, hsc⟩ (by simpa [A] using hs)).elim
+      exact (hsub ⟨has, hsc⟩ (by simpa [A, Function.comp_def] using hs)).elim
   set B := {c : ℝ | ∀ s, a < s → s < c → s ∈ A}
   have ha₁ : a < 1 := (csInf_le hbdd ht₀).trans_lt (lt_of_abs_lt (hA₁ t₀ ht₀))
   have hBbdd : BddAbove B := ⟨1, fun c hc ↦ not_lt.1 fun h ↦ by
@@ -231,17 +294,6 @@ private theorem exists_choicePred {S : Set (σ ⊕ Unit → ℝ)} (hS : IsSemial
   by_contra! h
   exact (le_csSup hBbdd (show c ∈ B from h)).not_gt hc
 
-/-- A function of one output coordinate is semialgebraic on `D` if its graph over `D` is cut out
-by a semialgebraic formula. -/
-private theorem isSemialgebraicOn_of_iff {D : Set (σ → ℝ)} {f : (σ → ℝ) → Unit → ℝ}
-    {G : (σ → ℝ) → ℝ → Prop}
-    (hG : IsSemialgebraic {z : σ ⊕ Unit → ℝ | G (z ∘ Sum.inl) (z (Sum.inr ()))})
-    (h : ∀ x t, G x t ↔ x ∈ D ∧ f x () = t) : IsSemialgebraicOn f D := by
-  refine isSemialgebraicOn_iff_graph.2 (isSemialgebraic_setOf_of_iff hG fun z ↦ ?_)
-  refine mem_preimage_sumArrowEquivProdArrow_graphOn.trans ?_
-  refine Iff.trans ?_ (h _ _).symm
-  rw [funext_iff, Unique.forall_iff]
-  rfl
 
 /-- Semialgebraic choice of one coordinate, for a family whose fibers lie in `(-1, 1)`. -/
 private theorem exists_isSemialgebraicOn_of_abs_lt_one {S : Set (σ ⊕ Unit → ℝ)}
@@ -255,27 +307,14 @@ private theorem exists_isSemialgebraicOn_of_abs_lt_one {S : Set (σ ⊕ Unit →
     obtain ⟨y, hy⟩ := hx
     have h : ∃ t, ChoicePred S x t := exists_choicePred hS hS₁ (t₀ := y ()) hy
     simpa only [f, dite_eq_left h] using h.choose_spec
-  refine ⟨f, isSemialgebraicOn_of_iff (isSemialgebraic_choicePred hS) fun x t ↦ ?_,
-    fun x hx ↦ (hf hx).mem⟩
-  refine ⟨fun h ↦ ?_, fun ⟨hx, ht⟩ ↦ ht ▸ hf hx⟩
-  have hx : x ∈ {x | ∃ y, Sum.elim x y ∈ S} := ⟨fun _ ↦ t, h.mem⟩
-  exact ⟨hx, (hf hx).unique h⟩
-
-/-- If `u * (1 + |t|) = t`, then `|u| < 1` and `t = u / (1 - |u|)`. -/
-private theorem abs_lt_one_and_eq_div_of_mul_one_add_abs_eq {u t : ℝ}
-    (h : u * (1 + |t|) = t) : |u| < 1 ∧ t = u / (1 - |u|) := by
-  have hpos : 0 < 1 + |t| := by positivity
-  have habs : |u| * (1 + |t|) = |t| := by
-    rw [← abs_of_pos hpos, ← abs_mul, h]
-  have hu : |u| < 1 := by nlinarith [abs_nonneg t]
-  refine ⟨hu, eq_div_of_mul_eq (by linarith) ?_⟩
-  -- `t * |u| = u * |t|`, since both equal `|u| * u * (1 + |t|)`.
-  have : t * |u| = u * |t| := by
-    calc t * |u| = u * (|u| * (1 + |t|)) := by nth_rewrite 1 [← h]; ring
-      _ = u * |t| := by rw [habs]
-  linarith
-
-private theorem isSemialgebraic_setOf_mul_one_add_abs_eq (i j : σ) :
+  refine ⟨f, isSemialgebraicOn_of_setOf_iff (G := fun x y ↦ ChoicePred S x (y ()))
+    (isSemialgebraic_choicePred hS) fun x y ↦ ?_, fun x hx ↦ (hf hx).mem⟩
+  refine ⟨fun h ↦ ?_, fun ⟨hx, hy⟩ ↦ hy ▸ hf hx⟩
+  have hx : x ∈ {x | ∃ y, Sum.elim x y ∈ S} := ⟨fun _ ↦ y (), h.mem⟩
+  exact ⟨hx, funext fun _ ↦ (hf hx).unique h⟩
+/-- The graph `u * (1 + |t|) = t` of `t ↦ t / (1 + |t|)`, in two coordinates `u = z i` and
+`t = z j`, is semialgebraic. -/
+theorem isSemialgebraic_setOf_mul_one_add_abs_eq (i j : σ) :
     IsSemialgebraic {z : σ → ℝ | z i * (1 + |z j|) = z j} := by
   refine isSemialgebraic_setOf_of_iff (((isSemialgebraic_eval_nonneg (X j)).inter
     (isSemialgebraic_eval_eq (X i * (1 + X j)) (X j))).union ((isSemialgebraic_eval_neg (X j)).inter
@@ -283,6 +322,14 @@ private theorem isSemialgebraic_setOf_mul_one_add_abs_eq (i j : σ) :
   rcases le_or_gt 0 (z j) with h | h
   · simp [abs_of_nonneg h, h, h.not_gt]
   · simp [abs_of_neg h, h, h.not_ge, sub_eq_add_neg]
+
+/-- The map `u ↦ u / (1 - |u|)`, on the points `u : Unit → ℝ` with `|u ()| < 1`, is
+semialgebraic. -/
+theorem isSemialgebraicOn_div_one_sub_abs :
+    IsSemialgebraicOn (fun (u : Unit → ℝ) (_ : Unit) ↦ u () / (1 - |u ()|)) {u | |u ()| < 1} :=
+  isSemialgebraicOn_of_setOf_iff (G := fun u t ↦ u () * (1 + |t ()|) = t ())
+    (isSemialgebraic_setOf_mul_one_add_abs_eq (Sum.inl ()) (Sum.inr ())) fun u t ↦ by
+      simp [mul_one_add_abs_eq_iff, funext_iff, Unique.forall_iff]
 
 /-- **Semialgebraic choice** for one coordinate: a semialgebraic family `S` of subsets of `ℝ`,
 indexed by `x : σ → ℝ`, has a semialgebraic section over the set of parameters whose fiber is
@@ -295,13 +342,13 @@ theorem IsSemialgebraic.exists_isSemialgebraicOn_sumElim_mem_unit {S : Set (σ �
   set S' := {z : σ ⊕ Unit → ℝ |
     ∃ t, Sum.elim (z ∘ Sum.inl) (fun _ ↦ t) ∈ S ∧ z (Sum.inr ()) * (1 + |t|) = t}
   have hS' : IsSemialgebraic S' := by
-    refine isSemialgebraic_setOf_exists (isSemialgebraic_setOf_and ?_ ?_)
+    refine IsSemialgebraic.setOf_exists_scalar (isSemialgebraic_setOf_and ?_ ?_)
     · exact isSemialgebraic_setOf_mem_of_eq_comp hS
         (Sum.elim (Sum.inl ∘ Sum.inl) fun _ ↦ Sum.inr ()) fun z ↦ by ext (i | i) <;> rfl
     · exact isSemialgebraic_setOf_mul_one_add_abs_eq (Sum.inl (Sum.inr ())) (Sum.inr ())
   have hS'₁ (z) (hz : z ∈ S') : |z (Sum.inr ())| < 1 := by
     obtain ⟨t, -, ht⟩ := hz
-    exact (abs_lt_one_and_eq_div_of_mul_one_add_abs_eq ht).1
+    exact (mul_one_add_abs_eq_iff.1 ht).1
   have hdom : {x | ∃ y, Sum.elim x y ∈ S'} = {x | ∃ y, Sum.elim x y ∈ S} := by
     ext x
     refine ⟨fun ⟨y, t, ht, _⟩ ↦ ⟨fun _ ↦ t, by simpa using ht⟩, fun ⟨y, hy⟩ ↦ ?_⟩
@@ -310,29 +357,11 @@ theorem IsSemialgebraic.exists_isSemialgebraicOn_sumElim_mem_unit {S : Set (σ �
     field_simp
   obtain ⟨g, hg, hgS⟩ := exists_isSemialgebraicOn_of_abs_lt_one hS' hS'₁
   rw [hdom] at hg hgS
-  have hgt {x} (hx : x ∈ {x | ∃ y, Sum.elim x y ∈ S}) :
-      Sum.elim x (fun _ ↦ g x () / (1 - |g x ()|)) ∈ S := by
-    obtain ⟨t, ht, hgt⟩ := hgS x hx
-    simp only [Sum.elim_comp_inl, Sum.elim_inr] at ht hgt
-    rwa [← (abs_lt_one_and_eq_div_of_mul_one_add_abs_eq hgt).2]
-  refine ⟨fun x _ ↦ g x () / (1 - |g x ()|), isSemialgebraicOn_of_iff
-    (G := fun x t ↦ Sum.elim x (fun _ ↦ t) ∈ S ∧ ∃ u, Sum.elim x (fun _ ↦ u) ∈
-      Equiv.sumArrowEquivProdArrow σ Unit ℝ ⁻¹' {x | ∃ y, Sum.elim x y ∈ S}.graphOn g ∧
-      u * (1 + |t|) = t) ?_ fun x t ↦ ?_, fun x hx ↦ hgt hx⟩
-  · refine isSemialgebraic_setOf_and ?_ (isSemialgebraic_setOf_exists
-      (isSemialgebraic_setOf_and ?_ ?_))
-    · exact isSemialgebraic_setOf_mem_of_eq_comp hS id fun z ↦ by ext (i | i) <;> rfl
-    · exact isSemialgebraic_setOf_mem_of_eq_comp hg.graph
-        (Sum.elim (Sum.inl ∘ Sum.inl) fun _ ↦ Sum.inr ()) fun z ↦ by ext (i | i) <;> rfl
-    · exact isSemialgebraic_setOf_mul_one_add_abs_eq (Sum.inr ()) (Sum.inl (Sum.inr ()))
-  · simp only [mem_preimage_sumArrowEquivProdArrow_graphOn, Sum.elim_comp_inl, Sum.elim_comp_inr,
-      funext_iff, Unique.forall_iff]
-    refine ⟨fun ⟨_, u, ⟨hx, hu⟩, hut⟩ ↦ ⟨hx, ?_⟩, fun ⟨hx, ht⟩ ↦ ⟨ht ▸ hgt hx, ?_⟩⟩
-    · rw [(abs_lt_one_and_eq_div_of_mul_one_add_abs_eq hut).2, ← hu]
-    · obtain ⟨t', ht', hgt'⟩ := hgS x hx
-      simp only [Sum.elim_comp_inl, Sum.elim_inr] at ht' hgt'
-      refine ⟨g x (), ⟨hx, rfl⟩, ?_⟩
-      rwa [← ht, ← (abs_lt_one_and_eq_div_of_mul_one_add_abs_eq hgt').2]
+  refine ⟨_, isSemialgebraicOn_div_one_sub_abs.comp hg fun x hx ↦ by
+    simpa using hS'₁ _ (hgS x hx), fun x hx ↦ ?_⟩
+  obtain ⟨t, ht, hgt⟩ := hgS x hx
+  simp only [Sum.elim_comp_inl, Sum.elim_inr] at ht hgt
+  simpa only [Function.comp_apply, (mul_one_add_abs_eq_iff.1 hgt).2] using ht
 
 end TauCeti
 
