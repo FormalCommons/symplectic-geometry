@@ -8,7 +8,6 @@ module
 public import Mathlib.Analysis.Calculus.IteratedDeriv.Defs
 public import Mathlib.MeasureTheory.Measure.Haar.InnerProductSpace
 public import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.Integral.IntegralEqImproper
 import SymplecticGeometry.MeasureTheory.Integral.IntegralEqImproper
 import TauCeti.MeasureTheory.Measure.Lebesgue.HalfSqRadius
 import TauCeti.MeasureTheory.Measure.Lebesgue.Weighted.Orthant
