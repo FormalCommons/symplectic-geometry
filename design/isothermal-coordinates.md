@@ -83,9 +83,9 @@ for the higher orders.
   `stdComplexSymplecticForm_tames_iff_im_pos`
   (`Geometry/Symplectic/Complex/Line.lean`); `SymplecticForm.Tames.contMDiffAt_cayley`
   (`Geometry/Symplectic/Cayley/Smooth.lean`), for any order.
-- **Rotation.** `TauCeti.Manifold.Orientation.contMDiff_rightAngleRotation`
-  (`Geometry/Manifold/Riemannian/Orientation/Rotation.lean`) and
-  `TauCeti.Manifold.contMDiff_hom_iff` (`Geometry/Manifold/VectorBundle/Hom.lean`);
+- **Rotation.** `TauCeti.Manifold.Orientation.rightAngleAlmostComplexStructure`
+  and `rightAngleAlmostComplexStructure_apply`
+  (`Geometry/Manifold/Riemannian/Orientation/AlmostComplex.lean`);
   Mathlib's `Orientation.rightAngleRotation`,
   `Orientation.rightAngleRotation_map_complex` and
   `isConformalMap_complex_linear`.
@@ -93,8 +93,8 @@ for the higher orders.
 Missing, and built here: the fixed point in $C^{k,\alpha}$, the planar charts
 of class `C^m` and the smooth planar charts built from it, the same charts
 read on a surface, `IsIntegrable` in real
-dimension two, the rotation structure of an oriented Riemannian surface, and
-its isothermal coordinates.
+dimension two, and the isothermal coordinates of an oriented Riemannian
+surface.
 
 ## Decisions
 
@@ -149,9 +149,8 @@ this file.
    differential of a smooth chart `M → ℂ`: at each point of its source
    `IsConformalMap (mvfderiv I ψ y)`, which Mathlib's `isConformalMap_iff`
    turns into `⟪dψ v, dψ w⟫ = c ⟪v, w⟫` for some `c > 0`. They are the isothermal
-   charts of the rotation structure of the metric and the orientation; the
-   rotation structure is built from `contMDiff_rightAngleRotation` with
-   `contMDiff_hom_iff`, which needs `[T2Space M]`.
+   charts of the rotation structure of the metric and the orientation, Tau
+   Ceti's `rightAngleAlmostComplexStructure`, which needs `[T2Space M]`.
 8. **Tau Ceti's `exists_isIsothermalChart` is used as it is.** Tau Ceti
    proves the existence of `C¹` isothermal charts for every structure
    (`SmoothAlmostComplexStructure.exists_isIsothermalChart`), and no longer
@@ -174,7 +173,7 @@ this file.
 | `Analysis/Complex/Beltrami/CkHolder.lean` | charts of class `C^{k+1}` for small coefficients | 1 |
 | `Analysis/Complex/Beltrami/Regularity.lean` | planar isothermal charts of class `C^m`, smooth planar isothermal charts | 2 |
 | `Analysis/InnerProductSpace/TwoDim.lean` | a nonzero linear map of an oriented Euclidean plane carrying the rotation to `i` is conformal | 4 |
-| `Geometry/Manifold/Complex/Isothermal.lean` | smooth isothermal charts on surfaces (issue 3); `IsIntegrable` in dimension two, the rotation structure, isothermal coordinates, the milestone (issue 4) | 3, 4 |
+| `Geometry/Manifold/Complex/Isothermal.lean` | smooth isothermal charts on surfaces (issue 3); `IsIntegrable` in dimension two, isothermal coordinates, the milestone (issue 4) | 3, 4 |
 
 `CkHolder.lean` and `Regularity.lean` avoid the names of Tau Ceti's `Beltrami/` files
 (`Chart`, `Holder`, `Isothermal`, `Linear`, `Transition`). The surface file
@@ -353,24 +352,19 @@ its proofs only, `Analysis/InnerProductSpace/TwoDim.lean` (below) and
   J.IsIntegrable`, with the linear structure of Decision 6: the charts are
   those of `exists_isothermal_partialDiffeomorph` followed by `ℂ ≃L[ℝ] E`.
   The docstring ends with the milestone line.
-- `TauCeti.Manifold.Orientation.rightAngleRotationStructure
-  (o : Manifold.Orientation I M (Fin 2)) : SmoothAlmostComplexStructure I M`,
-  for `[T2Space M]`, `[RiemannianBundle (fun x : M ↦ TangentSpace I x)]` and
-  `[IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]`:
-  rotation by a right angle in each tangent plane, smooth by
-  `contMDiff_hom_iff` and `contMDiff_rightAngleRotation`, of square `-1` by
-  `Orientation.rightAngleRotation_rightAngleRotation`; with
-  `rightAngleRotationStructure_apply` (the value at `x` on `v` is
-  `(o.orientationAt x).rightAngleRotation v`, under the
-  `fact_finrank_tangentSpace` instance), proved by `(rfl)`.
 - `TauCeti.Manifold.Orientation.exists_isothermal_coordinates
   (o : Manifold.Orientation I M (Fin 2)) (x : M) :
   ∃ ψ : PartialDiffeomorph I 𝓘(ℝ, ℂ) M ℂ ∞, x ∈ ψ.source ∧
   ∀ y ∈ ψ.source, IsConformalMap (mvfderiv I ψ y)`,
-  with the instances above and `[I.Boundaryless]`, and Mathlib's `mvfderiv`
+  for `[T2Space M]`, `[RiemannianBundle (fun x : M ↦ TangentSpace I x)]`,
+  `[IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]` and
+  `[I.Boundaryless]`, and Mathlib's `mvfderiv`
   as in issue 3. The finrank of `E` comes from `o` and `x`
   (`fact_finrank_tangentSpace`). The chart is that of
-  `exists_isothermal_partialDiffeomorph` for `o.rightAngleRotationStructure`;
+  `exists_isothermal_partialDiffeomorph` for Tau Ceti's
+  `o.rightAngleAlmostComplexStructure`
+  (`Geometry/Manifold/Riemannian/Orientation/AlmostComplex.lean`, with
+  `rightAngleAlmostComplexStructure_apply`);
   at each point its differential, read through an orientation-preserving
   isometry of the tangent plane with `ℂ`
   (`Orientation.rightAngleRotation_map_complex`), is complex linear and
