@@ -8,10 +8,10 @@ module
 public import Mathlib.Algebra.Group.EvenFunction
 public import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.Calculus.ContDiff.Deriv
-import Mathlib.Analysis.Calculus.Deriv.Shift
 import Mathlib.Analysis.Calculus.FDeriv.Extend
 import Mathlib.Analysis.SpecialFunctions.Sqrt
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Seeley.Extension
+import TauCeti.Analysis.Calculus.Deriv.Parity
 import TauCeti.Analysis.Calculus.Hadamard
 
 /-!
@@ -27,14 +27,13 @@ even `f`, applying this to the odd function `deriv f` gives a smooth even `k` wi
 `deriv f t = t * k t`, so that `s ↦ f (√s)` has derivative `s ↦ k (√s) / 2` on `[0, ∞)`
 (at `0` by `hasDerivWithinAt_Ici_of_tendsto_deriv`). By induction on the order,
 `s ↦ f (√s)` is smooth on `[0, ∞)`, and Seeley's extension
-(`SymplecticGeometry.contDiffOn_seeleyExtend`) gives a smooth function on `ℝ` that agrees
+(`SymplecticGeometry.contDiff_seeleyExtend`) gives a smooth function on `ℝ` that agrees
 with it there.
 
 ## Main results
 
 * `Function.Odd.exists_contDiff_even_mul`: a smooth odd function is `t * k t` with `k` smooth
   and even.
-* `Function.Even.deriv`: the derivative of an even function is odd.
 * `Function.Even.contDiffOn_comp_sqrt`: for a smooth even `f`, `s ↦ f (√s)` is smooth on
   `[0, ∞)`.
 * `Function.Even.exists_contDiff_comp_sq`: a smooth even `f` is `g (t ^ 2)` with `g` smooth.
@@ -70,12 +69,6 @@ theorem Odd.exists_contDiff_even_mul {f : ℝ → ℝ} (hf : f.Odd) (hc : ContDi
     rw [hk, hk, neg_mul, neg_inj] at h
     exact mul_left_cancel₀ (neg_ne_zero.2 ht) (by linarith)
 
-/-- The derivative of an even function is odd. -/
-theorem Even.deriv {𝕜 F : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup F]
-    [NormedSpace 𝕜 F] {f : 𝕜 → F} (hf : f.Even) : (_root_.deriv f).Odd := fun t ↦ by
-  have h : (fun x ↦ f (-x)) = f := funext hf
-  rw [← neg_neg (_root_.deriv f (-t)), ← deriv_comp_neg, h]
-
 /-- If `f` is smooth and `deriv f t = t * k t` with `k` continuous, then `s ↦ f (√s)` has
 derivative `k (√s) / 2` within `[0, ∞)` at each `s ≥ 0`. -/
 private theorem hasDerivWithinAt_comp_sqrt_of_deriv_eq_mul {f k : ℝ → ℝ} (hc : ContDiff ℝ ∞ f)
@@ -108,7 +101,9 @@ theorem Even.contDiffOn_comp_sqrt {f : ℝ → ℝ} (hf : f.Even) (hc : ContDiff
   | succ n ih =>
     intro f hf hc
     have hc' := (contDiff_infty_iff_deriv.1 hc).2
-    obtain ⟨k, hck, hke, hk⟩ := hf.deriv.exists_contDiff_even_mul hc'
+    have hd : (deriv f).Odd := fun t ↦
+      TauCeti.deriv_neg_eq_neg_of_eventually_even (.of_forall hf)
+    obtain ⟨k, hck, hke, hk⟩ := hd.exists_contDiff_even_mul hc'
     have hder : ∀ s ∈ Ici (0 : ℝ),
         HasDerivWithinAt (fun s ↦ f √s) (k √s / 2) (Ici 0) s := fun s hs ↦
       hasDerivWithinAt_comp_sqrt_of_deriv_eq_mul hc hck.continuous hk hs
@@ -122,13 +117,8 @@ theorem Even.contDiffOn_comp_sqrt {f : ℝ → ℝ} (hf : f.Even) (hc : ContDiff
 function `g : ℝ → ℝ`. -/
 theorem Even.exists_contDiff_comp_sq {f : ℝ → ℝ} (hf : f.Even)
     (hc : ContDiff ℝ ∞ f) : ∃ g : ℝ → ℝ, ContDiff ℝ ∞ g ∧ ∀ t, f t = g (t ^ 2) := by
-  have h : ContDiffOn ℝ ∞ (fun p : ℝ × ℝ ↦ f √p.1) (Ici 0 ×ˢ univ) :=
-    (hf.contDiffOn_comp_sqrt hc).comp contDiff_fst.contDiffOn fun p hp ↦ hp.1
-  have hg := SymplecticGeometry.contDiffOn_seeleyExtend isOpen_univ h
-  rw [univ_prod_univ, contDiffOn_univ] at hg
-  refine ⟨_, hg.comp
-    (contDiff_id.prodMk contDiff_const : ContDiff ℝ ∞ fun t : ℝ ↦ (t, (0 : ℝ))), fun t ↦ ?_⟩
-  simp only [comp_apply, id_eq]
+  refine ⟨_, SymplecticGeometry.contDiff_seeleyExtend (hf.contDiffOn_comp_sqrt hc),
+    fun t ↦ ?_⟩
   rw [SymplecticGeometry.seeleyExtend_of_nonneg _ (sq_nonneg t), Real.sqrt_sq_eq_abs]
   rcases abs_choice t with h | h <;> simp [h, hf t]
 
