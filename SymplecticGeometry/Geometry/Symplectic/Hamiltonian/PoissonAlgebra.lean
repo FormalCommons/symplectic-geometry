@@ -19,13 +19,8 @@ Poisson bracket `{f, g} = σ(X_f, X_g)` as in Tau Ceti
 (`TauCeti.SmoothTwoForm.hamiltonianVectorField`, `TauCeti.SmoothTwoForm.poissonBracket`). This
 file adds what Tau Ceti lacks to show that the smooth functions on a symplectic manifold form a
 Poisson algebra on which Hamiltonian flows act, and collects the whole statement in one theorem.
+The Leibniz rule of the bracket is Tau Ceti's `TauCeti.SmoothTwoForm.poissonBracket_mul_left`.
 
-* The **Leibniz rule**: `X_{fg} = f X_g + g X_f`
-  (`TauCeti.SmoothTwoForm.hamiltonianVectorField_mul`), hence
-  `{fg, k} = f {g, k} + g {f, k}` and the same in the second slot
-  (`TauCeti.SmoothTwoForm.poissonBracket_mul_left`,
-  `TauCeti.SmoothTwoForm.poissonBracket_mul_right`). Since `X_f` is a linear function of `df`,
-  neither nondegeneracy nor finite dimension is needed.
 * The **kernel of `f ↦ -X_f`** on the Poisson Lie algebra of a symplectic form consists of the
   locally constant functions
   (`TauCeti.SmoothTwoForm.mem_ker_negHamiltonianLieHom_iff_isLocallyConstant`), and of the
@@ -43,10 +38,6 @@ smoothness, bilinearity, skew-symmetry, the Jacobi identity and the Leibniz rule
 `X_{{f, g}} = -[X_f, X_g]`, where `-[X, Y]` with Mathlib's bracket `VectorField.mlieBracket` is
 the bracket of McDuff–Salamon; naturality of `X_f` under symplectomorphisms; and the kernel and
 quotient of `f ↦ -X_f`.
-
-The proofs of the Leibniz rule follow those of Tau Ceti's
-`TauCeti.SmoothTwoForm.hamiltonianVectorField_add` and
-`TauCeti.SmoothTwoForm.poissonBracket_add_left`.
 
 ## References
 
@@ -69,34 +60,6 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
 namespace SmoothTwoForm
 
 variable {σ : SmoothTwoForm I M} {f g k : M → ℝ} {x : M}
-
-/-! ### The Leibniz rule -/
-
-/-- **The Leibniz rule for Hamiltonian vector fields**: `X_{fg} = f X_g + g X_f` at every point
-where `f` and `g` are differentiable. -/
-theorem hamiltonianVectorField_mul (hf : MDifferentiableAt I 𝓘(ℝ) f x)
-    (hg : MDifferentiableAt I 𝓘(ℝ) g x) :
-    σ.hamiltonianVectorField (f * g) x =
-      f x • σ.hamiltonianVectorField g x + g x • σ.hamiltonianVectorField f x := by
-  rw [hamiltonianVectorField_def, hamiltonianVectorField_def, hamiltonianVectorField_def,
-    mvfderiv_mul hf hg, map_add, map_smul, map_smul]
-
-/-- **The Leibniz rule for the Poisson bracket** in its first argument:
-`{fg, k} = f {g, k} + g {f, k}` at every point where `f` and `g` are differentiable. -/
-theorem poissonBracket_mul_left (hf : MDifferentiableAt I 𝓘(ℝ) f x)
-    (hg : MDifferentiableAt I 𝓘(ℝ) g x) :
-    σ.poissonBracket (f * g) k x = f x * σ.poissonBracket g k x + g x * σ.poissonBracket f k x := by
-  simp only [poissonBracket_def, hamiltonianVectorField_mul hf hg,
-    ← SmoothForm.bilinFormAt_apply, map_add, map_smul, LinearMap.add_apply, LinearMap.smul_apply,
-    smul_eq_mul]
-
-/-- **The Leibniz rule for the Poisson bracket** in its second argument:
-`{k, fg} = f {k, g} + g {k, f}` at every point where `f` and `g` are differentiable. -/
-theorem poissonBracket_mul_right (hf : MDifferentiableAt I 𝓘(ℝ) f x)
-    (hg : MDifferentiableAt I 𝓘(ℝ) g x) :
-    σ.poissonBracket k (f * g) x = f x * σ.poissonBracket k g x + g x * σ.poissonBracket k f x := by
-  simp only [poissonBracket_def, hamiltonianVectorField_mul hf hg,
-    ← SmoothForm.bilinFormAt_apply, map_add, map_smul, smul_eq_mul]
 
 /-! ### The kernel of `f ↦ -X_f` -/
 
@@ -231,13 +194,13 @@ theorem hamiltonianFlow_and_poissonAlgebra [I.Boundaryless] [T2Space M] (hσ : �
     fun f hf t x hx ↦ ⟨?_, ?_⟩, fun H hH s t x hx ↦ ⟨?_, ?_⟩,
     fun f g k hf hg hk ↦ ⟨hnd.contMDiff_poissonBracket le_rfl (hf.of_le (by simp))
       (hg.of_le (by simp)), fun c x ↦
-        ⟨hnd.poissonBracket_eq_mvfderiv f g x, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩⟩,
+        ⟨σ.poissonBracket_eq_mvfderiv f g x, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩⟩,
     fun f g hf hg ↦ ?_, fun χ hχ f hf q ↦ ?_,
     fun f ↦ mem_ker_negHamiltonianLieHom_iff_isLocallyConstant hσ,
     fun _ f ↦ mem_ker_negHamiltonianLieHom_iff_exists_eq_const hσ,
     fun f ↦ coe_negHamiltonianLieHomQuotKerEquiv_mk hσ f⟩
   · exact (hnd.isHamiltonianVectorField_hamiltonianVectorField f).mpullback_flowOf_apply
-      hσ.isClosed (hf.of_le (by simp)) (hX2 hf) hx
+      hσ.isClosed (hf.of_le (by simp)) ((hX2 hf).of_le one_le_two) hx
   · rw [flowOf_apply]
     exact (isFirstIntegral_self f).apply_maximalIntegralCurve hnd (hf.of_le (by simp))
       (hf.mdifferentiable (by simp)) (mem_flowDomain.1 hx)

@@ -137,8 +137,8 @@ theorem orientation_eq_of_apply_one_eq (J : AlmostComplexStructure V) (hV : finr
     fin_cases k
     · simp [c]
     · simp [c, hb]
-  rw [orientation_eq_complexOrientation, ← Orientation.reindex_trans, ← hc, Basis.orientation_reindex,
-    c.complexOrientation_eq_reindex h1]
+  rw [orientation_eq_complexOrientation, ← Orientation.reindex_trans, ← hc,
+    Basis.orientation_reindex, c.complexOrientation_eq_reindex h1]
   -- Both sides reindex the same orientation along equal equivalences of index types.
   rfl
 

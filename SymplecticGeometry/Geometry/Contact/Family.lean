@@ -88,9 +88,9 @@ of the same fact for Tau Ceti's contact-Moser vector field, in
   restricts to smaller open sets.
 * `TauCeti.SmoothForm.isOpen_setOf_isContactFormAt_mpullback_prodMk`: the points of `N × M` at
   which the slices of a one-form are contact form an open set.
-* `TauCeti.SmoothForm.isContactFormAt_mpullback_subtype_val_iff`,
-  `TauCeti.SmoothForm.map_kerDistribution_mpullback_subtype_val`: restricting a one-form to an open
-  subset keeps its contact points and its kernels.
+* `TauCeti.SmoothForm.map_kerDistribution_mpullback_subtype_val`: restricting a one-form to an open
+  subset keeps its kernels; that it keeps its contact points is Tau Ceti's
+  `TauCeti.SmoothForm.isContactFormAt_mpullback_subtype_val_iff`.
 * `TauCeti.SmoothForm.grayVectorField_eq_of_eventuallyEq_smul`: the Gray vector at `(t, x)` of a
   family whose slice at `t` is a contact form is unchanged when the slices at times of `s` are
   multiplied, near `(t, x)`, by a function nonzero at `(t, x)`.
@@ -262,17 +262,6 @@ theorem isOpen_setOf_isContactFormAt_mpullback_prodMk {EN HN N : Type*} [NormedA
         (contMDiff_mpullback_prodMk α q) (contMDiff_mextDeriv_mpullback_prodMk α q))
   filter_upwards [hO.mem_nhds (isInvertible_contactFlat_of_isContactFormAt hq₀)] with q hq
   exact isContactFormAt_of_isInvertible_contactFlat hodd hq
-
-omit [FiniteDimensional ℝ E] in
-/-- **Contactness restricts to open subsets.** The restriction of a one-form `α` to an open subset
-`U ⊆ M` is contact at `x ∈ U` if and only if `α` is contact at `x`. -/
-theorem isContactFormAt_mpullback_subtype_val_iff {U : TopologicalSpace.Opens M}
-    (α : SmoothForm I M ℝ 1) (x : U) :
-    IsContactFormAt (mpullback (Subtype.val : U → M) contMDiff_subtypeVal α).val x ↔
-      IsContactFormAt α.val x := by
-  rw [coe_mpullback, isContactFormAt_mpullback_iff contMDiff_subtypeVal.contMDiffAt
-    (((SmoothForm.contMDiff _) _).of_le (mod_cast le_top))
-    (TauCeti.bijective_mfderiv_subtype_val (I := I) x)]
 
 omit [FiniteDimensional ℝ E] in
 /-- **Kernels restrict to open subsets.** Under the canonical identification of tangent spaces,

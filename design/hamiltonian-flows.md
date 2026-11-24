@@ -355,17 +355,9 @@ would give `-X₁` there. Further hypotheses are named where they are needed.
 
 ### `Geometry/Symplectic/Hamiltonian/PoissonAlgebra.lean`
 
-For any two-form `σ`, in the namespace `TauCeti.SmoothTwoForm` like Tau
-Ceti's `hamiltonianVectorField_add`, since `X_f` is linear in `df` and
-needs neither nondegeneracy nor finite dimension:
-
-- `hamiltonianVectorField_mul`: for `f`, `g` differentiable at `x`,
-  `σ.hamiltonianVectorField (f * g) x = f x • σ.hamiltonianVectorField g x +
-  g x • σ.hamiltonianVectorField f x`.
-- `poissonBracket_mul_left`, `poissonBracket_mul_right` (the Leibniz rule):
-  `σ.poissonBracket (f * g) k x = f x * σ.poissonBracket g k x +
-  g x * σ.poissonBracket f k x`, and the same in the second slot, for
-  differentiable `f`, `g`, from `hamiltonianVectorField_mul`.
+The Leibniz rule (`hamiltonianVectorField_mul`, `poissonBracket_mul_left`,
+`poissonBracket_mul_right`) is Tau Ceti's, in its
+`Geometry/Symplectic/Hamiltonian/Manifold.lean`.
 
 In the namespace `TauCeti.SmoothTwoForm`, under the hypotheses of Tau
 Ceti's time-dependent flows (`[FiniteDimensional ℝ E] [J.Boundaryless]
