@@ -390,18 +390,22 @@ About 350 lines.
 
 ### `Analysis/Complex/Wirtinger/Beurling/Estimate.lean`
 
-For `F` a finite-dimensional complex inner product space:
+For `F` a complete complex inner product space:
 
 - `TauCeti.eLpNorm_wirtingerDeriv_le_eLpNorm_conjWirtingerDeriv`: for a
-  compactly supported $v$ of class $W^{1,2}$ on `ℂ` (or first for test
-  functions, then by density), $\|\partial v\|_{L^2}\le\|\bar\partial v\|_{L^2}$,
-  from `beurlingL2_toLp_conjWirtingerDerivCLM` and `norm_beurlingL2_le`.
-- `TauCeti.eLpNorm_conjWirtingerDeriv_le_of_norm_le`: for a measurable
-  $\mu$ with $|\mu|\le m<1$,
+  Schwartz function $v$ on `ℂ`, $\|\partial v\|_{L^2}\le\|\bar\partial v\|_{L^2}$,
+  from `beurlingL2_toLp_conjWirtingerDerivCLM` and `norm_beurlingL2_le`;
+  `TauCeti.HasWeakFDerivOn.eLpNorm_complexLinearPart_le_eLpNorm_complexAntilinearPart`
+  gives it, by density, for a compactly supported $v$ of class $W^{1,2}$,
+  with $\partial v$ and $\bar\partial v$ the complex-linear and
+  complex-antilinear parts of a weak derivative in $L^2$.
+- `TauCeti.eLpNorm_conjWirtingerDeriv_le_of_norm_le`, and for $W^{1,2}$
+  `TauCeti.HasWeakFDerivOn.eLpNorm_complexAntilinearPart_le_of_norm_le`: for a
+  measurable $\mu$ with $|\mu|\le m$,
   $(1-m)\|\bar\partial v\|_{L^2}\le\|\bar\partial v+\mu\,\partial v\|_{L^2}$.
 
-The names follow those of the weak Wirtinger derivatives the issue finds in
-Tau Ceti. About 200 lines.
+Tau Ceti has no weak Wirtinger derivative $\partial$, so the $W^{1,2}$ forms
+are stated for `TauCeti.HasWeakFDerivOn`. About 200 lines.
 
 ### `OnePoint/CauchyRiemann/Basic.lean`
 
