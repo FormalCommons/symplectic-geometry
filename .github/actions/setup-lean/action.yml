@@ -109,6 +109,6 @@ runs:
           if grep -q 'no outputs found' "$RUNNER_TEMP/lake-cache-get.log"; then
             echo "::warning::Tau Ceti's cache has no builds for the pinned commit or the 499 before it; the Tau Ceti modules are compiled from source"
           else
-            echo "::warning::reading Tau Ceti's cache failed, see the lines above; the Tau Ceti modules are compiled from source"
+            echo "::warning::reading Tau Ceti's cache failed or took longer than 10 minutes, see the lines above; the Tau Ceti modules are compiled from source"
           fi
         fi
