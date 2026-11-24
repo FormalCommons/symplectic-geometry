@@ -725,7 +725,7 @@ on `J : ModelWithCorners ℝ E' H'`, `f : L → M` with
 `hf : TauCeti.IsLegendrianEmbedding J α.kerDistribution f`, `M` is
 boundaryless and Hausdorff, and both are second countable.
 
-- `IsLegendrianEmbedding.exists_contactSlice (hα) (hf)`: step 1 of the route.
+- `IsLegendrianEmbedding.exists_contactSlice (hf)`: step 1 of the route.
   A smooth injective map `ι : CotangentBundle J L → M` and an open
   neighbourhood `N` of the range of the zero section with `ι (0_q) = f q`, the
   differential of `ι` at each point of `N` injective with range transverse to
@@ -746,7 +746,7 @@ boundaryless and Hausdorff, and both are second countable.
   adds in `Geometry/Manifold/TubularNeighborhood/Riemannian/Injective.lean`
   (mirroring Tau Ceti's `TubularNeighborhood/Riemannian/`).
 - **Milestone theorem**
-  `IsLegendrianEmbedding.exists_diffeomorph_opens_mpullback_eq_neg_contactization (hα) (hf)`:
+  `IsLegendrianEmbedding.exists_diffeomorph_opens_mpullback_eq_neg_contactization (hf)`:
 
   ```lean
   ∃ (U : Opens (CotangentBundle J L × ℝ)) (V : Opens M) (Φ : U ≃ₘ⟮(J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ), I⟯ V),
