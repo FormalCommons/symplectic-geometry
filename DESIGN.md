@@ -3348,15 +3348,15 @@ Differential topology and complex analysis only; it waits for no part of
   homotopic with fixed ends to a Hamiltonian one: McDuff–Salamon, Theorem
   10.2.5, so that `TauCeti.endpointFlux` has kernel
   $\mathrm{Ham}$), `Countable.lean` (the flux group `TauCeti.fluxGroup` is
-  countable, from the Weinstein chart of the diagonal given by the merged
-  Lagrangian neighbourhood theorem), `Family.lean` (each smooth family in
-  $\mathrm{Ham}$ has a time-dependent Hamiltonian generating it,
+  countable, since the flux of a loop has periods among those of the
+  symplectic form on integral 2-classes), `Family.lean` (each smooth
+  family in $\mathrm{Ham}$ has a time-dependent Hamiltonian generating it,
   McDuff–Salamon, Proposition 10.2.12) and `Loop.lean` (the orbits
   of a loop in $\mathrm{Ham}$ are null-homologous over $\mathbb R$,
   Proposition 10.2.19).
-- **Builds on:** the merged *Hamiltonian flows* and *Symplectic
-  neighbourhoods*; Tau Ceti (`TauCeti.Diffeotopy.flux`,
-  `flux_trans`, `fluxGroup`, `endpointFlux`, `mem_ker_endpointFlux_iff`,
+- **Builds on:** the merged *Hamiltonian flows*; Tau Ceti
+  (`TauCeti.Diffeotopy.flux`, `flux_trans`, `fluxGroup`, `endpointFlux`,
+  `mem_ker_endpointFlux_iff`,
   `hamiltonianGroup_subgroupOf_le_ker_endpointFlux`).
 - **Milestones:** none; it serves *Coupling forms* and *Hamiltonian
   fibrations*. These results are McDuff–Salamon's Chapter 10, which a later
@@ -3509,7 +3509,7 @@ behind.
 | 0 | *Cauchy–Riemann operators on the sphere* | — (it uses only merged files of *Isothermal coordinates* and *Symplectic vector bundles*) |
 | 0 | *Parallel transport* | — |
 | 0 | *Principal connections* | — (it uses only merged files of *First Chern number*; no file of *Lie group actions* or *Moment maps*) |
-| 0 | *Flux homomorphism* | — (it uses only merged files of *Hamiltonian flows* and *Symplectic neighbourhoods*) |
+| 0 | *Flux homomorphism* | — (it uses only merged files of *Hamiltonian flows*) |
 | 0 | *Dehn twists* | — (it uses only merged files of *Symplectic neighbourhoods*, *Isotopy extension* and *Hamiltonian flows*) |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
 | 1 | *Symplectic vector spaces* | *Standard model*, *Symplectic group* |
