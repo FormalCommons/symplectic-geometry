@@ -49,6 +49,8 @@ the case of the linear data of `SymplecticGeometry.localModelCovector` and
 
 ## Main results
 
+* `SymplecticGeometry.LocalModelData.mfderiv_rep_apply`: `ρ` is the derivative at `1` of the
+  representation.
 * `SymplecticGeometry.LocalModelData.isCompl_𝔥_sup`,
   `SymplecticGeometry.LocalModelData.isCompl_𝔪_sup`: `𝔤 = 𝔥 ⊕ (𝔪 ⊕ 𝔮)` and `𝔤 = 𝔪 ⊕ (𝔥 ⊕ 𝔮)`.
 * `SymplecticGeometry.LocalModelData.contMDiff_covector_apply`: the components of `ν` are smooth.
@@ -96,9 +98,8 @@ structure LocalModelData (K : Subgroup G) [IsClosed (K : Set G)] [CompactSpace K
   /-- The Lie algebra `𝔥` of `K`, as a subspace of `𝔤`. -/
   𝔥 : Submodule ℝ (GroupLieAlgebra I G)
   /-- `𝔥` is the image of the differential at `1` of the inclusion `K → G`. -/
-  range_mfderiv_subtypeVal :
-    LinearMap.range (mfderiv 𝓘(ℝ, F) I (fun k : K ↦ (k : G)) 1 :
-      GroupLieAlgebra 𝓘(ℝ, F) K →ₗ[ℝ] GroupLieAlgebra I G) = 𝔥
+  range_groupLieAlgebraMap_subtype :
+    LinearMap.range (K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I).toLinearMap = 𝔥
   /-- The complement `𝔪` of `𝔥` in `𝔤_τ`. -/
   𝔪 : Submodule ℝ (GroupLieAlgebra I G)
   /-- The complement `𝔮` of `𝔤_τ` in `𝔤`. -/
@@ -116,9 +117,10 @@ structure LocalModelData (K : Subgroup G) [IsClosed (K : Set G)] [CompactSpace K
   contMDiff_rep : ContMDiff (𝓘(ℝ, F).prod 𝓘(ℝ, V)) 𝓘(ℝ, V) ∞ fun p : K × V ↦ rep p.1 p.2
   /-- The infinitesimal map `𝔥 → sp(V, σ)` of the representation. -/
   ρ : 𝔥 →ₗ[ℝ] skewAdjointLieSubalgebra σ.toBilinForm
-  /-- `ρ` is the derivative at `1` of the orbit maps `k ↦ rep k v`. -/
-  mfderiv_rep_apply : ∀ (ξ : GroupLieAlgebra 𝓘(ℝ, F) K)
-    (hξ : (mfderiv 𝓘(ℝ, F) I (fun k : K ↦ (k : G)) 1 ξ : GroupLieAlgebra I G) ∈ 𝔥) (v : V),
+  /-- `ρ` is the derivative at `1` of the orbit maps `k ↦ rep k v`. Use
+  `LocalModelData.mfderiv_rep_apply`, which needs no proof of membership in `𝔥`. -/
+  mfderiv_rep_apply_of_mem : ∀ (ξ : GroupLieAlgebra 𝓘(ℝ, F) K)
+    (hξ : K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I ξ ∈ 𝔥) (v : V),
     mfderiv 𝓘(ℝ, F) 𝓘(ℝ, V) (fun k : K ↦ rep k v) 1 ξ =
       (ρ ⟨_, hξ⟩ : Module.End ℝ V) v
   /-- The identification of `A` with `𝔪*`. -/
@@ -132,6 +134,18 @@ variable {K : Subgroup G} [IsClosed (K : Set G)] [CompactSpace K] [FiniteDimensi
   {A : Type*} [NormedAddCommGroup A] [NormedSpace ℝ A] [FiniteDimensional ℝ A]
   (D : LocalModelData (I := I) K (F := F) V A)
 
+/-- The differential at `1` of the inclusion `K → G` takes values in `𝔥`. -/
+theorem groupLieAlgebraMap_subtype_mem_𝔥 (ξ : GroupLieAlgebra 𝓘(ℝ, F) K) :
+    K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I ξ ∈ D.𝔥 :=
+  D.range_groupLieAlgebraMap_subtype ▸ LinearMap.mem_range_self _ ξ
+
+/-- `ρ` is the derivative at `1` of the orbit maps `k ↦ rep k v`: the derivative in the
+direction `ξ` is `ρ` of the image of `ξ` in `𝔥`, applied to `v`. -/
+theorem mfderiv_rep_apply (ξ : GroupLieAlgebra 𝓘(ℝ, F) K) (v : V) :
+    mfderiv 𝓘(ℝ, F) 𝓘(ℝ, V) (fun k : K ↦ D.rep k v) 1 ξ =
+      (D.ρ ⟨_, D.groupLieAlgebraMap_subtype_mem_𝔥 ξ⟩ : Module.End ℝ V) v :=
+  D.mfderiv_rep_apply_of_mem ξ _ v
+
 theorem 𝔥_le_lieAnnihilator : D.𝔥 ≤ (lieAnnihilator ℝ (GroupLieAlgebra I G) D.τ).toSubmodule :=
   D.𝔥_sup_𝔪 ▸ le_sup_left
 
@@ -139,20 +153,13 @@ theorem 𝔪_le_lieAnnihilator : D.𝔪 ≤ (lieAnnihilator ℝ (GroupLieAlgebra
   D.𝔥_sup_𝔪 ▸ le_sup_right
 
 /-- The splitting `𝔤 = 𝔥 ⊕ (𝔪 ⊕ 𝔮)`. -/
-theorem isCompl_𝔥_sup : IsCompl D.𝔥 (D.𝔪 ⊔ D.𝔮) where
-  disjoint := D.disjoint_𝔥_𝔪.disjoint_sup_right_of_disjoint_sup_left
-    (D.𝔥_sup_𝔪 ▸ D.isCompl_𝔮.disjoint)
-  codisjoint := by
-    rw [codisjoint_iff, ← sup_assoc, D.𝔥_sup_𝔪]
-    exact D.isCompl_𝔮.sup_eq_top
+theorem isCompl_𝔥_sup : IsCompl D.𝔥 (D.𝔪 ⊔ D.𝔮) :=
+  D.disjoint_𝔥_𝔪.isCompl_sup_right_of_isCompl_sup_left (D.𝔥_sup_𝔪 ▸ D.isCompl_𝔮)
 
 /-- The splitting `𝔤 = 𝔪 ⊕ (𝔥 ⊕ 𝔮)`. -/
-theorem isCompl_𝔪_sup : IsCompl D.𝔪 (D.𝔥 ⊔ D.𝔮) where
-  disjoint := D.disjoint_𝔥_𝔪.symm.disjoint_sup_right_of_disjoint_sup_left
-    (sup_comm D.𝔥 D.𝔪 ▸ D.𝔥_sup_𝔪 ▸ D.isCompl_𝔮.disjoint)
-  codisjoint := by
-    rw [codisjoint_iff, ← sup_assoc, sup_comm D.𝔪, D.𝔥_sup_𝔪]
-    exact D.isCompl_𝔮.sup_eq_top
+theorem isCompl_𝔪_sup : IsCompl D.𝔪 (D.𝔥 ⊔ D.𝔮) :=
+  D.disjoint_𝔥_𝔪.symm.isCompl_sup_right_of_isCompl_sup_left
+    (sup_comm D.𝔥 D.𝔪 ▸ D.𝔥_sup_𝔪 ▸ D.isCompl_𝔮)
 
 /-! ### The extensions by zero -/
 
@@ -276,11 +283,13 @@ def LocalModelData.ofBot (τ : Module.Dual ℝ (GroupLieAlgebra I G)) (σ : Symp
   coadjointRepresentation_τ k := by
     rw [Subsingleton.elim k 1, OneMemClass.coe_one, map_one, one_apply_eq_self]
   𝔥 := ⊥
-  range_mfderiv_subtypeVal := by
-    have h : (fun k : (⊥ : Subgroup G) ↦ (k : G)) = fun _ ↦ 1 :=
+  range_groupLieAlgebraMap_subtype := by
+    have h : ((⊥ : Subgroup G).subtype : (⊥ : Subgroup G) → G) = fun _ ↦ 1 :=
       funext fun k ↦ Subgroup.mem_bot.1 k.property
-    rw [h, mfderiv_const]
-    exact LinearMap.range_zero
+    rw [LinearMap.range_eq_bot]
+    ext ξ
+    rw [ContinuousLinearMap.coe_coe, MonoidHom.groupLieAlgebraMap_apply, h, mfderiv_const,
+      zero_apply, LinearMap.zero_apply]
   𝔪 := (lieAnnihilator ℝ (GroupLieAlgebra I G) τ).toSubmodule
   𝔮 := (Submodule.exists_isCompl (lieAnnihilator ℝ (GroupLieAlgebra I G) τ).toSubmodule).choose
   disjoint_𝔥_𝔪 := disjoint_bot_left
@@ -300,7 +309,7 @@ def LocalModelData.ofBot (τ : Module.Dual ℝ (GroupLieAlgebra I G)) (σ : Symp
     simp only [MonoidHom.one_apply, one_apply_eq_self]
     exact contMDiff_snd
   ρ := 0
-  mfderiv_rep_apply ξ hξ v := by
+  mfderiv_rep_apply_of_mem ξ hξ v := by
     have h : (fun k : (⊥ : Subgroup G) ↦ (1 : (⊥ : Subgroup G) →* V ≃ₗ[ℝ] V) k v) =
         fun _ ↦ v :=
       funext fun _ ↦ by rw [MonoidHom.one_apply, one_apply_eq_self]
