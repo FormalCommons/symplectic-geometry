@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Calculus.IteratedDeriv.Defs
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Equivariant.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Graded
 import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
 import SymplecticGeometry.Analysis.Calculus.IteratedDeriv.Support
@@ -23,6 +24,14 @@ equivariant symplectic form is the case `F = Real.exp`, `f = -ħ H`, `τ = σ`.
 All components of `F(f + τ)` have even degree, so the Cartan differential is a derivation on its
 products (`SymplecticGeometry.cartanDiff_mul_of_even`).
 
+If `τ` is closed and `ħ ι_X τ = d f`, so that `f + τ` is equivariantly closed, then so is
+`F(f + τ)`. In the algebra of forms of mixed degree, `F(f + τ)` is the sum of the products
+`(k !)⁻¹ τ ^ k F⁽ᵏ⁾(f)`. By the chain rule, `d_ħ F⁽ᵏ⁾(f) = ħ ι_X τ F⁽ᵏ⁺¹⁾(f)`, and since `τ` is
+closed and of even degree, `d_ħ τ ^ (k + 1) = -(k + 1) ħ τ ^ k ι_X τ`. The Cartan differentials of
+the terms of degree `2 k` and `2 k + 2` cancel in degree `2 k + 1`, and the sum telescopes to a
+multiple of `τ ^ n ι_X τ F⁽ⁿ⁺¹⁾(f)` for `n = finrank ℝ E`, a form of degree `2 n + 1`, which is
+zero.
+
 ## Main definitions
 
 * `SymplecticGeometry.formCalculusCoeff F hF f k`: the smooth function `F⁽ᵏ⁾ ∘ f`.
@@ -37,6 +46,13 @@ products (`SymplecticGeometry.cartanDiff_mul_of_even`).
   `SymplecticGeometry.formCalculus_const`: for a constant `F = c` it is `c`.
 * `SymplecticGeometry.tsupport_formCalculus_subset`: each component vanishes outside
   `f ⁻¹' tsupport F`.
+* `SymplecticGeometry.formCalculus_eq_sum_mul`: `F(f + τ)` as a sum of products of forms of mixed
+  degree.
+* `SymplecticGeometry.cartanDiff_of_formCalculusCoeff`,
+  `SymplecticGeometry.cartanDiff_of_two_pow_succ`: the Cartan differentials of the coefficients
+  and of the powers of a closed two-form.
+* `SymplecticGeometry.cartanDiff_formCalculus`: `F(f + τ)` is equivariantly closed when `f + τ`
+  is.
 
 ## References
 
@@ -72,6 +88,8 @@ def formCalculusCoeff (F : ℝ → ℝ) (hF : ContDiff ℝ ∞ F) (f : C^∞⟮I
 theorem formCalculusCoeff_apply (F : ℝ → ℝ) (hF : ContDiff ℝ ∞ F) (f : C^∞⟮I, M; ℝ⟯) (k : ℕ)
     (x : M) : formCalculusCoeff F hF f k x = iteratedDeriv k F (f x) :=
   (rfl)
+
+section
 
 variable [IsManifold I 1 M]
 
@@ -187,6 +205,116 @@ theorem tsupport_formCalculus_subset (k : ℕ) :
   · rw [formCalculus_apply_of_odd F hF f τ k hk]
     -- The zero of the fibre is the zero of `E [⋀^Fin k]→L[ℝ] ℝ`.
     rfl
+
+end
+
+section CartanDiff
+
+variable [IsManifold I 2 M] {X : (x : M) → TangentSpace I x}
+  {hX : ContMDiff I I.tangent ∞ (fun x ↦ (X x : TangentBundle I M))} {ħ : ℝ}
+
+/-- The functional calculus as a sum of products in the algebra of forms of mixed degree:
+`F(f + τ) = ∑ k, (k !)⁻¹ • τ ^ k F⁽ᵏ⁾(f)`. -/
+theorem formCalculus_eq_sum_mul (F : ℝ → ℝ) (hF : ContDiff ℝ ∞ F) (f : C^∞⟮I, M; ℝ⟯)
+    (τ : SmoothForm I M ℝ 2) :
+    formCalculus F hF f τ = ∑ k ∈ Finset.range (finrank ℝ E + 1), (k ! : ℝ)⁻¹ •
+      (DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 2 τ ^ k *
+        DirectSum.of _ 0 (SmoothForm.ofFunction (formCalculusCoeff F hF f k))) := by
+  rw [formCalculus_def]
+  refine Finset.sum_congr rfl fun k _ ↦ ?_
+  rw [SmoothForm.of_pow_eq_of_wedgePow, SmoothForm.of_mul_of_eq_of_wedge,
+    SmoothForm.wedge_ofFunction, ← DirectSum.of_smul]
+  -- The degree `2 * k + 0` of the product reduces to `2 * k`.
+  rfl
+
+/-- The Cartan differential of the coefficient `F⁽ᵏ⁾(f)`, when `ħ ι_X τ = d f`: by the chain
+rule it is `ħ ι_X τ F⁽ᵏ⁺¹⁾(f)`. -/
+theorem cartanDiff_of_formCalculusCoeff (F : ℝ → ℝ) (hF : ContDiff ℝ ∞ F)
+    {f : C^∞⟮I, M; ℝ⟯} {τ : SmoothForm I M ℝ 2}
+    (hf : ħ • SmoothForm.interiorProduct ⟨X, hX⟩ τ = mextDerivₗ I 0 (SmoothForm.ofFunction f))
+    (k : ℕ) :
+    cartanDiff X hX ħ (DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 0
+        (SmoothForm.ofFunction (formCalculusCoeff F hF f k))) =
+      ħ • (DirectSum.of _ 1 (SmoothForm.interiorProduct ⟨X, hX⟩ τ) *
+        DirectSum.of _ 0 (SmoothForm.ofFunction (formCalculusCoeff F hF f (k + 1)))) := by
+  have hd : ∀ x, HasDerivAt (iteratedDeriv k F) (formCalculusCoeff F hF f (k + 1) x) (f x) :=
+    fun x ↦ by
+      rw [formCalculusCoeff_apply, iteratedDeriv_succ]
+      exact ((hF.differentiable_iteratedDeriv k
+        (WithTop.coe_lt_coe.mpr (ENat.natCast_lt_top k))).differentiableAt).hasDerivAt
+  rw [cartanDiff_of_zero, SmoothForm.mextDerivₗ_ofFunction_comp_of_hasDerivAt
+      (fun x ↦ formCalculusCoeff_apply F hF f k x) hd, ← hf, map_smul,
+    SmoothForm.of_mul_of_eq_of_wedge, SmoothForm.wedge_ofFunction, ← DirectSum.of_smul]
+
+/-- The Cartan differential of the powers of a closed two-form `τ`:
+`d_ħ τ ^ (n + 1) = (n + 1) τ ^ n d_ħ τ`, where `d_ħ τ = -ħ ι_X τ`. -/
+theorem cartanDiff_of_two_pow_succ {τ : SmoothForm I M ℝ 2} (hτ : mextDerivₗ I 2 τ = 0)
+    (n : ℕ) :
+    cartanDiff X hX ħ (DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 2 τ ^ (n + 1)) =
+      ((n + 1 : ℕ) : ℝ) • (-ħ) • (DirectSum.of _ 2 τ ^ n *
+        DirectSum.of _ 1 (SmoothForm.interiorProduct ⟨X, hX⟩ τ)) := by
+  set T := DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 2 τ
+  set U := DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 1 (SmoothForm.interiorProduct ⟨X, hX⟩ τ)
+  have hT : cartanDiff X hX ħ T = (-ħ) • U := by
+    rw [cartanDiff_of_succ, hτ, map_zero, zero_sub, neg_smul]
+  have hTU : Commute T U := SmoothForm.commute_of_of_of_even even_two τ _
+  induction n with
+  | zero => rw [pow_one, hT, pow_zero, one_mul, Nat.cast_one, one_smul]
+  | succ n ih =>
+    rw [pow_succ', cartanDiff_of_mul, ih, hT, neg_one_sq, one_smul, smul_mul_assoc,
+      ← (hTU.pow_left (n + 1)).eq, mul_smul_comm, mul_smul_comm, ← mul_assoc, ← pow_succ']
+    push_cast
+    module
+
+/-- **The functional calculus preserves equivariant closedness.** If a two-form `τ` is closed and
+a smooth function `f` satisfies `ħ ι_X τ = d f`, so that `f + τ` is equivariantly closed, then
+`F(f + τ)` is equivariantly closed: `d_ħ F(f + τ) = 0`. -/
+theorem cartanDiff_formCalculus [FiniteDimensional ℝ E] (F : ℝ → ℝ) (hF : ContDiff ℝ ∞ F)
+    {f : C^∞⟮I, M; ℝ⟯} {τ : SmoothForm I M ℝ 2} (hτ : mextDerivₗ I 2 τ = 0)
+    (hf : ħ • SmoothForm.interiorProduct ⟨X, hX⟩ τ = mextDerivₗ I 0 (SmoothForm.ofFunction f)) :
+    cartanDiff X hX ħ (formCalculus F hF f τ) = 0 := by
+  set T := DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 2 τ
+  set U := DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 1 (SmoothForm.interiorProduct ⟨X, hX⟩ τ)
+  set C : ℕ → ⨁ k, SmoothForm I M ℝ k := fun k ↦
+    DirectSum.of _ 0 (SmoothForm.ofFunction (formCalculusCoeff F hF f k))
+  -- `B n = τ ^ n ι_X τ F⁽ⁿ⁺¹⁾(f)`; the Cartan differential of the sum telescopes in these.
+  set B : ℕ → ⨁ k, SmoothForm I M ℝ k := fun n ↦ T ^ n * U * C (n + 1)
+  have hC : ∀ k, cartanDiff X hX ħ (C k) = ħ • (U * C (k + 1)) :=
+    cartanDiff_of_formCalculusCoeff F hF hf
+  have hev : ∀ m k, Odd k → (T ^ m) k = 0 := fun m k hk ↦ by
+    rw [SmoothForm.of_pow_eq_of_wedgePow]
+    refine DirectSum.of_eq_of_ne _ _ _ ?_
+    rintro rfl
+    exact Nat.not_odd_iff_even.mpr (even_two_mul m) hk
+  have hterm0 : cartanDiff X hX ħ (T ^ 0 * C 0) = ħ • B 0 := by
+    rw [pow_zero, one_mul, hC]
+    simp only [B, pow_zero, one_mul]
+  have htermsucc : ∀ n, cartanDiff X hX ħ (T ^ (n + 1) * C (n + 1)) =
+      ħ • B (n + 1) - ((n + 1 : ℕ) : ℝ) • ħ • B n := fun n ↦ by
+    rw [cartanDiff_mul_of_even (hev _), cartanDiff_of_two_pow_succ hτ, hC]
+    simp only [B, smul_mul_assoc, mul_smul_comm, mul_assoc, neg_smul, neg_mul, smul_neg]
+    abel
+  have hsum : ∀ n, ∑ k ∈ Finset.range (n + 1),
+      (k ! : ℝ)⁻¹ • cartanDiff X hX ħ (T ^ k * C k) = ((n ! : ℝ)⁻¹ * ħ) • B n := fun n ↦ by
+    induction n with
+    | zero => rw [Finset.sum_range_one, hterm0, Nat.factorial_zero, Nat.cast_one, inv_one, one_mul,
+        one_smul]
+    | succ n ih =>
+      rw [Finset.sum_range_succ, ih, htermsucc]
+      match_scalars
+      · rw [Nat.factorial_succ]
+        push_cast
+        field_simp
+        ring
+      · ring
+  have hB : B (finrank ℝ E) = 0 := by
+    simp only [B, T, U, C, SmoothForm.of_pow_eq_of_wedgePow, SmoothForm.of_mul_of_eq_of_wedge]
+    rw [SmoothForm.eq_zero_of_finrank_lt (by omega) (SmoothForm.wedge _ _), map_zero]
+  rw [formCalculus_eq_sum_mul, map_sum]
+  simp only [map_smul]
+  rw [hsum, hB, smul_zero]
+
+end CartanDiff
 
 end SymplecticGeometry
 
