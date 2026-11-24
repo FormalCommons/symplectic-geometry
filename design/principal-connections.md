@@ -269,15 +269,16 @@ All in the namespace `TauCeti.AssociatedBundle`, about Tau Ceti's types.
 Here `M := ManifoldTotalSpace F (AssociatedBundle G P F)`, `πM` its
 projection as a smooth map, and `Q := πM *ᵖ P`.
 
-- `prodDiffeomorph : ManifoldTotalSpace G P × F ≃ₘ ManifoldTotalSpace G Q`,
-  $(x,v)\mapsto([x,v],x)$, with `prodDiffeomorph_apply`,
-  `proj_prodDiffeomorph` ($\pi_Q\circ\Phi=q$) and
-  `prodDiffeomorph_smul` (equivariance for the diagonal action). Its
+- `pullbackProjDiffeomorph n IB IG IF : (ManifoldTotalSpace G P × F) ≃ₘ^n⟮(IB.prod IG).prod IF,
+  (IB.prod IF).prod IG⟯ ManifoldTotalSpace G Q`,
+  $(x,v)\mapsto([x,v],x)$, with `pullbackProjDiffeomorph_apply`,
+  `proj_pullbackProjDiffeomorph` ($\pi_Q\circ\Phi=q$) and
+  `pullbackProjDiffeomorph_smul` (equivariance for the diagonal action). Its
   forward map is smooth by Tau Ceti's
   `ManifoldTotalSpace.contMDiff_pullback_iff`; its inverse
   $([x,v],y)\mapsto(y,\ \text{the } w \text{ with } [y,w]=[x,v])$ is read in
   one trivialization of $P$ at the base point, where $w=(e\,y)_2^{-1}(e\,x)_2\,v$.
-- `mfderiv_prodDiffeomorph_fundamental`: $\Phi$ carries
+- `mfderiv_pullbackProjDiffeomorph_fundamental`: $\Phi$ carries
   $(x\xi,-X_\xi(v))$ to the fundamental field of $\xi$ on $Q$.
 - `isSubmersion_totalSpaceMk_mk` and `surjective_totalSpaceMk_mk`: $q$ is
   a surjective submersion.
