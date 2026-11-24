@@ -2959,7 +2959,7 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   `Foliation/LeafSpace/Basic.lean` and `Foliation/LeafSpace/Smooth.lean`
   (in Tau Ceti's folder of foliations: the page's regularity condition on a
   foliation, through slices meeting every leaf at most once, and the unique
-  smooth structure on it for which the projection
+  smooth structure on the leaf space for which the projection
   is a submersion whose vertical spaces are the leaf directions), and in
   `Geometry/Symplectic/Coisotropic/`: `Reduction.lean` (regular coisotropic
   reduction: the leaf space of Tau Ceti's characteristic foliation, of
@@ -2967,10 +2967,10 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   $i^*\omega$, from `TauCeti.SmoothTwoForm.existsUnique_isSymplectic_mpullback_eq`)
   and `Lagrangian/Basic.lean`, `Lagrangian/Immersion.lean` and
   `Lagrangian/Injective.lean` (clean intersections of a Lagrangian
-  embedding with a coisotropic one, the characteristic directions of the intersection,
+  embedding with a coisotropic immersion, the characteristic directions of the intersection,
   their local leaf spaces, the Lagrangian immersion from a countable
-  disjoint union of them, the transverse case, and injectivity when every
-  leaf meets $L$ in a connected set).
+  disjoint union of them, the transverse case, and injectivity when the leaf
+  space of $Q$ is Hausdorff and every leaf meets $L$ in a connected set).
 - **Builds on:** Tau Ceti (`TauCeti.SmoothForm.characteristicFoliation`,
   `TauCeti.Foliation.leaf`, `TauCeti.IsInvolutiveDistribution.exists_flatChart`,
   coisotropic and Lagrangian maps, `IsLagrangianMap.isLagrangianImmersion_of_comp_submersion`,
@@ -2982,7 +2982,7 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
 - **The design file decides:** how $Q$ is given (a coisotropic immersion, of
   which Tau Ceti's `IsCoisotropicEmbedding` is a case), the type of the
   leaf space and how its charts come from the slices, and the form of "clean intersection" for
-  embeddings.
+  maps.
 
 ### 41. Hamiltonian reduction (needs `design/hamiltonian-reduction.md`)
 
@@ -3498,7 +3498,7 @@ behind.
 | 0 | *Lie group actions* | — |
 | 0 | *Moment maps* | — |
 | 0 | *Equivariant normal forms* | — (it uses only merged files of *Standard model*) |
-| 0 | *Coisotropic reduction* | — (it uses only merged files of *Symplectic neighbourhoods*) |
+| 0 | *Coisotropic reduction* | — (it uses only merged files of *Symplectic neighbourhoods* and `LinearAlgebra/Symplectic/Reduction.lean` of *Symplectic vector spaces*, which is merged) |
 | 0 | *Hamiltonian reduction* | — |
 | 0 | *Convexity* | — |
 | 0 | *Kähler stability* | — |
