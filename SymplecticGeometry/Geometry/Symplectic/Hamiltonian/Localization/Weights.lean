@@ -11,10 +11,12 @@ import Mathlib.Analysis.Calculus.Deriv.Prod
 import Mathlib.LinearAlgebra.QuadraticForm.Signature
 import SymplecticGeometry.Geometry.Symplectic.Complex.CoordinateSpace
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.Basic
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
 import TauCeti.Algebra.Order.BigOperators.Ring.Finset
 import TauCeti.Analysis.Fourier.AddCircle
 import TauCeti.Data.Set.Card
 import TauCeti.Geometry.Manifold.GroupAction.TangentRepresentation
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Symplectic.Manifold.Invariants
 import TauCeti.LinearAlgebra.Complex.Determinant
 
@@ -58,6 +60,15 @@ symplectic form and the action of `t` to `zⱼ ↦ e^{2π i kⱼ t} zⱼ`.
   `TauCeti.morseIndex_weightMomentMap_apply`, through
   `TauCeti.equivalent_hessianQuadraticForm_weightMomentMap_apply`, for a linear conjugacy in
   place of a Hessian.
+* `SymplecticGeometry.weights_ne_zero_of_isolated`: at a fixed point that is isolated among the
+  fixed points, no weight is zero. A zero weight `k j = 0` makes the derivatives of the action
+  fix the tangent vector `L⁻¹ eⱼ`
+  (`SymplecticGeometry.IsTangentWeights.mfderiv_smul_symm_single_of_eq_zero`).
+  Through the differential at `0` of the weight chart `SymplecticGeometry.exists_weightChart`,
+  this gives a nonzero vector fixed by the linear action of the circle in the chart, so one of
+  the chart's characters is trivial, and the chart carries the corresponding complex axis near
+  `0` to fixed points other than `p`
+  (`SymplecticGeometry.frequently_mem_fixedPoints_of_mfderiv_smul_eq_self`).
 
 ## References
 
@@ -71,7 +82,7 @@ public section
 
 noncomputable section
 
-open Real
+open Real Filter Topology
 open scoped Manifold ContDiff
 
 namespace SymplecticGeometry
@@ -209,6 +220,62 @@ theorem prod_weights_eq {p : M} {k k' : Fin n → ℤ} {L L' : TangentSpace I p 
     refine (h'.1 _ _).symm.trans ((h.1 _ _).trans ?_)
     rw [L.apply_symm_apply, L.apply_symm_apply]
 
+/-- If `k j = 0` is one of the weights at `p`, realized by `L`, then the whole circle fixes the
+tangent vector `L⁻¹ eⱼ` at `p` that `L` sends to the `j`-th coordinate vector. -/
+theorem IsTangentWeights.mfderiv_smul_symm_single_of_eq_zero {p : M} {k : Fin n → ℤ}
+    {L : TangentSpace I p ≃L[ℝ] (Fin n → ℂ)} (h : IsTangentWeights σ p k L) {j : Fin n}
+    (hkj : k j = 0) (g : Circle) :
+    mfderiv I I (fun x : M ↦ g • x) p (L.symm (Pi.single j 1)) = L.symm (Pi.single j 1) := by
+  obtain ⟨θ, rfl⟩ := Circle.exp_surjective g
+  obtain ⟨t, rfl⟩ : ∃ t : ℝ, 2 * π * t = θ := ⟨θ / (2 * π), mul_div_cancel₀ _ (by positivity)⟩
+  apply L.injective
+  rw [h.2 t, L.apply_symm_apply]
+  funext i
+  rcases eq_or_ne i j with rfl | hij
+  · simp [hkj]
+  · simp [hij]
+
+omit [IsManifold I ∞ M] in
+/-- In a chart `Φ` in which the circle acts by `uᵢ ↦ χᵢ(g) uᵢ` on complex coordinates, a trivial
+character `χᵢ` makes `Φ` send the `i`-th complex axis near `0` to fixed points, so `Φ 0` is not
+isolated among the fixed points. -/
+private theorem frequently_mem_fixedPoints_of_chart {m : ℕ} {χ : Fin m → Circle →ₜ* Circle}
+    {Φ : PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin m)) I (StdSpace (Fin m)) M ∞}
+    (h0 : 0 ∈ Φ.source)
+    (hequiv : ∀ g : Circle, ∀ u : Fin m → ℂ, complexToRealEuclidean (Fin m) u ∈ Φ.source →
+      Φ (complexToRealEuclidean (Fin m) fun k ↦ (χ k g : ℂ) * u k) =
+        g • Φ (complexToRealEuclidean (Fin m) u))
+    {i : Fin m} (hχ : ∀ g, (χ i g : ℂ) = 1) :
+    ∃ᶠ x in 𝓝[≠] Φ 0, x ∈ MulAction.fixedPoints Circle M := by
+  set C := complexToRealEuclidean (Fin m)
+  have hcont : Tendsto (fun ε : ℝ ↦ C (Pi.single i (ε : ℂ))) (𝓝 0) (𝓝 0) := by
+    have : Continuous (fun ε : ℝ ↦ C (Pi.single i (ε : ℂ))) :=
+      C.continuous.comp ((continuous_single i).comp Complex.continuous_ofReal)
+    simpa using this.tendsto 0
+  have hsrc : ∀ᶠ ε : ℝ in 𝓝 0, C (Pi.single i (ε : ℂ)) ∈ Φ.source :=
+    hcont (Φ.open_source.mem_nhds h0)
+  have hc : Tendsto (fun ε : ℝ ↦ Φ (C (Pi.single i (ε : ℂ)))) (𝓝[≠] 0) (𝓝[≠] (Φ 0)) := by
+    refine tendsto_nhdsWithin_iff.2 ⟨?_, ?_⟩
+    · exact ((Φ.mdifferentiableAt (by simp) h0).continuousAt.tendsto.comp hcont).mono_left
+        nhdsWithin_le_nhds
+    · filter_upwards [nhdsWithin_le_nhds hsrc, self_mem_nhdsWithin] with ε hε hε0 hεp
+      have := Φ.injOn hε h0 hεp
+      simp only [map_eq_zero_iff C C.injective, Pi.single_eq_zero_iff,
+        Complex.ofReal_eq_zero] at this
+      exact hε0 this
+  have hfix : ∀ᶠ ε : ℝ in 𝓝[≠] 0, Φ (C (Pi.single i (ε : ℂ))) ∈ MulAction.fixedPoints Circle M := by
+    filter_upwards [nhdsWithin_le_nhds hsrc] with ε hε g
+    have hsingle : (fun l ↦ (χ l g : ℂ) * (Pi.single i (ε : ℂ) : Fin m → ℂ) l) =
+        Pi.single i (ε : ℂ) := by
+      funext l
+      rcases eq_or_ne l i with rfl | hl
+      · simp [hχ]
+      · simp [hl]
+    have h' := hequiv g _ hε
+    rw [hsingle] at h'
+    exact h'.symm
+  exact hc.frequently hfix.frequently
+
 variable [FiniteDimensional ℝ E] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
 
 /-- **Weights at a fixed point.** Let the circle act smoothly on a manifold `M` of dimension `2n`,
@@ -275,6 +342,93 @@ theorem exists_weights [Fact (Module.finrank ℝ E = 2 * n)] (hσ : σ.IsNondege
         = C.symm (A.symm (L₀ (ρ (Circle.exp (2 * π * t)) v))) := by rw [hρ]; exact hL _
       _ = _ := hrot t v
       _ = _ := by rw [hL]
+
+variable [I.Boundaryless]
+
+/-- **A fixed tangent vector at a fixed point gives nearby fixed points.** Let the circle act on a
+symplectic manifold `(M, σ)` without boundary, preserving `σ`, with a moment map `μ` in the sign
+`d⟨μ, ξ⟩ = -ι_{ξ_M} σ`, and let `p` be a fixed point. If the derivatives at `p` of the action
+fix a nonzero tangent vector, then `p` is not isolated among the fixed points: there are fixed
+points other than `p` in every neighbourhood of `p`. -/
+theorem frequently_mem_fixedPoints_of_mfderiv_smul_eq_self
+    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)} (hσ : σ.IsSymplectic)
+    (hinv : ∀ g : Circle, SmoothForm.mpullback (fun x : M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) g) σ = σ)
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
+    {p : M} (hp : p ∈ MulAction.fixedPoints Circle M) {v : TangentSpace I p} (hv : v ≠ 0)
+    (hfix : ∀ g : Circle, mfderiv I I (fun x : M ↦ g • x) p v = v) :
+    ∃ᶠ x in 𝓝[≠] p, x ∈ MulAction.fixedPoints Circle M := by
+  obtain ⟨m, χ, -, Φ, r, -, -, hr, hsrc, rfl, -, hequiv, -, -⟩ :=
+    exists_weightChart hμ hσ hinv hp
+  set C := complexToRealEuclidean (Fin m)
+  have h0 : (0 : StdSpace (Fin m)) ∈ Φ.source := by rw [hsrc]; exact Metric.mem_ball_self hr
+  have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
+  -- The action of `g` in the chart, read on `StdSpace (Fin m)`.
+  let R (g : Circle) : StdSpace (Fin m) →L[ℝ] StdSpace (Fin m) :=
+    (C : (Fin m → ℂ) →L[ℝ] StdSpace (Fin m)) ∘L
+      ((ContinuousLinearMap.pi fun i ↦ (χ i g : ℂ) • ContinuousLinearMap.proj i :
+        (Fin m → ℂ) →L[ℂ] (Fin m → ℂ)).restrictScalars ℝ) ∘L
+      (C.symm : StdSpace (Fin m) →L[ℝ] (Fin m → ℂ))
+  have hR (g : Circle) (z : StdSpace (Fin m)) :
+      R g z = C fun i ↦ (χ i g : ℂ) * C.symm z i := by
+    simp [R]
+  -- Differentiating at `0` the equivariance `Φ ∘ R g = (g • ·) ∘ Φ`.
+  have hcomm (g : Circle) (w : StdSpace (Fin m)) :
+      mfderiv 𝓘(ℝ, StdSpace (Fin m)) I Φ 0 (R g w) =
+        mfderiv I I (fun x : M ↦ g • x) (Φ 0) (mfderiv 𝓘(ℝ, StdSpace (Fin m)) I Φ 0 w) := by
+    have heq : (Φ ∘ R g) =ᶠ[𝓝 0] (fun x : M ↦ g • x) ∘ Φ := by
+      filter_upwards [Φ.open_source.mem_nhds h0] with z hz
+      have hz' : C (C.symm z) ∈ Φ.source := by rwa [C.apply_symm_apply]
+      simpa [hR] using (hequiv g _ hz').2
+    have hΦd : MDifferentiableAt 𝓘(ℝ, StdSpace (Fin m)) I Φ 0 := Φ.mdifferentiableAt hn h0
+    have hgd : MDifferentiableAt I I (fun x : M ↦ g • x) (Φ 0) :=
+      (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) (n := ∞) g).mdifferentiableAt (by simp)
+    have hΦR : HasMFDerivAt 𝓘(ℝ, StdSpace (Fin m)) I Φ (R g 0)
+        (mfderiv 𝓘(ℝ, StdSpace (Fin m)) I Φ 0) := by
+      rw [map_zero]; exact hΦd.hasMFDerivAt
+    have h := (hΦR.comp 0 (R g).hasMFDerivAt).mfderiv.symm.trans
+      ((hgd.hasMFDerivAt.comp 0 hΦd.hasMFDerivAt).congr_of_eventuallyEq_abuse heq).mfderiv
+    exact congrArg (· w) h
+  -- The preimage `w` of `v` under the differential of `Φ` at `0` is fixed by every `R g`.
+  obtain ⟨e, he⟩ := Φ.isInvertible_mfderiv hn h0
+  have he' (x : StdSpace (Fin m)) : e x = mfderiv 𝓘(ℝ, StdSpace (Fin m)) I Φ 0 x := by
+    rw [← he, ContinuousLinearEquiv.coe_coe]
+  obtain ⟨w, hwv⟩ : ∃ w : StdSpace (Fin m), e w = v := ⟨e.symm v, e.apply_symm_apply v⟩
+  have hw : w ≠ 0 := by
+    rintro rfl
+    exact hv (hwv.symm.trans (map_zero e))
+  have hRw (g : Circle) : R g w = w := by
+    apply e.injective
+    rw [he' (R g w)]
+    refine (hcomm g w).trans ?_
+    rw [← he' w, hwv, hfix]
+  -- A nonzero complex coordinate of `w` makes its character trivial.
+  obtain ⟨i, hi⟩ : ∃ i, C.symm w i ≠ 0 :=
+    Function.ne_iff.1 fun h' ↦ hw (C.symm.injective (h'.trans (map_zero _).symm))
+  refine frequently_mem_fixedPoints_of_chart h0 (fun g u hu ↦ (hequiv g u hu).2) (i := i)
+    fun g ↦ ?_
+  have h' : C.symm (R g w) i = C.symm w i := by rw [hRw g]
+  rw [hR, C.symm_apply_apply] at h'
+  exact mul_right_cancel₀ hi (h'.trans (one_mul _).symm)
+
+/-- **No weight vanishes at an isolated fixed point.** Let the circle act on a symplectic manifold
+`(M, σ)` without boundary, preserving `σ`, with a moment map `μ` in the sign
+`d⟨μ, ξ⟩ = -ι_{ξ_M} σ`, and let `p` be a fixed point that is isolated among the fixed points. Then
+every family of weights `k` at `p`, realized by some `L` as in `IsTangentWeights`, has
+`k j ≠ 0` for every `j`. -/
+theorem weights_ne_zero_of_isolated
+    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)} (hσ : σ.IsSymplectic)
+    (hinv : ∀ g : Circle, SmoothForm.mpullback (fun x : M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) g) σ = σ)
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
+    {p : M} (hp : p ∈ MulAction.fixedPoints Circle M)
+    (hiso : ∀ᶠ x in 𝓝[≠] p, x ∉ MulAction.fixedPoints Circle M)
+    {k : Fin n → ℤ} {L : TangentSpace I p ≃L[ℝ] (Fin n → ℂ)} (h : IsTangentWeights σ p k L)
+    (j : Fin n) : k j ≠ 0 := fun hkj ↦
+  (frequently_mem_fixedPoints_of_mfderiv_smul_eq_self hσ hinv hμ hp
+    (by simp : L.symm (Pi.single j 1) ≠ 0)
+    (h.mfderiv_smul_symm_single_of_eq_zero hkj)).and_eventually hiso |>.exists.elim
+    fun _ hx ↦ hx.2 hx.1
 
 end SymplecticGeometry
 
