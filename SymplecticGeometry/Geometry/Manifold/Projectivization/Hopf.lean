@@ -462,13 +462,11 @@ theorem isSubmersion_sphereHopf :
   set z := sphereToPuncturedSpace n x
   have hs := (isSubmersion_mkNonzero ℂ n).surjective_mfderiv (by simp) z
   have hs' : Surjective (mfderiv (𝓡 (2 * n + 1)) 𝓘(ℝ, Fin n → ℂ) (sphereHopf n)
-      (radialProjection n z)) := fun w ↦
-    let ⟨u, hu⟩ := hs w
-    ⟨mfderiv 𝓘(ℝ, Fin (n + 1) → ℂ) (𝓡 (2 * n + 1)) (radialProjection n) z u,
-      (TauCeti.mfderiv_apply_mfderiv_of_eventuallyEq_comp
-        (.of_eq (sphereHopf_comp_radialProjection n))
-        ((contMDiff_sphereHopf n 1 _).mdifferentiableAt one_ne_zero)
-        ((contMDiff_radialProjection n 1 z).mdifferentiableAt one_ne_zero) u).trans hu⟩
+      (radialProjection n z)) :=
+    TauCeti.isRegularPoint_iff.1 <| TauCeti.IsRegularPoint.of_comp (K := 𝓘(ℝ, Fin (n + 1) → ℂ))
+      (by rwa [sphereHopf_comp_radialProjection, TauCeti.isRegularPoint_iff])
+      ((contMDiff_sphereHopf n 1 _).mdifferentiableAt one_ne_zero)
+      ((contMDiff_radialProjection n 1 z).mdifferentiableAt one_ne_zero)
   rwa [radialProjection_sphereToPuncturedSpace] at hs'
 
 /-- Two points of the unit sphere have the same image under the Hopf map exactly when they lie on

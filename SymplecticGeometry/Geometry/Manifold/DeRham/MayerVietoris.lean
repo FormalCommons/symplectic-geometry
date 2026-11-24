@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Geometry.Manifold.Metrizable
+public import TauCeti.Geometry.Manifold.Metrizable
 public import Mathlib.Geometry.Manifold.PartitionOfUnity
 public import TauCeti.Geometry.Manifold.DeRham.MayerVietoris
 
@@ -206,13 +206,8 @@ theorem tsupport_one_sub_coe_subset : tsupport (fun x ↦ 1 - c x) ⊆ {x | (x :
 open sets has a cut-off function. -/
 theorem nonempty [FiniteDimensional ℝ E] [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M]
     (U V : Opens M) : Nonempty (MayerVietorisCutoff I U V) := by
-  have : SecondCountableTopology H := I.secondCountableTopology
-  have := Manifold.locallyCompact_of_finiteDimensional (M := M) I
-  have : SecondCountableTopology M := ChartedSpace.secondCountable_of_sigmaCompact H M
-  have := Manifold.locallyCompact_of_finiteDimensional (M := (U ⊔ V : Opens M)) I
-  have : NormalSpace (U ⊔ V : Opens M) :=
-    have := Manifold.metrizableSpace I (U ⊔ V : Opens M)
-    inferInstance
+  have := TauCeti.Manifold.sigmaCompactSpace_opens I (U ⊔ V)
+  have := TauCeti.Manifold.normalSpace_opens I (U ⊔ V)
   have hA : IsClosed {x : (U ⊔ V : Opens M) | (x : M) ∉ V} :=
     (V.isOpen.preimage continuous_subtypeVal).isClosed_compl
   have hB : IsClosed {x : (U ⊔ V : Opens M) | (x : M) ∉ U} :=
