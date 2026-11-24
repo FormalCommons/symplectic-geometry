@@ -89,8 +89,10 @@ derivative on $TM$. In the statements,
   `RiemannianBundle` instance and the hypothesis
   `hJ : ∀ x u v, ⟪u, v⟫ = σ.eval₂ x u (J x v)`, and proves
   `TauCeti.SmoothTwoForm.compatible_of_inner_eq` (such a `J` is compatible
-  with `σ`). Its steps $g(Ju,w)=\sigma(u,w)$ and $g(Ju,Jw)=g(u,w)$ are
-  private there. Tau Ceti's `CompatibleMetric.lean` has
+  with `σ`). Its steps $g(Ju,w)=\sigma(u,w)$ and $g(Ju,Jw)=g(u,w)$ are the
+  public `TauCeti.SmoothAlmostComplexStructure.inner_apply_left_of_inner_eq` and
+  `TauCeti.SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq`.
+  Tau Ceti's `CompatibleMetric.lean` has
   `TauCeti.SmoothTwoForm.Compatible.metric`, the metric $g_J$ of a
   compatible pair as a `Bundle.ContMDiffRiemannianMetric I ∞ E (TangentSpace I)`,
   with `metric_inner`.
@@ -343,9 +345,10 @@ About 250 lines.
 ## What it uses
 
 - From Tau Ceti: `Compatible.metric` and `metric_inner` (`TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/CompatibleMetric.lean`), in the
-  milestone of `LeviCivita.lean`.
-- From *Almost complex manifolds*: `Metric.lean` (#860), for `inner_apply_left_of_inner_eq` and
-  `inner_apply_left_eq_neg`, in its identities.
+  milestone of `LeviCivita.lean`; `inner_apply_left_of_inner_eq`
+  (`TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/Metric.lean`), in its identities.
+- From *Almost complex manifolds*: `Metric.lean` (#860), for `inner_apply_left_eq_neg`, in its
+  identities.
 - From *Nijenhuis tensor*: `Covariant.lean`, for the differentiability of
   `J` as a section of `End(TM)`, which Tau Ceti's $\nabla J$ and its
   anticommutation lemma `CovariantDerivative.hom_apply_apply_anticomm` take,
