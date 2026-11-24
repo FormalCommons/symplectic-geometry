@@ -136,8 +136,9 @@ The page's advice is followed: the form is built on the sphere and descends.
    along the inclusion. It is closed, being $d$ of `sphereContactForm`. It
    is invariant under the circle, kills the generator $J_0x$, and its kernel
    at $x$ is exactly $\mathbb R J_0x$, the kernel of the derivative of the
-   Hopf map. So it is basic (`isBasic_of_mpullback_eq`, with the circle
-   acting by $x\mapsto\cos t\,x+\sin t\,J_0x$), and `fubiniStudyForm` is
+   Hopf map. So it is basic
+   (`isBasic_of_mpullback_eq_of_ker_mfderiv_le`, with the circle acting by
+   $x\mapsto\cos t\,x+\sin t\,J_0x$), and `fubiniStudyForm` is
    defined as `SmoothForm.descendedForm` along the sphere Hopf map. It is
    symplectic by `isSymplectic_descendedForm_iff`.
 3. The projection from $\mathbb C^{n+1}\setminus0$ is the sphere Hopf map
@@ -349,13 +350,12 @@ orientations on both sides). In namespace `SymplecticGeometry`: `northPole`,
 back to `(4 * Real.pi) • OnePoint.fubiniStudyForm`) with its `_symm_` form.
 `Normalization.lean` imports it.
 
-### `Geometry/Manifold/Orientation/Preserving/FromTauCeti.lean`
+### `TauCeti.Manifold.Orientation.IsOrientationPreservingAt.reindex`
 
-Taken from Tau Ceti's main branch, with Tau Ceti's header, as *Files* in
-`AGENTS.md` says, in the sibling `FromTauCeti.lean` of the library's own
-`Orientation/Preserving.lean`: `TauCeti.Manifold.Orientation.IsOrientationPreservingAt.reindex`,
-which the pinned version lacks, for the reindexed orientation `complexCurveOrientation`.
-`Complex/Orientation.lean` imports it.
+Tau Ceti's, in its `Geometry/Manifold/Orientation/Preserving.lean`, for the
+reindexed orientation `complexCurveOrientation`; `Complex/Orientation.lean`
+imports that file. The library had a copy of it from Tau Ceti's main branch,
+which the move to `c9d170eed5a8` (#2025) deleted.
 
 ### `Geometry/Manifold/Orientation/Sphere.lean`
 
