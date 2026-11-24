@@ -12,10 +12,8 @@ public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Prod
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.OpenEmbedding
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Prod
 import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.Assoc
-import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
-import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
-import TauCeti.AlgebraicTopology.Sphere.SimplyConnected
-import TauCeti.Geometry.Manifold.Orientation.AddCircle
+import TauCeti.AlgebraicTopology.Singular.LocalHomology.Sphere
+import TauCeti.Geometry.Manifold.Instances.TopCatSphere
 
 /-!
 # The cross product of local orientations
@@ -48,8 +46,9 @@ local orientation there
 (`SymplecticGeometry.isLocalOrientation_localHomologyCross_of_isFundamentalClass`). Open embeddings
 identify local homology groups compatibly with the cross product
 (`SymplecticGeometry.forall_isLocalOrientation_localHomologyCross_iff`), and a vector space of
-dimension `k + 1` embeds near the origin into the circle (`k = 0`) or into the sphere `Sᵏ⁺¹`, which
-have integral fundamental classes (`TauCeti.exists_compact_manifold_isFundamentalClass`).
+dimension `k + 1` embeds near the origin into the sphere `Sᵏ⁺¹`, whose standard generator is an
+integral fundamental class (Tau Ceti's
+`TauCeti.isFundamentalClass_singularHomologyTopCatSphereGenerator`).
 
 This gives the cross product of local orientations of vector spaces
 (`TauCeti.LocalOrientation.cross`). It reverses when either factor reverses
@@ -338,9 +337,8 @@ theorem isLocalOrientation_localHomologyCross_of_isFundamentalClass
           congrArg (a • ·) (map_zsmul (TensorProduct.mk ℤ _ _ z₁.val) b z₂.val)
       _ = (a * b) • (z₁.val ⊗ₜ[ℤ] z₂.val) := by rw [mul_comm, mul_zsmul']
   rw [← ha, ← hb, e, map_zsmul] at hspan
-  refine (isLocalOrientation_iff _ _ _).2 fun w ↦ ?_
-  obtain ⟨k, hk⟩ := Submodule.mem_span_singleton.1 (hspan ▸ Submodule.mem_top : w ∈ _)
-  exact ⟨k * (a * b), by rw [mul_comm, mul_zsmul']; exact (int_smul_eq_zsmul _ k _).symm.trans hk⟩
+  exact (isLocalOrientation_iff_span_eq_top _ _ _).2 (top_le_iff.1
+    (hspan.symm.le.trans (Submodule.span_singleton_smul_le ℤ (a * b) _)))
 
 /-- Open embeddings `j₁ : X → X'` and `j₂ : Y → Y'` into `T₁` spaces carry the cross product of
 local homology classes at `x` and `y` to the cross product of their images at `j₁ x` and
@@ -477,44 +475,6 @@ theorem localHomologyCross_assoc (x : X) (y : Y) (z : Z) (p q r pq qr n : ℕ) (
 
 end Assoc
 
-end SymplecticGeometry
-
-namespace TauCeti
-
-open Metric in
-/-- In every positive dimension `k + 1` there is a compact connected manifold with an integral
-fundamental class: the circle `AddCircle 1` for `k = 0`, and the sphere `Sᵏ⁺¹`, which is simply
-connected, otherwise. -/
-theorem exists_compact_manifold_isFundamentalClass (k : ℕ) :
-    ∃ (M E : Type) (_ : TopologicalSpace M) (_ : T2Space M) (_ : CompactSpace M)
-      (_ : ConnectedSpace M) (_ : NormedAddCommGroup E) (_ : NormedSpace ℝ E)
-      (_ : FiniteDimensional ℝ E) (_ : ChartedSpace E M),
-      finrank ℝ E = k + 1 ∧
-        ∃ μ : ((TopCat.toSSet.obj (TopCat.of M)).homology (ModuleCat.of ℤ (ULift.{0} ℤ)) (k + 1) :
-          ModuleCat.{0} ℤ), IsFundamentalClass μ := by
-  cases k with
-  | zero =>
-    have : Fact ((0 : ℝ) < 1) := ⟨one_pos⟩
-    exact ⟨AddCircle (1 : ℝ), ℝ, inferInstance, inferInstance, inferInstance, inferInstance,
-      inferInstance, inferInstance, inferInstance, inferInstance, finrank_self ℝ,
-      _, HomologicalOrientation.isFundamentalClass_fundamentalClass
-        ((AddCircle.orientation 1).toHomologicalOrientation (finrank_self ℝ)) (finrank_self ℝ)⟩
-  | succ k =>
-    have := simplyConnectedSpace_sphere_euclideanSpace (n := k + 2) (by omega)
-    have hE : finrank ℝ (EuclideanSpace ℝ (Fin (k + 2))) = k + 1 + 1 := by simp
-    obtain ⟨o⟩ := HomologicalOrientation.nonempty_of_simplyConnectedSpace
-      (M := sphere (0 : EuclideanSpace ℝ (Fin (k + 3))) 1) hE
-    exact ⟨sphere (0 : EuclideanSpace ℝ (Fin (k + 3))) 1, EuclideanSpace ℝ (Fin (k + 2)),
-      inferInstance, inferInstance, inferInstance, inferInstance,
-      inferInstance, inferInstance, inferInstance, inferInstance, hE,
-      _, o.isFundamentalClass_fundamentalClass hE⟩
-
-end TauCeti
-
-namespace SymplecticGeometry
-
-open TauCeti
-
 /-- **The cross product of local orientations of vector spaces is a local orientation.** For
 real normed spaces `F₁` and `F₂` of dimensions `m + 1` and `n + 1` and local orientations `z₁`
 and `z₂` at their origins, the cross product `z₁ × z₂` generates the integral local homology
@@ -528,27 +488,33 @@ theorem isLocalOrientation_localHomologyCross {F₁ F₂ : Type} [NormedAddCommG
         (z₁.val ⊗ₜ z₂.val)) := by
   have := FiniteDimensional.of_finrank_eq_succ hF₁
   have := FiniteDimensional.of_finrank_eq_succ hF₂
-  obtain ⟨M₁, E₁, _, _, _, _, _, _, _, _, hE₁, μ₁, hμ₁⟩ :=
-    exists_compact_manifold_isFundamentalClass m
-  obtain ⟨M₂, E₂, _, _, _, _, _, _, _, _, hE₂, μ₂, hμ₂⟩ :=
-    exists_compact_manifold_isFundamentalClass n
-  obtain ⟨x₁⟩ : Nonempty M₁ := ConnectedSpace.toNonempty
-  obtain ⟨x₂⟩ : Nonempty M₂ := ConnectedSpace.toNonempty
-  -- A partial homeomorphism from `Fᵢ` to `Mᵢ` defined at `0`: a linear identification of `Fᵢ`
-  -- with the model `Eᵢ`, a translation, and the inverse of the chart at `xᵢ`.
-  let φ₁ : OpenPartialHomeomorph F₁ M₁ :=
-    ((ContinuousLinearEquiv.ofFinrankEq (hF₁.trans hE₁.symm)).toHomeomorph.trans
-      (Homeomorph.addRight (chartAt E₁ x₁ x₁))).toOpenPartialHomeomorph.trans
-        (chartAt E₁ x₁).symm
-  let φ₂ : OpenPartialHomeomorph F₂ M₂ :=
-    ((ContinuousLinearEquiv.ofFinrankEq (hF₂.trans hE₂.symm)).toHomeomorph.trans
-      (Homeomorph.addRight (chartAt E₂ x₂ x₂))).toOpenPartialHomeomorph.trans
-        (chartAt E₂ x₂).symm
+  -- The spheres `Sᵐ⁺¹` and `Sⁿ⁺¹`, charted on `ULift (Fin (k + 1)) → ℝ`, are compact connected
+  -- manifolds, and the standard generator of `Hₖ₊₁(Sᵏ⁺¹; ℤ)`, with the coefficients `ℤ` read as
+  -- `ULift ℤ`, is a fundamental class.
+  have hE (k : ℕ) : finrank ℝ (ULift.{0} (Fin (k + 1)) → ℝ) = k + 1 := by simp
+  have hμ (k : ℕ) : IsFundamentalClass
+      (((AlgebraicTopology.singularHomologyFunctor (ModuleCat.{0} ℤ) (k + 1)).map
+        (ULift.moduleEquiv.{0, 0, 0} (R := ℤ) (M := ℤ)).symm.toModuleIso.hom).app
+          (TopCat.of (TopCat.sphere.{0} (k + 1))) (singularHomologyTopCatSphereGenerator ℤ k)) :=
+    (isFundamentalClass_singularHomologyFunctor_map_app_iff _ _).2
+      (isFundamentalClass_singularHomologyTopCatSphereGenerator ℤ k)
+  obtain ⟨x₁⟩ : Nonempty (TopCat.sphere.{0} (m + 1)) := ConnectedSpace.toNonempty
+  obtain ⟨x₂⟩ : Nonempty (TopCat.sphere.{0} (n + 1)) := ConnectedSpace.toNonempty
+  -- A partial homeomorphism from `Fᵢ` to the sphere defined at `0`: a linear identification of
+  -- `Fᵢ` with the model, a translation, and the inverse of the chart at `xᵢ`.
+  let φ₁ : OpenPartialHomeomorph F₁ (TopCat.sphere.{0} (m + 1)) :=
+    ((ContinuousLinearEquiv.ofFinrankEq (hF₁.trans (hE m).symm)).toHomeomorph.trans
+      (Homeomorph.addRight (chartAt (ULift.{0} (Fin (m + 1)) → ℝ) x₁ x₁)))
+      |>.toOpenPartialHomeomorph.trans (chartAt (ULift.{0} (Fin (m + 1)) → ℝ) x₁).symm
+  let φ₂ : OpenPartialHomeomorph F₂ (TopCat.sphere.{0} (n + 1)) :=
+    ((ContinuousLinearEquiv.ofFinrankEq (hF₂.trans (hE n).symm)).toHomeomorph.trans
+      (Homeomorph.addRight (chartAt (ULift.{0} (Fin (n + 1)) → ℝ) x₂ x₂)))
+      |>.toOpenPartialHomeomorph.trans (chartAt (ULift.{0} (Fin (n + 1)) → ℝ) x₂).symm
   have h₁ : (0 : F₁) ∈ φ₁.source := by simp [φ₁]
   have h₂ : (0 : F₂) ∈ φ₂.source := by simp [φ₂]
   exact (forall_isLocalOrientation_localHomologyCross_iff_of_openPartialHomeomorph φ₁ φ₂ h₁ h₂
-    h).1 (fun w₁ w₂ ↦ isLocalOrientation_localHomologyCross_of_isFundamentalClass hE₁ hE₂ h
-      hμ₁ hμ₂ w₁ w₂) z₁ z₂
+    h).1 (fun w₁ w₂ ↦ isLocalOrientation_localHomologyCross_of_isFundamentalClass (hE m) (hE n) h
+      (hμ m) (hμ n) w₁ w₂) z₁ z₂
 
 end SymplecticGeometry
 
