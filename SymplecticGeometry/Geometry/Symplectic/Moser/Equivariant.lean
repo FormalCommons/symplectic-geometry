@@ -290,21 +290,9 @@ private theorem exists_primitive_invariantCore_of_eq_along [ContinuousSMul G M]
         (0 : E →L[ℝ] E [⋀^Fin 1]→L[ℝ] ℝ)
         (extChartAt I (⟨f q, hfV (mem_range_self q)⟩ : W.invariantCore G)
           ⟨f q, hfV (mem_range_self q)⟩) := by
-  have hη (q : Q) : (σ₁ - σ₀).val (f q) = 0 := by
-    rw [AddSubgroupClass.coe_sub, Pi.sub_apply, heq q, sub_self]
-  -- Along `f(Q)`, every form of the segment from `σ₀` to `σ₁` is `σ₀`.
-  have hfO : range f ⊆
-      {x | ∀ s ∈ Icc (0 : ℝ) 1, ((σ₀ + s • (σ₁ - σ₀)).bilinFormAt x).Nondegenerate} := by
-    rintro _ ⟨q, rfl⟩ s -
-    exact nondegenerate_bilinFormAt_add_smul_sub_of_eq (hη q) (hnd q) s
-  have hf : SmoothForm.mpullback f f.contMDiff σ₁ = SmoothForm.mpullback f f.contMDiff σ₀ :=
-    Subtype.ext (funext fun q ↦ by
-      ext v
-      rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback, mpullback_apply, mpullback_apply,
-        heq q])
   -- A primitive of `σ₁ - σ₀` on a tube `W`, vanishing with its first jet along `f(Q)`.
-  obtain ⟨W, hWO, hfW, βW, hdβW, hβW0, hβW1⟩ := f.exists_smoothForm_relative_primitive_sub h₀ h₁
-    hf (isOpen_setOf_forall_mem_Icc_nondegenerate σ₀ σ₁) hfO
+  obtain ⟨W, hWO, hfW, βW, hdβW, hβW0, hβW1⟩ :=
+    f.exists_smoothForm_relative_primitive_sub_of_eq_along h₀ h₁ hnd heq
   -- Its restriction to the invariant core `V` of `W`, which still contains `f(Q)`.
   set V := W.invariantCore G
   have hVW : V ≤ W := Opens.invariantCore_le W
@@ -325,7 +313,7 @@ private theorem exists_primitive_invariantCore_of_eq_along [ContinuousSMul G M]
     rw [SmoothForm.coe_mpullback]
     refine HasFDerivAt.congr_of_eventuallyEq ?_ h
     rw [← extChartAt_inclusion_self hVW]
-    exact hβW1 q (heq q)
+    exact hβW1 q
 
 include IG in
 /-- The equivariant relative Moser theorem before it is read in `M`: on the invariant core of a tube

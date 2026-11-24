@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Analysis.Calculus.DifferentialForm.LieDeriv
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.VectorField.Prod
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
@@ -23,6 +24,17 @@ field or of the form. Both are read in charts from the flat statements
 `SymplecticGeometry.Analysis.Calculus.DifferentialForm.LieDeriv`. The proofs follow Tau Ceti's
 `VectorField.mlieBracket_const_smul_left_field`.
 
+For a smooth vector field `X`, given as a smooth section of the tangent bundle,
+`TauCeti.SmoothForm.lieDeriv X` is the Lie derivative `φ ↦ L_X φ` as a real-linear map from smooth
+`k`-forms to smooth `k`-forms. Its rough form is `TauCeti.mlieDerivForm X` (`coe_lieDeriv`), and
+it is smooth by Tau Ceti's `TauCeti.SmoothForm.mlieDerivForm_mem_smoothBundleForms`. Additivity in
+the form comes from Tau Ceti's `TauCeti.mlieDerivForm_add`, as in Tau Ceti's `TauCeti.mextDerivₗ`,
+and the definition follows `TauCeti.SmoothForm.interiorProduct` of `DifferentialForm/Interior.lean`.
+Cartan's formula is restated for it with the bundled exterior derivative `TauCeti.mextDerivₗ` and
+the bundled interior product, from Tau Ceti's
+`TauCeti.SmoothForm.mlieDerivForm_eq_interior_mextDeriv_add` and, in degree `0`,
+`TauCeti.mlieDerivForm_eq_interior_mextDeriv`.
+
 On a product `N × P`, a form whose slices `ι_s^* β`, `ι_s : y ↦ (s, y)`, do not depend on `s` has
 a Lie derivative with vanishing slices along the horizontal lift `(X, 0)` of any vector field `X`
 on `N`. The proof extends tangent vectors of `P` to vector fields (`FiberBundle.extend`), lifts
@@ -37,6 +49,11 @@ term differentiates a function of `P` alone along `(X, 0)`. No boundarylessness 
   along the zero field.
 * `TauCeti.mlieDerivFormWithin_const_smul_left`, `TauCeti.mlieDerivForm_const_smul_left`:
   homogeneity in the field.
+* `TauCeti.SmoothForm.lieDeriv`: the Lie derivative of smooth forms along a smooth vector field,
+  as a linear map.
+* `TauCeti.SmoothForm.lieDeriv_eq_interiorProduct_add`,
+  `TauCeti.SmoothForm.lieDeriv_eq_interiorProduct_mextDerivₗ`: Cartan's formula
+  `L_X = ι_X d + d ι_X` for it, and `L_X f = ι_X df` on functions.
 * `TauCeti.mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero`: the slices of the Lie
   derivative of a form with constant slices along a horizontal field vanish.
 
@@ -160,6 +177,80 @@ theorem mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero
 
 
 end Horizontal
+
+/-! ### The bundled Lie derivative of smooth forms -/
+
+namespace SmoothForm
+
+open scoped ContDiff
+
+variable [IsManifold I 2 M]
+
+/-- The Lie derivative `φ ↦ L_X φ` along a smooth vector field `X`, as a real-linear map from
+smooth `k`-forms to smooth `k`-forms. -/
+def lieDeriv (X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯) :
+    SmoothForm I M F k →ₗ[ℝ] SmoothForm I M F k where
+  toFun φ := ⟨mlieDerivForm X φ.val, mlieDerivForm_mem_smoothBundleForms φ X.contMDiff⟩
+  map_add' φ ψ := Subtype.ext <| funext fun x ↦
+    mlieDerivForm_add
+      (RoughForm.differentiableWithinAt_range_inChartAt_of_mdifferentiableAt φ.val
+        (φ.mdifferentiableAt x))
+      (RoughForm.differentiableWithinAt_range_inChartAt_of_mdifferentiableAt ψ.val
+        (ψ.mdifferentiableAt x))
+  map_smul' c φ := Subtype.ext (mlieDerivForm_smul c φ.val)
+
+/-- The rough form of `L_X φ` is the Lie derivative of the rough form of `φ`. -/
+@[simp]
+theorem coe_lieDeriv (X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯) (φ : SmoothForm I M F k) :
+    (lieDeriv X φ : RoughForm I M F k) = mlieDerivForm X φ.val :=
+  (rfl)
+
+/-- The Lie derivative along the zero vector field is zero. -/
+@[simp]
+theorem lieDeriv_zero_field (φ : SmoothForm I M F k) :
+    lieDeriv (0 : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯) φ = 0 :=
+  Subtype.ext <| by
+    rw [coe_lieDeriv, ContMDiffSection.coe_zero, mlieDerivForm_zero_left, Submodule.coe_zero]
+
+/-- The Lie derivative is additive in the vector field. -/
+@[simp]
+theorem lieDeriv_add_field (X Y : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯)
+    (φ : SmoothForm I M F k) :
+    lieDeriv (X + Y) φ = lieDeriv X φ + lieDeriv Y φ :=
+  Subtype.ext <| funext fun x ↦ by
+    rw [Submodule.coe_add, Pi.add_apply, coe_lieDeriv, coe_lieDeriv, coe_lieDeriv,
+      ContMDiffSection.coe_add]
+    exact mlieDerivForm_add_left φ.val (X.contMDiff.mdifferentiableAt (by simp))
+      (Y.contMDiff.mdifferentiableAt (by simp))
+
+/-- The Lie derivative commutes with constant multiples of the vector field. -/
+@[simp]
+theorem lieDeriv_smul_field (c : ℝ) (X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯)
+    (φ : SmoothForm I M F k) :
+    lieDeriv (c • X) φ = c • lieDeriv X φ :=
+  Subtype.ext <| by
+    rw [Submodule.coe_smul, coe_lieDeriv, coe_lieDeriv, ContMDiffSection.coe_smul,
+      mlieDerivForm_const_smul_left]
+
+/-- Cartan's formula on functions: `L_X f = ι_X df`. -/
+theorem lieDeriv_eq_interiorProduct_mextDerivₗ (X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯)
+    (f : SmoothForm I M F 0) :
+    lieDeriv X f = interiorProduct X (mextDerivₗ I 0 f) :=
+  Subtype.ext <| by
+    rw [coe_lieDeriv, coe_interiorProduct, mextDerivₗ_apply]
+    exact mlieDerivForm_eq_interior_mextDeriv _ _
+
+/-- Cartan's formula `L_X = ι_X d + d ι_X` on smooth forms of positive degree. -/
+theorem lieDeriv_eq_interiorProduct_add (X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯)
+    (φ : SmoothForm I M F (k + 1)) :
+    lieDeriv X φ =
+      interiorProduct X (mextDerivₗ I (k + 1) φ) + mextDerivₗ I k (interiorProduct X φ) :=
+  Subtype.ext <| by
+    rw [coe_lieDeriv, Submodule.coe_add, coe_interiorProduct, mextDerivₗ_apply,
+      mextDerivₗ_apply, coe_interiorProduct]
+    exact mlieDerivForm_eq_interior_mextDeriv_add (X.contMDiff.mdifferentiable (by simp))
+
+end SmoothForm
 
 end TauCeti
 

@@ -70,6 +70,11 @@ diagonal action, which `Φ` turns into the orbit map of `Q` (`pullbackProjDiffeo
 second component `g ↦ g⁻¹ • v` has derivative `ξ ↦ -X_ξ(v)` at `1`, by
 `TauCeti.mfderiv_inv_smul_one_apply`.
 
+From `pullbackProjSection` on, the declarations take `[∀ b, Nonempty (P b)]`. Their statements
+need it, not only their proofs: Mathlib's and Tau Ceti's fibre bundle structure on the pull-back
+`Q` asks for it, and so does `pullbackEquiv`. A caller supplies it with
+`have := FiberBundle.nonempty_fiber G P`, since `G` is nonempty.
+
 ## References
 
 * S. Kobayashi and K. Nomizu, *Foundations of Differential Geometry*, Vol. I, Interscience, 1963,
