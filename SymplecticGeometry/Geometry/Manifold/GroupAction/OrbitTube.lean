@@ -611,6 +611,10 @@ theorem exists_sliceDomain_isLocalDiffeomorphAt_tubeMap [CompleteSpace E'] [IsMa
   let _ := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) U I 𝓘(ℝ, V) F
   have := BalancedProduct.contMDiffSMul_rightTranslation (K := stabilizer G x) (Z := U) (I := I)
     (IZ := 𝓘(ℝ, V)) (F := F)
+  have : ContMDiffConstSMul 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V)) ∞ G
+      (BalancedProduct (stabilizer G x) (stabilizer G x).RightTranslation U) :=
+    ContMDiffSMul.contMDiffConstSMul I
+  have : ContMDiffConstSMul I' ∞ G M := ContMDiffSMul.contMDiffConstSMul I
   -- The points `z` of `U` at whose class `[1, z]` the tube map is a local diffeomorphism.
   let W : Set U := {z | IsLocalDiffeomorphAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V)) I' ∞
     U.tubeMap (BalancedProduct.mk _ ((stabilizer G x).toRightTranslation 1) z)}
@@ -623,7 +627,7 @@ theorem exists_sliceDomain_isLocalDiffeomorphAt_tubeMap [CompleteSpace E'] [IsMa
   have hmem : ∀ {g : G} {z : U}, z ∈ W →
       IsLocalDiffeomorphAt 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V)) I' ∞ U.tubeMap
         (BalancedProduct.mk _ ((stabilizer G x).toRightTranslation g) z) := fun {g z} hz ↦ by
-    have h := (isLocalDiffeomorphAt_smul_iff (IG := I) U.tubeMap_smul g).2 hz
+    have h := (isLocalDiffeomorphAt_smul_iff U.tubeMap_smul g).2 hz
     rwa [BalancedProduct.smul_mk_toRightTranslation, mul_one] at h
   have hinj : Injective fun z : U ↦ ((z : V) : E') :=
     Subtype.val_injective.comp Subtype.val_injective
@@ -641,7 +645,7 @@ theorem exists_sliceDomain_isLocalDiffeomorphAt_tubeMap [CompleteSpace E'] [IsMa
   · rintro _ ⟨z, -, rfl⟩
     exact U.coe_mem_target z
   · rintro g hg _ ⟨z, hz, rfl⟩
-    have h := (isLocalDiffeomorphAt_smul_iff (IG := I) U.tubeMap_smul g).2 hz
+    have h := (isLocalDiffeomorphAt_smul_iff U.tubeMap_smul g).2 hz
     rw [← Subgroup.coe_mk (stabilizer G x) g hg,
       ← BalancedProduct.mk_toRightTranslation_one_smul] at h
     -- Membership in `W` is local diffeomorphy at the class `[1, z]`.

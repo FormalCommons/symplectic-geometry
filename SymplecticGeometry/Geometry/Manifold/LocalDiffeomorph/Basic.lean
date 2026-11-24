@@ -8,8 +8,10 @@ module
 public import Mathlib.Geometry.Manifold.Algebra.SMul
 public import Mathlib.Geometry.Manifold.Instances.Real
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
+public import TauCeti.Geometry.Manifold.Algebra.SMul
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
+public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Diffeomorph
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import SymplecticGeometry.Topology.OpenPartialHomeomorph.Compact
 
@@ -40,10 +42,11 @@ target of `Λ`, not only at `x`.
   diffeomorphisms into a common manifold do are related, near a point, by a map smooth there, as
   the transition maps of a gluing must be.
 * `isLocalDiffeomorph_id`: the identity of a manifold is a local diffeomorphism.
-* `isLocalDiffeomorphAt_smul_iff`: a map that commutes with smooth actions of a group is a local
-  diffeomorphism at `g • x` exactly when it is one at `x`. Its proof follows a step of the proof
-  of Tau Ceti's `IsLocalDiffeomorphAt.eventually_forall_smul_slice`, for any equivariant map in
-  place of a slice map.
+* `isLocalDiffeomorphAt_smul_iff`: a map that commutes with actions of a group by `C^n` maps is a
+  local diffeomorphism at `g • x` exactly when it is one at `x`. It composes with Tau Ceti's
+  diffeomorphisms `Diffeomorph.constSmul` and applies Tau Ceti's
+  `Diffeomorph.isLocalDiffeomorphAt_comp_diffeomorph_iff` and
+  `Diffeomorph.isLocalDiffeomorphAt_diffeomorph_comp_iff`.
 * `ContinuousLinearEquiv.isLocalDiffeomorph`: a continuous linear equivalence of normed spaces
   is a local diffeomorphism, for every `n`; `isLocalDiffeomorph_neg` is the case of negation.
 * `PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`: a partial diffeomorphism of
@@ -125,24 +128,18 @@ theorem isLocalDiffeomorph_id : IsLocalDiffeomorph I I n (id : M → M) := by
   exact Diffeomorph.isLocalDiffeomorph _
 
 /-- **Local diffeomorphy of an equivariant map is invariant under the group.** If `f` commutes
-with `C^n` actions of a group `G` on `M` and on `N`, then `f` is a `C^n` local diffeomorphism
-at `g • x` exactly when it is one at `x`: the actions of `g` are diffeomorphisms. -/
-theorem isLocalDiffeomorphAt_smul_iff {EG : Type*} [NormedAddCommGroup EG] [NormedSpace 𝕜 EG]
-    {HG : Type*} [TopologicalSpace HG] {IG : ModelWithCorners 𝕜 EG HG} {G : Type*}
-    [TopologicalSpace G] [ChartedSpace HG G] [Group G] [MulAction G M] [MulAction G N]
-    [ContMDiffSMul IG I n G M] [ContMDiffSMul IG J n G N] (hf : ∀ (g : G) y, f (g • y) = g • f y)
-    (g : G) : IsLocalDiffeomorphAt I J n f (g • x) ↔ IsLocalDiffeomorphAt I J n f x := by
-  have key : ∀ (g : G) y, IsLocalDiffeomorphAt I J n f y → IsLocalDiffeomorphAt I J n f (g • y) :=
-    fun g y hy ↦ by
-      -- `f ∘ (g • ·) = (g • ·) ∘ f`, and both actions of `g` are diffeomorphisms.
-      let T := Diffeomorph.smul IG I n g (M := M)
-      have hT : f ∘ T = Diffeomorph.smul IG J n g (M := N) ∘ f := funext fun y ↦ hf g y
-      have hcomp : IsLocalDiffeomorphAt I J n (f ∘ T) y := by
-        rw [hT]
-        exact hy.comp (hg := (Diffeomorph.smul IG J n g (M := N)).isLocalDiffeomorph _)
-      exact hcomp.of_comp_right (T.isLocalDiffeomorph _)
-  refine ⟨fun h ↦ ?_, key g x⟩
-  simpa only [inv_smul_smul] using key g⁻¹ _ h
+with actions of a group `G` on `M` and on `N` by `C^n` maps, then `f` is a `C^n` local
+diffeomorphism at `g • x` exactly when it is one at `x`: the actions of `g` are diffeomorphisms. -/
+theorem isLocalDiffeomorphAt_smul_iff {G : Type*} [Group G] [MulAction G M] [MulAction G N]
+    [ContMDiffConstSMul I n G M] [ContMDiffConstSMul J n G N]
+    (hf : ∀ (g : G) y, f (g • y) = g • f y) (g : G) :
+    IsLocalDiffeomorphAt I J n f (g • x) ↔ IsLocalDiffeomorphAt I J n f x := by
+  have hT : f ∘ Diffeomorph.constSmul I n g = Diffeomorph.constSmul J n g ∘ f :=
+    funext fun y ↦ by simp only [comp_apply, Diffeomorph.constSmul_apply, hf]
+  have h := (Diffeomorph.constSmul I n g).isLocalDiffeomorphAt_comp_diffeomorph_iff (K := J)
+    (f := f) (x := x) le_rfl
+  rw [hT, (Diffeomorph.constSmul J n g).isLocalDiffeomorphAt_diffeomorph_comp_iff le_rfl] at h
+  rwa [Diffeomorph.constSmul_apply, Iff.comm] at h
 
 end SymplecticGeometry
 
