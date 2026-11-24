@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Symplectic.LinearReduction
+public import TauCeti.LinearAlgebra.Submodule.Quotient
 
 /-!
 # Linear symplectic reduction by a coisotropic subspace
@@ -48,7 +49,8 @@ statement for a coisotropic subspace `W` needs on top of it:
   `ker B`, then `[ι x] ↦ g x` is a linear equivalence from the reduced space of `W` onto `U`,
   and a symplectomorphism to any symplectic form on `U` that pulls back along `g` to `B`. The
   kernel of `x ↦ [ι x]` is `ker B` by Tau Ceti's
-  `TauCeti.SymplecticForm.ker_eq_comap_orthogonal_range`.
+  `TauCeti.SymplecticForm.ker_eq_comap_orthogonal_range`, and the equivalence is Tau Ceti's
+  `LinearMap.equivOfSurjectiveOfKerEq` for `x ↦ [ι x]` and `g`.
 
 ## References
 
@@ -275,10 +277,9 @@ space of `W` is linearly equivalent to `U`, by `[ι x] ↦ g x`. -/
 noncomputable def reducedSpaceEquivOfKerEq (hrange : LinearMap.range ι = W)
     (hB : ∀ x x', ω (ι x) (ι x') = B x x') (hker : LinearMap.ker B = LinearMap.ker g)
     (hg : Function.Surjective g) : ω.ReducedSpace W ≃ₗ[ℝ] U :=
-  ((toReducedSpaceOfRangeEq hrange).quotKerEquivOfSurjective
-      (surjective_toReducedSpaceOfRangeEq hrange)).symm ≪≫ₗ
-    Submodule.quotEquivOfEq _ _ ((ker_toReducedSpaceOfRangeEq hrange hB).trans hker) ≪≫ₗ
-    g.quotKerEquivOfSurjective hg
+  (toReducedSpaceOfRangeEq hrange).equivOfSurjectiveOfKerEq g
+    (surjective_toReducedSpaceOfRangeEq hrange) hg
+    ((ker_toReducedSpaceOfRangeEq hrange hB).trans hker)
 
 /-- `reducedSpaceEquivOfKerEq` sends the class of `ι x` to `g x`. -/
 @[simp]
@@ -287,10 +288,8 @@ theorem reducedSpaceEquivOfKerEq_mk (hrange : LinearMap.range ι = W)
     (hg : Function.Surjective g) (x : X) :
     ω.reducedSpaceEquivOfKerEq hrange hB hker hg
         (Submodule.Quotient.mk ⟨ι x, hrange.le (LinearMap.mem_range_self ι x)⟩) = g x := by
-  rw [reducedSpaceEquivOfKerEq, LinearEquiv.trans_apply, LinearEquiv.trans_apply,
-    ← toReducedSpaceOfRangeEq_apply (ω := ω) hrange, (LinearEquiv.symm_apply_eq _).2
-      (LinearMap.quotKerEquivOfSurjective_apply_mk _ _ x).symm,
-    Submodule.quotEquivOfEq_mk, LinearMap.quotKerEquivOfSurjective_apply_mk]
+  rw [← toReducedSpaceOfRangeEq_apply (ω := ω) hrange, reducedSpaceEquivOfKerEq,
+    LinearMap.equivOfSurjectiveOfKerEq_apply]
 
 /-- The inverse of `reducedSpaceEquivOfKerEq` sends `g x` to the class of `ι x`. -/
 theorem reducedSpaceEquivOfKerEq_symm_apply (hrange : LinearMap.range ι = W)
@@ -298,7 +297,8 @@ theorem reducedSpaceEquivOfKerEq_symm_apply (hrange : LinearMap.range ι = W)
     (hg : Function.Surjective g) (x : X) :
     (ω.reducedSpaceEquivOfKerEq hrange hB hker hg).symm (g x) =
       Submodule.Quotient.mk ⟨ι x, hrange.le (LinearMap.mem_range_self ι x)⟩ := by
-  rw [LinearEquiv.symm_apply_eq, reducedSpaceEquivOfKerEq_mk]
+  rw [← toReducedSpaceOfRangeEq_apply (ω := ω) hrange, reducedSpaceEquivOfKerEq,
+    LinearMap.equivOfSurjectiveOfKerEq_symm_apply]
 
 /-- If a symplectic form `ω'` on `U` pulls back along `g` to `B`, then `reducedSpaceEquivOfKerEq`
 is a symplectomorphism from the reduced form on the reduced space of `W` to `ω'`. -/

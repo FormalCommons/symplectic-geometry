@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Reduction
-public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 
 /-!
 # The tangent spaces of a reduced space, for general reduction data
@@ -25,8 +25,6 @@ of the level and `p` its projection to the reduced space. Write `W_red = W ⧸ (
 linear symplectic reduction of `W` (`TauCeti.SymplecticForm.ReducedSpace`), with its symplectic
 form `TauCeti.SymplecticForm.reduction`.
 
-* `symplecticFormAt_mfderiv_mfderiv`: for a smooth map `f`, the form `σ_{f z}` on `df_z v` and
-  `df_z w` is `(f^* σ)_z(v, w)`.
 * `reducedSpaceEquivTangentSpace`: the linear equivalence `W_red ≃ T_{p z} Q`. It is the linear
   equivalence `TauCeti.SymplecticForm.reducedSpaceEquivOfKerEq` for `ι = di_z`, `B = (i^* σ)_z`
   and `g = dp_z`.
@@ -67,15 +65,6 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
   {EQ HQ Q : Type*} [NormedAddCommGroup EQ] [NormedSpace ℝ EQ] [TopologicalSpace HQ]
   {JQ : ModelWithCorners ℝ EQ HQ} [TopologicalSpace Q] [ChartedSpace HQ Q]
   {σ : SmoothTwoForm I M} (hσ : σ.IsNondegenerate) {i : Z → M} {p : Z → Q}
-
-/-- The form `σ` at `f z` on the differentials `df_z v` and `df_z w` is the pullback `(f^* σ)_z`
-on `v` and `w`. -/
-theorem symplecticFormAt_mfderiv_mfderiv {f : Z → M} (hf : ContMDiff J I ∞ f) (z : Z)
-    (v w : TangentSpace J z) :
-    hσ.symplecticFormAt (f z) (mfderiv J I f z v) (mfderiv J I f z w) =
-      (SmoothForm.mpullback f hf σ).bilinFormAt z v w := by
-  rw [IsNondegenerate.symplecticFormAt_apply, SmoothForm.bilinFormAt_apply,
-    SmoothForm.eval₂_mpullback]
 
 /-- **The tangent space of a reduced space.** Let `σ` be nondegenerate, `i : Z → M` smooth and
 `p : Z → Q`, and let `z` be a point of `Z` at which the image of `di_z` is `W`, the kernel of
