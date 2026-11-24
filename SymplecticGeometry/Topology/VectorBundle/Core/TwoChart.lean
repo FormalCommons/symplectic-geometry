@@ -10,6 +10,7 @@ public import Mathlib.Analysis.Normed.Ring.Units
 public import Mathlib.Topology.VectorBundle.Basic
 public import SymplecticGeometry.Algebra.GroupWithZero.Units.Lemmas
 public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
+import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
 
 /-!
 # Vector bundle cores with two charts
@@ -25,7 +26,7 @@ The charts are indexed by `Bool`, `true` for `U₁` and `false` for `U₂`, and 
 from the chart `i` to the chart `j` is `ρ (g x ^ (j - i))` (`twoChartCocycle`), which is defined at
 every point, not only on `U₁ ∩ U₂`. Its continuity for `true → false` comes from that of
 `Ring.inverse` at the units of the complete normed ring `F →L[𝕜] F`
-(`NormedRing.inverse_continuousAt`), since `ρ (g x)⁻¹ = Ring.inverse (ρ (g x))`
+(`ContinuousAt.ringInverse`), since `ρ (g x)⁻¹ = Ring.inverse (ρ (g x))`
 (`map_inv_eq_ringInverse`).
 
 ## Main definitions
@@ -105,8 +106,7 @@ theorem continuousOn_twoChartCocycle {U₁ U₂ : Set B} (ρ : G →* (F →L[�
   · simpa [inter_comm] using hg
   · simp only [twoChartCocycle_true_false, map_inv_eq_ringInverse]
     refine fun x hx ↦ ContinuousAt.comp_continuousWithinAt (g := Ring.inverse) ?_ (hg x hx)
-    have h := (Group.isUnit (g x)).map ρ
-    simpa only [h.unit_spec] using NormedRing.inverse_continuousAt h.unit
+    exact continuousAt_id.ringInverse ((Group.isUnit (g x)).map ρ)
   · simpa using continuousOn_const
 
 variable (U₁ U₂ : Set B) (ρ : G →* (F →L[𝕜] F)) (g : B → G) (hU₁ : IsOpen U₁) (hU₂ : IsOpen U₂)

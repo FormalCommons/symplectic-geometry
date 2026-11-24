@@ -7,7 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Core.TwoChart
-import Mathlib.Analysis.Calculus.ContDiff.Operations
+import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
 
 /-!
 # Smoothness of vector bundle cores with two charts
@@ -17,7 +17,7 @@ The core `SymplecticGeometry.Bundle.twoChartCore U₁ U₂ ρ g`, glued from two
 `U₁ ∩ U₂` (`SymplecticGeometry.Bundle.isContMDiff_twoChartCore`). The coordinate change from the
 first chart to the second is `ρ (g x)⁻¹ = Ring.inverse (ρ (g x))`, which is `C^n` because
 `Ring.inverse` is analytic at the units of the complete normed algebra `F →L[𝕜] F`
-(`contDiffAt_ringInverse`).
+(`ContDiffAt.inverse`).
 -/
 
 public section
@@ -45,8 +45,7 @@ theorem contMDiffOn_twoChartCocycle {U₁ U₂ : Set B} (ρ : G →* (F →L[�
   · simpa [inter_comm] using hg
   · simp only [twoChartCocycle_true_false, map_inv_eq_ringInverse]
     refine fun x hx ↦ ContMDiffAt.comp_contMDiffWithinAt (g := Ring.inverse) x ?_ (hg x hx)
-    have h := (Group.isUnit (g x)).map ρ
-    simpa only [h.unit_spec] using (contDiffAt_ringInverse 𝕜 h.unit).contMDiffAt
+    exact (contDiffAt_id.inverse ((Group.isUnit (g x)).map ρ)).contMDiffAt
   · simpa using contMDiffOn_const
 
 /-- **Smoothness of the bundle of two charts.** If `x ↦ ρ (g x)` is `C^n` on `U₁ ∩ U₂`, then the

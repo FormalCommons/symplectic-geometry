@@ -10,6 +10,7 @@ public import Mathlib.Geometry.Manifold.IsManifold.Basic
 public import SymplecticGeometry.LinearAlgebra.Matrix.SelfAdjoint
 public import SymplecticGeometry.Topology.Grassmannian.Lagrangian.Graph
 public import TauCeti.Analysis.Calculus.ContDiff.Star
+import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
 
 /-!
 # The Lagrangian Grassmannian as a smooth manifold
@@ -93,8 +94,7 @@ theorem contDiffOn_graphYChart_smul_graphY :
         Ring.inverse (toBlocks₂₁ M * (S : Matrix ι ι ℝ) + toBlocks₂₂ M)))
       {S | IsUnit (toBlocks₂₁ M * (S : Matrix ι ι ℝ) + toBlocks₂₂ M)} := by
     refine (selfAdjointPartL ℝ (Matrix ι ι ℝ)).contDiff.comp_contDiffOn fun S hS ↦ ?_
-    exact (h₁.contDiffAt.mul ((contDiffAt_ringInverse ℝ hS.unit).comp S
-      h₂.contDiffAt)).contDiffWithinAt
+    exact (h₁.contDiffAt.mul (h₂.contDiffAt.inverse hS)).contDiffWithinAt
   rw [hs]
   refine hF.congr fun S hS ↦ ?_
   -- Mathlib generates only `selfAdjointPartL_apply_coe` for `selfAdjointPartL`, so there is no
