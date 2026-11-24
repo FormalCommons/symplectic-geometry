@@ -313,18 +313,12 @@ private theorem exists_primitive_invariantCore_of_eq_along [ContinuousSMul G M]
   have hfV : range f ⊆ V := Opens.subset_invariantCore (by
     rintro g _ ⟨q, rfl⟩
     exact hfW (hfG g q))
-  have hres (σ : SmoothTwoForm I M) : SmoothForm.mpullback (Opens.inclusion hVW)
-      (contMDiff_inclusion hVW)
-        (SmoothForm.mpullback (Subtype.val : W → M) contMDiff_subtypeVal σ) =
-        SmoothForm.mpullback (Subtype.val : V → M) contMDiff_subtypeVal σ := by
-    rw [SmoothForm.mpullback_mpullback]
-    -- `Opens.inclusion` is an abbreviation of `Set.inclusion`, so `congr` closes
-    -- `Subtype.val ∘ Opens.inclusion hVW = Subtype.val` (`Set.val_comp_inclusion`).
-    congr 2
   refine ⟨W, hWO, hfV, SmoothForm.mpullback (Opens.inclusion hVW) (contMDiff_inclusion hVW) βW,
     ?_, fun q ↦ ?_, fun q ↦ ?_⟩
   · rw [SmoothForm.coe_mpullback, ← mpullback_inclusion_mextDeriv, hdβW,
-      ← SmoothForm.coe_mpullback _ (contMDiff_inclusion hVW), map_sub, hres, hres]
+      ← SmoothForm.coe_mpullback _ (contMDiff_inclusion hVW), map_sub,
+      SmoothForm.mpullback_inclusion_mpullback_subtype_val,
+      SmoothForm.mpullback_inclusion_mpullback_subtype_val]
   · rw [SmoothForm.coe_mpullback, mpullback_inclusion_apply]
     exact hβW0 q
   · have h := RoughForm.inChartAt_mpullback_inclusion_eventuallyEq hVW βW.val
