@@ -45,17 +45,20 @@ product of the forms times the Riemannian volume form
 (`TauCeti.SmoothForm.l2Inner`). It equals the integral of `⟨α, β⟩` against the Riemannian
 volume measure (`TauCeti.SmoothForm.l2Inner_eq_integral`).
 
-The Hilbert space `SymplecticGeometry.L2Form o k` is the closure of the smooth `k`-forms in Tau
+The Hilbert space `SymplecticGeometry.L2Form I M k` is the closure of the smooth `k`-forms in Tau
 Ceti's space `TauCeti.L2Form I M k` of square-integrable `k`-forms, taken for the Borel
 structure of `M`. Tau Ceti's
 `compactlySupportedForms.integralTopForm_inner_smul_riemannianVolumeForm_eq_inner_toL2Form` says
-that its inner product is `l2Inner o` on smooth forms (`L2Form.inner_ofSmooth`), so `l2Inner o`
-is a positive definite symmetric bilinear form in every dimension, including dimension zero
+that its inner product is `l2Inner o` on smooth forms (`L2Form.inner_ofSmooth`), for every
+orientation `o`; Tau Ceti's `compactlySupportedForms.inner_toL2Form` gives it with no orientation,
+as the integral of `⟨α, β⟩` against the Riemannian volume
+(`L2Form.inner_ofSmooth_eq_integral`). So `l2Inner o` is a positive definite symmetric bilinear
+form in every dimension, including dimension zero
 (`TauCeti.SmoothForm.l2Inner_self_eq_zero_iff`, from Tau Ceti's
-`compactlySupportedForms.toL2Form_injective`). The smooth forms embed in `L2Form o k` injectively
+`compactlySupportedForms.toL2Form_injective`). The smooth forms embed in `L2Form I M k` injectively
 and densely (`SymplecticGeometry.L2Form.ofSmooth`). A linear map `L` on smooth forms that is
 bounded in the `L²` norm therefore extends uniquely to a continuous linear map on
-`L2Form o k`: this is Mathlib's `L.extendOfNorm L2Form.ofSmooth` (`LinearMap.extendOfNorm`),
+`L2Form I M k`: this is Mathlib's `L.extendOfNorm L2Form.ofSmooth` (`LinearMap.extendOfNorm`),
 whose lemmas take `L2Form.denseRange_ofSmooth`.
 
 A chart `ψ : M → E` onto an open subset of `E` and a smooth cutoff `χ` supported in its source
@@ -73,7 +76,7 @@ localization pointwise (`TauCeti.SmoothForm.norm_localize_apply_le`, from
 its Hilbert norm (Tau Ceti's `ContinuousAlternatingMap.norm_le_sqrt_alternatingFormInner_self`),
 and the change of variables `PartialDiffeomorph.setLIntegral_riemannianVolume_eq` along
 `ψ.symm` compares the integrals (`L2Form.exists_lintegral_enorm_localize_sq_le`). So the
-localization extends to `L2Form o k` (`SymplecticGeometry.L2Form.localize`).
+localization extends to `L2Form I M k` (`SymplecticGeometry.L2Form.localize`).
 
 In the other direction, extending a smooth flat form `a` supported in a compact `K ⊆ ψ.target`
 by zero along `ψ` is bounded in `L²` (`L2Form.exists_norm_ofSmooth_extendByZeroAlong_le`): by
@@ -89,10 +92,10 @@ unity `ρ`, an `L²` form all of whose localizations with the cutoffs `ρ i` are
 support is the smooth form glued from them. Every smooth form `β` is the sum of the extensions by
 zero of its localizations (`TauCeti.SmoothForm.sum_extendByZeroAlong_localize`); approximating
 the `L²` form by such `β`, the localizations converge in `L²`, and the bounded extension by zero
-carries this convergence back to `L2Form o k`. The same decomposition, together with the bound on
+carries this convergence back to `L2Form I M k`. The same decomposition, together with the bound on
 extension by zero, controls the norm of any `L²` form by a weighted sum of the norms of its
 localizations (`L2Form.exists_norm_le_sum_norm_localize`); it holds for smooth forms first, and
-then on all of `L2Form o k` by density.
+then on all of `L2Form I M k` by density.
 
 ## Main definitions and results
 
@@ -108,16 +111,17 @@ then on all of `L2Form o k` by density.
   (`l2Inner_hodgeLaplacian_zero_eq_integral_inner_mgradient`, from Tau Ceti's
   `SmoothForm.hodgeLaplacian_eq_ofFunction_neg_laplaceBeltrami` and Green's identity
   `Manifold.integral_mul_laplaceBeltrami`).
-* `SymplecticGeometry.L2Form o k`: the Hilbert space of `L²` `k`-forms, with
-  `L2Form.ofSmooth`, `L2Form.inner_ofSmooth`, `L2Form.norm_ofSmooth_sq`,
-  `L2Form.ofSmooth_injective`, `L2Form.denseRange_ofSmooth` and `L2Form.induction_on`, and its
-  isometric inclusion `L2Form.subtypeL` into `TauCeti.L2Form I M k`, with `L2Form.subtypeL_ofSmooth`
-  and `L2Form.range_subtypeL`.
+* `SymplecticGeometry.L2Form I M k`: the Hilbert space of `L²` `k`-forms, with
+  `L2Form.ofSmooth`, `L2Form.inner_ofSmooth`, `L2Form.inner_ofSmooth_eq_integral`,
+  `L2Form.norm_ofSmooth_sq`, `L2Form.norm_ofSmooth_sq_eq_integral`, `L2Form.ofSmooth_injective`,
+  `L2Form.denseRange_ofSmooth` and `L2Form.induction_on`, and its isometric inclusion
+  `L2Form.subtypeL` into `TauCeti.L2Form I M k`, with `L2Form.subtypeL_ofSmooth` and
+  `L2Form.range_subtypeL`.
 * `TauCeti.SmoothForm.memLp_localize`: the localization of a smooth form to a chart is in every
   `Lᵖ`, with the pointwise bounds `norm_localize_apply_le` and
   `exists_norm_localize_apply_sq_le`, and `TauCeti.SmoothForm.localizeLp`, the linear map to
   `L²`.
-* `SymplecticGeometry.L2Form.localize ψ χ hχ`: the extension of `localizeLp` to `L2Form o k`, a
+* `SymplecticGeometry.L2Form.localize ψ χ hχ`: the extension of `localizeLp` to `L2Form I M k`, a
   continuous linear map to `Lp (E [⋀^Fin k]→L[ℝ] ℝ) 2 volume`, bounded by
   `L2Form.exists_norm_localizeLp_le`, with `L2Form.localize_ofSmooth`, and
   `L2Form.localize_ae_eq_indicator_smul_localize`, which compares the localizations with two
@@ -126,7 +130,8 @@ then on all of `L2Form o k` by density.
   `PartialDiffeomorph.hasCompactSupport_indicator_comp_symm`), and
   `L2Form.localize_ae_eq_zero_of_notMem`: the localization vanishes outside the image of the
   support of the cutoff.
-* `TauCeti.SmoothForm.l2Inner_eq_integral_formInnerInChart` and
+* `TauCeti.SmoothForm.integral_alternatingFormInner_eq_integral_formInnerInChart`,
+  `TauCeti.SmoothForm.l2Inner_eq_integral_formInnerInChart` and
   `SymplecticGeometry.L2Form.inner_ofSmooth_eq_integral_localize`: the `L²` inner product with a
   smooth form supported where the cutoff is `1`, read in the chart as the integral of the inner
   product `PartialDiffeomorph.formInnerInChart` of the localizations, weighted by the density of
@@ -151,15 +156,16 @@ with a fixed function is written in the coordinates of a basis of the forms on `
 real-valued `L²` functions enter the continuity argument.
 
 Tau Ceti's `TauCeti.L2Form I M k` asks for a measurable structure on `M`, Borel and second
-countable. `L2Form o k` takes the Borel structure, and second countability from compactness
+countable. `L2Form I M k` takes the Borel structure, and second countability from compactness
 (`ModelWithCorners.secondCountableTopology_of_sigmaCompact`), so that its type, and the statements
 about it, need no measurable structure on `M`. It is the closure of the range of all compactly
 supported forms, which on a compact `M` are all smooth forms
 (`TauCeti.compactlySupportedForms_eq_top`). The inclusion `L2Form.subtypeL` and its lemmas take
 any proof of second countability, since all are equal, but keep the Borel structure. The names
 of `ofSmooth`, `inner_ofSmooth`, `norm_ofSmooth_sq`, `denseRange_ofSmooth` and `induction_on`
-follow those of Tau Ceti's `TauCeti.Manifold.SobolevH1`. The orientation `o` does not enter
-the type `L2Form o k`; it is a parameter so that `inner_ofSmooth` can name `l2Inner o`.
+follow those of Tau Ceti's `TauCeti.Manifold.SobolevH1`. No orientation enters the type
+`L2Form I M k`: on a compact `M`, `l2Inner o` is the same for every orientation `o`
+(`l2Inner_eq_integral`), and `inner_ofSmooth` holds for each.
 
 The definition of `l2Inner` is the integral that Tau Ceti's `Codifferential.lean` writes inline,
 with the integrand `alternatingFormInner`. Tau Ceti's `innerZeroForm` would give the same
@@ -279,35 +285,34 @@ local instance instMeasurableSpaceL2Form : MeasurableSpace M := borel M
 
 local instance instBorelSpaceL2Form : BorelSpace M := ⟨rfl⟩
 
-/-- The **Hilbert space of `L²` `k`-forms** on a compact oriented Riemannian manifold: the
+/-- The **Hilbert space of `L²` `k`-forms** on a compact Riemannian manifold: the
 closure of the smooth `k`-forms in Tau Ceti's space `TauCeti.L2Form I M k` of square-integrable
 `k`-forms, taken for the Borel structure of `M`, which is second countable since it is compact.
-Its inner product restricts to `∫_M ⟨α, β⟩ dV` on smooth forms (`L2Form.inner_ofSmooth`); the
-orientation `o` fixes this inner product `l2Inner o` of smooth forms. -/
-@[nolint unusedArguments]
-def L2Form (_o : Manifold.Orientation I M (Fin m)) (k : ℕ) : Type _ :=
+Its inner product restricts to `∫_M ⟨α, β⟩ dV` on smooth forms, which is `l2Inner o` for every
+orientation `o` of `M` (`L2Form.inner_ofSmooth`). -/
+def L2Form (I : ModelWithCorners ℝ E H) (M : Type*) [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+    [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] (k : ℕ) : Type _ :=
   haveI := I.secondCountableTopology_of_sigmaCompact M
   smoothL2Closure (I := I) (M := M) k
 
-variable {o : Manifold.Orientation I M (Fin m)}
-
 namespace L2Form
 
-instance : NormedAddCommGroup (L2Form o k) :=
+instance : NormedAddCommGroup (L2Form I M k) :=
   haveI := I.secondCountableTopology_of_sigmaCompact M
   inferInstanceAs (NormedAddCommGroup (smoothL2Closure (I := I) (M := M) k))
 
-instance : InnerProductSpace ℝ (L2Form o k) :=
+instance : InnerProductSpace ℝ (L2Form I M k) :=
   haveI := I.secondCountableTopology_of_sigmaCompact M
   inferInstanceAs (InnerProductSpace ℝ (smoothL2Closure (I := I) (M := M) k))
 
-instance : CompleteSpace (L2Form o k) :=
+instance : CompleteSpace (L2Form I M k) :=
   haveI := I.secondCountableTopology_of_sigmaCompact M
   inferInstanceAs (CompleteSpace (smoothL2Closure (I := I) (M := M) k))
 
-/-- The inclusion of the smooth forms into `L2Form o k`: the class in `TauCeti.L2Form I M k` of
+/-- The inclusion of the smooth forms into `L2Form I M k`: the class in `TauCeti.L2Form I M k` of
 a smooth form, which is compactly supported since `M` is compact. -/
-def ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] L2Form o k :=
+def ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] L2Form I M k :=
   haveI := I.secondCountableTopology_of_sigmaCompact M
   LinearMap.codRestrict (smoothL2Closure (I := I) (M := M) k)
     ((compactlySupportedForms.toL2Form I M k).comp
@@ -317,54 +322,54 @@ def ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] L2Form o k :=
 section subtypeL
 
 /- `TauCeti.L2Form I M k` asks for second countability. Any two proofs of it are equal, so the
-statements below, for any of them, apply to `L2Form o k`. -/
+statements below, for any of them, apply to `L2Form I M k`. -/
 variable [SecondCountableTopology M]
 
-/-- The inclusion of `L2Form o k` into Tau Ceti's space `TauCeti.L2Form I M k` of
+/-- The inclusion of `L2Form I M k` into Tau Ceti's space `TauCeti.L2Form I M k` of
 square-integrable `k`-forms, for the Borel structure of `M`. -/
-def subtypeL : L2Form o k →L[ℝ] TauCeti.L2Form I M k :=
+def subtypeL : L2Form I M k →L[ℝ] TauCeti.L2Form I M k :=
   (smoothL2Closure (I := I) (M := M) k).subtypeL
 
 /-- The inclusion into `TauCeti.L2Form I M k` preserves inner products. -/
 @[simp]
-theorem inner_subtypeL (u v : L2Form o k) : ⟪subtypeL u, subtypeL v⟫_ℝ = ⟪u, v⟫_ℝ :=
+theorem inner_subtypeL (u v : L2Form I M k) : ⟪subtypeL u, subtypeL v⟫_ℝ = ⟪u, v⟫_ℝ :=
   (rfl)
 
 /-- The inclusion into `TauCeti.L2Form I M k` preserves norms. -/
 @[simp]
-theorem norm_subtypeL (u : L2Form o k) : ‖subtypeL u‖ = ‖u‖ :=
+theorem norm_subtypeL (u : L2Form I M k) : ‖subtypeL u‖ = ‖u‖ :=
   (rfl)
 
 /-- The inclusion into `TauCeti.L2Form I M k` is an isometry. -/
-theorem isometry_subtypeL : Isometry (subtypeL : L2Form o k → TauCeti.L2Form I M k) :=
+theorem isometry_subtypeL : Isometry (subtypeL : L2Form I M k → TauCeti.L2Form I M k) :=
   AddMonoidHomClass.isometry_of_norm _ norm_subtypeL
 
 /-- The inclusion into `TauCeti.L2Form I M k` is injective. -/
-theorem subtypeL_injective : Function.Injective (subtypeL : L2Form o k → TauCeti.L2Form I M k) :=
+theorem subtypeL_injective : Function.Injective (subtypeL : L2Form I M k → TauCeti.L2Form I M k) :=
   isometry_subtypeL.injective
 
-/-- The image of `L2Form o k` in `TauCeti.L2Form I M k` is the closure of the classes of the
+/-- The image of `L2Form I M k` in `TauCeti.L2Form I M k` is the closure of the classes of the
 compactly supported, here all smooth, `k`-forms. -/
-theorem range_subtypeL : Set.range (subtypeL : L2Form o k → TauCeti.L2Form I M k) =
+theorem range_subtypeL : Set.range (subtypeL : L2Form I M k → TauCeti.L2Form I M k) =
     closure (Set.range (compactlySupportedForms.toL2Form I M k)) := by
   rw [← LinearMap.coe_range, ← Submodule.topologicalClosure_coe]
   -- `subtypeL` is, by definition, the inclusion of the subspace `smoothL2Closure`.
   exact Subtype.range_coe
 
-/-- A smooth form in `L2Form o k`, seen in `TauCeti.L2Form I M k`, is its class there as a
+/-- A smooth form in `L2Form I M k`, seen in `TauCeti.L2Form I M k`, is its class there as a
 compactly supported form. -/
 @[simp]
 theorem subtypeL_ofSmooth (α : SmoothForm I M ℝ k) :
-    subtypeL (ofSmooth α : L2Form o k) = compactlySupportedForms.toL2Form I M k
+    subtypeL (ofSmooth α : L2Form I M k) = compactlySupportedForms.toL2Form I M k
       ((LinearEquiv.ofTop _ (compactlySupportedForms_eq_top I k)).symm α) :=
   (rfl)
 
 end subtypeL
 
-/-- The inner product of two smooth forms in `L2Form o k` is their `L²` inner product. -/
-@[simp]
-theorem inner_ofSmooth (α β : SmoothForm I M ℝ k) :
-    ⟪(ofSmooth α : L2Form o k), ofSmooth β⟫_ℝ = l2Inner o α β := by
+/-- The inner product of two smooth forms in `L2Form I M k` is their `L²` inner product
+`l2Inner o`, for any orientation `o` of `M`. -/
+theorem inner_ofSmooth (o : Manifold.Orientation I M (Fin m)) (α β : SmoothForm I M ℝ k) :
+    ⟪(ofSmooth α : L2Form I M k), ofSmooth β⟫_ℝ = l2Inner o α β := by
   have := I.secondCountableTopology_of_sigmaCompact M
   have h :=
     compactlySupportedForms.integralTopForm_inner_smul_riemannianVolumeForm_eq_inner_toL2Form o
@@ -373,25 +378,45 @@ theorem inner_ofSmooth (α β : SmoothForm I M ℝ k) :
   simp only [LinearEquiv.coe_ofTop_symm_apply] at h
   rw [l2Inner_def, h, ← inner_subtypeL, subtypeL_ofSmooth, subtypeL_ofSmooth]
 
-/-- The squared norm of a smooth form in `L2Form o k` is `∫_M |α|² dV`. -/
-theorem norm_ofSmooth_sq (α : SmoothForm I M ℝ k) :
-    ‖(ofSmooth α : L2Form o k)‖ ^ 2 = l2Inner o α α := by
-  rw [← real_inner_self_eq_norm_sq, inner_ofSmooth]
+/-- The inner product of two smooth forms in `L2Form I M k` is the integral of their pointwise
+inner product against the Riemannian volume measure, for any Borel measurable structure on `M`. -/
+theorem inner_ofSmooth_eq_integral [MeasurableSpace M] [BorelSpace M]
+    (α β : SmoothForm I M ℝ k) :
+    ⟪(ofSmooth α : L2Form I M k), ofSmooth β⟫_ℝ =
+      ∫ x, alternatingFormInner (TangentSpace I x) k (α.val x) (β.val x) ∂riemannianVolume I M := by
+  obtain rfl := BorelSpace.measurable_eq (α := M)
+  have := I.secondCountableTopology_of_sigmaCompact M
+  rw [← inner_subtypeL, subtypeL_ofSmooth, subtypeL_ofSmooth,
+    compactlySupportedForms.inner_toL2Form]
+  simp only [LinearEquiv.coe_ofTop_symm_apply]
 
-/-- The inclusion of the smooth forms into `L2Form o k` is injective. -/
-theorem ofSmooth_injective : Function.Injective (ofSmooth : SmoothForm I M ℝ k → L2Form o k) := by
+/-- The squared norm of a smooth form in `L2Form I M k` is `∫_M |α|² dV`. -/
+theorem norm_ofSmooth_sq (o : Manifold.Orientation I M (Fin m)) (α : SmoothForm I M ℝ k) :
+    ‖(ofSmooth α : L2Form I M k)‖ ^ 2 = l2Inner o α α := by
+  rw [← real_inner_self_eq_norm_sq, inner_ofSmooth o]
+
+/-- The squared norm of a smooth form in `L2Form I M k` is the integral of `⟨α, α⟩` against the
+Riemannian volume measure, for any Borel measurable structure on `M`. -/
+theorem norm_ofSmooth_sq_eq_integral [MeasurableSpace M] [BorelSpace M]
+    (α : SmoothForm I M ℝ k) :
+    ‖(ofSmooth α : L2Form I M k)‖ ^ 2 =
+      ∫ x, alternatingFormInner (TangentSpace I x) k (α.val x) (α.val x) ∂riemannianVolume I M := by
+  rw [← real_inner_self_eq_norm_sq, inner_ofSmooth_eq_integral]
+
+/-- The inclusion of the smooth forms into `L2Form I M k` is injective. -/
+theorem ofSmooth_injective : Function.Injective (ofSmooth : SmoothForm I M ℝ k → L2Form I M k) := by
   have := I.secondCountableTopology_of_sigmaCompact M
   intro α β h
   have h' := congrArg subtypeL h
   rw [subtypeL_ofSmooth, subtypeL_ofSmooth] at h'
   exact (LinearEquiv.injective _) (compactlySupportedForms.toL2Form_injective h')
 
-/-- The smooth forms are dense in `L2Form o k`. -/
-theorem denseRange_ofSmooth : DenseRange (ofSmooth : SmoothForm I M ℝ k → L2Form o k) := by
+/-- The smooth forms are dense in `L2Form I M k`. -/
+theorem denseRange_ofSmooth : DenseRange (ofSmooth : SmoothForm I M ℝ k → L2Form I M k) := by
   have := I.secondCountableTopology_of_sigmaCompact M
   rw [DenseRange, isometry_subtypeL.isUniformInducing.isInducing.dense_iff]
   intro u
-  have hr : subtypeL '' Set.range (ofSmooth : SmoothForm I M ℝ k → L2Form o k) =
+  have hr : subtypeL '' Set.range (ofSmooth : SmoothForm I M ℝ k → L2Form I M k) =
       Set.range (compactlySupportedForms.toL2Form I M k) := by
     rw [← Set.range_comp]
     exact ((LinearEquiv.ofTop _ (compactlySupportedForms_eq_top I k)).symm.surjective.range_comp
@@ -399,10 +424,10 @@ theorem denseRange_ofSmooth : DenseRange (ofSmooth : SmoothForm I M ℝ k → L2
   rw [hr, ← range_subtypeL]
   exact Set.mem_range_self u
 
-/-- **Induction principle for `L2Form o k`.** A closed property of `L²` forms that holds for
+/-- **Induction principle for `L2Form I M k`.** A closed property of `L²` forms that holds for
 all smooth forms holds everywhere. -/
 @[elab_as_elim]
-theorem induction_on {p : L2Form o k → Prop} (u : L2Form o k) (hp : IsClosed {u | p u})
+theorem induction_on {p : L2Form I M k → Prop} (u : L2Form I M k) (hp : IsClosed {u | p u})
     (h : ∀ α : SmoothForm I M ℝ k, p (ofSmooth α)) : p u :=
   denseRange_ofSmooth.induction_on u hp h
 
@@ -439,7 +464,7 @@ theorem l2Inner_self_nonneg (o : Manifold.Orientation I M (Fin m)) (α : SmoothF
 dimension. -/
 theorem l2Inner_self_eq_zero_iff (o : Manifold.Orientation I M (Fin m))
     {α : SmoothForm I M ℝ k} : l2Inner o α α = 0 ↔ α = 0 := by
-  rw [← L2Form.inner_ofSmooth (o := o), inner_self_eq_zero, ← map_zero L2Form.ofSmooth,
+  rw [← L2Form.inner_ofSmooth o, inner_self_eq_zero, ← map_zero L2Form.ofSmooth,
     L2Form.ofSmooth_injective.eq_iff]
 
 section Laplacian
@@ -610,20 +635,19 @@ variable [IsManifold I ∞ M] [CompactSpace M] [RiemannianBundle (fun x : M ↦ 
   (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
   [MeasureSpace E] [BorelSpace E] [(volume : Measure E).IsAddHaarMeasure]
 
-/-- **The `L²` inner product in a chart.** Let `θ` be a cutoff supported in the source of the
-chart `ψ` and `β` a smooth form with `θ = 1` on the support of `β`. Then the `L²` inner product of
-a smooth form `α` with `β` is the integral over `E`, for the Haar measure `volume`, of the inner
-product in the chart of the localizations of `α` and `β`, weighted by the density
-`s * riemannianJacobian b ψ.symm` of the Riemannian volume read in the chart, with `s` the
-ratio of the Haar measures of `b` and `volume`. -/
-theorem l2Inner_eq_integral_formInnerInChart (o : Manifold.Orientation I M (Fin m))
-    {ι : Type*} [Fintype ι] [DecidableEq ι] (b : Module.Basis ι ℝ E) {θ : M → ℝ}
+/-- **The integral of `⟨α, β⟩` in a chart.** Let `θ` be a cutoff supported in the source of the
+chart `ψ` and `β` a smooth form with `θ = 1` on the support of `β`. Then the integral of the
+pointwise inner product of a smooth form `α` with `β` against the Riemannian volume is the integral
+over `E`, for the Haar measure `volume`, of the inner product in the chart of the localizations of
+`α` and `β`, weighted by the density `s * riemannianJacobian b ψ.symm` of the Riemannian volume
+read in the chart, with `s` the ratio of the Haar measures of `b` and `volume`. -/
+theorem integral_alternatingFormInner_eq_integral_formInnerInChart [MeasurableSpace M]
+    [BorelSpace M] {ι : Type*} [Fintype ι] [DecidableEq ι] (b : Module.Basis ι ℝ E) {θ : M → ℝ}
     (hθ : tsupport θ ⊆ ψ.source) {α β : SmoothForm I M ℝ k}
     (hβ : ∀ x ∈ tsupport (α := E [⋀^Fin k]→L[ℝ] ℝ) β.val, θ x = 1) :
-    l2Inner o α β = ∫ y, (b.addHaar.addHaarScalarFactor volume : ℝ) *
-      riemannianJacobian (I := I) b ψ.symm y *
+    ∫ x, alternatingFormInner (TangentSpace I x) k (α.val x) (β.val x) ∂riemannianVolume I M =
+      ∫ y, (b.addHaar.addHaarScalarFactor volume : ℝ) * riemannianJacobian (I := I) b ψ.symm y *
         ψ.formInnerInChart y (α.localize ψ θ y) (β.localize ψ θ y) := by
-  borelize M
   have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
   set s : ℝ := (b.addHaar.addHaarScalarFactor volume : ℝ)
   set g : M → ℝ := fun x ↦ alternatingFormInner (TangentSpace I x) k (α.val x) (β.val x)
@@ -651,8 +675,7 @@ theorem l2Inner_eq_integral_formInnerInChart (o : Manifold.Orientation I M (Fin 
     -- Restate the goal through `g`, so that both sides read `ψ.symm y` through the same coercion.
     change θ (ψ.symm y) * θ (ψ.symm y) * g (ψ.symm y) = g (ψ.symm y)
     exact hθg _
-  calc l2Inner o α β = ∫ x, g x ∂riemannianVolume I M := l2Inner_eq_integral o α β
-    _ = ∫ x in ψ.source, g x ∂riemannianVolume I M :=
+  calc ∫ x, g x ∂riemannianVolume I M = ∫ x in ψ.source, g x ∂riemannianVolume I M :=
         (setIntegral_eq_integral_of_forall_compl_eq_zero hgs).symm
     _ = ∫ y in ψ.target, riemannianJacobian (I := I) b ψ.symm y • g (ψ.symm y) ∂b.addHaar := by
         simpa using ψ.symm.setIntegral_riemannianVolume_eq hn b g
@@ -665,6 +688,22 @@ theorem l2Inner_eq_integral_formInnerInChart (o : Manifold.Orientation I M (Fin 
         ring
     _ = _ := setIntegral_eq_integral_of_forall_compl_eq_zero fun y hy ↦ by
         simp [localize_apply_of_notMem _ _ _ hy]
+
+/-- **The `L²` inner product in a chart.** Let `θ` be a cutoff supported in the source of the
+chart `ψ` and `β` a smooth form with `θ = 1` on the support of `β`. Then the `L²` inner product of
+a smooth form `α` with `β` is the integral over `E`, for the Haar measure `volume`, of the inner
+product in the chart of the localizations of `α` and `β`, weighted by the density
+`s * riemannianJacobian b ψ.symm` of the Riemannian volume read in the chart, with `s` the
+ratio of the Haar measures of `b` and `volume`. -/
+theorem l2Inner_eq_integral_formInnerInChart (o : Manifold.Orientation I M (Fin m))
+    {ι : Type*} [Fintype ι] [DecidableEq ι] (b : Module.Basis ι ℝ E) {θ : M → ℝ}
+    (hθ : tsupport θ ⊆ ψ.source) {α β : SmoothForm I M ℝ k}
+    (hβ : ∀ x ∈ tsupport (α := E [⋀^Fin k]→L[ℝ] ℝ) β.val, θ x = 1) :
+    l2Inner o α β = ∫ y, (b.addHaar.addHaarScalarFactor volume : ℝ) *
+      riemannianJacobian (I := I) b ψ.symm y *
+        ψ.formInnerInChart y (α.localize ψ θ y) (β.localize ψ θ y) := by
+  borelize M
+  rw [l2Inner_eq_integral, integral_alternatingFormInner_eq_integral_formInnerInChart ψ b hθ hβ]
 
 end Chart
 
@@ -747,7 +786,6 @@ open TauCeti TauCeti.SmoothForm
 
 variable [IsManifold I ∞ M] [CompactSpace M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
   [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
-  {o : Manifold.Orientation I M (Fin m)}
 
 namespace L2Form
 
@@ -759,14 +797,14 @@ variable [MeasureSpace E] [BorelSpace E] (ψ : PartialDiffeomorph I 𝓘(ℝ, E)
 a pointwise bound on the localization of `α` by the Riemannian Jacobian of `ψ.symm` and the
 pointwise inner product `⟨α, α⟩` integrates, by the change of variables along `ψ.symm`, to a bound
 by the `L²` norm of `α`. -/
-private theorem lintegral_enorm_localize_sq_le_addHaar (o : Manifold.Orientation I M (Fin m))
+private theorem lintegral_enorm_localize_sq_le_addHaar
     {ι : Type*} [Fintype ι] [DecidableEq ι] (b : Module.Basis ι ℝ E) {χ : M → ℝ} {B : ℝ}
     (hB : 0 ≤ B) (α : SmoothForm I M ℝ k)
     (hpt : ∀ y, ‖α.localize ψ χ y‖ ^ 2 ≤ riemannianJacobian (I := I) b ψ.symm y *
       (B * alternatingFormInner (TangentSpace I (ψ.symm y)) k (α.val (ψ.symm y))
         (α.val (ψ.symm y)))) :
     ∫⁻ y, ‖α.localize ψ χ y‖ₑ ^ (2 : ℝ) ∂b.addHaar ≤
-      ENNReal.ofReal (B * ‖(ofSmooth α : L2Form o k)‖ ^ 2) := by
+      ENNReal.ofReal (B * ‖(ofSmooth α : L2Form I M k)‖ ^ 2) := by
   borelize M
   have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
   set a : M → ℝ := fun x ↦ alternatingFormInner (TangentSpace I x) k (α.val x) (α.val x)
@@ -786,9 +824,9 @@ private theorem lintegral_enorm_localize_sq_le_addHaar (o : Manifold.Orientation
         simpa [J] using
           (ψ.symm.setLIntegral_riemannianVolume_eq hn b fun x ↦ ENNReal.ofReal (B * a x)).symm
     _ ≤ ∫⁻ x, ENNReal.ofReal (B * a x) ∂riemannianVolume I M := setLIntegral_le_lintegral _ _
-    _ = ENNReal.ofReal (B * ‖(ofSmooth α : L2Form o k)‖ ^ 2) := by
-        rw [← ofReal_integral_eq_lintegral_ofReal, integral_const_mul, norm_ofSmooth_sq,
-          l2Inner_eq_integral]
+    _ = ENNReal.ofReal (B * ‖(ofSmooth α : L2Form I M k)‖ ^ 2) := by
+        rw [← ofReal_integral_eq_lintegral_ofReal, integral_const_mul,
+          norm_ofSmooth_sq_eq_integral]
         · exact ((continuous_alternatingFormInner α α).integrable_of_compactSpace).const_mul B
         · exact Filter.Eventually.of_forall fun x ↦
             mul_nonneg hB (alternatingFormInner_self_nonneg _)
@@ -796,12 +834,12 @@ private theorem lintegral_enorm_localize_sq_le_addHaar (o : Manifold.Orientation
 /-- For a continuous cutoff `χ` with compact support in the source of the chart `ψ` and an
 additive Haar measure `μ` on `E`, the integral of `‖α.localize ψ χ‖ ^ 2` against `μ` is at most a
 constant `B`, independent of the smooth form `α`, times the square of the `L²` norm of `α`. -/
-theorem exists_lintegral_enorm_localize_sq_le (o : Manifold.Orientation I M (Fin m))
+theorem exists_lintegral_enorm_localize_sq_le
     {χ : M → ℝ} (hχc : Continuous χ) (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source)
     (μ : Measure E) [μ.IsAddHaarMeasure] :
     ∃ B, 0 ≤ B ∧ ∀ α : SmoothForm I M ℝ k,
       ∫⁻ y, ‖α.localize ψ χ y‖ₑ ^ (2 : ℝ) ∂μ ≤
-        ENNReal.ofReal (B * ‖(ofSmooth α : L2Form o k)‖ ^ 2) := by
+        ENNReal.ofReal (B * ‖(ofSmooth α : L2Form I M k)‖ ^ 2) := by
   let b := Module.finBasis ℝ E
   obtain ⟨B, hB, hpt⟩ := exists_norm_localize_apply_sq_le (k := k) ψ b hχc hK hχ
   set s := μ.addHaarScalarFactor b.addHaar
@@ -809,16 +847,16 @@ theorem exists_lintegral_enorm_localize_sq_le (o : Manifold.Orientation I M (Fin
   rw [Measure.isAddLeftInvariant_eq_smul μ b.addHaar, lintegral_smul_measure, ENNReal.smul_def,
     smul_eq_mul, mul_assoc, ENNReal.ofReal_mul (by positivity), ENNReal.ofReal_coe_nnreal]
   gcongr
-  exact lintegral_enorm_localize_sq_le_addHaar ψ o b hB α (hpt α)
+  exact lintegral_enorm_localize_sq_le_addHaar ψ b hB α (hpt α)
 
 variable [(volume : Measure E).IsAddHaarMeasure] (χ : C^∞⟮I, M; ℝ⟯) (hχ : tsupport χ ⊆ ψ.source)
 
 /-- The localization of smooth forms to a chart `ψ` with a cutoff `χ` supported in its source is
 bounded for the `L²` norms: `‖localizeLp ψ χ hχ α‖ ≤ C * ‖ofSmooth α‖` for some `C` and every
 smooth `k`-form `α`. -/
-theorem exists_norm_localizeLp_le (o : Manifold.Orientation I M (Fin m)) :
-    ∃ C, ∀ α : SmoothForm I M ℝ k, ‖localizeLp ψ χ hχ α‖ ≤ C * ‖(ofSmooth α : L2Form o k)‖ := by
-  obtain ⟨B, hB, hint⟩ := exists_lintegral_enorm_localize_sq_le (k := k) ψ o
+theorem exists_norm_localizeLp_le :
+    ∃ C, ∀ α : SmoothForm I M ℝ k, ‖localizeLp ψ χ hχ α‖ ≤ C * ‖(ofSmooth α : L2Form I M k)‖ := by
+  obtain ⟨B, hB, hint⟩ := exists_lintegral_enorm_localize_sq_le (k := k) ψ
     χ.contMDiff.continuous (isClosed_tsupport _).isCompact hχ volume
   refine ⟨√B, fun α ↦ ?_⟩
   rw [localizeLp_apply, Lp.norm_toLp]
@@ -830,25 +868,23 @@ theorem exists_norm_localizeLp_le (o : Manifold.Orientation I M (Fin m)) :
     Real.rpow_two, mul_pow, Real.sq_sqrt hB]
   exact hint α
 
-variable {o : Manifold.Orientation I M (Fin m)}
-
 /-- The **localization of `L²` forms to a chart** `ψ` with a smooth cutoff `χ` supported in its
-source: the continuous linear map from `L2Form o k` to the `L²` functions on `E` with values in
+source: the continuous linear map from `L2Form I M k` to the `L²` functions on `E` with values in
 `E [⋀^Fin k]→L[ℝ] ℝ` that extends `TauCeti.SmoothForm.localize ψ χ` from the smooth forms, which
 it may since that map is bounded (`exists_norm_localizeLp_le`). -/
-def localize : L2Form o k →L[ℝ] Lp (E [⋀^Fin k]→L[ℝ] ℝ) 2 (volume : Measure E) :=
+def localize : L2Form I M k →L[ℝ] Lp (E [⋀^Fin k]→L[ℝ] ℝ) 2 (volume : Measure E) :=
   (localizeLp ψ χ hχ).extendOfNorm ofSmooth
 
 /-- On a smooth form, `localize` is the class of its localization. -/
 @[simp]
 theorem localize_ofSmooth_eq_localizeLp (α : SmoothForm I M ℝ k) :
-    localize ψ χ hχ (ofSmooth α : L2Form o k) = localizeLp ψ χ hχ α :=
-  LinearMap.extendOfNorm_eq denseRange_ofSmooth (exists_norm_localizeLp_le ψ χ hχ o) α
+    localize ψ χ hχ (ofSmooth α : L2Form I M k) = localizeLp ψ χ hχ α :=
+  LinearMap.extendOfNorm_eq denseRange_ofSmooth (exists_norm_localizeLp_le ψ χ hχ) α
 
 /-- On a smooth form `α`, `localize ψ χ hχ` is almost everywhere the function
 `y ↦ χ (ψ⁻¹ y) • (ψ⁻¹)^* α (y)` on `ψ.target`, extended by `0`. -/
 theorem localize_ofSmooth (α : SmoothForm I M ℝ k) :
-    localize ψ χ hχ (ofSmooth α : L2Form o k) =ᵐ[volume] α.localize ψ χ := by
+    localize ψ χ hχ (ofSmooth α : L2Form I M k) =ᵐ[volume] α.localize ψ χ := by
   rw [localize_ofSmooth_eq_localizeLp, localizeLp_apply]
   exact MemLp.coeFn_toLp _
 
@@ -858,7 +894,7 @@ theorem localize_ofSmooth (α : SmoothForm I M ℝ k) :
 `χ₁ ∘ ψ.symm`, extended by `0` outside `ψ.target`. -/
 theorem localize_ae_eq_indicator_smul_localize {χ₁ χ₂ : C^∞⟮I, M; ℝ⟯}
     (h₁ : tsupport χ₁ ⊆ ψ.source) (h₂ : tsupport χ₂ ⊆ ψ.source)
-    (h : ∀ x ∈ tsupport χ₁, χ₂ x = 1) (u : L2Form o k) :
+    (h : ∀ x ∈ tsupport χ₁, χ₂ x = 1) (u : L2Form I M k) :
     localize ψ χ₁ h₁ u =ᵐ[volume]
       fun y ↦ ψ.target.indicator (fun y ↦ χ₁ (ψ.symm y)) y • localize ψ χ₂ h₂ u y := by
   set r : E → ℝ := ψ.target.indicator fun y ↦ χ₁ (ψ.symm y)
@@ -893,7 +929,7 @@ theorem localize_ae_eq_indicator_smul_localize {χ₁ χ₂ : C^∞⟮I, M; ℝ�
 
 /-- The localization of an `L²` form with the cutoff `χ` vanishes almost everywhere outside the
 image `ψ '' tsupport χ` of the support of `χ`. -/
-theorem localize_ae_eq_zero_of_notMem (u : L2Form o k) :
+theorem localize_ae_eq_zero_of_notMem (u : L2Form I M k) :
     ∀ᵐ y ∂volume, y ∉ ψ '' tsupport χ → localize ψ χ hχ u y = 0 := by
   refine induction_on u ((Lp.isClosed_setOf_ae_notMem_imp_eq_zero _).preimage
     (localize ψ χ hχ).continuous) fun α ↦ ?_
@@ -909,7 +945,7 @@ Riemannian volume read in the chart, as in
 theorem inner_ofSmooth_eq_integral_localize [T2Space M] {ι : Type*} [Fintype ι]
     [DecidableEq ι] (b : Module.Basis ι ℝ E)
     {β : SmoothForm I M ℝ k} (hβ : ∀ x ∈ tsupport (α := E [⋀^Fin k]→L[ℝ] ℝ) β.val, χ x = 1)
-    (u : L2Form o k) :
+    (u : L2Form I M k) :
     ⟪u, L2Form.ofSmooth β⟫_ℝ = ∫ y, (b.addHaar.addHaarScalarFactor volume : ℝ) *
       riemannianJacobian (I := I) b ψ.symm y *
         ψ.formInnerInChart y (localize ψ χ hχ u y) (β.localize ψ χ y) := by
@@ -936,7 +972,7 @@ theorem inner_ofSmooth_eq_integral_localize [T2Space M] {ι : Type*} [Fintype ι
         (ψ.contDiffOn_formInnerInChart subset_rfl contDiffOn_const hβl.contDiffOn)).continuousOn
     · exact hβc.mono_of_eq_zero fun y hy ↦ by simp [G, hy]
   let B := ContinuousLinearMap.mul ℝ ℝ
-  have key (v : L2Form o k) : ∫ y, D y * ψ.formInnerInChart y (localize ψ χ hχ v y)
+  have key (v : L2Form I M k) : ∫ y, D y * ψ.formInnerInChart y (localize ψ χ hχ v y)
       (β.localize ψ χ y) =
         ∑ p, B.lpPairing volume 2 2 ((L p).compLp (localize ψ χ hχ v)) (hGm p).toLp := by
     have hint (p) : Integrable (fun y ↦ L p (localize ψ χ hχ v y) * G p y) volume :=
@@ -960,7 +996,9 @@ theorem inner_ofSmooth_eq_integral_localize [T2Space M] {ι : Type*} [Fintype ι
   refine induction_on u (isClosed_eq (continuous_id.inner continuous_const)
     (continuous_finsetSum _ fun p _ ↦ ((B.lpPairing volume 2 2).flip (hGm p).toLp).continuous.comp
       (((L p).compLpL 2 volume).continuous.comp (localize ψ χ hχ).continuous))) fun α ↦ ?_
-  rw [← key, inner_ofSmooth, l2Inner_eq_integral_formInnerInChart ψ o b hχ hβ]
+  borelize M
+  rw [← key, inner_ofSmooth_eq_integral,
+    integral_alternatingFormInner_eq_integral_formInnerInChart ψ b hχ hβ]
   refine integral_congr_ae ?_
   filter_upwards [localize_ofSmooth ψ χ hχ α] with y hy
   rw [hy]
@@ -978,11 +1016,11 @@ inequality of integrals: the change of variables along `ψ.symm` turns the integ
 the extension by zero `γ` of `a` into an integral over `ψ.target`, where the integrand is bounded by
 a multiple of `‖a‖ ^ 2`. -/
 private theorem exists_ofReal_norm_ofSmooth_extendByZeroAlong_sq_le
-    (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (o : Manifold.Orientation I M (Fin m)) {K : Set E}
+    (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) {K : Set E}
     (hK : IsCompact K) (hKψ : K ⊆ ψ.target) :
     ∃ B, 0 ≤ B ∧ ∀ (a : E → E [⋀^Fin k]→L[ℝ] ℝ) (ha : ContDiff ℝ ∞ a) (hc : HasCompactSupport a)
       (hs : tsupport a ⊆ ψ.target), tsupport a ⊆ K →
-      ENNReal.ofReal (‖(ofSmooth (SmoothForm.extendByZeroAlong ψ a ha hc hs) : L2Form o k)‖ ^ 2) ≤
+      ENNReal.ofReal (‖(ofSmooth (SmoothForm.extendByZeroAlong ψ a ha hc hs) : L2Form I M k)‖ ^ 2) ≤
         ENNReal.ofReal B * ∫⁻ y, ‖a y‖ₑ ^ 2 ∂volume := by
   borelize M
   have hn : (∞ : ℕ∞ω) ≠ 0 := by simp
@@ -998,9 +1036,9 @@ private theorem exists_ofReal_norm_ofSmooth_extendByZeroAlong_sq_le
   -- The integrand in the chart is bounded by a multiple of `‖a‖ ^ 2`.
   have hpt : ∀ y ∈ ψ.target, J y * g (ψ.symm y) ≤ B' * ‖a y‖ ^ 2 := fun y hy ↦ by
     simpa only [g, γ, SmoothForm.coe_extendByZeroAlong] using hB a haK y hy
-  calc ENNReal.ofReal (‖(ofSmooth γ : L2Form o k)‖ ^ 2)
+  calc ENNReal.ofReal (‖(ofSmooth γ : L2Form I M k)‖ ^ 2)
       = ∫⁻ x, ENNReal.ofReal (g x) ∂riemannianVolume I M := by
-        rw [norm_ofSmooth_sq, l2Inner_eq_integral, ofReal_integral_eq_lintegral_ofReal]
+        rw [norm_ofSmooth_sq_eq_integral, ofReal_integral_eq_lintegral_ofReal]
         · exact (continuous_alternatingFormInner γ γ).integrable_of_compactSpace
         · exact Filter.Eventually.of_forall fun x ↦ alternatingFormInner_self_nonneg _
     _ = ∫⁻ x in ψ.source, ENNReal.ofReal (g x) ∂riemannianVolume I M := by
@@ -1028,12 +1066,12 @@ private theorem exists_ofReal_norm_ofSmooth_extendByZeroAlong_sq_le
 `a` supported in `K` has `L²` norm at most `C` times the `L²` norm of `a` for the Haar measure
 `volume` of `E`. -/
 theorem exists_norm_ofSmooth_extendByZeroAlong_le (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞)
-    (o : Manifold.Orientation I M (Fin m)) {K : Set E} (hK : IsCompact K) (hKψ : K ⊆ ψ.target) :
+    {K : Set E} (hK : IsCompact K) (hKψ : K ⊆ ψ.target) :
     ∃ C, 0 ≤ C ∧ ∀ (a : E → E [⋀^Fin k]→L[ℝ] ℝ) (ha : ContDiff ℝ ∞ a)
       (hc : HasCompactSupport a) (hs : tsupport a ⊆ ψ.target), tsupport a ⊆ K →
-      ‖(ofSmooth (SmoothForm.extendByZeroAlong ψ a ha hc hs) : L2Form o k)‖ ≤
+      ‖(ofSmooth (SmoothForm.extendByZeroAlong ψ a ha hc hs) : L2Form I M k)‖ ≤
         C * (eLpNorm a 2 volume).toReal := by
-  obtain ⟨B, hB, h⟩ := exists_ofReal_norm_ofSmooth_extendByZeroAlong_sq_le (k := k) ψ o hK hKψ
+  obtain ⟨B, hB, h⟩ := exists_ofReal_norm_ofSmooth_extendByZeroAlong_sq_le (k := k) ψ hK hKψ
   refine ⟨√B, by positivity, fun a ha hc hs haK ↦ ?_⟩
   have hmem : MemLp a 2 volume := ha.continuous.memLp_of_hasCompactSupport hc
   have h2 := h a ha hc hs haK
@@ -1052,7 +1090,7 @@ with compact support in `(ψ i).target`, then `u` is the smooth form obtained by
 `f i` by zero along `ψ i` and summing over `i`. -/
 theorem eq_ofSmooth_of_localize {ι : Type*} [Fintype ι]
     (ψ : ι → PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (ρ : SmoothPartitionOfUnity ι I M Set.univ)
-    (hρ : ρ.IsSubordinate fun i ↦ (ψ i).source) {u : L2Form o k}
+    (hρ : ρ.IsSubordinate fun i ↦ (ψ i).source) {u : L2Form I M k}
     {f : ι → E → E [⋀^Fin k]→L[ℝ] ℝ} (hf : ∀ i, ContDiff ℝ ∞ (f i))
     (hfc : ∀ i, HasCompactSupport (f i)) (hfs : ∀ i, tsupport (f i) ⊆ (ψ i).target)
     (hu : ∀ i, localize (ψ i) (ρ i) (hρ i) u =ᵐ[volume] f i) :
@@ -1065,8 +1103,8 @@ theorem eq_ofSmooth_of_localize {ι : Type*} [Fintype ι]
     ((ψ i).isCompact_image_of_subset_source (hKρ i) (hρ i))
   have hKψ (i : ι) : K i ⊆ (ψ i).target := Set.union_subset (hfs i) (himage i)
   choose C hC0 hC using fun i ↦
-    exists_norm_ofSmooth_extendByZeroAlong_le (k := k) (ψ i) o (hK i) (hKψ i)
-  set L : ι → L2Form o k →L[ℝ] Lp (E [⋀^Fin k]→L[ℝ] ℝ) 2 (volume : Measure E) :=
+    exists_norm_ofSmooth_extendByZeroAlong_le (k := k) (ψ i) (hK i) (hKψ i)
+  set L : ι → L2Form I M k →L[ℝ] Lp (E [⋀^Fin k]→L[ℝ] ℝ) 2 (volume : Measure E) :=
     fun i ↦ localize (ψ i) (ρ i) (hρ i)
   choose CL hCL0 hCL using fun i ↦ (L i).bound
   set A := 1 + ∑ i, C i * CL i
@@ -1086,7 +1124,7 @@ theorem eq_ofSmooth_of_localize {ι : Type*} [Fintype ι]
   -- The difference of `β` and the glued form is the sum of the extensions of `g i - f i`.
   have hdiff : ofSmooth β - ofSmooth (∑ i, SmoothForm.extendByZeroAlong (ψ i) (f i) (hf i)
       (hfc i) (hfs i)) = ∑ i, (ofSmooth (SmoothForm.extendByZeroAlong (ψ i) (g i - f i)
-        ((hg i).sub (hf i)) ((hgc i).sub (hfc i)) ((hsub i).trans (hKψ i))) : L2Form o k) := by
+        ((hg i).sub (hf i)) ((hgc i).sub (hfc i)) ((hsub i).trans (hKψ i))) : L2Form I M k) := by
     rw [← map_sub, ← map_sum]
     congr 1
     conv_lhs => rw [← β.sum_extendByZeroAlong_localize ψ ρ hρ hKρ]
@@ -1121,10 +1159,10 @@ a smooth partition of unity subordinate to their sources. There are constants `C
 theorem exists_norm_le_sum_norm_localize {ι : Type*} [Fintype ι]
     (ψ : ι → PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (ρ : SmoothPartitionOfUnity ι I M Set.univ)
     (hρ : ρ.IsSubordinate fun i ↦ (ψ i).source) :
-    ∃ C : ι → ℝ, (∀ i, 0 ≤ C i) ∧ ∀ u : L2Form o k,
+    ∃ C : ι → ℝ, (∀ i, 0 ≤ C i) ∧ ∀ u : L2Form I M k,
       ‖u‖ ≤ ∑ i, C i * ‖localize (ψ i) (ρ i) (hρ i) u‖ := by
   have hKρ (i : ι) : IsCompact (tsupport (ρ i)) := (isClosed_tsupport _).isCompact
-  choose C hC0 hC using fun i ↦ exists_norm_ofSmooth_extendByZeroAlong_le (k := k) (ψ i) o
+  choose C hC0 hC using fun i ↦ exists_norm_ofSmooth_extendByZeroAlong_le (k := k) (ψ i)
     ((ψ i).isCompact_image_of_subset_source (hKρ i) (hρ i))
     ((ψ i).mapsTo.mono_left (hρ i)).image_subset
   refine ⟨C, hC0, fun u ↦ ?_⟩
