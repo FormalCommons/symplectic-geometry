@@ -362,9 +362,10 @@ Each is a few hundred lines; each is blocked by the issues it names.
 6. **Smooth paths in $\mathrm{Ham}$.** `Family.lean`. About 200 lines.
    Blocked by 2 and 5.
 7. **Orbits of Hamiltonian loops.** `Diffeotopy/Orbit.lean` and
-   `Loop.lean`. About 350 lines. No blockers.
+   `Loop.lean`. About 350 lines. Blocked by 6, since the last lemma of
+   `Loop.lean` uses `Family.lean`.
 
-Issues 1, 4 and 7 can start at once. *Coupling forms* waits for 3 and 5;
+Issues 1 and 4 can start at once. *Coupling forms* waits for 3 and 5;
 *Hamiltonian fibrations* waits for all seven.
 
 ## References
