@@ -150,10 +150,8 @@ theorem ContinuousLinearMap.ext_tangentSpace_Icc {F : Type*} [AddCommGroup F] [M
   obtain ⟨r, hr⟩ : ∃ r : ℝ, mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc x y → ℝ) z v = r := ⟨_, rfl⟩
   rw [SymplecticGeometry.eq_smul_one_of_mfderiv_subtypeVal_Icc hr, map_smul, map_smul, h]
 
-section iccHomeoI
-
 /-- Mathlib's affine homeomorphism `iccHomeoI x y h : Icc x y ≃ₜ unitInterval`,
-`z ↦ (z - x) / (y - x)`, is smooth, up to both ends. -/
+`z ↦ (z - x) / (y - x)`, is `C^n` for every `n`, up to both ends. -/
 theorem contMDiff_iccHomeoI (h : x < y) :
     ContMDiff (𝓡∂ 1) (𝓡∂ 1) n (iccHomeoI x y h) := by
   refine contMDiff_iff_comp_subtypeVal_Icc.mpr ⟨(iccHomeoI x y h).continuous, ?_⟩
@@ -163,7 +161,7 @@ theorem contMDiff_iccHomeoI (h : x < y) :
   exact ((contDiff_id.sub contDiff_const).div_const _).contMDiff.comp contMDiff_subtypeVal_Icc
 
 /-- The inverse `u ↦ (y - x) u + x` of Mathlib's affine homeomorphism
-`iccHomeoI x y h : Icc x y ≃ₜ unitInterval` is smooth, up to both ends. -/
+`iccHomeoI x y h : Icc x y ≃ₜ unitInterval` is `C^n` for every `n`, up to both ends. -/
 theorem contMDiff_iccHomeoI_symm (h : x < y) :
     ContMDiff (𝓡∂ 1) (𝓡∂ 1) n (iccHomeoI x y h).symm := by
   refine contMDiff_iff_comp_subtypeVal_Icc.mpr ⟨(iccHomeoI x y h).symm.continuous, ?_⟩
@@ -173,8 +171,6 @@ theorem contMDiff_iccHomeoI_symm (h : x < y) :
   rw [hval]
   exact ((contDiff_const.mul contDiff_id).add contDiff_const).contMDiff.comp
     contMDiff_subtypeVal_Icc
-
-end iccHomeoI
 
 namespace Set.Icc
 
