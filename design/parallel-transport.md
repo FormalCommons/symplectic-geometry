@@ -313,8 +313,9 @@ diffeomorphism groups*).
   pointwise dependence `curvature_congr`: for smooth fields, the value at `x`
   depends only on `v₁ (f x)` and `v₂ (f x)`. Part 53's local formula for
   $\Omega_\Gamma(\partial_i,\partial_j)$ applies it to coordinate fields.
-- `curvature_eq_zero_iff_isInvolutiveDistribution`: the curvature of all
-  smooth `v₁ v₂` vanishes exactly when `TauCeti.IsInvolutiveDistribution I D`.
+- `curvature_eq_zero_iff_isInvolutiveDistribution`: the curvature at each `x`
+  of all `v₁ v₂` that are `C^n` at `f x` vanishes exactly when
+  `TauCeti.IsInvolutiveDistribution I D`.
   One direction is `IsInvolutiveDistribution.mlieBracket_mem` with
   `curvature_mem_ker` and the complement condition `isCompl_ker`; for the
   other, the lifts of the coordinate fields of a chart of `B` form a local
