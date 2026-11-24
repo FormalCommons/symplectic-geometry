@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 public import TauCeti.AlgebraicTopology.Cohomology.LerayHirsch.MayerVietoris
 public import SymplecticGeometry.Topology.FiberBundle.Basic
+public import SymplecticGeometry.LinearAlgebra.LinearIndependent
 public import TauCeti.AlgebraicTopology.Cohomology.LerayHirsch.FiberwiseBasis
 
 /-!
@@ -249,15 +250,13 @@ private theorem fiberInclusion_basis_of_trivializationAt
     (k := k) (M := 𝟙_ (ModuleCat.{w} k)) (isoOfHomeo (X := of F) (Y := of F) φ).hom d).hom
     ((TauCeti.singularCohomologyFunctor _ k _ d).mapIso
       (isoOfHomeo (X := of F) (Y := of F) φ).op).toLinearEquiv.bijective
-  let b := Module.Basis.mk (hc x).1 (hc x).2
-  have hb : ⇑(b.map L) = fun i ↦ TopCat.singularCohomologyMap (ofHom (t.fiberInclusion hx))
-      d (c d i) := by
+  have hb : (L ∘ fun i ↦ TopCat.singularCohomologyMap (ofHom (t'.fiberInclusion hx')) d (c d i)) =
+      fun i ↦ TopCat.singularCohomologyMap (ofHom (t.fiberInclusion hx)) d (c d i) := by
     ext i
-    simp only [L, b, Module.Basis.map_apply, Module.Basis.mk_apply]
-    rw [hφ, singularCohomologyMap_comp, ConcreteCategory.comp_apply]
+    rw [Function.comp_apply, hφ, singularCohomologyMap_comp, ConcreteCategory.comp_apply]
     exact LinearEquiv.ofBijective_apply _ _
-  rw [← hb]
-  exact ⟨(b.map L).linearIndependent, (b.map L).span_eq.ge⟩
+  rw [← hb, L.linearIndependent_comp_and_top_le_span_iff]
+  exact hc x
 
 variable [∀ d, DecidableEq (ι d)]
   [∀ d, Projective (((singularHomologyFunctor (ModuleCat.{w} k) d).obj
@@ -503,12 +502,9 @@ theorem integralLerayHirsch_fst_bijective (X F : TopCat.{0}) {ι : ℕ → Type}
     funext d i
     rw [integralCohomologyLinearEquiv_naturality, LinearEquiv.apply_symm_apply]
   have hb' (d : ℕ) (hd : d ≤ n) :
-      LinearIndependent ℤ (b' d) ∧ ⊤ ≤ Submodule.span ℤ (Set.range (b' d)) := by
-    let e := Module.Basis.mk (hb d hd).1 (hb d hd).2
-    have he : ⇑(e.map (F.integralCohomologyLinearEquiv d).symm) = b' d := by
-      ext i
-      rw [Module.Basis.map_apply, Module.Basis.mk_apply]
-    exact he ▸ And.intro (e.map _).linearIndependent (e.map _).span_eq.ge
+      LinearIndependent ℤ (b' d) ∧ ⊤ ≤ Submodule.span ℤ (Set.range (b' d)) :=
+    ((F.integralCohomologyLinearEquiv d).symm.linearIndependent_comp_and_top_le_span_iff
+      (b d)).mpr (hb d hd)
   rw [hbb', integralLerayHirsch_bijective_iff]
   exact lerayHirsch_fst_bijective X b' hb' hF
 
@@ -551,18 +547,20 @@ theorem integralLerayHirsch_bijective (s : Finset Y)
     funext d i
     rw [LinearEquiv.apply_symm_apply]
   have hc' (y : Y) (d : ℕ) (hd : d ≤ n) := by
-    let b := Module.Basis.mk (hc y d hd).1 (hc y d hd).2
     -- The pull-back with coefficients `ℤ`, for the structure `ModuleCat.instLinear` that
     -- `TopCat.lerayHirsch` uses, which instance search would not find here.
-    have hb : ⇑(b.map ((of F).integralCohomologyLinearEquiv d).symm) = fun i ↦
+    have hb : (((of F).integralCohomologyLinearEquiv d).symm ∘ fun i ↦
+        TopCat.singularCohomologyMap
+          (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
+          d (c d i)) = fun i ↦
         @TopCat.singularCohomologyMap _ _ _ _ (𝟙_ (ModuleCat.{0} ℤ)) ℤ _ ModuleCat.instLinear
           (𝟙_ (ModuleCat.{0} ℤ)) _ _
           (ofHom ((trivializationAt F Z y).fiberInclusion (mem_baseSet_trivializationAt F Z y)))
           d (c' d i) := by
       ext i
-      rw [Module.Basis.map_apply, Module.Basis.mk_apply, LinearEquiv.symm_apply_eq,
+      rw [Function.comp_apply, LinearEquiv.symm_apply_eq,
         integralCohomologyLinearEquiv_naturality, LinearEquiv.apply_symm_apply]
-    exact hb ▸ And.intro (b.map _).linearIndependent (b.map _).span_eq.ge
+    exact hb ▸ (LinearEquiv.linearIndependent_comp_and_top_le_span_iff _ _).mpr (hc y d hd)
   rw [hcc', integralLerayHirsch_bijective_iff]
   exact lerayHirsch_bijective (k := ℤ) s hs n c' hF hc'
 
