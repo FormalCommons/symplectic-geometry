@@ -37,6 +37,24 @@ noncomputable section
 open Function Manifold
 open scoped Manifold ContDiff
 
+section Coe
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Monoid G]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace 𝕜 E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'}
+  {G' : Type*} [TopologicalSpace G'] [ChartedSpace H' G'] [Monoid G']
+
+/-- The underlying monoid homomorphism of a smooth monoid morphism has the same values. -/
+@[simp]
+theorem ContMDiffMonoidMorphism.coe_toMonoidHom {n : WithTop ℕ∞}
+    (φ : ContMDiffMonoidMorphism I I' n G G') : ⇑φ.toMonoidHom = φ :=
+  (rfl)
+
+end Coe
+
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
@@ -48,13 +66,6 @@ attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 attribute [local instance] ContMDiffMul.boundarylessManifold
 
 namespace ContMDiffMonoidMorphism
-
-omit [FiniteDimensional ℝ E] [LieGroup I ∞ G] [FiniteDimensional ℝ E'] [LieGroup I' ∞ G'] in
-/-- The underlying monoid homomorphism of a smooth homomorphism has the same values. -/
-@[simp]
-theorem coe_toMonoidHom {n : WithTop ℕ∞} (φ : ContMDiffMonoidMorphism I I' n G G') :
-    ⇑φ.toMonoidHom = φ :=
-  (rfl)
 
 /-- Evaluation at `1` carries Tau Ceti's `lieMap φ`, on left-invariant derivations, to
 `φ.groupLieAlgebraLieHom`, on the tangent spaces at `1`. -/
