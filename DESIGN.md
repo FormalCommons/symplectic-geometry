@@ -1421,8 +1421,7 @@ it into issues; the overview fixes its folders and its dependencies.
   closed discrete set), `.../VectorBundle/Section/Generic.lean`
   (over a boundaryless manifold, a smooth section of a bundle of rank equal
   to the dimension whose zero set is closed and discrete),
-  `.../VectorBundle/Section/Nonvanishing.lean` (smoothing a continuous
-  nowhere-zero section over a compact base; a smooth nowhere-zero section of
+  `.../VectorBundle/Section/Nonvanishing.lean` (a smooth nowhere-zero section of
   every real bundle of rank at least $2$ over a compact, connected surface
   whose boundary is not empty) and
   `Geometry/Manifold/VectorBundle/Hermitian/Surface.lean` (unitary frames

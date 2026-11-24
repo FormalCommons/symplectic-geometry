@@ -159,7 +159,7 @@ variable {EB HB M : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
 | `Topology/VectorBundle/ZeroSet.lean` | closedness of the zero set of a continuous section along a map | 14 |
 | `Geometry/Manifold/VectorBundle/Section/Generic.lean` | sections with closed discrete zero sets over boundaryless manifolds | 14 |
 | `Geometry/Diffeomorphism/Diffeotopy/Discrete.lean` | a diffeotopy whose final map sends a compact set off a closed discrete set | 16 |
-| `Geometry/Manifold/VectorBundle/Section/Nonvanishing.lean` | smoothing nowhere-zero sections; nowhere-zero sections over surfaces with boundary | 15, 16 |
+| `Geometry/Manifold/VectorBundle/Section/Nonvanishing.lean` | nowhere-zero sections over surfaces with boundary | 16 |
 | `Geometry/Manifold/VectorBundle/Hermitian/Frame.lean` | appending a normalized orthogonal section to a unitary frame; unitary frame trivializations over any model | 17 |
 | `Geometry/Manifold/VectorBundle/Hermitian/Surface.lean` | the third milestone | 17 |
 
@@ -2325,14 +2325,15 @@ of *Constructions* for *First Chern number*.
     for a compact base, without compactness. Its closedness half,
     `VectorBundle.isClosed_setOf_eq_zero` for a continuous section along a
     map, goes in `Topology/VectorBundle/ZeroSet.lean`. Blockers: none.
-15. **Smoothing nowhere-zero sections.** `Section/Nonvanishing.lean`:
-    `SymplecticGeometry.exists_contMDiffSection_forall_ne_zero_of_continuous`,
+15. **Smoothing nowhere-zero sections.** Tau Ceti's
+    `TauCeti/Geometry/Manifold/VectorBundle/Section/Nonvanishing.lean`:
+    `TauCeti.exists_contMDiffSection_forall_ne_zero_of_continuous`,
     a continuous nowhere-zero section of a smooth bundle over a compact
     manifold (with boundary allowed) can be replaced by a smooth one, via
-    `exists_contMDiffSection_forall_mem_convex_of_local` and a metric.
+    `exists_contMDiffSection_forall_mem_convex_of_local`.
     Blockers: none.
-16. **Nowhere-zero sections over surfaces with boundary.** Same file: step 1
-    of the route above,
+16. **Nowhere-zero sections over surfaces with boundary.** `Section/Nonvanishing.lean`:
+    step 1 of the route above,
     `SymplecticGeometry.exists_contMDiffSection_forall_ne_zero_of_boundary_nonempty`
     for real bundles of rank at least $2$ over `S`, with its diffeotopy step
     `TauCeti.exists_diffeotopy_apply_one_notMem` in
