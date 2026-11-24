@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.SmoothSingular.Period
 public import TauCeti.Geometry.Symplectic.Flux.Endpoint
 public import TauCeti.Geometry.Symplectic.Flux.Sweep
+import SymplecticGeometry.AlgebraicTopology.Singular.LoopClass
 import SymplecticGeometry.Geometry.Manifold.SmoothSingular.Period
 import SymplecticGeometry.Geometry.Manifold.SmoothSingular.Rectangle
 import SymplecticGeometry.Geometry.Manifold.SmoothTransition
@@ -20,8 +21,8 @@ import TauCeti.Geometry.Symplectic.Flux.Reparam
 # The flux group is countable
 
 Let `σ` be a closed two-form on a manifold `M`. This file shows that the periods of the flux of a
-loop of diffeomorphisms are periods of `σ` on `H₂(M; ℤ)`, and deduces that on a closed connected
-manifold the flux group `Γ_σ = TauCeti.fluxGroup σ` is countable.
+loop of diffeomorphisms are periods of `σ` on `H₂(M; ℤ)`, and deduces that on a closed manifold
+the flux group `Γ_σ = TauCeti.fluxGroup σ` is countable.
 
 Let `φ` be a diffeotopy with `φ₁ = id` and `γ` a loop. Up to homotopy `γ` is smooth
 (`Path.exists_homotopic_contMDiff_extend`). The period of the flux of `φ` on `γ` is the
@@ -32,9 +33,10 @@ the final map, and makes the swept map `(t, s) ↦ φ_t (γ s)` smooth on all of
 a loop and `γ` is closed, that map agrees on opposite edges of the unit square, so its area is a
 period of `σ` (`TauCeti.rectangleIntegral_mem_range_closedFormHomologyPeriod`).
 
-On a connected manifold, `H₁(M; ℤ)` is the abelianized fundamental group
-(`TauCeti.HurewiczOne.hurewiczHomologyAddEquiv`), so the periods of every element of `Γ_σ` on
-`H₁(M; ℤ)` are periods of `σ` on `H₂(M; ℤ)`. On a closed manifold these form a countable set
+The classes of loops, at base points in every path component, generate `H₁(M; ℤ)`
+(`TauCeti.HurewiczOne.closure_H₁AddEquivHomology_loopClass`), and the periods of `σ` form a
+subgroup of `ℝ`, so the periods of every element of `Γ_σ` on `H₁(M; ℤ)` are periods of `σ` on
+`H₂(M; ℤ)`. On a closed manifold these form a countable set
 (`TauCeti.countable_range_closedFormHomologyPeriod`). A class of `H¹_dR(M)` is determined by its
 periods on finitely many integral classes (`TauCeti.deRhamCohomology.periodHomologyClass`), so
 `Γ_σ` injects into a finite power of a countable set. This replaces the argument of
@@ -44,9 +46,9 @@ McDuff–Salamon through the local contractibility of the symplectomorphism grou
 
 * `TauCeti.Diffeotopy.period_flux_mem_range_closedFormHomologyPeriod`: the period of the flux of a
   loop of diffeomorphisms on a loop class is a period of `σ` on `H₂(M; ℤ)`.
-* `TauCeti.homologyPeriod_mem_range_closedFormHomologyPeriod_of_mem_fluxGroup`: on a connected
-  manifold, the periods of an element of the flux group on `H₁(M; ℤ)` are periods of `σ`.
-* `TauCeti.countable_fluxGroup`: on a closed connected manifold the flux group is countable.
+* `TauCeti.homologyPeriod_mem_range_closedFormHomologyPeriod_of_mem_fluxGroup`: the periods of an
+  element of the flux group on `H₁(M; ℤ)` are periods of `σ`.
+* `TauCeti.countable_fluxGroup`: on a closed manifold the flux group is countable.
 
 ## References
 
@@ -110,28 +112,32 @@ theorem period_flux_mem_range_closedFormHomologyPeriod (σ : closedForms J M 2)
 
 end Diffeotopy
 
-/-- **Elements of the flux group have periods in the periods of `σ`.** On a connected manifold,
-the period of each element of the flux group `Γ_σ` of a closed two-form `σ` on each class of
-`H₁(M; ℤ)` is the period of `σ` on some class of `H₂(M; ℤ)`. -/
+/-- **Elements of the flux group have periods in the periods of `σ`.** The period of each element
+of the flux group `Γ_σ` of a closed two-form `σ` on each class of `H₁(M; ℤ)` is the period of `σ`
+on some class of `H₂(M; ℤ)`. The manifold need not be connected. -/
 theorem homologyPeriod_mem_range_closedFormHomologyPeriod_of_mem_fluxGroup [SigmaCompactSpace M]
-    [ConnectedSpace M] {σ : closedForms J M 2} {c : deRhamCohomology J M 1}
+    {σ : closedForms J M 2} {c : deRhamCohomology J M 1}
     (hc : c ∈ fluxGroup σ) (a : ((singularChains ℤ).obj (.of M)).homology 1) :
     deRhamCohomology.homologyPeriod c a ∈ range (closedFormHomologyPeriod σ) := by
-  have := J.pathConnectedSpace M
-  obtain ⟨x⟩ : Nonempty M := inferInstance
   obtain ⟨Φ, hΦ, h₁, rfl⟩ := mem_fluxGroup.mp hc
-  obtain ⟨b, rfl⟩ :=
-    (HurewiczOne.hurewiczHomologyAddEquiv (X := .of M) x (RingEquiv.refl ℤ)).surjective a
-  obtain ⟨g, rfl⟩ := Group.Abelianization.exists_eq_ofMul_of b
-  rw [HurewiczOne.hurewiczHomologyAddEquiv_apply, HurewiczOne.hurewiczAb_ofMul_of,
-    deRhamCohomology.homologyPeriod_hurewicz₁]
-  exact Φ.period_flux_mem_range_closedFormHomologyPeriod σ
-    (SmoothForm.final_mem_diffeomorphStabilizer hΦ) h₁ g
+  have hΦ₁ := SmoothForm.final_mem_diffeomorphStabilizer hΦ
+  -- The classes with a period of `σ` form a subgroup, which contains the classes of loops.
+  suffices AddSubgroup.closure (range fun p : Σ x : M, Path x x ↦
+      HurewiczOne.H₁AddEquivHomology ℤ (.of M) (HurewiczOne.loopClass ℤ p.2)) ≤
+      (closedFormHomologyPeriod σ).range.comap (deRhamCohomology.homologyPeriod (Φ.flux σ hΦ₁)) from
+    this ((HurewiczOne.closure_H₁AddEquivHomology_loopClass (RingEquiv.refl ℤ)).ge trivial)
+  refine (AddSubgroup.closure_le _).2 ?_
+  rintro _ ⟨⟨x, γ⟩, rfl⟩
+  have h := deRhamCohomology.homologyPeriod_hurewicz₁ (Φ.flux σ hΦ₁)
+    (FundamentalGroup.fromPath (.mk γ))
+  rw [HurewiczOne.hurewicz₁_mk, toAdd_ofAdd] at h
+  rw [SetLike.mem_coe, AddSubgroup.mem_comap, AddMonoidHom.mem_range, ← mem_range, h]
+  exact Φ.period_flux_mem_range_closedFormHomologyPeriod σ hΦ₁ h₁ _
 
-/-- **The flux group is countable.** On a closed connected manifold, the flux group `Γ_σ` of a
+/-- **The flux group is countable.** On a closed manifold, the flux group `Γ_σ` of a
 closed two-form `σ`, the set of fluxes of loops of diffeomorphisms preserving `σ`, is a countable
 subset of `H¹_dR(M)`. -/
-theorem countable_fluxGroup [CompactSpace M] [ConnectedSpace M] (σ : closedForms J M 2) :
+theorem countable_fluxGroup [CompactSpace M] (σ : closedForms J M 2) :
     (fluxGroup σ : Set (deRhamCohomology J M 1)).Countable := by
   refine ((countable_pi fun _ ↦ countable_range_closedFormHomologyPeriod σ).preimage
     (deRhamCohomology.homologyPeriods_periodHomologyClass_bijective (I := J) (M := M)).1).mono
