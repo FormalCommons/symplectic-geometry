@@ -8,7 +8,6 @@ module
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Homotopy
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.OrderedFlow
 public import SymplecticGeometry.Geometry.Manifold.Flow.Ordered
-import Mathlib.Geometry.Manifold.Algebra.Structures
 
 /-!
 # Loops of ordered flows are homotopic to the constant diffeotopy
@@ -21,9 +20,9 @@ contracts it to the constant diffeotopy by scaling the times by `1 - s`. This fi
 contraction to a homotopy in the sense of `TauCeti.Diffeotopy.Homotopic`, which also asks for a
 jointly `C^n` inverse in the space variable. The inverse is the ordered flow of the fields in the
 reverse order for the negated, reversed times (`TauCeti.orderedFlowOf_rev_neg_orderedFlowOf`,
-`TauCeti.orderedFlowOf_orderedFlowOf_rev_neg`), which is jointly `C^n` by Tau Ceti's
-`TauCeti.contMDiff_orderedFlowOf_uncurry`. The proof of its smoothness follows that of
-`TauCeti.Diffeotopy.exists_homotopy_orderedGlobalFlowDiffeotopy`.
+`TauCeti.orderedFlowOf_orderedFlowOf_rev_neg`). It is the contraction that
+`TauCeti.Diffeotopy.exists_homotopy_orderedGlobalFlowDiffeotopy` gives for the reversed fields
+and the negated, reversed time functions, so it is jointly `C^n`.
 
 ## Main results
 
@@ -63,30 +62,20 @@ theorem orderedGlobalFlowDiffeotopy_homotopic_refl (hn : 1 ≤ n) {k : ℕ}
     exists_homotopy_orderedGlobalFlowDiffeotopy hn v hv hc A hA hA₀ h₁
   have hv₁ : ∀ i, CMDiff 1 (fun y ↦ (⟨y, v i y⟩ : TangentBundle I M)) := fun i ↦
     (hv i).of_le (by exact_mod_cast hn)
-  -- `G` at `((x, t), s)` is the ordered flow of `x` for the times `(1 - s) A i t`.
-  have hG' : ∀ x t s, G ((x, t), s) = orderedFlowOf v (fun i ↦ (1 - (s : ℝ)) * A i t) x :=
-    fun x t s ↦ congrFun (hGs t s) x
-  refine homotopic_iff.2 ⟨G, fun q ↦ orderedFlowOf (fun i ↦ v i.rev)
-    (fun i ↦ -((1 - (q.2 : ℝ)) * A i.rev q.1.2)) q.1.1, hG, hG₀, fun p ↦ ?_, hGt₀,
-    fun x s ↦ ?_, ?_, fun x t s ↦ ?_, fun x t s ↦ ?_⟩
+  obtain ⟨G', hG', -, -, -, -, hG's⟩ := exists_homotopy_orderedGlobalFlowDiffeotopy hn
+    (fun i ↦ v i.rev) (fun i ↦ hv i.rev) (fun i ↦ hc i.rev) (fun i ↦ -A i.rev)
+    (fun i ↦ (hA i.rev).neg) (fun i ↦ by simp [hA₀]) (fun i ↦ by simp [h₁])
+  refine homotopic_iff.2 ⟨G, G', hG, hG₀, fun p ↦ ?_, hGt₀, fun x s ↦ ?_, hG',
+    fun x t s ↦ ?_, fun x t s ↦ ?_⟩
   · rw [hG₁, cylinderMap_apply, refl_apply]
   · rw [hGt₁, final_orderedGlobalFlowDiffeotopy_eq_refl hn v hv hc A hA hA₀ h₁,
       Diffeomorph.coe_refl, id_eq]
-  · -- The negated, reversed times depend smoothly on `((x, t), s)`.
-    have htimes : ContMDiff ((I.prod (𝓡∂ 1)).prod (𝓡∂ 1)) 𝓘(ℝ, Fin k → ℝ) n
-        fun q : (M × unitInterval) × unitInterval ↦
-          fun i : Fin k ↦ -((1 - (q.2 : ℝ)) * A i.rev q.1.2) :=
-      contMDiff_pi_module_iff.2 fun i ↦
-        (((contDiff_const.sub contDiff_id).contMDiff.comp
-          (contMDiff_subtypeVal_Icc.comp contMDiff_snd)).mul
-          ((hA i.rev).contMDiff.comp
-            (contMDiff_subtypeVal_Icc.comp (contMDiff_snd.comp contMDiff_fst)))).neg
-    exact (contMDiff_orderedFlowOf_uncurry hn (fun i ↦ hv i.rev) fun i ↦ hc i.rev).comp
-      (htimes.prodMk (contMDiff_fst.comp contMDiff_fst))
-  · rw [hG']
-    exact orderedFlowOf_rev_neg_orderedFlowOf hv₁ hc (fun i ↦ (1 - (s : ℝ)) * A i t) x
-  · rw [hG']
-    exact orderedFlowOf_orderedFlowOf_rev_neg hv₁ hc (fun i ↦ (1 - (s : ℝ)) * A i t) x
+  · rw [congrFun (hG's t s), congrFun (hGs t s) x]
+    simpa only [Pi.neg_apply, mul_neg] using
+      orderedFlowOf_rev_neg_orderedFlowOf hv₁ hc (fun i ↦ (1 - (s : ℝ)) * A i t) x
+  · rw [congrFun (hG's t s), congrFun (hGs t s)]
+    simpa only [Pi.neg_apply, mul_neg] using
+      orderedFlowOf_orderedFlowOf_rev_neg hv₁ hc (fun i ↦ (1 - (s : ℝ)) * A i t) x
 
 end Diffeotopy
 
