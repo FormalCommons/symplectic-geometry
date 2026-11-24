@@ -52,7 +52,7 @@ smoothness follows Tau Ceti's
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §3.2.
-* [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001], Lectures 6–7.
+* [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001Lectures], Lectures 6–7.
 * J. Moser, *On the volume elements on a manifold*, Transactions of the American Mathematical
   Society 120 (1965), 286–294.
 -/

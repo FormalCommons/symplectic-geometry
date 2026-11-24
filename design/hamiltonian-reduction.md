@@ -302,18 +302,19 @@ Coisotropy and characteristic leaves, with the atlases of `Basic.lean`.
 
 The tangent spaces of the quotient, and the first milestone.
 
-- With `K z := LinearMap.ker (h.differential z)` and the orbit directions
-  `L z := ((InfinitesimalAction.fundamental I G I' M).orbitTangent z).comap (K z).subtype`:
+- With `K z := LinearMap.ker (h.differential z)`:
 
   ```lean
   def zeroLevelTangentEquiv (z : h.zeroLevel) :
-      (K z ⧸ L z) ≃ₗ[ℝ]
+      (hσ.symplecticFormAt z).ReducedSpace (K z) ≃ₗ[ℝ]
         TangentSpace 𝓘(ℝ, ProperSMul.QuotientModelSpace E (Fin n → ℝ)) (π z)
   ```
 
-  built from the isomorphism `T_z Z ≃ K z` of `range_mfderiv_coe_zeroLevel`
-  and the injectivity of `di`, followed by `dπ_z`, which is onto with kernel
-  `L z` by `ker_mfderiv_quotientMk_zeroLevel`
+  from Tau Ceti's linear reduction `K z ⧸ (K z ∩ (K z)^σ)`
+  (`Geometry/Symplectic/LinearReduction.lean`): `v ↦ [di v]` maps `T_z Z`
+  onto it, by `range_mfderiv_coe_zeroLevel`, with kernel the kernel of
+  `(i^* σ)_z`, which is the kernel of `dπ_z` by
+  `ker_bilinFormAt_mpullback_coe_zeroLevel`; `dπ_z` is onto
   (`LinearMap.quotKerEquivOfSurjective`).
 - `zeroLevelTangentEquiv_mk`: for `v : T_z Z`, the class of `di v` goes to
   `dπ_z v`.
@@ -322,22 +323,28 @@ The tangent spaces of the quotient, and the first milestone.
   `η.eval₂ (π z) (e (Submodule.Quotient.mk v)) (e (Submodule.Quotient.mk w)) =
   σ.eval₂ z v w`, with `e = h.zeroLevelTangentEquiv z`.
 - **Milestone** `SymplecticGeometry.symplecticReduction_zeroLevel`, in the
-  page's sign: for `[ConnectedSpace G]`, `hω : ω.IsSymplectic`, `hG`,
-  `h : ω.IsEquivariantMomentMap fun x ↦ -μ x`,
+  page's sign: for `[ConnectedSpace G]`, `hσ : σ.IsSymplectic`, `hG`,
+  `h : σ.IsEquivariantMomentMap fun x ↦ -μ x`,
   `hfree : ∀ x, μ x = 0 → MulAction.stabilizer G x = ⊥`,
   `[ProperSMul G h.zeroLevel]` and `hn`, with both atlases, the conjunction
   of
   1. `∀ x, μ x = 0 → Function.Surjective (h.differential x)` (zero is a
      regular value; `h.differential x` is $-d\mu(x)$);
-  2. `Subtype.val : h.zeroLevel → M` is a smooth embedding, and
+  2. the level is a manifold, `Subtype.val : h.zeroLevel → M` is a smooth
+     embedding, and
      `Nonempty h.zeroLevel → n + finrank ℝ 𝔤 = finrank ℝ E'`;
   3. the inclusion is a coisotropic map;
   4. every leaf of its characteristic foliation is a `G`-orbit, as in
      `leaf_characteristicFoliation_zeroLevel`;
-  5. the `∃!` of `existsUnique_isSymplectic_mpullback_quotientMk_zeroLevel_eq_mpullback`;
+  5. the quotient is a manifold, and the `∃!` of
+     `existsUnique_isSymplectic_mpullback_quotientMk_zeroLevel_eq_mpullback`;
   6. `Nonempty h.zeroLevel →
      finrank ℝ (ProperSMul.QuotientModelSpace E (Fin n → ℝ)) + 2 * finrank ℝ 𝔤 = finrank ℝ E'`;
-  7. `eval₂_zeroLevelTangentEquiv` for every `η` with the pullback equation.
+  7. at each `z`, the kernel of `σ_z` on `K z`, mapped into `T_z M`, is the
+     orbit tangent space, and for every symplectic `η` with the pullback
+     equation, `zeroLevelTangentEquiv z` is a symplectomorphism
+     (`SymplecticForm.IsSymplectomorphism`) from `SymplecticForm.reduction`
+     to `η` at `π z`.
 
   `hfree` is passed to the atlases as
   `fun x hx ↦ hfree x (neg_eq_zero.1 hx)`. Its docstring ends with
@@ -471,5 +478,5 @@ In order; each is a few hundred lines.
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*, 3rd ed.][McDuffSalamon2017],
   Example 5.3.11, Propositions 5.4.13 and 5.4.15, Remark 5.4.14.
-* [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001],
+* [A. Cannas da Silva, *Lectures on Symplectic Geometry*][CannasdaSilva2001Lectures],
   Lecture 23.
