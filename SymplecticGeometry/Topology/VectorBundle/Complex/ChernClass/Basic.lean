@@ -230,8 +230,6 @@ theorem bijective_integralLerayHirsch_projectiveBundle [CompactSpace B] [FiniteD
     (fun b ↦ (trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).baseSet)
     (fun b ↦ (trivializationAt (ℙ ℂ G) (fun b ↦ ℙ ℂ (E b)) b).open_baseSet)
     (fun b _ ↦ Set.mem_iUnion.2 ⟨b, mem_baseSet_trivializationAt _ _ b⟩)
-  have : Module.Projective ℤ (𝟙_ (ModuleCat.{0} ℤ)) := inferInstanceAs (Module.Projective ℤ ℤ)
-  have : Module.Finite ℤ (𝟙_ (ModuleCat.{0} ℤ)) := inferInstanceAs (Module.Finite ℤ ℤ)
   have := Projectivization.projective_singularHomology (V := G) (𝟙_ (ModuleCat.{0} ℤ)) hm
   exact TopCat.integralLerayHirsch_bijective s (Set.univ_subset_iff.1 hs) n _
     (fun d _ ↦ TauCeti.finite_singularHomology_of_finiteCWType (ℙ ℂ G) _ d)

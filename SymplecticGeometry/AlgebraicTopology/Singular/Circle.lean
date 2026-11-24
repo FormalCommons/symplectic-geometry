@@ -17,6 +17,7 @@ public import TauCeti.AlgebraicTopology.Singular.Contractible
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Chart
 public import TauCeti.Analysis.Complex.Circle
 public import TauCeti.Topology.Circle.Degree
+import TauCeti.Analysis.SpecialFunctions.Trigonometric.UnitInterval
 
 /-!
 # The generator of the first homology of the circle
@@ -240,9 +241,7 @@ private lemma arc_one_one_mem (t : I) : arc 1 1 t ∈ ({p}ᶜ : Set (sphere (0 :
   intro h
   have h' := congrArg (fun z : sphere (0 : ℂ) 1 ↦ (z : ℂ).im) (Set.mem_singleton_iff.mp h)
   simp only [arc_apply, halfTurn, Circle.coe_homeomorphSphere_exp_im, hp, Complex.I_im] at h'
-  have : 0 ≤ Real.sin (π * t) :=
-    Real.sin_nonneg_of_nonneg_of_le_pi (by have := unitInterval.nonneg t; positivity)
-      (by nlinarith [unitInterval.le_one t, Real.pi_pos])
+  have := TauCeti.sin_pi_mul_nonneg t
   rw [show π * (1 + 1 * (t : ℝ)) = π * t + π by ring, Real.sin_add_pi] at h'
   linarith
 
@@ -252,9 +251,7 @@ private lemma arc_zero_one_mem (t : I) : arc 0 1 t ∈ ({-p}ᶜ : Set (sphere (0
   have h' := congrArg (fun z : sphere (0 : ℂ) 1 ↦ (z : ℂ).im) (Set.mem_singleton_iff.mp h)
   simp only [arc_apply, halfTurn, Circle.coe_homeomorphSphere_exp_im, hp, Complex.I_im,
     coe_neg_sphere, Complex.neg_im] at h'
-  have : 0 ≤ Real.sin (π * t) :=
-    Real.sin_nonneg_of_nonneg_of_le_pi (by have := unitInterval.nonneg t; positivity)
-      (by nlinarith [unitInterval.le_one t, Real.pi_pos])
+  have := TauCeti.sin_pi_mul_nonneg t
   rw [zero_add, one_mul] at h'
   linarith
 

@@ -7,15 +7,16 @@ module
 
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import SymplecticGeometry.Analysis.Calculus.ContDiff.FTaylorSeries
-public import SymplecticGeometry.Analysis.Calculus.ContDiff.Seeley.Coefficients
 public import SymplecticGeometry.Analysis.Normed.Group.FunctionSeries
 public import SymplecticGeometry.Analysis.Sobolev.Trace.Reflection.HalfSpace
+public import TauCeti.Analysis.Sobolev.Trace.Reflection.Seeley
 
 /-!
 # Seeley's extension
 
 Seeley's operator extends a function on `[0, ∞)` to `ℝ`: for `t < 0` it takes the value
-`∑ₖ aₖ χ (-2 ^ k t) f (-2 ^ k t)`, where `aₖ = seeleyCoeff k` and `χ = seeleyCutoff` is a smooth
+`∑ₖ aₖ χ (-2 ^ k t) f (-2 ^ k t)`, where `aₖ` is Tau Ceti's
+`TauCeti.HalfSpaceExtension.seeleyCoeff k` and `χ = seeleyCutoff` is a smooth
 cutoff equal to `1` on `(-∞, 1/2]` and to `0` on `[3/4, ∞)`. For each `t < 0` only finitely many
 terms are nonzero, and only values of `f` on `(0, 3/4)` enter, so the operator is linear and
 commutes with every linear map. Applying it at both ends of `[0, 1]`, the second time after the
@@ -24,15 +25,16 @@ maps on `ℝ → F`, `seeleyExtendLinearMap` and `seeleyIccExtendLinearMap`.
 
 The main results say that the extension of a family `f (·, x)` that is smooth on
 `Ici 0 ×ˢ U` (respectively `Icc 0 1 ×ˢ U`), for `U` open in a normed space, is smooth on
-`univ ×ˢ U`. No completeness of the target space is needed.
+`univ ×ˢ U`. No completeness of the target space is needed, unlike for Tau Ceti's
+`TauCeti.HalfSpaceExtension.seeleyExtension` on all of `ℝ × E`, whose cutoff is also different.
 
 The proof follows Tau Ceti's `TauCeti.HalfSpaceExtension.contDiff_halfSpaceReflection`, with
 Seeley's infinite sum in place of Hestenes' finite one: the Taylor series of the terms
-`aₖ (χ f) (timeScale (-2 ^ k) z)` on the lower half are bounded by `|aₖ| 2 ^ (k m)` times a local
-bound of the derivatives of `χ f`, so by `summable_seeleyCoeff_mul_pow` their sums converge locally
-uniformly (`HasFTaylorSeriesUpToOn.of_tendstoLocallyUniformlyOn_of_convex`); at `t = 0` the
-moment identities `hasSum_seeleyCoeff_mul_neg_two_pow` and `map_timeScale_eq_sum_pow_card_smul`
-make the limit series agree with that of `f`, as Tau Ceti's
+`aₖ (χ f) (timeScale (-2 ^ k) z)` on the lower half are bounded by `|aₖ| (2 ^ k) ^ m` times a
+local bound of the derivatives of `χ f`, so by Tau Ceti's `summable_abs_seeleyCoeff_mul_pow` their
+sums converge locally uniformly (`HasFTaylorSeriesUpToOn.of_tendstoLocallyUniformlyOn_of_convex`);
+at `t = 0` the moment identities `tsum_seeleyCoeff_mul_neg_pow` and
+`map_timeScale_eq_sum_pow_card_smul` make the limit series agree with that of `f`, as Tau Ceti's
 `sum_higherReflectionCoeff_smul_compContinuousLinearMap_timeScale` does for a finite sum; and the
 two series glue across `t = 0` by `HasFTaylorSeriesUpToOn.union`. The uniform convergence uses
 `tendstoUniformlyOn_finsetSum_of_hasSum`, which needs no completeness.
@@ -287,7 +289,8 @@ section Smooth
 variable {U : Set E} {h : ℝ × E → F}
 
 /-- The moment identities for multilinear maps: `∑ₖ aₖ A (timeScale (-2 ^ k) ·, …)` sums to
-`A`. -/
+`A`. Unlike Tau Ceti's `tsum_seeleyCoeff_smul_compContinuousLinearMap_timeScale`, this needs no
+completeness of `F`. -/
 theorem hasSum_seeleyCoeff_smul_compContinuousLinearMap_timeScale {m : ℕ}
     (A : (ℝ × E) [×m]→L[ℝ] F) :
     HasSum (fun k ↦ seeleyCoeff k •
@@ -312,7 +315,9 @@ theorem hasSum_seeleyCoeff_smul_compContinuousLinearMap_timeScale {m : ℕ}
       simp
     simpa using ((hB 1).symm.trans h1).symm
   have hsum : HasSum (fun k ↦ ∑ s, (seeleyCoeff k * (-2 ^ k) ^ s.card) • B s) (∑ s, B s) :=
-    hasSum_sum fun s _ ↦ by simpa using (hasSum_seeleyCoeff_mul_neg_two_pow s.card).smul_const (B s)
+    hasSum_sum fun s _ ↦ by
+      simpa using ((summable_seeleyCoeff_mul_neg_pow s.card).hasSum_iff.mpr
+        (tsum_seeleyCoeff_mul_neg_pow s.card)).smul_const (B s)
   rw [← hA] at hsum
   convert hsum using 2 with k
   rw [hB, Finset.smul_sum]
@@ -322,7 +327,8 @@ theorem hasSum_seeleyCoeff_smul_compContinuousLinearMap_timeScale {m : ℕ}
 theorem hasSum_seeleyCoeff_smul_timeScale_of_fst_eq_zero (h : ℝ × E → F) {z : ℝ × E}
     (hz : z.1 = 0) : HasSum (fun k ↦ seeleyCoeff k • h (timeScale (-2 ^ k) z)) (h z) := by
   simp_rw [timeScale_of_fst_eq_zero hz]
-  exact hasSum_seeleyCoeff_smul (h z)
+  simpa using ((summable_seeleyCoeff_mul_neg_pow 0).hasSum_iff.mpr
+    (tsum_seeleyCoeff_mul_neg_pow 0)).smul_const (h z)
 
 /-- At time `0`, Seeley's sum of the dilated coefficients of order `m` of a series `p` sums to
 `p z m`. -/
@@ -333,12 +339,6 @@ theorem hasSum_seeleyCoeff_smul_compContinuousLinearMap_timeScale_of_fst_eq_zero
       (p z m) := by
   simp_rw [timeScale_of_fst_eq_zero hz]
   exact hasSum_seeleyCoeff_smul_compContinuousLinearMap_timeScale (p z m)
-
-/-- The dilations by `-2 ^ k` map the lower half of `univ ×ˢ U` to its upper half. -/
-private theorem timeScale_mem_Ici_prod {z : ℝ × E} (hz : z ∈ Iic 0 ×ˢ U) (k : ℕ) :
-    timeScale (-2 ^ k) z ∈ Ici 0 ×ˢ U := by
-  rw [timeScale_apply]
-  exact ⟨mul_nonneg_of_nonpos_of_nonpos (neg_nonpos.2 (pow_nonneg zero_le_two k)) hz.1, hz.2⟩
 
 /-- A sequence whose terms at a point of negative time vanish once the dilated time exceeds `1`
 has finite support, so it is summable. -/
@@ -433,25 +433,26 @@ private theorem hasFTaylorSeriesUpToOn_seeleySum (hU : IsOpen U)
       (convex_Iic 0).prod (convex_ball _ _), hnhds hr⟩
   · exact HasFTaylorSeriesUpToOn.sum fun k _ ↦
       ((hp.compContinuousLinearMap (timeScale (-2 ^ k))).const_smul (seeleyCoeff k)).mono
-        fun z hz ↦ timeScale_mem_Ici_prod hz k
+        fun z hz ↦ ⟨mem_upperHalfSpace.1 (timeScale_neg_two_pow_mem_upperHalfSpace k hz.1),
+          by simpa using hz.2⟩
   · refine tendstoLocallyUniformlyOn_of_forall_exists_nhds fun z hz ↦ ?_
     obtain ⟨r, hr, M, hM₀, hrU, hM⟩ := exists_bound_ftaylorSeriesWithin hU hh h1 m hz.2
     refine ⟨_, hnhds hr, tendstoUniformlyOn_finsetSum_of_hasSum
       (fun y hy ↦ (hcoef m ⟨hy.1, hrU hy.2⟩).hasSum)
-      ((summable_seeleyCoeff_mul_pow m).mul_right M) fun k y hy ↦ ?_⟩
+      ((summable_abs_seeleyCoeff_mul_pow m).mul_right M) fun k y hy ↦ ?_⟩
     have hτ : ‖timeScale (E := E) (-2 ^ k)‖ ≤ 2 ^ k := by
       refine (norm_timeScale_le _).trans_eq ?_
       rw [abs_neg, abs_pow, abs_two, max_eq_left (one_le_pow₀ one_le_two)]
-    have hy' := timeScale_mem_Ici_prod (k := k) ⟨hy.1, hrU hy.2⟩
+    have hy' := mem_upperHalfSpace.1 (timeScale_neg_two_pow_mem_upperHalfSpace (E := E) k hy.1)
     calc _ = |seeleyCoeff k| * ‖(p (timeScale (-2 ^ k) y) m).compContinuousLinearMap
           fun _ ↦ timeScale (E := E) (-2 ^ k)‖ := by rw [norm_smul, Real.norm_eq_abs]
       _ ≤ |seeleyCoeff k| * (M * ∏ _i : Fin m, (2 : ℝ) ^ k) := by
         gcongr
         refine (ContinuousMultilinearMap.norm_compContinuousLinearMap_le _ _).trans ?_
         gcongr with i
-        exact hM _ hy'.1 (by simpa using hy.2)
-      _ = |seeleyCoeff k| * 2 ^ (k * m) * M := by
-        rw [Finset.prod_const, Finset.card_univ, Fintype.card_fin, ← pow_mul]
+        exact hM _ hy' (by simpa using hy.2)
+      _ = |seeleyCoeff k| * ((2 : ℝ) ^ k) ^ m * M := by
+        rw [Finset.prod_const, Finset.card_univ, Fintype.card_fin]
         ring
 
 /-- The function equal to `h` for nonnegative times and to Seeley's sum of `h` for negative

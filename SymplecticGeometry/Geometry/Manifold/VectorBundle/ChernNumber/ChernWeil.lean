@@ -8,9 +8,9 @@ module
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CurvatureIntegral
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.StandardTransition
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
-import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.CoordinateDisc
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.ClutchingConnection
+import TauCeti.Analysis.SpecialFunctions.SmoothTransition
 
 /-!
 # The Chern–Weil formula for circle bundles over surfaces
@@ -105,13 +105,8 @@ theorem chernNumber_eq_integral_curvature (o : Manifold.Orientation (𝓡 2) M (
   obtain ⟨ι, _, e, r, hr, hc, he, φ, hφe, hatlas, hdisj, k, σ, σout, hσ, hσout, hrel, hsum⟩ :=
     exists_coordinateDisc_unitSection_eq_phase_zpow_smul g hI o
   obtain rfl : φ = fun i ↦ CoordinateDisc.ofChart (e i) (hr i) (hc i) (he i) := funext hφe
-  -- the cut-off `β`, `0` up to `1 / 4` and `1` from `1 / 2` on
-  set β : ℝ → ℝ := fun t ↦ Real.smoothTransition (4 * t - 1)
-  have hβ : ContDiff ℝ ∞ β := Real.smoothTransition.contDiff.comp (by fun_prop)
-  have hβa : ∀ t ≤ 1 / 4, β t = 0 := fun t ht ↦
-    Real.smoothTransition.zero_of_nonpos (by linarith)
-  have hβb : ∀ t ≥ 1 / 2, β t = 1 := fun t ht ↦
-    Real.smoothTransition.one_of_one_le (by linarith)
+  -- a smooth cut-off `β`, `0` up to `1 / 4` and `1` from `1 / 2` on
+  obtain ⟨β, hβ, hβa, hβb, -⟩ := TauCeti.exists_contDiff_step (by norm_num : (1 / 4 : ℝ) < 1 / 2)
   obtain ⟨α₁, hα₁, hout, hpull⟩ := exists_isCircleConnectionForm_of_collar_eq_zpow_smul
     (fun i ↦ (CoordinateDisc.contMDiff_ofChart (e i) (hr i) (hc i) (he i)
       (hatlas i)).mdifferentiable (by simp))
