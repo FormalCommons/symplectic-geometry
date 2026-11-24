@@ -8,7 +8,7 @@ module
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 import TauCeti.Geometry.Manifold.Diffeomorph.Extend
-import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.UnitInterval
 
 /-!
@@ -36,10 +36,10 @@ The map `χ (t, w) = (t, G_t w)` is a local diffeomorphism of the cylinders
 `IsLocalDiffeomorph.exists_diffeomorph_extend_of_isCompact` extends the diffeomorphism
 `(t, w) ↦ (t, Λ w)` of `unitInterval × W` along `χ` to a diffeomorphism `Ψ` of
 `unitInterval × M` that fixes every point outside `χ '' (univ ×ˢ K)`, and `Ψ` preserves the time
-coordinate. Then `Λ₀` is the time-zero slice of `Ψ` (`Diffeomorph.slice`), and the total
-diffeomorphism of `Φ` is `Ψ ∘ (id × Λ₀⁻¹)`. This adapts the proof of Tau Ceti's
-`TauCeti.Diffeotopy.exists_extend_of_isCompact`, which moves a diffeotopy along one fixed
-embedding, to an embedding that moves with time.
+coordinate. Then `Λ₀` is the time-zero slice of `Ψ` (`Diffeomorph.slice`), and `Φ` is
+`TauCeti.Diffeotopy.ofFstEq Ψ`, whose total diffeomorphism is `Ψ ∘ (id × Λ₀⁻¹)`. This adapts the
+proof of Tau Ceti's `TauCeti.Diffeotopy.exists_extend_of_isCompact`, which moves a diffeotopy
+along one fixed embedding, to an embedding that moves with time.
 
 ## References
 
@@ -109,16 +109,9 @@ theorem exists_diffeotopy_comp_eq_extend [T2Space M] {g₀ g₁ : C^∞⟮I', W;
   have hΛ₀ (x : M) : Λ₀ x = (Ψ (0, x)).2 := Ψ.slice_apply hΨ 0 x
   have hΛ₀K (x : M) (hx : x ∉ g₀ '' K) : Λ₀ x = x := by
     rw [hΛ₀, hfix 0 x fun w hw h ↦ hx ⟨w, hw, by rw [← h, apply_zero]⟩]
-  let T := ((Diffeomorph.refl (𝓡∂ 1) unitInterval ∞).prodCongr Λ₀.symm).trans Ψ
-  have hT (p : unitInterval × M) : T p = Ψ (p.1, Λ₀.symm p.2) := by
-    obtain ⟨t, x⟩ := p
-    simp [T, Diffeomorph.coe_trans, Diffeomorph.coe_prodCongr, Prod.map_apply]
-  let Φ : Diffeotopy I ∞ M :=
-    { toDiffeomorph := T
-      fst_apply := fun p ↦ by rw [hT, hΨ]
-      snd_apply_zero' := fun x ↦ by rw [hT, ← hΛ₀, Λ₀.apply_symm_apply] }
+  let Φ : Diffeotopy I ∞ M := Diffeotopy.ofFstEq Ψ hΨ
   have hΦ (t : unitInterval) (x : M) : Φ (t, x) = (Ψ (t, Λ₀.symm x)).2 := by
-    simp only [Φ, hT]
+    rw [Diffeotopy.ofFstEq_apply, Diffeomorph.slice_apply]
   refine ⟨Λ₀, Φ, fun t w ↦ ?_, fun t x hx ↦ ?_, fun w ↦ ?_, hΛ₀K⟩
   · rw [Diffeotopy.timeSlice_apply, hΦ, Λ₀.symm_apply_apply, hΨχ']
   · have hx₀ : x ∉ g₀ '' K := fun ⟨w, hw, h⟩ ↦

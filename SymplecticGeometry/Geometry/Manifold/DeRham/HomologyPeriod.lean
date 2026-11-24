@@ -10,7 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
 public import TauCeti.Geometry.Manifold.DeRham.HomologyPeriod
 public import TauCeti.AlgebraicTopology.Singular.Homotopy.Invariance
 public import SymplecticGeometry.AlgebraicTopology.Singular.ChainsDesc
-import TauCeti.Geometry.Manifold.SmoothApprox.Basic
+import TauCeti.Geometry.Manifold.SmoothApprox
 
 /-!
 # Periods of smooth families of closed one-forms
@@ -213,22 +213,19 @@ theorem contMDiff_homologyPeriodHom {M : Type} [TopologicalSpace M] [ChartedSpac
     [IsManifold K ∞ N] {α : N → SmoothForm I M ℝ 1} (hα : IsSmoothFamily K α)
     (hcl : ∀ t, α t ∈ closedForms I M 1) (c : ((singularChains ℤ).obj (.of M)).homology 1) :
     ContMDiff K 𝓘(ℝ) ∞ fun t ↦ homologyPeriodHom (α t : RoughForm I M ℝ 1) c := by
-  obtain ⟨z, rfl⟩ := (H₁AddEquivHomology ℤ (.of M)).surjective c
+  obtain ⟨z, rfl⟩ := (H₁AddEquivHomology (.of M)).surjective c
   obtain ⟨z, rfl⟩ := H₁.mk_surjective z
   simp_rw [homologyPeriodHom_H₁AddEquivHomology_mk]
   -- The periods along the simplices, as smooth functions of the parameter.
   let g : (TopCat.toSSet.obj (.of M)) _⦋1⦌ → C^∞⟮K, N; 𝓘(ℝ), ℝ⟯ := fun s ↦
     ⟨fun t ↦ pathClassIntegral (α t : RoughForm I M ℝ 1) (.mk (path₁ s)),
       hα.contMDiff_pathClassIntegral hcl _⟩
-  have key (t : N) : (chainsDesc fun s ↦ pathClassIntegral (α t : RoughForm I M ℝ 1)
-      (.mk (path₁ s))).toAddMonoidHom =
-      (ContMDiffMap.evalRingHom t).toAddMonoidHom.comp (chainsDesc g).toAddMonoidHom :=
-    singularChains_addMonoidHom_ext (RingEquiv.refl ℤ) fun s ↦ by
-      simp only [LinearMap.toAddMonoidHom_coe, AddMonoidHom.coe_comp, Function.comp_apply,
-        chainsDesc_simplexChain_one]
-      rfl
-  have hval (t : N) := DFunLike.congr_fun (key t) (z : ((singularChains ℤ).obj (.of M)).X 1)
-  simp only [LinearMap.toAddMonoidHom_coe, AddMonoidHom.coe_comp, Function.comp_apply] at hval
+  -- Evaluation at `t` is additive, so it commutes with `chainsDesc`; on `g s` it gives the
+  -- period along `s` by definition of `g`.
+  have hval (t : N) : chainsDesc (fun s ↦ pathClassIntegral (α t : RoughForm I M ℝ 1)
+      (.mk (path₁ s))) (z : ((singularChains ℤ).obj (.of M)).X 1) =
+      chainsDesc g (z : ((singularChains ℤ).obj (.of M)).X 1) t :=
+    (map_chainsDesc (ContMDiffMap.evalRingHom t).toAddMonoidHom.toIntLinearMap g _).symm
   simp_rw [hval]
   exact (chainsDesc g (z : ((singularChains ℤ).obj (.of M)).X 1)).contMDiff
 
@@ -244,7 +241,7 @@ theorem homologyPeriodHom_eq_intervalIntegral {M : Type} [TopologicalSpace M] [C
       (fun t ↦ (α (u t) : RoughForm I M ℝ 1) x) a b volume)
     (c : ((singularChains ℤ).obj (.of M)).homology 1) :
     homologyPeriodHom β c = ∫ t in a..b, homologyPeriodHom (α (u t) : RoughForm I M ℝ 1) c := by
-  obtain ⟨z, rfl⟩ := (H₁AddEquivHomology ℤ (.of M)).surjective c
+  obtain ⟨z, rfl⟩ := (H₁AddEquivHomology (.of M)).surjective c
   obtain ⟨z, rfl⟩ := H₁.mk_surjective z
   simp_rw [homologyPeriodHom_H₁AddEquivHomology_mk]
   -- The periods along the simplices, as continuous functions of the time.
