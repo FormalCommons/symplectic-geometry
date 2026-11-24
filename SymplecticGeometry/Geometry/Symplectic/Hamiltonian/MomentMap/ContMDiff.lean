@@ -14,11 +14,10 @@ public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap
 A moment map `μ : M → 𝔤*` takes values in `Module.Dual ℝ 𝔤`, which carries no topology, and
 Tau Ceti's `TauCeti.SmoothTwoForm.IsMomentMap` asks only that each component `x ↦ μ x Z` be
 smooth. When `𝔤` is finite-dimensional, this file reads `μ` through a linear map
-`f : 𝔤* → V` into a real normed space and shows that `f ∘ μ` is smooth, hence continuous. The
-evaluations at elements of `𝔤` separate the points of `𝔤*`, so every functional on `𝔤*` takes
-`μ` to a smooth function (`SymplecticGeometry.contMDiff_dual_apply_of_separating`), and
-`SymplecticGeometry.contMDiff_linearMap_comp_of_dual` concludes. That lemma reads `μ` in a basis,
-as Tau Ceti's `TauCeti.SmoothTwoForm.IsMomentMap.contMDiff_sub` does.
+`f : 𝔤* → V` into a real normed space and shows that `f ∘ μ` is smooth, hence continuous. Every
+functional on `𝔤*` is the evaluation at an element of `𝔤` (Mathlib's `Module.evalEquiv`), so it
+takes `μ` to a smooth function, and `SymplecticGeometry.contMDiff_linearMap_comp_of_dual`
+concludes.
 
 ## Main results
 
@@ -45,13 +44,8 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
 any `LinearMapClass`), with `V` a real normed space. Then `f ∘ μ : M → V` is smooth. -/
 theorem contMDiff_linearMap_comp (h : σ.IsMomentMap a μ) (f : F) :
     ContMDiff I 𝓘(ℝ, V) ∞ (f ∘ μ) :=
-  SymplecticGeometry.contMDiff_linearMap_comp_of_dual
-    (SymplecticGeometry.contMDiff_dual_apply_of_separating
-      (s := Set.range (Module.Dual.eval ℝ 𝔤))
-      (fun φ hφ ↦ by
-        by_contra! h0
-        exact hφ (LinearMap.ext fun Z ↦ h0 _ ⟨Z, rfl⟩))
-      (by rintro _ ⟨Z, rfl⟩; exact h.contMDiff Z)) f
+  SymplecticGeometry.contMDiff_linearMap_comp_of_dual (fun g ↦ by
+    simpa using h.contMDiff ((evalEquiv ℝ 𝔤).symm g)) f
 
 /-- **A moment map read through a linear map is continuous.** Let `μ : M → 𝔤*` be a moment map,
 with `𝔤` finite-dimensional, and let `f : 𝔤* → V` be linear, with `V` a real normed space. Then
