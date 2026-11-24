@@ -3149,20 +3149,21 @@ Differential topology and complex analysis only; it waits for no part of
 
 - **Files:** in `Geometry/Diffeomorphism/Sphere/`, beside Tau Ceti's
   files of that folder: `ComplexStructure.lean` (the space $\mathcal J$
-  with its topology, the pull-back $\phi^*J$, its continuity in $\phi$ and
-  $J$, and the contraction of $\mathcal J$ onto $i$), `Uniformization.lean`
+  with its topology, the pull-back $\phi^*J$, its continuity in $\phi$,
+  and the contraction of $\mathcal J$ onto $i$), `Uniformization.lean`
   (the map $\sigma(J)$ built from sections of $E_J$ vanishing at $0$ and
   $\infty$, its continuity, and that it is the unique biholomorphism
-  $(S^2,J)\to(S^2,i)$ fixing $0,1,\infty$, from Tau Ceti's
-  `TauCeti.RiemannSurface.biholomorphOfDegreeEqOne` and
+  $(S^2,J)\to(S^2,i)$ fixing $0,1,\infty$, from the zero count of $E_J$
+  and Tau Ceti's
   `Diffeomorph.eq_refl_of_apply_zero_one_infty_eq_self`), `Mobius.lean`
   ($\mathrm{PSL}(2,\mathbb C)$ as the stabilizer of $i$ in $\mathrm{Diff}^+$,
   from `Diffeomorph.exists_coe_eq_smul`, with its subspace topology equal
   to its Lie group topology, and its deformation retraction onto
   $\mathrm{SO}(3)$ by the polar decomposition), `Trivialization.lean` (the
   homeomorphism $\mathrm{Diff}^+(S^2)\cong\mathcal J\times\mathrm{PSL}(2,\mathbb
-  C)$ over $\mathcal J$) and `Smale.lean` (named like Tau Ceti's file: the
-  strong deformation retraction of $\mathrm{Diff}^+(S^2)$ onto
+  C)$ over $\mathcal J$) and `Smale.lean` (sharing its name with Tau
+  Ceti's `Geometry/Diffeomorphism/Smale.lean`, on the conjecture for $S^3$:
+  the strong deformation retraction of $\mathrm{Diff}^+(S^2)$ onto
   $\mathrm{SO}(3)$, with $\pi_0=0$ and $\pi_1\cong\mathbb Z/2$ from Tau
   Ceti's `TauCeti.specialOrthogonalGroupFundamentalGroupMulEquiv`).
 - **Builds on:** *Cauchy–Riemann operators on the sphere*; the merged
@@ -3765,7 +3766,7 @@ classification of 2-sphere bundles waits for them.
 
 | Milestone | Where |
 |---|---|
-| *Diffeomorphisms of the 2-sphere form a trivial principal bundle over the complex structures* | *Diffeomorphisms of the 2-sphere* (`Trivialization.lean`), with the operators of *Cauchy–Riemann operators on the sphere*. Existing inputs: `TauCeti.RiemannSurface.biholomorphOfDegreeEqOne`, `Diffeomorph.exists_coe_eq_smul`, `Diffeomorph.eq_refl_of_apply_zero_one_infty_eq_self`, `Continuous.index_eq_of_preconnectedSpace`, and the merged integrability theorem `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`. |
+| *Diffeomorphisms of the 2-sphere form a trivial principal bundle over the complex structures* | *Diffeomorphisms of the 2-sphere* (`Trivialization.lean`), with the operators of *Cauchy–Riemann operators on the sphere*. Existing inputs: `Diffeomorph.exists_coe_eq_smul`, `Diffeomorph.eq_refl_of_apply_zero_one_infty_eq_self`, `Continuous.index_eq_of_preconnectedSpace`, and the merged integrability theorem `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`. |
 | *Smale's theorem on the diffeomorphism group of the 2-sphere* | *Diffeomorphisms of the 2-sphere* (`Smale.lean`). Existing inputs: `TauCeti.orthogonalToDiffSphere`, `Diffeomorph.isTopologicalGroup`. |
 
 ## Departures from the plan's advice
