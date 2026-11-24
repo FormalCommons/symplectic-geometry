@@ -49,6 +49,8 @@ two series glue across `t = 0` by `HasFTaylorSeriesUpToOn.union`. The uniform co
 
 * `SymplecticGeometry.contDiffOn_seeleyExtend`, `SymplecticGeometry.contDiffOn_seeleyIccExtend`:
   the extensions of smooth families are smooth.
+* `SymplecticGeometry.contDiff_seeleyExtend`: the extension of a function smooth on `[0, ∞)` is
+  smooth.
 * `SymplecticGeometry.exists_contDiffOn_eqOn_Icc_prod`: a family smooth on `Icc a b ×ˢ U` agrees
   there with one smooth on `univ ×ˢ U`.
 * `SymplecticGeometry.exists_contDiff_eqOn_of_contDiffOn_halfSpace`: a function smooth on a
@@ -491,6 +493,16 @@ theorem contDiffOn_seeleyExtend {f : ℝ × E → F} {U : Set E} (hU : IsOpen U)
     refine (hf.mono fun y (hy : y ∈ univ ×ˢ U ∩ Ioi 0 ×ˢ univ) ↦
       ⟨le_of_lt hy.2.1, hy.1.2⟩).congr fun y hy ↦ ?_
     rw [seeleyExtend_of_nonneg _ (le_of_lt hy.2.1)]
+
+/-- **Seeley's extension theorem**: if `f : ℝ → F` is smooth on `[0, ∞)`, then
+`seeleyExtend f` is smooth on `ℝ`. -/
+theorem contDiff_seeleyExtend {f : ℝ → F} (hf : ContDiffOn ℝ ∞ f (Ici 0)) :
+    ContDiff ℝ ∞ (seeleyExtend f) := by
+  have h : ContDiffOn ℝ ∞ (fun p : ℝ × ℝ ↦ f p.1) (Ici 0 ×ˢ univ) :=
+    hf.comp contDiff_fst.contDiffOn fun p hp ↦ hp.1
+  have hg := contDiffOn_seeleyExtend isOpen_univ h
+  rw [univ_prod_univ, contDiffOn_univ] at hg
+  exact hg.comp (contDiff_id.prodMk contDiff_const : ContDiff ℝ ∞ fun t : ℝ ↦ (t, (0 : ℝ)))
 
 /-- **Seeley's extension theorem** on `[0, 1]`, with parameters: if `f` is smooth on
 `Icc 0 1 ×ˢ U` for an open `U`, then `(t, x) ↦ seeleyIccExtend (f (·, x)) t` is smooth on
