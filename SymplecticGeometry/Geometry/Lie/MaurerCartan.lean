@@ -9,7 +9,6 @@ public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
 public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Lie.LeftInvariantForm
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
-public import TauCeti.Geometry.Symplectic.Coadjoint.LieGroup
 
 /-!
 # The left Maurer–Cartan form
