@@ -9,6 +9,7 @@ import Mathlib.Geometry.Manifold.Algebra.SmoothFunctions
 public import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
 public import TauCeti.Geometry.Manifold.DeRham.HomologyPeriod
 public import TauCeti.AlgebraicTopology.Singular.Homotopy.Invariance
+public import SymplecticGeometry.AlgebraicTopology.Singular.ChainsDesc
 import TauCeti.Geometry.Manifold.SmoothApprox
 
 /-!
@@ -35,8 +36,8 @@ the time integral `∫ₐᵇ α_{u t} dt` along a continuous path `u` of paramet
 of `β` is the time integral of the periods of the `α_{u t}`. Along a smooth curve this is
 Fubini's theorem (`intervalIntegral_intervalIntegral_swap`) for the integrand
 `(s, t) ↦ (c^* α_{u t})_s(1)`, continuous on the plane, once evaluation on the velocity has been
-taken inside the time integral; that needs the continuity of `t ↦ α_t x`
-(`SymplecticGeometry.IsSmoothFamily.continuous_val_apply`). The path classes and the homology
+taken inside the time integral; that needs the continuity of `t ↦ α_t x`, which is smooth
+(`SymplecticGeometry.IsSmoothFamily.contMDiff_val_apply`). The path classes and the homology
 classes then follow as before, the periods along the simplices being continuous in the time.
 
 ## Main results
@@ -155,7 +156,7 @@ theorem pathIntegral_eq_intervalIntegral {F : Type*} [NormedAddCommGroup F] [Nor
     -- Evaluation on the velocity is a continuous linear map, so it commutes with the integral.
     exact (ContinuousLinearMap.intervalIntegral_comp_comm
       (ContinuousAlternatingMap.apply ℝ E F fun _ : Fin 1 ↦ mfderiv 𝓘(ℝ, ℝ) I c s 1)
-      (((hα.continuous_val_apply (c s)).comp hu).intervalIntegrable a b)).symm
+      (((hα.contMDiff_val_apply (c s)).continuous.comp hu).intervalIntegrable a b)).symm
   -- `G` is continuous, so Fubini applies on the compact rectangle.
   have hint : IntegrableOn (Function.uncurry G) (Ι a' b' ×ˢ Ι a b) :=
     (hG.continuousOn.integrableOn_compact (isCompact_uIcc.prod isCompact_uIcc)).mono_set
@@ -236,8 +237,7 @@ the integral `∫ₐᵇ α_{u t} dt` of a smooth family of closed one-forms alon
 of parameters, then the periods of `β` on `H₁(M; ℤ)` are the integrals over `t ∈ [a, b]` of the
 periods of the `α_{u t}`, on a Hausdorff boundaryless manifold. -/
 theorem homologyPeriodHom_eq_intervalIntegral {M : Type} [TopologicalSpace M] [ChartedSpace H M]
-    [IsManifold I ∞ M] [T2Space M] {N : Type} [TopologicalSpace N] [ChartedSpace HN N]
-    [IsManifold K ∞ N] {α : N → SmoothForm I M ℝ 1} (hα : IsSmoothFamily K α)
+    [IsManifold I ∞ M] [T2Space M] {α : N → SmoothForm I M ℝ 1} (hα : IsSmoothFamily K α)
     (hcl : ∀ t, α t ∈ closedForms I M 1) {u : ℝ → N} (hu : Continuous u) {a b : ℝ}
     {β : RoughForm I M ℝ 1} (hβ : IsSmoothForm I 1 β) (hβc : mextDeriv β = 0)
     (h : ∀ x, β x = intervalIntegral (E := E [⋀^Fin 1]→L[ℝ] ℝ)
@@ -257,29 +257,11 @@ theorem homologyPeriodHom_eq_intervalIntegral {M : Type} [TopologicalSpace M] [C
       map_zero' := by simp
       map_add' f₁ f₂ := intervalIntegral.integral_add (f₁.continuous.intervalIntegrable a b)
         (f₂.continuous.intervalIntegrable a b) }
-  have hval (t : ℝ) : (chainsDesc fun s ↦ pathClassIntegral (α (u t) : RoughForm I M ℝ 1)
-      (.mk (path₁ s))).toAddMonoidHom =
-      (ContinuousMap.evalCLM ℝ t).toLinearMap.toAddMonoidHom.comp (chainsDesc g).toAddMonoidHom :=
-    singularChains_addMonoidHom_ext fun s ↦ by
-      simp only [LinearMap.toAddMonoidHom_coe, AddMonoidHom.coe_comp, Function.comp_apply,
-        chainsDesc_simplexChain_one, ContinuousLinearMap.coe_coe, ContinuousMap.evalCLM_apply, g,
-        ContinuousMap.coe_mk]
-  have hβval : (chainsDesc fun s ↦ pathClassIntegral β (.mk (path₁ s))).toAddMonoidHom =
-      L.comp (chainsDesc g).toAddMonoidHom :=
-    singularChains_addMonoidHom_ext fun s ↦ by
-      simp only [LinearMap.toAddMonoidHom_coe, AddMonoidHom.coe_comp, Function.comp_apply,
-        chainsDesc_simplexChain_one, L, g, AddMonoidHom.coe_mk, ZeroHom.coe_mk,
-        ContinuousMap.coe_mk]
-      exact hα.pathClassIntegral_eq_intervalIntegral hcl hu hβ hβc h _
-  have hz := DFunLike.congr_fun hβval (z : ((singularChains ℤ).obj (.of M)).X 1)
-  simp only [LinearMap.toAddMonoidHom_coe, AddMonoidHom.coe_comp, Function.comp_apply, L,
-    AddMonoidHom.coe_mk, ZeroHom.coe_mk] at hz
-  rw [hz]
-  refine intervalIntegral.integral_congr fun t _ ↦ ?_
-  have ht := DFunLike.congr_fun (hval t) (z : ((singularChains ℤ).obj (.of M)).X 1)
-  simp only [LinearMap.toAddMonoidHom_coe, AddMonoidHom.coe_comp, Function.comp_apply,
-    ContinuousLinearMap.coe_coe, ContinuousMap.evalCLM_apply] at ht
-  exact ht.symm
+  have hβg : (fun s ↦ pathClassIntegral β (.mk (path₁ s))) = fun s ↦ L (g s) :=
+    funext fun s ↦ hα.pathClassIntegral_eq_intervalIntegral hcl hu hβ hβc h _
+  rw [hβg, ← map_chainsDesc]
+  exact intervalIntegral.integral_congr fun t _ ↦ map_chainsDesc
+    ((Pi.evalAddMonoidHom (fun _ : ℝ ↦ ℝ) t).comp ContinuousMap.coeFnAddMonoidHom) g _
 
 end IsSmoothFamily
 

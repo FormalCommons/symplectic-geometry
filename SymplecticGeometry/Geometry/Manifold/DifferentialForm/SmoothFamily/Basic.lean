@@ -56,8 +56,8 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
   section is smooth.
 * `SymplecticGeometry.IsSmoothFamily.contMDiff_apply`: the values of a smooth family at a point,
   on fixed tangent vectors, are smooth in the parameter.
-* `SymplecticGeometry.IsSmoothFamily.continuous_val_apply`: the value of a smooth family at a
-  point is continuous in the parameter.
+* `SymplecticGeometry.IsSmoothFamily.contMDiff_val_apply`: the value of a smooth family at a
+  point is smooth in the parameter.
 * `SymplecticGeometry.IsSmoothFamily.continuous_apply_one`: the values of a smooth family of
   one-forms on `ℝ` on the unit vector are jointly continuous in the parameter and the point.
 * `SymplecticGeometry.IsSmoothFamily.ext_on`: two smooth families that agree on a dense set of
@@ -281,14 +281,30 @@ theorem contMDiff_apply (h : IsSmoothFamily J α) (x : M) (v : Fin k → Tangent
     Trivialization.symmL_continuousLinearMapAt _ hx] using this
 
 /-- The value of a smooth family at a point, as an alternating map on the tangent space there,
-depends continuously on the parameter. -/
-theorem continuous_val_apply (h : IsSmoothFamily J α) (x : M) :
-    Continuous (Y := E [⋀^Fin k]→L[ℝ] F) fun t ↦ (α t).val x := by
-  have hS := ((isSmoothFamily_iff_contMDiff.mp h).comp
-    (contMDiff_id.prodMk contMDiff_const : ContMDiff J (J.prod I) ∞ fun t ↦ (t, x))).continuous
-  -- The inclusion of the fibre over `x` into the total space is an embedding.
-  exact (FiberBundle.totalSpaceMk_isInducing (E [⋀^Fin k]→L[ℝ] F)
-    (fun y : M ↦ TangentSpace I y [⋀^Fin k]→L[ℝ] Trivial M F y) x).continuous_iff.mpr hS
+depends smoothly on the parameter. -/
+theorem contMDiff_val_apply (h : IsSmoothFamily J α) (x : M) :
+    ContMDiff (M' := E [⋀^Fin k]→L[ℝ] F) J 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F) ∞ fun t ↦ (α t).val x := by
+  have hS := (isSmoothFamily_iff_contMDiff.mp h).comp
+    (contMDiff_id.prodMk contMDiff_const : ContMDiff J (J.prod I) ∞ fun t ↦ (t, x))
+  intro t
+  have hc := (Bundle.contMDiffAt_totalSpace_iff.mp (hS t)).2
+  simp only [Function.comp_apply, id_eq,
+    FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd] at hc
+  have hx : x ∈ (trivializationAt E (TangentSpace I) x).baseSet :=
+    FiberBundle.mem_baseSet_trivializationAt' x
+  -- Undo the trivialization at `x` by precomposing with its inverse on the fibre.
+  let L : (E [⋀^Fin k]→L[ℝ] F) →L[ℝ] E [⋀^Fin k]→L[ℝ] F :=
+    ContinuousAlternatingMap.compContinuousLinearMapCLM
+      ((trivializationAt E (TangentSpace I) x).continuousLinearMapAt ℝ x)
+  have hL (φ : E [⋀^Fin k]→L[ℝ] F) : L φ = φ.compContinuousLinearMap
+      ((trivializationAt E (TangentSpace I) x).continuousLinearMapAt ℝ x) :=
+    ContinuousAlternatingMap.compContinuousLinearMapCLM_apply _ φ
+  refine (L.contMDiff.contMDiffAt.comp t hc).congr_of_eventuallyEq
+    (Filter.Eventually.of_forall fun s ↦ ?_)
+  rw [Function.comp_apply, hL]
+  ext v
+  simp only [ContinuousAlternatingMap.compContinuousLinearMap_apply, Function.comp_def,
+    Trivialization.symmL_continuousLinearMapAt _ hx]
 
 /-- For a smooth family `α` of one-forms on `ℝ`, the value of `α t` at `s` on the unit tangent
 vector `1` depends jointly continuously on `(t, s)`. -/
