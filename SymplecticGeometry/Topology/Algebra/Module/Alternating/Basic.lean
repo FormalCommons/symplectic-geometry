@@ -28,7 +28,7 @@ family `![w]`. -/
 @[ext]
 theorem ext_fin_one {f g : M [⋀^Fin 1]→L[R] N} (h : ∀ w, f ![w] = g ![w]) : f = g :=
   ext fun v ↦ by
-    rw [show v = ![v 0] from funext fun i ↦ by simp [Fin.fin_one_eq_zero i]]
+    rw [← FinVec.etaExpand_eq v]
     exact h (v 0)
 
 end ContinuousAlternatingMap

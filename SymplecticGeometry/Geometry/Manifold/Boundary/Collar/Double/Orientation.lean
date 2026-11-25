@@ -18,6 +18,7 @@ import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import TauCeti.Geometry.Manifold.Diffeomorph.NormedSpace
 import TauCeti.Geometry.Manifold.Orientation.Glue
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+import TauCeti.Topology.Algebra.Module.Determinant
 
 /-!
 # The orientation of the double
@@ -256,9 +257,7 @@ private theorem det_mfderiv_bandParamAffine {a b : ℝ} (hb : b ≠ 0) {s₀ : b
     · exact mfderiv_bandAffine h v.1
     · rfl
   have hdet : ((b • ContinuousLinearMap.id ℝ ℝ).prodMap
-      (ContinuousLinearMap.id ℝ (EuclideanSpace ℝ (Fin n)))).det = b := by
-    rw [ContinuousLinearMap.det, ContinuousLinearMap.coe_prodMap, LinearMap.det_prodMap]
-    simp
+      (ContinuousLinearMap.id ℝ (EuclideanSpace ℝ (Fin n)))).det = b := by simp
   rw [hD]
   exact hdet
 
