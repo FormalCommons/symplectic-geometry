@@ -20,6 +20,7 @@ import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.Weights
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.Basic
 import SymplecticGeometry.Topology.Algebra.ConstMulAction
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 
 /-!
 # The localizing one-form of a circle action
@@ -48,12 +49,19 @@ the fixed points:
   acts in the chart by `uⱼ ↦ χⱼ(g) uⱼ` and preserves `ρ`, since `θₖ` is invariant under the
   rotations `TauCeti.weightRotation` (`SymplecticGeometry.mpullback_weightRotation_weightOneForm`);
 * `SymplecticGeometry.cutoffWeightOneForm_apply_weightChart`: on a vector field `X` that `dΦ`
-  relates to the generator of the rotations by the angles `2π kⱼ`, its value at `Φ z` is
-  `ρ (Φ z) * (2π ∑ⱼ kⱼ² (xⱼ² + yⱼ²))`; it vanishes where `ρ` does
+  relates to the generator of the rotations by the angles `2π k'ⱼ`, its value at `Φ z` is
+  `ρ (Φ z) * (2π ∑ⱼ kⱼ k'ⱼ (xⱼ² + yⱼ²))`, and `ρ (Φ z) * (2π ∑ⱼ kⱼ² (xⱼ² + yⱼ²))` for `k' = k`
+  (`SymplecticGeometry.cutoffWeightOneForm_apply_weightChart_self`); it vanishes where `ρ` does
   (`SymplecticGeometry.cutoffWeightOneForm_apply_of_eq_zero`), so it is nonnegative on `X` where
   `ρ` is (`SymplecticGeometry.cutoffWeightOneForm_apply_nonneg`); where `ρ` is nonzero and no
   `kⱼ` is zero, it vanishes on `X` only at `z = 0`
-  (`SymplecticGeometry.cutoffWeightOneForm_apply_weightChart_eq_zero_iff`).
+  (`SymplecticGeometry.cutoffWeightOneForm_apply_weightChart_eq_zero_iff`);
+* `SymplecticGeometry.mextDerivₗ_cutoffWeightOneForm_apply_of_eventuallyEq_one`: near a point
+  where `ρ = 1`, the form is `(Φ⁻¹)^* θₖ`, so its exterior derivative there is `(Φ⁻¹)^* dθₖ`, by
+  naturality of `d` (`TauCeti.mpullback_mextDeriv_at`);
+* `SymplecticGeometry.mextDerivₗ_cutoffWeightOneForm_half_apply_of_eventuallyEq_one`: if `Φ`
+  pulls a two-form `σ` back to the standard form `ω₀`, then for `kⱼ = 1/2`, where `dθₖ = ω₀`,
+  the exterior derivative is `σ` at such a point.
 
 The localizing one-form is `θ = ∑ᵢ ρᵢ (Φᵢ⁻¹)^* θ_{kᵢ} + (1 - ∑ᵢ ρᵢ) β`, for weight charts `Φᵢ`
 at the fixed points, invariant cut-offs `ρᵢ` with pairwise disjoint supports, and an invariant
@@ -153,27 +161,42 @@ theorem cutoffWeightOneForm_apply_of_eq_zero {x : M} (hx : ρ x = 0)
 
 variable {Φ} in
 /-- On a vector field `X` that the differential of `Φ` relates, at `z`, to the generator
-`weightGenerator ((2π) • k)` of the rotations by the angles `2π kⱼ`, the cut-off model one-form
-takes at `Φ z` the value `ρ (Φ z) * (2π ∑ⱼ kⱼ² (xⱼ(z)² + yⱼ(z)²))`. -/
-theorem cutoffWeightOneForm_apply_weightChart {X : (x : M) → TangentSpace I x} {z : StdSpace ι}
-    (hz : z ∈ Φ.source)
+`weightGenerator ((2π) • k')` of the rotations by the angles `2π k'ⱼ`, for weights `k'` that need
+not be those of the form, the cut-off model one-form `ρ (Φ⁻¹)^* θₖ` takes at `Φ z` the value
+`ρ (Φ z) * (2π ∑ⱼ kⱼ k'ⱼ (xⱼ(z)² + yⱼ(z)²))`. -/
+theorem cutoffWeightOneForm_apply_weightChart (k' : ι → ℝ) {X : (x : M) → TangentSpace I x}
+    {z : StdSpace ι} (hz : z ∈ Φ.source)
     (hX : mfderiv 𝓘(ℝ, StdSpace ι) I Φ z
       (EuclideanSpace.sumEquivProd.symm
-        (weightGenerator ((2 * π) • k) (EuclideanSpace.sumEquivProd z))) = X (Φ z)) :
+        (weightGenerator ((2 * π) • k') (EuclideanSpace.sumEquivProd z))) = X (Φ z)) :
     (cutoffWeightOneForm Φ hρ hs k).val (Φ z) ![X (Φ z)] =
-      ρ (Φ z) * (2 * π * ∑ j, k j ^ 2 * (z.x j ^ 2 + z.y j ^ 2)) := by
+      ρ (Φ z) * (2 * π * ∑ j, k j * k' j * (z.x j ^ 2 + z.y j ^ 2)) := by
   rw [cutoffWeightOneForm_val, ContinuousAlternatingMap.smul_apply, smul_eq_mul,
     TauCeti.mpullback_apply]
   congr 1
   have hv : (fun i ↦ mfderiv I 𝓘(ℝ, StdSpace ι) Φ.symm (Φ z) (![X (Φ z)] i)) =
       ![EuclideanSpace.sumEquivProd.symm
-        (weightGenerator ((2 * π) • k) (EuclideanSpace.sumEquivProd z))] := by
+        (weightGenerator ((2 * π) • k') (EuclideanSpace.sumEquivProd z))] := by
     funext i
     rw [Fin.fin_one_eq_zero i, Matrix.cons_val_zero, Matrix.cons_val_zero, ← hX]
     exact Φ.mfderiv_symm_apply_mfderiv_apply (by simp) hz _
   rw [hv, Φ.symm_toPartialEquiv, Φ.left_inv hz]
-  -- `hv` lists the vectors as points of `StdSpace ι`, the lemma as tangent vectors at `z`.
-  exact weightOneForm_apply_weightGenerator_two_pi_mul k z
+  -- `hv` lists the vectors as points of `StdSpace ι`, the lemmas as tangent vectors at `z`.
+  exact (weightOneForm_apply_weightGenerator_smul k k' (2 * π) z).trans
+    (congrArg _ (weightOneForm_apply_weightGenerator k k' z))
+
+variable {Φ} in
+/-- On a vector field `X` that the differential of `Φ` relates, at `z`, to the generator
+`weightGenerator ((2π) • k)` of the rotations by the angles `2π kⱼ`, the cut-off model one-form
+takes at `Φ z` the value `ρ (Φ z) * (2π ∑ⱼ kⱼ² (xⱼ(z)² + yⱼ(z)²))`. -/
+theorem cutoffWeightOneForm_apply_weightChart_self {X : (x : M) → TangentSpace I x}
+    {z : StdSpace ι} (hz : z ∈ Φ.source)
+    (hX : mfderiv 𝓘(ℝ, StdSpace ι) I Φ z
+      (EuclideanSpace.sumEquivProd.symm
+        (weightGenerator ((2 * π) • k) (EuclideanSpace.sumEquivProd z))) = X (Φ z)) :
+    (cutoffWeightOneForm Φ hρ hs k).val (Φ z) ![X (Φ z)] =
+      ρ (Φ z) * (2 * π * ∑ j, k j ^ 2 * (z.x j ^ 2 + z.y j ^ 2)) := by
+  simp only [cutoffWeightOneForm_apply_weightChart hρ hs k k hz hX, sq]
 
 /-- The cut-off model one-form is nonnegative on a vector field `X` that the differential of `Φ`
 relates, at each point of the source, to the generator `weightGenerator ((2π) • k)`, at each
@@ -188,7 +211,7 @@ theorem cutoffWeightOneForm_apply_nonneg {X : (x : M) → TangentSpace I x}
   obtain ⟨z, hz, rfl⟩ : x ∈ Φ '' Φ.source := by
     rw [Φ.toPartialEquiv.image_source_eq_target]
     exact hs (subset_tsupport ρ hx)
-  rw [cutoffWeightOneForm_apply_weightChart hρ hs k hz (hX z hz)]
+  rw [cutoffWeightOneForm_apply_weightChart_self hρ hs k hz (hX z hz)]
   exact mul_nonneg hρ₀ (by positivity)
 
 variable {Φ} in
@@ -202,7 +225,7 @@ theorem cutoffWeightOneForm_apply_weightChart_eq_zero_iff (hk : ∀ j, k j ≠ 0
         (weightGenerator ((2 * π) • k) (EuclideanSpace.sumEquivProd z))) = X (Φ z))
     (hρz : ρ (Φ z) ≠ 0) :
     (cutoffWeightOneForm Φ hρ hs k).val (Φ z) ![X (Φ z)] = 0 ↔ z = 0 := by
-  rw [cutoffWeightOneForm_apply_weightChart hρ hs k hz hX,
+  rw [cutoffWeightOneForm_apply_weightChart_self hρ hs k hz hX,
     ← weightOneForm_apply_weightGenerator_two_pi_mul, mul_eq_zero, or_iff_right hρz,
     weightOneForm_apply_weightGenerator_eq_zero_iff hk]
 
@@ -259,6 +282,41 @@ theorem mpullback_smul_cutoffWeightOneForm {G : Type*} [SMul G M] (χ : ι → G
   refine Subtype.ext ?_
   rw [SmoothForm.coe_mpullback, cutoffWeightOneForm_val]
   exact TauCeti.mpullback_fun_smul_eq_self hρg hφ
+
+/-! ### The exterior derivative where the cut-off is `1` -/
+
+variable {Φ} in
+/-- Where the cut-off `ρ` is `1` near `x`, the exterior derivative of the cut-off model one-form
+at `x` is the pullback `(Φ⁻¹)^* dθₖ` of the exterior derivative of the model one-form. -/
+theorem mextDerivₗ_cutoffWeightOneForm_apply_of_eventuallyEq_one {x : M}
+    (hx : ρ =ᶠ[𝓝 x] 1) :
+    (mextDerivₗ I 1 (cutoffWeightOneForm Φ hρ hs k)).val x =
+      TauCeti.mpullback I 𝓘(ℝ, StdSpace ι) Φ.symm
+        (mextDerivₗ 𝓘(ℝ, StdSpace ι) 1 (weightOneForm k)).val x := by
+  have hxt : x ∈ Φ.target := hs (subset_tsupport ρ (by simp [hx.self_of_nhds]))
+  rw [mextDerivₗ_apply, mextDerivₗ_apply, mpullback_mextDeriv_at
+    ((Φ.symm.contMDiffOn.contMDiffAt (Φ.open_target.mem_nhds hxt)).of_le (by simp))
+    (((weightOneForm k).contMDiff _).of_le (by simp))]
+  refine mextDeriv_congr_of_eventuallyEq ?_
+  filter_upwards [hx] with y hy
+  simp only [cutoffWeightOneForm_val, hy, Pi.one_apply, one_smul]
+
+variable {Φ} in
+/-- **On a symplectic chart, the cut-off model one-form is a primitive of the symplectic form
+where the cut-off is `1`.** If `Φ` pulls `σ` back to the standard form `ω₀` on its source and the
+cut-off `ρ` is `1` near `x`, then the exterior derivative of the cut-off model one-form with the
+weights `kⱼ = 1/2` is `σ` at `x`, since `d θ_{1/2} = ω₀`. -/
+theorem mextDerivₗ_cutoffWeightOneForm_half_apply_of_eventuallyEq_one {σ : SmoothTwoForm I M}
+    (hσ : SmoothTwoForm.IsSymplecticMapOn (stdForm ι).constSmooth σ Φ Φ.source) {x : M}
+    (hx : ρ =ᶠ[𝓝 x] 1) :
+    (mextDerivₗ I 1 (cutoffWeightOneForm Φ hρ hs fun _ ↦ 1 / 2)).val x = σ.val x := by
+  have hxt : x ∈ Φ.target := hs (subset_tsupport ρ (by simp [hx.self_of_nhds]))
+  refine SmoothBundleForm.apply_eq_of_eval₂_eq fun v w ↦ ?_
+  rw [SmoothBundleForm.eval₂_apply,
+    mextDerivₗ_cutoffWeightOneForm_apply_of_eventuallyEq_one hρ hs _ hx,
+    TauCeti.mpullback_apply, mextDerivₗ_weightOneForm_half_apply,
+    ← (Φ.isSymplecticMapOn_symm hσ (by simp)).apply hxt v w]
+  exact (SymplecticForm.constSmooth_apply _ _ _ _).symm
 
 end CutoffWeightOneForm
 
