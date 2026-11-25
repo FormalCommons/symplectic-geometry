@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 public import SymplecticGeometry.Geometry.Manifold.Flow.Basic
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.RegularLevel
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
@@ -29,7 +30,9 @@ file proves that
 * if a group `G` acts on `M` and on the right on `Q`, `v` is invariant and
   `e (q • g) = g • e q`, then `bandMap v e a b (q • g, s) = g • bandMap v e a b (q, s)`, since the
   flow commutes with the action (`TauCeti.smul_flowOf`); a map with this equivariance sends the
-  field `(ξ♯, 0)` on `Q × [a, b]` to the fundamental vector field of `ξ` on `M`.
+  field `(ξ♯, 0)` on `Q × [a, b]` to the fundamental vector field of `ξ` on `M`, by
+  `TauCeti.mfderiv_rightFundamentalVectorField_of_map_op_smul_eq_smul` applied to its
+  restriction `q ↦ bandMap v e a b (q, s)`.
 
 In the converse of minimal coupling (McDuff–Salamon, Proposition 5.1.9), `M` carries a free
 circle action on the band `H⁻¹([a, b])` of an invariant function `H`, `v` is the invariant field
@@ -52,10 +55,6 @@ fundamental vector field of `SymplecticGeometry.circlePeriodOneGenerator` on `M`
   `SymplecticGeometry.range_bandMap`: the function `f` is the coordinate of the interval, and the
   band map is a bijection onto the band.
 * `SymplecticGeometry.bandMap_op_smul`: it is equivariant.
-* `TauCeti.mfderiv_rightFundamentalVectorField_of_map_op_smul_fst`: a map `F : Q × N → M` with
-  `F (q • g, n) = g • F (q, n)` sends `(ξ♯, 0)` to the fundamental vector field of `ξ`. Its
-  proof adapts that of Tau Ceti's `TauCeti.mfderiv_rightFundamentalVectorField_of_map_op_smul` to
-  a left action on the target and a right action on the first factor of the source.
 * `SymplecticGeometry.mfderiv_bandMap_couplingField`: for a principal circle bundle `P`, the band
   map sends `couplingField` to the fundamental vector field of `circlePeriodOneGenerator`.
 * `SymplecticGeometry.bandMap_orbitFiber`: all of these for the circle bundle of a regular level
@@ -76,46 +75,6 @@ noncomputable section
 
 open Bundle Function Manifold MulOpposite Set TauCeti
 open scoped ContDiff Manifold
-
-namespace TauCeti
-
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
-  {EG : Type*} [NormedAddCommGroup EG] [NormedSpace 𝕜 EG]
-  {HG : Type*} [TopologicalSpace HG] {IG : ModelWithCorners 𝕜 EG HG}
-  {G : Type*} [TopologicalSpace G] [ChartedSpace HG G] [Group G]
-  {EQ : Type*} [NormedAddCommGroup EQ] [NormedSpace 𝕜 EQ]
-  {HQ : Type*} [TopologicalSpace HQ] {IQ : ModelWithCorners 𝕜 EQ HQ}
-  {Q : Type*} [TopologicalSpace Q] [ChartedSpace HQ Q] [MulAction Gᵐᵒᵖ Q]
-  {EN : Type*} [NormedAddCommGroup EN] [NormedSpace 𝕜 EN]
-  {HN : Type*} [TopologicalSpace HN] {IN : ModelWithCorners 𝕜 EN HN}
-  {N : Type*} [TopologicalSpace N] [ChartedSpace HN N]
-  {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
-  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
-  {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [MulAction G M]
-
-/-- **Maps that turn a right action on the first factor into a left action.** Let `G` act on the
-right on `Q` and on the left on `M`. If `F : Q × N → M` satisfies `F (q • g, n) = g • F (q, n)`
-for every `g` at the point `x = (q, n)`, where `F` and the orbit map of `q` at `1` are
-differentiable, then `dF_x` sends the vector `(ξ♯ q, 0)`, with `ξ♯` the right fundamental vector
-field of `ξ` on `Q`, to the value at `F x` of the fundamental vector field of `ξ` on `M`. -/
-theorem mfderiv_rightFundamentalVectorField_of_map_op_smul_fst {F : Q × N → M} {x : Q × N}
-    (hF : MDifferentiableAt (IQ.prod IN) I F x)
-    (horbit : MDifferentiableAt IG IQ (fun g : G ↦ op g • x.1) 1)
-    (hFx : ∀ g : G, F (op g • x.1, x.2) = g • F x) (ξ : GroupLieAlgebra IG G) :
-    mfderiv (IQ.prod IN) I F x
-        ((rightFundamentalVectorField IQ ξ x.1, 0) : TangentSpace (IQ.prod IN) x) =
-      fundamentalVectorField I ξ (F x) := by
-  have hcomp : (F ∘ fun g : G ↦ (op g • x.1, x.2)) = fun g : G ↦ g • F x := funext hFx
-  have hk : MDifferentiableAt IG (IQ.prod IN) (fun g : G ↦ (op g • x.1, x.2)) 1 :=
-    horbit.prodMk mdifferentiableAt_const
-  rw [fundamentalVectorField_apply, ← hcomp]
-  refine Eq.trans ?_ (mfderiv_comp_apply_of_eq (1 : G) hF hk (by simp) ξ).symm
-  congr 1
-  rw [mfderiv_prodMk horbit mdifferentiableAt_const, mfderiv_const]
-  simp only [rightFundamentalVectorField_apply]
-  rfl
-
-end TauCeti
 
 namespace SymplecticGeometry
 
@@ -238,9 +197,20 @@ theorem mfderiv_bandMap_couplingField {e : ManifoldTotalSpace Circle P → M}
     (x : ManifoldTotalSpace Circle P × Icc a b) :
     mfderiv ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) I (bandMap v e a b) x (couplingField IB P a b x) =
       fundamentalVectorField I circlePeriodOneGenerator (bandMap v e a b x) := by
-  rw [couplingField_def]
-  exact mfderiv_rightFundamentalVectorField_of_map_op_smul_fst
-    ((contMDiff_bandMap hv hcomplete he x).mdifferentiableAt (by simp))
+  have hψ := (contMDiff_bandMap hv hcomplete he x).mdifferentiableAt (by simp)
+  have hk : MDifferentiableAt (IB.prod (𝓡 1)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
+      (fun q ↦ (q, x.2)) x.1 :=
+    mdifferentiableAt_id.prodMk mdifferentiableAt_const
+  have hk' : mfderiv (IB.prod (𝓡 1)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (fun q ↦ (q, x.2)) x.1
+      (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator x.1) =
+      couplingField IB P a b x := by
+    rw [mfderiv_prod_left, couplingField_def]
+    -- The tangent space of `P × [a, b]` at `x` is by definition the product of the tangent
+    -- spaces, in which `ContinuousLinearMap.inl` sends `w` to `(w, 0)`.
+    rfl
+  rw [← hk', ← mfderiv_comp_apply_of_eq x.1 hψ hk rfl]
+  exact mfderiv_rightFundamentalVectorField_of_map_op_smul_eq_smul
+    (f := bandMap v e a b ∘ fun q ↦ (q, x.2)) (hψ.comp x.1 hk)
     (PrincipalBundle.mdifferentiableAt_orbit (n := ∞) (by simp) x.1 1)
     (bandMap_op_smul (hv.of_le (by simp)) hinv he' · x) circlePeriodOneGenerator
 
@@ -321,9 +291,7 @@ theorem bandMap_orbitFiber (hf : ContMDiff I 𝓘(ℝ) ∞ f) (hreg : IsRegularV
   have := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
     |>.contMDiffFiberBundle
     (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
-  have : ContMDiffConstSMul I 1 Circle M :=
-    ⟨fun g ↦ ((ContMDiffSMul.contMDiffConstSMul (𝓡 1) (n := ∞)).contMDiff_const_smul g).of_le
-      (by simp)⟩
+  have : ContMDiffConstSMul I 1 Circle M := ContMDiffSMul.contMDiffConstSMul (𝓡 1) (n := 1)
   set D := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
     |>.totalSpaceDiffeomorph
     (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
