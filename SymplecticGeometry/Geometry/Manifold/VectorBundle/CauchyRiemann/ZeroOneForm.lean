@@ -153,18 +153,13 @@ private theorem inCoordinates_zeroOnePartOfEnd {x₀ x : M}
   have h2 (η : E →L[ℝ] F) :
       (trivializationAt (E →L[ℝ] F) (fun x ↦ TangentSpace I x →L[ℝ] V x) x₀).symmL ℝ x η =
         ((trivializationAt F V x₀).symmL ℝ x).comp
-          (η.comp ((trivializationAt E (TangentSpace I) x₀).continuousLinearMapAt ℝ x)) := by
-    rw [Trivialization.symmL_apply, hom_trivializationAt]
-    -- The inverse of a hom trivialization is, by definition, that of its pretrivialization.
-    · exact Pretrivialization.continuousLinearMap_symm_apply' _ _ _ ⟨hT, hV⟩ η
-    · exact hH
+          (η.comp ((trivializationAt E (TangentSpace I) x₀).continuousLinearMapAt ℝ x)) :=
+    Trivialization.continuousLinearMap_symmL _ _ x η
   -- The trivializations of `V` are complex linear on the fibres.
   have hI (w : V x) : (trivializationAt F V x₀).continuousLinearMapAt ℝ x (Complex.I • w) =
       Complex.I • (trivializationAt F V x₀).continuousLinearMapAt ℝ x w := by
-    rw [Trivialization.continuousLinearMapAt_apply_of_mem ℝ _ hV,
-      Trivialization.continuousLinearMapAt_apply_of_mem ℝ _ hV,
-      ← Trivialization.continuousLinearMapAt_apply_of_mem ℂ _ hV,
-      ← Trivialization.continuousLinearMapAt_apply_of_mem ℂ _ hV, map_smul]
+    rw [Trivialization.coe_continuousLinearMapAt_eq_coe_continuousLinearMapAt ℝ ℂ]
+    exact map_smul _ _ _
   ext η v
   simp only [ContinuousLinearMap.inCoordinates, ContinuousLinearMap.comp_apply, h1, h2]
   simp only [zeroOnePartOfEnd, smul_apply, add_apply,
