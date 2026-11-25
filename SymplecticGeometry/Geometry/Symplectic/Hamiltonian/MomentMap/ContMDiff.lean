@@ -19,10 +19,15 @@ functional on `𝔤*` is the evaluation at an element of `𝔤` (Mathlib's `Modu
 takes `μ` to a smooth function, and `SymplecticGeometry.contMDiff_linearMap_comp_of_dual`
 concludes.
 
+It also records that the components of `μ` are smooth when `-μ` is a moment map, the sign
+convention of many texts.
+
 ## Main results
 
 * `TauCeti.SmoothTwoForm.IsMomentMap.contMDiff_linearMap_comp`: `f ∘ μ` is smooth.
 * `TauCeti.SmoothTwoForm.IsMomentMap.continuous_linearMap_comp`: `f ∘ μ` is continuous.
+* `TauCeti.SmoothTwoForm.IsMomentMap.contMDiff_of_neg`: if `-μ` is a moment map, the components
+  of `μ` are smooth.
 -/
 
 public section
@@ -31,6 +36,15 @@ open Module
 open scoped ContDiff Manifold
 
 namespace TauCeti.SmoothTwoForm.IsMomentMap
+
+/-- If `-μ` is a moment map, each component `x ↦ μ x Z` of `μ` is smooth. -/
+theorem contMDiff_of_neg {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] {𝔤 : Type*} [LieRing 𝔤] [LieAlgebra ℝ 𝔤] {σ : SmoothTwoForm I M}
+    {a : InfinitesimalAction 𝔤 I M} {μ : M → Module.Dual ℝ 𝔤}
+    (h : σ.IsMomentMap a fun x ↦ -μ x) (Z : 𝔤) :
+    ContMDiff I 𝓘(ℝ) ∞ fun x ↦ μ x Z := by
+  simpa using (h.contMDiff Z).neg
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
