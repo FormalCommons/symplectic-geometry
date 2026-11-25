@@ -273,9 +273,10 @@ and `TauCeti.eulerChar_complexProjectiveSpace`.
 Namespace `TauCeti.AlmostComplexStructure`, for almost complex structures
 on finite-dimensional real normed spaces `V`, `W` of the same dimension.
 
-- `isUnit_add_of_norm_lt`: $A$ complex-linear invertible, $B$ antilinear,
-  $\|B\|\,\|A^{-1}\|<1$ give $A+B$ invertible;
-- `orientation_map_add_of_norm_lt`: under the same hypotheses $A+B$ carries
+- `ContinuousLinearEquiv.addOfNormLt`: for $A$ invertible and
+  $\|B\|\,\|A^{-1}\|<1$, the isomorphism $A+B$ (no complex structure is
+  needed);
+- `orientation_map_add_of_norm_lt`: for $A$ complex-linear, $A+B$ carries
   the orientation of the structure on `V` to that on `W` (Tau Ceti's
   `AlmostComplexStructure.orientation`), by the homotopy $A+tB$ and
   `Orientation.map` along a path of isomorphisms.
