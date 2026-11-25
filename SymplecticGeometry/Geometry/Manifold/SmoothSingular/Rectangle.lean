@@ -8,12 +8,12 @@ module
 public import SymplecticGeometry.Geometry.Manifold.DeRham.FundamentalClass
 public import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Homotopy
 public import TauCeti.Geometry.Manifold.Orientation.AddCircle
+import TauCeti.Geometry.Manifold.ContMDiff.Fract
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.AddCircle
 import TauCeti.Geometry.Manifold.DifferentialForm.Integration.Cylinder
 import TauCeti.Geometry.Manifold.Instances.Icc.CollaredSmoothTransition
 import TauCeti.Geometry.Manifold.Instances.AddCircle
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
-import TauCeti.Topology.Algebra.Order.Floor
 
 /-!
 # Rectangle integrals of closed two-forms as periods
@@ -42,10 +42,9 @@ A smooth map `u` of the plane that only agrees on opposite edges of the unit squ
 Tau Ceti's `TauCeti.VanishesOnTori`), is first flattened near the edges. The collared smooth
 transition `ρ` (`TauCeti.collaredSmoothTransition`) is `0` near `0` and `1` near `1`, so the map
 `(t, s) ↦ u (ρ (fract t), ρ (fract s))` has period `1` in both variables. It is smooth: by the
-edge conditions, `u ∘ Prod.map ρ ρ` is periodic in each variable just below `0`, so near any point
-the periodization in that variable is a translate (Tau Ceti's
-`TauCeti.apply_fract_snd_eventuallyEq`, used once for each variable, as in Tau Ceti's
-`TauCeti.contMDiff_loopwiseTrans`). On the unit square the
+edge conditions, `u ∘ Prod.map ρ ρ` is periodic in each variable just below `0`, so its
+periodization in that variable is smooth (Tau Ceti's `ContMDiff.comp_fract_snd`, used once for
+each variable). On the unit square the
 periodized map agrees with `u ∘ Prod.map ρ ρ`, whose rectangle integral is that of `u`
 (`TauCeti.rectangleIntegral_comp_prodMap_of_contDiff` and
 `TauCeti.rectangleIntegral_comp_prodMap_snd_of_contDiff`).
@@ -176,12 +175,12 @@ theorem rectangleIntegral_mem_range_closedFormHomologyPeriod (σ : closedForms I
   have hρ₁ {t : ℝ} (ht : -(1 / 4) < t) : ρ (t + 1) = 1 :=
     collaredSmoothTransition_eq_one_of_ge (by linarith)
   -- Periodizing a smooth map in the second coordinate keeps it smooth if the map is periodic
-  -- just below `0`, since near each point the periodization is a translate of the map.
+  -- just below `0` (Tau Ceti's `ContMDiff.comp_fract_snd`, read on the product model).
   have hfract {F : ℝ × ℝ → M} (hF : ContMDiff 𝓘(ℝ, ℝ × ℝ) I ∞ F)
       (hF₁ : ∀ y {t : ℝ}, -(1 / 4) < t → t < 0 → F (y, t + 1) = F (y, t)) :
-      ContMDiff 𝓘(ℝ, ℝ × ℝ) I ∞ fun w : ℝ × ℝ ↦ F (w.1, Int.fract w.2) := fun z ↦
-    ((hF.comp (contDiff_fst.prodMk (contDiff_snd.sub contDiff_const)).contMDiff)
-      z).congr_of_eventuallyEq (apply_fract_snd_eventuallyEq (by norm_num) hF₁ z)
+      ContMDiff 𝓘(ℝ, ℝ × ℝ) I ∞ fun w : ℝ × ℝ ↦ F (w.1, Int.fract w.2) := by
+    rw [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod] at hF ⊢
+    exact hF.comp_fract_snd (by norm_num) hF₁
   -- Flatten `u` by `ρ` and periodize it in the second coordinate, then in the first.
   set G : ℝ × ℝ → M := fun w ↦ u (ρ w.1, ρ (Int.fract w.2))
   have hG : ContMDiff 𝓘(ℝ, ℝ × ℝ) I ∞ G :=
