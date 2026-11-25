@@ -42,6 +42,9 @@ applies: the points of a fibre are related by the action, through the division m
 * `TauCeti.PrincipalBundle.isBasic_of_mpullback_op_smul`: an invariant form that vanishes on
   vertical vectors is basic for the projection. It is Tau Ceti's
   `TauCeti.RoughForm.isBasic_of_mpullback_eq` for the right translations of a principal bundle.
+* `TauCeti.PrincipalBundle.hasDerivAt_mpullback_op_mulInvariantExp_smul`: the Lie derivative of a
+  form along the fundamental vector field of `ξ` is the velocity at `0` of its pull-backs along
+  `y ↦ y • exp (t ξ)`.
 * `TauCeti.PrincipalBundle.mlieDerivForm_rightFundamentalVectorField_eq_zero`: an invariant form
   has vanishing Lie derivative along every fundamental vector field.
 * `TauCeti.PrincipalBundle.mlieDerivForm_rightFundamentalVectorField_apply_eq_neg_lie`: a form
@@ -61,7 +64,8 @@ The proof of `mlieDerivForm_rightFundamentalVectorField_eq_zero` adapts that of 
 right action on a principal bundle: the form is constant along the flow `x ↦ x • exp (t ξ)` of
 the fundamental vector field of `ξ`
 (`TauCeti.PrincipalBundle.isMIntegralCurve_op_mulInvariantExp_smul`), and its Lie derivative is
-the velocity at `0` of its pull-backs along this flow (`TauCeti.hasDerivAt_mpullback_of_eq_id`).
+the velocity at `0` of its pull-backs along this flow (`TauCeti.hasDerivAt_mpullback_of_eq_id`,
+stated for this flow as `TauCeti.PrincipalBundle.hasDerivAt_mpullback_op_mulInvariantExp_smul`).
 
 That argument needs a boundaryless model, which a product `P × N` does not have when `N` has
 boundary, so the identity on `P × N` is proved one component of the tangent vector at a time.
@@ -173,6 +177,29 @@ variable [IsManifold IB ∞ B] [CompleteSpace EG] [LieGroup IG ∞ G]
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 
+/-- **The Lie derivative along a fundamental vector field as a velocity.** On a smooth principal
+bundle whose base and structure group are modelled without boundary, the pull-backs at `x` of a
+smooth form `β` along the right translations `y ↦ y • exp (t ξ)`, the flow of the fundamental
+vector field of `ξ`, have derivative at `t = 0` the Lie derivative of `β` along that field. -/
+theorem hasDerivAt_mpullback_op_mulInvariantExp_smul [IB.Boundaryless] [IG.Boundaryless]
+    [T2Space G] {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
+    (β : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) F k) (ξ : GroupLieAlgebra IG G)
+    (x : ManifoldTotalSpace G P) :
+    HasDerivAt (F := (EB × EG) [⋀^Fin k]→L[ℝ] F)
+      (fun t : ℝ ↦ TauCeti.mpullback (IB.prod IG) (IB.prod IG)
+        (fun y : ManifoldTotalSpace G P ↦ op (mulInvariantExp (t • ξ)) • y) β.val x)
+      (mlieDerivForm (rightFundamentalVectorField (IB.prod IG) ξ) β.val x) 0 := by
+  have hψ : ContMDiff (𝓘(ℝ).prod (IB.prod IG)) (IB.prod IG) ∞
+      (fun p : ℝ × ManifoldTotalSpace G P ↦ op (mulInvariantExp (p.1 • ξ)) • p.2) :=
+    contMDiff_op_smul.comp
+      (contMDiff_snd.prodMk ((contMDiff_mulInvariantExp_smul ξ).comp contMDiff_fst))
+  exact hasDerivAt_mpullback_of_eq_id (α := β.val)
+    (V := rightFundamentalVectorField (IB.prod IG) ξ)
+    (ψ := fun (t : ℝ) (y : ManifoldTotalSpace G P) ↦ op (mulInvariantExp (t • ξ)) • y) (t := 0) x
+    (.of_forall fun y ↦ by simp [mulInvariantExp_zero]) ((hψ (0, x)).of_le (by simp))
+    (.of_forall fun y ↦ isMIntegralCurve_op_mulInvariantExp_smul ξ y 0)
+    (β.mdifferentiable x)
+
 /-- **Invariant forms have vanishing Lie derivative along fundamental vector fields.** On a smooth
 principal bundle whose base and structure group are modelled without boundary, a smooth form that
 is invariant under the right action has vanishing Lie derivative along the fundamental vector
@@ -188,16 +215,7 @@ theorem mlieDerivForm_rightFundamentalVectorField_eq_zero [IB.Boundaryless] [IG.
   have : T2Space G := IG.t2Space_of_lieGroup ∞
   funext x
   -- The flow of the field is `x ↦ x • exp (t ξ)`, along which `β` is constant.
-  have hψ : ContMDiff (𝓘(ℝ).prod (IB.prod IG)) (IB.prod IG) ∞
-      (fun p : ℝ × ManifoldTotalSpace G P ↦ op (mulInvariantExp (p.1 • ξ)) • p.2) :=
-    contMDiff_op_smul.comp
-      (contMDiff_snd.prodMk ((contMDiff_mulInvariantExp_smul ξ).comp contMDiff_fst))
-  have h := hasDerivAt_mpullback_of_eq_id (α := β.val)
-    (V := rightFundamentalVectorField (IB.prod IG) ξ)
-    (ψ := fun (t : ℝ) (y : ManifoldTotalSpace G P) ↦ op (mulInvariantExp (t • ξ)) • y) (t := 0) x
-    (.of_forall fun y ↦ by simp [mulInvariantExp_zero]) ((hψ (0, x)).of_le (by simp))
-    (.of_forall fun y ↦ isMIntegralCurve_op_mulInvariantExp_smul ξ y 0)
-    (β.mdifferentiable x)
+  have h := hasDerivAt_mpullback_op_mulInvariantExp_smul β ξ x
   have hconst : (fun t : ℝ ↦ TauCeti.mpullback (IB.prod IG) (IB.prod IG)
       (fun y : ManifoldTotalSpace G P ↦ op (mulInvariantExp (t • ξ)) • y) β.val x) =
         fun _ ↦ β.val x := by
@@ -229,16 +247,7 @@ theorem mlieDerivForm_rightFundamentalVectorField_apply_eq_neg_lie
   have : T2Space G := IG.t2Space_of_lieGroup ∞
   -- The flow of the field is `x ↦ x • exp (t ξ)`, along which `β` changes by
   -- `Ad(exp (-t ξ))`.
-  have hψ : ContMDiff (𝓘(ℝ).prod (IB.prod IG)) (IB.prod IG) ∞
-      (fun p : ℝ × ManifoldTotalSpace G P ↦ op (mulInvariantExp (p.1 • ξ)) • p.2) :=
-    contMDiff_op_smul.comp
-      (contMDiff_snd.prodMk ((contMDiff_mulInvariantExp_smul ξ).comp contMDiff_fst))
-  have h := hasDerivAt_mpullback_of_eq_id (α := β.val)
-    (V := rightFundamentalVectorField (IB.prod IG) ξ)
-    (ψ := fun (t : ℝ) (y : ManifoldTotalSpace G P) ↦ op (mulInvariantExp (t • ξ)) • y) (t := 0) x
-    (.of_forall fun y ↦ by simp [mulInvariantExp_zero]) ((hψ (0, x)).of_le (by simp))
-    (.of_forall fun y ↦ isMIntegralCurve_op_mulInvariantExp_smul ξ y 0)
-    (β.mdifferentiable x)
+  have h := hasDerivAt_mpullback_op_mulInvariantExp_smul β ξ x
   have hv : HasDerivAt (fun t : ℝ ↦ Lie.tangentAd (mulInvariantExp (t • -ξ)) (β.val x v))
       (mlieDerivForm (rightFundamentalVectorField (IB.prod IG) ξ) β.val x v) 0 := by
     convert (ContinuousAlternatingMap.apply ℝ _ (GroupLieAlgebra IG G) v).hasFDerivAt
