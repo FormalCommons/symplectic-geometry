@@ -107,9 +107,8 @@ private theorem mpullback_circleAngularForm_eq_of_eventuallyEq_phase_zpow
     (contMDiff_coe_sphere (n := 1) (D x)).mdifferentiableAt one_ne_zero
   rw [circleAngularForm_def, ← mpullback_comp_at hD hcoe, Function.comp_def, hcomp.mpullback_eq,
     mpullback_comp_at hcx hpow]
-  ext v
-  rw [mpullback_apply, hρ, ContinuousAlternatingMap.smul_apply,
-    ContinuousAlternatingMap.smul_apply, mpullback_apply]
+  rw [mpullback_apply_congr (η := (k : ℝ) • radialAngularForm β) hρ, mpullback_smul,
+    Pi.smul_apply]
 
 omit [IsManifold (𝓡 2) ∞ M] in
 /-- A `2`-form on `M` that is `c` times `d(β(‖z‖) dθ)`, read in the coordinate, on the unit disc of
@@ -141,12 +140,7 @@ private theorem mpullback_eq_smul_of_eqOn_openDisc (φ : CoordinateDisc o)
     have hd : mextDeriv (radialAngularForm β) (z : ℂ) = 0 :=
       image_eq_zero_of_notMem_tsupport fun h ↦
         hz (lt_of_le_of_lt (tsupport_mextDeriv_radialAngularForm_subset hβ ha hβa hβb h).2 hb)
-    ext v
-    rw [mpullback_apply, hout z (not_lt.1 hz), ContinuousAlternatingMap.smul_apply,
-      mpullback_apply, hd]
-    -- Both zeros are alternating maps on tangent spaces, which `simp` sees only after unfolding.
-    erw [ContinuousAlternatingMap.coe_zero, ContinuousAlternatingMap.coe_zero]
-    simp
+    rw [mpullback_apply_eq_zero (hout z (not_lt.1 hz)), mpullback_apply_eq_zero hd, smul_zero]
 
 variable {P : M → Type*} [TopologicalSpace (TotalSpace Circle P)] [∀ b, TopologicalSpace (P b)]
   [FiberBundle Circle P] [∀ b, MulAction Circleᵐᵒᵖ (P b)] [PrincipalBundle Circle P]
