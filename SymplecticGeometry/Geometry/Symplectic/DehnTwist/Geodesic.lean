@@ -90,6 +90,9 @@ direction.
   and its pullbacks in the coordinates `(q, p)`, as `⟪p, δq⟫`; and
   `SymplecticGeometry.inner_fst_mfderiv_cotangentCoord_add_inner_snd`: the differentials satisfy
   `⟪δq, p⟫ + ⟪q, δp⟫ = 0`.
+* `HasFDerivAt.mfderiv_comp_cotangentCoord_apply`: the chain rule through `cotangentCoord`;
+  `SymplecticGeometry.mvfderiv_comp_cotangentNorm_sq`: the differential of `z ↦ k (μ z ^ 2)`, on
+  all of `T*Sⁿ`.
 
 ## Implementation notes
 
@@ -699,6 +702,22 @@ theorem inner_fst_mfderiv_cotangentCoord (x : CotangentBundle (𝓡 n) (𝕊 n))
   rw [fst_mfderiv_cotangentCoord, cotangentCoord_fst]
   exact inner_coe_mvfderiv_subtypeVal_sphere _ _
 
+/-- The chain rule through `cotangentCoord`: if `g` has the derivative `L` at the coordinates
+of `x`, then the differential of `g ∘ cotangentCoord` at `x` is `L` applied to the differential
+of `cotangentCoord`. -/
+theorem _root_.HasFDerivAt.mfderiv_comp_cotangentCoord_apply {F : Type*} [NormedAddCommGroup F]
+    [NormedSpace ℝ F] {g : ((𝔼 n) × 𝔼 n) → F} {L : ((𝔼 n) × 𝔼 n) →L[ℝ] F}
+    {x : CotangentBundle (𝓡 n) (𝕊 n)} (hg : HasFDerivAt g L (cotangentCoord x))
+    (w : TangentSpace ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) x) :
+    mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, F) (g ∘ cotangentCoord) x
+        w =
+      L (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
+        cotangentCoord x w) := by
+  rw [mfderiv_comp_apply x hg.differentiableAt.mdifferentiableAt
+    (contMDiff_cotangentCoord.mdifferentiableAt (by simp)), hg.hasMFDerivAt.mfderiv]
+  -- The two sides differ only in how the tangent space of the model space `F` is written.
+  rfl
+
 /-- The differentials `(δq, δp)` of the coordinates of a covector satisfy
 `⟪δq, p⟫ + ⟪q, δp⟫ = 0`, as `p` stays orthogonal to `q`. -/
 theorem inner_fst_mfderiv_cotangentCoord_add_inner_snd (x : CotangentBundle (𝓡 n) (𝕊 n))
@@ -708,16 +727,13 @@ theorem inner_fst_mfderiv_cotangentCoord_add_inner_snd (x : CotangentBundle (�
       ⟪(cotangentCoord x).1,
         (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
           cotangentCoord x w).2⟫_ℝ = 0 := by
-  have hΨ : MDifferentiableAt ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
-      𝓘(ℝ, (𝔼 n) × 𝔼 n) cotangentCoord x :=
-    contMDiff_cotangentCoord.mdifferentiableAt (by simp)
   have hg := (hasFDerivAt_fst (p := cotangentCoord x)).inner ℝ
     (hasFDerivAt_snd (p := cotangentCoord x))
   rw [ContinuousLinearMap.fst_prod_snd, ContinuousLinearMap.comp_id] at hg
   have hcomp : (fun y : (𝔼 n) × 𝔼 n ↦ ⟪y.1, y.2⟫_ℝ) ∘ cotangentCoord (n := n) = fun _ ↦ 0 :=
     funext fun z ↦ by simp [cotangentCoord_fst]
-  have h := mfderiv_comp_apply x hg.differentiableAt.mdifferentiableAt hΨ w
-  rw [hcomp, mfderiv_const, hg.hasMFDerivAt.mfderiv, zero_apply] at h
+  have h := hg.mfderiv_comp_cotangentCoord_apply w
+  rw [hcomp, mfderiv_const, zero_apply] at h
   exact (add_comm _ _).trans ((fderivInnerCLM_apply _ _ _).symm.trans h.symm)
 
 /-- The Liouville form in the coordinates `(q, p)`: it sends a tangent vector at a covector to
@@ -756,9 +772,6 @@ theorem mvfderiv_cotangentNorm {x : CotangentBundle (𝓡 n) (𝕊 n)} (hx : cot
       ⟪(cotangentCoord x).2,
         (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
           cotangentCoord x w).2⟫_ℝ / cotangentNorm x := by
-  have hΨ : MDifferentiableAt ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
-      𝓘(ℝ, (𝔼 n) × 𝔼 n) cotangentCoord x :=
-    contMDiff_cotangentCoord.mdifferentiableAt (by simp)
   have h2 : ‖(cotangentCoord x).2‖ ^ 2 ≠ 0 := pow_ne_zero 2 hx
   have hg := ((hasFDerivAt_snd (p := cotangentCoord x)).norm_sq).sqrt h2
   have hcomp : cotangentNorm (n := n) = (fun y : (𝔼 n) × 𝔼 n ↦ √(‖y.2‖ ^ 2)) ∘ cotangentCoord :=
@@ -773,7 +786,35 @@ theorem mvfderiv_cotangentNorm {x : CotangentBundle (𝓡 n) (𝕊 n)} (hx : cot
     field_simp
   rw [mvfderiv_apply_eq_mfderiv_apply]
   conv_lhs => rw [hcomp]
-  rw [mfderiv_comp_apply x hg.differentiableAt.mdifferentiableAt hΨ, hg.hasMFDerivAt.mfderiv]
+  rw [hg.mfderiv_comp_cotangentCoord_apply]
+  exact key _
+
+/-- For a `C¹` function `k`, the differential of `z ↦ k (μ z ^ 2)`, `μ = cotangentNorm`, is
+`δp ↦ k' (μ ^ 2) * 2 ⟪p, δp⟫`, read through the differential of `cotangentCoord`. Unlike
+`mvfderiv_cotangentNorm`, this holds on the zero section too. -/
+theorem mvfderiv_comp_cotangentNorm_sq {k : ℝ → ℝ} (hk : ContDiff ℝ 1 k)
+    (x : CotangentBundle (𝓡 n) (𝕊 n))
+    (w : TangentSpace ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) x) :
+    mvfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
+        (fun z ↦ k (cotangentNorm z ^ 2)) x w =
+      deriv k (cotangentNorm x ^ 2) * (2 * ⟪(cotangentCoord x).2,
+        (mfderiv ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ, (𝔼 n) × 𝔼 n)
+          cotangentCoord x w).2⟫_ℝ) := by
+  have hg := (hk.differentiable one_ne_zero _).hasDerivAt.hasFDerivAt.comp _
+    (hasFDerivAt_snd (p := cotangentCoord x)).norm_sq
+  have hcomp : (fun z ↦ k (cotangentNorm z ^ 2)) =
+      (k ∘ fun y : (𝔼 n) × 𝔼 n ↦ ‖y.2‖ ^ 2) ∘ cotangentCoord (n := n) :=
+    funext fun z ↦ by rw [Function.comp_apply, Function.comp_apply, cotangentNorm_def]
+  have key (u : (𝔼 n) × 𝔼 n) :
+      ((ContinuousLinearMap.toSpanSingleton ℝ (deriv k (‖(cotangentCoord x).2‖ ^ 2))).comp
+        (2 • (innerSL ℝ (cotangentCoord x).2).comp (ContinuousLinearMap.snd ℝ (𝔼 n) (𝔼 n)))) u =
+      deriv k (‖(cotangentCoord x).2‖ ^ 2) * (2 * ⟪(cotangentCoord x).2, u.2⟫_ℝ) := by
+    simp only [ContinuousLinearMap.comp_apply, smul_apply, ContinuousLinearMap.coe_snd',
+      innerSL_apply_apply, ContinuousLinearMap.toSpanSingleton_apply, smul_eq_mul, nsmul_eq_mul]
+    ring
+  have h := hg.mfderiv_comp_cotangentCoord_apply w
+  rw [← hcomp] at h
+  rw [mvfderiv_apply_eq_mfderiv_apply, h, cotangentNorm_def]
   exact key _
 
 /-- Off the zero section, the velocity of the orbit `t ↦ geodesicFlow t z` at a covector with
