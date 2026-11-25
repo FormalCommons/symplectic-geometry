@@ -70,8 +70,7 @@ theorem IsDistributionFrameOn.map_mfderiv_prod_left (hX : IsDistributionFrameOn 
           ((contMDiff_zeroSection 𝕜 (TangentSpace I' : M' → Type _)).comp
             contMDiff_snd).contMDiffOn)
     refine h.congr fun p _ ↦ ?_
-    rw [(Manifold.tangentSpaceProdEquiv_apply _ _).symm.trans
-      (Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_left _)]
+    rw [mfderiv_prodMk_left_apply]
     -- Both sides are `⟨p, (X i p.1, 0)⟩`, once `equivTangentBundleProd` is unfolded.
     rfl
   linearIndependent hp := by

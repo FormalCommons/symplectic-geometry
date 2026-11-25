@@ -102,9 +102,7 @@ theorem injective_mfderiv_smul_section (hU : IsOpen U) (hs : ContMDiffOn IB IM �
   have hι : MDifferentiableAt IK (IK.prod IB) (fun h : K ↦ (h, q)) k :=
     mdifferentiableAt_id.prodMk mdifferentiableAt_const
   have hv' : mfderiv IK (IK.prod IB) (fun h : K ↦ (h, q)) k w = v := by
-    apply (TauCeti.Manifold.tangentSpaceProdEquiv _).injective
-    rw [TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_left,
-      TauCeti.Manifold.tangentSpaceProdEquiv_apply]
+    rw [mfderiv_prodMk_left_apply]
     exact Prod.ext rfl h2.symm
   have h1 := mfderiv_comp_apply k hΨ hι w
   have hcomp : Ψ ∘ (fun h : K ↦ (h, q)) = fun h : K ↦ h • s q := rfl

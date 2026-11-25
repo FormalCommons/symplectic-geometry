@@ -246,13 +246,7 @@ theorem eval₂_inl_inl (h : IsCouplingForm σ τ) (p : ManifoldTotalSpace Circl
         (mfderiv (IB.prod (𝓡 1)) IB (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)) p
           w) := by
   have := congrArg (fun φ ↦ SmoothBundleForm.eval₂ φ p v w) (h.mpullback_slice t)
-  -- The slice inclusion `q ↦ (q, t)` sends `u` to `(u, 0)`.
-  have hd (u : TangentSpace (IB.prod (𝓡 1)) p) :
-      mfderiv (IB.prod (𝓡 1)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
-        (fun q : ManifoldTotalSpace Circle P ↦ (q, t)) p u = (u, 0) :=
-    (TauCeti.Manifold.tangentSpaceProdEquiv_apply _ _).symm.trans
-      (TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_left u)
-  simp only [SmoothForm.eval₂_mpullback, hd] at this
+  simp only [SmoothForm.eval₂_mpullback, mfderiv_prodMk_left_apply] at this
   -- `(p, t).1` is `p` by definition
   exact this
 

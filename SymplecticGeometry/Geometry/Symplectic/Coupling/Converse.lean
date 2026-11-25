@@ -336,8 +336,7 @@ theorem mfderiv_bandMap_couplingField {e : ManifoldTotalSpace Circle P → M}
       (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator x.1) =
       couplingField IB P a b x := by
     rw [couplingField_def]
-    exact (TauCeti.Manifold.tangentSpaceProdEquiv_apply _ _).symm.trans
-      (TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_left _)
+    exact mfderiv_prodMk_left_apply _
   rw [← hk', ← mfderiv_comp_apply_of_eq x.1 hψ hk rfl]
   exact mfderiv_rightFundamentalVectorField_of_map_op_smul_eq_smul
     (f := bandMap v e a b ∘ fun q ↦ (q, x.2)) (hψ.comp x.1 hk)

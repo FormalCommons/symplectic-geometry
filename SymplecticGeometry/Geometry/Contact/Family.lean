@@ -159,8 +159,7 @@ theorem isContactFamily_iff : IsContactFamily ξ ↔
   congr! 3
   ext i : 1
   fin_cases i
-  exact (TauCeti.Manifold.tangentSpaceProdEquiv_apply _ _).symm.trans
-    (TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right v)
+  exact mfderiv_prodMk_right_apply v
 
 namespace IsContactFamily
 

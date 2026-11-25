@@ -163,8 +163,7 @@ theorem mpullback_prodMk_velocityForm (t : unitInterval) (x : P) (v : E') :
   congr 1
   funext i
   fin_cases i
-  exact (TauCeti.Manifold.tangentSpaceProdEquiv_apply _ _).symm.trans
-    (TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right v)
+  exact mfderiv_prodMk_right_apply v
 
 variable {σ} in
 /-- **The velocity is determined by the velocity form.** Let `σ` be nondegenerate and let `P` and
