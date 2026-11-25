@@ -497,6 +497,21 @@ theorem nondegenerate_bilinFormAt_prodIccExtension_add_smul (h₀ : IsCouplingFo
   rw [mpullback_prodMap_subtypeVal_prodIccExtension_add_smul h₀ h₁ s]
   exact ((h₀.lineMap h₁ s).isNondegenerate hτ).nondegenerate_bilinFormAt (x, ⟨t, ht⟩)
 
+/-- **The parameters of nondegenerate slices contain `ℝ × [a, b]`.** Let `ω₀` and `ω₁` be
+coupling forms for the same family `τ` of nondegenerate forms. Every pair `(s, t)` with
+`t ∈ [a, b]` lies in the set of pairs such that `ω̃₀ + s • dσ̃` (as in
+`SymplecticGeometry.IsCouplingForm.mpullback_prodMap_subtypeVal_prodIccExtension_add_smul`) is
+nondegenerate at every point of `P × {t}`. For compact `B` and finite-dimensional `EB`, that set
+is open (`TauCeti.SmoothTwoForm.isOpen_setOf_forall_nondegenerate_bilinFormAt_add_smul`). -/
+theorem univ_prod_Icc_subset_setOf_nondegenerate_prodIccExtension_add_smul
+    (h₀ : IsCouplingForm ω₀ τ) (h₁ : IsCouplingForm ω₁ τ) (hτ : ∀ t, (τ t).IsNondegenerate) :
+    univ ×ˢ Icc a b ⊆ {p : ℝ × ℝ | ∀ x : ManifoldTotalSpace Circle P,
+      ((prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀ +
+        p.1 • mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 (SmoothForm.timeExtendIcc
+          (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
+            (ω₁ - ω₀)))).bilinFormAt (x, p.2)).Nondegenerate} :=
+  fun p hp x ↦ nondegenerate_bilinFormAt_prodIccExtension_add_smul h₀ h₁ hτ p.1 x hp.2
+
 end Extension
 
 end IsCouplingForm
