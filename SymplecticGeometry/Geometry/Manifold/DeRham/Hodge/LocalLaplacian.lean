@@ -13,6 +13,7 @@ import SymplecticGeometry.Analysis.Normed.Module.Alternating.Uncurry.Fin
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import SymplecticGeometry.LinearAlgebra.BilinearForm.Gram
+import TauCeti.Analysis.Calculus.ContDiff.FDerivApply
 import TauCeti.Analysis.Calculus.SecondDerivative
 import TauCeti.Topology.Algebra.Module.Alternating.Basic
 import TauCeti.Topology.Algebra.Module.Alternating.TopDegree
@@ -275,8 +276,7 @@ private theorem exists_mpullback_symm_mextDeriv_codifferential_eq
     (hgs j l).fderiv_of_isOpen ψ.open_target (m := ∞) (by simp)
   -- The partial derivatives of `C₀` are smooth.
   have hdC₀ (i : Fin m) : ContDiffOn ℝ ∞ (fun z ↦ fderiv ℝ C₀ z (b i)) ψ.target :=
-    (hC₀.fderiv_of_isOpen ψ.open_target (m := ∞) (by simp)).clm_apply
-      (contDiffOn_const (c := b i))
+    hC₀.fderiv_apply_of_isOpen ψ.open_target (m := ∞) (by simp) (b i)
   refine ⟨fun j z ↦ -∑ i, ∑ l, fderiv ℝ (fun z ↦ g z j l) z (b i) • (ε i ∘L κ l) + ε j ∘L C₀ z,
     fun z ↦ ∑ i, ε i ∘L fderiv ℝ C₀ z (b i), fun j ↦ ?_, ?_, fun α y hy ↦ ?_⟩
   · refine (ContDiffOn.sum fun i _ ↦ ContDiffOn.sum fun l _ ↦ ?_).neg.add

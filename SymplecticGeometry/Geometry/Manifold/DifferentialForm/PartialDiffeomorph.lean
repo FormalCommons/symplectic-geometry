@@ -23,6 +23,7 @@ import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
+import TauCeti.Analysis.Calculus.ContDiff.FDerivApply
 import TauCeti.Analysis.Calculus.DifferentialForm.Wedge
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 import TauCeti.Topology.Algebra.Support
@@ -782,8 +783,8 @@ theorem contDiffOn_fderiv_mpullback_symm_apply [IsManifold I ∞ M]
     (α : SmoothForm I M F k) (ψ : PartialDiffeomorph I 𝓘(ℝ, E) M E ∞) (v : E) :
     ContDiffOn ℝ ∞ (fun z ↦ fderiv ℝ (F := E [⋀^Fin k]→L[ℝ] F)
       (TauCeti.mpullback 𝓘(ℝ, E) I ψ.symm α.val) z v) ψ.target :=
-  ((α.contDiffOn_mpullback ψ.open_target ψ.symm.contMDiffOn).fderiv_of_isOpen ψ.open_target
-    (m := ∞) (by simp)).clm_apply contDiffOn_const
+  (α.contDiffOn_mpullback ψ.open_target ψ.symm.contMDiffOn).fderiv_apply_of_isOpen
+    ψ.open_target (m := ∞) (by simp) v
 
 end SmoothForm
 
