@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Double.Basic
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Interior
 import SymplecticGeometry.Geometry.Manifold.Instances.HalfLine.Basic
+import SymplecticGeometry.Geometry.Manifold.Orientation.Diffeomorph
 import SymplecticGeometry.Geometry.Manifold.Orientation.Glue
 import TauCeti.Geometry.Manifold.Orientation.Pullback
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
@@ -176,19 +177,12 @@ private abbrev remodelBand : BandParam n W ≃ₘ^∞⟮𝓘(ℝ).prod (𝓡 n),
 
 /-- The orientation of the band piece. -/
 private def bandOrientation : Manifold.Orientation (𝓡 (n + 1)) (BandPiece n W) (Fin (n + 1)) :=
-  (bandParamOrientation c o).pullback ((remodelBand n W).symm.contMDiff.of_le (by simp))
-    (fun q ↦ ((remodelBand n W).symm.isLocalDiffeomorph q).isInvertible_mfderiv (by simp))
-    (by simp)
+  (bandParamOrientation c o).map (remodelBand n W) (by simp) (by simp)
 
 private theorem isOrientationPreservingAt_remodelBand (p : BandParam n W) :
     IsOrientationPreservingAt (bandParamOrientation c o) (bandOrientation c o)
-      (remodelBand n W) p := by
-  have h := (isOrientationPreservingAt_pullback (bandParamOrientation c o)
-    ((remodelBand n W).symm.contMDiff.of_le (by simp))
-    (fun q ↦ ((remodelBand n W).symm.isLocalDiffeomorph q).isInvertible_mfderiv (by simp))
-    (by simp) ((remodelBand n W).symm.symm p)).diffeomorph_symm (by simp)
-  -- `e.symm.symm` is `e` up to structure eta.
-  exact h
+      (remodelBand n W) p :=
+  isOrientationPreservingAt_map _ _ _ _ p
 
 /-! ### An affine self-map of the band near a fixed point -/
 
