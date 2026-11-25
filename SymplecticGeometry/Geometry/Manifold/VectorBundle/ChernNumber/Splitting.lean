@@ -35,10 +35,10 @@ pointwise products, although `ρ` is not multiplicative on `Sp(2n)`, because `ρ
 over `X`, since the boundary class vanishes in the homology of `X`.
 
 A compact surface `S` with boundary, modelled on the half-plane `EuclideanHalfSpace 2`, is a case
-of this setting: `X = S`, `M` is the interior of `S` re-modelled on `ℝ²`
-(`SymplecticGeometry.InteriorModel`), `ι` is its inclusion
-(`SymplecticGeometry.InteriorModel.isOpenEmbedding_val`), whose range is the complement of the
-boundary (`SymplecticGeometry.InteriorModel.range_val_interiorOpens`), the collared map is the
+of this setting: `X = S`, `M` is Tau Ceti's charted interior `(𝓡∂ 2).interior S` over `ℝ²`,
+`ι` is its inclusion, an open embedding
+(`ModelWithCorners.isOpen_interior_of_finiteDimensional`) whose range is the complement of the
+boundary (`ModelWithCorners.range_subtypeVal_interior`), the collared map is the
 inclusion of the boundary (`TauCeti.isCollared_subtypeVal_boundary_of_compactSpace`), and the
 homological orientation comes from a smooth orientation of the interior
 (`TauCeti.Manifold.Orientation.toHomologicalOrientation`). In this case the boundary Maslov
@@ -261,7 +261,7 @@ open SymplecticGeometry
 
 variable {S : Type} [TopologicalSpace S] [ChartedSpace (EuclideanHalfSpace 2) S]
   [IsManifold (𝓡∂ 2) 1 S] [T2Space S] [CompactSpace S] {n : Type*} [Fintype n] [DecidableEq n]
-  (o : Manifold.Orientation (𝓡 2) (InteriorPiece 1 S) (Fin 2))
+  (o : Manifold.Orientation (𝓡 2) ((𝓡∂ 2).interior S) (Fin 2))
 
 /-- **The boundary Maslov index on a compact surface with boundary.** Let `S` be a compact surface
 with boundary, modelled on the half-plane, and `o` an orientation of its interior, re-modelled on
@@ -270,16 +270,18 @@ setting where `X = S`, `ι` is the inclusion of the interior, oriented by `o`, a
 collared by `TauCeti.isCollared_subtypeVal_boundary_of_compactSpace`. -/
 def boundaryMaslovIndex (Ψ : C((𝓡∂ 2).boundary S, GLSymplectic n ℝ)) : ℤ :=
   (o.toHomologicalOrientation finrank_euclideanSpace_fin).boundaryMaslovIndex
-    finrank_euclideanSpace_fin InteriorModel.isOpenEmbedding_val
-    InteriorModel.range_val_interiorOpens isCollared_subtypeVal_boundary_of_compactSpace
-    (Ψ.comp (.inclusion InteriorModel.compl_range_val_interiorOpens.subset))
+    finrank_euclideanSpace_fin
+    ((𝓡∂ 2).isOpen_interior_of_finiteDimensional S).isOpenEmbedding_subtypeVal
+    (𝓡∂ 2).range_subtypeVal_interior isCollared_subtypeVal_boundary_of_compactSpace
+    (Ψ.comp (.inclusion (𝓡∂ 2).compl_range_subtypeVal_interior.subset))
 
 theorem boundaryMaslovIndex_def (Ψ : C((𝓡∂ 2).boundary S, GLSymplectic n ℝ)) :
     o.boundaryMaslovIndex Ψ =
       (o.toHomologicalOrientation finrank_euclideanSpace_fin).boundaryMaslovIndex
-        finrank_euclideanSpace_fin InteriorModel.isOpenEmbedding_val
-        InteriorModel.range_val_interiorOpens isCollared_subtypeVal_boundary_of_compactSpace
-        (Ψ.comp (.inclusion InteriorModel.compl_range_val_interiorOpens.subset)) :=
+        finrank_euclideanSpace_fin
+        ((𝓡∂ 2).isOpen_interior_of_finiteDimensional S).isOpenEmbedding_subtypeVal
+        (𝓡∂ 2).range_subtypeVal_interior isCollared_subtypeVal_boundary_of_compactSpace
+        (Ψ.comp (.inclusion (𝓡∂ 2).compl_range_subtypeVal_interior.subset)) :=
   (rfl)
 
 /-- Homotopic maps `∂S → Sp(2n)` have the same boundary Maslov index. -/
@@ -307,7 +309,7 @@ theorem boundaryMaslovIndex_eq_zero_of_extend {Ψ : C((𝓡∂ 2).boundary S, GL
     (Φ : C(S, GLSymplectic n ℝ)) (hΦ : ∀ z : (𝓡∂ 2).boundary S, Φ z = Ψ z) :
     o.boundaryMaslovIndex Ψ = 0 :=
   HomologicalOrientation.boundaryMaslovIndex_eq_zero_of_extend _ _ _ _ _ Φ fun z ↦ by
-    simpa using hΦ (ContinuousMap.inclusion InteriorModel.compl_range_val_interiorOpens.subset z)
+    simpa using hΦ (ContinuousMap.inclusion (𝓡∂ 2).compl_range_subtypeVal_interior.subset z)
 
 /-- The constant map `1 : ∂S → Sp(2n)` has boundary Maslov index `0`. -/
 @[simp]

@@ -45,6 +45,7 @@ zero.
   and `SymplecticGeometry.formCalculus_apply_of_odd`: its components of odd degree vanish. For
   `k ≤ finrank ℝ E`, `SymplecticGeometry.formCalculus_apply_of_le` gives the first in every
   dimension.
+* `SymplecticGeometry.commute_formCalculus`: it commutes with every form of mixed degree.
 * `SymplecticGeometry.formCalculus_apply_val`: the same at a point `x`, and
   `SymplecticGeometry.formCalculus_val_congr`: the components at `x` depend only on `f x` and
   `τ x`.
@@ -166,6 +167,13 @@ theorem formCalculus_zero_component_val (x : M) :
   (congrArg (fun ψ : SmoothForm I M ℝ 0 ↦ ψ.val x) (formCalculus_zero_component F hF f τ)).trans
     ((congrFun (SmoothForm.coe_ofFunction _) x).trans
       (RoughForm.ofFunction_apply_eq_constOfIsEmpty _ x))
+
+/-- `F(f + τ)` commutes with every smooth form of mixed degree, since all its components have
+even degree. -/
+theorem commute_formCalculus (γ : ⨁ k, SmoothForm I M ℝ k) :
+    Commute (formCalculus F hF f τ) γ := by
+  rw [formCalculus_def]
+  exact Commute.sum_left _ _ _ fun k _ ↦ SmoothForm.commute_of_of_even (even_two_mul k) _ γ
 
 variable [FiniteDimensional ℝ E]
 
