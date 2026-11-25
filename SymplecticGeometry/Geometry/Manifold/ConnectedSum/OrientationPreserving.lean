@@ -9,8 +9,8 @@ public import TauCeti.Geometry.Manifold.ConnectedSum.Oriented
 public import TauCeti.Geometry.Manifold.ConnectedSum.Orientation
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import SymplecticGeometry.Geometry.Manifold.Orientation.Sign
+import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Orientation
 import TauCeti.Analysis.InnerProductSpace.Reflection
-import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Orientation
 import TauCeti.Geometry.Euclidean.Inversion
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 
@@ -30,21 +30,25 @@ The proof follows Tau Ceti's proof of
 `TauCeti.ConnectedSum.nonempty_diffeomorph_of_isOrientationReversingAt` step by step, and checks
 that every step preserves the orientations.
 
-* The diffeomorphisms of the summands given by the ambient disc theorem are final maps of
-  diffeotopies, so they preserve orientation
+* The diffeomorphisms of the summands given by the ambient disc theorem preserve orientation
   (`TauCeti.SmoothEmbedding.exists_diffeomorph_comp_eventuallyEq_and_isOrientationPreservingAt`,
-  a variant of `TauCeti.SmoothEmbedding.exists_diffeomorph_comp_eventuallyEq`).
+  in `SymplecticGeometry/Geometry/Manifold/SmoothIsotopy/Orientation.lean`).
 * A local diffeomorphism out of a connected sum preserves orientation everywhere once it does so
   on the two punctured summands, away from a compact part of the second ball
   (`TauCeti.ConnectedSum.isOrientationPreservingAt_of_comp_inl_of_comp_inr`): the pullback of the
   target orientation then agrees with `TauCeti.ConnectedSum.orientation` on both summands, by
   `TauCeti.ConnectedSum.isOrientationPreservingAt_inl` and
-  `TauCeti.ConnectedSum.isOrientationPreservingAt_inr`.
+  `TauCeti.ConnectedSum.isOrientationPreservingAt_inr`. This proof is adapted from the second
+  half of the proof of `TauCeti.ConnectedSum.eq_orientation_iff`.
 * Hence the exchange of the summands, the rotation of both balls by a linear isometry, and the
   moving of the first ball by an orientation-preserving diffeomorphism all preserve orientation
   (`TauCeti.ConnectedSum.isOrientationPreservingAt_commHomeomorph`,
   `TauCeti.ConnectedSum.isOrientationPreservingAt_compLinearIsometryEquivHomeomorph`,
   `TauCeti.ConnectedSum.isOrientationPreservingAt_congrLeftHomeomorph`).
+* For balls with the same orientation of `E`, the diffeomorphism of
+  `TauCeti.ConnectedSum.exists_diffeomorph_isOrientationPreservingAt_of_eq` is the chain of
+  moves (first ball, exchange, second ball, exchange) of the proof of
+  `TauCeti.ConnectedSum.nonempty_diffeomorph_of_eventuallyEq`, from which it is adapted.
 
 Two steps of Tau Ceti's file `TauCeti/Geometry/Manifold/ConnectedSum/Congr.lean` are private
 there, and are proved again here, as there: every point of the connected sum lies in one of
@@ -72,7 +76,8 @@ after Tau Ceti's `exists_congrLeftInr_eq`).
 
 * [A. Kosinski, *Differential Manifolds*][Kosinski1993], Chapter VI, Section 1.
 * [R. Palais, *Extending diffeomorphisms*][Palais1960].
-* [M. Hirsch, *Differential Topology*][Hirsch1976], Chapter 4, §6.
+* [M. Hirsch, *Differential Topology*][Hirsch1976], Chapter 8, Theorem 3.1 and
+  Theorems 2.1–2.3.
 -/
 
 public section
@@ -81,28 +86,6 @@ noncomputable section
 
 open Set Filter Function Topology TopologicalSpace Metric EuclideanGeometry
 open scoped Manifold ContDiff
-
-namespace TauCeti.SmoothEmbedding
-
-variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
-  {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℝ, E) ∞ M]
-  {ι : Type*} [Fintype ι]
-
-/-- On a connected oriented manifold, two smooth embeddings of `E` which preserve the orientations
-`o` of `E` and `oM` of `M` at the origin agree near the origin after an orientation-preserving
-diffeomorphism of `M`. -/
-theorem exists_diffeomorph_comp_eventuallyEq_and_isOrientationPreservingAt [T2Space M]
-    [PreconnectedSpace M] (f g : SmoothEmbedding 𝓘(ℝ, E) 𝓘(ℝ, E) ∞ E M)
-    (o : Manifold.Orientation 𝓘(ℝ, E) E ι) (oM : Manifold.Orientation 𝓘(ℝ, E) M ι)
-    (hf : o.IsOrientationPreservingAt oM f 0) (hg : o.IsOrientationPreservingAt oM g 0) :
-    ∃ φ : M ≃ₘ^∞⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ M, φ ∘ f =ᶠ[𝓝 0] g ∧
-      ∀ x, oM.IsOrientationPreservingAt oM φ x := by
-  obtain ⟨Φ, -, -, -, hΦ⟩ := f.exists_diffeotopy_eqOn_of_isOrientationPreservingAt g o oM hf hg
-    (isCompact_closedBall (0 : E) 1)
-  exact ⟨Φ.final, hΦ.eventuallyEq_of_mem (closedBall_mem_nhds 0 one_pos),
-    Φ.isOrientationPreservingAt_final (by simp) oM⟩
-
-end TauCeti.SmoothEmbedding
 
 namespace TauCeti.ConnectedSum
 
@@ -504,6 +487,21 @@ def connectedSumOrientation :
     (fun v _ ↦ (exists_isOrientationPreservingAt_ballLeft oM oN).choose_spec.1 v)
     (fun v _ ↦ (exists_isOrientationPreservingAt_ballLeft oM oN).choose_spec.2 v)
 
+theorem connectedSumOrientation_def :
+    letI := ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_ballLeft oM oN)
+      (isOpenEmbedding_ballRight oM oN)
+    haveI := ConnectedSum.isManifold (isOpenEmbedding_ballLeft oM oN)
+      (isOpenEmbedding_ballRight oM oN) (isLocalDiffeomorph_ballLeft oM oN)
+      (isLocalDiffeomorph_ballRight oM oN)
+    connectedSumOrientation oM oN (ι := ι) =
+      ConnectedSum.orientation (isOpenEmbedding_ballLeft oM oN) (isOpenEmbedding_ballRight oM oN)
+        (IsLocalDiffeomorph.of_le (isLocalDiffeomorph_ballLeft oM oN) LEInfty.out)
+        (IsLocalDiffeomorph.of_le (isLocalDiffeomorph_ballRight oM oN) LEInfty.out) oM oN
+        (exists_isOrientationPreservingAt_ballLeft oM oN).choose
+        (fun v _ ↦ (exists_isOrientationPreservingAt_ballLeft oM oN).choose_spec.1 v)
+        (fun v _ ↦ (exists_isOrientationPreservingAt_ballLeft oM oN).choose_spec.2 v) :=
+  (rfl)
+
 /-- The **orientation of the oriented connected sum** `M # N`: the one which agrees with `oM` on
 the punctured first summand and with `oN` on the punctured second summand, carried from the
 connected sum along its balls by `TauCeti.OrientedConnectedSum.diffeomorphConnectedSum`. -/
@@ -516,6 +514,17 @@ def orientation : Manifold.Orientation 𝓘(ℝ, E) (OrientedConnectedSum oM oN)
   (connectedSumOrientation oM oN).pullback
     ((diffeomorphConnectedSum oM oN).contMDiff.of_le LEInfty.out)
     (fun _ ↦ (diffeomorphConnectedSum oM oN).isInvertible_mfderiv (by simp)) oM.card_eq
+
+theorem orientation_def :
+    letI := ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_ballLeft oM oN)
+      (isOpenEmbedding_ballRight oM oN)
+    haveI := ConnectedSum.isManifold (isOpenEmbedding_ballLeft oM oN)
+      (isOpenEmbedding_ballRight oM oN) (isLocalDiffeomorph_ballLeft oM oN)
+      (isLocalDiffeomorph_ballRight oM oN)
+    orientation oM oN (ι := ι) = (connectedSumOrientation oM oN).pullback
+      ((diffeomorphConnectedSum oM oN).contMDiff.of_le LEInfty.out)
+      (fun _ ↦ (diffeomorphConnectedSum oM oN).isInvertible_mfderiv (by simp)) oM.card_eq :=
+  (rfl)
 
 /-- The identification of the oriented connected sum with the connected sum along its balls
 preserves orientation. -/
@@ -533,6 +542,54 @@ theorem isOrientationPreservingAt_diffeomorphConnectedSum (p : OrientedConnected
     (isOpenEmbedding_ballRight oM oN) (isLocalDiffeomorph_ballLeft oM oN)
     (isLocalDiffeomorph_ballRight oM oN)
   exact isOrientationPreservingAt_pullback _ _ _ _ p
+
+/-- The inclusion of the punctured first summand into the oriented connected sum preserves
+orientation, from the restriction of `oM` to `TauCeti.OrientedConnectedSum.orientation oM oN`. -/
+theorem isOrientationPreservingAt_diffeomorphConnectedSum_symm_comp_inl
+    (x : ConnectedSum.puncture (ballLeft oM oN)) :
+    letI := ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_ballLeft oM oN)
+      (isOpenEmbedding_ballRight oM oN)
+    haveI := ConnectedSum.isManifold (isOpenEmbedding_ballLeft oM oN)
+      (isOpenEmbedding_ballRight oM oN) (isLocalDiffeomorph_ballLeft oM oN)
+      (isLocalDiffeomorph_ballRight oM oN)
+    IsOrientationPreservingAt (oM.restrict (ConnectedSum.puncture (ballLeft oM oN)))
+      (orientation oM oN) ((diffeomorphConnectedSum oM oN).symm ∘
+        ConnectedSum.inl (ballLeft oM oN) (ballRight oM oN)) x := by
+  let := ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_ballLeft oM oN)
+    (isOpenEmbedding_ballRight oM oN)
+  have := ConnectedSum.isManifold (isOpenEmbedding_ballLeft oM oN)
+    (isOpenEmbedding_ballRight oM oN) (isLocalDiffeomorph_ballLeft oM oN)
+    (isLocalDiffeomorph_ballRight oM oN)
+  have h := isOrientationPreservingAt_diffeomorphConnectedSum oM oN
+    ((diffeomorphConnectedSum oM oN).symm (ConnectedSum.inl _ _ x))
+  rw [connectedSumOrientation_def] at h
+  exact (h.diffeomorph_symm (by simp)).comp
+    (ConnectedSum.isOrientationPreservingAt_inl _ _ _ _ _ _
+      (isOrientationPreservingAt_restrict oM _ x))
+
+/-- The inclusion of the punctured second summand into the oriented connected sum preserves
+orientation, from the restriction of `oN` to `TauCeti.OrientedConnectedSum.orientation oM oN`. -/
+theorem isOrientationPreservingAt_diffeomorphConnectedSum_symm_comp_inr
+    (y : ConnectedSum.puncture (ballRight oM oN)) :
+    letI := ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_ballLeft oM oN)
+      (isOpenEmbedding_ballRight oM oN)
+    haveI := ConnectedSum.isManifold (isOpenEmbedding_ballLeft oM oN)
+      (isOpenEmbedding_ballRight oM oN) (isLocalDiffeomorph_ballLeft oM oN)
+      (isLocalDiffeomorph_ballRight oM oN)
+    IsOrientationPreservingAt (oN.restrict (ConnectedSum.puncture (ballRight oM oN)))
+      (orientation oM oN) ((diffeomorphConnectedSum oM oN).symm ∘
+        ConnectedSum.inr (ballLeft oM oN) (ballRight oM oN)) y := by
+  let := ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_ballLeft oM oN)
+    (isOpenEmbedding_ballRight oM oN)
+  have := ConnectedSum.isManifold (isOpenEmbedding_ballLeft oM oN)
+    (isOpenEmbedding_ballRight oM oN) (isLocalDiffeomorph_ballLeft oM oN)
+    (isLocalDiffeomorph_ballRight oM oN)
+  have h := isOrientationPreservingAt_diffeomorphConnectedSum oM oN
+    ((diffeomorphConnectedSum oM oN).symm (ConnectedSum.inr _ _ y))
+  rw [connectedSumOrientation_def] at h
+  exact (h.diffeomorph_symm (by simp)).comp
+    (ConnectedSum.isOrientationPreservingAt_inr _ _ _ _ _ _
+      (isOrientationPreservingAt_restrict oN _ y))
 
 variable [PreconnectedSpace M] [PreconnectedSpace N]
 
