@@ -819,8 +819,8 @@ Both start `φ` at a variable `f₀` equal to the inclusion, as
 function and `φ (t, x)` does not elaborate.
 The first is `Flow.lean`'s symplectic theorem with `K` a compact neighbourhood
 of `Q` in `V`, and `β`, `h` from `Primitive.lean`, applied to the restriction of
-`φ` to `V`, `SmoothIsotopy.restrict`, which `Velocity.lean` defines with the
-slices of its velocity form. The second takes `β = 0`.
+`φ` to `V`, `SmoothIsotopy.restrict`, which
+`Geometry/Manifold/SmoothIsotopy/Basic.lean` defines. The second takes `β = 0`.
 Its periods vanish by `hQ1`, so it needs no compactness of `M`, only the
 compact support that `Flow.lean`'s Hamiltonian theorem provides. The
 milestone is the conjunction, under the plan's hypotheses (compact `M`):
@@ -933,7 +933,7 @@ this design already follows. `Ball/Isotopy.lean` cites
   `Cohomological/Primitive.lean`, which also imports `Geometry/Manifold/DeRham/Map.lean`
   for `TauCeti.SmoothForm.mpullback_mem_closedForms`). The part does not use the splittings and
   `contMDiff_repr_mk_of_hasFiniteGoodCover`: the periods are smooth in `t`
-  as line integrals. `IsotopyExtension/Velocity.lean` imports its
+  as line integrals. `Geometry/Manifold/SmoothIsotopy/Basic.lean` imports its
   `Geometry/Manifold/LocalDiffeomorph/OpenSubset.lean`, for the inclusion of one
   open set in another as a local diffeomorphism (`SmoothIsotopy.restrict`).
   The part's flows are Tau Ceti's `timeDependentFlowDiffeotopy`,
