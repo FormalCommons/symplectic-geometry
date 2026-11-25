@@ -5,12 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Geometry.Manifold.PartitionOfUnity
 public import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 public import TauCeti.Geometry.Manifold.TubularNeighborhood.Existence
 public import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Real
+public import TauCeti.Geometry.Manifold.ContMDiffMap.Radius
 
 /-!
 # Tubes around proper rays
@@ -30,8 +30,9 @@ smooth positive function `r` of the base point (`vectorBundleScalarDiffeomorph`)
 comes from `Continuous.exists_contDiff_pos_isClosed_image_subset`: for a continuous map
 `Ψ : ℝ × V → M` whose restriction to `ℝ × {0}` is proper towards `+∞`, the image of
 `{(t, y) | a ≤ t, ‖y‖ ≤ r t}` is closed and inside a given open neighbourhood of
-`Ψ '' (Ici a ×ˢ {0})` once `r` decreases fast enough. Such an `r` is glued from local constants by
-a smooth partition of unity (`exists_contMDiffMap_forall_mem_convex_of_local_const`).
+`Ψ '' (Ici a ×ˢ {0})` once `r` decreases fast enough. Such an `r` is a smooth radius of
+balls inside a neighbourhood of `ℝ × {0}`, which Tau Ceti's
+`TauCeti.exists_contMDiffMap_closedBall_subset` provides.
 
 ## Main results
 
@@ -51,22 +52,8 @@ public section
 open Bundle Filter Manifold Set Topology
 open scoped ContDiff Manifold
 
-variable {V : Type*} [NormedAddCommGroup V]
-
-/-- Over a compact set `C` of times, an open neighbourhood of `C ×ˢ {0}` in `ℝ × V` contains all
-points `(s, y)` with `s ∈ C` and `‖y‖ ≤ ε`, for some `ε > 0`. -/
-private theorem exists_pos_forall_norm_le_mem {C : Set ℝ} (hC : IsCompact C) {U : Set (ℝ × V)}
-    (hU : IsOpen U) (hCU : ∀ s ∈ C, (s, (0 : V)) ∈ U) :
-    ∃ ε > 0, ∀ s ∈ C, ∀ y : V, ‖y‖ ≤ ε → (s, y) ∈ U := by
-  obtain ⟨u, v, -, hv, hCu, hv0, huv⟩ :=
-    generalized_tube_lemma hC isCompact_singleton hU
-      (by rintro ⟨s, y⟩ ⟨hs, rfl⟩; exact hCU s hs)
-  obtain ⟨ε, hε, hεv⟩ := Metric.isOpen_iff.1 hv 0 (hv0 rfl)
-  refine ⟨ε / 2, half_pos hε, fun s hs y hy ↦ huv ⟨hCu hs, hεv ?_⟩⟩
-  rw [Metric.mem_ball, dist_zero_right]
-  linarith
-
-variable [NormedSpace ℝ V] [FiniteDimensional ℝ V] {M : Type*} [TopologicalSpace M] [T2Space M]
+variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
+  {M : Type*} [TopologicalSpace M] [T2Space M]
 
 /-- Let `Ψ : ℝ × V → M` be continuous, with `Ψ (t, 0)` tending to infinity as `t → ∞`, and let
 `O'` be an open set containing `Ψ (t, 0)` for all `t ≥ a`. Then there is a smooth positive
@@ -84,48 +71,37 @@ theorem Continuous.exists_contDiff_pos_isClosed_image_subset [WeaklyLocallyCompa
   have hT (n : ℕ) : ∃ T : ℝ, ∀ t, T ≤ t → Ψ (t, 0) ∉ K n :=
     eventually_atTop.1 (hγ (K.isCompact n).compl_mem_cocompact)
   choose T hT using hT
-  -- The admissible radii at `s`: at most `1`, keeping the slice over `s` in `O'` if `a ≤ s`, and
-  -- outside `K n` whenever `T n ≤ s`.
-  let good (s c : ℝ) : Prop := c ≤ 1 ∧ ∀ y : V, ‖y‖ ≤ c →
-    (a ≤ s → Ψ (s, y) ∈ O') ∧ ∀ n, T n ≤ s → Ψ (s, y) ∉ K n
-  have hgood_anti {s c c' : ℝ} (hc : c' ≤ c) (h : good s c) : good s c' :=
-    ⟨hc.trans h.1, fun y hy ↦ h.2 y (hy.trans hc)⟩
-  have hconv (s : ℝ) : Convex ℝ {c | 0 < c ∧ good s c} := by
-    refine Set.OrdConnected.convex ⟨fun c₁ hc₁ c₂ hc₂ c hc ↦ ?_⟩
-    exact ⟨hc₁.1.trans_le hc.1, hgood_anti hc.2 hc₂.2⟩
-  have hloc (s₀ : ℝ) : ∃ c : ℝ, ∀ᶠ s in 𝓝 s₀, c ∈ {c | 0 < c ∧ good s c} := by
-    let C (b : ℝ) : Set ℝ := Icc (max b (s₀ - 1)) (s₀ + 1)
-    have hC (b : ℝ) : IsCompact (C b) := isCompact_Icc
-    have hmemC {b s : ℝ} (hb : b ≤ s) (hs : s ∈ Ioo (s₀ - 1) (s₀ + 1)) : s ∈ C b :=
-      ⟨max_le hb hs.1.le, hs.2.le⟩
-    obtain ⟨εO, hεO, hεO'⟩ := exists_pos_forall_norm_le_mem (hC a) (hO'.preimage hΨ)
-      fun s hs ↦ hγO' s (le_of_max_le_left hs.1)
-    have hε (n : ℕ) : ∃ ε > 0, ∀ s ∈ C (T n), ∀ y : V, ‖y‖ ≤ ε → (s, y) ∈ Ψ ⁻¹' (K n)ᶜ :=
-      exists_pos_forall_norm_le_mem (hC (T n)) ((K.isCompact n).isClosed.isOpen_compl.preimage hΨ)
-        fun s hs ↦ hT n s (le_of_max_le_left hs.1)
-    choose ε hε hεK using hε
+  -- The points `p` over which the image stays in `O'` if `a ≤ p.1`, and outside `K n` whenever
+  -- `T n ≤ p.1`.
+  let U : Set (ℝ × V) := {p | (a ≤ p.1 → Ψ p ∈ O') ∧ ∀ n, T n ≤ p.1 → Ψ p ∉ K n}
+  -- A condition `b ≤ p.1 → Ψ p ∈ W` that holds at `(s₀, 0)` holds near `(s₀, 0)`: if
+  -- `b ≤ s₀` by continuity, and otherwise because its premise fails nearby.
+  have hev {W : Set M} (hW : IsOpen W) {b s₀ : ℝ} (h : b ≤ s₀ → Ψ (s₀, 0) ∈ W) :
+      ∀ᶠ p in 𝓝 (s₀, (0 : V)), b ≤ p.1 → Ψ p ∈ W := by
+    by_cases hb : b ≤ s₀
+    · filter_upwards [(hW.preimage hΨ).mem_nhds (h hb)] with p hp _ using hp
+    · filter_upwards [continuous_fst.continuousAt.preimage_mem_nhds (Iio_mem_nhds (not_le.1 hb))]
+        with p hp hbp using absurd (hbp.trans_lt hp) (lt_irrefl b)
+  have hU (s₀ : ℝ) : U ∈ 𝓝 (s₀, (0 : V)) := by
     obtain ⟨m, hm⟩ := K.exists_superset_of_isCompact
       ((isCompact_Icc (a := s₀ - 1) (b := s₀ + 1)).image (hΨ.comp (Continuous.prodMk_left 0)))
-    -- A positive lower bound for `ε n`, `n < m`.
-    obtain ⟨δ, hδ, hδle⟩ : ∃ δ > 0, ∀ n < m, δ ≤ ε n :=
-      ⟨(Finset.range (m + 1)).inf' Finset.nonempty_range_add_one ε,
-        (Finset.lt_inf'_iff _).2 fun n _ ↦ hε n,
-        fun n hn ↦ Finset.inf'_le _ (Finset.mem_range.2 (by omega))⟩
-    refine ⟨min 1 (min εO δ), ?_⟩
-    filter_upwards [Ioo_mem_nhds (show s₀ - 1 < s₀ by linarith) (show s₀ < s₀ + 1 by linarith)]
-      with s hs
-    refine ⟨lt_min one_pos (lt_min hεO hδ), min_le_left _ _, fun y hy ↦ ⟨fun has ↦ ?_, ?_⟩⟩
-    · exact hεO' s (hmemC has hs) y (hy.trans ((min_le_right _ _).trans (min_le_left _ _)))
-    · intro n hn
-      rcases lt_or_ge n m with hnm | hnm
-      · exact hεK n s (hmemC hn hs) y
-          (hy.trans ((min_le_right _ _).trans ((min_le_right _ _).trans (hδle n hnm))))
-      · exact absurd (K.subset hnm (hm ⟨s, Ioo_subset_Icc_self hs, rfl⟩)) (hT n s hn)
-  obtain ⟨r, hr⟩ := exists_contMDiffMap_forall_mem_convex_of_local_const 𝓘(ℝ) (n := ⊤) hconv hloc
+    have hbig : ∀ᶠ p in 𝓝 (s₀, (0 : V)), ∀ n, m ≤ n → T n ≤ p.1 → Ψ p ∉ K n := by
+      filter_upwards [continuous_fst.continuousAt.preimage_mem_nhds
+        (Ioo_mem_nhds (show s₀ - 1 < s₀ by linarith) (show s₀ < s₀ + 1 by linarith))]
+        with p hp n hn hTn _
+      exact hT n p.1 hTn (K.subset hn (hm ⟨p.1, Ioo_subset_Icc_self hp, rfl⟩))
+    have hsmall : ∀ᶠ p in 𝓝 (s₀, (0 : V)), ∀ n ∈ Iio m, T n ≤ p.1 → Ψ p ∉ K n :=
+      (eventually_all_finite (finite_Iio m)).2 fun n _ ↦
+        hev (K.isCompact n).isClosed.isOpen_compl (hT n s₀)
+    filter_upwards [hev hO' (hγO' s₀), hbig, hsmall] with p hpO hpm hpn
+    exact ⟨hpO, fun n ↦ (lt_or_ge n m).elim (hpn n) (hpm n)⟩
+  obtain ⟨r, hr0, hr1, hr⟩ := TauCeti.exists_contMDiffMap_closedBall_subset (I := 𝓘(ℝ))
+    (v₀ := (0 : V)) hU lowerSemicontinuous_const fun _ ↦ one_pos
   let A : Set (ℝ × V) := {p | a ≤ p.1 ∧ ‖p.2‖ ≤ r p.1}
   have hrc : Continuous r := r.contMDiff.continuous
-  refine ⟨r, contMDiff_iff_contDiff.1 r.contMDiff, fun t ↦ (hr t).1, ?_,
-    image_subset_iff.2 fun p hp ↦ ((hr p.1).2.2 p.2 hp.2).1 hp.1⟩
+  have hrU {p : ℝ × V} (hp : p ∈ A) : p ∈ U := hr p.1 p.2 (mem_closedBall_zero_iff.2 hp.2)
+  refine ⟨r, contMDiff_iff_contDiff.1 r.contMDiff, hr0, ?_,
+    image_subset_iff.2 fun p hp ↦ (hrU hp).1 hp.1⟩
   refine closure_subset_iff_isClosed.1 fun x hx ↦ ?_
   obtain ⟨n, hn⟩ := K.exists_mem_nhds x
   -- Near `x`, the image of `A` is the image of a compact part of `A`.
@@ -140,8 +116,8 @@ theorem Continuous.exists_contDiff_pos_isClosed_image_subset [WeaklyLocallyCompa
     rintro _ ⟨⟨p, hp, rfl⟩, hpK⟩
     refine ⟨p, ⟨hp, ⟨hp.1, ?_⟩, ?_⟩, rfl⟩
     · by_contra h
-      exact ((hr p.1).2.2 p.2 hp.2).2 n (not_le.1 h).le hpK
-    · exact mem_closedBall_zero_iff.2 (hp.2.trans (hr p.1).2.1)
+      exact (hrU hp).2 n (not_le.1 h).le hpK
+    · exact mem_closedBall_zero_iff.2 (hp.2.trans (hr1 p.1).le)
   refine image_mono inter_subset_left (hB.isClosed.closure_subset ?_)
   refine mem_closure_iff_nhds.2 fun U hU ↦ ?_
   obtain ⟨z, hzU, hz⟩ := mem_closure_iff_nhds.1 hx (U ∩ K n) (inter_mem hU hn)
