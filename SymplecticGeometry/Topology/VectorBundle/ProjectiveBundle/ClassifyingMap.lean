@@ -5,9 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Topology.VectorBundle.FiniteTrivializingCover
 public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Tautological
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.FiberwiseEquiv
-public import TauCeti.Topology.VectorBundle.TrivialEmbedding
 
 /-!
 # Classifying maps of line bundles to projective spaces
@@ -15,10 +15,12 @@ public import TauCeti.Topology.VectorBundle.TrivialEmbedding
 A line bundle `E → B` that embeds fibrewise into a fixed topological vector space `V`, by linear
 injections `j b : E b → V` that are continuous on the total space, is the pull-back of the
 tautological line `Projectivization.Tautological 𝕜 V` of the library along the map sending `b` to
-the line `j b (E b)`. Over a compact normal base, Tau Ceti's
-`TauCeti.exists_continuous_injective_fin_of_compactSpace` gives such an embedding into some
-`Fin N → 𝕜`, so every line bundle is pulled back from a finite projective space, and for a
-complex line bundle the Euler class is the pull-back of the Euler class of the tautological line.
+the line `j b (E b)`. Over a normal base, finitely many linear trivializations whose base sets
+cover it (`SymplecticGeometry.Bundle.HasFiniteTrivializingCover`, which compactness gives) give
+such an embedding into some `Fin N → 𝕜`
+(`SymplecticGeometry.Bundle.HasFiniteTrivializingCover.exists_continuous_injective_fin`). So such
+a line bundle is pulled back from a finite projective space, and for a complex line bundle the
+Euler class is the pull-back of the Euler class of the tautological line.
 
 ## Main results
 
@@ -26,12 +28,13 @@ complex line bundle the Euler class is the pull-back of the Euler class of the t
   `j` of a line bundle into `V`, continuous on the total space, gives a continuous map
   `g : B → ℙ 𝕜 V` and isomorphisms `E b ≃ Tautological 𝕜 V (g b)` that agree with `j b` and are
   continuous on total spaces.
-* `SymplecticGeometry.Bundle.exists_fiberwise_tautological_fin`: over a compact normal base, every
-  line bundle is the pull-back of the tautological line of some `ℙ 𝕜 (Fin N → 𝕜)`, in the form
-  that `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise` takes.
+* `SymplecticGeometry.Bundle.exists_fiberwise_tautological_fin`: over a normal base, every line
+  bundle with a finite trivializing cover is the pull-back of the tautological line of some
+  `ℙ 𝕜 (Fin N → 𝕜)`, in the form that
+  `TauCeti.complexEulerClass_eq_singularCohomologyMap_of_fiberwise` takes.
 * `SymplecticGeometry.Bundle.exists_complexEulerClass_eq_singularCohomologyMap_tautological`: the
-  Euler class of a complex line bundle over a compact normal base is pulled back from that of the
-  tautological line of some `ℙ ℂ (Fin N → ℂ)`.
+  Euler class of a complex line bundle with a finite trivializing cover over a normal base is
+  pulled back from that of the tautological line of some `ℙ ℂ (Fin N → ℂ)`.
 
 ## Proof
 
@@ -126,51 +129,53 @@ theorem exists_fiberwise_tautological_of_injective (hF : finrank 𝕜 F = 1)
 
 end General
 
-section Compact
+section FiniteTrivializingCover
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] [NormedAlgebra ℝ 𝕜] [CompleteSpace 𝕜] {B : Type*}
-  [TopologicalSpace B] [CompactSpace B] [NormalSpace B] {F : Type*} [NormedAddCommGroup F]
+  [TopologicalSpace B] [NormalSpace B] {F : Type*} [NormedAddCommGroup F]
   [NormedSpace 𝕜 F] {E : B → Type*} [TopologicalSpace (TotalSpace F E)]
   [∀ b, AddCommGroup (E b)] [∀ b, Module 𝕜 (E b)] [∀ b, TopologicalSpace (E b)]
   [FiberBundle F E] [VectorBundle 𝕜 F E]
 
-/-- **Classifying maps of line bundles to finite projective spaces.** A line bundle `E` over a
-compact normal (for instance compact Hausdorff) base `B` is the pull-back of the tautological line
-of some `ℙ 𝕜 (Fin N → 𝕜)`: there are a continuous map `g : B → ℙ 𝕜 (Fin N → 𝕜)` and isomorphisms
+/-- **Classifying maps of line bundles to finite projective spaces.** A line bundle `E` with a
+finite trivializing cover over a normal base `B` (over a compact base, every line bundle, by
+`HasFiniteTrivializingCover.of_compactSpace`) is the pull-back of the tautological line of some
+`ℙ 𝕜 (Fin N → 𝕜)`: there are a continuous map `g : B → ℙ 𝕜 (Fin N → 𝕜)` and isomorphisms
 `E b ≃ Tautological 𝕜 (Fin N → 𝕜) (g b)`, continuous on total spaces. -/
-theorem exists_fiberwise_tautological_fin (hF : finrank 𝕜 F = 1) :
+theorem exists_fiberwise_tautological_fin (hF : finrank 𝕜 F = 1)
+    (hE : HasFiniteTrivializingCover 𝕜 F E) :
     ∃ (N : ℕ) (g : C(B, ℙ 𝕜 (Fin N → 𝕜)))
       (φ : ∀ b, E b ≃L[𝕜] Tautological 𝕜 (Fin N → 𝕜) (g b)),
       Continuous fun v : TotalSpace F E ↦
         TotalSpace.mk' 𝕜 (E := Tautological 𝕜 (Fin N → 𝕜)) (g v.proj) (φ v.proj v.snd) := by
   have : FiniteDimensional 𝕜 F := Module.finite_of_finrank_eq_succ hF
-  obtain ⟨N, j, hjc, hj⟩ :=
-    TauCeti.exists_continuous_injective_fin_of_compactSpace (𝕜 := 𝕜) (F := F) (E := E)
+  obtain ⟨N, j, hjc, hj⟩ := hE.exists_continuous_injective_fin
   obtain ⟨g, φ, -, hφ⟩ := exists_fiberwise_tautological_of_injective hF
     (fun b ↦ (j b).toLinearMap) hjc hj
   exact ⟨N, g, φ, hφ⟩
 
-end Compact
+end FiniteTrivializingCover
 
 section EulerClass
 
 open TauCeti
 
-variable {B : Type} [TopologicalSpace B] [CompactSpace B] [NormalSpace B]
+variable {B : Type} [TopologicalSpace B] [NormalSpace B]
   {G : Type} [NormedAddCommGroup G] [NormedSpace ℝ G] [NormedSpace ℂ G] [IsScalarTower ℝ ℂ G]
   [FiniteDimensional ℂ G]
   {E : B → Type} [TopologicalSpace (TotalSpace G E)] [∀ b, AddCommGroup (E b)]
   [∀ b, Module ℝ (E b)] [∀ b, Module ℂ (E b)] [∀ b, IsScalarTower ℝ ℂ (E b)]
   [∀ b, TopologicalSpace (E b)] [FiberBundle G E] [VectorBundle ℂ G E]
 
-/-- The Euler class of a complex line bundle `E` over a compact normal base is the pull-back of
-the Euler class of the tautological line of some `ℙ ℂ (Fin N → ℂ)`, along a continuous map. -/
+/-- The Euler class of a complex line bundle `E` with a finite trivializing cover over a normal
+base is the pull-back of the Euler class of the tautological line of some `ℙ ℂ (Fin N → ℂ)`,
+along a continuous map. -/
 theorem exists_complexEulerClass_eq_singularCohomologyMap_tautological
-    (hG : finrank ℂ G = 1) :
+    (hG : finrank ℂ G = 1) (hE : HasFiniteTrivializingCover ℂ G E) :
     ∃ (N : ℕ) (g : C(B, ℙ ℂ (Fin N → ℂ))),
       complexEulerClass (r := 0) G E hG = TopCat.singularCohomologyMap (TopCat.ofHom g) 2
         (complexEulerClass (r := 0) ℂ (Tautological ℂ (Fin N → ℂ)) (finrank_self ℂ)) := by
-  obtain ⟨N, g, φ, hφ⟩ := exists_fiberwise_tautological_fin (E := E) hG
+  obtain ⟨N, g, φ, hφ⟩ := exists_fiberwise_tautological_fin hG hE
   exact ⟨N, g, complexEulerClass_eq_singularCohomologyMap_of_fiberwise (finrank_self ℂ) hG hφ⟩
 
 end EulerClass
