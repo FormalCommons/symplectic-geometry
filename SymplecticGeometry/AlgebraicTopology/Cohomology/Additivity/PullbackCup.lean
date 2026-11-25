@@ -5,9 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.AlgebraicTopology.Cohomology.Additivity.Basic
 public import TauCeti.AlgebraicTopology.Cohomology.Additivity.Relative
 public import TauCeti.AlgebraicTopology.Cohomology.Cup.Pullback
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.Additivity.Opens
 
 /-!
 # Additivity of the map `a ↦ π^*a ⌣ u` over disjoint open sets
@@ -24,23 +24,19 @@ Milnor and Stasheff.
 The union `⋃ i, V i` is the disjoint union of the `V i`, and the pair over it is the disjoint union
 of the pairs over the `V i`, since their preimages are again disjoint and open
 (`Set.isHomeomorph_sigma_inclusion`, `TopCat.isColimitCofanPreimagePairIUnion`). Singular
-cohomology carries these disjoint unions to products (`TauCeti.isLimitFanSingularCohomologyIUnion`,
-from Tau Ceti's `TauCeti.isLimitFanSingularCohomology`, and Tau Ceti's
-`TauCeti.TopPair.isLimitFanSingularCohomologyOfIsColimit`), and the map over the union is
-compatible with the restrictions to the `V i` (`TopCat.pullbackCupRestrict_naturality`). So it is
-the product of the maps over the `V i`, which are isomorphisms. Tau Ceti's
+cohomology carries these disjoint unions to products (`TauCeti.isLimitFanSingularCohomologyIUnion`
+and Tau Ceti's `TauCeti.TopPair.isLimitFanSingularCohomologyOfIsColimit`), and the map over the
+union is compatible with the restrictions to the `V i` (`TopCat.pullbackCupRestrict_naturality`).
+So it is the product of the maps over the `V i`, which are isomorphisms. Tau Ceti's
 `TauCeti.HomologicalOrientation.bijective_dualityMap_comap_iSup_of_pairwise_disjoint` is the same
 step for Poincaré duality; there it goes through finite and directed unions, here directly through
-the product decompositions.
+the product decompositions. The index type of the main result is arbitrary: the proof first
+reindexes the family by its range, a type in the universe of the spaces.
 
 ## Main results
 
-* `Set.isHomeomorph_sigma_inclusion`: a set covered by pairwise disjoint open subsets is
-  homeomorphic to their disjoint union.
-* `TauCeti.isLimitFanSingularCohomologyIUnion`: the singular cohomology of a union of pairwise
-  disjoint open sets is the product of their cohomologies.
-* `TopCat.isColimitCofanPreimagePairIUnion`: the pair over such a union is the coproduct of the
-  pairs over its members.
+* `TopCat.isColimitCofanPreimagePairIUnion`: the pair over a union of pairwise disjoint open sets
+  is the coproduct of the pairs over its members.
 * `TopCat.bijective_pullbackCupRestrict_iUnion_of_pairwiseDisjoint`: the map over a union of
   pairwise disjoint open sets is bijective if it is over each of them.
 
@@ -56,57 +52,7 @@ noncomputable section
 
 open CategoryTheory Limits Set Function
 
-universe w v u
-
-/-- A subset `t` of a space that is the union of pairwise disjoint open subsets `s i ⊆ t` is
-homeomorphic to their disjoint union, by the map that includes each `s i` into `t`. For
-`t = ⋃ i, s i` this is the inverse of Mathlib's `Homeomorph.Set.iUnion`. -/
-theorem Set.isHomeomorph_sigma_inclusion {X : Type*} [TopologicalSpace X] {ι : Type*}
-    {s : ι → Set X} {t : Set X} (hs : ∀ i, IsOpen (s i)) (hd : Pairwise (Disjoint on s))
-    (hst : ∀ i, s i ⊆ t) (ht : t ⊆ ⋃ i, s i) :
-    IsHomeomorph fun x : Σ i, s i ↦ inclusion (hst x.1) x.2 := by
-  refine ⟨continuous_sigma fun i ↦ continuous_inclusion (hst i),
-    isOpenMap_sigma.2 fun i ↦ (hs i).isOpenMap_inclusion (hst i), ?_, fun y ↦ ?_⟩
-  · rintro ⟨i, x⟩ ⟨j, y⟩ hxy
-    have hxy' : (x : X) = y := congrArg Subtype.val hxy
-    obtain rfl : i = j := by
-      by_contra hij
-      exact (hd hij).ne_of_mem x.property y.property hxy'
-    exact Sigma.ext rfl (heq_of_eq (Subtype.ext hxy'))
-  · obtain ⟨i, hi⟩ := mem_iUnion.1 (ht y.property)
-    exact ⟨⟨i, ⟨y, hi⟩⟩, rfl⟩
-
-namespace TauCeti
-
-variable {ι : Type w} {X : TopCat.{w}} {V : ι → Set X}
-  (C : Type u) [Category.{v} C] [HasCoproducts.{w} C] [Abelian C] (R : C)
-  (k : Type*) [Ring k] [Linear k C] (M : C)
-
-/-- **Additivity of singular cohomology over disjoint open sets.** In every degree, the singular
-cohomology of a union of pairwise disjoint open sets `V i` is the product of the singular
-cohomologies of the `V i`, with the restrictions to the `V i` as projections. -/
-def isLimitFanSingularCohomologyIUnion [Small.{v} ι] (hV : ∀ i, IsOpen (V i))
-    (hd : Pairwise (Disjoint on V)) (n : ℕ) :
-    IsLimit (Fan.mk ((TopCat.of ↥(⋃ i, V i)).singularCohomology R k M n)
-      (fun i ↦ TopCat.singularCohomologyMap
-        (TopCat.ofHom (ContinuousMap.inclusion (subset_iUnion V i))) n) :
-      Fan fun i ↦ (TopCat.of (V i)).singularCohomology R k M n) :=
-  -- The disjoint union of the `V i` maps homeomorphically onto their union.
-  let σ : TopCat.of (Σ i, V i) ⟶ TopCat.of ↥(⋃ i, V i) :=
-    TopCat.ofHom ⟨_, (isHomeomorph_sigma_inclusion hV hd (subset_iUnion V) subset_rfl).continuous⟩
-  have : IsIso σ := (TopCat.isIso_iff_isHomeomorph σ).2
-    (isHomeomorph_sigma_inclusion hV hd (subset_iUnion V) subset_rfl)
-  -- `singularCohomologyFunctor` is exposed and sends `σ.op` to `singularCohomologyMap σ n` by
-  -- definition; its `simps` lemmas cannot rewrite here, since the source and target of the map
-  -- depend on `obj`.
-  have : IsIso (TopCat.singularCohomologyMap (R := R) (k := k) (M := M) σ n) :=
-    (inferInstance : IsIso ((singularCohomologyFunctor R k M n).map σ.op))
-  IsLimit.ofIsoLimit (isLimitFanSingularCohomology (fun i ↦ TopCat.of (V i)) C R k M n)
-    (Fan.ext (asIso (TopCat.singularCohomologyMap σ n)).symm fun i ↦ by
-      rw [Iso.symm_hom, asIso_inv, IsIso.eq_inv_comp]
-      exact (TopCat.singularCohomologyMap_comp _ _ n).symm)
-
-end TauCeti
+universe w
 
 namespace TopCat
 
@@ -132,11 +78,8 @@ def isColimitCofanPreimagePairIUnion {ι : Type w} {V : ι → Set Y} (hV : ∀ 
   · obtain ⟨i, hi⟩ := mem_iUnion.1 y.property.1
     exact ⟨i, ⟨y.val, hi, y.property.2⟩, TopPair.ofInclusionMap_fst_apply _ _ _⟩
 
-/-- **Additivity of `a ↦ π^*a ⌣ u` over disjoint open sets.** Let `π : X ⟶ Y` be a map, `Z ⊆ X`,
-`u ∈ Hⁿ(X, Z; K)`, and let `V i` be pairwise disjoint open subsets of `Y`. If the maps
-`TopCat.pullbackCupRestrict` of `u` over the `V i` are bijective in degree `p`, then so is the map
-of `u` over `⋃ i, V i`. -/
-theorem bijective_pullbackCupRestrict_iUnion_of_pairwiseDisjoint {ι : Type w} {V : ι → Set Y}
+/-- The main result below, for an index type in the universe of the spaces. -/
+private theorem bijective_pullbackCupRestrict_iUnion_aux {ι : Type w} {V : ι → Set Y}
     (hV : ∀ i, IsOpen (V i)) (hd : Pairwise (Disjoint on V)) {n p m : ℕ} (h : p + n = m)
     (u : (TopPair.ofSubset Z).singularCohomology (ModuleCat.of K K) K (ModuleCat.of K K) n)
     (hu : ∀ i, Bijective (pullbackCupRestrict π Z M (V i) n p m h u)) :
@@ -163,5 +106,26 @@ theorem bijective_pullbackCupRestrict_iUnion_of_pairwiseDisjoint {ι : Type w} {
     infer_instance
   exact ConcreteCategory.bijective_of_isIso
     (ModuleCat.ofHom (pullbackCupRestrict π Z M (⋃ i, V i) n p m h u))
+
+/-- **Additivity of `a ↦ π^*a ⌣ u` over disjoint open sets.** Let `π : X ⟶ Y` be a map, `Z ⊆ X`,
+`u ∈ Hⁿ(X, Z; K)`, and let `V i` be pairwise disjoint open subsets of `Y`, indexed by any type. If
+the maps `TopCat.pullbackCupRestrict` of `u` over the `V i` are bijective in degree `p`, then so is
+the map of `u` over `⋃ i, V i`. -/
+theorem bijective_pullbackCupRestrict_iUnion_of_pairwiseDisjoint {ι : Type*} {V : ι → Set Y}
+    (hV : ∀ i, IsOpen (V i)) (hd : Pairwise (Disjoint on V)) {n p m : ℕ} (h : p + n = m)
+    (u : (TopPair.ofSubset Z).singularCohomology (ModuleCat.of K K) K (ModuleCat.of K K) n)
+    (hu : ∀ i, Bijective (pullbackCupRestrict π Z M (V i) n p m h u)) :
+    Bijective (pullbackCupRestrict π Z M (⋃ i, V i) n p m h u) := by
+  -- Reindex by the range of `V`, a type in the universe `w`; its distinct members are disjoint.
+  rw [← sUnion_range, sUnion_eq_iUnion]
+  refine bijective_pullbackCupRestrict_iUnion_aux π Z M (V := ((↑) : range V → Set Y))
+    (fun s ↦ ?_) (fun s t hst ↦ ?_) h u fun s ↦ ?_
+  · obtain ⟨_, i, rfl⟩ := s
+    exact hV i
+  · obtain ⟨_, i, rfl⟩ := s
+    obtain ⟨_, j, rfl⟩ := t
+    exact hd fun hij ↦ hst (by subst hij; rfl)
+  · obtain ⟨_, i, rfl⟩ := s
+    exact hu i
 
 end TopCat
