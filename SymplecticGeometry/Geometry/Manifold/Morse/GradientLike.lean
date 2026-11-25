@@ -32,7 +32,8 @@ structures are defined. It makes `f` increase strictly along `X` away from the c
 * `TauCeti.IsGradientLike`: the predicate, with `TauCeti.isGradientLike_def`.
 * `TauCeti.IsGradientLike.mvfderiv_apply_pos`: `df(X) > 0` off the critical points of `f`.
 * `TauCeti.IsGradientLike.eq_zero_iff`: `X x = 0` exactly when `x` is a critical point of `f`.
-* `TauCeti.IsGradientLike.strictMono_comp`: `f` increases strictly along an integral curve of `X`
+* `TauCeti.IsGradientLike.strictMonoOn_comp`, `TauCeti.IsGradientLike.strictMono_comp`: `f`
+  increases strictly along an integral curve of `X`, on a convex set of times or on all of `ℝ`,
   that meets no critical point.
 * `TauCeti.IsGradientLike.smul`: `a • X` is gradient-like for a continuous positive `a`.
 * `TauCeti.IsGradientLike.comp`: `X` is gradient-like for `h ∘ f` when `h` is `C¹` with `h' > 0`.
@@ -41,8 +42,8 @@ structures are defined. It makes `f` increase strictly along `X` away from the c
 
 ## Implementation notes
 
-The declarations are in the namespace `TauCeti`, since they concern only Tau Ceti's and
-Mathlib's notions. The metric is a `Bundle.ContMDiffRiemannianMetric`, and the norm of the gradient
+The declarations about gradient-like fields are in the namespace `TauCeti`, since they concern
+only Tau Ceti's and Mathlib's notions. The metric is a `Bundle.ContMDiffRiemannianMetric`, and the norm of the gradient
 is taken for the `RiemannianBundle` instance that it defines, as in Tau Ceti's
 `TauCeti.IsAdaptedPseudoGradient.exists_contMDiffRiemannianMetric_neg_mgradient_eq`; this
 instance is introduced in the statements only.
@@ -59,6 +60,38 @@ open Bundle Set
 open scoped ContDiff Manifold
 
 open TauCeti.Manifold
+
+/-- If `0 < b`, `0 ≤ G` and `0 ≤ N`, then `min b b⁻¹ * (b ^ 2 * G + N) ≤ b * (G + N)`. -/
+theorem min_inv_mul_sq_mul_add_le {α : Type*} [Field α] [LinearOrder α] [IsStrictOrderedRing α]
+    {b G N : α} (hb : 0 < b) (hG : 0 ≤ G) (hN : 0 ≤ N) :
+    min b b⁻¹ * (b ^ 2 * G + N) ≤ b * (G + N) := by
+  have hm₁ : min b b⁻¹ * b ≤ 1 :=
+    (mul_le_mul_of_nonneg_right (min_le_right _ _) hb.le).trans_eq (inv_mul_cancel₀ hb.ne')
+  have hm₂ : min b b⁻¹ ≤ b := min_le_left _ _
+  calc min b b⁻¹ * (b ^ 2 * G + N) = min b b⁻¹ * b * (b * G) + min b b⁻¹ * N := by ring
+    _ ≤ 1 * (b * G) + b * N := by gcongr
+    _ = b * (G + N) := by ring
+
+namespace Bundle.ContMDiffRiemannianMetric
+
+variable
+  {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
+  {HB : Type*} [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB} {n : ℕ∞ω}
+  {B : Type*} [TopologicalSpace B] [ChartedSpace HB B]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+  {E : B → Type*} [TopologicalSpace (TotalSpace F E)]
+  [∀ b, TopologicalSpace (E b)] [∀ b, AddCommGroup (E b)] [∀ b, Module ℝ (E b)]
+  [FiberBundle F E] [VectorBundle ℝ F E]
+
+/-- A smooth Riemannian metric is nonnegative on the diagonal. -/
+theorem inner_self_nonneg (g : ContMDiffRiemannianMetric IB n F E) (b : B) (v : E b) :
+    0 ≤ g.inner b v v := by
+  rcases eq_or_ne v 0 with rfl | hv
+  · simp
+  · exact (g.pos b v hv).le
+
+end Bundle.ContMDiffRiemannianMetric
+
 
 namespace TauCeti
 
@@ -97,7 +130,7 @@ theorem mvfderiv_apply_pos (hX : IsGradientLike f X) {x : M} (hx : mvfderiv 𝓘
   let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
   have hgrad : 0 < ‖mgradient 𝓘(ℝ, E) f x‖ :=
     norm_pos_iff.2 (by rwa [ne_eq, mgradient_eq_zero_iff])
-  have : 0 ≤ g.inner x (X x) (X x) := g.norm_sq x (X x) ▸ by positivity
+  have := g.inner_self_nonneg x (X x)
   exact lt_of_lt_of_le (by have := hδ x; positivity) (h x)
 
 /-- The zeros of a gradient-like field are exactly the critical points of the function. -/
@@ -120,16 +153,28 @@ theorem eq_zero_iff (hX : IsGradientLike f X) {x : M} :
     have := g.pos x (X x) hne
     nlinarith
 
+/-- Along an integral curve of a gradient-like field on a convex set `s` of times that meets no
+critical point of `f`, the function `f` is strictly increasing on `s`. -/
+theorem strictMonoOn_comp (hX : IsGradientLike f X) {γ : ℝ → M} {s : Set ℝ} (hs : Convex ℝ s)
+    (hγ : IsMIntegralCurveOn γ X s) (hcrit : ∀ t ∈ s, mvfderiv 𝓘(ℝ, E) f (γ t) ≠ 0) :
+    StrictMonoOn (f ∘ γ) s := by
+  have hderiv : ∀ t ∈ s,
+      HasDerivWithinAt (f ∘ γ) (mvfderiv 𝓘(ℝ, E) f (γ t) (X (γ t))) s t := fun t ht ↦ by
+    have hf : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) f (γ t) := by
+      by_contra hnd
+      exact hcrit t ht (mvfderiv_eq_zero_iff.2 (mfderiv_zero_of_not_mdifferentiableAt hnd))
+    exact hasDerivWithinAt_comp_curve hf (hγ t ht)
+  refine strictMonoOn_of_deriv_pos hs (fun t ht ↦ (hderiv t ht).continuousWithinAt) fun t ht ↦ ?_
+  have ht' := interior_subset ht
+  rw [((hderiv t ht').hasDerivAt (mem_interior_iff_mem_nhds.1 ht)).deriv]
+  exact hX.mvfderiv_apply_pos (hcrit t ht')
+
 /-- Along an integral curve of a gradient-like field that meets no critical point of `f`, the
 function `f` is strictly increasing. -/
 theorem strictMono_comp (hX : IsGradientLike f X) {γ : ℝ → M} (hγ : IsMIntegralCurve γ X)
-    (hcrit : ∀ t, mvfderiv 𝓘(ℝ, E) f (γ t) ≠ 0) : StrictMono (f ∘ γ) := by
-  have hderiv : ∀ t, HasDerivAt (f ∘ γ) (mvfderiv 𝓘(ℝ, E) f (γ t) (X (γ t))) t := fun t ↦ by
-    have hf : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) f (γ t) := by
-      by_contra hnd
-      exact hcrit t (mvfderiv_eq_zero_iff.2 (mfderiv_zero_of_not_mdifferentiableAt hnd))
-    exact hasDerivAt_comp_curve hf (hγ t)
-  exact strictMono_of_deriv_pos fun t ↦ (hderiv t).deriv ▸ hX.mvfderiv_apply_pos (hcrit t)
+    (hcrit : ∀ t, mvfderiv 𝓘(ℝ, E) f (γ t) ≠ 0) : StrictMono (f ∘ γ) :=
+  strictMonoOn_univ.1 <| hX.strictMonoOn_comp convex_univ (hγ.isMIntegralCurveOn univ)
+    fun t _ ↦ hcrit t
 
 /-- Multiplying a gradient-like field by a continuous positive function gives a gradient-like
 field. -/
@@ -140,21 +185,18 @@ theorem smul (hX : IsGradientLike f X) {a : M → ℝ} (ha : Continuous a) (ha�
     hδc.mul (ha.min (ha.inv₀ fun x ↦ (ha₀ x).ne')), fun x ↦ ?_, fun x ↦ ?_⟩
   · have := ha₀ x; have := hδ x; positivity
   let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
-  have hx := h x
-  have hG : 0 ≤ g.inner x (X x) (X x) := g.norm_sq x (X x) ▸ by positivity
-  have hax := ha₀ x
   have hδx := hδ x
   simp only [map_smul, smul_apply, smul_eq_mul]
-  set G := g.inner x (X x) (X x)
-  set N := ‖mgradient 𝓘(ℝ, E) f x‖ ^ 2
-  have hm₁ : min (a x) (a x)⁻¹ * a x ≤ 1 :=
-    (mul_le_mul_of_nonneg_right (min_le_right _ _) hax.le).trans_eq (inv_mul_cancel₀ hax.ne')
-  have hm₂ : min (a x) (a x)⁻¹ ≤ a x := min_le_left _ _
-  calc δ x * min (a x) (a x)⁻¹ * (a x * (a x * G) + N)
-      = δ x * (min (a x) (a x)⁻¹ * a x * (a x * G) + min (a x) (a x)⁻¹ * N) := by ring
-    _ ≤ δ x * (1 * (a x * G) + a x * N) := by gcongr
-    _ = a x * (δ x * (G + N)) := by ring
-    _ ≤ a x * mvfderiv 𝓘(ℝ, E) f x (X x) := by gcongr
+  calc δ x * min (a x) (a x)⁻¹ *
+        (a x * (a x * g.inner x (X x) (X x)) + ‖mgradient 𝓘(ℝ, E) f x‖ ^ 2)
+      = δ x * (min (a x) (a x)⁻¹ *
+          (a x ^ 2 * g.inner x (X x) (X x) + ‖mgradient 𝓘(ℝ, E) f x‖ ^ 2)) := by ring
+    _ ≤ δ x * (a x * (g.inner x (X x) (X x) + ‖mgradient 𝓘(ℝ, E) f x‖ ^ 2)) := by
+      exact mul_le_mul_of_nonneg_left (min_inv_mul_sq_mul_add_le (ha₀ x)
+        (g.inner_self_nonneg x (X x)) (by positivity)) hδx.le
+    _ ≤ a x * mvfderiv 𝓘(ℝ, E) f x (X x) := by
+      rw [mul_left_comm]
+      exact mul_le_mul_of_nonneg_left (h x) (ha₀ x).le
 
 /-- A field that is gradient-like for a differentiable `f` is gradient-like for `h ∘ f`, when `h`
 is `C¹` with positive derivative at every value of `f`. -/
@@ -174,19 +216,16 @@ theorem comp (hX : IsGradientLike f X) (hf : MDifferentiable 𝓘(ℝ, E) 𝓘(�
   have hD : mvfderiv 𝓘(ℝ, E) (h ∘ f) x (X x) = b * mvfderiv 𝓘(ℝ, E) f x (X x) := by
     rw [← inner_mgradient, hgrad, real_inner_smul_left, inner_mgradient]
   rw [hD, hgrad, norm_smul, Real.norm_of_nonneg hbx.le]
-  have hx := H x
-  have hG : 0 ≤ g.inner x (X x) (X x) := g.norm_sq x (X x) ▸ by positivity
   have hδx := hδ x
-  set G := g.inner x (X x) (X x)
-  set N := ‖mgradient 𝓘(ℝ, E) f x‖ ^ 2
-  have hm₁ : min b b⁻¹ * b ≤ 1 :=
-    (mul_le_mul_of_nonneg_right (min_le_right _ _) hbx.le).trans_eq (inv_mul_cancel₀ hbx.ne')
-  have hm₂ : min b b⁻¹ ≤ b := min_le_left _ _
-  calc δ x * min b b⁻¹ * (G + (b * ‖mgradient 𝓘(ℝ, E) f x‖) ^ 2)
-      = δ x * (min b b⁻¹ * G + min b b⁻¹ * b * (b * N)) := by ring
-    _ ≤ δ x * (b * G + 1 * (b * N)) := by gcongr
-    _ = b * (δ x * (G + N)) := by ring
-    _ ≤ b * mvfderiv 𝓘(ℝ, E) f x (X x) := by gcongr
+  calc δ x * min b b⁻¹ * (g.inner x (X x) (X x) + (b * ‖mgradient 𝓘(ℝ, E) f x‖) ^ 2)
+      = δ x * (min b b⁻¹ *
+          (b ^ 2 * ‖mgradient 𝓘(ℝ, E) f x‖ ^ 2 + g.inner x (X x) (X x))) := by ring
+    _ ≤ δ x * (b * (‖mgradient 𝓘(ℝ, E) f x‖ ^ 2 + g.inner x (X x) (X x))) := by
+      exact mul_le_mul_of_nonneg_left (min_inv_mul_sq_mul_add_le hbx (by positivity)
+        (g.inner_self_nonneg x (X x))) hδx.le
+    _ ≤ b * mvfderiv 𝓘(ℝ, E) f x (X x) := by
+      rw [mul_left_comm, add_comm (_ ^ 2)]
+      exact mul_le_mul_of_nonneg_left (H x) hbx.le
 
 end IsGradientLike
 
