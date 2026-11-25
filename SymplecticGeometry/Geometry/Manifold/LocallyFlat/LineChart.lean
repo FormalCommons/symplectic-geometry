@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Analysis.Convex.Basic
 public import TauCeti.Geometry.Manifold.LocallyFlat.Basic
+import SymplecticGeometry.Data.Set.Image
 import Mathlib.Analysis.Normed.Module.Convex
 import Mathlib.Topology.Order.IntermediateValue
 
@@ -32,9 +33,6 @@ form an interval, by monotonicity of `g` and convexity of the ball
 
 ## Main results
 
-* `OpenPartialHomeomorph.image_source_inter_image_eq`: if a chart reads a map `f` as
-  `s ↦ (g s, 0)`, it sends the part of `f '' J` in its source onto the part of
-  `(g '' (J ∩ f ⁻¹' e.source)) ×ˢ {0}` in its target.
 * `TauCeti.IsLocallyFlat.exists_isSliceChart_convex`: the chart above.
 
 ## References
@@ -46,28 +44,6 @@ form an interval, by monotonicity of `g` and convexity of the ball
 public section
 
 open Set Topology Metric
-
-namespace OpenPartialHomeomorph
-
-variable {X N A B : Type*} [TopologicalSpace X] [TopologicalSpace A] [TopologicalSpace B] [Zero B]
-
-/-- If a chart `e : X → A × B` reads `f : N → X` as `s ↦ (g s, 0)` wherever `f s` lies in its
-source, then for every `J : Set N` it maps the part of `f '' J` in its source onto the part of
-`(g '' (J ∩ f ⁻¹' e.source)) ×ˢ {0}` in its target. -/
-theorem image_source_inter_image_eq (e : OpenPartialHomeomorph X (A × B)) {f : N → X}
-    {g : N → A} (hg : ∀ s ∈ f ⁻¹' e.source, e (f s) = (g s, 0)) (J : Set N) :
-    e '' (e.source ∩ f '' J) = e.target ∩ (g '' (J ∩ f ⁻¹' e.source)) ×ˢ {0} := by
-  ext p
-  constructor
-  · rintro ⟨x, ⟨hx, s, hs, rfl⟩, rfl⟩
-    rw [hg s hx]
-    exact ⟨hg s hx ▸ e.map_source hx, mem_prod.2 ⟨mem_image_of_mem g ⟨hs, hx⟩, rfl⟩⟩
-  · rintro ⟨-, hpg⟩
-    obtain ⟨⟨s, hs, hsp⟩, hp0⟩ := mem_prod.1 hpg
-    refine ⟨f s, ⟨hs.2, mem_image_of_mem f hs.1⟩, ?_⟩
-    rw [hg s hs.2, hsp, ← eq_of_mem_singleton hp0]
-
-end OpenPartialHomeomorph
 
 namespace TauCeti.IsLocallyFlat
 
@@ -132,7 +108,10 @@ theorem exists_isSliceChart_convex (h : IsLocallyFlat ℝ F' f) (t : ℝ) {W : S
   have hft : f t ∈ ψ.source := hψs ▸ ⟨hφt, mem_ball_self hr⟩
   refine ⟨ψ, f ⁻¹' ψ.source, g, hft, fun x hx => (hsrcUW x hx).2, hψt ▸ convex_ball _ _, hψ,
     ψ.open_source.preimage hfc, ?_, hft, image_preimage_eq_inter_range.symm, hψg,
-    hmono.imp (·.mono hOab) (·.mono hOab), fun J => ψ.image_source_inter_image_eq hψg J⟩
+    hmono.imp (·.mono hOab) (·.mono hOab), fun J => ?_⟩
+  swap
+  · rw [← image_inter_image_eq_prod_singleton hψg J, eq_comm, inter_eq_right]
+    exact image_subset_iff.2 fun x (hx : x ∈ ψ.source ∩ _) => ψ.map_source hx.1
   rw [hO]
   rcases hmono with hm | hm
   · obtain ⟨u, hu, hEq⟩ := hball.preimage_monotoneOn hm.monotoneOn
