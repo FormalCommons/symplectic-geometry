@@ -10,12 +10,12 @@ public import Mathlib.Geometry.Manifold.Diffeomorph
 public import Mathlib.Topology.OpenPartialHomeomorph.Composition
 public import SymplecticGeometry.Algebra.Notation.Pi.Basic
 public import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
-public import TauCeti.Algebra.GroupWithZero.Fin.Tuple
 public import TauCeti.Analysis.Calculus.ContDiff.Pi
 public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 public import TauCeti.Geometry.Manifold.AnalyticSubmanifold.Transport
 public import TauCeti.Geometry.Manifold.Immersion.Differential
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Topology.Algebra.Projectivization
 
 /-!
@@ -71,9 +71,7 @@ blowdown is a biholomorphism onto the nonzero vectors of `E`.
   `TauCeti.IsMAnalyticSubmanifold`).
 * `SymplecticGeometry.BlowupModel.blowdownDiffeomorph n`: off the exceptional divisor, the blowdown
   is a biholomorphism of open subsets onto `{z : E | z ≠ 0}`, with inverse `z ↦ ([z], z)`
-  (`coe_blowdownDiffeomorph`, `blowdownDiffeomorph_symm_apply`). Near `z` with `z i ≠ 0` the
-  inverse reads, in the chart `i`, as `z ↦ w` with `w i = z i` and `w j = z j / z i`
-  (`blowupModelChart_symm_insertNth_div`).
+  (`coe_blowdownDiffeomorph`, `blowdownDiffeomorph_symm_apply`).
 
 ## Implementation notes
 
@@ -586,21 +584,6 @@ theorem mk_self_mem_blowupModel {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) :
 theorem mk_blowdown {p : BlowupModel n} (hp : p.blowdown ≠ 0) : mk ℂ p.blowdown hp = p.pr :=
   mem_submodule_iff.1 p.blowdown_mem_submodule hp
 
-/-- For `z` with `z i ≠ 0`, the inverse of the chart `i` sends `w` with `w i = z i` and
-`w j = z j / z i` for `j ≠ i` to the point `(mk z, z)`. -/
-theorem blowupModelChart_symm_insertNth_div (i : Fin (n + 1)) {z : Fin (n + 1) → ℂ}
-    (hz : z i ≠ 0) :
-    (blowupModelChart i).symm (Fin.insertNth i (z i) fun j => z (i.succAbove j) / z i) =
-      ⟨(mk ℂ z (ne_of_apply_ne (· i) hz), z), mk_self_mem_blowupModel _⟩ := by
-  have hv : update (Fin.insertNth i (z i) fun j => z (i.succAbove j) / z i) i 1 =
-      (z i)⁻¹ • z := by
-    rw [Fin.update_insertNth, Fin.insertNth_one_div_eq_inv_smul i z hz]
-  refine ext ?_ ?_
-  · rw [pr_blowupModelChart_symm_apply, pr_mk, mk_eq_mk_iff']
-    exact ⟨(z i)⁻¹, hv.symm⟩
-  · rw [blowdown_blowupModelChart_symm_apply, blowdown_mk, hv, Fin.insertNth_apply_same,
-      smul_inv_smul₀ hz]
-
 variable (n) in
 /-- The blowdown `π` off the exceptional divisor, as a biholomorphism from the open complement of
 the divisor onto the open set of nonzero vectors of `E`. Its inverse sends `z ≠ 0` to the point
@@ -616,23 +599,11 @@ noncomputable def blowdownDiffeomorph :
   contMDiff_toFun := (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1
     ((contMDiff_blowdown ω).comp contMDiff_subtypeVal)
   contMDiff_invFun := by
-    refine (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1 fun z => ?_
-    obtain ⟨i, hi⟩ := Function.ne_iff.1 z.property
-    -- Near `z`, where the coordinate `i` stays nonzero, the inverse is read in the chart `i`.
-    have hL : ContDiff ℂ ω fun q : ℂ × (Fin n → ℂ) => Fin.insertNth (α := fun _ => ℂ) i q.1 q.2 :=
-      contDiff_fst.finInsertNth (F := fun _ => ℂ) i contDiff_snd
-    have hratio : ContDiffAt ℂ ω (fun v : Fin (n + 1) → ℂ =>
-        Fin.insertNth (α := fun _ => ℂ) i (v i) fun j => v (i.succAbove j) / v i) z.val :=
-      hL.contDiffAt.comp z.val <| (contDiffAt_apply ℂ (fun _ => ℂ) i z.val).prodMk
-        (contDiffAt_pi.2 fun j => (contDiffAt_apply ℂ (fun _ => ℂ) _ _).div
-          (contDiffAt_apply ℂ (fun _ => ℂ) _ _) hi)
-    have hnhds : ∀ᶠ y : (⟨{z | z ≠ 0}, isOpen_ne⟩ : Opens (Fin (n + 1) → ℂ)) in 𝓝 z,
-        y.val i ≠ 0 :=
-      ((continuous_apply i).comp continuous_subtypeVal).continuousAt.eventually_ne hi
-    refine ((contMDiff_blowupModelChart_symm i ω).contMDiffAt.comp z
-      (hratio.contMDiffAt.comp z contMDiff_subtypeVal.contMDiffAt)).congr_of_eventuallyEq ?_
-    filter_upwards [hnhds] with y hy
-    exact (blowupModelChart_symm_insertNth_div i hy).symm
+    refine (TauCeti.ContMDiff.subtypeVal_comp_iff _ _).1 ?_
+    refine ((isSmoothEmbedding_blowupModel_val (n := n) (r := ω) le_top).contMDiff_iff_comp).2
+      fun z => ?_
+    exact (contMDiffAt_of_eventually_eq_mk contMDiff_subtypeVal.contMDiffAt
+      (Eventually.of_forall fun y => ⟨y.property, rfl⟩)).prodMk contMDiff_subtypeVal.contMDiffAt
 
 @[simp]
 theorem coe_blowdownDiffeomorph (p : (⟨(exceptionalDivisor n)ᶜ, _⟩ : Opens (BlowupModel n))) :
@@ -640,9 +611,10 @@ theorem coe_blowdownDiffeomorph (p : (⟨(exceptionalDivisor n)ᶜ, _⟩ : Opens
   (rfl)
 
 @[simp]
-theorem blowdownDiffeomorph_symm_apply {z : Fin (n + 1) → ℂ} (hz : z ≠ 0) :
-    ((blowdownDiffeomorph n).symm ⟨z, hz⟩ : BlowupModel n) =
-      ⟨(mk ℂ z hz, z), mk_self_mem_blowupModel hz⟩ :=
+theorem blowdownDiffeomorph_symm_apply
+    (z : (⟨{z | z ≠ 0}, isOpen_ne⟩ : Opens (Fin (n + 1) → ℂ))) :
+    ((blowdownDiffeomorph n).symm z : BlowupModel n) =
+      ⟨(mk ℂ z z.property, z), mk_self_mem_blowupModel z.property⟩ :=
   (rfl)
 
 end Blowdown
