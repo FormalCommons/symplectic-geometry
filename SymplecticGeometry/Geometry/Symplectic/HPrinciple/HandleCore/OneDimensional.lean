@@ -12,6 +12,8 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Tactic.Module
+import TauCeti.Analysis.Calculus.FDeriv.NormalSegment
+import TauCeti.Topology.Order.Sublevel
 import TauCeti.Topology.UnitInterval
 
 /-!
@@ -20,8 +22,8 @@ import TauCeti.Topology.UnitInterval
 Let `D = (Fin 1 → ℝ) × F` with the sup norm, `F` finite-dimensional, with the cube
 `Q = closedBall 0 1` and the attaching faces `A = sphere 0 1 ×ˢ closedBall 0 1`. Let `τ` be a
 smooth family of two-forms on `D`, over a parameter space `L`, nondegenerate on `Q` for the
-parameters of a compact `K ⊆ L`, and exact on a fixed open neighbourhood `W` of `A` for those
-parameters. `SymplecticGeometry.exists_homotopy_exact_of_exact_near_attaching_fin_one` deforms
+parameters of a compact `K ⊆ L`, and closed on a fixed open neighbourhood `W` of `A` for those
+parameters. `SymplecticGeometry.exists_homotopy_exact_of_closed_near_attaching_fin_one` deforms
 `τ`, smoothly in the parameter and in time, through forms nondegenerate on `Q` and fixed near `A`,
 to forms exact on all of `D`; parameters for which `τ` is already exact near `Q` stay exact near
 `Q`. This is the case `m = 1` of the handle-core lemma (McDuff–Salamon, Lemma 7.3.2).
@@ -51,20 +53,24 @@ This differs from McDuff–Salamon's proof, which patches the primitives given n
 the core across a band around it, and lengthens the band by a zig-zag
 (here `SymplecticGeometry.exists_wiggling_diffeotopy`) to make the error small. The contraction
 along the fibres gives one primitive, on all of `D`, of a form close to `τ` near the core, so no
-patching and no zig-zag are needed: the compression of the cube replaces them. The primitive of
-the final form is `c 1 ^* h (Φ^* τ λ)`, which depends smoothly on `λ`.
+patching and no zig-zag are needed. In their place comes Eliashberg–Mishachev's compression
+argument (§10.2): pull back along embeddings that squeeze the cube into the region where the
+approximating exact form is close to `τ`, then interpolate. The primitive of the final form is
+`c 1 ^* h (Φ^* τ λ)`, which depends smoothly on `λ`.
 
-The primitives of `τ` near `A` are only used through the closedness of `τ` on `W`; they need not
-depend smoothly on the parameter.
+Only the closedness of `τ` on `W` is used near `A`; a primitive there gives it
+(`SmoothForm.mextDerivₗ_apply_eq_zero_of_eventuallyEq_mextDerivₗ`).
 
 ## Main results
 
-* `SymplecticGeometry.exists_homotopy_exact_of_exact_near_attaching_fin_one`
+* `SymplecticGeometry.exists_homotopy_exact_of_closed_near_attaching_fin_one`
 
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
   Lemma 7.3.2.
+* [Y. Eliashberg and N. Mishachev, *Introduction to the h-principle*][EliashbergMishachev2002],
+  §10.2.
 -/
 
 public section
@@ -77,53 +83,25 @@ namespace SymplecticGeometry
 variable {F L : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
   [NormedAddCommGroup L] [NormedSpace ℝ L]
 
-/-- A neighbourhood `T` of the attaching faces contains the part of the cube where the core
-coordinate has norm above `1 - ε`, for some `0 < ε < 1`. -/
-private theorem exists_forall_closedBall_mem_of_sphere_prod_subset
-    {T : Set ((Fin 1 → ℝ) × F)} (hT : IsOpen T)
-    (hAT : sphere (0 : Fin 1 → ℝ) 1 ×ˢ closedBall (0 : F) 1 ⊆ T) :
-    ∃ ε, 0 < ε ∧ ε < 1 ∧
-      ∀ x ∈ closedBall (0 : (Fin 1 → ℝ) × F) 1, 1 - ε < ‖x.1‖ → x ∈ T := by
-  have hS : IsCompact (closedBall (0 : (Fin 1 → ℝ) × F) 1 \ T) :=
-    (isCompact_closedBall _ _).diff hT
-  rcases (closedBall (0 : (Fin 1 → ℝ) × F) 1 \ T).eq_empty_or_nonempty with he | hne
-  · refine ⟨1 / 2, by norm_num, by norm_num, fun x hx _ ↦ ?_⟩
-    by_contra hxT
-    exact (he ▸ (⟨hx, hxT⟩ : x ∈ closedBall (0 : (Fin 1 → ℝ) × F) 1 \ T) : x ∈ (∅ : Set _))
-  obtain ⟨x₀, ⟨hx₀Q, hx₀T⟩, hmax⟩ :=
-    hS.exists_isMaxOn hne (continuous_norm.comp continuous_fst).continuousOn
-  rw [mem_closedBall_zero_iff] at hx₀Q
-  have hx₀ : ‖x₀.1‖ < 1 := by
-    refine lt_of_le_of_ne ((norm_fst_le x₀).trans hx₀Q) fun h ↦ hx₀T (hAT ⟨?_, ?_⟩)
-    · rwa [mem_sphere_zero_iff_norm]
-    · exact mem_closedBall_zero_iff.2 ((norm_snd_le x₀).trans hx₀Q)
-  refine ⟨min (1 / 2) (1 - ‖x₀.1‖), lt_min (by norm_num) (by linarith),
-    (min_le_left _ _).trans_lt (by norm_num), fun x hx hx₁ ↦ ?_⟩
-  by_contra hxT
-  have : ‖x.1‖ ≤ ‖x₀.1‖ := hmax ⟨hx, hxT⟩
-  have : min (1 / 2) (1 - ‖x₀.1‖) ≤ 1 - ‖x₀.1‖ := min_le_right _ _
-  linarith
-
 /-- **The handle-core lemma for a one-dimensional core.** On `D = (Fin 1 → ℝ) × F` with the sup
 norm, `F` finite-dimensional, let `Q = closedBall 0 1` be the cube and
 `A = sphere 0 1 ×ˢ closedBall 0 1` its attaching faces. Let `τ` be a smooth family of two-forms on
 `D` over a normed space `L`, and `K ⊆ L` compact, such that for `λ ∈ K` the form `τ λ` is
-nondegenerate on `Q` and has a primitive on the open set `W ⊇ A`. Then there is a smooth family
+nondegenerate on `Q` and closed on the open set `W ⊇ A`. Then there is a smooth family
 `σ` of two-forms over `L × [0, 1]` with `σ (λ, 0) = τ λ` such that:
 
 * `σ (λ, t)` is nondegenerate on `Q` for `λ ∈ K` and every `t`;
 * `σ (λ, t) = τ λ` on a neighbourhood `W'` of `A`, the same for all `λ ∈ K` and all `t`;
-* `σ (λ, 1)` has a primitive on a neighbourhood of `Q`, the same for all `λ`;
+* `σ (λ, 1)` is exact on `D`, for every `λ`;
 * if `τ λ` has a primitive on a neighbourhood of `Q`, then so does every `σ (λ, t)`. -/
-theorem exists_homotopy_exact_of_exact_near_attaching_fin_one {K : Set L} (hK : IsCompact K)
+theorem exists_homotopy_exact_of_closed_near_attaching_fin_one {K : Set L} (hK : IsCompact K)
     {τ : L → SmoothTwoForm 𝓘(ℝ, (Fin 1 → ℝ) × F) ((Fin 1 → ℝ) × F)}
     (hτ : IsSmoothFamily 𝓘(ℝ, L) τ)
     (hnd : ∀ l ∈ K, ∀ x ∈ closedBall (0 : (Fin 1 → ℝ) × F) 1,
       ((τ l).bilinFormAt x).Nondegenerate)
     {W : Set ((Fin 1 → ℝ) × F)} (hW : IsOpen W)
     (hAW : sphere (0 : Fin 1 → ℝ) 1 ×ˢ closedBall (0 : F) 1 ⊆ W)
-    (hτβ : ∀ l ∈ K, ∃ β : SmoothForm 𝓘(ℝ, (Fin 1 → ℝ) × F) ((Fin 1 → ℝ) × F) ℝ 1,
-      ∀ x ∈ W, (mextDerivₗ 𝓘(ℝ, (Fin 1 → ℝ) × F) 1 β).val x = (τ l).val x) :
+    (hτW : ∀ l ∈ K, ∀ x ∈ W, (mextDerivₗ 𝓘(ℝ, (Fin 1 → ℝ) × F) 2 (τ l)).val x = 0) :
     ∃ σ : L × unitInterval → SmoothTwoForm 𝓘(ℝ, (Fin 1 → ℝ) × F) ((Fin 1 → ℝ) × F),
       IsSmoothFamily (𝓘(ℝ, L).prod (𝓡∂ 1)) σ ∧
       (∀ l, σ (l, 0) = τ l) ∧
@@ -131,9 +109,8 @@ theorem exists_homotopy_exact_of_exact_near_attaching_fin_one {K : Set L} (hK : 
         ((σ (l, t)).bilinFormAt x).Nondegenerate) ∧
       (∃ W' ∈ 𝓝ˢ (sphere (0 : Fin 1 → ℝ) 1 ×ˢ closedBall (0 : F) 1), ∀ l ∈ K, ∀ t,
         ∀ x ∈ W', (σ (l, t)).val x = (τ l).val x) ∧
-      (∃ V ∈ 𝓝ˢ (closedBall (0 : (Fin 1 → ℝ) × F) 1), ∀ l,
-        ∃ γ : SmoothForm 𝓘(ℝ, (Fin 1 → ℝ) × F) ((Fin 1 → ℝ) × F) ℝ 1,
-          ∀ x ∈ V, (mextDerivₗ 𝓘(ℝ, (Fin 1 → ℝ) × F) 1 γ).val x = (σ (l, 1)).val x) ∧
+      (∀ l, ∃ γ : SmoothForm 𝓘(ℝ, (Fin 1 → ℝ) × F) ((Fin 1 → ℝ) × F) ℝ 1,
+        mextDerivₗ 𝓘(ℝ, (Fin 1 → ℝ) × F) 1 γ = σ (l, 1)) ∧
       ∀ l, (∃ V ∈ 𝓝ˢ (closedBall (0 : (Fin 1 → ℝ) × F) 1),
           ∃ γ : SmoothForm 𝓘(ℝ, (Fin 1 → ℝ) × F) ((Fin 1 → ℝ) × F) ℝ 1,
             ∀ x ∈ V, (mextDerivₗ 𝓘(ℝ, (Fin 1 → ℝ) × F) 1 γ).val x = (τ l).val x) →
@@ -153,28 +130,38 @@ theorem exists_homotopy_exact_of_exact_near_attaching_fin_one {K : Set L} (hK : 
   -- The points whose fibre segment to the core stays in `W` form an open neighbourhood of `A`.
   set T : Set ((Fin 1 → ℝ) × F) := {x | ∀ s : unitInterval, (x.1, (s : ℝ) • x.2) ∈ W} with hTdef
   have hT : IsOpen T := by
-    have hc : Continuous fun p : ((Fin 1 → ℝ) × F) × unitInterval ↦ (p.1.1, (p.2 : ℝ) • p.1.2) :=
-      by fun_prop
-    have hTc : Tᶜ = Prod.fst '' ((fun p : ((Fin 1 → ℝ) × F) × unitInterval ↦
-        (p.1.1, (p.2 : ℝ) • p.1.2)) ⁻¹' Wᶜ) := by
-      ext x
-      simp [hTdef, and_assoc]
-    rw [← isClosed_compl_iff, hTc]
-    exact isClosedMap_fst_of_compactSpace _ (hW.isClosed_compl.preimage hc)
+    convert (isOpen_normalSegmentDomain hW).preimage
+      ((continuous_const (y := (1 : ℝ))).prodMk continuous_id) using 1
+    ext x
+    simp [hTdef, unitInterval]
   have hAT : sphere (0 : Fin 1 → ℝ) 1 ×ˢ closedBall (0 : F) 1 ⊆ T := fun x hx s ↦ by
     refine hAW ⟨hx.1, mem_closedBall_zero_iff.2 ?_⟩
-    rw [norm_smul, Real.norm_eq_abs]
+    rw [← prodFiberScaling_snd (fun _ ↦ (s : ℝ)), norm_prodFiberScaling_snd]
     exact (mul_le_of_le_one_left (norm_nonneg _) (unitInterval.abs_coe_le_one s)).trans
       (mem_closedBall_zero_iff.1 hx.2)
   -- On `T`, the error term `η` vanishes, since `τ` is closed on `W`.
   have hηT : ∀ l ∈ K, ∀ x ∈ T, (η l).val x = 0 := by
     intro l hl x hx
-    obtain ⟨β, hβ⟩ := hτβ l hl
     simp only [hηdef, SmoothForm.coe_homotopyOperator, SmoothForm.coe_mpullback]
-    refine homotopyOperator_mpullback_prodFiberContraction_apply_eq_zero fun s ↦ ?_
-    exact SmoothForm.mextDerivₗ_apply_eq_zero_of_eventuallyEq_mextDerivₗ (β := β)
-      (eventually_of_mem (hW.mem_nhds (hx s)) fun z hz ↦ (hβ z hz).symm)
-  obtain ⟨ε, hε, hε₁, hεT⟩ := exists_forall_closedBall_mem_of_sphere_prod_subset hT hAT
+    exact homotopyOperator_mpullback_prodFiberContraction_apply_eq_zero fun s ↦ hτW l hl _ (hx s)
+  -- By compactness of the cube, `T` contains the part of it where `‖u‖ > 1 - ε`.
+  obtain ⟨ε, hε, hε₁, hεT⟩ : ∃ ε, 0 < ε ∧ ε < 1 ∧
+      ∀ x ∈ closedBall (0 : (Fin 1 → ℝ) × F) 1, 1 - ε < ‖x.1‖ → x ∈ T := by
+    have := isCompact_iff_compactSpace.1 (isCompact_closedBall (0 : (Fin 1 → ℝ) × F) 1)
+    obtain ⟨δ, hδ, hδT⟩ := exists_pos_sublevel_subset_of_mem_nhdsSet
+      (f := fun x : closedBall (0 : (Fin 1 → ℝ) × F) 1 ↦ 1 - ‖x.val.1‖) (by fun_prop)
+      (A := {x | x.val ∈ sphere (0 : Fin 1 → ℝ) 1 ×ˢ closedBall (0 : F) 1})
+      (fun x hx ↦ by
+        have hx₁ := mem_closedBall_zero_iff.1 x.property
+        refine sub_pos.2 (lt_of_le_of_ne ((norm_fst_le x.val).trans hx₁) fun h ↦ hx ⟨?_, ?_⟩)
+        · exact mem_sphere_zero_iff_norm.2 h
+        · exact mem_closedBall_zero_iff.2 ((norm_snd_le x.val).trans hx₁))
+      ((hT.preimage continuous_subtypeVal).mem_nhdsSet.2 fun x hx ↦ hAT hx)
+    refine ⟨min δ (1 / 2), lt_min hδ (by norm_num), (min_le_right _ _).trans_lt (by norm_num),
+      fun x hx hx₁ ↦ hδT (a := ⟨x, hx⟩) ?_⟩
+    have := min_le_left δ (1 / 2)
+    simp only [mem_ofPred_eq]
+    linarith
   -- On the cube, the error term is bounded by `‖v‖ * C`.
   obtain ⟨C, hC⟩ := hτ.mextDeriv.exists_norm_val_le hK (isCompact_closedBall (0 : _) 1)
   have hηQ : ∀ l ∈ K, ∀ y ∈ closedBall (0 : (Fin 1 → ℝ) × F) 1,
@@ -182,11 +169,8 @@ theorem exists_homotopy_exact_of_exact_near_attaching_fin_one {K : Set L} (hK : 
     intro l hl y hy
     simp only [hηdef, SmoothForm.coe_homotopyOperator, SmoothForm.coe_mpullback]
     refine norm_homotopyOperator_mpullback_prodFiberContraction_apply_le _ y fun s ↦ hC l hl _ ?_
-    rw [mem_closedBall_zero_iff] at hy ⊢
-    refine max_le ((norm_fst_le y).trans hy) ?_
-    rw [norm_smul, Real.norm_eq_abs]
-    exact (mul_le_of_le_one_left (norm_nonneg _) (unitInterval.abs_coe_le_one s)).trans
-      ((norm_snd_le y).trans hy)
+    rw [← prodFiberScaling_snd (fun _ ↦ (s : ℝ)), ← prodFiberScaling_fst (fun _ ↦ (s : ℝ)) y]
+    exact mapsTo_prodFiberScaling_closedBall (fun _ ↦ unitInterval.abs_coe_le_one s) 1 hy
   -- The nondegeneracy margin, and the width of the tube.
   obtain ⟨r, hr, hnd'⟩ := hτ.exists_pos_forall_nondegenerate hK (isCompact_closedBall _ _) hnd
   have hC₁ : 0 < |C| + 1 := by positivity
@@ -238,7 +222,7 @@ theorem exists_homotopy_exact_of_exact_near_attaching_fin_one {K : Set L} (hK : 
     rw [SmoothForm.coe_mpullback, hx.mpullback_eq, TauCeti.mpullback_id]
   refine ⟨fun p ↦ SmoothForm.mpullback _ (hfp p) (ν p), hν.mpullback_family hf, fun l ↦ ?_,
     fun l hl t x hx ↦ ?_, ⟨T ∩ {x | 1 - ε / 2 < ‖x.1‖}, ?_, fun l hl t x hx ↦ ?_⟩,
-    ⟨univ, univ_mem, fun l ↦ ?_⟩, fun l ⟨V, hV, γ, hγ⟩ t ↦ ?_⟩
+    fun l ↦ ?_, fun l ⟨V, hV, γ, hγ⟩ t ↦ ?_⟩
   · -- At time `0` nothing moves.
     have hb0 : b 0 = 0 := Real.smoothTransition.zero_of_nonpos (by simp)
     have ha0 : a 0 = 0 := Real.smoothTransition.zero_of_nonpos (by simp)
@@ -258,11 +242,15 @@ theorem exists_homotopy_exact_of_exact_near_attaching_fin_one {K : Set L} (hK : 
       rw [SmoothForm.coe_mpullback]
     refine (SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv hdf hpull).1 ?_
     refine hnd' l hl y hyQ _ ?_
+    -- Stated in `D [⋀^Fin 2]→L[ℝ] ℝ`, whose instances give the norm, rather than in the tangent
+    -- space that `hνval` is stated in, so that `rw` finds them; the two types agree by definition.
+    have hsub {u v w : ((Fin 1 → ℝ) × F) [⋀^Fin 2]→L[ℝ] ℝ} {c : ℝ} (h : u = v - c • w) :
+        ‖u - v‖ ≤ |c| * ‖w‖ := by
+      rw [h, sub_sub_cancel_left, norm_neg, norm_smul, Real.norm_eq_abs]
     have hnorm : @norm (((Fin 1 → ℝ) × F) [⋀^Fin 2]→L[ℝ] ℝ) _
         ((ν (l, t)).val y - (τ l).val y) ≤
-        |b t| * @norm (((Fin 1 → ℝ) × F) [⋀^Fin 2]→L[ℝ] ℝ) _ ((η l).val y) := by
-      erw [hνval, sub_sub_cancel_left, norm_neg, ← Real.norm_eq_abs]
-      exact norm_smul_le (β := ((Fin 1 → ℝ) × F) [⋀^Fin 2]→L[ℝ] ℝ) (b t) _
+        |b t| * @norm (((Fin 1 → ℝ) × F) [⋀^Fin 2]→L[ℝ] ℝ) _ ((η l).val y) :=
+      hsub (hνval (l, t) y)
     refine hnorm.trans_lt ?_
     rcases eq_or_ne (b t) 0 with h0 | h0
     · rw [h0, abs_zero, zero_mul]
@@ -279,20 +267,18 @@ theorem exists_homotopy_exact_of_exact_near_attaching_fin_one {K : Set L} (hK : 
     · rw [hηT l hl y (hεT y hyQ (hy1 ▸ hslab))]
       exact (norm_zero (E := ((Fin 1 → ℝ) × F) [⋀^Fin 2]→L[ℝ] ℝ)).trans_lt hr
   · -- A fixed neighbourhood of the faces.
-    refine (hT.inter (isOpen_lt continuous_const (continuous_norm.comp continuous_fst))).mem_nhdsSet
+    refine (hT.inter (isOpen_lt continuous_const continuous_fst.norm)).mem_nhdsSet
       |>.2 fun x hx ↦ ⟨hAT hx, ?_⟩
-    have : ‖x.1‖ = 1 := mem_sphere_zero_iff_norm.1 hx.1
-    change 1 - ε / 2 < ‖x.1‖
-    rw [this]
+    rw [mem_ofPred_eq, mem_sphere_zero_iff_norm.1 hx.1]
     linarith
   · have hnear : (fun y ↦ f ((l, t), y)) =ᶠ[𝓝 x] id :=
-      eventually_of_mem ((isOpen_lt continuous_const
-        (continuous_norm.comp continuous_fst)).mem_nhds hx.2) fun y hy ↦ hψA _ y hy
+      eventually_of_mem ((isOpen_lt continuous_const continuous_fst.norm).mem_nhds hx.2)
+        fun y hy ↦ hψA _ y hy
     rw [hid (l, t) _ hnear, hνval, hηT l hl x hx.1, smul_zero, sub_zero]
   · -- At time `1` the form is exact.
     have hb1 : b 1 = 1 := Real.smoothTransition.one_of_one_le (by norm_num)
     refine ⟨SmoothForm.mpullback _ (hfp (l, 1))
-      (SmoothForm.homotopyOperator (SmoothForm.mpullback _ hΦ (τ l))), fun x _ ↦ ?_⟩
+      (SmoothForm.homotopyOperator (SmoothForm.mpullback _ hΦ (τ l))), ?_⟩
     rw [SmoothForm.mextDerivₗ_mpullback]
     simp only [hνdef, hb1, sub_self, zero_smul, one_smul, zero_add, hτ'def]
   · -- Forms exact near the cube stay exact near the cube.

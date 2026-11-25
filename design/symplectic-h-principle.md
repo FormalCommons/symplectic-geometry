@@ -108,7 +108,10 @@ formulation.
    existence and path statements go in `OpenManifold.lean`, as corollaries
    (parameter spaces a point and $[0,1]$).
 2. **The handle-core lemma is proved by the book's argument**, as a
-   milestone on its own (`HandleCore.lean`). Nothing else in the part uses
+   milestone on its own (`HandleCore.lean`), except for $m=1$, where the
+   cube is compressed towards the core and the contraction along the fibres
+   gives the primitive, in place of the book's patching and zig-zag
+   (`HandleCore/OneDimensional.lean`). Nothing else in the part uses
    it. It is stated for forms on the whole model space, with its conditions
    on the cube and near the attaching faces, so that no form on a subset is
    needed.
