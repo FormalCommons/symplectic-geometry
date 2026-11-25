@@ -176,10 +176,8 @@ theorem fubiniStudyPrimitive_eq :
       (SmoothAlmostComplexStructure.ofComplexManifold (Fin (n + 1) → ℂ)
         (puncturedSpace (Fin (n + 1) → ℂ))).covectorComplexStructure
         (mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 0 (fubiniStudyPotential n)) := by
-  refine Subtype.ext <| funext fun z ↦ ?_
-  refine sub_eq_zero.1 <| (ContinuousAlternatingMap.eq_zero_iff_forall_apply_fin_one _).2
-    fun v ↦ ?_
-  rw [ContinuousAlternatingMap.sub_apply, sub_eq_zero, SmoothForm.smul_toRoughForm, Pi.smul_apply,
+  refine Subtype.ext <| funext fun z ↦ ContinuousAlternatingMap.ext_fin_one fun v ↦ ?_
+  rw [SmoothForm.smul_toRoughForm, Pi.smul_apply,
     ContinuousAlternatingMap.smul_apply,
     SmoothAlmostComplexStructure.covectorComplexStructure_apply_vec,
     mextDerivₗ_fubiniStudyPotential_apply, fubiniStudyPrimitive_apply]
