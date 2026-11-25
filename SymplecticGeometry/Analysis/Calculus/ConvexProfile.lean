@@ -8,9 +8,9 @@ module
 public import Mathlib.Analysis.Calculus.Deriv.MeanValue
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
+import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.MeasureTheory.Integral.IntervalIntegral.Monotone
-import TauCeti.Analysis.SpecialFunctions.SmoothTransition
 import TauCeti.MeasureTheory.Integral.IntervalIntegral.Primitive
 
 /-!
@@ -23,18 +23,14 @@ controlled by its derivative: `Λ t ≤ (t - t₀) * Λ' t` for `t > t₀`.
 
 ## Main results
 
-* `expNegInvGlue.contDiff_sub_mul_exp`, `expNegInvGlue.hasDerivAt_sub_mul_exp`: for `G` of class
-  `C^n`, the function `t ↦ expNegInvGlue (t - t₀) * exp (G t)` is of class `C^n`; where `G` has
-  derivative `G'` at `t`, its derivative at `t` is
-  `expNegInvGlue (t - t₀) * exp (G t) * ((t - t₀)⁻¹ ^ 2 + G')`, by Tau Ceti's
-  `expNegInvGlue.hasDerivAt`.
 * `SymplecticGeometry.exists_contDiff_profile`: the profile `Λ`.
 
 ## Construction
 
 Take a smooth majorant `g > max L 0` (`exists_contMDiffMap_forall_lt`) and its primitive `G` from
 `t₀`, smooth by Tau Ceti's `ContDiff.contDiff_add_one_integral`. Then
-`Λ' = expNegInvGlue (t - t₀) * exp (c + G t)` is smooth, and its derivative is
+`Λ' = expNegInvGlue (t - t₀) * exp (c + G t)` is smooth (`expNegInvGlue.contDiff_sub_mul_exp`),
+and its derivative (`expNegInvGlue.hasDerivAt_sub_mul_exp`) is
 `Λ' t * ((t - t₀)⁻¹ ^ 2 + g t) ≥ max (L t) 0 * Λ' t`; a large constant `c` gives `Λ' ≥ A` from
 `b` on. `Λ` is the primitive of `Λ'` from `t₀`. `Λ'` is monotone on `[t₀, ∞)`, which gives the
 last estimate (`MonotoneOn.intervalIntegral_le_sub_mul`).
@@ -49,24 +45,6 @@ public section
 
 open Set Filter Real
 open scoped Topology Manifold ContDiff
-
-namespace expNegInvGlue
-
-/-- If `G` is of class `C^n`, so is `t ↦ expNegInvGlue (t - t₀) * exp (G t)`. -/
-theorem contDiff_sub_mul_exp {n : ℕ∞} {G : ℝ → ℝ} (t₀ : ℝ) (hG : ContDiff ℝ n G) :
-    ContDiff ℝ n fun t ↦ expNegInvGlue (t - t₀) * exp (G t) :=
-  (expNegInvGlue.contDiff.comp (contDiff_id.sub contDiff_const)).mul hG.exp
-
-/-- The derivative of `t ↦ expNegInvGlue (t - t₀) * exp (G t)` at `t` is
-`expNegInvGlue (t - t₀) * exp (G t) * ((t - t₀)⁻¹ ^ 2 + G')`, where `G'` is the derivative of `G`
-at `t`. -/
-theorem hasDerivAt_sub_mul_exp {G : ℝ → ℝ} {G' : ℝ} (t₀ : ℝ) {t : ℝ} (hG : HasDerivAt G G' t) :
-    HasDerivAt (fun u ↦ expNegInvGlue (u - t₀) * exp (G u))
-      (expNegInvGlue (t - t₀) * exp (G t) * ((t - t₀)⁻¹ ^ 2 + G')) t := by
-  convert ((hasDerivAt (t - t₀)).comp_sub_const t t₀).mul hG.exp using 1
-  ring
-
-end expNegInvGlue
 
 namespace SymplecticGeometry
 

@@ -22,6 +22,11 @@ vanishes outside `[0, 1]`. This file shows that the derivative is positive on th
 `(f' x f (1 - x) + f x f' (1 - x)) / (f x + f (1 - x)) ^ 2`, and `f` and `f'` are positive on
 `(0, ∞)`.
 
+For a function `G` of class `C^n`, the product `t ↦ expNegInvGlue (t - t₀) * exp (G t)` is of
+class `C^n` (`expNegInvGlue.contDiff_sub_mul_exp`), and where `G` has derivative `G'` at `t`, its
+derivative there is `expNegInvGlue (t - t₀) * exp (G t) * ((t - t₀)⁻¹ ^ 2 + G')`
+(`expNegInvGlue.hasDerivAt_sub_mul_exp`), from Tau Ceti's `expNegInvGlue.hasDerivAt`.
+
 For Tau Ceti's `TauCeti.collaredSmoothTransition`, the map `s ↦ smoothTransition (2 * s - 1 / 2)`,
 it adds that the map is `0` near `0` and `1` near `1`
 (`TauCeti.collaredSmoothTransition_eventuallyEq_zero`,
@@ -77,6 +82,26 @@ theorem deriv_pos {x : ℝ} (h₀ : 0 < x) (h₁ : x < 1) : 0 < deriv smoothTran
   positivity
 
 end Real.smoothTransition
+
+namespace expNegInvGlue
+
+open Real
+
+/-- If `G` is of class `C^n`, so is `t ↦ expNegInvGlue (t - t₀) * exp (G t)`. -/
+theorem contDiff_sub_mul_exp {n : ℕ∞} {G : ℝ → ℝ} (t₀ : ℝ) (hG : ContDiff ℝ n G) :
+    ContDiff ℝ n fun t ↦ expNegInvGlue (t - t₀) * exp (G t) :=
+  (expNegInvGlue.contDiff.comp (contDiff_id.sub contDiff_const)).mul hG.exp
+
+/-- The derivative of `t ↦ expNegInvGlue (t - t₀) * exp (G t)` at `t` is
+`expNegInvGlue (t - t₀) * exp (G t) * ((t - t₀)⁻¹ ^ 2 + G')`, where `G'` is the derivative of `G`
+at `t`. -/
+theorem hasDerivAt_sub_mul_exp {G : ℝ → ℝ} {G' : ℝ} (t₀ : ℝ) {t : ℝ} (hG : HasDerivAt G G' t) :
+    HasDerivAt (fun u ↦ expNegInvGlue (u - t₀) * exp (G u))
+      (expNegInvGlue (t - t₀) * exp (G t) * ((t - t₀)⁻¹ ^ 2 + G')) t := by
+  convert ((hasDerivAt (t - t₀)).comp_sub_const t t₀).mul hG.exp using 1
+  ring
+
+end expNegInvGlue
 
 namespace TauCeti
 
