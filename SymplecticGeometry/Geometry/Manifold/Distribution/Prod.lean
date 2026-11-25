@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 public import TauCeti.Geometry.Manifold.Distribution
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # A distribution on the first factor of a product
@@ -69,7 +70,7 @@ theorem IsDistributionFrameOn.map_mfderiv_prod_left (hX : IsDistributionFrameOn 
           ((contMDiff_zeroSection 𝕜 (TangentSpace I' : M' → Type _)).comp
             contMDiff_snd).contMDiffOn)
     refine h.congr fun p _ ↦ ?_
-    rw [mfderiv_prod_left]
+    rw [mfderiv_prodMk_left_apply]
     -- Both sides are `⟨p, (X i p.1, 0)⟩`, once `equivTangentBundleProd` is unfolded.
     rfl
   linearIndependent hp := by

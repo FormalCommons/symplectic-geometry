@@ -30,7 +30,8 @@ and its inverse. So the gluing is compatible in the sense of Tau Ceti's
 `TopCat.GlueData.IsCompatible`, and `TopCat.GlueData.chartedSpace` and
 `TopCat.GlueData.IsCompatible.isManifold` make `GluedAlong φ` a charted space over the model of
 `M₁` and `M₂`, and a `C^n` manifold when they are, for which `inl` and `inr` are `C^n` local
-diffeomorphisms. The glued space need not be Hausdorff even when `M₁` and `M₂` are.
+diffeomorphisms. The glued space need not be Hausdorff even when `M₁` and `M₂` are; it is when,
+moreover, the graph of `φ` is closed in `M₁ × M₂`.
 
 Over `ℝ`, for a smooth `φ`, smooth forms glue. Let `σ₁` and `σ₂` be smooth forms on `M₁` and
 `M₂` that correspond on the overlap: `φ^*(σ₂|U₂) = σ₁|U₁`, where restricting to an open subset
@@ -60,6 +61,8 @@ library's `Geometry/Symplectic/Liouville/Completion.lean`.
   `range_inl_union_range_inr`, `inl_eq_inr_iff`: the topology of the glued space.
 * `SymplecticGeometry.GluedAlong.isLocalDiffeomorph_inl`, `isLocalDiffeomorph_inr`: the
   canonical maps are `C^n` local diffeomorphisms for the glued atlas.
+* `SymplecticGeometry.GluedAlong.t2Space_of_isClosed_graph`: the glued space is Hausdorff when
+  `M₁` and `M₂` are and the graph of `φ` is closed in `M₁ × M₂`.
 * `SymplecticGeometry.GluedAlong.mpullback_inl_gluedForm`, `mpullback_inr_gluedForm`,
   `eq_gluedForm_iff`: the glued form is the unique form with the given pull-backs.
 * `SymplecticGeometry.GluedAlong.isClosed_gluedForm_iff`, `isNondegenerate_gluedForm_iff`,
@@ -214,6 +217,17 @@ theorem inr_apply (x : U₁) : inr φ (φ x : M₂) = inl φ (x : M₁) :=
 @[simp]
 theorem inl_symm_apply (y : U₂) : inl φ (φ.symm y : M₁) = inr φ (y : M₂) := by
   rw [← inr_apply, Diffeomorph.apply_symm_apply]
+
+/-- **Hausdorff criterion for the glued space.** If `M₁` and `M₂` are Hausdorff and the graph
+of `φ`, as a subset of `M₁ × M₂`, is closed, then the glued space is Hausdorff. -/
+theorem t2Space_of_isClosed_graph [T2Space M₁] [T2Space M₂]
+    (hφ : IsClosed {p : M₁ × M₂ | ∃ u : U₁, (u : M₁) = p.1 ∧ (φ u : M₂) = p.2}) :
+    T2Space (GluedAlong φ) := by
+  -- `GluedAlong φ` is by definition the glued space of `glueData φ`.
+  refine TopCat.GlueData.ofHomeomorph_t2Space_of_isClosed_range φ.toHomeomorph ?_
+  convert hφ using 1
+  ext ⟨x, y⟩
+  simp [Prod.ext_iff]
 
 /-- The canonical map from `M₁` is a `C^n` local diffeomorphism for the glued atlas. -/
 theorem isLocalDiffeomorph_inl [IsManifold I n M₁] [IsManifold I n M₂] :

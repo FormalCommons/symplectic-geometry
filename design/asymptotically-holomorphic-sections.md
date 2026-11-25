@@ -258,7 +258,8 @@ $|w|\le\delta$ at distance at least $c\,\delta(\log(1/\delta))^{-p_0}$ from
 $G(B)$. Sup norms are enough, since the proof compares $G(B)$ only with the
 image of a polynomial map that is uniformly close to $G$. Each step below
 takes what the one before gives. The proof has four independent steps and
-one assembly, each an issue (issues 14–18):
+one assembly, each an issue (issues 14–18), except the tube volumes, which
+take issues 17a–17f and 17:
 
 - **Holomorphic approximation.** On a closed polydisc of radius $\rho$, a
   $C^1$ function $f$ with $|\bar\partial f|\le\epsilon$ is within
@@ -289,13 +290,13 @@ one assembly, each an issue (issues 14–18):
   so the linear map $Q\mapsto Q\circ P$ has a nonzero kernel. It uses Mathlib's
   `MvPolynomial.restrictTotalDegree` and Tau Ceti's `finrank_restrictTotalDegree`.
 - **Tube volumes.** In the unit ball of $\mathbb C^{m}$, the
-  $t$-neighbourhood of the zero set of a nonzero polynomial of degree $D$
-  has volume at most $C_mD^at^b$ for $t\le1$, with fixed exponents $a$ and
-  $b>0$. Any such bound suffices, since $D$ grows only as a power of
-  $\log(1/\delta)$. The issue follows the bound that Auroux's proof uses.
-  It may instead take R. Wongkew's bound for tubes around real algebraic
-  varieties (Pacific J. Math. 159, 1993), and it fixes the exponents. The
-  bound that uses only the Lipschitz constant of the map is too weak. It
+  $t$-neighbourhood of the zero set of a nonzero polynomial of degree at
+  most $D$ has volume at most $C_mD^4t^2$ for every $t>0$. Any fixed
+  exponents would do, since $D$ grows only as a power of
+  $\log(1/\delta)$. The form that issue 17 states, $C_mD^{2m}t$ for
+  $0<t\le1$, follows: the volume is also at most that of the ball, and
+  $\min(A,Bx^2)\le\sqrt{AB}\,x$ for $x=D^2t$. The next section gives the
+  route. The bound that uses only the Lipschitz constant of the map is too weak. It
   gives $\epsilon$ of order $\delta^{n+1}$, and the iteration over colours
   needs $\epsilon$ nearly linear in $\delta$.
 - **Assembly.** These give the avoidance estimate. $B$ is covered by
@@ -307,6 +308,113 @@ one assembly, each an issue (issues 14–18):
   distance sought. The volume of the $\delta$-ball of parameters exceeds
   the volume of the thin neighbourhood of the zero set, after rescaling by
   $\delta$.
+
+### The tube-volume bound, by averages over complex lines
+
+The routes through the area of the zero set need Hausdorff measure of
+analytic sets and the monotonicity of Lelong numbers. The real route after
+Wongkew needs a Milnor–Thom bound on the components of a real algebraic
+set. Neither library has any of these. The route here uses only
+polynomials in one complex variable on circles, Lebesgue measure and
+Fubini's theorem. As in Crofton's formula it counts zeros on complex
+lines. But it compares two centres through averages of $\log|P|$ over
+balls, and never through the area of the zero set.
+
+Throughout, $E$ is `EuclideanSpace ℂ (Fin m)` with `volume`, `P :
+MvPolynomial (Fin m) ℂ` is nonzero with `P.totalDegree ≤ D`, and
+$Z=\{z\mid$ `MvPolynomial.eval z.ofLp P = 0` $\}$. For $D=0$ the set $Z$ is
+empty, so let $D\ge1$. Write $u=\log|P|$ (Mathlib's `Real.log`, which is
+$0$ at $0$; $Z$ is null, so the averages below do not see this),
+$V(c,r)$ for the average of $u$ over `Metric.ball c r`, and $S(c,r)$ for
+the logarithm of the maximum of $|P|$ on `Metric.closedBall c r`. For
+$c,v\in E$ let $p_{c,v}(s)=P(c+sv)$, a polynomial in one complex variable.
+Its coefficient of degree `P.totalDegree` is $P_{\rm top}(v)$, where
+$P_{\rm top}$ is `MvPolynomial.homogeneousComponent P.totalDegree P`, which
+is nonzero. The zero set of $P_{\rm top}$ is null, by Tau Ceti's
+`MvPolynomial.volume_setOfPred_eval_eq_zero` on `Fin m → ℂ`, carried to
+$E$ by the linear equivalence `WithLp.ofLp`, under which the two Haar
+measures agree up to a constant. Off it, $p_{c,v}$ is nonzero of degree at
+most $D$ for every $c$. Let $h(c,\rho)$ be the proportion of the $v$ in
+`Metric.ball 0 1` for which $p_{c,v}$ has a root of norm less than
+$\rho$, that is, for which the line through $c$ in the direction $v$
+meets $Z$ within $\rho\|v\|\le\rho$ of $c$.
+
+1. **One variable.** For a nonzero $p\in\mathbb C[s]$ and $r>0$, the
+   circle average of $\log|p|$ at radius $r$ is
+   $\log|\mathrm{lc}(p)|+\sum_a\log\max(r,|a|)$, the sum over the roots
+   with multiplicity. This is Mathlib's
+   `Polynomial.logMahlerMeasure_eq_log_leadingCoeff_add_sum_log_roots`
+   for $p(rs)$. For $r_1\le r_2$ a root $a$ adds to the difference of the
+   averages at $r_2$ and $r_1$ a number between $0$ and
+   $\log(r_2/r_1)$: $0$ if $|a|\ge r_2$, and $\log(r_2/r_1)$ if $a=0$. So
+   the difference lies between $\mathrm{ord}_0(p)\log(r_2/r_1)$ and
+   $\deg p\cdot\log(r_2/r_1)$, and is $0$ if no root has norm less than
+   $r_2$. If $p(0)\ne0$, the average is at least $\log|p(0)|$. Since
+   $|s-a|\le(\lambda+1)\max(r,|a|)$ for $|s|\le\lambda r$, and the maximum
+   of $\log|p|$ on the circle of radius $r$ is at least the average, the
+   maximum of $|p|$ on the disc of radius $\lambda r$ is at most
+   $(\lambda+1)^{\deg p}$ times its maximum on the circle of radius $r$.
+2. **Balls as families of circles.** For a measurable $g\ge0$ on $E$, the
+   integral of $g$ over `ball c ρ` is $\rho^{2m}$ times the integral over
+   $v\in$ `ball 0 1` of the circle average of $s\mapsto g(c+sv)$ at radius
+   $\rho$. Multiplication by $e^{i\theta}$ is a linear isometry of $E$, so
+   it preserves `volume` (`LinearIsometryEquiv.measurePreserving`) and
+   `ball 0 1`. Average over $\theta$ and exchange the integrals by Tonelli.
+   The statement is about lower Lebesgue integrals, so it needs no
+   integrability.
+3. **Averages of $\log|P|$.** Step 2 for $g=S-u$, with step 1 for each
+   $p_{c,v}$, gives:
+   - (a) if $P(c)\ne0$, then $V(c,r)\ge u(c)$ for every $r>0$;
+   - (b) $S(y,R)-V(y,R)\le4^mD\log4$ for every $y$ and $R>0$. Let $|P|$
+     reach its maximum on `closedBall y R` at $z_0$. The ball
+     `ball z₀ (2 * R)` contains `ball y R` and lies in `ball y (3 * R)`,
+     on which $u\le S(y,3R)$ almost everywhere. By (a) at $z_0$, the
+     average of $S(y,3R)-u$ over `ball z₀ (2 * R)` is at most
+     $S(y,3R)-S(y,R)$, which step 1 on the complex lines through $y$
+     bounds by $D\log4$. Comparing the integrals of the nonnegative
+     $S(y,3R)-u$ over `ball y R` and `ball z₀ (2 * R)` gives the bound.
+     In particular $u$ is integrable on every ball;
+   - (c) $0\le V(c,r_2)-V(c,r_1)\le D\log(r_2/r_1)\,h(c,r_2)$ for
+     $0<r_1\le r_2$;
+   - (d) if $P(y)=0$, then $V(y,r_2)-V(y,r_1)\ge\log(r_2/r_1)$ for
+     $0<r_1\le r_2$, since every line through $y$ meets $Z$ at $y$.
+4. **Change of centre.** There is a $K\ge2$, depending on $m$ only, such
+   that for $\|c-y\|<a$ with $P(y)=0$, $\rho_1=KDa$ and $\rho_2=4\rho_1$:
+   $V(c,\rho_2)-V(c,\rho_1)\ge\frac12\log4$, and so, by 3(c),
+   $h(c,\rho_2)\ge1/(2D)$. Let $w=S(y,\rho_2+a)-u$, which is nonnegative
+   almost everywhere on `ball y (ρ₂ + a)`, and let $W=S(y,\rho_2+a)-V$ be
+   its averages. Since `ball y (ρ₁ - a)` lies in `ball c ρ₁` and
+   `ball c ρ₂` in `ball y (ρ₂ + a)`,
+   $W(c,\rho_1)\ge\alpha\,W(y,\rho_1-a)$ and
+   $W(c,\rho_2)\le\beta\,W(y,\rho_2+a)$, with
+   $\alpha=(1-1/(KD))^{2m}$ and $\beta=(1+1/(4KD))^{2m}$. By 3(d) and
+   3(b),
+   $V(c,\rho_2)-V(c,\rho_1)=W(c,\rho_1)-W(c,\rho_2)\ge\alpha\log4-(\beta-\alpha)\,4^mD\log4$.
+   As $\beta-\alpha\le C_m/(KD)$, the factor $D$ cancels, and a large $K$
+   gives $\frac12\log4$. Step 3(b), that the average of $\log|P|$ over a
+   ball stays within $O(D)$ of its maximum, is what replaces the
+   monotonicity of Lelong numbers here: it bounds what is lost when the
+   centre moves from $y$ to $c$.
+5. **Slices.** Let $v\ne0$, and let $A\subseteq E$ meet each complex line
+   $c+\mathbb Cv$ in at most $N$ points. Then the set of $c\in$ `ball 0 1`
+   with $c+sv\in A$ for some $\|s\|<\rho$ has volume at most
+   $C_mN\rho^2\|v\|^2$. After a linear isometry that takes $v/\|v\|$ to
+   the first basis vector, Fubini's theorem integrates over the lines, on
+   each of which the set lies in $N$ discs of radius $\rho\|v\|$. For
+   $A=Z$ and $P_{\rm top}(v)\ne0$, $N=D$.
+6. **Assembly.** For $c$ in the $t$-thickening of $Z$, step 4 with $a=t$
+   gives $h(c,4KDt)\ge1/(2D)$. Integrate over $c\in$ `ball 0 1` and
+   exchange with the integral over $v$ (Tonelli; the set of pairs $(c,v)$
+   is the projection of a $\sigma$-compact set, so it is measurable).
+   Step 5 for almost every $v$ bounds the volume of the part of the
+   thickening in `ball 0 1` by $2D\cdot C_mD(4KDt)^2=C_m'D^4t^2$.
+
+So the exponents are $a=4$ and $b=2$, and issue 17 keeps the statement
+of #3515. The steps are issues 17a–17f and 17 below. The design knows of
+no published source that gives this proof as a whole. Step 1 is Jensen's
+formula for polynomials, step 3(b) is a form of the Bernstein–Walsh
+inequality, and the counting of zeros on lines through a point is the one
+behind Lelong numbers and Crofton's formula.
 
 ### The zero set file waits for *Poincaré duals*
 
@@ -406,6 +514,31 @@ and the prerequisites, placed by topic.
   estimate above, with main results `exists_differentiableOn_dist_le`,
   `norm_sub_taylorPolynomial_le`, `exists_mvPolynomial_ne_zero_aeval_eq_zero`,
   `volume_thickening_zeroLocus_le` and `exists_infDist_image_ge`.
+- The steps of the tube-volume bound, by topic:
+  `Analysis/Polynomial/CircleAverageLog.lean` (step 1, in the namespace
+  `Polynomial`: `circleAverage_log_norm_eval`, the formula;
+  `circleAverage_log_norm_eval_sub_le` and
+  `circleAverage_log_norm_eval_sub_eq_zero`, the bounds on the difference
+  of two radii; `rootMultiplicity_mul_log_le_circleAverage_sub`;
+  `log_norm_eval_zero_le_circleAverage`; and
+  `exists_norm_eval_le_add_one_pow_mul`, the growth from radius $r$ to
+  $\lambda r$),
+  `MeasureTheory/Integral/BallCircleAverage.lean` (step 2,
+  `MeasureTheory.setLIntegral_ball_eq_lintegral_circleAverage`),
+  `Analysis/Complex/MvPolynomial/LogAverage.lean` (step 3, in the namespace
+  `MvPolynomial`: `ae_homogeneousComponent_totalDegree_ne_zero`,
+  `log_norm_eval_le_setAverage_ball`,
+  `log_sup_sub_setAverage_log_norm_eval_le`,
+  `integrableOn_log_norm_eval_ball`,
+  `setAverage_log_norm_eval_sub_le` and
+  `log_div_le_setAverage_log_norm_eval_sub`),
+  `MeasureTheory/Measure/Lebesgue/LineSlice.lean` (step 5,
+  `volume_setOf_exists_add_smul_mem_le`), and in `AlgebraicTube.lean`, before
+  `volume_thickening_zeroLocus_le`, step 4
+  (`MvPolynomial.setAverage_log_norm_eval_sub_ge_of_dist_lt` and
+  `MvPolynomial.volume_ball_le_mul_volume_setOf_exists_root`) and the bound
+  `MvPolynomial.volume_thickening_zeroLocus_le_pow_four_mul_sq`
+  ($C_mD^4t^2$), from which `volume_thickening_zeroLocus_le` follows.
 
 ### Files of the part
 
@@ -548,7 +681,24 @@ statement.
 16. **Polynomial images lie on hypersurfaces** (`ImageHypersurface.lean`).
     Waits for nothing.
 17. **Volumes of tubes around algebraic hypersurfaces**
-    (`AlgebraicTube.lean`). Waits for nothing.
+    (`AlgebraicTube.lean`, step 6 of the tube-volume bound). It comes after
+    six issues for steps 1–5, in this order:
+    - 17a. **Circle averages of $\log|p|$** (`CircleAverageLog.lean`,
+      step 1). Waits for nothing.
+    - 17b. **Balls as families of circles** (`BallCircleAverage.lean`,
+      step 2). Waits for nothing.
+    - 17c. **Averages of $\log|P|$ near their maximum**
+      (`LogAverage.lean`, first half: the null set of $P_{\rm top}$, step
+      3(a), 3(b) and integrability). Waits for 17a and 17b.
+    - 17d. **Growth of the averages of $\log|P|$** (`LogAverage.lean`,
+      second half: steps 3(c) and 3(d)). Waits for 17c.
+    - 17e. **Change of centre** (`AlgebraicTube.lean`, first half: step 4).
+      Waits for 17d.
+    - 17f. **Slices along a direction** (`LineSlice.lean`, step 5). Waits
+      for nothing.
+
+    Issue 17 itself proves `volume_thickening_zeroLocus_le_pow_four_mul_sq`
+    and `volume_thickening_zeroLocus_le`. Waits for 17e and 17f.
 18. **Auroux's avoidance estimate** (`Avoidance.lean`). Waits for 14–17.
 19. **Local quantitative transversality** (`LocalTransversality.lean`).
     Waits for 18.
@@ -566,7 +716,7 @@ statement.
 26. **Donaldson's hypersurface theorem** (`Hypersurface.lean`). Waits for
     5, 10, 23 and 25.
 
-Issues 1, 2, 6, 8, 11, 14, 15, 16, 17 and 21 can start at once.
+Issues 1, 2, 6, 8, 11, 14, 15, 16, 17a, 17b, 17f and 21 can start at once.
 
 ## Uses
 
@@ -595,10 +745,14 @@ Issues 1, 2, 6, 8, 11, 14, 15, 16, 17 and 21 can start at once.
   and Morse–Bott CW models, `IsNConnected`, the polydisc Cauchy integral and
   the Cauchy transform, Taylor remainders, Gaussian bounds, covering
   numbers, Stokes' theorem, de Rham and smooth singular Mayer–Vietoris
-  sequences, the Hopf fibration and the homotopy groups of $\mathbb CP^N$.
+  sequences, the Hopf fibration, the homotopy groups of $\mathbb CP^N$ and
+  the null zero sets of nonzero polynomials
+  (`MvPolynomial.volume_setOfPred_eval_eq_zero`).
 - Mathlib: `CovariantDerivative`, `iteratedFDeriv`, `Metric.IsSeparated`,
   `MvPolynomial.restrictTotalDegree`, Lebesgue measure on
-  `EuclideanSpace`, `Manifold.riemannianEDist`.
+  `EuclideanSpace`, `Manifold.riemannianEDist`,
+  `Polynomial.logMahlerMeasure_eq_log_leadingCoeff_add_sum_log_roots`,
+  `MvPolynomial.homogeneousComponent`, `LinearIsometryEquiv.measurePreserving`.
 
 ## References
 
