@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Lie.Adjoint.Splitting
 public import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Data
 
+import SymplecticGeometry.Geometry.Lie.Adjoint.Coadjoint
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 import TauCeti.Geometry.Manifold.Algebra.SMul
 import TauCeti.Geometry.Manifold.ContMDiff.FiniteDimension
@@ -49,10 +50,15 @@ of the adjoint action for the inclusion `K → G`. That of `μ_V` follows from i
 Last, the covectors `ν` of the local model are equivariant, which combines the equivariance of
 `τ`, `ι𝔪` and `μ_V`; and the infinitesimal action of the Lie algebra of `K` on `A × V`. Its
 component in `A` is computed through the functionals `η ↦ equivDual𝔪 η ζ`, `ζ ∈ 𝔪`, which turn
-`k ↦ repA k η` into a coadjoint coefficient; the chain rule along `K → G` and Tau Ceti's
-`TauCeti.Lie.mvfderiv_coadjointRepresentation_apply_one` give its derivative, with that lemma's
+`k ↦ repA k η` into a coadjoint coefficient, whose derivative
+`TauCeti.Lie.mvfderiv_coadjointRepresentation_subtype_apply_one` gives: the chain rule along
+`K → G` and Tau Ceti's `TauCeti.Lie.mvfderiv_coadjointRepresentation_apply_one`, with that lemma's
 sign. Its component in `V` is `D.mfderiv_rep_apply`, and Tau Ceti's
-`MDifferentiableAt.mvfderiv_prodMk_apply` combines the two.
+`MDifferentiableAt.mvfderiv_prodMk_apply` combines the two. The equivariance of `ν`, with the
+fact that each `rep k` preserves `σ` (Tau Ceti's
+`TauCeti.SymplecticForm.IsSymplectomorphism.mpullback_constSmooth`), makes the form of the local
+model invariant under `(g, p) ↦ (g * k⁻¹, k • p)`, by
+`SymplecticGeometry.mpullback_prodMap_mul_right_leftInvariantCovectorMapForm`.
 
 ## Main definitions
 
@@ -81,7 +87,12 @@ sign. Its component in `V` is `D.mfderiv_rep_apply`, and Tau Ceti's
   `A × V` is smooth.
 * `SymplecticGeometry.LocalModelData.smulCommClass_fiberDistribMulAction`: the action of `K`
   on `A × V` commutes with real scalars.
+* `SymplecticGeometry.LocalModelData.fiberDistribMulAction_smul_eq_toContinuousLinearMap`,
+  `SymplecticGeometry.LocalModelData.mfderiv_fiberDistribMulAction_const_smul`: each `k` acts on
+  `A × V` by a continuous linear map, which is its own differential at every point.
 * `SymplecticGeometry.LocalModelData.covector_smul`: `ν (k • p) = Ad*_k (ν p)`.
+* `SymplecticGeometry.LocalModelData.mpullback_prodMap_mul_right_smul_form`: the form `D.form`
+  on `G × (A × V)` is invariant under `(g, p) ↦ (g * k⁻¹, k • p)` for `k ∈ K`.
 * `SymplecticGeometry.LocalModelData.equivDual𝔪_mfderiv_repA_apply`,
   `SymplecticGeometry.LocalModelData.mfderiv_repA_apply`,
   `SymplecticGeometry.LocalModelData.mfderiv_fiberDistribMulAction_smul_apply`: the infinitesimal
@@ -255,6 +266,22 @@ theorem contMDiffSMul_fiberDistribMulAction :
   exact ⟨((D.contMDiff_repA.comp hA).prodMk_space (D.contMDiff_rep.comp hV)).congr
     fun p ↦ D.fiberDistribMulAction_smul p.1 p.2⟩
 
+/-- The action of `k` on the fibre `A × V` is the continuous linear map
+`(η, v) ↦ (repA k η, rep k v)`. -/
+theorem fiberDistribMulAction_smul_eq_toContinuousLinearMap (k : K) :
+    letI := D.fiberDistribMulAction
+    (fun p : A × V ↦ k • p) = LinearMap.toContinuousLinearMap ((D.repA.prod D.repV) k) :=
+  letI := D.fiberDistribMulAction
+  funext fun p ↦ (D.fiberDistribMulAction_smul k p).trans (by simp [repV_apply])
+
+/-- The differential of the action of `k` on the fibre `A × V`, at any point, is the action of
+`k`, since the action is linear. -/
+theorem mfderiv_fiberDistribMulAction_const_smul (k : K) (q p : A × V) :
+    letI := D.fiberDistribMulAction
+    mfderiv 𝓘(ℝ, A × V) 𝓘(ℝ, A × V) (fun y : A × V ↦ k • y) q p = k • p := by
+  rw [fiberDistribMulAction_smul_eq_toContinuousLinearMap, ContinuousLinearMap.mfderiv_eq]
+  exact congrFun (D.fiberDistribMulAction_smul_eq_toContinuousLinearMap k).symm p
+
 /-! ### Equivariance of `ρ` and of `μ_V` -/
 
 /-- The infinitesimal map `ρ : 𝔥 → sp(V, σ)` is equivariant:
@@ -311,6 +338,36 @@ theorem covector_smul (k : K) (p : A × V) :
     coadjointRepresentation_apply, coadjointRepresentation_apply, coadjointRepresentation_apply,
     covector_apply, hτ]
 
+/-- The two-form of the local model on `G × (A × V)` is invariant under the action
+`(g, p) ↦ (g * k⁻¹, k • p)` of `k ∈ K`: the covectors `ν` are equivariant (`covector_smul`), and
+each `rep k` preserves `σ`. -/
+@[simp]
+theorem mpullback_prodMap_mul_right_smul_form (k : K) :
+    letI := D.fiberDistribMulAction
+    SmoothForm.mpullback (Prod.map (· * (k : G)⁻¹) fun p : A × V ↦ k • p)
+        (contMDiff_mul_right.prodMap (haveI := D.contMDiffSMul_fiberDistribMulAction
+          ContMDiffSMul.contMDiff_const_smul (I := 𝓘(ℝ, F)) k)) D.form =
+      D.form := by
+  let := D.fiberDistribMulAction
+  have := D.contMDiffSMul_fiberDistribMulAction
+  have hk := ContMDiffSMul.contMDiff_const_smul (I := 𝓘(ℝ, F)) (I' := 𝓘(ℝ, A × V)) (n := ∞)
+    (M := A × V) k
+  -- The term `pr_V^* σ` is invariant, as `pr_V (k • p) = rep k (pr_V p)` and `rep k` preserves `σ`.
+  have hσ : SmoothForm.mpullback (fun p : A × V ↦ k • p) hk
+      (SmoothForm.mpullback Prod.snd contDiff_snd.contMDiff D.σ.constSmooth) =
+        SmoothForm.mpullback Prod.snd contDiff_snd.contMDiff D.σ.constSmooth := by
+    have he : SymplecticForm.IsSymplectomorphism D.σ D.σ
+        (D.rep k).toContinuousLinearEquiv.toLinearEquiv := by
+      rw [LinearEquiv.toLinearEquiv_toContinuousLinearEquiv]
+      exact D.isSymplectomorphism_rep k
+    rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ contDiff_snd.contMDiff
+      (D.rep k).toContinuousLinearEquiv.toDiffeomorph.contMDiff
+      (funext fun p ↦ congrArg Prod.snd (D.fiberDistribMulAction_smul k p)),
+      he.mpullback_constSmooth]
+  rw [form_def, localModelForm_def]
+  exact mpullback_prodMap_mul_right_leftInvariantCovectorMapForm _ (k : G) hk
+    (fun p ↦ by rw [← covector_def, ← covector_def]; exact D.covector_smul k p) hσ
+
 /-- The infinitesimal representation of the Lie algebra of `K` on `A ≃ 𝔪*`: the derivative at `1`
 of `k ↦ repA k η` in the direction `ξ`, read in `𝔪*` through `D.equivDual𝔪`, is
 `ζ ↦ ι𝔪 η ⁅ζ, ξ'⁆`, where `ξ'` is the image of `ξ` in `𝔤`, which lies in `𝔥`. This is the sign of
@@ -318,26 +375,19 @@ of `k ↦ repA k η` in the direction `ξ`, read in `𝔪*` through `D.equivDual
 theorem equivDual𝔪_mfderiv_repA_apply (η : A) (ξ : GroupLieAlgebra 𝓘(ℝ, F) K) (ζ : D.𝔪) :
     D.equivDual𝔪 (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, A) (fun k : K ↦ D.repA k η) 1 ξ) ζ =
       D.ι𝔪 η ⁅(ζ : GroupLieAlgebra I G), K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I ξ⁆ := by
-  have hK : MDifferentiableAt 𝓘(ℝ, F) I K.subtype 1 := by
-    rw [Subgroup.coe_subtype]
-    exact (K.contMDiff_subtypeVal_of_contMDiffSMul (I := I) (n := ∞)).mdifferentiableAt (by simp)
   -- The functional `a ↦ equivDual𝔪 a ζ` on `A`, through which `k ↦ repA k η` becomes the
   -- coadjoint matrix coefficient `k ↦ (Ad*_k (ι𝔪 η)) ζ`, by `ι𝔪_repA`.
   let ℓ : A →L[ℝ] ℝ :=
     LinearMap.toContinuousLinearMap ((Module.Dual.eval ℝ _ ζ) ∘ₗ D.equivDual𝔪.toLinearMap)
   have hℓ (a : A) : ℓ a = D.equivDual𝔪 a ζ := by simp [ℓ]
   have hcomp : (ℓ ∘ fun k : K ↦ D.repA k η) =
-      (fun g : G ↦ coadjointRepresentation ℝ I G g (D.ι𝔪 η) ζ) ∘ K.subtype := by
+      fun k : K ↦ coadjointRepresentation ℝ I G k (D.ι𝔪 η) ζ := by
     funext k
-    rw [Function.comp_apply, hℓ, ← ι𝔪_apply_coe, ι𝔪_repA, Function.comp_apply,
-      Subgroup.coe_subtype]
+    rw [Function.comp_apply, hℓ, ← ι𝔪_apply_coe, ι𝔪_repA]
   refine (hℓ _).symm.trans ?_
   rw [← mvfderiv_apply_eq_mfderiv_apply,
     ← ℓ.mvfderiv_comp_apply ((D.contMDiff_repA_apply η).mdifferentiableAt (by simp)),
-    hcomp, mvfderiv_comp_apply_of_eq 1
-      ((contMDiff_coadjointRepresentation_apply _ _).mdifferentiableAt (by simp))
-      hK (map_one K.subtype),
-    ← MonoidHom.groupLieAlgebraMap_apply, mvfderiv_coadjointRepresentation_apply_one]
+    hcomp, mvfderiv_coadjointRepresentation_subtype_apply_one]
 
 /-- The infinitesimal representation of the Lie algebra of `K` on `A ≃ 𝔪*`: the derivative at `1`
 of `k ↦ repA k η` in the direction `ξ` is the element of `A` that corresponds to the covector

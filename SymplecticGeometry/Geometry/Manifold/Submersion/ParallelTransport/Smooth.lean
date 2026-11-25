@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Submersion.ParallelTransport.Basic
 public import SymplecticGeometry.Topology.FiberBundle.Basic
 import Mathlib.Topology.Connected.Clopen
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 
 /-!
 # Parallel transport as a flow, as a diffeomorphism, in families of curves and in trivializations
@@ -47,7 +48,14 @@ that depends smoothly on the parameter
 jointly `C^n` in the parameter and the point (`TauCeti.contMDiff_timeDependentFlowOf_param`). The
 relation to which `PreconnectedSpace.induction₂'` is applied now also carries a neighbourhood of
 `a₀`, and its transitivity composes the maps on the intersection of the neighbourhoods. The
-statement is local in the parameter, so no smooth maps need to be glued.
+statement is local in the parameter, so no smooth maps need to be glued. For a family that is
+`C^(n+1)` only on `U ×ˢ univ`, for an open set `U` of `N`, the same holds with a map that is
+`C^n` on `U ×ˢ univ`
+(`TauCeti.IsEhresmannConnection.exists_contMDiffOn_parallelTransport_param`): apply the result
+above with the open set `U` as the manifold of parameters, and read the map on `N × P` with
+`ContMDiff.contMDiffOn_opens_prod_of_eq`. Hence transport is `C^n` as a function of the pair
+`(a, x)` on the set of pairs with `a ∈ U` and `f x = Γ (a, s)`
+(`TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransport_param`).
 
 For trivializations `e e' : Bundle.Trivialization Z f` with fibre `Z`, transport is read in the
 model fibre as `TauCeti.IsEhresmannConnection.parallelTransportIn`: a point `v` goes to the
@@ -66,6 +74,8 @@ holonomy of the loop read in `e`.
 * `TauCeti.IsEhresmannConnection.exists_contMDiff_parallelTransport_param`: transport along the
   curves of a `C^(n+1)` family is, near each parameter, the restriction of a `C^n` map of the
   parameters and the points of `P`.
+* `TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransport_param`: for a family that is
+  `C^(n+1)` on an open set of parameters, transport is `C^n` in the parameter and the point.
 * `TauCeti.IsEhresmannConnection.parallelTransportInDiffeomorph`: transport read in two
   trivializations, as a `C^n` diffeomorphism of the model fibre, with inverse the transport back
   (`TauCeti.IsEhresmannConnection.symm_parallelTransportInDiffeomorph`).
@@ -255,6 +265,53 @@ theorem exists_contMDiff_parallelTransport_param (hn : 1 ≤ n) (hf : ContMDiff 
     filter_upwards [hab] with v hv
     exact ⟨⟨U, hU, hΨ u hu v hv⟩, ⟨U, hU, hΨ v hv u hu⟩⟩
   exact PreconnectedSpace.induction₂' R hloc htrans s t
+
+include hD in
+/-- **Parallel transport depends smoothly on a family of curves, on an open set of parameters.**
+Let `Γ : N × ℝ → B` be a family of curves that is `C^(n+1)` on `U ×ˢ univ`, for an open set `U`
+of `N`. Near a parameter `a₀ ∈ U`, transport along the curves `u ↦ Γ (a, u)` from `s` to `t` is,
+on the fibre over `Γ (a, s)`, the restriction of a map `N × P → P` that is `C^n` on `U ×ˢ univ`. -/
+theorem exists_contMDiffOn_parallelTransport_param (hn : 1 ≤ n)
+    (hf : ContMDiff I J (n + 1) f) (hfp : IsProperMap f) {U : Set N} (hU : IsOpen U)
+    {Γ : N × ℝ → B} (hΓ : ContMDiffOn (IN.prod 𝓘(ℝ, ℝ)) J (n + 1) Γ (U ×ˢ univ)) (s t : ℝ)
+    {a₀ : N} (ha₀ : a₀ ∈ U) :
+    ∃ Φ : N × P → P, ContMDiffOn (IN.prod I) I n Φ (U ×ˢ univ) ∧ ∀ᶠ a in 𝓝 a₀, ∀ x,
+      f x = Γ (a, s) → Φ (a, x) = hD.parallelTransport (fun u ↦ Γ (a, u)) s t x := by
+  classical
+  let W : TopologicalSpace.Opens N := ⟨U, hU⟩
+  -- The family read on the open set `W`, as a manifold.
+  have hΓW : ContMDiff (IN.prod 𝓘(ℝ, ℝ)) J (n + 1) (fun p : W × ℝ ↦ Γ (p.1, p.2)) :=
+    hΓ.comp_contMDiff ((contMDiff_subtypeVal.comp contMDiff_fst).prodMk contMDiff_snd)
+      fun p ↦ ⟨p.1.property, mem_univ _⟩
+  obtain ⟨V, hV, Ψ, hΨ, hΨeq⟩ :=
+    hD.exists_contMDiff_parallelTransport_param hn hf hfp hΓW s t ⟨a₀, ha₀⟩
+  refine ⟨fun p ↦ if h : p.1 ∈ U then Ψ (⟨p.1, h⟩, p.2) else p.2,
+    hΨ.contMDiffOn_opens_prod_of_eq (U := W) fun a ha x ↦ dite_eq_left ha, ?_⟩
+  filter_upwards [hU.isOpenEmbedding_subtypeVal.image_mem_nhds.2 hV] with a ⟨c, hc, hca⟩ x hx
+  subst hca
+  simp only [dite_eq_left c.property]
+  exact hΨeq c hc hx
+
+include hD in
+/-- **Parallel transport is smooth in a family of curves.** Let `D` be a `C^n` Ehresmann
+connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B` of finite-dimensional boundaryless
+Hausdorff manifolds, `U` an open set of a manifold `N` of the same kind, and `Γ : N × ℝ → B` a
+family of curves that is `C^(n+1)` on `U ×ˢ univ`. The map `(a, x) ↦` transport of `x` along
+`u ↦ Γ (a, u)` from `s` to `t` is `C^n` on the set of pairs with `a ∈ U` and `f x = Γ (a, s)`. -/
+theorem contMDiffOn_parallelTransport_param (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
+    (hfp : IsProperMap f) {U : Set N} (hU : IsOpen U) {Γ : N × ℝ → B}
+    (hΓ : ContMDiffOn (IN.prod 𝓘(ℝ, ℝ)) J (n + 1) Γ (U ×ˢ univ)) (s t : ℝ) :
+    ContMDiffOn (IN.prod I) I n (fun p : N × P ↦ hD.parallelTransport (fun u ↦ Γ (p.1, u)) s t p.2)
+      {p | p.1 ∈ U ∧ f p.2 = Γ (p.1, s)} := by
+  rintro ⟨a₀, x₀⟩ ⟨ha₀, hx₀⟩
+  obtain ⟨Φ, hΦ, hΦeq⟩ := hD.exists_contMDiffOn_parallelTransport_param hn hf hfp hU hΓ s t ha₀
+  have hev : ∀ᶠ p : N × P in 𝓝 (a₀, x₀), ∀ x, f x = Γ (p.1, s) →
+      Φ (p.1, x) = hD.parallelTransport (fun u ↦ Γ (p.1, u)) s t x :=
+    (continuous_fst.tendsto (a₀, x₀)).eventually hΦeq
+  refine ((hΦ.contMDiffAt (prod_mem_nhds (hU.mem_nhds ha₀) univ_mem)).contMDiffWithinAt
+    ).congr_of_eventuallyEq ?_ (hev.self_of_nhds x₀ hx₀).symm
+  filter_upwards [nhdsWithin_le_nhds hev, self_mem_nhdsWithin] with p hp hpS
+  exact (hp p.2 hpS.2).symm
 
 end Param
 
