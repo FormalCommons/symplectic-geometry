@@ -13,6 +13,7 @@ import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import TauCeti.Analysis.InnerProductSpace.Reflection
 import TauCeti.Geometry.Diffeomorphism.Sphere
+import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Chart.Basic
 import TauCeti.Geometry.Sphere.Connected
 
@@ -294,12 +295,12 @@ private theorem exists_contMDiff_preimage_eq_singleton (x₀ : M) {v : F} (hv : 
   · have hinj := injective_mfderiv_chartCollapse (J := J) (v := v) (x₀ := x₀) hr
     have hcomp : chartCollapse J v x₀ r = Subtype.val ∘ codRestrict _ _ hGsph :=
       funext fun x ↦ (val_codRestrict_apply _ _ hGsph x).symm
-    rw [hcomp, mfderiv_comp x₀
-      ((contMDiff_coe_sphere (m := ∞) (n := n)).mdifferentiable (by simp) _)
-      ((hG.codRestrict_sphere hGsph).mdifferentiable (by simp) x₀),
-      ContinuousLinearMap.coe_comp] at hinj
+    rw [hcomp] at hinj
     exact (TauCeti.isRegularPoint_iff_isInvertible_mfderiv rfl).1
-      ((TauCeti.isRegularPoint_iff_injective_mfderiv rfl).2 hinj.of_comp)
+      ((TauCeti.isRegularPoint_iff_injective_mfderiv rfl).2
+        (TauCeti.injective_mfderiv_of_injective_mfderiv_comp
+          ((contMDiff_coe_sphere (m := ∞) (n := n)).mdifferentiable (by simp) _)
+          ((hG.codRestrict_sphere hGsph).mdifferentiable (by simp) x₀) hinj))
 
 variable [CompactSpace M] [Nonempty M]
 
