@@ -23,8 +23,11 @@ subset `U` agrees, near a closed set `K ⊆ U` and for all parameters at once, w
 of a smooth family of forms on `M` that vanishes near the complement of `U`
 (`SymplecticGeometry.IsSmoothFamily.exists_isSmoothFamily_eventuallyEq_nhdsSet`). The family on
 `M` is the given one multiplied by a bump function that does not depend on the parameter and
-extended by zero; this adapts the proof of Tau Ceti's
-`TauCeti.RoughForm.exists_isSmoothForm_eventuallyEq_nhdsSet` to smooth families.
+extended by zero. The statement is the family version of Tau Ceti's
+`TauCeti.RoughForm.exists_isSmoothForm_eventuallyEq_nhdsSet`. The construction, which multiplies
+the family on `U` by a bump function vanishing near the points outside `U` and equal to one near
+`K` and then extends it by zero, adapts the proof of Tau Ceti's
+`TauCeti.exists_eventuallyEq_mextDerivₗ` to smooth families.
 
 ## References
 

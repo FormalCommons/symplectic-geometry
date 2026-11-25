@@ -23,11 +23,11 @@ The proof takes a smooth cohomology splitting of `U`
 of primitives on `U` over `K`
 (`SmoothCohomologySplitting.IsSmooth.exists_isSmoothFamily_mextDerivₗ_eq_of_mem_exactForms`).
 These are cut off to a smooth family of forms on `M` that agrees with them near `A`
-(`IsSmoothFamily.exists_isSmoothFamily_eventuallyEq_nhdsSet`), so that near `A` its exterior
-derivatives are those of the primitives
-(`SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_on_of_mpullback`). This cut-off step
-follows the proof of Tau Ceti's `TauCeti.exists_eventuallyEq_mextDerivₗ` for smooth families of
-forms.
+(`SymplecticGeometry.IsSmoothFamily.exists_isSmoothFamily_eventuallyEq_nhdsSet`), so that near
+`A` its exterior derivatives are those of the primitives
+(`SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_on_of_mpullback`). That theorem is the
+family version of the first conclusion of Tau Ceti's `TauCeti.exists_eventuallyEq_mextDerivₗ`,
+and, as in its proof, the last step is the locality of the exterior derivative.
 
 ## Main results
 
