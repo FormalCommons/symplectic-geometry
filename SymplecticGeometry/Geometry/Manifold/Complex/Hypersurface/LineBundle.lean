@@ -14,10 +14,11 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Core.ScalarCocyc
 # The line bundle of a divisor given by local equations
 
 The data `SymplecticGeometry.HypersurfaceData I X ι` are local equations of an effective divisor
-`D` on a complex manifold `X`: an open cover `U i` of `X` and holomorphic functions `f i` on
-`U i`, together with holomorphic, nowhere vanishing functions `g i j` on `U i ∩ U j` with
-`f i = g i j * f j` there, satisfying the cocycle identity `g i j * g j k = g i k`. The cocycle
-identity is part of the data because `g i j` is not determined by the `f` where they vanish.
+`D` on a complex manifold `X`: an open cover `U i` of `X`, with a preferred chart at each
+point, and holomorphic functions `f i` on `U i`, together with holomorphic, nowhere vanishing
+functions `g i j` on `U i ∩ U j` with `f i = g i j * f j` there, satisfying the cocycle identity
+`g i j * g j k = g i k`. The cocycle identity is part of the data because `g i j` is not
+determined by the `f` where they vanish.
 
 The structure asks nothing more: an `f i` may vanish identically, and its zeros may be singular.
 The common zero set is a smooth hypersurface when moreover no `f i` vanishes identically and
@@ -46,10 +47,10 @@ line bundle and its canonical section need neither condition.
 
 ## Implementation notes
 
-`HypersurfaceData` extends `SymplecticGeometry.ScalarCocycle`: the cover and the transition
-functions form a scalar cocycle. So `D.lineBundleCore k`, `D.indexAt`, `D.mem_U_indexAt`,
-`D.g_self` and `D.lineBundleCoreTensorEquiv k l` are, by dot notation, the declarations
-`ScalarCocycle.lineBundleCore` and so on of `D.toScalarCocycle`
+`HypersurfaceData` extends `SymplecticGeometry.ScalarCocycle`: the cover, its preferred charts and
+the transition functions form a scalar cocycle. So `D.lineBundleCore k`, `D.indexAt`,
+`D.mem_U_indexAt`, `D.g_self` and `D.lineBundleCoreTensorEquiv k l` are, by dot notation, the
+declarations `ScalarCocycle.lineBundleCore` and so on of `D.toScalarCocycle`
 (`SymplecticGeometry/Topology/VectorBundle/Core/ScalarCocycle.lean`). Of the line bundle, this
 file adds only the smoothness instance, from `ScalarCocycle.isContMDiff_lineBundleCore`.
 
@@ -69,8 +70,9 @@ namespace SymplecticGeometry
 variable {F H : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F] [TopologicalSpace H]
 
 /-- Local equations of an effective divisor on a complex manifold `X` with model `I`: an open
-cover `U` of `X` indexed by `ι`, holomorphic functions `f i` on `U i`, and holomorphic, nowhere
-vanishing functions `g i j` on `U i ∩ U j` with `f i = g i j * f j` there, which form a cocycle.
+cover `U` of `X` indexed by `ι` with a preferred chart `indexAt x` containing each point `x`,
+holomorphic functions `f i` on `U i`, and holomorphic, nowhere vanishing functions `g i j` on
+`U i ∩ U j` with `f i = g i j * f j` there, which form a cocycle.
 The `g` are the transition functions of the line bundle of the divisor. The common zero set
 `HypersurfaceData.support` is a smooth hypersurface if no `f i` vanishes identically and the
 differential of each `f i` is nonzero on it, which the structure does not require. -/
