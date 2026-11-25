@@ -32,16 +32,19 @@ Lemma 7.1.1; Griffiths–Harris, Chapter 1, §4).
 * `SymplecticGeometry.BlowupModel.blowdown_blowupModelTotalSpaceDiffeomorph` and
   `SymplecticGeometry.BlowupModel.proj_blowupModelTotalSpaceDiffeomorph_symm`: the blowdown of the
   image of `⟨ℓ, a⟩`, and the base point of the inverse image of a point of the blowup.
+* `SymplecticGeometry.BlowupModel.blowupModelTotalSpaceDiffeomorph_symm_apply` and
+  `SymplecticGeometry.BlowupModel.blowupModelTotalSpaceDiffeomorph_symm_zeroSection`: the
+  inverse, and its value on the exceptional divisor.
 
 ## Implementation notes
 
 The map into the blowup is shown holomorphic through the embedding of the blowup into
 `ℙ ℂ E × E` (`BlowupModel.isSmoothEmbedding_blowupModel_val`): over the affine open `U_i`, the
 vector of the line is the coordinate of `a` in the chart `i` of `𝒪(-1)` times the representative
-`[1 : affineChart i ℓ]` of `ℓ`. The inverse is shown holomorphic in the charts
-`BlowupModel.blowupModelChart i`: in the frame of the chart `k` of `𝒪(-1)`, the image of `(ℓ, z)`
-has the coordinate `z k` (`Projectivization.twistCore_localTriv_tautologicalTwistCoreEquiv`), and
-in the chart `i` of the blowup `z = w i • update w i 1`.
+`[1 : affineChart i ℓ]` of `ℓ`. For the inverse, in the frame of
+the chart `k` of `𝒪(-1)` the image of `(ℓ, z)` has the coordinate `z k`
+(`Projectivization.twistCore_localTriv_tautologicalTwistCoreEquiv`), a coordinate of the
+holomorphic map `BlowupModel.blowdown`.
 
 ## References
 
@@ -87,12 +90,9 @@ private theorem contMDiff_blowupModelTotalSpaceToFun :
   -- The representative `[1 : affineChart i ℓ]` of the line.
   have h₂ : ContMDiffAt (𝓘(ℂ, Fin n → ℂ).prod 𝓘(ℂ, ℂ)) 𝓘(ℂ, Fin (n + 1) → ℂ) ω
       (fun q : TotalSpace ℂ (twistCore (𝕜 := ℂ) (n := n) (-1)).Fiber =>
-        Fin.insertNth (α := fun _ => ℂ) i 1 (affineChart i q.proj)) q₀ := by
-    have hL : ContDiff ℂ ω fun z : Fin n → ℂ => Fin.insertNth (α := fun _ => ℂ) i 1 z :=
-      contDiff_const.finInsertNth (F := fun _ => ℂ) i contDiff_id
-    exact hL.contMDiff.contMDiffAt.comp _ <|
-      ((contMDiffOn_affineChart i ω).contMDiffAt ((isOpen_affineOpen i).mem_nhds hi₀)).comp _
-        (contMDiffAt_proj _)
+        Fin.insertNth (α := fun _ => ℂ) i 1 (affineChart i q.proj)) q₀ :=
+    ((contMDiffOn_insertNth_affineChart i ω).contMDiffAt
+      ((isOpen_affineOpen i).mem_nhds hi₀)).comp _ (contMDiffAt_proj _)
   refine (h₁.smul h₂).congr_of_eventuallyEq (eventually_of_mem hU fun q hq => ?_)
   rw [Pi.smul_apply', insertNth_one_affineChart_eq_normalizedRep i hq]
   exact coe_tautologicalTwistCoreEquiv_symm_apply_of_mem hq q.snd
@@ -102,19 +102,17 @@ private theorem contMDiff_blowupModelTotalSpaceInvFun :
       (fun p : BlowupModel n =>
         (⟨p.val.1, tautologicalTwistCoreEquiv p.val.1 ⟨p.val.2, mem_blowupModel_iff.1 p.property⟩⟩ :
           TotalSpace ℂ (twistCore (𝕜 := ℂ) (n := n) (-1)).Fiber)) := by
-  refine contMDiff_iff_forall_contMDiff_comp_blowupModelChart_symm.2 fun i w₀ => ?_
+  intro p₀
   refine contMDiffAt_totalSpace_iff.2
-    ⟨((contMDiff_pr ω).comp (contMDiff_blowupModelChart_symm i ω)).contMDiffAt
-      |>.congr_of_eventuallyEq (Eventually.of_forall fun w => (pr_def _).symm), ?_⟩
-  -- In the frame of the chart `k` of `𝒪(-1)`, the image of `(ℓ, z)` is `z k`.
-  set k := (twistCore (𝕜 := ℂ) (n := n) (-1)).indexAt ((blowupModelChart i).symm w₀).val.1
-  have hk : ContDiff ℂ ω fun w : Fin (n + 1) → ℂ => w i * update w i 1 k :=
-    (contDiff_apply ℂ (fun _ => ℂ) i).mul
-      ((contDiff_apply ℂ (fun _ => ℂ) k).comp (ContDiff.update_self i contDiff_const))
-  refine hk.contMDiff.contMDiffAt.congr_of_eventuallyEq (Eventually.of_forall fun w => ?_)
-  -- `trivializationAt` of `𝒪(-1)` at `ℓ` is its chart `k`.
-  refine (twistCore_localTriv_tautologicalTwistCoreEquiv k _).trans <|
-    (congrFun (blowdown_def _).symm k).trans (by simp [blowdown_blowupModelChart_symm_apply])
+    ⟨(contMDiff_pr ω).contMDiffAt.congr_of_eventuallyEq
+      (Eventually.of_forall fun p => (pr_def p).symm), ?_⟩
+  -- In the frame of the chart `k` of `𝒪(-1)`, the image of `p` is the coordinate `k` of
+  -- `p.blowdown`.
+  set k := (twistCore (𝕜 := ℂ) (n := n) (-1)).indexAt p₀.val.1
+  exact ((contDiff_apply ℂ (fun _ => ℂ) k).contMDiff.comp (contMDiff_blowdown ω)).contMDiffAt
+    |>.congr_of_eventuallyEq (Eventually.of_forall fun p =>
+      (twistCore_localTriv_tautologicalTwistCoreEquiv _ _).trans
+        (congrFun (blowdown_def _).symm _))
 
 variable (n) in
 /-- **The blowup is the total space of the tautological line.** The biholomorphism from the
@@ -175,6 +173,16 @@ theorem blowdown_blowupModelTotalSpaceDiffeomorph
       (tautologicalTwistCoreEquiv q.proj).symm q.snd :=
   blowdown_mk _ _ _
 
+/-- The inverse of `blowupModelTotalSpaceDiffeomorph` sends a point `p` of the blowup to the
+vector of `𝒪(-1)` over `p.pr` that `tautologicalTwistCoreEquiv p.pr` assigns to the vector
+`p.blowdown` of the line `p.pr`. -/
+theorem blowupModelTotalSpaceDiffeomorph_symm_apply (p : BlowupModel n) :
+    (blowupModelTotalSpaceDiffeomorph n).symm p =
+      ⟨p.pr, tautologicalTwistCoreEquiv p.pr ⟨p.blowdown, p.blowdown_mem_submodule⟩⟩ := by
+  refine (blowupModelTotalSpaceDiffeomorph n).injective ?_
+  rw [Diffeomorph.coe_toEquiv, Diffeomorph.apply_symm_apply]
+  exact ext (by simp) (by simp)
+
 /-- `blowupModelTotalSpaceDiffeomorph` sends the zero of the fibre of `𝒪(-1)` over `ℓ` to the
 point `zeroSection ℓ` of the exceptional divisor. -/
 @[simp]
@@ -182,6 +190,14 @@ theorem blowupModelTotalSpaceDiffeomorph_zero (ℓ : ℙ ℂ (Fin (n + 1) → �
     blowupModelTotalSpaceDiffeomorph n (TotalSpace.mk' ℂ (E := (twistCore (-1)).Fiber) ℓ 0) =
       zeroSection ℓ :=
   ext (by simp) (by simp)
+
+/-- The inverse of `blowupModelTotalSpaceDiffeomorph` sends the point `zeroSection ℓ` of the
+exceptional divisor to the zero of the fibre of `𝒪(-1)` over `ℓ`. -/
+@[simp]
+theorem blowupModelTotalSpaceDiffeomorph_symm_zeroSection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    (blowupModelTotalSpaceDiffeomorph n).symm (zeroSection ℓ) =
+      TotalSpace.mk' ℂ (E := (twistCore (-1)).Fiber) ℓ 0 := by
+  rw [← blowupModelTotalSpaceDiffeomorph_zero, Diffeomorph.symm_apply_apply]
 
 end BlowupModel
 
