@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Lie.MaurerCartan
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartitionOfUnity
+import TauCeti.Geometry.Manifold.PartitionOfUnity.Basic
 
 /-!
 # Existence of connection forms
@@ -184,50 +185,28 @@ theorem exists_isConnectionForm [FiniteDimensional ℝ EB] [T2Space B] [SigmaCom
     TauCeti.mpullback (IB.prod IG) IG (fun x : ManifoldTotalSpace G P ↦
       (trivializationAt G P b ((ManifoldTotalSpace.homeomorph G P).symm x)).2)
       (leftMaurerCartanForm IG G).val
-  set t : B → RoughForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1 :=
-    fun b x ↦ ρ b (p x) • ℓ b x with ht
-  have hsupp (b : B) (x : ManifoldTotalSpace G P) (hx : t b x ≠ 0) : ρ b (p x) ≠ 0 :=
-    left_ne_zero_of_smul hx
   let A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1 :=
-    ⟨fun x ↦ ∑ᶠ b, t b x, IsSmoothForm.mem_smoothBundleForms <|
+    ⟨fun x ↦ ∑ᶠ b, ρ b (p x) • ℓ b x, IsSmoothForm.mem_smoothBundleForms <|
       hρ.isSmoothForm_finsum_smul_comp (fun b ↦ (trivializationAt G P b).open_baseSet) hpc
         fun b x hx ↦ (((SmoothForm.isSmoothForm _).contMDiff _).mpullback_form (hθd b x hx)
           (by simp)).contMDiffWithinAt⟩
-  -- Over a point of the base, `A` is a finite sum.
-  have hfin (x : ManifoldTotalSpace G P) : ∃ s : Finset B, (∀ b, ρ b (p x) ≠ 0 → b ∈ s) ∧
-      ∀ y, p y = p x → A.val y = ∑ b ∈ s, t b y := by
-    have h := ρ.locallyFinite.point_finite (p x)
-    have hs (b : B) (hb : ρ b (p x) ≠ 0) : b ∈ h.toFinset := by simpa using hb
-    exact ⟨h.toFinset, hs, fun y hy ↦ finsum_eq_sum_of_support_subset _ fun b hb ↦
-      hs b (hy ▸ hsupp b y hb)⟩
+  have hA (x : ManifoldTotalSpace G P) : A.val x = ∑ᶠ b, ρ b (p x) • ℓ b x := rfl
   refine ⟨A, fun g ↦ ?_, fun x ξ ↦ ?_⟩
   · refine Subtype.ext (funext fun x ↦ ?_)
     ext v
-    obtain ⟨s, -, hs⟩ := hfin x
     have hpg : p (op g • x) = p x := by simp [hp, ManifoldTotalSpace.homeomorph_symm_smul]
     rw [SmoothForm.coe_mpullback, mpullback_apply, SmoothForm.coe_mapCoeff,
-      RoughForm.mapCoeff_apply, hs _ hpg, hs x rfl, ContinuousAlternatingMap.sum_apply,
-      ContinuousAlternatingMap.sum_apply, map_sum]
-    refine Finset.sum_congr rfl fun b _ ↦ ?_
-    simp only [ht, hpg, ContinuousAlternatingMap.smul_apply, map_smul]
-    by_cases hb : ρ b (p x) = 0
-    · rw [hb, zero_smul, zero_smul]
-    · have hxb : p x ∈ (trivializationAt G P b).baseSet := hρ b (subset_tsupport _ hb)
-      congr 1
-      have h := DFunLike.congr_fun
-        (mpullback_op_smul_mpullback_trivialization_snd_maurerCartan (hθ b) hxb g) v
-      rw [mpullback_apply, RoughForm.mapCoeff_apply] at h
-      exact h
-  · obtain ⟨s, hsmem, hs⟩ := hfin x
-    have hterm (b : B) : t b x ![rightFundamentalVectorField (IB.prod IG) ξ x] = ρ b (p x) • ξ := by
-      simp only [ht, ContinuousAlternatingMap.smul_apply]
-      by_cases hb : ρ b (p x) = 0
-      · simp [hb]
-      · rw [mpullback_trivialization_snd_maurerCartan_apply_rightFundamentalVectorField
-          (hθ b) (hρ b (subset_tsupport _ hb))]
-    rw [hs x rfl, ContinuousAlternatingMap.sum_apply, Finset.sum_congr rfl fun b _ ↦ hterm b,
-      ← Finset.sum_smul, ← finsum_eq_sum_of_support_subset _ fun b hb ↦ hsmem b hb,
-      ρ.sum_eq_one (Set.mem_univ _), one_smul]
+      RoughForm.mapCoeff_apply, hA, hA, ρ.finsum_smul_comp_apply, ρ.finsum_smul_comp_apply,
+      map_sum, hpg]
+    refine Finset.sum_congr rfl fun b hb ↦ ?_
+    have h := DFunLike.congr_fun (mpullback_op_smul_mpullback_trivialization_snd_maurerCartan
+      (hθ b) (hρ.mem_of_mem_finsupport hb) g) v
+    rw [mpullback_apply, RoughForm.mapCoeff_apply] at h
+    rw [map_smul, ← h]
+  · rw [hA]
+    exact SmoothPartitionOfUnity.finsum_smul_comp_apply_eq_of_forall_eq (Set.mem_univ _)
+      fun b hb ↦ mpullback_trivialization_snd_maurerCartan_apply_rightFundamentalVectorField
+        (hθ b) (hρ.mem_of_mem_finsupport hb) ξ
 
 end SymplecticGeometry
 

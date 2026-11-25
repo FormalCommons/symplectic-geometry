@@ -45,7 +45,7 @@ isomorphically onto the tangent space of the base, as that of `P` at `x` is.
 ## Implementation notes
 
 The definition takes the representative `(x, v)` that
-`TauCeti.AssociatedBundle.surjective_totalSpaceMk_mk` chooses for `y`. The image of `ker A_x` lies
+`TauCeti.AssociatedBundle.surjective_chartedMk` chooses for `y`. The image of `ker A_x` lies
 in the tangent space at `[x, v]`, which is the tangent space at `y` only up to an equation, so the
 definition transports it with Mathlib's `tangentSpaceCast`; `associatedHorizontal_eq` states it
 without the cast. The derivative of `x' ↦ [x', v]` at `x` is the derivative of the quotient map at
@@ -97,18 +97,18 @@ def associatedHorizontal (_hA : IsConnectionForm A)
     (y : ManifoldTotalSpace F (AssociatedBundle G P F)) :
     Submodule ℝ (TangentSpace (IB.prod IF) y) :=
   Submodule.map
-    ((tangentSpaceCast (IB.prod IF) (chartedMk G F P (surjective_totalSpaceMk_mk y).choose)
+    ((tangentSpaceCast (IB.prod IF) (chartedMk G F P (surjective_chartedMk y).choose)
         y).toContinuousLinearMap ∘L
       mfderiv (IB.prod IG) (IB.prod IF)
         (fun x' : ManifoldTotalSpace G P ↦
-          chartedMk G F P (x', (surjective_totalSpaceMk_mk y).choose.2))
-        (surjective_totalSpaceMk_mk y).choose.1).toLinearMap
-    (horizontal A (surjective_totalSpaceMk_mk y).choose.1)
+          chartedMk G F P (x', (surjective_chartedMk y).choose.2))
+        (surjective_chartedMk y).choose.1).toLinearMap
+    (horizontal A (surjective_chartedMk y).choose.1)
 
 /-- One step of the independence of the representative: for two representatives `(x, v)` and
 `(x', v')` of `y`, the image of `ker A_x` under the derivative of `x'' ↦ [x'', v]` is contained
 in the image of `ker A_{x'}` under that of `x'' ↦ [x'', v']`. -/
-private theorem map_le_map_of_totalSpaceMk_mk_eq (hA : IsConnectionForm A)
+private theorem map_le_map_of_chartedMk_eq (hA : IsConnectionForm A)
     {x x' : ManifoldTotalSpace G P} {v v' : F} {y : ManifoldTotalSpace F (AssociatedBundle G P F)}
     (h : chartedMk G F P (x, v) = y) (h' : chartedMk G F P (x', v') = y) :
     Submodule.map
@@ -121,7 +121,7 @@ private theorem map_le_map_of_totalSpaceMk_mk_eq (hA : IsConnectionForm A)
           mfderiv (IB.prod IG) (IB.prod IF)
             (fun x'' : ManifoldTotalSpace G P ↦ chartedMk G F P (x'', v')) x').toLinearMap
         (horizontal A x') := by
-  obtain ⟨g, hg⟩ := (totalSpaceMk_mk_eq_totalSpaceMk_mk_iff (x := (x, v)) (y := (x', v'))).1
+  obtain ⟨g, hg⟩ := (chartedMk_eq_chartedMk_iff (x := (x, v)) (y := (x', v'))).1
     (h.trans h'.symm)
   simp only [Prod.mk.injEq] at hg
   obtain ⟨rfl, rfl⟩ := hg
@@ -130,13 +130,13 @@ private theorem map_le_map_of_totalSpaceMk_mk_eq (hA : IsConnectionForm A)
   -- The map `x'' ↦ [x'', v]` is `x'' ↦ [x'' · g, g⁻¹ • v]`.
   have hfun : (fun x'' : ManifoldTotalSpace G P ↦ chartedMk G F P (x'', v)) =ᶠ[nhds x]
       (fun x'' : ManifoldTotalSpace G P ↦ chartedMk G F P (x'', g⁻¹ • v)) ∘ fun x'' ↦ op g • x'' :=
-    .of_forall fun x'' ↦ (totalSpaceMk_mk_op_smul_inv_smul g (x'', v)).symm
+    .of_forall fun x'' ↦ (chartedMk_op_smul_inv_smul g (x'', v)).symm
   have hxv : chartedMk G F P (op g • x, g⁻¹ • v) = chartedMk G F P (x, v) :=
-    totalSpaceMk_mk_op_smul_inv_smul g (x, v)
+    chartedMk_op_smul_inv_smul g (x, v)
   simp only [hfun.mfderiv_eq, ContinuousLinearMap.coe_coe, ContinuousLinearMap.comp_apply,
     ContinuousLinearEquiv.coe_coe]
   rw [mfderiv_comp_apply x
-    ((contMDiff_totalSpaceMk_mk_left ∞ IB IF (g⁻¹ • v)).mdifferentiableAt (by simp))
+    ((contMDiff_chartedMk_left ∞ IB IF (g⁻¹ • v)).mdifferentiableAt (by simp))
     ((contMDiff_const_smul (I := IB.prod IG) (n := ∞) (op g)).mdifferentiableAt (by simp))]
   simp only [Function.comp_apply]
   rw [tangentSpaceCast_trans hxv h]
@@ -149,7 +149,7 @@ theorem associatedHorizontal_eq (hA : IsConnectionForm A) (x : ManifoldTotalSpac
       Submodule.map (mfderiv (IB.prod IG) (IB.prod IF)
         (fun x' : ManifoldTotalSpace G P ↦ chartedMk G F P (x', v)) x).toLinearMap
         (horizontal A x) := by
-  have h := (surjective_totalSpaceMk_mk (chartedMk G F P (x, v))).choose_spec
+  have h := (surjective_chartedMk (chartedMk G F P (x, v))).choose_spec
   have hcast : ((tangentSpaceCast (IB.prod IF) (chartedMk G F P (x, v))
       (chartedMk G F P (x, v))).toContinuousLinearMap ∘L
       mfderiv (IB.prod IG) (IB.prod IF)
@@ -158,8 +158,8 @@ theorem associatedHorizontal_eq (hA : IsConnectionForm A) (x : ManifoldTotalSpac
         (fun x' : ManifoldTotalSpace G P ↦ chartedMk G F P (x', v)) x :=
     ContinuousLinearMap.ext fun w ↦ by simp
   rw [← hcast]
-  exact le_antisymm (hA.map_le_map_of_totalSpaceMk_mk_eq h rfl)
-    (hA.map_le_map_of_totalSpaceMk_mk_eq rfl h)
+  exact le_antisymm (hA.map_le_map_of_chartedMk_eq h rfl)
+    (hA.map_le_map_of_chartedMk_eq rfl h)
 
 /-- A tangent vector to `P ×_G F` at `[x, v]` is horizontal for the connection induced by `A`
 exactly when it is the image of a horizontal vector of `P` at `x` under the derivative of
@@ -179,7 +179,7 @@ theorem isCompl_associatedHorizontal (hA : IsConnectionForm A)
     IsCompl (hA.associatedHorizontal y)
       (mfderiv (IB.prod IF) IB (fun y' : ManifoldTotalSpace F (AssociatedBundle G P F) ↦
         ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm y').proj) y).ker := by
-  obtain ⟨⟨x, v⟩, rfl⟩ := surjective_totalSpaceMk_mk y
+  obtain ⟨⟨x, v⟩, rfl⟩ := surjective_chartedMk y
   rw [associatedHorizontal_eq]
   set L := mfderiv (IB.prod IG) (IB.prod IF)
     (fun x' : ManifoldTotalSpace G P ↦ chartedMk G F P (x', v)) x
@@ -194,7 +194,7 @@ theorem isCompl_associatedHorizontal (hA : IsConnectionForm A)
     ((ManifoldTotalSpace.homeomorph G P).symm x).proj
   have hc := hA.isCompl_horizontal (n := ∞) x
   rw [ManifoldTotalSpace.coe_projContMDiffMap] at hc
-  have hTL := mfderiv_proj_totalSpaceMk_mk_apply (IB := IB) (IG := IG) (IF := IF) (n := ∞)
+  have hTL := mfderiv_proj_chartedMk_apply (IB := IB) (IG := IG) (IF := IF) (n := ∞)
     (by simp) x v
   constructor
   · rw [Submodule.disjoint_def]

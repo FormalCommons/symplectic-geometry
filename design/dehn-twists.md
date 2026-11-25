@@ -362,7 +362,7 @@ theorem cotangentCoord_geodesicFlow {z} (hz : cotangentNorm z ≠ 0) (t : ℝ) :
       (cos t • q + (sin t / ‖p‖) • p, cos t • p - (sin t * ‖p‖) • q)
 theorem geodesicFlow_add, geodesicFlow_zero, geodesicFlow_two_pi,
   cotangentNorm_geodesicFlow, geodesicFlow_pi (hz) : geodesicFlow π z = antipodal z
-theorem not_exists_continuous_eqOn_geodesicFlow [NeZero n] {t : ℝ} (ht₀ : 0 < t) (ht : t < π) :
+theorem not_exists_continuous_eqOn_geodesicFlow [NeZero n] {t : ℝ} (ht : sin t ≠ 0) :
     ¬ ∃ g : T*Sⁿ → T*Sⁿ, Continuous g ∧ ∀ z, cotangentNorm z ≠ 0 → g z = geodesicFlow t z
 theorem isMIntegralCurve_geodesicFlow {z} (hz : cotangentNorm z ≠ 0) :
     IsMIntegralCurve (geodesicFlow · z)
@@ -384,7 +384,7 @@ flow statement is a computation in coordinates: the velocity of the curve is
 the vector $(p/|p|,-|p|q)$ at the base point $(q,p)$, and contracting it
 with $-d\lambda$ gives $d\mu$, computed with `mpullback_cotangentCoord`. The
 restriction to $\mu\ne0$ is needed because $\mu$ is not differentiable on
-the zero section. For $0<t<\pi$, the limits of $\sigma_t(q,\pm sp)$ as
+the zero section. For $\sin t\ne0$, the limits of $\sigma_t(q,\pm sp)$ as
 $s\to0^+$ have the base points $\cos t\,q\pm\sin t\,u$, which differ, so no
 continuous extension exists. This uses $n\ge1$, so that a unit
 $u\perp q$ exists. For $n=0$ the theorem is stated with `[NeZero n]`.

@@ -9,6 +9,7 @@ import TauCeti.Geometry.Manifold.TubularNeighborhood.PrescribedDifferential
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 
 /-!
@@ -108,9 +109,7 @@ theorem exists_diffeomorph_opens_mfderiv_eq [SecondCountableTopology M₀]
     · rw [PartialDiffeomorph.toDiffeomorphSourceTarget_apply_coe, hΨf]
     · refine ContinuousLinearMap.ext fun v ↦ ?_
       -- The derivative of `ψ` is that of `Ψ`, read through the inclusions.
-      rw [Manifold.mfderiv_apply_of_subtype_val_comp_eq (I := I₀) (I' := I₁)
-        (f := Ψ.toDiffeomorphSourceTarget) (A := Ψ)
-        (funext Ψ.toDiffeomorphSourceTarget_apply_coe) v, hΨd]
+      rw [Ψ.mfderiv_toDiffeomorphSourceTarget_apply _ v, hΨd]
       exact (ContinuousLinearEquiv.coe_apply (A q) v).symm
 
 end TauCeti.SmoothEmbedding
