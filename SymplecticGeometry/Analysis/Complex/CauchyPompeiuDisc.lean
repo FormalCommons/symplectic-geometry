@@ -127,9 +127,7 @@ theorem pi_inv_smul_integral_ball_sub_inv_smul_conjWirtingerDeriv_of_tsupport_su
     (isCompact_closedBall c r).of_isClosed_subset (isClosed_tsupport u)
       (hsupp.trans ball_subset_closedBall)
   have hdu0 {z : ℂ} (hz : z ∉ ball c r) : conjWirtingerDeriv u z 1 = 0 := by
-    rw [(notMem_tsupport_iff_eventuallyEq.1 fun h ↦ hz (hsupp h)).conjWirtingerDeriv_eq,
-      Pi.zero_def, (differentiableAt_const (0 : F)).conjWirtingerDeriv_eq_zero]
-    simp
+    rw [conjWirtingerDeriv_of_notMem_tsupport fun h ↦ hz (hsupp h), zero_apply]
   rw [setIntegral_eq_integral_of_forall_compl_eq_zero fun z hz ↦ by simp [hdu0 hz],
     ← cauchyTransform_apply, huc.cauchyTransform_conjWirtingerDeriv hu]
 
