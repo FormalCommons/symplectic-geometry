@@ -76,7 +76,9 @@ theorem isRegular_ofConstantRank (hc : IsCleanIntersection I J K L f g c)
   letI := Foliation.leafSpaceChartedSpace hR
   haveI := Foliation.isManifold_leafSpace hR
   haveI := hc.isSmoothEmbedding.isImmersion.isManifold
-  Foliation.isRegular_ofConstantRank _ _ hn
+  Foliation.isRegular_ofConstantRank
+    ((Foliation.contMDiff_leafSpaceMk hR).comp hc.isSmoothEmbedding.contMDiff)
+    (hc.mfderivRank_leafSpaceMk_comp_eq hR hg hgi)
 
 /-- **The leaf space of a clean intersection maps injectively to the reduced space.** Let `f` be
 a coisotropic immersion with regular characteristic foliation, `g` a Lagrangian immersion, and
