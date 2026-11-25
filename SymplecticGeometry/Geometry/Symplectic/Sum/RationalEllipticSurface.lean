@@ -9,7 +9,6 @@ public import Mathlib.Algebra.MvPolynomial.PDeriv
 public import Mathlib.RingTheory.MvPolynomial.WeightedHomogeneous
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.ProdZeroLocus.Manifold
 public import TauCeti.RingTheory.MvPolynomial.Jacobian.Basic
-import Mathlib.RingTheory.MvPolynomial.EulerIdentity
 import SymplecticGeometry.RingTheory.MvPolynomial.WeightedHomogeneous
 
 /-!
@@ -157,18 +156,14 @@ theorem isWeightedHomogeneous_hessePencil_inr :
 theorem sum_mul_eval_pderiv_inl_hessePencil (p : Fin 3 ⊕ Fin 2 → R) :
     ∑ k : Fin 3, p (.inl k) * eval p (pderiv (.inl k) (hessePencil R)) =
       3 * eval p (hessePencil R) := by
-  have h := congrArg (eval p) isWeightedHomogeneous_hessePencil_inl.sum_weight_X_mul_pderiv
-  simpa [Fintype.sum_sum_type, nsmul_eq_mul] using h
+  simpa [Fintype.sum_sum_type] using
+    isWeightedHomogeneous_hessePencil_inl.sum_weight_mul_eval_pderiv p
 
 /-- Euler's relation for the line coordinates: `s ∂ₛP + t ∂ₜP = P`. -/
 theorem sum_mul_eval_pderiv_inr_hessePencil (p : Fin 3 ⊕ Fin 2 → R) :
     ∑ k : Fin 2, p (.inr k) * eval p (pderiv (.inr k) (hessePencil R)) =
       eval p (hessePencil R) := by
-  have h := congrArg (eval p) isWeightedHomogeneous_hessePencil_inr.sum_weight_X_mul_pderiv
-  simp only [nsmul_eq_mul, Fintype.sum_sum_type, Sum.elim_inl, Pi.zero_apply, Nat.cast_zero,
-    zero_mul, Finset.sum_const_zero, Sum.elim_inr, Pi.one_apply, Nat.cast_one, one_mul, zero_add,
-    map_sum, map_mul, eval_X, one_smul] at h
-  exact h
+  simp
 
 variable {K : Type*} [Field K]
 
