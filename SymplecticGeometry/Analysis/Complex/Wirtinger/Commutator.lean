@@ -29,7 +29,9 @@ derivatives of `v` with those of its partials `∂₁v` and `∂_I v` is general
 * `TauCeti.conjWirtingerDeriv_add_smul_wirtingerDeriv_congr`: `P v` depends on `μ` only on the
   topological support of `v`, since `∂v` vanishes off it
   (`TauCeti.wirtingerDeriv_of_notMem_tsupport`, proved as Tau Ceti's
-  `TauCeti.conjWirtingerDeriv_of_notMem_tsupport`).
+  `TauCeti.conjWirtingerDeriv_of_notMem_tsupport`); for the same reason the topological support
+  of `P v` lies in that of `v`
+  (`TauCeti.tsupport_conjWirtingerDeriv_add_smul_wirtingerDeriv_subset`).
 * `ContDiff.conjWirtingerDeriv_apply` and `ContDiff.wirtingerDeriv_apply`: the Wirtinger
   derivatives of a `C^(m+1)` map, evaluated on a fixed vector, are `C^m`; the global forms of
   Tau Ceti's `ContDiffAt.conjWirtingerDeriv_apply` and `ContDiffAt.wirtingerDeriv_apply`.
@@ -102,6 +104,14 @@ theorem conjWirtingerDeriv_fderiv_apply_add_smul_wirtingerDeriv {μ : V → ℂ}
 theorem wirtingerDeriv_of_notMem_tsupport (hz : z ∉ tsupport v) : wirtingerDeriv v z = 0 := by
   ext b
   simp [wirtingerDeriv_apply, fderiv_of_notMem_tsupport ℝ hz]
+
+/-- The operator `∂̄ + μ ∂` does not enlarge the topological support: the topological support
+of `∂̄v(·) b + μ ∂v(·) b` lies in that of `v`. -/
+theorem tsupport_conjWirtingerDeriv_add_smul_wirtingerDeriv_subset (μ : V → ℂ) (b : V) :
+    tsupport (fun z ↦ conjWirtingerDeriv v z b + μ z • wirtingerDeriv v z b) ⊆ tsupport v :=
+  closure_minimal (fun z hz ↦ by_contra fun h ↦ hz (by
+    simp [conjWirtingerDeriv_of_notMem_tsupport h, wirtingerDeriv_of_notMem_tsupport h]))
+    (isClosed_tsupport v)
 
 /-- The operator `∂̄ + μ ∂` only sees `μ` on the topological support of `v`: two coefficients
 that agree there give the same `∂̄v(·) b + μ ∂v(·) b`. -/
