@@ -193,12 +193,11 @@ theorem orthogonal_of_isCompl [FiniteDimensional 𝕜 F]
     (fun x ↦ Submodule.projection _ (V x) (hc x).symm) ?_
     (fun x ↦ Submodule.range_projection _) fun x ↦ ?_
   · -- The projection onto the orthogonal is the identity minus the projection onto `V`.
-    have hP := (contMDiff_const (c := (-1 : 𝕜))).smul_totalSpace
-      (hV.contMDiff_totalSpace_projection_orthogonal hβ hc)
-    refine (ContMDiff.add_sectionAlong (b := TotalSpace.proj)
-      (s := fun p : TotalSpace F E ↦ p.snd) contMDiff_id hP).congr fun p ↦ ?_
+    refine (ContMDiff.sub_sectionAlong (b := TotalSpace.proj)
+      (s := fun p : TotalSpace F E ↦ p.snd) contMDiff_id
+      (hV.contMDiff_totalSpace_projection_orthogonal hβ hc)).congr fun p ↦ ?_
     refine congrArg (TotalSpace.mk p.proj) ?_
-    rw [Submodule.projection_eq_self_sub_projection, neg_one_smul, sub_eq_add_neg]
+    rw [Submodule.projection_eq_self_sub_projection]
   · obtain ⟨U, -, hx, D, hD, -⟩ := hasLocalContMDiffSubbundleFrames_iff.mp hV x
     have := VectorBundle.finiteDimensional 𝕜 F E x
     have hE := VectorBundle.finrank_eq 𝕜 F E x
