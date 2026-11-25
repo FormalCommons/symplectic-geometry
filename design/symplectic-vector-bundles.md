@@ -2305,10 +2305,10 @@ of *Constructions* for *First Chern number*.
     `IsCollar.exists_homotopy_push`: there are a compact $K\subseteq$
     `I.interior M`, an open subset of the interior disjoint from $K$ and
     nonempty when the boundary is (the image under `c` of the depths in
-    $(0,1/2)$, inside `TauCeti.collarPart c (1 / 2)`), and a
-    homotopy from the identity to a map with image in $K$. The map raises
-    the depth coordinate of `IsCollar.collarCoord (1 / 2)` below $1/2$ to
-    $1/2$ (`Boundary/Collar/Deformation.lean`). Blockers: none.
+    $(0,1/4)$, inside `TauCeti.collarPart c (1 / 4)`), and a
+    homotopy from the identity to a map with image in $K$. The map is the
+    homotopy inverse of Tau Ceti's `IsCollar.complHomotopyEquiv`, which
+    takes every depth $s$ to $\max(s, 1/2 - s)\ge 1/4$. Blockers: none.
 14. **Sections with discrete zeros.** `Section/Generic.lean`, namespace
     `ContMDiffSection`: `exists_mem_span_isClosed_isDiscrete_zero`, over a
     second-countable boundaryless manifold modelled on a finite-dimensional

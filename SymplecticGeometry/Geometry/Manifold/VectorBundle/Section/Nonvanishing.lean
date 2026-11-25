@@ -157,7 +157,7 @@ theorem exists_contMDiffSection_forall_ne_zero_of_boundary_nonempty
   -- Push `M` into a compact subset `K` of its interior, missing a nonempty open set `O`.
   obtain ⟨c, hc⟩ := isCollared_iff.1
     (isCollared_subtypeVal_boundary_of_compactSpace (n := n + 1) (M := M))
-  obtain ⟨K, O, g, hK, hKi, -, hOi, hOK, hO, -, -, hgK, hg, -, -⟩ := hc.exists_homotopy_push
+  obtain ⟨K, O, g, hK, hKi, -, hOi, hOK, hO, hgK, hg⟩ := hc.exists_homotopy_push
   -- Move the zeros of `σ` off `K`, inside the interior.
   let U := (𝓡∂ (n + 2)).interiorOpens M
   have hU {x : M} (hx : x ∈ (𝓡∂ (n + 2)).interior M) : x ∈ U :=
