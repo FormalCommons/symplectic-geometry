@@ -11,8 +11,8 @@ import Mathlib.Analysis.Calculus.ContDiff.Deriv
 import Mathlib.Analysis.Calculus.FDeriv.Extend
 import Mathlib.Analysis.SpecialFunctions.Sqrt
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Seeley.Extension
+import SymplecticGeometry.Analysis.Calculus.Hadamard
 import TauCeti.Analysis.Calculus.Deriv.Parity
-import TauCeti.Analysis.Calculus.Hadamard
 
 /-!
 # Smooth even and odd functions of one real variable
@@ -21,8 +21,8 @@ Whitney's theorem: a smooth even function `f : ℝ → ℝ` is `g (t ^ 2)` for a
 smooth odd one is `t * g (t ^ 2)`. Hence `v ↦ f ‖v‖` is smooth on a real inner product space
 for every smooth even `f`.
 
-A smooth odd `f` is `t * k t` with `k` smooth and even, by Tau Ceti's Hadamard lemma
-(`ContDiff.sub_eq_hadamardFactor_apply`, `ContDiff.contDiff_hadamardFactor`). For a smooth
+A smooth odd `f` is `t * k t` with `k` smooth and even, by Hadamard's lemma in one variable
+(`ContDiff.exists_contDiff_sub_eq_smul`). For a smooth
 even `f`, applying this to the odd function `deriv f` gives a smooth even `k` with
 `deriv f t = t * k t`, so that `s ↦ f (√s)` has derivative `s ↦ k (√s) / 2` on `[0, ∞)`
 (at `0` by `hasDerivWithinAt_Ici_of_tendsto_deriv`). By induction on the order,
@@ -56,13 +56,10 @@ namespace Function
 /-- A smooth odd function `f : ℝ → ℝ` is `t * k t` for a smooth even function `k`. -/
 theorem Odd.exists_contDiff_even_mul {f : ℝ → ℝ} (hf : f.Odd) (hc : ContDiff ℝ ∞ f) :
     ∃ k : ℝ → ℝ, ContDiff ℝ ∞ k ∧ k.Even ∧ ∀ t, f t = t * k t := by
-  set k : ℝ → ℝ := fun t ↦ hadamardFactor f 0 t 1
+  obtain ⟨k, hkc, hk'⟩ := ContDiff.exists_contDiff_sub_eq_smul (n := ⊤) hc 0
   have hk : ∀ t, f t = t * k t := fun t ↦ by
-    have h := ContDiff.sub_eq_hadamardFactor_apply f (hc.of_le (by simp)) 0 t
-    rw [hf.map_zero, sub_zero, sub_zero] at h
-    rw [h, show t = t • (1 : ℝ) by simp, ContinuousLinearMap.map_smul, smul_eq_mul]
-    simp [k]
-  refine ⟨k, ((hc.contDiff_hadamardFactor f 0).clm_apply contDiff_const), fun t ↦ ?_, hk⟩
+    simpa [hf.map_zero] using hk' t
+  refine ⟨k, hkc, fun t ↦ ?_, hk⟩
   rcases eq_or_ne t 0 with rfl | ht
   · simp
   · have h := hf t
