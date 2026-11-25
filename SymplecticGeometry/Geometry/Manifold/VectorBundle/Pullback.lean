@@ -51,13 +51,16 @@ For a family of maps `f (p, ·) : M → M'` depending on a parameter `p ∈ P`, 
 `P × M`, precomposition with the differentials `d(f (p, ·))ₓ` sends alternating maps on the tangent
 space of `M'` at `f (p, x)` to alternating maps on that of `M` at `x`. For `m + 1 ≤ n`, the map
 `(p, x, ξ) ↦ (x, ξ ∘ d(f (p, ·))ₓ)`, from the total space of the pull-back along `f` of the bundle
-of real alternating maps on `TM'` to the total space of that bundle on `TM`, is `C^m`
+of alternating maps on `TM'` with values in a fixed normed space `G` to the total space of that
+bundle on `TM`, is `C^m`
 (`Bundle.Pullback.contMDiff_totalSpace_compContinuousLinearMap_mfderiv`). The proof adapts that
 of Tau Ceti's `ContMDiffAt.mpullback_form_family`, which pulls back one fixed form along the
-family, to an alternating map that varies with the point of the total space: in the
-trivializations at a point, the map is Tau Ceti's
-`ContinuousAlternatingMap.compContinuousLinearMapCLM` applied to the tangent coordinates of the
-differentials, which are `C^m` by Mathlib's `ContMDiffAt.mfderiv`, and to the coordinates of `ξ`.
+family, to an alternating map that varies with the point of the total space, and its last step,
+the agreement of the two coordinate expressions near a point, adapts that of Tau Ceti's
+`TauCeti.inCoordinates_mpullback_family`. In the trivializations at a point, the map is Tau
+Ceti's `ContinuousAlternatingMap.compContinuousLinearMapCLM` applied to the tangent coordinates
+of the differentials, which are `C^m` by Mathlib's `ContMDiffAt.mfderiv`, and to the coordinates
+of `ξ`.
 
 The file also gives, as continuous linear equivalences, the identity of the fibres of the
 pull-backs along the identity and along a composite: `Bundle.Pullback.idFiberEquiv` from the fibre
@@ -321,6 +324,7 @@ variable {E E' EP H H' HP M M' P K ι : Type*} [Fintype ι]
   [NormedAddCommGroup EP] [NormedSpace ℝ EP]
   [TopologicalSpace HP] {IP : ModelWithCorners ℝ EP HP} [TopologicalSpace P] [ChartedSpace HP P]
   [IsManifold IP 1 P]
+  {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
   [FunLike K (P × M) M'] [ContinuousMapClass K (P × M) M'] {m n : WithTop ℕ∞}
 
 namespace Bundle.Pullback
@@ -328,13 +332,13 @@ namespace Bundle.Pullback
 /-- Pulling back alternating maps along the differentials of a `C^n` family of maps
 `f (p, ·) : M → M'` is `C^m` for `m + 1 ≤ n`: the map `(p, x, ξ) ↦ (x, ξ ∘ d(f (p, ·))ₓ)`, from
 the total space of the pull-back along `f` of the bundle of alternating maps on `TM'` to the total
-space of the bundle of alternating maps on `TM`, both with values in `ℝ`, is `C^m`. -/
+space of the bundle of alternating maps on `TM`, both with values in `G`, is `C^m`. -/
 theorem contMDiff_totalSpace_compContinuousLinearMap_mfderiv (f : K)
     (hf : ContMDiff (IP.prod I) I' n f) (hmn : m + 1 ≤ n) :
-    ContMDiff ((IP.prod I).prod 𝓘(ℝ, E' [⋀^ι]→L[ℝ] ℝ)) (I.prod 𝓘(ℝ, E [⋀^ι]→L[ℝ] ℝ)) m
-      fun q : TotalSpace (E' [⋀^ι]→L[ℝ] ℝ)
-          ((f : P × M → M') *ᵖ fun y ↦ TangentSpace I' y [⋀^ι]→L[ℝ] Trivial M' ℝ y) ↦
-        TotalSpace.mk' (E [⋀^ι]→L[ℝ] ℝ) (E := fun x ↦ TangentSpace I x [⋀^ι]→L[ℝ] Trivial M ℝ x)
+    ContMDiff ((IP.prod I).prod 𝓘(ℝ, E' [⋀^ι]→L[ℝ] G)) (I.prod 𝓘(ℝ, E [⋀^ι]→L[ℝ] G)) m
+      fun q : TotalSpace (E' [⋀^ι]→L[ℝ] G)
+          ((f : P × M → M') *ᵖ fun y ↦ TangentSpace I' y [⋀^ι]→L[ℝ] Trivial M' G y) ↦
+        TotalSpace.mk' (E [⋀^ι]→L[ℝ] G) (E := fun x ↦ TangentSpace I x [⋀^ι]→L[ℝ] Trivial M G x)
           q.proj.2 (q.snd.compContinuousLinearMap
             (mfderiv I I' (fun y ↦ f (q.proj.1, y)) q.proj.2)) := by
   intro q₀
@@ -343,29 +347,29 @@ theorem contMDiff_totalSpace_compContinuousLinearMap_mfderiv (f : K)
   refine ⟨contMDiffAt_snd.comp q₀ (contMDiff_proj _).contMDiffAt, ?_⟩
   -- The alternating map `q.snd`, read in the trivialization at `f q₀.proj`.
   have hp := (contMDiffAt_continuousAlternatingMap_bundle (IB := I') (ι := ι)
-    (F₁ := E') (F₂ := ℝ) (E₁ := TangentSpace I') (E₂ := Trivial M' ℝ) (n := m)
-    (fun q ↦ TotalSpace.mk' (E' [⋀^ι]→L[ℝ] ℝ)
-      (E := fun y ↦ TangentSpace I' y [⋀^ι]→L[ℝ] Trivial M' ℝ y) (f q.proj) q.snd)
+    (F₁ := E') (F₂ := G) (E₁ := TangentSpace I') (E₂ := Trivial M' G) (n := m)
+    (fun q ↦ TotalSpace.mk' (E' [⋀^ι]→L[ℝ] G)
+      (E := fun y ↦ TangentSpace I' y [⋀^ι]→L[ℝ] Trivial M' G y) (f q.proj) q.snd)
     (x₀ := q₀)).1 (contMDiffAt_lift f (hfm q₀.proj))
   -- The differential `d(f (p, ·))ₓ`, read in tangent coordinates.
   have hl := (ContMDiffAt.mfderiv (fun a : P × M ↦ fun y ↦ f (a.1, y)) Prod.snd
     ((hf _).comp _ (contMDiffAt_fst.fst.prodMk contMDiffAt_snd)) contMDiffAt_snd hmn
     (x₀ := q₀.proj)).comp q₀ (contMDiff_proj _).contMDiffAt
   have hc := ((ContinuousAlternatingMap.contDiff_compContinuousLinearMapCLM (𝕜 := ℝ)
-    (E := E) (F := E') (G := ℝ) (ι := ι) m).contMDiff.contMDiffAt.comp q₀ hl).clm_apply hp.2
+    (E := E) (F := E') (G := G) (ι := ι) m).contMDiff.contMDiffAt.comp q₀ hl).clm_apply hp.2
   refine hc.congr_of_eventuallyEq ?_
   have hmem : (trivializationAt E' (TangentSpace I') (f q₀.proj)).baseSet ∈ nhds (f q₀.proj) :=
     (trivializationAt E' (TangentSpace I') (f q₀.proj)).open_baseSet.mem_nhds
       (FiberBundle.mem_baseSet_trivializationAt E' (TangentSpace I') (f q₀.proj))
   filter_upwards [hp.1.continuousAt.preimage_mem_nhds hmem] with q hq
   have h := ContinuousAlternatingMap.inCoordinates_compContinuousLinearMap
-    (F₁ := E) (F₂ := E') (F₃ := ℝ) (V₁ := TangentSpace I) (V₂ := TangentSpace I')
-    (V₃ := Trivial M' ℝ) (x₀ := q₀.proj.2) (y₀ := f q₀.proj) (z₀ := f q₀.proj) (y := f q.proj)
+    (F₁ := E) (F₂ := E') (F₃ := G) (V₁ := TangentSpace I) (V₂ := TangentSpace I')
+    (V₃ := Trivial M' G) (x₀ := q₀.proj.2) (y₀ := f q₀.proj) (z₀ := f q₀.proj) (y := f q.proj)
     q.snd (mfderiv I I' (fun y ↦ f (q.proj.1, y)) q.proj.2) hq
   ext v
   simpa only [ContinuousAlternatingMap.inCoordinates,
-    Bundle.Trivial.eq_trivialization M ℝ (trivializationAt ℝ (Trivial M ℝ) q₀.proj.2),
-    Bundle.Trivial.eq_trivialization M' ℝ (trivializationAt ℝ (Trivial M' ℝ) (f q₀.proj)),
+    Bundle.Trivial.eq_trivialization M G (trivializationAt G (Trivial M G) q₀.proj.2),
+    Bundle.Trivial.eq_trivialization M' G (trivializationAt G (Trivial M' G) (f q₀.proj)),
     Bundle.Trivial.continuousLinearMapAt_trivialization,
     ContinuousAlternatingMap.compContinuousLinearMap_apply,
     ContinuousLinearMap.compContinuousAlternatingMap_coe, Function.comp_def,
