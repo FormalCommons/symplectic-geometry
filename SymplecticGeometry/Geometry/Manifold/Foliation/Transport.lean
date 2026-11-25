@@ -7,6 +7,8 @@ module
 
 public import TauCeti.Geometry.Manifold.Foliation.Leaf
 public import TauCeti.Geometry.Manifold.IsManifold.Basic
+import Mathlib.Analysis.Calculus.Deriv.AffineMap
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.LineMap
 import SymplecticGeometry.Geometry.Manifold.Distribution.FlatChart
 import SymplecticGeometry.Geometry.Manifold.Foliation.Constancy
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -114,14 +116,11 @@ theorem sameLeaf_symm_of_segment_subset {𝓕 : Foliation I ∞ M k}
     {p q : F₁ × F₂} (hpq : segment ℝ p q ⊆ Φ.target) (h : p.2 = q.2) :
     𝓕.SameLeaf (Φ.symm p) (Φ.symm q) := by
   have hpq' : (q - p).2 = 0 := by simp [h]
-  let ℓ : ℝ → F₁ × F₂ := fun t ↦ p + t • (q - p)
-  have hℓ : MapsTo ℓ (Icc 0 1) Φ.target := fun t ht ↦
-    hpq (segment_eq_image' ℝ p q ▸ mem_image_of_mem ℓ ht)
+  let ℓ : ℝ → F₁ × F₂ := AffineMap.lineMap p q
+  have hℓ : MapsTo ℓ (Icc 0 1) Φ.target := fun _ ht ↦ hpq (lineMap_mem_segment ℝ p q ht)
   let γ : ℝ → M := Φ.symm ∘ ℓ
   have hγ : ContMDiffOn 𝓘(ℝ, ℝ) I 1 γ (Icc 0 1) :=
-    (Φ.symm.contMDiffOn.comp
-      (contDiff_const.add (contDiff_id.smul contDiff_const)).contMDiff.contMDiffOn hℓ).of_le
-      (by simp)
+    (Φ.symm.contMDiffOn.comp_lineMap hpq).of_le (by simp)
   have htan (t : ℝ) (ht : t ∈ Icc (0 : ℝ) 1) :
       curveVelocityWithin I γ (Icc 0 1) t ∈ 𝓕.distribution (γ t) := by
     have hγt : γ t ∈ Φ.source := Φ.map_target (hℓ ht)
@@ -131,10 +130,7 @@ theorem sameLeaf_symm_of_segment_subset {𝓕 : Foliation I ∞ M k}
       ((hγ t ht).mdifferentiableWithinAt one_ne_zero), curveVelocityWithin_eq_derivWithin,
       derivWithin_congr (f₁ := Φ ∘ γ) (f := ℓ) (fun s hs ↦ Φ.right_inv (hℓ hs))
         (Φ.right_inv (hℓ ht))]
-    have hd : HasDerivWithinAt ℓ (q - p) (Icc 0 1) t := by
-      simpa only [id, one_smul] using
-        (((hasDerivAt_id t).smul_const (q - p)).const_add p).hasDerivWithinAt
-    rw [hd.derivWithin hU']
+    rw [AffineMap.hasDerivWithinAt_lineMap.derivWithin hU']
     exact hpq'
   have h01 := sameLeaf_of_contMDiffOn_of_tangent hγ htan (left_mem_Icc.2 zero_le_one)
     (right_mem_Icc.2 zero_le_one)
