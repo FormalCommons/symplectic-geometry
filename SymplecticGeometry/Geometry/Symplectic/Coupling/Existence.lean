@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Descent
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 
 /-!
@@ -28,6 +29,8 @@ condition `[τ t] - [τ a] = -(t - a) c₁(P)`. That condition makes the forms
 
 * `SymplecticGeometry.couplingOneForm α β hβ`: the one-form `A` above, for a one-form `α` on the
   total space and a smooth family `β` of one-forms on `B`.
+* `SymplecticGeometry.couplingForm α β hβ σ`: the two-form `pr^* π^* σ + d A`, for a two-form
+  `σ` on `B`.
 
 ## Main results
 
@@ -40,6 +43,12 @@ condition `[τ t] - [τ a] = -(t - a) c₁(P)`. That condition makes the forms
 * `SymplecticGeometry.IsCircleConnectionForm.couplingOneForm_apply_couplingField`: for a
   connection form `α`, the value of `A` on the field `(X, 0)` of `SymplecticGeometry.couplingField`
   is `t - a` at `(p, t)`.
+* `SymplecticGeometry.IsCircleConnectionForm.isCouplingForm_couplingForm`: for a connection form
+  `α` with curvature `F`, a closed two-form `σ` on `B`, and a smooth family `β` with
+  `d β_t = τ t - σ - (t - a) (2π)⁻¹ F`, the form `pr^* π^* σ + d A` is a coupling form for `τ`.
+  Its contraction with `(X, 0)` is computed by Cartan's identity for the invariant one-form `A`
+  (`TauCeti.PrincipalBundle.mextDeriv_apply_rightFundamentalVectorField_prod`), which holds
+  although the interval has boundary.
 
 ## Implementation notes
 
@@ -169,6 +178,53 @@ theorem mpullback_slice_couplingOneForm (t : Set.Icc a b) :
   -- since the components here are typed as tangent spaces of the product
   rfl
 
+/-! ### The coupling form `pr^* π^* σ + d A` -/
+
+variable (α β) in
+/-- The two-form `pr^* π^* σ + d A` on `P × [a, b]`, for a two-form `σ` on `B`, where `pr` is the
+projection to the total space, `π` the projection of `P`, and `A = couplingOneForm α β hβ`. For a
+connection form `α`, a closed `σ` and primitives `β t` of `τ t - σ - (t - a) (2π)⁻¹ F`, it is a
+coupling form for `τ` (`IsCircleConnectionForm.isCouplingForm_couplingForm`). -/
+def couplingForm (σ : SmoothTwoForm IB B) :
+    SmoothTwoForm ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (ManifoldTotalSpace Circle P × Set.Icc a b) :=
+  SmoothForm.mpullback Prod.fst contMDiff_fst
+      (SmoothForm.mpullback (fun y : ManifoldTotalSpace Circle P ↦
+          ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
+        (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) σ) +
+    mextDerivₗ ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) 1 (couplingOneForm α β hβ)
+
+/-- The definition of `SymplecticGeometry.couplingForm`. -/
+theorem couplingForm_def (σ : SmoothTwoForm IB B) :
+    couplingForm α β hβ σ =
+      SmoothForm.mpullback Prod.fst contMDiff_fst
+          (SmoothForm.mpullback (fun y : ManifoldTotalSpace Circle P ↦
+              ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
+            (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) σ) +
+        mextDerivₗ ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) 1 (couplingOneForm α β hβ) :=
+  (rfl)
+
+/-- The form `pr^* π^* σ + d A` is closed when `σ` is. -/
+theorem isClosed_couplingForm {σ : SmoothTwoForm IB B} (hσ : σ.IsClosed) :
+    (couplingForm α β hβ σ).IsClosed :=
+  ((hσ.mpullback _ _).mpullback _ _).add (SmoothForm.isClosed_mextDerivₗ _)
+
+/-- **The slices of `pr^* π^* σ + d A`.** Its pull-back along `p ↦ (p, t)` is
+`π^* (σ + d β_t) + (2π)⁻¹ (t - a) d α`. -/
+theorem mpullback_slice_couplingForm (σ : SmoothTwoForm IB B) (t : Set.Icc a b) :
+    SmoothForm.mpullback (fun p : ManifoldTotalSpace Circle P ↦ (p, t))
+        (contMDiff_id.prodMk contMDiff_const) (couplingForm α β hβ σ) =
+      SmoothForm.mpullback (fun y : ManifoldTotalSpace Circle P ↦
+          ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
+        (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1))
+        (σ + mextDerivₗ IB 1 (β t)) +
+      ((2 * Real.pi)⁻¹ * ((t : ℝ) - a)) • mextDerivₗ (IB.prod (𝓡 1)) 1 α := by
+  rw [couplingForm_def, map_add, SmoothForm.mpullback_mpullback, ← SmoothForm.mextDerivₗ_mpullback,
+    mpullback_slice_couplingOneForm, map_add, map_smul, SmoothForm.mextDerivₗ_mpullback, map_add]
+  -- the composite `Prod.fst ∘ (·, t)` is the identity of the total space
+  simp only [show (Prod.fst ∘ fun p : ManifoldTotalSpace Circle P ↦ (p, t)) = id from rfl,
+    SmoothForm.mpullback_id, LinearMap.id_apply]
+  abel
+
 variable [∀ b, MulAction Circleᵐᵒᵖ (P b)] [PrincipalBundle Circle P]
 
 namespace IsCircleConnectionForm
@@ -230,6 +286,83 @@ theorem couplingOneForm_apply_couplingField (hα : IsCircleConnectionForm α)
     hα.apply_rightFundamentalVectorField, ContinuousAlternatingMap.map_zero]
   field_simp
   ring
+
+/-- **Invariance of `pr^* π^* σ + d A`.** For a connection form `α`, the form
+`couplingForm α β hβ σ` is invariant under the circle action `(p, t) ↦ (p • z, t)` on the first
+factor. -/
+theorem mpullback_smul_couplingForm (hα : IsCircleConnectionForm α) (σ : SmoothTwoForm IB B)
+    (z : Circle) :
+    SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P × Set.Icc a b ↦ (op z • x.1, x.2))
+        (((contMDiff_const_smul (op z)).comp contMDiff_fst).prodMk contMDiff_snd)
+        (couplingForm α β hβ σ) =
+      couplingForm α β hβ σ := by
+  rw [couplingForm_def, map_add, ← SmoothForm.mextDerivₗ_mpullback,
+    hα.mpullback_smul_couplingOneForm hβ,
+    SmoothForm.mpullback_mpullback_of_comp_eq _ contMDiff_fst contMDiff_fst
+      (contMDiff_const_smul (op z)) rfl,
+    PrincipalBundle.mpullback_op_smul_mpullback_proj (IG := 𝓡 1) z σ]
+
+variable [IB.Boundaryless]
+
+/-- **The Hamiltonian identity of `pr^* π^* σ + d A`.** For a connection form `α`, the contraction
+of `couplingForm α β hβ σ` with the field `(X, 0)` is `-dt`. The term `pr^* π^* σ` vanishes on
+the vertical field, and by Cartan's identity for the invariant form `A`, the contraction of `d A`
+is `-d (A (X, 0)) = -d (t - a)`. -/
+theorem interior_couplingForm (hα : IsCircleConnectionForm α) (σ : SmoothTwoForm IB B) :
+    RoughForm.interior (couplingField IB P a b) (couplingForm α β hβ σ).val =
+      -mextDeriv (RoughForm.ofFunction ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
+        fun x : ManifoldTotalSpace Circle P × Set.Icc a b ↦ (x.2 : ℝ)) := by
+  funext x
+  ext v
+  rw [RoughForm.interior_apply, couplingForm_def, SmoothForm.add_toRoughForm]
+  have h0 : (SmoothForm.mpullback Prod.fst contMDiff_fst
+      (SmoothForm.mpullback (fun y : ManifoldTotalSpace Circle P ↦
+          ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
+        (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) σ)).val x
+        ![couplingField IB P a b x, v] = 0 := by
+    rw [SmoothForm.mpullback_mpullback, SmoothForm.coe_mpullback]
+    refine (RoughForm.isBasic_mpullback _).apply_eq_zero_of_mfderiv_eq_zero (j := 0) ?_
+    rw [mfderiv_comp x ((ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)).mdifferentiableAt
+      (by simp)) mdifferentiableAt_fst, ContinuousLinearMap.comp_apply, mfderiv_fst,
+      Matrix.cons_val_zero]
+    have h : mfderiv (IB.prod (𝓡 1)) IB (fun y : ManifoldTotalSpace Circle P ↦
+        ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj) x.1
+          (couplingField IB P a b x).1 = 0 := by
+      rw [couplingField_fst, PrincipalBundle.mfderiv_proj_rightFundamentalVectorField]
+    -- `ContinuousLinearMap.fst` takes the first component by definition; `coe_fst'` does not
+    -- fire, since the vector is typed as a tangent vector of the product
+    exact h
+  have hX : couplingField IB P a b = _ := funext couplingField_def
+  have hC : mextDeriv (couplingOneForm α β hβ).val x ![couplingField IB P a b x, v] =
+      -mvfderiv ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (fun q ↦
+        (couplingOneForm α β hβ).val q ![couplingField IB P a b q]) x v := by
+    rw [hX]
+    exact PrincipalBundle.mextDeriv_apply_rightFundamentalVectorField_prod
+      (hα.mpullback_smul_couplingOneForm hβ) circlePeriodOneGenerator x v
+  have hA : (fun q ↦ (couplingOneForm α β hβ).val q ![couplingField IB P a b q]) =
+      fun q ↦ (q.2 : ℝ) - a :=
+    funext (hα.couplingOneForm_apply_couplingField hβ)
+  rw [Pi.add_apply, ContinuousAlternatingMap.add_apply, h0, zero_add, Pi.neg_apply,
+    ContinuousAlternatingMap.neg_apply, mextDeriv_ofFunction_apply, mextDerivₗ_apply, hC, hA]
+  simp only [sub_eq_add_neg, mvfderiv_add_const, mvfderiv_apply_eq_mfderiv_apply]
+
+/-- **The coupling form of a connection form and a family of primitives.** Let `α` be a connection
+form with curvature `F`, let `τ` be a family of two-forms on `B` indexed by `[a, b]`, and let `σ`
+be a closed two-form on `B`. If `β` is a smooth family of one-forms with
+`d β_t = τ t - σ - (t - a) (2π)⁻¹ F` for every `t`, then `pr^* π^* σ + d A`, with
+`A = couplingOneForm α β hβ`, is a coupling form for `τ`. Evaluating the hypothesis at `t = a`
+shows `τ a = σ + d β_a`, so `σ` is `τ a` up to an exact form. -/
+theorem isCouplingForm_couplingForm (hα : IsCircleConnectionForm α)
+    {τ : Set.Icc a b → SmoothTwoForm IB B} {σ : SmoothTwoForm IB B} (hσ : σ.IsClosed)
+    (hdβ : ∀ t, mextDerivₗ IB 1 (β t) = τ t - σ - ((t : ℝ) - a) • (2 * Real.pi)⁻¹ • hα.curvature) :
+    IsCouplingForm (couplingForm α β hβ σ) τ where
+  isClosed := isClosed_couplingForm hβ hσ
+  mpullback_smul := hα.mpullback_smul_couplingForm hβ σ
+  interior_eq := hα.interior_couplingForm hβ σ
+  mpullback_slice t := by
+    rw [mpullback_slice_couplingForm, hdβ, ← hα.mpullback_curvature, ← map_smul, ← map_add]
+    congr 1
+    module
 
 end IsCircleConnectionForm
 
