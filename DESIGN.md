@@ -3630,8 +3630,8 @@ For `auxiliary/first-chern-class.md`; it waits for no part.
   codimension $r$, its Thom class, Tau Ceti's
   `TauCeti.VectorBundleOrientation.thomClassOfModel` at a generator, and
   the Thom isomorphism $H^k(Z)\cong H^{k+r}(\nu,\nu\setminus Z)$ by cup
-  product, from a Thom isomorphism over σ-compact bases in
-  `Topology/VectorBundle/Thom/SigmaCompact.lean`) and `DualClass.lean`
+  product, from a Thom isomorphism over second-countable bases in
+  `Topology/VectorBundle/Thom/SecondCountable.lean`) and `DualClass.lean`
   (the class $d_Z$ of degree $r$ on $X$: the Thom class carried to
   $H^r(X,X\setminus Z)$ by a tubular neighbourhood, from Tau Ceti's
   `exists_diffeomorph_normalBundle_subset`, and excision, then made absolute;

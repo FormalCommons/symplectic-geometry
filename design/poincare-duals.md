@@ -29,7 +29,8 @@ the Mayer–Vietoris proof of the Thom isomorphism follows Milnor–Stasheff,
   `I : ModelWithCorners ℝ E H`, `J : ModelWithCorners ℝ V G`, with `E`, `V`
   finite-dimensional, `IsManifold _ ∞ _`, and `[T2Space X]
   [SecondCountableTopology X]` (the hypotheses of Tau Ceti's tubular
-  neighbourhood theorem); $Z$ inherits both.
+  neighbourhood theorem, and the plan's convention that manifolds are
+  Hausdorff and second countable); $Z$ inherits both.
 - The submanifold is an embedding `f : TauCeti.SmoothEmbedding I J ∞ Z X`
   with `hf : IsClosed (Set.range f)`. Tau Ceti has no subset-based notion of
   submanifold, and its normal bundles and tubes are stated for embeddings.
@@ -79,7 +80,10 @@ the neighbouring Tau Ceti lemmas.
   induction: `TopCat.bijective_pullbackCupRestrict_union`
   (`AlgebraicTopology/Cohomology/MayerVietoris/PullbackCup.lean`) and
   `TauCeti.bijective_pullbackCupRestrict_thomPair_biUnion`. Nothing gives
-  it with integer coefficients over a non-compact manifold.
+  it in cohomology with integer coefficients over a non-compact manifold;
+  in homology, `bijective_homologyThomMap` and `homologyThomIso`
+  (`Thom/Homology.lean`) hold over any base and any ring, but passing them to
+  integral cohomology would need the universal coefficient sequence.
 - **Tubes**: `TauCeti.SmoothEmbedding.exists_isTubularNeighborhood_subset`
   and `exists_diffeomorph_normalBundle_subset`
   (`Geometry/Manifold/TubularNeighborhood/Existence.lean`), a diffeomorphism
@@ -100,7 +104,7 @@ the neighbouring Tau Ceti lemmas.
   closed manifolds, `HomologicalOrientation.bijective_singularCap_fundamentalClass`
   (`AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`).
 - **Orientations of exact sequences**: `Orientation.cokerOfExact`
-  (`LinearAlgebra/Orientation/Exact/Basic.lean`) and `Orientation.shortExact`,
+  (`LinearAlgebra/Orientation/Exact/Basic.lean`) and `Orientation.ofExact`,
   both with the subspace first.
 - **Zero sets**: the manifold structure on the regular zeros of a section,
   `sectionZeroChartedSpace`, `isManifold_sectionZero` and
@@ -116,23 +120,28 @@ the only `dualClass` is a private helper of local orientations.
 
 ## Decisions
 
-- **Coefficients.** Integral cohomology appears in Tau Ceti in two forms
-  that neither library converts: the Thom isomorphism takes chain
-  coefficients `ModuleCat.of K K`, while `VectorBundleOrientation.thomClass`,
-  its Euler class, `complexEulerClass` and the fundamental classes take
-  `ULift ℤ`. So the constructions are generic in the coefficients
+- **Coefficients.** Integral cohomology appears in Tau Ceti in two forms:
+  the Thom isomorphism takes chain coefficients `ModuleCat.of K K`, while
+  `VectorBundleOrientation.thomClass`, its Euler class, `complexEulerClass`
+  and the fundamental classes take `ULift ℤ`. The library converts Thom
+  classes between them (`IsThomClass.singularCohomologyChainCoefficientMap`,
+  `IsThomClass.singularCohomologyValueMap` and
+  `eulerClass_comp_singularCohomologyChainCoefficientMap`, in
+  `Topology/VectorBundle/Thom/ChangeOfCoefficients.lean`). So the
+  constructions are generic in the coefficients
   `(R : ModuleCat k) k (M : ModuleCat k)`, as `TauCeti.eulerClass` is, and
-  start from any relative class `u` of the Thom pair. The Thom isomorphism
-  of the milestone is stated for the Thom class `thomClassOfModel` with
-  `K = ℤ` and any generator of the model pair, and the class $d_Z$ itself,
-  `dualClass`, with chain coefficients and values `ULift ℤ` and the
+  start from any relative class `u` of the Thom pair. The class $d_Z$
+  itself, `dualClass`, has chain coefficients and values `ULift ℤ` and the
   generator selected by the orientation, so that its restriction to $Z$ is
   Tau Ceti's Euler class of the Thom class, the page's $e(\nu)$, and in
   positive codimension `VectorBundleOrientation.eulerClass` with no
-  conversion, its cap product
-  with Tau Ceti's fundamental class is defined, and *Complex blowup*
-  compares it with `complexEulerClass` directly (and with `hyperplaneClass`
-  through *Chern classes*' `uliftIntegralCohomologyIso`).
+  conversion; its cap product with Tau Ceti's fundamental class is defined,
+  and *Complex blowup* compares it with `complexEulerClass` directly (and
+  with `hyperplaneClass` through *Chern classes*' `uliftIntegralCohomologyIso`).
+  The Thom isomorphism of the milestone is stated for the same Thom class,
+  carried to chain coefficients and values `ℤ` by the isomorphism
+  `ULift ℤ ≅ ℤ` through these conversion lemmas, so that the milestone
+  speaks of one class $u_\nu$.
 - **The order of the orientations.** The normal orientation induced by
   orientations of $X$ and $Z$ puts the normal directions first: a positive
   basis of $\nu_z$, lifted to $T_zX$, followed by a positive basis of
@@ -141,23 +150,24 @@ the only `dualClass` is a private helper of local orientations.
   $d_Z\frown[X]=i_*[Z]$ holds with no sign. It differs from
   `Orientation.cokerOfExact`, which puts the subspace first, by the sign
   $(-1)^{r\dim Z}$.
-- **Thom isomorphism over σ-compact bases, by two disjoint unions.** No
-  finite trivializing cover is needed. A locally compact, σ-compact
-  Hausdorff space is the union of two open sets $U_0$, $U_1$, each a
-  disjoint union of open sets with compact closure (the even and the odd
-  annuli $\operatorname{int}K_{i+1}\setminus K_{i-1}$ of a compact
-  exhaustion). Each such piece, and each piece of $U_0\cap U_1$, which is a
-  disjoint union of intersections of pieces, lies in a finite union of
-  trivializing open sets, where Tau Ceti's finite-cover result applies;
-  additivity of cohomology passes bijectivity (and vanishing below the rank)
-  to the disjoint unions, and one Mayer–Vietoris step,
-  `TopCat.bijective_pullbackCupRestrict_union`, to the whole base. This
+- **Thom isomorphism over second-countable bases, by Mayer–Vietoris
+  induction.** No finite trivializing cover is needed. Tau Ceti's
+  `TauCeti.mayerVietoris_induction` (`Topology/MayerVietoris.lean`) proves a
+  property of all open sets of a Hausdorff, locally compact, second-countable
+  space from a basis closed under nonempty intersections, binary unions
+  (given the two sets and their intersection) and countable disjoint
+  unions. Here the property of `U` is that the Thom map over `U` is
+  bijective in every degree and the Thom pair over `U` has no cohomology
+  below the rank; the basis is the open sets inside the base set of a
+  linear trivialization, where Tau Ceti's local result
+  `TauCeti.IsThomClass.bijective_pullbackCupRestrict_of_subset_baseSet`
+  applies; the binary step is `TopCat.bijective_pullbackCupRestrict_union`;
+  the disjoint step is additivity of cohomology, the one new lemma. This
   works over any commutative ring and any coefficient module, and every
-  manifold here is σ-compact. The cover lemma and the additivity step are
-  stated in general, so that *Chern classes*' Leray–Hirsch induction, which
-  has its own Mayer–Vietoris step `TopCat.lerayHirschRestrict_union_bijective`,
-  can use them for the same question (#3276); this design does not decide
-  that update.
+  manifold here is second countable. *Chern classes*' Leray–Hirsch
+  induction, which has its own Mayer–Vietoris step
+  `TopCat.lerayHirschRestrict_union_bijective`, can take the same route for
+  the same question (#3276); this design does not decide that update.
 - **Normalized tubes.** The class carried by a tube depends on whether the
   tube preserves the fibre orientations, which Tau Ceti's tubes do not
   record. A tube is *normalized* if, at each $x\in Z$, the derivative at $0$
@@ -184,23 +194,16 @@ the only `dualClass` is a private helper of local orientations.
   normal bundle $g^*\nu$ for a general transverse $g$ is a part of its own;
   the zero-set file treats the case that the users need, and naturality is
   stated under diffeomorphisms and open embeddings.
-- **Zero-dimensional $Z$.** Tau Ceti's conversion of smooth to homological
-  orientations needs dimension `n + 1`. For $\dim Z=0$ the closed manifold
-  $Z$ is finite, an orientation is a sign $\varepsilon_z$ at each point,
-  and $i_*[Z]=\sum_z\varepsilon_z[z]$; the cap theorem has a companion for
-  this case, stated with that sum, so the milestone holds in every
-  dimension. $\dim X=0$ forces $r=0$ and is the same companion.
+- **Zero-dimensional $Z$ and $X$.** Tau Ceti converts smooth orientations
+  to homological ones in dimension `n + 1`
+  (`toHomologicalOrientation`) and in dimension `0`
+  (`toHomologicalOrientationOfZeroDim`, `Orientation/ZeroDim/Basic.lean`,
+  with its fundamental classes in `Orientation/ZeroDim/FundamentalClass.lean`,
+  both under `AlgebraicTopology/Singular/LocalHomology/`). The cap theorem
+  has a case for $\dim Z=0$ through the second, so the milestone holds in
+  every dimension; $\dim X=0$ forces $r=0$ and is that case.
 
 ## Files
-
-### `Topology/Compactness/SigmaCompactCover.lean`
-
-- `exists_isOpen_isCompact_closure_pairwise_disjoint_cover`: in a locally
-  compact, σ-compact `T2Space`, there are `U : Fin 2 → ℕ → Set X`, open,
-  with compact closures, `Pairwise (Disjoint on U j)` for each `j`, and
-  `⋃ j i, U j i = univ`. (Each `U j i`, having compact closure, lies in a
-  finite union of members of any open cover; the Thom isomorphism uses this
-  for the cover by trivializing sets.)
 
 ### `AlgebraicTopology/Cohomology/Additivity/PullbackCup.lean`
 
@@ -216,14 +219,14 @@ In the setting of Tau Ceti's `TopCat.pullbackCupRestrict` (a map
   the same for the vanishing of the relative cohomology of the pair over
   `⋃ i, V i`, which the Mayer–Vietoris step needs below the rank.
 
-### `Topology/VectorBundle/Thom/SigmaCompact.lean`
+### `Topology/VectorBundle/Thom/SecondCountable.lean`
 
-- `TauCeti.bijective_thomMap_of_sigmaCompactSpace`: for `[T2Space B]
-  [LocallyCompactSpace B] [SigmaCompactSpace B] [VectorBundle ℝ F E]`,
+- `TauCeti.bijective_thomMap_of_secondCountableTopology`: for `[T2Space B]
+  [LocallyCompactSpace B] [SecondCountableTopology B] [VectorBundle ℝ F E]`,
   `[FiniteDimensional ℝ F]`, a commutative ring `K`, a module `M` and a Thom
   class `u` (`IsThomClass F E u`), `thomMap F E M (finrank ℝ F) p m h u` is
-  bijective; `TauCeti.thomEquivOfSigmaCompactSpace`, the equivalence, with
-  `thomEquivOfSigmaCompactSpace_apply`, named after Tau Ceti's
+  bijective; `TauCeti.thomEquivOfSecondCountableTopology`, the equivalence,
+  with `thomEquivOfSecondCountableTopology_apply`, named after Tau Ceti's
   `thomEquivOfCompactSpace`. Proof as in *Decisions*.
 
 ### `Geometry/Manifold/SmoothEmbedding/NormalSpace/ThomClass.lean`
@@ -243,10 +246,16 @@ In the setting of Tau Ceti's `TopCat.pullbackCupRestrict` (a map
   that it does not depend on `ω₀` (both `ω` and `g` change sign), and
   `normalThomClass_eq_thomClass` that for `r = n + 1` it is
   `o.thomClass`, by `eq_thomClass_iff`.
-- `TauCeti.SmoothEmbedding.bijective_thomMap_normalThomClass`: for
-  `K = ℤ` and any generator `g`, the Thom map of the normal bundle is
-  bijective, $H^k(Z;\mathbb Z)\cong H^{k+r}(\nu,\nu\setminus Z;\mathbb Z)$,
-  from `bijective_thomMap_of_sigmaCompactSpace`.
+- `TauCeti.SmoothEmbedding.intNormalThomClass f hdim o`: the class
+  `normalThomClass f hdim o (modelThomGenerator ω₀)` carried to chain
+  coefficients and values `ℤ` by `ULift ℤ ≅ ℤ`
+  (`singularCohomologyChainCoefficientMap` and the value map of
+  `Topology/VectorBundle/Thom/ChangeOfCoefficients.lean`), a Thom class by
+  `IsThomClass.singularCohomologyChainCoefficientMap`.
+- `TauCeti.SmoothEmbedding.bijective_thomMap_normalThomClass`: the Thom map
+  of `intNormalThomClass f hdim o` is bijective,
+  $H^k(Z;\mathbb Z)\cong H^{k+r}(\nu,\nu\setminus Z;\mathbb Z)$, from
+  `bijective_thomMap_of_secondCountableTopology`.
 
 ### `Geometry/Manifold/TubularNeighborhood/Normalized.lean`
 
@@ -281,7 +290,8 @@ With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
   `normalThomClass f hdim o (modelThomGenerator ω₀)`, with coefficients
   `ULift ℤ`.
 - `dualClassOf_restrict_compl`: the restriction of `dualClassOf f hf u` to
-  $X\setminus\operatorname{range}f$ is zero (exactness of the pair).
+  $X\setminus\operatorname{range}f$ is zero (exactness of the pair);
+  `dualClass_restrict_compl`, its case for `dualClass`.
 - `dualClassOf_restrict`: its pull-back along `f` is
   `TauCeti.eulerClass R k M P _ n u`, since `Φ` composed with the zero
   section is `f`; `dualClass_restrict`, its case for `dualClass`, and
@@ -292,11 +302,14 @@ With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
 
 ### `Geometry/Manifold/SmoothEmbedding/NormalSpace/DualClass/Slice.lean`
 
-- `relDualClassOf_eq_iff_forall_slice`: a class of $H^n(X,X\setminus Z)$ is
-  `relDualClassOf f hf u` exactly when its restriction along each normal
-  slice of a normalized tube is the fibre restriction of `u`; for
-  `u = normalThomClass f hdim o g` this is Tau Ceti's uniqueness by fibre
-  restrictions.
+- `eq_relDualClassOf_iff_forall_slice`: for a Thom class `u` of the
+  normal bundle in degree `r = finrank ℝ P` (in particular
+  `normalThomClass f hdim o g` with `g` a generator), a class of
+  $H^r(X,X\setminus Z)$ is `relDualClassOf f hf u` exactly when its
+  restriction along each normal slice of a normalized tube is the fibre
+  restriction of `u`; by excision and Tau Ceti's uniqueness by fibre
+  restrictions, `eq_thomClassOfModel_of_forall`. (A class of another degree
+  is not determined by its fibre restrictions.)
 - `singularCohomologyMap_slice_eq_of_hasFDerivAt`: the local-degree lemma
   of *Decisions*.
 - `relDualClassOf_eq_of_isNormalizedTube`: every normalized tube defines
@@ -319,6 +332,20 @@ With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
 - `normalOrientation_apply` (the characterization by positive bases),
   `normalOrientation_neg_left`, `normalOrientation_neg_right`.
 
+### `AlgebraicTopology/Cohomology/Cap/ProdLocal.lean`
+
+The local computation, on Tau Ceti types: for the model pair
+$(P,P\setminus0)$ of dimension `r` and a manifold `Y` of dimension
+`m`, at a point `(0, y)`, the cap product of the pull-back of the
+generator `modelThomGenerator ω` along the first projection with the local
+orientation class `TauCeti.LocalOrientation.prod` of the orientations
+`ω` and of `Y` at `y` (`AlgebraicTopology/Singular/LocalHomology/Orientation/Prod.lean`,
+first factor first), pushed forward along the second projection, is the
+local orientation class of `Y` at `y`; from
+`TopCat.singularCap_singularHomologyCrossRel` (`Cap/CrossRel.lean`). This is
+where the order *normal first* enters. For `r = 0` or `m = 0` the
+statement degenerates to the unit and needs no product orientation.
+
 ### `Geometry/Manifold/Orientation/DualClass.lean`
 
 For closed `X` and `Z` (`[CompactSpace X]`), `hf`, and
@@ -333,13 +360,12 @@ For closed `X` and `Z` (`[CompactSpace X]`), `hf`, and
   $H_{m+r}(X,X\setminus Z)$; excision and the tube carry this to the normal
   bundle, where a class of $H_m$ of a neighbourhood that deformation
   retracts onto $Z$ is determined by its local classes at the points of
-  $Z$, and over a trivializing chart
-  $\mathbb R^r\times\mathbb R^m$ the local computation is Tau Ceti's
-  compatibility of caps with cross products,
-  `TopCat.singularCap_singularHomologyCrossRel` (`Cap/CrossRel.lean`), with
-  the normal factor first.
-- `dualClass_cap_fundamentalClass_of_finrank_eq_zero`: the companion for
-  $\dim Z=0$ of *Decisions*.
+  $Z$, and in a trivialization the local class is `Cap/ProdLocal.lean`'s,
+  once the local orientation of $X$ at $f(z)$ is identified with the product
+  of the normal orientation and that of $Z$ (`normalOrientation_apply`).
+- `dualClass_cap_fundamentalClass_of_finrank_eq_zero`: the case
+  $\dim Z=0$, with `toHomologicalOrientationOfZeroDim` and its fundamental
+  class.
 - the milestone theorem
   `TauCeti.SmoothEmbedding.bijective_thomMap_and_dualClass_cap_fundamentalClass`,
   the conjunction of `bijective_thomMap_normalThomClass`,
@@ -362,7 +388,16 @@ derivative $D s(x):T_xX\to E'_x$, read in any trivialization, is onto):
   (modelled on a space of dimension `dim X - r`, through identifications of
   the kernels of the derivative), and the immersion
   `isImmersionOfComplement_coe_sectionZero`, as a `SmoothEmbedding`, with
-  `isClosed_range_ofTransverseSection`;
+  `isClosed_range_ofTransverseSection`. Tau Ceti's atlas is stated for a
+  base modelled directly on a normed space, with chosen trivializations,
+  surjectivity and complemented kernels as data; a base over a general
+  boundaryless model `J` is first carried to Tau Ceti's
+  `BoundarylessModel J X`, as `Geometry/Manifold/RegularValue/Level.lean`
+  does for level sets, and `ofTransverseSection` takes the section, its
+  transversality and these choices, which are made once from `hs`.
+
+### `Geometry/Manifold/VectorBundle/ZeroSet/NormalSpace.lean`
+
 - `normalSpaceEquivOfTransverseSection`: the isomorphism of the normal
   bundle of the zero set with the restriction of `E'`, induced by $Ds$
   (whose kernel is the tangent space of the zero set), as a fibrewise
@@ -376,7 +411,7 @@ derivative $D s(x):T_xX\to E'_x$, read in any trivialization, is onto):
 - `TauCeti.SmoothEmbedding.relDualClass_ofTransverseSection`: the pull-back
   of the Thom class of `E'` along `s`, in $H^r(X,X\setminus s^{-1}(0))$, is
   `relDualClass` of the zero set with `normalOrientationOfSection o'`, by
-  `relDualClassOf_eq_iff_forall_slice` and the local-degree lemma (the
+  `eq_relDualClassOf_iff_forall_slice` and the local-degree lemma (the
   normal component of $s$ along a normal slice has derivative $Ds$, the
   isomorphism that orients the normal bundle);
 - `TauCeti.SmoothEmbedding.dualClass_ofTransverseSection`: $d_Z=e(E')$, from
@@ -387,21 +422,23 @@ derivative $D s(x):T_xX\to E'_x$, read in any trivialization, is onto):
 
 ## Uses from other parts
 
-None. The part uses Tau Ceti as listed above, and from the library only
-`bijective_singularCap_fundamentalClass` (merged), for the remark that the
-cap identity determines $d_Z$.
+None. The part uses Tau Ceti as listed above, and from the library the
+merged change-of-coefficient lemmas of
+`Topology/VectorBundle/Thom/ChangeOfCoefficients.lean` and
+`bijective_singularCap_fundamentalClass`, for the remark that the cap
+identity determines $d_Z$.
 
 ## Issues
 
 Each is a few hundred lines; they are listed in an order in which they can
 be done, each with what it waits for.
 
-1. **Cover by two disjoint unions and additivity of the Thom map.**
-   `Topology/Compactness/SigmaCompactCover.lean` and
+1. **Additivity of the Thom map over disjoint unions.**
    `AlgebraicTopology/Cohomology/Additivity/PullbackCup.lean`. Waits for
    nothing.
-2. **Thom isomorphism over σ-compact bases.**
-   `Topology/VectorBundle/Thom/SigmaCompact.lean`. Waits for 1.
+2. **Thom isomorphism over second-countable bases.**
+   `Topology/VectorBundle/Thom/SecondCountable.lean`, by
+   `TauCeti.mayerVietoris_induction`. Waits for 1.
 3. **Normalized tubes.**
    `Geometry/Manifold/TubularNeighborhood/Normalized.lean`. Waits for
    nothing.
@@ -413,12 +450,16 @@ be done, each with what it waits for.
    Waits for 5.
 7. **Induced normal orientation.** `Orientation/NormalOrientation.lean`.
    Waits for nothing.
-8. **Cap with the fundamental class and the milestone.**
-   `Orientation/DualClass.lean`. Waits for 6 and 7.
-9. **Zero sets as embedded submanifolds.** `ZeroSet/Embedding.lean`. Waits
-   for nothing.
-10. **The dual class of a zero set is the Euler class.**
-    `ZeroSet/DualClass.lean`. Waits for 6 and 9. This is the zero-set
+8. **The local cap computation.** `Cap/ProdLocal.lean`. Waits for 4 (for
+   `modelThomGenerator`).
+9. **Cap with the fundamental class and the milestone.**
+   `Orientation/DualClass.lean`. Waits for 5, 7 and 8.
+10. **Zero sets as embedded submanifolds.** `ZeroSet/Embedding.lean`. Waits
+    for nothing.
+11. **The normal bundle of a zero set.** `ZeroSet/NormalSpace.lean`. Waits
+    for 10.
+12. **The dual class of a zero set is the Euler class.**
+    `ZeroSet/DualClass.lean`. Waits for 6 and 11. This is the zero-set
     statement: *Asymptotically holomorphic sections* (`ZeroSet.lean`) and
     *Complex blowup* (`ExceptionalClass.lean`, `ChernClass.lean`) wait for
     this issue only.
