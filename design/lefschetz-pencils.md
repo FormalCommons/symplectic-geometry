@@ -327,7 +327,7 @@ Namespace `SymplecticGeometry.LefschetzModel`.
 
 - `quadric : (Fin 2 → ℂ) → ℂ`, $z_1^2+z_2^2$, with `quadric_def`; its only
   critical point is `0`, where its complex Hessian is nondegenerate;
-- `manifoldMorseIndex_re_smul_quadric`: for `λ ≠ 0`, `0` is a
+- `manifoldMorseIndex_re_mul_quadric`: for `λ ≠ 0`, `0` is a
   nondegenerate critical point of `fun z ↦ (λ * quadric z).re`, of Morse
   index `2` (Tau Ceti's `manifoldMorseIndex`); and
   `IsLefschetzFibration.manifoldMorseIndex_comp`, the same for `μ ∘ π` at a
