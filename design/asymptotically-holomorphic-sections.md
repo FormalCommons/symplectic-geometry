@@ -150,9 +150,10 @@ $C$ with, for large $k$ and every $x$, `jetNorm k r (s k) x ≤ C` and
 transverse** with constant $\eta>0$ (`IsUniformlyTransverse η`) when for
 large $k$ and every $x$,
 $\max(|s_k(x)|,(2\pi k)^{-1/2}\|\partial s_k(x)\|)\ge\eta$. These pointwise
-quantities need no chart. The definitions depend on the chosen chart family
-only through constants. The part proves this independence only where a
-proof needs it, namely for two families built by the existence theorem. The
+quantities need no chart. The jet norms depend on the chart family, but no
+statement compares two families: every statement takes the family as a
+parameter, and the proofs use one family from `exists_rescaledUnitaryCharts`
+throughout. The hypersurface theorem mentions no chart. The
 right-inverse form of transversality on the page is not built, since no
 milestone states it.
 
@@ -245,8 +246,8 @@ has four independent steps and one assembly, each an issue (issues 15–19):
   `MvPolynomial.restrictDegree` and its rank.
 - **Tube volumes.** In the unit ball of $\mathbb C^{m}$, the
   $t$-neighbourhood of the zero set of a nonzero polynomial of degree $D$
-  has volume at most $C_m D^{2m}t$ for $t\le1$. Any bound of the form
-  $C_mD^at^b$ with $b>0$ suffices, since $D$ grows only as a power of
+  has volume at most $C_mD^at^b$ for $t\le1$, with fixed exponents $a$ and
+  $b>0$. Any such bound suffices, since $D$ grows only as a power of
   $\log(1/\delta)$. The issue follows the bound that Auroux's proof uses.
   It may instead take R. Wongkew's bound for tubes around real algebraic
   varieties (Pacific J. Math. 159, 1993), and it fixes the exponents. The
@@ -294,8 +295,10 @@ both:
 The hypersurface theorem needs $Z_k\ne\emptyset$. The page argues through
 the pairing of $a$ with $[\omega]^{n-1}$, which needs the compatibility of
 `deRhamHom` with cup products. The library argues instead that a nowhere
-zero section of `L k` gives a global unitary frame $\sigma$ of $P$. Then
-$d(\sigma^*\alpha)=-2\pi\omega$, so $\omega$ is exact, and so is $\omega^n$.
+zero section $s$ of `L k` gives the global unitary frame $s/|s|$ of `L k`.
+In that frame $D_k$ is $d+i\beta$ for a real one-form $\beta$, and the
+curvature of $D_k$ gives $d\beta=-2\pi k\,\omega$. So $\omega$ is exact, and
+so is $\omega^n$.
 Its integral over the closed manifold $M$ then vanishes (Tau Ceti's Stokes
 theorem), against `TauCeti.SmoothTwoForm.IsSymplectic` and the positivity of
 the Liouville volume.
@@ -333,8 +336,9 @@ and the prerequisites, placed by topic.
 - `LinearAlgebra/Complex/DominantLinearPart.lean`: for a real-linear
   $F=A+B:V\to\mathbb C$ on a Hermitian space $(V,\omega,J)$, with $A$
   complex linear, $B$ antilinear and $\|B\|<\|A\|$, $F$ is surjective, its
-  kernel is a symplectic subspace, and its kernel orientation agrees with
-  the one induced by $\omega$ (through the path $A+tB$). Main results:
+  kernel is a symplectic subspace, and the orientation of the kernel that
+  $F$ induces (as for transverse zero sets) agrees with the symplectic one
+  (through the path $A+tB$). Main results:
   `surjective_of_norm_lt`, `isSymplectic_ker_of_norm_lt`,
   `orientation_ker_eq_of_norm_lt`.
 - `Combinatorics/SimpleGraph/GreedyColoring.lean`: a locally finite graph
@@ -377,7 +381,8 @@ and the prerequisites, placed by topic.
   `isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt`, and
   the milestone `dualClass_zeroSet_eq_complexEulerClass_of_norm_dbar_lt`:
   with the symplectic orientation, the zero set has dual class
-  `complexEulerClass L`, so its fundamental class is $\mathrm{PD}(c_1(L))$.
+  `complexEulerClass L`, so its fundamental class is $\mathrm{PD}(c_1(L))$;
+  the milestone states this with the two results before it.
   At a zero, $Ds$ is the intrinsic linearization for every $D$, so the
   statement holds for every $D$.
 - `RescaledChart.lean`: the rescaled unitary charts. `CenteredDarbouxCharts`
@@ -386,7 +391,7 @@ and the prerequisites, placed by topic.
   Tau Ceti's `IsSymplectic.exists_standardDarbouxChart_of_isInteriorPoint`
   charts, composed with translations and unitary symplectic linear maps,
   by compactness. `RescaledUnitaryCharts k₀ ρ₀` adds the rescaling and the
-  radial-gauge frames, with `jStruct_sub_le`, `iteratedFDeriv_jStruct_le` and
+  frames in which the connection form is the model, with `jStruct_sub_le`, `iteratedFDeriv_jStruct_le` and
   `connectionForm_eq_model`. The existence theorem is
   `exists_rescaledUnitaryCharts`, and `dist_comparison` compares $d_k$ with
   chart distances.
