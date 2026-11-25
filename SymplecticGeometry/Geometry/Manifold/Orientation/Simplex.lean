@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Manifold.Orientation.Euclidean
 public import TauCeti.Geometry.Manifold.Orientation.Preserving
 import SymplecticGeometry.Geometry.Manifold.Orientation.Preserving
 import TauCeti.Geometry.Manifold.Orientation.Chart
+import TauCeti.Topology.Algebra.Module.Determinant
 import TauCeti.Topology.OpenPartialHomeomorph.Constructions
 
 /-!
@@ -93,9 +94,7 @@ theorem exists_isOpenEmbedding_isOrientationPreservingAt_fullSimplex
     rintro _ ⟨y, rfl⟩
     exact hA y y.prop
   · refine (hsymm _ (hA y hy)).comp (isOrientationPreservingAt_of_det_fderiv_pos _ ?_)
-    rw [(hAd y).fderiv, ContinuousLinearMap.det,
-      ContinuousLinearMap.toLinearMap_smul, LinearMap.det_smul]
-    simp only [ContinuousLinearMap.coe_id, LinearMap.det_id, mul_one]
+    rw [(hAd y).fderiv, ContinuousLinearMap.det_smul, ContinuousLinearMap.det_id, mul_one]
     positivity
 
 end TauCeti.Manifold.Orientation
