@@ -66,8 +66,11 @@ derivative is the identity; read in the preferred trivialization at `x`, this sa
 differential at `0_x` sends each vertical vector `(0, w)` to a vector whose normal class has
 coordinate `w` (`normalFiberDeriv_eq_id_iff`). Precomposing a tube of Tau Ceti's
 `exists_diffeomorph_normalBundle_subset` with the diffeomorphism given by the inverses of its
-normal derivative normalizes it (`isNormalizedTube_comp_bundleEquiv`), so normalized tubes exist
-inside every open set containing the range of `f` (`exists_isNormalizedTube_subset`).
+normal derivative normalizes it (`isNormalizedTube_comp_bundleEquiv`). That diffeomorphism is the
+inverse of `normalFiberDerivDiffeomorph`, so any tube equal to `f` on the zero section is
+normalized by precomposing it with that inverse
+(`isNormalizedTube_normalFiberDerivDiffeomorph_symm_trans`), and normalized tubes exist inside
+every open set containing the range of `f` (`exists_isNormalizedTube_subset`).
 
 ## Main definitions
 
@@ -101,6 +104,9 @@ inside every open set containing the range of `f` (`exists_isNormalizedTube_subs
   diffeomorphism of fibrewise automorphisms `Ψ x` composes the normal derivative with `Ψ x`.
 * `TauCeti.SmoothEmbedding.isNormalizedTube_comp_bundleEquiv`: a tube precomposed with fibrewise
   inverses of its normal derivative is normalized.
+* `TauCeti.SmoothEmbedding.isNormalizedTube_normalFiberDerivDiffeomorph_symm_trans`: a tube equal
+  to `f` on the zero section, precomposed with the inverse of `normalFiberDerivDiffeomorph`, is
+  normalized.
 * `TauCeti.SmoothEmbedding.exists_isNormalizedTube_subset`: every open set containing the range
   of `f` contains the image of a normalized tube.
 
@@ -405,8 +411,10 @@ theorem normalFiberDerivDiffeomorph_zeroSection (f : SmoothEmbedding I J ∞ M N
     (hfΦ : Φ ∘ zeroSection P _ = f) (x : M) :
     letI := f.normalSpaceFiberBundle hn hdim
     f.normalFiberDerivDiffeomorph hn hdim hΦ hfΦ (zeroSection P _ x) = zeroSection P _ x := by
-  rw [normalFiberDerivDiffeomorph_apply]
-  exact congrArg (TotalSpace.mk x) (map_zero _)
+  let := f.normalSpaceFiberBundle hn hdim
+  have := f.normalSpaceVectorBundle hn hdim
+  rw [normalFiberDerivDiffeomorph_def]
+  exact bundleDiffeomorph_zeroSection _ _ x
 
 /-- The inverse of `normalFiberDerivDiffeomorph` fixes the zero section. -/
 theorem normalFiberDerivDiffeomorph_symm_zeroSection (f : SmoothEmbedding I J ∞ M N)
@@ -418,8 +426,10 @@ theorem normalFiberDerivDiffeomorph_symm_zeroSection (f : SmoothEmbedding I J �
     letI := f.normalSpaceFiberBundle hn hdim
     (f.normalFiberDerivDiffeomorph hn hdim hΦ hfΦ).symm (zeroSection P _ x) =
       zeroSection P _ x := by
-  rw [normalFiberDerivDiffeomorph_symm_apply]
-  exact congrArg (TotalSpace.mk x) (map_zero _)
+  let := f.normalSpaceFiberBundle hn hdim
+  have := f.normalSpaceVectorBundle hn hdim
+  rw [normalFiberDerivDiffeomorph_def]
+  exact bundleDiffeomorph_symm_zeroSection _ _ x
 
 /-- Let `Φ` be differentiable at the zero vector over `x`, and let `Ψ` be a smooth family of
 continuous linear automorphisms of the fibres. The normal derivative at `x` of `Φ` precomposed
@@ -441,13 +451,11 @@ theorem normalFiberDeriv_comp_bundleDiffeomorph (f : SmoothEmbedding I J ∞ M N
       (f.normalFiberDeriv hn hdim Φ x).comp (Ψ x : f.NormalSpace x hn →L[ℝ] _) := by
   let := f.normalSpaceFiberBundle hn hdim
   have := f.normalSpaceVectorBundle hn hdim
-  have h0 : bundleDiffeomorph Ψ hΨ (zeroSection P _ x) = zeroSection P _ x := by
-    rw [bundleDiffeomorph_apply]
-    exact congrArg (TotalSpace.mk x) (map_zero _)
   have hΦΨ : MDifferentiableAt (I.prod 𝓘(ℝ, P)) J (Φ ∘ bundleDiffeomorph Ψ hΨ)
       (zeroSection P _ x) :=
     MDifferentiableAt.comp_of_eq _ hΦ
-      ((bundleDiffeomorph Ψ hΨ).contMDiff.mdifferentiableAt (by simp)) h0
+      ((bundleDiffeomorph Ψ hΨ).contMDiff.mdifferentiableAt (by simp))
+      (bundleDiffeomorph_zeroSection Ψ hΨ x)
   ext v
   rw [ContinuousLinearMap.comp_apply, normalFiberDeriv_apply_eq_mfderiv_smul f hn hdim hΦΨ,
     normalFiberDeriv_apply_eq_mfderiv_smul f hn hdim hΦ]
@@ -531,8 +539,8 @@ theorem isNormalizedTube_comp_bundleEquiv (f : SmoothEmbedding I J ∞ M N)
   let := f.normalSpaceFiberBundle hn hdim
   have := f.normalSpaceVectorBundle hn hdim
   refine ⟨fun x ↦ ?_, fun x ↦ ?_⟩
-  · rw [Diffeomorph.coe_trans, Function.comp_apply, bundleDiffeomorph_apply]
-    exact (congrArg (fun w ↦ (Φ ⟨x, w⟩ : N)) (map_zero (Ψ x))).trans (hΦ x)
+  · rw [Diffeomorph.coe_trans, Function.comp_apply, bundleDiffeomorph_zeroSection]
+    exact hΦ x
   · have hd : MDifferentiableAt (I.prod 𝓘(ℝ, P)) J (fun p ↦ (Φ p : N)) (zeroSection P _ x) :=
       ((isLocalDiffeomorph_subtype_val (I := J) (n := ∞) (U := W) _).mdifferentiableAt
         (by simp)).comp _ (Φ.contMDiff.mdifferentiableAt (by simp))
@@ -540,6 +548,36 @@ theorem isNormalizedTube_comp_bundleEquiv (f : SmoothEmbedding I J ∞ M N)
       Diffeomorph.coe_trans]
     -- The two maps differ only in where `Function.comp` and the coercion to `N` are applied.
     rfl
+
+/-- Let `Φ` be a diffeomorphism of the total space of the normal bundle of `f` onto an open set
+`W`, equal to `f` on the zero section. Then `Φ` precomposed with the inverse of
+`normalFiberDerivDiffeomorph`, which acts on each fibre by the inverse of the normal derivative of
+`Φ`, is a normalized tube. -/
+theorem isNormalizedTube_normalFiberDerivDiffeomorph_symm_trans (f : SmoothEmbedding I J ∞ M N)
+    (hn : (∞ : ℕ∞ω) ≠ 0) (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
+    {W : TopologicalSpace.Opens N}
+    (Φ : letI := f.normalSpaceFiberBundle hn hdim
+      TotalSpace P (fun x ↦ f.NormalSpace x hn) ≃ₘ^∞⟮I.prod 𝓘(ℝ, P), J⟯ W)
+    (hl : letI := f.normalSpaceFiberBundle hn hdim
+      ∀ x, IsLocalDiffeomorphAt (I.prod 𝓘(ℝ, P)) J ∞ (fun p ↦ (Φ p : N)) (zeroSection P _ x))
+    (hz : (fun p ↦ (Φ p : N)) ∘ zeroSection P _ = f) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    f.IsNormalizedTube hn hdim ((f.normalFiberDerivDiffeomorph hn hdim hl hz).symm.trans Φ) := by
+  let := f.normalSpaceFiberBundle hn hdim
+  have := f.normalSpaceVectorBundle hn hdim
+  let Ψ x := (f.normalFiberDerivEquiv hn hdim (hl x) (.of_eq hz)).symm
+  have hΨ : ContMDiff (I.prod 𝓘(ℝ, P)) (I.prod 𝓘(ℝ, P)) ∞
+      (fun p : TotalSpace P (fun x ↦ f.NormalSpace x hn) ↦ TotalSpace.mk' P
+        (E := fun x ↦ f.NormalSpace x hn) p.proj (Ψ p.proj p.snd)) :=
+    (f.normalFiberDerivDiffeomorph hn hdim hl hz).symm.contMDiff.congr fun p ↦ by
+      rw [normalFiberDerivDiffeomorph_symm_apply]
+  have hsymm : (f.normalFiberDerivDiffeomorph hn hdim hl hz).symm = bundleDiffeomorph Ψ hΨ :=
+    Diffeomorph.ext fun p ↦ by
+      rw [normalFiberDerivDiffeomorph_symm_apply, bundleDiffeomorph_apply]
+  rw [hsymm]
+  refine f.isNormalizedTube_comp_bundleEquiv hn hdim Φ (fun x ↦ congrFun hz x) Ψ hΨ fun x ↦ ?_
+  rw [← coe_normalFiberDerivEquiv f hn hdim (hl x) (.of_eq hz)]
+  exact ContinuousLinearEquiv.coe_comp_coe_symm _
 
 /-- **Existence of normalized tubes.** Inside every open set `O` containing the range of a smooth
 embedding `f` between boundaryless manifolds, with `N` Hausdorff and second countable, there is a
@@ -556,24 +594,13 @@ theorem exists_isNormalizedTube_subset [I.Boundaryless] [J.Boundaryless] [T2Spac
         f.IsNormalizedTube hn hdim Φ := by
   intro hn
   let := f.normalSpaceFiberBundle hn hdim
-  have := f.normalSpaceVectorBundle hn hdim
   obtain ⟨W, hWO, Φ, hΦ⟩ := f.exists_diffeomorph_normalBundle_subset (P := P) hdim hO hfO
   -- The tube as a map into `N` is a local diffeomorphism.
-  have hl (p : TotalSpace P (fun x ↦ f.NormalSpace x hn)) :
-      IsLocalDiffeomorphAt (I.prod 𝓘(ℝ, P)) J ∞ (fun p ↦ (Φ p : N)) p :=
-    (Φ.isLocalDiffeomorph p).comp (hg := isLocalDiffeomorph_subtype_val (U := W) _)
-  have hz : (fun p ↦ (Φ p : N)) ∘ zeroSection P _ = f := funext hΦ
-  -- Precompose with the inverses of the normal derivative of `Φ`.
-  let Ψ x := (f.normalFiberDerivEquiv hn hdim (hl (zeroSection P _ x)) (.of_eq hz)).symm
-  have hΨ : ContMDiff (I.prod 𝓘(ℝ, P)) (I.prod 𝓘(ℝ, P)) ∞
-      (fun p : TotalSpace P (fun x ↦ f.NormalSpace x hn) ↦ TotalSpace.mk' P
-        (E := fun x ↦ f.NormalSpace x hn) p.proj (Ψ p.proj p.snd)) := by
-    refine (f.normalFiberDerivDiffeomorph hn hdim (fun x ↦ hl _) hz).symm.contMDiff.congr
-      fun p ↦ ?_
-    rw [normalFiberDerivDiffeomorph_symm_apply]
-  refine ⟨W, hWO, _, f.isNormalizedTube_comp_bundleEquiv hn hdim Φ hΦ Ψ hΨ fun x ↦ ?_⟩
-  rw [← coe_normalFiberDerivEquiv f hn hdim (hl (zeroSection P _ x)) (.of_eq hz)]
-  exact ContinuousLinearEquiv.coe_comp_coe_symm _
+  have hl (x : M) : IsLocalDiffeomorphAt (I.prod 𝓘(ℝ, P)) J ∞ (fun p ↦ (Φ p : N))
+      (zeroSection P _ x) :=
+    (Φ.isLocalDiffeomorph _).comp (hg := isLocalDiffeomorph_subtype_val (U := W) _)
+  exact ⟨W, hWO, _,
+    f.isNormalizedTube_normalFiberDerivDiffeomorph_symm_trans hn hdim Φ hl (funext hΦ)⟩
 
 end TauCeti.SmoothEmbedding
 

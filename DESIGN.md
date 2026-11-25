@@ -3594,8 +3594,8 @@ geometry and waits for no part.
 
 - **Files:** beside Tau Ceti's folder `Geometry/Manifold/ConnectedSum/`:
   `Geometry/Manifold/ConnectedSum/Annulus.lean` (the book's construction,
-  gluing $M_1\setminus\iota_1(\varepsilon B)$ and
-  $M_2\setminus\iota_2(\varepsilon B)$ along annuli by
+  gluing $M_1\setminus\iota_1(\varepsilon^2 B)$ and
+  $M_2\setminus\iota_2(\varepsilon^2 B)$ along annuli by
   $\xi\mapsto\varepsilon^2\Phi\xi/|\xi|^2$, where $\Phi\in\mathrm O(n)$
   reverses orientation, built with Tau Ceti's `Geometry/Manifold/Gluing/`,
   and a diffeomorphism from it to Tau Ceti's `TauCeti.ConnectedSum` of
