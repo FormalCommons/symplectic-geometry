@@ -276,7 +276,7 @@ smooth map as sections of the bundle of bilinear forms on the pull-back.
   map of the coordinate form applied to `β`. The inverse flat map is bounded
   near `x`, and `β` is `o(‖z - x‖)`.
 
-Four lemmas cover the inverse flat map of a covector field that is smooth
+These lemmas cover the inverse flat map of a covector field that is smooth
 only near a set. Each asks only that the flat map be invertible at a point,
 not that the form be nondegenerate, so they are in `TauCeti.SmoothTwoForm`,
 except the second:
@@ -292,8 +292,6 @@ except the second:
   flat map of `σ m₀` invertible at `b m₀`, the map
   `m ↦ ⟨b m, ((σ m).flat (b m)).inverse (c m)⟩` into the tangent bundle is
   `C^n` at `m₀`. `contMDiffAt_moserField` uses it along `Prod.snd`.
-- `contMDiffAt_flat_inverse_apply`: the case `b = id` with one form, for
-  `n ≤ ∞`.
 
 ### `Geometry/Symplectic/Moser/Relative.lean`
 

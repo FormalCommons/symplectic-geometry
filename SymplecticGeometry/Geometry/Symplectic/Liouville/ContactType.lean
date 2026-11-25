@@ -17,6 +17,7 @@ import TauCeti.Geometry.Contact.Flat
 import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.RelativePoincare
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
+import TauCeti.Geometry.Symplectic.Manifold.StronglyNondegenerate
 
 /-!
 # Contact type through local Liouville fields
@@ -58,7 +59,7 @@ builds such a field from a prescribed contact form.
   lemma (`TauCeti.SmoothEmbedding.exists_mextDeriv_eq_and_mpullback_eq`), and `Z` is the field
   with `ι_Z σ = -β`, obtained pointwise from the inverse flat map of `σ`
   (`TauCeti.SmoothTwoForm.IsNondegenerate.interior_flat_inverse_ofSubsingleton`,
-  `TauCeti.SmoothTwoForm.contMDiffAt_flat_inverse_apply`). It is Liouville by Cartan's formula. It
+  `TauCeti.SmoothTwoForm.contMDiffAt_inverse_flat`). It is Liouville by Cartan's formula. It
   is transverse because a vector `v` with `di(v) = Z` would satisfy `α(v) = 0` and `ι_v dα = α`,
   so that `ι_v dα + α(v) α = α`, which forces `α(v) = 1`
   (`TauCeti.SmoothForm.IsContactForm.contactFlat_apply_eq_iff`). This pointwise step is
@@ -254,7 +255,7 @@ theorem SmoothEmbedding.exists_liouville_of_isContactForm [FiniteDimensional ℝ
       refine contMDiffAt_ofSubsingleton_iff.1 ?_
       convert (hβ x hx).neg_section using 3 with y
       exact (ContinuousAlternatingMap.ofSubsingleton ℝ (TangentSpace I y) ℝ 0).apply_symm_apply _
-    exact (SmoothTwoForm.contMDiffAt_flat_inverse_apply le_rfl (hσn.isInvertible_flat x)
+    exact ((SmoothTwoForm.contMDiffAt_inverse_flat (hσn.isInvertible_flat x)).clm_bundle_apply
       hc).contMDiffWithinAt
   have hdσ : mextDeriv σ.val = 0 := (SmoothForm.isClosed_def σ).1 hσ.isClosed
   refine ⟨U, hU, hiU, Z, hZ, fun x hx ↦ ?_, isTransverseAlong_iff.2 fun s ↦ ?_, ?_⟩
