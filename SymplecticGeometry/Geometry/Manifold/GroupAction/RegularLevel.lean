@@ -65,7 +65,8 @@ Ceti's diffeomorphism of the total space with the level.
   regular level, and the level with the instances above and the principal bundle of its orbits.
 * `SymplecticGeometry.FreeRegularLevel.totalSpaceDiffeomorph`, with `totalSpaceDiffeomorph_smul`
   and `mk_totalSpaceDiffeomorph`: the total space of that bundle is the level, with
-  `totalSpaceDiffeomorph_apply` and `totalSpaceDiffeomorph_symm_mk` saying what it does on points.
+  `totalSpaceDiffeomorph_apply`, `totalSpaceDiffeomorph_homeomorph` and
+  `totalSpaceDiffeomorph_symm_apply` saying what it does on points.
 
 ## References
 
@@ -355,21 +356,22 @@ theorem totalSpaceDiffeomorph_apply
     totalSpaceDiffeomorph IG h p = ((ManifoldTotalSpace.homeomorph G _).symm p).snd.val :=
   (MapFiber.Atlas.totalSpaceDiffeomorph_apply _ p).trans (MapFiber.totalSpaceHomeomorph_apply _)
 
-/-- Read in `M`, the diffeomorphism `totalSpaceDiffeomorph` sends a point of the fibre over an
-orbit to that point of `M`. -/
+/-- The diffeomorphism `totalSpaceDiffeomorph` sends a point of the fibre over an orbit to that
+point of the level. -/
 @[simp]
-theorem val_totalSpaceDiffeomorph_homeomorph
+theorem totalSpaceDiffeomorph_homeomorph
     (z : Bundle.TotalSpace G (orbitFiber Gᵐᵒᵖ (FreeRegularLevel IG h))) :
-    val (totalSpaceDiffeomorph IG h (ManifoldTotalSpace.homeomorph G _ z)) = val z.snd.val := by
+    totalSpaceDiffeomorph IG h (ManifoldTotalSpace.homeomorph G _ z) = z.snd.val := by
   rw [totalSpaceDiffeomorph_apply, Homeomorph.symm_apply_apply]
 
-/-- The inverse of `totalSpaceDiffeomorph` sends the point `mk x hx` of the level to itself, as a
-point of the fibre over its orbit. -/
+/-- The inverse of `totalSpaceDiffeomorph` sends a point `y` of the level to itself, as a point of
+the fibre over its orbit. -/
 @[simp]
-theorem totalSpaceDiffeomorph_symm_mk (x : M) (hx : f x = c) :
-    (totalSpaceDiffeomorph IG h).symm (mk IG h x hx) =
-      ManifoldTotalSpace.homeomorph G _ ⟨Quotient.mk _ (mk IG h x hx), ⟨mk IG h x hx, rfl⟩⟩ :=
-  (MapFiber.Atlas.totalSpaceDiffeomorph_symm_apply _ _).trans
+theorem totalSpaceDiffeomorph_symm_apply (y : FreeRegularLevel IG h) :
+    (totalSpaceDiffeomorph IG h).symm y =
+      ManifoldTotalSpace.homeomorph G _ ⟨Quotient.mk _ y, ⟨y, rfl⟩⟩ := by
+  rw [totalSpaceDiffeomorph_def]
+  exact (MapFiber.Atlas.totalSpaceDiffeomorph_symm_apply _ _).trans
     (congrArg _ (MapFiber.totalSpaceHomeomorph_symm_apply _))
 
 /-- The diffeomorphism `totalSpaceDiffeomorph` is equivariant for the right action of `G`. -/
