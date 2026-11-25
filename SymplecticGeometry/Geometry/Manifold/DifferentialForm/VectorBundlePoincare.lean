@@ -10,7 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily
 import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 
 /-!
-# The relative Poincaré operator at the zero section, and for families
+# The relative Poincaré operator at the zero section, on fibrewise star-shaped sets, for families
 
 On the total space of a smooth vector bundle `V → B`, let `P` be Tau Ceti's relative Poincaré
 operator `TauCeti.vectorBundlePoincareHomotopy`, and `ρ = 0 ∘ π` the retraction onto the zero
@@ -24,6 +24,12 @@ This is the pointwise form of Tau Ceti's
 `TauCeti.mextDeriv_vectorBundlePoincareHomotopy_of_mpullback_zeroSection_eq_zero`, which assumes
 `η` closed and gives the identity everywhere.
 
+For a form closed only on part of the total space, the identity still holds there. If `d η`
+vanishes on a set `W` that fibre scaling by every `t ∈ [0, 1]` maps into itself, then `P (d η)`
+vanishes on `W`, so `d (P η) = η - ρ^* η` on `W`, and `d (P η) = η` there when `η` pulls back to
+zero on the zero section. This localizes Tau Ceti's
+`TauCeti.mextDeriv_vectorBundlePoincareHomotopy`.
+
 Applied slice by slice to a family of one-forms `η_t`, the functions `P η_t` form a smooth
 function of `(t, v)`, since the homotopy operator preserves smooth families
 (`SymplecticGeometry.IsSmoothFamily.homotopyOperator`). This is
@@ -34,6 +40,10 @@ function of `(t, v)`, since the homotopy operator preserves smooth families
 * `mextDeriv_vectorBundlePoincareHomotopy_zeroSection_of_mpullback_zeroSection_apply_eq_zero`:
   `d (P η) = η` at the zero vector `0_b` when the pullback of `η` along the zero section vanishes
   at `b`.
+* `mextDeriv_vectorBundlePoincareHomotopy_apply_of_forall_mextDeriv_eq_zero`: `d (P η) = η - ρ^* η`
+  on a set stable under fibre scaling where `d η` vanishes.
+* `mextDeriv_vectorBundlePoincareHomotopy_apply_eq_of_forall_mextDeriv_eq_zero`: there
+  `d (P η) = η`, when the pullback of `η` along the zero section vanishes.
 * `TauCeti.exists_contMDiff_mextDeriv_ofFunction_eq_of_mpullback_zeroSection`: a smooth function
   of `(t, v)` vanishing on the zero section whose slices have differential `η_t` at the zero
   vectors where the restriction of `η_t` to the zero section vanishes.
@@ -80,6 +90,45 @@ theorem mextDeriv_vectorBundlePoincareHomotopy_zeroSection_of_mpullback_zeroSect
     mpullback_zeroSection_comp_proj, mpullback_apply_eq_zero, sub_zero] at h
   · exact h
   · rwa [zeroSection_proj]
+
+/-- **The relative Poincaré identity where the form is closed.** Let `η` be a `C¹` form of
+positive degree on the total space of a `C²` vector bundle over a `C²` base, and let `W` be a set
+of the total space that fibre scaling by each `t ∈ [0, 1]` maps into itself. If `d η` vanishes on
+`W`, then `d (P η) = η - ρ^* η` at every point of `W`, where `P` is the relative Poincaré operator
+and `ρ = 0 ∘ π` is the retraction onto the zero section. -/
+theorem mextDeriv_vectorBundlePoincareHomotopy_apply_of_forall_mextDeriv_eq_zero
+    [IsManifold IB 2 B] [ContMDiffVectorBundle 2 FV V IB]
+    {η : RoughForm (IB.prod 𝓘(ℝ, FV)) (TotalSpace FV V) F (k + 1)}
+    (hη : IsSmoothForm (IB.prod 𝓘(ℝ, FV)) 1 η) {W : Set (TotalSpace FV V)}
+    (hW : ∀ z ∈ W, ∀ t, vectorBundleFiberScaling FV V (z, t) ∈ W)
+    (hclosed : ∀ z ∈ W, mextDeriv η z = 0) {z : TotalSpace FV V} (hz : z ∈ W) :
+    mextDeriv (vectorBundlePoincareHomotopy η) z =
+      η z - mpullback (IB.prod 𝓘(ℝ, FV)) (IB.prod 𝓘(ℝ, FV))
+        (zeroSection FV V ∘ TotalSpace.proj) η z := by
+  have h := congrFun
+    (mextDeriv_vectorBundlePoincareHomotopy_add_vectorBundlePoincareHomotopy_mextDeriv hη) z
+  -- `P (d η)` vanishes at `z`, since `d η` vanishes along the scaled points `t • z ∈ W`.
+  have hP : vectorBundlePoincareHomotopy (mextDeriv η) z = 0 := by
+    rw [vectorBundlePoincareHomotopy_def]
+    refine homotopyOperator_apply_eq_zero fun t v ↦ ?_
+    rw [mpullback_apply, hclosed _ (hW z hz t), ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
+  rwa [Pi.add_apply, hP, add_zero, Pi.sub_apply] at h
+
+/-- **The relative Poincaré operator as a local primitive.** Let `η` be a `C¹` form of positive
+degree on the total space of a `C²` vector bundle over a `C²` base whose pullback along the zero
+section vanishes, and let `W` be a set of the total space that fibre scaling by each `t ∈ [0, 1]`
+maps into itself. If `d η` vanishes on `W`, then `d (P η) = η` at every point of `W`, where `P`
+is the relative Poincaré operator. -/
+theorem mextDeriv_vectorBundlePoincareHomotopy_apply_eq_of_forall_mextDeriv_eq_zero
+    [IsManifold IB 2 B] [ContMDiffVectorBundle 2 FV V IB]
+    {η : RoughForm (IB.prod 𝓘(ℝ, FV)) (TotalSpace FV V) F (k + 1)}
+    (hη : IsSmoothForm (IB.prod 𝓘(ℝ, FV)) 1 η)
+    (hi : mpullback IB (IB.prod 𝓘(ℝ, FV)) (zeroSection FV V) η = 0) {W : Set (TotalSpace FV V)}
+    (hW : ∀ z ∈ W, ∀ t, vectorBundleFiberScaling FV V (z, t) ∈ W)
+    (hclosed : ∀ z ∈ W, mextDeriv η z = 0) {z : TotalSpace FV V} (hz : z ∈ W) :
+    mextDeriv (vectorBundlePoincareHomotopy η) z = η z := by
+  rw [mextDeriv_vectorBundlePoincareHomotopy_apply_of_forall_mextDeriv_eq_zero hη hW hclosed hz,
+    mpullback_zeroSection_comp_proj, hi, mpullback_zero, Pi.zero_apply, sub_zero]
 
 variable [IsManifold IB ∞ B] [ContMDiffVectorBundle ∞ FV V IB]
 
