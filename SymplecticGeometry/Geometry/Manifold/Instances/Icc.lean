@@ -19,8 +19,9 @@ The inclusion `Icc x y → ℝ` of a closed interval, `x < y`, is differentiable
 included (`mdifferentiable_subtypeVal_Icc`, `mdifferentiableAt_subtypeVal_Icc`), by Mathlib's
 `contMDiff_subtypeVal_Icc`. Its derivative sends `r` times the unit tangent vector `1` to `r`
 (`mfderiv_subtypeVal_Icc_smul_one`). For a normed space `V`, the map `V × [x, y] → V × ℝ` that
-includes the second factor is smooth (`contMDiff_prodMap_id_subtypeVal_Icc`), and its derivative
-sends `(w, r • 1)` to `(w, r)` (`mfderiv_prodMap_id_subtypeVal_Icc`).
+includes the second factor is smooth (`contMDiff_prodMap_id_subtypeVal_Icc`). For a manifold `M`,
+the derivative of the map `M × [x, y] → M × ℝ` that includes the second factor sends `(w, r • 1)`
+to `(w, r)` (`mfderiv_prodMap_id_subtypeVal_Icc`).
 
 A closed interval `[x, y]`, `x < y`, with its manifold-with-boundary structure, carries the unit
 tangent vector `1` of Mathlib's `oneTangentSpaceIcc` at every point. The vector field `z ↦ 1` is
@@ -92,23 +93,25 @@ theorem contMDiff_prodMap_id_subtypeVal_Icc :
       (Prod.map (id : V → V) (Subtype.val : Icc x y → ℝ)) :=
   contMDiff_fst.prodMk_space (contMDiff_subtypeVal_Icc.comp contMDiff_snd)
 
-/-- For a normed space `V`, the derivative of `(v, s) ↦ (v, s)`, from `V × [x, y]` to `V × ℝ`,
-sends `(w, r • 1)` to `(w, r)`. -/
-theorem mfderiv_prodMap_id_subtypeVal_Icc (z : V × Icc x y) (w : V) (r : ℝ) :
-    mfderiv (𝓘(ℝ, V).prod (𝓡∂ 1)) 𝓘(ℝ, V × ℝ)
-        (Prod.map (id : V → V) (Subtype.val : Icc x y → ℝ)) z
-        (w, r • (1 : TangentSpace (𝓡∂ 1) z.2)) = (w, r) := by
-  have := mfderiv_prodMap (I := 𝓘(ℝ, V)) (J := 𝓘(ℝ, V)) (I' := 𝓡∂ 1) (J' := 𝓘(ℝ, ℝ)) (p := z)
-    (f := id) (g := (Subtype.val : Icc x y → ℝ)) mdifferentiableAt_id
-    (mdifferentiableAt_subtypeVal_Icc z.2)
-  rw [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod, this]
-  -- The tangent spaces of `V` and of `V × ℝ` are those spaces only by unfolding
-  -- `TangentSpace`, so the two components are closed with `exact` rather than `rw`.
-  refine Prod.ext ?_ ?_
-  · exact congrArg (fun L => L w) (mfderiv_id (I := 𝓘(ℝ, V)) (x := z.1))
-  · exact mfderiv_subtypeVal_Icc_smul_one z.2 r
-
 end ProdMap
+
+section ProdMapManifold
+
+variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+
+/-- The derivative of `(p, s) ↦ (p, s)`, from `M × [x, y]` to `M × ℝ`, sends `(w, r • 1)` to
+`(w, r)`. -/
+theorem mfderiv_prodMap_id_subtypeVal_Icc (z : M × Icc x y) (w : TangentSpace I z.1) (r : ℝ) :
+    mfderiv (I.prod (𝓡∂ 1)) (I.prod 𝓘(ℝ, ℝ))
+        (Prod.map (id : M → M) (Subtype.val : Icc x y → ℝ)) z
+        (w, r • (1 : TangentSpace (𝓡∂ 1) z.2)) = (w, r) := by
+  rw [mfderiv_prodMap mdifferentiableAt_id (mdifferentiableAt_subtypeVal_Icc z.2), mfderiv_id]
+  -- `TangentSpace (I.prod (𝓡∂ 1)) z` is the product of the factors' tangent spaces only by
+  -- unfolding, so `rw` cannot see the components; they are closed by `Prod.ext`.
+  exact Prod.ext rfl (mfderiv_subtypeVal_Icc_smul_one z.2 r)
+
+end ProdMapManifold
 
 section Cylinder
 
