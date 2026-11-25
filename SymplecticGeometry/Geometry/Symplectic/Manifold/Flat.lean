@@ -226,12 +226,9 @@ theorem Compatible.orthogonal_flatComp (hc : σ.Compatible Jc) (x : M)
   ext w
   simp only [LinearMap.BilinForm.mem_orthogonal_iff]
   refine forall₂_congr fun v _ ↦ ?_
-  have h := (SymplecticForm.invariant_iff _ _).1 (hc.compatibleAt x).invariant v
-    (Jc.almostComplexStructureAt x w)
-  simp only [AlmostComplexStructure.apply_apply, map_neg] at h
   simp only [SymplecticForm.associatedBilinForm_apply, ContinuousLinearMap.toLinearMap₁₂_apply,
-    flatComp_apply]
-  rw [← h, neg_eq_zero]
+    flatComp_apply, ← neg_eq_zero (a := (hc.isNondegenerate.symplecticFormAt x) v _),
+    ← (hc.compatibleAt x).invariant.apply_apply_eq_neg]
   simp
 
 /-- If `σ` tames `J`, the bilinear form `σ(J ·, ·)` vanishes on the diagonal only at `0`, since
