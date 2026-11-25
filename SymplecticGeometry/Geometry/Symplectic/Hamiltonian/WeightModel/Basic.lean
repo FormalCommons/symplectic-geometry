@@ -20,7 +20,8 @@ and `EuclideanSpace.sumEquivProd`: it is the coordinatewise multiplication
 `uₖ ↦ exp (θₖ i) uₖ` (`TauCeti.weightRotation_sumEquivProd_complexToRealEuclidean`). This is
 Tau Ceti's `TauCeti.complexEuclideanEquivRealProd_symm_weightRotation_apply`, which states the same
 for the coordinates `EuclideanSpace ℂ ι` of `TauCeti.complexEuclideanEquivRealProd`, read in the
-coordinates `ι → ℂ` that the library's weight charts use.
+coordinates `ι → ℂ` that the library's weight charts use. The two coordinate systems are matched
+by `TauCeti.sumEquivProd_complexToRealEuclidean`.
 
 It also computes the standard symplectic form of these coordinates on vectors with disjoint
 supports: `TauCeti.stdSymplecticForm_eq_zero_of_forall`.
@@ -40,6 +41,14 @@ public section
 
 namespace TauCeti
 
+/-- The two readings of `v : ι → ℂ` as a pair of real vectors agree: the two blocks, under
+`EuclideanSpace.sumEquivProd`, of the real coordinates `complexToRealEuclidean ι v` are the real
+and imaginary parts `complexEuclideanEquivRealProd ι` of `v` as a vector of `EuclideanSpace ℂ ι`. -/
+theorem sumEquivProd_complexToRealEuclidean {ι : Type*} [Fintype ι] (v : ι → ℂ) :
+    EuclideanSpace.sumEquivProd (complexToRealEuclidean ι v) =
+      complexEuclideanEquivRealProd ι (WithLp.toLp 2 v) := by
+  ext k <;> simp
+
 /-- Read through `EuclideanSpace.sumEquivProd` and `complexToRealEuclidean`, the rotation
 `weightRotation θ` of `ℂ^ι` is the multiplication `uₖ ↦ exp (θₖ i) uₖ`. -/
 theorem weightRotation_sumEquivProd_complexToRealEuclidean {ι : Type*} [Fintype ι]
@@ -48,10 +57,7 @@ theorem weightRotation_sumEquivProd_complexToRealEuclidean {ι : Type*} [Fintype
       EuclideanSpace.sumEquivProd
         (complexToRealEuclidean ι fun k ↦ Complex.exp (θ k * Complex.I) * u k) := by
   -- Read both sides through Tau Ceti's `complexEuclideanEquivRealProd`.
-  have h (v : ι → ℂ) : EuclideanSpace.sumEquivProd (complexToRealEuclidean ι v) =
-      complexEuclideanEquivRealProd ι (WithLp.toLp 2 v) := by
-    ext k <;> simp
-  rw [h, h]
+  rw [sumEquivProd_complexToRealEuclidean, sumEquivProd_complexToRealEuclidean]
   refine (complexEuclideanEquivRealProd ι).symm.injective (PiLp.ext fun k ↦ ?_)
   simp only [complexEuclideanEquivRealProd_symm_weightRotation_apply,
     ContinuousLinearEquiv.symm_apply_apply, PiLp.toLp_apply, Complex.exp_mul_I,

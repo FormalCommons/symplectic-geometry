@@ -90,9 +90,8 @@ theorem isMIntegralCurveOn_completionEnd (x : (𝓡∂ (n + 1)).boundary W) :
   have hd : MDifferentiableAt (𝓘(ℝ).prod (𝓡 n)) (𝓡 (n + 1)) h.completionEnd (t, x) :=
     (h.contMDiffOn_completionEnd.contMDiffAt
       ((isOpen_Ioi.prod isOpen_univ).mem_nhds hq)).mdifferentiableAt (by simp)
-  have hslice : MDifferentiableAt 𝓘(ℝ) (𝓡 (n + 1)) (fun s ↦ h.completionEnd (s, x)) t :=
-    hd.comp t (mdifferentiableAt_id.prodMk mdifferentiableAt_const)
-  refine (hslice.hasMFDerivAt.congr_mfderiv ?_).hasMFDerivWithinAt
+  refine ((MDifferentiableAt.curry_left (f := fun s x ↦ h.completionEnd (s, x))
+    hd).hasMFDerivAt.congr_mfderiv ?_).hasMFDerivWithinAt
   refine ContinuousLinearMap.ext_ring ?_
   have key := h.mfderiv_completionEnd_apply hq
   rw [Manifold.prodVectorField_constVectorField_zero_apply] at key
