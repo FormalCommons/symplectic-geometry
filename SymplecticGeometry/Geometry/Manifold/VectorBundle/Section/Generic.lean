@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Generic
+public import TauCeti.Geometry.Manifold.VectorBundle.Section.Module
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.SmoothZero
 public import SymplecticGeometry.Topology.VectorBundle.ZeroSet
 
@@ -136,9 +137,8 @@ theorem exists_mem_span_isClosed_isDiscrete_zero [Finite ι] (hdim : finrank ℝ
   refine ⟨affineFamily 0 s a, (Submodule.mem_span_range_iff_exists_fun ℝ).mpr ⟨a, ?_⟩,
     isClosed_setOf_eq_zero _, ha⟩
   ext x
-  simpa only [coeAddHom_apply, Finset.sum_apply, coe_smul, Pi.smul_apply, affineFamily_apply,
-    coe_zero, Pi.zero_apply, zero_add] using
-    (congrFun (map_sum (coeAddHom 𝓘(ℝ, X) F ∞ V) (fun i ↦ a i • s i) Finset.univ) x)
+  simp only [coe_sum, Finset.sum_apply, coe_smul, Pi.smul_apply, affineFamily_apply, coe_zero,
+    Pi.zero_apply, zero_add]
 
 end AffineFamily
 

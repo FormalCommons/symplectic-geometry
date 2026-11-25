@@ -11,6 +11,7 @@ import TauCeti.Geometry.Manifold.ContMDiff.LeftInverse
 import TauCeti.Geometry.Manifold.ContMDiff.MFDeriv
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 import TauCeti.Geometry.Manifold.VectorBundle.SectionAlongMap.Regularity
+import TauCeti.Topology.VectorBundle.Trivialization
 
 /-!
 # Horizontal lifts of vector fields
@@ -234,8 +235,7 @@ theorem contMDiffAt_horizontalLift {g : Q → P} {w : Q → TangentBundle J B}
   have hb₀ : f (g q₀) ∈ eB.baseSet := FiberBundle.mem_baseSet_trivializationAt' _
   have hAinj : Injective (A q₀) := by
     refine (injective_iff_map_eq_zero (A q₀)).2 fun c hc ↦ funext fun i ↦ ?_
-    rw [hAapply hb₀, ← Trivialization.linearEquivAt_apply (R := 𝕜) _ _ hb₀,
-      LinearEquiv.map_eq_zero_iff, map_sum] at hc
+    rw [hAapply hb₀, eB.snd_apply_eq_zero_iff 𝕜 hb₀, map_sum] at hc
     simp only [map_smul] at hc
     exact Fintype.linearIndependent_iff.1 (hD.linearIndependent_mfderiv_apply
       (hX.linearIndependent hxU) fun i ↦ hX.isSubbundleFrameOn.apply_mem i hxU) c hc i
