@@ -14,8 +14,10 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily
 # Smooth cohomology splittings of smoothly contractible manifolds
 
 A smoothly contractible manifold `N` has a smooth cohomology splitting
-(`SymplecticGeometry.SmoothCohomologySplitting.exists_isSmooth_of_isSmoothlyContractible`). Let
-`Φ : N × [0, 1] → N` be a smooth contraction, from the constant map at `c` to the identity.
+(`SymplecticGeometry.SmoothCohomologySplitting.ofIsSmoothlyContractible`), one splitting that is
+smooth over parameter manifolds in all universes. Let `Φ : N × [0, 1] → N` be a smooth
+contraction, from the constant map at `c` to the identity, chosen once from
+`IsSmoothlyContractible I N`.
 
 * In degree zero, the space of the splitting is the space of all closed `0`-forms, which is
   finite-dimensional since `N` is connected
@@ -33,10 +35,12 @@ A smoothly contractible manifold `N` has a smooth cohomology splitting
 This is the base case of the Mayer–Vietoris induction over a good cover, and the smooth
 dependence on families of the Poincaré lemma in the form Weil gives it [Weil1952, §2].
 
-## Main results
+## Main definitions and results
 
-* `SymplecticGeometry.SmoothCohomologySplitting.exists_isSmooth_of_isSmoothlyContractible`: a
-  smoothly contractible manifold has a smooth cohomology splitting.
+* `SymplecticGeometry.SmoothCohomologySplitting.ofIsSmoothlyContractible`: the splitting of a
+  smoothly contractible manifold.
+* `SymplecticGeometry.SmoothCohomologySplitting.isSmooth_ofIsSmoothlyContractible`: it is
+  smooth.
 
 ## References
 
@@ -62,17 +66,16 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSp
 universe uE uH uN
 
 variable (I) in
-/-- **The splitting of a contractible manifold.** A smoothly contractible manifold `N` has a
-smooth cohomology splitting: in degree zero its space is that of all closed `0`-forms, and in
-positive degree it is `0`, with the primitive `z ↦ h (Φ^* z)` given by the homotopy operator
-after pullback along a contraction `Φ`. -/
-theorem SmoothCohomologySplitting.exists_isSmooth_of_isSmoothlyContractible
-    (h : IsSmoothlyContractible I N) :
-    ∃ σ : SmoothCohomologySplitting I N, σ.IsSmooth.{uE, uH, uN} := by
+/-- **The splitting of a contractible manifold.** The cohomology splitting of a smoothly
+contractible manifold `N` given by a contraction `Φ` chosen from `h`: in degree zero its space
+is that of all closed `0`-forms and its projection is the identity, in positive degree its space
+and its projection are `0`, and the primitive of a closed `(k + 1)`-form `z` is `h (Φ^* z)`, the
+homotopy operator after pullback along `Φ`. -/
+noncomputable def SmoothCohomologySplitting.ofIsSmoothlyContractible
+    (h : IsSmoothlyContractible I N) : SmoothCohomologySplitting I N :=
   have := h.connectedSpace
-  obtain ⟨c, Φ, hΦ, h₀, h₁⟩ := isSmoothlyContractible_def.mp h
-  refine ⟨{
-    space := fun
+  have hΦ := (isSmoothlyContractible_def.mp h).choose_spec.choose_spec
+  { space := fun
       | 0 => closedForms I N 0
       | _ + 1 => ⊥
     space_le_closedForms := fun
@@ -89,18 +92,27 @@ theorem SmoothCohomologySplitting.exists_isSmooth_of_isSmoothlyContractible
       | _ + 1, _ => Submodule.zero_mem _
     proj_zero := fun _ ↦ rfl
     primitive := fun k ↦
-      SmoothForm.homotopyOperator ∘ₗ SmoothForm.mpullback Φ hΦ ∘ₗ (closedForms I N (k + 1)).subtype
+      SmoothForm.homotopyOperator ∘ₗ SmoothForm.mpullback _ hΦ.1 ∘ₗ
+        (closedForms I N (k + 1)).subtype
     mextDerivₗ_primitive := fun k z ↦ by
       rw [LinearMap.comp_apply, LinearMap.comp_apply, Submodule.subtype_apply,
-        SmoothForm.mextDerivₗ_homotopyOperator_mpullback_of_contraction hΦ h₀ h₁
+        SmoothForm.mextDerivₗ_homotopyOperator_mpullback_of_contraction hΦ.1 hΦ.2.1 hΦ.2.2
           ((mem_closedForms_iff_mextDerivₗ_eq_zero I _).mp z.property),
         LinearMap.zero_apply, sub_zero]
     eq_zero_of_mem_exactForms := by
       rintro (_ | k) s hs hex
       · rwa [exactForms_zero, Submodule.mem_bot] at hex
-      · exact (Submodule.mem_bot ℝ).mp hs }, ⟨fun
-      | 0 => preservesSmoothFamilies_subtype
-      | _ + 1 => preservesSmoothFamilies_zero, fun k ↦
-      preservesSmoothFamilies_homotopyOperator_mpullback hΦ (closedForms I N (k + 1))⟩⟩
+      · exact (Submodule.mem_bot ℝ).mp hs }
+
+/-- The splitting of a smoothly contractible manifold is smooth, over parameter manifolds in all
+universes. -/
+theorem SmoothCohomologySplitting.isSmooth_ofIsSmoothlyContractible
+    (h : IsSmoothlyContractible I N) :
+    (ofIsSmoothlyContractible I h).IsSmooth.{uE, uH, uN} where
+  preservesSmoothFamilies_proj
+    | 0 => preservesSmoothFamilies_subtype
+    | _ + 1 => preservesSmoothFamilies_zero
+  preservesSmoothFamilies_primitive k :=
+    preservesSmoothFamilies_homotopyOperator_mpullback _ (closedForms I N (k + 1))
 
 end SymplecticGeometry

@@ -167,16 +167,19 @@ No statement of this part is one that the authors' errata
   intersections of nonempty subfamilies are smoothly contractible. Nothing
   here asks for a diffeomorphism onto a star-shaped or convex set; Weil's
   convex charts give the contractions by straight lines.
-- **The induction.** A direct strong induction on the number of members of
+- **The induction.** A direct recursion on the number of members of
   the cover's set of intersections, not Tau Ceti's
   `TauCeti.mayerVietoris_induction`. That principle concerns all opens of a
   second-countable space, needs a basis closed under intersections, and asks
   the property to pass to countable disjoint unions; (★) does not, since it
   fails when cohomology is infinite-dimensional (the auxiliary page's example
   of the plane minus the points $(j,0)$, $j\in\mathbb{Z}$). The induction is on
-  a finset `s` of index sets: the property holds for
-  `⋃ a ∈ s, ⋂ i ∈ a, U i`, by `Finset.strongInduction` on `s.card`, since the
-  intersection with the last member is a union of `s.card - 1` members.
+  a finset `s` of index sets: the splitting of
+  `⋃ a ∈ s, ⋂ i ∈ a, U i` is defined by well-founded recursion on `s.card`,
+  and its smoothness proved by strong induction on `s.card`, since the
+  intersection with the last member is a union of `s.card - 1` members. A
+  definition, rather than an existence theorem, gives one splitting for all
+  universes of parameter manifolds.
 - **Order of the cylinder.** Families and diffeotopies live on
   `unitInterval × M` and `ℝ × M`, time first, as `TauCeti.Diffeotopy`, Tau
   Ceti's Moser theorem and the overview do. `M × unitInterval` occurs only
@@ -670,9 +673,11 @@ For `[IsManifold I ∞ M]`:
 
 ### `Geometry/Manifold/DeRham/SmoothFamily/Contractible.lean`
 
-- `SmoothCohomologySplitting.exists_isSmooth_of_isSmoothlyContractible
-  (h : IsSmoothlyContractible I N) : ∃ σ : SmoothCohomologySplitting I N,
-  σ.IsSmooth`:
+- `SmoothCohomologySplitting.ofIsSmoothlyContractible I (h :
+  IsSmoothlyContractible I N) : SmoothCohomologySplitting I N`, with a
+  contraction chosen from `h`, and
+  `SmoothCohomologySplitting.isSmooth_ofIsSmoothlyContractible`, its
+  smoothness at every universe triple:
   in degree zero the closed forms are the constants (a closed 0-form is
   constant along the contraction, by `mem_closedForms_zero_iff`), a space of
   dimension one; in positive degree `space = ⊥`, `proj = 0` and `primitive`
@@ -720,13 +725,12 @@ hypotheses of Tau Ceti's Mayer–Vietoris sequence) and `U V : Opens M`:
 For `[FiniteDimensional ℝ E] [IsManifold I ∞ M] [T2Space M]
 [SigmaCompactSpace M]`:
 
-- `IsFiniteGoodCover.exists_smoothCohomologySplitting_isSmooth (hU :
-  IsFiniteGoodCover I U) : ∃ σ : SmoothCohomologySplitting I M, σ.IsSmooth`,
-  and the same from
-  `HasFiniteGoodCover I M`: (★), by the strong induction of *Decisions*, the
-  base case from `Contractible.lean`, the empty union by the zero splitting
-  (a lemma `SmoothCohomologySplitting.exists_isSmooth_of_isEmpty`), and transport
-  from the open `⊤` to `M`.
+- `IsFiniteGoodCover.smoothCohomologySplitting (hU : IsFiniteGoodCover I U) :
+  SmoothCohomologySplitting I M`, and the same from `HasFiniteGoodCover I M`,
+  with `isSmooth_smoothCohomologySplitting` at every universe triple: (★), by
+  the recursion of *Decisions*, the base case from `Contractible.lean`, the
+  empty union by the zero splitting (`SmoothCohomologySplitting.ofIsEmpty`,
+  with `isSmooth_ofIsEmpty`), and transport from the open `⊤` to `M`.
 - The milestone: `exists_primitiveMap_of_hasFiniteGoodCover
   (hM : HasFiniteGoodCover I M) (k : ℕ) : ∃ P : exactForms I M (k + 1) →ₗ[ℝ]
   SmoothForm I M ℝ k, (∀ η, mextDerivₗ I k (P η) = η) ∧
