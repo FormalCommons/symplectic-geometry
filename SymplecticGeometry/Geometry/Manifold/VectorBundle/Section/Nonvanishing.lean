@@ -13,7 +13,7 @@ import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Push
 import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Generic
 import TauCeti.Geometry.Manifold.Boundary.Collar.Topological
-import SymplecticGeometry.Geometry.Manifold.ModelTransport.InteriorModel
+import TauCeti.Geometry.Manifold.Boundary.Interior
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Generic
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Module
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Nonvanishing
@@ -77,11 +77,9 @@ a smooth section whose zeros in the interior form a discrete set: the generic se
 bundle pulled back to the interior, which has no zeros if the rank is larger than `dim E`. -/
 private theorem exists_contMDiffSection_isDiscrete_interior [SecondCountableTopology M]
     (hF : finrank ℝ E ≤ finrank ℝ F) :
-    ∃ σ : ContMDiffSection I F ∞ V, IsDiscrete {x : I.interiorOpens M | σ x = 0} := by
-  let U := I.interiorOpens M
-  let N := InteriorModel I U
-  let j : C^∞⟮𝓘(ℝ, E), N; I, M⟯ :=
-    ⟨InteriorModel.val, InteriorModel.isLocalDiffeomorph_val.contMDiff⟩
+    ∃ σ : ContMDiffSection I F ∞ V, IsDiscrete {x : I.interior M | σ x = 0} := by
+  let N := I.interior M
+  let j : C^∞⟮𝓘(ℝ, E), N; I, M⟯ := ⟨Subtype.val, I.contMDiff_subtypeVal_interior⟩
   have : ContMDiffVectorBundle ∞ F ((j : C(N, M)) *ᵖ V) 𝓘(ℝ, E) :=
     ContMDiffVectorBundle.pullback F V 𝓘(ℝ, E) j
   obtain ⟨k, s, hspan⟩ :=
@@ -101,15 +99,7 @@ private theorem exists_contMDiffSection_isDiscrete_interior [SecondCountableTopo
     · exact mem_residual_setOf_isDiscrete_zero_affineFamily h 0 t hspan'
   obtain ⟨a, ha⟩ := (dense_of_mem_residual hres).nonempty
   simp only [mem_ofPred_eq, key] at ha
-  refine ⟨affineFamily 0 s a, ?_⟩
-  convert ha.image (interiorModelHomeomorph I U).symm.isInducing using 1
-  ext x
-  rw [(interiorModelHomeomorph I U).symm.image_eq_preimage_symm, Homeomorph.symm_symm,
-    Set.mem_preimage, Set.mem_ofPred_eq, Set.mem_ofPred_eq]
-  simp only [j, ContMDiffMap.coeFn_mk]
-  have hz {p q : M} (h : p = q) : affineFamily 0 s a p = 0 ↔ affineFamily 0 s a q = 0 := by
-    subst h; rfl
-  exact hz (InteriorModel.val_interiorModelHomeomorph x).symm
+  exact ⟨affineFamily 0 s a, ha⟩
 
 omit [CompactSpace M] [FiniteDimensional ℝ F] [ContMDiffVectorBundle ∞ F V I] in
 /-- In the interior of a connected manifold of dimension at least two, let `σ` be a section whose
@@ -117,19 +107,17 @@ zeros in the interior are isolated, and `K` a compact subset of the interior who
 interior is nonempty. Some homotopy of the interior, starting at the identity, ends at a map that
 sends no point of `K` to a zero of `σ`. -/
 private theorem exists_homotopy_interior_ne_zero [ConnectedSpace M] (hdim : 1 < finrank ℝ E)
-    (σ : ContMDiffSection I F ∞ V) (hσ : IsDiscrete {x : I.interiorOpens M | σ x = 0})
-    {K : Set (I.interiorOpens M)} (hK : IsCompact K) (hKc : Kᶜ.Nonempty) :
-    ∃ G : unitInterval × I.interiorOpens M → I.interiorOpens M, Continuous G ∧
+    (σ : ContMDiffSection I F ∞ V) (hσ : IsDiscrete {x : I.interior M | σ x = 0})
+    {K : Set (I.interior M)} (hK : IsCompact K) (hKc : Kᶜ.Nonempty) :
+    ∃ G : unitInterval × I.interior M → I.interior M, Continuous G ∧
       (∀ y, G (0, y) = y) ∧ ∀ y ∈ K, σ (G (1, y)) ≠ 0 := by
-  let U := I.interiorOpens M
-  let N := InteriorModel I U
-  -- Restate the hypotheses for the topology of `N`, which is that of `U`.
-  have hZ : IsClosed (X := N) {x : U | σ x = 0} :=
+  have : ConnectedSpace (I.interior M) :=
+    isConnected_iff_connectedSpace.1 (I.isConnected_interior (n := ∞) (by simp))
+  have hZ : IsClosed {x : I.interior M | σ x = 0} :=
     σ.isClosed_setOf_eq_zero.preimage continuous_subtypeVal
-  have hZd : IsDiscrete (X := N) {x : U | σ x = 0} := hσ
-  have hK' : IsCompact (X := N) K := hK
-  obtain ⟨Ψ, hΨ, -⟩ := exists_diffeotopy_apply_one_notMem (E := E) (N := N) (n := ∞) (m := 1)
-    (by rw [← Module.finrank_eq_rank]; exact_mod_cast hdim) le_rfl (by norm_num) hZ hZd hK' hKc
+  obtain ⟨Ψ, hΨ, -⟩ := exists_diffeotopy_apply_one_notMem (E := E) (N := I.interior M) (n := ∞)
+    (m := 1) (by rw [← Module.finrank_eq_rank]; exact_mod_cast hdim) le_rfl (by norm_num) hZ hσ
+    hK hKc
   exact ⟨fun p ↦ Ψ p, Ψ.contMDiff.continuous, Ψ.apply_zero, hΨ⟩
 
 end Generic
@@ -159,17 +147,15 @@ theorem exists_contMDiffSection_forall_ne_zero_of_boundary_nonempty
     (isCollared_subtypeVal_boundary_of_compactSpace (n := n + 1) (M := M))
   obtain ⟨K, O, g, hK, hKi, -, hOi, hOK, hO, hgK, hg⟩ := hc.exists_homotopy_push
   -- Move the zeros of `σ` off `K`, inside the interior.
-  let U := (𝓡∂ (n + 2)).interiorOpens M
-  have hU {x : M} (hx : x ∈ (𝓡∂ (n + 2)).interior M) : x ∈ U :=
-    ModelWithCorners.mem_interiorOpens_iff_mem_interior.2 hx
+  let U := (𝓡∂ (n + 2)).interior M
   have hKU : IsCompact ((↑) ⁻¹' K : Set U) :=
-    ((U.isOpen.isOpenEmbedding_subtypeVal).isInducing.isCompact_preimage_iff
-      (by simpa [U] using hKi)).2 hK
+    (((𝓡∂ (n + 2)).isOpen_interior (n := ∞) (by simp)).isOpenEmbedding_subtypeVal.isInducing
+      |>.isCompact_preimage_iff (by simpa using hKi)).2 hK
   obtain ⟨x₀, hx₀⟩ := hO hM
   obtain ⟨G, hGc, hG0, hG1⟩ := exists_homotopy_interior_ne_zero (I := 𝓡∂ (n + 2)) (by simp) σ hσ
-    hKU ⟨⟨x₀, hU (hOi hx₀)⟩, fun h ↦ disjoint_left.1 hOK hx₀ h⟩
+    hKU ⟨⟨x₀, hOi hx₀⟩, fun h ↦ disjoint_left.1 hOK hx₀ h⟩
   -- The map `h = G₁ ∘ g` is homotopic to the identity and avoids the zeros of `σ`.
-  let g' : M → U := fun x ↦ ⟨g x, hU (hKi (hgK ⟨x, rfl⟩))⟩
+  let g' : M → U := fun x ↦ ⟨g x, hKi (hgK ⟨x, rfl⟩)⟩
   have hg' : Continuous g' := g.continuous.subtype_mk _
   let h : C(M, M) := ⟨fun x ↦ G (1, g' x), continuous_subtypeVal.comp (hGc.comp
     (continuous_const.prodMk hg'))⟩

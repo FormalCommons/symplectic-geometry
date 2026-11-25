@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Singular.LocalHomology.BoundaryDegree
 public import SymplecticGeometry.Analysis.Matrix.SymplecticGroup.Maslov
-public import SymplecticGeometry.Geometry.Manifold.ModelTransport.InteriorModel
+public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ChernNumber.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.ArgumentPrinciple
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.UnitaryFrame
@@ -16,6 +16,7 @@ public import SymplecticGeometry.Topology.VectorBundle.Determinant
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Smooth
 public import TauCeti.Analysis.Complex.NormalizedDeterminant
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Topological
+public import TauCeti.Geometry.Manifold.Boundary.Interior
 
 /-!
 # The first Chern number through a splitting of the surface
