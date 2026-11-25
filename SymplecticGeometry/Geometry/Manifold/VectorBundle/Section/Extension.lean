@@ -120,14 +120,10 @@ theorem exists_mfderiv_eq (q : M) (p : V q) (ξ : E →L[ℝ] ℝ) (b : F) :
     simp only [FiberBundle.extend, ← he, e.apply_mk_symm hy, e.apply_mk_symm hq]
   have hfd : MDifferentiableAt I 𝓘(ℝ) (fun y ↦ f y - f q) q :=
     ((hf.sub contMDiff_const) q).mdifferentiableAt (by simp)
-  have hfb : MDifferentiableAt I 𝓘(ℝ, F) (fun y ↦ (f y - f q) • b) q :=
-    hfd.smul mdifferentiableAt_const
   have hd : mvfderiv I (fun y ↦ (e ⟨q, p⟩).2 + (f y - f q) • b) q u = ξ u • b := by
-    rw [mvfderiv_fun_add mdifferentiableAt_const hfb,
-      mvfderiv_fun_smul hfd mdifferentiableAt_const, mvfderiv_const, mvfderiv_const,
+    rw [TauCeti.mvfderiv_const_add, mvfderiv_fun_smul hfd mdifferentiableAt_const, mvfderiv_const,
       mvfderiv_fun_sub (hf q |>.mdifferentiableAt (by simp)) mdifferentiableAt_const,
-      mvfderiv_const, sub_zero, SmoothBumpFunction.mvfderiv_bumpCovector, smul_zero, zero_add,
-      zero_add]
+      mvfderiv_const, sub_zero, SmoothBumpFunction.mvfderiv_bumpCovector, smul_zero, zero_add]
     -- `ξ` is a covector on the model space, read on the tangent space `TangentSpace I q = E`.
     exact ContinuousLinearMap.smulRight_apply (M₁ := E) (c := ξ) (f := b) (x := u)
   rw [← hev.mvfderiv_eq] at hd
