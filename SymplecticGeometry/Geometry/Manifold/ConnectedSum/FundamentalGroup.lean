@@ -284,8 +284,8 @@ variable {φ : ℂ ≃ₗᵢ[ℝ] E} {r : ℝ} {hr : 0 < r}
 /-- In the first punctured summand the neck loop is the circle `t ↦ e₁ (φ (r e^{2πit}))`. -/
 theorem coe_map_neckInl_neckLoop_apply (h₁ : IsOpenEmbedding e₁) (t : unitInterval) :
     ((neckLoop φ hr).map (neckInl h₁).continuous t : M) =
-      e₁ (φ (circleMap 0 r (2 * Real.pi * t))) :=
-  (rfl)
+      e₁ (φ (circleMap 0 r (2 * Real.pi * t))) := by
+  simp
 
 /-- In the second punctured summand the neck loop is the circle `t ↦ e₂ (φ (r⁻¹ e^{2πit}))`: the
 inversion keeps the angle and inverts the radius. -/
