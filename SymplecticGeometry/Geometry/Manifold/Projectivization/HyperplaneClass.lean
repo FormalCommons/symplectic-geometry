@@ -9,12 +9,10 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.HomologicalOrientatio
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
 
-import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
 import SymplecticGeometry.Geometry.Manifold.Projectivization.TwistCore
 import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Tensor
 import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.ComplexLinear
 import TauCeti.Geometry.Manifold.Projectivization.LineBundle
-import TauCeti.Topology.VectorBundle.Orientation.SectionIndex
 
 /-!
 # The hyperplane class evaluates to one on a projective line
@@ -42,8 +40,10 @@ section of `𝒪(1)` (Tau Ceti's `Projectivization.homogeneousSection`), whose o
 `[0 : 1]`. In the standard chart at that point, which is also the chart of the preferred
 trivialization of `𝒪(1)` there, the section reads `y ↦ y 0`, a complex-linear isomorphism
 `ℂ¹ → ℂ`; so its index there is `1` (`SymplecticGeometry.sectionIndex_eq_one_of_complexLinear`).
-Tau Ceti's `TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`
-then gives `⟨h, [ℂℙ¹]⟩ = 1`. This is the argument of
+`SymplecticGeometry.complexManifoldEvalFundamentalClass_complexEulerClass_eq_sum_sectionIndex`,
+a form of Tau Ceti's
+`TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`, then gives
+`⟨h, [ℂℙ¹]⟩ = 1`. This is the argument of
 `SymplecticGeometry.SmoothProjectiveHypersurface.evalFundamentalClass_hyperplaneClass_pow` for a
 single linear form on the projective line.
 
@@ -94,12 +94,8 @@ theorem complexManifoldEvalFundamentalClass_hyperplaneClass :
   have hZ : {x | s x = 0} = {pointAtInfinity} :=
     Set.ext homogeneousSection_X_zero_eq_zero_iff
   have hfin : {x | s x = 0}.Finite := hZ ▸ Set.finite_singleton _
-  have hE : finrank ℝ (Fin 1 → ℂ) = 2 * 0 + 1 + 1 :=
-    finrank_real_of_finrank_complex_eq_add_one (finrank_fin_fun ℂ)
-  rw [← complexEulerClass_twistCore_one (n := 1), complexManifoldEvalFundamentalClass_def,
-    HomologicalOrientation.evalFundamentalClass_uliftIntegralCohomologyIso_hom,
-    complexEulerClass_def,
-    VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex _ _ _ hs hE hfin]
+  rw [← complexEulerClass_twistCore_one (n := 1),
+    complexManifoldEvalFundamentalClass_complexEulerClass_eq_sum_sectionIndex _ _ hs hfin]
   rw [show hfin.toFinset = {pointAtInfinity} by simp [hZ], Finset.sum_singleton]
   -- At `[0 : 1]` the section reads `y ↦ y 0`, a complex-linear isomorphism, so its index is `1`.
   have hA : HasFDerivAt (fun y ↦ (trivializationAt ℂ (twistCore (𝕜 := ℂ) (n := 1) 1).Fiber
