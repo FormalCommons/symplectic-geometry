@@ -32,6 +32,8 @@ time `π` is the antipodal map; and since `R' = 0` on `[r₀, ∞)`, the twist i
 * `SymplecticGeometry.modelTwistFun R`: the model twist as a function of `T*Sⁿ`, the geodesic
   twist of `2π R'`.
 * `SymplecticGeometry.modelTwist hR`: the model twist of a twist profile, as a diffeomorphism.
+* `SymplecticGeometry.twistPrimitive R`: the function `2π (R'(μ z) μ z - R (μ z))` of `T*Sⁿ`, the
+  primitive of the model twist.
 
 ## Main results
 
@@ -53,6 +55,8 @@ time `π` is the antipodal map; and since `R' = 0` on `[r₀, ∞)`, the twist i
   run at the constant speed `φ'(μ z)` is an integral curve of the Hamiltonian vector field of
   `φ ∘ μ`; `SymplecticGeometry.isMIntegralCurve_geodesicFlow_twistProfile`: for a twist profile
   `R` its value at time `2π` is the model twist, which is thus the time-`2π` map of `R ∘ μ` there.
+* `SymplecticGeometry.contMDiff_twistPrimitive`, `SymplecticGeometry.twistPrimitive_of_le`: the
+  primitive of the model twist of a twist profile is smooth, and vanishes where `μ ≥ r₀`.
 
 ## Implementation notes
 
@@ -66,7 +70,8 @@ also on the zero section, where `C 0 = cos π = -1`. This is a smooth map of `(q
 is smooth (`contMDiff_of_contMDiff_cotangentCoord_comp`). The inverse is the same construction
 with `-θ` in place of `θ`, that is the model twist of `-R`, as the flow preserves `μ`. The same
 coordinate formula gives the equivariance under `O(n + 1)`, which acts on the coordinates by
-isometries.
+isometries. The function `t ↦ R'(t) t - R t` is even, so the primitive `twistPrimitive R`
+is smooth by `Function.Even.contDiff_comp_norm`, applied to the second coordinate.
 
 ## References
 
@@ -74,7 +79,7 @@ isometries.
   and equation (1.7) (arXiv version 2): the model twist on `T*Sⁿ` built from the normalized
   geodesic flow.
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], 3rd ed.,
-  p. 270: the model twist as the time-`2π` map of a function of the norm.
+  p. 270: the model twist as the time-`2π` map of a function of the norm, and its primitive.
 * [P. Seidel, *Lectures on four-dimensional Dehn twists*][Seidel2008], §1a.
 * [V. I. Arnold, *Some remarks on symplectic monodromy of Milnor fibrations*][Arnold1995], one of
   the early sources on twists of `T*Sⁿ`.
@@ -480,5 +485,49 @@ theorem isMIntegralCurve_geodesicFlow_twistProfile {R : ℝ → ℝ} {r₀ : ℝ
   ⟨isMIntegralCurve_geodesicFlow_comp hz (hR.contDiff.differentiable (by simp) _),
     (modelTwist_of_cotangentNorm_ne_zero hR hz).symm⟩
 
+/-! ### The primitive of the model twist -/
+
+/-- For a smooth even function `f : ℝ → ℝ`, the function `z ↦ f (μ z)` of `T*Sⁿ` is smooth, also
+across the zero section. -/
+theorem _root_.Function.Even.contMDiff_comp_cotangentNorm {f : ℝ → ℝ} (hf : f.Even)
+    (hc : ContDiff ℝ ∞ f) :
+    ContMDiff ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ) ∞
+      fun z : CotangentBundle (𝓡 n) (𝕊 n) ↦ f (cotangentNorm z) := by
+  simp only [cotangentNorm_def]
+  exact ((hf.contDiff_comp_norm (V := 𝔼 n) hc).comp contDiff_snd).contMDiff.comp
+    contMDiff_cotangentCoord
+
+/-- For a twist profile `R`, the function `t ↦ R'(t) t - R(t)` is even. -/
+theorem IsTwistProfile.even_deriv_mul_sub {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀) :
+    (fun t ↦ deriv R t * t - R t).Even := fun t ↦ by
+  simp only [hR.deriv_neg, hR.apply_neg]
+  ring
+
+/-- The primitive of the model twist of `R`: the function `2π (R'(μ z) μ z - R(μ z))` of `T*Sⁿ`,
+`μ = cotangentNorm`. -/
+def twistPrimitive (R : ℝ → ℝ) (z : CotangentBundle (𝓡 n) (𝕊 n)) : ℝ :=
+  2 * π * (deriv R (cotangentNorm z) * cotangentNorm z - R (cotangentNorm z))
+
+theorem twistPrimitive_def (R : ℝ → ℝ) (z : CotangentBundle (𝓡 n) (𝕊 n)) :
+    twistPrimitive R z =
+      2 * π * (deriv R (cotangentNorm z) * cotangentNorm z - R (cotangentNorm z)) :=
+  (rfl)
+
+/-- The primitive of the model twist of a twist profile is smooth, also across the zero
+section. -/
+theorem contMDiff_twistPrimitive {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀) :
+    ContMDiff ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ) ∞
+      (twistPrimitive (n := n) R) := by
+  have hc : ContDiff ℝ ∞ fun t ↦ deriv R t * t - R t :=
+    (hR.contDiff_deriv.mul contDiff_id).sub hR.contDiff
+  refine ((contMDiff_const (c := 2 * π)).mul
+    (hR.even_deriv_mul_sub.contMDiff_comp_cotangentNorm (n := n) hc)).congr fun z ↦ ?_
+  rw [twistPrimitive_def, Pi.mul_apply]
+
+/-- The primitive of the model twist of a twist profile vanishes where `μ ≥ r₀`. -/
+theorem twistPrimitive_of_le {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀)
+    {z : CotangentBundle (𝓡 n) (𝕊 n)} (hz : r₀ ≤ cotangentNorm z) : twistPrimitive R z = 0 := by
+  rw [twistPrimitive_def, hR.deriv_eq_zero hz, hR.apply_of_le hz]
+  ring
 
 end SymplecticGeometry
