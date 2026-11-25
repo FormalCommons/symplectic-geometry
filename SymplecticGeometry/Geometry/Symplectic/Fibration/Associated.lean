@@ -5,13 +5,16 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Associated.PullbackPrincipal
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Curvature
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
-public import TauCeti.Geometry.Manifold.ContMDiff.FiniteDimension
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
+public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Basic
+public import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Basic
 
 /-!
@@ -41,6 +44,10 @@ of the descent theorem `TauCeti.AssociatedBundle.existsUnique_mpullback_chartedM
 ## Main results
 
 * `SymplecticGeometry.momentPairing_apply`: `⟨μ, A⟩_{(x, v)}(a, b) = μ(v)(A_x a)`.
+* `SymplecticGeometry.mextDerivₗ_momentPairing_apply`: `d ⟨μ, A⟩` on two tangent vectors, by the
+  Leibniz rule.
+* `SymplecticGeometry.weinsteinForm_apply`: Weinstein's form in terms of the curvature `F_A`,
+  `σ(b₁ + X_{A a₁}, b₂ + X_{A a₂}) + ⟨μ, F_A(a₁, a₂)⟩`.
 * `SymplecticGeometry.isClosed_weinsteinForm`: Weinstein's form is closed.
 * `SymplecticGeometry.mpullback_smul_momentPairing`: `⟨μ, A⟩` is invariant under the diagonal
   action when `A` is equivariant and `μ` is coadjoint-equivariant.
@@ -53,10 +60,15 @@ The definitions take the smoothness of the components of `μ` as the argument `h
 they need; the theorems take it as an implicit argument, so that it is never asked for beside the
 moment map hypothesis, from which it follows
 (`TauCeti.SmoothTwoForm.IsMomentMap.contMDiff_of_neg`). The pairing turns `μ` into a map to
-`𝔤 →L[ℝ] ℝ`, which is smooth since `𝔤` is finite-dimensional (Tau Ceti's
-`TauCeti.contMDiffAt_clm_apply`). Closedness needs only that `σ` is closed; invariance needs the
+`𝔤 →L[ℝ] ℝ`, which is smooth since `𝔤` is finite-dimensional
+(`SymplecticGeometry.contMDiff_toContinuousLinearMap_of_contMDiff_apply`).
+Closedness needs only that `σ` is closed; invariance needs the
 equivariance of `A` and of `μ`, and the invariance of `σ`, which Tau Ceti's moment maps
-do not include. The norm on `𝔤` is the scoped one of
+do not include. The expression in terms of the curvature (`weinsteinForm_apply`) needs only the
+moment map condition and its infinitesimal equivariance, `σ(X_ξ, X_η) = -μ(⁅ξ, η⁆)`, which
+Tau Ceti derives from equivariance
+(`TauCeti.SmoothTwoForm.IsEquivariantMomentMap.momentCocycle_eq_zero`).
+The norm on `𝔤` is the scoped one of
 `SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed`.
 
 ## References
@@ -95,7 +107,7 @@ def momentMapCLM (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))
     (hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ) :
     C^∞⟮IF, F; 𝓘(ℝ, GroupLieAlgebra IG G →L[ℝ] ℝ), GroupLieAlgebra IG G →L[ℝ] ℝ⟯ where
   val v := LinearMap.toContinuousLinearMap (μ v)
-  property _ := contMDiffAt_clm_apply.2 fun ξ ↦ (hμs ξ).contMDiffAt
+  property := contMDiff_toContinuousLinearMap_of_contMDiff_apply hμs
 
 @[simp]
 theorem momentMapCLM_apply (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))
@@ -143,6 +155,46 @@ theorem momentPairing_apply (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))
   -- The tangent space of the product is the product of the tangent spaces by definition.
   rfl
 
+/-- The exterior derivative of the pairing, `d ⟨μ, A⟩ = ⟨dμ ∧ A⟩ + ⟨μ, dA⟩`, on two tangent
+vectors `w₁ = (a₁, b₁)` and `w₂ = (a₂, b₂)` at `(x, v)`:
+`dμ(b₁)(A_x a₂) - dμ(b₂)(A_x a₁) + μ(v)(dA_x(a₁, a₂))`, where `dμ(b)(ξ)` is the derivative along
+`b` of the component `μ_ξ`. -/
+theorem mextDerivₗ_momentPairing_apply (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))
+    (hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ)
+    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1)
+    (p : ManifoldTotalSpace G P × F) (w₁ w₂ : TangentSpace ((IB.prod IG).prod IF) p) :
+    (mextDerivₗ ((IB.prod IG).prod IF) 1 (momentPairing μ hμs A)).val p ![w₁, w₂] =
+      mvfderiv IF (fun v ↦ μ v (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1])) p.2
+          (Manifold.tangentSpaceProdEquiv p w₁).2 -
+        mvfderiv IF (fun v ↦ μ v (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1])) p.2
+          (Manifold.tangentSpaceProdEquiv p w₂).2 +
+        μ p.2 (mextDeriv A.val p.1
+          ![(Manifold.tangentSpaceProdEquiv p w₁).1, (Manifold.tangentSpaceProdEquiv p w₂).1]) := by
+  have h₁ (w : TangentSpace ((IB.prod IG).prod IF) p) :
+      (fun i ↦ (Manifold.tangentSpaceProdEquiv p (![w] i)).1) =
+        ![(Manifold.tangentSpaceProdEquiv p w).1] :=
+    funext fun i ↦ by fin_cases i; rfl
+  have h₂ : (fun i ↦ (Manifold.tangentSpaceProdEquiv p (![w₁, w₂] i)).1) =
+      ![(Manifold.tangentSpaceProdEquiv p w₁).1, (Manifold.tangentSpaceProdEquiv p w₂).1] :=
+    funext fun i ↦ by fin_cases i <;> rfl
+  have hd : MDifferentiableAt IF 𝓘(ℝ, GroupLieAlgebra IG G →L[ℝ] ℝ) (momentMapCLM μ hμs) p.2 :=
+    (momentMapCLM μ hμs).contMDiff.mdifferentiableAt (by simp)
+  rw [momentPairing_def, mextDerivₗ_apply, SmoothForm.coe_wedgeWith,
+    SmoothForm.mextDeriv_wedgeWith_apply, ← mextDerivₗ_apply, ← mextDerivₗ_apply,
+    SmoothForm.mextDerivₗ_mpullback, SmoothForm.mextDerivₗ_mpullback,
+    ← SmoothForm.coe_wedgeWith, ← SmoothForm.coe_wedgeWith, pow_zero, one_smul]
+  -- The wedges have degrees `0 + 1 + 1` and `0 + (1 + 1)`, which are `1 + 1` and `0 + 2` only
+  -- after unfolding the addition of natural numbers.
+  erw [SmoothForm.wedgeWith_apply_one_one, SmoothForm.wedgeWith_flip,
+    SmoothForm.wedgeWith_apply_zero_right]
+  simp only [Nat.zero_mul, pow_zero, one_smul, ContinuousLinearMap.flip_apply,
+    ContinuousLinearMap.id_apply, SmoothForm.mpullback_fst_apply, SmoothForm.mpullback_snd_apply,
+    mextDerivₗ_apply, SmoothForm.coe_ofFunction, mextDeriv_ofFunction, RoughForm.ofFunction_apply,
+    ContinuousAlternatingMap.ofSubsingleton_apply_apply, Matrix.cons_val_zero, Function.comp_def,
+    Fin.cast_eq_self, h₁, h₂]
+  rw [← mvfderiv_clm_apply_const hd, ← mvfderiv_clm_apply_const hd]
+  simp only [momentMapCLM_apply]
+
 /-! ### Weinstein's form -/
 
 /-- **Weinstein's form** `σ + d ⟨μ, A⟩` on `P × F`, for a two-form `σ` on `F`, a map `μ : F → 𝔤*`
@@ -163,6 +215,45 @@ theorem weinsteinForm_def (σ : SmoothTwoForm IF F)
       SmoothForm.mpullback Prod.snd contMDiff_snd σ +
         mextDerivₗ ((IB.prod IG).prod IF) 1 (momentPairing μ hμs A) :=
   (rfl)
+
+/-- **Weinstein's form in terms of the curvature.** For a moment map `μ` of an action of `G` on
+`F`, in the sign convention where `-μ` is a moment map in Tau Ceti's sense, Weinstein's form at
+`(x, v)` on two tangent vectors `(a₁, b₁)` and `(a₂, b₂)` is
+`σ_v(b₁ + X_{A a₁}(v), b₂ + X_{A a₂}(v)) + μ(v)(F_A(a₁, a₂))`, where `X_ξ` is the fundamental
+vector field of `ξ` on `F` and `F_A` the curvature of `A`. -/
+theorem weinsteinForm_apply [CompleteSpace EF] [MulAction G F] [ContMDiffSMul IG IF ∞ G F]
+    {σ : SmoothTwoForm IF F} {μ : F → Module.Dual ℝ (GroupLieAlgebra IG G)}
+    (hμ : σ.IsEquivariantMomentMap fun v ↦ -μ v) {hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ}
+    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1)
+    (p : ManifoldTotalSpace G P × F) (w₁ w₂ : TangentSpace ((IB.prod IG).prod IF) p) :
+    (weinsteinForm σ μ hμs A).val p ![w₁, w₂] =
+      σ.val p.2 ![(Manifold.tangentSpaceProdEquiv p w₁).2 +
+            fundamentalVectorField IF (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1]) p.2,
+          (Manifold.tangentSpaceProdEquiv p w₂).2 +
+            fundamentalVectorField IF (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1]) p.2] +
+        μ p.2 ((connectionCurvature A).val p.1
+          ![(Manifold.tangentSpaceProdEquiv p w₁).1, (Manifold.tangentSpaceProdEquiv p w₂).1]) := by
+  -- The moment map condition: `dμ_ξ(b) = σ(b, X_ξ)`.
+  have hd (ξ : GroupLieAlgebra IG G) (b : TangentSpace IF p.2) :
+      mvfderiv IF (fun v ↦ μ v ξ) p.2 b =
+        SmoothBundleForm.eval₂ σ p.2 b (fundamentalVectorField IF ξ p.2) := by
+    have h := hμ.toIsMomentMap.eval₂_apply ξ p.2 b
+    simp only [LinearMap.neg_apply, mvfderiv_fun_neg, neg_apply,
+      InfinitesimalAction.fundamental_apply] at h
+    rw [SmoothBundleForm.eval₂_swap, h, neg_neg]
+  -- Infinitesimal equivariance: `σ(X_ξ, X_η) = -μ(⁅ξ, η⁆)`.
+  have hc := SmoothTwoForm.momentCocycle_eq_zero_iff.1 (hμ.momentCocycle_eq_zero p.2)
+    (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₁).1])
+    (A.val p.1 ![(Manifold.tangentSpaceProdEquiv p w₂).1])
+  simp only [InfinitesimalAction.fundamental_apply, LinearMap.neg_apply] at hc
+  rw [weinsteinForm_def, Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
+    mextDerivₗ_momentPairing_apply, connectionCurvature_apply, map_add, hd, hd,
+    ← SmoothBundleForm.eval₂_apply, ← SmoothBundleForm.eval₂_apply,
+    SmoothForm.eval₂_mpullback_snd, SmoothBundleForm.eval₂_add_left,
+    SmoothBundleForm.eval₂_add_right, SmoothBundleForm.eval₂_add_right, hc,
+    SmoothBundleForm.eval₂_swap σ p.2 (fundamentalVectorField IF _ p.2)
+      (Manifold.tangentSpaceProdEquiv p w₂).2]
+  ring
 
 /-- **Weinstein's form is closed** when `σ` is. -/
 theorem isClosed_weinsteinForm {σ : SmoothTwoForm IF F} (hσ : σ.IsClosed)
