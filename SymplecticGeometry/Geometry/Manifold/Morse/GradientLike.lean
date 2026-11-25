@@ -13,11 +13,11 @@ import TauCeti.Topology.LocallyFinite.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import TauCeti.Geometry.Manifold.Riemannian.Gradient.ChainRule
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
-import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.Topology.VectorBundle.Riemannian.Basic
 import SymplecticGeometry.Algebra.Order.Field.Basic
 import SymplecticGeometry.Analysis.Convex.Mul
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Existence
 
 /-!
 # Gradient-like vector fields
@@ -58,9 +58,10 @@ the norm of the gradient is taken for the `RiemannianBundle` instance that it de
 Tau Ceti's `TauCeti.IsAdaptedPseudoGradient.exists_contMDiffRiemannianMetric_neg_mgradient_eq`; this
 instance is introduced in the statements only.
 
-The local metrics are glued by Tau Ceti's
-`TauCeti.exists_contMDiffRiemannianMetric_inner_eq_and_inner_mem_of_locallyFinite`, as in
-`TauCeti.IsAdaptedPseudoGradient.exists_contMDiffRiemannianMetric_inner_eq_euclideanForm`. A
+The local metrics are glued by `TauCeti.exists_contMDiffRiemannianMetric_inner_mem_of_local`,
+the case without prescribed values of Tau Ceti's
+`TauCeti.exists_contMDiffRiemannianMetric_inner_eq_and_inner_mem_of_locallyFinite`, which
+`TauCeti.IsAdaptedPseudoGradient.exists_contMDiffRiemannianMetric_inner_eq_euclideanForm` uses. A
 locally finite refinement of the given neighbourhoods first yields, by Tau Ceti's
 `LocallyFinite.exists_continuous_pos_lt`, a continuous `δ > 0` below the local constants.
 The inequality with constant `δ y` at `y` is then convex in the metric: with
@@ -323,13 +324,10 @@ theorem isGradientLike_of_forall_exists_nhds [T2Space M] [SigmaCompactSpace M]
   have hδ (y : M) : 0 < δ y ∧ ∀ x, y ∈ V x → δ y ≤ c x :=
     ⟨hδ₀ y, fun x hy ↦ (hδc x y (subset_closure hy)).le⟩
   -- Glue the metrics `g x`, under the fibrewise condition with constant `δ`, which is convex.
-  obtain ⟨G, -, hG⟩ := exists_contMDiffRiemannianMetric_inner_eq_and_inner_mem_of_locallyFinite
+  obtain ⟨G, hG⟩ := exists_contMDiffRiemannianMetric_inner_mem_of_local
     (IB := 𝓘(ℝ, E)) (n := ⊤) (F := E) (E := fun x : M ↦ TangentSpace 𝓘(ℝ, E) x)
-    (A := (Empty.elim : Empty → Set M)) (U := Empty.elim) (β := Empty.elim)
-    (c := fun y ↦ gradientLikeCondition f X (δ y) y) (fun i ↦ i.elim)
-    (locallyFinite_of_finite _) (fun i ↦ i.elim) (fun i ↦ i.elim) (fun i ↦ i.elim)
-    (fun i ↦ i.elim) (fun i ↦ i.elim) (fun i ↦ i.elim)
-    (fun y ↦ convex_gradientLikeCondition (δ y) y) (fun i ↦ i.elim) fun y₀ _ ↦ by
+    (c := fun y ↦ gradientLikeCondition f X (δ y) y)
+    (fun y ↦ convex_gradientLikeCondition (δ y) y) fun y₀ ↦ by
       obtain ⟨x, hx⟩ := mem_iUnion.1 (hVcov ▸ mem_univ y₀)
       refine ⟨V x, (hVo x).mem_nhds hx, (g x).inner, (g x).contMDiff.contMDiffOn,
         fun y hy ↦ ⟨⟨(g x).symm y, (g x).pos y⟩, ?_⟩⟩
