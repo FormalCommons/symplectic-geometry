@@ -67,7 +67,7 @@ open scoped Matrix.Norms.Operator
 
 variable {S : Type} [TopologicalSpace S] [ChartedSpace (EuclideanHalfSpace 2) S]
   [IsManifold (𝓡∂ 2) ∞ S] [T2Space S] [CompactSpace S] [ConnectedSpace S]
-  (o : Manifold.Orientation (𝓡 2) (InteriorModel (𝓡∂ 2) ((𝓡∂ 2).interiorOpens S)) (Fin 2))
+  (o : Manifold.Orientation (𝓡 2) ((𝓡∂ 2).interior S) (Fin 2))
 
 /-- The extension lemma for a smooth map `Ψ` from a nonempty boundary: the bundle over the double
 of `S` clutched by `Ψ` is trivial, and a global frame of it gives the extension. -/
