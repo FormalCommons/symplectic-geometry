@@ -5,11 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Lie.FundamentalVectorField
 public import SymplecticGeometry.Geometry.Lie.Adjoint.Splitting
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Data
 
 /-!
-# The action of `K` on the splitting and on `𝔪*` in the local model
+# The action of `K` on the splitting, on `𝔪*` and on `V` in the local model
 
 Let `D : SymplecticGeometry.LocalModelData K V A` be the data of the Marle–Guillemin–Sternberg
 local model `G ×_K (𝔪* × V)`, with its `Ad_K`-invariant splitting `𝔤 = 𝔥 ⊕ 𝔪 ⊕ 𝔮` and the
@@ -18,12 +19,17 @@ identification `A ≃ 𝔪*`. This file gives the linear algebra of the action o
 extensions by zero `ι𝔥 : 𝔥* → 𝔤*` and `ι𝔪 : 𝔪* → 𝔤*` intertwine the duals of the adjoint
 representations of `K` on `𝔥` and `𝔪` with the coadjoint representation of `K` on `𝔤*`.
 The representation of `K` on `A` is the dual of the adjoint representation on `𝔪`, transported
-to `A` by `D.equivDual𝔪`.
+to `A` by `D.equivDual𝔪`. Finally, the infinitesimal map `ρ : 𝔥 → sp(V, σ)` and the moment map
+`μ_V : V → 𝔥*` are equivariant for the representation `rep` of `K` on `V`.
 
 The invariance of the sums is that of a sup of subrepresentations (Mathlib's lattice of
 `Subrepresentation`). The equivariance of the extensions by zero is the case of the splitting of
 `TauCeti.Lie.dualMap_projectionOnto_dual`, which follows the route described in the module
-docstring of Tau Ceti's `TauCeti/Geometry/Lie/Adjoint/Splitting.lean`.
+docstring of Tau Ceti's `TauCeti/Geometry/Lie/Adjoint/Splitting.lean`. The equivariance of `ρ`
+is that of the fundamental vector fields of the action of `K` on `V` through `rep`, Tau Ceti's
+`TauCeti.mfderiv_smul_fundamentalVectorField`, read through `D.mfderiv_rep_apply` and the
+naturality `MonoidHom.groupLieAlgebraMap_adjointContinuousLinearMap` of the adjoint action for the
+inclusion `K → G`. That of `μ_V` follows from it, since each `rep k` preserves `σ`.
 
 ## Main definitions
 
@@ -38,6 +44,10 @@ docstring of Tau Ceti's `TauCeti/Geometry/Lie/Adjoint/Splitting.lean`.
 * `SymplecticGeometry.LocalModelData.ι𝔥_adjoint𝔥_dual`,
   `SymplecticGeometry.LocalModelData.ι𝔪_symm_adjoint𝔪_dual`: `ι𝔥` and `ι𝔪` are equivariant.
 * `SymplecticGeometry.LocalModelData.ι𝔪_repA`: `ι𝔪 (repA k η) = Ad*_k (ι𝔪 η)`.
+* `SymplecticGeometry.LocalModelData.ρ_adjoint𝔥`: `ρ (Ad_k ξ) = rep k ∘ ρ ξ ∘ rep k⁻¹`.
+* `SymplecticGeometry.LocalModelData.momentMap_rep`,
+  `SymplecticGeometry.LocalModelData.ι𝔥_momentMap_rep`: `μ_V` is equivariant, and
+  `ι𝔥 (μ_V (rep k v)) = Ad*_k (ι𝔥 (μ_V v))`.
 
 ## References
 
@@ -139,6 +149,58 @@ the coadjoint representation: `ι𝔪 (repA k η) = Ad*_k (ι𝔪 η)`. -/
 theorem ι𝔪_repA (k : K) (η : A) :
     D.ι𝔪 (D.repA k η) = coadjointRepresentation ℝ I G k (D.ι𝔪 η) := by
   rw [repA_apply, ι𝔪_symm_adjoint𝔪_dual, LinearEquiv.symm_apply_apply]
+
+/-! ### Equivariance of `ρ` and of `μ_V` -/
+
+/-- The infinitesimal map `ρ : 𝔥 → sp(V, σ)` is equivariant:
+`ρ (Ad_k ξ) v = rep k (ρ ξ (rep k⁻¹ v))` for `k ∈ K`, `ξ ∈ 𝔥` and `v ∈ V`. -/
+theorem ρ_adjoint𝔥_apply (k : K) (ξ : D.𝔥) (v : V) :
+    (D.ρ (D.adjoint𝔥 k ξ) : Module.End ℝ V) v =
+      D.rep k ((D.ρ ξ : Module.End ℝ V) (D.rep k⁻¹ v)) := by
+  obtain ⟨ζ, hζ⟩ := D.range_groupLieAlgebraMap_subtype.ge ξ.property
+  obtain rfl : ξ = ⟨_, D.groupLieAlgebraMap_subtype_mem_𝔥 ζ⟩ := Subtype.ext hζ.symm
+  have hAd : D.adjoint𝔥 k ⟨_, D.groupLieAlgebraMap_subtype_mem_𝔥 ζ⟩ =
+      ⟨_, D.groupLieAlgebraMap_subtype_mem_𝔥 (adjointContinuousLinearMap (I := 𝓘(ℝ, F)) k ζ)⟩ :=
+    Subtype.ext <| by
+      simp only [coe_adjoint𝔥_apply, adjointRepresentation_apply,
+        MonoidHom.groupLieAlgebraMap_adjointContinuousLinearMap, Subgroup.coe_subtype]
+  rw [hAd, ← mfderiv_rep_apply, ← mfderiv_rep_apply]
+  -- The equivariance of the fundamental vector fields of the action of `K` on `V` through `rep`.
+  let : MulAction K V := MulAction.compHom V D.rep
+  have : ContMDiffSMul 𝓘(ℝ, F) 𝓘(ℝ, V) 1 K V := ⟨D.contMDiff_rep.of_le (by simp)⟩
+  have h := mfderiv_smul_fundamentalVectorField (I' := 𝓘(ℝ, V)) k ζ (D.rep k⁻¹ v)
+  simp only [fundamentalVectorField_apply, MulAction.compHom_smul_def, LinearEquiv.smul_def] at h
+  have hv : D.rep k (D.rep k⁻¹ v) = v := by
+    rw [← mul_apply_eq_comp, ← map_mul, mul_inv_cancel, map_one, one_apply_eq_self]
+  have hm := (D.rep k).toContinuousLinearEquiv.mfderiv_eq (x := D.rep k⁻¹ v)
+  rw [LinearEquiv.coe_toContinuousLinearEquiv'] at hm
+  rw [hm, hv] at h
+  -- Rewriting `h` further would change the base point of a `TangentSpace` type, so the last step
+  -- goes through the coercion of `(D.rep k).toContinuousLinearEquiv` as a term.
+  exact h.symm.trans (congrFun (LinearEquiv.coe_toContinuousLinearEquiv' (D.rep k)) _)
+
+/-- The infinitesimal map `ρ : 𝔥 → sp(V, σ)` is equivariant: `ρ (Ad_k ξ)` is the conjugate
+`rep k ∘ ρ ξ ∘ rep k⁻¹` of `ρ ξ`. -/
+theorem ρ_adjoint𝔥 (k : K) (ξ : D.𝔥) :
+    (D.ρ (D.adjoint𝔥 k ξ) : Module.End ℝ V) =
+      (D.rep k).toLinearMap ∘ₗ (D.ρ ξ : Module.End ℝ V) ∘ₗ (D.rep k⁻¹).toLinearMap :=
+  LinearMap.ext (D.ρ_adjoint𝔥_apply k ξ)
+
+/-- The moment map `μ_V : V → 𝔥*` is equivariant: `μ_V (rep k v)` is the dual of the adjoint
+representation of `K` on `𝔥` applied to `μ_V v`. -/
+theorem momentMap_rep (k : K) (v : V) :
+    D.momentMap (D.rep k v) = D.adjoint𝔥.dual k (D.momentMap v) := by
+  ext ξ
+  rw [momentMap_apply, Representation.dual_apply, Module.Dual.transpose_apply,
+    LinearMap.comp_apply, momentMap_apply, ρ_adjoint𝔥_apply, inv_inv,
+    ← (D.isSymplectomorphism_rep k).apply (D.rep k⁻¹ _) v, ← mul_apply_eq_comp (D.rep k),
+    ← map_mul, mul_inv_cancel, map_one, one_apply_eq_self]
+
+/-- The moment map `μ_V`, extended by zero to `𝔤*`, is equivariant:
+`ι𝔥 (μ_V (rep k v)) = Ad*_k (ι𝔥 (μ_V v))`. -/
+theorem ι𝔥_momentMap_rep (k : K) (v : V) :
+    D.ι𝔥 (D.momentMap (D.rep k v)) = coadjointRepresentation ℝ I G k (D.ι𝔥 (D.momentMap v)) := by
+  rw [momentMap_rep, ι𝔥_adjoint𝔥_dual]
 
 end LocalModelData
 
