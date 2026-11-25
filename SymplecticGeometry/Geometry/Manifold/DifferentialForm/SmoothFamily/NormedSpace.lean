@@ -15,18 +15,17 @@ import TauCeti.Topology.Algebra.Module.BilinearForm
 
 On a normed space `E`, with its model structure `𝓘(ℝ, E)`, every tangent space is `E`, so the
 values of a `k`-form on `E` all lie in the one normed space `E [⋀^Fin k]→L[ℝ] F`. For a smooth
-family `α : N → SmoothForm 𝓘(ℝ, E) E F k` over a manifold `N`, this file shows that the value
-`(α t) x` is jointly continuous in `(t, x)`, and draws the consequences over compact sets
-`K ⊆ N` and `S ⊆ E`: the values are bounded on `K × S`, and, for two-forms, nondegeneracy on
-`K × S` survives every perturbation of the value that is small enough, with one bound for all
-of `K × S`.
+family `α : N → SmoothForm 𝓘(ℝ, E) E F k` over a manifold `N`, the value `(α t) x` is jointly
+continuous in `(t, x)` (`SymplecticGeometry.IsSmoothFamily.continuous_val`, in
+`SmoothFamily/Basic.lean`). This file draws the consequences over compact sets `K ⊆ N` and
+`S ⊆ E`: the values are bounded on `K × S`, and, for two-forms, nondegeneracy on `K × S`
+survives every perturbation of the value that is small enough, with one bound for all of
+`K × S`.
 
 ## Main results
 
-* `SymplecticGeometry.IsSmoothFamily.continuous_val`: the value `(α t) x` of a smooth family of
-  forms on a normed space is a continuous function of `(t, x)`.
-* `SymplecticGeometry.IsSmoothFamily.exists_norm_val_le`: it is bounded on `K × S`, for compact
-  `K` and `S`.
+* `SymplecticGeometry.IsSmoothFamily.exists_norm_val_le`: the value of a smooth family of forms
+  on a normed space is bounded on `K × S`, for compact `K` and `S`.
 * `SymplecticGeometry.IsSmoothFamily.exists_pos_forall_nondegenerate`: if the two-forms `τ t`
   are nondegenerate at every point of `S` for every `t ∈ K`, then there is `r > 0` such that
   every two-form `σ` with `‖σ x - τ t x‖ < r`, for some `t ∈ K` and `x ∈ S`, is nondegenerate
@@ -35,10 +34,6 @@ of `K × S`.
 The last one combines the openness of nondegenerate alternating maps (Tau Ceti's
 `TauCeti.isOpen_setOf_nondegenerate`) with Mathlib's `IsCompact.exists_thickening_subset_open`,
 applied to the compact image of `K × S`.
-
-`SymplecticGeometry.IsSmoothFamily.continuous_apply_one` (`SmoothFamily/Basic.lean`) is the
-special case of one-forms on `ℝ`, evaluated on the unit vector, and the proof of
-`SymplecticGeometry.IsSmoothFamily.continuous_val` follows its proof.
 -/
 
 public section
@@ -54,27 +49,11 @@ variable {E EN HN N F : Type*}
   [TopologicalSpace N] [ChartedSpace HN N] {J : ModelWithCorners ℝ EN HN} [IsManifold J 1 N]
   [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ} {α : N → SmoothForm 𝓘(ℝ, E) E F k}
 
-/-- **Joint continuity of a smooth family.** For a smooth family `α` of `k`-forms on a normed
-space `E`, the value `(α t) x`, an element of `E [⋀^Fin k]→L[ℝ] F`, depends continuously on
-`(t, x)`. -/
-theorem continuous_val (h : IsSmoothFamily J α) :
-    Continuous (Y := E [⋀^Fin k]→L[ℝ] F) fun p : N × E ↦ (α p.1).val p.2 := by
-  refine continuous_iff_continuousAt.2 fun p₀ ↦ ?_
-  have hc := (Bundle.contMDiffAt_totalSpace_iff.mp (isSmoothFamily_iff_contMDiff.mp h p₀)).2
-  simp only [FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
-    TangentBundle.symmL_model_space] at hc
-  refine hc.continuousAt.congr (Filter.Eventually.of_forall fun p ↦ ?_)
-  ext v
-  -- The trivialization at `p₀` is `1 : E →L[ℝ] TangentSpace 𝓘(ℝ, E) p.2`, whose target is `E`
-  -- only definitionally, so `ContinuousLinearMap.one_apply` does not apply (as in
-  -- `SymplecticGeometry.IsSmoothFamily.continuous_apply_one`).
-  exact (ContinuousAlternatingMap.compContinuousLinearMap_apply _ _ _).trans rfl
-
 /-- **Bounds on compact sets.** The values of a smooth family `α` of forms on a normed space
 `E` are bounded in norm on `K × S`, for compact sets `K` of parameters and `S` of points. -/
 theorem exists_norm_val_le (h : IsSmoothFamily J α) {K : Set N} {S : Set E} (hK : IsCompact K)
     (hS : IsCompact S) :
-    ∃ C, ∀ t ∈ K, ∀ x ∈ S, ‖(show E [⋀^Fin k]→L[ℝ] F from (α t).val x)‖ ≤ C := by
+    ∃ C, ∀ t ∈ K, ∀ x ∈ S, @norm (E [⋀^Fin k]→L[ℝ] F) _ ((α t).val x) ≤ C := by
   obtain ⟨C, hC⟩ := (hK.prod hS).exists_bound_of_continuousOn h.continuous_val.continuousOn
   exact ⟨C, fun t ht x hx ↦ hC (t, x) ⟨ht, hx⟩⟩
 
@@ -87,7 +66,7 @@ theorem exists_pos_forall_nondegenerate [FiniteDimensional ℝ E]
     (hK : IsCompact K) (hS : IsCompact S)
     (hτ : ∀ t ∈ K, ∀ x ∈ S, ((τ t).bilinFormAt x).Nondegenerate) :
     ∃ r > 0, ∀ t ∈ K, ∀ x ∈ S, ∀ σ : SmoothTwoForm 𝓘(ℝ, E) E,
-      ‖(show E [⋀^Fin 2]→L[ℝ] ℝ from σ.val x - (τ t).val x)‖ < r →
+      @norm (E [⋀^Fin 2]→L[ℝ] ℝ) _ (σ.val x - (τ t).val x) < r →
         (σ.bilinFormAt x).Nondegenerate := by
   -- The bilinear form of a two-form at `x` is that of its value at `x`.
   have hB (σ : SmoothTwoForm 𝓘(ℝ, E) E) (x : E) : σ.bilinFormAt x =
