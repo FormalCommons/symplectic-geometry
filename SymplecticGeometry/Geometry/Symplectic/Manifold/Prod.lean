@@ -7,9 +7,10 @@ module
 
 public import TauCeti.Geometry.Symplectic.Manifold.Prod
 public import Mathlib.Geometry.Manifold.Algebra.SMul
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
-# Invariance of the product form under a diagonal action
+# The product form under diagonal actions and on slices
 
 For two-forms `σ` on `M` and `τ` on `N` and an element `g` of a monoid acting smoothly on both,
 `TauCeti.SmoothTwoForm.mpullback_smul_prod` says that if `g` preserves `σ` and `τ`, it preserves
@@ -19,6 +20,9 @@ the diagonal action of `g`. The proof is the one of the field `mpullback_smul` i
 `TauCeti.SmoothTwoForm.HamiltonianTorusData.prod`
 (`TauCeti/Geometry/Symplectic/Hamiltonian/EquivariantMomentMap/Torus.lean`), for any monoid in
 place of a torus.
+
+On a slice `x ↦ (x, c)` of `M × N` the product form restricts to `σ`
+(`TauCeti.SmoothTwoForm.mpullback_prodMk_left_prod`).
 -/
 
 public section
@@ -50,6 +54,15 @@ theorem mpullback_smul_prod {σ : SmoothTwoForm I M} {τ : SmoothTwoForm J N} (g
   rw [hσ, hτ] at hg
   -- On `M × N`, `g` acts by definition as the product map of its actions on the factors.
   exact hg
+
+/-- The product form `σ ⊕ τ` restricts to `σ` on each slice `x ↦ (x, c)` of `M × N`: the pull-back
+of `pr₂^* τ` along a slice vanishes, since `pr₂` is constant on it. -/
+theorem mpullback_prodMk_left_prod (σ : SmoothTwoForm I M) (τ : SmoothTwoForm J N) (c : N) :
+    SmoothForm.mpullback (fun x : M ↦ (x, c)) (contMDiff_id.prodMk contMDiff_const)
+      (σ.prod τ) = σ := by
+  rw [prod_def, map_add, SmoothForm.mpullback_prodMk_left_mpullback_snd, add_zero,
+    SmoothForm.mpullback_mpullback]
+  exact LinearMap.congr_fun SmoothForm.mpullback_id σ
 
 end TauCeti.SmoothTwoForm
 

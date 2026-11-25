@@ -188,7 +188,7 @@ theorem exists_isLocalFrameOn_union_Ioi (hs : IsLocalFrameOn 𝓘(ℝ) F ∞ s U
   rw [union_comm]
   refine hs'.exists_isLocalFrameOn_union hs hU' hU (hU'.inter isOpen_Ioi) (hU.inter isOpen_Iio)
     inter_subset_left inter_subset_left hψ.contMDiff.contMDiffOn (fun x hx ↦ ?_) fun x hx ↦ ?_
-  · have h := hφmaps (show -x ∈ Ioi (-b) from neg_lt_neg hx.2)
+  · have h := hφmaps (mem_Ioi.2 (neg_lt_neg hx.2))
     rw [inter_comm]
     exact hcb ⟨by linarith [h.2], by linarith [h.1]⟩
   · rw [hφid (-x) (neg_le_neg hx.1.2.le), neg_neg]
@@ -206,7 +206,7 @@ theorem exists_isLocalFrameOn_Ioo_eqOn_Ioo_left {a d : ℝ}
   rintro x ⟨h₁, h₂⟩
   rcases lt_or_ge x c₁ with h | h
   · exact .inl ⟨⟨h₁, by linarith⟩, h⟩
-  · exact .inr ⟨⟨by linarith, h₂⟩, show c < x by linarith⟩
+  · exact .inr ⟨⟨by linarith, h₂⟩, mem_Ioi.2 (by linarith)⟩
 
 /-- Smooth local frames `s` on `Ioo a b` and `s'` on `Ioo c d`, where `a ≤ c < c₁ < b ≤ d`, glue
 to a smooth local frame on `Ioo a d` that is `s'` on `Ioo c₁ d`. -/
@@ -221,7 +221,7 @@ theorem exists_isLocalFrameOn_Ioo_eqOn_Ioo_right {a d : ℝ}
   rintro x ⟨h₁, h₂⟩
   rcases lt_or_ge x b with h | h
   · exact .inl ⟨⟨h₁, h⟩, h⟩
-  · exact .inr ⟨⟨by linarith, h₂⟩, show c₁ < x by linarith⟩
+  · exact .inr ⟨⟨by linarith, h₂⟩, mem_Ioi.2 (by linarith)⟩
 
 end Real
 
