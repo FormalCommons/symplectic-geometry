@@ -19,8 +19,8 @@ symplectic fibre sums are diffeomorphisms of such annuli, in a vector space or i
 
 * `SymplecticGeometry.annulus E a b`: the open annulus `{x | a < ‖x‖ ∧ ‖x‖ < b}` of `E`, with
   `coe_annulus` and `mem_annulus`.
-* `SymplecticGeometry.map_mem_annulus_iff`: a linear isometry maps an annulus onto the annulus
-  of the same radii.
+* `SymplecticGeometry.map_mem_annulus_iff`: a semilinear isometry preserves membership in the
+  annulus of given radii.
 * `SymplecticGeometry.ne_zero_of_mem_annulus`: for `0 ≤ a`, the annulus misses `0`.
 -/
 
@@ -55,9 +55,11 @@ end Seminormed
 
 variable {E}
 
-/-- A linear isometry `Φ : E ≃ₗᵢ[R] F` maps the annulus `a < ‖x‖ < b` of `E` onto that of `F`. -/
-theorem map_mem_annulus_iff {R F : Type*} [Semiring R] [SeminormedAddCommGroup E]
-    [SeminormedAddCommGroup F] [Module R E] [Module R F] (Φ : E ≃ₗᵢ[R] F) {a b : ℝ} {x : E} :
+/-- A semilinear isometry `Φ : E → F` preserves membership in the annulus `a < ‖x‖ < b`: `Φ x`
+lies in the annulus of `F` if and only if `x` lies in that of `E`. -/
+theorem map_mem_annulus_iff {R R₂ F 𝓕 : Type*} [Semiring R] [Semiring R₂] {σ : R →+* R₂}
+    [SeminormedAddCommGroup E] [SeminormedAddCommGroup F] [Module R E] [Module R₂ F]
+    [FunLike 𝓕 E F] [SemilinearIsometryClass 𝓕 σ E F] (Φ : 𝓕) {a b : ℝ} {x : E} :
     Φ x ∈ annulus F a b ↔ x ∈ annulus E a b := by
   simp
 
