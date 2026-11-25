@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Real
 import Mathlib.Geometry.Manifold.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.UnitInterval
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 
 /-!
 # Diffeotopies from families of diffeomorphisms
