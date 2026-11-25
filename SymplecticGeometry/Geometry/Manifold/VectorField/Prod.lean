@@ -21,7 +21,7 @@ In particular, let `v` be a vector of a real normed space `E` and `N` a manifold
 `TauCeti.constVectorField v` of `E` and the zero field of `N`, takes the value `(v, 0)` of
 `E × E'` at every point. For `E = ℝ` and `v = 1` this is the field `∂_s` on `ℝ × N`; written as
 `(1, 0)` its image under a differential is the derivative of a slice `s ↦ f (s, y)`
-(`MDifferentiableAt.mfderiv_curry_left_apply`).
+(`MDifferentiableAt.mfderiv_uncurry_apply_mk_zero`).
 
 The time field `∂_t = (1, 0)` on `ℝ × M` is smooth by Tau Ceti's
 `TauCeti.contMDiff_const_prod_field`, applied to the zero field, the argument that Tau Ceti writes

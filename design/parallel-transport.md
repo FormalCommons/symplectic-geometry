@@ -155,8 +155,7 @@ Horizontal lifts of vector fields and their smoothness.
   `mfderiv_horizontalLiftField`). For `V` vanishing outside a compact `K` at
   all times and a proper `f`, the lift vanishes outside the compact
   `f ⁻¹' K`, so its suspension is complete by Tau Ceti's
-  `isCompleteVectorField_timeDependentSuspensionField`; this needs no lemma
-  of its own.
+  `isCompleteVectorField_timeDependentSuspensionField`.
 
 About 300 lines.
 
@@ -206,7 +205,7 @@ Horizontal lifts of curves and parallel transport.
     `V u (γ u) = γ' u` on `Set.uIcc s t`, the transport is the flow of the
     lift of `V` from `s` to `t` on `f ⁻¹' {γ s}`;
   - `exists_diffeomorph_eqOn_parallelTransport`: a diffeomorphism
-    `Ψ : P ≃ₘ⟮I, I⟯ P` equal to the transport on `f ⁻¹' {γ s}` and mapping it
+    `Ψ : P ≃ₘ^n⟮I, I⟯ P` equal to the transport on `f ⁻¹' {γ s}` and mapping it
     onto `f ⁻¹' {γ t}`: the composition, over a subdivision of `Set.uIcc s t`
     into pieces inside charts, of the diffeomorphisms
     `TauCeti.timeDependentFlowDiffeomorph` of the cut-off chart-constant
