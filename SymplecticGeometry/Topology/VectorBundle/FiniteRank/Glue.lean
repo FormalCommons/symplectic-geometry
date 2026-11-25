@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
-public import TauCeti.Topology.VectorBundle.FiniteRank.Biproduct
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct
 public import TauCeti.Topology.VectorBundle.FiniteRank.Monoidal
 
 /-!
@@ -56,10 +56,6 @@ point-indexed core whose transitions are given piecewise, and of
 `SymplecticGeometry.Bundle.twoChartCore`, two charts glued along a transition. The isomorphism
 `glueReflIso` is built, as Tau Ceti's `TauCeti.FiniteRankBundleCore.doubleAlongInlIso` is, with
 `TauCeti.FiniteRankBundleCore.constIso`.
-The chart expression of a block-diagonal map in charts of Whitney sums
-(`inChartCoordinates_whitneySum_prodMap`) is computed as Tau Ceti's
-`TauCeti.FiniteRankBundleCore.inChartCoordinates_tensor_kronecker` computes that of a Kronecker
-product in charts of tensor products.
 
 ## References
 
@@ -534,29 +530,6 @@ theorem fiberMap_glueReflIso_inv (x : B) :
   exact fiberMap_constIso_inv _ _ _ x
 
 end Glue
-
-/-! ### Block-diagonal maps in charts of Whitney sums -/
-
-/-- Read in charts of Whitney sums, a block-diagonal map is block diagonal, with the chart
-expressions of its blocks as blocks. -/
-theorem inChartCoordinates_whitneySum_prodMap
-    (A A' D D' : FiniteRankBundleCore 𝕜 B)
-    (f : (Fin A.rank → 𝕜) →L[𝕜] (Fin A'.rank → 𝕜))
-    (g : (Fin D.rank → 𝕜) →L[𝕜] (Fin D'.rank → 𝕜)) (i j x : B) :
-    (whitneySum A D).core.inChartCoordinates (whitneySum A' D').core i j x
-        ((splitCoords (𝕜 := 𝕜) A'.rank D'.rank).symm.toContinuousLinearMap.comp
-          ((f.prodMap g).comp (splitCoords (𝕜 := 𝕜) A.rank D.rank).toContinuousLinearMap)) =
-      (splitCoords (𝕜 := 𝕜) A'.rank D'.rank).symm.toContinuousLinearMap.comp
-        (((A.core.inChartCoordinates A'.core i j x f).prodMap
-            (D.core.inChartCoordinates D'.core i j x g)).comp
-          (splitCoords (𝕜 := 𝕜) A.rank D.rank).toContinuousLinearMap) := by
-  refine (inChartCoordinates_core _ _ i j x _).trans ?_
-  rw [inChartCoordinates_core, inChartCoordinates_core]
-  -- Unfold the transitions of the Whitney sums, whose fibre models are the concatenated
-  -- coordinates.
-  dsimp +instances only [whitneySum]
-  ext v : 1
-  simp
 
 /-! ### Gluing Whitney sums and tensor products -/
 
