@@ -6,9 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.SmoothSingular.DeRham.MayerVietoris.Basic
-public import TauCeti.AlgebraicTopology.Cohomology.MayerVietoris.Module
+import TauCeti.AlgebraicTopology.Cohomology.MayerVietoris.Module
 import Mathlib.Algebra.FiveLemma
-import SymplecticGeometry.Algebra.Category.ModuleCat.Basic
 import SymplecticGeometry.Algebra.Category.ModuleCat.Biproducts
 import SymplecticGeometry.Geometry.Manifold.SmoothSingular.DeRham.Theorem
 import TauCeti.Algebra.Homology.HomologySequenceBiprod
