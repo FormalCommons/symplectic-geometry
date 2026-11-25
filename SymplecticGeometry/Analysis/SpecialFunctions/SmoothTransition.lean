@@ -43,11 +43,13 @@ argument, by choosing one from Tau Ceti's `TauCeti.exists_contDiff_odd_truncatio
 properties are used, so no formula is given.
 
 For any `0 ≤ r < R ≤ 1` it also gives a smooth odd function that is the identity on `[-r, r]`,
-`1` on `[R, ∞)`, bounded by `1` in absolute value, and at least `t` at every `t ∈ [0, 1]`
-(`SymplecticGeometry.exists_contDiff_odd_clip`). Its formula `ν t * ν (-t) * t + ν (-t) - ν t`,
-for an antitone cutoff `ν` that is `1` up to `r` and `0` from `R` on, adapts the one in the proof
-of Tau Ceti's `TauCeti.exists_contDiff_odd_truncation`; with a single cutoff the bounds by `1`
-and by `t` follow.
+`1` on `[R, ∞)`, bounded by `1` in absolute value, at least `t` at every `t ∈ [0, 1]`, and with
+derivative bounded by `1 + 2 (1 - r) / (R - r)` (`SymplecticGeometry.exists_contDiff_odd_clip`).
+Its formula `ν t * ν (-t) * t + ν (-t) - ν t`, for an antitone cutoff `ν` that is `1` up to `r`
+and `0` from `R` on, adapts the one in the proof of Tau Ceti's
+`TauCeti.exists_contDiff_odd_truncation`; with a single cutoff the bounds by `1` and by `t`
+follow. Taking `ν` from `TauCeti.exists_contDiff_antitone_cutoff_abs_deriv_le`, with slope at
+most `2 / (R - r)`, gives the bound on the derivative.
 -/
 
 public section
@@ -166,19 +168,24 @@ theorem exists_contDiff_eqOn_id_Icc_mem_of_isOpen {a b : ℝ} {U : Set ℝ} (hab
   · exact h₁ (by rw [Metric.mem_ball, Real.dist_eq, abs_lt]; constructor <;> linarith)
 
 /-- A smooth odd function `ℝ → ℝ` that is the identity on `[-r, r]`, `1` on `[R, ∞)`, bounded
-by `1` in absolute value, and at least `t` at every `t ∈ [0, 1]`, for any `0 ≤ r < R ≤ 1`. By
-oddness it is `-1` on `(-∞, -R]` and at most `t` at every `t ∈ [-1, 0]`, so it moves no point of
-`[-1, 1]` away from the end `±1` of its sign. -/
+by `1` in absolute value, at least `t` at every `t ∈ [0, 1]`, and with derivative bounded by
+`1 + 2 (1 - r) / (R - r)` in absolute value, for any `0 ≤ r < R ≤ 1`. By oddness it is `-1` on
+`(-∞, -R]` and at most `t` at every `t ∈ [-1, 0]`, so it moves no point of `[-1, 1]` away from
+the end `±1` of its sign. -/
 theorem exists_contDiff_odd_clip {r R : ℝ} (hr : 0 ≤ r) (hrR : r < R) (hR : R ≤ 1) :
     ∃ f : ℝ → ℝ, ContDiff ℝ ∞ f ∧ Function.Odd f ∧ (∀ t, |t| ≤ r → f t = t) ∧
-      (∀ t, R ≤ t → f t = 1) ∧ (∀ t, |f t| ≤ 1) ∧ ∀ t ∈ Set.Icc (0 : ℝ) 1, t ≤ f t := by
-  obtain ⟨ν, hν, hνa, hν0, hνR, hνr, -⟩ := TauCeti.exists_contDiff_antitone_cutoff hrR zero_le_one
+      (∀ t, R ≤ t → f t = 1) ∧ (∀ t, |f t| ≤ 1) ∧ (∀ t ∈ Set.Icc (0 : ℝ) 1, t ≤ f t) ∧
+      ∀ t, |deriv f t| ≤ 1 + 2 * (1 - r) / (R - r) := by
+  have hRr : 0 < R - r := by linarith
+  obtain ⟨ν, hν, hνa, hν0, hνR, hνr, hντ, hν'⟩ :=
+    TauCeti.exists_contDiff_antitone_cutoff_abs_deriv_le (τ := 2 / (R - r)) hrR zero_le_one
+      (by rw [div_mul_cancel₀ _ hRr.ne']; norm_num)
   have hν1 (t : ℝ) : ν t ≤ 1 := by
     rcases le_total t r with ht | ht
     · exact (hνr t ht).le
     · exact (hνa ht).trans (hνr r le_rfl).le
   -- For `t ≥ 0` the function below is `1 - ν t * (1 - t)`.
-  set f : ℝ → ℝ := fun t ↦ ν t * ν (-t) * t + ν (-t) - ν t
+  set f : ℝ → ℝ := fun t ↦ ν t * ν (-t) * t + ν (-t) - ν t with hf_def
   have hodd : Function.Odd f := fun t ↦ by simp only [f, neg_neg]; ring
   have hpos {t : ℝ} (ht : 0 ≤ t) : f t = 1 - ν t * (1 - t) := by
     simp only [f, hνr (-t) (by linarith)]
@@ -190,7 +197,34 @@ theorem exists_contDiff_odd_clip {r R : ℝ} (hr : 0 ≤ r) (hrR : r < R) (hR : 
       have : 0 ≤ ν t * (1 - t) := mul_nonneg (hν0 t) (by linarith)
       have : ν t * (1 - t) ≤ 1 := by nlinarith [hν1 t, hν0 t]
       constructor <;> linarith
-  refine ⟨f, by fun_prop, hodd, fun t ht ↦ ?_, fun t ht ↦ ?_, fun t ↦ ?_, fun t ht ↦ ?_⟩
+  -- For `t ≥ 0` the derivative is `ν t - ν' t * (1 - t)`, and `ν'` vanishes outside `(r, R)`.
+  have hd (t : ℝ) : HasDerivAt ν (deriv ν t) t :=
+    ((hν.differentiable (by simp)) t).hasDerivAt
+  have hdn (t : ℝ) : HasDerivAt (fun s ↦ ν (-s)) (-deriv ν (-t)) t := by
+    have := (hd (-t)).comp t (hasDerivAt_neg t)
+    simpa [Function.comp_def] using this
+  have hderiv {t : ℝ} (ht : 0 ≤ t) : deriv f t = ν t - deriv ν t * (1 - t) := by
+    have : HasDerivAt (fun s ↦ ν s * ν (-s) * s + ν (-s) - ν s) _ t :=
+      ((((hd t).mul (hdn t)).mul (hasDerivAt_id' t)).add (hdn t)).sub (hd t)
+    rw [hf_def, this.deriv, Pi.mul_apply, hνr (-t) (by linarith),
+      hν' (-t) fun h ↦ by linarith [h.1]]
+    ring
+  have hdle (t : ℝ) (ht : 0 ≤ t) : |deriv f t| ≤ 1 + 2 * (1 - r) / (R - r) := by
+    rw [hderiv ht]
+    refine (abs_sub _ _).trans ?_
+    rw [abs_of_nonneg (hν0 t), abs_mul]
+    by_cases htI : t ∈ Set.Ioo r R
+    · have h₁ : |1 - t| ≤ 1 - r := by
+        rw [abs_of_nonneg (by linarith [htI.2])]; linarith [htI.1]
+      have h₂ : |deriv ν t| * |1 - t| ≤ 2 / (R - r) * (1 - r) :=
+        mul_le_mul (hντ t) h₁ (abs_nonneg _) (div_nonneg zero_le_two hRr.le)
+      rw [div_mul_eq_mul_div] at h₂
+      linarith [hν1 t]
+    · have : 0 ≤ 2 * (1 - r) / (R - r) := div_nonneg (by linarith) hRr.le
+      rw [hν' t htI, abs_zero, zero_mul, add_zero]
+      linarith [hν1 t]
+  refine ⟨f, by fun_prop, hodd, fun t ht ↦ ?_, fun t ht ↦ ?_, fun t ↦ ?_, fun t ht ↦ ?_,
+    fun t ↦ ?_⟩
   · obtain ⟨h₁, h₂⟩ := abs_le.1 ht
     simp only [f, hνr t h₂, hνr (-t) (by linarith)]
     ring
@@ -202,6 +236,15 @@ theorem exists_contDiff_odd_clip {r R : ℝ} (hr : 0 ≤ r) (hrR : r < R) (hR : 
       rwa [hodd, abs_neg] at this
   · rw [hpos ht.1]
     nlinarith [hν1 t, ht.2]
+  · rcases le_total 0 t with ht | ht
+    · exact hdle t ht
+    · -- The derivative of an odd function is even.
+      have h : deriv f (-t) = deriv f t := by
+        have := deriv_comp_neg (f := f) (x := t)
+        rw [show (fun x ↦ f (-x)) = fun x ↦ -f x from funext hodd, deriv.fun_neg] at this
+        linarith
+      rw [← h]
+      exact hdle (-t) (by linarith)
 
 /-- The smooth odd truncation of the identity given by Tau Ceti's
 `TauCeti.exists_contDiff_odd_truncation` for `r = 1/4` and `R = 1/2`: a smooth odd function

@@ -10,22 +10,25 @@ public import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
 public import Mathlib.Geometry.Manifold.Instances.Icc
 public import Mathlib.Topology.UnitInterval
 public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
+import Mathlib.Analysis.Calculus.MeanValue
+import SymplecticGeometry.Analysis.Normed.Group.Pi
 
 /-!
 # Clipping a cube onto its attaching faces
 
 Let `D = (ι → ℝ) × (κ → ℝ)` with the sup norms, `Q` its closed unit ball (a cube), and
 `A = sphere 0 1 ×ˢ closedBall 0 1` the attaching faces of `Q` seen as a handle. This file builds a
-smooth homotopy `Φ : D × [0, 1] → D` from a map that retracts a thin collar of `A` onto `A` to
-the identity, which preserves `A`, `Q` and the collar at every time
+smooth homotopy `Φ : D × [0, 1] → D` from a map that sends a thin collar of `A` into `A` to
+the identity, which preserves `A`, `Q` and the collar at every time, moves no point of `Q` by
+more than `2δ`, and whose stages have derivative of norm at most `5`, whatever `δ` is
 (`SymplecticGeometry.exists_contMDiff_cubeClipping`). It is the homotopy that the homotopy
 operator `TauCeti.SmoothForm.homotopyOperator` is applied to, through
 `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator_mpullback`, in the handle-core lemma of
 McDuff–Salamon, Lemma 7.3.2.
 
 The sup norm is not smooth at the corners of `A`, so the homotopy is built coordinatewise: for a
-smooth odd `f : ℝ → ℝ` that is the identity on `[-(1 - 2δ), 1 - 2δ]`, `±1` beyond `1 - δ`, and
-moves each point of `[-1, 1]` towards the end of its sign
+smooth odd `f : ℝ → ℝ` that is the identity on `[-(1 - 2δ), 1 - 2δ]`, `±1` beyond `1 - δ`,
+moves each point of `[-1, 1]` towards the end of its sign, and has derivative bounded by `5`
 (`SymplecticGeometry.exists_contDiff_odd_clip`), the homotopy is the straight line from the map
 `F` that applies `f` to every coordinate to the identity. At every time each coordinate `y` of the
 image of `x` satisfies `min |x| 1 ≤ |y| ≤ max |x| 1`, and so does the norm of each factor
@@ -33,8 +36,6 @@ image of `x` satisfies `min |x| 1 ≤ |y| ≤ max |x| 1`, and so does the norm o
 
 ## Main results
 
-* `min_norm_le_pi_norm_of_forall`: a coordinatewise lower bound `min ‖a i‖ c ≤ ‖b i‖` for the
-  sup norm gives `min ‖a‖ c ≤ ‖b‖`.
 * `SymplecticGeometry.exists_contMDiff_cubeClipping`: the clipping homotopy.
 
 ## References
@@ -47,22 +48,6 @@ public section
 
 open Set Metric
 open scoped Manifold ContDiff
-
-/-- A coordinatewise lower bound `min ‖a i‖ c ≤ ‖b i‖` gives the same lower bound
-`min ‖a‖ c ≤ ‖b‖` for the sup norms. -/
-theorem min_norm_le_pi_norm_of_forall {ι : Type*} [Fintype ι] {E F : ι → Type*}
-    [∀ i, SeminormedAddGroup (E i)] [∀ i, SeminormedAddGroup (F i)] {a : ∀ i, E i}
-    {b : ∀ i, F i} {c : ℝ} (h : ∀ i, min ‖a i‖ c ≤ ‖b i‖) : min ‖a‖ c ≤ ‖b‖ := by
-  by_contra! hb
-  -- Every coordinate of `b` is below `c`, so it bounds that of `a`, and then `‖a‖ ≤ ‖b‖`.
-  have : ‖a‖ ≤ ‖b‖ := (pi_norm_le_iff_of_nonneg (norm_nonneg b)).2 fun i ↦ by
-    have hi := (norm_le_pi_norm b i).trans_lt (hb.trans_le (min_le_right _ _))
-    have := h i
-    rw [min_le_iff] at this
-    rcases this with h' | h'
-    · exact h'.trans (norm_le_pi_norm b i)
-    · exact absurd hi h'.not_gt
-  exact this.not_gt (hb.trans_le (min_le_left _ _))
 
 namespace SymplecticGeometry
 
@@ -132,7 +117,92 @@ private theorem norm_comp_eq_one {ι : Type*} [Fintype ι] (hodd : Function.Odd 
     rw [hodd] at this
     simp [neg_eq_iff_eq_neg.1 this] at hi
 
+/-- One coordinate of the clipping homotopy moves a point `s ∈ [-1, 1]` by at most `1 - r`, if
+`f` is the identity on `[-r, r]`. -/
+private theorem abs_clip_sub_le (hodd : Function.Odd f) (hf1 : ∀ s, |f s| ≤ 1)
+    (hf : ∀ s ∈ Icc (0 : ℝ) 1, s ≤ f s) {r : ℝ} (hr : r ≤ 1) (hid : ∀ s, |s| ≤ r → f s = s)
+    {t : ℝ} (ht : t ∈ Icc (0 : ℝ) 1) {s : ℝ} (hs : |s| ≤ 1) :
+    |(1 - t) * f s + t * s - s| ≤ 1 - r := by
+  have key (s : ℝ) (h₀ : 0 ≤ s) (h₁ : s ≤ 1) : |f s - s| ≤ 1 - r := by
+    rcases le_total s r with hsr | hsr
+    · rw [hid s (by rwa [abs_of_nonneg h₀]), sub_self, abs_zero]
+      linarith
+    · have := hf s ⟨h₀, h₁⟩
+      rw [abs_of_nonneg (by linarith)]
+      linarith [(abs_le.1 (hf1 s)).2]
+  have hs' : |f s - s| ≤ 1 - r := by
+    rcases le_total 0 s with h₀ | h₀
+    · exact key s h₀ (abs_le.1 hs).2
+    · have := key (-s) (by linarith) (by linarith [(abs_le.1 hs).1])
+      rwa [hodd, ← neg_add', abs_neg, ← sub_eq_add_neg] at this
+  rw [show (1 - t) * f s + t * s - s = (1 - t) * (f s - s) by ring, abs_mul,
+    abs_of_nonneg (by linarith [ht.2])]
+  nlinarith [ht.1, abs_nonneg (f s - s)]
+
+/-- One coordinate of the clipping homotopy is `C`-Lipschitz if `f` is, for `C ≥ 1`. -/
+private theorem abs_clip_sub_clip_le {C : ℝ} (hC : 1 ≤ C)
+    (hfC : ∀ a b, |f a - f b| ≤ C * |a - b|) {t : ℝ} (ht : t ∈ Icc (0 : ℝ) 1) (a b : ℝ) :
+    |(1 - t) * f a + t * a - ((1 - t) * f b + t * b)| ≤ C * |a - b| := by
+  obtain ⟨ht₀, ht₁⟩ := ht
+  rw [show (1 - t) * f a + t * a - ((1 - t) * f b + t * b) =
+    (1 - t) * (f a - f b) + t * (a - b) by ring]
+  refine (abs_add_le _ _).trans ?_
+  rw [abs_mul, abs_mul, abs_of_nonneg (by linarith : 0 ≤ 1 - t), abs_of_nonneg ht₀]
+  calc (1 - t) * |f a - f b| + t * |a - b| ≤ (1 - t) * (C * |a - b|) + t * (C * |a - b|) :=
+        add_le_add (mul_le_mul_of_nonneg_left (hfC a b) (by linarith))
+          (mul_le_mul_of_nonneg_left (le_mul_of_one_le_left (abs_nonneg _) hC) ht₀)
+    _ = C * |a - b| := by ring
+
+/-- The clipping homotopy on one factor `ι → ℝ` moves no point of the closed unit ball by more
+than `1 - r`, if `f` is the identity on `[-r, r]`. -/
+private theorem pi_clip_sub_norm_le {ι : Type*} [Fintype ι] (hodd : Function.Odd f)
+    (hf1 : ∀ s, |f s| ≤ 1) (hf : ∀ s ∈ Icc (0 : ℝ) 1, s ≤ f s) {r : ℝ} (hr : r ≤ 1)
+    (hid : ∀ s, |s| ≤ r → f s = s) {t : ℝ} (ht : t ∈ Icc (0 : ℝ) 1) {u : ι → ℝ}
+    (hu : ‖u‖ ≤ 1) : ‖(fun i ↦ (1 - t) * f (u i) + t * u i) - u‖ ≤ 1 - r :=
+  (pi_norm_le_iff_of_nonneg (by linarith)).2 fun i ↦ by
+    rw [Pi.sub_apply, Real.norm_eq_abs]
+    exact abs_clip_sub_le hodd hf1 hf hr hid ht (by simpa using (norm_le_pi_norm u i).trans hu)
+
+/-- The clipping homotopy on one factor `ι → ℝ` is `C`-Lipschitz if `f` is, for `C ≥ 1`. -/
+private theorem pi_clip_sub_clip_norm_le {ι : Type*} [Fintype ι] {C : ℝ} (hC : 1 ≤ C)
+    (hfC : ∀ a b, |f a - f b| ≤ C * |a - b|) {t : ℝ} (ht : t ∈ Icc (0 : ℝ) 1) (u w : ι → ℝ) :
+    ‖(fun i ↦ (1 - t) * f (u i) + t * u i) - fun i ↦ (1 - t) * f (w i) + t * w i‖ ≤
+      C * ‖u - w‖ :=
+  (pi_norm_le_iff_of_nonneg (by have := norm_nonneg (u - w); positivity)).2 fun i ↦ by
+    rw [Pi.sub_apply, Real.norm_eq_abs]
+    refine (abs_clip_sub_clip_le hC hfC ht (u i) (w i)).trans
+      (mul_le_mul_of_nonneg_left ?_ (by linarith))
+    simpa using norm_le_pi_norm (u - w) i
+
 variable {ι κ : Type*} [Fintype ι] [Fintype κ]
+
+/-- The straight line from the coordinatewise application of a smooth `f` to the identity is
+smooth on `D × [0, 1]`. -/
+private theorem contMDiff_clip (hf : ContDiff ℝ ∞ f) :
+    ContMDiff (𝓘(ℝ, (ι → ℝ) × (κ → ℝ)).prod (𝓡∂ 1)) 𝓘(ℝ, (ι → ℝ) × (κ → ℝ)) ∞
+      fun p : ((ι → ℝ) × (κ → ℝ)) × unitInterval ↦
+        (1 - (p.2 : ℝ)) • ((fun i ↦ f (p.1.1 i)), fun j ↦ f (p.1.2 j)) + (p.2 : ℝ) • p.1 := by
+  have hF : ContDiff ℝ ∞ fun x : (ι → ℝ) × (κ → ℝ) ↦ ((fun i ↦ f (x.1 i)), fun j ↦ f (x.2 j)) :=
+    (contDiff_pi.2 fun i ↦ hf.comp (by fun_prop)).prodMk
+      (contDiff_pi.2 fun j ↦ hf.comp (by fun_prop))
+  have ht : ContMDiff (𝓘(ℝ, (ι → ℝ) × (κ → ℝ)).prod (𝓡∂ 1)) 𝓘(ℝ, ℝ) ∞
+      (fun p : ((ι → ℝ) × (κ → ℝ)) × unitInterval ↦ (p.2 : ℝ)) :=
+    contMDiff_subtypeVal_Icc.comp contMDiff_snd
+  have ht' : ContMDiff (𝓘(ℝ, (ι → ℝ) × (κ → ℝ)).prod (𝓡∂ 1)) 𝓘(ℝ, ℝ) ∞
+      (fun p : ((ι → ℝ) × (κ → ℝ)) × unitInterval ↦ 1 - (p.2 : ℝ)) :=
+    (contDiff_const.sub contDiff_id).contMDiff.comp ht
+  exact (ht'.smul (hF.contMDiff.comp contMDiff_fst)).add (ht.smul contMDiff_fst)
+
+/-- If `f` is `±1` beyond `R ∈ (0, 1]` and bounded by `1`, applying it to every coordinate sends
+each collar `{x | |‖x.1‖ - 1| < ε ∧ ‖x.2‖ < 1 + ε}` with `ε ≤ 1 - R` into
+`sphere 0 1 ×ˢ closedBall 0 1`. -/
+private theorem mapsTo_clip_collar (hodd : Function.Odd f) (hf1 : ∀ s, |f s| ≤ 1) {R : ℝ}
+    (hR : 0 < R) (hfR : ∀ s, R ≤ s → f s = 1) {ε : ℝ} (hε : ε ≤ 1 - R) :
+    MapsTo (fun x : (ι → ℝ) × (κ → ℝ) ↦ ((fun i ↦ f (x.1 i)), fun j ↦ f (x.2 j)))
+      {x | |‖x.1‖ - 1| < ε ∧ ‖x.2‖ < 1 + ε} (sphere 0 1 ×ˢ closedBall 0 1) := fun x hx ↦
+  ⟨mem_sphere_zero_iff_norm.2 <|
+      norm_comp_eq_one hodd hf1 hR hfR (by linarith [(abs_lt.1 hx.1).1]),
+    mem_closedBall_zero_iff.2 <| (pi_norm_le_iff_of_nonneg zero_le_one).2 fun j ↦ hf1 _⟩
 
 /-- **The clipping homotopy of the cube onto its attaching faces.** Let `D = (ι → ℝ) × (κ → ℝ)`
 with the sup norms, `Q = closedBall 0 1` and `A = sphere 0 1 ×ˢ closedBall 0 1`. For
@@ -140,7 +210,9 @@ with the sup norms, `Q = closedBall 0 1` and `A = sphere 0 1 ×ˢ closedBall 0 1
 * `Φ (·, 1)` is the identity, and every `Φ (·, t)` is the identity on `closedBall 0 (1 - 2δ)`;
 * every `Φ (·, t)` maps `A` into `A`, `Q` into `Q`, and each collar
   `{x | |‖x.1‖ - 1| < ε ∧ ‖x.2‖ < 1 + ε}` into itself;
-* `Φ (·, 0)` maps each such collar with `ε ≤ δ` into `A`. -/
+* `Φ (·, 0)` maps each such collar with `ε ≤ δ` into `A`;
+* every `Φ (·, t)` moves no point of `Q` by more than `2δ`, and its derivative has norm at most
+  `5` everywhere, a bound that does not depend on `δ`. -/
 theorem exists_contMDiff_cubeClipping {δ : ℝ} (hδ : 0 < δ) (hδ₂ : δ ≤ 1 / 2) :
     ∃ Φ : ((ι → ℝ) × (κ → ℝ)) × unitInterval → (ι → ℝ) × (κ → ℝ),
       ContMDiff (𝓘(ℝ, (ι → ℝ) × (κ → ℝ)).prod (𝓡∂ 1)) 𝓘(ℝ, (ι → ℝ) × (κ → ℝ)) ∞ Φ ∧
@@ -150,33 +222,39 @@ theorem exists_contMDiff_cubeClipping {δ : ℝ} (hδ : 0 < δ) (hδ₂ : δ ≤
       (∀ t, MapsTo (fun x ↦ Φ (x, t)) (closedBall 0 1) (closedBall 0 1)) ∧
       (∀ ε t, MapsTo (fun x ↦ Φ (x, t)) {x | |‖x.1‖ - 1| < ε ∧ ‖x.2‖ < 1 + ε}
         {x | |‖x.1‖ - 1| < ε ∧ ‖x.2‖ < 1 + ε}) ∧
-      ∀ ε ≤ δ, MapsTo (fun x ↦ Φ (x, 0)) {x | |‖x.1‖ - 1| < ε ∧ ‖x.2‖ < 1 + ε}
-        (sphere 0 1 ×ˢ closedBall 0 1) := by
-  obtain ⟨f, hf, hodd, hid, hfR, hf1, hfI⟩ :=
+      (∀ ε ≤ δ, MapsTo (fun x ↦ Φ (x, 0)) {x | |‖x.1‖ - 1| < ε ∧ ‖x.2‖ < 1 + ε}
+        (sphere 0 1 ×ˢ closedBall 0 1)) ∧
+      (∀ t, ∀ x ∈ closedBall 0 1, ‖Φ (x, t) - x‖ ≤ 2 * δ) ∧
+      ∀ t x, ‖fderiv ℝ (fun x ↦ Φ (x, t)) x‖ ≤ 5 := by
+  obtain ⟨f, hf, hodd, hid, hfR, hf1, hfI, hf'⟩ :=
     exists_contDiff_odd_clip (r := 1 - 2 * δ) (R := 1 - δ) (by linarith) (by linarith)
       (by linarith)
   have hfR1 (s : ℝ) (hs : 1 ≤ s) : f s = 1 := hfR s (by linarith)
-  -- The coordinatewise application of `f`, and the straight line from it to the identity.
-  let F : (ι → ℝ) × (κ → ℝ) → (ι → ℝ) × (κ → ℝ) := fun x ↦ (fun i ↦ f (x.1 i), fun j ↦ f (x.2 j))
-  have hF : ContDiff ℝ ∞ F :=
-    (contDiff_pi.2 fun i ↦ hf.comp (by fun_prop)).prodMk
-      (contDiff_pi.2 fun j ↦ hf.comp (by fun_prop))
+  -- With these radii the bound on the derivative of `f` is `5`, so `f` is `5`-Lipschitz.
+  have hfC (a b : ℝ) : |f a - f b| ≤ 5 * |a - b| := by
+    have h5 : 1 + 2 * (1 - (1 - 2 * δ)) / (1 - δ - (1 - 2 * δ)) = 5 := by
+      rw [show 1 - δ - (1 - 2 * δ) = δ by ring, show 2 * (1 - (1 - 2 * δ)) = 4 * δ by ring,
+        mul_div_assoc, div_self hδ.ne']
+      norm_num
+    simpa only [Real.norm_eq_abs] using convex_univ.norm_image_sub_le_of_norm_deriv_le
+      (fun s _ ↦ hf.differentiable (by simp) s)
+      (fun s _ ↦ (Real.norm_eq_abs _).trans_le ((hf' s).trans_eq h5)) (mem_univ b) (mem_univ a)
+  -- The straight line from the coordinatewise application of `f` to the identity.
   let Φ : ((ι → ℝ) × (κ → ℝ)) × unitInterval → (ι → ℝ) × (κ → ℝ) :=
-    fun p ↦ (1 - (p.2 : ℝ)) • F p.1 + (p.2 : ℝ) • p.1
+    fun p ↦ (1 - (p.2 : ℝ)) • ((fun i ↦ f (p.1.1 i)), fun j ↦ f (p.1.2 j)) + (p.2 : ℝ) • p.1
   have hΦ (x : (ι → ℝ) × (κ → ℝ)) (t : unitInterval) : Φ (x, t) =
       ((fun i ↦ (1 - (t : ℝ)) * f (x.1 i) + t * x.1 i),
         (fun j ↦ (1 - (t : ℝ)) * f (x.2 j) + t * x.2 j)) := by
-    ext i <;> simp [Φ, F]
-  refine ⟨Φ, ?_, fun x ↦ by simp [Φ], fun x t hx ↦ ?_, fun t x hx ↦ ?_, fun t x hx ↦ ?_,
-    fun ε t x hx ↦ ?_, fun ε hε x hx ↦ ?_⟩
-  · have ht : ContMDiff (𝓘(ℝ, (ι → ℝ) × (κ → ℝ)).prod (𝓡∂ 1)) 𝓘(ℝ, ℝ) ∞
-        (fun p : ((ι → ℝ) × (κ → ℝ)) × unitInterval ↦ (p.2 : ℝ)) :=
-      contMDiff_subtypeVal_Icc.comp contMDiff_snd
-    have ht' : ContMDiff (𝓘(ℝ, (ι → ℝ) × (κ → ℝ)).prod (𝓡∂ 1)) 𝓘(ℝ, ℝ) ∞
-        (fun p : ((ι → ℝ) × (κ → ℝ)) × unitInterval ↦ 1 - (p.2 : ℝ)) :=
-      (contDiff_const.sub contDiff_id).contMDiff.comp ht
-    exact (ht'.smul (hF.contMDiff.comp contMDiff_fst)).add
-      (ht.smul contMDiff_fst)
+    ext i <;> simp [Φ]
+  -- The bounds on the norms of the two factors, from which the invariance statements follow.
+  have hb (x : (ι → ℝ) × (κ → ℝ)) (t : unitInterval) : min ‖x.1‖ 1 ≤ ‖(Φ (x, t)).1‖ ∧
+      ‖(Φ (x, t)).1‖ ≤ max ‖x.1‖ 1 ∧ ‖(Φ (x, t)).2‖ ≤ max ‖x.2‖ 1 := by
+    rw [hΦ]
+    exact ⟨(pi_clip_norm_bounds hodd hf1 hfI hfR1 t.property x.1).1,
+      (pi_clip_norm_bounds hodd hf1 hfI hfR1 t.property x.1).2,
+      (pi_clip_norm_bounds hodd hf1 hfI hfR1 t.property x.2).2⟩
+  refine ⟨Φ, contMDiff_clip hf, fun x ↦ by simp [Φ], fun x t hx ↦ ?_, fun t x hx ↦ ?_,
+    fun t x hx ↦ ?_, fun ε t x hx ↦ ?_, fun ε hε x hx ↦ ?_, fun t x hx ↦ ?_, fun t x ↦ ?_⟩
   · -- Every coordinate of `x` lies in `[-(1 - 2δ), 1 - 2δ]`, where `f` is the identity.
     have hx₁ := (pi_norm_le_iff_of_nonneg (by linarith)).1 ((norm_fst_le x).trans hx)
     have hx₂ := (pi_norm_le_iff_of_nonneg (by linarith)).1 ((norm_snd_le x).trans hx)
@@ -185,30 +263,17 @@ theorem exists_contMDiff_cubeClipping {δ : ℝ} (hδ : 0 < δ) (hδ₂ : δ ≤
     · simp only [hid _ (by simpa using hx₁ i)]; ring
     · simp only [hid _ (by simpa using hx₂ i)]; ring
   · obtain ⟨hu, hv⟩ := hx
+    obtain ⟨hu₁, hu₂, hv₂⟩ := hb x t
     rw [mem_sphere_zero_iff_norm] at hu
     rw [mem_closedBall_zero_iff] at hv
-    obtain ⟨hu₁, hu₂⟩ := pi_clip_norm_bounds hodd hf1 hfI hfR1 t.property x.1
-    obtain ⟨-, hv₂⟩ := pi_clip_norm_bounds hodd hf1 hfI hfR1 t.property x.2
-    dsimp only
-    rw [hΦ]
-    refine ⟨?_, ?_⟩
-    · rw [mem_sphere_zero_iff_norm]
-      rw [hu] at hu₁ hu₂
-      simp only [min_self, max_self] at hu₁ hu₂
-      exact le_antisymm hu₂ hu₁
-    · rw [mem_closedBall_zero_iff]
-      exact hv₂.trans (max_le hv le_rfl)
-  · rw [mem_closedBall_zero_iff, Prod.norm_def, max_le_iff] at hx ⊢
-    obtain ⟨-, hu₂⟩ := pi_clip_norm_bounds hodd hf1 hfI hfR1 t.property x.1
-    obtain ⟨-, hv₂⟩ := pi_clip_norm_bounds hodd hf1 hfI hfR1 t.property x.2
-    dsimp only
-    rw [hΦ]
+    simp only [hu, min_self, max_self] at hu₁ hu₂
+    exact ⟨mem_sphere_zero_iff_norm.2 (le_antisymm hu₂ hu₁),
+      mem_closedBall_zero_iff.2 (hv₂.trans (max_le hv le_rfl))⟩
+  · obtain ⟨-, hu₂, hv₂⟩ := hb x t
+    simp only [mem_closedBall_zero_iff, Prod.norm_def, max_le_iff] at hx ⊢
     exact ⟨hu₂.trans (max_le hx.1 le_rfl), hv₂.trans (max_le hx.2 le_rfl)⟩
   · obtain ⟨hu, hv⟩ := hx
-    obtain ⟨hu₁, hu₂⟩ := pi_clip_norm_bounds hodd hf1 hfI hfR1 t.property x.1
-    obtain ⟨-, hv₂⟩ := pi_clip_norm_bounds hodd hf1 hfI hfR1 t.property x.2
-    dsimp only
-    rw [hΦ]
+    obtain ⟨hu₁, hu₂, hv₂⟩ := hb x t
     refine ⟨?_, hv₂.trans_lt (max_lt hv (by linarith [abs_nonneg (‖x.1‖ - 1)]))⟩
     rw [abs_lt] at hu ⊢
     rw [min_le_iff] at hu₁
@@ -216,16 +281,18 @@ theorem exists_contMDiff_cubeClipping {δ : ℝ} (hδ : 0 < δ) (hδ₂ : δ ≤
     constructor
     · rcases hu₁ with h | h <;> linarith
     · rcases hu₂ with h | h <;> linarith
-  · obtain ⟨hu, -⟩ := hx
-    dsimp only
-    rw [hΦ]
-    simp only [Set.Icc.coe_zero, sub_zero, one_mul, zero_mul, add_zero]
-    refine ⟨?_, ?_⟩
-    · rw [mem_sphere_zero_iff_norm]
-      refine norm_comp_eq_one hodd hf1 (by linarith) hfR ?_
-      linarith [(abs_lt.1 hu).1]
-    · rw [mem_closedBall_zero_iff]
-      exact (pi_norm_le_iff_of_nonneg zero_le_one).2 fun j ↦ hf1 _
+  · simpa [Φ] using mapsTo_clip_collar hodd hf1 (by linarith) hfR (by linarith) hx
+  · simp only [mem_closedBall_zero_iff, Prod.norm_def, max_le_iff] at hx
+    rw [Prod.norm_def, Prod.fst_sub, Prod.snd_sub, hΦ]
+    have h : 1 - (1 - 2 * δ) = 2 * δ := by ring
+    exact max_le
+      ((pi_clip_sub_norm_le hodd hf1 hfI (by linarith) hid t.property hx.1).trans_eq h)
+      ((pi_clip_sub_norm_le hodd hf1 hfI (by linarith) hid t.property hx.2).trans_eq h)
+  · refine norm_fderiv_le_of_lip' ℝ (by norm_num) (Filter.Eventually.of_forall fun y ↦ ?_)
+    simp only [Prod.norm_def, Prod.fst_sub, Prod.snd_sub, hΦ]
+    rw [mul_max_of_nonneg _ _ (by norm_num)]
+    exact max_le_max (pi_clip_sub_clip_norm_le (by norm_num) hfC t.property y.1 x.1)
+      (pi_clip_sub_clip_norm_le (by norm_num) hfC t.property y.2 x.2)
 
 end SymplecticGeometry
 
