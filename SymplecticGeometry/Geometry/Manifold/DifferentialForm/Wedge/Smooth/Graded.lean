@@ -41,7 +41,8 @@ cohomology classes. The laws come from Tau Ceti's associativity
 
 ## Main results
 
-* `TauCeti.SmoothForm.of_mul_of_eq_of_wedge`: the product of homogeneous forms is their wedge.
+* `TauCeti.SmoothForm.of_mul_of_eq_of_wedge`: the product of homogeneous forms is their wedge,
+  and `TauCeti.SmoothForm.of_zero_ofFunction_mul`: in degree `0` it is the product of functions.
 * `TauCeti.SmoothForm.algebraMap_apply_eq_of_ofFunction`: the image of `r : ℝ` is the constant
   function `r`, in degree `0`.
 * `TauCeti.SmoothForm.of_pow_eq_of_wedgePow`: powers of a homogeneous form are its wedge powers,
@@ -83,6 +84,7 @@ theorem gradedMonoid_mk_eq_mk {F : Type*} [NormedAddCommGroup F] [NormedSpace �
   rw [cast_apply, hφψ]
 
 /-- The wedge with the `0`-form of a smooth function on the right multiplies by the function. -/
+@[simp]
 theorem wedge_ofFunction (φ : SmoothForm I M ℝ k) (f : C^∞⟮I, M; ℝ⟯) :
     wedge φ (ofFunction f) = funSMulₗ f φ :=
   Subtype.ext <| by
@@ -231,6 +233,15 @@ theorem of_zero_ofFunction_one :
     DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 0 (ofFunction 1) = 1 :=
   DirectSum.of_zero_one _
 
+-- The priority makes `simp` use this lemma before `of_mul_of_eq_of_wedge`, which would leave the
+-- product as the wedge of the two `0`-forms.
+/-- The product of the `0`-forms of two smooth functions is the `0`-form of their product. -/
+@[simp high]
+theorem of_zero_ofFunction_mul (g g' : C^∞⟮I, M; ℝ⟯) :
+    DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 0 (ofFunction g) * DirectSum.of _ 0 (ofFunction g') =
+      DirectSum.of _ 0 (ofFunction (g * g')) := by
+  rw [of_mul_of_zero_ofFunction, funSMulₗ_ofFunction, mul_comm]
+
 /-- The image of a real number `r` in the algebra of smooth forms is the constant function `r`,
 in degree `0`. -/
 theorem algebraMap_apply_eq_of_ofFunction (r : ℝ) :
@@ -290,6 +301,17 @@ def ofFunctionRingHom : C^∞⟮I, M; ℝ⟯ →+* ⨁ k, SmoothForm I M ℝ k w
 theorem ofFunctionRingHom_apply (g : C^∞⟮I, M; ℝ⟯) :
     ofFunctionRingHom g = DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 0 (ofFunction g) :=
   (rfl)
+
+-- `simp` takes the product of two `0`-forms to the `0`-form of the product of the functions,
+-- also once `ofFunctionRingHom_apply` has unfolded the ring homomorphism.
+example (g g' : C^∞⟮I, M; ℝ⟯) :
+    DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 0 (ofFunction g) * DirectSum.of _ 0 (ofFunction g') =
+      DirectSum.of _ 0 (ofFunction (g * g')) := by
+  simp
+
+example (g g' : C^∞⟮I, M; ℝ⟯) :
+    ofFunctionRingHom g * ofFunctionRingHom g' = ofFunctionRingHom (I := I) (M := M) (g * g') := by
+  simp
 
 /-- A smooth function, as a form of degree `0`, commutes with every form of mixed degree. -/
 theorem commute_ofFunctionRingHom (g : C^∞⟮I, M; ℝ⟯) (x : ⨁ k, SmoothForm I M ℝ k) :
