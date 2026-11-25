@@ -123,6 +123,7 @@ tube `Q × B̄²(δ)` under the product neighbourhood `f`, as an open set. -/
 def complTube [CompactSpace Q] [T2Space M] (hδε : δ < ε) : Opens M :=
   ⟨(f '' {p | ‖(p : Q × ℂ).2‖ ≤ δ})ᶜ, f.isOpen_compl_image_closedBall hδε⟩
 
+@[simp]
 theorem mem_complTube [CompactSpace Q] [T2Space M] {hδε : δ < ε} {x : M} :
     x ∈ f.complTube hδε ↔ x ∉ f '' {p | ‖(p : Q × ℂ).2‖ ≤ δ} :=
   Iff.rfl
@@ -161,9 +162,14 @@ theorem continuous_collarMap (hδε : δ < ε) : Continuous (f.collarMap hδε) 
 def collar (hδε : δ < ε) : Opens (f.complTube hδε) :=
   (f.isLocalDiffeomorph_collarMap hδε).image
 
+@[simp]
 theorem mem_collar_iff {hδε : δ < ε} {x : f.complTube hδε} :
     x ∈ f.collar hδε ↔ x ∈ range (f.collarMap hδε) := by
   rw [collar, ← SetLike.mem_coe, ← Opens.carrier_eq_coe, IsLocalDiffeomorph.image_coe]
+
+theorem collarMap_mem_collar (hδε : δ < ε) (p : Q × annulus δ ε) :
+    f.collarMap hδε p ∈ f.collar hδε :=
+  f.mem_collar_iff.2 (mem_range_self p)
 
 /-- The collar of a product neighbourhood is diffeomorphic to `Q × A(δ, ε)`. -/
 def collarDiffeomorph (hδε : δ < ε) :
