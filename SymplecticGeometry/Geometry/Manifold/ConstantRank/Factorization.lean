@@ -12,11 +12,12 @@ import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
 import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
 
 /-!
-# Local factorization of a map of constant rank
+# Local factorization of a map of locally maximal rank
 
-A smooth map `f : M → N` of constant rank `r`, from a finite-dimensional boundaryless manifold
-to a boundaryless manifold, factors near each point as a submersion `q` onto an open set `U` of
-`EuclideanSpace 𝕜 (Fin r)` followed by a map `g` on `U` with injective derivative. In the
+Let `f : M → N` be a `C^n` map, `1 ≤ n`, from a finite-dimensional boundaryless manifold to a
+boundaryless manifold, on an open set `s ∋ x` where its rank is at most its rank `r` at `x`; for
+instance, a map of constant rank `r`. Near `x`, `f` factors as a submersion `q` onto an open set
+`U` of `EuclideanSpace 𝕜 (Fin r)` followed by a map `g` on `U` with injective derivative. In the
 coordinates of Tau Ceti's rank theorem
 `ContMDiffOn.exists_openPartialHomeomorph_comp_eq_mfderiv_comp` the map is a linear map `A` of
 rank `r`; writing `A = j ∘ p` with `p` onto `EuclideanSpace 𝕜 (Fin r)` and `j` injective, `q` is
@@ -24,7 +25,7 @@ rank `r`; writing `A = j ∘ p` with `p` onto `EuclideanSpace 𝕜 (Fin r)` and 
 
 ## Main results
 
-* `ContMDiff.exists_comp_eq_of_mfderivRank_eq`: the local factorization.
+* `ContMDiffOn.exists_comp_eq_of_mfderivRank_le`: the local factorization.
 
 ## References
 
@@ -46,28 +47,33 @@ variable {𝕜 E F H G M N : Type*} [RCLike 𝕜]
   [TopologicalSpace M] [ChartedSpace H M] [TopologicalSpace N] [ChartedSpace G N]
   {n : ℕ∞ω} [IsManifold I n M] [IsManifold J n N]
 
-/-- **Local factorization of a map of constant rank.** Near each point `x`, a `C^n` map `f` of
-constant rank `r`, `1 ≤ n`, is `g ∘ q` on an open set `V ∋ x`, where `q` is `C^n` on `V` with
-surjective derivatives and maps `V` onto an open set `U` of `EuclideanSpace 𝕜 (Fin r)`, and `g`
-is `C^n` on `U` with injective derivatives. -/
-theorem ContMDiff.exists_comp_eq_of_mfderivRank_eq {f : M → N} (hf : ContMDiff I J n f)
-    (hn : 1 ≤ n) {r : ℕ} (hr : ∀ y, TauCeti.mfderivRank I J f y = r) (x : M) :
-    ∃ (V : Set M) (U : Set (EuclideanSpace 𝕜 (Fin r))) (q : M → EuclideanSpace 𝕜 (Fin r))
-      (g : EuclideanSpace 𝕜 (Fin r) → N),
-      IsOpen V ∧ x ∈ V ∧ IsOpen U ∧ q '' V = U ∧ (∀ y ∈ V, g (q y) = f y) ∧
-      ContMDiffOn I 𝓘(𝕜, EuclideanSpace 𝕜 (Fin r)) n q V ∧
-      (∀ y ∈ V, Surjective (mfderiv I 𝓘(𝕜, EuclideanSpace 𝕜 (Fin r)) q y)) ∧
-      ContMDiffOn 𝓘(𝕜, EuclideanSpace 𝕜 (Fin r)) J n g U ∧
-      ∀ u ∈ U, Injective (mfderiv 𝓘(𝕜, EuclideanSpace 𝕜 (Fin r)) J g u) := by
+/-- **Local factorization of a map of locally maximal rank.** Let `f` be `C^n`, `1 ≤ n`, on an
+open set `s ∋ x`, with rank on `s` at most its rank `r` at `x`. Then on an open set `V` with
+`x ∈ V ⊆ s`, `f` is `g ∘ q`, where `q` is `C^n` on `V` with surjective derivatives and maps `V`
+onto an open set `U` of `EuclideanSpace 𝕜 (Fin r)`, and `g` is `C^n` on `U` with injective
+derivatives. -/
+theorem ContMDiffOn.exists_comp_eq_of_mfderivRank_le {f : M → N} {s : Set M} {x : M}
+    (hf : ContMDiffOn I J n f s) (hs : IsOpen s) (hx : x ∈ s) (hn : 1 ≤ n)
+    (hr : ∀ y ∈ s, TauCeti.mfderivRank I J f y ≤ TauCeti.mfderivRank I J f x) :
+    ∃ (V : Set M) (U : Set (EuclideanSpace 𝕜 (Fin (TauCeti.mfderivRank I J f x))))
+      (q : M → EuclideanSpace 𝕜 (Fin (TauCeti.mfderivRank I J f x)))
+      (g : EuclideanSpace 𝕜 (Fin (TauCeti.mfderivRank I J f x)) → N),
+      IsOpen V ∧ x ∈ V ∧ V ⊆ s ∧ IsOpen U ∧ q '' V = U ∧ (∀ y ∈ V, g (q y) = f y) ∧
+      ContMDiffOn I 𝓘(𝕜, EuclideanSpace 𝕜 (Fin (TauCeti.mfderivRank I J f x))) n q V ∧
+      (∀ y ∈ V, Surjective
+        (mfderiv I 𝓘(𝕜, EuclideanSpace 𝕜 (Fin (TauCeti.mfderivRank I J f x))) q y)) ∧
+      ContMDiffOn 𝓘(𝕜, EuclideanSpace 𝕜 (Fin (TauCeti.mfderivRank I J f x))) J n g U ∧
+      ∀ u ∈ U, Injective
+        (mfderiv 𝓘(𝕜, EuclideanSpace 𝕜 (Fin (TauCeti.mfderivRank I J f x))) J g u) := by
   have hn0 : n ≠ 0 := ne_of_gt (zero_lt_one.trans_le hn)
-  obtain ⟨φ, ψ, hxφ, -, -, hφ, hφi, -, hψ, hψi, hmap, hlin⟩ :=
-    hf.contMDiffOn.exists_openPartialHomeomorph_comp_eq_mfderiv_comp isOpen_univ (mem_univ x) hn
-      fun y _ ↦ ((hr y).trans (hr x).symm).le
+  set r := TauCeti.mfderivRank I J f x with hr_def
+  obtain ⟨φ, ψ, hxφ, hφs, -, hφ, hφi, -, hψ, hψi, hmap, hlin⟩ :=
+    hf.exists_openPartialHomeomorph_comp_eq_mfderiv_comp hs hx hn hr
   -- The linear map `A` that `f` is in these coordinates, and its rank.
   set A : E →L[𝕜] F := (tangentSpaceCastModel J (f x)).toContinuousLinearMap ∘L
     mfderiv I J f x ∘L (tangentSpaceCastModel I x).symm.toContinuousLinearMap with hA
   have hrA : finrank 𝕜 (LinearMap.range A.toLinearMap) = r := by
-    rw [← hr x, TauCeti.mfderivRank_def, hA, ContinuousLinearMap.toLinearMap_comp,
+    rw [hr_def, TauCeti.mfderivRank_def, hA, ContinuousLinearMap.toLinearMap_comp,
       ContinuousLinearMap.toLinearMap_comp, LinearMap.range_comp,
       LinearMap.range_comp_of_range_eq_top]
     · exact (Submodule.equivMapOfInjective _
@@ -99,7 +105,7 @@ theorem ContMDiff.exists_comp_eq_of_mfderivRank_eq {f : M → N} (hf : ContMDiff
     rintro _ ⟨v, hv, rfl⟩
     rw [hjp, ← φ.right_inv hv, ← hlin' _ (φ.map_target hv)]
     exact ψ.map_source (hmap (φ.map_target hv))
-  refine ⟨φ.source, p '' φ.target, p ∘ φ, ψ.symm ∘ j, φ.open_source, hxφ,
+  refine ⟨φ.source, p '' φ.target, p ∘ φ, ψ.symm ∘ j, φ.open_source, hxφ, hφs,
     p.toLinearMap.isOpenMap_of_finiteDimensional hp _ φ.open_target, ?_, fun y hy ↦ ?_,
     p.contMDiff.comp_contMDiffOn hφ, fun y hy ↦ ?_, hψi.comp j.contMDiff.contMDiffOn hmapsTo,
     fun u hu ↦ ?_⟩

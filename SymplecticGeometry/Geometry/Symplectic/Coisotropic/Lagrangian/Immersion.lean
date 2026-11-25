@@ -6,9 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Coisotropic.Lagrangian.Basic
-import SymplecticGeometry.Geometry.Manifold.ConstantRank.Factorization
-import SymplecticGeometry.Geometry.Manifold.MFDeriv.Sigma
-import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+import SymplecticGeometry.Geometry.Manifold.ConstantRank.Immersion
 
 /-!
 # The reduced Lagrangian as a Lagrangian immersion
@@ -17,14 +15,11 @@ Let `f : N → M` be a coisotropic immersion with regular characteristic foliati
 `g : P → M` be a Lagrangian immersion meeting `f` cleanly along `c : C → N`. By
 `Coisotropic/Lagrangian/Basic.lean`, the map `leafSpaceMk ∘ c` into the reduced space has constant
 rank `dim P - (dim M - dim N)` and Lagrangian tangent images. This file turns it into a Lagrangian
-immersion with the same image, without building a leaf space of `C`: near each point of `C`,
-`leafSpaceMk ∘ c` factors as a submersion onto an open set of
-`EuclideanSpace ℝ (Fin (dim P - (dim M - dim N)))` followed by a map with injective derivatives
-(`ContMDiff.exists_comp_eq_of_mfderivRank_eq`, from the rank theorem), and the second map is
-Lagrangian since the submersion does not change the tangent images. When `C` is second countable,
-countably many of these open sets cover the image; their disjoint union `Σ i : ℕ, U i`, with the
-charted space `ChartedSpace.sigma`, is a Hausdorff, second countable manifold, and the maps on the
-pieces give the Lagrangian immersion.
+immersion with the same image, without building a leaf space of `C`. When `C` is second countable,
+`ContMDiff.exists_isImmersion_range_eq_of_mfderivRank_eq` gives an immersion from a Hausdorff,
+second countable manifold modelled on `EuclideanSpace ℝ (Fin (dim P - (dim M - dim N)))`, a
+disjoint union of countably many open sets of that space, with the same range as
+`leafSpaceMk ∘ c` and the same tangent images, so that it is Lagrangian too.
 
 ## Main results
 
@@ -44,9 +39,8 @@ pieces give the Lagrangian immersion.
 
 public section
 
-open Set Function Manifold Module TauCeti TauCeti.Manifold TauCeti.SmoothTwoForm.IsNondegenerate
-  TopologicalSpace
-open scoped Manifold ContDiff Topology
+open Set Manifold Module TauCeti TauCeti.SmoothTwoForm.IsNondegenerate
+open scoped Manifold ContDiff
 
 namespace SymplecticGeometry.IsCleanIntersection
 
@@ -101,120 +95,14 @@ theorem exists_isLagrangianImmersion_range_eq_image [L.Boundaryless] [Nonempty C
   set p := (h.characteristicFoliation hi hf hσc hn).leafSpaceMk
   have hpc : ContMDiff L _ ∞ (p ∘ c) :=
     (Foliation.contMDiff_leafSpaceMk hR).comp hc.isSmoothEmbedding.contMDiff
-  -- Near each point, `p ∘ c` is `ι x ∘ q x` on `V x`, with `q x` a submersion onto `U x`.
-  choose V U q ι hV hxV hU hqV hιq hq hqs hι hιi using fun x ↦
-    hpc.exists_comp_eq_of_mfderivRank_eq (by simp) (hc.mfderivRank_leafSpaceMk_comp_eq hR hg hgi) x
-  -- Countably many of the `V x` cover `C`.
-  obtain ⟨s, hs, hcover⟩ := TopologicalSpace.countable_cover_nhds fun x ↦ (hV x).mem_nhds (hxV x)
-  have hsne : s.Nonempty := by
-    obtain ⟨y, hy, -⟩ := mem_iUnion₂.1 (hcover ▸ mem_univ x₀ : x₀ ∈ ⋃ x ∈ s, V x)
-    exact ⟨y, hy⟩
-  obtain ⟨e, rfl⟩ := hs.exists_eq_range hsne
-  have hcover' : ⋃ i, V (e i) = univ := by rwa [biUnion_range] at hcover
-  -- The pieces of the source and the map on their disjoint union.
-  let W (i : ℕ) : Opens (EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F)))) :=
-    ⟨U (e i), hU (e i)⟩
-  let ιS : (Σ i, W i) → (h.characteristicFoliation hi hf hσc hn).LeafSpace :=
-    fun z ↦ ι (e z.1) z.2
-  have hιS (i : ℕ) : ιS ∘ Sigma.mk i = ι (e i) ∘ Subtype.val := rfl
-  have hne : Nonempty (Σ i, W i) :=
-    ⟨⟨0, q (e 0) (e 0), (hqV (e 0)).subset (mem_image_of_mem _ (hxV (e 0)))⟩⟩
-  have hιd (x : C) {u} (hu : u ∈ U x) := ((hι x).mdifferentiableOn (by simp)).mdifferentiableAt
-    ((hU x).mem_nhds hu)
-  have hdι (i : ℕ) (u : W i) :
-      mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F))))
-        𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ F - (finrank ℝ E - finrank ℝ F)))) ιS ⟨i, u⟩ =
-      mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F))))
-        𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ F - (finrank ℝ E - finrank ℝ F)))) (ι (e i)) u ∘L
-        (tangentSpaceOpenEquiv u).toContinuousLinearMap := by
-    rw [mfderiv_sigma, hιS, mfderiv_comp u (hιd (e i) u.property)
-      ((contMDiff_subtypeVal (n := 1)).mdifferentiableAt one_ne_zero), mfderiv_subtype_val]
-  refine ⟨Σ i, W i, inferInstance, inferInstance, inferInstance, inferInstance, inferInstance,
-    ιS, ?_, ?_⟩
-  · rw [isLagrangianImmersion_iff]
-    refine ⟨ContMDiff.isImmersion_of_injective_mfderiv
-      (fun ⟨i, u⟩ ↦ contMDiffAt_sigma_iff.2 ?_) (by simp) fun ⟨i, u⟩ ↦ ?_, ?_⟩
-    · rw [hιS]
-      exact ((hι (e i)).contMDiffAt ((hU (e i)).mem_nhds u.property)).comp u
-        contMDiff_subtypeVal.contMDiffAt
-    · rw [hdι]
-      exact (hιi (e i) u u.property).comp (tangentSpaceOpenEquiv u).injective
-    · rw [isLagrangianMap_iff_forall]
-      rintro ⟨i, u, hu⟩
-      obtain ⟨y, hy, rfl⟩ := (hqV (e i)).symm.subset hu
-      have hlag := isLagrangianMap_iff_forall.1
-        (hc.isLagrangianMap_leafSpaceMk_comp hR hg hτ hτσ) y
-      have heq : p ∘ c =ᶠ[𝓝 y] ι (e i) ∘ q (e i) :=
-        Filter.eventuallyEq_of_mem ((hV _).mem_nhds hy) fun z hz ↦ (hιq _ z hz).symm
-      -- The derivatives of `ιS` at the point and of `p ∘ c` at `y` have the same range.
-      have hd (v : TangentSpace L y) :
-          mfderiv L 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ F - (finrank ℝ E - finrank ℝ F))))
-            (p ∘ c) y v =
-          mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F))))
-            𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ F - (finrank ℝ E - finrank ℝ F))))
-            (ι (e i)) (q (e i) y)
-            (mfderiv L 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F))))
-              (q (e i)) y v) := by
-        rw [heq.mfderiv_eq, mfderiv_comp y (hιd (e i) hu)
-          (((hq (e i)).mdifferentiableOn (by simp)).mdifferentiableAt ((hV _).mem_nhds hy))]
-        -- `ContinuousLinearMap.comp_apply`, at tangent spaces that agree only by definition.
-        rfl
-      have hd' (v : TangentSpace
-          𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F))))
-          (⟨i, q (e i) y, hu⟩ : Σ i, W i)) :
-          mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F))))
-            𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ F - (finrank ℝ E - finrank ℝ F))))
-            ιS ⟨i, q (e i) y, hu⟩ v =
-          mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F))))
-            𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ F - (finrank ℝ E - finrank ℝ F))))
-            (ι (e i)) (q (e i) y) (tangentSpaceOpenEquiv ⟨q (e i) y, hu⟩ v) := by
-        rw [hdι]
-        -- `ContinuousLinearMap.comp_apply`, at tangent spaces that agree only by definition.
-        rfl
-      have hrange : Set.range (mfderiv
-            𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F))))
-            𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ F - (finrank ℝ E - finrank ℝ F))))
-            ιS ⟨i, q (e i) y, hu⟩) =
-          Set.range (mfderiv L
-            𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ F - (finrank ℝ E - finrank ℝ F))))
-            (p ∘ c) y) := by
-        ext w
-        constructor
-        · rintro ⟨v, rfl⟩
-          obtain ⟨v', hv'⟩ := hqs _ y hy (tangentSpaceOpenEquiv ⟨q (e i) y, hu⟩ v)
-          exact ⟨v', by rw [hd, hd', hv']⟩
-        · rintro ⟨v, rfl⟩
-          obtain ⟨v', hv'⟩ := (tangentSpaceOpenEquiv ⟨q (e i) y, hu⟩).surjective
-            (mfderiv L 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F))))
-              (q (e i)) y v)
-          exact ⟨v', by rw [hd]; exact (hd' v').trans (by rw [hv'])⟩
-      -- Move the base point from `ιS` of the point to `p (c y)`.
-      have key : ∀ (X : (h.characteristicFoliation hi hf hσc hn).LeafSpace)
-          (W : Submodule ℝ
-            (TangentSpace
-              𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ F - (finrank ℝ E - finrank ℝ F)))) X)),
-          X = (p ∘ c) y → (W : Set (TangentSpace
-            𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ F - (finrank ℝ E - finrank ℝ F)))) X)) =
-            Set.range (mfderiv L
-              𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ F - (finrank ℝ E - finrank ℝ F))))
-              (p ∘ c) y) →
-          (hτ.symplecticFormAt X).IsLagrangian W := by
-        rintro X W rfl hW
-        have : W = LinearMap.range (mfderiv L
-            𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ F - (finrank ℝ E - finrank ℝ F))))
-            (p ∘ c) y).toLinearMap :=
-          SetLike.coe_injective (hW.trans (LinearMap.coe_range _).symm)
-        rw [this]
-        exact hlag
-      exact key _ _ (hιq _ y hy) ((LinearMap.coe_range _).trans hrange)
-  · ext z
-    constructor
-    · rintro ⟨⟨i, u⟩, rfl⟩
-      obtain ⟨y, hy, hyu⟩ := (hqV (e i)).symm.subset u.property
-      exact ⟨c y, mem_range_self y, (hιq _ y hy).symm.trans (congrArg (ι (e i)) hyu)⟩
-    · rintro ⟨_, ⟨y, rfl⟩, rfl⟩
-      obtain ⟨i, hi⟩ := mem_iUnion.1 (hcover' ▸ mem_univ y : y ∈ ⋃ i, V (e i))
-      exact ⟨⟨i, q (e i) y, (hqV (e i)).subset (mem_image_of_mem _ hi)⟩, hιq _ y hi⟩
+  obtain ⟨S, _, _, hS, hT2, hSC, ι, hι, hrange, hιf⟩ :=
+    hpc.exists_isImmersion_range_eq_of_mfderivRank_eq (by simp)
+      (hc.mfderivRank_leafSpaceMk_comp_eq hR hg hgi)
+  have : Nonempty S := range_nonempty_iff_nonempty.1 (hrange ▸ range_nonempty (p ∘ c))
+  refine ⟨S, _, _, hS, hT2, hSC, ι, isLagrangianImmersion_iff.2 ⟨hι, ?_⟩, by
+    rw [hrange, range_comp]⟩
+  exact isLagrangianMap_iff_forall.2 <| hιf (fun X W ↦ (hτ.symplecticFormAt X).IsLagrangian W) <|
+    isLagrangianMap_iff_forall.1 (hc.isLagrangianMap_leafSpaceMk_comp hR hg hτ hτσ)
 
 end SymplecticGeometry.IsCleanIntersection
 

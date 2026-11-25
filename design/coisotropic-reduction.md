@@ -162,8 +162,9 @@ derivative is the clean-intersection distribution
 $T_pL\cap(T_pQ)^\omega$. The general case does not build a leaf space of
 `C`: Tau Ceti's rank theorem factors `leafSpaceMk ∘ c`, near each point, as
 a submersion onto an open set of `EuclideanSpace ℝ (Fin (finrank ℝ G - k))`
-followed by an immersion, which is Lagrangian by
-`isLagrangianMap_comp_submersion_iff`. Countably many of these charts cover
+followed by an immersion. The immersion is Lagrangian, since composing
+with a map whose derivative is surjective leaves the tangent image
+unchanged. Countably many of these charts cover
 `C` when `C` is second countable, and the source is their disjoint union
 `Σ i : ℕ, U i` (`ChartedSpace.sigma`), which is Hausdorff and second
 countable; it is the countable union of charts that the page describes.
