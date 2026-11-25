@@ -32,10 +32,21 @@ continuous linear map `L : Q →L[ℝ] ν_x` from a normed space `Q`, as Tau Cet
 normal derivative of `L u` is the normal class of the derivative at `0` of `w ↦ Φ ⟨x, L w⟩`,
 applied to `u` (`normalFiberDeriv_apply_eq_mfderiv_comp`).
 
+If the differential of `Φ` at `0_x` is injective and `Φ` agrees with `f` on the zero section
+near `x`, the normal derivative at `x` is bijective (`bijective_normalFiberDeriv`). Indeed the
+differential of `Φ` sends a horizontal vector `(u, 0)` to the differential of `f` applied to
+`u` (`TauCeti.Bundle.mfderiv_zeroSectionTangentEquiv_symm_inl`); so if a vertical vector
+`(0, v)` goes to a vector tangent to `f`, it has the same image as some `(u, 0)`, hence equals
+it, and `v = 0`. An injective endomorphism of the finite-dimensional fibre is bijective. For a
+tube, a local diffeomorphism at `0_x`, this gives the automorphism `normalFiberDerivEquiv`.
+
 ## Main definitions
 
 * `TauCeti.SmoothEmbedding.normalFiberDeriv`: the normal derivative of a map out of the normal
   bundle along the zero section, as a continuous linear endomorphism of each fibre.
+* `TauCeti.SmoothEmbedding.normalFiberDerivEquiv`: the normal derivative at `x` of a map that is
+  a local diffeomorphism at `0_x` and restricts to `f` on the zero section near `x`, as a
+  continuous linear automorphism of the fibre at `x`.
 
 ## Main results
 
@@ -43,6 +54,9 @@ applied to `u` (`normalFiberDeriv_apply_eq_mfderiv_comp`).
   is the normal class of the velocity of `t ↦ Φ ⟨x, t • v⟩` at `0`.
 * `TauCeti.SmoothEmbedding.normalFiberDeriv_apply_eq_mfderiv_comp`: the same, read through a
   continuous linear parametrization of the fibre by a normed space.
+* `TauCeti.SmoothEmbedding.bijective_normalFiberDeriv`: the normal derivative is bijective when
+  the differential at the zero vector is injective and the map restricts to `f` on the zero
+  section.
 
 ## References
 
@@ -54,7 +68,7 @@ public section
 noncomputable section
 
 open Bundle Module
-open scoped Manifold ContDiff
+open scoped Manifold ContDiff Topology
 
 namespace TauCeti.SmoothEmbedding
 
@@ -165,6 +179,70 @@ theorem normalFiberDeriv_apply_eq_mfderiv_comp (f : SmoothEmbedding I J ∞ M N)
   rw [zero_smul, zero_add] at h
   exact congrArg (f.normalClassL x hn)
     ((congrArg (fun F : ℝ → N ↦ (mfderiv 𝓘(ℝ) J F 0 (1 : ℝ) : V)) e).trans h)
+
+/-- Let `Φ` be differentiable at the zero vector over `x`, with injective differential there, and
+equal to `f` on the zero section near `x`. Then the normal derivative of `Φ` at `x` is bijective. -/
+theorem bijective_normalFiberDeriv (f : SmoothEmbedding I J ∞ M N) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
+    {Φ : TotalSpace P (fun x ↦ f.NormalSpace x hn) → N} {x : M}
+    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
+      MDifferentiableAt (I.prod 𝓘(ℝ, P)) J Φ (zeroSection P _ x))
+    (hinj : letI := f.normalSpaceFiberBundle hn hdim
+      Function.Injective (mfderiv (I.prod 𝓘(ℝ, P)) J Φ (zeroSection P _ x)))
+    (hfΦ : Φ ∘ zeroSection P _ =ᶠ[𝓝 x] f) :
+    Function.Bijective (f.normalFiberDeriv hn hdim Φ x) := by
+  let := f.normalSpaceFiberBundle hn hdim
+  have := f.normalSpaceVectorBundle hn hdim
+  -- A vertical vector `(0, v)` whose image is the differential of `f` applied to `u` has the image
+  -- of the horizontal vector `(u, 0)`, so `(0, v) = (u, 0)` and `v = 0`.
+  have hD : Function.Injective (f.normalFiberDeriv hn hdim Φ x) := by
+    refine (injective_iff_map_eq_zero _).2 fun v hv ↦ ?_
+    rw [normalFiberDeriv_apply] at hv
+    obtain ⟨u, hu⟩ :=
+      (f.normalClass_eq_zero_iff x hn _).1 ((f.normalClassL_apply x hn _).symm.trans hv)
+    have h := hinj ((Bundle.mfderiv_zeroSectionTangentEquiv_symm_inl hΦ hfΦ u).trans hu)
+    exact (congrArg Prod.snd ((Bundle.zeroSectionTangentEquiv (I := I) x).symm.injective h)).symm
+  exact ⟨hD, LinearMap.injective_iff_surjective
+    (f := (f.normalFiberDeriv hn hdim Φ x : f.NormalSpace x hn →ₗ[ℝ] _)).1 hD⟩
+
+/-- The normal derivative at `x` of a map `Φ` out of the normal bundle that is a local
+diffeomorphism at the zero vector over `x` and equal to `f` on the zero section near `x`, such as
+a tubular neighbourhood of `f`, as a continuous linear automorphism of the normal space at `x`. -/
+def normalFiberDerivEquiv (f : SmoothEmbedding I J ∞ M N) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
+    {Φ : TotalSpace P (fun x ↦ f.NormalSpace x hn) → N} {x : M}
+    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
+      IsLocalDiffeomorphAt (I.prod 𝓘(ℝ, P)) J ∞ Φ (zeroSection P _ x))
+    (hfΦ : Φ ∘ zeroSection P _ =ᶠ[𝓝 x] f) :
+    f.NormalSpace x hn ≃L[ℝ] f.NormalSpace x hn :=
+  letI := f.normalSpaceFiberBundle hn hdim
+  (LinearEquiv.ofBijective (f.normalFiberDeriv hn hdim Φ x : f.NormalSpace x hn →ₗ[ℝ] _)
+    (bijective_normalFiberDeriv f hn hdim (hΦ.mdifferentiableAt hn)
+      (hΦ.isInvertible_mfderiv hn).injective hfΦ)).toContinuousLinearEquiv
+
+/-- The continuous linear automorphism `normalFiberDerivEquiv` applies the normal derivative. -/
+@[simp]
+theorem normalFiberDerivEquiv_apply (f : SmoothEmbedding I J ∞ M N) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
+    {Φ : TotalSpace P (fun x ↦ f.NormalSpace x hn) → N} {x : M}
+    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
+      IsLocalDiffeomorphAt (I.prod 𝓘(ℝ, P)) J ∞ Φ (zeroSection P _ x))
+    (hfΦ : Φ ∘ zeroSection P _ =ᶠ[𝓝 x] f) (v : f.NormalSpace x hn) :
+    f.normalFiberDerivEquiv hn hdim hΦ hfΦ v = f.normalFiberDeriv hn hdim Φ x v := by
+  rw [normalFiberDerivEquiv, LinearEquiv.coe_toContinuousLinearEquiv',
+    LinearEquiv.ofBijective_apply, ContinuousLinearMap.coe_coe]
+
+/-- The continuous linear map underlying `normalFiberDerivEquiv` is the normal derivative. -/
+@[simp]
+theorem coe_normalFiberDerivEquiv (f : SmoothEmbedding I J ∞ M N) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
+    {Φ : TotalSpace P (fun x ↦ f.NormalSpace x hn) → N} {x : M}
+    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
+      IsLocalDiffeomorphAt (I.prod 𝓘(ℝ, P)) J ∞ Φ (zeroSection P _ x))
+    (hfΦ : Φ ∘ zeroSection P _ =ᶠ[𝓝 x] f) :
+    (f.normalFiberDerivEquiv hn hdim hΦ hfΦ : f.NormalSpace x hn →L[ℝ] f.NormalSpace x hn) =
+      f.normalFiberDeriv hn hdim Φ x :=
+  ContinuousLinearMap.ext (normalFiberDerivEquiv_apply f hn hdim hΦ hfΦ)
 
 end TauCeti.SmoothEmbedding
 
