@@ -387,8 +387,8 @@ Issues 1, 2 and 5 can start at once.
 - Merged files of *First Chern number*:
   `Geometry/Manifold/FiberBundle/Principal/BasicForm.lean` (descent of
   basic forms, invariant forms along fundamental fields) and
-  `CircleConnection.lean` (the circle comparison, and the pattern of the
-  existence proof); `Geometry/Lie/Exponential/Circle.lean`
+  `CircleConnection.lean` (the circle comparison);
+  `Geometry/Lie/Exponential/Circle.lean`
   (`circleLieGenerator`).
 - No file of *Lie group actions* or *Moment maps*: the moment map
   predicate is Tau Ceti's.
