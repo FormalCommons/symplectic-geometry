@@ -89,7 +89,7 @@ theorem map_eq_or_eq_neg_of_isLocalHomeomorphOn_unit (hE : finrank ℝ E = n)
         (TopCat.ofHom f)).hom μ = ν ∨
       (((singularHomologyFunctor (ModuleCat.{0} ℤ) n).obj (𝟙_ (ModuleCat.{0} ℤ))).map
         (TopCat.ofHom f)).hom μ = -ν := by
-  set c : ModuleCat.of ℤ ℤ ≅ ModuleCat.of ℤ (ULift.{0} ℤ) :=
+  set c : 𝟙_ (ModuleCat.{0} ℤ) ≅ ModuleCat.of ℤ (ULift.{0} ℤ) :=
     (ULift.moduleEquiv (R := ℤ) (M := ℤ)).symm.toModuleIso
   have hf := map_eq_or_eq_neg_of_isLocalHomeomorphOn hE hF
     ((isFundamentalClass_singularHomologyFunctor_map_app_iff c μ).2 hμ)
