@@ -46,6 +46,13 @@ library's `TauCeti.mfderiv_linearEquiv_apply_adjointContinuousLinearMap`, read t
 of the adjoint action for the inclusion `K → G`. That of `μ_V` follows from it, since each
 `rep k` preserves `σ`.
 
+Last, the covectors `ν` of the local model are equivariant, which combines the equivariance of
+`τ`, `ι𝔪` and `μ_V`; and the infinitesimal action of the Lie algebra of `K` on `A × V`. Its
+component in `A` is computed through the functionals `η ↦ equivDual𝔪 η ζ`, `ζ ∈ 𝔪`, which turn
+`k ↦ repA k η` into a coadjoint coefficient; the chain rule along `K → G` and Tau Ceti's
+`TauCeti.Lie.mvfderiv_coadjointRepresentation_apply_one` give its derivative, with that lemma's
+sign. Its component in `V` is `D.mfderiv_rep_apply`.
+
 ## Main definitions
 
 * `SymplecticGeometry.LocalModelData.repA`: the representation of `K` on `A ≃ 𝔪*`, the dual of
@@ -72,6 +79,10 @@ of the adjoint action for the inclusion `K → G`. That of `μ_V` follows from i
   `A × V` is smooth.
 * `SymplecticGeometry.LocalModelData.smulCommClass_fiberDistribMulAction`: the action of `K`
   on `A × V` commutes with real scalars.
+* `SymplecticGeometry.LocalModelData.covector_smul`: `ν (k • p) = Ad*_k (ν p)`.
+* `SymplecticGeometry.LocalModelData.equivDual𝔪_mfderiv_repA_apply`,
+  `SymplecticGeometry.LocalModelData.mfderiv_fiberDistribMulAction_smul_apply`: the infinitesimal
+  action of the Lie algebra of `K` on `A ≃ 𝔪*` and on `A × V`.
 
 ## References
 
@@ -278,6 +289,96 @@ theorem momentMap_rep (k : K) (v : V) :
 theorem ι𝔥_momentMap_rep (k : K) (v : V) :
     D.ι𝔥 (D.momentMap (D.rep k v)) = coadjointRepresentation ℝ I G k (D.ι𝔥 (D.momentMap v)) := by
   rw [momentMap_rep, ι𝔥_adjoint𝔥_dual]
+
+/-! ### Equivariance of the covectors and the infinitesimal action -/
+
+/-- The covectors `ν (η, v) = τ + ι𝔪 η + ι𝔥 (μ_V v)` of the local model are equivariant:
+`ν (k • p) = Ad*_k (ν p)` for the action of `K` on `A × V`. -/
+theorem covector_smul (k : K) (p : A × V) :
+    letI := D.fiberDistribMulAction
+    D.covector (k • p) = coadjointRepresentation ℝ I G k (D.covector p) := by
+  obtain ⟨η, v⟩ := p
+  ext ξ
+  have hτ : D.τ ξ = D.τ (adjointContinuousLinearMap (I := I) (k : G)⁻¹ ξ) := by
+    rw [← coadjointRepresentation_apply, D.coadjointRepresentation_τ]
+  rw [fiberDistribMulAction_smul, covector_apply, ι𝔪_repA, ι𝔥_momentMap_rep,
+    coadjointRepresentation_apply, coadjointRepresentation_apply, coadjointRepresentation_apply,
+    covector_apply, hτ]
+
+/-- The infinitesimal representation of the Lie algebra of `K` on `A ≃ 𝔪*`: the derivative at `1`
+of `k ↦ repA k η` in the direction `ξ`, read in `𝔪*` through `D.equivDual𝔪`, is
+`ζ ↦ ι𝔪 η ⁅ζ, ξ'⁆`, where `ξ'` is the image of `ξ` in `𝔥`. This is the sign of
+`TauCeti.Lie.mvfderiv_coadjointRepresentation_apply_one`. -/
+theorem equivDual𝔪_mfderiv_repA_apply (η : A) (ξ : GroupLieAlgebra 𝓘(ℝ, F) K) (ζ : D.𝔪) :
+    D.equivDual𝔪 (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, A) (fun k : K ↦ D.repA k η) 1 ξ) ζ =
+      D.ι𝔪 η ⁅(ζ : GroupLieAlgebra I G), K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I ξ⁆ := by
+  have hK : MDifferentiableAt 𝓘(ℝ, F) I K.subtype 1 := by
+    rw [Subgroup.coe_subtype]
+    exact (K.contMDiff_subtypeVal_of_contMDiffSMul (I := I) (n := ∞)).mdifferentiableAt (by simp)
+  have hf : ContMDiff 𝓘(ℝ, F) 𝓘(ℝ, A) ∞ fun k : K ↦ D.repA k η :=
+    D.contMDiff_repA.comp (f := fun k : K ↦ (k, η))
+      ((contMDiff_id (I := 𝓘(ℝ, F))).prodMk (contMDiff_const (I' := 𝓘(ℝ, A))))
+  -- The functional `a ↦ equivDual𝔪 a ζ` on `A`, through which `k ↦ repA k η` becomes the
+  -- coadjoint matrix coefficient `k ↦ (Ad*_k (ι𝔪 η)) ζ`, by `ι𝔪_repA`.
+  let ℓ : A →L[ℝ] ℝ :=
+    LinearMap.toContinuousLinearMap ((Module.Dual.eval ℝ _ ζ) ∘ₗ D.equivDual𝔪.toLinearMap)
+  have hℓ (a : A) : ℓ a = D.equivDual𝔪 a ζ := by
+    rw [LinearMap.coe_toContinuousLinearMap', LinearMap.comp_apply, Module.Dual.eval_apply,
+      LinearEquiv.coe_coe]
+  have hcomp : (ℓ ∘ fun k : K ↦ D.repA k η) =
+      (fun g : G ↦ coadjointRepresentation ℝ I G g (D.ι𝔪 η) ζ) ∘ K.subtype := by
+    funext k
+    rw [Function.comp_apply, hℓ, ← ι𝔪_apply_coe, ι𝔪_repA, Function.comp_apply,
+      Subgroup.coe_subtype]
+  refine (hℓ (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, A) (fun k : K ↦ D.repA k η) 1 ξ)).symm.trans ?_
+  rw [← mvfderiv_apply_eq_mfderiv_apply, ← ℓ.fderiv,
+    ← mvfderiv_comp_apply_of_differentiableAt ℓ.differentiableAt (hf.mdifferentiableAt (by simp)),
+    hcomp, mvfderiv_comp_apply_of_eq 1
+      ((contMDiff_coadjointRepresentation_apply _ _).mdifferentiableAt (by simp))
+      hK (map_one K.subtype),
+    ← MonoidHom.groupLieAlgebraMap_apply, mvfderiv_coadjointRepresentation_apply_one]
+
+/-- The infinitesimal action of the Lie algebra of `K` on the fibre `A × V ≃ 𝔪* × V`: the
+derivative at `1` of `k ↦ k • (η, v)` in the direction `ξ` is `(a, ρ ξ' v)`, where `ξ'` is the
+image of `ξ` in `𝔥` and `a ∈ A` corresponds to the covector `ζ ↦ ι𝔪 η ⁅ζ, ξ'⁆ = -ι𝔪 η ⁅ξ', ζ⁆`
+on `𝔪`. -/
+theorem mfderiv_fiberDistribMulAction_smul_apply (p : A × V) (ξ : GroupLieAlgebra 𝓘(ℝ, F) K) :
+    letI := D.fiberDistribMulAction
+    mfderiv 𝓘(ℝ, F) 𝓘(ℝ, A × V) (fun k : K ↦ k • p) 1 ξ =
+      (D.equivDual𝔪.symm (-(D.ι𝔪 p.1 ∘ₗ
+          LieAlgebra.ad ℝ _ (K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I ξ) ∘ₗ D.𝔪.subtype)),
+        (D.ρ ⟨_, D.groupLieAlgebraMap_subtype_mem_𝔥 ξ⟩ : Module.End ℝ V) p.2) := by
+  let := D.fiberDistribMulAction
+  have hA : ContMDiff 𝓘(ℝ, F) 𝓘(ℝ, A) ∞ fun k : K ↦ D.repA k p.1 :=
+    D.contMDiff_repA.comp (f := fun k : K ↦ (k, p.1))
+      ((contMDiff_id (I := 𝓘(ℝ, F))).prodMk (contMDiff_const (I' := 𝓘(ℝ, A))))
+  have hV : ContMDiff 𝓘(ℝ, F) 𝓘(ℝ, V) ∞ fun k : K ↦ D.rep k p.2 :=
+    D.contMDiff_rep.comp (f := fun k : K ↦ (k, p.2))
+      ((contMDiff_id (I := 𝓘(ℝ, F))).prodMk (contMDiff_const (I' := 𝓘(ℝ, V))))
+  have hf : MDifferentiableAt 𝓘(ℝ, F) 𝓘(ℝ, A × V) (fun k : K ↦ k • p) 1 :=
+    ((hA.prodMk_space hV).congr fun k ↦ D.fiberDistribMulAction_smul k p).mdifferentiableAt
+      (by simp)
+  -- Each component is the derivative of the composite with the projection.
+  have h₁ : ((ContinuousLinearMap.fst ℝ A V) ∘ fun k : K ↦ k • p) = fun k ↦ D.repA k p.1 :=
+    funext fun k ↦ by
+      rw [Function.comp_apply, D.fiberDistribMulAction_smul, ContinuousLinearMap.coe_fst']
+  have h₂ : ((ContinuousLinearMap.snd ℝ A V) ∘ fun k : K ↦ k • p) = fun k ↦ D.rep k p.2 :=
+    funext fun k ↦ by
+      rw [Function.comp_apply, D.fiberDistribMulAction_smul, ContinuousLinearMap.coe_snd']
+  refine Prod.ext ?_ ?_
+  · have h := mvfderiv_comp_apply_of_differentiableAt
+      (ContinuousLinearMap.fst ℝ A V).differentiableAt hf ξ
+    rw [h₁, ContinuousLinearMap.fderiv, mvfderiv_apply_eq_mfderiv_apply,
+      mvfderiv_apply_eq_mfderiv_apply] at h
+    refine h.symm.trans (D.equivDual𝔪.injective (LinearMap.ext fun ζ ↦ ?_))
+    rw [equivDual𝔪_mfderiv_repA_apply, LinearEquiv.apply_symm_apply, LinearMap.neg_apply,
+      LinearMap.comp_apply, LinearMap.comp_apply, Submodule.subtype_apply, LieAlgebra.ad_apply,
+      ← map_neg, ← lie_skew]
+  · have h := mvfderiv_comp_apply_of_differentiableAt
+      (ContinuousLinearMap.snd ℝ A V).differentiableAt hf ξ
+    rw [h₂, ContinuousLinearMap.fderiv, mvfderiv_apply_eq_mfderiv_apply,
+      mvfderiv_apply_eq_mfderiv_apply] at h
+    exact h.symm.trans (D.mfderiv_rep_apply ξ p.2)
 
 end LocalModelData
 
