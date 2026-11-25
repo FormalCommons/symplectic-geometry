@@ -41,6 +41,13 @@ Finally it fixes a smooth odd function `SymplecticGeometry.smoothSign : ℝ → 
 identity on `[-1/4, 1/4]`, `1` on `[1/2, ∞)` and `-1` on `(-∞, -1/2]`, and has the sign of its
 argument, by choosing one from Tau Ceti's `TauCeti.exists_contDiff_odd_truncation`; only these
 properties are used, so no formula is given.
+
+For any `0 ≤ r < R ≤ 1` it also gives a smooth odd function that is the identity on `[-r, r]`,
+`1` on `[R, ∞)`, bounded by `1` in absolute value, and at least `t` at every `t ∈ [0, 1]`
+(`SymplecticGeometry.exists_contDiff_odd_clip`). Its formula `ν t * ν (-t) * t + ν (-t) - ν t`,
+for an antitone cutoff `ν` that is `1` up to `r` and `0` from `R` on, adapts the one in the proof
+of Tau Ceti's `TauCeti.exists_contDiff_odd_truncation`; with a single cutoff the bounds by `1`
+and by `t` follow.
 -/
 
 public section
@@ -157,6 +164,44 @@ theorem exists_contDiff_eqOn_id_Icc_mem_of_isOpen {a b : ℝ} {U : Set ℝ} (hab
   rcases le_or_gt (c t) b with hb | hb
   · exact hIU ⟨ha, hb⟩
   · exact h₁ (by rw [Metric.mem_ball, Real.dist_eq, abs_lt]; constructor <;> linarith)
+
+/-- A smooth odd function `ℝ → ℝ` that is the identity on `[-r, r]`, `1` on `[R, ∞)`, bounded
+by `1` in absolute value, and at least `t` at every `t ∈ [0, 1]`, for any `0 ≤ r < R ≤ 1`. By
+oddness it is `-1` on `(-∞, -R]` and at most `t` at every `t ∈ [-1, 0]`, so it moves no point of
+`[-1, 1]` away from the end `±1` of its sign. -/
+theorem exists_contDiff_odd_clip {r R : ℝ} (hr : 0 ≤ r) (hrR : r < R) (hR : R ≤ 1) :
+    ∃ f : ℝ → ℝ, ContDiff ℝ ∞ f ∧ Function.Odd f ∧ (∀ t, |t| ≤ r → f t = t) ∧
+      (∀ t, R ≤ t → f t = 1) ∧ (∀ t, |f t| ≤ 1) ∧ ∀ t ∈ Set.Icc (0 : ℝ) 1, t ≤ f t := by
+  obtain ⟨ν, hν, hνa, hν0, hνR, hνr, -⟩ := TauCeti.exists_contDiff_antitone_cutoff hrR zero_le_one
+  have hν1 (t : ℝ) : ν t ≤ 1 := by
+    rcases le_total t r with ht | ht
+    · exact (hνr t ht).le
+    · exact (hνa ht).trans (hνr r le_rfl).le
+  -- For `t ≥ 0` the function below is `1 - ν t * (1 - t)`.
+  set f : ℝ → ℝ := fun t ↦ ν t * ν (-t) * t + ν (-t) - ν t
+  have hodd : Function.Odd f := fun t ↦ by simp only [f, neg_neg]; ring
+  have hpos {t : ℝ} (ht : 0 ≤ t) : f t = 1 - ν t * (1 - t) := by
+    simp only [f, hνr (-t) (by linarith)]
+    ring
+  have hle (t : ℝ) (ht : 0 ≤ t) : |f t| ≤ 1 := by
+    rcases le_total R t with htR | htR
+    · rw [hpos ht, hνR t htR]; simp
+    · rw [hpos ht, abs_le]
+      have : 0 ≤ ν t * (1 - t) := mul_nonneg (hν0 t) (by linarith)
+      have : ν t * (1 - t) ≤ 1 := by nlinarith [hν1 t, hν0 t]
+      constructor <;> linarith
+  refine ⟨f, by fun_prop, hodd, fun t ht ↦ ?_, fun t ht ↦ ?_, fun t ↦ ?_, fun t ht ↦ ?_⟩
+  · obtain ⟨h₁, h₂⟩ := abs_le.1 ht
+    simp only [f, hνr t h₂, hνr (-t) (by linarith)]
+    ring
+  · rw [hpos (hr.trans (hrR.le.trans ht)), hνR t ht]
+    ring
+  · rcases le_total 0 t with ht | ht
+    · exact hle t ht
+    · have := hle (-t) (by linarith)
+      rwa [hodd, abs_neg] at this
+  · rw [hpos ht.1]
+    nlinarith [hν1 t, ht.2]
 
 /-- The smooth odd truncation of the identity given by Tau Ceti's
 `TauCeti.exists_contDiff_odd_truncation` for `r = 1/4` and `R = 1/2`: a smooth odd function
