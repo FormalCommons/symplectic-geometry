@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Lie.MaurerCartan
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Trivialization
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Trivialization
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartitionOfUnity
 
 /-!
@@ -36,10 +36,10 @@ these local forms into a connection form on the whole total space, as soon as th
 ## Implementation notes
 
 The local lemmas follow from two facts about the fibre coordinate that hold for any form,
-`Trivialization.mpullback_op_smul_mpullback_snd` and
-`Trivialization.mfderiv_snd_rightFundamentalVectorField` (`Principal/Trivialization.lean`), which
-also give the case `G = Circle`, with the angular form of the circle in place of the Maurer–Cartan
-form, in `Principal/CircleConnection.lean`. The circle case of the existence theorem,
+`Bundle.Trivialization.mpullback_op_smul_mpullback_snd` and
+`Bundle.Trivialization.mfderiv_snd_rightFundamentalVectorField` (`Principal/Trivialization.lean`),
+which also give the case `G = Circle`, with the angular form of the circle in place of the
+Maurer–Cartan form, in `Principal/CircleConnection.lean`. The circle case of the existence theorem,
 `SymplecticGeometry.exists_isCircleConnectionForm`, is derived from `exists_isConnectionForm` in
 `Principal/Connection/Circle.lean`.
 
@@ -99,7 +99,7 @@ theorem mpullback_op_smul_mpullback_trivialization_snd_maurerCartan
         x := by
   have hR := congrArg Subtype.val (mpullback_mul_right_leftMaurerCartanForm (I := IG) g)
   rw [SmoothForm.coe_mpullback, SmoothForm.coe_mapCoeff] at hR
-  rw [Trivialization.mpullback_op_smul_mpullback_snd hθ hx, hR, mpullback_mapCoeff]
+  rw [e.mpullback_op_smul_mpullback_snd hθ hx, hR, mpullback_mapCoeff]
 
 omit [IsManifold IB ∞ B] [ContMDiffFiberBundle ∞ G P IB IG] in
 /-- Let `e` be an equivariant trivialization whose fibre coordinate `θ` is differentiable over its
@@ -119,7 +119,7 @@ theorem mpullback_trivialization_snd_maurerCartan_apply_rightFundamentalVectorFi
       ![mulInvariantVectorField ξ ((e ((ManifoldTotalSpace.homeomorph G P).symm x)).2)] := by
     funext i
     fin_cases i
-    exact Trivialization.mfderiv_snd_rightFundamentalVectorField hx (hθ _ hx) ξ
+    exact e.mfderiv_snd_rightFundamentalVectorField hx (hθ _ hx) ξ
   rw [mpullback_apply, hvec, leftMaurerCartanForm_apply_mulInvariantVectorField]
 
 end Local

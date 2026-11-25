@@ -18,10 +18,10 @@ Let `P` be a smooth principal `G`-bundle with charted total space
 `θ (x • g) = θ x * g` over the base set of `e`. This file records two consequences of this identity
 for `θ` differentiable over the base set of `e`, stated for an arbitrary form or for none:
 
-* `Trivialization.mpullback_op_smul_mpullback_snd`: at a point over the base set, the action of
-  `g` pulls back `θ^* η` to `θ^* (R_g^* η)`, for every form `η` on `G`, `R_g` being right
-  multiplication by `g`;
-* `Trivialization.mfderiv_snd_rightFundamentalVectorField`: the derivative of `θ` maps the
+* `Bundle.Trivialization.mpullback_op_smul_mpullback_snd`: at a point over the base set, the
+  action of `g` pulls back `θ^* η` to `θ^* (R_g^* η)`, for every form `η` on `G`, `R_g` being
+  right multiplication by `g`;
+* `Bundle.Trivialization.mfderiv_snd_rightFundamentalVectorField`: the derivative of `θ` maps the
   fundamental vector field of `ξ` at `x` to the left-invariant vector field of `ξ` at `θ x`, since
   `θ` maps the orbit of `x` to the left translate of `G` by `θ x`.
 
@@ -47,9 +47,9 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
   [Group G] [LieGroup IG ∞ G]
   {P : B → Type*} [TopologicalSpace (TotalSpace G P)] [∀ b, TopologicalSpace (P b)]
   [FiberBundle G P] [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P]
-  {e : Trivialization G (π G P)} [e.IsEquivariant]
+  (e : Trivialization G (π G P)) [e.IsEquivariant]
 
-namespace Trivialization
+namespace Bundle.Trivialization
 
 /-- Let `e` be an equivariant trivialization whose fibre coordinate `θ` is differentiable over its
 base set. At a point `x` over the base set, the action of `g` pulls back `θ^* η` to
@@ -96,24 +96,14 @@ theorem mfderiv_snd_rightFundamentalVectorField {x : ManifoldTotalSpace G P}
     mfderiv (IB.prod IG) IG (fun x : ManifoldTotalSpace G P ↦
         (e ((ManifoldTotalSpace.homeomorph G P).symm x)).2) x
       (rightFundamentalVectorField (IB.prod IG) ξ x) =
-      mulInvariantVectorField ξ ((e ((ManifoldTotalSpace.homeomorph G P).symm x)).2) := by
-  set θ := fun x : ManifoldTotalSpace G P ↦ (e ((ManifoldTotalSpace.homeomorph G P).symm x)).2
-  have horb := PrincipalBundle.mdifferentiableAt_orbit (IB := IB) (IG := IG) (n := ∞)
-    (by simp) x 1
-  have hθx : MDifferentiableAt (IB.prod IG) IG θ (op (1 : G) • x) := by
-    rw [op_one, one_smul]
-    exact hθ
-  -- Along the orbit of `x`, the fibre coordinate is left multiplication by `θ x`.
-  have hcomp : θ ∘ (fun g : G ↦ op g • x) = fun g ↦ θ x * g :=
-    funext fun g ↦ by
-      simp only [Function.comp_apply, θ, ManifoldTotalSpace.homeomorph_symm_smul]
-      exact e.snd_apply_smul hx _ g
-  rw [GroupLieAlgebra.mulInvariantVectorField_apply, rightFundamentalVectorField_apply, ← hcomp,
-    mfderiv_comp_of_eq hθx horb rfl, op_one, one_smul]
-  -- `ContinuousLinearMap.comp_apply` does not rewrite here: the inner derivative lands in the
-  -- tangent space at `op 1 • x`, which is `x` only after `one_smul`.
-  rfl
+      mulInvariantVectorField ξ ((e ((ManifoldTotalSpace.homeomorph G P).symm x)).2) :=
+  (mfderiv_rightFundamentalVectorField_of_map_op_smul hθ
+    (PrincipalBundle.mdifferentiableAt_orbit (n := ∞) (by simp) x 1)
+    (fun g ↦ by
+      simp only [ManifoldTotalSpace.homeomorph_symm_smul]
+      exact e.snd_apply_smul hx _ g) ξ).trans
+    (congrFun (rightFundamentalVectorField_eq_mulInvariantVectorField ξ) _)
 
-end Trivialization
+end Bundle.Trivialization
 
 end

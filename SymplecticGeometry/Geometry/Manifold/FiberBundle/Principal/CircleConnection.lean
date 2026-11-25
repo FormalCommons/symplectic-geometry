@@ -74,8 +74,9 @@ The invariance of `α` gives `L_ξ α = 0` along the fundamental vector field `�
 then gives `ι_ξ d α = 0`.
 
 The two local lemmas over a trivialization are short rewrites with
-`Trivialization.mpullback_op_smul_mpullback_snd` and
-`Trivialization.mfderiv_snd_rightFundamentalVectorField`, which do not involve the angular form.
+`Bundle.Trivialization.mpullback_op_smul_mpullback_snd` and
+`Bundle.Trivialization.mfderiv_snd_rightFundamentalVectorField`, which do not involve the angular
+form.
 
 ## References
 
@@ -348,7 +349,7 @@ theorem mpullback_op_smul_mpullback_trivialization_snd {x : ManifoldTotalSpace C
         (e ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2) circleAngularForm) x =
       TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) (fun x : ManifoldTotalSpace Circle P ↦
         (e ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2) circleAngularForm x := by
-  rw [Trivialization.mpullback_op_smul_mpullback_snd hθ hx, mpullback_mul_right_circleAngularForm]
+  rw [e.mpullback_op_smul_mpullback_snd hθ hx, mpullback_mul_right_circleAngularForm]
 
 omit [IsManifold IB ∞ B] [ContMDiffFiberBundle ∞ Circle P IB (𝓡 1)] in
 /-- Let `e` be an equivariant trivialization whose fibre coordinate `θ` is differentiable over its
@@ -370,7 +371,7 @@ theorem mpullback_trivialization_snd_apply_rightFundamentalVectorField
       fun i ↦ mfderiv (𝓡 1) (𝓡 1) (fun g ↦ θ x * g) 1 (![circleLieGenerator] i) := by
     funext i
     fin_cases i
-    exact (Trivialization.mfderiv_snd_rightFundamentalVectorField hx (hθ _ hx) _).trans
+    exact (e.mfderiv_snd_rightFundamentalVectorField hx (hθ _ hx) _).trans
       (GroupLieAlgebra.mulInvariantVectorField_apply _ _)
   rw [mpullback_apply, hvec]
   exact hL.trans circleAngularForm_one_circleLieGenerator
