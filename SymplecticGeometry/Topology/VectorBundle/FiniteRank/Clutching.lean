@@ -424,10 +424,8 @@ private theorem baseSet_pullback_clutching_subset (i : X × ℙ ℂ (Fin 2 → �
         (((ContinuousMap.id X).prodMk (.const X t)).prodMap (.id _))).core.baseSet i ⊆
       (E.clutching f).core.baseSet i := by
   intro b hb
-  -- The chart of a pullback at `i` is the preimage of the chart at the image of `i`.
-  change ((((ContinuousMap.id X).prodMk (.const X t)).prodMap (.id _)) b) ∈
-    ((E.pullback ContinuousMap.fst).clutching H).core.baseSet
-      ((((ContinuousMap.id X).prodMk (.const X t)).prodMap (.id _)) i) at hb
+  rw [VectorBundleCore.baseSet_at, localTriv_baseSet_pullback, ← VectorBundleCore.baseSet_at,
+    Set.mem_preimage] at hb
   rw [baseSet_clutching, glueIndex_sliceAt] at hb
   rw [baseSet_clutching]
   generalize glueIndex (Prod.snd ⁻¹' innerDisc) i = s at hb ⊢
