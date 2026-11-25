@@ -89,8 +89,7 @@ theorem parallelTransport_eq_timeDependentFlowOf (hn : 1 ≤ n) (hf : ContMDiff 
   intro x hx
   rw [mem_preimage, mem_singleton_iff] at hx
   have hn' : (1 : ℕ∞ω) ≤ n := mod_cast hn
-  have h2 : (2 : ℕ∞ω) ≤ n + 1 := by
-    simpa [one_add_one_eq_two] using add_le_add_left hn' 1
+  have h2 : (2 : ℕ∞ω) ≤ n + 1 := SymplecticGeometry.two_le_add_one_of_one_le hn'
   obtain ⟨hc, hh, hγc⟩ := hD.isHorizontalMap_timeDependentFlowOf_horizontalLiftField hn hf hfp
     (hγ.mdifferentiable (by simp)) hV hK hV0 isPreconnected_uIcc hVγ left_mem_uIcc hx
   exact hD.parallelTransport_eq hn' (hf.of_le h2) hγ
@@ -107,8 +106,7 @@ private theorem exists_diffeomorph_eqOn_parallelTransport_of_mapsTo_baseSet (hn 
     (hγe : MapsTo γ (Icc a b) e.baseSet) {s t : ℝ} (hs : s ∈ Icc a b) (ht : t ∈ Icc a b) :
     ∃ Ψ : P ≃ₘ^n⟮I, I⟯ P, EqOn Ψ (hD.parallelTransport γ s t) (f ⁻¹' {γ s}) := by
   have : IsManifold I n P := .of_le (n := ∞) (by exact_mod_cast le_top)
-  have h2 : (2 : ℕ∞ω) ≤ n + 1 := by
-    simpa [one_add_one_eq_two] using add_le_add_left (mod_cast hn : (1 : ℕ∞ω) ≤ n) 1
+  have h2 : (2 : ℕ∞ω) ≤ n + 1 := SymplecticGeometry.two_le_add_one_of_one_le (mod_cast hn)
   obtain ⟨V, K, hK, hV, hV0, hVγ⟩ := e.exists_timeDependentField_eq_curveVelocity hγ hγe
   refine ⟨timeDependentFlowDiffeomorph
     (hD.isCompleteVectorField_timeDependentSuspensionField_horizontalLiftField hn hf hfp hV hK hV0)
