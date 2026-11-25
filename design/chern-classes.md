@@ -969,7 +969,7 @@ Beside Tau Ceti's `FiniteRank/Tensor.lean`, in Tau Ceti's terms only;
   bundle.
 - `TauCeti.FiniteRankBundleCore.detWhitneySumIso`: the determinant line of
   `whitneySum A D` is `tensor A.det D.det`, by a constant change of
-  coordinates (`det_coordChange_whitneySum`).
+  coordinates (`det_coordChange_whitneySum`, in `FiniteRank/Biproduct.lean`).
 
 ### `Topology/VectorBundle/Determinant.lean` (addition)
 
