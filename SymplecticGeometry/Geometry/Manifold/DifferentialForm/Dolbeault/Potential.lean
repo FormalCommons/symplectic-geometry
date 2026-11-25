@@ -208,10 +208,10 @@ open SmoothAlmostComplexStructure
 /-- On a complex manifold, the value of `-df ∘ J` on `v` at `x` is `-df_x(i v)`, for a smooth
 real function `f`. -/
 theorem SmoothAlmostComplexStructure.covectorComplexStructure_ofComplexManifold_mextDerivₗ_apply
-    (f : C^∞⟮𝓘(ℝ, V), N; ℝ⟯) (x : N) (v : V) :
+    (f : C^∞⟮𝓘(ℝ, V), N; ℝ⟯) (x : N) (v : TangentSpace 𝓘(ℝ, V) x) :
     ((ofComplexManifold V N).covectorComplexStructure
         (mextDerivₗ 𝓘(ℝ, V) 0 (SmoothForm.ofFunction f))).val x ![v] =
-      -mvfderiv 𝓘(ℝ, V) f x (Complex.I • v) := by
+      -mvfderiv 𝓘(ℝ, V) f x (Complex.I • (show V from v)) := by
   refine (covectorComplexStructure_apply_vec _ _ x v).trans ?_
   rw [mextDerivₗ_zero_apply, SmoothForm.ofFunction_apply_zero]
   exact congrArg (fun w ↦ -mvfderiv 𝓘(ℝ, V) f x w) (ofComplexManifold_apply (E := V) x v)

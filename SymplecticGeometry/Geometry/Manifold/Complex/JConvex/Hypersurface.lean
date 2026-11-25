@@ -7,7 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.Plurisubharmonic
 public import TauCeti.Geometry.Symplectic.Liouville.ContactType
-import TauCeti.Geometry.Symplectic.Manifold.Flat
+import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
+import TauCeti.Geometry.Manifold.RegularValue.NormSq
 
 /-!
 # J-convex hypersurfaces and their contact structure
@@ -27,16 +28,16 @@ contact structure of its complex tangencies:
   satisfies `df(z) = ω_f(z, i z) > 0`, so it is transverse to the level; Tau Ceti's pointwise
   `TauCeti.isContactFormAt_mpullback` concludes.
 * `SymplecticGeometry.mem_kerDistribution_mpullback_covectorComplexStructure_iff`: for such an
-  immersion into a level of `f`, at a regular point, the kernel of `ι^* λ_f` at `s` consists of
-  the vectors `v` whose image `dι(v)` stays tangent after multiplication by `i`: the complex
-  tangencies of the hypersurface. The tangent image of `ι` is the kernel of `df`, by Tau Ceti's
+  immersion that maps a neighbourhood of `s` into a level of `f`, with `ι s` a regular point,
+  the kernel of `ι^* λ_f` at `s` consists of the vectors `v` whose image `dι(v)` stays tangent
+  after multiplication by `i`: the complex tangencies of the hypersurface. The tangent image of
+  `ι` is the kernel of `df`, by Tau Ceti's
   `TauCeti.IsRegularPoint.range_mfderiv_eq_ker_mfderiv`.
 
-The Levi form of a level, `L_f` restricted to the complex tangencies `ker ∂f` of `{f = 0}`,
-depends on the defining function only through a factor:
-`SymplecticGeometry.manifoldLeviForm_apply_of_eventuallyEq_mul` shows that for `g = a f` near
-`x`, with `f x = 0`, the Levi form of `g` there is `a x` times that of `f`. It is the pointwise
-product rule `TauCeti.manifoldLeviForm_mul_apply` of Tau Ceti.
+On the complex tangencies `ker ∂f` of `{f = 0}` at a point `x` with `f x = 0`, the Levi form of
+`a * f` is `a x` times that of `f`
+(`SymplecticGeometry.manifoldLeviForm_apply_of_eventuallyEq_mul`), by Tau Ceti's pointwise
+product rule `TauCeti.manifoldLeviForm_mul_apply`.
 
 Examples: the regular levels of a Stein function
 (`SymplecticGeometry.IsSteinFunction.isJConvexLevel`) and the spheres `‖z‖² = c`, `c > 0`, of a
@@ -85,22 +86,14 @@ theorem IsSteinFunction.isJConvexLevel {φ : M → ℝ} (hφ : IsSteinFunction E
 theorem isJConvexLevel_norm_sq {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℂ V]
     [FiniteDimensional ℂ V] {c : ℝ} (hc : 0 < c) :
     IsJConvexLevel V (fun z : V ↦ ‖z‖ ^ 2) c := by
-  refine isSteinFunction_norm_sq.isJConvexLevel <| isRegularValue_iff.2 fun z hz ↦
-    isRegularPoint_iff_mvfderiv_ne_zero.2 fun h0 ↦ ?_
-  have h := congrArg (fun L ↦ L z) h0
-  erw [mvfderiv_eq_fderiv_apply] at h
   let : InnerProductSpace ℝ V := InnerProductSpace.rclikeToReal ℂ V
-  simp only [fderiv_norm_sq_apply, smul_apply, innerSL_apply_apply, real_inner_self_eq_norm_sq,
-    hz] at h
-  have h' : 2 • c = 0 := h
-  simp only [smul_eq_zero, OfNat.ofNat_ne_zero, false_or] at h'
-  exact hc.ne' h'
+  exact isSteinFunction_norm_sq.isJConvexLevel (isRegularValue_norm_sq hc.ne')
 
 /-! ### The Levi form of a level -/
 
-/-- **The Levi form of a level depends on the defining function only up to a factor.** Let `f`
-vanish at `x`, and let `g = a f` near `x`, for `f` and `a` of class `C²` at `x`. On vectors `v`,
-`w` in the complex tangent space of `{f = 0}` at `x`, that is with
+/-- **The Levi form of a multiple of `f` on the complex tangencies of `{f = 0}`.** Let `f` vanish
+at `x`, and let `g` agree with `a * f` near `x`, for `f` and `a` of class `C²` at `x`. On vectors
+`v`, `w` in the complex tangent space of `{f = 0}` at `x`, that is with
 `df(v) = df(i v) = df(w) = df(i w) = 0`, the Levi form of `g` at `x` is `a x` times that of
 `f`. -/
 theorem manifoldLeviForm_apply_of_eventuallyEq_mul {f g a : M → ℝ} {x : M}
@@ -112,6 +105,10 @@ theorem manifoldLeviForm_apply_of_eventuallyEq_mul {f g a : M → ℝ} {x : M}
   have hdel {u : E} (hu : mvfderiv 𝓘(ℝ, E) f x u = 0)
       (hIu : mvfderiv 𝓘(ℝ, E) f x (Complex.I • u) = 0) :
       (StrongDual.extendRCLike (F := E) (mvfderiv 𝓘(ℝ, E) f x) : StrongDual ℂ E) u = 0 := by
+    -- `erw`: Tau Ceti's `manifoldLeviForm_mul_apply` applies `StrongDual.extendRCLike` to
+    -- `mvfderiv`, a covector on `TangentSpace 𝓘(ℝ, E) x` rather than on `E`, and the lemma
+    -- writes `RCLike.I` for `Complex.I`; both match only up to unfolding, and `rw` and `simp`
+    -- fail on that term.
     erw [StrongDual.extendRCLike_apply, hu, hIu]
     simp
   rw [manifoldLeviForm_congr_of_eventuallyEq hg, manifoldLeviForm_mul_apply ha hf v w, hfx,
@@ -125,30 +122,22 @@ variable [IsManifold 𝓘(ℂ, E) ∞ M]
   {I : ModelWithCorners ℝ F H} [TopologicalSpace S] [ChartedSpace H S]
 
 /-- **The complex tangencies of a hypersurface in a level are the kernel of `λ_f`.** Let
-`ι : S → M` be a smooth map, from a manifold of one dimension less, with image in the level
-`f ⁻¹' {c}`, and let `s` be a point where the differential of `ι` is injective and `ι s` is a
-regular point of `f`. A vector `v` at `s` lies in the kernel of
+`ι : S → M` be a smooth map from a manifold of one dimension less, and `s` a point such that
+`ι` maps a neighbourhood of `s` into the level `f ⁻¹' {c}`, the differential of `ι` at `s` is
+injective, and `ι s` is a regular point of `f`. A vector `v` at `s` lies in the kernel of
 `ι^* λ_f`, for `λ_f = -df ∘ J`, iff `i dι(v)` lies in the image of `dι`. -/
 theorem mem_kerDistribution_mpullback_covectorComplexStructure_iff [IsManifold I 2 S]
     {f : C^∞⟮𝓘(ℝ, E), M; ℝ⟯} {c : ℝ} [FiniteDimensional ℂ E] {ι : S → M}
-    (hι : ContMDiff I 𝓘(ℝ, E) ∞ ι) (hιc : ∀ s, f (ι s) = c)
-    (hdim : finrank ℝ F + 1 = finrank ℝ E) {s : S}
-    (hιs : Function.Injective (mfderiv I 𝓘(ℝ, E) ι s))
+    (hι : ContMDiff I 𝓘(ℝ, E) ∞ ι) (hdim : finrank ℝ F + 1 = finrank ℝ E) {s : S}
+    (hιc : ∀ᶠ s' in 𝓝 s, f (ι s') = c) (hιs : Function.Injective (mfderiv I 𝓘(ℝ, E) ι s))
     (hreg : IsRegularPoint 𝓘(ℝ, E) 𝓘(ℝ) f (ι s)) (v : TangentSpace I s) :
     v ∈ (SmoothForm.mpullback ι hι ((ofComplexManifold E M).covectorComplexStructure
         (mextDerivₗ 𝓘(ℝ, E) 0 (SmoothForm.ofFunction f)))).kerDistribution s ↔
       Complex.I • (show E from mfderiv I 𝓘(ℝ, E) ι s v) ∈
         (mfderiv I 𝓘(ℝ, E) ι s).range := by
-  have hrange := hreg.range_mfderiv_eq_ker_mfderiv (Eventually.of_forall hιc) hιs
-    (by simpa using hdim)
-  have hv :
-      (fun i ↦ mfderiv I 𝓘(ℝ, E) ι s (![v] i)) = ![mfderiv I 𝓘(ℝ, E) ι s v] := by
-    ext i
-    fin_cases i
-    rfl
-  rw [SmoothForm.mem_kerDistribution, SmoothForm.coe_mpullback, mpullback_apply, hrange,
-    ← ker_mvfderiv, hv]
-  erw [covectorComplexStructure_ofComplexManifold_mextDerivₗ_apply]
+  have hrange := hreg.range_mfderiv_eq_ker_mfderiv hιc hιs (by simpa using hdim)
+  rw [SmoothForm.mem_kerDistribution, SmoothForm.mpullback_apply_one, hrange, ← ker_mvfderiv,
+    covectorComplexStructure_ofComplexManifold_mextDerivₗ_apply]
   exact neg_eq_zero.trans LinearMap.mem_ker.symm
 
 /-- **A J-convex level carries a contact form.** Let `ι : S → M` be a smooth immersion of a
@@ -178,16 +167,9 @@ theorem IsJConvexLevel.isContactForm_mpullback [IsManifold I 2 S] [FiniteDimensi
     by_contra h0
     exact (hpos v h0).ne' (hv _)
   -- The vector `z` with `ι_z ω_f = λ_f` at `x`.
-  obtain ⟨z, hz⟩ : ∃ z : E, ∀ v : E, σ.val x ![z, v] = α.val x ![v] := by
-    have hnd : (σ.bilinFormAt x).Nondegenerate :=
-      (SmoothForm.isAlt_bilinFormAt σ x).isRefl.nondegenerate_iff_separatingLeft.2
-        fun v hv ↦ hσ v fun w ↦ (SmoothBundleForm.eval₂_apply _ x v w).symm.trans
-          ((SmoothForm.bilinFormAt_apply σ x v w).symm.trans (hv w))
-    obtain ⟨z, hz⟩ := (SmoothTwoForm.isInvertible_flat_iff.2 hnd).surjective
-      (SmoothForm.degreeOneEquiv α x)
-    exact ⟨z, fun v ↦ (SmoothBundleForm.eval₂_apply _ x z v).symm.trans
-      ((SmoothTwoForm.flat_apply σ x z v).symm.trans ((congrArg (fun L ↦ L v) hz).trans
-        (SmoothForm.degreeOneEquiv_apply_apply_vec α x v)))⟩
+  obtain ⟨z, hz⟩ : ∃ z : E, ∀ v : E, σ.val x ![z, v] = α.val x ![v] :=
+    (SmoothTwoForm.exists_forall_val_apply_eq σ hσ (SmoothForm.degreeOneEquiv α x)).imp
+      fun z hz v ↦ (hz v).trans (SmoothForm.degreeOneEquiv_apply_apply_vec α x v)
   refine isContactFormAt_mpullback hdim ((hι s).of_le (by simp)) (hιs s) hσ
     ((α.contMDiff x).of_le (by simp)) (by rw [hσ_def, mextDerivₗ_apply]) ?_ hz
   -- `z` is transverse: `df(z) = λ_f(i z) = ω_f(z, i z)`, which is positive unless `z = 0`, and
