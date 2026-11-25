@@ -13,6 +13,7 @@ import Mathlib.Topology.PartitionOfUnity
 import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Complement
 import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Exact
+import SymplecticGeometry.Algebra.Exact.Basic
 import TauCeti.Topology.VectorBundle.Hom
 import TauCeti.Topology.VectorBundle.Section
 import TauCeti.Topology.PartitionOfUnity.Basic
@@ -114,7 +115,8 @@ def tangentNormalEquiv (x : M) :
 @[simp]
 theorem tangentNormalEquiv_apply (x : M) (p : (TangentSpace I ×ᵇ fun x ↦ f.NormalSpace x hn) x) :
     f.tangentNormalEquiv hn r hr x p = mfderiv I J f x p.1 + r x p.2 :=
-  (rfl)
+  (exact_mfderiv_normalClass f x hn).splitSurjectiveEquiv_symm_apply
+    (f.isImmersion.mfderiv_injective hn x) ⟨(r x).toLinearMap, LinearMap.ext (hr x)⟩ p
 
 /-- The normal component of the inverse of the isomorphism is the normal class. -/
 @[simp]
