@@ -9,7 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Integration.
 public import TauCeti.Geometry.Symplectic.Manifold.LiouvilleMeasure
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
-public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.Ellipsoid.NormalForm
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 
 /-!
 # Integrating the symplectic volume form
