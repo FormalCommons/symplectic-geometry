@@ -5,10 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
+public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
+public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Descent
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
+import TauCeti.Geometry.Lie.Adjoint.Infinitesimal
 import TauCeti.Geometry.Lie.Exponential.Derivative.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Flow
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
@@ -39,6 +43,9 @@ applies: the points of a fibre are related by the action, through the division m
   `TauCeti.RoughForm.isBasic_of_mpullback_eq` for the right translations of a principal bundle.
 * `TauCeti.PrincipalBundle.mlieDerivForm_rightFundamentalVectorField_eq_zero`: an invariant form
   has vanishing Lie derivative along every fundamental vector field.
+* `TauCeti.PrincipalBundle.mlieDerivForm_rightFundamentalVectorField_apply_eq_neg_lie`: a form
+  with values in the Lie algebra `𝔤` that is equivariant, `R_g^* β = Ad(g⁻¹) ∘ β`, has Lie
+  derivative `-[ξ, β]` along the fundamental vector field of `ξ`.
 * `TauCeti.PrincipalBundle.mextDeriv_apply_rightFundamentalVectorField_prod`,
   `TauCeti.PrincipalBundle.interior_mextDeriv_rightFundamentalVectorField_prod`: on a product
   `P × N` with a manifold `N` that may have boundary, a one-form `A` invariant under the action
@@ -66,6 +73,11 @@ so its Lie derivative along `∂ₛ` vanishes on vectors tangent to `N`
 boundaryless model), and Cartan's formula on `ℝ × N` gives the identity. The vanishing of the
 Lie derivative along `(ξ_P, 0)` and the identity of forms then follow from the pointwise identity
 by Cartan's formula on `P × N` (`TauCeti.SmoothForm.mlieDerivForm_eq_interior_mextDeriv_add`).
+
+The proof of `mlieDerivForm_rightFundamentalVectorField_apply_eq_neg_lie` follows the same steps,
+and so also adapts `TauCeti.mlieDerivForm_fundamentalVectorField_eq_zero`: along the same flow
+the pull-backs of `β` are `Ad(exp (-t ξ)) ∘ β`, whose velocity at `0` is `-[ξ, β]` by Tau Ceti's
+`TauCeti.Lie.hasDerivAt_tangentAd_mulInvariantExp_smul_apply_zero`.
 
 ## References
 
@@ -199,6 +211,61 @@ theorem mlieDerivForm_rightFundamentalVectorField_eq_zero [IB.Boundaryless] [IG.
     rw [← SmoothForm.coe_mpullback _ (contMDiff_const_smul (op (mulInvariantExp (t • ξ)))), hβ]
   rw [hconst] at h
   exact h.unique (hasDerivAt_const 0 _)
+
+section LieAlgebraValued
+
+variable [FiniteDimensional ℝ EG]
+
+open scoped GroupLieAlgebra
+
+/-- **Equivariant Lie-algebra-valued forms along fundamental vector fields.** On a smooth principal
+bundle whose base and structure group are modelled without boundary, let `β` be a smooth form with
+values in the Lie algebra `𝔤` of `G` that is equivariant, `R_g^* β = Ad(g⁻¹) ∘ β` for every
+`g : G`. Then its Lie derivative along the fundamental vector field of `ξ ∈ 𝔤` is `-[ξ, β]`. This
+is the `𝔤`-valued counterpart of `mlieDerivForm_rightFundamentalVectorField_eq_zero`. -/
+theorem mlieDerivForm_rightFundamentalVectorField_apply_eq_neg_lie
+    [IB.Boundaryless] [IG.Boundaryless] {k : ℕ}
+    {β : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) k}
+    (hβ : ∀ g : G, SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
+      (contMDiff_const_smul (op g)) β =
+        SmoothForm.mapCoeff (Lie.adjointContinuousLinearMap g⁻¹) β)
+    (ξ : GroupLieAlgebra IG G) (x : ManifoldTotalSpace G P)
+    (v : Fin k → TangentSpace (IB.prod IG) x) :
+    mlieDerivForm (rightFundamentalVectorField (IB.prod IG) ξ) β.val x v = -⁅ξ, β.val x v⁆ := by
+  have : T2Space G := IG.t2Space_of_lieGroup ∞
+  -- The flow of the field is `x ↦ x • exp (t ξ)`, along which `β` changes by
+  -- `Ad(exp (-t ξ))`.
+  have hψ : ContMDiff (𝓘(ℝ).prod (IB.prod IG)) (IB.prod IG) ∞
+      (fun p : ℝ × ManifoldTotalSpace G P ↦ op (mulInvariantExp (p.1 • ξ)) • p.2) :=
+    contMDiff_op_smul.comp
+      (contMDiff_snd.prodMk ((contMDiff_mulInvariantExp_smul ξ).comp contMDiff_fst))
+  have h := hasDerivAt_mpullback_of_eq_id (α := β.val)
+    (V := rightFundamentalVectorField (IB.prod IG) ξ)
+    (ψ := fun (t : ℝ) (y : ManifoldTotalSpace G P) ↦ op (mulInvariantExp (t • ξ)) • y) (t := 0) x
+    (.of_forall fun y ↦ by simp [mulInvariantExp_zero]) ((hψ (0, x)).of_le (by simp))
+    (.of_forall fun y ↦ isMIntegralCurve_op_mulInvariantExp_smul ξ y 0)
+    (β.mdifferentiable x)
+  have hv : HasDerivAt (fun t : ℝ ↦ Lie.tangentAd (mulInvariantExp (t • -ξ)) (β.val x v))
+      (mlieDerivForm (rightFundamentalVectorField (IB.prod IG) ξ) β.val x v) 0 := by
+    convert (ContinuousAlternatingMap.apply ℝ _ (GroupLieAlgebra IG G) v).hasFDerivAt
+      |>.comp_hasDerivAt 0 h using 1
+    swap
+    · exact ContinuousAlternatingMap.apply_apply.symm
+    funext t
+    have e := DFunLike.congr_fun
+      (congrFun (congrArg Subtype.val (hβ (mulInvariantExp (t • ξ)))) x) v
+    simp only [SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply] at e
+    rw [Lie.tangentAd_apply, smul_neg, mulInvariantExp_neg, ← e]
+    -- `Function.comp_apply` does not rewrite here, as the values lie in the fibre `Trivial _ 𝔤 x`;
+    -- `ContinuousAlternatingMap.apply_apply` closes the goal through the composition.
+    rw [SmoothForm.coe_mpullback]
+    exact ContinuousAlternatingMap.apply_apply.symm
+  have hd : HasDerivAt (fun t : ℝ ↦ Lie.tangentAd (mulInvariantExp (t • -ξ)) (β.val x v))
+      ⁅-ξ, β.val x v⁆ 0 :=
+    Lie.hasDerivAt_tangentAd_mulInvariantExp_smul_apply_zero (I := IG) (-ξ) (β.val x v)
+  rw [hv.unique hd, neg_lie]
+
+end LieAlgebraValued
 
 /-! ### Invariant one-forms on a product `P × N` -/
 

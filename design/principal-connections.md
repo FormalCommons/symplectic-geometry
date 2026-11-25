@@ -253,7 +253,7 @@ This file names it as a form.
   same way along the flow $x\mapsto x\cdot\exp(t\xi)$), and Cartan's
   formula with $A(\xi^\sharp)=\xi$ constant gives
   $\iota_{\xi^\sharp}dA=-[\xi,A]$, which the bracket term cancels.
-  Together with equivariance, `IsConnectionForm.isTensorial_connectionCurvature`.
+  Together with equivariance, `IsConnectionForm.isTensorialForm_connectionCurvature`.
 - `connectionCurvature_apply_horizontal`: for vector
   fields $X,Y$ horizontal near $x$,
   $F_A(X,Y)(x)=-A_x([X,Y](x))$ with `VectorField.mlieBracket`, from
