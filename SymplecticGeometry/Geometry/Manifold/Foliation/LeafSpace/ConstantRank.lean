@@ -68,13 +68,13 @@ variable [IsManifold I ∞ M] [IsManifold J ∞ N]
 map `s` from an open set of `EuclideanSpace ℝ (Fin (dim E - (dim E - r)))` to the source is a slice
 of the foliation by the kernels of the derivative of `f` when `f ∘ s` is injective and, at every
 point `u`, the composition of the derivatives of `s` at `u` and of `f` at `s u` is injective. -/
-theorem isSlice_ofConstantRank (hf : ContMDiff I J (∞ + 1) f)
-    (hr : ∀ x, mfderivRank I J f x = r) (hn : (1 : ℕ∞ω) ≤ ∞)
+theorem isSlice_ofConstantRank (hf : ContMDiff I J ∞ f) (hr : ∀ x, mfderivRank I J f x = r)
     {U : Opens (EuclideanSpace ℝ (Fin (finrank ℝ E - (finrank ℝ E - r))))} {s : U → M}
     (hs : ContMDiff (𝓡 (finrank ℝ E - (finrank ℝ E - r))) I ∞ s) (hfs : Injective (f ∘ s))
     (hd : ∀ u, Injective (mfderiv I J f (s u) ∘L
       mfderiv (𝓡 (finrank ℝ E - (finrank ℝ E - r))) I s u)) :
-    (ofConstantRank hf hr hn).IsSlice s := by
+    (ofConstantRank (n := ∞) (hf.of_le ENat.coe_top_add_one.le) hr ENat.LEInfty.out).IsSlice
+      s := by
   refine ⟨hs, fun u ↦ ?_, fun u v huv ↦ hfs (huv.apply_eq_of_ofConstantRank)⟩
   rw [ofConstantRank_distribution]
   have hinj : Injective (mfderiv (𝓡 (finrank ℝ E - (finrank ℝ E - r))) I s u) := by
@@ -101,12 +101,12 @@ theorem isSlice_ofConstantRank (hf : ContMDiff I J (∞ + 1) f)
 constant rank `r` between boundaryless real manifolds, the source modelled on a
 finite-dimensional space, every point lies on a slice of the foliation of the source by the
 kernels of the derivative of `f`. -/
-theorem isRegular_ofConstantRank (hf : ContMDiff I J (∞ + 1) f)
-    (hr : ∀ x, mfderivRank I J f x = r) (hn : (1 : ℕ∞ω) ≤ ∞) :
-    (ofConstantRank hf hr hn).IsRegular := by
+theorem isRegular_ofConstantRank (hf : ContMDiff I J ∞ f) (hr : ∀ x, mfderivRank I J f x = r) :
+    (ofConstantRank (n := ∞) (hf.of_le ENat.coe_top_add_one.le) hr
+      ENat.LEInfty.out).IsRegular := by
   refine isRegular_def.2 fun x ↦ ?_
-  have h1 : (1 : ℕ∞ω) ≤ ∞ + 1 := le_add_self
-  have h0 : (∞ + 1 : ℕ∞ω) ≠ 0 := ne_of_gt (zero_lt_one.trans_le h1)
+  have h1 : (1 : ℕ∞ω) ≤ ∞ := ENat.LEInfty.out
+  have h0 : (∞ : ℕ∞ω) ≠ 0 := ne_of_gt (zero_lt_one.trans_le h1)
   obtain ⟨φ, ψ, hxφ, -, hφx, -, hφi, -, hψ, -, hmap, hlin⟩ :=
     hf.contMDiffOn.exists_openPartialHomeomorph_comp_eq_mfderiv_comp isOpen_univ (mem_univ x) h1
       fun y _ ↦ ((hr y).trans (hr x).symm).le
@@ -141,8 +141,7 @@ theorem isRegular_ofConstantRank (hf : ContMDiff I J (∞ + 1) f)
   let s : U → M := fun u ↦ φ.symm (L u)
   have hfs (u : U) : ψ (f (s u)) = A (L u) := by
     rw [hA _ (φ.map_target u.property), φ.right_inv u.property]
-  have hs : ContMDiff (𝓡 (finrank ℝ E - (finrank ℝ E - r))) I
-      (∞ + 1) s := fun u ↦
+  have hs : ContMDiff (𝓡 (finrank ℝ E - (finrank ℝ E - r))) I ∞ s := fun u ↦
     (hφi.contMDiffAt (φ.open_target.mem_nhds u.property)).comp u
       (L.contMDiff.contMDiffAt.comp u contMDiff_subtypeVal.contMDiffAt)
   -- In the coordinate `ψ`, the derivative of `f ∘ s` is `A ∘ L`, which is injective.
@@ -170,7 +169,7 @@ theorem isRegular_ofConstantRank (hf : ContMDiff I J (∞ + 1) f)
       rw [map_sub, map_sub, ← hfs, ← hfs, ← comp_apply (f := f), ← comp_apply (f := f), huv,
         sub_self]
     exact Subtype.ext (sub_eq_zero.1 (hAL h'))
-  exact ⟨U, s, isSlice_ofConstantRank hf hr hn (hs.of_le le_self_add) hinj hkey,
+  exact ⟨U, s, isSlice_ofConstantRank hf hr hs hinj hkey,
     ⟨0, by simpa [U, L, hφx] using φ.map_source hxφ⟩, by simp [s, L, ← hφx, φ.left_inv hxφ]⟩
 
 end Regular
