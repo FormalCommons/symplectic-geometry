@@ -172,8 +172,9 @@ applies Tau Ceti's fixed point
    has the class `HasIsothermalCharts`. Neither issue 3 nor issue 4 uses
    that theorem: `IsIntegrable` asks for smooth charts, which come from Tau
    Ceti's smooth planar charts. On the
-   model `𝓘(ℝ, ℂ)`, smooth isothermal charts of the smooth maximal atlas
-   follow from issue 4 through
+   model `𝓘(ℝ, ℂ)`, Tau Ceti's isothermal charts lie in the smooth maximal
+   atlas (`IsIsothermalChart.mem_maximalAtlas_infty`), which gives the
+   forward direction of
    `isIntegrable_iff_forall_exists_isIsothermalChart` (#862). The theorem
    `IsIntegrable.hasIsothermalCharts` that #862 added, which concluded the
    class, was deleted by the move to `c9d170eed5a8` (#2025), with no
