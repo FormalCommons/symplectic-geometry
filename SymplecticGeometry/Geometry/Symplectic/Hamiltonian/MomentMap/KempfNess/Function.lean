@@ -7,7 +7,7 @@ module
 
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 public import SymplecticGeometry.Geometry.Lie.Complexification
-import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Basic
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 import TauCeti.Analysis.Calculus.IntervalIntegral.ParametricPrimitive
 
 /-!
@@ -161,7 +161,7 @@ theorem contMDiff_kempfNessFunction (hμ : ∀ ξ, ContMDiff I' 𝓘(ℝ) ∞ fu
   have hF : ContDiff ℝ ∞ (Function.uncurry fun (ξ : E) (t : ℝ) ↦
       μ (C.expI (-(t • ξ)) • p) ξ) :=
     contMDiff_iff_contDiff.1 <|
-      ((contMDiff_toContinuousLinearMap_of_contMDiff_apply hμ).comp hx).clm_apply
+      ((contMDiff_toContinuousLinearMap_of_contMDiff_apply (E := E) hμ).comp hx).clm_apply
         contDiff_fst.contMDiff
   -- Its integral over `[0, 1]`, a smooth function of `ξ`, composed with `g ↦ (C.polar.symm g).1`.
   have hΦ := (intervalIntegral.contDiff_parametric_primitive_of_contDiff hF 0).comp
