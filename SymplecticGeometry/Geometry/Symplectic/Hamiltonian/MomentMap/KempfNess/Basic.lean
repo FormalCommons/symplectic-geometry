@@ -58,6 +58,8 @@ and the moment weights.
 * `SymplecticGeometry.isComplexifiedAction_circle`: the action of `ℂˣ` on `ℂ` by multiplication,
   with `J` multiplication by `i`, is a complexified action of the rotation action of `Circle`, for
   the complexification `LieComplexification.circle`.
+* `SymplecticGeometry.IsComplexifiedAction.moment_toHom_smul`: if `-μ` is an equivariant moment
+  map, then `μ (C.toHom u • x) = Ad*_u (μ x)`.
 * `SymplecticGeometry.IsStable.isPolystable`, `SymplecticGeometry.IsPolystable.isSemistable`:
   stable points are polystable, and polystable points semistable.
 * `SymplecticGeometry.isSemistable_smul_iff`, `SymplecticGeometry.isPolystable_smul_iff`,
@@ -307,6 +309,16 @@ theorem isMIntegralCurve_expI_smul (h : IsComplexifiedAction C J) (ξ : GroupLie
     funext fun x ↦ by rw [h.fundamentalVectorField_cplx, h.fundamentalVectorField_lieMap]
   rw [hγ, ← hv]
   exact isMIntegralCurve_mulInvariantExp_smul_smul (I' := I') (C.cplx (C.lieMap ξ)) p
+
+omit [ContMDiffSMul IC I' ∞ Gc M] in
+/-- For a complexified action and a map `μ` whose negative is an equivariant moment map, `μ` is
+equivariant along `C.toHom`: `μ (C.toHom u • x) = Ad*_u (μ x)`. -/
+theorem moment_toHom_smul [CompleteSpace E'] [ContMDiffSMul I I' ∞ G M] {σ : SmoothTwoForm I' M}
+    {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)} (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x) (u : G) (x : M) :
+    μ (C.toHom u • x) = Lie.coadjointRepresentation ℝ I G u (μ x) := by
+  rw [h.toHom_smul]
+  exact neg_injective ((hμ.apply_smul u x).trans (map_neg _ _))
 
 end IsComplexifiedAction
 
