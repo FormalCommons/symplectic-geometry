@@ -20,6 +20,8 @@ and takes the value `1` on the cross product `γ_a × γ_b` of the homology gene
 
 ## Main results
 
+* `TauCeti.singularCohomologyTopCatSphereEquiv_singularCohomologyTopCatSphereGenerator`: over
+  any commutative ring, `θ` evaluates to `1` on the standard homology generator.
 * `TopCat.exists_eq_zsmul_sphereGenerator`: every class of `Hᵈ⁺¹(Sᵈ⁺¹; ℤ)` is an integer
   multiple of `θ`.
 * `TopCat.not_isOfFinAddOrder_integralCup_sphereGenerator`: for a space `Y` and a class `c` of
@@ -54,6 +56,20 @@ universe w
 
 open CategoryTheory Limits MonoidalCategory CartesianMonoidalCategory
 
+namespace TauCeti
+
+/-- Over a commutative ring `k`, the generator `θ ∈ Hⁿ⁺¹(Sⁿ⁺¹; k)` dual to the standard homology
+generator is sent to `1` by the evaluation `TauCeti.singularCohomologyTopCatSphereEquiv` on that
+generator. -/
+theorem singularCohomologyTopCatSphereEquiv_singularCohomologyTopCatSphereGenerator
+    (k : Type w) [CommRing k] (n : ℕ) :
+    singularCohomologyTopCatSphereEquiv k (𝟙_ (ModuleCat.{w} k)) n
+      (singularCohomologyTopCatSphereGenerator k n) = 1 :=
+  (singularCohomologyTopCatSphereEquiv_apply _ _ _ _).trans
+    (singularKronecker_singularCohomologyTopCatSphereGenerator k n)
+
+end TauCeti
+
 namespace TopCat
 
 open TauCeti
@@ -66,11 +82,10 @@ theorem exists_eq_zsmul_sphereGenerator {d : ℕ}
       (singularCohomologyTopCatSphereGenerator ℤ d) := by
   set e := (sphere.{0} (d + 1)).integralCohomologyEquiv (d + 1)
   set s := singularCohomologyTopCatSphereEquiv ℤ (𝟙_ (ModuleCat.{0} ℤ)) d
-  have hθ : s (singularCohomologyTopCatSphereGenerator ℤ d) = 1 :=
-    (singularCohomologyTopCatSphereEquiv_apply _ _ _ _).trans
-      (singularKronecker_singularCohomologyTopCatSphereGenerator ℤ d)
   refine ⟨s (e x), e.injective (s.injective ?_)⟩
-  rw [map_zsmul, map_zsmul, LinearEquiv.apply_symm_apply, hθ, smul_eq_mul, mul_one]
+  rw [map_zsmul, map_zsmul, LinearEquiv.apply_symm_apply,
+    singularCohomologyTopCatSphereEquiv_singularCohomologyTopCatSphereGenerator, smul_eq_mul,
+    mul_one]
 
 /-- **Products with the sphere generator keep infinite order.** Let `θ ∈ Hᵈ⁺¹(Sᵈ⁺¹; ℤ)` be the
 integral class dual to the standard generator of `H_{d+1}(Sᵈ⁺¹)`. If `c ∈ Hⁿ(Y; ℤ)` has infinite

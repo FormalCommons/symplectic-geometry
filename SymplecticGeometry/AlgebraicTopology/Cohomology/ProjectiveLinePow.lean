@@ -21,11 +21,11 @@ class of infinite order in `H^{2m}(Pᵐ; ℤ)`.
 
 ## Main results
 
-* `Projectivization.chernClass_one_tautological`: `c₁(𝒪(-1)) = -h`.
 * `Projectivization.singularCohomologyMap_sphereGenerator_eq_hyperplaneClass_or_eq_neg_…`:
   under any homeomorphism `e : P ≃ₜ S²`, the generator `θ ∈ H²(S²; ℤ)` of
   `SymplecticGeometry/AlgebraicTopology/Cohomology/Sphere/Generator.lean` pulls back to `h` or to
-  `-h`, and so to `±c₁` of the tautological line
+  `-h`, and so to `±c₁` of the tautological line, which is `-h` by
+  `Projectivization.chernClass_one_tautological`
   (`Projectivization.singularCohomologyMap_sphereGenerator_eq_zsmul_chernClass`).
 * `Projectivization.not_isOfFinAddOrder_prod_singularCohomologyMap`: for nonzero classes
   `bᵢ ∈ H²(P; ℤ)`, the product of the pull-backs `prᵢ^* bᵢ`, the component of degree `2m` of a
@@ -82,14 +82,6 @@ theorem singularCohomologyMap_sphereGenerator_eq_hyperplaneClass_or_eq_neg_hyper
     ((bijective_zsmul_hyperplaneClass hV one_pos).1 hba) with ⟨-, rfl⟩ | ⟨-, rfl⟩
   · exact .inl (ha.trans (one_smul _ _))
   · exact .inr (ha.trans (neg_one_zsmul _))
-
-/-- The first Chern class of the tautological line `𝒪(-1)` of a complex projective space is minus
-the hyperplane class: `c₁(𝒪(-1)) = -h`. -/
-theorem chernClass_one_tautological (V : Type) [NormedAddCommGroup V] [NormedSpace ℂ V]
-    [FiniteDimensional ℂ V] :
-    SymplecticGeometry.Bundle.chernClass ℂ (Tautological ℂ V) 1 = -hyperplaneClass V := by
-  rw [SymplecticGeometry.Bundle.chernClass_one_eq_complexEulerClass _ _ (Module.finrank_self ℂ),
-    hyperplaneClass_def, neg_neg]
 
 /-- Under any homeomorphism `e : ℙ ℂ (Fin 2 → ℂ) ≃ₜ S²`, the integral class `θ` dual to the
 standard generator of `H₂(S²)` pulls back to `σ • c₁(𝒪(-1))` for a sign `σ = ±1`, the first Chern
