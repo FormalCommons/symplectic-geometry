@@ -294,10 +294,8 @@ theorem ofFunctionRingHom_apply (g : C^∞⟮I, M; ℝ⟯) :
 /-- A smooth function, as a form of degree `0`, commutes with every form of mixed degree. -/
 theorem commute_ofFunctionRingHom (g : C^∞⟮I, M; ℝ⟯) (x : ⨁ k, SmoothForm I M ℝ k) :
     Commute (ofFunctionRingHom g) x := by
-  induction x using DirectSum.induction_on with
-  | zero => exact Commute.zero_right _
-  | of l ψ => exact commute_of_of_of_even Even.zero (ofFunction g) ψ
-  | add x y hx hy => exact hx.add_right hy
+  rw [ofFunctionRingHom_apply]
+  exact commute_of_of_even Even.zero (ofFunction g) x
 
 end SmoothForm
 
