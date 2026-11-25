@@ -8,6 +8,9 @@ module
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.MapCoeff
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Existence
+public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
 
 /-!
 # Circle connection forms as Lie-algebra-valued connection forms
@@ -19,7 +22,8 @@ the total space of a principal `Circle`-bundle gives the `𝔤`-valued one-form 
 `ContinuousLinearMap.toSpanSingleton ℝ ξ₀ : ℝ →L[ℝ] 𝔤`. This file shows that the real circle
 connection forms of `CircleConnection.lean` (`SymplecticGeometry.IsCircleConnectionForm`) are the
 connection forms of `Principal/Connection/Basic.lean` (`SymplecticGeometry.IsConnectionForm`)
-under this identification.
+under this identification. In particular, the existence of circle connection forms follows from
+that of connection forms.
 
 ## Main results
 
@@ -27,6 +31,9 @@ under this identification.
   `α` is a circle connection form.
 * `SymplecticGeometry.IsConnectionForm.existsUnique_eq_mapCoeff`: every `𝔤`-valued connection form
   is `α ξ₀` for a unique real form `α`, and this `α` is a circle connection form.
+* `SymplecticGeometry.exists_isCircleConnectionForm`: every principal `Circle`-bundle over a
+  Hausdorff, σ-compact, finite-dimensional base has a circle connection form, the case
+  `G = Circle` of `SymplecticGeometry.exists_isConnectionForm`.
 
 ## References
 
@@ -116,6 +123,59 @@ theorem IsConnectionForm.existsUnique_eq_mapCoeff
     fun α hα ↦ ?_⟩
   rw [hα.2, ← LinearMap.comp_apply, ← SmoothForm.mapCoeff_comp, hfL, SmoothForm.mapCoeff_id,
     LinearMap.id_apply]
+
+/-! ### Existence -/
+
+/-- **Existence of connection forms.** Every smooth principal `Circle`-bundle over a Hausdorff,
+σ-compact, finite-dimensional base has a circle connection form. -/
+theorem exists_isCircleConnectionForm [FiniteDimensional ℝ EB] [T2Space B]
+    [SigmaCompactSpace B] :
+    ∃ α : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1,
+      IsCircleConnectionForm α :=
+  let ⟨_, hA⟩ := exists_isConnectionForm (IB := IB) (IG := 𝓡 1) (G := Circle) (P := P)
+  hA.existsUnique_eq_mapCoeff.exists.imp fun _ h ↦ h.1
+
+/-! ### The circle bundle of a Hermitian line bundle -/
+
+section CircleBundle
+
+open Module TauCeti.OrthonormalFrameBundle
+
+attribute [local instance] finrank_real_complex_fact'
+
+variable {E' H' M F : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+  [TopologicalSpace H'] {I : ModelWithCorners ℝ E' H'} [TopologicalSpace M] [ChartedSpace H' M]
+  [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M]
+  [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace ℂ F] [IsScalarTower ℝ ℂ F]
+  [Fact (finrank ℂ F = 1)]
+  {V : M → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)] [∀ x, Module ℂ (V x)]
+  [∀ x, IsScalarTower ℝ ℂ (V x)] [∀ x, TopologicalSpace (V x)]
+  [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
+  [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V]
+
+open scoped VectorBundle.ComplexToReal
+
+/-- The unit circle bundle of a smooth Hermitian line bundle over a Hausdorff, σ-compact,
+finite-dimensional manifold has a connection form. -/
+example [ContMDiffVectorBundle ∞ F V I] (g : ContMDiffRiemannianMetric I ∞ F V)
+    (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w) :
+    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+    letI : IsContinuousRiemannianBundle F V :=
+      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+    haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) I (𝓡 1) :=
+      Bundle.contMDiffFiberBundle_circleFiber g hI
+    ∃ α : SmoothForm (I.prod (𝓡 1)) (ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)) ℝ 1,
+      IsCircleConnectionForm α := by
+  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
+  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
+  let : IsContinuousRiemannianBundle F V :=
+    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
+  have : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) I (𝓡 1) :=
+    Bundle.contMDiffFiberBundle_circleFiber g hI
+  exact exists_isCircleConnectionForm
+
+end CircleBundle
 
 end SymplecticGeometry
 

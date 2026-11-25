@@ -233,8 +233,8 @@ This file names it as a form.
   local forms.
 - `exists_isConnectionForm [FiniteDimensional ℝ EB] [T2Space B]
   [SigmaCompactSpace B] : ∃ A, IsConnectionForm A`, glued with a smooth
-  partition of unity of the base, as the merged
-  `exists_isCircleConnectionForm`, whose proof it adapts and credits.
+  partition of unity of the base. Its case `G = Circle` gives
+  `exists_isCircleConnectionForm`, in `Principal/Connection/Circle.lean`.
 
 ### `Geometry/Manifold/FiberBundle/Principal/Connection/Curvature.lean`
 
