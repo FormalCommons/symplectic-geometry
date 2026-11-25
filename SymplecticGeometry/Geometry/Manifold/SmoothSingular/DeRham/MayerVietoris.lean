@@ -35,14 +35,16 @@ Mayer–Vietoris connecting map `TauCeti.deRhamCohomology.mayerVietorisδ` with 
 Mayer–Vietoris connecting map `SSet.mayerVietorisCochainδ`, with sign `+1`
 (`TauCeti.deRhamCohomology.ofHom_mayerVietorisδ_comp_homologyMap_deRhamIntegration`).
 
-The proofs follow Tau Ceti's `TauCeti.smoothMayerVietorisδ_ι` and
+The map `TauCeti.smallSmoothSingularSubcomplexToSup`, the lemma that it lands in the range of
+`U ⊔ V`, and `TauCeti.smallSmoothSingularSubcomplexToSup_smoothSingularSubcomplexMap` adapt Tau
+Ceti's `TopCat.smallSingularSubcomplexToUnion`, its private `smallSubcomplex_le_range` and
+`TopCat.smallSingularSubcomplexToUnion_comp` from continuous to smooth simplices. The proofs about
+integration follow Tau Ceti's `TauCeti.smoothMayerVietorisδ_ι` and
 `SSet.mayerVietorisCochainδ_naturality`, which build a morphism of short complexes and apply
 `HomologicalComplex.HomologySequence.δ_naturality` in the same way.
 
 ## Main results
 
-* `TauCeti.smoothSingularSubcomplexMap_inclusion_subtypeVal`: for open sets `U ≤ W`, the maps of
-  smooth singular subcomplexes induced by `U ⊆ W` and `W ⊆ M` compose to the one of `U ⊆ M`.
 * `TauCeti.smallSmoothSingularSubcomplexToSup`: the map from the smooth simplices of `M` lying in
   `U` or in `V` to the smooth singular simplices of `U ⊔ V`.
 * `TauCeti.deRhamIntegrationMayerVietoris`: integration as a morphism from the de Rham
@@ -65,24 +67,12 @@ open scoped Manifold ContDiff
 
 namespace TauCeti
 
-variable {E H : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  (I : ModelWithCorners ℝ E H) {M : Type} [TopologicalSpace M] [ChartedSpace H M]
-
 section Simplices
 
-open SSet.Subcomplex
+variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
 
-/-- For open sets `U ≤ W` of `M`, the map of smooth singular subcomplexes induced by the inclusion
-of `U` in `W`, followed by the one induced by `W ⊆ M`, is the one induced by `U ⊆ M`. -/
-@[reassoc (attr := simp)]
-theorem smoothSingularSubcomplexMap_inclusion_subtypeVal {U W : Opens M} (h : U ≤ W) :
-    smoothSingularSubcomplexMap (Opens.inclusion h) (contMDiff_inclusion (I := I) h) ≫
-        smoothSingularSubcomplexMap (Subtype.val : W → M) (contMDiff_subtypeVal (I := I)) =
-      smoothSingularSubcomplexMap (Subtype.val : U → M) (contMDiff_subtypeVal (I := I)) := by
-  rw [← cancel_mono (smoothSingularSubcomplex I M).ι]
-  simp only [Category.assoc, smoothSingularSubcomplexMap_subtypeVal_ι,
-    smoothSingularSubcomplexMap_inclusion_ι_assoc, ← Functor.map_comp, ← TopCat.ofHom_comp]
-  rw [ContinuousMap.subtypeVal_comp_inclusion]
+open SSet.Subcomplex
 
 /-- The inclusion of the smooth singular simplices of an open set `W`, as simplices of `M`. -/
 private abbrev smoothSingularSubcomplexToM (W : Opens M) :
@@ -130,6 +120,22 @@ theorem smallSmoothSingularSubcomplexToSup_smoothSingularSubcomplexMap (U V : Op
     smoothSingularSubcomplexMap_subtypeVal_ι, smallSmoothSingularSubcomplexToSup, Category.assoc,
     hg, homOfLE_ι, homOfLE_ι]
 
+/-- On the smooth simplices of an open set `W ≤ U ⊔ V` contained in `U` or in `V`,
+`TauCeti.smallSmoothSingularSubcomplexToSup` is the map of smooth singular subcomplexes induced by
+the inclusion of `W` in `U ⊔ V`. -/
+theorem toSmallSmoothSingularSubcomplex_smallSmoothSingularSubcomplexToSup (U V : Opens M)
+    {W : Opens M} (hW : W ≤ U ⊔ V) {i : Fin 2}
+    (hi : (W : Set M) ⊆ ![(U : Set M), (V : Set M)] i) :
+    toSmallSmoothSingularSubcomplex I ![(U : Set M), (V : Set M)] hi ≫
+        smallSmoothSingularSubcomplexToSup I U V =
+      smoothSingularSubcomplexMap (Opens.inclusion hW) (contMDiff_inclusion (I := I) hW) := by
+  rw [← cancel_mono (smoothSingularSubcomplexMap (Subtype.val : (U ⊔ V : Opens M) → M)
+    (contMDiff_subtypeVal (I := I))), Category.assoc,
+    smallSmoothSingularSubcomplexToSup_smoothSingularSubcomplexMap,
+    toSmallSmoothSingularSubcomplex_homOfLE_left, ← smoothSingularSubcomplexMap_comp]
+  -- `Subtype.val ∘ Opens.inclusion hW` is `Subtype.val` by definition.
+  rfl
+
 /-- On the smooth simplices of `U`, `TauCeti.smallSmoothSingularSubcomplexToSup` is the map of
 smooth singular subcomplexes induced by the inclusion of `U` in `U ⊔ V`. -/
 @[reassoc (attr := simp)]
@@ -138,11 +144,8 @@ theorem toSmallSmoothSingularSubcomplex_smallSmoothSingularSubcomplexToSup_left 
         (Matrix.cons_val_zero (U : Set M) ![(V : Set M)]).superset ≫
       smallSmoothSingularSubcomplexToSup I U V =
     smoothSingularSubcomplexMap (Opens.inclusion (le_sup_left : U ≤ U ⊔ V))
-      (contMDiff_inclusion (I := I) _) := by
-  rw [← cancel_mono (smoothSingularSubcomplexMap (Subtype.val : (U ⊔ V : Opens M) → M)
-    (contMDiff_subtypeVal (I := I))), Category.assoc,
-    smallSmoothSingularSubcomplexToSup_smoothSingularSubcomplexMap,
-    toSmallSmoothSingularSubcomplex_homOfLE_left, smoothSingularSubcomplexMap_inclusion_subtypeVal]
+      (contMDiff_inclusion (I := I) _) :=
+  toSmallSmoothSingularSubcomplex_smallSmoothSingularSubcomplexToSup I U V le_sup_left _
 
 /-- On the smooth simplices of `V`, `TauCeti.smallSmoothSingularSubcomplexToSup` is the map of
 smooth singular subcomplexes induced by the inclusion of `V` in `U ⊔ V`. -/
@@ -154,13 +157,13 @@ theorem toSmallSmoothSingularSubcomplex_smallSmoothSingularSubcomplexToSup_right
           (Matrix.cons_val_zero (V : Set M) ![])).superset ≫
       smallSmoothSingularSubcomplexToSup I U V =
     smoothSingularSubcomplexMap (Opens.inclusion (le_sup_right : V ≤ U ⊔ V))
-      (contMDiff_inclusion (I := I) _) := by
-  rw [← cancel_mono (smoothSingularSubcomplexMap (Subtype.val : (U ⊔ V : Opens M) → M)
-    (contMDiff_subtypeVal (I := I))), Category.assoc,
-    smallSmoothSingularSubcomplexToSup_smoothSingularSubcomplexMap,
-    toSmallSmoothSingularSubcomplex_homOfLE_left, smoothSingularSubcomplexMap_inclusion_subtypeVal]
+      (contMDiff_inclusion (I := I) _) :=
+  toSmallSmoothSingularSubcomplex_smallSmoothSingularSubcomplexToSup I U V le_sup_right _
 
 end Simplices
+
+variable {E H : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  (I : ModelWithCorners ℝ E H) {M : Type} [TopologicalSpace M] [ChartedSpace H M]
 
 section Integration
 
@@ -217,7 +220,7 @@ namespace deRhamCohomology
 variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M]
 
 /-- **Integration commutes with the Mayer–Vietoris connecting maps.** For open sets `U` and `V`
-of `M`, the de Rham Mayer–Vietoris connecting map `H^k_dR(U ⊓ V) → H^{k+1}_dR(U ⊔ V)` followed by
+of `M`, the de Rham Mayer–Vietoris connecting map `H^n_dR(U ⊓ V) → H^{n+1}_dR(U ⊔ V)` followed by
 integration on `U ⊔ V` and restriction to the smooth simplices lying in `U` or in `V` equals
 integration on `U ⊓ V` followed by the cochain Mayer–Vietoris connecting map of the pushout square
 `TauCeti.isPushout_smoothSingularSubcomplex_inter_smallSmoothSingularSubcomplex`. The sign is
