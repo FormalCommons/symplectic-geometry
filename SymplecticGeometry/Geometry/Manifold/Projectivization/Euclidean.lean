@@ -50,7 +50,7 @@ namespace SymplecticGeometry
 on the Hermitian space `EuclideanSpace ℂ (Fin (n + 1))`: its homogeneous-ratio charts are followed
 by the complex-linear identification of `Fin (n + 1) → ℂ` with `EuclideanSpace ℂ (Fin (n + 1))`. -/
 abbrev EuclideanComplexProjectiveSpace (n : ℕ) : Type :=
-  Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).symm.toDiffeomorph (ℙ ℂ (Fin (n + 2) → ℂ))
+  Remodel (EuclideanSpace.equiv (Fin (n + 1)) ℂ).toDiffeomorph.symm (ℙ ℂ (Fin (n + 2) → ℂ))
 
 namespace EuclideanComplexProjectiveSpace
 
@@ -82,6 +82,7 @@ instance : FiniteCWType (EuclideanComplexProjectiveSpace n) :=
 
 /-- The Euler characteristic of the complex projective space of complex dimension `n + 1` is
 `n + 2`. -/
+@[simp]
 theorem eulerChar_eq : eulerChar (EuclideanComplexProjectiveSpace n) = n + 2 := by
   have := FiniteCWType.of_isManifold (ℙ ℂ (Fin (n + 2) → ℂ)) 𝓘(ℝ, Fin (n + 1) → ℂ)
   rw [← (remodelHomeomorph _ _).eulerChar_eq, eulerChar_projectivization_complex]
