@@ -5,34 +5,31 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Normed.Module.FiniteDimension
-public import Mathlib.Topology.VectorBundle.Basic
-public import TauCeti.Topology.FiberBundle.Trivialization
+public import SymplecticGeometry.Topology.VectorBundle.Basic
+public import TauCeti.Topology.FiberBundle.MapFiber
 
 /-!
-# Choosing the preferred trivializations of a bundle
+# Choosing the preferred trivializations of a vector bundle
 
 A fibre bundle structure on `E` fixes a trivialization `trivializationAt F E x` at each point
-`x` of the base. Given any family `e x` of trivializations of `E` with `x ∈ (e x).baseSet`, the
-same total space, with the same topology, is a fibre bundle whose preferred trivialization at
-`x` is `e x` and whose atlas is the range of `e`. If the model fibre is finite-dimensional over
-a complete field and every `e x` is linear, this structure is a vector bundle: the coordinate
-changes between the `e x` are continuous in the operator topology, since they are jointly
-continuous (Tau Ceti's `Bundle.Trivialization.continuousOn_coordChange`) and a family of linear
-maps on a finite-dimensional space is continuous as soon as its values at each vector are
-(`continuousOn_clm_apply`).
+`x` of the base. Given any family `e x` of trivializations of `E` with `x ∈ (e x).baseSet`, Tau
+Ceti's `TauCeti.MapFiber.Atlas.fiberBundleOfHomeomorph`, applied to the atlas `⟨e, he⟩` and the
+identity homeomorphism of the total space, is a fibre bundle structure on the same total space,
+with the same topology, whose preferred trivialization at `x` is `e x` transported along the
+identity, that is `e x` itself (`Bundle.Trivialization.compTotalSpaceHomeomorph_refl`). If the
+model fibre is finite-dimensional over a complete field and every `e x` is linear, this structure
+is a vector bundle: its coordinate changes are continuous in the operator topology by
+`Bundle.Trivialization.continuousOn_coordChangeL`.
 
 Constructions on vector bundles that are built from the preferred trivializations, such as
 finite-rank cores, then see the trivializations `e x`.
 
-## Main definitions and results
+## Main results
 
-* `FiberBundle.ofTrivializationAt e he`: the fibre bundle structure with preferred
-  trivializations `e x`.
-* `Bundle.Trivialization.continuousOn_coordChangeL`: the coordinate change between two linear
-  trivializations with finite-dimensional model fibre is continuous in the operator topology.
-* `VectorBundle.ofTrivializationAt`: it is a vector bundle when the `e x` are linear and the model
-  fibre is finite-dimensional.
+* `Bundle.Trivialization.compTotalSpaceHomeomorph_refl`: a trivialization transported along the
+  identity of the total space is itself.
+* `VectorBundle.ofTrivializationAt`: the fibre bundle structure with preferred trivializations
+  `e x` is a vector bundle when the `e x` are linear and the model fibre is finite-dimensional.
 
 ## References
 
@@ -42,70 +39,41 @@ finite-rank cores, then see the trivializations `e x`.
 
 public section
 
-open Bundle Set
+open Bundle
 
-namespace FiberBundle
-
-variable {B F : Type*} [TopologicalSpace B] [TopologicalSpace F] {E : B → Type*}
-  [TopologicalSpace (TotalSpace F E)] [∀ x, TopologicalSpace (E x)] [FiberBundle F E]
-  (e : B → Trivialization F (π F E)) (he : ∀ x, x ∈ (e x).baseSet)
-
-/-- The fibre bundle structure on `E`, with the topologies of the given one, whose preferred
-trivialization at `x` is `e x` and whose atlas is the range of `e`. This is a definition, not an
-instance, since `e` is data. -/
-@[implicit_reducible]
-def ofTrivializationAt : FiberBundle F E where
-  totalSpaceMk_isInducing' := totalSpaceMk_isInducing F E
-  trivializationAtlas' := range e
-  trivializationAt' := e
-  mem_baseSet_trivializationAt' := he
-  trivialization_mem_atlas' := mem_range_self
-
-/-- The preferred trivialization at `x` of `FiberBundle.ofTrivializationAt e he` is `e x`. -/
+/-- A trivialization of a bundle, transported along the identity of its total space, is itself. -/
 @[simp]
-theorem trivializationAt_ofTrivializationAt (x : B) :
-    letI := ofTrivializationAt e he
-    trivializationAt F E x = e x :=
-  (rfl)
-
-/-- The atlas of `FiberBundle.ofTrivializationAt e he` is the range of `e`. -/
-@[simp]
-theorem trivializationAtlas_ofTrivializationAt :
-    letI := ofTrivializationAt e he
-    trivializationAtlas F E = range e :=
-  (rfl)
-
-end FiberBundle
-
-/-- The coordinate change between two linear trivializations of a bundle whose model fibre is
-finite-dimensional over a complete field is continuous, in the operator topology, on the overlap
-of their base sets. -/
-theorem Bundle.Trivialization.continuousOn_coordChangeL {𝕜 B F : Type*}
-    [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜] [TopologicalSpace B] [NormedAddCommGroup F]
-    [NormedSpace 𝕜 F] [FiniteDimensional 𝕜 F] {E : B → Type*} [TopologicalSpace (TotalSpace F E)]
-    [∀ x, AddCommMonoid (E x)] [∀ x, Module 𝕜 (E x)] (e e' : Trivialization F (π F E))
-    [e.IsLinear 𝕜] [e'.IsLinear 𝕜] :
-    ContinuousOn (fun b ↦ (e.coordChangeL 𝕜 e' b : F →L[𝕜] F)) (e.baseSet ∩ e'.baseSet) := by
-  refine continuousOn_clm_apply.2 fun v ↦ ((e.continuousOn_coordChange e').comp
-    (continuous_id.prodMk continuous_const).continuousOn fun b hb ↦ ⟨hb, mem_univ v⟩).congr
-    fun b hb ↦ ?_
-  simp [coordChangeL_apply' _ _ hb, coordChange]
+theorem Bundle.Trivialization.compTotalSpaceHomeomorph_refl {B F : Type*} [TopologicalSpace B]
+    [TopologicalSpace F] {E : B → Type*} [TopologicalSpace (TotalSpace F E)]
+    (e : Trivialization F (π F E)) (hh : ∀ x, (Homeomorph.refl (TotalSpace F E) x).proj = x.proj) :
+    e.compTotalSpaceHomeomorph (Homeomorph.refl _) hh = e :=
+  Trivialization.ext' _ _
+    (OpenPartialHomeomorph.ext _ _ (fun _ ↦ by simp) (fun _ ↦ by simp) (by simp)) (by simp)
 
 /-- If every trivialization `e x` is linear and the model fibre is finite-dimensional over a
-complete field, then `FiberBundle.ofTrivializationAt e he` is a vector bundle. -/
+complete field, then the fibre bundle structure on `E` whose preferred trivialization at `x` is
+`e x` (Tau Ceti's `TauCeti.MapFiber.Atlas.fiberBundleOfHomeomorph` for the atlas `⟨e, he⟩` and the
+identity of the total space) is a vector bundle. -/
 theorem VectorBundle.ofTrivializationAt {𝕜 B F : Type*} [NontriviallyNormedField 𝕜]
     [CompleteSpace 𝕜] [TopologicalSpace B] [NormedAddCommGroup F] [NormedSpace 𝕜 F]
     [FiniteDimensional 𝕜 F] {E : B → Type*} [TopologicalSpace (TotalSpace F E)]
     [∀ x, TopologicalSpace (E x)] [∀ x, AddCommMonoid (E x)] [∀ x, Module 𝕜 (E x)]
     [FiberBundle F E] (e : B → Trivialization F (π F E)) (he : ∀ x, x ∈ (e x).baseSet)
     [∀ x, (e x).IsLinear 𝕜] :
-    letI := FiberBundle.ofTrivializationAt e he
+    letI := (⟨e, he⟩ : TauCeti.MapFiber.Atlas F (π F E)).fiberBundleOfHomeomorph
+      (Homeomorph.refl _) (fun _ ↦ rfl) (FiberBundle.totalSpaceMk_isInducing F E)
     VectorBundle 𝕜 F E := by
-  let := FiberBundle.ofTrivializationAt e he
-  refine ⟨?_, ?_⟩
-  · rintro _ ⟨⟨x, rfl⟩⟩
+  let A : TauCeti.MapFiber.Atlas F (π F E) := ⟨e, he⟩
+  let := A.fiberBundleOfHomeomorph (Homeomorph.refl _) (fun _ ↦ rfl)
+    (FiberBundle.totalSpaceMk_isInducing F E)
+  have mem {e'} (h : MemTrivializationAtlas e') : ∃ x, e x = e' := by
+    obtain ⟨x, hx⟩ := (A.mem_trivializationAtlas_fiberBundleOfHomeomorph_iff _ _ _ e').1 h.out
+    exact ⟨x, (Trivialization.compTotalSpaceHomeomorph_refl (e x) _).symm.trans hx⟩
+  refine ⟨fun e' h ↦ ?_, fun e' e'' h h' ↦ ?_⟩
+  · obtain ⟨x, rfl⟩ := mem h
     infer_instance
-  · rintro _ _ ⟨⟨x, rfl⟩⟩ ⟨⟨y, rfl⟩⟩
+  · obtain ⟨x, rfl⟩ := mem h
+    obtain ⟨y, rfl⟩ := mem h'
     exact (e x).continuousOn_coordChangeL (e y)
 
 end
