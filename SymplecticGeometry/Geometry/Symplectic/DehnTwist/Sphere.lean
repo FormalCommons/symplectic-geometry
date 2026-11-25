@@ -13,7 +13,12 @@ import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Extend
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Stabilizer
+public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Basic
+import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Diffeotopy
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
+import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Submanifold
 import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Rescaling
+import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Isotropic
 import TauCeti.Data.Set.Function
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
@@ -21,6 +26,7 @@ import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Extend
 import TauCeti.Geometry.Manifold.Diffeomorph.Extend
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Lift
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 
 /-!
 # The Dehn twist along a Lagrangian sphere
@@ -81,6 +87,10 @@ neighbourhood theorem for the form `dλ`,
   pull `σ` back to `-ω_can` and send the zero covector at `q` to `f q`, their twists, for any
   two profiles, differ by the final map of a compactly supported diffeotopy of `M` that
   preserves `σ` at all times.
+* `SymplecticGeometry.exists_smoothIsotopy_of_diffeotopy`: for such `ι` and a symplectic `σ`, a
+  diffeotopy `Φ` of `Sⁿ` moves `ι`, near the zero section, by an isotopy of open embeddings
+  pulling `σ` back to `-ω_can` along which the zero covector at `q` goes to `f (Φ (t, q))`; its
+  end is an embedding of the same kind for `f ∘ Φ₁`.
 
 ## Implementation notes
 
@@ -120,6 +130,19 @@ smooth embeddings between manifolds of the same dimension (Tau Ceti's
 of `τ_R` to `U` along `G`. Its transplant along `G_0` is the twist of `ι₁`, and its transplant
 along `G_1` is the twist of `ι₂` (`eq_dehnTwist`). The three diffeotopies compose in the
 subgroup `TauCeti.SmoothForm.compactlySupportedIsotopyStabilizer σ`.
+
+To move `ι` along a diffeotopy `Φ` of `Sⁿ`, the isotopy `t ↦ f ∘ Φ_t`
+(`TauCeti.Diffeotopy.precompSmoothIsotopy`) keeps the pullback of `σ` at `0`
+(`TauCeti.CotangentBundle.mpullback_eq_zero_of_apply_zeroSection`: the zero section is
+Lagrangian), so
+`TauCeti.SmoothIsotopy.exists_isSymplectic_extension_of_mpullback_eq` extends it to a symplectic
+isotopy `F` of an open neighbourhood `U₀` of `f(Sⁿ)`. On the open set `W` of the points of `U`
+that `ι` maps into `U₀`, `ι` is an injective local diffeomorphism into `U₀`, hence a smooth
+embedding (`IsLocalDiffeomorph.isSmoothEmbedding`), and precomposing `F` with it
+(`TauCeti.SmoothIsotopy.precompSmoothEmbedding`) gives the isotopy `t ↦ F_t ∘ ι`. Its
+slices are injective, as the slices of `F` are smooth embeddings, and local diffeomorphisms
+(`Manifold.IsImmersion.isLocalDiffeomorph` for `F_t`), so the slice at time `1` is a
+diffeomorphism onto its open image (Tau Ceti's `IsLocalDiffeomorph.diffeomorphOfInjective`).
 
 ## References
 
@@ -549,6 +572,148 @@ theorem exists_diffeotopy_dehnTwist_eq_of_apply_zeroSection [IsManifold I ∞ M]
     exists_diffeotopy_dehnTwist_eq_of_smoothIsotopy ι₁ ι₂ (hU.trans inf_le_left)
       (hU.trans inf_le_right) (fun z ↦ by simp) (fun z ↦ by simp) G hGd hGσ hR hrU
   simpa only [mul_assoc, inv_mul_cancel_left] using mul_mem (mul_mem hC hB) hA
+
+/-- The first step of `exists_smoothIsotopy_of_diffeotopy`: the isotopy `t ↦ f ∘ Φ_t` keeps the
+pullback of `σ` at `0`, as the zero section is Lagrangian, so it extends to a symplectic isotopy
+`F` of an open neighbourhood `U₀` of `f(Sⁿ)`, starting at the inclusion. -/
+private theorem exists_isSymplectic_extension_precompSmoothIsotopy [IsManifold I ∞ M]
+    [I.Boundaryless] [FiniteDimensional ℝ F] [SigmaCompactSpace M] {σ : SmoothTwoForm I M}
+    (hσ : σ.IsSymplectic) (f : SmoothEmbedding (𝓡 n) I ∞ (𝕊 n) M) (ι : U ≃ₘ⟮𝓣 n, I⟯ V)
+    (hι : SmoothForm.mpullback ι ι.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+        (-CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)))
+    (hιf : ∀ q, ∃ h : zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
+      (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) q ∈ U, (ι ⟨_, h⟩ : M) = f q)
+    (Φ : Diffeotopy (𝓡 n) ∞ (𝕊 n)) :
+    ∃ (U₀ : Opens M) (hU₀ : Set.range f ⊆ U₀) (e₀ e₁ : C^∞⟮I, U₀; I, M⟯) (_ : ∀ x, e₀ x = x)
+      (F : SmoothIsotopy e₀ e₁),
+      F.IsSymplectic (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) σ ∧
+      ∀ t q, F (t, ⟨f q, hU₀ ⟨q, rfl⟩⟩) = f (Φ (t, q)) := by
+  obtain ⟨U₀, hU₀, e₀, e₁, he₀, F, hFσ, hFe⟩ :=
+    SmoothIsotopy.exists_isSymplectic_extension_of_mpullback_eq hσ f (Φ.precompSmoothIsotopy f)
+      fun t ↦ by
+        have h0 :=
+          CotangentBundle.mpullback_eq_zero_of_apply_zeroSection ι.contMDiff hι f.contMDiff hιf
+        have ht : (fun q ↦ Φ.precompSmoothIsotopy f (t, q)) = f ∘ Φ.timeSlice t :=
+          funext fun q ↦ by simp [Diffeotopy.timeSlice_apply]
+        rw [ht, ← SmoothForm.coe_mpullback _ (f.contMDiff.comp (Φ.timeSlice t).contMDiff),
+          ← SmoothForm.coe_mpullback _ f.contMDiff,
+          ← SmoothForm.mpullback_mpullback (Φ.timeSlice t) f (Φ.timeSlice t).contMDiff f.contMDiff,
+          h0, map_zero]
+  exact ⟨U₀, hU₀, e₀, e₁, he₀, F, hFσ, fun t q ↦ (hFe t q).trans (Φ.precompSmoothIsotopy_apply _ _)⟩
+
+/-- **Carrying the neighbourhood of the sphere along an isotopy.** Let `M` be a Hausdorff,
+σ-compact manifold without boundary, modelled on a finite-dimensional space, with a symplectic
+form `σ`; let `f` be a smooth embedding of `Sⁿ` into `M` and `ι : U ≃ V` a diffeomorphism
+from an open set of `T*Sⁿ` onto an open set of `M` that pulls `σ` back to `-ω_can` and sends the
+zero covector at each `q` to `f q`. For a diffeotopy `Φ` of `Sⁿ` there are an open `W ≤ U`
+containing the zero section, a diffeomorphism `ι'` from `W` onto an open set `V'` of `M`, and a
+smooth isotopy `G` of `W` into `M` from `ι` (restricted to `W`) to `ι'`, such that:
+* every slice of `G` is a local diffeomorphism, and pulls `σ` back to `-ω_can`;
+* `G (t, 0_q) = f (Φ (t, q))` for all `t` and `q`;
+* `ι'` pulls `σ` back to `-ω_can` and sends the zero covector at `q` to `f (Φ₁ q)`. -/
+theorem exists_smoothIsotopy_of_diffeotopy [IsManifold I ∞ M] [I.Boundaryless]
+    [FiniteDimensional ℝ F] [SigmaCompactSpace M] {σ : SmoothTwoForm I M} (hσ : σ.IsSymplectic)
+    (f : SmoothEmbedding (𝓡 n) I ∞ (𝕊 n) M) (ι : U ≃ₘ⟮𝓣 n, I⟯ V)
+    (hι : SmoothForm.mpullback ι ι.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+        (-CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)))
+    (hιf : ∀ q, ∃ h : zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
+      (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) q ∈ U, (ι ⟨_, h⟩ : M) = f q)
+    (Φ : Diffeotopy (𝓡 n) ∞ (𝕊 n)) :
+    ∃ (W : Opens (𝕋 n)) (hW : W ≤ U) (V' : Opens M) (ι' : W ≃ₘ⟮𝓣 n, I⟯ V')
+      (G : SmoothIsotopy
+        ((SmoothEmbedding.ofOpens (I := I) (n := ∞) V).toContMDiffMap.comp
+          (ι.toContMDiffMap.comp (SmoothEmbedding.inclusion hW).toContMDiffMap))
+        ((SmoothEmbedding.ofOpens (I := I) (n := ∞) V').toContMDiffMap.comp ι'.toContMDiffMap)),
+      (∀ t, IsLocalDiffeomorph (𝓣 n) I ∞ fun z : W ↦ G (t, z)) ∧
+      G.IsSymplectic (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+        (-CotangentBundle.symplecticForm (𝓡 n) (𝕊 n))) σ ∧
+      (∀ t q, ∃ h : zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
+        (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) q ∈ W, G (t, ⟨_, h⟩) = f (Φ (t, q))) ∧
+      SmoothForm.mpullback ι' ι'.contMDiff
+          (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) =
+        SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+          (-CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)) ∧
+      ∀ q, ∃ h : zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
+        (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) q ∈ W, (ι' ⟨_, h⟩ : M) = f (Φ.final q) := by
+  -- Extend the isotopy `t ↦ f ∘ Φ_t` to a symplectic isotopy `F` of a neighbourhood `U₀` of
+  -- `f(Sⁿ)`.
+  obtain ⟨U₀, hU₀, e₀, e₁, he₀, F, hFσ, hFe⟩ :=
+    exists_isSymplectic_extension_precompSmoothIsotopy hσ f ι hι hιf Φ
+  -- `W`: the points of `U` that `ι` maps into `U₀`, and `χ : W → U₀` the map `ι`.
+  set W : Opens (𝕋 n) := ⟨Subtype.val '' ((fun z : U ↦ (ι z : M)) ⁻¹' U₀),
+    U.isOpen.isOpenMap_subtypeVal _
+      (U₀.isOpen.preimage (continuous_subtypeVal.comp ι.continuous))⟩
+  have hW : W ≤ U := by
+    rintro _ ⟨z, -, rfl⟩
+    exact z.property
+  have hχ (z : W) : (ι (Opens.inclusion hW z) : M) ∈ U₀ := by
+    obtain ⟨w, hw, hwz⟩ := z.property
+    rwa [show Opens.inclusion hW z = w from Subtype.ext hwz.symm]
+  set χ : W → U₀ := fun z ↦ ⟨ι (Opens.inclusion hW z), hχ z⟩
+  have hιW : ContMDiff (𝓣 n) I ∞ (Subtype.val ∘ ι ∘ Opens.inclusion hW) :=
+    contMDiff_subtypeVal.comp (ι.contMDiff.comp (contMDiff_inclusion hW))
+  have hχs : ContMDiff (𝓣 n) I ∞ χ := (ContMDiff.subtypeVal_comp_iff U₀ χ).1 hιW
+  have hχd : IsLocalDiffeomorph (𝓣 n) I ∞ χ := by
+    have h : IsLocalDiffeomorph (𝓣 n) I ∞ (Subtype.val ∘ ι ∘ Opens.inclusion hW) := fun z ↦
+      (isLocalDiffeomorph_inclusion hW z).comp I M
+        (isLocalDiffeomorph_subtypeVal_comp_iff.2 ι.isLocalDiffeomorph _)
+    exact isLocalDiffeomorph_subtypeVal_comp_iff.1 h
+  have hχinj : Function.Injective χ := fun a b h ↦ by
+    have h' : ((χ a : U₀) : M) = χ b := congrArg Subtype.val h
+    have h'' := Subtype.ext_iff.1 (ι.injective (Subtype.ext h'))
+    exact Subtype.ext h''
+  -- The slices `F_t ∘ χ` are injective local diffeomorphisms: `F_t` is an immersion between
+  -- manifolds of the same dimension.
+  have hmd (t : unitInterval) : IsLocalDiffeomorph (𝓣 n) I ∞ fun z ↦ F (t, χ z) :=
+    fun z ↦ (hχd z).comp I M
+      ((F.isSmoothEmbedding t).isImmersion.isLocalDiffeomorph rfl (by simp) _)
+  have hminj (t : unitInterval) : Function.Injective fun z ↦ F (t, χ z) :=
+    (F.isSmoothEmbedding t).isEmbedding.injective.comp hχinj
+  -- `ι'` is the slice at time `1`, onto its open image, and `G` the isotopy `t ↦ F_t ∘ χ`.
+  obtain ⟨ι', hι'⟩ : ∃ ι' : W ≃ₘ⟮𝓣 n, I⟯ (hmd 1).image, ∀ z, (ι' z : M) = F (1, χ z) :=
+    ⟨(hmd 1).diffeomorphOfInjective (hminj 1),
+      fun z ↦ IsLocalDiffeomorph.coe_diffeomorphOfInjective_apply ..⟩
+  obtain ⟨G, hG⟩ : ∃ G : SmoothIsotopy
+      ((SmoothEmbedding.ofOpens (I := I) (n := ∞) V).toContMDiffMap.comp
+        (ι.toContMDiffMap.comp (SmoothEmbedding.inclusion hW).toContMDiffMap))
+      ((SmoothEmbedding.ofOpens (I := I) (n := ∞) (hmd 1).image).toContMDiffMap.comp
+        ι'.toContMDiffMap), ∀ p, G p = F (p.1, χ p.2) :=
+    ⟨F.precompSmoothEmbedding χ (hχd.isSmoothEmbedding (by simp) hχinj) (by simp) _ _
+      (fun z ↦ by simp [he₀, χ])
+      (fun z ↦ by simp [hι']), fun p ↦ SmoothIsotopy.precompSmoothEmbedding_apply ..⟩
+  -- `G` is symplectic, since `χ` pulls the restriction of `σ` back to that of `-ω_can`.
+  have hτ : SmoothForm.mpullback χ hχs (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+        (-CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)) := by
+    rw [SmoothForm.mpullback_mpullback, SmoothForm.mpullback_congr (f := Subtype.val ∘ χ) _ hιW rfl,
+      SmoothForm.mpullback_comp_comp_eq_of_mpullback_eq hι (contMDiff_inclusion hW)]
+    exact SmoothForm.mpullback_congr _ _ rfl _
+  have hGσ : G.IsSymplectic (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+      (-CotangentBundle.symplecticForm (𝓡 n) (𝕊 n))) σ := by
+    rw [← hτ]
+    exact hFσ.of_apply_eq_apply_comp hχs fun t y ↦ hG (t, y)
+  have hGd (t : unitInterval) : IsLocalDiffeomorph (𝓣 n) I ∞ fun z : W ↦ G (t, z) := by
+    simpa only [hG] using hmd t
+  -- The zero section lies in `W`, and `χ` maps it to `f(Sⁿ)`.
+  have hzW (q : 𝕊 n) : zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
+      (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) q ∈ W :=
+    ⟨⟨_, (hιf q).1⟩, by simpa [(hιf q).2] using hU₀ ⟨q, rfl⟩, rfl⟩
+  have hχz (q : 𝕊 n) : χ ⟨_, hzW q⟩ = ⟨f q, hU₀ ⟨q, rfl⟩⟩ := Subtype.ext (hιf q).2
+  have hGz (t : unitInterval) (q : 𝕊 n) : G (t, ⟨_, hzW q⟩) = f (Φ (t, q)) := by
+    rw [hG, hχz, hFe]
+  have h1 : (Subtype.val ∘ ι' : W → M) = fun z ↦ G (1, z) :=
+    funext fun z ↦ by simp [hG, hι']
+  refine ⟨W, hW, _, ι', G, hGd, hGσ, fun t q ↦ ⟨hzW q, hGz t q⟩, ?_, fun q ↦ ⟨hzW q, ?_⟩⟩
+  · rw [SmoothForm.mpullback_mpullback,
+      SmoothForm.mpullback_congr _ (G.timeSlice 1).contMDiff
+        (h1.trans (funext fun z ↦ (G.timeSlice_apply 1 z).symm))]
+    exact Subtype.ext ((SmoothForm.coe_mpullback _ _ _).trans (hGσ.mpullback_timeSlice 1))
+  · rw [Diffeotopy.final_apply, ← hGz]
+    exact congrFun h1 _
 
 end Twist
 
