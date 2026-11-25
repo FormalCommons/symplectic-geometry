@@ -447,12 +447,6 @@ along the boundary), and a boundary point `p`:
   to the half-spaces
   (`PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`, in
   *Smooth families*' `Geometry/Manifold/LocalDiffeomorph/Basic.lean`).
-- `IsMIntegralCurveOn.eqOn_of_isOutwardPointing` (with `[T2Space W]`): two
-  integral curves of `Y` on `Ioc (-η) 0` that agree at time `0` agree; at
-  negative times both are in the interior
-  (`IsMIntegralCurveOn.mem_interior_of_isOutwardPointing`), and from a
-  boundary point they first agree near `0` by uniqueness for the extended
-  field in the chart.
 
 Expected size: 500 lines.
 
