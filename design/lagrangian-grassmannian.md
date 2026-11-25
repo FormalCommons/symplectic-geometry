@@ -402,8 +402,8 @@ Lagrangian frames on `StdSpace ι`, pure linear algebra. Namespace
   `StdSpace.isCompl_graph_ker_x : IsCompl (graph A) (LinearMap.ker StdSpace.x)`
   and
   `StdSpace.isCompl_graphY_ker_y : IsCompl (graphY A) (LinearMap.ker StdSpace.y)`.
-  Every `z` is `(z.x, A z.x) + (0, z.y - A z.x)`, and a vector of the graph
-  with `x = 0` is zero.
+  The first is Tau Ceti's `LinearMap.isCompl_graph_ker_fst` for
+  `A.mulVecLin`, transported along `equivProd`.
 - The coordinate swap `StdSpace.swap ι` of `Standard/Basic.lean` carries
   `graph A` to `graphY A` by the definition (`graphY_def`), and exchanges the
   kernels of `x` and `y` (`map_swap_ker_x`, `map_swap_ker_y`). So

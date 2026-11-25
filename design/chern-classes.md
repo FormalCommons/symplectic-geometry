@@ -392,9 +392,10 @@ in `TauCeti/Topology/FiberBundle/Proper.lean`, which this file imports.
 ### `LinearAlgebra/Projectivization/Basic.lean`
 
 `Projectivization.normalizedRep φ x`, the representative of a point `x` of
-`ℙ K V` on which a linear form `φ` is `1`, with its algebraic lemmas, and
-`Projectivization.mk_eq_of_mem_submodule`. The path is that of Tau Ceti's
-file with `linearProjectionDomain`, which it imports.
+`ℙ K V` on which a linear form `φ` is `1`, with its algebraic lemmas (that a
+nonzero vector of a line spans it is Tau Ceti's
+`Projectivization.mem_submodule_iff`). The path is that of Tau Ceti's file
+with `linearProjectionDomain`, which it imports.
 
 ### `Topology/Algebra/Projectivization.lean`
 
