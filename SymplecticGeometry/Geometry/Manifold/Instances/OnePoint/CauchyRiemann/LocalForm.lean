@@ -8,10 +8,13 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Complex.DbarFunction
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Smooth
+import Mathlib.Topology.DiscreteSubset
+import SymplecticGeometry.Geometry.Manifold.Complex.Isothermal
+import TauCeti.Analysis.Complex.Wirtinger.Similarity.Basic
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 
 /-!
-# The local equation of `D_J` on `𝒪(1)` in an isothermal chart
+# The local equation of `D_J` on `𝒪(1)` in an isothermal chart, and its zeros
 
 Let `J` be a smooth almost complex structure on the sphere and `D_J` the real Cauchy–Riemann
 operator `SymplecticGeometry.twistOneDelBar J` on `𝒪(1)`. This file reads `D_J s = 0` in a chart
@@ -29,6 +32,14 @@ linearity of `D_J` write `D_J s` as `∂bar_J` of the coordinate of `s` plus the
 preimage of `1` is the conjugate Wirtinger derivative `∂/∂w̄` of the function read in the chart
 (`TauCeti.SmoothAlmostComplexStructure.dbarFunction_apply_mfderiv_symm_eq_conjWirtingerDeriv`).
 
+From this equation the zeros of a smooth kernel element are understood. Near each point,
+Tau Ceti's `TauCeti.eventually_ne_zero_of_conjWirtingerDeriv_apply_one_eq_mul` shows that the
+coordinate either vanishes identically or has an isolated zero, and a section vanishes exactly
+where its coordinate does. Since the sphere is connected, the set of points near which `s`
+vanishes is either empty or everything; since it is compact, a nonzero kernel element has
+finitely many zeros. The connectedness argument follows the proof of
+`TauCeti.not_eventually_eq_zero_of_conjWirtingerDeriv_apply_one_eq_mul`.
+
 ## Main results
 
 * `SymplecticGeometry.twistOneDelBar_eq_symmL_comp_dbarFunction_add_smul`: `D_J` in the frame of
@@ -38,6 +49,14 @@ preimage of `1` is the conjugate Wirtinger derivative `∂/∂w̄` of the functi
 * `SymplecticGeometry.exists_conjWirtingerDeriv_apply_one_eq_mul_of_mem_twistOneKernel`: the
   coordinate of a smooth element of the kernel of `D_J`, read through `ψ`, satisfies
   `∂v/∂w̄ = a v` near `ψ x`, with `a` smooth.
+* `SymplecticGeometry.eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel`: near
+  each point, a smooth kernel element vanishes identically or has no zero on a punctured
+  neighbourhood.
+* `SymplecticGeometry.eq_zero_of_eventually_eq_zero_of_mem_twistOneKernel`: unique
+  continuation.
+* `SymplecticGeometry.eventually_ne_zero_of_mem_twistOneKernel` and
+  `SymplecticGeometry.finite_setOf_eq_zero_of_mem_twistOneKernel`: the zeros of a nonzero smooth
+  kernel element are isolated, and finitely many.
 
 ## References
 
@@ -47,7 +66,7 @@ preimage of `1` is the conjugate Wirtinger derivative `∂/∂w̄` of the functi
 
 public section
 
-open Bundle Set TauCeti TauCeti.Manifold
+open Bundle Filter Set TauCeti TauCeti.Manifold
 open OnePoint (twistCore twistTransition)
 open scoped Manifold ContDiff Topology TauCeti.ComplexManifold VectorBundle.ComplexToReal
 
@@ -183,5 +202,76 @@ theorem exists_conjWirtingerDeriv_apply_one_eq_mul_of_mem_twistOneKernel
   beta_reduce
   rw [hD, hcoord (s p)]
   linear_combination (twistTransition 1 p y p) * h0' - d * htt
+/-- **Zeros of a smooth kernel element are isolated or interior.** Let `s` be a smooth section
+of `𝒪(1)` with `D_J s = 0`. At each point `z` of the sphere, either `s` vanishes on a
+neighbourhood of `z`, or `s` has no zero on a punctured neighbourhood of `z`. -/
+theorem eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
+    (hs : s ∈ twistOneKernel J) (z : OnePoint ℂ) :
+    (∀ᶠ y in 𝓝 z, s y = 0) ∨ ∀ᶠ y in 𝓝[≠] z, s y ≠ 0 := by
+  obtain ⟨ψ, hzψ, hψ⟩ := J.exists_isothermal_partialDiffeomorph Complex.finrank_real_complex z
+  obtain ⟨U, hU, hzU, a, ha, hv, heq⟩ :=
+    exists_conjWirtingerDeriv_apply_one_eq_mul_of_mem_twistOneKernel hψ hzψ
+      (mem_chart_source ℂ z) hs
+  set e := (twistCore (𝕜 := ℂ) 1).localTriv z
+  -- On the chart at `z`, the coordinate of a vector of `𝒪(1)` vanishes only if the vector does.
+  have hcoord (p : OnePoint ℂ) (hp : p ∈ (chartAt ℂ z).source) (v : ℂ) :
+      (e ⟨p, v⟩).2 = 0 ↔ v = 0 := by
+    have htt : twistTransition 1 p z p * twistTransition 1 z p p = 1 := by
+      rw [OnePoint.twistTransition_mul_twistTransition 1 hp (mem_chart_source ℂ p) hp,
+        OnePoint.twistTransition_self]
+    rw [OnePoint.twistCore_localTriv_apply 1 z (fun _ ↦ v) p]
+    simp [left_ne_zero_of_mul_eq_one htt]
+  set φ := ψ.toOpenPartialHomeomorph
+  have hφ : ⇑φ = ψ := PartialDiffeomorph.toFun'_toOpenPartialHomeomorph ψ
+  have hW : ∀ᶠ p in 𝓝 z, p ∈ (chartAt ℂ z).source ∧ ψ.symm (ψ p) = p :=
+    ((chartAt ℂ z).open_source.eventually_mem (mem_chart_source ℂ z)).and
+      (hφ ▸ φ.eventually_left_inverse hzψ)
+  have hc : ContinuousAt ψ z := hφ ▸ φ.continuousAt hzψ
+  by_cases h : ∀ᶠ w in 𝓝 (ψ z), (e ⟨ψ.symm w, s (ψ.symm w)⟩).2 = 0
+  · refine .inl ?_
+    filter_upwards [hW, hc.eventually h] with p ⟨hp, hpp⟩ hp0
+    rwa [hpp, hcoord p hp] at hp0
+  · refine .inr ?_
+    have ht : Tendsto ψ (𝓝[≠] z) (𝓝[≠] (ψ z)) :=
+      tendsto_nhdsWithin_iff.2 ⟨hc.tendsto.mono_left nhdsWithin_le_nhds,
+        hφ ▸ φ.eventually_ne_nhdsWithin hzψ⟩
+    filter_upwards [ht.eventually (eventually_ne_zero_of_conjWirtingerDeriv_apply_one_eq_mul
+      (k := 1) le_rfl hU (ha.of_le (by simp)) hv heq hzU h), nhdsWithin_le_nhds hW]
+      with p hp0 ⟨hp, hpp⟩
+    rwa [hpp, Ne, hcoord p hp] at hp0
+
+/-- **Unique continuation for `D_J` on `𝒪(1)`.** A smooth section `s` of `𝒪(1)` with
+`D_J s = 0` that vanishes on a neighbourhood of one point of the sphere is zero. -/
+theorem eq_zero_of_eventually_eq_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
+    (hs : s ∈ twistOneKernel J) {z : OnePoint ℂ} (hz : ∀ᶠ y in 𝓝 z, s y = 0) : s = 0 := by
+  set S := {x | ∀ᶠ y in 𝓝 x, s y = 0}
+  have hS : IsClopen S := by
+    refine ⟨isOpen_compl_iff.1 (isOpen_iff_mem_nhds.2 fun x hx ↦ ?_),
+      isOpen_setOfPred_eventually_nhds⟩
+    have hx' := (eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel hs x).resolve_left
+      hx
+    filter_upwards [eventually_nhdsWithin_iff.1 hx'] with y hy hyS
+    obtain rfl | hyx := eq_or_ne y x
+    · exact hx hyS
+    · exact hy hyx hyS.self_of_nhds
+  have hSu := (isClopen_iff.1 hS).resolve_left (Set.nonempty_of_mem (x := z) hz).ne_empty
+  exact funext fun x ↦ (hSu ▸ mem_univ x : x ∈ S).self_of_nhds
+
+/-- **Zeros of a nonzero smooth kernel element are isolated.** If `s ≠ 0` is a smooth section
+of `𝒪(1)` with `D_J s = 0`, then `s` has no zero on some punctured neighbourhood of any point. -/
+theorem eventually_ne_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
+    (hs : s ∈ twistOneKernel J) (hs₀ : s ≠ 0) (z : OnePoint ℂ) :
+    ∀ᶠ y in 𝓝[≠] z, s y ≠ 0 :=
+  (eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel hs z).resolve_left
+    fun h ↦ hs₀ (eq_zero_of_eventually_eq_zero_of_mem_twistOneKernel hs h)
+
+/-- **A nonzero smooth kernel element has finitely many zeros.** If `s ≠ 0` is a smooth section
+of `𝒪(1)` with `D_J s = 0`, then the zero set of `s` on the sphere is finite. -/
+theorem finite_setOf_eq_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
+    (hs : s ∈ twistOneKernel J) (hs₀ : s ≠ 0) : {y | s y = 0}.Finite := by
+  have hc : {y | s y ≠ 0} ∈ codiscrete (OnePoint ℂ) :=
+    mem_codiscreteWithin_iff_forall_mem_nhdsNE.2 fun z _ ↦
+      mem_of_superset (eventually_ne_zero_of_mem_twistOneKernel hs hs₀ z) subset_union_left
+  simpa [compl_ofPred] using cofinite_le_codiscrete hc
 
 end SymplecticGeometry
