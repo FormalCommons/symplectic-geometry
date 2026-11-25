@@ -71,8 +71,13 @@ pencil theorem produces one:
   - `exists_model`: at every critical point `p` there are an open
     neighbourhood `U`, a `J`-holomorphic open embedding `φ : U → (Fin 2 → ℂ)`
     with `φ p = 0` (its differential intertwines `J` with multiplication by
-    `I`) and an affine chart `c` of $\mathbb CP^1$ at `π p`, such that
-    `c (π x) = (φ x 0) ^ 2 + (φ x 1) ^ 2` on `U`;
+    `I`) and an affine chart `c : ℙ ℂ (Fin 2 → ℂ) → (Fin 1 → ℂ)` whose
+    domain contains `π p`, such that
+    `c (π x) 0 = c (π p) 0 + (φ x 0) ^ 2 + (φ x 1) ^ 2` on `U`. The chart
+    takes values in `Fin 1 → ℂ`, so the equation is read in its one
+    coordinate. It is centred at `c (π p)` because an affine chart vanishes
+    only at a coordinate point: without that term every critical value
+    would be `[1:0]` or `[0:1]`;
   - `isNondegenerate_ker`: at every regular point the restriction of `ω` to
     the kernel of `dπ` is nondegenerate.
 
