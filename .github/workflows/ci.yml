@@ -9,9 +9,12 @@ on:
 # the library that the cache workflows saved on main, but never saves a cache
 # itself. A run of the merge queue hands its build to the workflow
 # cache-library as an artifact, which needs no permission; see the last
-# steps.
+# steps. `actions: read` is for a pull request's run that finds no build of
+# main's: it looks for the build that an earlier run for the same pull
+# request kept, and downloads it.
 permissions:
   contents: read
+  actions: read
 
 jobs:
   build:
@@ -140,8 +143,62 @@ jobs:
           path: .lake/build
           key: ${{ steps.setup.outputs.build }}-inc-
           restore-keys: ${{ steps.setup.outputs.build }}-
+      # A move of Tau Ceti finds no build of main's, in any of its runs: each
+      # push to its pull request, such as a fix after a review, would build
+      # the whole library again, about half an hour. So a pull request's run
+      # that restored nothing above starts from the build that the latest
+      # earlier run for the same pull request kept (see the last steps), and
+      # Lake builds only what has changed since, as it does from a save of
+      # main's. The artifact's name has the pull request's number and the
+      # same hash of the toolchain and the dependencies as the saves, and it
+      # counts only if its run was for this pull request's branch in this
+      # repository. A pull request from a fork gets none.
+      #
+      # What this gives away: such a run no longer starts from main's saves
+      # alone. It trusts files that an earlier commit of the same pull
+      # request built, so a pull request could make its own check pass with
+      # a doctored build from a commit that is no longer in it. That is why
+      # only a pull request's own runs read these artifacts. A run of the
+      # merge queue and the cache workflows never do, the review builds the
+      # pull request for itself, and so what main and its saves hold is
+      # checked as before. If anything here fails, the run builds from
+      # nothing, as it did before.
+      - name: take the build of this pull request's earlier run
+        if: >-
+          github.event_name == 'pull_request' &&
+          steps.library.outputs.cache-matched-key == '' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NAME: pr-${{ github.event.pull_request.number }}-${{ steps.setup.outputs.build }}
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          set -o pipefail
+          take() {
+            local run dir=$RUNNER_TEMP/earlier-build
+            run=$(timeout 60 gh api -X GET "repos/$GITHUB_REPOSITORY/actions/artifacts" -f name="$NAME" -F per_page=100 |
+              jq -r --arg branch "$BRANCH" --argjson repo "$GITHUB_REPOSITORY_ID" '
+                [.artifacts[] | select((.expired | not) and .workflow_run.head_branch == $branch
+                  and .workflow_run.repository_id == $repo and .workflow_run.head_repository_id == $repo)]
+                | max_by(.created_at) | .workflow_run.id // empty') ||
+              { echo "could not ask GitHub for the builds of earlier runs"; return 1; }
+            [[ $run =~ ^[0-9]+$ ]] || { echo "no earlier run for this pull request kept a build for these dependencies"; return 1; }
+            rm -rf "$dir" && mkdir -p "$dir/unpacked" .lake || return 1
+            timeout 900 gh run download "$run" --repo "$GITHUB_REPOSITORY" --name "$NAME" --dir "$dir" ||
+              { echo "could not download the build of run $run"; return 1; }
+            tar --use-compress-program unzstd -xf "$dir/build.tar.zst" -C "$dir/unpacked" && [ -d "$dir/unpacked/build" ] ||
+              { echo "could not unpack the build of run $run"; return 1; }
+            rm -rf .lake/build && mv "$dir/unpacked/build" .lake/build || return 1
+            rm -rf "$dir"
+            echo "took the build of run $run"
+          }
+          if ! take; then
+            rm -rf .lake/build "$RUNNER_TEMP/earlier-build"
+            echo "this run builds the library from its source"
+          fi
       # --wfail fails the build on any warning, including a `sorry`.
       - name: build
+        id: build
         run: lake build --wfail
       # A run of the merge queue builds the commit that main gets when the
       # pull request merges. After a build that passed, it hands `.lake/build`
@@ -192,3 +249,41 @@ jobs:
           retention-days: 1
           # The tar file is compressed already.
           compression-level: 0
+      # A pull request's run that found no build of main's keeps its own for
+      # the pull request's next run; see the step before the build. It does
+      # so after a build that failed too, since the next run is then for the
+      # fix, and Lake takes from a build only the files that passed. Only
+      # later runs for the same pull request read this artifact. Its name
+      # differs from the merge queue's, and cache-library takes an artifact
+      # only from a run of the merge queue, so it can never be taken for
+      # one. GitHub deletes it after a day; nothing deletes it sooner, so a
+      # move with six runs leaves about 2 GB for that day. In the minutes
+      # between a move's merge and main's first build after it, the runs of
+      # other pull requests keep their builds in the same way. If either
+      # step fails, the run's result is the build's.
+      - name: pack the build for this pull request's next run
+        id: keep
+        if: >-
+          github.event_name == 'pull_request' && !cancelled() &&
+          (steps.build.outcome == 'success' || steps.build.outcome == 'failure') &&
+          steps.library.outputs.cache-matched-key == '' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          [ -d .lake/build ] || { echo "the build left no files"; exit 0; }
+          mkdir "$RUNNER_TEMP/pr-build"
+          tar --use-compress-program 'zstd -T0' -cf "$RUNNER_TEMP/pr-build/build.tar.zst" -C .lake build
+      - name: keep the build for this pull request's next run
+        if: github.event_name == 'pull_request' && !cancelled() && steps.keep.outcome == 'success'
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: pr-${{ github.event.pull_request.number }}-${{ steps.setup.outputs.build }}
+          path: ${{ runner.temp }}/pr-build
+          if-no-files-found: ignore
+          retention-days: 1
+          # The tar file is compressed already.
+          compression-level: 0
+          # A second attempt of a run replaces the first one's artifact.
+          overwrite: true
