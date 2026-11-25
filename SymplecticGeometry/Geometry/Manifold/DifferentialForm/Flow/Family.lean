@@ -133,9 +133,7 @@ mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_for
     mpullback I I (timeDependentFlowOf X s t) (mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t) α) x =
       Real.exp (∫ u in s..t, c u) • mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk s) α x := by
   -- The flow from `(s, x)` is defined at all times between `s` and `t`.
-  have hJ : uIcc s t ⊆ {u | ((s, u), x) ∈ timeDependentFlowDomain X} :=
-    (ordConnected_setOf_mem_timeDependentFlowDomain s x).uIcc_subset
-      (mem_timeDependentFlowDomain_self_of_mem h) h
+  have hJ := uIcc_subset_setOf_mem_timeDependentFlowDomain h
   -- The pullbacks at `x`, as alternating maps on the model space.
   set P : ℝ → E [⋀^Fin k]→L[ℝ] F := fun u ↦
     mpullback I I (timeDependentFlowOf X s u) (mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u) α) x

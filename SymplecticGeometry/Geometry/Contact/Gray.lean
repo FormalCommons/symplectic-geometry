@@ -511,10 +511,7 @@ private theorem eventually_comap_mfderiv_timeDependentFlowOf (hξ : IsContactFam
     simp only [XU]
     rw [← hgray u (huIcc hu).2 a b (huIcc hu).1 U y y.property α hα]
     exact Manifold.tangentSpaceOpenEquiv_apply _ _
-  have hdomU (u : ℝ) (hu : u ∈ uIcc (t₀ : ℝ) t) :
-      (((t₀ : ℝ), u), y₀') ∈ timeDependentFlowDomain XU :=
-    (ordConnected_setOf_mem_timeDependentFlowDomain _ _).uIcc_subset
-      (mem_timeDependentFlowDomain_self hXU₁ _ _) hdom hu
+  have hdomU := uIcc_subset_setOf_mem_timeDependentFlowDomain hdom
   -- Along the trajectory of `y₀'`, the flow of `XU` rescales `α` (the name of the theorem does not
   -- fit in an indented line).
   have key :=
@@ -523,7 +520,7 @@ mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_for
       (fun u _ ↦ (α.contMDiff.of_le (by simp)).contMDiffAt)
       (c := fun u ↦ α.grayRate (u, timeDependentFlowOf XU t₀ u y₀'))
       ((contMDiff_grayRate hc).continuous.comp_continuousOn (continuousOn_id.prodMk
-        fun u hu ↦ (hasMFDerivAt_timeDependentFlowOf hXU₁ (hdomU u hu)).continuousAt
+        fun u hu ↦ (hasMFDerivAt_timeDependentFlowOf hXU₁ (hdomU hu)).continuousAt
           |>.continuousWithinAt))
       (fun u hu ↦ by
         rw [hXUα u hu]
@@ -755,9 +752,8 @@ since `M` is compact. It transports `ξ`
 The field `Y` is a choice, determined only on `[0, 1] × M`. -/
 noncomputable def grayDiffeotopy (hξ : IsContactFamily ξ) : Diffeotopy I ∞ M :=
   timeDependentFlowDiffeotopy le_top hξ.exists_grayField.choose_spec.1
-    (isCompleteVectorField_timeDependentSuspensionField
-      (hξ.exists_grayField.choose_spec.1.of_le (by simp)) isCompact_univ
-      fun _ _ h ↦ absurd (mem_univ _) h)
+    (isCompleteVectorField_timeDependentSuspensionField_of_compactSpace
+      (hξ.exists_grayField.choose_spec.1.of_le (by simp)))
 
 /-- The Gray isotopy at time `t` is the time-dependent flow from time `0` to time `t` of a smooth
 field `Y` with the properties of `SymplecticGeometry.IsContactFamily.exists_grayField`: in `ξ` at
@@ -778,14 +774,15 @@ theorem exists_grayField_grayDiffeotopy_apply (hξ : IsContactFamily ξ) :
 /-- **The Gray isotopy transports the family**: `ψ_t^* ξ_t = ξ_0` for every `t ∈ [0, 1]`. -/
 theorem transports_grayDiffeotopy (hξ : IsContactFamily ξ) :
     hξ.grayDiffeotopy.Transports ξ := by
-  obtain ⟨Y, hY, -, hgray, happly⟩ := hξ.exists_grayField_grayDiffeotopy_apply
+  obtain ⟨hY, -, hgray⟩ := hξ.exists_grayField.choose_spec
+  set Y := hξ.exists_grayField.choose
   have hY₁ := hY.of_le (m := 1) (by simp)
-  have hc : IsCompleteVectorField (timeDependentSuspensionField Y) :=
-    isCompleteVectorField_timeDependentSuspensionField hY₁ isCompact_univ
-      fun _ _ h ↦ absurd (mem_univ _) h
+  have hc := isCompleteVectorField_timeDependentSuspensionField_of_compactSpace hY₁
   have hdom (s t : ℝ) (x : M) : ((s, t), x) ∈ timeDependentFlowDomain Y :=
     (timeDependentFlowDomain_eq_univ hc).symm ▸ mem_univ _
   refine Diffeotopy.transports_iff.2 fun t x ↦ ?_
+  rw [grayDiffeotopy, timeDependentFlowDiffeotopy_apply,
+    Diffeotopy.timeSlice_timeDependentFlowDiffeotopy]
   -- The pullback of `ξ_s` by the flow from `0` to `s`, at `x`, as a function of `s`. It is locally
   -- constant, by the cocycle property of the flow and the transport near each time.
   let g : unitInterval → Submodule ℝ (TangentSpace I x) := fun s ↦
@@ -809,15 +806,7 @@ theorem transports_grayDiffeotopy (hξ : IsContactFamily ξ) :
     ext v
     simp only [g, Set.Icc.coe_zero, mfderiv_timeDependentFlowOf_self, ContinuousLinearMap.coe_id]
     exact mem_iff_mem_of_eq (ξ 0) (timeDependentFlowOf_self Y 0 x) v
-  have hslice : ⇑(hξ.grayDiffeotopy.timeSlice t) = timeDependentFlowOf Y 0 t :=
-    funext fun y ↦ (Diffeotopy.timeSlice_apply _ t y).trans (happly (t, y))
-  ext v
   rw [← h0, hg.apply_eq_of_preconnectedSpace 0 t]
-  simp only [g]
-  refine (mem_iff_mem_of_eq (ξ t) (happly (t, x)).symm _).trans ?_
-  rw [← hslice]
-  -- Membership in a `comap` is membership of the image.
-  exact Iff.rfl
 
 /-- **The velocity of the Gray isotopy lies in the family**: the time derivative of `ψ_t` at `x`
 lies in `ξ_t` at `ψ_t x`, for every `t ∈ [0, 1]`, the ends included. -/
