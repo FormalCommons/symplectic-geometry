@@ -27,10 +27,10 @@ Let `S` be a surface with boundary, modelled on the half-plane `EuclideanHalfSpa
 smooth collar `c` of its boundary, and let `γ i : AddCircle 1 → ∂S`, for `i` in an index type `ι`,
 be smooth local diffeomorphisms whose images are disjoint (the map `(i, θ) ↦ γ i θ` is injective).
 The capped surface `SymplecticGeometry.capDiscs c γ hγ hinj` is glued (`TopCat.GlueData`) from
-the interior of `S`, as Tau Ceti's charted interior `(𝓡∂ 2).interior S` over `ℝ²`, and one copy
-of the ball `CoordinateDisc.ball` of radius `2` of `ℂ` for each `i`, re-modelled on `ℝ²` along the
-orthonormal basis `1, i` of `ℂ` (`SymplecticGeometry.Remodel`). The point `z` of the annulus
-`1 < ‖z‖ < 2` of the `i`-th disc is identified with the interior point
+the interior of `S`, as Tau Ceti's charted interior `(𝓡∂ 2).interior S` over `ℝ²`, and one
+copy of the ball `CoordinateDisc.ball` of radius `2` of `ℂ` for each `i`, re-modelled on `ℝ²`
+along the orthonormal basis `1, i` of `ℂ` (`SymplecticGeometry.Remodel`). The point `z` of the
+annulus `1 < ‖z‖ < 2` of the `i`-th disc is identified with the interior point
 `c (γ i (arg z / 2π), ‖z‖ - 1)`, and distinct discs are not glued to each other. When the
 `γ i` together parametrize the whole boundary, this closes up the boundary circles of `S` with
 discs.
