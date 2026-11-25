@@ -31,6 +31,8 @@ Ceti's zeroth-order term of chart `i`, the reading of `cov` on the frame of char
 * `IsCovariantDerivativeOn.fderiv_coordChangeL_add_chartZeroOrder`: on the overlap of two charts,
   `d (g v) + Γᵢ' (g v) = g ∘ Γᵢ v ∘ dτ`, for `g` the coordinate change of `V` and `τ` the chart
   transition.
+* `IsCovariantDerivativeOn.chartZeroOrder_apply_smul`: for a complex vector bundle, `Γᵢ` commutes
+  with a complex scalar with which the covariant derivative commutes.
 * `IsCovariantDerivativeOn.contDiffOn_chartZeroOrder`,
   `IsCovariantDerivativeOn.exists_norm_chartZeroOrder_apply_le`: the zeroth-order term of a `C^n`
   covariant derivative is `C^n`, and bounded on the closure of the chart image.
@@ -142,6 +144,47 @@ theorem fderiv_coordChangeL_add_chartZeroOrder {i i' : Fin A.n}
     A.coord_tangentHom_eq_coordChange _ hz, hcov.chartZeroOrder_apply_eq_coord_tangentHom A hτ]
 
 end Real
+
+section Complex
+
+variable {E : Type u} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [IsManifold 𝓘(ℝ, E) 1 M]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F] [NormedSpace ℂ F]
+  {V : M → Type*} [TopologicalSpace (TotalSpace F V)] [∀ x, AddCommGroup (V x)]
+  [∀ x, Module ℝ (V x)] [∀ x, Module ℂ (V x)] [∀ x, IsScalarTower ℝ ℂ (V x)]
+  [∀ x, TopologicalSpace (V x)] [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
+  [∀ x, ContinuousSMul ℂ (V x)]
+  [FiberBundle F V] [VectorBundle ℝ F V] [VectorBundle ℂ F V]
+  [ContMDiffVectorBundle 1 F V 𝓘(ℝ, E)]
+  (A : FiniteBundleAtlas E M F V)
+  {cov : (Π x : M, V x) → Π x : M, TangentSpace 𝓘(ℝ, E) x →L[ℝ] V x}
+
+/-- On the image of chart `i`, the zeroth-order term of chart `i` of a covariant derivative on the
+base set of the trivialization of chart `i` commutes with a complex scalar `c`, if the covariant
+derivative commutes with `c` on the sections differentiable at points of that base set. -/
+theorem chartZeroOrder_apply_smul {i : Fin A.n}
+    (hcov : IsCovariantDerivativeOn F cov (A.triv i).baseSet) {c : ℂ}
+    (hc : ∀ ⦃σ : Π x, V x⦄ ⦃x : M⦄, x ∈ (A.triv i).baseSet →
+      MDifferentiableAt 𝓘(ℝ, E) (𝓘(ℝ, E).prod 𝓘(ℝ, F)) (fun y ↦ TotalSpace.mk' F y (σ y)) x →
+        cov (c • σ) x = c • cov σ x)
+    {z : E} (hz : z ∈ A.image i) (v : F) :
+    A.chartZeroOrder cov i z (c • v) = c • A.chartZeroOrder cov i z v := by
+  have hx : (A.chart i).symm z ∈ (A.triv i).baseSet :=
+    A.dom_subset_baseSet i (A.symm_mem_dom hz)
+  have hσ := Manifold.mdifferentiableAt_symm_of_mem_baseSet (I := 𝓘(ℝ, E)) v hx
+  -- The section reading as the constant `c • v` is `c` times the one reading as `v`.
+  have heq : cov (fun x ↦ (A.triv i).symm x (c • v)) ((A.chart i).symm z) =
+      cov (c • fun x ↦ (A.triv i).symm x v) ((A.chart i).symm z) := by
+    refine hcov.congr_of_eventuallyEq (Manifold.mdifferentiableAt_symm_of_mem_baseSet (c • v) hx)
+      (hσ.const_smul_section c) ((A.triv i).open_baseSet.mem_nhds hx) ?_
+    filter_upwards [(A.triv i).open_baseSet.mem_nhds hx] with y hy
+    rw [Pi.smul_apply, ← (A.triv i).coe_symmₗ (R := ℂ) hy, map_smul]
+  rw [hcov.chartZeroOrder_apply_eq_coord_tangentHom A hz,
+    hcov.chartZeroOrder_apply_eq_coord_tangentHom A hz,
+    FiniteBundleAtlas.coord_tangentHom, FiniteBundleAtlas.coord_tangentHom, heq, hc hx hσ]
+  exact ContinuousLinearMap.inCoordinates_smul _ _
+
+end Complex
 
 section Smooth
 

@@ -58,6 +58,8 @@ follows `Module.Dual.coadjointOrbitForm`, `mpullback_mk_descendedForm` follows
 * `SymplecticGeometry.LocalModelData.ker_mfderiv_mk_le_ker_bilinFormAt_form`: the vertical
   directions of `G × (A × V) → G ×_K (A × V)` lie in the kernel of `D.form`, in the form of the
   hypothesis `hker` of `TauCeti.SmoothTwoForm.isBasic_of_mpullback_eq_of_ker_mfderiv_le`.
+* `SymplecticGeometry.LocalModelData.mem_ker_mfderiv_mk_one_zero_iff`: at `(1, 0, 0)`, the
+  vertical directions are the vectors `(ξ, 0, 0)` with `ξ ∈ 𝔥`.
 * `SymplecticGeometry.LocalModelData.isBasic_form`: `D.form` is basic for the projection.
 * `SymplecticGeometry.LocalModelData.descendedForm`: the descended form `ω` on `G ×_K (A × V)`.
 * `SymplecticGeometry.LocalModelData.mpullback_mk_descendedForm`,
@@ -191,6 +193,39 @@ theorem ker_mfderiv_mk_le_ker_bilinFormAt_form [I.Boundaryless] (x : G × (A × 
     rw [map_neg, LinearMap.add_apply, h₂, h₃, zero_add, hb]
   rw [hA, h₁, hB]
   ring
+
+/-- **The vertical space at `(1, 0, 0)`.** A tangent vector at `(1, 0, 0)` lies in the kernel of
+the differential of the projection `(g, p) ↦ [g, p]` onto `G ×_K (A × V)` exactly when it is
+`(ξ, 0, 0)` for some `ξ ∈ 𝔥`: at `p = 0` the infinitesimal action of `K` on `A × V` vanishes, and
+the images in `𝔤` of the Lie algebra of `K` fill `𝔥`. By
+`SymplecticGeometry.LocalModelData.forall_eval₂_form_one_zero_eq_zero_iff`, this is also the
+kernel of `D.form` at `(1, 0, 0)`. -/
+theorem mem_ker_mfderiv_mk_one_zero_iff [I.Boundaryless]
+    (u : TangentSpace (I.prod 𝓘(ℝ, A × V)) ((1 : G), ((0 : A), (0 : V)))) :
+    letI := D.fiberDistribMulAction
+    haveI := D.contMDiffSMul_fiberDistribMulAction
+    letI := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+    u ∈ (mfderiv (I.prod 𝓘(ℝ, A × V)) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V)))
+      (fun p : G × (A × V) ↦ BalancedProduct.mk K (K.toRightTranslation p.1) p.2)
+      ((1 : G), ((0 : A), (0 : V)))).ker ↔
+      tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V))) u ∈ D.𝔥.prod ⊥ := by
+  let := D.fiberDistribMulAction
+  have := D.contMDiffSMul_fiberDistribMulAction
+  let := BalancedProduct.rightTranslationChartedSpace K (A × V) I 𝓘(ℝ, A × V) F
+  -- `K` fixes `0 ∈ A × V`, so its fundamental vector fields vanish there.
+  have h0 (ξ : GroupLieAlgebra 𝓘(ℝ, F) K) :
+      fundamentalVectorField 𝓘(ℝ, A × V) ξ ((0 : A), (0 : V)) = 0 :=
+    fundamentalVectorField_eq_zero_of_forall_smul_eq (fun k ↦ smul_zero k) ξ
+  rw [BalancedProduct.mem_ker_mfderiv_mk_toRightTranslation_iff, tangentSpaceProdEquiv_apply]
+  simp only [h0, mulInvariantVectorField_one]
+  constructor
+  · rintro ⟨ξ, rfl⟩
+    exact ⟨neg_mem (D.groupLieAlgebraMap_subtype_mem_𝔥 ξ), (Submodule.mem_bot ℝ).2 rfl⟩
+  · rintro ⟨hξ, hab⟩
+    obtain ⟨ξ, hξ'⟩ := D.range_groupLieAlgebraMap_subtype.ge (neg_mem hξ)
+    refine ⟨ξ, Prod.ext ?_ ((Submodule.mem_bot ℝ).1 hab)⟩
+    simp only [ContinuousLinearMap.coe_coe] at hξ'
+    rw [hξ', neg_neg]
 
 /-! ### The descended form -/
 

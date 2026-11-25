@@ -33,6 +33,7 @@ For a linear form `φ` on a vector space `V` over a field `K`, every point `x` o
 * `Projectivization.affineOpen_eq_linearProjectionDomain`: the standard affine open `U_i` of
   `ℙ K (ι → K)`, over a division ring `K`, is the set where the `i`-th coordinate form does not
   vanish.
+* `Projectivization.affineOpen_injective`: distinct indices give distinct standard affine opens.
 * `Projectivization.insertNth_one_affineChart_eq_normalizedRep`: on the standard affine open
   `U_i` of `ℙ K (Fin (n + 1) → K)`, the homogeneous coordinates `[1 : z]` of a point are its
   representative normalized by the `i`-th coordinate.
@@ -54,6 +55,15 @@ theorem affineOpen_eq_linearProjectionDomain {K : Type*} [DivisionRing K] {ι : 
     affineOpen (K := K) i = linearProjectionDomain (LinearMap.proj (R := K) i) := by
   ext x
   rw [mem_affineOpen_iff, mem_linearProjectionDomain_iff, LinearMap.proj_apply]
+
+/-- Distinct indices give distinct standard affine opens of `ℙ K (ι → K)`: the coordinate point
+`[eᵢ]` lies in the standard affine open of `i` and of no other index. -/
+theorem affineOpen_injective {K : Type*} [DivisionRing K] {ι : Type*} :
+    Function.Injective (affineOpen (K := K) (ι := ι)) := by
+  classical
+  intro i j h
+  exact ((mk_single_mem_affineOpen_iff (K := K) i j).1
+    (h ▸ (mk_single_mem_affineOpen_iff i i).2 rfl)).symm
 
 /-- A point of `ℙ K W` lies in the image of the map induced by an injective linear map `f`
 exactly when its representative lies in the range of `f`. -/
