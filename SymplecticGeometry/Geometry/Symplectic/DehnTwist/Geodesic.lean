@@ -525,18 +525,14 @@ theorem cotangentCoord_geodesicFlow {z : CotangentBundle (𝓡 n) (𝕊 n)}
     real_inner_self_eq_norm_sq _
   have hpq : ⟪(cotangentCoord z).2, (z.proj : 𝔼 n)⟫_ℝ = 0 := by
     rw [real_inner_comm, inner_proj_cotangentCoord_snd]
-  rw [geodesicFlow_def, dite_eq_right hz, cotangentCoord_cotangentMk, coe_sphereGreatCircle,
-    Subtype.coe_mk, smul_smul, cotangentNorm_def, cotangentCoord_fst, ← div_eq_mul_inv]
-  refine Prod.ext rfl ?_
-  have h0 : ⟪Real.cos t • (z.proj : 𝔼 n) +
-        (Real.sin t / ‖(cotangentCoord z).2‖) • (cotangentCoord z).2,
-      Real.cos t • (cotangentCoord z).2 -
-        (Real.sin t * ‖(cotangentCoord z).2‖) • (z.proj : 𝔼 n)⟫_ℝ = 0 := by
+  rw [geodesicFlow_def, dite_eq_right hz, cotangentCoord_cotangentMk_of_inner_eq_zero]
+  · rw [coe_sphereGreatCircle, Subtype.coe_mk, smul_smul, cotangentNorm_def, cotangentCoord_fst,
+      ← div_eq_mul_inv]
+  · rw [coe_sphereGreatCircle, Subtype.coe_mk, smul_smul, cotangentNorm_def]
     simp only [inner_add_left, inner_sub_right, real_inner_smul_left, real_inner_smul_right, hqq,
       hpp, hpq, inner_proj_cotangentCoord_snd]
     field_simp
     ring
-  rw [h0, zero_smul, sub_zero]
 
 /-- The normalized geodesic flow preserves the norm `‖p‖`. -/
 @[simp]
