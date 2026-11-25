@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.RingTheory.PowerSeries.ChernCharacter
+public import TauCeti.RingTheory.PowerSeries.Derivative
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Whitney
 
 /-!
@@ -31,9 +32,11 @@ the integral form of the Chern character, `s_j = j! ch_j`, as in Milnor–Stashe
 * `newtonClass_trivial`: the Newton classes of a trivial bundle vanish in positive degree.
 * `newtonClass_of_finrank_eq_one`: for a line bundle, `s_j(L) = c₁(L) ^ j`.
 * `newtonClass_prod`: over a compact base, `s_j(E₁ ⊕ E₂) = s_j(E₁) + s_j(E₂)`. The total Chern
-  series `c(t) = ∑ c_k tᵏ` is multiplicative by the Whitney sum formula, and the generating series
-  of the `(-1)^(k-1) s_k` is its logarithmic derivative `t c'(t) / c(t)`
-  (`TauCeti.X_mul_derivative_chernSeries`), which turns products into sums.
+  series `c(t) = ∑ c_k tᵏ` is multiplicative by the Whitney sum formula
+  (`mk_evenIntegralCohomologyOf_chernClass_prod`), and the generating series of the
+  `(-1)^(k-1) s_k` is its logarithmic derivative `t c'(t) / c(t)`
+  (`TauCeti.X_mul_derivative_chernSeries`), which Tau Ceti's `PowerSeries.xLogDeriv` shows
+  turns products into sums.
 * `newtonClass_eq_of_cup_eq_zero`: if every cup product of two classes of positive even degrees
   adding up to `2j` vanishes, then `s_j(E) = (-1)^(j-1) j c_j(E)` for `j ≥ 1`, by Newton's
   identity, the degree-`j` coefficient of the same logarithmic derivative.
@@ -86,20 +89,6 @@ private abbrev newtonSum (j : ℕ) : (TopCat.of B).EvenIntegralCohomology :=
 private theorem newtonClass_eq_newtonSum (j : ℕ) : newtonClass G E j = newtonSum G E j j :=
   newtonClass_def G E j
 
-/-- The total Chern series `∑ c_k tᵏ` of `E`, with coefficients in the even integral cohomology
-ring. -/
-private theorem chernSeries_chernClassVec :
-    chernSeries (chernClassVec G E) =
-      PowerSeries.mk fun k ↦ (TopCat.of B).evenIntegralCohomologyOf k (chernClass G E k) := by
-  refine PowerSeries.ext fun k ↦ ?_
-  rcases k with _ | k
-  · simpa [coeff_chernSeries] using (TopCat.evenIntegralCohomologyOf_one _).symm
-  · simp only [coeff_chernSeries, PowerSeries.coeff_mk, Nat.add_one_ne_zero, ↓reduceIte,
-      Nat.add_sub_cancel]
-    split_ifs with hk
-    · rfl
-    · rw [chernClass_eq_zero_of_finrank_lt G E (by omega), map_zero]
-
 /-- `t c'(t) = c(t) ∑_{k ≥ 1} (-1)^(k+1) s_k tᵏ` for the total Chern series of `E`. -/
 private theorem X_mul_derivative_chernSeries_chernClassVec :
     PowerSeries.X * PowerSeries.derivative (chernSeries (chernClassVec G E)) =
@@ -108,6 +97,7 @@ private theorem X_mul_derivative_chernSeries_chernClassVec :
   X_mul_derivative_chernSeries ℤ _
 
 /-- **The Newton class of degree zero is the rank.** -/
+@[simp]
 theorem newtonClass_zero :
     newtonClass G E 0 = finrank ℂ G • (TopCat.of B).integralCohomologyOne := by
   rw [newtonClass_def, newtonMvPolynomial_zero_right, map_natCast, ← nsmul_one,
@@ -206,39 +196,30 @@ variable {G₁ : Type} [NormedAddCommGroup G₁] [NormedSpace ℂ G₁]
   [TopologicalSpace (TotalSpace G₂ E₂)] [FiberBundle G₂ E₂] [VectorBundle ℂ G₂ E₂]
   [FiniteDimensional ℂ G₁] [FiniteDimensional ℂ G₂] [CompactSpace B]
 
-/-- The total Chern series is multiplicative: the Whitney sum formula, degree by degree. -/
-private theorem chernSeries_chernClassVec_prod :
-    chernSeries (chernClassVec (G₁ × G₂) (E₁ ×ᵇ E₂)) =
-      chernSeries (chernClassVec G₁ E₁) * chernSeries (chernClassVec G₂ E₂) := by
-  rw [chernSeries_chernClassVec, chernSeries_chernClassVec, chernSeries_chernClassVec]
-  refine PowerSeries.ext fun k ↦ ?_
-  rw [PowerSeries.coeff_mul, PowerSeries.coeff_mk, chernClass_prod, map_sum,
-    Finset.Nat.sum_antidiagonal_eq_sum_range_succ_mk, ← Fin.sum_univ_eq_sum_range]
-  refine Finset.sum_congr rfl fun i _ ↦ ?_
-  rw [PowerSeries.coeff_mk, PowerSeries.coeff_mk,
-    (TopCat.of B).evenIntegralCohomologyOf_mul_of_add_eq (Nat.add_sub_cancel' i.is_le)]
-
 /-- The Newton polynomials of the Chern classes are additive, in all degrees. -/
 private theorem newtonSum_prod (k : ℕ) :
     newtonSum (G₁ × G₂) (E₁ ×ᵇ E₂) k = newtonSum G₁ E₁ k + newtonSum G₂ E₂ k := by
   rcases eq_or_ne k 0 with rfl | hk
   · simp [newtonSum, newtonMvPolynomial_zero_right, Module.finrank_prod]
-  set f₁ := chernSeries (chernClassVec G₁ E₁)
-  set f₂ := chernSeries (chernClassVec G₂ E₂)
   have h₁ := X_mul_derivative_chernSeries_chernClassVec G₁ E₁
   have h₂ := X_mul_derivative_chernSeries_chernClassVec G₂ E₂
   have h := X_mul_derivative_chernSeries_chernClassVec (G₁ × G₂) (E₁ ×ᵇ E₂)
-  rw [chernSeries_chernClassVec_prod] at h
-  have hu : IsUnit (f₁ * f₂) := PowerSeries.isUnit_iff_constantCoeff.2 (by simp [f₁, f₂])
-  -- The logarithmic derivative turns the product into a sum.
-  have key : ∀ {P Q R : PowerSeries (TopCat.of B).EvenIntegralCohomology},
-      PowerSeries.X * PowerSeries.derivative f₁ = f₁ * P →
-      PowerSeries.X * PowerSeries.derivative f₂ = f₂ * Q →
-      PowerSeries.X * PowerSeries.derivative (f₁ * f₂) = f₁ * f₂ * R → R = P + Q :=
-    fun h₁ h₂ h ↦ hu.mul_left_cancel <| by
-      rw [← h, Derivation.leibniz, smul_eq_mul, smul_eq_mul]
-      linear_combination f₁ * h₂ + f₂ * h₁
-  have hsum := key h₁ h₂ h
+  rw [chernSeries_chernClass, mk_evenIntegralCohomologyOf_chernClass_prod,
+    ← chernSeries_chernClass G₁ E₁, ← chernSeries_chernClass G₂ E₂] at h
+  obtain ⟨u₁, hu₁⟩ : IsUnit (chernSeries (chernClassVec G₁ E₁)) :=
+    PowerSeries.isUnit_iff_constantCoeff.2 (by simp)
+  obtain ⟨u₂, hu₂⟩ : IsUnit (chernSeries (chernClassVec G₂ E₂)) :=
+    PowerSeries.isUnit_iff_constantCoeff.2 (by simp)
+  rw [← hu₁] at h₁
+  rw [← hu₂] at h₂
+  rw [← hu₁, ← hu₂, ← Units.val_mul] at h
+  -- A series `S` with `X u' = u S` is `X u' u⁻¹`, which turns products into sums.
+  have hlog : ∀ {u : (PowerSeries (TopCat.of B).EvenIntegralCohomology)ˣ}
+      {S : PowerSeries (TopCat.of B).EvenIntegralCohomology},
+      PowerSeries.X * PowerSeries.derivative u.val = u.val * S →
+        S = (PowerSeries.xLogDeriv u).toAdd := fun {u S} h ↦ by
+    rw [PowerSeries.toAdd_xLogDeriv, h, mul_comm u.val S, mul_assoc, Units.mul_inv, mul_one]
+  have hsum := (hlog h).trans (by rw [map_mul, toAdd_mul, ← hlog h₁, ← hlog h₂])
   have hk' := congrArg (PowerSeries.coeff k) hsum
   simp only [map_add, PowerSeries.coeff_mk, hk, ↓reduceIte] at hk'
   rw [← mul_add] at hk'
@@ -272,7 +253,7 @@ theorem newtonClass_eq_of_cup_eq_zero {j : ℕ} (hj : j ≠ 0)
   have hL : (PowerSeries.coeff (R := (TopCat.of B).EvenIntegralCohomology) j (PowerSeries.X *
       PowerSeries.derivative (chernSeries (chernClassVec G E)))) j = j • chernClass G E j := by
     obtain ⟨m, rfl⟩ : ∃ m, j = m + 1 := ⟨j - 1, by omega⟩
-    rw [PowerSeries.coeff_succ_X_mul, PowerSeries.coeff_derivative, chernSeries_chernClassVec,
+    rw [PowerSeries.coeff_succ_X_mul, PowerSeries.coeff_derivative, chernSeries_chernClass,
       PowerSeries.coeff_mk, ← Nat.cast_succ, ← nsmul_eq_mul', DFinsupp.smul_apply,
       DirectSum.of_eq_same]
   have hneg : ∀ (x : (TopCat.of B).EvenIntegralCohomology) (n : ℕ),
@@ -281,7 +262,7 @@ theorem newtonClass_eq_of_cup_eq_zero {j : ℕ} (hj : j ≠ 0)
       ← zsmul_eq_mul, DFinsupp.zsmul_apply]
   -- On the right side only the term `c₀ (-1)^(j+1) s_j` survives.
   rw [hL, PowerSeries.coeff_mul, DirectSum.sum_apply, Finset.sum_eq_single (0, j)] at hX
-  · rw [chernSeries_chernClassVec, PowerSeries.coeff_mk, PowerSeries.coeff_mk] at hX
+  · rw [chernSeries_chernClass, PowerSeries.coeff_mk, PowerSeries.coeff_mk] at hX
     simp only [hj, ↓reduceIte] at hX
     rw [chernClass_zero, TopCat.evenIntegralCohomologyOf_one, one_mul, hneg,
       ← newtonClass_eq_newtonSum] at hX
@@ -296,7 +277,7 @@ theorem newtonClass_eq_of_cup_eq_zero {j : ℕ} (hj : j ≠ 0)
       · exact absurd (by simpa using hab) hne
       · exact ha
     subst hab
-    rw [chernSeries_chernClassVec, PowerSeries.coeff_mk,
+    rw [chernSeries_chernClass, PowerSeries.coeff_mk,
       TopCat.evenIntegralCohomologyOf_mul_apply]
     exact h a b rfl ha hb _ _
   · simp
