@@ -23,6 +23,28 @@ noncomputable section
 open Set Filter Function Topology TopologicalSpace Metric EuclideanGeometry
 open scoped Manifold ContDiff
 
+namespace TauCeti.Manifold.Orientation
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  [TopologicalSpace M] [ChartedSpace H M] [FiniteDimensional ℝ E] [IsManifold I 1 M]
+  {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+  [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+  [TopologicalSpace M'] [ChartedSpace H' M'] [FiniteDimensional ℝ E'] [IsManifold I' 1 M']
+  {ι : Type*} [Fintype ι]
+
+/-- Preserving orientations at a point depends only on the germ of the map there. -/
+theorem IsOrientationPreservingAt.congr_of_eventuallyEq {o : Manifold.Orientation I M ι}
+    {o' : Manifold.Orientation I' M' ι} {f g : M → M'} {x : M}
+    (h : IsOrientationPreservingAt o o' f x) (hg : g =ᶠ[𝓝 x] f) :
+    IsOrientationPreservingAt o o' g x := by
+  have hx : g x = f x := hg.eq_of_nhds
+  obtain ⟨e, he, ho⟩ := (isOrientationPreservingAt_iff _ _ _ _).1 h
+  exact (isOrientationPreservingAt_iff _ _ _ _).2
+    ⟨e, (hg.mfderiv_eq (I := I) (I' := I')).symm ▸ he, ho.trans (hx ▸ rfl)⟩
+
+end TauCeti.Manifold.Orientation
+
 namespace TauCeti.SmoothEmbedding
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
@@ -189,5 +211,87 @@ theorem isOrientationPreservingAt_compLinearIsometryEquivHomeomorph (R : E ≃�
     exact (isOrientationPreservingAt_inr h₁R h₂R d₁R d₂R he₁' he₂'
       (isOrientationPreservingAt_restrict o₂ _ _)).comp
       (isOrientationPreservingAt_restrict_inclusion o₂ _ y)
+
+
+section CongrLeft
+
+variable {M' : Type*} [TopologicalSpace M'] [T1Space M'] [ChartedSpace H M'] [IsManifold I 1 M']
+  {e₁' : E → M'} {h₁' : IsOpenEmbedding e₁'} {d₁' : IsLocalDiffeomorph 𝓘(ℝ, E) I 1 e₁'}
+  {o₁' : Manifold.Orientation I M' ι} {oE' : Manifold.Orientation 𝓘(ℝ, E) E ι}
+  {he₁' : ∀ v ≠ 0, IsOrientationPreservingAt oE' o₁' e₁' v}
+  {he₂' : ∀ v ≠ 0, IsOrientationReversingAt oE' o₂ e₂ v}
+
+omit [ChartedSpace H M] [IsManifold I 1 M] [ChartedSpace H N] [IsManifold I 1 N]
+  [ChartedSpace H M'] [IsManifold I 1 M'] in
+/-- Far out along the ball `e₂`, the homeomorphism `TauCeti.ConnectedSum.congrLeftHomeomorph` is
+the identity of the second punctured summand. -/
+theorem exists_congrLeftHomeomorph_inr_eq [T2Space N] (φ : M ≃ₜ M') (hφ : φ ∘ e₁ =ᶠ[𝓝 0] e₁')
+    (h₁ : IsOpenEmbedding e₁) (h₁' : IsOpenEmbedding e₁') (h₂ : IsOpenEmbedding e₂) :
+    ∃ r, ∀ y : puncture e₂, (y : N) ∉ e₂ '' closedBall 0 r →
+      congrLeftHomeomorph φ hφ h₁ h₁' h₂ (inr e₁ e₂ y) = inr e₁' e₂ y := by
+  obtain ⟨ε, hε, hεφ⟩ := Metric.eventually_nhds_iff.1 hφ
+  refine ⟨ε⁻¹, fun ⟨y, hy⟩ hyr ↦ ?_⟩
+  by_cases h : y ∈ range e₂
+  · obtain ⟨w, rfl⟩ := h
+    have hw : ε⁻¹ < ‖w‖ := not_le.1 fun hw ↦ hyr ⟨w, mem_closedBall_zero_iff.2 hw, rfl⟩
+    have hw0 : w ≠ 0 := norm_pos_iff.1 ((inv_pos.2 hε).trans hw)
+    have hdist : dist (inversion 0 1 w) 0 < ε := by
+      rw [dist_inversion_center, one_pow, dist_zero_right, one_div_lt (norm_pos_iff.2 hw0) hε,
+        one_div]
+      exact hw
+    have hx : e₁' (inversion 0 1 w) ∈ puncture e₁' := by
+      rw [← hεφ hdist]
+      exact apply_mem_puncture φ.injective hφ.eq_of_nhds
+        (apply_inversion_mem_puncture h₁.injective hw0)
+    rw [congrLeftHomeomorph_inr_apply]
+    exact (congrArg (inl e₁' e₂) (Subtype.ext (hεφ hdist))).trans (inl_inversion_eq_inr hx hy)
+  · exact congrLeftHomeomorph_inr_of_notMem φ hφ h₁ h₁' h₂ h
+
+include he₁ he₂ he₁' he₂' in
+/-- Moving the first ball by an orientation-preserving `C¹` diffeomorphism `φ` of the first
+summand preserves the orientations of the two connected sums. -/
+theorem isOrientationPreservingAt_congrLeftHomeomorph [T2Space N] (φ : M ≃ₜ M')
+    (hφ : φ ∘ e₁ =ᶠ[𝓝 0] e₁') (hφs : ContMDiff I I 1 φ) (hφs' : ContMDiff I I 1 φ.symm)
+    (hφo : ∀ x, IsOrientationPreservingAt o₁ o₁' φ x) (p : ConnectedSum e₁ e₂) :
+    letI := chartedSpace (H := H) h₁ h₂
+    letI := chartedSpace (H := H) h₁' h₂
+    haveI := isManifold (n := 1) h₁ h₂ d₁ d₂
+    haveI := isManifold (n := 1) h₁' h₂ d₁' d₂
+    IsOrientationPreservingAt (orientation h₁ h₂ d₁ d₂ o₁ o₂ oE he₁ he₂)
+      (orientation h₁' h₂ d₁' d₂ o₁' o₂ oE' he₁' he₂') (congrLeftHomeomorph φ hφ h₁ h₁' h₂) p := by
+  let := chartedSpace (H := H) h₁ h₂
+  let := chartedSpace (H := H) h₁' h₂
+  have := isManifold (n := 1) h₁ h₂ d₁ d₂
+  have := isManifold (n := 1) h₁' h₂ d₁' d₂
+  let φ' : M ≃ₘ^1⟮I, I⟯ M' :=
+    { toEquiv := φ.toEquiv, contMDiff_toFun := hφs, contMDiff_invFun := hφs' }
+  have hloc : IsLocalDiffeomorph I I 1 (congrLeftHomeomorph φ hφ h₁ h₁' h₂) := by
+    have := (congrLeftDiffeomorph h₁ h₁' h₂ d₁ d₁' d₂ φ' hφ).isLocalDiffeomorph
+    rwa [coe_congrLeftDiffeomorph] at this
+  obtain ⟨r, hr⟩ := exists_congrLeftHomeomorph_inr_eq φ hφ h₁ h₁' h₂
+  have hK : IsClosed (e₂ '' closedBall 0 r) :=
+    ((isCompact_closedBall 0 r).image h₂.continuous).isClosed
+  refine isOrientationPreservingAt_of_comp_inl_of_comp_inr (d₁ := d₁) (d₂ := d₂) (he₁ := he₁)
+    (he₂ := he₂) hloc (orientation h₁' h₂ d₁' d₂ o₁' o₂ oE' he₁' he₂') r (fun x ↦ ?_)
+    (fun y hy ↦ ?_) p
+  · have : congrLeftHomeomorph φ hφ h₁ h₁' h₂ ∘ inl e₁ e₂ =
+        inl e₁' e₂ ∘ punctureMap φ φ.injective hφ.eq_of_nhds :=
+      funext fun x ↦ (congrLeftHomeomorph_inl φ hφ h₁ h₁' h₂ x).trans
+        (congrArg _ (Subtype.ext (coe_punctureMap _ _ _).symm))
+    rw [this]
+    refine (isOrientationPreservingAt_inl h₁' h₂ d₁' d₂ he₁' he₂'
+      (isOrientationPreservingAt_restrict o₁' _ _)).comp
+      ((isOrientationPreservingAt_restrict o₁' _ _).of_comp ?_ ?_)
+    · rw [subtypeVal_comp_punctureMap]
+      exact (hφo x).comp (isOrientationPreservingAt_restrict o₁ _ x)
+    · exact ((ContMDiff.subtypeVal_comp_iff _ _).1 (by
+        rw [subtypeVal_comp_punctureMap]; exact hφs.comp contMDiff_subtypeVal)).mdifferentiableAt
+          one_ne_zero
+  · refine (isOrientationPreservingAt_inr h₁' h₂ d₁' d₂ he₁' he₂'
+      (isOrientationPreservingAt_restrict o₂ _ y)).congr_of_eventuallyEq ?_
+    filter_upwards [(hK.isOpen_compl.preimage continuous_subtypeVal).mem_nhds hy] with y' hy'
+    exact hr y' hy'
+
+end CongrLeft
 
 end TauCeti.ConnectedSum
