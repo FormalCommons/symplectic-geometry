@@ -405,7 +405,7 @@ bracket is negated.
   stated with this predicate.
 - **Connections.** A connection on a fibration is Tau Ceti's
   `TauCeti.IsEhresmannConnection` on `π`
-  (`Geometry/Manifold/Submersion/EhresmannConnection.lean`) with its
+  (`Geometry/Manifold/Submersion/EhresmannConnection/Basic.lean`) with its
   pointwise `horizontalLift`. Its curvature is the page's
   $\Omega_\Gamma(v_1,v_2)=[v_1^\sharp,v_2^\sharp]^{\mathrm{Ver}}$ with
   Mathlib's `VectorField.mlieBracket`, which is the page's bracket. The
@@ -1962,8 +1962,8 @@ complete target and a function on the whole half-space.
 - **Files:** `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` (the
   velocity $X_t$ of a `TauCeti.Diffeotopy`, read along the motion, as
   `TauCeti.Diffeotopy.velocity`), with
-  `Geometry/Manifold/Instances/Icc.lean` (the unit vector field of an
-  interval is smooth), `Geometry/Manifold/MFDeriv/Prod.lean` (the
+  `Geometry/Manifold/Instances/Icc.lean` (the unit time field `∂ₜ` of a
+  cylinder, and derivatives on intervals), `Geometry/Manifold/MFDeriv/Prod.lean` (the
   derivative of a map on a product on `(v, 0)` is a partial derivative;
   on `(0, w)` it is Tau Ceti's
   `MDifferentiableAt.mfderiv_uncurry_apply_zero_mk`),
