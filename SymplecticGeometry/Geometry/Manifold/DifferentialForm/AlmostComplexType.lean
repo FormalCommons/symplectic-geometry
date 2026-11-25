@@ -112,11 +112,8 @@ theorem realAlternatingDerivation_funSMulₗ
     (g : C^∞⟮I, M; ℝ⟯) (φ : SmoothForm I M ℝ k) :
     A.realAlternatingDerivation (SmoothForm.funSMulₗ g φ) =
       SmoothForm.funSMulₗ g (A.realAlternatingDerivation φ) :=
-  SmoothForm.mapCoeff_injective (L := Complex.ofRealCLM)
-    (fun _ _ h ↦ Complex.ofReal_injective (by simpa using h)) <| by
-    rw [← alternatingDerivation_mapCoeff_ofRealCLM, SmoothForm.mapCoeff_funSMulₗ,
-      alternatingDerivation_funSMulₗ, alternatingDerivation_mapCoeff_ofRealCLM,
-      SmoothForm.mapCoeff_funSMulₗ]
+  SmoothForm.mapCoeff_injective (L := Complex.ofRealCLM) Complex.ofReal_injective <| by
+    simp [← alternatingDerivation_mapCoeff_ofRealCLM]
 
 omit [RiemannianBundle (fun x : M ↦ TangentSpace I x)] in
 /-- On complex forms, the derivation along an endomorphism field is the complexification of the
