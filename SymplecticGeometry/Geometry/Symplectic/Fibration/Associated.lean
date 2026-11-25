@@ -5,10 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Associated.PullbackPrincipal
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
-public import TauCeti.Geometry.Manifold.ContMDiff.FiniteDimension
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Basic
@@ -53,8 +53,9 @@ The definitions take the smoothness of the components of `μ` as the argument `h
 they need; the theorems take it as an implicit argument, so that it is never asked for beside the
 moment map hypothesis, from which it follows
 (`TauCeti.SmoothTwoForm.IsMomentMap.contMDiff_of_neg`). The pairing turns `μ` into a map to
-`𝔤 →L[ℝ] ℝ`, which is smooth since `𝔤` is finite-dimensional (Tau Ceti's
-`TauCeti.contMDiffAt_clm_apply`). Closedness needs only that `σ` is closed; invariance needs the
+`𝔤 →L[ℝ] ℝ`, which is smooth since `𝔤` is finite-dimensional
+(`SymplecticGeometry.contMDiff_toContinuousLinearMap_of_contMDiff_apply`).
+Closedness needs only that `σ` is closed; invariance needs the
 equivariance of `A` and of `μ`, and the invariance of `σ`, which Tau Ceti's moment maps
 do not include. The norm on `𝔤` is the scoped one of
 `SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed`.
@@ -95,7 +96,7 @@ def momentMapCLM (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))
     (hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ) :
     C^∞⟮IF, F; 𝓘(ℝ, GroupLieAlgebra IG G →L[ℝ] ℝ), GroupLieAlgebra IG G →L[ℝ] ℝ⟯ where
   val v := LinearMap.toContinuousLinearMap (μ v)
-  property _ := contMDiffAt_clm_apply.2 fun ξ ↦ (hμs ξ).contMDiffAt
+  property := contMDiff_toContinuousLinearMap_of_contMDiff_apply hμs
 
 @[simp]
 theorem momentMapCLM_apply (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))

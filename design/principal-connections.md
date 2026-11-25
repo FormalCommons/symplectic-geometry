@@ -307,7 +307,7 @@ The connection induced by a connection form on $P\times_GF$
   Ceti's `IsEhresmannConnection` for $\pi_M$. Complementarity with the
   vertical space follows from that of `horizontal` on $P$, since
   $\pi_M\circ[\cdot,v]=\pi_P$; smoothness of the distribution is
-  checked in a local section of $P$, where it is the image of a smooth frame.
+  checked in a local section of $q$, where it is the image of a smooth frame.
 - `IsConnectionForm.mfderiv_chartedMk_horizontalLift`: the horizontal
   lift at $[x,v]$ of $w$ is $dq$ of the horizontal lift of $w$ at $x$.
 
