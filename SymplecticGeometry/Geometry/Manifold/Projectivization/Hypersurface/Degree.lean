@@ -14,6 +14,7 @@ public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
 
 import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Line
+import SymplecticGeometry.LinearAlgebra.FiniteDimensional.Submodule
 import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.EulerClass
 import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.ComplexLinear
@@ -175,12 +176,8 @@ theorem card_setOf_linearSection_eq_zero {ℓ : (Fin (n + 2) → ℂ) →ₗ[ℂ
     rw [LinearMap.range_eq_top.2 hℓ, finrank_top] at h
     simp only [finrank_fin_fun] at h
     omega
-  set L : (Fin 2 → ℂ) →ₗ[ℂ] Fin (n + 2) → ℂ :=
-    (LinearMap.ker ℓ).subtype ∘ₗ (LinearEquiv.ofFinrankEq _ _ (by simp [hk])).toLinearMap
-  have hL : Function.Injective L :=
-    (LinearMap.ker ℓ).injective_subtype.comp (LinearEquiv.injective _)
-  have hrange : LinearMap.range L = LinearMap.ker ℓ := by
-    rw [LinearMap.range_comp, LinearEquiv.range, Submodule.map_top, Submodule.range_subtype]
+  obtain ⟨L, hL, hrange⟩ :=
+    (LinearMap.ker ℓ).exists_linearMap_injective_range_eq (F := Fin 2 → ℂ) (by simp [hk])
   have hmem (p : ℙ ℂ (Fin (n + 2) → ℂ)) :
       p ∈ Set.range (Projectivization.map L hL) ↔ ℓ p.rep = 0 := by
     rw [mem_range_map_iff, hrange, LinearMap.mem_ker]

@@ -13,7 +13,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 public import TauCeti.Geometry.Manifold.DifferentialForm.Vertical
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
-public import TauCeti.LinearAlgebra.Alternating.Conormal
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Vertical
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -52,10 +52,6 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
   on `N × M`.
 * `TauCeti.SmoothForm.ofSlices α hα`: the smooth form on `N × M` with slices `α t`, for a family
   with a smooth slice section.
-* `TauCeti.SmoothForm.IsFstSemibasicAt η p`, `TauCeti.SmoothForm.IsFstSemibasic η`: the form `η`
-  on `M × N` is semibasic for the projection to `M` at `p`, or at every point: its value there
-  lies in Tau Ceti's `Submodule.conormalForms` of the kernel of the differential of `Prod.fst`,
-  that is, it vanishes as soon as one argument has zero component along `M`.
 
 ## Main results
 
@@ -86,8 +82,6 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
   product `f × g` of smooth maps is the form with the slices `g^* (α (f t))`.
 * `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodComm`: slices of a form on `M × N` turned
   around by `Diffeomorph.prodComm`.
-* `TauCeti.SmoothForm.IsFstSemibasic.mpullback_prodMap`: pullback along a product `g × h` of
-  smooth maps keeps forms semibasic for the projection to the first factor.
 * `TauCeti.SmoothForm.val_apply_eq_mpullback_val_apply`: a form on `M × N` semibasic for the
   projection to `M` is, at each point, its slice through that point evaluated on the components
   along `M`; and `TauCeti.SmoothForm.eq_of_forall_mpullback_eq`: two such forms with the same
@@ -111,9 +105,9 @@ its pullback along `f`, by Tau Ceti's `TauCeti.contMDiffAt_mpullback_form_iff_of
 that lemma, it needs no boundaryless source, so `N × M'` may have boundary, as for
 `N = Set.Icc a b`.
 
-The value of a form with no component along `N` is computed from its slices by Tau Ceti's
-`Submodule.conormalForms_apply_eq_of_sub_mem`: an alternating map that vanishes when one argument
-lies in a submodule takes the same value on tuples that agree modulo it.
+The value of a form with no component along `N` is computed from its slices by
+`TauCeti.RoughForm.IsSemibasicAt.apply_eq_of_mfderiv_eq`, for the projection `Prod.fst`
+(`Geometry/Manifold/DifferentialForm/Semibasic.lean`).
 
 ## References
 
@@ -250,172 +244,36 @@ theorem mpullback_prodMk_mpullback_prodComm (Ω : SmoothForm (I.prod J) (M × N)
     rfl
   simp only [mpullback_mpullback, hcomp]
 
-/-- **Forms semibasic for the first projection at a point.** A smooth form `η` on `M × N` is
-semibasic for `Prod.fst : M × N → M` at `p` when its value at `p` vanishes as soon as one of its
-arguments lies in the kernel of the differential of `Prod.fst` at `p`, that is, is tangent to the
-fibre of `Prod.fst` through `p`. -/
-def IsFstSemibasicAt (η : SmoothForm (I.prod J) (M × N) F k) (p : M × N) : Prop :=
-  (η.val p).toAlternatingMap ∈
-    (mfderiv (I.prod J) I Prod.fst p).ker.conormalForms (Fin k) F
-
-/-- The defining property of `TauCeti.SmoothForm.IsFstSemibasicAt`. -/
-theorem isFstSemibasicAt_def {η : SmoothForm (I.prod J) (M × N) F k} {p : M × N} :
-    IsFstSemibasicAt η p ↔ (η.val p).toAlternatingMap ∈
-      (mfderiv (I.prod J) I Prod.fst p).ker.conormalForms (Fin k) F :=
-  Iff.rfl
-
-/-- A form is semibasic for `Prod.fst` at `p` exactly when its value at `p` vanishes on every
-tuple one of whose vectors has zero component along `M`. -/
-theorem isFstSemibasicAt_iff {η : SmoothForm (I.prod J) (M × N) F k} {p : M × N} :
-    IsFstSemibasicAt η p ↔ ∀ (v : Fin k → TangentSpace (I.prod J) p) (i : Fin k),
-      (Manifold.tangentSpaceProdEquiv p (v i)).1 = 0 → η.val p v = 0 := by
-  simp only [isFstSemibasicAt_def, Submodule.mem_conormalForms, LinearMap.mem_ker,
-    ContinuousLinearMap.coe_coe, mfderiv_fst_apply, Manifold.tangentSpaceProdEquiv_apply,
-    ContinuousAlternatingMap.coe_toAlternatingMap]
-
-/-- A form semibasic for `Prod.fst` at `p` vanishes at `p` on tuples one of which has zero
-component along `M`. -/
-theorem IsFstSemibasicAt.apply_eq_zero {η : SmoothForm (I.prod J) (M × N) F k} {p : M × N}
-    (hη : IsFstSemibasicAt η p) (v : Fin k → TangentSpace (I.prod J) p) (i : Fin k)
-    (hv : (Manifold.tangentSpaceProdEquiv p (v i)).1 = 0) : η.val p v = 0 :=
-  isFstSemibasicAt_iff.mp hη v i hv
-
-/-- Every `0`-form on `M × N` is semibasic for `Prod.fst` at every point. -/
-theorem isFstSemibasicAt_of_degree_zero (η : SmoothForm (I.prod J) (M × N) F 0) (p : M × N) :
-    IsFstSemibasicAt η p :=
-  isFstSemibasicAt_iff.mpr fun _ i ↦ i.elim0
-
-/-- The zero form on `M × N` is semibasic for `Prod.fst` at every point. -/
-@[simp]
-theorem isFstSemibasicAt_zero (p : M × N) :
-    IsFstSemibasicAt (0 : SmoothForm (I.prod J) (M × N) F k) p :=
-  Submodule.zero_mem _
-
-/-- The sum of two forms semibasic for `Prod.fst` at `p` is semibasic for `Prod.fst` at `p`. -/
-theorem IsFstSemibasicAt.add {η η' : SmoothForm (I.prod J) (M × N) F k} {p : M × N}
-    (hη : IsFstSemibasicAt η p) (hη' : IsFstSemibasicAt η' p) : IsFstSemibasicAt (η + η') p :=
-  add_mem hη hη'
-
-/-- The negative of a form semibasic for `Prod.fst` at `p` is semibasic for `Prod.fst` at `p`. -/
-theorem IsFstSemibasicAt.neg {η : SmoothForm (I.prod J) (M × N) F k} {p : M × N}
-    (hη : IsFstSemibasicAt η p) : IsFstSemibasicAt (-η) p :=
-  neg_mem hη
-
-/-- The difference of two forms semibasic for `Prod.fst` at `p` is semibasic for `Prod.fst` at
-`p`. -/
-theorem IsFstSemibasicAt.sub {η η' : SmoothForm (I.prod J) (M × N) F k} {p : M × N}
-    (hη : IsFstSemibasicAt η p) (hη' : IsFstSemibasicAt η' p) : IsFstSemibasicAt (η - η') p :=
-  sub_mem hη hη'
-
-/-- A real multiple of a form semibasic for `Prod.fst` at `p` is semibasic for `Prod.fst` at
-`p`. -/
-theorem IsFstSemibasicAt.smul {η : SmoothForm (I.prod J) (M × N) F k} {p : M × N}
-    (hη : IsFstSemibasicAt η p) (c : ℝ) : IsFstSemibasicAt (c • η) p :=
-  Submodule.smul_mem _ c hη
-
-/-- **Forms semibasic for the first projection.** A smooth form `η` on `M × N` is semibasic for
-`Prod.fst : M × N → M` when it is so at every point: it vanishes as soon as one of its arguments
-is tangent to a fibre of `Prod.fst`. -/
-def IsFstSemibasic (η : SmoothForm (I.prod J) (M × N) F k) : Prop :=
-  ∀ p, IsFstSemibasicAt η p
-
-/-- The defining property of `TauCeti.SmoothForm.IsFstSemibasic`. -/
-theorem isFstSemibasic_def {η : SmoothForm (I.prod J) (M × N) F k} :
-    IsFstSemibasic η ↔ ∀ p, IsFstSemibasicAt η p :=
-  Iff.rfl
-
-/-- A form is semibasic for `Prod.fst` exactly when it vanishes on every tuple one of whose
-vectors has zero component along `M`. -/
-theorem isFstSemibasic_iff {η : SmoothForm (I.prod J) (M × N) F k} :
-    IsFstSemibasic η ↔ ∀ (p : M × N) (v : Fin k → TangentSpace (I.prod J) p) (i : Fin k),
-      (Manifold.tangentSpaceProdEquiv p (v i)).1 = 0 → η.val p v = 0 :=
-  forall_congr' fun _ ↦ isFstSemibasicAt_iff
-
-/-- A form semibasic for `Prod.fst` vanishes on tuples one of which has zero component along
-`M`. -/
-theorem IsFstSemibasic.apply_eq_zero {η : SmoothForm (I.prod J) (M × N) F k}
-    (hη : IsFstSemibasic η) {p : M × N} (v : Fin k → TangentSpace (I.prod J) p) (i : Fin k)
-    (hv : (Manifold.tangentSpaceProdEquiv p (v i)).1 = 0) : η.val p v = 0 :=
-  (hη p).apply_eq_zero v i hv
-
-/-- Every `0`-form on `M × N` is semibasic for `Prod.fst`. -/
-theorem isFstSemibasic_of_degree_zero (η : SmoothForm (I.prod J) (M × N) F 0) :
-    IsFstSemibasic η :=
-  isFstSemibasicAt_of_degree_zero η
-
-/-- The zero form on `M × N` is semibasic for `Prod.fst`. -/
-@[simp]
-theorem isFstSemibasic_zero : IsFstSemibasic (0 : SmoothForm (I.prod J) (M × N) F k) :=
-  isFstSemibasicAt_zero
-
-/-- The sum of two forms semibasic for `Prod.fst` is semibasic for `Prod.fst`. -/
-theorem IsFstSemibasic.add {η η' : SmoothForm (I.prod J) (M × N) F k} (hη : IsFstSemibasic η)
-    (hη' : IsFstSemibasic η') : IsFstSemibasic (η + η') :=
-  fun p ↦ (hη p).add (hη' p)
-
-/-- The negative of a form semibasic for `Prod.fst` is semibasic for `Prod.fst`. -/
-theorem IsFstSemibasic.neg {η : SmoothForm (I.prod J) (M × N) F k} (hη : IsFstSemibasic η) :
-    IsFstSemibasic (-η) :=
-  fun p ↦ (hη p).neg
-
-/-- The difference of two forms semibasic for `Prod.fst` is semibasic for `Prod.fst`. -/
-theorem IsFstSemibasic.sub {η η' : SmoothForm (I.prod J) (M × N) F k} (hη : IsFstSemibasic η)
-    (hη' : IsFstSemibasic η') : IsFstSemibasic (η - η') :=
-  fun p ↦ (hη p).sub (hη' p)
-
-/-- A real multiple of a form semibasic for `Prod.fst` is semibasic for `Prod.fst`. -/
-theorem IsFstSemibasic.smul {η : SmoothForm (I.prod J) (M × N) F k} (hη : IsFstSemibasic η)
-    (c : ℝ) : IsFstSemibasic (c • η) :=
-  fun p ↦ (hη p).smul c
-
-/-- **Pullback of semibasic forms along products.** For smooth maps `g : M' → M` and
-`h : N' → N`, the pullback along `g × h : M' × N' → M × N` of a form on `M × N` semibasic for
-`Prod.fst` is semibasic for `Prod.fst`. -/
-theorem IsFstSemibasic.mpullback_prodMap {E' H' M' EN' HN' N' : Type*} [NormedAddCommGroup E']
-    [NormedSpace ℝ E'] [TopologicalSpace H'] [TopologicalSpace M'] [ChartedSpace H' M']
-    {I' : ModelWithCorners ℝ E' H'} [IsManifold I' 1 M'] [NormedAddCommGroup EN']
-    [NormedSpace ℝ EN'] [TopologicalSpace HN'] [TopologicalSpace N'] [ChartedSpace HN' N']
-    {J' : ModelWithCorners ℝ EN' HN'} [IsManifold J' 1 N']
-    {η : SmoothForm (I.prod J) (M × N) F k} (hη : IsFstSemibasic η) {g : M' → M}
-    (hg : ContMDiff I' I ∞ g) {h : N' → N} (hh : ContMDiff J' J ∞ h) :
-    IsFstSemibasic (mpullback (Prod.map g h) (hg.prodMap hh) η) := by
-  refine isFstSemibasic_iff.mpr fun p v i hv ↦ ?_
-  rw [mpullback_apply]
-  refine hη.apply_eq_zero _ i ?_
-  rw [← (Manifold.tangentSpaceProdEquiv p).symm_apply_apply (v i),
-    Manifold.mfderiv_prodMap_apply (hg.mdifferentiable (by simp) _)
-      (hh.mdifferentiable (by simp) _),
-    hv, map_zero, Manifold.tangentSpaceProdEquiv_apply, Manifold.tangentSpaceProdEquiv_symm_apply]
-
 /-- **A form with no component along `N` is read off its slices.** Let `η` be a smooth form on
 `M × N` semibasic for `Prod.fst` at `p`: at `p` it vanishes whenever one of its arguments has
 zero component along `M`. Its value at `p` on `v` is the value at `p.1` of its slice along
 `x ↦ (x, p.2)` on the components along `M` of the `v i`. -/
 theorem val_apply_eq_mpullback_val_apply {η : SmoothForm (I.prod J) (M × N) F k} {p : M × N}
-    (hη : IsFstSemibasicAt η p) (v : Fin k → TangentSpace (I.prod J) p) :
+    (hη : RoughForm.IsSemibasicAt (F := F) I Prod.fst η.val p)
+    (v : Fin k → TangentSpace (I.prod J) p) :
     η.val p v = (mpullback (fun x ↦ (x, p.2)) (contMDiff_id.prodMk contMDiff_const) η).val p.1
       (fun i ↦ (Manifold.tangentSpaceProdEquiv p (v i)).1) := by
   rw [mpullback_apply]
-  refine Submodule.conormalForms_apply_eq_of_sub_mem (α := (η.val p).toAlternatingMap)
-    (isFstSemibasicAt_def.mp hη) fun i ↦ ?_
+  refine hη.apply_eq_of_mfderiv_eq fun i ↦ ?_
   have hd (y : TangentSpace I p.1) : mfderiv I (I.prod J) (fun x ↦ (x, p.2)) p.1 y =
       (Manifold.tangentSpaceProdEquiv (I := I) (J := J) p).symm (y, 0) :=
     (ContinuousLinearEquiv.eq_symm_apply _).mpr
       (TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_left y)
-  rw [LinearMap.mem_ker, map_sub, sub_eq_zero, hd, ContinuousLinearMap.coe_coe,
-    mfderiv_fst_apply, mfderiv_fst_apply, Manifold.tangentSpaceProdEquiv_symm_apply,
+  rw [hd, mfderiv_fst_apply, mfderiv_fst_apply, Manifold.tangentSpaceProdEquiv_symm_apply,
     Manifold.tangentSpaceProdEquiv_apply]
 
 /-- **Forms with no component along `N` are determined by their slices.** Two smooth forms on
 `M × N` semibasic for `Prod.fst`, that is, vanishing whenever one of their arguments has zero
 component along `M`, and whose slices along `x ↦ (x, t)` agree for every `t`, are equal. -/
 theorem eq_of_forall_mpullback_eq {η η' : SmoothForm (I.prod J) (M × N) F k}
-    (hη : IsFstSemibasic η) (hη' : IsFstSemibasic η')
+    (hη : RoughForm.IsSemibasic (F := F) I Prod.fst η.val)
+    (hη' : RoughForm.IsSemibasic (F := F) I Prod.fst η'.val)
     (h : ∀ t : N, mpullback (fun x ↦ (x, t)) (contMDiff_id.prodMk contMDiff_const) η =
       mpullback (fun x ↦ (x, t)) (contMDiff_id.prodMk contMDiff_const) η') :
     η = η' := by
   ext p v
-  rw [val_apply_eq_mpullback_val_apply (hη p), val_apply_eq_mpullback_val_apply (hη' p), h]
+  rw [val_apply_eq_mpullback_val_apply (RoughForm.isSemibasic_def.mp hη p),
+    val_apply_eq_mpullback_val_apply (RoughForm.isSemibasic_def.mp hη' p), h]
 
 end TauCeti.SmoothForm
 

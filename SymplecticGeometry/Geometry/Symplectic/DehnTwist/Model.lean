@@ -59,6 +59,9 @@ time `π` is the antipodal map; and since `R' = 0` on `[r₀, ∞)`, the twist i
 * `SymplecticGeometry.modelTwist_of_cotangentNorm_ne_zero`: off the zero section the model twist
   of `z` is `σ_{2π R'(μ z)} z`.
 * `SymplecticGeometry.modelTwist_apply_of_le`: the model twist is the identity where `μ ≥ r₀`.
+* `SymplecticGeometry.modelTwist_zeroSection`: on the zero section it is the antipodal map
+  `0_q ↦ 0_{-q}`; `SymplecticGeometry.modelTwist_mem_iff`: it maps every set containing
+  `{z | μ z ≤ r₀}` onto itself.
 * `SymplecticGeometry.modelTwist_cotangent_orthogonal`: it commutes with the cotangent lift of
   every orthogonal transformation of `ℝⁿ⁺¹`.
 * `SymplecticGeometry.isMIntegralCurve_geodesicFlow_comp`: off the zero section, the geodesic flow
@@ -539,6 +542,25 @@ theorem modelTwist_of_cotangentNorm_ne_zero {R : ℝ → ℝ} {r₀ : ℝ} (hR :
     {z : CotangentBundle (𝓡 n) (𝕊 n)} (hz : cotangentNorm z ≠ 0) :
     modelTwist hR z = geodesicFlow (2 * π * deriv R (cotangentNorm z)) z := by
   rw [coe_modelTwist, modelTwistFun_def, ite_eq_right hz]
+
+/-- The model twist sends the zero covector at `q` to the zero covector at `-q`. -/
+@[simp]
+theorem modelTwist_zeroSection {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀) (q : 𝕊 n) :
+    modelTwist hR (zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
+      (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) q) =
+      zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
+        (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) (-q) := by
+  rw [coe_modelTwist, modelTwistFun_def, ite_eq_left (cotangentNorm_zeroSection q),
+    antipodal_zeroSection]
+
+/-- The model twist of radius `r₀` maps every set containing `{z | μ z ≤ r₀}` onto itself. -/
+theorem modelTwist_mem_iff {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀)
+    {U : Set (CotangentBundle (𝓡 n) (𝕊 n))} (hU : {z | cotangentNorm z ≤ r₀} ⊆ U)
+    (z : CotangentBundle (𝓡 n) (𝕊 n)) : modelTwist hR z ∈ U ↔ z ∈ U := by
+  rcases le_or_gt r₀ (cotangentNorm z) with hz | hz
+  · rw [modelTwist_apply_of_le hR hz]
+  · exact iff_of_true (hU (by rw [mem_ofPred_eq, cotangentNorm_modelTwist]; exact hz.le))
+      (hU hz.le)
 
 /-- The model twist commutes with the cotangent lift of every orthogonal transformation of
 `ℝⁿ⁺¹`. -/

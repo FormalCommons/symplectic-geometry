@@ -287,7 +287,7 @@ one assembly, each an issue (issues 14–18):
   dimension count. For $D$ of that size, the polynomials of degree $\le D$
   in $n+1$ variables outnumber those of degree $\le Dd$ in $n$ variables,
   so the linear map $Q\mapsto Q\circ P$ has a nonzero kernel. It uses Mathlib's
-  `MvPolynomial.restrictDegree` and its rank.
+  `MvPolynomial.restrictTotalDegree` and Tau Ceti's `finrank_restrictTotalDegree`.
 - **Tube volumes.** In the unit ball of $\mathbb C^{m}$, the
   $t$-neighbourhood of the zero set of a nonzero polynomial of degree $D$
   has volume at most $C_mD^at^b$ for $t\le1$, with fixed exponents $a$ and
@@ -386,8 +386,8 @@ and the prerequisites, placed by topic.
   $F=A+B:V\to\mathbb C$ on a Hermitian space $(V,\omega,J)$, with $A$
   complex linear, $B$ antilinear and $\|B\|<\|A\|$, $F$ is surjective, its
   kernel is a symplectic subspace, and the orientation of the kernel that
-  $F$ induces (as for transverse zero sets) agrees with the symplectic one
-  (through the path $A+tB$). Main results:
+  $F$ induces (as for transverse zero sets) agrees with the symplectic one.
+  Main results:
   `surjective_of_norm_lt`, `isSymplectic_ker_of_norm_lt`,
   `orientation_ker_eq_of_norm_lt`.
 - `Combinatorics/SimpleGraph/GreedyColoring.lean`: a locally finite graph
@@ -597,7 +597,7 @@ Issues 1, 2, 6, 8, 11, 14, 15, 16, 17 and 21 can start at once.
   numbers, Stokes' theorem, de Rham and smooth singular Mayer–Vietoris
   sequences, the Hopf fibration and the homotopy groups of $\mathbb CP^N$.
 - Mathlib: `CovariantDerivative`, `iteratedFDeriv`, `Metric.IsSeparated`,
-  `MvPolynomial.restrictDegree`, Lebesgue measure on
+  `MvPolynomial.restrictTotalDegree`, Lebesgue measure on
   `EuclideanSpace`, `Manifold.riemannianEDist`.
 
 ## References
