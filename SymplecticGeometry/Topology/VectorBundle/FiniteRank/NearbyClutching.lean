@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Clutching
-public import SymplecticGeometry.Analysis.Normed.Ring.Segment
+public import SymplecticGeometry.Analysis.Normed.Ring.Units
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.SMul
 
 /-!
@@ -86,6 +86,7 @@ morphism of its pullback to `(X × I) × Circle` with fibre map `(1 - t) f₀(x,
 def segmentHom (f₀ f₁ : (Q E) ⟶ (Q E)) : (P E) ⟶ (P E) :=
   (1 - time 𝕜 X) • pullbackForgetTime f₀ + time 𝕜 X • pullbackForgetTime f₁
 
+@[simp]
 theorem fiberMap_segmentHom (f₀ f₁ : (Q E) ⟶ (Q E)) (b : (X × I) × Circle) :
     (segmentHom f₀ f₁).fiberMap b = (1 - algebraMap ℝ 𝕜 b.1.2) • f₀.fiberMap (b.1.1, b.2) +
       algebraMap ℝ 𝕜 b.1.2 • f₁.fiberMap (b.1.1, b.2) := by

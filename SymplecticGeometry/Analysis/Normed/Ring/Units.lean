@@ -8,7 +8,7 @@ module
 public import Mathlib.Analysis.SpecificLimits.Normed
 
 /-!
-# Segments from a unit to a nearby element
+# Units of a complete normed algebra on a segment
 
 In a complete normed algebra `R` over a normed field `𝕜`, let `a` be a unit and `b` an element
 with `‖a⁻¹ b - 1‖ < 1`. Then every point `(1 - s) a + s b` of the segment from `a` to `b`, for a
@@ -39,8 +39,7 @@ theorem isUnit_one_sub_smul_add_smul_of_norm_lt_one (a : Rˣ) {b : R}
       _ ≤ 1 * ‖(↑a⁻¹ : R) * b - 1‖ := mul_le_mul_of_nonneg_right hs (norm_nonneg _)
       _ < 1 := by rwa [one_mul]
   have hfac : (1 - s) • (a : R) + s • b = a * (1 - s • (1 - (↑a⁻¹ : R) * b)) := by
-    rw [mul_sub, mul_one, mul_smul_comm, mul_sub, mul_one, mul_inv_cancel_left, sub_smul,
-      one_smul, smul_sub]
+    simp [mul_sub, sub_smul, smul_sub]
     abel
   rw [hfac]
   exact a.isUnit.mul (isUnit_one_sub_of_norm_lt_one hu)
