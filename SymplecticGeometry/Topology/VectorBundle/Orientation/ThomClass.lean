@@ -33,9 +33,11 @@ Integral coefficients are `ULift ℤ`, with the `ℤ`-linear structure that `Mod
 preadditive category, as for `Orientation.localCohomologyClass` and
 `TauCeti.VectorBundleOrientation.thomClass`. Tau Ceti's
 `TauCeti.VectorBundleOrientation.thomClassOfModel` is stated for an arbitrary commutative ring `K`,
-and so with the `ℤ`-linear structure `ModuleCat.instLinear` of a category of modules, which is
-not definitionally the other one. So the canonical class is glued directly from the fibre
-generators, by Tau Ceti's `TauCeti.exists_singularCohomology_thomPair_fiber` and
+and so with the `ℤ`-linear structure `ModuleCat.instLinear` of a category of modules. The two
+structures agree only after unfolding, not at instance transparency, so the lemmas about
+`thomClassOfModel` do not rewrite against integral classes built from `localCohomologyClass`. The
+canonical class is therefore glued directly from the fibre generators, by Tau Ceti's
+`TauCeti.exists_singularCohomology_thomPair_fiber` and
 `TauCeti.singularCohomology_thomPair_ext`, which allow any linear structure.
 
 The construction and the proofs of its properties follow those of Tau Ceti's
@@ -57,7 +59,8 @@ The construction and the proofs of its properties follow those of Tau Ceti's
 * `Orientation.modelThomGenerator_neg` and `Orientation.span_modelThomGenerator`: reversing the
   orientation negates the generator, and it generates.
 * `Orientation.modelThomGenerator_eq_localCohomologyClass`: in positive rank it is Tau Ceti's
-  generator.
+  generator, and `Orientation.kronecker_modelThomGenerator_zero` gives its pairing with the point
+  class in rank zero.
 * `TauCeti.VectorBundleOrientation.singularCohomologyMap_fiberThomPairMap_canonicalThomClass`: the
   restriction of the canonical class to the fibre pair over `b`, read in any linear trivialization
   at `b`, and `TauCeti.VectorBundleOrientation.eq_canonicalThomClass_iff`, the characterization by
@@ -104,6 +107,12 @@ private theorem span_dualClass {d : ℕ} (hd : finrank ℝ P = d) (z : LocalOrie
   subst hd
   exact LocalOrientation.span_cohomologyClass _ _ _
 
+private theorem kronecker_dualClass {d : ℕ} (hd : finrank ℝ P = d) (z : LocalOrientation P 0 d) :
+    ((TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).singularKronecker ℤ d
+      (dualClass hd z)).hom z.val = 1 := by
+  subst hd
+  exact LocalOrientation.kronecker_cohomologyClass _ _ _
+
 open Classical in
 /-- **The generator of the model pair selected by an orientation.** An orientation `ω` of a real
 normed space `P` of dimension `r` selects a generator of the integral local cohomology
@@ -128,6 +137,24 @@ def modelThomGenerator : ∀ {r : ℕ}, Orientation ℝ P (Fin r) → finrank �
 theorem modelThomGenerator_eq_localCohomologyClass {n : ℕ} (ω : Orientation ℝ P (Fin (n + 1)))
     (hP : finrank ℝ P = n + 1) : ω.modelThomGenerator hP = ω.localCohomologyClass hP :=
   (rfl)
+
+open Classical in
+/-- In rank zero, the generator of the model pair selected by `ω` pairs to `1` with the point
+class of `P`, the local orientation of the zero-dimensional chart `P → P`, when `ω` is the
+positive orientation of the empty index type, and to `-1` otherwise. -/
+theorem kronecker_modelThomGenerator_zero (ω : Orientation ℝ P (Fin 0)) (hP : finrank ℝ P = 0) :
+    ((TopPair.ofSubset (X := TopCat.of P) ({0}ᶜ : Set P)).singularKronecker ℤ 0
+      (ω.modelThomGenerator hP)).hom
+        (localOrientationOfZeroDimChart (OpenPartialHomeomorph.refl P)
+          (OpenPartialHomeomorph.mem_refl_source _) hP).val =
+      if ω = positiveOrientation then 1 else -1 := by
+  simp only [modelThomGenerator]
+  split_ifs
+  · exact kronecker_dualClass hP _
+  · have h := kronecker_dualClass hP (-localOrientationOfZeroDimChart
+      (OpenPartialHomeomorph.refl P) (OpenPartialHomeomorph.mem_refl_source _) hP)
+    rw [LocalOrientation.coe_neg, map_neg] at h
+    exact neg_eq_iff_eq_neg.1 h
 
 /-- Reversing an orientation negates the generator of the model pair it selects. -/
 @[simp]

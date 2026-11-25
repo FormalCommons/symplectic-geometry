@@ -364,7 +364,7 @@ With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
   $H^r(X,X\setminus Z)$ is `relDualClassOf f hf u` exactly when its
   restriction along each normal slice of a normalized tube is the fibre
   restriction of `u`; by excision and Tau Ceti's uniqueness by fibre
-  restrictions, `eq_thomClassOfModel_of_forall`. (A class of another degree
+  restrictions, `TauCeti.singularCohomology_thomPair_ext`. (A class of another degree
   is not determined by its fibre restrictions.)
 - `singularCohomologyMap_slice_eq_of_hasFDerivAt`: the local-degree lemma
   of *Decisions*.
