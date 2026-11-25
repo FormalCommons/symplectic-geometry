@@ -11,10 +11,10 @@ public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.Critical
 /-!
 # Critical points of a circle moment map
 
-Let a circle act smoothly on a Hausdorff boundaryless manifold `M`, with moment map `μ` for a
-two-form `σ`, and let `H = ⟨μ, ξ₁⟩` be its component along the period-one generator
-`ξ₁ = circlePeriodOneGenerator`. Where `σ` is nondegenerate, `x` is a critical point of `H`
-exactly when the whole circle fixes `x`: by Tau Ceti's
+Let a circle act smoothly on a manifold `M`, with moment map `μ` for a two-form `σ`, and let
+`H = ⟨μ, ξ₁⟩` be its component along the period-one generator `ξ₁ = circlePeriodOneGenerator`.
+If `M` is Hausdorff and boundaryless, then where `σ` is nondegenerate, `x` is a critical point of
+`H` exactly when the whole circle fixes `x`: by Tau Ceti's
 `TauCeti.SmoothTwoForm.IsMomentMap.mem_criticalPoints_iff`, `dH_x = 0` exactly when the
 fundamental vector field of `ξ₁` vanishes at `x`, and by
 `SymplecticGeometry.mem_fixedPoints_circle_iff_fundamentalVectorField_eq_zero` this happens

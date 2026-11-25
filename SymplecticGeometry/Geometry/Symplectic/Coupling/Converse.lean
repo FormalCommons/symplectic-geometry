@@ -171,12 +171,10 @@ theorem bandMap_def (x : Q × Icc a b) : bandMap v e a b x = flowOf v ((x.2 : �
 theorem bandMap_left (q : Q) (h : a ∈ Icc a b) : bandMap v e a b (q, ⟨a, h⟩) = e q := by
   rw [bandMap_def, sub_self, flowOf_zero]
 
-variable [T2Space M]
-
 /-- **The band map is smooth.** For a complete smooth vector field `v` on a Hausdorff
 boundaryless manifold modelled on a complete space, and a smooth map `e`, the band map is smooth
 for the product of the model of `Q` with the model `𝓡∂ 1` of the interval. -/
-theorem contMDiff_bandMap [Fact (a < b)] [CompleteSpace E] [BoundarylessManifold I M]
+theorem contMDiff_bandMap [Fact (a < b)] [CompleteSpace E] [T2Space M] [BoundarylessManifold I M]
     [IsManifold I ∞ M]
     {EQ HQ : Type*} [NormedAddCommGroup EQ] [NormedSpace ℝ EQ] [TopologicalSpace HQ]
     {IQ : ModelWithCorners ℝ EQ HQ} [TopologicalSpace Q] [ChartedSpace HQ Q]
@@ -190,7 +188,8 @@ theorem contMDiff_bandMap [Fact (a < b)] [CompleteSpace E] [BoundarylessManifold
 /-- **Equivariance of the band map.** Let a group `G` act `C¹` on `M`, and on the right on `Q`.
 If the `C¹` field `v` is invariant and `e (q • g) = g • e q`, then the band map satisfies
 `bandMap v e a b (q • g, s) = g • bandMap v e a b (q, s)`. -/
-theorem bandMap_op_smul [BoundarylessManifold I M] [IsManifold I 1 M] {G : Type*} [Group G]
+theorem bandMap_op_smul [T2Space M] [BoundarylessManifold I M] [IsManifold I 1 M]
+    {G : Type*} [Group G]
     [MulAction G M] [ContMDiffConstSMul I 1 G M]
     [MulAction Gᵐᵒᵖ Q]
     (hv : ContMDiff I I.tangent 1 (fun x ↦ (⟨x, v x⟩ : TangentBundle I M)))
@@ -199,7 +198,6 @@ theorem bandMap_op_smul [BoundarylessManifold I M] [IsManifold I 1 M] {G : Type*
     bandMap v e a b (op g • x.1, x.2) = g • bandMap v e a b x := by
   rw [bandMap_def, bandMap_def, he, smul_flowOf hv hinv]
 
-omit [T2Space M] in
 /-- If `e` takes values in the level `f = a`, the band map is the map `(x, s) ↦ φ_{s - a} x` on
 `{x // f x = a} × [a, b]`, composed with `e` on the first factor. -/
 theorem bandMap_eq_comp {f : M → ℝ} (he : ∀ q, f (e q) = a) :
@@ -207,7 +205,6 @@ theorem bandMap_eq_comp {f : M → ℝ} (he : ∀ q, f (e q) = a) :
       Prod.map (fun q ↦ ⟨e q, he q⟩) id :=
   funext fun x ↦ bandMap_def x
 
-omit [T2Space M] in
 /-- The slice `q ↦ bandMap v e a b (q, t)` of the band map is the time-`(t - a)` map of the flow
 after `e`. -/
 theorem bandMap_slice (t : Icc a b) :
@@ -216,7 +213,7 @@ theorem bandMap_slice (t : Icc a b) :
 
 section Slice
 
-variable [BoundarylessManifold I M] [IsManifold I 1 M] [CompleteSpace E]
+variable [T2Space M] [BoundarylessManifold I M] [IsManifold I 1 M] [CompleteSpace E]
   {EQ HQ : Type*} [NormedAddCommGroup EQ] [NormedSpace ℝ EQ] [TopologicalSpace HQ]
   {IQ : ModelWithCorners ℝ EQ HQ} [TopologicalSpace Q] [ChartedSpace HQ Q]
   (hv : ContMDiff I I.tangent 1 (fun x ↦ (⟨x, v x⟩ : TangentBundle I M)))
@@ -238,7 +235,7 @@ end Slice
 
 section Band
 
-variable [BoundarylessManifold I M] [IsManifold I 1 M]
+variable [T2Space M] [BoundarylessManifold I M] [IsManifold I 1 M]
   (hv : ContMDiff I I.tangent 1 (fun x ↦ (⟨x, v x⟩ : TangentBundle I M)))
   (hcomplete : IsCompleteVectorField v) {f : M → ℝ} (hf : Continuous f) {W : Set M}
   (hW : IsOpen W) (hfv : ∀ y ∈ W, mfderiv I 𝓘(ℝ) f y (v y) = 1)
@@ -311,7 +308,7 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
   {P : B → Type*} [TopologicalSpace (TotalSpace Circle P)] [∀ b, TopologicalSpace (P b)]
   [FiberBundle Circle P] [∀ b, MulAction Circleᵐᵒᵖ (P b)]
   [PrincipalBundle Circle P] [CompleteSpace E] [ContMDiffConstSMul I 1 Circle M]
-  [BoundarylessManifold I M]
+  [T2Space M] [BoundarylessManifold I M]
 
 /-- **The band map relates the fundamental fields.** Let a circle act on `M`, and let `P` be a
 principal circle bundle. If the complete smooth field `v` is invariant and the smooth map
@@ -357,7 +354,7 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
   {ψ : ManifoldTotalSpace Circle P × Icc a b → M}
   (hψ : ContMDiff ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) I ∞ ψ) {σ : SmoothTwoForm I M}
 
-omit [T2Space M] [CompleteSpace E] in
+omit [CompleteSpace E] in
 /-- **Invariance of the pull-back.** If the two-form `σ` on `M` is invariant under the circle
 action and `ψ : P × [a, b] → M` is equivariant, `ψ (p • z, t) = z • ψ (p, t)`, then `ψ^* σ` is
 invariant under the circle action `(p, t) ↦ (p • z, t)` on the first factor. -/
@@ -373,7 +370,7 @@ theorem mpullback_op_smul_mpullback
   conv_rhs => rw [← hσ z]
   exact SmoothForm.mpullback_mpullback_of_comp_eq _ hψ hψ _ (funext (hψs z)) σ
 
-omit [T2Space M] [PrincipalBundle Circle P] in
+omit [PrincipalBundle Circle P] in
 /-- **The Hamiltonian identity of the pull-back.** Let a circle act smoothly on `M`, and let
 `-μ` be a moment map of the action for the two-form `σ`, so that `ι_{X_M} σ = -d H` with
 `H = ⟨μ, circlePeriodOneGenerator⟩` and `X_M` the fundamental vector field of
@@ -397,7 +394,6 @@ theorem interior_couplingField_mpullback
   rwa [hcomp, SmoothTwoForm.isHamiltonianVectorField_iff_interior_eq, RoughForm.ofFunction_smul,
     mextDeriv_smul, neg_one_smul] at h
 
-omit [T2Space M] in
 /-- **The pull-back of an invariant form with a moment map is a coupling form.** Let a circle act
 smoothly on `M`, preserving the closed two-form `σ`, with moment map `-μ`, and let
 `H = ⟨μ, circlePeriodOneGenerator⟩`. Let `ψ : P × [a, b] → M` be smooth and equivariant,
@@ -434,7 +430,7 @@ end Pullback
 
 section Regular
 
-variable [BoundarylessManifold I M] [CompleteSpace E] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
+variable [T2Space M] [BoundarylessManifold I M] [CompleteSpace E] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
 
 /-- **A free level of the Hamiltonian is a free invariant regular level.** Let a circle act
 smoothly on a Hausdorff boundaryless manifold `M`, with moment map `-μ` for a nondegenerate
@@ -463,7 +459,8 @@ section RegularLevel
 
 attribute [local instance] MulOpposite.chartedSpace
 
-variable [FiniteDimensional ℝ E] [I.Boundaryless] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
+variable [T2Space M] [FiniteDimensional ℝ E] [I.Boundaryless]
+  [ContMDiffSMul (𝓡 1) I ∞ Circle M]
   {f : M → ℝ} {n : ℕ}
 
 /-- **The band of a circle action as a product.** Let a circle act smoothly on a Hausdorff
@@ -621,7 +618,8 @@ section Converse
 
 attribute [local instance] MulOpposite.chartedSpace
 
-variable [FiniteDimensional ℝ E] [I.Boundaryless] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
+variable [T2Space M] [FiniteDimensional ℝ E] [I.Boundaryless]
+  [ContMDiffSMul (𝓡 1) I ∞ Circle M]
   [SigmaCompactSpace M] {σ : SmoothTwoForm I M}
   {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
 
