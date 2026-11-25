@@ -173,9 +173,10 @@ theorem two_pi_I_inv_smul_circleIntegral_add_pi_inv_smul_integral_ball
     show (π : ℂ)⁻¹ * (2 * I)⁻¹ = (2 * π * I)⁻¹ by ring]
   abel
 
-/-- **A map with small `\bar∂` is close to its boundary Cauchy integral.** If `f : ℂ → F` is real `C¹` near the closed disc
-`|z - c| ≤ r` and `‖\bar∂f‖ ≤ ε` on the open disc, then at every point `w` of the open disc `f w`
-is within `4 r ε` of the boundary Cauchy integral `(2 π i)⁻¹ ∮_{|z - c| = r} (z - w)⁻¹ f(z) dz`. -/
+/-- **A map with small `\bar∂` is close to its boundary Cauchy integral.** If `f : ℂ → F` is
+real `C¹` near the closed disc `|z - c| ≤ r` and `‖\bar∂f‖ ≤ ε` on the open disc, then at every
+point `w` of the open disc `f w` is within `4 r ε` of the boundary Cauchy integral
+`(2 π i)⁻¹ ∮_{|z - c| = r} (z - w)⁻¹ f(z) dz`. -/
 theorem norm_sub_two_pi_I_inv_smul_circleIntegral_le
     (hf : ∀ z ∈ closedBall c r, ContDiffAt ℝ 1 f z) (hw : w ∈ ball c r) {ε : ℝ}
     (hε : ∀ z ∈ ball c r, ‖conjWirtingerDeriv f z 1‖ ≤ ε) :
