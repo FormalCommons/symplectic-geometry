@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Contact.Reeb
-import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Reeb vectors under a local pullback of contact forms
@@ -55,10 +55,9 @@ theorem mfderiv_reebVectorField_of_eventuallyEq_mpullback (hα : α.IsContactFor
     -- The outer `Eq.symm` makes Lean read the vector off the goal's right side.
     exact Eq.symm (FinVec.etaExpand_eq _).symm
   · obtain ⟨u, rfl⟩ := hsurj w
-    have hd := mpullback_mextDeriv_at hf
-      ((β.contMDiff (f x)).of_le (by norm_num))
-    rw [← mextDeriv_congr_of_eventuallyEq hpb] at hd
-    rw [← mpullback_apply_pair, hd]
+    have hd := mextDerivₗ_apply_eq_of_eventuallyEq_mpullback hf hpb
+    rw [← mpullback_apply_pair, mpullback_apply_eq_compContinuousLinearMap, ← mextDerivₗ_apply,
+      ← hd, mextDerivₗ_apply]
     exact hα.mextDeriv_reebVectorField_left x u
 
 end SmoothForm.IsContactForm

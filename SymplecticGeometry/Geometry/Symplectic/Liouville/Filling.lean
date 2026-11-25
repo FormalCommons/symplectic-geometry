@@ -15,6 +15,7 @@ public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
 import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Continuity
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Symplectic.Liouville.ContactType
 import SymplecticGeometry.Geometry.Symplectic.Liouville.Scaling
 
@@ -397,14 +398,13 @@ theorem IsStrongFilling.exists_liouvilleCollar [CompactSpace ((𝓡∂ (n + 1)).
     calc mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡∂ (n + 1)) Φ σ.val (t, x)
         = mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡∂ (n + 1)) Φ (mextDeriv β.val) (t, x) :=
           mpullback_apply_congr hcart
-      _ = mextDeriv (mpullback (𝓘(ℝ).prod (𝓡 n)) (𝓡∂ (n + 1)) Φ β.val) (t, x) :=
-          mpullback_mextDeriv_at (((SmoothCollar.contMDiffOn_of_forall_apply_eq hε hc).contMDiffAt
-            ((isOpen_Ioo.prod isOpen_univ).mem_nhds hp)).of_le (by simp))
-            ((β.isSmoothForm.contMDiff (Φ (t, x))).of_le (by simp))
-      _ = mextDeriv (-fillingContactForm σ ⟨Y, hY⟩).symplectization.val (t, x) :=
-          mextDeriv_congr_of_eventuallyEq
-            (eventually_of_mem ((isOpen_Ioo.prod isOpen_univ).mem_nhds hp) hβα)
-      _ = _ := by rw [mextDerivₗ_apply]
+      _ = _ := by
+          rw [mextDerivₗ_apply_eq_of_eventuallyEq_mpullback
+            (((SmoothCollar.contMDiffOn_of_forall_apply_eq hε hc).contMDiffAt
+              ((isOpen_Ioo.prod isOpen_univ).mem_nhds hp)).of_le (by simp))
+            (eventually_of_mem ((isOpen_Ioo.prod isOpen_univ).mem_nhds hp) fun q hq ↦
+              (hβα q hq).symm),
+            mpullback_apply_eq_compContinuousLinearMap, mextDerivₗ_apply]
 
 end Collar
 
