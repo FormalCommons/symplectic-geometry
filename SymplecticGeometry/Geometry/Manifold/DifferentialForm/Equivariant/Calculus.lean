@@ -43,6 +43,7 @@ zero.
 
 * `SymplecticGeometry.formCalculus_apply`: its component of degree `2 k` is `F⁽ᵏ⁾(f) τ ^ k / k!`,
   and `SymplecticGeometry.formCalculus_apply_of_odd`: its components of odd degree vanish.
+* `SymplecticGeometry.commute_formCalculus`: it commutes with every form of mixed degree.
 * `SymplecticGeometry.formCalculus_apply_val`: the same at a point `x`, and
   `SymplecticGeometry.formCalculus_val_congr`: the components at `x` depend only on `f x` and
   `τ x`.
@@ -133,6 +134,13 @@ theorem formCalculus_apply_of_odd : ∀ k, Odd k → formCalculus F hF f τ k = 
   refine Finset.sum_eq_zero fun m _ ↦ DirectSum.of_eq_of_ne _ _ _ ?_
   rintro rfl
   exact Nat.not_odd_iff_even.mpr (even_two_mul m) hk
+
+/-- `F(f + τ)` commutes with every smooth form of mixed degree, since all its components have
+even degree. -/
+theorem commute_formCalculus (γ : ⨁ k, SmoothForm I M ℝ k) :
+    Commute (formCalculus F hF f τ) γ := by
+  rw [formCalculus_def]
+  exact Commute.sum_left _ _ _ fun k _ ↦ SmoothForm.commute_of_of_even (even_two_mul k) _ γ
 
 variable [FiniteDimensional ℝ E]
 

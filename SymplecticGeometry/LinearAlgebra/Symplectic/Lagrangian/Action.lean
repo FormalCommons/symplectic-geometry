@@ -12,6 +12,7 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Lagrangian.Frame
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import TauCeti.LinearAlgebra.TotallyReal.Lagrangian
 public import TauCeti.Topology.Algebra.Matrix.Realify
+import SymplecticGeometry.LinearAlgebra.FiniteDimensional.Submodule
 
 /-!
 # The symplectic and unitary actions on the Lagrangian Grassmannian
@@ -338,11 +339,10 @@ theorem unitaryFrame_surjective :
   have hdim : Module.finrank ℝ (EuclideanSpace ℝ ι) =
       Module.finrank ℝ (Λ : Submodule ℝ (StdSpace ι)) := by
     rw [finrank_euclideanSpace, Λ.finrank_eq_card]
-  set Z := toEuclideanLin.symm
-    ((Λ : Submodule ℝ (StdSpace ι)).subtype ∘ₗ (LinearEquiv.ofFinrankEq _ _ hdim).toLinearMap)
+  obtain ⟨L, -, hLΛ⟩ := (Λ : Submodule ℝ (StdSpace ι)).exists_linearMap_injective_range_eq hdim
+  set Z := toEuclideanLin.symm L
   have hZ : LinearMap.range (toEuclideanLin (fromRows Z.toRows₁ Z.toRows₂)) = Λ := by
-    rw [fromRows_toRows, LinearEquiv.apply_symm_apply, LinearMap.range_comp,
-      LinearEquiv.range, Submodule.map_top, Submodule.range_subtype]
+    rw [fromRows_toRows, LinearEquiv.apply_symm_apply, hLΛ]
   have hL : (stdForm ι).IsLagrangian
       (LinearMap.range (toEuclideanLin (fromRows Z.toRows₁ Z.toRows₂))) :=
     hZ ▸ Λ.isLagrangian
