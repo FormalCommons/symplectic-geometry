@@ -16,6 +16,7 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import TauCeti.Analysis.Complex.Beltrami.Isothermal
 import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Manifold.Riemannian.Orientation.AlmostComplex
 
@@ -170,13 +171,9 @@ theorem exists_isothermal_coordinates [I.Boundaryless] (o : Manifold.Orientation
   refine (o.orientationAt y).isConformalMap_of_map_rightAngleRotation (fun v ↦ ?_) ?_
   · rw [← rightAngleAlmostComplexStructure_apply, hψ y hy v, smul_eq_mul]
   · -- The derivative of a partial diffeomorphism is injective, and the tangent plane is not zero.
-    intro h
-    have hinj := (ψ.isInvertible_mfderiv (by simp) hy).injective
-    have : Subsingleton (TangentSpace I y) := ⟨fun v w ↦ hinj <|
-      (mvfderiv_apply_eq_mfderiv_apply ψ y v).symm.trans <| (DFunLike.congr_fun h v).trans <|
-        (DFunLike.congr_fun h w).symm.trans (mvfderiv_apply_eq_mfderiv_apply ψ y w)⟩
-    have h2 := (o.fact_finrank_tangentSpace y).out
-    simp [Module.finrank_zero_of_subsingleton] at h2
+    have : Nontrivial E := Module.nontrivial_of_finrank_eq_succ hE
+    exact mvfderiv_eq_zero_iff.not.2
+      (TauCeti.mfderiv_ne_zero_of_injective (ψ.isInvertible_mfderiv (by simp) hy).injective)
 
 end TauCeti.Manifold.Orientation
 
