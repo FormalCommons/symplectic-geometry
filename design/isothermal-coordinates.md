@@ -333,8 +333,8 @@ its proofs only, `Analysis/InnerProductSpace/TwoDim.lean` (below) and
   ∀ y ∈ ψ.source, IsConformalMap (mvfderiv I ψ y)`,
   for `[T2Space M]`, `[RiemannianBundle (fun x : M ↦ TangentSpace I x)]`,
   `[IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]` and
-  `[I.Boundaryless]`, and Mathlib's `mvfderiv`
-  as in issue 3. The finrank of `E` comes from `o` and `x`
+  `[I.Boundaryless]`, and Mathlib's `mvfderiv`, whose values lie in `ℂ`.
+  The finrank of `E` comes from `o` and `x`
   (`fact_finrank_tangentSpace`). The chart is that of
   `exists_isothermal_partialDiffeomorph` for Tau Ceti's
   `o.rightAngleAlmostComplexStructure`
