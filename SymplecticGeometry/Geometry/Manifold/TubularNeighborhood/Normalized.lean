@@ -9,10 +9,8 @@ public import TauCeti.Geometry.Manifold.MFDeriv.Translation
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
 public import TauCeti.Geometry.Manifold.VectorBundle.Hom
-import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 import Mathlib.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Quotient
-import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 
 /-!
@@ -47,13 +45,12 @@ tube, a local diffeomorphism at `0_x`, this gives the automorphism `normalFiberD
 
 If `Φ` is smooth at every zero vector and equals `f` on the zero section, the normal derivative
 depends smoothly on `x` (`contMDiff_normalFiberDeriv`). The velocities at `0` of the rays
-`t ↦ Φ ⟨x, t • v⟩` form the derivative of a smooth family of curves parametrized by the total
-space, so Mathlib's `ContMDiffAt.mfderiv` makes them a smooth map into the pull-back of the
-tangent bundle of `N` along `f`; Tau Ceti's `contMDiff_normalQuotientMap` says that taking their
-normal classes is smooth. For a tube, Tau Ceti's `TauCeti.bundleDiffeomorph` turns the
-automorphisms `normalFiberDerivEquiv` into the diffeomorphism `normalFiberDerivDiffeomorph` of
-the total space over the identity of `M`; its inverse acts on each fibre by the inverse of the
-normal derivative, and both fix the zero section.
+`t ↦ Φ ⟨x, t • v⟩` form a smooth map into the pull-back of the tangent bundle of `N` along `f`
+(`Bundle.contMDiff_mfderiv_smul_curve`, which holds for any smooth vector bundle), and Tau Ceti's
+`contMDiff_normalQuotientMap` says that taking their normal classes is smooth. For a tube, Tau
+Ceti's `TauCeti.bundleDiffeomorph` turns the automorphisms `normalFiberDerivEquiv` into the
+diffeomorphism `normalFiberDerivDiffeomorph` of the total space over the identity of `M`; its
+inverse acts on each fibre by the inverse of the normal derivative, and both fix the zero section.
 
 ## Main definitions
 
@@ -268,71 +265,6 @@ theorem coe_normalFiberDerivEquiv (f : SmoothEmbedding I J ∞ M N) (hn : (∞ :
       f.normalFiberDeriv hn hdim Φ x :=
   ContinuousLinearMap.ext (normalFiberDerivEquiv_apply f hn hdim hΦ hfΦ)
 
-/-- The velocities at `0` of the rays `t ↦ Φ ⟨x, t • v⟩`, as ambient tangent vectors at
-`Φ 0_x = f x`, form a smooth map into the pull-back along `f` of the tangent bundle of `N`. -/
-private theorem contMDiff_mfderiv_ray (f : SmoothEmbedding I J ∞ M N) (hn : (∞ : ℕ∞ω) ≠ 0)
-    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
-    {Φ : TotalSpace P (fun x ↦ f.NormalSpace x hn) → N}
-    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
-      ∀ x, ContMDiffAt (I.prod 𝓘(ℝ, P)) J ∞ Φ (zeroSection P _ x))
-    (hfΦ : Φ ∘ zeroSection P _ = f) :
-    letI := f.normalSpaceFiberBundle hn hdim
-    ContMDiff (I.prod 𝓘(ℝ, P)) (I.prod 𝓘(ℝ, V)) ∞
-      (fun p : TotalSpace P (fun x ↦ f.NormalSpace x hn) ↦
-        (⟨p.proj, mfderiv 𝓘(ℝ) J (fun t : ℝ ↦ Φ ⟨p.proj, t • p.snd⟩) 0 (1 : ℝ)⟩ :
-          TotalSpace V ((f : M → N) *ᵖ (TangentSpace J)))) := by
-  let := f.normalSpaceFiberBundle hn hdim
-  have := f.normalSpaceVectorBundle hn hdim
-  have : IsManifold I (∞ + 1) M := by simpa using (inferInstance : IsManifold I ∞ M)
-  have : IsManifold J (∞ + 1) N := by simpa using (inferInstance : IsManifold J ∞ N)
-  have := f.normalSpaceContMDiffVectorBundle (m := ∞) hn le_rfl hdim
-  have : ContMDiffVectorBundle ∞ V ((f : M → N) *ᵖ (TangentSpace J)) I :=
-    ContMDiffVectorBundle.pullback V (TangentSpace J) I ⟨f, f.contMDiff⟩
-  -- The rays, as a family of curves parametrized by the total space.
-  let F : TotalSpace P (fun x ↦ f.NormalSpace x hn) → ℝ → N := fun p t ↦ Φ ⟨p.proj, t • p.snd⟩
-  have h0 (q : TotalSpace P (fun x ↦ f.NormalSpace x hn)) :
-      Φ ⟨q.proj, (0 : ℝ) • q.snd⟩ = f q.proj := by
-    rw [zero_smul]
-    exact congrFun hfΦ q.proj
-  have hF (p₀ : TotalSpace P (fun x ↦ f.NormalSpace x hn)) :
-      ContMDiffAt ((I.prod 𝓘(ℝ, P)).prod 𝓘(ℝ)) J ∞ (Function.uncurry F) (p₀, 0) := by
-    have hm : ContMDiffAt ((I.prod 𝓘(ℝ, P)).prod 𝓘(ℝ)) (I.prod 𝓘(ℝ, P)) ∞
-        (fun q : TotalSpace P (fun x ↦ f.NormalSpace x hn) × ℝ ↦
-          (⟨q.1.proj, q.2 • q.1.snd⟩ : TotalSpace P (fun x ↦ f.NormalSpace x hn))) (p₀, 0) :=
-      contMDiffAt_snd.smul_totalSpace contMDiffAt_fst
-    exact (hΦ p₀.proj).comp_of_eq hm (by simp [zeroSection])
-  -- Read in the trivialization at `f p₀.proj`, the velocities are the derivatives of the family
-  -- in tangent coordinates, applied to `1`.
-  let g : TotalSpace P (fun x ↦ f.NormalSpace x hn) →
-      TotalSpace V ((f : M → N) *ᵖ (TangentSpace J)) :=
-    fun p ↦ ⟨p.proj, mfderiv 𝓘(ℝ) J (F p) 0 (1 : ℝ)⟩
-  suffices hg : ContMDiff (I.prod 𝓘(ℝ, P)) (I.prod 𝓘(ℝ, V)) ∞ g from hg
-  intro p₀
-  let e := trivializationAt V (TangentSpace J) (f p₀.proj)
-  let a := e.pullback f
-  have ha : MemTrivializationAtlas a := ⟨_, inferInstance, rfl⟩
-  have hpa : g p₀ ∈ a.source := by
-    rw [a.mem_source]
-    exact mem_baseSet_trivializationAt V (TangentSpace J) (f p₀.proj)
-  refine (a.contMDiffAt_iff hpa).mpr ⟨contMDiffAt_proj _, ?_⟩
-  refine ((ContMDiffAt.mfderiv F (fun _ ↦ (0 : ℝ)) (hF p₀) (m := ∞) contMDiffAt_const
-    (by simp)).clm_apply (contMDiffAt_const (c := (1 : ℝ)))).congr_of_eventuallyEq ?_
-  have hb : ∀ᶠ p in 𝓝 p₀, f p.proj ∈ e.baseSet :=
-    (f.contMDiff.continuous.comp (FiberBundle.continuous_proj P _)).continuousAt.preimage_mem_nhds
-      (e.open_baseSet.mem_nhds (mem_baseSet_trivializationAt V (TangentSpace J) (f p₀.proj)))
-  filter_upwards [hb] with p hp
-  -- The base point of the coordinate change is `Φ 0_x`, which is `f x`.
-  have key (b : N) (w : V) (hb : b = f p.proj) :
-      e.continuousLinearMapAt ℝ b w = (e ⟨f p.proj, w⟩).2 := by
-    subst hb
-    exact e.continuousLinearMapAt_apply_of_mem ℝ hp w
-  simp only [a, Trivialization.pullback_apply, Pullback.lift, inTangentCoordinates,
-    ContinuousLinearMap.inCoordinates, g, F, ContinuousLinearMap.comp_apply,
-    TangentBundle.symmL_model_space, h0 p₀]
-  -- `(D ∘L 1) 1` is `D 1` by definition; the source `TangentSpace 𝓘(ℝ) 0` of `D`, which is `ℝ`
-  -- only by definition, keeps `ContinuousLinearMap.comp_apply` from rewriting it.
-  exact (key _ _ (h0 p)).symm
-
 /-- Let `Φ` be smooth at every zero vector of the normal bundle and equal to `f` on the zero
 section. Then its normal derivative depends smoothly on the base point: the map of total spaces
 `⟨x, v⟩ ↦ ⟨x, f.normalFiberDeriv hn hdim Φ x v⟩` is smooth. -/
@@ -350,6 +282,7 @@ theorem contMDiff_normalFiberDeriv (f : SmoothEmbedding I J ∞ M N) (hn : (∞ 
   have := f.normalSpaceVectorBundle hn hdim
   have : IsManifold I (∞ + 1) M := by simpa using (inferInstance : IsManifold I ∞ M)
   have : IsManifold J (∞ + 1) N := by simpa using (inferInstance : IsManifold J ∞ N)
+  have := f.normalSpaceContMDiffVectorBundle (m := ∞) hn le_rfl hdim
   -- The normal derivative is the normal class of the velocities of the rays.
   have e : (fun p : TotalSpace P (fun x ↦ f.NormalSpace x hn) ↦ TotalSpace.mk' P
       (E := fun x ↦ f.NormalSpace x hn) p.proj (f.normalFiberDeriv hn hdim Φ p.proj p.snd)) =
@@ -362,7 +295,7 @@ theorem contMDiff_normalFiberDeriv (f : SmoothEmbedding I J ∞ M N) (hn : (∞ 
     exact congrArg (TotalSpace.mk p.proj) (f.normalClassL_apply p.proj hn _)
   rw [e]
   exact (f.contMDiff_normalQuotientMap hn le_rfl hdim).comp
-    (contMDiff_mfderiv_ray f hn hdim hΦ hfΦ)
+    (Bundle.contMDiff_mfderiv_smul_curve (f := ⟨f, f.contMDiff⟩) hΦ hfΦ)
 
 /-- Let `Φ` be a local diffeomorphism at every zero vector of the normal bundle, equal to `f` on
 the zero section, such as a tubular neighbourhood of `f`. The smooth diffeomorphism of the total
@@ -384,6 +317,22 @@ def normalFiberDerivDiffeomorph (f : SmoothEmbedding I J ∞ M N) (hn : (∞ : �
     ((contMDiff_normalFiberDeriv f hn hdim (fun x ↦ (hΦ x).contMDiffAt) hfΦ).congr fun p ↦
       congrArg (TotalSpace.mk p.proj) (normalFiberDerivEquiv_apply f hn hdim _ _ p.snd))
 
+/-- `normalFiberDerivDiffeomorph` is Tau Ceti's `bundleDiffeomorph` of the automorphisms
+`normalFiberDerivEquiv`. -/
+theorem normalFiberDerivDiffeomorph_def (f : SmoothEmbedding I J ∞ M N) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
+    {Φ : TotalSpace P (fun x ↦ f.NormalSpace x hn) → N}
+    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
+      ∀ x, IsLocalDiffeomorphAt (I.prod 𝓘(ℝ, P)) J ∞ Φ (zeroSection P _ x))
+    (hfΦ : Φ ∘ zeroSection P _ = f) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    haveI := f.normalSpaceVectorBundle hn hdim
+    f.normalFiberDerivDiffeomorph hn hdim hΦ hfΦ =
+      bundleDiffeomorph (fun x ↦ f.normalFiberDerivEquiv hn hdim (hΦ x) (.of_eq hfΦ))
+        ((contMDiff_normalFiberDeriv f hn hdim (fun x ↦ (hΦ x).contMDiffAt) hfΦ).congr fun p ↦
+          congrArg (TotalSpace.mk p.proj) (normalFiberDerivEquiv_apply f hn hdim _ _ p.snd)) :=
+  (rfl)
+
 /-- `normalFiberDerivDiffeomorph` applies the normal derivative on each fibre. -/
 @[simp]
 theorem normalFiberDerivDiffeomorph_apply (f : SmoothEmbedding I J ∞ M N) (hn : (∞ : ℕ∞ω) ≠ 0)
@@ -396,7 +345,7 @@ theorem normalFiberDerivDiffeomorph_apply (f : SmoothEmbedding I J ∞ M N) (hn 
       ⟨p.proj, f.normalFiberDeriv hn hdim Φ p.proj p.snd⟩ := by
   let := f.normalSpaceFiberBundle hn hdim
   have := f.normalSpaceVectorBundle hn hdim
-  rw [normalFiberDerivDiffeomorph, bundleDiffeomorph_apply, normalFiberDerivEquiv_apply]
+  rw [normalFiberDerivDiffeomorph_def, bundleDiffeomorph_apply, normalFiberDerivEquiv_apply]
 
 /-- The inverse of `normalFiberDerivDiffeomorph` applies the inverse of the normal derivative on
 each fibre. -/
@@ -412,7 +361,7 @@ theorem normalFiberDerivDiffeomorph_symm_apply (f : SmoothEmbedding I J ∞ M N)
       ⟨p.proj, (f.normalFiberDerivEquiv hn hdim (hΦ p.proj) (.of_eq hfΦ)).symm p.snd⟩ := by
   let := f.normalSpaceFiberBundle hn hdim
   have := f.normalSpaceVectorBundle hn hdim
-  rw [normalFiberDerivDiffeomorph, bundleDiffeomorph_symm_apply]
+  rw [normalFiberDerivDiffeomorph_def, bundleDiffeomorph_symm_apply]
 
 /-- `normalFiberDerivDiffeomorph` fixes the zero section. -/
 theorem normalFiberDerivDiffeomorph_zeroSection (f : SmoothEmbedding I J ∞ M N)
