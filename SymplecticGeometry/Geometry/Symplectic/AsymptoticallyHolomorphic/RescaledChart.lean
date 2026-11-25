@@ -180,7 +180,7 @@ theorem nonempty_centeredDarbouxCharts [FiniteDimensional ℝ E] [CompactSpace M
   have := Manifold.locallyCompact_of_finiteDimensional (M := M) I
   -- A Darboux chart `φ p` at every point `p`, and a compact neighbourhood `K p` of `p` in its
   -- source, on which the charts recentred from `φ p` have uniform bounds.
-  choose φ hpφ hφ using fun p ↦
+  choose φ hpφ _ hφ using fun p ↦
     SmoothTwoForm.IsSymplectic.exists_darbouxChart_stdForm hE ⟨hσ, hJ.isNondegenerate⟩ p
   choose K hK hpK hKφ using fun p ↦ exists_compact_subset (φ p).open_source (hpφ p)
   choose A C₀ ρ hρ hA hC using fun p ↦
