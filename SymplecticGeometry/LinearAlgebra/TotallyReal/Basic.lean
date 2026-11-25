@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Normed.Operator.BoundedLinearMaps
+public import SymplecticGeometry.Analysis.Normed.Operator.Bilinear
 public import TauCeti.LinearAlgebra.TotallyReal.Basic
 
 /-!
@@ -19,13 +19,12 @@ Hessian degenerates along a totally real subspace.
 
 ## Main results
 
-* `ContinuousLinearMap.nonneg_of_forall_notMem_pos`: a continuous bilinear form `B` on a real
-  normed space with `B v v > 0` for every `v` outside a proper subspace has `B u u ≥ 0` for
-  every `u`, since the complement of a proper subspace is dense.
 * `TauCeti.IsTotallyReal.apply_eq_zero_of_mem_of_apply_mem`: if `v` and `J v` both lie in `L`,
   then `J v = 0`.
 * `TauCeti.IsTotallyReal.add_pos_of_forall_notMem_pos`: the positivity statement above. By the
-  previous lemma `B` is nonnegative on `L` too, and at most one of `v` and `J v` lies in `L`.
+  previous lemma `B` is nonnegative on `L` too
+  (`ContinuousLinearMap.nonneg_of_forall_notMem_nonneg`), and at most one of `v` and `J v` lies
+  in `L`.
 
 ## References
 
@@ -36,23 +35,6 @@ Hessian degenerates along a totally real subspace.
 public section
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-
-namespace ContinuousLinearMap
-
-/-- Let `L` be a proper subspace of a real normed space. If a continuous bilinear form `B`
-satisfies `B v v > 0` for every `v ∉ L`, then `B u u ≥ 0` for every `u`. -/
-theorem nonneg_of_forall_notMem_pos {L : Submodule ℝ E} (hL : L ≠ ⊤)
-    {B : E →L[ℝ] E →L[ℝ] ℝ} (hpos : ∀ v ∉ L, 0 < B v v) (u : E) : 0 ≤ B u u := by
-  -- The complement of a proper subspace is dense, and `B u u ≥ 0` is a closed condition.
-  have hdense : Dense (L : Set E)ᶜ :=
-    interior_eq_empty_iff_dense_compl.1
-      (Set.not_nonempty_iff_eq_empty.1 fun h ↦ hL (L.eq_top_of_nonempty_interior' h))
-  have hclosed : IsClosed {u : E | 0 ≤ B u u} :=
-    isClosed_le continuous_const (B.continuous.clm_apply continuous_id)
-  exact hclosed.closure_subset_iff.2 (fun u hu ↦ (hpos u hu).le)
-    (hdense.closure_eq ▸ Set.mem_univ u)
-
-end ContinuousLinearMap
 
 namespace TauCeti
 
@@ -77,9 +59,9 @@ variable {J : E →ₗ[ℝ] E} {L : Submodule ℝ E}
 theorem add_pos_of_forall_notMem_pos (hL : IsTotallyReal J L) (hJ : Function.Injective J)
     {B : E →L[ℝ] E →L[ℝ] ℝ} (hpos : ∀ v ∉ L, 0 < B v v) {v : E} (hv : v ≠ 0) :
     0 < B v v + B (J v) (J v) := by
-  have hnonneg (w : E) (hw : w ∉ L) : ∀ u, 0 ≤ B u u :=
-    ContinuousLinearMap.nonneg_of_forall_notMem_pos (L := L) (fun h ↦ hw (h ▸ Submodule.mem_top))
-      hpos
+  have hnonneg (w : E) (hw : w ∉ L) (u : E) : 0 ≤ B u u :=
+    B.nonneg_of_forall_notMem_nonneg (L := L) (fun h ↦ hw (h ▸ Submodule.mem_top))
+      (fun v hv ↦ (hpos v hv).le) u
   by_cases h₁ : v ∈ L
   · have h₂ : J v ∉ L := fun h ↦
       hv (hJ ((hL.apply_eq_zero_of_mem_of_apply_mem h₁ h).trans J.map_zero.symm))

@@ -35,7 +35,6 @@ complex tangencies are totally real:
   a J-convex level `f ⁻¹' {c}` whose tangent vectors are tangent to the complex tangencies of the
   level.
 
-
 It also gives a criterion for strict plurisubharmonicity in terms of the real critical Hessian
 `Hess f = TauCeti.criticalHessian 𝓘(ℝ, E) f x`, adapted to functions such as squared distances
 to a totally real submanifold, whose Hessian degenerates along the submanifold:
