@@ -7,6 +7,7 @@ module
 
 public import Mathlib.MeasureTheory.Integral.CircleIntegral
 public import TauCeti.Analysis.Complex.Wirtinger.Basic
+import Mathlib.Analysis.Calculus.FDeriv.Pi
 import Mathlib.Analysis.Complex.CauchyIntegral
 import SymplecticGeometry.MeasureTheory.Constructions.UnitInterval
 import TauCeti.Analysis.Calculus.ContDiff.IsOpen
@@ -34,7 +35,9 @@ formula on a polydisc, approximates a `C¹` function with small `∂̄` by a hol
   `C¹` at every point `update z i ζ` with `ζ` on the circle, the coordinate Cauchy integral is
   `C¹` at `z`.
 * `SymplecticGeometry.differentiableAt_coordCauchyIntegral_update`: it is complex
-  differentiable in the `i`-th coordinate.
+  differentiable in the `i`-th coordinate, and
+  `SymplecticGeometry.conjWirtingerDeriv_coordCauchyIntegral_single_self` says that its
+  conjugate Wirtinger derivative in that coordinate vanishes.
 * `SymplecticGeometry.fderiv_coordCauchyIntegral_apply`: its derivative in a direction `v` with
   `v i = 0` is the coordinate Cauchy integral of the derivative of `f` in that direction.
 * `SymplecticGeometry.conjWirtingerDeriv_coordCauchyIntegral`: it commutes with the conjugate
@@ -63,6 +66,28 @@ public section
 open Complex Function Metric Set MeasureTheory
 open scoped Real
 
+namespace TauCeti
+
+/-- **The conjugate Wirtinger derivative along a coordinate line.** The conjugate Wirtinger
+derivative at `ζ` of the restriction `w ↦ g (update x i w)` of `g` to the complex line through `x`
+along the `i`-th coordinate is the conjugate Wirtinger derivative of `g` at `update x i ζ` in the
+direction `Pi.single i 1`. -/
+theorem conjWirtingerDeriv_update_apply_one {ι : Type*} [Fintype ι] [DecidableEq ι]
+    {F : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F] {g : (ι → ℂ) → F} {x : ι → ℂ} {i : ι}
+    {ζ : ℂ} (hg : DifferentiableAt ℝ g (update x i ζ)) :
+    conjWirtingerDeriv (fun w ↦ g (update x i w)) ζ 1 =
+      conjWirtingerDeriv g (update x i ζ) (Pi.single i 1) := by
+  rw [← comp_def, conjWirtingerDeriv_comp_eq_comp_fderiv hg
+    (hasFDerivAt_update (𝕜 := ℂ) x ζ).differentiableAt, fderiv_update,
+    ContinuousLinearMap.comp_apply]
+  congr 1
+  ext j
+  by_cases hj : j = i
+  · subst hj; simp
+  · simp [hj]
+
+end TauCeti
+
 namespace SymplecticGeometry
 
 variable {ι : Type*} [DecidableEq ι] {F : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F]
@@ -81,6 +106,20 @@ theorem coordCauchyIntegral_def (i : ι) (c : ι → ℂ) (ρ : ℝ) (f : (ι �
   (rfl)
 
 variable {i : ι} {c : ι → ℂ} {ρ : ℝ} {f : (ι → ℂ) → F} {z : ι → ℂ}
+
+/-- The coordinate Cauchy integral at `z` depends only on the values of `f` at the points
+`update z i ζ` with `ζ` on the circle `C(c i, ρ)`. -/
+theorem coordCauchyIntegral_congr {g : (ι → ℂ) → F} (hρ : 0 ≤ ρ)
+    (h : ∀ ζ ∈ sphere (c i) ρ, f (update z i ζ) = g (update z i ζ)) :
+    coordCauchyIntegral i c ρ f z = coordCauchyIntegral i c ρ g z := by
+  simp only [coordCauchyIntegral_def]
+  exact congrArg _ (circleIntegral.integral_congr hρ fun ζ hζ ↦ by simp only [h ζ hζ])
+
+@[simp]
+theorem coordCauchyIntegral_zero (i : ι) (c : ι → ℂ) (ρ : ℝ) :
+    coordCauchyIntegral i c ρ (0 : (ι → ℂ) → F) = 0 := by
+  funext z
+  simp [coordCauchyIntegral_def, circleIntegral]
 
 /-- **The coordinate Cauchy integral on the half radius.** If `‖z i - c i‖ ≤ ρ / 2` and
 `‖f (update z i ζ)‖ ≤ M` for every `ζ` on the circle `C(c i, ρ)`, then the Cauchy integral of
@@ -327,6 +366,23 @@ theorem conjWirtingerDeriv_coordCauchyIntegral_single (hzi : z i ∈ ball (c i) 
       coordCauchyIntegral i c ρ
         (fun y ↦ TauCeti.conjWirtingerDeriv f y (Pi.single j 1)) z :=
   conjWirtingerDeriv_coordCauchyIntegral hzi hf (Pi.single_eq_of_ne hj.symm _)
+
+/-- **The coordinate Cauchy integral is holomorphic in its own coordinate.** Under the hypotheses
+of `contDiffAt_coordCauchyIntegral`, the conjugate Wirtinger derivative in the `i`-th coordinate
+of the Cauchy integral of `f` in the `i`-th coordinate vanishes at `z`. -/
+theorem conjWirtingerDeriv_coordCauchyIntegral_single_self (hzi : z i ∈ ball (c i) ρ)
+    (hf : ∀ ζ ∈ sphere (c i) ρ, ContDiffAt ℝ 1 f (update z i ζ)) :
+    TauCeti.conjWirtingerDeriv (coordCauchyIntegral i c ρ f) z (Pi.single i 1) = 0 := by
+  have hcont : ContinuousOn (fun ζ ↦ f (update z i ζ)) (sphere (c i) ρ) := fun ζ hζ ↦
+    ((hf ζ hζ).continuousAt.comp
+      (continuous_const.update i continuous_id).continuousAt).continuousWithinAt
+  have hd := differentiableAt_coordCauchyIntegral_update
+    (hcont.circleIntegrable (pos_of_mem_ball hzi).le) hzi
+  have hC := (contDiffAt_coordCauchyIntegral hzi hf).differentiableAt one_ne_zero
+  rw [← update_eq_self i z] at hC
+  have h := TauCeti.conjWirtingerDeriv_update_apply_one hC
+  rw [update_eq_self] at h
+  rw [← h, hd.conjWirtingerDeriv_eq_zero, zero_apply]
 
 end Regularity
 
