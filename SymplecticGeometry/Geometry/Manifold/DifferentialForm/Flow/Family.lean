@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Flow.Family
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Family
 public import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
+import TauCeti.Geometry.Manifold.ContMDiff.Subtype.Cutoff
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Product
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 
@@ -47,6 +48,14 @@ Cartan's formula `TauCeti.mlieDerivForm_eq_mextDeriv_interior` makes its exterio
 the time derivative of `σ`. Since `id × f` sends `∂_t` to `∂_t`, the contraction commutes with
 pullback along `id × f`, and it vanishes on forms pulled back from `M` along the projection.
 
+Last, the restriction of a form on `ℝ × M` to `J × M`, for an open set `J` of times, has the
+same time derivative at each time of `J`. It is read on `ℝ × M` through a map `ℝ → J` which is
+the identity near that time (Tau Ceti's `TopologicalSpace.Opens.exists_contMDiff_eventuallyEq_id`),
+and Tau Ceti's `TauCeti.hasDerivAt_mpullback_prodMk_comp` computes the derivative there. The
+proof adapts that of Tau Ceti's `TauCeti.mpullback_prodMk_mlieDerivForm_mpullback_prodMap`,
+which goes the other way, from a form on `J × M` to its pullback to `ℝ × M` through a map
+`ℝ → J`.
+
 ## Main results
 
 * `TauCeti.mpullback_timeDependentFlowOf_apply_eq_exp_integral_smul_of_mlieDerivForm_eq`: a smooth
@@ -58,10 +67,14 @@ pullback along `id × f`, and it vanishes on forms pulled back from `M` along th
   `TauCeti.SmoothForm.mpullback_prodMk_timeDeriv_mpullback_prodMap`.
 * `TauCeti.SmoothForm.timeInterior`: the contraction `ι_{∂_t} σ` with the time field.
 * `TauCeti.SmoothForm.mextDerivₗ_timeInterior`: `d (ι_{∂_t} σ) = ∂_t σ` for closed `σ`.
+* `TauCeti.SmoothForm.mpullback_prodMk_mlieDerivForm_eq_mextDeriv_timeInterior`: its slices,
+  `ι_t^* L_{∂_t} σ = d (ι_t^* ι_{∂_t} σ)` for closed `σ`.
 * `TauCeti.SmoothForm.mpullback_prodMap_timeInterior`:
   `(id × f)^* ι_{∂_t} σ = ι_{∂_t} (id × f)^* σ`.
 * `TauCeti.SmoothForm.timeInterior_mpullback_snd`: the contraction with `∂_t` of a form pulled
   back along the projection `ℝ × M → M` is zero.
+* `TauCeti.mpullback_prodMk_mlieDerivForm_mpullback_prodMap_subtypeVal`: the restriction of a
+  form to `J × M` has the time derivative of the form at the times of `J`.
 
 ## References
 
@@ -198,6 +211,19 @@ theorem mextDerivₗ_timeInterior {σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ 
   exact (mlieDerivForm_eq_mextDeriv_interior
     (SymplecticGeometry.contMDiff_timeField.mdifferentiable (by simp)) hσ).symm
 
+/-- For a closed form `σ` on `ℝ × M`, the slice at time `t` of the time derivative
+`L_{∂_t} σ` is the exterior derivative of the slice of `ι_{∂_t} σ`:
+`ι_t^* L_{∂_t} σ = d (ι_t^* ι_{∂_t} σ)`. -/
+theorem mpullback_prodMk_mlieDerivForm_eq_mextDeriv_timeInterior
+    {σ : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F (k + 1)} (hσ : σ.IsClosed) (t : ℝ) :
+    TauCeti.mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t)
+        (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) σ.val) =
+      mextDeriv (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
+        σ.timeInterior).val := by
+  have h := congrArg Subtype.val (congrArg (mpullback (Prod.mk t)
+    (contMDiff_const.prodMk contMDiff_id)) (mextDerivₗ_timeInterior hσ).symm)
+  simpa [← mextDerivₗ_mpullback] using h
+
 /-- The contraction with the time field commutes with pullback along `id × f`, which sends the
 time field `∂_t` of `ℝ × M` to that of `ℝ × N`: `(id × f)^* ι_{∂_t} σ = ι_{∂_t} (id × f)^* σ`. -/
 theorem mpullback_prodMap_timeInterior (f : M → N) (hf : ContMDiff I J ∞ f)
@@ -263,5 +289,46 @@ theorem mpullback_prodMk_timeDeriv_mpullback_prodMap' {c : ℝ → ℝ}
     exact Iff.rfl
 
 end TauCeti.SmoothForm
+
+/-! ### Restriction to an open set of times -/
+
+namespace TauCeti
+
+variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [I.Boundaryless] [TopologicalSpace M] [ChartedSpace H M]
+  [IsManifold I 2 M] [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
+
+/-- **Time derivatives of a restricted family.** For an open set `J` of times, the restriction
+`(val × id)^* β` of a smooth form `β` on `ℝ × M` to `J × M` has, at each time `t ∈ J`, the time
+derivative of `β`: `ι_t^* L_{∂_t} ((val × id)^* β) = ι_t^* L_{∂_t} β`. -/
+theorem mpullback_prodMk_mlieDerivForm_mpullback_prodMap_subtypeVal
+    {J : TopologicalSpace.Opens ℝ} (β : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F k) (t : J) :
+    mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t) (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E)))
+        (SmoothForm.mpullback (Prod.map Subtype.val id)
+          (contMDiff_subtypeVal.prodMap contMDiff_id) β).val) =
+      mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk (t : ℝ))
+        (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) β.val) := by
+  funext x
+  -- Read the times of `J` through a map `g : ℝ → J` which is the identity near `t`.
+  obtain ⟨g, hg, hgid⟩ := J.exists_contMDiff_eventuallyEq_id (convex_singleton (t : ℝ))
+    isCompact_singleton (singleton_nonempty _) (singleton_subset_iff.mpr t.property)
+  have hu := hgid _ rfl
+  have hgt : g t = t := Subtype.ext hu.self_of_nhds
+  have h := hasDerivAt_mpullback_prodMk_comp (hg.of_le (by simp)) hu x
+    ((SmoothForm.mpullback (Prod.map Subtype.val id)
+      (contMDiff_subtypeVal.prodMap contMDiff_id) β).mdifferentiableAt _)
+  rw [hgt] at h
+  refine h.unique ((hasDerivAt_mpullback_prodMk (t : ℝ) x
+    (β.mdifferentiableAt _)).congr_of_eventuallyEq ?_)
+  -- Near `t`, the slices of the restriction at the times `g v` are the slices of `β` at `v`.
+  filter_upwards [hu] with v hv
+  have hs := congrArg (fun γ ↦ γ.val x)
+    (SmoothForm.mpullback_prodMk_mpullback_prodMap_id_right contMDiff_subtypeVal β (g v))
+  simp only [SmoothForm.coe_mpullback, hv, id] at hs
+  rw [SmoothForm.coe_mpullback]
+  -- `hs` reads the forms in the tangent spaces of `M`, the goal in the model `E`.
+  exact hs
+
+end TauCeti
 
 end

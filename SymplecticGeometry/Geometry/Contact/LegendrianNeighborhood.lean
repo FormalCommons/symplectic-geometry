@@ -242,26 +242,10 @@ private theorem mfderiv_comp_cotangentToNormal (hf : IsLegendrianEmbedding J α.
     rw [Function.comp_apply, ← hT0 q]
     exact congrArg T (congrArg (TotalSpace.mk' P q) (map_zero _))
   · -- Vertically: the composite maps the line `t ↦ t • p` to the line `t ↦ t • j p`.
-    rw [Bundle.zeroSectionTangentEquiv_symm_inr, Bundle.zeroSectionTangentEquiv_symm_inr]
-    let line : ℝ → CotangentBundle J L := fun t ↦ ⟨q, t • p⟩
-    let line' : ℝ → TotalSpace P (fun q ↦ g.NormalSpace q infty_ne_zero) :=
-      fun t ↦ ⟨q, t • cotangentToNormal hf q p⟩
-    have hl : ContMDiff 𝓘(ℝ) (J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)) 1 line :=
-      contMDiff_id.smul_totalSpace (contMDiff_const (c := (⟨q, p⟩ : CotangentBundle J L)))
-    have hl' : ContMDiff 𝓘(ℝ) (J.prod 𝓘(ℝ, P)) 1 line' :=
-      contMDiff_id.smul_totalSpace (contMDiff_const (c := (⟨q, cotangentToNormal hf q p⟩ :
-        TotalSpace P (fun q ↦ g.NormalSpace q infty_ne_zero))))
-    have h1 := mfderiv_comp_apply_of_eq (0 : ℝ)
-      ((hι (zeroSection (E' →L[ℝ] ℝ) (fun q : L ↦ TangentSpace J q →L[ℝ] ℝ) q)).mdifferentiableAt
-        (by simp)) (hl.mdifferentiableAt one_ne_zero) (by simp [line, zeroSection]) (1 : ℝ)
-    have h2 := mfderiv_comp_apply_of_eq (0 : ℝ)
-      ((hT (zeroSection P (fun q ↦ g.NormalSpace q infty_ne_zero) q)).mdifferentiableAt
-        (by simp)) (hl'.mdifferentiableAt one_ne_zero) (by simp [line', zeroSection]) (1 : ℝ)
-    have hfun : (fun p : CotangentBundle J L ↦ T ⟨p.proj, cotangentToNormal hf p.proj p.snd⟩) ∘
-        line = T ∘ line' := by
-      funext t
-      exact congrArg T (congrArg (TotalSpace.mk' P q) (map_smul _ t p))
-    rw [← h1, hfun, h2]
+    rw [Bundle.mfderiv_zeroSectionTangentEquiv_symm_inr ((hι _).mdifferentiableAt (by simp)),
+      Bundle.mfderiv_zeroSectionTangentEquiv_symm_inr ((hT _).mdifferentiableAt (by simp))]
+    congr 2 with t
+    exact congrArg T (congrArg (TotalSpace.mk' P q) (map_smul _ t p))
 
 /-- The differential at `0_q` of `T ∘ j`, for a map `T` of the normal bundle and `j` the bundle
 map of `cotangentToNormal`, with its values read in the tangent space of `M` at `g q`. When `T` is

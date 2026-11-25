@@ -233,8 +233,8 @@ This file names it as a form.
   local forms.
 - `exists_isConnectionForm [FiniteDimensional ℝ EB] [T2Space B]
   [SigmaCompactSpace B] : ∃ A, IsConnectionForm A`, glued with a smooth
-  partition of unity of the base, as the merged
-  `exists_isCircleConnectionForm`, whose proof it adapts and credits.
+  partition of unity of the base. Its case `G = Circle` gives
+  `exists_isCircleConnectionForm`, in `Principal/Connection/Circle.lean`.
 
 ### `Geometry/Manifold/FiberBundle/Principal/Connection/Curvature.lean`
 
@@ -253,7 +253,7 @@ This file names it as a form.
   same way along the flow $x\mapsto x\cdot\exp(t\xi)$), and Cartan's
   formula with $A(\xi^\sharp)=\xi$ constant gives
   $\iota_{\xi^\sharp}dA=-[\xi,A]$, which the bracket term cancels.
-  Together with equivariance, `IsConnectionForm.isTensorial_connectionCurvature`.
+  Together with equivariance, `IsConnectionForm.isTensorialForm_connectionCurvature`.
 - `connectionCurvature_apply_horizontal`: for vector
   fields $X,Y$ horizontal near $x$,
   $F_A(X,Y)(x)=-A_x([X,Y](x))$ with `VectorField.mlieBracket`, from
@@ -388,8 +388,8 @@ Issues 1, 2 and 5 can start at once.
 - Merged files of *First Chern number*:
   `Geometry/Manifold/FiberBundle/Principal/BasicForm.lean` (descent of
   basic forms, invariant forms along fundamental fields) and
-  `CircleConnection.lean` (the circle comparison, and the pattern of the
-  existence proof); `Geometry/Lie/Exponential/Circle.lean`
+  `CircleConnection.lean` (the circle comparison);
+  `Geometry/Lie/Exponential/Circle.lean`
   (`circleLieGenerator`).
 - No file of *Lie group actions* or *Moment maps*: the moment map
   predicate is Tau Ceti's.

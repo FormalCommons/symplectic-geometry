@@ -232,8 +232,7 @@ theorem SmoothForm.eval₂_mfderiv_eq_of_mpullback_eq_mpullback_subtype_val {U :
     SmoothBundleForm.eval₂ σ' (ψ x) (mfderiv I I' ψ x a) (mfderiv I I' ψ x b) =
       SmoothBundleForm.eval₂ σ (x : M) a b := by
   have := congrArg (fun s ↦ SmoothBundleForm.eval₂ s x a b) h
-  simpa only [SmoothForm.eval₂_mpullback, Manifold.mfderiv_subtype_val,
-    ContinuousLinearEquiv.coe_coe, Manifold.tangentSpaceOpenEquiv_apply] using this
+  simpa only [SmoothForm.eval₂_mpullback, Manifold.mfderiv_subtype_val_apply] using this
 
 /-- Let `ψ : U → V` be a smooth map between open subsets of `M` and `M'` that pulls the restriction
 of a two-form `σ'` on `M'` back to the restriction of a two-form `σ` on `M`. Then at each point
