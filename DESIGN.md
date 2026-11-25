@@ -3630,15 +3630,15 @@ For `auxiliary/first-chern-class.md`; it waits for no part.
   codimension $r$, its Thom class, Tau Ceti's
   `TauCeti.VectorBundleOrientation.thomClassOfModel` at a generator, and
   the Thom isomorphism $H^k(Z)\cong H^{k+r}(\nu,\nu\setminus Z)$ by cup
-  product, if the pinned Tau Ceti does not already have it for bundles over
-  a general base) and `DualClass.lean` (the class
-  $d_Z$ of degree $r$ on $X$: the Thom class carried to
-  $H^r(X,X\setminus Z)$ by a tubular neighbourhood, Tau Ceti's
-  `exists_isTubularNeighborhood_subset`, and excision, then made absolute;
+  product, from a Thom isomorphism over second-countable bases in
+  `Topology/VectorBundle/Thom/SecondCountable.lean`) and `DualClass.lean`
+  (the class $d_Z$ of degree $r$ on $X$: the Thom class carried to
+  $H^r(X,X\setminus Z)$ by a tubular neighbourhood, from Tau Ceti's
+  `exists_diffeomorph_normalBundle_subset`, and excision, then made absolute;
   independence of the tubular neighbourhood; $d_Z$ restricts to $0$ on
   $X\setminus Z$, and to Tau Ceti's `TauCeti.VectorBundleOrientation.eulerClass`
-  of $\nu$ on $Z$; naturality under diffeomorphisms and under
-  maps transverse to $Z$), `Geometry/Manifold/Orientation/DualClass.lean`
+  of $\nu$ on $Z$; naturality under diffeomorphisms),
+  `Geometry/Manifold/Orientation/DualClass.lean`
   (for closed oriented $X$ and $Z$ with the induced normal orientation,
   $d_Z\frown[X]=i_*[Z]$, with Tau Ceti's fundamental classes and cap
   product; this is the statement $d_Z=\mathrm{PD}(i_*[Z])$, with no
@@ -4313,7 +4313,7 @@ Both milestones, proved in full. Their parts wait for no part of
 | Milestone | Where |
 |---|---|
 | *First Chern class of a complex vector bundle* | *Chern classes* (its extension). Existing inputs, merged: `firstChernClass`, `firstChernClass_pullback`, `firstChernClass_prod` (compact normal base), `firstChernClass_eq_complexEulerClass`, `complexEulerClass_twistCore_neg_one`, `totalChernClass_tangentSpace`. |
-| *Thom class and Poincaré dual of a submanifold* | *Poincaré duals of submanifolds*. Existing inputs: `TauCeti.VectorBundleOrientation.thomClassOfModel`, `TauCeti.VectorBundleOrientation.eulerClass`, `exists_isTubularNeighborhood_subset`. |
+| *Thom class and Poincaré dual of a submanifold* | *Poincaré duals of submanifolds*. Existing inputs: `TauCeti.VectorBundleOrientation.thomClassOfModel`, `TauCeti.VectorBundleOrientation.eulerClass`, `TauCeti.SmoothEmbedding.exists_diffeomorph_normalBundle_subset`. |
 
 ### `auxiliary/connected-sums-and-blowups.md`
 
