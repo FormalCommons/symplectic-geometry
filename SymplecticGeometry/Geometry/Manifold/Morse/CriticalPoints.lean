@@ -13,16 +13,18 @@ import SymplecticGeometry.Topology.DiscreteSubset
 
 If each critical point of a `C¹` function `f` in a compact set `K` is isolated among the critical
 points of `f`, then `K` holds only finitely many critical points
-(`TauCeti.finite_criticalPoints_inter_of_forall_eventually_notMem`): the critical set is closed,
-so its part in `K` is compact, and it is discrete there. No Morse condition is assumed, so this
+(`TauCeti.finite_criticalPoints_inter_of_forall_eventually_notMem`), since the critical set is
+closed (`TauCeti.isClosed_criticalPoints`). No Morse condition is assumed, so this
 serves Morse functions, whose critical points are isolated because they are nondegenerate, as well
 as generalized Morse functions, whose degenerate critical points are of birth–death type.
 
 ## Implementation notes
 
-The proof is that of Tau Ceti's
+The statement is Tau Ceti's
 `TauCeti.finite_criticalPoints_inter_of_forall_isManifoldNondegenerateCriticalPoint`, with the
-isolation of each critical point as the hypothesis in place of its nondegeneracy.
+isolation of each critical point as the hypothesis in place of its nondegeneracy. The proof applies
+`IsClosed.finite_inter_of_forall_eventually_notMem`, which holds for every closed set, to the
+critical set.
 -/
 
 public section
@@ -43,9 +45,7 @@ theorem finite_criticalPoints_inter_of_forall_eventually_notMem (hf : ContMDiff 
     {K : Set M} (hK : IsCompact K)
     (h : ∀ x ∈ criticalPoints I f ∩ K, ∀ᶠ y in 𝓝[≠] x, y ∉ criticalPoints I f) :
     (criticalPoints I f ∩ K).Finite :=
-  (hK.inter_left (isClosed_criticalPoints hf)).finite <|
-    isDiscrete_iff_forall_eventually_notMem.2 fun x hx ↦
-      (h x hx).mono fun _ hy hyK ↦ hy hyK.1
+  (isClosed_criticalPoints hf).finite_inter_of_forall_eventually_notMem hK h
 
 end TauCeti
 

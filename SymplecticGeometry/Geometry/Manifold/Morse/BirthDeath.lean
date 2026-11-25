@@ -12,7 +12,6 @@ public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Pi
 import SymplecticGeometry.Analysis.Calculus.Hadamard
 import SymplecticGeometry.Geometry.Manifold.Morse.CriticalPoints
-import SymplecticGeometry.Topology.DiscreteSubset
 import SymplecticGeometry.Topology.Maps.Proper
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
@@ -520,8 +519,7 @@ theorem isClosed_criticalPoints [IsManifold 𝓘(ℝ, E) 1 M] (hf : IsGeneralize
 /-- The critical set of a generalized Morse function is discrete. -/
 theorem isDiscrete_criticalPoints [IsManifold 𝓘(ℝ, E) 1 M] (hf : IsGeneralizedMorse E f) :
     IsDiscrete (criticalPoints 𝓘(ℝ, E) f) :=
-  isDiscrete_iff_forall_eventually_notMem.2 fun x _ ↦
-    hf.eventually_notMem_criticalPoints x
+  isDiscrete_iff_nhdsNE.2 fun x _ ↦ inf_principal_eq_bot.2 (hf.eventually_notMem_criticalPoints x)
 
 /-- A generalized Morse function has finitely many critical points in each compact set. -/
 theorem finite_criticalPoints_inter [IsManifold 𝓘(ℝ, E) 1 M] (hf : IsGeneralizedMorse E f)

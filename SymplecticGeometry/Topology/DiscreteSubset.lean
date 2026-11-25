@@ -8,12 +8,14 @@ module
 public import Mathlib.Topology.DiscreteSubset
 
 /-!
-# Discrete subsets by isolated points
+# Finiteness of isolated points of a closed set in a compact set
 
-A subset `s` of a topological space is discrete exactly when each of its points has a punctured
-neighbourhood that misses `s` (`isDiscrete_iff_forall_eventually_notMem`). This is Mathlib's
-`isDiscrete_iff_nhdsNE`, with the condition `𝓝[≠] x ⊓ 𝓟 s = ⊥` written as an `Eventually`
-statement, the form in which isolation of a point is usually proved.
+If `s` is closed and each point of `s` lying in a compact set `K` has a punctured neighbourhood
+missing `s`, then `s ∩ K` is finite (`IsClosed.finite_inter_of_forall_eventually_notMem`): this
+intersection is compact, and it is discrete by Mathlib's `isDiscrete_iff_nhdsNE`, so
+`IsCompact.finite` applies. These are the steps of the proof of Tau Ceti's
+`TauCeti.finite_criticalPoints_inter_of_forall_isManifoldNondegenerateCriticalPoint`, here for
+any closed set.
 -/
 
 public section
@@ -21,12 +23,14 @@ public section
 open Filter
 open scoped Topology
 
-variable {X : Type*} [TopologicalSpace X] {s : Set X}
+variable {X : Type*} [TopologicalSpace X] {s K : Set X}
 
-/-- A set is discrete if and only if each of its points has a punctured neighbourhood disjoint
-from the set. -/
-theorem isDiscrete_iff_forall_eventually_notMem :
-    IsDiscrete s ↔ ∀ x ∈ s, ∀ᶠ y in 𝓝[≠] x, y ∉ s := by
-  simp only [isDiscrete_iff_nhdsNE, inf_principal_eq_bot, eventually_iff, Set.compl_def]
+/-- If `s` is closed, `K` is compact, and every point of `s ∩ K` has a punctured neighbourhood
+disjoint from `s`, then `s ∩ K` is finite. Nothing is assumed about the points of `s` outside
+`K`. -/
+theorem IsClosed.finite_inter_of_forall_eventually_notMem (hs : IsClosed s) (hK : IsCompact K)
+    (h : ∀ x ∈ s ∩ K, ∀ᶠ y in 𝓝[≠] x, y ∉ s) : (s ∩ K).Finite :=
+  (hK.inter_left hs).finite <| isDiscrete_iff_nhdsNE.2 fun x hx ↦
+    inf_principal_eq_bot.2 ((h x hx).mono fun _ hy hyK ↦ hy hyK.1)
 
 end
