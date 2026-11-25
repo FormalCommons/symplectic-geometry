@@ -24,8 +24,7 @@ dimension count `2 * dim N = dim M` is left.
 
 ## References
 
-* D. McDuff, D. Salamon, *Introduction to Symplectic Topology*, 3rd ed., Oxford, 2017,
-  Section 3.4.
+* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §3.4
 -/
 
 public section
