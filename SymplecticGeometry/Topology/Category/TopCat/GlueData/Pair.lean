@@ -34,9 +34,13 @@ and `e x = y` (`TopCat.GlueData.ofHomeomorph_ι_false_eq_ι_true_iff`).
   one of the two pieces.
 * `TopCat.GlueData.ofHomeomorph_t2Space_iff`: the two-piece form of Tau Ceti's Hausdorff
   criterion `TopCat.GlueData.t2Space_iff_forall_nhds`.
+* `TopCat.GlueData.ofHomeomorph_t2Space_of_isClosed_range`: the glued space of Hausdorff spaces
+  is Hausdorff when the graph of `e` is closed in `X × Y`.
 
 The construction follows Tau Ceti's `TauCeti.doubleGlueData`, which glues two copies of one
-space along an open subset by the identity.
+space along an open subset by the identity. The proof of
+`TopCat.GlueData.ofHomeomorph_t2Space_of_isClosed_range` follows the forward direction of Tau
+Ceti's `TopCat.GlueData.isClosed_chartRel_iff`.
 
 ## References
 
@@ -256,6 +260,19 @@ theorem ofHomeomorph_t2Space_iff :
       refine ⟨B, hB, A, hA, fun (z : V) hz hz' ↦ hAB (e.symm z) hz' ?_⟩
       rwa [e.apply_symm_apply]
     · exact (hx ⟨⟨x, True.intro⟩, rfl⟩).elim
+
+/-- The space glued from Hausdorff spaces `X` and `Y` along `e` is Hausdorff when the graph of
+`e`, the set of pairs `(u, e u)` for `u ∈ U`, is closed in `X × Y`. -/
+theorem ofHomeomorph_t2Space_of_isClosed_range [T2Space X] [T2Space Y]
+    (he : IsClosed (range fun u : U ↦ ((u : X), (e u : Y)))) :
+    T2Space (ofHomeomorph e).toGlueData.glued := by
+  refine (ofHomeomorph_t2Space_iff e).2 ⟨‹_›, ‹_›, fun x hx y _ ↦ ?_⟩
+  have hxy : (x, y) ∈ (range fun u : U ↦ ((u : X), (e u : Y)))ᶜ := by
+    rintro ⟨u, hu⟩
+    obtain rfl : (u : X) = x := congrArg Prod.fst hu
+    exact hx u.property
+  obtain ⟨A, hA, B, hB, hAB⟩ := mem_nhds_prod_iff.1 (he.isOpen_compl.mem_nhds hxy)
+  exact ⟨A, hA, B, hB, fun z hz hz' ↦ hAB (mk_mem_prod hz hz') ⟨z, rfl⟩⟩
 
 end TopCat.GlueData
 

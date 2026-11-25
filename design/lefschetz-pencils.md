@@ -315,8 +315,9 @@ of real dimension four, not yet compact.
   finite set in $\mathbb CP^1$), and `IsLefschetzFibration.comp_projectivizationMap`:
   composing with the map of $\mathbb CP^1$ induced by `g : GL (Fin 2) ℂ`
   gives a Lefschetz fibration.
-- `IsLefschetzFibration.isIntegrable_on` and `mdifferentiableAt_of_mem`:
-  `J` is integrable, and `π` holomorphic, on the chart domains of the model.
+- `IsLefschetzFibration.isIntegrable_on`, and `IsLefschetzChart.isIntegrable_on`
+  and `IsLefschetzChart.mdifferentiableAt_of_mem`: `J` is integrable, and `π`
+  holomorphic, on the chart domains of the model.
 - The example: `isLefschetzFibration_snd` and `isLefschetzPencil_empty`
   for the product of a closed surface with $\mathbb CP^1$, with the product
   form of an area form and `fubiniStudyForm` and the product structure.
@@ -342,7 +343,7 @@ Namespace `SymplecticGeometry.LefschetzModel`.
 
 - `IsLefschetzFibration.eulerChar_eq`: for a compact connected `X`, a
   Lefschetz fibration `π`, and connected regular fibres,
-  `eulerChar X = 2 * eulerChar F + (criticalPoints π).ncard` for any regular
+  `eulerChar X = 2 * eulerChar F + (criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π).ncard` for any regular
   fibre `F` (as Tau Ceti's regular fibre manifold of `RegularValue/ManifoldLevel.lean`),
   by *Decisions*. With the genus, `eulerChar X = 4 - 4 * g + ℓ`, by
   `TauCeti.HomologicalOrientation.genus_eq_surfaceGenus`.
