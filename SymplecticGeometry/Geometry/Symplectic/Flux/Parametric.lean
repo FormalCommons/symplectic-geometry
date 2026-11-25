@@ -9,7 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Flux.Hamiltonian
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
-import TauCeti.Geometry.Symplectic.Manifold.Family
+import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
 
 /-!
 # The flow of a family of compactly supported Hamiltonians
@@ -37,10 +37,10 @@ statement for one Hamiltonian at a time says nothing about smoothness in the par
 function `F`, read on `[0, 1] × (N × M)`, is extended in time to `ℝ × (N × M)` by Seeley's
 operator (`SymplecticGeometry.timeExtend`), which needs the boundaryless factor `N × M` and keeps
 the zeros of `F` (`SymplecticGeometry.timeExtend_eq_zero`). The differential of the extension
-`G` is a one-form on `(N × ℝ) × M` whose slices are the differentials `d(G_{a,u})` along `M`, so
-the fields `X_{a,u} = (σ♭)⁻¹ d(G_{a,u})` are jointly smooth
-(`TauCeti.SmoothTwoForm.contMDiff_interiorEquiv_symm_mpullback_prodMk`, with parameter space
-`N × ℝ`). They vanish off `C`, so their suspensions are complete
+The Hamiltonian fields `X_{a,u}` of the slices `G_{a,u}` of the extension `G` are jointly
+smooth in `(a, u)` and the point
+(`TauCeti.SmoothTwoForm.IsNondegenerate.contMDiff_hamiltonianVectorField_uncurry`, with
+parameter space `N × ℝ`). They vanish off `C`, so their suspensions are complete
 (`TauCeti.isCompleteVectorField_timeDependentSuspensionField`), and `φ^a` is
 `TauCeti.timeDependentFlowDiffeotopy` of `X_a`. The flows are smooth in the parameter by
 `TauCeti.contMDiff_timeDependentFlowOf_param`.
@@ -60,8 +60,9 @@ open scoped Manifold ContDiff
 namespace TauCeti.Diffeotopy
 
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [TopologicalSpace H] {J : ModelWithCorners ℝ E H} [J.Boundaryless] {M : Type*}
-  [TopologicalSpace M] [ChartedSpace H M] [IsManifold J ∞ M] [T2Space M]
+  [TopologicalSpace H] {J : ModelWithCorners ℝ E H} {M : Type*}
+  [TopologicalSpace M] [ChartedSpace H M] [BoundarylessManifold J M] [IsManifold J ∞ M]
+  [T2Space M]
   {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [CompleteSpace EN]
   [TopologicalSpace HN] {I : ModelWithCorners ℝ EN HN} [TopologicalSpace N] [ChartedSpace HN N]
   [IsManifold I ∞ N] [T2Space N] [BoundarylessManifold I N]
@@ -84,56 +85,26 @@ theorem exists_isGeneratedBy_param {σ : SmoothTwoForm J M} (hσ : σ.IsSymplect
         (fun p : (N × unitInterval) × M ↦ Φ p.1.1 (p.1.2, p.2)) ∧
       (∀ a t, ∀ y ∉ C, Φ a (t, y) = y) ∧
       ∀ a, (∀ y t, F (a, y, t) = 0) → ∀ t y, Φ a (t, y) = y := by
-  -- The time extension `G` of `F`, on `ℝ × (N × M)`, and the same function on `(N × ℝ) × M`.
+  -- The time extension `G` of `F`, on `ℝ × (N × M)`.
   set G : ℝ × (N × M) → ℝ :=
     SymplecticGeometry.timeExtend fun q : unitInterval × (N × M) ↦ F (q.2.1, q.2.2, q.1)
   have hG : ContMDiff (𝓘(ℝ, ℝ).prod (I.prod J)) 𝓘(ℝ) ∞ G :=
     ContMDiff.timeExtend
       (hF.comp (contMDiff_snd.fst.prodMk (contMDiff_snd.snd.prodMk contMDiff_fst)))
-  let Gc : C^∞⟮(I.prod 𝓘(ℝ, ℝ)).prod J, (N × ℝ) × M; 𝓘(ℝ, ℝ), ℝ⟯ :=
-    ⟨fun p ↦ G (p.1.2, p.1.1, p.2),
-      hG.comp (contMDiff_fst.snd.prodMk (contMDiff_fst.fst.prodMk contMDiff_snd))⟩
-  set α := mextDerivₗ ((I.prod 𝓘(ℝ, ℝ)).prod J) 0 (SmoothForm.ofFunction Gc)
-  -- The slices of `α` are the differentials of the slices of `G`.
-  have hα (b : N × ℝ) :
-      (SmoothForm.mpullback (Prod.mk b) (contMDiff_const.prodMk contMDiff_id) α).val =
-        mextDeriv (RoughForm.ofFunction J fun y ↦ G (b.2, b.1, y)) := by
-    rw [← SmoothForm.mextDerivₗ_mpullback, mextDerivₗ_apply,
-      SmoothForm.coe_mpullback _ _ (SmoothForm.ofFunction Gc), SmoothForm.coe_ofFunction,
-      mpullback_ofFunction, ContMDiffMap.coeFn_mk, Function.comp_def]
-  -- The constant family `σ'` of `σ` on `(N × ℝ) × M`.
-  set σ' : SmoothTwoForm ((I.prod 𝓘(ℝ, ℝ)).prod J) ((N × ℝ) × M) :=
-    SmoothForm.mpullback Prod.snd contMDiff_snd σ
-  have hσ' (b : N × ℝ) :
-      SmoothForm.mpullback (Prod.mk b) (contMDiff_const.prodMk contMDiff_id) σ' = σ :=
-    SmoothForm.mpullback_prodMk_mpullback_snd σ b
-  have hnd (b : N × ℝ) : SmoothTwoForm.IsNondegenerate
-      (SmoothForm.mpullback (Prod.mk b) (contMDiff_const.prodMk contMDiff_id) σ') :=
-    (hσ' b).symm ▸ hσ.isNondegenerate
-  -- The fields `X_{a,u} = (σ♭)⁻¹ d(G_{a,u})`.
-  set X : N → ℝ → (y : M) → TangentSpace J y := fun a u ↦ hσ.isNondegenerate.interiorEquiv.symm
-    (SmoothForm.mpullback (Prod.mk (a, u)) (contMDiff_const.prodMk contMDiff_id) α) with hXdef
+  -- The Hamiltonian fields `X_{a,u}` of the slices `G_{a,u}`.
+  set X : N → ℝ → (y : M) → TangentSpace J y :=
+    fun a u ↦ σ.hamiltonianVectorField fun y ↦ G (u, a, y) with hXdef
   have hX : ContMDiff ((I.prod 𝓘(ℝ, ℝ)).prod J) J.tangent ∞
-      (fun p : (N × ℝ) × M ↦ (⟨p.2, X p.1.1 p.1.2 p.2⟩ : TangentBundle J M)) :=
-    (SmoothTwoForm.contMDiff_interiorEquiv_symm_mpullback_prodMk σ' hnd α).congr fun p ↦ by
-      simp only [hXdef, SmoothTwoForm.IsNondegenerate.interiorEquiv_symm_apply, hσ']
+      (fun p : (N × ℝ) × M ↦ (⟨p.2, X p.1.1 p.1.2 p.2⟩ : TangentBundle J M)) := by
+    have hG' : ContMDiff ((I.prod 𝓘(ℝ, ℝ)).prod J) 𝓘(ℝ) ∞
+        (Function.uncurry fun (b : N × ℝ) (y : M) ↦ G (b.2, b.1, y)) :=
+      hG.comp (contMDiff_fst.snd.prodMk (contMDiff_fst.fst.prodMk contMDiff_snd))
+    exact hσ.isNondegenerate.contMDiff_hamiltonianVectorField_uncurry le_rfl hG'
   have hXa (a : N) : ContMDiff (𝓘(ℝ, ℝ).prod J) J.tangent ∞
       (fun p : ℝ × M ↦ (⟨p.2, X a p.1 p.2⟩ : TangentBundle J M)) :=
     hX.comp ((contMDiff_const.prodMk contMDiff_fst).prodMk contMDiff_snd)
-  -- On `[0, 1]`, `ι_{X_{a,t}} σ = d(F_{a,t})`.
-  have hint (a : N) (t : unitInterval) : RoughForm.interior (X a t) σ.val =
-      mextDeriv (RoughForm.ofFunction J fun y ↦ F (a, y, t)) := by
-    rw [hXdef, SmoothTwoForm.IsNondegenerate.interior_interiorEquiv_symm, hα]
-    simp_rw [G, SymplecticGeometry.timeExtend_apply_coe]
-  -- `X_{a,u}` vanishes at `y` if `G_{a,u}` vanishes near `y`.
-  have hX0 (a : N) (u : ℝ) (y : M) (h : (fun z ↦ G (u, a, z)) =ᶠ[nhds y] fun _ ↦ 0) :
-      X a u y = 0 := by
-    rw [hXdef, SmoothTwoForm.IsNondegenerate.interiorEquiv_symm_apply_eq_zero_iff, hα]
-    refine mextDeriv_ofFunction_apply_eq_zero_iff.2 ?_
-    dsimp only
-    rw [h.mfderiv_eq, mfderiv_const, ContinuousLinearMap.comp_zero]
   have hXC (a : N) (u : ℝ) (y : M) (hy : y ∉ C) : X a u y = 0 :=
-    hX0 a u y (by
+    SmoothTwoForm.hamiltonianVectorField_eq_zero_of_eventuallyEq (by
       filter_upwards [hC.isClosed.isOpen_compl.mem_nhds hy] with z hz
       exact SymplecticGeometry.timeExtend_eq_zero (fun s ↦ hFC a z s hz) u)
   have hc (a : N) := isCompleteVectorField_timeDependentSuspensionField
@@ -142,12 +113,14 @@ theorem exists_isGeneratedBy_param {σ : SmoothTwoForm J M} (hσ : σ.IsSymplect
     fun a t y hy ↦ timeDependentFlowDiffeotopy_apply_of_forall_eq_zero le_top (hXa a) (hc a)
       (fun u ↦ hXC a u y hy) t,
     fun a ha t y ↦ timeDependentFlowDiffeotopy_apply_of_forall_eq_zero le_top (hXa a) (hc a)
-      (fun u ↦ hX0 a u y (Filter.Eventually.of_forall fun z ↦
-        SymplecticGeometry.timeExtend_eq_zero (fun s ↦ ha z s) u)) t⟩
+      (fun u ↦ SmoothTwoForm.hamiltonianVectorField_eq_zero_of_eventuallyEq
+        (Filter.Eventually.of_forall fun z ↦
+          SymplecticGeometry.timeExtend_eq_zero (fun s ↦ ha z s) u)) t⟩
   · -- `F_a` generates the flow of `X_a`.
-    refine isGeneratedBy_iff.2 ⟨hF.comp (contMDiff_const.prodMk contMDiff_id), fun t ↦
-      SmoothTwoForm.isHamiltonianVectorField_iff_interior_eq.2 ?_⟩
-    rw [funext (velocity_timeDependentFlowDiffeotopy le_top (hXa a) (hc a) t), hint]
+    refine isGeneratedBy_iff.2 ⟨hF.comp (contMDiff_const.prodMk contMDiff_id), fun t ↦ ?_⟩
+    rw [funext (velocity_timeDependentFlowDiffeotopy le_top (hXa a) (hc a) t), hXdef]
+    simp_rw [G, SymplecticGeometry.timeExtend_apply_coe]
+    exact hσ.isNondegenerate.isHamiltonianVectorField_hamiltonianVectorField _
   · -- Joint smoothness, from the smoothness of the flows in the parameter.
     refine ((contMDiff_timeDependentFlowOf_param le_top hX hc).comp
       ((contMDiff_fst.fst.prodMk ((contMDiff_const (c := (0 : ℝ))).prodMk
