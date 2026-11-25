@@ -239,11 +239,7 @@ noncomputable def blowupModelChart (i : Fin (n + 1)) :
     have hv : Continuous fun w : Fin (n + 1) → ℂ => update w i 1 :=
       continuous_id.update i continuous_const
     refine Continuous.prodMk ?_ ((continuous_apply i).smul hv)
-    have : (fun w : Fin (n + 1) → ℂ => mk ℂ (update w i 1) (update_ne_zero w i one_ne_zero)) =
-        (affineChart i).symm ∘ Fin.removeNth i := by
-      ext1 w
-      simp [Fin.insertNth_removeNth]
-    rw [this]
+    simp_rw [← affineChart_symm_removeNth]
     exact (continuous_affineChart_symm i).comp (continuous_pi fun _ => continuous_apply _)
 
 variable (i : Fin (n + 1))
@@ -320,26 +316,33 @@ theorem blowupModelChart_symm_trans_source_of_ne {k : Fin (n + 1)} (hk : k ≠ i
   ext w
   simp [update_of_ne hk]
 
+/-- The chart `k` at the image of `w` under the inverse of the chart `i`, at a place `j ≠ k`:
+with `v = update w i 1`, it is `v j / v k`. -/
+@[simp]
+theorem blowupModelChart_blowupModelChart_symm_apply_of_ne (k : Fin (n + 1))
+    (w : Fin (n + 1) → ℂ) {j : Fin (n + 1)} (hj : j ≠ k) :
+    blowupModelChart k ((blowupModelChart i).symm w) j = update w i 1 j / update w i 1 k :=
+  blowupModelChart_apply_of_ne k _ _ (pr_blowupModelChart_symm_apply i w) hj
+
 /-- The transition from the chart `i` to the chart `k`: with `v = update w i 1`, it sends `w` to
 `w'` with `w' k = w i * v k` and `w' j = v j / v k` for `j ≠ k`. -/
 theorem blowupModelChart_symm_trans_apply (k : Fin (n + 1)) (w : Fin (n + 1) → ℂ) :
     (blowupModelChart i).symm.trans (blowupModelChart k) w =
       Fin.insertNth k (w i * update w i 1 k)
         (fun j => update w i 1 (k.succAbove j) / update w i 1 k) := by
-  simp [blowupModelChart_apply, blowdown_blowupModelChart_symm_apply]
+  ext j
+  refine Fin.succAboveCases k ?_ (fun j => ?_) j <;>
+    simp [Fin.succAbove_ne, blowdown_blowupModelChart_symm_apply]
 
-@[simp]
 theorem blowupModelChart_symm_trans_apply_self (k : Fin (n + 1)) (w : Fin (n + 1) → ℂ) :
     (blowupModelChart i).symm.trans (blowupModelChart k) w k = w i * update w i 1 k := by
-  simp [blowupModelChart_symm_trans_apply]
+  simp [blowdown_blowupModelChart_symm_apply]
 
-@[simp]
 theorem blowupModelChart_symm_trans_apply_of_ne (k : Fin (n + 1)) (w : Fin (n + 1) → ℂ)
     {j : Fin (n + 1)} (hj : j ≠ k) :
     (blowupModelChart i).symm.trans (blowupModelChart k) w j =
       update w i 1 j / update w i 1 k := by
-  obtain ⟨j, rfl⟩ := Fin.exists_succAbove_eq hj
-  simp [blowupModelChart_symm_trans_apply]
+  simp [hj]
 
 end Chart
 
