@@ -7,6 +7,8 @@ module
 
 public import Mathlib.LinearAlgebra.Complex.FiniteDimensional
 public import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
+public import SymplecticGeometry.LinearAlgebra.FiniteDimensional.RestrictScalars
+public import SymplecticGeometry.Topology.Algebra.Group.Pointwise
 public import TauCeti.MeasureTheory.Measure.Lebesgue.OrthogonalSlices
 
 /-!
@@ -28,15 +30,14 @@ the volume of the ball of radius `2` in `E`
 `Submodule.volume_preimage_measurableEquivProd_prod`).
 
 That `A` is closed makes the set measurable
-(`IsClosed.setOf_exists_norm_le_add_smul_mem`); zero sets of polynomials are closed.
+(`IsClosed.setOf_exists_norm_le_add_smul_mem`); zero sets of polynomials are closed. A complex
+line has real dimension `2` by the tower law `Submodule.finrank_restrictScalars`.
 
 ## Main results
 
 * `MeasureTheory.volume_setOf_exists_add_smul_mem_le`: the volume bound.
 * `Submodule.volume_ball_mul_volume_ball_orthogonal_le`: balls in a subspace and in its
   orthogonal complement.
-* `Submodule.finrank_restrictScalars_span_singleton_complex`: a complex line has real
-  dimension `2`.
 -/
 
 public section
@@ -44,31 +45,7 @@ public section
 open MeasureTheory Metric Set
 open scoped ENNReal
 
-/-- The points from which a closed set can be reached by a move of size at most `ρ` along the
-complex direction `v` form a closed set. -/
-theorem IsClosed.setOf_exists_norm_le_add_smul_mem {E : Type*} [NormedAddCommGroup E]
-    [NormedSpace ℂ E] {A : Set E} (hA : IsClosed A) (v : E) (ρ : ℝ) :
-    IsClosed {c : E | ∃ s : ℂ, ‖s‖ ≤ ρ ∧ c + s • v ∈ A} := by
-  have hD : IsCompact ((fun s : ℂ ↦ -(s • v)) '' closedBall 0 ρ) :=
-    (isCompact_closedBall 0 ρ).image (by fun_prop)
-  convert hA.add_left_of_isCompact hD using 1
-  ext c
-  simp only [mem_ofPred_eq, Set.mem_add, mem_image, mem_closedBall, dist_zero_right]
-  constructor
-  · rintro ⟨s, hs, hc⟩
-    exact ⟨-(s • v), ⟨s, hs, rfl⟩, c + s • v, hc, by abel⟩
-  · rintro ⟨_, ⟨s, hs, rfl⟩, a, ha, rfl⟩
-    exact ⟨s, hs, by simpa using ha⟩
-
 namespace Submodule
-
-/-- The complex line spanned by a nonzero vector has real dimension `2`. -/
-theorem finrank_restrictScalars_span_singleton_complex {V : Type*} [AddCommGroup V]
-    [Module ℂ V] [Module ℝ V] [IsScalarTower ℝ ℂ V] {v : V} (hv : v ≠ 0) :
-    Module.finrank ℝ ((ℂ ∙ v).restrictScalars ℝ) = 2 := by
-  rw [← Complex.finrank_real_complex,
-    (((LinearEquiv.toSpanNonzeroSingleton ℂ V v hv) ≪≫ₗ
-      (restrictScalarsEquiv ℝ ℂ V (ℂ ∙ v)).symm).restrictScalars ℝ).finrank_eq]
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
   [MeasurableSpace E] [BorelSpace E]
@@ -180,7 +157,8 @@ theorem volume_setOf_exists_add_smul_mem_le {A : Set E} (hA : IsClosed A) (v : E
     _ = N * ENNReal.ofReal ((ρ * ‖v‖) ^ 2) *
         (volume (ball (0 : K) 1) * volume (ball (0 : Kᗮ) 1)) := by
       rw [lintegral_indicator_const measurableSet_ball, Measure.addHaar_closedBall _ _
-        (by positivity), Submodule.finrank_restrictScalars_span_singleton_complex hv]
+        (by positivity)]
+      simp [K, Submodule.finrank_restrictScalars, finrank_span_singleton hv]
       ring
     _ ≤ N * ENNReal.ofReal ((ρ * ‖v‖) ^ 2) * volume (ball (0 : E) 2) := by
       gcongr
