@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Topology.PartitionOfUnity
 public import TauCeti.AlgebraicTopology.SimplicialComplex.Realization.Basic
+import SymplecticGeometry.AlgebraicTopology.SimplicialComplex.Basic
 import SymplecticGeometry.AlgebraicTopology.SimplicialComplex.Realization.Restriction
 import TauCeti.AlgebraicTopology.SimplicialComplex.Basic
 import TauCeti.AlgebraicTopology.SimplicialComplex.Realization.Coordinates
@@ -66,15 +67,16 @@ def nerve : AbstractSimplicialComplex ι :=
   PreAbstractSimplicialComplex.addSingletons ι
     (TauCeti.PreAbstractSimplicialComplex.ofGenerators (Set.range ρ.finsupport))
 
+theorem nerve_def : ρ.nerve = PreAbstractSimplicialComplex.addSingletons ι
+    (TauCeti.PreAbstractSimplicialComplex.ofGenerators (Set.range ρ.finsupport)) :=
+  (rfl)
+
 /-- A finite set of indices is a face of the nerve of `ρ` exactly when it is nonempty and the
 functions `ρ i` it indexes are nonzero at a common point, or it is a singleton. -/
 theorem mem_nerve_iff {t : Finset ι} :
     t ∈ ρ.nerve ↔ (t.Nonempty ∧ ∃ x, ∀ i ∈ t, ρ i x ≠ 0) ∨ ∃ i, t = {i} := by
-  -- Mathlib states no membership lemma for `PreAbstractSimplicialComplex.addSingletons`, whose
-  -- faces are by definition those of the precomplex together with the singletons.
-  have h : t ∈ ρ.nerve ↔ t ∈ TauCeti.PreAbstractSimplicialComplex.ofGenerators
-      (Set.range ρ.finsupport) ∨ ∃ i, t = {i} := Iff.rfl
-  simp [h, TauCeti.PreAbstractSimplicialComplex.mem_ofGenerators, Finset.subset_iff]
+  rw [nerve_def, PreAbstractSimplicialComplex.mem_addSingletons]
+  simp [TauCeti.PreAbstractSimplicialComplex.mem_ofGenerators, Finset.subset_iff]
 
 /-- A nonempty finite set of indices whose functions are all nonzero at `x` is a face of the
 nerve. -/
