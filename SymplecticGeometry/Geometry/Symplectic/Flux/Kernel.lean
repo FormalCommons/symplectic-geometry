@@ -16,6 +16,7 @@ import TauCeti.Geometry.Symplectic.Flux.OrderedFlow
 import TauCeti.Geometry.Symplectic.Flux.Reparam
 import TauCeti.Geometry.Symplectic.Flux.Trans
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.OrderedFlow
+import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Reparam
 import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.HomologyPeriod
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
@@ -68,11 +69,14 @@ with `[ι_{Y i} σ] = θ_i` (`TauCeti.SmoothTwoForm.IsNondegenerate.interiorClas
 complete since `M` is compact. Let `ψ_t` be the ordered flow of the `Y i` along the times `A i`
 (`TauCeti.orderedGlobalFlowDiffeotopy`). Its truncation at `T` is the ordered flow along
 `t ↦ A i (T t)`, with flux `∑ i, A i T • θ_i`
-(`TauCeti.Diffeotopy.flux_orderedGlobalFlowDiffeotopy`), so every truncation of
+(`TauCeti.Diffeotopy.flux_truncate_orderedGlobalFlowDiffeotopy`, from Tau Ceti's
+`TauCeti.Diffeotopy.flux_orderedGlobalFlowDiffeotopy`), so every truncation of
 `t ↦ ψ_t⁻¹ ∘ φ_t` has zero flux, and this diffeotopy is Hamiltonian by the criterion above. Since
 the flux of `φ` is zero, every `A i 1` vanishes, so `ψ` is a loop, homotopic to the constant
 diffeotopy (`TauCeti.Diffeotopy.orderedGlobalFlowDiffeotopy_homotopic_refl`),
-and `φ` is homotopic to `t ↦ ψ_t⁻¹ ∘ φ_t`. With Tau Ceti's
+and `φ` is homotopic to `t ↦ ψ_t⁻¹ ∘ φ_t`. This homotopy is a `TauCeti.Diffeotopy.Homotopic`
+one, whose intermediate maps need not preserve `σ`; McDuff–Salamon's homotopy runs through
+symplectic isotopies, so the result here is weaker than theirs. With Tau Ceti's
 `TauCeti.mem_ker_endpointFlux_iff` and `TauCeti.hamiltonianGroup_subgroupOf_le_ker_endpointFlux`,
 this identifies the kernel of the endpoint flux with the Hamiltonian group.
 
@@ -87,9 +91,14 @@ this identifies the kernel of the endpoint flux with the Hamiltonian group.
 * `TauCeti.Diffeotopy.exists_contDiff_flux_truncate_eq_sum_smul_periodDualBasis`: when
   `H¹_dR(M)` is finite-dimensional, if the velocity vanishes near both ends, the fluxes of the
   truncations are `∑ i, A i T • θ_i` for smooth functions `A i` with `A i 0 = 0`.
-* `TauCeti.Diffeotopy.exists_isHamiltonian_homotopic_of_flux_eq_zero` (McDuff–Salamon,
+* `TauCeti.Diffeotopy.flux_truncate_orderedGlobalFlowDiffeotopy`: the truncation at `T` of an
+  ordered flow of complete symplectic vector fields `Y i` along times `A i` has flux
+  `∑ i, A i T • [ι_{Y i} σ]`.
+* `TauCeti.Diffeotopy.exists_isHamiltonian_homotopic_of_flux_eq_zero` (after McDuff–Salamon,
   Theorem 10.2.5): on a closed symplectic manifold, a symplectic isotopy with zero flux is
-  homotopic with fixed ends to a Hamiltonian one.
+  homotopic with fixed ends, as a `TauCeti.Diffeotopy.Homotopic` homotopy whose intermediate
+  maps need not preserve `σ`, to a Hamiltonian one. This is weaker than the book's homotopy
+  through symplectic isotopies.
 * `TauCeti.Diffeotopy.final_mem_hamiltonianGroup_of_flux_eq_zero`: its final map is Hamiltonian.
 * `TauCeti.ker_endpointFlux`: the kernel of the endpoint flux is the Hamiltonian group.
 
@@ -247,6 +256,26 @@ theorem exists_contDiff_flux_truncate_eq_sum_smul_periodDualBasis
   rw [← (deRhamCohomology.periodDualBasis J M).sum_repr ((Φ.truncate T).flux σ _)]
   simp_rw [deRhamCohomology.periodDualBasis_repr_apply, homologyPeriod_flux_truncate hΦ, hg_def]
 
+/-- **Fluxes of truncated ordered flows.** Let `Y i` be complete symplectic vector fields of the
+closed two-form `σ` and `A i` smooth time functions with `A i 0 = 0`. The truncation at time `T`
+of the ordered flow `t ↦ ψ^(Y 0)_(A 0 t) ∘ ⋯ ∘ ψ^(Y (k-1))_(A (k-1) t)` has flux
+`∑ i, A i T • [ι_{Y i} σ]`. -/
+theorem flux_truncate_orderedGlobalFlowDiffeotopy {k : ℕ}
+    {Y : Fin k → Cₛ^∞⟮J; E, TangentSpace J (M := M)⟯}
+    (hY : ∀ i, Y i ∈ SmoothTwoForm.symplecticVectorFields σ.val)
+    (hc : ∀ i, IsCompleteVectorField (Y i)) (A : Fin k → ℝ → ℝ) (hA : ∀ i, ContDiff ℝ ∞ (A i))
+    (hA₀ : ∀ i, A i 0 = 0) (T : unitInterval)
+    (hΦ : ((orderedGlobalFlowDiffeotopy le_top (fun i ↦ Y i) (fun i ↦ (Y i).contMDiff) hc A hA
+      hA₀).truncate T).final ∈ SmoothForm.diffeomorphStabilizer σ.val) :
+    ((orderedGlobalFlowDiffeotopy le_top (fun i ↦ Y i) (fun i ↦ (Y i).contMDiff) hc A hA
+      hA₀).truncate T).flux σ hΦ =
+      ∑ i, A i T • SmoothTwoForm.interiorClass σ.val ⟨Y i, hY i⟩ := by
+  have hσ := (SmoothForm.isClosed_iff_mem_closedForms σ.val).2 σ.property
+  rw [flux_congr (truncate_orderedGlobalFlowDiffeotopy le_top _ _ hc A hA hA₀ T) hΦ
+      (SmoothForm.final_mem_diffeomorphStabilizer
+        (timeSlice_orderedGlobalFlowDiffeotopy_mem_diffeomorphStabilizer hσ hY hc _ _ _)),
+    flux_orderedGlobalFlowDiffeotopy σ hY]
+  simp
 
 section Kernel
 
@@ -254,21 +283,19 @@ variable [CompactSpace M]
 
 /-- **Symplectic isotopies with zero flux are homotopic to Hamiltonian ones.** Let `σ` be a
 symplectic form on a closed manifold `M`, and let every map of the diffeotopy `φ_t` preserve `σ`.
-If `φ_t` has zero flux, then it is homotopic, with fixed ends, to a Hamiltonian diffeotopy. -/
+If `φ_t` has zero flux, then it is homotopic, with fixed ends, to a Hamiltonian diffeotopy.
+
+The homotopy is a `TauCeti.Diffeotopy.Homotopic` one, whose intermediate maps need not preserve
+`σ`. This is weaker than McDuff–Salamon's Theorem 10.2.5, where the homotopy runs through
+symplectic isotopies. -/
 theorem exists_isHamiltonian_homotopic_of_flux_eq_zero (hσ : SmoothTwoForm.IsNondegenerate σ.val)
     (hΦ : ∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ.val)
     (h : Φ.flux σ (SmoothForm.final_mem_diffeomorphStabilizer hΦ) = 0) :
     ∃ Ψ : Diffeotopy J ∞ M, Ψ.IsHamiltonian σ.val ∧ Φ.Homotopic Ψ := by
   have hσc := (SmoothForm.isClosed_iff_mem_closedForms σ.val).2 σ.property
-  -- The flux does not see which proof that the final map preserves `σ` it is given.
-  have hfl {Φ₁ Φ₂ : Diffeotopy J ∞ M} (e : Φ₁ = Φ₂) (h₁ h₂) : Φ₁.flux σ h₁ = Φ₂.flux σ h₂ := by
-    subst e
-    rfl
   -- Reparametrize `Φ` so that its velocity vanishes near both ends.
   set Φ' := Φ.reparam (collaredFirstHalf le_rfl)
-  have hΦ' (t) : Φ'.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ.val := by
-    rw [timeSlice_reparam, ← Diffeomorph.inv_def, ← Diffeomorph.mul_def]
-    exact mul_mem (hΦ _) (inv_mem (hΦ _))
+  have hΦ' := SmoothForm.timeSlice_reparam_mem_diffeomorphStabilizer hΦ (collaredFirstHalf le_rfl)
   have hhom : Φ.Homotopic Φ' :=
     (Φ.reparam_homotopic (collaredFirstHalf_zero le_rfl) (collaredFirstHalf_one le_rfl)).symm
   -- The time functions of the fluxes of the truncations of `Φ'`; they vanish at time `1`.
@@ -277,7 +304,7 @@ theorem exists_isHamiltonian_homotopic_of_flux_eq_zero (hσ : SmoothTwoForm.IsNo
     (Φ.eventually_velocity_reparam_eq_zero (by simp) (eventually_collaredFirstHalf_eq_one _))
   have hA₁ (i) : A i 1 = 0 := by
     have key := hAT 1
-    rw [hfl (truncate_one Φ') _ (SmoothForm.final_mem_diffeomorphStabilizer hΦ'),
+    rw [flux_congr (truncate_one Φ') _ (SmoothForm.final_mem_diffeomorphStabilizer hΦ'),
       flux_reparam Φ σ (collaredFirstHalf_zero le_rfl) (collaredFirstHalf_one le_rfl)
         (SmoothForm.final_mem_diffeomorphStabilizer hΦ), h] at key
     exact Fintype.linearIndependent_iff.1 (deRhamCohomology.periodDualBasis J M).linearIndependent
@@ -295,26 +322,16 @@ theorem exists_isHamiltonian_homotopic_of_flux_eq_zero (hσ : SmoothTwoForm.IsNo
     (SmoothForm.timeSlice_symm_mem_diffeomorphStabilizer hθ)
   refine ⟨Φ'.trans θ.symm, isHamiltonian_of_forall_flux_truncate_eq_zero hΨ fun T ↦ ?_, ?_⟩
   · -- The truncations of `θ` have the fluxes of the truncations of `Φ'`.
-    have hθT := SmoothForm.timeSlice_truncate_mem_diffeomorphStabilizer hθ T
-    rw [hfl (truncate_trans _ _ T) _ (SmoothForm.final_mem_diffeomorphStabilizer
-        (SmoothForm.timeSlice_trans_mem_diffeomorphStabilizer
-          (SmoothForm.timeSlice_truncate_mem_diffeomorphStabilizer hΦ' T)
-          (SmoothForm.timeSlice_truncate_mem_diffeomorphStabilizer
-            (SmoothForm.timeSlice_symm_mem_diffeomorphStabilizer hθ) T))),
-      flux_trans _ _ σ (SmoothForm.final_mem_diffeomorphStabilizer
-          (SmoothForm.timeSlice_truncate_mem_diffeomorphStabilizer hΦ' T))
-        (SmoothForm.final_mem_diffeomorphStabilizer
-          (SmoothForm.timeSlice_truncate_mem_diffeomorphStabilizer
-            (SmoothForm.timeSlice_symm_mem_diffeomorphStabilizer hθ) T)),
-      hfl (truncate_symm θ T) _ (SmoothForm.final_mem_diffeomorphStabilizer
-        (SmoothForm.timeSlice_symm_mem_diffeomorphStabilizer hθT)),
-      flux_symm _ σ (SmoothForm.final_mem_diffeomorphStabilizer hθT),
-      hfl (truncate_orderedGlobalFlowDiffeotopy le_top _ _ hc A hA hA₀ T) _
-        (SmoothForm.final_mem_diffeomorphStabilizer
-          (timeSlice_orderedGlobalFlowDiffeotopy_mem_diffeomorphStabilizer hσc
-            (fun i ↦ (Y i).property) hc _ _ _)),
-      flux_orderedGlobalFlowDiffeotopy σ (fun i ↦ (Y i).property), hAT T]
-    simp [hY]
+    have e : (Φ'.trans θ.symm).truncate T = (Φ'.truncate T).trans (θ.truncate T).symm := by
+      rw [truncate_trans, truncate_symm]
+    rw [flux_congr e _ ?_, flux_trans _ _ σ ?_ ?_, flux_symm _ σ ?_,
+      flux_truncate_orderedGlobalFlowDiffeotopy (fun i ↦ (Y i).property), hAT T]
+    · simp [hY]
+    all_goals
+      refine SmoothForm.final_mem_diffeomorphStabilizer ?_
+      apply_rules [SmoothForm.timeSlice_trans_mem_diffeomorphStabilizer,
+        SmoothForm.timeSlice_symm_mem_diffeomorphStabilizer,
+        SmoothForm.timeSlice_truncate_mem_diffeomorphStabilizer]
   · -- `θ` is homotopic to the constant diffeotopy, so `Φ' = (Φ' θ⁻¹) θ` is homotopic to `Φ' θ⁻¹`.
     have key := (Homotopic.refl (Φ'.trans θ.symm)).trans_congr
       (orderedGlobalFlowDiffeotopy_homotopic_refl le_top (fun i ↦ (Y i).val.contMDiff) hc hA hA₀
