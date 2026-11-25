@@ -3933,12 +3933,12 @@ For §7.4 of `atlas/constructing-symplectic-manifolds.md`.
   (the passage in both directions: the gradient of a strictly
   plurisubharmonic exhaustion, reparametrized to be complete, and the
   converse up to homotopy of Weinstein structures, Cieliebak–Eliashberg's
-  theorem) and `Complement.lean` (Giroux's theorem: a Stein structure on
+  theorem) and `Complement/` (Giroux's theorem: a Stein structure on
   the complement of a suitable Donaldson hypersurface, and a Weinstein
   domain whose interior is that complement, with his Remark 3 and
   Corollary 4).
 - **Builds on:** *Asymptotically holomorphic sections* (only for
-  `Complement.lean`, which needs the quasiholomorphic sections of Giroux's
+  `Complement/`, which needs the quasiholomorphic sections of Giroux's
   section B); the merged *Liouville structures*; Tau Ceti's Morse theory,
   Levi forms and pseudoconvex exhaustions.
 - **Milestones:** *Passage between Stein and Weinstein structures*, *Stein
@@ -4032,7 +4032,7 @@ behind.
 | 2 | *Sphere bundles over surfaces* | *Diffeomorphisms of the 2-sphere* (`ComplexStructure.lean` for `DeRham/SphereBundle.lean`; up to `Trivialization.lean` for `SphereBundle/Basic.lean` and the files after it; `Smale.lean` for `Clutching.lean` and `Classification.lean`), *Symplectic fibrations* (only `Basic.lean`), *Principal connections* (only `Fibration/Associated.lean`, for `RuledSurface.lean`); `Smoothing.lean` can start at once |
 | 2 | *Symplectic blowup* | *Complex blowup* (`Model.lean` for `Model.lean` and `Profile.lean`; `Basic.lean` for `Normalized.lean`; `ExceptionalClass.lean` and `ChernClass.lean` for the class and the Chern class) |
 | 2 | *Symplectic sums* | *Almost complex spheres* (only for `Pointwise.lean`), *Complex blowup* (only `ConnectedSum.lean`, for `RationalEllipticSurface.lean`); `Collar.lean` and `Fibre.lean` can start at once |
-| 2 | *Stein and Weinstein structures* | *Asymptotically holomorphic sections* (only for `Complement.lean`); the other files can start at once |
+| 2 | *Stein and Weinstein structures* | *Asymptotically holomorphic sections* (only for `Complement/`); the other files can start at once |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); the other files of the part can start at once |
 | 3 | *Coupling forms* | *Symplectic fibrations*, *Parallel transport*, *Integration over the fibre*, *Flux homomorphism* (only `Family.lean`), *Compatible symplectic forms* (only `Thurston.lean`, for `SimplyConnected.lean`); in `Curvature.lean`, the curvature identity and the local curvature formula wait only for *Symplectic fibrations* and *Parallel transport* (`Curvature.lean`), and the equivalence also waits for `Holonomy.lean` and *Flux homomorphism* (`Family.lean`) |
@@ -4297,7 +4297,7 @@ existing inputs.
 | *Global uniform transversality of asymptotically holomorphic sections* | *Asymptotically holomorphic sections* (`GlobalTransversality.lean`). |
 | *Lefschetz connectivity of asymptotically holomorphic hypersurfaces* | *Asymptotically holomorphic sections* (`Connectivity.lean`). |
 | *Passage between Stein and Weinstein structures* | *Stein and Weinstein structures* (`Stein.lean`). |
-| *Stein and Weinstein complements of Donaldson hypersurfaces* | *Stein and Weinstein structures* (`Complement.lean`). |
+| *Stein and Weinstein complements of Donaldson hypersurfaces* | *Stein and Weinstein structures* (`Complement/Basic.lean`). |
 | *Donaldson's Lefschetz pencil theorem in dimension four* | *Lefschetz pencils* (`Pencil.lean`). |
 
 ### `auxiliary/first-chern-class.md`
