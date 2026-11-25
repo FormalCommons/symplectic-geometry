@@ -3886,8 +3886,8 @@ For §7.3 of `atlas/constructing-symplectic-manifolds.md`.
 - **Milestones:** *Gromov's h-principle for symplectic forms on open
   manifolds* (existence and the path-component statement in
   `OpenManifold.lean`, the parametric statement in `Parametric.lean`,
-  where the homotopy equivalence for an $M$ that does not compress into a
-  compact set waits for a route),
+  where the homotopy equivalence waits for a route only for an $M$ some
+  component of which does not compress into a compact set),
   *Relative extension of exact symplectic forms over a handle core*. The
   design file takes the compression route of Eliashberg–Mishachev for all
   three statements of the first milestone, not the book's handle

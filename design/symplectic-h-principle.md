@@ -192,8 +192,9 @@ formulation.
      for every open `M` each of whose connected components compresses
      into a compact set, which takes in the example above. As `M` is
      locally connected, its components are open as well as closed, so
-     each is an open submanifold: connected, not compact, and σ-compact
-     as a closed subset. Restricting to them identifies the two-forms on
+     each is an open submanifold, Tau Ceti's `ConnectedComponents.opens`
+     (`isClopen_opens`): connected, not compact, and σ-compact as a closed
+     subset. Restricting to them identifies the two-forms on
      `M`, in the frame topology, with the product, over the components,
      of the two-forms on each. Restriction is continuous; conversely
      every frame domain can be shrunk into a single component, so each
@@ -1027,31 +1028,23 @@ The spaces, in the topology of the departure *Spaces of forms*:
 - The docstrings say why the hypothesis on `j` is there: without it the
   spaces need not have CW type (Decision 5).
 
-### `Topology/Connected/LocallyConnected.lean`
-
-The components of a locally connected space as open sets, about Mathlib's
-`ConnectedComponents`, so in its namespace:
-
-- `ConnectedComponents.toOpens (c : ConnectedComponents X) : Opens X`, for
-  `[LocallyConnectedSpace X]`, the set `ConnectedComponents.mk ⁻¹' {c}`,
-  open by `ConnectedComponents.discreteTopology_iff` and
-  `isOpen_connectedComponent`, with `coe_toOpens`, `mem_toOpens_iff`
-  (`x ∈ c.toOpens ↔ ConnectedComponents.mk x = c`),
-  `coe_toOpens_mk : ((ConnectedComponents.mk x).toOpens : Set X) =
-  connectedComponent x` (`connectedComponents_preimage_singleton`),
-  `isClopen_toOpens`, and `isConnected_toOpens`.
-
 ### `Geometry/Manifold/DifferentialForm/Components.lean`
 
 Smooth forms of any degree on a manifold `M` and on its components, in
 Tau Ceti's namespace like `DifferentialForm/Opens.lean`, whose restriction
 along `Subtype.val` it uses:
 
+- `ConnectedComponents.isConnected_opens`: each `c.opens` is connected,
+  from Tau Ceti's `coe_opens_mk` and `isConnected_connectedComponent`. The
+  rest of the API of the components as open sets is Tau Ceti's, in
+  `TauCeti/Topology/ConnectedComponents.lean`: `mem_opens`, `coe_opens`,
+  `coe_opens_mk`, `isClopen_opens`, `pairwise_disjoint_opens` and
+  `iSup_opens`.
 - `TauCeti.SmoothForm.ofComponents`: a family of smooth `k`-forms on the
-  open submanifolds `c.toOpens` glues to one on `M`, equal near each point
+  open submanifolds `c.opens` glues to one on `M`, equal near each point
   to the extension by zero of one form of the family, which is smooth
   there as the component is clopen. With
-  `mpullback_subtypeVal_ofComponents` (its restriction to `c.toOpens` is
+  `mpullback_subtypeVal_ofComponents` (its restriction to `c.opens` is
   the `c`-th form) and `ext_of_mpullback_subtypeVal` (forms with the same
   restrictions to all components are equal), this gives the linear
   equivalence `TauCeti.SmoothForm.componentsEquiv` with the product over
@@ -1065,7 +1058,7 @@ along `Subtype.val` it uses:
 ### `Geometry/Symplectic/HPrinciple/Components.lean`
 
 The spaces of `FormSpaces.lean` split over the components (Decision 5).
-On each `c.toOpens` the frames are the `trivializationAt` of the bundle
+On each `c.opens` the frames are the `trivializationAt` of the bundle
 of two-forms at its points, with their base sets; any covering frames
 give the same topology.
 
@@ -1102,7 +1095,7 @@ For the spaces of `FormSpaces.lean`:
   with `P` a disc and `P₀` its boundary sphere, and `P` a point.
 - `exists_homotopyEquiv_symplecticFormsInClass`: for covering frames, open
   `M`, `hα : α ∈ closedForms I M 2`, and, for every
-  `c : ConnectedComponents M`, some `j : C^∞⟮I, c.toOpens; I, c.toOpens⟯`
+  `c : ConnectedComponents M`, some `j : C^∞⟮I, c.opens; I, c.opens⟯`
   with `Nonempty (TauCeti.SmoothIsotopy (ContMDiffMap.id) j)` and
   `IsCompact (closure (Set.range j))`, `∃ e : symplecticFormsInClass α ≃ₕ
   nondegenerateForms I M, ⇑e.toFun = Set.inclusion
@@ -1212,17 +1205,16 @@ Each is a few hundred lines; each issue's blockers come before it.
     Issue 12 is then blocked by it, as a building issue of 11.
 18. **Design the homotopy equivalence component by component** (a design
     issue, Decision 5). Blocked by nothing. Its building issues
-    are 19 to 22.
-19. **Components as open sets.** `Topology/Connected/LocallyConnected.lean`.
-    Blocked by nothing.
-20. **Forms on the components.**
-    `Geometry/Manifold/DifferentialForm/Components.lean`. Blocked by 19.
-21. **Restriction to an open subset in the frame topology.** The third
+    are 19 to 21.
+19. **Forms on the components.**
+    `Geometry/Manifold/DifferentialForm/Components.lean`. Blocked by
+    nothing.
+20. **Restriction to an open subset in the frame topology.** The third
     lemma of `Geometry/Manifold/VectorBundle/Symplectic/Topology.lean`.
     Blocked by the building issue of 16 that creates the file.
-22. **The spaces of forms split over the components.**
-    `Geometry/Symplectic/HPrinciple/Components.lean`. Blocked by 20 and
-    21. Issue 12 is then blocked by it, as a building issue of 18.
+21. **The spaces of forms split over the components.**
+    `Geometry/Symplectic/HPrinciple/Components.lean`. Blocked by 17, 19
+    and 20. Issue 12 is then blocked by it, as a building issue of 18.
 
 
 ## References
