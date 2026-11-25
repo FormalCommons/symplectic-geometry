@@ -3862,7 +3862,7 @@ For §7.3 of `atlas/constructing-symplectic-manifolds.md`.
   without boundary and with no compact component) and `Parametric.lean`
   (the parametric statement: the inclusion of the symplectic forms of
   class $a$ into the nondegenerate two-forms is a homotopy equivalence,
-  for the compact-open $C^\infty$ topology of *Spaces of forms* below, by
+  for the compact-open $C^\infty$ topology of the departure *Spaces of forms*, by
   the compression route of Eliashberg–Mishachev, Theorems 10.2.1–10.2.2,
   with their parameter-relative holonomic approximation, Theorem 4.7.4,
   which neither library has and the design file plans as issues of its
