@@ -55,6 +55,7 @@ The complex structure `cplx` is not determined by the other fields.
 * `SymplecticGeometry.LieComplexification.toHom_mulInvariantExp`: `toHom` intertwines the
   exponentials through `lieMap`.
 * `SymplecticGeometry.LieComplexification.lieMap_injective`: `lieMap` is injective.
+* `SymplecticGeometry.LieComplexification.contMDiff_expI`: `expI` is smooth.
 * `SymplecticGeometry.LieComplexification.lieMap_re_add_cplx_lieMap_im`: every element `x` is
   `lieMap (re x) + cplx (lieMap (im x))`.
 * `SymplecticGeometry.LieComplexification.connectedSpace`: `Gc` is connected if `G` is.
@@ -238,6 +239,12 @@ the elements of the Lie algebra, such as `t • ξ`. -/
 theorem polar_apply (ξ : GroupLieAlgebra I G) (u : G) :
     C.polar (ξ, u) = C.expI ξ * C.toHom u :=
   C.polar_apply' ξ u
+
+/-- The exponential of the imaginary directions is smooth, as a map on the model space `E` of the
+Lie algebra of `G`: it is `ξ ↦ polar (ξ, 1)`. -/
+theorem contMDiff_expI : ContMDiff 𝓘(ℝ, E) IC ∞ fun ξ : E ↦ C.expI ξ :=
+  (C.polar.contMDiff.comp (contMDiff_id.prodMk (contMDiff_const (c := (1 : G))))).congr
+    fun ξ ↦ (C.polar_apply ξ 1).trans (by rw [map_one, mul_one]) |>.symm
 
 /-- The inverse of the polar decomposition reads `expI ξ * toHom u` as the pair `(ξ, u)`. -/
 @[simp]
