@@ -542,9 +542,9 @@ theorem isOrientationPreservingAt_diffeomorphConnectedSum (p : OrientedConnected
     (isOpenEmbedding_ballRight oM oN) (isLocalDiffeomorph_ballLeft oM oN)
     (isLocalDiffeomorph_ballRight oM oN)
   rw [orientation_def]
-  -- `(diffeomorphConnectedSum oM oN).symm.symm` is `diffeomorphConnectedSum oM oN` up to
-  -- structure eta.
-  exact Manifold.Orientation.isOrientationPreservingAt_map_symm _ _ _ _ p
+  simpa only [Diffeomorph.symm_symm] using
+    Manifold.Orientation.isOrientationPreservingAt_map_symm (connectedSumOrientation oM oN)
+      (diffeomorphConnectedSum oM oN).symm _ oM.card_eq p
 
 /-- The inclusion of the punctured first summand into the oriented connected sum preserves
 orientation, from the restriction of `oM` to `TauCeti.OrientedConnectedSum.orientation oM oN`. -/
