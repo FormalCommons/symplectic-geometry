@@ -7,8 +7,6 @@ module
 
 public import TauCeti.Topology.VectorBundle.Orientation.ThomClass
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Basic
-public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
-public import TauCeti.CategoryTheory.Linear.Int
 public import SymplecticGeometry.Topology.VectorBundle.Thom.ChangeOfCoefficients
 import TauCeti.Algebra.Module.Equiv.SpanSingleton
 
@@ -46,10 +44,9 @@ canonical class is therefore glued directly from the fibre generators, by Tau Ce
 Tau Ceti's Thom isomorphism `TauCeti.thomMap` takes chain coefficients and values `ℤ` with the
 structure `ModuleCat.instLinear`. Over a base in `Type`, the canonical class carried there by
 `TauCeti.uliftIntIso : ULift ℤ ≅ ℤ` and the changes of coefficients of
-`Topology/VectorBundle/Thom/ChangeOfCoefficients.lean` is
-`TauCeti.VectorBundleOrientation.intCanonicalThomClass`, again a Thom class, in degree
-`finrank ℝ F`, the degree that the Thom isomorphism takes. This follows the conversion in the
-library's `TauCeti.bijective_integralCup_eulerClass` (`Thom/CupEulerClass.lean`).
+`Topology/VectorBundle/Thom/ChangeOfCoefficients.lean`, combined there as
+`TauCeti.intThomClass`, is `TauCeti.VectorBundleOrientation.intCanonicalThomClass`, again a Thom
+class, in degree `finrank ℝ F`, the degree that the Thom isomorphism takes.
 
 The construction and the proofs of its properties follow those of Tau Ceti's
 `TauCeti.VectorBundleOrientation.thomClass`, `singularCohomologyMap_fiberThomPairMap_thomClass`,
@@ -347,23 +344,16 @@ variable {B : Type} [TopologicalSpace B] {F : Type} [NormedAddCommGroup F] [Norm
 /-- **The canonical Thom class with integer coefficients.** For an orientation `o` of a real
 vector bundle `E` of rank `r` over a base in `Type`, this is the canonical Thom class
 `o.canonicalThomClass hr`, moved to the degree `finrank ℝ F = r` and carried along
-`ULift ℤ ≅ ℤ` (`TauCeti.uliftIntIso`) to chain coefficients and values `ℤ`, with the structure
+`ULift ℤ ≅ ℤ` by `TauCeti.intThomClass` to chain coefficients and values `ℤ`, with the structure
 `ModuleCat.instLinear` of `ModuleCat ℤ` that the Thom map `TauCeti.thomMap` takes. -/
 def intCanonicalThomClass :
     @TopPair.singularCohomology (ModuleCat.{0} ℤ) _ _ _ (thomPair F E) (ModuleCat.of ℤ ℤ) ℤ _
       ModuleCat.instLinear (ModuleCat.of ℤ ℤ) (finrank ℝ F) :=
-  TopPair.singularCohomologyLinearCongr (Subsingleton.elim _ _) (thomPair F E) _ _ _
-    ((thomPair F E).singularCohomologyChainCoefficientMap ℤ _ uliftIntIso.inv _
-      ((thomPair F E).singularCohomologyValueMap _ ℤ uliftIntIso.hom _
-        (hr ▸ o.canonicalThomClass hr)))
+  intThomClass (hr ▸ o.canonicalThomClass hr)
 
 /-- The canonical Thom class with integer coefficients, unfolded. -/
 theorem intCanonicalThomClass_def :
-    o.intCanonicalThomClass hr =
-      TopPair.singularCohomologyLinearCongr (Subsingleton.elim _ _) (thomPair F E) _ _ _
-        ((thomPair F E).singularCohomologyChainCoefficientMap ℤ _ uliftIntIso.inv _
-          ((thomPair F E).singularCohomologyValueMap _ ℤ uliftIntIso.hom _
-            (hr ▸ o.canonicalThomClass hr))) :=
+    o.intCanonicalThomClass hr = intThomClass (hr ▸ o.canonicalThomClass hr) :=
   (rfl)
 
 /-- **The canonical Thom class with integer coefficients is a Thom class**: it restricts to a
@@ -371,15 +361,14 @@ generator of the cohomology with coefficients `ℤ` of every fibre pair. -/
 theorem isThomClass_intCanonicalThomClass :
     @IsThomClass _ _ _ _ (ModuleCat.of ℤ ℤ) ℤ _ ModuleCat.instLinear (ModuleCat.of ℤ ℤ) B _ F _ E
       _ _ _ _ _ _ (o.intCanonicalThomClass hr) :=
-  ((o.isThomClass_canonicalThomClass hr).singularCohomologyValueMap uliftIntIso
-    |>.singularCohomologyChainCoefficientMap uliftIntIso.symm).singularCohomologyLinearCongr _
+  (o.isThomClass_canonicalThomClass hr).intThomClass
 
 /-- Reversing the orientation negates the canonical Thom class with integer coefficients. -/
 @[simp]
 theorem intCanonicalThomClass_neg :
     (-o).intCanonicalThomClass hr = -o.intCanonicalThomClass hr := by
   subst hr
-  simp only [intCanonicalThomClass_def, canonicalThomClass_neg, map_neg]
+  simp only [intCanonicalThomClass_def, canonicalThomClass_neg, intThomClass_neg]
 
 end Integral
 
