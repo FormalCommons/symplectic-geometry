@@ -7,7 +7,12 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.DbarFunction
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
+public import SymplecticGeometry.Geometry.Manifold.Complex.Isothermal
+public import SymplecticGeometry.Topology.VectorBundle.FiberwiseLinear
+public import TauCeti.Analysis.Complex.Wirtinger.Similarity.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Smooth
+public import TauCeti.Topology.VectorBundle.Orientation.Complex.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 
 /-!
@@ -29,6 +34,16 @@ linearity of `D_J` write `D_J s` as `∂bar_J` of the coordinate of `s` plus the
 preimage of `1` is the conjugate Wirtinger derivative `∂/∂w̄` of the function read in the chart
 (`TauCeti.SmoothAlmostComplexStructure.dbarFunction_apply_mfderiv_symm_eq_conjWirtingerDeriv`).
 
+The similarity principle then writes the coordinate of a kernel element as `e^{-g} h` near `ψ x`,
+with `g` smooth and `h` holomorphic. Multiplying the fibre coordinate of the trivialization by
+`exp (-g ∘ ψ)` (`Bundle.Trivialization.transFiberwiseLinear`) gives a trivialization in which the
+section reads as `h`. Multiplication by a nonzero complex number is complex linear, so this
+trivialization still reads the canonical orientation of the fibres
+(`TauCeti.VectorBundleOrientation.complex`) as that of `ℂ`
+(`Bundle.Trivialization.mapOrientation_complexOrientation`). These are the local hypotheses of
+`TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_analyticOrderNatAt`
+at a zero of the section, apart from the orientation of the chart.
+
 ## Main results
 
 * `SymplecticGeometry.twistOneDelBar_eq_symmL_comp_dbarFunction_add_smul`: `D_J` in the frame of
@@ -38,6 +53,9 @@ preimage of `1` is the conjugate Wirtinger derivative `∂/∂w̄` of the functi
 * `SymplecticGeometry.exists_conjWirtingerDeriv_apply_one_eq_mul_of_mem_twistOneKernel`: the
   coordinate of a smooth element of the kernel of `D_J`, read through `ψ`, satisfies
   `∂v/∂w̄ = a v` near `ψ x`, with `a` smooth.
+* `SymplecticGeometry.exists_trivialization_analyticAt_of_mem_twistOneKernel`: at every point, a
+  smooth element of the kernel of `D_J` is complex analytic in a chart and a real linear
+  trivialization of `𝒪(1)` that reads the canonical orientation of the fibres as that of `ℂ`.
 
 ## References
 
@@ -183,5 +201,74 @@ theorem exists_conjWirtingerDeriv_apply_one_eq_mul_of_mem_twistOneKernel
   beta_reduce
   rw [hD, hcoord (s p)]
   linear_combination (twistTransition 1 p y p) * h0' - d * htt
+
+/-- **A rescaled frame in which a smooth kernel element is holomorphic.** For a smooth element `s`
+of the kernel of `D_J` on `𝒪(1)` and a point `z` of the sphere, there are a real linear
+trivialization `e` of `𝒪(1)` over a neighbourhood of `z` and a chart `φ : OnePoint ℂ → ℂ` at `z`
+such that the coordinate `w ↦ (e ⟨φ⁻¹ w, s (φ⁻¹ w)⟩).2` of `s` is complex analytic at `φ z`, and
+`e` reads the canonical orientation `TauCeti.VectorBundleOrientation.complex` of every fibre over
+its base set as the canonical orientation of `ℂ`, both indexed by `Fin (1 + 1)`.
+
+The chart is an isothermal chart of `J`, and `e` is the trivialization of `𝒪(1)` at `z` whose fibre
+coordinate is multiplied by a nowhere-zero function `exp (-g ∘ φ)` given by the similarity
+principle. -/
+theorem exists_trivialization_analyticAt_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
+    (hs : s ∈ twistOneKernel J) (z : OnePoint ℂ) :
+    ∃ (e : Trivialization ℂ (π ℂ (twistCore (𝕜 := ℂ) 1).Fiber)) (_ : e.IsLinear ℝ)
+      (φ : OpenPartialHomeomorph (OnePoint ℂ) ℂ), z ∈ e.baseSet ∧ z ∈ φ.source ∧
+      AnalyticAt ℂ (fun w ↦ (e (TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) (φ.symm w)
+        (s (φ.symm w)))).2) (φ z) ∧
+      ∀ x (hx : x ∈ e.baseSet), e.mapOrientation (Fin (1 + 1)) hx
+          (VectorBundleOrientation.reindex (finCongr (by simp : 2 * Module.finrank ℂ ℂ = 1 + 1))
+            (VectorBundleOrientation.complex ℂ (twistCore (𝕜 := ℂ) 1).Fiber) x) =
+        Orientation.reindex ℝ ℂ (finCongr (by simp : 2 * Module.finrank ℂ ℂ = 1 + 1))
+          (complexOrientation ℂ) := by
+  obtain ⟨ψ, hzψ, hψ⟩ := J.exists_isothermal_partialDiffeomorph (by simp) z
+  obtain ⟨U, hU, hzU, a, ha, hv, heq⟩ :=
+    exists_conjWirtingerDeriv_apply_one_eq_mul_of_mem_twistOneKernel hψ hzψ
+      (mem_chart_source ℂ z) hs
+  obtain ⟨g, hg, hA⟩ :=
+    exists_contDiff_analyticAt_exp_neg_mul_of_conjWirtingerDeriv_apply_one_eq_mul
+      (k := ⊤) le_top hU ha hv heq hzU
+  -- The rescaling factor `c = exp (-g ∘ ψ)`, continuous on the source of `ψ` and nowhere zero.
+  set c : OnePoint ℂ → ℂ := fun x ↦ Complex.exp (-g (ψ x))
+  have hc : ContinuousOn c ψ.source :=
+    Complex.continuous_exp.comp_continuousOn
+      ((hg.continuous.comp_continuousOn ψ.contMDiffOn.continuousOn).neg)
+  set m : OnePoint ℂ → ℂ ≃L[ℂ] ℂ := fun x ↦
+    ContinuousLinearEquiv.unitsEquivAut ℂ (Units.mk0 (c x) (Complex.exp_ne_zero _))
+  have hm (x : OnePoint ℂ) : (m x : ℂ →L[ℂ] ℂ) = c x • ContinuousLinearMap.id ℂ ℂ := by
+    ext; simp [m, mul_comm]
+  have hm' (x : OnePoint ℂ) :
+      ((m x).symm : ℂ →L[ℂ] ℂ) = (c x)⁻¹ • ContinuousLinearMap.id ℂ ℂ := by
+    ext; simp [m, mul_comm]
+  have hmc : ContinuousOn (fun x ↦ (m x : ℂ →L[ℂ] ℂ)) ψ.source := by
+    simp only [hm]; exact hc.smul continuousOn_const
+  have hmc' : ContinuousOn (fun x ↦ ((m x).symm : ℂ →L[ℂ] ℂ)) ψ.source := by
+    simp only [hm']
+    exact (hc.inv₀ fun _ _ ↦ Complex.exp_ne_zero _).smul continuousOn_const
+  set e₀ := (twistCore (𝕜 := ℂ) 1).localTriv z
+  set e := e₀.transFiberwiseLinear ψ.open_source hmc hmc'
+  have : e.IsLinear ℝ := Trivialization.isLinear_restrictScalars ℝ ℂ e
+  have hze : z ∈ e.baseSet := by
+    rw [Trivialization.transFiberwiseLinear_baseSet]
+    exact ⟨by simp [e₀, OnePoint.twistCore_localTriv_baseSet], hzψ⟩
+  refine ⟨e, this, ψ.toOpenPartialHomeomorph, hze,
+    ψ.toOpenPartialHomeomorph_source.symm ▸ hzψ, ?_, fun x hx ↦ ?_⟩
+  · -- Over the target of `ψ`, the coordinate of `s` in `e` is `exp (-g)` times the one in `e₀`.
+    refine hA.congr ?_
+    filter_upwards [ψ.open_target.mem_nhds (ψ.map_source hzψ)] with w hw
+    rw [PartialDiffeomorph.coe_toOpenPartialHomeomorph_symm,
+      Trivialization.transFiberwiseLinear_apply]
+    simp only [e₀, m, c, ContinuousLinearEquiv.unitsEquivAut_apply, Units.val_mk0]
+    -- The base point of `e₀ ⟨p, v⟩` is `p` by definition of `FiberBundleCore.localTriv`.
+    change _ = _ * Complex.exp (-g (ψ (ψ.symm w)))
+    have hr : ψ.toPartialEquiv (ψ.symm.toPartialEquiv w) = w := ψ.toPartialEquiv.right_inv hw
+    rw [hr, mul_comm]
+  · have := VectorBundle.finiteDimensional ℂ ℂ (twistCore (𝕜 := ℂ) 1).Fiber x
+    rw [VectorBundleOrientation.reindex_apply, Trivialization.mapOrientation_reindex,
+      VectorBundleOrientation.complex_apply,
+      Trivialization.mapOrientation_complexOrientation e hx _ rfl, finCongr_refl,
+      Orientation.reindex_refl, Equiv.refl_apply]
 
 end SymplecticGeometry
