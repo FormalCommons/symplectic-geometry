@@ -7,9 +7,11 @@ module
 
 public import Mathlib.Topology.Algebra.Module.Equiv.Basic
 public import SymplecticGeometry.LinearAlgebra.Determinant
+public import TauCeti.Topology.Algebra.Module.Determinant
+public import TauCeti.Topology.Algebra.Module.Equiv.Fin
 
 /-!
-# Determinants of conjugates of continuous linear equivalences
+# Determinants of conjugates and of block-diagonal maps
 
 The determinant of an endomorphism does not change under conjugation by an equivalence
 (Mathlib's `LinearMap.det_conj`). This file states that fact for automorphisms written as
@@ -28,6 +30,11 @@ Both are the lemmas of the same names for the underlying linear equivalences, in
 `LinearEquiv.det_coe_conj` and `LinearEquiv.det_coe_symm_trans_trans`, `simp` proves the
 statement of `ContinuousLinearEquiv.det_coe_symm_trans_trans` for either bracketing of the `≃L`
 chain, so that lemma is not a `simp` lemma itself; it is kept for rewriting in its `≃L` form.
+
+* `ContinuousLinearMap.det_eq_det_mul_det_of_splitCoords`: an endomorphism of
+  `Fin (m + n) → M` that maps the two coordinate blocks of Tau Ceti's `TauCeti.splitCoords m n`
+  by `g` and `h` has determinant `g.det * h.det`. It is Tau Ceti's
+  `ContinuousLinearMap.det_conj` followed by `ContinuousLinearMap.det_prodMap`.
 -/
 
 public section
@@ -52,5 +59,25 @@ theorem det_coe_trans_symm (e f : N ≃L[R] M) :
   e.toLinearEquiv.det_coe_trans_symm f.toLinearEquiv
 
 end ContinuousLinearEquiv
+
+namespace ContinuousLinearMap
+
+variable {R M : Type*} [CommRing R] [TopologicalSpace M] [AddCommGroup M] [Module R M]
+  [Module.Free R M] [Module.Finite R M] {m n : ℕ}
+
+/-- An endomorphism `f` of `Fin (m + n) → M` that acts on the two coordinate blocks given by
+`TauCeti.splitCoords m n` as `g` on the first and `h` on the second has determinant
+`det g * det h`. -/
+theorem det_eq_det_mul_det_of_splitCoords (f : (Fin (m + n) → M) →L[R] (Fin (m + n) → M))
+    (g : (Fin m → M) →L[R] (Fin m → M)) (h : (Fin n → M) →L[R] (Fin n → M))
+    (hf : ∀ u w, f ((TauCeti.splitCoords (𝕜 := R) m n).symm (u, w)) =
+      (TauCeti.splitCoords (𝕜 := R) m n).symm (g u, h w)) :
+    f.det = g.det * h.det := by
+  set e := TauCeti.splitCoords (𝕜 := R) (M := M) m n
+  have hconj : (e : _ →L[R] _) ∘L f ∘L (e.symm : _ →L[R] _) = g.prodMap h :=
+    ext fun ⟨u, w⟩ ↦ (congrArg e (hf u w)).trans (by simp)
+  rw [← det_conj f e, hconj, det_prodMap]
+
+end ContinuousLinearMap
 
 end
