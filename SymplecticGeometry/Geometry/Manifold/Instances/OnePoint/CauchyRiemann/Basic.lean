@@ -69,6 +69,11 @@ of `∇` for `i` is `∂bar` of the coordinate in either frame.
   (`TauCeti.SmoothAlmostComplexStructure.im_inChart_apply_one_pos_of_tames`); the bound is then
   `TauCeti.Beltrami.norm_beltrami_lt_one_of_im_pos`.
 
+## Notation
+
+* `𝒊`, scoped in `SymplecticGeometry`: the standard complex structure
+  `TauCeti.SmoothAlmostComplexStructure.ofComplexManifold ℂ (OnePoint ℂ)` of the sphere.
+
 ## References
 
 * [D. McDuff, D. Salamon, *J-holomorphic Curves and Symplectic Topology*][McDuffSalamon2012],
@@ -84,7 +89,10 @@ open scoped Manifold ContDiff Topology TauCeti.ComplexManifold VectorBundle.Comp
 noncomputable section
 
 /-- The standard complex structure of the Riemann sphere. -/
-local notation "𝒊" => SmoothAlmostComplexStructure.ofComplexManifold ℂ (OnePoint ℂ)
+scoped[SymplecticGeometry] notation "𝒊" =>
+  SmoothAlmostComplexStructure.ofComplexManifold ℂ (OnePoint ℂ)
+
+open scoped SymplecticGeometry
 
 namespace OnePoint
 

@@ -192,13 +192,8 @@ theorem _root_.ContDiff.eLpNorm_conjWirtingerDeriv_le_of_norm_le {v : ℂ → F}
     by_cases hz : z ∈ tsupport v
     · simpa [Set.indicator_of_mem hz] using hμm z hz
     · simp [Set.indicator_of_notMem hz]
-  have heq : (fun z ↦ conjWirtingerDeriv v z 1 + (tsupport v).indicator μ z •
-      wirtingerDeriv v z 1) = fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1 := by
-    ext z
-    by_cases hz : z ∈ tsupport v
-    · rw [Set.indicator_of_mem hz]
-    · simp [Set.indicator_of_notMem hz, wirtingerDeriv_eq_complexLinearPart,
-        fderiv_of_notMem_tsupport (𝕜 := ℝ) hz]
+  have heq := conjWirtingerDeriv_add_smul_wirtingerDeriv_congr (v := v)
+    (Set.eqOn_indicator (f := μ)) 1
   have hD : MemLp (fderiv ℝ v) 2 volume :=
     (hv.continuous_fderiv one_ne_zero).memLp_of_hasCompactSupport (hc.fderiv (𝕜 := ℝ))
   have := (hv.contDiffOn (s := Set.univ)).hasWeakFDerivOn_fderiv (μ := volume) (Ω := ⊤)
@@ -407,13 +402,7 @@ theorem exists_sum_eLpNorm_iteratedFDeriv_le_of_norm_le {K U : Set ℂ} (hK : Is
     (fun z hz ↦ by rw [hρK z hz]; exact hμK z hz) k
   refine ⟨C, fun v hv hvK ↦ ?_⟩
   -- Since `∂v` vanishes off the support of `v`, `∂̄v + ρ ∂v = ∂̄v + μ ∂v`.
-  have heq : (fun z ↦ conjWirtingerDeriv v z 1 + ρ z • wirtingerDeriv v z 1) =
-      fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1 := by
-    funext z
-    by_cases hz : z ∈ tsupport v
-    · rw [hρK z (hvK hz)]
-    · simp [wirtingerDeriv_eq_complexLinearPart, fderiv_of_notMem_tsupport (𝕜 := ℝ) hz]
-  rw [← heq]
+  rw [← conjWirtingerDeriv_add_smul_wirtingerDeriv_congr (fun z hz ↦ hρK z (hvK hz)) 1]
   exact hC v hv hvK
 
 end HigherOrder
