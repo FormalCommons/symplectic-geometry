@@ -102,6 +102,16 @@ theorem mpullback_constSmooth_inv_smul_comp_smul (σ : SymplecticForm V) {f : V 
   rw [mpullback_constSmooth_apply_eq_iff, fderiv_inv_smul_comp_smul f hs]
   exact (mpullback_constSmooth_apply_eq_iff σ).1 hf
 
+omit [FiniteDimensional ℝ V] in
+/-- A linear map that preserves a symplectic form is injective. -/
+theorem injective_of_apply_apply_eq (σ : SymplecticForm V) {f : V →ₗ[ℝ] V}
+    (hf : ∀ v w, σ (f v) (f w) = σ v w) : Injective f := by
+  refine (injective_iff_map_eq_zero f).2 fun v hv ↦ σ.nondegenerate.1 v fun w ↦ ?_
+  -- `σ v w` is notation for `σ.toBilinForm v w`, the form of the goal.
+  change σ v w = 0
+  rw [← hf, hv]
+  exact LinearMap.map_zero₂ _ _
+
 end TauCeti.SymplecticForm
 
 namespace SymplecticGeometry
@@ -110,13 +120,36 @@ open TauCeti
 
 variable {n : ℕ}
 
-/-- A linear map that preserves `stdForm` is injective. -/
-private theorem injective_of_stdForm {Q : StdSpace (Fin n) →L[ℝ] StdSpace (Fin n)}
-    (hQ : ∀ v w, stdForm (Fin n) (Q v) (Q w) = stdForm (Fin n) v w) : Injective Q := by
-  refine (injective_iff_map_eq_zero Q).2 fun v hv ↦ (stdForm (Fin n)).nondegenerate.1 v fun w ↦ ?_
-  change stdForm (Fin n) v w = 0
-  rw [← hQ, hv]
-  exact LinearMap.map_zero₂ _ _
+/-- Let `j` be a symplectic embedding of `B(ρ)` into `StdSpace (Fin n)` with `ω₀`, `s ≠ 0`, and
+`Q` a linear map preserving `stdForm` such that `s • Q` maps `B(ρ')` into the open ball of
+radius `ρ`. Then `z ↦ s⁻¹ • j (s • Q z)` is a symplectic embedding of `B(ρ')`. -/
+theorem IsSymplecticBallEmbedding.inv_smul_comp_smul_comp {ρ ρ' s : ℝ}
+    {j : StdSpace (Fin n) → StdSpace (Fin n)}
+    (hj : IsSymplecticBallEmbedding (stdForm (Fin n)).constSmooth ρ j) (hs : s ≠ 0)
+    {Q : StdSpace (Fin n) →L[ℝ] StdSpace (Fin n)}
+    (hQ : ∀ v w, stdForm (Fin n) (Q v) (Q w) = stdForm (Fin n) v w)
+    (hρ' : ∀ z ∈ closedBall 0 ρ', s • Q z ∈ ball 0 ρ) :
+    IsSymplecticBallEmbedding (stdForm (Fin n)).constSmooth ρ' fun z ↦ s⁻¹ • j (s • Q z) := by
+  obtain ⟨U, -, hρU, hjU⟩ := hj.exists_contMDiffOn
+  have hjd : ContDiffOn ℝ ∞ j (ball 0 ρ) :=
+    (contMDiffOn_iff_contDiffOn.1 hjU).mono (ball_subset_closedBall.trans hρU)
+  have hφ : ContDiff ℝ ∞ fun z ↦ s • Q z := Q.contDiff.const_smul s
+  refine (isSymplecticBallEmbedding_def _ _ _).2 ⟨⟨(fun z ↦ s • Q z) ⁻¹' ball 0 ρ,
+    isOpen_ball.preimage hφ.continuous, hρ', contMDiffOn_iff_contDiffOn.2
+      ((hjd.comp hφ.contDiffOn fun _ hz ↦ hz).const_smul _)⟩,
+    fun x hx y hy h ↦ (SymplecticForm.injective_of_apply_apply_eq _ (f := Q.toLinearMap) hQ)
+      (smul_right_injective _ hs (hj.injOn (ball_subset_closedBall (hρ' x hx))
+        (ball_subset_closedBall (hρ' y hy)) (smul_right_injective _ (inv_ne_zero hs) h))),
+    fun z hz ↦ ?_⟩
+  have hz' := hρ' z (ball_subset_closedBall hz)
+  have hpull := (SymplecticForm.mpullback_constSmooth_apply_eq_iff _).1
+    ((stdForm (Fin n)).mpullback_constSmooth_inv_smul_comp_smul hs (hj.mpullback_eq hz'))
+  refine (SymplecticForm.mpullback_constSmooth_apply_eq_iff _).2 fun v w ↦ ?_
+  have hd : DifferentiableAt ℝ (fun y ↦ s⁻¹ • j (s • y)) (Q z) :=
+    (((hjd.differentiableOn (by simp)).differentiableAt (isOpen_ball.mem_nhds hz')).comp (Q z)
+      (differentiableAt_fun_id.const_smul s)).const_smul s⁻¹
+  rw [fderiv_fun_comp z hd Q.differentiableAt, ContinuousLinearMap.fderiv,
+    ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply, hpull, hQ]
 
 /-- **Rescaling a family of symplectic germs to its linearization.** Let `θ` be a smooth family
 over `[0, 1]` of symplectic embeddings of `B(ρ)`, `0 < ρ`, into `StdSpace (Fin n)` with `ω₀`, each
@@ -211,39 +244,15 @@ theorem IsSymplecticBallFamily.exists_rescaling_family {ρ : ℝ} (hρ : 0 < ρ)
   have hslice (t : unitInterval) : ContMDiffOn ((𝓡∂ 1).prod 𝓘(ℝ, StdSpace (Fin n)))
       𝓘(ℝ, StdSpace (Fin n)) ∞ (fun p ↦ G (t, p.1, p.2)) (univ ×ˢ W) :=
     hGs.comp (contMDiff_const.prodMk contMDiff_id).contMDiffOn fun p hp ↦ ⟨trivial, hp⟩
-  -- The slices of `θ` are differentiable on `B(ρ)`.
-  have hθd (t : unitInterval) {y : StdSpace (Fin n)} (hy : y ∈ closedBall 0 ρ) :
-      DifferentiableAt ℝ (fun w ↦ θ (t, w)) y := by
-    obtain ⟨V, hVo, hρV, hθV⟩ := (hθ.isSymplecticBallEmbedding t).exists_contMDiffOn
-    exact ((contMDiffOn_iff_contDiffOn.1 hθV).differentiableOn (by simp)).differentiableAt
-      (hVo.mem_nhds (hρV hy))
   -- Each slice is a symplectic embedding of `B(ρ')`.
   have hemb (t s : unitInterval) : IsSymplecticBallEmbedding ω₀ ρ' (fun z ↦ G (t, s, z)) := by
     by_cases hs : (s : ℝ) = 0
     · obtain rfl : s = 0 := Subtype.ext hs
       rw [show (fun z ↦ G (t, 0, z)) = id from funext (hG0 t)]
       exact isSymplecticBallEmbedding_id ρ'
-    have hsm : ContMDiffOn 𝓘(ℝ, StdSpace (Fin n)) 𝓘(ℝ, StdSpace (Fin n)) ∞
-        (fun z ↦ G (t, s, z)) W :=
-      (hslice t).comp (contMDiff_const.prodMk contMDiff_id).contMDiffOn fun z hz ↦ ⟨trivial, hz⟩
-    rw [hGne t s hs] at hsm ⊢
-    have hcl {z : StdSpace (Fin n)} (hz : z ∈ closedBall 0 ρ') :
-        (s : ℝ) • Q (t, s) z ∈ closedBall 0 ρ :=
-      ball_subset_closedBall (hmem t s (hρ'W hz))
-    refine (isSymplecticBallEmbedding_def _ _ _).2 ⟨⟨W, isOpen_ball, hρ'W, hsm⟩,
-      fun x hx y hy h ↦ injective_of_stdForm (hQs t s) (smul_right_injective _ hs
-        ((hθ.isSymplecticBallEmbedding t).injOn (hcl hx) (hcl hy)
-          (smul_right_injective _ (inv_ne_zero hs) h))), fun z hz ↦ ?_⟩
-    have hz' := hmem t s (hρ'W (ball_subset_closedBall hz))
-    have hpull := (SymplecticForm.mpullback_constSmooth_apply_eq_iff _).1
-      ((stdForm (Fin n)).mpullback_constSmooth_inv_smul_comp_smul (f := fun w ↦ θ (t, w)) hs
-        ((hθ.isSymplecticBallEmbedding t).mpullback_eq hz'))
-    refine (SymplecticForm.mpullback_constSmooth_apply_eq_iff _).2 fun v w ↦ ?_
-    have hd : DifferentiableAt ℝ (fun y ↦ (s : ℝ)⁻¹ • θ (t, (s : ℝ) • y)) (Q (t, s) z) :=
-      ((hθd t (ball_subset_closedBall hz')).comp (Q (t, s) z)
-        (differentiableAt_fun_id.const_smul (s : ℝ))).const_smul ((s : ℝ)⁻¹)
-    rw [fderiv_fun_comp z hd (Q (t, s)).differentiableAt, ContinuousLinearMap.fderiv,
-      ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply, hpull, hQs]
+    rw [hGne t s hs]
+    exact (hθ.isSymplecticBallEmbedding t).inv_smul_comp_smul_comp hs (hQs t s)
+      fun z hz ↦ hmem t s (hρ'W hz)
   refine ⟨ρ', hρ', G, ⟨W, isOpen_ball, hρ'W, hGs⟩,
     fun t ↦ (isSymplecticBallFamily_def _ _ _).2 ⟨⟨W, isOpen_ball, hρ'W, hslice t⟩, hemb t⟩,
     hG0, hG1, fun t hid hQid s z hz ↦ ?_⟩
