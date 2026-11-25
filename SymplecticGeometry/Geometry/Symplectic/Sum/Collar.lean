@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Topology.Sets.Annulus
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 public import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
@@ -27,7 +28,6 @@ neighbourhoods of `Q`.
 
 ## Main definitions and results
 
-* `SymplecticGeometry.annulus δ ε`: the annulus `{δ < ‖z‖ < ε}`, an open subset of `ℂ`.
 * `SymplecticGeometry.annulusMap δ ε`: the map `a`, with `norm_annulusMap`,
   `annulusMap_annulusMap` (it is an involution of the annulus), `mapsTo_annulusMap`, and
   `norm_annulusMap_eq_norm_iff`: it fixes exactly the radius `√((δ² + ε²) / 2)`.
@@ -61,15 +61,6 @@ open Complex TopologicalSpace TauCeti
 open scoped Manifold ContDiff ComplexConjugate Topology
 
 namespace SymplecticGeometry
-
-/-- The open annulus `{z : ℂ | δ < ‖z‖ < ε}`. -/
-def annulus (δ ε : ℝ) : Opens ℂ :=
-  ⟨{z | δ < ‖z‖ ∧ ‖z‖ < ε}, (isOpen_lt continuous_const continuous_norm).inter
-    (isOpen_lt continuous_norm continuous_const)⟩
-
-@[simp]
-theorem mem_annulus {δ ε : ℝ} {z : ℂ} : z ∈ annulus δ ε ↔ δ < ‖z‖ ∧ ‖z‖ < ε :=
-  Iff.rfl
 
 /-- The map `z ↦ √(ε² + δ² - ‖z‖²) z̄ / ‖z‖`, which exchanges the circles of radii `r` and
 `√(ε² + δ² - r²)` and reverses the angle. -/
@@ -105,9 +96,10 @@ theorem annulusMap_annulusMap (δ ε : ℝ) {z : ℂ} (hzr : ‖z‖ ^ 2 < ε ^ 
 
 /-- For `0 ≤ δ`, the annulus map sends the annulus `A(δ, ε)` into itself. -/
 theorem mapsTo_annulusMap {δ ε : ℝ} (hδ : 0 ≤ δ) :
-    Set.MapsTo (annulusMap δ ε) (annulus δ ε) (annulus δ ε) := by
-  rintro z ⟨h₁, h₂⟩
-  have hz : z ≠ 0 := norm_pos_iff.1 (hδ.trans_lt h₁)
+    Set.MapsTo (annulusMap δ ε) (annulus ℂ δ ε) (annulus ℂ δ ε) := by
+  intro z hz₁
+  obtain ⟨h₁, h₂⟩ := mem_annulus.1 hz₁
+  have hz : z ≠ 0 := ne_zero_of_mem_annulus hδ hz₁
   have h₁' : δ ^ 2 < ‖z‖ ^ 2 := pow_lt_pow_left₀ h₁ hδ two_ne_zero
   have h₂' : ‖z‖ ^ 2 < ε ^ 2 := pow_lt_pow_left₀ h₂ (norm_nonneg z) two_ne_zero
   rw [SetLike.mem_coe, mem_annulus, norm_annulusMap δ ε hz]
@@ -169,9 +161,9 @@ theorem stdComplexSymplecticForm_fderiv_annulusMap (δ ε : ℝ) {z : ℂ} (hz :
 /-- Points of the annulus with `0 ≤ δ` are nonzero and lie in the disc of radius `√(ε² + δ²)`,
 where the annulus map is smooth and involutive. -/
 theorem ne_zero_and_sq_lt_of_mem_annulus {δ ε : ℝ} (hδ : 0 ≤ δ) {z : ℂ}
-    (hz : z ∈ annulus δ ε) : z ≠ 0 ∧ ‖z‖ ^ 2 < ε ^ 2 + δ ^ 2 := by
-  obtain ⟨h₁, h₂⟩ := hz
-  exact ⟨norm_pos_iff.1 (hδ.trans_lt h₁), by
+    (hz : z ∈ annulus ℂ δ ε) : z ≠ 0 ∧ ‖z‖ ^ 2 < ε ^ 2 + δ ^ 2 := by
+  have h₂ := (mem_annulus.1 hz).2
+  exact ⟨ne_zero_of_mem_annulus hδ hz, by
     nlinarith [pow_lt_pow_left₀ h₂ (norm_nonneg z) two_ne_zero, sq_nonneg δ]⟩
 
 /-- The annulus map is smooth at every point `z ≠ 0` with `‖z‖² < ε² + δ²`. -/
@@ -184,7 +176,7 @@ theorem contDiffAt_annulusMap (δ ε : ℝ) {z : ℂ} (hz : z ≠ 0)
 
 /-- The annulus map is smooth on the annulus, for `0 ≤ δ`. -/
 theorem contDiffOn_annulusMap {δ ε : ℝ} (hδ : 0 ≤ δ) {n : WithTop ℕ∞} :
-    ContDiffOn ℝ n (annulusMap δ ε) (annulus δ ε) := fun _ hz ↦
+    ContDiffOn ℝ n (annulusMap δ ε) (annulus ℂ δ ε) := fun _ hz ↦
   (contDiffAt_annulusMap δ ε (ne_zero_and_sq_lt_of_mem_annulus hδ hz).1
     (ne_zero_and_sq_lt_of_mem_annulus hδ hz).2).contDiffWithinAt
 
@@ -194,14 +186,14 @@ def annulusPartialDiffeomorph (δ ε : ℝ) (hδ : 0 ≤ δ) :
     PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ℂ ℂ ∞ where
   toFun := annulusMap δ ε
   invFun := annulusMap δ ε
-  source := annulus δ ε
-  target := annulus δ ε
+  source := annulus ℂ δ ε
+  target := annulus ℂ δ ε
   map_source' := mapsTo_annulusMap hδ
   map_target' := mapsTo_annulusMap hδ
   left_inv' _ hz := annulusMap_annulusMap δ ε (ne_zero_and_sq_lt_of_mem_annulus hδ hz).2
   right_inv' _ hz := annulusMap_annulusMap δ ε (ne_zero_and_sq_lt_of_mem_annulus hδ hz).2
-  open_source := (annulus δ ε).isOpen
-  open_target := (annulus δ ε).isOpen
+  open_source := (annulus ℂ δ ε).isOpen
+  open_target := (annulus ℂ δ ε).isOpen
   contMDiffOn_toFun := contMDiffOn_iff_contDiffOn.2 (contDiffOn_annulusMap hδ)
   contMDiffOn_invFun := contMDiffOn_iff_contDiffOn.2 (contDiffOn_annulusMap hδ)
 
@@ -212,21 +204,21 @@ theorem coe_annulusPartialDiffeomorph (δ ε : ℝ) (hδ : 0 ≤ δ) :
 
 @[simp]
 theorem annulusPartialDiffeomorph_source (δ ε : ℝ) (hδ : 0 ≤ δ) :
-    (annulusPartialDiffeomorph δ ε hδ).source = annulus δ ε :=
+    (annulusPartialDiffeomorph δ ε hδ).source = annulus ℂ δ ε :=
   (rfl)
 
 @[simp]
 theorem annulusPartialDiffeomorph_target (δ ε : ℝ) (hδ : 0 ≤ δ) :
-    (annulusPartialDiffeomorph δ ε hδ).target = annulus δ ε :=
+    (annulusPartialDiffeomorph δ ε hδ).target = annulus ℂ δ ε :=
   (rfl)
 
 /-- For `0 ≤ δ`, the annulus map as a diffeomorphism of the annulus `A(δ, ε)`. -/
 def annulusDiffeomorph (δ ε : ℝ) (hδ : 0 ≤ δ) :
-    annulus δ ε ≃ₘ⟮𝓘(ℝ, ℂ), 𝓘(ℝ, ℂ)⟯ annulus δ ε :=
+    annulus ℂ δ ε ≃ₘ⟮𝓘(ℝ, ℂ), 𝓘(ℝ, ℂ)⟯ annulus ℂ δ ε :=
   (annulusPartialDiffeomorph δ ε hδ).toDiffeomorphSourceTarget
 
 @[simp]
-theorem coe_annulusDiffeomorph_apply (δ ε : ℝ) (hδ : 0 ≤ δ) (z : annulus δ ε) :
+theorem coe_annulusDiffeomorph_apply (δ ε : ℝ) (hδ : 0 ≤ δ) (z : annulus ℂ δ ε) :
     (annulusDiffeomorph δ ε hδ z : ℂ) = annulusMap δ ε z :=
   (annulusPartialDiffeomorph δ ε hδ).toDiffeomorphSourceTarget_apply_coe z
 
@@ -243,9 +235,9 @@ the restriction to the annulus of the constant form `ω₀` of `TauCeti.stdCompl
 back to itself. -/
 theorem mpullback_annulusMap (δ ε : ℝ) (hδ : 0 ≤ δ) :
     SmoothForm.mpullback (annulusDiffeomorph δ ε hδ) (annulusDiffeomorph δ ε hδ).contMDiff
-        (SmoothForm.mpullback (Subtype.val : annulus δ ε → ℂ) contMDiff_subtypeVal
+        (SmoothForm.mpullback (Subtype.val : annulus ℂ δ ε → ℂ) contMDiff_subtypeVal
           stdComplexSymplecticForm.constSmooth) =
-      SmoothForm.mpullback (Subtype.val : annulus δ ε → ℂ) contMDiff_subtypeVal
+      SmoothForm.mpullback (Subtype.val : annulus ℂ δ ε → ℂ) contMDiff_subtypeVal
         stdComplexSymplecticForm.constSmooth := by
   refine (SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff
     (annulusPartialDiffeomorph δ ε hδ)).2 fun z hz ↦ ?_
@@ -264,7 +256,7 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSp
 /-- For `0 ≤ δ`, the diffeomorphism `id_Q × a` of the collar `Q × A(δ, ε)`, where `a` is the
 annulus map. -/
 def prodAnnulusDiffeomorph (δ ε : ℝ) (hδ : 0 ≤ δ) :
-    (Q × annulus δ ε) ≃ₘ⟮I.prod 𝓘(ℝ, ℂ), I.prod 𝓘(ℝ, ℂ)⟯ (Q × annulus δ ε) :=
+    (Q × annulus ℂ δ ε) ≃ₘ⟮I.prod 𝓘(ℝ, ℂ), I.prod 𝓘(ℝ, ℂ)⟯ (Q × annulus ℂ δ ε) :=
   (Diffeomorph.refl I Q ∞).prodCongr (annulusDiffeomorph δ ε hδ)
 
 theorem coe_prodAnnulusDiffeomorph (δ ε : ℝ) (hδ : 0 ≤ δ) :
@@ -272,7 +264,7 @@ theorem coe_prodAnnulusDiffeomorph (δ ε : ℝ) (hδ : 0 ≤ δ) :
   rw [prodAnnulusDiffeomorph, Diffeomorph.coe_prodCongr, Diffeomorph.coe_refl]
 
 @[simp]
-theorem prodAnnulusDiffeomorph_apply (δ ε : ℝ) (hδ : 0 ≤ δ) (p : Q × annulus δ ε) :
+theorem prodAnnulusDiffeomorph_apply (δ ε : ℝ) (hδ : 0 ≤ δ) (p : Q × annulus ℂ δ ε) :
     prodAnnulusDiffeomorph (I := I) Q δ ε hδ p = (p.1, annulusDiffeomorph δ ε hδ p.2) := by
   rw [coe_prodAnnulusDiffeomorph, Prod.map_apply, id]
 
@@ -291,9 +283,9 @@ diffeomorphism `id_Q × a` of `Q × A(δ, ε)` pulls the product form `τ ⊕ ω
 theorem mpullback_prodAnnulusDiffeomorph (τ : SmoothTwoForm I Q) (δ ε : ℝ) (hδ : 0 ≤ δ) :
     SmoothForm.mpullback (prodAnnulusDiffeomorph Q δ ε hδ)
         (prodAnnulusDiffeomorph Q δ ε hδ).contMDiff
-        (τ.prod (SmoothForm.mpullback (Subtype.val : annulus δ ε → ℂ) contMDiff_subtypeVal
+        (τ.prod (SmoothForm.mpullback (Subtype.val : annulus ℂ δ ε → ℂ) contMDiff_subtypeVal
           stdComplexSymplecticForm.constSmooth)) =
-      τ.prod (SmoothForm.mpullback (Subtype.val : annulus δ ε → ℂ) contMDiff_subtypeVal
+      τ.prod (SmoothForm.mpullback (Subtype.val : annulus ℂ δ ε → ℂ) contMDiff_subtypeVal
         stdComplexSymplecticForm.constSmooth) := by
   simp only [coe_prodAnnulusDiffeomorph]
   rw [SmoothTwoForm.mpullback_prodMap_prod contMDiff_id (annulusDiffeomorph δ ε hδ).contMDiff,
