@@ -114,21 +114,6 @@ theorem mextDerivₗ_homotopyOperator [CompleteSpace F]
           φ := by
   rw [← mextDerivₗ_homotopyOperator_add_homotopyOperator_mextDerivₗ, hφ, map_zero, add_zero]
 
-/-- Let `Φ : M × [0, 1] → M` be a smooth contraction of `M` to `c`, with `Φ (x, 0) = c` and
-`Φ (x, 1) = x`. For a closed `(k + 1)`-form `z` with values in a Banach space, the form
-`h (Φ^* z)` is a primitive of `z`. -/
-theorem mextDerivₗ_homotopyOperator_mpullback_of_contraction [CompleteSpace F] {c : M}
-    {Φ : M × unitInterval → M} (hΦ : ContMDiff (I.prod (𝓡∂ 1)) I ∞ Φ) (h₀ : ∀ x, Φ (x, 0) = c)
-    (h₁ : ∀ x, Φ (x, 1) = x) {z : SmoothForm I M F (k + 1)} (hz : mextDerivₗ I (k + 1) z = 0) :
-    mextDerivₗ I k (homotopyOperator (mpullback Φ hΦ z)) = z := by
-  have hclosed : mextDerivₗ (I.prod (𝓡∂ 1)) (k + 1) (mpullback Φ hΦ z) = 0 := by
-    rw [mextDerivₗ_mpullback, hz, map_zero]
-  rw [mextDerivₗ_homotopyOperator hclosed, mpullback_mpullback, mpullback_mpullback]
-  -- The end slices of the contraction are the identity and the constant map at `c`.
-  have hid : Φ ∘ (fun x : M ↦ (x, (1 : unitInterval))) = id := funext h₁
-  have hconst : Φ ∘ (fun x : M ↦ (x, (0 : unitInterval))) = fun _ ↦ c := funext h₀
-  simp_rw [hid, hconst, mpullback_id, mpullback_const, LinearMap.id_apply, sub_zero]
-
 /-- **The homotopy formula for a homotopy to the identity.** Let `Φ : M × [0, 1] → M` be a smooth
 homotopy from a smooth map `g`, `Φ (x, 0) = g x`, to the identity, `Φ (x, 1) = x`. For a closed
 `(k + 1)`-form `z` with values in a Banach space, `d (h (Φ^* z)) = z - g^* z`. -/
@@ -144,6 +129,16 @@ theorem mextDerivₗ_homotopyOperator_mpullback [CompleteSpace F] {g : M → M}
   have hid : Φ ∘ (fun x : M ↦ (x, (1 : unitInterval))) = id := funext h₁
   have hg' : Φ ∘ (fun x : M ↦ (x, (0 : unitInterval))) = g := funext h₀
   simp_rw [hid, hg', mpullback_id, LinearMap.id_apply]
+
+/-- Let `Φ : M × [0, 1] → M` be a smooth contraction of `M` to `c`, with `Φ (x, 0) = c` and
+`Φ (x, 1) = x`. For a closed `(k + 1)`-form `z` with values in a Banach space, the form
+`h (Φ^* z)` is a primitive of `z`. -/
+theorem mextDerivₗ_homotopyOperator_mpullback_of_contraction [CompleteSpace F] {c : M}
+    {Φ : M × unitInterval → M} (hΦ : ContMDiff (I.prod (𝓡∂ 1)) I ∞ Φ) (h₀ : ∀ x, Φ (x, 0) = c)
+    (h₁ : ∀ x, Φ (x, 1) = x) {z : SmoothForm I M F (k + 1)} (hz : mextDerivₗ I (k + 1) z = 0) :
+    mextDerivₗ I k (homotopyOperator (mpullback Φ hΦ z)) = z := by
+  rw [mextDerivₗ_homotopyOperator_mpullback contMDiff_const hΦ h₀ h₁ hz, mpullback_const,
+    sub_zero]
 
 /-- **Naturality of the homotopy operator.** For a smooth map `g : M' → M` and a smooth form `φ`
 on `M × [0, 1]`, `g^* (h φ) = h ((g × id)^* φ)`. -/
