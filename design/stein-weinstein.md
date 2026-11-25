@@ -225,8 +225,8 @@ there. Sums and scalar multiples need nothing new (`map_add`,
 - the value of $\lambda_f$ on `v` at `x`, `-mfderiv f x (Complex.I • v)`
   for the function underlying `f`, from `covectorComplexStructure_apply_vec`
   and `toEndomorphism_ofComplexManifold`;
-- $\lambda_{h\circ f}=h'(f)\,\lambda_f$ and
-  $\omega_{h\circ f}=h'(f)\,\omega_f+h''(f)\,df\wedge\lambda_f$, for smooth
+- $\lambda_g=h'(f)\,\lambda_f$ and
+  $\omega_g=h'(f)\,\omega_f+h''(f)\,df\wedge\lambda_f$, for smooth
   `h : ℝ → ℝ` and a `0`-form `g` whose values are `h` of those of `f`;
 - $\omega_f$ at `x`, as a form, equals `2 • ddbarForm E u x` for the
   function `u` underlying `f`, from `dC_mapCoeff_ofReal` and
@@ -452,10 +452,10 @@ conventions of *Integral classes and line bundles* in `DESIGN.md`.
   Lemma 7 corrects a Liouville form on the complement whose behaviour
   near `Z` degenerates, so that it extends to a Liouville form on a
   compact manifold with boundary. Proposition 5: the complement of a
-  symplectic hyperplane section `Z` is the interior of a Liouville domain
-  (`IsStrongFilling σ univ Y`), whose boundary is the normal circle bundle
-  of `Z`, with an identification that extends to the circle-bundle
-  projection on the boundary.
+  symplectic hyperplane section `Z` is the interior of a Liouville domain `F`
+  (`IsStrongFilling σ univ Y`), and the map of that interior onto the
+  complement extends to `F → M`, sending `∂F` onto `Z` as the projection
+  of the unit circle bundle of the normal bundle of `Z`.
 - `DiscBundle.lean` (issue 23): Corollary 8, from Proposition 5: `M` is
   the union of the Liouville domain of Proposition 5 and a neighbourhood
   of `Z` symplectomorphic to the disc bundle of area $1/k$ in the normal
