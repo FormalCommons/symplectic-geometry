@@ -12,9 +12,9 @@ public import TauCeti.Geometry.Manifold.Orientation.Pullback
 
 Let `e : M ≃ₘ^n⟮I, I'⟯ N` be a `C^n` diffeomorphism of real manifolds with corners, `n ≠ 0`. An
 orientation `o` of `M` is carried to an orientation `o.map e hn hι` of `N`: the pullback of `o`
-along `e.symm`, in the sense of Tau Ceti's `TauCeti.Manifold.Orientation.pullback`. It is the
-unique orientation of `N` for which `e`, or equivalently `e.symm`, preserves orientation at every
-point [Lee, Prop. 15.15].
+along `e.symm`, in the sense of Tau Ceti's `TauCeti.Manifold.Orientation.pullback`. The map `e`
+preserves orientation from `o` to it, and it is the unique orientation of `N` from which `e.symm`
+preserves orientation at every point [Lee, Prop. 15.15].
 
 The hypothesis `hι` says that `ι` indexes orientations of the model of `N`. It follows from
 `o.card_eq` when `M` is nonempty, but not when `M` and `N` are empty, so it is a hypothesis; when
