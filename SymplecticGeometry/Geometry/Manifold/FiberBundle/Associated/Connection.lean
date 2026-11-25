@@ -8,7 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Associated.PullbackPrincipal
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
 public import TauCeti.Geometry.Manifold.IsManifold.Basic
-public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Basic
+public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Hom
 import SymplecticGeometry.Geometry.Manifold.Distribution.Prod
 import SymplecticGeometry.Geometry.Manifold.Distribution.Pushforward
 
@@ -47,6 +47,12 @@ isomorphically onto the tangent space of the base, as that of `P` at `x` is.
   horizontal spaces are a smooth Ehresmann connection (Tau Ceti's `TauCeti.IsEhresmannConnection`)
   on the projection of the associated bundle, for finite-dimensional base, group and fibre
   without boundary.
+* `SymplecticGeometry.IsConnectionForm.isEhresmannConnectionHom_chartedMk`: the map
+  `x' ↦ [x', v]`, over the identity of the base, is a morphism of Ehresmann connections
+  (Tau Ceti's `TauCeti.IsEhresmannConnectionHom`) from `ker A` to the induced horizontal spaces.
+* `SymplecticGeometry.IsConnectionForm.mfderiv_chartedMk_horizontalLift`: the horizontal lift of a
+  tangent vector of the base at `[x, v]` is the image under the derivative of `x' ↦ [x', v]` of
+  its horizontal lift at `x` for the connection on `P`.
 
 ## Implementation notes
 
@@ -72,6 +78,10 @@ distribution through local sections of the quotient map. The statement takes the
 `[ContMDiffFiberBundle ∞ F (AssociatedBundle G P F) IB IF]`, which Tau Ceti's
 `TauCeti.AssociatedBundle.contMDiffFiberBundle` supplies, since `IsEhresmannConnection` needs a
 manifold structure on the charted total space of `P ×_G F`.
+
+The horizontal lift on `P ×_G F` is computed from that on `P` by Tau Ceti's
+`TauCeti.IsEhresmannConnectionHom.mfderiv_horizontalLift`, applied to the morphism
+`isEhresmannConnectionHom_chartedMk`.
 
 ## References
 
@@ -275,6 +285,42 @@ theorem isEhresmannConnection_associatedHorizontal [FiniteDimensional ℝ EB] [I
       (by simp) x v
     rw [LinearMap.injOn_of_disjoint_ker le_rfl hc.disjoint hw hw'
       (by simp only [ContinuousLinearMap.coe_coe, hTL, h])]
+
+/-- For a connection form `A` and `v : F`, the map `x' ↦ [x', v]` from `P` to `P ×_G F`, over the
+identity of the base, is a morphism of Ehresmann connections from `ker A` to the induced
+horizontal spaces: it is differentiable, covers the identity of `B`, and its derivative carries
+`ker A_x` into the horizontal space at `[x, v]`. -/
+theorem isEhresmannConnectionHom_chartedMk [IsManifold IF ∞ F]
+    [ContMDiffFiberBundle ∞ F (AssociatedBundle G P F) IB IF] (hA : IsConnectionForm A) (v : F) :
+    IsEhresmannConnectionHom (IB.prod IG) IB (IB.prod IF) IB
+      (ManifoldTotalSpace.projContMDiffMap ∞ G P IB IG) (horizontal A)
+      (ManifoldTotalSpace.projContMDiffMap ∞ F (AssociatedBundle G P F) IB IF)
+      hA.associatedHorizontal (fun x' : ManifoldTotalSpace G P ↦ chartedMk G F P (x', v)) id :=
+  ⟨(contMDiff_chartedMk_left ∞ IB IF v).mdifferentiable (by simp), mdifferentiable_id,
+    funext fun x' ↦ by simp, fun x' _ hu ↦ hA.mem_associatedHorizontal_iff.2 ⟨_, hu, rfl⟩⟩
+
+/-- **The horizontal lift on the associated bundle.** For the connection induced by a connection
+form `A` on `P ×_G F`, the horizontal lift of a tangent vector `w` of the base at `[x, v]` is the
+image under the derivative of `x' ↦ [x', v]` at `x` of the horizontal lift of `w` at `x` for the
+connection `ker A` on `P`. The base points of `x` and `[x, v]` are equal, but not syntactically,
+so `w` is transported between their tangent spaces by `tangentSpaceCast`. -/
+theorem mfderiv_chartedMk_horizontalLift [FiniteDimensional ℝ EB] [IB.Boundaryless]
+    [FiniteDimensional ℝ EG] [IG.Boundaryless] [FiniteDimensional ℝ EF] [IF.Boundaryless]
+    [IsManifold IF ∞ F] [ContMDiffFiberBundle ∞ F (AssociatedBundle G P F) IB IF]
+    (hA : IsConnectionForm A) (x : ManifoldTotalSpace G P) (v : F)
+    (w : TangentSpace IB (ManifoldTotalSpace.projContMDiffMap ∞ G P IB IG x)) :
+    mfderiv (IB.prod IG) (IB.prod IF)
+        (fun x' : ManifoldTotalSpace G P ↦ chartedMk G F P (x', v)) x
+        (hA.isEhresmannConnection_horizontal.horizontalLift x w) =
+      hA.isEhresmannConnection_associatedHorizontal.horizontalLift (chartedMk G F P (x, v))
+        (tangentSpaceCast IB (ManifoldTotalSpace.projContMDiffMap ∞ G P IB IG x)
+          (ManifoldTotalSpace.projContMDiffMap ∞ F (AssociatedBundle G P F) IB IF
+            (chartedMk G F P (x, v))) w) := by
+  rw [(hA.isEhresmannConnectionHom_chartedMk v).mfderiv_horizontalLift
+    hA.isEhresmannConnection_horizontal hA.isEhresmannConnection_associatedHorizontal x w,
+    mfderiv_id]
+  -- `tangentSpaceCast` is the identity map by definition; Mathlib has no lemma for its value.
+  rfl
 
 end IsConnectionForm
 
