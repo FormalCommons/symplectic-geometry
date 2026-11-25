@@ -65,11 +65,13 @@ theorem map_re_add_I_smul_map_im (A : Matrix m n ℂ) :
   simp [mul_comm I]
 
 /-- The real part of the scalar matrix `c 𝟙` is the scalar matrix `(Re c) 𝟙`. -/
+@[simp]
 theorem map_re_smul_one [DecidableEq n] (c : ℂ) :
     (c • (1 : Matrix n n ℂ)).map re = c.re • (1 : Matrix n n ℝ) := by
   rw [smul_one_eq_diagonal, smul_one_eq_diagonal, diagonal_map (by simp)]
 
 /-- The imaginary part of the scalar matrix `c 𝟙` is the scalar matrix `(Im c) 𝟙`. -/
+@[simp]
 theorem map_im_smul_one [DecidableEq n] (c : ℂ) :
     (c • (1 : Matrix n n ℂ)).map im = c.im • (1 : Matrix n n ℝ) := by
   rw [smul_one_eq_diagonal, smul_one_eq_diagonal, diagonal_map (by simp)]

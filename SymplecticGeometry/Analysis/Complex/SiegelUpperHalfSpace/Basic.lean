@@ -170,8 +170,7 @@ protected def I : SiegelUpperHalfSpace ι where
   coe := Complex.I • (1 : Matrix ι ι ℂ)
   isSymm := isSymm_one.smul _
   posDef_map_im := by
-    rw [map_im_smul_one, Complex.I_im, one_smul]
-    exact PosDef.one
+    simpa using PosDef.one
 
 @[simp]
 theorem coe_I : (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι) =
@@ -180,11 +179,11 @@ theorem coe_I : (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι) =
 
 @[simp]
 theorem re_I : (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι).re = 0 := by
-  rw [re_def, coe_I, map_re_smul_one, Complex.I_re, zero_smul]
+  simp [re_def]
 
 @[simp]
 theorem im_I : (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι).im = 1 := by
-  rw [im_def, coe_I, map_im_smul_one, Complex.I_im, one_smul]
+  simp [im_def]
 
 instance : Inhabited (SiegelUpperHalfSpace ι) := ⟨SiegelUpperHalfSpace.I⟩
 
