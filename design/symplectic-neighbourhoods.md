@@ -481,17 +481,12 @@ symplectic, so it sits with the manifold topic, beside Tau Ceti's
   I₁ f₁ q v`, there are `U₀ : Opens M₀`, `U₁ : Opens M₁` and
   `ψ : U₀ ≃ₘ⟮I₀, I₁⟯ U₁` with, for every `q`, `f₀ q ∈ U₀`,
   `(ψ ⟨f₀ q, _⟩ : M₁) = f₁ q` and `mfderiv I₀ I₁ ψ ⟨f₀ q, _⟩ = A q`. Route:
-  choose metrics on `M₀` and `M₁`. Let `rep₀` be the orthogonal normal
-  representative of `f₀`. The map $\Theta(q,v)=\exp_{f_1q}(A_q\,
-  \mathrm{rep}_0(v))$ on the normal bundle of `f₀` is smooth near the zero
-  section (`contMDiffOn_prodMk_proj_riemannianExp`), with derivative
-  $(u,v)\mapsto df_1u+A_q\mathrm{rep}_0v$ there
-  (`mfderiv_prodMk_proj_riemannianExp_zeroSection_apply`). That derivative
-  is invertible, and $\Theta$ restricted to the zero section is the
-  embedding `f₁`. So `exists_partialDiffeomorph_near_section` makes
-  $\Theta$ a partial diffeomorphism near the zero section, and
-  $\psi=\Theta\circ\mathrm{normalExp}_0^{-1}$ on the intersection of the
-  sources. It needs no compactness and no closed image.
+  Tau Ceti's `exists_partialDiffeomorph_mfderiv_eq`
+  (`Geometry/Manifold/TubularNeighborhood/PrescribedDifferential.lean`),
+  with `hA` read in tangent coordinates through
+  `Bundle.Pullback.contMDiffAt_inCoordinates_of_contMDiffAt`, and its
+  partial diffeomorphism restricted to its source and target. It needs no
+  compactness and no closed image.
 
 ### `Geometry/Manifold/Diffeomorph/Basic.lean`
 
@@ -741,7 +736,7 @@ list. Issues 1, 3, 5 and 10 can start at once.
    About 400 lines. Blockers: 3.
 5. **Diffeomorphisms of neighbourhoods with a prescribed derivative.**
    `Geometry/Manifold/TubularNeighborhood/MFDeriv.lean`:
-   `exists_diffeomorph_opens_mfderiv_eq`. About 450 lines.
+   `exists_diffeomorph_opens_mfderiv_eq`.
    Blockers: none.
 6. **Symplectic correction.** `Tubular.lean`:
    `exists_symplectomorphism_opens_mfderiv_eq`. About 200 lines. Blockers:
