@@ -50,6 +50,9 @@ docstring of Tau Ceti's `TauCeti/Geometry/Lie/Adjoint/Splitting.lean`.
 * `SymplecticGeometry.LocalModelData.adjointRepresentation_mem_𝔪_sup`,
   `SymplecticGeometry.LocalModelData.adjointRepresentation_mem_𝔥_sup`: `𝔪 ⊕ 𝔮` and `𝔥 ⊕ 𝔮` are
   invariant under the adjoint action of `K`.
+* `SymplecticGeometry.LocalModelData.isCompl_sub𝔥_sup`,
+  `SymplecticGeometry.LocalModelData.isCompl_sub𝔪_sup`: the splittings `𝔤 = 𝔥 ⊕ (𝔪 ⊕ 𝔮)` and
+  `𝔤 = 𝔪 ⊕ (𝔥 ⊕ 𝔮)` as subrepresentations.
 * `SymplecticGeometry.LocalModelData.ι𝔥_adjoint𝔥_dual`,
   `SymplecticGeometry.LocalModelData.ι𝔪_symm_adjoint𝔪_dual`: `ι𝔥` and `ι𝔪` are equivariant.
 * `SymplecticGeometry.LocalModelData.ι𝔪_repA`: `ι𝔪 (repA k η) = Ad*_k (ι𝔪 η)`.
@@ -95,16 +98,24 @@ variable {K : Subgroup G} [IsClosed (K : Set G)] [CompactSpace K] [FiniteDimensi
 /-- The sum `𝔪 ⊕ 𝔮` is invariant under the adjoint action of `K`. -/
 theorem adjointRepresentation_mem_𝔪_sup (k : K) {ξ : GroupLieAlgebra I G}
     (hξ : ξ ∈ D.𝔪 ⊔ D.𝔮) : adjointRepresentation ℝ I G k ξ ∈ D.𝔪 ⊔ D.𝔮 :=
-  ((⟨D.𝔪, fun k _ h ↦ D.adjointRepresentation_mem_𝔪 k h⟩ :
-      Subrepresentation ((adjointRepresentation ℝ I G).comp K.subtype)) ⊔
-    ⟨D.𝔮, fun k _ h ↦ D.adjointRepresentation_mem_𝔮 k h⟩).apply_mem_toSubmodule k hξ
+  (D.sub𝔪 ⊔ D.sub𝔮).apply_mem_toSubmodule k hξ
 
 /-- The sum `𝔥 ⊕ 𝔮` is invariant under the adjoint action of `K`. -/
 theorem adjointRepresentation_mem_𝔥_sup (k : K) {ξ : GroupLieAlgebra I G}
     (hξ : ξ ∈ D.𝔥 ⊔ D.𝔮) : adjointRepresentation ℝ I G k ξ ∈ D.𝔥 ⊔ D.𝔮 :=
-  ((⟨D.𝔥, fun k _ h ↦ D.adjointRepresentation_mem_𝔥 k h⟩ :
-      Subrepresentation ((adjointRepresentation ℝ I G).comp K.subtype)) ⊔
-    ⟨D.𝔮, fun k _ h ↦ D.adjointRepresentation_mem_𝔮 k h⟩).apply_mem_toSubmodule k hξ
+  (D.sub𝔥 ⊔ D.sub𝔮).apply_mem_toSubmodule k hξ
+
+/-- The splitting `𝔤 = 𝔥 ⊕ (𝔪 ⊕ 𝔮)` as subrepresentations of the adjoint representation of `K`. -/
+theorem isCompl_sub𝔥_sup : IsCompl D.sub𝔥 (D.sub𝔪 ⊔ D.sub𝔮) := by
+  rw [← Subrepresentation.isCompl_toSubmodule, Subrepresentation.toSubmodule_sup,
+    toSubmodule_sub𝔥, toSubmodule_sub𝔪, toSubmodule_sub𝔮]
+  exact D.isCompl_𝔥_sup
+
+/-- The splitting `𝔤 = 𝔪 ⊕ (𝔥 ⊕ 𝔮)` as subrepresentations of the adjoint representation of `K`. -/
+theorem isCompl_sub𝔪_sup : IsCompl D.sub𝔪 (D.sub𝔥 ⊔ D.sub𝔮) := by
+  rw [← Subrepresentation.isCompl_toSubmodule, Subrepresentation.toSubmodule_sup,
+    toSubmodule_sub𝔥, toSubmodule_sub𝔪, toSubmodule_sub𝔮]
+  exact D.isCompl_𝔪_sup
 
 /-! ### Equivariance of the extensions by zero -/
 
@@ -113,14 +124,10 @@ representation of `K` on `𝔥` to the coadjoint representation, `ι𝔥 (f ∘ 
 -/
 theorem ι𝔥_adjoint𝔥_dual (k : K) (f : Module.Dual ℝ D.𝔥) :
     D.ι𝔥 (D.adjoint𝔥.dual k f) = coadjointRepresentation ℝ I G k (D.ι𝔥 f) := by
-  have h := dualMap_projectionOnto_dual
-    (S := ⟨D.𝔥, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔥 k hξ⟩)
-    (T := ⟨D.𝔪 ⊔ D.𝔮, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔪_sup k hξ⟩)
-    (Subrepresentation.isCompl_toSubmodule.1 D.isCompl_𝔥_sup) k f
-  rw [← adjoint𝔥_def] at h
-  rw [ι𝔥_def]
-  -- `h` is about the subrepresentation with carrier `D.𝔥`, whose `toSubmodule` reduces to it.
-  exact h
+  rw [ι𝔥_def, adjoint𝔥_def]
+  -- The lemma is stated with `D.sub𝔥.toSubmodule` and `(D.sub𝔪 ⊔ D.sub𝔮).toSubmodule`, which
+  -- are `D.𝔥` and `D.𝔪 ⊔ D.𝔮` by definition.
+  exact dualMap_projectionOnto_dual D.isCompl_sub𝔥_sup k f
 
 /-- The extension by zero `𝔪* → 𝔤*` is equivariant: it takes the dual of the adjoint
 representation of `K` on `𝔪` to the coadjoint representation. Here `𝔪*` is read in `A` through
@@ -128,15 +135,11 @@ representation of `K` on `𝔪` to the coadjoint representation. Here `𝔪*` is
 theorem ι𝔪_symm_adjoint𝔪_dual (k : K) (f : Module.Dual ℝ D.𝔪) :
     D.ι𝔪 (D.equivDual𝔪.symm (D.adjoint𝔪.dual k f)) =
       coadjointRepresentation ℝ I G k (D.ι𝔪 (D.equivDual𝔪.symm f)) := by
-  have h := dualMap_projectionOnto_dual
-    (S := ⟨D.𝔪, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔪 k hξ⟩)
-    (T := ⟨D.𝔥 ⊔ D.𝔮, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔥_sup k hξ⟩)
-    (Subrepresentation.isCompl_toSubmodule.1 D.isCompl_𝔪_sup) k f
-  rw [← adjoint𝔪_def] at h
   rw [ι𝔪_def, LinearMap.comp_apply, LinearMap.comp_apply, LinearEquiv.coe_coe,
-    LinearEquiv.apply_symm_apply, LinearEquiv.apply_symm_apply]
-  -- `h` is about the subrepresentation with carrier `D.𝔪`, whose `toSubmodule` reduces to it.
-  exact h
+    LinearEquiv.apply_symm_apply, LinearEquiv.apply_symm_apply, adjoint𝔪_def]
+  -- The lemma is stated with `D.sub𝔪.toSubmodule` and `(D.sub𝔥 ⊔ D.sub𝔮).toSubmodule`, which
+  -- are `D.𝔪` and `D.𝔥 ⊔ D.𝔮` by definition.
+  exact dualMap_projectionOnto_dual D.isCompl_sub𝔪_sup k f
 
 /-! ### The representation of `K` on `A ≃ 𝔪*` -/
 
