@@ -86,6 +86,7 @@ variable {p : ι → MvPolynomial (Fin (m + 1) ⊕ Fin (n + 1)) ℂ}
 
 /-- A pair of lines lies in the zero set when every equation vanishes at every pair of vectors of
 the two lines. -/
+@[simp]
 theorem mem_complexProjectiveProdZeroLocus {x : ℙ ℂ (Fin (m + 1) → ℂ) × ℙ ℂ (Fin (n + 1) → ℂ)} :
     x ∈ complexProjectiveProdZeroLocus p ↔
       ∀ k, ∀ v ∈ x.1.submodule, ∀ w ∈ x.2.submodule, eval (Sum.elim v w) (p k) = 0 :=
