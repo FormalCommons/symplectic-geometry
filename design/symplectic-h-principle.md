@@ -349,28 +349,76 @@ Only the half `t ≥ 0` goes to infinity; for `t ≤ 0` the ray is a short
 straight segment through `p` in a chart, so that it is an embedding of all
 of `ℝ`, which the tubular neighbourhood theorem needs.
 
-Route, along an exhaustion `K j` by sublevels `{h ≤ c j}` of a proper smooth
-function at regular values (Tau Ceti's `Geometry/Manifold/Exhaustion.lean`
-and Sard), each enlarged by the finitely many components of its complement
-with compact closure, so that every component of `M \ K j` is
-noncompact. The rays grow by one arc per stage: at stage `j`, every ray
-started so far, and a new one for each `p ∈ P` in `K (j + 1) \ K j`, gets
-an arc that leaves `K (j + 1)`, in the noncompact component of
-`M \ K (j - 1)` where it stands. The arcs of a stage are built one after
-another, each in the open set `U` left by removing `P ∪ Q`, the rays
-built so far and a small closed ball around its starting point `x` from
-that component. The arc is `Ψ '' σ` for a short straight segment `σ`
-from `x` in a chart at `x` and the final diffeomorphism `Ψ` of a compactly
-supported diffeotopy inside `U` that sends the far end of `σ` to a point of `U`
-outside `K (j + 1)` (`TauCeti.exists_diffeotopy_final_comp_eq_of_isPreconnected`).
-So the arc starts as the straight continuation of the previous one, and
-ends straight in the chart at its end obtained from a chart by composing
-with `Ψ⁻¹`; consecutive arcs join smoothly. `U` is connected and leaves
-`K (j + 1)`, since removing a closed ball, finitely many smooth arcs and a
-closed discrete set from a connected manifold of dimension at least two
-leaves it connected; this is where `hE` is used. Each stage adds finitely
-many arcs, all outside `K (j - 1)`, which gives local finiteness and the
-limit at infinity.
+Route. Fix a proper smooth `h : M → ℝ` (Tau Ceti's
+`Geometry/Manifold/Exhaustion.lean`). For a level `c` let `F c` be
+`{h ≤ c}` together with the components of `{h > c}` whose closure is
+compact. `F c` is compact, every component of `M \ F c` is noncompact, and
+`F c ⊆ F c'` for `c ≤ c'` (a component of `M \ F c'` is connected and
+noncompact, so it lies in a noncompact component of `{h > c}`). The sets
+`K j := F (c j)` are chosen during the construction, with `c (j + 1)` in
+`(c j + 1, c j + 2)`, so `K j ⊆ interior (K (j + 1))` and the `K j` exhaust
+`M`.
+
+Each ray is grown one arc per stage, and the construction keeps this
+invariant, which fixes the problem of arcs that leave a component of
+`M \ K i` and come back:
+
+* (R) for every `i`, the part of a ray (as built so far) outside `K i` is
+  one connected piece containing its current endpoint.
+
+Stage `j` starts with `K j` known. Its rays are those started before, whose
+endpoints lie outside `K j`, and a new one for each `p ∈ P` outside `K j`,
+not yet used, in `F (c j + 2)`, beginning with a short straight segment
+through `p` outside `K j`. The arcs of the stage are built one after
+another. For a ray with endpoint `x`, let `W` be the component of
+`M \ K j` containing `x`, and `U` the open set left from `W` by removing
+`P ∪ Q`, the closures of all rays as built so far and a small closed ball
+around `x`. Take a short straight segment `σ` from `x` inside one chart `φ`
+at `x`, continuing the ray, and the final diffeomorphism `Ψ` of a
+compactly supported diffeotopy inside `U` that sends the far end of `σ` to
+a point of `U` outside `F (c j + 2)`
+(`TauCeti.exists_diffeotopy_final_comp_eq_of_isPreconnected`). The arc
+`α := Ψ '' σ` is straight in the chart `φ ∘ Ψ⁻¹` along its whole length,
+and joins the ray smoothly at `x`.
+
+When the stage's arcs are built, choose `c (j + 1)` in
+`(c j + 1, c j + 2)` that is a regular value of `h` and of `h ∘ α` for each
+arc `α` of the stage (Sard for `h`, and for the finitely many functions
+`h ∘ α` of one variable `addHaar_image_eq_zero_of_det_fderivWithin_eq_zero`).
+Then each `α` meets `{h = c (j + 1)}` at finitely many parameters, crossing
+it, so the parameters where `α` lies outside `K (j + 1)` form finitely many
+intervals, the last one ending at the far end, which lies outside
+`F (c j + 2) ⊇ K (j + 1)`. Cut `α` at a parameter just after the start of
+the first such interval (at once, for a new ray that starts outside
+`K (j + 1)`), close enough that the cut arc stays in
+`interior (F (c j + 2))`. The cut end is still straight in `φ ∘ Ψ⁻¹`, so
+the next arc continues it smoothly.
+
+Why (R) holds after the stage: an arc of stage `j` lies outside `K j`,
+leaves `K (j + 1)` only in its final piece, and lies in
+`interior (K (j + 2))`, since `F (c j + 2) ⊆ interior (K (j + 2))`. So
+outside `K i` a ray consists of its arcs of stages `≥ i`, which lie outside
+`K i`, and the final piece of its arc of stage `i - 1`; arcs of stages
+`≤ i - 2` lie inside `K i`.
+
+Why `U` is connected and leaves `F (c j + 2)`: by (R) for `K j`, each ray
+meets `W` in a single closed arc of `W` that ends at the ray's endpoint and
+either is compact or runs out of `W` at its other end, and the ray of `x`
+together with the ball is such a set with the boundary sphere as its free
+end. In dimension at least two, removing finitely many disjoint such sets
+and a closed discrete set from a connected manifold leaves it connected: a
+path that crosses one of the arcs is rerouted around the free end, inside a
+thin neighbourhood of the compact part of the arc between the crossing and
+that end, which misses the other removed sets; points of `P ∪ Q` are
+avoided as in
+`TauCeti.isPreconnected_sdiff_of_isOpen_of_isDiscrete_of_one_lt_rank`.
+This is where `hE` is used. `U` leaves `F (c j + 2)`, since `W` has
+noncompact closure and the removed sets have empty interior. Without (R)
+this fails in dimension two: an arc of an earlier stage that leaves `W` and
+returns cuts off a bounded part of `W`.
+
+Every arc of stage `j` lies outside `K j`, and each stage adds finitely many
+arcs, which gives local finiteness and the limit at infinity.
 
 #### `Geometry/Manifold/VectorBundle/Real.lean`
 
