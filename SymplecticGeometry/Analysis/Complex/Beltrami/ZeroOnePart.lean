@@ -7,6 +7,8 @@ module
 
 public import TauCeti.Analysis.Normed.Operator.ComplexLinearPart
 import TauCeti.Analysis.Complex.Wirtinger.Basic
+import TauCeti.LinearAlgebra.Complex.LinearPart
+import TauCeti.LinearAlgebra.Complex.Module
 
 /-!
 # The `(0,1)`-projection of a complex structure on the plane, in Wirtinger form
@@ -180,39 +182,28 @@ theorem complexAntilinearPartL_half_smul_add_I_smul_comp_eq_zero_iff {K : ℂ �
     (hK : ∀ v, K (K v) = -v) (hK1 : K 1 ≠ -Complex.I) (L : ℂ →L[ℝ] ℂ) :
     complexAntilinearPartL ((2⁻¹ : ℝ) • (L + Complex.I • L.comp K)) = 0 ↔
       ∀ v, L (K v) = Complex.I • L v := by
-  set N := (2⁻¹ : ℝ) • (L + Complex.I • L.comp K)
-  have hNv (v : ℂ) : N v = (2⁻¹ : ℝ) • (L v + Complex.I • L (K v)) := rfl
+  -- The `(0,1)`-projection is Tau Ceti's complex-antilinear part `N` for the pair `(K, i)`.
+  set A : ℂ →ₗ[ℝ] ℂ := Complex.I • LinearMap.id
+  have hAv (v : ℂ) : A v = Complex.I * v := by simp [A]
+  have hA (v : ℂ) : A (A v) = -v := by simp [hAv, ← mul_assoc]
+  set N := TauCeti.complexAntilinearPart (K : ℂ →ₗ[ℝ] ℂ) A L
+  have hN (v : ℂ) : ((2⁻¹ : ℝ) • (L + Complex.I • L.comp K)) v = N v := by
+    simp [N, TauCeti.complexAntilinearPart_apply, hAv]
+  have hlin : TauCeti.IsComplexLinear (K : ℂ →ₗ[ℝ] ℂ) A (L : ℂ →ₗ[ℝ] ℂ) ↔ N = 0 :=
+    TauCeti.isComplexLinear_iff_complexAntilinearPart_eq_zero (LinearMap.ext hA) _
   rw [complexAntilinearPartL_eq_zero_iff]
-  constructor
-  · intro h
-    -- `N` is complex linear, so `N v = v N 1`.
-    have hlin (v : ℂ) : N v = v * N 1 := by
-      conv_lhs => rw [← Complex.re_add_im v]
-      rw [show (v.re : ℂ) + v.im * Complex.I = v.re • (1 : ℂ) + v.im • (Complex.I • 1) by
-        simp [Complex.real_smul]]
-      rw [map_add, map_smul, map_smul, h, smul_eq_mul, Complex.real_smul, Complex.real_smul]
-      conv_rhs => rw [← Complex.re_add_im v]
-      ring
-    -- `N` is complex antilinear for `K`: `N (K 1) = -i N 1`.
-    have hNK : N (K 1) = -Complex.I * N 1 := by
-      rw [hNv, hNv, hK]
-      simp only [map_neg, smul_eq_mul, Complex.real_smul]
-      push_cast
-      linear_combination (2⁻¹ : ℂ) * L (K 1) * Complex.I_sq
-    -- So `(K 1 + i) N 1 = 0`, and `N = 0` since `K 1 ≠ -i`.
-    have h1 : N 1 = 0 := by
-      have : (K 1 + Complex.I) * N 1 = 0 := by rw [add_mul, ← hlin, hNK]; ring
-      exact (mul_eq_zero.1 this).resolve_left fun h ↦ hK1 (eq_neg_of_add_eq_zero_left h)
-    intro v
-    have h0 := hlin v
-    rw [h1, mul_zero, hNv, Complex.real_smul, mul_eq_zero] at h0
-    have h0 := h0.resolve_left (by norm_num)
-    rw [smul_eq_mul]
-    linear_combination (-Complex.I) * h0 + L (K v) * Complex.I_sq
-  · intro h v
-    have hz (v : ℂ) : N v = 0 := by
-      rw [hNv, h, smul_smul, Complex.I_mul_I, neg_one_smul, add_neg_cancel, smul_zero]
-    rw [hz, hz, smul_zero]
+  simp only [hN]
+  refine ⟨fun h ↦ ?_, fun h v ↦ ?_⟩
+  · -- `N` is complex linear for `i` and antilinear for `K`, so it vanishes at `K 1 + i ≠ 0`.
+    have hNK : N (K 1) = -A (N 1) := (TauCeti.isComplexAntilinear_complexAntilinearPart
+      (J := (K : ℂ →ₗ[ℝ] ℂ)) (LinearMap.ext hK) (LinearMap.ext hA) (L : ℂ →ₗ[ℝ] ℂ)).apply 1
+    have hI : N Complex.I = A (N 1) := by simpa [hAv] using h 1
+    have h0 := LinearMap.eq_zero_of_apply_I_eq_of_apply_eq_zero N hI hA
+      (w := K 1 + Complex.I) (fun h ↦ hK1 (eq_neg_of_add_eq_zero_left h))
+      (by rw [map_add, hNK, hI, neg_add_cancel])
+    simpa [hAv] using (hlin.2 h0).apply
+  · rw [hlin.1 (TauCeti.isComplexLinear_of_apply (by simpa [hAv] using h))]
+    simp
 
 end ContinuousLinearMap
 
