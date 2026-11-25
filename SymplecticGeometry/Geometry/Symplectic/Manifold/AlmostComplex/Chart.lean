@@ -6,10 +6,12 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
+public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+public import TauCeti.Geometry.Symplectic.Transport
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Symplectic.SymplecticTransport
 
 /-!
 # The chart pushforward of a smooth almost complex structure
@@ -120,11 +122,38 @@ theorem forall_chartPushforward_apply_eq_iff (ψ : PartialDiffeomorph I 𝓘(ℝ
 /-! ### The pushforward at a point as an almost complex structure -/
 
 /-- At a point `p` of the target of a smooth chart `ψ` into a normed space, the pushforward of `J`
-along `ψ` at `p`, as an almost complex structure on `G`. -/
+along `ψ` at `p`, as an almost complex structure on `G`: the transport of `J` at `ψ⁻¹ p` along the
+derivative of `ψ` there. -/
 noncomputable def chartPushforwardAt (ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞) {p : G}
-    (hp : p ∈ ψ.target) : AlmostComplexStructure G where
-  toLinearMap := (J.chartPushforward ψ.toOpenPartialHomeomorph p).toLinearMap
-  square_neg := LinearMap.ext fun w ↦ J.chartPushforward_apply_chartPushforward_apply ψ hp w
+    (hp : p ∈ ψ.target) : AlmostComplexStructure G :=
+  (J.almostComplexStructureAt (ψ.symm p)).transport
+    (ψ.mfderivSymmEquiv (by simp) hp).symm.toLinearEquiv
+
+/-- `J.chartPushforwardAt ψ hp` is the transport of `J` at `ψ⁻¹ p` along the derivative of `ψ`
+there. -/
+theorem chartPushforwardAt_def (ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞) {p : G}
+    (hp : p ∈ ψ.target) :
+    J.chartPushforwardAt ψ hp = (J.almostComplexStructureAt (ψ.symm p)).transport
+      (ψ.mfderivSymmEquiv (by simp) hp).symm.toLinearEquiv :=
+  (rfl)
+
+/-- The almost complex structure `J.chartPushforwardAt ψ hp` acts as the pushforward of `J`
+along `ψ` at `p`. -/
+theorem chartPushforwardAt_apply (ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞) {p : G}
+    (hp : p ∈ ψ.target) (w : G) :
+    J.chartPushforwardAt ψ hp w = J.chartPushforward ψ.toOpenPartialHomeomorph p w := by
+  have h₁ (v : TangentSpace I (ψ.symm p)) :
+      (ψ.mfderivSymmEquiv (by simp) hp).symm.toLinearEquiv v =
+        mfderiv I 𝓘(ℝ, G) ψ (ψ.symm p) v := by
+    rw [ContinuousLinearEquiv.coe_toLinearEquiv, ψ.coe_mfderivSymmEquiv_symm]
+  have h₂ : (ψ.mfderivSymmEquiv (by simp) hp).symm.toLinearEquiv.symm w =
+      mfderiv 𝓘(ℝ, G) I ψ.symm p w := by
+    rw [ContinuousLinearEquiv.coe_symm_toLinearEquiv, ContinuousLinearEquiv.symm_symm,
+      ψ.coe_mfderivSymmEquiv]
+  rw [chartPushforwardAt_def, chartPushforward_apply]
+  -- `refine` and `exact` match `TangentSpace 𝓘(ℝ, G) p` with `G`, which `rw` does not.
+  refine (AlmostComplexStructure.transport_apply _ _ w).trans ((h₁ _).trans ?_)
+  exact congrArg _ ((congrArg _ h₂).trans (J.almostComplexStructureAt_apply _ _))
 
 /-- The linear map of `J.chartPushforwardAt ψ hp` is the pushforward of `J` along `ψ` at `p`. -/
 @[simp]
@@ -132,14 +161,7 @@ theorem toLinearMap_chartPushforwardAt (ψ : PartialDiffeomorph I 𝓘(ℝ, G) M
     (hp : p ∈ ψ.target) :
     (J.chartPushforwardAt ψ hp).toLinearMap =
       (J.chartPushforward ψ.toOpenPartialHomeomorph p).toLinearMap :=
-  (rfl)
-
-/-- The almost complex structure `J.chartPushforwardAt ψ hp` acts as the pushforward of `J`
-along `ψ` at `p`. -/
-theorem chartPushforwardAt_apply (ψ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞) {p : G}
-    (hp : p ∈ ψ.target) (w : G) :
-    J.chartPushforwardAt ψ hp w = J.chartPushforward ψ.toOpenPartialHomeomorph p w :=
-  (rfl)
+  LinearMap.ext (J.chartPushforwardAt_apply ψ hp)
 
 /-- In finite dimension, the continuous linear map of the almost complex structure
 `J.chartPushforwardAt ψ hp` is the pushforward of `J` along `ψ` at `p`. -/
@@ -170,24 +192,17 @@ theorem compatible_chartPushforwardAt {σ : SmoothTwoForm I M} (hσ : σ.Compati
       σ.eval₂ x v w = σ₀ (mvfderiv I ψ x v) (mvfderiv I ψ x w))
     {p : G} (hp : p ∈ ψ.target) :
     σ₀.Compatible (J.chartPushforwardAt ψ hp) := by
-  have hx : ψ.symm p ∈ ψ.source := ψ.map_target hp
-  have hψψ (w : G) : mfderiv I 𝓘(ℝ, G) ψ (ψ.symm p) (mfderiv 𝓘(ℝ, G) I ψ.symm p w) = w :=
-    ψ.mfderiv_apply_mfderiv_symm_apply (by simp) hp w
-  -- Read `σ₀` and the pushforward through the derivative of `ψ⁻¹` at `p`.
-  have hσe (w w' : G) : σ₀ w w' =
-      σ.eval₂ (ψ.symm p) (mfderiv 𝓘(ℝ, G) I ψ.symm p w) (mfderiv 𝓘(ℝ, G) I ψ.symm p w') := by
-    rw [hψ _ hx, mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply, hψψ, hψψ]
-  have hJe (w : G) : mfderiv 𝓘(ℝ, G) I ψ.symm p (J.chartPushforwardAt ψ hp w) =
-      J (ψ.symm p) (mfderiv 𝓘(ℝ, G) I ψ.symm p w) := by
-    rw [chartPushforwardAt_apply]
-    exact J.mfderiv_symm_apply_chartPushforward_apply ψ hp w
-  refine (σ₀.compatible_iff _).2 ⟨(σ₀.invariant_iff _).2 fun w w' ↦ ?_, fun w hw ↦ ?_⟩
-  · rw [hσe, hσe, hJe, hJe]
-    exact hσ.invariant.apply _ _ _
-  · rw [hσe, hJe]
-    refine SmoothTwoForm.tames_iff.1 hσ.tames _ _ fun h ↦ hw ?_
-    rw [← hψψ w, h]
-    exact map_zero _
+  have hd (v : TangentSpace I (ψ.symm p)) :
+      (ψ.mfderivSymmEquiv (by simp) hp).symm.toLinearEquiv v = mvfderiv I ψ (ψ.symm p) v := by
+    rw [mvfderiv_apply_eq_mfderiv_apply, ContinuousLinearEquiv.coe_toLinearEquiv,
+      ψ.coe_mfderivSymmEquiv_symm]
+  have he : SymplecticForm.IsSymplectomorphism (hσ.isNondegenerate.symplecticFormAt (ψ.symm p)) σ₀
+      (ψ.mfderivSymmEquiv (by simp) hp).symm.toLinearEquiv :=
+    SymplecticForm.isSymplectomorphism_iff.2 fun v w ↦ by
+      rw [hσ.isNondegenerate.symplecticFormAt_apply]
+      exact (congrArg₂ (fun a b ↦ σ₀ a b) (hd v) (hd w)).trans (hψ _ (ψ.map_target hp) v w).symm
+  rw [← SymplecticForm.isSymplectomorphism_iff_transport_eq.1 he, chartPushforwardAt_def]
+  exact (hσ.compatibleAt _).transport _
 
 end SmoothAlmostComplexStructure
 
