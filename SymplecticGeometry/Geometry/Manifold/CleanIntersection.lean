@@ -107,12 +107,12 @@ theorem self_id [IsManifold J ∞ N] (hf : Function.Injective f) :
 
 /-- Let `f` and `g` intersect cleanly along `c`, with `f` a topological embedding. If `T` is a set
 of `N` such that `range g ∩ f '' T` is preconnected in `M`, then `c ⁻¹' T` is preconnected in `C`.
-The embedding `f` identifies `T ∩ f ⁻¹' range g` with `range g ∩ f '' T`, and `range c` is open and
-closed in `f ⁻¹' range g`, so it cuts out the preconnected set `T ∩ range c`, which `c`
-identifies with `c ⁻¹' T`. -/
+-/
 theorem isPreconnected_preimage (hc : IsCleanIntersection I J K L f g c)
     (hf : Topology.IsEmbedding f) {T : Set N} (hT : IsPreconnected (range g ∩ f '' T)) :
     IsPreconnected (c ⁻¹' T) := by
+  -- `f` identifies `T ∩ f ⁻¹' range g` with `range g ∩ f '' T`. As `range c` is open and closed
+  -- in `f ⁻¹' range g`, it cuts out a preconnected set, which `c` identifies with `c ⁻¹' T`.
   have hT' : IsPreconnected (T ∩ f ⁻¹' range g) := by
     rwa [← hf.isInducing.isPreconnected_image, image_inter_preimage, inter_comm]
   have hcT : c '' (c ⁻¹' T) = T ∩ f ⁻¹' range g ∩ range c := by

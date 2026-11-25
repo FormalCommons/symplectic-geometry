@@ -17,6 +17,8 @@ with boundary, this shows that the interior of a connected manifold is connected
 ## Main results
 
 * `Dense.isPreconnected_of_forall_exists_mem_nhds`: the criterion above.
+* `IsPreconnected.subset_of_isClopen_preimage_val`: a preconnected `s` that meets a set `t` whose
+  trace on some `u ⊇ s` is open and closed in `u` lies in `t`.
 * `IsPreconnected.inter_of_isClopen_preimage_val`: cutting a preconnected set `s` by a set whose
   trace on some `u ⊇ s` is open and closed in `u` leaves a preconnected set.
 -/
@@ -47,18 +49,24 @@ theorem Dense.isPreconnected_of_forall_exists_mem_nhds [PreconnectedSpace X] {s 
   filter_upwards [hmeet x] with y hy
   exact ⟨ReflTransGen.single hy, ReflTransGen.single (by rwa [inter_comm])⟩
 
-/-- If `s ⊆ u` is preconnected and the trace of `t` on `u` is open and closed in `u`, then
-`s ∩ t` is preconnected: it is either empty or all of `s`. -/
-theorem IsPreconnected.inter_of_isClopen_preimage_val {s t u : Set X} (hs : IsPreconnected s)
-    (hsu : s ⊆ u) (ht : IsClopen ((↑) ⁻¹' t : Set u)) : IsPreconnected (s ∩ t) := by
-  rcases (s ∩ t).eq_empty_or_nonempty with h | ⟨x, hxs, hxt⟩
-  · rw [h]
-    exact isPreconnected_empty
+/-- If `s ⊆ u` is preconnected, the trace of `t` on `u` is open and closed in `u`, and `s` meets
+`t`, then `s ⊆ t`. This is `IsPreconnected.subset_isClopen` relative to `u`. -/
+theorem IsPreconnected.subset_of_isClopen_preimage_val {s t u : Set X} (hs : IsPreconnected s)
+    (hsu : s ⊆ u) (ht : IsClopen ((↑) ⁻¹' t : Set u)) (hne : (s ∩ t).Nonempty) : s ⊆ t := by
+  obtain ⟨x, hxs, hxt⟩ := hne
   have hs' : IsPreconnected ((↑) ⁻¹' s : Set u) := by
     rwa [← IsInducing.subtypeVal.isPreconnected_image, Subtype.image_preimage_coe,
       inter_eq_right.2 hsu]
   have hst := hs'.subset_isClopen ht ⟨⟨x, hsu hxs⟩, hxs, hxt⟩
-  have hst' : s ⊆ t := fun y hy ↦ hst (show (⟨y, hsu hy⟩ : u) ∈ (↑) ⁻¹' s from hy)
-  rwa [inter_eq_left.2 hst']
+  exact fun y hy ↦ hst (a := ⟨y, hsu hy⟩) hy
+
+/-- If `s ⊆ u` is preconnected and the trace of `t` on `u` is open and closed in `u`, then
+`s ∩ t` is preconnected: it is either empty or all of `s`. -/
+theorem IsPreconnected.inter_of_isClopen_preimage_val {s t u : Set X} (hs : IsPreconnected s)
+    (hsu : s ⊆ u) (ht : IsClopen ((↑) ⁻¹' t : Set u)) : IsPreconnected (s ∩ t) := by
+  rcases (s ∩ t).eq_empty_or_nonempty with h | h
+  · rw [h]
+    exact isPreconnected_empty
+  rwa [inter_eq_left.2 (hs.subset_of_isClopen_preimage_val hsu ht h)]
 
 end
