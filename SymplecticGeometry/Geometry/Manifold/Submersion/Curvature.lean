@@ -46,7 +46,7 @@ value of a smooth global field (Tau Ceti's `FiberBundle.contMDiffExtend`), so th
 of Tau Ceti's `CovariantDerivative.curvatureTensor` from
 `CovariantDerivative.curvatureOperator_congr`.
 
-The connection is flat, its curvature vanishing at every point `x` on all fields that are `C^n`
+The connection is flat, its curvature vanishing at every point `x` on all fields that are `C^1`
 at `f x`, exactly when `D` is involutive in the sense of Tau Ceti's
 `TauCeti.IsInvolutiveDistribution`. If `D` is involutive, the bracket of two lifts is
 horizontal, so the curvature, which is vertical, vanishes. Conversely, near a point the lifts of
