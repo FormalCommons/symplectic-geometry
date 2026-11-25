@@ -18,7 +18,7 @@ boundary, the double `c.Double` is Tau Ceti's topological double `TauCeti.Double
 along `∂W`: two copies of `W` glued by the identity along the boundary. The collar gives it the
 structure of a smooth manifold without boundary over `ℝⁿ⁺¹`, glued (by Tau Ceti's
 `TauCeti.chartedSpaceOfIsOpenEmbedding`) from three open pieces: the two copies of the interior of
-`W`, re-modelled as `SymplecticGeometry.InteriorModel`, and the band `(-1, 1) × ∂W`,
+`W`, as Tau Ceti's charted interior `(𝓡∂ (n + 1)).interior W`, and the band `(-1, 1) × ∂W`,
 re-modelled along `TauCeti.SmoothCollar.endModelDiffeomorph`. The point `(s, x)` of the band is
 the collar point `c (x, -s)` of the first copy for `s ≤ 0`, and `c (x, s)` of the second copy for
 `s ≥ 0`; so the collar coordinate is reflected from one copy to the other.
@@ -44,7 +44,7 @@ copies of `W` as `Double.inl` and `Double.inr`.
   interval `(-1, 1)`, the band `(-1, 1) × ∂W` re-modelled on `ℝⁿ⁺¹`, and its map into the
   double, one of the three pieces of the atlas.
 * `TauCeti.SmoothCollar.Double.Piece`, `Double.piece`, `Double.pieceMap`: the three pieces of
-  the atlas, the two copies `InteriorPiece` of the interior and the band, as manifolds
+  the atlas, the two copies `(𝓡∂ (n + 1)).interior W` of the interior and the band, as manifolds
   over `ℝⁿ⁺¹`, with their maps into the double.
 * `TauCeti.SmoothCollar.Double.bandProj`: the projection of the band onto `∂W`.
 
@@ -435,54 +435,46 @@ theorem isOpenEmbedding_bandIncl : IsOpenEmbedding (bandIncl c (n := n)) :=
     (remodelDiffeomorph (endModelDiffeomorph n) _).symm.toHomeomorph.isOpenEmbedding
 
 /-- The first copy of the interior of `W` in the double. -/
-def inlInterior (p : InteriorPiece n W) : c.Double :=
+def inlInterior (p : (𝓡∂ (n + 1)).interior W) : c.Double :=
   inl c p.val
 
 /-- The second copy of the interior of `W` in the double. -/
-def inrInterior (p : InteriorPiece n W) : c.Double :=
+def inrInterior (p : (𝓡∂ (n + 1)).interior W) : c.Double :=
   inr c p.val
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 @[simp]
-theorem inlInterior_apply (p : InteriorPiece n W) : inlInterior c p = inl c p.val :=
+theorem inlInterior_apply (p : (𝓡∂ (n + 1)).interior W) : inlInterior c p = inl c p.val :=
   (rfl)
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 @[simp]
-theorem inrInterior_apply (p : InteriorPiece n W) : inrInterior c p = inr c p.val :=
+theorem inrInterior_apply (p : (𝓡∂ (n + 1)).interior W) : inrInterior c p = inr c p.val :=
   (rfl)
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- The first copy of the interior of `W` is the image of the interior under `inl`. -/
 theorem range_inlInterior : range (inlInterior c) = inl c '' (𝓡∂ (n + 1)).interior W := by
-  rw [← (𝓡∂ (n + 1)).coe_interiorOpens (M := W),
-    ← InteriorModel.range_val (I := 𝓡∂ (n + 1)) (U := (𝓡∂ (n + 1)).interiorOpens W), ← range_comp]
+  rw [image_eq_range]
   exact congrArg range (funext (inlInterior_apply c))
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- The second copy of the interior of `W` is the image of the interior under `inr`. -/
 theorem range_inrInterior : range (inrInterior c) = inr c '' (𝓡∂ (n + 1)).interior W := by
-  rw [← (𝓡∂ (n + 1)).coe_interiorOpens (M := W),
-    ← InteriorModel.range_val (I := 𝓡∂ (n + 1)) (U := (𝓡∂ (n + 1)).interiorOpens W), ← range_comp]
+  rw [image_eq_range]
   exact congrArg range (funext (inrInterior_apply c))
-
-/-- The copy of the interior of `W`, as the complement of the boundary. -/
-private def interiorToCompl (p : InteriorPiece n W) : ↥((𝓡∂ (n + 1)).boundary W)ᶜ :=
-  ⟨p.val, by rw [ModelWithCorners.compl_boundary]; exact p.val_mem_interior⟩
-
-private theorem isOpenEmbedding_interiorToCompl :
-    IsOpenEmbedding (interiorToCompl (n := n) (W := W)) := by
-  refine (InteriorModel.isOpenEmbedding_val.isEmbedding.codRestrict _ _
-    ).isOpenEmbedding_of_surjective fun x ↦ ?_
-  have hx : (x : W) ∈ (𝓡∂ (n + 1)).interior W := by
-    rw [← ModelWithCorners.compl_boundary]; exact x.property
-  exact ⟨InteriorModel.mk _ x hx, Subtype.ext (InteriorModel.val_mk _ _)⟩
 
 /-- The first copy of the interior of `W` is an open embedding into the double. -/
 theorem isOpenEmbedding_inlInterior : IsOpenEmbedding (inlInterior c) :=
   (DoubleAlong.isOpenEmbedding_inl_compl _ ((𝓡∂ (n + 1)).isClosed_boundary
-    (n := ∞) (by simp))).comp isOpenEmbedding_interiorToCompl
+    (n := ∞) (by simp))).comp
+    (Homeomorph.setCongr (𝓡∂ (n + 1)).compl_boundary.symm).isOpenEmbedding
 
 /-- The second copy of the interior of `W` is an open embedding into the double. -/
 theorem isOpenEmbedding_inrInterior : IsOpenEmbedding (inrInterior c) :=
   (DoubleAlong.isOpenEmbedding_inr_compl _ ((𝓡∂ (n + 1)).isClosed_boundary
-    (n := ∞) (by simp))).comp isOpenEmbedding_interiorToCompl
+    (n := ∞) (by simp))).comp
+    (Homeomorph.setCongr (𝓡∂ (n + 1)).compl_boundary.symm).isOpenEmbedding
 
 /-! ### The smooth structure -/
 
@@ -496,23 +488,23 @@ variable (n W) in
 /-- The manifold of a piece. -/
 @[expose]
 def piece : Piece → Type u
-  | .inl | .inr => InteriorPiece n W
+  | .inl | .inr => (𝓡∂ (n + 1)).interior W
   | .band => BandPiece n W
 
 /-- The topology of a piece. -/
 instance instTopologicalSpacePiece : ∀ j, TopologicalSpace (piece n W j)
-  | .inl | .inr => inferInstanceAs (TopologicalSpace (InteriorPiece n W))
+  | .inl | .inr => inferInstanceAs (TopologicalSpace ((𝓡∂ (n + 1)).interior W))
   | .band => inferInstanceAs (TopologicalSpace (BandPiece n W))
 
 /-- The charts of a piece, on `ℝⁿ⁺¹`. -/
 instance instChartedSpacePiece :
     ∀ j, ChartedSpace (EuclideanSpace ℝ (Fin (n + 1))) (piece n W j)
-  | .inl | .inr => inferInstanceAs (ChartedSpace _ (InteriorPiece n W))
+  | .inl | .inr => inferInstanceAs (ChartedSpace _ ((𝓡∂ (n + 1)).interior W))
   | .band => inferInstanceAs (ChartedSpace _ (BandPiece n W))
 
 /-- Each piece is a smooth manifold. -/
 instance instIsManifoldPiece : ∀ j, IsManifold (𝓡 (n + 1)) ∞ (piece n W j)
-  | .inl | .inr => inferInstanceAs (IsManifold _ ∞ (InteriorPiece n W))
+  | .inl | .inr => inferInstanceAs (IsManifold _ ∞ ((𝓡∂ (n + 1)).interior W))
   | .band => inferInstanceAs (IsManifold _ ∞ (BandPiece n W))
 
 /-- The map of a piece into the double. -/
@@ -522,10 +514,13 @@ def pieceMap : ∀ j, piece n W j → c.Double
   | .inr => inrInterior c
   | .band => bandIncl c
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 @[simp] theorem pieceMap_inl : pieceMap c .inl = inlInterior c := (rfl)
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 @[simp] theorem pieceMap_inr : pieceMap c .inr = inrInterior c := (rfl)
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 @[simp] theorem pieceMap_band : pieceMap c .band = bandIncl c := (rfl)
 
 private theorem isOpenEmbedding_pieceMap : ∀ j, IsOpenEmbedding (pieceMap c j)
@@ -533,22 +528,24 @@ private theorem isOpenEmbedding_pieceMap : ∀ j, IsOpenEmbedding (pieceMap c j)
   | .inr => isOpenEmbedding_inrInterior c
   | .band => isOpenEmbedding_bandIncl c
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 private theorem exists_pieceMap_eq (z : c.Double) : ∃ j y, pieceMap c j y = z := by
   have h0 : (0 : ℝ) ∈ bandInterval := by simp
   rcases exists_inl_or_inr c z with ⟨w, rfl⟩ | ⟨w, rfl⟩ <;>
     by_cases hw : w ∈ (𝓡∂ (n + 1)).interior W
-  · exact ⟨.inl, InteriorModel.mk _ w hw, congrArg (inl c) (InteriorModel.val_mk _ _)⟩
+  · exact ⟨.inl, ⟨w, hw⟩, rfl⟩
   · rw [← ModelWithCorners.compl_boundary, Set.notMem_compl_iff] at hw
     exact ⟨.band, remodelDiffeomorph (endModelDiffeomorph n)
       (bandInterval × (𝓡∂ (n + 1)).boundary W) (⟨0, h0⟩, ⟨w, hw⟩),
       (bandIncl_remodelDiffeomorph c _).trans (bandMap_zero c ⟨w, hw⟩)⟩
-  · exact ⟨.inr, InteriorModel.mk _ w hw, congrArg (inr c) (InteriorModel.val_mk _ _)⟩
+  · exact ⟨.inr, ⟨w, hw⟩, rfl⟩
   · rw [← ModelWithCorners.compl_boundary, Set.notMem_compl_iff] at hw
     exact ⟨.band, remodelDiffeomorph (endModelDiffeomorph n)
       (bandInterval × (𝓡∂ (n + 1)).boundary W) (⟨0, h0⟩, ⟨w, hw⟩),
       ((bandIncl_remodelDiffeomorph c _).trans (bandMap_zero c ⟨w, hw⟩)).trans
         (inl_coe_eq_inr c ⟨w, hw⟩)⟩
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- The three pieces cover the double. -/
 theorem iUnion_range_pieceMap : ⋃ j, range (pieceMap c (n := n) (W := W) j) = univ :=
   eq_univ_of_forall fun z ↦ mem_iUnion.2 <| (exists_pieceMap_eq c z).imp fun _ ↦ id
@@ -557,6 +554,7 @@ theorem iUnion_range_pieceMap : ⋃ j, range (pieceMap c (n := n) (W := W) j) = 
 and the band sit in it as the interior of `W` and the end piece `(-1, 1) × ∂W`, and so do the
 second copy and the band reflected by `s ↦ -s`. -/
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 private theorem endMap_of_nonpos {s : bandInterval} (hs : (s : ℝ) ≤ 0)
     (x : (𝓡∂ (n + 1)).boundary W) :
     WithEnd.endMap c (s, x) =
@@ -564,6 +562,7 @@ private theorem endMap_of_nonpos {s : bandInterval} (hs : (s : ℝ) ≤ 0)
   have h := WithEnd.endMap_neg_eq_inclusion c x (negNormalIioRay bandInterval_subset s)
   rwa [negNormalIioRay_coe_apply_of_nonpos bandInterval_subset hs, neg_neg] at h
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 private theorem endMap_neg_of_nonneg {s : bandInterval} (hs : 0 ≤ (s : ℝ))
     (x : (𝓡∂ (n + 1)).boundary W) :
     WithEnd.endMap c (-s, x) =
@@ -571,7 +570,8 @@ private theorem endMap_neg_of_nonneg {s : bandInterval} (hs : 0 ≤ (s : ℝ))
   have h := WithEnd.endMap_neg_eq_inclusion c x (posNormalIioRay bandInterval_subset_Iio s)
   rwa [posNormalIioRay_coe_apply_of_nonneg bandInterval_subset_Iio hs] at h
 
-private theorem inl_eq_bandPt_iff (p : InteriorPiece n W)
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
+private theorem inl_eq_bandPt_iff (p : (𝓡∂ (n + 1)).interior W)
     (q : bandInterval × (𝓡∂ (n + 1)).boundary W) :
     inl c p.val = bandPt c q ↔ WithEnd.inclusion c p.val = WithEnd.endMap c (q.1, q.2) := by
   obtain ⟨s, x⟩ := q
@@ -580,10 +580,14 @@ private theorem inl_eq_bandPt_iff (p : InteriorPiece n W)
     exact ⟨fun h ↦ congrArg _ (inl_injective c h),
       fun h ↦ congrArg _ (WithEnd.inclusion_injective c h)⟩
   · rw [bandPt_of_nonneg c hs]
-    refine iff_of_false (fun h ↦ p.val_notMem_boundary ((inl_eq_inr_iff c).1 h).2) fun h ↦ ?_
-    exact p.val_notMem_boundary ((WithEnd.eq_of_inclusion_eq_endMap c hs h).symm ▸ x.property)
+    refine iff_of_false
+      (fun h ↦ disjoint_left.1 (𝓡∂ (n + 1)).disjoint_interior_boundary p.property
+        ((inl_eq_inr_iff c).1 h).2) fun h ↦ ?_
+    exact disjoint_left.1 (𝓡∂ (n + 1)).disjoint_interior_boundary p.property
+      ((WithEnd.eq_of_inclusion_eq_endMap c hs h).symm ▸ x.property)
 
-private theorem inr_eq_bandPt_iff (p : InteriorPiece n W)
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
+private theorem inr_eq_bandPt_iff (p : (𝓡∂ (n + 1)).interior W)
     (q : bandInterval × (𝓡∂ (n + 1)).boundary W) :
     inr c p.val = bandPt c q ↔ WithEnd.inclusion c p.val = WithEnd.endMap c (-q.1, q.2) := by
   obtain ⟨s, x⟩ := q
@@ -594,17 +598,17 @@ private theorem inr_eq_bandPt_iff (p : InteriorPiece n W)
   · rw [bandPt_of_nonpos c hs]
     refine iff_of_false (fun h ↦ ?_) fun h ↦ ?_
     · obtain ⟨h₁, h₂⟩ := (inl_eq_inr_iff c).1 h.symm
-      exact p.val_notMem_boundary (h₁ ▸ h₂)
-    · exact p.val_notMem_boundary
+      exact (disjoint_left.1 (𝓡∂ (n + 1)).disjoint_interior_boundary p.property) (h₁ ▸ h₂)
+    · exact (disjoint_left.1 (𝓡∂ (n + 1)).disjoint_interior_boundary p.property)
         ((WithEnd.eq_of_inclusion_eq_endMap c (neg_nonneg.2 hs) h).symm ▸ x.property)
 
 /-- The interior of `W`, in `c.WithEnd`. -/
-private def interiorEnd (p : InteriorPiece n W) : c.WithEnd := WithEnd.inclusion c p.val
+private def interiorEnd (p : (𝓡∂ (n + 1)).interior W) : c.WithEnd := WithEnd.inclusion c p.val
 
 private theorem isLocalDiffeomorph_interiorEnd :
     IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ (interiorEnd c) := fun p ↦
-  (InteriorModel.isLocalDiffeomorph_val p).comp
-    (hg := WithEnd.isLocalDiffeomorphAt_inclusion c p.val_mem_interior)
+  ((𝓡∂ (n + 1)).isLocalDiffeomorph_subtypeVal_interior p).comp
+    (hg := WithEnd.isLocalDiffeomorphAt_inclusion c p.property)
 
 /-- The coordinates `(s, x)` of a point of the band, as a point of `ℝ × ∂W`. -/
 private def bandCoord : BandPiece n W → ℝ × (𝓡∂ (n + 1)).boundary W :=
@@ -648,8 +652,12 @@ private theorem exists_transition : ∀ (j k : Piece) (x : piece n W j) (y : pie
       ContMDiffAt (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ T x ∧ pieceMap c k ∘ T =ᶠ[𝓝 x] pieceMap c j
   | .inl, .inl, _, _, _ | .inr, .inr, _, _, _ | .band, .band, _, _, _ =>
     ⟨id, contMDiffAt_id, .rfl⟩
-  | .inl, .inr, x, _, h => absurd ((inl_eq_inr_iff c).1 h).2 x.val_notMem_boundary
-  | .inr, .inl, _, y, h => absurd ((inl_eq_inr_iff c).1 h.symm).2 y.val_notMem_boundary
+  | .inl, .inr, x, _, h =>
+    absurd ((inl_eq_inr_iff c).1 h).2
+      (disjoint_left.1 (𝓡∂ (n + 1)).disjoint_interior_boundary x.property)
+  | .inr, .inl, _, y, h =>
+    absurd ((inl_eq_inr_iff c).1 h.symm).2
+      (disjoint_left.1 (𝓡∂ (n + 1)).disjoint_interior_boundary y.property)
   | .inl, .band, x, y, h =>
     (isLocalDiffeomorph_interiorEnd c x).exists_contMDiffAt_transition
       (isLocalDiffeomorph_bandEnd c y) ((inl_eq_bandPt_iff c x _).1 h)
@@ -714,6 +722,7 @@ theorem isLocalDiffeomorphOn_bandMap :
   have := h.of_comp_right (isLocalDiffeomorph_bandCoord q)
   rwa [hq] at this
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- The two copies of the interior of `W` and the band cover the double. -/
 theorem range_inlInterior_union_range_inrInterior_union :
     range (inlInterior c) ∪ range (inrInterior c) ∪ bandMap c '' (Ioo (-1) 1 ×ˢ univ) = univ := by
@@ -724,14 +733,17 @@ theorem range_inlInterior_union_range_inrInterior_union :
   | inr => exact Or.inl (Or.inr (mem_range_self y))
   | band => exact Or.inr ⟨bandCoord y, bandCoord_mem y, bandMap_bandCoord c y⟩
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- The two copies of the interior of `W` are disjoint in the double. -/
 theorem disjoint_range_inlInterior_inrInterior :
     Disjoint (range (inlInterior c)) (range (inrInterior c)) := by
   refine Set.disjoint_left.2 ?_
   rintro _ ⟨p, rfl⟩ ⟨q, h⟩
   rw [inlInterior_apply, inrInterior_apply] at h
-  exact p.val_notMem_boundary ((inl_eq_inr_iff c).1 h.symm).2
+  exact disjoint_left.1 (𝓡∂ (n + 1)).disjoint_interior_boundary p.property
+    ((inl_eq_inr_iff c).1 h.symm).2
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- A point `(s, x)` of the band lies on the first copy of the interior of `W` exactly when
 `s < 0`. -/
 theorem bandMap_mem_range_inlInterior_iff {s : ℝ} (hs : s ∈ Ioo (-1) 1)
@@ -740,13 +752,15 @@ theorem bandMap_mem_range_inlInterior_iff {s : ℝ} (hs : s ∈ Ioo (-1) 1)
   · rintro ⟨q, hq⟩
     by_contra h
     rw [bandMap_of_nonneg c (not_lt.1 h) hs.2, inlInterior_apply] at hq
-    exact q.val_notMem_boundary ((inl_eq_inr_iff c).1 hq).2
+    exact disjoint_left.1 (𝓡∂ (n + 1)).disjoint_interior_boundary q.property
+      ((inl_eq_inr_iff c).1 hq).2
   · intro h
     rw [bandMap_of_nonpos c h.le hs.1]
-    refine ⟨InteriorModel.mk _ _ ?_, by rw [inlInterior_apply, InteriorModel.val_mk]⟩
+    refine ⟨⟨_, ?_⟩, by rw [inlInterior_apply]⟩
     rw [c.apply_mem_interior_iff_pos, normalIioRay_coe_apply_of_nonneg _ (by linarith)]
     linarith
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- A point `(s, x)` of the band lies on the second copy of the interior of `W` exactly when
 `0 < s`. -/
 theorem bandMap_mem_range_inrInterior_iff {s : ℝ} (hs : s ∈ Ioo (-1) 1)
@@ -756,10 +770,10 @@ theorem bandMap_mem_range_inrInterior_iff {s : ℝ} (hs : s ∈ Ioo (-1) 1)
     by_contra h
     rw [bandMap_of_nonpos c (not_lt.1 h) hs.1, inrInterior_apply] at hq
     obtain ⟨h₁, h₂⟩ := (inl_eq_inr_iff c).1 hq.symm
-    exact q.val_notMem_boundary (h₁ ▸ h₂)
+    exact disjoint_left.1 (𝓡∂ (n + 1)).disjoint_interior_boundary q.property (h₁ ▸ h₂)
   · intro h
     rw [bandMap_of_nonneg c h.le hs.2]
-    refine ⟨InteriorModel.mk _ _ ?_, by rw [inrInterior_apply, InteriorModel.val_mk]⟩
+    refine ⟨⟨_, ?_⟩, by rw [inrInterior_apply]⟩
     rw [c.apply_mem_interior_iff_pos, normalIioRay_coe_apply_of_nonneg _ h.le]
     exact h
 
