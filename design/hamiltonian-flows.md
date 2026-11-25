@@ -281,7 +281,7 @@ Tau Ceti unchanged.
 | File | Contents |
 |---|---|
 | `Algebra/Lie/Quotient.lean` | `LieHom.coe_quotKerEquivRange_mk`: the value of `LieHom.quotKerEquivRange` on a class, for `PoissonAlgebra.lean` |
-| `Geometry/Manifold/Instances/Icc.lean` | `contMDiff_totalSpaceMk_one_Icc`: the unit vector field `z ↦ 1` of a closed interval is smooth |
+| `Geometry/Manifold/Instances/Icc.lean` | the smoothness of the unit vector field `z ↦ 1` of a closed interval is Tau Ceti's `TauCeti.contMDiff_one_tangentSpace_Icc` |
 | `Geometry/Manifold/MFDeriv/Prod.lean` | `MDifferentiableAt.mfderiv_curry_left_apply`: the derivative of a map on a product on `(v, 0)` is a partial derivative; on `(0, w)` it is Tau Ceti's `MDifferentiableAt.mfderiv_uncurry_apply_zero_mk` |
 | `Geometry/Diffeomorphism/Diffeotopy/Basic.lean` | `connectedComponent_apply`: each slice keeps points in their components; that the slices and their inverses cancel in the coerced form `Φ (t, ·)` is Tau Ceti's `apply_mk_symm_apply` and `symm_apply_mk_apply` |
 | `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` | `Diffeotopy.velocity`, its joint smoothness, its value along the motion, its values for `refl` and the flow diffeotopies, and the pullback of $\iota_{X_t}\sigma$ by $\phi_t$ |
@@ -341,7 +341,7 @@ would give `-X₁` there. Further hypotheses are named where they are needed.
   - `contMDiff_velocity : ContMDiff ((𝓡∂ 1).prod J) J.tangent ∞
     (fun p : I × M ↦ (⟨p.2, Φ.velocity p.1 p.2⟩ : TangentBundle J M))`, from
     Mathlib's `ContMDiff.contMDiff_tangentMap` and
-    `contMDiff_totalSpaceMk_one_Icc`; the smoothness of each slice, used
+    Tau Ceti's `TauCeti.contMDiff_one_tangentSpace_Icc`; the smoothness of each slice, used
     to build the section, is its composite with `Prod.mk t`;
   - `mpullback_timeSlice_interior_velocity_apply`: for a two-form `σ`,
     `(φ_t^* ι_{X_t} σ)_x v = (Φ.cylinderMap^* σ)_{(x, t)}(∂ₜ, (v, 0))`, the

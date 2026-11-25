@@ -41,12 +41,14 @@ reads for the underlying real surface, modelled on `𝓘(ℝ, ℂ)`, and compare
   Riemann sphere as a complex manifold;
 * `OnePoint.isOrientationPreservingAt_equivProjectivization`: the identification with `ℂP¹`
   preserves the canonical orientations `SymplecticGeometry.complexCurveOrientation` of both;
-* `SymplecticGeometry.northPole` and `SymplecticGeometry.equatorIsometry`: the north pole
-  `(0, 0, 1)` of the unit sphere of `ℝ³`, and the isometry `z ↦ (Re z, -Im z, 0)` of `ℂ` onto
-  the plane orthogonal to it;
+* `OnePoint.coe_homeomorphSphere_infty`, `OnePoint.inner_homeomorphSphere_infty` and
+  `OnePoint.sphereCoordsIsometry_symm_orthogonalProjectionOnto`: the north pole
+  `homeomorphSphere ∞ = (0, 0, 1)` of Tau Ceti's model of the unit sphere of `ℝ³`, and the
+  inverse of Tau Ceti's isometry `sphereCoordsIsometry`, `z ↦ (Re z, -Im z, 0)`, on the
+  orthogonal projection onto the plane orthogonal to it;
 * `SymplecticGeometry.mpullback_diffeomorphSphere_sphereVolumeForm`: inverse stereographic
-  projection `OnePoint.diffeomorphSphere northPole equatorIsometry` pulls the area form
-  `vol(x, ·, ·)` of the round sphere back to `4π` times `OnePoint.fubiniStudyForm`, and
+  projection `OnePoint.diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry` pulls the
+  area form `vol(x, ·, ·)` of the round sphere back to `4π` times `OnePoint.fubiniStudyForm`, and
   `SymplecticGeometry.mpullback_diffeomorphSphere_symm_fubiniStudyForm` states the inverse
   relation. This is Tau Ceti's general `OnePoint.mpullback_diffeomorphSphere_sphereVolumeForm`
   for this choice of `v` and `ι`, for which the frame `(v, ι 1, ι i) = (e₃, e₁, -e₂)` has
@@ -165,120 +167,90 @@ theorem isOrientationPreservingAt_equivProjectivization (x : OnePoint ℂ) :
 
 end OnePoint
 
-namespace SymplecticGeometry
+namespace OnePoint
 
 /-! ### The north pole and the plane orthogonal to it -/
 
-/-- The north pole `(0, 0, 1)` of the unit sphere of `ℝ³`. -/
-noncomputable def northPole : sphere (0 : ℝ³) 1 :=
-  ⟨EuclideanSpace.single 2 1, by simp⟩
-
-@[simp]
-theorem coe_northPole : (northPole : ℝ³) = EuclideanSpace.single 2 1 :=
-  (rfl)
-
-/-- The inner product with the north pole is the third coordinate. -/
-theorem inner_northPole (p : ℝ³) : inner ℝ (northPole : ℝ³) p = p 2 := by
-  simp [EuclideanSpace.inner_single_left]
-
-private theorem single_zero_mem : (EuclideanSpace.single 0 1 : ℝ³) ∈ (ℝ ∙ (northPole : ℝ³))ᗮ := by
-  rw [Submodule.mem_orthogonal_singleton_iff_inner_right]
-  simp [EuclideanSpace.inner_single_left]
-
-private theorem neg_single_one_mem :
-    -(EuclideanSpace.single 1 1 : ℝ³) ∈ (ℝ ∙ (northPole : ℝ³))ᗮ := by
-  rw [Submodule.mem_orthogonal_singleton_iff_inner_right]
-  simp [EuclideanSpace.inner_single_left]
-
-/-- The vectors `e₁` and `-e₂` of the plane orthogonal to the north pole. -/
-private noncomputable def equatorBasisVec : Fin 2 → (ℝ ∙ (northPole : ℝ³))ᗮ :=
-  ![⟨_, single_zero_mem⟩, ⟨_, neg_single_one_mem⟩]
-
-private theorem orthonormal_equatorBasisVec : Orthonormal ℝ equatorBasisVec := by
-  rw [orthonormal_iff_ite]
-  intro i j
-  fin_cases i <;> fin_cases j <;> simp [equatorBasisVec, EuclideanSpace.inner_single_left]
-
-/-- The orthonormal basis `(e₁, -e₂)` of the plane orthogonal to the north pole. -/
-private noncomputable def equatorBasis : OrthonormalBasis (Fin 2) ℝ (ℝ ∙ (northPole : ℝ³))ᗮ :=
-  OrthonormalBasis.mk orthonormal_equatorBasisVec <| by
-    rw [orthonormal_equatorBasisVec.linearIndependent.span_eq_top_of_card_eq_finrank']
-    rw [Submodule.finrank_orthogonal_span_singleton (n := 2) (by simp)]
-    simp
-
-/-- The isometry `z ↦ (Re z, -Im z, 0)` from `ℂ` onto the plane orthogonal to the north pole,
-built from the orthonormal basis `(e₁, -e₂)`. The conjugation makes inverse stereographic
-projection through it orientation-preserving. -/
-noncomputable def equatorIsometry : ℂ ≃ₗᵢ[ℝ] (ℝ ∙ (northPole : ℝ³))ᗮ :=
-  Complex.isometryOfOrthonormal equatorBasis
-
-@[simp]
-theorem coe_equatorIsometry_apply (z : ℂ) :
-    (equatorIsometry z : ℝ³) = WithLp.toLp 2 ![z.re, -z.im, 0] := by
-  rw [equatorIsometry, Complex.isometryOfOrthonormal_apply]
-  ext i
-  fin_cases i <;> simp [equatorBasis, equatorBasisVec]
-
-/-- The inverse of `equatorIsometry` reads the orthogonal projection of `p` onto the plane
-orthogonal to the north pole as `p 0 - i p 1`. -/
-theorem equatorIsometry_symm_orthogonalProjectionOnto (p : ℝ³) :
-    equatorIsometry.symm ((ℝ ∙ (northPole : ℝ³))ᗮ.orthogonalProjectionOnto p) = ⟨p 0, -p 1⟩ := by
-  have h := TauCeti.coe_orthogonalProjectionOnto_single_one_apply (2 : Fin 3) p
-  rw [← coe_northPole] at h
-  rw [LinearIsometryEquiv.symm_apply_eq, Subtype.ext_iff, h, coe_equatorIsometry_apply]
+/-- The north pole `homeomorphSphere ∞` of the unit sphere of `ℝ³` is the third standard basis
+vector `(0, 0, 1)`. -/
+theorem coe_homeomorphSphere_infty :
+    (homeomorphSphere ∞ : ℝ³) = EuclideanSpace.single 2 1 := by
+  rw [coe_homeomorphSphere, sphereCoords_infty]
   ext i
   fin_cases i <;> simp
 
+/-- The inner product with the north pole `homeomorphSphere ∞` is the third coordinate. -/
+theorem inner_homeomorphSphere_infty (p : ℝ³) :
+    inner ℝ (homeomorphSphere ∞ : ℝ³) p = p 2 := by
+  rw [coe_homeomorphSphere_infty, EuclideanSpace.inner_single_left]
+  simp
+
+/-- The inverse of `sphereCoordsIsometry` reads the orthogonal projection of `p` onto the plane
+orthogonal to the north pole as `p 0 - i p 1`. -/
+theorem sphereCoordsIsometry_symm_orthogonalProjectionOnto (p : ℝ³) :
+    sphereCoordsIsometry.symm ((ℝ ∙ (homeomorphSphere ∞ : ℝ³))ᗮ.orthogonalProjectionOnto p) =
+      ⟨p 0, -p 1⟩ := by
+  have h := TauCeti.coe_orthogonalProjectionOnto_single_one_apply (2 : Fin 3) p
+  rw [← coe_homeomorphSphere_infty] at h
+  rw [sphereCoordsIsometry_symm_apply, h]
+  simp
+
 /-- Off the north pole, the third coordinate of a point of the unit sphere is not `1`. -/
-theorem one_sub_ne_zero_of_ne_northPole {p : sphere (0 : ℝ³) 1} (hp : p ≠ northPole) :
-    1 - (p : ℝ³) 2 ≠ 0 := by
-  rw [sub_ne_zero, ← inner_northPole]
+theorem one_sub_ne_zero_of_ne_homeomorphSphere_infty {p : sphere (0 : ℝ³) 1}
+    (hp : p ≠ homeomorphSphere ∞) : 1 - (p : ℝ³) 2 ≠ 0 := by
+  rw [sub_ne_zero, ← inner_homeomorphSphere_infty]
   intro h
-  exact hp (Subtype.ext ((inner_eq_one_iff_of_norm_eq_one (by simp)
+  exact hp (Subtype.ext ((inner_eq_one_iff_of_norm_eq_one (norm_eq_of_mem_sphere _)
     (norm_eq_of_mem_sphere p)).1 h.symm).symm)
 
 /-- Off the south pole, the third coordinate of a point of the unit sphere is not `-1`. -/
-theorem one_add_ne_zero_of_ne_neg_northPole {p : sphere (0 : ℝ³) 1} (hp : p ≠ -northPole) :
-    1 + (p : ℝ³) 2 ≠ 0 := by
-  have h := one_sub_ne_zero_of_ne_northPole (p := -p) fun h ↦ hp (by rw [← h, neg_neg])
+theorem one_add_ne_zero_of_ne_neg_homeomorphSphere_infty {p : sphere (0 : ℝ³) 1}
+    (hp : p ≠ -homeomorphSphere ∞) : 1 + (p : ℝ³) 2 ≠ 0 := by
+  have h := one_sub_ne_zero_of_ne_homeomorphSphere_infty (p := -p)
+    fun h ↦ hp (by rw [← h, neg_neg])
   rwa [coe_neg_sphere, PiLp.neg_apply, sub_neg_eq_add] at h
+
+end OnePoint
+
+namespace SymplecticGeometry
+
+open OnePoint
 
 /-! ### Inverse stereographic projection from the north pole and the area form of the sphere -/
 /-- **The round sphere is `4π` times the Fubini–Study sphere, as an area form.** Inverse
-stereographic projection `OnePoint.diffeomorphSphere northPole equatorIsometry` from the north
-pole pulls the outward-normal area form `vol(x, ·, ·)` of the unit sphere of `ℝ³` back to `4π`
-times the Fubini–Study form `OnePoint.fubiniStudyForm` of the Riemann sphere. -/
+stereographic projection `diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry` from the
+north pole pulls the outward-normal area form `vol(x, ·, ·)` of the unit sphere of `ℝ³` back to
+`4π` times the Fubini–Study form `OnePoint.fubiniStudyForm` of the Riemann sphere. -/
 theorem mpullback_diffeomorphSphere_sphereVolumeForm :
-    SmoothForm.mpullback (OnePoint.diffeomorphSphere northPole equatorIsometry)
-        ((OnePoint.diffeomorphSphere northPole equatorIsometry).contMDiff.of_le le_top)
+    SmoothForm.mpullback (diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry)
+        ((diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry).contMDiff.of_le le_top)
         (Orientation.sphereVolumeForm o₃) =
-      (4 * Real.pi) • OnePoint.fubiniStudyForm := by
+      (4 * Real.pi) • fubiniStudyForm := by
   -- The frame `(v, ι 1, ι i) = (e₃, e₁, -e₂)` of Tau Ceti's general comparison is negative.
-  have hvol : Orientation.volumeForm o₃ ![(northPole : ℝ³), (equatorIsometry 1 : ℝ³),
-      (equatorIsometry Complex.I : ℝ³)] = -1 := by
+  have hvol : Orientation.volumeForm o₃ ![(homeomorphSphere ∞ : ℝ³),
+      (sphereCoordsIsometry 1 : ℝ³), (sphereCoordsIsometry Complex.I : ℝ³)] = -1 := by
     rw [Orientation.volumeForm_robust _ (EuclideanSpace.basisFun (Fin 3) ℝ) rfl,
       Module.Basis.det_apply, Matrix.det_fin_three]
     simp [Module.Basis.toMatrix_apply]
   refine Subtype.ext ?_
   rw [SmoothForm.coe_mpullback,
-    OnePoint.mpullback_diffeomorphSphere_sphereVolumeForm northPole equatorIsometry o₃, hvol,
+    OnePoint.mpullback_diffeomorphSphere_sphereVolumeForm _ sphereCoordsIsometry o₃, hvol,
     SetLike.val_smul, mul_neg_one, neg_neg]
 
 /-- Stereographic projection from the north pole, the inverse of
-`OnePoint.diffeomorphSphere northPole equatorIsometry`, pulls the Fubini–Study form of the
+`diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry`, pulls the Fubini–Study form of the
 Riemann sphere back to `(4π)⁻¹` times the area form of the unit sphere of `ℝ³`. -/
 theorem mpullback_diffeomorphSphere_symm_fubiniStudyForm :
-    SmoothForm.mpullback (OnePoint.diffeomorphSphere northPole equatorIsometry).symm
-        ((OnePoint.diffeomorphSphere northPole equatorIsometry).symm.contMDiff.of_le le_top)
-        OnePoint.fubiniStudyForm =
+    SmoothForm.mpullback (diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry).symm
+        ((diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry).symm.contMDiff.of_le le_top)
+        fubiniStudyForm =
       (4 * Real.pi)⁻¹ • Orientation.sphereVolumeForm o₃ := by
-  have hid : ⇑(OnePoint.diffeomorphSphere northPole equatorIsometry) ∘
-      ⇑(OnePoint.diffeomorphSphere northPole equatorIsometry).symm = id :=
-    funext (OnePoint.diffeomorphSphere northPole equatorIsometry).apply_symm_apply
-  have h₄ : (4 * Real.pi)⁻¹ • (4 * Real.pi) • OnePoint.fubiniStudyForm =
-      OnePoint.fubiniStudyForm := by
+  have hid : ⇑(diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry) ∘
+      ⇑(diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry).symm = id :=
+    funext (diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry).apply_symm_apply
+  have h₄ : (4 * Real.pi)⁻¹ • (4 * Real.pi) • fubiniStudyForm = fubiniStudyForm := by
     rw [smul_smul, inv_mul_cancel₀ (by positivity), one_smul]
-  rw [← h₄, map_smul, ← mpullback_diffeomorphSphere_sphereVolumeForm,
+  rw [← h₄, _root_.map_smul, ← mpullback_diffeomorphSphere_sphereVolumeForm,
     SmoothForm.mpullback_mpullback]
   simp only [hid, SmoothForm.mpullback_id, LinearMap.id_apply]
 

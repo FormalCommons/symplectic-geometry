@@ -212,7 +212,7 @@ theorem IsSymplectic.mextDeriv_mpullback_prodMk_velocityForm [CompleteSpace E']
     SmoothForm.coe_mpullback, mextDerivₗ_apply, hd]
   funext x
   refine mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero (β.mdifferentiableAt _)
-    ((SymplecticGeometry.contMDiff_totalSpaceMk_one_Icc (n := 1)).mdifferentiableAt one_ne_zero)
+    ((TauCeti.contMDiff_one_tangentSpace_Icc (n := 1)).mdifferentiableAt one_ne_zero)
     fun s ↦ ?_
   have hs (s : unitInterval) : mpullback J ((𝓡∂ 1).prod J) (Prod.mk s) β.val = τ.val := by
     have hι : MDifferentiable J ((𝓡∂ 1).prod J) (Prod.mk s : P → unitInterval × P) :=

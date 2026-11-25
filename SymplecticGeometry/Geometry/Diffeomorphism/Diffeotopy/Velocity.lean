@@ -60,7 +60,8 @@ the diffeotopy, in the sense of McDuff–Salamon, §3.1, and the time derivative
 The velocity is read along the motion, through the derivative of `Φ.cylinderMap` on `∂ₜ`, and not
 through Tau Ceti's `TauCeti.eulerianField` of a family over `ℝ`, which would need an extension of
 the diffeotopy past both ends. The joint smoothness comes from the smoothness of the tangent map
-of the motion and of the unit vector field of the interval (`contMDiff_totalSpaceMk_one_Icc`).
+of the motion and of the unit vector field of the interval (Tau Ceti's
+`TauCeti.contMDiff_one_tangentSpace_Icc`).
 Its proof follows that of Tau Ceti's `TauCeti.contMDiff_vectorBundleEulerField`: a unit vector,
 built from the zero section and a smooth vector of the other factor, is pushed forward by the
 tangent map of a smooth map.
@@ -164,7 +165,7 @@ private theorem contMDiff_velocityAux :
           (⟨p.1, 1⟩ : TangentBundle (𝓡∂ 1) unitInterval))) :=
     contMDiff_equivTangentBundleProd_symm.comp
       (((Bundle.contMDiff_zeroSection ℝ (TangentSpace J)).comp Φ.symm.contMDiff).prodMk
-        (SymplecticGeometry.contMDiff_totalSpaceMk_one_Icc.comp contMDiff_fst))
+        (TauCeti.contMDiff_one_tangentSpace_Icc.comp contMDiff_fst))
   refine ((Φ.contMDiff_cylinderMap.contMDiff_tangentMap (m := ∞) le_rfl).comp hs).congr
     fun p ↦ ?_
   have hb : Φ.cylinderMap (Φ.symm p, p.1) = p.2 := by

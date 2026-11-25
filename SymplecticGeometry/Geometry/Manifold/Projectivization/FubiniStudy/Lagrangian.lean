@@ -415,12 +415,13 @@ theorem fubiniStudyForm_spec :
         (SmoothForm.mpullback (ProjectiveLine.affineParam i)
             (ProjectiveLine.contMDiff_affineParam_real i) (fubiniStudyForm 1)).eval₂ t v w =
           (conj v * w).im / (1 + ‖t‖ ^ 2) ^ 2) ∧
-      (∀ {p : sphere (0 : EuclideanSpace ℝ (Fin 3)) 1} (hp : p ≠ -northPole),
+      (∀ {p : sphere (0 : EuclideanSpace ℝ (Fin 3)) 1}
+          (hp : p ≠ -OnePoint.homeomorphSphere OnePoint.infty),
         sphereToProjectiveLine p =
           mk ℂ ![((1 + (p : EuclideanSpace ℝ (Fin 3)) 2 : ℝ) : ℂ),
               ((p : EuclideanSpace ℝ (Fin 3)) 0 : ℂ) +
                 ((p : EuclideanSpace ℝ (Fin 3)) 1 : ℂ) * Complex.I]
-            (fun h ↦ one_add_ne_zero_of_ne_neg_northPole hp
+            (fun h ↦ OnePoint.one_add_ne_zero_of_ne_neg_homeomorphSphere_infty hp
               (Complex.ofReal_eq_zero.1 (congrFun h 0)))) ∧
       SmoothForm.mpullback sphereToProjectiveLine (sphereToProjectiveLine.contMDiff.of_le le_top)
           (fubiniStudyForm 1) =

@@ -9,7 +9,6 @@ public import Mathlib.Geometry.Manifold.Instances.Icc
 public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
 public import TauCeti.Geometry.Manifold.VectorField.Prod
 import Mathlib.Analysis.Calculus.Deriv.AffineMap
-import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 import TauCeti.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 
@@ -21,11 +20,8 @@ included (`mdifferentiable_subtypeVal_Icc`, `mdifferentiableAt_subtypeVal_Icc`),
 `contMDiff_subtypeVal_Icc`.
 
 A closed interval `[x, y]`, `x < y`, with its manifold-with-boundary structure, carries the unit
-tangent vector `1` of Mathlib's `oneTangentSpaceIcc` at every point. This file shows that the
-vector field `z ↦ 1` is smooth, up to both ends (`contMDiff_totalSpaceMk_one_Icc`). It is not the
-constant field of the model space `EuclideanSpace ℝ (Fin 1)`, since the chart at the right end
-reverses orientation. It is the tangent map of the projection `Set.projIcc` applied to the
-constant field `1` of `ℝ`, which is how the smoothness is proved.
+tangent vector `1` of Mathlib's `oneTangentSpaceIcc` at every point. The vector field `z ↦ 1` is
+smooth, up to both ends, by Tau Ceti's `TauCeti.contMDiff_one_tangentSpace_Icc`.
 
 On a cylinder `[0, 1] × P`, the product (Tau Ceti's `TauCeti.Manifold.prodVectorField`) of this
 field with the zero field of `P` is the unit time field `∂ₜ = (1, 0)`. It is smooth, up to both
@@ -71,19 +67,6 @@ theorem mdifferentiableAt_subtypeVal_Icc (z : Icc x y) :
     MDifferentiableAt (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc x y → ℝ) z :=
   mdifferentiable_subtypeVal_Icc z
 
-/-- The unit vector field `z ↦ 1` of a closed interval is smooth, up to both ends. -/
-theorem contMDiff_totalSpaceMk_one_Icc :
-    ContMDiff (𝓡∂ 1) (𝓡∂ 1).tangent n
-      (fun z : Icc x y ↦ (⟨z, 1⟩ : TangentBundle (𝓡∂ 1) (Icc x y))) := by
-  have hT := (contMDiffOn_projIcc (x := x) (y := y) (n := ω)).contMDiffOn_tangentMapWithin
-    (m := n) le_top (uniqueDiffOn_Icc (Fact.out : x < y)).uniqueMDiffOn
-  have hg : ContMDiff (𝓡∂ 1) 𝓘(ℝ).tangent n
-      (fun z : Icc x y ↦ (⟨z, (1 : TangentSpace 𝓘(ℝ) (z : ℝ))⟩ : TangentBundle 𝓘(ℝ) ℝ)) :=
-    contMDiff_tangentBundle_mk_modelSpace contMDiff_subtypeVal_Icc contMDiff_const
-  refine (hT.comp_contMDiff hg fun z ↦ z.property).congr fun z ↦ ?_
-  simp only [Function.comp_apply, tangentMapWithin]
-  rw [mfderivWithin_projIcc_one z.property, projIcc_val]
-
 section Cylinder
 
 variable {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
@@ -95,7 +78,8 @@ theorem contMDiff_prodVectorField_one_zero :
     ContMDiff ((𝓡∂ 1).prod J) ((𝓡∂ 1).prod J).tangent ∞ (fun p : unitInterval × P ↦
       (⟨p, TauCeti.Manifold.prodVectorField (fun s : unitInterval ↦ (1 : TangentSpace (𝓡∂ 1) s))
         (0 : Π y : P, TangentSpace J y) p⟩ : TangentBundle ((𝓡∂ 1).prod J) (unitInterval × P))) :=
-  TauCeti.Manifold.contMDiff_prodVectorField contMDiff_totalSpaceMk_one_Icc
+  TauCeti.Manifold.contMDiff_prodVectorField
+    TauCeti.contMDiff_one_tangentSpace_Icc
     (Bundle.contMDiff_zeroSection ℝ (TangentSpace J))
 
 /-- The unit time field `∂ₜ = (1, 0)` of the cylinder `[0, 1] × P`, as a smooth section of the
