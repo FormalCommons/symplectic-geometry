@@ -13,6 +13,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.IsSymplectic
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.DegreeOne
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.LieDeriv
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
@@ -233,7 +234,7 @@ theorem mpullback_prodMk_velocityForm_restrict (σ : SmoothTwoForm I M) (G : Smo
       SmoothForm.mpullback (Opens.inclusion h) (contMDiff_inclusion h)
         (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
           (G.velocityForm σ)) := by
-  refine Subtype.ext (funext fun x ↦ ContinuousAlternatingMap.ext_fin_one fun w ↦ ?_)
+  refine SmoothBundleForm.ext_fin_one fun x w ↦ ?_
   have hGt : MDifferentiableAt J I (fun y ↦ G (t, y)) (Opens.inclusion h x) :=
     (G.contMDiff.comp (contMDiff_const.prodMk contMDiff_id)).mdifferentiableAt (by simp)
   have hcomp : mfderiv J I (fun y ↦ G (t, Opens.inclusion h y)) x w =
