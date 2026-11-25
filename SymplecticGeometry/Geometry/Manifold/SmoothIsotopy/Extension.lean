@@ -47,12 +47,12 @@ The proof has three steps.
    neighbourhood (`TauCeti.SmoothEmbedding.exists_contMDiffOn_retraction`). Seeley's extension in
    time of the composite with the embedding (`SymplecticGeometry.timeExtend`), followed by the
    retraction, is the extension. Its slices are embeddings near `A` for times near `[0, 1]`
-   (`TauCeti.exists_pos_forall_isSmoothEmbedding_of_injOn`).
+   (`TauCeti.exists_pos_forall_isSmoothEmbedding_of_eventuallyEq`).
 2. Composed with a smooth `c : ℝ → (-δ, 1 + δ)` that is the identity on `[0, 1]` and constant
    outside `(-δ / 2, 1 + δ / 2)` (*Smooth families*'
    `SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo`), the extension becomes a
    motion over `ℝ` through embeddings, stationary outside a bounded interval and equal to `F` on
-   `[0, 1]`.
+   `[0, 1]` (`TauCeti.exists_contMDiff_forall_isSmoothEmbedding_comp`).
 3. Tau Ceti's `TauCeti.exists_ambientVelocityField` extends its velocity to a compactly
    supported field on `N`, whose time-dependent flow from time `0`
    (`TauCeti.timeDependentFlowDiffeotopy`) is `Φ`. Uniqueness of solutions
@@ -69,6 +69,11 @@ Steps 2 and 3 adapt the proof of Tau Ceti's `TauCeti.SmoothIsotopy.exists_diffeo
 
 ## Main results
 
+* `TauCeti.exists_pos_forall_isSmoothEmbedding_of_eventuallyEq`: a map that agrees near a compact
+  set with embeddings at times in `[0, 1]` has embedding slices near that set at nearby times.
+* `TauCeti.exists_contMDiff_forall_isSmoothEmbedding_comp`: a motion through embeddings at times
+  near `[0, 1]`, run at the time of a cut-off, is a motion over `ℝ` through embeddings that is
+  stationary outside a bounded interval.
 * `TauCeti.SmoothIsotopy.exists_contMDiff_extend`: a smooth isotopy extends near a compact set to
   times in an open interval around `[0, 1]`, with embedding slices.
 * `TauCeti.SmoothIsotopy.exists_contMDiff_diffeomorph_forall_apply_eq`: isotopy extension at every
@@ -111,6 +116,54 @@ variable {E E' H H' P N : Type*}
   {I : ModelWithCorners ℝ E H} {J : ModelWithCorners ℝ E' H'}
   [TopologicalSpace P] [ChartedSpace H' P] [TopologicalSpace N] [ChartedSpace H N]
   [I.Boundaryless] [J.Boundaryless] [IsManifold J ∞ P] [IsManifold I ∞ N] [T2Space N]
+
+/-- **Embedding slices near `[0, 1]`.** Let `G : ℝ × P → N` be smooth on an open set `S`
+containing `[0, 1] ×ˢ A`, with `A` compact, and let `F` be a family over `[0, 1]` of smooth
+embeddings of `P` into `N` such that, at each time `t ∈ [0, 1]`, the slice of `G` agrees with that
+of `F` near `A`. Then there are `δ > 0` and an open `V ⊇ A` with `(-δ, 1 + δ) ×ˢ V ⊆ S` such
+that the slices of `G` at times in `(-δ, 1 + δ)` are smooth embeddings of `V`. -/
+theorem exists_pos_forall_isSmoothEmbedding_of_eventuallyEq [FiniteDimensional ℝ E'] [T2Space P]
+    {S : Set (ℝ × P)} (hS : IsOpen S) {G : ℝ × P → N} (hG : ContMDiffOn (𝓘(ℝ).prod J) I ∞ G S)
+    {A : Set P} (hA : IsCompact A) (hAS : Icc 0 1 ×ˢ A ⊆ S) {F : unitInterval × P → N}
+    (hF : ∀ t, IsSmoothEmbedding J I ∞ fun x ↦ F (t, x))
+    (hGF : ∀ t (ht : t ∈ Icc (0 : ℝ) 1),
+      (fun x ↦ G (t, x)) =ᶠ[nhdsSet A] fun x ↦ F (⟨t, ht⟩, x)) :
+    ∃ δ > 0, ∃ V : TopologicalSpace.Opens P, A ⊆ V ∧ Ioo (-δ) (1 + δ) ×ˢ (V : Set P) ⊆ S ∧
+      ∀ t ∈ Ioo (-δ) (1 + δ), IsSmoothEmbedding J I ∞ (fun x : V ↦ G (t, x)) :=
+  exists_pos_forall_isSmoothEmbedding_of_injOn hS hG hA hAS
+    (fun t ht x hx y hy hxy ↦ (hF ⟨t, ht⟩).isEmbedding.injective <| by
+      simpa only [(hGF t ht).self_of_nhdsSet hx, (hGF t ht).self_of_nhdsSet hy] using hxy)
+    fun t ht x hx ↦ by
+      rw [((hGF t ht).filter_mono (nhds_le_nhdsSet hx)).mfderiv_eq]
+      exact (hF ⟨t, ht⟩).isImmersion.mfderiv_injective (by simp) x
+
+omit [FiniteDimensional ℝ E] [I.Boundaryless] [J.Boundaryless] [IsManifold J ∞ P] [IsManifold I ∞ N]
+  [T2Space N] in
+/-- **A motion over `ℝ` from a motion near `[0, 1]`.** Let `G : ℝ × P → N` be smooth on
+`(-δ, 1 + δ) ×ˢ V`, with smooth embeddings of `V` as slices at times in `(-δ, 1 + δ)`. There is
+a change of time `c : ℝ → ℝ` such that `(t, x) ↦ G (c t, x)` is a smooth motion of `V` over `ℝ`
+through smooth embeddings, with `c t = t` for `t ∈ [0, 1]`, and `c` constant on `t ≤ -(δ / 2)`
+and on `t ≥ 1 + δ / 2`. -/
+theorem exists_contMDiff_forall_isSmoothEmbedding_comp {δ : ℝ} (hδ : 0 < δ)
+    {V : TopologicalSpace.Opens P} {G : ℝ × P → N}
+    (hG : ContMDiffOn (𝓘(ℝ).prod J) I ∞ G (Ioo (-δ) (1 + δ) ×ˢ (V : Set P)))
+    (hemb : ∀ t ∈ Ioo (-δ) (1 + δ), IsSmoothEmbedding J I ∞ (fun x : V ↦ G (t, x))) :
+    ∃ c : ℝ → ℝ, ContMDiff (𝓘(ℝ, ℝ).prod J) I ∞ (fun p : ℝ × V ↦ G (c p.1, p.2)) ∧
+      (∀ t, IsSmoothEmbedding J I ∞ (fun x : V ↦ G (c t, x))) ∧ (∀ t ∈ Icc (0 : ℝ) 1, c t = t) ∧
+      (∀ t ≤ -(δ / 2), c t = c (-(δ / 2))) ∧ ∀ t, 1 + δ / 2 ≤ t → c t = c (1 + δ / 2) := by
+  obtain ⟨c, hc, hc_id, hc_mem, hc_out⟩ :=
+    SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo zero_le_one (half_pos hδ)
+  have hc_mem' (t : ℝ) : c t ∈ Ioo (-δ) (1 + δ) :=
+    ⟨by linarith [(hc_mem t).1], by linarith [(hc_mem t).2]⟩
+  have hc_lo (t : ℝ) (ht : t ≤ -(δ / 2)) : c t = (0 + 1) / 2 :=
+    hc_out t fun h ↦ by linarith [h.1]
+  have hc_hi (t : ℝ) (ht : 1 + δ / 2 ≤ t) : c t = (0 + 1) / 2 :=
+    hc_out t fun h ↦ by linarith [h.2]
+  exact ⟨c, hG.comp_contMDiff ((hc.contMDiff.comp contMDiff_fst).prodMk
+      (contMDiff_subtypeVal.comp contMDiff_snd)) fun q ↦ ⟨hc_mem' q.1, q.2.property⟩,
+    fun t ↦ hemb (c t) (hc_mem' t), fun t ht ↦ hc_id ht,
+    fun t ht ↦ (hc_lo t ht).trans (hc_lo _ le_rfl).symm,
+    fun t ht ↦ (hc_hi t ht).trans (hc_hi _ le_rfl).symm⟩
 
 namespace SmoothIsotopy
 
@@ -169,17 +222,10 @@ theorem exists_contMDiff_extend {f₀ f₁ : C^∞⟮J, P; I, N⟯} (F : SmoothI
   have hkO (t : unitInterval) (x : P) (hx : x ∈ U) : ((t : ℝ), x) ∈ S :=
     ⟨⟨trivial, hx⟩, by rw [mem_preimage, hkF t x hx]; exact heO (mem_range_self _)⟩
   -- The slices of `G` at times in `[0, 1]` are those of `F` near `A`.
-  have hGF' (t : ℝ) (ht : t ∈ Icc (0 : ℝ) 1) :
-      (fun x ↦ G (t, x)) =ᶠ[nhdsSet A] fun x ↦ F (⟨t, ht⟩, x) :=
-    Filter.eventually_of_mem (hU.mem_nhdsSet.2 hAU) fun x hx ↦ hGF ⟨t, ht⟩ x hx
-  obtain ⟨δ, hδ, V, hAV, hVS, hV⟩ := exists_pos_forall_isSmoothEmbedding_of_injOn hS hG hA
+  obtain ⟨δ, hδ, V, hAV, hVS, hV⟩ := exists_pos_forall_isSmoothEmbedding_of_eventuallyEq hS hG hA
     (fun p hp ↦ hkO ⟨p.1, hp.1⟩ p.2 (hAU hp.2))
-    (fun t ht x hx y hy hxy ↦ (F.isSmoothEmbedding ⟨t, ht⟩).isEmbedding.injective <| by
-      simpa only [toContMDiffMap_apply, (hGF' t ht).self_of_nhdsSet hx,
-        (hGF' t ht).self_of_nhdsSet hy] using hxy)
-    fun t ht x hx ↦ by
-      rw [((hGF' t ht).filter_mono (nhds_le_nhdsSet hx)).mfderiv_eq]
-      exact (F.isSmoothEmbedding ⟨t, ht⟩).isImmersion.mfderiv_injective (by simp) x
+    (fun t ↦ by simpa only [toContMDiffMap_apply] using F.isSmoothEmbedding t)
+    fun t ht ↦ Filter.eventually_of_mem (hU.mem_nhdsSet.2 hAU) fun x hx ↦ hGF ⟨t, ht⟩ x hx
   have hVU : (V : Set P) ⊆ U := fun x hx ↦
     (hVS ⟨⟨by linarith, by linarith⟩, hx⟩ : ((0 : ℝ), x) ∈ S).1.2
   exact ⟨δ, hδ, V, hAV, G, hG.mono hVS, fun t x hx ↦ hGF t x (hVU hx), hV⟩
@@ -195,25 +241,15 @@ theorem exists_contMDiff_diffeomorph_forall_apply_eq [SigmaCompactSpace N]
       (∀ y, ψ 0 y = y) ∧ ∃ K : Set N, IsCompact K ∧ (∀ t, ∀ y ∉ K, ψ t y = y) ∧
       ∀ t : unitInterval, ∀ x ∈ A, ψ t (f₀ x) = F (t, x) := by
   obtain ⟨δ, hδ, V, hAV, G, hG, hGF, hemb⟩ := F.exists_contMDiff_extend hA
-  obtain ⟨c, hc, hc_id, hc_mem, hc_out⟩ :=
-    SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo zero_le_one (half_pos hδ)
-  have hc_mem' (t : ℝ) : c t ∈ Ioo (-δ) (1 + δ) :=
-    ⟨by linarith [(hc_mem t).1], by linarith [(hc_mem t).2]⟩
-  have hc_lo (t : ℝ) (ht : t ≤ -(δ / 2)) : c t = (0 + 1) / 2 :=
-    hc_out t fun h ↦ by linarith [h.1]
-  have hc_hi (t : ℝ) (ht : 1 + δ / 2 ≤ t) : c t = (0 + 1) / 2 :=
-    hc_out t fun h ↦ by linarith [h.2]
   -- The motion `G'` of `V` over `ℝ`.
+  obtain ⟨c, hG', hemb', hc_id, hc_lo, hc_hi⟩ :=
+    exists_contMDiff_forall_isSmoothEmbedding_comp hδ hG hemb
   let G' : ℝ × V → N := fun q ↦ G (c q.1, q.2)
-  have hG' : ContMDiff (𝓘(ℝ, ℝ).prod J) I (⊤ : ℕ∞) G' :=
-    hG.comp_contMDiff ((hc.contMDiff.comp contMDiff_fst).prodMk
-      (contMDiff_subtypeVal.comp contMDiff_snd)) fun q ↦ ⟨hc_mem' q.1, q.2.property⟩
-  have hA' : IsCompact (Subtype.val ⁻¹' A : Set V) := by
-    rwa [Subtype.isCompact_iff, image_preimage_eq_of_subset (by rwa [Subtype.range_coe])]
-  obtain ⟨X, K, hK, hXK, hX, hvel⟩ := exists_ambientVelocityField (m := ⊤) (n := ⊤) hG'
-    (fun t ↦ hemb (c t) (hc_mem' t)) hA' (a := -(δ / 2)) (b := 1 + δ / 2)
-    (fun t ht x _ ↦ by simp only [G', hc_lo t ht, hc_lo _ le_rfl])
-    (fun t ht x _ ↦ by simp only [G', hc_hi t ht, hc_hi _ le_rfl]) le_top le_top
+  have hA' : IsCompact (Subtype.val ⁻¹' A : Set V) :=
+    Topology.IsInducing.subtypeVal.isCompact_preimage' hA (by rwa [Subtype.range_coe])
+  obtain ⟨X, K, hK, hXK, hX, hvel⟩ := exists_ambientVelocityField (m := ⊤) (n := ⊤) (G := G')
+    hG' hemb' hA' (a := -(δ / 2)) (b := 1 + δ / 2) (fun t ht x _ ↦ by simp only [G', hc_lo t ht])
+    (fun t ht x _ ↦ by simp only [G', hc_hi t ht]) le_top le_top
   have hX₁ := hX.of_le (m := 1) (by simp)
   have hcomplete := isCompleteVectorField_timeDependentSuspensionField hX₁ hK hXK
   refine ⟨fun t ↦ timeDependentFlowDiffeomorph hcomplete le_top hX 0 t,
@@ -227,8 +263,8 @@ theorem exists_contMDiff_diffeomorph_forall_apply_eq [SigmaCompactSpace N]
   have hsol := timeDependentFlowOf_eq_of_hasMFDerivAt hX₁ (a := -1) (b := 2) (s := 0) (t := t)
     (fun u _ ↦ hvel u ⟨x, hAV hx⟩ hx) ⟨by norm_num, by norm_num⟩
     ⟨by linarith [t.property.1], by linarith [t.property.2]⟩
-  have hc₀ : c 0 = ((0 : unitInterval) : ℝ) := hc_id ⟨le_rfl, zero_le_one⟩
-  simp only [G', hc₀, hc_id t.property, id, hGF _ x (hAV hx), apply_zero] at hsol
+  have hc₀ : c 0 = ((0 : unitInterval) : ℝ) := hc_id 0 ⟨le_rfl, zero_le_one⟩
+  simp only [G', hc₀, hc_id t t.property, hGF _ x (hAV hx), apply_zero] at hsol
   rw [timeDependentFlowDiffeomorph_apply]
   exact hsol
 
