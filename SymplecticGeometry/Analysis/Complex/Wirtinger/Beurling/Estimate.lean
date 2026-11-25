@@ -9,6 +9,7 @@ public import TauCeti.Analysis.Complex.Wirtinger.Beurling.Cauchy
 public import TauCeti.Analysis.Normed.Operator.ComplexLinearPart
 public import TauCeti.Analysis.Sobolev.WeakDeriv.Basic
 import TauCeti.Analysis.Calculus.BumpFunction.Convolution
+import TauCeti.Analysis.Complex.Wirtinger.Lp
 import TauCeti.Analysis.Sobolev.Mollification.Basic
 import TauCeti.MeasureTheory.Function.Lp.ApproximateIdentity
 import TauCeti.MeasureTheory.Function.UnifTight
@@ -41,8 +42,8 @@ almost everywhere then changes `∂̄` by a term of norm at most `m ‖∂̄v‖
   `‖Dv‖₂ ≤ 2 (1 - m)⁻¹ ‖∂̄v + μ ∂v‖₂` of the whole derivative. They follow from the previous two
   results, applied to the classical derivative (Tau Ceti's `ContDiffOn.hasWeakFDerivOn_fderiv`)
   and to the coefficient `μ` cut off outside the support of `v`, where `∂v` vanishes. The bound
-  of `Dv` by `∂v` and `∂̄v` adapts the proof of Tau Ceti's
-  `TauCeti.exists_eLpNorm_fderiv_cauchyTransform_le`.
+  of `Dv` by `∂v` and `∂̄v` is Tau Ceti's `TauCeti.eLpNorm_wirtingerPartsCLM_le`, through
+  `TauCeti.fderiv_eq_wirtingerPartsCLM`.
 
 The absorption step is `MeasureTheory.one_sub_mul_eLpNorm_le_eLpNorm_add_smul`, and the passage
 to the limit `MeasureTheory.eLpNorm_le_eLpNorm_of_tendsto`, with Tau Ceti's
@@ -161,18 +162,18 @@ theorem HasWeakFDerivOn.eLpNorm_complexAntilinearPart_le_of_norm_le
     hμ hμm (h.eLpNorm_complexLinearPart_le_eLpNorm_complexAntilinearPart hv hD)
     hQ.eLpNorm_ne_top
 
-
 /-- **The estimate for `∂̄ + μ ∂` on compactly supported `C¹` maps.** If `v` is a compactly
 supported `C¹` map on the plane and `‖μ‖ ≤ m` on the topological support of `v`, then
 `(1 - m) ‖∂̄v‖₂ ≤ ‖∂̄v + μ ∂v‖₂`. Off the support of `v` the coefficient `μ` is arbitrary, since
 `∂v` vanishes there. -/
 theorem _root_.ContDiff.eLpNorm_conjWirtingerDeriv_le_of_norm_le {v : ℂ → F}
     (hv : ContDiff ℝ 1 v) (hc : HasCompactSupport v) {μ : ℂ → ℂ}
-    (hμ : AEStronglyMeasurable μ volume) {m : ℝ≥0} (hμm : ∀ z ∈ tsupport v, ‖μ z‖ ≤ m) :
+    (hμ : AEStronglyMeasurable μ (volume.restrict (tsupport v))) {m : ℝ≥0}
+    (hμm : ∀ z ∈ tsupport v, ‖μ z‖ ≤ m) :
     (1 - (m : ℝ≥0∞)) * eLpNorm (fun z ↦ conjWirtingerDeriv v z 1) 2 volume ≤
       eLpNorm (fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1) 2 volume := by
   have hν : AEStronglyMeasurable ((tsupport v).indicator μ) volume :=
-    hμ.indicator (isClosed_tsupport v).measurableSet
+    (aestronglyMeasurable_indicator_iff (isClosed_tsupport v).measurableSet).2 hμ
   have hνm : ∀ᵐ z, ‖(tsupport v).indicator μ z‖ ≤ m := .of_forall fun z ↦ by
     by_cases hz : z ∈ tsupport v
     · simpa [Set.indicator_of_mem hz] using hμm z hz
@@ -196,7 +197,7 @@ on the plane and `‖μ‖ ≤ m < 1` on the topological support of `v`, then
 `‖Dv‖₂ ≤ 2 (1 - m)⁻¹ ‖∂̄v + μ ∂v‖₂`. -/
 theorem _root_.ContDiff.eLpNorm_fderiv_le_of_norm_le {v : ℂ → F}
     (hv : ContDiff ℝ 1 v) (hc : HasCompactSupport v) {μ : ℂ → ℂ}
-    (hμ : AEStronglyMeasurable μ volume) {m : ℝ≥0} (hm : m < 1)
+    (hμ : AEStronglyMeasurable μ (volume.restrict (tsupport v))) {m : ℝ≥0} (hm : m < 1)
     (hμm : ∀ z ∈ tsupport v, ‖μ z‖ ≤ m) :
     eLpNorm (fderiv ℝ v) 2 volume ≤ 2 * (1 - (m : ℝ≥0∞))⁻¹ *
       eLpNorm (fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1) 2 volume := by
@@ -217,14 +218,11 @@ theorem _root_.ContDiff.eLpNorm_fderiv_le_of_norm_le {v : ℂ → F}
     rw [← ENNReal.div_eq_inv_mul, ENNReal.le_div_iff_mul_le (.inl hm₀) (.inl (by simp)), mul_comm]
     exact hv.eLpNorm_conjWirtingerDeriv_le_of_norm_le hc hμ hμm
   calc eLpNorm (fderiv ℝ v) 2 volume
-      ≤ eLpNorm (fun z ↦ ‖wirtingerDeriv v z 1‖ + ‖conjWirtingerDeriv v z 1‖) 2 volume :=
-        eLpNorm_mono_real hdv.aestronglyMeasurable
-          (norm_fderiv_le_norm_wirtingerDeriv_add_norm_conjWirtingerDeriv v)
-    _ ≤ eLpNorm (fun z ↦ wirtingerDeriv v z 1) 2 volume +
+      ≤ eLpNorm (fun z ↦ wirtingerDeriv v z 1) 2 volume +
           eLpNorm (fun z ↦ conjWirtingerDeriv v z 1) 2 volume := by
-        refine (eLpNorm_add_le (f := fun z ↦ ‖wirtingerDeriv v z 1‖)
-          (g := fun z ↦ ‖conjWirtingerDeriv v z 1‖) one_le_two).trans_eq ?_
-        rw [eLpNorm_norm _ hw.aestronglyMeasurable, eLpNorm_norm _ hcw.aestronglyMeasurable]
+        rw [funext (fderiv_eq_wirtingerPartsCLM v)]
+        exact eLpNorm_wirtingerPartsCLM_le one_le_two hw.aestronglyMeasurable
+          hcw.aestronglyMeasurable
     _ ≤ 2 * eLpNorm (fun z ↦ conjWirtingerDeriv v z 1) 2 volume := by
         rw [two_mul]
         gcongr
