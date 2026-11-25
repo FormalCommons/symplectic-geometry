@@ -15,10 +15,11 @@ import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 
 Let `U` and `V` be open sets of a Hausdorff σ-compact manifold modelled on a finite-dimensional
 space. If `U`, `V` and `U ⊓ V` have smooth cohomology splittings
-(`SymplecticGeometry.SmoothCohomologySplitting`), then so does `U ⊔ V`
-(`SymplecticGeometry.nonempty_smoothCohomologySplitting_sup`). This is the inductive step of the
-induction over a finite good cover that McDuff and Salamon sketch, after Bott and Tu, in the
-proof of their Theorem 3.2.4 [McDuffSalamon2017], [BottTu1982].
+(`SymplecticGeometry.SmoothCohomologySplitting` with
+`SymplecticGeometry.SmoothCohomologySplitting.IsSmooth`), then so does `U ⊔ V`
+(`SymplecticGeometry.SmoothCohomologySplitting.exists_isSmooth_sup`). This is the inductive
+step of the induction over a finite good cover that McDuff and Salamon sketch, after Bott and Tu,
+in the proof of their Theorem 3.2.4 [McDuffSalamon2017], [BottTu1982].
 
 The splitting `SmoothCohomologySplitting.sup c σU σV σUV` is built from splittings `σU`, `σV`,
 `σUV` of `U`, `V`, `U ⊓ V` and a cut-off function `c` (`ρ` below,
@@ -53,10 +54,13 @@ on `V`. In degree `k + 1`, for a closed form `z` on `U ⊔ V`:
 Every map is assembled from restrictions, cut-off and extension by zero, the exterior derivative,
 gluing, the maps of the three splittings, and linear maps out of finite-dimensional spaces whose
 arguments have smooth coordinates along smooth families; so the new projection and primitive take
-smooth families to smooth families (`MayerVietorisCutoff.preservesSmoothFamilies_supProj`,
-`MayerVietorisCutoff.preservesSmoothFamilies_supPrimitive`). Where the sketch fixes bases and
-forms attached to them, the construction here takes linear right inverses of surjective linear
-maps onto finite-dimensional spaces.
+smooth families to smooth families when those of the three splittings do
+(`MayerVietorisCutoff.preservesSmoothFamilies_supProj`,
+`MayerVietorisCutoff.preservesSmoothFamilies_supPrimitive`,
+`SmoothCohomologySplitting.IsSmooth.sup`). The construction itself makes no reference to
+smoothness, so `sup` does not depend on the universes of parameter manifolds. Where the sketch
+fixes bases and forms attached to them, the construction here takes linear right inverses of
+surjective linear maps onto finite-dimensional spaces.
 
 ## Main definitions
 
@@ -64,8 +68,10 @@ maps onto finite-dimensional spaces.
 
 ## Main results
 
-* `SymplecticGeometry.nonempty_smoothCohomologySplitting_sup`: splittings of `U`, `V` and
-  `U ⊓ V` give one of `U ⊔ V`.
+* `SymplecticGeometry.SmoothCohomologySplitting.IsSmooth.sup`: `sup` of smooth splittings is
+  smooth.
+* `SymplecticGeometry.SmoothCohomologySplitting.exists_isSmooth_sup`: smooth splittings of `U`,
+  `V` and `U ⊓ V` give one of `U ⊔ V`.
 
 ## References
 
@@ -119,9 +125,8 @@ end OverlapDiff
 
 namespace SmoothCohomologySplitting
 
-variable [IsManifold I ∞ M] (σU : SmoothCohomologySplitting.{uE, uH, uN} I U)
-  (σV : SmoothCohomologySplitting.{uE, uH, uN} I V)
-  (σUV : SmoothCohomologySplitting.{uE, uH, uN} I (U ⊓ V : Opens M))
+variable [IsManifold I ∞ M] (σU : SmoothCohomologySplitting I U)
+  (σV : SmoothCohomologySplitting I V) (σUV : SmoothCohomologySplitting I (U ⊓ V : Opens M))
 
 /-! ### Step 1: pairs of representatives with exact difference -/
 
@@ -282,10 +287,8 @@ end SmoothCohomologySplitting
 
 namespace MayerVietorisCutoff
 
-variable [IsManifold I ∞ M] (c : MayerVietorisCutoff I U V)
-  (σU : SmoothCohomologySplitting.{uE, uH, uN} I U)
-  (σV : SmoothCohomologySplitting.{uE, uH, uN} I V)
-  (σUV : SmoothCohomologySplitting.{uE, uH, uN} I (U ⊓ V : Opens M))
+variable [IsManifold I ∞ M] (c : MayerVietorisCutoff I U V) (σU : SmoothCohomologySplitting I U)
+  (σV : SmoothCohomologySplitting I V) (σUV : SmoothCohomologySplitting I (U ⊓ V : Opens M))
 
 include c in
 /-- Every pair of `exactPairs` in positive degree is the pair of projections of the restrictions
@@ -730,7 +733,16 @@ theorem eq_zero_of_mem_supSpace {s : SmoothForm I (U ⊔ V : Opens M) ℝ (k + 1
     (Submodule.disjoint_def.mp (σUV.isCompl_overlapCompl k).disjoint) _ hrange e.property.1
   simp [he]
 
-/-! ### Smoothness in families -/
+/-! ### Smoothness in families
+
+The lemmas of this section hold when the splittings `σU`, `σV`, and for some also `σUV`,
+are smooth (`SmoothCohomologySplitting.IsSmooth`); each docstring names the ones it needs. -/
+
+section Smooth
+
+variable {σU σV σUV} (hσU : σU.IsSmooth.{uE, uH, uN}) (hσV : σV.IsSmooth.{uE, uH, uN})
+  (hσUV : σUV.IsSmooth.{uE, uH, uN})
+include hσU hσV
 
 section Families
 
@@ -742,7 +754,8 @@ variable {EN : Type uE} [NormedAddCommGroup EN] [NormedSpace ℝ EN] {HN : Type 
 include hα
 
 omit c in
-/-- The linear functionals of `projExactPair` along a smooth family are smooth. -/
+/-- The linear functionals of `projExactPair` along a smooth family are smooth,
+when `σU` and `σV` are smooth. -/
 theorem contMDiff_dual_projExactPair (f : Module.Dual ℝ (σU.exactPairs σV (k + 1))) :
     ContMDiff J 𝓘(ℝ) ∞ (fun t ↦ f (σU.projExactPair σV k (α t))) := by
   obtain ⟨g, hg⟩ := LinearMap.exists_extend f
@@ -759,84 +772,92 @@ theorem contMDiff_dual_projExactPair (f : Module.Dual ℝ (σU.exactPairs σV (k
       SmoothCohomologySplitting.coe_projSpace, LinearMap.inl_apply, LinearMap.inr_apply,
       ← map_add, Prod.mk_add_mk, add_zero, zero_add]
   simp only [h]
-  exact ((σU.preservesSmoothFamilies_subtype_comp_projSpace (k + 1)).contMDiff_dual_apply
+  exact ((hσU.preservesSmoothFamilies_subtype_comp_projSpace (k + 1)).contMDiff_dual_apply
     (by simpa only [closedForms.coe_mpullback] using
       hα.mpullback _ (contMDiff_inclusion le_sup_left)) _).add
-    ((σV.preservesSmoothFamilies_subtype_comp_projSpace (k + 1)).contMDiff_dual_apply
+    ((hσV.preservesSmoothFamilies_subtype_comp_projSpace (k + 1)).contMDiff_dual_apply
     (by simpa only [closedForms.coe_mpullback] using
       hα.mpullback _ (contMDiff_inclusion le_sup_right)) _)
 
-/-- The fixed closed forms of step 1 along a smooth family form a smooth family. -/
+/-- The fixed closed forms of step 1 along a smooth family form a smooth family,
+when `σU` and `σV` are smooth. -/
 theorem isSmoothFamily_liftPair :
     IsSmoothFamily J (fun t ↦ ((c.liftPair σU σV k (σU.projExactPair σV k (α t)) :
       closedForms I (U ⊔ V : Opens M) (k + 1)) : SmoothForm I (U ⊔ V : Opens M) ℝ (k + 1))) := by
   simpa only [LinearMap.comp_apply, Submodule.subtype_apply] using isSmoothFamily_of_contMDiff_dual
     ((closedForms I (U ⊔ V : Opens M) (k + 1)).subtype ∘ₗ c.liftPair σU σV k)
-    (x := fun t ↦ σU.projExactPair σV k (α t)) (contMDiff_dual_projExactPair σU σV hα)
+    (x := fun t ↦ σU.projExactPair σV k (α t)) (contMDiff_dual_projExactPair hσU hσV hα)
 
-/-- `exactOnPieces` along a smooth family is a smooth family. -/
+/-- `exactOnPieces` along a smooth family is a smooth family, when `σU` and `σV` are smooth. -/
 theorem isSmoothFamily_exactOnPieces :
     IsSmoothFamily J (fun t ↦ (c.exactOnPieces σU σV k (α t) :
       SmoothForm I (U ⊔ V : Opens M) ℝ (k + 1))) := by
-  simpa only [coe_exactOnPieces] using hα.sub (c.isSmoothFamily_liftPair σU σV hα)
+  simpa only [coe_exactOnPieces] using hα.sub (c.isSmoothFamily_liftPair hσU hσV hα)
 
-/-- `primitiveLeft` along a smooth family is a smooth family. -/
+/-- `primitiveLeft` along a smooth family is a smooth family, when `σU` and `σV` are smooth. -/
 theorem isSmoothFamily_primitiveLeft :
     IsSmoothFamily J (fun t ↦ c.primitiveLeft σU σV k (α t)) :=
-  preservesSmoothFamilies_def.mp (σU.preservesSmoothFamilies_primitive k)
+  preservesSmoothFamilies_def.mp (hσU.preservesSmoothFamilies_primitive k)
     (fun t ↦ closedForms.mpullback (Opens.inclusion le_sup_left) (contMDiff_inclusion _) (k + 1)
       (c.exactOnPieces σU σV k (α t))) (by
     simpa only [closedForms.coe_mpullback] using
-      (c.isSmoothFamily_exactOnPieces σU σV hα).mpullback _ (contMDiff_inclusion le_sup_left))
+      (c.isSmoothFamily_exactOnPieces hσU hσV hα).mpullback _ (contMDiff_inclusion le_sup_left))
 
-/-- `primitiveRight` along a smooth family is a smooth family. -/
+/-- `primitiveRight` along a smooth family is a smooth family, when `σU` and `σV` are smooth. -/
 theorem isSmoothFamily_primitiveRight :
     IsSmoothFamily J (fun t ↦ c.primitiveRight σU σV k (α t)) :=
-  preservesSmoothFamilies_def.mp (σV.preservesSmoothFamilies_primitive k)
+  preservesSmoothFamilies_def.mp (hσV.preservesSmoothFamilies_primitive k)
     (fun t ↦ closedForms.mpullback (Opens.inclusion le_sup_right) (contMDiff_inclusion _) (k + 1)
       (c.exactOnPieces σU σV k (α t))) (by
     simpa only [closedForms.coe_mpullback] using
-      (c.isSmoothFamily_exactOnPieces σU σV hα).mpullback _ (contMDiff_inclusion le_sup_right))
+      (c.isSmoothFamily_exactOnPieces hσU hσV hα).mpullback _ (contMDiff_inclusion le_sup_right))
 
-/-- The discrepancy along a smooth family is a smooth family. -/
+/-- The discrepancy along a smooth family is a smooth family, when `σU` and `σV` are smooth. -/
 theorem isSmoothFamily_discrepancy :
     IsSmoothFamily J (fun t ↦ (c.discrepancy σU σV k (α t) :
       SmoothForm I (U ⊓ V : Opens M) ℝ k)) := by
   simpa only [coe_discrepancy] using
-    ((c.isSmoothFamily_primitiveLeft σU σV hα).mpullback _ (contMDiff_inclusion _)).sub
-      ((c.isSmoothFamily_primitiveRight σU σV hα).mpullback _ (contMDiff_inclusion _))
+    ((c.isSmoothFamily_primitiveLeft hσU hσV hα).mpullback _ (contMDiff_inclusion _)).sub
+      ((c.isSmoothFamily_primitiveRight hσU hσV hα).mpullback _ (contMDiff_inclusion _))
 
-/-- The fixed closed forms on `U` of step 2 along a smooth family form a smooth family. -/
+include hσUV in
+/-- The fixed closed forms on `U` of step 2 along a smooth family form a smooth family,
+when `σU`, `σV` and `σUV` are smooth. -/
 theorem isSmoothFamily_overlapLift_fst :
     IsSmoothFamily J (fun t ↦ ((σUV.overlapLift k (c.rangePart σU σV σUV k (α t))).1 :
       SmoothForm I U ℝ k)) :=
   preservesSmoothFamilies_def.mp
-    ((σUV.preservesSmoothFamilies_subtype_comp_projSpace k).comp_of_finiteDimensional
+    ((hσUV.preservesSmoothFamilies_subtype_comp_projSpace k).comp_of_finiteDimensional
     ((closedForms I U k).subtype ∘ₗ LinearMap.fst ℝ (closedForms I U k) (closedForms I V k) ∘ₗ
       σUV.overlapLift k ∘ₗ σUV.rangeProj k)) _
-    (c.isSmoothFamily_discrepancy σU σV hα)
+    (c.isSmoothFamily_discrepancy hσU hσV hα)
 
-/-- The fixed closed forms on `V` of step 2 along a smooth family form a smooth family. -/
+include hσUV in
+/-- The fixed closed forms on `V` of step 2 along a smooth family form a smooth family,
+when `σU`, `σV` and `σUV` are smooth. -/
 theorem isSmoothFamily_overlapLift_snd :
     IsSmoothFamily J (fun t ↦ ((σUV.overlapLift k (c.rangePart σU σV σUV k (α t))).2 :
       SmoothForm I V ℝ k)) :=
   preservesSmoothFamilies_def.mp
-    ((σUV.preservesSmoothFamilies_subtype_comp_projSpace k).comp_of_finiteDimensional
+    ((hσUV.preservesSmoothFamilies_subtype_comp_projSpace k).comp_of_finiteDimensional
     ((closedForms I V k).subtype ∘ₗ LinearMap.snd ℝ (closedForms I U k) (closedForms I V k) ∘ₗ
       σUV.overlapLift k ∘ₗ σUV.rangeProj k)) _
-    (c.isSmoothFamily_discrepancy σU σV hα)
+    (c.isSmoothFamily_discrepancy hσU hσV hα)
 
-/-- The corrected discrepancy along a smooth family is a smooth family. -/
+include hσUV in
+/-- The corrected discrepancy along a smooth family is a smooth family,
+when `σU`, `σV` and `σUV` are smooth. -/
 theorem isSmoothFamily_correctedDiscrepancy :
     IsSmoothFamily J (fun t ↦ (c.correctedDiscrepancy σU σV σUV k (α t) :
       SmoothForm I (U ⊓ V : Opens M) ℝ k)) := by
   simpa only [coe_correctedDiscrepancy, coe_overlapDiff] using
-    (c.isSmoothFamily_discrepancy σU σV hα).sub
-    (((c.isSmoothFamily_overlapLift_fst σU σV σUV hα).mpullback _ (contMDiff_inclusion _)).sub
-      ((c.isSmoothFamily_overlapLift_snd σU σV σUV hα).mpullback _ (contMDiff_inclusion _)))
+    (c.isSmoothFamily_discrepancy hσU hσV hα).sub
+    (((c.isSmoothFamily_overlapLift_fst hσU hσV hσUV hα).mpullback _ (contMDiff_inclusion _)).sub
+      ((c.isSmoothFamily_overlapLift_snd hσU hσV hσUV hα).mpullback _ (contMDiff_inclusion _)))
 
+include hσUV in
 /-- The exact part cut off to `U` of the corrected discrepancy along a smooth family is a smooth
-family. -/
+family, when `σU`, `σV` and `σUV` are smooth. -/
 theorem isSmoothFamily_exactCorrectionLeft :
     IsSmoothFamily J (fun t ↦
       c.exactCorrectionLeft σUV k (c.correctedDiscrepancy σU σV σUV k (α t))) := by
@@ -844,11 +865,12 @@ theorem isSmoothFamily_exactCorrectionLeft :
   | zero => simpa [exactCorrectionLeft] using isSmoothFamily_const (J := J) 0
   | succ j =>
     exact (c.isSmoothFamily_extendLeft
-      (preservesSmoothFamilies_def.mp (σUV.preservesSmoothFamilies_primitive j) _
-      (c.isSmoothFamily_correctedDiscrepancy σU σV σUV hα))).mextDeriv
+      (preservesSmoothFamilies_def.mp (hσUV.preservesSmoothFamilies_primitive j) _
+      (c.isSmoothFamily_correctedDiscrepancy hσU hσV hσUV hα))).mextDeriv
 
+include hσUV in
 /-- The exact part cut off to `V` of the corrected discrepancy along a smooth family is a smooth
-family. -/
+family, when `σU`, `σV` and `σUV` are smooth. -/
 theorem isSmoothFamily_exactCorrectionRight :
     IsSmoothFamily J (fun t ↦
       c.exactCorrectionRight σUV k (c.correctedDiscrepancy σU σV σUV k (α t))) := by
@@ -856,50 +878,57 @@ theorem isSmoothFamily_exactCorrectionRight :
   | zero => simpa [exactCorrectionRight] using isSmoothFamily_const (J := J) 0
   | succ j =>
     exact (c.isSmoothFamily_extendRight
-      (preservesSmoothFamilies_def.mp (σUV.preservesSmoothFamilies_primitive j) _
-      (c.isSmoothFamily_correctedDiscrepancy σU σV σUV hα))).mextDeriv
+      (preservesSmoothFamilies_def.mp (hσUV.preservesSmoothFamilies_primitive j) _
+      (c.isSmoothFamily_correctedDiscrepancy hσU hσV hσUV hα))).mextDeriv
 
+include hσUV in
 /-- Any linear map applied to the component of step 2 in the fixed complement along a smooth
-family gives a smooth family. -/
+family gives a smooth family, when `σU`, `σV` and `σUV` are smooth. -/
 theorem isSmoothFamily_complementPart_comp
     {l : ℕ} {M' : Type*} [TopologicalSpace M'] [ChartedSpace H M'] [IsManifold I ∞ M']
     (L : (σUV.overlapCompl k ⊓ σUV.space k : Submodule ℝ _) →ₗ[ℝ] SmoothForm I M' ℝ l) :
     IsSmoothFamily J (fun t ↦ L (c.complementPart σU σV σUV k (α t))) :=
   preservesSmoothFamilies_def.mp
-    ((σUV.preservesSmoothFamilies_subtype_comp_projSpace k).comp_of_finiteDimensional
+    ((hσUV.preservesSmoothFamilies_subtype_comp_projSpace k).comp_of_finiteDimensional
     (L ∘ₗ σUV.complProj k)) _
-    (c.isSmoothFamily_discrepancy σU σV hα)
+    (c.isSmoothFamily_discrepancy hσU hσV hα)
 
 end Families
 
-/-- The new projection takes smooth families to smooth families. -/
+include hσUV in
+/-- The new projection takes smooth families to smooth families,
+when `σU`, `σV` and `σUV` are smooth. -/
 theorem preservesSmoothFamilies_supProj (k : ℕ) :
     PreservesSmoothFamilies.{uE, uH, uN} (c.supProj σU σV σUV k) :=
     preservesSmoothFamilies_def.mpr fun α hα ↦ by
   simpa only [supProj_def, LinearMap.add_apply, LinearMap.comp_apply, Submodule.subtype_apply] using
-    (c.isSmoothFamily_liftPair σU σV hα).add (c.isSmoothFamily_complementPart_comp σU σV σUV hα
+    (c.isSmoothFamily_liftPair hσU hσV hα).add (c.isSmoothFamily_complementPart_comp hσU hσV hσUV hα
       (c.connecting k ∘ₗ Submodule.inclusion (σUV.overlapCompl_inf_space_le_closedForms k)))
 
-/-- The new primitive takes smooth families to smooth families. -/
+include hσUV in
+/-- The new primitive takes smooth families to smooth families,
+when `σU`, `σV` and `σUV` are smooth. -/
 theorem preservesSmoothFamilies_supPrimitive (k : ℕ) :
     PreservesSmoothFamilies.{uE, uH, uN} (c.supPrimitive σU σV σUV k) :=
     preservesSmoothFamilies_def.mpr fun α hα ↦ by
   refine isSmoothFamily_iff_mpullback_inclusion_sup.mpr ⟨?_, ?_⟩
   · simpa only [mpullback_supPrimitive_left, primitivePieceLeft,
       LinearMap.sub_apply, LinearMap.comp_apply, Submodule.subtype_apply, LinearMap.fst_apply]
-      using (((c.isSmoothFamily_primitiveLeft σU σV hα).sub
-        (c.isSmoothFamily_overlapLift_fst σU σV σUV hα)).sub
-        (c.isSmoothFamily_exactCorrectionLeft σU σV σUV hα)).sub
-        (c.isSmoothFamily_complementPart_comp σU σV σUV hα
+      using (((c.isSmoothFamily_primitiveLeft hσU hσV hα).sub
+        (c.isSmoothFamily_overlapLift_fst hσU hσV hσUV hα)).sub
+        (c.isSmoothFamily_exactCorrectionLeft hσU hσV hσUV hα)).sub
+        (c.isSmoothFamily_complementPart_comp hσU hσV hσUV hα
           (c.extendLeft ∘ₗ (σUV.overlapCompl k ⊓ σUV.space k).subtype))
   · simpa only [mpullback_supPrimitive_right, primitivePieceRight,
       LinearMap.sub_apply, LinearMap.add_apply, LinearMap.comp_apply, Submodule.subtype_apply,
       LinearMap.snd_apply]
-      using (((c.isSmoothFamily_primitiveRight σU σV hα).sub
-        (c.isSmoothFamily_overlapLift_snd σU σV σUV hα)).add
-        (c.isSmoothFamily_exactCorrectionRight σU σV σUV hα)).add
-        (c.isSmoothFamily_complementPart_comp σU σV σUV hα
+      using (((c.isSmoothFamily_primitiveRight hσU hσV hα).sub
+        (c.isSmoothFamily_overlapLift_snd hσU hσV hσUV hα)).add
+        (c.isSmoothFamily_exactCorrectionRight hσU hσV hσUV hα)).add
+        (c.isSmoothFamily_complementPart_comp hσU hσV hσUV hα
           (c.extendRight ∘ₗ (σUV.overlapCompl k ⊓ σUV.space k).subtype))
+
+end Smooth
 
 end MayerVietorisCutoff
 
@@ -935,12 +964,12 @@ theorem finiteDimensional_closedForms_zero_sup (σU : SmoothCohomologySplitting 
   simp only [LinearMap.prod_apply, Function.prod_apply, closedForms.coe_mpullback] at h₁ h₂
   simp only [LinearMap.prod_apply, Function.prod_apply, h₁, h₂]
 
-/-- **The Mayer–Vietoris step.** The smooth cohomology splitting of `U ⊔ V` built from
-splittings of `U`, `V` and `U ⊓ V` and a cut-off function `c`. -/
-def sup (c : MayerVietorisCutoff I U V) (σU : SmoothCohomologySplitting.{uE, uH, uN} I U)
-    (σV : SmoothCohomologySplitting.{uE, uH, uN} I V)
-    (σUV : SmoothCohomologySplitting.{uE, uH, uN} I (U ⊓ V : Opens M)) :
-    SmoothCohomologySplitting.{uE, uH, uN} I (U ⊔ V : Opens M) where
+/-- **The Mayer–Vietoris step.** The cohomology splitting of `U ⊔ V` built from splittings of
+`U`, `V` and `U ⊓ V` and a cut-off function `c`; it is smooth when the three splittings are
+(`SmoothCohomologySplitting.IsSmooth.sup`). -/
+def sup (c : MayerVietorisCutoff I U V) (σU : SmoothCohomologySplitting I U)
+    (σV : SmoothCohomologySplitting I V) (σUV : SmoothCohomologySplitting I (U ⊓ V : Opens M)) :
+    SmoothCohomologySplitting I (U ⊔ V : Opens M) where
   space
     | 0 => closedForms I _ 0
     | k + 1 => c.supSpace σU σV σUV k
@@ -962,16 +991,11 @@ def sup (c : MayerVietorisCutoff I U V) (σU : SmoothCohomologySplitting.{uE, uH
   eq_zero_of_mem_exactForms k := match k with
     | 0 => fun _ h ↦ by simpa using h
     | k + 1 => fun hs h ↦ c.eq_zero_of_mem_supSpace σU σV σUV hs h
-  preservesSmoothFamilies_proj
-    | 0 => preservesSmoothFamilies_subtype
-    | k + 1 => c.preservesSmoothFamilies_supProj σU σV σUV k
-  preservesSmoothFamilies_primitive k := c.preservesSmoothFamilies_supPrimitive σU σV σUV k
 
 section Sup
 
-variable (c : MayerVietorisCutoff I U V) (σU : SmoothCohomologySplitting.{uE, uH, uN} I U)
-  (σV : SmoothCohomologySplitting.{uE, uH, uN} I V)
-  (σUV : SmoothCohomologySplitting.{uE, uH, uN} I (U ⊓ V : Opens M))
+variable (c : MayerVietorisCutoff I U V) (σU : SmoothCohomologySplitting I U)
+  (σV : SmoothCohomologySplitting I V) (σUV : SmoothCohomologySplitting I (U ⊓ V : Opens M))
 
 /-- In degree zero, the space of `sup` is the space of all closed `0`-forms. -/
 theorem space_sup_zero : (sup c σU σV σUV).space 0 = closedForms I (U ⊔ V : Opens M) 0 :=
@@ -993,6 +1017,22 @@ theorem proj_sup_succ (k : ℕ) : (sup c σU σV σUV).proj (k + 1) = c.supProj 
 theorem primitive_sup (k : ℕ) : (sup c σU σV σUV).primitive k = c.supPrimitive σU σV σUV k :=
   (rfl)
 
+variable {σU σV σUV} in
+/-- The Mayer–Vietoris step keeps smoothness: if the splittings of `U`, `V` and `U ⊓ V` are
+smooth, so is `sup c σU σV σUV`. -/
+theorem IsSmooth.sup (hσU : σU.IsSmooth.{uE, uH, uN}) (hσV : σV.IsSmooth.{uE, uH, uN})
+    (hσUV : σUV.IsSmooth.{uE, uH, uN}) : (sup c σU σV σUV).IsSmooth.{uE, uH, uN} where
+  preservesSmoothFamilies_proj
+    | 0 => by
+      rw [proj_sup_zero]
+      exact preservesSmoothFamilies_subtype
+    | k + 1 => by
+      rw [proj_sup_succ]
+      exact c.preservesSmoothFamilies_supProj hσU hσV hσUV k
+  preservesSmoothFamilies_primitive k := by
+    rw [primitive_sup]
+    exact c.preservesSmoothFamilies_supPrimitive hσU hσV hσUV k
+
 end Sup
 
 end SmoothCohomologySplitting
@@ -1000,12 +1040,15 @@ end SmoothCohomologySplitting
 /-- **The Mayer–Vietoris step for smooth cohomology splittings.** On a Hausdorff σ-compact
 manifold modelled on a finite-dimensional space, if two open sets `U` and `V` and their
 intersection have smooth cohomology splittings, then so does their union. -/
-theorem nonempty_smoothCohomologySplitting_sup [FiniteDimensional ℝ E] [IsManifold I ∞ M]
-    [T2Space M] [SigmaCompactSpace M] (U V : Opens M)
-    (hU : Nonempty (SmoothCohomologySplitting.{uE, uH, uN} I U))
-    (hV : Nonempty (SmoothCohomologySplitting.{uE, uH, uN} I V))
-    (hUV : Nonempty (SmoothCohomologySplitting.{uE, uH, uN} I (U ⊓ V : Opens M))) :
-    Nonempty (SmoothCohomologySplitting.{uE, uH, uN} I (U ⊔ V : Opens M)) :=
-  ⟨.sup (MayerVietorisCutoff.nonempty U V).some hU.some hV.some hUV.some⟩
+theorem SmoothCohomologySplitting.exists_isSmooth_sup [FiniteDimensional ℝ E]
+    [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M] (U V : Opens M)
+    (hU : ∃ σ : SmoothCohomologySplitting I U, σ.IsSmooth.{uE, uH, uN})
+    (hV : ∃ σ : SmoothCohomologySplitting I V, σ.IsSmooth.{uE, uH, uN})
+    (hUV : ∃ σ : SmoothCohomologySplitting I (U ⊓ V : Opens M), σ.IsSmooth.{uE, uH, uN}) :
+    ∃ σ : SmoothCohomologySplitting I (U ⊔ V : Opens M), σ.IsSmooth.{uE, uH, uN} :=
+  let ⟨_, hσU⟩ := hU
+  let ⟨_, hσV⟩ := hV
+  let ⟨_, hσUV⟩ := hUV
+  ⟨_, hσU.sup (MayerVietorisCutoff.nonempty U V).some hσV hσUV⟩
 
 end SymplecticGeometry
