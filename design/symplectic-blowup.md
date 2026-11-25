@@ -223,13 +223,13 @@ they are split here so that each issue is a few hundred lines, and
 Namespace `SymplecticGeometry`, on `puncturedSpace E` with the complex
 structure of `E`, for `n : ℕ` and `E := Fin (n + 1) → ℂ`.
 
-- `radialPotentialForm g`: for `g : ℝ → ℝ` smooth on `Ioi 0`, the form
+- `radialPotentialForm n g hg`: for `g : ℝ → ℝ` and `hg : ContDiffOn ℝ ∞ g (Ioi 0)`, the form
   $\tfrac14d(J^*d(g(|z|^2)))$ on `puncturedSpace E`, with
   `radialPotentialForm_def` and `radialPotentialForm_apply`, the explicit
   formula $g'(s)\,\omega_0+g''(s)\,\tfrac i2\partial s\wedge\bar\partial s$
   with $s=|z|^2$, which the computations below read. `radialPotentialForm_id` ($g(s)=s$
   gives $\omega_0$) and `radialPotentialForm_log` ($g=\log$ gives
-  `fubiniStudyLift`, by `fubiniStudyLift_eq_del_delBar`).
+  `fubiniStudyLift`, by `fubiniStudyPrimitive_eq`).
 - `isKahler_radialPotentialForm`: if $g'>0$ and $(sg')'>0$ on `Ioi 0`, the
   form is Kähler for the complex structure of the open subset, by the Levi
   form above.
