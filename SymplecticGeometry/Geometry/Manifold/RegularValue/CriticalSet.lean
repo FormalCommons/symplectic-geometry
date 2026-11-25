@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 public import TauCeti.Geometry.Manifold.RegularValue
 import TauCeti.Geometry.Manifold.RegularValue.Open
 
@@ -14,7 +15,8 @@ import TauCeti.Geometry.Manifold.RegularValue.Open
 The critical set `criticalSet I I' f` of a map `f : M → N` between manifolds over a nontrivially
 normed field is the set of points at which `f` is not a regular point in the sense of Tau Ceti's
 `TauCeti.IsRegularPoint`, that is, at which the manifold derivative of `f` is not surjective.
-Tau Ceti's own `criticalPoints` is the corresponding notion for real-valued functions only.
+Tau Ceti's own `criticalPoints` is the corresponding notion for real-valued functions only, and
+`SymplecticGeometry.criticalSet_eq_criticalPoints` identifies the two for maps into `ℝ`.
 
 ## Main results
 
@@ -25,6 +27,9 @@ Tau Ceti's own `criticalPoints` is the corresponding notion for real-valued func
 * `Diffeomorph.comp_isRegularPoint_iff` and `Diffeomorph.criticalSet_comp`: postcomposing with a
   diffeomorphism changes neither the regular points nor the critical set. This is the
   counterpart, for the target, of Tau Ceti's `Diffeomorph.isRegularPoint_comp_iff`.
+* `SymplecticGeometry.criticalSet_eq_criticalPoints`: for a real-valued function the critical
+  set is Tau Ceti's `TauCeti.criticalPoints`, by
+  `TauCeti.isRegularPoint_iff_notMem_criticalPoints`.
 -/
 
 public section
@@ -90,6 +95,15 @@ theorem _root_.Diffeomorph.criticalSet_comp {n : WithTop ℕ∞}
     criticalSet I I'' (Φ ∘ f) = criticalSet I I' f := by
   ext x
   simp [Φ.comp_isRegularPoint_iff hn]
+
+/-- For a real-valued function, the critical set is Tau Ceti's `criticalPoints`, the set of points
+where the manifold derivative vanishes. -/
+theorem criticalSet_eq_criticalPoints {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M]
+    [ChartedSpace H M] (f : M → ℝ) :
+    criticalSet I 𝓘(ℝ) f = criticalPoints I f := by
+  ext x
+  rw [mem_criticalSet_iff, isRegularPoint_iff_notMem_criticalPoints, not_not]
 
 end SymplecticGeometry
 

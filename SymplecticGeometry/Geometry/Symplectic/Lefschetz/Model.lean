@@ -8,6 +8,7 @@ module
 public import Mathlib.LinearAlgebra.Matrix.Dual
 public import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
 public import SymplecticGeometry.Analysis.Complex.HolomorphicQuadratic
+import SymplecticGeometry.Analysis.Complex.RealFunctional
 public import TauCeti.Geometry.Manifold.Morse.Basic
 public import TauCeti.Geometry.Manifold.Morse.Index
 import Mathlib.Analysis.Calculus.Deriv.Shift
@@ -41,6 +42,8 @@ about it that the rest of the theory uses.
   of `quadric` is nondegenerate (at every point, in particular at `0`).
 * `SymplecticGeometry.LefschetzModel.manifoldMorseIndex_re_mul_quadric`: for `c ≠ 0`, the
   point `0` is a nondegenerate critical point of `z ↦ Re (c * quadric z)`, of Morse index `2`.
+* `SymplecticGeometry.LefschetzModel.manifoldMorseIndex_comp_quadric`: the same for `ν ∘ quadric`,
+  for any `ν : ℂ → ℝ` that is `C²` at `0` with nonzero derivative there.
 * `SymplecticGeometry.LefschetzModel.exists_openPartialHomeomorph_apply_add_quadric`: after a
   holomorphic change `h` of the base coordinate with `h' c ≠ 0`, the map `w ↦ h (c + quadric w)`
   is again `h c + quadric`, in biholomorphic coordinates near `0` whose domain lies in any
@@ -50,7 +53,10 @@ The Morse index is computed with Tau Ceti's
 `ContinuousLinearMap.morseIndex_re_apply_self_of_ker_eq_bot`: the real part of a holomorphic
 quadratic form whose polarization is injective has Morse index the complex dimension. The
 critical point is nondegenerate by
-`ContinuousLinearMap.isNondegenerateCriticalPoint_re_apply_self_of_ker_eq_bot`.
+`ContinuousLinearMap.isNondegenerateCriticalPoint_re_apply_self_of_ker_eq_bot`. For a general
+`ν`, Tau Ceti's `TauCeti.hessianQuadraticForm_comp_eq_fderiv_comp` replaces `ν` by its derivative
+at `0`, since the quadric is critical there, and that derivative is `t ↦ Re (c * t)` by
+`ContinuousLinearMap.exists_apply_eq_re_mul`.
 
 The reparametrisation adapts the proof of Tau Ceti's
 `AnalyticAt.exists_openPartialHomeomorph_sub_eq_pow` from one variable to the quadric on `ℂ²`.
@@ -204,6 +210,36 @@ theorem manifoldMorseIndex_re_mul_quadric {c : ℂ} (hc : c ≠ 0) :
   rw [isManifoldNondegenerateCriticalPoint_modelSpace_iff, manifoldMorseIndex_modelSpace, hfun,
     q.morseIndex_re_apply_self_of_ker_eq_bot hker, Module.finrank_fin_fun]
   exact ⟨q.isNondegenerateCriticalPoint_re_apply_self_of_ker_eq_bot hker, rfl⟩
+
+/-- **The Morse index of a function of the quadric.** If `ν : ℂ → ℝ` is `C²` at `0` with nonzero
+real derivative there, then the origin is a nondegenerate critical point of `ν ∘ quadric` on `ℂ²`,
+of Morse index `2`. -/
+theorem manifoldMorseIndex_comp_quadric {ν : ℂ → ℝ} (hν : ContDiffAt ℝ 2 ν 0)
+    (hd : fderiv ℝ ν 0 ≠ 0) :
+    IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, Fin 2 → ℂ) (ν ∘ quadric) 0 ∧
+      manifoldMorseIndex 𝓘(ℝ, Fin 2 → ℂ) (ν ∘ quadric) 0 = 2 := by
+  -- The derivative of `ν` at `0` is `t ↦ Re (c * t)` with `c ≠ 0`; since the quadric is critical
+  -- at `0`, the Hessian of `ν ∘ quadric` there is that of `z ↦ Re (c * quadric z)`.
+  obtain ⟨c, hc⟩ := (fderiv ℝ ν 0).exists_apply_eq_re_mul
+  have hc0 : c ≠ 0 := by
+    rintro rfl
+    exact hd (ContinuousLinearMap.ext fun t ↦ by simp [hc])
+  have hq : ContDiffAt ℝ 2 quadric 0 := (contDiff_quadric.restrict_scalars ℝ).contDiffAt
+  have hq0 : fderiv ℝ quadric 0 = 0 := fderiv_real_quadric_eq_zero_iff.2 rfl
+  have hν' : ContDiffAt ℝ 2 ν (quadric 0) := by rwa [quadric_zero]
+  have hH : hessianQuadraticForm (ν ∘ quadric) 0 =
+      hessianQuadraticForm (fun z ↦ (c * quadric z).re) 0 := by
+    rw [hessianQuadraticForm_comp_eq_fderiv_comp hν' hq hq0, quadric_zero]
+    congr 1
+    funext z
+    simp [hc]
+  obtain ⟨hnd, hidx⟩ := manifoldMorseIndex_re_mul_quadric hc0
+  rw [isManifoldNondegenerateCriticalPoint_modelSpace_iff,
+    isNondegenerateCriticalPoint_iff_hessianQuadraticForm_nondegenerate] at hnd ⊢
+  rw [manifoldMorseIndex_modelSpace, morseIndex_def] at hidx ⊢
+  refine ⟨⟨hν'.comp 0 hq, ?_, hH ▸ hnd.2.2⟩, hH ▸ hidx⟩
+  rw [fderiv_comp 0 (hν'.differentiableAt (by norm_num)) (hq.differentiableAt (by norm_num)), hq0,
+    ContinuousLinearMap.comp_zero]
 
 /-- **Reparametrising the quadric.** A holomorphic change `h` of the base coordinate near `c`,
 with `h' c ≠ 0`, keeps the exact model: there is a biholomorphic change of coordinates `e` of
