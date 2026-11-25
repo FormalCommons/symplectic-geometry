@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
 import Mathlib.Analysis.Calculus.Deriv.Prod
@@ -17,7 +18,10 @@ import TauCeti.Algebra.Order.BigOperators.Ring.Finset
 import TauCeti.Analysis.Fourier.AddCircle
 import TauCeti.Data.Set.Card
 import TauCeti.Geometry.Manifold.GroupAction.TangentRepresentation
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Manifold.MFDeriv.Basic
 import TauCeti.Geometry.Symplectic.Manifold.Invariants
+import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 import TauCeti.LinearAlgebra.Complex.Determinant
 
 /-!
@@ -71,6 +75,16 @@ symplectic form and the action of `t` to `zⱼ ↦ e^{2π i kⱼ t} zⱼ`.
   `SymplecticGeometry.exists_weightChart`, with `ξ₁ = circlePeriodOneGenerator`. If `αⱼ(ξ₁) = 0`,
   then `χⱼ` is trivial on the circle, since `t ↦ exp (t • ξ₁)` covers it, so the chart sends the
   `j`-th complex axis near `0` to fixed points, which differ from `p` and tend to it.
+* `SymplecticGeometry.IsWeightChart.exists_isTangentWeights`: the period-one weights `αⱼ(ξ₁)` of
+  a weight chart `Φ` at `p` (`SymplecticGeometry.IsWeightChart`) are integers, and they are
+  weights at `p` as in `IsTangentWeights`, realized by `L = (complexToRealEuclidean)⁻¹ ∘ dΦ⁻¹_p`.
+  `L` carries `σ_p` to the standard form since `Φ` is symplectic and `stdForm` is the standard
+  form of `ℂᵐ` read through `complexToRealEuclidean`; it conjugates the tangent action to the
+  rotations because, near `p`, `Φ⁻¹ ∘ (g • ·)` is the linear rotation of the chart composed with
+  `Φ⁻¹`, and differentiating this at the fixed point `p` gives the conjugacy. With
+  `prod_weights_eq`, `SymplecticGeometry.IsWeightChart.prod_apply_circlePeriodOneGenerator_eq`
+  gives `∏ⱼ αⱼ(ξ₁) = ∏ⱼ kⱼ` for any weights `k` at `p`; the chart's dimension `m` equals `n`
+  (`SymplecticGeometry.IsWeightChart.eq_of_finrank_eq`), since `Φ` is a local diffeomorphism.
 
 ## References
 
@@ -299,6 +313,98 @@ theorem apply_circlePeriodOneGenerator_ne_zero_of_isolated (χ : Fin n → Circl
       rw [← hΦ0]
       exact fun h ↦ hs0 (hfinj s (Φ.injOn hs h0 h))
   exact ((htend.eventually hiso).and (nhdsWithin_le_nhds hfix)).exists.elim fun _ h ↦ h.1 h.2
+
+/-! ### The weights of a weight chart -/
+
+namespace IsWeightChart
+
+variable {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)} {p : M} {m : ℕ}
+  {χ : Fin m → Circle →ₜ* Circle} {α : Fin m → StrongDual ℝ (EuclideanSpace ℝ (Fin 1))}
+  {Φ : PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin m)) I (StdSpace (Fin m)) M ∞} {r : ℝ}
+
+/-- **The weights of a weight chart are tangent weights.** Let the circle act smoothly on `M`,
+and let `Φ` be a weight chart at `p` from `StdSpace (Fin m)`. Then its period-one weights
+`αⱼ(ξ₁)`, with `ξ₁ = circlePeriodOneGenerator`, are integers `kⱼ`, and `k` are weights of the
+action at `p` in the sense of `IsTangentWeights`, realized by the differential of `Φ⁻¹` at `p`
+read in `ℂᵐ` through `complexToRealEuclidean`. -/
+theorem exists_isTangentWeights [ContMDiffSMul (𝓡 1) I ∞ Circle M]
+    (h : IsWeightChart σ μ p χ α Φ r) :
+    ∃ (k : Fin m → ℤ) (L : TangentSpace I p ≃L[ℝ] (Fin m → ℂ)),
+      (∀ j, (k j : ℝ) = α j circlePeriodOneGenerator) ∧
+      (∀ v, L v = (complexToRealEuclidean (Fin m)).symm
+        (mfderiv I 𝓘(ℝ, StdSpace (Fin m)) Φ.symm p v)) ∧ IsTangentWeights σ p k L := by
+  choose k hk using fun j ↦
+    h.exists_int_of_mulInvariantExp_eq_one j mulInvariantExp_circlePeriodOneGenerator
+  have hp : p ∈ Φ.target := h.mem_target
+  have hD := Φ.symm.isLocalDiffeomorphAt I 𝓘(ℝ, StdSpace (Fin m)) ∞ (x := p) hp
+  set C := complexToRealEuclidean (Fin m)
+  obtain ⟨L, hL⟩ : ∃ L : TangentSpace I p ≃L[ℝ] (Fin m → ℂ),
+      ∀ v, L v = C.symm (mfderiv I 𝓘(ℝ, StdSpace (Fin m)) Φ.symm p v) :=
+    -- The differential lands in the tangent space of `StdSpace (Fin m)` at `Φ⁻¹ p`, which is
+    -- `StdSpace (Fin m)` by definition, so `C⁻¹` applies to it; `rfl` unfolds `trans`.
+    ⟨(hD.mfderivToContinuousLinearEquiv (by simp)).trans C.symm, fun v ↦ by
+      rw [← hD.mfderivToContinuousLinearEquiv_coe (by simp)]; rfl⟩
+  refine ⟨k, L, fun j ↦ (hk j).symm, hL, fun v w ↦ ?_, fun t v ↦ ?_⟩
+  · have key (a b : StdSpace (Fin m)) :
+        SmoothBundleForm.eval₂ (stdForm (Fin m)).constSmooth (Φ.symm p) a b =
+          stdComplexPiSymplecticForm (Fin m) (C.symm a) (C.symm b) := by
+      rw [SymplecticForm.constSmooth_apply, ← stdForm_complexToRealEuclidean,
+        C.apply_symm_apply, C.apply_symm_apply]
+    rw [hL, hL, ← (Φ.isSymplecticMapOn_symm h.isSymplecticMapOn (by simp)).apply hp v w]
+    -- Tangent vectors of `StdSpace (Fin m)` are its vectors by definition, so `key` applies.
+    exact key _ _
+  · set g := Circle.exp (2 * π * t)
+    -- The rotation `uⱼ ↦ χⱼ(g) uⱼ`, read on `StdSpace (Fin m)` through `C`.
+    let R : StdSpace (Fin m) →L[ℝ] StdSpace (Fin m) :=
+      (C : (Fin m → ℂ) →L[ℝ] StdSpace (Fin m)) ∘L
+        (ContinuousLinearMap.pi fun j ↦ (χ j g : ℂ) • ContinuousLinearMap.proj (R := ℂ) j
+          : (Fin m → ℂ) →L[ℂ] (Fin m → ℂ)).restrictScalars ℝ ∘L
+        (C.symm : StdSpace (Fin m) →L[ℝ] (Fin m → ℂ))
+    have hRa (a : StdSpace (Fin m)) : C.symm (R a) = fun j ↦ (χ j g : ℂ) * C.symm a j := by
+      simp [R]
+    have hcomm : (Φ.symm ∘ fun x ↦ g • x) =ᶠ[𝓝 p] R ∘ Φ.symm := by
+      filter_upwards [Φ.open_target.mem_nhds hp] with y hy
+      rw [Function.comp_apply, Function.comp_apply, h.symm_smul g hy, ← hRa, C.apply_symm_apply]
+    have hd := congrArg (· v) ((R.hasMFDerivAt.comp p
+      ((Φ.symm.mdifferentiableAt (by simp) hp).hasMFDerivAt)).congr_of_eventuallyEq_abuse
+        hcomm).mfderiv
+    rw [mfderiv_comp_of_apply_eq_self (Φ.symm.mdifferentiableAt (by simp) hp)
+        ((ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) (n := ∞) g).mdifferentiableAt
+          (by simp)) (h.smul_eq g)] at hd
+    -- `R ∘L dΦ⁻¹` is a composition through the tangent spaces of `StdSpace (Fin m)`, which are
+    -- `StdSpace (Fin m)` itself; applied to `v`, it is `R (dΦ⁻¹ v)`.
+    have hd' : mfderiv I 𝓘(ℝ, StdSpace (Fin m)) Φ.symm p
+        (mfderiv I I (fun x : M ↦ g • x) p v) = R (mfderiv I 𝓘(ℝ, StdSpace (Fin m)) Φ.symm p v) :=
+      hd
+    have hχ (j : Fin m) : (χ j g : ℂ) = Complex.exp (2 * π * k j * t * Complex.I) := by
+      rw [show g = mulInvariantExp (I := 𝓡 1) (t • circlePeriodOneGenerator) from
+          (mulInvariantExp_smul_circlePeriodOneGenerator t).symm, h.apply_mulInvariantExp,
+        show α j (t • circlePeriodOneGenerator) = t * α j circlePeriodOneGenerator from
+          (α j).map_smul t circlePeriodOneGenerator,
+        hk, Circle.coe_exp]
+      push_cast; ring_nf
+    refine (hL _).trans ((congrArg C.symm hd').trans ((hRa _).trans ?_))
+    rw [hL]
+    simp only [hχ]
+
+/-- **The product of the weights of a weight chart.** Let the circle act smoothly on `M`, and let
+`Φ` be a weight chart at `p` from `StdSpace (Fin m)`, with period-one weights `αⱼ`. Then
+`∏ⱼ αⱼ(ξ₁) = ∏ⱼ kⱼ`, where `ξ₁ = circlePeriodOneGenerator`, for any weights `k : Fin n → ℤ` of
+the action at `p`, realized by some `L` as in `IsTangentWeights`. -/
+theorem prod_apply_circlePeriodOneGenerator_eq [ContMDiffSMul (𝓡 1) I ∞ Circle M]
+    (h : IsWeightChart σ μ p χ α Φ r) {k : Fin n → ℤ} {L : TangentSpace I p ≃L[ℝ] (Fin n → ℂ)}
+    (hk : IsTangentWeights σ p k L) :
+    ∏ j, α j circlePeriodOneGenerator = ∏ j, (k j : ℝ) := by
+  -- `L` identifies the model space with `ℂⁿ`, so the chart is defined on `StdSpace (Fin n)`.
+  obtain rfl : m = n := h.eq_of_finrank_eq (by
+    rw [← finrank_tangentSpace (I := I) p, L.toLinearEquiv.finrank_eq,
+      Module.finrank_pi_fintype, Complex.finrank_real_complex]
+    simp [mul_comm])
+  obtain ⟨k', L', hk', -, hT⟩ := h.exists_isTangentWeights
+  simp_rw [← hk']
+  exact_mod_cast prod_weights_eq hT hk
+
+end IsWeightChart
 
 variable [FiniteDimensional ℝ E] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
 

@@ -8,9 +8,10 @@ module
 public import Mathlib.Algebra.MvPolynomial.PDeriv
 public import Mathlib.RingTheory.MvPolynomial.WeightedHomogeneous
 import Mathlib.RingTheory.MvPolynomial.EulerIdentity
+import TauCeti.RingTheory.MvPolynomial.WeightedHomogeneous
 
 /-!
-# Partial derivatives of weighted homogeneous polynomials at their zeros
+# Weighted homogeneous polynomials in blocks of variables
 
 Let `f` be weighted homogeneous for the weights `w`, and let `p` be a zero of `f` with `p i ≠ 0`
 and `(w i : R) ≠ 0`. If every partial derivative `∂ₖ f` with `k ≠ i` and `w k ≠ 0` vanishes at
@@ -22,11 +23,19 @@ For a polynomial in several blocks of homogeneous coordinates, weighting one blo
 others by `0` shows that, in the affine chart where `p i ≠ 0`, the derivative in the variable `i`
 is not needed to decide whether the gradient vanishes at a zero. This is the multi-block analogue
 of the single-block statement in Tau Ceti's `forall_eval_pderiv_eq_zero_iff_dehomogenize`.
+
+For a polynomial `f` in two blocks of variables `σ ⊕ τ` that is weighted homogeneous of weight `a`
+for the weights `Sum.elim 1 0`, scaling the first block by `c` multiplies the value of `f` by
+`c ^ a` (`MvPolynomial.IsWeightedHomogeneous.eval_sumElim_smul_left`); the weights `Sum.elim 0 1`
+give the same for the second block (`MvPolynomial.IsWeightedHomogeneous.eval_sumElim_smul_right`).
+Both are cases of Tau Ceti's `MvPolynomial.IsWeightedHomogeneous.aeval_pow_mul`.
 -/
 
 public section
 
 namespace MvPolynomial
+
+section PDeriv
 
 variable {σ R : Type*} [Finite σ] [CommSemiring R] [NoZeroDivisors R]
 
@@ -46,6 +55,36 @@ theorem IsWeightedHomogeneous.eval_pderiv_eq_zero_of_eval_eq_zero {w : σ → �
     · simp [hwk]
     · simp [h k hk hwk]] at e
   simpa [hwi, hi] using e
+
+end PDeriv
+
+section SumElim
+
+variable {σ τ R : Type*} [CommSemiring R] {f : MvPolynomial (σ ⊕ τ) R} {a : ℕ}
+
+/-- If `f` is weighted homogeneous of weight `a` for the weights `Sum.elim 1 0`, that is
+homogeneous of degree `a` in the first block of variables, then scaling the first block by `c`
+multiplies the value of `f` by `c ^ a`. -/
+theorem IsWeightedHomogeneous.eval_sumElim_smul_left
+    (hf : f.IsWeightedHomogeneous (Sum.elim 1 0) a) (c : R) (v : σ → R) (w : τ → R) :
+    eval (Sum.elim (c • v) w) f = c ^ a * eval (Sum.elim v w) f := by
+  have h := hf.aeval_pow_mul (A := R) c (Sum.elim v w)
+  rw [aeval_eq_eval, aeval_eq_eval] at h
+  convert h using 3
+  ext (i | i) <;> simp
+
+/-- If `f` is weighted homogeneous of weight `a` for the weights `Sum.elim 0 1`, that is
+homogeneous of degree `a` in the second block of variables, then scaling the second block by `c`
+multiplies the value of `f` by `c ^ a`. -/
+theorem IsWeightedHomogeneous.eval_sumElim_smul_right
+    (hf : f.IsWeightedHomogeneous (Sum.elim 0 1) a) (c : R) (v : σ → R) (w : τ → R) :
+    eval (Sum.elim v (c • w)) f = c ^ a * eval (Sum.elim v w) f := by
+  have h := hf.aeval_pow_mul (A := R) c (Sum.elim v w)
+  rw [aeval_eq_eval, aeval_eq_eval] at h
+  convert h using 3
+  ext (i | i) <;> simp
+
+end SumElim
 
 end MvPolynomial
 

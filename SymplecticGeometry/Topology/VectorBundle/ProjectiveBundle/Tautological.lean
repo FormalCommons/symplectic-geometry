@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Topology.VectorBundle.Subbundle
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.OfBundle
 public import SymplecticGeometry.Topology.Algebra.Module.Equiv.Submodule
 public import SymplecticGeometry.Topology.Algebra.Projectivization
 public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Basic
@@ -58,6 +59,8 @@ fibre `ι → 𝕜` rather than `𝕜`.
 * `Projectivization.Tautological 𝕜 V`: the tautological line over `ℙ 𝕜 V`, with its trivializations
   `Projectivization.tautologicalTrivialization` and its `FiberBundle` and `VectorBundle`
   instances.
+* `Projectivization.tautologicalCore 𝕜 V`: the tautological line as a finite-rank core of rank
+  one, through `TauCeti.FiniteRankBundleCore.ofBundleOfFinrankEq`.
 * `Projectivization.tautologicalComplZeroHomeomorph`: the complement of the zero section is
   homeomorphic to the nonzero vectors of `V`.
 * `Projectivization.tautologicalMapEquiv`: the restriction of an injective linear map to the
@@ -312,6 +315,24 @@ instance : VectorBundle 𝕜 𝕜 (Tautological 𝕜 V) where
     rw [ContinuousLinearEquiv.coe_coe, Trivialization.coordChangeL_apply' _ _ hℓ,
       tautologicalTrivialization_symm_apply]
     simp [mul_comm]
+
+variable (V) [CompleteSpace 𝕜]
+
+/-- The tautological line of `ℙ 𝕜 V`, whose fibre over a point is the line itself, as a
+finite-rank core of rank one. -/
+-- Expose the rank so that the fibre model reduces to `Fin 1 → 𝕜`.
+@[expose, implicit_reducible]
+def tautologicalCore : TauCeti.FiniteRankBundleCore 𝕜 (ℙ 𝕜 V) :=
+  TauCeti.FiniteRankBundleCore.ofBundleOfFinrankEq 𝕜 𝕜 (Tautological 𝕜 V) (Module.finrank_self 𝕜)
+
+theorem tautologicalCore_def : tautologicalCore 𝕜 V =
+    TauCeti.FiniteRankBundleCore.ofBundleOfFinrankEq 𝕜 𝕜 (Tautological 𝕜 V)
+      (Module.finrank_self 𝕜) :=
+  (rfl)
+
+@[simp]
+theorem rank_tautologicalCore : (tautologicalCore 𝕜 V).rank = 1 :=
+  (rfl)
 
 end Tautological
 
