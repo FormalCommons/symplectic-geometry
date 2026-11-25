@@ -25,6 +25,8 @@ Tau Ceti's own `criticalPoints` is the corresponding notion for real-valued func
 * `Diffeomorph.comp_isRegularPoint_iff` and `Diffeomorph.criticalSet_comp`: postcomposing with a
   diffeomorphism changes neither the regular points nor the critical set. This is the
   counterpart, for the target, of Tau Ceti's `Diffeomorph.isRegularPoint_comp_iff`.
+* `Diffeomorph.ker_mfderiv_comp`: postcomposing with a diffeomorphism does not change the kernel
+  of the derivative.
 -/
 
 public section
@@ -90,6 +92,24 @@ theorem _root_.Diffeomorph.criticalSet_comp {n : WithTop ℕ∞}
     criticalSet I I'' (Φ ∘ f) = criticalSet I I' f := by
   ext x
   simp [Φ.comp_isRegularPoint_iff hn]
+
+/-- Postcomposing a map with a `C^n` diffeomorphism (`n ≠ 0`) does not change the kernel of its
+derivative. -/
+theorem _root_.Diffeomorph.ker_mfderiv_comp {n : WithTop ℕ∞}
+    {E'' : Type*} [NormedAddCommGroup E''] [NormedSpace 𝕜 E''] {H'' : Type*} [TopologicalSpace H'']
+    {I'' : ModelWithCorners 𝕜 E'' H''} {N' : Type*} [TopologicalSpace N'] [ChartedSpace H'' N']
+    (Φ : N ≃ₘ^n⟮I', I''⟯ N') (hn : n ≠ 0) (f : M → N) (x : M) :
+    (mfderiv I I'' (Φ ∘ f) x).ker = (mfderiv I I' f x).ker := by
+  by_cases hf : MDifferentiableAt I I' f x
+  · have hinj : (mfderiv I' I'' Φ (f x)).ker = ⊥ :=
+      LinearMap.ker_eq_bot.2 ((Φ.isLocalDiffeomorph _).isInvertible_mfderiv hn).injective
+    rw [mfderiv_comp x (Φ.mdifferentiable hn _) hf, ContinuousLinearMap.toLinearMap_comp,
+      LinearMap.ker_comp_of_ker_eq_bot _ hinj]
+  · -- Then `Φ ∘ f` is not differentiable at `x` either, since `f = Φ.symm ∘ (Φ ∘ f)`.
+    have hΦf : ¬ MDifferentiableAt I I'' (Φ ∘ f) x := fun h ↦ hf <| by
+      simpa [Function.comp_def] using (Φ.symm.mdifferentiable hn _).comp x h
+    rw [mfderiv_zero_of_not_mdifferentiableAt hf, mfderiv_zero_of_not_mdifferentiableAt hΦf]
+    simp
 
 end SymplecticGeometry
 

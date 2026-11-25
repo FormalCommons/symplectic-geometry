@@ -6,95 +6,84 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Diffeomorph
-public import TauCeti.Geometry.Manifold.Instances.Projectivization
+public import TauCeti.Geometry.Manifold.Projectivization.ProjectiveLine
 import Mathlib.Analysis.Calculus.Deriv.Comp
 import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
 
 /-!
 # Biholomorphisms of the projective line in affine coordinates
 
-A biholomorphism `Ψ` of `ℂℙ¹ = ℙ ℂ (Fin 2 → ℂ)`, read through Tau Ceti's affine charts
-`Projectivization.affineChart i` at a point `y` and `affineChart j` at `Ψ y`, is a function of
-one complex variable `t ↦ affineChart j (Ψ [insertNth i 1 t]) 0`. This file shows that this
-function is complex analytic near `affineChart i y 0` and that its derivative there does not
-vanish: the inverse `Ψ.symm`, read in the same charts the other way round, is a left inverse
-near that point, and the chain rule gives the product of the two derivatives as `1`.
+A map `f` of `ℂℙ¹ = ℙ ℂ (Fin 2 → ℂ)`, read through Tau Ceti's affine coordinate
+`TauCeti.ProjectiveLine.affineParam i` near a point `y` and the affine chart `affineChart j` near
+`f y`, is a function of one complex variable `t ↦ affineChart j (f (affineParam i t)) 0`. This
+file shows that this function is `C^r` near the coordinate of `y` when `f` is `C^r` at `y`, and
+that its derivative there does not vanish when `f` is a diffeomorphism: the inverse, read in the
+same charts the other way round, is a left inverse near that point, and the chain rule gives the
+product of the two derivatives as `1`.
 
 ## Main results
 
-* `Projectivization.contDiffAt_affineChart_diffeomorph_affineChart_symm`: the coordinate
-  expression is analytic (`ContDiffAt ℂ ω`).
-* `Projectivization.deriv_affineChart_diffeomorph_affineChart_symm_ne_zero`: its derivative does
-  not vanish.
+* `Projectivization.contDiffAt_affineChart_comp_affineParam`: the coordinate expression of a map
+  that is `C^r` at `y` is `C^r` near the coordinate of `y`.
+* `Projectivization.deriv_affineChart_diffeomorph_affineParam_ne_zero`: the coordinate expression
+  of a complex diffeomorphism has nonzero derivative.
 -/
 
 public section
 
-open Filter Set
+open Filter Set TauCeti.ProjectiveLine
 open scoped ContDiff Manifold Topology LinearAlgebra.Projectivization
 
 namespace Projectivization
 
-variable (Ψ : ℙ ℂ (Fin 2 → ℂ) ≃ₘ^ω⟮𝓘(ℂ, Fin 1 → ℂ), 𝓘(ℂ, Fin 1 → ℂ)⟯ ℙ ℂ (Fin 2 → ℂ))
-  {i j : Fin 2} {y : ℙ ℂ (Fin 2 → ℂ)}
+variable {i j : Fin 2} {y : ℙ ℂ (Fin 2 → ℂ)} {r : WithTop ℕ∞}
 
-/-- A biholomorphism `Ψ` of `ℂℙ¹`, read in the affine chart `i` at `y` and the affine chart `j`
-at `Ψ y`, is complex analytic near the coordinate of `y`. -/
-theorem contDiffAt_affineChart_diffeomorph_affineChart_symm (hy : y ∈ affineOpen i)
-    (hΨy : Ψ y ∈ affineOpen j) :
-    ContDiffAt ℂ ω (fun t : ℂ ↦ affineChart j (Ψ ((affineChart i).symm fun _ ↦ t)) 0)
+/-- A map `f` of `ℂℙ¹` that is `C^r` at `y`, read in the affine coordinate `i` near `y` and the
+affine chart `j` near `f y`, is a `C^r` function of one complex variable near the coordinate of
+`y`. -/
+theorem contDiffAt_affineChart_comp_affineParam {f : ℙ ℂ (Fin 2 → ℂ) → ℙ ℂ (Fin 2 → ℂ)}
+    (hf : ContMDiffAt 𝓘(ℂ, Fin 1 → ℂ) 𝓘(ℂ, Fin 1 → ℂ) r f y) (hy : y ∈ affineOpen i)
+    (hfy : f y ∈ affineOpen j) :
+    ContDiffAt ℂ r (fun t ↦ affineChart j (f (affineParam i t)) 0) (affineChart i y 0) := by
+  have hT : ContMDiffAt 𝓘(ℂ, ℂ) 𝓘(ℂ, Fin 1 → ℂ) r (affineChart j ∘ f ∘ affineParam i)
       (affineChart i y 0) := by
-  have hy' : (affineChart i).symm (affineChart (K := ℂ) i y) = y :=
-    (affineChart i).left_inv (by rwa [affineChart_source])
-  have hT : ContMDiffAt 𝓘(ℂ, Fin 1 → ℂ) 𝓘(ℂ, Fin 1 → ℂ) ω
-      (affineChart j ∘ Ψ ∘ (affineChart i).symm) (affineChart i y) := by
-    refine ContMDiffAt.comp _ ?_ (Ψ.contMDiff.contMDiffAt.comp _
-      (contMDiff_affineChart_symm i ω).contMDiffAt)
-    rw [Function.comp_apply, hy']
-    exact (contMDiffOn_affineChart j ω).contMDiffAt ((isOpen_affineOpen j).mem_nhds hΨy)
-  have hin : ContDiff ℂ ω (fun t : ℂ ↦ fun _ : Fin 1 ↦ t) := contDiff_pi.2 fun _ ↦ contDiff_id
-  -- The point `affineChart i y` of `Fin 1 → ℂ` is the constant function of its coordinate.
-  have hT' : ContDiffAt ℂ ω (affineChart j ∘ Ψ ∘ (affineChart i).symm)
-      ((fun t : ℂ ↦ fun _ : Fin 1 ↦ t) (affineChart i y 0)) := by
-    have hfin (w : Fin 1 → ℂ) : (fun _ ↦ w 0) = w := (eq_const_of_subsingleton w 0).symm
-    simpa only [hfin] using
-      contMDiffAt_iff_contDiffAt.1 hT
-  have h3 := hT'.comp (affineChart i y 0) hin.contDiffAt
-  exact (contDiff_apply (𝕜 := ℂ) (F' := fun _ : Fin 1 ↦ ℂ) 0).comp_contDiffAt _ h3
+    have hp : ContMDiffAt 𝓘(ℂ, ℂ) 𝓘(ℂ, Fin 1 → ℂ) r (f ∘ affineParam i) (affineChart i y 0) :=
+      ContMDiffAt.comp (I' := 𝓘(ℂ, Fin 1 → ℂ)) _ (by rwa [affineParam_affineChart hy])
+        (contMDiff_affineParam i).contMDiffAt
+    refine ContMDiffAt.comp _ ?_ hp
+    rw [Function.comp_apply, affineParam_affineChart hy]
+    exact (contMDiffOn_affineChart (𝕜 := ℂ) (n := 1) j r).contMDiffAt
+      ((isOpen_affineOpen j).mem_nhds hfy)
+  have hT' : ContDiffAt ℂ r (affineChart j ∘ f ∘ affineParam i) (affineChart i y 0) :=
+    contMDiffAt_iff_contDiffAt.1 hT
+  exact (contDiff_apply (𝕜 := ℂ) (F' := fun _ : Fin 1 ↦ ℂ) 0).comp_contDiffAt _ hT'
 
-/-- A biholomorphism `Ψ` of `ℂℙ¹`, read in the affine chart `i` at `y` and the affine chart `j`
-at `Ψ y`, has nonzero derivative at the coordinate of `y`. -/
-theorem deriv_affineChart_diffeomorph_affineChart_symm_ne_zero (hy : y ∈ affineOpen i)
-    (hΨy : Ψ y ∈ affineOpen j) :
-    deriv (fun t : ℂ ↦ affineChart j (Ψ ((affineChart i).symm fun _ ↦ t)) 0)
-      (affineChart i y 0) ≠ 0 := by
-  set h := fun t : ℂ ↦ affineChart j (Ψ ((affineChart i).symm fun _ ↦ t)) 0
-  set k := fun s : ℂ ↦ affineChart i (Ψ.symm ((affineChart j).symm fun _ ↦ s)) 0
-  have hfin (w : Fin 1 → ℂ) : (fun _ ↦ w 0) = w := (eq_const_of_subsingleton w 0).symm
-  have hy' : (affineChart i).symm (affineChart (K := ℂ) i y) = y :=
-    (affineChart i).left_inv (by rwa [affineChart_source])
+/-- A `C^r` diffeomorphism `Ψ` of `ℂℙ¹` (`r ≠ 0`), read in the affine coordinate `i` near `y` and
+the affine chart `j` near `Ψ y`, has nonzero derivative at the coordinate of `y`. -/
+theorem deriv_affineChart_diffeomorph_affineParam_ne_zero
+    (Ψ : ℙ ℂ (Fin 2 → ℂ) ≃ₘ^r⟮𝓘(ℂ, Fin 1 → ℂ), 𝓘(ℂ, Fin 1 → ℂ)⟯ ℙ ℂ (Fin 2 → ℂ)) (hr : r ≠ 0)
+    (hy : y ∈ affineOpen i) (hΨy : Ψ y ∈ affineOpen j) :
+    deriv (fun t ↦ affineChart j (Ψ (affineParam i t)) 0) (affineChart i y 0) ≠ 0 := by
+  set h := fun t ↦ affineChart j (Ψ (affineParam i t)) 0
+  set k := fun s ↦ affineChart i (Ψ.symm (affineParam j s)) 0
   have hhc : h (affineChart i y 0) = affineChart j (Ψ y) 0 := by
-    simp only [h, hfin, hy']
-  have hk := contDiffAt_affineChart_diffeomorph_affineChart_symm Ψ.symm (i := j) (j := i)
-    (y := Ψ y) hΨy (by rwa [Diffeomorph.symm_apply_apply])
-  have hh := contDiffAt_affineChart_diffeomorph_affineChart_symm Ψ hy hΨy
-  -- `k` is a left inverse of `h` near `affineChart i y 0`.
+    simp only [h, affineParam_affineChart hy]
+  have hh := contDiffAt_affineChart_comp_affineParam Ψ.contMDiff.contMDiffAt hy hΨy
+  have hk := contDiffAt_affineChart_comp_affineParam Ψ.symm.contMDiff.contMDiffAt hΨy
+    (by rwa [Diffeomorph.symm_apply_apply])
+  -- `k` is a left inverse of `h` near the coordinate of `y`.
   have hev : k ∘ h =ᶠ[𝓝 (affineChart i y 0)] id := by
-    have hc : ContinuousAt (fun t : ℂ ↦ Ψ ((affineChart i).symm fun _ ↦ t))
-        (affineChart i y 0) :=
-      Ψ.continuous.continuousAt.comp ((continuous_affineChart_symm i).continuousAt.comp
-        (continuous_pi fun _ ↦ continuous_id).continuousAt)
-    have hmem : Ψ ((affineChart i).symm fun _ ↦ affineChart (K := ℂ) i y 0) ∈ affineOpen j := by
-      rwa [hfin, hy']
-    filter_upwards [hc ((isOpen_affineOpen j).mem_nhds hmem)] with t ht
-    simp only [Function.comp_apply, h, k, hfin]
-    rw [(affineChart j).left_inv (by rwa [affineChart_source]), Diffeomorph.symm_apply_apply,
-      (affineChart i).right_inv (by simp), id_eq]
+    have hc : ContinuousAt (Ψ ∘ affineParam i) (affineChart i y 0) :=
+      (Ψ.continuous.comp (contMDiff_affineParam (n := 0) i).continuous).continuousAt
+    have hmem : (Ψ ∘ affineParam i) (affineChart i y 0) ∈ affineOpen j := by
+      rwa [Function.comp_apply, affineParam_affineChart hy]
+    filter_upwards [hc.preimage_mem_nhds ((isOpen_affineOpen j).mem_nhds hmem)] with t ht
+    simp [h, k, affineParam_affineChart (show Ψ (affineParam i t) ∈ affineOpen j from ht)]
   have h1 : HasDerivAt (k ∘ h) (deriv k (h (affineChart i y 0)) * deriv h (affineChart i y 0))
       (affineChart i y 0) := by
-    refine HasDerivAt.comp _ ?_ (hh.differentiableAt (by simp)).hasDerivAt
+    refine HasDerivAt.comp _ ?_ (hh.differentiableAt hr).hasDerivAt
     rw [hhc]
-    exact (hk.differentiableAt (by simp)).hasDerivAt
+    exact (hk.differentiableAt hr).hasDerivAt
   intro h0
   have h2 := h1.unique ((hasDerivAt_id _).congr_of_eventuallyEq hev)
   rw [h0, mul_zero] at h2
