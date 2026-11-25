@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.SpecialFunctions.Sqrt
 import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 public import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
