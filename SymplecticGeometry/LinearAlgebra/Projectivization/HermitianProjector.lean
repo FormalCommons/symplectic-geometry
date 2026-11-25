@@ -45,7 +45,7 @@ of the line. -/
 theorem hermitianProjector_eq_rankOneHermitianProjector_of_mem_submodule {ι : Type*} [Fintype ι]
     {x : ℙ K (ι → K)} {v : ι → K} (hv : v ≠ 0) (hx : v ∈ x.submodule) :
     hermitianProjector x = TauCeti.rankOneHermitianProjector v := by
-  rw [← mk_eq_of_mem_submodule hv hx, hermitianProjector_mk]
+  rw [← mem_submodule_iff.1 hx hv, hermitianProjector_mk]
 
 /-- On the standard affine open `U_i`, the Hermitian projector of a point is the rank-one
 Hermitian projector of its homogeneous coordinates `[1 : z]`, with `1` in position `i`. -/
