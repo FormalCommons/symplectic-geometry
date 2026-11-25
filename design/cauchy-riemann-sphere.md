@@ -474,9 +474,10 @@ frame of $L$ near `x`:
 
 - A section whose coordinates are $W^{1,2}$ near `x` and which solves
   $D_Js=0$ weakly there has, near `ψ x`, the reading $e^{-g}h$ with $g$
-  smooth and $h$ holomorphic (Decision 6). Its reading through `ψ` is
-  $W^{1,2}$ by Tau Ceti's change of variables `TauCeti.Wkp.compL`
-  (`Analysis/Sobolev/Wkp/ChangeOfVariables.lean`), and the weak equation is
+  smooth and $h$ holomorphic (Decision 6). Its reading through `ψ` has the
+  transported weak derivative by Tau Ceti's change of variables
+  `TauCeti.HasWeakFDerivOn.comp_contDiffOn_diffeo`
+  (`Analysis/Sobolev/W1p/ChangeOfVariables.lean`), and the weak equation is
   stated with `TauCeti.HasWeakConjWirtingerDerivOn`.
 - The same for smooth sections in the kernel, with the frame rescaled by
   $e^{g}$, in the form that the hypotheses `hA` and `ho` of
