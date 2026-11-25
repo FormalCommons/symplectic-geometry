@@ -55,6 +55,7 @@ def blowupModel : Set (ℙ ℂ (Fin (n + 1) → ℂ) × (Fin (n + 1) → ℂ)) :
   {p | p.2 ∈ p.1.submodule}
 
 variable {n} in
+@[simp]
 theorem mem_blowupModel_iff {p : ℙ ℂ (Fin (n + 1) → ℂ) × (Fin (n + 1) → ℂ)} :
     p ∈ blowupModel n ↔ p.2 ∈ p.1.submodule :=
   Iff.rfl
@@ -78,6 +79,12 @@ def pr (p : BlowupModel n) : ℙ ℂ (Fin (n + 1) → ℂ) :=
 /-- The blowdown map of the blowup to `ℂⁿ⁺¹`: `(ℓ, z) ↦ z`. -/
 def blowdown (p : BlowupModel n) : Fin (n + 1) → ℂ :=
   p.val.snd
+
+theorem pr_def (p : BlowupModel n) : p.pr = p.val.1 :=
+  (rfl)
+
+theorem blowdown_def (p : BlowupModel n) : p.blowdown = p.val.2 :=
+  (rfl)
 
 @[simp]
 theorem pr_mk (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) (z : Fin (n + 1) → ℂ) (h : (ℓ, z) ∈ blowupModel n) :
@@ -121,6 +128,11 @@ theorem isClosed_exceptionalDivisor : IsClosed (exceptionalDivisor n) :=
 /-- The zero section of the blowup over the projective space: `ℓ ↦ (ℓ, 0)`. -/
 def zeroSection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) : BlowupModel n :=
   ⟨(ℓ, 0), ℓ.submodule.zero_mem⟩
+
+@[simp]
+theorem coe_zeroSection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) :
+    (zeroSection ℓ : ℙ ℂ (Fin (n + 1) → ℂ) × (Fin (n + 1) → ℂ)) = (ℓ, 0) :=
+  (rfl)
 
 @[simp]
 theorem pr_zeroSection (ℓ : ℙ ℂ (Fin (n + 1) → ℂ)) : (zeroSection ℓ).pr = ℓ :=
