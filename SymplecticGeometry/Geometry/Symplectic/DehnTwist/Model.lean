@@ -9,6 +9,8 @@ public import SymplecticGeometry.Geometry.Symplectic.DehnTwist.Geodesic
 import Mathlib.Analysis.Calculus.Deriv.Shift
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
+import Mathlib.Geometry.Manifold.IntegralCurve.Transform
+import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Cotangent
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Even
 
 /-!
@@ -46,6 +48,10 @@ time `π` is the antipodal map; and since `R' = 0` on `[r₀, ∞)`, the twist i
 * `SymplecticGeometry.modelTwist_apply_of_le`: the model twist is the identity where `μ ≥ r₀`.
 * `SymplecticGeometry.modelTwist_cotangent_orthogonal`: it commutes with the cotangent lift of
   every orthogonal transformation of `ℝⁿ⁺¹`.
+* `SymplecticGeometry.isMIntegralCurve_geodesicFlow_comp`: off the zero section, the geodesic flow
+  run at the constant speed `φ'(μ z)` is an integral curve of the Hamiltonian vector field of
+  `φ ∘ μ`; `SymplecticGeometry.isMIntegralCurve_geodesicFlow_twistProfile`: for a twist profile
+  `R` its value at time `2π` is the model twist, which is thus the time-`2π` map of `R ∘ μ` there.
 
 ## Implementation notes
 
@@ -66,6 +72,8 @@ isometries.
 * [P. Seidel, *A long exact sequence for symplectic Floer cohomology*][Seidel2003], Lemma 1.8
   and equation (1.7) (arXiv version 2): the model twist on `T*Sⁿ` built from the normalized
   geodesic flow.
+* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], 3rd ed.,
+  p. 270: the model twist as the time-`2π` map of a function of the norm.
 * [P. Seidel, *Lectures on four-dimensional Dehn twists*][Seidel2008], §1a.
 * [V. I. Arnold, *Some remarks on symplectic monodromy of Milnor fibrations*][Arnold1995], one of
   the early sources on twists of `T*Sⁿ`.
@@ -429,5 +437,44 @@ theorem modelTwist_cotangent_orthogonal {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsT
   rw [coe_modelTwist, modelTwistFun_eq_geodesicTwist, hG, cotangentCoord_cotangent_orthogonal,
     cotangentCoord_cotangent_orthogonal, hG, LinearIsometryEquiv.norm_map]
   simp only [map_add, map_sub, map_smul]
+
+/-! ### The model twist as a Hamiltonian flow -/
+
+/-- **Reparametrized geodesic flows are Hamiltonian flows of functions of the norm.** Off the zero
+section, for a function `φ` differentiable at `μ z`, the curve
+`t ↦ geodesicFlow (t * φ'(μ z)) z` is an integral curve of the Hamiltonian vector field of
+`φ ∘ μ` for the canonical symplectic form of `T*Sⁿ`, with Tau Ceti's convention `ι_X ω = dH`. -/
+theorem isMIntegralCurve_geodesicFlow_comp {φ : ℝ → ℝ} {z : CotangentBundle (𝓡 n) (𝕊 n)}
+    (hz : cotangentNorm z ≠ 0) (hφ : DifferentiableAt ℝ φ (cotangentNorm z)) :
+    IsMIntegralCurve (fun t ↦ geodesicFlow (t * deriv φ (cotangentNorm z)) z) fun w ↦
+      (CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)).hamiltonianVectorField
+        (φ ∘ cotangentNorm) w := by
+  intro t
+  have hw := cotangentNorm_geodesicFlow (t * deriv φ (cotangentNorm z)) z
+  have hμ : MDifferentiableAt ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) 𝓘(ℝ)
+      cotangentNorm (geodesicFlow (t * deriv φ (cotangentNorm z)) z) := by
+    have hs : (geodesicFlow (t * deriv φ (cotangentNorm z)) z).snd ≠ 0 :=
+      (norm_ne_zero_iff (a := (geodesicFlow (t * deriv φ (cotangentNorm z)) z).snd)).1
+        ((cotangentNorm_eq_norm _).symm.trans_ne (hw.trans_ne hz))
+    exact ((CotangentBundle.contMDiffAt_norm_snd (n := ∞) hs).mdifferentiableAt (by simp))
+      |>.congr_of_eventuallyEq (Filter.Eventually.of_forall cotangentNorm_eq_norm)
+  dsimp only
+  rw [SmoothTwoForm.hamiltonianVectorField_comp (by rwa [hw]) hμ, hw]
+  exact (isMIntegralCurve_geodesicFlow hz).comp_mul (deriv φ (cotangentNorm z)) t
+
+/-- **Off the zero section, the model twist is the time-`2π` map of the Hamiltonian `R ∘ μ`.** For
+a twist profile `R` and `z` off the zero section, `t ↦ geodesicFlow (t * R'(μ z)) z` is an
+integral curve of the Hamiltonian vector field of `R ∘ μ`, and its value at `t = 2π` is the model
+twist of `z`. Only the second half uses that `R` is a twist profile; the first holds for every `R`
+differentiable at `μ z` (`isMIntegralCurve_geodesicFlow_comp`). -/
+theorem isMIntegralCurve_geodesicFlow_twistProfile {R : ℝ → ℝ} {r₀ : ℝ}
+    (hR : IsTwistProfile R r₀) {z : CotangentBundle (𝓡 n) (𝕊 n)} (hz : cotangentNorm z ≠ 0) :
+    IsMIntegralCurve (fun t ↦ geodesicFlow (t * deriv R (cotangentNorm z)) z) (fun w ↦
+        (CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)).hamiltonianVectorField
+          (R ∘ cotangentNorm) w) ∧
+      geodesicFlow (2 * π * deriv R (cotangentNorm z)) z = modelTwist hR z :=
+  ⟨isMIntegralCurve_geodesicFlow_comp hz (hR.contDiff.differentiable (by simp) _), by
+    rw [coe_modelTwist, modelTwistFun_def, ite_eq_right hz]⟩
+
 
 end SymplecticGeometry
