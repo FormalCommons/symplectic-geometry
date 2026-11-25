@@ -9,6 +9,7 @@ public import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Analysis.Calculus.Deriv.Inv
 public import TauCeti.Geometry.Manifold.Instances.Icc.CollaredSmoothTransition
+import TauCeti.Analysis.Calculus.Deriv.Parity
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
 
 /-!
@@ -167,6 +168,35 @@ theorem exists_contDiff_eqOn_id_Icc_mem_of_isOpen {a b : ℝ} {U : Set ℝ} (hab
   · exact hIU ⟨ha, hb⟩
   · exact h₁ (by rw [Metric.mem_ball, Real.dist_eq, abs_lt]; constructor <;> linarith)
 
+/-- For a differentiable `ν` with values in `[0, 1]`, equal to `1` on `(-∞, r]` for some
+`0 ≤ r ≤ R ≤ 1`, with `|ν'| ≤ τ` everywhere and `ν' = 0` outside `(r, R)`, the derivative of
+`t ↦ ν t * ν (-t) * t + ν (-t) - ν t` at each `t ≥ 0` is at most `1 + τ (1 - r)` in absolute
+value. -/
+private theorem abs_deriv_clip_le {ν : ℝ → ℝ} {r R τ : ℝ} (hν : Differentiable ℝ ν) (hr : 0 ≤ r)
+    (hrR : r ≤ R) (hR : R ≤ 1) (hν0 : ∀ t, 0 ≤ ν t) (hν1 : ∀ t, ν t ≤ 1) (hνr : ∀ t ≤ r, ν t = 1)
+    (hντ : ∀ t, |deriv ν t| ≤ τ) (hν' : ∀ t ∉ Set.Ioo r R, deriv ν t = 0) {t : ℝ}
+    (ht : 0 ≤ t) :
+    |deriv (fun s ↦ ν s * ν (-s) * s + ν (-s) - ν s) t| ≤ 1 + τ * (1 - r) := by
+  -- At `t ≥ 0` the derivative is `ν t - ν' t * (1 - t)`, and `ν'` vanishes outside `(r, R)`.
+  have hd (s : ℝ) : HasDerivAt ν (deriv ν s) s := (hν s).hasDerivAt
+  have hdn : HasDerivAt (fun s ↦ ν (-s)) (-deriv ν (-t)) t := by
+    simpa [Function.comp_def] using (hd (-t)).comp t (hasDerivAt_neg t)
+  have h : deriv (fun s ↦ ν s * ν (-s) * s + ν (-s) - ν s) t = ν t - deriv ν t * (1 - t) := by
+    have hD : HasDerivAt (fun s ↦ ν s * ν (-s) * s + ν (-s) - ν s) _ t :=
+      (((hd t).mul hdn).mul (hasDerivAt_id' t)).add hdn |>.sub (hd t)
+    rw [hD.deriv, Pi.mul_apply, hνr (-t) (by linarith), hν' (-t) fun h ↦ by linarith [h.1]]
+    ring
+  rw [h]
+  refine (abs_sub _ _).trans ?_
+  rw [abs_of_nonneg (hν0 t), abs_mul]
+  have hτ : 0 ≤ τ := (abs_nonneg _).trans (hντ 0)
+  by_cases htI : t ∈ Set.Ioo r R
+  · have h₁ : |1 - t| ≤ 1 - r := by
+      rw [abs_of_nonneg (by linarith [htI.2, hR])]; linarith [htI.1]
+    linarith [hν1 t, mul_le_mul (hντ t) h₁ (abs_nonneg _) hτ]
+  · rw [hν' t htI, abs_zero, zero_mul, add_zero]
+    nlinarith [hν1 t, hrR.trans hR]
+
 /-- A smooth odd function `ℝ → ℝ` that is the identity on `[-r, r]`, `1` on `[R, ∞)`, bounded
 by `1` in absolute value, at least `t` at every `t ∈ [0, 1]`, and with derivative bounded by
 `1 + 2 (1 - r) / (R - r)` in absolute value, for any `0 ≤ r < R ≤ 1`. By oddness it is `-1` on
@@ -185,7 +215,7 @@ theorem exists_contDiff_odd_clip {r R : ℝ} (hr : 0 ≤ r) (hrR : r < R) (hR : 
     · exact (hνr t ht).le
     · exact (hνa ht).trans (hνr r le_rfl).le
   -- For `t ≥ 0` the function below is `1 - ν t * (1 - t)`.
-  set f : ℝ → ℝ := fun t ↦ ν t * ν (-t) * t + ν (-t) - ν t with hf_def
+  set f : ℝ → ℝ := fun t ↦ ν t * ν (-t) * t + ν (-t) - ν t
   have hodd : Function.Odd f := fun t ↦ by simp only [f, neg_neg]; ring
   have hpos {t : ℝ} (ht : 0 ≤ t) : f t = 1 - ν t * (1 - t) := by
     simp only [f, hνr (-t) (by linarith)]
@@ -197,32 +227,9 @@ theorem exists_contDiff_odd_clip {r R : ℝ} (hr : 0 ≤ r) (hrR : r < R) (hR : 
       have : 0 ≤ ν t * (1 - t) := mul_nonneg (hν0 t) (by linarith)
       have : ν t * (1 - t) ≤ 1 := by nlinarith [hν1 t, hν0 t]
       constructor <;> linarith
-  -- For `t ≥ 0` the derivative is `ν t - ν' t * (1 - t)`, and `ν'` vanishes outside `(r, R)`.
-  have hd (t : ℝ) : HasDerivAt ν (deriv ν t) t :=
-    ((hν.differentiable (by simp)) t).hasDerivAt
-  have hdn (t : ℝ) : HasDerivAt (fun s ↦ ν (-s)) (-deriv ν (-t)) t := by
-    have := (hd (-t)).comp t (hasDerivAt_neg t)
-    simpa [Function.comp_def] using this
-  have hderiv {t : ℝ} (ht : 0 ≤ t) : deriv f t = ν t - deriv ν t * (1 - t) := by
-    have : HasDerivAt (fun s ↦ ν s * ν (-s) * s + ν (-s) - ν s) _ t :=
-      ((((hd t).mul (hdn t)).mul (hasDerivAt_id' t)).add (hdn t)).sub (hd t)
-    rw [hf_def, this.deriv, Pi.mul_apply, hνr (-t) (by linarith),
-      hν' (-t) fun h ↦ by linarith [h.1]]
-    ring
   have hdle (t : ℝ) (ht : 0 ≤ t) : |deriv f t| ≤ 1 + 2 * (1 - r) / (R - r) := by
-    rw [hderiv ht]
-    refine (abs_sub _ _).trans ?_
-    rw [abs_of_nonneg (hν0 t), abs_mul]
-    by_cases htI : t ∈ Set.Ioo r R
-    · have h₁ : |1 - t| ≤ 1 - r := by
-        rw [abs_of_nonneg (by linarith [htI.2])]; linarith [htI.1]
-      have h₂ : |deriv ν t| * |1 - t| ≤ 2 / (R - r) * (1 - r) :=
-        mul_le_mul (hντ t) h₁ (abs_nonneg _) (div_nonneg zero_le_two hRr.le)
-      rw [div_mul_eq_mul_div] at h₂
-      linarith [hν1 t]
-    · have : 0 ≤ 2 * (1 - r) / (R - r) := div_nonneg (by linarith) hRr.le
-      rw [hν' t htI, abs_zero, zero_mul, add_zero]
-      linarith [hν1 t]
+    rw [← div_mul_eq_mul_div]
+    exact abs_deriv_clip_le (hν.differentiable (by simp)) hr hrR.le hR hν0 hν1 hνr hντ hν' ht
   refine ⟨f, by fun_prop, hodd, fun t ht ↦ ?_, fun t ht ↦ ?_, fun t ↦ ?_, fun t ht ↦ ?_,
     fun t ↦ ?_⟩
   · obtain ⟨h₁, h₂⟩ := abs_le.1 ht
@@ -238,12 +245,7 @@ theorem exists_contDiff_odd_clip {r R : ℝ} (hr : 0 ≤ r) (hrR : r < R) (hR : 
     nlinarith [hν1 t, ht.2]
   · rcases le_total 0 t with ht | ht
     · exact hdle t ht
-    · -- The derivative of an odd function is even.
-      have h : deriv f (-t) = deriv f t := by
-        have := deriv_comp_neg (f := f) (x := t)
-        rw [show (fun x ↦ f (-x)) = fun x ↦ -f x from funext hodd, deriv.fun_neg] at this
-        linarith
-      rw [← h]
+    · rw [← TauCeti.deriv_neg_eq_of_eventually_odd (.of_forall hodd)]
       exact hdle (-t) (by linarith)
 
 /-- The smooth odd truncation of the identity given by Tau Ceti's

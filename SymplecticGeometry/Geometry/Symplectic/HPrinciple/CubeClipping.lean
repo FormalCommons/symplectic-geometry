@@ -18,9 +18,9 @@ import SymplecticGeometry.Analysis.Normed.Group.Pi
 
 Let `D = (ι → ℝ) × (κ → ℝ)` with the sup norms, `Q` its closed unit ball (a cube), and
 `A = sphere 0 1 ×ˢ closedBall 0 1` the attaching faces of `Q` seen as a handle. This file builds a
-smooth homotopy `Φ : D × [0, 1] → D` from a map that sends a thin collar of `A` into `A` to
-the identity, which preserves `A`, `Q` and the collar at every time, moves no point of `Q` by
-more than `2δ`, and whose stages have derivative of norm at most `5`, whatever `δ` is
+smooth homotopy `Φ : D × [0, 1] → D`, affine in time, from a map that sends a thin collar of `A`
+into `A` to the identity, which preserves `A`, `Q` and the collar at every time, moves no point
+of `Q` by more than `2δ`, and whose stages have derivative of norm at most `5`, whatever `δ` is
 (`SymplecticGeometry.exists_contMDiff_cubeClipping`). It is the homotopy that the homotopy
 operator `TauCeti.SmoothForm.homotopyOperator` is applied to, through
 `TauCeti.SmoothForm.mextDerivₗ_homotopyOperator_mpullback`, in the handle-core lemma of
@@ -207,6 +207,8 @@ private theorem mapsTo_clip_collar (hodd : Function.Odd f) (hf1 : ∀ s, |f s| �
 /-- **The clipping homotopy of the cube onto its attaching faces.** Let `D = (ι → ℝ) × (κ → ℝ)`
 with the sup norms, `Q = closedBall 0 1` and `A = sphere 0 1 ×ˢ closedBall 0 1`. For
 `0 < δ ≤ 1/2` there is a smooth homotopy `Φ : D × [0, 1] → D` such that
+* `Φ (x, t) = (1 - t) • Φ (x, 0) + t • x`: each point moves along the segment from its image
+  under `Φ (·, 0)` to itself;
 * `Φ (·, 1)` is the identity, and every `Φ (·, t)` is the identity on `closedBall 0 (1 - 2δ)`;
 * every `Φ (·, t)` maps `A` into `A`, `Q` into `Q`, and each collar
   `{x | |‖x.1‖ - 1| < ε ∧ ‖x.2‖ < 1 + ε}` into itself;
@@ -216,7 +218,8 @@ with the sup norms, `Q = closedBall 0 1` and `A = sphere 0 1 ×ˢ closedBall 0 1
 theorem exists_contMDiff_cubeClipping {δ : ℝ} (hδ : 0 < δ) (hδ₂ : δ ≤ 1 / 2) :
     ∃ Φ : ((ι → ℝ) × (κ → ℝ)) × unitInterval → (ι → ℝ) × (κ → ℝ),
       ContMDiff (𝓘(ℝ, (ι → ℝ) × (κ → ℝ)).prod (𝓡∂ 1)) 𝓘(ℝ, (ι → ℝ) × (κ → ℝ)) ∞ Φ ∧
-      (∀ x, Φ (x, 1) = x) ∧ (∀ x t, ‖x‖ ≤ 1 - 2 * δ → Φ (x, t) = x) ∧
+      (∀ x t, Φ (x, t) = (1 - (t : ℝ)) • Φ (x, 0) + (t : ℝ) • x) ∧ (∀ x, Φ (x, 1) = x) ∧
+      (∀ x t, ‖x‖ ≤ 1 - 2 * δ → Φ (x, t) = x) ∧
       (∀ t, MapsTo (fun x ↦ Φ (x, t)) (sphere 0 1 ×ˢ closedBall 0 1)
         (sphere 0 1 ×ˢ closedBall 0 1)) ∧
       (∀ t, MapsTo (fun x ↦ Φ (x, t)) (closedBall 0 1) (closedBall 0 1)) ∧
@@ -253,8 +256,9 @@ theorem exists_contMDiff_cubeClipping {δ : ℝ} (hδ : 0 < δ) (hδ₂ : δ ≤
     exact ⟨(pi_clip_norm_bounds hodd hf1 hfI hfR1 t.property x.1).1,
       (pi_clip_norm_bounds hodd hf1 hfI hfR1 t.property x.1).2,
       (pi_clip_norm_bounds hodd hf1 hfI hfR1 t.property x.2).2⟩
-  refine ⟨Φ, contMDiff_clip hf, fun x ↦ by simp [Φ], fun x t hx ↦ ?_, fun t x hx ↦ ?_,
-    fun t x hx ↦ ?_, fun ε t x hx ↦ ?_, fun ε hε x hx ↦ ?_, fun t x hx ↦ ?_, fun t x ↦ ?_⟩
+  refine ⟨Φ, contMDiff_clip hf, fun x t ↦ by simp [Φ], fun x ↦ by simp [Φ], fun x t hx ↦ ?_,
+    fun t x hx ↦ ?_, fun t x hx ↦ ?_, fun ε t x hx ↦ ?_, fun ε hε x hx ↦ ?_, fun t x hx ↦ ?_,
+    fun t x ↦ ?_⟩
   · -- Every coordinate of `x` lies in `[-(1 - 2δ), 1 - 2δ]`, where `f` is the identity.
     have hx₁ := (pi_norm_le_iff_of_nonneg (by linarith)).1 ((norm_fst_le x).trans hx)
     have hx₂ := (pi_norm_le_iff_of_nonneg (by linarith)).1 ((norm_snd_le x).trans hx)
