@@ -52,7 +52,8 @@ gives the reduction of a Lagrangian submanifold by a coisotropic one.
 * `SymplecticGeometry.IsCleanIntersection.isInjectiveLagrangianImmersionRange_leafSpaceMk_image`:
   for a Hausdorff reduced space and preconnected fibres, the set `leafSpaceMk '' range c`
   satisfies `IsInjectiveLagrangianImmersionRange` in dimension `dim P - (dim M - dim N)`: it is
-  the range of an injective Lagrangian immersion from a Hausdorff, second countable manifold.
+  the range of an injective Lagrangian immersion whose source is a second countable Hausdorff
+  manifold.
 * `IsCleanIntersection.isLagrangianImmersionRange_leafSpaceMk_image_and_transverse_and_injective`:
   the general, transverse and injective cases together.
 * `IsCleanIntersection.isInjectiveLagrangianImmersionRange_of_isCoisotropicEmbedding`:

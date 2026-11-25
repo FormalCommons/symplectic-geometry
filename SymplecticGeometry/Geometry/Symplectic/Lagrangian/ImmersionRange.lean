@@ -11,8 +11,8 @@ public import TauCeti.Geometry.Symplectic.Lagrangian.Manifold
 /-!
 # Ranges of Lagrangian immersions
 
-For a nondegenerate two-form `σ` on a manifold `M` and a natural number `r`, this file names the
-sets of `M` that are swept out by a Lagrangian immersion (Tau Ceti's
+Given a manifold `M` with a nondegenerate two-form `σ`, and a natural number `r`, this file
+names the sets of `M` that are swept out by a Lagrangian immersion (Tau Ceti's
 `TauCeti.SmoothTwoForm.IsNondegenerate.IsLagrangianImmersion`) from a Hausdorff, second countable
 smooth manifold modelled on `EuclideanSpace ℝ (Fin r)`. Such a set is an immersed Lagrangian
 submanifold, possibly with self-intersections; the injective variant rules those out.
@@ -24,7 +24,7 @@ of `M`, a set satisfies either predicate only when `2 * r = finrank ℝ E`.
 ## Main definitions
 
 * `TauCeti.SmoothTwoForm.IsNondegenerate.IsLagrangianImmersionRange`: `A` is the range of a
-  Lagrangian immersion from a Hausdorff, second countable manifold modelled on
+  Lagrangian immersion whose source is a second countable Hausdorff manifold modelled on
   `EuclideanSpace ℝ (Fin r)`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.IsInjectiveLagrangianImmersionRange`: the same, with an
   injective immersion.
@@ -92,8 +92,8 @@ theorem isInjectiveLagrangianImmersionRange_def :
           Function.Injective ι ∧ range ι = A :=
   Iff.rfl
 
-/-- The range of a Lagrangian immersion from a Hausdorff, second countable manifold modelled on
-`EuclideanSpace ℝ (Fin r)` is the range of a Lagrangian immersion. -/
+/-- The range of a Lagrangian immersion whose source is a second countable Hausdorff manifold
+modelled on `EuclideanSpace ℝ (Fin r)` satisfies `IsLagrangianImmersionRange r`. -/
 theorem isLagrangianImmersionRange_range {S : Type u} [TopologicalSpace S]
     [ChartedSpace (EuclideanSpace ℝ (Fin r)) S] [IsManifold 𝓘(ℝ, EuclideanSpace ℝ (Fin r)) ∞ S]
     [T2Space S] [SecondCountableTopology S] {ι : S → M}
@@ -101,8 +101,9 @@ theorem isLagrangianImmersionRange_range {S : Type u} [TopologicalSpace S]
     hσ.IsLagrangianImmersionRange.{u} r (range ι) :=
   ⟨S, _, _, inferInstance, inferInstance, inferInstance, ι, hι, rfl⟩
 
-/-- The range of an injective Lagrangian immersion from a Hausdorff, second countable manifold
-modelled on `EuclideanSpace ℝ (Fin r)` is the range of an injective Lagrangian immersion. -/
+/-- The range of an injective Lagrangian immersion whose source is a second countable Hausdorff
+manifold modelled on `EuclideanSpace ℝ (Fin r)` satisfies
+`IsInjectiveLagrangianImmersionRange r`. -/
 theorem isInjectiveLagrangianImmersionRange_range {S : Type u} [TopologicalSpace S]
     [ChartedSpace (EuclideanSpace ℝ (Fin r)) S] [IsManifold 𝓘(ℝ, EuclideanSpace ℝ (Fin r)) ∞ S]
     [T2Space S] [SecondCountableTopology S] {ι : S → M}

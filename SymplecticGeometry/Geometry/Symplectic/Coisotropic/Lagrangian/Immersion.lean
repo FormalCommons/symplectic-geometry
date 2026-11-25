@@ -28,7 +28,8 @@ disjoint union of countably many open sets of that space, with the same range as
   second countable, nonempty `N` and a boundaryless `C`, and for any nondegenerate `τ` on the
   reduced space whose pullback is `f^* σ`, the set `leafSpaceMk '' range c` satisfies
   `IsLagrangianImmersionRange` for `τ` in dimension `dim P - (dim M - dim N)`: it is the range of
-  a Lagrangian immersion from a Hausdorff, second countable manifold in the universe of `C`.
+  a Lagrangian immersion whose source is a second countable Hausdorff manifold in the universe
+  of `C`.
 
 ## References
 
