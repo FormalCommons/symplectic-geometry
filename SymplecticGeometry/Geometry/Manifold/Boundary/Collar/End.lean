@@ -11,12 +11,12 @@ public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 public import SymplecticGeometry.Geometry.Manifold.ModelTransport.InteriorModel
 public import SymplecticGeometry.Geometry.Manifold.ModelTransport.Remodel
+public import SymplecticGeometry.Topology.Category.TopCat.GlueData.Pair
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
 public import TauCeti.Geometry.Manifold.Gluing.GlueData
 public import TauCeti.Geometry.Manifold.Immersion.Interior
 public import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.Immersion.ModelChange
-public import TauCeti.Topology.Category.TopCat.GlueData
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
@@ -25,10 +25,10 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 For a manifold `W` with boundary, modelled on the half-space, and a smooth collar `c` of its
 boundary, `c.WithEnd` is `W` with the half-cylinder `[0, ∞) × ∂W` attached along `∂W`. It is the
-open gluing (`TopCat.GlueData`) of two pieces over `ℝⁿ⁺¹`: Tau Ceti's charted interior
-`(𝓡∂ (n + 1)).interior W` of `W`, and `(-1, ∞) × ∂W`, re-modelled along a linear equivalence
-(`SymplecticGeometry.Remodel`), glued by `(s, x) ↦ c (x, -s)` for `s ∈ (-1, 0)`. The gluing
-maps are read in the collar coordinates `TauCeti.SmoothCollar.interiorModelCoord`
+open gluing (`TopCat.GlueData.ofHomeomorph`) of two pieces over `ℝⁿ⁺¹`: the charted
+interior `(𝓡∂ (n + 1)).interior W` of `W`, and `(-1, ∞) × ∂W`, re-modelled along a linear
+equivalence (`SymplecticGeometry.Remodel`), glued by `(s, x) ↦ c (x, -s)` for `s ∈ (-1, 0)`. The
+gluing maps are read in the collar coordinates `TauCeti.SmoothCollar.interiorModelCoord`
 (`Boundary/Collar/Interior.lean`). It is a boundaryless smooth manifold, Hausdorff when `W` is;
 no compactness is assumed.
 
@@ -211,44 +211,18 @@ private theorem endToInterior_interiorToEnd (q : c.interiorModelRange) :
   rw [endToInterior_val, interiorToEnd_val, interiorToEndPt_def, endRetract_collarToEnd,
     apply_interiorModelCoord]
 
-/-- The pieces of the gluing. -/
-private def piece (i : ULift.{u} Bool) : TopCat.{u} :=
-  bif i.down then TopCat.of (EndPiece n W) else TopCat.of ((𝓡∂ (n + 1)).interior W)
-
-/-- The overlaps of the gluing. -/
-private def overlap : ∀ i : ULift.{u} Bool, ULift.{u} Bool → Opens (piece (n := n) (W := W) i)
-  | ⟨false⟩, ⟨false⟩ => ⊤
-  | ⟨false⟩, ⟨true⟩ => c.interiorModelRange
-  | ⟨true⟩, ⟨false⟩ => endOverlap
-  | ⟨true⟩, ⟨true⟩ => ⊤
-
-/-- The transition maps of the gluing. -/
-private def transition : ∀ i j : ULift.{u} Bool,
-    (Opens.toTopCat _).obj (c.overlap i j) ⟶ (Opens.toTopCat _).obj (c.overlap j i)
-  | ⟨false⟩, ⟨false⟩ => 𝟙 _
-  | ⟨false⟩, ⟨true⟩ => TopCat.ofHom c.interiorToEnd
-  | ⟨true⟩, ⟨false⟩ => TopCat.ofHom c.endToInterior
-  | ⟨true⟩, ⟨true⟩ => 𝟙 _
+/-- The gluing homeomorphism from the interior overlap to the end overlap. -/
+private def interiorEndHomeomorph : c.interiorModelRange ≃ₜ endOverlap (n := n) (W := W) where
+  toFun := c.interiorToEnd
+  invFun := c.endToInterior
+  left_inv := c.endToInterior_interiorToEnd
+  right_inv := c.interiorToEnd_endToInterior
+  continuous_toFun := c.interiorToEnd.continuous
+  continuous_invFun := c.endToInterior.continuous
 
 /-- The gluing data of `c.WithEnd`: the interior of `W` and `(-1, ∞) × ∂W`, glued along
 `(s, x) ↦ c (x, -s)` for `s ∈ (-1, 0)`. -/
-def glueData : TopCat.GlueData.{u} :=
-  TopCat.GlueData.mk'
-    { J := ULift.{u} Bool
-      U := piece
-      V := c.overlap
-      t := c.transition
-      V_id := by rintro ⟨_ | _⟩ <;> rfl
-      t_id := by rintro ⟨_ | _⟩ <;> rfl
-      t_inter := by
-        rintro ⟨_ | _⟩ ⟨_ | _⟩ ⟨_ | _⟩ x hx <;>
-          first | exact hx | exact (c.transition _ _ x).property | trivial
-      cocycle := by
-        rintro ⟨_ | _⟩ ⟨_ | _⟩ ⟨_ | _⟩ x hx <;>
-          first
-          | rfl
-          | exact congrArg Subtype.val (c.endToInterior_interiorToEnd x)
-          | exact congrArg Subtype.val (c.interiorToEnd_endToInterior x) }
+def glueData : TopCat.GlueData.{u} := TopCat.GlueData.ofHomeomorph c.interiorEndHomeomorph
 
 private theorem isLocalDiffeomorphAt_collarToEnd {p : ↥((𝓡∂ (n + 1)).boundary W) × normalIioOpens 1}
     (hp : 0 < (p.2 : EuclideanHalfSpace 1).val 0) :
@@ -262,26 +236,22 @@ section
 variable [IsManifold (𝓡∂ (n + 1)) ∞ W]
 
 private instance instChartedSpacePiece :
-    ∀ i : ULift.{u} Bool, ChartedSpace (EuclideanSpace ℝ (Fin (n + 1))) (piece (n := n) (W := W) i)
+    ∀ i : c.glueData.J, ChartedSpace (EuclideanSpace ℝ (Fin (n + 1))) (c.glueData.U i)
   | ⟨false⟩ => inferInstanceAs (ChartedSpace _ ((𝓡∂ (n + 1)).interior W))
   | ⟨true⟩ => inferInstanceAs (ChartedSpace _ (EndPiece n W))
 
 private instance instIsManifoldPiece :
-    ∀ i : ULift.{u} Bool, IsManifold (𝓡 (n + 1)) ∞ (piece (n := n) (W := W) i)
+    ∀ i : c.glueData.J, IsManifold (𝓡 (n + 1)) ∞ (c.glueData.U i)
   | ⟨false⟩ => inferInstanceAs (IsManifold _ ∞ ((𝓡∂ (n + 1)).interior W))
   | ⟨true⟩ => inferInstanceAs (IsManifold _ ∞ (EndPiece n W))
 
-private instance (i : c.glueData.J) :
-    ChartedSpace (EuclideanSpace ℝ (Fin (n + 1))) (c.glueData.U i) :=
-  instChartedSpacePiece i
-
-private instance (i : c.glueData.J) : IsManifold (𝓡 (n + 1)) ∞ (c.glueData.U i) :=
-  instIsManifoldPiece i
-
-private instance (p : c.glueData.J × c.glueData.J) :
+/-- Each overlap is an open subset of its piece, with the induced atlas. -/
+private instance instChartedSpaceOverlap (p : c.glueData.J × c.glueData.J) :
     ChartedSpace (EuclideanSpace ℝ (Fin (n + 1))) (c.glueData.V p) :=
-  letI := instChartedSpacePiece (n := n) (W := W) p.1
-  (c.overlap p.1 p.2).instChartedSpace
+  -- `show` gives the overlap the type `Opens (c.glueData.U p.1)`, so that the piece's atlas
+  -- `instChartedSpacePiece` applies; elaborated alone it is an `Opens` of `ofHomeomorphPiece`.
+  Opens.instChartedSpace (show Opens (c.glueData.U p.1) from
+    TopCat.GlueData.ofHomeomorphOverlap c.interiorModelRange endOverlap p.1 p.2)
 
 private theorem isLocalDiffeomorph_interiorToEndPt :
     IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.interiorToEndPt := fun q ↦ by
@@ -353,23 +323,16 @@ private theorem isLocalDiffeomorph_endIncl :
     IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.endIncl :=
   c.isCompatible_glueData.isLocalDiffeomorph_ι ⟨true⟩
 
+/- `c.glueData` is `TopCat.GlueData.ofHomeomorph c.interiorEndHomeomorph` by definition, so the
+next two facts are the corresponding lemmas of `ofHomeomorph`. -/
 private theorem interiorIncl_or_endIncl (z : c.WithEnd) :
-    (∃ p, c.interiorIncl p = z) ∨ ∃ q, c.endIncl q = z := by
-  obtain ⟨⟨_ | _⟩, y, rfl⟩ := c.glueData.ι_jointly_surjective z
-  exacts [Or.inl ⟨y, rfl⟩, Or.inr ⟨y, rfl⟩]
+    (∃ p, c.interiorIncl p = z) ∨ ∃ q, c.endIncl q = z :=
+  TopCat.GlueData.ofHomeomorph_ι_jointly_surjective c.interiorEndHomeomorph z
 
 private theorem endIncl_eq_interiorIncl_iff {q : EndPiece n W} {p : (𝓡∂ (n + 1)).interior W} :
     c.endIncl q = c.interiorIncl p ↔
-      ∃ h : q ∈ endOverlap, (c.endToInterior ⟨q, h⟩ : (𝓡∂ (n + 1)).interior W) = p := by
-  refine (c.glueData.ι_eq_iff_rel ⟨true⟩ ⟨false⟩ q p).trans ⟨?_, ?_⟩
-  · rintro ⟨⟨x, hxm⟩, hx, h⟩
-    have hx' : x = q := hx
-    have hq : q ∈ endOverlap := hx' ▸ hxm
-    refine ⟨hq, ?_⟩
-    rw [show (⟨q, hq⟩ : endOverlap (n := n) (W := W)) = ⟨x, hxm⟩ from Subtype.ext hx'.symm]
-    exact h
-  · rintro ⟨h, rfl⟩
-    exact ⟨⟨q, h⟩, rfl, rfl⟩
+      ∃ h : q ∈ endOverlap, (c.endToInterior ⟨q, h⟩ : (𝓡∂ (n + 1)).interior W) = p :=
+  TopCat.GlueData.ofHomeomorph_ι_true_eq_ι_false_iff c.interiorEndHomeomorph
 
 private theorem endRetract_interiorToEndPt (q : c.interiorModelRange) :
     c.endRetract (c.interiorToEndPt q) = q.val.val := by
@@ -399,21 +362,11 @@ private theorem exists_separation [T2Space W] (x : (𝓡∂ (n + 1)).interior W)
 
 /-- `c.WithEnd` is Hausdorff when `W` is. -/
 instance [T2Space W] : T2Space c.WithEnd := by
-  refine c.glueData.t2Space_iff_forall_nhds.2 ⟨?_, ?_⟩
-  · rintro ⟨_ | _⟩
-    · exact inferInstanceAs (T2Space ((𝓡∂ (n + 1)).interior W))
-    · exact inferInstanceAs (T2Space (endInterval × (𝓡∂ (n + 1)).boundary W))
-  rintro ⟨_ | _⟩ ⟨_ | _⟩ x hx y hy
-  · exact (hx ⟨⟨x, trivial⟩, rfl⟩).elim
-  · have hy' : y ∉ endOverlap := fun h ↦ hy ⟨⟨y, h⟩, rfl⟩
-    obtain ⟨A, hA, B, hB, hAB⟩ := c.exists_separation x hy'
-    exact ⟨A, hA, B, hB, fun z hz hz' ↦
-      hAB z.val hz _ hz' (c.endRetract_interiorToEndPt z)⟩
-  · have hx' : x ∉ endOverlap := fun h ↦ hx ⟨⟨x, h⟩, rfl⟩
-    obtain ⟨A, hA, B, hB, hAB⟩ := c.exists_separation y hx'
-    exact ⟨B, hB, A, hA, fun z hz hz' ↦
-      hAB _ hz' z.val hz (c.endRetract_eq_val_endToInterior z)⟩
-  · exact (hx ⟨⟨x, trivial⟩, rfl⟩).elim
+  refine (TopCat.GlueData.ofHomeomorph_t2Space_iff c.interiorEndHomeomorph).2
+    ⟨inferInstanceAs (T2Space ((𝓡∂ (n + 1)).interior W)),
+      inferInstanceAs (T2Space (endInterval × (𝓡∂ (n + 1)).boundary W)), fun x _ y hy ↦ ?_⟩
+  obtain ⟨A, hA, B, hB, hAB⟩ := c.exists_separation x hy
+  exact ⟨A, hA, B, hB, fun z hz hz' ↦ hAB z.val hz _ hz' (c.endRetract_interiorToEndPt z)⟩
 
 private theorem endIncl_collarToEnd_eq {p : ↥((𝓡∂ (n + 1)).boundary W) × normalIioOpens 1}
     (hp : 0 < (p.2 : EuclideanHalfSpace 1).val 0) (hint : c p ∈ (𝓡∂ (n + 1)).interior W) :
