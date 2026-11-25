@@ -422,10 +422,12 @@ theorem isNondegenerate_iff_isNondegenerate_mpullback {α : SmoothTwoForm I (Glu
     fun ⟨h₁, h₂⟩ ↦ SmoothTwoForm.isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.2 fun z ↦ ?_⟩
   suffices hz : (α.bilinFormAt z).Nondegenerate from LinearMap.separatingLeft_iff_ker_eq_bot.1 hz.1
   rcases (range_inl_union_range_inr φ).symm ▸ mem_univ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
-  · exact ((isLocalDiffeomorph_inl φ x).nondegenerate_bilinFormAt_iff (by simp)
+  · exact (SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
+      ((isLocalDiffeomorph_inl φ x).isInvertible_mfderiv (by simp))
       (congrFun (SmoothForm.coe_mpullback _ _ _) x).symm).2
       (h₁.nondegenerate_bilinFormAt x)
-  · exact ((isLocalDiffeomorph_inr φ y).nondegenerate_bilinFormAt_iff (by simp)
+  · exact (SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
+      ((isLocalDiffeomorph_inr φ y).isInvertible_mfderiv (by simp))
       (congrFun (SmoothForm.coe_mpullback _ _ _) y).symm).2
       (h₂.nondegenerate_bilinFormAt y)
 
