@@ -38,7 +38,7 @@ discs.
 
 The transition from the interior to the `i`-th annulus sends `c (γ i θ, t)` to
 `(1 + t) · toCircle θ`. It is a local diffeomorphism, as the composite of the collar
-coordinates (`TauCeti.SmoothCollar.interiorModelCoord`, restricted), the inverse of `γ i` on its
+coordinates (`TauCeti.SmoothCollar.interiorCoord`, restricted), the inverse of `γ i` on its
 image, and polar coordinates (`AddCircle.isLocalDiffeomorphAt_ofReal_mul_toCircle`), and it
 is bijective, so it is a diffeomorphism (`IsLocalDiffeomorph.diffeomorphOfBijective`); the
 transition in the other direction is its inverse.
@@ -160,21 +160,21 @@ private theorem mem_interiorOverlap {i : ι} {q : (𝓡∂ 2).interior S} :
   simp [interiorOverlap, ← SetLike.mem_coe]
 
 omit [IsManifold (𝓡∂ 2) ∞ S] in
-private theorem interiorOverlap_le (i : ι) : interiorOverlap c γ hγ i ≤ c.interiorModelRange :=
+private theorem interiorOverlap_le (i : ι) : interiorOverlap c γ hγ i ≤ c.interiorRange :=
   fun q hq ↦ by
     obtain ⟨θ, t, h⟩ := (mem_interiorOverlap hγ).1 hq
-    exact c.mem_interiorModelRange.2 ⟨_, h⟩
+    exact c.mem_interiorRange.2 ⟨_, h⟩
 
 /-- The collar coordinates of a point of the interior piece covered by the collar over the image
-of `γ i`: the restriction of `c.interiorModelCoord`. -/
+of `γ i`: the restriction of `c.interiorCoord`. -/
 private def collarCoord {i : ι} (q : interiorOverlap c γ hγ i) :
     ↥((𝓡∂ 2).boundary S) × normalIioOpens 1 :=
-  c.interiorModelCoord (Opens.inclusion (interiorOverlap_le hγ i) q)
+  c.interiorCoord (Opens.inclusion (interiorOverlap_le hγ i) q)
 
 omit [IsManifold (𝓡∂ 2) ∞ S] in
 @[simp] private theorem apply_collarCoord {i : ι} (q : interiorOverlap c γ hγ i) :
     c (collarCoord hγ q) = q.val.val := by
-  rw [collarCoord, c.apply_interiorModelCoord, Opens.inclusion, Set.coe_inclusion
+  rw [collarCoord, c.apply_interiorCoord, Opens.inclusion, Set.coe_inclusion
     (h := interiorOverlap_le hγ i)]
 
 omit [IsManifold (𝓡∂ 2) ∞ S] in
@@ -191,12 +191,12 @@ private theorem exists_collarCoord_eq {i : ι} (q : interiorOverlap c γ hγ i) 
 omit [IsManifold (𝓡∂ 2) ∞ S] in
 private theorem depth_collarCoord_pos {i : ι} (q : interiorOverlap c γ hγ i) :
     0 < ((collarCoord hγ q).2 : EuclideanHalfSpace 1).val 0 :=
-  c.interiorModelCoord_snd_pos _
+  c.interiorCoord_snd_pos _
 
 private theorem isLocalDiffeomorph_collarCoord (i : ι) :
     IsLocalDiffeomorph (𝓡 2) ((𝓡 1).prod (𝓡∂ 1)) ∞ (collarCoord (c := c) (i := i) hγ) :=
   fun q ↦ (isLocalDiffeomorph_inclusion (interiorOverlap_le hγ i) q).comp
-    (hg := c.isLocalDiffeomorph_interiorModelCoord _)
+    (hg := c.isLocalDiffeomorph_interiorCoord _)
 
 /-! ### The angle of a boundary point -/
 
