@@ -428,15 +428,19 @@ private def ofSymplectomorphism {U₀ : Opens (Q × ℂ)}
 
 section Exists
 
-variable [J.Boundaryless] [I.Boundaryless] [T2Space Q] [SecondCountableTopology Q] [T2Space M]
-  [SecondCountableTopology M] {hσ : σ.IsSymplectic} {ι : SmoothEmbedding J I ∞ Q M}
+variable [J.Boundaryless] [I.Boundaryless] [T2Space Q] [T2Space M] [SecondCountableTopology M]
+  (hσ : σ.IsSymplectic) {ι : SmoothEmbedding J I ∞ Q M}
   {hι : hσ.isNondegenerate.HasSymplecticTangentImages J ι}
   {hP : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ}
 
-/-- **Existence of product neighbourhoods.** For compact `Q`, a symplectic framing `Φ` of `ι` has
-product neighbourhoods of every radius `ε ≤ ε₀`, for some `ε₀ > 0`. -/
+/-- **Existence of product neighbourhoods.** For compact `Q` and closed nondegenerate `σ`, a
+symplectic framing `Φ` of `ι` has product neighbourhoods of every radius `ε ≤ ε₀`, for some
+`ε₀ > 0`. -/
 theorem «exists» [CompactSpace Q] (Φ : SymplecticFraming hι hP) :
     ∃ ε₀ > 0, ∀ ε ≤ ε₀, Nonempty (ProductNeighborhood Φ ε) := by
+  -- A compact manifold over a finite-dimensional model is second countable.
+  have := J.secondCountableTopology
+  have := ChartedSpace.secondCountable_of_sigmaCompact HQ Q
   obtain ⟨U₀, U₁, ψ, hψ, hψσ⟩ := Φ.exists_symplectomorphism_opens (hσ := hσ)
   have hU₀ : (Set.univ : Set Q) ×ˢ {(0 : ℂ)} ⊆ U₀ := by
     rintro ⟨q, z⟩ ⟨-, rfl : z = 0⟩
