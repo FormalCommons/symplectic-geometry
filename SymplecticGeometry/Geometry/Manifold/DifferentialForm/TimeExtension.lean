@@ -386,7 +386,7 @@ theorem mpullback_prodMk_timeExtendIcc (η : SmoothForm (I.prod (𝓡∂ 1)) (M 
 on tangent vectors `v` as soon as one of them, `v i`, has no component along `M`. -/
 theorem isFstSemibasic_timeExtendIcc (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F k) :
     IsFstSemibasic (timeExtendIcc η) := by
-  refine isFstSemibasic_def.mpr fun p v i hv ↦ ?_
+  refine isFstSemibasic_iff.mpr fun p v i hv ↦ ?_
   rw [timeExtendIcc_apply]
   rw [Manifold.tangentSpaceProdEquiv_apply] at hv
   exact ContinuousAlternatingMap.map_coord_zero _ i hv
