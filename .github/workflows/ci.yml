@@ -30,7 +30,69 @@ jobs:
     # check (the ruleset's limit).
     timeout-minutes: 150
     steps:
+      # For a pull request this is the merge of its branch with the base
+      # branch, and with a depth of 2 also the two commits that were merged,
+      # which the next step compares.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 1 }}
+      # A run for a pull request builds the merge of its branch with the base
+      # branch as that is when the run starts. For a move of Tau Ceti this
+      # costs much. No build of main's exists for the new dependencies, and
+      # the base branch gains about forty commits an hour, so each run of the
+      # move compiles again what those commits touched and all that imports
+      # it, and the build that the earlier run kept (see before the build)
+      # is worth less with every hour. So the run of a move builds the
+      # branch's own commit. A move, here, is a pull request whose merge
+      # changes lake-manifest.json or lean-toolchain on the base branch: the
+      # merge commit's first parent is the base branch's commit and its
+      # second the branch's. A pull request that only lags behind a move
+      # that has merged is not one, since its merge has the base branch's
+      # two files. The steps below then check and build the branch's own
+      # files; the base branch's rev is asked from GitHub as before.
+      #
+      # What this gives away: the run of a move no longer shows that the
+      # move builds together with the base branch's latest commits. The run
+      # of the merge queue is not changed. It builds exactly the commit that
+      # main gets, and nothing merges without it, so a move that does not
+      # fit the base branch fails there, later than it would have.
+      #
+      # The workflow's file is the merge's in either case, and its steps use
+      # the action and the scripts under .github as they are checked out. So
+      # the run stays with the merge when .github differs between the merge
+      # and the branch's commit: the two might not fit together.
+      - name: see whether this is a move of Tau Ceti
+        id: move
+        if: github.event_name == 'pull_request'
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          move=false
+          if [ "$(git rev-parse -q --verify 'HEAD^2')" != "$HEAD_SHA" ]; then
+            echo "the commit that is checked out is not a merge of $HEAD_SHA, so this run builds it as it is"
+          else
+            # git diff --quiet ends with 1 if the files differ, and with
+            # more if it could not compare them.
+            files=0 setup=0
+            git diff --quiet 'HEAD^1' HEAD -- lake-manifest.json lean-toolchain || files=$?
+            git diff --quiet 'HEAD^2' HEAD -- .github || setup=$?
+            if [ "$files" = 0 ]; then
+              echo "the merge leaves the base branch's lake-manifest.json and lean-toolchain as they are: not a move"
+            elif [ "$files" != 1 ] || [ "$setup" -gt 1 ]; then
+              echo "could not compare the merge with the commits that were merged, so this run builds the merge"
+            elif [ "$setup" = 1 ]; then
+              echo "a move, but .github differs between the merge and $HEAD_SHA, so this run builds the merge"
+            else
+              echo "a move, so this run builds $HEAD_SHA and not its merge with the base branch"
+              move=true
+            fi
+          fi
+          echo "move=$move" >> "$GITHUB_OUTPUT"
+      - name: check out the move's own commit
+        if: steps.move.outputs.move == 'true'
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       # The setup follows Tau Ceti. lakefile.toml must be .github/lakefile.toml
       # but for Tau Ceti's rev; lean-toolchain, and every other package in
       # lake-manifest.json, must be as Tau Ceti has them at that commit. So a
