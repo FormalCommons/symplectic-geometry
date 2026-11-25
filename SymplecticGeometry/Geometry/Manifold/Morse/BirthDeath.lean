@@ -11,6 +11,8 @@ public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Pi
 import SymplecticGeometry.Analysis.Calculus.Hadamard
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.Morse.ScalarComposition
 
 /-!
@@ -371,33 +373,30 @@ private theorem exists_comp {h : ℝ → ℝ} (hh : ContDiff ℝ ∞ h) (hpos : 
   -- The rescaling is a local diffeomorphism at `0`; read it in `E` through `L`.
   obtain ⟨Θ₀, hΘ₀, h0Θ₀, hΘ₀S, hΘ₀s, hΘ₀symm⟩ :=
     SymplecticGeometry.exists_openPartialHomeomorph_pi_mul_rpow has (by simp) ha0 p
-  set Θ := L.toHomeomorph.toOpenPartialHomeomorph.trans
-    (Θ₀.trans L.symm.toHomeomorph.toOpenPartialHomeomorph) with hΘ
-  have hΘs : ContDiffOn ℝ ∞ Θ Θ.source := by
-    simp only [hΘ, OpenPartialHomeomorph.coe_trans, OpenPartialHomeomorph.trans_source,
-      Homeomorph.toOpenPartialHomeomorph_source, Homeomorph.toOpenPartialHomeomorph_apply,
-      ContinuousLinearEquiv.coe_toHomeomorph, univ_inter, preimage_univ, inter_univ]
-    exact L.symm.contDiff.comp_contDiffOn (hΘ₀s.comp L.contDiff.contDiffOn fun _ h ↦ h)
-  have hΘsymm : ContDiffOn ℝ ∞ Θ.symm Θ.target := by
-    simp only [hΘ, OpenPartialHomeomorph.trans_symm_eq_symm_trans_symm,
-      OpenPartialHomeomorph.coe_trans, OpenPartialHomeomorph.trans_target,
-      ← Homeomorph.symm_toOpenPartialHomeomorph, Homeomorph.toOpenPartialHomeomorph_target,
-      Homeomorph.toOpenPartialHomeomorph_apply, ← ContinuousLinearEquiv.toHomeomorph_symm,
-      ContinuousLinearEquiv.symm_symm, univ_inter, preimage_univ, inter_univ]
-    exact L.symm.contDiff.comp_contDiffOn (hΘ₀symm.comp L.contDiff.contDiffOn fun _ h ↦ h)
+  set Φ : PartialDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) E E ∞ := L.toPartialDiffeomorph.trans
+    ((TauCeti.PartialDiffeomorph.ofOpenPartialHomeomorph Θ₀ hΘ₀s hΘ₀symm).trans
+      L.symm.toPartialDiffeomorph) with hΦ
+  set Θ := Φ.toOpenPartialHomeomorph with hΘ
+  have hΘs : ContDiffOn ℝ ∞ Θ Θ.source := contMDiffOn_iff_contDiffOn.1 Φ.contMDiffOn
+  have hΘsymm : ContDiffOn ℝ ∞ Θ.symm Θ.target :=
+    contMDiffOn_iff_contDiffOn.1 Φ.symm.contMDiffOn
+  have hΘc : ∀ v, Θ v = L.symm (Θ₀ (L v)) := fun v ↦ by
+    simp [hΘ, hΦ]
+  have hΘsrc : ∀ v, v ∈ Θ.source ↔ L v ∈ Θ₀.source := fun v ↦ by
+    simp [hΘ, hΦ]
   have hψx : ψ x = 0 := φ.toMorseBottChart.apply_self
-  have hΘ0 : Θ 0 = 0 := by simp [hΘ, hΘ₀, Pi.zero_def]
+  have hΘ0 : Θ 0 = 0 := by simp [hΘc, hΘ₀, Pi.zero_def]
   have hcoord : ∀ y ∈ (ψ.trans Θ).source,
       φ.toMorseBottChart.coord ((ψ.trans Θ) y) = W (L (ψ y)) := fun y _ ↦ by
-    simp [hΘ, hΘ₀, hW, L]
+    simp [hΘc, hΘ₀, hW, L]
   have hkey : ∀ y ∈ (ψ.trans Θ).source,
       h (f y) = h c + U (φ.toMorseBottChart.coord ((ψ.trans Θ) y)) := fun y hy ↦ by
-    have hay : 0 < a (L (ψ y)) := hΘ₀S (by simpa [hΘ] using hy.2)
+    have hay : 0 < a (L (ψ y)) := hΘ₀S ((hΘsrc _).1 hy.2)
     rw [hcoord y hy, hWU _ hay, hhG', hfU y hy.1]
     simp only [ha]
     ring
   have hx' : x ∈ (ψ.trans Θ).source :=
-    ⟨φ.toMorseBottChart.mem_source, by simpa [hΘ, hψx] using h0Θ₀⟩
+    ⟨φ.toMorseBottChart.mem_source, (hΘsrc _).2 (by simpa [hψx] using h0Θ₀)⟩
   refine ⟨{
     quadraticPart := fun y ↦ h (f y) -
       birthDeathPotential 0 (φ.toMorseBottChart.coord ((ψ.trans Θ) y) i₀)
