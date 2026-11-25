@@ -14,8 +14,10 @@ import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import TauCeti.Geometry.Manifold.Riemannian.Gradient.ChainRule
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
+import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.Topology.VectorBundle.Riemannian.Basic
 import SymplecticGeometry.Algebra.Order.Field.Basic
+import SymplecticGeometry.Analysis.Convex.Mul
 
 /-!
 # Gradient-like vector fields
@@ -63,8 +65,9 @@ locally finite refinement of the given neighbourhoods first yields, by Tau Ceti'
 `LocallyFinite.exists_continuous_pos_lt`, a continuous `δ > 0` below the local constants.
 The inequality with constant `δ y` at `y` is then convex in the metric: with
 `R = df(X) - δ g(X, X)`, the bound `δ ‖grad f‖ ^ 2 ≤ R` amounts, by Cauchy–Schwarz, to
-`δ (df v) ^ 2 ≤ R g(v, v)` for every `v`, and for `C ≥ 0` the pairs `(p, q)` of nonnegative reals
-with `C ≤ p q` form a convex set.
+`δ (df v) ^ 2 ≤ R g(v, v)` for every `v`, and this is convex in `g` by
+`SymplecticGeometry.convex_setOf_le_mul`: for `C ≥ 0` the pairs `(p, q)` of nonnegative reals with
+`C ≤ p q` form a convex set.
 
 ## References
 
@@ -249,31 +252,16 @@ private theorem convex_gradientLikeCondition {δ : ℝ} (hδ : 0 ≤ δ) (y : M)
   refine ⟨fun v ↦ by have := hs₀ v; have := ht₀ v; positivity, ?_, fun v ↦ ?_⟩
   · have hD : D = a * D + b * D := by rw [← add_mul, hab, one_mul]
     nlinarith
-  -- With `pᵢ = D - δ sᵢ (X, X) ≥ 0`, `qᵢ = sᵢ (v, v) ≥ 0` and `C ≤ pᵢ qᵢ`, where `C ≥ 0`, the
-  -- product of the convex combinations is at least `C`.
-  set C := δ * mvfderiv 𝓘(ℝ, E) f y v ^ 2
-  set p₁ := D - δ * s (X y) (X y)
-  set p₂ := D - δ * t (X y) (X y)
-  have hC : 0 ≤ C := by positivity
-  have hp₁ : 0 ≤ p₁ := sub_nonneg.2 hs₁
-  have hp₂ : 0 ≤ p₂ := sub_nonneg.2 ht₁
-  have hq₁ := hs₀ v
-  have hq₂ := ht₀ v
-  have h₁ : C ≤ p₁ * s v v := hs₂ v
-  have h₂ : C ≤ p₂ * t v v := ht₂ v
-  have hp : D - δ * (a * s (X y) (X y) + b * t (X y) (X y)) = a * p₁ + b * p₂ := by
-    simp only [p₁, p₂]; linear_combination (-D) * hab
-  have hprod : C * C ≤ (p₁ * t v v) * (p₂ * s v v) := by
-    have := mul_le_mul h₁ h₂ hC (by positivity)
-    linarith
-  have hcross : 2 * C ≤ p₁ * t v v + p₂ * s v v := by
-    nlinarith [sq_nonneg (p₁ * t v v - p₂ * s v v), mul_nonneg hp₁ hq₂, mul_nonneg hp₂ hq₁]
+  -- With `pᵢ = D - δ sᵢ (X, X) ≥ 0` and `qᵢ = sᵢ (v, v) ≥ 0`, this is `convex_setOf_le_mul`.
+  have hp : D - δ * (a * s (X y) (X y) + b * t (X y) (X y)) =
+      a * (D - δ * s (X y) (X y)) + b * (D - δ * t (X y) (X y)) := by
+    linear_combination (-D) * hab
   rw [hp]
-  calc C = (a + b) ^ 2 * C := by rw [hab, one_pow, one_mul]
-    _ = a ^ 2 * C + b ^ 2 * C + a * b * (2 * C) := by ring
-    _ ≤ a ^ 2 * (p₁ * s v v) + b ^ 2 * (p₂ * t v v) + a * b * (p₁ * t v v + p₂ * s v v) := by
-      gcongr
-    _ = (a * p₁ + b * p₂) * (a * s v v + b * t v v) := by ring
+  have := convex_setOf_le_mul (C := δ * mvfderiv 𝓘(ℝ, E) f y v ^ 2) (by positivity)
+    (x := (D - δ * s (X y) (X y), s v v)) ⟨sub_nonneg.2 hs₁, hs₀ v, hs₂ v⟩
+    (y := (D - δ * t (X y) (X y), t v v)) ⟨sub_nonneg.2 ht₁, ht₀ v, ht₂ v⟩ ha hb hab
+  simpa only [Set.mem_ofPred_eq, Prod.fst_add, Prod.snd_add, Prod.smul_fst, Prod.smul_snd,
+    smul_eq_mul] using this.2.2
 
 /-- For a metric `g`, the condition `gradientLikeCondition` on `g` at `y` is the inequality of
 `TauCeti.IsGradientLike` at `y`. -/
@@ -374,16 +362,15 @@ theorem exists_nhds_mul_le_of_mvfderiv_apply_pos
     contMDiffAt_mgradient (n := 0) (by rwa [zero_add])
   have hG := hgrad.continuousAt
   have hX' := hX.continuousAt
-  have hGX : ContinuousAt (fun y ↦ g.inner y (mgradient 𝓘(ℝ, E) f y) (X y)) x :=
-    g.toContinuousRiemannianMetric.continuousAt_inner (b := id) hG hX'
   have hXX : ContinuousAt (fun y ↦ g.inner y (X y) (X y)) x :=
     g.toContinuousRiemannianMetric.continuousAt_inner (b := id) hX' hX'
   have hGG : ContinuousAt
       (fun y ↦ g.inner y (mgradient 𝓘(ℝ, E) f y) (mgradient 𝓘(ℝ, E) f y)) x :=
     g.toContinuousRiemannianMetric.continuousAt_inner (b := id) hG hG
   have hP : ContinuousAt (fun y ↦ mvfderiv 𝓘(ℝ, E) f y (X y)) x :=
-    hGX.congr (Filter.Eventually.of_forall fun y ↦ by
-      dsimp only; rw [← g.inner_eq, inner_mgradient])
+    (ContMDiffAt.comp (g := fun q : TangentBundle 𝓘(ℝ, E) M ↦ mvfderiv 𝓘(ℝ, E) f q.proj q.snd) x
+      (ContMDiffAt.contMDiffAt_mvfderiv_apply (p := (⟨x, X x⟩ : TangentBundle 𝓘(ℝ, E) M))
+        (m := 0) hf le_rfl) hX).continuousAt
   have hQ : ContinuousAt
       (fun y ↦ g.inner y (X y) (X y) + ‖mgradient 𝓘(ℝ, E) f y‖ ^ 2) x :=
     (hXX.add hGG).congr (Filter.Eventually.of_forall fun y ↦ by
