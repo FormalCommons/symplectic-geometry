@@ -15,11 +15,12 @@ import TauCeti.Geometry.Manifold.Riemannian.Basic
 /-!
 # Gradient flow of a component of a moment map
 
-Let a compact Lie group `G` act on a manifold `M`, modelled on `𝓘(ℝ, E')`, with moment map `μ`
-for a nondegenerate two-form `σ`, and fix `ξ` in the Lie algebra of `G`. For any Riemannian
-metric on `M`, the component `x ↦ μ x ξ` satisfies Łojasiewicz's gradient inequality with exponent
-`1 / 2` near each of its critical points. When `M` is compact and the metric is `C¹`, every
-negative gradient trajectory of `x ↦ μ x ξ` therefore converges to a critical point.
+Let a compact Lie group `G` act on a σ-compact manifold `M`, modelled on `𝓘(ℝ, E')`, with moment
+map `μ` for a nondegenerate two-form `σ`, and fix `ξ` in the Lie algebra of `G`. For any
+continuous Riemannian metric on `M`, the component `x ↦ μ x ξ` satisfies Łojasiewicz's gradient
+inequality with exponent `1 / 2` near each of its critical points. When `M` is
+compact and the metric is `C¹`, every negative gradient trajectory of `x ↦ μ x ξ` therefore
+converges to a critical point.
 
 The inequality comes from Tau Ceti: every critical point lies in a set `M^{T_ξ}_d` of fixed points
 (`TauCeti.SmoothTwoForm.IsMomentMap.criticalPoints_eq_iUnion_fixedPointsOfFinrank`), which is a
@@ -40,6 +41,8 @@ in the namespace `TauCeti`.
 
 ## References
 
+* [V. Georgoulas, J. W. Robbin and D. A. Salamon, *The Moment-Weight Inequality and the
+  Hilbert–Mumford Criterion*][GeorgoulasRobbinSalamon2021].
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §5.7.
 -/
 
