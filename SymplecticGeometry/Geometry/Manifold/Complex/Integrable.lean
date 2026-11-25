@@ -57,7 +57,9 @@ itself it is integrable.
 * `TauCeti.SmoothAlmostComplexStructure.IsIntegrable`: integrability of a smooth almost complex
   structure; `isIntegrable_iff_mfderiv` states it through derivatives of charts, and
   `isIntegrable_of_forall_exists_isLocalDiffeomorphAt` accepts, in place of a chart, any map
-  that is a local diffeomorphism at the point.
+  that is a local diffeomorphism at the point, and
+  `isIntegrable_of_forall_exists_partialDiffeomorph` any partial diffeomorphism into a normed
+  space other than the model.
 * `TauCeti.SmoothAlmostComplexStructure.isIntegrable_ofComplexManifold`: the almost complex
   structure of a complex manifold is integrable.
 * `TauCeti.SmoothAlmostComplexStructure.ofTangentCoordChange` and
@@ -228,6 +230,25 @@ theorem mfderiv_trans_toDiffeomorph_apply_eq_transport {G G' : Type*} [NormedAdd
   J.mfderiv_trans_apply_eq_of_fderiv_apply_eq hψ fun _ _ w ↦ by
     simp [ContinuousLinearEquiv.fderiv]
 
+/-- `J` is integrable when every point of `M` lies in the source of a partial diffeomorphism `φ`
+from `M` onto an open subset of a normed space `G` whose derivative carries `J` to a fixed linear
+complex structure of `G` at every point of its source. Here `G` need not be the model of `M`: the
+derivative of `φ` at a point identifies it with `E`. -/
+theorem isIntegrable_of_forall_exists_partialDiffeomorph {G : Type*} [NormedAddCommGroup G]
+    [NormedSpace ℝ G]
+    (h : ∀ x : M, ∃ (φ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞) (J₀ : AlmostComplexStructure G),
+      x ∈ φ.source ∧ ∀ y ∈ φ.source, ∀ v : TangentSpace I y,
+        mfderiv I 𝓘(ℝ, G) φ y (J y v) = J₀ (mfderiv I 𝓘(ℝ, G) φ y v)) :
+    J.IsIntegrable := by
+  rw [isIntegrable_iff_mfderiv]
+  intro x
+  obtain ⟨φ, J₀, hx, hφ⟩ := h x
+  -- A linear isomorphism `G ≃ E` brings `φ` to the model of `M`.
+  obtain ⟨e, -⟩ := φ.isInvertible_mfderiv (by simp) hx
+  let L : G ≃L[ℝ] E := e.symm
+  exact ⟨φ.trans L.toDiffeomorph.toPartialDiffeomorph, J₀.transport L.toLinearEquiv,
+    by simpa using hx, J.mfderiv_trans_toDiffeomorph_apply_eq_transport hφ L⟩
+
 /-- **A chart in which `J` is constant makes `J` integrable on its source.** If the derivative
 of a partial diffeomorphism `φ` from `M` onto an open subset of a normed space `G` carries `J` to a
 fixed linear complex structure `J₀` of `G` at every point of its source, then the restriction of
@@ -239,28 +260,17 @@ theorem isIntegrable_restrictOpen_source {G : Type*} [NormedAddCommGroup G] [Nor
     (J.restrictOpen ⟨φ.source, φ.open_source⟩).IsIntegrable := by
   set U : TopologicalSpace.Opens M := ⟨φ.source, φ.open_source⟩
   have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
-  rw [isIntegrable_iff_mfderiv]
-  intro x
+  refine (J.restrictOpen U).isIntegrable_of_forall_exists_partialDiffeomorph (G := G) fun x ↦ ?_
   -- The restriction of `φ` to `U` is a chart of `U` into `G` in which `J` is `J₀`.
   let ψ := φ.subtypeRestr U ⟨x⟩
   have hψ : (ψ : U → G) = φ ∘ Subtype.val := funext (φ.subtypeRestr_apply U ⟨x⟩)
-  have hsource : ψ.source = univ := by
-    rw [PartialDiffeomorph.subtypeRestr_source]
-    exact eq_univ_of_forall fun y ↦ y.property
   have hd (y : U) (v : TangentSpace I y) : mfderiv I 𝓘(ℝ, G) ψ y v =
       mfderiv I 𝓘(ℝ, G) φ y (Manifold.tangentSpaceOpenEquiv (I := I) y v) := by
     rw [hψ, mfderiv_comp_apply y (φ.mdifferentiableAt hn y.property)
       (contMDiff_subtypeVal.mdifferentiableAt one_ne_zero), Manifold.mfderiv_subtype_val,
       ContinuousLinearEquiv.coe_coe]
-  have hJ : ∀ y ∈ ψ.source, ∀ v : TangentSpace I y,
-      mfderiv I 𝓘(ℝ, G) ψ y (J.restrictOpen U y v) = J₀ (mfderiv I 𝓘(ℝ, G) ψ y v) :=
-    fun y _ v ↦ by
-      rw [hd, hd, restrictOpen_apply, ContinuousLinearEquiv.apply_symm_apply, hφ y y.property]
-  -- A linear isomorphism `G ≃ E` brings it to the model of `M`.
-  obtain ⟨e, -⟩ := φ.isInvertible_mfderiv hn x.property
-  let L : G ≃L[ℝ] E := e.symm
-  exact ⟨ψ.trans L.toDiffeomorph.toPartialDiffeomorph, J₀.transport L.toLinearEquiv,
-    by simp [hsource], (J.restrictOpen U).mfderiv_trans_toDiffeomorph_apply_eq_transport hJ L⟩
+  refine ⟨ψ, J₀, by simp [ψ], fun y _ v ↦ ?_⟩
+  rw [hd, hd, restrictOpen_apply, ContinuousLinearEquiv.apply_symm_apply, hφ y y.property]
 
 /-- **Integrability is invariant under pullback.** The pullback of an integrable almost complex
 structure along a diffeomorphism is integrable. -/
@@ -269,8 +279,8 @@ theorem IsIntegrable.pullback [FiniteDimensional ℝ E] {E' H' N : Type*} [Norme
     {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N]
     [IsManifold I' ∞ N] (h : M ≃ₘ⟮I, I'⟯ N) {J : SmoothAlmostComplexStructure I' N}
     (hJ : J.IsIntegrable) : (pullback h J).IsIntegrable := by
-  rw [isIntegrable_iff_mfderiv] at hJ ⊢
-  intro x
+  rw [isIntegrable_iff_mfderiv] at hJ
+  refine isIntegrable_of_forall_exists_partialDiffeomorph _ (G := E') fun x ↦ ?_
   obtain ⟨ψ, J₀, hx, hψ⟩ := hJ (h x)
   have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
   -- The chart `ψ` read through `h` takes values in `E'`, and carries `pullback h J` to `J₀`.
@@ -278,18 +288,11 @@ theorem IsIntegrable.pullback [FiniteDimensional ℝ E] {E' H' N : Type*} [Norme
   have hc : (Ψ : M → E') = ψ ∘ h := by
     ext z
     simp [Ψ]
-  have hΨ : ∀ y ∈ Ψ.source, ∀ v : TangentSpace I y,
-      mfderiv I 𝓘(ℝ, E') Ψ y (SmoothAlmostComplexStructure.pullback h J y v) =
-        J₀ (mfderiv I 𝓘(ℝ, E') Ψ y v) := by
-    intro y hy v
-    have hy' : h y ∈ ψ.source := by simpa [Ψ] using hy
-    rw [hc, mfderiv_comp_apply y (ψ.mdifferentiableAt hn hy') (h.mdifferentiable hn y),
-      mfderiv_comp_apply y (ψ.mdifferentiableAt hn hy') (h.mdifferentiable hn y),
-      mfderiv_pullback_apply, hψ _ hy']
-  -- A linear isomorphism `E' ≃ E` brings it back to the model of `M`.
-  let L : E' ≃L[ℝ] E := (h.mfderivToContinuousLinearEquiv hn x).symm
-  exact ⟨Ψ.trans L.toDiffeomorph.toPartialDiffeomorph, J₀.transport L.toLinearEquiv,
-    by simpa [Ψ] using hx, mfderiv_trans_toDiffeomorph_apply_eq_transport _ hΨ L⟩
+  refine ⟨Ψ, J₀, by simpa [Ψ] using hx, fun y hy v ↦ ?_⟩
+  have hy' : h y ∈ ψ.source := by simpa [Ψ] using hy
+  rw [hc, mfderiv_comp_apply y (ψ.mdifferentiableAt hn hy') (h.mdifferentiable hn y),
+    mfderiv_comp_apply y (ψ.mdifferentiableAt hn hy') (h.mdifferentiable hn y),
+    mfderiv_pullback_apply, hψ _ hy']
 
 end Chart
 
