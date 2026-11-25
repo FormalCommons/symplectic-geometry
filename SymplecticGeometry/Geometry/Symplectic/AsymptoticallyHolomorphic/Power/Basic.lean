@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.Algebra.LieGroup
 public import Mathlib.Geometry.Manifold.Instances.Sphere
 public import TauCeti.Geometry.Manifold.VectorBundle.Associated.Metric
+public import SymplecticGeometry.Topology.VectorBundle.Associated.Basic
 
 /-!
 # Powers of a principal circle bundle
@@ -27,14 +28,21 @@ model fibre is `ℂ` for every `k`.
 
 A separate type for each `k` is needed because the instance arguments of Tau Ceti's construction
 fix the action of `Circle` on the model fibre. Through its `ℂ`-module structure the type also has
-Mathlib's action of weight one (`Circle.instSMul`, `Circle.instMulAction`); the instances of
-weight `k` here have higher priority, and `PowerModel.smul_def` rewrites them as multiplication
-by `(g : ℂ) ^ k`. The model instances follow those of Tau Ceti's
-`TauCeti.SpinCStructure.DeterminantModel`, and the proof of
+Mathlib's action of weight one (`Circle.instSMul`, `Circle.instMulAction`,
+`Circle.instDistribMulAction`); the instances of weight `k` here have higher priority, and
+`PowerModel.smul_def` rewrites them as multiplication by `(g : ℂ) ^ k`. The model instances
+follow those of Tau Ceti's `TauCeti.SpinCStructure.DeterminantModel`, with the action built by
+`DistribMulAction.compHom` as there, and the proof of
 `SymplecticGeometry.PowerModel.instContMDiffSMul` follows that of Tau Ceti's
-`Circle.instContMDiffSMul`.
+`Circle.instContMDiffSMul`. The bundle declarations adapt Tau Ceti's declarations for the
+determinant line of a `Spinᶜ` structure: `SymplecticGeometry.PowerBundle` adapts
+`TauCeti.SpinCStructure.determinantLine`, `SymplecticGeometry.PowerBundle.finrank_eq_one` adapts
+`TauCeti.SpinCStructure.finrank_determinantLine`, and `SymplecticGeometry.PowerBundle.mk_op_smul`
+adapts `TauCeti.SpinCStructure.mk_ofCircle_smul_determinantLine`.
 
-The structures of `PowerBundle P k` all come from Tau Ceti:
+The structures of `PowerBundle P k` come from Tau Ceti, except the compatibility of the real and
+complex scalars on the fibres, `TauCeti.AssociatedBundle.instIsScalarTower` of
+`SymplecticGeometry/Topology/VectorBundle/Associated/Basic.lean`:
 
 * complex (and real) vector bundle, from `Topology/VectorBundle/Associated/Basic.lean`;
 * fibrewise norms, real and Hermitian inner products and the continuity of the norm, from
@@ -44,9 +52,8 @@ The structures of `PowerBundle P k` all come from Tau Ceti:
   `Geometry/Manifold/VectorBundle/Associated/` (`Basic.lean` and `Metric.lean`), since the action
   is smooth (`SymplecticGeometry.PowerModel.instContMDiffSMul`).
 
-The file states the instances that Tau Ceti's files ask of the model fibre, the instances that
-the fibres need beyond those Tau Ceti installs (the compatibility of the real and complex scalars),
-and checks the rest by `example`s.
+The file states the instances that Tau Ceti's files ask of the model fibre, and checks the
+structures of the bundle by `example`s.
 
 ## Main definitions
 
@@ -114,36 +121,34 @@ variable (k) in
 theorem finrank_eq_one : finrank ℂ (PowerModel k) = 1 :=
   (toComplex (k := k)).finrank_eq.trans (finrank_self ℂ)
 
-/-- The circle acts on the model fibre of weight `k` by multiplication by `g ^ k`. -/
-instance (priority := high) instSMul : SMul Circle (PowerModel k) where
-  smul g w := toComplex.symm ((g : ℂ) ^ k * toComplex w)
+/-- The circle acts on the model fibre of weight `k` by multiplication by `g ^ k`, through the
+homomorphism `g ↦ (g : ℂ) ^ k` and the `ℂ`-module structure. -/
+instance (priority := high) instDistribMulAction : DistribMulAction Circle (PowerModel k) :=
+  DistribMulAction.compHom (PowerModel k) (Circle.coeHom.comp (zpowGroupHom k))
+
+/-- The action of weight `k`, rather than the action through the `ℂ`-module structure. -/
+instance (priority := high) instSMul : SMul Circle (PowerModel k) :=
+  instDistribMulAction.toSMul
+
+/-- The action of weight `k`, rather than the action through the `ℂ`-module structure. -/
+instance (priority := high) instMulAction : MulAction Circle (PowerModel k) :=
+  instDistribMulAction.toMulAction
+
+/-- The action of `g` on the model fibre of weight `k` is scalar multiplication by `g ^ k`. -/
+theorem smul_def (g : Circle) (w : PowerModel k) : g • w = ((g : ℂ) ^ k) • w :=
+  (rfl)
 
 /-- `g` acts on the model fibre of weight `k` by multiplication by `g ^ k`. -/
 @[simp]
 theorem toComplex_smul (g : Circle) (w : PowerModel k) :
-    toComplex (g • w) = (g : ℂ) ^ k * toComplex w :=
-  toComplex.apply_symm_apply _
-
-instance instDistribMulAction : DistribMulAction Circle (PowerModel k) where
-  one_smul w := toComplex.injective (by simp)
-  mul_smul g h w := toComplex.injective (by simp [mul_zpow, mul_assoc])
-  smul_zero g := toComplex.injective (by simp)
-  smul_add g v w := toComplex.injective (by simp [mul_add])
-
-/-- The action of weight `k`, rather than the action through the `ℂ`-module structure. -/
-instance (priority := high) instMulAction : MulAction Circle (PowerModel k) :=
-  DistribMulAction.toMulAction
-
-/-- The action of `g` on the model fibre of weight `k` is scalar multiplication by `g ^ k`. -/
-theorem smul_def (g : Circle) (w : PowerModel k) : g • w = ((g : ℂ) ^ k) • w :=
-  toComplex.injective (by rw [toComplex_smul, map_smul, smul_eq_mul])
+    toComplex (g • w) = (g : ℂ) ^ k * toComplex w := by
+  rw [smul_def, map_smul, smul_eq_mul]
 
 instance instSMulCommClass : SMulCommClass Circle ℂ (PowerModel k) where
-  smul_comm g c w := by rw [smul_def, smul_def, smul_comm]
+  smul_comm g c w := smul_comm ((g : ℂ) ^ k) c w
 
 instance instSMulCommClassReal : SMulCommClass Circle ℝ (PowerModel k) where
-  smul_comm g c w := by
-    rw [← algebraMap_smul ℂ c w, ← algebraMap_smul ℂ c (g • w), smul_comm]
+  smul_comm g c w := smul_comm ((g : ℂ) ^ k) c w
 
 instance instContinuousSMul : ContinuousSMul Circle (PowerModel k) where
   continuous_smul := by
@@ -190,10 +195,6 @@ namespace PowerBundle
 
 variable {P} {k : ℤ}
 
-/-- The real scalars act on a fibre of `PowerBundle P k` through the complex ones. -/
-instance instIsScalarTower (b : B) : IsScalarTower ℝ ℂ (PowerBundle P k b) :=
-  inferInstanceAs (IsScalarTower ℝ ℂ (PowerModel k))
-
 /-- **The circle acts with weight `k`**: `[p · g, z] = g ^ k • [p, z]`. -/
 theorem mk_op_smul {b : B} (p : P b) (g : Circle) (z : PowerModel k) :
     AssociatedBundle.mk Circle (op g • p) z =
@@ -215,6 +216,8 @@ example : VectorBundle ℝ (PowerModel k) (PowerBundle P k) := inferInstance
 example (b : B) : InnerProductSpace ℂ (PowerBundle P k b) := inferInstance
 
 example (b : B) : InnerProductSpace ℝ (PowerBundle P k b) := inferInstance
+
+example (b : B) : IsScalarTower ℝ ℂ (PowerBundle P k b) := inferInstance
 
 example : ContinuousFiberNorm (PowerModel k) (PowerBundle P k) := inferInstance
 
