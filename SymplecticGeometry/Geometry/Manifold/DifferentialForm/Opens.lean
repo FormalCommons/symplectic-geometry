@@ -16,6 +16,9 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.Injective
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
+import Mathlib.Geometry.Manifold.PartitionOfUnity
+import TauCeti.Geometry.Manifold.DeRham.ExtendByZero
+import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 
 /-!
 # Differential forms restricted to open subsets
@@ -33,6 +36,12 @@ and the pull-back of restricted forms along a partial diffeomorphism of open sub
 * Restricting to an open subset `W` and then to an open subset `V ≤ W` is restricting to `V`
   (`TauCeti.mpullback_inclusion_mpullback_subtype_val`, and
   `TauCeti.SmoothForm.mpullback_inclusion_mpullback_subtype_val` for smooth forms).
+* A form on the open subset `⊤`, pulled back to `M` along `x ↦ ⟨x, trivial⟩`, is the same form
+  read at the points of `M` (`TauCeti.mpullback_mk_top_apply`).
+* A closed smooth form on `U` agrees, on a set whose closure lies in `U`, with a smooth form on
+  `M` that is closed there (`TauCeti.exists_isSmoothForm_eq_on_of_closure_subset`): cut the form
+  off by a smooth function, `1` near that closure and `0` near the complement of `U`, and extend
+  it by zero. This adapts the cut-off step of Tau Ceti's `TauCeti.exists_eventuallyEq_mextDerivₗ`.
 * At a point of `U`, a form and its restriction have the same regularity
   (`TauCeti.contMDiffAt_mpullback_subtype_val_iff`), since `Subtype.val` is a local
   diffeomorphism.
@@ -133,6 +142,17 @@ theorem contMDiffAt_mpullback_subtype_val_iff [IsManifold I 1 M] {U : Opens M}
       ContMDiffAt I (I.prod 𝓘(ℝ, E [⋀^Fin k]→L[ℝ] F)) n
         (fun y ↦ TotalSpace.mk' (E [⋀^Fin k]→L[ℝ] F) y (γ y)) (x : M) :=
   (isLocalDiffeomorph_subtype_val (n := ω) x).contMDiffAt_mpullback_form_iff (by simp)
+
+/-- A form on the open subset `⊤` of `M`, pulled back to `M` along `x ↦ ⟨x, trivial⟩`, has at `x`
+the value of the form at `⟨x, trivial⟩`. -/
+theorem mpullback_mk_top_apply (γ : RoughForm I (⊤ : Opens M) F k) (x : M) :
+    mpullback I I (fun y : M ↦ (⟨y, trivial⟩ : (⊤ : Opens M))) γ x = γ ⟨x, trivial⟩ := by
+  ext v
+  rw [mpullback_apply]
+  congr 1
+  funext i
+  rw [← Manifold.mfderiv_subtype_val_comp_apply]
+  exact congrFun (congrArg DFunLike.coe (mfderiv_id (I := I) (x := x))) (v i)
 
 variable [IsManifold I 1 M]
 
@@ -250,6 +270,51 @@ theorem SmoothForm.eval₂_mfderiv_eq_of_mpullback_subtype_val_eq {U : Opens M} 
   rw [SmoothForm.mpullback_comp ψ Subtype.val hψ contMDiff_subtypeVal, LinearMap.comp_apply, h]
 
 end TwoForm
+
+/-- **Cutting off a closed form on an open subset.** Let `M` be a Hausdorff σ-compact manifold
+modelled on a finite-dimensional space, `U` an open subset of `M` and `W` a set whose closure lies
+in `U`. A closed smooth form `η` on `U` agrees on `W` with a smooth form `η'` on `M` that is closed
+at the points of `W`. -/
+theorem exists_isSmoothForm_eq_on_of_closure_subset [FiniteDimensional ℝ E] [IsManifold I ∞ M]
+    [T2Space M] [SigmaCompactSpace M] {U : Opens M} {W : Set M} (hWU : closure W ⊆ U) {k : ℕ}
+    {η : SmoothForm I U ℝ k} (hη : mextDerivₗ I k η = 0) :
+    ∃ η' : RoughForm I M ℝ k, IsSmoothForm I ∞ η' ∧
+      (∀ z (hz : z ∈ W), η' z = η.val ⟨z, hWU (subset_closure hz)⟩) ∧
+      ∀ z ∈ W, mextDeriv η' z = 0 := by
+  -- `M` is normal.
+  have : LocallyCompactSpace H := I.locallyCompactSpace
+  have : LocallyCompactSpace M := ChartedSpace.locallyCompactSpace H M
+  -- A cut-off function, `0` near the complement of `U` and `1` near the closure of `W`.
+  obtain ⟨f, hf₀, hf₁, -⟩ := exists_contMDiffMap_zero_one_nhds_of_isClosed I (n := (⊤ : ℕ∞))
+    U.isOpen.isClosed_compl isClosed_closure (disjoint_compl_left_iff_subset.mpr hWU)
+  have hf₁' : ∀ z ∈ W, ∀ᶠ y in 𝓝 z, f y = 1 := fun z hz ↦
+    hf₁.filter_mono (nhds_le_nhdsSet (subset_closure hz))
+  let ρ : (⊤ : Opens M) → ℝ := fun y ↦ f y
+  have hρ : ContMDiff I 𝓘(ℝ) ∞ ρ := f.contMDiff.comp contMDiff_subtypeVal
+  have hρ₀ : ∀ x : (⊤ : Opens M), (x : M) ∉ U → ∀ᶠ y in 𝓝 x, ρ y = 0 := fun x hx ↦
+    continuous_subtypeVal.continuousAt.eventually (hf₀.filter_mono (nhds_le_nhdsSet hx))
+  -- The cut-off form, extended by zero to `⊤` and read on `M`.
+  set θ : RoughForm I (⊤ : Opens M) ℝ k :=
+    RoughForm.extendByZero ⊤ fun y : U ↦ ρ (Opens.inclusion le_top y) • η.val y with hθ
+  have hθs : IsSmoothForm I ∞ θ := η.isSmoothForm.extendByZero_smul le_top hρ hρ₀
+  let e : M → (⊤ : Opens M) := fun x ↦ ⟨x, trivial⟩
+  have he : ContMDiff I I ∞ e := (ContMDiff.subtypeVal_comp_iff ⊤ _).mp contMDiff_id
+  refine ⟨mpullback I I e θ, hθs.mpullback he, fun z hz ↦ ?_, fun z hz ↦ ?_⟩
+  · rw [mpullback_mk_top_apply, hθ]
+    -- The point `⟨z, trivial⟩` of `⊤` is the inclusion of the point `z` of `U`.
+    change RoughForm.extendByZero ⊤ _ (Opens.inclusion le_top ⟨z, hWU (subset_closure hz)⟩) = _
+    rw [RoughForm.extendByZero_inclusion]
+    simp [ρ, Opens.inclusion, (hf₁' z hz).self_of_nhds]
+    -- Both sides are `η` at the same point of `U`, with different membership proofs.
+    rfl
+  · have hρz : ρ =ᶠ[𝓝 (e z)] 1 :=
+      (continuous_subtypeVal.continuousAt.eventually (hf₁' z hz)).mono fun y hy ↦ hy
+    have key := mextDeriv_extendByZero_smul_apply_of_eventuallyEq_one le_top hρ₀
+      (η := 0) (θ := η) (by rw [hη, map_zero]) hρz
+    rw [← mpullback_mextDeriv (he.of_le (by simp))
+      ((isSmoothBundleForm_def _ _).mpr (hθs.contMDiff.of_le (by simp))), mpullback_mk_top_apply]
+    -- The zero forms of the two sides live on the tangent spaces of `⊤` and of `M`.
+    exact key.trans (by simp; rfl)
 
 end TauCeti
 
