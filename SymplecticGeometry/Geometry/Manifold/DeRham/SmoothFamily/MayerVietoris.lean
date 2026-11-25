@@ -733,7 +733,10 @@ theorem eq_zero_of_mem_supSpace {s : SmoothForm I (U ⊔ V : Opens M) ℝ (k + 1
     (Submodule.disjoint_def.mp (σUV.isCompl_overlapCompl k).disjoint) _ hrange e.property.1
   simp [he]
 
-/-! ### Smoothness in families -/
+/-! ### Smoothness in families
+
+The lemmas of this section hold when the splittings `σU`, `σV`, and for some also `σUV`,
+are smooth (`SmoothCohomologySplitting.IsSmooth`); each docstring names the ones it needs. -/
 
 section Smooth
 
@@ -751,7 +754,8 @@ variable {EN : Type uE} [NormedAddCommGroup EN] [NormedSpace ℝ EN] {HN : Type 
 include hα
 
 omit c in
-/-- The linear functionals of `projExactPair` along a smooth family are smooth. -/
+/-- The linear functionals of `projExactPair` along a smooth family are smooth,
+when `σU` and `σV` are smooth. -/
 theorem contMDiff_dual_projExactPair (f : Module.Dual ℝ (σU.exactPairs σV (k + 1))) :
     ContMDiff J 𝓘(ℝ) ∞ (fun t ↦ f (σU.projExactPair σV k (α t))) := by
   obtain ⟨g, hg⟩ := LinearMap.exists_extend f
@@ -775,7 +779,8 @@ theorem contMDiff_dual_projExactPair (f : Module.Dual ℝ (σU.exactPairs σV (k
     (by simpa only [closedForms.coe_mpullback] using
       hα.mpullback _ (contMDiff_inclusion le_sup_right)) _)
 
-/-- The fixed closed forms of step 1 along a smooth family form a smooth family. -/
+/-- The fixed closed forms of step 1 along a smooth family form a smooth family,
+when `σU` and `σV` are smooth. -/
 theorem isSmoothFamily_liftPair :
     IsSmoothFamily J (fun t ↦ ((c.liftPair σU σV k (σU.projExactPair σV k (α t)) :
       closedForms I (U ⊔ V : Opens M) (k + 1)) : SmoothForm I (U ⊔ V : Opens M) ℝ (k + 1))) := by
@@ -783,13 +788,13 @@ theorem isSmoothFamily_liftPair :
     ((closedForms I (U ⊔ V : Opens M) (k + 1)).subtype ∘ₗ c.liftPair σU σV k)
     (x := fun t ↦ σU.projExactPair σV k (α t)) (contMDiff_dual_projExactPair hσU hσV hα)
 
-/-- `exactOnPieces` along a smooth family is a smooth family. -/
+/-- `exactOnPieces` along a smooth family is a smooth family, when `σU` and `σV` are smooth. -/
 theorem isSmoothFamily_exactOnPieces :
     IsSmoothFamily J (fun t ↦ (c.exactOnPieces σU σV k (α t) :
       SmoothForm I (U ⊔ V : Opens M) ℝ (k + 1))) := by
   simpa only [coe_exactOnPieces] using hα.sub (c.isSmoothFamily_liftPair hσU hσV hα)
 
-/-- `primitiveLeft` along a smooth family is a smooth family. -/
+/-- `primitiveLeft` along a smooth family is a smooth family, when `σU` and `σV` are smooth. -/
 theorem isSmoothFamily_primitiveLeft :
     IsSmoothFamily J (fun t ↦ c.primitiveLeft σU σV k (α t)) :=
   preservesSmoothFamilies_def.mp (hσU.preservesSmoothFamilies_primitive k)
@@ -798,7 +803,7 @@ theorem isSmoothFamily_primitiveLeft :
     simpa only [closedForms.coe_mpullback] using
       (c.isSmoothFamily_exactOnPieces hσU hσV hα).mpullback _ (contMDiff_inclusion le_sup_left))
 
-/-- `primitiveRight` along a smooth family is a smooth family. -/
+/-- `primitiveRight` along a smooth family is a smooth family, when `σU` and `σV` are smooth. -/
 theorem isSmoothFamily_primitiveRight :
     IsSmoothFamily J (fun t ↦ c.primitiveRight σU σV k (α t)) :=
   preservesSmoothFamilies_def.mp (hσV.preservesSmoothFamilies_primitive k)
@@ -807,7 +812,7 @@ theorem isSmoothFamily_primitiveRight :
     simpa only [closedForms.coe_mpullback] using
       (c.isSmoothFamily_exactOnPieces hσU hσV hα).mpullback _ (contMDiff_inclusion le_sup_right))
 
-/-- The discrepancy along a smooth family is a smooth family. -/
+/-- The discrepancy along a smooth family is a smooth family, when `σU` and `σV` are smooth. -/
 theorem isSmoothFamily_discrepancy :
     IsSmoothFamily J (fun t ↦ (c.discrepancy σU σV k (α t) :
       SmoothForm I (U ⊓ V : Opens M) ℝ k)) := by
@@ -816,7 +821,8 @@ theorem isSmoothFamily_discrepancy :
       ((c.isSmoothFamily_primitiveRight hσU hσV hα).mpullback _ (contMDiff_inclusion _))
 
 include hσUV in
-/-- The fixed closed forms on `U` of step 2 along a smooth family form a smooth family. -/
+/-- The fixed closed forms on `U` of step 2 along a smooth family form a smooth family,
+when `σU`, `σV` and `σUV` are smooth. -/
 theorem isSmoothFamily_overlapLift_fst :
     IsSmoothFamily J (fun t ↦ ((σUV.overlapLift k (c.rangePart σU σV σUV k (α t))).1 :
       SmoothForm I U ℝ k)) :=
@@ -827,7 +833,8 @@ theorem isSmoothFamily_overlapLift_fst :
     (c.isSmoothFamily_discrepancy hσU hσV hα)
 
 include hσUV in
-/-- The fixed closed forms on `V` of step 2 along a smooth family form a smooth family. -/
+/-- The fixed closed forms on `V` of step 2 along a smooth family form a smooth family,
+when `σU`, `σV` and `σUV` are smooth. -/
 theorem isSmoothFamily_overlapLift_snd :
     IsSmoothFamily J (fun t ↦ ((σUV.overlapLift k (c.rangePart σU σV σUV k (α t))).2 :
       SmoothForm I V ℝ k)) :=
@@ -838,7 +845,8 @@ theorem isSmoothFamily_overlapLift_snd :
     (c.isSmoothFamily_discrepancy hσU hσV hα)
 
 include hσUV in
-/-- The corrected discrepancy along a smooth family is a smooth family. -/
+/-- The corrected discrepancy along a smooth family is a smooth family,
+when `σU`, `σV` and `σUV` are smooth. -/
 theorem isSmoothFamily_correctedDiscrepancy :
     IsSmoothFamily J (fun t ↦ (c.correctedDiscrepancy σU σV σUV k (α t) :
       SmoothForm I (U ⊓ V : Opens M) ℝ k)) := by
@@ -849,7 +857,7 @@ theorem isSmoothFamily_correctedDiscrepancy :
 
 include hσUV in
 /-- The exact part cut off to `U` of the corrected discrepancy along a smooth family is a smooth
-family. -/
+family, when `σU`, `σV` and `σUV` are smooth. -/
 theorem isSmoothFamily_exactCorrectionLeft :
     IsSmoothFamily J (fun t ↦
       c.exactCorrectionLeft σUV k (c.correctedDiscrepancy σU σV σUV k (α t))) := by
@@ -862,7 +870,7 @@ theorem isSmoothFamily_exactCorrectionLeft :
 
 include hσUV in
 /-- The exact part cut off to `V` of the corrected discrepancy along a smooth family is a smooth
-family. -/
+family, when `σU`, `σV` and `σUV` are smooth. -/
 theorem isSmoothFamily_exactCorrectionRight :
     IsSmoothFamily J (fun t ↦
       c.exactCorrectionRight σUV k (c.correctedDiscrepancy σU σV σUV k (α t))) := by
@@ -875,7 +883,7 @@ theorem isSmoothFamily_exactCorrectionRight :
 
 include hσUV in
 /-- Any linear map applied to the component of step 2 in the fixed complement along a smooth
-family gives a smooth family. -/
+family gives a smooth family, when `σU`, `σV` and `σUV` are smooth. -/
 theorem isSmoothFamily_complementPart_comp
     {l : ℕ} {M' : Type*} [TopologicalSpace M'] [ChartedSpace H M'] [IsManifold I ∞ M']
     (L : (σUV.overlapCompl k ⊓ σUV.space k : Submodule ℝ _) →ₗ[ℝ] SmoothForm I M' ℝ l) :
@@ -888,7 +896,8 @@ theorem isSmoothFamily_complementPart_comp
 end Families
 
 include hσUV in
-/-- The new projection takes smooth families to smooth families. -/
+/-- The new projection takes smooth families to smooth families,
+when `σU`, `σV` and `σUV` are smooth. -/
 theorem preservesSmoothFamilies_supProj (k : ℕ) :
     PreservesSmoothFamilies.{uE, uH, uN} (c.supProj σU σV σUV k) :=
     preservesSmoothFamilies_def.mpr fun α hα ↦ by
@@ -897,7 +906,8 @@ theorem preservesSmoothFamilies_supProj (k : ℕ) :
       (c.connecting k ∘ₗ Submodule.inclusion (σUV.overlapCompl_inf_space_le_closedForms k)))
 
 include hσUV in
-/-- The new primitive takes smooth families to smooth families. -/
+/-- The new primitive takes smooth families to smooth families,
+when `σU`, `σV` and `σUV` are smooth. -/
 theorem preservesSmoothFamilies_supPrimitive (k : ℕ) :
     PreservesSmoothFamilies.{uE, uH, uN} (c.supPrimitive σU σV σUV k) :=
     preservesSmoothFamilies_def.mpr fun α hα ↦ by

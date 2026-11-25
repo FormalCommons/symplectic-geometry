@@ -19,7 +19,7 @@ A *smooth cohomology splitting* of a manifold `M`
 
 * a finite-dimensional space `S^k` of closed `k`-forms containing no nonzero exact form,
 * a linear map `p : Z^k → S^k` on the closed `k`-forms, the identity in degree zero, and
-* a linear map `h : Z^{k+1} → Ω^k` with `z = p z + d (h z)` for every closed `(k+1)`-form `z`,
+* a linear map `h : Z^{k+1} → Ω^k` with `z = p z + d (h z)` for every closed `(k+1)`-form `z`.
 
 The structure holds only this data and its algebraic laws, and does not depend on universe
 levels. A splitting is *smooth* (`SymplecticGeometry.SmoothCohomologySplitting.IsSmooth`) when
@@ -27,9 +27,10 @@ levels. A splitting is *smooth* (`SymplecticGeometry.SmoothCohomologySplitting.I
 this predicate takes the universe levels of the parameter manifolds as parameters.
 In the proof of their Theorem 3.2.4 [McDuffSalamon2017], McDuff and Salamon need such primitives
 only for exact `2`-forms; they sketch a Mayer–Vietoris induction over a good cover for them,
-after Bott and Tu [BottTu1982], and leave its details to the reader. The structure here is the
-stronger statement, in all degrees at once, that such an induction establishes; it is the form
-in which smooth families of primitives are constructed.
+after Bott and Tu [BottTu1982], and leave its details to the reader. A splitting together with a
+proof of `SmoothCohomologySplitting.IsSmooth` is the stronger statement, in all degrees at once,
+that such an induction establishes; it is the form in which smooth families of primitives are
+constructed.
 
 From a splitting `σ` this file derives that `S^k` maps isomorphically onto the de Rham cohomology
 in degree `k` (`SmoothCohomologySplitting.spaceEquiv`), so that cohomology is finite-dimensional;

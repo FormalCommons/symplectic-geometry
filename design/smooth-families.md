@@ -135,12 +135,12 @@ No statement of this part is one that the authors' errata
   added. A linear map `T` defined on a submodule of forms takes smooth
   families to smooth families when `t ↦ T (α t)` is a smooth family for every
   smooth family `α` with values in the submodule (`PreservesSmoothFamilies`).
-  (★) is the structure `SmoothCohomologySplitting I M`, which holds the
+  (★) is a splitting `σ : SmoothCohomologySplitting I M`, which holds the
   spaces $S^k$, the maps $p$ and $h$ of every degree at once, since the
-  induction uses all degrees together. The milestone is stated for a manifold
-  with a finite good cover; existence of such covers on compact boundaryless
-  manifolds is a separate theorem, as is finite-dimensionality of de Rham
-  cohomology there.
+  induction uses all degrees together, and a proof of `σ.IsSmooth`. The
+  milestone is stated for a manifold with a finite good cover; existence of
+  such covers on compact boundaryless manifolds is a separate theorem, as is
+  finite-dimensionality of de Rham cohomology there.
 - **The time extension.** It is built in three layers: Seeley's extension of
   functions on `ℝ` from $[0,1]$, with parameters in an open set of a normed
   space (`Analysis/Calculus/ContDiff/Seeley/`); its manifold form for maps
