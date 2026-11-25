@@ -163,9 +163,8 @@ theorem mpullback_prodMk_velocityForm (t : unitInterval) (x : P) (v : E') :
   congr 1
   funext i
   fin_cases i
-  rw [mfderiv_prod_right]
-  -- `inr v` is `(0, v)` by definition.
-  rfl
+  exact (TauCeti.Manifold.tangentSpaceProdEquiv_apply _ _).symm.trans
+    (TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right v)
 
 variable {σ} in
 /-- **The velocity is determined by the velocity form.** Let `σ` be nondegenerate and let `P` and
@@ -263,7 +262,8 @@ theorem exists_opens_forall_apply_eq_of_forall_isCompact [FiniteDimensional ℝ 
     {U V : Opens M} {f₀ f₁ : C^∞⟮I, U; I, M⟯} (φ : SmoothIsotopy f₀ f₁) (hf₀ : ∀ x, f₀ x = x)
     (hVU : V ≤ U) {Q : Set M} (hQ : IsCompact Q) (hQV : Q ⊆ V) {R : Diffeotopy I ∞ M → Prop}
     (hext : ∀ K : Set V, IsCompact K →
-      ∃ Ψ, R Ψ ∧ ∀ t, ∀ x ∈ K, Ψ (t, f₀ (Opens.inclusion hVU x)) = φ.restrict hVU (t, x)) :
+      ∃ Ψ, R Ψ ∧ ∀ t, ∀ x ∈ K, Ψ (t, f₀.comp (SmoothEmbedding.inclusion hVU).toContMDiffMap x) =
+        φ.restrict hVU (t, x)) :
     ∃ N : Opens M, Q ⊆ N ∧ N ≤ U ∧ ∃ Ψ, R Ψ ∧ ∀ t, ∀ x : U, (x : M) ∈ N → Ψ (t, x) = φ (t, x) := by
   have := Manifold.locallyCompact_of_finiteDimensional (M := M) I
   obtain ⟨L, hL, hQL, hLV⟩ := exists_compact_between hQ V.isOpen hQV
@@ -272,7 +272,7 @@ theorem exists_opens_forall_apply_eq_of_forall_isCompact [FiniteDimensional ℝ 
   refine ⟨⟨interior L, isOpen_interior⟩, hQL, fun x hx ↦ hVU (hLV (interior_subset hx)), Ψ, hR,
     fun t x hx ↦ ?_⟩
   have := happly t ⟨x, hLV (interior_subset hx)⟩ (mem_preimage.2 (interior_subset hx))
-  rwa [restrict_apply, hf₀] at this
+  simpa [hf₀] using this
 
 end Restrict
 

@@ -14,7 +14,6 @@ public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorF
 public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Basic
 import SymplecticGeometry.Geometry.Manifold.Distribution.OneFormKernel
 import TauCeti.Geometry.Manifold.IsManifold.Basic
-import TauCeti.Geometry.Manifold.FiberBundle.Submersion
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 
 /-!
@@ -279,9 +278,8 @@ theorem isEhresmannConnection_horizontal [FiniteDimensional ℝ EB] [FiniteDimen
       (horizontal A) where
   mdifferentiable := ManifoldTotalSpace.mdifferentiable_projContMDiffMap
   isCompl_ker := hA.isCompl_horizontal
-  surjective_mfderiv x := by
-    rw [ManifoldTotalSpace.coe_projContMDiffMap]
-    exact isRegularPoint_iff.1 (ManifoldTotalSpace.isRegularPoint_proj IB IG x)
+  surjective_mfderiv x :=
+    (ManifoldTotalSpace.isSubmersion_projContMDiffMap ∞ G P IB IG).surjective_mfderiv (by simp) x
   isContMDiffDistribution := by
     have h := SmoothForm.isContMDiffDistribution_ker_degreeOneEquiv (n := ∞) A fun x ξ ↦
       ⟨rightFundamentalVectorField (IB.prod IG) ξ x, by

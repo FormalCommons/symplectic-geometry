@@ -45,7 +45,9 @@ form on `M`.
   `ManifoldTotalSpace G P × F` onto the charted total space of `Q`.
 * `TauCeti.AssociatedBundle.pullbackProjDiffeomorph_apply` and
   `TauCeti.AssociatedBundle.pullbackProjDiffeomorph_symm_apply`: `Φ` and its inverse on points.
-* `TauCeti.AssociatedBundle.proj_pullbackProjDiffeomorph`: `π_Q ∘ Φ = q`, at each point.
+* `TauCeti.AssociatedBundle.proj_pullbackProjDiffeomorph`: `π_Q ∘ Φ = q`, at each point, and
+  `TauCeti.AssociatedBundle.projContMDiffMap_comp_pullbackProjDiffeomorph`: the same as an
+  equality of maps, with `π_Q` the `C^n` projection.
 * `TauCeti.AssociatedBundle.pullbackProjDiffeomorph_smul`: `Φ` is equivariant for the diagonal
   action on the source and the principal action on the target.
 * `TauCeti.AssociatedBundle.pullbackProjSection`: the tautological section `m ↦ m` of the
@@ -404,6 +406,16 @@ theorem proj_pullbackProjDiffeomorph (x : ManifoldTotalSpace G P × F) :
       chartedMk G F P x := by
   rw [pullbackProjDiffeomorph_apply, Homeomorph.symm_apply_apply, pullbackProjMk_proj]
 
+variable (n IB IG IF) in
+/-- **The quotient map factors through `Φ`**: it is the `C^n` projection of `Q` composed with
+`Φ`. -/
+theorem projContMDiffMap_comp_pullbackProjDiffeomorph :
+    ⇑(ManifoldTotalSpace.projContMDiffMap n G Q (IB.prod IF) IG) ∘
+        pullbackProjDiffeomorph n IB IG IF = chartedMk G F P :=
+  funext fun x ↦ by
+    rw [Function.comp_apply, ManifoldTotalSpace.coe_projContMDiffMap]
+    exact proj_pullbackProjDiffeomorph x
+
 /-- The image of `Φ (p, v)` in the total space of `P` is `p`. -/
 @[simp]
 theorem lift_pullbackProjDiffeomorph_homeomorph (p : TotalSpace G P) (v : F) :
@@ -508,8 +520,8 @@ theorem isSubmersion_chartedMk (hn : 1 ≤ n) :
   have : ContMDiffFiberBundle n F (AssociatedBundle G P F) IB IF := contMDiffFiberBundle IG
   -- The quotient map is the projection of `Q` composed with the diffeomorphism `Φ`.
   set Φ := pullbackProjDiffeomorph n IB IG IF (G := G) (F := F) (P := P)
-  have hπ := ManifoldTotalSpace.isSubmersion_proj n G Q (IB.prod IF) IG
-  rw [← funext (proj_pullbackProjDiffeomorph (n := n) (IB := IB) (IG := IG) (IF := IF))]
+  have hπ := ManifoldTotalSpace.isSubmersion_projContMDiffMap n G Q (IB.prod IF) IG
+  rw [← projContMDiffMap_comp_pullbackProjDiffeomorph n IB IG IF]
   refine (ContMDiff.isSubmersionOfComplement_of_surjective_mfderiv
     (hπ.contMDiff.comp Φ.contMDiff) hn fun x ↦ ?_).isSubmersion
   rw [mfderiv_comp x (hπ.contMDiff.mdifferentiableAt hn₀) (Φ.mdifferentiable hn₀ x)]
@@ -533,13 +545,11 @@ theorem mfderiv_chartedMk_eq_zero_iff (hn : 1 ≤ n) (x : ManifoldTotalSpace G P
   have hπ := ManifoldTotalSpace.isSubmersion_projContMDiffMap n G Q (IB.prod IF) IG
   -- The quotient map is the projection of `Q` composed with `Φ`, whose derivative is injective;
   -- the kernel of the derivative of the projection consists of the fundamental vectors of `Q`.
-  have hq : chartedMk G F P = ManifoldTotalSpace.projContMDiffMap n G Q (IB.prod IF) IG ∘ Φ :=
-    funext fun x ↦ (proj_pullbackProjDiffeomorph x).symm
   have h0 : mfderiv ((IB.prod IG).prod IF) (IB.prod IF) (chartedMk G F P) x w =
       mfderiv ((IB.prod IF).prod IG) (IB.prod IF)
         (ManifoldTotalSpace.projContMDiffMap n G Q (IB.prod IF) IG) (Φ x)
           (mfderiv ((IB.prod IG).prod IF) ((IB.prod IF).prod IG) Φ x w) := by
-    rw [hq]
+    rw [← projContMDiffMap_comp_pullbackProjDiffeomorph n IB IG IF]
     exact mfderiv_comp_apply x (hπ.contMDiff.mdifferentiableAt hn₀) (Φ.mdifferentiable hn₀ x) w
   have : LieGroup IG 1 G := .of_le hn
   have : ContMDiffFiberBundle 1 G Q (IB.prod IF) IG := .of_le hn
