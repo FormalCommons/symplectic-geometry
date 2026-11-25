@@ -21,8 +21,7 @@ So a smooth family `τ` of two-forms on `D` whose restriction to the collar is e
 parameters in a set `K` has a smooth family `β` of primitives near `A`: an open `W ⊇ A` with
 `dβ t = τ t` on `W` for `t ∈ K` (`exists_isSmoothFamily_mextDerivₗ_eq_on_attachingCollar`, by
 `exists_isSmoothFamily_mextDerivₗ_eq_on_of_hasFiniteGoodCover`). These are the primitives near
-the attaching faces that the relative extension of exact symplectic forms over a handle core
-takes as input, in the proof of McDuff and Salamon.
+the attaching faces that McDuff and Salamon's handle-core lemma, Lemma 7.3.2, starts from.
 
 ## Main definitions
 
