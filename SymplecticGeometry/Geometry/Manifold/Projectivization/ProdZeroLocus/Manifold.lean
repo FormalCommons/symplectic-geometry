@@ -117,7 +117,7 @@ theorem surjective_fderiv_prodChartEquations_affineChart_iff_rep
       Function.Surjective (jacobiMatrixAt p (Sum.elim x.1.rep x.2.rep)).mulVec := by
   have h := surjective_fderiv_prodChartEquations_affineChart_iff hp₁ hp₂ x.1.rep_ne_zero
     x.2.rep_ne_zero ((mem_affineOpen_iff i _).1 hi) ((mem_affineOpen_iff j _).1 hj)
-    (mem_complexProjectiveProdZeroLocus.1 hx)
+    ((mem_complexProjectiveProdZeroLocus_iff_eval_rep hp₁ hp₂ x).1 hx)
   rwa [mk_rep, mk_rep] at h
 
 namespace ComplexProjectiveProdZeroLocus
@@ -517,7 +517,8 @@ theorem isImmersionOfComplement_subtypeVal_complexProjectiveProdZeroLocus (r : �
     (fun z ↦ modelEquiv (card_le_of_mulVec_surjective_jacobiMatrixAt_sumElim hp₁ hp₂
       (z : ℙ ℂ (Fin (m + 1) → ℂ) × ℙ ℂ (Fin (n + 1) → ℂ)).1.rep_ne_zero
       (z : ℙ ℂ (Fin (m + 1) → ℂ) × ℙ ℂ (Fin (n + 1) → ℂ)).2.rep_ne_zero
-      (mem_complexProjectiveProdZeroLocus.1 (hs.subset z.property).1) (hrank z z.property)))
+      ((mem_complexProjectiveProdZeroLocus_iff_eval_rep hp₁ hp₂ _).1 (hs.subset z.property).1)
+      (hrank z z.property)))
     (contMDiffOn_restrSliceChart hp₁ hp₂ hV hs hrank r)
     (contMDiffOn_restrSliceChart_symm hp₁ hp₂ hV hs hrank r)
     (mem_restrSliceChart_source hp₁ hp₂ hV hs hrank)
@@ -536,7 +537,8 @@ theorem isSmoothEmbedding_subtypeVal_complexProjectiveProdZeroLocus (r : ℕ∞�
     (fun z ↦ modelEquiv (card_le_of_mulVec_surjective_jacobiMatrixAt_sumElim hp₁ hp₂
       (z : ℙ ℂ (Fin (m + 1) → ℂ) × ℙ ℂ (Fin (n + 1) → ℂ)).1.rep_ne_zero
       (z : ℙ ℂ (Fin (m + 1) → ℂ) × ℙ ℂ (Fin (n + 1) → ℂ)).2.rep_ne_zero
-      (mem_complexProjectiveProdZeroLocus.1 (hs.subset z.property).1) (hrank z z.property)))
+      ((mem_complexProjectiveProdZeroLocus_iff_eval_rep hp₁ hp₂ _).1 (hs.subset z.property).1)
+      (hrank z z.property)))
     (contMDiffOn_restrSliceChart hp₁ hp₂ hV hs hrank r)
     (contMDiffOn_restrSliceChart_symm hp₁ hp₂ hV hs hrank r)
     (mem_restrSliceChart_source hp₁ hp₂ hV hs hrank)

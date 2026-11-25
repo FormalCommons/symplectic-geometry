@@ -410,9 +410,8 @@ theorem mextDerivₗ_timeExtendIcc_prodIccHeight_apply (x : M) (t : Icc a b)
   set w : TangentSpace (I.prod (𝓡∂ 1)) (x, t) := (u, s • (1 : TangentSpace (𝓡∂ 1) t))
   -- the vector `(u, s)` is the image of `w = (u, s • 1)` under the derivative of `id × Subtype.val`
   have hv : mfderiv (I.prod (𝓡∂ 1)) (I.prod 𝓘(ℝ, ℝ)) (Prod.map id Subtype.val) (x, t) w =
-      ((u, s) : TangentSpace (I.prod 𝓘(ℝ, ℝ)) (x, (t : ℝ))) := by
-    rw [mfderiv_prodMap mdifferentiableAt_id (mdifferentiableAt_subtypeVal_Icc t), mfderiv_id]
-    exact Prod.ext rfl (mfderiv_subtypeVal_Icc_smul_one t s)
+      ((u, s) : TangentSpace (I.prod 𝓘(ℝ, ℝ)) (x, (t : ℝ))) :=
+    mfderiv_prodMap_id_subtypeVal_Icc (x, t) u s
   calc (mextDerivₗ (I.prod 𝓘(ℝ, ℝ)) 0 (SmoothForm.timeExtendIcc (prodIccHeight I M a b))).val
         (x, (t : ℝ)) ![(u, s)]
       = (SmoothForm.mpullback (Prod.map id Subtype.val)
