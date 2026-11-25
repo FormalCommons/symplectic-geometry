@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
-public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod
+public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod.Basic
 
 /-!
 # Basic facts about diffeotopies
