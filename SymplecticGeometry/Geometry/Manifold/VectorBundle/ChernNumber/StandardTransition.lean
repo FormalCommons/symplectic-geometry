@@ -130,8 +130,6 @@ variable {M : Type} [TopologicalSpace M] [ChartedSpace (EuclideanSpace ℝ (Fin 
 
 open scoped VectorBundle.ComplexToReal Module.ComplexToReal
 
-local instance : FiniteDimensional ℂ F := .of_fact_finrank_eq_succ 0
-
 variable [ContMDiffVectorBundle ∞ F V (𝓡 2)] (g : ContMDiffRiemannianMetric (𝓡 2) ∞ F V)
   (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w)
 

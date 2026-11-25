@@ -12,7 +12,7 @@ public import TauCeti.AlgebraicTopology.Homotopy.CWApproximation.Sigma
 
 A space `X` is *dominated* by a space `K` when there are maps `i : X → K` and `r : K → X` with
 `r ∘ i` homotopic to the identity of `X`. This file proves that a space dominated by a space of
-CW type has CW type (`TauCeti.CWType.of_homotopic_comp`).
+CW type has CW type (`TauCeti.CWType.of_comp_homotopic_id`).
 
 The proof uses Tau Ceti's CW approximation and both halves of Whitehead's theorem, with no mapping
 telescope. Let `f : S → X` be the CW approximation `TauCeti.sigmaCWApproximationMap`, a weak
@@ -24,7 +24,7 @@ equivalence, and `X` has CW type by `ContinuousMap.HomotopyEquiv.cwType`.
 
 ## Main results
 
-* `TauCeti.CWType.of_homotopic_comp`: a space dominated by a space of CW type has CW type.
+* `TauCeti.CWType.of_comp_homotopic_id`: a space dominated by a space of CW type has CW type.
 
 ## References
 
@@ -43,7 +43,7 @@ namespace TauCeti.CWType
 /-- **A space dominated by a space of CW type has CW type.** If `i : X → K` and `r : K → X` are
 continuous maps with `r ∘ i` homotopic to the identity of `X`, and `K` has CW type, then `X` has
 CW type. The space `K` may lie in any universe. -/
-theorem of_homotopic_comp {X : Type u} {K : Type*} [TopologicalSpace X]
+theorem of_comp_homotopic_id {X : Type u} {K : Type*} [TopologicalSpace X]
     [TopologicalSpace K] [TauCeti.CWType K] {i : C(X, K)} {r : C(K, X)}
     (h : (r.comp i).Homotopic (ContinuousMap.id X)) : TauCeti.CWType X := by
   let f := (sigmaCWApproximationMap (TopCat.of X)).hom
