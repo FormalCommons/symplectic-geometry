@@ -7,11 +7,11 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.DbarFunction
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
-public import SymplecticGeometry.Geometry.Manifold.Complex.Isothermal
-public import SymplecticGeometry.Topology.VectorBundle.RestrOpen
-public import TauCeti.Analysis.Complex.Wirtinger.Similarity.Basic
+import SymplecticGeometry.Geometry.Manifold.Complex.Isothermal
+import SymplecticGeometry.Topology.VectorBundle.RestrOpen
+import TauCeti.Analysis.Complex.Wirtinger.Similarity.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Smooth
-public import TauCeti.Geometry.Manifold.VectorBundle.MaximalAtlas
+import TauCeti.Geometry.Manifold.VectorBundle.MaximalAtlas
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Topology.FiberBundle.Trivialization
@@ -210,11 +210,7 @@ of the kernel of `D_J` on `𝒪(1)` and a point `z` of the sphere, there are a r
 trivialization `e` of `𝒪(1)` over a neighbourhood of `z` and a chart `φ : OnePoint ℂ → ℂ` at `z`
 such that the coordinate `w ↦ (e ⟨φ⁻¹ w, s (φ⁻¹ w)⟩).2` of `s` is complex analytic at `φ z`, and
 `e` reads the canonical orientation `TauCeti.VectorBundleOrientation.complex` of every fibre over
-its base set as the canonical orientation of `ℂ`, both indexed by `Fin (1 + 1)`.
-
-The chart is an isothermal chart of `J`, and `e` is the trivialization of `𝒪(1)` at `z` whose fibre
-coordinate is multiplied by a nowhere-zero function `exp (-g ∘ φ)` given by the similarity
-principle. -/
+its base set as the canonical orientation of `ℂ`, both indexed by `Fin (1 + 1)`. -/
 theorem exists_trivialization_analyticAt_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
     (hs : s ∈ twistOneKernel J) (z : OnePoint ℂ) :
     ∃ (e : Trivialization ℂ (π ℂ (twistCore (𝕜 := ℂ) 1).Fiber)) (_ : e.IsLinear ℝ)
