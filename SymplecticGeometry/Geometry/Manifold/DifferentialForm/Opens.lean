@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 public import TauCeti.Geometry.Manifold.DifferentialForm.Opens
+import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.TwoForm.Basic
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
@@ -71,12 +72,11 @@ part of a tube, gives a diffeomorphism of open subsets of the ambient manifold t
 back to another.
 
 For a partial diffeomorphism `Φ` from `M` to `M'` itself, read as a diffeomorphism between its
-source and its target, the same holds with no lift
-(`PartialDiffeomorph.mpullback_toDiffeomorphSourceTarget`), by the functoriality of pull-backs at
-a point (`TauCeti.mpullback_comp_at`). The version with a lift is the case `Φ.liftOpens` of it,
-with Tau Ceti's `TauCeti.mpullback_liftOpens_apply_coe` to read the pull-back along the lift. The
-relative Moser theorem `TauCeti.SmoothEmbedding.exists_diffeomorph_opens_of_eq_along` uses that
-version.
+source and its target, the same holds with no lift: this is one direction of Tau Ceti's
+`TauCeti.SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff`. The version with a lift is the
+case `Φ.liftOpens` of it, with Tau Ceti's `TauCeti.mpullback_liftOpens_apply_coe` to read the
+pull-back along the lift. The relative Moser theorem
+`TauCeti.SmoothEmbedding.exists_diffeomorph_opens_of_eq_along` uses that version.
 
 A partial diffeomorphism `Φ` from `X` to `M'` can also be read on another manifold `Y`, through an
 injective local diffeomorphism `e : X → Y`: the partial diffeomorphism `e` defines on `X` has an
@@ -261,29 +261,6 @@ variable {E H M E' H' M' F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace M'] [ChartedSpace H' M'] [IsManifold I' ∞ M']
   [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
 
-/-- Let `Φ` be a partial diffeomorphism from `M` to `M'`, read as a diffeomorphism `φ` between its
-source and its target. If, at every point of the source, `Φ` pulls a form `σ` on `M'` back to the
-value of a form `τ` on `M`, then `φ` pulls the restriction of `σ` to the target back to the
-restriction of `τ` to the source. -/
-theorem mpullback_toDiffeomorphSourceTarget (Φ : PartialDiffeomorph I I' M M' ∞)
-    {σ : TauCeti.SmoothForm I' M' F k} {τ : TauCeti.SmoothForm I M F k}
-    (h : ∀ x ∈ Φ.source, TauCeti.mpullback I I' Φ σ.val x = τ.val x) :
-    TauCeti.SmoothForm.mpullback Φ.toDiffeomorphSourceTarget
-        Φ.toDiffeomorphSourceTarget.contMDiff
-        (TauCeti.SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) =
-      TauCeti.SmoothForm.mpullback Subtype.val contMDiff_subtypeVal τ := by
-  set φ := Φ.toDiffeomorphSourceTarget
-  have hφΦ : Subtype.val ∘ ⇑φ = ⇑Φ ∘ Subtype.val := funext Φ.toDiffeomorphSourceTarget_apply_coe
-  apply Subtype.ext
-  funext z
-  rw [TauCeti.SmoothForm.coe_mpullback_subtype_val_apply τ z, TauCeti.SmoothForm.coe_mpullback,
-    TauCeti.SmoothForm.coe_mpullback,
-    ← TauCeti.mpullback_comp_at (φ.contMDiff.mdifferentiableAt (by simp))
-      SymplecticGeometry.mdifferentiableAt_subtypeVal, hφΦ,
-    TauCeti.mpullback_comp_at SymplecticGeometry.mdifferentiableAt_subtypeVal
-      (Φ.mdifferentiableAt (by simp) z.property), TauCeti.mpullback_subtype_val_apply,
-    h z z.property]
-
 /-- Let `Φ` be a partial diffeomorphism from an open subset `U` of `M` to an open subset `V` of
 `M'`, and let `φ` be its reading in the ambient manifolds as a diffeomorphism between its source
 and its target. If, at every point of the source of `Φ`, `Φ` pulls the restriction of a form `σ`
@@ -298,7 +275,7 @@ theorem mpullback_toDiffeomorphSourceTarget_liftOpens {U : Opens M} {V : Opens M
         (Φ.liftOpens hU hV).toDiffeomorphSourceTarget.contMDiff
         (TauCeti.SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) =
       TauCeti.SmoothForm.mpullback Subtype.val contMDiff_subtypeVal τ := by
-  refine mpullback_toDiffeomorphSourceTarget _ fun z hz ↦ ?_
+  refine (TauCeti.SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff _).2 fun z hz ↦ ?_
   obtain ⟨y, hy, rfl⟩ : z ∈ Subtype.val '' Φ.source := Φ.liftOpens_source hU hV ▸ hz
   rw [TauCeti.mpullback_liftOpens_apply_coe Φ (by simp) hU hV _ hy, h y hy]
 
@@ -343,7 +320,7 @@ theorem exists_diffeomorph_opens_mpullback_eq {e : X → Y}
   refine ⟨⟨Ψ.source, Ψ.open_source⟩, ⟨Ψ.target, Ψ.open_target⟩, Ψ.toDiffeomorphSourceTarget,
     fun x hx ↦ ⟨hmemΨ hx, ?_⟩, ?_⟩
   · rw [PartialDiffeomorph.toDiffeomorphSourceTarget_apply_coe, hΨ, Function.comp_apply, hees]
-  refine mpullback_toDiffeomorphSourceTarget Ψ fun y hy ↦ ?_
+  refine (TauCeti.SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff Ψ).2 fun y hy ↦ ?_
   rw [PartialDiffeomorph.trans_source] at hy
   obtain ⟨hyt, hys⟩ := hy
   rw [hΨ, TauCeti.mpullback_comp_at (ee.symm.mdifferentiableAt (by simp) hyt)
