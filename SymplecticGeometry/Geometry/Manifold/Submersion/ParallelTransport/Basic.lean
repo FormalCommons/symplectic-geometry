@@ -381,7 +381,7 @@ theorem isCompleteVectorField_timeDependentSuspensionField_horizontalLiftField (
     IsCompleteVectorField
       (timeDependentSuspensionField fun u ↦ hD.horizontalLiftField (V u)) :=
   isCompleteVectorField_timeDependentSuspensionField
-    ((hD.contMDiff_horizontalLiftField_timeDependent hf hV).of_le (by exact_mod_cast hn))
+    ((hD.contMDiff_horizontalLiftField_family hf hV).of_le (by exact_mod_cast hn))
     (hfp.isCompact_preimage hK) fun u y hy ↦ hD.horizontalLiftField_eq_zero _ (hV0 u (f y) hy)
 
 include hD in
@@ -409,7 +409,7 @@ theorem isHorizontalMap_timeDependentFlowOf_horizontalLiftField (hn : 1 ≤ n)
   let X : ℝ → Π y : P, TangentSpace I y := fun u ↦ hD.horizontalLiftField (V u)
   have hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent n
       (fun p : ℝ × P ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I P)) :=
-    hD.contMDiff_horizontalLiftField_timeDependent hf hV
+    hD.contMDiff_horizontalLiftField_family hf hV
   have hXc : IsCompleteVectorField (timeDependentSuspensionField X) :=
     hD.isCompleteVectorField_timeDependentSuspensionField_horizontalLiftField hn hf hfp hV hK hV0
   have hVc : IsCompleteVectorField (timeDependentSuspensionField V) :=

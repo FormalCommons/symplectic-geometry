@@ -58,7 +58,7 @@ general connections apply to it.
   `TauCeti.IsEhresmannConnection.contMDiff_horizontalLift`: horizontal lifts of tangent vectors
   depend smoothly on their base point and on the vector.
 * `TauCeti.IsEhresmannConnection.contMDiff_horizontalLiftField` and
-  `TauCeti.IsEhresmannConnection.contMDiff_horizontalLiftField_timeDependent`: the horizontal
+  `TauCeti.IsEhresmannConnection.contMDiff_horizontalLiftField_family`: the horizontal
   lift of a smooth vector field, or of a smooth family of them indexed by a manifold, such as a
   time-dependent field, jointly in the parameter and the point, is smooth.
 * `TauCeti.IsEhresmannConnection.isDistributionFrameOn_horizontalLiftField`: the lifts of a local
@@ -346,7 +346,7 @@ theorem isDistributionFrameOn_horizontalLiftField {ι : Type*} [Finite ι]
 /-- The horizontal lift of a family `V q` of vector fields on `B`, indexed by the points `q` of a
 manifold `Q`, such as times in `𝕜`, and jointly `C^n` in `q` and the point, for a `C^n` Ehresmann
 connection on a `C^(n+1)` map `f`, is jointly `C^n` in `q` and the point. -/
-theorem contMDiff_horizontalLiftField_timeDependent {V : Q → Π b : B, TangentSpace J b}
+theorem contMDiff_horizontalLiftField_family {V : Q → Π b : B, TangentSpace J b}
     (hf : ContMDiff I J (n + 1) f)
     (hV : ContMDiff (IQ.prod J) J.tangent n
       (fun p : Q × B ↦ (⟨p.2, V p.1 p.2⟩ : TangentBundle J B))) :

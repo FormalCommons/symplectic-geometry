@@ -141,7 +141,6 @@ theorem symplecticReduction_zeroLevel [ConnectedSpace G] {σ : SmoothTwoForm I' 
     letI := h.zeroLevelQuotientChartedSpace hσ.isNondegenerate hfree' hn
     haveI := h.isManifold_zeroLevel hσ.isNondegenerate hfree' hn
     haveI := h.isManifold_zeroLevelQuotient hσ.isNondegenerate hfree' hn
-    haveI : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
     (∀ x, μ x = 0 → Function.Surjective (h.differential x)) ∧
     (IsManifold 𝓘(ℝ, Fin n → ℝ) ∞ h.zeroLevel ∧
       Manifold.IsSmoothEmbedding 𝓘(ℝ, Fin n → ℝ) I' ∞ (Subtype.val : h.zeroLevel → M) ∧

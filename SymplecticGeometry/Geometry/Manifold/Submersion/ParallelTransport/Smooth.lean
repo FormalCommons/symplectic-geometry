@@ -139,7 +139,7 @@ private theorem exists_diffeomorph_eqOn_parallelTransport_of_mapsTo_baseSet (hn 
   obtain ⟨V, K, hK, hV, hV0, hVγ⟩ := e.exists_timeDependentField_eq_curveVelocity hγ hγe
   refine ⟨timeDependentFlowDiffeomorph
     (hD.isCompleteVectorField_timeDependentSuspensionField_horizontalLiftField hn hf hfp hV hK hV0)
-    hn (hD.contMDiff_horizontalLiftField_timeDependent hf hV) s t, fun x hx ↦ ?_⟩
+    hn (hD.contMDiff_horizontalLiftField_family hf hV) s t, fun x hx ↦ ?_⟩
   rw [timeDependentFlowDiffeomorph_apply]
   exact (hD.parallelTransport_eq_timeDependentFlowOf hn hf hfp (hγ.of_le h2) hV hK hV0
     (fun u hu ↦ hVγ u (uIcc_subset_Icc hs ht hu)) hx).symm
@@ -195,8 +195,7 @@ private theorem exists_contMDiff_parallelTransport_param_of_mapsTo_baseSet (hn :
     ∃ U ∈ 𝓝 a₀, ∀ s ∈ Icc a b, ∀ t ∈ Icc a b, ∃ Ψ : N × P → P, ContMDiff (IN.prod I) I n Ψ ∧
       ∀ c ∈ U, EqOn (fun x ↦ Ψ (c, x)) (hD.parallelTransport (fun u ↦ Γ (c, u)) s t)
         (f ⁻¹' {Γ (c, s)}) := by
-  have h2 : (2 : ℕ∞ω) ≤ n + 1 := by
-    simpa [one_add_one_eq_two] using add_le_add_left (mod_cast hn : (1 : ℕ∞ω) ≤ n) 1
+  have h2 : (2 : ℕ∞ω) ≤ n + 1 := SymplecticGeometry.two_le_add_one_of_one_le (mod_cast hn)
   obtain ⟨U, hU, V, K, hK, hV, hV0, hVγ⟩ :=
     e.exists_timeDependentField_param_eq_curveVelocity hΓ hΓe
   -- The fields of the family at a parameter `c`, and their horizontal lifts.
@@ -206,7 +205,7 @@ private theorem exists_contMDiff_parallelTransport_param_of_mapsTo_baseSet (hn :
   have hX : ContMDiff ((IN.prod 𝓘(ℝ, ℝ)).prod I) I.tangent n
       (fun p : (N × ℝ) × P ↦
         (⟨p.2, hD.horizontalLiftField (V p.1.1 p.1.2) p.2⟩ : TangentBundle I P)) :=
-    hD.contMDiff_horizontalLiftField_timeDependent (V := fun q : N × ℝ ↦ V q.1 q.2) hf hV
+    hD.contMDiff_horizontalLiftField_family (V := fun q : N × ℝ ↦ V q.1 q.2) hf hV
   have hflow := contMDiff_timeDependentFlowOf_param hn hX fun c ↦
     hD.isCompleteVectorField_timeDependentSuspensionField_horizontalLiftField hn hf hfp (hVc c) hK
       (hV0 c)
