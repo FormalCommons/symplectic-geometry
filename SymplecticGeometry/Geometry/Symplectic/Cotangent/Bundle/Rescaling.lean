@@ -44,8 +44,9 @@ of `ω` at `0_x` evaluated on `(v, 0)` and `(0, a)` reads `a' v = a v` for every
 
 On an open set `V` of covectors whose radial segments from the zero section stay in `U`
 (contained in `TauCeti.VectorBundle.radialCore U`), the rescaled family is smooth on
-`[0, 1] × V`. When `ψ` is moreover an open embedding, each of its slices is a symplectic map
-from the restriction of `ω` to `V` and an open embedding
+`[0, 1] × V` (`CotangentBundle.contMDiff_vectorBundleRescaledFamily_of_subset_radialCore`).
+When `ψ` is moreover an open embedding, each of its slices is a symplectic map from the
+restriction of `ω` to `V` to `ω`, and an open embedding
 (`CotangentBundle.isSymplecticMap_and_isOpenEmbedding_vectorBundleRescaledFamily`):
 for `t > 0` the slice is `m_{1/t} ∘ ψ ∘ m_t`, and `m_c^* ω = c ω`
 (`TauCeti.CotangentBundle.mpullback_vectorBundleScalarDiffeomorph_symplecticForm`). Hence each
@@ -59,6 +60,8 @@ therefore a smooth isotopy from the inclusion to `ψ`
 
 * `SymplecticGeometry.CotangentBundle.vectorBundleRescaledFamily_zero_eq_self`: the slice at
   `t = 0` of the rescaled family of a symplectic map fixing the zero section is the identity.
+* `CotangentBundle.contMDiff_vectorBundleRescaledFamily_of_subset_radialCore`: the rescaled
+  family is smooth on `[0, 1] × V` for `V` open in a radial core.
 * `CotangentBundle.isSymplecticMap_and_isOpenEmbedding_vectorBundleRescaledFamily`:
   on a radial core, the slices of the rescaled family are symplectic open embeddings.
 * `SymplecticGeometry.CotangentBundle.exists_smoothIsotopy_of_eqOn_zeroSection`: an open
