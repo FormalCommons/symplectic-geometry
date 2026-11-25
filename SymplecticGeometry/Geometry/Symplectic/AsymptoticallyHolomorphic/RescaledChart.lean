@@ -29,10 +29,26 @@ The uniformity comes from two inputs: the uniform bound on the normal forms,
 `SmoothAlmostComplexStructure.exists_forall_norm_iteratedFDeriv_chartPushforward_transAffine_le`
 gives for any family of recentred charts whose linear parts are bounded with their inverses.
 
+On a compact manifold of dimension `2 * card ι` with `σ` closed, the structure
+`CenteredDarbouxCharts σ J ι` collects such charts centred at every point, with one radius and one
+bound for each order of derivative. They exist: Darboux charts into `StdSpace ι` at every point
+(`TauCeti.SmoothTwoForm.IsSymplectic.exists_darbouxChart_stdForm`) give compact neighbourhoods of
+every point on which the recentred charts have uniform bounds, finitely many of these cover `M`,
+and the smallest of their radii and the largest of their bounds work for all centres.
+
+## Main definitions
+
+* `SymplecticGeometry.CenteredDarbouxCharts`: centred Darboux charts at every point of `M`, with
+  derivative at the centre complex linear for `J`, one radius, and uniform bounds on the
+  derivatives of `J` read in them.
+
 ## Main results
 
-* `SymplecticGeometry.exists_centeredDarbouxCharts_of_isCompact`: the recentred charts, with the
-  uniform radius and the uniform bounds.
+* `SymplecticGeometry.exists_transAffine_darbouxCharts_of_isCompact`: the recentred charts on a
+  compact subset of the source of one Darboux chart, with the uniform radius and the uniform
+  bounds.
+* `SymplecticGeometry.nonempty_centeredDarbouxCharts`: centred Darboux charts with uniform bounds
+  exist on a compact manifold.
 
 ## References
 
@@ -51,13 +67,13 @@ namespace SymplecticGeometry
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [I.Boundaryless] [TopologicalSpace M] [ChartedSpace H M]
   [IsManifold I ∞ M] {ι : Type*} [Fintype ι]
-
-/-- **Centred Darboux charts with uniform bounds.** Let `J` be a smooth almost complex structure
-compatible with the two-form `σ` on a boundaryless manifold `M`, and `φ` a smooth chart of `M`
-into `StdSpace ι` that pulls `stdForm ι` back to `σ`. Let `K` be a compact subset of the source of
-`φ`. Then there are linear symplectomorphisms `A x` of `(StdSpace ι, stdForm ι)`, for `x : M`, with
-`‖A x‖` and `‖(A x)⁻¹‖` bounded on `K`, and a radius `ρ > 0`, such that for every `x ∈ K` the
-chart `ψ x := φ.transAffine (φ x) (A x)`, which is `φ` followed by `z ↦ A x (z - φ x)`,
+/-- **Recentred Darboux charts on a compact set, with uniform bounds.** Let `J` be a smooth almost
+complex structure compatible with the two-form `σ` on a boundaryless manifold `M`, and `φ` a
+smooth chart of `M` into `StdSpace ι` that pulls `stdForm ι` back to `σ`. Let `K` be a compact
+subset of the source of `φ`. Then there are linear symplectomorphisms `A x` of
+`(StdSpace ι, stdForm ι)`, for `x : M`, with `‖A x‖` and `‖(A x)⁻¹‖` bounded on `K`, and a
+radius `ρ > 0`, such that for every `x ∈ K` the chart `ψ x := φ.transAffine (φ x) (A x)`, which
+is `φ` followed by `z ↦ A x (z - φ x)`,
 * contains `x` in its source and sends it to `0`;
 * contains the ball of radius `ρ` about `0` in its target;
 * pulls `stdForm ι` back to `σ` on its source;
@@ -65,7 +81,7 @@ chart `ψ x := φ.transAffine (φ x) (A x)`, which is `φ` followed by `z ↦ A 
 
 and for every `r` the `r`-th iterated derivatives of `J` read in the charts `ψ x` are bounded on
 that ball, uniformly in `x ∈ K`. -/
-theorem exists_centeredDarbouxCharts_of_isCompact {σ : SmoothTwoForm I M}
+theorem exists_transAffine_darbouxCharts_of_isCompact {σ : SmoothTwoForm I M}
     {J : SmoothAlmostComplexStructure I M} (hJ : σ.Compatible J)
     (φ : PartialDiffeomorph I 𝓘(ℝ, StdSpace ι) M (StdSpace ι) ∞)
     (hφ : ∀ x ∈ φ.source, ∀ v w : TangentSpace I x,
@@ -125,6 +141,81 @@ theorem exists_centeredDarbouxCharts_of_isCompact {σ : SmoothTwoForm I M}
   simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
     ContinuousLinearEquiv.symm_symm, map_zero, zero_add, ← h₂,
     ContinuousLinearEquiv.symm_apply_apply]
+
+/-- Centred Darboux charts with uniform bounds on `M`, for a two-form `σ` and an almost complex
+structure `J`: for every point `x`, a chart `chart x` of `M` into `StdSpace ι` that sends `x` to
+`0`, pulls `stdForm ι` back to `σ` on its source, and reads `J` at `0` as `stdComplexStructure ι`,
+that is, whose derivative at `x` is complex linear from `J` to `stdComplexStructure ι`. One radius
+works for every centre: the ball of that radius about `0` lies in the target of every chart, and
+on it the `r`-th iterated derivatives of `J` read in any of the charts are at most `bound r`. -/
+@[ext]
+structure CenteredDarbouxCharts (σ : SmoothTwoForm I M) (J : SmoothAlmostComplexStructure I M)
+    (ι : Type*) [Fintype ι] where
+  /-- The chart centred at a point. -/
+  chart : M → PartialDiffeomorph I 𝓘(ℝ, StdSpace ι) M (StdSpace ι) ∞
+  /-- The radius of a ball about `0` in the target of every chart. -/
+  radius : ℝ
+  /-- The bound on the `r`-th iterated derivatives of `J` read in the charts. -/
+  bound : ℕ → ℝ
+  radius_pos : 0 < radius
+  mem_source (x : M) : x ∈ (chart x).source
+  apply_self (x : M) : chart x x = 0
+  ball_subset_target (x : M) : ball 0 radius ⊆ (chart x).target
+  eval₂_eq (x : M) : ∀ y ∈ (chart x).source, ∀ v w : TangentSpace I y,
+    σ.eval₂ y v w = stdForm ι (mvfderiv I (chart x) y v) (mvfderiv I (chart x) y w)
+  chartPushforward_zero (x : M) (w : StdSpace ι) :
+    J.chartPushforward (chart x).toOpenPartialHomeomorph 0 w = stdComplexStructure ι w
+  norm_iteratedFDeriv_le (r : ℕ) (x : M) : ∀ z ∈ ball (0 : StdSpace ι) radius,
+    ‖iteratedFDeriv ℝ r (J.chartPushforward (chart x).toOpenPartialHomeomorph) z‖ ≤ bound r
+
+/-- **Centred Darboux charts with uniform bounds.** On a compact boundaryless manifold `M` of
+dimension `2 * card ι`, with a closed two-form `σ` and a smooth almost complex structure `J`
+compatible with `σ`, there are centred Darboux charts into `StdSpace ι` with one radius and
+uniform bounds on the derivatives of `J` read in them. -/
+theorem nonempty_centeredDarbouxCharts [FiniteDimensional ℝ E] [CompactSpace M]
+    (hE : Module.finrank ℝ E = 2 * Fintype.card ι) {σ : SmoothTwoForm I M} (hσ : σ.IsClosed)
+    {J : SmoothAlmostComplexStructure I M} (hJ : σ.Compatible J) :
+    Nonempty (CenteredDarbouxCharts σ J ι) := by
+  classical
+  have := Manifold.locallyCompact_of_finiteDimensional (M := M) I
+  -- A Darboux chart `φ p` at every point `p`, and a compact neighbourhood `K p` of `p` in its
+  -- source, on which the charts recentred from `φ p` have uniform bounds.
+  choose φ hpφ hφ using fun p ↦
+    SmoothTwoForm.IsSymplectic.exists_darbouxChart_stdForm hE ⟨hσ, hJ.isNondegenerate⟩ p
+  choose K hK hpK hKφ using fun p ↦ exists_compact_subset (φ p).open_source (hpφ p)
+  choose A C₀ ρ hρ hA hC using fun p ↦
+    exists_transAffine_darbouxCharts_of_isCompact hJ (φ p) (hφ p) (hK p) (hKφ p)
+  choose C hC using hC
+  -- Finitely many of the `K p` cover `M`.
+  obtain ⟨t, ht⟩ := isCompact_univ.elim_finite_subcover (fun p ↦ interior (K p))
+    (fun _ ↦ isOpen_interior) fun p _ ↦ Set.mem_iUnion.2 ⟨p, hpK p⟩
+  have hcov (x : M) : ∃ p ∈ t, x ∈ K p := by
+    obtain ⟨p, hp, hx⟩ := Set.mem_iUnion₂.1 (ht (Set.mem_univ x))
+    exact ⟨p, hp, interior_subset hx⟩
+  choose c hct hcK using hcov
+  -- The smallest radius and the largest bounds over `t`.
+  set ρ₀ := (insert 1 (t.image ρ)).min' (Finset.insert_nonempty _ _)
+  have hρ₀ : 0 < ρ₀ := by
+    rw [Finset.lt_min'_iff]
+    simp only [Finset.mem_insert, Finset.mem_image]
+    rintro _ (rfl | ⟨p, -, rfl⟩)
+    exacts [one_pos, hρ p]
+  have hρ₀le (x : M) : ball (0 : StdSpace ι) ρ₀ ⊆ ball 0 (ρ (c x)) :=
+    ball_subset_ball <| Finset.min'_le _ _ <|
+      Finset.mem_insert_of_mem (Finset.mem_image_of_mem _ (hct x))
+  choose B hB using fun r ↦ (t.image fun p ↦ C p r).bddAbove
+  exact ⟨{
+    chart x := (φ (c x)).transAffine (φ (c x) x) (A (c x) x)
+    radius := ρ₀
+    bound := B
+    radius_pos := hρ₀
+    mem_source x := (hA _ x (hcK x)).2.2.2.1
+    apply_self x := (hA _ x (hcK x)).2.2.2.2.1
+    ball_subset_target x := (hρ₀le x).trans (hA _ x (hcK x)).2.2.2.2.2.1
+    eval₂_eq x := (hA _ x (hcK x)).2.2.2.2.2.2.1
+    chartPushforward_zero x := (hA _ x (hcK x)).2.2.2.2.2.2.2
+    norm_iteratedFDeriv_le r x z hz := (hC _ r x (hcK x) z (hρ₀le x hz)).trans
+      (hB r (Finset.mem_image_of_mem _ (hct x))) }⟩
 
 end SymplecticGeometry
 

@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.TransAffine
+public import SymplecticGeometry.LinearAlgebra.Symplectic.Darboux
 public import TauCeti.Geometry.Symplectic.Manifold.Darboux
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
@@ -39,6 +40,8 @@ derivatives preserve that form.
   a prescribed derivative at an interior point, for a closed two-form.
 * `TauCeti.SmoothTwoForm.IsSymplectic.exists_darbouxChart_mvfderiv_eq`: Darboux charts with a
   prescribed derivative on a boundaryless symplectic manifold.
+* `TauCeti.SmoothTwoForm.IsSymplectic.exists_darbouxChart_stdForm`: Darboux charts onto the
+  standard model `StdSpace ι` at every point, in dimension `2 * card ι`.
 
 `trans_toDiffeomorph_darbouxChart` and its proof adapt Tau Ceti's private
 `TauCeti.SmoothTwoForm.trans_toDiffeomorph_darboux`.
@@ -214,6 +217,26 @@ theorem IsSymplectic.exists_darbouxChart_mvfderiv_eq [BoundarylessManifold I M]
         σ.eval₂ x v w = form₀ (mvfderiv I chart x v) (mvfderiv I chart x w) :=
   exists_darbouxChart_mvfderiv_eq_of_isInteriorPoint hσ.isClosed form₀
     BoundarylessManifold.isInteriorPoint A hA
+
+/-- **Darboux charts onto the standard model.** On a boundaryless symplectic manifold `(M, σ)`
+modelled on a space `E` of dimension `2 * card ι`, every point `p` lies in the source of a smooth
+partial diffeomorphism from `M` to `StdSpace ι` that pulls `stdForm ι` back to `σ` on its source.
+-/
+theorem IsSymplectic.exists_darbouxChart_stdForm [BoundarylessManifold I M] {ι : Type*}
+    [Fintype ι] (hE : Module.finrank ℝ E = 2 * Fintype.card ι) {σ : SmoothTwoForm I M}
+    (hσ : σ.IsSymplectic) (p : M) :
+    ∃ chart : PartialDiffeomorph I 𝓘(ℝ, SymplecticGeometry.StdSpace ι) M
+        (SymplecticGeometry.StdSpace ι) ∞,
+      p ∈ chart.source ∧ ∀ x ∈ chart.source, ∀ v w : TangentSpace I x,
+        σ.eval₂ x v w = SymplecticGeometry.stdForm ι (mvfderiv I chart x v)
+          (mvfderiv I chart x w) := by
+  obtain ⟨e, he⟩ := SymplecticGeometry.exists_isSymplectomorphism_stdForm
+    (hσ.isNondegenerate.symplecticFormAt p) hE
+  obtain ⟨chart, hp, -, -, hchart⟩ := hσ.exists_darbouxChart_mvfderiv_eq
+    (SymplecticGeometry.stdForm ι) e.symm.toContinuousLinearEquiv fun v w ↦ by
+      rw [← hσ.isNondegenerate.symplecticFormAt_apply, ← he.apply]
+      simp
+  exact ⟨chart, hp, hchart⟩
 
 end SmoothTwoForm
 
