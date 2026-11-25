@@ -162,8 +162,7 @@ isotopy from `g₀` to `g₁` of maps `W → M` whose slices are local diffeomor
 to `τ`, and `Λ` a diffeomorphism of `W` preserving `τ` and fixing every point outside a compact
 set `K`. Then there are a diffeomorphism `Λ₀` of `M` and a diffeotopy `Φ` of `M` as in
 `TauCeti.SmoothIsotopy.exists_diffeotopy_comp_eq_extend`, such that `Φ_t ∘ Λ₀` fixes every point
-outside `G_t '' K` for each `t`, and moreover `Λ₀` and every slice `Φ_t`
-preserve `σ`. -/
+outside `G_t '' K` for each `t`, and moreover `Λ₀` and every slice `Φ_t` preserve `σ`. -/
 theorem exists_diffeotopy_comp_eq_extend_of_isSymplectic [T2Space M] {g₀ g₁ : C^∞⟮I', W; I, M⟯}
     (G : SmoothIsotopy g₀ g₁) (hGd : ∀ t, IsLocalDiffeomorph I' I ∞ (fun w ↦ G (t, w)))
     {τ : SmoothTwoForm I' W} {σ : SmoothTwoForm I M} (hG : G.IsSymplectic τ σ)

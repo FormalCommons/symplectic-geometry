@@ -432,8 +432,8 @@ theorem exists_diffeotopy_dehnTwist_eq_of_isTwistProfile [IsManifold I ∞ M]
         Diffeotopy.final_apply, hΦK 1 x hK]
 
 /-- The step of `exists_diffeotopy_dehnTwist_eq_of_apply_zeroSection` for one profile: if a
-symplectic isotopy `G` of open embeddings of `U ⊇ {z | μ z ≤ r}` joins the restrictions of `ι₁`
-and `ι₂` to `U`, their twists for a profile of radius `r` differ by the final map of a compactly
+symplectic isotopy `G` of open embeddings of `U ⊇ {z | μ z ≤ r₀}` joins the restrictions of `ι₁`
+and `ι₂` to `U`, their twists for a profile of radius `r₀` differ by the final map of a compactly
 supported diffeotopy preserving `σ`. -/
 private theorem mul_inv_mem_compactlySupportedIsotopyStabilizer_of_smoothIsotopy
     [IsManifold I ∞ M] [I.Boundaryless] [FiniteDimensional ℝ F] {σ : SmoothTwoForm I M}
