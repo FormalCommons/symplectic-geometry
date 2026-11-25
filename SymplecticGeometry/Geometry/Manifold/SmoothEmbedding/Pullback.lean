@@ -14,21 +14,26 @@ import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 
 Let `e : M' ≃ₜ M` be a homeomorphism onto a charted space `M`, and give `M'` the atlas
 `e.pullbackChartedSpace` carried over from `M`. Then `e` is a diffeomorphism
-(`Homeomorph.pullbackDiffeomorph`), so precomposing a map `f : M → N` with `e` keeps it an
-immersion or a smooth embedding, and does not change the range of its differential.
+(`Homeomorph.pullbackDiffeomorph`), so precomposing a map `f : M → N` with `e` changes neither
+whether it is an immersion (at a point or everywhere) or a smooth embedding, nor the range of its
+differential.
 
 These lemmas state this directly for `e` and the pulled-back atlas, without naming the
 diffeomorphism, in the way Tau Ceti's `Homeomorph.contMDiffAt_comp_pullbackChartedSpace_iff`
-does for smoothness. They are Tau Ceti's `TauCeti.isImmersion_comp_diffeomorph`,
-`TauCeti.isSmoothEmbedding_comp_diffeomorph` and `Diffeomorph.range_mfderiv_comp_diffeomorph`
-applied to `e.pullbackDiffeomorph`. Tau Ceti repeats the same steps inline, for instance in the
-private diffeomorphisms of its `Geometry/Symplectic/Hamiltonian/Reduction/ReducedSpace.lean`.
+does for smoothness. They are Tau Ceti's `TauCeti.isImmersionAt_comp_diffeomorph_iff`,
+`TauCeti.isImmersion_comp_diffeomorph_iff`, `TauCeti.isSmoothEmbedding_comp_diffeomorph_iff` and
+`Diffeomorph.range_mfderiv_comp_diffeomorph` applied to `e.pullbackDiffeomorph`. Tau Ceti repeats
+the same steps inline, for instance in the private diffeomorphisms of its
+`Geometry/Symplectic/Hamiltonian/Reduction/ReducedSpace.lean`.
 
 ## Main results
 
-* `Homeomorph.isImmersion_comp_pullbackChartedSpace`: `f ∘ e` is an immersion when `f` is.
-* `Homeomorph.isSmoothEmbedding_comp_pullbackChartedSpace`: `f ∘ e` is a smooth embedding when
+* `Homeomorph.isImmersionAt_comp_pullbackChartedSpace_iff`: `f ∘ e` is an immersion at `x` if
+  and only if `f` is one at `e x`.
+* `Homeomorph.isImmersion_comp_pullbackChartedSpace_iff`: `f ∘ e` is an immersion if and only if
   `f` is.
+* `Homeomorph.isSmoothEmbedding_comp_pullbackChartedSpace_iff`: `f ∘ e` is a smooth embedding if
+  and only if `f` is.
 * `Homeomorph.range_mfderiv_comp_pullbackChartedSpace`: the differential of `f ∘ e` at `x` has
   the same range as that of `f` at `e x`.
 
@@ -55,27 +60,37 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {n : ℕ∞ω} {f : M → N}
 
 /-- For the atlas on `M'` pulled back along a homeomorphism `e : M' ≃ₜ M` from a `C^n` manifold
-`M`, precomposing a `C^n` immersion `f : M → N` with `e` gives a `C^n` immersion. -/
-theorem isImmersion_comp_pullbackChartedSpace (e : M' ≃ₜ M) [IsManifold I n M]
-    (h : IsImmersion I J n f) :
+`M`, the map `f ∘ e` is a `C^n` immersion at `x` if and only if `f : M → N` is one at `e x`. -/
+@[simp]
+theorem isImmersionAt_comp_pullbackChartedSpace_iff (e : M' ≃ₜ M) [IsManifold I n M] {x : M'} :
     letI := e.pullbackChartedSpace (H := H)
-    IsImmersion I J n (f ∘ e) := by
+    IsImmersionAt I J n (f ∘ e) x ↔ IsImmersionAt I J n f (e x) := by
   let := e.pullbackChartedSpace (H := H)
   have := e.pullback_isManifold I n
   simpa only [coe_pullbackDiffeomorph] using
-    TauCeti.isImmersion_comp_diffeomorph (e.pullbackDiffeomorph I n) h
+    TauCeti.isImmersionAt_comp_diffeomorph_iff (e.pullbackDiffeomorph I n) (f := f) (x := x)
 
 /-- For the atlas on `M'` pulled back along a homeomorphism `e : M' ≃ₜ M` from a `C^n` manifold
-`M`, precomposing a `C^n` smooth embedding `f : M → N` with `e` gives a `C^n` smooth
-embedding. -/
-theorem isSmoothEmbedding_comp_pullbackChartedSpace (e : M' ≃ₜ M) [IsManifold I n M]
-    (h : IsSmoothEmbedding I J n f) :
+`M`, the map `f ∘ e` is a `C^n` immersion if and only if `f : M → N` is one. -/
+@[simp]
+theorem isImmersion_comp_pullbackChartedSpace_iff (e : M' ≃ₜ M) [IsManifold I n M] :
     letI := e.pullbackChartedSpace (H := H)
-    IsSmoothEmbedding I J n (f ∘ e) := by
+    IsImmersion I J n (f ∘ e) ↔ IsImmersion I J n f := by
   let := e.pullbackChartedSpace (H := H)
   have := e.pullback_isManifold I n
   simpa only [coe_pullbackDiffeomorph] using
-    TauCeti.isSmoothEmbedding_comp_diffeomorph (e.pullbackDiffeomorph I n) h
+    TauCeti.isImmersion_comp_diffeomorph_iff (e.pullbackDiffeomorph I n) (f := f)
+
+/-- For the atlas on `M'` pulled back along a homeomorphism `e : M' ≃ₜ M` from a `C^n` manifold
+`M`, the map `f ∘ e` is a `C^n` smooth embedding if and only if `f : M → N` is one. -/
+@[simp]
+theorem isSmoothEmbedding_comp_pullbackChartedSpace_iff (e : M' ≃ₜ M) [IsManifold I n M] :
+    letI := e.pullbackChartedSpace (H := H)
+    IsSmoothEmbedding I J n (f ∘ e) ↔ IsSmoothEmbedding I J n f := by
+  let := e.pullbackChartedSpace (H := H)
+  have := e.pullback_isManifold I n
+  simpa only [coe_pullbackDiffeomorph] using
+    TauCeti.isSmoothEmbedding_comp_diffeomorph_iff (e.pullbackDiffeomorph I n) (f := f)
 
 /-- For the atlas on `M'` pulled back along a homeomorphism `e : M' ≃ₜ M`, the differential of
 `f ∘ e` at `x` has the same range as the differential of `f` at `e x`, for any map `f : M → N`. -/

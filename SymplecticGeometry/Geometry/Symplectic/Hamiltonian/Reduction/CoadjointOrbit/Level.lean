@@ -389,11 +389,10 @@ theorem contMDiffSMul_orbitLevel :
     ContMDiffSMul I 𝓘(ℝ, Fin m → ℝ) ∞ G (h.orbitLevel η) := by
   let := h.zeroLevelProdChartedSpace hemb hσ hfree hm
   have := h.isManifold_zeroLevelProd hemb hσ hfree hm
-  rw [orbitLevelChartedSpace_def]
-  let := (h.orbitLevelGraph hemb).pullbackChartedSpace (H := Fin m → ℝ)
-  have := (h.orbitLevelGraph hemb).pullback_isManifold 𝓘(ℝ, Fin m → ℝ) ∞
+  let := h.orbitLevelChartedSpace hemb hσ hfree hm
+  have := h.isManifold_orbitLevel hemb hσ hfree hm
   -- Through the graph, the action on the preimage is the action on the product's level.
-  exact ((h.orbitLevelGraph hemb).isSmoothEmbedding_comp_pullbackChartedSpace
+  exact ((h.orbitLevelGraph hemb).isSmoothEmbedding_comp_pullbackChartedSpace_iff.2
     (h.isSmoothEmbedding_coe_zeroLevelProd hemb hσ hfree hm)).contMDiffSMul contMDiff_id
     fun g x ↦ by simp [h.orbitLevelGraph_smul hemb g x]
 
@@ -465,7 +464,7 @@ theorem isSmoothEmbedding_coe_orbitLevel :
   have := h.isManifold_zeroLevelProd hemb hσ hfree hm
   rw [orbitLevelChartedSpace_def]
   -- The inclusion is the graph followed by the first projection of the level.
-  have := (h.orbitLevelGraph hemb).isSmoothEmbedding_comp_pullbackChartedSpace
+  have := (h.orbitLevelGraph hemb).isSmoothEmbedding_comp_pullbackChartedSpace_iff.2
     (h.isSmoothEmbedding_fst_comp_coe_zeroLevelProd hemb hσ hfree hm)
   have hval : (Prod.fst ∘ Subtype.val) ∘ h.orbitLevelGraph hemb = Subtype.val :=
     funext (h.orbitLevelGraph_fst hemb)

@@ -224,8 +224,9 @@ theorem isSmoothEmbedding_coe_zeroLevel :
     (h.forall_differential_surjective_of_stabilizer_eq_bot hσ hfree) hn
   rw [zeroLevelChartedSpace_def]
   -- The inclusion is the inclusion of Tau Ceti's level after `zeroLevelHomeomorph`.
-  simpa [Function.comp_def] using h.zeroLevelHomeomorph.isSmoothEmbedding_comp_pullbackChartedSpace
-    (h.toIsMomentMap.isSmoothEmbedding_coe_level _ hn)
+  simpa [Function.comp_def] using
+    h.zeroLevelHomeomorph.isSmoothEmbedding_comp_pullbackChartedSpace_iff.2
+      (h.toIsMomentMap.isSmoothEmbedding_coe_level _ hn)
 
 /-- **The tangent space of the zero level is the kernel of `dμ`**: at `z`, the differential of
 the inclusion has range `ker dμ_z`. -/
