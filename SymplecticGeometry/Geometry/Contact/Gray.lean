@@ -542,16 +542,15 @@ private theorem eventually_comap_mfderiv_timeDependentFlowOf (hξ : IsContactFam
       (((t₀ : ℝ), u), y₀') ∈ timeDependentFlowDomain XU :=
     (ordConnected_setOf_mem_timeDependentFlowDomain _ _).uIcc_subset
       (mem_timeDependentFlowDomain_self hXU₁ _ _) hdom hu
-  -- Along the trajectory of `y₀'`, the flow of `XU` rescales `α` (the name of the theorem does not
-  -- fit in an indented line).
+  -- Along the trajectory of `y₀'`, the flow of `XU` rescales `α`.
   have key :=
-mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_forall_mem_uIcc_of_mem
+    mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_forall_mem_uIcc
       (X := XU) (α := α.val) (hXU.of_le (by simp)) hdom
-      (fun u _ ↦ (α.contMDiff.of_le (by simp)).contMDiffAt)
-      (c := fun u ↦ α.grayRate (u, timeDependentFlowOf XU t₀ u y₀'))
+      (g := fun u ↦ α.grayRate (u, timeDependentFlowOf XU t₀ u y₀'))
       ((contMDiff_grayRate hc).continuous.comp_continuousOn (continuousOn_id.prodMk
         fun u hu ↦ (hasMFDerivAt_timeDependentFlowOf hXU₁ (hdomU u hu)).continuousAt
           |>.continuousWithinAt))
+      (fun u _ ↦ (α.contMDiff.of_le (by simp)).contMDiffAt)
       (fun u hu ↦ by
         rw [hXUα u hu]
         exact mpullback_prodMk_mlieDerivForm_add_mlieDerivForm_grayVectorField_apply (hc u) _)
