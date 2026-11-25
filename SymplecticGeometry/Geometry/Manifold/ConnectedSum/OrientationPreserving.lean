@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Manifold.ConnectedSum.Oriented
 public import TauCeti.Geometry.Manifold.ConnectedSum.Orientation
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
+public import SymplecticGeometry.Geometry.Manifold.Orientation.Diffeomorph
 import SymplecticGeometry.Geometry.Manifold.Orientation.Sign
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Orientation
 import TauCeti.Analysis.InnerProductSpace.Reflection
@@ -504,16 +505,15 @@ theorem connectedSumOrientation_def :
 
 /-- The **orientation of the oriented connected sum** `M # N`: the one which agrees with `oM` on
 the punctured first summand and with `oN` on the punctured second summand, carried from the
-connected sum along its balls by `TauCeti.OrientedConnectedSum.diffeomorphConnectedSum`. -/
+connected sum along its balls (`TauCeti.Manifold.Orientation.map`) by the inverse of
+`TauCeti.OrientedConnectedSum.diffeomorphConnectedSum`. -/
 def orientation : Manifold.Orientation 𝓘(ℝ, E) (OrientedConnectedSum oM oN) ι :=
   letI := ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_ballLeft oM oN)
     (isOpenEmbedding_ballRight oM oN)
   haveI := ConnectedSum.isManifold (isOpenEmbedding_ballLeft oM oN)
     (isOpenEmbedding_ballRight oM oN) (isLocalDiffeomorph_ballLeft oM oN)
     (isLocalDiffeomorph_ballRight oM oN)
-  (connectedSumOrientation oM oN).pullback
-    ((diffeomorphConnectedSum oM oN).contMDiff.of_le LEInfty.out)
-    (fun _ ↦ (diffeomorphConnectedSum oM oN).isInvertible_mfderiv (by simp)) oM.card_eq
+  (connectedSumOrientation oM oN).map (diffeomorphConnectedSum oM oN).symm (by simp) oM.card_eq
 
 theorem orientation_def :
     letI := ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_ballLeft oM oN)
@@ -521,9 +521,9 @@ theorem orientation_def :
     haveI := ConnectedSum.isManifold (isOpenEmbedding_ballLeft oM oN)
       (isOpenEmbedding_ballRight oM oN) (isLocalDiffeomorph_ballLeft oM oN)
       (isLocalDiffeomorph_ballRight oM oN)
-    orientation oM oN (ι := ι) = (connectedSumOrientation oM oN).pullback
-      ((diffeomorphConnectedSum oM oN).contMDiff.of_le LEInfty.out)
-      (fun _ ↦ (diffeomorphConnectedSum oM oN).isInvertible_mfderiv (by simp)) oM.card_eq :=
+    orientation oM oN (ι := ι) =
+      (connectedSumOrientation oM oN).map (diffeomorphConnectedSum oM oN).symm (by simp)
+        oM.card_eq :=
   (rfl)
 
 /-- The identification of the oriented connected sum with the connected sum along its balls
@@ -541,7 +541,10 @@ theorem isOrientationPreservingAt_diffeomorphConnectedSum (p : OrientedConnected
   have := ConnectedSum.isManifold (isOpenEmbedding_ballLeft oM oN)
     (isOpenEmbedding_ballRight oM oN) (isLocalDiffeomorph_ballLeft oM oN)
     (isLocalDiffeomorph_ballRight oM oN)
-  exact isOrientationPreservingAt_pullback _ _ _ _ p
+  rw [orientation_def]
+  -- `(diffeomorphConnectedSum oM oN).symm.symm` is `diffeomorphConnectedSum oM oN` up to
+  -- structure eta.
+  exact Manifold.Orientation.isOrientationPreservingAt_map_symm _ _ _ _ p
 
 /-- The inclusion of the punctured first summand into the oriented connected sum preserves
 orientation, from the restriction of `oM` to `TauCeti.OrientedConnectedSum.orientation oM oN`. -/
@@ -560,10 +563,10 @@ theorem isOrientationPreservingAt_diffeomorphConnectedSum_symm_comp_inl
   have := ConnectedSum.isManifold (isOpenEmbedding_ballLeft oM oN)
     (isOpenEmbedding_ballRight oM oN) (isLocalDiffeomorph_ballLeft oM oN)
     (isLocalDiffeomorph_ballRight oM oN)
-  have h := isOrientationPreservingAt_diffeomorphConnectedSum oM oN
-    ((diffeomorphConnectedSum oM oN).symm (ConnectedSum.inl _ _ x))
-  rw [connectedSumOrientation_def] at h
-  exact (h.diffeomorph_symm (by simp)).comp
+  have h := Manifold.Orientation.isOrientationPreservingAt_map (connectedSumOrientation oM oN)
+    (diffeomorphConnectedSum oM oN).symm (by simp) oM.card_eq (ConnectedSum.inl _ _ x)
+  rw [← orientation_def, connectedSumOrientation_def] at h
+  exact h.comp
     (ConnectedSum.isOrientationPreservingAt_inl _ _ _ _ _ _
       (isOrientationPreservingAt_restrict oM _ x))
 
@@ -584,10 +587,10 @@ theorem isOrientationPreservingAt_diffeomorphConnectedSum_symm_comp_inr
   have := ConnectedSum.isManifold (isOpenEmbedding_ballLeft oM oN)
     (isOpenEmbedding_ballRight oM oN) (isLocalDiffeomorph_ballLeft oM oN)
     (isLocalDiffeomorph_ballRight oM oN)
-  have h := isOrientationPreservingAt_diffeomorphConnectedSum oM oN
-    ((diffeomorphConnectedSum oM oN).symm (ConnectedSum.inr _ _ y))
-  rw [connectedSumOrientation_def] at h
-  exact (h.diffeomorph_symm (by simp)).comp
+  have h := Manifold.Orientation.isOrientationPreservingAt_map (connectedSumOrientation oM oN)
+    (diffeomorphConnectedSum oM oN).symm (by simp) oM.card_eq (ConnectedSum.inr _ _ y)
+  rw [← orientation_def, connectedSumOrientation_def] at h
+  exact h.comp
     (ConnectedSum.isOrientationPreservingAt_inr _ _ _ _ _ _
       (isOrientationPreservingAt_restrict oN _ y))
 
