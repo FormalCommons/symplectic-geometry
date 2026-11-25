@@ -35,7 +35,7 @@ on `M × [a, b]` with
   and an alternating form vanishes when two of its arguments lie on one line
   (`ContinuousAlternatingMap.map_eq_zero_of_eq_smul`).
 
-For a boundaryless `M`, a closed form `η` on `M × [a, b]` is therefore `pr^* η + d (K η)`.
+A closed form `η` on `M × [a, b]` is therefore `pr^* η + d (K η)`.
 Since `K η` has no component along the interval, it is the restriction to
 `M × [a, b]` of its time extension to `M × ℝ` (`TauCeti.SmoothForm.timeExtendIcc`,
 `SymplecticGeometry.mpullback_prodMap_subtypeVal_timeExtendIcc_prodIccHomotopyOperator`).
