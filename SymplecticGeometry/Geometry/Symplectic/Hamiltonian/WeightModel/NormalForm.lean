@@ -105,7 +105,7 @@ theorem exists_weightChart_fundamentalVectorField
   let A : StdSpace (Fin n) ≃L[ℝ] EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n) :=
     EuclideanSpace.sumEquivProd
   -- Compose Tau Ceti's chart with `A⁻¹`, a symplectomorphism onto the standard model.
-  obtain ⟨-, -, -, hform'⟩ := SmoothTwoForm.trans_toDiffeomorph_darbouxChart hform A.symm
+  obtain ⟨-, -, hderiv, hform'⟩ := SmoothTwoForm.trans_toDiffeomorph_darbouxChart hform A.symm
     isSymplectomorphism_sumEquivProd.symm
   let chart' := chart.trans A.symm.toDiffeomorph.toPartialDiffeomorph
   let Φ := chart'.symm
@@ -157,28 +157,17 @@ theorem exists_weightChart_fundamentalVectorField
       exact chart'.mfderiv_apply_mfderiv_symm_apply (by simp) hz u
     rw [hform' _ (hΦsrc hz), hd v, hd w]
   · intro z hz (ξ : E)
-    -- Tau Ceti's chart sends `ξ_M` to the generator, and `Φ` is its inverse after `A`. As in
-    -- the moment map step below, `ξ` is read in the model space `E`.
-    have hX := hvf (Φ z) (hΦsrc hz) ξ
-    rw [weightInfinitesimalAction_apply, hchartΦ hz] at hX
-    have hθ : (fun k ↦ 2 * π * α k ξ) = fun k ↦ β k ξ := funext fun k ↦ (hβα k ξ).symm
-    have hsymm : MDifferentiableAt 𝓘(ℝ, EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n)) I'
-        chart.symm (A z) :=
-      chart.symm.mdifferentiableAt (by simp) (by simpa using hmem hz)
-    have hdΦ (w : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n)) :
-        mfderiv 𝓘(ℝ, StdSpace (Fin n)) I' Φ z (A.symm w) =
-          mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n)) I' chart.symm (A z)
-            w := by
-      have h := hsymm.hasMFDerivAt.comp z (A.hasMFDerivAt (x := z))
-      rw [show chart.symm ∘ A = (Φ : StdSpace (Fin n) → M) from (funext hΦ).symm] at h
-      -- The composite is applied to `A (A.symm w)`; the tangent spaces are the model spaces.
-      rw [h.mfderiv]
-      exact congrArg (mfderiv _ _ chart.symm (A z)) (A.apply_symm_apply w)
-    rw [hθ, ← hX]
-    refine (hdΦ _).trans ?_
-    have h := chart.mfderiv_symm_apply_mfderiv_apply (by simp) (hΦsrc hz)
-      (fundamentalVectorField (I := I) (G := G) I' ξ (Φ z))
-    rwa [hchartΦ hz] at h
+    -- Tau Ceti's chart sends `ξ_M` to the generator; `chart'` is that chart followed by
+    -- `A⁻¹`, and `Φ` is the inverse of `chart'`. As in the moment map step below, `ξ` is
+    -- read in the model space `E`.
+    have h := chart'.mfderiv_symm_apply_mfderiv_apply (by simp)
+      (by simpa [chart'] using hΦsrc hz) (fundamentalVectorField (I := I) (G := G) I' ξ (Φ z))
+    rw [← mvfderiv_apply_eq_mfderiv_apply (f := chart'), hderiv _ (hΦsrc hz),
+      ContinuousLinearMap.comp_apply, mvfderiv_apply_eq_mfderiv_apply, hvf _ (hΦsrc hz) ξ,
+      weightInfinitesimalAction_apply, hchartΦ hz,
+      show chart' (Φ z) = z from chart'.right_inv hz] at h
+    simp only [hβα] at h
+    exact h
   · -- Tau Ceti's weights are functionals on the model space `E` of `𝔤`; read `ξ` there, as
     -- tactics do not see through `GroupLieAlgebra I G`.
     intro z hz (ξ : E)
