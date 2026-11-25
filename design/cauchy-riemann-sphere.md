@@ -158,7 +158,7 @@ These settle the points of *The design file decides* of part 45.
    $\sigma(v,iv)$ have opposite signs. At every point the complex
    orientations of $J$ and of $i$ on the tangent plane agree, since both are
    the orientation of $\sigma$
-   (`TauCeti.SmoothTwoForm.IsNondegenerate.map_fiberEquiv_complex_eq_orientationAt`);
+   (`TauCeti.SmoothTwoForm.IsNondegenerate.orientation_eq_toVectorBundleOrientation_volumeOrientation`);
    the first fact does not give this one. And $\mathcal J_\sigma$ is
    contractible, hence preconnected, for every frame topology
    (`contractibleSpace_tames`). Continuity statements are for

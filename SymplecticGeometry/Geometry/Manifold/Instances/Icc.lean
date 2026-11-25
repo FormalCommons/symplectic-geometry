@@ -10,6 +10,7 @@ public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
 public import TauCeti.Geometry.Manifold.VectorField.Prod
 import Mathlib.Analysis.Calculus.Deriv.AffineMap
 import TauCeti.Geometry.Manifold.Instances.Icc
+import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # The inclusion and the unit vector field of a closed interval
@@ -35,6 +36,10 @@ to `r` is `r • 1` (`eq_smul_one_of_mfderiv_subtypeVal_Icc`). So the derivative
 interval is read off from that of its composite with the inclusion
 (`mfderiv_apply_eq_smul_one_Icc`), and continuous linear maps on a tangent space of the interval
 agree when they agree on `1` (`ContinuousLinearMap.ext_tangentSpace_Icc`).
+
+A map `Φ : M × [x, y] → F` into a normed space that is affine in time on the slice through `p`,
+`Φ (p, s) = a + s • v`, has derivative at `(p, t)` sending the unit time vector `(0, 1)` to `v`,
+ends of the interval included (`mfderiv_apply_zero_one_of_eq_add_smul`).
 
 Between two points `s` and `t` of `[x, y]`, the derivative of Mathlib's convex combination
 `Set.Icc.convexComb s t`, from the unit interval, sends the unit vector to `t - s` times the
@@ -159,6 +164,31 @@ theorem mfderiv_apply_eq_smul_one_Icc {E H M : Type*} [NormedAddCommGroup E] [No
     mfderiv I (𝓡∂ 1) f t v = r • (1 : TangentSpace (𝓡∂ 1) (f t)) := by
   refine eq_smul_one_of_mfderiv_subtypeVal_Icc ?_
   rw [← mfderiv_comp_apply t (mdifferentiableAt_subtypeVal_Icc _) hf, h]
+
+/-- Let `Φ : M × [x, y] → F`, with `F` a normed space, be differentiable at `(p, t)` and affine in
+time along the slice through `p`: `Φ (p, s) = a + s • v` for every `s`. Then the derivative of
+`Φ` at `(p, t)` sends the unit time vector `(0, 1)` to `v`. This holds at the ends of the interval
+too, where the derivative is one-sided. -/
+theorem mfderiv_apply_zero_one_of_eq_add_smul {E H M F : Type*} [NormedAddCommGroup E]
+    [NormedSpace ℝ E] [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M]
+    [ChartedSpace H M] [NormedAddCommGroup F] [NormedSpace ℝ F] {Φ : M × Icc x y → F} {p : M}
+    {t : Icc x y} (hΦ : MDifferentiableAt (I.prod (𝓡∂ 1)) 𝓘(ℝ, F) Φ (p, t)) {a v : F}
+    (h : ∀ s : Icc x y, Φ (p, s) = a + (s : ℝ) • v) :
+    mfderiv (I.prod (𝓡∂ 1)) 𝓘(ℝ, F) Φ (p, t)
+      ((0 : TangentSpace I p), (1 : TangentSpace (𝓡∂ 1) t)) = v := by
+  -- The vector `(0, 1)` only sees the slice `s ↦ Φ (p, s)`, the affine map `r ↦ a + r • v`
+  -- composed with the inclusion of the interval.
+  have hd : HasFDerivAt (fun r : ℝ ↦ a + r • v) ((1 : ℝ →L[ℝ] ℝ).smulRight v) (t : ℝ) :=
+    ((hasFDerivAt_id (t : ℝ)).smul_const v).const_add a
+  have hslice : Function.curry Φ p = (fun r : ℝ ↦ a + r • v) ∘ Subtype.val := funext h
+  have H := hd.hasMFDerivAt.comp t (mdifferentiableAt_subtypeVal_Icc t).hasMFDerivAt
+  rw [← hslice] at H
+  refine (hΦ.mfderiv_uncurry_apply_zero_mk (f := Function.curry Φ) 1).trans ?_
+  rw [H.mfderiv]
+  -- The tangent spaces of `ℝ` are `ℝ` only up to unfolding `TangentSpace`, so `comp_apply` and
+  -- `smulRight_apply` do not rewrite here; both hold by definition.
+  exact (congrArg ((1 : ℝ →L[ℝ] ℝ).smulRight v) (mfderiv_subtypeVal_Icc_one t)).trans
+    (one_smul ℝ v)
 
 end SymplecticGeometry
 
