@@ -31,6 +31,9 @@ The construction follows Tau Ceti's graded de Rham algebra
 cohomology classes. The laws come from Tau Ceti's associativity
 (`TauCeti.SmoothForm.wedge_assoc_apply`) and graded commutativity
 (`TauCeti.SmoothForm.wedge_eq_smul_cast_wedge_comm`) of the wedge of smooth forms.
+The product of forms of mixed degree is local, since a wedge vanishes at each point where one of
+its factors does; that pointwise step follows the proof of Tau Ceti's
+`TauCeti.RoughForm.tsupport_wedgeWith_subset_left`.
 
 ## Main definitions
 
@@ -51,6 +54,9 @@ cohomology classes. The laws come from Tau Ceti's associativity
   commutativity, `TauCeti.SmoothForm.commute_of_of_even`: a form of even degree commutes with
   every form of mixed degree, and `TauCeti.SmoothForm.commute_ofFunctionRingHom`: functions
   commute with all forms.
+* `TauCeti.SmoothForm.mul_eq_zero_of_forall_or`, `TauCeti.SmoothForm.mul_eq_mul_left_of_forall_or`
+  and `TauCeti.SmoothForm.mul_eq_mul_right_of_forall_or`: the product of forms of mixed degree is
+  local, from the pointwise vanishing of a wedge (`TauCeti.SmoothForm.wedge_val_eq_zero_of_left`).
 
 ## References
 
@@ -292,6 +298,52 @@ model space. -/
 theorem of_pow_eq_zero_of_finrank_lt [FiniteDimensional ℝ E] (φ : SmoothForm I M ℝ k) {m : ℕ}
     (h : Module.finrank ℝ E < k * m) : DirectSum.of (fun k ↦ SmoothForm I M ℝ k) k φ ^ m = 0 := by
   rw [of_pow_eq_of_wedgePow, eq_zero_of_finrank_lt h (wedgePow φ m), map_zero]
+
+/-- The wedge of two smooth forms vanishes at every point where its left factor vanishes. -/
+theorem wedge_val_eq_zero_of_left {φ : SmoothForm I M ℝ k} {x : M} (hφ : φ.val x = 0)
+    (ψ : SmoothForm I M ℝ l) : (wedge φ ψ).val x = 0 := by
+  rw [coe_wedge, RoughForm.wedge_def, RoughForm.wedgeWith_apply']
+  exact (congrArg (ContinuousAlternatingMap.pairedWedge _ _ · _) hφ).trans
+    (ContinuousAlternatingMap.pairedWedge_zero_left _ _ _)
+
+/-- The wedge of two smooth forms vanishes at every point where its right factor vanishes. -/
+theorem wedge_val_eq_zero_of_right (φ : SmoothForm I M ℝ k) {ψ : SmoothForm I M ℝ l} {x : M}
+    (hψ : ψ.val x = 0) : (wedge φ ψ).val x = 0 := by
+  rw [coe_wedge, RoughForm.wedge_def, RoughForm.wedgeWith_apply']
+  exact (congrArg (ContinuousAlternatingMap.pairedWedge _ _ _) hψ).trans
+    (ContinuousAlternatingMap.pairedWedge_zero_right _ _ _)
+
+/-- The product of smooth forms of mixed degree is local: it vanishes if at every point all
+components of one of the factors vanish. -/
+theorem mul_eq_zero_of_forall_or {γ δ : ⨁ k, SmoothForm I M ℝ k}
+    (h : ∀ x, (∀ i, (γ i).val x = 0) ∨ ∀ j, (δ j).val x = 0) : γ * δ = 0 := by
+  classical
+  rw [← DirectSum.sum_support_of γ, ← DirectSum.sum_support_of δ, Finset.sum_mul_sum]
+  refine Finset.sum_eq_zero fun i _ ↦ Finset.sum_eq_zero fun j _ ↦ ?_
+  suffices wedge (γ i) (δ j) = 0 by rw [of_mul_of_eq_of_wedge, this, map_zero]
+  refine Subtype.ext (funext fun x ↦ ?_)
+  rw [ZeroMemClass.coe_zero, Pi.zero_apply]
+  rcases h x with hx | hx
+  · exact wedge_val_eq_zero_of_left (hx i) _
+  · exact wedge_val_eq_zero_of_right _ (hx j)
+
+/-- Left multiplication by a smooth form `γ` of mixed degree is local: `γ * δ = γ * δ'` if at
+every point either all components of `γ` vanish or the components of `δ` and `δ'` agree in
+every degree. -/
+theorem mul_eq_mul_left_of_forall_or {γ δ δ' : ⨁ k, SmoothForm I M ℝ k}
+    (h : ∀ x, (∀ i, (γ i).val x = 0) ∨ ∀ j, (δ j).val x = (δ' j).val x) : γ * δ = γ * δ' := by
+  rw [← sub_eq_zero, ← mul_sub]
+  refine mul_eq_zero_of_forall_or fun x ↦ (h x).imp_right fun hx j ↦ ?_
+  rw [DirectSum.sub_apply, Submodule.coe_sub, Pi.sub_apply, hx, sub_self]
+
+/-- Right multiplication by a smooth form `γ` of mixed degree is local: `δ * γ = δ' * γ` if at
+every point either all components of `γ` vanish or the components of `δ` and `δ'` agree in
+every degree. -/
+theorem mul_eq_mul_right_of_forall_or {γ δ δ' : ⨁ k, SmoothForm I M ℝ k}
+    (h : ∀ x, (∀ i, (γ i).val x = 0) ∨ ∀ j, (δ j).val x = (δ' j).val x) : δ * γ = δ' * γ := by
+  rw [← sub_eq_zero, ← sub_mul]
+  refine mul_eq_zero_of_forall_or fun x ↦ (h x).symm.imp_left fun hx j ↦ ?_
+  rw [DirectSum.sub_apply, Submodule.coe_sub, Pi.sub_apply, hx, sub_self]
 
 /-- The smooth functions embed in the algebra of smooth forms as its forms of degree `0`: the ring
 homomorphism sending `g` to its `0`-form. -/
