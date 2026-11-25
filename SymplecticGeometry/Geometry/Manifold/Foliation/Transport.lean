@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.Geometry.Manifold.Distribution.FlatChart
 import SymplecticGeometry.Geometry.Manifold.Foliation.Constancy
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
 /-!
@@ -202,12 +203,13 @@ theorem exists_transverseCoordinate (𝓕 : Foliation I ∞ M k)
     (F₁ := EuclideanSpace ℝ (Fin k)) (F₂ := F₂) finrank_euclideanSpace_fin h₂ x
   let Ψ' : V → EuclideanSpace ℝ (Fin k) × F₂ := fun w ↦ Ψ w
   let ψ : M → F₂ := fun z ↦ if h : z ∈ V then (Ψ' ⟨z, h⟩).2 else 0
-  have hψV : ψ ∘ Subtype.val = ContinuousLinearMap.snd ℝ _ _ ∘ Ψ' :=
+  have hψV : ψ ∘ Subtype.val = fun w ↦ (Ψ' w).2 :=
     funext fun w ↦ by simp [ψ, w.property]
   have hΨ : ContMDiff I 𝓘(ℝ, EuclideanSpace ℝ (Fin k) × F₂) ∞ Ψ' :=
     contMDiff_subtypeVal.comp Ψ.contMDiff
   have hψ (z : V) : ContMDiffAt I 𝓘(ℝ, F₂) ∞ ψ z := by
-    have := (ContinuousLinearMap.snd ℝ _ _).contMDiff.contMDiffAt.comp z (hΨ z)
+    have : ContMDiffAt I 𝓘(ℝ, F₂) ∞ (fun w ↦ (Ψ' w).2) z :=
+      contDiff_snd.contMDiff.contMDiffAt.comp z (hΨ z)
     rw [← hψV] at this
     exact contMDiffAt_subtype_iff.1 this
   refine ⟨V, ψ, hxV, fun z hz ↦ hψ ⟨z, hz⟩, fun z hz v ↦ ?_, fun z hz z' hz' h ↦
@@ -216,13 +218,11 @@ theorem exists_transverseCoordinate (𝓕 : Foliation I ∞ M k)
   have e : mfderiv I 𝓘(ℝ, F₂) ψ z v = (mfderiv I 𝓘(ℝ, EuclideanSpace ℝ (Fin k) × F₂) Ψ' ⟨z, hz⟩ v :
       EuclideanSpace ℝ (Fin k) × F₂).2 := by
     refine (mfderiv_comp_subtype_val_apply (U := V) (f := ψ) (x := ⟨z, hz⟩) v).symm.trans ?_
+    have hd := (hΨ ⟨z, hz⟩).mdifferentiableAt (by simp)
+    -- Tau Ceti states the lemma for a product model with product charts.
+    rw [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod] at hd ⊢
     rw [hψV]
-    refine (mfderiv_comp_apply _ (ContinuousLinearMap.snd ℝ _ _).mdifferentiableAt
-      ((hΨ ⟨z, hz⟩).mdifferentiableAt (by simp)) v).trans ?_
-    refine (DFunLike.congr_fun ((ContinuousLinearMap.snd ℝ (EuclideanSpace ℝ (Fin k)) F₂).mfderiv_eq
-      (x := Ψ' ⟨z, hz⟩)) _).trans ?_
-    exact congrFun (ContinuousLinearMap.coe_snd' (R := ℝ) (M₁ := EuclideanSpace ℝ (Fin k))
-      (M₂ := F₂)) _
+    exact hd.mfderiv_snd_apply (x := (⟨z, hz⟩ : V)) v
   rw [e]
   exact hflat ⟨z, hz⟩ v
 
