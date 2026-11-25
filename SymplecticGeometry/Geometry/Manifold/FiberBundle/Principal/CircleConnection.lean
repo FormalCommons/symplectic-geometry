@@ -192,11 +192,7 @@ private theorem IsCircleConnectionForm.mextDeriv_apply_eq_zero_of_vertical
   obtain rfl | rfl : j = 0 ∨ j = 1 := by fin_cases j <;> simp
   · rw [hv01]
     exact hc ▸ hfirst (v 1)
-  · have hswap : ![v 0, v 1] = ![v 1, v 0] ∘ Equiv.swap 0 1 := by
-      funext i
-      fin_cases i <;> rfl
-    rw [hv01, hswap, ← ContinuousAlternatingMap.coe_toAlternatingMap,
-      AlternatingMap.map_swap _ _ zero_ne_one, neg_eq_zero]
+  · rw [hv01, ContinuousAlternatingMap.apply_vecCons_swap, neg_eq_zero]
     exact hc ▸ hfirst (v 0)
 
 /-- The exterior derivative of a connection form is basic for the projection. -/
