@@ -15,9 +15,10 @@ import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
 # Primitives of the velocity forms of a family of ball isotopies
 
 Let `G : [0, 1] × [0, 1] × StdSpace (Fin n) → M` be jointly smooth on `[0, 1]² × P`, for a
-nonempty open convex set `P ⊆ B(ρ)`, and for each `t` let `s ↦ G (t, s, ·)` be a smooth family of
-symplectic embeddings of `B(ρ)` (`SymplecticGeometry.IsSymplecticBallFamily`). On `P`, each of
-these families is a symplectic isotopy `k_t`
+nonempty open convex set `P ⊆ B(ρ)`, and for each `t` let the maps `G (t, s, ·)`, `s ∈ [0, 1]`,
+form a smooth family of symplectic balls of radius `ρ`
+(`SymplecticGeometry.IsSymplecticBallFamily`). On `P`, each of these families is a symplectic
+isotopy `k_t`
 (`SymplecticGeometry.IsSymplecticBallFamily.exists_smoothIsotopy_isSymplectic`). This file gives
 primitives `h ((t, s), ·)` on `P` of the velocity forms
 `v ↦ σ (∂ₛ G (t, s, x), d (G (t, s, ·))_x v)` of all the `k_t` at once, smooth in both
@@ -65,10 +66,10 @@ variable [FiniteDimensional ℝ E] [I.Boundaryless] [T2Space M] {n : ℕ} {σ : 
 /-- **Primitives of the velocity forms of a family of ball isotopies.** Let `σ` be a closed
 two-form on a Hausdorff boundaryless manifold `M` modelled on a finite-dimensional space, let
 `0 < ρ`, and let `P ⊆ B(ρ)` be a nonempty open convex set. Let
-`G : [0, 1] × [0, 1] × StdSpace (Fin n) → M` be jointly smooth on
-`[0, 1]² × P`, and for each `t` let `s ↦ G (t, s, ·)` be a smooth family of symplectic embeddings of
-`B(ρ)`. Then there are smooth isotopies `k_t` of `P` with `k_t (s, x) = G (t, s, x)`, and a
-jointly smooth function `h` on `[0, 1]² × P` such that:
+`G : [0, 1] × [0, 1] × StdSpace (Fin n) → M` be jointly smooth on `[0, 1]² × P`, and for each
+`t` let the maps `G (t, s, ·)`, `s ∈ [0, 1]`, form a smooth family of symplectic balls of radius
+`ρ`. Then there are smooth isotopies `k_t` of `P` with `k_t (s, x) = G (t, s, x)`, and a jointly
+smooth function `h` on `[0, 1]² × P` such that:
 * for all `t` and `s`, `h ((t, s), ·)` is a primitive of the slice at time `s` of the velocity
   form of `k_t`, the one-form `v ↦ σ (∂ₛ G (t, s, x), d (G (t, s, ·))_x v)`;
 * `h ((t, ·), ·) = 0` for every `t` such that `G (t, s, z) = G (t, 0, z)` for all `s` and
