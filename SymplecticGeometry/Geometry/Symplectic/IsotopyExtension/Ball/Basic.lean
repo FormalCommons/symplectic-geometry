@@ -12,9 +12,9 @@ import SymplecticGeometry.Analysis.Calculus.DifferentialForm.Poincare
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
-import SymplecticGeometry.Topology.MetricSpace.ProperSpace.Lemmas
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 import TauCeti.Geometry.Symplectic.Manifold.RelativeMoser
+import TauCeti.Topology.MetricSpace.SeparatedBalls
 
 /-!
 # Symplectic embeddings of closed balls
@@ -272,7 +272,8 @@ private theorem IsSymplecticBallEmbedding.exists_smoothForm_add_mextDeriv_eq_mpu
   set ω₀ := (stdForm (Fin n)).constSmooth
   obtain ⟨U, hUo, hKU, hjU⟩ := hj.exists_contMDiffOn
   -- A ball `ball 0 r`, `r > r₀`, on which `j` is smooth.
-  obtain ⟨r, hr, hrU⟩ := exists_lt_ball_subset_of_closedBall_subset hUo hKU
+  obtain ⟨r, hr, hrU⟩ := hUo.exists_gt_closedBall_subset hKU
+  replace hrU := ball_subset_closedBall.trans hrU
   -- The flat closed form `j^* σ - ω₀` on that ball, vanishing on `B(r₀)`.
   set γ : StdSpace (Fin n) → StdSpace (Fin n) [⋀^Fin 2]→L[ℝ] ℝ :=
     mpullback 𝓘(ℝ, StdSpace (Fin n)) I j σ.val
