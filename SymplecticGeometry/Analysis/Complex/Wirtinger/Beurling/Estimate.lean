@@ -77,24 +77,6 @@ open scoped ENNReal NNReal SchwartzMap Convolution ContDiff
 
 namespace TauCeti
 
-section ContDiff
-
-variable {V W : Type*} [NormedAddCommGroup V] [NormedSpace ℂ V] [NormedAddCommGroup W]
-  [NormedSpace ℂ W] {g : V → W} {m n : WithTop ℕ∞}
-
-/-- The conjugate Wirtinger derivative of a `C^(m+1)` map, evaluated on a fixed vector, is
-`C^m`. -/
-theorem _root_.ContDiff.conjWirtingerDeriv_apply (hg : ContDiff ℝ n g) (hmn : m + 1 ≤ n)
-    (v : V) : ContDiff ℝ m (fun z ↦ conjWirtingerDeriv g z v) :=
-  contDiff_iff_contDiffAt.2 fun _ ↦ hg.contDiffAt.conjWirtingerDeriv_apply hmn v
-
-/-- The Wirtinger derivative of a `C^(m+1)` map, evaluated on a fixed vector, is `C^m`. -/
-theorem _root_.ContDiff.wirtingerDeriv_apply (hg : ContDiff ℝ n g) (hmn : m + 1 ≤ n) (v : V) :
-    ContDiff ℝ m (fun z ↦ wirtingerDeriv g z v) :=
-  contDiff_iff_contDiffAt.2 fun _ ↦ hg.contDiffAt.wirtingerDeriv_apply hmn v
-
-end ContDiff
-
 variable {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℂ F] [CompleteSpace F]
 
 /-- **`‖∂u‖₂ ≤ ‖∂̄u‖₂` on Schwartz functions**: the `L²` Beurling transform, which has norm at most
