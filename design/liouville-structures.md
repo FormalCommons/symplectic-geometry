@@ -247,9 +247,9 @@ In `TauCeti`, beside Tau Ceti's file, for `ω` a closed `C¹` two-form
   *Moser isotopy*);
   `Y` is the field with $\iota_Y\omega=-\lambda$, given at each point by the
   inverse flat map `(ω.flat x).inverse`
-  (`SmoothTwoForm.IsNondegenerate.interior_flat_inverse_ofSubsingleton`, and
-  `SmoothTwoForm.contMDiffAt_flat_inverse_apply` for smoothness on `U`, in
-  `Geometry/Symplectic/Manifold/Flat.lean` of *Moser isotopy*); it is Liouville by
+  (`SmoothTwoForm.IsNondegenerate.interior_flat_inverse_ofSubsingleton`, in
+  `Geometry/Symplectic/Manifold/Flat.lean` of *Moser isotopy*, and Tau Ceti's
+  `SmoothTwoForm.contMDiffAt_inverse_flat` for smoothness on `U`); it is Liouville by
   Cartan's formula. Transversality: at a point where `Y` is tangent,
   $Y=di(v)$ with $\alpha(v)=0$ and $\iota_v d\alpha=\alpha$, so `v` lies in
   the kernel of $d\alpha$ on $\ker\alpha$, hence `v = 0`, while
@@ -699,8 +699,7 @@ Expected size: 300 lines.
   and (`TauCeti.SmoothForm.restrictInterior`) in `ContactType.lean`, `Collar.lean` and
   `Scaling.lean`.
 - *Moser isotopy*: `Geometry/Symplectic/Manifold/Flat.lean`
-  (`SmoothTwoForm.IsNondegenerate.interior_flat_inverse_ofSubsingleton`,
-  `SmoothTwoForm.contMDiffAt_flat_inverse_apply`), merged, only in
+  (`SmoothTwoForm.IsNondegenerate.interior_flat_inverse_ofSubsingleton`), merged, only in
   `ContactType.lean`.
 - Tau Ceti, Liouville and contact type: `IsLiouvilleVectorField`,
   `isLiouvilleVectorField_iff_mextDeriv_interior_eq`, `IsContactType`,
