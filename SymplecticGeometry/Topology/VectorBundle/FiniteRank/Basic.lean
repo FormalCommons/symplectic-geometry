@@ -88,15 +88,15 @@ def isoFiberEquiv (e : A ≅ D) (x : B) : (Fin A.rank → 𝕜) ≃L[𝕜] (Fin 
 
 /-- The fibre map over `x` of the forward half of an isomorphism `e : A ≅ D` of finite-rank cores
 is an invertible continuous linear map. -/
-theorem isInvertible_fiberMap_hom (e : A ≅ D) (x : B) : (e.hom.fiberMap x).IsInvertible :=
-  ⟨isoFiberEquiv e x, toContinuousLinearMap_isoFiberEquiv e x⟩
+@[simp] theorem isInvertible_fiberMap_hom (e : A ≅ D) (x : B) :
+    (e.hom.fiberMap x).IsInvertible :=
+  .of_inverse (fiberMap_inv_hom_id e x) (fiberMap_hom_inv_id e x)
 
 /-- The inverse of the fibre map over `x` of the forward half of an isomorphism `e : A ≅ D` of
 finite-rank cores is the fibre map over `x` of its backward half. -/
 @[simp] theorem inverse_fiberMap_hom (e : A ≅ D) (x : B) :
-    (e.hom.fiberMap x).inverse = e.inv.fiberMap x := by
-  rw [← toContinuousLinearMap_isoFiberEquiv, ContinuousLinearMap.inverse_equiv,
-    isoFiberEquiv_symm, toContinuousLinearMap_isoFiberEquiv, Iso.symm_hom]
+    (e.hom.fiberMap x).inverse = e.inv.fiberMap x :=
+  ContinuousLinearMap.inverse_eq (fiberMap_inv_hom_id e x) (fiberMap_hom_inv_id e x)
 
 @[simp] theorem isoFiberEquiv_refl (A : FiniteRankBundleCore 𝕜 B) (x : B) :
     isoFiberEquiv (Iso.refl A) x = ContinuousLinearEquiv.refl 𝕜 (Fin A.rank → 𝕜) := by
