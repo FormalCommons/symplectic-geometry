@@ -5,11 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Algebra.Homology.Homotopy.DescCokernel
 public import SymplecticGeometry.Algebra.Homology.Monoidal.Abelian
 public import TauCeti.AlgebraicTopology.Singular.Kunneth.Pair
 public import SymplecticGeometry.AlgebraicTopology.Singular.AlexanderWhitney.RelativeCup
 public import TauCeti.AlgebraicTopology.Singular.CrossProduct
-public import TauCeti.Algebra.Homology.Homotopy
 public import TauCeti.AlgebraicTopology.SimplicialSet.EilenbergZilber
 
 /-!
@@ -34,7 +34,7 @@ There the relative Alexander–Whitney diagonal applies, and its composite with 
 map, `TopCat.shuffleAlexanderWhitneyPair`, is chain homotopic to the identity of
 `C(X, A; R) ⊗ C(Y, B; S)` (`TopCat.shuffleAlexanderWhitneyPairHomotopy`): this is the relative
 form of the Eilenberg–Zilber homotopy `SSet.shuffleAlexanderWhitneyHomotopy`, which is natural, so
-it descends along the two quotient maps (`Homotopy.descCokernel`).
+it descends along the two quotient maps (`Homotopy.descCokernel₂`).
 
 ## Main definitions
 
@@ -496,71 +496,6 @@ section Homotopy
 
 variable (X Y : TopCat.{w}) (A : Set X) (B : Set Y) (R S : C)
 
-/-- The composite of the shuffle and Alexander–Whitney maps, descended to `C(X, A; R) ⊗ C(Y; S)`. -/
-def shuffleAlexanderWhitneyPairFst :
-    (TopPair.ofSubset A).singularChainComplex R ⊗ (toSSet.obj Y).chainComplex S ⟶
-      (TopPair.ofSubset A).singularChainComplex R ⊗ (toSSet.obj Y).chainComplex S :=
-  have hS := shortExact_tensorRightShortComplex_singularChainComplexShortComplex X Y A R S
-  hS.gIsCokernel.desc (CokernelCofork.ofπ
-    (shuffle X Y R S ≫ alexanderWhitney X Y R S ≫
-      (TopPair.singularChainComplexπOfSubset R A ⊗ₘ 𝟙 ((toSSet.obj Y).chainComplex S))) (by
-    have h₁ := shuffle_naturality (TopPair.ιOfSubset A) (𝟙 Y) R S
-    have h₂ := alexanderWhitney_naturality (TopPair.ιOfSubset A) (𝟙 Y) R S
-    simp only [CategoryTheory.Functor.map_id] at h₁ h₂
-    -- the condition, with the first map of the short complex and the chains of `X` written out
-    have h : (SSet.chainComplexMap (toSSet.map (TopPair.ιOfSubset A)) R ⊗ₘ
-          𝟙 ((toSSet.obj Y).chainComplex S)) ≫ shuffle X Y R S ≫ alexanderWhitney X Y R S ≫
-        (TopPair.singularChainComplexπOfSubset R A ⊗ₘ 𝟙 ((toSSet.obj Y).chainComplex S)) = 0 := by
-      rw [reassoc_of% h₁, reassoc_of% h₂,
-        chainComplexMap_tensorHom_id_comp_singularChainComplexπ_tensorHom_id, comp_zero, comp_zero]
-    exact h))
-
-/-- On `C(X; R) ⊗ C(Y; S)`, the map `shuffleAlexanderWhitneyPairFst` is the shuffle map followed by
-the Alexander–Whitney map, projected to `C(X, A; R) ⊗ C(Y; S)`. -/
-@[reassoc]
-theorem singularChainComplexπ_tensorHom_id_shuffleAlexanderWhitneyPairFst :
-    (TopPair.singularChainComplexπOfSubset R A ⊗ₘ 𝟙 ((toSSet.obj Y).chainComplex S)) ≫
-        shuffleAlexanderWhitneyPairFst X Y A R S =
-      shuffle X Y R S ≫ alexanderWhitney X Y R S ≫
-        (TopPair.singularChainComplexπOfSubset R A ⊗ₘ 𝟙 ((toSSet.obj Y).chainComplex S)) :=
-  have hS := shortExact_tensorRightShortComplex_singularChainComplexShortComplex X Y A R S
-  hS.gIsCokernel.fac _ WalkingParallelPair.one
-
-/-- The Eilenberg–Zilber homotopy `AW ∘ shuffle ≃ id`, descended to `C(X, A; R) ⊗ C(Y; S)`: it is
-natural, so it preserves `C(A; R) ⊗ C(Y; S)`. -/
-def shuffleAlexanderWhitneyPairFstHomotopy :
-    _root_.Homotopy (shuffleAlexanderWhitneyPairFst X Y A R S) (𝟙 _) :=
-  have hS := shortExact_tensorRightShortComplex_singularChainComplexShortComplex X Y A R S
-  -- the maps of the short exact sequence, written through `TopPair.ιOfSubset` and
-  -- `TopPair.singularChainComplexπOfSubset`, so that the conditions below hold by `rw`
-  _root_.Homotopy.descCokernel
-    (SSet.shuffleAlexanderWhitneyHomotopy (toSSet.obj X) (toSSet.obj Y) R S)
-    (SSet.chainComplexMap (toSSet.map (TopPair.ιOfSubset A)) R ⊗ₘ
-      𝟙 ((toSSet.obj Y).chainComplex S))
-    (TopPair.singularChainComplexπOfSubset R A ⊗ₘ 𝟙 ((toSSet.obj Y).chainComplex S))
-    (TopPair.singularChainComplexπOfSubset R A ⊗ₘ 𝟙 ((toSSet.obj Y).chainComplex S)) _
-    (fun i ↦ (hS.map_of_exact (HomologicalComplex.eval C _ i)).gIsCokernel)
-    (fun i j ↦ by
-      have h := SSet.shuffleAlexanderWhitneyHomotopy_hom_naturality R S
-        (toSSet.map (TopPair.ιOfSubset A)) (𝟙 (toSSet.obj Y)) i j
-      simp only [CategoryTheory.Functor.map_id] at h
-      rw [reassoc_of% h, ← comp_f,
-        chainComplexMap_tensorHom_id_comp_singularChainComplexπ_tensorHom_id, zero_f, comp_zero])
-    (by rw [singularChainComplexπ_tensorHom_id_shuffleAlexanderWhitneyPairFst, ← Category.assoc,
-      shuffle_alexanderWhitney, Category.assoc])
-    (by rw [Category.comp_id, Category.id_comp])
-
-/-- The homotopy `shuffleAlexanderWhitneyPairFstHomotopy` is the Eilenberg–Zilber homotopy of
-`Sing X` and `Sing Y`, projected to `C(X, A; R) ⊗ C(Y; S)`. -/
-@[reassoc]
-theorem singularChainComplexπ_tensorHom_id_f_shuffleAlexanderWhitneyPairFstHomotopy_hom
-    (i j : ℕ) :
-    (TopPair.singularChainComplexπOfSubset R A ⊗ₘ 𝟙 ((toSSet.obj Y).chainComplex S)).f i ≫
-        (shuffleAlexanderWhitneyPairFstHomotopy X Y A R S).hom i j =
-      (SSet.shuffleAlexanderWhitneyHomotopy (toSSet.obj X) (toSSet.obj Y) R S).hom i j ≫
-        (TopPair.singularChainComplexπOfSubset R A ⊗ₘ 𝟙 ((toSSet.obj Y).chainComplex S)).f j :=
-  Homotopy.π_descCokernel_hom _ _ _ _ _ _ _ _ _ i j
-
 /-- The relative Alexander–Whitney map of the two pairs, after the small-chain shuffle map: an
 endomorphism of `C(X, A; R) ⊗ C(Y, B; S)`. -/
 def shuffleAlexanderWhitneyPair :
@@ -601,61 +536,55 @@ theorem singularChainComplexπ_tensorHom_singularChainComplexπ_shuffleAlexander
     ← TopPair.singularChainComplexπOfSubset_naturality, ← tensorHom_comp_tensorHom,
     alexanderWhitneyDiagonal_comp_tensorHom_fst_snd_assoc]
 
-/-- On `C(X, A; R) ⊗ C(Y; S)`, the composite `shuffleAlexanderWhitneyPair` of the pairs is the
-composite `shuffleAlexanderWhitneyPairFst` of `(X, A)` and `Y`, followed by the projection to
-`C(X, A; R) ⊗ C(Y, B; S)`. -/
-theorem id_tensorHom_singularChainComplexπ_shuffleAlexanderWhitneyPair :
-    (𝟙 ((TopPair.ofSubset A).singularChainComplex R) ⊗ₘ
-        TopPair.singularChainComplexπOfSubset S B) ≫ shuffleAlexanderWhitneyPair X Y A B R S =
-      shuffleAlexanderWhitneyPairFst X Y A R S ≫
-        (𝟙 ((TopPair.ofSubset A).singularChainComplex R) ⊗ₘ
-          TopPair.singularChainComplexπOfSubset S B) := by
-  have : Epi (TopPair.singularChainComplexπOfSubset R A ⊗ₘ 𝟙 ((toSSet.obj Y).chainComplex S)) :=
-    (shortExact_tensorRightShortComplex_singularChainComplexShortComplex X Y A R S).epi_g
-  refine (cancel_epi (TopPair.singularChainComplexπOfSubset R A ⊗ₘ
-    𝟙 ((toSSet.obj Y).chainComplex S))).1 ?_
-  rw [← Category.assoc, ← singularChainComplexπ_tensorHom_singularChainComplexπ_eq_comp,
-    singularChainComplexπ_tensorHom_singularChainComplexπ_shuffleAlexanderWhitneyPair,
-    singularChainComplexπ_tensorHom_id_shuffleAlexanderWhitneyPairFst_assoc,
-    ← singularChainComplexπ_tensorHom_singularChainComplexπ_eq_comp]
-
 /-- The Eilenberg–Zilber homotopy `AW ∘ shuffle ≃ id`, descended to `C(X, A; R) ⊗ C(Y, B; S)`: the
 relative Alexander–Whitney map of the pairs after the small-chain shuffle map is homotopic to the
 identity. -/
 def shuffleAlexanderWhitneyPairHomotopy :
     _root_.Homotopy (shuffleAlexanderWhitneyPair X Y A B R S) (𝟙 _) :=
+  have hS := shortExact_tensorRightShortComplex_singularChainComplexShortComplex X Y A R S
   have hS₂ := shortExact_tensorLeftShortComplex_singularChainComplexShortComplex X Y A B R S
-  -- the maps of the short exact sequence, written through `TopPair.ιOfSubset` and
+  -- the maps of the short exact sequences, written through `TopPair.ιOfSubset` and
   -- `TopPair.singularChainComplexπOfSubset`, so that the conditions below hold by `rw`
-  _root_.Homotopy.descCokernel (shuffleAlexanderWhitneyPairFstHomotopy X Y A R S)
+  _root_.Homotopy.descCokernel₂
+    (SSet.shuffleAlexanderWhitneyHomotopy (toSSet.obj X) (toSSet.obj Y) R S)
+    (TopPair.singularChainComplexπOfSubset R A ⊗ₘ TopPair.singularChainComplexπOfSubset S B)
+    (SSet.chainComplexMap (toSSet.map (TopPair.ιOfSubset A)) R ⊗ₘ
+      𝟙 ((toSSet.obj Y).chainComplex S))
+    (TopPair.singularChainComplexπOfSubset R A ⊗ₘ 𝟙 ((toSSet.obj Y).chainComplex S)) _
+    (fun i ↦ (hS.map_of_exact (HomologicalComplex.eval C _ i)).gIsCokernel)
+    (fun i j ↦ by
+      have h := SSet.shuffleAlexanderWhitneyHomotopy_hom_naturality R S
+        (toSSet.map (TopPair.ιOfSubset A)) (𝟙 (toSSet.obj Y)) i j
+      simp only [CategoryTheory.Functor.map_id] at h
+      rw [reassoc_of% h, ← comp_f, singularChainComplexπ_tensorHom_singularChainComplexπ_eq_comp,
+        chainComplexMap_tensorHom_id_comp_singularChainComplexπ_tensorHom_id_assoc, zero_comp,
+        zero_f, comp_zero])
     (𝟙 ((TopPair.ofSubset A).singularChainComplex R) ⊗ₘ
       SSet.chainComplexMap (toSSet.map (TopPair.ιOfSubset B)) S)
     (𝟙 ((TopPair.ofSubset A).singularChainComplex R) ⊗ₘ
-      TopPair.singularChainComplexπOfSubset S B)
-    (𝟙 ((TopPair.ofSubset A).singularChainComplex R) ⊗ₘ
       TopPair.singularChainComplexπOfSubset S B) _
     (fun i ↦ (hS₂.map_of_exact (HomologicalComplex.eval C _ i)).gIsCokernel)
+    (TopPair.singularChainComplexπOfSubset R A ⊗ₘ
+      𝟙 ((toSSet.obj (TopPair.ofSubset B).snd).chainComplex S))
+    (fun i ↦ ((shortExact_tensorRightShortComplex_singularChainComplexShortComplex X
+      (TopPair.ofSubset B).snd A R S).map_of_exact (HomologicalComplex.eval C _ i)).epi_g)
+    (𝟙 ((toSSet.obj X).chainComplex R) ⊗ₘ
+      SSet.chainComplexMap (toSSet.map (TopPair.ιOfSubset B)) S)
+    (singularChainComplexπ_tensorHom_id_comp_id_tensorHom_chainComplexMap X Y A B R S)
     (fun i j ↦ by
-      -- After the epimorphism `C(X; R) ⊗ C(B; S) ⟶ C(X, A; R) ⊗ C(B; S)`, this is the naturality of
-      -- the Eilenberg–Zilber homotopy along the inclusion of `B`.
-      have : Epi ((TopPair.singularChainComplexπOfSubset R A ⊗ₘ
-          𝟙 ((toSSet.obj (TopPair.ofSubset B).snd).chainComplex S)).f i) :=
-        ((shortExact_tensorRightShortComplex_singularChainComplexShortComplex X
-          (TopPair.ofSubset B).snd A R S).map_of_exact (HomologicalComplex.eval C _ i)).epi_g
-      refine (cancel_epi ((TopPair.singularChainComplexπOfSubset R A ⊗ₘ
-        𝟙 ((toSSet.obj (TopPair.ofSubset B).snd).chainComplex S)).f i)).1 ?_
+      -- the naturality of the Eilenberg–Zilber homotopy along the inclusion of `B`
       have h := SSet.shuffleAlexanderWhitneyHomotopy_hom_naturality R S
         (𝟙 (toSSet.obj X)) (toSSet.map (TopPair.ιOfSubset B)) i j
       simp only [CategoryTheory.Functor.map_id] at h
-      rw [← comp_f_assoc, singularChainComplexπ_tensorHom_id_comp_id_tensorHom_chainComplexMap,
-        comp_f, Category.assoc,
-        singularChainComplexπ_tensorHom_id_f_shuffleAlexanderWhitneyPairFstHomotopy_hom_assoc,
-        reassoc_of% h, ← comp_f, ← comp_f,
+      rw [reassoc_of% h, ← comp_f, singularChainComplexπ_tensorHom_singularChainComplexπ_eq_comp,
         ← singularChainComplexπ_tensorHom_id_comp_id_tensorHom_chainComplexMap_assoc,
         id_tensorHom_chainComplexMap_comp_id_tensorHom_singularChainComplexπ, comp_zero, zero_f,
-        comp_zero, comp_zero])
-    (id_tensorHom_singularChainComplexπ_shuffleAlexanderWhitneyPair X Y A B R S)
-    (by rw [Category.comp_id, Category.id_comp])
+        comp_zero])
+    (by rw [← Category.assoc, ← singularChainComplexπ_tensorHom_singularChainComplexπ_eq_comp,
+      singularChainComplexπ_tensorHom_singularChainComplexπ_shuffleAlexanderWhitneyPair,
+      ← Category.assoc, shuffle_alexanderWhitney])
+    (by rw [Category.comp_id, Category.id_comp,
+      singularChainComplexπ_tensorHom_singularChainComplexπ_eq_comp])
 
 end Homotopy
 
