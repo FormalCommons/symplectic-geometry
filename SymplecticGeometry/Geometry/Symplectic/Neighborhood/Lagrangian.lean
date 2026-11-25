@@ -30,8 +30,8 @@ symplectomorphic to a neighbourhood of `f (L)` by a map `ψ` with `ψ (0_q) = f 
 (`TauCeti.SmoothTwoForm.IsNondegenerate.IsLagrangianMap.exists_symplectomorphism_cotangent`).
 Neither compactness of `L` nor closedness of its image is needed. Composed with the fibrewise
 negation of `T^*L`, such a `ψ` becomes a diffeomorphism `ι` with `ι (0_q) = f q` that pulls `σ`
-back to `-CotangentBundle.symplecticForm = dλ`, the form that most published sources call
-canonical
+back to `-CotangentBundle.symplecticForm = dλ`, the form that the sources of the Dehn twist
+(Seidel) take as canonical
 (`TauCeti.SmoothTwoForm.IsNondegenerate.IsLagrangianMap.exists_symplectomorphism_cotangent_neg`).
 
 ## Proof
@@ -55,7 +55,8 @@ diffeomorphism for the form `dλ`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.IsLagrangianMap.exists_symplectomorphism_cotangent`: the
   Lagrangian neighbourhood theorem.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.IsLagrangianMap.exists_symplectomorphism_cotangent_neg`:
-  the same, for the form `-CotangentBundle.symplecticForm = dλ` on `T^*L`.
+  a diffeomorphism from an open set of `T^*L` onto an open set of `M` that pulls `σ` back to
+  `-CotangentBundle.symplecticForm = dλ` and maps the zero covector at `q` to `f q`.
 
 ## References
 
@@ -186,7 +187,10 @@ theorem IsLagrangianMap.exists_symplectomorphism_cotangent_neg {σ : SmoothTwoFo
       CotangentBundle.mpullback_vectorBundleScalarDiffeomorph_symplecticForm]
     rw [← neg_one_smul ℝ (CotangentBundle.symplecticForm J L)]
   · obtain ⟨h, hq, -⟩ := hψ0 q
-    refine ⟨show N (zeroSection _ _ q) ∈ U by rwa [hN0], ?_⟩
+    have h' : zeroSection _ _ q ∈ U' := by
+      rw [Opens.mem_mk, Set.mem_preimage, hN0]
+      exact h
+    refine ⟨h', ?_⟩
     rw [Diffeomorph.coe_trans, Function.comp_apply, ← hq]
     congr 2
     exact Subtype.ext ((Diffeomorph.subtype_apply_coe _ _ _).trans (hN0 q))
