@@ -46,8 +46,8 @@ of `∇` for `i` is `∂bar` of the coordinate in either frame.
 * `OnePoint.frameCovariantDerivative_twistCore_localTriv` and
   `OnePoint.frameCauchyRiemannOperator_twistCore_localTriv`: in the frame of the chart at `y`,
   the flat connection of `𝒪(k)` is the differential of the coordinate, and its `(0,1)`-part for
-  `i` is `∂bar` of the coordinate; `OnePoint.symmL_comp_dbarFunction_twistCore_localTriv_eq`:
-  the latter does not depend on the chart.
+  any `J` is `∂bar_J` of the coordinate; `OnePoint.symmL_comp_dbarFunction_twistCore_localTriv_eq`:
+  for `i`, the latter does not depend on the chart.
 * `SymplecticGeometry.twistOneConnection`: the connection on `𝒪(1)`, with
   `isCovariantDerivativeOn_twistOneConnection`, the instance
   `contMDiffCovariantDerivative_twistOneConnection`,
@@ -133,16 +133,17 @@ theorem frameCovariantDerivative_twistCore_localTriv {y x : OnePoint ℂ}
   rw [Module.Basis.coord_apply]
   rwa [twistCore_localTriv_apply] at h
 
-/-- In the frame of the chart at `y`, the flat Cauchy–Riemann operator of `𝒪(k)` for the standard
-complex structure is `∂bar` of the coordinate `p ↦ twistTransition k p y p * s p` of a section
-`s` differentiable at a point of the chart. -/
-theorem frameCauchyRiemannOperator_twistCore_localTriv {y x : OnePoint ℂ}
+/-- In the frame of the chart at `y`, the flat Cauchy–Riemann operator of `𝒪(k)` for an almost
+complex structure `J` is `∂bar_J` of the coordinate `p ↦ twistTransition k p y p * s p` of a
+section `s` differentiable at a point of the chart. -/
+theorem frameCauchyRiemannOperator_twistCore_localTriv
+    {J : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)} {y x : OnePoint ℂ}
     (hx : x ∈ (chartAt ℂ y).source) {s : OnePoint ℂ → ℂ}
     (hs : MDifferentiableAt 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ))
       (fun p ↦ TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) k).Fiber) p (s p)) x) :
-    frameCauchyRiemannOperator 𝒊 Complex.basisOneI ((twistCore k).localTriv y) s x =
+    frameCauchyRiemannOperator J Complex.basisOneI ((twistCore k).localTriv y) s x =
       (((twistCore k).localTriv y).symmL ℝ x).comp
-        (𝒊.dbarFunction (fun p ↦ twistTransition k p y p * s p) x) := by
+        (J.dbarFunction (fun p ↦ twistTransition k p y p * s p) x) := by
   refine (frameCauchyRiemannOperator_apply Complex.basisOneI).trans ?_
   rw [frameCovariantDerivative_twistCore_localTriv hx hs]
   ext v
