@@ -16,6 +16,9 @@ public import TauCeti.Geometry.Symplectic.Plane
 public import TauCeti.Geometry.Symplectic.Restrict
 public import TauCeti.LinearAlgebra.Complex.LinearPart
 public import TauCeti.LinearAlgebra.Orientation.Exact.Basic
+import Mathlib.Analysis.Normed.Module.RCLike.Real
+import SymplecticGeometry.Analysis.Normed.Operator.SpanSingleton
+import SymplecticGeometry.LinearAlgebra.Complex.LinearPart
 
 /-!
 # Real-linear forms with dominant complex-linear part
@@ -51,12 +54,24 @@ section whose antiholomorphic derivative is dominated by its holomorphic derivat
 * `TauCeti.SymplecticForm.orientation_ker_eq_of_norm_lt`: the kernel orientation
   (`Orientation.kerOfExact`) of the symplectic orientation of `V` and the orientation of `ℂ` is
   the symplectic orientation of the kernel.
+* `TauCeti.SymplecticForm.surjective_of_norm_complexAntilinearPart_lt` and
+  `TauCeti.SymplecticForm.isSymplectic_ker_of_norm_complexAntilinearPart_lt`: a real-linear map `F`
+  to a complex normed space `W` of dimension one whose complex-antilinear part
+  (`TauCeti.complexAntilinearPart`) has smaller norm than its complex-linear part
+  (`TauCeti.complexLinearPart`) is surjective, with symplectic kernel. This is the form needed
+  at a zero of a section of a Hermitian line bundle, where the derivative takes values in the fibre.
 
 The proof is direct rather than by deforming `A + t B`: the Riesz vectors `a`, `b` of the real
 parts of `A` and `B` give `x = -J (a + b)` and `y = a - b`, with `ω x y = ‖a‖ ^ 2 - ‖b‖ ^ 2`, and
 `‖b‖ ≤ ‖B‖`, `‖A‖ ≤ ‖a‖` (the latter from Tau Ceti's
 `TauCeti.AlmostComplexStructure.inner_sq_add_inner_sq_le`). The kernel is then the symplectic
 complement of the plane spanned by `x` and `y`, on which `F` is orientation preserving.
+
+For a map to a complex line `W`, a unit vector of `W` gives a complex-linear isometry `W ≃ ℂ`
+(`LinearIsometryEquiv.toSpanSingleton`). Composing with it keeps the norms of both parts
+(`TauCeti.IsComplexLinear.complexLinearPart_comp`,
+`TauCeti.IsComplexLinear.complexAntilinearPart_comp`), the kernel and surjectivity, so the case of
+`ℂ` applies.
 
 ## References
 
@@ -306,5 +321,90 @@ theorem orientation_ker_eq_of_norm_lt (hg : ∀ v w, ω v (J w) = ⟪v, w⟫_ℝ
 end SymplecticForm
 
 end NormLt
+
+section Line
+
+variable {V W : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V] [FiniteDimensional ℝ V]
+  [NormedAddCommGroup W] [NormedSpace ℝ W] [NormedSpace ℂ W] [IsScalarTower ℝ ℂ W]
+  {ω : SymplecticForm V} {J : AlmostComplexStructure V}
+
+/-- If `F : V → W` has complex-antilinear part of smaller norm than its complex-linear part, there
+is a real-linear isometry `ψ : W → ℂ` such that `ψ ∘ F` has the same property. -/
+private theorem exists_norm_complexAntilinearPart_comp_lt (hW : finrank ℂ W = 1)
+    {F : V →L[ℝ] W}
+    (h : ‖LinearMap.toContinuousLinearMap (complexAntilinearPart J.toLinearMap
+        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖ <
+      ‖LinearMap.toContinuousLinearMap (complexLinearPart J.toLinearMap
+        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖) :
+    ∃ ψ : W →ₗᵢ[ℝ] ℂ,
+      ‖LinearMap.toContinuousLinearMap (complexAntilinearPart J.toLinearMap
+        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+        (ψ.toLinearMap ∘ₗ (F : V →ₗ[ℝ] W)))‖ <
+      ‖LinearMap.toContinuousLinearMap (complexLinearPart J.toLinearMap
+        (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+        (ψ.toLinearMap ∘ₗ (F : V →ₗ[ℝ] W)))‖ := by
+  have : Nontrivial W := Module.nontrivial_of_finrank_eq_succ hW
+  obtain ⟨u, hu⟩ := exists_norm_eq W zero_le_one
+  set φ := (LinearIsometryEquiv.toSpanSingleton ℂ W hW hu).symm
+  set ψ : W →ₗᵢ[ℝ] ℂ := ⟨(φ : W →ₗ[ℂ] ℂ).restrictScalars ℝ, φ.norm_map⟩
+  have hψ : IsComplexLinear (AlmostComplexStructure.ofComplexModule W).toLinearMap
+      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap ψ.toLinearMap :=
+    isComplexLinear_of_apply fun w ↦ by
+      simp [ψ, AlmostComplexStructure.ofComplexModule_apply]
+  refine ⟨ψ, ?_⟩
+  have key (P : V →ₗ[ℝ] W) : LinearMap.toContinuousLinearMap (ψ.toLinearMap ∘ₗ P) =
+      ψ.toContinuousLinearMap.comp (LinearMap.toContinuousLinearMap P) := by
+    ext v
+    simp
+  rw [hψ.complexLinearPart_comp, hψ.complexAntilinearPart_comp, key, key,
+    ψ.norm_toContinuousLinearMap_comp, ψ.norm_toContinuousLinearMap_comp]
+  exact h
+
+/-- **A real-linear map to a complex line with dominant complex-linear part is surjective.**
+Let the inner product of `V` be the metric `ω(·, J ·)`, let `W` be a complex normed space of
+dimension one, and let `F : V →L[ℝ] W` be a real-linear map whose complex-antilinear part, for `J`
+and multiplication by `i` on `W`, has smaller operator norm than its complex-linear part. Then `F`
+is surjective. -/
+theorem SymplecticForm.surjective_of_norm_complexAntilinearPart_lt
+    (hg : ∀ v w, ω v (J w) = ⟪v, w⟫_ℝ) (hW : finrank ℂ W = 1) {F : V →L[ℝ] W}
+    (h : ‖LinearMap.toContinuousLinearMap (complexAntilinearPart J.toLinearMap
+        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖ <
+      ‖LinearMap.toContinuousLinearMap (complexLinearPart J.toLinearMap
+        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖) :
+    Function.Surjective F := by
+  obtain ⟨ψ, hψ⟩ := exists_norm_complexAntilinearPart_comp_lt hW h
+  have hs := surjective_of_norm_lt hg
+    (isComplexLinear_complexLinearPart J.square_neg
+      (AlmostComplexStructure.ofComplexModule ℂ).square_neg _)
+    (isComplexAntilinear_complexAntilinearPart J.square_neg
+      (AlmostComplexStructure.ofComplexModule ℂ).square_neg _) hψ
+  rw [← map_add, complexLinearPart_add_complexAntilinearPart,
+    LinearMap.coe_toContinuousLinearMap', LinearMap.coe_comp] at hs
+  exact hs.of_comp_left ψ.injective
+
+/-- **The kernel of a real-linear map to a complex line with dominant complex-linear part is
+symplectic.** Let the inner product of `V` be the metric `ω(·, J ·)`, let `W` be a complex normed
+space of dimension one, and let `F : V →L[ℝ] W` be a real-linear map whose complex-antilinear part,
+for `J` and multiplication by `i` on `W`, has smaller operator norm than its complex-linear part.
+Then the kernel of `F` is a symplectic subspace. -/
+theorem SymplecticForm.isSymplectic_ker_of_norm_complexAntilinearPart_lt
+    (hg : ∀ v w, ω v (J w) = ⟪v, w⟫_ℝ) (hW : finrank ℂ W = 1) {F : V →L[ℝ] W}
+    (h : ‖LinearMap.toContinuousLinearMap (complexAntilinearPart J.toLinearMap
+        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖ <
+      ‖LinearMap.toContinuousLinearMap (complexLinearPart J.toLinearMap
+        (AlmostComplexStructure.ofComplexModule W).toLinearMap (F : V →ₗ[ℝ] W))‖) :
+    ω.IsSymplectic (LinearMap.ker (F : V →ₗ[ℝ] W)) := by
+  obtain ⟨ψ, hψ⟩ := exists_norm_complexAntilinearPart_comp_lt hW h
+  have hk := isSymplectic_ker_of_norm_lt hg
+    (isComplexLinear_complexLinearPart J.square_neg
+      (AlmostComplexStructure.ofComplexModule ℂ).square_neg _)
+    (isComplexAntilinear_complexAntilinearPart J.square_neg
+      (AlmostComplexStructure.ofComplexModule ℂ).square_neg _) hψ
+  rwa [ContinuousLinearMap.toLinearMap_add, LinearMap.coe_toContinuousLinearMap,
+    LinearMap.coe_toContinuousLinearMap, complexLinearPart_add_complexAntilinearPart,
+    LinearMap.ker_comp_of_ker_eq_bot _
+      (LinearMap.ker_eq_bot.2 ψ.injective)] at hk
+
+end Line
 
 end TauCeti
