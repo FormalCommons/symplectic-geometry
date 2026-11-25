@@ -181,10 +181,9 @@ as the form of $\mathbb CP^1$.
   `(OnePoint.diffeomorphSphere v ι).symm` followed by
   `OnePoint.equivProjectivization ℂ`, the map of
   `OnePoint.diffeomorphProjectivization ℂ ω`, smooth for the real structures
-  by `OnePoint.contMDiff_equivProjectivization_real`, with `v = northPole`,
-  the north pole $(0,0,1)$, and
-  `ι = equatorIsometry`, `ι z = (Re z, -Im z, 0)`, both defined in
-  `Instances/OnePoint.lean`. Off `v` the first factor is
+  by `OnePoint.contMDiff_equivProjectivization_real`, with Tau Ceti's
+  `v = OnePoint.homeomorphSphere ∞`, the north pole $(0,0,1)$, and
+  `ι = OnePoint.sphereCoordsIsometry`, `ι z = (Re z, -Im z, 0)`. Off `v` the first factor is
   $(x_1-ix_2)/(1-x_3)$ by `diffeomorphSphere_symm_apply_of_ne`, and the
   second sends $t$ to $[t:1]$ and $\infty$ to $[1:0]$, so the composite is
   $[x_1-ix_2:1-x_3]$ off the north pole, and $[1+x_3:x_1+ix_2]$ off the
@@ -341,8 +340,7 @@ In namespace `OnePoint`, for the Riemann sphere read as a real surface:
 `ofTopForm_fubiniStudyForm` (the orientation of `fubiniStudyForm` is
 `complexCurveOrientation ℂ (OnePoint ℂ)`), and
 `isOrientationPreservingAt_equivProjectivization` (for the complex
-orientations on both sides). In namespace `SymplecticGeometry`: `northPole`,
-`equatorIsometry` and their lemmas, and
+orientations on both sides). In namespace `SymplecticGeometry`:
 `mpullback_diffeomorphSphere_sphereVolumeForm` (the round area form pulls
 back to `(4 * Real.pi) • OnePoint.fubiniStudyForm`) with its `_symm_` form.
 `Normalization.lean` imports it.
@@ -521,8 +519,8 @@ Mathlib's `LinearAlgebra/Matrix/ToLin.lean`, where `Matrix.toLin'` lives.
 - `sphereToProjectiveLine : sphere (0 : EuclideanSpace ℝ (Fin 3)) 1 ≃ₘ^ω⟮𝓡 2,
   𝓘(ℝ, Fin 1 → ℂ)⟯ ℙ ℂ (Fin 2 → ℂ)`, the composite
   of `(OnePoint.diffeomorphSphere v ι).symm` and
-  `OnePoint.equivProjectivization ℂ`, with `v = northPole` and
-  `ι = equatorIsometry` as above, with
+  `OnePoint.equivProjectivization ℂ`, with `v = OnePoint.homeomorphSphere ∞` and
+  `ι = OnePoint.sphereCoordsIsometry` as above, with
   `sphereToProjectiveLine_of_ne_southPole`
   ($[1+x_3:x_1+ix_2]$), `sphereToProjectiveLine_of_ne_northPole`
   ($[x_1-ix_2:1-x_3]$),

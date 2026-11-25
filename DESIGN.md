@@ -1962,8 +1962,8 @@ complete target and a function on the whole half-space.
 - **Files:** `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` (the
   velocity $X_t$ of a `TauCeti.Diffeotopy`, read along the motion, as
   `TauCeti.Diffeotopy.velocity`), with
-  `Geometry/Manifold/Instances/Icc.lean` (the unit vector field of an
-  interval is smooth), `Geometry/Manifold/MFDeriv/Prod.lean` (the
+  `Geometry/Manifold/Instances/Icc.lean` (the unit time field `∂ₜ` of a
+  cylinder, and derivatives on intervals), `Geometry/Manifold/MFDeriv/Prod.lean` (the
   derivative of a map on a product on `(v, 0)` is a partial derivative;
   on `(0, w)` it is Tau Ceti's
   `MDifferentiableAt.mfderiv_uncurry_apply_zero_mk`),
