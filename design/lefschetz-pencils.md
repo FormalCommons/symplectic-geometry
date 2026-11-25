@@ -86,9 +86,9 @@ pencil theorem produces one:
   lemmas, not fields.
 - `IsLefschetzPencil ω J B π`, for `B : Finset X` in a T1 space `X` and a smooth
   `π : B.complOpens → ℙ ℂ (Fin 2 → ℂ)` on the open complement (Mathlib's manifold
-  structure on an open subset), with fields: the restriction of `ω` and `J`
-  makes `π` an `IsLefschetzFibration`; and at every `b ∈ B` a `J`-holomorphic
-  open embedding `φ` near `b` with `φ b = 0` and
+  structure on an open subset), with fields: `tames : ω.Tames J` on all of
+  `X`; the restriction of `ω` and `J` makes `π` an `IsLefschetzFibration`;
+  and at every `b ∈ B` a `J`-holomorphic open embedding `φ` near `b` with `φ b = 0` and
   `π x = Projectivization.mk ℂ (φ x) _` for `x ≠ b` near `b`.
 - `fiberClosure B π t`, the set `Subtype.val '' (π ⁻¹' {t}) ∪ B`, with
   `fiberClosure_def` and `isClosed_fiberClosure`.

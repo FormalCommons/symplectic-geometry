@@ -12,7 +12,8 @@ public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
 public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
-public import TauCeti.Geometry.Symplectic.Manifold.Opens
+public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Submanifold
+public import SymplecticGeometry.Topology.Sets.Opens.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Kahler
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Prod
@@ -42,8 +43,9 @@ the restriction of `J` is integrable (`IsLefschetzChart.isIntegrable_on`), and `
 `φ⁻¹` is holomorphic (`IsLefschetzChart.contMDiffAt_comp_symm` and
 `IsLefschetzChart.mdifferentiableAt_of_mem`).
 
-A Lefschetz pencil with base locus a finite set `B ⊆ X` is a map `π` from the open complement
-`B.complOpens` of `B` to `ℂℙ¹` that is a Lefschetz fibration for the restrictions of `ω` and `J`
+A Lefschetz pencil with base locus a finite set `B ⊆ X` asks that `ω` tame `J` on all of `X`,
+base points included, and is a map `π` from the open complement `B.complOpens` of `B` to `ℂℙ¹`
+that is a Lefschetz fibration for the restrictions of `ω` and `J`
 (the restriction of `ω` is its pullback `SmoothForm.mpullback` along the inclusion, that of `J` is
 Tau Ceti's `SmoothAlmostComplexStructure.restrictOpen`), and that near each base point `b` reads
 as `x ↦ [φ x]` for a `J`-holomorphic chart `φ` into `ℂ²` centred at `b`. Its fibre closures, the
@@ -54,7 +56,9 @@ almost complex structure, such as an area form on a closed surface: it has no cr
 and it is a Lefschetz pencil with empty base locus. Fibrations without critical points are built
 by `IsLefschetzFibration.of_isRegularPoint`: the kernel of the derivative of a pseudoholomorphic
 map is invariant under the almost complex structure, so a taming two-form is nondegenerate on it
-(`TauCeti.SmoothTwoForm.Tames.nondegenerate_restrict_ker_mfderiv`).
+(`TauCeti.SmoothTwoForm.Tames.nondegenerate_restrict_ker_mfderiv`, in
+`Geometry/Symplectic/Manifold/AlmostComplex/Submanifold.lean`, with
+`TauCeti.SmoothTwoForm.Tames.restrictOpen` for the restriction to the complement of `B`).
 
 ## Main definitions
 
@@ -92,49 +96,6 @@ public section
 
 open Set Filter TopologicalSpace TauCeti Projectivization
 open scoped Manifold Topology LinearAlgebra.Projectivization
-
-namespace TauCeti.SmoothTwoForm
-
-variable {E H X E' H' Y : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  {I : ModelWithCorners ℝ E H} [TopologicalSpace X] [ChartedSpace H X] [IsManifold I (⊤ : ℕ∞) X]
-  [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
-  {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace Y] [ChartedSpace H' Y]
-  [IsManifold I' (⊤ : ℕ∞) Y]
-  {ω : SmoothTwoForm I X} {J : SmoothAlmostComplexStructure I X}
-
-/-- If `ω` tames `J` and `π` is pseudoholomorphic at `x`, the restriction of `ω` at `x` to the
-kernel of the derivative of `π` is nondegenerate: that kernel is preserved by `J`, and `ω` is
-positive on each nonzero vector of it and its image under `J`. -/
-theorem Tames.nondegenerate_restrict_ker_mfderiv (hω : ω.Tames J)
-    {L : SmoothAlmostComplexStructure I' Y} {π : X → Y} {x : X}
-    (hπ : IsPseudoholomorphicAt J L π x) :
-    ((ω.bilinFormAt x).restrict (mfderiv I I' π x).ker).Nondegenerate := by
-  have hJ : ∀ v ∈ (mfderiv I I' π x).ker, J x v ∈ (mfderiv I I' π x).ker := fun v hv ↦ by
-    rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe] at hv ⊢
-    simp [hπ.mfderiv_apply_commute, hv]
-  have hpos : ∀ v : (mfderiv I I' π x).ker, v ≠ 0 → 0 < ω.bilinFormAt x v (J x v) :=
-    fun v hv ↦ by
-      rw [SmoothForm.bilinFormAt_apply]
-      exact tames_iff.1 hω x v fun h ↦ hv (Subtype.ext h)
-  refine ⟨fun v hv ↦ ?_, fun v hv ↦ ?_⟩
-  · by_contra h0
-    exact (hpos v h0).ne' (hv ⟨J x v, hJ v v.property⟩)
-  · by_contra h0
-    have h : ω.bilinFormAt x (J x v) v = 0 := hv ⟨J x v, hJ v v.property⟩
-    rw [← LinearMap.IsAlt.neg (SmoothForm.isAlt_bilinFormAt ω x) v (J x v), neg_eq_zero] at h
-    exact (hpos v h0).ne' h
-
-/-- A two-form taming `J` restricts, on an open subset `U`, to a two-form taming the restriction
-of `J` to `U`. -/
-theorem Tames.mpullback_subtype_val (hω : ω.Tames J) (U : Opens X) :
-    SmoothTwoForm.Tames (SmoothForm.mpullback (Subtype.val : U → X) contMDiff_subtypeVal ω)
-      (J.restrictOpen U) := tames_iff.2 fun x v hv ↦ by
-  rw [← SmoothForm.bilinFormAt_apply, bilinFormAt_mpullback_subtype_val,
-    SmoothAlmostComplexStructure.restrictOpen_apply]
-  simp only [Manifold.tangentSpaceOpenEquiv_apply, Manifold.tangentSpaceOpenEquiv_symm_apply]
-  exact lt_of_lt_of_eq (tames_iff.1 hω x v hv) (SmoothForm.bilinFormAt_apply ω (x : X) _ _).symm
-
-end TauCeti.SmoothTwoForm
 
 namespace SymplecticGeometry
 
@@ -284,18 +245,6 @@ section Pencil
 
 variable {X : Type*} [TopologicalSpace X] [T1Space X]
 
-/-- The complement of a finite subset `B` of a T1 space, as an open set. -/
-def _root_.Finset.complOpens (B : Finset X) : Opens X :=
-  ⟨(B : Set X)ᶜ, B.finite_toSet.isClosed.isOpen_compl⟩
-
-@[simp]
-theorem _root_.Finset.coe_complOpens (B : Finset X) : (B.complOpens : Set X) = (B : Set X)ᶜ :=
-  (rfl)
-
-@[simp]
-theorem _root_.Finset.mem_complOpens {B : Finset X} {x : X} : x ∈ B.complOpens ↔ x ∉ B :=
-  Iff.rfl
-
 /-- The *closure of a fibre* of a map `π` defined on the complement of a finite set `B`: the
 fibre of `π` over `t`, seen in `X`, together with `B`. -/
 def fiberClosure {Y : Type*} (B : Finset X) (π : B.complOpens → Y) (t : Y) : Set X :=
@@ -326,9 +275,9 @@ theorem isClosed_fiberClosure [TopologicalSpace Y] [T1Space Y] (hπ : Continuous
       mem_preimage, mem_singleton_iff]
     constructor
     · rintro ⟨hxB, h⟩
-      exact ⟨⟨x, hxB⟩, h hxB, rfl⟩
+      exact ⟨⟨x, Finset.mem_complOpens.2 hxB⟩, h (Finset.mem_complOpens.2 hxB), rfl⟩
     · rintro ⟨y, hy, rfl⟩
-      exact ⟨y.property, fun _ ↦ hy⟩
+      exact ⟨Finset.mem_complOpens.1 y.property, fun _ ↦ hy⟩
   rw [← isOpen_compl_iff, h]
   exact B.complOpens.isOpen.isOpenMap_subtypeVal _ (isOpen_compl_singleton.preimage hπ)
 
@@ -336,11 +285,14 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSp
   {I : ModelWithCorners ℝ E H} [ChartedSpace H X] [IsManifold I (⊤ : ℕ∞) X]
 
 /-- A *Lefschetz pencil* on `X`, with base locus the finite set `B`, for the two-form `ω` and the
-almost complex structure `J`: a map `π` from the complement of `B` to `ℂℙ¹` which, for the
-restrictions of `ω` and `J`, is a Lefschetz fibration, and which near each point `b` of `B` is the
-map `x ↦ [φ x]` for a `J`-holomorphic chart `φ` of `X` into `ℂ²` centred at `b`. -/
+almost complex structure `J`: `ω` tames `J` on all of `X`, and `π` is a map from the complement of
+`B` to `ℂℙ¹` which, for the restrictions of `ω` and `J`, is a Lefschetz fibration, and which near
+each point `b` of `B` is the map `x ↦ [φ x]` for a `J`-holomorphic chart `φ` of `X` into `ℂ²`
+centred at `b`. -/
 structure IsLefschetzPencil (ω : SmoothTwoForm I X) (J : SmoothAlmostComplexStructure I X)
     (B : Finset X) (π : B.complOpens → ℙ ℂ (Fin 2 → ℂ)) : Prop where
+  /-- `ω` tames `J` on all of `X`, the base points included. -/
+  tames : ω.Tames J
   /-- Away from `B`, `π` is a Lefschetz fibration for the restrictions of `ω` and `J`. -/
   isLefschetzFibration : IsLefschetzFibration
     (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal ω) (J.restrictOpen B.complOpens) π
@@ -378,15 +330,15 @@ with empty base locus. -/
 theorem isLefschetzPencil_empty [T1Space S] (hσ : σ.Tames j) :
     IsLefschetzPencil (σ.prod (fubiniStudyForm 1))
       (j.prod (SmoothAlmostComplexStructure.ofComplexManifold (Fin 1 → ℂ) (ℙ ℂ (Fin 2 → ℂ))))
-      ∅ (fun x ↦ (x : S × ℙ ℂ (Fin 2 → ℂ)).2) where
-  isLefschetzFibration :=
-    .of_isRegularPoint (contMDiff_snd.comp contMDiff_subtypeVal)
-      ((SmoothAlmostComplexStructure.tames_prod hσ
-        compatible_fubiniStudyForm.tames).mpullback_subtype_val _)
-      (SmoothAlmostComplexStructure.isPseudoholomorphic_snd_prod.comp
-        (SmoothAlmostComplexStructure.isPseudoholomorphic_subtype_val _ _))
-      fun x ↦ (isRegularPoint_snd _).comp (isRegularPoint_subtype_val x)
-  exists_chart := fun _ hb ↦ absurd hb (Finset.notMem_empty _)
+      ∅ (fun x ↦ (x : S × ℙ ℂ (Fin 2 → ℂ)).2) :=
+  have h := SmoothAlmostComplexStructure.tames_prod hσ compatible_fubiniStudyForm.tames
+  { tames := h
+    isLefschetzFibration :=
+      .of_isRegularPoint (contMDiff_snd.comp contMDiff_subtypeVal) (h.restrictOpen _)
+        (SmoothAlmostComplexStructure.isPseudoholomorphic_snd_prod.comp
+          (SmoothAlmostComplexStructure.isPseudoholomorphic_subtype_val _ _))
+        fun x ↦ (isRegularPoint_snd _).comp (isRegularPoint_subtype_val x)
+    exists_chart := fun _ hb ↦ absurd hb (Finset.notMem_empty _) }
 
 end Product
 
