@@ -150,8 +150,7 @@ theorem gramInChart_trans_apply (hn : n ≠ 0) (Θ : PartialDiffeomorph 𝓘(ℝ
     have ha : fderiv ℝ Θ (Θ.symm w) a = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) Θ (Θ.symm w) a := by
       -- `NormedSpace.fromTangentSpace` is the identity of `E`, which Mathlib states by no lemma.
       rw [mfderiv_eq_fderiv]; rfl
-    rw [ha, PartialDiffeomorph.coe_trans_symm, mfderiv_comp w
-      (ψ.symm.mdifferentiableAt hn hψ) (Θ.symm.mdifferentiableAt hn hw)]
+    rw [ha, coe_trans_symm, ← coe_trans, mfderiv_trans _ _ hn ⟨hw, hψ⟩]
     exact congrArg (mfderiv 𝓘(ℝ, E) I ψ.symm (Θ.symm w))
       (Θ.mfderiv_symm_apply_mfderiv_apply_of_mem_target hn hw a)
   rw [gramInChart_apply, gramInChart_apply, key, key]
