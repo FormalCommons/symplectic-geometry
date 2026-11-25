@@ -76,6 +76,7 @@ structures of the bundle by `example`s.
 ## Main results
 
 * `SymplecticGeometry.PowerBundle.mk_op_smul`: `[p · g, z] = (g : ℂ) ^ k • [p, z]`.
+* `SymplecticGeometry.PowerBundle.mk_eq_smul_mk`: `[p, x] = (g ^ k * x) • [p₀, 1]` for `p = p₀ · g`.
 * `SymplecticGeometry.PowerBundle.finrank_eq_one`: the fibres are complex lines.
 * `SymplecticGeometry.PowerBundle.contMDiffVectorBundle`: for a smooth principal bundle, a smooth
   vector bundle.
@@ -216,6 +217,19 @@ theorem mk_op_smul {b : B} (p : P b) (g : Circle) (z : PowerModel k) :
       ((g : ℂ) ^ k) • (AssociatedBundle.mk Circle p z : PowerBundle P k b) := by
   rw [AssociatedBundle.mk_smul, PowerModel.smul_def, AssociatedBundle.mk_smul_scalar]
 
+/-- Every point `[p, x]` of a fibre of `PowerBundle P k` is a multiple of `[p₀, 1]`, for any point
+`p₀` of the same fibre of `P`: the factor is `g ^ k x`, where `g` is the division of `p` by `p₀`,
+so that `p = p₀ · g`. -/
+theorem mk_eq_smul_mk {b : B} (p₀ p : P b) (x : PowerModel k) :
+    AssociatedBundle.mk Circle p x =
+      (((PrincipalBundle.division Circle p₀ p : ℂ) ^ k * PowerModel.toComplex x) •
+        AssociatedBundle.mk Circle p₀ (PowerModel.toComplex.symm 1) : PowerBundle P k b) := by
+  conv_lhs => rw [← PrincipalBundle.smul_division (G := Circle) p₀ p]
+  rw [mk_op_smul, mul_smul, ← AssociatedBundle.mk_smul_scalar p₀ (PowerModel.toComplex x)]
+  congr 2
+  apply PowerModel.toComplex.injective
+  simp
+
 variable (P k) in
 /-- The fibres of `PowerBundle P k` are complex lines. -/
 theorem finrank_eq_one (b : B) : finrank ℂ (PowerBundle P k b) = 1 := by
@@ -293,23 +307,15 @@ def powerAddEquiv (k l : ℤ) (b : B) :
 
 variable {P} in
 /-- `powerAddEquiv` sends `[p, z * w]` to `[p, z] ⊗ [p, w]`, for every point `p` of the fibre
-of `P`; this holds because `g ^ (k + l) = g ^ k * g ^ l`. -/
+of `P`. -/
+@[simp]
 theorem powerAddEquiv_mk {k l : ℤ} {b : B} (p : P b) (z : PowerModel k) (w : PowerModel l) :
     powerAddEquiv P k l b (AssociatedBundle.mk Circle p
         (PowerModel.toComplex.symm (PowerModel.toComplex z * PowerModel.toComplex w))) =
       AssociatedBundle.mk Circle p z ⊗ₜ[ℂ] AssociatedBundle.mk Circle p w := by
-  -- Every class `[p, x]` of weight `n` is a multiple of `[p₀, 1]`, `p₀` being the point used to
-  -- define `powerAddEquiv`, by the factor `g ^ n x` for `g` the division of `p` by `p₀`.
-  have hmk : ∀ {n : ℤ} (x : PowerModel n), AssociatedBundle.mk Circle p x =
-      ((((PrincipalBundle.division Circle ((FiberBundle.homeomorphAt Circle P b).symm 1) p :
-        Circle) : ℂ) ^ n * PowerModel.toComplex x) •
-        AssociatedBundle.mk Circle ((FiberBundle.homeomorphAt Circle P b).symm 1)
-          (PowerModel.toComplex.symm 1) : PowerBundle P n b) := by
-    intro n x
-    rw [← AssociatedBundle.mk_smul_scalar, eq_comm, AssociatedBundle.mk_eq_mk_iff]
-    apply PowerModel.toComplex.injective
-    simp
-  rw [hmk, hmk, hmk, TensorProduct.smul_tmul_smul, map_smul]
+  -- Write each class as a multiple of the class of the point that defines `powerAddEquiv`.
+  simp only [PowerBundle.mk_eq_smul_mk ((FiberBundle.homeomorphAt Circle P b).symm 1) p]
+  rw [TensorProduct.smul_tmul_smul, map_smul]
   congr 1
   · rw [LinearIsometryEquiv.apply_symm_apply, zpow_add₀ (Circle.coe_ne_zero _)]
     ring
