@@ -672,7 +672,7 @@ Expected size: 300 lines.
   `Liouville/Scaling.lean`, and by `TauCeti.RoughForm.pushforwardAt` and
   `TauCeti.mpullback_apply_eq_of_apply_eq_pushforwardAt`, in `Completion.lean`.
 - *Hamiltonian flows*: `Geometry/Manifold/MFDeriv/Prod.lean`
-  (`MDifferentiableAt.mfderiv_curry_left_apply`), merged, in `Completion.lean`.
+  (`MDifferentiableAt.mfderiv_uncurry_apply_mk_zero`), merged, in `Completion.lean`.
 - *Moser isotopy*: `Geometry/Symplectic/Manifold/Family.lean`
   (`SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`), merged, in
   `StableHamiltonian.lean`.

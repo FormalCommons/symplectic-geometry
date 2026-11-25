@@ -352,20 +352,18 @@ theorem fst_mfderiv_cotangentCoord (x : CotangentBundle (𝓡 n) (𝕊 n))
   have hΨ : MDifferentiableAt ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
       𝓘(ℝ, (𝔼 n) × 𝔼 n) cotangentCoord x :=
     contMDiff_cotangentCoord.mdifferentiableAt (by simp)
-  have hfst := mfderiv_comp_apply x (g := ContinuousLinearMap.fst ℝ (𝔼 n) (𝔼 n))
-    (ContinuousLinearMap.fst ℝ (𝔼 n) (𝔼 n)).mdifferentiableAt hΨ w
+  have hfst := hΨ.mvfderiv_fst_apply w
   have hproj := mfderiv_comp_apply x (g := ((↑) : (𝕊 n) → 𝔼 n))
     (contMDiff_coe_sphere.mdifferentiableAt one_ne_zero)
     ((contMDiff_proj (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ)).mdifferentiableAt
       one_ne_zero : MDifferentiableAt ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) (𝓡 n)
         (π (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ) (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ)) x)
     w
-  have hcomp : Prod.fst ∘ cotangentCoord (n := n) = ((↑) : (𝕊 n) → 𝔼 n) ∘ TotalSpace.proj :=
+  have hcomp : (fun z ↦ (cotangentCoord (n := n) z).1) =
+      ((↑) : (𝕊 n) → 𝔼 n) ∘ TotalSpace.proj :=
     funext fun z ↦ by simp [cotangentCoord_fst]
-  rw [ContinuousLinearMap.mfderiv_eq, ContinuousLinearMap.coe_fst', hcomp] at hfst
-  rw [mvfderiv_apply_eq_mfderiv_apply, ← hproj, hfst]
-  -- A tangent vector of the model space `𝔼 n × 𝔼 n` is a pair, on which `fst` is `Prod.fst`.
-  rfl
+  rw [hcomp, mvfderiv_apply_eq_mfderiv_apply] at hfst
+  rw [mvfderiv_apply_eq_mfderiv_apply, ← hproj, hfst, mvfderiv_apply_eq_mfderiv_apply]
 
 /-- The differential of `cotangentCoord` followed by Tau Ceti's identification
 `TauCeti.cotangentInnerEquiv` is that identification applied to the differential of
