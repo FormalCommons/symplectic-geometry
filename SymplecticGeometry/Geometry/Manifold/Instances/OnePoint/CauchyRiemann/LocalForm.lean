@@ -7,7 +7,10 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.DbarFunction
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
+public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Sobolev
 import SymplecticGeometry.Geometry.Manifold.Complex.Isothermal
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.ZeroOnePart
+import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Tames
 import SymplecticGeometry.Topology.VectorBundle.Basic
 import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Basic
 import TauCeti.Analysis.Complex.Wirtinger.Similarity.Basic
@@ -19,11 +22,42 @@ import TauCeti.Topology.FiberBundle.Trivialization
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 
 /-!
-# The local equation of `D_J` on `𝒪(1)` in an isothermal chart
+# Local form of the kernel of `D_J` on `𝒪(1)`
+
+This file reads the Cauchy–Riemann equation on `𝒪(1)` over the sphere `OnePoint ℂ` in charts:
+first for Sobolev sections in the charts of `twistCoreAtlas 1`, then for smooth sections in an
+isothermal chart.
+
+## The Sobolev equation in the charts of `twistCoreAtlas 1`
+
+The first part reads the equation `D_J w = 0` in the charts of the atlas `twistCoreAtlas 1`, for
+an almost complex structure `J` on the sphere and the Cauchy–Riemann operator
+`D_J = twistOneDelBarSobolev J 0 : W^{1,2}(𝒪(1)) → W^{0,2}(Λ^{0,1} ⊗ 𝒪(1))` of
+`SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Sobolev`.
+
+In chart `i`, let `u` be the chart data of `w`, `Du` a weak derivative of `u` on the chart image,
+`Γ` the zeroth-order term `chartZeroOrder` of the connection `twistOneConnection`, and
+`K = J.inChart (twistCoreAtlas 1).center i` the reading of `J`. The chart data of `∇w` are the
+one-forms `L y = Du y + Γ y (u y)` (`IsCovariantDerivativeOn.chartValueL_sobolevL_ae`). When a
+two-form tames both `J` and the standard structure `i` of the sphere, `D_J w = 0` holds exactly
+when, in every chart, `L y` is complex linear for `K y` at almost every point of the chart image:
+`L y (K y v) = i L y v` (`SymplecticGeometry.twistOneDelBarSobolev_eq_zero_iff`).
+
+The proof reads each factor of `D_J = π^{0,1}_i ∘ Φ_J ∘ ∇` in the chart. The chart data of
+`Φ_J ∇w` are the chart reading of the field `zeroOnePartL J` applied to `L`
+(`TauCeti.SobolevSection.chartValueL_contMDiffHomMulL_ae_self`). Tau Ceti's
+`TauCeti.zeroOnePartSobolevL_eq_zero_iff` says that `D_J w = 0` exactly when these data are
+complex linear almost everywhere in every chart. Taming gives `K 1 ≠ -i`
+(`TauCeti.SmoothAlmostComplexStructure.im_inChart_apply_one_pos_of_tames`), and then the
+reading of `zeroOnePartL J` sends `L` to a complex-linear map exactly when `L ∘ K = i L`
+(`TauCeti.FiniteBundleAtlas.coord_hom_zeroOnePartL_apply_I_smul_iff`).
+
+## The smooth equation in an isothermal chart
 
 Let `J` be a smooth almost complex structure on the sphere and `D_J` the real Cauchy–Riemann
-operator `SymplecticGeometry.twistOneDelBar J` on `𝒪(1)`. This file reads `D_J s = 0` in a chart
-`ψ : OnePoint ℂ → ℂ` whose derivative carries `J` to multiplication by `i` (such charts come from
+operator `SymplecticGeometry.twistOneDelBar J` on `𝒪(1)`. The second part reads `D_J s = 0` in
+a chart `ψ : OnePoint ℂ → ℂ` whose derivative carries `J` to multiplication by `i` (such charts
+come from
 `TauCeti.SmoothAlmostComplexStructure.exists_isothermal_partialDiffeomorph`), with the section
 written in the frame of the trivialization `(twistCore 1).localTriv y` of `𝒪(1)` at any point
 `y` of the sphere. The result is a planar equation `∂v/∂w̄ = a v` with `a` smooth, which is the
@@ -53,6 +87,9 @@ at a zero of the section, apart from the orientation of the chart.
 
 ## Main results
 
+* `SymplecticGeometry.twistOneDelBarSobolev_eq_zero_iff`: for `J` tamed together with `i` by a
+  two-form, a `W^{1,2}` section `w` of `𝒪(1)` satisfies `D_J w = 0` exactly when, in every chart
+  of `twistCoreAtlas 1`, the chart data of `∇w` are complex linear for `J` almost everywhere.
 * `SymplecticGeometry.twistOneDelBar_eq_symmL_comp_dbarFunction_add_smul`: `D_J` in the frame of
   the chart at `y`.
 * `SymplecticGeometry.contDiffOn_twistOneDelBar_localFrame_apply_mfderiv_symm`: the zeroth-order
@@ -68,20 +105,80 @@ at a zero of the section, apart from the orientation of the chart.
 ## References
 
 * [D. McDuff, D. Salamon, *J-holomorphic Curves and Symplectic Topology*][McDuffSalamon2012],
-  Appendix C.1.
+  Appendix C.1 and C.2.
 -/
 
 public section
 
-open Bundle Set TauCeti TauCeti.Manifold
+open Bundle MeasureTheory Set TauCeti TauCeti.Manifold
 open OnePoint (twistCore twistTransition)
-open scoped Manifold ContDiff Topology TauCeti.ComplexManifold VectorBundle.ComplexToReal
+open scoped Manifold ContDiff ENNReal Topology TauCeti.ComplexManifold
+  VectorBundle.ComplexToReal
 
 noncomputable section
 
 namespace SymplecticGeometry
 
+/-- The standard complex structure of the Riemann sphere. -/
+local notation "𝒊" => SmoothAlmostComplexStructure.ofComplexManifold ℂ (OnePoint ℂ)
+
 variable {J : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)}
+
+/-- **The kernel equation of `D_J` in the charts.** Let a two-form `σ` tame both `J` and the
+standard structure `i` of the sphere, and let `w` be a `W^{1,2}` section of `𝒪(1)`. Then
+`D_J w = 0` exactly when, for every chart `i` of `twistCoreAtlas 1` and every weak derivative
+`Du` of the chart data `u` of `w` on the chart image, the one-form `L y = Du y + Γ y (u y)`, for
+the zeroth-order term `Γ` of the connection in chart `i`, is complex linear for the reading
+`K = J.inChart (twistCoreAtlas 1).center i` of `J` at almost every point `y` of the chart image:
+`L y (K y v) = i L y v` for all `v`. -/
+theorem twistOneDelBarSobolev_eq_zero_iff {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)}
+    (hJ : σ.Tames J) (hi : σ.Tames 𝒊) {w : SobolevSection (twistCoreAtlas 1) volume 2 1} :
+    twistOneDelBarSobolev J 0 w = 0 ↔
+      ∀ (i : Fin (twistCoreAtlas 1).n) {Du : ℂ → ℂ →L[ℝ] ℂ},
+        HasWeakFDerivOn volume ((twistCoreAtlas 1).image i)
+          ((twistCoreAtlas 1).sectionChartData.chartValueL volume 2 1 i w) Du →
+        ∀ᵐ y ∂volume.restrict ((twistCoreAtlas 1).image i), ∀ v : ℂ,
+          (Du y + (twistCoreAtlas 1).chartZeroOrder twistOneConnection i y
+              ((twistCoreAtlas 1).sectionChartData.chartValueL volume 2 1 i w y))
+              (J.inChart ((twistCoreAtlas 1).center i) y v) =
+            Complex.I • (Du y + (twistCoreAtlas 1).chartZeroOrder twistOneConnection i y
+              ((twistCoreAtlas 1).sectionChartData.chartValueL volume 2 1 i w y)) v := by
+  -- Taming gives `K 1 ≠ -i` for the reading `K` of `J` on each chart image.
+  have hK1 (i : Fin (twistCoreAtlas 1).n) {y : ℂ} (hy : y ∈ (twistCoreAtlas 1).image i) :
+      J.inChart ((twistCoreAtlas 1).center i) y 1 ≠ -Complex.I := fun h ↦ by
+    have hyt : y ∈ (extChartAt 𝓘(ℝ, ℂ) ((twistCoreAtlas 1).center i)).target := by
+      simpa using ((twistCoreAtlas 1).chart_image_closure_dom_subset i
+        ((twistCoreAtlas 1).image_subset_chart_image_closure_dom i hy)).1
+    have := SmoothAlmostComplexStructure.im_inChart_apply_one_pos_of_tames hJ hi _ hyt
+    rw [h] at this
+    norm_num at this
+  -- The chart data of `Φ_J ∇w` are the reading of `Φ_J` applied to those of `∇w`, which are
+  -- `Du + Γ u` for any weak derivative `Du`.
+  have hΦ (i : Fin (twistCoreAtlas 1).n) := by
+    have := SobolevSection.chartValueL_contMDiffHomMulL_ae_self
+      (A := (twistCoreAtlas 1).tangentHom) (J.contMDiff_zeroOnePartL le_rfl)
+      (isCovariantDerivativeOn_twistOneConnection.sobolevL (twistCoreAtlas 1)
+        (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 0 w) i
+    rwa [FiniteBundleAtlas.image_tangentHom] at this
+  have hcov (i : Fin (twistCoreAtlas 1).n) {Du : ℂ → ℂ →L[ℝ] ℂ}
+      (hDu : HasWeakFDerivOn volume ((twistCoreAtlas 1).image i)
+        ((twistCoreAtlas 1).sectionChartData.chartValueL volume 2 1 i w) Du) :=
+    isCovariantDerivativeOn_twistOneConnection.chartValueL_sobolevL_ae (twistCoreAtlas 1)
+      (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 0 w hDu
+  rw [twistOneDelBarSobolev_apply]
+  refine zeroOnePartSobolevL_eq_zero_iff.trans ⟨fun h i Du hDu ↦ ?_, fun h i ↦ ?_⟩
+  · filter_upwards [(FiniteBundleAtlas.ae_image_tangentHom_iff (twistCoreAtlas 1) volume i).1 (h i),
+      hΦ i, hcov i hDu, ae_restrict_mem ((twistCoreAtlas 1).image i).isOpen.measurableSet]
+      with y hy1 hy2 hy3 hy
+    rw [hy2, hy3] at hy1
+    exact (FiniteBundleAtlas.coord_hom_zeroOnePartL_apply_I_smul_iff _ J hy (hK1 i hy) _).1 hy1
+  · have hDu := (twistCoreAtlas 1).sectionChartData.hasWeakFDerivOn_chartValueL_chartDerivDataL
+      volume 2 0 i w
+    refine (FiniteBundleAtlas.ae_image_tangentHom_iff (twistCoreAtlas 1) volume i).2 ?_
+    filter_upwards [h i hDu, hΦ i, hcov i hDu,
+      ae_restrict_mem ((twistCoreAtlas 1).image i).isOpen.measurableSet] with y hy1 hy2 hy3 hy
+    rw [hy2, hy3]
+    exact (FiniteBundleAtlas.coord_hom_zeroOnePartL_apply_I_smul_iff _ J hy (hK1 i hy) _).2 hy1
 
 /-- **`D_J` in the frame of a chart.** Let `e = (twistCore 1).localTriv y` be the trivialization
 of `𝒪(1)` at `y`, `φ p = (e ⟨p, s p⟩).2` the coordinate of a section `s` in it, and `e₀` the frame
@@ -281,3 +378,5 @@ theorem exists_trivialization_analyticAt_of_mem_twistOneKernel {s : OnePoint ℂ
       VectorBundleOrientation.mapOrientation_complex_of_isLinear e hx]
 
 end SymplecticGeometry
+
+end
