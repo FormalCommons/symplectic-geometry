@@ -97,10 +97,13 @@ The cut-off Moser field `Y` on `P × ℝ` (`SymplecticGeometry.prodIccMoserField
 `ω̃₀ + s • dσ̃`, the one-form `σ̃` pulled back along `Prod.snd`, and a cutoff `ρ` on
 `ℝ × (P × ℝ)`, such as the one of `IsCouplingForm.exists_cutoff_prodIccExtension_add_smul`. It is
 jointly smooth when `ρ` is smooth and the slices are nondegenerate on its support
-(`SymplecticGeometry.contMDiff_moserField_lineMapFamily`), and for `ρ` with compact support it
-vanishes outside a compact set (`SymplecticGeometry.exists_isCompact_moserField_eq_zero`), both
-of `Moser/Field.lean`. It is carried to itself by the differential of `(x, t) ↦ (op z • x, t)`
-when `ρ` is invariant (`IsCouplingForm.mfderiv_smul_prodIccMoserField`, from
+(`SymplecticGeometry.contMDiff_prodIccMoserField`, from
+`SymplecticGeometry.contMDiff_moserField_lineMapFamily`), and for `ρ` with compact support it
+vanishes outside a compact set
+(`SymplecticGeometry.exists_isCompact_prodIccMoserField_eq_zero`, from
+`SymplecticGeometry.exists_isCompact_moserField_eq_zero`). It is carried to itself by the
+differential of `(x, t) ↦ (op z • x, t)` when `ρ` is invariant
+(`IsCouplingForm.mfderiv_smul_prodIccMoserField`, from
 `SymplecticGeometry.mfderiv_moserField`). Finally `de (Y_s) = 0` at every point: Cartan's
 formula for the invariant `σ̃`, which vanishes on `(X, 0)`, gives `ι_{(X, 0)} dσ̃ = 0`
 (`IsCouplingForm.mextDerivₗ_timeExtendIcc_prodIccHomotopyOperator_sub_apply_prodVectorField`),
@@ -635,6 +638,39 @@ theorem _root_.SymplecticGeometry.prodIccMoserField_def (ω₀ ω₁ :
             (ω₁ - ω₀)))) ρ :=
   (rfl)
 
+omit [∀ b, MulAction Circleᵐᵒᵖ (P b)] [PrincipalBundle Circle P] in
+/-- For a cutoff `ρ` with compact support, the cut-off Moser field
+`SymplecticGeometry.prodIccMoserField ω₀ ω₁ ρ` vanishes, at every time, outside a compact subset
+of `P × ℝ`. -/
+theorem _root_.SymplecticGeometry.exists_isCompact_prodIccMoserField_eq_zero (ω₀ ω₁ :
+      SmoothTwoForm ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (ManifoldTotalSpace Circle P × Icc a b))
+    {ρ : ℝ × (ManifoldTotalSpace Circle P × ℝ) → ℝ} (hρ : HasCompactSupport ρ) :
+    ∃ K : Set (ManifoldTotalSpace Circle P × ℝ), IsCompact K ∧
+      ∀ s, ∀ p ∉ K, prodIccMoserField ω₀ ω₁ ρ s p = 0 := by
+  rw [prodIccMoserField_def]
+  exact exists_isCompact_moserField_eq_zero hρ
+
+omit [∀ b, MulAction Circleᵐᵒᵖ (P b)] [PrincipalBundle Circle P] in
+/-- The cut-off Moser field `(s, p) ↦ Y_s(p)` (`SymplecticGeometry.prodIccMoserField ω₀ ω₁ ρ`)
+is jointly smooth on `ℝ × (P × ℝ)` when `ρ` is smooth and the slice `ω̃₀ + s • dσ̃` is
+nondegenerate at `p` for every point `(s, p)` of the support of `ρ`. -/
+theorem _root_.SymplecticGeometry.contMDiff_prodIccMoserField [FiniteDimensional ℝ EB] (ω₀ ω₁ :
+      SmoothTwoForm ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (ManifoldTotalSpace Circle P × Icc a b))
+    {ρ : ℝ × (ManifoldTotalSpace Circle P × ℝ) → ℝ}
+    (hρ : ContMDiff (𝓘(ℝ, ℝ).prod ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ))) 𝓘(ℝ) ∞ ρ)
+    (hnd : ∀ p ∈ tsupport ρ,
+      ((prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀ +
+        p.1 • mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 (SmoothForm.timeExtendIcc
+          (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
+            (ω₁ - ω₀)))).bilinFormAt p.2).Nondegenerate) :
+    ContMDiff (𝓘(ℝ, ℝ).prod ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)))
+      ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)).tangent ∞
+      (fun p : ℝ × (ManifoldTotalSpace Circle P × ℝ) ↦
+        (⟨p.2, prodIccMoserField ω₀ ω₁ ρ p.1 p.2⟩ :
+          TangentBundle ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) (ManifoldTotalSpace Circle P × ℝ))) := by
+  rw [prodIccMoserField_def]
+  exact contMDiff_moserField_lineMapFamily _ _ _ hρ hnd
+
 /-- **The cut-off Moser field preserves the extended height.** Let `ω₀` and `ω₁` be coupling
 forms for the same family. For any cutoff `ρ`, the cut-off Moser field `Y_s`
 (`SymplecticGeometry.prodIccMoserField`) is killed at every point by `de`, where `e` is the
@@ -705,7 +741,8 @@ theorem mfderiv_smul_prodIccMoserField (h₀ : IsCouplingForm ω₀ τ)
   set g := (Diffeomorph.constSmul (M := ManifoldTotalSpace Circle P) (IB.prod (𝓡 1)) ∞
     (op z)).prodCongr (Diffeomorph.refl 𝓘(ℝ, ℝ) ℝ ∞)
   have hg : ⇑g = fun x : ManifoldTotalSpace Circle P × ℝ ↦ (op z • x.1, x.2) := by
-    simp only [g, Diffeomorph.coe_prodCongr_refl, Diffeomorph.coe_constSmul]
+    funext x
+    simp only [g, Diffeomorph.prodCongr_refl_right_apply, Diffeomorph.coe_constSmul]
   have hW : SmoothForm.mpullback g g.contMDiff W = W :=
     (SmoothForm.mpullback_congr _ _ hg W).trans
       (mpullback_smul_prodIccExtension z (h₀.mpullback_smul z))
@@ -741,7 +778,8 @@ theorem timeDependentFlowOf_prodIccMoserField_smul
   set g := (Diffeomorph.constSmul (M := ManifoldTotalSpace Circle P) (IB.prod (𝓡 1)) ∞
     (op z)).prodCongr (Diffeomorph.refl 𝓘(ℝ, ℝ) ℝ ∞)
   have hg : ⇑g = fun x : ManifoldTotalSpace Circle P × ℝ ↦ (op z • x.1, x.2) := by
-    simp only [g, Diffeomorph.coe_prodCongr_refl, Diffeomorph.coe_constSmul]
+    funext x
+    simp only [g, Diffeomorph.prodCongr_refl_right_apply, Diffeomorph.coe_constSmul]
   have h := g.apply_timeDependentFlowOf (by simp) hX (fun u y ↦ by
     rw [hg]
     exact mfderiv_smul_prodIccMoserField h₀ h₁ z hρ u y) s t p
@@ -763,9 +801,7 @@ theorem timeDependentFlowOf_prodIccMoserField_snd
           TangentBundle ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) (ManifoldTotalSpace Circle P × ℝ))))
     (s u : ℝ) (x : ManifoldTotalSpace Circle P) (t : Icc a b) :
     (timeDependentFlowOf (prodIccMoserField ω₀ ω₁ ρ) s u (x, t)).2 = t := by
-  obtain ⟨K, hK, hXK⟩ : ∃ K, IsCompact K ∧ ∀ v, ∀ y ∉ K, prodIccMoserField ω₀ ω₁ ρ v y = 0 := by
-    rw [prodIccMoserField_def]
-    exact exists_isCompact_moserField_eq_zero hρ
+  obtain ⟨K, hK, hXK⟩ := exists_isCompact_prodIccMoserField_eq_zero ω₀ ω₁ hρ
   exact timeDependentFlowOf_snd_eq_of_forall_snd_eq_zero hX hK hXK
     (fun v y ↦ prodIccMoserField_snd_eq_zero h₀ h₁ ρ v y t) s u x
 
