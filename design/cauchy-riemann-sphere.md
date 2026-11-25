@@ -443,8 +443,9 @@ Issue 6:
 
 - `twistOneDelBarSobolev J k : SobolevSection A volume 2 (k + 1) →L[ℝ] zeroOneSobolevSections A volume 2 k`,
   the composite of Decision 2, from issues 2 and 3;
-  `twistOneDelBarSobolev_ofContMDiffSection`: it is `twistOneDelBar J` on
-  smooth sections.
+  `chartValueL_twistOneDelBarSobolev_ofContMDiffSection_ae_coord`: on a
+  smooth section, its chart data agree a.e. with the chart readings of the
+  `(0,1)`-part for $i$ of `twistOneDelBar J`.
 - `continuous_twistOneDelBarSobolev`: for every `k`,
   `J ↦ twistOneDelBarSobolev J k` is continuous from $\mathcal J_\sigma$
   with any covering frame topology to the operator norm.
