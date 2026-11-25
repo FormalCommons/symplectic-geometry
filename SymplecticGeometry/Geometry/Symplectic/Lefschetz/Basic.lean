@@ -16,7 +16,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.CriticalSet
 public import SymplecticGeometry.Geometry.Symplectic.Lefschetz.Model
 public import TauCeti.Geometry.Manifold.RegularValue.Open
-import SymplecticGeometry.Topology.Connected.Projectivization
+import TauCeti.Geometry.Manifold.Connected
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 
 /-!
@@ -58,6 +58,8 @@ the restriction of `J` is integrable (`IsLefschetzChart.isIntegrable_on`), and `
   target of a Lefschetz chart `φ`.
 * `SymplecticGeometry.IsLefschetzFibration.isIntegrable_on`: every critical point of a Lefschetz
   fibration has an open neighbourhood on which `J` is integrable.
+* `SymplecticGeometry.IsLefschetzChart.eqOn_source`: on the source of a Lefschetz chart `φ`,
+  `π` is the inverse affine chart composed with the shifted quadric and with `φ`.
 * `SymplecticGeometry.IsLefschetzChart.isRegularPoint`: in the source of a Lefschetz chart `φ`,
   every point at which `φ` does not vanish is a regular point of `π`.
 * `SymplecticGeometry.IsLefschetzFibration.isDiscrete_criticalSet` and
@@ -66,7 +68,7 @@ the restriction of `J` is integrable (`IsLefschetzChart.isIntegrable_on`), and `
 * `SymplecticGeometry.IsLefschetzFibration.isOpen_regularValue` and
   `SymplecticGeometry.IsLefschetzFibration.isConnected_regularValue`: for compact `X`, the regular
   values form an open connected subset of `ℂℙ¹`, the complement of finitely many critical values
-  (`Projectivization.isConnected_compl_of_countable`).
+  (Tau Ceti's `TauCeti.isConnected_compl_of_finite_of_one_lt_rank`).
 
 ## References
 
@@ -149,6 +151,21 @@ theorem isIntegrable_on (h : IsLefschetzChart J π p φ i) :
     (J.restrictOpen ⟨φ.source, φ.open_source⟩).IsIntegrable :=
   J.isIntegrable_restrictOpen_source fun _ hy ↦ h.mfderiv_apply hy
 
+/-- **The local form of `π` in a Lefschetz chart**: on the source of `φ`, `π` is the inverse of
+the affine chart `affineChart i` composed with `w ↦ affineChart i (π p) 0 + quadric w` and
+with `φ`. -/
+theorem eqOn_source (h : IsLefschetzChart J π p φ i) :
+    EqOn π ((affineChart i).symm ∘
+      (fun w _ ↦ affineChart i (π p) 0 + LefschetzModel.quadric w) ∘ φ) φ.source := by
+  intro x hx
+  have hmem : π x ∈ (affineChart (K := ℂ) i).source := by
+    rw [affineChart_source]
+    exact h.source_subset hx
+  rw [Function.comp_apply, Function.comp_apply, ← (affineChart i).left_inv hmem]
+  congr 1
+  funext j
+  rw [Subsingleton.elim j 0, h.affineChart_apply _ hx]
+
 /-- **`π` is holomorphic in a Lefschetz chart**: on the target of `φ`, the map `π ∘ φ⁻¹` from
 `ℂ²` to `ℂℙ¹` is a smooth map of complex manifolds. -/
 theorem contMDiffAt_comp_symm (h : IsLefschetzChart J π p φ i) {z : Fin 2 → ℂ}
@@ -160,16 +177,9 @@ theorem contMDiffAt_comp_symm (h : IsLefschetzChart J π p φ i) {z : Fin 2 → 
   have heq : π ∘ φ.symm =ᶠ[𝓝 z] (affineChart i).symm ∘ g := by
     filter_upwards [φ.open_target.mem_nhds hz] with w hw
     have hx : φ.symm w ∈ φ.source := φ.toPartialEquiv.map_target hw
-    have hmem : π (φ.symm w) ∈ (affineChart (K := ℂ) i).source := by
-      rw [affineChart_source]
-      exact h.source_subset hx
-    have hc : affineChart i (π (φ.symm w)) = g w := by
-      funext j
-      rw [Subsingleton.elim j 0, h.affineChart_apply _ hx]
-      simp only [g]
-      rw [show φ (φ.symm w) = w from φ.toPartialEquiv.right_inv hw]
+    have hw' : φ (φ.symm w) = w := φ.toPartialEquiv.right_inv hw
     simp only [Function.comp_apply]
-    rw [← hc, (affineChart i).left_inv hmem]
+    rw [h.eqOn_source hx, Function.comp_apply, Function.comp_apply, hw']
   exact ((contMDiff_affineChart_symm i ∞).contMDiffAt.comp z hg.contMDiff.contMDiffAt
     ).congr_of_eventuallyEq heq
 
@@ -187,17 +197,8 @@ theorem isRegularPoint (h : IsLefschetzChart J π p φ i) {x : X} (hx : x ∈ φ
     (hx0 : φ x ≠ 0) : IsRegularPoint I 𝓘(ℝ, Fin 1 → ℂ) π x := by
   let q : (Fin 2 → ℂ) → ℂ := fun w ↦ affineChart i (π p) 0 + LefschetzModel.quadric w
   let e := (ContinuousLinearEquiv.funUnique (Fin 1) ℝ ℂ).symm
-  have heq : π =ᶠ[𝓝 x] ((affineChart i).symm ∘ e ∘ q) ∘ φ := by
-    filter_upwards [φ.open_source.mem_nhds hx] with y hy
-    have hc : affineChart i (π y) = e (q (φ y)) := by
-      rw [ContinuousLinearEquiv.coe_funUnique_symm]
-      funext j
-      rw [Subsingleton.elim j 0, h.affineChart_apply _ hy, Function.const_apply]
-    have hmem : π y ∈ (affineChart (K := ℂ) i).source := by
-      rw [affineChart_source]
-      exact h.source_subset hy
-    simp only [Function.comp_apply]
-    rw [← hc, (affineChart i).left_inv hmem]
+  have heq : π =ᶠ[𝓝 x] ((affineChart i).symm ∘ e ∘ q) ∘ φ :=
+    eventually_of_mem (φ.open_source.mem_nhds hx) fun y hy ↦ h.eqOn_source hy
   refine IsRegularPoint.congr_of_eventuallyEq ?_ heq
   refine ((PartialDiffeomorph.isLocalDiffeomorphAt _ _ _ φ hx).isRegularPoint_comp_iff
     (by simp)).2 ((IsRegularPoint.comp ?_ ((e.comp_isRegularPoint_iff).2 ?_)))
@@ -258,8 +259,8 @@ the complement in `ℂℙ¹` of the finitely many critical values. -/
 theorem isConnected_regularValue [CompactSpace X] (h : IsLefschetzFibration ω J π) :
     IsConnected {y | IsRegularValue I 𝓘(ℝ, Fin 1 → ℂ) π y} := by
   rw [setOf_isRegularValue_eq_compl_image, ← criticalSet_def]
-  refine isConnected_compl_of_countable ?_ (h.finite_criticalPoints.image π).countable
-  simp [rank_pi]
+  exact isConnected_compl_of_finite_of_one_lt_rank (E := Fin 1 → ℂ) (by simp [rank_pi])
+    (h.finite_criticalPoints.image π)
 
 end IsLefschetzFibration
 
