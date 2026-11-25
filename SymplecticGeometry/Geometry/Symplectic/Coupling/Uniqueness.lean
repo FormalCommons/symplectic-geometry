@@ -102,8 +102,8 @@ when `ρ` is invariant (`IsCouplingForm.mfderiv_smul_moserField_lineMapFamily_pr
 from `SymplecticGeometry.mfderiv_moserField`). Finally `de (Y_s) = 0` at every point: Cartan's
 formula for the invariant `σ̃`, which vanishes on `(X, 0)`, gives `ι_{(X, 0)} dσ̃ = 0`
 (`IsCouplingForm.mextDerivₗ_timeExtendIcc_prodIccHomotopyOperator_sub_apply_prodVectorField`),
-so, where the slice is nondegenerate, `-de (Y_s) = (ω̃₀ + s • dσ̃) ((X, 0), Y_s)` equals
-`ρ (s, p) σ̃ (X, 0) = 0`, and elsewhere `Y_s = 0`
+so, where the flat map of the slice is invertible,
+`-de (Y_s) = (ω̃₀ + s • dσ̃) ((X, 0), Y_s)` equals `ρ (s, p) σ̃ (X, 0) = 0`, and elsewhere `Y_s = 0`
 (`IsCouplingForm.mextDerivₗ_timeExtendIcc_prodIccHeight_apply_moserField`). As `de = dt` over
 `[a, b]`, the field has no component along `ℝ` there
 (`IsCouplingForm.moserField_lineMapFamily_prodIccExtension_snd_eq_zero`).
@@ -628,7 +628,7 @@ theorem mextDerivₗ_timeExtendIcc_prodIccHeight_apply_moserField (h₀ : IsCoup
       simp only [SmoothTwoForm.flat_apply, SmoothBundleForm.eval₂_apply,
         neg_apply, SmoothForm.degreeOneEquiv_apply_apply] at h
       refine h.trans (neg_eq_zero.mpr ?_)
-      exact (congrArg _ (by funext i; fin_cases i; rfl)).trans
+      exact (congrArg _ (Matrix.vec_single_eq_const X).symm).trans
         (timeExtendIcc_prodIccHomotopyOperator_sub_apply_prodVectorField h₀ h₁ p)
     rw [ContinuousAlternatingMap.apply_vecCons_swap, Submodule.coe_add, Pi.add_apply,
       ContinuousAlternatingMap.add_apply, Submodule.coe_smul, Pi.smul_apply,
