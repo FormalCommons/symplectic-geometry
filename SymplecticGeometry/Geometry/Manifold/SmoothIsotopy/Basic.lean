@@ -7,6 +7,8 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.CodRestrict
 public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Opens
+public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Basic
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 public import TauCeti.Geometry.Manifold.SmoothIsotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Comp
@@ -14,7 +16,7 @@ import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 
 /-!
-# Restricting and postcomposing smooth isotopies
+# Restricting and composing smooth isotopies
 
 Three operations on a smooth isotopy `F : [0, 1] × P → M` of embeddings
 (`TauCeti.SmoothIsotopy`), each of which keeps the motion and changes its source or its target:
@@ -31,6 +33,10 @@ Three operations on a smooth isotopy `F : [0, 1] × P → M` of embeddings
   smooth embeddings (`Manifold.IsSmoothEmbedding.comp_of_boundaryless`). As in Tau Ceti's
   `postcomp`, the endpoints are given as bundled maps that agree with `e ∘ f₀` and `e ∘ f₁`.
 
+The file also makes a smooth isotopy out of a smooth embedding `f : P → M` and a diffeotopy `Φ`
+of `P`: the motion `(t, x) ↦ f (Φ (t, x))`. Its construction follows Tau Ceti's
+`TauCeti.Diffeotopy.smoothIsotopy`, which moves `f` by a diffeotopy of `M` instead.
+
 ## Main definitions
 
 * `TauCeti.SmoothIsotopy.restrict G h`: the restriction of an isotopy `G` of an open `W ⊆ P` to
@@ -39,6 +45,8 @@ Three operations on a smooth isotopy `F : [0, 1] × P → M` of embeddings
   an isotopy into `U`.
 * `TauCeti.SmoothIsotopy.postcompSmoothEmbedding F e he hn g₀ g₁ hg₀ hg₁`: the isotopy
   `(t, x) ↦ e (F (t, x))`, from `g₀ = e ∘ f₀` to `g₁ = e ∘ f₁`.
+* `TauCeti.Diffeotopy.precompSmoothIsotopy Φ f`: the isotopy `(t, x) ↦ f (Φ (t, x))` of a smooth
+  embedding `f` by a diffeotopy `Φ` of its source, from `f` to `f ∘ Φ₁`.
 -/
 
 public noncomputable section
@@ -140,5 +148,36 @@ theorem postcompSmoothEmbedding_apply (F : SmoothIsotopy f₀ f₁) (e : M → Q
 end Postcomp
 
 end TauCeti.SmoothIsotopy
+
+
+/-! ### Precomposition with a diffeotopy of the source -/
+
+namespace TauCeti.Diffeotopy
+
+variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {J : ModelWithCorners ℝ E' H'} {P : Type*} [TopologicalSpace P] [ChartedSpace H' P]
+  {n : ℕ∞ω} [IsManifold J n P]
+
+/-- The smooth isotopy `(t, x) ↦ f (Φ (t, x))` of a smooth embedding `f : P → M` given by a
+diffeotopy `Φ` of its source, from `f` to `f ∘ Φ₁`. It is the source-side counterpart of Tau
+Ceti's `TauCeti.Diffeotopy.smoothIsotopy`, which moves `f` by a diffeotopy of its target. -/
+def precompSmoothIsotopy (Φ : Diffeotopy J n P) (f : SmoothEmbedding J I n P M) :
+    SmoothIsotopy f.toContMDiffMap (f.compDiffeomorph Φ.final).toContMDiffMap where
+  toContMDiffMap := ⟨fun p ↦ f (Φ p), f.contMDiff.comp Φ.contMDiff⟩
+  map_zero_left x := congrArg f (Φ.apply_zero x)
+  map_one_left x := by simp [Φ.final_apply]
+  isSmoothEmbedding t := by
+    dsimp
+    simpa only [Function.comp_def, Diffeotopy.timeSlice_apply] using
+      isSmoothEmbedding_comp_diffeomorph (Φ.timeSlice t) f.isSmoothEmbedding
+
+@[simp]
+theorem precompSmoothIsotopy_apply (Φ : Diffeotopy J n P) (f : SmoothEmbedding J I n P M)
+    (p : unitInterval × P) : Φ.precompSmoothIsotopy f p = f (Φ p) :=
+  (rfl)
+
+end TauCeti.Diffeotopy
 
 end
