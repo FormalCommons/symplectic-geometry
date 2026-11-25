@@ -39,10 +39,10 @@ what makes the Moser flow fix `x` to first order ([McDuffSalamon2017], §3.2;
 * `TauCeti.SmoothTwoForm.mfderiv_flat_mpullback_inverse_apply`: inverse flat maps commute with
   smooth maps whose differential is invertible at the point, the form being pulled back and the
   covector composed with the differential.
-* `TauCeti.SmoothTwoForm.contMDiffAt_sectionAlong_flat_inverse_apply` and
-  `TauCeti.SmoothTwoForm.contMDiffAt_flat_inverse_apply`: the field `(σ♭)⁻¹ c`, for a family of
-  two-forms along a map or for one two-form, is smooth where `c` and the forms are and the flat
-  map is invertible.
+* `TauCeti.SmoothTwoForm.contMDiffAt_sectionAlong_flat_inverse_apply`: the field `(σ♭)⁻¹ c`, for
+  a family of two-forms along a map, is smooth where `c` and the forms are and the flat map is
+  invertible. For a single two-form, Tau Ceti's `TauCeti.SmoothTwoForm.contMDiffAt_inverse_flat`
+  gives the smoothness of `(σ♭)⁻¹` at such a point.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.hasFDerivAt_mpullbackWithin_interiorEquiv_symm`: the
   coordinate expression of `(σ♭)⁻¹ β` has zero derivative where `β` vanishes to first order.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.orthogonal_flat` and
@@ -56,10 +56,10 @@ what makes the Moser flow fix `x` to first order ([McDuffSalamon2017], §3.2;
   `σ♭_{f q}` and `σ(C ·, ·)` at `f q` are smooth sections of the bundle of bilinear forms on
   the pull-back `f *ᵖ TM`.
 
-The smoothness lemmas take the argument by which Tau Ceti's
+The smoothness lemma takes the argument by which Tau Ceti's
 `TauCeti.SmoothTwoForm.IsNondegenerate.interiorEquiv` shows that its inverse is smooth
-(`ContMDiffAt.clm_bundle_inverse`, then `ContMDiffAt.clm_bundle_apply`) and make it
-pointwise.
+(`ContMDiffAt.clm_bundle_inverse`, then `ContMDiffAt.clm_bundle_apply`) and makes it
+pointwise, for a family of two-forms along a map.
 
 The proof of `hasFDerivAt_mpullbackWithin_interiorEquiv_symm` adapts Tau Ceti's private
 `hasFDerivAt_mpullbackWithin_moserField`
@@ -132,18 +132,6 @@ theorem contMDiffAt_sectionAlong_flat_inverse_apply {EN HN N : Type*} [NormedAdd
   (ContMDiffAt.clm_bundle_inverse (x := m₀) (b := b) (E₁ := TangentSpace I)
     (E₂ := fun x : M ↦ TangentSpace I x →L[ℝ] ℝ) (ϕ := fun m ↦ (σ m).flat (b m))
     (contMDiffAt_sectionAlong_flat hσ) hinv).clm_bundle_apply hc
-
-/-- **Inverse flat maps of a covector field.** If the covector field `c` is `C^n` at `x`, with
-`n ≤ ∞`, and the flat map of `σ` at `x` is invertible, then the vector field
-`y ↦ (σ♭_y)⁻¹ (c y)` is `C^n` at `x`. -/
-theorem contMDiffAt_flat_inverse_apply {n : WithTop ℕ∞} (hn : n ≤ ∞)
-    {c : (x : M) → TangentSpace I x →L[ℝ] ℝ} {x : M} (hinv : (σ.flat x).IsInvertible)
-    (hc : ContMDiffAt I (I.prod 𝓘(ℝ, E →L[ℝ] ℝ)) n
-      (fun y ↦ TotalSpace.mk' (E →L[ℝ] ℝ) (E := fun y : M ↦ TangentSpace I y →L[ℝ] ℝ) y (c y))
-      x) :
-    ContMDiffAt I I.tangent n (fun y ↦ (⟨y, (σ.flat y).inverse (c y)⟩ : TangentBundle I M)) x :=
-  contMDiffAt_sectionAlong_flat_inverse_apply (b := id) (σ := fun _ ↦ σ)
-    ((σ.contMDiff x).of_le hn) hinv hc
 
 end FlatInverse
 
