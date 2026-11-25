@@ -5,11 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Comm
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
 public import TauCeti.Geometry.Lie.Adjoint.Basic
+public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.VectorField
-public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.MapCoeff
 public import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 public import TauCeti.Topology.Algebra.Lie.Bracket
 
@@ -39,11 +40,12 @@ of a principal bundle, `A` is usually a connection form.
   connection form is equivariant, `R_g^* F_A = Ad(g⁻¹) ∘ F_A`.
 * `SymplecticGeometry.connectionCurvature_apply_horizontal`: the structure equation
   `F_A(X, Y) = -A([X, Y])` at a point near which the vector fields `X` and `Y` are horizontal,
-  that is, near which `A` vanishes on them.
+  that is, near which `A` vanishes on them. The bracket `[X, Y]` is the usual one, Mathlib's
+  `VectorField.mlieBracket`, as in Guillemin–Lerman–Sternberg. McDuff–Salamon's bracket of
+  vector fields is its negative, so their structure equation has no minus sign; the formula
+  `F_A = d A + ½ [A ∧ A]` is the same in both conventions.
 * `SymplecticGeometry.connectionCurvature_add`: the curvature of `A + a` is
   `F_A + d a + [A ∧ a] + ½ [a ∧ a]`.
-* `TauCeti.SmoothForm.wedgeWith_one_one_comm_of_anticomm`: for an antisymmetric pairing, the
-  paired wedge of two one-forms is symmetric.
 
 ## Implementation notes
 
@@ -55,6 +57,8 @@ statements of this file need `open scoped GroupLieAlgebra` and that instance.
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §6.3
   (connection forms on principal bundles and their curvature).
+* [V. Guillemin, E. Lerman, S. Sternberg, *Symplectic Fibrations and Multiplicity
+  Diagrams*][GuilleminLermanSternberg1996], §1.3 (the sign of the bracket of vector fields).
 * S. Kobayashi and K. Nomizu, *Foundations of Differential Geometry*, Vol. I, Interscience, 1963,
   Chapter II, §5 (the curvature form and the structure equation).
 -/
@@ -67,29 +71,6 @@ open Bundle Manifold MulOpposite TauCeti TauCeti.Lie VectorField Filter
 open scoped Manifold ContDiff GroupLieAlgebra Topology
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
-
-namespace TauCeti.SmoothForm
-
-variable {E H M F₁ F₃ : Type*}
-  [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  [TopologicalSpace M] [ChartedSpace H M] {I : ModelWithCorners ℝ E H}
-  [NormedAddCommGroup F₁] [NormedSpace ℝ F₁] [NormedAddCommGroup F₃] [NormedSpace ℝ F₃]
-  [IsManifold I 1 M]
-
-/-- For an antisymmetric pairing `μ`, such as a Lie bracket, the paired wedge of two one-forms is
-symmetric: `φ ∧_μ ψ = ψ ∧_μ φ`. -/
-theorem wedgeWith_one_one_comm_of_anticomm (μ : F₁ →L[ℝ] F₁ →L[ℝ] F₃)
-    (hμ : ∀ a b, μ a b = -μ b a)
-    (φ ψ : SmoothForm I M F₁ 1) : wedgeWith μ φ ψ = wedgeWith μ ψ φ := by
-  refine Subtype.ext (funext fun x ↦ ContinuousAlternatingMap.ext fun v ↦ ?_)
-  have hv : v = ![v 0, v 1] := by
-    ext i
-    fin_cases i <;> rfl
-  rw [hv, wedgeWith_apply_one_one, wedgeWith_apply_one_one, hμ (φ.val x ![v 0]),
-    hμ (φ.val x ![v 1])]
-  abel
-
-end TauCeti.SmoothForm
 
 namespace SymplecticGeometry
 
@@ -146,13 +127,9 @@ theorem connectionCurvature_mapCoeff (L : GroupLieAlgebra IG G →L[ℝ] GroupLi
     connectionCurvature (SmoothForm.mapCoeff L A) =
       SmoothForm.mapCoeff L (connectionCurvature A) := by
   rw [connectionCurvature_def, connectionCurvature_def, map_add, map_smul,
-    SmoothForm.mextDerivₗ_mapCoeff, SmoothForm.mapCoeff_wedgeWith_mapCoeff]
+    SmoothForm.mextDerivₗ_mapCoeff]
   congr 2
-  -- `mapCoeff_wedgeWith_eq_postcomp` is stated in degree `1 + 1`, the curvature in degree `2`.
-  refine Eq.trans ?_ (SmoothForm.mapCoeff_wedgeWith_eq_postcomp L _ A A).symm
-  refine congrArg (fun μ ↦ SmoothForm.wedgeWith μ A A) ?_
-  ext a b
-  simp [hL]
+  exact (SmoothForm.mapCoeff_wedgeWith _ _ L L L (fun a b ↦ by simp [hL]) A A).symm
 
 /-- **The curvature of a connection form is equivariant**: its pull-back by the action of `g` is
 its image under `Ad(g⁻¹)`. -/
@@ -173,7 +150,9 @@ theorem IsConnectionForm.mpullback_op_smul_connectionCurvature {EB HB B : Type*}
 
 /-- **The structure equation.** If the vector fields `X` and `Y` are differentiable at `x` and
 horizontal for `A` near `x`, that is, `A` vanishes on them near `x`, then the curvature of `A` on
-them at `x` is `-A([X, Y](x))`. -/
+them at `x` is `-A([X, Y](x))`. Here `[X, Y]` is the usual bracket, Mathlib's `mlieBracket`, as in
+Guillemin–Lerman–Sternberg; McDuff–Salamon's bracket is its negative, so their structure equation
+has no minus sign. -/
 theorem connectionCurvature_apply_horizontal (A : SmoothForm IM M (GroupLieAlgebra IG G) 1)
     {X Y : (y : M) → TangentSpace IM y} {x : M}
     (hX : MDifferentiableAt IM IM.tangent (fun y ↦ (X y : TangentBundle IM M)) x)
