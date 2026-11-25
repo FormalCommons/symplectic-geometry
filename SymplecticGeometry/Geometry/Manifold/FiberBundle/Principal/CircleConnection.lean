@@ -11,7 +11,6 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.MapCoeff
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Curvature
 public import TauCeti.Geometry.Manifold.DeRham.Circle
-public import TauCeti.Geometry.Manifold.DifferentialForm.LieDeriv
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Submersion
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
@@ -58,10 +57,6 @@ connection form is `θ^* dθ + π^* (σ^* α)`. The existence of connection form
   `α` is a circle connection form.
 * `SymplecticGeometry.connectionCurvature_mapCoeff_toSpanSingleton_circleLieGenerator`: for every
   real one-form `α` on a manifold, the curvature of `α ξ₀` is `(dα) ξ₀`.
-
-* `SymplecticGeometry.mlieDerivForm_rightFundamentalVectorField_circleLieGenerator_eq_zero`: an
-  invariant form has vanishing Lie derivative along the fundamental vector field of `1`, the
-  case `G = Circle` of `TauCeti.PrincipalBundle.mlieDerivForm_rightFundamentalVectorField_eq_zero`.
 * `SymplecticGeometry.IsCircleConnectionForm.mpullback_curvature`,
   `SymplecticGeometry.IsCircleConnectionForm.curvature_eq_iff`: the curvature is the unique form on
   the base whose pull-back is `d α`.
@@ -219,18 +214,6 @@ theorem connectionCurvature_mapCoeff_toSpanSingleton_circleLieGenerator
 section Curvature
 
 variable [IB.Boundaryless]
-
-/-- A form on the total space of a principal `Circle`-bundle that is invariant under the action
-has vanishing Lie derivative along the fundamental vector field of `1`: the case of `Circle` and
-`circleLieGenerator` of `TauCeti.PrincipalBundle.mlieDerivForm_rightFundamentalVectorField_eq_zero`.
--/
-theorem mlieDerivForm_rightFundamentalVectorField_circleLieGenerator_eq_zero {k : ℕ}
-    {β : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ k}
-    (hβ : ∀ z : Circle, SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P ↦ op z • x)
-      (contMDiff_const_smul (op z)) β = β) :
-    mlieDerivForm (rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator) β.val =
-      0 :=
-  PrincipalBundle.mlieDerivForm_rightFundamentalVectorField_eq_zero hβ circleLieGenerator
 
 /-- The exterior derivative of a connection form is basic for the projection. -/
 theorem IsCircleConnectionForm.isBasic_mextDerivₗ (hα : IsCircleConnectionForm α) {n : ℕ∞ω} :
