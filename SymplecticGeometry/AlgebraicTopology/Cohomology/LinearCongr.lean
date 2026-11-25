@@ -17,7 +17,9 @@ being definitionally equal: `ModuleCat ℤ` has Mathlib's `ModuleCat.instLinear`
 `CategoryTheory.Linear.subsingletonInt`. For an equality `e : L₁ = L₂` of two structures,
 `TopCat.singularCohomologyLinearCongr e X R M n` is the `k`-linear equivalence between the two
 cohomology modules, Mathlib's `LinearEquiv.cast` along `e`. It is the identity for `e = rfl`,
-commutes with the maps induced by continuous maps, and carries cup products to cup products.
+agrees with `eqToHom` along the equality of the two modules, commutes with the maps induced by
+continuous maps and with changes of chain coefficients, and carries cup products to cup
+products.
 
 ## Main definitions
 
@@ -31,8 +33,12 @@ commutes with the maps induced by continuous maps, and carries cup products to c
   inverse is the change along `e.symm`, and two changes compose to the change along `e.trans e'`.
 * `TopCat.singularCohomologyLinearCongr_apply_apply`: the same composition law for two changes
   applied in turn to a class, so that `simp` closes round trips.
+* `TopCat.singularCohomologyLinearCongr_apply`: on a class it is `eqToHom` along the equality of
+  the two cohomology modules, the form in which Tau Ceti changes the linear structure.
 * `TopCat.singularCohomologyLinearCongr_naturality`: it commutes with
   `TopCat.singularCohomologyMap`.
+* `TopCat.singularCohomologyLinearCongr_singularCohomologyChainCoefficientMap`: it commutes with
+  the change of chain coefficients `TopCat.singularCohomologyChainCoefficientMap`.
 * `TopCat.singularCohomologyLinearCongr_singularCup`: it carries the cup product for one
   structure to the cup product for the other.
 -/
@@ -98,6 +104,17 @@ theorem singularCohomologyLinearCongr_apply_apply {L₁ L₂ L₃ : Linear k C} 
   subst e e'
   rfl
 
+/-- `TopCat.singularCohomologyLinearCongr e` acts on a class as `eqToHom` along the equality of
+the two cohomology modules that `e` gives, the form in which Tau Ceti changes the linear structure
+(`TopCat.singularCohomologyMap_comp_eqToHom`, `TopCat.integralCohomologyEquiv`). -/
+theorem singularCohomologyLinearCongr_apply {L₁ L₂ : Linear k C} (e : L₁ = L₂) (X : TopCat.{w})
+    (R M : C) (n : ℕ) (a : @TopCat.singularCohomology C _ _ _ R k _ L₁ M X n) :
+    singularCohomologyLinearCongr e X R M n a =
+      eqToHom (congrArg (fun L : Linear k C ↦
+        @TopCat.singularCohomology C _ _ _ R k _ L M X n) e) a := by
+  subst e
+  simp
+
 /-- **Naturality of `TopCat.singularCohomologyLinearCongr`**: it commutes with the maps induced
 by a continuous map `f : X ⟶ Y`. -/
 theorem singularCohomologyLinearCongr_naturality {L₁ L₂ : Linear k C} (e : L₁ = L₂)
@@ -107,6 +124,18 @@ theorem singularCohomologyLinearCongr_naturality {L₁ L₂ : Linear k C} (e : L
         (@TopCat.singularCohomologyMap C _ _ _ R k _ L₁ M X Y f n a) =
       @TopCat.singularCohomologyMap C _ _ _ R k _ L₂ M X Y f n
         (singularCohomologyLinearCongr e Y R M n a) := by
+  subst e
+  simp only [singularCohomologyLinearCongr_refl, LinearEquiv.refl_apply]
+
+/-- `TopCat.singularCohomologyLinearCongr` commutes with the change of chain coefficients
+`TopCat.singularCohomologyChainCoefficientMap` along a morphism `f : R' ⟶ R`. -/
+theorem singularCohomologyLinearCongr_singularCohomologyChainCoefficientMap {L₁ L₂ : Linear k C}
+    (e : L₁ = L₂) (X : TopCat.{w}) {R R' : C} (M : C) (f : R' ⟶ R) (n : ℕ)
+    (a : @TopCat.singularCohomology C _ _ _ R k _ L₁ M X n) :
+    singularCohomologyLinearCongr e X R' M n
+        (@TopCat.singularCohomologyChainCoefficientMap C _ _ _ R R' X k _ L₁ M f n a) =
+      @TopCat.singularCohomologyChainCoefficientMap C _ _ _ R R' X k _ L₂ M f n
+        (singularCohomologyLinearCongr e X R M n a) := by
   subst e
   simp only [singularCohomologyLinearCongr_refl, LinearEquiv.refl_apply]
 
