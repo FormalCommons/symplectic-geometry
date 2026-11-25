@@ -121,11 +121,13 @@ parametrix glued from charts.
   `integralTopForm_inner_smul_riemannianVolumeForm_eq_inner_toL2Form`.
   `H1Form o hkl` is the completion for
   $\langle\alpha,\beta\rangle+\langle\Delta\alpha,\beta\rangle$, which is an
-  inner product by Tau Ceti's Green's formulas: the
-  `UniformSpace.Completion` of a type synonym of `SmoothForm I M ℝ k`
-  carrying `InnerProductSpace.ofCore`. The Dirichlet form
-  $\langle\Delta\alpha,\beta\rangle$ extends to a bounded bilinear form on
-  `H1Form`, and the inclusion `H1Form.toL2` is the map $J$. Gårding's
+  inner product by Tau Ceti's Green's formulas: Tau Ceti's
+  `LinearPMap.FriedrichsSpace` of the Hodge Laplacian
+  `L2Form.hodgeLaplacian o hkl`, a partial operator on `L2Form I M k` with
+  domain the smooth forms and lower bound $0$. The Dirichlet form
+  $\langle\Delta\alpha,\beta\rangle$ extends to the bounded form
+  `LinearPMap.friedrichsForm` on `H1Form`, and the inclusion
+  `LinearPMap.friedrichsInclusion` is the map $J$. Gårding's
   inequality then holds with constants $1$ and $1$, by the definition of
   the norm. Tau Ceti's `SobolevSection` is not used: it needs the model
   `𝓘(ℝ, E)`, its norm is the maximum of chart norms, which is not a Hilbert
@@ -149,7 +151,7 @@ parametrix glued from charts.
   therefore everywhere defined. Its graph is closed, since both spaces map
   continuously into distributions, so it is bounded. Composed with Tau
   Ceti's Rellich theorem with a cutoff, and summed over a partition of
-  unity, this makes `H1Form.toL2` compact.
+  unity, this makes `LinearPMap.friedrichsInclusion` compact.
 - **The Kähler identities in osculating holomorphic charts, not through
   $\nabla J=0$.** The part proves, for real forms, the first-order identity
   $[L,d^*]=-[\mathcal J,d]$. Here $L=\omega\wedge\cdot$ and $\mathcal J$ is
@@ -494,16 +496,19 @@ Named like Tau Ceti's file; used by `L2.lean`.
 
 ### `Geometry/Manifold/DeRham/Hodge/Sobolev.lean`
 
-- `H1Form o hkl`, the completion for
+- `L2Form.hodgeLaplacian o hkl`, the Hodge Laplacian as a partial operator
+  on `L2Form I M k` with domain the smooth forms, and
+  `L2Form.isSymmetricBoundedBelow_hodgeLaplacian` (lower bound $0$).
+- `H1Form o hkl`, its `LinearPMap.FriedrichsSpace`, the completion for
   $\langle\alpha,\beta\rangle+\langle\Delta\alpha,\beta\rangle$, with
-  `H1Form.ofSmooth`, `denseRange_ofSmooth`, `H1Form.toL2 : H1Form o hkl
-  →L[ℝ] L2Form I M k` extending the identity of smooth forms, and
-  `H1Form.dirichlet : H1Form o hkl →L[ℝ] H1Form o hkl →L[ℝ] ℝ` extending
-  $\langle\Delta\alpha,\beta\rangle$. Then
-  `dirichlet_ofSmooth_right`: `dirichlet u (ofSmooth φ) = ⟪toL2 u,
-  ofSmooth (Δ φ)⟫`, and `norm_sq_eq_dirichlet_add`:
-  `‖u‖ ^ 2 = dirichlet u u + ‖toL2 u‖ ^ 2`, which is Gårding's inequality.
-- `H1Form.isCompactOperator_toL2`, by the closed graph argument above, from
+  `H1Form.ofSmooth` and `denseRange_ofSmooth`; the inclusion into
+  `L2Form I M k` is `LinearPMap.friedrichsInclusion`, and the Dirichlet form
+  extending $\langle\Delta\alpha,\beta\rangle$ is
+  `LinearPMap.friedrichsForm`. Then `friedrichsForm_ofSmooth_right`: the
+  Dirichlet form against `ofSmooth φ` is the $L^2$ pairing of the image of
+  `u` with `ofSmooth (Δ φ)`. Gårding's inequality is Tau Ceti's
+  `LinearPMap.one_mul_norm_sq_le_re_friedrichsForm_add`.
+- `H1Form.isCompactOperator_friedrichsInclusion`, by the closed graph argument above, from
   `isLocallySobolev_one_of_forall_inner` and Rellich's theorem with a
   cutoff.
 
@@ -514,7 +519,7 @@ Ceti's namespace, beside its `Harmonic.lean`:
 
 - `TauCeti.finiteDimensional_harmonicForms` (an instance): from
   `finiteDimensional_ker_of_garding`, since `H1Form.ofSmooth` embeds the
-  harmonic forms into the kernel of `dirichlet`.
+  harmonic forms into the kernel of `friedrichsForm`.
 - `TauCeti.exists_mem_harmonicForms_add_hodgeLaplacian`: every smooth form
   is $h+\Delta\gamma$ with $h$ harmonic and $\gamma$ smooth. Subtract the
   $L^2$-orthogonal projection onto the finite-dimensional harmonic forms.

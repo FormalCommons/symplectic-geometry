@@ -9,7 +9,7 @@ public import TauCeti.Geometry.Contact.Darboux.Strict
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Contact.Pullback
 import SymplecticGeometry.Geometry.Contact.Standard
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 
 /-!
 # Contact Darboux charts for the form `Σᵢ pᵢ dqᵢ - dz`
@@ -102,9 +102,10 @@ theorem SmoothForm.IsContactForm.exists_strictDarbouxChart_reebVectorField_of_fi
   have hform : ∀ x ∈ chart.source, ∀ v : TangentSpace I x,
       (-innerProductContactForm V).val (chart x) ![mvfderiv I chart x v] = α.val x ![v] := by
     intro x hx v
+    have hd : mvfderiv I chart x v = σ (mvfderiv I φ x v) := by
+      rw [show ⇑chart = ⇑σ ∘ ⇑φ from funext hcoe, σ.mvfderiv_comp_apply]
     rw [hsrc] at hx
-    rw [φ.mvfderiv_trans_toDiffeomorph σ hx, ContinuousLinearMap.comp_apply,
-      ContinuousLinearEquiv.coe_coe, hcoe, ← hpb x hx, Submodule.coe_neg, Pi.neg_apply,
+    rw [hd, hcoe, ← hpb x hx, Submodule.coe_neg, Pi.neg_apply,
       ContinuousAlternatingMap.neg_apply]
     -- The vectors here lie in `V × V × ℝ` rather than in its tangent spaces, which are the same
     -- type by definition, so `hneg` and `neg_neg` are applied by `exact` rather than by `rw`.
