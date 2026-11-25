@@ -249,10 +249,10 @@ About 400 lines.
   $z\mapsto\sqrt{\varepsilon^2+\delta^2-|z|^2}\,\bar z/|z|$, with
   `norm_annulusMap`, `annulusMap_annulusMap` (an involution of
   $A(\delta,\varepsilon)$), `mapsTo_annulusMap`, the fixed radius, and
-  `annulusDiffeomorph δ ε`, a diffeomorphism of $A(\delta,\varepsilon)$.
+  `annulusDiffeomorph δ ε hδ` (for `hδ : 0 ≤ δ`), a diffeomorphism of $A(\delta,\varepsilon)$.
 - `mpullback_annulusMap`: it preserves $\omega_0$ (in polar coordinates it
   reverses both $r^2/2$ and $\theta$).
-- `prodAnnulusDiffeomorph Q δ ε`, the identity on `Q` times the annulus
+- `prodAnnulusDiffeomorph Q δ ε hδ`, the identity on `Q` times the annulus
   map, which preserves $\tau\oplus\omega_0$.
 
 About 250 lines.
