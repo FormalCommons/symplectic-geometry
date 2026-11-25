@@ -9,8 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSet.Embeddin
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
 public import TauCeti.Topology.VectorBundle.Orientation.Comap
 
-import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
-import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Linearization
 
 /-!
 # The normal bundle of the zero set of a transverse section
@@ -30,11 +29,22 @@ Over the reals, an orientation `o'` of `E'` is carried along them to a normal or
 The fibrewise isomorphism is Tau Ceti's `TauCeti.SmoothEmbedding.normalSpaceEquivOfKer` for the
 linearization read in the preferred trivialization of `E'`; it is the analogue for zero sets of
 sections of Tau Ceti's `TauCeti.SmoothEmbedding.normalSpaceEquivOfLevel` for level sets.
+Its continuity is `SymplecticGeometry.continuous_sectionLinearization_pullback`, read through the
+quotient map of the normal bundle.
+
+The orientation `SymplecticGeometry.normalOrientationOfSection` and its two lemmas,
+`SymplecticGeometry.map_normalOrientationOfSection_apply` and
+`SymplecticGeometry.normalOrientationOfSection_neg`, follow Tau Ceti's
+`TauCeti.SmoothEmbedding.diagonalNormalOrientation`,
+`TauCeti.SmoothEmbedding.diagonalNormalOrientation_map` and
+`TauCeti.SmoothEmbedding.diagonalNormalOrientation_neg`: the normal bundle structure of Tau Ceti's
+`normalSpaceFiberBundle` and `normalSpaceVectorBundle` is installed in the statement, and the
+orientation is pulled back by `TauCeti.VectorBundleOrientation.comap`.
 
 ## Main declarations
 
-* `SymplecticGeometry.tangentRange_ofTransverseSection`: the tangent range of the zero set at `z`
-  is the kernel of `L_z`.
+* `TauCeti.SmoothEmbedding.tangentRange_ofTransverseSection`: the tangent range of the zero set
+  at `z` is the kernel of `L_z`.
 * `SymplecticGeometry.normalSpaceEquivOfTransverseSection`: the isomorphism of the normal space
   of the zero set at `z` with `E'_z`, sending the normal class of `v` to `L_z v`
   (`SymplecticGeometry.normalSpaceEquivOfTransverseSection_normalClass`).
@@ -56,10 +66,6 @@ open scoped ContDiff Manifold Topology
 
 open TauCeti
 
-namespace SymplecticGeometry
-
-open SmoothEmbedding
-
 section Equiv
 
 variable {𝕜 V G X F' E : Type*} [RCLike 𝕜]
@@ -77,13 +83,9 @@ variable (hm : m ≠ 0) (hsm : ContMDiff J (J.prod 𝓘(𝕜, F')) m fun x ↦ T
   (hs : ∀ x, s x = 0 → Surjective (sectionLinearization (F := F') J _root_.id s x))
   (hE : finrank 𝕜 E + finrank 𝕜 F' = finrank 𝕜 V)
 
-/-- A point of the zero set of a transverse section is a zero of the section. -/
-theorem ofTransverseSection_apply_eq_zero (z : ↥{x : X | s x = 0}) :
-    letI := transverseZeroSetChartedSpace hm hsm hs hE
-    s (ofTransverseSection hm hsm hs hE z) = 0 := by
-  let := transverseZeroSetChartedSpace hm hsm hs hE
-  have h := mem_range_self (f := ofTransverseSection hm hsm hs hE) z
-  rwa [range_ofTransverseSection] at h
+namespace TauCeti.SmoothEmbedding
+
+open SymplecticGeometry
 
 /-- **The tangent space of the zero set as a kernel.** The tangent range of the inclusion of the
 zero set of a transverse section at `z` is the kernel of the linearization of `s` at `z`. -/
@@ -100,6 +102,12 @@ theorem tangentRange_ofTransverseSection (z : ↥{x : X | s x = 0}) :
   ext v
   rw [mem_tangentRange_iff, ← key _ (coe_ofTransverseSection hm hsm hs hE), LinearMap.mem_range]
   simp only [ContinuousLinearMap.coe_coe]
+
+end TauCeti.SmoothEmbedding
+
+namespace SymplecticGeometry
+
+open SmoothEmbedding
 
 /-- **The normal space of the zero set of a transverse section.** At a point `z` of the zero set
 of a transverse section `s`, the linearization of `s` at `z` descends to a continuous linear
@@ -176,44 +184,17 @@ theorem continuous_normalSpaceEquivOfTransverseSection :
     rw [comp_apply, normalQuotientMap_apply]
     exact congrArg (TotalSpace.mk' F' (f p.proj))
       (normalSpaceEquivOfTransverseSection_normalClass hm hsm hs hE p.proj p.snd)
-  rw [hrep, continuous_iff_continuousAt]
-  intro p₀
-  have hproj : Continuous fun p : TotalSpace V ((f : _ → X) *ᵖ (TangentSpace J)) ↦ f p.proj :=
-    (map_continuous f).comp (Pullback.continuous_proj V (TangentSpace J) f)
-  refine (FiberBundle.continuousAt_totalSpace F' _).2 ⟨hproj.continuousAt, ?_⟩
-  set e := trivializationAt F' E' (f p₀.proj)
-  -- In `e`, the fibre coordinate of `L_x v` is the derivative at `x` of the fibre coordinate `g`
-  -- of `s`, a `C^m` function on the base set of `e`.
-  set g : X → F' := fun y ↦ (e ⟨y, s y⟩).2
-  have hg (x : X) (hx : x ∈ e.baseSet) : ContMDiffAt J 𝓘(𝕜, F') m g x :=
-    ((e.contMDiffAt_iff (f := fun y ↦ TotalSpace.mk' F' y (s y)) (e.mem_source.2 hx)).1
-      (hsm x)).2
-  have key (z : ↥{x : X | s x = 0}) (hz : f z ∈ e.baseSet) (w : TangentSpace J (f z)) :
-      (e (TotalSpace.mk' F' (f z) (sectionLinearization (F := F') J _root_.id s (f z) w))).2 =
-        mfderiv J 𝓘(𝕜, F') g (f z) w := by
-    have hL := DFunLike.congr_fun (continuousLinearMapAt_comp_sectionLinearization
-      (b := _root_.id) (s := s) continuousAt_id hz ((hg _ hz).mdifferentiableAt hm)
-      (ofTransverseSection_apply_eq_zero hm hsm hs hE z)) w
-    rwa [ContinuousLinearMap.comp_apply,
-      e.continuousLinearMapAt_apply_of_mem 𝕜 (b := _root_.id (f z)) hz, mvfderiv,
-      ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
-      NormedSpace.fromTangentSpace_apply] at hL
-  have heq : (fun p : TotalSpace V ((f : _ → X) *ᵖ (TangentSpace J)) ↦ (e (TotalSpace.mk' F'
-      (f p.proj) (sectionLinearization (F := F') J _root_.id s (f p.proj) p.snd))).2) =ᶠ[𝓝 p₀]
-      fun p ↦ (tangentMap J 𝓘(𝕜, F') g (Pullback.lift f p)).snd := by
-    filter_upwards [(e.open_baseSet.preimage hproj).mem_nhds
-      (mem_baseSet_trivializationAt F' E' (f p₀.proj))] with p hp
-    exact (key p.proj hp p.snd).trans tangentMap_snd.symm
-  refine ContinuousAt.congr ?_ heq.symm
-  have hsnd : Continuous fun q : TangentBundle 𝓘(𝕜, F') F' ↦ q.snd := by
-    have h := continuous_snd.comp (tangentBundleModelSpaceHomeomorph 𝓘(𝕜, F')).continuous
-    rw [tangentBundleModelSpaceHomeomorph_coe] at h
-    exact h
-  exact hsnd.continuousAt.comp
-    (((hg _ (mem_baseSet_trivializationAt F' E' _)).continuousAt_tangentMap
-    (ENat.one_le_iff_ne_zero_withTop.mpr hm)).comp (Pullback.continuous_lift V _ _).continuousAt)
+  rw [hrep]
+  exact continuous_sectionLinearization_pullback (ENat.one_le_iff_ne_zero_withTop.mpr hm) hsm
+    (map_continuous f) (ofTransverseSection_apply_eq_zero hm hsm hs hE)
+
+end SymplecticGeometry
 
 end Equiv
+
+namespace SymplecticGeometry
+
+open SmoothEmbedding
 
 section Orientation
 
