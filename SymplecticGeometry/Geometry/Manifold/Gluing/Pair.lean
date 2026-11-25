@@ -8,7 +8,10 @@ module
 public import SymplecticGeometry.Topology.Category.TopCat.GlueData.Pair
 public import TauCeti.Geometry.Manifold.Gluing.GlueData
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 
 /-!
 # Gluing two manifolds along open subsets
@@ -29,11 +32,27 @@ and its inverse. So the gluing is compatible in the sense of Tau Ceti's
 `M₁` and `M₂`, and a `C^n` manifold when they are, for which `inl` and `inr` are `C^n` local
 diffeomorphisms. The glued space need not be Hausdorff even when `M₁` and `M₂` are.
 
+Over `ℝ`, for a smooth `φ`, smooth forms glue. Let `σ₁` and `σ₂` be smooth forms on `M₁` and
+`M₂` that correspond on the overlap: `φ^*(σ₂|U₂) = σ₁|U₁`, where restricting to an open subset
+is pulling back along `Subtype.val`. The form `GluedAlong.gluedForm φ σ₁ σ₂ hσ` is, at a point
+`inl x`, the value `σ₁ x` read through the inverse of the differential of `inl` at `x`, and at
+the other points, which are of the form `inr y`, the value `σ₂ y` read through the inverse of
+the differential of `inr`, by the library's `TauCeti.RoughForm.pushforwardAt`. It pulls back to
+`σ₁` by `inl` and to `σ₂` by `inr`; for `inr` at a point of `U₂`, by the chain rule along
+`inr ∘ φ = inl` on `U₁`. It is smooth because `inl` and `inr` are local diffeomorphisms, by Tau
+Ceti's `IsLocalDiffeomorphAt.contMDiffAt_mpullback_form_iff`. Since the ranges of `inl` and
+`inr` cover the glued space and the differentials are invertible, a form on it is determined by
+its two pull-backs, and it is closed, nondegenerate or symplectic exactly when both pull-backs
+are. The construction follows the one of the form of the completion of a Liouville domain in the
+library's `Geometry/Symplectic/Liouville/Completion.lean`.
+
 ## Main definitions
 
 * `SymplecticGeometry.GluedAlong φ`: the space glued from `M₁` and `M₂` along `φ`.
 * `SymplecticGeometry.GluedAlong.inl`, `SymplecticGeometry.GluedAlong.inr`: the canonical maps
   from `M₁` and `M₂`.
+* `SymplecticGeometry.GluedAlong.gluedForm`: the form glued from forms on `M₁` and `M₂` that
+  agree on the overlap.
 
 ## Main results
 
@@ -41,6 +60,11 @@ diffeomorphisms. The glued space need not be Hausdorff even when `M₁` and `M�
   `range_inl_union_range_inr`, `inl_eq_inr_iff`: the topology of the glued space.
 * `SymplecticGeometry.GluedAlong.isLocalDiffeomorph_inl`, `isLocalDiffeomorph_inr`: the
   canonical maps are `C^n` local diffeomorphisms for the glued atlas.
+* `SymplecticGeometry.GluedAlong.mpullback_inl_gluedForm`, `mpullback_inr_gluedForm`,
+  `eq_gluedForm_iff`: the glued form is the unique form with the given pull-backs.
+* `SymplecticGeometry.GluedAlong.isClosed_gluedForm_iff`, `isNondegenerate_gluedForm_iff`,
+  `isSymplectic_gluedForm_iff`: the glued form is closed, nondegenerate or symplectic exactly
+  when both forms are.
 
 The compatibility proof follows Tau Ceti's `TauCeti.isCompatible_doubleGlueData`, which treats
 the gluing of two copies of one space along an open subset by the identity.
@@ -61,6 +85,8 @@ noncomputable section
 namespace SymplecticGeometry
 
 universe u
+
+section Space
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : Type*} [NormedAddCommGroup E]
   [NormedSpace 𝕜 E] {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H} {n : ℕ∞ω}
@@ -198,6 +224,235 @@ theorem isLocalDiffeomorph_inl [IsManifold I n M₁] [IsManifold I n M₂] :
 theorem isLocalDiffeomorph_inr [IsManifold I n M₁] [IsManifold I n M₂] :
     IsLocalDiffeomorph I I n (inr φ) :=
   (isCompatible_glueData φ).isLocalDiffeomorph_ι ⟨true⟩
+
+end GluedAlong
+
+end Space
+
+/-! ### Gluing differential forms -/
+
+namespace GluedAlong
+
+open TauCeti
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {H : Type*} [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} {M₁ M₂ : Type u} [TopologicalSpace M₁] [ChartedSpace H M₁]
+  [TopologicalSpace M₂] [ChartedSpace H M₂] [IsManifold I ∞ M₁] [IsManifold I ∞ M₂]
+  {U₁ : Opens M₁} {U₂ : Opens M₂} (φ : U₁ ≃ₘ^∞⟮I, I⟯ U₂)
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
+
+/-- Two forms on the glued space with the same pull-backs by `inl` and by `inr` are equal. -/
+theorem roughForm_ext {α β : RoughForm I (GluedAlong φ) F k}
+    (h₁ : mpullback I I (inl φ) α = mpullback I I (inl φ) β)
+    (h₂ : mpullback I I (inr φ) α = mpullback I I (inr φ) β) : α = β := by
+  funext z
+  rcases (range_inl_union_range_inr φ).symm ▸ mem_univ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
+  · exact (mpullback_apply_eq_mpullback_apply_iff
+      ((isLocalDiffeomorph_inl φ x).isInvertible_mfderiv (by simp)).surjective).1 (congrFun h₁ x)
+  · exact (mpullback_apply_eq_mpullback_apply_iff
+      ((isLocalDiffeomorph_inr φ y).isInvertible_mfderiv (by simp)).surjective).1 (congrFun h₂ y)
+
+/-- Two smooth forms on the glued space with the same pull-backs by `inl` and by `inr` are
+equal. -/
+theorem smoothForm_ext {α β : SmoothForm I (GluedAlong φ) F k}
+    (h₁ : SmoothForm.mpullback (inl φ) (isLocalDiffeomorph_inl φ).contMDiff α =
+      SmoothForm.mpullback (inl φ) (isLocalDiffeomorph_inl φ).contMDiff β)
+    (h₂ : SmoothForm.mpullback (inr φ) (isLocalDiffeomorph_inr φ).contMDiff α =
+      SmoothForm.mpullback (inr φ) (isLocalDiffeomorph_inr φ).contMDiff β) : α = β := by
+  refine Subtype.ext (roughForm_ext φ ?_ ?_)
+  · simpa only [SmoothForm.coe_mpullback] using congrArg Subtype.val h₁
+  · simpa only [SmoothForm.coe_mpullback] using congrArg Subtype.val h₂
+
+open Classical in
+/-- The rough form on the glued space that is `σ₁`, read through `inl`, on the range of `inl`, and
+`σ₂`, read through `inr`, elsewhere. -/
+private def glueRough (σ₁ : RoughForm I M₁ F k) (σ₂ : RoughForm I M₂ F k) :
+    RoughForm I (GluedAlong φ) F k := fun z ↦
+  if hz : ∃ x, inl φ x = z then RoughForm.pushforwardAt I I (inl φ) σ₁ hz.choose z
+  else if hz' : ∃ y, inr φ y = z then RoughForm.pushforwardAt I I (inr φ) σ₂ hz'.choose z
+  else 0
+
+variable {φ}
+
+private theorem mpullback_inl_glueRough (σ₁ : RoughForm I M₁ F k) (σ₂ : RoughForm I M₂ F k) :
+    mpullback I I (inl φ) (glueRough φ σ₁ σ₂) = σ₁ := by
+  funext x
+  refine mpullback_apply_eq_of_apply_eq_pushforwardAt
+    ((isLocalDiffeomorph_inl φ x).isInvertible_mfderiv (by simp)) ?_
+  have hz : ∃ x', inl φ x' = inl φ x := ⟨x, rfl⟩
+  rw [glueRough, dite_eq_left hz, (inl_injective φ) hz.choose_spec]
+
+private theorem mpullback_inr_glueRough {σ₁ : RoughForm I M₁ F k} {σ₂ : RoughForm I M₂ F k}
+    (hσ : mpullback I I φ (mpullback I I Subtype.val σ₂) = mpullback I I Subtype.val σ₁) :
+    mpullback I I (inr φ) (glueRough φ σ₁ σ₂) = σ₂ := by
+  funext y
+  by_cases hz : ∃ x, inl φ x = inr φ y
+  · obtain ⟨x, hx⟩ := hz
+    obtain ⟨hxU, rfl⟩ := (inl_eq_inr_iff φ).1 hx
+    set u : U₁ := ⟨x, hxU⟩
+    have hd₁ : MDifferentiable I I (Subtype.val : U₂ → M₂) :=
+      (contMDiff_subtypeVal (n := ∞)).mdifferentiable (by simp)
+    have hd₂ : MDifferentiable I I (Subtype.val : U₁ → M₁) :=
+      (contMDiff_subtypeVal (n := ∞)).mdifferentiable (by simp)
+    have hφd : MDifferentiable I I φ := φ.contMDiff.mdifferentiable (by simp)
+    rw [← mpullback_subtype_val_apply (mpullback I I (inr φ) (glueRough φ σ₁ σ₂)) (φ u),
+      ← mpullback_subtype_val_apply σ₂ (φ u)]
+    refine (mpullback_apply_eq_mpullback_apply_iff (f := φ) (x := u)
+      (φ.isInvertible_mfderiv (x := u) (by simp)).surjective).1 ?_
+    rw [congrFun hσ u, ← mpullback_comp hd₁ ((isLocalDiffeomorph_inr φ).mdifferentiable
+      (by simp)), ← mpullback_comp hφd (((isLocalDiffeomorph_inr φ).mdifferentiable
+      (by simp)).comp hd₁)]
+    have hcomp : (inr φ ∘ Subtype.val) ∘ φ = inl φ ∘ Subtype.val := by
+      funext v; exact inr_apply φ v
+    rw [hcomp, mpullback_comp hd₂ ((isLocalDiffeomorph_inl φ).mdifferentiable (by simp)),
+      mpullback_inl_glueRough]
+  · refine mpullback_apply_eq_of_apply_eq_pushforwardAt
+      ((isLocalDiffeomorph_inr φ y).isInvertible_mfderiv (by simp)) ?_
+    have hz' : ∃ y', inr φ y' = inr φ y := ⟨y, rfl⟩
+    rw [glueRough, dite_eq_right hz, dite_eq_left hz', (inr_injective φ) hz'.choose_spec]
+
+private theorem isSmoothForm_glueRough {σ₁ : SmoothForm I M₁ F k} {σ₂ : SmoothForm I M₂ F k}
+    (hσ : SmoothForm.mpullback φ φ.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ₂) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ₁) :
+    IsSmoothForm I ∞ (glueRough φ σ₁.val σ₂.val) := by
+  rw [isSmoothForm_def]
+  intro z
+  rcases (range_inl_union_range_inr φ).symm ▸ mem_univ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
+  · refine ((isLocalDiffeomorph_inl φ x).contMDiffAt_mpullback_form_iff (by simp)).1 ?_
+    rw [mpullback_inl_glueRough]
+    exact σ₁.isSmoothForm.contMDiff x
+  · refine ((isLocalDiffeomorph_inr φ y).contMDiffAt_mpullback_form_iff (by simp)).1 ?_
+    rw [mpullback_inr_glueRough (by
+      simpa only [SmoothForm.coe_mpullback] using congrArg Subtype.val hσ)]
+    exact σ₂.isSmoothForm.contMDiff y
+
+variable (φ) in
+/-- **Gluing forms.** Smooth forms `σ₁` on `M₁` and `σ₂` on `M₂` whose restrictions to the
+overlaps correspond under `φ`, `φ^*(σ₂|U₂) = σ₁|U₁`, glue to the smooth form on `GluedAlong φ`
+whose pull-backs by `inl` and `inr` are `σ₁` and `σ₂` (`mpullback_inl_gluedForm`,
+`mpullback_inr_gluedForm`). It is the only such form (`eq_gluedForm_iff`). -/
+def gluedForm (σ₁ : SmoothForm I M₁ F k) (σ₂ : SmoothForm I M₂ F k)
+    (hσ : SmoothForm.mpullback φ φ.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ₂) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ₁) :
+    SmoothForm I (GluedAlong φ) F k :=
+  ⟨glueRough φ σ₁.val σ₂.val, (isSmoothForm_glueRough hσ).mem_smoothBundleForms⟩
+
+variable {σ₁ : SmoothForm I M₁ F k} {σ₂ : SmoothForm I M₂ F k}
+  {hσ : SmoothForm.mpullback φ φ.contMDiff
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ₂) =
+    SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ₁}
+
+/-- The glued form pulls back by `inl` to the form on `M₁`. -/
+@[simp]
+theorem mpullback_inl_gluedForm :
+    SmoothForm.mpullback (inl φ) (isLocalDiffeomorph_inl φ).contMDiff (gluedForm φ σ₁ σ₂ hσ) =
+      σ₁ :=
+  Subtype.ext <| (SmoothForm.coe_mpullback _ _ _).trans (mpullback_inl_glueRough _ _)
+
+/-- The glued form pulls back by `inr` to the form on `M₂`. -/
+@[simp]
+theorem mpullback_inr_gluedForm :
+    SmoothForm.mpullback (inr φ) (isLocalDiffeomorph_inr φ).contMDiff (gluedForm φ σ₁ σ₂ hσ) =
+      σ₂ :=
+  Subtype.ext <| (SmoothForm.coe_mpullback _ _ _).trans <| mpullback_inr_glueRough <| by
+    simpa only [SmoothForm.coe_mpullback] using congrArg Subtype.val hσ
+
+/-- The glued form is the only form on `GluedAlong φ` whose pull-backs by `inl` and `inr` are the
+forms on `M₁` and `M₂`. -/
+theorem eq_gluedForm_iff {α : SmoothForm I (GluedAlong φ) F k} :
+    α = gluedForm φ σ₁ σ₂ hσ ↔
+      SmoothForm.mpullback (inl φ) (isLocalDiffeomorph_inl φ).contMDiff α = σ₁ ∧
+        SmoothForm.mpullback (inr φ) (isLocalDiffeomorph_inr φ).contMDiff α = σ₂ := by
+  refine ⟨?_, fun ⟨h₁, h₂⟩ ↦ smoothForm_ext φ ?_ ?_⟩
+  · rintro rfl
+    exact ⟨mpullback_inl_gluedForm, mpullback_inr_gluedForm⟩
+  · rw [h₁, mpullback_inl_gluedForm]
+  · rw [h₂, mpullback_inr_gluedForm]
+
+variable (φ) in
+/-- A smooth form on the glued space is closed exactly when its pull-backs by `inl` and `inr`
+are. -/
+theorem isClosed_iff_isClosed_mpullback {α : SmoothForm I (GluedAlong φ) F k} :
+    α.IsClosed ↔
+      (SmoothForm.mpullback (inl φ) (isLocalDiffeomorph_inl φ).contMDiff α).IsClosed ∧
+        (SmoothForm.mpullback (inr φ) (isLocalDiffeomorph_inr φ).contMDiff α).IsClosed := by
+  refine ⟨fun h ↦ ⟨h.mpullback _ _, h.mpullback _ _⟩, fun ⟨h₁, h₂⟩ ↦ ?_⟩
+  rw [SmoothForm.isClosed_def, ← mextDerivₗ_apply, SmoothForm.mextDerivₗ_mpullback,
+    SmoothForm.coe_mpullback] at h₁ h₂
+  rw [SmoothForm.isClosed_def, ← mextDerivₗ_apply]
+  refine roughForm_ext φ ?_ ?_
+  · rw [h₁, mpullback_zero]
+  · rw [h₂, mpullback_zero]
+
+/-- The glued form is closed exactly when the forms on `M₁` and `M₂` are. -/
+@[simp]
+theorem isClosed_gluedForm_iff :
+    (gluedForm φ σ₁ σ₂ hσ).IsClosed ↔ σ₁.IsClosed ∧ σ₂.IsClosed := by
+  rw [isClosed_iff_isClosed_mpullback, mpullback_inl_gluedForm, mpullback_inr_gluedForm]
+
+section TwoForm
+
+variable (φ) in
+/-- A two-form on the glued space is nondegenerate exactly when its pull-backs by `inl` and `inr`
+are. -/
+theorem isNondegenerate_iff_isNondegenerate_mpullback {α : SmoothTwoForm I (GluedAlong φ)} :
+    α.IsNondegenerate ↔
+      SmoothTwoForm.IsNondegenerate
+          (SmoothForm.mpullback (inl φ) (isLocalDiffeomorph_inl φ).contMDiff α) ∧
+        SmoothTwoForm.IsNondegenerate
+          (SmoothForm.mpullback (inr φ) (isLocalDiffeomorph_inr φ).contMDiff α) := by
+  refine ⟨fun h ↦ ⟨h.isNondegenerate_mpullback_of_isLocalDiffeomorph (isLocalDiffeomorph_inl φ),
+    h.isNondegenerate_mpullback_of_isLocalDiffeomorph (isLocalDiffeomorph_inr φ)⟩,
+    fun ⟨h₁, h₂⟩ ↦ SmoothTwoForm.isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.2 fun z ↦ ?_⟩
+  suffices hz : (α.bilinFormAt z).Nondegenerate from LinearMap.separatingLeft_iff_ker_eq_bot.1 hz.1
+  rcases (range_inl_union_range_inr φ).symm ▸ mem_univ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
+  · exact ((isLocalDiffeomorph_inl φ x).nondegenerate_bilinFormAt_iff (by simp)
+      (congrFun (SmoothForm.coe_mpullback _ _ _) x).symm).2
+      (h₁.nondegenerate_bilinFormAt x)
+  · exact ((isLocalDiffeomorph_inr φ y).nondegenerate_bilinFormAt_iff (by simp)
+      (congrFun (SmoothForm.coe_mpullback _ _ _) y).symm).2
+      (h₂.nondegenerate_bilinFormAt y)
+
+variable (φ) in
+/-- A two-form on the glued space is symplectic exactly when its pull-backs by `inl` and `inr`
+are. -/
+theorem isSymplectic_iff_isSymplectic_mpullback {α : SmoothTwoForm I (GluedAlong φ)} :
+    α.IsSymplectic ↔
+      SmoothTwoForm.IsSymplectic
+          (SmoothForm.mpullback (inl φ) (isLocalDiffeomorph_inl φ).contMDiff α) ∧
+        SmoothTwoForm.IsSymplectic
+          (SmoothForm.mpullback (inr φ) (isLocalDiffeomorph_inr φ).contMDiff α) := by
+  refine ⟨fun h ↦ ?_, fun ⟨h₁, h₂⟩ ↦
+    ⟨(isClosed_iff_isClosed_mpullback φ).2 ⟨h₁.isClosed, h₂.isClosed⟩,
+      (isNondegenerate_iff_isNondegenerate_mpullback φ).2
+        ⟨h₁.isNondegenerate, h₂.isNondegenerate⟩⟩⟩
+  obtain ⟨hc₁, hc₂⟩ := (isClosed_iff_isClosed_mpullback φ).1 h.isClosed
+  obtain ⟨hn₁, hn₂⟩ := (isNondegenerate_iff_isNondegenerate_mpullback φ).1 h.isNondegenerate
+  exact ⟨⟨hc₁, hn₁⟩, ⟨hc₂, hn₂⟩⟩
+
+variable {σ₁ : SmoothTwoForm I M₁} {σ₂ : SmoothTwoForm I M₂}
+  {hσ : SmoothForm.mpullback φ φ.contMDiff
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ₂) =
+    SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ₁}
+
+/-- The glued two-form is nondegenerate exactly when the two-forms on `M₁` and `M₂` are. -/
+@[simp]
+theorem isNondegenerate_gluedForm_iff :
+    SmoothTwoForm.IsNondegenerate (gluedForm φ σ₁ σ₂ hσ) ↔
+      σ₁.IsNondegenerate ∧ σ₂.IsNondegenerate := by
+  rw [isNondegenerate_iff_isNondegenerate_mpullback, mpullback_inl_gluedForm,
+    mpullback_inr_gluedForm]
+
+/-- The glued two-form is symplectic exactly when the two-forms on `M₁` and `M₂` are. -/
+@[simp]
+theorem isSymplectic_gluedForm_iff :
+    SmoothTwoForm.IsSymplectic (gluedForm φ σ₁ σ₂ hσ) ↔ σ₁.IsSymplectic ∧ σ₂.IsSymplectic := by
+  rw [isSymplectic_iff_isSymplectic_mpullback, mpullback_inl_gluedForm,
+    mpullback_inr_gluedForm]
+
+end TwoForm
 
 end GluedAlong
 

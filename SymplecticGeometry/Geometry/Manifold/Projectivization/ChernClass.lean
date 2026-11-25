@@ -27,8 +27,6 @@ class, this file computes the Chern classes of the line bundles `𝒪(k)` (Tau C
   sum formula.
 * `Projectivization.totalChernClass_tangentSpace`: `c(TℂPᵐ) = (1 + h) ^ (m + 1)`, from the
   splitting `TℂPᵐ ⊕ ℂ ≅ 𝒪(1)^{⊕ (m + 1)}` of the Euler sequence.
-* `Projectivization.firstChernClass_tautological`: the first Chern class
-  `SymplecticGeometry.Bundle.firstChernClass` of the tautological line of `ℙ ℂ V` is `-h`.
 * `Projectivization.firstChernClass_tangentSpace`: `c₁(TℂPᵐ) = (m + 1) h`, the degree-two part
   of `totalChernClass_tangentSpace`, through `chernClass_one_eq_firstChernClass`.
 
@@ -115,16 +113,6 @@ theorem totalChernClass_tangentSpace :
   rw [totalChernClass_prod, totalChernClass_trivial, mul_one, totalChernClass_twistPiCore,
     one_smul] at h
   exact h
-
-/-- **The first Chern class of the tautological line.** For a complex normed space `V`, the first
-Chern class of the tautological line of `ℙ ℂ V`, read in integral cohomology, is minus the
-hyperplane class.
-
-Milestone: *First Chern class of a complex vector bundle*. -/
-theorem firstChernClass_tautological (V : Type) [NormedAddCommGroup V] [NormedSpace ℂ V] :
-    ((TopCat.of (ℙ ℂ V)).uliftIntegralCohomologyIso 2).hom
-        (firstChernClass ℂ (Tautological ℂ V)) = -hyperplaneClass V := by
-  rw [hyperplaneClass_def, neg_neg, firstChernClass_eq_complexEulerClass _ (finrank_self ℂ)]
 
 /-- **The first Chern class of complex projective space.** The tangent bundle of `ℂℙᵐ` has first
 Chern class `(m + 1) h`, read in integral cohomology, where `h` is the hyperplane class. This
