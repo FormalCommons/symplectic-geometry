@@ -17,6 +17,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Basic
 public import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import TauCeti.Data.Fin.VecNotation
 
 /-!
@@ -480,8 +481,7 @@ theorem mpullback_associatedForm_fiber {σ : SmoothTwoForm IF F}
     (associatedForm σ hμ hσG hA)
   rw [mpullback_chartedMk_associatedForm] at h
   refine h.symm.trans ?_
-  ext v w
-  obtain ⟨a, b, rfl⟩ : ∃ a b, w = ![a, b] := ⟨w 0, w 1, (FinVec.etaExpand_eq _).symm⟩
+  refine Subtype.ext <| funext fun v ↦ ContinuousAlternatingMap.ext_fin_two fun a b ↦ ?_
   have hd : (fun i ↦ mfderiv IF ((IB.prod IG).prod IF) (fun v : F ↦ (x, v)) v (![a, b] i)) =
       ![mfderiv IF ((IB.prod IG).prod IF) (fun v : F ↦ (x, v)) v a,
         mfderiv IF ((IB.prod IG).prod IF) (fun v : F ↦ (x, v)) v b] :=
