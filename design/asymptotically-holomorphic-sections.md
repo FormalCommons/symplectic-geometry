@@ -395,11 +395,11 @@ meets $Z$ within $\rho\|v\|\le\rho$ of $c$.
    ball stays within $O(D)$ of its maximum, is what replaces the
    monotonicity of Lelong numbers here: it bounds what is lost when the
    centre moves from $y$ to $c$.
-5. **Slices.** Let $v\ne0$, and let $A\subseteq E$ meet each complex line
+5. **Slices.** Let $v\ne0$, and let a closed $A\subseteq E$ meet each complex line
    $c+\mathbb Cv$ in at most $N$ points. Then the set of $c\in$ `ball 0 1`
    with $c+sv\in A$ for some $\|s\|<\rho$ has volume at most
-   $C_mN\rho^2\|v\|^2$. After a linear isometry that takes $v/\|v\|$ to
-   the first basis vector, Fubini's theorem integrates over the lines, on
+   $C_mN\rho^2\|v\|^2$. Tonelli's theorem along $E=K^\perp\oplus K$, for
+   the complex line $K=\mathbb Cv$, integrates over the lines, on
    each of which the set lies in $N$ discs of radius $\rho\|v\|$. For
    $A=Z$ and $P_{\rm top}(v)\ne0$, $N=D$.
 6. **Assembly.** For $c$ in the $t$-thickening of $Z$, step 4 with $a=t$
