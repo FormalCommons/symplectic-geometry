@@ -8,11 +8,13 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Complex.DbarFunction
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Isothermal
-public import SymplecticGeometry.Topology.VectorBundle.FiberwiseLinear
+public import SymplecticGeometry.Topology.VectorBundle.RestrOpen
 public import TauCeti.Analysis.Complex.Wirtinger.Similarity.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Smooth
+public import TauCeti.Geometry.Manifold.VectorBundle.MaximalAtlas
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Topology.FiberBundle.Trivialization
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 
 /-!
@@ -35,9 +37,10 @@ preimage of `1` is the conjugate Wirtinger derivative `∂/∂w̄` of the functi
 (`TauCeti.SmoothAlmostComplexStructure.dbarFunction_apply_mfderiv_symm_eq_conjWirtingerDeriv`).
 
 The similarity principle then writes the coordinate of a kernel element as `e^{-g} h` near `ψ x`,
-with `g` smooth and `h` holomorphic. Multiplying the fibre coordinate of the trivialization by
-`exp (-g ∘ ψ)` (`Bundle.Trivialization.transFiberwiseLinear`) gives a trivialization in which the
-section reads as `h`. Multiplication by a nonzero complex number is complex linear, so this
+with `g` smooth and `h` holomorphic. Restricting the trivialization to the source of `ψ` and
+multiplying its fibre coordinate by `exp (-g ∘ ψ)` (Tau Ceti's gauge transform
+`Bundle.Trivialization.transFiberwiseLinear`) gives a trivialization in which the section reads as
+`h`. Multiplication by a nonzero complex number is complex linear, so this
 trivialization still reads the canonical orientation of the fibres
 (`TauCeti.VectorBundleOrientation.complex`) as that of `ℂ`
 (`Bundle.Trivialization.mapOrientation_complexOrientation`). These are the local hypotheses of
@@ -248,10 +251,11 @@ theorem exists_trivialization_analyticAt_of_mem_twistOneKernel {s : OnePoint ℂ
     simp only [hm']
     exact (hc.inv₀ fun _ _ ↦ Complex.exp_ne_zero _).smul continuousOn_const
   set e₀ := (twistCore (𝕜 := ℂ) 1).localTriv z
-  set e := e₀.transFiberwiseLinear ψ.open_source hmc hmc'
+  set e₁ := e₀.restrOpen ψ.source ψ.open_source
+  set e := e₁.transFiberwiseLinear m (hmc.mono inter_subset_right) (hmc'.mono inter_subset_right)
   have : e.IsLinear ℝ := Trivialization.isLinear_restrictScalars ℝ ℂ e
   have hze : z ∈ e.baseSet := by
-    rw [Trivialization.transFiberwiseLinear_baseSet]
+    rw [Trivialization.baseSet_transFiberwiseLinear, Trivialization.restrOpen_baseSet]
     exact ⟨by simp [e₀, OnePoint.twistCore_localTriv_baseSet], hzψ⟩
   refine ⟨e, this, ψ.toOpenPartialHomeomorph, hze,
     ψ.toOpenPartialHomeomorph_source.symm ▸ hzψ, ?_, fun x hx ↦ ?_⟩
@@ -260,7 +264,8 @@ theorem exists_trivialization_analyticAt_of_mem_twistOneKernel {s : OnePoint ℂ
     filter_upwards [ψ.open_target.mem_nhds (ψ.map_source hzψ)] with w hw
     rw [PartialDiffeomorph.coe_toOpenPartialHomeomorph_symm,
       Trivialization.transFiberwiseLinear_apply]
-    simp only [e₀, m, c, ContinuousLinearEquiv.unitsEquivAut_apply, Units.val_mk0]
+    simp only [e₁, e₀, Trivialization.coe_restrOpen, m, c,
+      ContinuousLinearEquiv.unitsEquivAut_apply, Units.val_mk0]
     -- The base point of `e₀ ⟨p, v⟩` is `p` by definition of `FiberBundleCore.localTriv`.
     change _ = _ * Complex.exp (-g (ψ (ψ.symm w)))
     have hr : ψ.toPartialEquiv (ψ.symm.toPartialEquiv w) = w := ψ.toPartialEquiv.right_inv hw
