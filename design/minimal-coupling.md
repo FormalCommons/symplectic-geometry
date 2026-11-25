@@ -368,8 +368,10 @@ global instances. A statement about the bundle puts them in place by
 `letI := ProperSMul.orbitRelQuotientChartedSpace IG Gᵐᵒᵖ IX X`,
 `letI := (orbitFiber.atlas IG G IX X).fiberBundle`, and `haveI` for the
 principal and the smooth structure, as Tau Ceti's statements about
-`Atlas.fiberBundle` do; the module docstring says so, and the converse
-uses the same ones.
+`Atlas.fiberBundle` do; the module docstring says so. The converse
+instead works on `FreeRegularLevel IG h` of `GroupAction/RegularLevel.lean`,
+whose type determines the models, so that there these structures are
+global instances.
 
 A compact group acts properly. For `Circle` the converse feeds it the
 right action `op z • x = z • x` of the commutative circle. The file is

@@ -413,9 +413,11 @@ Smooth families of forms over a parameter manifold `N` (model
   inclusion of a submodule); `.of_mpullback_inclusion_sup` (gluing, from
   `isSmoothFamily_iff_mpullback_inclusion_sup`).
 - Finite-dimensional targets: for `S` finite-dimensional with basis `b`,
-  `preservesSmoothFamilies_iff_contMDiff_repr` — a map into `S` takes smooth
-  families to smooth families exactly when, for every smooth family `α`, every
-  coordinate `t ↦ b.repr (T (α t)) i` is smooth on `unitInterval`. The
+  `preservesSmoothFamilies_iff_smoothAlongFamilies_coord` — a map into `S` takes smooth
+  families to smooth families exactly when every coordinate functional
+  `b.coord i ∘ₗ T` is smooth along smooth families (`SmoothAlongFamilies`:
+  `t ↦ f (α t)` is smooth on the parameter manifold for every smooth family
+  `α`). The
   forward direction picks finitely many evaluations `ω ↦ ω.val x v` that
   separate `S`, so that each coordinate is a fixed linear combination of
   them; the converse writes the family as `∑ i, c_i(t) • b i`. Consequences:
@@ -660,7 +662,7 @@ For `[IsManifold I ∞ M]`:
   and `σ.contMDiff_repr_mk`: for a basis `b` of `deRhamCohomology I M k` and a
   smooth family `z` of closed forms, every `t ↦ b.repr (deRhamCohomology.mk I
   k (z t)) i` is smooth on the parameter manifold, through `spaceEquiv` and
-  `preservesSmoothFamilies_iff_contMDiff_repr`.
+  `preservesSmoothFamilies_iff_smoothAlongFamilies_coord`.
 
 ### `Geometry/Manifold/DeRham/SmoothFamily/Contractible.lean`
 
