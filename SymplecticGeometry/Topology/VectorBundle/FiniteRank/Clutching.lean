@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Analysis.Complex.RadialProjection
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Glue
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.HomotopyInvariance
+public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Tautological
 public import TauCeti.Topology.Algebra.Projectivization
 
 /-!
@@ -54,6 +55,15 @@ over any nontrivially normed field.
   clutching by any automorphism over `X × Circle` with the fibre maps of `H` at time `t`.
 * `TauCeti.FiniteRankBundleCore.nonempty_iso_clutching_of_homotopic`: over a paracompact R₁
   space, clutchings by automorphisms joined by a family over `X × I` are isomorphic.
+* `TauCeti.FiniteRankBundleCore.circleZPowIso X n`: the automorphism of the trivial line over
+  `X × Circle` that multiplies the fibre over `(x, u)` by `u ^ n`.
+* `SymplecticGeometry.ProjectiveLine.innerSection` and `outerSection`: the vectors
+  `(z, 1) / max 1 |z|` and `(1, w) / max 1 |w|` of the lines `[z : 1]` and `[1 : w]`, multiples
+  of `Projectivization.normalizedRep` and nonzero on the affine opens; on the
+  annulus the first is the second times `z / |z|` (`innerSection_eq_smul_outerSection`).
+* `TauCeti.FiniteRankBundleCore.clutchingZIso` and `clutching_z`: the pullback of the tautological
+  line of `ℙ ℂ (Fin 2 → ℂ)` to `X × ℙ ℂ (Fin 2 → ℂ)` is the clutching of the trivial line by
+  `circleZPowIso X (-1)`, that is by `u ↦ u⁻¹`.
 
 The clutched core is `TauCeti.FiniteRankBundleCore.glue`, applied to the cover of
 `X × ℙ ℂ (Fin 2 → ℂ)` by the preimages of the two discs. The clutching by the identity glues by
@@ -67,6 +77,15 @@ inclusions are homotopic, so the pullbacks are isomorphic by homotopy invariance
 (`TauCeti.FiniteRankBundleCore.nonempty_pullback_iso_of_homotopic`, from Tau Ceti's
 `ContinuousMap.Homotopic.exists_continuousLinearEquiv_pullback`), as in [Hatcher2017, §2.1].
 
+For `clutchingZIso`, a coordinate `a` of the clutched line over a point of `X × innerDisc` goes to
+`a • innerSection`, and over the rest to `a • outerSection`. These agree with the gluing because
+the inner section is the outer one times `z / |z|` on the annulus; the sections are normalized by
+`max 1 |z|` and `max 1 |w|` so that this ratio is exactly the radial retraction. Continuity on
+total spaces is checked in the charts of the clutched line, where the map is a coordinate times
+one of the two sections, and in the subspace topology of the tautological line
+(`Projectivization.continuous_totalSpace_tautological_iff`); the isomorphism of cores is then
+`TauCeti.FiniteRankBundleCore.isoOfContinuousEquiv`.
+
 ## References
 
 * [A. Hatcher, *Vector Bundles and K-Theory*][Hatcher2017], §2.1 (clutching functions over
@@ -77,7 +96,7 @@ public section
 
 noncomputable section
 
-open Set CategoryTheory Projectivization
+open Set CategoryTheory Projectivization Bundle Module Topology
 
 open scoped LinearAlgebra.Projectivization
 
@@ -552,6 +571,318 @@ theorem nonempty_iso_clutching_of_homotopic [NormedAlgebra ℝ 𝕜] [CompleteSp
   obtain ⟨e⟩ :=
     ((E.pullback ContinuousMap.fst).clutching H).nonempty_pullback_iso_of_homotopic hJ
   exact ⟨(E.pullbackClutchingIso f₀ H 0 h₀).symm ≪≫ e ≪≫ E.pullbackClutchingIso f₁ H 1 h₁⟩
+
+/-! ### Clutching by a power of the coordinate -/
+
+variable (X) in
+/-- The automorphism of the trivial line over `X × Circle` that multiplies the fibre over `(x, u)`
+by `u ^ n`. -/
+def circleZPowIso (n : ℤ) :
+    (trivial ℂ X 1).pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
+      (trivial ℂ X 1).pullback (ContinuousMap.fst : C(X × Circle, X)) :=
+  isoOfContinuousEquiv (A := trivial ℂ (X × Circle) 1) (D := trivial ℂ (X × Circle) 1)
+    (fun b ↦ (LinearEquiv.smulOfUnit (Circle.toUnits (b.2 ^ n))).toContinuousLinearEquiv)
+    (continuous_trivial_iff.2 ⟨FiberBundle.continuous_proj _ _, by
+      have hproj : Continuous fun p : (trivial ℂ (X × Circle) 1).core.TotalSpace ↦ p.proj.2 :=
+        continuous_snd.comp (FiberBundle.continuous_proj _ _)
+      have hsnd := continuous_trivial_snd (𝕜 := ℂ) (B := X × Circle) (n := 1)
+      -- Multiplication by a unit is multiplication by its value.
+      exact ((continuous_subtypeVal.comp (hproj.zpow n)).smul hsnd).congr fun _ ↦ (rfl)⟩)
+
+@[simp]
+theorem fiberMap_circleZPowIso_hom (n : ℤ) (b : X × Circle) :
+    (circleZPowIso X n).hom.fiberMap b = (b.2 : ℂ) ^ n • ContinuousLinearMap.id ℂ _ := by
+  ext v : 1
+  refine (DFunLike.congr_fun (fiberMap_isoOfContinuousEquiv_hom (A := trivial ℂ (X × Circle) 1)
+    (D := trivial ℂ (X × Circle) 1) _ _ b) v).trans ?_
+  -- Multiplication by a unit is multiplication by its value.
+  rw [← Circle.coe_zpow]
+  rfl
+
+@[simp]
+theorem fiberMap_circleZPowIso_inv (n : ℤ) (b : X × Circle) :
+    (circleZPowIso X n).inv.fiberMap b = ((b.2 : ℂ) ^ n)⁻¹ • ContinuousLinearMap.id ℂ _ := by
+  ext v : 1
+  refine (DFunLike.congr_fun (fiberMap_isoOfContinuousEquiv_inv (A := trivial ℂ (X × Circle) 1)
+    (D := trivial ℂ (X × Circle) 1) _ _ b) v).trans ?_
+  -- Multiplication by a unit is multiplication by its value.
+  rw [← Circle.coe_zpow, ← Circle.coe_inv]
+  rfl
+
+end TauCeti.FiniteRankBundleCore
+
+/-! ### Two nonvanishing sections of the tautological line of `ℂP¹` -/
+
+namespace SymplecticGeometry.ProjectiveLine
+
+/-- The vector `(z, 1) / max 1 |z|` of the line `[z : 1]`: the representative normalized by the
+second coordinate, divided by `max 1 |z|`. It is `0` off the affine open `affineOpen 1`. -/
+def innerSection (p : ℙ ℂ (Fin 2 → ℂ)) : Fin 2 → ℂ :=
+  (((max 1 ‖affineChart 1 p 0‖)⁻¹ : ℝ) : ℂ) • normalizedRep (LinearMap.proj 1) p
+
+/-- The vector `(1, w) / max 1 |w|` of the line `[1 : w]`: the representative normalized by the
+first coordinate, divided by `max 1 |w|`. It is `0` off the affine open `affineOpen 0`. -/
+def outerSection (p : ℙ ℂ (Fin 2 → ℂ)) : Fin 2 → ℂ :=
+  (((max 1 ‖affineChart 0 p 0‖)⁻¹ : ℝ) : ℂ) • normalizedRep (LinearMap.proj 0) p
+
+theorem innerSection_def (p : ℙ ℂ (Fin 2 → ℂ)) :
+    innerSection p =
+      (((max 1 ‖affineChart 1 p 0‖)⁻¹ : ℝ) : ℂ) • normalizedRep (LinearMap.proj 1) p :=
+  (rfl)
+
+theorem outerSection_def (p : ℙ ℂ (Fin 2 → ℂ)) :
+    outerSection p =
+      (((max 1 ‖affineChart 0 p 0‖)⁻¹ : ℝ) : ℂ) • normalizedRep (LinearMap.proj 0) p :=
+  (rfl)
+
+theorem innerSection_mem_submodule (p : ℙ ℂ (Fin 2 → ℂ)) : innerSection p ∈ p.submodule :=
+  Submodule.smul_mem _ _ (normalizedRep_mem_submodule _ _)
+
+theorem outerSection_mem_submodule (p : ℙ ℂ (Fin 2 → ℂ)) : outerSection p ∈ p.submodule :=
+  Submodule.smul_mem _ _ (normalizedRep_mem_submodule _ _)
+
+private theorem smul_normalizedRep_ne_zero {i : Fin 2} {p : ℙ ℂ (Fin 2 → ℂ)}
+    (hp : p ∈ affineOpen i) :
+    (((max 1 ‖affineChart i p 0‖)⁻¹ : ℝ) : ℂ) • normalizedRep (LinearMap.proj i) p ≠ 0 :=
+  smul_ne_zero (by simpa using (lt_max_of_lt_left one_pos).ne') fun h ↦ one_ne_zero (by
+    rw [← apply_normalizedRep ((affineOpen_eq_linearProjectionDomain (K := ℂ) i) ▸ hp), h,
+      map_zero])
+
+theorem innerSection_ne_zero {p : ℙ ℂ (Fin 2 → ℂ)} (hp : p ∈ affineOpen 1) :
+    innerSection p ≠ 0 :=
+  smul_normalizedRep_ne_zero hp
+
+theorem outerSection_ne_zero {p : ℙ ℂ (Fin 2 → ℂ)} (hp : p ∈ affineOpen 0) :
+    outerSection p ≠ 0 :=
+  smul_normalizedRep_ne_zero hp
+
+private theorem continuousOn_smul_normalizedRep (i : Fin 2) :
+    ContinuousOn (fun p : ℙ ℂ (Fin 2 → ℂ) ↦
+      (((max 1 ‖affineChart i p 0‖)⁻¹ : ℝ) : ℂ) • normalizedRep (LinearMap.proj i) p)
+      (affineOpen i) := by
+  have hz : ContinuousOn (fun p : ℙ ℂ (Fin 2 → ℂ) ↦ affineChart i p 0) (affineOpen i) :=
+    (continuous_apply 0).comp_continuousOn (continuousOn_affineChart i)
+  refine ContinuousOn.smul (Complex.continuous_ofReal.comp_continuousOn
+    (((continuous_const.max continuous_id).comp_continuousOn hz.norm).inv₀
+      fun _ _ ↦ (lt_max_of_lt_left one_pos).ne')) ?_
+  rw [affineOpen_eq_linearProjectionDomain]
+  exact continuousOn_normalizedRep (continuous_apply i)
+
+theorem continuousOn_innerSection : ContinuousOn innerSection (affineOpen 1) :=
+  continuousOn_smul_normalizedRep 1
+
+theorem continuousOn_outerSection : ContinuousOn outerSection (affineOpen 0) :=
+  continuousOn_smul_normalizedRep 0
+
+/-- On the annulus, the inner section is the outer one times the radial retraction `z / |z|`. -/
+theorem innerSection_eq_smul_outerSection (p : ↥(innerDisc ∩ outerDisc)) :
+    innerSection p = (annulusToCircle p : ℂ) • outerSection p := by
+  obtain ⟨p, hp⟩ := p
+  induction p using Projectivization.ind with | h v hv =>
+  simp only [mem_inter_iff, mk_mem_innerDisc_iff, mk_mem_outerDisc_iff] at hp
+  have h0 := hp.2.1
+  have h1 := hp.1.1
+  have hz : v 0 / v 1 ≠ 0 := div_ne_zero h0 h1
+  have hr : ‖v 0 / v 1‖ ≠ 0 := norm_ne_zero_iff.2 hz
+  -- The coordinate `w` of the outer chart is `z⁻¹`, and `|z| * max 1 |z⁻¹| = max 1 |z|`.
+  have hw : v 1 / v 0 = (v 0 / v 1)⁻¹ := (inv_div _ _).symm
+  -- The normalized representatives are `(z, 1)` and `(1, w)`.
+  have e1 : (v 1)⁻¹ • v = ![v 0 / v 1, 1] := by
+    ext i
+    fin_cases i <;> simp [div_eq_inv_mul, h1]
+  have e0 : (v 0)⁻¹ • v = ![1, v 1 / v 0] := by
+    ext i
+    fin_cases i <;> simp [div_eq_inv_mul, h0]
+  simp only [innerSection_def, outerSection_def, normalizedRep_mk, LinearMap.proj_apply, e1, e0]
+  simp only [coe_annulusToCircle_apply, affineChart_mk,
+    show Fin.succAbove (1 : Fin 2) 0 = 0 from rfl, show Fin.succAbove (0 : Fin 2) 0 = 1 from rfl,
+    hw]
+  generalize v 0 / v 1 = z at *
+  ext i
+  have hkey : (‖z‖ : ℂ) * ((max 1 (1 / ‖z‖) : ℝ) : ℂ) = ((max 1 ‖z‖ : ℝ) : ℂ) := by
+    rw [← Complex.ofReal_mul, mul_max_of_nonneg _ _ (norm_nonneg _), mul_one,
+      mul_one_div_cancel hr, max_comm]
+  fin_cases i <;> simp [Complex.real_smul] <;> field_simp <;> rw [hkey]
+
+end SymplecticGeometry.ProjectiveLine
+
+/-! ### The tautological line of `ℂP¹` as a clutching -/
+
+namespace TauCeti.FiniteRankBundleCore
+
+open SymplecticGeometry.ProjectiveLine
+
+variable {X : Type*} [TopologicalSpace X]
+
+/-- The section of the tautological line on the disc of the side `s` (`true` for the inner
+disc). -/
+private def discSection (s : Bool) : ℙ ℂ (Fin 2 → ℂ) → Fin 2 → ℂ :=
+  bif s then innerSection else outerSection
+
+private theorem discSection_mem_submodule (s : Bool) (p : ℙ ℂ (Fin 2 → ℂ)) :
+    discSection s p ∈ p.submodule := by
+  cases s
+  · exact outerSection_mem_submodule p
+  · exact innerSection_mem_submodule p
+
+private theorem discSection_ne_zero {s : Bool} {p : ℙ ℂ (Fin 2 → ℂ)}
+    (hp : p ∈ bif s then innerDisc else outerDisc) : discSection s p ≠ 0 := by
+  cases s
+  · exact outerSection_ne_zero hp.1
+  · exact innerSection_ne_zero hp.1
+
+private theorem continuousAt_discSection {s : Bool} {p : ℙ ℂ (Fin 2 → ℂ)}
+    (hp : p ∈ bif s then innerDisc else outerDisc) : ContinuousAt (discSection s) p := by
+  cases s
+  · exact continuousOn_outerSection.continuousAt
+      ((isOpen_affineOpen 0).mem_nhds hp.1)
+  · exact continuousOn_innerSection.continuousAt
+      ((isOpen_affineOpen 1).mem_nhds hp.1)
+
+variable (X)
+
+/-- The side of the gluing of `X × ℙ ℂ (Fin 2 → ℂ)` on which the chart at `b` lies. -/
+private abbrev side (b : X × ℙ ℂ (Fin 2 → ℂ)) : Bool :=
+  glueIndex (Prod.snd ⁻¹' innerDisc) b
+
+omit [TopologicalSpace X] in
+private theorem mem_disc_side (b : X × ℙ ℂ (Fin 2 → ℂ)) :
+    b.2 ∈ bif side X b then innerDisc else outerDisc := by
+  have := mem_glueSide_glueIndex (U := Prod.snd ⁻¹' innerDisc) (V := Prod.snd ⁻¹' outerDisc)
+    (by rw [← preimage_union, innerDisc_union_outerDisc, preimage_univ]) b
+  cases h : side X b <;> simp_all [glueSide]
+
+/-- The identification of the fibre of the clutched line at `b` with the line `b.2`: a coordinate
+`a` goes to `a` times the section of the tautological line on the side of `b`. -/
+private def lineEquiv (b : X × ℙ ℂ (Fin 2 → ℂ)) :
+    (Fin 1 → ℂ) ≃L[ℂ] Tautological ℂ (Fin 2 → ℂ) b.2 :=
+  (LinearMap.linearEquivOfInjective
+    { toFun := fun a ↦ ⟨a 0 • discSection (side X b) b.2,
+        Submodule.smul_mem _ _ (discSection_mem_submodule _ _)⟩
+      map_add' := fun a a' ↦ Subtype.ext (add_smul _ _ _)
+      map_smul' := fun c a ↦ Subtype.ext (mul_smul _ _ _) }
+    (fun a a' h ↦ by
+      have h' := congrArg Subtype.val h
+      simp only [LinearMap.coe_mk, AddHom.coe_mk] at h'
+      have := smul_left_injective ℂ (discSection_ne_zero (mem_disc_side X b)) h'
+      ext i
+      rwa [Subsingleton.elim i 0])
+    (by rw [finrank_fin_fun, finrank_submodule])).toContinuousLinearEquiv
+
+omit [TopologicalSpace X] in
+private theorem coe_lineEquiv_apply (b : X × ℙ ℂ (Fin 2 → ℂ)) (a : Fin 1 → ℂ) :
+    (lineEquiv X b a : Fin 2 → ℂ) = a 0 • discSection (side X b) b.2 :=
+  (rfl)
+
+/-- The gluing cocycle of the clutching by `u⁻¹` matches the sections of the two sides. -/
+private theorem glueCocycle_smul_discSection (s t : Bool) (b : X × ℙ ℂ (Fin 2 → ℂ))
+    (hs : b.2 ∈ bif s then innerDisc else outerDisc)
+    (ht : b.2 ∈ bif t then innerDisc else outerDisc) (a : Fin 1 → ℂ) :
+    glueCocycle (clutchingAut (trivial ℂ X 1) (circleZPowIso X (-1))) s t b a (0 : Fin 1) •
+        discSection t b.2 = a 0 • discSection s b.2 := by
+  cases s <;> cases t
+  · rw [glueCocycle_self]; rfl
+  · have hb : b.2 ∈ innerDisc ∩ outerDisc := ⟨ht, hs⟩
+    rw [glueCocycle_false_true _ (show b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc
+      from hb)]
+    rw [fiberMap_clutchingAut_hom, fiberMap_circleZPowIso_hom, clutchingMap_apply]
+    -- `erw`: the scalar acts on the fibre of the pullback to `X × Circle`, whose rank is the rank
+    -- of the pullback to `X × ℙ ℂ (Fin 2 → ℂ)` only up to unfolding.
+    erw [smul_apply, ContinuousLinearMap.id_apply a, Pi.smul_apply]
+    simp only [discSection, Bool.cond_true, Bool.cond_false, smul_eq_mul, zpow_neg_one]
+    rw [innerSection_eq_smul_outerSection ⟨b.2, hb⟩, smul_smul]
+    have hu := Circle.coe_ne_zero (annulusToCircle ⟨b.2, hb⟩)
+    congr 1
+    field_simp
+  · have hb : b.2 ∈ innerDisc ∩ outerDisc := ⟨hs, ht⟩
+    rw [glueCocycle_true_false _ (show b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc
+      from hb)]
+    rw [fiberMap_clutchingAut_inv, fiberMap_circleZPowIso_inv, clutchingMap_apply]
+    -- `erw`: the scalar acts on the fibre of the pullback to `X × Circle`, whose rank is the rank
+    -- of the pullback to `X × ℙ ℂ (Fin 2 → ℂ)` only up to unfolding.
+    erw [smul_apply, ContinuousLinearMap.id_apply a, Pi.smul_apply]
+    simp only [discSection, Bool.cond_true, Bool.cond_false, smul_eq_mul, zpow_neg_one, inv_inv]
+    rw [innerSection_eq_smul_outerSection ⟨b.2, hb⟩, smul_smul, mul_comm]
+  · rw [glueCocycle_self]; rfl
+
+/-- The clutching of the trivial line by `u ↦ u⁻¹`. -/
+private abbrev clutchedLine : FiniteRankBundleCore ℂ (X × ℙ ℂ (Fin 2 → ℂ)) :=
+  (trivial ℂ X 1).clutching (circleZPowIso X (-1))
+
+/-- The total space of the clutching of the trivial line by `u ↦ u⁻¹`. -/
+private abbrev CT : Type _ :=
+  (clutchedLine X).core.TotalSpace
+
+/-- The vector of the tautological line given by a point of the total space of the clutched
+line is continuous. -/
+private theorem continuous_lineEquiv :
+    Continuous fun p : CT X ↦ (lineEquiv X p.proj p.snd : Fin 2 → ℂ) := by
+  refine continuous_iff_continuousAt.2 fun p₀ ↦ ?_
+  set y := p₀.proj
+  have hsrc : ((clutchedLine X).core.localTriv y).source ∈ 𝓝 p₀ :=
+    ((clutchedLine X).core.localTriv y).open_source.mem_nhds
+      (by simpa using (clutchedLine X).mem_baseSet_self y)
+  have hdisc : {p : CT X | p.proj.2 ∈ bif side X y then innerDisc else outerDisc}
+      ∈ 𝓝 p₀ := by
+    refine (IsOpen.preimage (continuous_snd.comp (FiberBundle.continuous_proj _ _)) ?_).mem_nhds
+      (mem_disc_side X y)
+    cases side X y
+    · exact isOpen_outerDisc
+    · exact isOpen_innerDisc
+  -- Near `p₀`, read the vector in the chart at `y`, on whose side the section is continuous.
+  refine ContinuousAt.congr (f := fun p ↦ ((clutchedLine X).core.localTriv y p).2 (0 : Fin 1) •
+      discSection (side X y) p.proj.2) ?_ ?_
+  · refine ((continuous_apply (0 : Fin 1)).continuousAt.comp (continuous_snd.continuousAt.comp
+      (((clutchedLine X).core.localTriv y).continuousAt (mem_of_mem_nhds hsrc)))).smul ?_
+    exact ContinuousAt.comp (g := discSection (side X y)) (f := fun p : CT X ↦ p.proj.2)
+      (x := p₀) (continuousAt_discSection (mem_disc_side X y))
+      (continuous_snd.comp (FiberBundle.continuous_proj _ _)).continuousAt
+  · filter_upwards [hdisc] with p hp
+    refine Eq.trans ?_ (coe_lineEquiv_apply X p.proj p.snd).symm
+    rw [VectorBundleCore.localTriv_apply, indexAt_eq, coordChange_clutching]
+    dsimp only
+    -- `erw`: the fibre of the clutched core is `Fin 1 → ℂ` only up to unfolding its rank.
+    erw [inChartCoordinates_core_apply]
+    -- The transitions of the pullback of the trivial line are the identity by definition.
+    exact glueCocycle_smul_discSection X _ _ p.proj (mem_disc_side X p.proj) hp p.snd
+
+private theorem continuous_totalSpaceMk_lineEquiv :
+    Continuous fun p : CT X ↦ TotalSpace.mk' ℂ
+      (E := (⇑(ContinuousMap.snd : C(X × ℙ ℂ (Fin 2 → ℂ), _))) *ᵖ (Tautological ℂ (Fin 2 → ℂ)))
+      p.proj (lineEquiv X p.proj p.snd) := by
+  refine (inducing_pullbackTotalSpaceEmbedding (F := ℂ) (Tautological ℂ (Fin 2 → ℂ))
+    (⇑(ContinuousMap.snd : C(X × ℙ ℂ (Fin 2 → ℂ), _)))).continuous_iff.2
+    ((FiberBundle.continuous_proj _ _).prodMk ?_)
+  exact continuous_totalSpace_tautological_iff.2
+    ⟨continuous_snd.comp (FiberBundle.continuous_proj _ _), continuous_lineEquiv X⟩
+
+/-- **The tautological line as a clutching.** The pullback of the tautological line of
+`ℙ ℂ (Fin 2 → ℂ)` to `X × ℙ ℂ (Fin 2 → ℂ)` is isomorphic to the clutching of the trivial line by
+`u ↦ u⁻¹`. -/
+def clutchingZIso :
+    (trivial ℂ X 1).clutching (circleZPowIso X (-1)) ≅
+      (Projectivization.tautologicalCore ℂ (Fin 2 → ℂ)).pullback ContinuousMap.snd :=
+  isoOfContinuousEquiv (D := ofBundleOfFinrankEq ℂ ℂ
+      ((⇑(ContinuousMap.snd : C(X × ℙ ℂ (Fin 2 → ℂ), _))) *ᵖ (Tautological ℂ (Fin 2 → ℂ)))
+      (finrank_self ℂ))
+    (fun b ↦ (lineEquiv X b).trans (ofBundleOfFinrankEqFiberEquiv ℂ ℂ
+      ((⇑(ContinuousMap.snd : C(X × ℙ ℂ (Fin 2 → ℂ), _))) *ᵖ (Tautological ℂ (Fin 2 → ℂ)))
+      (finrank_self ℂ) b).symm)
+    (((ofBundleOfFinrankEqHomeomorph ℂ ℂ _ _).symm.continuous.comp
+      (continuous_totalSpaceMk_lineEquiv X)).congr fun p ↦ by
+      rw [Function.comp_apply, ofBundleOfFinrankEqHomeomorph_symm_apply]
+      -- Both sides are `⟨p.proj, ψ p.proj p.snd⟩`, the fibre of the pullback unfolded.
+      rfl) ≪≫
+    eqToIso (Projectivization.tautologicalCore_def ℂ (Fin 2 → ℂ) ▸
+      pullback_ofBundleOfFinrankEq _ _ _).symm
+
+/-- **The tautological line as a clutching.** The pullback of the tautological line of
+`ℙ ℂ (Fin 2 → ℂ)` to `X × ℙ ℂ (Fin 2 → ℂ)` is isomorphic to the clutching of the trivial line by
+`u ↦ u⁻¹`. -/
+theorem clutching_z :
+    Nonempty ((Projectivization.tautologicalCore ℂ (Fin 2 → ℂ)).pullback ContinuousMap.snd ≅
+      (trivial ℂ X 1).clutching (circleZPowIso X (-1))) :=
+  ⟨(clutchingZIso X).symm⟩
 
 end TauCeti.FiniteRankBundleCore
 
