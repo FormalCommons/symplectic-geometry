@@ -7,7 +7,6 @@ module
 
 public import SymplecticGeometry.Analysis.Complex.RadialProjection
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Glue
-public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.OfBundle
 public import SymplecticGeometry.Topology.VectorBundle.ProjectiveBundle.Tautological
 public import TauCeti.Topology.Algebra.Projectivization
 
@@ -52,11 +51,9 @@ over any nontrivially normed field.
   identity is isomorphic to the pullback of `E` along `Prod.fst`.
 * `TauCeti.FiniteRankBundleCore.circleZPowIso X n`: the automorphism of the trivial line over
   `X × Circle` that multiplies the fibre over `(x, u)` by `u ^ n`.
-* `Projectivization.tautologicalCore 𝕜 V`: the tautological line `Projectivization.Tautological`
-  as a finite-rank core of rank one, through
-  `TauCeti.FiniteRankBundleCore.ofBundleOfFinrankEq`.
-* `SymplecticGeometry.ProjectiveLine.innerSection` and `outerSection`: nowhere vanishing vectors
-  `(z, 1) / max 1 |z|` and `(1, w) / max 1 |w|` of the lines `[z : 1]` and `[1 : w]`; on the
+* `SymplecticGeometry.ProjectiveLine.innerSection` and `outerSection`: the vectors
+  `(z, 1) / max 1 |z|` and `(1, w) / max 1 |w|` of the lines `[z : 1]` and `[1 : w]`, multiples
+  of `Projectivization.normalizedRep` and nonzero on the affine opens; on the
   annulus the first is the second times `z / |z|` (`innerSection_eq_smul_outerSection`).
 * `TauCeti.FiniteRankBundleCore.clutchingZIso` and `clutching_z`: the pullback of the tautological
   line of `ℙ ℂ (Fin 2 → ℂ)` to `X × ℙ ℂ (Fin 2 → ℂ)` is the clutching of the trivial line by
@@ -425,114 +422,89 @@ def circleZPowIso (n : ℤ) :
       exact ((continuous_subtypeVal.comp (hproj.zpow n)).smul hsnd).congr fun _ ↦ (rfl)⟩)
 
 @[simp]
-theorem fiberMap_circleZPowIso_hom_apply (n : ℤ) (b : X × Circle) (v : Fin 1 → ℂ) :
-    (circleZPowIso X n).hom.fiberMap b v = ((b.2 ^ n : Circle) : ℂ) • v :=
-  (DFunLike.congr_fun (fiberMap_isoOfContinuousEquiv_hom (A := trivial ℂ (X × Circle) 1)
-    (D := trivial ℂ (X × Circle) 1) _ _ b) v).trans
-    -- Multiplication by a unit is multiplication by its value.
-    (rfl)
+theorem fiberMap_circleZPowIso_hom (n : ℤ) (b : X × Circle) :
+    (circleZPowIso X n).hom.fiberMap b = (b.2 : ℂ) ^ n • ContinuousLinearMap.id ℂ _ := by
+  ext v : 1
+  refine (DFunLike.congr_fun (fiberMap_isoOfContinuousEquiv_hom (A := trivial ℂ (X × Circle) 1)
+    (D := trivial ℂ (X × Circle) 1) _ _ b) v).trans ?_
+  -- Multiplication by a unit is multiplication by its value.
+  rw [← Circle.coe_zpow]
+  rfl
 
 @[simp]
-theorem fiberMap_circleZPowIso_inv_apply (n : ℤ) (b : X × Circle) (v : Fin 1 → ℂ) :
-    (circleZPowIso X n).inv.fiberMap b v = ((b.2 ^ (-n) : Circle) : ℂ) • v :=
-  (DFunLike.congr_fun (fiberMap_isoOfContinuousEquiv_inv (A := trivial ℂ (X × Circle) 1)
-    (D := trivial ℂ (X × Circle) 1) _ _ b) v).trans
-    -- Multiplication by a unit is multiplication by its value.
-    (by rw [zpow_neg]; rfl)
+theorem fiberMap_circleZPowIso_inv (n : ℤ) (b : X × Circle) :
+    (circleZPowIso X n).inv.fiberMap b = ((b.2 : ℂ) ^ n)⁻¹ • ContinuousLinearMap.id ℂ _ := by
+  ext v : 1
+  refine (DFunLike.congr_fun (fiberMap_isoOfContinuousEquiv_inv (A := trivial ℂ (X × Circle) 1)
+    (D := trivial ℂ (X × Circle) 1) _ _ b) v).trans ?_
+  -- Multiplication by a unit is multiplication by its value.
+  rw [← Circle.coe_zpow, ← Circle.coe_inv]
+  rfl
 
 end TauCeti.FiniteRankBundleCore
-
-/-! ### The tautological line as a core -/
-
-namespace Projectivization
-
-variable (𝕜 V : Type*) [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜] [NormedAddCommGroup V]
-  [NormedSpace 𝕜 V] [SeparatingDual 𝕜 V]
-
-/-- The tautological line of `ℙ 𝕜 V`, whose fibre over a point is the line itself, as a
-finite-rank core of rank one. -/
--- Expose the rank so that the fibre model reduces to `Fin 1 → 𝕜`.
-@[expose, implicit_reducible]
-def tautologicalCore : TauCeti.FiniteRankBundleCore 𝕜 (ℙ 𝕜 V) :=
-  TauCeti.FiniteRankBundleCore.ofBundleOfFinrankEq 𝕜 𝕜 (Tautological 𝕜 V) (finrank_self 𝕜)
-
-theorem tautologicalCore_def : tautologicalCore 𝕜 V =
-    TauCeti.FiniteRankBundleCore.ofBundleOfFinrankEq 𝕜 𝕜 (Tautological 𝕜 V) (finrank_self 𝕜) :=
-  (rfl)
-
-@[simp]
-theorem rank_tautologicalCore : (tautologicalCore 𝕜 V).rank = 1 :=
-  (rfl)
-
-end Projectivization
 
 /-! ### Two nonvanishing sections of the tautological line of `ℂP¹` -/
 
 namespace SymplecticGeometry.ProjectiveLine
 
-/-- On the affine open `[z : 1]`, the vector `(z, 1) / max 1 |z|` of the line. -/
+/-- The vector `(z, 1) / max 1 |z|` of the line `[z : 1]`: the representative normalized by the
+second coordinate, divided by `max 1 |z|`. It is `0` off the affine open `affineOpen 1`. -/
 def innerSection (p : ℙ ℂ (Fin 2 → ℂ)) : Fin 2 → ℂ :=
-  (((max 1 ‖affineChart 1 p 0‖)⁻¹ : ℝ) : ℂ) • ![affineChart 1 p 0, 1]
+  (((max 1 ‖affineChart 1 p 0‖)⁻¹ : ℝ) : ℂ) • normalizedRep (LinearMap.proj 1) p
 
-/-- On the affine open `[1 : w]`, the vector `(1, w) / max 1 |w|` of the line. -/
+/-- The vector `(1, w) / max 1 |w|` of the line `[1 : w]`: the representative normalized by the
+first coordinate, divided by `max 1 |w|`. It is `0` off the affine open `affineOpen 0`. -/
 def outerSection (p : ℙ ℂ (Fin 2 → ℂ)) : Fin 2 → ℂ :=
-  (((max 1 ‖affineChart 0 p 0‖)⁻¹ : ℝ) : ℂ) • ![1, affineChart 0 p 0]
+  (((max 1 ‖affineChart 0 p 0‖)⁻¹ : ℝ) : ℂ) • normalizedRep (LinearMap.proj 0) p
 
 theorem innerSection_def (p : ℙ ℂ (Fin 2 → ℂ)) :
-    innerSection p = (((max 1 ‖affineChart 1 p 0‖)⁻¹ : ℝ) : ℂ) • ![affineChart 1 p 0, 1] :=
+    innerSection p =
+      (((max 1 ‖affineChart 1 p 0‖)⁻¹ : ℝ) : ℂ) • normalizedRep (LinearMap.proj 1) p :=
   (rfl)
 
 theorem outerSection_def (p : ℙ ℂ (Fin 2 → ℂ)) :
-    outerSection p = (((max 1 ‖affineChart 0 p 0‖)⁻¹ : ℝ) : ℂ) • ![1, affineChart 0 p 0] :=
+    outerSection p =
+      (((max 1 ‖affineChart 0 p 0‖)⁻¹ : ℝ) : ℂ) • normalizedRep (LinearMap.proj 0) p :=
   (rfl)
 
-theorem innerSection_ne_zero (p : ℙ ℂ (Fin 2 → ℂ)) : innerSection p ≠ 0 := fun h ↦
-  (lt_max_of_lt_left one_pos : (0 : ℝ) < max 1 ‖affineChart 1 p 0‖).ne'
-    (by simpa [innerSection_def] using congrFun h 1)
+theorem innerSection_mem_submodule (p : ℙ ℂ (Fin 2 → ℂ)) : innerSection p ∈ p.submodule :=
+  Submodule.smul_mem _ _ (normalizedRep_mem_submodule _ _)
 
-theorem outerSection_ne_zero (p : ℙ ℂ (Fin 2 → ℂ)) : outerSection p ≠ 0 := fun h ↦
-  (lt_max_of_lt_left one_pos : (0 : ℝ) < max 1 ‖affineChart 0 p 0‖).ne'
-    (by simpa [outerSection_def] using congrFun h 0)
+theorem outerSection_mem_submodule (p : ℙ ℂ (Fin 2 → ℂ)) : outerSection p ∈ p.submodule :=
+  Submodule.smul_mem _ _ (normalizedRep_mem_submodule _ _)
 
-theorem innerSection_mem_submodule {p : ℙ ℂ (Fin 2 → ℂ)} (hp : p ∈ affineOpen 1) :
-    innerSection p ∈ p.submodule := by
-  induction p using Projectivization.ind with | h v hv =>
-  rw [mk_mem_affineOpen_iff] at hp
-  rw [submodule_mk, innerSection_def]
-  refine Submodule.smul_mem _ _ ?_
-  have h : ![affineChart 1 (mk ℂ v hv) 0, 1] = (v 1)⁻¹ • v := by
-    ext i
-    fin_cases i <;> simp [div_eq_inv_mul, hp]
-  rw [h]
-  exact Submodule.smul_mem _ _ (Submodule.mem_span_singleton_self v)
+private theorem smul_normalizedRep_ne_zero {i : Fin 2} {p : ℙ ℂ (Fin 2 → ℂ)}
+    (hp : p ∈ affineOpen i) :
+    (((max 1 ‖affineChart i p 0‖)⁻¹ : ℝ) : ℂ) • normalizedRep (LinearMap.proj i) p ≠ 0 :=
+  smul_ne_zero (by simpa using (lt_max_of_lt_left one_pos).ne') fun h ↦ one_ne_zero (by
+    rw [← apply_normalizedRep ((affineOpen_eq_linearProjectionDomain (K := ℂ) i) ▸ hp), h,
+      map_zero])
 
-theorem outerSection_mem_submodule {p : ℙ ℂ (Fin 2 → ℂ)} (hp : p ∈ affineOpen 0) :
-    outerSection p ∈ p.submodule := by
-  induction p using Projectivization.ind with | h v hv =>
-  rw [mk_mem_affineOpen_iff] at hp
-  rw [submodule_mk, outerSection_def]
-  refine Submodule.smul_mem _ _ ?_
-  have h : ![1, affineChart 0 (mk ℂ v hv) 0] = (v 0)⁻¹ • v := by
-    ext i
-    fin_cases i <;> simp [div_eq_inv_mul, hp]
-  rw [h]
-  exact Submodule.smul_mem _ _ (Submodule.mem_span_singleton_self v)
+theorem innerSection_ne_zero {p : ℙ ℂ (Fin 2 → ℂ)} (hp : p ∈ affineOpen 1) :
+    innerSection p ≠ 0 :=
+  smul_normalizedRep_ne_zero hp
 
-private theorem continuousOn_section {i : Fin 2} {g : ℂ → Fin 2 → ℂ} (hg : Continuous g) :
+theorem outerSection_ne_zero {p : ℙ ℂ (Fin 2 → ℂ)} (hp : p ∈ affineOpen 0) :
+    outerSection p ≠ 0 :=
+  smul_normalizedRep_ne_zero hp
+
+private theorem continuousOn_smul_normalizedRep (i : Fin 2) :
     ContinuousOn (fun p : ℙ ℂ (Fin 2 → ℂ) ↦
-      (((max 1 ‖affineChart i p 0‖)⁻¹ : ℝ) : ℂ) • g (affineChart i p 0)) (affineOpen i) := by
+      (((max 1 ‖affineChart i p 0‖)⁻¹ : ℝ) : ℂ) • normalizedRep (LinearMap.proj i) p)
+      (affineOpen i) := by
   have hz : ContinuousOn (fun p : ℙ ℂ (Fin 2 → ℂ) ↦ affineChart i p 0) (affineOpen i) :=
     (continuous_apply 0).comp_continuousOn (continuousOn_affineChart i)
   refine ContinuousOn.smul (Complex.continuous_ofReal.comp_continuousOn
     (((continuous_const.max continuous_id).comp_continuousOn hz.norm).inv₀
       fun _ _ ↦ (lt_max_of_lt_left one_pos).ne')) ?_
-  exact hg.comp_continuousOn hz
+  rw [affineOpen_eq_linearProjectionDomain]
+  exact continuousOn_normalizedRep (continuous_apply i)
 
 theorem continuousOn_innerSection : ContinuousOn innerSection (affineOpen 1) :=
-  continuousOn_section (g := fun z ↦ ![z, 1]) (by fun_prop)
+  continuousOn_smul_normalizedRep 1
 
 theorem continuousOn_outerSection : ContinuousOn outerSection (affineOpen 0) :=
-  continuousOn_section (g := fun w ↦ ![1, w]) (by fun_prop)
+  continuousOn_smul_normalizedRep 0
 
 /-- On the annulus, the inner section is the outer one times the radial retraction `z / |z|`. -/
 theorem innerSection_eq_smul_outerSection (p : ↥(innerDisc ∩ outerDisc)) :
@@ -546,7 +518,15 @@ theorem innerSection_eq_smul_outerSection (p : ↥(innerDisc ∩ outerDisc)) :
   have hr : ‖v 0 / v 1‖ ≠ 0 := norm_ne_zero_iff.2 hz
   -- The coordinate `w` of the outer chart is `z⁻¹`, and `|z| * max 1 |z⁻¹| = max 1 |z|`.
   have hw : v 1 / v 0 = (v 0 / v 1)⁻¹ := (inv_div _ _).symm
-  simp only [innerSection_def, outerSection_def, coe_annulusToCircle_apply, affineChart_mk,
+  -- The normalized representatives are `(z, 1)` and `(1, w)`.
+  have e1 : (v 1)⁻¹ • v = ![v 0 / v 1, 1] := by
+    ext i
+    fin_cases i <;> simp [div_eq_inv_mul, h1]
+  have e0 : (v 0)⁻¹ • v = ![1, v 1 / v 0] := by
+    ext i
+    fin_cases i <;> simp [div_eq_inv_mul, h0]
+  simp only [innerSection_def, outerSection_def, normalizedRep_mk, LinearMap.proj_apply, e1, e0]
+  simp only [coe_annulusToCircle_apply, affineChart_mk,
     show Fin.succAbove (1 : Fin 2) 0 = 0 from rfl, show Fin.succAbove (0 : Fin 2) 0 = 1 from rfl,
     hw]
   generalize v 0 / v 1 = z at *
@@ -571,16 +551,17 @@ disc). -/
 private def discSection (s : Bool) : ℙ ℂ (Fin 2 → ℂ) → Fin 2 → ℂ :=
   bif s then innerSection else outerSection
 
-private theorem discSection_mem_submodule {s : Bool} {p : ℙ ℂ (Fin 2 → ℂ)}
-    (hp : p ∈ bif s then innerDisc else outerDisc) : discSection s p ∈ p.submodule := by
+private theorem discSection_mem_submodule (s : Bool) (p : ℙ ℂ (Fin 2 → ℂ)) :
+    discSection s p ∈ p.submodule := by
   cases s
-  · exact outerSection_mem_submodule hp.1
-  · exact innerSection_mem_submodule hp.1
+  · exact outerSection_mem_submodule p
+  · exact innerSection_mem_submodule p
 
-private theorem discSection_ne_zero (s : Bool) (p : ℙ ℂ (Fin 2 → ℂ)) : discSection s p ≠ 0 := by
+private theorem discSection_ne_zero {s : Bool} {p : ℙ ℂ (Fin 2 → ℂ)}
+    (hp : p ∈ bif s then innerDisc else outerDisc) : discSection s p ≠ 0 := by
   cases s
-  · exact outerSection_ne_zero p
-  · exact innerSection_ne_zero p
+  · exact outerSection_ne_zero hp.1
+  · exact innerSection_ne_zero hp.1
 
 private theorem continuousAt_discSection {s : Bool} {p : ℙ ℂ (Fin 2 → ℂ)}
     (hp : p ∈ bif s then innerDisc else outerDisc) : ContinuousAt (discSection s) p := by
@@ -609,13 +590,13 @@ private def lineEquiv (b : X × ℙ ℂ (Fin 2 → ℂ)) :
     (Fin 1 → ℂ) ≃L[ℂ] Tautological ℂ (Fin 2 → ℂ) b.2 :=
   (LinearMap.linearEquivOfInjective
     { toFun := fun a ↦ ⟨a 0 • discSection (side X b) b.2,
-        Submodule.smul_mem _ _ (discSection_mem_submodule (mem_disc_side X b))⟩
+        Submodule.smul_mem _ _ (discSection_mem_submodule _ _)⟩
       map_add' := fun a a' ↦ Subtype.ext (add_smul _ _ _)
       map_smul' := fun c a ↦ Subtype.ext (mul_smul _ _ _) }
     (fun a a' h ↦ by
       have h' := congrArg Subtype.val h
       simp only [LinearMap.coe_mk, AddHom.coe_mk] at h'
-      have := smul_left_injective ℂ (discSection_ne_zero (side X b) b.2) h'
+      have := smul_left_injective ℂ (discSection_ne_zero (mem_disc_side X b)) h'
       ext i
       rwa [Subsingleton.elim i 0])
     (by rw [finrank_fin_fun, finrank_submodule])).toContinuousLinearEquiv
@@ -636,20 +617,23 @@ private theorem glueCocycle_smul_discSection (s t : Bool) (b : X × ℙ ℂ (Fin
   · have hb : b.2 ∈ innerDisc ∩ outerDisc := ⟨ht, hs⟩
     rw [glueCocycle_false_true _ (show b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc
       from hb)]
-    -- `erw`: the fibres are `Fin 1 → ℂ` here, and `Fin r → ℂ` for ranks `r` equal to `1` there.
-    erw [fiberMap_clutchingAut_hom, fiberMap_circleZPowIso_hom_apply, clutchingMap_apply]
-    simp only [discSection, Bool.cond_true, Bool.cond_false, Pi.smul_apply, smul_eq_mul]
-    rw [innerSection_eq_smul_outerSection ⟨b.2, hb⟩, smul_smul, zpow_neg_one, Circle.coe_inv]
+    rw [fiberMap_clutchingAut_hom, fiberMap_circleZPowIso_hom, clutchingMap_apply]
+    -- `erw`: the scalar acts on the fibre of the pullback to `X × Circle`, whose rank is the rank
+    -- of the pullback to `X × ℙ ℂ (Fin 2 → ℂ)` only up to unfolding.
+    erw [smul_apply, ContinuousLinearMap.id_apply a, Pi.smul_apply]
+    simp only [discSection, Bool.cond_true, Bool.cond_false, smul_eq_mul, zpow_neg_one]
+    rw [innerSection_eq_smul_outerSection ⟨b.2, hb⟩, smul_smul]
     have hu := Circle.coe_ne_zero (annulusToCircle ⟨b.2, hb⟩)
     congr 1
     field_simp
   · have hb : b.2 ∈ innerDisc ∩ outerDisc := ⟨hs, ht⟩
     rw [glueCocycle_true_false _ (show b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc
       from hb)]
-    -- `erw`: the fibres are `Fin 1 → ℂ` here, and `Fin r → ℂ` for ranks `r` equal to `1` there.
-    erw [fiberMap_clutchingAut_inv, fiberMap_circleZPowIso_inv_apply, clutchingMap_apply]
-    simp only [discSection, Bool.cond_true, Bool.cond_false, Pi.smul_apply, smul_eq_mul, neg_neg,
-      zpow_one]
+    rw [fiberMap_clutchingAut_inv, fiberMap_circleZPowIso_inv, clutchingMap_apply]
+    -- `erw`: the scalar acts on the fibre of the pullback to `X × Circle`, whose rank is the rank
+    -- of the pullback to `X × ℙ ℂ (Fin 2 → ℂ)` only up to unfolding.
+    erw [smul_apply, ContinuousLinearMap.id_apply a, Pi.smul_apply]
+    simp only [discSection, Bool.cond_true, Bool.cond_false, smul_eq_mul, zpow_neg_one, inv_inv]
     rw [innerSection_eq_smul_outerSection ⟨b.2, hb⟩, smul_smul, mul_comm]
   · rw [glueCocycle_self]; rfl
 
