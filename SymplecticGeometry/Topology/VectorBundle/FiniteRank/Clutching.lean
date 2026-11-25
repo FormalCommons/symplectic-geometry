@@ -28,13 +28,13 @@ over any nontrivially normed field.
 
 ## Main definitions and results
 
-* `TauCeti.ProjectiveLine.innerDisc`, `TauCeti.ProjectiveLine.outerDisc`: the two open discs,
-  open (`isOpen_innerDisc`, `isOpen_outerDisc`) and covering the projective line
-  (`innerDisc_union_outerDisc`).
-* `TauCeti.ProjectiveLine.annulusCoord`: the affine coordinate `z` of the points `[z : 1]` of
-  their intersection, the annulus, as a nonzero complex number.
-* `TauCeti.ProjectiveLine.annulusToCircle`: the radial retraction of the annulus onto `Circle`,
-  `[z : 1] ↦ z / |z|` (`coe_annulusToCircle_apply`).
+* `SymplecticGeometry.ProjectiveLine.innerDisc`, `SymplecticGeometry.ProjectiveLine.outerDisc`:
+  the two open discs, open (`isOpen_innerDisc`, `isOpen_outerDisc`) and covering the projective
+  line (`innerDisc_union_outerDisc`).
+* `SymplecticGeometry.ProjectiveLine.annulusCoord`: the affine coordinate `z` of the points
+  `[z : 1]` of their intersection, the annulus, as a nonzero complex number.
+* `SymplecticGeometry.ProjectiveLine.annulusToCircle`: the radial retraction of the annulus onto
+  `Circle`, `[z : 1] ↦ z / |z|` (`coe_annulusToCircle_apply`).
 * `TauCeti.FiniteRankBundleCore.clutchingMap`: the map from the product of `X` with the annulus to
   `X × Circle`, and `TauCeti.FiniteRankBundleCore.clutchingAut E f`, the pullback of `f` along it.
 * `TauCeti.FiniteRankBundleCore.clutching`: the clutched core, of rank `E.rank`
@@ -50,8 +50,9 @@ over any nontrivially normed field.
   identity is isomorphic to the pullback of `E` along `Prod.fst`.
 
 The clutched core is `TauCeti.FiniteRankBundleCore.glue`, applied to the cover of
-`X × ℙ ℂ (Fin 2 → ℂ)` by the preimages of the two discs. The isomorphism `clutchingOneIso` is built
-with `TauCeti.FiniteRankBundleCore.constIso`, as `TauCeti.FiniteRankBundleCore.glueReflIso` is.
+`X × ℙ ℂ (Fin 2 → ℂ)` by the preimages of the two discs. The clutching by the identity glues by
+the identity (`clutchingAut_refl`), so it is the gluing by the identity (`clutching_refl`), and
+`clutchingOneIso` is this equality followed by `TauCeti.FiniteRankBundleCore.glueReflIso`.
 
 ## References
 
@@ -67,9 +68,7 @@ open Set CategoryTheory Projectivization
 
 open scoped LinearAlgebra.Projectivization
 
-namespace TauCeti
-
-namespace ProjectiveLine
+namespace SymplecticGeometry.ProjectiveLine
 
 /-! ### The two discs of the projective line and their annulus -/
 
@@ -167,13 +166,13 @@ theorem coe_annulusToCircle_apply (p : ↥(innerDisc ∩ outerDisc)) :
     (annulusToCircle p : ℂ) = ‖affineChart 1 p.val 0‖⁻¹ • affineChart 1 p.val 0 := by
   simp [annulusToCircle_def]
 
-end ProjectiveLine
+end SymplecticGeometry.ProjectiveLine
 
 /-! ### The clutched core -/
 
-namespace FiniteRankBundleCore
+namespace TauCeti.FiniteRankBundleCore
 
-open ProjectiveLine
+open SymplecticGeometry.ProjectiveLine
 
 variable {𝕜 X : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace X]
 
@@ -301,6 +300,27 @@ theorem fiberMap_clutchingRestrictIso_false_hom_of_notMem
     (E.clutchingRestrictIso f false).hom.fiberMap x = .id 𝕜 _ :=
   fiberMap_glueRestrictIso_false_hom_of_notMem _ _ _ _ _ hx
 
+@[simp]
+theorem fiberMap_clutchingRestrictIso_true_inv
+    (x : ↥(Prod.snd ⁻¹' innerDisc : Set (X × ℙ ℂ (Fin 2 → ℂ)))) :
+    (E.clutchingRestrictIso f true).inv.fiberMap x = .id 𝕜 _ :=
+  fiberMap_glueRestrictIso_true_inv _ _ _ _ _ x
+
+/-- Over the outer disc, at a point of the annulus, the inverse isomorphism, from the pullback of
+`E` to the clutched core, is the fibre map of `f` at the radial retraction of the point. -/
+theorem fiberMap_clutchingRestrictIso_false_inv
+    {x : ↥(Prod.snd ⁻¹' outerDisc : Set (X × ℙ ℂ (Fin 2 → ℂ)))} (hx : (x.val.2 : _) ∈ innerDisc) :
+    (E.clutchingRestrictIso f false).inv.fiberMap x =
+      f.hom.fiberMap (clutchingMap X ⟨x, hx, x.property⟩) :=
+  (fiberMap_glueRestrictIso_false_inv _ _ _ _ _ hx).trans (fiberMap_clutchingAut_hom E f _)
+
+/-- Over the outer disc, at a point outside the inner disc, the inverse isomorphism, from the
+pullback of `E` to the clutched core, is the identity in coordinates. -/
+theorem fiberMap_clutchingRestrictIso_false_inv_of_notMem
+    {x : ↥(Prod.snd ⁻¹' outerDisc : Set (X × ℙ ℂ (Fin 2 → ℂ)))} (hx : (x.val.2 : _) ∉ innerDisc) :
+    (E.clutchingRestrictIso f false).inv.fiberMap x = .id 𝕜 _ :=
+  fiberMap_glueRestrictIso_false_inv_of_notMem _ _ _ _ _ hx
+
 /-- From a chart over the outer disc to a chart over the inner disc, at a point `b` of the product
 of `X` with the annulus, the transition of the clutched core is the fibre map of `f` at the radial
 retraction of `b`, read in the two charts of `E`. -/
@@ -331,58 +351,40 @@ theorem coordChange_clutching_of_mem_of_notMem {x y : X × ℙ ℂ (Fin 2 → �
 
 /-! ### Clutching by the identity -/
 
-/-- The automorphism by which the clutching by the identity glues has identity fibre maps, so its
-gluing cocycle is the identity. -/
-private theorem glueCocycle_clutchingAut_refl {s t : Bool} {b : X × ℙ ℂ (Fin 2 → ℂ)}
-    (hb : b ∈ glueSide (Prod.snd ⁻¹' innerDisc) (Prod.snd ⁻¹' outerDisc) s ∩
-      glueSide (Prod.snd ⁻¹' innerDisc) (Prod.snd ⁻¹' outerDisc) t) :
-    glueCocycle (clutchingAut E (Iso.refl _)) s t b = .id 𝕜 _ := by
-  cases s <;> cases t
-  · exact glueCocycle_self _ _ _
-  · rw [glueCocycle_false_true _ ⟨hb.2, hb.1⟩, fiberMap_clutchingAut_hom, Iso.refl_hom,
-      fiberMap_id]
-    -- Both sides agree once the ranks of the fibre models are unfolded.
-    rfl
-  · rw [glueCocycle_true_false _ hb, fiberMap_clutchingAut_inv, Iso.refl_inv, fiberMap_id]
-    -- Both sides agree once the ranks of the fibre models are unfolded.
-    rfl
-  · exact glueCocycle_self _ _ _
+/-- The clutching by the identity glues by the identity. -/
+@[simp]
+theorem clutchingAut_refl : clutchingAut E (Iso.refl _) = Iso.refl _ :=
+  Functor.mapIso_refl _ _
+
+/-- The clutching by the identity is the gluing by the identity. -/
+theorem clutching_refl : E.clutching (Iso.refl _) =
+    (E.pullback ContinuousMap.fst).glue (isOpen_innerDisc.preimage continuous_snd)
+      (isOpen_outerDisc.preimage continuous_snd)
+      (by rw [← preimage_union, innerDisc_union_outerDisc, preimage_univ]) (Iso.refl _) := by
+  rw [clutching_def, clutchingAut_refl]
 
 /-- **Clutching by the identity.** The clutching of `E` by the identity of its pullback to
 `X × Circle` is the pullback of `E` along `Prod.fst`, by the identity in coordinates. -/
 def clutchingOneIso : E.clutching (Iso.refl _) ≅ E.pullback ContinuousMap.fst :=
-  constIso (fun _ ↦ inter_subset_left) (ContinuousLinearEquiv.refl 𝕜 (Fin E.rank → 𝕜))
-    fun i j x hi hj ↦ by
-      -- State the identity on standard coordinates to fix the inherited fibre instances.
-      have h : (ContinuousLinearMap.id 𝕜 (Fin E.rank → 𝕜)).comp
-          ((E.clutching (Iso.refl _)).core.coordChange i j x) =
-          ((E.pullback ContinuousMap.fst).core.coordChange i j x).comp
-            (ContinuousLinearMap.id 𝕜 (Fin E.rank → 𝕜)) := by
-        rw [coordChange_clutching, glueCocycle_clutchingAut_refl E ⟨hi.2, hj.2⟩,
-          (E.pullback ContinuousMap.fst).core.inChartCoordinates_id hi.1 hj.1]
-        -- Composition with the identity, once the ranks of the fibre models are unfolded.
-        rfl
-      exact h
+  eqToIso (clutching_refl E) ≪≫ glueReflIso _ _ _ _
 
 @[simp]
 theorem fiberMap_clutchingOneIso_hom (x : X × ℙ ℂ (Fin 2 → ℂ)) :
     (E.clutchingOneIso).hom.fiberMap x = .id 𝕜 _ := by
-  rw [clutchingOneIso]
-  exact fiberMap_constIso_hom _ _ _ x
+  ext v i
+  simp [clutchingOneIso]
 
 @[simp]
 theorem fiberMap_clutchingOneIso_inv (x : X × ℙ ℂ (Fin 2 → ℂ)) :
     (E.clutchingOneIso).inv.fiberMap x = .id 𝕜 _ := by
-  rw [clutchingOneIso]
-  exact fiberMap_constIso_inv _ _ _ x
+  ext v i
+  simp [clutchingOneIso]
 
 /-- **Clutching by the identity.** The clutching of `E` by the identity is isomorphic to the
 pullback of `E` along `Prod.fst`. -/
 theorem clutching_one : Nonempty (E.clutching (Iso.refl _) ≅ E.pullback ContinuousMap.fst) :=
   ⟨E.clutchingOneIso⟩
 
-end FiniteRankBundleCore
-
-end TauCeti
+end TauCeti.FiniteRankBundleCore
 
 end
