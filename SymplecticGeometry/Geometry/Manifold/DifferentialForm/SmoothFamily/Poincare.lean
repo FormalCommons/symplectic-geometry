@@ -111,11 +111,9 @@ theorem exists_isSmoothFamily_mextDerivₗ_eq_of_starConvex {U : Opens V} {c : V
     hU.contMDiff_lineContraction (hU.lineContraction_zero (hU.mem ⟨x₀, x₀.property⟩))
     hU.lineContraction_one hα hcl
   refine ⟨_, hβ, hdβ, fun t x hx ↦ ?_, fun t ht ↦ by simp only [ht, map_zero]⟩
-  rw [SmoothForm.coe_homotopyOperator]
-  refine homotopyOperator_apply_eq_zero fun s v ↦ ?_
-  rw [SmoothForm.mpullback_apply, hx (hU.lineContraction (x, s)) (by
-    simpa using lineMap_mem_segment ℝ c (x : V) s.property), ContinuousAlternatingMap.coe_zero,
-    Pi.zero_apply]
+  rw [SmoothForm.coe_homotopyOperator, SmoothForm.coe_mpullback]
+  exact homotopyOperator_mpullback_apply_eq_zero_of_forall fun s ↦
+    hx (hU.lineContraction (x, s)) (by simpa using lineMap_mem_segment ℝ c (x : V) s.property)
 
 end StarConvex
 
