@@ -34,10 +34,13 @@ these local forms into a connection form on the whole total space, as soon as th
 
 ## Implementation notes
 
-The proofs adapt those of `SymplecticGeometry.mpullback_op_smul_mpullback_trivialization_snd`,
-`SymplecticGeometry.mpullback_trivialization_snd_apply_rightFundamentalVectorField` and
-`SymplecticGeometry.exists_isCircleConnectionForm` (the case `G = Circle`, with the angular form
-of the circle in place of the Maurer–Cartan form) to a general Lie group.
+The local lemmas adapt the proofs of
+`SymplecticGeometry.mpullback_op_smul_mpullback_trivialization_snd` and
+`SymplecticGeometry.mpullback_trivialization_snd_apply_rightFundamentalVectorField` (the case
+`G = Circle`, with the angular form of the circle in place of the Maurer–Cartan form) to a general
+Lie group. The circle case of the existence theorem,
+`SymplecticGeometry.exists_isCircleConnectionForm`, is derived from `exists_isConnectionForm` in
+`Principal/Connection/Circle.lean`.
 
 ## References
 

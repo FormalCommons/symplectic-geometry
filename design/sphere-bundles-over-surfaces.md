@@ -43,7 +43,7 @@ design files (`design/sphere-diffeomorphisms.md`,
 - **The product** is `Prod.fst : S × OnePoint ℂ → S`, with the atlas
   `productAtlas S` whose every chart is the identity trivialization.
 - **Circle bundles.** A principal circle bundle over `S` is, as in the
-  merged `Geometry/Manifold/FiberBundle/Principal/CircleConnection.lean`,
+  `example` of `Geometry/Manifold/FiberBundle/Principal/Connection/Circle.lean`,
   the unitary frame bundle `Fiber ℂ F V ℂ` of a Hermitian line bundle `V`.
   Its Euler number $e(P)$ is the first Chern number of `V`,
   `chernNumber (S.o.toHomologicalOrientation _) _ F V`, as
