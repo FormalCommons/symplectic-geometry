@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.VectorBundle.Basic
+public import TauCeti.Topology.VectorBundle.Coordinates
 
 /-!
 # Basic facts about vector-bundle cores
@@ -15,6 +16,8 @@ public import Mathlib.Topology.VectorBundle.Basic
 * `VectorBundleCore.fiberEquiv`: the identification of each fibre of a core with its model fibre,
   under which the inverse of a chart is a coordinate change
   (`VectorBundleCore.fiberEquiv_localTriv_symm`).
+* `VectorBundleCore.inChartCoordinates_id`: the chart expression of the identity, between two
+  charts at a point of both, is their coordinate change.
 -/
 
 public section
@@ -58,5 +61,13 @@ theorem fiberEquiv_trivializationAt_symm {a b : B}
     Z.fiberEquiv b ((trivializationAt F Z.Fiber a).symm b v) =
       Z.coordChange (Z.indexAt a) (Z.indexAt b) b v :=
   Z.fiberEquiv_localTriv_symm _ hb v
+
+/-- The chart expression of the identity, between two charts of a core at a point of both, is
+their coordinate change. -/
+theorem inChartCoordinates_id {i j : ι} {x : B} (hi : x ∈ Z.baseSet i) (hj : x ∈ Z.baseSet j) :
+    Z.inChartCoordinates Z i j x (ContinuousLinearMap.id R F) = Z.coordChange i j x := by
+  ext v : 1
+  rw [inChartCoordinates_apply, ContinuousLinearMap.id_apply,
+    Z.coordChange_comp _ _ _ x ⟨⟨hi, Z.mem_baseSet_at x⟩, hj⟩]
 
 end VectorBundleCore
