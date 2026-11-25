@@ -101,7 +101,9 @@ theorem firstChernClass_congr
   exact complexEulerClass_eq_of_iso (detCoreMap (VectorBundle.finrank_model_eq Φ) Φ hΦ) _ _
 
 /-- **Naturality of the first Chern class**: `c₁(f* E) = f* c₁(E)` for a continuous map
-`f : X → B`, of any type `K` with `[ContinuousMapClass K X B]`. -/
+`f : X → B`, of any type `K` with `[ContinuousMapClass K X B]`.
+
+Milestone: *First Chern class of a complex vector bundle*. -/
 theorem firstChernClass_pullback {X : Type} [TopologicalSpace X] {K : Type*} [FunLike K X B]
     [ContinuousMapClass K X B] (f : K) :
     firstChernClass G ((⇑f) *ᵖ E) =
@@ -156,7 +158,10 @@ theorem firstChernClass_eq_zero_of_finrank_eq_zero (hG : finrank ℂ G = 0) :
       fun v ↦ congrArg (TotalSpace.mk v.proj) (Subsingleton.elim _ _)
   rw [firstChernClass_congr φ hφ, firstChernClass_trivial]
 
-/-- **The first Chern class of a line bundle** is the Euler class of the bundle itself. -/
+/-- **The first Chern class of a line bundle** is the Euler class of the bundle itself, with the
+orientation of a complex line.
+
+Milestone: *First Chern class of a complex vector bundle*. -/
 theorem firstChernClass_eq_complexEulerClass
     {G : Type} [NormedAddCommGroup G] [NormedSpace ℝ G] [NormedSpace ℂ G] [IsScalarTower ℝ ℂ G]
     [FiniteDimensional ℂ G]
