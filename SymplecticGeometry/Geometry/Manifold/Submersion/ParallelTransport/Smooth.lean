@@ -86,7 +86,8 @@ theorem parallelTransport_eq_timeDependentFlowOf (hn : 1 ≤ n) (hf : ContMDiff 
     (hVγ : ∀ u ∈ uIcc s t, V u (γ u) = curveVelocity J γ u) :
     EqOn (hD.parallelTransport γ s t)
       (timeDependentFlowOf (fun u ↦ hD.horizontalLiftField (V u)) s t) (f ⁻¹' {γ s}) := by
-  intro x (hx : f x = γ s)
+  intro x hx
+  rw [mem_preimage, mem_singleton_iff] at hx
   have hn' : (1 : ℕ∞ω) ≤ n := mod_cast hn
   have h2 : (2 : ℕ∞ω) ≤ n + 1 := by
     simpa [one_add_one_eq_two] using add_le_add_left hn' 1
