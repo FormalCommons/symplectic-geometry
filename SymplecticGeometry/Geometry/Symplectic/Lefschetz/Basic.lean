@@ -151,8 +151,7 @@ theorem mfderiv_apply (h : IsLefschetzChart J π p φ i) {y : X} (hy : y ∈ φ.
     mfderiv I 𝓘(ℝ, Fin 2 → ℂ) φ y (J y v) =
       AlmostComplexStructure.ofComplexModule (Fin 2 → ℂ) (mfderiv I 𝓘(ℝ, Fin 2 → ℂ) φ y v) := by
   exact ((h.isPseudoholomorphicAt y hy).mfderiv_apply_commute v).trans
-    ((SmoothAlmostComplexStructure.ofComplexManifold_apply (E := Fin 2 → ℂ) (M := Fin 2 → ℂ) _
-      _).trans (AlmostComplexStructure.ofComplexModule_apply (V := Fin 2 → ℂ) _).symm)
+    (SmoothAlmostComplexStructure.ofComplexManifold_apply_eq_ofComplexModule _ _)
 
 /-- **`J` is integrable on the source of a Lefschetz chart.** -/
 theorem isIntegrable_on (h : IsLefschetzChart J π p φ i) :
