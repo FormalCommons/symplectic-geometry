@@ -28,6 +28,7 @@ The first proof is that of the local diffeomorphism step inside Tau Ceti's
 
 ## Main results
 
+* `OpenPartialHomeomorph.univBall_mem_ball`: for `0 < ρ`, `univBall c ρ` maps into `ball c ρ`.
 * `OpenPartialHomeomorph.isLocalDiffeomorph_univBall`: `univBall c ρ` is a `C^n` local
   diffeomorphism, for `n ≤ ∞`.
 * `Manifold.IsSmoothEmbedding.comp_univBall`: a smooth embedding of an open set containing
@@ -38,6 +39,16 @@ public section
 
 open Set Metric OpenPartialHomeomorph TauCeti
 open scoped Manifold ContDiff
+
+namespace OpenPartialHomeomorph
+
+/-- For `0 < ρ`, Mathlib's map `univBall c ρ` takes its values in the ball `ball c ρ`. -/
+theorem univBall_mem_ball {E P : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [PseudoMetricSpace P] [NormedAddTorsor E P] {c : P} {ρ : ℝ} (hρ : 0 < ρ) (x : E) :
+    univBall c ρ x ∈ ball c ρ :=
+  univBall_target c hρ ▸ (univBall c ρ).map_source (by simp [univBall_source])
+
+end OpenPartialHomeomorph
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {n : ℕ∞ω} {c : E} {ρ : ℝ}
 
@@ -75,7 +86,7 @@ theorem comp_univBall {f : E → N} {V : TopologicalSpace.Opens E}
     (hf : IsSmoothEmbedding 𝓘(ℝ, E) J n (fun x : V ↦ f x)) (hρ : 0 < ρ)
     (hV : ball c ρ ⊆ V) (hn : n ≤ ∞) : IsSmoothEmbedding 𝓘(ℝ, E) J n (f ∘ univBall c ρ) := by
   have hmem (x : E) : univBall c ρ x ∈ V :=
-    hV (univBall_target c hρ ▸ (univBall c ρ).map_source (by simp [univBall_source]))
+    hV (univBall_mem_ball hρ x)
   -- The same map, with values in `V`.
   let g : E → V := fun x ↦ ⟨univBall c ρ x, hmem x⟩
   have hg : IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) n g := fun x ↦
