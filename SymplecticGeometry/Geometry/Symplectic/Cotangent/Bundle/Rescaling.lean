@@ -7,12 +7,20 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.RescaledFamily
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.IsSymplectic
+public import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Restriction
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Liouville
+public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
+public import TauCeti.Topology.VectorBundle.Radial
 
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.ZeroSection
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
+import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
+import TauCeti.Geometry.Symplectic.Manifold.Opens
+import TauCeti.Geometry.Manifold.Immersion.Differential
+import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Fiberwise
 
 /-!
 # Rescaling symplectic maps of a cotangent bundle towards the zero section
@@ -34,14 +42,42 @@ zero section, `dψ (v, 0) = (v, 0)`. Write `dψ (0, a) = (u, a')`. Along the zer
 of `ω` at `0_x` evaluated on `(v, 0)` and `(0, a)` reads `a' v = a v` for every `v`. Hence
 `a' = a`.
 
+On an open set `V` of covectors whose radial segments from the zero section stay in `U`
+(contained in `TauCeti.VectorBundle.radialCore U`), the rescaled family is smooth on
+`[0, 1] × V` (`SymplecticGeometry.contMDiff_vectorBundleRescaledFamily_of_subset_radialCore`),
+and its slice at `t = 0` is the inclusion of `V`
+(`SymplecticGeometry.CotangentBundle.vectorBundleRescaledFamily_zero_comp_subtypeVal`).
+For `t > 0` its slice is `m_{1/t} ∘ ψ ∘ m_t`
+(`SymplecticGeometry.vectorBundleRescaledFamily_comp_subtypeVal_of_subset_radialCore`), and
+`m_c^* ω = c ω` (`TauCeti.CotangentBundle.mpullback_vectorBundleScalarDiffeomorph_symplecticForm`).
+So every slice is a symplectic map from the restriction of `ω` to `V` to `ω`
+(`SymplecticGeometry.CotangentBundle.isSymplecticMap_vectorBundleRescaledFamily`), and, when `ψ`
+is an open embedding, an open embedding
+(`SymplecticGeometry.CotangentBundle.isOpenEmbedding_vectorBundleRescaledFamily`). Hence each
+slice has injective differential (`TauCeti.SmoothTwoForm.IsSymplecticMap.mfderiv_injective`), so
+it is an immersion when `L` is finite-dimensional (`ContMDiff.isImmersion_of_injective_mfderiv`),
+and a smooth embedding. On `TauCeti.VectorBundle.radialCore U` itself the rescaled family is
+therefore a smooth isotopy from the inclusion to `ψ`
+(`SymplecticGeometry.CotangentBundle.exists_smoothIsotopy_of_eqOn_zeroSection`).
+
 ## Main results
 
 * `SymplecticGeometry.CotangentBundle.vectorBundleRescaledFamily_zero_eq_self`: the slice at
   `t = 0` of the rescaled family of a symplectic map fixing the zero section is the identity.
+* `SymplecticGeometry.CotangentBundle.isSymplecticMap_vectorBundleRescaledFamily`: on a radial
+  core, the slices of the rescaled family are symplectic.
+* `SymplecticGeometry.CotangentBundle.isOpenEmbedding_vectorBundleRescaledFamily`: on a radial
+  core, the slices of the rescaled family of an open embedding are open embeddings.
+* `SymplecticGeometry.CotangentBundle.exists_smoothIsotopy_of_eqOn_zeroSection`: an open
+  symplectic embedding `ψ : U → T*L`, `U ⊇ 0_L` open, that is the identity on `0_L` is joined
+  to the inclusion of some open `U' ⊆ U` containing `0_L` by a symplectic smooth isotopy that
+  is the identity on `0_L`.
 
 ## References
 
 * [P. Seidel, *Floer homology and the symplectic isotopy problem*][Seidel1997Thesis], Lemma 2.2(b).
+* M. Hirsch, *Differential Topology*, Graduate Texts in Mathematics 33, Springer, 1976,
+  Chapter 4, §5.
 -/
 
 public section
@@ -119,6 +155,168 @@ theorem vectorBundleRescaledFamily_zero_eq_self [IsManifold J ∞ L] [J.Boundary
   rw [hhor, ← T.symm_apply_eq.2 hua, eval₂_symplecticForm_zeroSectionTangentEquiv_symm,
     eval₂_symplecticForm_zeroSectionTangentEquiv_symm] at this
   simpa using this
+
+section RadialCore
+
+variable [IsManifold J ∞ L] [J.Boundaryless] [T2Space L] {U V : Opens (CotangentBundle J L)}
+  {ψ : U → CotangentBundle J L}
+
+/-- **The slice at `t = 0` on a radial core is the inclusion.** Let `L` be a Hausdorff manifold
+without boundary, `U` an open set of `T*L` and `ψ : U → T*L` a smooth map that fixes every point
+of the zero section lying in `U` and pulls the canonical symplectic form back to its restriction
+to `U`. On a set `V` of covectors whose radial segments lie in `U`, the slice at `t = 0` of the
+rescaled family of `ψ` is the inclusion of `V`. -/
+theorem vectorBundleRescaledFamily_zero_comp_subtypeVal
+    (hV : (V : Set (CotangentBundle J L)) ⊆ VectorBundle.radialCore U)
+    (hψ : ContMDiff (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ∞ ψ)
+    (hψ0 : ∀ x (hx : zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) x ∈ U),
+      ψ ⟨_, hx⟩ = zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) x)
+    (hψω : SmoothForm.mpullback ψ hψ (symplecticForm J L) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (symplecticForm J L)) :
+    (fun z : V ↦ vectorBundleRescaledFamily ψ ((z : CotangentBundle J L), 0)) = Subtype.val :=
+  funext fun z ↦ vectorBundleRescaledFamily_zero_eq_self hψ hψ0 hψω (by
+    simpa [zeroSection] using VectorBundle.mem_radialCore.1 (hV z.prop) 0 ⟨le_rfl, zero_le_one⟩)
+
+/-- **The slices of the rescaled family are symplectic.** Let `L` be a Hausdorff manifold without
+boundary, `U` an open set of `T*L` and `ψ : U → T*L` a smooth map that fixes every point of the
+zero section lying in `U` and pulls the canonical symplectic form `ω` back to its restriction to
+`U`. On an open set `V` of covectors whose radial segments lie in `U`, every slice
+`z ↦ vectorBundleRescaledFamily ψ (z, t)` of the rescaled family is a symplectic map from the
+restriction of `ω` to `V` to `ω`. -/
+theorem isSymplecticMap_vectorBundleRescaledFamily
+    (hV : (V : Set (CotangentBundle J L)) ⊆ VectorBundle.radialCore U)
+    (hψ : ContMDiff (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ∞ ψ)
+    (hψ0 : ∀ x (hx : zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) x ∈ U),
+      ψ ⟨_, hx⟩ = zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) x)
+    (hψω : SmoothForm.mpullback ψ hψ (symplecticForm J L) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (symplecticForm J L))
+    (t : unitInterval) :
+    SmoothTwoForm.IsSymplecticMap
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (symplecticForm J L))
+      (symplecticForm J L)
+      (fun z : V ↦ vectorBundleRescaledFamily ψ ((z : CotangentBundle J L), t)) := by
+  set σ := symplecticForm J L
+  have hf : ContMDiff (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ∞
+      fun z : V ↦ vectorBundleRescaledFamily ψ ((z : CotangentBundle J L), t) :=
+    (contMDiff_vectorBundleRescaledFamily_of_subset_radialCore hV hψ hψ0).comp
+      (contMDiff_const.prodMk contMDiff_id)
+  rw [SmoothTwoForm.isSymplecticMap_iff_mpullback_eq hf]
+  rcases eq_or_lt_of_le t.prop.1 with ht | ht
+  · obtain rfl : t = 0 := Subtype.ext ht.symm
+    exact SmoothForm.mpullback_congr _ _
+      (vectorBundleRescaledFamily_zero_comp_subtypeVal hV hψ hψ0 hψω) σ
+  -- for `t > 0` the slice is `m_{1/t} ∘ ψ ∘ m_t`, and `m_c` pulls `ω` back to `c ω`
+  set m := vectorBundleScalarDiffeomorph (I := J) (n := ∞) (F := E →L[ℝ] ℝ)
+    (V := fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) (fun _ ↦ (t : ℝ)) contMDiff_const
+    (fun _ ↦ ht.ne')
+  set D := vectorBundleScalarDiffeomorph (I := J) (n := ∞) (F := E →L[ℝ] ℝ)
+    (V := fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) (fun _ ↦ (t : ℝ)⁻¹) contMDiff_const
+    (fun _ ↦ inv_ne_zero ht.ne')
+  set g : V → U := fun z ↦
+    ⟨_, mapsTo_vectorBundleScalarDiffeomorph_of_subset_radialCore (IB := J) hV ht z.prop⟩
+  have hgm : Subtype.val ∘ g = m ∘ Subtype.val := rfl
+  have hg : ContMDiff (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ∞ g :=
+    (ContMDiff.subtypeVal_comp_iff U g).1 (m.contMDiff.comp contMDiff_subtypeVal)
+  rw [SmoothForm.mpullback_congr _ (D.contMDiff.comp (hψ.comp hg))
+      (vectorBundleRescaledFamily_comp_subtypeVal_of_subset_radialCore (IB := J) hV ψ ht),
+    ← SmoothForm.mpullback_mpullback _ _ (hψ.comp hg) D.contMDiff,
+    ← SmoothForm.mpullback_mpullback _ _ hg hψ,
+    mpullback_vectorBundleScalarDiffeomorph_symplecticForm, map_smul, hψω, map_smul,
+    SmoothForm.mpullback_mpullback_of_comp_eq hg contMDiff_subtypeVal contMDiff_subtypeVal
+      m.contMDiff hgm,
+    mpullback_vectorBundleScalarDiffeomorph_symplecticForm, map_smul, smul_smul,
+    inv_mul_cancel₀ ht.ne', one_smul]
+
+/-- **The slices of the rescaled family are open embeddings.** Let `L` be a Hausdorff manifold
+without boundary, `U` an open set of `T*L` and `ψ : U → T*L` a smooth open embedding that fixes
+every point of the zero section lying in `U` and pulls the canonical symplectic form back to its
+restriction to `U`. On an open set `V` of covectors whose radial segments lie in `U`, every slice
+`z ↦ vectorBundleRescaledFamily ψ (z, t)` of the rescaled family is an open embedding of `V`
+into `T*L`. -/
+theorem isOpenEmbedding_vectorBundleRescaledFamily
+    (hV : (V : Set (CotangentBundle J L)) ⊆ VectorBundle.radialCore U)
+    (hψ : ContMDiff (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ∞ ψ)
+    (hψe : IsOpenEmbedding ψ)
+    (hψ0 : ∀ x (hx : zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) x ∈ U),
+      ψ ⟨_, hx⟩ = zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) x)
+    (hψω : SmoothForm.mpullback ψ hψ (symplecticForm J L) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (symplecticForm J L))
+    (t : unitInterval) :
+    IsOpenEmbedding fun z : V ↦ vectorBundleRescaledFamily ψ ((z : CotangentBundle J L), t) := by
+  rcases eq_or_lt_of_le t.prop.1 with ht | ht
+  · obtain rfl : t = 0 := Subtype.ext ht.symm
+    rw [vectorBundleRescaledFamily_zero_comp_subtypeVal hV hψ hψ0 hψω]
+    exact V.isOpen.isOpenEmbedding_subtypeVal
+  -- for `t > 0` the slice is `m_{1/t} ∘ ψ ∘ m_t`, a composite of open embeddings
+  set m := vectorBundleScalarDiffeomorph (I := J) (n := ∞) (F := E →L[ℝ] ℝ)
+    (V := fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) (fun _ ↦ (t : ℝ)) contMDiff_const
+    (fun _ ↦ ht.ne')
+  rw [vectorBundleRescaledFamily_comp_subtypeVal_of_subset_radialCore (IB := J) hV ψ ht]
+  refine (Diffeomorph.toHomeomorph _).isOpenEmbedding.comp (hψe.comp ?_)
+  refine (U.isOpen.isOpenEmbedding_subtypeVal.of_comp_iff _).1 ?_
+  exact m.toHomeomorph.isOpenEmbedding.comp V.isOpen.isOpenEmbedding_subtypeVal
+
+end RadialCore
+
+/-- **A symplectic embedding fixing the zero section is isotopic to the inclusion.** Let `L` be a
+finite-dimensional Hausdorff manifold without boundary, `U` an open set of `T*L` containing
+every zero covector, and `ψ : U → T*L` a smooth open embedding that fixes every point of the zero
+section and pulls the canonical symplectic form `ω` back to its restriction to `U`. Then there is
+an open neighbourhood `U' ⊆ U` of the zero section and a smooth isotopy from the inclusion of `U'`
+to the restriction of `ψ` to `U'` whose slices pull `ω` back to its restriction to `U'`, fix every
+point of the zero section, and are open embeddings. -/
+theorem exists_smoothIsotopy_of_eqOn_zeroSection [IsManifold J ∞ L] [J.Boundaryless] [T2Space L]
+    [FiniteDimensional ℝ E] {U : Opens (CotangentBundle J L)}
+    (hU : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U)
+    (ψ : C^∞⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), U; J.prod 𝓘(ℝ, E →L[ℝ] ℝ), CotangentBundle J L⟯)
+    (hψ : IsOpenEmbedding ψ)
+    (hψ0 : ∀ x, ψ ⟨_, hU (mem_range_self x)⟩ =
+      zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) x)
+    (hψω : SmoothForm.mpullback ψ ψ.contMDiff (symplecticForm J L) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (symplecticForm J L)) :
+    ∃ (U' : Opens (CotangentBundle J L)) (hU' : U' ≤ U)
+      (hzero : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U')
+      (F : SmoothIsotopy (ContMDiffMap.id.restrict U')
+        (ψ.comp ⟨Opens.inclusion hU', contMDiff_inclusion hU'⟩)),
+      F.IsSymplectic (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (symplecticForm J L))
+        (symplecticForm J L) ∧
+      (∀ (t : unitInterval) x, F (t, ⟨_, hzero (mem_range_self x)⟩) =
+        zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) x) ∧
+      ∀ t : unitInterval, IsOpenEmbedding fun z : U' ↦ F (t, z) := by
+  -- the neighbourhood: the vectors whose radial segment stays in `U`
+  let U' : Opens (CotangentBundle J L) :=
+    ⟨VectorBundle.radialCore (U : Set (CotangentBundle J L)),
+      VectorBundle.isOpen_radialCore U.isOpen⟩
+  have hV : (U' : Set (CotangentBundle J L)) ⊆ VectorBundle.radialCore U := subset_rfl
+  have hzero : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U' := by
+    rintro _ ⟨x, rfl⟩
+    exact (VectorBundle.zeroSection_mem_radialCore x).2 (hU (mem_range_self x))
+  have hψ0' : ∀ x (hx : _ ∈ U), ψ ⟨_, hx⟩ = _ := fun x _ ↦ hψ0 x
+  have hR := contMDiff_vectorBundleRescaledFamily_of_subset_radialCore hV ψ.contMDiff hψ0'
+  have hf : ∀ t : unitInterval, ContMDiff (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ∞
+      fun z : U' ↦ vectorBundleRescaledFamily ψ ((z : CotangentBundle J L), t) := fun t ↦
+    hR.comp (contMDiff_const.prodMk contMDiff_id)
+  have hsymp := isSymplecticMap_vectorBundleRescaledFamily hV ψ.contMDiff hψ0' hψω
+  have hemb := isOpenEmbedding_vectorBundleRescaledFamily hV ψ.contMDiff hψ hψ0' hψω
+  refine ⟨U', VectorBundle.radialCore_subset _, hzero,
+    { toContMDiffMap := ⟨_, hR⟩
+      map_zero_left := fun z ↦ by
+        rw [ContMDiffMap.restrict_apply, ContMDiffMap.id_apply]
+        exact vectorBundleRescaledFamily_zero_eq_self ψ.contMDiff hψ0' hψω
+          (hU (mem_range_self _))
+      map_one_left := fun z ↦
+        vectorBundleRescaledFamily_one ψ ⟨z, VectorBundle.radialCore_subset _ z.prop⟩
+      -- every slice has injective differential, since it pulls back a nondegenerate form
+      isSmoothEmbedding := fun t ↦ ⟨(hf t).isImmersion_of_injective_mfderiv (by simp)
+        ((hsymp t).mfderiv_injective
+          (isSymplectic_symplecticForm.isNondegenerate.mpullback_subtype_val U')),
+        (hemb t).isEmbedding⟩ },
+    SmoothIsotopy.isSymplectic_def.2 fun t ↦ ?_, fun t x ↦ ?_, fun t ↦ hemb t⟩
+  · -- the slices of the isotopy are those of the rescaled family, by construction
+    have h := congrArg Subtype.val ((SmoothTwoForm.isSymplecticMap_iff_mpullback_eq (hf t)).1
+      (hsymp t))
+    rwa [SmoothForm.coe_mpullback] at h
+  · exact vectorBundleRescaledFamily_zeroSection _ (hψ0 x) t
 
 end SymplecticGeometry.CotangentBundle
 
