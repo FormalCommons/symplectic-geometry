@@ -5,11 +5,10 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Topology.VectorBundle.FiniteRank.Biproduct
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct
 public import TauCeti.Topology.VectorBundle.FiniteRank.ExteriorPower
 public import TauCeti.Topology.VectorBundle.FiniteRank.Tensor
 public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
-import TauCeti.Topology.Algebra.Module.Determinant
 
 /-!
 # Tensor products of finite-rank cores
@@ -29,11 +28,10 @@ Whitney sum.
   `A.core.Fiber x ⊗[𝕜] D.core.Fiber x`, by Tau Ceti's coordinates `TauCeti.piTensorEquiv`;
 * `TauCeti.FiniteRankBundleCore.continuous_tensorFiberEquiv`: this identification is continuous
   from the total space of `tensor A D` to that of the tensor product bundle;
-* `TauCeti.FiniteRankBundleCore.det_coordChange_whitneySum`: the transitions of a Whitney sum
-  have the product of the determinants of the transitions of the summands as determinant;
 * `TauCeti.FiniteRankBundleCore.detWhitneySumIso`: the determinant line of a Whitney sum is the
   tensor product of the determinant lines, `Λ^top (A ⊕ D) ≅ Λ^top A ⊗ Λ^top D`, by a constant
-  coordinate change.
+  coordinate change. It uses `TauCeti.FiniteRankBundleCore.det_coordChange_whitneySum`, from
+  `SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct`.
 
 ## References
 
@@ -149,25 +147,6 @@ theorem continuous_tensorFiberEquiv :
 end TensorFiber
 
 section DetWhitneySum
-
-/-- The transition maps of a Whitney sum are block diagonal, so their determinants are the
-products of the determinants of the transition maps of the two summands. -/
-theorem det_coordChange_whitneySum (A D : FiniteRankBundleCore 𝕜 B) (i j x : B) :
-    ((whitneySum A D).core.coordChange i j x).det =
-      (A.core.coordChange i j x).det * (D.core.coordChange i j x).det := by
-  -- The statement for an operator on `Fin (A.rank + D.rank) → 𝕜` acting blockwise, stated on
-  -- this coordinate space, where the rewriting lemmas apply.
-  have key (f : (Fin (A.rank + D.rank) → 𝕜) →L[𝕜] (Fin (A.rank + D.rank) → 𝕜))
-      (hf : ∀ u w, f ((splitCoords (𝕜 := 𝕜) A.rank D.rank).symm (u, w)) =
-        (splitCoords (𝕜 := 𝕜) A.rank D.rank).symm
-          (A.core.coordChange i j x u, D.core.coordChange i j x w)) :
-      f.det = (A.core.coordChange i j x).det * (D.core.coordChange i j x).det := by
-    set e := splitCoords (𝕜 := 𝕜) (M := 𝕜) A.rank D.rank
-    have h : (e : _ →L[𝕜] _) ∘L f ∘L (e.symm : _ →L[𝕜] _) =
-        (A.core.coordChange i j x).prodMap (D.core.coordChange i j x) :=
-      ContinuousLinearMap.ext fun ⟨u, w⟩ ↦ (congrArg e (hf u w)).trans (by simp [e])
-    rw [← ContinuousLinearMap.det_conj f e, h, ContinuousLinearMap.det_prodMap]
-  exact key _ (coordChange_whitneySum_splitCoords_symm A D i j x)
 
 /-- The determinant line of a Whitney sum is the tensor product of the determinant lines,
 `Λ^top (A ⊕ D) ≅ Λ^top A ⊗ Λ^top D`. Both are lines with the charts of `A ⊕ D`, whose
