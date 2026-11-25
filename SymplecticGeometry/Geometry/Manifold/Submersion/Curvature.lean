@@ -273,21 +273,21 @@ theorem curvature_smul_right (hn : 1 ≤ n) {x : P} (hf : ContMDiffAt I J 2 f x)
 /-! ### Flatness and involutivity -/
 
 /-- If the horizontal distribution of a `C^n` connection, with `1 ≤ n`, is involutive, then its
-curvature vanishes at every point `x` where `f` is `C^(n+1)`, on fields that are `C^n` at
-`f x`. -/
+curvature vanishes at every point `x` where `f` is `C^2`, on fields that are `C^1` at `f x`. -/
 theorem curvature_eq_zero_of_isInvolutiveDistribution (hn : 1 ≤ n) {x : P}
-    (hf : ContMDiffAt I J (n + 1) f x) (hDi : IsInvolutiveDistribution I D)
-    {v₁ v₂ : Π b : B, TangentSpace J b} (hv₁ : ContMDiffAt J J.tangent n (T% v₁) (f x))
-    (hv₂ : ContMDiffAt J J.tangent n (T% v₂) (f x)) :
+    (hf : ContMDiffAt I J 2 f x) (hDi : IsInvolutiveDistribution I D)
+    {v₁ v₂ : Π b : B, TangentSpace J b} (hv₁ : ContMDiffAt J J.tangent 1 (T% v₁) (f x))
+    (hv₂ : ContMDiffAt J J.tangent 1 (T% v₂) (f x)) :
     hD.curvature v₁ v₂ x = 0 := by
-  -- The lifts are `C^n` at `x`, so differentiable near `x`.
-  have hnear {v : Π b : B, TangentSpace J b} (hv : ContMDiffAt J J.tangent n (T% v) (f x)) :
-      ∀ᶠ y in nhds x, MDifferentiableAt I I.tangent (T% (hD.horizontalLiftField v)) y :=
-    (hD.contMDiffAt_horizontalLiftField hf hv).eventually_mdifferentiableAt
-      (zero_lt_one.trans_le hn).ne'
+  -- The lifts are those of `D` seen as a `C^1` connection, so they are `C^1` at `x` and
+  -- differentiable near `x`.
+  have hnear {v : Π b : B, TangentSpace J b} (hv : ContMDiffAt J J.tangent 1 (T% v) (f x)) :
+      ∀ᶠ y in nhds x, MDifferentiableAt I I.tangent (T% (hD.horizontalLiftField v)) y := by
+    rw [← hD.horizontalLiftField_of_le v hn]
+    exact ((hD.of_le hn).contMDiffAt_horizontalLiftField (by rwa [one_add_one_eq_two]) hv
+      ).eventually_mdifferentiableAt one_ne_zero
   obtain ⟨U, hU, hUo, hxU⟩ := eventually_nhds_iff.1 ((hnear hv₁).and (hnear hv₂))
-  exact (hD.curvature_eq_zero_iff_mem hn (hf.of_le (add_le_add_left hn 1))
-    (hv₁.of_le hn) (hv₂.of_le hn)).2 <| hDi.mlieBracket_mem hUo
+  exact (hD.curvature_eq_zero_iff_mem hn hf hv₁ hv₂).2 <| hDi.mlieBracket_mem hUo
     (fun y hy ↦ (hU y hy).1.mdifferentiableWithinAt)
     (fun y hy ↦ (hU y hy).2.mdifferentiableWithinAt)
     (fun y _ ↦ hD.horizontalLiftField_mem v₁ y) (fun y _ ↦ hD.horizontalLiftField_mem v₂ y) hxU
@@ -327,7 +327,9 @@ theorem curvature_eq_zero_iff_isInvolutiveDistribution [FiniteDimensional 𝕜 F
       ContMDiffAt J J.tangent n (T% v₁) (f x) → ContMDiffAt J J.tangent n (T% v₂) (f x) →
         hD.curvature v₁ v₂ x = 0) ↔ IsInvolutiveDistribution I D :=
   ⟨hD.isInvolutiveDistribution_of_curvature_eq_zero hn hf,
-    fun hDi _ _ _ ↦ hD.curvature_eq_zero_of_isInvolutiveDistribution hn (hf _) hDi⟩
+    fun hDi _ _ _ hv₁ hv₂ ↦ hD.curvature_eq_zero_of_isInvolutiveDistribution hn
+      ((hf _).of_le (by rw [← one_add_one_eq_two]; exact add_le_add_left hn 1)) hDi
+      (hv₁.of_le hn) (hv₂.of_le hn)⟩
 
 end Smooth
 
