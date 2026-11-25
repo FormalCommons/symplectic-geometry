@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Submersion.ParallelTransport.Basic
+public import SymplecticGeometry.Topology.FiberBundle.Basic
 import Mathlib.Topology.Connected.Clopen
 
 /-!
@@ -193,6 +194,21 @@ theorem parallelTransportIn_self {e : Trivialization Z f} {γ : ℝ → B} {s : 
   rw [parallelTransportIn_def, parallelTransport_self, e.apply_symm_apply' hs]
 
 /-- Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B`, and
+`γ` a `C^(n+1)` curve in `B`. If `γ s ∈ e.baseSet` and `γ t ∈ e'.baseSet`, the point of the fibre
+over `γ t` with coordinate `hD.parallelTransportIn e e' γ s t v` in `e'` is the transport from `s`
+to `t` of the point of the fibre over `γ s` with coordinate `v` in `e`. -/
+theorem fiberInclusion_parallelTransportIn (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
+    (hfp : IsProperMap f) {γ : ℝ → B} (hγ : ContMDiff 𝓘(ℝ, ℝ) J (n + 1) γ)
+    {e e' : Trivialization Z f} {s t : ℝ} (hs : γ s ∈ e.baseSet) (ht : γ t ∈ e'.baseSet)
+    (v : Z) :
+    e'.fiberInclusion ht (hD.parallelTransportIn e e' γ s t v) =
+      hD.parallelTransport γ s t (e.fiberInclusion hs v) := by
+  have hy := hD.parallelTransport_mem_preimage hn hf hfp hγ (e.proj_symm_apply' (x := v) hs) t
+  rw [mem_preimage, mem_singleton_iff] at hy
+  rw [parallelTransportIn_def, e.fiberInclusion_apply hs, e'.fiberInclusion_apply ht, ← hy,
+    e'.symm_apply_mk_proj (e'.mem_source.2 (hy ▸ ht))]
+
+/-- Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B`, and
 `γ` a `C^(n+1)` curve in `B`. If `γ s ∈ e.baseSet` and `γ t ∈ e'.baseSet`, transport from `s` to
 `t` read in `e` and `e'`, followed by transport from `t` to `u` read in `e'` and `e''`, is
 transport from `s` to `u` read in `e` and `e''`. -/
@@ -202,12 +218,10 @@ theorem parallelTransportIn_parallelTransportIn (hn : 1 ≤ n) (hf : ContMDiff I
     (ht : γ t ∈ e'.baseSet) (u : ℝ) (v : Z) :
     hD.parallelTransportIn e' e'' γ t u (hD.parallelTransportIn e e' γ s t v) =
       hD.parallelTransportIn e e'' γ s u v := by
-  have hx : f (e.toOpenPartialHomeomorph.symm (γ s, v)) = γ s := e.proj_symm_apply' hs
-  have hy := hD.parallelTransport_mem_preimage hn hf hfp hγ hx t
-  rw [mem_preimage, mem_singleton_iff] at hy
-  rw [parallelTransportIn_def, parallelTransportIn_def, ← hy,
-    e'.symm_apply_mk_proj (e'.mem_source.2 (hy ▸ ht)),
-    hD.parallelTransport_parallelTransport hn hf hfp hγ hx, parallelTransportIn_def]
+  rw [hD.parallelTransportIn_def e', ← e'.fiberInclusion_apply ht,
+    hD.fiberInclusion_parallelTransportIn hn hf hfp hγ hs ht, e.fiberInclusion_apply hs,
+    hD.parallelTransport_parallelTransport hn hf hfp hγ (e.proj_symm_apply' hs),
+    parallelTransportIn_def]
 
 /-- **Smoothness of transport in trivializations.** Let `D` be a `C^n` Ehresmann connection,
 `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B` of finite-dimensional boundaryless Hausdorff
@@ -283,11 +297,7 @@ theorem symm_parallelTransportInDiffeomorph (e e' : Trivialization Z f) (γ : �
     (hs : γ s ∈ e.baseSet) (ht : γ t ∈ e'.baseSet) :
     (hD.parallelTransportInDiffeomorph e e' γ s t hn hf hfp hγ he he_symm he' he'_symm hs ht).symm =
       hD.parallelTransportInDiffeomorph e' e γ t s hn hf hfp hγ he' he'_symm he he_symm ht hs :=
-  Diffeomorph.ext fun v ↦ by
-    rw [← Diffeomorph.toEquiv_coe_symm, Equiv.symm_apply_eq, Diffeomorph.coe_toEquiv,
-      coe_parallelTransportInDiffeomorph, coe_parallelTransportInDiffeomorph,
-      hD.parallelTransportIn_parallelTransportIn hn hf hfp hγ e' ht hs,
-      parallelTransportIn_self _ ht]
+  (rfl)
 
 /-- **Change of trivializations.** Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on a proper
 `C^(n+1)` map `f : P → B`, and `γ` a `C^(n+1)` curve in `B`. If `γ s` lies in the base sets of `e`
@@ -300,13 +310,11 @@ theorem parallelTransportIn_coordChange (hn : 1 ≤ n) (hf : ContMDiff I J (n + 
     (hs₂ : γ s ∈ e₂.baseSet) (ht : γ t ∈ e'.baseSet) (v : Z) :
     hD.parallelTransportIn e₂ e₂' γ s t v =
       e'.coordChange e₂' (γ t) (hD.parallelTransportIn e e' γ s t (e₂.coordChange e (γ s) v)) := by
-  have hx : f (e₂.toOpenPartialHomeomorph.symm (γ s, v)) = γ s := e₂.proj_symm_apply' hs₂
-  have hy := hD.parallelTransport_mem_preimage hn hf hfp hγ hx t
+  rw [hD.parallelTransportIn_def e, ← e.fiberInclusion_apply hs,
+    e₂.fiberInclusion_coordChange e hs₂ hs, e₂.fiberInclusion_apply hs₂]
+  have hy := hD.parallelTransport_mem_preimage hn hf hfp hγ (e₂.proj_symm_apply' (x := v) hs₂) t
   rw [mem_preimage, mem_singleton_iff] at hy
-  simp only [parallelTransportIn_def]
-  rw [e₂.mk_coordChange e hs₂ hs, ← e.coe_coe, e.left_inv ?_, ← hy,
-    e'.coordChange_apply_snd e₂' (hy ▸ ht)]
-  rwa [e.mem_source, hx]
+  rw [← hy, e'.coordChange_apply_snd e₂' (hy ▸ ht), parallelTransportIn_def]
 
 end Trivialization
 
