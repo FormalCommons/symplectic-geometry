@@ -270,7 +270,7 @@ theorem fiberDistribMulAction_smul_eq_toContinuousLinearMap (k : K) :
 `k`, since the action is linear. -/
 theorem mfderiv_fiberDistribMulAction_const_smul (k : K) (q p : A × V) :
     letI := D.fiberDistribMulAction
-    mfderiv 𝓘(ℝ, A × V) 𝓘(ℝ, A × V) (fun q : A × V ↦ k • q) q p = k • p := by
+    mfderiv 𝓘(ℝ, A × V) 𝓘(ℝ, A × V) (fun y : A × V ↦ k • y) q p = k • p := by
   rw [fiberDistribMulAction_smul_eq_toContinuousLinearMap, ContinuousLinearMap.mfderiv_eq]
   exact congrFun (D.fiberDistribMulAction_smul_eq_toContinuousLinearMap k).symm p
 
