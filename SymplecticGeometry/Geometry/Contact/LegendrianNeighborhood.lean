@@ -245,8 +245,7 @@ private theorem mfderiv_comp_cotangentToNormal (hf : IsLegendrianEmbedding J α.
     have h := mfderiv_comp_apply q ((hι _).mdifferentiableAt (by simp))
       (mdifferentiableAt_zeroSection ℝ _) u
     rw [hfun] at h
-    rw [Bundle.zeroSectionTangentEquiv_symm_eq, map_add, h, Prod.mk_zero_zero, map_zero, map_zero,
-      add_zero]
+    rw [Bundle.zeroSectionTangentEquiv_symm_inl, h]
   · -- Vertically: the composite maps the line `t ↦ t • p` to the line `t ↦ t • j p`.
     rw [Bundle.zeroSectionTangentEquiv_symm_inr, Bundle.zeroSectionTangentEquiv_symm_inr]
     let line : ℝ → CotangentBundle J L := fun t ↦ ⟨q, t • p⟩

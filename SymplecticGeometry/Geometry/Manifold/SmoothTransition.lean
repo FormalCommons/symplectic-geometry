@@ -22,12 +22,14 @@ interval (`unitInterval.mfderiv_smoothTransition_one`). Tau Ceti's
 `TauCeti.collaredSmoothTransitionUnit` is the analogous map for the reparametrization
 `t ↦ Real.smoothTransition (2 * t - 1 / 2)`. Since that map is constant near both ends of the
 unit interval, Tau Ceti's `TauCeti.collaredFirstHalf` composed with the clamp `Set.projIcc 0 1`
-is `t ↦ collaredSmoothTransitionUnit (2 * t)` on all of `ℝ` (`TauCeti.collaredFirstHalf_projIcc`).
+is `t ↦ collaredSmoothTransitionUnit (2 * t)` on all of `ℝ` (`TauCeti.collaredFirstHalf_projIcc`),
+and `collaredFirstHalf` is `0` near time `0` and `1` near time `1`
+(`TauCeti.eventually_collaredFirstHalf_eq_zero`, `TauCeti.eventually_collaredFirstHalf_eq_one`).
 -/
 
 public noncomputable section
 
-open scoped Manifold ContDiff
+open scoped Manifold ContDiff Topology
 
 namespace unitInterval
 
@@ -88,6 +90,20 @@ theorem collaredFirstHalf_projIcc {n : ℕ∞ω} (hn : n ≤ ∞) (t : ℝ) :
   · rw [min_eq_left h', max_eq_right zero_le_one,
       collaredSmoothTransitionUnit_eq_one_of_ge (by norm_num),
       collaredSmoothTransitionUnit_eq_one_of_ge (by linarith)]
+
+/-- The first half of a stationary-time concatenation is `0` near time `0`. -/
+theorem eventually_collaredFirstHalf_eq_zero {n : ℕ∞ω} (hn : n ≤ ∞) :
+    ∀ᶠ t in 𝓝 (0 : unitInterval), collaredFirstHalf hn t = 0 := by
+  filter_upwards [(continuous_subtypeVal.tendsto 0).eventually
+    (gt_mem_nhds (by norm_num : ((0 : unitInterval) : ℝ) < 1 / 8))] with t ht
+  exact collaredFirstHalf_eq_zero_of_le hn ht.le
+
+/-- The first half of a stationary-time concatenation is `1` near time `1`. -/
+theorem eventually_collaredFirstHalf_eq_one {n : ℕ∞ω} (hn : n ≤ ∞) :
+    ∀ᶠ t in 𝓝 (1 : unitInterval), collaredFirstHalf hn t = 1 := by
+  filter_upwards [(continuous_subtypeVal.tendsto 1).eventually
+    (lt_mem_nhds (by norm_num : (3 / 8 : ℝ) < ((1 : unitInterval) : ℝ)))] with t ht
+  exact collaredFirstHalf_eq_one_of_ge hn ht.le
 
 end TauCeti
 

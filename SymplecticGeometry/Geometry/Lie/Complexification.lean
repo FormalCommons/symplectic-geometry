@@ -376,7 +376,7 @@ private theorem isMaximalTotallyReal_range_lieHom :
     exact Complex.ext (re_lieHomC ξ) ((congrArg Complex.im h').trans
       ((by simp : (-(imLieHom η : ℂ)).im = 0).trans Complex.zero_im.symm))
   · refine (congrArg (2 * ·) (LinearMap.finrank_range_of_inj lieHomC_injective)).trans ?_
-    exact (congrArg (2 * ·) (finrank_euclideanSpace_fin (𝕜 := ℝ) (n := 1))).trans
+    exact (congrArg (2 * ·) finrank_groupLieAlgebra_circle).trans
       Complex.finrank_real_complex.symm
 
 /-- The rescaling `ξ ↦ -im (lieHomC ξ)` of the Lie algebra of `Circle` onto `ℝ`. -/
