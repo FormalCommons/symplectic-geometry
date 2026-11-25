@@ -5,9 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Algebra.MvPolynomial.PDeriv
-public import Mathlib.Analysis.Calculus.Gradient.Basic
-public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import SymplecticGeometry.Analysis.Calculus.Gradient.MvPolynomial
 import Mathlib.Analysis.Calculus.Deriv.Prod
 import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.Choice
 import SymplecticGeometry.Geometry.RealAlgebraic.Semialgebraic.DerivGrowth
@@ -18,17 +16,16 @@ import TauCeti.Analysis.MvPolynomial.Jacobian
 
 For a real polynomial `P` on Euclidean space `EuclideanSpace ℝ ι` and a point `x₀`, there are an
 exponent `θ ∈ [1/2, 1)` and a constant `c > 0` such that `|P x - P x₀| ^ θ ≤ c * ‖∇P x‖` for
-all `x` near `x₀` (`MvPolynomial.exists_lojasiewicz_gradient`). On the way we compute the norm of
-the gradient of a polynomial function from its formal partial derivatives
-(`MvPolynomial.norm_gradient_eval`).
+all `x` near `x₀` (`MvPolynomial.exists_lojasiewicz_gradient`). The norm of the gradient is
+read off from the formal partial derivatives of `P` by `MvPolynomial.norm_gradient_eval`.
 
 ## Proof
 
 We prove the bound where `P x > P x₀`; applied to `-P` it gives the bound where `P x < P x₀`.
-Let `B` be the closed unit ball around `x₀` and `Q = ∑ i, (∂ᵢ P)²`. For each level `t > 0` that
-`P - P x₀` takes on `B`, the points of `B` on the level set `P - P x₀ = t` at which `Q` is
-smallest form a semialgebraic family over `t`, and every such fiber is nonempty, by the
-intermediate value theorem and compactness. Semialgebraic choice
+Let `B` be the closed unit ball around `x₀` for the sup norm on `ι → ℝ`, and `Q = ∑ i, (∂ᵢ P)²`.
+For each level `t > 0` that `P - P x₀` takes on `B`, the points of `B` on the level set
+`P - P x₀ = t` at which `Q` is smallest form a semialgebraic family over `t`, and every such
+fiber is nonempty, by the intermediate value theorem and compactness. Semialgebraic choice
 (`TauCeti.IsSemialgebraic.exists_isSemialgebraicOn_sumElim_mem`) gives a semialgebraic curve
 `t ↦ x t` of such minimizers. Its coordinates are bounded, so near `0⁺` they are differentiable
 and their derivatives are `O(t ^ (q - 1))` for some `q > 0`
@@ -61,12 +58,12 @@ variable {ι : Type*} [Fintype ι]
 /-- The sum of the squares of the formal partial derivatives of `P`. -/
 local notation "gsq" P => ∑ i, pderiv i P ^ 2
 
-/-- The pairs `(t, x)` such that `x` lies in the closed unit ball around `a`, on the level set
-`P x - P a = t`, and minimizes `∑ i, (∂ᵢ P)²` over the points of that level set in the ball. -/
+/-- The pairs `(t, x)` such that `x` lies in the closed unit ball around `a` (for the sup norm),
+on the level set `P x - P a = t`, and minimizes `∑ i, (∂ᵢ P)²` over the points of that level set
+in the ball. -/
 private def minSet (P : MvPolynomial ι ℝ) (a : ι → ℝ) : Set (Fin 1 ⊕ ι → ℝ) :=
-  {z | eval (z ∘ Sum.inr) P - eval a P = z (Sum.inl 0) ∧
-    ∑ i, (z (Sum.inr i) - a i) ^ 2 ≤ 1 ∧
-    ∀ w : ι → ℝ, eval w P - eval a P = z (Sum.inl 0) → ∑ i, (w i - a i) ^ 2 ≤ 1 →
+  {z | eval (z ∘ Sum.inr) P - eval a P = z (Sum.inl 0) ∧ dist (z ∘ Sum.inr) a ≤ 1 ∧
+    ∀ w : ι → ℝ, eval w P - eval a P = z (Sum.inl 0) → dist w a ≤ 1 →
       eval (z ∘ Sum.inr) (gsq P) ≤ eval w (gsq P)}
 
 /-- The family `minSet P a` is semialgebraic: it is cut out by polynomial conditions and one
@@ -77,17 +74,17 @@ private theorem isSemialgebraic_minSet (P : MvPolynomial ι ℝ) (a : ι → ℝ
   let A := {u : (Fin 1 ⊕ ι) ⊕ ι → ℝ | eval u (rename (Sum.inl ∘ Sum.inr) P - C (eval a P)) =
     eval u (X (Sum.inl (Sum.inl 0)))}
   let B := {u : (Fin 1 ⊕ ι) ⊕ ι → ℝ |
-    eval u (∑ i, (X (Sum.inl (Sum.inr i)) - C (a i)) ^ 2) ≤ eval u 1}
+    dist (fun i ↦ eval u (X (Sum.inl (Sum.inr i)))) (fun i ↦ eval u (C (a i))) ≤ eval u 1}
   let A' := {u : (Fin 1 ⊕ ι) ⊕ ι → ℝ | eval u (rename Sum.inr P - C (eval a P)) =
     eval u (X (Sum.inl (Sum.inl 0)))}
   let B' := {u : (Fin 1 ⊕ ι) ⊕ ι → ℝ |
-    eval u (∑ i, (X (Sum.inr i) - C (a i)) ^ 2) ≤ eval u 1}
+    dist (fun i ↦ eval u (X (Sum.inr i))) (fun i ↦ eval u (C (a i))) ≤ eval u 1}
   let G := {u : (Fin 1 ⊕ ι) ⊕ ι → ℝ |
     eval u (rename (Sum.inl ∘ Sum.inr) (gsq P)) ≤ eval u (rename Sum.inr (gsq P))}
   have hT : IsSemialgebraic (A ∩ B ∩ (A'ᶜ ∪ B'ᶜ ∪ G)) :=
-    ((isSemialgebraic_eval_eq _ _).inter (isSemialgebraic_eval_le _ _)).inter
-      (((isSemialgebraic_eval_eq _ _).compl.union (isSemialgebraic_eval_le _ _).compl).union
-        (isSemialgebraic_eval_le _ _))
+    ((isSemialgebraic_eval_eq _ _).inter (isSemialgebraic_setOf_dist_eval_le _ _ _)).inter
+      (((isSemialgebraic_eval_eq _ _).compl.union
+        (isSemialgebraic_setOf_dist_eval_le _ _ _).compl).union (isSemialgebraic_eval_le _ _))
   convert hT.setOf_forall_sumElim using 1
   ext z
   simp only [minSet, Function.comp_def, Fin.isValue, map_sum, map_pow, mem_ofPred_eq, map_sub,
@@ -100,130 +97,123 @@ private theorem isSemialgebraic_minSet (P : MvPolynomial ι ℝ) (a : ι → ℝ
 /-- Every value `t ∈ [0, P y - P a]`, for `y` in the closed unit ball around `a`, is a level
 with a minimizer in `minSet P a`. -/
 private theorem exists_sumElim_mem_minSet (P : MvPolynomial ι ℝ) (a y : ι → ℝ)
-    (hy : ∑ i, (y i - a i) ^ 2 ≤ 1) {t : ℝ} (ht : t ∈ Icc 0 (eval y P - eval a P)) :
+    (hy : y ∈ Metric.closedBall a 1) {t : ℝ} (ht : t ∈ Icc 0 (eval y P - eval a P)) :
     ∃ x, Sum.elim ![t] x ∈ minSet P a := by
   -- A point of the level set on the segment from `a` to `y`.
   have hc : Continuous fun s : ℝ ↦ eval (a + s • (y - a)) P - eval a P :=
     ((continuous_eval P).comp (continuous_const.add (continuous_id.smul continuous_const))).sub
       continuous_const
   obtain ⟨s, hs, hst⟩ := intermediate_value_Icc zero_le_one hc.continuousOn (by simpa using ht)
-  set K := {w : ι → ℝ | eval w P - eval a P = t ∧ ∑ i, (w i - a i) ^ 2 ≤ 1}
-  have hK : IsCompact K := by
-    refine (isCompact_closedBall a 1).of_isClosed_subset ?_ fun w hw ↦ ?_
-    · exact (isClosed_eq ((continuous_eval P).sub continuous_const) continuous_const).inter
-        (isClosed_le (continuous_finsetSum _ fun i _ ↦
-          ((continuous_apply i).sub continuous_const).pow 2) continuous_const)
-    · rw [Metric.mem_closedBall, dist_pi_le_iff zero_le_one]
-      intro i
-      rw [Real.dist_eq, ← sq_le_one_iff_abs_le_one]
-      exact (Finset.single_le_sum (fun j _ ↦ sq_nonneg (w j - a j)) (Finset.mem_univ i)).trans
-        hw.2
-  have hne : K.Nonempty := by
-    refine ⟨a + s • (y - a), hst, ?_⟩
-    calc ∑ i, ((a + s • (y - a)) i - a i) ^ 2 = s ^ 2 * ∑ i, (y i - a i) ^ 2 := by
-          simp [Finset.mul_sum, mul_pow]
-      _ ≤ 1 * 1 := by
-          gcongr
-          · exact pow_le_one₀ hs.1 hs.2
-      _ = 1 := one_mul 1
+  set K := {w : ι → ℝ | eval w P - eval a P = t} ∩ Metric.closedBall a 1
+  have hK : IsCompact K := (isCompact_closedBall a 1).inter_left
+    (isClosed_eq ((continuous_eval P).sub continuous_const) continuous_const)
+  have hne : K.Nonempty := ⟨a + s • (y - a), hst,
+    (convex_closedBall a 1).add_smul_sub_mem (Metric.mem_closedBall_self zero_le_one) hy hs⟩
   obtain ⟨x, hxK, hmin⟩ := hK.exists_isMinOn hne (continuous_eval (gsq P)).continuousOn
   refine ⟨x, ?_, ?_, fun w hw₁ hw₂ ↦ ?_⟩
   · simpa [Function.comp_def] using hxK.1
-  · simpa using hxK.2
-  · simpa [Function.comp_def] using hmin (show w ∈ K from ⟨by simpa using hw₁, hw₂⟩)
+  · simpa [Function.comp_def] using hxK.2
+  · simpa [Function.comp_def] using
+      hmin (show w ∈ K from ⟨by simpa using hw₁, Metric.mem_closedBall.2 hw₂⟩)
 
-/-- The one-sided form of the inequality: near `a`, where `P x > P a`, the value
-`(P x - P a) ^ (1 - p)` is at most `K` times the square root of `∑ i, (∂ᵢ P x)²`. -/
-private theorem exists_rpow_le_sqrt_of_pos (P : MvPolynomial ι ℝ) (a : ι → ℝ) :
-    ∃ p : ℝ, 0 < p ∧ ∃ K : ℝ, 0 < K ∧ ∃ ε : ℝ, 0 < ε ∧ ε ≤ 1 ∧
-      ∀ y : ι → ℝ, ∑ i, (y i - a i) ^ 2 ≤ 1 →
-        0 < eval y P - eval a P → eval y P - eval a P < ε →
-        (eval y P - eval a P) ^ (1 - p) ≤ K * √(eval y (gsq P)) := by
-  by_cases h : ∃ y : ι → ℝ, ∑ i, (y i - a i) ^ 2 ≤ 1 ∧ 0 < eval y P - eval a P
-  swap
-  · push Not at h
-    exact ⟨1, one_pos, 1, one_pos, 1, one_pos, le_rfl, fun y hy hpos _ ↦
-      absurd hpos (h y hy).not_gt⟩
-  obtain ⟨y₀, hy₀, hδ⟩ := h
-  set δ := eval y₀ P - eval a P
+/-- A curve `t ↦ x t` of minimizers in `minSet P a` over the levels `t ∈ (0, δ)`, whose
+coordinates are differentiable near `0⁺` with `∑ i, |x'ᵢ t| ≤ L * t ^ (q - 1)`. -/
+private theorem exists_curve_minSet (P : MvPolynomial ι ℝ) (a : ι → ℝ) {δ : ℝ} (hδ : 0 < δ)
+    (hD : ∀ t ∈ Ioo 0 δ, ∃ y, Sum.elim ![t] y ∈ minSet P a) :
+    ∃ x : ℝ → ι → ℝ, (∀ t ∈ Ioo 0 δ, Sum.elim ![t] (x t) ∈ minSet P a) ∧
+      ∃ q : ℝ, 0 < q ∧ ∃ L : ℝ, 0 < L ∧ ∀ᶠ t in 𝓝[>] (0 : ℝ),
+        (∀ i, DifferentiableAt ℝ (fun s ↦ x s i) t) ∧
+        ∑ i, |deriv (fun s ↦ x s i) t| ≤ L * t ^ (q - 1) := by
   obtain ⟨f, hf, hfS⟩ := (isSemialgebraic_minSet P a).exists_isSemialgebraicOn_sumElim_mem
-  have hD : ∀ t ∈ Ioo 0 δ, ![t] ∈ {x | ∃ y, Sum.elim x y ∈ minSet P a} := fun t ht ↦
-    exists_sumElim_mem_minSet P a y₀ hy₀ ⟨ht.1.le, ht.2.le⟩
-  -- The curve `x t = f ![t]` of minimizers.
-  set x : ℝ → ι → ℝ := fun t ↦ f ![t]
-  have hxS (t : ℝ) (ht : t ∈ Ioo 0 δ) : Sum.elim ![t] (x t) ∈ minSet P a := hfS _ (hD t ht)
+  have hD' : ∀ t ∈ Ioo 0 δ, ![t] ∈ {x | ∃ y, Sum.elim x y ∈ minSet P a} :=
+    fun t ht ↦ mem_ofPred.2 (hD t ht)
+  have hxS (t : ℝ) (ht : t ∈ Ioo 0 δ) : Sum.elim ![t] (f ![t]) ∈ minSet P a := hfS _ (hD' t ht)
   have hcoord (i : ι) := (isSemialgebraicOn_pi_iff.1 hf).2 i
   have hbound (i : ι) (t : ℝ) (ht : t ∈ Ioo 0 δ) : |f ![t] i| ≤ |a i| + 1 := by
-    have h₂ := (hxS t ht).2.1
-    simp only [Sum.elim_inr] at h₂
-    have : (x t i - a i) ^ 2 ≤ 1 :=
-      (Finset.single_le_sum (fun j _ ↦ sq_nonneg (x t j - a j)) (Finset.mem_univ i)).trans h₂
-    have : |x t i - a i| ≤ 1 := by simpa using this
-    simp only [x] at this
-    have := abs_le.1 this
-    rw [abs_le]
-    constructor <;> linarith [neg_abs_le (a i), le_abs_self (a i)]
+    have h := (hxS t ht).2.1
+    simp only [Sum.elim_comp_inr] at h
+    have := (abs_sub_abs_le_abs_sub _ _).trans
+      ((Real.dist_eq _ _).symm.le.trans ((dist_le_pi_dist _ _ i).trans h))
+    linarith
   choose p hp C ε hε hC using fun i ↦
-    (hcoord i).exists_abs_deriv_le_mul_rpow hδ (fun t ht ↦ hD t ht) (hbound i)
-  choose ε' hε' hdiff _ using fun i ↦
-    (hcoord i).exists_pos_differentiableOn_Ioo hδ (fun t ht ↦ hD t ht)
+    (hcoord i).exists_abs_deriv_le_mul_rpow hδ hD' (hbound i)
+  choose ε' hε' hdiff _ using fun i ↦ (hcoord i).exists_pos_differentiableOn_Ioo hδ hD'
   -- A common exponent `q ≤ p i`.
   have hqev : ∀ᶠ q in 𝓝[>] (0 : ℝ), (∀ i, q < p i) ∧ q ∈ Ioi 0 :=
     (eventually_all.2 fun i ↦ eventually_nhdsWithin_of_eventually_nhds
       (eventually_lt_nhds (hp i))).and self_mem_nhdsWithin
   obtain ⟨q, hqp, hq⟩ := hqev.exists
-  have hev_i (i : ι) : ∀ᶠ t in 𝓝[>] (0 : ℝ), DifferentiableAt ℝ (fun t ↦ x t i) t ∧
-      |deriv (fun t ↦ x t i) t| ≤ C i * t ^ (p i - 1) := by
-    filter_upwards [Ioo_mem_nhdsGT (hε' i), Ioo_mem_nhdsGT (hε i)] with t ht ht'
-    exact ⟨(hdiff i t ht).differentiableAt (Ioo_mem_nhds ht.1 ht.2), hC i t ht'⟩
-  have hev : ∀ᶠ t in 𝓝[>] (0 : ℝ), t < δ ∧ t < 1 ∧
-      ∀ i, DifferentiableAt ℝ (fun t ↦ x t i) t ∧
-        |deriv (fun t ↦ x t i) t| ≤ C i * t ^ (p i - 1) := by
-    filter_upwards [Ioo_mem_nhdsGT hδ, Ioo_mem_nhdsGT one_pos, eventually_all.2 hev_i]
-      with t h₁ h₂ h₃ using ⟨h₁.2, h₂.2, h₃⟩
-  obtain ⟨ε₀, hε₀, hsub⟩ := mem_nhdsGT_iff_exists_Ioo_subset.1 hev
-  set L := ∑ i, |C i| + 1
-  have hL : 0 < L := by positivity
-  refine ⟨q, hq, L, hL, min ε₀ 1, lt_min hε₀ one_pos, min_le_right _ _,
-    fun y hy hpos hlt ↦ ?_⟩
-  set t := eval y P - eval a P
-  have ht : t ∈ Ioo 0 ε₀ := ⟨hpos, hlt.trans_le (min_le_left _ _)⟩
-  obtain ⟨htδ, ht1, hdx⟩ := hsub ht
-  have hxt := hxS t ⟨hpos, htδ⟩
-  simp only [minSet, mem_ofPred_eq, Sum.elim_inr, Sum.elim_inl] at hxt
-  -- Differentiate `P (x s) - P a = s` at `s = t`.
-  have hderiv : HasDerivAt x (fun i ↦ deriv (fun t ↦ x t i) t) t :=
-    hasDerivAt_pi.2 fun i ↦ (hdx i).1.hasDerivAt
-  have h1 : 1 = ∑ i, eval (x t) (pderiv i P) * deriv (fun t ↦ x t i) t := by
+  refine ⟨fun t ↦ f ![t], hxS, q, hq, ∑ i, |C i| + 1, by positivity, ?_⟩
+  filter_upwards [Ioo_mem_nhdsGT one_pos, eventually_all.2 fun i ↦ Ioo_mem_nhdsGT (hε' i),
+    eventually_all.2 fun i ↦ Ioo_mem_nhdsGT (hε i)] with t ht ht' ht''
+  refine ⟨fun i ↦ (hdiff i t (ht' i)).differentiableAt (Ioo_mem_nhds (ht' i).1 (ht' i).2), ?_⟩
+  have hpow (i : ι) : t ^ (p i - 1) ≤ t ^ (q - 1) :=
+    Real.rpow_le_rpow_of_exponent_ge ht.1 ht.2.le (by linarith [hqp i])
+  calc ∑ i, |deriv (fun s ↦ f ![s] i) t| ≤ ∑ i, |C i| * t ^ (q - 1) :=
+        Finset.sum_le_sum fun i _ ↦ (hC i t (ht'' i)).trans
+          (mul_le_mul (le_abs_self _) (hpow i) (Real.rpow_nonneg ht.1.le _) (abs_nonneg _))
+    _ ≤ (∑ i, |C i| + 1) * t ^ (q - 1) := by
+        rw [← Finset.sum_mul]
+        have := Real.rpow_nonneg ht.1.le (q - 1)
+        nlinarith
+
+/-- Along a curve `t ↦ x t` of minimizers in `minSet P a`, at a level `t` where the curve is
+differentiable with `∑ i, |x'ᵢ t| ≤ M`, differentiating `P (x s) - P a = s` gives
+`1 ≤ √(∑ i, (∂ᵢ P)²) (x t) * M`. -/
+private theorem one_le_sqrt_mul_of_minSet (P : MvPolynomial ι ℝ) (a : ι → ℝ) {δ t M : ℝ}
+    {x : ℝ → ι → ℝ} (hx : ∀ s ∈ Ioo 0 δ, Sum.elim ![s] (x s) ∈ minSet P a) (ht : t ∈ Ioo 0 δ)
+    (hdx : ∀ i, DifferentiableAt ℝ (fun s ↦ x s i) t)
+    (hM : ∑ i, |deriv (fun s ↦ x s i) t| ≤ M) :
+    1 ≤ √(eval (x t) (gsq P)) * M := by
+  have hderiv : HasDerivAt x (fun i ↦ deriv (fun s ↦ x s i) t) t :=
+    hasDerivAt_pi.2 fun i ↦ (hdx i).hasDerivAt
+  have h1 : 1 = ∑ i, eval (x t) (pderiv i P) * deriv (fun s ↦ x s i) t := by
     have hcomp := (P.hasFDerivAt_eval (x t)).comp_hasDerivAt t hderiv
     have hid : HasDerivAt (fun s ↦ eval (x s) P) 1 t := by
       refine ((hasDerivAt_id t).add_const (eval a P)).congr_of_eventuallyEq ?_
-      filter_upwards [Ioo_mem_nhds hpos htδ] with s hs
-      have := (hxS s hs).1
+      filter_upwards [Ioo_mem_nhds ht.1 ht.2] with s hs
+      have := (hx s hs).1
       simp only [Sum.elim_comp_inr, Sum.elim_inl, Matrix.cons_val_fin_one] at this
-      change eval (x s) P = s + eval a P
+      rw [id_eq]
       linarith
     simpa using hid.unique hcomp
   have hpd (i : ι) : |eval (x t) (pderiv i P)| ≤ √(eval (x t) (gsq P)) := by
     refine Real.abs_le_sqrt ?_
     simpa using Finset.single_le_sum (f := fun j ↦ eval (x t) (pderiv j P) ^ 2)
       (fun j _ ↦ sq_nonneg _) (Finset.mem_univ i)
-  have hmain : 1 ≤ √(eval (x t) (gsq P)) * (L * t ^ (q - 1)) := by
-    calc (1 : ℝ) = |∑ i, eval (x t) (pderiv i P) * deriv (fun t ↦ x t i) t| := by
-          rw [← h1, abs_one]
-      _ ≤ ∑ i, |eval (x t) (pderiv i P) * deriv (fun t ↦ x t i) t| :=
-          Finset.abs_sum_le_sum_abs _ _
-      _ ≤ ∑ i, √(eval (x t) (gsq P)) * (|C i| * t ^ (q - 1)) := by
-          refine Finset.sum_le_sum fun i _ ↦ ?_
+  calc (1 : ℝ) = |∑ i, eval (x t) (pderiv i P) * deriv (fun s ↦ x s i) t| := by
+        rw [← h1, abs_one]
+    _ ≤ ∑ i, |eval (x t) (pderiv i P) * deriv (fun s ↦ x s i) t| :=
+        Finset.abs_sum_le_sum_abs _ _
+    _ ≤ ∑ i, √(eval (x t) (gsq P)) * |deriv (fun s ↦ x s i) t| :=
+        Finset.sum_le_sum fun i _ ↦ by
           rw [abs_mul]
-          refine mul_le_mul (hpd i) ((hdx i).2.trans ?_) (abs_nonneg _) (Real.sqrt_nonneg _)
-          exact mul_le_mul (le_abs_self _) (Real.rpow_le_rpow_of_exponent_ge ht.1 ht1.le
-            (by linarith [hqp i])) (Real.rpow_nonneg ht.1.le _) (abs_nonneg _)
-      _ ≤ √(eval (x t) (gsq P)) * (L * t ^ (q - 1)) := by
-          rw [← Finset.mul_sum, ← Finset.sum_mul]
-          gcongr
-          linarith
-  have hmin := hxt.2.2 y rfl hy
+          exact mul_le_mul_of_nonneg_right (hpd i) (abs_nonneg _)
+    _ ≤ √(eval (x t) (gsq P)) * M := by
+        rw [← Finset.mul_sum]
+        gcongr
+
+/-- The one-sided form of the inequality: near `a`, where `P x > P a`, the value
+`(P x - P a) ^ (1 - p)` is at most `K` times the square root of `∑ i, (∂ᵢ P x)²`. -/
+private theorem exists_rpow_le_sqrt_of_pos (P : MvPolynomial ι ℝ) (a : ι → ℝ) :
+    ∃ p : ℝ, 0 < p ∧ ∃ K : ℝ, 0 < K ∧ ∃ ε : ℝ, 0 < ε ∧ ε ≤ 1 ∧
+      ∀ y ∈ Metric.closedBall a 1, 0 < eval y P - eval a P → eval y P - eval a P < ε →
+        (eval y P - eval a P) ^ (1 - p) ≤ K * √(eval y (gsq P)) := by
+  by_cases h : ∃ y ∈ Metric.closedBall a 1, 0 < eval y P - eval a P
+  swap
+  · push Not at h
+    exact ⟨1, one_pos, 1, one_pos, 1, one_pos, le_rfl, fun y hy hpos _ ↦
+      absurd hpos (h y hy).not_gt⟩
+  obtain ⟨y₀, hy₀, hδ⟩ := h
+  obtain ⟨x, hxS, q, hq, L, hL, hev⟩ := exists_curve_minSet P a hδ fun t ht ↦
+    exists_sumElim_mem_minSet P a y₀ hy₀ ⟨ht.1.le, ht.2.le⟩
+  obtain ⟨ε₀, hε₀, hsub⟩ := mem_nhdsGT_iff_exists_Ioo_subset.1 (hev.and (Ioo_mem_nhdsGT hδ))
+  refine ⟨q, hq, L, hL, min ε₀ 1, lt_min hε₀ one_pos, min_le_right _ _,
+    fun y hy hpos hlt ↦ ?_⟩
+  set t := eval y P - eval a P
+  obtain ⟨⟨hdx, hM⟩, htδ⟩ := hsub ⟨hpos, hlt.trans_le (min_le_left _ _)⟩
+  have hmain := one_le_sqrt_mul_of_minSet P a hxS htδ hdx hM
+  have hmin := (hxS t htδ).2.2 y rfl (Metric.mem_closedBall.1 hy)
   have htq : t ^ (1 - q) = (t ^ (q - 1))⁻¹ := by
     rw [← Real.rpow_neg hpos.le, neg_sub]
   rw [htq, inv_le_iff_one_le_mul₀ (Real.rpow_pos_of_pos hpos _)]
@@ -232,20 +222,6 @@ private theorem exists_rpow_le_sqrt_of_pos (P : MvPolynomial ι ℝ) (a : ι →
       gcongr
       simpa [Function.comp_def] using hmin
     _ = _ := by ring
-
-/-- The norm of the gradient of a real polynomial on Euclidean space is the square root of the
-sum of the squares of its formal partial derivatives. -/
-theorem norm_gradient_eval (P : MvPolynomial ι ℝ) (x : EuclideanSpace ℝ ι) :
-    ‖gradient (fun y : EuclideanSpace ℝ ι ↦ eval y P) x‖ = √(∑ i, eval x (pderiv i P) ^ 2) := by
-  classical
-  rw [EuclideanSpace.norm_eq]
-  congr 1
-  refine Finset.sum_congr rfl fun i _ ↦ ?_
-  have h : gradient (fun y : EuclideanSpace ℝ ι ↦ eval y P) x i = eval x (pderiv i P) := by
-    rw [← fderiv_eval_euclidean_single, ← toDual_gradient, InnerProductSpace.toDual_apply_apply,
-      real_inner_comm, EuclideanSpace.inner_single_left]
-    simp
-  rw [h, Real.norm_eq_abs, sq_abs]
 
 /-- **The Łojasiewicz gradient inequality** for a real polynomial `P` on `ℝⁿ`: near every
 point `x₀` there are an exponent `θ ∈ [1/2, 1)` and a constant `c > 0` with
@@ -261,13 +237,11 @@ theorem exists_lojasiewicz_gradient (P : MvPolynomial ι ℝ) (x₀ : EuclideanS
     max K₁ K₂, lt_max_of_lt_left hK₁, ?_⟩
   have hc : Continuous fun y : EuclideanSpace ℝ ι ↦ eval y P - eval x₀ P :=
     ((continuous_eval P).comp (PiLp.continuous_ofLp 2 _)).sub continuous_const
-  filter_upwards [Metric.ball_mem_nhds x₀ one_pos,
+  filter_upwards [(PiLp.continuous_ofLp 2 _).continuousAt.preimage_mem_nhds
+      (Metric.closedBall_mem_nhds _ one_pos),
     (hc.abs.continuousAt (x := x₀)).eventually_lt (continuousAt_const (y := min ε₁ ε₂))
       (by simpa using lt_min hε₁ hε₂)]
-    with x hx hxε
-  have hball : ∑ i, (x i - x₀ i) ^ 2 ≤ 1 := by
-    rw [Metric.mem_ball, EuclideanSpace.dist_eq, Real.sqrt_lt' one_pos, one_pow] at hx
-    simpa [Real.dist_eq, sq_abs] using hx.le
+    with x hball hxε
   have hsq₁ : eval x (gsq P) = ∑ i, eval x (pderiv i P) ^ 2 := by simp
   have hsq₂ : eval x (gsq (-P)) = ∑ i, eval x (pderiv i P) ^ 2 := by simp
   rw [norm_gradient_eval]
