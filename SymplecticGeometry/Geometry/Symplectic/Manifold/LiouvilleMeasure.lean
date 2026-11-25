@@ -189,16 +189,9 @@ theorem liouvilleMeasure_constSmooth_stdForm {ι : Type*} [Fintype ι] {m : ℕ}
     have := hm.out
     rw [finrank_stdSpace] at this
     omega
-  -- The standard Darboux basis is the coordinate basis, reindexed.
-  set c := (Fintype.equivFinOfCardEq hι).symm
-  set e : Fin m × Fin 2 ≃ ι ⊕ ι := (Equiv.prodComm _ _).trans
-    ((Equiv.prodCongr finTwoEquiv c).trans (Equiv.boolProdEquivSum ι))
-  have hb : stdDarbouxBasisOf c =
-      (EuclideanSpace.basisFun (ι ⊕ ι) ℝ).toBasis.reindex e.symm :=
-    Basis.eq_of_apply_eq fun ⟨k, i⟩ ↦ by
-      fin_cases i <;> simp [e, Equiv.boolProdEquivSum, finTwoEquiv]
-  rw [SymplecticForm.liouvilleMeasure_constSmooth _ (isDarbouxBasis_stdDarbouxBasisOf c), hb,
-    Basis.addHaar_reindex, OrthonormalBasis.addHaar_eq_volume]
+  rw [SymplecticForm.liouvilleMeasure_constSmooth _
+      (isDarbouxBasis_stdDarbouxBasisOf (Fintype.equivFinOfCardEq hι).symm),
+    stdDarbouxBasisOf_eq_reindex, Basis.addHaar_reindex, OrthonormalBasis.addHaar_eq_volume]
 
 /-- For weights `wⱼ > 0` and `F` of class `C^m` with compact support, where `m` is the number of
 elements of `ι`, the integral over `StdSpace ι` of `F⁽ᵐ⁾(-∑ⱼ wⱼ (xⱼ² + yⱼ²))` is
