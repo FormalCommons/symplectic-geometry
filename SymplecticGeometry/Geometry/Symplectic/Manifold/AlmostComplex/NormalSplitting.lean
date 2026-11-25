@@ -314,10 +314,6 @@ theorem contMDiff_complementRepresentative_orthogonalTangentRange
           (f.complementRepresentative p.proj hn (isTopCompl_tangentRange_orthogonal hJ hω p.proj)
             p.snd)) := by
   let := f.normalSpaceFiberBundle hn hdim
-  have : IsManifold I' (((⊤ : ℕ∞) : WithTop ℕ∞) + 1) M :=
-    .of_le (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) (by simp)
-  have : IsManifold I (((⊤ : ℕ∞) : WithTop ℕ∞) + 1) X :=
-    .of_le (n := ((⊤ : ℕ∞) : WithTop ℕ∞)) (by simp)
   refine (f.contMDiff_normalBundle_iff hn (by simp) hdim _).2 ?_
   have hP := (contMDiff_const (c := (-1 : ℝ))).smul_totalSpace
     (contMDiff_projection_orthogonalTangentRange hJ hω)
