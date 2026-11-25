@@ -17,6 +17,7 @@ public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Trivialization
 import TauCeti.Geometry.Manifold.MFDeriv.Slice
 
 /-!
@@ -71,6 +72,11 @@ the case `G = Circle` of the general existence theorem, in `Principal/Connection
 The invariance of `α` gives `L_ξ α = 0` along the fundamental vector field `ξ` of `1`
 (`TauCeti.PrincipalBundle.mlieDerivForm_rightFundamentalVectorField_eq_zero`). Cartan's formula
 then gives `ι_ξ d α = 0`.
+
+The two local lemmas over a trivialization are short rewrites with
+`Bundle.Trivialization.mpullback_op_smul_mpullback_snd` and
+`Bundle.Trivialization.mfderiv_snd_rightFundamentalVectorField`, which do not involve the angular
+form.
 
 ## References
 
@@ -186,11 +192,7 @@ private theorem IsCircleConnectionForm.mextDeriv_apply_eq_zero_of_vertical
   obtain rfl | rfl : j = 0 ∨ j = 1 := by fin_cases j <;> simp
   · rw [hv01]
     exact hc ▸ hfirst (v 1)
-  · have hswap : ![v 0, v 1] = ![v 1, v 0] ∘ Equiv.swap 0 1 := by
-      funext i
-      fin_cases i <;> rfl
-    rw [hv01, hswap, ← ContinuousAlternatingMap.coe_toAlternatingMap,
-      AlternatingMap.map_swap _ _ zero_ne_one, neg_eq_zero]
+  · rw [hv01, ContinuousAlternatingMap.apply_vecCons_swap, neg_eq_zero]
     exact hc ▸ hfirst (v 0)
 
 /-- The exterior derivative of a connection form is basic for the projection. -/
@@ -334,25 +336,7 @@ theorem mpullback_op_smul_mpullback_trivialization_snd {x : ManifoldTotalSpace C
         (e ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2) circleAngularForm) x =
       TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) (fun x : ManifoldTotalSpace Circle P ↦
         (e ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2) circleAngularForm x := by
-  set θ := fun x : ManifoldTotalSpace Circle P ↦
-    (e ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2
-  have hS := e.open_baseSet.preimage
-    (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)).continuous
-  have hzx : ((ManifoldTotalSpace.homeomorph Circle P).symm (op z • x)).proj ∈ e.baseSet := by
-    simpa [ManifoldTotalSpace.homeomorph_symm_smul] using hx
-  have hsmul : MDifferentiableAt (IB.prod (𝓡 1)) (IB.prod (𝓡 1))
-      (fun y : ManifoldTotalSpace Circle P ↦ op z • y) x :=
-    (contMDiff_const_smul (I := IB.prod (𝓡 1)) (n := 1) (op z) x).mdifferentiableAt one_ne_zero
-  have hmul : MDifferentiableAt (𝓡 1) (𝓡 1) (fun w : Circle ↦ w * z) (θ x) :=
-    (contMDiff_mul_right (I := 𝓡 1) (n := 1) (a := z) _).mdifferentiableAt one_ne_zero
-  -- Near `x`, the fibre coordinate of `y • z` is that of `y` times `z`.
-  have heq : θ ∘ (fun y ↦ op z • y) =ᶠ[𝓝 x] (fun w : Circle ↦ w * z) ∘ θ := by
-    filter_upwards [hS.mem_nhds hx] with y hy
-    simp only [Function.comp_apply, θ, ManifoldTotalSpace.homeomorph_symm_smul]
-    exact e.snd_apply_smul hy _ z
-  rw [← mpullback_comp_at hsmul (hθ _ hzx), heq.mpullback_eq,
-    mpullback_comp_at (hθ _ hx) hmul,
-    mpullback_mul_right_circleAngularForm]
+  rw [e.mpullback_op_smul_mpullback_snd hθ hx, mpullback_mul_right_circleAngularForm]
 
 omit [IsManifold IB ∞ B] [ContMDiffFiberBundle ∞ Circle P IB (𝓡 1)] in
 /-- Let `e` be an equivariant trivialization whose fibre coordinate `θ` is differentiable over its
@@ -366,22 +350,6 @@ theorem mpullback_trivialization_snd_apply_rightFundamentalVectorField
       ![rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x] = 1 := by
   set θ := fun x : ManifoldTotalSpace Circle P ↦
     (e ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2
-  have horb := PrincipalBundle.mdifferentiableAt_orbit (IB := IB) (IG := 𝓡 1) (n := ∞)
-    (by simp) x 1
-  have hθx : MDifferentiableAt (IB.prod (𝓡 1)) (𝓡 1) θ (op (1 : Circle) • x) := by
-    rw [op_one, one_smul]
-    exact hθ _ hx
-  -- Along the orbit of `x`, the fibre coordinate is left multiplication by `θ x`.
-  have hcomp : θ ∘ (fun g : Circle ↦ op g • x) = fun g ↦ θ x * g :=
-    funext fun g ↦ by
-      simp only [Function.comp_apply, θ, ManifoldTotalSpace.homeomorph_symm_smul]
-      exact e.snd_apply_smul hx _ g
-  have hv : mfderiv (IB.prod (𝓡 1)) (𝓡 1) θ x
-      (rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x) =
-      mfderiv (𝓡 1) (𝓡 1) (fun g ↦ θ x * g) 1 circleLieGenerator := by
-    rw [rightFundamentalVectorField_apply, ← hcomp, mfderiv_comp_of_eq hθx horb rfl, op_one,
-      one_smul]
-    rfl
   have hL := DFunLike.congr_fun (congrFun (mpullback_mul_left_circleAngularForm (θ x)) 1)
     ![circleLieGenerator]
   rw [mpullback_apply, mul_one] at hL
@@ -390,7 +358,8 @@ theorem mpullback_trivialization_snd_apply_rightFundamentalVectorField
       fun i ↦ mfderiv (𝓡 1) (𝓡 1) (fun g ↦ θ x * g) 1 (![circleLieGenerator] i) := by
     funext i
     fin_cases i
-    exact hv
+    exact (e.mfderiv_snd_rightFundamentalVectorField hx (hθ _ hx) _).trans
+      (GroupLieAlgebra.mulInvariantVectorField_apply _ _)
   rw [mpullback_apply, hvec]
   exact hL.trans circleAngularForm_one_circleLieGenerator
 
