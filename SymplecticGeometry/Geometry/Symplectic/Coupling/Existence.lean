@@ -176,8 +176,8 @@ theorem mpullback_slice_couplingOneForm (t : Set.Icc a b) :
   -- The slice inclusion `q ↦ (q, t)` sends `w` to a vector whose first component is `w`.
   have hfst (w : TangentSpace (IB.prod (𝓡 1)) p) :
       (mfderiv (IB.prod (𝓡 1)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
-        (fun q : ManifoldTotalSpace Circle P ↦ (q, t)) p w).1 = w := by
-    exact congrArg Prod.fst ((TauCeti.Manifold.tangentSpaceProdEquiv_apply _ _).symm.trans
+        (fun q : ManifoldTotalSpace Circle P ↦ (q, t)) p w).1 = w :=
+    congrArg Prod.fst ((TauCeti.Manifold.tangentSpaceProdEquiv_apply _ _).symm.trans
       (TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_left (I' := 𝓡∂ 1) (y := t) w))
   rw [SmoothForm.mpullback_apply, couplingOneForm_apply]
   simp only [hfst, Submodule.coe_add, SetLike.val_smul, SmoothForm.coe_mpullback,
