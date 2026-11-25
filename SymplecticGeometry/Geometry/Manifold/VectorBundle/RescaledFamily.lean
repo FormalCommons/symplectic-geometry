@@ -76,7 +76,10 @@ with parameters.
   a `W`, the slice at `t > 0` is `m_{1/t} ∘ ψ ∘ m_t` with `m_t` seen as a map `W → U`.
 
 Along the way: fibre scaling read in a linear trivialization,
-`TauCeti.vectorBundleFiberScaling_eq_trivialization_symm`.
+`TauCeti.vectorBundleFiberScaling_eq_trivialization_symm`; for `t ∈ [0, 1]`, fibre scaling and the
+dilation `m_t` send the radial core of `U` into `U`,
+`TauCeti.vectorBundleFiberScaling_mem_of_mem_radialCore` and
+`TauCeti.mapsTo_vectorBundleScalarDiffeomorph_of_subset_radialCore`.
 
 ## References
 
@@ -660,6 +663,36 @@ fibre scaling `m_t`, `t ∈ [0, 1]`, maps `W` into `U`. So the rescaled family i
 `[0, 1] × W`, and for `t > 0` its slice on `W` factors through `U`. The radial core needs
 additive inverses in the fibres. -/
 
+namespace TauCeti
+
+variable {B F : Type*} {V : B → Type*} [∀ b, AddCommGroup (V b)] [∀ b, Module ℝ (V b)]
+  {U : Set (TotalSpace F V)}
+
+/-- For `t ∈ [0, 1]`, the fibre scaling `m_t` maps every vector of the radial core of `U` into
+`U`. -/
+theorem vectorBundleFiberScaling_mem_of_mem_radialCore {z : TotalSpace F V}
+    (hz : z ∈ VectorBundle.radialCore U) (t : Icc (0 : ℝ) 1) :
+    vectorBundleFiberScaling F V (z, t) ∈ U := by
+  rw [vectorBundleFiberScaling_apply]
+  exact VectorBundle.mem_radialCore.1 hz t t.prop
+
+variable {EB HB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
+  {IB : ModelWithCorners ℝ EB HB} [TopologicalSpace B] [ChartedSpace HB B]
+  [NormedAddCommGroup F] [NormedSpace ℝ F] [TopologicalSpace (TotalSpace F V)]
+  [∀ b, TopologicalSpace (V b)] [FiberBundle F V] [VectorBundle ℝ F V]
+
+/-- For `t ∈ (0, 1]`, the dilation `m_t` (`TauCeti.vectorBundleScalarDiffeomorph`) maps every set
+`W` of vectors whose radial segments lie in `U` into `U`. -/
+theorem mapsTo_vectorBundleScalarDiffeomorph_of_subset_radialCore
+    {W : Set (TotalSpace F V)} (hW : W ⊆ VectorBundle.radialCore U) {t : Icc (0 : ℝ) 1}
+    (ht : 0 < (t : ℝ)) :
+    MapsTo (vectorBundleScalarDiffeomorph (I := IB) (n := ∞) (fun _ ↦ (t : ℝ)) contMDiff_const
+      (fun _ ↦ ht.ne')) W U := fun z hz ↦ by
+  rw [vectorBundleScalarDiffeomorph_apply, ← vectorBundleFiberScaling_apply]
+  exact vectorBundleFiberScaling_mem_of_mem_radialCore (hW hz) t
+
+end TauCeti
+
 namespace SymplecticGeometry
 
 variable {EB HB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
@@ -681,21 +714,10 @@ theorem contMDiff_vectorBundleRescaledFamily_of_subset_radialCore [IsManifold IB
     (hψ0 : ∀ x (hx : zeroSection F V x ∈ U), ψ ⟨_, hx⟩ = zeroSection F V x) :
     ContMDiff ((𝓡∂ 1).prod (IB.prod 𝓘(ℝ, F))) (IB.prod 𝓘(ℝ, F)) ∞
       fun p : unitInterval × W ↦ vectorBundleRescaledFamily ψ ((p.2 : TotalSpace F V), p.1) :=
-  (contMDiffOn_vectorBundleRescaledFamily (U' := W) (fun z hz t ↦ by
-      rw [vectorBundleFiberScaling_apply]
-      exact VectorBundle.mem_radialCore.1 (hW hz) t t.prop) hψ hψ0).comp_contMDiff
+  (contMDiffOn_vectorBundleRescaledFamily (U' := W)
+      (fun _ hz ↦ vectorBundleFiberScaling_mem_of_mem_radialCore (hW hz)) hψ hψ0).comp_contMDiff
     ((contMDiff_subtypeVal.comp contMDiff_snd).prodMk contMDiff_fst)
     fun p ↦ ⟨p.2.prop, mem_univ _⟩
-
-/-- For `t ∈ (0, 1]`, the dilation `m_t` (`TauCeti.vectorBundleScalarDiffeomorph`) maps every set
-`W` of vectors whose radial segments lie in `U` into `U`. -/
-theorem mapsTo_vectorBundleScalarDiffeomorph_of_subset_radialCore
-    {W : Set (TotalSpace F V)} (hW : W ⊆ VectorBundle.radialCore U) {t : Icc (0 : ℝ) 1}
-    (ht : 0 < (t : ℝ)) :
-    MapsTo (vectorBundleScalarDiffeomorph (I := IB) (n := ∞) (fun _ ↦ (t : ℝ)) contMDiff_const
-      (fun _ ↦ ht.ne')) W U := fun z hz ↦ by
-  rw [vectorBundleScalarDiffeomorph_apply]
-  exact VectorBundle.mem_radialCore.1 (hW hz) t t.prop
 
 /-- **The slices of the rescaled family on a radial core.** For `t ∈ (0, 1]` and an open set `W` of
 vectors whose radial segments lie in `U`, the slice at `t` of the rescaled family of `ψ`,
@@ -711,10 +733,8 @@ theorem vectorBundleRescaledFamily_comp_subtypeVal_of_subset_radialCore
         fun z : W ↦ (⟨_, mapsTo_vectorBundleScalarDiffeomorph_of_subset_radialCore (IB := IB) hW ht
           z.prop⟩ : U) := by
   funext z
-  have hz : vectorBundleFiberScaling F V ((z : TotalSpace F V), t) ∈ U := by
-    rw [vectorBundleFiberScaling_apply]
-    exact VectorBundle.mem_radialCore.1 (hW z.prop) t t.prop
-  rw [vectorBundleRescaledFamily_of_pos (IB := IB) ψ ht _ hz]
+  rw [vectorBundleRescaledFamily_of_pos (IB := IB) ψ ht _
+    (vectorBundleFiberScaling_mem_of_mem_radialCore (hW z.prop) t)]
   simp [vectorBundleFiberScaling_apply, vectorBundleScalarDiffeomorph_apply]
 
 end SymplecticGeometry
