@@ -8,6 +8,8 @@ module
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Liouville
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import TauCeti.Geometry.Manifold.Diffeomorph.Cotangent
+public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
+import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Lift
 
 /-!
@@ -18,25 +20,25 @@ Let `T*L = TauCeti.CotangentBundle J L` carry its canonical symplectic form `ω`
 A neighbourhood of a Lagrangian embedding `f` is usually described by a diffeomorphism `ι` from
 an open set `U` of `T*L` onto an open set `V` of `M` that is symplectic, here for the form `-ω`
 (which is `dλ` for the Liouville form `λ`), and that restricts to `f` on the zero section. This
-file names these two conditions.
+file names these two conditions together. The first is Tau Ceti's
+`TauCeti.SmoothTwoForm.IsSymplectomorphism`, from the restriction of `-ω` to `U` to the
+restriction of `σ` to `V`; theorems that need only it take that hypothesis.
 
 ## Main definitions
 
-* `SymplecticGeometry.CotangentBundle.IsAntisymplecticChart σ ι`: `ι` pulls the restriction of
-  `σ` to `V` back to the restriction of `-ω` to `U`.
 * `SymplecticGeometry.CotangentBundle.AgreesOnZeroSection f ι`: for each `q ∈ L`, the zero
   covector `0_q` lies in `U` and `ι 0_q = f q`.
-* `SymplecticGeometry.CotangentBundle.IsWeinsteinChart σ f ι`: both of the above.
+* `SymplecticGeometry.CotangentBundle.IsWeinsteinChart σ f ι`: `ι` agrees with `f` on the zero
+  section and is a symplectomorphism from the restriction of `-ω` to `U` to that of `σ` to `V`.
 
 ## Main results
 
-* `SymplecticGeometry.CotangentBundle.IsAntisymplecticChart.subtype_trans`: precomposing `ι` with
-  the restriction of a diffeomorphism of `T*L` that preserves `ω` keeps the first condition.
 * `SymplecticGeometry.CotangentBundle.AgreesOnZeroSection.cotangent_subtype_trans`: precomposing
   `ι` with the restriction of the cotangent lift of a diffeomorphism `a` of `L` gives a map that
   agrees with `f ∘ a` on the zero section.
-* `SymplecticGeometry.CotangentBundle.IsWeinsteinChart.cotangent_subtype_trans`: both together,
-  as cotangent lifts preserve `ω` (Tau Ceti's `Diffeomorph.mpullback_cotangent_symplecticForm`).
+* `SymplecticGeometry.CotangentBundle.IsWeinsteinChart.cotangent_subtype_trans`: the same
+  precomposition gives a Weinstein chart of `f ∘ a`, as cotangent lifts preserve `ω` (Tau Ceti's
+  `Diffeomorph.mpullback_cotangent_symplecticForm`).
 
 ## References
 
@@ -56,41 +58,6 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSp
   {F HM : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [TopologicalSpace HM]
   {I : ModelWithCorners ℝ F HM} {M : Type*} [TopologicalSpace M] [ChartedSpace HM M]
   {U U' : Opens (CotangentBundle J L)} {V : Opens M}
-
-section Antisymplectic
-
-variable [IsManifold I ∞ M]
-
-/-- A diffeomorphism `ι` from an open set `U` of `T*L` onto an open set `V` of `M` is an
-*antisymplectic chart* for a two-form `σ` on `M` if it pulls the restriction of `σ` to `V` back
-to the restriction to `U` of `-ω`, the opposite of the canonical symplectic form of `T*L`. As
-`ω = -dλ` for the Liouville form `λ`, this says that `ι` is symplectic for the form `dλ`. -/
-structure IsAntisymplecticChart (σ : SmoothTwoForm I M)
-    (ι : U ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), I⟯ V) : Prop where
-  /-- `ι` pulls the restriction of `σ` back to the restriction of `-ω`. -/
-  mpullback_eq : SmoothForm.mpullback ι ι.contMDiff
-      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) =
-    SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (-symplecticForm J L)
-
-/-- **Precomposing with a symplectomorphism of `T*L`.** If `ι : U ≃ V` is an antisymplectic
-chart and `c` is a diffeomorphism of `T*L` that preserves `ω` and maps `U'` onto `U`, then `ι`
-precomposed with the restriction of `c` to `U'` is an antisymplectic chart. -/
-theorem IsAntisymplecticChart.subtype_trans {σ : SmoothTwoForm I M}
-    {ι : U ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), I⟯ V} (hι : IsAntisymplecticChart σ ι)
-    {c : CotangentBundle J L ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), J.prod 𝓘(ℝ, E →L[ℝ] ℝ)⟯
-      CotangentBundle J L}
-    (hc : SmoothForm.mpullback c c.contMDiff (symplecticForm J L) = symplecticForm J L)
-    (hUU' : ∀ z, z ∈ U' ↔ c z ∈ U) :
-    IsAntisymplecticChart σ ((c.subtype hUU').trans ι) := by
-  constructor
-  rw [SmoothForm.mpullback_congr _ (ι.contMDiff.comp (c.subtype hUU').contMDiff)
-      (Diffeomorph.coe_trans _ _),
-    ← SmoothForm.mpullback_mpullback _ _ (c.subtype hUU').contMDiff ι.contMDiff, hι.mpullback_eq,
-    SmoothForm.mpullback_mpullback_of_comp_eq (c.subtype hUU').contMDiff contMDiff_subtypeVal
-      contMDiff_subtypeVal c.contMDiff (funext (c.subtype_apply_coe hUU')),
-    map_neg, hc, map_neg]
-
-end Antisymplectic
 
 section ZeroSection
 
@@ -129,12 +96,17 @@ section Weinstein
 variable [IsManifold I ∞ M]
 
 /-- A diffeomorphism `ι` from an open set `U` of `T*L` onto an open set `V` of `M` is a
-*Weinstein chart* of `f : L → M` for a two-form `σ` on `M` if it pulls `σ` back to `-ω`
-(`IsAntisymplecticChart`) and sends the zero covector at each `q ∈ L` to `f q`
-(`AgreesOnZeroSection`). -/
+*Weinstein chart* of `f : L → M` for a two-form `σ` on `M` if it sends the zero covector at each
+`q ∈ L` to `f q` (`AgreesOnZeroSection`) and is a symplectomorphism from the restriction to `U`
+of `-ω`, the opposite of the canonical symplectic form of `T*L`, to the restriction of `σ` to `V`.
+As `ω = -dλ` for the Liouville form `λ`, the second condition says that `ι` is symplectic for the
+form `dλ`. -/
 structure IsWeinsteinChart (σ : SmoothTwoForm I M) (f : L → M)
-    (ι : U ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), I⟯ V) : Prop
-    extends IsAntisymplecticChart σ ι, AgreesOnZeroSection f ι
+    (ι : U ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), I⟯ V) : Prop extends AgreesOnZeroSection f ι where
+  /-- `ι` is a symplectomorphism from the restriction of `-ω` to that of `σ`. -/
+  isSymplectomorphism : SmoothTwoForm.IsSymplectomorphism
+    (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (-symplecticForm J L))
+    (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) ι
 
 /-- **Precomposing a Weinstein chart with a cotangent lift.** If `ι : U ≃ V` is a Weinstein chart
 of `f`, `a` is a diffeomorphism of `L` and the cotangent lift of `a` maps `U'` onto `U`, then `ι`
@@ -142,10 +114,12 @@ precomposed with the restriction of that lift to `U'` is a Weinstein chart of `f
 theorem IsWeinsteinChart.cotangent_subtype_trans {σ : SmoothTwoForm I M} {f : L → M}
     {ι : U ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), I⟯ V} (hι : IsWeinsteinChart σ f ι) {a : L ≃ₘ⟮J, J⟯ L}
     (hUU' : ∀ z, z ∈ U' ↔ a.cotangent z ∈ U) :
-    IsWeinsteinChart σ (f ∘ a) ((a.cotangent.subtype hUU').trans ι) :=
-  { hι.toIsAntisymplecticChart.subtype_trans (Diffeomorph.mpullback_cotangent_symplecticForm a)
-      hUU' with
-    toAgreesOnZeroSection := hι.toAgreesOnZeroSection.cotangent_subtype_trans hUU' }
+    IsWeinsteinChart σ (f ∘ a) ((a.cotangent.subtype hUU').trans ι) where
+  toAgreesOnZeroSection := hι.toAgreesOnZeroSection.cotangent_subtype_trans hUU'
+  isSymplectomorphism :=
+    ((SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq.2 (by
+      rw [map_neg, Diffeomorph.mpullback_cotangent_symplecticForm])).subtype hUU').trans
+      hι.isSymplectomorphism (by simp)
 
 end Weinstein
 

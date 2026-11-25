@@ -41,8 +41,9 @@ cited sources take as canonical. Given a diffeomorphism `ι : U ≃ V` from an o
 diffeomorphism of `M` that is `ι ∘ τ_R ∘ ι⁻¹` on `V`, `τ_R` the model twist `modelTwist hR`, and
 the identity off `V`.
 
-When `ι` pulls `σ` back to `-ω_can = dλ` (`CotangentBundle.IsAntisymplecticChart σ ι`), that
-is, when `ι` is symplectic for the sources' form, the twist preserves `σ`, and when `ι` sends the
+When `ι` pulls `σ` back to `-ω_can = dλ` (a `TauCeti.SmoothTwoForm.IsSymplectomorphism` from the
+restriction of `-ω_can` to `U` to that of `σ` to `V`), that is, when `ι` is symplectic for the
+sources' form, the twist preserves `σ`, and when `ι` sends the
 zero covector at `q` to `f q` for a map `f : Sⁿ → M` (`CotangentBundle.AgreesOnZeroSection f ι`),
 it maps `f q` to `f (-q)`. The two conditions together are `CotangentBundle.IsWeinsteinChart`.
 For a Lagrangian embedding `f` of the sphere into a second countable symplectic manifold without
@@ -262,7 +263,9 @@ restricts to a diffeomorphism `f'` of `U`. A diffeomorphism `Φ` of `M` with `Φ
 is the identity off `ι '' {z | μ z ≤ r₀}`, for `{z | μ z ≤ r₀} ⊆ U`, preserves `σ`. -/
 theorem mem_diffeomorphStabilizer_of_semiconj_cotangent [IsManifold I ∞ M]
     {σ : SmoothTwoForm I M} (ι : U ≃ₘ⟮𝓣 n, I⟯ V)
-    (hι : CotangentBundle.IsAntisymplecticChart σ ι)
+    (hι : SmoothTwoForm.IsSymplectomorphism (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+      (-CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)))
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) ι)
     (hU : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U : Set (𝕋 n))) {f : (𝕋 n) ≃ₘ⟮𝓣 n, 𝓣 n⟯ 𝕋 n}
     (hf : f ∈ SmoothForm.diffeomorphStabilizer (CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)))
     {f' : U ≃ₘ⟮𝓣 n, 𝓣 n⟯ U} (hf' : ∀ z, (f' z : 𝕋 n) = f z) {Φ : M ≃ₘ⟮I, I⟯ M}
@@ -271,7 +274,8 @@ theorem mem_diffeomorphStabilizer_of_semiconj_cotangent [IsManifold I ∞ M]
     Φ ∈ SmoothForm.diffeomorphStabilizer σ := by
   exact SmoothForm.mem_diffeomorphStabilizer_of_semiconj
     (isLocalDiffeomorph_subtypeVal_comp_iff.2 ι.isLocalDiffeomorph)
-    (by rw [← hι.mpullback_eq, SmoothForm.mpullback_mpullback])
+    (by rw [← SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq.1 hι,
+      SmoothForm.mpullback_mpullback])
     (SmoothForm.mem_diffeomorphStabilizer_mpullback_of_semiconj contMDiff_subtypeVal hf'
       (by rwa [SmoothForm.diffeomorphStabilizer_neg])) (fun z ↦ (hΦ z).symm)
     (isCompact_image_setOf_cotangentNorm_le ι hU).isClosed (image_subset_range _ _) hΦr
@@ -282,7 +286,9 @@ says that `ι` is symplectic for the form `dλ` of the cited sources. -/
 theorem mpullback_dehnTwist [IsManifold I ∞ M] {σ : SmoothTwoForm I M}
     (ι : U ≃ₘ⟮𝓣 n, I⟯ V) (hR : IsTwistProfile R r₀)
     (hU : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U : Set (𝕋 n)))
-    (hι : CotangentBundle.IsAntisymplecticChart σ ι) :
+    (hι : SmoothTwoForm.IsSymplectomorphism (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+      (-CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)))
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) ι) :
     SmoothForm.mpullback (dehnTwist ι hR hU) (dehnTwist ι hR hU).contMDiff σ = σ :=
   SmoothForm.mem_diffeomorphStabilizer.1 <| mem_diffeomorphStabilizer_of_semiconj_cotangent ι hι
     hU (SmoothForm.mem_diffeomorphStabilizer.2 (mpullback_modelTwist_symplecticForm hR))
@@ -370,7 +376,9 @@ twist profiles `R₁` and `R₂` differ by the final map of a diffeotopy of `M` 
 all times and fixes every point outside a compact set at all times. -/
 theorem exists_diffeotopy_dehnTwist_eq_of_isTwistProfile [IsManifold I ∞ M]
     {σ : SmoothTwoForm I M} (ι : U ≃ₘ⟮𝓣 n, I⟯ V)
-    (hι : CotangentBundle.IsAntisymplecticChart σ ι)
+    (hι : SmoothTwoForm.IsSymplectomorphism (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+      (-CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)))
+      (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) ι)
     {R₁ R₂ : ℝ → ℝ} {r₁ r₂ : ℝ} (hR₁ : IsTwistProfile R₁ r₁)
     (hU₁ : {z : 𝕋 n | cotangentNorm z ≤ r₁} ⊆ (U : Set (𝕋 n))) (hR₂ : IsTwistProfile R₂ r₂)
     (hU₂ : {z : 𝕋 n | cotangentNorm z ≤ r₂} ⊆ (U : Set (𝕋 n))) :
@@ -501,15 +509,15 @@ theorem exists_diffeotopy_dehnTwist_eq_of_apply_zeroSection [IsManifold I ∞ M]
   -- `U` containing `{z | μ z ≤ r}` for some `r > 0`; take a profile `R` of radius `r`.
   obtain ⟨U, hU, hzero, G, hGσ, -, -⟩ :=
     CotangentBundle.exists_smoothIsotopy_of_apply_zeroSection_eq_neg ι₁ ι₂
-      hι₁.toIsAntisymplecticChart hι₂.toIsAntisymplecticChart
+      hι₁.isSymplectomorphism hι₂.isSymplectomorphism
       hι₁.range_zeroSection_subset hι₂.range_zeroSection_subset
       fun q ↦ (hι₁.exists_apply_eq q).2.trans (hι₂.exists_apply_eq q).2.symm
   obtain ⟨r, hr, hrU⟩ := exists_pos_setOf_cotangentNorm_le_subset (U.isOpen.mem_nhdsSet.2 hzero)
   obtain ⟨R, hR⟩ := exists_isTwistProfile hr
   -- Change both profiles to `R`, and join the twists of `R` for `ι₁` and `ι₂` along `G`.
-  have hA := exists_diffeotopy_dehnTwist_eq_of_isTwistProfile ι₁ hι₁.toIsAntisymplecticChart hR₁
+  have hA := exists_diffeotopy_dehnTwist_eq_of_isTwistProfile ι₁ hι₁.isSymplectomorphism hR₁
     hU₁ hR (hrU.trans (hU.trans inf_le_left))
-  have hC := exists_diffeotopy_dehnTwist_eq_of_isTwistProfile ι₂ hι₂.toIsAntisymplecticChart hR
+  have hC := exists_diffeotopy_dehnTwist_eq_of_isTwistProfile ι₂ hι₂.isSymplectomorphism hR
     (hrU.trans (hU.trans inf_le_right)) hR₂ hU₂
   rw [← SmoothForm.mul_inv_mem_compactlySupportedIsotopyStabilizer_iff] at hA hC
   -- The slices of `G` are local diffeomorphisms: smooth embeddings between manifolds of the
@@ -540,7 +548,8 @@ private theorem exists_isSymplectic_extension_precompSmoothIsotopy [IsManifold I
     SmoothIsotopy.exists_isSymplectic_extension_of_mpullback_eq hσ f (Φ.precompSmoothIsotopy f)
       fun t ↦ by
         have h0 :=
-          CotangentBundle.mpullback_eq_zero_of_apply_zeroSection ι.contMDiff hι.mpullback_eq
+          CotangentBundle.mpullback_eq_zero_of_apply_zeroSection ι.contMDiff
+            (SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq.1 hι.isSymplectomorphism)
             f.contMDiff hι.exists_apply_eq
         have ht : (fun q ↦ Φ.precompSmoothIsotopy f (t, q)) = f ∘ Φ.timeSlice t :=
           funext fun q ↦ by simp [Diffeotopy.timeSlice_apply]
@@ -627,7 +636,9 @@ theorem exists_smoothIsotopy_of_diffeotopy [IsManifold I ∞ M] [I.Boundaryless]
       SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
         (-CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)) := by
     rw [SmoothForm.mpullback_mpullback, SmoothForm.mpullback_congr (f := Subtype.val ∘ χ) _ hιW rfl,
-      SmoothForm.mpullback_comp_comp_eq_of_mpullback_eq hι.mpullback_eq (contMDiff_inclusion hW)]
+      SmoothForm.mpullback_comp_comp_eq_of_mpullback_eq
+        (SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq.1 hι.isSymplectomorphism)
+        (contMDiff_inclusion hW)]
     exact SmoothForm.mpullback_congr _ _ rfl _
   have hGσ : G.IsSymplectic (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
       (-CotangentBundle.symplecticForm (𝓡 n) (𝕊 n))) σ := by
@@ -645,13 +656,14 @@ theorem exists_smoothIsotopy_of_diffeotopy [IsManifold I ∞ M] [I.Boundaryless]
     rw [hG, hχz, hFe]
   have h1 : (Subtype.val ∘ ι' : W → M) = fun z ↦ G (1, z) :=
     funext fun z ↦ by simp [hG, hι']
-  refine ⟨W, hW, _, ι', G, hGd, hGσ, fun t q ↦ ⟨hzW q, hGz t q⟩, ⟨⟨?_⟩, ⟨fun q ↦ ⟨hzW q, ?_⟩⟩⟩⟩
+  refine ⟨W, hW, _, ι', G, hGd, hGσ, fun t q ↦ ⟨hzW q, hGz t q⟩,
+    ⟨⟨fun q ↦ ⟨hzW q, ?_⟩⟩, SmoothTwoForm.isSymplectomorphism_iff_mpullback_eq.2 ?_⟩⟩
+  · rw [Function.comp_apply, Diffeotopy.final_apply, ← hGz]
+    exact congrFun h1 _
   · rw [SmoothForm.mpullback_mpullback,
       SmoothForm.mpullback_congr _ (G.timeSlice 1).contMDiff
         (h1.trans (funext fun z ↦ (G.timeSlice_apply 1 z).symm))]
     exact Subtype.ext ((SmoothForm.coe_mpullback _ _ _).trans (hGσ.mpullback_timeSlice 1))
-  · rw [Function.comp_apply, Diffeotopy.final_apply, ← hGz]
-    exact congrFun h1 _
 
 end Twist
 

@@ -510,7 +510,7 @@ theorem dehnTwist_apply_val (z : U) : dehnTwist ι hR hU (ι z) = ι ⟨modelTwi
 theorem dehnTwist_apply_of_notMem {x} (hx : x ∉ ι '' {z | cotangentNorm z ≤ r₀}) :
     dehnTwist ι hR hU x = x
 theorem isCompact_image_setOf_cotangentNorm_le : IsCompact (ι '' {z | cotangentNorm z ≤ r₀})
-theorem mpullback_dehnTwist (hι : CotangentBundle.IsAntisymplecticChart ω ι) :
+theorem mpullback_dehnTwist (hι : SmoothTwoForm.IsSymplectomorphism ((-symplecticForm)|U) (ω|V) ι) :
     (dehnTwist ι hR hU)^* ω = ω
 theorem dehnTwist_apply_embedding (hιf : CotangentBundle.AgreesOnZeroSection f ι) (q : Sⁿ) :
     dehnTwist ι hR hU (f q) = f (-q)
