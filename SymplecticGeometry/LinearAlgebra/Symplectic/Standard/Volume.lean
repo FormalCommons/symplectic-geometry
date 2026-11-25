@@ -7,8 +7,8 @@ module
 
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Topology.Algebra.Module.Alternating.Wedge.Pow
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.Pow
 import TauCeti.Analysis.Matrix.EuclideanLin
-import TauCeti.LinearAlgebra.Determinant.Basic
 
 /-!
 # Top wedge powers of weighted standard two-forms
@@ -25,9 +25,9 @@ coordinate `xⱼ` by `cⱼ` and fixes the coordinates `yⱼ`. That map has deter
 The statement covers dimension zero: for empty `ι` both top powers are the constant `1` and the
 product is empty.
 
-The proof combines Tau Ceti's `ContinuousAlternatingMap.wedgePow_compContinuousLinearMap` (the
-wedge power commutes with pullback) with `AlternatingMap.compLinearMap_eq_det_smul` (an
-endomorphism scales a top-degree form by its determinant).
+The proof applies `ContinuousAlternatingMap.wedgePow_compContinuousLinearMap_eq_det_smul` (on a
+space of dimension `2 n`, pulling a two-form back along an endomorphism multiplies its `n`-th
+wedge power by the determinant) to that diagonal map.
 
 ## References
 
@@ -71,14 +71,9 @@ theorem wedgePow_card_eq_prod_smul {c : ι → ℝ} {ω ω₀ : StdSpace ι [⋀
   have hdet : LinearMap.det (D : StdSpace ι →ₗ[ℝ] StdSpace ι) = ∏ j, c j := by
     rw [← ContinuousLinearMap.det, det_toEuclideanCLM_diagonal, Fintype.prod_sum_type]
     simp
-  rw [hωD, ← ContinuousAlternatingMap.wedgePow_compContinuousLinearMap, ← hdet]
-  ext v
-  -- Read `compLinearMap_eq_det_smul` at `v`, without moving the pullback back into the
-  -- wedge power.
-  simpa [-ContinuousAlternatingMap.wedgePow_compContinuousLinearMap, Function.comp_def] using
-    DFunLike.congr_fun (AlternatingMap.compLinearMap_eq_det_smul
-      (Module.finBasisOfFinrankEq ℝ (StdSpace ι) finrank_stdSpace)
-      (ω₀.wedgePow (Fintype.card ι)).toAlternatingMap D.toLinearMap) v
+  rw [hωD, ← hdet]
+  exact ContinuousAlternatingMap.wedgePow_compContinuousLinearMap_eq_det_smul finrank_stdSpace
+    ω₀ D
 
 end SymplecticGeometry
 
