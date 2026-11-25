@@ -28,7 +28,7 @@ gives a real one-form `⟨μ, A⟩`, and **Weinstein's form** is the closed two-
 where `σ` stands for its pull-back along the projection to `F`. It is invariant under the diagonal
 action `(x, v) ↦ (x · g, g⁻¹ • v)` of `G`, the action whose orbits are the fibres of the quotient
 map `P × F → P ×_G F` (`TauCeti.AssociatedBundle.chartedMk`). So it is one of the two hypotheses
-of the descent theorem `TauCeti.AssociatedBundle.existsUnique_mpullback_totalSpaceMk_mk_eq`.
+of the descent theorem `TauCeti.AssociatedBundle.existsUnique_mpullback_chartedMk_eq`.
 
 ## Main definitions
 
