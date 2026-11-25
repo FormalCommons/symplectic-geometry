@@ -44,6 +44,8 @@ plurisubharmonic. Here it is proved from one complex variable:
   `P` is a polynomial in one variable, by Tau Ceti's `MvPolynomial.eval_aeval_C_add_C_mul_X`,
   and `Polynomial.setLAverage_ofReal_log_sub_log_norm_eval_circleMap_le` bounds its mean. The
   `ofReal` makes the integrand nonnegative even on the zero set of `P`, where `log ‖P‖ = 0`.
+* `MvPolynomial.ae_restrict_log_norm_eval_le_log`: for `P ≠ 0`, a bound `‖P‖ ≤ M` on a measurable
+  set gives `log ‖P‖ ≤ log M` at almost every point of it.
 * `MvPolynomial.integrableOn_log_norm_eval_ball`: for `P ≠ 0`, `log ‖P‖` is integrable on every
   ball. It is bounded above on a ball, and the bound above controls it from below on a ball whose
   centre is not a zero of `P`; every ball lies in such a ball.
@@ -84,21 +86,29 @@ theorem exists_mem_ball_eval_ne_zero {Q : MvPolynomial ι ℂ} (hQ : Q ≠ 0)
     (ae_iff.mp (ae_eval_ne_zero hQ)))
   simpa using h v hv
 
+omit [Fintype ι] in
+/-- Evaluation of a multivariate polynomial at the coordinates of a point of `PiLp p` is
+continuous. -/
+theorem continuous_eval_ofLp {R : Type*} [CommSemiring R] [TopologicalSpace R]
+    [IsTopologicalSemiring R] (p : ℝ≥0∞) (P : MvPolynomial ι R) :
+    Continuous fun z : PiLp p (fun _ : ι => R) => eval z.ofLp P :=
+  (continuous_eval P).comp (PiLp.continuous_ofLp p _)
+
 /-- **Sub-mean value inequality for `log ‖P‖`, lower-integral form.** Let `P` be a complex
-polynomial on `EuclideanSpace ℂ ι` with `P c ≠ 0`, and let `‖P‖ ≤ M` on `Metric.ball c r`, with
-`r > 0`. Then the lower integral of `ofReal (log M - log ‖P‖)` over the ball is at most the volume
-of the ball times `ofReal (log M - log ‖P c‖)`. -/
+polynomial on `EuclideanSpace ℂ ι` with `P c ≠ 0`, and let `‖P‖ ≤ M` on `Metric.ball c r`. Then
+the lower integral of `ofReal (log M - log ‖P‖)` over the ball is at most the volume of the ball
+times `ofReal (log M - log ‖P c‖)`. -/
 theorem setLIntegral_ofReal_log_sub_log_norm_eval_le {P : MvPolynomial ι ℂ}
-    {c : EuclideanSpace ℂ ι} (hc : eval c.ofLp P ≠ 0) {r M : ℝ} (hr : 0 < r)
+    {c : EuclideanSpace ℂ ι} (hc : eval c.ofLp P ≠ 0) {r M : ℝ}
     (hM : ∀ z ∈ ball c r, ‖eval z.ofLp P‖ ≤ M) :
     ∫⁻ z in ball c r, ENNReal.ofReal (Real.log M - Real.log ‖eval z.ofLp P‖) ≤
       volume (ball c r) * ENNReal.ofReal (Real.log M - Real.log ‖eval c.ofLp P‖) := by
+  rcases le_or_gt r 0 with hr | hr
+  · simp [ball_eq_empty.2 hr]
   have hmeas : Measurable fun z : EuclideanSpace ℂ ι =>
-      ENNReal.ofReal (Real.log M - Real.log ‖eval z.ofLp P‖) := by
-    have : Continuous fun z : EuclideanSpace ℂ ι => eval z.ofLp P :=
-      (MvPolynomial.continuous_eval P).comp (PiLp.continuous_ofLp 2 _)
-    exact ENNReal.measurable_ofReal.comp
-      (measurable_const.sub (Real.measurable_log.comp this.norm.measurable))
+      ENNReal.ofReal (Real.log M - Real.log ‖eval z.ofLp P‖) :=
+    ENNReal.measurable_ofReal.comp
+      (measurable_const.sub (Real.measurable_log.comp (continuous_eval_ofLp 2 P).norm.measurable))
   rw [setLIntegral_ball_eq_mul_setLIntegral_setLAverage_circleMap volume hmeas c hr,
     Measure.addHaar_ball_of_pos volume c hr, mul_assoc,
     mul_comm (volume (ball (0 : EuclideanSpace ℂ ι) 1)), ← setLIntegral_const]
@@ -110,11 +120,10 @@ theorem setLIntegral_ofReal_log_sub_log_norm_eval_le {P : MvPolynomial ι ℂ}
   have hp0 : p.eval 0 = eval c.ofLp P := by simpa using hpe 0
   simp_rw [← hpe]
   rw [← hp0]
-  refine Polynomial.setLAverage_ofReal_log_sub_log_norm_eval_circleMap_le (hp0 ▸ hc) hr.ne'
+  refine Polynomial.setLAverage_ofReal_log_sub_log_norm_eval_circleMap_le (hp0 ▸ hc)
     fun θ => hpe _ ▸ hM _ ?_
   rw [mem_ball, dist_eq_norm, add_sub_cancel_left, norm_smul, norm_circleMap_zero, abs_of_pos hr]
   exact mul_lt_of_lt_one_right hr (by simpa using hv)
-
 
 /-- If a nonzero complex polynomial `P` on `EuclideanSpace ℂ ι` satisfies `‖P‖ ≤ M` on a
 measurable set `s`, then `log ‖P‖ ≤ log M` at almost every point of `s`. The exception is the
@@ -126,22 +135,26 @@ theorem ae_restrict_log_norm_eval_le_log {P : MvPolynomial ι ℂ} (hP : P ≠ 0
   filter_upwards [ae_restrict_mem hs, ae_restrict_of_ae (ae_eval_ne_zero hP)] with z hz hz0
   exact Real.log_le_log (norm_pos_iff.2 hz0) (hM z hz)
 
-/-- At a centre where `P` does not vanish, with `‖P‖ ≤ M` on the ball, the nonnegative function
-`log M - log ‖P‖` is integrable on the ball, by the lower-integral bound. -/
-private theorem integrableOn_log_sub_log_norm_eval_ball {P : MvPolynomial ι ℂ}
-    {c : EuclideanSpace ℂ ι} (hc : eval c.ofLp P ≠ 0) {r M : ℝ} (hr : 0 < r)
+/-- At a centre where `P` does not vanish, with `‖P‖ ≤ M` on the ball, `log M - log ‖P‖` is
+nonnegative at almost every point of the ball, and `log ‖P‖` is integrable on the ball, by the
+lower-integral bound. -/
+private theorem integrableOn_log_norm_eval_ball_of_eval_ne_zero {P : MvPolynomial ι ℂ}
+    {c : EuclideanSpace ℂ ι} (hc : eval c.ofLp P ≠ 0) {r M : ℝ}
     (hM : ∀ z ∈ ball c r, ‖eval z.ofLp P‖ ≤ M) :
-    IntegrableOn (fun z => Real.log M - Real.log ‖eval z.ofLp P‖) (ball c r) := by
+    0 ≤ᵐ[volume.restrict (ball c r)] (fun z => Real.log M - Real.log ‖eval z.ofLp P‖) ∧
+      IntegrableOn (fun z => Real.log ‖eval z.ofLp P‖) (ball c r) := by
   have hP : P ≠ 0 := fun h => hc (by simp [h])
   have hnn : 0 ≤ᵐ[volume.restrict (ball c r)]
-      fun z => Real.log M - Real.log ‖eval z.ofLp P‖ := by
-    filter_upwards [ae_restrict_log_norm_eval_le_log hP measurableSet_ball hM] with z hz
-    exact sub_nonneg.2 hz
-  refine ⟨(measurable_const.sub (Real.measurable_log.comp ((MvPolynomial.continuous_eval P).comp
-    (PiLp.continuous_ofLp 2 _)).norm.measurable)).aestronglyMeasurable,
-    (hasFiniteIntegral_iff_ofReal hnn).2 ?_⟩
-  exact (setLIntegral_ofReal_log_sub_log_norm_eval_le hc hr hM).trans_lt
-    (ENNReal.mul_lt_top measure_ball_lt_top ENNReal.ofReal_lt_top)
+      fun z => Real.log M - Real.log ‖eval z.ofLp P‖ :=
+    (ae_restrict_log_norm_eval_le_log hP measurableSet_ball hM).mono fun _ => sub_nonneg.2
+  have hfin : volume (ball c r) ≠ ∞ := measure_ball_lt_top.ne
+  have h : IntegrableOn (fun z => Real.log M - Real.log ‖eval z.ofLp P‖) (ball c r) :=
+    ⟨(measurable_const.sub (Real.measurable_log.comp
+      (continuous_eval_ofLp 2 P).norm.measurable)).aestronglyMeasurable,
+      (hasFiniteIntegral_iff_ofReal hnn).2 ((setLIntegral_ofReal_log_sub_log_norm_eval_le hc
+        hM).trans_lt (ENNReal.mul_lt_top hfin.lt_top ENNReal.ofReal_lt_top))⟩
+  exact ⟨hnn, ((integrableOn_const hfin).sub h).congr_fun (fun z _ => sub_sub_cancel _ _)
+    measurableSet_ball⟩
 
 /-- `log ‖P‖` is integrable on every ball, for a nonzero complex polynomial `P` on
 `EuclideanSpace ℂ ι`. -/
@@ -149,16 +162,13 @@ theorem integrableOn_log_norm_eval_ball {P : MvPolynomial ι ℂ} (hP : P ≠ 0)
     (c : EuclideanSpace ℂ ι) (r : ℝ) :
     IntegrableOn (fun z => Real.log ‖eval z.ofLp P‖) (ball c r) := by
   obtain ⟨c', hc', hc'P⟩ := exists_mem_ball_eval_ne_zero hP c one_pos
-  have hR : 0 < max r 0 + 1 := by positivity
   have hsub : ball c r ⊆ ball c' (max r 0 + 1) := fun z hz => by
     rw [mem_ball] at hz hc' ⊢
     linarith [dist_triangle z c c', dist_comm c c', le_max_left r 0]
   obtain ⟨M, hM⟩ := (isCompact_closedBall c' (max r 0 + 1)).exists_bound_of_continuousOn
-    ((MvPolynomial.continuous_eval P).comp (PiLp.continuous_ofLp 2 _)).continuousOn
-  have h := integrableOn_log_sub_log_norm_eval_ball hc'P hR
-    fun z hz => hM z (ball_subset_closedBall hz)
-  exact (((integrableOn_const measure_ball_lt_top.ne).sub h).congr_fun
-    (fun z _ => sub_sub_cancel _ _) measurableSet_ball).mono_set hsub
+    (continuous_eval_ofLp 2 P).continuousOn
+  exact (integrableOn_log_norm_eval_ball_of_eval_ne_zero hc'P
+    fun z hz => hM z (ball_subset_closedBall hz)).2.mono_set hsub
 
 /-- **Sub-mean value inequality for `log ‖P‖` over balls.** If a complex polynomial `P` on
 `EuclideanSpace ℂ ι` does not vanish at `c`, then `log ‖P c‖` is at most the average of
@@ -166,30 +176,20 @@ theorem integrableOn_log_norm_eval_ball {P : MvPolynomial ι ℂ} (hP : P ≠ 0)
 theorem log_norm_eval_le_setAverage_ball {P : MvPolynomial ι ℂ} {c : EuclideanSpace ℂ ι}
     (hc : eval c.ofLp P ≠ 0) {r : ℝ} (hr : 0 < r) :
     Real.log ‖eval c.ofLp P‖ ≤ ⨍ z in ball c r, Real.log ‖eval z.ofLp P‖ := by
-  have hP : P ≠ 0 := fun h => hc (by simp [h])
   obtain ⟨M, hM'⟩ := (isCompact_closedBall c r).exists_bound_of_continuousOn
-    ((MvPolynomial.continuous_eval P).comp (PiLp.continuous_ofLp 2 _)).continuousOn
+    (continuous_eval_ofLp 2 P).continuousOn
   have hM : ∀ z ∈ ball c r, ‖eval z.ofLp P‖ ≤ M := fun z hz => hM' z (ball_subset_closedBall hz)
-  have hint := integrableOn_log_sub_log_norm_eval_ball hc hr hM
-  have hnn : 0 ≤ᵐ[volume.restrict (ball c r)]
-      fun z => Real.log M - Real.log ‖eval z.ofLp P‖ := by
-    filter_upwards [ae_restrict_log_norm_eval_le_log hP measurableSet_ball hM] with z hz
-    exact sub_nonneg.2 hz
+  obtain ⟨hnn, hu⟩ := integrableOn_log_norm_eval_ball_of_eval_ne_zero hc hM
   have hK : 0 ≤ Real.log M - Real.log ‖eval c.ofLp P‖ :=
     sub_nonneg.2 (Real.log_le_log (norm_pos_iff.2 hc) (hM c (mem_ball_self hr)))
   have hfin : volume (ball c r) ≠ ∞ := measure_ball_lt_top.ne
-  -- The integral of `log M - log ‖P‖` is at most `vol (ball c r) * (log M - log ‖P c‖)`.
-  have h1 : ∫ z in ball c r, (Real.log M - Real.log ‖eval z.ofLp P‖) ≤
-      volume.real (ball c r) * (Real.log M - Real.log ‖eval c.ofLp P‖) := by
-    rw [integral_eq_lintegral_of_nonneg_ae hnn hint.aestronglyMeasurable, measureReal_def,
-      ← ENNReal.toReal_ofReal hK, ← ENNReal.toReal_mul]
-    exact ENNReal.toReal_mono (ENNReal.mul_ne_top hfin ENNReal.ofReal_ne_top)
-      (setLIntegral_ofReal_log_sub_log_norm_eval_le hc hr hM)
-  rw [integral_sub (integrableOn_const hfin) (integrableOn_log_norm_eval_ball hP c r),
-    setIntegral_const, smul_eq_mul] at h1
-  have hV : 0 < volume.real (ball c r) :=
-    ENNReal.toReal_pos (measure_ball_pos volume c hr).ne' hfin
-  rw [setAverage_eq, smul_eq_mul, le_inv_mul_iff₀ hV]
+  have hpos : volume (ball c r) ≠ 0 := (measure_ball_pos volume c hr).ne'
+  have hint : IntegrableOn (fun z => Real.log M - Real.log ‖eval z.ofLp P‖) (ball c r) :=
+    (integrableOn_const hfin).sub hu
+  have h := setLIntegral_ofReal_log_sub_log_norm_eval_le hc hM
+  rw [mul_comm, ← ENNReal.div_le_iff_le_mul (Or.inl hpos) (Or.inl hfin),
+    ← ofReal_setAverage hint hnn, ENNReal.ofReal_le_ofReal_iff hK,
+    setAverage_fun_sub (integrableOn_const hfin) hu, setAverage_const hpos hfin] at h
   linarith
 
 end MvPolynomial

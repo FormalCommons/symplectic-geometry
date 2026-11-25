@@ -216,12 +216,16 @@ theorem exists_norm_eval_le_add_one_pow_mul (p : ℂ[X]) {r t : ℝ} (hr : 0 < r
 open MeasureTheory Set in
 open scoped ENNReal in
 /-- **Sub-mean value inequality on a circle, lower-average form.** If `p.eval 0 ≠ 0` and
-`‖p‖ ≤ M` on the circle of radius `r ≠ 0` about `0`, then the lower average of
+`‖p‖ ≤ M` on the circle of radius `r` about `0`, then the lower average of
 `ofReal (log M - log ‖p‖)` over that circle is at most `ofReal (log M - log ‖p.eval 0‖)`. -/
 theorem setLAverage_ofReal_log_sub_log_norm_eval_circleMap_le {p : ℂ[X]}
-    (hp : p.eval 0 ≠ 0) {r M : ℝ} (hr : r ≠ 0) (hM : ∀ θ, ‖p.eval (circleMap 0 r θ)‖ ≤ M) :
+    (hp : p.eval 0 ≠ 0) {r M : ℝ} (hM : ∀ θ, ‖p.eval (circleMap 0 r θ)‖ ≤ M) :
     ⨍⁻ θ in Ioc 0 (2 * π), ENNReal.ofReal (Real.log M - Real.log ‖p.eval (circleMap 0 r θ)‖) ≤
       ENNReal.ofReal (Real.log M - Real.log ‖p.eval 0‖) := by
+  have hIoc : volume (Ioc 0 (2 * π)) ≠ ∞ := measure_Ioc_lt_top.ne
+  rcases eq_or_ne r 0 with rfl | hr
+  · simp only [circleMap_zero_radius, Function.const_apply]
+    exact (setLAverage_const (by simp [Real.pi_pos]) hIoc _).le
   have hp0 : p ≠ 0 := fun h => hp (by simp [h])
   have han : AnalyticOnNhd ℂ (fun z => p.eval z) univ := fun z _ =>
     p.differentiable.analyticAt z
@@ -236,7 +240,6 @@ theorem setLAverage_ofReal_log_sub_log_norm_eval_circleMap_le {p : ℂ[X]}
       fun θ => Real.log M - Real.log ‖p.eval (circleMap 0 r θ)‖ := by
     filter_upwards [hnull] with θ hθ
     exact sub_nonneg.2 (Real.log_le_log (norm_pos_iff.2 hθ) (hM θ))
-  have hIoc : volume (Ioc 0 (2 * π)) ≠ ∞ := measure_Ioc_lt_top.ne
   have havg : ⨍ θ in Ioc 0 (2 * π), Real.log ‖p.eval (circleMap 0 r θ)‖ =
       circleAverage (fun z => Real.log ‖p.eval z‖) 0 r := by
     rw [circleAverage_eq_intervalAverage, interval_average_eq_div, setAverage_eq,
@@ -244,9 +247,8 @@ theorem setLAverage_ofReal_log_sub_log_norm_eval_circleMap_le {p : ℂ[X]}
       Real.two_pi_pos.le, sub_zero, smul_eq_mul, inv_mul_eq_div]
   have hsub : ⨍ θ in Ioc 0 (2 * π), (Real.log M - Real.log ‖p.eval (circleMap 0 r θ)‖) =
       Real.log M - circleAverage (fun z => Real.log ‖p.eval z‖) 0 r := by
-    have h0 : volume.real (Ioc 0 (2 * π)) ≠ 0 := by simp [Real.pi_pos]
-    rw [← havg, setAverage_eq, setAverage_eq, integral_sub (integrableOn_const hIoc) hint,
-      setIntegral_const, smul_sub, smul_smul, inv_mul_cancel₀ h0, one_smul]
+    rw [setAverage_fun_sub (integrableOn_const hIoc) hint,
+      setAverage_const (by simp [Real.pi_pos]) hIoc, havg]
   have hint' : IntegrableOn (fun θ => Real.log M - Real.log ‖p.eval (circleMap 0 r θ)‖)
       (Ioc 0 (2 * π)) := (integrableOn_const hIoc).sub hint
   rw [setLAverage_eq, ← ofReal_setAverage hint' hnn, hsub]
