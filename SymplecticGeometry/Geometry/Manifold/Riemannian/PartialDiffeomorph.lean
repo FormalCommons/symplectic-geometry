@@ -11,7 +11,6 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.ChartGram
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Matrix
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import Mathlib.Analysis.Calculus.ContDiff.FiniteDimension
 import Mathlib.Analysis.InnerProductSpace.GramMatrix
 import Mathlib.Analysis.SpecialFunctions.Sqrt
@@ -147,13 +146,10 @@ theorem gramInChart_trans_apply (hn : n ≠ 0) (Θ : PartialDiffeomorph 𝓘(ℝ
       gramInChart ψ (Θ.symm w) u v := by
   have key (a : E) : mfderiv 𝓘(ℝ, E) I (ψ.trans Θ).symm w (fderiv ℝ Θ (Θ.symm w) a) =
       mfderiv 𝓘(ℝ, E) I ψ.symm (Θ.symm w) a := by
-    have ha : fderiv ℝ Θ (Θ.symm w) a = mfderiv 𝓘(ℝ, E) 𝓘(ℝ, E) Θ (Θ.symm w) a := by
-      -- `NormedSpace.fromTangentSpace` is the identity of `E`, which Mathlib states by no lemma.
-      rw [mfderiv_eq_fderiv]; rfl
-    rw [ha, PartialDiffeomorph.coe_trans_symm, mfderiv_comp w
-      (ψ.symm.mdifferentiableAt hn hψ) (Θ.symm.mdifferentiableAt hn hw)]
-    exact congrArg (mfderiv 𝓘(ℝ, E) I ψ.symm (Θ.symm w))
-      (Θ.mfderiv_symm_apply_mfderiv_apply_of_mem_target hn hw a)
+    have h := Θ.mfderiv_symm_trans_apply_mfderiv_apply ψ.symm hn (Θ.map_target hw) hψ a
+    rw [Θ.right_inv hw, mfderiv_eq_fderiv] at h
+    rw [coe_trans_symm, ← coe_trans]
+    exact h
   rw [gramInChart_apply, gramInChart_apply, key, key]
   -- The two inner products are taken in the tangent spaces at `(ψ.trans Θ).symm w` and at
   -- `ψ.symm (Θ.symm w)`, which are the same point by definition.

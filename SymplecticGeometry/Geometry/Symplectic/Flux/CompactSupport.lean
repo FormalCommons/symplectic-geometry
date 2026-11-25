@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Flux.Hamiltonian
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
-import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.SymplecticIsotopy
 import TauCeti.Geometry.Symplectic.Manifold.Family
 
 /-!
@@ -83,8 +82,8 @@ The diffeotopy of `TauCeti.Diffeotopy.exists_interior_velocity_eq` is Tau Ceti's
 vanishes off `L` (`SymplecticGeometry.timeExtend_eq_zero`), so the fields vanish off `L` and their
 suspension is complete (`TauCeti.isCompleteVectorField_timeDependentSuspensionField`). Its slices
 preserve `σ` because the `Ω_t` are closed for `t ∈ [0, 1]`
-(`TauCeti.Diffeotopy.forall_timeSlice_mem_diffeomorphStabilizer_iff`); past the ends of `[0, 1]`
-the extended forms need not be closed, and they are not needed there.
+(`TauCeti.Diffeotopy.timeSlice_timeDependentFlowDiffeotopy_mem_diffeomorphStabilizer`); past the
+ends of `[0, 1]` the extended forms need not be closed, and they are not needed there.
 `TauCeti.Diffeotopy.exists_interior_velocity_eq_add_mextDeriv` applies it to `Ω = β + dG`, whose
 slices are `β_t + dG_t`, and `TauCeti.Diffeotopy.exists_isCompactlySupportedHamiltonian` is its
 case `β = 0`: the equation
@@ -254,11 +253,9 @@ theorem exists_interior_velocity_eq (hσ : SmoothTwoForm.IsSymplectic σ)
   have hvel (t : unitInterval) : Φ.velocity t = X t :=
     funext (velocity_timeDependentFlowDiffeotopy le_top hX hc t)
   -- The slices of `Φ` preserve `σ`: `d (ι_{X_t} σ) = d Ω_t = 0` for `t ∈ [0, 1]`.
-  have hpres : ∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ :=
-    (forall_timeSlice_mem_diffeomorphStabilizer_iff Φ hσ.isClosed).2 fun t ↦
-      SmoothTwoForm.mem_symplecticVectorFields_iff.2
-        (by rw [coe_smoothVelocity, hvel, hint]; exact hΩ t)
-  exact ⟨Φ, fun t ↦ by rw [hvel, hint], hpres,
+  exact ⟨Φ, fun t ↦ by rw [hvel, hint],
+    timeSlice_timeDependentFlowDiffeotopy_mem_diffeomorphStabilizer hX hc hσ.isClosed
+      fun t ↦ by rw [hint]; exact hΩ t,
     fun t y hy ↦ timeDependentFlowDiffeotopy_apply_of_forall_eq_zero le_top hX hc
       (fun u ↦ hXL u y hy) t⟩
 

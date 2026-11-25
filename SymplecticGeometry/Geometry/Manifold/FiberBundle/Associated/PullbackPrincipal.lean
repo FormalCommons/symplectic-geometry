@@ -37,6 +37,10 @@ form on `M`.
 
 ## Main definitions and results
 
+* `TauCeti.AssociatedBundle.chartedMk`: the quotient map `q`, between the charted total spaces,
+  with `TauCeti.AssociatedBundle.chartedMk_apply`, `TauCeti.AssociatedBundle.chartedMk_homeomorph`
+  and `TauCeti.AssociatedBundle.contMDiff_chartedMk`: it is `C^n`, as Tau Ceti's
+  `TauCeti.AssociatedBundle.contMDiff_totalSpaceMk_mk` says of the map written out.
 * `TauCeti.AssociatedBundle.pullbackProjDiffeomorph`: the `C^n` diffeomorphism `Φ` from
   `ManifoldTotalSpace G P × F` onto the charted total space of `Q`.
 * `TauCeti.AssociatedBundle.pullbackProjDiffeomorph_apply` and
@@ -143,22 +147,57 @@ local notation "πM" => ManifoldTotalSpace.projContMDiffMap n F (AssociatedBundl
 /-- The pull-back `Q = π_M^* P` of `P` to the associated bundle. -/
 local notation "Q" => (πM : ManifoldTotalSpace F (AssociatedBundle G P F) → B) *ᵖ P
 
+/-! ### The quotient map between charted total spaces -/
+
+variable (G P F) in
+/-- The quotient map `q (x, v) = [x, v]` from `P × F` onto the associated bundle `P ×_G F`, between
+the charted total spaces: it sends `(x, v)` to the class `AssociatedBundle.mk G p v`, for the point
+`p` of the total space of `P` that `x` stands for, read in the charted total space of `P ×_G F`. -/
+def chartedMk (x : ManifoldTotalSpace G P × F) : ManifoldTotalSpace F (AssociatedBundle G P F) :=
+  ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
+    ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
+      mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩
+
+/-- The quotient map written out through `TauCeti.ManifoldTotalSpace.homeomorph`. -/
+theorem chartedMk_apply (x : ManifoldTotalSpace G P × F) :
+    chartedMk G F P x =
+      ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
+        ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
+          mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩ := (rfl)
+
+/-- The quotient map at a point `p` of the total space of `P` is the class `[p, v]`. -/
+@[simp]
+theorem chartedMk_homeomorph (p : TotalSpace G P) (v : F) :
+    chartedMk G F P (ManifoldTotalSpace.homeomorph G P p, v) =
+      ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F) ⟨p.proj, mk G p.snd v⟩ := by
+  rw [chartedMk_apply, Homeomorph.symm_apply_apply]
+
+/-- Read in the total space of `P ×_G F`, the quotient map sends `(x, v)` to the class of
+`(p, v)`, for the point `p` of the total space of `P` that `x` stands for. -/
+@[simp]
+theorem homeomorph_symm_chartedMk (x : ManifoldTotalSpace G P × F) :
+    (ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm (chartedMk G F P x) =
+      ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
+        mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩ := by
+  rw [chartedMk_apply, Homeomorph.symm_apply_apply]
+
+variable (n IB IG IF) in
+/-- The quotient map `(x, v) ↦ [x, v]` is `C^n`. -/
+theorem contMDiff_chartedMk [ContMDiffSMul IG IF n G F] :
+    ContMDiff ((IB.prod IG).prod IF) (IB.prod IF) n (chartedMk G F P) :=
+  contMDiff_totalSpaceMk_mk n G F IB IG IF P
+
 variable (n IB IF) in
 /-- The point `([x, v], x)` of the total space of `Q`, before transport to its charted copy. -/
 def pullbackProjMk (x : ManifoldTotalSpace G P × F) : TotalSpace G Q :=
-  ⟨ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
-    ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
-      mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩,
+  ⟨chartedMk G F P x,
     cast (congrArg P (by simp)) ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd⟩
 
 variable (n IB IF) in
 /-- The projection of `([x, v], x)` is the class `[x, v]`. -/
 @[simp]
 theorem pullbackProjMk_proj (x : ManifoldTotalSpace G P × F) :
-    (pullbackProjMk n IB IF x).proj =
-      ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
-        ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
-          mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩ := (rfl)
+    (pullbackProjMk n IB IF x).proj = chartedMk G F P x := (rfl)
 
 variable (n IB IF) in
 /-- The image of `([x, v], x)` in the total space of `P` is `x`. -/
@@ -170,28 +209,18 @@ theorem lift_pullbackProjMk (x : ManifoldTotalSpace G P × F) :
 
 /-- **The quotient map onto the associated bundle is surjective**: every point of `P ×_G F` is a
 class `[x, v]`. -/
-theorem surjective_totalSpaceMk_mk :
-    Function.Surjective fun x : ManifoldTotalSpace G P × F ↦
-      ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
-        ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
-          mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩ := by
+theorem surjective_totalSpaceMk_mk : Function.Surjective (chartedMk G F P) := by
   intro y
   obtain ⟨⟨p, v⟩, hp⟩ := (isOpenQuotientMap_totalSpaceMk_mk G P F).surjective
     ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm y)
   refine ⟨(ManifoldTotalSpace.homeomorph G P p, v), ?_⟩
-  beta_reduce
-  rw [Homeomorph.symm_apply_apply]
+  rw [chartedMk_homeomorph]
   exact (congrArg _ hp).trans (Homeomorph.apply_symm_apply _ _)
 
 /-- **The quotient map is invariant under the diagonal action**: `[x · g, g⁻¹ • v] = [x, v]`. -/
 theorem totalSpaceMk_mk_op_smul_inv_smul (g : G) (x : ManifoldTotalSpace G P × F) :
-    ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
-        ⟨((ManifoldTotalSpace.homeomorph G P).symm (op g • x.1)).proj,
-          mk G ((ManifoldTotalSpace.homeomorph G P).symm (op g • x.1)).snd (g⁻¹ • x.2)⟩ =
-      ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
-        ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
-          mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩ := by
-  rw [ManifoldTotalSpace.homeomorph_symm_smul, mk_smul_inv_smul]
+    chartedMk G F P (op g • x.1, g⁻¹ • x.2) = chartedMk G F P x := by
+  rw [chartedMk_apply, chartedMk_apply, ManifoldTotalSpace.homeomorph_symm_smul, mk_smul_inv_smul]
 
 omit [ContinuousSMul G F] in
 /-- The diagonal action `(x, v) ↦ (x · g, g⁻¹ • v)` of `g : G` on `P × F` is `C^n`. -/
@@ -206,10 +235,8 @@ variable (n IB IF) in
 bundle is `C^n`. -/
 theorem contMDiff_totalSpaceMk_mk_left [ContMDiffSMul IG IF n G F] (v : F) :
     ContMDiff (IB.prod IG) (IB.prod IF) n fun x : ManifoldTotalSpace G P ↦
-      ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
-        ⟨((ManifoldTotalSpace.homeomorph G P).symm x).proj,
-          mk G ((ManifoldTotalSpace.homeomorph G P).symm x).snd v⟩ :=
-  (contMDiff_totalSpaceMk_mk n G F IB IG IF P).comp (contMDiff_id.prodMk contMDiff_const)
+      chartedMk G F P (x, v) :=
+  (contMDiff_chartedMk n IB IG IF).comp (contMDiff_id.prodMk contMDiff_const)
 
 /-- **The projection of `[x, v]` is the projection of `x`, on tangent vectors.** The derivative
 of the projection of the associated bundle at `[x, v]`, composed with that of `x' ↦ [x', v]` at
@@ -221,27 +248,18 @@ theorem mfderiv_proj_totalSpaceMk_mk_apply [ContMDiffSMul IG IF n G F] (hn : n �
         ((ManifoldTotalSpace.homeomorph G P).symm x').proj) x w =
       tangentSpaceCast IB
         ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm
-          (ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
-            ⟨((ManifoldTotalSpace.homeomorph G P).symm x).proj,
-              mk G ((ManifoldTotalSpace.homeomorph G P).symm x).snd v⟩)).proj
+          (chartedMk G F P (x, v))).proj
         ((ManifoldTotalSpace.homeomorph G P).symm x).proj
         (mfderiv (IB.prod IF) IB (fun y : ManifoldTotalSpace F (AssociatedBundle G P F) ↦
             ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm y).proj)
-          (ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
-            ⟨((ManifoldTotalSpace.homeomorph G P).symm x).proj,
-              mk G ((ManifoldTotalSpace.homeomorph G P).symm x).snd v⟩)
-          (mfderiv (IB.prod IG) (IB.prod IF) (fun x' : ManifoldTotalSpace G P ↦
-              ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
-                ⟨((ManifoldTotalSpace.homeomorph G P).symm x').proj,
-                  mk G ((ManifoldTotalSpace.homeomorph G P).symm x').snd v⟩) x w)) := by
+          (chartedMk G F P (x, v))
+          (mfderiv (IB.prod IG) (IB.prod IF)
+            (fun x' : ManifoldTotalSpace G P ↦ chartedMk G F P (x', v)) x w)) := by
   have hfun : (fun x' : ManifoldTotalSpace G P ↦
       ((ManifoldTotalSpace.homeomorph G P).symm x').proj) =ᶠ[nhds x]
       (fun y : ManifoldTotalSpace F (AssociatedBundle G P F) ↦
         ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm y).proj) ∘
-      (fun x' : ManifoldTotalSpace G P ↦
-        ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
-          ⟨((ManifoldTotalSpace.homeomorph G P).symm x').proj,
-            mk G ((ManifoldTotalSpace.homeomorph G P).symm x').snd v⟩) :=
+      (fun x' : ManifoldTotalSpace G P ↦ chartedMk G F P (x', v)) :=
     .of_forall fun x' ↦ by simp
   rw [hfun.mfderiv_eq, ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
     mfderiv_comp_apply x
@@ -253,14 +271,10 @@ theorem mfderiv_proj_totalSpaceMk_mk_apply [ContMDiffSMul IG IF n G F] (hn : n �
 /-- **The fibres of the quotient map are the orbits of the diagonal action**: `[x, v] = [y, w]`
 exactly when `(y, w) = (x · g, g⁻¹ • v)` for some `g : G`. -/
 theorem totalSpaceMk_mk_eq_totalSpaceMk_mk_iff {x y : ManifoldTotalSpace G P × F} :
-    ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
-        ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
-          mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩ =
-      ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
-        ⟨((ManifoldTotalSpace.homeomorph G P).symm y.1).proj,
-          mk G ((ManifoldTotalSpace.homeomorph G P).symm y.1).snd y.2⟩ ↔
+    chartedMk G F P x = chartedMk G F P y ↔
       ∃ g : G, y = (op g • x.1, g⁻¹ • x.2) := by
-  rw [(ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).injective.eq_iff,
+  rw [chartedMk_apply, chartedMk_apply,
+    (ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).injective.eq_iff,
     totalSpaceMk_mk_eq_iff (x := ((ManifoldTotalSpace.homeomorph G P).symm x.1, x.2))
       (y := ((ManifoldTotalSpace.homeomorph G P).symm y.1, y.2))]
   refine exists_congr fun g ↦ ?_
@@ -343,18 +357,18 @@ def pullbackProjDiffeomorph :
     · simp [lift_pullbackProjMk]
     · refine (sectionFunction_pullbackProjSection_eq_iff _ _).2 ?_
       rw [Homeomorph.symm_apply_apply, lift_pullbackProjMk, pullbackProjMk_proj,
-        Homeomorph.symm_apply_apply]
+        homeomorph_symm_chartedMk]
   right_inv z := by
     obtain ⟨y, rfl⟩ := (ManifoldTotalSpace.homeomorph G Q).surjective z
     simp only [Homeomorph.symm_apply_apply]
     congr 1
     refine Pullback.totalSpace_ext ?_ ?_
-    · rw [pullbackProjMk_proj, Homeomorph.symm_apply_apply,
+    · rw [pullbackProjMk_proj, chartedMk_homeomorph,
         ← (sectionFunction_pullbackProjSection_eq_iff y _).1 rfl, Homeomorph.apply_symm_apply]
     · rw [lift_pullbackProjMk, Homeomorph.symm_apply_apply]
   contMDiff_toFun := by
     refine (ManifoldTotalSpace.contMDiff_pullback_iff πM (πM).contMDiff).2 ⟨?_, ?_⟩
-    · exact contMDiff_totalSpaceMk_mk n G F IB IG IF P
+    · simpa only [pullbackProjMk_proj] using contMDiff_chartedMk n IB IG IF
     · simp only [lift_pullbackProjMk, Homeomorph.apply_symm_apply]
       exact contMDiff_fst
   contMDiff_invFun := by
@@ -385,23 +399,11 @@ theorem pullbackProjDiffeomorph_symm_snd_eq_iff (z : ManifoldTotalSpace G Q) (w 
   rw [pullbackProjDiffeomorph_symm_apply, sectionFunction_pullbackProjSection_eq_iff]
 
 /-- **The projection of `Q` composed with `Φ` is the quotient map** `(x, v) ↦ [x, v]`. -/
--- Not `@[simp]`: at a point `(homeomorph G P p, v)` it leaves a dependent pair that `simp` cannot
--- reduce, where `proj_pullbackProjDiffeomorph_homeomorph` gives `[p, v]`.
+@[simp]
 theorem proj_pullbackProjDiffeomorph (x : ManifoldTotalSpace G P × F) :
     ((ManifoldTotalSpace.homeomorph G Q).symm (pullbackProjDiffeomorph n IB IG IF x)).proj =
-      ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
-        ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
-          mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩ := by
+      chartedMk G F P x := by
   rw [pullbackProjDiffeomorph_apply, Homeomorph.symm_apply_apply, pullbackProjMk_proj]
-
-/-- The projection of `Φ (p, v)` is the class `[p, v]`, for a point `p` of the total space
-of `P`. -/
-@[simp]
-theorem proj_pullbackProjDiffeomorph_homeomorph (p : TotalSpace G P) (v : F) :
-    ((ManifoldTotalSpace.homeomorph G Q).symm
-        (pullbackProjDiffeomorph n IB IG IF (ManifoldTotalSpace.homeomorph G P p, v))).proj =
-      ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F) ⟨p.proj, mk G p.snd v⟩ := by
-  rw [proj_pullbackProjDiffeomorph, Homeomorph.symm_apply_apply]
 
 /-- The image of `Φ (p, v)` in the total space of `P` is `p`. -/
 @[simp]
@@ -420,8 +422,7 @@ theorem pullbackProjDiffeomorph_smul (g : G) (x : ManifoldTotalSpace G P × F) :
     ManifoldTotalSpace.smul_homeomorph]
   congr 1
   refine Pullback.totalSpace_ext ?_ ?_
-  · rw [pullbackProjMk_proj, pullbackProjMk_proj, ManifoldTotalSpace.homeomorph_symm_smul,
-      mk_smul_inv_smul]
+  · rw [pullbackProjMk_proj, pullbackProjMk_proj, totalSpaceMk_mk_op_smul_inv_smul]
   · rw [lift_pullbackProjMk, ManifoldTotalSpace.homeomorph_symm_smul]
     -- `Pullback.lift` of a point `⟨m, s⟩` is `⟨πM m, s⟩` by definition; `Pullback.lift_mk` does not
     -- rewrite here, since the fibre of `Q` is not reducibly that of `P`.
@@ -502,11 +503,7 @@ local notation "Q" => (πM : ManifoldTotalSpace F (AssociatedBundle G P F) → B
 finite-dimensional manifold `F`, all without boundary, the map `(x, v) ↦ [x, v]` from `P × F`
 onto `P ×_G F` is a `C^n` submersion. -/
 theorem isSubmersion_totalSpaceMk_mk (hn : 1 ≤ n) :
-    Manifold.IsSubmersion ((IB.prod IG).prod IF) (IB.prod IF) n
-      fun x : ManifoldTotalSpace G P × F ↦
-        ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
-          ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
-            mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩ := by
+    Manifold.IsSubmersion ((IB.prod IG).prod IF) (IB.prod IF) n (chartedMk G F P) := by
   have := FiberBundle.nonempty_fiber G P
   have hn₀ : n ≠ 0 := (zero_lt_one.trans_le hn).ne'
   have : ContMDiffFiberBundle n F (AssociatedBundle G P F) IB IF := contMDiffFiberBundle IG
@@ -527,11 +524,7 @@ action.** A tangent vector to `P × F` at `(x, v)` is killed by the derivative o
 `(x, v) ↦ [x, v]` exactly when it is `(x ξ, -X_ξ(v))` for some `ξ` in the Lie algebra of `G`. -/
 theorem mfderiv_totalSpaceMk_mk_eq_zero_iff (hn : 1 ≤ n) (x : ManifoldTotalSpace G P × F)
     (w : TangentSpace ((IB.prod IG).prod IF) x) :
-    mfderiv ((IB.prod IG).prod IF) (IB.prod IF)
-        (fun x : ManifoldTotalSpace G P × F ↦
-          ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
-            ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
-              mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩) x w = 0 ↔
+    mfderiv ((IB.prod IG).prod IF) (IB.prod IF) (chartedMk G F P) x w = 0 ↔
       ∃ ξ : GroupLieAlgebra IG G,
         (rightFundamentalVectorField (IB.prod IG) ξ x.1, -fundamentalVectorField IF ξ x.2) = w := by
   have := FiberBundle.nonempty_fiber G P
@@ -541,16 +534,10 @@ theorem mfderiv_totalSpaceMk_mk_eq_zero_iff (hn : 1 ≤ n) (x : ManifoldTotalSpa
   have hπ := ManifoldTotalSpace.isSubmersion_proj n G Q (IB.prod IF) IG
   -- The quotient map is the projection of `Q` composed with `Φ`, whose derivative is injective;
   -- the kernel of the derivative of the projection consists of the fundamental vectors of `Q`.
-  have hq : (fun x : ManifoldTotalSpace G P × F ↦
-      ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
-        ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
-          mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩) =
+  have hq : chartedMk G F P =
       (fun z ↦ ((ManifoldTotalSpace.homeomorph G Q).symm z).proj) ∘ Φ :=
     funext fun x ↦ (proj_pullbackProjDiffeomorph x).symm
-  have h0 : mfderiv ((IB.prod IG).prod IF) (IB.prod IF) (fun x : ManifoldTotalSpace G P × F ↦
-      ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
-        ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
-          mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩) x w =
+  have h0 : mfderiv ((IB.prod IG).prod IF) (IB.prod IF) (chartedMk G F P) x w =
       mfderiv ((IB.prod IF).prod IG) (IB.prod IF)
         (fun z ↦ ((ManifoldTotalSpace.homeomorph G Q).symm z).proj) (Φ x)
           (mfderiv ((IB.prod IG).prod IF) ((IB.prod IF).prod IG) Φ x w) := by
@@ -608,14 +595,10 @@ theorem isBasic_totalSpaceMk_mk
       (v : Fin k → TangentSpace ((IB.prod IG).prod IF) x) (j : Fin k) (ξ : GroupLieAlgebra IG G),
       v j = (rightFundamentalVectorField (IB.prod IG) ξ x.1, -fundamentalVectorField IF ξ x.2) →
         β.val x v = 0) :
-    RoughForm.IsBasic (V := V) (IB.prod IF)
-      (fun x : ManifoldTotalSpace G P × F ↦
-        ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
-          ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
-            mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩) β.val := by
+    RoughForm.IsBasic (V := V) (IB.prod IF) (chartedMk G F P) β.val := by
   refine RoughForm.isBasic_of_mpullback_eq
     (σ := fun (g : G) (x : ManifoldTotalSpace G P × F) ↦ (op g • x.1, g⁻¹ • x.2))
-    ((contMDiff_totalSpaceMk_mk ∞ G F IB IG IF P).mdifferentiable (by simp))
+    ((contMDiff_chartedMk ∞ IB IG IF).mdifferentiable (by simp))
     (fun g ↦ (contMDiff_op_smul_inv_smul (n := ∞) g).mdifferentiable (by simp))
     (fun g ↦ funext (totalSpaceMk_mk_op_smul_inv_smul g))
     (fun x y hxy ↦ Or.inr ((totalSpaceMk_mk_eq_totalSpaceMk_mk_iff.1 hxy).imp fun _ h ↦ h.symm))
@@ -640,12 +623,7 @@ theorem existsUnique_mpullback_totalSpaceMk_mk_eq [FiniteDimensional ℝ EB] [IB
       v j = (rightFundamentalVectorField (IB.prod IG) ξ x.1, -fundamentalVectorField IF ξ x.2) →
         β.val x v = 0) :
     ∃! γ : SmoothForm (IB.prod IF) (ManifoldTotalSpace F (AssociatedBundle G P F)) V k,
-      SmoothForm.mpullback
-        (fun x : ManifoldTotalSpace G P × F ↦
-          ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
-            ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
-              mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩)
-        (contMDiff_totalSpaceMk_mk ∞ G F IB IG IF P) γ = β := by
+      SmoothForm.mpullback (chartedMk G F P) (contMDiff_chartedMk ∞ IB IG IF) γ = β := by
   have hq := isSubmersion_totalSpaceMk_mk (n := ∞) (IB := IB) (IG := IG) (IF := IF) (G := G)
     (F := F) (P := P) ENat.LEInfty.out
   exact ⟨_, SmoothForm.mpullback_descendedForm (hf := hq) (hsurj := surjective_totalSpaceMk_mk)

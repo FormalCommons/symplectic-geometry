@@ -315,11 +315,9 @@ theorem contMDiff_complementRepresentative_orthogonalTangentRange
             p.snd)) := by
   let := f.normalSpaceFiberBundle hn hdim
   refine (f.contMDiff_normalBundle_iff hn (by simp) hdim _).2 ?_
-  have hP := (contMDiff_const (c := (-1 : ℝ))).smul_totalSpace
-    (contMDiff_projection_orthogonalTangentRange hJ hω)
-  refine (ContMDiff.add_sectionAlong (b := TotalSpace.proj)
-    (s := fun p : TotalSpace E ((f : M → X) *ᵖ (TangentSpace I)) ↦ p.snd) contMDiff_id hP).congr
-    fun p ↦ ?_
+  refine (ContMDiff.sub_sectionAlong (b := TotalSpace.proj)
+    (s := fun p : TotalSpace E ((f : M → X) *ᵖ (TangentSpace I)) ↦ p.snd) contMDiff_id
+    (contMDiff_projection_orthogonalTangentRange hJ hω)).congr fun p ↦ ?_
   rw [Function.comp_apply, normalQuotientMap_apply]
   refine congrArg (TotalSpace.mk p.proj) ?_
   dsimp only
@@ -328,8 +326,7 @@ theorem contMDiff_complementRepresentative_orthogonalTangentRange
   -- `p.snd` is a vector of the pull-back, `TangentSpace I (f p.proj)` under another name.
   erw [Submodule.projection_eq_self_sub_projection (isCompl_tangentRange_orthogonal hJ hω p.proj)]
     at h
-  rw [h]
-  exact (sub_eq_add_neg _ _).trans (congrArg _ (neg_one_smul ℝ _).symm)
+  exact h
 
 /-! ### The splitting -/
 
