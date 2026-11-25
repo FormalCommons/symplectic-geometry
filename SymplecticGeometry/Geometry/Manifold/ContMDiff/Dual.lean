@@ -44,6 +44,11 @@ on a varying vector comes from Mathlib's `fderiv_clm_apply`.
   normed space.
 * `contMDiff_toContinuousLinearMap_of_contMDiff_apply`: for a finite-dimensional normed space `E`,
   if `t ↦ ν t ξ` is `C^n` for every `ξ : E`, then `ν` is `C^n` as a map into `E →L[𝕜] 𝕜`.
+* `differentiableAt_toContinuousLinearMap_comp`, `differentiableAt_dual_comp_apply`,
+  `differentiable_dual_comp_apply`: for a family `ν` of functionals on a finite-dimensional
+  normed space `X`, with differentiable values, and a differentiable map `x : F → N` from a normed
+  space, `z ↦ ν (x z)` is differentiable as a family of continuous linear maps, and so is
+  `z ↦ ν (x z) (c z)` for every differentiable `c : F → X`.
 * `fderiv_dual_comp_apply`: for a family `ν` of functionals on a finite-dimensional normed space
   `X`, indexed by `N`, with values differentiable at `x y`, a map `x : F → N` from a normed
   space, differentiable at `y`, and a map `c : F → X` differentiable at `y`, the derivative of
@@ -117,25 +122,59 @@ theorem contMDiff_toContinuousLinearMap_of_contMDiff_apply [CompleteSpace 𝕜]
     ContMDiff J 𝓘(𝕜, E →L[𝕜] 𝕜) n fun t ↦ LinearMap.toContinuousLinearMap (ν t) :=
   fun t ↦ TauCeti.contMDiffAt_clm_apply.2 fun ξ ↦ hν ξ t
 
+section Pairing
+
+variable [CompleteSpace 𝕜] {X : Type*} [NormedAddCommGroup X] [NormedSpace 𝕜 X]
+  [FiniteDimensional 𝕜 X] {ν : N → Module.Dual 𝕜 X}
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] {x : F → N} {y : F} {c : F → X}
+
+/-- **Differentiability of a family of covectors along a map.** Let `ν` be a family of linear
+functionals on a finite-dimensional normed space `X`, indexed by a manifold `N`, and `x : F → N`
+a map from a normed space, differentiable at `y`. If every value `t ↦ ν t ξ` is differentiable at
+`x y`, then `z ↦ ν (x z)`, read as a family of continuous linear maps `X →L[𝕜] 𝕜`, is
+differentiable at `y`. -/
+theorem differentiableAt_toContinuousLinearMap_comp
+    (hν : ∀ ξ, MDifferentiableAt J 𝓘(𝕜) (fun t ↦ ν t ξ) (x y))
+    (hx : MDifferentiableAt 𝓘(𝕜, F) J x y) :
+    DifferentiableAt 𝕜 (fun z ↦ LinearMap.toContinuousLinearMap (ν (x z))) y :=
+  TauCeti.differentiableAt_clm_apply.2 fun ξ ↦ by
+    simpa [Function.comp_def] using ((hν ξ).comp y hx).differentiableAt
+
+/-- **Differentiability of a family of functionals evaluated on a family of vectors.** Let
+`ν : N → Module.Dual 𝕜 X` be a family of functionals on a finite-dimensional normed space `X`,
+indexed by a manifold `N`, and `x : F → N` a map from a normed space, such that `x` is
+differentiable at `y` and every value `t ↦ ν t ξ` is differentiable at `x y`. If `c : F → X` is
+differentiable at `y`, then so is `z ↦ ν (x z) (c z)`. -/
+theorem differentiableAt_dual_comp_apply
+    (hν : ∀ ξ, MDifferentiableAt J 𝓘(𝕜) (fun t ↦ ν t ξ) (x y))
+    (hx : MDifferentiableAt 𝓘(𝕜, F) J x y) (hc : DifferentiableAt 𝕜 c y) :
+    DifferentiableAt 𝕜 (fun z ↦ ν (x z) (c z)) y := by
+  simpa using (differentiableAt_toContinuousLinearMap_comp hν hx).clm_apply hc
+
+/-- **Differentiability of a family of functionals evaluated on a family of vectors.** Let
+`ν : N → Module.Dual 𝕜 X` be a family of functionals on a finite-dimensional normed space `X`,
+indexed by a manifold `N`, with differentiable values `t ↦ ν t ξ`, and `x : F → N` a
+differentiable map from a normed space. If `c : F → X` is differentiable, then so is
+`z ↦ ν (x z) (c z)`. -/
+theorem differentiable_dual_comp_apply (hν : ∀ ξ, MDifferentiable J 𝓘(𝕜) fun t ↦ ν t ξ)
+    (hx : MDifferentiable 𝓘(𝕜, F) J x) (hc : Differentiable 𝕜 c) :
+    Differentiable 𝕜 fun z ↦ ν (x z) (c z) := fun y ↦
+  differentiableAt_dual_comp_apply (fun ξ ↦ hν ξ (x y)) (hx y) (hc y)
+
 /-- **The derivative of a family of functionals evaluated on a family of vectors.** Let
 `ν : N → Module.Dual 𝕜 X` be a family of functionals on a finite-dimensional normed space `X`,
 indexed by a manifold `N`, and `x : F → N` a map from a normed space, such that `x` is
 differentiable at `y` and every value `t ↦ ν t ξ` is differentiable at `x y`. If
 `c : F → X` is differentiable at `y`, the derivative of `z ↦ ν (x z) (c z)` at `y` in the
 direction `v` is `ν (x y) (dc_y v) + d(ν · (c y))_{x y} (dx_y v)`. -/
-theorem fderiv_dual_comp_apply [CompleteSpace 𝕜] {X : Type*} [NormedAddCommGroup X]
-    [NormedSpace 𝕜 X] [FiniteDimensional 𝕜 X] {ν : N → Module.Dual 𝕜 X}
-    {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] {x : F → N} {y : F}
-    (hν : ∀ ξ, MDifferentiableAt J 𝓘(𝕜) (fun t ↦ ν t ξ) (x y))
-    (hx : MDifferentiableAt 𝓘(𝕜, F) J x y)
-    {c : F → X} (hc : DifferentiableAt 𝕜 c y) (v : F) :
+theorem fderiv_dual_comp_apply (hν : ∀ ξ, MDifferentiableAt J 𝓘(𝕜) (fun t ↦ ν t ξ) (x y))
+    (hx : MDifferentiableAt 𝓘(𝕜, F) J x y) (hc : DifferentiableAt 𝕜 c y) (v : F) :
     fderiv 𝕜 (fun z ↦ ν (x z) (c z)) y v =
       ν (x y) (fderiv 𝕜 c y v) +
         mvfderiv J (fun t ↦ ν t (c y)) (x y) (mfderiv 𝓘(𝕜, F) J x y v) := by
   -- Read `ν ∘ x` as a family of continuous linear maps, and differentiate the evaluation.
   set L : F → X →L[𝕜] 𝕜 := fun z ↦ LinearMap.toContinuousLinearMap (ν (x z))
-  have hLd : DifferentiableAt 𝕜 L y := TauCeti.differentiableAt_clm_apply.2 fun ξ ↦ by
-    simpa [L, Function.comp_def] using ((hν ξ).comp y hx).differentiableAt
+  have hLd : DifferentiableAt 𝕜 L y := differentiableAt_toContinuousLinearMap_comp hν hx
   have h1 : (fun z ↦ ν (x z) (c z)) = fun z ↦ L z (c z) := by simp [L]
   have h2 : (fun z ↦ ν (x z) (c y)) = fun z ↦ L z (c y) := by simp [L]
   have hchain : mvfderiv J (fun t ↦ ν t (c y)) (x y) (mfderiv 𝓘(𝕜, F) J x y v) =
@@ -144,6 +183,8 @@ theorem fderiv_dual_comp_apply [CompleteSpace 𝕜] {X : Type*} [NormedAddCommGr
     exact TauCeti.mvfderiv_eq_fderiv_apply _ y v
   rw [hchain, h1, fderiv_clm_apply hLd hc, fderiv_clm_apply hLd (differentiableAt_const (c y))]
   simp [L]
+
+end Pairing
 
 end SymplecticGeometry
 
