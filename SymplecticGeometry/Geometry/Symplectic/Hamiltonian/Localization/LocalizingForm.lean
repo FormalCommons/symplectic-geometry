@@ -51,7 +51,9 @@ the fixed points:
   relates to the generator of the rotations by the angles `2π kⱼ`, its value at `Φ z` is
   `ρ (Φ z) * (2π ∑ⱼ kⱼ² (xⱼ² + yⱼ²))`; it vanishes where `ρ` does
   (`SymplecticGeometry.cutoffWeightOneForm_apply_of_eq_zero`), so it is nonnegative on `X` where
-  `ρ` is (`SymplecticGeometry.cutoffWeightOneForm_apply_nonneg`).
+  `ρ` is (`SymplecticGeometry.cutoffWeightOneForm_apply_nonneg`); where `ρ` is nonzero and no
+  `kⱼ` is zero, it vanishes on `X` only at `z = 0`
+  (`SymplecticGeometry.cutoffWeightOneForm_apply_weightChart_eq_zero_iff`).
 
 The localizing one-form is `θ = ∑ᵢ ρᵢ (Φᵢ⁻¹)^* θ_{kᵢ} + (1 - ∑ᵢ ρᵢ) β`, for weight charts `Φᵢ`
 at the fixed points, invariant cut-offs `ρᵢ` with pairwise disjoint supports, and an invariant
@@ -190,6 +192,21 @@ theorem cutoffWeightOneForm_apply_nonneg {X : (x : M) → TangentSpace I x}
   exact mul_nonneg hρ₀ (by positivity)
 
 variable {Φ} in
+/-- When no weight `kⱼ` is zero, the cut-off model one-form vanishes, on a vector field `X` that
+the differential of `Φ` relates at `z` to the generator `weightGenerator ((2π) • k)`, at a point
+`Φ z` where the cut-off `ρ` is nonzero only if `z = 0`. -/
+theorem cutoffWeightOneForm_apply_weightChart_eq_zero_iff (hk : ∀ j, k j ≠ 0)
+    {X : (x : M) → TangentSpace I x} {z : StdSpace ι} (hz : z ∈ Φ.source)
+    (hX : mfderiv 𝓘(ℝ, StdSpace ι) I Φ z
+      (EuclideanSpace.sumEquivProd.symm
+        (weightGenerator ((2 * π) • k) (EuclideanSpace.sumEquivProd z))) = X (Φ z))
+    (hρz : ρ (Φ z) ≠ 0) :
+    (cutoffWeightOneForm Φ hρ hs k).val (Φ z) ![X (Φ z)] = 0 ↔ z = 0 := by
+  rw [cutoffWeightOneForm_apply_weightChart hρ hs k hz hX,
+    ← weightOneForm_apply_weightGenerator_two_pi_mul, mul_eq_zero, or_iff_right hρz,
+    weightOneForm_apply_weightGenerator_eq_zero_iff hk]
+
+variable {Φ} in
 /-- **The cut-off model one-form is invariant.** Let `g` act on `M` smoothly, preserving `ρ`,
 and in the chart, in the complex coordinates `z = complexToRealEuclidean ι u`, by
 `uⱼ ↦ χⱼ(g) uⱼ`, for maps `χⱼ : G → S¹`, as on the weight chart of
@@ -297,7 +314,7 @@ private theorem exists_smul_invariant_cutoffs_weightCharts {G : Type*} [Group G]
   · exact ((ball_subset_ball (by linarith [hc0 i])).trans (hc i)).trans inter_subset_left
   · exact h1 i (mem_image_of_mem _ (ball_subset_closedBall hz))
 
-variable [FiniteDimensional ℝ E] [I.Boundaryless] [IsManifold I ∞ M] [SigmaCompactSpace M]
+variable [FiniteDimensional ℝ E] [I.Boundaryless] [IsManifold I ∞ M]
   [MulAction Circle M] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
 
 /-- **Gluing model one-forms along weight charts.** Let the circle act smoothly on a σ-compact
@@ -314,7 +331,8 @@ diffeomorphisms from `StdSpace (Fin nᵢ)` to `M`, defined at `0`, with pairwise
 Then there is a smooth one-form `θ` on `M`, invariant under the action, with `θ(X) ≥ 0`, with
 equality exactly at the fixed points, and equal on the image under `Φᵢ` of a ball about `0` to
 the pullback `(Φᵢ⁻¹)^* θ_{kᵢ}` of the model one-form `weightOneForm kᵢ`. -/
-theorem exists_localizingForm_of_weightCharts {ι : Type*} [Finite ι] {n : ι → ℕ}
+theorem exists_localizingForm_of_weightCharts [SigmaCompactSpace M] {ι : Type*} [Finite ι]
+    {n : ι → ℕ}
     (χ : ∀ i, Fin (n i) → Circle → Circle)
     (Φ : ∀ i, PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin (n i))) I (StdSpace (Fin (n i))) M ∞)
     (k : ∀ i, Fin (n i) → ℝ)
@@ -403,18 +421,9 @@ theorem exists_localizingForm_of_weightCharts {ι : Type*} [Finite ι] {n : ι �
       rw [(Φ i).toPartialEquiv.image_source_eq_target]
       exact hsupp i (subset_tsupport _ hi)
     have hτi := (Finset.sum_eq_zero_iff_of_nonneg fun j _ ↦ hτ j _).1 hτ0 i (Finset.mem_univ _)
-    rw [cutoffWeightOneForm_apply_weightChart (hρ i) (hsupp i) (k i) hz (hX i z hz)] at hτi
-    have hq : ∑ j, k i j ^ 2 * (z.x j ^ 2 + z.y j ^ 2) = 0 := by
-      have := (mul_eq_zero.1 hτi).resolve_left hi
-      simpa [Real.pi_ne_zero] using this
-    have hterm := (Finset.sum_eq_zero_iff_of_nonneg fun j _ ↦ by positivity).1 hq
-    have hxy (j : Fin (n i)) : z.x j = 0 ∧ z.y j = 0 := by
-      have h := (mul_eq_zero.1 (hterm j (Finset.mem_univ _))).resolve_left
-        (pow_ne_zero _ (hk i j))
-      rw [add_eq_zero_iff_of_nonneg (sq_nonneg _) (sq_nonneg _)] at h
-      exact ⟨pow_eq_zero_iff two_ne_zero |>.1 h.1, pow_eq_zero_iff two_ne_zero |>.1 h.2⟩
-    obtain rfl : z = 0 := StdSpace.ext (funext fun j ↦ by simp [(hxy j).1])
-      (funext fun j ↦ by simp [(hxy j).2])
+    obtain rfl : z = 0 :=
+      (cutoffWeightOneForm_apply_weightChart_eq_zero_iff (hρ i) (hsupp i) (k i) (hk i) hz
+        (hX i z hz) hi).1 hτi
     refine hfix fun g ↦ ?_
     have hu : (fun j ↦ (χ i j g : ℂ) * (0 : Fin (n i) → ℂ) j) = 0 := by
       funext j
