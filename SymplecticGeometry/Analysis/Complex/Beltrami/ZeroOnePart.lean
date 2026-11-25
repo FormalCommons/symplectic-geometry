@@ -42,6 +42,14 @@ public section
 
 open ComplexConjugate
 
+namespace Complex
+
+/-- If `w ≠ -i`, then `conj w - i ≠ 0`. -/
+theorem conj_sub_I_ne_zero {w : ℂ} (hw : w ≠ -I) : conj w - I ≠ 0 := fun h ↦
+  hw (by simpa using congrArg conj (sub_eq_zero.1 h))
+
+end Complex
+
 namespace ContinuousLinearMap
 
 /-- For a real-linear complex structure `K` on `ℂ`, with `p` and `q` the values at `1` of its
@@ -108,8 +116,7 @@ theorem one_add_I_mul_conj_complexLinearPart_one_mul_div_eq {K : ℂ →L[ℝ] �
     (hK : ∀ v, K (K v) = -v) (hK1 : K 1 ≠ -Complex.I) :
     (1 + Complex.I * conj (K.complexLinearPart 1)) * ((K 1 - Complex.I) / (conj (K 1) - Complex.I))
       = Complex.I * K.complexAntilinearPart 1 := by
-  have hden : conj (K 1) - Complex.I ≠ 0 := fun h ↦ hK1 (by
-    simpa using congrArg conj (sub_eq_zero.1 h))
+  have hden := Complex.conj_sub_I_ne_zero hK1
   have hc := conj_complexLinearPart_one_eq_neg hK
   have hp2 := complexLinearPart_one_sq hK
   rw [← K.complexLinearPart_add_complexAntilinearPart_apply 1] at hden ⊢
@@ -140,11 +147,10 @@ theorem complexAntilinearPart_half_smul_add_I_smul_comp_apply_one (L K : ℂ →
   generalize K.complexLinearPart 1 = p at hK ⊢
   generalize K.complexAntilinearPart 1 = q at hK ⊢
   simp only [complexAntilinearPart_apply, smul_apply, add_apply, comp_apply, smul_eq_mul, hL, hK,
-    map_add, map_mul, Complex.conj_I, map_one, Complex.real_smul]
+    map_add, map_mul, map_neg, Complex.conj_I, neg_neg, map_one, Complex.real_smul]
   push_cast
-  ring_nf
-  simp only [Complex.I_sq, Complex.I_pow_three, map_neg, Complex.conj_I, neg_neg]
-  ring
+  linear_combination (a - b + Complex.I * (p * a - q * a - conj p * b + conj q * b)) / 4 *
+    Complex.I_sq
 
 /-- **The `(0,1)`-projection for a complex structure, in Wirtinger form.** Let `K` be a real-linear
 complex structure on `ℂ` with `K 1 ≠ -i`, and `p` the value at `1` of its complex-linear part.
