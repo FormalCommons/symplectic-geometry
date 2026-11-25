@@ -196,15 +196,10 @@ stabilizer of `σ`. -/
 theorem RestrictsTo.hasStructureGroup (hA : A.IsContMDiff ∞ IB IF IM) (hτ : A.RestrictsTo σ τ) :
     A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ) := by
   refine hasStructureGroup_iff.2 fun b b' x hb hb' ↦ ?_
-  refine ⟨(A.trivAt b).coordChangeDiffeomorph (A.trivAt b') (hA.contMDiffOn_trivAt b)
-    (hA.contMDiffOn_trivAt_symm b) (hA.contMDiffOn_trivAt b') (hA.contMDiffOn_trivAt_symm b')
-    hb hb', ?_, Trivialization.coe_coordChangeDiffeomorph ..⟩
-  refine SmoothForm.mem_diffeomorphStabilizer_iff_forall.2 fun v ↦ ?_
-  rw [Trivialization.coe_coordChangeDiffeomorph, ← hτ b' x hb',
-    ← (A.trivAt b).mpullback_fiberInclusion_eq_mpullback_coordChange
-      (hA.mdifferentiable_trivAt (by simp) b') hb hb'
-      ((A.trivAt b).contMDiff_coordChange (A.trivAt b') (hA.contMDiffOn_trivAt_symm b)
-        (hA.contMDiffOn_trivAt b') hb hb' |>.mdifferentiable (by simp)),
+  obtain ⟨φ, -, hφe⟩ := hasStructureGroup_iff.1 hA.hasStructureGroup_top b b' x hb hb'
+  refine ⟨φ, SmoothForm.mem_diffeomorphStabilizer_iff_forall.2 fun v ↦ ?_, hφe⟩
+  rw [hφe, ← hτ b' x hb', ← (A.trivAt b).mpullback_fiberInclusion_eq_mpullback_coordChange
+      (hA.mdifferentiable_trivAt (by simp) b') hb hb' (hφe ▸ φ.mdifferentiable (by simp)),
     hτ b x hb, hτ b' x hb']
 
 /-! ### The affine structure -/
