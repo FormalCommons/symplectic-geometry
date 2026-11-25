@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.IntervalContraction
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import TauCeti.Topology.Algebra.Module.Alternating.Basic
 
 /-!
@@ -112,11 +113,10 @@ vector field on `P` with the zero field on the interval. -/
 theorem prodVectorField_eq_couplingField (x : ManifoldTotalSpace Circle P × Icc a b) :
     Manifold.prodVectorField
         (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator) 0 x =
-      couplingField IB P a b x :=
-  Prod.ext (by rw [Manifold.prodVectorField_fst, couplingField_fst]) (by
-    rw [Manifold.prodVectorField_snd, couplingField_snd, Pi.zero_apply]
-    -- the zero of the tangent space of the interval is the zero of its model space
-    rfl)
+      couplingField IB P a b x := by
+  rw [Manifold.prodVectorField_apply, couplingField_def, Pi.zero_apply]
+  -- the zero of the tangent space of the interval is the zero of its model space
+  rfl
 
 omit [IsManifold IB ∞ B] [PrincipalBundle Circle P] [ContMDiffFiberBundle ∞ Circle P IB (𝓡 1)] in
 /-- The contraction of `P × [a, b]` onto its bottom level does not move the point of `P`, so its
@@ -293,11 +293,7 @@ theorem prodIccHomotopyOperator_apply_couplingField_eq_sub (h : IsCouplingForm �
   rw [mfderiv_prodIccContraction_couplingField, ContinuousAlternatingMap.apply_vecCons_swap,
     h.apply_couplingField_eq_neg_mfderiv_snd, h₁]
   -- the values of the forms and of `mfderiv Subtype.val` are real numbers
-  change -(-(show ℝ from mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc a b → ℝ) _
-    (((u : ℝ) * 0 + ((x.2 : ℝ) - a) * 1) • 1))) = _
-  rw [map_smul, mfderiv_subtypeVal_Icc_one]
-  change -(-(((u : ℝ) * 0 + ((x.2 : ℝ) - a) * 1) * 1)) = _
-  ring
+  exact (congrArg (fun c : ℝ ↦ -(-c)) (mfderiv_subtypeVal_Icc_smul_one _ _)).trans (by ring)
 
 /-- **The Moser field is tangent to the levels of `t`.** Let `η` be a coupling form and `σ` a
 one-form that vanishes on the fundamental field `(X, 0)` at a point `x`. A tangent vector `Y` at
@@ -313,6 +309,47 @@ theorem mfderiv_snd_eq_zero_of_apply_eq_neg (h : IsCouplingForm η τ)
   have hX := h.apply_couplingField x Y
   rw [ContinuousAlternatingMap.apply_vecCons_swap, hY, hσ, neg_zero, neg_zero] at hX
   exact neg_eq_zero.mp hX.symm
+
+/-- **The pull-back to the bottom level vanishes on `(X, 0)`.** For a coupling form `η`, the
+pull-back of `η` along the projection `(x, t) ↦ (x, a)` of `P × ℝ` onto the bottom level vanishes
+on the field `(X, 0)`: the projection sends `(X, 0)` to `(X, 0)`, and every tangent vector to one
+with no component along the interval. -/
+theorem mpullback_bot_apply_prodVectorField (h : IsCouplingForm η τ)
+    (p : ManifoldTotalSpace Circle P × ℝ) (w : TangentSpace ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) p) :
+    (SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P × ℝ ↦ (x.1, (⊥ : Icc a b)))
+      (contMDiff_fst.prodMk contMDiff_const) η).val p
+      ![Manifold.prodVectorField
+        (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator) 0 p, w] = 0 := by
+  -- the projection keeps the component along `P` and kills the one along `ℝ`
+  have hpr : ∀ v : TangentSpace ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) p,
+      mfderiv ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
+        (fun x : ManifoldTotalSpace Circle P × ℝ ↦ (x.1, (⊥ : Icc a b))) p v =
+      ((v.1, 0) : TangentSpace ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (p.1, (⊥ : Icc a b))) := by
+    intro v
+    rw [mfderiv_prodMk mdifferentiableAt_fst mdifferentiableAt_const, mfderiv_const]
+    exact Prod.ext (mfderiv_fst_apply p v) rfl
+  have hX0 : mfderiv ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
+      (fun x : ManifoldTotalSpace Circle P × ℝ ↦ (x.1, (⊥ : Icc a b))) p
+      (Manifold.prodVectorField
+        (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator) 0 p) =
+      couplingField IB P a b (p.1, ⊥) := by
+    rw [hpr, couplingField_def, Manifold.prodVectorField_fst]
+    -- `(p.1, ⊥).1` is `p.1`, and the zeros of the tangent spaces of the interval agree
+    rfl
+  have hv : (fun i ↦ mfderiv ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
+      (fun x : ManifoldTotalSpace Circle P × ℝ ↦ (x.1, (⊥ : Icc a b))) p
+      (![Manifold.prodVectorField
+        (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator) 0 p, w] i)) =
+      ![couplingField IB P a b (p.1, ⊥),
+        ((w.1, 0) : TangentSpace ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (p.1, (⊥ : Icc a b)))] := by
+    funext i
+    fin_cases i
+    · exact hX0
+    · exact hpr w
+  rw [SmoothForm.mpullback_apply, hv]
+  refine (h.apply_couplingField_eq_neg_mfderiv_snd _ _).trans ?_
+  -- the second component of `(w.1, 0)` is the zero vector
+  exact neg_eq_zero.mpr (map_zero _)
 
 /-! ### The extended Moser data on `P × ℝ` -/
 
@@ -380,20 +417,18 @@ theorem prodIccExtension_apply_prodVectorField (h : IsCouplingForm ω₀ τ)
     · congr 1
       funext i
       fin_cases i
-      exact Prod.ext (Manifold.prodVectorField_fst _ _ q).symm
-        (Manifold.prodVectorField_snd
-          (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator)
-          (0 : Π t : ℝ, TangentSpace 𝓘(ℝ, ℝ) t) q).symm
+      exact (Manifold.prodVectorField_apply
+      (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator)
+      (0 : Π t : ℝ, TangentSpace 𝓘(ℝ, ℝ) t) q).symm
     · rw [prodIccHeight_apply, Subsingleton.elim w' ![], prodVectorField_eq_couplingField]
       exact prodIccHomotopyOperator_apply_couplingField_eq_sub h q'
   have hY : Manifold.prodVectorField
       (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator) 0 p =
       ((rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator p.1, (0 : ℝ)) :
         TangentSpace ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) p) :=
-    Prod.ext (Manifold.prodVectorField_fst _ _ p)
-      (Manifold.prodVectorField_snd
-        (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator)
-        (0 : Π t : ℝ, TangentSpace 𝓘(ℝ, ℝ) t) p)
+    Manifold.prodVectorField_apply
+      (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator)
+      (0 : Π t : ℝ, TangentSpace 𝓘(ℝ, ℝ) t) p
   -- `d A` contracted with `(X, 0)` is `-de`, by Cartan's formula for the invariant `A`
   have h₂ : (mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 A).val p
       ![Manifold.prodVectorField
@@ -403,45 +438,8 @@ theorem prodIccExtension_apply_prodVectorField (h : IsCouplingForm ω₀ τ)
     rw [mextDerivₗ_apply, hY,
       PrincipalBundle.mextDeriv_apply_rightFundamentalVectorField_prod hA, hAX,
       mextDerivₗ_zero_apply]
-  -- the projection `(x, t) ↦ (x, a)` sends `(X, 0)` to `(X, 0)`, and `w` to a vector with no
-  -- component along the interval
-  have hpr : ∀ v : TangentSpace ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) p,
-      mfderiv ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
-        (fun x : ManifoldTotalSpace Circle P × ℝ ↦ (x.1, (⊥ : Icc a b))) p v =
-      ((v.1, 0) : TangentSpace ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (p.1, (⊥ : Icc a b))) := by
-    intro v
-    rw [mfderiv_prodMk mdifferentiableAt_fst mdifferentiableAt_const, mfderiv_const]
-    exact Prod.ext (mfderiv_fst_apply p v) rfl
-  have h₁ : (SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P × ℝ ↦ (x.1, (⊥ : Icc a b)))
-      (contMDiff_fst.prodMk contMDiff_const) ω₀).val p
-      ![Manifold.prodVectorField
-        (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator) 0 p, w] = 0 := by
-    rw [SmoothForm.mpullback_apply]
-    have hX0 : mfderiv ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
-        (fun x : ManifoldTotalSpace Circle P × ℝ ↦ (x.1, (⊥ : Icc a b))) p
-        (Manifold.prodVectorField
-          (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator) 0 p) =
-        couplingField IB P a b (p.1, ⊥) := by
-      rw [hpr, couplingField_def, Manifold.prodVectorField_fst]
-      -- `(p.1, ⊥).1` is `p.1`, and the zeros of the tangent spaces of the interval agree
-      rfl
-    have hv : (fun i ↦ mfderiv ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) ((IB.prod (𝓡 1)).prod (𝓡∂ 1))
-        (fun x : ManifoldTotalSpace Circle P × ℝ ↦ (x.1, (⊥ : Icc a b))) p
-        (![Manifold.prodVectorField
-          (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator) 0 p, w] i)) =
-        ![couplingField IB P a b (p.1, ⊥),
-          ((w.1, 0) : TangentSpace ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (p.1, (⊥ : Icc a b)))] := by
-      funext i
-      fin_cases i
-      · exact hX0
-      · exact hpr w
-    rw [hv]
-    refine (h.apply_couplingField_eq_neg_mfderiv_snd _ _).trans ?_
-    -- the second component of `(w.1, 0)` is the zero vector
-    exact neg_eq_zero.mpr (map_zero _)
   rw [prodIccExtension_apply, Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
-    h₁, h₂, zero_add]
-
+    mpullback_bot_apply_prodVectorField h, h₂, zero_add]
 
 end Extension
 

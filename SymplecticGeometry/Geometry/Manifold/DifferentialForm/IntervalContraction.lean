@@ -48,7 +48,7 @@ The height `t - a` above the bottom level is a smooth function
 (`SymplecticGeometry.prodIccHeight`) with differential `dt`
 (`SymplecticGeometry.mextDerivₗ_prodIccHeight_apply`). The differential of the time extension
 of a function restricts to its differential on `M × [a, b]`
-(`SymplecticGeometry.mpullback_prodMap_subtypeVal_mextDerivₗ_timeExtendIcc`), so the
+(`TauCeti.SmoothForm.mpullback_prodMap_subtypeVal_mextDerivₗ_timeExtendIcc₀`), so the
 differential of the time extension of the height is `dt` at the points of `M × [a, b]`
 (`SymplecticGeometry.mextDerivₗ_timeExtendIcc_prodIccHeight_apply`).
 
@@ -324,18 +324,11 @@ component along the interval under the derivative of the inclusion `Icc a b → 
 theorem mextDerivₗ_prodIccHeight_apply (x : M × Icc a b) (v : TangentSpace (I.prod (𝓡∂ 1)) x) :
     (mextDerivₗ (I.prod (𝓡∂ 1)) 0 (prodIccHeight I M a b)).val x ![v] =
       mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc a b → ℝ) x.2 v.2 := by
-  rw [mextDerivₗ_zero_apply, mvfderiv_apply_eq_mfderiv_apply]
-  have hT := (mdifferentiableAt_subtypeVal_Icc x.2).hasMFDerivAt.comp x
-    (hasMFDerivAt_snd (I := I) (I' := 𝓡∂ 1) x)
-  have hA := hasMFDerivAt_const (I := I.prod (𝓡∂ 1)) (I' := 𝓘(ℝ)) a x
-  have hf : (fun y ↦ (prodIccHeight I M a b).val y 0) =
-      (Subtype.val ∘ Prod.snd) - fun _ : M × Icc a b ↦ a :=
-    funext fun y ↦ prodIccHeight_apply y 0
-  rw [hf, (hT.sub hA).mfderiv]
-  -- The difference of linear maps, applied to `v`, is the difference of the values. `rw` does
-  -- not apply `sub_apply` here: the maps have the tangent spaces of `ℝ` as codomains.
-  change (show ℝ from mfderiv (𝓡∂ 1) 𝓘(ℝ) Subtype.val x.2 v.2) - 0 = _
-  exact sub_zero _
+  rw [mextDerivₗ_apply, RoughForm.eq_ofFunction (prodIccHeight I M a b).val,
+    mextDeriv_ofFunction_eq_of_eventuallyEq_add_const (c := -a) (g := fun y ↦ (y.2 : ℝ))
+      (Filter.Eventually.of_forall fun y ↦ (prodIccHeight_apply y 0).trans (sub_eq_add_neg _ _)),
+    mextDeriv_ofFunction_apply]
+  exact DFunLike.congr_fun (mfderiv_comp_snd (I := I) (I'' := 𝓘(ℝ)) Subtype.val x) v
 
 end Height
 
@@ -410,8 +403,9 @@ theorem mpullback_prodMap_subtypeVal_prodIccExtension [CompleteSpace F]
     {η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F 2} (hη : η.IsClosed) :
     SmoothForm.mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal_Icc)
         (prodIccExtension I M a b F 1 η) = η := by
-  rw [prodIccExtension_apply, map_add, ← SmoothForm.mextDerivₗ_mpullback,
-    mpullback_prodMap_subtypeVal_timeExtendIcc_prodIccHomotopyOperator,
+  rw [prodIccExtension_apply, map_add,
+    SmoothForm.mpullback_prodMap_subtypeVal_mextDerivₗ_timeExtendIcc _
+      (prodIccHomotopyOperator_apply_eq_zero η),
     mextDerivₗ_prodIccHomotopyOperator ((SmoothForm.isClosed_iff_mextDerivₗ_eq_zero _).mp hη),
     SmoothForm.mpullback_mpullback,
     SmoothForm.mpullback_congr
@@ -419,15 +413,6 @@ theorem mpullback_prodMap_subtypeVal_prodIccExtension [CompleteSpace F]
       (g := fun x : M × Icc a b ↦ (x.1, ⊥)) _ (contMDiff_fst.prodMk contMDiff_const)
       (funext fun _ ↦ rfl),
     add_sub_cancel]
-
-/-- **Restriction of the differential of a time extension.** For a smooth function `η` on
-`M × [a, b]`, the differential of its time extension restricts to `dη` on `M × [a, b]`. -/
-theorem mpullback_prodMap_subtypeVal_mextDerivₗ_timeExtendIcc
-    (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F 0) :
-    SmoothForm.mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal_Icc)
-        (mextDerivₗ (I.prod 𝓘(ℝ, ℝ)) 0 (SmoothForm.timeExtendIcc η)) =
-      mextDerivₗ (I.prod (𝓡∂ 1)) 0 η := by
-  rw [← SmoothForm.mextDerivₗ_mpullback, SmoothForm.mpullback_prodMap_subtypeVal_timeExtendIcc₀]
 
 /-- **The extended height has differential `dt` over `[a, b]`.** At a point `(x, t)` of `M × ℝ`
 with `t ∈ [a, b]`, the differential of the time extension of the height `t - a`
@@ -437,17 +422,12 @@ theorem mextDerivₗ_timeExtendIcc_prodIccHeight_apply (x : M) (t : Icc a b)
     (mextDerivₗ (I.prod 𝓘(ℝ, ℝ)) 0 (SmoothForm.timeExtendIcc (prodIccHeight I M a b))).val
       (x, (t : ℝ)) ![v] = v.2 := by
   obtain ⟨u, s⟩ := v
-  -- the vector `(u, s)` is the image of `(u, s • 1)` under the derivative of `id × Subtype.val`
-  have hv : mfderiv (I.prod (𝓡∂ 1)) (I.prod 𝓘(ℝ, ℝ)) (Prod.map id Subtype.val) (x, t)
-      ((u, s • (1 : TangentSpace (𝓡∂ 1) t)) : TangentSpace (I.prod (𝓡∂ 1)) (x, t)) =
+  set w : TangentSpace (I.prod (𝓡∂ 1)) (x, t) := (u, s • (1 : TangentSpace (𝓡∂ 1) t))
+  -- the vector `(u, s)` is the image of `w = (u, s • 1)` under the derivative of `id × Subtype.val`
+  have hv : mfderiv (I.prod (𝓡∂ 1)) (I.prod 𝓘(ℝ, ℝ)) (Prod.map id Subtype.val) (x, t) w =
       ((u, s) : TangentSpace (I.prod 𝓘(ℝ, ℝ)) (x, (t : ℝ))) := by
     rw [mfderiv_prodMap mdifferentiableAt_id (mdifferentiableAt_subtypeVal_Icc t), mfderiv_id]
-    refine Prod.ext rfl ?_
-    -- the second component of the product map applied to the pair, by definition
-    change mfderiv (𝓡∂ 1) 𝓘(ℝ) Subtype.val t (s • 1) = s
-    rw [map_smul, mfderiv_subtypeVal_Icc_one]
-    exact mul_one (M := ℝ) _
-  set w : TangentSpace (I.prod (𝓡∂ 1)) (x, t) := (u, s • (1 : TangentSpace (𝓡∂ 1) t))
+    exact Prod.ext rfl (mfderiv_subtypeVal_Icc_smul_one t s)
   calc (mextDerivₗ (I.prod 𝓘(ℝ, ℝ)) 0 (SmoothForm.timeExtendIcc (prodIccHeight I M a b))).val
         (x, (t : ℝ)) ![(u, s)]
       = (SmoothForm.mpullback (Prod.map id Subtype.val)
@@ -457,14 +437,10 @@ theorem mextDerivₗ_timeExtendIcc_prodIccHeight_apply (x : M) (t : Icc a b)
         rw [SmoothForm.mpullback_apply_one, hv]
         -- `Prod.map id Subtype.val (x, t)` is `(x, (t : ℝ))`, by definition
         rfl
-    _ = (show ℝ from mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc a b → ℝ) t (s • 1)) := by
-        rw [mpullback_prodMap_subtypeVal_mextDerivₗ_timeExtendIcc, mextDerivₗ_prodIccHeight_apply]
     _ = s := by
-        rw [map_smul, mfderiv_subtypeVal_Icc_one]
-        exact mul_one (M := ℝ) _
+        rw [SmoothForm.mpullback_prodMap_subtypeVal_mextDerivₗ_timeExtendIcc₀,
+          mextDerivₗ_prodIccHeight_apply, mfderiv_subtypeVal_Icc_smul_one]
 
 end Extension
 
 end SymplecticGeometry
-
-end
