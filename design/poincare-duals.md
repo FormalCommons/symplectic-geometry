@@ -169,9 +169,10 @@ the only `dualClass` is a private helper of local orientations.
   space from a basis closed under nonempty intersections, binary unions
   (given the two sets and their intersection) and countable disjoint
   unions. Here the property of `U` is that the Thom map over `U` is
-  bijective in every degree and the Thom pair over `U` has no homology
-  below the rank; the basis is the open sets inside the base set of a
-  linear trivialization, where Tau Ceti's local result
+  bijective in every degree, and an earlier induction over the same basis
+  shows that the Thom pair over `U` has no homology below the rank; the
+  basis is the open sets inside the base set of a linear trivialization,
+  where Tau Ceti's local result
   `TauCeti.IsThomClass.bijective_pullbackCupRestrict_of_subset_baseSet`
   applies; the binary step is `TopCat.bijective_pullbackCupRestrict_union`;
   the disjoint step is additivity of cohomology and homology. This

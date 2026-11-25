@@ -23,22 +23,26 @@ in a commutative ring `K`. This file proves that for every `K`-module `M` the Th
 (`TauCeti.thomEquivOfCompactSpace`), and over any base when `K` is a field.
 
 The proof is the Mayer–Vietoris argument of Milnor and Stasheff, Theorem 10.4, arranged by Tau
-Ceti's `TauCeti.mayerVietoris_induction`, which needs no finite trivializing cover. The property
-of an open set `U` of `B` that the induction carries is that the map `a ↦ π^*a ⌣ u` over `U`
-(`TopCat.pullbackCupRestrict`) is bijective in every degree and that the relative homology of the
-Thom pair `(E|_U, E₀|_U)` vanishes below the rank:
+Ceti's `TauCeti.mayerVietoris_induction`, which needs no finite trivializing cover. It is run
+twice over the open sets inside the base set of a linear trivialization. The first run shows that
+the relative homology of the Thom pair `(E|_U, E₀|_U)` vanishes below the rank over every open
+set `U` of `B`, with coefficients in any abelian category with exact coproducts:
 
-* on the open sets inside the base set of a linear trivialization, by Tau Ceti's
-  `TauCeti.IsThomClass.bijective_pullbackCupRestrict_of_subset_baseSet` and
-  `Bundle.Trivialization.isZero_singularHomology_thomPairOver`;
-* on the empty set, by `TopCat.bijective_pullbackCupRestrict_empty` and
-  `TauCeti.isZero_singularHomology_thomPairOver_empty`;
-* on a union of two open sets, by `TopCat.bijective_pullbackCupRestrict_union`, which needs the
-  vanishing of the relative cohomology below the rank over the intersection (it follows from that
-  of the homology), and `TauCeti.isZero_singularHomology_thomPairOver_union`;
-* on a union of pairwise disjoint open sets, by
-  `TopCat.bijective_pullbackCupRestrict_iUnion_of_pairwiseDisjoint` and
-  `TopCat.isZero_singularHomology_ofInclusion_iUnion_of_pairwiseDisjoint`.
+* on the basic open sets by Tau Ceti's `Bundle.Trivialization.isZero_singularHomology_thomPairOver`,
+  on the empty set by `TauCeti.isZero_singularHomology_thomPairOver_empty`, on a union of two
+  open sets by `TauCeti.isZero_singularHomology_thomPairOver_union`, and on a union of pairwise
+  disjoint open sets by `TopCat.isZero_singularHomology_ofInclusion_iUnion_of_pairwiseDisjoint`.
+
+The second run shows that the map `a ↦ π^*a ⌣ u` over `U` (`TopCat.pullbackCupRestrict`) is
+bijective in every degree:
+
+* on the basic open sets by Tau Ceti's
+  `TauCeti.IsThomClass.bijective_pullbackCupRestrict_of_subset_baseSet`, on the empty set by
+  `TopCat.bijective_pullbackCupRestrict_empty`, on a union of two open sets by
+  `TopCat.bijective_pullbackCupRestrict_union`, which needs the vanishing of the relative
+  cohomology below the rank over the intersection (it follows from that of the homology), and on
+  a union of pairwise disjoint open sets by
+  `TopCat.bijective_pullbackCupRestrict_iUnion_of_pairwiseDisjoint`.
 
 The step for two open sets is that of Tau Ceti's
 `TauCeti.bijective_pullbackCupRestrict_thomPair_biUnion`,
@@ -68,7 +72,7 @@ noncomputable section
 
 open Bundle CategoryTheory Function Limits Module Set TopologicalSpace
 
-universe w
+universe w v u
 
 namespace TauCeti
 
@@ -79,55 +83,53 @@ variable {B : Type w} [TopologicalSpace B] {F : Type w} [NormedAddCommGroup F] [
 
 variable [VectorBundle ℝ F E]
 
-/-- The property that the Mayer–Vietoris induction carries holds on every open set `U` of the
-base: the map `a ↦ π^*a ⌣ u` over `U` is bijective in every degree, and the relative homology of
-the Thom pair over `U` vanishes below the rank. -/
-private theorem bijective_pullbackCupRestrict_and_isZero_of_secondCountableTopology
-    [T2Space B] [LocallyCompactSpace B] [SecondCountableTopology B]
-    {u : (thomPair F E).singularCohomology (ModuleCat.of K K) K (ModuleCat.of K K) (finrank ℝ F)}
-    (hu : IsThomClass F E u) (U : Opens B) :
-    (∀ q, Function.Bijective (TopCat.pullbackCupRestrict (thomPairProj F E)
-      (zeroSectionCompl F E) M U (finrank ℝ F) q (q + finrank ℝ F) rfl u)) ∧
-    ∀ j < finrank ℝ F, IsZero ((thomPairOver F E U).singularHomology (ModuleCat.of K K) j) := by
-  have := (isThomClass_iff.1 hu).1
-  revert U
-  refine mayerVietoris_induction _
-    {U | ∃ (e : Trivialization F (π F E)) (_ : e.IsLinear ℝ), (U : Set B) ⊆ e.baseSet}
-    (Opens.isBasis_iff_nbhd.2 fun {U x} hx ↦ ?_) ?_ ?_ ?_ ?_ ?_
-  · -- The basis: the open sets inside the base set of a linear trivialization.
-    refine ⟨U ⊓ ⟨_, (trivializationAt F E x).open_baseSet⟩,
+/-- The open sets of the base that lie in the base set of a linear trivialization: the basis of
+the Mayer–Vietoris inductions of this file. -/
+private def trivializingOpens : Set (Opens B) :=
+  {U | ∃ (e : Trivialization F (π F E)) (_ : e.IsLinear ℝ), (U : Set B) ⊆ e.baseSet}
+
+private theorem isBasis_trivializingOpens : Opens.IsBasis (trivializingOpens (F := F) (E := E)) :=
+  Opens.isBasis_iff_nbhd.2 fun {U x} hx ↦
+    ⟨U ⊓ ⟨_, (trivializationAt F E x).open_baseSet⟩,
       ⟨trivializationAt F E x, inferInstance, inter_subset_right⟩,
       ⟨hx, mem_baseSet_trivializationAt F E x⟩, inf_le_left⟩
-  · rintro U ⟨e, he, hU⟩ V - -
-    exact ⟨e, he, inter_subset_left.trans hU⟩
+
+omit [∀ b, TopologicalSpace (E b)] [FiberBundle F E] [VectorBundle ℝ F E] in
+private theorem inf_mem_trivializingOpens {U V : Opens B}
+    (hU : U ∈ trivializingOpens (F := F) (E := E)) (_ : V ∈ trivializingOpens (F := F) (E := E))
+    (_ : ((U ⊓ V : Opens B) : Set B).Nonempty) : U ⊓ V ∈ trivializingOpens (F := F) (E := E) :=
+  let ⟨e, he, hU⟩ := hU
+  ⟨e, he, inter_subset_left.trans hU⟩
+
+/-- **The relative homology of the Thom pair over an open set below the rank.** For a real vector
+bundle `E → B` of finite rank `r` over a Hausdorff, locally compact, second-countable space `B`,
+every open set `U` of `B` and every coefficient object `R` of an abelian category with exact
+coproducts, the relative homology `Hⱼ(E|_U, E₀|_U; R)` vanishes for `j < r`. -/
+theorem isZero_singularHomology_thomPairOver_of_secondCountableTopology
+    [T2Space B] [LocallyCompactSpace B] [SecondCountableTopology B] [FiniteDimensional ℝ F]
+    {C : Type u} [Category.{v} C] [HasCoproducts.{w} C] [Abelian C] [AB4OfSize.{w} C] (R : C)
+    (U : Opens B) {j : ℕ} (hj : j < finrank ℝ F) :
+    IsZero ((thomPairOver F E U).singularHomology R j) := by
+  revert U j
+  refine mayerVietoris_induction _ _ (isBasis_trivializingOpens (F := F) (E := E))
+    (fun _ hU _ hV ↦ inf_mem_trivializingOpens hU hV) ?_ ?_ ?_ ?_
   · -- The empty set.
-    exact ⟨fun q ↦ TopCat.bijective_pullbackCupRestrict_empty _ _ M rfl u,
-      fun j _ ↦ isZero_singularHomology_thomPairOver_empty _ j⟩
+    exact fun _ ↦ isZero_singularHomology_thomPairOver_empty _ _
   · -- The basic open sets.
-    rintro U ⟨e, he, hU⟩ -
-    exact ⟨fun q ↦ hu.bijective_pullbackCupRestrict_of_subset_baseSet M e hU rfl,
-      fun j hj ↦ e.isZero_singularHomology_thomPairOver hU _ hj⟩
+    rintro U ⟨e, he, hU⟩ - j hj
+    exact e.isZero_singularHomology_thomPairOver hU _ hj
   · -- Unions of two open sets.
-    rintro U V ⟨hU, hU₀⟩ ⟨hV, hV₀⟩ ⟨hUV, hUV₀⟩
-    refine ⟨fun q ↦ TopCat.bijective_pullbackCupRestrict_union (thomPairProj F E)
-      (zeroSectionCompl F E) M U.isOpen V.isOpen u (fun q _ ↦ hU q) (fun q _ ↦ hV q)
-      (fun q _ ↦ hUV q) (fun j hj ↦ ?_) rfl, fun j hj ↦ ?_⟩
-    · exact TopPair.isZero_singularCohomology_of_isZero_singularHomology _ (ModuleCat.of K K) M j
-        fun i hi ↦ by rw [thomPairProj_def]; exact hUV₀ i (by omega)
-    · exact isZero_singularHomology_thomPairOver_union _ U.isOpen V.isOpen (hU₀ j hj) (hV₀ j hj)
-        fun i hi ↦ hUV₀ i (by omega)
+    intro U V hU hV hUV j hj
+    exact isZero_singularHomology_thomPairOver_union _ U.isOpen V.isOpen (hU hj) (hV hj)
+      fun i hi ↦ hUV (by omega)
   · -- Countable unions of pairwise disjoint open sets.
-    intro s hd hs
-    have hd' : Pairwise (Disjoint on fun n ↦ (s n : Set B)) := fun i j hij ↦
-      Opens.coe_disjoint.2 (hd i j hij)
+    intro s hd hs j hj
+    have h := TopCat.isZero_singularHomology_ofInclusion_iUnion_of_pairwiseDisjoint
+      (thomPairProj F E) (zeroSectionCompl F E) R (fun n ↦ (s n).isOpen)
+      (fun i j hij ↦ Opens.coe_disjoint.2 (hd i j hij))
+      fun n ↦ by rw [thomPairProj_def]; exact hs n hj
     rw [Opens.coe_iSup]
-    exact ⟨fun q ↦ TopCat.bijective_pullbackCupRestrict_iUnion_of_pairwiseDisjoint _ _ M
-        (fun n ↦ (s n).isOpen) hd' rfl u fun n ↦ (hs n).1 q,
-      fun j hj ↦ by
-        have h := TopCat.isZero_singularHomology_ofInclusion_iUnion_of_pairwiseDisjoint
-          (thomPairProj F E) (zeroSectionCompl F E) (ModuleCat.of K K) (fun n ↦ (s n).isOpen) hd'
-          fun n ↦ by rw [thomPairProj_def]; exact (hs n).2 j hj
-        rwa [thomPairProj_def] at h⟩
+    rwa [thomPairProj_def] at h
 
 /-- **The Thom map over an open set of a second-countable base.** For a Thom class `u` of a
 real vector bundle `E → B` of finite rank `r` over a Hausdorff, locally compact, second-countable
@@ -138,21 +140,33 @@ theorem bijective_pullbackCupRestrict_thomPair_of_secondCountableTopology
     {u : (thomPair F E).singularCohomology (ModuleCat.of K K) K (ModuleCat.of K K) (finrank ℝ F)}
     (hu : IsThomClass F E u) (U : Opens B) (p : ℕ) :
     Function.Bijective (TopCat.pullbackCupRestrict (thomPairProj F E)
-      (zeroSectionCompl F E) M U (finrank ℝ F) p (p + finrank ℝ F) rfl u) :=
-  (bijective_pullbackCupRestrict_and_isZero_of_secondCountableTopology M hu U).1 p
-
-omit M in
-/-- **The relative homology of the Thom pair over an open set below the rank.** If a real vector
-bundle `E → B` of finite rank `r` over a Hausdorff, locally compact, second-countable space `B`
-has a Thom class `u`, then for every open set `U` of `B` the relative homology
-`Hⱼ(E|_U, E₀|_U; K)` vanishes for `j < r`. -/
-theorem isZero_singularHomology_thomPairOver_of_secondCountableTopology
-    [T2Space B] [LocallyCompactSpace B] [SecondCountableTopology B]
-    {u : (thomPair F E).singularCohomology (ModuleCat.of K K) K (ModuleCat.of K K) (finrank ℝ F)}
-    (hu : IsThomClass F E u) (U : Opens B) {j : ℕ} (hj : j < finrank ℝ F) :
-    IsZero ((thomPairOver F E U).singularHomology (ModuleCat.of K K) j) :=
-  (bijective_pullbackCupRestrict_and_isZero_of_secondCountableTopology
-    (ModuleCat.of K K) hu U).2 j hj
+      (zeroSectionCompl F E) M U (finrank ℝ F) p (p + finrank ℝ F) rfl u) := by
+  have := (isThomClass_iff.1 hu).1
+  revert U p
+  refine mayerVietoris_induction _ _ (isBasis_trivializingOpens (F := F) (E := E))
+    (fun _ hU _ hV ↦ inf_mem_trivializingOpens hU hV) ?_ ?_ ?_ ?_
+  · -- The empty set.
+    exact fun p ↦ TopCat.bijective_pullbackCupRestrict_empty _ _ M rfl u
+  · -- The basic open sets.
+    rintro U ⟨e, he, hU⟩ - p
+    exact hu.bijective_pullbackCupRestrict_of_subset_baseSet M e hU rfl
+  · -- Unions of two open sets: the relative cohomology over `U ∩ V` vanishes below the rank, since
+    -- its homology does.
+    intro U V hU hV hUV p
+    refine TopCat.bijective_pullbackCupRestrict_union (thomPairProj F E)
+      (zeroSectionCompl F E) M U.isOpen V.isOpen u (fun q _ ↦ hU q) (fun q _ ↦ hV q)
+      (fun q _ ↦ hUV q) (fun j hj ↦ ?_) rfl
+    exact TopPair.isZero_singularCohomology_of_isZero_singularHomology _ (ModuleCat.of K K) M j
+      fun i hi ↦ by
+        rw [thomPairProj_def]
+        exact isZero_singularHomology_thomPairOver_of_secondCountableTopology (ModuleCat.of K K)
+          (U ⊓ V) (by omega)
+  · -- Countable unions of pairwise disjoint open sets.
+    intro s hd hs p
+    rw [Opens.coe_iSup]
+    exact TopCat.bijective_pullbackCupRestrict_iUnion_of_pairwiseDisjoint _ _ M
+      (fun n ↦ (s n).isOpen) (fun i j hij ↦ Opens.coe_disjoint.2 (hd i j hij)) rfl u
+      fun n ↦ hs n p
 
 /-- **The Thom isomorphism over a second-countable base** (Milnor–Stasheff, Theorem 10.4): for a
 real vector bundle `E → B` of finite rank `r` over a Hausdorff, locally compact, second-countable
