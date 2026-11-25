@@ -82,6 +82,9 @@ realizes an operator that is Cauchy–Riemann for the complex structure of the c
   in `SymplecticGeometry.Analysis.Complex.Beltrami.ZeroOnePart`, and `Z` comes from the
   zeroth-order term of the connection, which is complex linear
   (`IsCovariantDerivativeOn.chartZeroOrder_apply_smul`, `twistOneConnection_const_smul`).
+* `SymplecticGeometry.chartZeroOrder_twistOneConnection_apply`: that zeroth-order term in a chart
+  is `c ↦ c • Γ 1`, and `Γ 1` is smooth
+  (`SymplecticGeometry.contDiffOn_chartZeroOrder_twistOneConnection_apply_one`).
 
 The proof of `exists_coord_zeroOnePart_twistOneDelBar_apply` adapts those of Tau Ceti's
 `TauCeti.FiniteBundleAtlas.coord_tangentHom_eq_complexAntilinearPartL_fderiv_add_chartZeroOrder`
@@ -238,6 +241,29 @@ theorem continuous_twistOneDelBarSobolev_tames (hcover : ∀ x, ∃ i, x ∈ U i
 
 /-! ### The operator in the charts of an atlas -/
 
+/-- In a chart `i` of a finite bundle atlas `A` of `𝒪(1)`, the zeroth-order term of
+`twistOneConnection` applied to the fibre value `1` is smooth on the part of the chart target over
+the base set of the bundle chart. -/
+theorem contDiffOn_chartZeroOrder_twistOneConnection_apply_one
+    (A : FiniteBundleAtlas ℂ (OnePoint ℂ) ℂ (twistCore (𝕜 := ℂ) 1).Fiber) (i : Fin A.n) :
+    ContDiffOn ℝ ∞ (fun z ↦ A.chartZeroOrder twistOneConnection i z 1)
+      ((A.chart i).target ∩ (A.chart i).symm ⁻¹' (A.triv i).baseSet) := by
+  have := isCovariantDerivativeOn_twistOneConnection.contDiffOn_chartZeroOrder A
+    (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) isOpen_univ i
+  rw [inter_univ] at this
+  exact this.clm_apply contDiffOn_const
+
+/-- In a chart `i` of a finite bundle atlas `A` of `𝒪(1)`, the zeroth-order term of
+`twistOneConnection` at a point of the chart image is complex linear in the fibre value:
+`Γ z c = c • Γ z 1`. -/
+theorem chartZeroOrder_twistOneConnection_apply
+    (A : FiniteBundleAtlas ℂ (OnePoint ℂ) ℂ (twistCore (𝕜 := ℂ) 1).Fiber) {i : Fin A.n} {z : ℂ}
+    (hz : z ∈ A.image i) (c : ℂ) :
+    A.chartZeroOrder twistOneConnection i z c = c • A.chartZeroOrder twistOneConnection i z 1 := by
+  rw [← isCovariantDerivativeOn_twistOneConnection.mono (subset_univ (A.triv i).baseSet)
+    |>.chartZeroOrder_apply_smul A (fun _ _ _ hσ ↦ twistOneConnection_const_smul _ hσ) hz,
+    smul_eq_mul, mul_one]
+
 /-- **`D_J` in the charts.** Let a two-form `σ` tame both `J` and the standard structure `i` of
 the sphere, and let `A` be a finite bundle atlas of `𝒪(1)`, such as `twistCoreAtlas 1`. For each
 chart `i` of `A` there are an open set `U` containing the closure of the chart image and
@@ -261,7 +287,7 @@ theorem exists_coord_zeroOnePart_twistOneDelBar_apply
                 μ z * (fderiv ℝ (A.coord i s) z).complexLinearPart 1) +
               Z z * A.coord i s z) := by
   set K := J.inChart (A.center i) with hK
-  set G : ℂ → ℂ →L[ℝ] ℂ := fun z ↦ A.chartZeroOrder twistOneConnection i z 1 with hG
+  set G : ℂ → ℂ →L[ℝ] ℂ := fun z ↦ A.chartZeroOrder twistOneConnection i z 1
   set U : Set ℂ := (A.chart i).target ∩ (A.chart i).symm ⁻¹' (A.triv i).baseSet
   have hUt : U ⊆ (extChartAt 𝓘(ℝ, ℂ) (A.center i)).target := fun z hz ↦ by simpa using hz.1
   -- `J` read in the chart is a complex structure on `ℂ` with `K 1 ≠ -i`.
@@ -279,11 +305,7 @@ theorem exists_coord_zeroOnePart_twistOneDelBar_apply
   set Z : ℂ → ℂ := fun z ↦ c₂ z * ((G z).complexAntilinearPart 1 +
     μ z * (G z).complexLinearPart 1)
   have hKs : ContDiffOn ℝ ∞ K U := (J.contDiffOn_inChart (A.center i)).mono hUt
-  have hGs : ContDiffOn ℝ ∞ G U := by
-    have := (isCovariantDerivativeOn_twistOneConnection.contDiffOn_chartZeroOrder A
-      (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) isOpen_univ i)
-    rw [inter_univ] at this
-    exact this.clm_apply contDiffOn_const
+  have hGs : ContDiffOn ℝ ∞ G U := contDiffOn_chartZeroOrder_twistOneConnection_apply_one A i
   have hconj {f : ℂ → ℂ} (hf : ContDiffOn ℝ ∞ f U) : ContDiffOn ℝ ∞ (fun z ↦ conj (f z)) U :=
     Complex.conjCLE.contDiff.comp_contDiffOn hf
   have hK1s : ContDiffOn ℝ ∞ (fun z ↦ K z 1) U := hKs.clm_apply contDiffOn_const
@@ -310,9 +332,8 @@ theorem exists_coord_zeroOnePart_twistOneDelBar_apply
     have hzU : z ∈ U := hcl (subset_closure hz)
     have hcov := isCovariantDerivativeOn_twistOneConnection.mono (subset_univ (A.triv i).baseSet)
     -- `Γu` is `u · Γ1`, since the zeroth-order term is complex linear.
-    have hΓ : A.chartZeroOrder twistOneConnection i z (A.coord i s z) = A.coord i s z • G z := by
-      rw [hG, ← hcov.chartZeroOrder_apply_smul A
-        (fun _ _ _ hσ ↦ twistOneConnection_const_smul _ hσ) hz, smul_eq_mul, mul_one]
+    have hΓ : A.chartZeroOrder twistOneConnection i z (A.coord i s z) = A.coord i s z • G z :=
+      chartZeroOrder_twistOneConnection_apply A hz _
     simp_rw [twistOneDelBar_def]
     rw [A.coord_tangentHom_zeroOnePart_zeroOnePart J hz,
       ContinuousLinearMap.complexAntilinearPartL_half_smul_add_I_smul_comp_apply (hKK z hzU)
