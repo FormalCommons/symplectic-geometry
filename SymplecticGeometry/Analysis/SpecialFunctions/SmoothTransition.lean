@@ -52,6 +52,22 @@ identity on `[-1/4, 1/4]`, `1` on `[1/2, ∞)` and `-1` on `(-∞, -1/2]`, bound
 absolute value, and has the sign of its argument, by choosing the function of
 `SymplecticGeometry.exists_contDiff_odd_clip` for `r = 1/4` and `R = 1/2`; only these
 properties are used, so no formula is given.
+
+For the flat function `f = expNegInvGlue`, whose derivatives at `x > 0` are `x⁻² f x` and
+`(x⁻⁴ - 2 x⁻³) f x`, the second derivative dominates `K` times the first once
+`(|K| + 2) x ≤ 1` (`expNegInvGlue.mul_deriv_le_deriv_deriv`), so for every `K` at all small
+`x > 0` (`expNegInvGlue.eventually_mul_deriv_le_deriv_deriv`). From it the file builds, for
+`a < b`, a smooth antitone cutoff with values in `[0, 1]`, equal to `1` up to `a`, to `0` from `b`
+on and positive before `b`, with `K |β'| ≤ β''` on some interval `[b - s, b)` for each `K`
+(`SymplecticGeometry.exists_contDiff_antitone_cutoff_mul_abs_deriv_le_deriv_deriv`). It is
+`χ + (1 - χ) g` for `g r = f (b - r) / f (b - a)` and a cutoff `χ` from Tau Ceti's
+`TauCeti.exists_contDiff_antitone_cutoff` that vanishes from the midpoint of `[a, b]` on, so it
+equals `g` near `b`. Such a cutoff in the radius is used in the modification of a function on a
+half-cylinder in the proof of the symplectic h-principle (see McDuff–Salamon, Theorem 7.3.1).
+
+## References
+
+* [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017]
 -/
 
 public section
@@ -77,6 +93,43 @@ theorem deriv_pos {x : ℝ} (h₀ : 0 < x) (h₁ : x < 1) : 0 < deriv smoothTran
   positivity
 
 end Real.smoothTransition
+
+namespace expNegInvGlue
+
+open Filter Topology
+
+/-- At each `x > 0` with `(|K| + 2) x ≤ 1`, the second derivative of `expNegInvGlue` is at least
+`K` times its first derivative. -/
+theorem mul_deriv_le_deriv_deriv {K x : ℝ} (hx : 0 < x) (hKx : (|K| + 2) * x ≤ 1) :
+    K * deriv expNegInvGlue x ≤ deriv (deriv expNegInvGlue) x := by
+  rw [(hasDerivAt x).deriv, deriv_deriv]
+  have hf := pos_of_pos hx
+  -- After multiplying by `x ^ 4`, the inequality reads `K x ^ 2 ≤ 1 - 2 x`.
+  have hx1 : x ≤ 1 := by nlinarith [abs_nonneg K]
+  have key : K * x ^ 2 ≤ 1 - 2 * x := by
+    nlinarith [le_abs_self K, abs_nonneg K, mul_le_mul_of_nonneg_left hx1 (abs_nonneg K),
+      mul_le_mul_of_nonneg_left hx1 hx.le]
+  have hxi : 0 < x⁻¹ := inv_pos.2 hx
+  have h : K * x⁻¹ ^ 2 ≤ x⁻¹ ^ 4 - 2 * x⁻¹ ^ 3 := by
+    have := mul_le_mul_of_nonneg_left key (pow_pos hxi 4).le
+    have e₁ : x⁻¹ ^ 4 * (K * x ^ 2) = K * x⁻¹ ^ 2 := by field_simp
+    have e₂ : x⁻¹ ^ 4 * (1 - 2 * x) = x⁻¹ ^ 4 - 2 * x⁻¹ ^ 3 := by field_simp
+    linarith
+  nlinarith [mul_le_mul_of_nonneg_right h hf.le]
+
+/-- For every `K`, the second derivative of `expNegInvGlue` is at least `K` times its first
+derivative at all `x > 0` close enough to `0`. -/
+theorem eventually_mul_deriv_le_deriv_deriv (K : ℝ) :
+    ∀ᶠ x in 𝓝[>] 0, K * deriv expNegInvGlue x ≤ deriv (deriv expNegInvGlue) x := by
+  have hK : 0 < (|K| + 2)⁻¹ := inv_pos.2 (by positivity)
+  filter_upwards [Ioo_mem_nhdsGT hK] with x hx
+  refine mul_deriv_le_deriv_deriv hx.1 ?_
+  have hK2 : (0 : ℝ) < |K| + 2 := by positivity
+  have := mul_lt_mul_of_pos_left hx.2 hK2
+  rw [mul_inv_cancel₀ hK2.ne'] at this
+  exact this.le
+
+end expNegInvGlue
 
 namespace TauCeti
 
@@ -112,6 +165,7 @@ end TauCeti
 
 namespace SymplecticGeometry
 
+open Filter Topology
 open scoped ContDiff
 
 /-- A smooth map `ℝ → ℝ` that is the identity on the closed interval `[a, b]`, takes its values
@@ -334,6 +388,95 @@ theorem smoothSign_nonpos_iff {s : ℝ} : smoothSign s ≤ 0 ↔ s ≤ 0 := by
 @[simp]
 theorem smoothSign_nonneg_iff {s : ℝ} : 0 ≤ smoothSign s ↔ 0 ≤ s := by
   rw [← not_lt, smoothSign_lt_zero_iff, not_lt]
+
+
+/-- A smooth antitone cutoff `β : ℝ → [0, 1]` that is `1` on `(-∞, a]`, `0` on `[b, ∞)` and
+positive on `(-∞, b)`, for any `a < b`, whose second derivative dominates any multiple of its
+first derivative near `b`: for every `K` there is `0 < s < (b - a) / 2` with
+`K |β' r| ≤ β'' r` for all `r ∈ [b - s, b)`. Near `b` it is `exp (-1 / (b - r))` up to a constant
+factor. -/
+theorem exists_contDiff_antitone_cutoff_mul_abs_deriv_le_deriv_deriv {a b : ℝ} (hab : a < b) :
+    ∃ β : ℝ → ℝ, ContDiff ℝ ∞ β ∧ (∀ r, β r ∈ Set.Icc 0 1) ∧ Antitone β ∧
+      Set.EqOn β 1 (Set.Iic a) ∧ Set.EqOn β 0 (Set.Ici b) ∧ (∀ r < b, 0 < β r) ∧
+      ∀ K : ℝ, ∃ s, 0 < s ∧ s < (b - a) / 2 ∧
+        ∀ r ∈ Set.Ico (b - s) b, K * |deriv β r| ≤ deriv (deriv β) r := by
+  set f := expNegInvGlue
+  set m := (a + b) / 2
+  have ham : a < m := by simp only [m]; linarith
+  have hmb : m < b := by simp only [m]; linarith
+  obtain ⟨χ, hχ, hχa, hχ0, hχm, hχ1, -⟩ := TauCeti.exists_contDiff_antitone_cutoff ham zero_le_one
+  have hχle (r : ℝ) : χ r ≤ 1 := by
+    rcases le_total r a with hr | hr
+    · exact (hχ1 r hr).le
+    · exact (hχa hr).trans (hχ1 a le_rfl).le
+  -- `g r = f (b - r) / f (b - a)` is the profile near `b`; `β` interpolates from `1` to it.
+  have hc : 0 < f (b - a) := expNegInvGlue.pos_of_pos (sub_pos.2 hab)
+  set g : ℝ → ℝ := fun r ↦ f (b - r) / f (b - a)
+  have hg0 (r : ℝ) : 0 ≤ g r := div_nonneg (expNegInvGlue.nonneg _) hc.le
+  have hga : Antitone g := fun r s hrs ↦
+    div_le_div_of_nonneg_right (expNegInvGlue.monotone (by linarith)) hc.le
+  have hg1 {r : ℝ} (hr : a ≤ r) : g r ≤ 1 :=
+    (div_le_one hc).2 (expNegInvGlue.monotone (by linarith))
+  have hgb {r : ℝ} (hr : b ≤ r) : g r = 0 := by
+    simp [g, f, expNegInvGlue.zero_of_nonpos (sub_nonpos.2 hr)]
+  have hgpos {r : ℝ} (hr : r < b) : 0 < g r :=
+    div_pos (expNegInvGlue.pos_of_pos (sub_pos.2 hr)) hc
+  set β : ℝ → ℝ := fun r ↦ χ r + (1 - χ r) * g r
+  have hβa {r : ℝ} (hr : r ≤ a) : β r = 1 := by simp [β, hχ1 r hr]
+  have hβm {r : ℝ} (hr : m ≤ r) : β r = g r := by simp [β, hχm r hr]
+  have hβ1 (r : ℝ) : 1 - β r = (1 - χ r) * (1 - g r) := by simp only [β]; ring
+  refine ⟨β, ?_, fun r ↦ ⟨?_, ?_⟩, fun r s hrs ↦ ?_, fun r hr ↦ hβa hr, fun r hr ↦ ?_,
+    fun r hr ↦ ?_, fun K ↦ ?_⟩
+  · exact hχ.add ((contDiff_const.sub hχ).mul
+      ((expNegInvGlue.contDiff.comp (contDiff_const.sub contDiff_id)).div_const _))
+  · exact add_nonneg (hχ0 r) (mul_nonneg (sub_nonneg.2 (hχle r)) (hg0 r))
+  · rcases le_total r a with hr | hr
+    · exact (hβa hr).le
+    · linarith [hβ1 r, mul_nonneg (sub_nonneg.2 (hχle r)) (sub_nonneg.2 (hg1 hr))]
+  · rcases le_total s a with hs | hs
+    · rw [hβa hs, hβa (hrs.trans hs)]
+    rcases le_total r a with hr | hr
+    · rw [hβa hr]; linarith [hβ1 s, mul_nonneg (sub_nonneg.2 (hχle s)) (sub_nonneg.2 (hg1 hs))]
+    have := mul_le_mul (sub_le_sub_left (hχa hrs) 1) (sub_le_sub_left (hga hrs) 1)
+      (sub_nonneg.2 (hg1 hr)) (sub_nonneg.2 (hχle s))
+    linarith [hβ1 r, hβ1 s]
+  · rw [hβm (hmb.le.trans hr), hgb hr, Pi.zero_apply]
+  · rcases (hχ0 r).lt_or_eq with h | h
+    · exact add_pos_of_pos_of_nonneg h (mul_nonneg (sub_nonneg.2 (hχle r)) (hg0 r))
+    · simp only [β, ← h, zero_add, sub_zero, one_mul]
+      exact hgpos hr
+  -- Near `b`, `β = g`, whose derivatives are those of `f` at `b - r`, up to sign and the factor.
+  set s := min ((b - a) / 4) ((|K| + 2)⁻¹ / 2)
+  have hs0 : 0 < s := lt_min (by linarith) (by positivity)
+  have hsab : s < (b - a) / 2 := (min_le_left _ _).trans_lt (by linarith)
+  refine ⟨s, hs0, hsab, fun r hr ↦ ?_⟩
+  have hdf : Differentiable ℝ (deriv f) :=
+    (expNegInvGlue.contDiff (n := 2)).differentiable_deriv_two
+  have hdg (t : ℝ) : HasDerivAt g (-deriv f (b - t) / f (b - a)) t := by
+    have := ((expNegInvGlue.contDiff (n := 1)).differentiable (by simp) (b - t)).hasDerivAt.comp t
+      ((hasDerivAt_id t).const_sub b)
+    simpa [g, neg_div] using this.div_const (f (b - a))
+  have hdg' : deriv g = fun t ↦ -deriv f (b - t) / f (b - a) := funext fun t ↦ (hdg t).deriv
+  have hddg : HasDerivAt (deriv g) (deriv (deriv f) (b - r) / f (b - a)) r := by
+    rw [hdg']
+    have := (hdf (b - r)).hasDerivAt.comp r ((hasDerivAt_id r).const_sub b)
+    simpa [neg_div] using this.neg.div_const (f (b - a))
+  have hs₁ : s ≤ (b - a) / 4 := min_le_left _ _
+  have hs₂ : s ≤ (|K| + 2)⁻¹ / 2 := min_le_right _ _
+  have hmr : m < r := by simp only [m]; linarith [hr.1]
+  have hβg : β =ᶠ[𝓝 r] g := by
+    filter_upwards [Ioi_mem_nhds hmr] with t ht using hβm ht.le
+  have hx : 0 < b - r := sub_pos.2 hr.2
+  have hd0 : 0 ≤ deriv f (b - r) := by
+    rw [(expNegInvGlue.hasDerivAt _).deriv]
+    exact mul_nonneg (by positivity) (expNegInvGlue.nonneg _)
+  rw [hβg.deriv_eq, hβg.deriv.deriv_eq, (hdg r).deriv, hddg.deriv, abs_div, abs_neg,
+    abs_of_pos hc, abs_of_nonneg hd0, mul_div_assoc']
+  refine div_le_div_of_nonneg_right (expNegInvGlue.mul_deriv_le_deriv_deriv hx ?_) hc.le
+  have h1 : b - r ≤ (|K| + 2)⁻¹ / 2 := by linarith [hr.1]
+  have h2 := mul_le_mul_of_nonneg_left h1 (by positivity : (0 : ℝ) ≤ |K| + 2)
+  rw [mul_div_assoc', mul_inv_cancel₀ (by positivity)] at h2
+  linarith
 
 end SymplecticGeometry
 
