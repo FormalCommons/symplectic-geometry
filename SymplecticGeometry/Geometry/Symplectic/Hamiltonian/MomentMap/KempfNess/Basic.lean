@@ -409,23 +409,17 @@ theorem differentiable_moment_inv_smul_im_mfderiv
       (C.im (mfderiv IC IC ((γ z)⁻¹ * ·) (γ z) (mfderiv 𝓘(ℝ, F) IC γ z v))) := by
   -- The function pairs a smooth family of covectors with `C.im` of the left Maurer–Cartan form
   -- along `γ`.
-  set θ := leftMaurerCartanForm IC Gc
-  have ha (z : F) : mfderiv IC IC ((γ z)⁻¹ * ·) (γ z) (mfderiv 𝓘(ℝ, F) IC γ z v) =
-      θ.val (γ z) ![mfderiv 𝓘(ℝ, F) IC γ z v] := by
-    simp [θ, leftMaurerCartanForm_apply]
   have hx : ContMDiff 𝓘(ℝ, F) I' ∞ fun z ↦ (γ z)⁻¹ • p :=
     ((contMDiff_inv IC ∞).comp hγ).smul contMDiff_const
-  have hL := (contMDiff_toContinuousLinearMap_of_contMDiff_apply (E := E) hμ).comp hx
-  have hc := (LinearMap.toContinuousLinearMap C.im).differentiable.comp
-    (SmoothForm.differentiable_apply_one_mfderiv θ hγ v)
-  have h : (fun z ↦ μ ((γ z)⁻¹ • p)
-      (C.im (mfderiv IC IC ((γ z)⁻¹ * ·) (γ z) (mfderiv 𝓘(ℝ, F) IC γ z v)))) =
-      fun z ↦ LinearMap.toContinuousLinearMap (μ ((γ z)⁻¹ • p))
-        (LinearMap.toContinuousLinearMap C.im (θ.val (γ z) ![mfderiv 𝓘(ℝ, F) IC γ z v])) := by
-    funext z
-    simp [ha]
-  rw [h]
-  exact (hL.mdifferentiable (by simp)).differentiable.clm_apply hc
+  refine differentiable_dual_comp_apply (fun ξ ↦ (hμ ξ).mdifferentiable (by simp))
+    (hx.mdifferentiable (by simp)) ?_
+  have ha : (fun z ↦ C.im (mfderiv IC IC ((γ z)⁻¹ * ·) (γ z) (mfderiv 𝓘(ℝ, F) IC γ z v))) =
+      fun z ↦ LinearMap.toContinuousLinearMap C.im
+        ((leftMaurerCartanForm IC Gc).val (γ z) ![mfderiv 𝓘(ℝ, F) IC γ z v]) := by
+    simp [leftMaurerCartanForm_apply]
+  rw [ha]
+  exact (LinearMap.toContinuousLinearMap C.im).differentiable.comp
+    (SmoothForm.differentiable_apply_one_mfderiv (leftMaurerCartanForm IC Gc) hγ v)
 
 /-- **The Kempf–Ness one-form is closed along maps into `Gc`.** Let the action of `Gc` be a
 complexified action, let `-μ` be an equivariant moment map for `σ`, and let the metric be
