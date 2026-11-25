@@ -26,9 +26,10 @@ open neighbourhood of the zero section `{[g, 0] | g ∈ G}`.
   (`SymplecticGeometry.LocalModelData.forall_eval₂_form_one_zero_eq_zero_iff`), and this is the
   kernel of `dπ` there (`SymplecticGeometry.LocalModelData.mem_ker_mfderiv_mk_one_zero_iff`). So
   `ω` is nondegenerate at `[1, 0]`.
-* The action `y ↦ k • y` of `G` on `Y` is a diffeomorphism (Mathlib's `Diffeomorph.smul`, for
-  Tau Ceti's `TauCeti.BalancedProduct.contMDiffSMul_rightTranslation`) preserving `ω`, so `ω` is
-  nondegenerate at `k • y` exactly when it is at `y`. Since `[g, 0] = g • [1, 0]`, it is
+* The action of `G` on `Y` is smooth (Tau Ceti's
+  `TauCeti.BalancedProduct.contMDiffSMul_rightTranslation`) and preserves `ω`, so `ω` is
+  nondegenerate at `k • y` exactly when it is at `y`
+  (`TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_smul_iff`). Since `[g, 0] = g • [1, 0]`, it is
   nondegenerate along the zero section.
 * The set where `ω` is nondegenerate is open
   (`TauCeti.SmoothTwoForm.isOpen_setOf_nondegenerate_bilinFormAt`) and `G`-invariant, and `ω`
@@ -125,16 +126,11 @@ theorem nondegenerate_bilinFormAt_descendedForm_smul_iff (k : G) :
     (IZ := 𝓘(ℝ, A × V)) (F := F)
   have := BalancedProduct.contMDiffSMul_rightTranslation (K := K) (Z := A × V) (I := I)
     (IZ := 𝓘(ℝ, A × V)) (F := F)
-  intro y
   have hk := ContMDiffSMul.contMDiff_const_smul (I := I) (n := ∞)
     (I' := 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × (A × V))))
     (M := BalancedProduct K K.RightTranslation (A × V)) k
-  refine ((Diffeomorph.smul I _ ∞ k).isLocalDiffeomorph y).nondegenerate_bilinFormAt_iff
-    (by simp) ?_
-  -- `y ↦ k • y` pulls the descended form back to itself.
-  have h := congrArg Subtype.val (D.mpullback_smul_descendedForm k hk)
-  rw [SmoothForm.coe_mpullback] at h
-  exact congrFun h y
+  exact SmoothTwoForm.nondegenerate_bilinFormAt_smul_iff (IG := I) k
+    (D.mpullback_smul_descendedForm k hk)
 
 /-- **The descended form is nondegenerate along the zero section**: at every point `[g, 0, 0]`. -/
 theorem nondegenerate_bilinFormAt_descendedForm_mk_zero (g : G) :
