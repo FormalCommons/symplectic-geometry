@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.Normed.Operator.Conformal
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
+public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.Riemannian.Orientation.Rotation
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Analysis.InnerProductSpace.TwoDim
@@ -26,7 +27,8 @@ import TauCeti.Geometry.Manifold.Riemannian.Orientation.AlmostComplex
 Let `J` be a smooth almost complex structure on a boundaryless manifold `M` whose model space `E`
 has real dimension two. This file shows that every point of `M` lies in the source of a smooth
 chart `ψ : M → ℂ`, a partial diffeomorphism onto an open subset of `ℂ`, whose derivative carries
-`J` to multiplication by `i` at every point of its source
+`J` to multiplication by `i` at every point of its source: it is pseudoholomorphic there from `J`
+to `ofComplexManifold ℂ ℂ`, in the sense of Tau Ceti's `TauCeti.IsPseudoholomorphicAt`
 (`TauCeti.SmoothAlmostComplexStructure.exists_isothermal_partialDiffeomorph`). These charts make `J`
 integrable (`TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two`), by
 `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_forall_exists_partialDiffeomorph`, which
@@ -85,13 +87,12 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topological
 
 /-- **Smooth isothermal charts on a surface.** Let `J` be a smooth almost complex structure on a
 boundaryless manifold `M` whose model space has real dimension two. Every point `x` of `M` lies in
-the source of a smooth partial diffeomorphism `ψ : M → ℂ` whose derivative carries `J` to
-multiplication by `i`: `dψ_y (J v) = i · dψ_y v` at every point `y` of its source. -/
+the source of a smooth partial diffeomorphism `ψ : M → ℂ` that is pseudoholomorphic from `J` to
+multiplication by `i` at every point `y` of its source: `dψ_y (J v) = i · dψ_y v`. -/
 theorem exists_isothermal_partialDiffeomorph (J : SmoothAlmostComplexStructure I M)
     (hE : Module.finrank ℝ E = 2) (x : M) :
     ∃ ψ : PartialDiffeomorph I 𝓘(ℝ, ℂ) M ℂ ∞, x ∈ ψ.source ∧
-      ∀ y ∈ ψ.source, ∀ v : TangentSpace I y,
-        mvfderiv I ψ y (J y v) = Complex.I * mvfderiv I ψ y v := by
+      ∀ y ∈ ψ.source, IsPseudoholomorphicAt J (ofComplexManifold ℂ ℂ) ψ y := by
   have : FiniteDimensional ℝ E := Module.finite_of_finrank_eq_succ hE
   have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
   -- The extended chart at `x`, followed by a real linear isomorphism `E ≃L[ℝ] ℂ`.
@@ -112,7 +113,8 @@ theorem exists_isothermal_partialDiffeomorph (J : SmoothAlmostComplexStructure I
       (Φ.map_source hx) fun p hp ↦ hA p hp
   let D : PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ℂ ℂ ∞ :=
     PartialDiffeomorph.ofOpenPartialHomeomorph e hes hesymm
-  refine ⟨Φ.trans D, by simp [D, hx, hxe], fun y hy v ↦ ?_⟩
+  refine ⟨Φ.trans D, by simp [D, hx, hxe], fun y hy ↦
+    isPseudoholomorphicAt_iff_mfderiv.2 ⟨(Φ.trans D).mdifferentiableAt hn hy, fun v ↦ ?_⟩⟩
   have hy' : y ∈ Φ.source ∧ Φ y ∈ e.source := by simpa [D] using hy
   have hc : (Φ.trans D : M → ℂ) = e ∘ Φ := by
     ext z
@@ -122,7 +124,10 @@ theorem exists_isothermal_partialDiffeomorph (J : SmoothAlmostComplexStructure I
   -- The derivative of `Φ` carries `J` to `A`.
   have hJ : mfderiv I 𝓘(ℝ, ℂ) Φ y (J y v) = A (Φ y) (mfderiv I 𝓘(ℝ, ℂ) Φ y v) :=
     J.mfderiv_apply_eq_chartPushforward_apply Φ hy'.1 v
-  rw [hc, mvfderiv_comp_apply_of_differentiableAt hed (Φ.mdifferentiableAt hn hy'.1),
+  refine Eq.trans ?_
+    ((ofComplexManifold_apply (E := ℂ) _ _).trans (smul_eq_mul (α := ℂ) _ _)).symm
+  rw [← mvfderiv_apply_eq_mfderiv_apply, ← mvfderiv_apply_eq_mfderiv_apply, hc,
+    mvfderiv_comp_apply_of_differentiableAt hed (Φ.mdifferentiableAt hn hy'.1),
     mvfderiv_comp_apply_of_differentiableAt hed (Φ.mdifferentiableAt hn hy'.1),
     mvfderiv_apply_eq_mfderiv_apply, mvfderiv_apply_eq_mfderiv_apply, hJ]
   exact hlin _ hy'.2 _
@@ -136,8 +141,8 @@ theorem isIntegrable_of_finrank_eq_two (J : SmoothAlmostComplexStructure I M)
   refine J.isIntegrable_of_forall_exists_partialDiffeomorph (G := ℂ) fun x ↦ ?_
   obtain ⟨ψ, hx, hψ⟩ := J.exists_isothermal_partialDiffeomorph hE x
   refine ⟨ψ, AlmostComplexStructure.ofComplexModule ℂ, hx, fun y hy v ↦ ?_⟩
-  rw [← mvfderiv_apply_eq_mfderiv_apply, ← mvfderiv_apply_eq_mfderiv_apply, hψ y hy v,
-    AlmostComplexStructure.ofComplexModule_apply, smul_eq_mul]
+  exact ((hψ y hy).mfderiv_apply_commute v).trans ((ofComplexManifold_apply (E := ℂ) _ _).trans
+    (AlmostComplexStructure.ofComplexModule_apply (V := ℂ) _).symm)
 
 end TauCeti.SmoothAlmostComplexStructure
 
@@ -164,7 +169,10 @@ theorem exists_isothermal_coordinates [I.Boundaryless] (o : Manifold.Orientation
   refine ⟨ψ, hx, fun y hy ↦ ?_⟩
   let := o.fact_finrank_tangentSpace y
   refine (o.orientationAt y).isConformalMap_of_map_rightAngleRotation (fun v ↦ ?_) ?_
-  · rw [← rightAngleAlmostComplexStructure_apply, hψ y hy v, smul_eq_mul]
+  · rw [← rightAngleAlmostComplexStructure_apply, mvfderiv_apply_eq_mfderiv_apply,
+      mvfderiv_apply_eq_mfderiv_apply]
+    exact ((hψ y hy).mfderiv_apply_commute v).trans
+      (SmoothAlmostComplexStructure.ofComplexManifold_apply (E := ℂ) _ _)
   · -- The derivative of a partial diffeomorphism is injective, and the tangent plane is not zero.
     have : Nontrivial E := Module.nontrivial_of_finrank_eq_succ hE
     exact mvfderiv_eq_zero_iff.not.2
