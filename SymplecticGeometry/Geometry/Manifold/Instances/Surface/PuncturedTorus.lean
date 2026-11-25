@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Instances.Surface.Genus
 public import TauCeti.AlgebraicTopology.FundamentalGroup.HomotopyEquiv
 import SymplecticGeometry.Topology.Instances.AddCircle.Icc
 import TauCeti.Topology.Homotopy.PuncturedStarConvex
+import TauCeti.Topology.Homotopy.Quotient
 
 /-!
 # The punctured torus retracts onto its two circles through `0`
@@ -20,20 +21,22 @@ the union `SymplecticGeometry.EuclideanTorus.circles` of its two circles `{x | x
 `0`, keeping these circles fixed. So the inclusion of the two circles is a homotopy equivalence,
 and it induces an isomorphism of fundamental groups at `0`.
 
-The torus is the image of the unit square `[0, 1]²` of `ℝ × ℝ` under `z ↦ ([z.1], [z.2])`, a
-continuous surjection from a compact space onto a Hausdorff one; its centre `(1 / 2, 1 / 2)` goes
-to the puncture, its boundary onto the two circles, and only boundary points are identified. In
-the sup norm of `ℝ × ℝ` the boundary of the square is the sphere of radius `1 / 2` about the
-centre, so Tau Ceti's `StarConvex.radialHomotopy` deforms the punctured square onto its boundary,
-keeping the boundary fixed. Since it fixes the points that the map identifies, it descends to the
-punctured torus, along the restriction of the map to the punctured square, which is closed and
-hence a quotient map. The descent follows the private `deform` and `retraction` of Tau Ceti's
-`TauCeti.TwoCellAttachment` (`AlgebraicTopology/FundamentalGroup/TwoCellAttachment.lean`), which
-descend Tau Ceti's `unitInterval.radialPush` to the complement of the centres of attached
-2-cells; here the deformation of the punctured square itself is used, so that the homotopy stays
-in the punctured torus. The description of the boundary of the square as a sphere follows the
-private `sphere_subset_Icc_prod_Icc` and `prodMap_val_mem_sphere_iff` of Tau Ceti's
-`Topology/UnitInterval/OpenSquare.lean`.
+The torus is the image of the unit square `[0, 1]²` of `ℝ × ℝ` under `z ↦ ([z.1], [z.2])`, the
+covering map `SymplecticGeometry.EuclideanTorus.cover` read on `ℝ × ℝ`, a continuous surjection
+from a compact space onto a Hausdorff one; its centre `(1 / 2, 1 / 2)` goes to the puncture, its
+boundary onto the two circles, and only boundary points are identified. In the sup norm of
+`ℝ × ℝ` the square is the closed ball of radius `1 / 2` about the centre (Mathlib's
+`closedBall_prod_same`), and its boundary is the sphere (`sphere_prod`), so Tau Ceti's
+`StarConvex.radialHomotopy` deforms the punctured square onto its boundary, keeping the boundary
+fixed. Since it fixes the points that the map identifies, it descends to the punctured torus,
+along the restriction of the map to the punctured square, which is closed and hence a quotient
+map: the retraction by Mathlib's `Topology.IsQuotientMap.lift`, and the homotopy by Tau Ceti's
+`Topology.IsQuotientMap.liftHomotopy`. The argument follows that of the private `deform` and
+`retraction` of Tau Ceti's `TauCeti.TwoCellAttachment`
+(`AlgebraicTopology/FundamentalGroup/TwoCellAttachment.lean`), which descend Tau Ceti's
+`unitInterval.radialPush` to the complement of the centres of attached 2-cells; here the
+deformation of the punctured square itself is used, so that the homotopy stays in the punctured
+torus.
 
 ## Main definitions
 
@@ -107,63 +110,48 @@ private def centre : ℝ × ℝ := (1 / 2, 1 / 2)
 /-- The unit square of `ℝ × ℝ`. -/
 private def square : Set (ℝ × ℝ) := Icc 0 1 ×ˢ Icc 0 1
 
+/-- In the sup norm of `ℝ × ℝ`, the unit square is the closed ball of radius `1 / 2` about its
+centre. -/
+private theorem square_eq_closedBall : square = closedBall centre (1 / 2) := by
+  rw [centre, ← closedBall_prod_same, Real.closedBall_eq_Icc, square]
+  norm_num
+
 private theorem starConvex_square : StarConvex ℝ centre square :=
-  ((convex_Icc 0 1).prod (convex_Icc 0 1)).starConvex ⟨by norm_num [centre], by norm_num [centre]⟩
+  square_eq_closedBall ▸ (convex_closedBall _ _).starConvex (mem_closedBall_self (by norm_num))
+
+private theorem sphere_subset_square : sphere centre (1 / 2) ⊆ square :=
+  square_eq_closedBall ▸ sphere_subset_closedBall
 
 /-- A point of the square lies on the sphere of radius `1 / 2` about the centre, in the sup norm,
 exactly when one of its coordinates is `0` or `1`. -/
 private theorem mem_sphere_centre_iff {z : ℝ × ℝ} (hz : z ∈ square) :
     z ∈ sphere centre (1 / 2) ↔ (z.1 = 0 ∨ z.1 = 1) ∨ (z.2 = 0 ∨ z.2 = 1) := by
-  obtain ⟨⟨h₁, h₂⟩, h₃, h₄⟩ := hz
-  rw [mem_sphere, Prod.dist_eq, Real.dist_eq, Real.dist_eq]
-  simp only [centre]
-  have e₁ : |z.1 - 1 / 2| ≤ 1 / 2 := abs_le.2 ⟨by linarith, by linarith⟩
-  have e₂ : |z.2 - 1 / 2| ≤ 1 / 2 := abs_le.2 ⟨by linarith, by linarith⟩
-  have k (a : ℝ) (h₀ : 0 ≤ a) (h₁ : a ≤ 1) : |a - 1 / 2| = 1 / 2 ↔ a = 0 ∨ a = 1 := by
-    rw [abs_eq (by norm_num)]
-    constructor
-    · rintro (h | h)
-      · right; linarith
-      · left; linarith
-    · rintro (rfl | rfl) <;> norm_num
-  rw [← k _ h₁ h₂, ← k _ h₃ h₄]
-  constructor
-  · intro h
-    rcases max_choice |z.1 - 1 / 2| |z.2 - 1 / 2| with h' | h' <;> rw [h'] at h
-    · exact Or.inl h
-    · exact Or.inr h
-  · rintro (h | h)
-    · rw [h, max_eq_left (h ▸ e₂)]
-    · rw [h, max_eq_right (h ▸ e₁)]
+  rw [square_eq_closedBall, centre, ← closedBall_prod_same] at hz
+  rw [sphere_prod, centre, Real.sphere_eq_pair _ (by norm_num)]
+  simp only [mem_union, mem_prod, mem_insert_iff, mem_singleton_iff, hz.1, hz.2, and_true,
+    true_and]
+  norm_num
 
-/-- The map `z ↦ ([z.1], [z.2])` of `ℝ × ℝ` onto the torus. -/
+/-- The map `z ↦ ([z.1], [z.2])` of `ℝ × ℝ` onto the torus, the covering map read on `ℝ × ℝ`. -/
 private def squareMap (z : ℝ × ℝ) : EuclideanTorus :=
-  diffeomorph.symm ![(z.1 : AddCircle (1 : ℝ)), z.2]
+  cover (WithLp.toLp 2 ![z.1, z.2])
 
 private theorem diffeomorph_squareMap_zero (z : ℝ × ℝ) :
     diffeomorph (squareMap z) 0 = z.1 := by
-  rw [squareMap, Diffeomorph.apply_symm_apply, Matrix.cons_val_zero]
+  simp [squareMap]
 
 private theorem diffeomorph_squareMap_one (z : ℝ × ℝ) :
     diffeomorph (squareMap z) 1 = z.2 := by
-  rw [squareMap, Diffeomorph.apply_symm_apply, Matrix.cons_val_one, Matrix.cons_val_zero]
+  simp [squareMap]
 
 private theorem continuous_squareMap : Continuous squareMap :=
-  diffeomorph.symm.continuous.comp (continuous_pi fun i ↦ by
-    fin_cases i
-    · exact (AddCircle.continuous_mk' 1).comp continuous_fst
-    · exact (AddCircle.continuous_mk' 1).comp continuous_snd)
-
-/-- Two points of the torus with the same coordinates are equal. -/
-private theorem ext_diffeomorph {x y : EuclideanTorus} (h₀ : diffeomorph x 0 = diffeomorph y 0)
-    (h₁ : diffeomorph x 1 = diffeomorph y 1) : x = y := by
-  rw [← diffeomorph.symm_apply_apply x, ← diffeomorph.symm_apply_apply y]
-  exact congrArg diffeomorph.symm (funext (Fin.forall_fin_two.2 ⟨h₀, h₁⟩))
+  isLocalHomeomorph_cover.continuous.comp ((PiLp.continuous_toLp _ _).comp (by fun_prop))
 
 private theorem squareMap_eq_iff {z w : ℝ × ℝ} :
     squareMap z = squareMap w ↔
       (z.1 : AddCircle (1 : ℝ)) = w.1 ∧ (z.2 : AddCircle (1 : ℝ)) = w.2 := by
-  refine ⟨fun h ↦ ?_, fun h ↦ ext_diffeomorph ?_ ?_⟩
+  refine ⟨fun h ↦ ?_, fun h ↦
+    EquivLike.injective diffeomorph (funext (Fin.forall_fin_two.2 ⟨?_, ?_⟩))⟩
   · rw [← diffeomorph_squareMap_zero, ← diffeomorph_squareMap_one, h, diffeomorph_squareMap_zero,
       diffeomorph_squareMap_one]
     exact ⟨rfl, rfl⟩
@@ -176,7 +164,8 @@ private theorem exists_mem_square_squareMap_eq (x : EuclideanTorus) :
   obtain ⟨a, ha⟩ := QuotientAddGroup.mk_surjective (diffeomorph x 0)
   obtain ⟨b, hb⟩ := QuotientAddGroup.mk_surjective (diffeomorph x 1)
   refine ⟨(Int.fract a, Int.fract b), ⟨⟨Int.fract_nonneg a, (Int.fract_lt_one a).le⟩,
-    ⟨Int.fract_nonneg b, (Int.fract_lt_one b).le⟩⟩, ext_diffeomorph ?_ ?_⟩
+    ⟨Int.fract_nonneg b, (Int.fract_lt_one b).le⟩⟩,
+    EquivLike.injective diffeomorph (funext (Fin.forall_fin_two.2 ⟨?_, ?_⟩))⟩
   · rw [diffeomorph_squareMap_zero]
     exact (AddCircle.coe_fract a).trans ha
   · rw [diffeomorph_squareMap_one]
@@ -185,9 +174,10 @@ private theorem exists_mem_square_squareMap_eq (x : EuclideanTorus) :
 /-- The map sends the centre of the square, and no other point of it, to the puncture. -/
 private theorem squareMap_eq_ball_zero_iff {z : ℝ × ℝ} (hz : z ∈ square) :
     squareMap z = ball 0 ↔ z = centre := by
-  have hc : squareMap centre = ball 0 := ext_diffeomorph
-    (by rw [diffeomorph_squareMap_zero, diffeomorph_ball_zero, centre])
-    (by rw [diffeomorph_squareMap_one, diffeomorph_ball_zero, centre])
+  have hc : squareMap centre = ball 0 :=
+    EquivLike.injective diffeomorph (funext (Fin.forall_fin_two.2
+      ⟨by rw [diffeomorph_squareMap_zero, diffeomorph_ball_zero, centre],
+        by rw [diffeomorph_squareMap_one, diffeomorph_ball_zero, centre]⟩))
   refine ⟨fun h ↦ ?_, fun h ↦ h ▸ hc⟩
   have hm : (1 / 2 : ℝ) ∈ Icc (0 : ℝ) (0 + 1) := ⟨by norm_num, by norm_num⟩
   obtain ⟨h₁, h₂⟩ := squareMap_eq_iff.1 (h.trans hc.symm)
@@ -225,14 +215,6 @@ private theorem eq_or_mem_sphere_of_squareMap_eq {z w : ℝ × ℝ} (hz : z ∈ 
 
 /-! ### The deformation of the punctured square onto its boundary -/
 
-private theorem sphere_subset_square : sphere centre (1 / 2) ⊆ square := by
-  intro z hz
-  rw [mem_sphere, Prod.dist_eq, Real.dist_eq, Real.dist_eq] at hz
-  have h₁ := abs_le.1 ((le_max_left _ _).trans hz.le)
-  have h₂ := abs_le.1 ((le_max_right _ _).trans hz.le)
-  simp only [centre] at h₁ h₂
-  exact ⟨⟨by linarith, by linarith⟩, by linarith, by linarith⟩
-
 /-- The square punctured at its centre. -/
 private abbrev PuncturedSquare : Type := ↥(square \ {centre})
 
@@ -262,15 +244,13 @@ private theorem squareMap_mem_puncture (z : PuncturedSquare) :
     z.property.1).1 h))
 
 /-- The map `z ↦ ([z.1], [z.2])` of the punctured square onto the punctured torus. -/
-private def puncturedSquareMap (z : PuncturedSquare) : ConnectedSum.puncture ball :=
-  ⟨squareMap z, squareMap_mem_puncture z⟩
+private def puncturedSquareMap : C(PuncturedSquare, ConnectedSum.puncture ball) :=
+  ⟨fun z ↦ ⟨squareMap z, squareMap_mem_puncture z⟩,
+    (continuous_squareMap.comp continuous_subtypeVal).subtype_mk _⟩
 
 private theorem coe_puncturedSquareMap (z : PuncturedSquare) :
     (puncturedSquareMap z : EuclideanTorus) = squareMap z :=
   (rfl)
-
-private theorem continuous_puncturedSquareMap : Continuous puncturedSquareMap :=
-  (continuous_squareMap.comp continuous_subtypeVal).subtype_mk _
 
 private theorem puncturedSquareMap_surjective : Function.Surjective puncturedSquareMap := by
   intro x
@@ -294,52 +274,54 @@ private theorem isClosedMap_puncturedSquareMap : IsClosedMap puncturedSquareMap 
     rw [← hw, squareMap_eq_ball_zero_iff hwK]
     exact h
   · rintro ⟨z, hz, rfl⟩
-    exact ⟨z, ⟨hz, z.property.1⟩, rfl⟩
+    exact ⟨z, ⟨hz, z.property.1⟩, coe_puncturedSquareMap z⟩
 
 private theorem isQuotientMap_puncturedSquareMap : IsQuotientMap puncturedSquareMap :=
-  isClosedMap_puncturedSquareMap.isQuotientMap continuous_puncturedSquareMap
+  isClosedMap_puncturedSquareMap.isQuotientMap puncturedSquareMap.continuous
     puncturedSquareMap_surjective
+
+/-- The radial deformation of the punctured square, followed by its map to the punctured torus. -/
+private def squareDeform :=
+  (ContinuousMap.Homotopy.refl puncturedSquareMap).comp squareHomotopy
+
+private theorem squareDeform_apply (p : I × PuncturedSquare) :
+    squareDeform p = puncturedSquareMap (squareHomotopy p) := by
+  simp [squareDeform]
+
+/-- The deformation of the punctured square, carried to the punctured torus, is constant on the
+fibres of the map: the points that the map identifies lie on the boundary of the square, which the
+deformation fixes. -/
+private theorem squareDeform_eq_of_eq (t : I) (z w : PuncturedSquare)
+    (h : puncturedSquareMap z = puncturedSquareMap w) :
+    squareDeform (t, z) = squareDeform (t, w) := by
+  rw [squareDeform_apply, squareDeform_apply]
+  rcases eq_or_mem_sphere_of_squareMap_eq z.property.1 w.property.1 (congrArg Subtype.val h) with
+    h' | ⟨h₁, h₂⟩
+  · rw [Subtype.ext h']
+  · rw [squareHomotopy_apply_of_mem_sphere t h₁, squareHomotopy_apply_of_mem_sphere t h₂, h]
 
 /-! ### The deformation of the punctured torus onto the two circles -/
 
-/-- The radial deformation of the punctured square, carried to the punctured torus. -/
-private def deform (t : I) (x : ConnectedSum.puncture ball) : ConnectedSum.puncture ball :=
-  puncturedSquareMap (squareHomotopy (t, Function.surjInv puncturedSquareMap_surjective x))
+/-- The end of the radial deformation, descended to the punctured torus. -/
+private def retract : C(ConnectedSum.puncture ball, ConnectedSum.puncture ball) :=
+  isQuotientMap_puncturedSquareMap.lift (squareDeform.curry 0) fun z w h ↦ by
+    simpa only [ContinuousMap.Homotopy.curry_apply] using squareDeform_eq_of_eq 0 z w h
 
-/-- The deformation of the punctured torus is that of the punctured square: the points that the
-map identifies lie on the boundary of the square, which the deformation fixes. -/
-private theorem deform_puncturedSquareMap (t : I) (z : PuncturedSquare) :
-    deform t (puncturedSquareMap z) = puncturedSquareMap (squareHomotopy (t, z)) := by
-  rw [deform]
-  have hw := Function.surjInv_eq puncturedSquareMap_surjective (puncturedSquareMap z)
-  set w := Function.surjInv puncturedSquareMap_surjective (puncturedSquareMap z)
-  rcases eq_or_mem_sphere_of_squareMap_eq w.property.1 z.property.1 (congrArg Subtype.val hw) with
-    h | ⟨h₁, h₂⟩
-  · rw [Subtype.ext h]
-  · rw [squareHomotopy_apply_of_mem_sphere t h₁, squareHomotopy_apply_of_mem_sphere t h₂, hw]
+private theorem retract_comp_puncturedSquareMap :
+    retract.comp puncturedSquareMap = squareDeform.curry 0 :=
+  IsQuotientMap.lift_comp _ _ _
 
-private theorem continuous_deform :
-    Continuous fun p : I × ConnectedSum.puncture ball ↦ deform p.1 p.2 :=
-  isQuotientMap_puncturedSquareMap.continuous_lift_prod_right (by
-    simp only [deform_puncturedSquareMap, Prod.mk.eta]
-    exact continuous_puncturedSquareMap.comp squareHomotopy.continuous)
+private theorem retract_puncturedSquareMap (z : PuncturedSquare) :
+    retract (puncturedSquareMap z) = puncturedSquareMap (squareHomotopy (0, z)) := by
+  rw [← ContinuousMap.comp_apply, retract_comp_puncturedSquareMap,
+    ContinuousMap.Homotopy.curry_apply, squareDeform_apply]
 
-private theorem deform_zero_mem_circles (x : ConnectedSum.puncture ball) :
-    (deform 0 x : EuclideanTorus) ∈ circles := by
+private theorem retract_mem_circles (x : ConnectedSum.puncture ball) :
+    (retract x : EuclideanTorus) ∈ circles := by
   obtain ⟨z, rfl⟩ := puncturedSquareMap_surjective x
-  rw [deform_puncturedSquareMap, coe_puncturedSquareMap,
+  rw [retract_puncturedSquareMap, coe_puncturedSquareMap,
     squareMap_mem_circles_iff (squareHomotopy (0, z)).property.1]
   exact squareHomotopy_zero_mem_sphere z
-
-private theorem deform_one (x : ConnectedSum.puncture ball) : deform 1 x = x := by
-  obtain ⟨z, rfl⟩ := puncturedSquareMap_surjective x
-  rw [deform_puncturedSquareMap, ContinuousMap.Homotopy.apply_one, ContinuousMap.id_apply]
-
-private theorem deform_of_mem_circles (t : I) {x : ConnectedSum.puncture ball}
-    (hx : (x : EuclideanTorus) ∈ circles) : deform t x = x := by
-  obtain ⟨z, rfl⟩ := puncturedSquareMap_surjective x
-  rw [coe_puncturedSquareMap, squareMap_mem_circles_iff z.property.1] at hx
-  rw [deform_puncturedSquareMap, squareHomotopy_apply_of_mem_sphere t hx]
 
 /-- The inclusion of the two circles of the torus through `0` into the punctured torus. -/
 -- Exposed so that its value `⟨0, _⟩` at `0`, the base point of the fundamental groups that it
@@ -360,24 +342,41 @@ torus by `z ↦ ([z.1], [z.2])`. It is a left inverse of the inclusion
 with the inclusion is homotopic to the identity relative to the two circles
 (`SymplecticGeometry.EuclideanTorus.circlesHomotopyRel`). -/
 def circlesRetraction : C(ConnectedSum.puncture ball, circles) :=
-  ⟨fun x ↦ ⟨deform 0 x, deform_zero_mem_circles x⟩,
-    (continuous_subtypeVal.comp (continuous_deform.comp
-      (continuous_const.prodMk continuous_id))).subtype_mk _⟩
+  ⟨fun x ↦ ⟨retract x, retract_mem_circles x⟩,
+    (continuous_subtypeVal.comp retract.continuous).subtype_mk _⟩
 
 private theorem circlesInclusion_circlesRetraction (x : ConnectedSum.puncture ball) :
-    circlesInclusion (circlesRetraction x) = deform 0 x :=
+    circlesInclusion (circlesRetraction x) = retract x :=
   (rfl)
 
-private theorem coe_circlesRetraction (x : ConnectedSum.puncture ball) :
-    (circlesRetraction x : EuclideanTorus) = deform 0 x :=
-  (rfl)
+/-- The radial deformation of the punctured square, descended to the punctured torus by Tau Ceti's
+`Topology.IsQuotientMap.liftHomotopy`. -/
+private def deform :
+    (circlesInclusion.comp circlesRetraction).Homotopy (ContinuousMap.id _) :=
+  isQuotientMap_puncturedSquareMap.liftHomotopy squareDeform squareDeform_eq_of_eq
+    (fun z ↦ by
+      rw [ContinuousMap.comp_apply, circlesInclusion_circlesRetraction, retract_puncturedSquareMap,
+        ContinuousMap.Homotopy.apply_zero]
+      simp only [ContinuousMap.comp_apply])
+    (fun z ↦ by simp)
+
+private theorem deform_puncturedSquareMap (t : I) (z : PuncturedSquare) :
+    deform (t, puncturedSquareMap z) = puncturedSquareMap (squareHomotopy (t, z)) :=
+  (isQuotientMap_puncturedSquareMap.liftHomotopy_apply _ _ _ _ t z).trans (squareDeform_apply _)
+
+private theorem deform_of_mem_circles (t : I) {x : ConnectedSum.puncture ball}
+    (hx : (x : EuclideanTorus) ∈ circles) : deform (t, x) = x := by
+  obtain ⟨z, rfl⟩ := puncturedSquareMap_surjective x
+  rw [coe_puncturedSquareMap, squareMap_mem_circles_iff z.property.1] at hx
+  rw [deform_puncturedSquareMap, squareHomotopy_apply_of_mem_sphere t hx]
 
 /-- The retraction fixes the two circles. -/
 @[simp]
 theorem circlesRetraction_circlesInclusion (x : circles) :
-    circlesRetraction (circlesInclusion x) = x :=
-  Subtype.ext ((coe_circlesRetraction _).trans
-    (congrArg Subtype.val (deform_of_mem_circles 0 (x := circlesInclusion x) x.property)))
+    circlesRetraction (circlesInclusion x) = x := by
+  refine Subtype.ext ?_
+  rw [← coe_circlesInclusion_apply (circlesRetraction _), ← ContinuousMap.comp_apply,
+    ← deform.apply_zero, deform_of_mem_circles 0 x.property, coe_circlesInclusion_apply]
 
 /-- The retraction is a left inverse of the inclusion. -/
 theorem circlesRetraction_comp_circlesInclusion :
@@ -391,15 +390,12 @@ punctured square `[0, 1]²` onto its boundary, carried to the torus by `z ↦ ([
 def circlesHomotopyRel :
     (circlesInclusion.comp circlesRetraction).HomotopyRel (ContinuousMap.id _)
       (Subtype.val ⁻¹' circles) where
-  toFun p := deform p.1 p.2
-  continuous_toFun := continuous_deform
-  map_zero_left x := (circlesInclusion_circlesRetraction x).symm
-  map_one_left := deform_one
+  toHomotopy := deform
   prop' t x hx := (deform_of_mem_circles t hx).trans
-    ((circlesInclusion_circlesRetraction x).trans (deform_of_mem_circles 0 hx)).symm
+    ((deform.apply_zero x).symm.trans (deform_of_mem_circles 0 hx)).symm
 
 private theorem circlesHomotopyRel_apply (p : I × ConnectedSum.puncture ball) :
-    circlesHomotopyRel p = deform p.1 p.2 :=
+    circlesHomotopyRel p = deform p :=
   (rfl)
 
 /-- The homotopy in coordinates: at time `t`, the point `([a], [b])` of the punctured torus, with
@@ -414,14 +410,18 @@ theorem diffeomorph_circlesHomotopyRel_apply (t : I) (x : ConnectedSum.puncture 
           AddCircle (1 : ℝ)),
         ((1 / 2 + ((1 - t) * (1 / 2 / max |a - 1 / 2| |b - 1 / 2|) + t) * (b - 1 / 2) : ℝ) :
           AddCircle (1 : ℝ))] := by
-  have hxz : (x : EuclideanTorus) = squareMap (a, b) := by
-    rw [← diffeomorph.symm_apply_apply (x : EuclideanTorus), hx, squareMap]
+  have hxz : (x : EuclideanTorus) = squareMap (a, b) :=
+    EquivLike.injective diffeomorph (hx.trans (funext (Fin.forall_fin_two.2
+      ⟨by simp [squareMap], by simp [squareMap]⟩)))
   have hz : (a, b) ∈ square \ {centre} := ⟨⟨ha, hb⟩, fun h ↦ ConnectedSum.mem_puncture.1 x.property
     (hxz.trans ((squareMap_eq_ball_zero_iff ⟨ha, hb⟩).2 h))⟩
   obtain rfl : x = puncturedSquareMap ⟨(a, b), hz⟩ := Subtype.ext hxz
-  rw [circlesHomotopyRel_apply, deform_puncturedSquareMap, coe_puncturedSquareMap, squareMap,
-    Diffeomorph.apply_symm_apply, squareHomotopy, StarConvex.coe_radialHomotopy_apply]
-  simp [centre, Prod.norm_def]
+  rw [circlesHomotopyRel_apply, deform_puncturedSquareMap, coe_puncturedSquareMap]
+  refine funext (Fin.forall_fin_two.2 ⟨?_, ?_⟩)
+  · rw [diffeomorph_squareMap_zero, squareHomotopy, StarConvex.coe_radialHomotopy_apply]
+    simp [centre, Prod.norm_def]
+  · rw [diffeomorph_squareMap_one, squareHomotopy, StarConvex.coe_radialHomotopy_apply]
+    simp [centre, Prod.norm_def]
 
 /-- The retraction in coordinates: the point `([a], [b])` of the punctured torus, with `a`, `b` in
 `[0, 1]`, goes to `([1 / 2 + (a - 1 / 2) / (2 m)], [1 / 2 + (b - 1 / 2) / (2 m)])`, its radial
@@ -447,11 +447,11 @@ def circlesHomotopyEquiv : circles ≃ₕ ConnectedSum.puncture ball where
   right_inv := ⟨circlesHomotopyRel.toHomotopy⟩
 
 @[simp]
-theorem circlesHomotopyEquiv_toFun : circlesHomotopyEquiv.toFun = circlesInclusion :=
+theorem coe_circlesHomotopyEquiv : ⇑circlesHomotopyEquiv = circlesInclusion :=
   (rfl)
 
 @[simp]
-theorem circlesHomotopyEquiv_invFun : circlesHomotopyEquiv.invFun = circlesRetraction :=
+theorem coe_circlesHomotopyEquiv_symm : ⇑circlesHomotopyEquiv.symm = circlesRetraction :=
   (rfl)
 
 /-- The **fundamental group of the punctured torus** at `0` is that of its two circles through
