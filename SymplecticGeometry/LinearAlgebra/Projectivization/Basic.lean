@@ -25,6 +25,7 @@ For a linear form `φ` on a vector space `V` over a field `K`, every point `x` o
 
 * `Projectivization.apply_normalizedRep`: `φ` takes the value `1` on the normalized
   representative, on `Projectivization.linearProjectionDomain φ`.
+* `Projectivization.normalizedRep_ne_zero`: the normalized representative is nonzero there.
 * `Projectivization.apply_smul_normalizedRep`: a vector `u` of the line `x` is
   `φ u • normalizedRep φ x`.
 * `Projectivization.mem_range_map_iff`: over a division ring, a point is in the image of the map
@@ -109,6 +110,11 @@ theorem apply_normalizedRep {φ : V →ₗ[K] K} {x : ℙ K V} (hx : x ∈ linea
     φ (normalizedRep φ x) = 1 := by
   rw [mem_linearProjectionDomain_iff] at hx
   rw [normalizedRep_def, map_smul, smul_eq_mul, inv_mul_cancel₀ hx]
+
+/-- The normalized representative of a point of `linearProjectionDomain φ`, where `φ` does not
+vanish, is nonzero. -/
+theorem normalizedRep_ne_zero {φ : V →ₗ[K] K} {x : ℙ K V} (hx : x ∈ linearProjectionDomain φ) :
+    normalizedRep φ x ≠ 0 := fun h ↦ one_ne_zero (by rw [← apply_normalizedRep hx, h, map_zero])
 
 /-- A vector of the line `x` is the multiple of the normalized representative by its value
 under `φ`. -/
