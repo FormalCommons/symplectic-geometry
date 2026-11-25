@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Calculus.ContDiff.Bounds
+public import SymplecticGeometry.Analysis.Calculus.ContDiff.Basis
 public import TauCeti.Analysis.Sobolev.Wkp.Classical
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Basic
 public import TauCeti.MeasureTheory.Function.LpSeminorm.LpNorm
@@ -37,7 +37,8 @@ The proofs apply Tau Ceti's scalar results
 `Module.finBasis ℝ F`, which are the values of the `w i j` almost everywhere
 (`TauCeti.SectionChartData.value_ae_eq_repr_of_chartValueL_ae_eq`, the form for any function of
 Tau Ceti's `TauCeti.SectionChartData.value_ae_eq_repr_coord`). The derivatives of `f` and of its
-components are compared pointwise by `Module.Basis.norm_iteratedFDeriv_le_sum` and Mathlib's
+components are compared pointwise by `Module.Basis.norm_iteratedFDeriv_le_sum`
+(`SymplecticGeometry/Analysis/Calculus/ContDiff/Basis.lean`) and Mathlib's
 `ContinuousLinearMap.norm_iteratedFDeriv_comp_left`.
 -/
 
@@ -49,34 +50,6 @@ open MeasureTheory Module
 open scoped ENNReal
 
 universe u
-
-namespace Module.Basis
-
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜] {E : Type*}
-  [NormedAddCommGroup E] [NormedSpace 𝕜 E] {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
-  [FiniteDimensional 𝕜 F] {ι : Type*} [Fintype ι]
-
-/-- The `n`-th derivative of a function `f` with values in a finite-dimensional space, at a point
-where `f` is `Cⁿ`, has norm at most the sum over a basis `b` of `‖b j‖` times the norm of the
-`n`-th derivative of the `j`-th coordinate `y ↦ b.repr (f y) j`. -/
-theorem norm_iteratedFDeriv_le_sum (b : Basis ι 𝕜 F) {f : E → F} {x : E} {n : ℕ}
-    (hf : ContDiffAt 𝕜 n f x) :
-    ‖iteratedFDeriv 𝕜 n f x‖ ≤
-      ∑ j, ‖b j‖ * ‖iteratedFDeriv 𝕜 n (fun y ↦ b.repr (f y) j) x‖ := by
-  have hc (j : ι) : ContDiffAt 𝕜 n (fun y ↦ b.repr (f y) j) x :=
-    (LinearMap.toContinuousLinearMap (b.coord j)).contDiff.contDiffAt.comp x hf
-  have hf' : f = fun y ↦ ∑ j, b.repr (f y) j • b j := funext fun y ↦ (b.sum_repr (f y)).symm
-  nth_rw 1 [hf']
-  rw [iteratedFDeriv_fun_sum_apply (f := fun j y ↦ b.repr (f y) j • b j)
-    fun j _ ↦ (hc j).smul contDiffAt_const]
-  refine (norm_sum_le _ _).trans (Finset.sum_le_sum fun j _ ↦ ?_)
-  rw [iteratedFDeriv_smul_const_apply (hc j)]
-  refine (ContinuousLinearMap.norm_compContinuousMultilinearMap_le _ _).trans ?_
-  rw [ContinuousLinearMap.norm_smulRight_apply]
-  gcongr
-  exact mul_le_of_le_one_left (norm_nonneg _) ContinuousLinearMap.norm_id_le
-
-end Module.Basis
 
 namespace TauCeti
 
@@ -97,14 +70,6 @@ theorem value_ae_eq_repr_of_chartValueL_ae_eq {w : C.SobolevData μ p k} {i : Fi
       fun y ↦ (finBasis ℝ F).repr (f y) j := by
   filter_upwards [C.chartValueL_apply_ae μ p k i w, hw] with y hy hy'
   rw [← hy', hy, (finBasis ℝ F).repr_sum_self]
-
-omit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in
-/-- The components in the basis `Module.finBasis ℝ F` of a function that is `Cᵏ` on the image of
-chart `i` are `Cᵏ` there. -/
-private theorem contDiffOn_repr {i : Fin C.n} {f : E → F}
-    (hf : ContDiffOn ℝ k f (C.image i)) (j : Fin (finrank ℝ F)) :
-    ContDiffOn ℝ k (fun y ↦ (finBasis ℝ F).repr (f y) j) (C.image i) :=
-  (LinearMap.toContinuousLinearMap ((finBasis ℝ F).coord j)).contDiff.comp_contDiffOn hf
 
 omit [FiniteDimensional ℝ E] [μ.IsAddHaarMeasure] in
 /-- Almost everywhere on the image of chart `i`, the norm of the `m`-th derivative of a reading
@@ -128,7 +93,7 @@ theorem memLp_iteratedFDeriv_of_chartValueL_ae_eq {i : Fin C.n} (w : C.SobolevDa
     (hw : C.chartValueL μ p k i w =ᵐ[μ.restrict (C.image i)] f) :
     ∀ m ≤ k, MemLp (iteratedFDeriv ℝ m f) p (μ.restrict (C.image i)) := fun m hm ↦
   (memLp_finsetSum _ fun j _ ↦
-    ((Wkp.memLp_iteratedFDeriv_of_contDiffOn k (w i j) (contDiffOn_repr hf j)
+    ((Wkp.memLp_iteratedFDeriv_of_contDiffOn k (w i j) ((finBasis ℝ F).contDiffOn_repr hf j)
       (value_ae_eq_repr_of_chartValueL_ae_eq hw j) m hm).norm.const_mul _)).of_le
     ((ContinuousOn.continuousOn_iteratedFDeriv hf (C.image i).isOpen
       (by exact_mod_cast hm)).aestronglyMeasurable (C.image i).isOpen.measurableSet)
@@ -148,7 +113,7 @@ theorem lpNorm_iteratedFDeriv_le_of_chartValueL_ae_eq {i : Fin C.n} (w : C.Sobol
   set ν := μ.restrict (C.image i)
   set g := fun j : Fin (finrank ℝ F) ↦ fun z ↦ (finBasis ℝ F).repr (f z) j
   have hmem (j : Fin (finrank ℝ F)) : MemLp (iteratedFDeriv ℝ m (g j)) p ν :=
-    Wkp.memLp_iteratedFDeriv_of_contDiffOn k (w i j) (contDiffOn_repr hf j)
+    Wkp.memLp_iteratedFDeriv_of_contDiffOn k (w i j) ((finBasis ℝ F).contDiffOn_repr hf j)
       (value_ae_eq_repr_of_chartValueL_ae_eq hw j) m hm
   set φ := fun j y ↦ ‖iteratedFDeriv ℝ m (g j) y‖
   have hmem' (j : Fin (finrank ℝ F)) : MemLp (‖finBasis ℝ F j‖ • φ j) p ν :=
@@ -169,8 +134,9 @@ theorem lpNorm_iteratedFDeriv_le_of_chartValueL_ae_eq {i : Fin C.n} (w : C.Sobol
         rw [lpNorm_const_smul, coe_nnNorm, norm_norm, lpNorm_norm (hmem j).aestronglyMeasurable]
     _ ≤ ∑ j, ‖finBasis ℝ F j‖ * ‖w i‖ := by
         gcongr with j
-        exact (Wkp.lpNorm_iteratedFDeriv_le_of_contDiffOn k (w i j) (contDiffOn_repr hf j)
-          (value_ae_eq_repr_of_chartValueL_ae_eq hw j) m hm).trans (norm_le_pi_norm (w i) j)
+        exact (Wkp.lpNorm_iteratedFDeriv_le_of_contDiffOn k (w i j)
+          ((finBasis ℝ F).contDiffOn_repr hf j) (value_ae_eq_repr_of_chartValueL_ae_eq hw j) m
+          hm).trans (norm_le_pi_norm (w i) j)
     _ = (∑ j, ‖finBasis ℝ F j‖) * ‖w i‖ := (Finset.sum_mul ..).symm
 
 /-- **The components are controlled by the derivatives of a smooth reading.** If the chart data
@@ -184,14 +150,15 @@ theorem norm_le_mul_sum_lpNorm_iteratedFDeriv {i : Fin C.n} (w : C.SobolevData �
     ‖w i j‖ ≤ ‖LinearMap.toContinuousLinearMap ((finBasis ℝ F).coord j)‖ *
       ∑ m ∈ Finset.range (k + 1), lpNorm (iteratedFDeriv ℝ m f) p (μ.restrict (C.image i)) := by
   set c := LinearMap.toContinuousLinearMap ((finBasis ℝ F).coord j)
-  refine (Wkp.norm_le_sum_lpNorm_iteratedFDeriv_of_contDiffOn k (w i j) (contDiffOn_repr hf j)
-    (value_ae_eq_repr_of_chartValueL_ae_eq hw j)).trans ?_
+  refine (Wkp.norm_le_sum_lpNorm_iteratedFDeriv_of_contDiffOn k (w i j)
+    ((finBasis ℝ F).contDiffOn_repr hf j) (value_ae_eq_repr_of_chartValueL_ae_eq hw j)).trans ?_
   rw [Finset.mul_sum]
   refine Finset.sum_le_sum fun m hm ↦ ?_
   have hm : m ≤ k := Nat.lt_succ_iff.1 (Finset.mem_range.1 hm)
   refine lpNorm_le_mul_lpNorm_of_ae_le_mul
-    ((ContinuousOn.continuousOn_iteratedFDeriv (contDiffOn_repr hf j) (C.image i).isOpen
-      (by exact_mod_cast hm)).aestronglyMeasurable (C.image i).isOpen.measurableSet)
+    ((ContinuousOn.continuousOn_iteratedFDeriv ((finBasis ℝ F).contDiffOn_repr hf j)
+      (C.image i).isOpen (by exact_mod_cast hm)).aestronglyMeasurable
+      (C.image i).isOpen.measurableSet)
     (memLp_iteratedFDeriv_of_chartValueL_ae_eq w hf hw m hm)
     (ae_restrict_of_forall_mem (C.image i).isOpen.measurableSet fun y hy ↦ ?_)
   exact c.norm_iteratedFDeriv_comp_left
