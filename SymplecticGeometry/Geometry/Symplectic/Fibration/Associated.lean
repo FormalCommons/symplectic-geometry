@@ -6,13 +6,13 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Leibniz
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Associated.PullbackPrincipal
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Curvature
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
-public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Basic
 public import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Basic
@@ -180,18 +180,12 @@ theorem mextDerivₗ_momentPairing_apply (μ : F → Module.Dual ℝ (GroupLieAl
   have hd : MDifferentiableAt IF 𝓘(ℝ, GroupLieAlgebra IG G →L[ℝ] ℝ) (momentMapCLM μ hμs) p.2 :=
     (momentMapCLM μ hμs).contMDiff.mdifferentiableAt (by simp)
   rw [momentPairing_def, mextDerivₗ_apply, SmoothForm.coe_wedgeWith,
-    SmoothForm.mextDeriv_wedgeWith_apply, ← mextDerivₗ_apply, ← mextDerivₗ_apply,
-    SmoothForm.mextDerivₗ_mpullback, SmoothForm.mextDerivₗ_mpullback,
-    ← SmoothForm.coe_wedgeWith, ← SmoothForm.coe_wedgeWith, pow_zero, one_smul]
-  -- The wedges have degrees `0 + 1 + 1` and `0 + (1 + 1)`, which are `1 + 1` and `0 + 2` only
-  -- after unfolding the addition of natural numbers.
-  erw [SmoothForm.wedgeWith_apply_one_one, SmoothForm.wedgeWith_flip,
-    SmoothForm.wedgeWith_apply_zero_right]
-  simp only [Nat.zero_mul, pow_zero, one_smul, ContinuousLinearMap.flip_apply,
-    ContinuousLinearMap.id_apply, SmoothForm.mpullback_fst_apply, SmoothForm.mpullback_snd_apply,
-    mextDerivₗ_apply, SmoothForm.coe_ofFunction, mextDeriv_ofFunction, RoughForm.ofFunction_apply,
-    ContinuousAlternatingMap.ofSubsingleton_apply_apply, Matrix.cons_val_zero, Function.comp_def,
-    Fin.cast_eq_self, h₁, h₂]
+    SmoothForm.mextDeriv_wedgeWith_zero_one_apply, ← mextDerivₗ_apply, ← mextDerivₗ_apply,
+    SmoothForm.mextDerivₗ_mpullback, SmoothForm.mextDerivₗ_mpullback]
+  simp only [ContinuousLinearMap.id_apply, SmoothForm.mpullback_fst_apply,
+    SmoothForm.mpullback_snd_apply, mextDerivₗ_apply, SmoothForm.coe_ofFunction,
+    mextDeriv_ofFunction, RoughForm.ofFunction_apply,
+    ContinuousAlternatingMap.ofSubsingleton_apply_apply, Matrix.cons_val_zero, h₁, h₂]
   rw [← mvfderiv_clm_apply_const hd, ← mvfderiv_clm_apply_const hd]
   simp only [momentMapCLM_apply]
 
