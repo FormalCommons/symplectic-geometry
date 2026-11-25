@@ -20,6 +20,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
+import TauCeti.Geometry.Manifold.MFDeriv.Slice
 
 /-!
 # Connection forms on principal circle bundles
@@ -586,10 +587,9 @@ theorem IsCircleConnectionForm.apply_eq_mpullback_add_mpullback (hα : IsCircleC
   -- The derivative of `p ∘ s = id` is the identity, and that of `θ ∘ s = 1` vanishes.
   have hdps : mfderiv (IB.prod (𝓡 1)) IB p x u = mfderiv (IB.prod (𝓡 1)) IB p (s (p x)) w :=
     (ManifoldTotalSpace.mfderiv_proj_mfderiv_section_apply hsd _).symm
-  have hdθs : mfderiv (IB.prod (𝓡 1)) (𝓡 1) θ (s (p x)) w = 0 := by
-    have h := mfderiv_comp (p x) (hθd _ hxU) hsd
-    rw [show θ ∘ s = fun _ ↦ (1 : Circle) from funext hθs, mfderiv_const] at h
-    exact (DFunLike.congr_fun h _).symm
+  have hdθs : mfderiv (IB.prod (𝓡 1)) (𝓡 1) θ (s (p x)) w = 0 :=
+    TauCeti.mfderiv_mfderiv_apply_eq_zero_of_comp_eventuallyEq_const
+      (.of_eq (funext hθs : θ ∘ s = fun _ ↦ (1 : Circle))) _
   have hkey := hα.sub_apply_eq_of_mfderiv_proj_eq hθd hxU (hps (p x)).symm u w hdps
   have hℓ : TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) θ circleAngularForm (s (p x)) ![w] = 0 := by
     rw [mpullback_apply]
