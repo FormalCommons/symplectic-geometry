@@ -100,11 +100,7 @@ theorem complexEulerClass_twistPiCore_pullback (r : ℕ) :
   rw [totalChernClass_twistPiCore, one_smul, map_pow, map_add, map_one,
     evenIntegralCohomologyMap_hyperplaneClass]
   -- The component of degree `r + 1` of `(1 + ι^* h) ^ (r + 1)` is that of `(ι^* h) ^ (r + 1)`.
-  have h := TopCat.aeval_evenIntegralCohomologyOf_apply (TopCat.of X) X.hyperplaneClass
-    ((1 + Polynomial.X) ^ (r + 1)) (r + 1)
-  simp only [map_pow, map_add, map_one, Polynomial.aeval_X] at h
-  rw [h, add_comm (1 : Polynomial ℤ), Polynomial.coeff_X_add_one_pow, Nat.choose_self,
-    Nat.cast_one, one_smul]
+  rw [TopCat.one_add_evenIntegralCohomologyOf_pow_apply, Nat.choose_self, Nat.cast_one, one_smul]
 
 open scoped TauCeti.ComplexManifold in
 /-- **A generic tuple of linear forms.** Some surjective `ℓ : ℂⁿ⁺² → ℂⁿ` gives a section of
