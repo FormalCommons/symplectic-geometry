@@ -7,6 +7,8 @@ module
 
 public import TauCeti.Geometry.Symplectic.Manifold.Opens
 
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
+
 /-!
 # Pull-back of a nondegenerate two-form by a map with symplectic differential
 
@@ -39,6 +41,9 @@ a vector space.
 * `TauCeti.SmoothTwoForm.injective_mfderiv_of_mpullback_apply_eq`.
 * `TauCeti.SmoothTwoForm.IsNondegenerate.symplecticFormAt_mfderiv_mfderiv`: the symplectic form
   of `ω₁` at `f x₀` on two differentials of `f` is the pull-back `f^* ω₁` at `x₀`.
+* `TauCeti.SymplecticForm.mpullback_constSmooth_apply_eq_iff`: between two vector spaces with
+  constant symplectic forms, a map pulls one form back to the other at a point if and only if its
+  derivative there carries the first form to the second.
 
 ## References
 
@@ -128,5 +133,39 @@ theorem IsNondegenerate.symplecticFormAt_mfderiv_mfderiv {ω₁ : SmoothTwoForm 
     SmoothForm.eval₂_mpullback]
 
 end TauCeti.SmoothTwoForm
+
+namespace TauCeti.SymplecticForm
+
+variable {V W : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
+  [NormedAddCommGroup W] [NormedSpace ℝ W] [FiniteDimensional ℝ W]
+
+/-- A map `f : V → W` pulls the constant form `σ₂.constSmooth` back to `σ₁.constSmooth` at `z` if
+and only if its derivative at `z` carries `σ₁` to `σ₂`. -/
+theorem mpullback_constSmooth_apply_eq_iff (σ₁ : SymplecticForm V) (σ₂ : SymplecticForm W)
+    {f : V → W} {z : V} :
+    mpullback 𝓘(ℝ, V) 𝓘(ℝ, W) f σ₂.constSmooth.val z = σ₁.constSmooth.val z ↔
+      ∀ v w, σ₂ (fderiv ℝ f z v) (fderiv ℝ f z w) = σ₁ v w := by
+  have hσ₂ (x : W) (a b : TangentSpace 𝓘(ℝ, W) x) : σ₂.constSmooth.val x ![a, b] =
+      σ₂ (NormedSpace.fromTangentSpace x a) (NormedSpace.fromTangentSpace x b) :=
+    (SmoothBundleForm.eval₂_apply _ _ _ _).symm.trans (fromTangentSpace_constSmooth_apply σ₂ x a b)
+  have hσ₁ (x : V) (a b : TangentSpace 𝓘(ℝ, V) x) : σ₁.constSmooth.val x ![a, b] =
+      σ₁ (NormedSpace.fromTangentSpace x a) (NormedSpace.fromTangentSpace x b) :=
+    (SmoothBundleForm.eval₂_apply _ _ _ _).symm.trans (fromTangentSpace_constSmooth_apply σ₁ x a b)
+  have hσ₁' (x a b : V) : σ₁.constSmooth.val x ![a, b] = σ₁ a b :=
+    (SmoothBundleForm.eval₂_apply _ _ _ _).symm.trans (constSmooth_apply σ₁ x a b)
+  constructor
+  · intro h v w
+    have := (mpullback_apply_pair f σ₂.constSmooth.val z v w).symm.trans
+      (congrArg (fun α ↦ α ![v, w]) h)
+    rw [mfderiv_eq_fderiv, hσ₂, hσ₁' z v w] at this
+    simp only [ContinuousLinearMap.coe_comp, ContinuousLinearEquiv.coe_coe,
+      NormedSpace.fromTangentSpace_apply] at this
+    exact this
+  · intro h
+    refine ContinuousAlternatingMap.ext_fin_two fun v w ↦ ?_
+    rw [mpullback_apply_pair, mfderiv_eq_fderiv, hσ₂, hσ₁]
+    simpa using h _ _
+
+end TauCeti.SymplecticForm
 
 end
