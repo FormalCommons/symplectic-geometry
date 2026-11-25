@@ -97,8 +97,6 @@ theorem exists_contMDiff_mextDeriv_eq_mpullback_prodMk [CompactSpace Q]
   obtain ⟨W, hWO, Φ, hΦ⟩ := f.exists_diffeomorph_normalBundle_subset (P := P) hdim hO hfO
   let := f.normalSpaceFiberBundle hn hdim
   let := f.normalSpaceVectorBundle hn hdim
-  have : IsManifold J ((∞ : ℕ∞ω) + 1) Q := IsManifold.of_le (n := ∞) (by simp)
-  have : IsManifold I ((∞ : ℕ∞ω) + 1) M := IsManifold.of_le (n := ∞) (by simp)
   have := f.normalSpaceContMDiffVectorBundle (m := ∞) hn (by simp) hdim
   let N := fun q ↦ f.NormalSpace q hn
   have hfW (q : Q) : f q ∈ W := hΦ q ▸ (Φ _).property
