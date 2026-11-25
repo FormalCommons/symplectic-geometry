@@ -34,46 +34,34 @@ namespace SimpleGraph
 variable {V : Type*} (G : SimpleGraph V) {Δ : ℕ}
 
 /-- The greedy step: a colouring of the vertices that is proper on a finite set `s` extends
-to one that is proper on `insert a s`, changing only the colour of `a`. -/
+to one that is proper on `insert a s`. -/
 private theorem exists_proper_insert [DecidableEq V] [G.LocallyFinite]
     (hdeg : ∀ v, G.degree v ≤ Δ)
     {s : Finset V} {a : V} (f : V → Fin (Δ + 1))
     (hf : ∀ u ∈ s, ∀ v ∈ s, G.Adj u v → f u ≠ f v) :
     ∃ g : V → Fin (Δ + 1), ∀ u ∈ insert a s, ∀ v ∈ insert a s, G.Adj u v → g u ≠ g v := by
   -- The colours of the neighbours of `a` in `s` do not exhaust `Fin (Δ + 1)`.
-  obtain ⟨c, hc⟩ : ∃ c, c ∉ ((G.neighborFinset a).filter (· ∈ s)).image f := by
-    by_contra! h
-    have hle := Finset.card_le_card (fun c _ ↦ h c :
-      (Finset.univ : Finset (Fin (Δ + 1))) ⊆ ((G.neighborFinset a).filter (· ∈ s)).image f)
-    have h1 := (Finset.card_image_le (s := (G.neighborFinset a).filter (· ∈ s)) (f := f)).trans
-      (Finset.card_filter_le _ _)
-    rw [Finset.card_univ, Fintype.card_fin] at hle
-    rw [card_neighborFinset_eq_degree] at h1
-    have := hdeg a
-    omega
+  obtain ⟨c, -, hc⟩ := Finset.exists_mem_notMem_of_card_lt_card (t := Finset.univ)
+      (s := ((G.neighborFinset a).filter (· ∈ s)).image f) <|
+    Finset.card_image_le.trans_lt <| (Finset.card_filter_le _ _).trans_lt <| by
+      simpa [card_neighborFinset_eq_degree] using Nat.lt_succ_of_le (hdeg a)
   refine ⟨Function.update f a c, ?_⟩
   have key : ∀ u ∈ s, G.Adj a u → c ≠ f u := fun u hu hau h ↦
     hc (Finset.mem_image.2 ⟨u, Finset.mem_filter.2 ⟨(G.mem_neighborFinset a u).2 hau, hu⟩,
       h.symm⟩)
   intro u hu v hv huv
-  rw [Finset.mem_insert] at hu hv
   have hne : u ≠ v := G.ne_of_adj huv
-  rcases hu with rfl | hu <;> rcases hv with rfl | hv
-  · exact absurd rfl hne
-  · rw [Function.update_self, Function.update_of_ne (Ne.symm hne)]
-    exact key v hv huv
-  · rw [Function.update_self, Function.update_of_ne hne]
-    exact (key u hu huv.symm).symm
-  · by_cases hua : u = a
-    · subst hua
-      rw [Function.update_self, Function.update_of_ne (Ne.symm hne)]
-      exact key v hv huv
-    by_cases hva : v = a
-    · subst hva
-      rw [Function.update_self, Function.update_of_ne hne]
-      exact (key u hu huv.symm).symm
-    rw [Function.update_of_ne hua, Function.update_of_ne hva]
-    exact hf u hu v hv huv
+  by_cases hua : u = a
+  · subst hua
+    rw [Function.update_self, Function.update_of_ne (Ne.symm hne)]
+    exact key v (Finset.mem_of_mem_insert_of_ne hv (Ne.symm hne)) huv
+  have hu' := Finset.mem_of_mem_insert_of_ne hu hua
+  by_cases hva : v = a
+  · subst hva
+    rw [Function.update_self, Function.update_of_ne hne]
+    exact (key u hu' huv.symm).symm
+  rw [Function.update_of_ne hua, Function.update_of_ne hva]
+  exact hf u hu' v (Finset.mem_of_mem_insert_of_ne hv hva) huv
 
 /-- A graph on a finite type in which every vertex has degree at most `Δ` is
 `(Δ + 1)`-colourable. -/

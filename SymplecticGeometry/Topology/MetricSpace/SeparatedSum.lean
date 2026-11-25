@@ -14,10 +14,13 @@ import TauCeti.Analysis.SpecialFunctions.Gaussian.Basic
 # Gaussian sums over sets of polynomial growth
 
 Let `S` be a finite set of points of a pseudometric space and `y` a point, such that every closed
-ball `closedBall y r` contains at most `C * (1 + r) ^ m` points of `S`. This holds, with `C` and
-`m` independent of `y`, for a `1`-separated set in a space whose balls have volume of polynomial
-growth (Tau Ceti's `Metric.IsSeparated.card_mul_le_measure_cthickening`), such as a separated net
-in a manifold of real dimension `m` with a rescaled metric. We bound sums over `S` of Gaussians
+ball `closedBall y r` contains at most `C * (1 + r) ^ m` points of `S`. For a `1`-separated set
+`S` in a metric measure space, Tau Ceti's `Metric.IsSeparated.card_mul_le_measure_cthickening`
+gives this, with `C` and `m` independent of `y`, under two conditions: the balls of radius
+`1 / 2` about the points of `S` have measure at least a fixed `μ₀ > 0`, and the closed
+`1 / 2`-thickening of `closedBall y r` has measure at most a fixed multiple of `(1 + r) ^ m`.
+Both hold, for instance, for a separated net in a compact manifold of real dimension `m` with a
+rescaled metric. We bound sums over `S` of Gaussians
 centred at `y`, with constants that depend only on `C`, `m` and the Gaussian, not on `S` or `y`.
 
 ## Main results
@@ -85,15 +88,16 @@ theorem sum_inv_one_add_dist_pow_le
           push_cast
           field_simp
           ring
-  refine (sum_le_sum hshell).trans ?_
-  rw [← mul_sum, pow_succ, mul_comm (2 ^ m : ℝ) 2, mul_assoc 2, mul_comm 2 (2 ^ m * C)]
-  gcongr
   -- `∑ j < N, 1 / (j + 1) ^ 2 ≤ 2`.
-  have h := sum_Ioo_inv_sq_le (α := ℝ) 0 (N + 1)
-  rw [range_eq_Ico, sum_Ico_add' (fun i : ℕ ↦ ((i : ℝ) ^ 2)⁻¹)]
-  convert h using 2
-  · ext i; simp; omega
-  · norm_num
+  have hsum : ∑ j ∈ range N, (((j + 1 : ℕ) : ℝ) ^ 2)⁻¹ ≤ 2 := by
+    have h := sum_Ioo_inv_sq_le (α := ℝ) 0 (N + 1)
+    rw [range_eq_Ico, sum_Ico_add' (fun i : ℕ ↦ ((i : ℝ) ^ 2)⁻¹),
+      Finset.Ico_add_one_left_eq_Ioo]
+    exact h.trans (by norm_num)
+  calc _ ≤ ∑ j ∈ range N, 2 ^ m * C * ((((j + 1 : ℕ) : ℝ) ^ 2)⁻¹) := sum_le_sum hshell
+    _ = 2 ^ m * C * ∑ j ∈ range N, (((j + 1 : ℕ) : ℝ) ^ 2)⁻¹ := (mul_sum ..).symm
+    _ ≤ 2 ^ m * C * 2 := by gcongr
+    _ = 2 ^ (m + 1) * C := by ring
 
 /-- If every closed ball of radius `r` about `y` contains at most `C * (1 + r) ^ m` points of `S`,
 then for `0 < c` the sum of `(1 + dist x y) ^ k * exp (-c * dist x y ^ 2)` over `S` is at most
@@ -125,9 +129,10 @@ theorem sum_one_add_dist_pow_mul_exp_le_of_le_dist
     ∑ x ∈ S with R ≤ dist x y, (1 + dist x y) ^ k * exp (-c * dist x y ^ 2) ≤
       (k + m + 2)! / (c / 4) ^ (k + m + 2) * exp (c / 2) * (2 ^ (m + 1) * C) *
         exp (-(c / 2) * R ^ 2) := by
-  have hmain := sum_one_add_dist_pow_mul_exp_le hS (half_pos hc) k
-  rw [div_div] at hmain
-  norm_num at hmain
+  have hmain : ∑ x ∈ S, (1 + dist x y) ^ k * exp (-(c / 2) * dist x y ^ 2) ≤
+      (k + m + 2)! / (c / 4) ^ (k + m + 2) * exp (c / 2) * (2 ^ (m + 1) * C) := by
+    have h4 : c / 2 / 2 = c / 4 := by ring
+    simpa only [h4] using sum_one_add_dist_pow_mul_exp_le hS (half_pos hc) k
   refine le_trans ?_ (mul_le_mul_of_nonneg_right hmain (exp_pos _).le)
   rw [sum_mul]
   refine (sum_le_sum fun x hx ↦ ?_).trans (sum_le_sum_of_subset_of_nonneg (filter_subset _ _)
