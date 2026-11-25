@@ -2119,11 +2119,7 @@ it, its design adds it.
   direction of the classification, with the parametric smoothness of issue 10.
   *Standard model* for the corollary on `Matrix.symplecticGroup`, for
   `stdForm` and `complexToRealEuclidean` in the standard Hermitian case, and
-  for `StdSpace.sumEquiv` with its two lemmas, which exist (#232).
-  *Liouville structures* for
-  `Geometry/Manifold/ModelTransport/InteriorModel.lean` (the interior re-modelled
-  over `E`, `SymplecticGeometry.InteriorModel`), in
-  `Section/Nonvanishing.lean`. The
+  for `StdSpace.sumEquiv` with its two lemmas, which exist (#232). The
   part uses nothing from *Compatible complex structures* (part 9) beyond what
   Tau Ceti already has: the fibrewise constructions it needs (the Cayley path,
   $J_{g,\omega}$, $\omega_{g,J}$, the complex-linear part) are Tau Ceti's
