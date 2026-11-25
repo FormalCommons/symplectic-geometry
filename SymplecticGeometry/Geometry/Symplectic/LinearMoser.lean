@@ -16,6 +16,7 @@ public import SymplecticGeometry.Analysis.Calculus.Deriv.ContinuousLinearMap
 import TauCeti.Analysis.Calculus.FDeriv.Prod
 import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
 import TauCeti.Analysis.Calculus.FDeriv.Mul
+import TauCeti.Analysis.Calculus.MeanValue
 import TauCeti.Analysis.ODE.Regularity
 import SymplecticGeometry.Analysis.Normed.Operator.BoundedSMul
 
@@ -190,9 +191,7 @@ theorem apply_dysonSeriesLeft_moserGenerator (hω : ContDiff ℝ 1 ω)
       smul_apply, smul_eq_mul, smul_eq_mul,
       deriv_apply_apply_eq_neg (.of_forall hskew) (Ψ s v)]
     ring
-  have hconst := is_const_of_deriv_eq_zero (fun s => (hf s).differentiableAt)
-    fun s => (hf s).deriv
-  simpa [Ψ] using hconst t 0
+  simpa [Ψ] using TauCeti.is_const_of_hasDerivAt_zero hf t 0
 
 /-- The propagator of the Moser generator of a `Cⁿ⁺¹` path of invertible forms is `Cⁿ⁺¹`. -/
 theorem contDiff_dysonSeriesLeft_moserGenerator {n : ℕ∞} (hω : ContDiff ℝ (n + 1) ω)

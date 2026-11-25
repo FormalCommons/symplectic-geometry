@@ -7,7 +7,7 @@ module
 
 public import Mathlib.CategoryTheory.Abelian.GrothendieckAxioms.Basic
 public import TauCeti.AlgebraicTopology.Singular.Additivity
-public import SymplecticGeometry.AlgebraicTopology.Singular.Nullhomotopic
+public import TauCeti.AlgebraicTopology.Singular.Contractible
 public import SymplecticGeometry.Topology.Category.TopCat.Monoidal
 
 /-!
@@ -27,7 +27,7 @@ identity of `Hₙ(ι ⊗ X)` (`TopCat.sum_singularHomologyFunctor_map_prodFiberR
 finite coproducts are involved there, which are exact in every abelian category. On the fibre
 over `j`, the term of index `j` is the identity, and every other term vanishes, since the fibre
 inclusion followed by the retraction onto another fibre is constant, so it induces zero in
-positive degree (`TopCat.singularHomologyFunctor_map_const_eq_zero`).
+positive degree (`TauCeti.singularHomologyFunctor_map_const_eq_zero`).
 
 ## Main results
 
@@ -101,8 +101,10 @@ theorem singularHomologyFunctor_map_prodFiberInclusion_comp_prodFiberRetraction 
   split_ifs with h
   · subst h
     rw [prodFiberInclusion_comp_prodFiberRetraction, CategoryTheory.Functor.map_id]
-  · rw [prodFiberInclusion_comp_prodFiberRetraction_of_ne ι x₀ h,
-      singularHomologyFunctor_map_const_eq_zero R x₀ hn]
+  · rw [prodFiberInclusion_comp_prodFiberRetraction_of_ne ι x₀ h]
+    -- `TopCat.const x₀` is `TopCat.ofHom (ContinuousMap.const _ x₀)` up to unfolding, and Mathlib
+    -- has no lemma that states it
+    exact TauCeti.singularHomologyFunctor_map_const_eq_zero R x₀ hn
 
 end FiberComp
 
