@@ -58,9 +58,11 @@ in `ξ` (`SymplecticGeometry.IsContactFamily.velocity_grayDiffeotopy_mem`). It t
 `ψ_t^* ξ_t = ξ_0` (`SymplecticGeometry.IsContactFamily.transports_grayDiffeotopy`), by an
 open-and-closed argument in `t`. Near a time `t₀` and the point `ψ_{t₀} x`, a local defining
 family `α` on `ℝ × U` has, at the times of `[0, 1]` near `t₀`, the restriction of the Gray field
-to `U` as its Gray vector field. By Gray's equation and the rescaling theorem along one trajectory
-of `Flow/Family.lean`, the flow of that restriction, which is the flow of the Gray field, rescales
-`α` along the trajectory of `ψ_{t₀} x`, so its differential carries `ξ_{t₀}` onto `ξ_t` there. With
+to `U` as its Gray vector field. By Gray's equation and the rescaling theorem along one
+trajectory of Tau Ceti (in the namespace `TauCeti`,
+`mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_forall_mem_uIcc`),
+the flow of that restriction, which is the flow of the Gray field, rescales `α` along the
+trajectory of `ψ_{t₀} x`, so its differential carries `ξ_{t₀}` onto `ξ_t` there. With
 the cocycle property of the flow, the pullback of `ξ_t` by `ψ_t` at `x` is a locally constant
 function of `t`, equal to `ξ_0 x` at `t = 0`, and `[0, 1]` is connected.
 
@@ -512,16 +514,15 @@ private theorem eventually_comap_mfderiv_timeDependentFlowOf (hξ : IsContactFam
     rw [← hgray u (huIcc hu).2 a b (huIcc hu).1 U y y.property α hα]
     exact Manifold.tangentSpaceOpenEquiv_apply _ _
   have hdomU := uIcc_subset_setOf_mem_timeDependentFlowDomain hdom
-  -- Along the trajectory of `y₀'`, the flow of `XU` rescales `α` (the name of the theorem does not
-  -- fit in an indented line).
+  -- Along the trajectory of `y₀'`, the flow of `XU` rescales `α`.
   have key :=
-mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_forall_mem_uIcc_of_mem
+    mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_forall_mem_uIcc
       (X := XU) (α := α.val) (hXU.of_le (by simp)) hdom
-      (fun u _ ↦ (α.contMDiff.of_le (by simp)).contMDiffAt)
-      (c := fun u ↦ α.grayRate (u, timeDependentFlowOf XU t₀ u y₀'))
+      (g := fun u ↦ α.grayRate (u, timeDependentFlowOf XU t₀ u y₀'))
       ((contMDiff_grayRate hc).continuous.comp_continuousOn (continuousOn_id.prodMk
         fun u hu ↦ (hasMFDerivAt_timeDependentFlowOf hXU₁ (hdomU hu)).continuousAt
           |>.continuousWithinAt))
+      (fun u _ ↦ (α.contMDiff.of_le (by simp)).contMDiffAt)
       (fun u hu ↦ by
         rw [hXUα u hu]
         exact congrFun (mpullback_prodMk_mlieDerivForm_add_mlieDerivForm_grayVectorField (hc u)) _)

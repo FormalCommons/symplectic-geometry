@@ -169,15 +169,15 @@ review of #420 raise four more.
 
   Only `Y` on `[0, 1] × M` enters the statements, so the choices of steps 1
   and 3 leave no trace in them.
-- **Transport along the flow.** Tau Ceti's rescaling theorems for flows ask
+- **Transport along the flow.** Tau Ceti's rescaling theorems for whole flows ask
   for the Gray equation at every point of `M` and every real time; here it
-  holds only where a local form defines `ξ`. The library therefore adds the
-  rescaling theorem *along one trajectory* (in
-  `Geometry/Manifold/DifferentialForm/Flow/Family.lean`, below), with the
-  hypothesis only at the points $(u,\varphi_{s,u}x)$, $u$ between $s$ and
-  $t$; Tau Ceti has this for the invariance case
-  (`TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_forall_mem_uIcc_of_mem`)
-  but not for the rescaling case. For a fixed `x`, the set of
+  holds only where a local form defines `ξ`. Tau Ceti also has the
+  rescaling theorem *along one trajectory*
+  (`TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_forall_mem_uIcc`),
+  with the hypothesis only at the points $(u,\varphi_{s,u}x)$, $u$ between
+  $s$ and $t$, and the same for the invariance case
+  (`TauCeti.mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_of_forall_mem_uIcc_of_mem`).
+  For a fixed `x`, the set of
   $t\in[0,1]$ at which $d\psi_t$ carries $\xi_0(x)$ onto
   $\xi_t(\psi_tx)$ is open and closed in `[0, 1]`: near any
   $(t_0,\psi_{t_0}x)$ one local defining form serves for all nearby times,
@@ -325,42 +325,21 @@ review of #420 raise four more.
 
 ### `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
 
-Named like Tau Ceti's file, in the namespace `TauCeti`. Three theorems on
+Named like Tau Ceti's file, in the namespace `TauCeti`. A theorem on
 local time-dependent flows, then the slice and velocity lemmas described at
-the end of this section. The first is the rescaling form of Moser's
-principle along a single trajectory:
-
-```lean
-theorem mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_forall_mem_uIcc_of_mem
-    (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 2 (fun p : ℝ × M ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I M)))
-    {s t : ℝ} {x : M} (h : ((s, t), x) ∈ timeDependentFlowDomain X)
-    (hα : ∀ u ∈ uIcc s t, ContMDiffAt … 1 (fun p ↦ TotalSpace.mk' _ p (α p)) (u, timeDependentFlowOf X s u x))
-    {c : ℝ → ℝ} (hc : ContinuousOn c (uIcc s t))
-    (hL : ∀ u ∈ uIcc s t, (mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u)
-          (mlieDerivForm (fun _ ↦ ((1 : ℝ), (0 : E))) α) +
-        mlieDerivForm (X u) (mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u) α))
-          (timeDependentFlowOf X s u x) =
-        c u • mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk u) α (timeDependentFlowOf X s u x)) :
-    mpullback I I (timeDependentFlowOf X s t) (mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk t) α) x =
-      Real.exp (∫ u in s..t, c u) • mpullback I (𝓘(ℝ, ℝ).prod I) (Prod.mk s) α x
-```
-
-with Tau Ceti's variables of that file (`α : RoughForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) F k`).
-The proof is that of Tau Ceti's
-`mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem`
-with the hypothesis read only along the trajectory, through
-`hasDerivAt_mpullback_timeDependentFlowOf_mpullback_prodMk`, as Tau Ceti's
-`…_apply_eq_of_forall_mem_uIcc_of_mem` does for the invariance case; the
-module docstring credits both. The rate `c` is a function of time only,
-because along one trajectory nothing else is needed. Expected size: 100
-lines.
+the end of this section. The rescaling form of Moser's principle along a
+single trajectory, which `Gray.lean` uses, is not in this file: it is Tau
+Ceti's
+`mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_forall_mem_uIcc`,
+in Tau Ceti's file of the same path, with its rate `g` a function of time
+only.
 
 The invariance of a closed form whose contractions are closed, which
 *Hamiltonian flows* uses, is Tau Ceti's
 `mpullback_timeDependentFlowOf_apply_of_mextDeriv_interior_eq_zero`, in
 `TauCeti/Geometry/Manifold/DifferentialForm/Flow/TimeDependent.lean`.
 
-The third, added by *Contact geometry* for `Contact/Hamiltonian.lean`, is
+The theorem of the file, added by *Contact geometry* for `Contact/Hamiltonian.lean`, is
 Tau Ceti's
 `mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_mem`
 for the constant family of a form satisfying the eigenform equation, whose
@@ -661,7 +640,7 @@ Named like Tau Ceti's file. With `[I.Boundaryless] [T2Space M] [CompactSpace M]`
   `TauCeti.timeDependentFlowDiffeotopy` of the field chosen by
   `exists_grayField` (complete since `M` is compact), with
   `IsContactFamily.transports_grayDiffeotopy` (the clopen argument of
-  *Decisions*, through the trajectory theorem of `Flow/Family.lean`) and
+  *Decisions*, through Tau Ceti's trajectory theorem in `Flow/Family.lean`) and
   `IsContactFamily.velocity_grayDiffeotopy_mem` (its velocity lies in `ξ`).
   The definition is a choice; only the existence and uniqueness below are
   meant to be used.

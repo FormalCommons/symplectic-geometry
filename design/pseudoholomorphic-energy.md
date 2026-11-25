@@ -213,14 +213,15 @@ real singular cohomology.
    on the dimension. Tau Ceti's roadmap plans the general statement; when
    it arrives, the library's surface case becomes a corollary to be
    replaced in a refactor.
-7. **Relative cycles without a relative smoothing theorem.** The local step
-   needs: if a smooth cycle $z$ and a smooth chain $\sigma$ with boundary in
-   an open $U$ have the same class in the continuous relative homology
+7. **Relative cycles from Tau Ceti's relative smoothing theorem.** The local
+   step needs: if a smooth cycle $z$ and a smooth chain $\sigma$ with boundary
+   in an open $U$ have the same class in the continuous relative homology
    $H_2(M,U)$, then $z-\sigma=\partial b+c$ with $b$ smooth and $c$ a smooth
-   chain in $U$. This follows from the absolute smoothing theorem for $M$
-   and for $U$ (both pinned): through the relative chains of the pairs of
-   simplicial sets of smooth and of continuous simplices, and Tau Ceti's
-   `SSetPair.quasiIso_chainComplexMap`; it is one lemma.
+   chain in $U$. This follows from Tau Ceti's relative smoothing theorem in
+   `TauCeti/Geometry/Manifold/SmoothSingular/Relative.lean`: the pair
+   `TauCeti.smoothSingularPair`, its inclusion `TauCeti.smoothSingularPairι`
+   into the pair of continuous simplices, and the instance
+   `TauCeti.quasiIso_chainComplexMap_smoothSingularPairι`; it is one lemma.
 8. **Tau Ceti's energy is used as it is.** The energy of a map from a
    surface is Tau Ceti's `Energy/Surface.lean`, and the library defines no
    `energyForm` or `energy` of its own. Before the pinned version had that
@@ -404,11 +405,11 @@ It imports Tau Ceti's `Manifold/Energy/Surface.lean`, and
   vanishing in relative homology is the hypothesis that, as a continuous
   chain, `w = ∂ B + A` with `A` a chain of `U` (the chain-level meaning of
   vanishing in the relative chains of `TopPair`), so issue 8 passes from
-  the classes it compares to such a decomposition. Proof: the inclusion of
-  smooth into continuous simplices is a morphism from the pair of smooth
-  simplices of `(M, U)` to that of continuous ones, a quasi-isomorphism on
-  relative chains by smoothing for `U` and for `M` and
-  `SSetPair.quasiIso_chainComplexMap`; the image of `w` in the smooth
+  the classes it compares to such a decomposition. Proof: Tau Ceti's
+  `TauCeti.smoothSingularPairι` maps `TauCeti.smoothSingularPair` to the
+  pair of continuous simplices of `(M, U)`, and is a quasi-isomorphism on
+  relative chains (`TauCeti.quasiIso_chainComplexMap_smoothSingularPairι`);
+  the image of `w` in the smooth
   relative chains is a cycle that bounds continuously, hence smoothly, and
   lifting that bound gives `b`.
 

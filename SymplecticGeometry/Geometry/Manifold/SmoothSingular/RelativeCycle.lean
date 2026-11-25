@@ -9,10 +9,10 @@ public import SymplecticGeometry.AlgebraicTopology.Singular.RelativeClass
 public import TauCeti.Algebra.Category.ModuleCat.AB
 public import TauCeti.Geometry.Manifold.SmoothSingular.Smoothing
 
-import Mathlib.Topology.Category.TopCat.EpiMono
 import TauCeti.Algebra.Homology.ModuleCat.Basic
 import TauCeti.Algebra.Homology.ModuleCat.QuasiIso
 import TauCeti.AlgebraicTopology.SimplicialSet.Homology.Relative.Basic
+import TauCeti.Geometry.Manifold.SmoothSingular.Relative
 
 /-!
 # Smooth chains that vanish in relative singular homology
@@ -24,14 +24,12 @@ vanishes in the singular homology of `(M, U)` when, as a continuous singular cha
 `w = ∂ B + A` with `B` a singular chain of `M` and `A` a singular chain of `U`. This file proves
 that `B` and `A` can then be taken smooth (`TauCeti.exists_smoothSingular_eq_d_add`).
 
-The proof passes to the pairs of simplicial sets formed by the smooth, and by the continuous,
-singular simplices of `U` and of `M`. The inclusion of smooth into continuous simplices is a
-morphism of pairs; by the smoothing theorem for `U` and for `M`
-(`TauCeti.quasiIso_chainComplexMap_smoothSingularSubcomplex_ι_opens` and
-`TauCeti.quasiIso_chainComplexMap_smoothSingularSubcomplex_ι`) and the five lemma for
-relative chains (`SSetPair.quasiIso_chainComplexMap`), it is a quasi-isomorphism on relative
-chains. Injectivity on homology, on elements (`HomologicalComplex.moduleCat_quasiIsoAt_iff`), and
-the degreewise exactness of the sequence of a pair then give the statement.
+The proof passes to Tau Ceti's smooth singular pair `TauCeti.smoothSingularPair I U` and its
+inclusion `TauCeti.smoothSingularPairι I U` into the singular pair of `(M, U)`, which is a
+quasi-isomorphism on relative chains by Tau Ceti's relative smoothing theorem
+(`TauCeti.quasiIso_chainComplexMap_smoothSingularPairι`). Injectivity on homology, on elements
+(`HomologicalComplex.moduleCat_quasiIsoAt_iff`), and the degreewise exactness of the sequence of
+a pair then give the statement.
 
 It follows that a smooth cycle `z` and a smooth `(n + 1)`-simplex `σ` whose faces lie in `U`, with
 the same class in the singular homology of `(M, U)`, satisfy `z - σ = ∂ b + c` with `b` a smooth
@@ -96,35 +94,33 @@ theorem exists_smoothSingular_eq_d_add (U : Opens M) {n p m : ℕ}
       w = ((smoothSingularSubcomplex I M : SSet).chainComplex R).d p n b +
         (SSet.chainComplexMap (smoothSingularSubcomplexMap (Subtype.val : U → M)
           (contMDiff_subtypeVal (I := I))) R).f n c := by
-  -- The pairs `(M, U)` of smooth and of continuous singular simplices, and the morphism of pairs
-  -- given by the inclusions of smooth into continuous simplices; by smoothing for `U` and for `M`
-  -- (`SSetPair.quasiIso_chainComplexMap`) it is a quasi-isomorphism on relative chains.
-  have : Mono (TopCat.ofHom (ContinuousMap.subtypeVal (U : Set M))) :=
-    (TopCat.mono_iff_injective _).2 Subtype.val_injective
-  let Ps := SSetPair.of (smoothSingularSubcomplexMap (Subtype.val : U → M)
-    (contMDiff_subtypeVal (I := I)))
-  let Pc := SSetPair.of (TopCat.toSSet.map (TopCat.ofHom (ContinuousMap.subtypeVal (U : Set M))))
-  let f : Ps ⟶ Pc := SSetPair.homMk (smoothSingularSubcomplex I U).ι
-    (smoothSingularSubcomplex I M).ι (smoothSingularSubcomplexMap_subtypeVal_ι U).symm
-  have : QuasiIso (SSet.chainComplexMap f.left R) :=
-    quasiIso_chainComplexMap_smoothSingularSubcomplex_ι_opens R U
-  have : QuasiIso (SSet.chainComplexMap f.right R) :=
-    quasiIso_chainComplexMap_smoothSingularSubcomplex_ι R
-  have := SSetPair.quasiIso_chainComplexMap f R
+  -- Tau Ceti's smooth singular pair of `(M, U)`, the singular pair of `(M, U)`, and the inclusion
+  -- of the first into the second, a quasi-isomorphism on relative chains by the relative
+  -- smoothing theorem (`quasiIso_chainComplexMap_smoothSingularPairι`).
+  let Ps := smoothSingularPair I U
+  let Pc := TopPair.toSSetPair.obj (TopPair.ofSubset (U : Set (TopCat.of M)))
+  let f : Ps ⟶ Pc := smoothSingularPairι I U
   -- Restate the claim through the pairs. The chain complexes of `Ps.right` and of the smooth
-  -- simplices of `M` (and so on) agree only by unfolding `SSetPair.of`, so `rw` cannot pass from
-  -- one to the other.
+  -- simplices of `M` (and so on) agree only by unfolding `smoothSingularPair` and the pairs'
+  -- constructions, so `rw` cannot pass from one to the other.
   rw [← sub_eq_iff_eq_add'] at hwBA
   simp only [← sub_eq_iff_eq_add']
   revert w z B A
   change ∀ (w : (Ps.right.chainComplex R).X n) (z : (Ps.left.chainComplex R).X m),
     (Ps.right.chainComplex R).d n m w = (SSet.chainComplexMap Ps.hom R).f m z →
     ∀ (B : (Pc.right.chainComplex R).X p) (A : (Pc.left.chainComplex R).X n),
-      (SSet.chainComplexMap f.right R).f n w - (Pc.right.chainComplex R).d p n B =
+      (show (Pc.right.chainComplex R).X n from
+          (SSet.chainComplexMap (smoothSingularSubcomplex I M).ι R).f n w) -
+          (Pc.right.chainComplex R).d p n B =
         (SSet.chainComplexMap Pc.hom R).f n A →
       ∃ (b : (Ps.right.chainComplex R).X p) (c : (Ps.left.chainComplex R).X n),
         w - (Ps.right.chainComplex R).d p n b = (SSet.chainComplexMap Ps.hom R).f n c
   intro w z hw B A hwBA
+  -- `f.right` is the inclusion of smooth simplices, but `smoothSingularPairι` is not exposed, so
+  -- this needs Tau Ceti's lemma.
+  replace hwBA : (SSet.chainComplexMap f.right R).f n w - (Pc.right.chainComplex R).d p n B =
+      (SSet.chainComplexMap Pc.hom R).f n A := by
+    rwa [show f.right = (smoothSingularSubcomplex I M).ι from smoothSingularPairι_right I U]
   -- The image of `w` in the smooth relative chains is a relative cycle, which bounds in the
   -- continuous relative chains, so it bounds a smooth relative chain, the image of some `b`.
   obtain ⟨β, hβ⟩ := ((HomologicalComplex.moduleCat_quasiIsoAt_iff
