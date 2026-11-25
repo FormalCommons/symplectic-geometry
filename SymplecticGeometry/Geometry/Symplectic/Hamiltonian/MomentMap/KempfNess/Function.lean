@@ -116,10 +116,11 @@ left-trivialized velocity is `C.cplx (C.lieMap ξ)`, the derivative of `Φ_p` is
 (`antitone_moment_expI`).
 
 For two zeros `x` and `y = C.expI ξ • C.toHom u • x` of `μ` in one orbit, `μ` vanishes at
-`C.toHom u • x` by equivariance, and `expI_smul_eq_self_of_moment_eq_zero` shows that `C.expI ξ`
-fixes it: the antitone function `t ↦ μ (C.expI (t • ξ) • x) ξ` vanishes at both ends of `[0, 1]`,
-so `X_ξ` vanishes along the curve and the curve is constant. The map of orbit sets is Tau Ceti's
-`MulActionHom.orbitRelQuotientMap` of `zeroLevelToPolystable`.
+`C.toHom u • x` by equivariance, and `expI_smul_eq_self_of_moment_apply_le` shows that
+`C.expI ξ` fixes it: the antitone function `t ↦ μ (C.expI (t • ξ) • x) ξ` does not drop from
+`0` to `1`, so it is constant on `[0, 1]`, `X_ξ` vanishes along the curve and the curve is
+constant. The map of orbit sets is Tau Ceti's `MulActionHom.orbitRelQuotientMap` of
+`zeroLevelToPolystable`.
 
 ## References
 
@@ -581,7 +582,8 @@ theorem exists_smul_eq_of_moment_eq_zero [FiniteDimensional ℝ E'] [ContMDiffSM
   obtain ⟨ξ, u, rfl⟩ : ∃ ξ u, C.expI ξ * C.toHom u = g := ⟨_, _, C.expI_mul_toHom_polar_symm g⟩
   have hux : μ (C.toHom u • x) = 0 := by rw [h.moment_toHom_smul hμ, hx0, map_zero]
   rw [mul_smul] at hy0 ⊢
-  exact ⟨u, by rw [expI_smul_eq_self_of_moment_eq_zero h hμ.toIsMomentMap hg hux hy0,
+  have hle : μ (C.toHom u • x) ξ ≤ μ (C.expI ξ • C.toHom u • x) ξ := by rw [hux, hy0]
+  exact ⟨u, by rw [expI_smul_eq_self_of_moment_apply_le h hμ.toIsMomentMap hg hle,
     h.toHom_smul]⟩
 
 variable (C) in
