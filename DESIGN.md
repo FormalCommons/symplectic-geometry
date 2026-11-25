@@ -3885,7 +3885,7 @@ For §7.3 of `atlas/constructing-symplectic-manifolds.md`.
 For §7.4 of `atlas/constructing-symplectic-manifolds.md`, up to the
 hypersurface theorem.
 
-- **Files:** in `Geometry/Symplectic/Donaldson/`: `LineBundle.lean` (a
+- **Files:** in `Geometry/Symplectic/AsymptoticallyHolomorphic/`: `LineBundle.lean` (a
   Hermitian line bundle with $c_1=a$ and a unitary connection of curvature
   $-2\pi i\omega$; the connection from *Principal connections*'
   circle connection forms and the merged `realFirstChernClass` of
