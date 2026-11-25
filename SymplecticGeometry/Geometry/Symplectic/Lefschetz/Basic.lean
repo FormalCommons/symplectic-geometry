@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
+public import TauCeti.Geometry.Manifold.Projectivization.Map
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
@@ -15,6 +16,8 @@ public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.CriticalSet
 public import SymplecticGeometry.Geometry.Symplectic.Lefschetz.Model
+import SymplecticGeometry.Geometry.Manifold.Projectivization.ProjectiveLineBiholomorphism
+import TauCeti.Geometry.Manifold.ContMDiff.RestrictScalars
 
 /-!
 # Lefschetz fibrations
@@ -55,6 +58,17 @@ the restriction of `J` is integrable (`IsLefschetzChart.isIntegrable_on`), and `
   target of a Lefschetz chart `φ`.
 * `SymplecticGeometry.IsLefschetzFibration.isIntegrable_on`: every critical point of a Lefschetz
   fibration has an open neighbourhood on which `J` is integrable.
+* `SymplecticGeometry.IsLefschetzChart.exists_isLefschetzChart_comp`: composing `π` with a
+  biholomorphism of `ℂℙ¹` keeps a Lefschetz chart at `p`.
+* `SymplecticGeometry.IsLefschetzFibration.comp_diffeomorph` and
+  `SymplecticGeometry.IsLefschetzFibration.comp_projectivizationMap`: the composite of a Lefschetz
+  fibration with a biholomorphism of `ℂℙ¹`, in particular with the map `[v] ↦ [g v]` of
+  `g : GL (Fin 2) ℂ`, is a Lefschetz fibration for the same `ω` and `J`.
+
+At a critical point, the coordinate expression of the biholomorphism in two affine charts is a
+holomorphic function of one variable with nonzero derivative
+(`Projectivization.deriv_affineChart_diffeomorph_affineChart_symm_ne_zero`), so the new chart is
+the old one followed by the reparametrisation of the quadric of `Model.lean`.
 
 ## References
 
@@ -168,6 +182,67 @@ theorem mdifferentiableAt_of_mem (h : IsLefschetzChart J π p φ i) {z : Fin 2 �
     MDifferentiableAt 𝓘(ℂ, Fin 2 → ℂ) 𝓘(ℂ, Fin 1 → ℂ) (π ∘ φ.symm) z :=
   (h.contMDiffAt_comp_symm hz).mdifferentiableAt (by simp)
 
+/-- **Changing the base coordinate of a Lefschetz chart.** If `φ` is a Lefschetz chart of a
+continuous `π` at `p`, then for every biholomorphism `Ψ` of `ℂℙ¹` the composite `Ψ ∘ π` has a
+Lefschetz chart at `p`, for the same `J`. Its affine chart is one at `Ψ (π p)`, and the new chart
+is `φ` followed by the change of coordinates of `ℂ²` that turns the coordinate expression of `Ψ`
+into a translation on the quadric
+(`LefschetzModel.exists_openPartialHomeomorph_apply_add_quadric`). -/
+theorem exists_isLefschetzChart_comp (h : IsLefschetzChart J π p φ i) (hπ : Continuous π)
+    (Ψ : ℙ ℂ (Fin 2 → ℂ) ≃ₘ^ω⟮𝓘(ℂ, Fin 1 → ℂ), 𝓘(ℂ, Fin 1 → ℂ)⟯ ℙ ℂ (Fin 2 → ℂ)) :
+    ∃ φ' j, IsLefschetzChart J (Ψ ∘ π) p φ' j := by
+  obtain ⟨j, hj⟩ := exists_mem_affineOpen (Ψ (π p))
+  have hpi : π p ∈ affineOpen i := h.source_subset h.mem_source
+  -- The coordinate expression of `Ψ` in the charts `i` and `j` reads `Ψ` on `affineOpen i`.
+  have hchart (y : ℙ ℂ (Fin 2 → ℂ)) (hy : y ∈ affineOpen i) :
+      affineChart j (Ψ ((affineChart i).symm fun _ ↦ affineChart i y 0)) 0 =
+        affineChart j (Ψ y) 0 := by
+    rw [show (fun _ : Fin 1 ↦ affineChart i y 0) = affineChart (K := ℂ) i y from
+      (eq_const_of_subsingleton _ 0).symm, (affineChart i).left_inv (by rwa [affineChart_source])]
+  have h0t : (0 : Fin 2 → ℂ) ∈ φ.target :=
+    h.apply_eq_zero ▸ φ.toPartialEquiv.map_source h.mem_source
+  have hU : φ.target ∩ (fun w ↦ Ψ (π (φ.symm w))) ⁻¹' affineOpen j ∈ 𝓝 (0 : Fin 2 → ℂ) := by
+    have hp0 : φ.symm 0 = p := h.apply_eq_zero ▸ φ.toPartialEquiv.left_inv h.mem_source
+    refine inter_mem (φ.open_target.mem_nhds h0t) (ContinuousAt.preimage_mem_nhds
+      (Ψ.continuous.continuousAt.comp (hπ.continuousAt.comp
+        (φ.contMDiffOn_invFun.continuousOn.continuousAt (φ.open_target.mem_nhds h0t)))) ?_)
+    rw [hp0]
+    exact (isOpen_affineOpen j).mem_nhds hj
+  obtain ⟨e, h0e, he0, heU, hea, hesa, heq⟩ :=
+    LefschetzModel.exists_openPartialHomeomorph_apply_add_quadric
+      (contDiffAt_affineChart_diffeomorph_affineChart_symm Ψ hpi hj).analyticAt
+      (deriv_affineChart_diffeomorph_affineChart_symm_ne_zero Ψ hpi hj) hU
+  -- The change of coordinates `e` of `ℂ²` is biholomorphic, hence a real partial diffeomorphism.
+  let e' : PartialDiffeomorph 𝓘(ℝ, Fin 2 → ℂ) 𝓘(ℝ, Fin 2 → ℂ) (Fin 2 → ℂ) (Fin 2 → ℂ) ∞ :=
+    { toPartialEquiv := e.toPartialEquiv
+      open_source := e.open_source
+      open_target := e.open_target
+      contMDiffOn_toFun :=
+        ((hea.contDiffOn e.open_source.uniqueDiffOn).restrict_scalars ℝ).contMDiffOn
+      contMDiffOn_invFun :=
+        ((hesa.contDiffOn e.open_target.uniqueDiffOn).restrict_scalars ℝ).contMDiffOn }
+  -- Mathlib's `PartialDiffeomorph.trans` has no lemmas for its source and its values.
+  have hsrc : (φ.trans e').source = φ.source ∩ φ ⁻¹' e.source := rfl
+  have happ (x : X) : (φ.trans e') x = e (φ x) := rfl
+  refine ⟨φ.trans e', j, ⟨?_, ?_, fun x hx ↦ ?_, fun y hy ↦ ?_, fun x hx ↦ ?_⟩⟩
+  · rw [hsrc]
+    exact ⟨h.mem_source, by rw [mem_preimage, h.apply_eq_zero]; exact h0e⟩
+  · rw [happ, h.apply_eq_zero, he0]
+  · rw [hsrc] at hx
+    have hxx : φ.symm (φ x) = x := φ.toPartialEquiv.left_inv hx.1
+    have hx' : Ψ (π (φ.symm (φ x))) ∈ affineOpen j := (heU hx.2).2
+    rwa [hxx] at hx'
+  · rw [hsrc] at hy
+    have he : IsPseudoholomorphicAt
+        (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) (Fin 2 → ℂ))
+        (SmoothAlmostComplexStructure.ofComplexManifold (Fin 2 → ℂ) (Fin 2 → ℂ)) e (φ y) :=
+      isPseudoholomorphicAt_ofComplexManifold_iff.2
+        (hea _ hy.2).differentiableAt.mdifferentiableAt
+    exact he.comp (h.isPseudoholomorphicAt y hy.1)
+  · rw [hsrc] at hx
+    rw [happ, Function.comp_apply, Function.comp_apply, ← hchart _ (h.source_subset hx.1),
+      ← hchart _ hpi, h.affineChart_apply x hx.1, heq _ hx.2]
+
 end IsLefschetzChart
 
 namespace IsLefschetzFibration
@@ -182,6 +257,50 @@ theorem isIntegrable_on (h : IsLefschetzFibration ω J π) {p : X}
     ∃ U : Opens X, p ∈ U ∧ (J.restrictOpen U).IsIntegrable := by
   obtain ⟨φ, i, hφ⟩ := h.exists_model p hp
   exact ⟨⟨φ.source, φ.open_source⟩, hφ.mem_source, hφ.isIntegrable_on⟩
+
+/-- **Composing with a biholomorphism of the base.** If `π` is a Lefschetz fibration for `ω` and
+`J`, so is `Ψ ∘ π` for every biholomorphism `Ψ` of `ℂℙ¹` (here `⊤` is the analytic order `ω`). -/
+theorem comp_diffeomorph (h : IsLefschetzFibration ω J π)
+    (Ψ : ℙ ℂ (Fin 2 → ℂ) ≃ₘ^⊤⟮𝓘(ℂ, Fin 1 → ℂ), 𝓘(ℂ, Fin 1 → ℂ)⟯ ℙ ℂ (Fin 2 → ℂ)) :
+    IsLefschetzFibration ω J (Ψ ∘ π) := by
+  -- `Ψ` as a smooth diffeomorphism of the underlying real manifold.
+  let Φ : ℙ ℂ (Fin 2 → ℂ) ≃ₘ^(⊤ : ℕ∞)⟮𝓘(ℝ, Fin 1 → ℂ), 𝓘(ℝ, Fin 1 → ℂ)⟯ ℙ ℂ (Fin 2 → ℂ) :=
+    { toEquiv := Ψ.toEquiv
+      contMDiff_toFun := ((by simpa using Ψ.contMDiff.restrictScalars ℝ :
+        ContMDiff 𝓘(ℝ, Fin 1 → ℂ) 𝓘(ℝ, Fin 1 → ℂ) ⊤ Ψ)).of_le le_top
+      contMDiff_invFun := ((by simpa using Ψ.symm.contMDiff.restrictScalars ℝ :
+        ContMDiff 𝓘(ℝ, Fin 1 → ℂ) 𝓘(ℝ, Fin 1 → ℂ) ⊤ Ψ.symm)).of_le le_top }
+  -- `Φ` has the same underlying function as `Ψ`, by construction.
+  have hΦ : ⇑Φ = Ψ := rfl
+  have hcrit : criticalSet I 𝓘(ℝ, Fin 1 → ℂ) (Ψ ∘ π) = criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π := by
+    rw [← hΦ, Φ.criticalSet_comp (by simp)]
+  refine ⟨Φ.contMDiff.comp h.contMDiff, h.tames, hcrit ▸ Ψ.injective.comp_injOn
+    h.injOn_criticalPoints, hcrit ▸ fun p hp ↦ ?_, fun x hx ↦ ?_⟩
+  · obtain ⟨φ, i, hφ⟩ := h.exists_model p hp
+    exact hφ.exists_isLefschetzChart_comp h.contMDiff.continuous Ψ
+  · have hπ : MDifferentiableAt I 𝓘(ℝ, Fin 1 → ℂ) π x :=
+      (h.contMDiff x).mdifferentiableAt (by simp)
+    have hinj : (mfderiv 𝓘(ℝ, Fin 1 → ℂ) 𝓘(ℝ, Fin 1 → ℂ) Φ (π x)).ker = ⊥ :=
+      LinearMap.ker_eq_bot.2 ((Φ.isLocalDiffeomorph _).isInvertible_mfderiv (by simp)).injective
+    have hker : (mfderiv I 𝓘(ℝ, Fin 1 → ℂ) (Ψ ∘ π) x).ker =
+        (mfderiv I 𝓘(ℝ, Fin 1 → ℂ) π x).ker := by
+      rw [← hΦ, mfderiv_comp x (Φ.mdifferentiable (by simp) _) hπ,
+        ContinuousLinearMap.toLinearMap_comp, LinearMap.ker_comp_of_ker_eq_bot _ hinj]
+    rw [hker]
+    exact h.isNondegenerate_ker x ((Φ.comp_isRegularPoint_iff (by simp)).1 (hΦ ▸ hx))
+
+/-- **Composing with a projective transformation.** If `π` is a Lefschetz fibration for `ω` and
+`J`, so is `x ↦ g • π x` for every `g : GL (Fin 2) ℂ`, acting on `ℂℙ¹` through its linear action
+on `ℂ²`. -/
+theorem comp_projectivizationMap (h : IsLefschetzFibration ω J π) (g : GL (Fin 2) ℂ) :
+    IsLefschetzFibration ω J (fun x ↦ g • π x) :=
+  h.comp_diffeomorph
+    { toFun := (g • ·)
+      invFun := (g⁻¹ • ·)
+      left_inv := inv_smul_smul g
+      right_inv := smul_inv_smul g
+      contMDiff_toFun := contMDiff_const_smul g
+      contMDiff_invFun := contMDiff_const_smul g⁻¹ }
 
 end IsLefschetzFibration
 
