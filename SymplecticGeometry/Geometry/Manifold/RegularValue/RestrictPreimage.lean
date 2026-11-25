@@ -20,8 +20,12 @@ For a continuous map `f : M → N` and an open set `V ⊆ N`, the map `V.restric
 the open submanifold `f⁻¹(V)` of `M` to the open submanifold `V` of `N`. This file shows that
 the local differential notions of `f` pass to this restriction:
 
-* being a submersion at a point (`Manifold.IsSubmersionAt.restrictPreimage`), and so being a
-  submersion when `f` is one at every point of `f⁻¹(V)`
+* being a submersion at a point, with a given complement or not
+  (`Manifold.IsSubmersionAtOfComplement.restrictPreimage`,
+  `Manifold.IsSubmersionAt.restrictPreimage`), and being a submersion
+  (`Manifold.IsSubmersion.restrictPreimage`). Since `Manifold.IsSubmersion` fixes one complement
+  for all points, the step from a submersion at every point of `f⁻¹(V)` to a submersion on
+  `f⁻¹(V)` is proved in finite dimensions, with boundaryless source
   (`Manifold.IsSubmersion.restrictPreimage_of_isSubmersionAt`);
 * regular points and regular values (`TauCeti.isRegularPoint_restrictPreimage_iff`,
   `TauCeti.isRegularValue_restrictPreimage_iff`);
