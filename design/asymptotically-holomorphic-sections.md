@@ -519,12 +519,11 @@ and the prerequisites, placed by topic.
   `Polynomial`: `circleAverage_log_norm_eval`, the formula;
   `circleAverage_log_norm_eval_sub_le` and
   `circleAverage_log_norm_eval_sub_eq_zero`, the bounds on the difference
-  of two radii; `rootMultiplicity_mul_log_le_circleAverage_sub`;
-  `log_norm_eval_zero_le_circleAverage`; and
+  of two radii; `rootMultiplicity_mul_log_le_circleAverage_sub`; and
   `exists_norm_eval_le_add_one_pow_mul`, the growth from radius $r$ to
   $\lambda r$),
   `MeasureTheory/Integral/BallCircleAverage.lean` (step 2,
-  `MeasureTheory.setLIntegral_ball_eq_lintegral_circleAverage`),
+  `MeasureTheory.setLIntegral_ball_eq_mul_setLIntegral_setLAverage_circleMap`),
   `Analysis/Complex/MvPolynomial/LogAverage.lean` (step 3, in the namespace
   `MvPolynomial`: `ae_homogeneousComponent_totalDegree_ne_zero`,
   `log_norm_eval_le_setAverage_ball`,
