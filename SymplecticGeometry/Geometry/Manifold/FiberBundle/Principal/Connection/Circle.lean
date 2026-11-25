@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.MapCoeff
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Curvature
 
 /-!
 # Circle connection forms as Lie-algebra-valued connection forms
@@ -19,7 +19,9 @@ the total space of a principal `Circle`-bundle gives the `𝔤`-valued one-form 
 `ContinuousLinearMap.toSpanSingleton ℝ ξ₀ : ℝ →L[ℝ] 𝔤`. This file shows that the real circle
 connection forms of `CircleConnection.lean` (`SymplecticGeometry.IsCircleConnectionForm`) are the
 connection forms of `Principal/Connection/Basic.lean` (`SymplecticGeometry.IsConnectionForm`)
-under this identification.
+under this identification, and that their curvatures agree: the curvature
+`SymplecticGeometry.connectionCurvature` of `α ξ₀` is the pull-back to the total space of the
+curvature `hα.curvature` on the base, times `ξ₀`.
 
 ## Main results
 
@@ -27,6 +29,9 @@ under this identification.
   `α` is a circle connection form.
 * `SymplecticGeometry.IsConnectionForm.existsUnique_eq_mapCoeff`: every `𝔤`-valued connection form
   is `α ξ₀` for a unique real form `α`, and this `α` is a circle connection form.
+* `SymplecticGeometry.IsCircleConnectionForm.connectionCurvature_mapCoeff`: the curvature of
+  `α ξ₀` is the pull-back of `hα.curvature` along the projection, times `ξ₀`; the bracket term of
+  the curvature vanishes since `𝔤` is a line.
 
 ## References
 
@@ -40,6 +45,8 @@ noncomputable section
 
 open Bundle Manifold MulOpposite TauCeti TauCeti.Lie
 open scoped Manifold ContDiff GroupLieAlgebra
+
+attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 
 namespace SymplecticGeometry
 
@@ -116,6 +123,30 @@ theorem IsConnectionForm.existsUnique_eq_mapCoeff
     fun α hα ↦ ?_⟩
   rw [hα.2, ← LinearMap.comp_apply, ← SmoothForm.mapCoeff_comp, hfL, SmoothForm.mapCoeff_id,
     LinearMap.id_apply]
+
+/-- **The curvature of a circle connection form.** For a circle connection form `α` on a
+principal `Circle`-bundle over a boundaryless base, the curvature of the `𝔤`-valued form `α ξ₀`,
+with `ξ₀ = circleLieGenerator`, is `(π^* hα.curvature) ξ₀`, where `π` is the projection to the
+base: the bracket term `½ [A ∧ A]` vanishes since `𝔤` is spanned by `ξ₀`. -/
+theorem IsCircleConnectionForm.connectionCurvature_mapCoeff [IB.Boundaryless]
+    {α : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1}
+    (hα : IsCircleConnectionForm α) :
+    connectionCurvature
+        (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator) α) =
+      SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator)
+        (SmoothForm.mpullback (fun y : ManifoldTotalSpace Circle P ↦
+            ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
+          (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) hα.curvature) := by
+  have hwedge : SmoothForm.wedgeWith
+      (lieL ℝ (GroupLieAlgebra (𝓡 1) Circle) (GroupLieAlgebra (𝓡 1) Circle))
+      (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator) α)
+      (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator) α) = 0 := by
+    rw [← SmoothForm.mapCoeff_wedgeWith (ContinuousLinearMap.mul ℝ ℝ) _ _ _ 0
+      fun a b ↦ by simp]
+    ext x v
+    simp [SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply]
+  rw [connectionCurvature_def, hwedge, smul_zero, add_zero, SmoothForm.mextDerivₗ_mapCoeff,
+    hα.mpullback_curvature]
 
 end SymplecticGeometry
 
