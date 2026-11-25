@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Submersion.ParallelTransport.
 public import SymplecticGeometry.Topology.FiberBundle.Basic
 import Mathlib.Topology.Connected.Clopen
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
+import SymplecticGeometry.Geometry.Manifold.FiberBundle.MapFiber
 
 /-!
 # Parallel transport as a flow, as a diffeomorphism, in families of curves and in trivializations
@@ -391,7 +392,7 @@ theorem contMDiff_parallelTransportIn (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1)
   have hx (v : Z) : e.toOpenPartialHomeomorph.symm (γ s, v) ∈ f ⁻¹' {γ s} :=
     e.proj_symm_apply' hs
   have h₁ : ContMDiff IZ I n fun v : Z ↦ e.toOpenPartialHomeomorph.symm (γ s, v) :=
-    he.comp_contMDiff (contMDiff_const.prodMk contMDiff_id) fun _ ↦ e.mem_target.2 hs
+    funext (e.fiberInclusion_apply hs) ▸ e.contMDiff_fiberInclusion he hs
   have h₂ : ContMDiff IZ (J.prod IZ) n fun v ↦ e' (Ψ (e.toOpenPartialHomeomorph.symm (γ s, v))) :=
     he'.comp_contMDiff (Ψ.contMDiff.comp h₁) fun v ↦ e'.mem_source.2 <| by
       rw [hΨ (hx v), mem_singleton_iff.1 (hD.parallelTransport_mem_preimage hn hf hfp hγ (hx v) t)]

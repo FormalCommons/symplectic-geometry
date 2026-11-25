@@ -9,6 +9,8 @@ public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 public import SymplecticGeometry.Geometry.Lie.Complexification
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
 public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
+public import TauCeti.Algebra.GroupAction.OrbitRelQuotient
+public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.LevelAction
 import Mathlib.Analysis.Convex.Deriv
 import SymplecticGeometry.Analysis.Calculus.ParametricIntervalIntegral
 import SymplecticGeometry.Geometry.Lie.Exponential.Derivative
@@ -39,13 +41,17 @@ its differential: for a complexified action and an equivariant moment map `-μ`,
 of `Φ_p` at `g` is the one-form `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))`. Since `Gc` is connected, these two
 properties determine `Φ_p`; its critical points are the `g` with `μ (g⁻¹ • p) = 0`, so `Φ_p` has a
 critical point exactly when `p` is polystable. Along the curves `t ↦ g * C.expI (t • ξ)` its second
-derivative is a squared norm, so `Φ_p` is convex along them.
+derivative is a squared norm, so `Φ_p` is convex along them. Finally, the zeros of `μ` in one
+`Gc`-orbit form a single `G`-orbit, so the `G`-orbits of the zero level correspond bijectively to
+the polystable `Gc`-orbits.
 
 ## Main definitions
 
 * `SymplecticGeometry.kempfNessFunction C μ p`: the Kempf–Ness function `Φ_p : Gc → ℝ`.
 * `SymplecticGeometry.kempfNessFunctionQuotient C μ p`: the function that `Φ_p` induces on
   `Gc ⧸ C.toHom.range`.
+* `SymplecticGeometry.zeroLevelToPolystable C h hμ`: the inclusion of the zero level of `μ` into
+  the polystable locus, equivariant along `C.toHom`.
 
 ## Main results
 
@@ -80,6 +86,10 @@ derivative is a squared norm, so `Φ_p` is convex along them.
   exactly when `μ (g⁻¹ • p) = 0`.
 * `SymplecticGeometry.isPolystable_iff_exists_mfderiv_kempfNessFunction_eq_zero`: `p` is
   polystable exactly when `Φ_p` has a critical point.
+* `SymplecticGeometry.exists_smul_eq_of_moment_eq_zero`: two zeros of `μ` in one `Gc`-orbit
+  differ by an element of `G`.
+* `SymplecticGeometry.bijective_zeroLevelOrbit_polystableOrbit`: the map from the `G`-orbits of
+  the zero level to the `Gc`-orbits of polystable points, induced by the inclusion, is bijective.
 
 The smoothness reads `Φ_p` through the diffeomorphism `C.polar` as the integral over `[0, 1]` of a
 smooth function on `𝔤 × ℝ`, and applies Tau Ceti's
@@ -104,6 +114,13 @@ left-trivialized velocity is `C.cplx (C.lieMap ξ)`, the derivative of `Φ_p` is
 `hasDerivAt_kempfNessFunction_comp`; its derivative in turn is `hasDerivAt_moment_expI` at
 `g⁻¹ • p` and time `-t`, and convexity follows from the monotonicity of the first derivative
 (`antitone_moment_expI`).
+
+For two zeros `x` and `y = C.expI ξ • C.toHom u • x` of `μ` in one orbit, `μ` vanishes at
+`C.toHom u • x` by equivariance, and `expI_smul_eq_self_of_moment_apply_le` shows that
+`C.expI ξ` fixes it: the antitone function `t ↦ μ (C.expI (t • ξ) • x) ξ` does not drop from
+`0` to `1`, so it is constant on `[0, 1]`, `X_ξ` vanishes along the curve and the curve is
+constant. The map of orbit sets is Tau Ceti's `MulActionHom.orbitRelQuotientMap` of
+`zeroLevelToPolystable`.
 
 ## References
 
@@ -532,6 +549,95 @@ theorem isPolystable_iff_exists_mfderiv_kempfNessFunction_eq_zero (h : IsComplex
   exact ⟨fun ⟨g, hg⟩ ↦ ⟨g⁻¹, by rwa [inv_inv]⟩, fun ⟨g, hg⟩ ↦ ⟨g⁻¹, hg⟩⟩
 
 end Derivative
+
+/-! ### Zeros of `μ` in a polystable orbit -/
+
+section Polystable
+
+open _root_.Bundle TauCeti
+open scoped RealInnerProductSpace
+
+attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
+
+variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [CompleteSpace E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+  [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M] [MulAction G M]
+  [ContMDiffSMul I I' ∞ G M]
+  {σ : SmoothTwoForm I' M} {J : SmoothAlmostComplexStructure I' M} {C μ p}
+
+/-- **The zeros of `μ` in a `Gc`-orbit form one `G`-orbit.** Let the action of `Gc` be a
+complexified action, let `-μ` be an equivariant moment map for `σ`, and let the metric be
+`g(u, w) = σ(u, J w)`. If `x` and `y` lie in the `Gc`-orbit of `p` and `μ` vanishes at both, then
+`y = u • x` for some `u ∈ G`. -/
+theorem exists_smul_eq_of_moment_eq_zero [FiniteDimensional ℝ E'] [ContMDiffSMul IC I' ∞ Gc M]
+    [RiemannianBundle (fun x : M ↦ TangentSpace I' x)] (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) {x y : M}
+    (hx : x ∈ MulAction.orbit Gc p) (hy : y ∈ MulAction.orbit Gc p) (hx0 : μ x = 0)
+    (hy0 : μ y = 0) : ∃ u : G, u • x = y := by
+  rw [← MulAction.orbit_eq_iff.2 hx] at hy
+  obtain ⟨g, rfl⟩ := MulAction.mem_orbit_iff.1 hy
+  -- Write `g = C.expI ξ * C.toHom u` by the polar decomposition; `μ` vanishes at
+  -- `C.toHom u • x` by equivariance, and `C.expI ξ` then fixes that point.
+  obtain ⟨ξ, u, rfl⟩ : ∃ ξ u, C.expI ξ * C.toHom u = g := ⟨_, _, C.expI_mul_toHom_polar_symm g⟩
+  have hux : μ (C.toHom u • x) = 0 := by rw [h.moment_toHom_smul hμ, hx0, map_zero]
+  rw [mul_smul] at hy0 ⊢
+  have hle : μ (C.toHom u • x) ξ ≤ μ (C.expI ξ • C.toHom u • x) ξ := by rw [hux, hy0]
+  exact ⟨u, by rw [expI_smul_eq_self_of_moment_apply_le h hμ.toIsMomentMap hg hle,
+    h.toHom_smul]⟩
+
+variable (C) in
+/-- The inclusion of the zero level of `μ` into the polystable locus, equivariant along
+`C.toHom` from the coadjoint stabilizer of `0` (all of `G`) to `Gc`. The zero level is Tau Ceti's
+`levelSubMulAction` of the moment map `-μ` at `0`. -/
+def zeroLevelToPolystable (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x) :
+    hμ.levelSubMulAction 0 →ₑ[fun u : (Lie.coadjointRepresentation ℝ I G).stabilizer 0 ↦
+      C.toHom u] polystableLocus C μ where
+  toFun z := ⟨z, mem_polystableLocus.2 <|
+    isPolystable_of_moment_eq_zero (neg_eq_zero.1 (hμ.mem_levelSubMulAction.1 z.property))⟩
+  map_smul' u z := Subtype.ext <| by
+    rw [SetLike.val_smul, SetLike.val_smul, h.toHom_smul, Subgroup.smul_def]
+
+@[simp]
+theorem coe_zeroLevelToPolystable_apply (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x) (z : hμ.levelSubMulAction 0) :
+    (zeroLevelToPolystable C h hμ z : M) = z :=
+  (rfl)
+
+/-- **Polystable orbits and the zero level.** Let the action of `Gc` be a complexified action,
+let `-μ` be an equivariant moment map for `σ`, and let the metric be `g(u, w) = σ(u, J w)`. Then
+the map from the `G`-orbits of the zero level of `μ` to the `Gc`-orbits of polystable points,
+induced by the inclusion, is bijective: every polystable `Gc`-orbit meets the zero level, and
+it meets it in a single `G`-orbit. -/
+theorem bijective_zeroLevelOrbit_polystableOrbit [FiniteDimensional ℝ E']
+    [ContMDiffSMul IC I' ∞ Gc M]
+    [RiemannianBundle (fun x : M ↦ TangentSpace I' x)] (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) :
+    Function.Bijective (zeroLevelToPolystable C h hμ).orbitRelQuotientMap := by
+  have hzero {x : M} : x ∈ hμ.levelSubMulAction 0 ↔ μ x = 0 := by
+    rw [hμ.mem_levelSubMulAction, neg_eq_zero]
+  constructor
+  · intro a b hzz'
+    induction a, b using Quotient.inductionOn₂ with | h z z' => ?_
+    rw [MulActionHom.orbitRelQuotientMap_mk, MulActionHom.orbitRelQuotientMap_mk] at hzz'
+    have hz : (z : M) ∈ MulAction.orbit Gc (z' : M) := by
+      obtain ⟨g, hgz⟩ :=
+        MulAction.mem_orbit_iff.1 (MulAction.orbitRel_apply.1 (Quotient.exact hzz'))
+      exact ⟨g, congrArg Subtype.val hgz⟩
+    obtain ⟨u, hu⟩ := exists_smul_eq_of_moment_eq_zero h hμ hg (MulAction.mem_orbit_self _) hz
+      (hzero.1 z'.property) (hzero.1 z.property)
+    exact Quotient.sound ((hμ.orbitRel_levelSubMulAction_iff).2 ⟨u, hu⟩)
+  · intro a
+    induction a using Quotient.inductionOn with | h z => ?_
+    obtain ⟨g, hg0⟩ := isPolystable_iff_exists_smul.1 (mem_polystableLocus.1 z.property)
+    refine ⟨⟦⟨g • (z : M), hzero.2 hg0⟩⟧, ?_⟩
+    rw [MulActionHom.orbitRelQuotientMap_mk]
+    exact Quotient.sound (MulAction.orbitRel_apply.2
+      ⟨g, Subtype.ext (by rw [SetLike.val_smul, coe_zeroLevelToPolystable_apply])⟩)
+
+end Polystable
 
 end SymplecticGeometry
 

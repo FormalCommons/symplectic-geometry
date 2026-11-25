@@ -88,6 +88,8 @@ section, and it lowers the order.
   `h = A.closure_dom_subset_baseSet`, with the chart data of `Φ w` read in `A` itself.
 * `TauCeti.SobolevSection.chartValueL_contMDiffHomMulL_ae_coord`: if `w` consists of the
   components of a section `s`, then `Φ w` consists of those of `x ↦ Φ x (s x)`.
+* `TauCeti.SobolevSection.chartValueL_contMDiffHomMulL_ae_coord_self`: the same for `V₂ = V₁`
+  and `h = A.closure_dom_subset_baseSet`, with the components of `Φ w` read in `A` itself.
 * `TauCeti.SobolevSection.contMDiffHomMulL_zero`, `TauCeti.SobolevSection.contMDiffHomMulL_add`,
   `TauCeti.SobolevSection.contMDiffHomMulL_sub`, `TauCeti.SobolevSection.contMDiffHomMulL_smul`,
   `TauCeti.SobolevSection.contMDiffHomMulL_congr`,
@@ -511,6 +513,25 @@ theorem chartValueL_contMDiffHomMulL_ae_self [∀ x, IsTopologicalAddGroup (V₁
   -- for structures; the statement cannot be rewritten into this form, since the type of the
   -- chart data depends on the atlas.
   chartValueL_contMDiffHomMulL_ae hΦ w i
+
+/-- `TauCeti.SobolevSection.chartValueL_contMDiffHomMulL_ae_coord` for a smooth section `Φ` of
+the endomorphism bundle of `V₁`, read in `A` itself: if `w` consists of the chartwise components
+of a section `s` of `V₁`, then `Φ w` consists of the chartwise components in `A` of the section
+`x ↦ Φ x (s x)`. -/
+theorem chartValueL_contMDiffHomMulL_ae_coord_self [∀ x, IsTopologicalAddGroup (V₁ x)]
+    [∀ x, ContinuousSMul ℝ (V₁ x)] {Φ : ∀ x, V₁ x →L[ℝ] V₁ x}
+    (hΦ : ContMDiff 𝓘(ℝ, E) (𝓘(ℝ, E).prod 𝓘(ℝ, F₁ →L[ℝ] F₁)) ∞
+      fun x ↦ TotalSpace.mk' (F₁ →L[ℝ] F₁) x (Φ x))
+    {w : SobolevSection A μ p k} {s : ∀ x, V₁ x}
+    (hs : ∀ i, A.sectionChartData.chartValueL μ p k i w =ᵐ[μ.restrict (A.image i)] A.coord i s)
+    (i : Fin A.n) :
+    A.sectionChartData.chartValueL μ p k i
+        (contMDiffHomMulL A A.closure_dom_subset_baseSet μ p k hΦ w :
+          (A.ofBaseSet A.closure_dom_subset_baseSet).sectionChartData.SobolevData μ p k)
+      =ᵐ[μ.restrict (A.image i)] A.coord i fun x ↦ Φ x (s x) := by
+  filter_upwards [chartValueL_contMDiffHomMulL_ae_self hΦ w i, hs i,
+    ae_restrict_mem (A.image i).isOpen.measurableSet] with y hy hsy hyi
+  rw [hy, hsy, A.coord_hom_apply_self i Φ s hyi]
 
 /-- The map depends only on the hom section, not on the proof of its smoothness. -/
 theorem contMDiffHomMulL_congr (hΦΨ : Φ = Ψ) :

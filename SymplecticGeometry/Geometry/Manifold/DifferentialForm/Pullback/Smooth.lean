@@ -24,6 +24,9 @@ So two maps with the same value and the same differential at `x` pull every form
 same value at `x` (`TauCeti.mpullback_apply_eq_of_mfderiv_eq`). With Tau Ceti's locality and
 naturality of the exterior derivative, it gives `dθ` at `x` for a smooth form `θ` that agrees
 near `x` with a pullback (`TauCeti.mextDerivₗ_apply_eq_of_eventuallyEq_mpullback`).
+With naturality alone, when `f` maps `s` into `t`, a form that is exact on a neighbourhood of `t`
+pulls back to one that is exact on a neighbourhood of `s`
+(`TauCeti.SmoothForm.exists_mem_nhdsSet_mextDerivₗ_mpullback_eq`).
 
 If `f : M → M` preserves a function `ρ`, and the pullback of `φ` along `f` agrees with `φ` where
 `ρ` does not vanish, then `f` pulls `ρ • φ` back to itself
@@ -56,6 +59,8 @@ normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactica
   the differential of the map at `x`.
 * `TauCeti.mextDerivₗ_apply_eq_of_eventuallyEq_mpullback`: if a smooth form agrees near `x` with
   `f^* α`, its exterior derivative at `x` is `dα` at `f x` composed with `mfderiv f x`.
+* `TauCeti.SmoothForm.exists_mem_nhdsSet_mextDerivₗ_mpullback_eq`: a form exact near `t` pulls
+  back along a map from `s` into `t` to a form exact near `s`.
 * `TauCeti.mpullback_fun_smul_eq_self`: a form multiplied by a function `ρ` is invariant under a
   map that preserves `ρ`, if the form is so where `ρ` does not vanish.
 * `TauCeti.mpullback_neg`: the pullback of `-φ` is minus the pullback of `φ`.
@@ -215,6 +220,23 @@ theorem differentiable_apply_one_mfderiv (η : SmoothForm I' M' F 1) {γ : E →
     (hγ : ContMDiff 𝓘(ℝ, E) I' ∞ γ) (w : E) :
     Differentiable ℝ fun y ↦ η.val (γ y) ![mfderiv 𝓘(ℝ, E) I' γ y w] :=
   (contDiff_apply_one_mfderiv η hγ w).differentiable (by simp)
+
+end SmoothForm
+
+namespace SmoothForm
+
+variable [IsManifold I 2 M] [IsManifold I' 2 M']
+
+/-- Let `f` map `s` into `t`. If `dγ` is `τ` on a neighbourhood of `t`, then `d (f^* γ)` is
+`f^* τ` on a neighbourhood of `s`: a form exact near `t` pulls back to a form exact near `s`. -/
+theorem exists_mem_nhdsSet_mextDerivₗ_mpullback_eq {f : M → M'} (hf : ContMDiff I I' ∞ f)
+    {s : Set M} {t : Set M'} (hst : Set.MapsTo f s t) {γ : SmoothForm I' M' F k}
+    {τ : SmoothForm I' M' F (k + 1)} {V : Set M'} (hV : V ∈ 𝓝ˢ t)
+    (hγ : ∀ y ∈ V, (mextDerivₗ I' k γ).val y = τ.val y) :
+    ∃ V' ∈ 𝓝ˢ s, ∀ x ∈ V', (mextDerivₗ I k (mpullback f hf γ)).val x = (mpullback f hf τ).val x :=
+  ⟨f ⁻¹' V, hf.continuous.tendsto_nhdsSet hst hV, fun _ hx ↦ by
+    rw [mextDerivₗ_mpullback, coe_mpullback, coe_mpullback]
+    exact mpullback_apply_congr (hγ _ hx)⟩
 
 end SmoothForm
 
