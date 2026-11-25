@@ -530,8 +530,8 @@ three steps:
    makes it a form on `D`.
 
 Steps 2 and 3 need the splitting's maps to take smooth families over `L` to
-smooth families. The merged `PreservesSmoothFamilies` is stated over
-`unitInterval` only, so this waits for issue 6 below, which generalizes it.
+smooth families. `PreservesSmoothFamilies`, which issue 6 below generalizes
+from `unitInterval` to any parameter manifold, gives this.
 The proof is the book's: for $m=1$, the primitives
 given near the two ends of the core are patched across a narrow band around
 it with cutoff functions, the zig-zag immersion giving the band enough
