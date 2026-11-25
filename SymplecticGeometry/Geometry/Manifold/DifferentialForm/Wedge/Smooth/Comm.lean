@@ -16,8 +16,9 @@ Lie bracket is, the same holds with one more sign
 (`TauCeti.SmoothForm.wedgeWith_comm_of_anticomm`). In particular the paired wedge of two one-forms
 is then symmetric (`TauCeti.SmoothForm.wedgeWith_one_one_comm_of_anticomm`).
 
-The proof follows Tau Ceti's `TauCeti.SmoothForm.wedgeWith_comm`, through
-`TauCeti.SmoothForm.wedgeWith_flip`, with `μ.flip = -μ` in place of `μ.flip = μ`.
+The first result lifts Tau Ceti's pointwise identity
+`ContinuousAlternatingMap.pairedWedge_anticomm` to smooth forms, as Tau Ceti's
+`TauCeti.SmoothForm.wedgeWith_comm` lifts `ContinuousAlternatingMap.pairedWedge_comm`.
 
 ## Main results
 
@@ -52,11 +53,8 @@ theorem wedgeWith_comm_of_anticomm (μ : F₁ →L[ℝ] F₁ →L[ℝ] F₃)
     (x : M) (v : Fin (k + l) → TangentSpace I x) :
     (wedgeWith μ φ ψ).val x v =
       -((-1 : ℝ) ^ (k * l) • (wedgeWith μ ψ φ).val x (v ∘ Fin.cast (Nat.add_comm l k))) := by
-  have hflip : μ.flip = -μ := by
-    ext a b
-    simp [hμ b a]
-  rw [wedgeWith_flip, hflip, wedgeWith_apply, wedgeWith_apply]
-  simp [Finset.smul_sum, Finset.sum_neg_distrib]
+  simpa only [coe_wedgeWith, RoughForm.wedgeWith_apply'] using
+    ContinuousAlternatingMap.pairedWedge_anticomm μ.continuous₂ hμ (φ.val x) (ψ.val x) v
 
 /-- For an antisymmetric pairing `μ`, such as a Lie bracket, the paired wedge of two one-forms is
 symmetric: `φ ∧_μ ψ = ψ ∧_μ φ`. -/
