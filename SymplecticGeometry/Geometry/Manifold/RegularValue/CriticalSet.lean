@@ -24,6 +24,9 @@ Tau Ceti's own `criticalPoints` is the corresponding notion for real-valued func
   critical set is the complement of the regular points.
 * `SymplecticGeometry.isClosed_criticalSet`: the critical set of a `C¹` map into a
   finite-dimensional manifold is closed, by Tau Ceti's `TauCeti.isOpen_setOf_isRegularPoint`.
+* `Diffeomorph.comp_isRegularPoint_iff` and `Diffeomorph.criticalSet_comp`: postcomposing with a
+  diffeomorphism changes neither the regular points nor the critical set. This is the
+  counterpart, for the target, of Tau Ceti's `Diffeomorph.isRegularPoint_comp_iff`.
 * `SymplecticGeometry.criticalSet_eq_criticalPoints`: for a real-valued function the critical
   set is Tau Ceti's `TauCeti.criticalPoints`, by
   `TauCeti.isRegularPoint_iff_notMem_criticalPoints`.
@@ -72,6 +75,26 @@ theorem isClosed_criticalSet [CompleteSpace 𝕜] [FiniteDimensional 𝕜 E'] [I
     IsClosed (criticalSet I I' f) := by
   rw [← isOpen_compl_iff, compl_criticalSet]
   exact isOpen_setOf_isRegularPoint hf hn
+
+/-- Postcomposing a map with a `C^n` diffeomorphism (`n ≠ 0`) preserves regular points. -/
+theorem _root_.Diffeomorph.comp_isRegularPoint_iff {n : WithTop ℕ∞}
+    {E'' : Type*} [NormedAddCommGroup E''] [NormedSpace 𝕜 E''] {H'' : Type*} [TopologicalSpace H'']
+    {I'' : ModelWithCorners 𝕜 E'' H''} {N' : Type*} [TopologicalSpace N'] [ChartedSpace H'' N']
+    (Φ : N ≃ₘ^n⟮I', I''⟯ N') (hn : n ≠ 0) {f : M → N} {x : M} :
+    IsRegularPoint I I'' (Φ ∘ f) x ↔ IsRegularPoint I I' f x := by
+  refine ⟨fun h ↦ ?_, fun h ↦ ((Φ.isLocalDiffeomorph _).isRegularPoint hn).comp h⟩
+  have := ((Φ.symm.isLocalDiffeomorph _).isRegularPoint hn).comp h
+  rwa [← Function.comp_assoc, ← Diffeomorph.coe_trans, Diffeomorph.self_trans_symm,
+    Diffeomorph.coe_refl, Function.id_comp] at this
+
+/-- Postcomposing a map with a `C^n` diffeomorphism (`n ≠ 0`) does not change its critical set. -/
+theorem _root_.Diffeomorph.criticalSet_comp {n : WithTop ℕ∞}
+    {E'' : Type*} [NormedAddCommGroup E''] [NormedSpace 𝕜 E''] {H'' : Type*} [TopologicalSpace H'']
+    {I'' : ModelWithCorners 𝕜 E'' H''} {N' : Type*} [TopologicalSpace N'] [ChartedSpace H'' N']
+    (Φ : N ≃ₘ^n⟮I', I''⟯ N') (hn : n ≠ 0) (f : M → N) :
+    criticalSet I I'' (Φ ∘ f) = criticalSet I I' f := by
+  ext x
+  simp [Φ.comp_isRegularPoint_iff hn]
 
 /-- For a real-valued function, the critical set is Tau Ceti's `criticalPoints`, the set of points
 where the manifold derivative vanishes. -/
