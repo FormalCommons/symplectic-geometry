@@ -11,6 +11,7 @@ public import Mathlib.Geometry.Manifold.ContMDiff.Atlas
 public import Mathlib.Geometry.Manifold.ContMDiff.Constructions
 public import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
 public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.ChangeModelFiber
 public import SymplecticGeometry.Geometry.Manifold.Submersion.ParallelTransport.Smooth
 public import TauCeti.Topology.FiberBundle.MapFiber
 
@@ -75,8 +76,8 @@ inverse, the fibre over `b₀` is identified with `Z` by `e`
 (`Bundle.Trivialization.preimageSingletonHomeomorph`). Changing the fibre of a trivialization by
 transport through this identification (`Bundle.Trivialization.transFiberHomeomorph`) keeps it
 `C^n` with a `C^n` inverse
-(`IsEhresmannConnection.contMDiffOn_parallelTransportTrivialization_transFiberHomeomorph`,
-`IsEhresmannConnection.contMDiffOn_parallelTransportTrivialization_transFiberHomeomorph_symm`).
+(`Bundle.Trivialization.contMDiffOn_transFiberHomeomorph_preimageSingletonHomeomorph`,
+`Bundle.Trivialization.contMDiffOn_transFiberHomeomorph_preimageSingletonHomeomorph_symm`).
 For the rays `chartRay J b₀`, this gives a trivialization with fibre `Z` around `b₀` whose inverse
 is transport along the rays of the chart at `b₀`
 (`TauCeti.IsEhresmannConnection.exists_trivialization_parallelTransport`). Its smoothness
@@ -98,9 +99,6 @@ conditions are those of `TauCeti.MapFiber.Atlas.IsContMDiff`.
 * `TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransportTrivialization`,
   `TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransportTrivialization_symm`: it is `C^n`,
   with a `C^n` inverse.
-* `TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransportTrivialization_transFiberHomeomorph`
-  and its `_symm` version: with its fibre identified with `Z` through a `C^n` trivialization, it
-  stays `C^n`, with a `C^n` inverse.
 * `TauCeti.IsEhresmannConnection.exists_trivialization_parallelTransport`: around each point of
   the base set of a `C^n` trivialization with fibre `Z`, a `C^n` trivialization with fibre `Z` by
   transport along the rays of a chart.
@@ -446,72 +444,6 @@ theorem contMDiffOn_parallelTransportTrivialization_symm :
   (hD.contMDiffOn_parallelTransport_param hn hf hfp hU hΓ 0 1).mono fun p hp ↦
     ⟨hp.1, (hp.2 : f p.2 = b₀).trans (hΓ₀ _ hp.1).symm⟩
 
-section TransFiber
-
-variable {EZ : Type*} [NormedAddCommGroup EZ] [NormedSpace ℝ EZ]
-  {HZ : Type*} [TopologicalSpace HZ] {IZ : ModelWithCorners ℝ EZ HZ}
-  {Z : Type*} [TopologicalSpace Z] [ChartedSpace HZ Z] {e : Trivialization Z f}
-  (hb₀ : b₀ ∈ e.baseSet) {φ : MapFiber f b₀ ≃ₜ Z} (hφ : ∀ x, φ x = (e x).2)
-
-include hb₀ hφ in
-/-- Let `φ` identify the fibre over `b₀` with `Z` as a trivialization `e` over `b₀` does. Then the
-inverse of the trivialization by transport, with its fibre changed by `φ`, sends `(b, v)` to the
-transport of `e.symm (b₀, v)` along `u ↦ Γ (b, u)` from `0` to `1`. -/
-theorem parallelTransportTrivialization_transFiberHomeomorph_symm_apply (p : B × Z) :
-    ((hD.parallelTransportTrivialization hn hf hfp hU hΓ hΓ₀ hΓ₁).transFiberHomeomorph
-        φ).toOpenPartialHomeomorph.symm p =
-      hD.parallelTransport (fun u ↦ Γ (p.1, u)) 0 1 (e.toOpenPartialHomeomorph.symm (b₀, p.2)) := by
-  set y : P := (φ.symm p.2 : P)
-  have hy : y ∈ e.source := e.mem_source.2 <| by rw [(φ.symm p.2).property]; exact hb₀
-  have hey : e y = (b₀, p.2) :=
-    Prod.ext ((e.coe_fst hy).trans (φ.symm p.2).property) (by rw [← hφ, φ.apply_symm_apply])
-  rw [← hey, ← e.coe_coe, e.left_inv hy]
-  exact hD.parallelTransportTrivialization_symm_apply hn hf hfp hU hΓ hΓ₀ hΓ₁ (p.1, φ.symm p.2)
-
-include hb₀ hφ in
-/-- Let `φ` identify the fibre over `b₀` with `Z` as a trivialization `e` over `b₀` does. If `e` is
-`C^n` on its source, then so is the trivialization by transport with its fibre changed by `φ`. -/
-theorem contMDiffOn_parallelTransportTrivialization_transFiberHomeomorph
-    (he : ContMDiffOn I (J.prod IZ) n e e.source) :
-    ContMDiffOn I (J.prod IZ) n
-      ((hD.parallelTransportTrivialization hn hf hfp hU hΓ hΓ₀ hΓ₁).transFiberHomeomorph φ)
-      ((hD.parallelTransportTrivialization hn hf hfp hU hΓ hΓ₀ hΓ₁).transFiberHomeomorph
-        φ).source := by
-  set T := hD.parallelTransportTrivialization hn hf hfp hU hΓ hΓ₀ hΓ₁
-  -- The trivialization reads `x ↦ (f x, (e (T x).2).2)` on its source.
-  have hT : ContMDiffOn I (J.prod I) n (fun x ↦ ((T x).1, ((T x).2 : P))) T.source :=
-    hD.contMDiffOn_parallelTransportTrivialization hn hf hfp hU hΓ hΓ₀ hΓ₁
-  have h2 : ContMDiffOn I (J.prod IZ) n (fun x ↦ e (T x).2) T.source :=
-    he.comp (contMDiff_snd.comp_contMDiffOn hT) fun x _ ↦ e.mem_source.2 <| by
-      rw [(T x).2.property]; exact hb₀
-  refine ((contMDiff_fst.comp_contMDiffOn hT).prodMk (contMDiff_snd.comp_contMDiffOn h2)).congr
-    fun x _ ↦ ?_
-  simp only [comp_apply, Trivialization.transFiberHomeomorph_apply, hφ]
-
-include hb₀ hφ in
-/-- Let `φ` identify the fibre over `b₀` with `Z` as a trivialization `e` over `b₀` does. If the
-inverse of `e` is `C^n` on its target, then so is the inverse of the trivialization by transport
-with its fibre changed by `φ`. -/
-theorem contMDiffOn_parallelTransportTrivialization_transFiberHomeomorph_symm
-    (he : ContMDiffOn (J.prod IZ) I n e.toOpenPartialHomeomorph.symm e.target) :
-    ContMDiffOn (J.prod IZ) I n
-      ((hD.parallelTransportTrivialization hn hf hfp hU hΓ hΓ₀ hΓ₁).transFiberHomeomorph
-        φ).toOpenPartialHomeomorph.symm
-      ((hD.parallelTransportTrivialization hn hf hfp hU hΓ hΓ₀ hΓ₁).transFiberHomeomorph
-        φ).target := by
-  -- The inverse is `(b, v) ↦ T.symm (b, e.symm (b₀, v))`, through the inclusion of the fibre.
-  have hT := hD.contMDiffOn_parallelTransportTrivialization_symm hn hf hfp hU hΓ hΓ₀ hΓ₁
-  rw [parallelTransportTrivialization_baseSet] at hT
-  have hin : ContMDiffOn (J.prod IZ) (J.prod I) n
-      (fun p : B × Z ↦ (p.1, e.toOpenPartialHomeomorph.symm (b₀, p.2))) (U ×ˢ univ) :=
-    contMDiffOn_fst.prodMk (he.comp (contMDiffOn_const.prodMk contMDiffOn_snd)
-      fun _ _ ↦ e.mem_target.2 hb₀)
-  refine ((hT.comp hin fun p hp ↦ ⟨hp.1, e.proj_symm_apply' hb₀⟩).congr fun p _ ↦
-    hD.parallelTransportTrivialization_transFiberHomeomorph_symm_apply hn hf hfp hU hΓ hΓ₀ hΓ₁
-      hb₀ hφ p).mono fun p hp ↦ ⟨(Trivialization.mem_target _).1 hp, mem_univ _⟩
-
-end TransFiber
-
 end Trivialization
 
 section Radial
@@ -570,14 +502,17 @@ theorem exists_trivialization_parallelTransport (hn : 1 ≤ n) (hf : ContMDiff I
     fun b _ ↦ SymplecticGeometry.chartRay_zero J b₀ b
   have hΓ₁ : ∀ b ∈ U, SymplecticGeometry.chartRay J b₀ (b, 1) = b :=
     fun b hb ↦ SymplecticGeometry.chartRay_one J ((SymplecticGeometry.mem_chartBall_iff J).1 hb).1
-  -- The fibre over `b₀`, read in `Z` through `e`.
-  let φ : MapFiber f b₀ ≃ₜ Z := e.preimageSingletonHomeomorph hb₀
-  have hφ (x : MapFiber f b₀) : φ x = (e x).2 := e.preimageSingletonHomeomorph_apply hb₀ x
-  refine ⟨_, hD.contMDiffOn_parallelTransportTrivialization_transFiberHomeomorph hn hf hfp hU hΓn
-    hΓ₀ hΓ₁ hb₀ hφ he, hD.contMDiffOn_parallelTransportTrivialization_transFiberHomeomorph_symm hn
-    hf hfp hU hΓn hΓ₀ hΓ₁ hb₀ hφ he', hb₀U, fun b hb ↦ ⟨_, (hγ b hb).1, (hγ b hb).2, fun v ↦
-    hD.parallelTransportTrivialization_transFiberHomeomorph_symm_apply hn hf hfp hU hΓn hΓ₀ hΓ₁
-      hb₀ hφ (b, v)⟩⟩
+  set T := hD.parallelTransportTrivialization hn hf hfp hU hΓn hΓ₀ hΓ₁
+  -- The fibre over `b₀` is read in `Z` through `e`.
+  refine ⟨T.transFiberHomeomorph (e.preimageSingletonHomeomorph hb₀),
+    T.contMDiffOn_transFiberHomeomorph_preimageSingletonHomeomorph hb₀
+      (hD.contMDiffOn_parallelTransportTrivialization hn hf hfp hU hΓn hΓ₀ hΓ₁) he,
+    T.contMDiffOn_transFiberHomeomorph_preimageSingletonHomeomorph_symm hb₀
+      (hD.contMDiffOn_parallelTransportTrivialization_symm hn hf hfp hU hΓn hΓ₀ hΓ₁)
+      (fun _ _ _ ↦ hD.parallelTransportTrivialization_symm_apply hn hf hfp hU hΓn hΓ₀ hΓ₁ _) he',
+    hb₀U, fun b hb ↦ ⟨_, (hγ b hb).1, (hγ b hb).2, fun v ↦
+      (T.transFiberHomeomorph_preimageSingletonHomeomorph_symm_apply hb₀ (b, v)).trans
+        (hD.parallelTransportTrivialization_symm_apply hn hf hfp hU hΓn hΓ₀ hΓ₁ _)⟩⟩
 
 end Radial
 
