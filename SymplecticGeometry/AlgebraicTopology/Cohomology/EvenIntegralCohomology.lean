@@ -170,6 +170,25 @@ theorem evenIntegralCohomologyOf_one :
     X.evenIntegralCohomologyOf 0 X.integralCohomologyOne = 1 := by
   rw [← EvenIntegralCohomology.gOne_one, DirectSum.one_def]
 
+/-- The component of degree `2(i + j)` of the product of a class `a` of degree `2i` with an
+element `y` of the even integral cohomology ring is the cup product of `a` with the component of
+degree `2j` of `y`. -/
+theorem evenIntegralCohomologyOf_mul_apply {i : ℕ} (a : X.integralCohomology (2 * i))
+    (y : X.EvenIntegralCohomology) (j : ℕ) :
+    (X.evenIntegralCohomologyOf i a * y) (i + j) =
+      X.integralCup (2 * i) (2 * j) (2 * (i + j)) (by ring) a (y j) := by
+  induction y using DirectSum.induction_on with
+  | zero => simp
+  | of l b =>
+    rw [evenIntegralCohomologyOf_mul]
+    rcases eq_or_ne l j with rfl | hl
+    · rw [DirectSum.of_eq_same, DirectSum.of_eq_same]
+    · rw [DirectSum.of_eq_of_ne _ _ _ (by omega), DirectSum.of_eq_of_ne _ _ _ (Ne.symm hl),
+        map_zero]
+  | add y z hy hz =>
+    rw [mul_add (X.evenIntegralCohomologyOf i a), DFinsupp.add_apply, DFinsupp.add_apply, hy, hz,
+      map_add]
+
 /-- A power of a class `a` of degree two is homogeneous: in the even integral cohomology ring,
 `a ^ k` is the image of its component of degree `2k`. -/
 theorem evenIntegralCohomologyOf_pow_eq_of (a : X.integralCohomology 2) (k : ℕ) :
