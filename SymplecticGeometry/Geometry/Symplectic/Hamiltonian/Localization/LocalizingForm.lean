@@ -311,15 +311,12 @@ theorem mextDerivₗ_cutoffWeightOneForm_half_apply_of_eventuallyEq_one {σ : Sm
     (hx : ρ =ᶠ[𝓝 x] 1) :
     (mextDerivₗ I 1 (cutoffWeightOneForm Φ hρ hs fun _ ↦ 1 / 2)).val x = σ.val x := by
   have hxt : x ∈ Φ.target := hs (subset_tsupport ρ (by simp [hx.self_of_nhds]))
-  ext v
-  have h := (Φ.isSymplecticMapOn_symm hσ (by simp)).apply hxt (v 0) (v 1)
-  rw [mextDerivₗ_cutoffWeightOneForm_apply_of_eventuallyEq_one hρ hs _ hx,
-    TauCeti.mpullback_apply, mextDerivₗ_weightOneForm_half_apply]
-  refine (SymplecticForm.constSmooth_apply _ _ _ _).symm.trans (h.trans ?_)
-  rw [SmoothBundleForm.eval₂_apply]
-  congr 1
-  ext i
-  fin_cases i <;> simp
+  refine SmoothBundleForm.apply_eq_of_eval₂_eq fun v w ↦ ?_
+  rw [SmoothBundleForm.eval₂_apply,
+    mextDerivₗ_cutoffWeightOneForm_apply_of_eventuallyEq_one hρ hs _ hx,
+    TauCeti.mpullback_apply, mextDerivₗ_weightOneForm_half_apply,
+    ← (Φ.isSymplecticMapOn_symm hσ (by simp)).apply hxt v w]
+  exact (SymplecticForm.constSmooth_apply _ _ _ _).symm
 
 end CutoffWeightOneForm
 
