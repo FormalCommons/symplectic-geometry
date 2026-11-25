@@ -30,7 +30,8 @@ definition, in the normalization of Bott–Tu, §20: for a line bundle `c₁` is
 * `SymplecticGeometry.Bundle.totalChernClass G E`: the total Chern class `∑_{k ≤ n} c_k(E)` in the
   even integral cohomology ring, with `totalChernClass_def` and `totalChernClass_apply`; it is `1`
   in rank zero and `1 + c₁(E)` in rank one (`totalChernClass_eq_one_of_finrank_eq_zero`,
-  `totalChernClass_eq_one_add_of_finrank_eq_one`).
+  `totalChernClass_eq_one_add_of_finrank_eq_one`). When it is `1`, the Chern classes of positive
+  degree vanish (`chernClass_eq_zero_of_totalChernClass_eq_one`).
 
 ## Main results
 
@@ -307,6 +308,13 @@ theorem totalChernClass_eq_one_of_finrank_eq_zero (hG : finrank ℂ G = 0) :
     totalChernClass G E = 1 := by
   rw [totalChernClass_def, hG, Finset.sum_range_one, chernClass_zero,
     TopCat.evenIntegralCohomologyOf_one]
+
+/-- If the total Chern class of a bundle is `1`, then its Chern classes of positive degree
+vanish. -/
+theorem chernClass_eq_zero_of_totalChernClass_eq_one (h : totalChernClass G E = 1) {k : ℕ}
+    (hk : k ≠ 0) : chernClass G E k = 0 := by
+  rw [← totalChernClass_apply, h, ← TopCat.evenIntegralCohomologyOf_one]
+  exact DirectSum.of_eq_of_ne _ _ _ hk
 
 /-- The total Chern class of a bundle of rank one is `1 + c₁(E)`. -/
 theorem totalChernClass_eq_one_add_of_finrank_eq_one (hG : finrank ℂ G = 1) :

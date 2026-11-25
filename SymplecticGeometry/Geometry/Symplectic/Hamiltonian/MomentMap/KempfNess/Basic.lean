@@ -74,6 +74,8 @@ and the moment weights.
 * `SymplecticGeometry.hasDerivAt_moment_expI`, `SymplecticGeometry.antitone_moment_expI`: for a
   complexified action, `t ↦ μ (C.expI (t • ξ) • p) ξ` has derivative `-‖X_ξ‖²` at the moving
   point, so it is antitone.
+* `SymplecticGeometry.differentiable_moment_inv_smul_im_mfderiv`: along a smooth map `γ` from a
+  normed space to `Gc`, the function `z ↦ μ ((γ z)⁻¹ • p) (C.im (a_v z))` is differentiable.
 * `SymplecticGeometry.fderiv_moment_inv_smul_im_comm`: for a smooth map `γ` from a normed space
   to `Gc`, with left-trivialized derivatives `a_u`, the functions
   `z ↦ μ ((γ z)⁻¹ • p) (C.im (a_u z))` satisfy `∂_v A_w = ∂_w A_v`. This is the closedness of the
@@ -393,6 +395,37 @@ variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC] [CompleteSpace E']
   {σ : SmoothTwoForm I' M} {J : SmoothAlmostComplexStructure I' M}
   {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)} {C : LieComplexification I G IC Gc}
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+
+omit [IsManifold I' ∞ M] [MulAction G M] [CompleteSpace E'] [ContMDiffSMul I I' ∞ G M]
+  [RiemannianBundle (fun x : M ↦ TangentSpace I' x)] in
+/-- The Kempf–Ness one-form along a map into `Gc` is differentiable: for a smooth map
+`γ : F → Gc` from a normed space and a direction `v`, the function
+`z ↦ μ ((γ z)⁻¹ • p) (C.im (d(L_{(γ z)⁻¹})(dγ_z v)))` is differentiable when `Gc` acts smoothly
+and each component `x ↦ μ x ξ` of `μ` is smooth. -/
+theorem differentiable_moment_inv_smul_im_mfderiv
+    (hμ : ∀ ξ, ContMDiff I' 𝓘(ℝ) ∞ fun x ↦ μ x ξ) (p : M) {γ : F → Gc}
+    (hγ : ContMDiff 𝓘(ℝ, F) IC ∞ γ) (v : F) :
+    Differentiable ℝ fun z ↦ μ ((γ z)⁻¹ • p)
+      (C.im (mfderiv IC IC ((γ z)⁻¹ * ·) (γ z) (mfderiv 𝓘(ℝ, F) IC γ z v))) := by
+  -- The function pairs a smooth family of covectors with `C.im` of the left Maurer–Cartan form
+  -- along `γ`.
+  set θ := leftMaurerCartanForm IC Gc
+  have ha (z : F) : mfderiv IC IC ((γ z)⁻¹ * ·) (γ z) (mfderiv 𝓘(ℝ, F) IC γ z v) =
+      θ.val (γ z) ![mfderiv 𝓘(ℝ, F) IC γ z v] := by
+    simp [θ, leftMaurerCartanForm_apply]
+  have hx : ContMDiff 𝓘(ℝ, F) I' ∞ fun z ↦ (γ z)⁻¹ • p :=
+    ((contMDiff_inv IC ∞).comp hγ).smul contMDiff_const
+  have hL := (contMDiff_toContinuousLinearMap_of_contMDiff_apply (E := E) hμ).comp hx
+  have hc := (LinearMap.toContinuousLinearMap C.im).differentiable.comp
+    (SmoothForm.differentiable_apply_one_mfderiv θ hγ v)
+  have h : (fun z ↦ μ ((γ z)⁻¹ • p)
+      (C.im (mfderiv IC IC ((γ z)⁻¹ * ·) (γ z) (mfderiv 𝓘(ℝ, F) IC γ z v)))) =
+      fun z ↦ LinearMap.toContinuousLinearMap (μ ((γ z)⁻¹ • p))
+        (LinearMap.toContinuousLinearMap C.im (θ.val (γ z) ![mfderiv 𝓘(ℝ, F) IC γ z v])) := by
+    funext z
+    simp [ha]
+  rw [h]
+  exact (hL.mdifferentiable (by simp)).differentiable.clm_apply hc
 
 /-- **The Kempf–Ness one-form is closed along maps into `Gc`.** Let the action of `Gc` be a
 complexified action, let `-μ` be an equivariant moment map for `σ`, and let the metric be

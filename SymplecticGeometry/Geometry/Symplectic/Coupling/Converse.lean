@@ -513,7 +513,8 @@ theorem existsUnique_isSymplectic_mpullback_projContMDiffMap_eq {σ : SmoothTwoF
     rcases isEmpty_or_nonempty (ManifoldTotalSpace Circle P) with hZ | ⟨⟨p₀⟩⟩
     · exact ⟨0, fun p ↦ isEmptyElim p⟩
     · exact ⟨-μ (φ p₀), fun p ↦ congrArg Neg.neg
-        (linearMap_ext_circlePeriodOneGenerator ((ht p).trans (ht p₀).symm))⟩
+        (linearMap_ext_of_ne_zero_circle circlePeriodOneGenerator_ne_zero
+          ((ht p).trans (ht p₀).symm))⟩
   have hneg : (fun x ↦ (-μ x) circlePeriodOneGenerator) = -fun x ↦ μ x circlePeriodOneGenerator :=
     funext fun _ ↦ LinearMap.neg_apply _ _
   -- `dφ` sends the fundamental fields of the bundle to those of `M`.
