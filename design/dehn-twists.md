@@ -513,9 +513,6 @@ theorem isCompact_image_setOf_cotangentNorm_le : IsCompact (ι '' {z | cotangent
 theorem mpullback_dehnTwist (hι : ι^* ω = (-symplecticForm)|U) : (dehnTwist ι hR hU)^* ω = ω
 theorem dehnTwist_apply_embedding (hιf : ∀ q, ∃ h : 0_q ∈ U, ι ⟨0_q, h⟩ = f q) (q : Sⁿ) :
     dehnTwist ι hR hU (f q) = f (-q)
-theorem exists_symplecticEmbedding (hf : hω.isNondegenerate.IsLagrangianMap (𝓡 n) f) :
-    ∃ (U : Opens T*Sⁿ) (V : Opens M) (ι : U ≃ₘ⟮_, I⟯ V),
-      ι^* ω = (-symplecticForm)|U ∧ ∀ q, ∃ h : 0_q ∈ U, ι ⟨0_q, h⟩ = f q
 theorem exists_diffeotopy_dehnTwist_eq (hf₁ : IsLagrangianMap f₁) (hf : FramingRel f₁ f₂)
     (hι₁ : ι₁^* ω = …) (hι₁f : ∀ q, ι₁ ⟨0_q, _⟩ = f₁ q) (hR₁ : IsTwistProfile R₁ r₁) (hU₁)
     (hι₂ : ι₂^* ω = …) (hι₂f : ∀ q, ι₂ ⟨0_q, _⟩ = f₂ q) (hR₂ : IsTwistProfile R₂ r₂) (hU₂) :
@@ -533,7 +530,9 @@ theorem exists_mpullback_dehnTwist_sub_eq_of_two_le (hn : 2 ≤ n) … -- withou
 `IsLocalDiffeomorph.exists_diffeomorph_extend_of_isCompact` for the open
 embedding `ι` and the compact set $T(r_0)$
 (`isCompact_setOf_cotangentNorm_le`). Its two apply lemmas determine it.
-`exists_symplecticEmbedding` is the Lagrangian neighbourhood theorem
+Choices of `ι` come from `IsLagrangianMap.exists_symplectomorphism_cotangent_neg`
+(`Neighborhood/Lagrangian.lean`, for every Lagrangian embedding), the
+Lagrangian neighbourhood theorem
 composed with $N=m_{-1}$. A model twist with $T(r_0)\subseteq U$
 exists by `exists_isTwistProfile` and compactness of the zero section.
 
@@ -607,7 +606,8 @@ $n\ge1$ and with the readings of *Decisions*:
 - the twist along a framed sphere: for every Lagrangian embedding `f` and
   every choice of `ι` and `R`, `dehnTwist` preserves `ω`, is the identity
   outside a compact set, and maps `f q` to `f (-q)`. Choices exist
-  (`exists_symplecticEmbedding`, `exists_isTwistProfile`), and the class
+  (`IsLagrangianMap.exists_symplectomorphism_cotangent_neg`,
+  `exists_isTwistProfile`), and the class
   under compactly supported symplectic diffeotopies depends only on the
   class of `f` under `FramingRel`;
 - exactness: for `ω = dθ` with $\theta|_L$ exact, and for every `θ` when
