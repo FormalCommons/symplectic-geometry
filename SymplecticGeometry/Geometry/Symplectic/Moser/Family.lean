@@ -137,10 +137,7 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_timeDeriv
   set X := moserField σ γ ρ
   have hX := contMDiff_moserField σ γ hρ fun p hp ↦ hρO hp
   have hX₁ := hX.of_le (m := 1) (by simp)
-  set C := Prod.snd '' tsupport ρ
-  have hC : IsCompact C := hρc.isCompact.image continuous_snd
-  have hXC (u : ℝ) (y : M) (hy : y ∉ C) : X u y = 0 :=
-    moserField_eq_zero_of_notMem_tsupport fun h ↦ hy ⟨_, h, rfl⟩
+  obtain ⟨C, hC, hXC⟩ := exists_isCompact_moserField_eq_zero (σ := σ) (β := γ) hρc
   have hc := isCompleteVectorField_timeDependentSuspensionField hX₁ hC hXC
   let Ψ := timeDependentFlowDiffeotopy (by simp) hX hc
   -- The flow from time `0` to a time `t ∈ [0, 1]` fixes `K`, where the field vanishes up to `t`.
@@ -402,10 +399,8 @@ theorem exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub
     hY.comp ((contMDiff_const.prodMk contMDiff_fst).prodMk contMDiff_snd)
   have hY0 {τ : ℝ} {x : N} (h : (β' τ).val x = 0) (s : ℝ) : Y τ s x = 0 :=
     moserField_eq_zero_of_apply_eq_zero (by rw [hB]; exact h)
-  set C := Prod.snd '' tsupport ρ
-  have hC : IsCompact C := hρc.isCompact.image continuous_snd
-  have hYC (τ s : ℝ) (y : N) (hy : y ∉ C) : Y τ s y = 0 :=
-    moserField_eq_zero_of_notMem_tsupport fun h ↦ hy ⟨_, h, rfl⟩
+  obtain ⟨C, hC, hXC⟩ := exists_isCompact_moserField_eq_zero (σ := Ω) (β := B) hρc
+  have hYC (τ s : ℝ) (y : N) (hy : y ∉ C) : Y τ s y = 0 := hXC (τ, s) y hy
   have hc (τ : ℝ) := isCompleteVectorField_timeDependentSuspensionField
     ((hYτ τ).of_le (m := 1) (by simp)) hC (hYC τ)
   have hflow := contMDiff_timeDependentFlowOf_param le_top hY hc
