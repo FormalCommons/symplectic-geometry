@@ -75,7 +75,8 @@ direction.
 * `SymplecticGeometry.cotangentCoord_cotangent_unitSphereDiffeomorph`: the cotangent lift of the
   diffeomorphism of the sphere induced by a linear isometry `e` of `E` acts by
   `(q, p) ↦ (e q, e p)`; `SymplecticGeometry.cotangentCoord_cotangent_orthogonal` is its case of
-  an orthogonal matrix `A`, and
+  an orthogonal matrix `A`, which therefore preserves `‖p‖`
+  (`SymplecticGeometry.cotangentNorm_cotangent_orthogonal`), and
   `SymplecticGeometry.cotangentCoord_antipodal`: `antipodal` acts by `(q, p) ↦ (-q, -p)`.
 * `SymplecticGeometry.cotangentCoord_geodesicFlow`: off the zero section the flow moves `(q, p)` to
   `(cos t • q + (sin t / ‖p‖) • p, cos t • p - (sin t * ‖p‖) • q)`.
@@ -489,6 +490,14 @@ theorem cotangentCoord_cotangent_orthogonal (A : Matrix.orthogonalGroup (Fin (n 
         Matrix.UnitaryGroup.toLinearIsometryEquiv A (cotangentCoord z).2) := by
   rw [orthogonalToDiffSphere_apply, LinearIsometryEquiv.unitSphereDiffHom_apply,
     cotangentCoord_cotangent_unitSphereDiffeomorph]
+
+/-- The cotangent lift of the diffeomorphism of `Sⁿ` induced by an orthogonal matrix preserves the
+norm `‖p‖`. -/
+theorem cotangentNorm_cotangent_orthogonal (A : Matrix.orthogonalGroup (Fin (n + 1)) ℝ)
+    (z : CotangentBundle (𝓡 n) (𝕊 n)) :
+    cotangentNorm ((orthogonalToDiffSphere n ∞ A).cotangent z) = cotangentNorm z := by
+  rw [cotangentNorm_def, cotangentNorm_def, cotangentCoord_cotangent_orthogonal,
+    LinearIsometryEquiv.norm_map]
 
 /-- The antipodal map of `T*Sⁿ`: the cotangent lift of the diffeomorphism `x ↦ -x` of the unit
 sphere, induced by `-1 ∈ O(n + 1)`. -/
