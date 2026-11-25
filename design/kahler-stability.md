@@ -246,8 +246,8 @@ All in `SymplecticGeometry`, with `C : LieComplexification I G IC Gc`.
 - `mfderiv_kempfNessFunction_eq_zero_iff : mfderiv … Φ_p g = 0 ↔ μ (g⁻¹ • p) = 0`.
 - `isPolystable_iff_exists_mfderiv_kempfNessFunction_eq_zero`.
 - `exists_smul_eq_of_moment_eq_zero`: if $x,y\in G^{\mathbb C}p$ and
-  $\mu(x)=\mu(y)=0$ then $y=u\cdot x$ for some $u\in G$ (strict convexity
-  along geodesics off the stabilizer directions), and
+  $\mu(x)=\mu(y)=0$ then $y=u\cdot x$ for some $u\in G$ ($\langle\mu,\xi\rangle$
+  decreases along $\exp(it\xi)$, strictly off the stabilizer directions), and
   `bijective_zeroLevelOrbit_polystableOrbit`: the map from the `G`-orbits
   of `TauCeti`'s `levelSubMulAction` at `0` to the `Gc`-orbits of
   `polystableLocus C μ` induced by the inclusion is bijective. This

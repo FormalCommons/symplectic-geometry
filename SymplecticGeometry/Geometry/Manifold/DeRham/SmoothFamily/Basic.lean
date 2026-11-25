@@ -66,7 +66,8 @@ coordinates, in any basis, that are smooth in `t`
 * `SmoothCohomologySplitting.IsSmooth.contMDiff_repr_mk`: the coordinates of the classes of a
   smooth family of closed forms are smooth.
 * `SmoothCohomologySplitting.IsSmooth.ofDiffeomorph`: transport along a diffeomorphism keeps
-  smoothness.
+  smoothness, and `SmoothCohomologySplitting.isSmooth_eqRec_iff`: so does transport along an
+  equality of open sets.
 
 ## References
 
@@ -416,6 +417,14 @@ theorem IsSmooth.ofDiffeomorph (hτ : τ.IsSmooth.{uE, uH, uN}) :
         (by simpa only [closedForms.coe_mpullback] using hα.mpullback _ Φ.symm.contMDiff)
 
 end Diffeomorph
+
+/-- Transport of a splitting along an equality `W = W'` of open sets keeps and reflects
+smoothness. -/
+theorem isSmooth_eqRec_iff {W W' : TopologicalSpace.Opens M} (h : W = W')
+    (σ : SmoothCohomologySplitting I W) :
+    (h ▸ σ : SmoothCohomologySplitting I W').IsSmooth.{uE, uH, uN} ↔ σ.IsSmooth.{uE, uH, uN} := by
+  subst h
+  rfl
 
 end SmoothCohomologySplitting
 
