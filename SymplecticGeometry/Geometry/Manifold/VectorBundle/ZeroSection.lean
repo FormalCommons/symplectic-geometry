@@ -7,7 +7,6 @@ module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
-public import TauCeti.Geometry.Manifold.VectorBundle.Scalar
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LeftInverse
@@ -22,8 +21,7 @@ embedding: the bundle projection is a smooth left inverse of it. This file bundl
 `SymplecticGeometry.Bundle.zeroSectionEmbedding`, so that results about submanifolds, such as the
 neighbourhood theorems, apply to it, and shows that its image is closed. It also reads the zero
 section in the preferred charts of the total space, and computes the differential of a map along
-the zero section on horizontal and on vertical vectors, and notes that rescaling the fibres fixes
-the zero section.
+the zero section on horizontal and on vertical vectors.
 
 The file has the path of Tau Ceti's `Geometry/Manifold/VectorBundle/ZeroSection.lean`, which
 splits the tangent spaces along the zero section. The zero section as an embedding is the
@@ -31,8 +29,7 @@ library's own definition, in `SymplecticGeometry.Bundle`. Of the other lemmas,
 `isClosed_range_zeroSection`, about Mathlib's notions alone, and
 `zeroSectionTangentEquiv_symm_inl`, `mfderiv_zeroSectionTangentEquiv_symm_inl` and
 `mfderiv_zeroSectionTangentEquiv_symm_inr`, about Tau Ceti's splitting, are in Tau Ceti's
-namespace `TauCeti.Bundle`, `vectorBundleScalarDiffeomorph_zeroSection`, about Tau Ceti's
-rescaling of the fibres, in `TauCeti`, and
+namespace `TauCeti.Bundle`, and
 `extChartAt_symm_apply_zero_of_mem_baseSet`, about the charts of the total space, in Mathlib's
 namespace `Bundle`.
 
@@ -45,8 +42,6 @@ namespace `Bundle`.
 * `SymplecticGeometry.Bundle.coe_zeroSectionEmbedding`: its underlying map is `zeroSection F V`.
 * `TauCeti.Bundle.isClosed_range_zeroSection`: the image of the zero section is closed when the
   total space is Hausdorff.
-* `TauCeti.vectorBundleScalarDiffeomorph_zeroSection`: rescaling the fibres by a nowhere-zero
-  scalar function fixes the zero section.
 * `Bundle.extChartAt_symm_apply_zero_of_mem_baseSet`: the inverse of the preferred chart of the
   total space sends `(y, 0)` to the zero vector over the base point with coordinate `y`.
 * `TauCeti.Bundle.zeroSectionTangentEquiv_symm_inl`: the inverse of Tau Ceti's splitting sends
@@ -82,23 +77,6 @@ theorem isClosed_range_zeroSection (𝕜 : Type*) [NontriviallyNormedField 𝕜]
     (Trivialization.continuous_zeroSection 𝕜)
 
 end TauCeti.Bundle
-
-namespace TauCeti
-
-/-- Rescaling the fibres of a vector bundle by a nowhere-zero scalar function fixes the zero
-section. -/
-theorem vectorBundleScalarDiffeomorph_zeroSection {𝕜 𝕜' : Type*} [NontriviallyNormedField 𝕜]
-    [NontriviallyNormedField 𝕜'] [NormedAlgebra 𝕜 𝕜'] {E H : Type*} [NormedAddCommGroup E]
-    [NormedSpace 𝕜 E] [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H} [ChartedSpace H B]
-    {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] [NormedSpace 𝕜' F]
-    [IsScalarTower 𝕜 𝕜' F] {V : B → Type*} [∀ b, AddCommMonoid (V b)] [∀ b, Module 𝕜' (V b)]
-    [∀ b, TopologicalSpace (V b)] [TopologicalSpace (TotalSpace F V)] [FiberBundle F V]
-    [VectorBundle 𝕜' F V] {n : ℕ∞ω} (a : B → 𝕜') (ha : ContMDiff I 𝓘(𝕜, 𝕜') n a)
-    (ha0 : ∀ b, a b ≠ 0) (b : B) :
-    vectorBundleScalarDiffeomorph a ha ha0 (zeroSection F V b) = zeroSection F V b := by
-  simp [vectorBundleScalarDiffeomorph_apply, zeroSection]
-
-end TauCeti
 
 namespace SymplecticGeometry.Bundle
 

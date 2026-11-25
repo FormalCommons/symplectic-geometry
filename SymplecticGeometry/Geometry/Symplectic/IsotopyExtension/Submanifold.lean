@@ -216,8 +216,7 @@ theorem exists_isSymplectic_extension_of_mpullback_eq [SigmaCompactSpace M]
   -- The model of `Q` is finite-dimensional, since `i` is an immersion into `M`.
   have : FiniteDimensional ℝ E' := finiteDimensional_of_injective_mfderiv
     (i.isImmersion.mfderiv_injective (by simp) (Classical.arbitrary Q))
-  have := I.locallyCompactSpace
-  have := ChartedSpace.locallyCompactSpace H M
+  have : LocallyCompactSpace M := Manifold.locallyCompact_of_finiteDimensional I
   have := I.secondCountableTopology_of_sigmaCompact M
   -- Isotopy extension over `ℝ`, and a retraction onto `i(Q)`.
   obtain ⟨ψ, hψ, hψ₀, -, -, -, hψe⟩ :=

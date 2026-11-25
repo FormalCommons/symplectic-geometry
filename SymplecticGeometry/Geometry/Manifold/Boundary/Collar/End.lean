@@ -9,7 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Boundary.Charts
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Interior
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
-public import SymplecticGeometry.Geometry.Manifold.ModelTransport.InteriorModel
+public import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
 public import SymplecticGeometry.Geometry.Manifold.ModelTransport.Remodel
 public import SymplecticGeometry.Topology.Category.TopCat.GlueData.Pair
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
@@ -28,7 +28,7 @@ boundary, `c.WithEnd` is `W` with the half-cylinder `[0, ∞) × ∂W` attached 
 open gluing (`TopCat.GlueData.ofHomeomorph`) of two pieces over `ℝⁿ⁺¹`: the charted
 interior `(𝓡∂ (n + 1)).interior W` of `W`, and `(-1, ∞) × ∂W`, re-modelled along a linear
 equivalence (`SymplecticGeometry.Remodel`), glued by `(s, x) ↦ c (x, -s)` for `s ∈ (-1, 0)`. The
-gluing maps are read in the collar coordinates `TauCeti.SmoothCollar.interiorModelCoord`
+gluing maps are read in the collar coordinates `TauCeti.SmoothCollar.interiorCoord`
 (`Boundary/Collar/Interior.lean`). It is a boundaryless smooth manifold, Hausdorff when `W` is;
 no compactness is assumed.
 
@@ -160,8 +160,8 @@ private theorem endToInteriorPt_val (q : endOverlap (n := n) (W := W)) :
   rfl
 
 /-- The gluing map from the end overlap to the interior overlap. -/
-private def endToInterior : C(endOverlap (n := n) (W := W), c.interiorModelRange) where
-  toFun q := ⟨c.endToInteriorPt q, c.mem_interiorModelRange.2
+private def endToInterior : C(endOverlap (n := n) (W := W), c.interiorRange) where
+  toFun q := ⟨c.endToInteriorPt q, c.mem_interiorRange.2
     ⟨_, ((c.endToInteriorPt_val q).trans (c.endRetract_def q.val)).symm⟩⟩
   continuous_toFun := Continuous.subtype_mk
     ((c.continuous_endRetract.comp continuous_subtypeVal).subtype_mk _) _
@@ -171,48 +171,48 @@ private theorem endToInterior_val (q : endOverlap (n := n) (W := W)) :
   c.endToInteriorPt_val q
 
 /-- The point of the end piece with the collar coordinates of a point of the interior overlap. -/
-private def interiorToEndPt (q : c.interiorModelRange) : EndPiece n W :=
-  collarToEnd (c.interiorModelCoord q)
+private def interiorToEndPt (q : c.interiorRange) : EndPiece n W :=
+  collarToEnd (c.interiorCoord q)
 
-private theorem interiorToEndPt_def (q : c.interiorModelRange) :
-    c.interiorToEndPt q = collarToEnd (c.interiorModelCoord q) := rfl
+private theorem interiorToEndPt_def (q : c.interiorRange) :
+    c.interiorToEndPt q = collarToEnd (c.interiorCoord q) := rfl
 
 private theorem continuous_interiorToEndPt : Continuous c.interiorToEndPt :=
   ((continuous_negNormalCoord Ioc_subset_endInterval).comp
-    (continuous_snd.comp c.continuous_interiorModelCoord)).prodMk
-      (continuous_fst.comp c.continuous_interiorModelCoord)
+    (continuous_snd.comp c.continuous_interiorCoord)).prodMk
+      (continuous_fst.comp c.continuous_interiorCoord)
 
 /-- The gluing map from the interior overlap to the end overlap. -/
-private def interiorToEnd : C(c.interiorModelRange, endOverlap (n := n) (W := W)) where
-  toFun q := ⟨c.interiorToEndPt q, negNormalCoord_neg _ (c.interiorModelCoord_snd_pos q)⟩
+private def interiorToEnd : C(c.interiorRange, endOverlap (n := n) (W := W)) where
+  toFun q := ⟨c.interiorToEndPt q, negNormalCoord_neg _ (c.interiorCoord_snd_pos q)⟩
   continuous_toFun := c.continuous_interiorToEndPt.subtype_mk _
 
-private theorem interiorToEnd_val (q : c.interiorModelRange) :
+private theorem interiorToEnd_val (q : c.interiorRange) :
     (c.interiorToEnd q).val = c.interiorToEndPt q := rfl
 
-private theorem interiorModelCoord_endToInterior (q : endOverlap (n := n) (W := W)) :
-    c.interiorModelCoord (c.endToInterior q) =
+private theorem interiorCoord_endToInterior (q : endOverlap (n := n) (W := W)) :
+    c.interiorCoord (c.endToInterior q) =
       (q.val.coord.2, negNormalIioRay endInterval_subset q.val.coord.1) := by
   refine c.injective ?_
-  rw [apply_interiorModelCoord, endToInterior_val, endRetract_def]
+  rw [apply_interiorCoord, endToInterior_val, endRetract_def]
 
 private theorem interiorToEnd_endToInterior (q : endOverlap (n := n) (W := W)) :
     c.interiorToEnd (c.endToInterior q) = q := by
   have hq : ((q.val.coord.1 : endInterval) : ℝ) ≤ 0 := le_of_lt (mem_endOverlap.1 q.property)
   apply Subtype.ext
-  rw [interiorToEnd_val, interiorToEndPt_def, interiorModelCoord_endToInterior, collarToEnd_mk,
+  rw [interiorToEnd_val, interiorToEndPt_def, interiorCoord_endToInterior, collarToEnd_mk,
     negNormalCoord_negNormalIioRay endInterval_subset Ioc_subset_endInterval hq]
   exact Prod.mk.eta.trans (EndPiece.coord_eq _)
 
-private theorem endToInterior_interiorToEnd (q : c.interiorModelRange) :
+private theorem endToInterior_interiorToEnd (q : c.interiorRange) :
     c.endToInterior (c.interiorToEnd q) = q := by
   apply Subtype.ext
   apply Subtype.val_injective
   rw [endToInterior_val, interiorToEnd_val, interiorToEndPt_def, endRetract_collarToEnd,
-    apply_interiorModelCoord]
+    apply_interiorCoord]
 
 /-- The gluing homeomorphism from the interior overlap to the end overlap. -/
-private def interiorEndHomeomorph : c.interiorModelRange ≃ₜ endOverlap (n := n) (W := W) where
+private def interiorEndHomeomorph : c.interiorRange ≃ₜ endOverlap (n := n) (W := W) where
   toFun := c.interiorToEnd
   invFun := c.endToInterior
   left_inv := c.endToInterior_interiorToEnd
@@ -251,12 +251,12 @@ private instance instChartedSpaceOverlap (p : c.glueData.J × c.glueData.J) :
   -- `show` gives the overlap the type `Opens (c.glueData.U p.1)`, so that the piece's atlas
   -- `instChartedSpacePiece` applies; elaborated alone it is an `Opens` of `ofHomeomorphPiece`.
   Opens.instChartedSpace (show Opens (c.glueData.U p.1) from
-    TopCat.GlueData.ofHomeomorphOverlap c.interiorModelRange endOverlap p.1 p.2)
+    TopCat.GlueData.ofHomeomorphOverlap c.interiorRange endOverlap p.1 p.2)
 
 private theorem isLocalDiffeomorph_interiorToEndPt :
     IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.interiorToEndPt := fun q ↦ by
-  have h := ((c.isLocalDiffeomorph_interiorModelCoord q).comp
-    (hg := isLocalDiffeomorphAt_collarToEnd (c.interiorModelCoord_snd_pos q))).comp
+  have h := ((c.isLocalDiffeomorph_interiorCoord q).comp
+    (hg := isLocalDiffeomorphAt_collarToEnd (c.interiorCoord_snd_pos q))).comp
     (hg := (remodelDiffeomorph (endModelDiffeomorph n)
       (endInterval × (𝓡∂ (n + 1)).boundary W)).isLocalDiffeomorph _)
   convert h using 1
@@ -334,9 +334,9 @@ private theorem endIncl_eq_interiorIncl_iff {q : EndPiece n W} {p : (𝓡∂ (n 
       ∃ h : q ∈ endOverlap, (c.endToInterior ⟨q, h⟩ : (𝓡∂ (n + 1)).interior W) = p :=
   TopCat.GlueData.ofHomeomorph_ι_true_eq_ι_false_iff c.interiorEndHomeomorph
 
-private theorem endRetract_interiorToEndPt (q : c.interiorModelRange) :
+private theorem endRetract_interiorToEndPt (q : c.interiorRange) :
     c.endRetract (c.interiorToEndPt q) = q.val.val := by
-  rw [interiorToEndPt_def, endRetract_collarToEnd, apply_interiorModelCoord]
+  rw [interiorToEndPt_def, endRetract_collarToEnd, apply_interiorCoord]
 
 private theorem endRetract_eq_val_endToInterior (q : endOverlap (n := n) (W := W)) :
     c.endRetract q.val = (c.endToInterior q : (𝓡∂ (n + 1)).interior W).val :=
