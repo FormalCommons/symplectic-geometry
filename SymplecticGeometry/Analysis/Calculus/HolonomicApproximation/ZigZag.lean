@@ -11,6 +11,7 @@ public import Mathlib.Basic.Sign.Basic
 import Mathlib.Analysis.Normed.Operator.Prod
 import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import TauCeti.Analysis.SpecialFunctions.SmoothTransition
+import SymplecticGeometry.Analysis.Normed.Operator.Pi
 
 /-!
 # Holonomic approximation along a zig-zag: cutoffs at the crossings
@@ -120,14 +121,11 @@ private theorem cutoff_eventuallyEq_comp (i₀ : Fin m) (μ : ℝ → ℝ)
 private theorem norm_transverse_le (j : Fin k) {σ r : ℝ} (hσ : |σ| = 1) (hr : 0 < r) :
     ‖(-(σ / r)) • ((ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : Fin k ↦ ℝ) j).comp
       (ContinuousLinearMap.snd ℝ (Fin m → ℝ) (Fin k → ℝ)))‖ ≤ 1 / r := by
-  have hproj : ‖ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : Fin k ↦ ℝ) j‖ ≤ 1 :=
-    ContinuousLinearMap.opNorm_le_bound _ zero_le_one fun v ↦ by
-      simpa using norm_le_pi_norm v j
   have hcomp : ‖(ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : Fin k ↦ ℝ) j).comp
       (ContinuousLinearMap.snd ℝ (Fin m → ℝ) (Fin k → ℝ))‖ ≤ 1 :=
     (ContinuousLinearMap.opNorm_comp_le _ _).trans
-      ((mul_le_mul hproj (ContinuousLinearMap.norm_snd_le ..) (norm_nonneg _) zero_le_one).trans_eq
-        (one_mul 1))
+      ((mul_le_mul (ContinuousLinearMap.norm_proj_le j) (ContinuousLinearMap.norm_snd_le ..)
+        (norm_nonneg _) zero_le_one).trans_eq (one_mul 1))
   have hσr : ‖-(σ / r)‖ = 1 / r := by
     rw [norm_neg, norm_div, Real.norm_eq_abs, hσ, Real.norm_of_nonneg hr.le]
   rw [norm_smul, hσr]
