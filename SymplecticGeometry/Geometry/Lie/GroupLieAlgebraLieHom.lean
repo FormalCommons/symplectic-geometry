@@ -27,12 +27,16 @@ moves them to `groupLieAlgebraLieHom`, and states there the naturality of the ad
   smooth homomorphism is injective.
 * `ContMDiffMonoidMorphism.groupLieAlgebraLieHom_tangentAd`: `φ.groupLieAlgebraLieHom` intertwines
   `Ad g` and `Ad (φ g)`.
+* `ContMDiffMonoidMorphism.mfderiv_inv_mul_mfderiv`: `φ.groupLieAlgebraLieHom` carries the
+  left-trivialized derivative `d(L_{x⁻¹})_x v` to `d(L_{(φ x)⁻¹})_{φ x} (dφ_x v)`.
 
 The exponential law is the tangent-space form of Tau Ceti's `map_lieExp` (Tau Ceti proves it
 privately, as `monoidHom_mulInvariantExp`); here it is derived from `map_lieExp`. Injectivity is
 derived from Tau Ceti's `ContinuousMonoidHom.lieMap_injective_of_discreteTopology_ker`. The
 naturality of `Ad` restates Tau Ceti's `MonoidHom.groupLieAlgebraMap_adjointContinuousLinearMap`
-for `groupLieAlgebraLieHom` and `TauCeti.Lie.tangentAd`.
+for `groupLieAlgebraLieHom` and `TauCeti.Lie.tangentAd`. The proof of `mfderiv_inv_mul_mfderiv`
+follows the step of Tau Ceti's `ContMDiffMonoidMorphism.mpullback_leftInvariantForm` that
+differentiates `(φ x)⁻¹ * φ y = φ (x⁻¹ * y)` at `x`.
 -/
 
 public section
@@ -81,6 +85,24 @@ theorem ContMDiffMonoidMorphism.groupLieAlgebraLieHom_tangentAd
   simpa only [ContMDiffMonoidMorphism.coe_groupLieAlgebraLieHom,
     TauCeti.Lie.tangentAd_apply, ContMDiffMonoidMorphism.coe_toMonoidHom] using
     φ.toMonoidHom.groupLieAlgebraMap_adjointContinuousLinearMap g ξ
+
+/-- A smooth homomorphism carries left-trivialized derivatives to left-trivialized derivatives
+through its Lie algebra map: for `v` tangent at `x`,
+`d(L_{(φ x)⁻¹})_{φ x} (dφ_x v) = φ.groupLieAlgebraLieHom (d(L_{x⁻¹})_x v)`. -/
+theorem ContMDiffMonoidMorphism.mfderiv_inv_mul_mfderiv
+    (φ : ContMDiffMonoidMorphism I I' ∞ G G') (x : G) (v : TangentSpace I x) :
+    mfderiv I' I' ((φ x)⁻¹ * ·) (φ x) (mfderiv I I' φ x v) =
+      φ.groupLieAlgebraLieHom (mfderiv I I (x⁻¹ * ·) x v) := by
+  have hφ : MDifferentiable I I' φ := φ.contMDiff_toFun.mdifferentiable (by simp)
+  have hcomp : (fun y : G' ↦ (φ x)⁻¹ * y) ∘ φ = φ ∘ (x⁻¹ * ·) := by
+    funext y
+    simp
+  rw [← mfderiv_comp_apply_of_eq x mdifferentiableAt_mul_left (hφ x) rfl, hcomp,
+    mfderiv_comp_apply_of_eq x (hφ _) mdifferentiableAt_mul_left (inv_mul_cancel x),
+    coe_groupLieAlgebraLieHom]
+  -- The two sides apply `mfderiv I I' φ 1` to a vector of `TangentSpace I (x⁻¹ * x)`, which is
+  -- definitionally `TangentSpace I 1` (both are `E`), so the lemma is applied as a term.
+  exact (MonoidHom.groupLieAlgebraMap_apply _ _ _).symm
 
 end Adjoint
 
