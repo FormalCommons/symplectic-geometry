@@ -107,14 +107,15 @@ surface.
 Decisions 1 to 4 chose a route to planar isothermal charts of class `C^m`.
 Tau Ceti's `exists_isothermal_chart_finite_order` and
 `exists_centered_smooth_isothermal_chart` now give those charts, so these
-decisions are settled by Tau Ceti. Of them, only the contraction in
-$C^{k,\alpha}$ (Decision 1) and its operator (Decision 3) still describe
-code of the part, the chart of `CkHolder.lean`.
+decisions are settled by Tau Ceti. The part builds neither the operator of
+Decision 3 nor the contraction of Decision 1: the chart of `CkHolder.lean`
+applies Tau Ceti's fixed point
+`TauCeti.exists_ckHolder_conjWirtingerDeriv_eq_mul_wirtingerDeriv`.
 
 1. **Route: the contraction in $C^{k,\alpha}$, not interior elliptic
-   regularity.** Everything the contraction needs at order $k$ is in Tau
-   Ceti except the operator $h\mapsto\mu\,Bh$ on supported $C^{k,\alpha}$
-   data and the fixed point. The elliptic route
+   regularity.** Tau Ceti has the contraction at order $k$, with the
+   operator $h\mapsto\mu\,Bh$ on supported $C^{k,\alpha}$ data and its
+   fixed point. The elliptic route
    (`Analysis/Pseudodifferential/InteriorRegularity.lean`) would also need
    the identification of the localized operator with
    $\bar\partial-\mu\partial$ on a $C^1$ chart, and a Sobolev embedding into
@@ -263,7 +264,7 @@ uses them from there.
 
 ### `Analysis/Calculus/ContDiff/Holder.lean`
 
-Imports Tau Ceti's `ContDiff/Bounds.lean` and `Holder/JetBounds.lean`.
+Imports Tau Ceti's `ContDiff/Bounds.lean` and `Holder/Jet/Bounds.lean`.
 
 - `ContDiffAt.exists_ball_holderOnWith_iteratedFDeriv {f : E → F} {x : E} {k : ℕ}
   (hf : ContDiffAt ℝ (k + 1) f x) {α : ℝ≥0} (hα : α ≤ 1) :
@@ -353,7 +354,7 @@ About 300 lines.
   `CkHolder.lean` follows `TauCeti.Beltrami.exists_isComplexLinear_chart`
   (`Beltrami/Chart.lean`); its docstring credits it.
   `Calculus/ContDiff/Holder.lean` uses Tau Ceti's
-  `ContDiffOn.holderOnWith_iteratedFDeriv_of_lt` (`Analysis/Holder/JetBounds.lean`,
+  `ContDiffOn.holderOnWith_iteratedFDeriv_of_lt` (`Analysis/Holder/Jet/Bounds.lean`,
   which goes through `LipschitzOnWith.holderOnWith_of_norm_le`),
   `ContDiffAt.exists_ball_bound_iteratedFDeriv`
   (`Analysis/Calculus/ContDiff/Bounds.lean`).
