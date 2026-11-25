@@ -7,7 +7,6 @@ module
 
 public import TauCeti.Geometry.Manifold.VectorField.ModelChart
 public import TauCeti.Geometry.Manifold.VectorField.Prod
-public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
 import TauCeti.Geometry.Manifold.Flow.TimeDependent
 
 /-!
@@ -27,7 +26,8 @@ In particular, let `v` be a vector of a real normed space `E` and `N` a manifold
 The time field `∂_t = (1, 0)` on `ℝ × M` is smooth by Tau Ceti's
 `TauCeti.contMDiff_const_prod_field`, applied to the zero field, the argument that Tau Ceti writes
 inline in the definition of `TauCeti.SmoothForm.timeDeriv`. So it is a smooth section
-`SymplecticGeometry.timeField` of the tangent bundle of `ℝ × M`.
+`SymplecticGeometry.timeField` of the tangent bundle of `ℝ × M`, whose underlying field is the
+product field `(1, 0)` above (`SymplecticGeometry.coe_timeField_eq_prodVectorField`).
 
 ## Main results
 
@@ -36,6 +36,8 @@ inline in the definition of `TauCeti.SmoothForm.timeDeriv`. So it is a smooth se
 * `TauCeti.Manifold.prodVectorField_constVectorField_zero_apply`: the value of `(v, 0)`.
 * `SymplecticGeometry.contMDiff_timeField`: the time field `∂_t = (1, 0)` on `ℝ × M` is smooth.
 * `SymplecticGeometry.timeField`: the time field, as a smooth section of the tangent bundle.
+* `SymplecticGeometry.coe_timeField_eq_prodVectorField`: the time field is the product of the
+  constant field `1` of `ℝ` and the zero field of `M`.
 
 ## References
 
@@ -111,6 +113,15 @@ theorem coe_timeField :
     ⇑(timeField : Cₛ^∞⟮𝓘(ℝ, ℝ).prod I; ℝ × E, TangentSpace (𝓘(ℝ, ℝ).prod I) (M := ℝ × M)⟯) =
       fun _ ↦ ((1 : ℝ), (0 : E)) :=
   (rfl)
+
+/-- The time field on `ℝ × M` is the product field of the constant field `1` of `ℝ` and the zero
+field of `M`. -/
+theorem coe_timeField_eq_prodVectorField :
+    ⇑(timeField : Cₛ^∞⟮𝓘(ℝ, ℝ).prod I; ℝ × E, TangentSpace (𝓘(ℝ, ℝ).prod I) (M := ℝ × M)⟯) =
+      TauCeti.Manifold.prodVectorField (TauCeti.constVectorField (1 : ℝ))
+        (0 : Π y : M, TangentSpace I y) := by
+  funext p
+  rw [TauCeti.Manifold.prodVectorField_constVectorField_zero_apply, coe_timeField]
 
 end SymplecticGeometry
 
