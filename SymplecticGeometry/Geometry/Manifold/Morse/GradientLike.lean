@@ -12,6 +12,8 @@ import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import TauCeti.Geometry.Manifold.Riemannian.Gradient.ChainRule
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
+import TauCeti.Topology.VectorBundle.Riemannian.Basic
+import SymplecticGeometry.Algebra.Order.Field.Basic
 
 /-!
 # Gradient-like vector fields
@@ -59,39 +61,7 @@ public section
 open Bundle Set
 open scoped ContDiff Manifold
 
-open TauCeti.Manifold
-
-/-- If `0 < b`, `0 ≤ G` and `0 ≤ N`, then `min b b⁻¹ * (b ^ 2 * G + N) ≤ b * (G + N)`. -/
-theorem min_inv_mul_sq_mul_add_le {α : Type*} [Field α] [LinearOrder α] [IsStrictOrderedRing α]
-    {b G N : α} (hb : 0 < b) (hG : 0 ≤ G) (hN : 0 ≤ N) :
-    min b b⁻¹ * (b ^ 2 * G + N) ≤ b * (G + N) := by
-  have hm₁ : min b b⁻¹ * b ≤ 1 :=
-    (mul_le_mul_of_nonneg_right (min_le_right _ _) hb.le).trans_eq (inv_mul_cancel₀ hb.ne')
-  have hm₂ : min b b⁻¹ ≤ b := min_le_left _ _
-  calc min b b⁻¹ * (b ^ 2 * G + N) = min b b⁻¹ * b * (b * G) + min b b⁻¹ * N := by ring
-    _ ≤ 1 * (b * G) + b * N := by gcongr
-    _ = b * (G + N) := by ring
-
-namespace Bundle.ContMDiffRiemannianMetric
-
-variable
-  {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
-  {HB : Type*} [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB} {n : ℕ∞ω}
-  {B : Type*} [TopologicalSpace B] [ChartedSpace HB B]
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
-  {E : B → Type*} [TopologicalSpace (TotalSpace F E)]
-  [∀ b, TopologicalSpace (E b)] [∀ b, AddCommGroup (E b)] [∀ b, Module ℝ (E b)]
-  [FiberBundle F E] [VectorBundle ℝ F E]
-
-/-- A smooth Riemannian metric is nonnegative on the diagonal. -/
-theorem inner_self_nonneg (g : ContMDiffRiemannianMetric IB n F E) (b : B) (v : E b) :
-    0 ≤ g.inner b v v := by
-  rcases eq_or_ne v 0 with rfl | hv
-  · simp
-  · exact (g.pos b v hv).le
-
-end Bundle.ContMDiffRiemannianMetric
-
+open TauCeti.Manifold SymplecticGeometry
 
 namespace TauCeti
 
@@ -130,7 +100,7 @@ theorem mvfderiv_apply_pos (hX : IsGradientLike f X) {x : M} (hx : mvfderiv 𝓘
   let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
   have hgrad : 0 < ‖mgradient 𝓘(ℝ, E) f x‖ :=
     norm_pos_iff.2 (by rwa [ne_eq, mgradient_eq_zero_iff])
-  have := g.inner_self_nonneg x (X x)
+  have : 0 ≤ g.inner x (X x) (X x) := g.toRiemannianMetric.inner_self_nonneg x (X x)
   exact lt_of_lt_of_le (by have := hδ x; positivity) (h x)
 
 /-- The zeros of a gradient-like field are exactly the critical points of the function. -/
@@ -191,9 +161,9 @@ theorem smul (hX : IsGradientLike f X) {a : M → ℝ} (ha : Continuous a) (ha�
         (a x * (a x * g.inner x (X x) (X x)) + ‖mgradient 𝓘(ℝ, E) f x‖ ^ 2)
       = δ x * (min (a x) (a x)⁻¹ *
           (a x ^ 2 * g.inner x (X x) (X x) + ‖mgradient 𝓘(ℝ, E) f x‖ ^ 2)) := by ring
-    _ ≤ δ x * (a x * (g.inner x (X x) (X x) + ‖mgradient 𝓘(ℝ, E) f x‖ ^ 2)) := by
-      exact mul_le_mul_of_nonneg_left (min_inv_mul_sq_mul_add_le (ha₀ x)
-        (g.inner_self_nonneg x (X x)) (by positivity)) hδx.le
+    _ ≤ δ x * (a x * (g.inner x (X x) (X x) + ‖mgradient 𝓘(ℝ, E) f x‖ ^ 2)) :=
+      mul_le_mul_of_nonneg_left (min_inv_mul_sq_mul_add_le (ha₀ x)
+        (g.toRiemannianMetric.inner_self_nonneg x (X x)) (by positivity)) hδx.le
     _ ≤ a x * mvfderiv 𝓘(ℝ, E) f x (X x) := by
       rw [mul_left_comm]
       exact mul_le_mul_of_nonneg_left (h x) (ha₀ x).le
@@ -220,9 +190,9 @@ theorem comp (hX : IsGradientLike f X) (hf : MDifferentiable 𝓘(ℝ, E) 𝓘(�
   calc δ x * min b b⁻¹ * (g.inner x (X x) (X x) + (b * ‖mgradient 𝓘(ℝ, E) f x‖) ^ 2)
       = δ x * (min b b⁻¹ *
           (b ^ 2 * ‖mgradient 𝓘(ℝ, E) f x‖ ^ 2 + g.inner x (X x) (X x))) := by ring
-    _ ≤ δ x * (b * (‖mgradient 𝓘(ℝ, E) f x‖ ^ 2 + g.inner x (X x) (X x))) := by
-      exact mul_le_mul_of_nonneg_left (min_inv_mul_sq_mul_add_le hbx (by positivity)
-        (g.inner_self_nonneg x (X x))) hδx.le
+    _ ≤ δ x * (b * (‖mgradient 𝓘(ℝ, E) f x‖ ^ 2 + g.inner x (X x) (X x))) :=
+      mul_le_mul_of_nonneg_left (min_inv_mul_sq_mul_add_le hbx (by positivity)
+        (g.toRiemannianMetric.inner_self_nonneg x (X x))) hδx.le
     _ ≤ b * mvfderiv 𝓘(ℝ, E) f x (X x) := by
       rw [mul_left_comm, add_comm (_ ^ 2)]
       exact mul_le_mul_of_nonneg_left (H x) hbx.le
