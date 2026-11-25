@@ -49,6 +49,8 @@ gives that value.
 
 * A. Hatcher, [*Algebraic Topology*](https://pi.math.cornell.edu/~hatcher/AT/AT.pdf),
   Section 1.2, Example 1.21: the fundamental group of a wedge of circles.
+* [R. E. Gompf, *A new construction of symplectic manifolds*][Gompf1995] (the closed surfaces of
+  genus `g`, whose tori these circles generate).
 -/
 
 public section
@@ -59,7 +61,7 @@ open Set Topology TauCeti unitInterval
 
 namespace SymplecticGeometry
 
-/-- The union of the two circles `{x | x 1 = 0}` and `{x | x 0 = 0}` of the torus
+/-- The union of the two circles `{x | x 0 = 0}` and `{x | x 1 = 0}` of the torus
 `Fin 2 → AddCircle 1` through its base point `0`. -/
 def torusCircles : Set (Fin 2 → AddCircle (1 : ℝ)) :=
   {x | x 0 = 0} ∪ {x | x 1 = 0}
@@ -68,11 +70,13 @@ theorem mem_torusCircles_iff {x : Fin 2 → AddCircle (1 : ℝ)} :
     x ∈ torusCircles ↔ x 0 = 0 ∨ x 1 = 0 :=
   Iff.rfl
 
-/-- The `i`-th circle `{Pi.single i s}` lies in `torusCircles`. -/
+/-- Every point `Pi.single i s`, with all coordinates but the `i`-th equal to `0`, lies in
+`torusCircles`. -/
 theorem single_mem_torusCircles (i : Fin 2) (s : AddCircle (1 : ℝ)) :
     Pi.single i s ∈ torusCircles := by
   fin_cases i <;> simp [mem_torusCircles_iff]
 
+/-- The base point `0` of the torus lies in `torusCircles`. -/
 theorem zero_mem_torusCircles : (0 : Fin 2 → AddCircle (1 : ℝ)) ∈ torusCircles := by
   simpa using single_mem_torusCircles 0 0
 
