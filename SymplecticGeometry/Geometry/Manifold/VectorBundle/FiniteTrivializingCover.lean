@@ -5,9 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Geometry.Manifold.IsManifold.Basic
+public import Mathlib.Geometry.Manifold.IsManifold.ExtChartAt
 public import SymplecticGeometry.Topology.VectorBundle.FiniteTrivializingCover
-import Mathlib.Analysis.Normed.Module.FiniteDimension
 import SymplecticGeometry.Geometry.Manifold.CoveringDimension
 import SymplecticGeometry.Topology.CoveringDimension.SigmaCompact
 
@@ -17,8 +16,9 @@ import SymplecticGeometry.Topology.CoveringDimension.SigmaCompact
 Every vector bundle over a Hausdorff, σ-compact space charted on `H`, with a model with corners
 `I : ModelWithCorners ℝ EB H` and `EB` finite-dimensional, has a finite trivializing cover.
 
-The base is locally compact (`ChartedSpace.locallyCompactSpace`), and its compact subsets have
-covering dimension at most `finrank ℝ EB` (`IsCompact.coveringDimLE_finrank_of_chartedSpace`).
+The base is locally compact (`Manifold.locallyCompact_of_finiteDimensional`), and its compact
+subsets have covering dimension at most `finrank ℝ EB`
+(`IsCompact.coveringDimLE_finrank_of_chartedSpace`).
 So the open cover by the base sets of the trivializations `trivializationAt` has a refinement
 with a subordinate partition of unity in which every point lies in the supports of at most
 `3 * (finrank ℝ EB + 1)` functions (`SymplecticGeometry.exists_isSubordinate_card_finsupport_le`),
@@ -57,8 +57,7 @@ cover. -/
 theorem HasFiniteTrivializingCover.of_chartedSpace (I : ModelWithCorners ℝ EB H)
     [ChartedSpace H B] [T2Space B] [SigmaCompactSpace B] :
     HasFiniteTrivializingCover 𝕜 F E := by
-  have : LocallyCompactSpace H := I.locallyCompactSpace
-  have : LocallyCompactSpace B := ChartedSpace.locallyCompactSpace H B
+  have : LocallyCompactSpace B := Manifold.locallyCompact_of_finiteDimensional I
   obtain ⟨κ, c, ρ, hρ, hcard⟩ := exists_isSubordinate_card_finsupport_le
     (fun _ hK ↦ hK.coveringDimLE_finrank_of_chartedSpace I)
     (fun x : B ↦ (trivializationAt F E x).baseSet) (fun x ↦ (trivializationAt F E x).open_baseSet)
