@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.MFDeriv.Prod
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
@@ -312,6 +313,7 @@ theorem timeExtendIcc_def (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F
 
 /-- At a time `t ∈ [a, b]`, the slice of `TauCeti.SmoothForm.timeExtendIcc η` is the slice of
 `η`. -/
+@[simp]
 theorem mpullback_prodMk_timeExtendIcc (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F k)
     (t : Icc a b) :
     mpullback (fun x : M ↦ (x, (t : ℝ))) (contMDiff_id.prodMk contMDiff_const)
@@ -342,9 +344,8 @@ theorem timeExtendIcc_apply_eq_zero (η : SmoothForm (I.prod (𝓡∂ 1)) (M × 
   have hc : MDifferentiableAt (I.prod 𝓘(ℝ, ℝ)) 𝓘(ℝ, ℝ) (fun p : M × ℝ ↦ (p.2 - a) / (b - a)) p :=
     (((contDiff_id.sub contDiff_const).div_const (b - a)).contMDiff (n := 1).comp
       contMDiff_snd).mdifferentiableAt one_ne_zero
-  rw [mfderiv_prodMk hc mdifferentiableAt_fst, mfderiv_fst,
-    Manifold.tangentSpaceProdEquiv_apply]
-  exact (congrArg Prod.snd (ContinuousLinearMap.prod_apply _ _ (v i))).trans hv
+  rw [mfderiv_prodMk hc mdifferentiableAt_fst, Manifold.tangentSpaceProdEquiv_apply]
+  exact (mfderiv_fst_apply p (v i)).trans hv
 
 section Naturality
 
