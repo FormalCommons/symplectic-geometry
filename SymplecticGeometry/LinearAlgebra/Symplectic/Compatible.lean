@@ -51,6 +51,8 @@ converses.
   `Ψ^* ω = ω₀` and `Ψ J₀ = J Ψ`. So two compatible structures are conjugate by a linear
   symplectomorphism (`TauCeti.SymplecticForm.Compatible.exists_isSymplectomorphism_transport_eq`).
 * `SymplecticGeometry.compatible_tfae`: the six conditions above are equivalent.
+* `SymplecticGeometry.associatedBilinForm_apply_apply_eq_inner`: a `Ψ` as in the standard-model
+  statement is an isometry from the Euclidean inner product to `g_J(v, w) = ω(v, J w)`.
 * `TauCeti.SymplecticForm.Tames.lineMap`: the form `(1 - t) ω₀ + t ω₁`, for `t ∈ [0, 1]` and
   two forms that tame one `J`; it tames `J` too (`TauCeti.SymplecticForm.Tames.tames_lineMap`).
 
@@ -366,6 +368,15 @@ theorem compatible_of_isSymplectomorphism_stdForm {Ψ : StdSpace ι ≃ₗ[ℝ] 
   rw [← isSymplectomorphism_iff_transport_eq.1 hΨ,
     ← (AlmostComplexStructure.transport_eq_iff_isComplexLinearMap Ψ).2 hJ]
   exact stdForm_compatible.transport Ψ
+
+/-- A linear isomorphism `Ψ : ℝ²ⁿ ≃ V` with `Ψ^* ω = ω₀` and `Ψ J₀ = J Ψ` is an isometry from the
+Euclidean inner product to the metric `g_J = ω(·, J ·)`: `g_J(Ψ u, Ψ w) = ⟪u, w⟫`. -/
+theorem associatedBilinForm_apply_apply_eq_inner {Ψ : StdSpace ι ≃ₗ[ℝ] V}
+    (hΨ : IsSymplectomorphism (stdForm ι) ω Ψ)
+    (hJ : IsComplexLinearMap (stdComplexStructure ι) J Ψ.toLinearMap) (u w : StdSpace ι) :
+    ω.associatedBilinForm J (Ψ u) (Ψ w) = inner ℝ u w := by
+  rw [← stdForm_apply_stdComplexStructure, ← associatedBilinForm_apply]
+  exact associatedBilinForm_apply_apply_of_isComplexLinearMap hΨ.apply hJ u w
 
 /-- In dimension `2 n`, with `n` the cardinality of `ι`, `J` is compatible with `ω` exactly
 when some linear isomorphism `Ψ : ℝ²ⁿ ≃ V` from the standard model is a symplectomorphism from

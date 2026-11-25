@@ -201,10 +201,13 @@ Expected size: 300 lines.
 In `TauCeti`, beside Tau Ceti's `Morse/Lemma.lean`:
 
 - `BirthDeathChart E f p`: a chart of the smooth maximal atlas centred at
-  `p`, coordinates `coord` as in `TauCeti.MorseChart`, and an index `k`,
-  with `f` equal to $f(p)+z_1^3-\sum_{2\le i\le k+1}z_i^2+\sum_{i>k+1}z_i^2$
-  on its source; `restr` and its lemmas, as for `MorseChart`.
-- `IsGeneralizedMorse (f : M → ℝ) : Prop`: smooth, and every critical
+  `p`, coordinates `coord` and weights $w_i=\pm1$ as in `TauCeti.MorseChart`
+  off one cubic coordinate $i_0$ of weight $0$, with `f` equal to
+  $f(p)+\tfrac12\sum_{i\ne i_0}w_iz_i^2+z_{i_0}^3/3$ on its source (the
+  cubic is Tau Ceti's `birthDeathPotential 0`), recorded as a
+  `MorseBottChart` of the quadratic part; its `index` is the number of
+  negative weights; `restr` and its lemmas, as for `MorseChart`.
+- `IsGeneralizedMorse E (f : M → ℝ) : Prop`: smooth, and every critical
   point nondegenerate or the centre of a birth–death chart.
   `IsMorse.isGeneralizedMorse`, `IsGeneralizedMorse.isClosed_criticalPoints`
   and `IsGeneralizedMorse.isDiscrete_criticalPoints` (so the critical
@@ -275,7 +278,7 @@ structure IsWeinsteinStructure (ω : SmoothTwoForm 𝓘(ℝ, E) M)
   isCompleteVectorField : IsCompleteVectorField X
   isProperMap : IsProperMap f
   bddBelow : BddBelow (range f)
-  isGeneralizedMorse : IsGeneralizedMorse f
+  isGeneralizedMorse : IsGeneralizedMorse E f
   isGradientLike : IsGradientLike f X
 ```
 
