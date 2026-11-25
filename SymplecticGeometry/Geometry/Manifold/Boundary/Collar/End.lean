@@ -11,9 +11,8 @@ public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Local
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 public import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
 public import SymplecticGeometry.Geometry.Manifold.ModelTransport.Remodel
-public import SymplecticGeometry.Topology.Category.TopCat.GlueData.Pair
+public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
-public import TauCeti.Geometry.Manifold.Gluing.GlueData
 public import TauCeti.Geometry.Manifold.Immersion.Interior
 public import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.Immersion.ModelChange
@@ -25,12 +24,14 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 For a manifold `W` with boundary, modelled on the half-space, and a smooth collar `c` of its
 boundary, `c.WithEnd` is `W` with the half-cylinder `[0, ∞) × ∂W` attached along `∂W`. It is the
-open gluing (`TopCat.GlueData.ofHomeomorph`) of two pieces over `ℝⁿ⁺¹`: the charted
-interior `(𝓡∂ (n + 1)).interior W` of `W`, and `(-1, ∞) × ∂W`, re-modelled along a linear
-equivalence (`SymplecticGeometry.Remodel`), glued by `(s, x) ↦ c (x, -s)` for `s ∈ (-1, 0)`. The
-gluing maps are read in the collar coordinates `TauCeti.SmoothCollar.interiorCoord`
-(`Boundary/Collar/Interior.lean`). It is a boundaryless smooth manifold, Hausdorff when `W` is;
-no compactness is assumed.
+space `SymplecticGeometry.GluedAlong` (`Gluing/Pair.lean`) of two manifolds over `ℝⁿ⁺¹`, the
+charted interior `(𝓡∂ (n + 1)).interior W` of `W` and `(-1, ∞) × ∂W`, re-modelled along a linear
+equivalence (`SymplecticGeometry.Remodel`), glued along the diffeomorphism `(s, x) ↦ c (x, -s)`
+for `s ∈ (-1, 0)` between open subsets of them. The gluing maps are read in the collar
+coordinates `TauCeti.SmoothCollar.interiorCoord` (`Boundary/Collar/Interior.lean`), in which
+they are local diffeomorphisms. So `c.WithEnd` takes its topology, atlas and smooth structure
+from `GluedAlong`: it is a boundaryless smooth manifold, Hausdorff when `W` is; no compactness is
+assumed.
 
 ## Main definitions
 
@@ -211,128 +212,12 @@ private theorem endToInterior_interiorToEnd (q : c.interiorRange) :
   rw [endToInterior_val, interiorToEnd_val, interiorToEndPt_def, endRetract_collarToEnd,
     apply_interiorCoord]
 
-/-- The gluing homeomorphism from the interior overlap to the end overlap. -/
-private def interiorEndHomeomorph : c.interiorRange ≃ₜ endOverlap (n := n) (W := W) where
-  toFun := c.interiorToEnd
-  invFun := c.endToInterior
-  left_inv := c.endToInterior_interiorToEnd
-  right_inv := c.interiorToEnd_endToInterior
-  continuous_toFun := c.interiorToEnd.continuous
-  continuous_invFun := c.endToInterior.continuous
-
-/-- The gluing data of `c.WithEnd`: the interior of `W` and `(-1, ∞) × ∂W`, glued along
-`(s, x) ↦ c (x, -s)` for `s ∈ (-1, 0)`. -/
-def glueData : TopCat.GlueData.{u} := TopCat.GlueData.ofHomeomorph c.interiorEndHomeomorph
-
 private theorem isLocalDiffeomorphAt_collarToEnd {p : ↥((𝓡∂ (n + 1)).boundary W) × normalIioOpens 1}
     (hp : 0 < (p.2 : EuclideanHalfSpace 1).val 0) :
     IsLocalDiffeomorphAt ((𝓡 n).prod (𝓡∂ 1)) (𝓘(ℝ).prod (𝓡 n)) ∞ collarToEnd p := by
   exact ((Diffeomorph.prodComm (𝓡 n) (𝓡∂ 1) _ _ ∞).isLocalDiffeomorph p).comp
     (hg := (isLocalDiffeomorphAt_negNormalCoord Ioc_subset_endInterval hp).prodMap
       (isLocalDiffeomorph_id p.1))
-
-section
-
-variable [IsManifold (𝓡∂ (n + 1)) ∞ W]
-
-private instance instChartedSpacePiece :
-    ∀ i : c.glueData.J, ChartedSpace (EuclideanSpace ℝ (Fin (n + 1))) (c.glueData.U i)
-  | ⟨false⟩ => inferInstanceAs (ChartedSpace _ ((𝓡∂ (n + 1)).interior W))
-  | ⟨true⟩ => inferInstanceAs (ChartedSpace _ (EndPiece n W))
-
-private instance instIsManifoldPiece :
-    ∀ i : c.glueData.J, IsManifold (𝓡 (n + 1)) ∞ (c.glueData.U i)
-  | ⟨false⟩ => inferInstanceAs (IsManifold _ ∞ ((𝓡∂ (n + 1)).interior W))
-  | ⟨true⟩ => inferInstanceAs (IsManifold _ ∞ (EndPiece n W))
-
-/-- Each overlap is an open subset of its piece, with the induced atlas. -/
-private instance instChartedSpaceOverlap (p : c.glueData.J × c.glueData.J) :
-    ChartedSpace (EuclideanSpace ℝ (Fin (n + 1))) (c.glueData.V p) :=
-  -- `show` gives the overlap the type `Opens (c.glueData.U p.1)`, so that the piece's atlas
-  -- `instChartedSpacePiece` applies; elaborated alone it is an `Opens` of `ofHomeomorphPiece`.
-  Opens.instChartedSpace (show Opens (c.glueData.U p.1) from
-    TopCat.GlueData.ofHomeomorphOverlap c.interiorRange endOverlap p.1 p.2)
-
-private theorem isLocalDiffeomorph_interiorToEndPt :
-    IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.interiorToEndPt := fun q ↦ by
-  have h := ((c.isLocalDiffeomorph_interiorCoord q).comp
-    (hg := isLocalDiffeomorphAt_collarToEnd (c.interiorCoord_snd_pos q))).comp
-    (hg := (remodelDiffeomorph (endModelDiffeomorph n)
-      (endInterval × (𝓡∂ (n + 1)).boundary W)).isLocalDiffeomorph _)
-  convert h using 1
-  funext q
-  rw [comp_apply, coe_remodelDiffeomorph, remodelHomeomorph_apply, interiorToEndPt_def,
-    comp_apply]
-
-private theorem isLocalDiffeomorph_interiorToEnd :
-    IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.interiorToEnd := fun q ↦
-  isLocalDiffeomorphAt_subtypeVal_comp_iff.1 (c.isLocalDiffeomorph_interiorToEndPt q)
-
-private theorem isLocalDiffeomorph_endToInterior :
-    IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.endToInterior := fun q ↦ by
-  refine IsLocalDiffeomorphAt.of_comp_left (f := c.interiorToEnd) ?_
-    (c.isLocalDiffeomorph_interiorToEnd _) c.endToInterior.continuous.continuousAt
-  have h : (c.interiorToEnd ∘ c.endToInterior : endOverlap (n := n) (W := W) → _) = id :=
-    funext c.interiorToEnd_endToInterior
-  rw [h]
-  exact isLocalDiffeomorph_id q
-
-private theorem isCompatible_glueData : c.glueData.IsCompatible (𝓡 (n + 1)) ∞ := by
-  refine .of_isLocalDiffeomorph_t (fun i j ↦ isLocalDiffeomorph_subtype_val) ?_
-  rintro ⟨_ | _⟩ ⟨_ | _⟩
-  · exact isLocalDiffeomorph_id
-  · exact c.isLocalDiffeomorph_interiorToEnd
-  · exact c.isLocalDiffeomorph_endToInterior
-  · exact isLocalDiffeomorph_id
-
-/-- The manifold `W ∪ ([0, ∞) × ∂W)` obtained from `W` by attaching the end `[0, ∞) × ∂W` along
-the smooth collar `c`: the interior of `W` and `(-1, ∞) × ∂W`, glued along
-`(s, x) ↦ c (x, -s)` for `s ∈ (-1, 0)`. -/
-def WithEnd : Type u := c.glueData.toGlueData.glued
-
-instance : TopologicalSpace c.WithEnd :=
-  inferInstanceAs (TopologicalSpace c.glueData.toGlueData.glued)
-
-/-- The atlas of `c.WithEnd`, transported from the atlases of its two pieces. -/
-@[instance_reducible]
-def chartedSpaceWithEnd : ChartedSpace (EuclideanSpace ℝ (Fin (n + 1))) c.WithEnd :=
-  c.glueData.chartedSpace (EuclideanSpace ℝ (Fin (n + 1)))
-
-instance : ChartedSpace (EuclideanSpace ℝ (Fin (n + 1))) c.WithEnd := c.chartedSpaceWithEnd
-
-instance : IsManifold (𝓡 (n + 1)) ∞ c.WithEnd := c.isCompatible_glueData.isManifold
-
-end
-
-/-- The canonical map of the interior piece into `c.WithEnd`. -/
-private def interiorIncl : (𝓡∂ (n + 1)).interior W → c.WithEnd := c.glueData.toGlueData.ι ⟨false⟩
-
-/-- The canonical map of the end piece into `c.WithEnd`. -/
-private def endIncl : EndPiece n W → c.WithEnd := c.glueData.toGlueData.ι ⟨true⟩
-
-private theorem isOpenEmbedding_interiorIncl : IsOpenEmbedding c.interiorIncl :=
-  c.glueData.ι_isOpenEmbedding ⟨false⟩
-
-variable [IsManifold (𝓡∂ (n + 1)) ∞ W] in
-private theorem isLocalDiffeomorph_interiorIncl :
-    IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.interiorIncl :=
-  c.isCompatible_glueData.isLocalDiffeomorph_ι ⟨false⟩
-
-variable [IsManifold (𝓡∂ (n + 1)) ∞ W] in
-private theorem isLocalDiffeomorph_endIncl :
-    IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.endIncl :=
-  c.isCompatible_glueData.isLocalDiffeomorph_ι ⟨true⟩
-
-/- `c.glueData` is `TopCat.GlueData.ofHomeomorph c.interiorEndHomeomorph` by definition, so the
-next two facts are the corresponding lemmas of `ofHomeomorph`. -/
-private theorem interiorIncl_or_endIncl (z : c.WithEnd) :
-    (∃ p, c.interiorIncl p = z) ∨ ∃ q, c.endIncl q = z :=
-  TopCat.GlueData.ofHomeomorph_ι_jointly_surjective c.interiorEndHomeomorph z
-
-private theorem endIncl_eq_interiorIncl_iff {q : EndPiece n W} {p : (𝓡∂ (n + 1)).interior W} :
-    c.endIncl q = c.interiorIncl p ↔
-      ∃ h : q ∈ endOverlap, (c.endToInterior ⟨q, h⟩ : (𝓡∂ (n + 1)).interior W) = p :=
-  TopCat.GlueData.ofHomeomorph_ι_true_eq_ι_false_iff c.interiorEndHomeomorph
 
 private theorem endRetract_interiorToEndPt (q : c.interiorRange) :
     c.endRetract (c.interiorToEndPt q) = q.val.val := by
@@ -360,21 +245,112 @@ private theorem exists_separation [T2Space W] (x : (𝓡∂ (n + 1)).interior W)
     c.continuous_endRetract.continuousAt.preimage_mem_nhds hB', fun z hz q hq h ↦ ?_⟩
   exact Set.disjoint_left.1 hAB hz (h ▸ hq)
 
+variable [IsManifold (𝓡∂ (n + 1)) ∞ W]
+
+private theorem isLocalDiffeomorph_interiorToEndPt :
+    IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.interiorToEndPt := fun q ↦ by
+  have h := ((c.isLocalDiffeomorph_interiorCoord q).comp
+    (hg := isLocalDiffeomorphAt_collarToEnd (c.interiorCoord_snd_pos q))).comp
+    (hg := (remodelDiffeomorph (endModelDiffeomorph n)
+      (endInterval × (𝓡∂ (n + 1)).boundary W)).isLocalDiffeomorph _)
+  convert h using 1
+  funext q
+  rw [comp_apply, coe_remodelDiffeomorph, remodelHomeomorph_apply, interiorToEndPt_def,
+    comp_apply]
+
+private theorem isLocalDiffeomorph_interiorToEnd :
+    IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.interiorToEnd := fun q ↦
+  isLocalDiffeomorphAt_subtypeVal_comp_iff.1 (c.isLocalDiffeomorph_interiorToEndPt q)
+
+private theorem isLocalDiffeomorph_endToInterior :
+    IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.endToInterior := fun q ↦ by
+  refine IsLocalDiffeomorphAt.of_comp_left (f := c.interiorToEnd) ?_
+    (c.isLocalDiffeomorph_interiorToEnd _) c.endToInterior.continuous.continuousAt
+  have h : (c.interiorToEnd ∘ c.endToInterior : endOverlap (n := n) (W := W) → _) = id :=
+    funext c.interiorToEnd_endToInterior
+  rw [h]
+  exact isLocalDiffeomorph_id q
+
+/-- The gluing diffeomorphism from the interior overlap to the end overlap, `c.interiorToEnd`
+with inverse `c.endToInterior`. -/
+private def interiorEndDiffeomorph :
+    c.interiorRange ≃ₘ^∞⟮𝓡 (n + 1), 𝓡 (n + 1)⟯ endOverlap (n := n) (W := W) where
+  toFun := c.interiorToEnd
+  invFun := c.endToInterior
+  left_inv := c.endToInterior_interiorToEnd
+  right_inv := c.interiorToEnd_endToInterior
+  contMDiff_toFun := c.isLocalDiffeomorph_interiorToEnd.contMDiff
+  contMDiff_invFun := c.isLocalDiffeomorph_endToInterior.contMDiff
+
+private theorem interiorEndDiffeomorph_apply (q : c.interiorRange) :
+    c.interiorEndDiffeomorph q = c.interiorToEnd q := rfl
+
+/-- The manifold `W ∪ ([0, ∞) × ∂W)` obtained from `W` by attaching the end `[0, ∞) × ∂W` along
+the smooth collar `c`: the space `SymplecticGeometry.GluedAlong` glued from the interior of `W`
+and `(-1, ∞) × ∂W` along the diffeomorphism `(s, x) ↦ c (x, -s)` for `s ∈ (-1, 0)`. -/
+def WithEnd : Type u := GluedAlong c.interiorEndDiffeomorph
+
+/-- The topology of `c.WithEnd`, that of the glued space. -/
+@[instance_reducible]
+def topologicalSpaceWithEnd : TopologicalSpace c.WithEnd :=
+  inferInstanceAs (TopologicalSpace (GluedAlong c.interiorEndDiffeomorph))
+
+instance : TopologicalSpace c.WithEnd := c.topologicalSpaceWithEnd
+
+/-- The atlas of `c.WithEnd`, that of the glued space, transported from the atlases of its two
+pieces. -/
+@[instance_reducible]
+def chartedSpaceWithEnd : ChartedSpace (EuclideanSpace ℝ (Fin (n + 1))) c.WithEnd :=
+  inferInstanceAs (ChartedSpace _ (GluedAlong c.interiorEndDiffeomorph))
+
+instance : ChartedSpace (EuclideanSpace ℝ (Fin (n + 1))) c.WithEnd := c.chartedSpaceWithEnd
+
+instance : IsManifold (𝓡 (n + 1)) ∞ c.WithEnd :=
+  inferInstanceAs (IsManifold _ ∞ (GluedAlong c.interiorEndDiffeomorph))
+
+/-- The canonical map of the interior piece into `c.WithEnd`. -/
+private def interiorIncl : (𝓡∂ (n + 1)).interior W → c.WithEnd :=
+  GluedAlong.inl c.interiorEndDiffeomorph
+
+/-- The canonical map of the end piece into `c.WithEnd`. -/
+private def endIncl : EndPiece n W → c.WithEnd := GluedAlong.inr c.interiorEndDiffeomorph
+
+private theorem isOpenEmbedding_interiorIncl : IsOpenEmbedding c.interiorIncl :=
+  GluedAlong.isOpenEmbedding_inl _
+
+private theorem isOpenEmbedding_endIncl : IsOpenEmbedding c.endIncl :=
+  GluedAlong.isOpenEmbedding_inr _
+
+private theorem isLocalDiffeomorph_interiorIncl :
+    IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.interiorIncl :=
+  GluedAlong.isLocalDiffeomorph_inl _
+
+private theorem isLocalDiffeomorph_endIncl :
+    IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.endIncl :=
+  GluedAlong.isLocalDiffeomorph_inr _
+
+private theorem interiorIncl_or_endIncl (z : c.WithEnd) :
+    (∃ p, c.interiorIncl p = z) ∨ ∃ q, c.endIncl q = z := by
+  rcases (GluedAlong.range_inl_union_range_inr c.interiorEndDiffeomorph).ge (mem_univ z) with
+    ⟨p, rfl⟩ | ⟨q, rfl⟩
+  exacts [.inl ⟨p, rfl⟩, .inr ⟨q, rfl⟩]
+
 /-- `c.WithEnd` is Hausdorff when `W` is. -/
 instance [T2Space W] : T2Space c.WithEnd := by
-  refine (TopCat.GlueData.ofHomeomorph_t2Space_iff c.interiorEndHomeomorph).2
+  refine (TopCat.GlueData.ofHomeomorph_t2Space_iff c.interiorEndDiffeomorph.toHomeomorph).2
     ⟨inferInstanceAs (T2Space ((𝓡∂ (n + 1)).interior W)),
       inferInstanceAs (T2Space (endInterval × (𝓡∂ (n + 1)).boundary W)), fun x _ y hy ↦ ?_⟩
   obtain ⟨A, hA, B, hB, hAB⟩ := c.exists_separation x hy
   exact ⟨A, hA, B, hB, fun z hz hz' ↦ hAB z.val hz _ hz' (c.endRetract_interiorToEndPt z)⟩
 
 private theorem endIncl_collarToEnd_eq {p : ↥((𝓡∂ (n + 1)).boundary W) × normalIioOpens 1}
-    (hp : 0 < (p.2 : EuclideanHalfSpace 1).val 0) (hint : c p ∈ (𝓡∂ (n + 1)).interior W) :
+    (hint : c p ∈ (𝓡∂ (n + 1)).interior W) :
     c.endIncl (collarToEnd p) = c.interiorIncl ⟨c p, hint⟩ := by
-  refine c.endIncl_eq_interiorIncl_iff.2 ⟨negNormalCoord_neg _ hp, ?_⟩
-  apply Subtype.val_injective
-  exact (c.endToInterior_val _).trans (c.endRetract_collarToEnd p)
+  refine (GluedAlong.inr_eq_inl_iff _).2 ⟨c.mem_interiorRange.2 (mem_range_self p), ?_⟩
+  rw [interiorEndDiffeomorph_apply, interiorToEnd_val, interiorToEndPt_def,
+    c.interiorCoord_eq_iff.2 rfl]
 
+omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 /-- A point outside the image of a collar is an interior point. -/
 theorem mem_interior_of_notMem_range {p : W} (hp : p ∉ range c) :
     p ∈ (𝓡∂ (n + 1)).interior W := by
@@ -402,7 +378,7 @@ private theorem inclusion_apply_of_mem_interior {p : W} (hp : p ∈ (𝓡∂ (n 
   by_cases h : p ∈ range c
   · obtain ⟨q, rfl⟩ := h
     rw [inclusion_apply_collar]
-    exact c.endIncl_collarToEnd_eq ((c.apply_mem_interior_iff_pos q).1 hp) hp
+    exact c.endIncl_collarToEnd_eq hp
   · simp only [inclusion, h, ↓reduceDIte]
 
 /-- The point `(s, x)` of `(-1, ∞) × ∂W` in `c.WithEnd`; its values for `s ≤ -1` are junk. -/
@@ -426,9 +402,12 @@ theorem endMap_zero (x : (𝓡∂ (n + 1)).boundary W) : endMap c (0, x) = inclu
   have := endMap_neg_eq_inclusion c x (normalIioOpensZero one_pos)
   rwa [coe_normalIioOpensZero, val_zero_apply, neg_zero, apply_zero] at this
 
-/-- The retraction, as a morphism out of the glued space. -/
-private def retractionHom : c.glueData.toGlueData.glued ⟶ TopCat.of W :=
-  Limits.Multicoequalizer.desc c.glueData.toGlueData.diagram (TopCat.of W)
+/-- The retraction, as a morphism out of the glued space of
+`GluedAlong.glueData c.interiorEndDiffeomorph`, which is `c.WithEnd` by definition. -/
+private def retractionHom :
+    (GluedAlong.glueData c.interiorEndDiffeomorph).toGlueData.glued ⟶ TopCat.of W :=
+  Limits.Multicoequalizer.desc (GluedAlong.glueData c.interiorEndDiffeomorph).toGlueData.diagram
+    (TopCat.of W)
     (fun i ↦ match i with
       | ⟨false⟩ => TopCat.ofHom ⟨Subtype.val, continuous_subtypeVal⟩
       | ⟨true⟩ => TopCat.ofHom ⟨c.endRetract, c.continuous_endRetract⟩)
@@ -443,14 +422,16 @@ private def retractionHom : c.glueData.toGlueData.glued ⟶ TopCat.of W :=
 def retraction : C(c.WithEnd, W) := (retractionHom c).hom
 
 private theorem retraction_interiorIncl (p : (𝓡∂ (n + 1)).interior W) :
-    retraction c (c.interiorIncl p) = p.val :=
-  ConcreteCategory.congr_hom (Limits.Multicoequalizer.π_desc c.glueData.toGlueData.diagram
-    (TopCat.of W) _ _ ⟨false⟩) p
+    retraction c (c.interiorIncl p) = p.val := by
+  rw [interiorIncl, GluedAlong.inl_def]
+  exact ConcreteCategory.congr_hom (Limits.Multicoequalizer.π_desc
+    (GluedAlong.glueData c.interiorEndDiffeomorph).toGlueData.diagram (TopCat.of W) _ _ ⟨false⟩) p
 
 private theorem retraction_endIncl (q : EndPiece n W) :
-    retraction c (c.endIncl q) = c.endRetract q :=
-  ConcreteCategory.congr_hom (Limits.Multicoequalizer.π_desc c.glueData.toGlueData.diagram
-    (TopCat.of W) _ _ ⟨true⟩) q
+    retraction c (c.endIncl q) = c.endRetract q := by
+  rw [endIncl, GluedAlong.inr_def]
+  exact ConcreteCategory.congr_hom (Limits.Multicoequalizer.π_desc
+    (GluedAlong.glueData c.interiorEndDiffeomorph).toGlueData.diagram (TopCat.of W) _ _ ⟨true⟩) q
 
 /-- The retraction is a left inverse of the inclusion. -/
 @[simp] theorem retraction_inclusion (p : W) : retraction c (inclusion c p) = p := by
@@ -463,7 +444,6 @@ private theorem retraction_endIncl (q : EndPiece n W) :
 
 end WithEnd
 
-variable [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 private theorem isImmersionAt_endIncl_collarToEnd
     (q : ↥((𝓡∂ (n + 1)).boundary W) × normalIioOpens 1) :
     IsImmersionAt ((𝓡 n).prod (𝓡∂ 1)) (𝓡 (n + 1)) ∞
@@ -483,11 +463,6 @@ private theorem isImmersionAt_endIncl_collarToEnd
 
 namespace WithEnd
 
-section
-
-variable [IsManifold (𝓡∂ (n + 1)) ∞ W]
-
-omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 private theorem inclusion_comp_collar :
     inclusion c ∘ c =
       fun p ↦ c.endIncl (remodelDiffeomorph (endModelDiffeomorph n) _ (collarToEnd p)) :=
@@ -585,7 +560,6 @@ private theorem isLocalDiffeomorph_endIntervalVal :
       (Prod.map Subtype.val id : endInterval × (𝓡∂ (n + 1)).boundary W → _) :=
   isLocalDiffeomorph_subtype_val.prodMap isLocalDiffeomorph_id
 
-omit [IsManifold (𝓡∂ (n + 1)) ∞ W] in
 private theorem endMap_comp_endIntervalVal :
     endMap c ∘ (Prod.map Subtype.val id : endInterval × (𝓡∂ (n + 1)).boundary W → _) =
       fun q ↦ c.endIncl (remodelDiffeomorph (endModelDiffeomorph n) _ q) := by
@@ -610,9 +584,7 @@ theorem contMDiffOn_endMap :
     ContMDiffOn (𝓘(ℝ).prod (𝓡 n)) (𝓡 (n + 1)) ∞ (endMap c) (Ioi (-1) ×ˢ univ) :=
   (isLocalDiffeomorphOn_endMap c).contMDiffOn
 
-end
-
-private theorem endIncl_injective : Injective c.endIncl := c.glueData.ι_injective ⟨true⟩
+private theorem endIncl_injective : Injective c.endIncl := GluedAlong.inr_injective _
 
 /-- On `(-1, ∞) × ∂W`, `endMap` is injective. -/
 theorem injOn_endMap : InjOn (endMap c) (Ioi (-1) ×ˢ univ) := by
@@ -638,7 +610,7 @@ private theorem endMap_image_eq {U : Set (ℝ × (𝓡∂ (n + 1)).boundary W)}
 theorem isOpen_endMap_image {U : Set (ℝ × (𝓡∂ (n + 1)).boundary W)} (hU : U ⊆ Ioi (-1) ×ˢ univ)
     (ho : IsOpen U) : IsOpen (endMap c '' U) := by
   rw [endMap_image_eq c hU]
-  exact (c.glueData.ι_isOpenEmbedding ⟨true⟩).isOpenMap _
+  exact c.isOpenEmbedding_endIncl.isOpenMap _
     (ho.preimage (continuous_subtypeVal.prodMap continuous_id))
 
 /-- Every point of `c.WithEnd` is a point of `W` or a point `(s, x)` of the end with `0 < s`. -/

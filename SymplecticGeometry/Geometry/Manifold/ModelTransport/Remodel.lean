@@ -63,6 +63,11 @@ instance [CompactSpace M] : CompactSpace (Remodel Φ M) := inferInstanceAs (Comp
 
 instance [Nonempty M] : Nonempty (Remodel Φ M) := inferInstanceAs (Nonempty M)
 
+instance [ConnectedSpace M] : ConnectedSpace (Remodel Φ M) := inferInstanceAs (ConnectedSpace M)
+
+instance [PathConnectedSpace M] : PathConnectedSpace (Remodel Φ M) :=
+  inferInstanceAs (PathConnectedSpace M)
+
 /-- The charts of `Remodel Φ M` are the charts of `M` followed by `Φ`. -/
 instance [ChartedSpace H M] : ChartedSpace H' (Remodel Φ M) :=
   Φ.toHomeomorph.chartedSpaceComp M

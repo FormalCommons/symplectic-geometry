@@ -3630,8 +3630,8 @@ For `auxiliary/first-chern-class.md`; it waits for no part.
   Tau Ceti's files on the intrinsic normal bundle
   `TauCeti.SmoothEmbedding.NormalSpace`: `ThomClass.lean` (for an
   orientation of the normal bundle of a closed embedded submanifold $Z$ of
-  codimension $r$, its Thom class, Tau Ceti's
-  `TauCeti.VectorBundleOrientation.thomClassOfModel` at a generator, and
+  codimension $r$, its Thom class, the canonical class
+  `TauCeti.VectorBundleOrientation.canonicalThomClass`, and
   the Thom isomorphism $H^k(Z)\cong H^{k+r}(\nu,\nu\setminus Z)$ by cup
   product, from a Thom isomorphism over second-countable bases in
   `Topology/VectorBundle/Thom/SecondCountable.lean`) and `DualClass.lean`
