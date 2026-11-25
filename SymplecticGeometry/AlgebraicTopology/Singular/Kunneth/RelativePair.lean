@@ -576,18 +576,8 @@ def shuffleAlexanderWhitneyPairHomotopy :
       have h := SSet.shuffleAlexanderWhitneyHomotopy_hom_naturality R S
         (𝟙 (toSSet.obj X)) (toSSet.map (TopPair.ιOfSubset B)) i j
       simp only [CategoryTheory.Functor.map_id] at h
-      have e : (𝟙 ((toSSet.obj X).chainComplex R) ⊗ₘ
-            SSet.chainComplexMap (toSSet.map (TopPair.ιOfSubset B)) S) ≫
-          (TopPair.singularChainComplexπOfSubset R A ⊗ₘ
-            TopPair.singularChainComplexπOfSubset S B) =
-          (TopPair.singularChainComplexπOfSubset R A ⊗ₘ
-            𝟙 ((toSSet.obj (TopPair.ofSubset B).snd).chainComplex S)) ≫
-            (𝟙 ((TopPair.ofSubset A).singularChainComplex R) ⊗ₘ
-              SSet.chainComplexMap (toSSet.map (TopPair.ιOfSubset B)) S) ≫
-            (𝟙 ((TopPair.ofSubset A).singularChainComplex R) ⊗ₘ
-              TopPair.singularChainComplexπOfSubset S B) := by
-        simp only [tensorHom_comp_tensorHom, Category.id_comp, Category.comp_id]
-      rw [reassoc_of% h, ← comp_f, e,
+      rw [reassoc_of% h, ← comp_f, singularChainComplexπ_tensorHom_singularChainComplexπ_eq_comp,
+        ← singularChainComplexπ_tensorHom_id_comp_id_tensorHom_chainComplexMap_assoc,
         id_tensorHom_chainComplexMap_comp_id_tensorHom_singularChainComplexπ, comp_zero, zero_f,
         comp_zero])
     (by rw [← Category.assoc, ← singularChainComplexπ_tensorHom_singularChainComplexπ_eq_comp,

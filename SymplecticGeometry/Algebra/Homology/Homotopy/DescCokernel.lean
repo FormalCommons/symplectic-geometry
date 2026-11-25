@@ -59,7 +59,7 @@ def descCokernel₂ : Homotopy fN gN :=
 
 /-- After the two cokernel maps, the components of `Homotopy.descCokernel₂` are those of the
 original homotopy followed by `p'`. -/
-@[reassoc]
+@[reassoc (attr := simp)]
 theorem π_π_descCokernel₂_hom (i j : ι) :
     p₁.f i ≫ p₂.f i ≫
         (descCokernel₂ HL p' u₁ p₁ hw₁ hp₁ hcomm₁ u₂ p₂ hw₂ hp₂ q hq v hqv hcomm₂ hf hg).hom i j =
