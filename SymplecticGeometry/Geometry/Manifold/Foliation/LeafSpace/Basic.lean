@@ -136,6 +136,16 @@ theorem LeafSpace.lift_comp_leafSpaceMk {α : Sort*} (f : M → α)
     (hf : ∀ x y, 𝓕.SameLeaf x y → f x = f y) : LeafSpace.lift f hf ∘ 𝓕.leafSpaceMk = f :=
   funext (LeafSpace.lift_leafSpaceMk f hf)
 
+/-- The map induced on the leaf space by a map `f` constant on each leaf is injective exactly
+when any two points with the same image under `f` lie on one leaf. -/
+theorem LeafSpace.injective_lift_iff {α : Sort*} {f : M → α}
+    {hf : ∀ x y, 𝓕.SameLeaf x y → f x = f y} :
+    Injective (LeafSpace.lift f hf) ↔ ∀ x y, f x = f y → 𝓕.SameLeaf x y := by
+  refine ⟨fun h x y hxy ↦ 𝓕.leafSpaceMk_eq_leafSpaceMk_iff.1 (h hxy), fun h p q hpq ↦ ?_⟩
+  induction p using LeafSpace.ind with | h x => ?_
+  induction q using LeafSpace.ind with | h y => ?_
+  exact 𝓕.leafSpaceMk_eq_leafSpaceMk_iff.2 (h x y hpq)
+
 /-- The projection to the leaf space is a quotient map. -/
 theorem isQuotientMap_leafSpaceMk : IsQuotientMap 𝓕.leafSpaceMk :=
   isQuotientMap_quotient_mk'

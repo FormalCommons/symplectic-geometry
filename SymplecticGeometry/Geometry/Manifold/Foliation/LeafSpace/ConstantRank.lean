@@ -24,6 +24,8 @@ meets each leaf at most once.
   rank is regular.
 * `TauCeti.Foliation.isSlice_ofConstantRank`: a smooth map `s` from the model space of the slices
   is a slice of that foliation when `f ∘ s` and its derivatives are injective.
+* `TauCeti.Foliation.LeafSpace.injective_lift_ofConstantRank`: if every fibre is preconnected,
+  the map induced by `f` on the leaf space is injective.
 
 ## Implementation notes
 
@@ -56,7 +58,11 @@ variable {E F H G M N : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Finit
   [TopologicalSpace H] [TopologicalSpace G]
   {I : ModelWithCorners ℝ E H} [I.Boundaryless] {J : ModelWithCorners ℝ F G} [J.Boundaryless]
   [TopologicalSpace M] [ChartedSpace H M] [TopologicalSpace N] [ChartedSpace G N]
-  [IsManifold I ∞ M] [IsManifold J ∞ N] {f : M → N} {r : ℕ}
+  {f : M → N} {r : ℕ}
+
+section Regular
+
+variable [IsManifold I ∞ M] [IsManifold J ∞ N]
 
 /-- A criterion for a slice of the kernel foliation of a map `f` of constant rank `r`: a smooth
 map `s` from an open set of `EuclideanSpace ℝ (Fin (dim E - (dim E - r)))` to the source is a slice
@@ -166,6 +172,23 @@ theorem isRegular_ofConstantRank (hf : ContMDiff I J (∞ + 1) f)
     exact Subtype.ext (sub_eq_zero.1 (hAL h'))
   exact ⟨U, s, isSlice_ofConstantRank hf hr hn (hs.of_le le_self_add) hinj hkey,
     ⟨0, by simpa [U, L, hφx] using φ.map_source hxφ⟩, by simp [s, L, ← hφx, φ.left_inv hxφ]⟩
+
+end Regular
+
+section Fibres
+
+variable {n : ℕ∞ω} [IsManifold I (n + 1) M] [IsManifold J (n + 1) N]
+
+/-- If every fibre of a map `f` of constant rank is preconnected, the map induced by `f` on the
+leaf space of its kernel foliation is injective. -/
+theorem LeafSpace.injective_lift_ofConstantRank (hf : ContMDiff I J (n + 1) f)
+    (hr : ∀ x, mfderivRank I J f x = r) (hn : 1 ≤ n) (h : ∀ b, IsPreconnected (f ⁻¹' {b})) :
+    Injective (LeafSpace.lift f fun _ _ ↦ SameLeaf.apply_eq_of_ofConstantRank (hf := hf)
+      (hr := hr) (hn := hn)) :=
+  LeafSpace.injective_lift_iff.2 fun _ y hxy ↦
+    sameLeaf_ofConstantRank_of_isPreconnected_preimage_singleton hf hr hn (h (f y)) hxy rfl
+
+end Fibres
 
 end TauCeti.Foliation
 

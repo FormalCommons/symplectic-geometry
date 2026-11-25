@@ -54,7 +54,8 @@ direction.
 ## Main results
 
 * `SymplecticGeometry.cotangentCoord_cotangentMk`: `cotangentMk q p` has coordinates
-  `(q, p - ⟪q, p⟫ q)`, the orthogonal projection of `p` onto the tangent hyperplane.
+  `(q, p - ⟪q, p⟫ q)`, the orthogonal projection of `p` onto the tangent hyperplane;
+  `SymplecticGeometry.cotangentCoord_cotangentMk_of_inner_eq_zero`: for `p ⊥ q` they are `(q, p)`.
 * `SymplecticGeometry.cotangentMk_cotangentCoord`: a covector is recovered from its coordinates.
 * `SymplecticGeometry.range_cotangentCoord`: the coordinates fill out
   `{(q, p) | ‖q‖ = 1, ⟪q, p⟫ = 0}`.
@@ -232,6 +233,11 @@ theorem cotangentCoord_cotangentMk (q : 𝕊 n) (p : 𝔼 n) :
   · rw [ContinuousLinearMap.comp_apply, innerSL_apply_apply, inner_sub_left, real_inner_smul_left,
       inner_coe_mvfderiv_subtypeVal_sphere, mul_zero, sub_zero]
 
+/-- For `p` orthogonal to `q`, the coordinates of `cotangentMk q p` are `(q, p)`. -/
+theorem cotangentCoord_cotangentMk_of_inner_eq_zero {q : 𝕊 n} {p : 𝔼 n}
+    (h : ⟪(q : 𝔼 n), p⟫_ℝ = 0) : cotangentCoord (cotangentMk q p) = ((q : 𝔼 n), p) := by
+  rw [cotangentCoord_cotangentMk, h, zero_smul, sub_zero]
+
 /-- A covector is the covector `cotangentMk` of its coordinates. -/
 @[simp]
 theorem cotangentMk_cotangentCoord (z : CotangentBundle (𝓡 n) (𝕊 n)) :
@@ -251,9 +257,8 @@ theorem range_cotangentCoord :
   refine ⟨?_, fun ⟨h₁, h₂⟩ ↦ ?_⟩
   · rintro ⟨z, rfl⟩
     exact ⟨norm_eq_of_mem_sphere z.proj, inner_proj_cotangentCoord_snd z⟩
-  · refine ⟨cotangentMk ⟨x.1, mem_sphere_zero_iff_norm.2 h₁⟩ x.2, ?_⟩
-    rw [cotangentCoord_cotangentMk]
-    simp [h₂]
+  · exact ⟨cotangentMk ⟨x.1, mem_sphere_zero_iff_norm.2 h₁⟩ x.2,
+      cotangentCoord_cotangentMk_of_inner_eq_zero h₂⟩
 
 /-- `(q, p) ↦ cotangentMk q p` is smooth on `Sⁿ × ℝⁿ⁺¹`. -/
 theorem contMDiff_cotangentMk :
@@ -520,18 +525,14 @@ theorem cotangentCoord_geodesicFlow {z : CotangentBundle (𝓡 n) (𝕊 n)}
     real_inner_self_eq_norm_sq _
   have hpq : ⟪(cotangentCoord z).2, (z.proj : 𝔼 n)⟫_ℝ = 0 := by
     rw [real_inner_comm, inner_proj_cotangentCoord_snd]
-  rw [geodesicFlow_def, dite_eq_right hz, cotangentCoord_cotangentMk, coe_sphereGreatCircle,
-    Subtype.coe_mk, smul_smul, cotangentNorm_def, cotangentCoord_fst, ← div_eq_mul_inv]
-  refine Prod.ext rfl ?_
-  have h0 : ⟪Real.cos t • (z.proj : 𝔼 n) +
-        (Real.sin t / ‖(cotangentCoord z).2‖) • (cotangentCoord z).2,
-      Real.cos t • (cotangentCoord z).2 -
-        (Real.sin t * ‖(cotangentCoord z).2‖) • (z.proj : 𝔼 n)⟫_ℝ = 0 := by
+  rw [geodesicFlow_def, dite_eq_right hz, cotangentCoord_cotangentMk_of_inner_eq_zero]
+  · rw [coe_sphereGreatCircle, Subtype.coe_mk, smul_smul, cotangentNorm_def, cotangentCoord_fst,
+      ← div_eq_mul_inv]
+  · rw [coe_sphereGreatCircle, Subtype.coe_mk, smul_smul, cotangentNorm_def]
     simp only [inner_add_left, inner_sub_right, real_inner_smul_left, real_inner_smul_right, hqq,
       hpp, hpq, inner_proj_cotangentCoord_snd]
     field_simp
     ring
-  rw [h0, zero_smul, sub_zero]
 
 /-- The normalized geodesic flow preserves the norm `‖p‖`. -/
 @[simp]
@@ -593,7 +594,7 @@ has no continuous extension across the zero section of `T*Sⁿ`, `n ≥ 1`: cove
 distinct base points `cos t • q ± (sin t / ‖u‖) • u`. -/
 theorem not_exists_continuous_eqOn_geodesicFlow [NeZero n] {t : ℝ} (ht : Real.sin t ≠ 0) :
     ¬ ∃ g : CotangentBundle (𝓡 n) (𝕊 n) → CotangentBundle (𝓡 n) (𝕊 n), Continuous g ∧
-      ∀ z, cotangentNorm z ≠ 0 → g z = geodesicFlow t z := by
+      EqOn g (geodesicFlow t) {z | cotangentNorm z ≠ 0} := by
   rintro ⟨g, hg, hgz⟩
   -- a point `q` of the sphere and a nonzero `u ⊥ q`, which exists since `n ≥ 1`
   let q : 𝕊 n := ⟨EuclideanSpace.single 0 1, by simp⟩
@@ -614,13 +615,13 @@ theorem not_exists_continuous_eqOn_geodesicFlow [NeZero n] {t : ℝ} (ht : Real.
           (continuous_const.prodMk (continuous_id.smul continuous_const))))))
     have hsub : Ioi (0 : ℝ) ⊆ {s | ((g (cotangentMk q (s • v))).proj : 𝔼 n) =
         Real.cos t • (q : 𝔼 n) + (Real.sin t / ‖v‖) • v} := fun s (hs : 0 < s) ↦ by
-      have hcoord : cotangentCoord (cotangentMk q (s • v)) = ((q : 𝔼 n), s • v) := by
-        rw [cotangentCoord_cotangentMk, real_inner_smul_right, hqv, mul_zero, zero_smul, sub_zero]
+      have hcoord : cotangentCoord (cotangentMk q (s • v)) = ((q : 𝔼 n), s • v) :=
+        cotangentCoord_cotangentMk_of_inner_eq_zero (by rw [real_inner_smul_right, hqv, mul_zero])
       have hnorm : ‖s • v‖ = s * ‖v‖ := by rw [norm_smul, Real.norm_of_nonneg hs.le]
       have hz : cotangentNorm (cotangentMk q (s • v)) ≠ 0 := by
         rw [cotangentNorm_def, hcoord, hnorm]
         exact mul_ne_zero hs.ne' (norm_ne_zero_iff.2 hv)
-      rw [mem_ofPred_eq, hgz _ hz, ← cotangentCoord_fst, cotangentCoord_geodesicFlow hz, hcoord,
+      rw [mem_ofPred_eq, hgz hz, ← cotangentCoord_fst, cotangentCoord_geodesicFlow hz, hcoord,
         hnorm, smul_smul]
       field_simp
     have h0 := (isClosed_eq hf continuous_const).closure_subset_iff.2 hsub
