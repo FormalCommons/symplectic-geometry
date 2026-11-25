@@ -8,6 +8,8 @@ module
 public import SymplecticGeometry.Geometry.Euclidean.Inversion
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
+
 /-!
 # The gluing map of the connected sum by annuli
 
@@ -30,14 +32,16 @@ ends. This file builds the map, on the model space alone, as a diffeomorphism of
   `SymplecticGeometry.ConnectedSum.map_mem_annulus_iff`: so does every linear isometry.
 * `SymplecticGeometry.ConnectedSum.gluingPartialDiffeomorph Φ ε hε`: the map
   `ξ ↦ Φ (inversion 0 ε ξ)` as a `C^n` partial diffeomorphism of `E` with source and target the
-  annulus, and inverse `η ↦ inversion 0 ε (Φ⁻¹ η)`.
+  annulus, and inverse `η ↦ inversion 0 ε (Φ⁻¹ η)`, which is the same map for `Φ⁻¹`
+  (`gluingPartialDiffeomorph_symm`).
 * `SymplecticGeometry.ConnectedSum.gluingDiffeomorph Φ ε hε`: the diffeomorphism of the annulus
-  that it gives, with `coe_gluingDiffeomorph_apply` and `coe_gluingDiffeomorph_symm_apply`; for
-  `Φ` the identity it is an involution (`gluingDiffeomorph_refl_symm`).
+  that it gives, with `coe_gluingDiffeomorph_apply` and `coe_gluingDiffeomorph_symm_apply`; its
+  inverse is the gluing diffeomorphism for `Φ⁻¹` (`gluingDiffeomorph_symm`).
 
 The smoothness of the inversion away from its centre is Tau Ceti's
 `EuclideanGeometry.contDiffAt_inversion`, and the diffeomorphism is Tau Ceti's
-`PartialDiffeomorph.toDiffeomorphSourceTarget`.
+`PartialDiffeomorph.toDiffeomorphSourceTarget`. The inverse is identified by Tau Ceti's
+`LinearIsometryEquiv.map_inversion_zero`: a linear isometry commutes with inversion about `0`.
 
 ## References
 
@@ -110,7 +114,7 @@ def gluingPartialDiffeomorph (Φ : E ≃ₗᵢ[ℝ] E) (ε : ℝ) (hε : ε ≠ 
     ((contDiffAt_inversion (Φ.symm.map_ne_zero_iff.2 (ne_zero_of_mem_annulus hη))).comp η
       Φ.symm.contDiff.contDiffAt).contDiffWithinAt
 
-variable (Φ : E ≃ₗᵢ[ℝ] E) {ε : ℝ} (hε : ε ≠ 0) {n : ℕ∞ω}
+variable (Φ : E ≃ₗᵢ[ℝ] E) (ε : ℝ) (hε : ε ≠ 0) {n : ℕ∞ω}
 
 @[simp]
 theorem gluingPartialDiffeomorph_apply (ξ : E) :
@@ -132,6 +136,13 @@ theorem gluingPartialDiffeomorph_target :
     (gluingPartialDiffeomorph Φ ε hε (n := n)).target = annulus E ε :=
   (rfl)
 
+/-- The inverse of the gluing map for `Φ` is the gluing map for `Φ⁻¹`. -/
+@[simp]
+theorem gluingPartialDiffeomorph_symm :
+    (gluingPartialDiffeomorph Φ ε hε (n := n)).symm = gluingPartialDiffeomorph Φ.symm ε hε :=
+  PartialDiffeomorph.ext (fun η ↦ by simp [LinearIsometryEquiv.map_inversion_zero])
+    (fun ξ ↦ by simp [LinearIsometryEquiv.map_inversion_zero]) rfl
+
 /-- For `ε ≠ 0`, the gluing map `ξ ↦ Φ (inversion 0 ε ξ)` of the connected sum, as a `C^n`
 diffeomorphism of the annulus `ε² < ‖ξ‖ < 1` onto itself. -/
 def gluingDiffeomorph : annulus E ε ≃ₘ^n⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ annulus E ε :=
@@ -139,24 +150,19 @@ def gluingDiffeomorph : annulus E ε ≃ₘ^n⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ an
 
 @[simp]
 theorem coe_gluingDiffeomorph_apply (ξ : annulus E ε) :
-    (gluingDiffeomorph Φ hε (n := n) ξ : E) = Φ (inversion 0 ε ξ) :=
+    (gluingDiffeomorph Φ ε hε (n := n) ξ : E) = Φ (inversion 0 ε ξ) :=
   (gluingPartialDiffeomorph Φ ε hε).toDiffeomorphSourceTarget_apply_coe ξ
 
-@[simp]
 theorem coe_gluingDiffeomorph_symm_apply (η : annulus E ε) :
-    ((gluingDiffeomorph Φ hε (n := n)).symm η : E) = inversion 0 ε (Φ.symm η) :=
+    ((gluingDiffeomorph Φ ε hε (n := n)).symm η : E) = inversion 0 ε (Φ.symm η) :=
   (gluingPartialDiffeomorph Φ ε hε).toDiffeomorphSourceTarget_symm_apply_coe η
 
-/-- For `Φ` the identity, the gluing diffeomorphism is the inversion, an involution of the
-annulus. -/
-theorem gluingDiffeomorph_refl_symm :
-    (gluingDiffeomorph (LinearIsometryEquiv.refl ℝ E) hε (n := n)).symm =
-      gluingDiffeomorph (LinearIsometryEquiv.refl ℝ E) hε :=
+/-- The inverse of the gluing diffeomorphism for `Φ` is the gluing diffeomorphism for `Φ⁻¹`. -/
+@[simp]
+theorem gluingDiffeomorph_symm :
+    (gluingDiffeomorph Φ ε hε (n := n)).symm = gluingDiffeomorph Φ.symm ε hε :=
   Diffeomorph.ext fun η ↦ Subtype.ext <| by
-    rw [coe_gluingDiffeomorph_symm_apply, coe_gluingDiffeomorph_apply]
-    have h := (LinearIsometryEquiv.refl ℝ E).symm_apply_apply (η : E)
-    rw [LinearIsometryEquiv.coe_refl, id] at h
-    rw [h, LinearIsometryEquiv.coe_refl, id]
+    simp [coe_gluingDiffeomorph_symm_apply, LinearIsometryEquiv.map_inversion_zero]
 
 end SymplecticGeometry.ConnectedSum
 
