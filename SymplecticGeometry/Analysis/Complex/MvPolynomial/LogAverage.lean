@@ -31,7 +31,7 @@ The first transfers Tau Ceti's `MvPolynomial.volume_setOfPred_eval_eq_zero` from
 
 ## References
 
-* [M. Klimek, *Pluripotential Theory*, Oxford University Press, 1991], §5.2 (the
+* [M. Klimek, *Pluripotential Theory*, Oxford University Press, 1991], Chapter 5 (the
   Bernstein–Walsh inequality)
 -/
 
