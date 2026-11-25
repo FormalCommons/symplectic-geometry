@@ -40,8 +40,8 @@ the proof of the Duistermaat–Heckman formula.
 
 Let a compact Lie group `G` act smoothly on a boundaryless Hausdorff manifold `M` with a
 finite-dimensional model. A compact set `K` inside a `G`-invariant open set `U` has a smooth
-`G`-invariant cut-off, equal to `1` on a `G`-invariant open neighbourhood of `K` and with compact
-topological support inside `U`
+`G`-invariant cut-off with values in `[0, 1]`, equal to `1` on a `G`-invariant open neighbourhood
+of `K` and with compact topological support inside `U`
 (`SymplecticGeometry.exists_invariant_contMDiff_eq_one_of_isCompact`). It is the orbit average
 (`SymplecticGeometry.orbitAverage`) of a cut-off around the compact saturation `G • K` given by
 Tau Ceti's `IsCompact.exists_contMDiff_one_nhds_tsupport_subset`.
@@ -140,12 +140,13 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimension
 include J in
 /-- **A smooth invariant cutoff around a compact set.** For a compact Lie group `G` acting
 smoothly, a compact set `K` inside a `G`-invariant open set `U` has a smooth `G`-invariant
-function `ρ` that is `1` on a `G`-invariant open neighbourhood `W` of `K`, and whose topological
-support is compact and contained in `U`. -/
+function `ρ` with values in `[0, 1]` that is `1` on a `G`-invariant open neighbourhood `W` of
+`K`, and whose topological support is compact and contained in `U`. -/
 theorem exists_invariant_contMDiff_eq_one_of_isCompact {K U : Set M} (hK : IsCompact K)
     (hU : IsOpen U) (hKU : K ⊆ U) (hUinv : ∀ (g : G) (x : M), x ∈ U → g • x ∈ U) :
-    ∃ (ρ : M → ℝ) (W : Set M), ContMDiff I 𝓘(ℝ) ∞ ρ ∧ (∀ (g : G) (x : M), ρ (g • x) = ρ x) ∧
-      IsOpen W ∧ K ⊆ W ∧ (∀ (g : G) (x : M), x ∈ W → g • x ∈ W) ∧ (∀ x ∈ W, ρ x = 1) ∧
+    ∃ (ρ : M → ℝ) (W : Set M), ContMDiff I 𝓘(ℝ) ∞ ρ ∧ (∀ x, ρ x ∈ Icc 0 1) ∧
+      (∀ (g : G) (x : M), ρ (g • x) = ρ x) ∧ IsOpen W ∧ K ⊆ W ∧
+      (∀ (g : G) (x : M), x ∈ W → g • x ∈ W) ∧ (∀ x ∈ W, ρ x = 1) ∧
       HasCompactSupport ρ ∧ tsupport ρ ⊆ U := by
   have : ContinuousSMul G M := ⟨(contMDiff_smul (I := J) (I' := I) (n := ∞)).continuous⟩
   -- The saturation `G • K` is compact and lies in `U`.
@@ -153,7 +154,7 @@ theorem exists_invariant_contMDiff_eq_one_of_isCompact {K U : Set M} (hK : IsCom
   have hCU : (univ : Set G) • K ⊆ U := by
     rintro _ ⟨a, -, y, hy, rfl⟩
     exact hUinv a y (hKU hy)
-  obtain ⟨σ, hσ, hσ1, hσc, hσU, -⟩ := hC.exists_contMDiff_one_nhds_tsupport_subset I hU hCU
+  obtain ⟨σ, hσ, hσ1, hσc, hσU, hσ01⟩ := hC.exists_contMDiff_one_nhds_tsupport_subset I hU hCU
   -- The open set where `σ = 1` contains `G • K`; `W` is the set of points whose orbit lies in it.
   set V := interior {x | σ x = 1}
   have hCV : (univ : Set G) • K ⊆ V := subset_interior_iff_mem_nhdsSet.2 hσ1
@@ -177,8 +178,9 @@ theorem exists_invariant_contMDiff_eq_one_of_isCompact {K U : Set M} (hK : IsCom
   have hρD (x : M) (hx : x ∉ D) : orbitAverage G σ x = 0 :=
     orbitAverage_eq_zero_of_notMem hDinv (fun y hy ↦ image_eq_zero_of_notMem_tsupport
       fun h ↦ hy ⟨1, mem_univ _, y, h, one_smul G y⟩) hx
-  refine ⟨orbitAverage G σ, W, hσ.orbitAverage J, orbitAverage_smul σ, hW, hKW, hWinv,
-    fun x hx ↦ orbitAverage_eq_of_eqOn hWinv (fun y hy ↦ ?_) hx, HasCompactSupport.intro hD hρD,
+  refine ⟨orbitAverage G σ, W, hσ.orbitAverage J, orbitAverage_mem_Icc hσ01, orbitAverage_smul σ,
+    hW, hKW, hWinv, fun x hx ↦ orbitAverage_eq_of_eqOn hWinv (fun y hy ↦ ?_) hx,
+    HasCompactSupport.intro hD hρD,
     (closure_minimal (support_subset_iff'.2 hρD) hD.isClosed).trans hDU⟩
   simpa using interior_subset (hy 1)
 
