@@ -16,6 +16,7 @@ import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 For a finite type `ι`, write `s(z) = |z|² = ‖complexToRealEuclidean ι z‖ ^ 2 = ∑ᵢ ‖zᵢ‖²` on
 `ι → ℂ`. This file gives the first-order and Levi-form data of `s` in the coordinates of `ι → ℂ`:
 
+* `TauCeti.contDiff_norm_sq_complexToRealEuclidean`: `s` is smooth.
 * `TauCeti.leviForm_norm_sq_complexToRealEuclidean`: the Levi form of `s` is the Hermitian
   product `star v ⬝ᵥ w`. It is `TauCeti.leviForm_norm_sq` for `EuclideanSpace ℂ ι`, carried
   along `EuclideanSpace.equiv`.
@@ -27,10 +28,16 @@ For a finite type `ι`, write `s(z) = |z|² = ‖complexToRealEuclidean ι z‖ 
 public section
 
 open Set
+open scoped ContDiff
 
 namespace TauCeti
 
 variable {ι : Type*} [Fintype ι]
+
+/-- The squared Euclidean norm `s(z) = |z|² = ∑ᵢ ‖zᵢ‖²` on `ι → ℂ` is smooth. -/
+theorem contDiff_norm_sq_complexToRealEuclidean :
+    ContDiff ℝ ∞ fun z : ι → ℂ ↦ ‖complexToRealEuclidean ι z‖ ^ 2 :=
+  (contDiff_norm_sq ℝ).comp (complexToRealEuclidean ι).contDiff
 
 /-- The Levi form of `s(z) = |z|² = ∑ᵢ ‖zᵢ‖²` on `ι → ℂ` is the Hermitian product
 `star v ⬝ᵥ w`. -/

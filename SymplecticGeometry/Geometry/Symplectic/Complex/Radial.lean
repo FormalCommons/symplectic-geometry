@@ -9,10 +9,10 @@ public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.
 public import Mathlib.Geometry.Manifold.Diffeomorph
 import Mathlib.Analysis.Calculus.Deriv.Inv
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
-import Mathlib.Analysis.Calculus.InverseFunctionTheorem.Deriv
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.Sqrt
 import Mathlib.Geometry.Manifold.LocalDiffeomorph
+import SymplecticGeometry.Analysis.Calculus.InverseFunctionTheorem.Deriv
 import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
@@ -80,11 +80,6 @@ open scoped Manifold ContDiff ComplexConjugate
 namespace SymplecticGeometry
 
 variable {ι : Type*} [Fintype ι]
-
-/-- The squared Euclidean norm `w ↦ |w|² = ∑ᵢ ‖wᵢ‖²` on `ι → ℂ` is smooth. -/
-theorem contDiff_norm_sq_complexToRealEuclidean :
-    ContDiff ℝ ∞ fun w : ι → ℂ ↦ ‖complexToRealEuclidean ι w‖ ^ 2 :=
-  (contDiff_norm_sq ℝ).comp (complexToRealEuclidean ι).contDiff
 
 /-- For `g` smooth on `(0, ∞)`, the function `w ↦ g |w|²` on `ι → ℂ` is smooth at
 every point of `(ι → ℂ) ∖ 0`. -/
@@ -218,13 +213,10 @@ private theorem norm_sq_radialScale (hh : ∀ s ∈ Ioi (0 : ℝ), 0 < h s) {w :
   rw [Real.sq_sqrt (div_pos (hh s hw) hw).le, div_mul_cancel₀ _ hw.ne']
 
 private theorem contDiffAt_radialScale (hs : ContDiffOn ℝ ∞ h (Ioi 0))
-    (hh : ∀ s ∈ Ioi (0 : ℝ), 0 < h s) {w : ι → ℂ}
-    (hw : 0 < ‖complexToRealEuclidean ι w‖ ^ 2) : ContDiffAt ℝ ∞ (radialScale h) w := by
-  have hN := contDiff_norm_sq_complexToRealEuclidean (ι := ι)
-  have hq : ContDiffAt ℝ ∞ (fun w : ι → ℂ ↦ h (‖complexToRealEuclidean ι w‖ ^ 2) /
-      ‖complexToRealEuclidean ι w‖ ^ 2) w :=
-    ((hs.contDiffAt (Ioi_mem_nhds hw)).comp w hN.contDiffAt).div hN.contDiffAt hw.ne'
-  exact (hq.sqrt (div_pos (hh _ hw) hw).ne').smul contDiffAt_id
+    (hh : ∀ s ∈ Ioi (0 : ℝ), 0 < h s) (z : puncturedSpace (ι → ℂ)) :
+    ContDiffAt ℝ ∞ (radialScale h) (z : ι → ℂ) :=
+  (contDiffAt_comp_norm_sq_complexToRealEuclidean ((hs.div contDiffOn_id fun _ ht ↦
+    ne_of_gt ht).sqrt fun t ht ↦ (div_pos (hh t ht) ht).ne') z).smul contDiffAt_id
 
 /-- The differential of `radialScale h` is injective where `h' > 0`: the differential of
 `|F|² = h ∘ |·|²` kills the radial part of a vector in its kernel, and then the scalar factor
@@ -297,21 +289,8 @@ theorem contMDiff_radialMap (hs : ContDiffOn ℝ ∞ h (Ioi 0))
     (hh : ∀ s ∈ Ioi (0 : ℝ), 0 < h s) :
     ContMDiff 𝓘(ℝ, ι → ℂ) 𝓘(ℝ, ι → ℂ) ∞ (radialMap (ι := ι) h hh) :=
   (ContMDiff.subtypeVal_comp_iff (puncturedSpace (ι → ℂ)) (radialMap h hh)).1 fun z ↦
-    (contDiffAt_radialScale hs hh (norm_sq_complexToRealEuclidean_pos z)).contMDiffAt.comp z
+    (contDiffAt_radialScale hs hh z).contMDiffAt.comp z
       (contMDiff_subtypeVal z)
-
-/-- For `h` smooth on `(0, ∞)` with positive derivative there, the set
-`{w | |w|² ∈ h '' (0, ∞)}` is open. -/
-theorem isOpen_setOf_norm_sq_mem_image (hs : ContDiffOn ℝ ∞ h (Ioi 0))
-    (hd : ∀ s ∈ Ioi (0 : ℝ), 0 < deriv h s) :
-    IsOpen {w : ι → ℂ | ‖complexToRealEuclidean ι w‖ ^ 2 ∈ h '' Ioi 0} := by
-  refine contDiff_norm_sq_complexToRealEuclidean.continuous.isOpen_preimage _
-    (isOpen_iff_mem_nhds.2 ?_)
-  rintro _ ⟨t, ht, rfl⟩
-  have ht' := hs.contDiffAt (Ioi_mem_nhds ht)
-  rw [← (ht'.hasStrictDerivAt (ht'.differentiableAt (by simp)).hasDerivAt (by simp)).map_nhds_eq
-    (hd t ht).ne']
-  exact Filter.image_mem_map (Ioi_mem_nhds ht)
 
 variable (ι) in
 /-- The open shell `{w | |w|² ∈ h '' (0, ∞)}` of `ι → ℂ`, for `h` smooth on `(0, ∞)` with
@@ -319,7 +298,9 @@ positive derivative there. As `h` is increasing, this is the shell between the s
 `h (0⁺)` and `h (∞)`. The radial map is a diffeomorphism onto it (`radialMapDiffeomorph`). -/
 noncomputable def radialShell (h : ℝ → ℝ) (hs : ContDiffOn ℝ ∞ h (Ioi 0))
     (hd : ∀ s ∈ Ioi (0 : ℝ), 0 < deriv h s) : Opens (ι → ℂ) :=
-  ⟨{w | ‖complexToRealEuclidean ι w‖ ^ 2 ∈ h '' Ioi 0}, isOpen_setOf_norm_sq_mem_image hs hd⟩
+  ⟨{w | ‖complexToRealEuclidean ι w‖ ^ 2 ∈ h '' Ioi 0},
+    ((hs.of_le (by simp)).isOpen_image_of_deriv_ne_zero isOpen_Ioi fun t ht ↦
+      (hd t ht).ne').preimage contDiff_norm_sq_complexToRealEuclidean.continuous⟩
 
 /-- A point is in the shell of `h` if and only if its squared norm `∑ᵢ ‖wᵢ‖²` is a value of `h`
 on `(0, ∞)`. -/
@@ -351,11 +332,10 @@ private theorem isLocalDiffeomorph_radialMapShell :
     IsLocalDiffeomorph 𝓘(ℝ, ι → ℂ) 𝓘(ℝ, ι → ℂ) ∞ (radialMapShell (ι := ι) hs hh hd) := by
   refine isLocalDiffeomorph_subtypeVal_comp_iff.1 fun z ↦ ?_
   have hz := norm_sq_complexToRealEuclidean_pos z
-  have hU : IsOpen {w : ι → ℂ | 0 < ‖complexToRealEuclidean ι w‖ ^ 2} :=
-    isOpen_lt continuous_const contDiff_norm_sq_complexToRealEuclidean.continuous
   have hg : IsLocalDiffeomorphAt 𝓘(ℝ, ι → ℂ) 𝓘(ℝ, ι → ℂ) ∞ (radialScale h) (z : ι → ℂ) :=
     isLocalDiffeomorphAt_of_injective_mfderiv
-      (fun w hw ↦ (contDiffAt_radialScale hs hh hw).contMDiffAt.contMDiffWithinAt) hU hz
+      (fun w hw ↦ (contDiffAt_radialScale hs hh ⟨w, hw⟩).contMDiffAt.contMDiffWithinAt)
+      (puncturedSpace (ι → ℂ)).isOpen z.property
       BoundarylessManifold.isInteriorPoint (by simp)
       (by rw [mfderiv_eq_fderiv]; exact injective_fderiv_radialScale hs hh hd hz) rfl
   exact (isLocalDiffeomorph_subtype_val (I := 𝓘(ℝ, ι → ℂ)) z).comp (hg := hg)
@@ -382,9 +362,8 @@ private theorem bijective_radialMapShell :
     have hw0 : (w : ι → ℂ) ≠ 0 := by
       rintro h0
       simp [hN, h0] at hN0
-    have hzN : ‖complexToRealEuclidean ι (√(t / N) • (w : ι → ℂ))‖ ^ 2 = t := by
-      rw [map_smul, norm_smul, mul_pow, Real.norm_eq_abs, sq_abs,
-        Real.sq_sqrt (div_pos ht hN0).le, ← hN, div_mul_cancel₀ _ hN0.ne']
+    have hzN := norm_sq_radialScale (h := fun _ ↦ t) (w := (w : ι → ℂ)) (fun _ _ ↦ ht) hN0
+    rw [radialScale] at hzN
     refine ⟨⟨√(t / N) • (w : ι → ℂ),
       mem_puncturedSpace.2 (smul_ne_zero (Real.sqrt_ne_zero'.2 (div_pos ht hN0)) hw0)⟩,
       Subtype.ext ?_⟩
