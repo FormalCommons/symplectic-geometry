@@ -7,8 +7,10 @@ module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
 public import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
-import TauCeti.Geometry.Manifold.Morse.Bott.ExponentialConvergence
-import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.MorseBott
+public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.GradientFlow
+import TauCeti.Geometry.Manifold.Morse.GradientFlow
+import TauCeti.Geometry.Symplectic.Manifold.Rescale
 
 /-!
 # Periods of the exponential, moment weights and limit points
@@ -29,16 +31,12 @@ and [McDuffSalamon2017], §5.7.
 For `ξ ∈ 𝔤` the curve `t ↦ exp (i t ξ) p` is the negative gradient trajectory through `p` of
 `x ↦ ⟨μ x, ξ⟩`, which is a Morse–Bott function when `G` is compact. Its limit as `t → ∞` is the
 *limit point* `p⁺_ξ` (`limitPoint`). It exists for every `ξ`, not only for `ξ ∈ Λ`
-(`tendsto_limitPoint`). The proof puts together three results of Tau Ceti, in its namespace
-`TauCeti`: the components of the moment map of a compact group action are Morse–Bott
-(`SmoothTwoForm.IsMomentMap`, theorem
-`exists_isNondegenerateCriticalSubmanifold_fixedPointsOfFinrank_of_compactSpace`); near a
-Morse–Bott critical submanifold a function satisfies Łojasiewicz's gradient inequality with
-exponent `1 / 2` (`SmoothEmbedding.IsNondegenerateCriticalSubmanifold`, theorem
-`exists_mul_abs_sub_le_norm_mgradient_sq`); and a gradient trajectory that stays in a compact
-set, near each of whose critical points that inequality holds, converges
-(`exists_tendsto_and_riemannianEDist_le_mul_exp_maximalIntegralCurve_neg_mgradient_of_lojasiewicz`).
-The first is stated for manifolds modelled on `𝓘(ℝ, E')`, and so are the results on limit points.
+(`tendsto_limitPoint`), and it is a critical point of `x ↦ ⟨μ x, ξ⟩`
+(`limitPoint_mem_criticalPoints`). The curve is the maximal integral curve of `-grad ⟨μ, ξ⟩`
+(`maximalIntegralCurve_neg_mgradient_moment`), and such trajectories converge to critical points
+(`TauCeti.SmoothTwoForm.IsMomentMap.exists_tendsto_maximalIntegralCurve_neg_mgradient`, which
+rests on Tau Ceti's Morse–Bott theorem for the components of a moment map). That theorem is
+stated for manifolds modelled on `𝓘(ℝ, E')`, and so are the results on limit points.
 
 ## Main definitions
 
@@ -61,6 +59,8 @@ The first is stated for manifolds modelled on `𝓘(ℝ, E')`, and so are the re
 * `SymplecticGeometry.momentWeight_le`: `w_μ(p, ξ) ≤ ⟨μ p, ξ⟩`.
 * `SymplecticGeometry.tendsto_limitPoint`: on a compact manifold, for a compact `G`, the limit
   defining the limit point exists, for every `ξ`.
+* `SymplecticGeometry.limitPoint_mem_criticalPoints`: the limit point is a critical point of
+  `x ↦ ⟨μ x, ξ⟩`.
 * `SymplecticGeometry.momentWeight_eq_moment_limitPoint`: `w_μ(p, ξ) = ⟨μ (p⁺_ξ), ξ⟩`.
 
 ## References
@@ -233,8 +233,10 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E
   {M : Type*} [MulAction Gc M] [TopologicalSpace M]
 
 /-- The *limit point* `p⁺_ξ`: the limit of `exp (i t ξ) p`, that is, of `C.expI (t • ξ) • p`, as
-`t → ∞`. It is a junk value where the limit does not exist; for a complexified action on a compact
-manifold the limit exists for every `ξ` (`tendsto_limitPoint`). -/
+`t → ∞`. It is a junk value where the limit does not exist. The limit exists for every `ξ` when
+`G` is compact and acts, with complexified action of `Gc`, on a compact manifold modelled on
+`𝓘(ℝ, E')`, with `-μ` a moment map for `σ` and the `C¹` metric `g(u, w) = σ(u, J w)`
+(`tendsto_limitPoint`). -/
 def limitPoint (C : LieComplexification I G IC Gc) (p : M) (ξ : GroupLieAlgebra I G) : M :=
   haveI : Nonempty M := ⟨p⟩
   limUnder atTop fun t : ℝ ↦ C.expI (t • ξ) • p
@@ -274,46 +276,29 @@ theorem tendsto_limitPoint (h : IsComplexifiedAction C J)
     (p : M) (ξ : GroupLieAlgebra I G) :
     Tendsto (fun t : ℝ ↦ C.expI (t • ξ) • p) atTop (𝓝 (limitPoint C p ξ)) := by
   have := topologicalGroup_of_lieGroup I ∞ (G := G)
-  have : BoundarylessManifold I G := ContMDiffMul.boundarylessManifold
-  have : IsContinuousRiemannianBundle E' (fun x : M ↦ TangentSpace 𝓘(ℝ, E') x) :=
-    IsContMDiffRiemannianBundle.toIsContinuousRiemannianBundle (IB := 𝓘(ℝ, E')) (n := 1)
-  set f : M → ℝ := fun y ↦ μ y ξ
-  -- `μ` is a moment map for `-σ`, which is nondegenerate, being compatible with `-J`.
+  -- `μ` is a moment map for `-σ`, which is nondegenerate since `σ` is compatible with `J`.
   have hμ' : (-σ).IsMomentMap (InfinitesimalAction.fundamental I G 𝓘(ℝ, E') M) μ := by
     simpa using hμ.neg
-  have hσ' : (-σ).IsNondegenerate := by
-    refine (SmoothTwoForm.compatible_of_inner_eq (J := -J) fun x u w ↦ ?_).isNondegenerate
-    rw [hg, SmoothAlmostComplexStructure.neg_apply, SmoothBundleForm.eval₂_neg,
-      SmoothBundleForm.eval₂_neg_right, neg_neg]
-  have hf : ContMDiff 𝓘(ℝ, E') 𝓘(ℝ) 2 f := (hμ'.contMDiff ξ).of_le (by simp)
-  -- The curve is the maximal integral curve of `-grad f` through `p`.
-  have hcurve : maximalIntegralCurve (-mgradient 𝓘(ℝ, E') f) p =
-      fun t : ℝ ↦ C.expI (t • ξ) • p := by
-    have hv : -mgradient 𝓘(ℝ, E') f = fun x ↦ J x (fundamentalVectorField 𝓘(ℝ, E') ξ x) := by
-      funext x
-      rw [Pi.neg_apply, mgradient_moment_apply hμ hg, neg_neg]
-    have hγ := h.isMIntegralCurve_expI_smul ξ p
-    rw [← hv] at hγ
-    funext t
-    simpa using hγ.maximalIntegralCurve_eq (contMDiff_neg_mgradient_one hf) t
-  -- Near each critical point `f` satisfies the Morse–Bott form of Łojasiewicz's inequality.
-  obtain ⟨q, -, hq, -⟩ :=
-    exists_tendsto_and_riemannianEDist_le_mul_exp_maximalIntegralCurve_neg_mgradient_of_lojasiewicz
-      (x := p) hf isCompact_univ (Set.mapsTo_univ _ _) fun y hy ↦ by
-        have hy' := hy.1
-        rw [hμ'.criticalPoints_eq_iUnion_fixedPointsOfFinrank hσ' ξ, Set.mem_iUnion] at hy'
-        obtain ⟨d, hd⟩ := hy'
-        -- The fixed tangent subspace at `y` is a subspace of the model, of dimension `d`.
-        obtain ⟨L, hL⟩ : ∃ L : Submodule ℝ E', Module.finrank ℝ L = d :=
-          ⟨fixedTangentSubspace 𝓘(ℝ, E') (Lie.closedOneParameterSubgroup ξ) y,
-            (mem_fixedPointsOfFinrank.1 hd).2⟩
-        obtain ⟨S, -, hi, hnd, -⟩ :=
-          hμ'.exists_isNondegenerateCriticalSubmanifold_fixedPointsOfFinrank_of_compactSpace hσ' hL
-        let := S
-        simpa only [SmoothEmbedding.coe_ofIsSmoothEmbedding] using
-          hnd.exists_mul_abs_sub_le_norm_mgradient_sq (by simp) ⟨y, hd⟩
-  rw [hcurve] at hq
+  have hσ' : (-σ).IsNondegenerate :=
+    SmoothTwoForm.isNondegenerate_neg_iff.2
+      (SmoothTwoForm.compatible_of_inner_eq hg).isNondegenerate
+  obtain ⟨q, -, hq⟩ := hμ'.exists_tendsto_maximalIntegralCurve_neg_mgradient hσ' ξ p
+  rw [maximalIntegralCurve_neg_mgradient_moment h hμ hg] at hq
   rwa [limitPoint_eq_of_tendsto hq]
+
+/-- The limit point is a critical point of `x ↦ μ x ξ`, under the hypotheses of
+`tendsto_limitPoint`. -/
+theorem limitPoint_mem_criticalPoints (h : IsComplexifiedAction C J)
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G 𝓘(ℝ, E') M) fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace 𝓘(ℝ, E') x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    (p : M) (ξ : GroupLieAlgebra I G) :
+    limitPoint C p ξ ∈ criticalPoints 𝓘(ℝ, E') fun x ↦ μ x ξ := by
+  have hf : ContMDiff 𝓘(ℝ, E') 𝓘(ℝ) 2 fun y ↦ μ y ξ := by
+    simpa using ((hμ.contMDiff ξ).of_le (by simp)).neg
+  have hlim := tendsto_limitPoint h hμ hg p ξ
+  rw [← maximalIntegralCurve_neg_mgradient_moment h hμ hg] at hlim
+  exact mem_criticalPoints_of_mapClusterPt_maximalIntegralCurve_neg_mgradient isCompact_univ
+    (Set.mapsTo_univ _ _) hf hlim.mapClusterPt
 
 /-- The moment weight is the value of `x ↦ μ x ξ` at the limit point. -/
 theorem momentWeight_eq_moment_limitPoint (h : IsComplexifiedAction C J)
