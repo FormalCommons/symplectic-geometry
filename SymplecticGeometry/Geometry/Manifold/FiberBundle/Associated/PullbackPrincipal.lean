@@ -244,27 +244,17 @@ of the projection of the associated bundle at `[x, v]`, composed with that of `x
 `tangentSpaceCast` of the tangent spaces of the base at the two equal base points. -/
 theorem mfderiv_proj_chartedMk_apply [ContMDiffSMul IG IF n G F] (hn : n ≠ 0)
     (x : ManifoldTotalSpace G P) (v : F) (w : TangentSpace (IB.prod IG) x) :
-    mfderiv (IB.prod IG) IB (fun x' : ManifoldTotalSpace G P ↦
-        ((ManifoldTotalSpace.homeomorph G P).symm x').proj) x w =
-      tangentSpaceCast IB
-        ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm
-          (chartedMk G F P (x, v))).proj
-        ((ManifoldTotalSpace.homeomorph G P).symm x).proj
-        (mfderiv (IB.prod IF) IB (fun y : ManifoldTotalSpace F (AssociatedBundle G P F) ↦
-            ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm y).proj)
-          (chartedMk G F P (x, v))
+    mfderiv (IB.prod IG) IB (ManifoldTotalSpace.projContMDiffMap n G P IB IG) x w =
+      tangentSpaceCast IB (πM (chartedMk G F P (x, v)))
+        (ManifoldTotalSpace.projContMDiffMap n G P IB IG x)
+        (mfderiv (IB.prod IF) IB πM (chartedMk G F P (x, v))
           (mfderiv (IB.prod IG) (IB.prod IF)
             (fun x' : ManifoldTotalSpace G P ↦ chartedMk G F P (x', v)) x w)) := by
-  have hfun : (fun x' : ManifoldTotalSpace G P ↦
-      ((ManifoldTotalSpace.homeomorph G P).symm x').proj) =ᶠ[nhds x]
-      (fun y : ManifoldTotalSpace F (AssociatedBundle G P F) ↦
-        ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm y).proj) ∘
-      (fun x' : ManifoldTotalSpace G P ↦ chartedMk G F P (x', v)) :=
+  have hfun : ⇑(ManifoldTotalSpace.projContMDiffMap n G P IB IG) =ᶠ[nhds x]
+      πM ∘ (fun x' : ManifoldTotalSpace G P ↦ chartedMk G F P (x', v)) :=
     .of_forall fun x' ↦ by simp
   rw [hfun.mfderiv_eq, ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
-    mfderiv_comp_apply x
-      ((ManifoldTotalSpace.contMDiff_proj n F (AssociatedBundle G P F) IB IF).mdifferentiableAt
-        hn)
+    mfderiv_comp_apply x ((πM).contMDiff.mdifferentiableAt hn)
       ((contMDiff_chartedMk_left n IB IF v).mdifferentiableAt hn)]
   simp only [Function.comp_apply]
 
@@ -531,15 +521,14 @@ theorem mfderiv_chartedMk_eq_zero_iff (hn : 1 ≤ n) (x : ManifoldTotalSpace G P
   have hn₀ : n ≠ 0 := (zero_lt_one.trans_le hn).ne'
   have : ContMDiffFiberBundle n F (AssociatedBundle G P F) IB IF := contMDiffFiberBundle IG
   set Φ := pullbackProjDiffeomorph n IB IG IF (G := G) (F := F) (P := P)
-  have hπ := ManifoldTotalSpace.isSubmersion_proj n G Q (IB.prod IF) IG
+  have hπ := ManifoldTotalSpace.isSubmersion_projContMDiffMap n G Q (IB.prod IF) IG
   -- The quotient map is the projection of `Q` composed with `Φ`, whose derivative is injective;
   -- the kernel of the derivative of the projection consists of the fundamental vectors of `Q`.
-  have hq : chartedMk G F P =
-      (fun z ↦ ((ManifoldTotalSpace.homeomorph G Q).symm z).proj) ∘ Φ :=
+  have hq : chartedMk G F P = ManifoldTotalSpace.projContMDiffMap n G Q (IB.prod IF) IG ∘ Φ :=
     funext fun x ↦ (proj_pullbackProjDiffeomorph x).symm
   have h0 : mfderiv ((IB.prod IG).prod IF) (IB.prod IF) (chartedMk G F P) x w =
       mfderiv ((IB.prod IF).prod IG) (IB.prod IF)
-        (fun z ↦ ((ManifoldTotalSpace.homeomorph G Q).symm z).proj) (Φ x)
+        (ManifoldTotalSpace.projContMDiffMap n G Q (IB.prod IF) IG) (Φ x)
           (mfderiv ((IB.prod IG).prod IF) ((IB.prod IF).prod IG) Φ x w) := by
     rw [hq]
     exact mfderiv_comp_apply x (hπ.contMDiff.mdifferentiableAt hn₀) (Φ.mdifferentiable hn₀ x) w
@@ -547,6 +536,8 @@ theorem mfderiv_chartedMk_eq_zero_iff (hn : 1 ≤ n) (x : ManifoldTotalSpace G P
   have : ContMDiffFiberBundle 1 G Q (IB.prod IF) IG := .of_le hn
   have hker := PrincipalBundle.range_rightFundamentalLinearMap_eq_ker_mfderiv_proj
     (IB := IB.prod IF) (IG := IG) (Φ x)
+  -- Tau Ceti states the kernel with the projection written out as a function.
+  rw [← ManifoldTotalSpace.coe_projContMDiffMap (n := n) (IB := IB.prod IF) (IF := IG)] at hker
   constructor
   · intro hw
     have hk : mfderiv ((IB.prod IG).prod IF) ((IB.prod IF).prod IG) Φ x w ∈
@@ -558,7 +549,7 @@ theorem mfderiv_chartedMk_eq_zero_iff (hn : 1 ≤ n) (x : ManifoldTotalSpace G P
     rw [PrincipalBundle.rightFundamentalLinearMap_apply] at hξ
     exact (mfderiv_pullbackProjDiffeomorph_fundamental hn ξ x).trans hξ
   · rintro ⟨ξ, rfl⟩
-    rw [h0]
+    rw [h0, ManifoldTotalSpace.coe_projContMDiffMap (n := n) (IB := IB.prod IF) (IF := IG)]
     exact (congrArg _ (mfderiv_pullbackProjDiffeomorph_fundamental hn ξ x)).trans
       (PrincipalBundle.mfderiv_proj_rightFundamentalVectorField _ ξ)
 
