@@ -41,8 +41,8 @@ theorem mulVec_surjective_iff_of_mul_eq_mul [Semiring R] {A B : Matrix l m R} {a
     Surjective B.mulVec ↔ Surjective A.mulVec := by
   have e : B.mulVec ∘ (a * ·) = (b * ·) ∘ A.mulVec := funext fun x ↦ funext fun i ↦ by
     simp [mulVec, dotProduct, Finset.mul_sum, ← mul_assoc, h]
-  rw [← Surjective.of_comp_iff _ (Units.mulLeft_bijective ha.unit).surjective, IsUnit.unit_spec,
-    e, Surjective.of_comp_iff' (hb.unit_spec ▸ Units.mulLeft_bijective hb.unit)]
+  rw [← Surjective.of_comp_iff _ (IsUnit.isUnit_iff_mulLeft_bijective.mp ha).surjective, e,
+    Surjective.of_comp_iff' (IsUnit.isUnit_iff_mulLeft_bijective.mp hb)]
 
 end Matrix
 

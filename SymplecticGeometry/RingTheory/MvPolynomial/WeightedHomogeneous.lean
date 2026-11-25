@@ -223,9 +223,8 @@ theorem mulVec_surjective_jacobiMatrixAt_weight_smul_iff {p : ι → MvPolynomia
   -- Scaling the point scales row `k` by `c ^ d k` and column `x` by `c ^ w x`, all nonzero.
   have hc := isUnit_iff_ne_zero.mpr hc
   exact mulVec_surjective_iff_of_mul_eq_mul (Pi.isUnit_iff.mpr fun _ ↦ hc.pow _)
-    (Pi.isUnit_iff.mpr fun _ ↦ hc.pow _) fun k x ↦ by
-    rw [mul_comm]
-    exact jacobiMatrixAt_weight_smul_mul hp c v k x
+    (Pi.isUnit_iff.mpr fun _ ↦ hc.pow _) fun k x ↦
+    (mul_comm _ _).trans (jacobiMatrixAt_weight_smul_mul hp c v k x)
 
 variable [Fintype τ]
 
