@@ -363,12 +363,10 @@ theorem mpullback_prodMap_subtypeVal_timeExtendIcc
   · -- The differential of `id × Subtype.val` keeps the component along `M`.
     rw [mpullback_apply]
     refine timeExtendIcc_apply_eq_zero η _ _ i ?_
-    have hf : MDifferentiableAt (I.prod (𝓡∂ 1)) (I.prod 𝓘(ℝ, ℝ))
-        (Prod.map id (Subtype.val : Icc a b → ℝ)) p :=
-      (contMDiff_id.prodMap contMDiff_subtypeVal_Icc).mdifferentiableAt (n := 1) one_ne_zero
-    rw [Manifold.tangentSpaceProdEquiv_apply] at hv
-    rw [Manifold.tangentSpaceProdEquiv_apply, ← hf.mfderiv_fst_apply]
-    exact (mfderiv_fst_apply p (v i)).trans hv
+    rw [mfderiv_prodMap mdifferentiableAt_id
+      ((contMDiff_subtypeVal_Icc (n := 1)).mdifferentiableAt one_ne_zero), mfderiv_id]
+    rw [Manifold.tangentSpaceProdEquiv_apply] at hv ⊢
+    exact hv
   · rw [mpullback_mpullback,
       mpullback_congr (f := Prod.map id Subtype.val ∘ fun x : M ↦ (x, t))
         (g := fun x : M ↦ (x, (t : ℝ))) _ (contMDiff_id.prodMk contMDiff_const)
@@ -378,6 +376,7 @@ theorem mpullback_prodMap_subtypeVal_timeExtendIcc
 /-- **Restriction of the time extension of functions to `M × [a, b]`.** For a smooth `0`-form
 `η` on `M × Icc a b`, the pullback of `TauCeti.SmoothForm.timeExtendIcc η` along
 `id × Subtype.val : M × Icc a b → M × ℝ` is `η`. -/
+@[simp]
 theorem mpullback_prodMap_subtypeVal_timeExtendIcc₀
     (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F 0) :
     mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal_Icc)
