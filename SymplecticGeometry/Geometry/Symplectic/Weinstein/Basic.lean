@@ -36,8 +36,8 @@ it satisfies `dλ = ω` (`SymplecticGeometry.IsWeinsteinStructure.mextDeriv_inte
 * `SymplecticGeometry.IsWeinsteinStructure.comp`: `(ω, X, h ∘ f)` is a Weinstein structure for a
   smooth `h` with `h' > 0` on the values of `f`, as long as `h ∘ f` stays proper and bounded
   below.
-* `SymplecticGeometry.isWeinsteinStructure_constSmooth_norm_sq`: a linear symplectic form on a
-  finite-dimensional real inner product space, with the radial field `x ↦ x / 2` and the function
+* `SymplecticGeometry.isWeinsteinStructure_constSmooth_norm_sq`: a linear symplectic form on a real
+  inner product space of finite dimension, with the radial field `x ↦ x / 2` and the function
   `x ↦ ‖x‖ ^ 2`, is a Weinstein structure; for instance `ℂⁿ` with its standard form and `|z|²`.
 
 ## Implementation notes
@@ -138,9 +138,9 @@ section Radial
 
 variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V] [FiniteDimensional ℝ V]
 
-/-- **The radial Weinstein structure.** On a finite-dimensional real inner product space `V` with
-a linear symplectic form `ω`, the constant form `ω`, the radial field `x ↦ x / 2` and the
-function `x ↦ ‖x‖ ^ 2` form a Weinstein structure. -/
+/-- **The radial Weinstein structure.** Let `V` be a real inner product space of finite
+dimension, with a linear symplectic form `ω`. Then the constant form `ω`, the radial field
+`x ↦ x / 2` and the function `x ↦ ‖x‖ ^ 2` form a Weinstein structure. -/
 theorem isWeinsteinStructure_constSmooth_norm_sq (ω : SymplecticForm V) :
     IsWeinsteinStructure ω.constSmooth (fun x : V ↦ (2⁻¹ : ℝ) • x) (fun x ↦ ‖x‖ ^ 2) where
   isSymplectic := ω.isSymplectic_constSmooth
