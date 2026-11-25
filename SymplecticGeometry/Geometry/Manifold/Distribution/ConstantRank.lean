@@ -13,6 +13,8 @@ import TauCeti.Geometry.Manifold.Distribution.Diffeomorph
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 import TauCeti.Geometry.Manifold.RegularValue
 import SymplecticGeometry.Algebra.Order.Monoid.NatCast
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.LineMap
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Curve
 import SymplecticGeometry.Geometry.Manifold.Foliation.Constancy
 
 /-!
@@ -231,13 +233,9 @@ theorem sameLeaf_ofConstantRank_of_eqOn (hf : ContMDiff I J (n + 1) f)
     (ofConstantRank hf hr hn).SameLeaf (γ s) (γ t) := by
   refine sameLeaf_of_contMDiffOn_of_tangent hγ (fun u hu ↦ ?_) hs ht
   rw [ofConstantRank_distribution, LinearMap.mem_ker, ContinuousLinearMap.coe_coe]
-  by_cases hU : UniqueDiffWithinAt ℝ (Icc a b) u
-  · have : IsManifold J 1 N := .of_le (n := n + 1) le_add_self
-    rw [← curveVelocityWithin_map ((hf.mdifferentiable (one_pos.trans_le le_add_self).ne') _) hU
-      ((hγ u hu).mdifferentiableWithinAt one_ne_zero), curveVelocityWithin_apply,
-      mfderivWithin_congr hfγ (hfγ hu), mfderivWithin_const, ContinuousLinearMap.comp_zero]
-    exact zero_apply _
-  · rw [curveVelocityWithin_eq_zero_of_not_uniqueDiffWithinAt hU, map_zero]
+  exact mfderiv_curveVelocityWithin_eq_zero_of_eqOn
+    ((hf.mdifferentiable (one_pos.trans_le le_add_self).ne') _)
+    ((hγ u hu).mdifferentiableWithinAt one_ne_zero) hfγ hu
 
 /-- **Leaves are open in the fibres.** For a map `f` of constant rank, every point `y` of the
 fibre of `f` through `x` that is close enough to `x` lies on the leaf of `x` of the kernel
@@ -255,17 +253,17 @@ theorem eventually_sameLeaf_ofConstantRank (hf : ContMDiff I J (n + 1) f)
       ((φ.continuousAt hxφ).preimage_mem_nhds (Metric.ball_mem_nhds _ hε))
   filter_upwards [mem_nhdsWithin_of_mem_nhds hV, self_mem_nhdsWithin] with y ⟨hyφ, hyb⟩ hfy
   -- The preimage under `φ` of the segment from `φ x = 0` to `φ y` is a curve in the fibre.
-  let ℓ : ℝ → E := fun t ↦ t • φ y
-  have hℓ : MapsTo ℓ (Icc 0 1) φ.target := fun t ht ↦ hball <| by
-    simpa [ℓ, hφx] using
-      (convex_ball _ _).add_smul_sub_mem (Metric.mem_ball_self hε) hyb ht
-  have hγ : ContMDiffOn 𝓘(ℝ, ℝ) I 1 (φ.symm ∘ ℓ) (Icc 0 1) :=
-    (hφi.comp (contDiff_id.smul contDiff_const).contMDiff.contMDiffOn hℓ).of_le h1
+  have hseg : segment ℝ (φ x) (φ y) ⊆ φ.target :=
+    ((convex_ball _ _).segment_subset (Metric.mem_ball_self hε) hyb).trans hball
+  let ℓ : ℝ → E := AffineMap.lineMap (φ x) (φ y)
+  have hℓ : MapsTo ℓ (Icc 0 1) φ.target := fun _ ht ↦ hseg (lineMap_mem_segment ℝ _ _ ht)
+  have hγ : ContMDiffOn 𝓘(ℝ, ℝ) I 1 (φ.symm ∘ ℓ) (Icc 0 1) := (hφi.comp_lineMap hseg).of_le h1
   have hfγ : EqOn (f ∘ φ.symm ∘ ℓ) (fun _ ↦ f x) (Icc 0 1) := fun t ht ↦ by
     refine (hker _ (φ.map_target (hℓ ht))).2 ?_
-    rw [φ.right_inv (hℓ ht), map_smul]
+    rw [φ.right_inv (hℓ ht)]
+    simp only [ℓ, AffineMap.lineMap_apply_module', hφx, sub_zero, add_zero, map_smul]
     exact Submodule.smul_mem _ t ((hker y hyφ).1 hfy)
-  simpa [ℓ, ← hφx, φ.left_inv hxφ, φ.left_inv hyφ] using
+  simpa [ℓ, φ.left_inv hxφ, φ.left_inv hyφ] using
     sameLeaf_ofConstantRank_of_eqOn hf hr hn hγ hfγ (left_mem_Icc.2 zero_le_one)
       (right_mem_Icc.2 zero_le_one)
 
