@@ -78,7 +78,7 @@ namespace ContinuousLinearEquiv
 variable {𝕜 E F : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
   [NormedAddCommGroup F] [NormedSpace 𝕜 F]
 
-/-- The bound `‖-(A⁻¹ ∘ B)‖ < 1` that makes `1 + A⁻¹ ∘ B` a unit. -/
+/-- If `‖B‖ * ‖A⁻¹‖ < 1`, then `-(A⁻¹ ∘ B)` has norm less than `1`. -/
 theorem norm_neg_symm_comp_lt_one {A : E ≃L[𝕜] F} {B : E →L[𝕜] F}
     (h : ‖B‖ * ‖(A.symm : F →L[𝕜] E)‖ < 1) : ‖-((A.symm : F →L[𝕜] E).comp B)‖ < 1 := by
   rw [norm_neg]
