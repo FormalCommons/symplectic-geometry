@@ -66,6 +66,9 @@ direction.
 * `SymplecticGeometry.cotangentNorm_eq_norm`: `‖p‖` is the norm of `z` for the round metric.
 * `SymplecticGeometry.contMDiffAt_cotangentNorm`: `‖p‖` is smooth off the zero section.
 * `SymplecticGeometry.isCompact_setOf_cotangentNorm_le`: the sets `{z | ‖p‖ ≤ r}` are compact.
+* `SymplecticGeometry.cotangentCoord_zeroSection`: the zero covector at `q` has coordinates
+  `(q, 0)`; `SymplecticGeometry.antipodal_zeroSection`: `antipodal` sends it to the zero covector
+  at `-q`.
 * `SymplecticGeometry.mpullback_cotangentCoord`: the coordinates, read in `E × E*` through
   `TauCeti.cotangentInnerEquiv`, pull the form `∑ⱼ pⱼ dqⱼ` (`TauCeti.cotangentLiouvilleForm`)
   back to the Liouville form of `T*Sⁿ`.
@@ -363,6 +366,22 @@ theorem cotangentNorm_eq_norm (z : CotangentBundle (𝓡 n) (𝕊 n)) : cotangen
   rw [cotangentNorm_def, cotangentCoord_snd, Submodule.norm_coe, LinearIsometryEquiv.norm_map,
     LinearIsometryEquiv.norm_map]
 
+/-- The zero covector at `q` has the coordinates `(q, 0)`. -/
+@[simp]
+theorem cotangentCoord_zeroSection (q : 𝕊 n) :
+    cotangentCoord (zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
+      (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) q) = ((q : 𝔼 n), 0) :=
+  Prod.ext (by rw [cotangentCoord_fst, zeroSection_proj]) <|
+    cotangentCoord_snd_eq (inner_zero_right _) fun v ↦ by
+      rw [inner_zero_left, zeroSection_snd, zero_apply]
+
+/-- The zero covectors have norm `0`. -/
+@[simp]
+theorem cotangentNorm_zeroSection (q : 𝕊 n) :
+    cotangentNorm (zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
+      (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) q) = 0 := by
+  rw [cotangentNorm_def, cotangentCoord_zeroSection, norm_zero]
+
 theorem continuous_cotangentNorm : Continuous (cotangentNorm (n := n)) :=
   continuous_norm.comp (continuous_snd.comp contMDiff_cotangentCoord.continuous)
 
@@ -493,6 +512,15 @@ theorem cotangentCoord_antipodal (z : CotangentBundle (𝓡 n) (𝕊 n)) :
 theorem cotangentNorm_antipodal (z : CotangentBundle (𝓡 n) (𝕊 n)) :
     cotangentNorm (antipodal z) = cotangentNorm z := by
   rw [cotangentNorm_def, cotangentNorm_def, cotangentCoord_antipodal, Prod.snd_neg, norm_neg]
+
+/-- The antipodal map of `T*Sⁿ` sends the zero covector at `q` to the zero covector at `-q`. -/
+@[simp]
+theorem antipodal_zeroSection (q : 𝕊 n) :
+    antipodal (zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
+      (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) q) =
+      zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
+        (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) (-q) :=
+  cotangentCoord_injective <| by simp
 
 /-- The normalized geodesic flow of `T*Sⁿ`. Off the zero section it moves a covector with
 coordinates `(q, p)` for time `t` along the great circle through `q` in the direction `p / ‖p‖`,

@@ -32,7 +32,10 @@ polynomials that express sections of `𝒪(d)` in the standard charts.
   overlap by the transition function of `𝒪(d)`; `HasMFDerivAt.eval_affineChart_dehomogenize`:
   at a zero of the polynomial, so do their differentials;
   `Projectivization.contMDiffOn_eval_affineChart`: a polynomial read in the chart at `i` is
-  `C^r` on the affine open `U_i`.
+  `C^r` on the affine open `U_i`;
+  `Projectivization.trivializationAt_homogeneousSection_chartAt_symm`: in the manifold chart and
+  the preferred trivialization of `𝒪(d)` at a point, the section `homogeneousSection d P` reads
+  as the dehomogenization of `P` at the index of that chart.
 * `Projectivization.twistPiCore k ι`: the bundle `𝒪(k) ⊗ 𝕜^ι`, the direct sum of `ι` copies of
   `𝒪(k)`, as a vector bundle core with model fibre `ι → 𝕜`, with the charts of `𝒪(k)` and
   transitions `twistTransition k i j • id`. It is analytic
@@ -114,6 +117,13 @@ theorem mem_affineOpen_twistCore_indexAt (k : ℤ) (x : ℙ 𝕜 (Fin (n + 1) �
     x ∈ affineOpen ((twistCore k).indexAt x) :=
   twistCore_baseSet (𝕜 := 𝕜) k _ ▸ (twistCore k).mem_baseSet_at x
 
+/-- The preferred chart of `𝒪(k)` at the coordinate point `[eᵢ]` is the chart `i`, the only
+standard affine open that contains `[eᵢ]`. -/
+@[simp]
+theorem twistCore_indexAt_mk_single (k : ℤ) (i : Fin (n + 1)) :
+    (twistCore (𝕜 := 𝕜) k).indexAt (mk 𝕜 (Pi.single i 1) (by simp)) = i :=
+  (mk_single_mem_affineOpen_iff _ _).1 (mem_affineOpen_twistCore_indexAt k _)
+
 /-! ### Dehomogenized polynomials in the standard charts -/
 
 section Dehomogenize
@@ -160,6 +170,24 @@ theorem _root_.HasMFDerivAt.eval_affineChart_dehomogenize {P : MvPolynomial (Fin
   refine ((hT.mul hL).congr_mfderiv heq).congr_of_eventuallyEq_abuse ?_
   filter_upwards [hU] with y hy
   exact eval_affineChart_dehomogenize_eq_twistTransition_mul hP hy.1 hy.2
+
+/-- Read in the manifold chart at `x₀` and in the preferred trivialization of `𝒪(d)` at `x₀`, the
+section `homogeneousSection d P` of a polynomial `P`, homogeneous of degree `d`, is the
+dehomogenization of `P` at the index `(twistCore d).indexAt x₀` of that chart. -/
+theorem trivializationAt_homogeneousSection_chartAt_symm {P : MvPolynomial (Fin (n + 1)) 𝕜}
+    (hP : P.IsHomogeneous d) (x₀ : ℙ 𝕜 (Fin (n + 1) → 𝕜)) (y : Fin n → 𝕜) :
+    (trivializationAt 𝕜 (twistCore (𝕜 := 𝕜) (d : ℤ)).Fiber x₀
+      ⟨(chartAt (Fin n → 𝕜) x₀).symm y,
+        homogeneousSection (𝕜 := 𝕜) (n := n) d P ((chartAt (Fin n → 𝕜) x₀).symm y)⟩).2 =
+      eval y (dehomogenize ((twistCore (𝕜 := 𝕜) (d : ℤ)).indexAt x₀) P) := by
+  rw [VectorBundleCore.trivializationAt, ← VectorBundleCore.localTrivAt_def,
+    twistCore_localTriv_apply, chartAt_eq_affineOpenPartialHomeomorph_twistCore_indexAt (d : ℤ),
+    coe_affineOpenPartialHomeomorph_symm]
+  set i := (twistCore (𝕜 := 𝕜) (d : ℤ)).indexAt x₀
+  have ht : y ∈ (affineChart (K := 𝕜) i).target := by simp
+  have hy : (affineChart (K := 𝕜) i).symm y ∈ affineOpen i :=
+    affineChart_source (K := 𝕜) i ▸ (affineChart i).map_target ht
+  rw [homogeneousSection_coord hP hy, (affineChart i).right_inv ht]
 
 /-- A polynomial read in the affine chart at `i` is `C^r` on the affine open `U_i`. -/
 theorem contMDiffOn_eval_affineChart (P : MvPolynomial (Fin n) 𝕜) (i : Fin (n + 1))

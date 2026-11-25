@@ -47,7 +47,7 @@ the same family, the extension `ω̃₀` of `ω₀` and the time extension `σ̃
 `σ = K (ω₁ - ω₀)` are invariant under the circle action
 (`SymplecticGeometry.IsCouplingForm.mpullback_smul_timeExtendIcc_prodIccHomotopyOperator_sub`).
 The form `σ̃` restricts to `σ`, vanishes on the direction of `ℝ`
-(`TauCeti.SmoothForm.isFstSemibasic_timeExtendIcc`) and on `(X, 0)`
+(`TauCeti.SmoothForm.isSemibasic_fst_timeExtendIcc`) and on `(X, 0)`
 (`IsCouplingForm.timeExtendIcc_prodIccHomotopyOperator_sub_apply_prodVectorField`).
 
 For a coupling form `ω₀`, `K ω₀` takes the value `t - a` on `(X, 0)`
