@@ -234,11 +234,11 @@ theorem range_bandMap (he : range e = {x | f x = a}) :
   rw [bandMap_eq_comp he', hsurj.range_comp, range_flowOf_sub_level hv hcomplete hf hW hfv hband]
 
 /-- **The slices of the band map have tangent images `ker df`.** Under the hypotheses of
-`SymplecticGeometry.apply_bandMap`, on a finite-dimensional manifold modelled on a complete space,
+`SymplecticGeometry.apply_bandMap`, on a finite-dimensional manifold,
 let `e` have injective differential at `q`, from a model space of dimension one less than
 that of `M`. Then the range of the differential at `q` of the slice
 `q ↦ bandMap v e a b (q, t)` is the kernel of `df` at its image. -/
-theorem range_mfderiv_bandMap_slice [CompleteSpace E] [FiniteDimensional ℝ E]
+theorem range_mfderiv_bandMap_slice [FiniteDimensional ℝ E]
     {EQ HQ : Type*} [NormedAddCommGroup EQ] [NormedSpace ℝ EQ] [TopologicalSpace HQ]
     {IQ : ModelWithCorners ℝ EQ HQ} [TopologicalSpace Q] [ChartedSpace HQ Q]
     (he : ∀ q, f (e q) = a) {q : Q} (he' : Injective (mfderiv IQ I e q))
@@ -494,7 +494,7 @@ omit [Fact (a < b)] [BoundarylessManifold I M] in
 `SymplecticGeometry.bandMap_orbitFiber`, for each `t ∈ [a, b]` the slice
 `ψₜ = fun p ↦ bandMap v e a b (p, t)` from the total space of `P` to `M` has, at each point `p`,
 injective differential, and the range of that differential is the kernel of `df` at `ψₜ p`. -/
-theorem bandMap_orbitFiber_slice [CompleteSpace E] (hf : ContMDiff I 𝓘(ℝ) ∞ f)
+theorem bandMap_orbitFiber_slice (hf : ContMDiff I 𝓘(ℝ) ∞ f)
     (hreg : IsRegularValue I 𝓘(ℝ) f a)
     (hn : Module.finrank ℝ E - Module.finrank ℝ ℝ = n)
     (hinv : ∀ (g : Circle) (x : M), f (g • x) = f x)
