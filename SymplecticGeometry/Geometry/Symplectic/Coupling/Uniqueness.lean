@@ -72,6 +72,11 @@ the differential of the inclusion `P × [a, b] → P × ℝ` is invertible, also
 levels (`TauCeti.Manifold.isInvertible_mfderiv_prodMap_id_subtypeVal_Icc`). Hence the extended
 segment is nondegenerate at every point of `P × ℝ` over `[a, b]`
 (`SymplecticGeometry.IsCouplingForm.nondegenerate_bilinFormAt_prodIccExtension_add_smul`).
+So every pair `(s, t)` with `t ∈ [a, b]` lies in the set of pairs at which the extended segment
+is nondegenerate along all of `P × {t}`
+(`IsCouplingForm.univ_prod_Icc_subset_setOf_nondegenerate_prodIccExtension_add_smul`);
+for compact `B` that set is open
+(`TauCeti.SmoothTwoForm.isOpen_setOf_forall_nondegenerate_bilinFormAt_add_smul`).
 
 ## References
 
