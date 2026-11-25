@@ -136,8 +136,8 @@ private theorem exists_linearEquiv_mfderiv_add (f : SmoothEmbedding I J n Z X) (
     subst hw
     have hu : mfderiv I J (f : Z → X) z ((S.linearEquivAt ℝ z hzS).symm u) = 0 := by
       rw [← hp]
-      simp only [D, LinearMap.coprod_apply, LinearMap.comp_apply, map_zero, add_zero]
-      rfl
+      simp only [D, LinearMap.coprod_apply, LinearMap.comp_apply, map_zero, add_zero,
+        LinearEquiv.coe_coe, ContinuousLinearMap.coe_coe]
     have := f.isImmersion.mfderiv_injective hn z (hu.trans (map_zero _).symm)
     simpa only [Prod.mk_eq_zero, and_true] using (LinearEquiv.map_eq_zero_iff _).1 this
   have : FiniteDimensional ℝ (TangentSpace J (f z)) := inferInstanceAs (FiniteDimensional ℝ V)
@@ -186,6 +186,7 @@ private theorem eventually_mapOrientation_normalOrientationAt (f : SmoothEmbeddi
     simp only [c, inTangentCoordinates, _root_.id_eq]
     rw [ContinuousLinearMap.inCoordinates_eq (hS z hz) (hT z hz)]
     simp [Trivialization.linearEquivAt_apply, Trivialization.linearEquivAt_symm_apply]
+    -- The two sides differ only by the abbreviations `S` and `T`.
     rfl
   -- The splitting `(u, w) ↦ D f(z) u + B w` of the tangent sequence at `z`.
   have hsplit (z : Z) (hz : z ∈ N.baseSet) := exists_linearEquiv_mfderiv_add f hn hdim B hz
@@ -210,8 +211,7 @@ private theorem eventually_mapOrientation_normalOrientationAt (f : SmoothEmbeddi
     obtain ⟨u, w⟩ := p
     simp only [G, L, ContinuousLinearEquiv.coe_coe, LinearEquiv.coe_toContinuousLinearEquiv',
       LinearEquiv.trans_apply, hDe z hz, map_add, LinearEquiv.apply_symm_apply]
-    rw [← hcz z hz]
-    rfl
+    simp [hcz z hz]
   have hP : finrank ℝ P = finrank ℝ P := rfl
   -- The normal orientation read in the chart is a cokernel orientation of the split sequence.
   have hread (z : Z) (hz : z ∈ N.baseSet) (a : Orientation ℝ E (Fin m))
@@ -230,7 +230,7 @@ private theorem eventually_mapOrientation_normalOrientationAt (f : SmoothEmbeddi
     have hb' : Orientation.map _ (De z hz) b = oX.orientationAt (f z) := by
       apply (T.mapOrientation (Fin (m + finrank ℝ P)) (hT z hz)).injective
       rw [← hb, Trivialization.mapOrientation_apply, ← Orientation.map_trans]
-      rfl
+      simp only [G, LinearEquiv.toLinearEquiv_toContinuousLinearEquiv]
     rw [Trivialization.mapOrientation_apply, ← Equiv.eq_symm_apply,
       Orientation.map_symm, Orientation.map_cokerOfExact _ _ _
         (f.isImmersion.mfderiv_injective hn z) (f.exact_mfderiv_normalClass z hn)
@@ -238,10 +238,9 @@ private theorem eventually_mapOrientation_normalOrientationAt (f : SmoothEmbeddi
         (S.linearEquivAt ℝ z (hS z hz)).symm (De z hz) (N.linearEquivAt ℝ z hz).symm
         (fun u ↦ by
           rw [hDe z hz]
-          simp only [LinearMap.inl_apply, map_zero, add_zero]
-          rfl)
-        (fun p ↦ by rw [hDnormal z hz]; rfl), ha', hb']
-    rfl
+          simp only [LinearMap.inl_apply, map_zero, add_zero, ContinuousLinearMap.coe_coe])
+        (fun p ↦ by rw [hDnormal z hz, LinearMap.snd_apply]), ha', hb']
+    simp only [normalOrientationAt]
   -- The three readings are locally constant near `z₀`.
   set a₀ := S.mapOrientation (Fin m) (hS z₀ hN₀) (oZ.orientationAt z₀)
   set q₀ := T.mapOrientation (Fin (m + finrank ℝ P)) (hT z₀ hN₀) (oX.orientationAt (f z₀))
@@ -302,8 +301,7 @@ theorem normalOrientation_apply (z : Z) (hm : finrank ℝ (TangentSpace I z) = m
       Orientation.cokerOfExact (f.isImmersion.mfderiv_injective hn z)
         (f.exact_mfderiv_normalClass z hn) (f.normalClass_surjective z hn) (oZ.orientationAt z)
         (oX.orientationAt (f z)) hm hr := by
-  simp only [normalOrientation, VectorBundleOrientation.coe_ofEventually]
-  rfl
+  simp only [normalOrientation, VectorBundleOrientation.coe_ofEventually, normalOrientationAt]
 
 /-- The orientation of `T_z Z` followed by the induced normal orientation of `ν_z` gives the
 orientation of `T_{f z} X`. -/
