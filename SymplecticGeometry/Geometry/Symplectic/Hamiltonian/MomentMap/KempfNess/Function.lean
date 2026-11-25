@@ -12,9 +12,14 @@ public import SymplecticGeometry.Geometry.Lie.Complexification
 # The Kempf–Ness function
 
 Let `C : LieComplexification I G IC Gc` be a complexification of a real Lie group `G`, let `Gc`
-act on `M`, and let `μ : M → 𝔤*` be a map, which in the applications is a moment map for the
-action of `G`. For `p : M`, the *Kempf–Ness function* `Φ_p : Gc → ℝ` is defined through the polar
-decomposition `Gc = exp(i𝔤) G` of `C.polar`: for `ξ ∈ 𝔤` and `u ∈ G`,
+act on `M`, and let `μ : M → 𝔤*` be a map. In the applications `μ` is a moment map for the action
+of `G` with the opposite of Tau Ceti's sign: `-μ` is the moment map in Tau Ceti's sense, that is
+`σ.IsEquivariantMomentMap (fun x ↦ -μ x)`. With this sign `Φ_p` is convex along the curves
+`t ↦ g * C.expI (t • ξ)`; a moment map in Tau Ceti's sense passed as `μ` gives `-Φ_p` instead,
+which is concave along them.
+
+For `p : M`, the *Kempf–Ness function* `Φ_p : Gc → ℝ` is defined through the polar decomposition
+`Gc = exp(i𝔤) G` of `C.polar`: for `ξ ∈ 𝔤` and `u ∈ G`,
 
   `Φ_p (exp(iξ) u) = ∫ t in 0..1, ⟨μ (exp(-itξ) p), ξ⟩`,
 
@@ -64,19 +69,22 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E
 
 /-- The *Kempf–Ness function* `Φ_p : Gc → ℝ` of `p : M` for the map `μ : M → 𝔤*`: writing
 `g = C.expI ξ * C.toHom u` through the polar decomposition `C.polar`, its value at `g` is
-`∫ t in 0..1, μ (C.expI (-(t • ξ)) • p) ξ`. -/
+`∫ t in 0..1, μ (C.expI (-(t • ξ)) • p) ξ`.
+
+The intended `μ` has the opposite of Tau Ceti's sign, `σ.IsEquivariantMomentMap (fun x ↦ -μ x)`;
+with that sign `Φ_p` is convex along the curves `t ↦ g * C.expI (t • ξ)`. -/
 def kempfNessFunction (C : LieComplexification I G IC Gc)
     (μ : M → Module.Dual ℝ (GroupLieAlgebra I G)) (p : M) (g : Gc) : ℝ :=
-  ∫ t in (0 : ℝ)..1,
-    μ (C.expI (-(t • ((C.polar.symm g).1 : GroupLieAlgebra I G))) • p) (C.polar.symm g).1
+  let ξ : GroupLieAlgebra I G := (C.polar.symm g).1
+  ∫ t in (0 : ℝ)..1, μ (C.expI (-(t • ξ)) • p) ξ
 
 variable (C : LieComplexification I G IC Gc) (μ : M → Module.Dual ℝ (GroupLieAlgebra I G))
   (p : M)
 
 theorem kempfNessFunction_def (g : Gc) :
     kempfNessFunction C μ p g =
-      ∫ t in (0 : ℝ)..1,
-        μ (C.expI (-(t • ((C.polar.symm g).1 : GroupLieAlgebra I G))) • p) (C.polar.symm g).1 :=
+      let ξ : GroupLieAlgebra I G := (C.polar.symm g).1
+      ∫ t in (0 : ℝ)..1, μ (C.expI (-(t • ξ)) • p) ξ :=
   (rfl)
 
 /-- The defining property of the Kempf–Ness function, at the point `C.polar (ξ, u)` of the polar
@@ -84,10 +92,7 @@ decomposition. -/
 theorem kempfNessFunction_polar (ξ : GroupLieAlgebra I G) (u : G) :
     kempfNessFunction C μ p (C.polar (ξ, u)) =
       ∫ t in (0 : ℝ)..1, μ (C.expI (-(t • ξ)) • p) ξ := by
-  rw [kempfNessFunction_def, Diffeomorph.symm_apply_apply]
-  -- The sides differ only in the type of `ξ`: the first component of a point of `E × G` on the
-  -- left, an element of `GroupLieAlgebra I G` on the right, which is `E` by definition.
-  rfl
+  rw [kempfNessFunction_def, C.polar_apply, C.polar_symm_expI_mul_toHom]
 
 /-- `Φ_p (C.expI ξ * C.toHom u) = ∫ t in 0..1, μ (C.expI (-(t • ξ)) • p) ξ`. -/
 theorem kempfNessFunction_expI_mul_toHom (ξ : GroupLieAlgebra I G) (u : G) :
@@ -115,8 +120,7 @@ theorem kempfNessFunction_one : kempfNessFunction C μ p 1 = 0 := by
 theorem kempfNessFunction_mul_toHom (g : Gc) (u : G) :
     kempfNessFunction C μ p (g * C.toHom u) = kempfNessFunction C μ p g := by
   obtain ⟨ξ, v, rfl⟩ : ∃ (ξ : GroupLieAlgebra I G) (v : G), C.expI ξ * C.toHom v = g :=
-    ⟨(C.polar.symm g).1, (C.polar.symm g).2,
-      (C.polar_apply _ _).symm.trans (C.polar.apply_symm_apply g)⟩
+    ⟨_, _, C.expI_mul_toHom_polar_symm g⟩
   rw [mul_assoc, ← map_mul, kempfNessFunction_expI_mul_toHom,
     kempfNessFunction_expI_mul_toHom]
 
