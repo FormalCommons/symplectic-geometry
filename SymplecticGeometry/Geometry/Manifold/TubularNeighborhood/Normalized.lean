@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.Geometry.Manifold.MFDeriv.Translation
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
@@ -81,6 +82,20 @@ def normalFiberDeriv (f : SmoothEmbedding I J ∞ M N) (hn : (∞ : ℕ∞ω) �
     ((Bundle.zeroSectionTangentEquiv (I := I) x).symm.toContinuousLinearMap.comp
       (ContinuousLinearMap.inr ℝ (TangentSpace I x) (f.NormalSpace x hn))))
 
+/-- The normal derivative of `Φ` at `x` is the normal class of the differential of `Φ` at `0_x`,
+composed with the inclusion of the fibre as the vertical vectors of the splitting
+`TauCeti.Bundle.zeroSectionTangentEquiv x`. -/
+theorem normalFiberDeriv_def (f : SmoothEmbedding I J ∞ M N) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
+    (Φ : TotalSpace P (fun x ↦ f.NormalSpace x hn) → N) (x : M) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    haveI := f.normalSpaceVectorBundle hn hdim
+    f.normalFiberDeriv hn hdim Φ x =
+      (f.normalClassL x hn).comp ((mfderiv (I.prod 𝓘(ℝ, P)) J Φ (zeroSection P _ x)).comp
+        ((Bundle.zeroSectionTangentEquiv (I := I) x).symm.toContinuousLinearMap.comp
+          (ContinuousLinearMap.inr ℝ (TangentSpace I x) (f.NormalSpace x hn)))) :=
+  (rfl)
+
 /-- The normal derivative of `Φ` at `x` sends `v` to the normal class of the differential of `Φ`
 at `0_x` applied to the vertical vector `(0, v)`. -/
 theorem normalFiberDeriv_apply (f : SmoothEmbedding I J ∞ M N) (hn : (∞ : ℕ∞ω) ≠ 0)
@@ -109,34 +124,47 @@ theorem normalFiberDeriv_apply_eq_mfderiv_smul (f : SmoothEmbedding I J ∞ M N)
   rw [normalFiberDeriv_apply, Bundle.mfderiv_zeroSectionTangentEquiv_symm_inr hΦ]
 
 /-- Let `L : Q →L[ℝ] ν_x` be a continuous linear map from a normed space to the normal space at
-`x`, such that `w ↦ Φ ⟨x, L w⟩` is differentiable at `0`. If `Φ` is differentiable at the zero
-vector over `x`, its normal derivative at `x` sends `L u` to the normal class of the derivative at
-`0` of `w ↦ Φ ⟨x, L w⟩` applied to `u`. -/
+`x`. If `Φ` is differentiable at the zero vector over `x`, its normal derivative at `x` sends `L u`
+to the normal class of the derivative at `0` of `w ↦ Φ ⟨x, L w⟩` applied to `u`. -/
 theorem normalFiberDeriv_apply_eq_mfderiv_comp (f : SmoothEmbedding I J ∞ M N)
     (hn : (∞ : ℕ∞ω) ≠ 0) (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
     {Φ : TotalSpace P (fun x ↦ f.NormalSpace x hn) → N} {x : M}
     (hΦ : letI := f.normalSpaceFiberBundle hn hdim
       MDifferentiableAt (I.prod 𝓘(ℝ, P)) J Φ (zeroSection P _ x))
     {Q : Type*} [NormedAddCommGroup Q] [NormedSpace ℝ Q] (L : Q →L[ℝ] f.NormalSpace x hn)
-    (hL : MDifferentiableAt 𝓘(ℝ, Q) J (fun w : Q ↦ Φ ⟨x, L w⟩) 0) (u : Q) :
+    (u : Q) :
     f.normalFiberDeriv hn hdim Φ x (L u) =
       f.normalClassL x hn (mfderiv 𝓘(ℝ, Q) J (fun w : Q ↦ Φ ⟨x, L w⟩) 0 u) := by
+  let := f.normalSpaceFiberBundle hn hdim
+  have := f.normalSpaceVectorBundle hn hdim
+  -- The map `w ↦ ⟨x, L w⟩` into the normal bundle is differentiable: in the preferred
+  -- trivialization at `x` its fibre part is a continuous linear map.
+  have hm : MDifferentiableAt 𝓘(ℝ, Q) (I.prod 𝓘(ℝ, P))
+      (fun w : Q ↦ (⟨x, L w⟩ : TotalSpace P (fun x ↦ f.NormalSpace x hn))) 0 := by
+    refine (mdifferentiableAt_totalSpace _ _).2 ⟨mdifferentiableAt_const, ?_⟩
+    have e : (fun w : Q ↦ (trivializationAt P (fun x ↦ f.NormalSpace x hn) x ⟨x, L w⟩).2) =
+        (trivializationAt P (fun x ↦ f.NormalSpace x hn) x).continuousLinearMapAt ℝ x ∘L L := by
+      funext w
+      simp [Trivialization.continuousLinearMapAt_apply]
+    rw [e]
+    exact ContinuousLinearMap.mdifferentiableAt _
+  have h0 : (⟨x, L 0⟩ : TotalSpace P (fun x ↦ f.NormalSpace x hn)) = zeroSection P _ x := by
+    simp [zeroSection]
+  have hL : MDifferentiableAt 𝓘(ℝ, Q) J (fun w : Q ↦ Φ ⟨x, L w⟩) (0 + (0 : ℝ) • u) := by
+    rw [zero_smul, zero_add]
+    exact MDifferentiableAt.comp_of_eq (0 : Q) hΦ hm h0
   rw [normalFiberDeriv_apply_eq_mfderiv_smul f hn hdim hΦ]
-  -- The curve `t ↦ Φ ⟨x, t • L u⟩` is `w ↦ Φ ⟨x, L w⟩` along the line `t ↦ t • u`.
-  have e : (fun t : ℝ ↦ Φ ⟨x, t • L u⟩) =
-      (fun w : Q ↦ Φ ⟨x, L w⟩) ∘ ContinuousLinearMap.toSpanSingleton ℝ u := by
+  -- The curve `t ↦ Φ ⟨x, t • L u⟩` is `w ↦ Φ ⟨x, L w⟩` along the line `t ↦ 0 + t • u`.
+  have e : (fun t : ℝ ↦ Φ ⟨x, t • L u⟩) = fun t : ℝ ↦ (fun w : Q ↦ Φ ⟨x, L w⟩) (0 + t • u) := by
     funext t
     simp
-  have hℓ : HasMFDerivAt 𝓘(ℝ) 𝓘(ℝ, Q) (ContinuousLinearMap.toSpanSingleton ℝ u) 0
-      (ContinuousLinearMap.toSpanSingleton ℝ u) :=
-    (ContinuousLinearMap.toSpanSingleton ℝ u).hasFDerivAt.hasMFDerivAt
-  have hℓ1 : ContinuousLinearMap.toSpanSingleton ℝ u 1 = u := by simp
   -- The ascription `: V` makes the motive non-dependent: every tangent space of `N` is `V`.
-  have key := (congrArg (fun F : ℝ → N ↦ (mfderiv 𝓘(ℝ) J F 0 (1 : ℝ) : V)) e).trans
-    (mfderiv_comp_apply_of_eq (0 : ℝ) hL hℓ.mdifferentiableAt (map_zero _) (1 : ℝ))
-  rw [hℓ.mfderiv] at key
-  exact (congrArg (f.normalClassL x hn) key).trans (congrArg (fun w : Q ↦
-    f.normalClassL x hn (mfderiv 𝓘(ℝ, Q) J (fun w : Q ↦ Φ ⟨x, L w⟩) 0 w)) hℓ1)
+  have h : (mfderiv 𝓘(ℝ) J (fun t : ℝ ↦ (fun w : Q ↦ Φ ⟨x, L w⟩) (0 + t • u)) 0 (1 : ℝ) : V) =
+      mfderiv 𝓘(ℝ, Q) J (fun w : Q ↦ Φ ⟨x, L w⟩) (0 + (0 : ℝ) • u) u :=
+    hL.mfderiv_comp_add_smul_apply_one
+  rw [zero_smul, zero_add] at h
+  exact congrArg (f.normalClassL x hn)
+    ((congrArg (fun F : ℝ → N ↦ (mfderiv 𝓘(ℝ) J F 0 (1 : ℝ) : V)) e).trans h)
 
 end TauCeti.SmoothEmbedding
 
