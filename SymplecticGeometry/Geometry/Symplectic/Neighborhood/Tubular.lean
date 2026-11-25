@@ -138,8 +138,6 @@ theorem exists_symplectomorphism_opens_mfderiv_eq [SecondCountableTopology M₀]
   have hχχ' : Subtype.val ∘ ⇑χ = ⇑χ' ∘ Subtype.val :=
     funext fun w ↦ by simp [χ']
   have hΘ' : ⇑Θ' = ⇑ψ' ∘ ⇑χ' := by simp [Θ']
-  have hΘΘ' : Subtype.val ∘ ⇑Θ' = ⇑Θ ∘ Subtype.val :=
-    funext fun y ↦ (Θ'.liftOpens_apply_coe hU₀ hU₁ y).symm
   have hψΘ : Subtype.val ∘ ⇑ψ = ⇑Θ ∘ Subtype.val := funext Θ.toDiffeomorphSourceTarget_apply_coe
   have hχ'source (w : V₀) : (w : U₀) ∈ χ'.source := by
     rw [PartialDiffeomorph.liftOpens_source]
@@ -156,9 +154,9 @@ theorem exists_symplectomorphism_opens_mfderiv_eq [SecondCountableTopology M₀]
     exact ⟨g q, hΘ'source (hχ'source ⟨g q, hgV q⟩), f₀.val_codRestrict_apply U₀ hfU q⟩
   refine ⟨_, _, ψ, fun q ↦ ⟨hgΘ q, ?_, ?_⟩, ?_⟩
   · -- `ψ (f₀ q) = ψ' (χ' (f₀ q)) = ψ' (f₀ q) = f₁ q`.
-    have h := congrFun hΘΘ' (g q)
+    have h := congrFun (Θ'.liftOpens_comp_subtypeVal hU₀ hU₁) (g q)
     rw [Function.comp_apply, Function.comp_apply, f₀.val_codRestrict_apply U₀ hfU q] at h
-    rw [Θ.toDiffeomorphSourceTarget_apply_coe, ← h, hΘ', Function.comp_apply, hχ'fix, hg q,
+    rw [Θ.toDiffeomorphSourceTarget_apply_coe, h, hΘ', Function.comp_apply, hχ'fix, hg q,
       hψ'f q]
   · -- The derivative of `ψ` at `f₀ q` is that of `ψ' ∘ χ'`, that is, of `ψ'`.
     have hfix := hχ'fix q
@@ -170,10 +168,6 @@ theorem exists_symplectomorphism_opens_mfderiv_eq [SecondCountableTopology M₀]
     refine ContinuousLinearMap.ext fun v ↦ ?_
     have h₁ : mfderiv I₀ I₁ ψ ⟨f₀ q, hgΘ q⟩ v = mfderiv I₀ I₁ Θ (f₀ q) v := by
       exact Manifold.mfderiv_apply_of_subtype_val_comp_eq hψΘ v
-    -- The vector `v` is tangent to the source of `Θ`; read it as tangent to `U₀`.
-    have h₂ (u : TangentSpace I₀ (⟨f₀ q, hfU q⟩ : U₀)) :
-        mfderiv I₀ I₁ Θ' ⟨f₀ q, hfU q⟩ u = mfderiv I₀ I₁ Θ (f₀ q) u := by
-      exact Manifold.mfderiv_apply_of_subtype_val_comp_eq hΘΘ' u
     have hdu (u : TangentSpace I₀ (⟨f₀ q, hfU q⟩ : U₀)) : mfderiv I₀ I₀ χ' ⟨f₀ q, hfU q⟩ u = u := by
       rw [hd]
       exact ContinuousLinearMap.id_apply u
@@ -184,7 +178,8 @@ theorem exists_symplectomorphism_opens_mfderiv_eq [SecondCountableTopology M₀]
         (χ'.mdifferentiableAt (by simp) hs), hdu, hfix, hψ'd q]
       -- The two sides differ only in the base points of the tangent spaces, which are `E₁`.
       rfl
-    rw [h₁, ← h₂ v, h₃]
+    -- The vector `v` is tangent to the source of `Θ`; read it as tangent to `U₀`.
+    rw [h₁, Θ'.mfderiv_liftOpens_apply_coe hU₀ hU₁ ⟨f₀ q, hfU q⟩ v, h₃]
     rfl
   · -- At a point `y` of the source of `Θ'`, `Θ'^* ω₁` is `χ^* ψ'^* ω₁` at the point of `V₀`
     -- that `y` is.

@@ -7,7 +7,6 @@ module
 
 public import Mathlib.Geometry.Manifold.ContMDiff.Defs
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
-import Mathlib.Geometry.Manifold.ContMDiff.Atlas
 import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
 import TauCeti.Topology.OpenPartialHomeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
@@ -23,22 +22,18 @@ map on `M` that is `C^n` on both is `C^n`
 shared by the extensions by zero of the library. It applies to sections of a vector bundle too,
 such as differential forms, through their maps to the total space.
 
-* `OpenPartialHomeomorph.contMDiff_indicator_comp`: let `e` be a chart of the maximal atlas of a
-  Hausdorff `C^n` manifold `M` modelled on `H`, and let `ψ : H → F` be `C^n` on the target of `e`,
-  with compact support inside that target. Then the function on `M` that is `ψ ∘ e` on the source
-  of `e` and zero elsewhere, `e.source.indicator (ψ ∘ e)`, is `C^n`.
+The extension by zero to `M` of a function on the model vector space read through an extended
+chart is Tau Ceti's `OpenPartialHomeomorph.contMDiff_indicator_comp_extend`. This file goes the
+other way:
+
 * `PartialDiffeomorph.support_indicator_comp_symm_subset`,
   `PartialDiffeomorph.tsupport_indicator_comp_symm_subset`,
   `PartialDiffeomorph.hasCompactSupport_indicator_comp_symm`,
   `PartialDiffeomorph.continuous_indicator_comp_symm` and
-  `PartialDiffeomorph.contDiff_indicator_comp_symm`: in the other direction, a function `χ` on `M`
-  whose support is compact and lies in the source of a partial diffeomorphism `ψ` onto an open
-  subset of a normed space, read in `ψ` and extended by zero off `ψ.target`, is supported in
-  `ψ '' tsupport χ`, so has compact support, and is continuous, or `C^n`, when `χ` is.
-
-The argument for `contMDiff_indicator_comp` is that of Mathlib's `SmoothBumpFunction.contMDiff`,
-for a function on the target of any chart of the maximal atlas rather than a bump function in the
-preferred chart at a point.
+  `PartialDiffeomorph.contDiff_indicator_comp_symm`: a function `χ` on `M` whose support is
+  compact and lies in the source of a partial diffeomorphism `ψ` onto an open subset of a normed
+  space, read in `ψ` and extended by zero off `ψ.target`, is supported in `ψ '' tsupport χ`, so
+  has compact support, and is continuous, or `C^n`, when `χ` is.
 -/
 
 public section
@@ -70,27 +65,6 @@ theorem contMDiff_of_contMDiffOn_source_of_contMDiffOn_compl (e : OpenPartialHom
     e.open_source (e.isClosed_image_symm_of_isCompact hK hKe).isOpen_compl
 
 end Glue
-
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : Type*} [NormedAddCommGroup E]
-  [NormedSpace 𝕜 E] {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
-  {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [T2Space M]
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] {n : WithTop ℕ∞}
-  {e : OpenPartialHomeomorph M H} {ψ : H → F}
-
-/-- The extension by zero along a chart `e` of the maximal atlas of a Hausdorff `C^n` manifold
-of a function `ψ` that is `C^n` on the target of `e` and has compact support inside it is `C^n`.
--/
-theorem contMDiff_indicator_comp [IsManifold I n M] (he : e ∈ IsManifold.maximalAtlas I n M)
-    (hψ : ContMDiffOn I 𝓘(𝕜, F) n ψ e.target) (hc : HasCompactSupport ψ)
-    (hs : tsupport ψ ⊆ e.target) :
-    ContMDiff I 𝓘(𝕜, F) n (e.source.indicator (ψ ∘ e)) := by
-  refine e.contMDiff_of_contMDiffOn_source_of_contMDiffOn_compl hc hs
-    ((hψ.comp (contMDiffOn_of_mem_maximalAtlas he) e.mapsTo).congr fun z hz ↦
-      indicator_of_mem hz _) ((contMDiffOn_const (c := (0 : F))).congr fun z hz ↦ ?_)
-  by_cases hzs : z ∈ e.source
-  · rw [indicator_of_mem hzs, Function.comp_apply]
-    exact image_eq_zero_of_notMem_tsupport fun h ↦ hz ⟨e z, h, e.left_inv hzs⟩
-  · exact indicator_of_notMem hzs _
 
 end OpenPartialHomeomorph
 

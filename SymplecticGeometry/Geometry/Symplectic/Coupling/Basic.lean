@@ -414,8 +414,8 @@ private theorem primitive_apply_rightFundamentalVectorField (h : IsCouplingForm 
   set X := rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator p
   have hX : X = (2 * Real.pi)⁻¹ •
       rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator p := by
-    rw [circlePeriodOneGenerator_def, rightFundamentalVectorField_smul, Pi.smul_apply,
-      smul_smul, inv_mul_cancel₀ (by positivity), one_smul]
+    rw [rightFundamentalVectorField_circlePeriodOneGenerator, Pi.smul_apply, smul_smul,
+      inv_mul_cancel₀ (by positivity), one_smul]
   rw [primitive, SmoothForm.coe_homotopyOperator]
   refine (homotopyOperator_apply_apply (k := 1) ((SmoothForm.mpullback (segmentMap P s t)
       (contMDiff_segmentMap P s t) σ).isSmoothForm.of_le (by simp)) p ![X]).trans ?_
