@@ -6,26 +6,25 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.Order.IntermediateValue
-public import Mathlib.Topology.Order.LeftRightNhds
-public import Mathlib.Topology.MetricSpace.Pseudo.Lemmas
-public import TauCeti.Topology.FilledHull
-import Mathlib.Topology.Order.DenselyOrdered
+public import TauCeti.Topology.FilledIn
 import TauCeti.Topology.Compactness.Compact
 
 /-!
 # Filled sublevel sets and the first exit of a curve
 
 For a set `K` of a topological space, the points whose connected component in `Kᶜ` has compact
-closure form `K` together with the relatively compact components of `Kᶜ`. This is Tau Ceti's
-filled hull `TauCeti.filledHull K` for the bornology of relatively compact sets, and Tau Ceti
-proves it compact for compact `K`
-(`IsCompact.isCompact_setOf_isCompact_closure_connectedComponentIn_compl`). This file adds the
-facts about this set that an exhaustion by such sets needs: it is monotone in `K`
-(`setOf_isCompact_closure_connectedComponentIn_compl_mono`), every component of its complement
-has noncompact closure
-(`not_isCompact_closure_connectedComponentIn_compl_setOf_isCompact_closure`), and for closed `K`
-it is closed, lies in the interior of the set built from any `L` with `K ⊆ interior L`, and has
-its frontier in that of `K`.
+closure form `K` together with the relatively compact components of `Kᶜ`. This set is Tau Ceti's
+`TauCeti.fillIn K univ`
+(`setOf_isCompact_closure_connectedComponentIn_compl_eq_fillIn`) and, in an R₀ space, Tau Ceti's
+filled hull `TauCeti.filledHull K` for the bornology of relatively compact sets
+(`setOf_isCompact_closure_connectedComponentIn_compl_eq_filledHull`). Tau Ceti proves it compact
+for compact `K` (`IsCompact.isCompact_setOf_isCompact_closure_connectedComponentIn_compl`). Through
+these two identifications this file adds what an exhaustion by such sets needs: every component of
+its complement has noncompact closure
+(`not_isCompact_closure_connectedComponentIn_compl_setOf_isCompact_closure`, from
+`TauCeti.isFilledIn_fillIn`), and for closed `K` it is closed, its part outside `K` is open, it
+lies in the interior of the set built from any `L` with `K ⊆ interior L`, and its frontier lies in
+that of `K`.
 
 For a function `h : X → ℝ` and a level `c`, `SymplecticGeometry.filledSublevel h c` is this set
 for the sublevel set `{x | h x ≤ c}`. For continuous `h` with compact sublevel sets these sets
@@ -33,31 +32,33 @@ form a compact exhaustion of `X`: each is compact, `filledSublevel h c ⊆ inter
 (filledSublevel h c')` for `c < c'`, and they cover `X`. Their frontier lies on the level set
 `{x | h x = c}`.
 
-The **first exit** `SymplecticGeometry.exists_image_Icc_subset_filledSublevel_and_disjoint`
-says that a curve starting in `filledSublevel h c` and ending outside it, whose crossings of the
-level `c` are isolated from the right, has a last parameter `s` up to which it stays in the set,
-after which it leaves the set at once and stays out of it for a while. The argument takes the
-infimum of the parameters at which the curve is outside the set: there the curve is on the
-frontier, so on the level `c`, and just after it lies in a single component of `{x | c < h x}`,
-which has noncompact closure.
+`IsClosed.exists_mem_Ico_image_Icc_subset_mem_frontier` locates where a curve from a closed set
+to its complement first leaves it: at the infimum `s` of the parameters at which it is outside,
+the curve is on the frontier, and it is outside the set at parameters arbitrarily close after
+`s`. The **first exit** `SymplecticGeometry.exists_image_Icc_subset_filledSublevel_and_disjoint`
+applies it to a filled sublevel set and a curve whose crossings of the level `c` are isolated from
+the right: then `α s` is on the level `c`, and just after `s` the curve lies in a single component
+of `{x | c < h x}`, which has noncompact closure, so it stays out of the set for a while.
 
 These sets are the compact exhaustion along which proper rays are built in
 `SymplecticGeometry/Geometry/Manifold/ProperRay.lean`.
 
-The equality `connectedComponentIn_compl_setOf_isCompact_closure_eq`, which identifies the
-components outside the filled set with those of `Kᶜ`, is the `hcomp` step of the proof of
-`TauCeti.exists_isCompact_finite_connectedComponents_compl`, stated on its own. Closedness,
-openness of the filled-in part and the frontier bound come from Tau Ceti's
+Closedness, openness of the filled-in part and the frontier bound come from Tau Ceti's
 `IsClosed.isClosed_filledHull` and `IsClosed.isOpen_filledHull_sdiff`, through the bornology of
 relatively compact sets, as in the proof of
 `IsCompact.isCompact_setOf_isCompact_closure_connectedComponentIn_compl`.
 
 ## Main results
 
-* `not_isCompact_closure_connectedComponentIn_compl_setOf_isCompact_closure`,
+* `setOf_isCompact_closure_connectedComponentIn_compl_eq_fillIn`,
+  `setOf_isCompact_closure_connectedComponentIn_compl_eq_filledHull`,
+  `not_isCompact_closure_connectedComponentIn_compl_setOf_isCompact_closure`,
   `IsClosed.isClosed_setOf_isCompact_closure_connectedComponentIn_compl`,
+  `IsClosed.isOpen_setOf_isCompact_closure_connectedComponentIn_compl_sdiff`,
   `IsClosed.setOf_isCompact_closure_connectedComponentIn_compl_subset_interior`,
   `IsClosed.frontier_setOf_isCompact_closure_connectedComponentIn_compl_subset`.
+* `IsClosed.exists_mem_Ico_image_Icc_subset_mem_frontier`: where a curve first leaves a closed
+  set.
 * `SymplecticGeometry.isCompact_filledSublevel`, `SymplecticGeometry.filledSublevel_mono`,
   `SymplecticGeometry.filledSublevel_subset_interior`,
   `SymplecticGeometry.iUnion_filledSublevel`,
@@ -72,25 +73,15 @@ open Set Filter Topology
 
 variable {X : Type*} [TopologicalSpace X] {K L : Set X} {x : X}
 
-/-- Enlarging `K` enlarges the set of points whose component in `Kᶜ` has compact closure. -/
-theorem setOf_isCompact_closure_connectedComponentIn_compl_mono (hKL : K ⊆ L) :
-    {x | IsCompact (closure (connectedComponentIn Kᶜ x))} ⊆
-      {x | IsCompact (closure (connectedComponentIn Lᶜ x))} := fun _ hx ↦
-  hx.of_isClosed_subset isClosed_closure <| closure_mono <|
-    connectedComponentIn_mono _ <| compl_subset_compl.2 hKL
-
-/-- Outside the set `H` of points whose component in `Kᶜ` has compact closure, the components of
-`Hᶜ` are those of `Kᶜ`. -/
-theorem connectedComponentIn_compl_setOf_isCompact_closure_eq
-    (hx : x ∉ {x | IsCompact (closure (connectedComponentIn Kᶜ x))}) :
-    connectedComponentIn {x | IsCompact (closure (connectedComponentIn Kᶜ x))}ᶜ x =
-      connectedComponentIn Kᶜ x := by
-  have hKH : K ⊆ {x | IsCompact (closure (connectedComponentIn Kᶜ x))} :=
-    fun _ ↦ TauCeti.isCompact_closure_connectedComponentIn_compl_of_mem
-  refine (connectedComponentIn_mono x (compl_subset_compl.2 hKH)).antisymm
-    (isPreconnected_connectedComponentIn.subset_connectedComponentIn
-      (mem_connectedComponentIn fun h ↦ hx (hKH h)) fun y hy hyH ↦ hx ?_)
-  exact (congrArg (fun s ↦ IsCompact (closure s)) (connectedComponentIn_eq hy)).mpr hyH
+/-- The set of points whose component in `Kᶜ` has compact closure is Tau Ceti's filling
+`TauCeti.fillIn K univ` of `K` in the whole space. -/
+theorem setOf_isCompact_closure_connectedComponentIn_compl_eq_fillIn :
+    {x | IsCompact (closure (connectedComponentIn Kᶜ x))} = TauCeti.fillIn K univ := by
+  ext x
+  by_cases hx : x ∈ K
+  · exact ⟨fun _ ↦ TauCeti.subset_fillIn hx,
+      fun _ ↦ TauCeti.isCompact_closure_connectedComponentIn_compl_of_mem hx⟩
+  · simp [TauCeti.mem_fillIn_iff, hx, ← compl_eq_univ_sdiff]
 
 /-- **The complement of a filled set has only noncompact components.** If `H` is the set of
 points whose component in `Kᶜ` has compact closure, then every component of `Hᶜ` has noncompact
@@ -99,30 +90,41 @@ theorem not_isCompact_closure_connectedComponentIn_compl_setOf_isCompact_closure
     (hx : x ∉ {x | IsCompact (closure (connectedComponentIn Kᶜ x))}) :
     ¬IsCompact (closure (connectedComponentIn
       {x | IsCompact (closure (connectedComponentIn Kᶜ x))}ᶜ x)) := by
-  rw [connectedComponentIn_compl_setOf_isCompact_closure_eq hx]
-  exact hx
+  rw [setOf_isCompact_closure_connectedComponentIn_compl_eq_fillIn] at hx ⊢
+  simpa [← compl_eq_univ_sdiff] using
+    TauCeti.isFilledIn_iff.1 (TauCeti.isFilledIn_fillIn K univ) x ⟨mem_univ x, hx⟩
 
 section Closed
 
-variable [R0Space X] [LocallyConnectedSpace X]
+variable [R0Space X]
 
-omit [LocallyConnectedSpace X] in
-/-- The set of points whose component in `Kᶜ` has compact closure is Tau Ceti's filled hull of
-`K` for the bornology of relatively compact sets. -/
-private theorem setOf_isCompact_closure_eq_filledHull :
+/-- In an R₀ space, the set of points whose component in `Kᶜ` has compact closure is Tau Ceti's
+filled hull of `K` for the bornology of relatively compact sets. -/
+theorem setOf_isCompact_closure_connectedComponentIn_compl_eq_filledHull :
     {x | IsCompact (closure (connectedComponentIn Kᶜ x))} =
       @TauCeti.filledHull X _ (Bornology.relativelyCompact X) K := by
   ext x
   exact ((@TauCeti.mem_filledHull_iff X _ (.relativelyCompact X) K x).trans
     Bornology.relativelyCompact.isBounded_iff).symm
 
+variable [LocallyConnectedSpace X]
+
 /-- For a closed set `K`, the points whose component in `Kᶜ` has compact closure form a closed
 set. -/
 theorem IsClosed.isClosed_setOf_isCompact_closure_connectedComponentIn_compl (hK : IsClosed K) :
     IsClosed {x | IsCompact (closure (connectedComponentIn Kᶜ x))} := by
   let : Bornology X := .relativelyCompact X
-  rw [setOf_isCompact_closure_eq_filledHull]
+  rw [setOf_isCompact_closure_connectedComponentIn_compl_eq_filledHull]
   exact hK.isClosed_filledHull
+
+/-- For a closed set `K`, the points outside `K` whose component in `Kᶜ` has compact closure form
+an open set. -/
+theorem IsClosed.isOpen_setOf_isCompact_closure_connectedComponentIn_compl_sdiff
+    (hK : IsClosed K) :
+    IsOpen ({x | IsCompact (closure (connectedComponentIn Kᶜ x))} \ K) := by
+  let : Bornology X := .relativelyCompact X
+  rw [setOf_isCompact_closure_connectedComponentIn_compl_eq_filledHull]
+  exact hK.isOpen_filledHull_sdiff
 
 /-- For a closed set `K` and a set `L` with `K ⊆ interior L`, the set of points whose component in
 `Kᶜ` has compact closure lies in the interior of the corresponding set for `L`. -/
@@ -130,16 +132,17 @@ theorem IsClosed.setOf_isCompact_closure_connectedComponentIn_compl_subset_inter
     (hK : IsClosed K) (hKL : K ⊆ interior L) :
     {x | IsCompact (closure (connectedComponentIn Kᶜ x))} ⊆
       interior {x | IsCompact (closure (connectedComponentIn Lᶜ x))} := by
-  have hmono := setOf_isCompact_closure_connectedComponentIn_compl_mono
-    (hKL.trans interior_subset)
+  have hmono : {x | IsCompact (closure (connectedComponentIn Kᶜ x))} ⊆
+      {x | IsCompact (closure (connectedComponentIn Lᶜ x))} := by
+    simp only [setOf_isCompact_closure_connectedComponentIn_compl_eq_fillIn]
+    exact TauCeti.fillIn_mono (hKL.trans interior_subset)
   intro x hx
   by_cases hxK : x ∈ K
   · refine interior_mono ?_ (hKL hxK)
     exact fun _ hy ↦ TauCeti.isCompact_closure_connectedComponentIn_compl_of_mem hy
-  · let : Bornology X := .relativelyCompact X
-    have hopen := hK.isOpen_filledHull_sdiff
-    rw [← setOf_isCompact_closure_eq_filledHull] at hopen
-    exact interior_mono hmono (hopen.subset_interior_iff.2 sdiff_subset ⟨hx, hxK⟩)
+  · exact interior_mono hmono <|
+      hK.isOpen_setOf_isCompact_closure_connectedComponentIn_compl_sdiff.subset_interior_iff.2
+        sdiff_subset ⟨hx, hxK⟩
 
 /-- For a closed set `K`, the frontier of the set of points whose component in `Kᶜ` has compact
 closure lies in the frontier of `K`. -/
@@ -152,17 +155,57 @@ theorem IsClosed.frontier_setOf_isCompact_closure_connectedComponentIn_compl_sub
   have hxH := hK.isClosed_setOf_isCompact_closure_connectedComponentIn_compl.frontier_subset hx
   have hxK : x ∈ K := by
     by_contra hxK
-    let : Bornology X := .relativelyCompact X
-    have hopen := hK.isOpen_filledHull_sdiff
-    rw [← setOf_isCompact_closure_eq_filledHull] at hopen
     have hint : x ∈ interior ({x | IsCompact (closure (connectedComponentIn Kᶜ x))} \ K) := by
-      rw [hopen.interior_eq]
+      rw [hK.isOpen_setOf_isCompact_closure_connectedComponentIn_compl_sdiff.interior_eq]
       exact ⟨hxH, hxK⟩
     exact hx.2 (interior_mono sdiff_subset hint)
   rw [hK.frontier_eq]
   exact ⟨hxK, fun hint ↦ hx.2 (interior_mono hKH hint)⟩
 
 end Closed
+
+/-- **Where a curve first leaves a closed set.** Let `F` be closed and `α : ℝ → X` continuous on
+`[a, b]`, with `α a ∈ F`, `α b ∉ F` and `a < b`. Then there is `s ∈ [a, b)` such that `α` maps
+`[a, s]` into `F`, `α s` lies on the frontier of `F`, and every interval `(s, u)` contains a
+parameter at which `α` is outside `F`. -/
+theorem IsClosed.exists_mem_Ico_image_Icc_subset_mem_frontier {F : Set X} (hF : IsClosed F)
+    {α : ℝ → X} {a b : ℝ} (hα : ContinuousOn α (Icc a b)) (hab : a < b) (ha : α a ∈ F)
+    (hb : α b ∉ F) :
+    ∃ s ∈ Ico a b, α '' Icc a s ⊆ F ∧ α s ∈ frontier F ∧
+      ∀ u, s < u → ∃ t ∈ Ioo s u, α t ∉ F := by
+  set T := {t | t ∈ Icc a b ∧ α t ∉ F}
+  have hbT : b ∈ T := ⟨⟨hab.le, le_rfl⟩, hb⟩
+  have hTbdd : BddBelow T := ⟨a, fun t ht ↦ ht.1.1⟩
+  set s := sInf T
+  have has : a ≤ s := le_csInf ⟨b, hbT⟩ fun t ht ↦ ht.1.1
+  have hsb : s ≤ b := csInf_le hTbdd hbT
+  -- Before `s` the curve stays in `F`, and so it does at `s`, since `F` is closed.
+  have hbefore : α '' Ico a s ⊆ F := by
+    rintro _ ⟨t, ht, rfl⟩
+    by_contra htF
+    exact (csInf_le hTbdd ⟨⟨ht.1, ht.2.le.trans hsb⟩, htF⟩).not_gt ht.2
+  have hIcc : α '' Icc a s ⊆ F := by
+    rcases has.eq_or_lt with hs | hs
+    · rw [← hs, Icc_self, image_singleton]
+      exact singleton_subset_iff.2 ha
+    · have hc : ContinuousOn α (closure (Ico a s)) := by
+        rw [closure_Ico hs.ne]
+        exact hα.mono (Icc_subset_Icc_right hsb)
+      rw [← closure_Ico hs.ne]
+      exact hc.image_closure.trans (closure_minimal hbefore hF)
+  have hsF : α s ∈ F := hIcc ⟨s, ⟨has, le_rfl⟩, rfl⟩
+  have hsb' : s < b := hsb.lt_of_ne fun hs ↦ hb (hs ▸ hsF)
+  -- Right after `s` there are parameters at which the curve is outside `F`.
+  have hafter (u : ℝ) (hu : s < u) : ∃ t ∈ Ioo s u, α t ∉ F := by
+    obtain ⟨t, htT, htu⟩ := exists_lt_of_csInf_lt ⟨b, hbT⟩ hu
+    exact ⟨t, ⟨(csInf_le hTbdd htT).lt_of_ne fun hst ↦ htT.2 (hst ▸ hsF), htu⟩, htT.2⟩
+  refine ⟨s, ⟨has, hsb'⟩, hIcc, ⟨subset_closure hsF, fun hint ↦ ?_⟩, hafter⟩
+  have hIcc_nhds : Icc a b ∈ 𝓝[>] s := mem_of_superset (Ioo_mem_nhdsGT hsb')
+    (Ioo_subset_Icc_self.trans (Icc_subset_Icc_left has))
+  obtain ⟨u, hu, hsub⟩ := mem_nhdsGT_iff_exists_Ioo_subset.1 <| nhdsWithin_le_of_mem hIcc_nhds <|
+    (hα s ⟨has, hsb'.le⟩).preimage_mem_nhdsWithin (isOpen_interior.mem_nhds hint)
+  obtain ⟨t, ht, htF⟩ := hafter u hu
+  exact htF (interior_subset (hsub ht))
 
 namespace SymplecticGeometry
 
@@ -178,6 +221,7 @@ theorem filledSublevel_def (h : X → ℝ) (c : ℝ) :
     filledSublevel h c = {x | IsCompact (closure (connectedComponentIn {y | h y ≤ c}ᶜ x))} :=
   (rfl)
 
+@[simp]
 theorem mem_filledSublevel_iff :
     x ∈ filledSublevel h c ↔ IsCompact (closure (connectedComponentIn {y | h y ≤ c}ᶜ x)) := by
   rw [filledSublevel_def, mem_ofPred]
@@ -188,8 +232,8 @@ theorem setOf_le_subset_filledSublevel : {x | h x ≤ c} ⊆ filledSublevel h c 
 
 /-- The filled sublevel sets increase with the level. -/
 theorem filledSublevel_mono : Monotone (filledSublevel h) := fun _ _ hcc ↦ by
-  simp only [filledSublevel_def]
-  exact setOf_isCompact_closure_connectedComponentIn_compl_mono fun _ (hx : _ ≤ _) ↦ hx.trans hcc
+  simp only [filledSublevel_def, setOf_isCompact_closure_connectedComponentIn_compl_eq_fillIn]
+  exact TauCeti.fillIn_mono fun _ (hx : _ ≤ _) ↦ hx.trans hcc
 
 /-- The filled sublevel sets cover the space. -/
 theorem iUnion_filledSublevel : ⋃ c, filledSublevel h c = univ :=
@@ -247,40 +291,12 @@ theorem exists_image_Icc_subset_filledSublevel_and_disjoint (hh : Continuous h)
     (hzero : ∀ t ∈ Ico a b, h (α t) = c → ∀ᶠ u in 𝓝[>] t, h (α u) ≠ c) :
     ∃ s ∈ Ico a b, α '' Icc a s ⊆ filledSublevel h c ∧
       ∃ ε₀ > 0, Disjoint (α '' Ioc s (s + ε₀)) (filledSublevel h c) := by
-  set F := filledSublevel h c
-  set T := {t | t ∈ Icc a b ∧ α t ∉ F}
-  have hbT : b ∈ T := ⟨⟨hab.le, le_rfl⟩, hb⟩
-  have hTbdd : BddBelow T := ⟨a, fun t ht ↦ ht.1.1⟩
-  set s := sInf T
-  have has : a ≤ s := le_csInf ⟨b, hbT⟩ fun t ht ↦ ht.1.1
-  have hsb : s ≤ b := csInf_le hTbdd hbT
-  have hF : IsClosed F := isClosed_filledSublevel hh
-  -- Before `s` the curve stays in `F`, and so it does at `s`, since `F` is closed.
-  have hbefore : α '' Ico a s ⊆ F := by
-    rintro _ ⟨t, ht, rfl⟩
-    by_contra htF
-    exact (csInf_le hTbdd ⟨⟨ht.1, ht.2.le.trans hsb⟩, htF⟩).not_gt ht.2
-  have hIcc : α '' Icc a s ⊆ F := by
-    rcases has.eq_or_lt with hs | hs
-    · rw [← hs, Icc_self, image_singleton]
-      exact singleton_subset_iff.2 ha
-    · rw [← closure_Ico hs.ne]
-      exact (image_closure_subset_closure_image hα).trans (closure_minimal hbefore hF)
-  have hsF : α s ∈ F := hIcc ⟨s, ⟨has, le_rfl⟩, rfl⟩
-  have hsb' : s < b := hsb.lt_of_ne fun hs ↦ hb (hs ▸ hsF)
-  -- Right after `s` there are parameters at which the curve is outside `F`.
-  have hafter (u : ℝ) (hu : s < u) : ∃ t ∈ Ioo s u, α t ∉ F := by
-    obtain ⟨t, htT, htu⟩ := exists_lt_of_csInf_lt ⟨b, hbT⟩ hu
-    exact ⟨t, ⟨(csInf_le hTbdd htT).lt_of_ne fun hst ↦ htT.2 (hst ▸ hsF), htu⟩, htT.2⟩
-  -- So `α s` lies on the frontier of `F`, hence on the level `c`.
-  have hsc : h (α s) = c := by
-    refine frontier_filledSublevel_subset hh ⟨subset_closure hsF, fun hint ↦ ?_⟩
-    obtain ⟨u, hu, hsub⟩ := mem_nhdsGT_iff_exists_Ioo_subset.1 <|
-      nhdsWithin_le_nhds (hα.continuousAt.preimage_mem_nhds (isOpen_interior.mem_nhds hint))
-    obtain ⟨t, ht, htF⟩ := hafter u hu
-    exact htF (interior_subset (hsub ht))
+  obtain ⟨s, ⟨has, hsb⟩, hIcc, hfr, hafter⟩ :=
+    (isClosed_filledSublevel (c := c) hh).exists_mem_Ico_image_Icc_subset_mem_frontier
+      hα.continuousOn hab ha hb
+  have hsc : h (α s) = c := frontier_filledSublevel_subset hh hfr
   obtain ⟨u, hu, hsub⟩ := mem_nhdsGT_iff_exists_Ioo_subset.1 <|
-    (hzero s ⟨has, hsb'⟩ hsc).and (Ioo_mem_nhdsGT hsb')
+    (hzero s ⟨has, hsb⟩ hsc).and (Ioo_mem_nhdsGT hsb)
   set ε₀ := (u - s) / 2
   have hε₀ : 0 < ε₀ := by simp only [ε₀]; linarith [mem_Ioi.1 hu]
   have hJ : Ioc s (s + ε₀) ⊆ Ioo s u := fun t ht ↦ ⟨ht.1, by
@@ -297,7 +313,7 @@ theorem exists_image_Icc_subset_filledSublevel_and_disjoint (hh : Continuous h)
     exact (hsub (hJ ht')).1 hct'
   -- Its image there is preconnected and misses `{x | h x ≤ c}`, so it lies in the component of
   -- `α t₀`, which has noncompact closure.
-  refine ⟨s, ⟨has, hsb'⟩, hIcc, ε₀, hε₀, disjoint_left.2 ?_⟩
+  refine ⟨s, ⟨has, hsb⟩, hIcc, ε₀, hε₀, disjoint_left.2 ?_⟩
   have hcomp : α '' Ioc s (s + ε₀) ⊆ connectedComponentIn {y | h y ≤ c}ᶜ (α t₀) :=
     (isPreconnected_Ioc.image _ hα.continuousOn).subset_connectedComponentIn
       (mem_image_of_mem α ht₀J) (by rintro _ ⟨t, ht, rfl⟩; exact not_le.2 (habove t ht))
