@@ -186,9 +186,8 @@ structure IsCouplingForm
   mpullback_slice (t : Set.Icc a b) :
     SmoothForm.mpullback (fun p : ManifoldTotalSpace Circle P ↦ (p, t))
       (contMDiff_id.prodMk contMDiff_const) σ =
-    SmoothForm.mpullback (fun y : ManifoldTotalSpace Circle P ↦
-        ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
-      (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) (τ t)
+    SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
+      (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff (τ t)
 
 namespace IsCouplingForm
 
@@ -212,9 +211,9 @@ theorem apply_couplingField (h : IsCouplingForm σ τ)
 /-- Each form `τ t` of a coupling form is closed: its pull-back along the projection is the slice
 of the closed form `σ` at `t`, and pull-back along the submersion `π` detects closedness. -/
 theorem isClosed_apply (h : IsCouplingForm σ τ) (t : Set.Icc a b) : (τ t).IsClosed := by
-  rw [← (ManifoldTotalSpace.isSubmersion_proj ∞ Circle P IB (𝓡 1)).isClosed_mpullback_iff
-    ((FiberBundle.surjective_proj Circle P).comp
-      (ManifoldTotalSpace.homeomorph Circle P).symm.surjective),
+  have hπ := ManifoldTotalSpace.isSubmersion_projContMDiffMap ∞ Circle P IB (𝓡 1)
+  rw [← hπ.isClosed_mpullback_iff
+      (ManifoldTotalSpace.surjective_projContMDiffMap ∞ Circle P IB (𝓡 1)),
     ← h.mpullback_slice t]
   exact h.isClosed.mpullback _ _
 
@@ -240,11 +239,11 @@ theorem eval₂_inl_inl (h : IsCouplingForm σ τ) (p : ManifoldTotalSpace Circl
     (t : Set.Icc a b) (v w : TangentSpace (IB.prod (𝓡 1)) p) :
     SmoothBundleForm.eval₂ σ (p, t)
         ((v, 0) : TangentSpace ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (p, t)) (w, 0) =
-      SmoothBundleForm.eval₂ (τ t) ((ManifoldTotalSpace.homeomorph Circle P).symm p).proj
-        (mfderiv (IB.prod (𝓡 1)) IB (fun y : ManifoldTotalSpace Circle P ↦
-          ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj) p v)
-        (mfderiv (IB.prod (𝓡 1)) IB (fun y : ManifoldTotalSpace Circle P ↦
-          ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj) p w) := by
+      SmoothBundleForm.eval₂ (τ t) (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1) p)
+        (mfderiv (IB.prod (𝓡 1)) IB (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)) p
+          v)
+        (mfderiv (IB.prod (𝓡 1)) IB (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)) p
+          w) := by
   have := congrArg (fun φ ↦ SmoothBundleForm.eval₂ φ p v w) (h.mpullback_slice t)
   simp only [SmoothForm.eval₂_mpullback, mfderiv_prod_left] at this
   -- `ContinuousLinearMap.inl _ _ _ v` is `(v, 0)`, and `(p, t).1` is `p`, by definition
@@ -285,11 +284,12 @@ private theorem ker_restrict_eq_span_couplingField (h : IsCouplingForm σ τ) {t
         (((neg_eq_zero (α := ℝ)).mp hw').trans (map_zero _).symm)
     have hwe : ((w.1, 0) : TangentSpace ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (p, t)) = w :=
       Prod.ext rfl hw0.symm
-    have hd : mfderiv (IB.prod (𝓡 1)) IB (fun y : ManifoldTotalSpace Circle P ↦
-        ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj) p w.1 = 0 := by
+    have hd : mfderiv (IB.prod (𝓡 1)) IB (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)) p
+        w.1 = 0 := by
       refine (SmoothTwoForm.isNondegenerate_iff_separatingLeft.mp hτ) _ _ fun z ↦ ?_
       obtain ⟨u, rfl⟩ :=
-        (ManifoldTotalSpace.isSubmersion_proj ∞ Circle P IB (𝓡 1)).surjective_mfderiv (by simp) p z
+        (ManifoldTotalSpace.isSubmersion_projContMDiffMap ∞ Circle P IB (𝓡 1)).surjective_mfderiv
+          (by simp) p z
       let u₀ : TangentSpace ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (p, t) := (u, 0)
       have hu0 : u₀ ∈ LinearMap.ker (σ.bilinFormAt (p, t) (couplingField IB P a b (p, t))) := by
         refine LinearMap.mem_ker.mpr ?_
@@ -301,12 +301,8 @@ private theorem ker_restrict_eq_span_couplingField (h : IsCouplingForm σ τ) {t
       rw [hwe]
       exact (SmoothForm.bilinFormAt_apply σ (p, t) w _).symm.trans
         (LinearMap.congr_fun hk ⟨u₀, hu0⟩)
-    have hd' : mfderiv (IB.prod (𝓡 1)) IB (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
-        p w.1 = 0 := by
-      rw [ManifoldTotalSpace.coe_projContMDiffMap]
-      exact hd
     obtain ⟨c, hc⟩ := exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero
-      circlePeriodOneGenerator_ne_zero hd'
+      circlePeriodOneGenerator_ne_zero hd
     refine ⟨c, Subtype.ext ?_⟩
     refine Eq.trans ?_ hwe
     simp only [Submodule.coe_smul]
@@ -379,9 +375,8 @@ private def primitive
 of `σ` at the two ends are `π^* (τ t)` and `π^* (τ s)`. -/
 private theorem mextDerivₗ_primitive (h : IsCouplingForm σ τ) (s t : Set.Icc a b) :
     mextDerivₗ (IB.prod (𝓡 1)) 1 (primitive σ s t) =
-      SmoothForm.mpullback (fun y : ManifoldTotalSpace Circle P ↦
-          ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
-        (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) (τ t - τ s) := by
+      SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
+        (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff (τ t - τ s) := by
   have hcl : mextDerivₗ ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) 2
       (SmoothForm.mpullback (segmentMap P s t) (contMDiff_segmentMap P s t) σ) = 0 := by
     rw [SmoothForm.mextDerivₗ_mpullback,
@@ -486,15 +481,13 @@ theorem mk_sub_mk_eq_neg_smul_realFirstChernClass (h : IsCouplingForm σ τ) (t 
   -- so `τ t - τ s = c F + d γ`, by injectivity of the pull-back along `π`
   have hτ : τ t - τ s = c • hα.curvature + mextDerivₗ IB 1 γ := by
     refine SmoothForm.mpullback_injective_of_surjective
-      (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1))
-      ((FiberBundle.surjective_proj Circle P).comp
-        (ManifoldTotalSpace.homeomorph Circle P).symm.surjective)
-      ((ManifoldTotalSpace.isSubmersion_proj ∞ Circle P IB (𝓡 1)).surjective_mfderiv (by simp))
+      (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff
+      (ManifoldTotalSpace.surjective_projContMDiffMap ∞ Circle P IB (𝓡 1))
+      ((ManifoldTotalSpace.isSubmersion_projContMDiffMap ∞ Circle P IB (𝓡 1)).surjective_mfderiv
+        (by simp))
       ?_
-    -- `mextDerivₗ_primitive` pulls back along the projection written out.
-    have hcurv := hα.mpullback_curvature
-    simp only [ManifoldTotalSpace.coe_projContMDiffMap] at hcurv hβ
-    rw [← mextDerivₗ_primitive h, map_add, map_smul, hcurv, ← SmoothForm.mextDerivₗ_mpullback, ← hβ]
+    rw [← mextDerivₗ_primitive h, map_add, map_smul, hα.mpullback_curvature,
+      ← SmoothForm.mextDerivₗ_mpullback, ← hβ]
     simp [β, map_sub, map_smul]
   refine (hα.mk_sub_mk_eq_smul_realFirstChernClass_iff _ _ _).2 ?_
   rw [hτ, exactForms_succ]
