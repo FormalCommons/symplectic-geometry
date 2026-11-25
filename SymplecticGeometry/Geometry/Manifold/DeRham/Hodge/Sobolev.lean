@@ -13,6 +13,7 @@ public import TauCeti.Analysis.Distribution.WaveFrontSet.Sobolev.Tempered
 public import TauCeti.Analysis.Sobolev.BesselPotential.Distribution
 public import TauCeti.MeasureTheory.Function.Lp.Precomposition
 public import TauCeti.Geometry.Manifold.Riemannian.Sobolev.H1
+public import TauCeti.Analysis.InnerProductSpace.LinearPMap.Friedrichs.Basic
 import SymplecticGeometry.Analysis.Distribution.Support
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.ChartCover
@@ -178,96 +179,99 @@ open TauCeti TauCeti.SmoothForm
 
 variable [IsManifold I ∞ M]
 
-/-- The smooth real `k`-forms, as the space on which the Hodge `H¹` inner product of the
-orientation `o` and the splitting `hkl : k + l = m` is defined before completion. -/
-@[nolint unusedArguments]
-def PreH1Form (_o : Manifold.Orientation I M (Fin m)) (_hkl : k + l = m) : Type _ :=
-  SmoothForm I M ℝ k
+variable [CompactSpace M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
+  [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
+
+namespace L2Form
 
 variable (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m)
 
-instance : AddCommGroup (PreH1Form o hkl) := inferInstanceAs (AddCommGroup (SmoothForm I M ℝ k))
+/-- The **Hodge Laplacian** `Δ = dδ + δd` as a partial operator on `L2Form I M k`, whose domain
+is the image of the smooth `k`-forms. -/
+def hodgeLaplacian : L2Form I M k →ₗ.[ℝ] L2Form I M k where
+  domain := LinearMap.range (ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] L2Form I M k)
+  toFun := ofSmooth ∘ₗ SmoothForm.hodgeLaplacian o hkl ∘ₗ
+    (LinearEquiv.ofInjective _ ofSmooth_injective).symm.toLinearMap
 
-instance : Module ℝ (PreH1Form o hkl) := inferInstanceAs (Module ℝ (SmoothForm I M ℝ k))
+/-- The domain of the Hodge Laplacian on `L2Form I M k` is the image of the smooth forms. -/
+theorem domain_hodgeLaplacian :
+    (hodgeLaplacian o hkl).domain =
+      LinearMap.range (ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] L2Form I M k) :=
+  (rfl)
 
-variable {o hkl}
+/-- The linear equivalence of the smooth forms with the domain of the Hodge Laplacian on
+`L2Form I M k`. -/
+def toDomainHodgeLaplacian : SmoothForm I M ℝ k ≃ₗ[ℝ] (hodgeLaplacian o hkl).domain :=
+  LinearEquiv.ofInjective _ ofSmooth_injective
 
-namespace PreH1Form
-
-/-- A smooth form, as an element of `PreH1Form`. -/
-def toPreH1Form : SmoothForm I M ℝ k ≃ₗ[ℝ] PreH1Form o hkl := LinearEquiv.refl ℝ _
-
-/-- An element of `PreH1Form`, as a smooth form. -/
-def ofPreH1Form : PreH1Form o hkl ≃ₗ[ℝ] SmoothForm I M ℝ k := toPreH1Form.symm
-
+/-- The vector of the domain of the Hodge Laplacian given by a smooth form `α` is `α` in
+`L2Form I M k`. -/
 @[simp]
-theorem toPreH1Form_ofPreH1Form (u : PreH1Form o hkl) : toPreH1Form (ofPreH1Form u) = u :=
+theorem coe_toDomainHodgeLaplacian (α : SmoothForm I M ℝ k) :
+    (toDomainHodgeLaplacian o hkl α : L2Form I M k) = ofSmooth α :=
   (rfl)
 
+/-- The Hodge Laplacian on `L2Form I M k` applies `TauCeti.SmoothForm.hodgeLaplacian` to the smooth
+form of a vector of its domain. -/
+theorem hodgeLaplacian_apply (x : (hodgeLaplacian o hkl).domain) :
+    hodgeLaplacian o hkl x =
+      ofSmooth (SmoothForm.hodgeLaplacian o hkl ((toDomainHodgeLaplacian o hkl).symm x)) :=
+  (rfl)
+
+/-- On a smooth form, the Hodge Laplacian on `L2Form I M k` is that of `TauCeti.SmoothForm`. -/
 @[simp]
-theorem ofPreH1Form_toPreH1Form (α : SmoothForm I M ℝ k) :
-    ofPreH1Form (toPreH1Form α : PreH1Form o hkl) = α :=
-  (rfl)
+theorem hodgeLaplacian_toDomainHodgeLaplacian (α : SmoothForm I M ℝ k) :
+    hodgeLaplacian o hkl (toDomainHodgeLaplacian o hkl α) =
+      ofSmooth (SmoothForm.hodgeLaplacian o hkl α) := by
+  rw [hodgeLaplacian_apply, LinearEquiv.symm_apply_apply]
 
-variable [CompactSpace M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
-  [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
-  [BoundarylessManifold I M] [T2Space M]
+variable [BoundarylessManifold I M] [T2Space M]
 
-/-- The Hodge `H¹` inner product `⟪α, β⟫ + ⟪Δα, β⟫` on `PreH1Form o hkl`. -/
-abbrev innerCore : InnerProductSpace.Core ℝ (PreH1Form o hkl) where
-  inner u v := l2Inner o (ofPreH1Form u) (ofPreH1Form v) +
-    l2Inner o (hodgeLaplacian o hkl (ofPreH1Form u)) (ofPreH1Form v)
-  conj_inner_symm u v := by
-    rw [conj_trivial, l2Inner_comm o (ofPreH1Form v),
-      l2Inner_hodgeLaplacian_eq_l2Inner_hodgeLaplacian, l2Inner_comm o (ofPreH1Form v)]
-  re_inner_nonneg u :=
-    add_nonneg (l2Inner_self_nonneg o _) (l2Inner_hodgeLaplacian_self_nonneg o hkl _)
-  add_left u v w := by
-    simp only [map_add, l2Inner_add_left]
-    ring
-  smul_left u v r := by
-    simp only [map_smul, l2Inner_smul_left, conj_trivial]
-    ring
-  definite u h := ofPreH1Form.injective <| by
-    rw [map_zero]
-    refine (l2Inner_self_eq_zero_iff o).1 (le_antisymm ?_ (l2Inner_self_nonneg o _))
-    linarith [l2Inner_hodgeLaplacian_self_nonneg o hkl (ofPreH1Form u)]
+/-- The Hodge Laplacian on `L2Form I M k` is symmetric and nonnegative. -/
+theorem isSymmetricBoundedBelow_hodgeLaplacian :
+    (hodgeLaplacian o hkl).IsSymmetricBoundedBelow 0 where
+  isFormalAdjoint x y := by
+    obtain ⟨α, rfl⟩ := (toDomainHodgeLaplacian o hkl).surjective x
+    obtain ⟨β, rfl⟩ := (toDomainHodgeLaplacian o hkl).surjective y
+    rw [hodgeLaplacian_toDomainHodgeLaplacian, hodgeLaplacian_toDomainHodgeLaplacian,
+      coe_toDomainHodgeLaplacian, coe_toDomainHodgeLaplacian, inner_ofSmooth o, inner_ofSmooth o,
+      l2Inner_hodgeLaplacian_eq_l2Inner_hodgeLaplacian]
+  mul_norm_sq_le_re_inner x := by
+    obtain ⟨α, rfl⟩ := (toDomainHodgeLaplacian o hkl).surjective x
+    rw [zero_mul, hodgeLaplacian_toDomainHodgeLaplacian, coe_toDomainHodgeLaplacian,
+      inner_ofSmooth o, RCLike.re_to_real]
+    exact l2Inner_hodgeLaplacian_self_nonneg o hkl α
 
-instance : NormedAddCommGroup (PreH1Form o hkl) :=
-  InnerProductSpace.Core.toNormedAddCommGroup (cd := innerCore)
+end L2Form
 
-instance : InnerProductSpace ℝ (PreH1Form o hkl) :=
-  InnerProductSpace.ofCore innerCore.toCore
+variable [BoundarylessManifold I M] [T2Space M]
+  {o : Manifold.Orientation I M (Fin m)} {hkl : k + l = m}
 
-/-- The inner product of two smooth forms in `PreH1Form` is `⟪α, β⟫ + ⟪Δα, β⟫`. -/
-theorem inner_toPreH1Form (α β : SmoothForm I M ℝ k) :
-    ⟪(toPreH1Form α : PreH1Form o hkl), toPreH1Form β⟫_ℝ =
-      l2Inner o α β + l2Inner o (hodgeLaplacian o hkl α) β :=
-  (rfl)
+open LinearPMap
 
-end PreH1Form
-
-open PreH1Form
-
-variable [CompactSpace M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)]
-  [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]
-  [BoundarylessManifold I M] [T2Space M]
+/-- The proof that the Hodge Laplacian is symmetric and nonnegative, inferred from the context. -/
+local notation "hΔ" => L2Form.isSymmetricBoundedBelow_hodgeLaplacian _ _
 
 /-- The **Hodge `H¹` space** of `k`-forms on a closed oriented Riemannian manifold of dimension
 `m = k + l`: the completion of the smooth real `k`-forms for the inner product
-`⟪α, β⟫ + ⟪Δα, β⟫`, where `⟪·, ·⟫` is the `L²` inner product and `Δ` the Hodge Laplacian. -/
+`⟪Δα, β⟫ + ⟪α, β⟫`, where `⟪·, ·⟫` is the `L²` inner product and `Δ` the Hodge Laplacian. It is
+the form domain `LinearPMap.FriedrichsSpace` of the Hodge Laplacian on `L2Form I M k`, with lower
+bound `0`. -/
 abbrev H1Form (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) :=
-  UniformSpace.Completion (PreH1Form o hkl)
+  FriedrichsSpace (L2Form.hodgeLaplacian o hkl) 0
+    (L2Form.isSymmetricBoundedBelow_hodgeLaplacian o hkl)
 
 namespace H1Form
 
+
 /-- The inclusion of the smooth forms into `H1Form o hkl`. -/
 def ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] H1Form o hkl :=
-  UniformSpace.Completion.toComplL.toLinearMap ∘ₗ toPreH1Form.toLinearMap
+  toFriedrichsSpace hΔ ∘ₗ L2Form.toDomainHodgeLaplacian o hkl
 
-/-- A smooth form in `H1Form o hkl` is the image of its copy in the pre-completion space. -/
+/-- A smooth form in `H1Form o hkl` is the image of its vector in the domain of the Hodge
+Laplacian. -/
 theorem ofSmooth_apply (α : SmoothForm I M ℝ k) :
-    (ofSmooth α : H1Form o hkl) = ((toPreH1Form α : PreH1Form o hkl) : H1Form o hkl) :=
+    (ofSmooth α : H1Form o hkl) = toFriedrichsSpace hΔ (L2Form.toDomainHodgeLaplacian o hkl α) :=
   (rfl)
 
 /-- The inner product of two smooth forms in `H1Form o hkl` is `⟪α, β⟫ + ⟪Δα, β⟫`. -/
@@ -275,7 +279,10 @@ theorem ofSmooth_apply (α : SmoothForm I M ℝ k) :
 theorem inner_ofSmooth (α β : SmoothForm I M ℝ k) :
     ⟪(ofSmooth α : H1Form o hkl), ofSmooth β⟫_ℝ =
       l2Inner o α β + l2Inner o (hodgeLaplacian o hkl α) β := by
-  rw [ofSmooth_apply, ofSmooth_apply, UniformSpace.Completion.inner_coe, inner_toPreH1Form]
+  rw [ofSmooth_apply, ofSmooth_apply, inner_toFriedrichsSpace,
+    L2Form.hodgeLaplacian_toDomainHodgeLaplacian, L2Form.coe_toDomainHodgeLaplacian,
+    L2Form.coe_toDomainHodgeLaplacian, L2Form.inner_ofSmooth o, L2Form.inner_ofSmooth o]
+  simp [add_comm]
 
 /-- The squared norm of a smooth form in `H1Form o hkl` is `⟪α, α⟫ + ⟪Δα, α⟫`. -/
 theorem norm_ofSmooth_sq (α : SmoothForm I M ℝ k) :
@@ -285,12 +292,14 @@ theorem norm_ofSmooth_sq (α : SmoothForm I M ℝ k) :
 /-- The inclusion of the smooth forms into `H1Form o hkl` is injective. -/
 theorem ofSmooth_injective :
     Function.Injective (ofSmooth : SmoothForm I M ℝ k → H1Form o hkl) :=
-  UniformSpace.Completion.coe_injective _ |>.comp toPreH1Form.injective
+  (toFriedrichsSpace_injective hΔ).comp (L2Form.toDomainHodgeLaplacian o hkl).injective
 
 /-- The smooth forms are dense in `H1Form o hkl`. -/
-theorem denseRange_ofSmooth : DenseRange (ofSmooth : SmoothForm I M ℝ k → H1Form o hkl) :=
-  UniformSpace.Completion.denseRange_coe.comp toPreH1Form.surjective.denseRange
-    (UniformSpace.Completion.continuous_coe _)
+theorem denseRange_ofSmooth : DenseRange (ofSmooth : SmoothForm I M ℝ k → H1Form o hkl) := by
+  have h : (ofSmooth : SmoothForm I M ℝ k → H1Form o hkl) =
+      toFriedrichsSpace hΔ ∘ L2Form.toDomainHodgeLaplacian o hkl := funext ofSmooth_apply
+  rw [DenseRange, h, (L2Form.toDomainHodgeLaplacian o hkl).surjective.range_comp]
+  exact denseRange_toFriedrichsSpace hΔ
 
 /-- **Induction principle for `H1Form o hkl`.** A closed property of elements of `H1Form o hkl`
 that holds for all smooth forms holds everywhere. -/
@@ -299,116 +308,73 @@ theorem induction_on {p : H1Form o hkl → Prop} (u : H1Form o hkl) (hp : IsClos
     (h : ∀ α : SmoothForm I M ℝ k, p (ofSmooth α)) : p u :=
   denseRange_ofSmooth.induction_on u hp h
 
-/-! ### The inclusion into `L2Form` -/
+/-! ### The inclusion into `L2Form` and the Dirichlet form
 
-/-- The `L²` norm of a smooth form is at most its `H¹` norm. -/
-theorem norm_l2FormOfSmooth_le (α : SmoothForm I M ℝ k) :
-    ‖(L2Form.ofSmooth α : L2Form I M k)‖ ≤ 1 * ‖(ofSmooth α : H1Form o hkl)‖ := by
-  rw [one_mul, ← sq_le_sq₀ (norm_nonneg _) (norm_nonneg _), L2Form.norm_ofSmooth_sq o,
-    norm_ofSmooth_sq]
-  exact le_add_of_nonneg_right (l2Inner_hodgeLaplacian_self_nonneg o hkl α)
+The inclusion of `H1Form o hkl` into `L2Form I M k` is `LinearPMap.friedrichsInclusion`, and the
+Dirichlet form, which extends `⟪Δα, β⟫`, is `LinearPMap.friedrichsForm`. -/
 
-/-- The inclusion `H1Form o hkl → L2Form I M k`: the continuous extension of the identity of smooth
-forms. -/
-def toL2 : H1Form o hkl →L[ℝ] L2Form I M k :=
-  (L2Form.ofSmooth : SmoothForm I M ℝ k →ₗ[ℝ] L2Form I M k).extendOfNorm ofSmooth
-
-/-- On a smooth form, `toL2` is the inclusion of smooth forms into `L2Form I M k`. -/
+/-- On a smooth form, the inclusion of `H1Form o hkl` into `L2Form I M k` is the inclusion of
+smooth forms. -/
 @[simp]
-theorem toL2_ofSmooth (α : SmoothForm I M ℝ k) :
-    toL2 (ofSmooth α : H1Form o hkl) = L2Form.ofSmooth α :=
-  LinearMap.extendOfNorm_eq denseRange_ofSmooth ⟨1, norm_l2FormOfSmooth_le⟩ α
-
-/-- The inclusion into `L2Form I M k` does not increase norms. -/
-theorem norm_toL2_le (u : H1Form o hkl) : ‖toL2 u‖ ≤ ‖u‖ := by
-  simpa [toL2] using
-    LinearMap.norm_extendOfNorm_apply_le denseRange_ofSmooth 1 norm_l2FormOfSmooth_le u
-
-/-! ### The Dirichlet form -/
-
-/-- The **Dirichlet form** `D(u, v) = ⟪u, v⟫ - ⟪toL2 u, toL2 v⟫` on `H1Form o hkl`, the
-continuous extension of `⟪Δα, β⟫` from smooth forms (`H1Form.dirichlet_ofSmooth`). -/
-def dirichlet : H1Form o hkl →L[ℝ] H1Form o hkl →L[ℝ] ℝ :=
-  innerSL ℝ - (innerSL ℝ).bilinearComp toL2 toL2
-
-/-- The Dirichlet form is the `H¹` inner product minus the `L²` inner product. -/
-theorem dirichlet_apply (u v : H1Form o hkl) :
-    dirichlet u v = ⟪u, v⟫_ℝ - ⟪toL2 u, toL2 v⟫_ℝ :=
-  (rfl)
+theorem friedrichsInclusion_ofSmooth (α : SmoothForm I M ℝ k) :
+    friedrichsInclusion hΔ (ofSmooth α : H1Form o hkl) = L2Form.ofSmooth α := by
+  rw [ofSmooth_apply, friedrichsInclusion_toFriedrichsSpace, L2Form.coe_toDomainHodgeLaplacian]
 
 /-- The Dirichlet form of two smooth forms is `⟪Δα, β⟫`. -/
 @[simp]
-theorem dirichlet_ofSmooth (α β : SmoothForm I M ℝ k) :
-    dirichlet (ofSmooth α : H1Form o hkl) (ofSmooth β) = l2Inner o (hodgeLaplacian o hkl α) β := by
-  rw [dirichlet_apply, inner_ofSmooth, toL2_ofSmooth, toL2_ofSmooth, L2Form.inner_ofSmooth o,
-    add_sub_cancel_left]
+theorem friedrichsForm_ofSmooth (α β : SmoothForm I M ℝ k) :
+    friedrichsForm hΔ (ofSmooth α : H1Form o hkl) (ofSmooth β) =
+      l2Inner o (hodgeLaplacian o hkl α) β := by
+  rw [ofSmooth_apply α, friedrichsForm_toFriedrichsSpace_left, friedrichsInclusion_ofSmooth,
+    L2Form.hodgeLaplacian_toDomainHodgeLaplacian, L2Form.inner_ofSmooth o]
 
-/-- The Dirichlet form is symmetric. -/
-theorem dirichlet_comm (u v : H1Form o hkl) : dirichlet u v = dirichlet v u := by
-  rw [dirichlet_apply, dirichlet_apply, real_inner_comm, real_inner_comm (toL2 u)]
-
-/-- The Dirichlet form is nonnegative on the diagonal. -/
-theorem dirichlet_self_nonneg (u : H1Form o hkl) : 0 ≤ dirichlet u u := by
-  induction u using induction_on with
-  | hp => exact isClosed_le continuous_const (by fun_prop)
-  | h α => exact (dirichlet_ofSmooth α α).ge.trans' (l2Inner_hodgeLaplacian_self_nonneg o hkl α)
+/-- **The Dirichlet form against a smooth form** is the weak Laplacian:
+`D(u, φ) = ⟪u, Δφ⟫` in `L2Form I M k`. -/
+theorem friedrichsForm_ofSmooth_right (u : H1Form o hkl) (φ : SmoothForm I M ℝ k) :
+    friedrichsForm hΔ u (ofSmooth φ) =
+      ⟪friedrichsInclusion hΔ u, L2Form.ofSmooth (hodgeLaplacian o hkl φ)⟫_ℝ := by
+  rw [ofSmooth_apply, friedrichsForm_toFriedrichsSpace_right,
+    L2Form.hodgeLaplacian_toDomainHodgeLaplacian]
 
 /-- **Gårding's identity**: the squared `H¹` norm is the Dirichlet energy plus the squared `L²`
 norm. -/
-theorem norm_sq_eq_dirichlet_add (u : H1Form o hkl) :
-    ‖u‖ ^ 2 = dirichlet u u + ‖toL2 u‖ ^ 2 := by
-  rw [dirichlet_apply, ← real_inner_self_eq_norm_sq, ← real_inner_self_eq_norm_sq, sub_add_cancel]
-
-/-- **The Dirichlet form against a smooth form** is the weak Laplacian:
-`D(u, φ) = ⟪toL2 u, Δφ⟫`. -/
-theorem dirichlet_ofSmooth_right (u : H1Form o hkl) (φ : SmoothForm I M ℝ k) :
-    dirichlet u (ofSmooth φ) = ⟪toL2 u, L2Form.ofSmooth (hodgeLaplacian o hkl φ)⟫_ℝ := by
-  induction u using induction_on with
-  | hp => exact isClosed_eq (by fun_prop) (by fun_prop)
-  | h α =>
-    rw [dirichlet_ofSmooth, toL2_ofSmooth, L2Form.inner_ofSmooth o,
-      l2Inner_hodgeLaplacian_eq_l2Inner_hodgeLaplacian]
-
-/-- **Green's identity in `H1Form`**: the `H¹` inner product of `u` with a smooth form `φ` is
-`⟪toL2 u, φ + Δφ⟫`. -/
-theorem inner_ofSmooth_right (u : H1Form o hkl) (φ : SmoothForm I M ℝ k) :
-    ⟪u, ofSmooth φ⟫_ℝ = ⟪toL2 u, L2Form.ofSmooth (φ + hodgeLaplacian o hkl φ)⟫_ℝ := by
-  rw [map_add, inner_add_right, ← dirichlet_ofSmooth_right, dirichlet_apply, toL2_ofSmooth,
-    add_sub_cancel]
-
-/-- **The inclusion into `L2Form` is injective**: an element of `H1Form o hkl` that vanishes in
-`L2Form I M k` is orthogonal to every smooth form, by `inner_ofSmooth_right`, hence zero. -/
-theorem toL2_injective : Function.Injective (toL2 : H1Form o hkl → L2Form I M k) := by
-  refine (injective_iff_map_eq_zero toL2).2 fun u hu ↦ ?_
-  refine denseRange_ofSmooth.eq_zero_of_inner_left ℝ fun φ ↦ ?_
-  rw [inner_ofSmooth_right, hu, inner_zero_left]
+theorem norm_sq_eq_friedrichsForm_add (u : H1Form o hkl) :
+    ‖u‖ ^ 2 = friedrichsForm hΔ u u + ‖friedrichsInclusion hΔ u‖ ^ 2 := by
+  have h := re_friedrichsForm_self hΔ u
+  rw [RCLike.re_to_real] at h
+  linarith
 
 /-- **Cauchy–Schwarz inequality for the Dirichlet form**: `|D(u, v)| ≤ ‖u‖ * ‖v‖`. -/
-theorem abs_dirichlet_le (u v : H1Form o hkl) : |dirichlet u v| ≤ ‖u‖ * ‖v‖ := by
-  have hD (w : H1Form o hkl) : dirichlet w w ≤ ‖w‖ ^ 2 := by
-    rw [norm_sq_eq_dirichlet_add]
+theorem abs_friedrichsForm_le (u v : H1Form o hkl) :
+    |friedrichsForm hΔ u v| ≤ ‖u‖ * ‖v‖ := by
+  let B : H1Form o hkl →L[ℝ] H1Form o hkl →L[ℝ] ℝ := friedrichsForm hΔ
+  have h0 (w : H1Form o hkl) : 0 ≤ B w w := by
+    simpa using mul_norm_sq_le_re_friedrichsForm hΔ w
+  have hD (w : H1Form o hkl) : B w w ≤ ‖w‖ ^ 2 := by
+    rw [norm_sq_eq_friedrichsForm_add w]
     exact le_add_of_nonneg_right (sq_nonneg _)
-  have hcs : dirichlet u v * dirichlet v u ≤ dirichlet u u * dirichlet v v :=
-    LinearMap.BilinForm.apply_mul_apply_le_of_forall_zero_le
-      (dirichlet (o := o) (hkl := hkl)).toLinearMap₁₂ dirichlet_self_nonneg u v
-  rw [dirichlet_comm v u] at hcs
+  have hcs : B u v * B v u ≤ B u u * B v v :=
+    LinearMap.BilinForm.apply_mul_apply_le_of_forall_zero_le B.toLinearMap₁₂ h0 u v
+  have hcomm : B v u = B u v := by
+    simpa using (friedrichsForm_eq_star hΔ v u)
+  rw [hcomm] at hcs
   refine abs_le_of_sq_le_sq ?_ (by positivity)
   rw [mul_pow]
-  calc dirichlet u v ^ 2 ≤ dirichlet u u * dirichlet v v := by rwa [sq]
-    _ ≤ ‖u‖ ^ 2 * ‖v‖ ^ 2 :=
-      mul_le_mul (hD u) (hD v) (dirichlet_self_nonneg v) (sq_nonneg _)
+  calc B u v ^ 2 ≤ B u u * B v v := by rwa [sq]
+    _ ≤ ‖u‖ ^ 2 * ‖v‖ ^ 2 := mul_le_mul (hD u) (hD v) (h0 v) (sq_nonneg _)
 
 /-- The pairing of an element of `H1Form o hkl` with the Laplacian of a smooth form `φ` is
 bounded by its norm times the Hodge `H¹` norm `√(‖φ‖ ^ 2 + ⟪Δφ, φ⟫)` of `φ`, computed in
 `L2Form I M k`. This is the hypothesis of `L2Form.isLocallySobolev_one_of_forall_inner` for
-`toL2 u`. -/
-theorem abs_inner_toL2_ofSmooth_hodgeLaplacian_le (u : H1Form o hkl) (φ : SmoothForm I M ℝ k) :
-    |⟪toL2 u, L2Form.ofSmooth (hodgeLaplacian o hkl φ)⟫_ℝ| ≤
+the image of `u` in `L2Form I M k`. -/
+theorem abs_inner_friedrichsInclusion_ofSmooth_hodgeLaplacian_le (u : H1Form o hkl)
+    (φ : SmoothForm I M ℝ k) :
+    |⟪friedrichsInclusion hΔ u, L2Form.ofSmooth (hodgeLaplacian o hkl φ)⟫_ℝ| ≤
       ‖u‖ * √(‖(L2Form.ofSmooth φ : L2Form I M k)‖ ^ 2 +
         ⟪(L2Form.ofSmooth (hodgeLaplacian o hkl φ) : L2Form I M k), L2Form.ofSmooth φ⟫_ℝ) := by
-  rw [← dirichlet_ofSmooth_right, L2Form.norm_ofSmooth_sq o, L2Form.inner_ofSmooth o,
+  rw [← friedrichsForm_ofSmooth_right, L2Form.norm_ofSmooth_sq o, L2Form.inner_ofSmooth o,
     ← norm_ofSmooth_sq (hkl := hkl), Real.sqrt_sq (norm_nonneg _)]
-  exact abs_dirichlet_le u (ofSmooth φ)
+  exact abs_friedrichsForm_le u (ofSmooth φ)
 
 /-! ### Degree zero: Tau Ceti's Sobolev space of functions -/
 
@@ -462,7 +428,7 @@ theorem sobolevH1Equiv_symm_ofSmooth (f : C^∞⟮I, M; ℝ⟯) :
 @[simp]
 theorem dirichletForm_sobolevH1Equiv (u v : H1Form o hl) :
     Manifold.SobolevH1.dirichletForm (sobolevH1Equiv o hl u) (sobolevH1Equiv o hl v) =
-      dirichlet u v := by
+      friedrichsForm hΔ u v := by
   induction u using induction_on with
   | hp => exact isClosed_eq (by fun_prop) (by fun_prop)
   | h α =>
@@ -470,17 +436,19 @@ theorem dirichletForm_sobolevH1Equiv (u v : H1Form o hl) :
     | hp => exact isClosed_eq (by fun_prop) (by fun_prop)
     | h β =>
       rw [sobolevH1Equiv_ofSmooth, sobolevH1Equiv_ofSmooth,
-        Manifold.SobolevH1.dirichletForm_ofSmooth, dirichlet_ofSmooth,
+        Manifold.SobolevH1.dirichletForm_ofSmooth, friedrichsForm_ofSmooth,
         l2Inner_hodgeLaplacian_zero_eq_integral_inner_mgradient,
         SmoothForm.coe_ofFunctionEquiv_symm, SmoothForm.coe_ofFunctionEquiv_symm]
 
-/-- `sobolevH1Equiv` carries the `L²` inner product of the images under `toL2` to that of the
-images under Tau Ceti's `TauCeti.Manifold.SobolevH1.toLp`. -/
+/-- `sobolevH1Equiv` carries the `L²` inner product of the images in `L2Form I M 0` to that of
+the images under Tau Ceti's `TauCeti.Manifold.SobolevH1.toLp`. -/
 theorem inner_toLp_sobolevH1Equiv (u v : H1Form o hl) :
     ⟪Manifold.SobolevH1.toLp (sobolevH1Equiv o hl u),
-        Manifold.SobolevH1.toLp (sobolevH1Equiv o hl v)⟫_ℝ = ⟪toL2 u, toL2 v⟫_ℝ := by
+        Manifold.SobolevH1.toLp (sobolevH1Equiv o hl v)⟫_ℝ =
+      ⟪friedrichsInclusion hΔ u, friedrichsInclusion hΔ v⟫_ℝ := by
   have h := Manifold.SobolevH1.dirichletForm_apply (sobolevH1Equiv o hl u) (sobolevH1Equiv o hl v)
-  rw [dirichletForm_sobolevH1Equiv, dirichlet_apply, LinearIsometryEquiv.inner_map_map] at h
+  rw [dirichletForm_sobolevH1Equiv, friedrichsForm_apply, LinearIsometryEquiv.inner_map_map] at h
+  norm_num at h
   linarith
 
 end DegreeZero
@@ -637,14 +605,16 @@ variable [Finite κ]
 
 /-- The `p`-th coordinate of the localization of an element of `H1Form o hkl` to a chart, read in
 coordinates, lies in the Bessel-potential space `H^1` of `CoordinateSpace n`. -/
-theorem memSobolev_localizeCoord_toL2 (u : H1Form o hkl) :
-    MemSobolev 1 2 (L2Form.localizeCoord ψ χ hχ bΛ p e (toL2 u) : 𝓢'(CoordinateSpace n, ℂ)) :=
+theorem memSobolev_localizeCoord_friedrichsInclusion (u : H1Form o hkl) :
+    MemSobolev 1 2
+      (L2Form.localizeCoord ψ χ hχ bΛ p e (friedrichsInclusion hΔ u) : 𝓢'(CoordinateSpace n, ℂ)) :=
   L2Form.memSobolev_localizeCoord_of_forall_inner ψ χ hχ bΛ p e
-    (abs_inner_toL2_ofSmooth_hodgeLaplacian_le u)
+    (abs_inner_friedrichsInclusion_ofSmooth_hodgeLaplacian_le u)
 
 /-- The localization of `H1Form o hkl` to `H^1` of a chart, as a linear map. -/
 private def localizeSobolevₗ : H1Form o hkl →ₗ[ℝ] H^{1}(CoordinateSpace n) where
-  toFun u := (memSobolev_localizeCoord_toL2 ψ χ hχ bΛ p e u).toBesselPotentialSpace
+  toFun u :=
+    (memSobolev_localizeCoord_friedrichsInclusion ψ χ hχ bΛ p e u).toBesselPotentialSpace
   map_add' u v := BesselPotentialSpace.ext (by simp [← Lp.toTemperedDistributionCLM_apply])
   map_smul' r u := BesselPotentialSpace.ext (by
     rw [RingHom.id_apply, ← Complex.coe_smul, BesselPotentialSpace.toDistr_smul]
@@ -659,7 +629,7 @@ private theorem isClosed_graph_localizeSobolevₗ :
       Set (H1Form o hkl × H^{1}(CoordinateSpace n))) =
       {x | BesselPotentialSpace.toDistrCLM _ ℂ 1 2 x.2 =
         Lp.toTemperedDistributionCLM ℂ volume 2
-          (L2Form.localizeCoord ψ χ hχ bΛ p e (toL2 x.1))} := by
+          (L2Form.localizeCoord ψ χ hχ bΛ p e (friedrichsInclusion hΔ x.1))} := by
     ext x
     rw [SetLike.mem_coe, LinearMap.mem_graph_iff, Set.mem_ofPred_eq,
       ← (BesselPotentialSpace.toDistrCLM_injective (E := CoordinateSpace n) (F := ℂ)).eq_iff]
@@ -671,33 +641,40 @@ private theorem isClosed_graph_localizeSobolevₗ :
 `χ` supported in its source, a basis `bΛ` of the forms on `E`, an index `p` and coordinates
 `e : E ≃L[ℝ] CoordinateSpace n`, the continuous linear map to the Bessel-potential space `H^1` of
 `CoordinateSpace n` that sends `u` to the `p`-th coordinate in `bΛ`, complexified, of the
-localization of `toL2 u`, read through `e⁻¹` (`H1Form.toDistr_localizeSobolev`). It is
-everywhere defined by `memSobolev_localizeCoord_toL2`, and continuous by the closed graph
+localization of the image of `u` in `L2Form I M k`, read through `e⁻¹`
+(`H1Form.toDistr_localizeSobolev`). It is
+everywhere defined by `memSobolev_localizeCoord_friedrichsInclusion`, and continuous by the closed
+graph
 theorem. -/
 def localizeSobolev : H1Form o hkl →L[ℝ] H^{1}(CoordinateSpace n) :=
   .ofIsClosedGraph (isClosed_graph_localizeSobolevₗ ψ χ hχ bΛ p e)
 
 /-- The tempered distribution of `localizeSobolev ψ χ hχ bΛ p e u` is that of the `L²` function
-`L2Form.localizeCoord ψ χ hχ bΛ p e (toL2 u)`, the complexified `p`-th coordinate of the
-localization of `toL2 u` read through `e⁻¹` (`L2Form.coeFn_localizeCoord`). -/
+`L2Form.localizeCoord ψ χ hχ bΛ p e (friedrichsInclusion _ u)`, the complexified `p`-th coordinate
+of the
+localization of the image of `u` in `L2Form I M k` read through `e⁻¹`
+(`L2Form.coeFn_localizeCoord`). -/
 @[simp]
 theorem toDistr_localizeSobolev (u : H1Form o hkl) :
     (localizeSobolev (o := o) (hkl := hkl) ψ χ hχ bΛ p e u).toDistr =
-      (L2Form.localizeCoord ψ χ hχ bΛ p e (toL2 u) : 𝓢'(CoordinateSpace n, ℂ)) := by
+      (L2Form.localizeCoord ψ χ hχ bΛ p e (friedrichsInclusion hΔ u) :
+        𝓢'(CoordinateSpace n, ℂ)) := by
   rw [localizeSobolev, ContinuousLinearMap.coeFn_ofIsClosedGraph, localizeSobolevₗ,
     LinearMap.coe_mk, AddHom.coe_mk, MemSobolev.toBesselPotentialSpace_toDistr]
 
 /-- **Rellich's theorem in a chart.** The map sending `u` in `H1Form o hkl` to the `p`-th
-coordinate of the localization of `toL2 u`, read in coordinates
+coordinate of the localization of its image in `L2Form I M k`, read in coordinates
 (`L2Form.localizeCoord ψ χ hχ bΛ p e`), is a compact operator into `L²` of `CoordinateSpace n`. -/
-theorem isCompactOperator_localizeCoord_comp_toL2 :
-    IsCompactOperator (L2Form.localizeCoord ψ χ hχ bΛ p e ∘L toL2 : H1Form o hkl →L[ℝ] _) := by
+theorem isCompactOperator_localizeCoord_comp_friedrichsInclusion :
+    IsCompactOperator
+      (L2Form.localizeCoord ψ χ hχ bΛ p e ∘L friedrichsInclusion hΔ : H1Form o hkl →L[ℝ] _) := by
   have hK : IsCompact (e '' (ψ '' tsupport χ)) :=
     (ψ.isCompact_image_of_subset_source (isClosed_tsupport _).isCompact hχ).image e.continuous
   obtain ⟨φ, -, -, hφ⟩ := hK.exists_schwartzMap_cutoff isOpen_univ (Set.subset_univ _)
   -- Multiplication by `φ` does not change the coordinate, which vanishes outside that compact set;
   -- followed by the inclusion of `H^1` into `L²`, it is compact by Rellich's theorem.
-  have h : ⇑(L2Form.localizeCoord ψ χ hχ bΛ p e ∘L toL2 : H1Form o hkl →L[ℝ] _) =
+  have h :
+      ⇑(L2Form.localizeCoord ψ χ hχ bΛ p e ∘L friedrichsInclusion hΔ : H1Form o hkl →L[ℝ] _) =
       ⇑(BesselPotentialSpace.inclusionLp (E := CoordinateSpace n) (G := ℂ) (p := 2) le_rfl) ∘
         ⇑(BesselPotentialSpace.inclusion zero_le_one ∘L BesselPotentialSpace.smulLeftCLM 1 φ) ∘
         localizeSobolev ψ χ hχ bΛ p e := by
@@ -708,8 +685,9 @@ theorem isCompactOperator_localizeCoord_comp_toL2 :
       toDistr_localizeSobolev]
     -- The coordinate vanishes almost everywhere off the set where `φ = 1`.
     refine (Lp.toTemperedDistribution_eq_smulLeftCLM_iff φ.hasTemperateGrowth
-      (L2Form.localizeCoord ψ χ hχ bΛ p e (toL2 u)) _).2
-      ((L2Form.localizeCoord_ae_eq_zero_of_notMem ψ χ hχ bΛ p e (toL2 u)).mono fun x hx ↦ ?_)
+      (L2Form.localizeCoord ψ χ hχ bΛ p e (friedrichsInclusion hΔ u)) _).2
+      ((L2Form.localizeCoord_ae_eq_zero_of_notMem ψ χ hχ bΛ p e (friedrichsInclusion hΔ u)).mono
+        fun x hx ↦ ?_)
     by_cases hxK : x ∈ e '' (ψ '' tsupport χ)
     · simp [hφ.self_of_nhdsSet x hxK]
     · simp [hx hxK]
@@ -724,9 +702,9 @@ end Localize
 /-! ### Compactness of the inclusion into `L2Form` -/
 
 /-- **Rellich's theorem for `H1Form`.** On a closed oriented Riemannian manifold, the inclusion
-`H1Form.toL2 : H1Form o hkl →L[ℝ] L2Form I M k` is a compact operator. -/
-theorem H1Form.isCompactOperator_toL2 :
-    IsCompactOperator (toL2 : H1Form o hkl →L[ℝ] L2Form I M k) := by
+`LinearPMap.friedrichsInclusion _ : H1Form o hkl →L[ℝ] L2Form I M k` is a compact operator. -/
+theorem H1Form.isCompactOperator_friedrichsInclusion :
+    IsCompactOperator (friedrichsInclusion hΔ : H1Form o hkl →L[ℝ] L2Form I M k) := by
   -- The localizations are taken in `L²` for a Haar measure on `E`.
   borelize E
   let _ : MeasureSpace E := ⟨Measure.addHaar⟩
@@ -739,21 +717,21 @@ theorem H1Form.isCompactOperator_toL2 :
     (fun i ↦ extChartPartialDiffeomorph I ∞ (c i)) ρ hρ
   choose D hD using fun i ↦ L2Form.exists_norm_localize_le_mul_sum_norm_localizeCoord
     (extChartPartialDiffeomorph I ∞ (c i)) (ρ i) (hρ i) bΛ e
-  -- `toL2` is dominated by the coordinates of its localizations, which are compact.
+  -- The inclusion is dominated by the coordinates of its localizations, which are compact.
   refine IsCompactOperator.of_norm_le_mul_sum
-    (toL2 : H1Form o hkl →L[ℝ] L2Form I M k).toLinearMap
+    (friedrichsInclusion hΔ : H1Form o hkl →L[ℝ] L2Form I M k).toLinearMap
     (fun ip : Fin N × Fin (Module.finrank ℝ (E [⋀^Fin k]→L[ℝ] ℝ)) ↦
       (L2Form.localizeCoord (extChartPartialDiffeomorph I ∞ (c ip.1)) (ρ ip.1) (hρ ip.1) bΛ ip.2
-        e ∘L toL2 : H1Form o hkl →L[ℝ] _))
-    (fun ip ↦ isCompactOperator_localizeCoord_comp_toL2 _ _ (hρ ip.1) bΛ ip.2 e)
+        e ∘L friedrichsInclusion hΔ : H1Form o hkl →L[ℝ] _))
+    (fun ip ↦ isCompactOperator_localizeCoord_comp_friedrichsInclusion _ _ (hρ ip.1) bΛ ip.2 e)
     (C := ∑ i, C i * max (D i) 0) fun u ↦ ?_
-  refine (hC (toL2 u)).trans ?_
+  refine (hC (friedrichsInclusion hΔ u)).trans ?_
   rw [Fintype.sum_prod_type, Finset.mul_sum]
   refine Finset.sum_le_sum fun i _ ↦ ?_
   simp only [ContinuousLinearMap.comp_apply]
   have hs : 0 ≤ ∑ p, ‖L2Form.localizeCoord (extChartPartialDiffeomorph I ∞ (c i)) (ρ i) (hρ i)
-      bΛ p e (toL2 u)‖ := by positivity
-  refine (mul_le_mul_of_nonneg_left ((hD i (toL2 u)).trans
+      bΛ p e (friedrichsInclusion hΔ u)‖ := by positivity
+  refine (mul_le_mul_of_nonneg_left ((hD i (friedrichsInclusion hΔ u)).trans
     (mul_le_mul_of_nonneg_right (le_max_left _ 0) hs)) (hC0 i)).trans ?_
   rw [← mul_assoc]
   exact mul_le_mul_of_nonneg_right (Finset.single_le_sum (f := fun j ↦ C j * max (D j) 0)
