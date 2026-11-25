@@ -42,6 +42,9 @@ model: no change of sign is needed.
 
 * `SymplecticGeometry.LocalModelData.eval₂_form_one_zero_of_tangentSpaceProdEquiv_eq`: the form
   at `(1, 0, 0)` on tangent vectors `(ξᵢ, aᵢ, bᵢ)`.
+* `SymplecticGeometry.LocalModelData.eval₂_form_one_zero_of_tangentSpaceProdEquiv_eq_add_of_mem_𝔥`:
+  the form at `(1, 0, 0)` does not change when an element of `𝔥` is added to the `𝔤` component
+  of its first argument.
 * `SymplecticGeometry.LocalModelData.eval₂_form_one_zero_linearModelMap`: through
   `linearModelMap`, the form at `(1, 0, 0)` is the form of the linear normal form model.
 * `SymplecticGeometry.LocalModelData.isCompl_range_linearModelMap`: the range of
@@ -102,6 +105,20 @@ theorem eval₂_form_one_zero_of_tangentSpaceProdEquiv_eq
   rw [form_def, eval₂_localModelForm_one_of_tangentSpaceProdEquiv_eq _ _ _ _ _ hu₁ hu₂,
     ← covector_def, covector_apply]
   simp [momentMap_def]
+
+/-- The form of the local model at `(1, 0, 0)` does not see the `𝔥` component of its first
+argument: for `h ∈ 𝔥`, it pairs `(h + ξ₁, a₁, b₁)` and `(ξ₂, a₂, b₂)` to
+`τ ⁅ξ₁, ξ₂⁆ - ι𝔪 a₁ ξ₂ + ι𝔪 a₂ ξ₁ + σ (b₁, b₂)`, as it pairs `(ξ₁, a₁, b₁)` and `(ξ₂, a₂, b₂)`. -/
+theorem eval₂_form_one_zero_of_tangentSpaceProdEquiv_eq_add_of_mem_𝔥
+    {u₁ u₂ : TangentSpace (I.prod 𝓘(ℝ, A × V)) ((1 : G), ((0 : A), (0 : V)))}
+    {h ξ₁ ξ₂ : GroupLieAlgebra I G} {a₁ a₂ : A} {b₁ b₂ : V} (hh : h ∈ D.𝔥)
+    (hu₁ : tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V))) u₁ = (h + ξ₁, (a₁, b₁)))
+    (hu₂ : tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V))) u₂ = (ξ₂, (a₂, b₂))) :
+    D.form.eval₂ ((1 : G), ((0 : A), (0 : V))) u₁ u₂ =
+      D.τ ⁅ξ₁, ξ₂⁆ - D.ι𝔪 a₁ ξ₂ + D.ι𝔪 a₂ ξ₁ + D.σ b₁ b₂ := by
+  rw [D.eval₂_form_one_zero_of_tangentSpaceProdEquiv_eq hu₁ hu₂]
+  simp [add_lie, D.τ.mem_lieAnnihilator_iff.1 (D.𝔥_le_lieAnnihilator hh),
+    D.ι𝔪_apply_of_mem_sup _ (Submodule.mem_sup_left hh)]
 
 /-! ### The linear normal form model -/
 
@@ -200,21 +217,17 @@ theorem forall_eval₂_form_one_zero_eq_zero_iff
           (e.apply_symm_apply (D.linearModelMap y))).symm.trans
           (Eq.trans ?_ (h0 (e.symm (D.linearModelMap y))))
         have hy := (e.apply_symm_apply (D.linearModelMap y)).trans (D.linearModelMap_apply ..)
-        rw [D.eval₂_form_one_zero_of_tangentSpaceProdEquiv_eq hu hy,
+        rw [D.eval₂_form_one_zero_of_tangentSpaceProdEquiv_eq_add_of_mem_𝔥 hh hu hy,
           D.eval₂_form_one_zero_of_tangentSpaceProdEquiv_eq
-            ((e.apply_symm_apply _).trans (D.linearModelMap_apply ..)) hy,
-          LinearEquiv.symm_apply_apply, Submodule.coe_mk, Submodule.coe_mk, add_lie h,
-          map_add D.τ ⁅h, _⁆, D.τ.mem_lieAnnihilator_iff.1 (D.𝔥_le_lieAnnihilator hh),
-          map_add (D.ι𝔪 _) h, D.ι𝔪_apply_of_mem_sup _ (Submodule.mem_sup_left hh), zero_add,
-          zero_add, add_lie, map_add D.τ]
+            ((e.apply_symm_apply _).trans (D.linearModelMap_apply ..)) hy]
+        simp
     simp only [x, Prod.mk_eq_zero, Submodule.mk_eq_zero, LinearEquiv.map_eq_zero_iff] at hx
     obtain ⟨⟨rfl, rfl⟩, rfl, rfl⟩ := hx
     exact ⟨by simpa using hh, zero_mem _⟩
   · rintro ⟨hξ, hab⟩ u'
     obtain ⟨rfl, rfl⟩ := Prod.mk_eq_zero.1 hab
-    rw [D.eval₂_form_one_zero_of_tangentSpaceProdEquiv_eq hu rfl,
-      D.τ.mem_lieAnnihilator_iff.1 (D.𝔥_le_lieAnnihilator hξ),
-      D.ι𝔪_apply_of_mem_sup _ (Submodule.mem_sup_left hξ)]
+    rw [← add_zero ξ] at hu
+    rw [D.eval₂_form_one_zero_of_tangentSpaceProdEquiv_eq_add_of_mem_𝔥 hξ hu rfl]
     simp
 
 /-! ### The action of `K` -/
