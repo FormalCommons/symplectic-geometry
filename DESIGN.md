@@ -1964,8 +1964,9 @@ complete target and a function on the whole half-space.
   `TauCeti.Diffeotopy.velocity`), with
   `Geometry/Manifold/Instances/Icc.lean` (the unit vector field of an
   interval is smooth), `Geometry/Manifold/MFDeriv/Prod.lean` (the
-  derivative of a map on a product on `(0, w)` and `(v, 0)` is a partial
-  derivative),
+  derivative of a map on a product on `(v, 0)` is a partial derivative;
+  on `(0, w)` it is Tau Ceti's
+  `MDifferentiableAt.mfderiv_uncurry_apply_zero_mk`),
   `Geometry/Diffeomorphism/Diffeotopy/Basic.lean` (facts about diffeotopies
   of any smoothness, used by `Flux/Hamiltonian.lean`),
   `Geometry/Symplectic/Hamiltonian/SymplecticIsotopy.lean`

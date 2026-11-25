@@ -435,9 +435,8 @@ theorem mpullback_symm_extendByZeroAlong (hn : n ≠ 0) {y : E} (hy : y ∈ ψ.t
       E [⋀^Fin k]→L[ℝ] F) = a y := by
   have hx : ψ.symm y ∈ ψ.source := ψ.map_target hy
   have h : mpullback 𝓘(ℝ, E) I ψ.symm (RoughForm.extendByZeroAlong ψ a) y =
-      mpullback 𝓘(ℝ, E) I ψ.symm (mpullback I 𝓘(ℝ, E) ψ (a : RoughForm 𝓘(ℝ, E) E F k)) y := by
-    ext v
-    simp only [mpullback_apply, RoughForm.extendByZeroAlong_apply_of_mem a hx]
+      mpullback 𝓘(ℝ, E) I ψ.symm (mpullback I 𝓘(ℝ, E) ψ (a : RoughForm 𝓘(ℝ, E) E F k)) y :=
+    mpullback_apply_congr (RoughForm.extendByZeroAlong_apply_of_mem a hx)
   rw [h]
   exact ψ.mpullback_symm_mpullback_apply hn _ hy
 

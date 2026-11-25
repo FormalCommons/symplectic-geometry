@@ -20,6 +20,7 @@ import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
 import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
+import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Geometry.Symplectic.Manifold.Flat
 
 /-!
@@ -153,7 +154,7 @@ theorem velocityForm_apply (t : unitInterval) (x : P) (v : E') :
   funext i
   fin_cases i
   · exact hF.mfderiv_curry_left_apply _
-  · exact hF.mfderiv_curry_right_apply v
+  · exact MDifferentiableAt.mfderiv_uncurry_apply_zero_mk (f := fun s y ↦ F (s, y)) hF v
 
 /-- The slice of the velocity form at time `t` sends `v` at `x` to `σ (∂ₜ F (t, x), dF_t v)`. -/
 theorem mpullback_prodMk_velocityForm (t : unitInterval) (x : P) (v : E') :
