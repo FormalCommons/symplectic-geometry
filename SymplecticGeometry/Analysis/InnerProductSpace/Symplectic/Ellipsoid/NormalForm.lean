@@ -7,7 +7,6 @@ module
 
 public import SymplecticGeometry.Analysis.InnerProductSpace.Symplectic.Ellipsoid.Basic
 public import SymplecticGeometry.LinearAlgebra.QuadraticForm.PosDef
-public import TauCeti.Geometry.Symplectic.Darboux.EuclideanBasis
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Williamson
 
 /-!
@@ -21,10 +20,9 @@ Darboux basis, `Q = ∑ₖ νₖ (xₖ² + yₖ²) / 2` with `νₖ > 0`, so the
 
 ## Main results
 
-* `SymplecticGeometry.stdDarbouxBasisOf`: the standard Darboux basis of `StdSpace ι` after a
-  labelling `Fin m ≃ ι` of the coordinate pairs, and
-  `SymplecticGeometry.stdEllipsoidForm_eq_sum_smul_elliptic`, the form of a standard ellipsoid
-  in that basis.
+* `SymplecticGeometry.stdEllipsoidForm_eq_sum_smul_elliptic`: the form of a standard ellipsoid
+  in the relabelled standard Darboux basis `SymplecticGeometry.stdDarbouxBasisOf` of
+  `SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic`.
 * `SymplecticGeometry.exists_isSymplectomorphism_image_eq_stdEllipsoid`: the normal form of an
   ellipsoid centred at `0`.
 
@@ -41,54 +39,6 @@ namespace SymplecticGeometry
 open TauCeti TauCeti.SymplecticForm StdSpace Module
 
 variable {ι : Type*} [Fintype ι]
-
-/-- The standard Darboux basis of `StdSpace ι`, after a labelling `τ : Fin m ≃ ι` of the
-coordinate pairs: Tau Ceti's `stdDarbouxBasis m`, carried to `StdSpace ι` along
-`EuclideanSpace.sumEquivProd` and the relabelling `τ`. It sends `(k, 0)` to the unit vector of
-`x_{τ k}` and `(k, 1)` to that of `y_{τ k}`. -/
-noncomputable def stdDarbouxBasisOf {m : ℕ} (τ : Fin m ≃ ι) :
-    Basis (Fin m × Fin 2) ℝ (StdSpace ι) :=
-  (stdDarbouxBasis m).map
-    ((EuclideanSpace.sumEquivProd (𝕜 := ℝ) (ι := Fin m) (κ := Fin m)).toLinearEquiv.symm.trans
-      (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (τ.sumCongr τ)).toLinearEquiv)
-
-theorem stdDarbouxBasisOf_def {m : ℕ} (τ : Fin m ≃ ι) :
-    stdDarbouxBasisOf τ = (stdDarbouxBasis m).map
-      ((EuclideanSpace.sumEquivProd (𝕜 := ℝ) (ι := Fin m) (κ := Fin m)).toLinearEquiv.symm.trans
-        (LinearIsometryEquiv.piLpCongrLeft 2 ℝ ℝ (τ.sumCongr τ)).toLinearEquiv) :=
-  (rfl)
-
-/-- The basis vector of index `(k, 0)` in `stdDarbouxBasisOf τ` is the unit vector of
-`x_{τ k}`. -/
-@[simp]
-theorem stdDarbouxBasisOf_zero [DecidableEq ι] {m : ℕ} (τ : Fin m ≃ ι) (k : Fin m) :
-    stdDarbouxBasisOf τ (k, 0) = EuclideanSpace.single (Sum.inl (τ k)) (1 : ℝ) := by
-  ext j <;> simp [stdDarbouxBasisOf_def, Basis.map_apply, Equiv.eq_symm_apply, eq_comm]
-
-/-- The basis vector of index `(k, 1)` in `stdDarbouxBasisOf τ` is the unit vector of
-`y_{τ k}`. -/
-@[simp]
-theorem stdDarbouxBasisOf_one [DecidableEq ι] {m : ℕ} (τ : Fin m ≃ ι) (k : Fin m) :
-    stdDarbouxBasisOf τ (k, 1) = EuclideanSpace.single (Sum.inr (τ k)) (1 : ℝ) := by
-  ext j <;> simp [stdDarbouxBasisOf_def, Basis.map_apply, Equiv.eq_symm_apply, eq_comm]
-
-/-- The coordinate of index `(k, 0)` in `stdDarbouxBasisOf τ` is `x_{τ k}`. -/
-@[simp]
-theorem stdDarbouxBasisOf_repr_zero {m : ℕ} (τ : Fin m ≃ ι) (z : StdSpace ι) (k : Fin m) :
-    (stdDarbouxBasisOf τ).repr z (k, 0) = z.x (τ k) := by
-  simp [stdDarbouxBasisOf_def, Basis.map_repr]
-
-/-- The coordinate of index `(k, 1)` in `stdDarbouxBasisOf τ` is `y_{τ k}`. -/
-@[simp]
-theorem stdDarbouxBasisOf_repr_one {m : ℕ} (τ : Fin m ≃ ι) (z : StdSpace ι) (k : Fin m) :
-    (stdDarbouxBasisOf τ).repr z (k, 1) = z.y (τ k) := by
-  simp [stdDarbouxBasisOf_def, Basis.map_repr]
-
-/-- The relabelled standard Darboux basis is a Darboux basis of `ω₀`. -/
-theorem isDarbouxBasis_stdDarbouxBasisOf {m : ℕ} (τ : Fin m ≃ ι) :
-    (stdForm ι).IsDarbouxBasis (stdDarbouxBasisOf τ) :=
-  (isDarbouxBasis_stdDarbouxBasis m).map
-    (isSymplectomorphism_sumEquivProd.symm.trans (isSymplectomorphism_piLpCongrLeft_sumCongr τ))
 
 /-- In the relabelled standard Darboux basis, the form `∑ⱼ (xⱼ² + yⱼ²) / rⱼ²` of the standard
 ellipsoid is `∑ₖ (2 / r_{τ k}²) Iₖ`, `Iₖ` the elliptic blocks. -/
