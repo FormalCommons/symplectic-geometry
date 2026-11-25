@@ -61,8 +61,12 @@ namespace SymplecticGeometry
 
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-  [IsManifold I 2 M] {X : (x : M) → TangentSpace I x}
-  {hX : ContMDiff I I.tangent ∞ (fun x ↦ (X x : TangentBundle I M))} {ħ : ℝ}
+  {X : (x : M) → TangentSpace I x} {ħ : ℝ}
+
+section LowRegularity
+
+variable [IsManifold I 2 M]
+  {hX : ContMDiff I I.tangent ∞ (fun x ↦ (X x : TangentBundle I M))}
 
 /-- The Cartan differential of a one-form `θ` is the even form `-ħ θ(X) + dθ`, the functional
 calculus of the identity at the function `-ħ θ(X)` and the two-form `dθ`. -/
@@ -142,11 +146,14 @@ theorem sub_formCalculus_eq_cartanDiff [FiniteDimensional ℝ E] (F : ℝ → �
   rw [cartanDiff_of_mul, cartanDiff_formCalculus_of_mlieDerivForm_eq_zero G hG hθ, mul_zero,
     smul_zero, add_zero, one_sub_formCalculus_eq_cartanDiff_mul F hF G hG hFG]
 
+end LowRegularity
+
 /-- **The localization lemma.** Let `θ` be a one-form with zero Lie derivative along `X`, and
 `F : ℝ → ℝ` smooth with `F 0 = 1`. On a compact boundaryless manifold of dimension `m`, for every
 equivariantly closed form `β`, the top components of `F(d_ħ θ) β` and of `β` have the same
 integral, where `F(d_ħ θ) = F(-ħ θ(X) + dθ)` is the functional calculus. -/
 theorem integralTopForm_formCalculus_mul [FiniteDimensional ℝ E] [IsManifold I ∞ M]
+    {hX : ContMDiff I I.tangent ∞ (fun x ↦ (X x : TangentBundle I M))}
     [CompactSpace M] [T2Space M] [BoundarylessManifold I M] {m : ℕ}
     (o : Manifold.Orientation I M (Fin m)) (F : ℝ → ℝ) (hF : ContDiff ℝ ∞ F) (hF0 : F 0 = 1)
     {θ : SmoothForm I M ℝ 1} (hθ : mlieDerivForm X θ.val = 0)

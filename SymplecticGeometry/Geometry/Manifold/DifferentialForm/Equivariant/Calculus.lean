@@ -219,10 +219,7 @@ theorem formCalculusCoeff_sub (G : ℝ → ℝ) (hG : ContDiff ℝ ∞ G) (hFG :
     formCalculusCoeff (F - G) hFG f k =
       formCalculusCoeff F hF f k - formCalculusCoeff G hG f k := by
   ext x
-  conv_rhs => rw [← ContMDiffMap.coeFnRingHom_apply, map_sub, Pi.sub_apply,
-    ContMDiffMap.coeFnRingHom_apply, ContMDiffMap.coeFnRingHom_apply]
-  rw [formCalculusCoeff_apply, formCalculusCoeff_apply, formCalculusCoeff_apply,
-    iteratedDeriv_sub (hF.contDiffAt.of_le (by simp)) (hG.contDiffAt.of_le (by simp))]
+  simp [iteratedDeriv_sub (hF.contDiffAt.of_le (by simp)) (hG.contDiffAt.of_le (by simp))]
 
 omit [FiniteDimensional ℝ E] in
 /-- `F(f + τ)` is the polynomial `∑ k ≤ finrank ℝ E, (k!)⁻¹ τ ^ k (F⁽ᵏ⁾ ∘ f)` in the two-form `τ`,
