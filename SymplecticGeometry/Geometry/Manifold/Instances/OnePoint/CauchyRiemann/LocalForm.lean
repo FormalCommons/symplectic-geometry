@@ -48,7 +48,7 @@ The proof reads each factor of `D_J = π^{0,1}_i ∘ Φ_J ∘ ∇` in the chart.
 (`TauCeti.SobolevSection.chartValueL_contMDiffHomMulL_ae_self`). Tau Ceti's
 `TauCeti.zeroOnePartSobolevL_eq_zero_iff` says that `D_J w = 0` exactly when these data are
 complex linear almost everywhere in every chart. Taming gives `K 1 ≠ -i`
-(`TauCeti.SmoothAlmostComplexStructure.im_inChart_apply_one_pos_of_tames`), and then the
+(`TauCeti.SmoothAlmostComplexStructure.inChart_apply_one_ne_neg_I_of_tames`), and then the
 reading of `zeroOnePartL J` sends `L` to a complex-linear map exactly when `L ∘ K = i L`
 (`TauCeti.FiniteBundleAtlas.coord_hom_zeroOnePartL_apply_I_smul_iff`).
 
@@ -119,9 +119,6 @@ noncomputable section
 
 namespace SymplecticGeometry
 
-/-- The standard complex structure of the Riemann sphere. -/
-local notation "𝒊" => SmoothAlmostComplexStructure.ofComplexManifold ℂ (OnePoint ℂ)
-
 variable {J : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)}
 
 /-- **The kernel equation of `D_J` in the charts.** Let a two-form `σ` tame both `J` and the
@@ -145,13 +142,10 @@ theorem twistOneDelBarSobolev_eq_zero_iff {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (On
               ((twistCoreAtlas 1).sectionChartData.chartValueL volume 2 1 i w y)) v := by
   -- Taming gives `K 1 ≠ -i` for the reading `K` of `J` on each chart image.
   have hK1 (i : Fin (twistCoreAtlas 1).n) {y : ℂ} (hy : y ∈ (twistCoreAtlas 1).image i) :
-      J.inChart ((twistCoreAtlas 1).center i) y 1 ≠ -Complex.I := fun h ↦ by
-    have hyt : y ∈ (extChartAt 𝓘(ℝ, ℂ) ((twistCoreAtlas 1).center i)).target := by
+      J.inChart ((twistCoreAtlas 1).center i) y 1 ≠ -Complex.I :=
+    SmoothAlmostComplexStructure.inChart_apply_one_ne_neg_I_of_tames hJ hi _ <| by
       simpa using ((twistCoreAtlas 1).chart_image_closure_dom_subset i
         ((twistCoreAtlas 1).image_subset_chart_image_closure_dom i hy)).1
-    have := SmoothAlmostComplexStructure.im_inChart_apply_one_pos_of_tames hJ hi _ hyt
-    rw [h] at this
-    norm_num at this
   -- The chart data of `Φ_J ∇w` are the reading of `Φ_J` applied to those of `∇w`, which are
   -- `Du + Γ u` for any weak derivative `Du`.
   have hΦ (i : Fin (twistCoreAtlas 1).n) := by

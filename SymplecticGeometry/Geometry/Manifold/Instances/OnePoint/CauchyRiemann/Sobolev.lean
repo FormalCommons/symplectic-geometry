@@ -106,9 +106,6 @@ noncomputable section
 
 namespace SymplecticGeometry
 
-/-- The standard complex structure of the Riemann sphere. -/
-local notation "𝒊" => SmoothAlmostComplexStructure.ofComplexManifold ℂ (OnePoint ℂ)
-
 /-- The finite bundle atlas of `𝒪(n)` on which its Sobolev sections are built, chosen once. -/
 def twistCoreAtlas (n : ℤ) : FiniteBundleAtlas ℂ (OnePoint ℂ) ℂ (twistCore (𝕜 := ℂ) n).Fiber :=
   Classical.choice FiniteBundleAtlas.nonempty
@@ -168,25 +165,28 @@ theorem chartValueL_twistOneDelBarSobolev_ofContMDiffSection_ae_coord
               (SobolevSection.ofContMDiffSection (twistCoreAtlas 1) volume 2 (k + 1) s) :
               SobolevSection (twistCoreAtlas 1).tangentHom volume 2 k) :
             (twistCoreAtlas 1).tangentHom.sectionChartData.SobolevData volume 2 k)
-        =ᵐ[volume.restrict ((twistCoreAtlas 1).tangentHom.image i)]
-          (twistCoreAtlas 1).tangentHom.coord i (twistOneConnection s) := by
-    rw [FiniteBundleAtlas.image_tangentHom]
-    exact isCovariantDerivativeOn_twistOneConnection.chartValueL_sobolevL_ofContMDiffSection_ae
+        =ᵐ[volume.restrict ((twistCoreAtlas 1).image i)]
+          (twistCoreAtlas 1).tangentHom.coord i (twistOneConnection s) :=
+    isCovariantDerivativeOn_twistOneConnection.chartValueL_sobolevL_ofContMDiffSection_ae
       (twistCoreAtlas 1) (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 k s i
-  have hΦ := SobolevSection.chartValueL_contMDiffHomMulL_ae_coord
-    (h := (twistCoreAtlas 1).tangentHom.closure_dom_subset_baseSet)
-    (J.contMDiff_zeroOnePartL le_rfl) hcov i
-  -- The atlas `A.tangentHom.ofBaseSet A.tangentHom.closure_dom_subset_baseSet`, in which
-  -- `contMDiffHomMulL` lands, is `A.tangentHom` itself, by the eta rule for structures.
-  simp only [SmoothAlmostComplexStructure.zeroOnePartL_apply,
-    FiniteBundleAtlas.image_tangentHom] at hΦ
-  have h := (FiniteBundleAtlas.ae_image_tangentHom_iff _ volume i).1
-    (chartValueL_zeroOnePartSobolevL_ae_coord (θ := fun x ↦ J.zeroOnePart
-      (twistOneConnection s x)) (i := i) ((FiniteBundleAtlas.ae_image_tangentHom_iff _ volume i).2
-        hΦ))
+  -- The chart data of `Φ_J ∇s` are the reading of `Φ_J` applied to those of `∇s`.
+  have hΦ := SobolevSection.chartValueL_contMDiffHomMulL_ae_self
+    (A := (twistCoreAtlas 1).tangentHom) (J.contMDiff_zeroOnePartL le_rfl)
+    (isCovariantDerivativeOn_twistOneConnection.sobolevL (twistCoreAtlas 1)
+      (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 k
+        (SobolevSection.ofContMDiffSection (twistCoreAtlas 1) volume 2 (k + 1) s)) i
+  rw [FiniteBundleAtlas.image_tangentHom] at hΦ
   rw [twistOneDelBarSobolev_apply]
   simp_rw [twistOneDelBar_def]
-  exact h
+  refine (FiniteBundleAtlas.ae_image_tangentHom_iff _ volume i).1
+    (chartValueL_zeroOnePartSobolevL_ae_coord ((FiniteBundleAtlas.ae_image_tangentHom_iff _ volume
+      i).2 ?_))
+  filter_upwards [hΦ, hcov i, ae_restrict_mem ((twistCoreAtlas 1).image i).isOpen.measurableSet]
+    with y hy hsy hyi
+  rw [hy, hsy]
+  refine (FiniteBundleAtlas.coord_hom_apply_self (twistCoreAtlas 1).tangentHom i _ _ ?_).trans ?_
+  · rwa [FiniteBundleAtlas.image_tangentHom]
+  · simp only [SmoothAlmostComplexStructure.zeroOnePartL_apply]
 
 /-! ### Continuity in the almost complex structure -/
 
@@ -260,18 +260,15 @@ theorem exists_coord_zeroOnePart_twistOneDelBar_apply
             conj v * (c₂ z * ((fderiv ℝ (A.coord i s) z).complexAntilinearPart 1 +
                 μ z * (fderiv ℝ (A.coord i s) z).complexLinearPart 1) +
               Z z * A.coord i s z) := by
-  set K := J.inChart (A.center i) with hK
+  set K := J.inChart (A.center i)
   set G : ℂ → ℂ →L[ℝ] ℂ := fun z ↦ A.chartZeroOrder twistOneConnection i z 1 with hG
   set U : Set ℂ := (A.chart i).target ∩ (A.chart i).symm ⁻¹' (A.triv i).baseSet
   have hUt : U ⊆ (extChartAt 𝓘(ℝ, ℂ) (A.center i)).target := fun z hz ↦ by simpa using hz.1
   -- `J` read in the chart is a complex structure on `ℂ` with `K 1 ≠ -i`.
   have hKK (z : ℂ) (hz : z ∈ U) (v : ℂ) : K z (K z v) = -v :=
     J.inChart_inChart (A.center i) (hUt hz) v
-  have hK1 (z : ℂ) (hz : z ∈ U) : K z 1 ≠ -Complex.I := fun h ↦ by
-    have := SmoothAlmostComplexStructure.im_inChart_apply_one_pos_of_tames hJ hi (A.center i)
-      (hUt hz)
-    rw [← hK, h] at this
-    norm_num at this
+  have hK1 (z : ℂ) (hz : z ∈ U) : K z 1 ≠ -Complex.I :=
+    SmoothAlmostComplexStructure.inChart_apply_one_ne_neg_I_of_tames hJ hi (A.center i) (hUt hz)
   have hden (z : ℂ) (hz : z ∈ U) : conj (K z 1) - Complex.I ≠ 0 :=
     Complex.conj_sub_I_ne_zero (hK1 z hz)
   set c₂ : ℂ → ℂ := fun z ↦ 2⁻¹ * (1 + Complex.I * conj ((K z).complexLinearPart 1))
