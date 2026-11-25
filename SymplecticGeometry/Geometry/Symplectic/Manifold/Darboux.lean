@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.TransAffine
 public import TauCeti.Geometry.Symplectic.Manifold.Darboux
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
@@ -30,6 +31,8 @@ derivatives preserve that form.
 * `TauCeti.SmoothTwoForm.trans_toDiffeomorph_darbouxChart`: composing a Darboux chart with a
   linear symplectomorphism gives a Darboux chart for the target form, with the composed
   derivative at every point.
+* `TauCeti.SmoothTwoForm.transAffine_darbouxChart`: so does following a Darboux chart by an affine
+  map `z ↦ A (z - p)` whose linear part `A` preserves the constant form.
 * `TauCeti.SymplecticForm.apply_fderiv_transition_eq`: the derivatives of transition maps between
   two Darboux charts for the same constant form preserve that form.
 * `TauCeti.SmoothTwoForm.exists_darbouxChart_mvfderiv_eq_of_isInteriorPoint`: Darboux charts with
@@ -86,6 +89,25 @@ theorem trans_toDiffeomorph_darbouxChart {F₁ F₂ : Type*}
   rw [hderiv x, ContinuousLinearMap.comp_apply, ContinuousLinearMap.comp_apply,
     ContinuousLinearEquiv.coe_coe, ← ContinuousLinearEquiv.coe_toLinearEquiv, hL.apply,
     hchart x hx v w]
+
+/-- If a chart `φ` into `F` pulls the constant form `form₀` back to `σ` on its source, and `A`
+preserves `form₀`, then the chart `φ.transAffine p A`, which is `φ` followed by
+`z ↦ A (z - p)`, also pulls `form₀` back to `σ` on the source of `φ`. -/
+theorem transAffine_darbouxChart {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+    {σ : SmoothTwoForm I M} {form₀ : SymplecticForm F} {φ : PartialDiffeomorph I 𝓘(ℝ, F) M F ∞}
+    (hφ : ∀ x ∈ φ.source, ∀ v w : TangentSpace I x,
+      σ.eval₂ x v w = form₀ (mvfderiv I φ x v) (mvfderiv I φ x w))
+    (p : F) {A : F ≃L[ℝ] F} (hA : SymplecticForm.IsSymplectomorphism form₀ form₀ A.toLinearEquiv)
+    (x : M) (hx : x ∈ φ.source) (v w : TangentSpace I x) :
+    σ.eval₂ x v w =
+      form₀ (mvfderiv I (φ.transAffine p A) x v) (mvfderiv I (φ.transAffine p A) x w) := by
+  have hτ : ∀ y ∈ (φ.transSubRight p).source, ∀ v w : TangentSpace I y,
+      σ.eval₂ y v w = form₀ (mvfderiv I (φ.transSubRight p) y v)
+        (mvfderiv I (φ.transSubRight p) y w) := by
+    intro y hy v w
+    rw [φ.mvfderiv_transSubRight p y, hφ y (by simpa using hy)]
+  rw [PartialDiffeomorph.transAffine_def]
+  exact (trans_toDiffeomorph_darbouxChart hτ A hA).2.2.2 x (by simpa using hx) v w
 
 end SmoothTwoForm
 
