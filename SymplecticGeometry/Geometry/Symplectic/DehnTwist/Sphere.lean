@@ -91,6 +91,10 @@ neighbourhood theorem for the form `dλ`,
   diffeotopy `Φ` of `Sⁿ` moves `ι`, near the zero section, by an isotopy of open embeddings
   pulling `σ` back to `-ω_can` along which the zero covector at `q` goes to `f (Φ (t, q))`; its
   end is an embedding of the same kind for `f ∘ Φ₁`.
+* `SymplecticGeometry.exists_diffeotopy_dehnTwist_eq_of_diffeotopy`: for such `ι` and a
+  diffeotopy `Φ` of `Sⁿ`, there is an embedding `ι'` of the same kind for `f ∘ Φ₁` whose twists
+  differ from the twist of `ι` by the final map of a compactly supported diffeotopy of `M` that
+  preserves `σ` at all times.
 
 ## Implementation notes
 
@@ -143,6 +147,9 @@ embedding (`IsLocalDiffeomorph.isSmoothEmbedding`), and precomposing `F` with it
 slices are injective, as the slices of `F` are smooth embeddings, and local diffeomorphisms
 (`Manifold.IsImmersion.isLocalDiffeomorph` for `F_t`), so the slice at time `1` is a
 diffeomorphism onto its open image (Tau Ceti's `IsLocalDiffeomorph.diffeomorphOfInjective`).
+That slice is the new embedding `ι'`; to compare twists, the profile of `ι` is first changed to
+one that fits the domain of `ι'`, and the twist for that profile is then moved along the
+isotopy (`exists_diffeotopy_dehnTwist_eq_of_diffeotopy`).
 
 ## References
 
@@ -714,6 +721,53 @@ theorem exists_smoothIsotopy_of_diffeotopy [IsManifold I ∞ M] [I.Boundaryless]
     exact Subtype.ext ((SmoothForm.coe_mpullback _ _ _).trans (hGσ.mpullback_timeSlice 1))
   · rw [Diffeotopy.final_apply, ← hGz]
     exact congrFun h1 _
+
+/-- **Moving the sphere by a diffeotopy moves the twist.** Let `M` be a Hausdorff, σ-compact
+manifold without boundary, modelled on a finite-dimensional space, with a symplectic form `σ`;
+let `f` be a smooth embedding of `Sⁿ` into `M`, and `ι : U ≃ V` a diffeomorphism from an open
+set of `T*Sⁿ` onto an open set of `M` that pulls `σ` back to `-ω_can` and sends the zero
+covector at each `q` to `f q`. Let `R` be a twist profile of radius `r₀` with
+`{z | μ z ≤ r₀} ⊆ U`, and `Φ` a diffeotopy of `Sⁿ`. Then there are an open `W ≤ U` and a
+diffeomorphism `ι'` from `W` onto an open set of `M` that pulls `σ` back to `-ω_can` and sends
+the zero covector at `q` to `f (Φ₁ q)`, such that for every twist profile `R'` of radius `r'`
+with `{z | μ z ≤ r'} ⊆ W`, the twist of `ι` for `R` and that of `ι'` for `R'` differ by the
+final map of a diffeotopy of `M` that preserves `σ` at all times and fixes every point outside a
+compact set at all times. -/
+theorem exists_diffeotopy_dehnTwist_eq_of_diffeotopy [IsManifold I ∞ M] [I.Boundaryless]
+    [FiniteDimensional ℝ F] [SigmaCompactSpace M] {σ : SmoothTwoForm I M} (hσ : σ.IsSymplectic)
+    (f : SmoothEmbedding (𝓡 n) I ∞ (𝕊 n) M) (ι : U ≃ₘ⟮𝓣 n, I⟯ V)
+    (hι : SmoothForm.mpullback ι ι.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+        (-CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)))
+    (hιf : ∀ q, ∃ h : zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
+      (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) q ∈ U, (ι ⟨_, h⟩ : M) = f q)
+    (hR : IsTwistProfile R r₀) (hU : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U : Set (𝕋 n)))
+    (Φ : Diffeotopy (𝓡 n) ∞ (𝕊 n)) :
+    ∃ (W : Opens (𝕋 n)) (_ : W ≤ U) (V' : Opens M) (ι' : W ≃ₘ⟮𝓣 n, I⟯ V'),
+      SmoothForm.mpullback ι' ι'.contMDiff
+          (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) =
+        SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
+          (-CotangentBundle.symplecticForm (𝓡 n) (𝕊 n)) ∧
+      (∀ q, ∃ h : zeroSection (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
+        (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) q ∈ W, (ι' ⟨_, h⟩ : M) = f (Φ.final q)) ∧
+      ∀ {R' : ℝ → ℝ} {r' : ℝ} (hR' : IsTwistProfile R' r')
+        (hU' : {z : 𝕋 n | cotangentNorm z ≤ r'} ⊆ (W : Set (𝕋 n))),
+        ∃ (Ψ : Diffeotopy I ∞ M) (K : Set M), IsCompact K ∧
+          (∀ t, Ψ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) ∧
+          (∀ t x, x ∉ K → Ψ (t, x) = x) ∧
+          ∀ x, Ψ.final (dehnTwist ι hR hU x) = dehnTwist ι' hR' hU' x := by
+  obtain ⟨W, hW, V', ι', G, hGd, hGσ, -, hι', hι'f⟩ :=
+    exists_smoothIsotopy_of_diffeotopy hσ f ι hι hιf Φ
+  refine ⟨W, hW, V', ι', hι', hι'f, fun {R' r'} hR' hU' ↦ ?_⟩
+  rw [← SmoothForm.mul_inv_mem_compactlySupportedIsotopyStabilizer_iff]
+  -- Change the profile of `ι` to `R'`, then move the twist of `R'` along `G` to `ι'`.
+  have hA := SmoothForm.mul_inv_mem_compactlySupportedIsotopyStabilizer_iff.2 <|
+    exists_diffeotopy_dehnTwist_eq_of_isTwistProfile ι hι hR hU hR' (hU'.trans hW)
+  have hB := SmoothForm.mul_inv_mem_compactlySupportedIsotopyStabilizer_iff.2 <|
+    exists_diffeotopy_dehnTwist_eq_of_smoothIsotopy ι ι' hW le_rfl (fun z ↦ by simp)
+      (fun z ↦ by simp) G hGd hGσ hR' hU'
+  simpa only [mul_assoc, inv_mul_cancel_left] using mul_mem hB hA
 
 end Twist
 
