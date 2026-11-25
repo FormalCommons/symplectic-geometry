@@ -6,15 +6,23 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.InnerProductSpace.Basic
+public import Mathlib.Geometry.Manifold.Algebra.SMul
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
+import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import TauCeti.Topology.Algebra.ConstMulAction
 import TauCeti.Topology.Algebra.Support
 import SymplecticGeometry.Analysis.Calculus.BumpFunction.Radial
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
+import SymplecticGeometry.Geometry.Manifold.GroupAction.Average
 import SymplecticGeometry.Topology.OpenPartialHomeomorph.Compact
 
 /-!
-# Invariant cut-offs in a chart that the action preserves radially
+# Invariant cut-offs
+
+This file builds smooth cut-off functions that are invariant under a group action.
+
+## In a chart that the action preserves radially
 
 Let `Φ` be a smooth partial diffeomorphism from a real inner product space `V` of finite
 dimension to a Hausdorff manifold `M`, and let a group `G` act on `M` so that each `g` sends the
@@ -28,9 +36,21 @@ by zero off the target of `Φ`; it is invariant because it depends only on the n
 Such cut-offs are used to glue invariant objects defined near fixed points of an action, as in
 the proof of the Duistermaat–Heckman formula.
 
+## Around a compact set, for a compact Lie group
+
+Let a compact Lie group `G` act smoothly on a boundaryless Hausdorff manifold `M` with a
+finite-dimensional model. A compact set `K` inside a `G`-invariant open set `U` has a smooth
+`G`-invariant cut-off, equal to `1` on a `G`-invariant open neighbourhood of `K` and with compact
+topological support inside `U`
+(`SymplecticGeometry.exists_invariant_contMDiff_eq_one_of_isCompact`). It is the orbit average
+(`SymplecticGeometry.orbitAverage`) of a cut-off around the compact saturation `G • K` given by
+Tau Ceti's `IsCompact.exists_contMDiff_one_nhds_tsupport_subset`.
+
 ## References
 
 * [D. McDuff, D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §5.6
+* G. E. Bredon, *Introduction to Compact Transformation Groups*, Academic Press (1972),
+  Chapter VI (averaging over a compact group).
 -/
 
 public section
@@ -101,5 +121,69 @@ theorem exists_smul_invariant_cutoff (Φ : PartialDiffeomorph 𝓘(ℝ, V) I V M
     exact h1 _ (by rw [abs_norm]; exact mem_closedBall_zero_iff.1 hz)
 
 end PartialDiffeomorph
+
+noncomputable section
+
+open Function TauCeti Topology
+open scoped Pointwise
+
+namespace SymplecticGeometry
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M] [T2Space M]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+  {H' : Type*} [TopologicalSpace H'] (J : ModelWithCorners ℝ E' H')
+  {G : Type*} [Group G] [TopologicalSpace G] [IsTopologicalGroup G] [CompactSpace G] [T2Space G]
+  [ChartedSpace H' G] [IsManifold J ∞ G] [MulAction G M] [ContMDiffSMul J I ∞ G M]
+
+include J in
+/-- **A smooth invariant cutoff around a compact set.** For a compact Lie group `G` acting
+smoothly, a compact set `K` inside a `G`-invariant open set `U` has a smooth `G`-invariant
+function `ρ` that is `1` on a `G`-invariant open neighbourhood `W` of `K`, and whose topological
+support is compact and contained in `U`. -/
+theorem exists_invariant_contMDiff_eq_one_of_isCompact {K U : Set M} (hK : IsCompact K)
+    (hU : IsOpen U) (hKU : K ⊆ U) (hUinv : ∀ (g : G) (x : M), x ∈ U → g • x ∈ U) :
+    ∃ (ρ : M → ℝ) (W : Set M), ContMDiff I 𝓘(ℝ) ∞ ρ ∧ (∀ (g : G) (x : M), ρ (g • x) = ρ x) ∧
+      IsOpen W ∧ K ⊆ W ∧ (∀ (g : G) (x : M), x ∈ W → g • x ∈ W) ∧ (∀ x ∈ W, ρ x = 1) ∧
+      HasCompactSupport ρ ∧ tsupport ρ ⊆ U := by
+  have : ContinuousSMul G M := ⟨(contMDiff_smul (I := J) (I' := I) (n := ∞)).continuous⟩
+  -- The saturation `G • K` is compact and lies in `U`.
+  have hC : IsCompact ((univ : Set G) • K) := isCompact_univ.smul_set hK
+  have hCU : (univ : Set G) • K ⊆ U := by
+    rintro _ ⟨a, -, y, hy, rfl⟩
+    exact hUinv a y (hKU hy)
+  obtain ⟨σ, hσ, hσ1, hσc, hσU, -⟩ := hC.exists_contMDiff_one_nhds_tsupport_subset I hU hCU
+  -- The open set where `σ = 1` contains `G • K`; `W` is the set of points whose orbit lies in it.
+  set V := interior {x | σ x = 1}
+  have hCV : (univ : Set G) • K ⊆ V := subset_interior_iff_mem_nhdsSet.2 hσ1
+  set W := {x : M | ∀ a : G, a • x ∈ V}
+  have hW : IsOpen W := isOpen_setOf_forall_smul_mem isOpen_interior
+  have hKW : K ⊆ W := fun y hy a ↦ hCV (smul_mem_smul (mem_univ a) hy)
+  have hWinv (g : G) (x : M) (hx : x ∈ W) : g • x ∈ W := fun a ↦ by
+    rw [smul_smul]
+    exact hx (a * g)
+  -- The saturation `D` of `tsupport σ` is compact, invariant, and lies in `U`.
+  set D := (univ : Set G) • tsupport σ
+  have hD : IsCompact D := isCompact_univ.smul_set hσc
+  have hDU : D ⊆ U := by
+    rintro _ ⟨a, -, y, hy, rfl⟩
+    exact hUinv a y (hσU hy)
+  have hDinv (g : G) (x : M) (hx : x ∈ D) : g • x ∈ D := by
+    obtain ⟨a, -, y, hy, rfl⟩ := hx
+    exact ⟨g * a, mem_univ _, y, hy, mul_smul g a y⟩
+  -- `ρ` is the orbit average of `σ`.
+  borelize G
+  have hρD (x : M) (hx : x ∉ D) : orbitAverage G σ x = 0 :=
+    orbitAverage_eq_zero_of_notMem hDinv (fun y hy ↦ image_eq_zero_of_notMem_tsupport
+      fun h ↦ hy ⟨1, mem_univ _, y, h, one_smul G y⟩) hx
+  refine ⟨orbitAverage G σ, W, hσ.orbitAverage J, orbitAverage_smul σ, hW, hKW, hWinv,
+    fun x hx ↦ orbitAverage_eq_of_eqOn hWinv (fun y hy ↦ ?_) hx, HasCompactSupport.intro hD hρD,
+    (closure_minimal (support_subset_iff'.2 hρD) hD.isClosed).trans hDU⟩
+  simpa using interior_subset (hy 1)
+
+end SymplecticGeometry
+
+end
 
 end
