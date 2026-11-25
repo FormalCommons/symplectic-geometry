@@ -108,7 +108,10 @@ formulation.
    existence and path statements go in `OpenManifold.lean`, as corollaries
    (parameter spaces a point and $[0,1]$).
 2. **The handle-core lemma is proved by the book's argument**, as a
-   milestone on its own (`HandleCore.lean`). Nothing else in the part uses
+   milestone on its own (`HandleCore.lean`), except for $m=1$, where the
+   cube is compressed towards the core and the contraction along the fibres
+   gives the primitive, in place of the book's patching and zig-zag
+   (`HandleCore/OneDimensional.lean`). Nothing else in the part uses
    it. It is stated for forms on the whole model space, with its conditions
    on the cube and near the attaching faces, so that no form on a subset is
    needed.
@@ -396,8 +399,9 @@ Only the half `t ≥ 0` goes to infinity; for `t ≤ 0` the ray is a short
 straight segment through `p` in a chart, so that it is an embedding of all
 of `ℝ`, which the tubular neighbourhood theorem needs.
 
-Route. Fix a proper smooth `h : M → ℝ` (Tau Ceti's
-`Geometry/Manifold/Exhaustion.lean`). For a level `c` let `F c` be
+Route. Fix a proper smooth `h : M → ℝ` that is bounded below, so that
+each `{h ≤ c}` is compact (Tau Ceti's `Geometry/Manifold/Exhaustion.lean`
+gives a nonnegative one). For a level `c` let `F c` be
 `{h ≤ c}` together with the components of `{h > c}` whose closure is
 compact. `F c` is compact, every component of `M \ F c` is noncompact, and
 `F c ⊆ F c'` for `c ≤ c'` (a component of `M \ F c'` is connected and
@@ -836,10 +840,10 @@ three steps:
 Steps 2 and 3 need the splitting's maps to take smooth families over `L` to
 smooth families. `PreservesSmoothFamilies`, which issue 6 below generalizes
 from `unitInterval` to any parameter manifold, gives this.
-The proof is the book's: for $m=1$, the primitives
-given near the two ends of the core are patched across a narrow band around
-it with cutoff functions, the zig-zag immersion giving the band enough
-length to keep the error small; then induction on $m$, with
+For $m=1$ the proof differs from the book's: the cube is compressed
+towards the core, near which the contraction along the fibres gives one
+primitive of a form close to `τ`, so no patching and no zig-zag are needed
+(`HandleCore/OneDimensional.lean`); then induction on $m$, with
 the cutoffs and the nondegeneracy bounds chosen uniformly over `K` by
 compactness, and the attaching collars fixed once in the working lemma
 (the neighbourhoods `W` and `W'`). The docstring of

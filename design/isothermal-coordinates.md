@@ -292,10 +292,10 @@ follows from `hE`.
 - `TauCeti.SmoothAlmostComplexStructure.exists_isothermal_partialDiffeomorph
   (J : SmoothAlmostComplexStructure I M) (hE : Module.finrank ℝ E = 2)
   (x : M) : ∃ ψ : PartialDiffeomorph I 𝓘(ℝ, ℂ) M ℂ ∞, x ∈ ψ.source ∧
-  ∀ y ∈ ψ.source, ∀ v : TangentSpace I y,
-    mvfderiv I ψ y (J y v) = Complex.I * mvfderiv I ψ y v`, with Mathlib's
-  `mvfderiv`, whose values lie in `ℂ` rather than in a tangent space of
-  `ℂ`, so that the product with `Complex.I` is defined.
+  ∀ y ∈ ψ.source, IsPseudoholomorphicAt J (ofComplexManifold ℂ ℂ) ψ y`,
+  with Tau Ceti's `IsPseudoholomorphicAt` and `ofComplexManifold`
+  (`Symplectic/Manifold/JHolomorphic.lean`,
+  `Manifold/Complex/AlmostComplexStructure.lean`).
   The chart at `x` followed by `I` and `E ≃L[ℝ] ℂ` pushes `J` forward to
   a smooth field on its target
   (`contDiffOn_chartPushforward`, squaring to `-1` by
@@ -333,8 +333,8 @@ its proofs only, `Analysis/InnerProductSpace/TwoDim.lean` (below) and
   ∀ y ∈ ψ.source, IsConformalMap (mvfderiv I ψ y)`,
   for `[T2Space M]`, `[RiemannianBundle (fun x : M ↦ TangentSpace I x)]`,
   `[IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)]` and
-  `[I.Boundaryless]`, and Mathlib's `mvfderiv`
-  as in issue 3. The finrank of `E` comes from `o` and `x`
+  `[I.Boundaryless]`, and Mathlib's `mvfderiv`, whose values lie in `ℂ`.
+  The finrank of `E` comes from `o` and `x`
   (`fact_finrank_tangentSpace`). The chart is that of
   `exists_isothermal_partialDiffeomorph` for Tau Ceti's
   `o.rightAngleAlmostComplexStructure`
