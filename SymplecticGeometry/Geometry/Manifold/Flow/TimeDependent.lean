@@ -48,6 +48,11 @@ The lift of a solution through its clock is
 `TauCeti.contMDiff_timeDependentSuspensionField`, whose proof, through
 `TauCeti.contMDiff_const_prod_field`, it follows.
 
+A time-dependent field on `M × N` that vanishes outside a compact set and has no component along
+`N` on a level `M × {y}` induces a field on `M`; the flow of that field, kept at the level `y`,
+solves the equation of the field on `M × N`, so by uniqueness of solutions the flow keeps the
+level (`TauCeti.timeDependentFlowOf_snd_eq_of_forall_snd_eq_zero`).
+
 A diffeomorphism `ψ` that carries one time-dependent field to another at every time carries the
 suspension of the first to that of the second through `id × ψ`
 (`TauCeti.mfderiv_prodMap_id_timeDependentSuspensionField`), so Tau Ceti's naturality of
@@ -85,6 +90,8 @@ neighbourhood of `a₀` with the interval.
   integral curve of the suspension, and the suspension of a field `C^n` at a point is `C^n` there.
 * `TauCeti.timeDependentFlowOf_eq_of_hasMFDerivWithinAt`: uniqueness of solutions on a
   preconnected set of times.
+* `TauCeti.timeDependentFlowOf_snd_eq_of_forall_snd_eq_zero`: a flow tangent to a level
+  `M × {y}` of a product keeps it.
 * `Diffeomorph.apply_timeDependentFlowOf`: a diffeomorphism relating two time-dependent fields
   conjugates their flows.
 * `Diffeomorph.mem_timeDependentFlowDomain_apply_iff`: it maps the domain of one flow onto that of
@@ -243,6 +250,56 @@ theorem timeDependentFlowOf_eq_of_hasMFDerivWithinAt
   exact congrArg Prod.snd heq
 
 end Icc
+
+/-! ### Flows that keep a level of a product -/
+
+section Level
+
+variable {E' H' N : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {J : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N]
+  [CompleteSpace E] [T2Space M] [T2Space N] [IsManifold I 1 M] [IsManifold J 1 N]
+  [BoundarylessManifold I M] [BoundarylessManifold J N]
+
+/-- **A flow tangent to a level of a product keeps it.** Let `X` be a `C¹` time-dependent vector
+field on `M × N` that vanishes, at every time, outside a fixed compact set. If at every time `X`
+has no component along `N` at the points of the level `M × {y}`, then the time-dependent flow of
+`X` between any two times keeps `M × {y}`. -/
+theorem timeDependentFlowOf_snd_eq_of_forall_snd_eq_zero
+    {X : ℝ → (p : M × N) → TangentSpace (I.prod J) p}
+    (hX : ContMDiff (𝓘(ℝ, ℝ).prod (I.prod J)) (I.prod J).tangent 1
+      (fun p : ℝ × (M × N) ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle (I.prod J) (M × N))))
+    {K : Set (M × N)} (hK : IsCompact K) (hXK : ∀ u, ∀ p ∉ K, X u p = 0) {y : N}
+    (hy : ∀ u x, (X u (x, y)).2 = 0) (s t : ℝ) (x : M) :
+    (timeDependentFlowOf X s t (x, y)).2 = y := by
+  -- The field on `M` that `X` induces on the level `M × {y}`.
+  set Z : ℝ → (x : M) → TangentSpace I x := fun u x ↦ (X u (x, y)).1
+  have hZ : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent 1
+      (fun p : ℝ × M ↦ (⟨p.2, Z p.1 p.2⟩ : TangentBundle I M)) :=
+    contMDiff_fst.comp ((contMDiff_equivTangentBundleProd (I := I) (M := M) (I' := J)
+      (M' := N)).comp (hX.comp (contMDiff_fst.prodMk (contMDiff_snd.prodMk contMDiff_const))))
+  have hcZ : IsCompleteVectorField (timeDependentSuspensionField Z) :=
+    isCompleteVectorField_timeDependentSuspensionField hZ (hK.image continuous_fst)
+      fun u x hx ↦ by
+        simp only [Z, hXK u (x, y) fun h ↦ hx ⟨_, h, rfl⟩]
+        exact Prod.fst_zero
+  -- The flow of `Z`, kept at the level `y`, solves the equation of `X`.
+  have hγ (u : ℝ) : HasMFDerivAt 𝓘(ℝ, ℝ) (I.prod J)
+      (fun r ↦ (timeDependentFlowOf Z s r x, y)) u
+      ((1 : ℝ →L[ℝ] ℝ).smulRight (X u (timeDependentFlowOf Z s u x, y))) := by
+    have h := (hasMFDerivAt_timeDependentFlowOf hZ (s := s) (t := u) (x := x)
+      (mem_timeDependentFlowDomain.2 (hcZ.mem_flowDomain _ _))).prodMk
+        (hasMFDerivAt_const (I := 𝓘(ℝ, ℝ)) (I' := J) y u)
+    have hXu : X u (timeDependentFlowOf Z s u x, y) = (Z u (timeDependentFlowOf Z s u x), 0) :=
+      Prod.ext rfl (hy _ _)
+    rw [hXu]
+    -- Both derivatives send `r` to `(r • Z u _, 0)`; the second component on the right is `r • 0`.
+    exact h.congr_mfderiv (ContinuousLinearMap.ext fun r ↦
+      Prod.ext rfl (smul_zero (M := ℝ) (A := E') r).symm)
+  have h := timeDependentFlowOf_eq_of_forall_hasMFDerivAt hX hγ s t
+  rw [timeDependentFlowOf_self] at h
+  rw [h]
+
+end Level
 
 end TauCeti
 
