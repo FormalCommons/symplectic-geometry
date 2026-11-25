@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Coisotropic.Lagrangian.Basic
-public import TauCeti.Geometry.Manifold.Instances.Sigma
 import SymplecticGeometry.Geometry.Manifold.ConstantRank.Factorization
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Sigma
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
@@ -157,8 +156,8 @@ theorem exists_isLagrangianImmersion_range_eq_image [L.Boundaryless] [Nonempty C
             (mfderiv L 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F))))
               (q (e i)) y v) := by
         rw [heq.mfderiv_eq, mfderiv_comp y (hιd (e i) hu)
-          (((hq (e i)).mdifferentiableOn (by simp)).mdifferentiableAt ((hV _).mem_nhds hy)),
-          ]
+          (((hq (e i)).mdifferentiableOn (by simp)).mdifferentiableAt ((hV _).mem_nhds hy))]
+        -- `ContinuousLinearMap.comp_apply`, at tangent spaces that agree only by definition.
         rfl
       have hd' (v : TangentSpace
           𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F))))
@@ -170,6 +169,7 @@ theorem exists_isLagrangianImmersion_range_eq_image [L.Boundaryless] [Nonempty C
             𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ F - (finrank ℝ E - finrank ℝ F))))
             (ι (e i)) (q (e i) y) (tangentSpaceOpenEquiv ⟨q (e i) y, hu⟩ v) := by
         rw [hdι]
+        -- `ContinuousLinearMap.comp_apply`, at tangent spaces that agree only by definition.
         rfl
       have hrange : Set.range (mfderiv
             𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F))))
