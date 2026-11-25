@@ -5,6 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Analysis.SpecialFunctions.Log.Deriv
+public import SymplecticGeometry.Geometry.Manifold.Complex.RadialPotential
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hopf
 public import TauCeti.Geometry.Contact.Sphere
@@ -13,7 +15,6 @@ public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Symplectic.Manifold.Descent
 import Mathlib.Analysis.InnerProductSpace.Calculus
-import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Manifold.MFDeriv.Opens
@@ -31,7 +32,8 @@ builds the forms upstairs, and the Fubini–Study form of `ℂPⁿ` as the desce
   along the radial projection `z ↦ ẑ / ‖ẑ‖` of Tau Ceti's contact form
   `TauCeti.SymplecticForm.sphereContactForm` of the unit sphere of `StdSpace (Fin (n + 1))`,
   since `ω₀(z / |z|, ·)` kills the radial direction. With the potential
-  `fubiniStudyPotential n`, the function `log |z|²` with differential
+  `fubiniStudyPotential n`, the radial potential `radialPotential` of `Real.log`, that is the
+  function `log |z|²`, with differential
   `v ↦ 2 ⟨z, v⟩ / |z|²` (`mextDerivₗ_fubiniStudyPotential_apply`), it is `(1/4) J* d log |z|²`
   (`fubiniStudyPrimitive_eq`), where `J*` is `covectorComplexStructure` of the complex structure
   of `Z`.
@@ -97,8 +99,6 @@ theorem fubiniStudyPrimitive_apply (z : puncturedSpace (Fin (n + 1) → ℂ))
     (fubiniStudyPrimitive n).val z ![v] =
       stdComplexPiSymplecticForm (Fin (n + 1)) z v /
         (2 * ∑ i, ‖(z : Fin (n + 1) → ℂ) i‖ ^ 2) := by
-  have hz : 0 < ‖complexToRealEuclidean (Fin (n + 1)) z‖ :=
-    norm_pos_iff.2 (by simpa using mem_puncturedSpace.1 z.property)
   have h := stdForm_complexToRealEuclidean (z : Fin (n + 1) → ℂ) v
   beta_reduce at h
   rw [fubiniStudyPrimitive_def, SmoothForm.mpullback_apply_one,
@@ -113,21 +113,13 @@ theorem fubiniStudyPrimitive_apply (z : puncturedSpace (Fin (n + 1) → ℂ))
 `ℂⁿ⁺¹ ∖ 0` (`fubiniStudyPotential_apply`). -/
 noncomputable def fubiniStudyPotential :
     SmoothForm 𝓘(ℝ, Fin (n + 1) → ℂ) (puncturedSpace (Fin (n + 1) → ℂ)) ℝ 0 :=
-  SmoothForm.ofFunction ⟨fun z ↦ Real.log (‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2), by
-    intro z
-    have h : ContDiffAt ℝ ∞
-        (fun w ↦ Real.log (‖complexToRealEuclidean (Fin (n + 1)) w‖ ^ 2)) (z : Fin (n + 1) → ℂ) :=
-      ((contDiff_norm_sq ℝ).comp (complexToRealEuclidean (Fin (n + 1))).contDiff).contDiffAt.log
-        (by simpa using mem_puncturedSpace.1 z.property)
-    exact h.contMDiffAt.comp z (contMDiff_subtypeVal z)⟩
+  SmoothForm.ofFunction (radialPotential (Real.contDiffOn_log.mono fun _ hx ↦ ne_of_gt hx))
 
-/-- As a rough form, the potential is the `0`-form of the function `z ↦ log ‖ẑ‖²`. -/
+/-- The potential is the `0`-form of the radial potential `z ↦ log |z|²`. -/
 theorem fubiniStudyPotential_def :
-    (fubiniStudyPotential n : RoughForm 𝓘(ℝ, Fin (n + 1) → ℂ) _ ℝ 0) =
-      RoughForm.ofFunction 𝓘(ℝ, Fin (n + 1) → ℂ)
-        fun z : puncturedSpace (Fin (n + 1) → ℂ) ↦
-          Real.log (‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2) :=
-  SmoothForm.coe_ofFunction _
+    fubiniStudyPotential n =
+      SmoothForm.ofFunction (radialPotential (Real.contDiffOn_log.mono fun _ hx ↦ ne_of_gt hx)) :=
+  (rfl)
 
 variable {n} in
 /-- The potential `fubiniStudyPotential n` takes the value `log |z|²` at `z`. -/
@@ -135,7 +127,8 @@ variable {n} in
 theorem fubiniStudyPotential_apply (z : puncturedSpace (Fin (n + 1) → ℂ))
     (v : Fin 0 → TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) z) :
     (fubiniStudyPotential n).val z v = Real.log (∑ i, ‖(z : Fin (n + 1) → ℂ) i‖ ^ 2) := by
-  rw [fubiniStudyPotential_def, RoughForm.ofFunction_apply, norm_sq_complexToRealEuclidean]
+  rw [fubiniStudyPotential_def, SmoothForm.coe_ofFunction, RoughForm.ofFunction_apply,
+    radialPotential_apply]
 
 variable {n} in
 /-- The differential of the potential: `d(log |z|²)_z(v) = 2 ⟨z, v⟩ / |z|²`, with
@@ -144,14 +137,13 @@ theorem mextDerivₗ_fubiniStudyPotential_apply (z : puncturedSpace (Fin (n + 1)
     (v : TangentSpace 𝓘(ℝ, Fin (n + 1) → ℂ) z) :
     (mextDerivₗ 𝓘(ℝ, Fin (n + 1) → ℂ) 0 (fubiniStudyPotential n)).val z ![v] =
       2 * (star (z : Fin (n + 1) → ℂ) ⬝ᵥ v).re / ∑ i, ‖(z : Fin (n + 1) → ℂ) i‖ ^ 2 := by
-  have hz : complexToRealEuclidean (Fin (n + 1)) z ≠ 0 := by
-    simpa using mem_puncturedSpace.1 z.property
   have hd : HasFDerivAt (fun w ↦ Real.log (‖complexToRealEuclidean (Fin (n + 1)) w‖ ^ 2))
       ((‖complexToRealEuclidean (Fin (n + 1)) z‖ ^ 2)⁻¹ •
         (2 • (innerSL ℝ (complexToRealEuclidean (Fin (n + 1)) z)).comp
           (complexToRealEuclidean (Fin (n + 1)) : (Fin (n + 1) → ℂ) →L[ℝ] _)))
       (z : Fin (n + 1) → ℂ) :=
-    ((complexToRealEuclidean (Fin (n + 1))).hasFDerivAt.norm_sq).log (by simpa using hz)
+    ((complexToRealEuclidean (Fin (n + 1))).hasFDerivAt.norm_sq).log
+      (norm_sq_complexToRealEuclidean_pos z).ne'
   have hf : (fun y ↦ (fubiniStudyPotential n).val y 0) =
       (fun w ↦ Real.log (‖complexToRealEuclidean (Fin (n + 1)) w‖ ^ 2)) ∘ Subtype.val :=
     funext fun y ↦ by
@@ -276,8 +268,6 @@ theorem fubiniStudyLift_apply (z : puncturedSpace (Fin (n + 1) → ℂ))
         ((star (z : Fin (n + 1) → ℂ) ⬝ᵥ v).re * stdComplexPiSymplecticForm (Fin (n + 1)) z w -
           (star (z : Fin (n + 1) → ℂ) ⬝ᵥ w).re * stdComplexPiSymplecticForm (Fin (n + 1)) z v) /
           (∑ i, ‖(z : Fin (n + 1) → ℂ) i‖ ^ 2) ^ 2 := by
-  have hz : 0 < ‖complexToRealEuclidean (Fin (n + 1)) z‖ :=
-    norm_pos_iff.2 (by simpa using mem_puncturedSpace.1 z.property)
   rw [← mpullback_radialProjection_sphereStdForm, SmoothForm.eval₂_mpullback, sphereStdForm_apply,
     mvfderiv_radialProjection, mvfderiv_radialProjection, ← norm_sq_complexToRealEuclidean]
   have h₁ := stdForm_complexToRealEuclidean (v : Fin (n + 1) → ℂ) w
