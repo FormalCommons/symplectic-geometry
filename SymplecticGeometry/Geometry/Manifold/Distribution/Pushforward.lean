@@ -12,11 +12,11 @@ public import TauCeti.Geometry.Manifold.Submersion.Basic
 /-!
 # Push-forward of a distribution along a surjective submersion
 
-Let `q : N → M` be a `C^m` map and `D` a distribution on `N`. Suppose that a distribution `D'`
-on `M` satisfies `dq_z (D z) = D' (q z)` for every `z`, and that `dq_z` is injective on `D z`.
-If `σ` is a local section of `q` over a set `V`, then a local frame `X` of `D` pushes forward to
-the vector fields `y ↦ dq_{σ y} (X i (σ y))`, which form a local frame of `D'` on the part of `V`
-that `σ` maps into the domain of `X`. Such fields are `C^n` when `σ` is `C^n` and `n + 1 ≤ m`,
+Let `q : N → M` be a `C^m` map, `D` a distribution on `N`, `D'` one on `M`, and `σ` a local
+section of `q` over a set `V`. If `dq_{σ y}` maps `D (σ y)` injectively onto `D' y` wherever `σ y`
+lies in the domain of a local frame `X` of `D`, then `X` pushes forward to the vector fields
+`y ↦ dq_{σ y} (X i (σ y))`, which form a local frame of `D'` on the part of `V` that `σ` maps
+into the domain of `X`. Such fields are `C^n` when `σ` is `C^n` and `n + 1 ≤ m`,
 since they are the tangent map of `q` composed with the section `X i ∘ σ` of the tangent bundle.
 
 A surjective submersion with boundaryless source has local sections near every point of its
@@ -32,8 +32,8 @@ diffeomorphism.
 * `TauCeti.IsDistributionFrameOn.map_mfderiv_comp_section`: the push-forward of a local frame of
   `D` along a local section of `q` is a local frame of `D'`.
 * `TauCeti.IsContMDiffDistribution.map_mfderiv_of_isSubmersion`: the push-forward of a `C^n`
-  distribution of rank `k` along a surjective `C^m` submersion, `n + 1 ≤ m`, on whose fibres
-  the differential is injective, is a `C^n` distribution of rank `k`.
+  distribution `D` of rank `k` along a surjective `C^m` submersion `q`, `n + 1 ≤ m`, whose
+  differential maps each `D z` injectively onto `D' (q z)`, is a `C^n` distribution of rank `k`.
 
 ## References
 
@@ -59,16 +59,16 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {D : Π z : N, Submodule 𝕜 (TangentSpace I z)} {D' : Π y : M, Submodule 𝕜 (TangentSpace J y)}
   {q : N → M}
 
-/-- Let `q` be a `C^m` map whose differential carries `D z` injectively onto `D' (q z)` at every
-point `z`, and `σ` a `C^n` section of `q` over `V`, with `n + 1 ≤ m`. If `X` is a `C^n` local frame
-of `D` on `U`, then the vector fields `y ↦ dq_{σ y} (X i (σ y))` form a `C^n` local frame of `D'`
-on `V ∩ σ ⁻¹' U`. -/
+/-- Let `q` be a `C^m` map, `σ` a `C^n` section of `q` over `V` with `n + 1 ≤ m`, and `X` a `C^n`
+local frame of `D` on `U`. If, at every `y ∈ V ∩ σ ⁻¹' U`, the differential of `q` at `σ y` carries
+`D (σ y)` injectively onto `D' y`, then the vector fields `y ↦ dq_{σ y} (X i (σ y))` form a `C^n`
+local frame of `D'` on `V ∩ σ ⁻¹' U`. -/
 theorem IsDistributionFrameOn.map_mfderiv_comp_section {X : ι → Π z : N, TangentSpace I z}
     {U : Set N} {V : Set M} {σ : M → N} (hX : IsDistributionFrameOn I n D X U)
     (hq : ContMDiff I J m q) (hnm : n + 1 ≤ m) (hσ : ContMDiffOn J I n σ V)
     (hqσ : ∀ y ∈ V, q (σ y) = y)
-    (hmap : ∀ z, (D z).map (mfderiv I J q z).toLinearMap = D' (q z))
-    (hinj : ∀ z, InjOn (mfderiv I J q z) (D z)) :
+    (hmap : ∀ y ∈ V ∩ σ ⁻¹' U, (D (σ y)).map (mfderiv I J q (σ y)).toLinearMap = D' y)
+    (hinj : ∀ y ∈ V ∩ σ ⁻¹' U, InjOn (mfderiv I J q (σ y)) (D (σ y))) :
     IsDistributionFrameOn J n D'
       (fun i y ↦ (mfderiv I J q (σ y) (X i (σ y)) : TangentSpace J y)) (V ∩ σ ⁻¹' U) := by
   refine ⟨fun i ↦ ?_, fun {y} hy ↦ ?_, fun {y} hy ↦ ?_⟩
@@ -76,19 +76,15 @@ theorem IsDistributionFrameOn.map_mfderiv_comp_section {X : ι → Π z : N, Tan
         (V ∩ σ ⁻¹' U) :=
       (hX.contMDiffOn i).comp (hσ.mono inter_subset_left) fun _ hy ↦ hy.2
     refine ((hq.contMDiff_tangentMap hnm).comp_contMDiffOn hT).congr fun y hy ↦ ?_
-    -- The fibres of the tangent bundle are all the model space, so a point of the total space
-    -- only depends on its base point and its vector.
-    have hmk : ∀ {a b : M} (_ : a = b) (v : F),
-        (⟨a, v⟩ : TangentBundle J M) = ⟨b, v⟩ := by
-      rintro _ _ rfl _
-      rfl
-    exact hmk (hqσ y hy.1).symm _
-  · refine (hX.linearIndependent hy.2).map (f := (mfderiv I J q (σ y)).toLinearMap) ?_
+    exact (TotalSpace.mk_cast (hqσ y hy.1).symm _).symm
+  · refine (hX.linearIndependent hy.2).map_injOn (mfderiv I J q (σ y)).toLinearMap ?_
     rw [hX.span_eq hy.2]
-    exact LinearMap.disjoint_ker_iff_injOn.mpr (hinj _)
-  · have h := hmap (σ y)
-    rw [hqσ y hy.1, ← hX.span_eq hy.2, Submodule.map_span, ← range_comp] at h
-    exact h
+    exact hinj y hy
+  · rw [← hmap y hy, ← hX.span_eq hy.2, Submodule.map_span, ← range_comp]
+    -- Besides the coercion of `mfderiv` to a linear map, the sides differ in the fibre they are
+    -- typed in, `TangentSpace J (q (σ y))` or `TangentSpace J y`. Both are `F` by definition,
+    -- and `hqσ` cannot be rewritten inside a type, so this needs `rfl`.
+    rfl
 
 /-- **Push-forward of a distribution along a surjective submersion.** Let `q : N → M` be a
 surjective `C^m` submersion with boundaryless source, `D` a `C^n` distribution of rank `k` on
@@ -105,7 +101,8 @@ theorem IsContMDiffDistribution.map_mfderiv_of_isSubmersion [I.Boundaryless]
   obtain ⟨U, hU, hσU, X, hX⟩ := hD (σ y)
   have hσn : ContMDiffOn J I n σ V := hσ.of_le (le_self_add.trans hnm)
   exact ⟨V ∩ σ ⁻¹' U, hσn.continuousOn.isOpen_inter_preimage hV hU, ⟨hyV, hσU⟩, _,
-    hX.map_mfderiv_comp_section hq.contMDiff hnm hσn hqσ hmap hinj⟩
+    hX.map_mfderiv_comp_section hq.contMDiff hnm hσn hqσ
+      (fun y hy ↦ by have h := hmap (σ y); rwa [hqσ y hy.1] at h) (fun _ _ ↦ hinj _)⟩
 
 end TauCeti
 
