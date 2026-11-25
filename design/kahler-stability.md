@@ -218,7 +218,7 @@ All in `SymplecticGeometry`, with `C : LieComplexification I G IC Gc`.
 - `momentWeight C μ p ξ : ℝ`, the limit of `μ (C.expI (t • ξ) • p) ξ` as
   `t → ∞` (`limUnder atTop`), with `tendsto_momentWeight`, and
   `limitPoint C p ξ : M`, with `tendsto_limitPoint` for `ξ ∈ Λ`.
-- `integralLattice I G : Set 𝔤 := {ξ | ξ ≠ 0 ∧ mulInvariantExp ξ = 1}`,
+- `nonzeroPeriods I G : Set 𝔤 := {ξ | ξ ≠ 0 ∧ mulInvariantExp ξ = 1}`,
   written $\Lambda$, invariant under `Ad` and under positive integer
   multiples.
 
@@ -280,7 +280,7 @@ All in `SymplecticGeometry`, with `C : LieComplexification I G IC Gc`.
 ### `HilbertMumford.lean`
 
 - `momentWeight_le`: $w_\mu(p,\xi)\le\langle\mu(p),\xi\rangle$, and
-  `tendsto_limitPoint` for `ξ ∈ integralLattice I G`.
+  `tendsto_limitPoint` for `ξ ∈ nonzeroPeriods I G`.
 - `tendsto_deriv_kempfNessFunction`: the slope identity, the limit of the
   derivative of $t\mapsto\Phi_p(\exp(-it\xi))$ is $-w_\mu(p,\xi)$.
 - `momentWeight_le_mul_norm`: the moment-weight inequality,
@@ -292,7 +292,7 @@ All in `SymplecticGeometry`, with `C : LieComplexification I G IC Gc`.
   `isPolystable_iff_isSemistable_and_limitPoint_mem_orbit`,
   `isStable_iff_momentWeight_neg`, and `hilbertMumford`, their
   conjunction. Milestone: *Hilbert–Mumford numerical criteria*. The
-  quantifiers range over all of `integralLattice I G`, as the page says.
+  quantifiers range over all of `nonzeroPeriods I G`, as the page says.
 
 Edge cases: `G` trivial has $\Lambda=\emptyset$, and every point is
 stable, since $\mathfrak g^*=0$; `M` is nonempty, being connected.
