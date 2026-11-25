@@ -115,6 +115,7 @@ def sphereTangentProdHomeomorph :
   left_inv p := by simp only [ContinuousLinearEquiv.symm_apply_apply]
   right_inv q := by simp only [ContinuousLinearEquiv.apply_symm_apply]
   continuous_toFun := by
+    simp only [sphereTangentProdEquiv_apply]
     have hdiag := (FiberBundle.Prod.isInducing_diag (EuclideanSpace ℝ (Fin m))
       (TangentSpace (𝓡 m) : sphere (0 : E) 1 → Type) ℝ
       (Trivial (sphere (0 : E) 1) ℝ)).continuous
@@ -129,6 +130,7 @@ def sphereTangentProdHomeomorph :
     exact (Trivial.isInducing_toProd (sphere (0 : E) 1) E).continuous_iff.2
       (hproj.prodMk (hv.add (ht.smul (continuous_subtypeVal.comp hproj))))
   continuous_invFun := by
+    simp only [sphereTangentProdEquiv_symm_apply]
     have hq := (Trivial.isInducing_toProd (sphere (0 : E) 1) E).continuous
     -- The tangent component, lifted from `S × E` to the tangent bundle of the sphere.
     have hu : ContMDiff ((𝓡 m).prod 𝓘(ℝ, E)) 𝓘(ℝ, E) 0
