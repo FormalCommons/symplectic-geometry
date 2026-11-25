@@ -29,7 +29,8 @@ on `M × [a, b]` with
 * `f^* (K η) = K (f^* η)` for a smooth `f : M → M` acting on the first factor
   (`SymplecticGeometry.mpullback_prodMap_prodIccHomotopyOperator`);
 * for a two-form `η`, `K η` vanishes on the direction of the interval
-  (`SymplecticGeometry.prodIccHomotopyOperator_apply_inr`).
+  (`SymplecticGeometry.prodIccHomotopyOperator_apply_inr`), that is, on every vector with no
+  component along `M` (`SymplecticGeometry.prodIccHomotopyOperator_apply_eq_zero`).
 
 ## References
 
@@ -253,6 +254,22 @@ theorem prodIccHomotopyOperator_apply_inr [CompleteSpace F]
     ContinuousAlternatingMap.apply_vecCons_swap, ContinuousAlternatingMap.vecCons_smul,
     (η.val (prodIccContraction M a b (x, u))).map_eq_zero_of_eq ![e, e] (i := 0) (j := 1) rfl
       zero_ne_one, smul_zero, neg_zero, smul_zero]
+
+/-- `K η`, for a two-form `η` on `M × [a, b]`, vanishes on every tangent vector whose component
+along `M` is zero. This is `SymplecticGeometry.prodIccHomotopyOperator_apply_inr` in the form of
+the hypothesis of `TauCeti.SmoothForm.mpullback_prodMap_subtypeVal_timeExtendIcc`. -/
+theorem prodIccHomotopyOperator_apply_eq_zero [CompleteSpace F]
+    (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F 2) (x : M × Icc a b)
+    (v : Fin 1 → TangentSpace (I.prod (𝓡∂ 1)) x) (i : Fin 1)
+    (hv : (Manifold.tangentSpaceProdEquiv x (v i)).1 = 0) :
+    (prodIccHomotopyOperator I M a b F 1 η).val x v = 0 := by
+  rw [Manifold.tangentSpaceProdEquiv_apply, Subsingleton.elim i 0] at hv
+  have h : v = ![((0 : TangentSpace I x.1), (v 0).2)] := by
+    funext j
+    rw [Subsingleton.elim j 0, Matrix.cons_val_zero]
+    exact Prod.ext hv rfl
+  rw [h]
+  exact prodIccHomotopyOperator_apply_inr η x _
 
 end Homotopy
 

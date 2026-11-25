@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.IntervalContraction
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
 import TauCeti.Topology.Algebra.Module.Alternating.Basic
 
@@ -36,6 +37,25 @@ over a family of nondegenerate forms (`SymplecticGeometry.IsCouplingForm.isSympl
 `Y` with `ι_Y η = -σ` at a point, for a coupling form `η`, has `dt(Y) = 0`
 (`SymplecticGeometry.IsCouplingForm.mfderiv_snd_eq_zero_of_apply_eq_neg`): the Moser field of
 the segment is tangent to the levels of `t`.
+
+No flow is run on the manifold with boundary `P × [a, b]`: the Moser data are first extended to
+the boundaryless `P × ℝ`. For a boundaryless manifold `M`, a closed form `η` on `M × [a, b]` is
+`pr^* ι_a^* η + d (K η)`, where `pr^* ι_a^*` is the pull-back along `(x, t) ↦ (x, a)`. When `η`
+is a two-form, `K η` has no component along the interval, so it is the restriction to
+`M × [a, b]` of its time extension to `M × ℝ` (`TauCeti.SmoothForm.timeExtendIcc`,
+`SymplecticGeometry.mpullback_prodMap_subtypeVal_timeExtendIcc_prodIccHomotopyOperator`).
+Replacing `K η` by its time extension gives a closed form on `M × ℝ`
+(`SymplecticGeometry.prodIccExtension`, `SymplecticGeometry.isClosed_prodIccExtension`) that
+commutes with pull-back along `f × id` (`SymplecticGeometry.mpullback_prodMap_prodIccExtension`)
+and restricts to `η` on `M × [a, b]`
+(`SymplecticGeometry.mpullback_prodMap_subtypeVal_prodIccExtension`). For coupling forms `ω₀`
+and `ω₁` for the same family, the extension `ω̃₀` of `ω₀` and the time extension `σ̃` of
+`σ = K (ω₁ - ω₀)` are invariant under the circle action
+(`SymplecticGeometry.mpullback_smul_prodIccExtension`,
+`SymplecticGeometry.IsCouplingForm.mpullback_smul_timeExtendIcc_prodIccHomotopyOperator_sub`).
+The form `σ̃` restricts to `σ`, vanishes on the direction of `ℝ`
+(`TauCeti.SmoothForm.timeExtendIcc_apply_eq_zero`) and on `(X, 0)`
+(`IsCouplingForm.timeExtendIcc_prodIccHomotopyOperator_sub_apply_prodVectorField`).
 
 ## References
 
@@ -112,6 +132,115 @@ theorem prodIccHomotopyOperator_apply_couplingField
 
 end Homotopy
 
+/-! ### The extension of a closed form to `M × ℝ` -/
+
+section Extension
+
+variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  [TopologicalSpace M] [ChartedSpace H M] {I : ModelWithCorners ℝ E H} [IsManifold I ∞ M]
+  [BoundarylessManifold I M] [NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F] {k : ℕ}
+
+/-- **The extension of a form on `M × [a, b]` to `M × ℝ`.** For a boundaryless manifold `M`, it
+sends a `(k + 1)`-form `η` on `M × Icc a b` to `pr^* ι_a^* η + d (ext (K η))` on `M × ℝ`, where
+`pr^* ι_a^*` is the pull-back along `(x, t) ↦ (x, a)`, `K` is
+`SymplecticGeometry.prodIccHomotopyOperator` and `ext` is the time extension
+`TauCeti.SmoothForm.timeExtendIcc`. When `η` is closed, this form is closed
+(`SymplecticGeometry.isClosed_prodIccExtension`), and for a closed two-form `η` it restricts to
+`η` on `M × [a, b]` (`SymplecticGeometry.mpullback_prodMap_subtypeVal_prodIccExtension`). -/
+def prodIccExtension (I : ModelWithCorners ℝ E H) (M : Type*) [TopologicalSpace M]
+    [ChartedSpace H M] [IsManifold I ∞ M] [BoundarylessManifold I M] (a b : ℝ) [Fact (a < b)]
+    (F : Type*) [NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F] (k : ℕ) :
+    SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F (k + 1) →ₗ[ℝ]
+      SmoothForm (I.prod 𝓘(ℝ, ℝ)) (M × ℝ) F (k + 1) :=
+  SmoothForm.mpullback (fun x : M × ℝ ↦ (x.1, (⊥ : Icc a b)))
+      (contMDiff_fst.prodMk contMDiff_const) +
+    mextDerivₗ (I.prod 𝓘(ℝ, ℝ)) k ∘ₗ SmoothForm.timeExtendIcc ∘ₗ
+      prodIccHomotopyOperator I M a b F k
+
+theorem prodIccExtension_apply (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F (k + 1)) :
+    prodIccExtension I M a b F k η =
+      SmoothForm.mpullback (fun x : M × ℝ ↦ (x.1, (⊥ : Icc a b)))
+          (contMDiff_fst.prodMk contMDiff_const) η +
+        mextDerivₗ (I.prod 𝓘(ℝ, ℝ)) k
+          (SmoothForm.timeExtendIcc (prodIccHomotopyOperator I M a b F k η)) :=
+  (rfl)
+
+/-- The extension of a closed form on `M × [a, b]` to `M × ℝ` is closed. -/
+theorem isClosed_prodIccExtension {η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F (k + 1)}
+    (hη : η.IsClosed) : (prodIccExtension I M a b F k η).IsClosed := by
+  rw [prodIccExtension_apply]
+  exact (hη.mpullback _ _).add (SmoothForm.isClosed_mextDerivₗ _)
+
+/-- **Naturality of the extension to `M × ℝ`.** For a smooth map `f : N → M` of boundaryless
+manifolds, pulling the extension of `η` back along `f × id` gives the extension of the pull-back
+of `η` along `f × id`. -/
+theorem mpullback_prodMap_prodIccExtension {E' H' N : Type*} [NormedAddCommGroup E']
+    [NormedSpace ℝ E'] [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace N]
+    [ChartedSpace H' N] [IsManifold I' ∞ N] [BoundarylessManifold I' N] {f : N → M}
+    (hf : ContMDiff I' I ∞ f) (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F (k + 1)) :
+    SmoothForm.mpullback (Prod.map f id) (hf.prodMap contMDiff_id)
+        (prodIccExtension I M a b F k η) =
+      prodIccExtension I' N a b F k
+        (SmoothForm.mpullback (Prod.map f id) (hf.prodMap contMDiff_id) η) := by
+  rw [prodIccExtension_apply, prodIccExtension_apply, map_add, ← SmoothForm.mextDerivₗ_mpullback,
+    ← SmoothForm.timeExtendIcc_mpullback_prodMap hf, mpullback_prodMap_prodIccHomotopyOperator hf]
+  congr 1
+  exact SmoothForm.mpullback_mpullback_of_comp_eq (hf.prodMap contMDiff_id)
+    (contMDiff_fst.prodMk contMDiff_const) (contMDiff_fst.prodMk contMDiff_const)
+    (hf.prodMap contMDiff_id) (funext fun _ ↦ rfl) η
+
+/-- The extension of `K η` to `M × ℝ`, for a two-form `η` on `M × [a, b]`, restricts to `K η` on
+`M × [a, b]`: `K η` has no component along the interval. -/
+theorem mpullback_prodMap_subtypeVal_timeExtendIcc_prodIccHomotopyOperator
+    (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F 2) :
+    SmoothForm.mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal_Icc)
+        (SmoothForm.timeExtendIcc (prodIccHomotopyOperator I M a b F 1 η)) =
+      prodIccHomotopyOperator I M a b F 1 η :=
+  SmoothForm.mpullback_prodMap_subtypeVal_timeExtendIcc _
+    (prodIccHomotopyOperator_apply_eq_zero η)
+
+/-- **Restriction of the extension.** The extension to `M × ℝ` of a closed two-form `η` on
+`M × [a, b]` restricts to `η` on `M × [a, b]`. -/
+theorem mpullback_prodMap_subtypeVal_prodIccExtension
+    {η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F 2} (hη : η.IsClosed) :
+    SmoothForm.mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal_Icc)
+        (prodIccExtension I M a b F 1 η) = η := by
+  rw [prodIccExtension_apply, map_add, ← SmoothForm.mextDerivₗ_mpullback,
+    mpullback_prodMap_subtypeVal_timeExtendIcc_prodIccHomotopyOperator,
+    mextDerivₗ_prodIccHomotopyOperator ((SmoothForm.isClosed_iff_mextDerivₗ_eq_zero _).mp hη),
+    SmoothForm.mpullback_mpullback,
+    SmoothForm.mpullback_congr
+      (f := (fun x : M × ℝ ↦ (x.1, (⊥ : Icc a b))) ∘ Prod.map id Subtype.val)
+      (g := fun x : M × Icc a b ↦ (x.1, ⊥)) _ (contMDiff_fst.prodMk contMDiff_const)
+      (funext fun _ ↦ rfl),
+    add_sub_cancel]
+
+end Extension
+
+/-- **Invariance of the extended form.** If a two-form `η` on `P × [a, b]` is invariant under the
+action of `z : Circle` on the total space, then so is its extension to `P × ℝ`
+(`SymplecticGeometry.prodIccExtension`). This applies to coupling forms
+(`SymplecticGeometry.IsCouplingForm.mpullback_smul`). -/
+theorem mpullback_smul_prodIccExtension [IB.Boundaryless] (z : Circle)
+    {η : SmoothTwoForm ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (ManifoldTotalSpace Circle P × Icc a b)}
+    (hη : SmoothForm.mpullback
+      (fun x : ManifoldTotalSpace Circle P × Icc a b ↦ (op z • x.1, x.2))
+      (((contMDiff_const_smul (op z)).comp contMDiff_fst).prodMk contMDiff_snd) η = η) :
+    SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P × ℝ ↦ (op z • x.1, x.2))
+        (((contMDiff_const_smul (op z)).comp contMDiff_fst).prodMk contMDiff_snd)
+        (prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 η) =
+      prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 η := by
+  -- `Prod.map f id` sends `x` to `(f x.1, x.2)`, by definition
+  rw [SmoothForm.mpullback_congr
+      (f := fun x : ManifoldTotalSpace Circle P × ℝ ↦ (op z • x.1, x.2))
+      (g := Prod.map (op z • ·) id) _
+      ((contMDiff_const_smul (op z)).prodMap contMDiff_id) (funext fun _ ↦ rfl),
+    mpullback_prodMap_prodIccExtension (contMDiff_const_smul (op z)),
+    SmoothForm.mpullback_congr (f := Prod.map (op z • ·) id)
+      (g := fun x : ManifoldTotalSpace Circle P × Icc a b ↦ (op z • x.1, x.2)) _
+      (((contMDiff_const_smul (op z)).comp contMDiff_fst).prodMk contMDiff_snd)
+      (funext fun _ ↦ rfl), hη]
+
 /-! ### The primitive of the difference of two coupling forms -/
 
 namespace IsCouplingForm
@@ -187,6 +316,59 @@ theorem mfderiv_snd_eq_zero_of_apply_eq_neg (h : IsCouplingForm η τ)
   have hX := h.apply_couplingField x Y
   rw [ContinuousAlternatingMap.apply_vecCons_swap, hY, hσ, neg_zero, neg_zero] at hX
   exact neg_eq_zero.mp hX.symm
+
+/-! ### The extended Moser data on `P × ℝ` -/
+
+section Extension
+
+variable [IB.Boundaryless]
+
+/-- **Invariance of the extended primitive.** For two coupling forms `ω₀` and `ω₁` for the same
+family, the extension to `P × ℝ` of the primitive `K (ω₁ - ω₀)` is invariant under the action of
+every `z : Circle` on the total space. -/
+theorem mpullback_smul_timeExtendIcc_prodIccHomotopyOperator_sub (h₀ : IsCouplingForm ω₀ τ)
+    (h₁ : IsCouplingForm ω₁ τ) (z : Circle) :
+    SmoothForm.mpullback (fun x : ManifoldTotalSpace Circle P × ℝ ↦ (op z • x.1, x.2))
+        (((contMDiff_const_smul (op z)).comp contMDiff_fst).prodMk contMDiff_snd)
+        (SmoothForm.timeExtendIcc
+          (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
+            (ω₁ - ω₀))) =
+      SmoothForm.timeExtendIcc
+        (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
+          (ω₁ - ω₀)) := by
+  -- `Prod.map f id` sends `x` to `(f x.1, x.2)`, by definition
+  rw [SmoothForm.mpullback_congr
+      (f := fun x : ManifoldTotalSpace Circle P × ℝ ↦ (op z • x.1, x.2))
+      (g := Prod.map (op z • ·) id) _
+      ((contMDiff_const_smul (op z)).prodMap contMDiff_id) (funext fun _ ↦ rfl),
+    ← SmoothForm.timeExtendIcc_mpullback_prodMap (contMDiff_const_smul (op z)),
+    SmoothForm.mpullback_congr (f := Prod.map (op z • ·) id)
+      (g := fun x : ManifoldTotalSpace Circle P × Icc a b ↦ (op z • x.1, x.2)) _
+      (((contMDiff_const_smul (op z)).comp contMDiff_fst).prodMk contMDiff_snd)
+      (funext fun _ ↦ rfl), mpullback_smul_prodIccHomotopyOperator_sub h₀ h₁]
+
+/-- **The extended primitive vanishes on `(X, 0)`.** For two coupling forms `ω₀` and `ω₁` for the
+same family, the extension to `P × ℝ` of the primitive `K (ω₁ - ω₀)` vanishes on the field
+`(X, 0)`, where `X` is the period-one fundamental vector field of the circle action. -/
+theorem timeExtendIcc_prodIccHomotopyOperator_sub_apply_prodVectorField
+    (h₀ : IsCouplingForm ω₀ τ) (h₁ : IsCouplingForm ω₁ τ) (p : ManifoldTotalSpace Circle P × ℝ) :
+    (SmoothForm.timeExtendIcc
+        (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
+          (ω₁ - ω₀))).val p
+      ![Manifold.prodVectorField
+        (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator) 0 p] = 0 := by
+  refine SmoothForm.timeExtendIcc_apply_cons_prodVectorField_eq_zero _ (fun q w ↦ ?_) p ![]
+  have hX : Manifold.prodVectorField
+      (rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator) 0 q =
+      couplingField IB P a b q :=
+    Prod.ext (by rw [Manifold.prodVectorField_fst, couplingField_fst]) (by
+      rw [Manifold.prodVectorField_snd, couplingField_snd, Pi.zero_apply]
+      -- the zero of the tangent space of the interval is the zero of its model space
+      rfl)
+  rw [hX, Subsingleton.elim w ![]]
+  exact prodIccHomotopyOperator_sub_apply_couplingField h₀ h₁ q
+
+end Extension
 
 end IsCouplingForm
 
