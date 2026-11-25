@@ -65,7 +65,7 @@ variable {E H M F H' N : Type*}
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
   [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F] [TopologicalSpace H']
   {J : ModelWithCorners ℝ F H'} [J.Boundaryless] [TopologicalSpace N] [ChartedSpace H' N]
-  [IsManifold J ∞ N] [IsManifold J (∞ + 1) N]
+  [IsManifold J ∞ N]
   {σ : SmoothTwoForm I M} {hσ : σ.IsNondegenerate} {f : N → M}
   {h : hσ.IsCoisotropicMap J f} {hi : IsImmersion J I ∞ f} {hf : ContMDiff J I ∞ f}
   {hσc : σ.IsClosed} {hn : (1 : ℕ∞ω) ≤ ∞}
