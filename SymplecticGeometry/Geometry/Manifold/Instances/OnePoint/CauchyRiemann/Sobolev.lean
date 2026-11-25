@@ -81,7 +81,7 @@ realizes an operator that is Cauchy–Riemann for the complex structure of the c
   `TauCeti.FiniteBundleAtlas.coord_tangentHom_zeroOnePart_zeroOnePart`, the pointwise algebra is
   in `SymplecticGeometry.Analysis.Complex.Beltrami.ZeroOnePart`, and `Z` comes from the
   zeroth-order term of the connection, which is complex linear
-  (`chartZeroOrder_twistOneConnection_smul`).
+  (`IsCovariantDerivativeOn.chartZeroOrder_apply_smul`, `twistOneConnection_const_smul`).
 
 The proof of `exists_coord_zeroOnePart_twistOneDelBar_apply` adapts those of Tau Ceti's
 `TauCeti.FiniteBundleAtlas.coord_tangentHom_eq_complexAntilinearPartL_fderiv_add_chartZeroOrder`
@@ -238,34 +238,6 @@ theorem continuous_twistOneDelBarSobolev_tames (hcover : ∀ x, ∃ i, x ∈ U i
 
 /-! ### The operator in the charts of an atlas -/
 
-/-- In every chart of a finite bundle atlas of `𝒪(1)`, the zeroth-order term of the connection
-`twistOneConnection` commutes with complex scalars on the chart image, since the connection is
-complex linear. -/
-theorem chartZeroOrder_twistOneConnection_smul
-    (A : FiniteBundleAtlas ℂ (OnePoint ℂ) ℂ (twistCore (𝕜 := ℂ) 1).Fiber) (i : Fin A.n) {z : ℂ}
-    (hz : z ∈ A.image i) (c v : ℂ) :
-    A.chartZeroOrder twistOneConnection i z (c • v) =
-      c • A.chartZeroOrder twistOneConnection i z v := by
-  have hcov := isCovariantDerivativeOn_twistOneConnection.mono (subset_univ (A.triv i).baseSet)
-  have hx : (A.chart i).symm z ∈ (A.triv i).baseSet :=
-    A.dom_subset_baseSet i (A.symm_mem_dom hz)
-  have hσ := Manifold.mdifferentiableAt_symm_of_mem_baseSet (I := 𝓘(ℝ, ℂ)) v hx
-  have heq : twistOneConnection (fun x ↦ (A.triv i).symm x (c • v)) ((A.chart i).symm z) =
-      twistOneConnection (c • fun x ↦ (A.triv i).symm x v) ((A.chart i).symm z) := by
-    refine isCovariantDerivativeOn_twistOneConnection.congr_of_eventuallyEq
-      (Manifold.mdifferentiableAt_symm_of_mem_baseSet (c • v) hx) (hσ.const_smul_section c)
-      Filter.univ_mem ?_
-    filter_upwards [(A.triv i).open_baseSet.mem_nhds hx] with y hy
-    rw [Pi.smul_apply, ← (A.triv i).coe_symmₗ (R := ℂ) hy, map_smul]
-  rw [hcov.chartZeroOrder_apply_eq_coord_tangentHom A hz,
-    hcov.chartZeroOrder_apply_eq_coord_tangentHom A hz,
-    FiniteBundleAtlas.coord_tangentHom, FiniteBundleAtlas.coord_tangentHom, heq,
-    twistOneConnection_const_smul c hσ]
-  ext w
-  simp only [ContinuousLinearMap.inCoordinates, ContinuousLinearMap.comp_apply, smul_apply]
-  rw [Trivialization.coe_continuousLinearMapAt_eq_coe_continuousLinearMapAt ℝ ℂ, map_smul,
-    ← Trivialization.coe_continuousLinearMapAt_eq_coe_continuousLinearMapAt ℝ ℂ]
-
 /-- **`D_J` in the charts.** Let a two-form `σ` tame both `J` and the standard structure `i` of
 the sphere, and let `A` be a finite bundle atlas of `𝒪(1)`, such as `twistCoreAtlas 1`. For each
 chart `i` of `A` there are an open set `U` containing the closure of the chart image and
@@ -300,8 +272,8 @@ theorem exists_coord_zeroOnePart_twistOneDelBar_apply
       (hUt hz)
     rw [← hK, h] at this
     norm_num at this
-  have hden (z : ℂ) (hz : z ∈ U) : conj (K z 1) - Complex.I ≠ 0 := fun h ↦ hK1 z hz (by
-    simpa using congrArg conj (sub_eq_zero.1 h))
+  have hden (z : ℂ) (hz : z ∈ U) : conj (K z 1) - Complex.I ≠ 0 :=
+    Complex.conj_sub_I_ne_zero (hK1 z hz)
   set c₂ : ℂ → ℂ := fun z ↦ 2⁻¹ * (1 + Complex.I * conj ((K z).complexLinearPart 1))
   set μ : ℂ → ℂ := fun z ↦ (K z 1 - Complex.I) / (conj (K z 1) - Complex.I) with hμ
   set Z : ℂ → ℂ := fun z ↦ c₂ z * ((G z).complexAntilinearPart 1 +
@@ -339,7 +311,8 @@ theorem exists_coord_zeroOnePart_twistOneDelBar_apply
     have hcov := isCovariantDerivativeOn_twistOneConnection.mono (subset_univ (A.triv i).baseSet)
     -- `Γu` is `u · Γ1`, since the zeroth-order term is complex linear.
     have hΓ : A.chartZeroOrder twistOneConnection i z (A.coord i s z) = A.coord i s z • G z := by
-      rw [hG, ← chartZeroOrder_twistOneConnection_smul A i hz, smul_eq_mul, mul_one]
+      rw [hG, ← hcov.chartZeroOrder_apply_smul A
+        (fun _ _ _ hσ ↦ twistOneConnection_const_smul _ hσ) hz, smul_eq_mul, mul_one]
     simp_rw [twistOneDelBar_def]
     rw [A.coord_tangentHom_zeroOnePart_zeroOnePart J hz,
       ContinuousLinearMap.complexAntilinearPartL_half_smul_add_I_smul_comp_apply (hKK z hzU)
