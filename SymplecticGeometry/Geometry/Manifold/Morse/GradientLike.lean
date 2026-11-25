@@ -250,26 +250,19 @@ theorem mpullback {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [Fin
   let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
   have hiso := g.isLocalRiemannianIsometry_pullback_of_isInvertible hΦ₁ hΦ'
   by_cases hf : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) f (Φ x)
-  · have hv : mfderiv 𝓘(ℝ, E') 𝓘(ℝ, E) Φ x (VectorField.mpullback 𝓘(ℝ, E') 𝓘(ℝ, E) Φ X x) =
-        X (Φ x) := by
-      rw [VectorField.mpullback_apply, (hΦ' x).self_apply_inverse]
-    rw [ContMDiffRiemannianMetric.pullback_inner, hv, hiso.norm_mgradient_comp hf,
-      mvfderiv_comp_apply x hf (hiso.mdifferentiableAt x), hv]
+  · rw [ContMDiffRiemannianMetric.pullback_inner, hiso.mfderiv_apply_mpullback,
+      hiso.norm_mgradient_comp hf, mvfderiv_comp_apply x hf (hiso.mdifferentiableAt x),
+      hiso.mfderiv_apply_mpullback]
     exact h (Φ x)
   · -- Where `f` is not differentiable, `X` vanishes, and so does the pulled-back field; and
-    -- `f ∘ Φ` is not differentiable either, since `Φ` is a local diffeomorphism.
+    -- `df` vanishes along `Φ` too, by the chain rule for the local diffeomorphism `Φ`.
     have hloc : IsLocalDiffeomorphAt 𝓘(ℝ, E') 𝓘(ℝ, E) ∞ Φ x :=
-      (isLocalDiffeomorphAt_iff_exists_mfderiv_eq hΦ.contMDiffOn isOpen_univ (mem_univ x)
-        BoundarylessManifold.isInteriorPoint (by simp)).2 (hΦ' x)
-    have hfΦ : ¬MDifferentiableAt 𝓘(ℝ, E') 𝓘(ℝ) (f ∘ Φ) x :=
-      (hloc.mdifferentiableAt_comp_iff (by simp)).not.2 hf
-    have hX0x : X (Φ x) = 0 :=
-      hX0 _ (mvfderiv_eq_zero_iff.2 (mfderiv_zero_of_not_mdifferentiableAt hf))
-    have hD : mvfderiv 𝓘(ℝ, E') (f ∘ Φ) x = 0 :=
-      mvfderiv_eq_zero_iff.2 (mfderiv_zero_of_not_mdifferentiableAt hfΦ)
-    rw [VectorField.mpullback_apply, hX0x, map_zero, map_zero, zero_add, hD, zero_apply,
-      mgradient_eq_zero_iff.2 hD, norm_zero]
-    simp
+      isLocalDiffeomorph_of_mfderiv_eq hΦ (by simp) hΦ' x
+    have hf0 := mfderiv_zero_of_not_mdifferentiableAt hf
+    have hX0x : X (Φ x) = 0 := hX0 _ (mvfderiv_eq_zero_iff.2 hf0)
+    have hD : mvfderiv 𝓘(ℝ, E') (f ∘ Φ) x = 0 := mvfderiv_eq_zero_iff.2 (by
+      rw [hloc.mfderiv_comp (by simp), hf0, ContinuousLinearMap.zero_comp])
+    simp [VectorField.mpullback_apply, hX0x, hD, mgradient_eq_zero_iff.2 hD]
 
 end IsGradientLike
 
