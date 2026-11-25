@@ -26,7 +26,10 @@ time `π` is the antipodal map; and since `R' = 0` on `[r₀, ∞)`, the twist i
 ## Main definitions
 
 * `SymplecticGeometry.IsTwistProfile R r₀`: `R` is a twist profile with support radius `r₀`.
-* `SymplecticGeometry.modelTwistFun R`: the model twist as a function of `T*Sⁿ`.
+* `SymplecticGeometry.geodesicTwist θ`: the map that moves `z` along the normalized geodesic flow
+  for the time `θ (μ z)` off the zero section, and is the antipodal map on it.
+* `SymplecticGeometry.modelTwistFun R`: the model twist as a function of `T*Sⁿ`, the geodesic
+  twist of `2π R'`.
 * `SymplecticGeometry.modelTwist hR`: the model twist of a twist profile, as a diffeomorphism.
 
 ## Main results
@@ -36,6 +39,10 @@ time `π` is the antipodal map; and since `R' = 0` on `[r₀, ∞)`, the twist i
   vanishes on `[r₀, ∞)`.
 * `SymplecticGeometry.IsTwistProfile.lineMap`: twist profiles of the same radius form an affine
   subspace; `SymplecticGeometry.exists_isTwistProfile`: there is one for every `r₀ > 0`.
+* `SymplecticGeometry.contMDiff_geodesicTwist`: the geodesic twist of `θ` is smooth when `θ` is,
+  `cos ∘ θ` is even, `sin ∘ θ` is odd and `cos (θ 0) = -1`.
+* `SymplecticGeometry.coe_modelTwist_symm`: the inverse of the model twist of `R` is the model
+  twist of `-R`.
 * `SymplecticGeometry.modelTwist_apply_of_le`: the model twist is the identity where `μ ≥ r₀`.
 * `SymplecticGeometry.modelTwist_cotangent_orthogonal`: it commutes with the cotangent lift of
   every orthogonal transformation of `ℝⁿ⁺¹`.
@@ -50,8 +57,9 @@ and `S` smooth. By `cotangentCoord_geodesicFlow`, the twist then reads, in the c
 `(q, p) ↦ (C ‖p‖² • q + S ‖p‖² • p, C ‖p‖² • p - (‖p‖² * S ‖p‖²) • q)`,
 also on the zero section, where `C 0 = cos π = -1`. This is a smooth map of `(q, p)`, so the twist
 is smooth (`contMDiff_of_contMDiff_cotangentCoord_comp`). The inverse is the same construction
-with `-θ` in place of `θ`, as the flow preserves `μ`. The same coordinate formula gives the
-equivariance under `O(n + 1)`, which acts on the coordinates by isometries.
+with `-θ` in place of `θ`, that is the model twist of `-R`, as the flow preserves `μ`. The same
+coordinate formula gives the equivariance under `O(n + 1)`, which acts on the coordinates by
+isometries.
 
 ## References
 
@@ -174,51 +182,73 @@ theorem exists_isTwistProfile {r₀ : ℝ} (hr : 0 < r₀) : ∃ R, IsTwistProfi
 
 /-! ### Twisting along the geodesic flow by an angle function -/
 
-/-- The map that moves a covector `z` off the zero section along the normalized geodesic flow for
-the time `θ (μ z)`, and acts by the antipodal map on the zero section. -/
-private def twistOfAngle (θ : ℝ → ℝ) (z : CotangentBundle (𝓡 n) (𝕊 n)) :
+/-- The geodesic twist of an angle function `θ`: it moves a covector `z` off the zero section
+along the normalized geodesic flow for the time `θ (μ z)`, and acts by the antipodal map on the
+zero section. -/
+def geodesicTwist (θ : ℝ → ℝ) (z : CotangentBundle (𝓡 n) (𝕊 n)) :
     CotangentBundle (𝓡 n) (𝕊 n) :=
   if cotangentNorm z = 0 then antipodal z else geodesicFlow (θ (cotangentNorm z)) z
 
-private theorem cotangentNorm_twistOfAngle (θ : ℝ → ℝ) (z : CotangentBundle (𝓡 n) (𝕊 n)) :
-    cotangentNorm (twistOfAngle θ z) = cotangentNorm z := by
-  unfold twistOfAngle
-  split_ifs
-  · exact cotangentNorm_antipodal z
-  · exact cotangentNorm_geodesicFlow _ z
+theorem geodesicTwist_def (θ : ℝ → ℝ) (z : CotangentBundle (𝓡 n) (𝕊 n)) :
+    geodesicTwist θ z =
+      if cotangentNorm z = 0 then antipodal z else geodesicFlow (θ (cotangentNorm z)) z :=
+  (rfl)
 
-/-- Twisting by `-θ` undoes twisting by `θ`. -/
-private theorem twistOfAngle_neg_twistOfAngle (θ : ℝ → ℝ) (z : CotangentBundle (𝓡 n) (𝕊 n)) :
-    twistOfAngle (fun t ↦ -θ t) (twistOfAngle θ z) = z := by
-  have hn := cotangentNorm_twistOfAngle θ z
-  unfold twistOfAngle at hn ⊢
+theorem geodesicTwist_of_cotangentNorm_eq_zero (θ : ℝ → ℝ) {z : CotangentBundle (𝓡 n) (𝕊 n)}
+    (hz : cotangentNorm z = 0) : geodesicTwist θ z = antipodal z := by
+  rw [geodesicTwist_def, ite_eq_left hz]
+
+theorem geodesicTwist_of_cotangentNorm_ne_zero (θ : ℝ → ℝ) {z : CotangentBundle (𝓡 n) (𝕊 n)}
+    (hz : cotangentNorm z ≠ 0) : geodesicTwist θ z = geodesicFlow (θ (cotangentNorm z)) z := by
+  rw [geodesicTwist_def, ite_eq_right hz]
+
+/-- The geodesic twist preserves the norm `μ` of covectors. -/
+@[simp]
+theorem cotangentNorm_geodesicTwist (θ : ℝ → ℝ) (z : CotangentBundle (𝓡 n) (𝕊 n)) :
+    cotangentNorm (geodesicTwist θ z) = cotangentNorm z := by
   by_cases hz : cotangentNorm z = 0
-  · rw [ite_eq_left hz] at hn ⊢
-    rw [ite_eq_left (hn.trans hz)]
+  · rw [geodesicTwist_of_cotangentNorm_eq_zero θ hz, cotangentNorm_antipodal]
+  · rw [geodesicTwist_of_cotangentNorm_ne_zero θ hz, cotangentNorm_geodesicFlow]
+
+/-- The geodesic twist of `-θ` undoes the geodesic twist of `θ`. -/
+@[simp]
+theorem geodesicTwist_neg_geodesicTwist (θ : ℝ → ℝ) (z : CotangentBundle (𝓡 n) (𝕊 n)) :
+    geodesicTwist (fun t ↦ -θ t) (geodesicTwist θ z) = z := by
+  have hn := cotangentNorm_geodesicTwist θ z
+  by_cases hz : cotangentNorm z = 0
+  · rw [geodesicTwist_of_cotangentNorm_eq_zero _ (hn.trans hz),
+      geodesicTwist_of_cotangentNorm_eq_zero θ hz]
     refine cotangentCoord_injective ?_
     rw [cotangentCoord_antipodal, cotangentCoord_antipodal, neg_neg]
-  · rw [ite_eq_right hz] at hn ⊢
-    rw [ite_eq_right (hn.trans_ne hz), hn, ← geodesicFlow_add, neg_add_cancel, geodesicFlow_zero]
+  · rw [geodesicTwist_of_cotangentNorm_ne_zero _ (hn.trans_ne hz), hn,
+      geodesicTwist_of_cotangentNorm_ne_zero θ hz, ← geodesicFlow_add, neg_add_cancel,
+      geodesicFlow_zero]
 
-/-- If `cos ∘ θ = C (t ^ 2)` and `sin ∘ θ = t * S (t ^ 2)`, and `cos (θ 0) = -1`, then twisting
-by `θ` acts on the coordinates `(q, p)` by
+/-- The geodesic twist of `θ` undoes the geodesic twist of `-θ`. -/
+@[simp]
+theorem geodesicTwist_geodesicTwist_neg (θ : ℝ → ℝ) (z : CotangentBundle (𝓡 n) (𝕊 n)) :
+    geodesicTwist θ (geodesicTwist (fun t ↦ -θ t) z) = z := by
+  simpa only [neg_neg] using geodesicTwist_neg_geodesicTwist (fun t ↦ -θ t) z
+
+/-- If `cos ∘ θ = C (t ^ 2)` and `sin ∘ θ = t * S (t ^ 2)`, and `cos (θ 0) = -1`, then the
+geodesic twist of `θ` acts on the coordinates `(q, p)` by
 `(C ‖p‖² • q + S ‖p‖² • p, C ‖p‖² • p - (‖p‖² * S ‖p‖²) • q)`. -/
-private theorem cotangentCoord_twistOfAngle {θ C S : ℝ → ℝ} (hC : ∀ t, cos (θ t) = C (t ^ 2))
+theorem cotangentCoord_geodesicTwist {θ C S : ℝ → ℝ} (hC : ∀ t, cos (θ t) = C (t ^ 2))
     (hS : ∀ t, sin (θ t) = t * S (t ^ 2)) (h0 : cos (θ 0) = -1)
     (z : CotangentBundle (𝓡 n) (𝕊 n)) :
-    cotangentCoord (twistOfAngle θ z) =
+    cotangentCoord (geodesicTwist θ z) =
       (C (‖(cotangentCoord z).2‖ ^ 2) • (cotangentCoord z).1 +
           S (‖(cotangentCoord z).2‖ ^ 2) • (cotangentCoord z).2,
         C (‖(cotangentCoord z).2‖ ^ 2) • (cotangentCoord z).2 -
           (‖(cotangentCoord z).2‖ ^ 2 * S (‖(cotangentCoord z).2‖ ^ 2)) •
             (cotangentCoord z).1) := by
-  unfold twistOfAngle
   by_cases hz : cotangentNorm z = 0
   · have hp : (cotangentCoord z).2 = 0 := norm_eq_zero.1 ((cotangentNorm_def z).symm.trans hz)
     have hC0 : C 0 = -1 := by rw [← h0, hC, sq, mul_zero]
-    rw [ite_eq_left hz, cotangentCoord_antipodal, hp, norm_zero]
+    rw [geodesicTwist_of_cotangentNorm_eq_zero θ hz, cotangentCoord_antipodal, hp, norm_zero]
     ext1 <;> simp [hC0, hp]
-  · rw [ite_eq_right hz, cotangentCoord_geodesicFlow hz, cotangentNorm_def, hC, hS]
+  · rw [geodesicTwist_of_cotangentNorm_ne_zero θ hz, cotangentCoord_geodesicFlow hz,
+      cotangentNorm_def, hC, hS]
     have hN : ‖(cotangentCoord z).2‖ ≠ 0 := (cotangentNorm_def z).symm.trans_ne hz
     ext1
     · simp only
@@ -229,13 +259,13 @@ private theorem cotangentCoord_twistOfAngle {θ C S : ℝ → ℝ} (hC : ∀ t, 
       ring
 
 /-- If `θ` is smooth, `cos ∘ θ` is even, `sin ∘ θ` is odd and `cos (θ 0) = -1`, then by Whitney's
-theorem twisting by `θ` acts on the coordinates `(q, p)` by
+theorem the geodesic twist of `θ` acts on the coordinates `(q, p)` by
 `(C ‖p‖² • q + S ‖p‖² • p, C ‖p‖² • p - (‖p‖² * S ‖p‖²) • q)` for smooth `C` and `S`. -/
-private theorem exists_cotangentCoord_twistOfAngle {θ : ℝ → ℝ} (hθ : ContDiff ℝ ∞ θ)
+theorem exists_cotangentCoord_geodesicTwist {θ : ℝ → ℝ} (hθ : ContDiff ℝ ∞ θ)
     (hc : ∀ t, cos (θ (-t)) = cos (θ t)) (hs : ∀ t, sin (θ (-t)) = -sin (θ t))
     (h0 : cos (θ 0) = -1) :
     ∃ C S : ℝ → ℝ, ContDiff ℝ ∞ C ∧ ContDiff ℝ ∞ S ∧ ∀ z : CotangentBundle (𝓡 n) (𝕊 n),
-      cotangentCoord (twistOfAngle θ z) =
+      cotangentCoord (geodesicTwist θ z) =
         (C (‖(cotangentCoord z).2‖ ^ 2) • (cotangentCoord z).1 +
             S (‖(cotangentCoord z).2‖ ^ 2) • (cotangentCoord z).2,
           C (‖(cotangentCoord z).2‖ ^ 2) • (cotangentCoord z).2 -
@@ -245,17 +275,17 @@ private theorem exists_cotangentCoord_twistOfAngle {θ : ℝ → ℝ} (hθ : Con
     (fun t ↦ hc t) (Real.contDiff_cos.comp hθ)
   obtain ⟨S, hSd, hS⟩ := Function.Odd.exists_contDiff_mul_comp_sq (f := fun t ↦ sin (θ t))
     (fun t ↦ hs t) (Real.contDiff_sin.comp hθ)
-  exact ⟨C, S, hCd, hSd, cotangentCoord_twistOfAngle hC hS h0⟩
+  exact ⟨C, S, hCd, hSd, cotangentCoord_geodesicTwist hC hS h0⟩
 
-/-- Twisting by a smooth angle function `θ` with `cos ∘ θ` even, `sin ∘ θ` odd and
+/-- The geodesic twist of a smooth angle function `θ` with `cos ∘ θ` even, `sin ∘ θ` odd and
 `cos (θ 0) = -1` is smooth, also across the zero section. -/
-private theorem contMDiff_twistOfAngle {θ : ℝ → ℝ} (hθ : ContDiff ℝ ∞ θ)
+theorem contMDiff_geodesicTwist {θ : ℝ → ℝ} (hθ : ContDiff ℝ ∞ θ)
     (hc : ∀ t, cos (θ (-t)) = cos (θ t)) (hs : ∀ t, sin (θ (-t)) = -sin (θ t))
     (h0 : cos (θ 0) = -1) :
     ContMDiff ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
       ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) ∞
-      (twistOfAngle (n := n) θ) := by
-  obtain ⟨C, S, hCd, hSd, hG⟩ := exists_cotangentCoord_twistOfAngle (n := n) hθ hc hs h0
+      (geodesicTwist (n := n) θ) := by
+  obtain ⟨C, S, hCd, hSd, hG⟩ := exists_cotangentCoord_geodesicTwist (n := n) hθ hc hs h0
   refine contMDiff_of_contMDiff_cotangentCoord_comp ?_
   have hn : ContDiff ℝ ∞ fun x : (𝔼 n) × 𝔼 n ↦ ‖x.2‖ ^ 2 :=
     (contDiff_norm_sq ℝ).comp contDiff_snd
@@ -266,70 +296,119 @@ private theorem contMDiff_twistOfAngle {θ : ℝ → ℝ} (hθ : ContDiff ℝ �
       (((hCd.comp hn).smul contDiff_snd).sub ((hn.mul (hSd.comp hn)).smul contDiff_fst))
   exact (hF.contMDiff.comp contMDiff_cotangentCoord).congr hG
 
-/-- Twisting by `-θ` is smooth under the hypotheses of `contMDiff_twistOfAngle` on `θ`. -/
-private theorem contMDiff_twistOfAngle_neg {θ : ℝ → ℝ} (hθ : ContDiff ℝ ∞ θ)
-    (hc : ∀ t, cos (θ (-t)) = cos (θ t)) (hs : ∀ t, sin (θ (-t)) = -sin (θ t))
-    (h0 : cos (θ 0) = -1) :
-    ContMDiff ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
-      ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) ∞
-      (twistOfAngle (n := n) fun t ↦ -θ t) :=
-  contMDiff_twistOfAngle hθ.neg (fun t ↦ by rw [cos_neg, cos_neg, hc])
-    (fun t ↦ by rw [sin_neg, sin_neg, hs]) (by rw [cos_neg, h0])
+/-! ### The angle function of a twist profile -/
+
+namespace IsTwistProfile
+
+variable {R : ℝ → ℝ} {r₀ : ℝ}
+
+/-- The cosine of the angle function `2π R'` of a twist profile is even. -/
+theorem cos_two_pi_mul_deriv_neg (hR : IsTwistProfile R r₀) (t : ℝ) :
+    cos (2 * π * deriv R (-t)) = cos (2 * π * deriv R t) := by
+  rw [hR.deriv_neg, mul_one_sub, cos_two_pi_sub]
+
+/-- The sine of the angle function `2π R'` of a twist profile is odd. -/
+theorem sin_two_pi_mul_deriv_neg (hR : IsTwistProfile R r₀) (t : ℝ) :
+    sin (2 * π * deriv R (-t)) = -sin (2 * π * deriv R t) := by
+  rw [hR.deriv_neg, mul_one_sub, sin_two_pi_sub]
+
+/-- The angle function `2π R'` of a twist profile is `π` at `0`. -/
+theorem two_pi_mul_deriv_zero (hR : IsTwistProfile R r₀) : 2 * π * deriv R 0 = π := by
+  rw [hR.deriv_zero]
+  ring
+
+end IsTwistProfile
 
 /-! ### The model twist -/
 
-/-- The model Dehn twist of a function `R` as a map of `T*Sⁿ`: off the zero section it moves `z`
-along the normalized geodesic flow for the time `2π R'(μ z)`, `μ = cotangentNorm`, and on the zero
-section it is the antipodal map. -/
-def modelTwistFun (R : ℝ → ℝ) (z : CotangentBundle (𝓡 n) (𝕊 n)) :
-    CotangentBundle (𝓡 n) (𝕊 n) :=
-  if cotangentNorm z = 0 then antipodal z
-  else geodesicFlow (2 * π * deriv R (cotangentNorm z)) z
+/-- The model Dehn twist of a function `R` as a map of `T*Sⁿ`, the geodesic twist of the angle
+function `2π R'`: off the zero section it moves `z` along the normalized geodesic flow for the
+time `2π R'(μ z)`, `μ = cotangentNorm`, and on the zero section it is the antipodal map
+(`modelTwistFun_def`). -/
+def modelTwistFun (R : ℝ → ℝ) : CotangentBundle (𝓡 n) (𝕊 n) → CotangentBundle (𝓡 n) (𝕊 n) :=
+  geodesicTwist fun t ↦ 2 * π * deriv R t
+
+theorem modelTwistFun_eq_geodesicTwist (R : ℝ → ℝ) :
+    modelTwistFun (n := n) R = geodesicTwist fun t ↦ 2 * π * deriv R t :=
+  (rfl)
 
 theorem modelTwistFun_def (R : ℝ → ℝ) (z : CotangentBundle (𝓡 n) (𝕊 n)) :
     modelTwistFun R z = if cotangentNorm z = 0 then antipodal z
-      else geodesicFlow (2 * π * deriv R (cotangentNorm z)) z :=
-  (rfl)
+      else geodesicFlow (2 * π * deriv R (cotangentNorm z)) z := by
+  rw [modelTwistFun_eq_geodesicTwist, geodesicTwist_def]
 
-private theorem modelTwistFun_eq_twistOfAngle (R : ℝ → ℝ) :
-    modelTwistFun (n := n) R = twistOfAngle fun t ↦ 2 * π * deriv R t :=
-  (rfl)
+/-- The model twist preserves the norm `μ` of covectors. -/
+@[simp]
+theorem cotangentNorm_modelTwistFun (R : ℝ → ℝ) (z : CotangentBundle (𝓡 n) (𝕊 n)) :
+    cotangentNorm (modelTwistFun R z) = cotangentNorm z := by
+  rw [modelTwistFun_eq_geodesicTwist, cotangentNorm_geodesicTwist]
 
-/-- The angle function `2π R'` of a twist profile is smooth, its cosine is even, its sine is odd,
-and its value at `0` is `π`. -/
-private theorem angle_of_isTwistProfile {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀) :
-    ContDiff ℝ ∞ (fun t ↦ 2 * π * deriv R t) ∧
-      (∀ t, cos (2 * π * deriv R (-t)) = cos (2 * π * deriv R t)) ∧
-      (∀ t, sin (2 * π * deriv R (-t)) = -sin (2 * π * deriv R t)) ∧
-      cos (2 * π * deriv R 0) = -1 :=
-  ⟨contDiff_const.mul hR.contDiff_deriv,
-    fun t ↦ by rw [hR.deriv_neg, mul_one_sub, cos_two_pi_sub],
-    fun t ↦ by rw [hR.deriv_neg, mul_one_sub, sin_two_pi_sub],
-    by rw [hR.deriv_zero, show 2 * π * (1 / 2) = π by ring, cos_pi]⟩
+/-- The angle function of `-R` is minus that of `R`. -/
+private theorem two_pi_mul_deriv_neg_fun (R : ℝ → ℝ) :
+    (fun t ↦ 2 * π * deriv (fun t ↦ -R t) t) = fun t ↦ -(2 * π * deriv R t) := by
+  ext t
+  rw [deriv.fun_neg, mul_neg]
+
+/-- The model twist of `-R` undoes the model twist of `R`. -/
+@[simp]
+theorem modelTwistFun_neg_modelTwistFun (R : ℝ → ℝ) (z : CotangentBundle (𝓡 n) (𝕊 n)) :
+    modelTwistFun (fun t ↦ -R t) (modelTwistFun R z) = z := by
+  rw [modelTwistFun_eq_geodesicTwist, modelTwistFun_eq_geodesicTwist, two_pi_mul_deriv_neg_fun,
+    geodesicTwist_neg_geodesicTwist]
+
+/-- The model twist of `R` undoes the model twist of `-R`. -/
+@[simp]
+theorem modelTwistFun_modelTwistFun_neg (R : ℝ → ℝ) (z : CotangentBundle (𝓡 n) (𝕊 n)) :
+    modelTwistFun R (modelTwistFun (fun t ↦ -R t) z) = z := by
+  simpa only [neg_neg] using modelTwistFun_neg_modelTwistFun (fun t ↦ -R t) z
+
+/-- The model twist of a twist profile is smooth, also across the zero section. -/
+theorem contMDiff_modelTwistFun {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀) :
+    ContMDiff ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
+      ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) ∞ (modelTwistFun (n := n) R) :=
+  contMDiff_geodesicTwist (contDiff_const.mul hR.contDiff_deriv) hR.cos_two_pi_mul_deriv_neg
+    hR.sin_two_pi_mul_deriv_neg (by rw [hR.two_pi_mul_deriv_zero, cos_pi])
+
+/-- The model twist of `-R`, for a twist profile `R`, is smooth, also across the zero section. -/
+theorem contMDiff_modelTwistFun_neg {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀) :
+    ContMDiff ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ))
+      ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) ∞
+      (modelTwistFun (n := n) fun t ↦ -R t) := by
+  rw [modelTwistFun_eq_geodesicTwist, two_pi_mul_deriv_neg_fun]
+  exact contMDiff_geodesicTwist (contDiff_const.mul hR.contDiff_deriv).neg
+    (fun t ↦ by rw [cos_neg, cos_neg, hR.cos_two_pi_mul_deriv_neg])
+    (fun t ↦ by rw [sin_neg, sin_neg, hR.sin_two_pi_mul_deriv_neg])
+    (by rw [cos_neg, hR.two_pi_mul_deriv_zero, cos_pi])
 
 /-- The model Dehn twist of a twist profile `R`, as a diffeomorphism of `T*Sⁿ`
-(`coe_modelTwist`). Its inverse moves `z` along the normalized geodesic flow for the time
-`-2π R'(μ z)`. -/
+(`coe_modelTwist`). Its inverse is the model twist of `-R` (`coe_modelTwist_symm`): off the zero
+section it moves `z` along the normalized geodesic flow for the time `-2π R'(μ z)`, and on the
+zero section it is the antipodal map. -/
 def modelTwist {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀) :
     CotangentBundle (𝓡 n) (𝕊 n) ≃ₘ⟮(𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ),
       (𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)⟯ CotangentBundle (𝓡 n) (𝕊 n) where
   toFun := modelTwistFun R
-  invFun := twistOfAngle fun t ↦ -(2 * π * deriv R t)
-  left_inv z := twistOfAngle_neg_twistOfAngle _ z
-  right_inv z := by
-    have h := twistOfAngle_neg_twistOfAngle (n := n) (fun t ↦ -(2 * π * deriv R t)) z
-    exact (congrFun (modelTwistFun_eq_twistOfAngle R) _).trans (by simpa only [neg_neg] using h)
-  contMDiff_toFun :=
-    let ⟨hθ, hc, hs, h0⟩ := angle_of_isTwistProfile hR
-    contMDiff_twistOfAngle hθ hc hs h0
-  contMDiff_invFun :=
-    let ⟨hθ, hc, hs, h0⟩ := angle_of_isTwistProfile hR
-    contMDiff_twistOfAngle_neg hθ hc hs h0
+  invFun := modelTwistFun fun t ↦ -R t
+  left_inv := modelTwistFun_neg_modelTwistFun R
+  right_inv := modelTwistFun_modelTwistFun_neg R
+  contMDiff_toFun := contMDiff_modelTwistFun hR
+  contMDiff_invFun := contMDiff_modelTwistFun_neg hR
 
 @[simp]
 theorem coe_modelTwist {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀) :
     ⇑(modelTwist (n := n) hR) = modelTwistFun R :=
   (rfl)
+
+/-- The inverse of the model twist of `R` is the model twist of `-R`. -/
+@[simp]
+theorem coe_modelTwist_symm {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀) :
+    ⇑(modelTwist (n := n) hR).symm = modelTwistFun fun t ↦ -R t :=
+  (rfl)
+
+/-- The model twist preserves the norm `μ` of covectors. -/
+theorem cotangentNorm_modelTwist {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀)
+    (z : CotangentBundle (𝓡 n) (𝕊 n)) : cotangentNorm (modelTwist hR z) = cotangentNorm z := by
+  rw [coe_modelTwist, cotangentNorm_modelTwistFun]
 
 /-- The model twist is the identity where `μ ≥ r₀`. -/
 theorem modelTwist_apply_of_le {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsTwistProfile R r₀)
@@ -343,10 +422,11 @@ theorem modelTwist_cotangent_orthogonal {R : ℝ → ℝ} {r₀ : ℝ} (hR : IsT
     (A : Matrix.orthogonalGroup (Fin (n + 1)) ℝ) (z : CotangentBundle (𝓡 n) (𝕊 n)) :
     modelTwist hR ((orthogonalToDiffSphere n ∞ A).cotangent z) =
       (orthogonalToDiffSphere n ∞ A).cotangent (modelTwist hR z) := by
-  obtain ⟨hθ, hc, hs, h0⟩ := angle_of_isTwistProfile hR
-  obtain ⟨C, S, -, -, hG⟩ := exists_cotangentCoord_twistOfAngle (n := n) hθ hc hs h0
+  obtain ⟨C, S, -, -, hG⟩ := exists_cotangentCoord_geodesicTwist (n := n)
+    (contDiff_const.mul hR.contDiff_deriv) hR.cos_two_pi_mul_deriv_neg hR.sin_two_pi_mul_deriv_neg
+    (by rw [hR.two_pi_mul_deriv_zero, cos_pi])
   refine cotangentCoord_injective ?_
-  rw [coe_modelTwist, modelTwistFun_eq_twistOfAngle, hG, cotangentCoord_cotangent_orthogonal,
+  rw [coe_modelTwist, modelTwistFun_eq_geodesicTwist, hG, cotangentCoord_cotangent_orthogonal,
     cotangentCoord_cotangent_orthogonal, hG, LinearIsometryEquiv.norm_map]
   simp only [map_add, map_sub, map_smul]
 
