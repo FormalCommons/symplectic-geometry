@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
 import Mathlib.Analysis.Calculus.Deriv.Prod
@@ -65,6 +66,11 @@ symplectic form and the action of `t` to `zⱼ ↦ e^{2π i kⱼ t} zⱼ`.
   (`SymplecticGeometry.IsTangentWeights.mfderiv_smul_symm_single_of_eq_zero`). For actions of
   compact groups, such an invariant nonzero vector at `p` yields fixed points distinct from `p`
   arbitrarily close to it (`SymplecticGeometry.frequently_mem_fixedPoints_of_mfderiv_smul_eq_self`).
+* `SymplecticGeometry.apply_circlePeriodOneGenerator_ne_zero_of_isolated`: the same for the
+  weights `αⱼ(ξ₁)` of an equivariant chart at `p`, such as the weight chart of
+  `SymplecticGeometry.exists_weightChart`, with `ξ₁ = circlePeriodOneGenerator`. If `αⱼ(ξ₁) = 0`,
+  then `χⱼ` is trivial on the circle, since `t ↦ exp (t • ξ₁)` covers it, so the chart sends the
+  `j`-th complex axis near `0` to fixed points, which differ from `p` and tend to it.
 
 ## References
 
@@ -244,6 +250,65 @@ theorem weights_ne_zero_of_isolated [CompleteSpace E] [I.Boundaryless]
     (by simp : L.symm (Pi.single j 1) ≠ 0)
     (h.mfderiv_smul_symm_single_of_eq_zero hkj)).and_eventually hiso |>.exists.elim
     fun _ hx ↦ hx.2 hx.1
+
+/-- **The weights of a weight chart are nonzero at an isolated fixed point.** Let the circle act
+on `M`, and let `Φ` be a chart from `StdSpace (Fin n)` to `M`, defined at `0` with `Φ 0 = p`,
+that is equivariant as the chart of `SymplecticGeometry.exists_weightChart` is: in the complex
+coordinates `z = complexToRealEuclidean (Fin n) u`, `g` sends `Φ z` to `Φ` of `uₖ ↦ χₖ(g) uₖ`,
+where `χₖ (exp ξ) = e^{2π i αₖ(ξ)}`. If `p` is isolated among the fixed points, then
+`αⱼ(ξ₁) ≠ 0` for every `j`, where `ξ₁ = circlePeriodOneGenerator`. -/
+theorem apply_circlePeriodOneGenerator_ne_zero_of_isolated (χ : Fin n → Circle → Circle)
+    (α : Fin n → StrongDual ℝ (EuclideanSpace ℝ (Fin 1)))
+    (hχ : ∀ k (ξ : GroupLieAlgebra (𝓡 1) Circle),
+      χ k (mulInvariantExp (I := 𝓡 1) ξ) = Circle.exp (2 * π * α k ξ))
+    (Φ : OpenPartialHomeomorph (StdSpace (Fin n)) M)
+    (hequiv : ∀ g : Circle, ∀ u : Fin n → ℂ, complexToRealEuclidean (Fin n) u ∈ Φ.source →
+      Φ (complexToRealEuclidean (Fin n) fun k ↦ (χ k g : ℂ) * u k) =
+        g • Φ (complexToRealEuclidean (Fin n) u))
+    {p : M} (h0 : 0 ∈ Φ.source) (hΦ0 : Φ 0 = p)
+    (hiso : ∀ᶠ x in 𝓝[≠] p, x ∉ MulAction.fixedPoints Circle M) (j : Fin n) :
+    α j circlePeriodOneGenerator ≠ 0 := by
+  intro hj
+  set e := complexToRealEuclidean (Fin n)
+  -- The points of the `j`-th complex axis.
+  let f : ℝ → StdSpace (Fin n) := fun s ↦ e (Pi.single j (s : ℂ))
+  have hf : Continuous f := e.continuous.comp
+    (continuous_pi fun k ↦ by
+      rcases eq_or_ne k j with rfl | hk
+      · simpa using Complex.continuous_ofReal
+      · simp [hk, continuous_const])
+  have hf0 : f 0 = 0 := by simp [f]
+  have hfinj : ∀ s, f s = 0 → s = 0 := fun s hs ↦ by
+    have := congrFun (e.injective (hs.trans (map_zero e).symm)) j
+    simpa using this
+  -- Near `0`, the axis lies in the source, and each of its points is fixed.
+  have hsrc : ∀ᶠ s in 𝓝 (0 : ℝ), f s ∈ Φ.source :=
+    hf.continuousAt.preimage_mem_nhds (by rw [hf0]; exact Φ.open_source.mem_nhds h0)
+  have hfix : ∀ᶠ s in 𝓝 (0 : ℝ), Φ (f s) ∈ MulAction.fixedPoints Circle M := by
+    filter_upwards [hsrc] with s hs g
+    obtain ⟨θ, rfl⟩ := Circle.exp_surjective g
+    obtain ⟨t, rfl⟩ : ∃ t : ℝ, 2 * π * t = θ := ⟨θ / (2 * π), mul_div_cancel₀ _ (by positivity)⟩
+    have hχj : χ j (Circle.exp (2 * π * t)) = 1 := by
+      have hα : α j (t • circlePeriodOneGenerator) = t * α j circlePeriodOneGenerator :=
+        (α j).map_smul t circlePeriodOneGenerator
+      rw [← mulInvariantExp_smul_circlePeriodOneGenerator, hχ, hα, hj]
+      simp
+    have hu : (fun k ↦ (χ k (Circle.exp (2 * π * t)) : ℂ) * (Pi.single j (s : ℂ) : Fin n → ℂ) k) =
+        Pi.single j (s : ℂ) := by
+      funext k
+      rcases eq_or_ne k j with rfl | hk
+      · simp [hχj]
+      · simp [hk]
+    rw [← hequiv _ _ hs, hu]
+  -- Away from `0`, these points differ from `p`, and they tend to `p`.
+  have htend : Tendsto (fun s ↦ Φ (f s)) (𝓝[≠] (0 : ℝ)) (𝓝[≠] p) := by
+    refine tendsto_nhdsWithin_iff.2 ⟨?_, ?_⟩
+    · rw [← hΦ0, ← hf0]
+      exact ((Φ.continuousAt (hf0 ▸ h0)).comp hf.continuousAt).mono_left nhdsWithin_le_nhds
+    · filter_upwards [nhdsWithin_le_nhds hsrc, self_mem_nhdsWithin] with s hs hs0
+      rw [← hΦ0]
+      exact fun h ↦ hs0 (hfinj s (Φ.injOn hs h0 h))
+  exact ((htend.eventually hiso).and (nhdsWithin_le_nhds hfix)).exists.elim fun _ h ↦ h.1 h.2
 
 variable [FiniteDimensional ℝ E] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
 
