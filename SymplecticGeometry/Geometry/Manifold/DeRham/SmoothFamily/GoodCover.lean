@@ -11,7 +11,6 @@ public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.Contracti
 public import SymplecticGeometry.Geometry.Manifold.DeRham.SmoothFamily.MayerVietoris
 public import TauCeti.Geometry.Manifold.DeRham.ComplexCoefficients
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
-import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 
 /-!
@@ -47,9 +46,7 @@ boundaryless manifold is finite-dimensional.
 * `SymplecticGeometry.exists_primitiveMap_of_hasFiniteGoodCover`: on such a manifold, a linear
   choice of primitives of exact forms, under which smooth families have smooth primitives.
 * `SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq`: a smooth family of exact forms over
-  the unit interval has a smooth family of primitives.
-* `SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_Icc`: the same over a closed interval
-  `[a, b]`, by reparametrizing along Mathlib's `iccHomeoI`.
+  any smooth parameter manifold has a smooth family of primitives.
 * `SymplecticGeometry.finiteDimensional_deRhamCohomology_of_hasFiniteGoodCover`,
   `SymplecticGeometry.contMDiff_repr_mk_of_hasFiniteGoodCover`, and the instance
   `SymplecticGeometry.finiteDimensional_deRhamCohomology` on compact boundaryless manifolds, with
@@ -95,6 +92,8 @@ theorem nonempty_smoothCohomologySplitting_of_isEmpty [IsManifold I ∞ M] [IsEm
      preservesSmoothFamilies_primitive := fun _ ↦ preservesSmoothFamilies_zero }⟩
 
 variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M]
+  {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [TopologicalSpace HN]
+  [TopologicalSpace N] [ChartedSpace HN N] {J : ModelWithCorners ℝ EN HN} [IsManifold J ∞ N]
 
 /-- **The induction over a good cover.** Let `U` be a finite good cover of `M`. For every finset
 `s` of nonempty finsets of indices, the union over `a ∈ s` of the intersections
@@ -165,7 +164,7 @@ theorem HasFiniteGoodCover.nonempty_smoothCohomologySplitting (hM : HasFiniteGoo
 /-- **Smooth families of primitives.** On a Hausdorff σ-compact manifold, modelled on a
 finite-dimensional space, that has a finite good cover, there is a linear map `P` from the exact
 `(k + 1)`-forms to the `k`-forms with `d (P η) = η` for every exact form `η`, which takes smooth
-families of exact forms over the unit interval to smooth families of forms.
+families of exact forms over any smooth parameter manifold to smooth families of forms.
 
 Milestone: *Smooth families of primitives*. -/
 theorem exists_primitiveMap_of_hasFiniteGoodCover (hM : HasFiniteGoodCover I M) (k : ℕ) :
@@ -176,48 +175,33 @@ theorem exists_primitiveMap_of_hasFiniteGoodCover (hM : HasFiniteGoodCover I M) 
 
 /-- **Smooth families of primitives, for one family.** On a Hausdorff σ-compact manifold,
 modelled on a finite-dimensional space, that has a finite good cover, a smooth family `η` of
-exact `(k + 1)`-forms over the unit interval has a smooth family `α` of primitives:
-`d (α t) = η t` for every `t`. -/
+exact `(k + 1)`-forms over a smooth parameter manifold `N`, possibly with boundary, has a smooth
+family `α` of primitives: `d (α t) = η t` for every `t`. -/
 theorem exists_isSmoothFamily_mextDerivₗ_eq (hM : HasFiniteGoodCover I M) {k : ℕ}
-    {η : unitInterval → SmoothForm I M ℝ (k + 1)} (hη : IsSmoothFamily (𝓡∂ 1) η)
+    {η : N → SmoothForm I M ℝ (k + 1)} (hη : IsSmoothFamily J η)
     (hex : ∀ t, η t ∈ exactForms I M (k + 1)) :
-    ∃ α : unitInterval → SmoothForm I M ℝ k, IsSmoothFamily (𝓡∂ 1) α ∧
-      ∀ t, mextDerivₗ I k (α t) = η t := by
+    ∃ α : N → SmoothForm I M ℝ k, IsSmoothFamily J α ∧ ∀ t, mextDerivₗ I k (α t) = η t := by
   obtain ⟨P, hP, hPs⟩ := exists_primitiveMap_of_hasFiniteGoodCover hM k
-  exact ⟨fun t ↦ P ⟨η t, hex t⟩, preservesSmoothFamilies_def.mp hPs _ hη, fun t ↦ hP _⟩
-
-/-- **Smooth families of primitives over a closed interval.** On a Hausdorff σ-compact manifold,
-modelled on a finite-dimensional space, that has a finite good cover, a smooth family `η` of
-exact `(k + 1)`-forms over a closed interval `[a, b]`, `a < b`, has a smooth family `α` of
-primitives: `d (α t) = η t` for every `t`. -/
-theorem exists_isSmoothFamily_mextDerivₗ_eq_Icc (hM : HasFiniteGoodCover I M) {k : ℕ}
-    {a b : ℝ} [hab : Fact (a < b)] {η : Set.Icc a b → SmoothForm I M ℝ (k + 1)}
-    (hη : IsSmoothFamily (𝓡∂ 1) η) (hex : ∀ t, η t ∈ exactForms I M (k + 1)) :
-    ∃ α : Set.Icc a b → SmoothForm I M ℝ k, IsSmoothFamily (𝓡∂ 1) α ∧
-      ∀ t, mextDerivₗ I k (α t) = η t := by
-  -- Reparametrize by the affine homeomorphism `e : [a, b] ≃ₜ [0, 1]`, which is smooth both ways.
-  let e := iccHomeoI a b hab.out
-  obtain ⟨α, hα, hdα⟩ := exists_isSmoothFamily_mextDerivₗ_eq hM
-    (hη.comp e.symm (contMDiff_iccHomeoI_symm hab.out)) fun u ↦ hex (e.symm u)
-  exact ⟨fun t ↦ α (e t), hα.comp e (contMDiff_iccHomeoI hab.out), fun t ↦
-    (hdα (e t)).trans (congrArg η (e.symm_apply_apply t))⟩
+  exact ⟨fun t ↦ P ⟨η t, hex t⟩, preservesSmoothFamilies_def.mp hPs J _ hη, fun t ↦ hP _⟩
 
 /-- A Hausdorff σ-compact manifold, modelled on a finite-dimensional space, that has a finite
 good cover has finite-dimensional de Rham cohomology in every degree. -/
 theorem finiteDimensional_deRhamCohomology_of_hasFiniteGoodCover (hM : HasFiniteGoodCover I M)
     (k : ℕ) : FiniteDimensional ℝ (deRhamCohomology I M k) :=
-  hM.nonempty_smoothCohomologySplitting.some.finiteDimensional_deRhamCohomology k
+  -- Any universe levels of the parameter manifolds do: only the spaces of the splitting are used.
+  let σ : SmoothCohomologySplitting.{0, 0, 0} I M := hM.nonempty_smoothCohomologySplitting.some
+  σ.finiteDimensional_deRhamCohomology k
 
 /-- **The classes of a smooth family of closed forms depend smoothly on the parameter.** On a
 Hausdorff σ-compact manifold, modelled on a finite-dimensional space, that has a finite good
 cover, let `b` be a basis of the de Rham cohomology in degree `k` and `z` a smooth family of
-closed `k`-forms over the unit interval. Then each coordinate `t ↦ b.repr [z t] i` is a smooth
-function. -/
+closed `k`-forms over a smooth parameter manifold `N`. Then each coordinate
+`t ↦ b.repr [z t] i` is a smooth function on `N`. -/
 theorem contMDiff_repr_mk_of_hasFiniteGoodCover (hM : HasFiniteGoodCover I M) {k : ℕ}
     {ι : Type*} (b : Module.Basis ι ℝ (deRhamCohomology I M k))
-    {z : unitInterval → closedForms I M k}
-    (hz : IsSmoothFamily (𝓡∂ 1) (fun t ↦ (z t : SmoothForm I M ℝ k))) (i : ι) :
-    ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ (fun t ↦ b.repr (deRhamCohomology.mk I k (z t)) i) :=
+    {z : N → closedForms I M k}
+    (hz : IsSmoothFamily J (fun t ↦ (z t : SmoothForm I M ℝ k))) (i : ι) :
+    ContMDiff J 𝓘(ℝ) ∞ (fun t ↦ b.repr (deRhamCohomology.mk I k (z t)) i) :=
   hM.nonempty_smoothCohomologySplitting.some.contMDiff_repr_mk b hz i
 
 omit [SigmaCompactSpace M] in

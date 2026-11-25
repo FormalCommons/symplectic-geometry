@@ -279,9 +279,10 @@ of the base, on a closed fibre, which is not contractible, so
 apply. Issue 9 below is a refactor of those files:
 
 - `PreservesSmoothFamilies T` quantifies over smooth families over every
-  parameter manifold `N` with a model `J` on a finite-dimensional space
-  (boundary allowed, so that the unit interval is a case), in a universe
-  that the definition takes as a parameter; its closure lemmas, the
+  smooth parameter manifold `N` with a model `J`
+  (boundary allowed, so that the unit interval is a case), in universes
+  (of `N`, its model and its model space) that the definition takes as
+  parameters; its closure lemmas, the
   homotopy operator's and the Mayer–Vietoris steps are proved slice by
   slice and carry over;
 - `exists_isSmoothFamily_mextDerivₗ_eq` takes a family `η : N → SmoothForm I M ℝ (k + 1)`

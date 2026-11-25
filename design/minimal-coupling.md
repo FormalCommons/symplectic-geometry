@@ -40,7 +40,7 @@ checked against the versions pinned when this file was written (Tau Ceti
   `τ : Set.Icc a b → SmoothTwoForm IB B` with `IsSmoothFamily (𝓡∂ 1) τ`, the
   predicate of *Smooth families*, which allows any parameter manifold. Where
   a merged result of *Smooth families* is stated only over `unitInterval`
-  (`exists_isSmoothFamily_mextDerivₗ_eq`, the time extension), the family
+  (the time extension), the family
   is reparametrized by Mathlib's affine homeomorphism
   `iccHomeoI a b : Set.Icc a b ≃ₜ unitInterval`, which is smooth both ways,
   with `IsSmoothFamily.comp`. If Mathlib has no smoothness lemma for
@@ -244,7 +244,7 @@ Proof, with no derivative of a family. Fix a connection form $\alpha^0$
 `realFirstChernClass_eq`, the forms
 $\tau_\lambda-\tau_a-(\lambda-a)(2\pi)^{-1}F$ are exact and a smooth family,
 so they have a smooth family of primitives $\beta_\lambda$
-(`exists_isSmoothFamily_mextDerivₗ_eq`, through `iccHomeoI`, on a compact
+(`exists_isSmoothFamily_mextDerivₗ_eq`, over `Set.Icc a b`, on a compact
 manifold, which has a finite good cover). Let $A$ be the one-form
 $(2\pi)^{-1}(\lambda-a)\,\mathrm{pr}^*\alpha^0+\mathrm{pr}^*\pi^*\beta_\lambda$
 on the product, the second term being the vertical form of the family

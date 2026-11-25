@@ -16,8 +16,8 @@ the cylinder `M' × [0, 1]`, takes smooth families of forms on the cylinder, ove
 manifold `N`, to smooth families of forms on `M'`
 (`SymplecticGeometry.IsSmoothFamily.homotopyOperator`). With
 `SymplecticGeometry.IsSmoothFamily.mpullback`, so does `ω ↦ h (Φ^* ω)` for a smooth
-`Φ : M' × [0, 1] → M`, and in particular, as a linear map, it preserves smooth families over the
-unit interval (`SymplecticGeometry.preservesSmoothFamilies_homotopyOperator_mpullback`).
+`Φ : M' × [0, 1] → M`, and in particular, as a linear map, it preserves smooth families
+(`SymplecticGeometry.preservesSmoothFamilies_homotopyOperator_mpullback`).
 For a contraction `Φ` of `M`, this is the primitive of closed forms that the Poincaré lemma
 gives, and it depends smoothly on the form.
 
@@ -92,11 +92,11 @@ theorem IsSmoothFamily.homotopyOperator {EN HN N : Type*} [NormedAddCommGroup EN
 /-- **The homotopy operator preserves smooth families.** For a smooth map `Φ : M' × [0, 1] → M`
 and a submodule `D` of the smooth `(k + 1)`-forms on `M` with values in a Banach space, the linear
 map `ω ↦ h (Φ^* ω)` on `D`, the homotopy operator after pullback along `Φ`, takes smooth families
-of forms over the unit interval to smooth families. -/
+of forms over any smooth parameter manifold to smooth families. -/
 theorem preservesSmoothFamilies_homotopyOperator_mpullback {Φ : M' × Icc (0 : ℝ) 1 → M}
     (hΦ : ContMDiff (I'.prod (𝓡∂ 1)) I ∞ Φ) (D : Submodule ℝ (SmoothForm I M F (k + 1))) :
     PreservesSmoothFamilies
       (SmoothForm.homotopyOperator ∘ₗ SmoothForm.mpullback Φ hΦ ∘ₗ D.subtype) :=
-  preservesSmoothFamilies_def.mpr fun _ hα ↦ (hα.mpullback Φ hΦ).homotopyOperator
+  preservesSmoothFamilies_def.mpr fun _ _ _ hα ↦ (hα.mpullback Φ hΦ).homotopyOperator
 
 end SymplecticGeometry

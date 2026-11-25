@@ -400,9 +400,12 @@ Smooth families of forms over a parameter manifold `N` (model
 
 - `SymplecticGeometry.PreservesSmoothFamilies
   {D : Submodule ℝ (SmoothForm I M F k)} (T : D →ₗ[ℝ] SmoothForm I' M' G l) :
-  Prop := ∀ α : unitInterval → D, IsSmoothFamily (𝓡∂ 1)
-  (fun t ↦ (α t : SmoothForm I M F k)) → IsSmoothFamily (𝓡∂ 1)
-  (fun t ↦ T (α t))`, with `preservesSmoothFamilies_def`.
+  Prop := ∀ {EN : Type uE} … {N : Type uN} … (J : ModelWithCorners ℝ EN HN)
+  [IsManifold J ∞ N] (α : N → D), IsSmoothFamily J
+  (fun t ↦ (α t : SmoothForm I M F k)) → IsSmoothFamily J
+  (fun t ↦ T (α t))`, over every smooth parameter manifold in the universes
+  `uE`, `uH`, `uN` that the definition takes as parameters, with
+  `preservesSmoothFamilies_def`.
 - `.add`, `.smul`, `.neg`, `.sub`, `preservesSmoothFamilies_zero`;
   `.comp` (with a map whose image lies in the next domain, as
   `LinearMap.codRestrict`); `.mextDerivₗ`, `.mpullback` and `.funSMul` (post-
@@ -645,7 +648,9 @@ For `[IsManifold I ∞ M]`:
     proj (k + 1) z` (the identity $z=p(z)+d\,h(z)$, degree by degree, so that
     $\Omega^{-1}$ never occurs);
   - `eq_zero_of_mem_exactForms : s ∈ space k → s ∈ exactForms I M k → s = 0`;
-  - `preservesSmoothFamilies_proj` and `preservesSmoothFamilies_primitive`.
+  - `preservesSmoothFamilies_proj` and `preservesSmoothFamilies_primitive`,
+    for the universe levels of `PreservesSmoothFamilies`, which the structure
+    takes as parameters.
 - From a splitting `σ`: `σ.mk_proj` (`proj` keeps the class), `σ.spaceEquiv
   k : σ.space k ≃ₗ[ℝ] deRhamCohomology I M k` (the class map is bijective),
   `σ.proj_eq_zero_iff` (`proj k z = 0` exactly when `z` is exact),
@@ -654,7 +659,7 @@ For `[IsManifold I ∞ M]`:
   `mextDerivₗ_exactPrimitive` and `preservesSmoothFamilies_exactPrimitive`,
   and `σ.contMDiff_repr_mk`: for a basis `b` of `deRhamCohomology I M k` and a
   smooth family `z` of closed forms, every `t ↦ b.repr (deRhamCohomology.mk I
-  k (z t)) i` is smooth on `unitInterval`, through `spaceEquiv` and
+  k (z t)) i` is smooth on the parameter manifold, through `spaceEquiv` and
   `preservesSmoothFamilies_iff_contMDiff_repr`.
 
 ### `Geometry/Manifold/DeRham/SmoothFamily/Contractible.lean`
@@ -721,10 +726,10 @@ For `[FiniteDimensional ℝ E] [IsManifold I ∞ M] [T2Space M]
   families of primitives*." The page's degree $k\ge1$ of the exact forms is
   `k + 1` here.
 - Its reading for one family: `exists_isSmoothFamily_mextDerivₗ_eq
-  (hM : HasFiniteGoodCover I M) {η : unitInterval → SmoothForm I M ℝ (k + 1)}
-  (hη : IsSmoothFamily (𝓡∂ 1) η) (hex : ∀ t, η t ∈ exactForms I M (k + 1)) :
-  ∃ α : unitInterval → SmoothForm I M ℝ k, IsSmoothFamily (𝓡∂ 1) α ∧
-  ∀ t, mextDerivₗ I k (α t) = η t`.
+  (hM : HasFiniteGoodCover I M) {η : N → SmoothForm I M ℝ (k + 1)}
+  (hη : IsSmoothFamily J η) (hex : ∀ t, η t ∈ exactForms I M (k + 1)) :
+  ∃ α : N → SmoothForm I M ℝ k, IsSmoothFamily J α ∧
+  ∀ t, mextDerivₗ I k (α t) = η t`, for any `[IsManifold J ∞ N]`.
 - `finiteDimensional_deRhamCohomology_of_hasFiniteGoodCover`, the smooth
   cohomology coordinates `contMDiff_repr_mk_of_hasFiniteGoodCover`, and, on a
   compact boundaryless manifold, the instance `FiniteDimensional ℝ
