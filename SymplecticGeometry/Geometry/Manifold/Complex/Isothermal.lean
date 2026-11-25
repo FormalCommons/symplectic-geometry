@@ -10,11 +10,10 @@ public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import TauCeti.Geometry.Manifold.Riemannian.Orientation.Rotation
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
-import SymplecticGeometry.Analysis.Complex.Beltrami.Regularity
 import SymplecticGeometry.Analysis.InnerProductSpace.TwoDim
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
-import TauCeti.Analysis.Calculus.InverseFunctionTheorem
+import TauCeti.Analysis.Complex.Beltrami.Isothermal
 import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
@@ -43,13 +42,14 @@ real linear isomorphism `E ≃L[ℝ] ℂ`, is a smooth partial diffeomorphism `�
 `J` pushes forward to a smooth field of operators squaring to `-1` on the target of `Φ`
 (`TauCeti.SmoothAlmostComplexStructure.contDiffOn_chartPushforward`). That planar field has a
 smooth isothermal chart `e` at the image of the point
-(`TauCeti.Beltrami.exists_smooth_isothermal_chart_of_contDiffOn_of_sq_eq_neg_one`), and `ψ` is
+(`TauCeti.Beltrami.exists_centered_smooth_isothermal_chart`), with smooth inverse, and `ψ` is
 `e ∘ Φ`.
 
-This construction adapts the proof of
-`TauCeti.SmoothAlmostComplexStructure.exists_isIsothermalChart`, in Tau Ceti's
+This construction adapts the proofs of Tau Ceti's private
+`TauCeti.SmoothAlmostComplexStructure.exists_smooth_isIsothermalChart` and
+`TauCeti.isIsothermalChart_trans_of_fderiv_comp`, in Tau Ceti's
 `TauCeti/Geometry/Manifold/Complex/Isothermal.lean`: the pushforward of `J` along a chart, its
-smoothness and square, the planar chart, and the equation from
+smoothness and square, the smooth planar chart on the target of the chart, and the equation from
 `TauCeti.ContMDiffAlmostComplexStructure.mfderiv_comp_toEndomorphism`. Here the model space is any
 real two-dimensional space with smooth charts, and the chart is a partial diffeomorphism.
 
@@ -104,12 +104,12 @@ theorem exists_isothermal_partialDiffeomorph (J : SmoothAlmostComplexStructure I
   have hA (p : ℂ) (hp : p ∈ Φ.target) (w : ℂ) : A p (A p w) = -w :=
     J.chartPushforward_apply_chartPushforward_apply Φ hp w
   -- A smooth planar isothermal chart for `A` at `Φ x`.
-  obtain ⟨e, hxe, -, hes, hinv, hlin⟩ :=
-    Beltrami.exists_smooth_isothermal_chart_of_contDiffOn_of_sq_eq_neg_one Φ.open_target
-      (J.contDiffOn_chartPushforward Φ.contMDiffOn Φ.symm.contMDiffOn) hA (Φ.map_source hx)
+  obtain ⟨e, hxe, -, -, hes, hesymm, hlin⟩ :=
+    Beltrami.exists_centered_smooth_isothermal_chart
+      (J.contDiffOn_chartPushforward Φ.contMDiffOn Φ.symm.contMDiffOn) Φ.open_target
+      (Φ.map_source hx) fun p hp ↦ hA p hp
   let D : PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) ℂ ℂ ∞ :=
-    PartialDiffeomorph.ofOpenPartialHomeomorph e hes (e.contDiffOn_symm_of_isInvertible_fderiv
-      hes hinv)
+    PartialDiffeomorph.ofOpenPartialHomeomorph e hes hesymm
   refine ⟨Φ.trans D, by simp [D, hx, hxe], fun y hy v ↦ ?_⟩
   have hy' : y ∈ Φ.source ∧ Φ y ∈ e.source := by simpa [D] using hy
   have hc : (Φ.trans D : M → ℂ) = e ∘ Φ := by
