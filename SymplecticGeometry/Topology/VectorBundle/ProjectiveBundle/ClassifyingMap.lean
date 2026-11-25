@@ -107,14 +107,11 @@ theorem exists_fiberwise_tautological_of_injective (hF : finrank 𝕜 F = 1)
         (e'.toOpenPartialHomeomorph.symm (x, c))) e'.baseSet :=
       hjc.comp_continuousOn e'.continuousOn_symm_prodMk_left
     have hon : ContinuousOn g₀ e'.baseSet := by
-      have hw : ∀ x : e'.baseSet, (e'.continuousLinearEquivAt 𝕜 x x.property).symm c ≠ 0 := fun x ↦
-        (map_ne_zero_iff _
-          (e'.continuousLinearEquivAt 𝕜 x x.property).symm.injective).2 hc
-      have hs' : Continuous fun x : e'.baseSet ↦
-          j x ((e'.continuousLinearEquivAt 𝕜 x x.property).symm c) := by
+      have hw : ∀ x : e'.baseSet, e'.symm x c ≠ 0 := fun x ↦
+        (e'.symm_apply_ne_zero_iff 𝕜 x.property).2 hc
+      have hs' : Continuous fun x : e'.baseSet ↦ j x (e'.symm x c) := by
         refine (continuousOn_iff_continuous_domRestrict.1 hs).congr fun x ↦ ?_
-        rw [domRestrict_apply,
-          e'.symm_apply_eq_mk_continuousLinearEquivAt_symm (R := 𝕜) x x.property]
+        rw [domRestrict_apply, ← e'.mk_symm x.property]
       rw [continuousOn_iff_continuous_domRestrict]
       exact (continuous_mk hs' fun x ↦ (map_ne_zero_iff _ (hj x)).2 (hw x)).congr fun x ↦
         (hg₀ x _ (hw x)).symm
