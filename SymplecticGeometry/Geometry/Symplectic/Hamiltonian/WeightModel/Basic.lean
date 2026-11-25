@@ -17,7 +17,10 @@ Tau Ceti's `TauCeti.weightRotation θ` rotates the `k`-th coordinate plane of
 `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι` by the angle `θₖ`. This file reads it in the complex
 coordinates `u : ι → ℂ`, through `TauCeti.complexToRealEuclidean ι` (real and imaginary parts)
 and `EuclideanSpace.sumEquivProd`: it is the coordinatewise multiplication
-`uₖ ↦ exp (θₖ i) uₖ` (`TauCeti.weightRotation_sumEquivProd_complexToRealEuclidean`).
+`uₖ ↦ exp (θₖ i) uₖ` (`TauCeti.weightRotation_sumEquivProd_complexToRealEuclidean`). This is
+Tau Ceti's `TauCeti.complexEuclideanEquivRealProd_symm_weightRotation_apply`, which states the same
+for the coordinates `EuclideanSpace ℂ ι` of `TauCeti.complexEuclideanEquivRealProd`, read in the
+coordinates `ι → ℂ` that the library's weight charts use.
 
 It also computes the standard symplectic form of these coordinates on vectors with disjoint
 supports: `TauCeti.stdSymplecticForm_eq_zero_of_forall`.
@@ -44,8 +47,15 @@ theorem weightRotation_sumEquivProd_complexToRealEuclidean {ι : Type*} [Fintype
     weightRotation θ (EuclideanSpace.sumEquivProd (complexToRealEuclidean ι u)) =
       EuclideanSpace.sumEquivProd
         (complexToRealEuclidean ι fun k ↦ Complex.exp (θ k * Complex.I) * u k) := by
-  ext k <;> simp [Complex.exp_ofReal_mul_I_re, Complex.exp_ofReal_mul_I_im]
-  ring
+  -- Read both sides through Tau Ceti's `complexEuclideanEquivRealProd`.
+  have h (v : ι → ℂ) : EuclideanSpace.sumEquivProd (complexToRealEuclidean ι v) =
+      complexEuclideanEquivRealProd ι (WithLp.toLp 2 v) := by
+    ext k <;> simp
+  rw [h, h]
+  refine (complexEuclideanEquivRealProd ι).symm.injective (PiLp.ext fun k ↦ ?_)
+  simp only [complexEuclideanEquivRealProd_symm_weightRotation_apply,
+    ContinuousLinearEquiv.symm_apply_apply, PiLp.toLp_apply, Complex.exp_mul_I,
+    Complex.ofReal_cos, Complex.ofReal_sin]
 
 /-- The standard symplectic form of `ℂ^ι = ℝ^ι × ℝ^ι` vanishes on two vectors that have, at each
 index, one of them with both coordinates zero. -/

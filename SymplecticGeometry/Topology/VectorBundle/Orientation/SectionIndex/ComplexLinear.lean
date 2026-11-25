@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.HomologicalOrientatio
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.Derivative
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+import TauCeti.Topology.Algebra.Module.Determinant
 
 /-!
 # A zero with complex-linear invertible derivative has index one
@@ -138,9 +139,9 @@ theorem sectionIndex_eq_one_of_complexLinear {r : ℕ} (hE : finrank ℂ E = r +
   have hφl := Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation_transHomeomorph
     hEℝ oM hG Aℝ z
   rw [hω] at hφl
-  have hdet : (ContinuousLinearMap.id ℝ G).det = 1 := LinearMap.det_id
   rw [sectionIndex_eq_sign_det_of_hasFDerivAt_of_eventually oV hG _ hs e φ hz hze hzφ
-    (Eventually.of_forall ho) hφl hAφ (hdet ▸ one_ne_zero), hdet, sign_one, SignType.coe_one]
+    (Eventually.of_forall ho) hφl hAφ (by simp), ContinuousLinearMap.det_id, sign_one,
+    SignType.coe_one]
 
 end SymplecticGeometry
 

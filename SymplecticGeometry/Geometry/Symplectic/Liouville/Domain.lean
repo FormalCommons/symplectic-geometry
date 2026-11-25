@@ -95,8 +95,9 @@ theorem isMIntegralCurveOn_completionEnd (x : (𝓡∂ (n + 1)).boundary W) :
   refine (hslice.hasMFDerivAt.congr_mfderiv ?_).hasMFDerivWithinAt
   refine ContinuousLinearMap.ext_ring ?_
   have key := h.mfderiv_completionEnd_apply hq
-  rw [Manifold.prodVectorField_constVectorField_zero_apply, hd.mfderiv_curry_left_apply] at key
-  exact key.trans (one_smul ℝ _).symm
+  rw [Manifold.prodVectorField_constVectorField_zero_apply] at key
+  exact (MDifferentiableAt.mfderiv_uncurry_apply_mk_zero (f := fun s x ↦ h.completionEnd (s, x))
+    hd 1).symm.trans (key.trans (one_smul ℝ _).symm)
 
 /-- Every point of the completion is carried into `W` by the flow of its Liouville field: the
 point `(s, x)` of the end, `s > 0`, in time `-s`, and the points of `W` in time `0`. -/
