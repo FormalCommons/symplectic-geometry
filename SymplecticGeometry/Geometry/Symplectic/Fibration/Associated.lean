@@ -16,6 +16,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Basic
 public import TauCeti.Geometry.Manifold.MFDeriv.ContinuousLinearMap
 public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Basic
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # Weinstein's form on `P × F` and its descent to `P ×_G F`
@@ -494,15 +495,9 @@ theorem mpullback_associatedForm_fiber {σ : SmoothTwoForm IF F}
       ![mfderiv IF ((IB.prod IG).prod IF) (fun v : F ↦ (x, v)) v a,
         mfderiv IF ((IB.prod IG).prod IF) (fun v : F ↦ (x, v)) v b] :=
     funext fun i ↦ by fin_cases i <;> rfl
-  rw [SmoothForm.mpullback_apply, hd, weinsteinForm_apply hμ]
-  -- The derivative of `v ↦ (x, v)` is `c ↦ (0, c)`.
-  have e (c : TangentSpace IF v) : Manifold.tangentSpaceProdEquiv (x, v)
-      (mfderiv IF ((IB.prod IG).prod IF) (fun v : F ↦ (x, v)) v c) = (0, c) := by
-    rw [mfderiv_prod_right, Manifold.tangentSpaceProdEquiv_apply]
-    -- `inr c = (0, c)` holds only once the tangent space of the product is unfolded to the
-    -- product of the tangent spaces, so `ContinuousLinearMap.inr_apply` does not rewrite here.
-    rfl
-  rw [e, e, (A.val x).map_coord_zero 0 rfl,
+  rw [SmoothForm.mpullback_apply, hd, weinsteinForm_apply hμ,
+    Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right,
+    Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right, (A.val x).map_coord_zero 0 rfl,
     ((connectionCurvature A).val x).map_coord_zero 0 rfl, fundamentalVectorField_zero]
   simp
 

@@ -12,6 +12,7 @@ public import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 public import SymplecticGeometry.Geometry.Manifold.Instances.Icc
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # Time extension of forms
@@ -490,11 +491,9 @@ private theorem mpullback_prodMk_mpullback_iccHomeoI_apply_cons (V : Π x : M, T
   -- The slice inclusion `y ↦ (y, s)` relates `V` to `(V, 0)`.
   have hd : mfderiv I (I.prod (𝓡∂ 1)) (fun y : M ↦ (y, (iccHomeoI a b hab.out).symm t)) x (V x) =
       Manifold.prodVectorField V 0 (x, (iccHomeoI a b hab.out).symm t) := by
-    rw [mfderiv_prod_left]
-    -- `inl_apply` lands in the product of the tangent spaces, the tangent space of the product.
-    exact (ContinuousLinearMap.inl_apply (V x)).trans
-      (Prod.ext (by rw [Manifold.prodVectorField_fst])
-        (by rw [Manifold.prodVectorField_snd, Pi.zero_apply]))
+    apply (TauCeti.Manifold.tangentSpaceProdEquiv _).injective
+    rw [TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_left,
+      TauCeti.Manifold.tangentSpaceProdEquiv_prodVectorField, Pi.zero_apply]
   rw [← hζ, TauCeti.mpullback_interior_at _ V _ _ hd, RoughForm.interior_apply,
     Matrix.vecCons]
 
