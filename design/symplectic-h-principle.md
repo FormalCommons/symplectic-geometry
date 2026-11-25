@@ -260,17 +260,55 @@ theorem exists_homotopy_exact_of_exact_near_attaching
         ∀ t, ∃ V ∈ 𝓝ˢ Q, ∃ γ, ∀ x ∈ V, mextDerivₗ 1 γ x = σ (λ, t) x
 ```
 
-This is the shape, not the final text. The milestone itself assumes only
-that each `τ λ`, `λ ∈ K`, is exact on one open `W ⊇ A`, not that the
-primitives depend smoothly on `λ`. One `W` for all of `K` is how a
-parametric statement reads "near `A`": a neighbourhood of the compact
-`K ×ˢ A` in `L × D` contains `K ×ˢ W` for an open `W ⊇ A`, by the tube lemma.
-A separate neighbourhood for each `λ` would not be enough, since those
-neighbourhoods can shrink to `A` as `λ` converges in `K`. The working lemma
-above takes a smooth family `β` of primitives, and the milestone gets one in
+This is the shape of the working lemma, not the final text. Its collar `W`
+is one open set for all of `K`, and its primitives `β` depend smoothly on
+`λ`. The milestone asks for neither, and in its conclusion the homotopy
+need only be fixed near `A` for each `λ` separately:
+
+```lean
+theorem exists_homotopy_exact_of_forall_exact_near_attaching
+    {τ : L → SmoothTwoForm 𝓘(ℝ, D) D} (hτ : IsSmoothFamily 𝓘(ℝ, L) τ)
+    (hnd : ∀ λ ∈ K, ∀ x ∈ Q, ((τ λ).bilinFormAt x).Nondegenerate)
+    (hex : ∀ λ ∈ K, ∃ W ∈ 𝓝ˢ A, ∃ β : SmoothForm 𝓘(ℝ, D) D ℝ 1,
+      ∀ x ∈ W, mextDerivₗ 1 β x = τ λ x) :
+    ∃ σ : L × unitInterval → SmoothTwoForm 𝓘(ℝ, D) D,
+      IsSmoothFamily (𝓘(ℝ, L).prod (𝓡∂ 1)) σ ∧
+      (∀ λ, σ (λ, 0) = τ λ) ∧
+      (∀ λ ∈ K, ∀ t, ∀ x ∈ Q, ((σ (λ, t)).bilinFormAt x).Nondegenerate) ∧
+      (∀ λ ∈ K, ∃ W' ∈ 𝓝ˢ A, ∀ t, ∀ x ∈ W', σ (λ, t) x = τ λ x) ∧
+      -- the last two clauses as in the working lemma
+      ...
+```
+
+The neighbourhoods in `hex` may shrink to `A` as `λ` converges in `K`, so
+they give no common collar directly. The proof first removes that
+difference (step 0), then builds a smooth family of primitives on the
+common collar (steps 1 to 3), and applies the working lemma.
+
+0. **A common collar.** Fix a thin product collar `W₀ ⊇ A` (as in step 1).
+   Correct `τ` by a smooth family of two-forms `η λ` that, for each
+   `λ ∈ K`, vanishes near `A`, is small enough on `Q` that
+   `τ λ - s • η λ` stays nondegenerate for `s ∈ [0, 1]`, and makes
+   `τ λ - η λ` closed on `W₀`. The straight line from `τ` to `τ - η`,
+   joined smoothly in `t` to the homotopy of the working lemma, then gives
+   the milestone. Each `τ λ - η λ`, `λ ∈ K`, is closed on `W₀` and exact on
+   a thinner product collar inside the `W` of `hex`, so it is exact on
+   `W₀`, since that inclusion is a homotopy equivalence. The candidate
+   for `η λ` is a homotopy operator applied to `d (τ λ)` along segments
+   into the faces: it vanishes wherever `d (τ λ)` vanishes along those
+   segments, and is bounded by the width of `W₀` times the size of
+   `d (τ λ)`, uniformly over the compact `K`. For `λ ∈ K` that is the
+   case near `A`, since `τ λ` is closed there. The sup norm is not smooth
+   at the corners of `A`, so the operator must be built with care there.
+   The building issue settles this step first. If it fails, the issue
+   records the difference between the two statements in `ERRATA.md`, with
+   a counterexample, before it proves the milestone with one collar.
+
+On the common collar, with `τ` now the corrected family `τ - η`, the
+smooth family `β` of primitives that the working lemma takes comes in
 three steps:
 
-1. Inside `W`, fix a product collar `W₀ ⊇ A`, the `(u, v)` with
+1. The product collar `W₀ ⊇ A` is the set of `(u, v)` with
    `|‖u‖ - 1| < ε` and `‖v‖ < 1 + ε`, for a small `ε > 0`. It has a finite
    good cover by convex slabs, so it has a `SmoothCohomologySplitting`
    (`HasFiniteGoodCover.nonempty_smoothCohomologySplitting`) and a linear
@@ -292,8 +330,9 @@ given near the two ends of the core are patched across a narrow band around
 it with cutoff functions, the zig-zag immersion giving the band enough
 length to keep the error small; then induction on $m$, with
 the cutoffs and the nondegeneracy bounds chosen uniformly over `K` by
-compactness, and the attaching collars fixed once in the statement (the
-neighbourhoods `W` and `W'`). The docstring ends with "Milestone:
+compactness, and the attaching collars fixed once in the working lemma
+(the neighbourhoods `W` and `W'`). The docstring of
+`exists_homotopy_exact_of_forall_exact_near_attaching` ends with "Milestone:
 *Relative extension of exact symplectic forms over a handle core*."
 
 ### `Geometry/Symplectic/HPrinciple/Engine.lean`
@@ -412,8 +451,9 @@ Each is a few hundred lines; each issue's blockers come before it.
    one issue for both parts. Whichever building issue is split first
    creates it, and the other part uses that issue. Blocked by nothing.
 7. **The handle-core lemma.** `Geometry/Symplectic/HPrinciple/HandleCore.lean`.
-   Blocked by 6, for the family `β` of primitives. If it exceeds the size
-   limit, the case $m=1$ becomes an issue of its own.
+   Blocked by 6, for the family `β` of primitives. It settles step 0, the
+   common collar, first. If it exceeds the size limit, the case $m=1$
+   becomes an issue of its own.
 8. **The engine near the core.** The construction of $\sigma_\lambda$ in
    `Geometry/Symplectic/HPrinciple/Engine.lean`. Blocked by 3 and by the
    building issues of 5.
