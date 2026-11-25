@@ -106,7 +106,7 @@ variable {J : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)}
 /-- **`D_J` in the frame of a chart.** Let `e = (twistCore 1).localTriv y` be the trivialization
 of `𝒪(1)` at `y`, `φ p = (e ⟨p, s p⟩).2` the coordinate of a section `s` in it, and `e₀` the frame
 section reading as `1`. At a point `x` of the chart at `y` where `s` is differentiable,
-`D_J s x = ∂bar_J φ x + φ x • D_J e₀ x`, the first term carried to the fibre by `e`. -/
+`D_J s x = ∂bar_J φ x + φ x • D_J e₀ x`, the first term carried to the fibre by `e.symmL`. -/
 theorem twistOneDelBar_eq_symmL_comp_dbarFunction_add_smul {y x : OnePoint ℂ}
     (hx : x ∈ (chartAt ℂ y).source) {s : OnePoint ℂ → ℂ}
     (hs : MDifferentiableAt 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ))
