@@ -690,11 +690,9 @@ private theorem exists_partialDiffeomorph_of_primitive [I.Boundaryless] [J.Bound
           (CotangentBundle.liouvilleForm J L)).contactization).val x := by
   have hα := hf.isContactForm
   have hR := hα.contMDiff_reebVectorField
-  have : LocallyCompactSpace H := I.locallyCompactSpace
-  have := ChartedSpace.locallyCompactSpace H M
-  have : LocallyCompactSpace (ModelProd (ModelProd H' (E' →L[ℝ] ℝ)) ℝ) :=
-    ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ)).locallyCompactSpace
-  have := ChartedSpace.locallyCompactSpace (ModelProd (ModelProd H' (E' →L[ℝ] ℝ)) ℝ) (S × ℝ)
+  have : LocallyCompactSpace M := Manifold.locallyCompact_of_finiteDimensional I
+  have : LocallyCompactSpace (S × ℝ) :=
+    Manifold.locallyCompact_of_finiteDimensional ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ))
   have := Manifold.metrizableSpace ((J.prod 𝓘(ℝ, E' →L[ℝ] ℝ)).prod 𝓘(ℝ)) (S × ℝ)
   have := Manifold.metrizableSpace I M
   have : Nonempty (S × ℝ) := ⟨(s₀ (Classical.arbitrary L), 0)⟩
