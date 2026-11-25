@@ -434,3 +434,111 @@ theorem exists_diffeomorph_isOrientationPreservingAt [Nontrivial E] {e₁ e₁' 
     (he₂ := fun v _ ↦ hf₂' v) R _
 
 end TauCeti.ConnectedSum
+
+namespace TauCeti.OrientedConnectedSum
+
+open Manifold.Orientation ENat
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
+  [Nontrivial E]
+  {M : Type*} [TopologicalSpace M] [T2Space M] [Nonempty M]
+  [ChartedSpace E M] [IsManifold 𝓘(ℝ, E) ∞ M]
+  {N : Type*} [TopologicalSpace N] [T2Space N] [Nonempty N]
+  [ChartedSpace E N] [IsManifold 𝓘(ℝ, E) ∞ N]
+  {ι : Type*} [Fintype ι]
+  (oM : Manifold.Orientation 𝓘(ℝ, E) M ι) (oN : Manifold.Orientation 𝓘(ℝ, E) N ι)
+
+/-- The orientation of the connected sum along the balls `ballLeft oM oN` and `ballRight oM oN`
+of the oriented connected sum, `TauCeti.ConnectedSum.orientation`. -/
+def connectedSumOrientation :
+    letI := ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_ballLeft oM oN)
+      (isOpenEmbedding_ballRight oM oN)
+    haveI := ConnectedSum.isManifold (isOpenEmbedding_ballLeft oM oN)
+      (isOpenEmbedding_ballRight oM oN) (isLocalDiffeomorph_ballLeft oM oN)
+      (isLocalDiffeomorph_ballRight oM oN)
+    Manifold.Orientation 𝓘(ℝ, E) (ConnectedSum (ballLeft oM oN) (ballRight oM oN)) ι :=
+  letI := ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_ballLeft oM oN)
+    (isOpenEmbedding_ballRight oM oN)
+  haveI := ConnectedSum.isManifold (isOpenEmbedding_ballLeft oM oN)
+    (isOpenEmbedding_ballRight oM oN) (isLocalDiffeomorph_ballLeft oM oN)
+    (isLocalDiffeomorph_ballRight oM oN)
+  ConnectedSum.orientation (isOpenEmbedding_ballLeft oM oN) (isOpenEmbedding_ballRight oM oN)
+    (IsLocalDiffeomorph.of_le (isLocalDiffeomorph_ballLeft oM oN) LEInfty.out)
+    (IsLocalDiffeomorph.of_le (isLocalDiffeomorph_ballRight oM oN) LEInfty.out) oM oN
+    (exists_isOrientationPreservingAt_ballLeft oM oN).choose
+    (fun v _ ↦ (exists_isOrientationPreservingAt_ballLeft oM oN).choose_spec.1 v)
+    (fun v _ ↦ (exists_isOrientationPreservingAt_ballLeft oM oN).choose_spec.2 v)
+
+/-- The **orientation of the oriented connected sum** `M # N`: the one which agrees with `oM` on
+the punctured first summand and with `oN` on the punctured second summand, carried from the
+connected sum along its balls by `TauCeti.OrientedConnectedSum.diffeomorphConnectedSum`. -/
+def orientation : Manifold.Orientation 𝓘(ℝ, E) (OrientedConnectedSum oM oN) ι :=
+  letI := ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_ballLeft oM oN)
+    (isOpenEmbedding_ballRight oM oN)
+  haveI := ConnectedSum.isManifold (isOpenEmbedding_ballLeft oM oN)
+    (isOpenEmbedding_ballRight oM oN) (isLocalDiffeomorph_ballLeft oM oN)
+    (isLocalDiffeomorph_ballRight oM oN)
+  (connectedSumOrientation oM oN).pullback
+    ((diffeomorphConnectedSum oM oN).contMDiff.of_le LEInfty.out)
+    (fun _ ↦ (diffeomorphConnectedSum oM oN).isInvertible_mfderiv (by simp)) oM.card_eq
+
+/-- The identification of the oriented connected sum with the connected sum along its balls
+preserves orientation. -/
+theorem isOrientationPreservingAt_diffeomorphConnectedSum (p : OrientedConnectedSum oM oN) :
+    letI := ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_ballLeft oM oN)
+      (isOpenEmbedding_ballRight oM oN)
+    haveI := ConnectedSum.isManifold (isOpenEmbedding_ballLeft oM oN)
+      (isOpenEmbedding_ballRight oM oN) (isLocalDiffeomorph_ballLeft oM oN)
+      (isLocalDiffeomorph_ballRight oM oN)
+    IsOrientationPreservingAt (orientation oM oN) (connectedSumOrientation oM oN)
+      (diffeomorphConnectedSum oM oN) p := by
+  let := ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_ballLeft oM oN)
+    (isOpenEmbedding_ballRight oM oN)
+  have := ConnectedSum.isManifold (isOpenEmbedding_ballLeft oM oN)
+    (isOpenEmbedding_ballRight oM oN) (isLocalDiffeomorph_ballLeft oM oN)
+    (isLocalDiffeomorph_ballRight oM oN)
+  exact isOrientationPreservingAt_pullback _ _ _ _ p
+
+variable [PreconnectedSpace M] [PreconnectedSpace N]
+
+/-- **The oriented connected sum is well defined up to orientation-preserving diffeomorphism.**
+Let `M` and `N` be connected Hausdorff smooth manifolds without boundary, modelled on a
+nontrivial finite-dimensional real inner product space `E`, with orientations `oM` and `oN`. Let
+`e₁ : E → M` and `e₂ : E → N` be balls, open embeddings and smooth local diffeomorphisms, which
+respectively preserve and reverse orientation from some orientation `oE` of `E`. Then the oriented
+connected sum `M # N` is diffeomorphic to the connected sum along `e₁` and `e₂` by a
+diffeomorphism which carries `TauCeti.OrientedConnectedSum.orientation oM oN` to
+`TauCeti.ConnectedSum.orientation`.
+
+Milestone: *Disc theorem*. -/
+theorem exists_diffeomorph_connectedSum_isOrientationPreservingAt {e₁ : E → M} {e₂ : E → N}
+    (h₁ : IsOpenEmbedding e₁) (h₂ : IsOpenEmbedding e₂)
+    (d₁ : IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) ∞ e₁) (d₂ : IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) ∞ e₂)
+    (oE : Manifold.Orientation 𝓘(ℝ, E) E ι) (hf₁ : ∀ v, oE.IsOrientationPreservingAt oM e₁ v)
+    (hf₂ : ∀ v, oE.IsOrientationReversingAt oN e₂ v) :
+    letI := ConnectedSum.chartedSpace (H := E) h₁ h₂
+    haveI := ConnectedSum.isManifold h₁ h₂ d₁ d₂
+    ∃ Φ : OrientedConnectedSum oM oN ≃ₘ^∞⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ ConnectedSum e₁ e₂, ∀ p,
+      IsOrientationPreservingAt (orientation oM oN)
+        (ConnectedSum.orientation h₁ h₂ (IsLocalDiffeomorph.of_le d₁ LEInfty.out)
+          (IsLocalDiffeomorph.of_le d₂ LEInfty.out) oM oN oE (fun v _ ↦ hf₁ v)
+          (fun v _ ↦ hf₂ v)) Φ p := by
+  let := ConnectedSum.chartedSpace (H := E) h₁ h₂
+  let := ConnectedSum.chartedSpace (H := E) (isOpenEmbedding_ballLeft oM oN)
+    (isOpenEmbedding_ballRight oM oN)
+  have := ConnectedSum.isManifold h₁ h₂ d₁ d₂
+  have := ConnectedSum.isManifold (isOpenEmbedding_ballLeft oM oN)
+    (isOpenEmbedding_ballRight oM oN) (isLocalDiffeomorph_ballLeft oM oN)
+    (isLocalDiffeomorph_ballRight oM oN)
+  have h := (exists_isOrientationPreservingAt_ballLeft oM oN).choose_spec
+  obtain ⟨Ψ, hΨ⟩ := ConnectedSum.exists_diffeomorph_isOrientationPreservingAt
+    (isOpenEmbedding_ballLeft oM oN) (isOpenEmbedding_ballRight oM oN) h₁ h₂
+    (isLocalDiffeomorph_ballLeft oM oN) (isLocalDiffeomorph_ballRight oM oN) d₁ d₂ _ oE oM oN
+    h.1 h.2 hf₁ hf₂
+  refine ⟨(diffeomorphConnectedSum oM oN).trans Ψ, fun p ↦ ?_⟩
+  rw [Diffeomorph.coe_trans]
+  exact (hΨ _).comp (isOrientationPreservingAt_diffeomorphConnectedSum oM oN p)
+
+end TauCeti.OrientedConnectedSum
+
+end
