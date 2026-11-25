@@ -53,6 +53,8 @@ projections, and the inclusion into `ℙ ℂ E × E`, are holomorphic.
   transitions are analytic, so the blowup is a complex manifold of dimension `n + 1` (a `C^r`
   manifold for every `r`). The chart at `p` is taken at the index Tau Ceti's atlas of `ℙ ℂ E` uses
   at `p.pr`. Instance search finds `T2Space` and `SecondCountableTopology` from the subspace.
+* `SymplecticGeometry.BlowupModel.contMDiff_iff_forall_contMDiff_comp_blowupModelChart_symm`: a
+  map out of the blowup is `C^r` exactly when it is `C^r` read in each chart.
 * `SymplecticGeometry.BlowupModel.contMDiff_pr`, `SymplecticGeometry.BlowupModel.contMDiff_blowdown`
   and `SymplecticGeometry.BlowupModel.contMDiff_blowupModel_val`: the projection to `ℙ ℂ E`, the
   blowdown and the inclusion into `ℙ ℂ E × E` are holomorphic.
@@ -439,40 +441,42 @@ theorem contMDiff_blowupModelChart_symm (i : Fin (n + 1)) (r : ℕ∞ω) :
   rw [← contMDiffOn_univ]
   simpa using contMDiffOn_symm_of_mem_maximalAtlas (blowupModelChart_mem_maximalAtlas r i)
 
-/-- The projection of the blowup to `ℙ ℂ E` is `C^r` for every `r`; for `r = ω` it is
-holomorphic. -/
-theorem contMDiff_pr (r : ℕ∞ω) :
-    ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin n → ℂ) r (pr : BlowupModel n → _) := by
-  intro p
+/-- A map out of the blowup is `C^r` if and only if it is `C^r` read in each chart
+`blowupModelChart i`, that is, composed with the inverse of each chart, a map defined on all of
+`E`. -/
+theorem contMDiff_iff_forall_contMDiff_comp_blowupModelChart_symm {F H M : Type*}
+    [NormedAddCommGroup F] [NormedSpace ℂ F] [TopologicalSpace H] {I : ModelWithCorners ℂ F H}
+    [TopologicalSpace M] [ChartedSpace H M] {f : BlowupModel n → M} {r : ℕ∞ω} :
+    ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) I r f ↔
+      ∀ i, ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) I r (f ∘ (blowupModelChart i).symm) := by
+  refine ⟨fun hf i => hf.comp (contMDiff_blowupModelChart_symm i r), fun hf p => ?_⟩
   obtain ⟨i, hi⟩ := exists_mem_affineOpen p.pr
   have hsrc : (blowupModelChart i).source ∈ 𝓝 p :=
     (blowupModelChart i).open_source.mem_nhds (by rw [blowupModelChart_source]; exact hi)
-  -- Near `p`, the line `pr q` is spanned by `update (blowupModelChart i q) i 1`.
-  have hF : ContMDiffOn 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) r
-      (fun q => update (blowupModelChart i q) i 1) (blowupModelChart i).source :=
-    (ContDiff.update_self i contDiff_const).contMDiff.comp_contMDiffOn
-      (contMDiffOn_blowupModelChart i r)
-  refine contMDiffAt_of_eventually_eq_mk (hF.contMDiffAt hsrc) ?_
-  filter_upwards [hsrc] with q hq
-  refine ⟨update_ne_zero _ i one_ne_zero, ?_⟩
-  conv_lhs => rw [← (blowupModelChart i).left_inv hq]
-  exact pr_blowupModelChart_symm_apply i _
+  refine (((hf i).comp_contMDiffOn (contMDiffOn_blowupModelChart i r)).congr fun q hq => ?_)
+    |>.contMDiffAt hsrc
+  rw [comp_apply, comp_apply, (blowupModelChart i).left_inv hq]
+
+/-- The projection of the blowup to `ℙ ℂ E` is `C^r` for every `r`; for `r = ω` it is
+holomorphic. -/
+theorem contMDiff_pr (r : ℕ∞ω) :
+    ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin n → ℂ) r (pr : BlowupModel n → _) :=
+  -- In the chart `i`, the line `pr` is spanned by `update w i 1`.
+  contMDiff_iff_forall_contMDiff_comp_blowupModelChart_symm.2 fun i _ =>
+    contMDiffAt_of_eventually_eq_mk
+      (ContDiff.update_self i contDiff_const).contMDiff.contMDiffAt
+      (Eventually.of_forall fun w =>
+        ⟨update_ne_zero w i one_ne_zero, pr_blowupModelChart_symm_apply i w⟩)
 
 /-- The blowdown map of the blowup to `E` is `C^r` for every `r`; for `r = ω` it is
 holomorphic. -/
 theorem contMDiff_blowdown (r : ℕ∞ω) :
-    ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) r (blowdown : BlowupModel n → _) := by
-  intro p
-  obtain ⟨i, hi⟩ := exists_mem_affineOpen p.pr
-  have hsrc : (blowupModelChart i).source ∈ 𝓝 p :=
-    (blowupModelChart i).open_source.mem_nhds (by rw [blowupModelChart_source]; exact hi)
+    ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (n + 1) → ℂ) r (blowdown : BlowupModel n → _) :=
   -- In the chart `i`, the blowdown is `w ↦ w i • update w i 1`.
-  have hG : ContDiff ℂ r fun w : Fin (n + 1) → ℂ => w i • update w i 1 :=
-    (contDiff_apply ℂ (fun _ => ℂ) i).smul (ContDiff.update_self i contDiff_const)
-  refine ((hG.contMDiff.comp_contMDiffOn (contMDiffOn_blowupModelChart i r)).congr fun q hq => ?_)
-    |>.contMDiffAt hsrc
-  conv_lhs => rw [← (blowupModelChart i).left_inv hq]
-  exact blowdown_blowupModelChart_symm_apply i _
+  contMDiff_iff_forall_contMDiff_comp_blowupModelChart_symm.2 fun i =>
+    (((contDiff_apply ℂ (fun _ => ℂ) i).smul
+      (ContDiff.update_self i contDiff_const)).contMDiff).congr fun w =>
+        blowdown_blowupModelChart_symm_apply i w
 
 /-- The inclusion of the blowup into `ℙ ℂ E × E` is `C^r` for every `r`; for `r = ω` it is
 holomorphic. -/
