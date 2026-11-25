@@ -8,7 +8,6 @@ module
 public import Mathlib.Geometry.Manifold.MFDeriv.Atlas
 public import SymplecticGeometry.Topology.FiberBundle.Basic
 public import TauCeti.Geometry.Manifold.FiberBundle.MapFiber
-public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
 public import TauCeti.Geometry.Manifold.MFDeriv.Basic
 public import TauCeti.Geometry.Manifold.RegularValue
 public import TauCeti.Geometry.Manifold.Submersion.Split
@@ -48,10 +47,10 @@ projection of its charted total space.
 
 ## Implementation notes
 
-The submersion property is obtained from Tau Ceti's `TauCeti.ManifoldTotalSpace.isSubmersion_proj`
-for the fibre bundle of the atlas, along `TauCeti.MapFiber.Atlas.totalSpaceDiffeomorph`, by
-`Manifold.IsSubmersion.of_comp`; this is why it assumes finite dimensions and a boundaryless
-total space. The range of the derivative of a fibre inclusion is computed with Tau Ceti's
+The submersion property follows from `Bundle.Trivialization.isRegularPoint_proj` at every point,
+by Tau Ceti's `ContMDiff.isSubmersionOfComplement_of_surjective_mfderiv`; this is why it assumes
+finite dimensions and a boundaryless total space. The range of the derivative of a fibre
+inclusion is computed with Tau Ceti's
 `TauCeti.IsRegularPoint.range_mfderiv_eq_ker_mfderiv`. The proof that a coordinate change is
 smooth, as the fibre coordinate of one trivialization after the inverse of the other, follows that
 of Tau Ceti's `TauCeti.MapFiber.Atlas.contMDiffFiberBundle`.
@@ -226,7 +225,6 @@ variable {𝕜 : Type*} [RCLike 𝕜] {n : ℕ∞ω}
   [IsManifold IB n B]
   {EF : Type*} [NormedAddCommGroup EF] [NormedSpace 𝕜 EF] {HF : Type*} [TopologicalSpace HF]
   {IF : ModelWithCorners 𝕜 EF HF} {F : Type*} [TopologicalSpace F] [ChartedSpace HF F]
-  [IsManifold IF n F]
   {EM : Type*} [NormedAddCommGroup EM] [NormedSpace 𝕜 EM] [FiniteDimensional 𝕜 EM]
   {HM : Type*} [TopologicalSpace HM]
   {IM : ModelWithCorners 𝕜 EM HM} [IM.Boundaryless] {M : Type*} [TopologicalSpace M]
@@ -235,37 +233,15 @@ variable {𝕜 : Type*} [RCLike 𝕜] {n : ℕ∞ω}
 /-- **The map of a smooth atlas is a submersion.** If `proj : M → B` has a `C^n` atlas, `1 ≤ n`,
 between finite-dimensional manifolds with `M` boundaryless, then `proj` is a `C^n` submersion. -/
 theorem isSubmersion (hA : A.IsContMDiff n IB IF IM) (hn : 1 ≤ n) :
-    Manifold.IsSubmersion IM IB n proj := by
-  let := A.fiberBundle
-  have := A.contMDiffFiberBundle hA
-  have hcomp : proj ∘ A.totalSpaceDiffeomorph hA =
-      fun x : ManifoldTotalSpace F (MapFiber proj) ↦
-        ((ManifoldTotalSpace.homeomorph F (MapFiber proj)).symm x).proj :=
-    funext (A.proj_totalSpaceDiffeomorph hA)
-  refine Manifold.IsSubmersion.of_comp ?_
-    (A.totalSpaceDiffeomorph hA).contMDiff (A.totalSpaceDiffeomorph hA).surjective
-    hA.contMDiff_proj hn
-  rw [hcomp]
-  exact ManifoldTotalSpace.isSubmersion_proj n F (MapFiber proj) IB IF
+    Manifold.IsSubmersion IM IB n proj :=
+  (hA.contMDiff_proj.isSubmersionOfComplement_of_surjective_mfderiv hn fun x ↦
+    TauCeti.isRegularPoint_iff.1 <| Bundle.Trivialization.isRegularPoint_proj
+      (hA.mdifferentiable_trivAt (ne_of_gt (zero_lt_one.trans_le hn)) (proj x))
+      ((A.trivAt (proj x)).mem_source.2 (A.mem_baseSet_trivAt (proj x)))).isSubmersion
 
 end TauCeti.MapFiber.Atlas.IsContMDiff
 
 /-! ### The atlas of a smooth fibre bundle -/
-
-namespace Bundle.Trivialization
-
-variable {B F Z Z' : Type*} [TopologicalSpace B] [TopologicalSpace F] [TopologicalSpace Z]
-  [TopologicalSpace Z'] {proj : Z → B}
-
-/-- Precomposing two trivializations with a homeomorphism does not change their coordinate
-changes. -/
-@[simp]
-theorem compHomeomorph_coordChange (e e' : Trivialization F proj) (h : Z' ≃ₜ Z) (b : B) :
-    (e.compHomeomorph h).coordChange (e'.compHomeomorph h) b = e.coordChange e' b := by
-  ext v
-  simp [coordChange, Trivialization.compHomeomorph]
-
-end Bundle.Trivialization
 
 namespace TauCeti.ManifoldTotalSpace
 
@@ -295,7 +271,7 @@ theorem trivAt_mapFiberAtlas (b : B) :
 theorem coordChange_mapFiberAtlas (b b' x : B) :
     ((mapFiberAtlas F E).trivAt b).coordChange ((mapFiberAtlas F E).trivAt b') x =
       (trivializationAt F E b).coordChange (trivializationAt F E b') x := by
-  rw [trivAt_mapFiberAtlas, trivAt_mapFiberAtlas, Trivialization.compHomeomorph_coordChange]
+  rw [trivAt_mapFiberAtlas, trivAt_mapFiberAtlas, Trivialization.coordChange_compHomeomorph]
 
 /-- **The atlas of a smooth fibre bundle is smooth.** The trivializations of a `C^n` fibre bundle,
 read on its charted total space, are `C^n` with `C^n` inverses. -/

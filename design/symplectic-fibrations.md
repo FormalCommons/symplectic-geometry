@@ -131,8 +131,8 @@ of a map, read pointwise. About 300 lines.
   (`⇑(…) = e.coordChange e' b`) and `coordChangeDiffeomorph_symm`.
 - `TauCeti.MapFiber.Atlas.IsContMDiff.isSubmersion`: for `1 ≤ n` and a
   boundaryless `M`, `π` is a submersion, `Manifold.IsSubmersion IM IB n π`,
-  transported from Tau Ceti's `TauCeti.ManifoldTotalSpace.isSubmersion_proj`
-  along `totalSpaceDiffeomorph`.
+  from `isRegularPoint_proj` at every point, by Tau Ceti's
+  `ContMDiff.isSubmersionOfComplement_of_surjective_mfderiv`.
 - The bridge from Tau Ceti's smooth fibre bundles:
   `TauCeti.ManifoldTotalSpace.mapFiberAtlas F E`, the atlas of the projection
   `fun x : ManifoldTotalSpace F E ↦ ((homeomorph F E).symm x).proj` with
