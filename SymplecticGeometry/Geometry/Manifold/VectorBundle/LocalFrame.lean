@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
 public import TauCeti.Geometry.Manifold.VectorBundle.FrameTrivialization
+public import TauCeti.Geometry.Manifold.VectorBundle.Trivialization
 
 /-!
 # Gluing two local frames of a vector bundle
@@ -20,12 +21,20 @@ are the image of the basis `s · (φ x)` under the linear map that sends `s' j (
 Where `φ` is the identity, they agree with `s`. So, if `φ` is the identity on `W ∩ W'` for an open
 `W ⊆ U`, they glue with `s` to a frame on `W ∪ W'` that is `s` on `W`.
 
+A frame on all of the base gives, by Tau Ceti's
+`ContMDiffVectorBundle.exists_trivialization_baseSet_eq_iff_exists_isLocalFrameOn`, a
+trivialization over the whole base in the maximal atlas. It and its inverse are `C^n`, so
+`Bundle.Trivialization.toDiffeomorphOfBaseSetEqUniv` makes it a diffeomorphism of the total space
+with `B × F`.
+
 ## Main results
 
 * `IsLocalFrameOn.exists_isLocalFrameOn_union`: two local frames glued along a map `φ` into their
   overlap.
 * `IsLocalFrameOn.exists_isLocalFrameOn_iUnion`: the limit of a sequence of local frames on an
   increasing sequence of open sets, each agreeing with the previous one.
+* `Bundle.exists_diffeomorph_prod_of_isLocalFrameOn_univ`: a bundle with a global frame is
+  diffeomorphic to the product bundle, by a map over the base that is linear on each fibre.
 
 ## References
 
@@ -39,8 +48,6 @@ public section
 open Bundle Set
 open scoped Manifold ContDiff
 
-namespace IsLocalFrameOn
-
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜]
   {EB : Type*} [NormedAddCommGroup EB] [NormedSpace 𝕜 EB]
   {HB : Type*} [TopologicalSpace HB] {IB : ModelWithCorners 𝕜 EB HB}
@@ -51,6 +58,8 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜]
   [FiberBundle F V] [VectorBundle 𝕜 F V]
   {n : ℕ∞ω} [ContMDiffVectorBundle n F V IB]
   {ι : Type*} [Finite ι] {s s' : ι → Π x, V x} {U U' : Set B}
+
+namespace IsLocalFrameOn
 
 /-- Two `C^n` local frames `s` on `U` and `s'` on `U'`, indexed by the same finite type, glue to a
 `C^n` local frame on `W ∪ W'` that is `s` on `W`, for open sets `W ⊆ U` and `W' ⊆ U'` that admit
@@ -143,5 +152,38 @@ theorem exists_isLocalFrameOn_iUnion {W : ℕ → Set B} (hW : Monotone W) (hWo 
     simp [hs k i hy.2]
 
 end IsLocalFrameOn
+
+namespace Bundle
+
+omit [FiniteDimensional 𝕜 F] in
+/-- A `C^n` vector bundle with a global `C^n` frame, indexed by a type that indexes a basis of the
+model fibre `F`, is `C^n` trivial: its total space is `C^n`-diffeomorphic to `B × F` by a map that
+covers the identity of `B` and is a continuous linear isomorphism on each fibre. -/
+theorem exists_diffeomorph_prod_of_isLocalFrameOn_univ (b : Module.Basis ι 𝕜 F)
+    (hs : IsLocalFrameOn IB F n s univ) :
+    ∃ (h : TotalSpace F V ≃ₘ^n⟮IB.prod 𝓘(𝕜, F), IB.prod 𝓘(𝕜, F)⟯ B × F)
+      (L : ∀ x, V x ≃L[𝕜] F), ∀ (x : B) (v : V x), h ⟨x, v⟩ = (x, L x v) := by
+  obtain ⟨e, _, hem, he⟩ :=
+    (ContMDiffVectorBundle.exists_trivialization_baseSet_eq_iff_exists_isLocalFrameOn
+      isOpen_univ b).2 ⟨s, hs⟩
+  have hmem (x : B) : x ∈ e.baseSet := he ▸ mem_univ x
+  have hsrc : e.source = univ := by rw [e.source_eq, he, preimage_univ]
+  have h₁ : ContMDiff (IB.prod 𝓘(𝕜, F)) (IB.prod 𝓘(𝕜, F)) n e := by
+    rw [← contMDiffOn_univ, ← hsrc]
+    exact Trivialization.contMDiffOn_of_mem_maximalAtlas hem
+  have h₂ : ContMDiff (IB.prod 𝓘(𝕜, F)) (IB.prod 𝓘(𝕜, F)) n
+      e.toOpenPartialHomeomorph.symm := by
+    intro q
+    rw [Trivialization.contMDiffAt_iff_of_mem_maximalAtlas hem (hsrc ▸ mem_univ _)]
+    refine ⟨contMDiffAt_fst.congr_of_eventuallyEq (.of_forall fun q' ↦ ?_),
+      contMDiffAt_snd.congr_of_eventuallyEq (.of_forall fun q' ↦ ?_)⟩
+    · exact e.proj_symm_apply' (hmem q'.1)
+    · exact congrArg Prod.snd (e.apply_symm_apply' (hmem q'.1))
+  refine ⟨e.toDiffeomorphOfBaseSetEqUniv he h₁ h₂, fun x ↦ e.continuousLinearEquivAt 𝕜 x (hmem x),
+    fun x v ↦ ?_⟩
+  rw [Trivialization.coe_toDiffeomorphOfBaseSetEqUniv]
+  exact e.apply_eq_prod_continuousLinearEquivAt 𝕜 x (hmem x) v
+
+end Bundle
 
 end

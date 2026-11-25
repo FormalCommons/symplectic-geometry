@@ -7,7 +7,6 @@ module
 
 public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.LocalFrame
-public import TauCeti.Geometry.Manifold.VectorBundle.Trivialization
 
 /-!
 # Smooth vector bundles over the line are trivial
@@ -36,11 +35,9 @@ the old one away from its right end, so a supremum argument extends a frame on `
 (`IsLocalFrameOn.exists_isLocalFrameOn_Ioo_extend_left`). This gives frames on
 `Ioo (-(k + 2)) (k + 2)`, each agreeing with the previous one on `Ioo (-(k + 1)) (k + 1)`, whose
 limit (`IsLocalFrameOn.exists_isLocalFrameOn_iUnion`) is a global frame
-(`Bundle.exists_isLocalFrameOn_univ_of_real`). Tau Ceti's
-`ContMDiffVectorBundle.exists_trivialization_baseSet_eq_iff_exists_isLocalFrameOn` turns it into a
-trivialization over `ℝ` in the maximal atlas, and
-`Bundle.Trivialization.toDiffeomorphOfBaseSetEqUniv`
-into a diffeomorphism. The statement is the smooth counterpart of Tau Ceti's
+(`Bundle.exists_isLocalFrameOn_univ_of_real`). A global frame of any bundle gives a
+diffeomorphism with the product bundle (`Bundle.exists_diffeomorph_prod_of_isLocalFrameOn_univ`).
+The statement is the smooth counterpart of Tau Ceti's
 `TauCeti.exists_homeomorph_prod_of_contractibleSpace`.
 
 ## Main results
@@ -293,25 +290,7 @@ theorem exists_diffeomorph_prod_of_real :
     ∃ (h : TotalSpace F T ≃ₘ^∞⟮𝓘(ℝ).prod 𝓘(ℝ, F), 𝓘(ℝ).prod 𝓘(ℝ, F)⟯ ℝ × F)
       (L : ∀ t, T t ≃L[ℝ] F), ∀ (t : ℝ) (v : T t), h ⟨t, v⟩ = (t, L t v) := by
   let b := Module.finBasis ℝ F
-  obtain ⟨e, _, hem, he⟩ :=
-    (ContMDiffVectorBundle.exists_trivialization_baseSet_eq_iff_exists_isLocalFrameOn
-      isOpen_univ b).2 (exists_isLocalFrameOn_univ_of_real (T := T) b)
-  have hmem (t : ℝ) : t ∈ e.baseSet := he ▸ mem_univ t
-  have hsrc : e.source = univ := by rw [e.source_eq, he, preimage_univ]
-  have h₁ : ContMDiff (𝓘(ℝ).prod 𝓘(ℝ, F)) (𝓘(ℝ).prod 𝓘(ℝ, F)) ∞ e := by
-    rw [← contMDiffOn_univ, ← hsrc]
-    exact Trivialization.contMDiffOn_of_mem_maximalAtlas hem
-  have h₂ : ContMDiff (𝓘(ℝ).prod 𝓘(ℝ, F)) (𝓘(ℝ).prod 𝓘(ℝ, F)) ∞
-      e.toOpenPartialHomeomorph.symm := by
-    intro q
-    rw [Trivialization.contMDiffAt_iff_of_mem_maximalAtlas hem (hsrc ▸ mem_univ _)]
-    refine ⟨contMDiffAt_fst.congr_of_eventuallyEq (.of_forall fun q' ↦ ?_),
-      contMDiffAt_snd.congr_of_eventuallyEq (.of_forall fun q' ↦ ?_)⟩
-    · exact e.proj_symm_apply' (hmem q'.1)
-    · exact congrArg Prod.snd (e.apply_symm_apply' (hmem q'.1))
-  refine ⟨e.toDiffeomorphOfBaseSetEqUniv he h₁ h₂, fun t ↦ e.continuousLinearEquivAt ℝ t (hmem t),
-    fun t v ↦ ?_⟩
-  rw [Trivialization.coe_toDiffeomorphOfBaseSetEqUniv]
-  exact e.apply_eq_prod_continuousLinearEquivAt ℝ t (hmem t) v
+  obtain ⟨s, hs⟩ := exists_isLocalFrameOn_univ_of_real (T := T) b
+  exact exists_diffeomorph_prod_of_isLocalFrameOn_univ b hs
 
 end Bundle
