@@ -21,7 +21,8 @@ A *smooth cohomology splitting* of a manifold `M`
 * a linear map `p : Z^k → S^k` on the closed `k`-forms, the identity in degree zero, and
 * a linear map `h : Z^{k+1} → Ω^k` with `z = p z + d (h z)` for every closed `(k+1)`-form `z`,
 
-such that `p` and `h` take smooth families of forms over the unit interval to smooth families.
+such that `p` and `h` take smooth families of forms over a smooth parameter manifold to smooth
+families; the structure takes the universe levels of the parameter manifolds as parameters.
 In the proof of their Theorem 3.2.4 [McDuffSalamon2017], McDuff and Salamon need such primitives
 only for exact `2`-forms; they sketch a Mayer–Vietoris induction over a good cover for them,
 after Bott and Tu [BottTu1982], and leave its details to the reader. The structure here is the
@@ -77,12 +78,15 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSp
   (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
   [IsManifold I ∞ M]
 
+universe uE uH uN
+
 variable (M) in
 /-- **Smooth cohomology splittings.** In every degree `k`, a finite-dimensional space
 `space k` of closed `k`-forms containing no nonzero exact form, a linear map `proj k` from the
 closed `k`-forms into `space k`, the identity in degree zero, and a linear map `primitive k` on
 the closed `(k + 1)`-forms with `z = proj (k + 1) z + d (primitive k z)`, such that `proj` and
-`primitive` take smooth families of forms over the unit interval to smooth families. -/
+`primitive` take smooth families of forms over every smooth parameter manifold, in the universes
+`uE`, `uH` and `uN` of its model space, model and points, to smooth families. -/
 structure SmoothCohomologySplitting where
   /-- The space of closed `k`-forms that represents the cohomology in degree `k`. -/
   space (k : ℕ) : Submodule ℝ (SmoothForm I M ℝ k)
@@ -98,8 +102,8 @@ structure SmoothCohomologySplitting where
     mextDerivₗ I k (primitive k z) = z - proj (k + 1) z
   eq_zero_of_mem_exactForms (k : ℕ) {s : SmoothForm I M ℝ k} :
     s ∈ space k → s ∈ exactForms I M k → s = 0
-  preservesSmoothFamilies_proj (k : ℕ) : PreservesSmoothFamilies (proj k)
-  preservesSmoothFamilies_primitive (k : ℕ) : PreservesSmoothFamilies (primitive k)
+  preservesSmoothFamilies_proj (k : ℕ) : PreservesSmoothFamilies.{uE, uH, uN} (proj k)
+  preservesSmoothFamilies_primitive (k : ℕ) : PreservesSmoothFamilies.{uE, uH, uN} (primitive k)
 
 namespace SmoothCohomologySplitting
 
@@ -109,7 +113,7 @@ attribute [simp] proj_mem proj_zero mextDerivₗ_primitive
 
 /-- Two splittings with the same spaces, projections and primitives are equal. -/
 @[ext]
-theorem ext {σ τ : SmoothCohomologySplitting I M} (hspace : σ.space = τ.space)
+theorem ext {σ τ : SmoothCohomologySplitting.{uE, uH, uN} I M} (hspace : σ.space = τ.space)
     (hproj : σ.proj = τ.proj) (hprimitive : σ.primitive = τ.primitive) : σ = τ := by
   cases σ
   cases τ
@@ -118,7 +122,7 @@ theorem ext {σ τ : SmoothCohomologySplitting I M} (hspace : σ.space = τ.spac
   cases hprimitive
   rfl
 
-variable {I} (σ : SmoothCohomologySplitting I M)
+variable {I} (σ : SmoothCohomologySplitting.{uE, uH, uN} I M)
 
 /-- The projection of a splitting, as a map into its space of closed forms. -/
 def projSpace (k : ℕ) : closedForms I M k →ₗ[ℝ] σ.space k :=
@@ -247,24 +251,26 @@ theorem mextDerivₗ_exactPrimitive (k : ℕ) (x : exactForms I M (k + 1)) :
 
 /-- The primitive on exact forms takes smooth families to smooth families. -/
 theorem preservesSmoothFamilies_exactPrimitive (k : ℕ) :
-    PreservesSmoothFamilies (σ.exactPrimitive k) :=
+    PreservesSmoothFamilies.{uE, uH, uN} (σ.exactPrimitive k) :=
   (σ.preservesSmoothFamilies_primitive k).comp preservesSmoothFamilies_subtype _
 
 /-- The projection of a splitting, as a map into its space of closed forms followed by the
 inclusion of that space, takes smooth families to smooth families. -/
 theorem preservesSmoothFamilies_subtype_comp_projSpace (k : ℕ) :
-    PreservesSmoothFamilies ((σ.space k).subtype ∘ₗ σ.projSpace k) := by
+    PreservesSmoothFamilies.{uE, uH, uN} ((σ.space k).subtype ∘ₗ σ.projSpace k) := by
   rw [projSpace, LinearMap.subtype_comp_codRestrict]
   exact σ.preservesSmoothFamilies_proj k
 
 include σ in
 /-- **The classes of a smooth family of closed forms depend smoothly on the parameter.** For a
 basis `b` of the de Rham cohomology in degree `k` and a smooth family `z` of closed `k`-forms
-over the unit interval, each coordinate `t ↦ b.repr [z t] i` is a smooth function. -/
+over a smooth manifold `N`, each coordinate `t ↦ b.repr [z t] i` is a smooth function on `N`. -/
 theorem contMDiff_repr_mk {k : ℕ} {ι : Type*} (b : Module.Basis ι ℝ (deRhamCohomology I M k))
-    {z : unitInterval → closedForms I M k}
-    (hz : IsSmoothFamily (𝓡∂ 1) (fun t ↦ (z t : SmoothForm I M ℝ k))) (i : ι) :
-    ContMDiff (𝓡∂ 1) 𝓘(ℝ) ∞ (fun t ↦ b.repr (deRhamCohomology.mk I k (z t)) i) := by
+    {EN : Type uE} [NormedAddCommGroup EN] [NormedSpace ℝ EN] {HN : Type uH} [TopologicalSpace HN]
+    {N : Type uN} [TopologicalSpace N] [ChartedSpace HN N] {J : ModelWithCorners ℝ EN HN}
+    [IsManifold J ∞ N] {z : N → closedForms I M k}
+    (hz : IsSmoothFamily J (fun t ↦ (z t : SmoothForm I M ℝ k))) (i : ι) :
+    ContMDiff J 𝓘(ℝ) ∞ (fun t ↦ b.repr (deRhamCohomology.mk I k (z t)) i) := by
   simpa using (σ.preservesSmoothFamilies_subtype_comp_projSpace k).contMDiff_dual_apply hz
     (b.coord i ∘ₗ (σ.spaceEquiv k).toLinearMap)
 
@@ -274,13 +280,13 @@ variable {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [Topologic
   {I' : ModelWithCorners ℝ E' H'} {M' : Type*} [TopologicalSpace M'] [ChartedSpace H' M']
   [IsManifold I' ∞ M']
 
-variable (Φ : M ≃ₘ⟮I, I'⟯ M') (τ : SmoothCohomologySplitting I' M')
+variable (Φ : M ≃ₘ⟮I, I'⟯ M') (τ : SmoothCohomologySplitting.{uE, uH, uN} I' M')
 
 /-- **Transport along a diffeomorphism.** A splitting `τ` of `M'` and a diffeomorphism
 `Φ : M ≃ M'` give a splitting of `M`: its spaces are the pullbacks `Φ^* (τ.space k)`, and its
 projections and primitives are `z ↦ Φ^* (τ.proj k ((Φ⁻¹)^* z))` and
 `z ↦ Φ^* (τ.primitive k ((Φ⁻¹)^* z))`. -/
-def ofDiffeomorph : SmoothCohomologySplitting I M where
+def ofDiffeomorph : SmoothCohomologySplitting.{uE, uH, uN} I M where
   space k := (τ.space k).map (SmoothForm.mpullback Φ Φ.contMDiff)
   space_le_closedForms k := by
     rintro _ ⟨s, hs, rfl⟩
