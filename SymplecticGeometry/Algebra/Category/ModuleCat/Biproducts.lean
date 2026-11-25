@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Copyright (c) 2026 The Tau Ceti contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: The FormalCommons contributors
+Authors: The Tau Ceti contributors
 -/
 module
 
@@ -10,41 +10,46 @@ public import TauCeti.Algebra.Category.ModuleCat.Biproducts
 /-!
 # Maps into and out of binary biproducts of modules, as maps of product modules
 
-Under the identification `ModuleCat.biprodIsoProd` of the biproduct `M ⊞ N` in `ModuleCat R` with
-the product module `M × N`, the morphism `biprod.lift f g` into the biproduct becomes the linear
-map `f.prod g` into the product, and `biprod.desc f g` out of the biproduct becomes
-`f.coprod g`. These let exact sequences stated with biproducts be read as exact sequences of
-linear maps between product modules.
+This file is a part of Tau Ceti's file `TauCeti/Algebra/Category/ModuleCat/Biproducts.lean`, at
+Tau Ceti commit `c58e054d1cafd4db22ff7a3626b04bdb6f0b2335`, which the version of Tau Ceti that
+this library is pinned to does not have yet. It contains the two theorems of that file that the
+commit adds, with their statements, proofs and docstrings unchanged. The rest of Tau Ceti's file
+is in the pinned version, which this file imports in place of Tau Ceti's imports.
+
+For a binary biproduct, Mathlib's `ModuleCat.biprodIsoProd` identifies `M ⊞ N` with the product
+module `M × N`. Under it, `biprod.lift f g` and `biprod.desc f g` are the pair map
+`f.hom.prod g.hom` and the sum map `f.hom.coprod g.hom`.
 
 ## Main results
 
-* `ModuleCat.biprod_lift_comp_biprodIsoProd_hom`
-* `ModuleCat.biprodIsoProd_hom_comp_ofHom_coprod`
+* `ModuleCat.biprod_lift_comp_biprodIsoProd_hom`, `ModuleCat.biprodIsoProd_hom_comp_ofHom_coprod`:
+  under `ModuleCat.biprodIsoProd`, `biprod.lift f g` and `biprod.desc f g` are the pair map
+  `f.hom.prod g.hom` and the sum map `f.hom.coprod g.hom`.
 -/
 
 public section
 
-open CategoryTheory Limits
-
 namespace ModuleCat
 
-universe v
+open CategoryTheory CategoryTheory.Limits
 
-variable {R : Type*} [Ring R] {M N P : ModuleCat.{v} R}
+universe u v
 
-/-- Under the identification of the biproduct with the product module, `biprod.lift` is
-`LinearMap.prod`. -/
-@[reassoc]
-theorem biprod_lift_comp_biprodIsoProd_hom (f : P →ₗ[R] M) (g : P →ₗ[R] N) :
-    biprod.lift (ofHom f) (ofHom g) ≫ (biprodIsoProd M N).hom = ofHom (f.prod g) := by
+variable {R : Type u} [Ring R] (M N : ModuleCat.{v} R)
+
+variable {M N} in
+/-- The map `biprod.lift f g` into a biproduct, followed by the identification of the biproduct
+with the product module, is the pair map `f.hom.prod g.hom`. -/
+theorem biprod_lift_comp_biprodIsoProd_hom {X : ModuleCat.{v} R} (f : X ⟶ M) (g : X ⟶ N) :
+    biprod.lift f g ≫ (biprodIsoProd M N).hom = ofHom (f.hom.prod g.hom) := by
   rw [← Iso.eq_comp_inv]
-  apply biprod.hom_ext <;> ext x <;> simp [biprodIsoProd_inv_comp_fst, biprodIsoProd_inv_comp_snd]
+  apply biprod.hom_ext <;> ext x <;> simp
 
-/-- Under the identification of the biproduct with the product module, `biprod.desc` is
-`LinearMap.coprod`. -/
-@[reassoc]
-theorem biprodIsoProd_hom_comp_ofHom_coprod (f : M →ₗ[R] P) (g : N →ₗ[R] P) :
-    (biprodIsoProd M N).hom ≫ ofHom (f.coprod g) = biprod.desc (ofHom f) (ofHom g) := by
+variable {M N} in
+/-- The identification of the biproduct with the product module, followed by the sum map
+`f.hom.coprod g.hom`, is the map `biprod.desc f g` out of the biproduct. -/
+theorem biprodIsoProd_hom_comp_ofHom_coprod {Z : ModuleCat.{v} R} (f : M ⟶ Z) (g : N ⟶ Z) :
+    (biprodIsoProd M N).hom ≫ ofHom (f.hom.coprod g.hom) = biprod.desc f g := by
   apply biprod.hom_ext' <;> ext x <;> simp
 
 end ModuleCat

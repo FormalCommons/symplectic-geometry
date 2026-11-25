@@ -8,13 +8,15 @@ module
 public import TauCeti.Geometry.Manifold.Metrizable
 public import Mathlib.Geometry.Manifold.PartitionOfUnity
 public import TauCeti.Geometry.Manifold.DeRham.MayerVietoris
+import SymplecticGeometry.Algebra.Category.ModuleCat.Biproducts
+import TauCeti.Algebra.Homology.HomologySequenceBiprod
 
 /-!
-# Cut-off functions and gluing of forms for a cover by two open sets
+# Cut-off functions, gluing of forms and exact sequences for a cover by two open sets
 
 For open sets `U` and `V` of a manifold, this file gives the linear operations of a
 Mayer–Vietoris argument on smooth forms, as linear maps, so that constructions built from them
-are linear.
+are linear, and the exactness of the Mayer–Vietoris sequence in de Rham cohomology.
 
 * `TauCeti.SmoothForm.glueₗ`: two linear maps with values in the forms on `U` and on `V`, whose
   values agree on `U ⊓ V`, glue to a linear map with values in the forms on `U ⊔ V`. It is
@@ -32,6 +34,12 @@ are linear.
   `(k + 1)`-form on `U ⊔ V` equal to `d (ρ e)` on `U` and to `-d ((1 - ρ) e)` on `V`, the form
   through which Bott and Tu describe the connecting map of the Mayer–Vietoris sequence
   [BottTu1982, §2].
+* `TauCeti.deRhamCohomology.exact_mayerVietoris_prod_coprod`,
+  `TauCeti.deRhamCohomology.exact_mayerVietoris_coprod_mayerVietorisδ` and
+  `TauCeti.deRhamCohomology.exact_mayerVietorisδ_mayerVietoris_prod`: the de Rham Mayer–Vietoris
+  sequence in cohomology is exact as a sequence of linear maps, with the product module
+  `H^n_dR(U) × H^n_dR(V)` as middle term. They come from the long exact homology sequence of the
+  short exact sequence `TauCeti.mayerVietorisShortComplex_shortExact`.
 
 ## Adapted from Tau Ceti
 
@@ -49,6 +57,13 @@ Several proofs adapt those of Tau Ceti's file `TauCeti/Geometry/Manifold/DeRham/
   `TauCeti.exists_closedForms_mpullback_eq_mextDerivₗ`.
 * `mpullback_inclusion_inf_sup_left_eq_right` is the second half of the proof of
   `TauCeti.SmoothForm.exact_mayerVietoris`.
+
+The three exactness lemmas follow Tau Ceti's
+`TopCat.exact_singularCohomologyMayerVietorisToProd_fromProd`,
+`TopCat.exact_singularCohomologyMayerVietorisFromProd_δ` and
+`TopCat.exact_singularCohomologyMayerVietorisδ_toProd`
+(`TauCeti/AlgebraicTopology/Cohomology/MayerVietoris/Module.lean`), which do the same for singular
+cohomology.
 
 ## References
 
@@ -347,3 +362,77 @@ theorem connecting_mem_closedForms (e : closedForms I (U ⊓ V : Opens M) k) :
 end MayerVietorisCutoff
 
 end SymplecticGeometry
+
+namespace TauCeti.deRhamCohomology
+
+open CategoryTheory Limits
+
+variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M]
+  (U V)
+
+/-- **Exactness of the de Rham Mayer–Vietoris sequence at `H^n_dR(U) × H^n_dR(V)`**: the classes of
+`U` and `V` whose restrictions to `U ⊓ V` agree are the restrictions of a class of `U ⊔ V`. -/
+theorem exact_mayerVietoris_prod_coprod (n : ℕ) :
+    Function.Exact
+      ((map (I := I) (I' := I) (Opens.inclusion (le_sup_left : U ≤ U ⊔ V))
+          (contMDiff_inclusion _) n).prod
+        (map (I := I) (I' := I) (Opens.inclusion (le_sup_right : V ≤ U ⊔ V))
+          (contMDiff_inclusion _) n))
+      ((map (I := I) (I' := I) (Opens.inclusion (inf_le_left : U ⊓ V ≤ U))
+          (contMDiff_inclusion _) n).coprod
+        (-map (I := I) (I' := I) (Opens.inclusion (inf_le_right : U ⊓ V ≤ V))
+          (contMDiff_inclusion _) n)) := by
+  have hS := mayerVietorisShortComplex_shortExact (I := I) U V
+  unfold mayerVietorisShortComplex at hS
+  have := (ShortComplex.ShortExact.moduleCat_exact_iff_function_exact _).1
+    (hS.biprod_homology_exact₂ n)
+  simp only [deRhamComplex.homologyMap_map, HomologicalComplex.homologyMap_neg] at this
+  exact Function.Exact.of_ladder_linearEquiv_of_exact (e₁ := LinearEquiv.refl ℝ _)
+    (e₂ := (ModuleCat.biprodIsoProd _ _).toLinearEquiv) (e₃ := LinearEquiv.refl ℝ _)
+    (LinearMap.ext fun c ↦
+      (ConcreteCategory.congr_hom (ModuleCat.biprod_lift_comp_biprodIsoProd_hom _ _) c).symm)
+    (LinearMap.ext fun x ↦
+      ConcreteCategory.congr_hom (ModuleCat.biprodIsoProd_hom_comp_ofHom_coprod _ _) x) this
+
+/-- **Exactness of the de Rham Mayer–Vietoris sequence at `H^n_dR(U ⊓ V)`**: the kernel of the
+connecting map `H^n_dR(U ⊓ V) → H^{n+1}_dR(U ⊔ V)` consists of the differences of restrictions of
+classes of `U` and of `V`. -/
+theorem exact_mayerVietoris_coprod_mayerVietorisδ (n : ℕ) :
+    Function.Exact
+      ((map (I := I) (I' := I) (Opens.inclusion (inf_le_left : U ⊓ V ≤ U))
+          (contMDiff_inclusion _) n).coprod
+        (-map (I := I) (I' := I) (Opens.inclusion (inf_le_right : U ⊓ V ≤ V))
+          (contMDiff_inclusion _) n))
+      (mayerVietorisδ I U V n) := by
+  have hS := mayerVietorisShortComplex_shortExact (I := I) U V
+  unfold mayerVietorisShortComplex at hS
+  have := (ShortComplex.ShortExact.moduleCat_exact_iff_function_exact _).1
+    (hS.biprod_homology_exact₃ n (n + 1) rfl)
+  simp only [deRhamComplex.homologyMap_map, HomologicalComplex.homologyMap_neg] at this
+  exact Function.Exact.of_ladder_linearEquiv_of_exact
+    (e₁ := (ModuleCat.biprodIsoProd _ _).toLinearEquiv) (e₂ := LinearEquiv.refl ℝ _)
+    (e₃ := LinearEquiv.refl ℝ _)
+    (LinearMap.ext fun x ↦
+      ConcreteCategory.congr_hom (ModuleCat.biprodIsoProd_hom_comp_ofHom_coprod _ _) x)
+    (LinearMap.ext fun x ↦ by exact ConcreteCategory.congr_hom (ofHom_mayerVietorisδ U V n) x) this
+
+/-- **Exactness of the de Rham Mayer–Vietoris sequence at `H^{n+1}_dR(U ⊔ V)`**: the classes of
+`U ⊔ V` that vanish on `U` and on `V` are the images of the connecting map. -/
+theorem exact_mayerVietorisδ_mayerVietoris_prod (n : ℕ) :
+    Function.Exact (mayerVietorisδ I U V n)
+      ((map (I := I) (I' := I) (Opens.inclusion (le_sup_left : U ≤ U ⊔ V))
+          (contMDiff_inclusion _) (n + 1)).prod
+        (map (I := I) (I' := I) (Opens.inclusion (le_sup_right : V ≤ U ⊔ V))
+          (contMDiff_inclusion _) (n + 1))) := by
+  have hS := mayerVietorisShortComplex_shortExact (I := I) U V
+  unfold mayerVietorisShortComplex at hS
+  have := (ShortComplex.ShortExact.moduleCat_exact_iff_function_exact _).1
+    (hS.biprod_homology_exact₁ n (n + 1) rfl)
+  simp only [deRhamComplex.homologyMap_map] at this
+  exact Function.Exact.of_ladder_linearEquiv_of_exact (e₁ := LinearEquiv.refl ℝ _)
+    (e₂ := LinearEquiv.refl ℝ _) (e₃ := (ModuleCat.biprodIsoProd _ _).toLinearEquiv)
+    (LinearMap.ext fun x ↦ by exact ConcreteCategory.congr_hom (ofHom_mayerVietorisδ U V n) x)
+    (LinearMap.ext fun c ↦
+      (ConcreteCategory.congr_hom (ModuleCat.biprod_lift_comp_biprodIsoProd_hom _ _) c).symm) this
+
+end TauCeti.deRhamCohomology
