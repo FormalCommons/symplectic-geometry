@@ -7,7 +7,9 @@ on:
 # CI runs the build scripts of every pull request's branch, so it gets no
 # secrets and only read access. It restores the dependencies and the build of
 # the library that the cache workflows saved on main, but never saves a cache
-# itself.
+# itself. A run of the merge queue hands its build to the workflow
+# cache-library as an artifact, which needs no permission; see the last
+# steps.
 permissions:
   contents: read
 
@@ -132,6 +134,7 @@ jobs:
       # hour. GitHub looks for saves whose names begin with `key` before it
       # looks at `restore-keys`, so the kind to prefer is in `key`.
       - name: restore main's build of the library
+        id: library
         uses: actions/cache/restore@v6
         with:
           path: .lake/build
@@ -140,3 +143,52 @@ jobs:
       # --wfail fails the build on any warning, including a `sorry`.
       - name: build
         run: lake build --wfail
+      # A run of the merge queue builds the commit that main gets when the
+      # pull request merges. After a build that passed, it hands `.lake/build`
+      # to the workflow cache-library, whose run for that commit saves it as
+      # main's build without compiling the same files again; see there for
+      # why that is sound. A run for a pull request does not do this, and no
+      # run of CI reads such a build.
+      #
+      # The build goes as one tar file, which keeps the files' modes and the
+      # names under `.lake`, with a file `from` beside it: the build from
+      # source that the restored save descends from, as the save's name has
+      # it (see cache-library), or `none` if the run restored nothing or the
+      # save has none. cache-library takes the build only if that is the one
+      # its own save would descend from, so that the builds of main from its
+      # source still replace what the saves carry along.
+      #
+      # GitHub deletes the artifact after a day, the shortest time it allows,
+      # and the workflow cache-tidy deletes it sooner. The two steps add
+      # about a quarter of a minute to a run of the merge queue. If either
+      # fails, the run still passes: main then gets its build as it did
+      # before.
+      - name: pack the build for main
+        id: pack
+        if: github.event_name == 'merge_group'
+        continue-on-error: true
+        env:
+          BUILD: ${{ steps.setup.outputs.build }}
+          RESTORED: ${{ steps.library.outputs.cache-matched-key }}
+        run: |
+          set -euo pipefail
+          kind=${RESTORED#"$BUILD-"}
+          case $kind in
+            '') from=none ;;
+            inc-*-* | src-*-*) from=${kind#*-}; from=${from%%-*} ;;
+            *) echo "::warning::the restored save has an unexpected name, $RESTORED, so main does not get this build"; exit 1 ;;
+          esac
+          mkdir "$RUNNER_TEMP/queue-build"
+          printf '%s\n' "$from" >"$RUNNER_TEMP/queue-build/from"
+          tar --use-compress-program 'zstd -T0' -cf "$RUNNER_TEMP/queue-build/build.tar.zst" -C .lake build
+      - name: hand the build to main
+        if: github.event_name == 'merge_group' && steps.pack.outcome == 'success'
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: queue-build
+          path: ${{ runner.temp }}/queue-build
+          if-no-files-found: error
+          retention-days: 1
+          # The tar file is compressed already.
+          compression-level: 0

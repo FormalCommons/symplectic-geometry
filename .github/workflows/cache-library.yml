@@ -18,6 +18,35 @@ name: cache-library
 # for the current dependencies, as in the first runs after a move of Tau
 # Ceti, a run starts from the latest save of any kind.
 #
+# A run does not compile what the merge queue has just compiled. Every commit
+# of main has passed CI in the merge queue as that very commit, and that run
+# of CI hands over its `.lake/build` as an artifact. The run here for the
+# same commit takes it in place of the latest save, so its own build finds
+# nothing left to compile, and saves it. After a move of Tau Ceti, main so
+# has a build for the new dependencies some minutes after the move merges:
+# the time of the setup, not of a build of the whole library on top of it.
+#
+# Why that is sound, and what it gives away. The artifact is taken only from
+# a run of ci.yml that GitHub lists with the event `merge_group`, as passed,
+# and for exactly the commit that this run is for. Only the merge queue
+# starts such a run (GitHub's documentation names no other way), and it ran
+# the workflow and the build scripts of that same commit, with the token that
+# CI has, on files that it restored from main's saves alone: CI reads no
+# artifact in the merge queue. That is the code, and those are the saves,
+# that this job itself would have built with. The build is taken only if it
+# descends from the same build from source as this run's save would (the
+# file `from` in the artifact, against the name of the save), so the builds
+# from source replace what the saves carry along as they did before; the
+# workflow cache-source never reads an artifact. `lake build --wfail` below
+# still runs over the build and fails as it would have. What is new: main's
+# save now trusts that nothing but the merge queue can start a run with the
+# event `merge_group` for a commit of main, where before it trusted only
+# this workflow's own runs on main; and the workflow cache-tidy, which
+# deletes the artifacts, has a token that may also delete saves and cancel
+# runs, though it checks out and runs nothing from the repository. If no
+# such run or artifact is found, or anything about it is not as expected,
+# the run goes on from the latest save as before.
+#
 # See cache-dependencies for what the three cache workflows share, and for
 # how the runs of one take turns. Here that means: one run builds at a time,
 # and when it ends, the run for main's latest commit builds next. The runs
@@ -29,7 +58,8 @@ on:
   workflow_dispatch:
 
 # `actions: read` is for cache-turn.sh, which asks GitHub for the workflow's
-# runs.
+# runs, and for finding and downloading the merge queue's build. Deleting
+# that build afterwards needs more, and is left to the workflow cache-tidy.
 permissions:
   contents: read
   actions: read
@@ -85,8 +115,45 @@ jobs:
           else
             printf '%s\n' 'from=none' "restore=$BUILD-" >> "$GITHUB_OUTPUT"
           fi
-      - name: restore the latest build of the library
+      # The build that the merge queue's run of CI made of this commit; see
+      # the top of the file. It takes one request to find the run and two to
+      # download its artifact. The build is unpacked beside `.lake/build` and
+      # moved there only when it is whole. Whatever fails here, the next step
+      # restores the latest save instead.
+      - name: take the merge queue's build of this commit
+        id: queue
         if: steps.turn.outputs.go == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FROM: ${{ steps.name.outputs.from }}
+        run: |
+          set -o pipefail
+          take() {
+            local run dir=$RUNNER_TEMP/queue-build
+            run=$(timeout 60 gh api -X GET "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs" \
+              -f head_sha="$GITHUB_SHA" -f event=merge_group -f status=success -F per_page=10 |
+              jq -r --arg sha "$GITHUB_SHA" 'first(.workflow_runs[] | select(.event == "merge_group" and .conclusion == "success" and .head_sha == $sha)) | .id') ||
+              { echo "could not ask GitHub for the merge queue's run of CI for $GITHUB_SHA"; return 1; }
+            [[ $run =~ ^[0-9]+$ ]] || { echo "GitHub lists no run of CI that passed in the merge queue for $GITHUB_SHA"; return 1; }
+            rm -rf "$dir" && mkdir -p "$dir/unpacked" .lake || return 1
+            timeout 900 gh run download "$run" --repo "$GITHUB_REPOSITORY" --name queue-build --dir "$dir" ||
+              { echo "could not download the build of run $run"; return 1; }
+            [ -f "$dir/from" ] && [ "$(cat "$dir/from")" = "$FROM" ] ||
+              { echo "the build of run $run does not descend from the build from source that this run's save is named after, $FROM"; return 1; }
+            tar --use-compress-program unzstd -xf "$dir/build.tar.zst" -C "$dir/unpacked" && [ -d "$dir/unpacked/build" ] ||
+              { echo "could not unpack the build of run $run"; return 1; }
+            rm -rf .lake/build && mv "$dir/unpacked/build" .lake/build || return 1
+            rm -rf "$dir"
+            echo "took the build of run $run"
+          }
+          if take; then
+            echo 'took=true' >> "$GITHUB_OUTPUT"
+          else
+            rm -rf .lake/build "$RUNNER_TEMP/queue-build"
+            echo "this run starts from the latest save"
+          fi
+      - name: restore the latest build of the library
+        if: steps.turn.outputs.go == 'true' && steps.queue.outputs.took != 'true'
         uses: actions/cache/restore@v6
         with:
           path: .lake/build
