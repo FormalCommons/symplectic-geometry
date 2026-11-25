@@ -48,8 +48,9 @@ The core follows Tau Ceti's `TauCeti.signedPointTwistCore` and `Projectivization
 scalar coordinate changes `ContinuousLinearMap.lsmul ℂ ℂ` of a scalar cocycle. The three cores
 `lineBundleCore (k + l)`, `lineBundleCore k` and `lineBundleCore l` share their charts and their
 preferred chart at each point, so the tensor isomorphism needs no scalar factor, unlike the
-library's `Projectivization.twistCoreTensorEquiv`, whose continuity proof
-`continuous_lineBundleCoreTensorEquiv` follows.
+library's `Projectivization.twistCoreTensorEquiv`. The proof of
+`continuous_lineBundleCoreTensorEquiv` follows that of
+`Projectivization.continuous_twistCoreTensorEquiv`.
 
 ## References
 
@@ -80,7 +81,7 @@ structure HypersurfaceData (I : ModelWithCorners ℂ F H) (X : Type*) [Topologic
   /-- The local defining function on `U i`. -/
   f : ι → X → ℂ
   contMDiffOn_f (i : ι) : ContMDiffOn I 𝓘(ℂ) ω (f i) (U i)
-  /-- The ratio `f i / f j` on `U i ∩ U j`. -/
+  /-- The transition functions: `f i = g i j * f j` on `U i ∩ U j`. -/
   g : ι → ι → X → ℂ
   contMDiffOn_g (i j : ι) : ContMDiffOn I 𝓘(ℂ) ω (g i j) (U i ∩ U j)
   g_ne_zero {i j : ι} {x : X} : x ∈ U i → x ∈ U j → g i j x ≠ 0
@@ -105,10 +106,6 @@ theorem mem_U_indexAt (x : X) : x ∈ D.U (D.indexAt x) := (D.exists_mem_U x).ch
 theorem g_self {i : ι} {x : X} (hi : x ∈ D.U i) : D.g i i x = 1 := by
   have h := D.g_mul_g hi hi hi
   exact (mul_eq_right₀ (D.g_ne_zero hi hi)).1 h
-
-theorem g_mul_g_symm {i j : ι} {x : X} (hi : x ∈ D.U i) (hj : x ∈ D.U j) :
-    D.g i j x * D.g j i x = 1 := by
-  rw [D.g_mul_g hi hj hi, D.g_self hi]
 
 /-- The hypersurface: the points where the local defining functions vanish. -/
 def support : Set X := {x | ∃ i, x ∈ D.U i ∧ D.f i x = 0}
@@ -201,12 +198,14 @@ instance isContMDiff_lineBundleCore (k : ℤ) : (D.lineBundleCore k).IsContMDiff
 (`localTriv_canonicalSection`). -/
 def canonicalSection (x : X) : (D.lineBundleCore 1).Fiber x := D.f (D.indexAt x) x
 
+theorem canonicalSection_def (x : X) : D.canonicalSection x = D.f (D.indexAt x) x := (rfl)
+
 /-- In the chart `i`, the canonical section of `𝒪(D)` is the defining function `f i`. -/
 theorem localTriv_canonicalSection {i : ι} {x : X} (hi : x ∈ D.U i) :
     ((D.lineBundleCore 1).localTriv i ⟨x, D.canonicalSection x⟩).2 = D.f i x := by
   rw [VectorBundleCore.localTriv_apply]
   refine (D.lineBundleCore_coordChange_apply 1 _ i x (D.canonicalSection x)).trans ?_
-  rw [zpow_one, canonicalSection, lineBundleCore_indexAt,
+  rw [zpow_one, canonicalSection_def, lineBundleCore_indexAt,
     ← D.f_eq_g_mul hi (D.mem_U_indexAt x)]
 
 /-- The canonical section of `𝒪(D)` is holomorphic. -/
