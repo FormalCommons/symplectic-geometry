@@ -71,10 +71,10 @@ theorem IsConnectionForm.existsUnique_eq_mapCoeff
   obtain ⟨f, hf⟩ := SeparatingDual.exists_eq_one (R := ℝ) circleLieGenerator_ne_zero
   have hLf : (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator).comp f =
       ContinuousLinearMap.id ℝ (GroupLieAlgebra (𝓡 1) Circle) := by
-    ext ξ
-    obtain ⟨c, rfl⟩ := exists_smul_eq_of_ne_zero_circle circleLieGenerator_ne_zero ξ
-    rw [ContinuousLinearMap.comp_apply, ContinuousLinearMap.toSpanSingleton_apply, map_smul, hf,
-      smul_eq_mul, mul_one, ContinuousLinearMap.id_apply]
+    refine ContinuousLinearMap.coe_injective <|
+      linearMap_ext_of_ne_zero_circle circleLieGenerator_ne_zero ?_
+    rw [ContinuousLinearMap.coe_coe, ContinuousLinearMap.coe_coe, ContinuousLinearMap.comp_apply,
+      ContinuousLinearMap.toSpanSingleton_apply, hf, one_smul, ContinuousLinearMap.id_apply]
   have hfL : f.comp (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator) =
       ContinuousLinearMap.id ℝ ℝ := by
     ext
