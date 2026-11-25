@@ -21,14 +21,15 @@ embedding: the bundle projection is a smooth left inverse of it. This file bundl
 `SymplecticGeometry.Bundle.zeroSectionEmbedding`, so that results about submanifolds, such as the
 neighbourhood theorems, apply to it, and shows that its image is closed. It also reads the zero
 section in the preferred charts of the total space, and computes the differential of a map along
-the zero section on horizontal vectors.
+the zero section on horizontal and on vertical vectors.
 
 The file has the path of Tau Ceti's `Geometry/Manifold/VectorBundle/ZeroSection.lean`, which
 splits the tangent spaces along the zero section. The zero section as an embedding is the
 library's own definition, in `SymplecticGeometry.Bundle`. Of the other lemmas,
 `isClosed_range_zeroSection`, about Mathlib's notions alone, and
-`zeroSectionTangentEquiv_symm_inl` and `mfderiv_zeroSectionTangentEquiv_symm_inl`, about Tau
-Ceti's splitting, are in Tau Ceti's namespace `TauCeti.Bundle`, and
+`zeroSectionTangentEquiv_symm_inl`, `mfderiv_zeroSectionTangentEquiv_symm_inl` and
+`mfderiv_zeroSectionTangentEquiv_symm_inr`, about Tau Ceti's splitting, are in Tau Ceti's
+namespace `TauCeti.Bundle`, and
 `extChartAt_symm_apply_zero_of_mem_baseSet`, about the charts of the total space, in Mathlib's
 namespace `Bundle`.
 
@@ -49,6 +50,9 @@ namespace `Bundle`.
 * `TauCeti.Bundle.mfderiv_zeroSectionTangentEquiv_symm_inl`: a map on the total space that agrees
   with a map `g` on the zero section near `b` has, at `0_b`, a differential that sends the
   horizontal vector `(u, 0)` of Tau Ceti's splitting to `dg u`.
+* `TauCeti.Bundle.mfderiv_zeroSectionTangentEquiv_symm_inr`: at `0_b`, the differential of a map
+  `f` on the total space sends the vertical vector `(0, v)` of Tau Ceti's splitting to the
+  velocity at `0` of `t ↦ f (t • v)`.
 -/
 
 public section
@@ -154,6 +158,20 @@ theorem mfderiv_zeroSectionTangentEquiv_symm_inl {f : TotalSpace F V → M} {g :
     ← mfderiv_comp_apply b hf (mdifferentiableAt_zeroSection 𝕜 V), hfg.mfderiv_eq,
     ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe]
   exact eq_of_heq (heq_tangentSpaceCast hfg.eq_of_nhds.symm _)
+
+/-- Let `f` be a map on the total space, differentiable at the zero vector `0_b`. Then the
+differential of `f` at `0_b` sends the vertical vector `(0, v)` of the splitting
+`zeroSectionTangentEquiv b` to the velocity at `0` of the image `t ↦ f (t • v)` of the line
+through `v` in the fibre over `b`. -/
+theorem mfderiv_zeroSectionTangentEquiv_symm_inr {f : TotalSpace F V → M} {b : B}
+    (hf : MDifferentiableAt (IB.prod 𝓘(𝕜, F)) IM f (zeroSection F V b)) (v : V b) :
+    mfderiv (IB.prod 𝓘(𝕜, F)) IM f (zeroSection F V b)
+        ((zeroSectionTangentEquiv (I := IB) b).symm (0, v)) =
+      mfderiv 𝓘(𝕜) IM (fun t : 𝕜 ↦ f ⟨b, t • v⟩) 0 (1 : 𝕜) := by
+  have hl := (TotalSpace.hasMFDerivAt_smul_curve (IB := IB) (⟨b, v⟩ : TotalSpace F V)
+    (hasDerivAt_id' (0 : 𝕜))).mdifferentiableAt
+  rw [zeroSectionTangentEquiv_symm_inr]
+  exact (mfderiv_comp_apply_of_eq (0 : 𝕜) hf hl (by simp [zeroSection]) (1 : 𝕜)).symm
 
 end TauCeti.Bundle
 
