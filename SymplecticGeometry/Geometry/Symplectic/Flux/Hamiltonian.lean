@@ -11,7 +11,6 @@ public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 import TauCeti.Geometry.Diffeomorphism.Group
-import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Constancy
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Symplectic.Flux.Hamiltonian.Velocity
