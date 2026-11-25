@@ -59,9 +59,9 @@ and the note of the review of #3195.
 1. **Gluing two manifolds.** The fibre sum glues two manifolds along open
    subsets by a diffeomorphism. Neither Tau Ceti nor the library has this
    gluing in general (Tau Ceti's `TauCeti.ConnectedSum` glues only along
-   punctured balls, and the library's `capDiscs` and
+   punctured balls, and the library's
    `TauCeti.SmoothCollar.WithEnd` of `Geometry/Manifold/Boundary/Collar/End.lean`
-   along their own data). The new file
+   along its own data). The new file
    `Geometry/Manifold/Gluing/Pair.lean` builds it once, as a two-piece
    `TopCat.GlueData` with Tau Ceti's `Geometry/Manifold/Gluing/GlueData.lean`,
    with Hausdorffness from `TopCat.GlueData.t2Space_iff_isClosed_chartRel`
