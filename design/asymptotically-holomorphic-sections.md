@@ -575,8 +575,8 @@ and the prerequisites, placed by topic.
   statement holds for every $D$.
 - `RescaledChart.lean`: the rescaled unitary charts. `CenteredDarbouxCharts`
   are charts centred at every point with derivative at the centre complex
-  linear for $J$, with uniform $C^r$ bounds. They come from finitely many of
-  Tau Ceti's `IsSymplectic.exists_standardDarbouxChart_of_isInteriorPoint`
+  linear for $J$, with uniform $C^r$ bounds. They come from finitely many
+  `IsSymplectic.exists_darbouxChart_stdForm`
   charts, composed with translations and unitary symplectic linear maps,
   by compactness. `RescaledUnitaryCharts k₀ ρ₀` adds the rescaling and the
   frames in which the connection form is the model, with `jStruct_sub_le`, `iteratedFDeriv_jStruct_le` and
