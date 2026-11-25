@@ -528,8 +528,14 @@ the library.
 - **Liouville, Weinstein and Stein.** Liouville fields and contact-type
   boundaries follow *Liouville structures* (outward field, $d\lambda=\omega$,
   collar form $-d(e^s\alpha)$). For a function $f$ and an integrable $J$,
-  $\lambda_f=-df\circ J$ and $\omega_f=d\lambda_f$, and $f$ is strictly
-  plurisubharmonic when $\omega_f(v,Jv)>0$ for $v\ne0$. Tau Ceti's
+  $\lambda_f=-df\circ J$ is Tau Ceti's $d^cf$, `J.dC f`
+  (`Geometry/Manifold/DifferentialForm/Dolbeault/DC.lean`, with
+  `dC_apply_apply`), and $\omega_f=dd^cf$, which is twice Tau Ceti's
+  `TauCeti.ddbarForm` by `ddbarForm_apply_eq_inv_two_smul_mextDerivₗ_dC_apply`.
+  Strict plurisubharmonicity is Tau Ceti's
+  `TauCeti.IsManifoldStrictlyPlurisubharmonicAt` at every point; that it
+  means $\omega_f(v,Jv)>0$ for $v\ne0$ is a lemma, from
+  `mk_ddbarForm_apply_eq_two_mul_manifoldLeviForm`. Tau Ceti's
   `TauCeti.IsSteinManifold` is defined by holomorphic convexity; the
   library's Stein structures are exhausting strictly plurisubharmonic
   functions, and *Stein and Weinstein structures* relates the two only if
@@ -3692,7 +3698,13 @@ auxiliary pages, and the symplectic parts wait for it.
   complex with $J$ integrable near $p_0$, by the page's three steps: the
   difference vanishes off $Z$, so is a multiple of $e$ by the Thom
   isomorphism, and evaluation on a line gives the multiple; for $n=1$ the
-  blowdown is a diffeomorphism).
+  blowdown is a diffeomorphism) and `CanonicalBundle.lean` (for $M$
+  complex, the holomorphic line bundle $\mathcal O(E)$ of the smooth
+  hypersurface $E$, which neither library has, and an isomorphism of
+  holomorphic line bundles
+  $K_{\widetilde M}\cong\pi^*K_M\otimes\mathcal O((n-1)E)$ on Tau Ceti's
+  `TauCeti.CanonicalBundle`, by the local Jacobian computation of Schnell,
+  Lemma 23.5, in the charts $\tilde\phi$).
 - **Builds on:** *Connected sums* (only for `ConnectedSum.lean`);
   *Poincaré duals of submanifolds* (only for `ExceptionalClass.lean` and
   `ChernClass.lean`); *Chern classes* (only its extension below, for
@@ -3708,8 +3720,8 @@ auxiliary pages, and the symplectic parts wait for it.
   *Complex blowup at a point* (`Basic.lean`), *Blowup as a connected sum
   with the reversed projective space* (`ConnectedSum.lean` and
   `ExceptionalClass.lean`; its first statement is *Connected sums*'), and
-  *First Chern class of a blowup at a point* (`ChernClass.lean`). The
-  canonical-bundle identity is a remark of that milestone and not built.
+  *First Chern class of a blowup at a point* (`ChernClass.lean` for the
+  formula, `CanonicalBundle.lean` for the canonical-bundle identity).
   The design file decides how $\mathbb P(T_{p_0}M)$ is given as a manifold
   (through the chart, as `ℙ ℂ (Fin n → ℂ)`), and how the blowup of an
   almost complex manifold carries the pull-back of $J$ away from $Z$, which
@@ -3847,7 +3859,14 @@ For §7.3 of `atlas/constructing-symplectic-manifolds.md`.
   `TauCeti.IsMorse.exists_regular_sublevel_exhaustion`; the exact case and
   then a prescribed class $a$, through a fixed closed representative) and
   `OpenManifold.lean` (Theorem 7.3.1, both assertions, for manifolds
-  without boundary and with no compact component). The existence of a
+  without boundary and with no compact component) and `Parametric.lean`
+  (the parametric statement: the inclusion of the symplectic forms of
+  class $a$ into the nondegenerate two-forms is a homotopy equivalence,
+  for the compact-open $C^\infty$ topology of *Spaces of forms* below, by
+  the compression route of Eliashberg–Mishachev, Theorems 10.2.1–10.2.2,
+  with their parameter-relative holonomic approximation, Theorem 4.7.4,
+  which neither library has and the design file plans as issues of its
+  own). The existence of a
   proper Morse function without critical points of top index on such a
   manifold, which neither library has, is a file the design file places
   under `Geometry/Manifold/Morse/`.
@@ -3855,8 +3874,9 @@ For §7.3 of `atlas/constructing-symplectic-manifolds.md`.
   Ceti's Morse theory (`Geometry/Manifold/Morse/`) and nondegenerate and
   symplectic two-forms.
 - **Milestones:** *Gromov's h-principle for symplectic forms on open
-  manifolds* (existence and the path-component statement; the parametric
-  homotopy equivalence is a remark of the milestone and not built),
+  manifolds* (existence and the path-component statement in
+  `OpenManifold.lean`, the parametric homotopy equivalence in
+  `Parametric.lean`),
   *Relative extension of exact symplectic forms over a handle core*. The
   design file chooses between the book's handle induction and the
   compression route of Eliashberg–Mishachev that the page also gives.
@@ -3908,9 +3928,9 @@ For §7.4 of `atlas/constructing-symplectic-manifolds.md`.
   structures: a complete Liouville field that is a pseudo-gradient of a
   proper generalized Morse function bounded below, and Weinstein domains, on *Liouville
   structures*' collars and Tau Ceti's `TauCeti.IsLiouvilleDomain`),
-  `Geometry/Manifold/Complex/Plurisubharmonic.lean` ($\lambda_f$,
-  $\omega_f$, strict plurisubharmonicity, Stein structures; with Tau Ceti's
-  Levi form, `Geometry/Manifold/Complex/LeviForm.lean`), `Stein.lean`
+  `Geometry/Manifold/Complex/Plurisubharmonic.lean` (Stein structures,
+  on Tau Ceti's `TauCeti.IsManifoldStrictlyPlurisubharmonicAt`, and the
+  lemma that it means $\omega_f(v,Jv)>0$, as the conventions say), `Stein.lean`
   (the passage in both directions: the gradient of a strictly
   plurisubharmonic exhaustion, reparametrized to be complete, and the
   converse up to homotopy of Weinstein structures, Cieliebak–Eliashberg's
@@ -3943,8 +3963,7 @@ For §7.4 of `atlas/constructing-symplectic-manifolds.md`.
   the transversality for pairs that the design file adds); *Symplectic
   blowup* (only `Weight.lean`, for the blowup at the base points; this is
   the one place where §7.4 needs §7.1); the merged *Adjunction*.
-- **Milestones:** *Donaldson's Lefschetz pencil theorem in dimension four*,
-  with the conclusion that `ERRATA.md` records.
+- **Milestones:** *Donaldson's Lefschetz pencil theorem in dimension four*.
 
 ## Dependencies and build order
 
@@ -4270,7 +4289,7 @@ existing inputs.
 | *Symplectic fibre connected sum with trivial normal bundles* | *Symplectic sums* (`Fibre.lean`). |
 | *Fundamental group after summing with the rational elliptic surface* | *Symplectic sums* (`RationalEllipticSurface.lean`, `FundamentalGroup.lean`). Existing input: `TauCeti.isPushout_fundamentalGroup`. |
 | *Gompf's realization of finitely presented groups* | *Symplectic sums* (`Gompf.lean`). Existing input: `Group.IsFinitelyPresented.exists_mulEquiv_presentedGroup`. |
-| *Gromov's h-principle for symplectic forms on open manifolds* | *Symplectic h-principle* (`Telescope.lean`, `OpenManifold.lean`). Existing input: `TauCeti.IsMorse.exists_regular_sublevel_exhaustion`. |
+| *Gromov's h-principle for symplectic forms on open manifolds* | *Symplectic h-principle* (`Telescope.lean`, `OpenManifold.lean`, `Parametric.lean`). Existing input: `TauCeti.IsMorse.exists_regular_sublevel_exhaustion`. |
 | *Relative extension of exact symplectic forms over a handle core* | *Symplectic h-principle* (`HandleCore.lean`). |
 | *Donaldson's symplectic hypersurface theorem* | *Asymptotically holomorphic sections* (`Hypersurface.lean`). |
 | *Symplectic zero set criterion for a line bundle section* | *Asymptotically holomorphic sections* (`ZeroSet.lean`), with *Poincaré duals of submanifolds*. |
@@ -4280,7 +4299,7 @@ existing inputs.
 | *Lefschetz connectivity of asymptotically holomorphic hypersurfaces* | *Asymptotically holomorphic sections* (`Connectivity.lean`). |
 | *Passage between Stein and Weinstein structures* | *Stein and Weinstein structures* (`Stein.lean`). |
 | *Stein and Weinstein complements of Donaldson hypersurfaces* | *Stein and Weinstein structures* (`Complement.lean`). |
-| *Donaldson's Lefschetz pencil theorem in dimension four* | *Lefschetz pencils* (`Pencil.lean`), with the conclusion that `ERRATA.md` supplies. |
+| *Donaldson's Lefschetz pencil theorem in dimension four* | *Lefschetz pencils* (`Pencil.lean`). |
 
 ### `auxiliary/first-chern-class.md`
 
@@ -4300,7 +4319,7 @@ Both milestones, proved in full. Their parts wait for no part of
 | Milestone | Where |
 |---|---|
 | *Disc theorem* | *Connected sums* (`ClosedBall.lean`, `OrientationPreserving.lean`, `Annulus.lean`). Existing input: `TauCeti.SmoothEmbedding.exists_diffeotopy_eqOn_of_isOrientationPreservingAt`, which takes embeddings of all of the model space. |
-| *First Chern class of a blowup at a point* | *Complex blowup* (`ChernClass.lean`), with *Poincaré duals of submanifolds* and *Chern classes*. |
+| *First Chern class of a blowup at a point* | *Complex blowup* (`ChernClass.lean`, `CanonicalBundle.lean`), with *Poincaré duals of submanifolds* and *Chern classes*. |
 
 ## Departures from the plan's advice
 

@@ -134,25 +134,4 @@ Each entry has this form:
   *Equivariant normal forms* translates (see `DESIGN.md`).
 - **Issue:** #2247.
 
-## atlas/constructing-symplectic-manifolds.md
-
-### The Lefschetz pencil theorem omits its conclusion
-
-- **Where:** `atlas/constructing-symplectic-manifolds.md`, *Donaldson's
-  Lefschetz pencil theorem in dimension four*.
-- **Error:** after building the pencil and the fibration on the blowup,
-  the milestone introduces two integers $g$ and $\ell$ by the formulas
-  $2g-2=mk^2+k\langle K\smile[\omega],[M]\rangle$ and
-  $\ell=3mk^2+2k\langle K\smile[\omega],[M]\rangle+\chi(M)$, as the
-  hypothesis of a conditional sentence, but never states what follows, so
-  the two formulas assert nothing.
-- **Fix:** the library states the conclusion of McDuff–Salamon
-  [McDuffSalamon2017], Theorem 7.4.12: the regular fibres of the fibration
-  are closed surfaces of genus $g$, and it has exactly $\ell$ singular
-  fibres, with $g$ and $\ell$ given by those formulas. Both agree with
-  the adjunction formula for a fibre of class $k[\omega]$, whose square is
-  $mk^2$, and with $\chi(M)+mk^2=2(2-2g)+\ell$ for the Euler
-  characteristic of the blowup. *Lefschetz pencils* proves it.
-- **Issue:** #3144.
-
 ## Other sources
