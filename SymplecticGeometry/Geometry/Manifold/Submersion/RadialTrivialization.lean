@@ -76,11 +76,11 @@ continuous maps to the extended chart `extChartAt J b₀` and smooth maps.
 
 Given a trivialization `e` of `f` with fibre `Z` over a neighbourhood of `b₀`, `C^n` with a `C^n`
 inverse, the fibre over `b₀` is identified with `Z` by `e`
-(`Bundle.Trivialization.preimageSingletonHomeomorph`). Changing the fibre of a trivialization by
+(`Bundle.Trivialization.mapFiberHomeomorph`). Changing the fibre of a trivialization by
 transport through this identification (`Bundle.Trivialization.transFiberHomeomorph`) keeps it
 `C^n` with a `C^n` inverse
-(`Bundle.Trivialization.contMDiffOn_transFiberHomeomorph_preimageSingletonHomeomorph`,
-`Bundle.Trivialization.contMDiffOn_transFiberHomeomorph_preimageSingletonHomeomorph_symm`).
+(`Bundle.Trivialization.contMDiffOn_transFiberHomeomorph_mapFiberHomeomorph`,
+`Bundle.Trivialization.contMDiffOn_transFiberHomeomorph_mapFiberHomeomorph_symm`).
 For the rays `chartRay J b₀`, this gives a trivialization with fibre `Z` around `b₀` whose inverse
 is transport along the rays of the chart at `b₀`
 (`TauCeti.IsEhresmannConnection.exists_trivialization_parallelTransport`). Its smoothness
@@ -525,15 +525,14 @@ theorem exists_trivialization_parallelTransport (hn : 1 ≤ n) (hf : ContMDiff I
     fun b hb ↦ SymplecticGeometry.chartRay_one J ((SymplecticGeometry.mem_chartBall_iff J).1 hb).1
   set T := hD.parallelTransportTrivialization hn hf hfp hU hΓn hΓ₀ hΓ₁
   -- The fibre over `b₀` is read in `Z` through `e`.
-  refine ⟨T.transFiberHomeomorph (e.preimageSingletonHomeomorph hb₀),
-    T.contMDiffOn_transFiberHomeomorph_preimageSingletonHomeomorph hb₀
+  refine ⟨T.transFiberHomeomorph (e.mapFiberHomeomorph hb₀),
+    T.contMDiffOn_transFiberHomeomorph_mapFiberHomeomorph hb₀
       (hD.contMDiffOn_parallelTransportTrivialization hn hf hfp hU hΓn hΓ₀ hΓ₁) he,
-    T.contMDiffOn_transFiberHomeomorph_preimageSingletonHomeomorph_symm hb₀
+    T.contMDiffOn_transFiberHomeomorph_mapFiberHomeomorph_symm hb₀
       (hD.contMDiffOn_parallelTransportTrivialization_symm hn hf hfp hU hΓn hΓ₀ hΓ₁)
       (fun _ _ _ ↦ hD.parallelTransportTrivialization_symm_apply hn hf hfp hU hΓn hΓ₀ hΓ₁ _) he',
-    hb₀U, fun b hb ↦ ⟨_, (hγ b hb).1, (hγ b hb).2, fun v ↦
-      (T.transFiberHomeomorph_preimageSingletonHomeomorph_symm_apply hb₀ (b, v)).trans
-        (hD.parallelTransportTrivialization_symm_apply hn hf hfp hU hΓn hΓ₀ hΓ₁ _)⟩⟩
+    hb₀U, fun b hb ↦ ⟨_, (hγ b hb).1, (hγ b hb).2, fun v ↦ by
+      simp [T, parallelTransportTrivialization_symm_apply]⟩⟩
 
 end Radial
 
