@@ -3733,9 +3733,9 @@ auxiliary pages, and the symplectic parts wait for it.
 
 ### 60. Almost complex spheres (needs `design/almost-complex-spheres.md`)
 
-- **Files:** `Geometry/Manifold/Instances/Sphere/AlmostComplex.lean` (the
+- **Files:** `Geometry/Symplectic/Manifold/AlmostComplex/Sphere.lean` (the
   sphere $S^{2n}$ has no almost complex structure for
-  $2n\notin\{2,6\}$). The case $S^{4k}$ comes from Chern classes: the
+  $2n\notin\{0,2,6\}$). The case $S^{4k}$ comes from Chern classes: the
   tangent bundle is stably trivial, so the Chern classes of its
   complexification vanish in positive degree, while for a complex
   structure that complexification is $T\oplus\overline T$, whose class in
@@ -3743,7 +3743,8 @@ auxiliary pages, and the symplectic parts wait for it.
   $k\ge2$, needs Bott's integrality theorem or Borel–Serre's argument with
   Steenrod operations, which neither library has; the design file chooses
   the route and lists its prerequisites as issues.
-- **Builds on:** *Chern classes*; Tau Ceti's Euler classes of spheres.
+- **Builds on:** *Chern classes*; the library's Euler characteristic
+  formula for tangent bundles and Tau Ceti's `TauCeti.eulerChar_sphere`.
 - **Milestones:** none by itself. It is the input of *Pointwise
   connected-sum obstruction for symplectic forms* (McDuff–Salamon,
   Exercise 4.1.9), and the deepest prerequisite of these pages.
