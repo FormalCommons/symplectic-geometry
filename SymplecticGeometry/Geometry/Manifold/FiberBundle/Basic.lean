@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.FiberBundle.Basic
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal
 public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
+public import TauCeti.Topology.FiberBundle.Proper
 
 /-!
 # Smooth maps into the charted total space of a fibre bundle
@@ -46,6 +47,9 @@ of a principal bundle given by a local section.
   `a`.
 * `TauCeti.ManifoldTotalSpace.mpullback_add_mpullback_proj_apply`: the pull-back of `α + π^* a`
   along a section is the pull-back of `α` plus `a`.
+* `TauCeti.ManifoldTotalSpace.compactSpace`: the charted total space is compact when the base and
+  the model fibre are, as Tau Ceti's `FiberBundle.compactSpace_totalSpace` says of
+  `Bundle.TotalSpace F E`.
 * `Bundle.Trivialization.manifoldSnd`: the fibre coordinate of a trivialization, as a map on the
   charted total space; `Bundle.Trivialization.contMDiffOn_manifoldSnd`: it is `C^n` over the base
   set of a trivialization in the atlas.
@@ -190,6 +194,14 @@ theorem mpullback_add_mpullback_proj_apply
     mpullback_mpullback_proj_apply a.val hτ]
 
 end Pullback
+
+/-- The charted total space of a fibre bundle with compact model fibre over a compact base is
+compact: it carries the topology of `Bundle.TotalSpace F E`, which is compact by
+`FiberBundle.compactSpace_totalSpace`. -/
+instance compactSpace {B F : Type*} {E : B → Type*} [TopologicalSpace B] [TopologicalSpace F]
+    [TopologicalSpace (TotalSpace F E)] [∀ b, TopologicalSpace (E b)] [FiberBundle F E]
+    [CompactSpace B] [CompactSpace F] : CompactSpace (ManifoldTotalSpace F E) :=
+  (homeomorph F E).compactSpace
 
 end TauCeti.ManifoldTotalSpace
 
