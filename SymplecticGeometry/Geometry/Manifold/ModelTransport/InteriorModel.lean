@@ -6,10 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
+public import SymplecticGeometry.Geometry.Manifold.Orientation.Diffeomorph
 public import TauCeti.Geometry.Manifold.Boundary.Interior
 public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
-public import TauCeti.Geometry.Manifold.Orientation.Pullback
 public import TauCeti.Geometry.Manifold.ModelTransport.Interior
 
 /-!
@@ -37,7 +37,7 @@ the identity is smooth by `ContMDiff.codRestrict_interior`: a `C^n` map into `M`
 the interior is `C^n` into `I.interior M`, since read in the chart of the interior it is the map
 followed by an extended chart of `M`. Into `I.interiorOpens M`, it is smooth by Tau Ceti's
 `TauCeti.ContMDiff.subtypeVal_comp_iff` and `ModelWithCorners.contMDiff_subtypeVal_interior`.
-Orientations of `I.interiorOpens M` are carried across it by pulling back along its inverse.
+Orientations of `I.interiorOpens M` are carried across it by `TauCeti.Manifold.Orientation.map`.
 
 ## Main definitions
 
@@ -306,16 +306,10 @@ Tau Ceti's charted interior `I.interior M`: the orientation for which the identi
 `ModelWithCorners.interiorOpensDiffeomorph I M n` preserves orientation
 (`isOrientationPreservingAt_interiorOpensDiffeomorph`). -/
 def toInterior (o : Orientation I (I.interiorOpens M) ι) : Orientation 𝓘(ℝ, E) (I.interior M) ι :=
-  o.pullback (I.interiorOpensDiffeomorph M 1).symm.contMDiff
-    (fun x ↦ ((I.interiorOpensDiffeomorph M 1).symm.isLocalDiffeomorph x).isInvertible_mfderiv
-      one_ne_zero)
-    o.card_eq
+  o.map (I.interiorOpensDiffeomorph M 1) one_ne_zero o.card_eq
 
 theorem toInterior_def (o : Orientation I (I.interiorOpens M) ι) :
-    o.toInterior = o.pullback (I.interiorOpensDiffeomorph M 1).symm.contMDiff
-      (fun x ↦ ((I.interiorOpensDiffeomorph M 1).symm.isLocalDiffeomorph x).isInvertible_mfderiv
-        one_ne_zero)
-      o.card_eq :=
+    o.toInterior = o.map (I.interiorOpensDiffeomorph M 1) one_ne_zero o.card_eq :=
   (rfl)
 
 /-- The inverse `I.interior M → I.interiorOpens M` of the identification preserves orientation,
@@ -326,7 +320,7 @@ theorem isOrientationPreservingAt_interiorOpensDiffeomorph_symm
     IsOrientationPreservingAt o.toInterior o (I.interiorOpensDiffeomorph M n).symm x := by
   rw [ModelWithCorners.coe_interiorOpensDiffeomorph_symm,
     ← ModelWithCorners.coe_interiorOpensDiffeomorph_symm (n := 1), toInterior_def]
-  exact isOrientationPreservingAt_pullback _ _ _ _ x
+  exact isOrientationPreservingAt_map_symm _ _ _ _ x
 
 /-- The identification `I.interiorOpens M → I.interior M` preserves orientation, from `o` to the
 carried orientation, at every regularity `n`. -/
@@ -336,8 +330,7 @@ theorem isOrientationPreservingAt_interiorOpensDiffeomorph
     IsOrientationPreservingAt o o.toInterior (I.interiorOpensDiffeomorph M n) p := by
   rw [ModelWithCorners.coe_interiorOpensDiffeomorph,
     ← ModelWithCorners.coe_interiorOpensDiffeomorph (n := 1)]
-  exact (isOrientationPreservingAt_interiorOpensDiffeomorph_symm o 1 _).diffeomorph_symm
-    (e := (I.interiorOpensDiffeomorph M 1).symm) one_ne_zero
+  exact isOrientationPreservingAt_map _ _ _ _ p
 
 /-- The carried orientation is the only orientation of `I.interior M` from which the inverse of
 the identification, at any regularity `n`, preserves orientation at every point. -/
@@ -345,14 +338,14 @@ theorem eq_toInterior_iff {o : Orientation I (I.interiorOpens M) ι}
     {o' : Orientation 𝓘(ℝ, E) (I.interior M) ι} (n : ℕ∞ω) :
     o' = o.toInterior ↔
       ∀ x, IsOrientationPreservingAt o' o (I.interiorOpensDiffeomorph M n).symm x := by
-  rw [toInterior_def, eq_pullback_iff, ModelWithCorners.coe_interiorOpensDiffeomorph_symm,
+  rw [toInterior_def, eq_map_iff, ModelWithCorners.coe_interiorOpensDiffeomorph_symm,
     ModelWithCorners.coe_interiorOpensDiffeomorph_symm]
 
 /-- Carrying the opposite orientation gives the opposite of the carried orientation. -/
 @[simp]
 theorem toInterior_neg (o : Orientation I (I.interiorOpens M) ι) :
     (-o).toInterior = -o.toInterior := by
-  simp only [toInterior_def, pullback_neg]
+  simp only [toInterior_def, map_neg]
 
 end TauCeti.Manifold.Orientation
 
