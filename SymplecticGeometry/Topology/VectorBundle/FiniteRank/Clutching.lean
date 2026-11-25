@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Analysis.Complex.RadialProjection
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Glue
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.HomotopyInvariance
 public import TauCeti.Topology.Algebra.Projectivization
 
 /-!
@@ -48,11 +49,23 @@ over any nontrivially normed field.
   and of its inverse at the radial retraction of the point.
 * `TauCeti.FiniteRankBundleCore.clutchingOneIso` and `clutching_one`: the clutching by the
   identity is isomorphic to the pullback of `E` along `Prod.fst`.
+* `TauCeti.FiniteRankBundleCore.pullbackClutchingIso`: for an automorphism `H` over
+  `(X × T) × Circle`, the pullback of the clutching by `H` along `(x, p) ↦ ((x, t), p)` is the
+  clutching by any automorphism over `X × Circle` with the fibre maps of `H` at time `t`.
+* `TauCeti.FiniteRankBundleCore.nonempty_iso_clutching_of_homotopic`: over a paracompact R₁
+  space, clutchings by automorphisms joined by a family over `X × I` are isomorphic.
 
 The clutched core is `TauCeti.FiniteRankBundleCore.glue`, applied to the cover of
 `X × ℙ ℂ (Fin 2 → ℂ)` by the preimages of the two discs. The clutching by the identity glues by
 the identity (`clutchingAut_refl`), so it is the gluing by the identity (`clutching_refl`), and
 `clutchingOneIso` is this equality followed by `TauCeti.FiniteRankBundleCore.glueReflIso`.
+
+For clutchings by homotopic families, the family over `X × I` clutches a core over
+`(X × I) × ℙ ℂ (Fin 2 → ℂ)`, whose pullbacks along the inclusions at times `0` and `1` are the
+two clutchings (`pullbackClutchingIso`, by `TauCeti.FiniteRankBundleCore.constIso`). These
+inclusions are homotopic, so the pullbacks are isomorphic by homotopy invariance
+(`TauCeti.FiniteRankBundleCore.nonempty_pullback_iso_of_homotopic`, from Tau Ceti's
+`ContinuousMap.Homotopic.exists_continuousLinearEquiv_pullback`), as in [Hatcher2017, §2.1].
 
 ## References
 
@@ -384,6 +397,163 @@ theorem fiberMap_clutchingOneIso_inv (x : X × ℙ ℂ (Fin 2 → ℂ)) :
 pullback of `E` along `Prod.fst`. -/
 theorem clutching_one : Nonempty (E.clutching (Iso.refl _) ≅ E.pullback ContinuousMap.fst) :=
   ⟨E.clutchingOneIso⟩
+
+/-! ### Clutching by homotopic families -/
+
+section Homotopic
+
+variable {T : Type*} [TopologicalSpace T]
+  (H : (E.pullback (ContinuousMap.fst : C(X × T, X))).pullback
+      (ContinuousMap.fst : C((X × T) × Circle, X × T)) ≅
+    (E.pullback (ContinuousMap.fst : C(X × T, X))).pullback
+      (ContinuousMap.fst : C((X × T) × Circle, X × T)))
+  (t : T)
+
+/-- The side of the chart at `((x, t), p)` of a clutching over `X × T` is that of the chart at
+`(x, p)` of a clutching over `X`. -/
+private theorem glueIndex_sliceAt (x : X × ℙ ℂ (Fin 2 → ℂ)) :
+    glueIndex (Prod.snd ⁻¹' innerDisc)
+        ((((ContinuousMap.id X).prodMk (.const X t)).prodMap (.id _)) x) =
+      glueIndex (Prod.snd ⁻¹' innerDisc) x := by
+  simp [glueIndex_def]
+
+/-- The chart at `i` of the pullback of a clutching over `X × T` along `(x, p) ↦ ((x, t), p)` lies
+in the chart at `i` of a clutching over `X`. -/
+private theorem baseSet_pullback_clutching_subset (i : X × ℙ ℂ (Fin 2 → ℂ)) :
+    (((E.pullback ContinuousMap.fst).clutching H).pullback
+        (((ContinuousMap.id X).prodMk (.const X t)).prodMap (.id _))).core.baseSet i ⊆
+      (E.clutching f).core.baseSet i := by
+  intro b hb
+  -- The chart of a pullback at `i` is the preimage of the chart at the image of `i`.
+  change ((((ContinuousMap.id X).prodMk (.const X t)).prodMap (.id _)) b) ∈
+    ((E.pullback ContinuousMap.fst).clutching H).core.baseSet
+      ((((ContinuousMap.id X).prodMk (.const X t)).prodMap (.id _)) i) at hb
+  rw [baseSet_clutching, glueIndex_sliceAt] at hb
+  rw [baseSet_clutching]
+  generalize glueIndex (Prod.snd ⁻¹' innerDisc) i = s at hb ⊢
+  cases s <;> exact ⟨hb.1, hb.2⟩
+
+variable {H t}
+
+/-- If the fibre maps of `H` at `((x, t), z)` are those of `f` at `(x, z)`, so are the fibre maps
+of their inverses. -/
+private theorem fiberMap_inv_sliceAt
+    (hf : ∀ w : X × Circle, H.hom.fiberMap ((w.1, t), w.2) = f.hom.fiberMap w) (w : X × Circle) :
+    H.inv.fiberMap ((w.1, t), w.2) = f.inv.fiberMap w := by
+  have h₁ : (f.inv.fiberMap w).comp (f.hom.fiberMap w) = .id 𝕜 _ := by
+    rw [← fiberMap_comp, f.hom_inv_id, fiberMap_id]
+  have h₂ : (H.hom.fiberMap ((w.1, t), w.2)).comp (H.inv.fiberMap ((w.1, t), w.2)) =
+      .id 𝕜 _ := by
+    rw [← fiberMap_comp, H.inv_hom_id, fiberMap_id]
+  calc H.inv.fiberMap ((w.1, t), w.2)
+      = ((f.inv.fiberMap w).comp (f.hom.fiberMap w)).comp (H.inv.fiberMap ((w.1, t), w.2)) := by
+        rw [h₁, ContinuousLinearMap.id_comp]
+    _ = f.inv.fiberMap w := by
+        rw [ContinuousLinearMap.comp_assoc, ← hf, h₂, ContinuousLinearMap.comp_id]
+
+/-- The transitions of the pullback of a clutching over `X × T` along `(x, p) ↦ ((x, t), p)` are
+those of the clutching by the slice of `H` at `t`. -/
+private theorem coordChange_pullback_clutching
+    (hf : ∀ w : X × Circle, H.hom.fiberMap ((w.1, t), w.2) = f.hom.fiberMap w)
+    (i k b : X × ℙ ℂ (Fin 2 → ℂ))
+    (hi : b ∈ (((E.pullback ContinuousMap.fst).clutching H).pullback
+      (((ContinuousMap.id X).prodMk (.const X t)).prodMap (.id _))).core.baseSet i)
+    (hk : b ∈ (((E.pullback ContinuousMap.fst).clutching H).pullback
+      (((ContinuousMap.id X).prodMk (.const X t)).prodMap (.id _))).core.baseSet k) :
+    ((((E.pullback ContinuousMap.fst).clutching H).pullback
+        (((ContinuousMap.id X).prodMk (.const X t)).prodMap (.id _))).core.coordChange i k b) =
+      (E.clutching f).core.coordChange i k b := by
+  have hs := ((baseSet_clutching E f i).le (baseSet_pullback_clutching_subset E f H t i hi)).2
+  have hr := ((baseSet_clutching E f k).le (baseSet_pullback_clutching_subset E f H t k hk)).2
+  simp only [coordChange_pullback, coordChange_clutching, glueIndex_sliceAt,
+    inChartCoordinates_pullback]
+  congr 1
+  generalize glueIndex (Prod.snd ⁻¹' innerDisc) i = s at hs ⊢
+  generalize glueIndex (Prod.snd ⁻¹' innerDisc) k = r at hr ⊢
+  cases s <;> cases r
+  · -- Both sides are the identity of `Fin E.rank → 𝕜`: the rank of a pullback is that of the core.
+    simp only [glueCocycle_self]
+    rfl
+  · have hb : b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc := ⟨hr, hs⟩
+    have hb' : (((ContinuousMap.id X).prodMk (.const X t)).prodMap (.id _)) b ∈
+        (Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc : Set ((X × T) × ℙ ℂ (Fin 2 → ℂ))) :=
+      hb
+    rw [glueCocycle_false_true _ hb', glueCocycle_false_true _ hb, fiberMap_clutchingAut_hom,
+      fiberMap_clutchingAut_hom]
+    exact hf (clutchingMap X ⟨b, hb⟩)
+  · have hb : b ∈ Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc := ⟨hs, hr⟩
+    have hb' : (((ContinuousMap.id X).prodMk (.const X t)).prodMap (.id _)) b ∈
+        (Prod.snd ⁻¹' innerDisc ∩ Prod.snd ⁻¹' outerDisc : Set ((X × T) × ℙ ℂ (Fin 2 → ℂ))) :=
+      hb
+    rw [glueCocycle_true_false _ hb', glueCocycle_true_false _ hb, fiberMap_clutchingAut_inv,
+      fiberMap_clutchingAut_inv]
+    exact fiberMap_inv_sliceAt E f hf (clutchingMap X ⟨b, hb⟩)
+  · -- Both sides are the identity of `Fin E.rank → 𝕜`: the rank of a pullback is that of the core.
+    simp only [glueCocycle_self]
+    rfl
+
+variable (H t)
+
+/-- **Restricting the parameter of a clutching.** Let `H` be an automorphism of the pullback of
+`E` to `(X × T) × Circle`, and `f` one of the pullback of `E` to `X × Circle` whose fibre map at
+`(x, z)` is that of `H` at `((x, t), z)`. Then the pullback of the clutching of the pullback of `E`
+to `X × T` by `H`, along `(x, p) ↦ ((x, t), p)`, is isomorphic to the clutching of `E` by `f`, by
+the identity in coordinates. -/
+def pullbackClutchingIso
+    (hf : ∀ w : X × Circle, H.hom.fiberMap ((w.1, t), w.2) = f.hom.fiberMap w) :
+    ((E.pullback ContinuousMap.fst).clutching H).pullback
+        (((ContinuousMap.id X).prodMk (.const X t)).prodMap (.id _)) ≅ E.clutching f :=
+  constIso (baseSet_pullback_clutching_subset E f H t) (.refl 𝕜 _) fun i k b hi hk ↦ by
+    rw [ContinuousLinearEquiv.coe_refl, ContinuousLinearMap.id_comp, ContinuousLinearMap.comp_id]
+    exact coordChange_pullback_clutching E f hf i k b hi hk
+
+/-- The isomorphism `pullbackClutchingIso` is the identity in coordinates. -/
+@[simp]
+theorem fiberMap_pullbackClutchingIso_hom
+    (hf : ∀ w : X × Circle, H.hom.fiberMap ((w.1, t), w.2) = f.hom.fiberMap w)
+    (x : X × ℙ ℂ (Fin 2 → ℂ)) :
+    (E.pullbackClutchingIso f H t hf).hom.fiberMap x = .id 𝕜 _ := by
+  rw [pullbackClutchingIso, fiberMap_constIso_hom]
+  -- The two sides differ only in the rank they name, both `E.rank` by definition.
+  exact ContinuousLinearEquiv.coe_refl
+
+/-- The inverse of `pullbackClutchingIso` is the identity in coordinates. -/
+@[simp]
+theorem fiberMap_pullbackClutchingIso_inv
+    (hf : ∀ w : X × Circle, H.hom.fiberMap ((w.1, t), w.2) = f.hom.fiberMap w)
+    (x : X × ℙ ℂ (Fin 2 → ℂ)) :
+    (E.pullbackClutchingIso f H t hf).inv.fiberMap x = .id 𝕜 _ := by
+  rw [pullbackClutchingIso, fiberMap_constIso_inv, ContinuousLinearEquiv.refl_symm]
+  -- The two sides differ only in the rank they name, both `E.rank` by definition.
+  exact ContinuousLinearEquiv.coe_refl
+
+end Homotopic
+
+open scoped unitInterval in
+/-- **Clutchings by homotopic families are isomorphic.** Let `X` be paracompact and R₁, for
+instance compact Hausdorff, and let `f₀` and `f₁` be automorphisms of the pullback of `E` to
+`X × Circle`. If an automorphism `H` of the pullback of `E` to `(X × I) × Circle` has the fibre
+maps of `f₀` at time `0` and those of `f₁` at time `1`, then the clutchings of `E` by `f₀` and by
+`f₁` are isomorphic. -/
+theorem nonempty_iso_clutching_of_homotopic [NormedAlgebra ℝ 𝕜] [CompleteSpace 𝕜]
+    [ParacompactSpace X] [R1Space X] {f₀ f₁ : E.pullback (ContinuousMap.fst : C(X × Circle, X)) ≅
+      E.pullback (ContinuousMap.fst : C(X × Circle, X))}
+    (H : (E.pullback (ContinuousMap.fst : C(X × I, X))).pullback
+        (ContinuousMap.fst : C((X × I) × Circle, X × I)) ≅
+      (E.pullback (ContinuousMap.fst : C(X × I, X))).pullback
+        (ContinuousMap.fst : C((X × I) × Circle, X × I)))
+    (h₀ : ∀ w : X × Circle, H.hom.fiberMap ((w.1, 0), w.2) = f₀.hom.fiberMap w)
+    (h₁ : ∀ w : X × Circle, H.hom.fiberMap ((w.1, 1), w.2) = f₁.hom.fiberMap w) :
+    Nonempty (E.clutching f₀ ≅ E.clutching f₁) := by
+  -- The two ends of the clutching over `X × I` are pullbacks along homotopic maps; the homotopy
+  -- `(s, (x, p)) ↦ ((x, s), p)` is at its ends the two maps, as they are evaluated.
+  have hJ : (((ContinuousMap.id X).prodMk (.const X (0 : I))).prodMap
+      (.id (ℙ ℂ (Fin 2 → ℂ)))).Homotopic
+        (((ContinuousMap.id X).prodMk (.const X (1 : I))).prodMap (.id _)) :=
+    ⟨⟨⟨fun p ↦ ((p.2.1, p.1), p.2.2), by fun_prop⟩, fun _ ↦ rfl, fun _ ↦ rfl⟩⟩
+  obtain ⟨e⟩ :=
+    ((E.pullback ContinuousMap.fst).clutching H).nonempty_pullback_iso_of_homotopic hJ
+  exact ⟨(E.pullbackClutchingIso f₀ H 0 h₀).symm ≪≫ e ≪≫ E.pullbackClutchingIso f₁ H 1 h₁⟩
 
 end TauCeti.FiniteRankBundleCore
 
