@@ -7,10 +7,13 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Morse.BirthDeath
 public import SymplecticGeometry.Geometry.Manifold.Morse.GradientLike
+public import SymplecticGeometry.Geometry.Symplectic.Liouville.Filling
+public import TauCeti.Geometry.Manifold.Boundary.Interior
 public import TauCeti.Geometry.Manifold.Flow.Complete
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import Mathlib.Geometry.Manifold.Riemannian.Basic
+import SymplecticGeometry.Geometry.Manifold.Boundary.Interior
 import TauCeti.Analysis.Calculus.Gradient
 import TauCeti.Analysis.Calculus.Morse.NormSq
 import TauCeti.Geometry.Manifold.Flow.NormedSpace
@@ -28,6 +31,12 @@ generalized Morse function `f : M → ℝ`, bounded below, for which `X` is grad
 quantitative sense of `TauCeti.IsGradientLike`. The primitive `λ = ι_X ω` is not part of the data:
 it satisfies `dλ = ω` (`SymplecticGeometry.IsWeinsteinStructure.mextDeriv_interior`).
 
+A *Weinstein domain* `(W, σ, Y, f)` lives on a compact manifold `W` with boundary over the
+half-space `𝓡∂ (n + 1)`: `(σ, Y)` is a Liouville domain (`SymplecticGeometry.IsStrongFilling` with
+the field Liouville on all of `W`), and `f` is smooth, constant equal to `c` on `∂W`, below `c`
+elsewhere, and increasing along `Y` at the boundary; on the interior of `W`, as a boundaryless
+manifold over `ℝⁿ⁺¹`, `f` is generalized Morse and `Y` gradient-like for it.
+
 ## Main declarations
 
 * `SymplecticGeometry.IsWeinsteinStructure`: the predicate on a triple `(ω, X, f)`, with
@@ -39,6 +48,11 @@ it satisfies `dλ = ω` (`SymplecticGeometry.IsWeinsteinStructure.mextDeriv_inte
 * `SymplecticGeometry.isWeinsteinStructure_constSmooth_norm_sq`: a linear symplectic form on a real
   inner product space of finite dimension, with the radial field `x ↦ x / 2` and the function
   `x ↦ ‖x‖ ^ 2`, is a Weinstein structure; for instance `ℂⁿ` with its standard form and `|z|²`.
+* `SymplecticGeometry.IsWeinsteinDomain`: the predicate on `(σ, Y, f, c)`, with
+  `SymplecticGeometry.isWeinsteinDomain_iff`.
+* `SymplecticGeometry.IsWeinsteinDomain.criticalPoints_subset_interior` and
+  `SymplecticGeometry.IsWeinsteinDomain.finite_criticalPoints`: the critical points of `f` are
+  interior points, and there are finitely many of them.
 
 ## Implementation notes
 
@@ -54,10 +68,20 @@ field `x / 2` is a quarter of the gradient `2 x` of `‖x‖ ^ 2` for the flat m
 `riemannianMetricVectorSpace`, so it is gradient-like by `TauCeti.isGradientLike_mgradient` and
 `TauCeti.IsGradientLike.smul`.
 
+For a Weinstein domain the interior of `W` is Tau Ceti's charted interior
+`(𝓡∂ (n + 1)).interior W` (`ModelWithCorners.instChartedSpaceInterior`), whose charts are the
+extended charts of `W`; its tangent spaces and those of `W` are both `ℝⁿ⁺¹`, so `Y` restricts
+to it without change. Compactness of `W` is a field of the predicate. The derivative of `f` along
+`Y` is positive on `∂W`, so the critical points of `f` are interior points; they form a closed,
+hence compact, subset of `W`. The inclusion of the interior is a local diffeomorphism
+(`ModelWithCorners.isLocalDiffeomorph_subtypeVal_interior`), so they are critical points of the
+restriction of `f`, in a compact subset of the interior, and so finitely many by
+`TauCeti.IsGeneralizedMorse.finite_criticalPoints_inter`.
+
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Definition 7.4.5
+  Definition 7.4.5 (Weinstein manifolds and domains)
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
   Chapter 11
 -/
@@ -173,6 +197,98 @@ theorem isWeinsteinStructure_constSmooth_norm_sq (ω : SymplecticForm V) :
     exact (by rw [smul_smul]; norm_num : (2⁻¹ : ℝ) • x = (4⁻¹ : ℝ) • (2 : ℝ) • x)
 
 end Radial
+
+/-! ### Weinstein domains -/
+
+section Domain
+
+open scoped ContDiff
+
+variable {n : ℕ} {W : Type*} [TopologicalSpace W] [ChartedSpace (EuclideanHalfSpace (n + 1)) W]
+  [IsManifold (𝓡∂ (n + 1)) ∞ W]
+
+/-- A **Weinstein domain** `(W, σ, Y, f)` with top level `c`: `W` is a compact manifold with
+boundary, `(σ, Y)` makes it a Liouville domain (a strong filling whose field is Liouville
+everywhere), and `f : W → ℝ` is smooth, equal to `c` on the boundary and less than `c` at interior
+points, with `df(Y) > 0` along the boundary. On the interior of `W`, a boundaryless manifold over
+`ℝⁿ⁺¹` (Tau Ceti's `ModelWithCorners.instChartedSpaceInterior`), `f` is generalized Morse and `Y`
+is gradient-like for `f`.
+
+The level `c` is a parameter, although `f` determines it as soon as the boundary is nonempty. -/
+structure IsWeinsteinDomain (σ : SmoothTwoForm (𝓡∂ (n + 1)) W)
+    (Y : (x : W) → TangentSpace (𝓡∂ (n + 1)) x) (f : W → ℝ) (c : ℝ) : Prop where
+  /-- The manifold is compact. -/
+  compactSpace : CompactSpace W
+  /-- The form and the field make `W` a Liouville domain. -/
+  isStrongFilling : IsStrongFilling σ univ Y
+  /-- The function is smooth. -/
+  contMDiff : ContMDiff (𝓡∂ (n + 1)) 𝓘(ℝ) ∞ f
+  /-- The function is `c` on the boundary. -/
+  eq_of_mem_boundary : ∀ x ∈ (𝓡∂ (n + 1)).boundary W, f x = c
+  /-- The function is less than `c` at interior points. -/
+  lt_of_mem_interior : ∀ x ∈ (𝓡∂ (n + 1)).interior W, f x < c
+  /-- The field increases the function along the boundary. -/
+  mvfderiv_pos : ∀ x ∈ (𝓡∂ (n + 1)).boundary W, 0 < mvfderiv (𝓡∂ (n + 1)) f x (Y x)
+  /-- On the interior, the function is generalized Morse. -/
+  isGeneralizedMorse :
+    IsGeneralizedMorse (EuclideanSpace ℝ (Fin (n + 1))) fun x : (𝓡∂ (n + 1)).interior W ↦ f x
+  /-- On the interior, the field is gradient-like for the function. -/
+  isGradientLike : IsGradientLike (fun x : (𝓡∂ (n + 1)).interior W ↦ f x)
+    fun x ↦ (Y x : EuclideanSpace ℝ (Fin (n + 1)))
+
+variable {σ : SmoothTwoForm (𝓡∂ (n + 1)) W} {Y : (x : W) → TangentSpace (𝓡∂ (n + 1)) x}
+  {f : W → ℝ} {c : ℝ}
+
+/-- The conditions of `SymplecticGeometry.IsWeinsteinDomain`, as a conjunction. -/
+theorem isWeinsteinDomain_iff :
+    IsWeinsteinDomain σ Y f c ↔
+      CompactSpace W ∧ IsStrongFilling σ univ Y ∧ ContMDiff (𝓡∂ (n + 1)) 𝓘(ℝ) ∞ f ∧
+        (∀ x ∈ (𝓡∂ (n + 1)).boundary W, f x = c) ∧
+        (∀ x ∈ (𝓡∂ (n + 1)).interior W, f x < c) ∧
+        (∀ x ∈ (𝓡∂ (n + 1)).boundary W, 0 < mvfderiv (𝓡∂ (n + 1)) f x (Y x)) ∧
+        IsGeneralizedMorse (EuclideanSpace ℝ (Fin (n + 1)))
+          (fun x : (𝓡∂ (n + 1)).interior W ↦ f x) ∧
+        IsGradientLike (fun x : (𝓡∂ (n + 1)).interior W ↦ f x)
+          (fun x ↦ (Y x : EuclideanSpace ℝ (Fin (n + 1)))) :=
+  ⟨fun h ↦ ⟨h.compactSpace, h.isStrongFilling, h.contMDiff, h.eq_of_mem_boundary,
+      h.lt_of_mem_interior, h.mvfderiv_pos, h.isGeneralizedMorse, h.isGradientLike⟩,
+    fun ⟨h₁, h₂, h₃, h₄, h₅, h₆, h₇, h₈⟩ ↦ ⟨h₁, h₂, h₃, h₄, h₅, h₆, h₇, h₈⟩⟩
+
+namespace IsWeinsteinDomain
+
+/-- The critical points of the function of a Weinstein domain are interior points. -/
+theorem criticalPoints_subset_interior (h : IsWeinsteinDomain σ Y f c) :
+    criticalPoints (𝓡∂ (n + 1)) f ⊆ (𝓡∂ (n + 1)).interior W := by
+  intro x hx
+  by_contra hxi
+  rw [← mem_compl_iff, ModelWithCorners.compl_interior] at hxi
+  have hpos := h.mvfderiv_pos x hxi
+  rw [mem_criticalPoints.1 hx] at hpos
+  exact hpos.false
+
+/-- The function of a Weinstein domain has only finitely many critical points. -/
+theorem finite_criticalPoints (h : IsWeinsteinDomain σ Y f c) :
+    (criticalPoints (𝓡∂ (n + 1)) f).Finite := by
+  have := h.compactSpace
+  have hsub := h.criticalPoints_subset_interior
+  have hS : IsOpen ((𝓡∂ (n + 1)).interior W) := (𝓡∂ (n + 1)).isOpen_interior one_ne_zero
+  -- The critical set is closed in the compact `W`, and lies in the open interior.
+  have hK : IsCompact (Subtype.val ⁻¹' criticalPoints (𝓡∂ (n + 1)) f :
+      Set ((𝓡∂ (n + 1)).interior W)) :=
+    (hS.isOpenEmbedding_subtypeVal.isCompact_preimage_iff (by simpa using hsub)).2
+      (isClosed_criticalPoints (h.contMDiff.of_le (by simp))).isCompact
+  -- The inclusion of the interior is a local diffeomorphism, so it preserves critical points.
+  have hcrit : (Subtype.val ⁻¹' criticalPoints (𝓡∂ (n + 1)) f : Set ((𝓡∂ (n + 1)).interior W)) ⊆
+      criticalPoints 𝓘(ℝ, EuclideanSpace ℝ (Fin (n + 1)))
+        (fun x : (𝓡∂ (n + 1)).interior W ↦ f x) := fun x hx ↦
+    (ModelWithCorners.isLocalDiffeomorph_subtypeVal_interior (n := 1) x
+      |>.mem_criticalPoints_comp_iff le_rfl).2 hx
+  have hfin := (h.isGeneralizedMorse.finite_criticalPoints_inter hK).image Subtype.val
+  rwa [inter_eq_right.2 hcrit, image_preimage_eq_of_subset (by simpa using hsub)] at hfin
+
+end IsWeinsteinDomain
+
+end Domain
 
 end SymplecticGeometry
 
