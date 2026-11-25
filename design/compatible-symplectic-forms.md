@@ -501,8 +501,8 @@ Issues 1, 2, 5 and 9 can start at once.
 
 - *Symplectic fibrations*: `MapFiber.lean` (smooth atlases, fibre
   inclusions), `StructureGroup.lean` (symplectic and oriented atlases),
-  `Basic.lean` (the restriction predicate, compatibility, compatibility
-  with an orientation) and
+  `RestrictsTo.lean` (the restriction predicate), `Basic.lean`
+  (compatibility, compatibility with an orientation) and
   `HorizontalDistribution.lean` (existence of connection two-forms).
 - *Minimal coupling*: `realFirstChernClass` (#2348).
 - Merged files of *First Chern number*: circle connection forms and their

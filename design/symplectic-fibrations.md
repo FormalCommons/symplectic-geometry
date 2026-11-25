@@ -446,8 +446,8 @@ lines.
 2. **Structure groups.** `Geometry/Manifold/FiberBundle/StructureGroup.lean`.
    Waits for 1.
 3. **Forms restricting to the fibre forms.**
-   `Geometry/Manifold/FiberBundle/RestrictsTo.lean`. Waits
-   for 2.
+   `Geometry/Manifold/FiberBundle/RestrictsTo.lean` and
+   `Fibration/Basic.lean`. Waits for 2.
 4. **The connection of a two-form.** The lemma
    `LinearMap.BilinForm.orthogonal_eq_orthogonal_iff` and the first four
    items of `Fibration/HorizontalDistribution.lean`. Waits for 3.

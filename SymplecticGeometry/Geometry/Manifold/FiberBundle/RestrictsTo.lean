@@ -191,9 +191,9 @@ theorem RestrictsTo.of_coordChangeMem (hA : A.IsContMDiff ∞ IB IF IM)
   exact Trivialization.mpullback_fiberInclusion_eq_of_mem_diffeomorphStabilizer
     (hA.mdifferentiable_trivAt (by simp) b') hb' (A.mem_baseSet_trivAt b') hφ hφe (hτ _ _ _)
 
-/-- **Restricting forms give symplectic atlases.** If a form restricts to `σ` along a smooth
-atlas, the coordinate changes of the atlas preserve `σ`: the atlas has structure group the
-stabilizer of `σ`. -/
+/-- **Restricting forms give atlases with structure group the stabilizer.** If a form
+restricts to `σ` along a smooth atlas, the coordinate changes of the atlas preserve `σ`: the
+atlas has structure group the stabilizer of `σ`; for a symplectic `σ`, a symplectic atlas. -/
 theorem RestrictsTo.hasStructureGroup (hA : A.IsContMDiff ∞ IB IF IM) (hτ : A.RestrictsTo σ τ) :
     A.HasStructureGroup (SmoothForm.diffeomorphStabilizer σ) := by
   refine hasStructureGroup_iff.2 fun b b' x hb hb' ↦ ?_
