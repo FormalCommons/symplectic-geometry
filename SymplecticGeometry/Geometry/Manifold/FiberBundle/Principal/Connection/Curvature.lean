@@ -36,6 +36,8 @@ of a principal bundle, `A` is usually a connection form.
   smooth maps.
 * `SymplecticGeometry.connectionCurvature_mapCoeff`: the curvature commutes with linear maps of
   `𝔤` that preserve the bracket.
+* `SymplecticGeometry.connectionCurvature_mapCoeff_toSpanSingleton`: for a real one-form `α` and
+  `ξ ∈ 𝔤`, the curvature of `α ξ` is `(d α) ξ`.
 * `SymplecticGeometry.IsConnectionForm.mpullback_op_smul_connectionCurvature`: the curvature of a
   connection form is equivariant, `R_g^* F_A = Ad(g⁻¹) ∘ F_A`.
 * `SymplecticGeometry.IsConnectionForm.connectionCurvature_apply_eq_zero_of_vertical`,
@@ -137,6 +139,21 @@ theorem connectionCurvature_mapCoeff (L : GroupLieAlgebra IG G →L[ℝ] GroupLi
     SmoothForm.mextDerivₗ_mapCoeff]
   congr 2
   exact (SmoothForm.mapCoeff_wedgeWith _ _ L L L (fun a b ↦ by simp [hL]) A A).symm
+
+/-- The curvature of the `𝔤`-valued form `α ξ`, for a real one-form `α` and `ξ ∈ 𝔤`, is
+`(d α) ξ`: the bracket term `½ [A ∧ A]` vanishes, since `⁅a • ξ, b • ξ⁆ = 0`. -/
+theorem connectionCurvature_mapCoeff_toSpanSingleton (ξ : GroupLieAlgebra IG G)
+    (α : SmoothForm IM M ℝ 1) :
+    connectionCurvature (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ ξ) α) =
+      SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ ξ) (mextDerivₗ IM 1 α) := by
+  have hwedge : SmoothForm.wedgeWith (lieL ℝ (GroupLieAlgebra IG G) (GroupLieAlgebra IG G))
+      (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ ξ) α)
+      (SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ ξ) α) = 0 := by
+    rw [← SmoothForm.mapCoeff_wedgeWith (ContinuousLinearMap.mul ℝ ℝ) _ _ _ 0
+      fun a b ↦ by simp]
+    ext x v
+    simp [SmoothForm.coe_mapCoeff, RoughForm.mapCoeff_apply]
+  rw [connectionCurvature_def, hwedge, smul_zero, add_zero, SmoothForm.mextDerivₗ_mapCoeff]
 
 /-- **The curvature of a connection form is equivariant**: its pull-back by the action of `g` is
 its image under `Ad(g⁻¹)`. -/

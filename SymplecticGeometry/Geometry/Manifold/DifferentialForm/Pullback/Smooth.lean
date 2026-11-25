@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 
 /-!
 # Pullback of forms: its value at a point, negation and constant maps
@@ -57,6 +58,10 @@ normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactica
   product, as the pullback along `f` on the vectors `(0, m i)`.
 * `TauCeti.mpullback_comp_prodMk_apply_modelSpace`: the same, for a map on a product of normed
   spaces with the model `𝓘(ℝ, E₁ × E₂)`.
+* `TauCeti.SmoothForm.contDiff_apply_mfderiv`: along a smooth map `γ` from a normed space, a
+  smooth form evaluated on the images under `dγ` of fixed vectors is a smooth function, with
+  `TauCeti.SmoothForm.contDiff_apply_one_mfderiv` and
+  `TauCeti.SmoothForm.differentiable_apply_one_mfderiv` for one-forms.
 -/
 
 public section
@@ -155,6 +160,33 @@ theorem mpullback_prodMk_left_mpullback_snd (p : M') (β : SmoothForm I' M' F (k
     mpullback (fun x : M ↦ (x, p)) (contMDiff_id.prodMk contMDiff_const)
       (mpullback Prod.snd contMDiff_snd β : SmoothForm (I.prod I') (M × M') F (k + 1)) = 0 := by
   simp [mpullback_mpullback, Function.comp_def]
+
+/-- Let `γ : E → M'` be a smooth map from a normed space. Evaluating a smooth `k`-form `η` at
+`γ y` on the images under `dγ_y` of fixed vectors `v i` gives a smooth function of `y`. -/
+theorem contDiff_apply_mfderiv (η : SmoothForm I' M' F k) {γ : E → M'}
+    (hγ : ContMDiff 𝓘(ℝ, E) I' ∞ γ) (v : Fin k → E) :
+    ContDiff ℝ ∞ fun y ↦ η.val (γ y) fun i ↦ mfderiv 𝓘(ℝ, E) I' γ y (v i) := by
+  have h := isSmoothForm_modelSpace_iff.1 (mpullback γ hγ η).isSmoothForm
+  convert (ContinuousAlternatingMap.apply ℝ E F v).contDiff.comp h using 1
+  funext y
+  exact (mpullback_apply γ hγ η y v).symm
+
+/-- Let `γ : E → M'` be a smooth map from a normed space. Evaluating a smooth one-form `η` at
+`γ y` on `dγ_y w`, for a fixed vector `w`, gives a smooth function of `y`. -/
+theorem contDiff_apply_one_mfderiv (η : SmoothForm I' M' F 1) {γ : E → M'}
+    (hγ : ContMDiff 𝓘(ℝ, E) I' ∞ γ) (w : E) :
+    ContDiff ℝ ∞ fun y ↦ η.val (γ y) ![mfderiv 𝓘(ℝ, E) I' γ y w] := by
+  convert contDiff_apply_mfderiv η hγ ![w] using 3 with y
+  ext i
+  fin_cases i
+  rfl
+
+/-- Let `γ : E → M'` be a smooth map from a normed space. Evaluating a smooth one-form `η` at
+`γ y` on `dγ_y w`, for a fixed vector `w`, gives a differentiable function of `y`. -/
+theorem differentiable_apply_one_mfderiv (η : SmoothForm I' M' F 1) {γ : E → M'}
+    (hγ : ContMDiff 𝓘(ℝ, E) I' ∞ γ) (w : E) :
+    Differentiable ℝ fun y ↦ η.val (γ y) ![mfderiv 𝓘(ℝ, E) I' γ y w] :=
+  (contDiff_apply_one_mfderiv η hγ w).differentiable (by simp)
 
 end SmoothForm
 

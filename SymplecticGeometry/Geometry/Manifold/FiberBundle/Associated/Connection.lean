@@ -8,7 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Associated.PullbackPrincipal
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
 public import TauCeti.Geometry.Manifold.IsManifold.Basic
-public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
 public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Hom
 import SymplecticGeometry.Geometry.Manifold.Distribution.Prod
 import SymplecticGeometry.Geometry.Manifold.Distribution.Pushforward
@@ -66,7 +65,7 @@ without the cast. The derivative of `x' ↦ [x', v]` at `x` is the derivative of
 the former, since the tangent space of `P × F` is a product of tangent spaces only up to
 unfolding `TangentSpace`. Complementarity needs neither the kernel nor the surjectivity of the
 derivative of the quotient map: it only needs the derivative of the projection of `P` to be
-surjective (`TauCeti.ManifoldTotalSpace.isRegularPoint_proj`).
+surjective (`TauCeti.ManifoldTotalSpace.isSubmersion_projContMDiffMap`).
 
 Smoothness comes from `P × F`: there the distribution `ker A_x × 0` is smooth of rank `dim B`
 (`TauCeti.IsContMDiffDistribution.map_mfderiv_prod_left`, from
@@ -206,23 +205,21 @@ of the kernel of the derivative of the projection to the base. -/
 theorem isCompl_associatedHorizontal (hA : IsConnectionForm A)
     (y : ManifoldTotalSpace F (AssociatedBundle G P F)) :
     IsCompl (hA.associatedHorizontal y)
-      (mfderiv (IB.prod IF) IB (fun y' : ManifoldTotalSpace F (AssociatedBundle G P F) ↦
-        ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm y').proj) y).ker := by
+      (mfderiv (IB.prod IF) IB
+        (ManifoldTotalSpace.projContMDiffMap ∞ F (AssociatedBundle G P F) IB IF) y).ker := by
   obtain ⟨⟨x, v⟩, rfl⟩ := surjective_chartedMk y
   rw [associatedHorizontal_eq]
   set L := mfderiv (IB.prod IG) (IB.prod IF)
     (fun x' : ManifoldTotalSpace G P ↦ chartedMk G F P (x', v)) x
-  set T := mfderiv (IB.prod IF) IB (fun y' : ManifoldTotalSpace F (AssociatedBundle G P F) ↦
-    ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm y').proj)
+  set T := mfderiv (IB.prod IF) IB
+    (ManifoldTotalSpace.projContMDiffMap ∞ F (AssociatedBundle G P F) IB IF)
     (chartedMk G F P (x, v))
-  set S := mfderiv (IB.prod IG) IB (fun x' : ManifoldTotalSpace G P ↦
-    ((ManifoldTotalSpace.homeomorph G P).symm x').proj) x
+  set S := mfderiv (IB.prod IG) IB (ManifoldTotalSpace.projContMDiffMap ∞ G P IB IG) x
   set C := tangentSpaceCast IB
-    ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm
-      (chartedMk G F P (x, v))).proj
-    ((ManifoldTotalSpace.homeomorph G P).symm x).proj
+    (ManifoldTotalSpace.projContMDiffMap ∞ F (AssociatedBundle G P F) IB IF
+      (chartedMk G F P (x, v)))
+    (ManifoldTotalSpace.projContMDiffMap ∞ G P IB IG x)
   have hc := hA.isCompl_horizontal (n := ∞) x
-  rw [ManifoldTotalSpace.coe_projContMDiffMap] at hc
   have hTL := mfderiv_proj_chartedMk_apply (IB := IB) (IG := IG) (IF := IF) (n := ∞)
     (by simp) x v
   constructor
@@ -236,8 +233,8 @@ theorem isCompl_associatedHorizontal (hA : IsConnectionForm A)
   · rw [Submodule.codisjoint_iff_exists_add_eq]
     intro u
     -- Lift the image of `u` in the base to `P`, and take the horizontal part of the lift.
-    obtain ⟨w', hw'⟩ := TauCeti.isRegularPoint_iff.1
-      (ManifoldTotalSpace.isRegularPoint_proj IB IG (E := P) x) (C (T u))
+    obtain ⟨w', hw'⟩ := (ManifoldTotalSpace.isSubmersion_projContMDiffMap ∞ G P IB IG
+      ).surjective_mfderiv (by simp) x (C (T u))
     obtain ⟨w, k, hw, hk, rfl⟩ := Submodule.codisjoint_iff_exists_add_eq.1 hc.codisjoint w'
     simp only [LinearMap.mem_ker, ContinuousLinearMap.coe_coe] at hk
     refine ⟨L w, u - L w, Submodule.mem_map_of_mem hw, ?_, add_sub_cancel _ _⟩
@@ -269,10 +266,9 @@ theorem isEhresmannConnection_associatedHorizontal [FiniteDimensional ℝ EB] [I
       (ManifoldTotalSpace.projContMDiffMap ∞ F (AssociatedBundle G P F) IB IF)
       hA.associatedHorizontal := by
   refine ⟨ManifoldTotalSpace.mdifferentiable_projContMDiffMap, fun y ↦ ?_, fun y ↦ ?_, ?_⟩
-  · rw [ManifoldTotalSpace.coe_projContMDiffMap]
-    exact hA.isCompl_associatedHorizontal y
-  · rw [ManifoldTotalSpace.coe_projContMDiffMap]
-    exact isRegularPoint_iff.1 (ManifoldTotalSpace.isRegularPoint_proj IB IF y)
+  · exact hA.isCompl_associatedHorizontal y
+  · exact (ManifoldTotalSpace.isSubmersion_projContMDiffMap ∞ F (AssociatedBundle G P F) IB IF
+      ).surjective_mfderiv (by simp) y
   refine (hA.isEhresmannConnection_horizontal.isContMDiffDistribution.map_mfderiv_prod_left
     (I' := IF) (M' := F)).map_mfderiv_of_isSubmersion
     (isSubmersion_chartedMk (n := ∞) ENat.LEInfty.out) surjective_chartedMk (by simp)
@@ -285,7 +281,6 @@ theorem isEhresmannConnection_associatedHorizontal [FiniteDimensional ℝ EB] [I
     simp only [ContinuousLinearMap.coe_coe, ← ContinuousLinearMap.comp_apply,
       mfderiv_chartedMk_comp_mfderiv_prod_left] at h
     have hc := hA.isCompl_horizontal (n := ∞) x
-    rw [ManifoldTotalSpace.coe_projContMDiffMap] at hc
     have hTL := mfderiv_proj_chartedMk_apply (IB := IB) (IG := IG) (IF := IF) (n := ∞)
       (by simp) x v
     rw [LinearMap.injOn_of_disjoint_ker le_rfl hc.disjoint hw hw'

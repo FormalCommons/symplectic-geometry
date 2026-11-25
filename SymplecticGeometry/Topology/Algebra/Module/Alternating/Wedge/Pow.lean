@@ -5,14 +5,16 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.LinearAlgebra.Determinant
 public import Mathlib.LinearAlgebra.Dimension.Finrank
 public import Mathlib.RingTheory.Finiteness.Defs
 public import TauCeti.Topology.Algebra.Module.Alternating.Wedge.Pow
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.Basic
+import TauCeti.LinearAlgebra.Determinant.Basic
 import TauCeti.Topology.Algebra.Module.Alternating.TopDegree
 
 /-!
-# Contracting a wedge power of a two-form in top degree
+# Wedge powers of a two-form in top degree
 
 Let `ω` be a real alternating two-form and `γ` a one-form on a real vector space `E` of dimension
 `2 n + 2`, and let `v ∈ E` with `γ(v) = 0`. Then the top-degree form `γ ∧ ι_v ω ∧ ω ^ n` is zero.
@@ -29,6 +31,10 @@ with `v`. Since contraction is an antiderivation
 
 * `ContinuousAlternatingMap.pairedWedge_curryLeftTopological_wedgePow_eq_zero`: in dimension
   `2 n + 2`, `γ ∧ ι_v ω ∧ ω ^ n = 0` when `γ(v) = 0`.
+* `ContinuousAlternatingMap.wedgePow_compContinuousLinearMap_eq_det_smul`: in dimension `2 n`,
+  `(A^* ω) ^ n = det A • ω ^ n`, by Tau Ceti's
+  `ContinuousAlternatingMap.wedgePow_compContinuousLinearMap` and
+  `AlternatingMap.compLinearMap_eq_det_smul`, since `ω ^ n` has top degree.
 
 ## References
 
@@ -81,6 +87,20 @@ theorem pairedWedge_curryLeftTopological_wedgePow_eq_zero [Module.Finite ℝ E] 
   rw [h1] at h2
   have hn : ((n : ℝ) + 1) ≠ 0 := by positivity
   simpa [hn, Function.comp_def] using h2.symm
+
+/-- **Top wedge power of a pullback.** On a real vector space of dimension `2 n`, the `n`-th
+wedge power of the pullback of a two-form `ω` along an endomorphism `A` is `det A` times the
+`n`-th wedge power of `ω`. -/
+theorem wedgePow_compContinuousLinearMap_eq_det_smul [Module.Finite ℝ E] {n : ℕ}
+    (hE : Module.finrank ℝ E = 2 * n) (ω : E [⋀^Fin 2]→L[ℝ] ℝ) (A : E →L[ℝ] E) :
+    (ω.compContinuousLinearMap A).wedgePow n = A.toLinearMap.det • ω.wedgePow n := by
+  rw [← wedgePow_compContinuousLinearMap]
+  ext v
+  -- Read `compLinearMap_eq_det_smul` at `v`, without moving the pullback back into the
+  -- wedge power.
+  simpa [-wedgePow_compContinuousLinearMap, Function.comp_def] using
+    DFunLike.congr_fun (AlternatingMap.compLinearMap_eq_det_smul
+      (Module.finBasisOfFinrankEq ℝ E hE) (ω.wedgePow n).toAlternatingMap A.toLinearMap) v
 
 end ContinuousAlternatingMap
 

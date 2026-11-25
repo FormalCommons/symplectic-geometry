@@ -101,7 +101,7 @@ theorem IsCircleConnectionForm.connectionCurvature_mapCoeff [IB.Boundaryless]
       SmoothForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator)
         (SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
           (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff hα.curvature) := by
-  rw [connectionCurvature_mapCoeff_toSpanSingleton_circleLieGenerator, hα.mpullback_curvature]
+  rw [connectionCurvature_mapCoeff_toSpanSingleton, hα.mpullback_curvature]
 
 /-! ### Existence -/
 
