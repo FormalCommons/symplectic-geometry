@@ -5,7 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Analysis.Complex.QuadraticLeviForm
+public import Mathlib.LinearAlgebra.Matrix.Dual
+public import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
+public import SymplecticGeometry.Analysis.Complex.HolomorphicQuadratic
 public import TauCeti.Geometry.Manifold.Morse.Basic
 public import TauCeti.Geometry.Manifold.Morse.Index
 
@@ -21,7 +23,8 @@ about it that the rest of the theory uses.
 * `SymplecticGeometry.LefschetzModel.quadric`: the function `z ↦ z 0 ^ 2 + z 1 ^ 2` on
   `Fin 2 → ℂ`.
 * `SymplecticGeometry.LefschetzModel.quadricForm`: the symmetric complex bilinear form
-  `(v, w) ↦ v 0 * w 0 + v 1 * w 1`, whose diagonal is `quadric`.
+  `(v, w) ↦ v 0 * w 0 + v 1 * w 1`, whose diagonal is `quadric`: Mathlib's dot product
+  `dotProductBilin`, as a continuous bilinear map.
 
 ## Main results
 
@@ -35,7 +38,9 @@ about it that the rest of the theory uses.
 
 The Morse index is computed with Tau Ceti's
 `ContinuousLinearMap.morseIndex_re_apply_self_of_ker_eq_bot`: the real part of a holomorphic
-quadratic form whose polarization is injective has Morse index the complex dimension.
+quadratic form whose polarization is injective has Morse index the complex dimension. The
+critical point is nondegenerate by
+`ContinuousLinearMap.isNondegenerateCriticalPoint_re_apply_self_of_ker_eq_bot`.
 
 ## References
 
@@ -60,14 +65,18 @@ theorem quadric_def (z : Fin 2 → ℂ) : quadric z = z 0 ^ 2 + z 1 ^ 2 :=
   (rfl)
 
 /-- The complex bilinear form `(v, w) ↦ v 0 * w 0 + v 1 * w 1` on `ℂ²`, whose diagonal is
-`quadric`. -/
+`quadric`: the dot product, as a continuous bilinear map. -/
 noncomputable def quadricForm : (Fin 2 → ℂ) →L[ℂ] (Fin 2 → ℂ) →L[ℂ] ℂ :=
-  ∑ j : Fin 2, (ContinuousLinearMap.proj j).smulRight (ContinuousLinearMap.proj j)
+  (dotProductBilin ℂ ℂ).toContinuousBilinearMap
 
-/-- The defining formula of `quadricForm`. -/
+/-- `quadricForm` is the dot product `dotProductBilin`, made continuous. -/
+theorem quadricForm_def : quadricForm = (dotProductBilin ℂ ℂ).toContinuousBilinearMap :=
+  (rfl)
+
+/-- `quadricForm` in coordinates. -/
 @[simp]
 theorem quadricForm_apply (v w : Fin 2 → ℂ) : quadricForm v w = v 0 * w 0 + v 1 * w 1 := by
-  simp [quadricForm]
+  simp [quadricForm_def, dotProduct, Fin.sum_univ_two]
 
 /-- The bilinear form of the quadric is symmetric. -/
 @[simp]
@@ -87,12 +96,10 @@ theorem quadric_eq_quadricForm_apply_self : quadric = fun z ↦ quadricForm z z 
 map into the dual. -/
 theorem injective_smul_quadricForm {c : ℂ} (hc : c ≠ 0) :
     Function.Injective (c • quadricForm) := by
-  refine (injective_iff_map_eq_zero _).2 fun v hv ↦ ?_
-  have h (j : Fin 2) := congr($hv (Pi.single j 1))
-  ext j
-  fin_cases j
-  · simpa [hc] using h 0
-  · simpa [hc] using h 1
+  intro v w h
+  apply (dotProductEquiv ℂ (Fin 2)).injective
+  refine LinearMap.ext fun u ↦ ?_
+  simpa [hc] using congr($h u)
 
 /-- The quadric is complex differentiable, with derivative `v ↦ 2 (z 0 v 0 + z 1 v 1)`. -/
 theorem hasFDerivAt_quadric (z : Fin 2 → ℂ) :
@@ -157,14 +164,7 @@ theorem manifoldMorseIndex_re_mul_quadric {c : ℂ} (hc : c ≠ 0) :
     exact injective_smul_quadricForm (mul_ne_zero two_ne_zero hc)
   rw [isManifoldNondegenerateCriticalPoint_modelSpace_iff, manifoldMorseIndex_modelSpace, hfun,
     q.morseIndex_re_apply_self_of_ker_eq_bot hker, Module.finrank_fin_fun]
-  refine ⟨isNondegenerateCriticalPoint_iff_hessianQuadraticForm_nondegenerate.2
-    ⟨(Complex.reCLM.contDiff.comp (q.contDiff_apply_self.restrict_scalars ℝ)).contDiffAt, ?_, ?_⟩,
-    rfl⟩
-  · have h := Complex.reCLM.hasFDerivAt.comp (0 : Fin 2 → ℂ)
-      ((q.hasFDerivAt_apply_self 0).restrictScalars ℝ)
-    simpa [Function.comp_def] using h.fderiv
-  · rw [QuadraticMap.nondegenerate_iff_radical_eq_bot,
-      q.radical_hessianQuadraticForm_re_apply_self, hker, Submodule.restrictScalars_bot]
+  exact ⟨q.isNondegenerateCriticalPoint_re_apply_self_of_ker_eq_bot hker, rfl⟩
 
 end SymplecticGeometry.LefschetzModel
 
