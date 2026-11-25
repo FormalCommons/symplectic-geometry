@@ -67,6 +67,9 @@ itself (`SymplecticGeometry.map_mem_annulus_iff`).
   `SymplecticGeometry.ConnectedSum.AnnulusSum.inl_eq_inr_iff`: a point `x` of the first piece and
   a point `y` of the second are equal in it exactly when `x = ι₁ ξ` and
   `y = ι₂ (Φ (inversion 0 ε ξ))` for some `ξ` of the annulus.
+* `SymplecticGeometry.ConnectedSum.AnnulusSum.instT2Space`: the connected sum is Hausdorff, by
+  `SymplecticGeometry.GluedAlong.t2Space_of_isClosed_graph`: the graph of the gluing map is
+  closed, as the image of the compact closed annulus `ε² ≤ ‖ξ‖ ≤ 1` cut down to the two pieces.
 
 The smoothness of the inversion away from its centre is Tau Ceti's
 `EuclideanGeometry.contDiffAt_inversion`, and the diffeomorphism is Tau Ceti's
@@ -347,6 +350,49 @@ theorem AnnulusSum.inl_eq_inr_iff {x : piece ι₁ ε hι₁.continuous}
     refine ⟨hx', Subtype.ext ?_⟩
     rw [← hξx, overlapDiffeomorph_annulusDiffeomorph, coe_annulusDiffeomorph_apply,
       coe_gluingDiffeomorph_apply, hy]
+
+/-- The connected sum of the Hausdorff spaces `M₁` and `M₂` is Hausdorff. -/
+instance AnnulusSum.instT2Space : T2Space (AnnulusSum hι₁ hdι₁ hι₂ hdι₂ Φ hε) := by
+  -- The graph of the gluing map, in the product of the two pieces, is the preimage of the image
+  -- of the compact closed annulus `ε² ≤ ‖ξ‖ ≤ 1` under `ξ ↦ (ι₁ ξ, ι₂ (Φ (inversion 0 ε ξ)))`,
+  -- since the two ends of that annulus go into the removed balls. So it is closed.
+  have hε₂ : 0 < ε ^ 2 := by positivity
+  set K : Set E := Metric.closedBall 0 1 \ Metric.ball 0 (ε ^ 2)
+  have hK0 : ∀ ξ ∈ K, ξ ≠ 0 := by
+    rintro ξ ⟨-, hξ⟩ rfl
+    exact hξ (Metric.mem_ball_self hε₂)
+  have hg : ContinuousOn (fun ξ ↦ (ι₁ ξ, ι₂ (Φ (inversion 0 ε ξ)))) K :=
+    (hι₁.continuous.continuousOn).prodMk fun ξ hξ ↦ (hι₂.continuous.continuousAt.comp
+      (Φ.continuous.continuousAt.comp
+        (contDiffAt_inversion (n := 0) (hK0 ξ hξ)).continuousAt)).continuousWithinAt
+  have hC : IsClosed (Prod.map (Subtype.val : piece ι₁ ε hι₁.continuous → M₁)
+      (Subtype.val : piece ι₂ ε hι₂.continuous → M₂) ⁻¹'
+        ((fun ξ ↦ (ι₁ ξ, ι₂ (Φ (inversion 0 ε ξ)))) '' K)) :=
+    (((isCompact_closedBall 0 1).diff Metric.isOpen_ball).image_of_continuousOn
+      hg).isClosed.preimage (continuous_subtypeVal.prodMap continuous_subtypeVal)
+  refine GluedAlong.t2Space_of_isClosed_graph _ ?_
+  convert hC using 1
+  -- The graph, which `AnnulusSum.inl_eq_inr_iff` describes, is that preimage.
+  ext ⟨x, y⟩
+  have hgraph := AnnulusSum.inl_eq_inr_iff hι₁ hdι₁ hι₂ hdι₂ Φ hε (x := x) (y := y)
+  rw [GluedAlong.inl_eq_inr_iff] at hgraph
+  simp only [Set.mem_preimage, Prod.map_apply, Set.mem_image, Prod.mk.injEq, Set.mem_ofPred_eq]
+  refine ⟨fun ⟨u, hu, hφ⟩ ↦ ?_, fun ⟨ξ, hξ, hx, hy⟩ ↦ ?_⟩
+  · subst hu
+    obtain ⟨ξ, hξ, hx, hy⟩ := hgraph.1 ⟨u.property, hφ⟩
+    refine ⟨ξ, ⟨?_, ?_⟩, hx.symm, hy.symm⟩
+    · simpa using hξ.2.le
+    · simpa using hξ.1.le
+  · have h₁ : ε ^ 2 < ‖ξ‖ := by
+      by_contra h
+      exact x.property ⟨ξ, by simpa using h, hx⟩
+    have h₂ : ε ^ 2 < ‖Φ (inversion 0 ε ξ)‖ := by
+      by_contra h
+      exact y.property ⟨_, by simpa using h, hy⟩
+    rw [LinearIsometryEquiv.norm_map, lt_norm_inversion_zero_iff ε hε₂ (hK0 ξ hξ),
+      div_self hε₂.ne'] at h₂
+    obtain ⟨hx', hy'⟩ := hgraph.2 ⟨ξ, ⟨h₁, h₂⟩, hx.symm, hy.symm⟩
+    exact ⟨⟨x, hx'⟩, rfl, hy'⟩
 
 end Diffeomorph
 
