@@ -96,8 +96,8 @@ fourth.
   $H^{-1}([a,b])$, bounded by the two end levels. The library states the
   converse that way: $(M,\omega)$ is a boundaryless symplectic manifold
   with a symplectic circle action and the page's Hamiltonian $H$, and the
-  band $K=H^{-1}([a,b])$ is compact, the action is free on
-  $K$ and $H(K)=[a,b]$. Freeness makes $X$ nonzero on $K$, so every value
+  band $K=H^{-1}([a,b])$ is compact and the action is free on
+  $K$. Freeness makes $X$ nonzero on $K$, so every value
   in $[a,b]$ is regular, and Tau Ceti's band atlas
   (`TauCeti.scalarRegularBandChartedSpace`,
   `Geometry/Manifold/RegularValue/Scalar/Boundary.lean`) makes $K$ a
@@ -379,19 +379,19 @@ smooth runs long, it goes in a second issue after the topological bundle.
 
 ### `Geometry/Symplectic/Coupling/Converse.lean`
 
-- `exists_isCouplingForm_comp_eq`: let $(M,\omega)$ be boundaryless and
+- `exists_isCouplingForm_comp_eq`: let $(M,\omega)$ be boundaryless, σ-compact and
   symplectic, with a smooth circle action preserving $\omega$, moment map
   $\mu$ in the page's sign (`ω.IsMomentMap a (fun x ↦ -μ x)`) and
   $H=\langle\mu,\xi_1\rangle$, the generator $\xi_1$ of
   `GroupAction/Circle.lean`. Let $K=H^{-1}([a,b])$ be compact (the page
   also asks for connectedness, which the proof does not use), with
-  $H(K)=[a,b]$ and the action free on $K$. Then, with $P_0=H^{-1}(a)$
+  the action free on $K$. Then, with $P_0=H^{-1}(a)$
   (a closed manifold, through Tau Ceti's `regularLevelChartedSpace`),
   $B=P_0/S^1$ and $P$ the bundle of `PrincipalBundle.lean`, there are a smooth
-  family of symplectic forms $\tau$ on $B$, a coupling form $\omega'$ for
-  $\tau$ and a smooth equivariant injective map
+  family of symplectic forms $\tau$ on $B$ and
+  a smooth equivariant injective map
   $\psi:P\times[a,b]\to M$ with range $K$, $H\circ\psi=\lambda$ and
-  $\psi^*\omega=\omega'$. The family $\tau$ satisfies the page's condition,
+  $\psi^*\omega$ a coupling form for $\tau$. The family $\tau$ satisfies the page's condition,
   by `IsCouplingForm.mk_sub_mk_eq_neg_smul_realFirstChernClass`. Milestone line:
   *Minimal coupling*.
 

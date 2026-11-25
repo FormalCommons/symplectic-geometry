@@ -15,7 +15,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Circl
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.ReducedForm
 
 /-!
-# The converse of minimal coupling: the band as a product
+# The converse of minimal coupling
 
 Let `v` be a complete smooth vector field on a Hausdorff boundaryless manifold `M`, with maximal
 flow `φ` (`TauCeti.flowOf`), and `e : Q → M` a map from a manifold `Q`. The **band map**
@@ -87,6 +87,16 @@ base. The invariance of `φ^* σ` under the action on the total space is proved 
 `TauCeti.SmoothTwoForm.IsEquivariantMomentMap.existsUnique_isSymplectic_mpullback_eq_mpullback`.
 The slices of the band map of a circle action are such maps.
 
+The last section puts these together into the converse of minimal coupling
+(`SymplecticGeometry.exists_isCouplingForm_comp_eq`). Let the circle preserve a symplectic form
+`σ` with moment map `-μ`, and let the band `K = H⁻¹([a, b])` be compact with the action free on
+it. Then `H` has no critical point on `K`, so `a` is a regular value of `H` and
+`SymplecticGeometry.exists_invariant_vectorField_mfderiv_eq_one` gives the field `v`; `H` is
+invariant (`TauCeti.SmoothTwoForm.IsMomentMap.apply_smul_circle`). The band map of `v` and of the
+circle bundle of `H⁻¹(a)` is the map `ψ`, the reduced forms of its slices are the family `τ`, and
+`ψ^* σ` is a coupling form for `τ`, whose classes then move as
+`SymplecticGeometry.IsCouplingForm.mk_sub_mk_eq_neg_smul_realFirstChernClass` says.
+
 ## Main definitions
 
 * `SymplecticGeometry.bandMap v e a b`: the map `(q, s) ↦ φ_{s - a} (e q)`.
@@ -122,6 +132,9 @@ The slices of the band map of a circle action are such maps.
   `bandMap_orbitFiber`, with `f = H`, each slice of the band map pulls `σ` back to the pull-back
   of a unique symplectic form on the base.
 * `SymplecticGeometry.IsCouplingForm.isSmoothFamily`: the family of a coupling form is smooth.
+* `SymplecticGeometry.isRegularValue_of_stabilizer_eq_bot`: a level on which the action is free
+  is a regular value of `H`.
+* `SymplecticGeometry.exists_isCouplingForm_comp_eq`: the converse of minimal coupling.
 
 ## References
 
@@ -458,11 +471,7 @@ theorem isRegularValue_of_stabilizer_eq_bot {σ : SmoothTwoForm I M}
     IsRegularValue I 𝓘(ℝ) (fun y ↦ μ y circlePeriodOneGenerator) c := by
   refine isRegularValue_iff.2 fun x hx ↦ ?_
   rw [isRegularPoint_iff_notMem_criticalPoints, mem_criticalPoints_iff_mfderiv_eq_zero]
-  have hσx : (σ.bilinFormAt x).Nondegenerate :=
-    ((SmoothForm.isAlt_bilinFormAt σ x).isRefl.nondegenerate_iff_separatingLeft).2 fun v hv ↦
-      SmoothTwoForm.isNondegenerate_iff_separatingLeft.1 hσ x v fun w ↦ by
-        simpa only [SmoothForm.bilinFormAt_apply] using hv w
-  refine mfderiv_ne_zero_of_notMem_fixedPoints hμ hσx fun hfix ↦ ?_
+  refine mfderiv_ne_zero_of_notMem_fixedPoints hμ (hσ.nondegenerate_bilinFormAt x) fun hfix ↦ ?_
   have hgx : Circle.exp Real.pi ∈ MulAction.stabilizer Circle x := hfix _
   rw [hfree x hx, Subgroup.mem_bot] at hgx
   exact Circle.exp_pi_ne_one hgx
@@ -835,10 +844,12 @@ the local instances of `GroupAction/RegularLevel.lean`. Then there are a map
 * `ψ` is smooth and equivariant, `ψ (p • z, t) = z • ψ (p, t)`;
 * `ψ` is injective, with range `K`, and `H (ψ (p, t)) = t`;
 * `τ` is a smooth family of symplectic forms;
-* `ψ^* σ` is a coupling form for `τ`.
+* `ψ^* σ` is a coupling form for `τ`;
+* the de Rham classes of the forms `τ t` move linearly in `t`, with slope minus the real first
+  Chern class of `P`: `[τ t] - [τ s] = -(t - s) c₁(P)`.
 
-By `SymplecticGeometry.IsCouplingForm.mk_sub_mk_eq_neg_smul_realFirstChernClass`, the classes of
-the forms `τ t` then move linearly in `t`, with slope minus the real first Chern class of `P`.
+The base `B` is compact, since the level `H⁻¹(a)` is closed in the compact band. The action is
+not assumed to be free off `K`, and `H(K) = [a, b]` is not assumed.
 
 Milestone: *Minimal coupling*. -/
 theorem exists_isCouplingForm_comp_eq (hσ : σ.IsSymplectic)
@@ -875,16 +886,23 @@ theorem exists_isCouplingForm_comp_eq (hσ : σ.IsSymplectic)
       {x : M // H x = a}).contMDiffFiberBundle
       (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ)
         {x : M // H x = a})
+    haveI : CompactSpace {x : M // H x = a} := isCompact_iff_compactSpace.1 <|
+      hK.of_isClosed_subset (isClosed_eq hf.continuous continuous_const) fun x hx ↦
+        show H x ∈ Icc a b by rw [hx]; exact left_mem_Icc.2 (Fact.out : a < b).le
     let IB := 𝓘(ℝ, ProperSMul.QuotientModelSpace (EuclideanSpace ℝ (Fin 1))
       (Fin (Module.finrank ℝ E - 1) → ℝ))
     let B := MulAction.orbitRel.Quotient Circleᵐᵒᵖ {x : M // H x = a}
     let P := orbitFiber Circleᵐᵒᵖ {x : M // H x = a}
     ∃ (ψ : ManifoldTotalSpace Circle P × Icc a b → M)
-      (hψ : ContMDiff ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) I ∞ ψ) (τ : Icc a b → SmoothTwoForm IB B),
+      (hψ : ContMDiff ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) I ∞ ψ) (τ : Icc a b → SmoothTwoForm IB B)
+      (hτ : ∀ t, (τ t).IsSymplectic),
       (∀ (g : Circle) (x : ManifoldTotalSpace Circle P × Icc a b), ψ (op g • x.1, x.2) = g • ψ x) ∧
       Injective ψ ∧ range ψ = H ⁻¹' Icc a b ∧ (∀ x, H (ψ x) = x.2) ∧
-      IsSmoothFamily (𝓡∂ 1) τ ∧ (∀ t, (τ t).IsSymplectic) ∧
-      IsCouplingForm (SmoothForm.mpullback ψ hψ σ) τ := by
+      IsSmoothFamily (𝓡∂ 1) τ ∧ IsCouplingForm (SmoothForm.mpullback ψ hψ σ) τ ∧
+      ∀ t s : Icc a b,
+        deRhamCohomology.mk IB 2 ⟨τ t, (hτ t).isClosed.mem_closedForms⟩ -
+            deRhamCohomology.mk IB 2 ⟨τ s, (hτ s).isClosed.mem_closedForms⟩ =
+          -((t : ℝ) - s) • realFirstChernClass IB P := by
   intro H
   have hf : ContMDiff I 𝓘(ℝ) ∞ H := contMDiff_of_isMomentMap_neg hμ
   have hfreea : ∀ x, H x = a → MulAction.stabilizer Circle x = ⊥ := fun x hx ↦
@@ -913,6 +931,9 @@ theorem exists_isCouplingForm_comp_eq (hσ : σ.IsSymplectic)
     {x : M // H x = a}).contMDiffFiberBundle
     (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ)
       {x : M // H x = a})
+  have : CompactSpace {x : M // H x = a} := isCompact_iff_compactSpace.1 <|
+    hK.of_isClosed_subset (isClosed_eq hf.continuous continuous_const) fun x hx ↦
+      show H x ∈ Icc a b by rw [hx]; exact left_mem_Icc.2 (Fact.out : a < b).le
   intro IB B P
   -- An invariant complete field `v` with `dH(v) = 1` near the band, where `dH ≠ 0`.
   obtain ⟨v, W, hv, -, hvc, hvinv, hW, hKW, -, hvf⟩ :=
@@ -928,7 +949,8 @@ theorem exists_isCouplingForm_comp_eq (hσ : σ.IsSymplectic)
     hvc hvinv hW hvf hKW hσ hσs hμ (fun _ ↦ rfl) hψ
   choose τ hτs hτ using fun t ↦ (hτ t).exists
   have hc := isCouplingForm_mpullback hψ hσ.isClosed hσs hμ hψs hψf hX fun t ↦ (hτ t).symm
-  exact ⟨_, hψ, τ, hψs, hinj, hrange, hψf, hc.isSmoothFamily, hτs, hc⟩
+  exact ⟨_, hψ, τ, hτs, hψs, hinj, hrange, hψf, hc.isSmoothFamily, hc,
+    hc.mk_sub_mk_eq_neg_smul_realFirstChernClass⟩
 
 end Converse
 
