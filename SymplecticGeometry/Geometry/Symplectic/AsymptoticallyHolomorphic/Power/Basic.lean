@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.Algebra.LieGroup
 public import Mathlib.Geometry.Manifold.Instances.Sphere
 public import TauCeti.Geometry.Manifold.VectorBundle.Associated.Metric
 public import SymplecticGeometry.Topology.VectorBundle.Associated.Basic
+public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
 
 /-!
 # Powers of a principal circle bundle
@@ -52,6 +53,16 @@ complex scalars on the fibres, `TauCeti.AssociatedBundle.instIsScalarTower` of
   `Geometry/Manifold/VectorBundle/Associated/` (`Basic.lean` and `Metric.lean`), since the action
   is smooth (`SymplecticGeometry.PowerModel.instContMDiffSMul`).
 
+The weights add under tensor products: `SymplecticGeometry.powerAddEquiv` identifies each fibre
+of `PowerBundle P (k + l)` with the tensor product of the fibres of `PowerBundle P k` and
+`PowerBundle P l`, by `[p, z * w] ↦ [p, z] ⊗ [p, w]`, and is continuous on total spaces into Tau
+Ceti's tensor product bundle (`Topology/VectorBundle/TensorProduct/Basic.lean`). The continuity
+is checked on `P × ℂ`, of which the total space is a quotient
+(`TauCeti.AssociatedBundle.isOpenQuotientMap_totalSpaceMk_mk`). The statement has the form that
+`TauCeti.complexEulerClass_eq_of_fiberwise` asks for; the tensor product fibres carry their module
+topology, and the real structure that instance search finds on them is the one of
+`TauCeti.complexEulerClass_tensorProduct`.
+
 The file states the instances that Tau Ceti's files ask of the model fibre, and checks the
 structures of the bundle by `example`s.
 
@@ -59,6 +70,8 @@ structures of the bundle by `example`s.
 
 * `SymplecticGeometry.PowerModel k`: `ℂ` with the circle acting by `g • z = g ^ k * z`.
 * `SymplecticGeometry.PowerBundle P k`: the complex line bundle `P ×_{Circle} ℂ` of weight `k`.
+* `SymplecticGeometry.powerAddEquiv k l`: the fibrewise isomorphism from
+  `PowerBundle P (k + l)` to `PowerBundle P k ⊗ PowerBundle P l`.
 
 ## Main results
 
@@ -66,6 +79,8 @@ structures of the bundle by `example`s.
 * `SymplecticGeometry.PowerBundle.finrank_eq_one`: the fibres are complex lines.
 * `SymplecticGeometry.PowerBundle.contMDiffVectorBundle`: for a smooth principal bundle, a smooth
   vector bundle.
+* `SymplecticGeometry.powerAddEquiv_mk`: `[p, z * w] ↦ [p, z] ⊗ [p, w]`.
+* `SymplecticGeometry.continuous_powerAddEquiv`: `powerAddEquiv` is continuous on total spaces.
 
 ## References
 
@@ -250,6 +265,78 @@ example : IsContMDiffRiemannianBundle IB n (PowerModel k) (PowerBundle P k) := i
 end Smooth
 
 end PowerBundle
+
+/-! ### Tensor products of the bundles of weight `k` -/
+
+open scoped TensorProduct TauCeti.ModuleTopology
+
+/-- **The bundle of weight `k + l` is the tensor product of those of weights `k` and `l`.** Over
+each point `b`, the complex linear isomorphism from `PowerBundle P (k + l) b` to
+`PowerBundle P k b ⊗[ℂ] PowerBundle P l b` that sends `[p, z * w]` to `[p, z] ⊗ [p, w]`
+(`SymplecticGeometry.powerAddEquiv_mk`). The tensor product carries the topology of Tau Ceti's
+tensor product bundle, its module topology. -/
+def powerAddEquiv (k l : ℤ) (b : B) :
+    PowerBundle P (k + l) b ≃L[ℂ] PowerBundle P k b ⊗[ℂ] PowerBundle P l b :=
+  -- A point of the fibre of `P` over `b`, through which both sides are identified with `ℂ`.
+  let p := (FiberBundle.homeomorphAt Circle P b).symm 1
+  haveI := VectorBundle.finiteDimensional ℂ (PowerModel (k + l)) (PowerBundle P (k + l)) b
+  haveI := FiberBundle.t2Space (PowerModel (k + l)) (PowerBundle P (k + l)) b
+  letI : IsModuleTopology ℂ (PowerBundle P (k + l) b) := isModuleTopologyOfFiniteDimensional
+  LinearEquiv.toContinuousLinearEquivOfIsModuleTopology <|
+    (AssociatedBundle.mkContinuousLinearEquiv ℂ Circle p).symm.toLinearEquiv ≪≫ₗ
+      PowerModel.toComplex.toLinearEquiv ≪≫ₗ (TensorProduct.lid ℂ ℂ).symm ≪≫ₗ
+      TensorProduct.congr
+        (PowerModel.toComplex.symm.toLinearEquiv ≪≫ₗ
+          (AssociatedBundle.mkContinuousLinearEquiv ℂ Circle p).toLinearEquiv)
+        (PowerModel.toComplex.symm.toLinearEquiv ≪≫ₗ
+          (AssociatedBundle.mkContinuousLinearEquiv ℂ Circle p).toLinearEquiv)
+
+variable {P} in
+/-- `powerAddEquiv` sends `[p, z * w]` to `[p, z] ⊗ [p, w]`, for every point `p` of the fibre
+of `P`; this holds because `g ^ (k + l) = g ^ k * g ^ l`. -/
+theorem powerAddEquiv_mk {k l : ℤ} {b : B} (p : P b) (z : PowerModel k) (w : PowerModel l) :
+    powerAddEquiv P k l b (AssociatedBundle.mk Circle p
+        (PowerModel.toComplex.symm (PowerModel.toComplex z * PowerModel.toComplex w))) =
+      AssociatedBundle.mk Circle p z ⊗ₜ[ℂ] AssociatedBundle.mk Circle p w := by
+  -- Every class `[p, x]` of weight `n` is a multiple of `[p₀, 1]`, `p₀` being the point used to
+  -- define `powerAddEquiv`, by the factor `g ^ n x` for `g` the division of `p` by `p₀`.
+  have hmk : ∀ {n : ℤ} (x : PowerModel n), AssociatedBundle.mk Circle p x =
+      ((((PrincipalBundle.division Circle ((FiberBundle.homeomorphAt Circle P b).symm 1) p :
+        Circle) : ℂ) ^ n * PowerModel.toComplex x) •
+        AssociatedBundle.mk Circle ((FiberBundle.homeomorphAt Circle P b).symm 1)
+          (PowerModel.toComplex.symm 1) : PowerBundle P n b) := by
+    intro n x
+    rw [← AssociatedBundle.mk_smul_scalar, eq_comm, AssociatedBundle.mk_eq_mk_iff]
+    apply PowerModel.toComplex.injective
+    simp
+  rw [hmk, hmk, hmk, TensorProduct.smul_tmul_smul, map_smul]
+  congr 1
+  · rw [LinearIsometryEquiv.apply_symm_apply, zpow_add₀ (Circle.coe_ne_zero _)]
+    ring
+  · simp [powerAddEquiv]
+
+/-- **`powerAddEquiv` is continuous on total spaces**: as a map from the total space of
+`PowerBundle P (k + l)` to that of Tau Ceti's tensor product bundle of `PowerBundle P k` and
+`PowerBundle P l`, with model fibre `TauCeti.ProjectiveTensor ℂ (PowerModel k) (PowerModel l)`.
+This is the hypothesis of `TauCeti.complexEulerClass_eq_of_fiberwise`. -/
+theorem continuous_powerAddEquiv (k l : ℤ) :
+    Continuous fun v : TotalSpace (PowerModel (k + l)) (PowerBundle P (k + l)) ↦
+      TotalSpace.mk' (ProjectiveTensor ℂ (PowerModel k) (PowerModel l))
+        (E := fun b ↦ PowerBundle P k b ⊗[ℂ] PowerBundle P l b) v.proj
+        (powerAddEquiv P k l v.proj v.snd) := by
+  -- The total space of `PowerBundle P (k + l)` is a quotient of `P × ℂ`, on which the map is
+  -- `(p, z) ↦ [p, z] ⊗ [p, 1]`.
+  refine (AssociatedBundle.isOpenQuotientMap_totalSpaceMk_mk Circle P
+    (PowerModel (k + l))).isQuotientMap.continuous_iff.2 ?_
+  have hp : Continuous fun x : TotalSpace Circle P × PowerModel (k + l) ↦
+      TotalSpace.mk' Circle x.1.proj x.1.snd := continuous_fst
+  refine (Continuous.tmul_section (hp.totalSpaceMk_associatedBundleMk
+    ((PowerModel.toComplex.symm.continuous.comp PowerModel.toComplex.continuous).comp
+      continuous_snd))
+    (hp.totalSpaceMk_associatedBundleMk
+      (continuous_const (y := (PowerModel.toComplex.symm 1 : PowerModel l))))).congr fun x ↦ ?_
+  rw [Function.comp_apply, Function.comp_apply, ← powerAddEquiv_mk]
+  simp
 
 end SymplecticGeometry
 
