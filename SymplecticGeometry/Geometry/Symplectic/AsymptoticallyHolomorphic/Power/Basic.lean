@@ -9,6 +9,7 @@ public import TauCeti.Geometry.Manifold.Algebra.LieGroup
 public import Mathlib.Geometry.Manifold.Instances.Sphere
 public import TauCeti.Geometry.Manifold.VectorBundle.Associated.Metric
 public import SymplecticGeometry.Topology.VectorBundle.Associated.Basic
+public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
 
 /-!
 # Powers of a principal circle bundle
@@ -22,9 +23,12 @@ defines the complex line bundle `SymplecticGeometry.PowerBundle P k`, Tau Ceti's
 
 When `P` is the bundle of unitary frames of a Hermitian line bundle `L` (the principal
 `Circle`-bundle of `Geometry/Manifold/VectorBundle/Hermitian/CircleBundle.lean`), `PowerBundle P k`
-stands for the `k`-th tensor power of `L` (of its dual when `k < 0`); this file does not compare
-the two. It is built as an associated bundle, and not as an iterated tensor product, so that its
-model fibre is `ℂ` for every `k`.
+stands for the `k`-th tensor power of `L` (of its dual when `k < 0`). For `k = 1` the file
+identifies it with `L`: `SymplecticGeometry.PowerBundle.powerOneEquiv` sends the class `[φ, z]` of
+a unitary frame `φ` to `φ z`, fibre by fibre, and it and its inverse are continuous on total
+spaces, in the form that Tau Ceti's `TauCeti.complexEulerClass_eq_of_fiberwise` takes. It is
+built as an associated bundle, and not as an iterated tensor product, so that its model fibre is
+`ℂ` for every `k`.
 
 A separate type for each `k` is needed because the instance arguments of Tau Ceti's construction
 fix the action of `Circle` on the model fibre. Through its `ℂ`-module structure the type also has
@@ -39,6 +43,12 @@ determinant line of a `Spinᶜ` structure: `SymplecticGeometry.PowerBundle` adap
 `TauCeti.SpinCStructure.determinantLine`, `SymplecticGeometry.PowerBundle.finrank_eq_one` adapts
 `TauCeti.SpinCStructure.finrank_determinantLine`, and `SymplecticGeometry.PowerBundle.mk_op_smul`
 adapts `TauCeti.SpinCStructure.mk_ofCircle_smul_determinantLine`.
+`SymplecticGeometry.PowerBundle.powerOneEquiv` and `SymplecticGeometry.PowerBundle.powerOneEquiv_mk`
+adapt Tau Ceti's `TauCeti.OrthonormalFrameBundle.associatedLinearIsometryEquiv` and
+`TauCeti.OrthonormalFrameBundle.associatedLinearIsometryEquiv_mk`, from the group
+`unitary (ℂ →L[ℂ] ℂ)` to `Circle`, and `SymplecticGeometry.PowerBundle.continuous_powerOneEquiv`
+follows the continuity proof of `TauCeti.OrthonormalFrameBundle.associatedBundleHomeomorph`; the
+continuity of the inverse is read off from that homeomorphism.
 
 The structures of `PowerBundle P k` come from Tau Ceti, except the compatibility of the real and
 complex scalars on the fibres, `TauCeti.AssociatedBundle.instIsScalarTower` of
@@ -59,6 +69,8 @@ structures of the bundle by `example`s.
 
 * `SymplecticGeometry.PowerModel k`: `ℂ` with the circle acting by `g • z = g ^ k * z`.
 * `SymplecticGeometry.PowerBundle P k`: the complex line bundle `P ×_{Circle} ℂ` of weight `k`.
+* `SymplecticGeometry.PowerBundle.powerOneEquiv`: for the unitary frames of a Hermitian line bundle
+  `V`, the fibrewise identification of the bundle of weight one with `V`.
 
 ## Main results
 
@@ -66,6 +78,9 @@ structures of the bundle by `example`s.
 * `SymplecticGeometry.PowerBundle.finrank_eq_one`: the fibres are complex lines.
 * `SymplecticGeometry.PowerBundle.contMDiffVectorBundle`: for a smooth principal bundle, a smooth
   vector bundle.
+* `SymplecticGeometry.PowerBundle.continuous_powerOneEquiv`,
+  `SymplecticGeometry.PowerBundle.continuous_powerOneEquiv_symm`: `powerOneEquiv` and its inverse
+  are continuous on total spaces.
 
 ## References
 
@@ -248,6 +263,84 @@ instance contMDiffVectorBundle :
 example : IsContMDiffRiemannianBundle IB n (PowerModel k) (PowerBundle P k) := inferInstance
 
 end Smooth
+
+/-! ### The bundle of weight one of a Hermitian line bundle -/
+
+section PowerOne
+
+open OrthonormalFrameBundle
+
+variable {B F : Type*} [TopologicalSpace B] [NormedAddCommGroup F] [NormedSpace ℂ F]
+  [Fact (finrank ℂ F = 1)] {V : B → Type*} [∀ b, NormedAddCommGroup (V b)]
+  [∀ b, InnerProductSpace ℂ (V b)] [TopologicalSpace (TotalSpace F V)] [FiberBundle F V]
+  [VectorBundle ℂ F V] [ContinuousFiberNorm F V]
+
+variable (F V) in
+/-- For a Hermitian line bundle `V` with its principal `Circle`-bundle of unitary frames, the
+fibre at `b` of the bundle of weight one is identified with `V b`, complex linearly and
+isometrically, by sending the class `[φ, z]` of a unitary frame `φ` to `φ z`
+(`SymplecticGeometry.PowerBundle.powerOneEquiv_mk`). -/
+def powerOneEquiv (b : B) : PowerBundle (Fiber ℂ F V ℂ) 1 b ≃ₗᵢ[ℂ] V b :=
+  let p₀ := (FiberBundle.homeomorphAt Circle (Fiber ℂ F V ℂ) b).symm 1
+  (AssociatedBundle.mkLinearIsometryEquiv ℂ Circle p₀).symm.trans
+    (PowerModel.toComplex.trans p₀.frame)
+
+/-- `powerOneEquiv` sends the class `[φ, z]` to `φ z`. -/
+@[simp]
+theorem powerOneEquiv_mk {b : B} (φ : Fiber ℂ F V ℂ b) (z : PowerModel 1) :
+    powerOneEquiv F V b (AssociatedBundle.mk Circle φ z) = φ.frame (PowerModel.toComplex z) := by
+  rw [powerOneEquiv, LinearIsometryEquiv.trans_apply, LinearIsometryEquiv.trans_apply,
+    AssociatedBundle.mkLinearIsometryEquiv_symm_apply_mk, PowerModel.toComplex_smul, zpow_one,
+    ← Fiber.frame_op_circle_smul_apply, PrincipalBundle.smul_division]
+
+/-- The inverse of `powerOneEquiv` writes `w : V b` in a unitary frame `φ` as `[φ, φ⁻¹ w]`. -/
+theorem powerOneEquiv_symm_apply {b : B} (φ : Fiber ℂ F V ℂ b) (w : V b) :
+    (powerOneEquiv F V b).symm w =
+      AssociatedBundle.mk Circle φ (PowerModel.toComplex.symm (φ.frame.symm w)) :=
+  (powerOneEquiv F V b).injective <| by simp
+
+/-- The map of total spaces induced by `powerOneEquiv` is continuous. -/
+theorem continuous_powerOneEquiv :
+    Continuous fun v : TotalSpace (PowerModel 1) (PowerBundle (Fiber ℂ F V ℂ) 1) ↦
+      TotalSpace.mk' F v.proj (powerOneEquiv F V v.proj v.snd) := by
+  rw [(AssociatedBundle.isOpenQuotientMap_totalSpaceMk_mk Circle (Fiber ℂ F V ℂ)
+    (PowerModel 1)).isQuotientMap.continuous_iff]
+  refine (continuous_totalSpace_frame_apply.comp
+    ((TotalSpace.modelFiberHomeomorph ⟨rfl⟩).continuous.prodMap
+      PowerModel.toComplex.continuous)).congr fun ⟨⟨b, φ⟩, z⟩ ↦ ?_
+  rw [Function.comp_apply, Prod.map_apply, TotalSpace.coe_modelFiberHomeomorph,
+    TotalSpace.modelFiberEquiv_apply]
+  simp
+
+local instance : FiniteDimensional ℂ F := .of_fact_finrank_eq_succ 0
+
+local instance : Fact (finrank ℂ ℂ = finrank ℂ F) :=
+  ⟨by rw [finrank_self, Fact.out (p := finrank ℂ F = 1)]⟩
+
+/-- The map of total spaces induced by the inverse of `powerOneEquiv` is continuous. -/
+theorem continuous_powerOneEquiv_symm :
+    Continuous fun v : TotalSpace F V ↦
+      TotalSpace.mk' (PowerModel 1) (E := PowerBundle (Fiber ℂ F V ℂ) 1) v.proj
+        ((powerOneEquiv F V v.proj).symm v.snd) := by
+  -- Read through Tau Ceti's description of `V` as the bundle associated with the unitary frames
+  -- for the group `unitary (ℂ →L[ℂ] ℂ)`, whose inverse map of total spaces is continuous.
+  have he : Continuous fun u : TotalSpace ℂ
+      (AssociatedBundle (unitary (ℂ →L[ℂ] ℂ)) (Fiber ℂ F V ℂ) ℂ) ↦
+      TotalSpace.mk' (PowerModel 1) (E := PowerBundle (Fiber ℂ F V ℂ) 1) u.proj
+        ((powerOneEquiv F V u.proj).symm (associatedLinearIsometryEquiv ℂ F V ℂ u.proj u.snd)) := by
+    rw [(AssociatedBundle.isOpenQuotientMap_totalSpaceMk_mk (unitary (ℂ →L[ℂ] ℂ))
+      (Fiber ℂ F V ℂ) ℂ).isQuotientMap.continuous_iff]
+    refine ((AssociatedBundle.continuous_totalSpaceMk_mk Circle (Fiber ℂ F V ℂ)
+      (PowerModel 1)).comp ((TotalSpace.modelFiberHomeomorph ⟨rfl⟩).symm.continuous.prodMap
+        PowerModel.toComplex.symm.continuous)).congr fun ⟨⟨b, φ⟩, v⟩ ↦ ?_
+    rw [Function.comp_apply, Prod.map_apply, TotalSpace.coe_modelFiberHomeomorph_symm,
+      TotalSpace.modelFiberEquiv_symm_apply]
+    simp [powerOneEquiv_symm_apply φ]
+  exact (he.comp (associatedBundleHomeomorph ℂ F V ℂ).symm.continuous).congr fun ⟨b, w⟩ ↦ by
+    rw [Function.comp_apply, associatedBundleHomeomorph_symm_apply]
+    simp
+
+end PowerOne
 
 end PowerBundle
 
