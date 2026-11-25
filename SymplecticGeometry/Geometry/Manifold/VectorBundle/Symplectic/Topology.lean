@@ -51,6 +51,8 @@ total spaces by `Bundle.Pullback.contMDiff_continuousAlternatingMap_totalSpace` 
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §2.6
   (symplectic vector bundles).
+* [M. W. Hirsch, *Differential Topology*][Hirsch1976], Chapter 2, §1 (the weak topology
+  underlying the frame topology).
 -/
 
 public section
