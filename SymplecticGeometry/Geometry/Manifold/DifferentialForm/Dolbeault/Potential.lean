@@ -59,6 +59,8 @@ The `∂∂bar` identities follow the pattern of Tau Ceti's `Dolbeault/DC.lean`,
 
 In the namespace `TauCeti`:
 
+* `SmoothAlmostComplexStructure.covectorComplexStructure_ofComplexManifold_mextDerivₗ_apply`: on
+  a complex manifold, the value of `-df ∘ J` on `v` at `x` is `-df_x(i v)`.
 * `coe_mextDerivₗ_covectorComplexStructure_eq_two_smul_ddbarForm`: on a complex manifold,
   `ω_f = 2 • TauCeti.ddbarForm V u`, for the function `u` underlying `f`, from
   `dC_mapCoeff_ofReal` and Tau Ceti's `ddbarForm_apply_eq_inv_two_smul_mextDerivₗ_dC_apply`.
@@ -202,6 +204,17 @@ variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℂ V]
 
 open scoped TauCeti.ComplexManifold
 open SmoothAlmostComplexStructure
+
+/-- On a complex manifold, the value of `-df ∘ J` on `v` at `x` is `-df_x(i v)`, for a smooth
+real function `f`. -/
+theorem SmoothAlmostComplexStructure.covectorComplexStructure_ofComplexManifold_mextDerivₗ_apply
+    (f : C^∞⟮𝓘(ℝ, V), N; ℝ⟯) (x : N) (v : TangentSpace 𝓘(ℝ, V) x) :
+    ((ofComplexManifold V N).covectorComplexStructure
+        (mextDerivₗ 𝓘(ℝ, V) 0 (SmoothForm.ofFunction f))).val x ![v] =
+      -mvfderiv 𝓘(ℝ, V) f x (Complex.I • (show V from v)) := by
+  refine (covectorComplexStructure_apply_vec _ _ x v).trans ?_
+  rw [mextDerivₗ_zero_apply, SmoothForm.ofFunction_apply_zero]
+  exact congrArg (fun w ↦ -mvfderiv 𝓘(ℝ, V) f x w) (ofComplexManifold_apply (E := V) x v)
 
 /-- On a complex manifold, for a real function `f`,
 `(i/2) ∂∂bar f = (1/4) d (J.covectorComplexStructure (d f))`: the left side is the
