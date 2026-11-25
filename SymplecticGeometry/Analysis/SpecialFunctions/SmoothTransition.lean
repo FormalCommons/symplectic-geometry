@@ -389,7 +389,6 @@ theorem smoothSign_nonpos_iff {s : ℝ} : smoothSign s ≤ 0 ↔ s ≤ 0 := by
 theorem smoothSign_nonneg_iff {s : ℝ} : 0 ≤ smoothSign s ↔ 0 ≤ s := by
   rw [← not_lt, smoothSign_lt_zero_iff, not_lt]
 
-
 /-- A smooth antitone cutoff `β : ℝ → [0, 1]` that is `1` on `(-∞, a]`, `0` on `[b, ∞)` and
 positive on `(-∞, b)`, for any `a < b`, whose second derivative dominates any multiple of its
 first derivative near `b`: for every `K` there is `0 < s < (b - a) / 2` with
@@ -446,37 +445,25 @@ theorem exists_contDiff_antitone_cutoff_mul_abs_deriv_le_deriv_deriv {a b : ℝ}
     · simp only [β, ← h, zero_add, sub_zero, one_mul]
       exact hgpos hr
   -- Near `b`, `β = g`, whose derivatives are those of `f` at `b - r`, up to sign and the factor.
-  set s := min ((b - a) / 4) ((|K| + 2)⁻¹ / 2)
-  have hs0 : 0 < s := lt_min (by linarith) (by positivity)
+  obtain ⟨ε, hε, hεs⟩ :=
+    mem_nhdsGT_iff_exists_Ioo_subset.1 (expNegInvGlue.eventually_mul_deriv_le_deriv_deriv K)
+  set s := min ((b - a) / 4) (ε / 2)
+  have hs0 : 0 < s := lt_min (by linarith) (half_pos hε)
   have hsab : s < (b - a) / 2 := (min_le_left _ _).trans_lt (by linarith)
   refine ⟨s, hs0, hsab, fun r hr ↦ ?_⟩
-  have hdf : Differentiable ℝ (deriv f) :=
-    (expNegInvGlue.contDiff (n := 2)).differentiable_deriv_two
-  have hdg (t : ℝ) : HasDerivAt g (-deriv f (b - t) / f (b - a)) t := by
-    have := ((expNegInvGlue.contDiff (n := 1)).differentiable (by simp) (b - t)).hasDerivAt.comp t
-      ((hasDerivAt_id t).const_sub b)
-    simpa [g, neg_div] using this.div_const (f (b - a))
-  have hdg' : deriv g = fun t ↦ -deriv f (b - t) / f (b - a) := funext fun t ↦ (hdg t).deriv
-  have hddg : HasDerivAt (deriv g) (deriv (deriv f) (b - r) / f (b - a)) r := by
-    rw [hdg']
-    have := (hdf (b - r)).hasDerivAt.comp r ((hasDerivAt_id r).const_sub b)
-    simpa [neg_div] using this.neg.div_const (f (b - a))
+  have hdg : deriv g = fun t ↦ -deriv f (b - t) / f (b - a) :=
+    funext fun t ↦ by simp only [g, deriv_div_const, deriv_comp_const_sub]
+  have hddg : deriv (deriv g) r = deriv (deriv f) (b - r) / f (b - a) := by
+    rw [hdg]; simp only [neg_div, deriv.fun_neg, deriv_div_const, deriv_comp_const_sub, neg_neg]
   have hs₁ : s ≤ (b - a) / 4 := min_le_left _ _
-  have hs₂ : s ≤ (|K| + 2)⁻¹ / 2 := min_le_right _ _
+  have hs₂ : s ≤ ε / 2 := min_le_right _ _
   have hmr : m < r := by simp only [m]; linarith [hr.1]
   have hβg : β =ᶠ[𝓝 r] g := by
     filter_upwards [Ioi_mem_nhds hmr] with t ht using hβm ht.le
-  have hx : 0 < b - r := sub_pos.2 hr.2
-  have hd0 : 0 ≤ deriv f (b - r) := by
-    rw [(expNegInvGlue.hasDerivAt _).deriv]
-    exact mul_nonneg (by positivity) (expNegInvGlue.nonneg _)
-  rw [hβg.deriv_eq, hβg.deriv.deriv_eq, (hdg r).deriv, hddg.deriv, abs_div, abs_neg,
-    abs_of_pos hc, abs_of_nonneg hd0, mul_div_assoc']
-  refine div_le_div_of_nonneg_right (expNegInvGlue.mul_deriv_le_deriv_deriv hx ?_) hc.le
-  have h1 : b - r ≤ (|K| + 2)⁻¹ / 2 := by linarith [hr.1]
-  have h2 := mul_le_mul_of_nonneg_left h1 (by positivity : (0 : ℝ) ≤ |K| + 2)
-  rw [mul_div_assoc', mul_inv_cancel₀ (by positivity)] at h2
-  linarith
+  have hx : b - r ∈ Set.Ioo 0 ε := ⟨sub_pos.2 hr.2, by linarith [hr.1]⟩
+  rw [hβg.deriv_eq, hβg.deriv.deriv_eq, hddg, congrFun hdg r, abs_div, abs_neg, abs_of_pos hc,
+    abs_of_nonneg expNegInvGlue.monotone.deriv_nonneg, mul_div_assoc']
+  exact div_le_div_of_nonneg_right (hεs hx) hc.le
 
 end SymplecticGeometry
 
