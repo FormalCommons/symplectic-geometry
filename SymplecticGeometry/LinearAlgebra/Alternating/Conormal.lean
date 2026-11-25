@@ -7,6 +7,7 @@ module
 
 public import TauCeti.LinearAlgebra.Alternating.Conormal
 public import TauCeti.LinearAlgebra.BilinearMap.Multilinear
+import SymplecticGeometry.LinearAlgebra.Alternating.Basic
 import TauCeti.LinearAlgebra.Alternating.Curry
 
 /-!
@@ -46,9 +47,8 @@ theorem mem_conormalForms_fin_two_iff_le_ker {W : Submodule R M} {ω : M [⋀^Fi
   · -- `ι_{v j} ω` vanishes, since `v j` lies in the kernel of the bilinear map.
     refine AlternatingMap.map_eq_zero_of_curryLeft_eq_zero (x := v j) ?_ rfl
     ext u
-    have e : Matrix.vecCons (v j) u = ![v j, u 0] := (FinVec.etaExpand_eq _).symm
-    simpa [AlternatingMap.curryLeft_apply_apply, e] using
-      LinearMap.congr_fun (LinearMap.mem_ker.mp (hW hv)) (u 0)
+    simpa [AlternatingMap.curryLeft_apply_apply] using
+      LinearMap.congr_fun (LinearMap.mem_ker.mp (hW hv)) u
 
 end Submodule
 
