@@ -250,13 +250,14 @@ private instance instIsManifoldPiece :
   | ⟨true⟩ => inferInstanceAs (IsManifold _ ∞ (EndPiece n W))
 
 /-- Each overlap is an open subset of its piece, with the induced atlas. -/
-private instance instChartedSpaceOverlap :
-    ∀ p : c.glueData.J × c.glueData.J,
-      ChartedSpace (EuclideanSpace ℝ (Fin (n + 1))) (c.glueData.V p)
-  | (⟨false⟩, ⟨false⟩) => inferInstanceAs (ChartedSpace _ (⊤ : Opens (InteriorPiece n W)))
-  | (⟨false⟩, ⟨true⟩) => inferInstanceAs (ChartedSpace _ c.interiorModelRange)
-  | (⟨true⟩, ⟨false⟩) => inferInstanceAs (ChartedSpace _ (endOverlap (n := n) (W := W)))
-  | (⟨true⟩, ⟨true⟩) => inferInstanceAs (ChartedSpace _ (⊤ : Opens (EndPiece n W)))
+private instance instChartedSpaceOverlap (p : c.glueData.J × c.glueData.J) :
+    ChartedSpace (EuclideanSpace ℝ (Fin (n + 1))) (c.glueData.V p) :=
+  -- The overlap is an open subset of `ofHomeomorphPiece`, which instance search does not see
+  -- as `c.glueData.U`; state the piece's atlas at that type.
+  letI : ChartedSpace _
+      (TopCat.GlueData.ofHomeomorphPiece (InteriorPiece n W) (EndPiece n W) p.1) :=
+    c.instChartedSpacePiece p.1
+  (TopCat.GlueData.ofHomeomorphOverlap c.interiorModelRange endOverlap p.1 p.2).instChartedSpace
 
 private theorem isLocalDiffeomorph_interiorToEndPt :
     IsLocalDiffeomorph (𝓡 (n + 1)) (𝓡 (n + 1)) ∞ c.interiorToEndPt := fun q ↦ by
@@ -283,11 +284,8 @@ private theorem isLocalDiffeomorph_endToInterior :
   exact isLocalDiffeomorph_id q
 
 private theorem isCompatible_glueData : c.glueData.IsCompatible (𝓡 (n + 1)) ∞ := by
-  refine .of_isLocalDiffeomorph_t ?_ ?_ <;> rintro ⟨_ | _⟩ ⟨_ | _⟩
-  · exact isLocalDiffeomorph_subtype_val (M := InteriorPiece n W)
-  · exact isLocalDiffeomorph_subtype_val (M := InteriorPiece n W)
-  · exact isLocalDiffeomorph_subtype_val (M := EndPiece n W)
-  · exact isLocalDiffeomorph_subtype_val (M := EndPiece n W)
+  refine .of_isLocalDiffeomorph_t (fun i j ↦ isLocalDiffeomorph_subtype_val) ?_
+  rintro ⟨_ | _⟩ ⟨_ | _⟩
   · exact isLocalDiffeomorph_id
   · exact c.isLocalDiffeomorph_interiorToEnd
   · exact c.isLocalDiffeomorph_endToInterior

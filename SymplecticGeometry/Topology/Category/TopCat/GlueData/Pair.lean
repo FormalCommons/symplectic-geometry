@@ -20,6 +20,9 @@ and `e x = y` (`TopCat.GlueData.ofHomeomorph_ι_false_eq_ι_true_iff`).
 ## Main declarations
 
 * `TopCat.GlueData.ofHomeomorph`: the gluing of `X` and `Y` along `e`.
+* `TopCat.GlueData.ofHomeomorphPiece`, `TopCat.GlueData.ofHomeomorphOverlap`: its pieces, and
+  its overlaps as open subsets of the pieces, for every pair of indices
+  (`TopCat.GlueData.ofHomeomorph_V`, `TopCat.GlueData.ofHomeomorph_f`).
 * `TopCat.GlueData.ofHomeomorph_ι_false_eq_ι_true_iff`,
   `TopCat.GlueData.ofHomeomorph_ι_true_eq_ι_false_iff`: when points of the two pieces are
   identified.
@@ -48,20 +51,52 @@ namespace TopCat.GlueData
 variable {X Y : Type u} [TopologicalSpace X] [TopologicalSpace Y] {U : Opens X} {V : Opens Y}
   (e : U ≃ₜ V)
 
+variable (X Y) in
+/-- The pieces of the gluing of `X` and `Y`: `X` for the index `false` and `Y` for `true`. -/
+@[expose] def ofHomeomorphPiece : ULift.{u} Bool → TopCat.{u}
+  | ⟨false⟩ => TopCat.of X
+  | ⟨true⟩ => TopCat.of Y
+
+variable (U V) in
+/-- The overlaps of the gluing of `X` and `Y` along open subsets `U` and `V`, as open subsets of
+its pieces: each piece overlaps itself in the whole piece, `X` overlaps `Y` in `U`, and `Y`
+overlaps `X` in `V`. -/
+@[expose] def ofHomeomorphOverlap : ∀ i _j : ULift.{u} Bool, Opens (ofHomeomorphPiece X Y i)
+  | ⟨false⟩, ⟨false⟩ => (⊤ : Opens X)
+  | ⟨false⟩, ⟨true⟩ => U
+  | ⟨true⟩, ⟨false⟩ => V
+  | ⟨true⟩, ⟨true⟩ => (⊤ : Opens Y)
+
+/-- The piece of index `false` is `X`. -/
+@[simp] theorem ofHomeomorphPiece_false : ofHomeomorphPiece X Y ⟨false⟩ = TopCat.of X := (rfl)
+
+/-- The piece of index `true` is `Y`. -/
+@[simp] theorem ofHomeomorphPiece_true : ofHomeomorphPiece X Y ⟨true⟩ = TopCat.of Y := (rfl)
+
+variable (U V) in
+/-- Each piece overlaps itself in the whole piece. -/
+@[simp] theorem ofHomeomorphOverlap_self (i : ULift.{u} Bool) :
+    ofHomeomorphOverlap U V i i = ⊤ := by
+  rcases i with ⟨_ | _⟩ <;> rfl
+
+variable (V) in
+/-- The overlap of the piece `X` with the piece `Y` is `U`. -/
+@[simp] theorem ofHomeomorphOverlap_false_true : ofHomeomorphOverlap U V ⟨false⟩ ⟨true⟩ = U :=
+  (rfl)
+
+variable (U) in
+/-- The overlap of the piece `Y` with the piece `X` is `V`. -/
+@[simp] theorem ofHomeomorphOverlap_true_false : ofHomeomorphOverlap U V ⟨true⟩ ⟨false⟩ = V :=
+  (rfl)
+
 /-- The gluing of `X` and `Y` along a homeomorphism `e : U ≃ₜ V` of open subsets: the pieces
 are `X` (index `false`) and `Y` (index `true`), the overlaps of the two pieces are `U` and `V`,
 and the transition maps are `e` and `e.symm`. -/
 @[expose] noncomputable def ofHomeomorph : TopCat.GlueData.{u} :=
   TopCat.GlueData.mk'
     { J := ULift.{u} Bool
-      U := fun i ↦ match i with
-        | ⟨false⟩ => TopCat.of X
-        | ⟨true⟩ => TopCat.of Y
-      V := fun i j ↦ match i, j with
-        | ⟨false⟩, ⟨false⟩ => ⊤
-        | ⟨false⟩, ⟨true⟩ => U
-        | ⟨true⟩, ⟨false⟩ => V
-        | ⟨true⟩, ⟨true⟩ => ⊤
+      U := ofHomeomorphPiece X Y
+      V := ofHomeomorphOverlap U V
       t := fun i j ↦ match i, j with
         | ⟨false⟩, ⟨false⟩ => 𝟙 _
         | ⟨false⟩, ⟨true⟩ => TopCat.ofHom (e : C(U, V))
@@ -82,29 +117,19 @@ and the transition maps are `e` and `e.symm`. -/
 /-- The gluing along `e` is indexed by `ULift Bool`. -/
 @[simp] theorem ofHomeomorph_J : (ofHomeomorph e).J = ULift.{u} Bool := (rfl)
 
-/-- The piece of index `false` is `X`. -/
-@[simp] theorem ofHomeomorph_U_false : (ofHomeomorph e).U ⟨false⟩ = TopCat.of X := (rfl)
+/-- The pieces of the gluing along `e` are those of `ofHomeomorphPiece X Y`. -/
+@[simp] theorem ofHomeomorph_U (i : (ofHomeomorph e).J) :
+    (ofHomeomorph e).U i = ofHomeomorphPiece X Y i := (rfl)
 
-/-- The piece of index `true` is `Y`. -/
-@[simp] theorem ofHomeomorph_U_true : (ofHomeomorph e).U ⟨true⟩ = TopCat.of Y := (rfl)
+/-- The overlap of the pieces `i` and `j` of the gluing along `e` is the open subset
+`ofHomeomorphOverlap U V i j` of the piece `i`. -/
+@[simp] theorem ofHomeomorph_V (i j : (ofHomeomorph e).J) :
+    (ofHomeomorph e).V (i, j) = (Opens.toTopCat _).obj (ofHomeomorphOverlap U V i j) := (rfl)
 
-/-- The overlap of the piece `X` with the piece `Y` is `U`. -/
-@[simp] theorem ofHomeomorph_V_false_true :
-    (ofHomeomorph e).V (⟨false⟩, ⟨true⟩) = TopCat.of U := (rfl)
-
-/-- The overlap of the piece `Y` with the piece `X` is `V`. -/
-@[simp] theorem ofHomeomorph_V_true_false :
-    (ofHomeomorph e).V (⟨true⟩, ⟨false⟩) = TopCat.of V := (rfl)
-
-/-- The overlap `U` includes into the piece `X` as a subspace. -/
-@[simp] theorem ofHomeomorph_f_false_true :
-    (ofHomeomorph e).f ⟨false⟩ ⟨true⟩ =
-      TopCat.ofHom (⟨Subtype.val, continuous_subtypeVal⟩ : C(U, X)) := (rfl)
-
-/-- The overlap `V` includes into the piece `Y` as a subspace. -/
-@[simp] theorem ofHomeomorph_f_true_false :
-    (ofHomeomorph e).f ⟨true⟩ ⟨false⟩ =
-      TopCat.ofHom (⟨Subtype.val, continuous_subtypeVal⟩ : C(V, Y)) := (rfl)
+/-- The overlap of the pieces `i` and `j` of the gluing along `e` includes into the piece `i` as
+the open subset `ofHomeomorphOverlap U V i j`. -/
+@[simp] theorem ofHomeomorph_f (i j : (ofHomeomorph e).J) :
+    (ofHomeomorph e).f i j = (ofHomeomorphOverlap U V i j).inclusion' := (rfl)
 
 /-- The transition map from the overlap `U` to the overlap `V` is `e`. -/
 @[simp] theorem ofHomeomorph_t_false_true :
@@ -116,6 +141,7 @@ and the transition maps are `e` and `e.symm`. -/
 
 /-- A point `x` of `X` and a point `y` of `Y` have the same image in the glued space exactly
 when `x ∈ U` and `e x = y`. -/
+@[simp, grind =]
 theorem ofHomeomorph_ι_false_eq_ι_true_iff {x : X} {y : Y} :
     (ofHomeomorph e).toGlueData.ι ⟨false⟩ x = (ofHomeomorph e).toGlueData.ι ⟨true⟩ y ↔
       ∃ h : x ∈ U, (e ⟨x, h⟩ : Y) = y := by
@@ -135,26 +161,28 @@ theorem ofHomeomorph_ι_false_eq_ι_true_iff {x : X} {y : Y} :
 
 /-- A point `y` of `Y` and a point `x` of `X` have the same image in the glued space exactly
 when `y ∈ V` and `e.symm y = x`. -/
+@[simp, grind =]
 theorem ofHomeomorph_ι_true_eq_ι_false_iff {y : Y} {x : X} :
     (ofHomeomorph e).toGlueData.ι ⟨true⟩ y = (ofHomeomorph e).toGlueData.ι ⟨false⟩ x ↔
       ∃ h : y ∈ V, (e.symm ⟨y, h⟩ : X) = x := by
-  refine ((ofHomeomorph e).ι_eq_iff_rel ⟨true⟩ ⟨false⟩ y x).trans ⟨?_, ?_⟩
-  · rintro ⟨⟨w, hw⟩, hx, h⟩
-    have hx' : (w : Y) = y := hx
-    have hw' : (w : Y) ∈ V := hw
-    have h' : ((e.symm ⟨w, hw'⟩ : U) : X) = x := h
-    refine ⟨hx' ▸ hw', ?_⟩
-    rw [← h']
-    congr
-    exact hx'.symm
+  rw [eq_comm, ofHomeomorph_ι_false_eq_ι_true_iff]
+  constructor
   · rintro ⟨h, rfl⟩
-    exact ⟨⟨y, h⟩, rfl, rfl⟩
+    exact ⟨(e ⟨x, h⟩).property, by simp⟩
+  · rintro ⟨h, rfl⟩
+    exact ⟨(e.symm ⟨y, h⟩).property, by simp⟩
 
 /-- A point of `U` and its image under `e` have the same image in the glued space. -/
-theorem ofHomeomorph_ι_true_apply (x : U) :
+@[simp] theorem ofHomeomorph_ι_true_apply (x : U) :
     (ofHomeomorph e).toGlueData.ι ⟨true⟩ (e x : Y) =
       (ofHomeomorph e).toGlueData.ι ⟨false⟩ (x : X) :=
   ((ofHomeomorph_ι_false_eq_ι_true_iff e).2 ⟨x.property, rfl⟩).symm
+
+/-- A point of `V` and its image under `e.symm` have the same image in the glued space. -/
+@[simp] theorem ofHomeomorph_ι_false_symm_apply (y : V) :
+    (ofHomeomorph e).toGlueData.ι ⟨false⟩ (e.symm y : X) =
+      (ofHomeomorph e).toGlueData.ι ⟨true⟩ (y : Y) :=
+  ((ofHomeomorph_ι_true_eq_ι_false_iff e).2 ⟨y.property, rfl⟩).symm
 
 /-- Every point of the glued space is the image of a point of `X` or of a point of `Y`. -/
 theorem ofHomeomorph_ι_jointly_surjective (z : (ofHomeomorph e).toGlueData.glued) :
