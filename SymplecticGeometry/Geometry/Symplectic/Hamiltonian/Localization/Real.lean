@@ -18,6 +18,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
+import SymplecticGeometry.Topology.OpenPartialHomeomorph.Separation
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 import TauCeti.Topology.Algebra.Support
 
@@ -50,10 +51,9 @@ vanishes only at the centres (in the application `f = θ(X)`), a level `δ > 0` 
 `0 < aᵢ < bᵢ` inside the charts, such that the images `Φᵢ '' ball 0 bᵢ` are pairwise disjoint,
 `ħ f ≤ δ` only on the union of the images `Φᵢ '' ball 0 aᵢ`, and the model integrand of the
 contribution of a fixed point vanishes for `‖z‖ ≥ aᵢ` when `F` is supported in `[-δ, δ]`. Since
-the centres are distinct, the images under the `Φᵢ` of the neighbourhood filters of `0` are
-pairwise disjoint, so `Pairwise.exists_mem_filter_basis_of_disjoint` gives balls with pairwise
-disjoint images; and `IsCompact.exists_forall_le'` gives `f` a positive lower bound on the
-compact complement of the small images.
+the centres are distinct, `OpenPartialHomeomorph.exists_pairwise_disjoint_image_ball` gives
+balls about `0` with pairwise disjoint images; and `IsCompact.exists_forall_le'` gives `f` a
+positive lower bound on the compact complement of the small images.
 
 ## The top component of `F(d_ħ θ)` on a weight chart
 
@@ -134,11 +134,7 @@ theorem exists_cutoffLevel_radii {ι : Type*} [Finite ι] {n : ι → ℕ}
         δ < 2 * π * ħ * ∑ j, k i j ^ 2 * (z.x j ^ 2 + z.y j ^ 2) := by
   -- Balls about `0` whose images under the `Φ i` are pairwise disjoint.
   have h0 (i : ι) : (0 : StdSpace (Fin (n i))) ∈ (Φ i).source := hs i (mem_ball_self (hs0 i))
-  have hd : Pairwise (Function.onFun Disjoint fun i ↦
-      Filter.map (Φ i) (𝓝 (0 : StdSpace (Fin (n i))))) :=
-    fun i j hij ↦ (disjoint_nhds_nhds.2 (hinj.ne hij)).mono
-      ((Φ i).continuousAt (h0 i)) ((Φ j).continuousAt (h0 j))
-  obtain ⟨c, hc0, hcd⟩ := hd.exists_mem_filter_basis_of_disjoint fun i ↦ nhds_basis_ball.map _
+  obtain ⟨c, hc0, -, hcd⟩ := OpenPartialHomeomorph.exists_pairwise_disjoint_image_ball Φ h0 hinj
   set b : ι → ℝ := fun i ↦ min (c i) (s i)
   set a : ι → ℝ := fun i ↦ b i / 2
   have hb0 (i : ι) : 0 < b i := lt_min (hc0 i) (hs0 i)
