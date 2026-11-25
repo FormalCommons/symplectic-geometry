@@ -772,12 +772,22 @@ theorem contMDiff_dual_projExactPair (f : Module.Dual ℝ (σU.exactPairs σV (k
       SmoothCohomologySplitting.coe_projSpace, LinearMap.inl_apply, LinearMap.inr_apply,
       ← map_add, Prod.mk_add_mk, add_zero, zero_add]
   simp only [h]
-  exact ((hσU.preservesSmoothFamilies_subtype_comp_projSpace (k + 1)).contMDiff_dual_apply
-    (by simpa only [closedForms.coe_mpullback] using
-      hα.mpullback _ (contMDiff_inclusion le_sup_left)) _).add
-    ((hσV.preservesSmoothFamilies_subtype_comp_projSpace (k + 1)).contMDiff_dual_apply
-    (by simpa only [closedForms.coe_mpullback] using
-      hα.mpullback _ (contMDiff_inclusion le_sup_right)) _)
+  have hU := smoothAlongFamilies_def.1
+    ((hσU.preservesSmoothFamilies_subtype_comp_projSpace (k + 1)).smoothAlongFamilies_comp
+      (g ∘ₗ LinearMap.inl ℝ _ _ ∘ₗ (σU.space (k + 1)).subtype))
+      (fun t ↦ closedForms.mpullback (Opens.inclusion le_sup_left) (contMDiff_inclusion _) (k + 1)
+        (α t))
+      (by simpa only [closedForms.coe_mpullback] using
+        hα.mpullback _ (contMDiff_inclusion le_sup_left))
+  have hV := smoothAlongFamilies_def.1
+    ((hσV.preservesSmoothFamilies_subtype_comp_projSpace (k + 1)).smoothAlongFamilies_comp
+      (g ∘ₗ LinearMap.inr ℝ _ _ ∘ₗ (σV.space (k + 1)).subtype))
+      (fun t ↦ closedForms.mpullback (Opens.inclusion le_sup_right) (contMDiff_inclusion _) (k + 1)
+        (α t))
+      (by simpa only [closedForms.coe_mpullback] using
+        hα.mpullback _ (contMDiff_inclusion le_sup_right))
+  simp only [LinearMap.comp_apply] at hU hV ⊢
+  exact hU.add hV
 
 /-- The fixed closed forms of step 1 along a smooth family form a smooth family,
 when `σU` and `σV` are smooth. -/
