@@ -8,7 +8,7 @@ module
 public import TauCeti.Analysis.Complex.Euclidean.Space
 public import TauCeti.Analysis.Complex.QuadraticLeviForm
 public import TauCeti.Geometry.Manifold.Instances.Cylinder
-import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
+import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 
 /-!
 # The squared norm on `ι → ℂ`
@@ -49,7 +49,7 @@ theorem leviForm_norm_sq_complexToRealEuclidean (z v w : ι → ℂ) :
   have hs : (fun y ↦ ‖complexToRealEuclidean ι y‖ ^ 2) =
       (fun x : EuclideanSpace ℂ ι ↦ ‖x‖ ^ 2) ∘ L := by
     funext y
-    rw [Function.comp_apply, SymplecticGeometry.norm_sq_complexToRealEuclidean,
+    rw [Function.comp_apply, norm_sq_complexToRealEuclidean,
       EuclideanSpace.norm_sq_eq]
     simp [L]
   rw [hs, leviForm_comp_apply (contDiff_norm_sq ℝ).contDiffAt L.contDiff.contDiffAt,
