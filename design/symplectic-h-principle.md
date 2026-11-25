@@ -1065,20 +1065,21 @@ along `Subtype.val` it uses:
   `TauCeti/Topology/ConnectedComponents.lean`: `mem_opens`, `coe_opens`,
   `coe_opens_mk`, `isClopen_opens`, `pairwise_disjoint_opens` and
   `iSup_opens`.
-- `TauCeti.SmoothForm.ofComponents`: a family of smooth `k`-forms on the
-  open submanifolds `c.opens` glues to one on `M`, equal near each point
-  to the extension by zero of one form of the family, which is smooth
-  there as the component is clopen. With
-  `mpullback_subtypeVal_ofComponents` (its restriction to `c.opens` is
-  the `c`-th form) and `ext_of_mpullback_subtypeVal` (forms with the same
-  restrictions to all components are equal), this gives the linear
-  equivalence `TauCeti.SmoothForm.componentsEquiv` with the product over
-  the components.
-- `TauCeti.SmoothForm.mem_closedForms_iff_forall_mpullback_subtypeVal` and
-  `mem_exactForms_iff_forall_mpullback_subtypeVal`: a form is closed, or
-  exact, exactly when each restriction to a component is. Forward, as
-  restriction commutes with `mextDeriv` (`TauCeti.mpullback_subtype_val_mextDeriv`);
-  back, for exactness, glue chosen primitives by `ofComponents`.
+- `TauCeti.SmoothForm.ofDisjointCover`: for pairwise disjoint open sets
+  `U i` with `IsOpenCover U` (for the components,
+  `pairwise_disjoint_opens` and `IsOpenCover.mk iSup_opens`), a family of
+  smooth `k`-forms on the open submanifolds `U i` glues to one on `M`. With
+  `mpullback_subtype_val_ofDisjointCover` (its restriction to `U i` is
+  the `i`-th form) and `ext_of_mpullback_subtype_val` (forms with the same
+  restrictions to all members of an open cover are equal), this gives the
+  linear equivalence `TauCeti.SmoothForm.disjointCoverEquiv` with the
+  product over the `U i`.
+- `TauCeti.SmoothForm.mem_closedForms_iff_forall_mpullback_subtype_val`
+  and `mem_exactForms_iff_forall_mpullback_subtype_val`: a form is closed,
+  or exact, exactly when each restriction to a `U i` is. Forward, as
+  restriction commutes with `mextDerivₗ` (Tau Ceti's
+  `SmoothForm.mextDerivₗ_mpullback`); back, for exactness, glue chosen
+  primitives by `ofDisjointCover`.
 
 ### `Geometry/Symplectic/HPrinciple/Components.lean`
 
@@ -1091,7 +1092,7 @@ give the same topology.
   sending `ω` to the family of its restrictions to the components, as in
   `continuous_tangentEquiv_symm_mpullback_subtypeVal`, is a homeomorphism
   from the two-forms on `M` onto the product of the two-forms on the
-  components. Its inverse is `tangentEquiv.symm ∘ ofComponents` on the
+  components. Its inverse is `tangentEquiv.symm ∘ ofDisjointCover` on the
   `tangentEquiv` forms. Continuity of the inverse: by
   `frameTopology_eq_of_covers` the frame domains on `M` can be cut down
   to their intersections with the components, and each frame jet of a
