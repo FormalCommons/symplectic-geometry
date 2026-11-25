@@ -217,7 +217,6 @@ Further choices of this design:
 | `Geometry/Manifold/TubularNeighborhood/OneFormCorrection.lean` | the correction lemma: a function whose slices have differential `γ_t` along a compact submanifold where `f^* γ_t` vanishes |
 | `Geometry/Manifold/DifferentialForm/VectorBundlePoincare.lean` | the relative Poincaré operator at the zero section of a vector bundle, and its fibre-scaling primitives for a family of one-forms |
 | `Analysis/Calculus/DifferentialForm/Poincare.lean` | a closed form on a star-convex open set, vanishing on a compact star-convex subset, has a global primitive near it that vanishes on it (named like Tau Ceti's file) |
-| `Topology/MetricSpace/ProperSpace/Lemmas.lean` | in a proper pseudometric space, an open set containing a closed ball contains a larger ball, open or closed (used by `Ball/Basic.lean`, `Ball/Moser.lean` and *First Chern number*'s `DiscComplement/Basic.lean`; named like Mathlib's file) |
 | `Geometry/Symplectic/IsotopyExtension/Ball/Basic.lean` | `IsSymplecticBallEmbedding`, `IsSymplecticBallFamily`, enlarging a symplectic ball |
 | `Geometry/Manifold/LocalDiffeomorph/RightInverse.lean` | a first-order right inverse near a compact set, and the correction of the ends of a family of maps out of a normed space (used by `Ball/Interpolation.lean`) |
 | `Geometry/Manifold/MFDeriv/UniqueDifferential.lean` | maps that agree on a set of unique differentiability have the same differential there (used by `Ball/Interpolation.lean`) |

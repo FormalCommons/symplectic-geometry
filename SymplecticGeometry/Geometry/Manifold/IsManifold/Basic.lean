@@ -10,7 +10,7 @@ public import Mathlib.Geometry.Manifold.IsManifold.Basic
 /-!
 # Instances for smooth manifolds and their tangent spaces
 
-Three instances that Mathlib's `Mathlib/Geometry/Manifold/IsManifold/Basic.lean` lacks in a form
+Two instances that Mathlib's `Mathlib/Geometry/Manifold/IsManifold/Basic.lean` lacks in a form
 that instance search finds.
 
 * `ENat.instLEInftyAddOne`: if the smoothness exponent `m` is at most `∞`, so is `m + 1`.
@@ -27,9 +27,6 @@ that instance search finds.
   here has the type that instance search looks for. It is the local instance of Tau Ceti's
   `Geometry/Manifold/Riemannian/Induced.lean` and `Geometry/Symplectic/Manifold/Flat.lean`,
   made global.
-* `TangentSpace.instNontrivial`: the tangent space `TangentSpace I x` is nontrivial when the
-  model space is. Mathlib and Tau Ceti build this locally, with `inferInstanceAs`, where they
-  need it.
 -/
 
 public section
@@ -57,10 +54,6 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : Type*} [NormedAddCom
 one. -/
 instance instIsNormableSpace (x : M) : IsNormableSpace 𝕜 (TangentSpace I x) :=
   instIsNormableSpaceTangentSpace I x
-
-/-- The tangent space of a manifold at a point is nontrivial when the model space is. -/
-instance instNontrivial [Nontrivial E] (x : M) : Nontrivial (TangentSpace I x) :=
-  inferInstanceAs (Nontrivial E)
 
 end TangentSpace
 
