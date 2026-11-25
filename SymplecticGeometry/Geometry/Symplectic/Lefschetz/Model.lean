@@ -10,6 +10,10 @@ public import Mathlib.Topology.Algebra.Module.FiniteDimensionBilinear
 public import SymplecticGeometry.Analysis.Complex.HolomorphicQuadratic
 public import TauCeti.Geometry.Manifold.Morse.Basic
 public import TauCeti.Geometry.Manifold.Morse.Index
+import Mathlib.Analysis.Calculus.Deriv.Shift
+import Mathlib.Analysis.Calculus.DSlope
+import TauCeti.Analysis.Analytic.Inverse
+import TauCeti.Analysis.Complex.BranchLogRoot
 
 /-!
 # The local model of a Lefschetz critical point
@@ -35,12 +39,23 @@ about it that the rest of the theory uses.
   of `quadric` is nondegenerate (at every point, in particular at `0`).
 * `SymplecticGeometry.LefschetzModel.manifoldMorseIndex_re_mul_quadric`: for `c ≠ 0`, the
   point `0` is a nondegenerate critical point of `z ↦ Re (c * quadric z)`, of Morse index `2`.
+* `SymplecticGeometry.LefschetzModel.exists_openPartialHomeomorph_apply_add_quadric`: after a
+  holomorphic change `h` of the base coordinate with `h' c ≠ 0`, the map `w ↦ h (c + quadric w)`
+  is again `h c + quadric`, in biholomorphic coordinates near `0` whose domain lies in any
+  prescribed neighbourhood of `0`.
 
 The Morse index is computed with Tau Ceti's
 `ContinuousLinearMap.morseIndex_re_apply_self_of_ker_eq_bot`: the real part of a holomorphic
 quadratic form whose polarization is injective has Morse index the complex dimension. The
 critical point is nondegenerate by
 `ContinuousLinearMap.isNondegenerateCriticalPoint_re_apply_self_of_ker_eq_bot`.
+
+The reparametrisation adapts the proof of Tau Ceti's
+`AnalyticAt.exists_openPartialHomeomorph_sub_eq_pow` from one variable to the quadric on `ℂ²`.
+It writes `h (c + t) = h c + t * g t` with the slope `g = dslope _ 0`, takes a holomorphic
+square root `s` of `g` near `0` from Tau Ceti's `TauCeti.exists_eventuallyEq_pow_iff_dvd`, and
+applies Tau Ceti's analytic inverse function theorem `AnalyticAt.exists_openPartialHomeomorph`
+to `w ↦ s (quadric w) • w`.
 
 ## References
 
@@ -50,8 +65,8 @@ critical point is nondegenerate by
 
 public section
 
-open Module TauCeti
-open scoped Manifold
+open Filter Module TauCeti Topology
+open scoped ContDiff Manifold
 
 namespace SymplecticGeometry.LefschetzModel
 
@@ -118,6 +133,20 @@ theorem contDiff_quadric {n : WithTop ℕ∞} : ContDiff ℂ n quadric := by
   rw [quadric_eq_quadricForm_apply_self]
   exact quadricForm.contDiff_apply_self
 
+/-- The quadric is complex analytic. -/
+theorem analyticAt_quadric (z : Fin 2 → ℂ) : AnalyticAt ℂ quadric z :=
+  (contDiff_quadric (n := ω)).contDiffAt.analyticAt
+
+/-- The quadric vanishes at the origin. -/
+@[simp]
+theorem quadric_zero : quadric 0 = 0 := by
+  simp [quadric_def]
+
+/-- The quadric is homogeneous of degree two. -/
+theorem quadric_smul (a : ℂ) (z : Fin 2 → ℂ) : quadric (a • z) = a ^ 2 * quadric z := by
+  simp only [quadric_def, Pi.smul_apply, smul_eq_mul]
+  ring
+
 /-- The complex Hessian of the quadric is the constant `2 • quadricForm`. -/
 theorem fderiv_fderiv_quadric (z : Fin 2 → ℂ) :
     fderiv ℂ (fderiv ℂ quadric) z = (2 : ℂ) • quadricForm := by
@@ -165,6 +194,57 @@ theorem manifoldMorseIndex_re_mul_quadric {c : ℂ} (hc : c ≠ 0) :
   rw [isManifoldNondegenerateCriticalPoint_modelSpace_iff, manifoldMorseIndex_modelSpace, hfun,
     q.morseIndex_re_apply_self_of_ker_eq_bot hker, Module.finrank_fin_fun]
   exact ⟨q.isNondegenerateCriticalPoint_re_apply_self_of_ker_eq_bot hker, rfl⟩
+
+/-- **Reparametrising the quadric.** A holomorphic change `h` of the base coordinate near `c`,
+with `h' c ≠ 0`, keeps the exact model: there is a biholomorphic change of coordinates `e` of
+`ℂ²` near `0`, fixing `0`, with `h (c + quadric w) = h c + quadric (e w)` on its source.
+
+Here `e` is a partial homeomorphism whose source is a neighbourhood of `0` contained in the
+given neighbourhood `U` of `0`; it is complex analytic on its source, and its inverse is
+complex analytic on its target. -/
+theorem exists_openPartialHomeomorph_apply_add_quadric {h : ℂ → ℂ} {c : ℂ}
+    (hh : AnalyticAt ℂ h c) (hc : deriv h c ≠ 0) {U : Set (Fin 2 → ℂ)} (hU : U ∈ 𝓝 0) :
+    ∃ e : OpenPartialHomeomorph (Fin 2 → ℂ) (Fin 2 → ℂ), 0 ∈ e.source ∧ e 0 = 0 ∧
+      e.source ⊆ U ∧ AnalyticOnNhd ℂ e e.source ∧ AnalyticOnNhd ℂ e.symm e.target ∧
+      ∀ w ∈ e.source, h (c + quadric w) = h c + quadric (e w) := by
+  -- `h (c + t) = h c + t * g t`, with `g` the slope of `h` at `c`, and `g 0 = h' c ≠ 0`.
+  set g := dslope (fun t ↦ h (c + t)) 0
+  have hga : AnalyticAt ℂ g 0 :=
+    (hh.comp_of_eq (analyticAt_const.add analyticAt_id) (by simp)).dslope 0
+  have hg0 : g 0 ≠ 0 := by simpa [g, dslope_same, deriv_comp_const_add] using hc
+  have hgeq (t : ℂ) : h (c + t) = h c + t * g t := by
+    have := sub_smul_dslope (fun t ↦ h (c + t)) 0 t
+    simp only [sub_zero, smul_eq_mul, add_zero] at this
+    rw [this]
+    ring
+  -- A holomorphic square root `s` of `g` on an open neighbourhood `W` of `0`.
+  obtain ⟨s, hsa, hseq⟩ := (exists_eventuallyEq_pow_iff_dvd hga two_ne_zero).2
+    (by rw [analyticOrderAt_eq_zero.2 (Or.inr hg0)]; exact dvd_zero _)
+  obtain ⟨W, hW, hWo, h0W⟩ := eventually_nhds_iff.1 (hsa.eventually_analyticAt.and hseq)
+  set V := quadric ⁻¹' W
+  have hVo : IsOpen V := hWo.preimage (contDiff_quadric (n := 0)).continuous
+  have h0V : (0 : Fin 2 → ℂ) ∈ V := by simpa [V] using h0W
+  -- The reparametrisation `ψ w = s (quadric w) • w`, with derivative `s 0 • id` at `0`.
+  set ψ : (Fin 2 → ℂ) → Fin 2 → ℂ := fun w ↦ s (quadric w) • w
+  have hψa : AnalyticOnNhd ℂ ψ V := fun w hw ↦
+    ((hW _ hw).1.comp (analyticAt_quadric w)).smul analyticAt_id
+  have hs0 : s 0 ≠ 0 := by
+    intro h0
+    exact hg0 (by rw [(hW 0 h0W).2, h0]; simp)
+  set f' := (LinearEquiv.smulOfNeZero ℂ (Fin 2 → ℂ) (s 0) hs0).toContinuousLinearEquiv
+  have hd : HasFDerivAt ψ (f' : (Fin 2 → ℂ) →L[ℂ] Fin 2 → ℂ) 0 := by
+    have h1 : AnalyticAt ℂ (fun w ↦ s (quadric w)) 0 :=
+      (hW _ (by simpa using h0W)).1.comp (analyticAt_quadric 0)
+    refine (h1.differentiableAt.hasFDerivAt.smul (hasFDerivAt_id 0)).congr_fderiv ?_
+    ext v i
+    simp [f']
+  -- The analytic inverse function theorem, with source inside `U ∩ V`.
+  obtain ⟨e, he, h0e, hesub, hea, hei⟩ :=
+    (hψa 0 h0V).exists_openPartialHomeomorph hd.fderiv (inter_mem hU (hVo.mem_nhds h0V))
+  refine ⟨e, h0e, by simp [he, ψ], fun w hw ↦ (hesub hw).1, he ▸ hea, hei, fun w hw ↦ ?_⟩
+  have hq := (hW _ (hesub hw).2).2
+  simp only [he, ψ, quadric_smul, hgeq, ← hq]
+  ring
 
 end SymplecticGeometry.LefschetzModel
 
