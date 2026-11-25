@@ -492,7 +492,7 @@ noncomputable def stdRotation (t : ℝ) : StdSpace ι ≃ₗᵢ[ℝ] StdSpace ι
         have hJ := inner_stdComplexStructure_stdComplexStructure (ι := ι)
         simp only [LinearMap.add_apply, LinearMap.smul_apply, LinearMap.id_apply]
         rw [← sq_eq_sq₀ (norm_nonneg _) (norm_nonneg _), norm_add_sq_real, inner_smul_left,
-          inner_smul_right, real_inner_comm, AlmostComplexStructure.inner_apply_self hJ,
+          inner_smul_right, AlmostComplexStructure.inner_self_apply hJ,
           norm_smul, norm_smul, AlmostComplexStructure.norm_apply hJ, Real.norm_eq_abs,
           Real.norm_eq_abs]
         simp only [mul_zero, mul_pow, sq_abs]
