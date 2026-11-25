@@ -69,7 +69,6 @@ theorem mdifferentiableAt_subtypeVal_Icc (z : Icc x y) :
 
 /-- The derivative of the inclusion `Icc x y → ℝ` sends `r` times the unit tangent vector `1` to
 `r`. -/
-@[simp]
 theorem mfderiv_subtypeVal_Icc_smul_one (z : Icc x y) (r : ℝ) :
     mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Icc x y → ℝ) z (r • (1 : TangentSpace (𝓡∂ 1) z)) = r := by
   rw [map_smul, mfderiv_subtypeVal_Icc_one]
