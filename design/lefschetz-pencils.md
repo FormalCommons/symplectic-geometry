@@ -288,9 +288,9 @@ Beside Tau Ceti's `Geometry/Manifold/ConnectedSum/`, in the namespace
 `TauCeti.ConnectedSum`.
 
 - `eulerChar_connectedSum`: for compact boundaryless manifolds of dimension
-  `n ≥ 1`, `eulerChar (ConnectedSum e₁ e₂) = eulerChar M₁ + eulerChar M₂ - 1 - (-1) ^ n`,
-  with the finite CW type of all four spaces from
-  `FiniteCWType.of_isManifold`; and the same for `OrientedConnectedSum`.
+  `n`, `eulerChar (ConnectedSum e₁ e₂) = eulerChar M₁ + eulerChar M₂ - 1 - (-1) ^ n`,
+  with the finite CW type of `M₁`, `M₂` and the sum as instance arguments,
+  which `FiniteCWType.of_isManifold` supplies; and the same for `OrientedConnectedSum`.
 
 ### `Geometry/Manifold/ConnectedSum/Iterate.lean`
 
