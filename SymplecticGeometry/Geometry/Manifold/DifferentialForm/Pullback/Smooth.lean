@@ -74,6 +74,8 @@ normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactica
   product, as the pullback along `f` on the vectors `(0, m i)`.
 * `TauCeti.mpullback_comp_prodMk_apply_modelSpace`: the same, for a map on a product of normed
   spaces with the model `𝓘(ℝ, E₁ × E₂)`.
+* `TauCeti.SmoothForm.mpullback_comp_comp_eq_of_mpullback_eq`: if `a^* (i^* σ) = j^* τ`, then
+  `(i ∘ a ∘ g)^* σ = (j ∘ g)^* τ` for every smooth `g`.
 * `TauCeti.SmoothForm.contDiff_apply_mfderiv`: along a smooth map `γ` from a normed space, a
   smooth form evaluated on the images under `dγ` of fixed vectors is a smooth function, with
   `TauCeti.SmoothForm.contDiff_apply_one_mfderiv` and
@@ -237,6 +239,28 @@ theorem exists_mem_nhdsSet_mextDerivₗ_mpullback_eq {f : M → M'} (hf : ContMD
   ⟨f ⁻¹' V, hf.continuous.tendsto_nhdsSet hst hV, fun _ hx ↦ by
     rw [mextDerivₗ_mpullback, coe_mpullback, coe_mpullback]
     exact mpullback_apply_congr (hγ _ hx)⟩
+
+end SmoothForm
+
+namespace SmoothForm
+
+/-- If `a` pulls `i^* σ` back to `j^* τ`, then for every smooth `g`, `i ∘ a ∘ g` pulls `σ` back
+to `(j ∘ g)^* τ`. -/
+theorem mpullback_comp_comp_eq_of_mpullback_eq {EN HN N EN' HN' N' EX HX X : Type*}
+    [NormedAddCommGroup EN] [NormedSpace ℝ EN] [TopologicalSpace HN] [TopologicalSpace N]
+    [ChartedSpace HN N] {IN : ModelWithCorners ℝ EN HN} [IsManifold IN 1 N]
+    [NormedAddCommGroup EN'] [NormedSpace ℝ EN'] [TopologicalSpace HN'] [TopologicalSpace N']
+    [ChartedSpace HN' N'] {IN' : ModelWithCorners ℝ EN' HN'} [IsManifold IN' 1 N']
+    [NormedAddCommGroup EX] [NormedSpace ℝ EX] [TopologicalSpace HX] [TopologicalSpace X]
+    [ChartedSpace HX X] {IX : ModelWithCorners ℝ EX HX} [IsManifold IX 1 X]
+    [IsManifold I 1 M] [IsManifold I' 1 M'] {a : N → N'} {i : N' → M'} {j : N → M}
+    {ha : ContMDiff IN IN' ∞ a} {hi : ContMDiff IN' I' ∞ i} {hj : ContMDiff IN I ∞ j}
+    {σ : SmoothForm I' M' F k} {τ : SmoothForm I M F k}
+    (h : mpullback a ha (mpullback i hi σ) = mpullback j hj τ) {g : X → N}
+    (hg : ContMDiff IX IN ∞ g) :
+    mpullback (i ∘ a ∘ g) (hi.comp (ha.comp hg)) σ = mpullback (j ∘ g) (hj.comp hg) τ := by
+  rw [mpullback_congr _ ((hi.comp ha).comp hg) (Function.comp_assoc i a g).symm]
+  simpa only [mpullback_mpullback] using congrArg (mpullback g hg) h
 
 end SmoothForm
 
