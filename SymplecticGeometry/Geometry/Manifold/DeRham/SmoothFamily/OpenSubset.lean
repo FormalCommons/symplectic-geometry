@@ -19,12 +19,12 @@ and an open set `W ⊇ A` with `dβ t = τ t` on `W` for `t ∈ K`
 (`SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_on_of_hasFiniteGoodCover`).
 
 The proof takes a smooth cohomology splitting of `U`
-(`HasFiniteGoodCover.nonempty_smoothCohomologySplitting`), which gives a smooth family of
-primitives on `U` over `K`
-(`SmoothCohomologySplitting.exists_isSmoothFamily_mextDerivₗ_eq_of_mem_exactForms`). A smooth
-function that vanishes near the complement of `U` and is `1` near `A` cuts these off to forms on
-`M` (`SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_on_of_mpullback`), whose exterior
-derivatives near `A` are given by Tau Ceti's
+(`HasFiniteGoodCover.exists_smoothCohomologySplitting_isSmooth`), which gives a smooth family
+of primitives on `U` over `K`
+(`SmoothCohomologySplitting.IsSmooth.exists_isSmoothFamily_mextDerivₗ_eq_of_mem_exactForms`).
+A smooth function that vanishes near the complement of `U` and is `1` near `A` cuts these off to
+forms on `M` (`SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_on_of_mpullback`), whose
+exterior derivatives near `A` are given by Tau Ceti's
 `TauCeti.mextDeriv_extendByZero_smul_apply_of_eventuallyEq_one`. This cut-off step adapts the
 proof of Tau Ceti's `TauCeti.exists_eventuallyEq_mextDerivₗ` to smooth families of forms.
 
@@ -130,10 +130,9 @@ theorem exists_isSmoothFamily_mextDerivₗ_eq_on_of_hasFiniteGoodCover {U : Open
   have : LocallyCompactSpace M := ChartedSpace.locallyCompactSpace H M
   have := Manifold.metrizableSpace I M
   let := TopologicalSpace.metrizableSpaceMetric M
-  obtain ⟨σ⟩ : Nonempty (SmoothCohomologySplitting.{uE, uH, uN} I U) :=
-    hU.nonempty_smoothCohomologySplitting
+  obtain ⟨σ, hσ⟩ := hU.exists_smoothCohomologySplitting_isSmooth.{uE, uH, uN}
   obtain ⟨β₀, hβ₀, hdβ₀⟩ :=
-    σ.exists_isSmoothFamily_mextDerivₗ_eq_of_mem_exactForms (hτ.mpullback _ _) hK
+    hσ.exists_isSmoothFamily_mextDerivₗ_eq_of_mem_exactForms (hτ.mpullback _ _) hK
   exact exists_isSmoothFamily_mextDerivₗ_eq_on_of_mpullback hA hAU hβ₀ hdβ₀
 
 end SymplecticGeometry

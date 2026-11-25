@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
-public import TauCeti.Topology.VectorBundle.FiniteRank.Pullback
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct
+public import TauCeti.Topology.VectorBundle.FiniteRank.Monoidal
 
 /-!
 # Gluing a finite-rank core over two open sets by an automorphism
@@ -43,6 +44,12 @@ cocycle condition from `g.hom ≫ g.inv = 𝟙` and `g.inv ≫ g.hom = 𝟙` (`g
   (`fiberMap_glueRestrictIso_true_hom`); over `V` it is `g.inv` on `U ∩ V`, with inverse `g.hom`
   (`fiberMap_glueRestrictIso_false_hom`, `fiberMap_glueRestrictIso_false_inv`).
 * `TauCeti.FiniteRankBundleCore.glueReflIso`: gluing by the identity gives back `A`.
+* `TauCeti.FiniteRankBundleCore.coordChange_glue_whitneyMapIso` and
+  `TauCeti.FiniteRankBundleCore.coordChange_glue_tensorIso`: the gluing of `A ⊕ D` by the direct
+  sum of two automorphisms has the transitions of the Whitney sum of the two gluings, and the
+  gluing of `A ⊗ D` by their tensor product those of the tensor product of the two gluings, since
+  the gluing cocycle of a direct sum or tensor product of automorphisms is the block-diagonal or
+  Kronecker product of their cocycles (`glueCocycle_whitneyMapIso`, `glueCocycle_tensorIso`).
 
 The construction follows the pattern of Tau Ceti's `TauCeti.FiniteRankBundleCore.doubleAlong`, a
 point-indexed core whose transitions are given piecewise, and of
@@ -523,6 +530,62 @@ theorem fiberMap_glueReflIso_inv (x : B) :
   exact fiberMap_constIso_inv _ _ _ x
 
 end Glue
+
+/-! ### Gluing Whitney sums and tensor products -/
+
+section Operations
+
+open MonoidalCategory
+
+variable {A D : FiniteRankBundleCore 𝕜 B} {U V : Set B} (hU : IsOpen U) (hV : IsOpen V)
+  (hUV : U ∪ V = univ)
+  (g₁ : A.pullback (ContinuousMap.subtypeVal (U ∩ V)) ≅
+    A.pullback (ContinuousMap.subtypeVal (U ∩ V)))
+  (g₂ : D.pullback (ContinuousMap.subtypeVal (U ∩ V)) ≅
+    D.pullback (ContinuousMap.subtypeVal (U ∩ V)))
+
+/-- The gluing cocycle of the direct sum of two automorphisms is block diagonal, with the gluing
+cocycles of the two automorphisms as blocks. -/
+theorem glueCocycle_whitneyMapIso (s t : Bool) (b : B) :
+    glueCocycle (A := whitneySum A D) (whitneyMapIso g₁ g₂) s t b =
+      (splitCoords (𝕜 := 𝕜) A.rank D.rank).symm.toContinuousLinearMap.comp
+        (((glueCocycle g₁ s t b).prodMap (glueCocycle g₂ s t b)).comp
+          (splitCoords (𝕜 := 𝕜) A.rank D.rank).toContinuousLinearMap) := by
+  have hid : (splitCoords (𝕜 := 𝕜) A.rank D.rank).symm.toContinuousLinearMap.comp
+      (((ContinuousLinearMap.id 𝕜 (Fin A.rank → 𝕜)).prodMap (.id 𝕜 (Fin D.rank → 𝕜))).comp
+        (splitCoords (𝕜 := 𝕜) A.rank D.rank).toContinuousLinearMap) = .id 𝕜 _ :=
+    ContinuousLinearMap.ext (splitCoords (𝕜 := 𝕜) A.rank D.rank).symm_apply_apply
+  cases s <;> cases t <;> simp only [glueCocycle, whitneyMapIso_hom, whitneyMapIso_inv] <;>
+    (try split_ifs) <;> first | exact hid.symm | exact fiberMap_whitneyMap _ _ _
+
+/-- The gluing cocycle of the tensor product of two automorphisms is the Kronecker product of
+their gluing cocycles. -/
+theorem glueCocycle_tensorIso (s t : Bool) (b : B) :
+    glueCocycle (A := tensor A D) (g₁ ⊗ᵢ g₂) s t b =
+      (glueCocycle g₁ s t b).kronecker (glueCocycle g₂ s t b) := by
+  cases s <;> cases t <;> simp only [glueCocycle, tensorIso_hom, tensorIso_inv] <;>
+    (try split_ifs) <;>
+    first | exact ContinuousLinearMap.id_kronecker_id.symm | exact fiberMap_tensorHom_monoidal _ _ _
+
+/-- The transitions of the gluing of `A ⊕ D` by the direct sum of `g₁` and `g₂` are those of the
+Whitney sum of the gluing of `A` by `g₁` and that of `D` by `g₂`. -/
+theorem coordChange_glue_whitneyMapIso (i j b : B) :
+    ((whitneySum A D).glue hU hV hUV (whitneyMapIso g₁ g₂)).core.coordChange i j b =
+      (whitneySum (A.glue hU hV hUV g₁) (D.glue hU hV hUV g₂)).core.coordChange i j b := by
+  refine (coordChange_glue _ _ _ _ _ i j b).trans ?_
+  rw [glueCocycle_whitneyMapIso]
+  exact inChartCoordinates_whitneySum_prodMap A A D D _ _ i j b
+
+/-- The transitions of the gluing of `A ⊗ D` by the tensor product of `g₁` and `g₂` are those of
+the tensor product of the gluing of `A` by `g₁` and that of `D` by `g₂`. -/
+theorem coordChange_glue_tensorIso (i j b : B) :
+    ((tensor A D).glue hU hV hUV (g₁ ⊗ᵢ g₂)).core.coordChange i j b =
+      (tensor (A.glue hU hV hUV g₁) (D.glue hU hV hUV g₂)).core.coordChange i j b := by
+  refine (coordChange_glue _ _ _ _ _ i j b).trans ?_
+  rw [glueCocycle_tensorIso]
+  exact inChartCoordinates_tensor_kronecker A A D D _ _ i j b
+
+end Operations
 
 end TauCeti.FiniteRankBundleCore
 
