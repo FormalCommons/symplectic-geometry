@@ -10,6 +10,8 @@ public import SymplecticGeometry.Geometry.Symplectic.Manifold.Prod
 public import TauCeti.Geometry.Symplectic.Complex.Line
 import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
 import TauCeti.Geometry.Symplectic.Lagrangian.Graph
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
 
 /-!
 # Symplectic framings and product neighbourhoods
@@ -55,6 +57,11 @@ so the hypotheses on `ι` are stated with `HasSymplecticTangentImages`.
 * `SymplecticGeometry.ProductNeighborhood.isClosed_image_closedBall`: for compact `Q` and
   Hausdorff `M`, the image of the closed tube of radius `δ < ε` is closed, and its complement
   is open (`isOpen_compl_image_closedBall`).
+* `SymplecticGeometry.ProductNeighborhood.exists`: for compact `Q`, a framing has product
+  neighbourhoods of every radius up to some `ε₀ > 0`. The neighbourhood theorem for the framing
+  gives a symplectomorphism `ψ` from an open neighbourhood `U₀` of the zero slice; by the tube
+  lemma `U₀` contains some `Q × B²(ε₀)`, and the restriction of `ψ` to it is the product
+  neighbourhood.
 
 ## References
 
@@ -380,6 +387,72 @@ theorem isOpen_compl_image_closedBall [CompactSpace Q] [T2Space M]
     (f : ProductNeighborhood Φ ε) {δ : ℝ} (hδ : δ < ε) :
     IsOpen (f '' {p | ‖(p : Q × ℂ).2‖ ≤ δ})ᶜ :=
   (f.isClosed_image_closedBall hδ).isOpen_compl
+
+variable (Φ) in
+/-- The restriction to `Q × B²(ε)` of a symplectomorphism `ψ : U₀ ≃ U₁` given by
+`SymplecticFraming.exists_symplectomorphism_opens`, for `Q × B²(ε) ⊆ U₀`, is a product
+neighbourhood. -/
+private def ofSymplectomorphism {U₀ : Opens (Q × ℂ)}
+    {U₁ : Opens M} (ψ : U₀ ≃ₘ⟮J.prod 𝓘(ℝ, ℂ), I⟯ U₁)
+    (hψ : ∀ q, ∃ h : zeroSlice J Q q ∈ U₀, (ψ ⟨zeroSlice J Q q, h⟩ : M) = ι q ∧
+      ∀ v, mfderiv (J.prod 𝓘(ℝ, ℂ)) I ψ ⟨zeroSlice J Q q, h⟩
+          ((zeroSlice J Q).symplecticNormalRepresentative
+            (hasSymplecticTangentImages_zeroSlice hι) q
+            (WithTop.coe_ne_zero.2 ENat.top_ne_zero) v) =
+        ι.symplecticNormalRepresentative hι q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
+          (Φ q v))
+    (hψσ : SmoothForm.mpullback ψ ψ.contMDiff
+        (SmoothForm.mpullback (Subtype.val : U₁ → M) contMDiff_subtypeVal σ) =
+      SmoothForm.mpullback (Subtype.val : U₀ → Q × ℂ) contMDiff_subtypeVal
+        (SmoothTwoForm.prod (SmoothForm.mpullback ι ι.contMDiff σ)
+          stdComplexSymplecticForm.constSmooth))
+    (hle : prodBall Q ε ≤ U₀) : ProductNeighborhood Φ ε where
+  toFun := Subtype.val ∘ ψ ∘ Opens.inclusion hle
+  isOpenEmbedding' := U₁.isOpen.isOpenEmbedding_subtypeVal.comp
+    (ψ.toHomeomorph.isOpenEmbedding.comp
+      (Topology.IsOpenEmbedding.inclusion hle (prodBall Q ε).isOpen.preimage_val))
+  isLocalDiffeomorph' p := (isLocalDiffeomorph_inclusion (n := ∞) hle p).comp (hg :=
+    (ψ.isLocalDiffeomorph _).comp (hg := TauCeti.isLocalDiffeomorph_subtype_val _))
+  apply_zeroSlice' q _ := (hψ q).2.1
+  mpullback_eq' := by
+    refine (SmoothForm.mpullback_mpullback (Opens.inclusion hle) (Subtype.val ∘ ψ)
+      (contMDiff_inclusion hle) (contMDiff_subtypeVal.comp ψ.contMDiff) σ).symm.trans ?_
+    rw [← SmoothForm.mpullback_mpullback ψ Subtype.val ψ.contMDiff contMDiff_subtypeVal, hψσ,
+      SmoothForm.mpullback_mpullback]
+    exact SmoothForm.mpullback_congr _ _ rfl _
+  mfderiv_symplecticNormalRepresentative' q h v :=
+    -- The tangent spaces of `prodBall Q ε`, `U₀` and `Q × ℂ` are all the model space `EQ × ℂ`.
+    (TauCeti.Manifold.mfderiv_subtype_val_comp_apply (I := I) (f := ψ ∘ Opens.inclusion hle)
+      _).trans <| (mfderiv_comp_apply _ (ψ.contMDiff.mdifferentiableAt (by simp))
+        ((contMDiff_inclusion (n := 1) hle).mdifferentiableAt one_ne_zero) _).trans <|
+      (congrArg _ (TauCeti.Manifold.mfderiv_inclusion_apply hle _ _)).trans ((hψ q).2.2 v)
+
+section Exists
+
+variable [J.Boundaryless] [I.Boundaryless] [T2Space Q] [T2Space M] [SecondCountableTopology M]
+  (hσ : σ.IsSymplectic) {ι : SmoothEmbedding J I ∞ Q M}
+  {hι : hσ.isNondegenerate.HasSymplecticTangentImages J ι}
+  {hP : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ}
+
+/-- **Existence of product neighbourhoods.** For compact `Q` and closed nondegenerate `σ`, a
+symplectic framing `Φ` of `ι` has product neighbourhoods of every radius `ε ≤ ε₀`, for some
+`ε₀ > 0`. -/
+theorem «exists» [CompactSpace Q] (Φ : SymplecticFraming hι hP) :
+    ∃ ε₀ > 0, ∀ ε ≤ ε₀, Nonempty (ProductNeighborhood Φ ε) := by
+  -- A compact manifold over a finite-dimensional model is second countable.
+  have := J.secondCountableTopology_of_sigmaCompact Q
+  obtain ⟨U₀, U₁, ψ, hψ, hψσ⟩ := Φ.exists_symplectomorphism_opens (hσ := hσ)
+  have hU₀ : (Set.univ : Set Q) ×ˢ {(0 : ℂ)} ⊆ U₀ := by
+    rintro ⟨q, z⟩ ⟨-, rfl : z = 0⟩
+    simpa using (hψ q).1
+  obtain ⟨u, V, -, hV, hu, h0V, hUV⟩ :=
+    generalized_tube_lemma isCompact_univ isCompact_singleton U₀.isOpen hU₀
+  obtain ⟨ε₀, hε₀, hε₀V⟩ := Metric.isOpen_iff.1 hV 0 (h0V rfl)
+  refine ⟨ε₀, hε₀, fun ε hε ↦
+    ⟨ofSymplectomorphism Φ ψ hψ hψσ (ε := ε) fun p hp ↦ hUV ⟨hu trivial, ?_⟩⟩⟩
+  exact hε₀V (Metric.ball_subset_ball hε (by simpa using hp))
+
+end Exists
 
 end ProductNeighborhood
 
