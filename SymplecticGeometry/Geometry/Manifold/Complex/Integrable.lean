@@ -15,7 +15,6 @@ import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Coordinates
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
-import TauCeti.Geometry.Symplectic.Finrank
 import TauCeti.Geometry.Manifold.VectorField.LieBracket
 import TauCeti.Geometry.Manifold.VectorField.ModelChart
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
@@ -366,28 +365,10 @@ the source of an isothermal chart of the smooth maximal atlas. -/
 theorem isIntegrable_iff_forall_exists_isIsothermalChart :
     j.IsIntegrable ↔ ∀ x : M, ∃ e ∈ IsManifold.maximalAtlas 𝓘(ℝ, ℂ) ∞ M,
       IsIsothermalChart j e ∧ x ∈ e.source := by
-  refine ⟨fun hj x ↦ ?_, fun h ↦ isIntegrable_of_forall_mem_maximalAtlas fun x ↦ ?_⟩
-  · rw [isIntegrable_iff_mfderiv] at hj
-    obtain ⟨ψ, J₀, hx, hψ⟩ := hj x
-    -- A real-linear automorphism `L` of `ℂ` carrying `J₀` to multiplication by `i`.
-    obtain ⟨φ, hφ⟩ := J₀.exists_linearEquiv_I_smul (G := ℂ) (by simp)
-    let L : ℂ ≃L[ℝ] ℂ := φ.symm.toContinuousLinearEquiv
-    have hL (w : ℂ) : J₀.transport L.toLinearEquiv w = Complex.I • w := by
-      apply φ.injective
-      simpa [L] using (hφ w).symm
-    let Φ : PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) M ℂ ∞ :=
-      ψ.trans L.toDiffeomorph.toPartialDiffeomorph
-    have hΦ := mfderiv_trans_toDiffeomorph_apply_eq_transport _ hψ L
-    have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
-    have hmem : Φ.toOpenPartialHomeomorph ∈ IsManifold.maximalAtlas 𝓘(ℝ, ℂ) ∞ M := by
-      rw [IsManifold.mem_maximalAtlas_iff_contMDiffOn]
-      exact ⟨Φ.contMDiffOn, Φ.symm.contMDiffOn⟩
-    refine ⟨Φ.toOpenPartialHomeomorph, hmem,
-      ⟨IsManifold.maximalAtlas_subset_of_le (by simp) hmem, fun y hy ↦ ?_⟩,
-      by simpa [Φ] using hx⟩
-    refine isPseudoholomorphicAt_iff_mfderiv.2 ⟨Φ.mdifferentiableAt hn hy, fun w ↦ ?_⟩
-    simp only [PartialDiffeomorph.toFun'_toOpenPartialHomeomorph]
-    exact (hΦ y hy w).trans ((hL _).trans (ofComplexManifold_apply (E := ℂ) _ _).symm)
+  refine ⟨fun _ x ↦ ?_, fun h ↦ isIntegrable_of_forall_mem_maximalAtlas fun x ↦ ?_⟩
+  · -- Every point lies in a smooth isothermal chart, integrable or not.
+    obtain ⟨e, he, hx⟩ := j.exists_isIsothermalChart x
+    exact ⟨e, he.mem_maximalAtlas_infty, he, hx⟩
   · obtain ⟨e, he, hj, hx⟩ := h x
     exact ⟨e, he, hx, AlmostComplexStructure.ofComplexModule ℂ, fun y hy v ↦
       (hj.mfderiv_apply_commute hy v).trans ((ofComplexManifold_apply _ _).trans
