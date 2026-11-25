@@ -3022,7 +3022,7 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   which the page leaves open between the limiting argument of the book and
   Bjorndahl–Karshon's local-to-global theorem with the local normal form
   along orbits (Tau Ceti has its linear part, `MomentMap/LinearNormalForm.lean`);
-  and the form of the induction on the torus.
+  and whether it needs an induction on the torus.
 
 ### 43. Equivariant localization (needs `design/equivariant-localization.md`)
 
