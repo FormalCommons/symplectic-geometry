@@ -8,6 +8,7 @@ module
 public import TauCeti.AlgebraicTopology.Cellular.Boundary
 public import TauCeti.AlgebraicTopology.Cohomology.Additivity.Relative
 public import TauCeti.AlgebraicTopology.Cohomology.WeakHomotopyEquivalence
+import all TauCeti.AlgebraicTopology.Cellular.Boundary
 
 /-!
 # Relative cohomology of consecutive skeleta
@@ -32,7 +33,9 @@ identity map in place of the fibration.
 
 * `TauCeti.characteristicCellPairMap_def`: the characteristic map of one cell is the inclusion of
   its summand followed by `TauCeti.characteristicPairMap`.
-*`TauCeti.isLimitFanSingularCohomologySkeletonPair`: the maps induced by the characteristic
+* `TauCeti.isIso_singularCohomologyMap_characteristicPairMap`: the characteristic maps of the
+  `n`-cells induce isomorphisms on relative cohomology, for projective chain coefficients.
+* `TauCeti.isLimitFanSingularCohomologySkeletonPair`: the maps induced by the characteristic
   maps of the `n`-cells exhibit `Hᵐ(Xⁿ, Xⁿ⁻¹)` as the product of copies of `Hᵐ(Dⁿ, Sⁿ⁻¹)`.
 * `TauCeti.singularCohomology_skeletonPair_ext`: two classes of `Hᵐ(Xⁿ, Xⁿ⁻¹)` with the same
   pull-back along every characteristic map of an `n`-cell are equal.
@@ -61,34 +64,27 @@ inclusion of its summand into `∐ⱼ (Dⁿ, Sⁿ⁻¹)`, followed by the charac
 lemma characteristicCellPairMap_def {n : ℕ} (j : cell C n) :
     characteristicCellPairMap C j =
       TopPair.sigmaι (fun _ : cell C n ↦ diskBoundaryPair.{u} n) j ≫
-        (sigmaDiskBoundaryPairIso (cell C n) n).hom ≫ characteristicPairMap C n := by
-  refine TopPair.hom_ext_of_fst _ (TopCat.ext fun x ↦ Subtype.ext
-    ((coe_characteristicCellPairMap_fst_apply C j x).trans ?_))
-  -- As in the proof of `TauCeti.coe_characteristicCellPairMap_fst_apply`, the skeletal subspace
-  -- object and its `TopCat.of` presentation agree only up to unfolding, so `erw` is needed. The
-  -- closing `rfl` evaluates the summand inclusion `TopPair.sigmaι`, for which Tau Ceti states no
-  -- evaluation lemma.
-  symm
-  erw [TopPair.Hom.fst_comp, TopPair.Hom.fst_comp, ConcreteCategory.comp_apply,
-    ConcreteCategory.comp_apply, characteristicPairMap_fst_apply,
-    sigmaDiskBoundaryPairIso_hom_fst_apply_fst,
-    coe_sigmaDiskBoundaryPairIso_hom_fst_apply_snd]
-  rfl
+        (sigmaDiskBoundaryPairIso (cell C n) n).hom ≫ characteristicPairMap C n :=
+  (rfl)
 
 variable {A : Type v} [Ring A] (R : ModuleCat.{u} A) [Projective R]
   (k : Type*) [Ring k] [Linear k (ModuleCat.{u} A)] (M : ModuleCat.{u} A)
+
+/-- The characteristic maps of the `n`-cells, `∐ⱼ (Dⁿ, Sⁿ⁻¹) ⟶ (Xⁿ, Xⁿ⁻¹)`, induce isomorphisms
+`Hᵐ(Xⁿ, Xⁿ⁻¹; M) ≅ Hᵐ(∐ⱼ (Dⁿ, Sⁿ⁻¹); M)` on relative singular cohomology, for chain coefficients
+in a projective module `R`. -/
+instance isIso_singularCohomologyMap_characteristicPairMap (n m : ℕ) :
+    IsIso (TopPair.singularCohomologyMap (R := R) (k := k) (M := M)
+      (characteristicPairMap C n) m) :=
+  TopPair.isIso_singularCohomologyMap_of_isIso_singularHomologyMap _ R k M
+    (fun _ ↦ inferInstance) m
 
 /-- The characteristic maps of the `n`-cells, read on Euclidean disk pairs, induce isomorphisms
 `Hᵐ(Xⁿ, Xⁿ⁻¹) ≅ Hᵐ(∐ⱼ (Dⁿ, Sⁿ⁻¹))` on relative singular cohomology. -/
 private lemma isIso_singularCohomologyMap_sigmaDiskBoundaryPair (n m : ℕ) :
     IsIso (TopPair.singularCohomologyMap (R := R) (k := k) (M := M)
       ((sigmaDiskBoundaryPairIso (cell C n) n).hom ≫ characteristicPairMap C n) m) := by
-  rw [TopPair.singularCohomologyMap_comp]
-  have := TopPair.isIso_singularCohomologyMap_of_isIso_singularHomologyMap
-    (characteristicPairMap C n) R k M (fun _ ↦ inferInstance) m
-  have : IsIso (TopPair.singularCohomologyMap (R := R) (k := k) (M := M)
-      (sigmaDiskBoundaryPairIso (cell C n) n).hom m) :=
-    by rw [← TopPair.singularCohomologyMapIso_hom]; infer_instance
+  rw [TopPair.singularCohomologyMap_comp, ← TopPair.singularCohomologyMapIso_hom]
   infer_instance
 
 /-- **The relative cohomology of consecutive skeleta is a product over the cells.** For a relative
