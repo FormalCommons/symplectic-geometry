@@ -5,14 +5,11 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.EvenIntegralCohomology
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.Sphere.Generator
+public import SymplecticGeometry.Topology.ComplexProjectiveSpace.Sphere
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Naturality
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.ProjectiveSpace
-public import TauCeti.AlgebraicTopology.Cohomology.Sphere.Product
-public import TauCeti.AlgebraicTopology.Disk
-public import TauCeti.Topology.ComplexProjectiveSpace.Projectivization
-public import TauCeti.Topology.ComplexProjectiveSpace.Sphere2
 
 /-!
 # The top product of first Chern classes on `(ℂP¹)ᵐ`
@@ -24,26 +21,21 @@ class of infinite order in `H^{2m}(Pᵐ; ℤ)`.
 
 ## Main results
 
-* `TopCat.not_isOfFinAddOrder_integralCup_sphereGenerator`: for a space `Y` and a class `c` of
-  infinite order in `Hⁿ(Y; ℤ)`, the class `pr₁^* θ ⌣ pr₂^* c` of `Sᵈ⁺¹ × Y` has infinite order,
-  where `θ ∈ Hᵈ⁺¹(Sᵈ⁺¹; ℤ)` is dual to the standard generator of the homology of the sphere. It is
-  read off Tau Ceti's decomposition `TopCat.singularCohomologySphereProdSlantEquiv` of the
-  cohomology of `Sᵈ⁺¹ × Y`, whose inverse sends `(0, c)` to `pr₁^* θ ⌣ pr₂^* c`.
-* `TopCat.exists_eq_zsmul_sphereGenerator`: `θ` generates `Hᵈ⁺¹(Sᵈ⁺¹; ℤ)`.
-* `Projectivization.singularCohomologyMap_sphereGenerator_eq_hyperplaneClass_or`: under any
-  homeomorphism `e : P ≃ₜ S²`, `θ` pulls back to `h` or to `-h`. Since `c₁(𝒪(-1)) = -h`
-  (by `SymplecticGeometry.Bundle.chernClass_one_eq_complexEulerClass` and the definition of `h`),
-  it pulls back to `±c₁` of the tautological line.
+* `Projectivization.singularCohomologyMap_sphereGenerator_eq_hyperplaneClass_or_eq_neg_…`:
+  under any homeomorphism `e : P ≃ₜ S²`, the generator `θ ∈ H²(S²; ℤ)` of
+  `SymplecticGeometry/AlgebraicTopology/Cohomology/Sphere/Generator.lean` pulls back to `h` or to
+  `-h`. Since `c₁(𝒪(-1)) = -h` (by `SymplecticGeometry.Bundle.chernClass_one_eq_complexEulerClass`
+  and the definition of `h`), it pulls back to `±c₁` of the tautological line.
 * `Projectivization.not_isOfFinAddOrder_prod_singularCohomologyMap`: for nonzero classes
   `bᵢ ∈ H²(P; ℤ)`, the product of the pull-backs `prᵢ^* bᵢ`, the component of degree `2m` of a
   product in the even integral cohomology ring of `Pᵐ`, has infinite order.
 * `Projectivization.not_isOfFinAddOrder_prod_chernClass`: the product of the classes `yᵢ` has
   infinite order in `H^{2m}(Pᵐ; ℤ)`.
 
-The proof is by induction on `m`. For the step, a homeomorphism `S² ≃ₜ P`, assembled from Tau
-Ceti's `TauCeti.ComplexProjectiveSpace.homeomorphSphere2`, gives a map `S² × Pᵐ → Pᵐ⁺¹`; it pulls
+The proof is by induction on `m`. For the step, the inverse of the homeomorphism
+`Projectivization.homeomorphTopCatSphere : P ≃ₜ S²` gives a map `S² × Pᵐ → Pᵐ⁺¹`; it pulls
 the product on `Pᵐ⁺¹` back to a nonzero multiple of `pr₁^* θ ⌣ pr₂^* c`, with `c` the product on
-`Pᵐ`, and the first result applies.
+`Pᵐ`, and `TopCat.not_isOfFinAddOrder_integralCup_sphereGenerator` applies.
 
 ## References
 
@@ -57,57 +49,6 @@ noncomputable section
 
 open CategoryTheory MonoidalCategory CartesianMonoidalCategory
 
-namespace TopCat
-
-open TauCeti
-
-/-- **Products with the sphere generator keep infinite order.** Let `θ ∈ Hᵈ⁺¹(Sᵈ⁺¹; ℤ)` be the
-integral class dual to the standard generator of `H_{d+1}(Sᵈ⁺¹)`. If `c ∈ Hⁿ(Y; ℤ)` has infinite
-order, then so has `pr₁^* θ ⌣ pr₂^* c ∈ H^N(Sᵈ⁺¹ × Y; ℤ)`, `N = d + 1 + n`. -/
-theorem not_isOfFinAddOrder_integralCup_sphereGenerator (Y : TopCat.{0}) {d n N : ℕ}
-    (h : d + 1 + n = N) {c : Y.integralCohomology n} (hc : ¬IsOfFinAddOrder c) :
-    ¬IsOfFinAddOrder ((sphere.{0} (d + 1) ⊗ Y).integralCup (d + 1) n N h
-      (TopCat.singularCohomologyMap (fst _ Y) (d + 1)
-        (((sphere.{0} (d + 1)).integralCohomologyEquiv (d + 1)).symm
-          (singularCohomologyTopCatSphereGenerator ℤ d)))
-      (TopCat.singularCohomologyMap (snd _ Y) n c)) := by
-  obtain rfl : N = n + (d + 1) := by omega
-  -- the class is the image of `(0, c)` under the decomposition of the cohomology of `Sᵈ⁺¹ × Y`
-  set e₁ := (sphere.{0} (d + 1) ⊗ Y).integralCohomologyEquiv (n + (d + 1))
-  set S := singularCohomologySphereProdSlantEquiv (𝟙_ (ModuleCat.{0} ℤ)) Y (sphereBasePoint d) n
-  have hFc : (sphere.{0} (d + 1) ⊗ Y).integralCup (d + 1) n (n + (d + 1)) h
-      (TopCat.singularCohomologyMap (fst _ Y) (d + 1)
-        (((sphere.{0} (d + 1)).integralCohomologyEquiv (d + 1)).symm
-          (singularCohomologyTopCatSphereGenerator ℤ d)))
-      (TopCat.singularCohomologyMap (snd _ Y) n c) =
-        e₁.symm (S.symm (0, Y.integralCohomologyEquiv n c)) := by
-    rw [singularCohomologySphereProdSlantEquiv_symm_apply, map_zero, zero_add,
-      integralCohomologyEquiv_symm_singularCup, integralCohomologyEquiv_symm_naturality,
-      integralCohomologyEquiv_symm_naturality, LinearEquiv.symm_apply_apply]
-  rw [hFc]
-  refine fun hfin ↦ hc ?_
-  rw [isOfFinAddOrder_iff_nsmul_eq_zero] at hfin ⊢
-  obtain ⟨k, hk, hkc⟩ := hfin
-  refine ⟨k, hk, (Y.integralCohomologyEquiv n).injective ?_⟩
-  have := congrArg (fun x ↦ (S (e₁ x)).2) hkc
-  simpa using this
-
-/-- Every class of `Hᵈ⁺¹(Sᵈ⁺¹; ℤ)` is an integer multiple of the generator `θ`, the integral
-class dual to the standard generator of `H_{d+1}(Sᵈ⁺¹)`. -/
-theorem exists_eq_zsmul_sphereGenerator {d : ℕ}
-    (x : (sphere.{0} (d + 1)).integralCohomology (d + 1)) :
-    ∃ r : ℤ, x = r • ((sphere.{0} (d + 1)).integralCohomologyEquiv (d + 1)).symm
-      (singularCohomologyTopCatSphereGenerator ℤ d) := by
-  set e := (sphere.{0} (d + 1)).integralCohomologyEquiv (d + 1)
-  set s := singularCohomologyTopCatSphereEquiv ℤ (𝟙_ (ModuleCat.{0} ℤ)) d
-  have hθ : s (singularCohomologyTopCatSphereGenerator ℤ d) = 1 :=
-    (singularCohomologyTopCatSphereEquiv_apply _ _ _ _).trans
-      (singularKronecker_singularCohomologyTopCatSphereGenerator ℤ d)
-  refine ⟨s (e x), e.injective (s.injective ?_)⟩
-  rw [map_zsmul, map_zsmul, LinearEquiv.apply_symm_apply, hθ, smul_eq_mul, mul_one]
-
-end TopCat
-
 namespace Projectivization
 
 open Bundle TauCeti
@@ -116,73 +57,54 @@ open scoped LinearAlgebra.Projectivization
 /-- **The hyperplane class of `ℂP¹` generates `H²(ℂP¹; ℤ)` as the sphere generator does.** Under
 any homeomorphism `e : ℙ ℂ (Fin 2 → ℂ) ≃ₜ S²`, the integral class `θ` dual to the standard
 generator of `H₂(S²)` pulls back to the hyperplane class `h` or to `-h`. -/
-theorem singularCohomologyMap_sphereGenerator_eq_hyperplaneClass_or
+theorem singularCohomologyMap_sphereGenerator_eq_hyperplaneClass_or_eq_neg_hyperplaneClass
     (e : ℙ ℂ (Fin 2 → ℂ) ≃ₜ TopCat.sphere.{0} 2) :
-    TopCat.singularCohomologyMap (TopCat.ofHom ⟨e, e.continuous⟩) 2
+    TopCat.singularCohomologyMap (TopCat.isoOfHomeo (X := TopCat.of (ℙ ℂ (Fin 2 → ℂ))) e).hom 2
         (((TopCat.sphere.{0} 2).integralCohomologyEquiv 2).symm
           (singularCohomologyTopCatSphereGenerator ℤ 1)) = hyperplaneClass (Fin 2 → ℂ) ∨
-      TopCat.singularCohomologyMap (TopCat.ofHom ⟨e, e.continuous⟩) 2
+      TopCat.singularCohomologyMap (TopCat.isoOfHomeo (X := TopCat.of (ℙ ℂ (Fin 2 → ℂ))) e).hom 2
         (((TopCat.sphere.{0} 2).integralCohomologyEquiv 2).symm
           (singularCohomologyTopCatSphereGenerator ℤ 1)) = -hyperplaneClass (Fin 2 → ℂ) := by
+  set φ := TopCat.isoOfHomeo (X := TopCat.of (ℙ ℂ (Fin 2 → ℂ))) e
   have hV : Module.finrank ℂ (Fin 2 → ℂ) = 1 + 1 := by simp
   obtain ⟨a, ha⟩ := exists_eq_zsmul_hyperplaneClass hV
-    (TopCat.singularCohomologyMap (TopCat.ofHom ⟨e, e.continuous⟩) 2
+    (TopCat.singularCohomologyMap φ.hom 2
       (((TopCat.sphere.{0} 2).integralCohomologyEquiv 2).symm
         (singularCohomologyTopCatSphereGenerator ℤ 1)))
   obtain ⟨b, hb⟩ := TopCat.exists_eq_zsmul_sphereGenerator (d := 1)
-    (TopCat.singularCohomologyMap (TopCat.ofHom ⟨e.symm, e.symm.continuous⟩) 2
-      (hyperplaneClass (Fin 2 → ℂ)))
-  have hcomp : TopCat.ofHom ⟨e, e.continuous⟩ ≫ TopCat.ofHom ⟨e.symm, e.symm.continuous⟩ = 𝟙 _ := by
-    ext x
-    exact e.symm_apply_apply x
+    (TopCat.singularCohomologyMap φ.inv 2 (hyperplaneClass (Fin 2 → ℂ)))
   have hba : (b * a) • hyperplaneClass (Fin 2 → ℂ) = (1 : ℤ) • hyperplaneClass (Fin 2 → ℂ) := by
     rw [one_smul, mul_smul, ← ha, ← map_zsmul, ← hb, ← ConcreteCategory.comp_apply,
-      ← TopCat.singularCohomologyMap_comp, hcomp, TopCat.singularCohomologyMap_id,
+      ← TopCat.singularCohomologyMap_comp, φ.hom_inv_id, TopCat.singularCohomologyMap_id,
       ConcreteCategory.id_apply]
   rcases Int.eq_one_or_neg_one_of_mul_eq_one'
     ((bijective_zsmul_hyperplaneClass hV one_pos).1 hba) with ⟨-, rfl⟩ | ⟨-, rfl⟩
   · exact .inl (ha.trans (one_smul _ _))
   · exact .inr (ha.trans (neg_one_zsmul _))
 
-/-- A homeomorphism `ℙ ℂ (Fin 2 → ℂ) ≃ₜ S²`: Tau Ceti's homeomorphisms of `ℂP¹` with the sphere
-quotient model, of that with the unit sphere of `ℝ³`, and of that with `TopCat.sphere 2`. -/
-private def homeomorphSphere : ℙ ℂ (Fin 2 → ℂ) ≃ₜ TopCat.sphere.{0} 2 :=
-  (ComplexProjectiveSpace.homeomorphProjectivization 1).symm.trans
-    (ComplexProjectiveSpace.homeomorphSphere2.trans
-      (sphereHomeomorphTopCatSphere (by simp)))
-
 /-- A nonzero class of `H²(ℂP¹; ℤ)` pulls back to a nonzero multiple of the sphere generator along
-the inverse of `homeomorphSphere`. -/
-private theorem exists_singularCohomologyMap_homeomorphSphere_symm
+the inverse of `homeomorphTopCatSphere`. -/
+private theorem exists_singularCohomologyMap_homeomorphTopCatSphere_symm
     {b : (TopCat.of (ℙ ℂ (Fin 2 → ℂ))).integralCohomology 2} (hb : b ≠ 0) :
     ∃ k : ℤ, k ≠ 0 ∧
-      TopCat.singularCohomologyMap (TopCat.ofHom ⟨homeomorphSphere.symm,
-        homeomorphSphere.symm.continuous⟩) 2 b =
+      TopCat.singularCohomologyMap
+        (TopCat.isoOfHomeo (X := TopCat.of (ℙ ℂ (Fin 2 → ℂ))) homeomorphTopCatSphere.{0}).inv 2 b =
         k • ((TopCat.sphere.{0} 2).integralCohomologyEquiv 2).symm
           (singularCohomologyTopCatSphereGenerator ℤ 1) := by
+  set φ := TopCat.isoOfHomeo (X := TopCat.of (ℙ ℂ (Fin 2 → ℂ))) homeomorphTopCatSphere.{0}
+  set θ := ((TopCat.sphere.{0} 2).integralCohomologyEquiv 2).symm
+    (singularCohomologyTopCatSphereGenerator ℤ 1)
   have hV : Module.finrank ℂ (Fin 2 → ℂ) = 1 + 1 := by simp
   obtain ⟨j, rfl⟩ := exists_eq_zsmul_hyperplaneClass hV b
   have hj : j ≠ 0 := by rintro rfl; exact hb (zero_smul _ _)
-  have hcomp : TopCat.ofHom ⟨homeomorphSphere.symm, homeomorphSphere.symm.continuous⟩ ≫
-      TopCat.ofHom ⟨homeomorphSphere, homeomorphSphere.continuous⟩ = 𝟙 (TopCat.sphere.{0} 2) := by
-    ext x
-    exact homeomorphSphere.apply_symm_apply x
-  have hback : TopCat.singularCohomologyMap
-      (TopCat.ofHom ⟨homeomorphSphere.symm, homeomorphSphere.symm.continuous⟩) 2
-      (TopCat.singularCohomologyMap
-        (TopCat.ofHom ⟨homeomorphSphere, homeomorphSphere.continuous⟩) 2
-          (((TopCat.sphere.{0} 2).integralCohomologyEquiv 2).symm
-            (singularCohomologyTopCatSphereGenerator ℤ 1))) =
-      ((TopCat.sphere.{0} 2).integralCohomologyEquiv 2).symm
-        (singularCohomologyTopCatSphereGenerator ℤ 1) := by
-    rw [← ConcreteCategory.comp_apply, ← TopCat.singularCohomologyMap_comp, hcomp,
+  have hback : TopCat.singularCohomologyMap φ.inv 2 (TopCat.singularCohomologyMap φ.hom 2 θ) =
+      θ := by
+    rw [← ConcreteCategory.comp_apply, ← TopCat.singularCohomologyMap_comp, φ.inv_hom_id,
       TopCat.singularCohomologyMap_id, ConcreteCategory.id_apply]
-  rcases singularCohomologyMap_sphereGenerator_eq_hyperplaneClass_or homeomorphSphere with h | h
+  rcases singularCohomologyMap_sphereGenerator_eq_hyperplaneClass_or_eq_neg_hyperplaneClass
+    homeomorphTopCatSphere with h | h
   · exact ⟨j, hj, by rw [map_zsmul, ← h, hback]⟩
-  · have h' : hyperplaneClass (Fin 2 → ℂ) = -TopCat.singularCohomologyMap
-        (TopCat.ofHom ⟨homeomorphSphere, homeomorphSphere.continuous⟩) 2
-          (((TopCat.sphere.{0} 2).integralCohomologyEquiv 2).symm
-            (singularCohomologyTopCatSphereGenerator ℤ 1)) := by
+  · have h' : hyperplaneClass (Fin 2 → ℂ) = -TopCat.singularCohomologyMap φ.hom 2 θ := by
       rw [h, neg_neg]
     exact ⟨-j, neg_ne_zero.2 hj, by rw [map_zsmul, h', map_neg, hback, zsmul_neg, neg_zsmul]⟩
 
@@ -204,8 +126,9 @@ theorem not_isOfFinAddOrder_prod_singularCohomologyMap (m : ℕ)
   | succ m ih =>
     let P := ℙ ℂ (Fin 2 → ℂ)
     let Y := TopCat.of (Fin m → P)
+    -- Set-up: `g : S² → P` is the inverse of `homeomorphTopCatSphere`.
     let g : TopCat.sphere.{0} 2 ⟶ TopCat.of P :=
-      TopCat.ofHom ⟨homeomorphSphere.symm, homeomorphSphere.symm.continuous⟩
+      (TopCat.isoOfHomeo (X := TopCat.of (ℙ ℂ (Fin 2 → ℂ))) homeomorphTopCatSphere.{0}).inv
     -- the map `S² × Pᵐ → Pᵐ⁺¹`, `(s, x) ↦ (g s, x)`
     let Ψ : TopCat.sphere.{0} 2 ⊗ Y ⟶ TopCat.of (Fin (m + 1) → P) :=
       TopCat.ofHom ⟨fun p ↦ Fin.cons (g (fst _ Y p)) (snd _ Y p),
@@ -217,7 +140,8 @@ theorem not_isOfFinAddOrder_prod_singularCohomologyMap (m : ℕ)
         snd _ Y ≫ TopCat.ofHom (ContinuousMap.eval i) := by
       ext p
       rfl
-    obtain ⟨k, hk, hgk⟩ := exists_singularCohomologyMap_homeomorphSphere_symm (hb 0)
+    obtain ⟨k, hk, hgk⟩ := exists_singularCohomologyMap_homeomorphTopCatSphere_symm (hb 0)
+    -- By induction, `pr₁^* θ ⌣ pr₂^* x'` has infinite order on `S² × Pᵐ`.
     have key := TopCat.not_isOfFinAddOrder_integralCup_sphereGenerator Y (d := 1)
       (show 1 + 1 + 2 * m = 2 * (1 + m) by ring) (ih (fun i ↦ b i.succ) fun i ↦ hb i.succ)
     rw [← injective_zsmul_iff_not_isOfFinAddOrder] at key ⊢
@@ -226,6 +150,8 @@ theorem not_isOfFinAddOrder_prod_singularCohomologyMap (m : ℕ)
         (b i.succ))
     set x := ∏ i, (TopCat.of (Fin (m + 1) → P)).evenIntegralCohomologyOf 1
       (TopCat.singularCohomologyMap (TopCat.ofHom (ContinuousMap.eval i)) (2 * 1) (b i))
+    -- Step 1: `Ψ` pulls the product `x` on `Pᵐ⁺¹` back to `pr₁^* (g^* b₀) ⌣ pr₂^* x'`, which is
+    -- `k • (pr₁^* θ ⌣ pr₂^* x')` with `k ≠ 0`.
     have hx : TopCat.evenIntegralCohomologyMap Ψ x =
         (TopCat.sphere.{0} 2 ⊗ Y).evenIntegralCohomologyOf 1
           (TopCat.singularCohomologyMap (fst _ Y) (2 * 1)
@@ -240,6 +166,8 @@ theorem not_isOfFinAddOrder_prod_singularCohomologyMap (m : ℕ)
     rw [TopCat.evenIntegralCohomologyMap_apply, TopCat.evenIntegralCohomologyOf_mul_apply,
       TopCat.evenIntegralCohomologyMap_apply, hgk', map_zsmul,
       TopCat.integralCup_zsmul_left] at hx'
+    -- Step 2: so `n • x ↦ (n * k) • (pr₁^* θ ⌣ pr₂^* x')` under `Ψ^*`, and cancelling `k`
+    -- shows that `n ↦ n • x` is injective.
     have h3 : Function.Injective fun n : ℤ ↦ n • x (1 + m) := by
       intro n n' hnn
       refine mul_right_cancel₀ hk (key ?_)
