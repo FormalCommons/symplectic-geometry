@@ -6,6 +6,9 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Complex.Basic
+public import Mathlib.Topology.OpenPartialHomeomorph.Composition
+public import SymplecticGeometry.Algebra.Notation.Pi.Basic
+public import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 public import TauCeti.Topology.Algebra.Projectivization
 
 /-!
@@ -16,8 +19,9 @@ For `n : ℕ` and `E := Fin (n + 1) → ℂ`, the blowup of `E` at `0` is the in
 projection `pr` to `ℙ ℂ E` and the blowdown map to `E`; the blowdown is a bijection off the
 exceptional divisor, the fibre `ℙ ℂ E × {0}` over the origin.
 
-This file sets up the incidence set with its subspace topology, the two projections and the
-exceptional divisor. The charts and the complex manifold structure come later.
+This file sets up the incidence set with its subspace topology, the two projections, the
+exceptional divisor, and the `n + 1` charts of McDuff–Salamon, Exercise 7.1.2 (i), with the
+transitions between them. The complex manifold structure comes later.
 
 ## Main definitions and results
 
@@ -32,6 +36,15 @@ exceptional divisor. The charts and the complex manifold structure come later.
   (`SymplecticGeometry.BlowupModel.exceptionalDivisor_eq_range`).
 * `SymplecticGeometry.BlowupModel.dense_exceptionalDivisor_compl`: the complement of the
   exceptional divisor is dense, since `(ℓ, t • v)` tends to `(ℓ, 0)` as `t → 0`.
+* `SymplecticGeometry.BlowupModel.blowupModelChart i`, for `i : Fin (n + 1)`: the chart of the
+  blowup over Tau Ceti's affine open `Projectivization.affineOpen i`, onto all of `E`. At the place
+  `i` it records `z i`, and at the others the affine coordinates `Projectivization.affineChart i ℓ`
+  of the line; its inverse is `w ↦ ([update w i 1], w i • update w i 1)`. In this chart the
+  blowdown is `z i = w i`, `z j = w i * w j` (`blowdown_blowupModelChart_symm_apply`).
+* `SymplecticGeometry.BlowupModel.blowupModelChart_symm_trans_source` and
+  `SymplecticGeometry.BlowupModel.blowupModelChart_symm_trans_apply`: the transition from the
+  chart `i` to the chart `k`. For `k ≠ i` it is defined where `w k ≠ 0`, and sends `w` to `w'`
+  with `w' k = w i * w k` and `w' j = v j / w k` for `j ≠ k`, where `v = update w i 1`.
 
 ## References
 
@@ -175,6 +188,163 @@ theorem dense_exceptionalDivisor_compl : Dense (exceptionalDivisor n)ᶜ := by
     exact fun h => smul_ne_zero ht p.pr.rep_ne_zero
       ((blowdown_mk _ _ _).symm.trans (mem_exceptionalDivisor_iff.1 h))
   · exact subset_closure hp
+
+/-! ### The charts -/
+
+section Chart
+
+open Function
+
+/-- The line through `update w i 1` contains `w i • update w i 1`. -/
+theorem mk_update_one_smul_mem_blowupModel (w : Fin (n + 1) → ℂ) (i : Fin (n + 1)) :
+    (mk ℂ (update w i 1) (update_ne_zero w i one_ne_zero), w i • update w i 1) ∈ blowupModel n := by
+  rw [mem_blowupModel_iff, submodule_mk]
+  exact Submodule.smul_mem _ _ (Submodule.mem_span_singleton_self _)
+
+/-- The chart `i` of the blowup `BlowupModel n`, defined on the pairs `(ℓ, z)` whose line `ℓ`
+lies in the affine open `affineOpen i` of `ℙ ℂ E`. Its value `w` has `w i = z i`, and for
+`j ≠ i` its coordinate `w j` is the ratio `v j / v i` for any `v` spanning `ℓ`, so that the
+coordinates other than `i` are the affine coordinates `affineChart i ℓ` of the line. Its inverse
+sends `w` to the pair `(ℓ, z)` with `ℓ` spanned by `update w i 1` and `z = w i • update w i 1`. -/
+noncomputable def blowupModelChart (i : Fin (n + 1)) :
+    OpenPartialHomeomorph (BlowupModel n) (Fin (n + 1) → ℂ) where
+  toFun p := Fin.insertNth i (p.blowdown i) (affineChart i p.pr)
+  invFun w := ⟨_, mk_update_one_smul_mem_blowupModel w i⟩
+  source := pr ⁻¹' affineOpen i
+  target := Set.univ
+  map_source' _ _ := Set.mem_univ _
+  map_target' w _ := (mk_mem_affineOpen_iff i _ (update_ne_zero w i one_ne_zero)).2 (by simp)
+  left_inv' p hp := by
+    have hv (x : ℂ) : update (Fin.insertNth i x (affineChart i p.pr)) i 1 =
+        normalizedRep (LinearMap.proj i) p.pr := by
+      rw [Fin.update_insertNth, insertNth_one_affineChart_eq_normalizedRep i hp]
+    refine ext ?_ ?_
+    · simp only [pr_mk, Fin.insertNth_apply_same, hv]
+      conv_rhs => rw [← mk_rep p.pr]
+      exact (mk_eq_mk_iff' ℂ _ _ _ _).2 ⟨_, (normalizedRep_def _ _).symm⟩
+    · simp only [blowdown_mk, Fin.insertNth_apply_same, hv]
+      rw [affineOpen_eq_linearProjectionDomain] at hp
+      simpa using apply_smul_normalizedRep hp p.blowdown_mem_submodule
+  right_inv' w _ := by
+    ext j
+    refine Fin.succAboveCases i ?_ (fun j => ?_) j <;>
+      simp [Fin.succAbove_ne]
+  open_source := (isOpen_affineOpen i).preimage continuous_pr
+  open_target := isOpen_univ
+  continuousOn_toFun :=
+    ((continuous_apply i).comp continuous_blowdown).continuousOn.finInsertNth i
+      ((continuousOn_affineChart i).comp continuous_pr.continuousOn fun _ hp => hp)
+  continuousOn_invFun := by
+    refine (Continuous.subtype_mk ?_ _).continuousOn
+    have hv : Continuous fun w : Fin (n + 1) → ℂ => update w i 1 :=
+      continuous_id.update i continuous_const
+    refine Continuous.prodMk ?_ ((continuous_apply i).smul hv)
+    simp_rw [← affineChart_symm_removeNth]
+    exact (continuous_affineChart_symm i).comp (continuous_pi fun _ => continuous_apply _)
+
+variable (i : Fin (n + 1))
+
+/-- The chart `i` reads off `z i` at the place `i` and the affine coordinates of the line at the
+other places. -/
+theorem blowupModelChart_apply (p : BlowupModel n) :
+    blowupModelChart i p = Fin.insertNth i (p.blowdown i) (affineChart i p.pr) :=
+  (rfl)
+
+@[simp]
+theorem blowupModelChart_apply_self (p : BlowupModel n) :
+    blowupModelChart i p i = p.blowdown i := by
+  simp [blowupModelChart_apply]
+
+/-- Off the place `i`, the chart `i` is the ratio `v j / v i` for any `v` spanning the line.
+(Outside the source both sides are `0`.) -/
+theorem blowupModelChart_apply_of_ne (p : BlowupModel n) {v : Fin (n + 1) → ℂ} (hv : v ≠ 0)
+    (hpv : p.pr = mk ℂ v hv) {j : Fin (n + 1)} (hj : j ≠ i) :
+    blowupModelChart i p j = v j / v i := by
+  obtain ⟨j, rfl⟩ := Fin.exists_succAbove_eq hj
+  simp [blowupModelChart_apply, hpv]
+
+/-- The inverse of the chart `i` sends `w` to `([update w i 1], w i • update w i 1)`. -/
+theorem blowupModelChart_symm_apply (w : Fin (n + 1) → ℂ) :
+    (blowupModelChart i).symm w =
+      ⟨(mk ℂ (update w i 1) (update_ne_zero w i one_ne_zero), w i • update w i 1),
+        mk_update_one_smul_mem_blowupModel w i⟩ :=
+  (rfl)
+
+@[simp]
+theorem pr_blowupModelChart_symm_apply (w : Fin (n + 1) → ℂ) :
+    ((blowupModelChart i).symm w).pr = mk ℂ (update w i 1) (update_ne_zero w i one_ne_zero) :=
+  (rfl)
+
+/-- The blowdown read in the chart `i` is `w ↦ w i • update w i 1`; that is, `z i = w i` and
+`z j = w i * w j` for `j ≠ i`. -/
+theorem blowdown_blowupModelChart_symm_apply (w : Fin (n + 1) → ℂ) :
+    ((blowupModelChart i).symm w).blowdown = w i • update w i 1 :=
+  (rfl)
+
+@[simp]
+theorem blowdown_blowupModelChart_symm_apply_self (w : Fin (n + 1) → ℂ) :
+    ((blowupModelChart i).symm w).blowdown i = w i := by
+  simp [blowdown_blowupModelChart_symm_apply]
+
+@[simp]
+theorem blowdown_blowupModelChart_symm_apply_of_ne (w : Fin (n + 1) → ℂ) {j : Fin (n + 1)}
+    (hj : j ≠ i) : ((blowupModelChart i).symm w).blowdown j = w i * w j := by
+  simp [blowdown_blowupModelChart_symm_apply, hj]
+
+@[simp]
+theorem blowupModelChart_source : (blowupModelChart i).source = pr ⁻¹' affineOpen i :=
+  (rfl)
+
+@[simp]
+theorem blowupModelChart_target : (blowupModelChart (n := n) i).target = Set.univ :=
+  (rfl)
+
+/-! ### Transitions between the charts -/
+
+/-- The transition from the chart `i` to the chart `k` is defined where `update w i 1` has a
+nonzero coordinate `k`. -/
+theorem blowupModelChart_symm_trans_source (k : Fin (n + 1)) :
+    ((blowupModelChart i).symm.trans (blowupModelChart k)).source =
+      {w | update w i 1 k ≠ 0} := by
+  ext w
+  simp
+
+/-- For `k ≠ i`, the transition from the chart `i` to the chart `k` is defined where `w k ≠ 0`. -/
+theorem blowupModelChart_symm_trans_source_of_ne {k : Fin (n + 1)} (hk : k ≠ i) :
+    ((blowupModelChart i).symm.trans (blowupModelChart k)).source = {w | w k ≠ 0} := by
+  rw [blowupModelChart_symm_trans_source]
+  ext w
+  simp [update_of_ne hk]
+
+/-- The chart `k` at the image of `w` under the inverse of the chart `i`, at a place `j ≠ k`:
+with `v = update w i 1`, it is `v j / v k`. -/
+@[simp]
+theorem blowupModelChart_blowupModelChart_symm_apply_of_ne (k : Fin (n + 1))
+    (w : Fin (n + 1) → ℂ) {j : Fin (n + 1)} (hj : j ≠ k) :
+    blowupModelChart k ((blowupModelChart i).symm w) j = update w i 1 j / update w i 1 k :=
+  blowupModelChart_apply_of_ne k _ _ (pr_blowupModelChart_symm_apply i w) hj
+
+/-- The transition from the chart `i` to the chart `k`: with `v = update w i 1`, it sends `w` to
+`w'` with `w' k = w i * v k` and `w' j = v j / v k` for `j ≠ k`. -/
+theorem blowupModelChart_symm_trans_apply (k : Fin (n + 1)) (w : Fin (n + 1) → ℂ) :
+    (blowupModelChart i).symm.trans (blowupModelChart k) w =
+      Fin.insertNth k (w i * update w i 1 k)
+        (fun j => update w i 1 (k.succAbove j) / update w i 1 k) := by
+  ext j
+  refine Fin.succAboveCases k ?_ (fun j => ?_) j <;>
+    simp [Fin.succAbove_ne, blowdown_blowupModelChart_symm_apply]
+
+theorem blowupModelChart_symm_trans_apply_self (k : Fin (n + 1)) (w : Fin (n + 1) → ℂ) :
+    (blowupModelChart i).symm.trans (blowupModelChart k) w k = w i * update w i 1 k := by
+  simp [blowdown_blowupModelChart_symm_apply]
+
+theorem blowupModelChart_symm_trans_apply_of_ne (k : Fin (n + 1)) (w : Fin (n + 1) → ℂ)
+    {j : Fin (n + 1)} (hj : j ≠ k) :
+    (blowupModelChart i).symm.trans (blowupModelChart k) w j =
+      update w i 1 j / update w i 1 k := by
+  simp [hj]
+
+end Chart
 
 end BlowupModel
 

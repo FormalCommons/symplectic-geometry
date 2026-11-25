@@ -18,6 +18,7 @@ public import SymplecticGeometry.Geometry.Manifold.Instances.Sphere
 import TauCeti.LinearAlgebra.TotallyReal.Finrank
 import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
 import SymplecticGeometry.Geometry.Lie.Adjoint.Commute
+import SymplecticGeometry.Geometry.Lie.Exponential.Derivative
 
 /-!
 # Complexifications of Lie groups
@@ -58,6 +59,8 @@ The complex structure `cplx` is not determined by the other fields.
 * `SymplecticGeometry.LieComplexification.contMDiff_expI`: `expI` is smooth.
 * `SymplecticGeometry.LieComplexification.lieMap_re_add_cplx_lieMap_im`: every element `x` is
   `lieMap (re x) + cplx (lieMap (im x))`.
+* `SymplecticGeometry.LieComplexification.im_mfderiv_inv_mul_mfderiv_toHom_comp`: a map into
+  `Gc` that factors through `toHom` has left-trivialized derivatives with vanishing `im`.
 * `SymplecticGeometry.LieComplexification.cplx_lie_cplx`: `⁅cplx x, cplx y⁆ = -⁅x, y⁆`.
 * `SymplecticGeometry.LieComplexification.lie_add_cplx`,
   `SymplecticGeometry.LieComplexification.lie_lieMap_add_cplx_lieMap`,
@@ -69,6 +72,9 @@ The complex structure `cplx` is not determined by the other fields.
   embedding.
 * `SymplecticGeometry.LieComplexification.toHom_mul_expI_mul_inv`: for connected `G`, conjugation
   by `toHom u` sends `expI ξ` to `expI (Ad u ξ)`.
+* `SymplecticGeometry.LieComplexification.mfderiv_inv_mul_mfderiv_expI_smul_mul_toHom`: for
+  connected `G`, the left-trivialized velocity of `τ ↦ expI (τ • ξ) * toHom u` is
+  `cplx (lieMap (Ad u⁻¹ ξ))` at every time.
 * `SymplecticGeometry.LieComplexification.circle_cplx_apply`,
   `SymplecticGeometry.LieComplexification.re_circle_lieMap`,
   `SymplecticGeometry.LieComplexification.circle_lieMap_circleLieGenerator`,
@@ -235,6 +241,24 @@ theorem im_cplx_lieMap (ξ : GroupLieAlgebra I G) : C.im (C.cplx (C.lieMap ξ)) 
 theorem im_lieMap (ξ : GroupLieAlgebra I G) : C.im (C.lieMap ξ) = 0 :=
   LinearMap.linearProjOfIsCompl_apply_right' _ _ _ _ _ ⟨ξ, rfl⟩
 
+/-- A map into `Gc` that factors through `C.toHom` has left-trivialized derivatives in the image
+of `lieMap`, so their component `im` vanishes: for `f : N → G` differentiable at `z` and `w`
+tangent at `z`, `im (d(L_{g⁻¹})_g (d(toHom ∘ f)_z w)) = 0`, where `g = toHom (f z)`. -/
+theorem im_mfderiv_inv_mul_mfderiv_toHom_comp {EN : Type*} [NormedAddCommGroup EN]
+    [NormedSpace ℝ EN] {HN : Type*} [TopologicalSpace HN] {IN : ModelWithCorners ℝ EN HN}
+    {N : Type*} [TopologicalSpace N] [ChartedSpace HN N] {f : N → G} {z : N}
+    (hf : MDifferentiableAt IN I f z) (w : TangentSpace IN z) :
+    C.im (mfderiv IC IC ((C.toHom (f z))⁻¹ * ·) (C.toHom (f z))
+      (mfderiv IN IC (C.toHom ∘ f) z w)) = 0 := by
+  have hc := mfderiv_comp_apply z ((C.toHom.contMDiff_toFun.mdifferentiable (by simp)) (f z)) hf w
+  have h0 (ξ : GroupLieAlgebra I G) : C.im (C.toHom.groupLieAlgebraLieHom ξ) = 0 := by
+    rw [← lieMap_def, im_lieMap]
+  -- `rw` cannot rewrite under `C.im` here: its argument has type
+  -- `TangentSpace IC ((C.toHom (f z))⁻¹ * C.toHom (f z))`, which is `GroupLieAlgebra IC Gc` only
+  -- up to unfolding, so the equalities are chained as terms.
+  exact (congrArg (fun v ↦ C.im (mfderiv IC IC ((C.toHom (f z))⁻¹ * ·) (C.toHom (f z)) v)) hc).trans
+    ((congrArg C.im (C.toHom.mfderiv_inv_mul_mfderiv (f z) (mfderiv IN I f z w))).trans (h0 _))
+
 /-- Every element of the Lie algebra of `Gc` is `lieMap (re x) + cplx (lieMap (im x))`. -/
 theorem lieMap_re_add_cplx_lieMap_im (x : GroupLieAlgebra IC Gc) :
     C.lieMap (C.re x) + C.cplx (C.lieMap (C.im x)) = x := by
@@ -274,6 +298,11 @@ theorem expI_zero : C.expI 0 = 1 := by
 theorem expI_add_smul (ξ : GroupLieAlgebra I G) (s t : ℝ) :
     C.expI ((s + t) • ξ) = C.expI (s • ξ) * C.expI (t • ξ) := by
   simp only [expI_def, map_smul, mulInvariantExp_add_smul (I := IC)]
+
+/-- `expI (-ξ) = (expI ξ)⁻¹`. -/
+theorem expI_neg (ξ : GroupLieAlgebra I G) :
+    C.expI (-ξ) = (C.expI ξ)⁻¹ := by
+  simp only [expI_def, map_neg, mulInvariantExp_neg (I := IC)]
 
 /-- The polar decomposition: `polar (ξ, u) = expI ξ * toHom u`. Unlike the field `polar_apply'`,
 it takes `ξ` in the Lie algebra `GroupLieAlgebra I G`, so that it rewrites `C.polar (ξ, u)` for
@@ -348,6 +377,22 @@ theorem toHom_mul_expI_mul_inv [FiniteDimensional ℝ EC] [ConnectedSpace G] (u 
   rw [expI_def, expI_def, Lie.conj_mulInvariantExp, lieMap_def,
     ContMDiffMonoidMorphism.groupLieAlgebraLieHom_tangentAd, ← lieMap_def,
     Lie.map_tangentAd_apply_of_map_lie C.cplx.toLinearMap C.cplx_lie]
+
+/-- For connected `G`, the radial curve `τ ↦ expI (τ • ξ) * toHom u` of the polar decomposition
+has, at every time, the left-trivialized velocity `cplx (lieMap (Ad u⁻¹ ξ))`. -/
+theorem mfderiv_inv_mul_mfderiv_expI_smul_mul_toHom [FiniteDimensional ℝ EC] [ConnectedSpace G]
+    (ξ : GroupLieAlgebra I G) (u : G) (t : ℝ) :
+    mfderiv IC IC ((C.expI (t • ξ) * C.toHom u)⁻¹ * ·) (C.expI (t • ξ) * C.toHom u)
+        (mfderiv 𝓘(ℝ) IC (fun τ : ℝ ↦ C.expI (τ • ξ) * C.toHom u) t (1 : ℝ)) =
+      C.cplx (C.lieMap (Lie.tangentAd (I := I) u⁻¹ ξ)) := by
+  -- Conjugating by `toHom u` turns the curve into a left-translated exponential line.
+  have h (τ : ℝ) : C.expI (τ • ξ) * C.toHom u =
+      C.toHom u * mulInvariantExp (τ • C.cplx (C.lieMap (Lie.tangentAd (I := I) u⁻¹ ξ))) := by
+    rw [← C.cplx.apply_smul, ← map_smul, ← expI_def, ← map_smul, ← C.toHom_mul_expI_mul_inv,
+      map_inv, inv_inv]
+    group
+  rw [funext h, h t]
+  exact mfderiv_inv_mul_mfderiv_mul_mulInvariantExp_smul _ _ t
 
 end LieComplexification
 
