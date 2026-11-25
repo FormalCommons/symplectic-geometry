@@ -275,9 +275,6 @@ theorem mpullback_smul_couplingOneForm (hα : IsCircleConnectionForm α) (z : Ci
 theorem couplingOneForm_apply_couplingField (hα : IsCircleConnectionForm α)
     (x : ManifoldTotalSpace Circle P × Set.Icc a b) :
     (couplingOneForm α β hβ).val x ![couplingField IB P a b x] = (x.2 : ℝ) - a := by
-  have hX : rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator x.1 =
-      (2 * Real.pi) • rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x.1 := by
-    rw [circlePeriodOneGenerator_def, rightFundamentalVectorField_smul, Pi.smul_apply]
   have hv : (fun i ↦ (![couplingField IB P a b x] i).1) =
       ![rightFundamentalVectorField (IB.prod (𝓡 1)) circlePeriodOneGenerator x.1] := by
     funext i
@@ -289,7 +286,8 @@ theorem couplingOneForm_apply_couplingField (hα : IsCircleConnectionForm α)
     funext i
     fin_cases i
     simp
-  rw [couplingOneForm_apply, hv, hπ, hX, ContinuousAlternatingMap.vecCons_smul,
+  rw [couplingOneForm_apply, hv, hπ, rightFundamentalVectorField_circlePeriodOneGenerator,
+    Pi.smul_apply, ContinuousAlternatingMap.vecCons_smul,
     hα.apply_rightFundamentalVectorField, ContinuousAlternatingMap.map_zero]
   field_simp
   ring

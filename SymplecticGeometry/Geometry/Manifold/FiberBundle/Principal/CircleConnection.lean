@@ -586,7 +586,8 @@ theorem IsCircleConnectionForm.apply_eq_mpullback_add_mpullback (hα : IsCircleC
   set w := mfderiv IB (IB.prod (𝓡 1)) s (p x) (mfderiv (IB.prod (𝓡 1)) IB p x u)
   -- The derivative of `p ∘ s = id` is the identity, and that of `θ ∘ s = 1` vanishes.
   have hdps : mfderiv (IB.prod (𝓡 1)) IB p x u = mfderiv (IB.prod (𝓡 1)) IB p (s (p x)) w :=
-    (ManifoldTotalSpace.mfderiv_proj_mfderiv_section_apply hsd _).symm
+    -- `p` is the coercion of `projContMDiffMap ∞`, written out.
+    (ManifoldTotalSpace.mfderiv_proj_mfderiv_section_apply (n := ∞) hsd _).symm
   have hdθs : mfderiv (IB.prod (𝓡 1)) (𝓡 1) θ (s (p x)) w = 0 :=
     TauCeti.mfderiv_mfderiv_apply_eq_zero_of_comp_eventuallyEq_const
       (.of_eq (funext hθs : θ ∘ s = fun _ ↦ (1 : Circle))) _
@@ -644,8 +645,9 @@ theorem IsCircleConnectionForm.mpullback_apply_eq_mpullback_division_add
           TauCeti.mpullback (IB.prod (𝓡 1)) IB p (TauCeti.mpullback IB (IB.prod (𝓡 1))
             (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) α.val)) x :=
     mpullback_apply_congr hloc
-  rw [h, mpullback_add, Pi.add_apply, ← mpullback_comp_at hτ hθd, hθt,
-    ManifoldTotalSpace.mpullback_mpullback_proj_apply _ hτ]
+  rw [h, mpullback_add, Pi.add_apply, ← mpullback_comp_at hτ hθd, hθt]
+  -- `p` is the coercion of `projContMDiffMap ∞`, written out.
+  exact congrArg (_ + ·) (ManifoldTotalSpace.mpullback_mpullback_proj_apply (n := ∞) _ hτ)
 
 /-- **The curvature in a local section.** At a point `x` near which a section `σ` of `P` is
 smooth, read as a map into the charted total space, the curvature of a connection form `α` is the
@@ -660,7 +662,9 @@ theorem IsCircleConnectionForm.curvature_apply_eq_mextDeriv_mpullback [IB.Bounda
     ((α.isSmoothForm.contMDiff _).of_le (by simp))]
   have h := congrArg Subtype.val hα.mpullback_curvature
   rw [SmoothForm.coe_mpullback, mextDerivₗ_apply] at h
-  rw [← h, ManifoldTotalSpace.mpullback_mpullback_proj_apply _ (hσ.mdifferentiableAt (by simp))]
+  rw [← h, ← ManifoldTotalSpace.coe_projContMDiffMap (n := ∞) (F := Circle) (E := P) (IB := IB)
+    (IF := 𝓡 1),
+    ManifoldTotalSpace.mpullback_mpullback_proj_apply _ (hσ.mdifferentiableAt (by simp))]
 
 /-! ### The circle bundle of a Hermitian line bundle -/
 
