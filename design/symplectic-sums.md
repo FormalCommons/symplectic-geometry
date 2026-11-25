@@ -64,7 +64,17 @@ and the note of the review of #3195.
    `TopCat.GlueData` with Tau Ceti's `Geometry/Manifold/Gluing/GlueData.lean`,
    with Hausdorffness from `TopCat.GlueData.t2Space_iff_isClosed_chartRel`
    (the graph of the gluing map is closed) and forms glued by descent along
-   the quotient map, `IsLocalDiffeomorph.exists_mpullback_eq_iff`. Part 57's
+   the quotient map $\pi:M_1\sqcup M_2\to$ `GluedAlong φ`, with
+   `TauCeti.RoughForm.exists_mpullback_eq_iff_isBasic` and
+   `TauCeti.RoughForm.descendedForm` (`Geometry/Manifold/DifferentialForm/Pullback/Descent.lean`).
+   The derivatives of $\pi$ are invertible, since it is a local
+   diffeomorphism, and a form on $M_1\sqcup M_2$ is basic for $\pi$ exactly
+   when $\varphi^*(\sigma_2|_{U_2})=\sigma_1|_{U_1}$, a pointwise condition.
+   `IsLocalDiffeomorph.exists_mpullback_eq_iff` does not apply: it asks for
+   self-maps of all of $M_1\sqcup M_2$ relating the points of each fibre,
+   and swapping $u$ with $\varphi(u)$ is not continuous at the boundary of
+   $U_1$. Smoothness of the descended form is local, through the inverses of
+   `inl` and `inr` on their images. Part 57's
    `ConnectedSum/Annulus.lean` (#3275) may use it too; this file does not
    wait for it.
 2. **The fibre sum is glued along open collars, not cut at the seam.** The
@@ -118,9 +128,13 @@ and the note of the review of #3195.
    of the pencil meeting $T$ once, so minus a small disc it is a disc in the
    complement bounding the meridian.
 8. **The torus model.** The milestones on sums with $E(1)$ glue along
-   embeddings of one fixed torus. That is the standard torus
-   `AddCircle 1 × AddCircle 1`, with the form $ds\wedge dt$, so that the tori
-   of the realization theorem are parametrized directly. The fibre $T$ is
+   embeddings of one fixed torus. That is Tau Ceti's standard symplectic
+   torus `∀ i : Unit ⊕ Unit, AddCircle (p i)` with
+   `TauCeti.torusSymplecticForm p` and `TauCeti.isSymplectic_torusSymplecticForm`
+   (`Geometry/Symplectic/Manifold/Torus/Basic.lean`), of area
+   $p_{\mathrm{inl}}\,p_{\mathrm{inr}}$, so that the tori of the realization
+   theorem are parametrized directly; its fundamental group is
+   `AddCircle.piFundamentalGroupMulEquivZero`. The fibre $T$ is
    identified with it by a diffeomorphism in three steps: the linear map
    $[x:y:z]\mapsto[-12z:36(x-y):x+y]$ of $\mathbb CP^2$ carries the Fermat
    cubic onto the Weierstrass cubic $Y^2Z=X^3-432Z^3$; Tau Ceti's
@@ -130,14 +144,20 @@ and the note of the review of #3195.
    $\Lambda$ identifies $\mathbb C/\Lambda$ with the standard torus. The
    first step compares the charts of `SmoothProjectiveHypersurface` with
    those of `WeierstrassCurve.Projective.Point.instIsManifold`, both complex
-   submanifolds of $\mathbb CP^2$. Areas are then matched by rescaling the
-   form of $E(1)$, and the forms on the torus by Moser (*Moser isotopy*'s
+   submanifolds of $\mathbb CP^2$. The third step is a real-linear map of
+   `ℂ` sending $\Lambda$ to $p_{\mathrm{inl}}\mathbb Z+ip_{\mathrm{inr}}\mathbb Z$,
+   followed by Tau Ceti's covering map `TauCeti.complexPiTorusCover p`, which
+   pulls `torusSymplecticForm p` back to $\omega_0$
+   (`TauCeti.mpullback_complexPiTorusCover_torusSymplecticForm`). Areas are
+   then matched by rescaling the form of $E(1)$ to the area of the periods,
+   and the forms on the torus by Moser (*Moser isotopy*'s
    `TauCeti.SmoothTwoForm.exists_diffeotopy_mpullback_eq`), since two area
    forms of equal area on the torus are joined by a path of cohomologous
    area forms.
-9. **The realization theorem without a perturbation.** The page asks the
-   design to fix how the perturbation $\rho\wedge\theta$ of Theorem 7.2.8 is
-   closed. The library avoids the perturbation, and with it Exercise 7.2.9.
+9. **The realization theorem without perturbing the form.** The page asks
+   the design to fix how the perturbation $\rho\wedge\theta$ of Theorem 7.2.8
+   is closed. The library keeps the product form, and so avoids that
+   perturbation and Exercise 7.2.9; only the curves below are perturbed.
    For a smooth loop $\gamma_i$ in $F$, the torus
    $T_i=\{(\gamma_i(t),\,t+c_i,\,s)\}\subset F\times S^1_\beta\times S^1_\alpha$
    is embedded, since its $\beta$-coordinate is a degree-one graph, and it
@@ -145,15 +165,24 @@ and the note of the review of #3195.
    restricts to $dt\wedge ds$ on it. Its class in $\pi_1(F\times T^2)$ is
    $(\gamma_i,\beta)$, and the sum along a fibre $\{z\}\times T^2$ kills
    $\alpha$ and $\beta$, so the quotient is still
-   $\pi_1(F)/\langle\!\langle\gamma_i\rangle\!\rangle$. The loops are
-   concatenations of the standard circles of $F$ through the base point,
-   reparametrized to rest at the base point between circles, and the
-   $\beta$-coordinates $t\mapsto t+c_i$ are replaced by increasing
-   degree-one maps chosen so that two loops at the same point of $F$ have
-   different $\beta$-coordinates; this makes the $T_i$ pairwise disjoint.
-   Their normal bundles are pulled back from the oriented normal bundles of
-   circles in the oriented three-manifold $F\times S^1_\beta$, so they are
-   trivial, and a symplectic framing exists. The proof stays within the
+   $\pi_1(F)/\langle\!\langle\gamma_i\rangle\!\rangle$. Each curve
+   $t\mapsto(\gamma_i(t),\beta_i(t))$, with $\beta_i$ increasing of degree
+   one, is the graph over $S^1_\beta$ of a map $g_i:S^1\to F$, and
+   $T_i$ is that graph times $S^1_\alpha$; the form restricts to
+   $\beta_i'\,dt\wedge ds$ whatever $\gamma_i$ is. The $g_i$ start as the
+   concatenations of the standard circles of $F$ through the base point, and
+   are then moved by small homotopies so that $g_i(\beta)\ne g_j(\beta)$ for
+   all $\beta$ and $i\ne j$: the map $\beta\mapsto(g_i(\beta),g_j(\beta))$
+   from a circle into the four-manifold $F\times F$ generically misses the
+   diagonal, of codimension two. This makes the $T_i$ pairwise disjoint, and
+   the fibre point $z$ is taken off the images of the $g_i$. Only the free
+   homotopy classes of the $\gamma_i$ enter the normal closure, so the
+   homotopies do not change the quotient. Fixing the loops and choosing only
+   the $\beta_i$ does not suffice: for the relators $a_1^2$ and $a_1^3$ the
+   difference of the two $\beta$-coordinates on the set where the loops
+   agree has nonzero degree, so it vanishes somewhere. Their normal
+   bundles are pulled back from the oriented normal bundles of circles in
+   the oriented three-manifold $F\times S^1_\beta$, so they are trivial, and a symplectic framing exists. The proof stays within the
    milestone: its statement is only the existence of $M$.
 10. **The surface.** $F$ is the closed oriented surface of genus $g$, built
     as the iterated `TauCeti.ConnectedSum` of $g$ copies of the standard
@@ -188,8 +217,8 @@ drop *Complex blowup*; `Fibre.lean` glues along open collars rather than at
 the fixed radius (Decision 2); `Pointwise.lean` works with nondegenerate
 forms rather than tame structures (the two are equivalent by Tau Ceti's
 `exists_compatible`); `E(1)` is shown symplectic rather than Kähler
-(Decision 5); and the realization theorem has no perturbation
-(Decision 9). The two files this design adds outside
+(Decision 5); and the realization theorem does not perturb the product
+form (Decision 9). The two files this design adds outside
 `Geometry/Symplectic/Sum/` are planned here only. The building issue #3287
 is blocked only by #3286, so no blocker of an open issue changes.
 
@@ -295,8 +324,8 @@ the gluing circle adds the product of commutators.
 - `rationalEllipticSurface.symplecticForm` (Decision 5) with
   `isSymplectic_symplecticForm`.
 - `fibreEmbedding`, the Fermat cubic over $[1:0]$, a symplectic embedding
-  with a symplectic framing from the base; `torusDiffeomorph` from the
-  standard torus (Decision 8).
+  with a symplectic framing from the base; `torusDiffeomorph` from Tau
+  Ceti's standard symplectic torus (Decision 8).
 - `simplyConnectedSpace` (Decision 6) and
   `simplyConnectedSpace_compl_fibre` (Decision 7).
 
@@ -305,9 +334,9 @@ About 900 lines, in three issues.
 ### `Geometry/Symplectic/Sum/FundamentalGroup.lean`
 
 - `fibreSum_fundamentalGroupMulEquiv`: for a connected symplectic
-  four-manifold $X$, a symplectic embedding $\iota$ of the standard torus
-  with a symplectic framing, and the fibre sum with $E(1)$, its form
-  rescaled to match the area of $\iota$ and the torus identified by Moser
+  four-manifold $X$, a symplectic embedding $\iota$ of Tau Ceti's standard
+  symplectic torus (Decision 8) with a symplectic framing, and the fibre
+  sum with $E(1)$, its form rescaled to match the area of $\iota$ and the torus identified by Moser
   (Decision 8), for any framing and admissible $\varepsilon$, $\delta$:
   $\pi_1(X')\cong\pi_1(X,\iota t_0)/\langle\!\langle\iota_*\pi_1(T^2,t_0)\rangle\!\rangle$,
   as `Subgroup.normalClosure` of the range of the induced map, and $X'$ is
@@ -327,8 +356,10 @@ About 500 lines.
 ### `Geometry/Symplectic/Sum/FinitelyPresented.lean`
 
 - The tori $T_i$ and the fibre torus of Decision 9 in
-  `closedSurface g × AddCircle 1 × AddCircle 1` with the product form,
-  pairwise disjoint, symplectic, with symplectic framings.
+  `closedSurface g × (∀ i : Unit ⊕ Unit, AddCircle (p i))` with the product
+  of an area form and `TauCeti.torusSymplecticForm p`, made pairwise
+  disjoint by the small homotopies of Decision 9, symplectic, with
+  symplectic framings.
 - `exists_fundamentalGroup_mulEquiv`: every finitely presented $G$ is,
   up to isomorphism, $\pi_1$ of some compact, connected, boundaryless
   symplectic manifold of real dimension four. The proof sums $F\times T^2$
