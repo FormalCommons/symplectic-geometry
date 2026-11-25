@@ -15,7 +15,8 @@ public import TauCeti.Topology.Algebra.Module.SymmetricBilinear.Basic
 /-!
 # Continuous bilinear forms
 
-This file collects four facts about continuous bilinear maps `V →L[𝕜] V →L[𝕜] G`.
+This file collects four facts about continuous bilinear maps `V →L[𝕜] V →L[𝕜] G`, and one
+about the bilinear forms of continuous alternating maps `E [⋀^Fin 2]→L[𝕜] 𝕜` of two vectors.
 
 On a finite-dimensional Hausdorff topological vector space over a complete field, every bilinear
 form is continuous. Tau Ceti shows that making a bilinear form continuous and then forgetting
