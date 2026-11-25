@@ -7,6 +7,8 @@ module
 
 public import TauCeti.Analysis.Normed.Operator.ComplexLinearPart
 import TauCeti.Analysis.Complex.Wirtinger.Basic
+import TauCeti.LinearAlgebra.Complex.LinearPart
+import TauCeti.LinearAlgebra.Complex.Module
 
 /-!
 # The `(0,1)`-projection of a complex structure on the plane, in Wirtinger form
@@ -31,6 +33,12 @@ coefficient `ν = (i - K 1) / (conj (K 1) - i)` of `K`
 complex-antilinear map `v ↦ conj v · c (∂bar L + μ ∂L)` with `c = ½ (1 + i conj p) ≠ 0`
 (`ContinuousLinearMap.complexAntilinearPartL_half_smul_add_I_smul_comp_apply`): this is the
 pointwise form of a Cauchy–Riemann operator for `K` read against the standard structure of `ℂ`.
+
+Under the same hypotheses, that complex-antilinear part vanishes exactly when `L` is complex
+linear for `K`, `L ∘ K = i L`
+(`ContinuousLinearMap.complexAntilinearPartL_half_smul_add_I_smul_comp_eq_zero_iff`): the
+`(0,1)`-projection for `K` is complex antilinear for `K`, and a map that is complex linear for
+`i` and antilinear for `K` vanishes when `K 1 ≠ -i`.
 
 ## References
 
@@ -168,6 +176,40 @@ theorem complexAntilinearPartL_half_smul_add_I_smul_comp_apply {K : ℂ →L[ℝ
     complexAntilinearPart_half_smul_add_I_smul_comp_apply_one]
   have hμ := one_add_I_mul_conj_complexLinearPart_one_mul_div_eq hK hK1
   linear_combination (-2⁻¹ * conj v * L.complexLinearPart 1) * hμ
+
+/-- **Complex linearity for `K` from the `(0,1)`-projection.** Let `K` be a real-linear complex
+structure on `ℂ` with `K 1 ≠ -i`. A real-linear `L : ℂ → ℂ` is complex linear for `K`, that is
+`L (K v) = i L v` for all `v`, exactly when the `(0,1)`-projection `½ (L + i L K)` of `L` for `K`
+has no complex-antilinear part.
+
+Without `K 1 ≠ -i` this fails: for `K v = -i v` and `L = id`, the projection is `L` itself, which
+is complex linear, but `L (K 1) = -i ≠ i L 1`. -/
+theorem complexAntilinearPartL_half_smul_add_I_smul_comp_eq_zero_iff {K : ℂ →L[ℝ] ℂ}
+    (hK : ∀ v, K (K v) = -v) (hK1 : K 1 ≠ -Complex.I) (L : ℂ →L[ℝ] ℂ) :
+    complexAntilinearPartL ((2⁻¹ : ℝ) • (L + Complex.I • L.comp K)) = 0 ↔
+      ∀ v, L (K v) = Complex.I • L v := by
+  -- The `(0,1)`-projection is Tau Ceti's complex-antilinear part `N` for the pair `(K, i)`.
+  set A : ℂ →ₗ[ℝ] ℂ := Complex.I • LinearMap.id
+  have hAv (v : ℂ) : A v = Complex.I * v := by simp [A]
+  have hA (v : ℂ) : A (A v) = -v := by simp [hAv, ← mul_assoc]
+  set N := TauCeti.complexAntilinearPart (K : ℂ →ₗ[ℝ] ℂ) A L
+  have hN (v : ℂ) : ((2⁻¹ : ℝ) • (L + Complex.I • L.comp K)) v = N v := by
+    simp [N, TauCeti.complexAntilinearPart_apply, hAv]
+  have hlin : TauCeti.IsComplexLinear (K : ℂ →ₗ[ℝ] ℂ) A (L : ℂ →ₗ[ℝ] ℂ) ↔ N = 0 :=
+    TauCeti.isComplexLinear_iff_complexAntilinearPart_eq_zero (LinearMap.ext hA) _
+  rw [complexAntilinearPartL_eq_zero_iff]
+  simp only [hN]
+  refine ⟨fun h ↦ ?_, fun h v ↦ ?_⟩
+  · -- `N` is complex linear for `i` and antilinear for `K`, so it vanishes at `K 1 + i ≠ 0`.
+    have hNK : N (K 1) = -A (N 1) := (TauCeti.isComplexAntilinear_complexAntilinearPart
+      (J := (K : ℂ →ₗ[ℝ] ℂ)) (LinearMap.ext hK) (LinearMap.ext hA) (L : ℂ →ₗ[ℝ] ℂ)).apply 1
+    have hI : N Complex.I = A (N 1) := by simpa [hAv] using h 1
+    have h0 := LinearMap.eq_zero_of_apply_I_eq_of_apply_eq_zero N hI hA
+      (w := K 1 + Complex.I) (fun h ↦ hK1 (eq_neg_of_add_eq_zero_left h))
+      (by rw [map_add, hNK, hI, neg_add_cancel])
+    simpa [hAv] using (hlin.2 h0).apply
+  · rw [hlin.1 (TauCeti.isComplexLinear_of_apply (by simpa [hAv] using h))]
+    simp
 
 end ContinuousLinearMap
 
