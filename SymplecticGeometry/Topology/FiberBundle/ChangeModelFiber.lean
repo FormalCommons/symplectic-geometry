@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Topology.FiberBundle.Basic
+public import TauCeti.Topology.FiberBundle.MapFiber
 
 /-!
 # Changing the model fibre of a fibre bundle
@@ -27,6 +28,8 @@ instance.
 * `Bundle.Trivialization.transFiberHomeomorph_baseSet`, `_source`, `_target`, `_symm_apply`: the
   base set, source, target and inverse of Mathlib's `Bundle.Trivialization.transFiberHomeomorph`,
   which composes a trivialization with a homeomorphism of the model fibre.
+* `Bundle.Trivialization.mapFiberHomeomorph`: the fibre `TauCeti.MapFiber proj b` over a point `b`
+  of the base set of a trivialization, identified with the model fibre.
 * `Bundle.Trivialization.compHomeomorph_apply`, `_baseSet`, `_source`, `_target`, `_symm_apply`:
   the map, base set, source, target and inverse of Mathlib's
   `Bundle.Trivialization.compHomeomorph`, which precomposes a trivialization with a homeomorphism
@@ -123,6 +126,32 @@ theorem transFiberHomeomorph_symm_apply (q : B × F') :
   (rfl)
 
 end transFiberHomeomorph
+
+section mapFiberHomeomorph
+
+variable {B F Z : Type*} [TopologicalSpace B] [TopologicalSpace F] [TopologicalSpace Z]
+  {proj : Z → B} (e : Trivialization F proj) {b : B} (hb : b ∈ e.baseSet)
+
+/-- The fibre `TauCeti.MapFiber proj b` of `proj` over a point `b` of the base set of a
+trivialization `e` is homeomorphic to the model fibre `F`, by the fibre coordinate of `e`. This is
+Mathlib's `Bundle.Trivialization.preimageSingletonHomeomorph`, read on `TauCeti.MapFiber proj b`
+rather than on the subtype `proj ⁻¹' {b}`. -/
+def mapFiberHomeomorph : TauCeti.MapFiber proj b ≃ₜ F :=
+  ((Homeomorph.refl Z).subtype fun _ ↦ Set.mem_singleton_iff.symm).trans
+    (e.preimageSingletonHomeomorph hb)
+
+@[simp]
+theorem mapFiberHomeomorph_apply (x : TauCeti.MapFiber proj b) :
+    e.mapFiberHomeomorph hb x = (e x).2 :=
+  (rfl)
+
+@[simp]
+theorem mapFiberHomeomorph_symm_apply (v : F) :
+    (e.mapFiberHomeomorph hb).symm v =
+      ⟨e.toOpenPartialHomeomorph.symm (b, v), e.proj_symm_apply' hb⟩ :=
+  (rfl)
+
+end mapFiberHomeomorph
 
 section compHomeomorph
 
