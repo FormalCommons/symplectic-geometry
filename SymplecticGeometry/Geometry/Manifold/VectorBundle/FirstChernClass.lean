@@ -6,8 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteTrivializingCover
-public import SymplecticGeometry.Topology.VectorBundle.Complex.FirstChernClass
-public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Tensor
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.FirstChernClass
 
 /-!
 # The Whitney formula for the first Chern class over manifolds
@@ -18,13 +17,10 @@ Over a Hausdorff, σ-compact space `B` charted on `H`, with a model with corners
 (`SymplecticGeometry.Bundle.firstChernClass_prod_of_chartedSpace`). Neither smoothness nor
 compactness is assumed, and the model may have corners.
 
-The proof is that of `SymplecticGeometry.Bundle.firstChernClass_prod`, over a compact normal base:
-the determinant line of `E₁ ⊕ E₂` is the tensor product of the determinant lines of `E₁` and `E₂`
-(`SymplecticGeometry.Bundle.continuous_detCoreProdFiberEquiv`), and the Euler class of a tensor
-product of complex lines with finite trivializing covers over a normal base is the sum of their
-Euler classes (`TauCeti.complexEulerClass_tensorProduct`). Here the finite trivializing covers come
-from `SymplecticGeometry.Bundle.HasFiniteTrivializingCover.of_chartedSpace`, and the base is
-normal since it is locally compact, σ-compact and Hausdorff, hence paracompact.
+It is a case of `SymplecticGeometry.Bundle.firstChernClass_prod_of_hasFiniteTrivializingCover`:
+the determinant lines have finite trivializing covers by
+`SymplecticGeometry.Bundle.HasFiniteTrivializingCover.of_chartedSpace`, and the base is normal
+since it is locally compact, σ-compact and Hausdorff, hence paracompact.
 
 ## Main results
 
@@ -40,8 +36,7 @@ normal since it is locally compact, σ-compact and Hausdorff, hence paracompact.
 
 public section
 
-open Bundle TauCeti
-open scoped TauCeti.ModuleTopology
+open Bundle
 
 namespace SymplecticGeometry.Bundle
 
@@ -64,12 +59,9 @@ finite-dimensional, the first Chern class of `E₁ ⊕ E₂` is the sum of those
 Milestone: *First Chern class of a complex vector bundle*. -/
 theorem firstChernClass_prod_of_chartedSpace (I : ModelWithCorners ℝ EB H)
     [ChartedSpace H B] [T2Space B] [SigmaCompactSpace B] :
-    firstChernClass (G₁ × G₂) (E₁ ×ᵇ E₂) = firstChernClass G₁ E₁ + firstChernClass G₂ E₂ := by
+    firstChernClass (G₁ × G₂) (E₁ ×ᵇ E₂) = firstChernClass G₁ E₁ + firstChernClass G₂ E₂ :=
   have : LocallyCompactSpace B := Manifold.locallyCompact_of_finiteDimensional I
-  rw [firstChernClass_def, firstChernClass_def, firstChernClass_def,
-    complexEulerClass_eq_of_fiberwise _ _ (continuous_detCoreProdFiberEquiv ℂ E₁ E₂)]
-  exact complexEulerClass_tensorProduct (by simp) (by simp) (.of_chartedSpace I)
-    (.of_chartedSpace I)
+  firstChernClass_prod_of_hasFiniteTrivializingCover (.of_chartedSpace I) (.of_chartedSpace I)
 
 end SymplecticGeometry.Bundle
 
