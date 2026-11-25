@@ -21,6 +21,14 @@ assumed, since either side gives it, `W` carrying the subspace topology. The dom
 manifold, for instance a nested open subset. In particular, for open subsets `U ≤ W` of `M` the
 inclusion `Opens.inclusion h : U → W` is a `C^n` local diffeomorphism.
 
+For a partial diffeomorphism `Φ`, Tau Ceti's diffeomorphism
+`PartialDiffeomorph.toDiffeomorphSourceTarget` between its source and target, followed by the
+inclusion of the target, is the inclusion of the source followed by `Φ`
+(`PartialDiffeomorph.subtypeVal_comp_toDiffeomorphSourceTarget`). Hence its differential is that
+of `Φ` (`PartialDiffeomorph.mfderiv_toDiffeomorphSourceTarget_apply`, by Tau Ceti's
+`TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq`), as for Tau Ceti's
+`PartialDiffeomorph.liftOpens_comp_subtypeVal` and `PartialDiffeomorph.mfderiv_liftOpens_apply_coe`.
+
 A partial diffeomorphism `Φ : M → N` and an open subset `V` of its target give a diffeomorphism
 from the open set `Φ.source ∩ Φ ⁻¹' V` onto `V` that agrees with `Φ`
 (`PartialDiffeomorph.exists_diffeomorph_of_subset_target`). It restricts `Φ` with Tau Ceti's
@@ -104,6 +112,21 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] {G : Type*} [TopologicalSpace G]
   {J : ModelWithCorners 𝕜 F G} {N : Type*} [TopologicalSpace N] [ChartedSpace G N]
 
+/-- The diffeomorphism between the source and the target of a partial diffeomorphism `Φ`, followed
+by the inclusion of the target, is `Φ` on the source. -/
+theorem subtypeVal_comp_toDiffeomorphSourceTarget (Φ : PartialDiffeomorph I J M N n) :
+    Subtype.val ∘ ⇑Φ.toDiffeomorphSourceTarget = ⇑Φ ∘ Subtype.val :=
+  funext Φ.toDiffeomorphSourceTarget_apply_coe
+
+/-- The diffeomorphism between the source and the target of a partial diffeomorphism `Φ` has the
+differential of `Φ`, the tangent spaces of the source and the target being those of `M` and
+`N`. -/
+theorem mfderiv_toDiffeomorphSourceTarget_apply (Φ : PartialDiffeomorph I J M N n)
+    (x : (⟨Φ.source, Φ.open_source⟩ : Opens M)) (v : TangentSpace I (x : M)) :
+    mfderiv I J Φ.toDiffeomorphSourceTarget x v = mfderiv I J Φ x v :=
+  TauCeti.Manifold.mfderiv_apply_of_subtype_val_comp_eq
+    Φ.subtypeVal_comp_toDiffeomorphSourceTarget v
+
 /-- A partial diffeomorphism `Φ : M → N` restricts to a `C^n` diffeomorphism `Ψ` from the open set
 `U = Φ.source ∩ Φ ⁻¹' V` onto any open subset `V` of its target, with `Ψ u = Φ u` for `u ∈ U`;
 both open sets carry the charts restricted from `M` and `N`. -/
@@ -157,11 +180,9 @@ theorem mfderiv_toDiffeomorphSourceTarget_liftOpens_eq_id_iff (Φ : PartialDiffe
     (hU : Nonempty U) (x : U) (hx : (x : M) ∈ (Φ.liftOpens hU hU).source) :
     mfderiv I I (Φ.liftOpens hU hU).toDiffeomorphSourceTarget ⟨x, hx⟩ =
         ContinuousLinearMap.id 𝕜 (TangentSpace I (x : M)) ↔
-      mfderiv I I Φ x = ContinuousLinearMap.id 𝕜 (TangentSpace I x) := by
-  have hφ : Subtype.val ∘ ⇑(Φ.liftOpens hU hU).toDiffeomorphSourceTarget =
-      ⇑(Φ.liftOpens hU hU) ∘ Subtype.val :=
-    funext (Φ.liftOpens hU hU).toDiffeomorphSourceTarget_apply_coe
-  exact (TauCeti.Manifold.mfderiv_eq_id_iff_of_comp_subtype_val hφ).trans
+      mfderiv I I Φ x = ContinuousLinearMap.id 𝕜 (TangentSpace I x) :=
+  (TauCeti.Manifold.mfderiv_eq_id_iff_of_comp_subtype_val
+      (Φ.liftOpens hU hU).subtypeVal_comp_toDiffeomorphSourceTarget).trans
     (TauCeti.Manifold.mfderiv_eq_id_iff_of_comp_subtype_val
       (Φ.liftOpens_comp_subtypeVal hU hU).symm).symm
 
