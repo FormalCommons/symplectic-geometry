@@ -399,8 +399,9 @@ Only the half `t ≥ 0` goes to infinity; for `t ≤ 0` the ray is a short
 straight segment through `p` in a chart, so that it is an embedding of all
 of `ℝ`, which the tubular neighbourhood theorem needs.
 
-Route. Fix a proper smooth `h : M → ℝ` (Tau Ceti's
-`Geometry/Manifold/Exhaustion.lean`). For a level `c` let `F c` be
+Route. Fix a proper smooth `h : M → ℝ` that is bounded below, so that
+each `{h ≤ c}` is compact (Tau Ceti's `Geometry/Manifold/Exhaustion.lean`
+gives a nonnegative one). For a level `c` let `F c` be
 `{h ≤ c}` together with the components of `{h > c}` whose closure is
 compact. `F c` is compact, every component of `M \ F c` is noncompact, and
 `F c ⊆ F c'` for `c ≤ c'` (a component of `M \ F c'` is connected and
