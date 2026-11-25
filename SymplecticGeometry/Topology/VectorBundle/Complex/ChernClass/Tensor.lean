@@ -50,7 +50,7 @@ theorem chernClass_one_tensorProduct (hG : finrank ℂ G = 1) (hG' : finrank ℂ
       chernClass G L 1 + chernClass G' L' 1 := by
   rw [chernClass_one_eq_complexEulerClass _ _ hG, chernClass_one_eq_complexEulerClass _ _ hG',
     chernClass_one_eq_complexEulerClass _ _ (by simp [hG, hG']), ← map_add,
-    complexEulerClass_tensorProduct hG hG']
+    complexEulerClass_tensorProduct hG hG' .of_compactSpace .of_compactSpace]
 
 end SymplecticGeometry.Bundle
 

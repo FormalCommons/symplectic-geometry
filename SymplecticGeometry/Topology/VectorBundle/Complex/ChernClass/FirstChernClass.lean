@@ -80,7 +80,7 @@ theorem firstChernClass_prod :
     firstChernClass (G₁ × G₂) (E₁ ×ᵇ E₂) = firstChernClass G₁ E₁ + firstChernClass G₂ E₂ := by
   rw [firstChernClass_def, firstChernClass_def, firstChernClass_def,
     complexEulerClass_eq_of_fiberwise _ _ (continuous_detCoreProdFiberEquiv ℂ E₁ E₂)]
-  exact complexEulerClass_tensorProduct (by simp) (by simp)
+  exact complexEulerClass_tensorProduct (by simp) (by simp) .of_compactSpace .of_compactSpace
 
 end FirstChernClass
 
