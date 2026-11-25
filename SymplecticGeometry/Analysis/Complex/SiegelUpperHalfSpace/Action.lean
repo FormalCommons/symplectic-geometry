@@ -16,6 +16,7 @@ import TauCeti.Analysis.Calculus.FDeriv.Inv
 import TauCeti.Analysis.Matrix.Sqrt
 import TauCeti.Data.Matrix.Block
 import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Symplectic.Unitary
+import TauCeti.LinearAlgebra.Matrix.GeneralLinearGroup.Transpose
 import SymplecticGeometry.LinearAlgebra.Matrix.OfReal
 import SymplecticGeometry.LinearAlgebra.Matrix.PosDef.OfReal
 import SymplecticGeometry.LinearAlgebra.Matrix.Symmetric
@@ -351,10 +352,8 @@ end Holomorphy
 theorem fromBlocks_re_mem_symplecticGroup (Z : SiegelUpperHalfSpace ι) (G : GL ι ℝ) :
     fromBlocks (G : Matrix ι ι ℝ) (Z.re * (↑G⁻¹ : Matrix ι ι ℝ)ᵀ) 0 (↑G⁻¹ : Matrix ι ι ℝ)ᵀ ∈
       symplecticGroup ι ℝ := by
-  have hDG : (G : Matrix ι ι ℝ)ᵀ * (↑G⁻¹ : Matrix ι ι ℝ)ᵀ = 1 := by
-    rw [← transpose_mul, ← Units.val_mul, inv_mul_cancel, Units.val_one, transpose_one]
   rw [SymplecticGroup.fromBlocks_mem_iff]
-  refine ⟨by simp, ?_, by simpa using hDG⟩
+  refine ⟨by simp, ?_, by simpa using GeneralLinearGroup.coe_transpose_mul_coe_inv_transpose G⟩
   rw [transpose_mul, Z.isSymm_re.eq, Matrix.mul_assoc]
 
 /-- A point `Z = X + iY` of the Siegel upper half space is the image of `i𝟙` under the symplectic
@@ -364,10 +363,9 @@ theorem fromBlocks_re_smul_I (Z : SiegelUpperHalfSpace ι) {G : GL ι ℝ}
     (⟨_, fromBlocks_re_mem_symplecticGroup Z G⟩ : symplecticGroup ι ℝ) •
       (SiegelUpperHalfSpace.I : SiegelUpperHalfSpace ι) = Z := by
   set D : Matrix ι ι ℝ := (↑G⁻¹ : Matrix ι ι ℝ)ᵀ
-  have hDG : (G : Matrix ι ι ℝ)ᵀ * D = 1 := by
-    rw [← transpose_mul, ← Units.val_mul, inv_mul_cancel, Units.val_one, transpose_one]
-  have hGD : D * (G : Matrix ι ι ℝ)ᵀ = 1 := by
-    rw [← transpose_mul, ← Units.val_mul, mul_inv_cancel, Units.val_one, transpose_one]
+  have hDG : (G : Matrix ι ι ℝ)ᵀ * D = 1 :=
+    GeneralLinearGroup.coe_transpose_mul_coe_inv_transpose G
+  have hGD : D * (G : Matrix ι ι ℝ)ᵀ = 1 := mul_eq_one_comm.mp hDG
   have hinv : (D.map ofReal)⁻¹ = (G : Matrix ι ι ℝ)ᵀ.map ofReal :=
     inv_eq_left_inv (by rw [← map_ofReal_mul, hDG]; simp)
   ext1
