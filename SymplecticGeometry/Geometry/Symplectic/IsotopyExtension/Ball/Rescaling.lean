@@ -158,11 +158,11 @@ theorem IsSymplecticBallEmbedding.inv_smul_comp_smul_comp {ρ ρ' s : ℝ}
 
 /-- **Rescaling a family of symplectic germs to its linearization.** Let `θ` be a smooth family
 over `[0, 1]` of symplectic embeddings of `B(ρ)`, `0 < ρ`, into `StdSpace (Fin n)` with `ω₀`, each
-fixing `0`. Let `Q` be a smooth family of linear maps preserving `ω₀` at all `(t, s) ∈ [0, 1]²`,
-with `Q (t, 1) = 1` and `dθ_t(0) ∘ Q (t, 0) = 1`. Then there are `0 < ρ'` and a family
-`G : [0, 1] × [0, 1] × StdSpace (Fin n) → StdSpace (Fin n)`, jointly smooth near
-`[0, 1]² × B(ρ')`, such that for each `t`, `s ↦ G (t, s, ·)` is a smooth family of symplectic
-embeddings of `B(ρ')`, `G (t, 0, ·)` is the identity and `G (t, 1, ·) = θ_t`; and
+fixing `0`. Let `Q : ℝ × ℝ → (StdSpace (Fin n) →L[ℝ] StdSpace (Fin n))` be smooth, with `Q (t, s)`
+preserving `ω₀` for `(t, s) ∈ [0, 1]²`, `Q (t, 1) = 1` and `dθ_t(0) ∘ Q (t, 0) = 1`. Then there
+are `0 < ρ'` and a family `G : [0, 1] × [0, 1] × StdSpace (Fin n) → StdSpace (Fin n)`, jointly
+smooth near `[0, 1]² × B(ρ')`, such that for each `t`, `s ↦ G (t, s, ·)` is a smooth family of
+symplectic embeddings of `B(ρ')`, `G (t, 0, ·)` is the identity and `G (t, 1, ·) = θ_t`; and
 `G (t, s, ·)` is the identity on `B(ρ')` for all `s` whenever `θ_t` is the identity on `B(ρ)` and
 `Q (t, s) = 1` for all `s`. -/
 theorem IsSymplecticBallFamily.exists_rescaling_family {ρ : ℝ} (hρ : 0 < ρ)
