@@ -8,7 +8,8 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Complex.DbarFunction
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
 import SymplecticGeometry.Geometry.Manifold.Complex.Isothermal
-import SymplecticGeometry.Topology.VectorBundle.RestrOpen
+import SymplecticGeometry.Topology.VectorBundle.Basic
+import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Basic
 import TauCeti.Analysis.Complex.Wirtinger.Similarity.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Smooth
 import TauCeti.Geometry.Manifold.VectorBundle.MaximalAtlas
@@ -40,10 +41,13 @@ The similarity principle then writes the coordinate of a kernel element as `e^{-
 with `g` smooth and `h` holomorphic. Restricting the trivialization to the source of `ψ` and
 multiplying its fibre coordinate by `exp (-g ∘ ψ)` (Tau Ceti's gauge transform
 `Bundle.Trivialization.transFiberwiseLinear`) gives a trivialization in which the section reads as
-`h`. Multiplication by a nonzero complex number is complex linear, so this
-trivialization still reads the canonical orientation of the fibres
+`h`. This scalar gauge, with the lemmas that give it and its inverse as multiplication by a
+scalar and its continuity, adapts Tau Ceti's `TauCeti.expReGauge` and
+`TauCeti.expReTrivialization`. Multiplication by a nonzero complex number is complex linear, so
+this trivialization still reads the canonical orientation of the fibres
 (`TauCeti.VectorBundleOrientation.complex`) as that of `ℂ`
-(`Bundle.Trivialization.mapOrientation_complexOrientation`). These are the local hypotheses of
+(`TauCeti.VectorBundleOrientation.mapOrientation_complex_of_isLinear`). These are the local
+hypotheses of
 `TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_analyticOrderNatAt`
 at a zero of the section, apart from the orientation of the chart.
 
@@ -57,8 +61,9 @@ at a zero of the section, apart from the orientation of the chart.
   coordinate of a smooth element of the kernel of `D_J`, read through `ψ`, satisfies
   `∂v/∂w̄ = a v` near `ψ x`, with `a` smooth.
 * `SymplecticGeometry.exists_trivialization_analyticAt_of_mem_twistOneKernel`: at every point, a
-  smooth element of the kernel of `D_J` is complex analytic in a chart and a real linear
-  trivialization of `𝒪(1)` that reads the canonical orientation of the fibres as that of `ℂ`.
+  smooth element of the kernel of `D_J` is complex analytic in an isothermal chart and a real
+  linear trivialization of `𝒪(1)` that reads the canonical orientation of the fibres as that of
+  `ℂ`.
 
 ## References
 
@@ -207,16 +212,21 @@ theorem exists_conjWirtingerDeriv_apply_one_eq_mul_of_mem_twistOneKernel
 
 /-- **A rescaled frame in which a smooth kernel element is holomorphic.** For a smooth element `s`
 of the kernel of `D_J` on `𝒪(1)` and a point `z` of the sphere, there are a real linear
-trivialization `e` of `𝒪(1)` over a neighbourhood of `z` and a chart `φ : OnePoint ℂ → ℂ` at `z`
-such that the coordinate `w ↦ (e ⟨φ⁻¹ w, s (φ⁻¹ w)⟩).2` of `s` is complex analytic at `φ z`, and
+trivialization `e` of `𝒪(1)` over a neighbourhood of `z` and a smooth partial diffeomorphism
+`ψ : OnePoint ℂ → ℂ` with `z` in its source, whose derivative carries `J` to multiplication by `i`
+at every point of its source, such that the coordinate `w ↦ (e ⟨ψ⁻¹ w, s (ψ⁻¹ w)⟩).2` of `s` is
+complex analytic at `ψ z`, and
 `e` reads the canonical orientation `TauCeti.VectorBundleOrientation.complex` of every fibre over
 its base set as the canonical orientation of `ℂ`, both indexed by `Fin (1 + 1)`. -/
 theorem exists_trivialization_analyticAt_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
     (hs : s ∈ twistOneKernel J) (z : OnePoint ℂ) :
     ∃ (e : Trivialization ℂ (π ℂ (twistCore (𝕜 := ℂ) 1).Fiber)) (_ : e.IsLinear ℝ)
-      (φ : OpenPartialHomeomorph (OnePoint ℂ) ℂ), z ∈ e.baseSet ∧ z ∈ φ.source ∧
-      AnalyticAt ℂ (fun w ↦ (e (TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber) (φ.symm w)
-        (s (φ.symm w)))).2) (φ z) ∧
+      (ψ : PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (OnePoint ℂ) ℂ ∞), z ∈ e.baseSet ∧ z ∈ ψ.source ∧
+      (∀ p ∈ ψ.source, ∀ v : TangentSpace 𝓘(ℝ, ℂ) p,
+        mvfderiv 𝓘(ℝ, ℂ) ψ p (J p v) = Complex.I * mvfderiv 𝓘(ℝ, ℂ) ψ p v) ∧
+      AnalyticAt ℂ (fun w ↦ (e (TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber)
+        (ψ.toOpenPartialHomeomorph.symm w) (s (ψ.toOpenPartialHomeomorph.symm w)))).2)
+        (ψ.toOpenPartialHomeomorph z) ∧
       ∀ x (hx : x ∈ e.baseSet), e.mapOrientation (Fin (1 + 1)) hx
           (VectorBundleOrientation.reindex (finCongr (by simp : 2 * Module.finrank ℂ ℂ = 1 + 1))
             (VectorBundleOrientation.complex ℂ (twistCore (𝕜 := ℂ) 1).Fiber) x) =
@@ -253,8 +263,7 @@ theorem exists_trivialization_analyticAt_of_mem_twistOneKernel {s : OnePoint ℂ
   have hze : z ∈ e.baseSet := by
     rw [Trivialization.baseSet_transFiberwiseLinear, Trivialization.restrOpen_baseSet]
     exact ⟨by simp [e₀, OnePoint.twistCore_localTriv_baseSet], hzψ⟩
-  refine ⟨e, this, ψ.toOpenPartialHomeomorph, hze,
-    ψ.toOpenPartialHomeomorph_source.symm ▸ hzψ, ?_, fun x hx ↦ ?_⟩
+  refine ⟨e, this, ψ, hze, hzψ, hψ, ?_, fun x hx ↦ ?_⟩
   · -- Over the target of `ψ`, the coordinate of `s` in `e` is `exp (-g)` times the one in `e₀`.
     refine hA.congr ?_
     filter_upwards [ψ.open_target.mem_nhds (ψ.map_source hzψ)] with w hw
@@ -262,14 +271,13 @@ theorem exists_trivialization_analyticAt_of_mem_twistOneKernel {s : OnePoint ℂ
       Trivialization.transFiberwiseLinear_apply]
     simp only [e₁, e₀, Trivialization.coe_restrOpen, m, c,
       ContinuousLinearEquiv.unitsEquivAut_apply, Units.val_mk0]
-    -- The base point of `e₀ ⟨p, v⟩` is `p` by definition of `FiberBundleCore.localTriv`.
+    -- The base point of `e₀ ⟨p, v⟩` is `p` by definition of `FiberBundleCore.localTriv`; the
+    -- `change` exposes it, since `twistOneKernel` types sections as maps into `ℂ` while `e₀`
+    -- sees them in the fibres of `twistCore 1`.
     change _ = _ * Complex.exp (-g (ψ (ψ.symm w)))
     have hr : ψ.toPartialEquiv (ψ.symm.toPartialEquiv w) = w := ψ.toPartialEquiv.right_inv hw
     rw [hr, mul_comm]
-  · have := VectorBundle.finiteDimensional ℂ ℂ (twistCore (𝕜 := ℂ) 1).Fiber x
-    rw [VectorBundleOrientation.reindex_apply, Trivialization.mapOrientation_reindex,
-      VectorBundleOrientation.complex_apply,
-      Trivialization.mapOrientation_complexOrientation e hx _ rfl, finCongr_refl,
-      Orientation.reindex_refl, Equiv.refl_apply]
+  · rw [VectorBundleOrientation.reindex_apply, Trivialization.mapOrientation_reindex,
+      VectorBundleOrientation.mapOrientation_complex_of_isLinear e hx]
 
 end SymplecticGeometry
