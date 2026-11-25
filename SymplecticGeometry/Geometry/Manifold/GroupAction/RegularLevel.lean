@@ -47,11 +47,15 @@ of `G`, carries all of them as instances: the atlas `TauCeti.regularLevelCharted
 manifold structure, the action `levelOpMulAction` and its smoothness, properness and freeness, the
 slice charts `ProperSMul.orbitRelQuotientChartedSpace` of the orbit space, and the fibre, principal
 and smooth bundle structures of `orbitFiber Gᵐᵒᵖ (FreeRegularLevel IG h)` from
-`GroupAction/PrincipalBundle.lean`. A statement about the bundle of a level, such as the converse
-of minimal coupling, then needs only `attribute [local instance] MulOpposite.chartedSpace`, for
-the charts of `G` on `Gᵐᵒᵖ`. The inclusion into `M` is `FreeRegularLevel.val`, a smooth embedding
-(`FreeRegularLevel.isSmoothEmbedding_val`), and `FreeRegularLevel.totalSpaceDiffeomorph` is Tau
-Ceti's diffeomorphism of the total space with the level.
+`GroupAction/PrincipalBundle.lean`. A statement about the bundle of a level then takes a proof
+`h` and needs only `attribute [local instance] MulOpposite.chartedSpace`, for the charts of `G` on
+`Gᵐᵒᵖ`; the band theorems and the converse of minimal coupling in
+`Geometry/Symplectic/Coupling/Converse.lean` are stated this way, for `G = Circle`. The inclusion
+into `M` is `FreeRegularLevel.val`, a topological and a smooth embedding
+(`FreeRegularLevel.isEmbedding_val`, `FreeRegularLevel.isSmoothEmbedding_val`), so the level is
+compact exactly when `{x | f x = c}` is (`FreeRegularLevel.compactSpace_iff`), and
+`FreeRegularLevel.totalSpaceDiffeomorph` is Tau Ceti's diffeomorphism of the total space with the
+level.
 
 ## Main definitions and results
 
@@ -266,6 +270,14 @@ theorem range_val : Set.range (val : FreeRegularLevel IG h → M) = {x | f x = c
 @[fun_prop, continuity]
 theorem continuous_val : Continuous (val : FreeRegularLevel IG h → M) :=
   continuous_subtypeVal (p := fun x ↦ f x = c)
+
+/-- The inclusion of the level into `M` is a topological embedding. -/
+theorem isEmbedding_val : Topology.IsEmbedding (val : FreeRegularLevel IG h → M) :=
+  Topology.IsEmbedding.subtypeVal (p := fun x ↦ f x = c)
+
+/-- The level is compact exactly when `{x | f x = c}` is a compact subset of `M`. -/
+theorem compactSpace_iff : CompactSpace (FreeRegularLevel IG h) ↔ IsCompact {x | f x = c} := by
+  rw [← isCompact_univ_iff, isEmbedding_val.isCompact_iff, Set.image_univ, range_val]
 
 instance [T2Space M] : T2Space (FreeRegularLevel IG h) :=
   inferInstanceAs (T2Space {x : M // f x = c})

@@ -19,6 +19,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
+import TauCeti.Topology.Algebra.Support
 
 /-!
 # The Duistermaat–Heckman formula for real `ħ`
@@ -73,8 +74,9 @@ then the integral of `φ` against the symplectic orientation is `F(0) / (ħⁿ �
 into a Lebesgue integral on `StdSpace (Fin n)`
 (`SymplecticGeometry.integral_liouvilleMeasure_of_isSymplecticMapOn_stdForm`), equal to
 `2ⁿ ∏ⱼ kⱼ · F(0) πⁿ / ∏ⱼ (2πħ kⱼ²)` by
-`SymplecticGeometry.integral_stdSpace_iteratedDeriv_neg_sum_mul_sq`. That `f` is continuous is
-`OpenPartialHomeomorph.contMDiff_of_contMDiffOn_source_of_contMDiffOn_compl` for `Φ⁻¹`.
+`SymplecticGeometry.integral_stdSpace_iteratedDeriv_neg_sum_mul_sq`. That `f` is continuous with
+compact support is `PartialDiffeomorph.continuous_indicator_comp_symm` and
+`PartialDiffeomorph.hasCompactSupport_indicator_comp_symm` for `Φ`.
 In dimension `0` all sums and products are empty and the value is `F(0)`.
 
 ## References
@@ -226,23 +228,14 @@ theorem integralTopForm_formCalculus_weightChart [FiniteDimensional ℝ E] [T2Sp
   have hft {x : M} (hx : x ∈ Φ.target) (hxa : a < ‖Φ.symm x‖) : f x = 0 := by
     rw [hf_def, indicator_of_mem hx, hG0 hxa, mul_zero]
   have hsa : closedBall (0 : StdSpace (Fin n)) a ⊆ ball 0 s := closedBall_subset_ball has
-  set K := Φ '' closedBall 0 a
-  have hK : IsCompact K :=
-    Φ.isCompact_image_of_subset_source (isCompact_closedBall 0 a) (hsa.trans hs)
-  have hfK : ∀ x ∉ K, f x = 0 := fun x hx ↦ by
-    by_cases hxt : x ∈ Φ.target
-    · exact hft hxt (not_le.1 fun h ↦ hx ⟨_, mem_closedBall_zero_iff.2 h, Φ.right_inv hxt⟩)
-    · exact hf0 hxt
-  -- `f` is continuous on the target of `Φ` and vanishes off the compact set `K` inside it.
-  have hf : Continuous f := by
-    refine (Φ.symm.toOpenPartialHomeomorph.contMDiff_of_contMDiffOn_source_of_contMDiffOn_compl
-      (I := I) (I' := 𝓘(ℝ)) (n := 0) (isCompact_closedBall 0 a) (by simpa using hsa.trans hs) ?_
-      ?_).continuous
-    · refine (((contMDiff_zero_iff (I := 𝓘(ℝ, StdSpace (Fin n))) (I' := 𝓘(ℝ))).2
-        (continuous_const.mul hG : Continuous fun z ↦ c * G z)).comp_contMDiffOn
-        (Φ.symm.contMDiffOn.of_le (by simp))).congr fun x hx ↦ ?_
-      exact indicator_of_mem (by simpa using hx) _
-    · exact contMDiffOn_const.congr fun x hx ↦ hfK x fun h ↦ hx (by simpa [K] using h)
+  -- `f` is `c G` read through `Φ⁻¹`, and `c G` is supported in `closedBall 0 a`.
+  have hGa : tsupport (fun z ↦ c * G z) ⊆ closedBall 0 a :=
+    TauCeti.tsupport_subset_of_forall_notMem_eq_zero
+      (fun z hz ↦ by rw [hG0 (by simpa using hz), mul_zero]) isClosed_closedBall
+  have hGK : IsCompact (tsupport fun z ↦ c * G z) :=
+    (isCompact_closedBall 0 a).of_isClosed_subset (isClosed_tsupport _) hGa
+  have hGs : tsupport (fun z ↦ c * G z) ⊆ Φ.source := hGa.trans (hsa.trans hs)
+  have hf : Continuous f := Φ.continuous_indicator_comp_symm (continuous_const.mul hG) hGK hGs
   -- `φ` is `f` times the symplectic volume form.
   have hφf : φ = fun x ↦ f x • (σ.volumeForm n).val x := by
     funext x
@@ -258,7 +251,8 @@ theorem integralTopForm_formCalculus_weightChart [FiniteDimensional ℝ E] [T2Sp
   have hint := integral_stdSpace_iteratedDeriv_neg_sum_mul_sq (ι := Fin n)
     (hF.of_le (by simp)) hFc hw
   rw [Fintype.card_fin] at hint
-  rw [hφf, hσn.integralTopForm_smul_volumeForm hf (HasCompactSupport.intro hK hfK),
+  rw [hφf,
+    hσn.integralTopForm_smul_volumeForm hf (Φ.hasCompactSupport_indicator_comp_symm hGK hGs),
     integral_liouvilleMeasure_of_isSymplecticMapOn_stdForm hσ fun x hx ↦ hf0 hx,
     setIntegral_congr_fun Φ.open_source.measurableSet fun z hz ↦ hfΦ hz,
     setIntegral_eq_integral_of_forall_compl_eq_zero fun z hz ↦ by
