@@ -29,6 +29,11 @@ of maps into `X` then reassociate by `rw`.
 * `TopCat.smallSingularSubcomplexπ_comp_chainComplexMap_smallSingularSubcomplexPairToUnion`:
   Tau Ceti's `TopCat.chainComplexπ_smallSingularSubcomplexPairToUnion`, restated through
   `TopCat.smallSingularSubcomplexπ` and `TopPair.singularChainComplexπOfSubset`.
+* `TopCat.isIso_homologyMap_smallSingularSubcomplexPairToUnion`: for `U` and `V` open in `U ∪ V`,
+  the homology of `X` relative to its singular simplices lying in `U` or in `V` is that of
+  `(X, U ∪ V)`. Tau Ceti proves this for `U` and `V` open in `X`, in the private lemma
+  `isIso_homologyMap_smallPairToUnion` of `Singular/MayerVietoris/Relative.lean`, whose proof this
+  one follows.
 
 ## References
 
@@ -112,6 +117,23 @@ theorem smallSingularSubcomplexπ_comp_chainComplexMap_smallSingularSubcomplexPa
         SSetPair.chainComplexMap (smallSingularSubcomplexPairToUnion U V) R =
       TopPair.singularChainComplexπOfSubset R (U ∪ V) :=
   chainComplexπ_smallSingularSubcomplexPairToUnion _ _ _
+
+/-- For `U` and `V` open in `U ∪ V`, the comparison of the chains of `X` relative to its singular
+simplices lying in `U` or in `V` with the relative chains of `(X, U ∪ V)` is an isomorphism on
+homology, by the small-chain theorem for the cover of `U ∪ V` by `U` and `V`. -/
+theorem isIso_homologyMap_smallSingularSubcomplexPairToUnion {C : Type u} [Category.{v} C]
+    [HasCoproducts.{w} C] [Abelian C] {X : TopCat.{w}} (U V : Set X) (R : C)
+    (hU : IsOpen ((↑) ⁻¹' U : Set ↥(U ∪ V))) (hV : IsOpen ((↑) ⁻¹' V : Set ↥(U ∪ V))) (n : ℕ) :
+    IsIso (SSetPair.homologyMap (smallSingularSubcomplexPairToUnion U V) R n) := by
+  have : QuasiIso (SSet.chainComplexMap (smallSingularSubcomplexPairToUnion U V).left R) := by
+    rw [smallSingularSubcomplexPairToUnion_left]
+    exact quasiIso_chainComplexMap_smallSingularSubcomplexToUnion R U V hU hV
+  have : IsIso (SSet.chainComplexMap (smallSingularSubcomplexPairToUnion U V).right R) := by
+    rw [chainComplexMap_smallSingularSubcomplexPairToUnion_right]
+    exact IsIso.id _
+  have : QuasiIso (SSet.chainComplexMap (smallSingularSubcomplexPairToUnion U V).right R) :=
+    quasiIso_of_isIso _
+  exact SSetPair.isIso_homologyMap_of_quasiIso _ R n
 
 end TopCat
 
