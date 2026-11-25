@@ -13,8 +13,8 @@ public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Prod
 import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.Assoc
 import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.CubicalPair
+import SymplecticGeometry.AlgebraicTopology.Singular.PairChangeOfCoefficients
 import TauCeti.Algebra.Category.ModuleCat.SpanSingleton
-import all TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 
 /-!
 # The cross product of local orientations
@@ -36,8 +36,7 @@ relative to `(X ∖ {x}) × Y ∪ X × (Y ∖ {y})`, with the coefficients split
 `ModuleCat.uliftTensorSelfIso`, it is the cross product of pairs
 (`SymplecticGeometry.localHomologyCross_comp_homologyMap_uliftTensorSelfIso_inv`).
 The identity of `X × Y` is an isomorphism between the two pairs, `TopPair.prodComplSingletonIso`,
-built from Tau Ceti's `TopPair.ofSubsetIso`. `TopPair.uliftIntSingularHomologyIso_hom` writes
-Tau Ceti's change of coefficients from `ULift ℤ` to `ℤ` as the map in homology induced on chains.
+built from Tau Ceti's `TopPair.ofSubsetIso`.
 
 The main result is that the cross product of two local orientations of real vector spaces at the
 origin is a local orientation of their product
@@ -105,14 +104,6 @@ open TopCat (mapsTo_preimage_fst_compl_union_preimage_snd_compl
 namespace TopPair
 
 universe u
-
-/-- Tau Ceti's change of coefficients `TopPair.uliftIntSingularHomologyIso`, from `ULift ℤ` to `ℤ`,
-is the map in homology induced by `TauCeti.uliftIntIso` on relative singular chains. -/
-lemma uliftIntSingularHomologyIso_hom (P : TopPair.{0}) (k : ℕ) :
-    (uliftIntSingularHomologyIso P k).hom = HomologicalComplex.homologyMap
-      (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map TauCeti.uliftIntIso.hom).app
-        (toSSetPair.obj P)) k :=
-  (rfl)
 
 variable {X Y : Type u} [TopologicalSpace X] [TopologicalSpace Y]
 
