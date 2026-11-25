@@ -371,6 +371,17 @@ theorem coe_interiorOpensDiffeomorph_symm_apply (x : I.interior M) :
     ((interiorOpensDiffeomorph I M n).symm x : M) = x := by
   rw [coe_interiorOpensDiffeomorph_symm]
 
+/-- For a `C^n` manifold `M` over a finite-dimensional space `E`, the inclusion of Tau Ceti's
+charted interior `I.interior M`, modelled on `E`, into `M` is a `C^n` local diffeomorphism. -/
+theorem isLocalDiffeomorph_subtypeVal_interior :
+    IsLocalDiffeomorph 𝓘(𝕜, E) I n (Subtype.val : I.interior M → M) := by
+  intro x
+  have h := ((interiorOpensDiffeomorph I M n).symm.isLocalDiffeomorph x).comp
+    (hg := isLocalDiffeomorph_subtype_val _)
+  convert h using 1
+  ext y
+  simp only [Function.comp_apply, coe_interiorOpensDiffeomorph_symm_apply]
+
 end ModelWithCorners
 
 namespace TauCeti.Manifold.Orientation

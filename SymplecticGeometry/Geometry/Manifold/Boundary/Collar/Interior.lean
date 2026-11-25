@@ -15,12 +15,12 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 Let `W` be a manifold with boundary, modelled on the half-space `EuclideanHalfSpace (n + 1)`, and
 `c : ∂W × [0, 1) → W` a `C^k` collar of its boundary. A collar point `c (x, t)` is an interior
 point of `W` exactly when its depth `t` is positive. This file gives the inverse of the collar on
-the interior of `W`, re-modelled on `ℝⁿ⁺¹` as `SymplecticGeometry.InteriorPiece`: on the open
-subset `c.interiorModelRange` of the points covered by the collar, the collar coordinates
-`c.interiorModelCoord` form a `C^k` local diffeomorphism into `∂W × [0, 1)` that takes values
-of positive depth. Gluings of other manifolds to the interior of `W` along the collar, such as
-attaching an end (`Boundary/Collar/End.lean`) or capping boundary circles with discs
-(`Gluing/CapDiscs/Basic.lean`), are built on these coordinates.
+the interior of `W`, as Tau Ceti's charted interior `(𝓡∂ (n + 1)).interior W` over `ℝⁿ⁺¹`: on
+the open subset `c.interiorModelRange` of the points covered by the collar, the collar
+coordinates `c.interiorModelCoord` form a `C^k` local diffeomorphism into `∂W × [0, 1)` that
+takes values of positive depth. Gluings of other manifolds to the interior of `W` along the
+collar, such as attaching an end (`Boundary/Collar/End.lean`) or capping boundary circles with
+discs (`Gluing/CapDiscs/Basic.lean`), are built on these coordinates.
 
 ## Main definitions
 
@@ -71,14 +71,12 @@ theorem apply_mem_interior_iff_pos (p : ↥((𝓡∂ (n + 1)).boundary W) × nor
     c (c.diffeomorphOpensRange.symm w) = w := by
   rw [← coe_diffeomorphOpensRange_apply, Diffeomorph.apply_symm_apply]
 
-variable [IsManifold (𝓡∂ (n + 1)) 1 W]
-
-/-- The part of the interior of `W`, re-modelled on `ℝⁿ⁺¹` as `InteriorModel`, covered by the
+/-- The part of the charted interior of `W`, modelled on `ℝⁿ⁺¹`, covered by the
 collar: the points `c (x, t)` with `t > 0`. -/
-def interiorModelRange : Opens (InteriorPiece n W) :=
-  ⟨InteriorModel.val ⁻¹' range c, c.isOpen_range.preimage InteriorModel.continuous_val⟩
+def interiorModelRange : Opens ((𝓡∂ (n + 1)).interior W) :=
+  ⟨Subtype.val ⁻¹' range c, c.isOpen_range.preimage continuous_subtypeVal⟩
 
-theorem mem_interiorModelRange {q : InteriorPiece n W} :
+theorem mem_interiorModelRange {q : (𝓡∂ (n + 1)).interior W} :
     q ∈ c.interiorModelRange ↔ q.val ∈ range c := Iff.rfl
 
 /-- A point of `c.interiorModelRange` lies in the image of the collar. -/
@@ -108,23 +106,25 @@ theorem interiorModelCoord_eq_iff {q : c.interiorModelRange}
 
 theorem continuous_interiorModelCoord : Continuous c.interiorModelCoord :=
   c.diffeomorphOpensRange.symm.continuous.comp
-    (Continuous.subtype_mk (InteriorModel.continuous_val.comp continuous_subtypeVal) _)
+    (Continuous.subtype_mk (continuous_subtypeVal.comp continuous_subtypeVal) _)
 
 /-- The collar coordinates of a point of the interior have positive depth. -/
 theorem interiorModelCoord_snd_pos (q : c.interiorModelRange) :
     0 < ((c.interiorModelCoord q).2 : EuclideanHalfSpace 1).val 0 := by
   rw [← apply_mem_interior_iff_pos, apply_interiorModelCoord]
-  exact q.val.val_mem_interior
+  exact q.val.property
 
 /-- The collar coordinates are a `C^k` local diffeomorphism from the interior, modelled on
 `ℝⁿ⁺¹`, to `∂W × [0, 1)`. -/
-theorem isLocalDiffeomorph_interiorModelCoord :
+theorem isLocalDiffeomorph_interiorModelCoord [IsManifold (𝓡∂ (n + 1)) 1 W]
+    [IsManifold (𝓡∂ (n + 1)) k W] :
     IsLocalDiffeomorph (𝓡 (n + 1)) ((𝓡 n).prod (𝓡∂ 1)) k c.interiorModelCoord := by
   intro q
   have hg : IsLocalDiffeomorphAt (𝓡 (n + 1)) (𝓡∂ (n + 1)) k
       (fun q : c.interiorModelRange ↦ (⟨q.val.val, c.val_mem_opensRange q⟩ : c.opensRange)) q := by
     refine isLocalDiffeomorphAt_subtypeVal_comp_iff.1 ?_
-    exact (isLocalDiffeomorph_subtype_val q).comp (hg := InteriorModel.isLocalDiffeomorph_val _)
+    exact (isLocalDiffeomorph_subtype_val q).comp
+      (hg := (𝓡∂ (n + 1)).isLocalDiffeomorph_subtypeVal_interior _)
   exact hg.comp (hg := c.diffeomorphOpensRange.symm.isLocalDiffeomorph _)
 
 end TauCeti.SmoothCollar
