@@ -269,17 +269,17 @@ Namespace `SymplecticGeometry`, for `n : ℕ` and `E := Fin (n + 1) → ℂ`.
 Namespace `SymplecticGeometry.BlowupModel`. Exercise 7.1.2 (ii) and (iii),
 in coordinates.
 
-- `exists_analytic_mul_self` (in `Analysis/Analytic/`, if neither library
-  has it; the issue searches by statement first): an analytic map
-  $\psi$ on a ball about $0$ with $\psi(0)=0$ is $\psi(z)=A(z)z$ with $A$
-  analytic into `E →L[ℂ] E` and $A(0)=d\psi(0)$, by
-  $A(z)=\int_0^1d\psi(tz)\,dt$ (Hadamard's lemma).
-- `liftMap ψ`: for $\psi$ holomorphic on an open `U ∋ 0` with
-  $\psi(0)=0$ and $d\psi(0)$ invertible, the map on
-  `blowdown ⁻¹' U` that is `(mk (ψ z), ψ z)` off $Z$ and
-  `(map (dψ 0) ℓ, 0)` on $Z$. In the chart `i` it is
+- Hadamard's lemma is Tau Ceti's `AnalyticAt.exists_analyticAt_eventually_sub_eq`:
+  an analytic map $\psi$ with $\psi(0)=0$ is $\psi(z)=A(z)z$ near $0$, with
+  $A$ analytic into `E →L[ℂ] E` and $A(0)=d\psi(0)$.
+- `liftMap ψ L`: for $\psi$ with $\psi(0)=0$ and $d\psi(0)$ equal to the
+  `ContinuousLinearEquiv` `L`, the map on the model that is
+  `(mk (ψ z), ψ z)` where $\psi(z)\ne0$ and `(map L ℓ, 0)` where
+  $\psi(z)=0$, in particular on $Z$. In the chart `i` it is
   $(w)\mapsto([A(z)v],\psi(z))$ with $z=w_iv$, which is analytic at
-  $w_i=0$ as well; so `contMDiffOn_liftMap`. `blowdown_liftMap`:
+  $w_i=0$ as well; so `contMDiffOn_liftMap`, over a set on which $\psi$ is
+  analytic and vanishes only at $0$ (another zero of $\psi$ breaks
+  continuity). `blowdown_liftMap`:
   $\pi\circ\tilde\psi=\psi\circ\pi$, and `liftMap_zeroSection`.
 - `liftPartialDiffeomorph ψ`: for $\psi$ an analytic `OpenPartialHomeomorph`
   of `E` with analytic inverse, fixing $0$, the lift is a biholomorphism of
