@@ -21,7 +21,7 @@ import TauCeti.Geometry.Manifold.Submersion.Split
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import TauCeti.Geometry.Symplectic.Manifold.Darboux
 import TauCeti.Geometry.Symplectic.Manifold.Opens
-import TauCeti.LinearAlgebra.Alternating.Conormal
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 import TauCeti.LinearAlgebra.Alternating.Curry
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
@@ -43,7 +43,9 @@ basic for `p` (`TauCeti.RoughForm.IsBasic`), that is, once `σ_x (u, v)` depends
 `dp_x u` and `dp_x v`. That is `TauCeti.SmoothForm.IsCharacteristicSubmersion.isBasic`.
 
 The proof of `isBasic` is local along each fibre, followed by connectedness. At one point, `σ_x`
-vanishes on the kernel of `dp_x`, so it is determined by the images of its arguments under `dp_x`
+vanishes on the kernel of `dp_x`, that is, `σ` is semibasic for `p`
+(`TauCeti.SmoothForm.IsCharacteristicSubmersion.isSemibasic`), so it is determined by the images
+of its arguments under `dp_x`
 (`TauCeti.SmoothForm.IsCharacteristicSubmersion.apply_eq_of_mfderiv_eq`). Near a point `x`, read
 `σ` in the chart of the submersion `p` at `x` (Mathlib's `IsSubmersionAt.domChart`), in which `p`
 is a linear projection `π`. In this chart `σ` becomes a closed form `α` on an open subset of the
@@ -148,20 +150,24 @@ variable {IB} {σ : SmoothForm I M ℝ 2} {p : M → B}
 
 namespace IsCharacteristicSubmersion
 
-/-- At a point `x`, the value of `σ_x` on two vectors depends only on their images under the
-derivative of a characteristic submersion `p` at `x`. -/
-theorem apply_eq_of_mfderiv_eq (hp : IsCharacteristicSubmersion IB σ p) {x : M}
-    {v w : Fin 2 → TangentSpace I x}
-    (h : ∀ i, mfderiv I IB p x (v i) = mfderiv I IB p x (w i)) :
-    σ.val x v = σ.val x w := by
-  refine Submodule.conormalForms_apply_eq_of_sub_mem (W := (mfderiv I IB p x).ker)
-    (α := (σ.val x).toAlternatingMap) (Submodule.mem_conormalForms.2 fun m j hj ↦ ?_)
-    fun j ↦ by simp [h j]
+/-- At every point `x`, `σ_x` vanishes as soon as one of its arguments lies in the kernel of the
+derivative of a characteristic submersion `p` at `x`: `σ` is semibasic for `p`. -/
+theorem isSemibasic (hp : IsCharacteristicSubmersion IB σ p) : IsSemibasic IB p σ := by
+  refine isSemibasic_def.mpr fun x ↦ isSemibasicAt_def.mpr
+    (Submodule.mem_conormalForms.2 fun (m : Fin 2 → TangentSpace I x) j hj ↦ ?_)
   rw [hp.ker_mfderiv x, mem_ker_bilinFormAt_iff] at hj
   refine AlternatingMap.map_eq_zero_of_curryLeft_eq_zero (x := m j) ?_ rfl
   ext u
   have e : Matrix.vecCons (m j) u = ![m j, u 0] := (FinVec.etaExpand_eq _).symm
   simpa [AlternatingMap.curryLeft_apply_apply, e] using hj (u 0)
+
+/-- At a point `x`, the value of `σ_x` on two vectors depends only on their images under the
+derivative of a characteristic submersion `p` at `x`. -/
+theorem apply_eq_of_mfderiv_eq (hp : IsCharacteristicSubmersion IB σ p) {x : M}
+    {v w : Fin 2 → TangentSpace I x}
+    (h : ∀ i, mfderiv I IB p x (v i) = mfderiv I IB p x (w i)) :
+    σ.val x v = σ.val x w :=
+  (isSemibasic_def.mp hp.isSemibasic x).apply_eq_of_mfderiv_eq h
 
 /-- The form `σ` read on `T_{p y} B` at a point `y`, through a (non-canonical) right inverse of
 the derivative of `p`. -/
