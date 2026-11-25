@@ -46,13 +46,15 @@ also shows that a diffeotopy has a Hamiltonian as soon as every `ι_{X_t} σ` is
 * `TauCeti.Diffeotopy.HasHamiltonian.exists_sub_eq`,
   `TauCeti.Diffeotopy.IsGeneratedBy.exists_sub_eq`: two Hamiltonians of the same diffeotopy, in
   either reading, differ on every connected component of `M` by a smooth function of `t` alone.
-* `TauCeti.Diffeotopy.isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms`: a diffeotopy
-  whose slices preserve `σ` is Hamiltonian exactly when every `ι_{X_t} σ` is exact. This is
-  Tau Ceti's `TauCeti.Diffeotopy.isHamiltonian_iff_forall_isHamiltonianVectorField_velocity`
-  with exactness in place of a Hamiltonian function at each time; the Hamiltonian is built by
+* `TauCeti.Diffeotopy.exists_hasHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms`: a
+  diffeotopy has a Hamiltonian, read along the motion, exactly when every `ι_{X_t} σ` is exact.
+  This is Tau Ceti's `TauCeti.Diffeotopy.exists_hasHamiltonian_iff` with exactness in place of a
+  Hamiltonian function at each time. The Hamiltonian is built by
   `TauCeti.Diffeotopy.exists_hasHamiltonian_of_forall_mem_exactForms`, from a primitive of each
-  `ι_{X_t} σ` (`TauCeti.exists_contMDiff_mextDeriv_eq_of_mem_exactForms`) and Tau Ceti's
-  `TauCeti.Diffeotopy.exists_hasHamiltonian_iff`, which makes the choice jointly smooth.
+  `ι_{X_t} σ` (`TauCeti.exists_contMDiff_mextDeriv_eq_of_mem_exactForms`), and Tau Ceti's theorem
+  makes the choice jointly smooth.
+* `TauCeti.Diffeotopy.isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms`: a diffeotopy
+  whose slices preserve `σ` is Hamiltonian exactly when every `ι_{X_t} σ` is exact.
 * `TauCeti.Diffeotopy.flux_congr`: equal diffeotopies have equal fluxes, whatever proofs that
   their final maps preserve the closed form are given.
 
@@ -240,15 +242,13 @@ theorem exists_hasHamiltonian_of_forall_mem_exactForms
     ← SmoothTwoForm.coe_interiorₗ]
   exact hdf.symm
 
-/-- **Hamiltonian diffeotopies and exactness.** A diffeotopy `φ_t` all of whose slices preserve
-`σ` is Hamiltonian exactly when, for every `t`, the contraction `ι_{X_t} σ` of `σ` with its
-velocity is exact. -/
-theorem isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms
-    (hΦ : ∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) :
-    Φ.IsHamiltonian σ ↔ ∀ t, σ.interiorₗ (Φ.smoothVelocity t) ∈ exactForms J M 1 := by
-  refine ⟨fun h t ↦ ?_, fun h ↦
-    isHamiltonian_iff.2 ⟨hΦ, exists_hasHamiltonian_of_forall_mem_exactForms h⟩⟩
-  obtain ⟨F, hF⟩ := h.exists_hasHamiltonian
+/-- **Hamiltonians and exactness.** A diffeotopy `φ_t` has a Hamiltonian, read along the motion,
+exactly when, for every `t`, the contraction `ι_{X_t} σ` of `σ` with its velocity is exact. This
+is Tau Ceti's `TauCeti.Diffeotopy.exists_hasHamiltonian_iff` with exactness in place of a
+differentiable Hamiltonian function at each time. -/
+theorem exists_hasHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms :
+    (∃ F, Φ.HasHamiltonian σ F) ↔ ∀ t, σ.interiorₗ (Φ.smoothVelocity t) ∈ exactForms J M 1 := by
+  refine ⟨fun ⟨F, hF⟩ t ↦ ?_, exists_hasHamiltonian_of_forall_mem_exactForms⟩
   obtain ⟨hFs, hX⟩ := hasHamiltonian_iff_contMDiff_and_isHamiltonianVectorField_velocity.1 hF
   have hs : ContMDiff J 𝓘(ℝ) ∞ fun y ↦ F (Φ.symm (t, y), t) :=
     hFs.comp ((Φ.symm.contMDiff.comp (contMDiff_const.prodMk contMDiff_id)).prodMk
@@ -256,6 +256,15 @@ theorem isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms
   rw [exactForms_succ]
   exact ⟨⟨_, (isSmoothForm_ofFunction_iff.2 hs).mem_smoothBundleForms⟩,
     (SmoothTwoForm.isHamiltonianVectorField_iff_interiorₗ_eq.1 (by simpa using hX t)).symm⟩
+
+/-- **Hamiltonian diffeotopies and exactness.** A diffeotopy `φ_t` all of whose slices preserve
+`σ` is Hamiltonian exactly when, for every `t`, the contraction `ι_{X_t} σ` of `σ` with its
+velocity is exact. -/
+theorem isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms
+    (hΦ : ∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer σ) :
+    Φ.IsHamiltonian σ ↔ ∀ t, σ.interiorₗ (Φ.smoothVelocity t) ∈ exactForms J M 1 := by
+  rw [isHamiltonian_iff, ← exists_hasHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms]
+  exact and_iff_right hΦ
 
 /-- The flux of a diffeotopy depends only on the diffeotopy: equal diffeotopies have equal fluxes,
 whichever proofs that their final maps preserve `τ` are given. -/
