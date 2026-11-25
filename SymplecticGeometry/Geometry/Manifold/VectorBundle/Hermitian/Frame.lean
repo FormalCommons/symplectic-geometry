@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.TotallyReal.Trivialization
 public import TauCeti.Topology.VectorBundle.OrthonormalFrame.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 import Mathlib.Geometry.Manifold.Algebra.LieGroup
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.LocalFrame
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Hermitian
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Norm
 import TauCeti.Geometry.Manifold.VectorBundle.MaximalAtlas
@@ -301,10 +302,9 @@ theorem exists_unitary_trivialization_of_orthonormal
     ext ij
     simp [complexDoubledFrame_apply, Basis.smulTower_apply, hob]
   have ht : IsLocalFrameOn IB F n (complexDoubledFrame s) U :=
-    { linearIndependent := fun {x} hx ↦ by rw [htx x hx]; exact Basis.linearIndependent _
-      generating := fun {x} hx ↦ by rw [htx x hx]; exact (Basis.span_eq _).ge
-      contMDiffOn := fun ij ↦ (contMDiffOn_const.smul_totalSpace (hs ij.2)).congr
-        fun x _ ↦ by rw [complexDoubledFrame_apply] }
+    .of_forall_exists_basis (fun x hx ↦ ⟨_, (htx x hx).symm⟩) fun ij ↦
+      (contMDiffOn_const.smul_totalSpace (hs ij.2)).congr fun x _ ↦ by
+        rw [complexDoubledFrame_apply]
   set e := ht.trivialization hU (Complex.basisOneI.smulTower b)
   refine ⟨e, ht.trivialization_mem_maximalAtlas hU _, ht.baseSet_trivialization hU _,
     fun x hx ↦ ⟨(ob x hx).repr, fun v ↦ ?_⟩⟩
