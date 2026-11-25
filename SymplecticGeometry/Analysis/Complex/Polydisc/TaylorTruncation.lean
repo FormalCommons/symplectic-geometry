@@ -45,7 +45,7 @@ image of an approximately holomorphic map with that of a polynomial map.
 
 public section
 
-open Filter Finset Metric Topology
+open Filter Metric Topology
 
 namespace SymplecticGeometry
 
