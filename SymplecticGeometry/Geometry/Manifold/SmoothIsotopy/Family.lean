@@ -158,7 +158,8 @@ theorem _root_.ContMDiff.exists_contMDiff_diffeomorph_family_forall_apply_eq
   by_cases hTA : (T ×ˢ A).Nonempty
   swap
   · exact ⟨fun _ _ ↦ Diffeomorph.refl I M ∞, (Diffeomorph.refl I M ∞).contMDiff.comp
-      contMDiff_snd.snd, fun _ _ ↦ rfl, ∅, isCompact_empty, fun _ _ _ _ ↦ rfl,
+      contMDiff_snd.snd, fun _ y ↦ congrFun (Diffeomorph.coe_refl I M ∞) y, ∅, isCompact_empty,
+      fun _ _ y _ ↦ congrFun (Diffeomorph.coe_refl I M ∞) y,
       fun q hq _ x hx ↦ (hTA ⟨(q, x), hq, hx⟩).elim⟩
   -- `P` is Hausdorff and its model finite-dimensional, since a slice embeds it into `M`.
   obtain ⟨⟨q₀, x₀⟩, hq₀, -⟩ := hTA
