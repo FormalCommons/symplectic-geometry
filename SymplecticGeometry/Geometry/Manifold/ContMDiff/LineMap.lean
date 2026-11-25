@@ -14,7 +14,7 @@ public import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
 
 For `C^n` maps `f₁ f₂ : M → V` into a normed space over a nontrivially normed field `𝕜` and a
 `C^n` map `g : M → 𝕜`, the map `x ↦ AffineMap.lineMap (f₁ x) (f₂ x) (g x)`, that is
-`x ↦ f₁ x + g x • (f₂ x - f₁ x)`, is `C^n`. In the other direction, a map from a real normed
+`x ↦ f₁ x + g x • (f₂ x - f₁ x)`, is `C^n`. Composing with it, a map from a real normed
 space to a manifold that is `C^n` on a set containing a segment is `C^n` along the segment.
 
 ## Main results
