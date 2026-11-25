@@ -16,6 +16,7 @@ import SymplecticGeometry.Algebra.Order.Monoid.NatCast
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.LineMap
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Curve
 import SymplecticGeometry.Geometry.Manifold.Foliation.Constancy
+import SymplecticGeometry.Geometry.Manifold.RegularValue.Submersion
 
 /-!
 # The kernel foliation of a map of constant rank
@@ -89,8 +90,7 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E F H G M N : Type*}
 `F` of the target. -/
 theorem mfderivRank_eq (hf : IsSubmersion I J n f) (hn : n ≠ 0) (x : M) :
     mfderivRank I J f x = finrank 𝕜 F :=
-  isRegularPoint_iff_mfderivRank_eq.mp
-    (isRegularPoint_iff.mpr ((hf.isSubmersionAt x).surjective_mfderiv hn))
+  isRegularPoint_iff_mfderivRank_eq.mp ((hf.isSubmersionAt x).isRegularPoint hn)
 
 end Manifold.IsSubmersion
 

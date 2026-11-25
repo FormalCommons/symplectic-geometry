@@ -12,10 +12,11 @@ public import Mathlib.Geometry.Manifold.ContMDiff.Constructions
 public import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
 public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.ChangeModelFiber
+public import SymplecticGeometry.Geometry.Manifold.RegularValue.Submersion
 public import SymplecticGeometry.Geometry.Manifold.Submersion.ParallelTransport.Smooth
 public import TauCeti.Geometry.Manifold.RegularValue.ManifoldLevel
+public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.Submersion.Basic
-import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Topology.FiberBundle.MapFiber
 
 /-!
@@ -42,7 +43,9 @@ the restriction of a map `B × P → P` that is `C^n` on `U ×ˢ (f ⁻¹' {b₀
 (`TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransportTrivialization_symm`). For a
 manifold structure on the fibre that makes the inclusion a `C^n` embedding, such as the
 regular-fibre atlas of a submersion, these two statements give the fields of Tau Ceti's
-`TauCeti.MapFiber.Atlas.IsContMDiff` for the trivialization.
+`TauCeti.MapFiber.Atlas.IsContMDiff` for the trivialization
+(`TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransportTrivialization_of_isSmoothEmbedding`,
+`IsEhresmannConnection.contMDiffOn_parallelTransportTrivialization_symm_of_isSmoothEmbedding`).
 
 A trivialization needs a value at every point of `P`, also over points outside `U`, so its fibre
 is assumed nonempty. This is no loss: if the fibre over `b₀` is empty and `P` is not, `f` has no
@@ -89,7 +92,8 @@ conditions are those of `TauCeti.MapFiber.Atlas.IsContMDiff`.
 ### Proper submersions are locally trivial
 
 A smooth proper submersion `f` from a σ-compact manifold has an Ehresmann connection
-(`Manifold.IsSubmersion.exists_isEhresmannConnection`), and every value of `f` is a regular value.
+(`Manifold.IsSubmersion.exists_isEhresmannConnection`), and every value of `f` is a regular value
+(`Manifold.IsSubmersion.isRegularValue`).
 Transport along the rays of the chart at a value `b₀` then trivializes `f` over `chartBall J b₀ r`,
 with fibre `TauCeti.MapFiber f b₀`. With the regular-fibre atlas
 `TauCeti.regularFiberChartedSpace` on that fibre, its inclusion into `P` is a smooth embedding
@@ -118,6 +122,9 @@ the Hausdorff `B` is proper (`Continuous.isProperMap`).
 * `TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransportTrivialization`,
   `TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransportTrivialization_symm`: it is `C^n`,
   with a `C^n` inverse.
+* `TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransportTrivialization_of_isSmoothEmbedding`,
+  `IsEhresmannConnection.contMDiffOn_parallelTransportTrivialization_symm_of_isSmoothEmbedding`:
+  the same for a manifold structure on the fibre whose inclusion into `P` is a `C^n` embedding.
 * `TauCeti.IsEhresmannConnection.exists_trivialization_parallelTransport`: around each point of
   the base set of a `C^n` trivialization with fibre `Z`, a `C^n` trivialization with fibre `Z` by
   transport along the rays of a chart.
@@ -465,6 +472,40 @@ theorem contMDiffOn_parallelTransportTrivialization_symm :
   (hD.contMDiffOn_parallelTransport_param hn hf hfp hU hΓ 0 1).mono fun p hp ↦
     ⟨hp.1, (hp.2 : f p.2 = b₀).trans (hΓ₀ _ hp.1).symm⟩
 
+section Atlas
+
+variable {EZ : Type*} [NormedAddCommGroup EZ] [NormedSpace ℝ EZ]
+  {HZ : Type*} [TopologicalSpace HZ] {IZ : ModelWithCorners ℝ EZ HZ}
+  [ChartedSpace HZ (MapFiber f b₀)]
+
+/-- **The trivialization by transport is `C^n` for a manifold structure on the fibre.** For a
+manifold structure on the fibre `TauCeti.MapFiber f b₀` whose inclusion into `P` is a `C^n`
+embedding, the trivialization by transport is `C^n` on its source. -/
+theorem contMDiffOn_parallelTransportTrivialization_of_isSmoothEmbedding
+    (hι : Manifold.IsSmoothEmbedding IZ I n (Subtype.val : MapFiber f b₀ → P)) :
+    ContMDiffOn I (J.prod IZ) n (hD.parallelTransportTrivialization hn hf hfp hU hΓ hΓ₀ hΓ₁)
+      (hD.parallelTransportTrivialization hn hf hfp hU hΓ hΓ₀ hΓ₁).source := by
+  have h := hD.contMDiffOn_parallelTransportTrivialization hn hf hfp hU hΓ hΓ₀ hΓ₁
+  exact (contMDiff_fst.comp_contMDiffOn h).prodMk
+    (hι.contMDiffOn_iff_comp.2 (contMDiff_snd.comp_contMDiffOn h))
+
+/-- **The inverse of the trivialization by transport is `C^n` for a manifold structure on the
+fibre.** For a manifold structure on the fibre `TauCeti.MapFiber f b₀` whose inclusion into `P`
+is a `C^n` embedding, the inverse of the trivialization by transport is `C^n` on its target. -/
+theorem contMDiffOn_parallelTransportTrivialization_symm_of_isSmoothEmbedding
+    (hι : Manifold.IsSmoothEmbedding IZ I n (Subtype.val : MapFiber f b₀ → P)) :
+    ContMDiffOn (J.prod IZ) I n
+      (hD.parallelTransportTrivialization hn hf hfp hU hΓ hΓ₀ hΓ₁).toOpenPartialHomeomorph.symm
+      (hD.parallelTransportTrivialization hn hf hfp hU hΓ hΓ₀ hΓ₁).target := by
+  refine ((hD.contMDiffOn_parallelTransportTrivialization_symm hn hf hfp hU hΓ hΓ₀ hΓ₁).comp
+    (contMDiff_fst.prodMk (hι.contMDiff.comp contMDiff_snd)).contMDiffOn
+    fun p hp ↦ ⟨?_, p.2.property⟩).congr fun p _ ↦ ?_
+  · rw [Trivialization.target_eq] at hp
+    exact hp.1
+  · exact hD.parallelTransportTrivialization_symm_apply hn hf hfp hU hΓ hΓ₀ hΓ₁ p
+
+end Atlas
+
 end Trivialization
 
 section Radial
@@ -564,16 +605,14 @@ of the chart of `B` at `b₀`. -/
 theorem exists_trivialization_of_isProperMap (hf : IsSubmersion I J ∞ f) (hfp : IsProperMap f)
     {b₀ : B} (hb₀ : b₀ ∈ range f) :
     let := regularFiberChartedSpace (m := ∞) (c := b₀) (by simp) hf.contMDiff
-      BoundarylessManifold.isInteriorPoint
-        (isRegularValue_iff.2 fun x _ ↦ isRegularPoint_iff.2 (hf.surjective_mfderiv (by simp) x))
+      BoundarylessManifold.isInteriorPoint (hf.isRegularValue (by simp) b₀)
     ∃ e : Trivialization (MapFiber f b₀) f, b₀ ∈ e.baseSet ∧
       ContMDiffOn I (J.prod 𝓘(ℝ, Fin (finrank ℝ E - finrank ℝ F) → ℝ)) ∞ e e.source ∧
       ContMDiffOn (J.prod 𝓘(ℝ, Fin (finrank ℝ E - finrank ℝ F) → ℝ)) I ∞
         e.toOpenPartialHomeomorph.symm e.target := by
   intro
   have hι := isSmoothEmbedding_coe_regularFiber (m := ∞) (c := b₀) (by simp) hf.contMDiff
-    BoundarylessManifold.isInteriorPoint
-      (isRegularValue_iff.2 fun x _ ↦ isRegularPoint_iff.2 (hf.surjective_mfderiv (by simp) x))
+    BoundarylessManifold.isInteriorPoint (hf.isRegularValue (by simp) b₀)
   obtain ⟨x₀, rfl⟩ := hb₀
   have : Nonempty (MapFiber f (f x₀)) := ⟨⟨x₀, rfl⟩⟩
   obtain ⟨D, hD⟩ := hf.exists_isEhresmannConnection (m := ⊤) (by simp)
@@ -587,17 +626,12 @@ theorem exists_trivialization_of_isProperMap (hf : IsSubmersion I J ∞ f) (hfp 
   have hΓ₁ : ∀ b ∈ (chartBall J (f x₀) r : Set B), chartRay J (f x₀) (b, 1) = b :=
     fun b hb ↦ chartRay_one J ((mem_chartBall_iff J).1 hb).1
   have hU := (chartBall J (f x₀) r).isOpen
-  refine ⟨hD.parallelTransportTrivialization (by simp) hf' hfp hU hΓ hΓ₀ hΓ₁,
-    mem_chartBall_self J _ hr, ?_, ?_⟩
-  · have h := hD.contMDiffOn_parallelTransportTrivialization (by simp) hf' hfp hU hΓ hΓ₀ hΓ₁
-    exact (contMDiff_fst.comp_contMDiffOn h).prodMk
-      (hι.contMDiffOn_iff_comp.2 (contMDiff_snd.comp_contMDiffOn h))
-  · have h := hD.contMDiffOn_parallelTransportTrivialization_symm (by simp) hf' hfp hU hΓ hΓ₀ hΓ₁
-    refine (h.comp (contMDiff_fst.prodMk (hι.contMDiff.comp contMDiff_snd)).contMDiffOn
-      fun p hp ↦ ⟨?_, p.2.property⟩).congr fun p _ ↦ ?_
-    · rw [Trivialization.target_eq] at hp
-      exact hp.1
-    · exact hD.parallelTransportTrivialization_symm_apply (by simp) hf' hfp hU hΓ hΓ₀ hΓ₁ p
+  exact ⟨hD.parallelTransportTrivialization (by simp) hf' hfp hU hΓ hΓ₀ hΓ₁,
+    mem_chartBall_self J _ hr,
+    hD.contMDiffOn_parallelTransportTrivialization_of_isSmoothEmbedding (by simp) hf' hfp hU hΓ hΓ₀
+      hΓ₁ hι,
+    hD.contMDiffOn_parallelTransportTrivialization_symm_of_isSmoothEmbedding (by simp) hf' hfp hU
+      hΓ hΓ₀ hΓ₁ hι⟩
 
 end Manifold.IsSubmersion
 
