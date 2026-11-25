@@ -3869,7 +3869,8 @@ For §7.3 of `atlas/constructing-symplectic-manifolds.md`.
   route as `Parametric.lean`, for a fixed closed representative of $a$)
   and `Parametric.lean` (the parametric statement: the inclusion of the
   symplectic forms of class $a$ into the nondegenerate two-forms is a
-  homotopy equivalence,
+  weak homotopy equivalence, and a homotopy equivalence when $M$
+  compresses into a compact set,
   for the compact-open $C^\infty$ topology of the departure *Spaces of forms*, by
   the compression route of Eliashberg–Mishachev, Theorems 10.2.1–10.2.2,
   with their parameter-relative holonomic approximation, Theorem 4.7.4,
@@ -3883,8 +3884,9 @@ For §7.3 of `atlas/constructing-symplectic-manifolds.md`.
   (`Geometry/Manifold/Morse/`) and nondegenerate and symplectic two-forms.
 - **Milestones:** *Gromov's h-principle for symplectic forms on open
   manifolds* (existence and the path-component statement in
-  `OpenManifold.lean`, the parametric homotopy equivalence in
-  `Parametric.lean`),
+  `OpenManifold.lean`, the parametric statement in `Parametric.lean`,
+  where the homotopy equivalence for an $M$ that does not compress into a
+  compact set waits for a route),
   *Relative extension of exact symplectic forms over a handle core*. The
   design file takes the compression route of Eliashberg–Mishachev for all
   three statements of the first milestone, not the book's handle
@@ -4016,7 +4018,7 @@ behind.
 | 0 | *Connected sums* | — |
 | 0 | *Poincaré duals of submanifolds* | — |
 | 0 | *Almost complex spheres* | — (it uses only merged files of *Chern classes*) |
-| 0 | *Symplectic h-principle* | — (it uses merged files of *Smooth families*, *Moser isotopy* and *Symplectic vector bundles*; `HandleCore.lean` also waits for the generalization of `PreservesSmoothFamilies` to any parameter manifold that *Compatible symplectic forms* plans) |
+| 0 | *Symplectic h-principle* | — (it uses merged files of *Smooth families*, *Moser isotopy* and *Symplectic vector bundles*) |
 | 1 | *Unitary group topology* | *Symplectic group* (only the file on $\mathrm{Sp}(2n)$; the other files can start at once) |
 | 1 | *Symplectic vector spaces* | *Standard model*, *Symplectic group* |
 | 1 | *Lagrangian Grassmannian* | *Standard model*, *Symplectic vector spaces* (only `Subspace.lean`, which is merged) |

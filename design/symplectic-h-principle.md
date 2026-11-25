@@ -60,8 +60,26 @@ formulation.
   Whitehead's theorem `ContinuousMap.IsWeakHomotopyEquivalence.homotopyEquiv`
   with `homotopyEquiv_toFun` (`AlgebraicTopology/Homotopy/Whitehead.lean`),
   for spaces with `TauCeti.CWType`
-  (`Topology/CWComplex/Classical/CWType.lean`). Neither library shows that a
-  space of smooth sections has CW type.
+  (`Topology/CWComplex/Classical/CWType.lean`), with the two halves of its
+  proof for any source of CW type, `exists_comp_homotopic` and
+  `homotopic_of_comp_homotopic`. CW approximation of any space:
+  `TauCeti.sigmaCWApproximationMap` with
+  `isWeakHomotopyEquivalence_sigmaCWApproximationMap` and
+  `cwType_sigmaCWApproximation`
+  (`AlgebraicTopology/Homotopy/CWApproximation/Sigma.lean`). Simplicial
+  complexes: `AbstractSimplicialComplex.Realization` with the weak topology,
+  `continuous_iff_faceInclusion` and `instT2SpaceRealization`
+  (`AlgebraicTopology/SimplicialComplex/Realization/Basic.lean`), and
+  `realizationCWComplex` (`.../Realization/CWComplex/Basic.lean`). The frame
+  topology is metrizable on a Lindelöf base
+  (`ContMDiffSection.isCompletelyMetrizableSpace_frameTopology`,
+  `Geometry/Manifold/VectorBundle/Section/CompletelyMetrizable.lean`) and
+  locally convex (`Section/Topology.lean`). Mathlib has locally finite
+  partitions of unity subordinate to any open cover of a paracompact normal
+  space (`PartitionOfUnity.exists_isSubordinate`), and metric spaces are
+  paracompact. Neither library has absolute neighbourhood retracts or
+  Milnor's or Dugundji's theorems, and neither shows that a space of smooth
+  sections has CW type.
 - **Holonomic approximation.** Neither library has it. Tau Ceti has jet
   bundles (`Geometry/Manifold/VectorBundle/Jet/Basic.lean`,
   `VectorBundle/FirstJet/`), which this part does not need (see
@@ -74,14 +92,17 @@ formulation.
    parametric, relative theorem, proved by Eliashberg–Mishachev's route:
    approximate a formal primitive of $\tau_\lambda-\alpha$ by a genuine one
    near a core, then pull everything back by an isotopy of embeddings that
-   compresses $M$ into a neighbourhood of the core. The book's telescope
+   compresses $M$ into a neighbourhood of the core, one critical level at a
+   time (`Morse/Core/`). The book's telescope
    over the handles of a Morse exhaustion is not used. Reasons: with
    infinitely many critical points, the book's induction needs a compatible
    choice of homotopies over the whole exhaustion, which the page flags as
    missing; and in the telescope, gluing the homotopy of a handle into the
    rest of $M$ by a cutoff breaks closedness at the parameters where the
    form is already symplectic, which the relative parametric statement
-   needs. The compression route never glues forms: it only pulls back along
+   needs. The compression route glues no forms by a cutoff except along the
+   segment from a form to its approximation, inside the open set where the
+   whole segment is nondegenerate; otherwise it only pulls back along
    embeddings into the neighbourhood where the approximation holds. So
    `Telescope.lean` of `DESIGN.md` is dropped, and the milestone's
    existence and path statements go in `OpenManifold.lean`, as corollaries
@@ -120,23 +141,64 @@ formulation.
    is then zero, hence holonomic.
 5. **The homotopy equivalence.** `Parametric.lean` proves that the
    inclusion of the symplectic forms in class $a$ into the nondegenerate
-   forms is a `ContinuousMap.IsWeakHomotopyEquivalence`, from the engine,
-   and then the homotopy equivalence of the inclusion itself by Whitehead's
-   theorem, `hf.homotopyEquiv` with `homotopyEquiv_toFun`, as the review of
-   #3195 asked. That needs `TauCeti.CWType` for both spaces, which neither
-   library has (Milnor's theorem that metrizable ANRs have CW type, and
-   Dugundji's extension theorem for convex sets of metrizable locally convex
-   spaces). It gets a design issue of its own, which the split of the
-   building issue creates; if the nondegenerate forms, which are not open in
-   the compact-open $C^\infty$ topology over a noncompact base, turn out not
-   to have CW type by these means, that issue says so, and the milestone's
-   last statement waits for it.
+   forms is a `ContinuousMap.IsWeakHomotopyEquivalence`, for every open
+   `M`, from the engine. To get the homotopy equivalence of the inclusion
+   itself from Whitehead's theorem, `hf.homotopyEquiv` with
+   `homotopyEquiv_toFun`, as the review of #3195 asked, both spaces need
+   `TauCeti.CWType`. **For some open `M`, neither space has CW type.**
+   - *The evidence.* Let `M` be the disjoint union of countably many copies
+     of $\mathbb R^{2n}$, $n\ge1$. It is boundaryless and σ-compact, has no
+     compact component, and has $H^2(M)=0$, so $a=0$. Taking the sign of
+     $\omega^n$ at the origin of each copy is a continuous map $s$ from the
+     nondegenerate forms onto the Cantor set $\{\pm1\}^{\mathbb N}$, since
+     point evaluation is continuous. Sending $(\varepsilon_k)$ to the form
+     equal to $\varepsilon_k\omega_0$ on the $k$-th copy is a continuous
+     map $c$ back, since each frame jet sees one copy only, and it lands
+     in the symplectic forms of class $0$; and $s\circ c=\mathrm{id}$. If
+     either space were homotopy equivalent to a CW complex $L$, there would
+     be maps $u:\{\pm1\}^{\mathbb N}\to L$ and $v:L\to\{\pm1\}^{\mathbb N}$
+     with $v\circ u$ homotopic to the identity, so $u$ would be injective
+     on path components. But the path components of the Cantor set are
+     its uncountably many points, while the compact image of $u$ lies in a
+     finite subcomplex of $L$, which has finitely many path components. So
+     neither space has CW type, by Milnor's theorem or by any other means.
+   - *The milestone still holds for this `M`*, so this is no error of the
+     plan. On each copy, $\omega\mapsto t^{-2}\,\delta_t^*\omega$ for the
+     dilation $\delta_t(x)=tx$, $t\in(0,1]$, extended by the constant form
+     $\omega(0)$ at $t=0$, deforms both spaces into the constant
+     nondegenerate forms, compatibly with the inclusion, and continuously in
+     the frame topology. Only the route through Whitehead's theorem fails.
+   - *What the library proves.* The obstruction lives at infinity, so the
+     library gets CW type, by domination, when `M` compresses into a
+     compact set: when a `TauCeti.SmoothIsotopy` from the identity of `M`
+     ends at a `j` with `IsCompact (closure (range j))`. The interior of a
+     compact manifold with boundary is such an `M`, and so is
+     $\mathbb R^{2n}$. Then each space `X` is dominated by a set `O`: there
+     are maps `X → O → X` whose composite is homotopic to the identity.
+     `O` is the set of forms that lie in a convex set `C` and are
+     nondegenerate on the compact `closure (range j)`. For the
+     nondegenerate forms `C` is every form; for the symplectic forms of
+     class $a$ it is the forms with `tangentEquiv ω - α` exact. The maps
+     are the inclusion and $\omega\mapsto j^*\omega$, and the homotopy is
+     the pullback along the isotopy. An open subset of a convex subset of a
+     metrizable locally convex space is dominated by the realization of the
+     nerve of a partition of unity, so it has CW type. This is the argument
+     behind Milnor's and Dugundji's theorems, done directly, with no
+     absolute neighbourhood retracts. Last, a space dominated by a space of
+     CW type has CW type, by CW approximation and the two halves of
+     Whitehead's theorem.
+   - *The general statement waits.* When `M` does not compress into a
+     compact set, the milestone's last statement needs another route,
+     which this design does not have. That statement waits for one, with
+     no `ERRATA.md` entry, since nothing shows it false. The weak homotopy
+     equivalence is proved for every open `M`.
 6. **Morse input.** The existence of a proper Morse function bounded below
    without critical points of index $\dim M$ on an open manifold is
-   `Geometry/Manifold/Morse/OpenManifold.lean`; the core and its
-   compression are `Geometry/Manifold/Morse/Core.lean`. Both are general
+   `Geometry/Manifold/Morse/OpenManifold.lean`; the cores and their
+   compressions are `Geometry/Manifold/Morse/Core/`. Both are general
    differential topology, in Tau Ceti's namespace `TauCeti` where they are
-   about `TauCeti.IsMorse`.
+   about `TauCeti.IsMorse`; the structure `BandCore` is in
+   `SymplecticGeometry`.
 
 ## Departures from `DESIGN.md`
 
@@ -146,6 +208,9 @@ formulation.
   `ContMDiffTwoForm`, its topology and `tangentEquiv`).
 - Holonomic approximation is in coordinates (Decision 3), not on Tau Ceti's
   jet bundles.
+- `Parametric.lean` proves the weak homotopy equivalence for every open
+  `M`, and the homotopy equivalence only for an `M` that compresses into a
+  compact set (Decision 5).
 
 ## Files and their contents
 
@@ -215,24 +280,166 @@ critical points (locally finitely many choices in an exhaustion); in a
 tubular neighbourhood of each ray, modify the function to one without
 critical points that increases along the ray, keeping properness.
 
-### `Geometry/Manifold/Morse/Core.lean`
+### `Geometry/Manifold/Morse/Core/`
 
-A core of an open manifold, for the engine: a countable, locally finite
-family of smooth open embeddings $\varphi_i$ of a neighbourhood of
-$I^{m_i}\times I^{d-m_i}$ into $M$, $m_i<d=\dim M$, well-ordered so that
-$\varphi_i(\partial I^{m_i}\times 0)$ lies in the union $A_{<i}$ of the
-earlier cores $\varphi_j(I^{m_j}\times0)$, and, for every open
-$U\supseteq A=\bigcup_iA_i$, a Tau Ceti `TauCeti.SmoothIsotopy` of
-embeddings $M\to M$ from the identity to an embedding with image in $U$.
-Its existence comes from the Morse function of `OpenManifold.lean` and a
-pseudo-gradient flow. The precise structure (whether a `structure` with
-these fields or a statement with them as an existential) and the
-construction of the cores from the descending discs are not fixed here:
-the split of the building issue creates a design issue for this file
-before its building issue, because the descending discs of a pseudo-gradient
-need not attach along earlier discs without a Morse–Smale condition, and
-Eliashberg–Mishachev obtain their core from a triangulation, which neither
-library has.
+**Why one critical level at a time.** A single core of all of $M$, made of
+cubes each attached along earlier ones, is out of reach. Descending discs of
+a pseudo-gradient attach along earlier discs only under a Morse–Smale
+condition together with a structure of manifold with corners on their
+closures, which neither library has, and Eliashberg–Mishachev take their core
+from a triangulation, which neither library has either. The union of all
+descending manifolds is the set that the downward flow compresses into, but
+with infinitely many critical points it need not be locally finite: the
+descending manifold of a high critical point may run down to a minimum, so
+infinitely many of them can meet one compact set. So the core is cut into the
+pieces that cross one critical level. Each piece is finitely many disjoint
+cubes with a compression that fixes the sublevel below them, and the engine
+(below) works one level at a time.
+
+Throughout, `g : M → ℝ` is smooth and
+`D m := (Fin m → ℝ) × (Fin (Module.finrank ℝ E - m) → ℝ)` with sup norms; the
+cube of `D m` is `Metric.closedBall 0 1 ×ˢ {0}` and its boundary sphere
+`Metric.sphere 0 1 ×ˢ {0}`, as in `HolonomicApproximation/`.
+
+#### `Morse/Core/Basic.lean`
+
+The structure, in the namespace `SymplecticGeometry`, for levels
+`a₀ < a < b`:
+
+```lean
+structure BandCore (g : M → ℝ) (a₀ a b : ℝ) where
+  ι : Type
+  [fintype : Fintype ι]
+  dim : ι → ℕ
+  dim_lt (i : ι) : dim i < Module.finrank ℝ E
+  chart (i : ι) : D (dim i) → M
+  isSmoothEmbedding_chart (i : ι) : Manifold.IsSmoothEmbedding 𝓘(ℝ, D (dim i)) I ∞ (chart i)
+  isOpen_range_chart (i : ι) : IsOpen (Set.range (chart i))
+  mapsTo_cube (i : ι) : Set.MapsTo (chart i) (Metric.closedBall 0 1 ×ˢ {0}) {x | a₀ < g x}
+  mapsTo_sphere (i : ι) : Set.MapsTo (chart i) (Metric.sphere 0 1 ×ˢ {0}) {x | g x < a}
+  pairwise_disjoint : Pairwise fun i j ↦
+    Disjoint (chart i '' Metric.closedBall 0 1 ×ˢ {0}) (chart j '' Metric.closedBall 0 1 ×ˢ {0})
+  exists_compression (U : Set M) (hU : IsOpen U)
+      (hsub : {x | g x ≤ a} ∪ ⋃ i, chart i '' Metric.closedBall 0 1 ×ˢ {0} ⊆ U) :
+    ∃ (f : C^∞⟮I, M; I, M⟯) (F : TauCeti.SmoothIsotopy (ContMDiffMap.id) f),
+      (∃ V ∈ 𝓝ˢ {x | g x ≤ a}, ∀ t, ∀ x ∈ V, F (t, x) = x) ∧ Set.MapsTo f {x | g x ≤ b} U
+```
+
+So a band core is a finite family of pairwise disjoint cubes of positive
+codimension, each the image of the cube of `D m` under a smooth open
+embedding of the whole of `D m` (the coordinates that
+`HolonomicApproximation/` works in), lying above `a₀` with its boundary
+sphere below `a`; and for every open `U` around `{g ≤ a}` and the cubes, an
+isotopy of embeddings starting at the identity and fixed near `{g ≤ a}` ends
+in a map sending `{g ≤ b}` into `U`. The sketch omits docstrings and the
+instance attribute on `fintype`. The API: `BandCore.cubes`, the union of
+the cubes, with `isCompact_cubes` and `cubes_subset` (they lie above `a₀`);
+and the example `BandCore.ofNoCriticalPoint`, the band core without cubes
+when `g` is proper with no critical value in `[a₀, b]`. Its compression is
+the flow of a field that vanishes near `{g ≤ a}`, lowers `g` at unit speed
+through the rest of the band and is cut off above `b`, built as in Tau Ceti's
+`exists_flow_apply_eq_sub` (`Geometry/Manifold/Morse/Deformation.lean`).
+
+#### `Morse/Core/Cube.lean`
+
+The cube at one critical point, in the namespace `TauCeti`. Tau Ceti's flow
+of an adapted pseudo-gradient (`Morse/PseudoGradient/Flow.lean`) needs
+`[CompactSpace M]`, so this file uses a compactly supported smooth field `X`
+with `dg(X) ≤ 0`, `dg(X) < 0` on the band off the critical points, and equal
+near each critical point of the band to the linear field
+`TauCeti.MorseChart.field` of a Morse chart: the field of
+`IsCompact.exists_contMDiff_pseudoGradientOn_nhds`
+(`Morse/PseudoGradient/Existence.lean`) times a cutoff. Its flow is complete
+(as in `TauCeti.compactlySupportedFlowDiffeotopy`). For a nondegenerate
+critical point `p` of index `m`, with `a₀ < a < g p` and no critical point
+on the support with value in `[a₀, g p)` (points of the level `g p` itself
+are allowed, since no flow line from `p` reaches them),
+`TauCeti.exists_cubeChart_unstableSet` gives a smooth open embedding
+`φ : D m → M` with `φ 0 = p`, sending the cube into the unstable set of `p`
+for this flow and above `a₀`, and its sphere below `a`, such that every point
+of that unstable set at level at least `a` is in the image of the cube.
+
+The chart is built from hitting times, not from one fixed time, since
+different flow lines from `p` can take very different times to descend. Fix
+`a'` with `a₀ < a' < a`, and a small round ball `B` of negative coordinates
+of the Morse chart, read with its negative coordinates first, on which `X` is
+the linear field, so that the flow moves points of `B` radially. Each flow
+line from the sphere `∂B` meets the level `a'` exactly once and
+transversally, since `dg(X) < 0` there off the critical points, so the time
+`τ(u)` at which the line from `u ∈ ∂B` reaches `a'` is smooth in `u`
+(implicit function theorem) and bounded. Take a smooth `θ` on `B`, constant
+near `0`, equal to `τ(u)` at `r • u` for `r` near `1`, and with
+`r ↦ θ (r • u) + log r` strictly increasing; a cutoff in `log r` over a
+long enough interval gives one. Then `v ↦ Φ_{θ v} v`, extended to nearby
+positive coordinates of the Morse chart, is an open embedding near `B`
+(two points with the same image lie on one flow line, and the monotonicity
+rules that out), and maps `B` onto the part of the unstable set of `p` at
+level above `a'`, which lies above `a₀`. The part at level at least `a` is a
+compact subset of it; a radial diffeomorphism of `ℝ^m` onto the interior of
+`B`, a scaling that puts the preimage of that compact set inside the open
+cube, and a coordinatewise diffeomorphism of `ℝ` onto an interval in the
+positive coordinates then give the chart on all of `D m`. Tau Ceti's slice
+charts `TauCeti.IsAdaptedPseudoGradient.exists_isSliceChart_unstableSet`
+(`Morse/Stable/Manifold.lean`) compose a Morse chart with the flow in the
+same way on compact manifolds.
+
+#### `Morse/Core/Compression.lean`
+
+```lean
+theorem TauCeti.IsMorse.exists_bandCore (hg : IsMorse I g) (hp : IsProperMap g)
+    {a₀ a v b : ℝ} (ha₀ : a₀ < a) (ha : a < v) (hb : v < b)
+    (hcrit : ∀ x ∈ criticalPoints I g, a₀ ≤ g x → g x ≤ b →
+      g x = v ∧ manifoldMorseIndex I g x < Module.finrank ℝ E) :
+    Nonempty (BandCore I g a₀ a b)
+```
+
+The cubes are those of `Cube.lean` at the finitely many critical points of
+the level `v` (`TauCeti.IsMorse.finite_criticalPoints_inter`), all for the
+one field `X`: by `hcrit` no critical value lies in `[a₀, v)`, which is the
+hypothesis of `TauCeti.exists_cubeChart_unstableSet` at each of them, the
+other points of the level `v` being allowed. They are disjoint since
+unstable sets of distinct critical points are. The compression is the time-`T`
+map of the flow of `ρ • X`, with `ρ` zero near `{g ≤ a}` and one from just
+above `a` up to `b`; time slices of a flow are open embeddings. That
+`{g ≤ b}` is carried into `U` for large `T` is Mathlib's
+`eventually_mapsTo_of_isCompact_absorbing_of_isOpen_of_omegaLimit_subset`
+(`Mathlib/Dynamics/OmegaLimit.lean`) for the compact, forward invariant set
+`{g ≤ b}`, once its ω-limit is in `U`. A point of the ω-limit has its whole
+backward orbit in `{g ≤ b}`, along which `g` increases to a limit; its
+α-limit lies where `ρ • X` vanishes. Either that is the zero set of `ρ`, and
+then the point is no higher than it, so in `U` when that zero set is chosen
+close to `{g ≤ a}` (properness); or it is a critical point of the level `v`,
+and the point lies in its unstable set at level at least `a`, hence in a
+cube. If this ω-limit argument is long, it is a
+public lemma of its own in this file.
+
+#### `Morse/Core/Exhaustion.lean`
+
+The band cores of an open manifold, from issue 4:
+
+```lean
+theorem TauCeti.exists_isMorse_bandCore_seq
+    (hM : ∀ x : M, ¬ IsCompact (connectedComponent x)) :
+    ∃ (g : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯) (d e : ℕ → ℝ), IsMorse I g ∧ IsProperMap g ∧
+      (∀ x, e 0 < g x) ∧ (∀ k, d k < e k ∧ e k < d (k + 1)) ∧
+      Filter.Tendsto d Filter.atTop Filter.atTop ∧
+      ∀ k, Nonempty (BandCore I g (d k) (e k) (e (k + 1)))
+```
+
+`g` comes from `TauCeti.exists_isMorse_isProperMap_manifoldMorseIndex_lt`.
+Its critical values form a discrete set, so the levels can be chosen with all
+critical values in the intervals `(e k, d (k + 1))`, at most one in each;
+`exists_bandCore` then applies to `(d k, e k, e (k + 1))`, or
+`BandCore.ofNoCriticalPoint` where the interval holds none.
+
+**What the engine needs beyond the sketch of `Cube.lean`.** The engine
+approximates over each cube of a band core relative to the open set where
+its form is already good. That set contains the part of the cube below `a`,
+which has interior in the cube, and not only a neighbourhood of the boundary
+sphere, to which the sketch of `exists_holonomic_approximation_cube` is
+relative. Eliashberg–Mishachev's relative form, relative to a closed set near
+which the datum is holonomic, is what the engine uses; it follows from the
+sketched one by subdividing the cube finely.
 
 ### `Geometry/Symplectic/HPrinciple/HandleCore.lean`
 
@@ -323,8 +530,8 @@ three steps:
    makes it a form on `D`.
 
 Steps 2 and 3 need the splitting's maps to take smooth families over `L` to
-smooth families. The merged `PreservesSmoothFamilies` is stated over
-`unitInterval` only, so this waits for issue 6 below, which generalizes it.
+smooth families. `PreservesSmoothFamilies`, which issue 6 below generalizes
+from `unitInterval` to any parameter manifold, gives this.
 The proof is the book's: for $m=1$, the primitives
 given near the two ends of the core are patched across a narrow band around
 it with cutoff functions, the zig-zag immersion giving the band enough
@@ -354,20 +561,39 @@ dimension $2n$:
   point and `unitInterval`), with `H` an `IsSmoothFamily` over
   `P × unitInterval`.
 
-Proof: the family $\alpha_\lambda$ of Decision 4; the formal primitive in
-the charts of the core; parametric holonomic approximation over each cube in
-the order of the core, relative to the earlier ones and to `P₀`, giving
-closed $\sigma_\lambda$ in the class on a neighbourhood $U$ of the displaced
-core with the straight segment from $\tau_\lambda$ to $\sigma_\lambda$
-nondegenerate on $U$; the compression $h_s$ of `Core.lean` into $U$, after
-conjugating by the displacing diffeotopy; the path $h_s^*\tau_\lambda$
-followed by $h_1^*((1-s)\tau_\lambda+s\sigma_\lambda)$, nondegenerate since
-embeddings are local diffeomorphisms
-(`IsNondegenerate.isNondegenerate_mpullback_of_isLocalDiffeomorph`); the
-class is kept by `mpullback_sub_mem_exactForms_of_homotopy`. On `P₀` the approximation is
-the identity, so the second half of the path is constant and the first
-stays symplectic. Since this is long, the issue splits it into the
-construction of $\sigma$ near the core and the compression step.
+Proof, one band core of `TauCeti.exists_isMorse_bandCore_seq` at a time
+(`Morse/Core/`), with the family $\alpha_\lambda$ of Decision 4. Stage $k$
+starts from nondegenerate $\omega^k_\lambda$ ($\omega^0=\tau$) and one-forms
+$\beta^k_\lambda$ with $\omega^k_\lambda=\alpha_\lambda+d\beta^k_\lambda$ on a
+neighbourhood $N_k$ of $\{g\le e_k\}$, and on all of $M$ for $\lambda\in P_0$.
+The formal primitive of $\omega^k_\lambda-\alpha_\lambda$ in the cube charts is
+then holonomic on $N_k$ and on `P₀`. Parametric holonomic approximation over
+each cube of the band core in turn (they are disjoint), relative to $N_k$, as
+noted at the end of `Morse/Core/`, and to `P₀`, gives $\beta'_\lambda$, equal
+to $\beta^k_\lambda$ away from a neighbourhood of the cubes that lies above
+$d_k$, and an open $U$ around $\{g\le e_k\}$ and the displaced cubes on which
+every $(1-s)\omega^k_\lambda+s\sigma_\lambda$ is nondegenerate, where
+$\sigma_\lambda=\alpha_\lambda+d\beta'_\lambda$ is closed in the class. The
+band core's compression, conjugated by the displacing diffeotopy, gives an
+isotopy $h_s$ fixed near $\{g\le e_k\}$ with $h_1(\{g\le e_{k+1}\})\subseteq U$.
+For a cutoff $\chi$ supported in $U$ and equal to $1$ near
+$h_1(\{g\le e_{k+1}\})$, the stage is the path $h_s^*\omega^k_\lambda$
+followed by $h_1^*(\omega^k_\lambda+s\chi(\sigma_\lambda-\omega^k_\lambda))$,
+nondegenerate since embeddings are local diffeomorphisms
+(`IsNondegenerate.isNondegenerate_mpullback_of_isLocalDiffeomorph`). Its end
+$\omega^{k+1}_\lambda$ is $\alpha_\lambda+d\beta^{k+1}_\lambda$ near
+$\{g\le e_{k+1}\}$, with $\beta^{k+1}_\lambda$ the sum of
+$h_1^*\beta'_\lambda$ and the primitive of
+$h_1^*\alpha_\lambda-\alpha_\lambda$ given by the isotopy, which vanishes
+where $h_s$ is the identity (the class is kept as in
+`mpullback_sub_mem_exactForms_of_homotopy`). A stage changes nothing near
+$\{g\le d_k\}$, and $d_k\to\infty$, so the stages, run on the times
+$[1-2^{-k},1-2^{-k-1}]$, are constant near each compact set for times close
+to $1$; they compose to the homotopy $H$, whose end is closed in the class
+and nondegenerate. On `P₀` the approximation is the identity, so the second
+half of each stage is constant and the first stays symplectic in the class.
+Since this is long, the issue splits it into one stage and the composition
+of the stages.
 
 ### `Geometry/Symplectic/HPrinciple/OpenManifold.lean`
 
@@ -396,7 +622,89 @@ statement for every `a : deRhamCohomology I M 2`. The first theorem's
 docstring ends with the milestone line of *Gromov's h-principle for
 symplectic forms on open manifolds*.
 
-### `Geometry/Symplectic/HPrinciple/Parametric.lean`
+### `AlgebraicTopology/Homotopy/Domination.lean`
+
+CW type by domination (Decision 5), about Tau Ceti's notion, so in its
+namespace:
+
+```lean
+theorem TauCeti.CWType.of_homotopic_comp {X : Type u} {K : Type*} [TopologicalSpace X]
+    [TopologicalSpace K] [TauCeti.CWType K] {i : C(X, K)} {r : C(K, X)}
+    (h : (r.comp i).Homotopic (ContinuousMap.id X)) : TauCeti.CWType X
+```
+
+Proof: `f := sigmaCWApproximationMap (TopCat.of X)` is a weak homotopy
+equivalence from a space of CW type. Lift `r` through it,
+`f ∘ r' ≃ r` (`exists_comp_homotopic`), and put `g := r' ∘ i`. Then
+`f ∘ g ≃ r ∘ i ≃ id`, so `f ∘ (g ∘ f) ≃ f`, and `g ∘ f ≃ id` by
+`homotopic_of_comp_homotopic`. So `f` is a homotopy equivalence, and `X`
+has CW type by `ContinuousMap.HomotopyEquiv.cwType`. `K` may live in any
+universe, since the approximation is in the universe of `X`. This is the
+classical fact that a space dominated by a CW
+complex has CW type, proved here without mapping telescopes.
+
+### `AlgebraicTopology/SimplicialComplex/Realization/PartitionOfUnity.lean`
+
+The nerve of a partition of unity and its canonical map, for
+`ρ : PartitionOfUnity ι X`:
+
+- `PartitionOfUnity.nerve ρ : TauCeti.AbstractSimplicialComplex ι`, whose
+  faces are the nonempty finite `s` with `∃ x, ∀ i ∈ s, ρ i x ≠ 0`, with
+  `mem_nerve_iff`;
+- `PartitionOfUnity.toNerve ρ : C(X, ρ.nerve.Realization)`, sending `x` to
+  the point with barycentric coordinates `ρ i x`, with `toNerve_apply_coe`
+  (its coordinates). Its continuity for the weak topology uses local
+  finiteness: near each point it lands in the realization of finitely many
+  vertices, where the weak topology is the Euclidean one.
+
+### `Analysis/LocallyConvex/CWType.lean`
+
+```lean
+theorem Convex.cwType_inter {E : Type u} [AddCommGroup E] [Module ℝ E]
+    [TopologicalSpace E] [IsTopologicalAddGroup E] [ContinuousSMul ℝ E]
+    [LocallyConvexSpace ℝ E] [MetrizableSpace E] {C U : Set E}
+    (hC : Convex ℝ C) (hU : IsOpen U) : TauCeti.CWType ↥(C ∩ U)
+```
+
+Proof, by the nerve argument of Milnor and of Dugundji (*References*)
+made direct: put `O := C ∩ U` with a metric. Each `y ∈ O` has a convex
+relatively open neighbourhood `C ∩ (y + V) ⊆ O` (local convexity). Let
+`L y` be the supremum of the `r ≤ 1` for which the ball `B(y, r)` of `O`
+lies in one of these convex sets; it is positive and `1`-Lipschitz. Take a
+partition of unity `ρ`, indexed by `O`, subordinate to the cover by the
+balls `B(y, L y / 4)` (`PartitionOfUnity.exists_isSubordinate`, as `O` is
+metrizable, so paracompact and normal). If `x` lies in the supports of
+`ρ y₀, …, ρ yₖ`, then all `yⱼ` lie in a ball `B(x, r)` with `r < L x`, so in
+one convex subset of `O`. Hence the map `ψ` from the realization of
+`ρ.nerve` to `O`, affine on each simplex with vertex `y` sent to `y`, is
+well defined, continuous by `continuous_iff_faceInclusion`, and the
+straight segment from `x` to `ψ (ρ.toNerve x)` stays in `O`. So `O` is
+dominated by a CW complex (`realizationCWComplex`, `instT2SpaceRealization`,
+`TauCeti.CWType.of_cwComplex_univ`), and `TauCeti.CWType.of_homotopic_comp`
+gives the theorem.
+
+### `Geometry/Manifold/VectorBundle/Symplectic/Topology.lean`
+
+Two facts about two-forms in the frame topology of a covering frame system
+(`letI := frameTopology …`, `hcover`), on a finite-dimensional base:
+
+- `Bundle.ContMDiffTwoForm.isOpen_setOf_forall_mem_nondegenerate`: for a
+  compact `K ⊆ M`, the forms `ω` with `(ω.bilinFormAt x).Nondegenerate` for
+  all `x ∈ K` are an open set. Nondegeneracy is open in each fibre, and
+  evaluation is jointly continuous in the form and the point
+  (`Section/Topology.lean`).
+- `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback`: for a
+  `TauCeti.SmoothIsotopy` `h` of `M`, the map
+  `(ω, t) ↦ tangentEquiv.symm ((tangentEquiv ω).mpullback (h.timeSlice t))`
+  is continuous on `ContMDiffTwoForm … × unitInterval`. Its frame jets are
+  polynomials in the jets of `ω` and of the slices of `h`, so this follows
+  from the continuity of composition and pairing in the weak Whitney
+  topology (`ContMDiffMap.continuous_comp_manifoldWeakWhitney`,
+  `continuous_prodMk_manifoldWeakWhitney`), as for Tau Ceti's
+  `ContMDiffSection.continuous_map_frameTopology`. The issue fixes the
+  exact form of the pullback here.
+
+### `Geometry/Symplectic/HPrinciple/FormSpaces.lean`
 
 The spaces, in the topology of the departure *Spaces of forms*:
 
@@ -407,14 +715,38 @@ The spaces, in the topology of the departure *Spaces of forms*:
   `mem_symplecticFormsInClass`, `symplecticFormsInClass_subset_nondegenerateForms`
   (by `isNondegenerate_tangentEquiv_iff`) and
   `symplecticFormsInClass_congr` (it depends on `α` only through its class).
+- `cwType_nondegenerateForms` and `cwType_symplecticFormsInClass`
+  (`hα : α ∈ closedForms I M 2`): for covering frames, a smooth isotopy
+  `h : TauCeti.SmoothIsotopy (ContMDiffMap.id) j` and
+  `IsCompact (closure (Set.range j))`, the space has `TauCeti.CWType`.
+  Proof as in Decision 5: `Convex.cwType_inter` for the convex set (all
+  forms, or the preimage under `tangentEquiv` of the coset
+  `α + exactForms I M 2`) and the open set of
+  `isOpen_setOf_forall_mem_nondegenerate` for `closure (Set.range j)`; then
+  `TauCeti.CWType.of_homotopic_comp` with the inclusion,
+  $\omega\mapsto j^*\omega$ (nondegenerate since the slices of `h` are
+  embeddings between manifolds of one dimension; in the class by
+  `mpullback_sub_mem_exactForms_of_homotopy`), and the homotopy of
+  `continuous_tangentEquiv_symm_mpullback`. Metrizability is
+  `isCompletelyMetrizableSpace_frameTopology`, as `M` is σ-compact, hence
+  Lindelöf.
+- The docstrings say why the hypothesis on `j` is there: without it the
+  spaces need not have CW type (Decision 5).
+
+### `Geometry/Symplectic/HPrinciple/Parametric.lean`
+
+For the spaces of `FormSpaces.lean`:
+
 - `isWeakHomotopyEquivalence_inclusion_symplecticFormsInClass`: for
   covering frames `e U hU` and open `M`, the inclusion is a
   `ContinuousMap.IsWeakHomotopyEquivalence`, from the continuous engine
   with `P` a disc and `P₀` its boundary sphere, and `P` a point.
-- The milestone: `∃ e : symplecticFormsInClass α ≃ₕ nondegenerateForms I M,
-  ⇑e.toFun = Set.inclusion (symplecticFormsInClass_subset_nondegenerateForms α)`,
-  from Whitehead's theorem once both spaces have `TauCeti.CWType`
-  (Decision 5). Its docstring ends with the milestone line.
+- `exists_homotopyEquiv_symplecticFormsInClass`: with the hypotheses of
+  `cwType_symplecticFormsInClass` as well, `∃ e : symplecticFormsInClass α ≃ₕ
+  nondegenerateForms I M, ⇑e.toFun = Set.inclusion
+  (symplecticFormsInClass_subset_nondegenerateForms α)`, by Whitehead's
+  theorem. Its docstring carries no milestone line: the milestone's last
+  statement, for every open `M`, waits (Decision 5).
 
 ## What the part uses
 
@@ -424,7 +756,9 @@ The spaces, in the topology of the departure *Spaces of forms*:
 `Geometry/Manifold/DifferentialForm/Pullback/Family.lean`), *Symplectic
 vector bundles* (`VectorBundle/Symplectic/Basic.lean`, merged); Tau Ceti's
 de Rham cohomology, Morse theory, diffeotopies and smooth isotopies, homotopy
-groups and Whitehead's theorem; Mathlib's calculus on normed spaces.
+groups, Whitehead's theorem, CW approximation and realizations of
+simplicial complexes; Mathlib's calculus on normed spaces and partitions of
+unity.
 
 ## Issues
 
@@ -440,9 +774,17 @@ Each is a few hundred lines; each issue's blockers come before it.
    `Analysis/Calculus/HolonomicApproximation/Parametric.lean`. Blocked by 2.
 4. **Morse functions without top-index critical points.**
    `Geometry/Manifold/Morse/OpenManifold.lean`.
-5. **Design the core of an open manifold** (a design issue: the structure of
-   `Geometry/Manifold/Morse/Core.lean` and its issues). Blocked by nothing;
-   its building issues are blocked by 4.
+5. **The band cores**, `Geometry/Manifold/Morse/Core/`, in four building
+   issues, in this order:
+   - 5a. **The structure.** `Morse/Core/Basic.lean`: `BandCore`, its API
+     and `BandCore.ofNoCriticalPoint`. Blocked by nothing.
+   - 5b. **The cube at a critical point.** `Morse/Core/Cube.lean`:
+     `TauCeti.exists_cubeChart_unstableSet`. Blocked by nothing.
+   - 5c. **Compression across one critical level.**
+     `Morse/Core/Compression.lean`: `TauCeti.IsMorse.exists_bandCore`.
+     Blocked by 5a and 5b.
+   - 5d. **The band cores of an open manifold.** `Morse/Core/Exhaustion.lean`:
+     `TauCeti.exists_isMorse_bandCore_seq`. Blocked by 4 and 5c.
 6. **Smooth families of primitives over a manifold parameter**
    (`DifferentialForm/SmoothFamily/Map.lean`, `DeRham/SmoothFamily/`).
    This is the refactor that `design/compatible-symplectic-forms.md` plans
@@ -454,17 +796,33 @@ Each is a few hundred lines; each issue's blockers come before it.
    Blocked by 6, for the family `β` of primitives. It settles step 0, the
    common collar, first. If it exceeds the size limit, the case $m=1$
    becomes an issue of its own.
-8. **The engine near the core.** The construction of $\sigma_\lambda$ in
-   `Geometry/Symplectic/HPrinciple/Engine.lean`. Blocked by 3 and by the
-   building issues of 5.
-9. **The engine: compression.** The rest of `Engine.lean`. Blocked by 8.
+8. **The engine: one stage.** The approximation near a band core and the
+   compressed path of one stage, in
+   `Geometry/Symplectic/HPrinciple/Engine.lean`, with the relative form of
+   holonomic approximation noted at the end of `Morse/Core/`. Blocked by 3
+   and by the building issues of 5.
+9. **The engine: the stages composed.** The rest of `Engine.lean`. Blocked
+   by 8.
 10. **Existence and path components.**
     `Geometry/Symplectic/HPrinciple/OpenManifold.lean`. Blocked by 9.
 11. **Design the CW type of spaces of forms** (a design issue, Decision 5).
-    Blocked by nothing.
+    Blocked by nothing. Its building issues are 13 to 17.
 12. **The parametric statement.**
     `Geometry/Symplectic/HPrinciple/Parametric.lean`. Blocked by 9 and by
     the building issues of 11.
+13. **CW type by domination.** `AlgebraicTopology/Homotopy/Domination.lean`.
+    Blocked by nothing.
+14. **The nerve of a partition of unity.**
+    `AlgebraicTopology/SimplicialComplex/Realization/PartitionOfUnity.lean`.
+    Blocked by nothing.
+15. **Open subsets of convex sets have CW type.**
+    `Analysis/LocallyConvex/CWType.lean`. Blocked by 13 and 14.
+16. **Nondegeneracy on compact sets and pullback along isotopies in the
+    frame topology.** `Geometry/Manifold/VectorBundle/Symplectic/Topology.lean`.
+    Blocked by nothing.
+17. **CW type of the spaces of forms.**
+    `Geometry/Symplectic/HPrinciple/FormSpaces.lean`. Blocked by 15 and 16.
+    Issue 12 is then blocked by it, as a building issue of 11.
 
 
 ## References

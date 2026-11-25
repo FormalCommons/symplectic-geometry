@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # Pullback of forms: its value at a point, negation and constant maps
@@ -35,7 +36,8 @@ Pulling a smooth form of positive degree back along a constant map gives the zer
 (`TauCeti.SmoothForm.mpullback_prodMk_left_mpullback_snd`).
 
 For a map `f : M × M₂ → M'`, the slice `z ↦ f (s, z)` is `f` composed with the inclusion
-`z ↦ (s, z)`, whose differential is `w ↦ (0, w)` (Mathlib's `mfderiv_prod_right`). By the chain
+`z ↦ (s, z)`, whose differential is `w ↦ (0, w)`
+(`TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right`). By the chain
 rule `TauCeti.mpullback_comp_at`, the pullback along the slice at `z` is the pullback along `f` at
 `(s, z)` on the vectors `(0, m i)` (`TauCeti.mpullback_comp_prodMk_apply`). When both factors are
 normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactically the product model, so
@@ -125,10 +127,9 @@ theorem mpullback_comp_prodMk_apply {E₂ H₂ M₂ : Type*} [NormedAddCommGroup
   -- The slice is `f ∘ Prod.mk s` by definition.
   refine (DFunLike.congr_fun (mpullback_comp_at (f := Prod.mk s) (g := f)
     (mdifferentiableAt_const.prodMk mdifferentiableAt_id) hf φ) m).trans ?_
-  rw [mpullback_apply, mfderiv_prod_right]
-  -- `inr w` is `(0, w)`; `simp` does not rewrite with `inr_apply` here, since the tangent spaces
-  -- are only definitionally the model spaces.
-  exact congrArg _ (funext fun i ↦ ContinuousLinearMap.inr_apply ..)
+  rw [mpullback_apply]
+  exact congrArg _ (funext fun i ↦ (Manifold.tangentSpaceProdEquiv_apply _ _).symm.trans
+    (Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right (m i)))
 
 /-- Let `f : E₁ × E₂ → M'`, on a product of normed spaces, be differentiable at `(s, z)` for the
 model `𝓘(ℝ, E₁ × E₂)`. The pullback of `φ` along the slice `z ↦ f (s, z)`, at `z` on vectors
