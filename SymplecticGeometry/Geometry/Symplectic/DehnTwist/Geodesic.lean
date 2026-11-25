@@ -326,28 +326,24 @@ theorem mpullback_cotangentCoord :
       𝓘(ℝ, (𝔼 n) × StrongDual ℝ (𝔼 n)) (TauCeti.cotangentInnerEquiv ∘ cotangentCoord) z :=
     ((TauCeti.cotangentInnerEquiv (V := 𝔼 n)).contDiff.contMDiff.comp
       contMDiff_cotangentCoord).mdifferentiableAt (by simp)
-  have hfst := mfderiv_comp_apply z
-    (g := ContinuousLinearMap.fst ℝ (𝔼 n) (StrongDual ℝ (𝔼 n)))
-    (ContinuousLinearMap.fst ℝ (𝔼 n) (StrongDual ℝ (𝔼 n))).mdifferentiableAt hf (v 0)
+  have hfst := hf.mvfderiv_fst_apply (v 0)
   have hproj := mfderiv_comp_apply z (g := ((↑) : (𝕊 n) → 𝔼 n))
     (contMDiff_coe_sphere.mdifferentiableAt one_ne_zero)
     ((contMDiff_proj (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ)).mdifferentiableAt
       one_ne_zero : MDifferentiableAt ((𝓡 n).prod 𝓘(ℝ, EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)) (𝓡 n)
         (π (EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ) (fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ)) z)
     (v 0)
-  have hcomp : Prod.fst ∘ TauCeti.cotangentInnerEquiv ∘ cotangentCoord (n := n) =
+  have hcomp : (fun z ↦ ((TauCeti.cotangentInnerEquiv ∘ cotangentCoord (n := n)) z).1) =
       ((↑) : (𝕊 n) → 𝔼 n) ∘ TotalSpace.proj :=
     funext fun z ↦ by simp [cotangentCoord_fst]
-  rw [ContinuousLinearMap.mfderiv_eq, ContinuousLinearMap.coe_fst', hcomp] at hfst
+  rw [hcomp, mvfderiv_apply_eq_mfderiv_apply] at hfst
   -- The form has the type of a model-space form only up to unfolding `TangentSpace`, so the
   -- evaluation lemmas are applied by unification rather than by `rw`.
   refine ((TauCeti.mpullback_apply _ _ z v).trans
     (TauCeti.cotangentLiouvilleForm_apply _ _)).trans ?_
   rw [CotangentBundle.liouvilleForm_apply, Function.comp_apply,
     TauCeti.cotangentInnerEquiv_apply_snd_apply, ← inner_cotangentCoord_snd,
-    mvfderiv_apply_eq_mfderiv_apply, ← hproj, hfst]
-  -- A tangent vector of the model space `𝔼 n × (𝔼 n)*` is a pair, on which `fst` is `Prod.fst`.
-  rfl
+    mvfderiv_apply_eq_mfderiv_apply, ← hproj, hfst, mvfderiv_apply_eq_mfderiv_apply]
 
 /-- The cotangent lift of the diffeomorphism of `Sⁿ` induced by a linear isometry `e` of `ℝⁿ⁺¹`
 acts in coordinates by `(q, p) ↦ (e q, e p)`. -/

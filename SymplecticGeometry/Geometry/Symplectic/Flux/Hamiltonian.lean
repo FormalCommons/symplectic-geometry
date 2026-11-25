@@ -14,6 +14,7 @@ import TauCeti.Geometry.Diffeomorphism.Group
 import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Constancy
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
 
 /-!
@@ -127,18 +128,14 @@ private theorem mvfderiv_apply_eq_mvfderiv_comp_symm (hF : ContMDiff (J.prod (�
     mvfderiv (J.prod (𝓡∂ 1)) F (x, t) (v, (0 : EuclideanSpace ℝ (Fin 1))) =
       mvfderiv J (fun y ↦ F (Φ.symm (t, y), t)) (Φ.timeSlice t x)
         (mfderiv J J (Φ.timeSlice t) x v) := by
-  have hslice : ContMDiff J (J.prod (𝓡∂ 1)) ∞ fun z : M ↦ (z, t) :=
-    contMDiff_id.prodMk contMDiff_const
   have hcomp : (fun y ↦ F (Φ.symm (t, y), t)) ∘ Φ.timeSlice t = F ∘ fun z : M ↦ (z, t) := by
     funext z
     rw [Function.comp_apply, Function.comp_apply, timeSlice_apply, symm_apply_mk_apply]
-  have h1 := mvfderiv_comp_apply x (hF.mdifferentiableAt (by simp))
-    (hslice.mdifferentiableAt (by simp)) v
   have h2 := congrArg (· v)
     ((Φ.timeSlice t).mvfderiv_comp_diffeomorph (by simp) (fun y ↦ F (Φ.symm (t, y), t)) x)
   rw [hcomp] at h2
   refine Eq.trans ?_ h2
-  rw [h1, mfderiv_prod_left]
+  rw [Function.comp_def, mvfderiv_curry_left x t (hF.mdifferentiableAt (by simp))]
   -- `inl v` is `(v, 0)` by definition.
   rfl
 
