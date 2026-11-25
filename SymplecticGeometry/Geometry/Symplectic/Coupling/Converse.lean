@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 public import SymplecticGeometry.Geometry.Manifold.Flow.Basic
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.RegularLevel
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
@@ -62,6 +63,11 @@ and pulling back along `ψ` gives one of `-H ∘ ψ` for `ψ^* σ`
 (`TauCeti.SmoothTwoForm.IsHamiltonianVectorField.mpullback`). Its slice at `t` is the
 pull-back of `σ` along `ψ (·, t)`.
 
+The file also proves that the family `τ` of a coupling form is smooth: its pull-backs along the
+projection of `P` are the slices of the coupling form, and the projection has smooth local
+sections (`TauCeti.ManifoldTotalSpace.exists_contMDiffOn_section`), so
+`SymplecticGeometry.IsSmoothFamily.of_mpullback_prodMk_eq` applies.
+
 ## Main definitions
 
 * `SymplecticGeometry.bandMap v e a b`: the map `(q, s) ↦ φ_{s - a} (e q)`.
@@ -88,6 +94,7 @@ pull-back of `σ` along `ψ (·, t)`.
   `-μ` and `ψ` as above, `ψ^* σ` is invariant and `ι_{(X, 0)} ψ^* σ = -dt`.
 * `SymplecticGeometry.isCouplingForm_mpullback`: such a `ψ^* σ` is a coupling form for every
   family `τ` whose pull-backs `π^* (τ t)` are the pull-backs of `σ` along `ψ (·, t)`.
+* `SymplecticGeometry.IsCouplingForm.isSmoothFamily`: the family of a coupling form is smooth.
 
 ## References
 
@@ -550,6 +557,27 @@ theorem bandMap_orbitFiber_slice [CompleteSpace E] (hf : ContMDiff I 𝓘(ℝ) �
         (fun x ↦ x.property) hιi (by simpa using hn.symm) t⟩
 
 end RegularLevel
+
+/-! ### Smoothness of the family of reduced forms -/
+
+section SmoothFamily
+
+variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
+  {IB : ModelWithCorners ℝ EB HB} [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB ∞ B]
+  {P : B → Type*} [TopologicalSpace (TotalSpace Circle P)] [∀ b, TopologicalSpace (P b)]
+  [FiberBundle Circle P] [ContMDiffFiberBundle ∞ Circle P IB (𝓡 1)]
+  {σ : SmoothTwoForm ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (ManifoldTotalSpace Circle P × Icc a b)}
+  {τ : Icc a b → SmoothTwoForm IB B}
+
+/-- **The family of a coupling form is smooth.** If `σ` is a coupling form for a family `τ` of
+two-forms on the base, then `τ` is a smooth family. -/
+theorem IsCouplingForm.isSmoothFamily [∀ b, MulAction Circleᵐᵒᵖ (P b)] [PrincipalBundle Circle P]
+    (hσ : IsCouplingForm σ τ) : IsSmoothFamily (𝓡∂ 1) τ :=
+  IsSmoothFamily.of_mpullback_prodMk_eq
+    (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff
+    (ManifoldTotalSpace.exists_contMDiffOn_section ∞ Circle P IB (𝓡 1)) hσ.mpullback_slice
+
+end SmoothFamily
 
 end SymplecticGeometry
 

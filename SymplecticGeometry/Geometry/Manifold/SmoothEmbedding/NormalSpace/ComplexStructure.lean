@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.ComplexStructure
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Quotient
 public import TauCeti.Geometry.Symplectic.AlmostComplex.Quotient
+import TauCeti.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # The complex structure on the normal bundle of a `J`-invariant submanifold
@@ -144,8 +145,6 @@ private theorem contMDiff_normalAlmostComplexStructureAt (f : SmoothEmbedding I'
         TotalSpace.mk' P (E := fun x ↦ f.NormalSpace x hn) p.proj
           (f.normalAlmostComplexStructureAt J hJ p.proj p.snd)) := by
   let := f.normalSpaceFiberBundle hn hdim
-  have : IsManifold I' ((∞ : ℕ∞ω) + 1) M := .of_le (n := ∞) (by simp)
-  have : IsManifold I ((∞ : ℕ∞ω) + 1) X := .of_le (n := ∞) (by simp)
   -- `J` along `f`, on the pulled-back tangent bundle, is smooth on total spaces.
   have hJf : ContMDiff (I'.prod 𝓘(ℝ, E)) (I'.prod 𝓘(ℝ, E)) ∞
       (fun p : TotalSpace E ((f : M → X) *ᵖ (TangentSpace I)) ↦

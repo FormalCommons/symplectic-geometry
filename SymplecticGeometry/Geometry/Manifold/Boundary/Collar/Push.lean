@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
 public import SymplecticGeometry.Topology.Collar.Compact
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Deformation
+public import TauCeti.Geometry.Manifold.Boundary.Interior
 public import TauCeti.Topology.Homeomorph.Extend
 
 /-!
@@ -155,10 +156,8 @@ theorem IsCollar.exists_homotopy_push [CompactSpace M] [T2Space M]
   refine ⟨(collarPart c (1 / 2))ᶜ, c '' {p | (p.2 : ℝ) ∈ Ioo 0 (1 / 2)}, g,
     (hc.isOpen_collarPart _).isClosed_compl.isCompact, ?_, ?_, ?_,
     disjoint_compl_right.mono_left hU, ?_, rfl, hU, hgr, hg, hgc, hgo⟩
-  · -- The boundary lies in the collar of positive depth.
-    rw [← I.compl_boundary]
-    refine compl_subset_compl.2 fun x hx ↦ ?_
-    exact hc.range_subset_collarPart (by norm_num) ⟨⟨x, hx⟩, rfl⟩
+  · simpa only [Subtype.range_coe] using
+      hc.compl_collarPart_subset_range I.range_subtypeVal_interior (by norm_num : (0 : ℝ) < 1 / 2)
   · exact hc.isOpenEmbedding.isOpenMap _
       (isOpen_Ioo.preimage (continuous_subtypeVal.comp continuous_snd))
   · -- A collar point of positive depth is not `c (x, 0)` for a boundary point `x`.
