@@ -18,6 +18,9 @@ import SymplecticGeometry.Geometry.Manifold.ContMDiff.RestrictScalars
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.Instances.Sphere
 import TauCeti.Geometry.Manifold.MFDeriv.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Geometry.Manifold.MFDeriv.Opens
+import TauCeti.Geometry.Manifold.MFDeriv.Slice
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
 /-!
@@ -188,10 +191,6 @@ theorem mfderiv_mkNonzero_smul_self (v : TauCeti.puncturedSpace (Fin (n + 1) →
       TauCeti.mem_puncturedSpace.2 (smul_ne_zero (TauCeti.mem_puncturedSpace.1 a.property) hv)⟩
   let one : TauCeti.puncturedSpace 𝕜 := ⟨1, TauCeti.mem_puncturedSpace.2 one_ne_zero⟩
   have hφ1 : φ one = v := Subtype.ext (one_smul _ _)
-  have hφ : ContMDiff 𝓘(ℝ, 𝕜) 𝓘(ℝ, Fin (n + 1) → 𝕜) 1 φ :=
-    (TauCeti.ContMDiff.subtypeVal_comp_iff (n := 1) _ φ).1
-      ((((contDiff_id (𝕜 := ℝ)).smul_const (v : Fin (n + 1) → 𝕜)).contMDiff).comp
-        contMDiff_subtypeVal)
   have hconst : mkNonzero 𝕜 n ∘ φ = fun _ ↦ mkNonzero 𝕜 n v := by
     funext a
     exact (mk_eq_mk_iff' 𝕜 _ _ _ _).2 ⟨a, rfl⟩
@@ -203,10 +202,8 @@ theorem mfderiv_mkNonzero_smul_self (v : TauCeti.puncturedSpace (Fin (n + 1) →
     rw [mfderiv_eq_fderiv] at h
     exact h.trans <| congrArg (fun L ↦ L c)
       ((hasFDerivAt_id (𝕜 := ℝ) (1 : 𝕜)).smul_const (v : Fin (n + 1) → 𝕜)).fderiv
-  have h := TauCeti.mfderiv_apply_mfderiv_of_eventuallyEq_comp (Filter.EventuallyEq.of_eq hconst)
-    ((contMDiff_mkNonzero 𝕜 n 1 (φ one)).mdifferentiableAt one_ne_zero)
-    ((hφ one).mdifferentiableAt one_ne_zero) c
-  rwa [mfderiv_const, hderiv, hφ1] at h
+  rw [← hderiv, ← hφ1]
+  exact TauCeti.mfderiv_mfderiv_apply_eq_zero_of_comp_eventuallyEq_const (.of_eq hconst) c
 
 /-- The kernel of the real derivative of `mkNonzero` at `v` is the line `𝕜 ∙ v`, viewed as a real
 subspace. -/
@@ -421,9 +418,9 @@ theorem mvfderiv_radialProjection (z : puncturedSpace (Fin (n + 1) → ℂ))
     funext fun y ↦ (radialProjection_apply y).trans (TauCeti.radialRescale_apply _ _).symm
   rw [← mvfderiv_comp_apply _ ((contMDiff_coe_sphere _).mdifferentiableAt one_ne_zero)
       ((contMDiff_radialProjection n 1 z).mdifferentiableAt one_ne_zero), hfun,
-    mvfderiv_comp_apply_of_differentiableAt hd.differentiableAt
-      ((contMDiff_subtypeVal z).mdifferentiableAt one_ne_zero),
-    TauCeti.Manifold.mvfderiv_subtype_val_apply, hd.fderiv]
+    TauCeti.Manifold.mvfderiv_comp_subtype_val]
+  refine (TauCeti.mvfderiv_eq_fderiv_apply _ (z : Fin (n + 1) → ℂ) v).trans ?_
+  rw [hd.fderiv]
   -- Read `v` as a vector of `Fin (n + 1) → ℂ`, so that the evaluation lemmas of continuous linear
   -- maps apply to it.
   revert v
