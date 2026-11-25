@@ -274,14 +274,12 @@ theorem isEhresmannConnection_associatedHorizontal [FiniteDimensional ℝ EB] [I
     rintro _ ⟨w, hw, rfl⟩ _ ⟨w', hw', rfl⟩ h
     simp only [ContinuousLinearMap.coe_coe, ← ContinuousLinearMap.comp_apply,
       mfderiv_chartedMk_comp_mfderiv_prod_left] at h
-    suffices w = w' by rw [this]
     have hc := hA.isCompl_horizontal (n := ∞) x
     rw [ManifoldTotalSpace.coe_projContMDiffMap] at hc
     have hTL := mfderiv_proj_chartedMk_apply (IB := IB) (IG := IG) (IF := IF) (n := ∞)
       (by simp) x v
-    rw [← sub_eq_zero]
-    refine Submodule.disjoint_def.1 hc.disjoint _ (sub_mem hw hw') ?_
-    rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe, map_sub, hTL w, hTL w', h, sub_self]
+    rw [LinearMap.injOn_of_disjoint_ker le_rfl hc.disjoint hw hw'
+      (by simp only [ContinuousLinearMap.coe_coe, hTL, h])]
 
 end IsConnectionForm
 
