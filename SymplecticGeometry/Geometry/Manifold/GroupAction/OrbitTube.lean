@@ -389,8 +389,9 @@ the projection `G × U → G ×_H U`. -/
 theorem tubeMap_comp_quotientMk :
     U.tubeMap ∘ Quotient.mk (orbitRel (stabilizer G x) ((stabilizer G x).RightTranslation × U)) =
       fun p ↦ (stabilizer G x).toRightTranslation.symm p.1 • e.chart.symm ((p.2 : V) : E') :=
-  funext fun p ↦ by
-    rw [comp_apply, BalancedProduct.quotientMk_eq_mk_toRightTranslation, tubeMap_mk]
+  by
+    rw [tubeMap_def, BalancedProduct.liftRightTranslation_comp_quotientMk]
+    simp only [sliceMap_apply]
 
 /-! ### The differential of the tube map at `[1, 0]` -/
 
