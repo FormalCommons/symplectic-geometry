@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.Complex.Plurisubharmonic
 public import TauCeti.Geometry.Symplectic.Liouville.ContactType
+import TauCeti.Geometry.Symplectic.Manifold.Flat
 
 /-!
 # J-convex hypersurfaces and their contact structure
@@ -124,8 +125,9 @@ variable [IsManifold 𝓘(ℂ, E) ∞ M]
   {I : ModelWithCorners ℝ F H} [TopologicalSpace S] [ChartedSpace H S]
 
 /-- **The complex tangencies of a hypersurface in a level are the kernel of `λ_f`.** Let
-`ι : S → M` be a smooth immersion, from a manifold of one dimension less, with image in the level
-`f ⁻¹' {c}`, and let `ι s` be a regular point of `f`. A vector `v` at `s` lies in the kernel of
+`ι : S → M` be a smooth map, from a manifold of one dimension less, with image in the level
+`f ⁻¹' {c}`, and let `s` be a point where the differential of `ι` is injective and `ι s` is a
+regular point of `f`. A vector `v` at `s` lies in the kernel of
 `ι^* λ_f`, for `λ_f = -df ∘ J`, iff `i dι(v)` lies in the image of `dι`. -/
 theorem mem_kerDistribution_mpullback_covectorComplexStructure_iff [IsManifold I 2 S]
     {f : C^∞⟮𝓘(ℝ, E), M; ℝ⟯} {c : ℝ} [FiniteDimensional ℂ E] {ι : S → M}
@@ -177,16 +179,15 @@ theorem IsJConvexLevel.isContactForm_mpullback [IsManifold I 2 S] [FiniteDimensi
     exact (hpos v h0).ne' (hv _)
   -- The vector `z` with `ι_z ω_f = λ_f` at `x`.
   obtain ⟨z, hz⟩ : ∃ z : E, ∀ v : E, σ.val x ![z, v] = α.val x ![v] := by
-    have hinj : Function.Injective (σ.bilinFormAt x) :=
-      (injective_iff_map_eq_zero _).2 fun v hv ↦ hσ v fun w ↦
-        (SmoothBundleForm.eval₂_apply _ x v w).symm.trans
-          ((SmoothForm.bilinFormAt_apply σ x v w).symm.trans (LinearMap.congr_fun hv w))
-    obtain ⟨z, hz⟩ := (LinearMap.injective_iff_surjective_of_finrank_eq_finrank
-      Subspace.dual_finrank_eq.symm).1 hinj (SmoothForm.degreeOneEquiv α x).toLinearMap
-    refine ⟨z, fun v ↦ ?_⟩
-    exact (SmoothBundleForm.eval₂_apply _ x z v).symm.trans
-      ((SmoothForm.bilinFormAt_apply σ x z v).symm.trans
-      ((LinearMap.congr_fun hz v).trans (SmoothForm.degreeOneEquiv_apply_apply_vec α x v)))
+    have hnd : (σ.bilinFormAt x).Nondegenerate :=
+      (SmoothForm.isAlt_bilinFormAt σ x).isRefl.nondegenerate_iff_separatingLeft.2
+        fun v hv ↦ hσ v fun w ↦ (SmoothBundleForm.eval₂_apply _ x v w).symm.trans
+          ((SmoothForm.bilinFormAt_apply σ x v w).symm.trans (hv w))
+    obtain ⟨z, hz⟩ := (SmoothTwoForm.isInvertible_flat_iff.2 hnd).surjective
+      (SmoothForm.degreeOneEquiv α x)
+    exact ⟨z, fun v ↦ (SmoothBundleForm.eval₂_apply _ x z v).symm.trans
+      ((SmoothTwoForm.flat_apply σ x z v).symm.trans ((congrArg (fun L ↦ L v) hz).trans
+        (SmoothForm.degreeOneEquiv_apply_apply_vec α x v)))⟩
   refine isContactFormAt_mpullback hdim ((hι s).of_le (by simp)) (hιs s) hσ
     ((α.contMDiff x).of_le (by simp)) (by rw [hσ_def, mextDerivₗ_apply]) ?_ hz
   -- `z` is transverse: `df(z) = λ_f(i z) = ω_f(z, i z)`, which is positive unless `z = 0`, and
