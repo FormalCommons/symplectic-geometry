@@ -301,8 +301,9 @@ theorem contMDiff_repr_mk (hσ : σ.IsSmooth.{uE, uH, uN}) {k : ℕ} {ι : Type*
     [IsManifold J ∞ N] {z : N → closedForms I M k}
     (hz : IsSmoothFamily J (fun t ↦ (z t : SmoothForm I M ℝ k))) (i : ι) :
     ContMDiff J 𝓘(ℝ) ∞ (fun t ↦ b.repr (deRhamCohomology.mk I k (z t)) i) := by
-  simpa using (hσ.preservesSmoothFamilies_subtype_comp_projSpace k).contMDiff_dual_apply hz
-    (b.coord i ∘ₗ (σ.spaceEquiv k).toLinearMap)
+  simpa using smoothAlongFamilies_def.1
+    ((hσ.preservesSmoothFamilies_subtype_comp_projSpace k).smoothAlongFamilies_comp
+      (b.coord i ∘ₗ (σ.spaceEquiv k).toLinearMap)) z hz
 
 /-- **Smooth primitives of a family that is exact at some parameters.** Given a smooth splitting,
 let `τ` be a smooth family of `(k + 1)`-forms over a manifold `N` such that `τ t` is exact for
