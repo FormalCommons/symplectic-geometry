@@ -107,7 +107,8 @@ theorem exists_mem_gridCube (n : ℕ) {r : ℝ} (hr : 0 < r) (x : Fin n → ℝ)
     ∃ c k, x ∈ gridCube n r c k := by
   set u := r / (3 * (n + 1))
   have hu : 0 < u := by positivity
-  -- `q i` locates `x i` in the grid of step `u`, and `j i` is the multiple of `3` nearest it.
+  -- `q i` locates `x i` in the grid of step `u`, and `3 * j i` is a multiple of `3`
+  -- at most `1` away from `q i`.
   set q : Fin n → ℤ := fun i => ⌊x i / u⌋
   set j : Fin n → ℤ := fun i => (q i + 1) / 3
   have hm : (0 : ℤ) < n + 1 := by omega
