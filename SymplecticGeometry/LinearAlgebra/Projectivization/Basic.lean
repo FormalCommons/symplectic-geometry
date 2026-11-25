@@ -7,6 +7,7 @@ module
 
 public import TauCeti.LinearAlgebra.Projectivization.AffineChart
 public import TauCeti.LinearAlgebra.Projectivization.Basic
+public import SymplecticGeometry.Algebra.Notation.Pi.Basic
 
 /-!
 # The representative of a point of a projective space normalized by a linear form
@@ -35,6 +36,8 @@ For a linear form `φ` on a vector space `V` over a field `K`, every point `x` o
 * `Projectivization.insertNth_one_affineChart_eq_normalizedRep`: on the standard affine open
   `U_i` of `ℙ K (Fin (n + 1) → K)`, the homogeneous coordinates `[1 : z]` of a point are its
   representative normalized by the `i`-th coordinate.
+* `Projectivization.affineChart_symm_removeNth`: the inverse of the standard affine chart at `i`
+  sends the coordinates of `w` other than `i` to the line spanned by `update w i 1`.
 -/
 
 public section
@@ -116,6 +119,13 @@ theorem insertNth_one_affineChart_eq_normalizedRep {n : ℕ} (i : Fin (n + 1))
   conv_lhs => rw [← mk_rep x, affineChart_mk]
   rw [Fin.insertNth_one_div_eq_inv_smul i _ ((mem_affineOpen_iff i x).1 hx), normalizedRep_def,
     LinearMap.proj_apply]
+
+/-- The inverse of the standard affine chart at `i`, applied to the coordinates of `w` other than
+the `i`-th, is the line spanned by `w` with its `i`-th coordinate replaced by `1`. -/
+theorem affineChart_symm_removeNth {n : ℕ} (i : Fin (n + 1)) (w : Fin (n + 1) → K) :
+    (affineChart i).symm (Fin.removeNth i w) =
+      mk K (Function.update w i 1) (Function.update_ne_zero w i one_ne_zero) := by
+  simp only [affineChart_symm_apply, Fin.insertNth_removeNth]
 
 end Projectivization
 
