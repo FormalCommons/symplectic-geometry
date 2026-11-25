@@ -61,6 +61,8 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
   point is smooth in the parameter.
 * `SymplecticGeometry.IsSmoothFamily.contMDiff_apply`: the values of a smooth family at a point,
   on fixed tangent vectors, are smooth in the parameter.
+* `SymplecticGeometry.IsSmoothFamily.continuous_val`: the value of a smooth family of forms on a
+  normed space is jointly continuous in the parameter and the point.
 * `SymplecticGeometry.IsSmoothFamily.continuous_apply_one`: the values of a smooth family of
   one-forms on `ℝ` on the unit vector are jointly continuous in the parameter and the point.
 * `SymplecticGeometry.IsSmoothFamily.ext_on`: two smooth families that agree on a dense set of
@@ -359,20 +361,26 @@ theorem contMDiff_apply (h : IsSmoothFamily J α) (x : M) (v : Fin k → Tangent
     ContMDiff J 𝓘(ℝ, F) ∞ (fun t ↦ (α t).val x v) :=
   (ContinuousAlternatingMap.apply ℝ E F v).contMDiff.comp (h.contMDiff_val_apply x)
 
-/-- For a smooth family `α` of one-forms on `ℝ`, the value of `α t` at `s` on the unit tangent
-vector `1` depends jointly continuously on `(t, s)`. -/
-theorem continuous_apply_one {α : N → SmoothForm 𝓘(ℝ, ℝ) ℝ F 1} (h : IsSmoothFamily J α) :
-    Continuous fun p : N × ℝ ↦ (α p.1).val p.2 (fun _ ↦ 1) := by
+/-- **Joint continuity of a smooth family.** For a smooth family `α` of `k`-forms on a normed
+space `E`, the value `(α t) x`, an element of `E [⋀^Fin k]→L[ℝ] F`, depends continuously on
+`(t, x)`. -/
+theorem continuous_val {α : N → SmoothForm 𝓘(ℝ, E) E F k} (h : IsSmoothFamily J α) :
+    Continuous (Y := E [⋀^Fin k]→L[ℝ] F) fun p : N × E ↦ (α p.1).val p.2 := by
   refine continuous_iff_continuousAt.2 fun p₀ ↦ ?_
   have hc := (Bundle.contMDiffAt_totalSpace_iff.mp (isSmoothFamily_iff_contMDiff.mp h p₀)).2
   simp only [FiberBundle.trivializationAt_continuousAlternatingMap_apply_snd,
     TangentBundle.symmL_model_space] at hc
-  refine ((ContinuousAlternatingMap.apply ℝ ℝ F fun _ ↦ (1 : ℝ)).continuous.continuousAt.comp
-    hc.continuousAt).congr (Filter.Eventually.of_forall fun p ↦ ?_)
-  simp only [Function.comp_apply, ContinuousAlternatingMap.apply_apply]
-  -- The trivialization at `p₀` is the identity `1 : ℝ →L[ℝ] TangentSpace 𝓘(ℝ, ℝ) p.2`; its
-  -- target is `ℝ` only definitionally, so `ContinuousLinearMap.one_apply` does not apply.
+  refine hc.continuousAt.congr (Filter.Eventually.of_forall fun p ↦ ?_)
+  ext v
+  -- The trivialization at `p₀` is the identity `1 : E →L[ℝ] TangentSpace 𝓘(ℝ, E) p.2`; its
+  -- target is `E` only definitionally, so `ContinuousLinearMap.one_apply` does not apply.
   exact (ContinuousAlternatingMap.compContinuousLinearMap_apply _ _ _).trans rfl
+
+/-- For a smooth family `α` of one-forms on `ℝ`, the value of `α t` at `s` on the unit tangent
+vector `1` depends jointly continuously on `(t, s)`. -/
+theorem continuous_apply_one {α : N → SmoothForm 𝓘(ℝ, ℝ) ℝ F 1} (h : IsSmoothFamily J α) :
+    Continuous fun p : N × ℝ ↦ (α p.1).val p.2 (fun _ ↦ 1) :=
+  (ContinuousAlternatingMap.apply ℝ ℝ F fun _ ↦ (1 : ℝ)).continuous.comp h.continuous_val
 
 /-- Two smooth families of forms that agree at the parameters of a dense set are equal. -/
 theorem ext_on (hα : IsSmoothFamily J α) (hβ : IsSmoothFamily J β) {s : Set N} (hs : Dense s)
