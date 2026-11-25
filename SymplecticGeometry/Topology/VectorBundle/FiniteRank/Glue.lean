@@ -883,15 +883,7 @@ private theorem fiberMap_inv_prodMk
     (hg : ∀ x : ↥(U ∩ V), H.hom.fiberMap ⟨(x.val, t), x.property⟩ = g.hom.fiberMap x)
     (x : ↥(U ∩ V)) :
     H.inv.fiberMap ⟨(x.val, t), x.property⟩ = g.inv.fiberMap x := by
-  -- A left inverse of `g.hom.fiberMap x` is its right inverse, in the monoid of endomorphisms.
-  refine left_inv_eq_right_inv (M := (Fin A.rank → 𝕜) →L[𝕜] (Fin A.rank → 𝕜))
-    (a := g.hom.fiberMap x) ?_ ?_
-  · rw [← hg, ContinuousLinearMap.mul_def, ← fiberMap_comp, H.hom_inv_id, fiberMap_id]
-    -- The identity is `1` once the rank of the pullback is unfolded to `A.rank`.
-    rfl
-  · rw [ContinuousLinearMap.mul_def, ← fiberMap_comp, g.inv_hom_id, fiberMap_id]
-    -- The identity is `1` once the rank of the pullback is unfolded to `A.rank`.
-    rfl
+  rw [← inverse_fiberMap_hom, hg, inverse_fiberMap_hom]
 
 /-- The transitions of the pullback of a gluing over `B × T` along `x ↦ (x, t)` are those of the
 gluing by the slice of `H` at `t`. -/
