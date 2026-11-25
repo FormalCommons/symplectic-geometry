@@ -310,10 +310,10 @@ About 450 lines.
 
 ### `Geometry/Manifold/Instances/Surface/Genus.lean`
 
-Prerequisite of Decision 10: `closedSurface g`, the iterated connected sum
+Prerequisite of Decision 10: `ClosedSurface g`, the iterated connected sum
 of `g` standard tori (the sphere for `g = 0`), a closed oriented surface;
 its standard circles $a_k$, $b_k$ through a base point; and
-`closedSurface.fundamentalGroupMulEquiv` onto
+`ClosedSurface.fundamentalGroupMulEquiv` onto
 `TauCeti.SurfaceGroup.Orientable g 0`, sending them to its generators.
 The punctured torus retracts onto the wedge of two circles (Tau Ceti's
 `AlgebraicTopology/FundamentalGroup/WedgeSum.lean`), and van Kampen across
@@ -360,7 +360,7 @@ About 500 lines.
 ### `Geometry/Symplectic/Sum/FinitelyPresented.lean`
 
 - The tori $T_i$ and the fibre torus of Decision 9 in
-  `closedSurface g × (∀ i : Unit ⊕ Unit, AddCircle (p i))` with the product
+  `ClosedSurface g × (∀ i : Unit ⊕ Unit, AddCircle (p i))` with the product
   of an area form and `TauCeti.torusSymplecticForm p`, made pairwise
   disjoint by the small homotopies of Decision 9, symplectic, with
   symplectic framings.
