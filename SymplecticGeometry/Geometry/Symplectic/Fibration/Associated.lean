@@ -398,9 +398,10 @@ variable [ContinuousSMul G F] [FiniteDimensional ℝ EB] [FiniteDimensional ℝ 
 
 /-- The **associated form** on `P ×_G F`: the unique smooth two-form whose pull-back along the
 quotient map `(x, v) ↦ [x, v]` is Weinstein's form `σ + d ⟨μ, A⟩`
-(`mpullback_chartedMk_associatedForm`), for a connection form `A`, a two-form `σ` invariant under
-`G` and an equivariant moment map `μ` (in the sign convention where `-μ` is a moment map in Tau
-Ceti's sense). It is the descent of Weinstein's form, which is invariant and horizontal. -/
+(`mpullback_chartedMk_associatedForm`, `eq_associatedForm_iff`), for a connection form `A`, a
+two-form `σ` invariant under `G` and an equivariant moment map `μ` (in the sign convention where
+`-μ` is a moment map in Tau Ceti's sense). It is the descent of Weinstein's form, which is
+invariant and horizontal. -/
 def associatedForm (σ : SmoothTwoForm IF F) {μ : F → Module.Dual ℝ (GroupLieAlgebra IG G)}
     (hμ : σ.IsEquivariantMomentMap fun v ↦ -μ v)
     (hσG : ∀ g : G, SmoothForm.mpullback (fun v : F ↦ g • v)
@@ -414,19 +415,48 @@ def associatedForm (σ : SmoothTwoForm IF F) {μ : F → Module.Dual ℝ (GroupL
     (AssociatedBundle.isBasic_chartedMk (mpullback_smul_weinsteinForm hμ hσG hA)
       (weinsteinForm_apply_eq_zero_of_fundamental hμ hA))
 
+theorem associatedForm_def (σ : SmoothTwoForm IF F)
+    {μ : F → Module.Dual ℝ (GroupLieAlgebra IG G)} (hμ : σ.IsEquivariantMomentMap fun v ↦ -μ v)
+    (hσG : ∀ g : G, SmoothForm.mpullback (fun v : F ↦ g • v)
+      (ContMDiffSMul.contMDiff_const_smul (I := IG) g) σ = σ)
+    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    (hA : IsConnectionForm A) :
+    associatedForm σ hμ hσG hA =
+      SmoothForm.descendedForm (AssociatedBundle.isSubmersion_chartedMk ENat.LEInfty.out)
+        AssociatedBundle.surjective_chartedMk
+        (weinsteinForm σ μ hμ.toIsMomentMap.contMDiff_of_neg A)
+        (AssociatedBundle.isBasic_chartedMk (mpullback_smul_weinsteinForm hμ hσG hA)
+          (weinsteinForm_apply_eq_zero_of_fundamental hμ hA)) :=
+  (rfl)
+
 /-- The pull-back of the associated form along the quotient map `(x, v) ↦ [x, v]` is Weinstein's
 form `σ + d ⟨μ, A⟩`. -/
+@[simp]
 theorem mpullback_chartedMk_associatedForm {σ : SmoothTwoForm IF F}
+    {μ : F → Module.Dual ℝ (GroupLieAlgebra IG G)} (hμ : σ.IsEquivariantMomentMap fun v ↦ -μ v)
+    (hσG : ∀ g : G, SmoothForm.mpullback (fun v : F ↦ g • v)
+      (ContMDiffSMul.contMDiff_const_smul (I := IG) g) σ = σ)
+    {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
+    (hA : IsConnectionForm A) :
+    SmoothForm.mpullback (AssociatedBundle.chartedMk G F P)
+      (AssociatedBundle.contMDiff_chartedMk ∞ IB IG IF) (associatedForm σ hμ hσG hA) =
+      weinsteinForm σ μ hμ.toIsMomentMap.contMDiff_of_neg A :=
+  SmoothForm.mpullback_descendedForm
+
+/-- The associated form is the only smooth two-form on `P ×_G F` whose pull-back along the
+quotient map `(x, v) ↦ [x, v]` is Weinstein's form `σ + d ⟨μ, A⟩`. -/
+theorem eq_associatedForm_iff {σ : SmoothTwoForm IF F}
     {μ : F → Module.Dual ℝ (GroupLieAlgebra IG G)} (hμ : σ.IsEquivariantMomentMap fun v ↦ -μ v)
     (hσG : ∀ g : G, SmoothForm.mpullback (fun v : F ↦ g • v)
       (ContMDiffSMul.contMDiff_const_smul (I := IG) g) σ = σ)
     {hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ}
     {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
-    (hA : IsConnectionForm A) :
-    SmoothForm.mpullback (AssociatedBundle.chartedMk G F P)
-      (AssociatedBundle.contMDiff_chartedMk ∞ IB IG IF) (associatedForm σ hμ hσG hA) =
-      weinsteinForm σ μ hμs A :=
-  SmoothForm.mpullback_descendedForm
+    (hA : IsConnectionForm A)
+    {τ : SmoothForm (IB.prod IF) (ManifoldTotalSpace F (AssociatedBundle G P F)) ℝ 2} :
+    τ = associatedForm σ hμ hσG hA ↔
+      SmoothForm.mpullback (AssociatedBundle.chartedMk G F P)
+        (AssociatedBundle.contMDiff_chartedMk ∞ IB IG IF) τ = weinsteinForm σ μ hμs A :=
+  SmoothForm.eq_descendedForm_iff
 
 /-- The associated form is **closed** when `σ` is: its pull-back, Weinstein's form, is closed, and
 the quotient map is a surjective submersion. -/
@@ -441,6 +471,7 @@ theorem isClosed_associatedForm {σ : SmoothTwoForm IF F} (hσ : σ.IsClosed)
 
 /-- The associated form **restricts to `σ` on the fibres**: for every point `x` of the total space
 of `P`, its pull-back along the inclusion `v ↦ [x, v]` of `F` onto a fibre of `P ×_G F` is `σ`. -/
+@[simp]
 theorem mpullback_associatedForm_fiber {σ : SmoothTwoForm IF F}
     {μ : F → Module.Dual ℝ (GroupLieAlgebra IG G)} (hμ : σ.IsEquivariantMomentMap fun v ↦ -μ v)
     (hσG : ∀ g : G, SmoothForm.mpullback (fun v : F ↦ g • v)
@@ -453,7 +484,7 @@ theorem mpullback_associatedForm_fiber {σ : SmoothTwoForm IF F}
   have h := SmoothForm.mpullback_mpullback (fun v : F ↦ (x, v)) (AssociatedBundle.chartedMk G F P)
     (contMDiff_const.prodMk contMDiff_id) (AssociatedBundle.contMDiff_chartedMk ∞ IB IG IF)
     (associatedForm σ hμ hσG hA)
-  rw [mpullback_chartedMk_associatedForm (hμs := hμ.toIsMomentMap.contMDiff_of_neg)] at h
+  rw [mpullback_chartedMk_associatedForm] at h
   refine h.symm.trans ?_
   ext v w
   obtain ⟨a, b, rfl⟩ : ∃ a b, w = ![a, b] := ⟨w 0, w 1, (FinVec.etaExpand_eq _).symm⟩
