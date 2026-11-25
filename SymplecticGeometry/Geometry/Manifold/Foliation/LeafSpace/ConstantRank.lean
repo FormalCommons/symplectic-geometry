@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Distribution.ConstantRank
 public import SymplecticGeometry.Geometry.Manifold.Foliation.LeafSpace.Smooth
 public import TauCeti.Geometry.Manifold.Submersion.Descent
 import Mathlib.Geometry.Manifold.Instances.Real
+import SymplecticGeometry.Topology.Algebra.Module.FiniteDimension
 
 /-!
 # The kernel foliation of a map of constant rank is regular
@@ -37,8 +38,9 @@ map that `f` induces on the leaf space is then an immersion.
 
 In the coordinates `φ`, `ψ` of Tau Ceti's rank theorem
 `ContMDiffOn.exists_openPartialHomeomorph_comp_eq_mfderiv_comp` around a point `x`, with
-`φ x = 0`, the map reads as a linear map `A`. Take a complement `W` of `ker A` and a linear
-isomorphism `L` from the model space of the slices onto `W`. The slice through `x` is
+`φ x = 0`, the map reads as a linear map `A`. Take an injective linear map `L` from
+the model space of the slices whose range is a complement of `ker A`
+(`Submodule.exists_continuousLinearMap_injective_isCompl_range`). The slice through `x` is
 `u ↦ φ.symm (L u)`, on the open set of `u` with `L u` in the target of `φ`. In the coordinate `ψ`,
 `f` along the slice is `A ∘ L`, which is injective. Two points on one leaf have the same image
 under `f` (`TauCeti.Foliation.SameLeaf.apply_eq_of_ofConstantRank`), so two points of the slice on
@@ -130,17 +132,13 @@ theorem isRegular_ofConstantRank (hf : ContMDiff I J ∞ f) (hr : ∀ x, mfderiv
     rw [hcomp, LinearEquiv.finrank_map_eq]
     omega
   -- A complement of `ker A`, parametrized linearly by the model space of the slices.
-  obtain ⟨W, hW⟩ := (LinearMap.ker (A : E →ₗ[ℝ] F)).exists_isCompl
-  have hd : finrank ℝ (EuclideanSpace ℝ (Fin (finrank ℝ E - (finrank ℝ E - r)))) =
-      finrank ℝ W := by
-    have := Submodule.finrank_add_eq_of_isCompl hW
-    rw [finrank_euclideanSpace_fin]
-    omega
-  let L : EuclideanSpace ℝ (Fin (finrank ℝ E - (finrank ℝ E - r))) →L[ℝ] E :=
-    W.subtypeL.comp (ContinuousLinearEquiv.ofFinrankEq hd).toContinuousLinearMap
-  have hAL {w} (hw : A (L w) = 0) : w = 0 := by
-    have : L w = 0 := (Submodule.disjoint_def.1 hW.disjoint) _ hw (by simp [L])
-    simpa [L] using this
+  obtain ⟨L, hL, hW⟩ :=
+    (LinearMap.ker (A : E →ₗ[ℝ] F)).exists_continuousLinearMap_injective_isCompl_range
+      (F := EuclideanSpace ℝ (Fin (finrank ℝ E - (finrank ℝ E - r))))
+      (by rw [finrank_euclideanSpace_fin, hK]; omega)
+  have hAL {w} (hw : A (L w) = 0) : w = 0 :=
+    hL (((Submodule.disjoint_def.1 hW.disjoint) _ hw (LinearMap.mem_range_self _ _)).trans
+      (map_zero L).symm)
   -- The slice: the preimage under `φ` of the image of `L`.
   let U : Opens (EuclideanSpace ℝ (Fin (finrank ℝ E - (finrank ℝ E - r)))) :=
     ⟨L ⁻¹' φ.target, φ.open_target.preimage L.continuous⟩
@@ -176,7 +174,7 @@ theorem isRegular_ofConstantRank (hf : ContMDiff I J ∞ f) (hr : ∀ x, mfderiv
         sub_self]
     exact Subtype.ext (sub_eq_zero.1 (hAL h'))
   exact ⟨U, s, isSlice_ofConstantRank hf hr hs hinj hkey,
-    ⟨0, by simpa [U, L, hφx] using φ.map_source hxφ⟩, by simp [s, L, ← hφx, φ.left_inv hxφ]⟩
+    ⟨0, by simpa [U, hφx] using φ.map_source hxφ⟩, by simp [s, ← hφx, φ.left_inv hxφ]⟩
 
 /-- The kernel of the differential at `x` of the projection onto the leaf space of the kernel
 foliation of a smooth map `f` of constant rank is the kernel of the differential of `f` at `x`. -/
