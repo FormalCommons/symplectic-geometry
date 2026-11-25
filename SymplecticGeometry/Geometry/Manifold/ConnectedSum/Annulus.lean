@@ -91,8 +91,9 @@ itself (`SymplecticGeometry.map_mem_annulus_iff`).
   `SymplecticGeometry.ConnectedSum.connectedSum_inl_eq_inr_iff`: the points that Tau Ceti's
   connected sum along `rescale ι₁ ε` and `rescale ι₂ ε` glues, from
   `EuclideanGeometry.inversion_mul_homothety`.
-* `SymplecticGeometry.ConnectedSum.apply_inversion_mem_piece`: for `ε² < 1`, the inversion
-  `inversion 0 ε` sends a removed point `ι ξ`, `0 < ‖ξ‖ ≤ ε²`, into the piece.
+* `SymplecticGeometry.ConnectedSum.apply_inversion_mem_piece`: for `ε ≠ 0` and
+  `0 < ‖ξ‖ < 1`, the point `ι (inversion 0 ε ξ)` lies in the piece; with `ε² < 1` this sends each
+  removed point `ι ξ`, `0 < ‖ξ‖ ≤ ε²`, into the piece.
 * `SymplecticGeometry.ConnectedSum.toConnectedSum`: the map from `AnnulusSum` to Tau Ceti's
   connected sum, with `toConnectedSum_inl` and `toConnectedSum_inr`; it is a local diffeomorphism
   (`isLocalDiffeomorph_toConnectedSum`), injective (`injective_toConnectedSum`) and, for
@@ -235,6 +236,16 @@ theorem mem_piece_iff {x : M} : x ∈ piece ι ε hι ↔ x ∉ ι '' Metric.clo
 theorem apply_mem_piece_iff (hι' : Function.Injective ι) {ξ : E} :
     ι ξ ∈ piece ι ε hι ↔ ε ^ 2 < ‖ξ‖ := by
   rw [mem_piece_iff, hι'.mem_set_image, Metric.mem_closedBall, dist_zero_right, not_le]
+
+variable [InnerProductSpace ℝ E] in
+/-- For injective `ι` and `ε ≠ 0`, the inversion `inversion 0 ε` sends a point `ξ ≠ 0` inside the
+open unit ball to a point whose image under `ι` lies in the piece: its norm `ε² / ‖ξ‖` exceeds
+`ε²`. -/
+theorem apply_inversion_mem_piece (hι' : Function.Injective ι) (hε : ε ≠ 0) {ξ : E}
+    (hξ : ξ ≠ 0) (h : ‖ξ‖ < 1) : ι (inversion 0 ε ξ) ∈ piece ι ε hι := by
+  rw [apply_mem_piece_iff hι', lt_norm_inversion_zero_iff ε (by positivity) hξ,
+    div_self (by positivity)]
+  exact h
 
 /-- For injective `ι`, the image of a point of the annulus lies in the piece. -/
 theorem mem_piece_of_mem_annulus (hι' : Function.Injective ι) {ξ : E}
@@ -504,22 +515,6 @@ theorem connectedSum_inl_eq_inr_iff (hι₁ : Function.Injective ι₁) (hε : �
 
 end Gluing
 
-section Piece
-
-variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
-  {M : Type*} [TopologicalSpace M] [T2Space M] {ι : E → M} {hι : Continuous ι} {ε : ℝ}
-
-/-- For injective `ι` and `ε² < 1`, a point `ι ξ` that the piece removes, other than the centre
-(`0 < ‖ξ‖ ≤ ε²`), is sent by the inversion `inversion 0 ε` into the piece: inversion maps it
-beyond the unit sphere. -/
-theorem apply_inversion_mem_piece (hι' : Function.Injective ι) (hε₁ : ε ^ 2 < 1) {ξ : E}
-    (hξ : ξ ≠ 0) (hξε : ‖ξ‖ ≤ ε ^ 2) : ι (inversion 0 ε ξ) ∈ piece ι ε hι := by
-  have := norm_pos_iff.2 hξ
-  rw [apply_mem_piece_iff hι', norm_inversion_zero, lt_div_iff₀ this]
-  nlinarith
-
-end Piece
-
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
   {n : ℕ∞} {M₁ M₂ : Type u} [TopologicalSpace M₁] [ChartedSpace E M₁] [T2Space M₁]
   [TopologicalSpace M₂] [ChartedSpace E M₂] [T2Space M₂] {ι₁ : E → M₁} {ι₂ : E → M₂}
@@ -616,8 +611,8 @@ theorem surjective_toConnectedSum (hε₁ : ε ^ 2 < 1) :
       exact (TauCeti.ConnectedSum.mem_puncture.1 hx) (by simp)
     have hy : ι₂ (Φ (inversion 0 ε ξ)) ∈ piece ι₂ ε hι₂.continuous := by
       rw [Φ.map_inversion_zero]
-      exact apply_inversion_mem_piece hι₂.injective hε₁ (Φ.map_ne_zero_iff.2 hξ)
-        (by simpa using hξε)
+      exact apply_inversion_mem_piece hι₂.injective hε (Φ.map_ne_zero_iff.2 hξ)
+        (by simpa using hξε.trans_lt hε₁)
     refine ⟨GluedAlong.inr _ ⟨_, hy⟩, ?_⟩
     rw [toConnectedSum_inr]
     exact ((connectedSum_inl_eq_inr_iff hι₁.injective hε).2 ⟨ξ, hξ, rfl, rfl⟩).symm
@@ -627,8 +622,8 @@ theorem surjective_toConnectedSum (hε₁ : ε ^ 2 < 1) :
     have hη : η ≠ 0 := by
       rintro rfl
       exact (TauCeti.ConnectedSum.mem_puncture.1 hy) (by simp)
-    have hx := apply_inversion_mem_piece (hι := hι₁.continuous) hι₁.injective hε₁
-      (Φ.symm.map_ne_zero_iff.2 hη) (by simpa using hηε)
+    have hx := apply_inversion_mem_piece (hι := hι₁.continuous) hι₁.injective hε
+      (Φ.symm.map_ne_zero_iff.2 hη) (by simpa using hηε.trans_lt hε₁)
     refine ⟨GluedAlong.inl _ ⟨_, hx⟩, ?_⟩
     rw [toConnectedSum_inl]
     exact (connectedSum_inl_eq_inr_iff hι₁.injective hε).2
