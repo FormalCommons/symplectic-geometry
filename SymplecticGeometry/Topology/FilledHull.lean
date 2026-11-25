@@ -164,15 +164,17 @@ theorem IsClosed.frontier_setOf_isCompact_closure_connectedComponentIn_compl_sub
 
 end Closed
 
-/-- **Where a curve first leaves a closed set.** Let `F` be closed and `α : ℝ → X` continuous on
-`[a, b]`, with `α a ∈ F`, `α b ∉ F` and `a < b`. Then there is `s ∈ [a, b)` such that `α` maps
-`[a, s]` into `F`, `α s` lies on the frontier of `F`, and every interval `(s, u)` contains a
-parameter at which `α` is outside `F`. -/
-theorem IsClosed.exists_mem_Ico_image_Icc_subset_mem_frontier {F : Set X} (hF : IsClosed F)
-    {α : ℝ → X} {a b : ℝ} (hα : ContinuousOn α (Icc a b)) (hab : a < b) (ha : α a ∈ F)
-    (hb : α b ∉ F) :
+/-- **Where a curve first leaves a closed set.** Let `ι` be a densely ordered, conditionally
+complete linear order, `F` a closed set and `α : ι → X` continuous on `[a, b]`, with `α a ∈ F`,
+`α b ∉ F` and `a < b`. Then there is `s ∈ [a, b)` such that `α` maps `[a, s]` into `F`, `α s`
+lies on the frontier of `F`, and every interval `(s, u)` contains a parameter at which `α` is
+outside `F`. -/
+theorem IsClosed.exists_mem_Ico_image_Icc_subset_mem_frontier {ι : Type*}
+    [ConditionallyCompleteLinearOrder ι] [TopologicalSpace ι] [OrderTopology ι] [DenselyOrdered ι]
+    {F : Set X} (hF : IsClosed F) {α : ι → X} {a b : ι} (hα : ContinuousOn α (Icc a b))
+    (hab : a < b) (ha : α a ∈ F) (hb : α b ∉ F) :
     ∃ s ∈ Ico a b, α '' Icc a s ⊆ F ∧ α s ∈ frontier F ∧
-      ∀ u, s < u → ∃ t ∈ Ioo s u, α t ∉ F := by
+      ∀ u : ι, s < u → ∃ t ∈ Ioo s u, α t ∉ F := by
   set T := {t | t ∈ Icc a b ∧ α t ∉ F}
   have hbT : b ∈ T := ⟨⟨hab.le, le_rfl⟩, hb⟩
   have hTbdd : BddBelow T := ⟨a, fun t ht ↦ ht.1.1⟩
@@ -196,14 +198,15 @@ theorem IsClosed.exists_mem_Ico_image_Icc_subset_mem_frontier {F : Set X} (hF : 
   have hsF : α s ∈ F := hIcc ⟨s, ⟨has, le_rfl⟩, rfl⟩
   have hsb' : s < b := hsb.lt_of_ne fun hs ↦ hb (hs ▸ hsF)
   -- Right after `s` there are parameters at which the curve is outside `F`.
-  have hafter (u : ℝ) (hu : s < u) : ∃ t ∈ Ioo s u, α t ∉ F := by
+  have hafter (u : ι) (hu : s < u) : ∃ t ∈ Ioo s u, α t ∉ F := by
     obtain ⟨t, htT, htu⟩ := exists_lt_of_csInf_lt ⟨b, hbT⟩ hu
     exact ⟨t, ⟨(csInf_le hTbdd htT).lt_of_ne fun hst ↦ htT.2 (hst ▸ hsF), htu⟩, htT.2⟩
   refine ⟨s, ⟨has, hsb'⟩, hIcc, ⟨subset_closure hsF, fun hint ↦ ?_⟩, hafter⟩
   have hIcc_nhds : Icc a b ∈ 𝓝[>] s := mem_of_superset (Ioo_mem_nhdsGT hsb')
     (Ioo_subset_Icc_self.trans (Icc_subset_Icc_left has))
-  obtain ⟨u, hu, hsub⟩ := mem_nhdsGT_iff_exists_Ioo_subset.1 <| nhdsWithin_le_of_mem hIcc_nhds <|
-    (hα s ⟨has, hsb'.le⟩).preimage_mem_nhdsWithin (isOpen_interior.mem_nhds hint)
+  obtain ⟨u, hu, hsub⟩ := (mem_nhdsGT_iff_exists_Ioo_subset' hsb').1 <|
+    nhdsWithin_le_of_mem hIcc_nhds <|
+      (hα s ⟨has, hsb'.le⟩).preimage_mem_nhdsWithin (isOpen_interior.mem_nhds hint)
   obtain ⟨t, ht, htF⟩ := hafter u hu
   exact htF (interior_subset (hsub ht))
 
