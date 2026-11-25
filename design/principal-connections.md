@@ -400,7 +400,7 @@ Issues 1, 2 and 5 can start at once.
   the adjoint and coadjoint actions (`Geometry/Lie/Adjoint/`), forms with
   values in a normed space, their pull-back, exterior derivative, wedge
   and descent (`Geometry/Manifold/DifferentialForm/`), Ehresmann
-  connections (`Geometry/Manifold/Submersion/EhresmannConnection.lean`),
+  connections (`Geometry/Manifold/Submersion/EhresmannConnection/Basic.lean`),
   equivariant moment maps
   (`Geometry/Symplectic/Hamiltonian/EquivariantMomentMap/Basic.lean`).
 
