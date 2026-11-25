@@ -30,7 +30,8 @@ A linear functional `f` on `D` is *smooth along smooth families*
 (`SymplecticGeometry.SmoothAlongFamilies`) when `t ↦ f (α t)` is a smooth real function for every
 such family `α`. For maps into a finite-dimensional space `S` of forms with a basis `b`,
 preserving smooth families says that the coordinate functionals `b.coord i ∘ₗ T` are smooth
-along smooth families (`SymplecticGeometry.preservesSmoothFamilies_iff_contMDiff_repr`).
+along smooth families
+(`SymplecticGeometry.preservesSmoothFamilies_iff_smoothAlongFamilies_coord`).
 One direction holds because each linear functional on `S` is a finite linear combination of
 functionals `ω ↦ φ (ω x v)`, with `φ` a continuous linear functional on the coefficient
 space, and these are smooth on smooth families; the other writes `T (α t)` as `∑ i, c i t • b i`.
@@ -50,16 +51,16 @@ space, and these are smooth on smooth families; the other writes `T (α t)` as `
   `SymplecticGeometry.preservesSmoothFamilies_subtype`; for functionals, `SmoothAlongFamilies.add`,
   `.smul`, `.neg`, `.sub`, `.comp`, `SymplecticGeometry.smoothAlongFamilies_zero` and
   `PreservesSmoothFamilies.smoothAlongFamilies_comp`.
-* `SymplecticGeometry.preservesSmoothFamilies_iff_contMDiff_repr`: a map into a
+* `SymplecticGeometry.preservesSmoothFamilies_iff_smoothAlongFamilies_coord`: a map into a
   finite-dimensional space of forms preserves smooth families exactly when its coordinates in a
   basis are smooth along smooth families.
 * `SymplecticGeometry.preservesSmoothFamilies_sum_smulRight`: a finite linear combination of
   fixed forms, with coefficients that are smooth along smooth families, preserves smooth
-  families; `SymplecticGeometry.preservesSmoothFamilies_comp_of_contMDiff_repr`: a map whose
-  coordinates in a finite basis are smooth along smooth families, followed by any linear map,
-  preserves smooth families; and `PreservesSmoothFamilies.comp_of_finiteDimensional`: a map
-  that preserves smooth families into a finite-dimensional space of forms may be followed by
-  any linear map.
+  families; `SymplecticGeometry.preservesSmoothFamilies_comp_of_smoothAlongFamilies_coord`: a
+  map whose coordinates in a finite basis are smooth along smooth families, followed by any
+  linear map, preserves smooth families; and
+  `PreservesSmoothFamilies.comp_of_finiteDimensional`: a map that preserves smooth families into a
+  finite-dimensional space of forms may be followed by any linear map.
 * `SymplecticGeometry.isSmoothFamily_comp_of_contMDiff_repr`: a family of vectors of a space
   with a finite basis, over any manifold, whose coordinates are smooth, is carried by any linear
   map to a smooth family of forms; `SymplecticGeometry.isSmoothFamily_of_contMDiff_dual`: the
@@ -228,9 +229,7 @@ variable {f f₁ f₂ : D →ₗ[ℝ] ℝ}
 /-- The sum of two functionals smooth along smooth families is smooth along smooth families. -/
 protected theorem add (h₁ : SmoothAlongFamilies.{uE, uH, uN} f₁)
     (h₂ : SmoothAlongFamilies.{uE, uH, uN} f₂) : SmoothAlongFamilies.{uE, uH, uN} (f₁ + f₂) :=
-  fun α hα ↦ by
-    simpa only [LinearMap.add_apply, Function.comp_def] using
-      contDiff_add.contMDiff.comp ((h₁ α hα).prodMk_space (h₂ α hα))
+  fun α hα ↦ (h₁ α hα).add (h₂ α hα)
 
 /-- A constant multiple of a functional smooth along smooth families is smooth along smooth
 families. -/
@@ -355,9 +354,9 @@ theorem PreservesSmoothFamilies.smoothAlongFamilies_comp [FiniteDimensional ℝ 
   fun _ hα ↦ by simpa only [LinearMap.comp_apply] using hT.contMDiff_dual_apply hα f
 
 /-- Let `b` be a finite basis of a space `S` of forms, and `T : D →ₗ[ℝ] S` a map whose
-coordinates `t ↦ b.repr (T (α t)) i` are smooth along every smooth family `α`. Then `T`
-followed by any linear map `U` on `S` preserves smooth families. -/
-theorem preservesSmoothFamilies_comp_of_contMDiff_repr {ι : Type*} [Finite ι]
+coordinate functionals `b.coord i ∘ₗ T` are smooth along smooth families. Then `T` followed by
+any linear map `U` on `S` preserves smooth families. -/
+theorem preservesSmoothFamilies_comp_of_smoothAlongFamilies_coord {ι : Type*} [Finite ι]
     (b : Module.Basis ι ℝ S) {T : D →ₗ[ℝ] S}
     (h : ∀ i, SmoothAlongFamilies.{uE, uH, uN} (b.coord i ∘ₗ T))
     (U : S →ₗ[ℝ] SmoothForm I'' M'' G' l') : PreservesSmoothFamilies.{uE, uH, uN} (U ∘ₗ T) :=
@@ -367,16 +366,15 @@ theorem preservesSmoothFamilies_comp_of_contMDiff_repr {ι : Type*} [Finite ι]
         simpa only [LinearMap.comp_apply, Module.Basis.coord_apply] using h i α hα
 
 /-- **Maps into a finite-dimensional space of forms.** A linear map `T` into a
-finite-dimensional space `S` of forms with a basis `b` preserves smooth families exactly when, for
-every smooth family `α` over a smooth manifold `N`, each coordinate `t ↦ b.repr (T (α t)) i` is
-smooth on `N`. -/
-theorem preservesSmoothFamilies_iff_contMDiff_repr {ι : Type*} [Finite ι]
+finite-dimensional space `S` of forms with a basis `b` preserves smooth families exactly when
+each coordinate functional `b.coord i ∘ₗ T` is smooth along smooth families. -/
+theorem preservesSmoothFamilies_iff_smoothAlongFamilies_coord {ι : Type*} [Finite ι]
     (b : Module.Basis ι ℝ S) (T : D →ₗ[ℝ] S) :
     PreservesSmoothFamilies.{uE, uH, uN} (S.subtype ∘ₗ T) ↔
       ∀ i, SmoothAlongFamilies.{uE, uH, uN} (b.coord i ∘ₗ T) := by
   have := Module.Finite.of_basis b
   exact ⟨fun hT i ↦ hT.smoothAlongFamilies_comp (b.coord i),
-    fun h ↦ preservesSmoothFamilies_comp_of_contMDiff_repr b h S.subtype⟩
+    fun h ↦ preservesSmoothFamilies_comp_of_smoothAlongFamilies_coord b h S.subtype⟩
 
 /-- A map that preserves smooth families into a finite-dimensional space `S` of forms, followed by
 any linear map on `S`, preserves smooth families. -/
@@ -384,7 +382,7 @@ theorem PreservesSmoothFamilies.comp_of_finiteDimensional [FiniteDimensional ℝ
     {T : D →ₗ[ℝ] S} (hT : PreservesSmoothFamilies.{uE, uH, uN} (S.subtype ∘ₗ T))
     (U : S →ₗ[ℝ] SmoothForm I'' M'' G' l') : PreservesSmoothFamilies.{uE, uH, uN} (U ∘ₗ T) :=
   have := Module.Free.of_divisionRing ℝ S
-  preservesSmoothFamilies_comp_of_contMDiff_repr (Module.finBasis ℝ S)
+  preservesSmoothFamilies_comp_of_smoothAlongFamilies_coord (Module.finBasis ℝ S)
     (fun i ↦ hT.smoothAlongFamilies_comp ((Module.finBasis ℝ S).coord i)) U
 
 end FiniteDimensional
