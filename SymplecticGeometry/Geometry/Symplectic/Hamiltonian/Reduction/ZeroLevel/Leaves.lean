@@ -132,7 +132,6 @@ theorem fundamentalVectorField_mem_distribution_characteristicFoliation_zeroLeve
     (ξ : GroupLieAlgebra I G) (z : h.zeroLevel) :
     letI := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
     haveI := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
-    haveI : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
     fundamentalVectorField 𝓘(ℝ, Fin n → ℝ) ξ z ∈
       ((h.isCoisotropicMap_coe_zeroLevel hσ.isNondegenerate hfree hn).characteristicFoliation
         (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).isImmersion
@@ -140,7 +139,6 @@ theorem fundamentalVectorField_mem_distribution_characteristicFoliation_zeroLeve
         le_rfl).distribution z := by
   let := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
   have := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
-  have : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
   have := h.contMDiffSMul_zeroLevel hσ.isNondegenerate hfree hn
   have hemb := h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn
   rw [IsNondegenerate.IsCoisotropicMap.characteristicFoliation_distribution,
@@ -163,7 +161,6 @@ theorem mulInvariantExp_smul_mem_leaf_characteristicFoliation_zeroLevel [T2Space
     [BoundarylessManifold I G] (ξ : GroupLieAlgebra I G) (z : h.zeroLevel) :
     letI := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
     haveI := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
-    haveI : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
     mulInvariantExp ξ • z ∈
       ((h.isCoisotropicMap_coe_zeroLevel hσ.isNondegenerate hfree hn).characteristicFoliation
         (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).isImmersion
@@ -171,7 +168,6 @@ theorem mulInvariantExp_smul_mem_leaf_characteristicFoliation_zeroLevel [T2Space
         le_rfl).leaf z := by
   let := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
   have := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
-  have : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
   have := h.contMDiffSMul_zeroLevel hσ.isNondegenerate hfree hn
   exact Foliation.mulInvariantExp_smul_mem_leaf _
     (h.fundamentalVectorField_mem_distribution_characteristicFoliation_zeroLevel hfree hn hσ) ξ z
@@ -184,7 +180,6 @@ theorem orbit_subset_leaf_characteristicFoliation_zeroLevel [ConnectedSpace G]
     (z : h.zeroLevel) :
     letI := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
     haveI := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
-    haveI : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
     MulAction.orbit G z ⊆
       ((h.isCoisotropicMap_coe_zeroLevel hσ.isNondegenerate hfree hn).characteristicFoliation
         (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).isImmersion
@@ -192,7 +187,6 @@ theorem orbit_subset_leaf_characteristicFoliation_zeroLevel [ConnectedSpace G]
         le_rfl).leaf z := by
   let := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
   have := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
-  have : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
   have := h.contMDiffSMul_zeroLevel hσ.isNondegenerate hfree hn
   exact Foliation.orbit_subset_leaf _
     (h.fundamentalVectorField_mem_distribution_characteristicFoliation_zeroLevel hfree hn hσ) z
@@ -205,7 +199,6 @@ theorem leaf_characteristicFoliation_zeroLevel_subset_orbit [ProperSMul G h.zero
     (z : h.zeroLevel) :
     letI := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
     haveI := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
-    haveI : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
     ((h.isCoisotropicMap_coe_zeroLevel hσ.isNondegenerate hfree hn).characteristicFoliation
         (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).isImmersion
         (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).contMDiff hσ.isClosed
@@ -214,7 +207,6 @@ theorem leaf_characteristicFoliation_zeroLevel_subset_orbit [ProperSMul G h.zero
   let := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
   let := h.zeroLevelQuotientChartedSpace hσ.isNondegenerate hfree hn
   have := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
-  have : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
   have : IsManifold 𝓘(ℝ, ProperSMul.QuotientModelSpace E (Fin n → ℝ)) 1
       (MulAction.orbitRel.Quotient G h.zeroLevel) :=
     (h.isManifold_zeroLevelQuotient hσ.isNondegenerate hfree hn).of_le (by norm_num)
@@ -237,7 +229,6 @@ theorem leaf_characteristicFoliation_zeroLevel [ConnectedSpace G] [ProperSMul G 
     (z : h.zeroLevel) :
     letI := h.zeroLevelChartedSpace hσ.isNondegenerate hfree hn
     haveI := h.isManifold_zeroLevel hσ.isNondegenerate hfree hn
-    haveI : IsManifold 𝓘(ℝ, Fin n → ℝ) (1 + 1) h.zeroLevel := .of_le (n := ∞) (by norm_num)
     ((h.isCoisotropicMap_coe_zeroLevel hσ.isNondegenerate hfree hn).characteristicFoliation
         (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).isImmersion
         (h.isSmoothEmbedding_coe_zeroLevel hσ.isNondegenerate hfree hn).contMDiff hσ.isClosed

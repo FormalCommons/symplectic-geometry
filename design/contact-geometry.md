@@ -758,11 +758,7 @@ Expected size: 650 lines, in two issues (L1 and L2).
   is applied on an open submanifold of `T*L`. `LegendrianNeighborhood.lean` also
   uses `Geometry/Manifold/VectorBundle/ZeroSection.lean`, for the zero section as
   a smooth embedding, and `Geometry/Manifold/Diffeomorph/Basic.lean` and
-  `Topology/Sets/Opens/Basic.lean`, for an empty `L`. Also
-  `Geometry/Manifold/IsManifold/Basic.lean`, for its instance giving
-  `C^(m + 1)` structures from `C^∞` ones, in
-  `Geometry/Manifold/TubularNeighborhood/Riemannian/Injective.lean`,
-  `LegendrianNeighborhood.lean` and `Family.lean`.
+  `Topology/Sets/Opens/Basic.lean`, for an empty `L`.
 - *Moser isotopy*: `SmoothForm.mpullback_prodMk_mpullback_prodMap'` and its variants of
   `Geometry/Manifold/DifferentialForm/Pullback/Family.lean`, already merged
   (for `Flow/Family.lean`, `Family.lean` and `Gray.lean`), and

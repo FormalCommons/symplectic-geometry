@@ -13,7 +13,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Basic
 import SymplecticGeometry.Geometry.Manifold.Distribution.OneFormKernel
-import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
+import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.FiberBundle.Submersion
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 
