@@ -26,6 +26,10 @@ derivatives of `v` with those of its partials `∂₁v` and `∂_I v` is general
   and `μ` is differentiable. It rests on `TauCeti.fderiv_conjWirtingerDeriv_apply` and
   `TauCeti.fderiv_wirtingerDeriv_apply` (`∂ₐ` commutes with `∂̄` and `∂`), which follow from
   `ContDiffAt.fderiv_comp_fderiv_apply`.
+* `TauCeti.conjWirtingerDeriv_add_smul_wirtingerDeriv_congr`: `P v` depends on `μ` only on the
+  topological support of `v`, since `∂v` vanishes off it
+  (`TauCeti.wirtingerDeriv_of_notMem_tsupport`, proved as Tau Ceti's
+  `TauCeti.conjWirtingerDeriv_of_notMem_tsupport`).
 * `ContDiff.conjWirtingerDeriv_apply` and `ContDiff.wirtingerDeriv_apply`: the Wirtinger
   derivatives of a `C^(m+1)` map, evaluated on a fixed vector, are `C^m`; the global forms of
   Tau Ceti's `ContDiffAt.conjWirtingerDeriv_apply` and `ContDiffAt.wirtingerDeriv_apply`.
@@ -94,6 +98,22 @@ theorem conjWirtingerDeriv_fderiv_apply_add_smul_wirtingerDeriv {μ : V → ℂ}
     fderiv_wirtingerDeriv_apply hv]
   abel
 
+/-- The Wirtinger derivative vanishes off the topological support. -/
+theorem wirtingerDeriv_of_notMem_tsupport (hz : z ∉ tsupport v) : wirtingerDeriv v z = 0 := by
+  ext b
+  simp [wirtingerDeriv_apply, fderiv_of_notMem_tsupport ℝ hz]
+
+/-- The operator `∂̄ + μ ∂` only sees `μ` on the topological support of `v`: two coefficients
+that agree there give the same `∂̄v(·) b + μ ∂v(·) b`. -/
+theorem conjWirtingerDeriv_add_smul_wirtingerDeriv_congr {ρ μ : V → ℂ}
+    (h : Set.EqOn ρ μ (tsupport v)) (b : V) :
+    (fun z ↦ conjWirtingerDeriv v z b + ρ z • wirtingerDeriv v z b) =
+      fun z ↦ conjWirtingerDeriv v z b + μ z • wirtingerDeriv v z b := by
+  funext z
+  by_cases hz : z ∈ tsupport v
+  · rw [h hz]
+  · simp [wirtingerDeriv_of_notMem_tsupport hz]
+
 section ContDiff
 
 variable {g : V → W} {m n : WithTop ℕ∞}
@@ -123,9 +143,8 @@ theorem eLpNorm_iteratedFDeriv_wirtingerDeriv_one_le {v : ℂ → F} {m : ℕ}
     (hv : ContDiff ℝ (m + 1 : ℕ) v) (ν : Measure ℂ) (p : ℝ≥0∞) :
     eLpNorm (iteratedFDeriv ℝ m (fun z ↦ wirtingerDeriv v z 1)) p ν ≤
       eLpNorm (iteratedFDeriv ℝ (m + 1) v) p ν := by
-  have hw : ContDiff ℝ m (fun z ↦ wirtingerDeriv v z 1) := by
-    rw [wirtingerDeriv_one_eq_comp]
-    exact wirtingerOne.contDiff.comp (hv.fderiv_right (m := m) (by norm_cast))
+  have hw : ContDiff ℝ m (fun z ↦ wirtingerDeriv v z 1) :=
+    hv.wirtingerDeriv_apply (by norm_cast) 1
   refine eLpNorm_mono ((hw.continuous_iteratedFDeriv le_rfl).aestronglyMeasurable) fun x ↦ ?_
   rw [iteratedFDeriv_wirtingerDeriv_one hv]
   exact norm_wirtingerOneCurryRight_apply_le _ _
@@ -170,11 +189,9 @@ theorem exists_eLpNorm_iteratedFDeriv_fderiv_smul_wirtingerDeriv_le (ν : Measur
     by_cases hz : z ∈ tsupport v
     · have h : ρ =ᶠ[𝓝 z] μ := (hχ1 z (hvK hz)).mono fun y hy ↦ by simp [ρ, hy]
       simp [B, g, h.fderiv_eq]
-    · have h : v =ᶠ[𝓝 z] fun _ ↦ 0 := notMem_tsupport_iff_eventuallyEq.1 hz
-      simp [h.wirtingerDeriv_eq]
-  have hw : ContDiff ℝ k (fun z ↦ wirtingerDeriv v z 1) := by
-    rw [wirtingerDeriv_one_eq_comp]
-    exact wirtingerOne.contDiff.comp (hv.fderiv_right (m := k) (by norm_cast))
+    · simp [wirtingerDeriv_of_notMem_tsupport hz]
+  have hw : ContDiff ℝ k (fun z ↦ wirtingerDeriv v z 1) :=
+    hv.wirtingerDeriv_apply (by norm_cast) 1
   rw [heq]
   refine (B.eLpNorm_iteratedFDeriv_le_of_bilinear hg hw (le_refl (k : WithTop ℕ∞) |>.trans' ?_)
     hp (q := fun _ ↦ (∞ : ℝ≥0∞)) (r := fun _ ↦ p) fun _ _ ↦ inferInstance).trans ?_

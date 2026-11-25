@@ -55,11 +55,11 @@ itself it is integrable.
 ## Main declarations
 
 * `TauCeti.SmoothAlmostComplexStructure.IsIntegrable`: integrability of a smooth almost complex
-  structure; `isIntegrable_iff_mfderiv` states it through derivatives of charts, and
-  `isIntegrable_of_forall_exists_isLocalDiffeomorphAt` accepts, in place of a chart, any map
-  that is a local diffeomorphism at the point, and
-  `isIntegrable_of_forall_exists_partialDiffeomorph` any partial diffeomorphism into a normed
-  space other than the model.
+  structure; `isIntegrable_iff_mfderiv` states it through derivatives of charts,
+  `isIntegrable_of_forall_exists_partialDiffeomorph` accepts, in place of a chart, any partial
+  diffeomorphism into a normed space other than the model, and
+  `isIntegrable_of_forall_exists_isLocalDiffeomorphAt` any map into such a space that is a local
+  diffeomorphism at the point.
 * `TauCeti.SmoothAlmostComplexStructure.isIntegrable_ofComplexManifold`: the almost complex
   structure of a complex manifold is integrable.
 * `TauCeti.SmoothAlmostComplexStructure.ofTangentCoordChange` and
@@ -124,28 +124,6 @@ theorem isIntegrable_iff_mfderiv : J.IsIntegrable ↔
       x ∈ ψ.source ∧ ∀ y ∈ ψ.source, ∀ v : TangentSpace I y,
         mfderiv I 𝓘(ℝ, E) ψ y (J y v) = J₀ (mfderiv I 𝓘(ℝ, E) ψ y v) := by
   simp only [isIntegrable_def, forall_chartPushforward_apply_eq_iff]
-
-/-- `J` is integrable when around every point `x` there are a neighbourhood `s` of `x` and a map
-`φ : M → E` that is a smooth local diffeomorphism at `x` and whose derivative carries `J` to a
-fixed linear complex structure of `E` at every point of `s`. -/
-theorem isIntegrable_of_forall_exists_isLocalDiffeomorphAt
-    (h : ∀ x : M, ∃ (φ : M → E) (s : Set M) (J₀ : AlmostComplexStructure E),
-      s ∈ nhds x ∧ IsLocalDiffeomorphAt I 𝓘(ℝ, E) ∞ φ x ∧
-        ∀ y ∈ s, ∀ v : TangentSpace I y,
-          mfderiv I 𝓘(ℝ, E) φ y (J y v) = J₀ (mfderiv I 𝓘(ℝ, E) φ y v)) :
-    J.IsIntegrable := by
-  rw [isIntegrable_iff_mfderiv]
-  intro x
-  obtain ⟨φ, s, J₀, hs, hφ, hJ⟩ := h x
-  -- A partial diffeomorphism that agrees with `φ` on its source, inside `s`, is the chart.
-  obtain ⟨t, hts, ht, hxt⟩ := mem_nhds_iff.1 hs
-  obtain ⟨Φ, hxΦ, hΦt, hφΦ⟩ := hφ.exists_partialDiffeomorph_eqOn ht hxt
-  refine ⟨Φ, J₀, hxΦ, fun y hy v ↦ ?_⟩
-  have hd : mfderiv I 𝓘(ℝ, E) Φ y = mfderiv I 𝓘(ℝ, E) φ y :=
-    Filter.EventuallyEq.mfderiv_eq <|
-      Filter.eventually_of_mem (Φ.open_source.mem_nhds hy) fun z hz ↦ (hφΦ hz).symm
-  rw [hd]
-  exact hJ y (hts (hΦt hy)) v
 
 attribute [local instance] IsManifold.minSmoothness_of_isRCLikeNormedField in
 /-- **The Nijenhuis tensor of an integrable structure vanishes.** -/
@@ -248,6 +226,29 @@ theorem isIntegrable_of_forall_exists_partialDiffeomorph {G : Type*} [NormedAddC
   let L : G ≃L[ℝ] E := e.symm
   exact ⟨φ.trans L.toDiffeomorph.toPartialDiffeomorph, J₀.transport L.toLinearEquiv,
     by simpa using hx, J.mfderiv_trans_toDiffeomorph_apply_eq_transport hφ L⟩
+
+/-- `J` is integrable when around every point `x` there are a neighbourhood `s` of `x` and a map
+`φ : M → G` into a normed space `G` that is a smooth local diffeomorphism at `x` and whose
+derivative carries `J` to a fixed linear complex structure of `G` at every point of `s`. Here `G`
+need not be the model of `M`. -/
+theorem isIntegrable_of_forall_exists_isLocalDiffeomorphAt {G : Type*} [NormedAddCommGroup G]
+    [NormedSpace ℝ G]
+    (h : ∀ x : M, ∃ (φ : M → G) (s : Set M) (J₀ : AlmostComplexStructure G),
+      s ∈ nhds x ∧ IsLocalDiffeomorphAt I 𝓘(ℝ, G) ∞ φ x ∧
+        ∀ y ∈ s, ∀ v : TangentSpace I y,
+          mfderiv I 𝓘(ℝ, G) φ y (J y v) = J₀ (mfderiv I 𝓘(ℝ, G) φ y v)) :
+    J.IsIntegrable := by
+  refine J.isIntegrable_of_forall_exists_partialDiffeomorph (G := G) fun x ↦ ?_
+  obtain ⟨φ, s, J₀, hs, hφ, hJ⟩ := h x
+  -- A partial diffeomorphism that agrees with `φ` on its source, inside `s`, is the chart.
+  obtain ⟨t, hts, ht, hxt⟩ := mem_nhds_iff.1 hs
+  obtain ⟨Φ, hxΦ, hΦt, hφΦ⟩ := hφ.exists_partialDiffeomorph_eqOn ht hxt
+  refine ⟨Φ, J₀, hxΦ, fun y hy v ↦ ?_⟩
+  have hd : mfderiv I 𝓘(ℝ, G) Φ y = mfderiv I 𝓘(ℝ, G) φ y :=
+    Filter.EventuallyEq.mfderiv_eq <|
+      Filter.eventually_of_mem (Φ.open_source.mem_nhds hy) fun z hz ↦ (hφΦ hz).symm
+  rw [hd]
+  exact hJ y (hts (hΦt hy)) v
 
 /-- **A chart in which `J` is constant makes `J` integrable on its source.** If the derivative
 of a partial diffeomorphism `φ` from `M` onto an open subset of a normed space `G` carries `J` to a
