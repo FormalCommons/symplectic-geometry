@@ -8,6 +8,8 @@ module
 public import SymplecticGeometry.Geometry.Manifold.CleanIntersection
 public import SymplecticGeometry.Geometry.Symplectic.Coisotropic.Reduction
 public import TauCeti.Geometry.Manifold.RegularValue.Rank
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Reduction.Tangent
+import TauCeti.Geometry.Symplectic.Lagrangian.Constructions
 import SymplecticGeometry.LinearAlgebra.Symplectic.Subspace
 
 /-!
@@ -21,12 +23,17 @@ Writing `p` for a point of the intersection, `T_pQ` for the range of the derivat
 `T_pL` for that of `g`:
 
 * the kernel of the derivative of `leafSpaceMk ∘ c` is the part of the tangent space of `C` that
-  is tangent to the characteristic foliation, and `f ∘ c` carries it onto `T_pL ∩ (T_pQ)^σ`;
+  is tangent to the characteristic foliation (`TauCeti.Foliation.ker_mfderiv_leafSpaceMk_comp`),
+  and `f ∘ c` carries it onto `T_pL ∩ (T_pQ)^σ`;
 * hence, by the dimension count `TauCeti.SymplecticForm.IsLagrangian.finrank_inf_add_finrank`, the
   rank `r` of `leafSpaceMk ∘ c` satisfies `2 r + dim M = 2 dim N`; for a Lagrangian immersion `g`
-  it is `dim P - codim Q` at every point;
+  it is `dim P - (dim M - dim N)` at every point;
 * for a nondegenerate two-form `τ` on the leaf space that pulls back to `f^* σ`, the ranges of the
-  derivatives of `leafSpaceMk ∘ c` are Lagrangian subspaces, since `σ` vanishes on `T_pL`;
+  derivatives of `leafSpaceMk ∘ c` are Lagrangian subspaces: the tangent space of the leaf space
+  is the linear reduction of `T_pQ`
+  (`TauCeti.SmoothTwoForm.IsNondegenerate.isSymplectomorphism_reducedSpaceEquivTangentSpace`),
+  and the range is the image there of `T_pL ∩ T_pQ`, which is Lagrangian by Tau Ceti's
+  `TauCeti.SymplecticForm.IsLagrangian.reduction_map`;
 * when `T_pQ + T_pL` is the whole tangent space of `M` at every point of the intersection,
   `T_pL ∩ (T_pQ)^σ ⊆ (T_pL + T_pQ)^σ = 0`, so `leafSpaceMk ∘ c` is a Lagrangian immersion.
 
@@ -37,9 +44,10 @@ one, following McDuff–Salamon, Proposition 5.4.7.
 
 In the namespace `SymplecticGeometry.IsCleanIntersection`:
 
-* `ker_mfderiv_leafSpaceMk_comp` and `map_ker_mfderiv_leafSpaceMk_comp`: the kernel of the
-  derivative of `leafSpaceMk ∘ c`, and its image in `M`.
-* `two_mul_mfderivRank_leafSpaceMk_comp_add` and `mfderivRank_leafSpaceMk_comp_eq`: its rank.
+* `map_ker_mfderiv_leafSpaceMk_comp`: the image in `M` of the kernel of the derivative of
+  `leafSpaceMk ∘ c`.
+* `two_mul_mfderivRank_leafSpaceMk_comp_add` and `mfderivRank_leafSpaceMk_comp_eq`: the rank of
+  `leafSpaceMk ∘ c`.
 * `isLagrangianMap_leafSpaceMk_comp`: `leafSpaceMk ∘ c` is a Lagrangian map.
 * `isLagrangianImmersion_leafSpaceMk_comp_of_transverse`: under transversality it is a Lagrangian
   immersion.
@@ -75,22 +83,6 @@ variable {E H M F H' N : Type*}
   {h : hσ.IsCoisotropicMap J f} {hi : IsImmersion J I ∞ f} {hf : ContMDiff J I ∞ f}
   {hσc : σ.IsClosed} {hn : (1 : ℕ∞ω) ≤ ∞} {g : P → M} {c : C → N}
 
-/-- The kernel of the derivative at `x` of the map `leafSpaceMk ∘ c` from the clean intersection
-to the reduced space is the preimage, under the derivative of `c`, of the tangent space of the
-characteristic foliation at `c x`. -/
-theorem ker_mfderiv_leafSpaceMk_comp (hc : IsCleanIntersection I J K L f g c)
-    (hR : (h.characteristicFoliation hi hf hσc hn).IsRegular) (x : C) :
-    letI := Foliation.leafSpaceChartedSpace hR
-    LinearMap.ker (mfderiv L
-        𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ F - (finrank ℝ E - finrank ℝ F))))
-        ((h.characteristicFoliation hi hf hσc hn).leafSpaceMk ∘ c) x).toLinearMap =
-      ((h.characteristicFoliation hi hf hσc hn).distribution (c x)).comap
-        (mfderiv L J c x).toLinearMap := by
-  let := Foliation.leafSpaceChartedSpace hR
-  rw [mfderiv_comp x ((Foliation.contMDiff_leafSpaceMk hR).mdifferentiableAt (by simp))
-    (hc.isSmoothEmbedding.contMDiff.mdifferentiableAt (by simp)),
-    ContinuousLinearMap.toLinearMap_comp, LinearMap.ker_comp, Foliation.ker_mfderiv_leafSpaceMk hR]
-
 /-- The derivative of `f ∘ c` at `x` carries the kernel of the derivative of `leafSpaceMk ∘ c` onto
 `T L ∩ (T Q)^σ`: the intersection of the range of the derivative of `g` at a point `y` over
 `f (c x)` with the symplectic complement of the range of the derivative of `f` at `c x`. -/
@@ -106,21 +98,18 @@ theorem map_ker_mfderiv_leafSpaceMk_comp (hc : IsCleanIntersection I J K L f g c
         (hσ.symplecticFormAt (f (c x))).orthogonal
           (LinearMap.range (mfderiv J I f (c x)).toLinearMap) := by
   let := Foliation.leafSpaceChartedSpace hR
-  have hcd : mfderiv L I (f ∘ c) x = (mfderiv J I f (c x)).comp (mfderiv L J c x) :=
-    mfderiv_comp x (hf.mdifferentiableAt (by simp))
-      (hc.isSmoothEmbedding.contMDiff.mdifferentiableAt (by simp))
+  have hcx := hc.isSmoothEmbedding.contMDiff.mdifferentiableAt (n := ∞) (x := x) (by simp)
   have hrange := hc.range_mfderiv_comp x y hxy
-  rw [hcd, ContinuousLinearMap.toLinearMap_comp] at hrange ⊢
-  rw [hc.ker_mfderiv_leafSpaceMk_comp hR, Submodule.map_comp, Submodule.map_comap_eq,
+  rw [mfderiv_comp x (hf.mdifferentiableAt (by simp)) hcx,
+    ContinuousLinearMap.toLinearMap_comp] at hrange ⊢
+  rw [Foliation.ker_mfderiv_leafSpaceMk_comp hR hcx, Submodule.map_comp, Submodule.map_comap_eq,
     Submodule.map_inf _ (hi.mfderiv_injective (by simp) (c x)),
     h.map_characteristicFoliation_distribution, ← LinearMap.range_comp, hrange]
-  have hco := SymplecticForm.isCoisotropic_iff_le.1 (isCoisotropicMap_iff.1 h (c x))
-  ext v
-  simp only [Submodule.mem_inf]
-  exact ⟨fun ⟨⟨_, hv⟩, hv'⟩ ↦ ⟨hv, hv'⟩, fun ⟨hv, hv'⟩ ↦ ⟨⟨hco hv', hv⟩, hv'⟩⟩
+  exact (inf_assoc _ _ _).trans (inf_eq_right.2 (inf_le_right.trans
+    (SymplecticForm.isCoisotropic_iff_le.1 (isCoisotropicMap_iff.1 h (c x)))))
 
 /-- **The rank of the reduced Lagrangian, as a dimension count.** If `g` is a Lagrangian map, the
-rank `r` of `leafSpaceMk ∘ c` at any point satisfies `2 r + dim M = 2 dim Q`. -/
+rank `r` of `leafSpaceMk ∘ c` at any point satisfies `2 r + dim M = 2 dim N`. -/
 theorem two_mul_mfderivRank_leafSpaceMk_comp_add (hc : IsCleanIntersection I J K L f g c)
     (hR : (h.characteristicFoliation hi hf hσc hn).IsRegular) (hg : hσ.IsLagrangianMap K g)
     (x : C) :
@@ -166,7 +155,7 @@ theorem two_mul_mfderivRank_leafSpaceMk_comp_add (hc : IsCleanIntersection I J K
   omega
 
 /-- **The rank of the reduced Lagrangian.** If `g` is a Lagrangian map and an immersion, the map
-`leafSpaceMk ∘ c` has rank `dim P - codim Q` at every point. -/
+`leafSpaceMk ∘ c` has rank `dim P - (dim M - dim N)` at every point. -/
 theorem mfderivRank_leafSpaceMk_comp_eq (hc : IsCleanIntersection I J K L f g c)
     (hR : (h.characteristicFoliation hi hf hσc hn).IsRegular) (hg : hσ.IsLagrangianMap K g)
     (hgi : IsImmersion K I ∞ g) (x : C) :
@@ -182,7 +171,7 @@ theorem mfderivRank_leafSpaceMk_comp_eq (hc : IsCleanIntersection I J K L f g c)
   omega
 
 /-- **The reduced Lagrangian is Lagrangian.** Let `τ` be a nondegenerate two-form on the leaf space
-of `Q` whose pullback to `N` is `f^* σ`. If `g` is a Lagrangian map, the range of the derivative of
+whose pullback to `N` is `f^* σ`. If `g` is a Lagrangian map, the range of the derivative of
 `leafSpaceMk ∘ c` at every point is a Lagrangian subspace for `τ`. -/
 theorem isLagrangianMap_leafSpaceMk_comp (hc : IsCleanIntersection I J K L f g c)
     (hR : (h.characteristicFoliation hi hf hσc hn).IsRegular) (hg : hσ.IsLagrangianMap K g) :
@@ -200,37 +189,41 @@ theorem isLagrangianMap_leafSpaceMk_comp (hc : IsCleanIntersection I J K L f g c
   rw [isLagrangianMap_iff_forall]
   intro x
   obtain ⟨y, hxy⟩ := hc.range_subset ⟨x, rfl⟩
+  have hp := Foliation.contMDiff_leafSpaceMk hR
   have hcx := hc.isSmoothEmbedding.contMDiff.mdifferentiableAt (n := ∞) (x := x) (by simp)
+  -- The tangent space of the leaf space at the leaf of `c x` is the linear reduction of the range
+  -- of the derivative of `f` at `c x`.
+  have hker := ((h.isCharacteristicSubmersion_leafSpaceMk hR).ker_mfderiv (c x)).symm
+  have hdp := (Foliation.isSubmersion_leafSpaceMk hR).surjective_mfderiv (by simp) (c x)
+  have he :=
+    hσ.isSymplectomorphism_reducedSpaceEquivTangentSpace hf hp (c x) rfl hker hdp hτ hτσ
   -- The range of the derivative of `g` at `y`, as a subspace of the tangent space at `f (c x)`.
-  obtain ⟨Λ, hΛ, hrange⟩ : ∃ Λ : Submodule ℝ (TangentSpace I (f (c x))),
+  obtain ⟨Λ, hΛ, hrc⟩ : ∃ Λ : Submodule ℝ (TangentSpace I (f (c x))),
       (hσ.symplecticFormAt (f (c x))).IsLagrangian Λ ∧
-      LinearMap.range (mfderiv L I (f ∘ c) x).toLinearMap ≤ Λ := by
-    refine ⟨_, ?_, (hc.range_mfderiv_comp x y hxy).trans_le inf_le_right⟩
+      LinearMap.range (mfderiv L I (f ∘ c) x).toLinearMap =
+        LinearMap.range (mfderiv J I f (c x)).toLinearMap ⊓ Λ := by
+    refine ⟨_, ?_, hc.range_mfderiv_comp x y hxy⟩
     rw [← hxy]
     exact isLagrangianMap_iff_forall.1 hg y
-  have hiso : (hτ.symplecticFormAt _).IsIsotropic (LinearMap.range (mfderiv L
-      𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ F - (finrank ℝ E - finrank ℝ F))))
-      ((h.characteristicFoliation hi hf hσc hn).leafSpaceMk ∘ c) x).toLinearMap) := by
-    rw [SymplecticForm.isIsotropic_iff]
-    rintro _ ⟨v, rfl⟩ _ ⟨w, rfl⟩
-    have := SymplecticForm.isIsotropic_iff.1 hΛ.isIsotropic _ (hrange ⟨v, rfl⟩) _
-      (hrange ⟨w, rfl⟩)
-    rw [symplecticFormAt_apply] at this ⊢
-    rw [mfderiv_comp x ((Foliation.contMDiff_leafSpaceMk hR).mdifferentiableAt (by simp)) hcx]
-    rw [mfderiv_comp x (hf.mdifferentiableAt (by simp)) hcx] at this
-    simp only [ContinuousLinearMap.coe_coe, ContinuousLinearMap.comp_apply, comp_apply] at this ⊢
-    rw [← SmoothForm.eval₂_mpullback _ (Foliation.contMDiff_leafSpaceMk hR), hτσ,
-      SmoothForm.eval₂_mpullback]
-    exact this
-  refine hiso.isLagrangian_of_finrank ?_
-  have h₁ := hc.two_mul_mfderivRank_leafSpaceMk_comp_add hR hg x
-  have h₂ := LinearMap.finrank_le_finrank_of_injective (hi.mfderiv_injective (by simp) (c x))
-  rw [mfderivRank_def] at h₁
-  rw [finrank_tangentSpace, finrank_euclideanSpace_fin]
-  simp only [finrank_tangentSpace] at h₂
-  omega
+  -- Write the base point `(leafSpaceMk ∘ c) x` as `leafSpaceMk (c x)`, the point of `he`.
+  rw [comp_apply]
+  convert he.isLagrangian_map_iff.2
+    (hΛ.reduction_map (isCoisotropicMap_iff.1 h (c x))) using 2
+  rw [mfderiv_comp x (hp.mdifferentiableAt (by simp)) hcx]
+  rw [mfderiv_comp x (hf.mdifferentiableAt (by simp)) hcx] at hrc
+  -- The class of `df (dc v)` goes to `dp (dc v)`.
+  have hmk := hσ.reducedSpaceEquivTangentSpace_mk hf (c x) rfl hker hdp
+  refine le_antisymm ?_ ?_
+  · rintro _ ⟨v, rfl⟩
+    have hv : mfderiv J I f (c x) (mfderiv L J c x v) ∈
+        LinearMap.range (mfderiv J I f (c x)).toLinearMap ⊓ Λ := hrc ▸ ⟨v, rfl⟩
+    exact ⟨_, ⟨_, hv.2, rfl⟩, hmk _⟩
+  · rintro _ ⟨_, ⟨w, hw, rfl⟩, rfl⟩
+    obtain ⟨v, hv⟩ := hrc.ge ⟨w.property, hw⟩
+    obtain rfl : w = ⟨_, LinearMap.mem_range_self _ (mfderiv L J c x v)⟩ := Subtype.ext hv.symm
+    exact ⟨v, (hmk _).symm⟩
 
-/-- **The transverse case.** Let `τ` be a nondegenerate two-form on the leaf space of `Q` whose
+/-- **The transverse case.** Let `τ` be a nondegenerate two-form on the leaf space whose
 pullback to `N` is `f^* σ`, and let `g` be a Lagrangian map whose tangent spaces, at each point
 over the clean intersection, span the tangent space of `M` together with those of `f`. Then, for a
 nonempty boundaryless `C`, the map `leafSpaceMk ∘ c` is a Lagrangian immersion for `τ`. -/

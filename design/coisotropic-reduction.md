@@ -331,16 +331,17 @@ The pointwise statements. With `f`, `hR` and `τ` as above (of `τ`, only
 `hσ.IsLagrangianMap K g` and `IsImmersion K I ∞ g`, and
 `hc : IsCleanIntersection I J K L f g c`:
 
-- `IsCleanIntersection.ker_mfderiv_leafSpaceMk_comp`: the kernel of the
+- `Foliation.ker_mfderiv_leafSpaceMk_comp`, in
+  `Foliation/LeafSpace/Smooth.lean`: the kernel of the
   derivative of `leafSpaceMk ∘ c` at `x` is the preimage under
   `mfderiv c x` of `(h.characteristicFoliation …).distribution (c x)`; its
   image under `mfderiv (f ∘ c) x` is $T_pL\cap(T_pQ)^\omega$
   (`IsCleanIntersection.map_ker_mfderiv_leafSpaceMk_comp`).
 - `IsCleanIntersection.isLagrangianMap_leafSpaceMk_comp`: the range of the
-  derivative of `leafSpaceMk ∘ c` is Lagrangian for `τ`. It is isotropic
-  since `τ` pulls back to `σ`, which vanishes on $T_pL$, and its dimension
-  is half that of the leaf space, by `finrank_inf_add_finrank` and the
-  kernel above.
+  derivative of `leafSpaceMk ∘ c` is Lagrangian for `τ`: it is the image of
+  $T_pL\cap T_pQ$ in the linear reduction of $T_pQ$, which is Lagrangian by
+  `SymplecticForm.IsLagrangian.reduction_map`, under the symplectomorphism
+  `isSymplectomorphism_reducedSpaceEquivTangentSpace`.
 - `IsCleanIntersection.mfderivRank_leafSpaceMk_comp_eq`: the rank is
   `finrank ℝ G - (finrank ℝ E - finrank ℝ F)` everywhere.
 - `IsCleanIntersection.isLagrangianImmersion_leafSpaceMk_comp_of_transverse`:
