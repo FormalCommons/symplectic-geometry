@@ -257,10 +257,13 @@ theorem exists_rightInverse_normalClass :
     fun x _ ↦ mem_iUnion.2 ⟨x, hxU x⟩
   refine ⟨fun x ↦ ∑ i ∈ ρ.finsupport x, (ρ i x : 𝕜) • s i x, fun x a ↦ ?_, ?_⟩
   · -- A combination of right inverses with coefficients of sum one is a right inverse.
-    rw [_root_.sum_apply, map_sum, Finset.sum_congr rfl fun i hi ↦ by
-      rw [_root_.smul_apply, map_smul,
-        hs i x (hρ.mem_of_mem_finsupport hi) a], ← Finset.sum_smul,
-      ← RCLike.ofReal_sum, ρ.sum_finsupport (mem_univ x), RCLike.ofReal_one, one_smul]
+    -- The weights are real: view the normal space as a real vector space to use them as such.
+    let : Module ℝ (f.NormalSpace x hn) := Module.compHom _ (algebraMap ℝ 𝕜)
+    have : IsScalarTower ℝ 𝕜 (f.NormalSpace x hn) := IsScalarTower.of_compHom _ _ _
+    rw [_root_.sum_apply, map_sum]
+    simp_rw [_root_.smul_apply, map_smul, ← RCLike.real_smul_eq_coe_smul (K := 𝕜)]
+    exact ρ.sum_finsupport_smul_eq_of_forall_eq (mem_univ x)
+      fun i hi ↦ hs i x (hρ.mem_of_mem_finsupport hi) a
   refine continuous_iff_continuousAt.2 fun v ↦ ?_
   have hproj := (FiberBundle.continuous_proj V ((f : M → N) *ᵖ (TangentSpace J))).continuousAt
     (x := v)

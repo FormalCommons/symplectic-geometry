@@ -49,6 +49,13 @@ first statement: a map `f : M → N` with `f (x • g) = g • f x`, from a righ
 sends the right fundamental vector field of `ξ` at `x` to the fundamental vector field of `ξ` at
 `f x`. Its proof is that of Tau Ceti's
 `TauCeti.mfderiv_rightFundamentalVectorField_of_map_op_smul`, the case of two right actions.
+
+`TauCeti.mfderiv_linearEquiv_apply_adjointContinuousLinearMap` is the equivariance of the
+fundamental vector fields for a linear representation `rep : G →* V ≃ₗ[ℝ] V` that is jointly
+`C¹`, written with the orbit maps `g' ↦ rep g' v`: the derivative at `1` at `Ad_g ξ` of the orbit
+map of `v` is `rep g` applied to that at `ξ` of the orbit map of `rep g⁻¹ v`. It is Tau Ceti's
+`TauCeti.mfderiv_smul_fundamentalVectorField` for the action through `rep`, whose translations
+`rep g` are their own derivatives.
 -/
 
 public section
@@ -220,5 +227,38 @@ theorem mfderiv_fundamentalVectorField_eq_of_eventually_smul_eq
 end TauCeti
 
 end Commutative
+
+section LinearRepresentation
+
+namespace TauCeti
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I 1 G]
+  {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V]
+
+/-- **The orbit derivatives of a linear representation are `Ad`-equivariant.** Let
+`rep : G →* V ≃ₗ[ℝ] V` be a representation of a real Lie group with `(g, v) ↦ rep g v` of class
+`C¹`. Then the derivative at `1` of the orbit map `g' ↦ rep g' v` takes `Ad_g ξ` to
+`rep g` applied to the derivative at `1` of `g' ↦ rep g' (rep g⁻¹ v)` at `ξ`. -/
+theorem mfderiv_linearEquiv_apply_adjointContinuousLinearMap (rep : G →* V ≃ₗ[ℝ] V)
+    (hrep : ContMDiff (I.prod 𝓘(ℝ, V)) 𝓘(ℝ, V) 1 fun p : G × V ↦ rep p.1 p.2)
+    (g : G) (ξ : GroupLieAlgebra I G) (v : V) :
+    mfderiv I 𝓘(ℝ, V) (fun g' : G ↦ rep g' v) 1 (Lie.adjointContinuousLinearMap g ξ) =
+      rep g (mfderiv I 𝓘(ℝ, V) (fun g' : G ↦ rep g' (rep g⁻¹ v)) 1 ξ) := by
+  let : MulAction G V := MulAction.compHom V rep
+  have : ContMDiffSMul I 𝓘(ℝ, V) 1 G V := ⟨hrep⟩
+  -- `rep g` is a continuous linear map, since the action is continuous.
+  let L : V →L[ℝ] V := ⟨(rep g).toLinearMap, hrep.continuous.comp (Continuous.prodMk_right g)⟩
+  have hL : ⇑L = rep g := by rw [ContinuousLinearMap.coe_mk', LinearEquiv.coe_coe]
+  have h := mfderiv_smul_fundamentalVectorField (I' := 𝓘(ℝ, V)) g ξ (rep g⁻¹ v)
+  simp only [fundamentalVectorField_apply, MulAction.compHom_smul_def, LinearEquiv.smul_def] at h
+  have hv : rep g (rep g⁻¹ v) = v := by simp
+  rw [← hL, L.mfderiv_eq, hL, hv] at h
+  exact h.symm
+
+end TauCeti
+
+end LinearRepresentation
 
 end
