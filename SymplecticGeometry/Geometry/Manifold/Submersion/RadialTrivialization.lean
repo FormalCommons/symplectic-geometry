@@ -45,7 +45,8 @@ manifold structure on the fibre that makes the inclusion a `C^n` embedding, such
 regular-fibre atlas of a submersion, these two statements give the fields of Tau Ceti's
 `TauCeti.MapFiber.Atlas.IsContMDiff` for the trivialization
 (`TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransportTrivialization_of_isSmoothEmbedding`,
-`IsEhresmannConnection.contMDiffOn_parallelTransportTrivialization_symm_of_isSmoothEmbedding`).
+`TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransportTrivialization_symm_of_contMDiff_val`;
+the second needs only that the inclusion is `C^n`).
 
 A trivialization needs a value at every point of `P`, also over points outside `U`, so its fibre
 is assumed nonempty. This is no loss: if the fibre over `b₀` is empty and `P` is not, `f` has no
@@ -123,8 +124,9 @@ the Hausdorff `B` is proper (`Continuous.isProperMap`).
   `TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransportTrivialization_symm`: it is `C^n`,
   with a `C^n` inverse.
 * `TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransportTrivialization_of_isSmoothEmbedding`,
-  `IsEhresmannConnection.contMDiffOn_parallelTransportTrivialization_symm_of_isSmoothEmbedding`:
-  the same for a manifold structure on the fibre whose inclusion into `P` is a `C^n` embedding.
+  `TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransportTrivialization_symm_of_contMDiff_val`:
+  the same for a manifold structure on the fibre whose inclusion into `P` is a `C^n` embedding,
+  for the first, or only `C^n`, for the second.
 * `TauCeti.IsEhresmannConnection.exists_trivialization_parallelTransport`: around each point of
   the base set of a `C^n` trivialization with fibre `Z`, a `C^n` trivialization with fibre `Z` by
   transport along the rays of a chart.
@@ -491,14 +493,14 @@ theorem contMDiffOn_parallelTransportTrivialization_of_isSmoothEmbedding
 
 /-- **The inverse of the trivialization by transport is `C^n` for a manifold structure on the
 fibre.** For a manifold structure on the fibre `TauCeti.MapFiber f b₀` whose inclusion into `P`
-is a `C^n` embedding, the inverse of the trivialization by transport is `C^n` on its target. -/
-theorem contMDiffOn_parallelTransportTrivialization_symm_of_isSmoothEmbedding
-    (hι : Manifold.IsSmoothEmbedding IZ I n (Subtype.val : MapFiber f b₀ → P)) :
+is `C^n`, the inverse of the trivialization by transport is `C^n` on its target. -/
+theorem contMDiffOn_parallelTransportTrivialization_symm_of_contMDiff_val
+    (hι : ContMDiff IZ I n (Subtype.val : MapFiber f b₀ → P)) :
     ContMDiffOn (J.prod IZ) I n
       (hD.parallelTransportTrivialization hn hf hfp hU hΓ hΓ₀ hΓ₁).toOpenPartialHomeomorph.symm
       (hD.parallelTransportTrivialization hn hf hfp hU hΓ hΓ₀ hΓ₁).target := by
   refine ((hD.contMDiffOn_parallelTransportTrivialization_symm hn hf hfp hU hΓ hΓ₀ hΓ₁).comp
-    (contMDiff_fst.prodMk (hι.contMDiff.comp contMDiff_snd)).contMDiffOn
+    (contMDiff_fst.prodMk (hι.comp contMDiff_snd)).contMDiffOn
     fun p hp ↦ ⟨?_, p.2.property⟩).congr fun p _ ↦ ?_
   · rw [Trivialization.target_eq] at hp
     exact hp.1
@@ -630,8 +632,8 @@ theorem exists_trivialization_of_isProperMap (hf : IsSubmersion I J ∞ f) (hfp 
     mem_chartBall_self J _ hr,
     hD.contMDiffOn_parallelTransportTrivialization_of_isSmoothEmbedding (by simp) hf' hfp hU hΓ hΓ₀
       hΓ₁ hι,
-    hD.contMDiffOn_parallelTransportTrivialization_symm_of_isSmoothEmbedding (by simp) hf' hfp hU
-      hΓ hΓ₀ hΓ₁ hι⟩
+    hD.contMDiffOn_parallelTransportTrivialization_symm_of_contMDiff_val (by simp) hf' hfp hU hΓ
+      hΓ₀ hΓ₁ hι.contMDiff⟩
 
 end Manifold.IsSubmersion
 
