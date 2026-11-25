@@ -7,10 +7,10 @@ module
 
 public import Mathlib.Geometry.Manifold.Instances.Real
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
+public import SymplecticGeometry.Geometry.Manifold.Orientation.Diffeomorph
 public import TauCeti.Geometry.Manifold.Boundary.Interior
 public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
-public import TauCeti.Geometry.Manifold.Orientation.Pullback
 public import TauCeti.Geometry.Manifold.ModelTransport.Interior
 
 /-!
@@ -41,8 +41,9 @@ points, and `ModelWithCorners.interiorOpensDiffeomorph` identifies them as `C^n`
 with values in the interior is `C^n` into `I.interior M`, since read in the chart of the interior
 it is the map followed by an extended chart of `M`. Into `I.interiorOpens M`, it is smooth by
 Tau Ceti's `TauCeti.ContMDiff.subtypeVal_comp_iff` and
-`ModelWithCorners.contMDiff_subtypeVal_interior`. Orientations are carried across it as they are
-by `toInteriorModel`, with the same proofs.
+`ModelWithCorners.contMDiff_subtypeVal_interior`. Both `toInteriorModel` and `toInterior` carry an
+orientation along a diffeomorphism by `TauCeti.Manifold.Orientation.map`, the pullback along its
+inverse, and their lemmas are those of `map` at that diffeomorphism.
 
 ## Main definitions
 
@@ -386,16 +387,10 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensi
 `interiorModelDiffeomorph I M n` of `M` with its copy preserves orientation
 (`isOrientationPreservingAt_interiorModelDiffeomorph`). -/
 def toInteriorModel (o : Orientation I M ι) : Orientation 𝓘(ℝ, E) (InteriorModel I M) ι :=
-  o.pullback (interiorModelDiffeomorph I M 1).symm.contMDiff
-    (fun x ↦ ((interiorModelDiffeomorph I M 1).symm.isLocalDiffeomorph x).isInvertible_mfderiv
-      one_ne_zero)
-    o.card_eq
+  o.map (interiorModelDiffeomorph I M 1) one_ne_zero o.card_eq
 
 theorem toInteriorModel_def (o : Orientation I M ι) :
-    o.toInteriorModel = o.pullback (interiorModelDiffeomorph I M 1).symm.contMDiff
-      (fun x ↦ ((interiorModelDiffeomorph I M 1).symm.isLocalDiffeomorph x).isInvertible_mfderiv
-        one_ne_zero)
-      o.card_eq :=
+    o.toInteriorModel = o.map (interiorModelDiffeomorph I M 1) one_ne_zero o.card_eq :=
   (rfl)
 
 /-- The inverse `InteriorModel I M → M` of the identification preserves orientation, from the
@@ -405,7 +400,7 @@ theorem isOrientationPreservingAt_interiorModelDiffeomorph_symm (o : Orientation
     IsOrientationPreservingAt o.toInteriorModel o (interiorModelDiffeomorph I M n).symm x := by
   rw [coe_interiorModelDiffeomorph_symm, ← coe_interiorModelDiffeomorph_symm I M 1,
     toInteriorModel_def]
-  exact isOrientationPreservingAt_pullback _ _ _ _ x
+  exact isOrientationPreservingAt_map_symm _ _ _ _ x
 
 /-- The identification `M → InteriorModel I M` preserves orientation, from `o` to the carried
 orientation, at every regularity `n`. -/
@@ -413,8 +408,7 @@ theorem isOrientationPreservingAt_interiorModelDiffeomorph (o : Orientation I M 
     (n : ℕ∞ω) (p : M) :
     IsOrientationPreservingAt o o.toInteriorModel (interiorModelDiffeomorph I M n) p := by
   rw [coe_interiorModelDiffeomorph, ← coe_interiorModelDiffeomorph I M 1]
-  exact (isOrientationPreservingAt_interiorModelDiffeomorph_symm o 1 _).diffeomorph_symm
-    (e := (interiorModelDiffeomorph I M 1).symm) one_ne_zero
+  exact isOrientationPreservingAt_map _ _ _ _ p
 
 /-- The carried orientation is the only orientation of `InteriorModel I M` from which the inverse
 of the identification, at any regularity `n`, preserves orientation at every point. -/
@@ -422,14 +416,14 @@ theorem eq_toInteriorModel_iff {o : Orientation I M ι}
     {o' : Orientation 𝓘(ℝ, E) (InteriorModel I M) ι} (n : ℕ∞ω) :
     o' = o.toInteriorModel ↔
       ∀ x, IsOrientationPreservingAt o' o (interiorModelDiffeomorph I M n).symm x := by
-  rw [toInteriorModel_def, eq_pullback_iff, coe_interiorModelDiffeomorph_symm,
+  rw [toInteriorModel_def, eq_map_iff, coe_interiorModelDiffeomorph_symm,
     coe_interiorModelDiffeomorph_symm]
 
 /-- Carrying the opposite orientation gives the opposite of the carried orientation. -/
 @[simp]
 theorem toInteriorModel_neg (o : Orientation I M ι) :
     (-o).toInteriorModel = -o.toInteriorModel := by
-  simp only [toInteriorModel_def, pullback_neg]
+  simp only [toInteriorModel_def, map_neg]
 
 section Interior
 
@@ -442,16 +436,10 @@ Tau Ceti's charted interior `I.interior M`: the orientation for which the identi
 `ModelWithCorners.interiorOpensDiffeomorph I M n` preserves orientation
 (`isOrientationPreservingAt_interiorOpensDiffeomorph`). -/
 def toInterior (o : Orientation I (I.interiorOpens M) ι) : Orientation 𝓘(ℝ, E) (I.interior M) ι :=
-  o.pullback (I.interiorOpensDiffeomorph M 1).symm.contMDiff
-    (fun x ↦ ((I.interiorOpensDiffeomorph M 1).symm.isLocalDiffeomorph x).isInvertible_mfderiv
-      one_ne_zero)
-    o.card_eq
+  o.map (I.interiorOpensDiffeomorph M 1) one_ne_zero o.card_eq
 
 theorem toInterior_def (o : Orientation I (I.interiorOpens M) ι) :
-    o.toInterior = o.pullback (I.interiorOpensDiffeomorph M 1).symm.contMDiff
-      (fun x ↦ ((I.interiorOpensDiffeomorph M 1).symm.isLocalDiffeomorph x).isInvertible_mfderiv
-        one_ne_zero)
-      o.card_eq :=
+    o.toInterior = o.map (I.interiorOpensDiffeomorph M 1) one_ne_zero o.card_eq :=
   (rfl)
 
 /-- The inverse `I.interior M → I.interiorOpens M` of the identification preserves orientation,
@@ -462,7 +450,7 @@ theorem isOrientationPreservingAt_interiorOpensDiffeomorph_symm
     IsOrientationPreservingAt o.toInterior o (I.interiorOpensDiffeomorph M n).symm x := by
   rw [ModelWithCorners.coe_interiorOpensDiffeomorph_symm,
     ← ModelWithCorners.coe_interiorOpensDiffeomorph_symm (n := 1), toInterior_def]
-  exact isOrientationPreservingAt_pullback _ _ _ _ x
+  exact isOrientationPreservingAt_map_symm _ _ _ _ x
 
 /-- The identification `I.interiorOpens M → I.interior M` preserves orientation, from `o` to the
 carried orientation, at every regularity `n`. -/
@@ -472,8 +460,7 @@ theorem isOrientationPreservingAt_interiorOpensDiffeomorph
     IsOrientationPreservingAt o o.toInterior (I.interiorOpensDiffeomorph M n) p := by
   rw [ModelWithCorners.coe_interiorOpensDiffeomorph,
     ← ModelWithCorners.coe_interiorOpensDiffeomorph (n := 1)]
-  exact (isOrientationPreservingAt_interiorOpensDiffeomorph_symm o 1 _).diffeomorph_symm
-    (e := (I.interiorOpensDiffeomorph M 1).symm) one_ne_zero
+  exact isOrientationPreservingAt_map _ _ _ _ p
 
 /-- The carried orientation is the only orientation of `I.interior M` from which the inverse of
 the identification, at any regularity `n`, preserves orientation at every point. -/
@@ -481,14 +468,14 @@ theorem eq_toInterior_iff {o : Orientation I (I.interiorOpens M) ι}
     {o' : Orientation 𝓘(ℝ, E) (I.interior M) ι} (n : ℕ∞ω) [IsManifold I n M] :
     o' = o.toInterior ↔
       ∀ x, IsOrientationPreservingAt o' o (I.interiorOpensDiffeomorph M n).symm x := by
-  rw [toInterior_def, eq_pullback_iff, ModelWithCorners.coe_interiorOpensDiffeomorph_symm,
+  rw [toInterior_def, eq_map_iff, ModelWithCorners.coe_interiorOpensDiffeomorph_symm,
     ModelWithCorners.coe_interiorOpensDiffeomorph_symm]
 
 /-- Carrying the opposite orientation gives the opposite of the carried orientation. -/
 @[simp]
 theorem toInterior_neg (o : Orientation I (I.interiorOpens M) ι) :
     (-o).toInterior = -o.toInterior := by
-  simp only [toInterior_def, pullback_neg]
+  simp only [toInterior_def, map_neg]
 
 end Interior
 
