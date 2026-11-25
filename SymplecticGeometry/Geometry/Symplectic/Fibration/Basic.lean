@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.StructureGroup
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 
 /-!
 # Forms that restrict to the fibre forms
@@ -28,10 +29,18 @@ The forms that restrict to `σ` form an affine space: `τ + β` restricts to `σ
 pulls back to zero on every fibre, as the pull-back `proj^* β` of a form of positive degree on the
 base does. This gives Thurston's forms `τ + K proj^* β`.
 
+A two-form `τ` is *vertically nondegenerate* for `proj` when it is nondegenerate on the kernel of
+the derivative of `proj` at every point. For a smooth atlas between finite-dimensional manifolds,
+that kernel is the image of the tangent space of the fibre, so a form that restricts to a
+nondegenerate `σ` is vertically nondegenerate, and a vertically nondegenerate form pulls back to a
+nondegenerate form along every fibre inclusion.
+
 ## Main definitions
 
 * `TauCeti.MapFiber.Atlas.RestrictsTo A σ τ`: the form `τ` on `M` pulls back to `σ` along every
   fibre inclusion of the atlas `A`.
+* `TauCeti.SmoothTwoForm.IsVerticallyNondegenerate IB proj τ`: the form `τ` is nondegenerate on
+  the kernel of the derivative of `proj` at every point.
 
 ## Main results
 
@@ -52,12 +61,22 @@ base does. This gives Thurston's forms `τ + K proj^* β`.
 * `TauCeti.MapFiber.Atlas.restrictsTo_add_iff`, `TauCeti.MapFiber.Atlas.RestrictsTo.add_mpullback`
   and `TauCeti.MapFiber.Atlas.convex_setOf_restrictsTo`: the affine structure of the forms that
   restrict to `σ`.
+* `TauCeti.MapFiber.Atlas.RestrictsTo.isVerticallyNondegenerate`: along a smooth atlas, a form
+  that restricts to a nondegenerate form is vertically nondegenerate.
+* `TauCeti.SmoothTwoForm.IsVerticallyNondegenerate.isNondegenerate_mpullback_fiberInclusion`: a
+  vertically nondegenerate form pulls back to a nondegenerate form along the fibre inclusions of a
+  smooth trivialization.
 
 ## Implementation notes
 
 The predicate is stated with Tau Ceti's rough pull-back `TauCeti.mpullback`, so that it needs no
 proof that the fibre inclusions are smooth. The results that compare two fibre inclusions use the
 chain rule, and so take the smoothness of the atlas as a hypothesis.
+
+The results on vertically nondegenerate forms identify the kernel of the derivative of `proj` with
+the image of the derivative of a fibre inclusion by
+`Bundle.Trivialization.range_mfderiv_fiberInclusion`, and so assume that `M` is
+finite-dimensional.
 
 ## References
 
@@ -229,6 +248,114 @@ theorem convex_setOf_restrictsTo (A : Atlas F proj) (σ : SmoothForm IF F ℝ k)
   rw [Submodule.coe_add, Submodule.coe_smul, Submodule.coe_smul, TauCeti.mpullback_add,
     TauCeti.mpullback_smul, TauCeti.mpullback_smul, hτ₁ b b' hb', hτ₂ b b' hb', ← add_smul, hac,
     one_smul]
+
+end TauCeti.MapFiber.Atlas
+
+/-! ### Vertically nondegenerate two-forms -/
+
+namespace TauCeti.SmoothTwoForm
+
+variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*}
+  [TopologicalSpace HB] (IB : ModelWithCorners ℝ EB HB) {B : Type*} [TopologicalSpace B]
+  [ChartedSpace HB B]
+  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] {HF : Type*} [TopologicalSpace HF]
+  {IF : ModelWithCorners ℝ EF HF} {F : Type*} [TopologicalSpace F] [ChartedSpace HF F]
+  [IsManifold IF ∞ F]
+  {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] {HM : Type*} [TopologicalSpace HM]
+  {IM : ModelWithCorners ℝ EM HM} {M : Type*} [TopologicalSpace M] [ChartedSpace HM M]
+  [IsManifold IM ∞ M]
+  {proj : M → B} {τ : SmoothTwoForm IM M}
+
+/-- A two-form `τ` on `M` is *vertically nondegenerate* for a map `proj : M → B` when, at every
+point `x`, its restriction to the vertical space, the kernel of the derivative of `proj` at `x`,
+is nondegenerate. For a map with a smooth atlas and a finite-dimensional `M`, it implies
+that `τ` pulls back to a nondegenerate form on every fibre. -/
+def IsVerticallyNondegenerate (proj : M → B) (τ : SmoothTwoForm IM M) : Prop :=
+  ∀ x, ((τ.bilinFormAt x).restrict (mfderiv IM IB proj x).ker).Nondegenerate
+
+variable {IB}
+
+theorem isVerticallyNondegenerate_iff :
+    IsVerticallyNondegenerate IB proj τ ↔
+      ∀ x, ((τ.bilinFormAt x).restrict (mfderiv IM IB proj x).ker).Nondegenerate :=
+  Iff.rfl
+
+/-- Vertical nondegeneracy in terms of vectors: a vertical vector on which `τ` pairs to zero with
+every vertical vector is zero. One side suffices, since `τ` is alternating. -/
+theorem isVerticallyNondegenerate_iff_forall :
+    IsVerticallyNondegenerate IB proj τ ↔
+      ∀ x, ∀ u ∈ (mfderiv IM IB proj x).ker,
+        (∀ w ∈ (mfderiv IM IB proj x).ker, τ.bilinFormAt x u w = 0) → u = 0 := by
+  refine forall_congr' fun x ↦ ?_
+  have hrefl : ((τ.bilinFormAt x).restrict (mfderiv IM IB proj x).ker).IsRefl :=
+    (SmoothForm.isAlt_bilinFormAt τ x).isRefl.domRestrict _
+  refine hrefl.nondegenerate_iff_separatingLeft.trans ?_
+  exact ⟨fun h u hu hw ↦ congrArg Subtype.val (h ⟨u, hu⟩ fun w ↦ hw w w.property),
+    fun h u hu ↦ Subtype.ext (h u u.property fun w hw ↦ hu ⟨w, hw⟩)⟩
+
+/-- **The fibres of a vertically nondegenerate form.** Let `e` be a trivialization of `proj`
+between finite-dimensional manifolds that is smooth with smooth inverse. If `τ` is vertically
+nondegenerate, then its pull-back along each fibre inclusion of `e` is a nondegenerate form on the
+model fibre. -/
+theorem IsVerticallyNondegenerate.isNondegenerate_mpullback_fiberInclusion
+    [FiniteDimensional ℝ EM] (hτ : IsVerticallyNondegenerate IB proj τ)
+    {e : Trivialization F proj} (he : ContMDiffOn IM (IB.prod IF) ∞ e e.source)
+    (he_symm : ContMDiffOn (IB.prod IF) IM ∞ e.toOpenPartialHomeomorph.symm e.target) {b : B}
+    (hb : b ∈ e.baseSet) :
+    IsNondegenerate
+      (SmoothForm.mpullback (e.fiberInclusion hb) (e.contMDiff_fiberInclusion he_symm hb) τ) := by
+  have hd : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF) :=
+    ⟨he.mdifferentiableOn (by simp), he_symm.mdifferentiableOn (by simp)⟩
+  rw [isNondegenerate_iff_separatingLeft]
+  intro v u hu
+  have hrange := e.range_mfderiv_fiberInclusion hd hb v
+  refine (injective_iff_map_eq_zero _).1 (e.injective_mfderiv_fiberInclusion hd hb v) u <|
+    isVerticallyNondegenerate_iff_forall.1 hτ _ _ (hrange ▸ LinearMap.mem_range_self _ u)
+      fun w hw ↦ ?_
+  obtain ⟨w, rfl⟩ := LinearMap.mem_range.1 (hrange.symm ▸ hw)
+  rw [SmoothForm.bilinFormAt_apply, ← hu w, SmoothForm.eval₂_mpullback, ContinuousLinearMap.coe_coe]
+
+end TauCeti.SmoothTwoForm
+
+namespace TauCeti.MapFiber.Atlas
+
+variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*}
+  [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB} {B : Type*} [TopologicalSpace B]
+  [ChartedSpace HB B]
+  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] {HF : Type*} [TopologicalSpace HF]
+  {IF : ModelWithCorners ℝ EF HF} {F : Type*} [TopologicalSpace F] [ChartedSpace HF F]
+  [IsManifold IF ∞ F]
+  {EM : Type*} [NormedAddCommGroup EM] [NormedSpace ℝ EM] {HM : Type*} [TopologicalSpace HM]
+  {IM : ModelWithCorners ℝ EM HM} {M : Type*} [TopologicalSpace M] [ChartedSpace HM M]
+  [IsManifold IM ∞ M]
+  {proj : M → B} {A : Atlas F proj} {σ : SmoothTwoForm IF F} {τ : SmoothTwoForm IM M}
+
+/-- **Restricting forms are vertically nondegenerate.** If a two-form `τ` restricts to a
+nondegenerate form `σ` along a smooth atlas of a map between finite-dimensional manifolds, then
+`τ` is vertically nondegenerate: the vertical space at each point is the image of the tangent
+space of the fibre. -/
+theorem RestrictsTo.isVerticallyNondegenerate [FiniteDimensional ℝ EM]
+    (hA : A.IsContMDiff ∞ IB IF IM) (hσ : σ.IsNondegenerate) (hτ : A.RestrictsTo σ τ) :
+    SmoothTwoForm.IsVerticallyNondegenerate IB proj τ := by
+  -- The statement at the points of the fibre over `b'`, read through the chart at `b`.
+  have key : ∀ b b' (hb' : b' ∈ (A.trivAt b).baseSet) v,
+      ∀ u ∈ (mfderiv IM IB proj ((A.trivAt b).fiberInclusion hb' v)).ker,
+        (∀ w ∈ (mfderiv IM IB proj ((A.trivAt b).fiberInclusion hb' v)).ker,
+          τ.bilinFormAt _ u w = 0) → u = 0 := by
+    intro b b' hb' v u hu hw
+    have hrange := (A.trivAt b).range_mfderiv_fiberInclusion
+      (hA.mdifferentiable_trivAt (by simp) b) hb' v
+    obtain ⟨u, rfl⟩ := LinearMap.mem_range.1 (hrange.symm ▸ hu)
+    rw [SmoothTwoForm.isNondegenerate_iff_separatingLeft.1 hσ v u fun w ↦ ?_, map_zero]
+    rw [SmoothBundleForm.eval₂_apply, ← hτ b b' hb', TauCeti.mpullback_apply_pair,
+      ← SmoothBundleForm.eval₂_apply, ← SmoothForm.bilinFormAt_apply]
+    exact hw _ (hrange ▸ LinearMap.mem_range_self _ w)
+  refine SmoothTwoForm.isVerticallyNondegenerate_iff_forall.2 fun x ↦ ?_
+  have hb := A.mem_baseSet_trivAt (proj x)
+  have hx : (A.trivAt (proj x)).fiberInclusion hb (A.trivAt (proj x) x).2 = x := by
+    rw [Trivialization.fiberInclusion_apply,
+      (A.trivAt (proj x)).symm_apply_mk_proj ((A.trivAt (proj x)).mem_source.2 hb)]
+  exact hx ▸ key _ _ hb _
 
 end TauCeti.MapFiber.Atlas
 

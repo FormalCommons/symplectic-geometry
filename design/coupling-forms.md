@@ -34,7 +34,7 @@ differ.
   atlases, `A.HasStructureGroup (TauCeti.SmoothForm.diffeomorphStabilizer σ)`;
   fibre inclusions `Bundle.Trivialization.fiberInclusion e hb`,
   $v\mapsto e^{-1}(b,v)$; the predicates `A.RestrictsTo σ τ` ($\iota_b^*\tau=\sigma_b$),
-  `τ.IsVerticallyNondegenerate π` and `τ.IsVerticallyClosed π`; the connection
+  `τ.IsVerticallyNondegenerate IB π` and `τ.IsVerticallyClosed π`; the connection
   `τ.horizontalDistribution π` ($\mathrm{Ver}^\tau$), an Ehresmann connection
   by `IsVerticallyNondegenerate.isEhresmannConnection`, with
   `horizontalDistribution_eq_iff`; symplectic connections

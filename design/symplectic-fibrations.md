@@ -197,7 +197,7 @@ About 350 lines.
   restricts to `σ`, then `τ + β` does exactly when `β` pulls back to zero
   on every fibre), `RestrictsTo.add_mpullback` (Thurston's $\tau+K\pi^*\beta$,
   for part 49), and `convex_setOf_restrictsTo`.
-- `TauCeti.SmoothTwoForm.IsVerticallyNondegenerate π τ`: for every `x`,
+- `TauCeti.SmoothTwoForm.IsVerticallyNondegenerate IB π τ`: for every `x`,
   `((τ.bilinFormAt x).restrict (mfderiv IM IB π x).ker).Nondegenerate`. It
   says that every fibre is a symplectic submanifold when `τ` is closed.
   `RestrictsTo.isVerticallyNondegenerate`: under `hA`, a form that
@@ -398,7 +398,7 @@ transport*, including its radial trivializations. About 400 lines.
   inverse), is the chart of `A'` at `b`. `RestrictsTo.hasStructureGroup`
   gives the structure group.
 - The milestone, `exists_hasStructureGroup_restrictsTo`: the case of a
-  symplectic `ω` with `ω.IsVerticallyNondegenerate π`, that is, every fibre
+  symplectic `ω` with `ω.IsVerticallyNondegenerate IB π`, that is, every fibre
   a symplectic submanifold. Its docstring ends with "Milestone:
   *Fibrations with symplectic fibres are symplectic fibrations*." The atlas
   `A'` is compatible with `A` through the whole group by
