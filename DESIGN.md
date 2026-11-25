@@ -3606,10 +3606,10 @@ geometry and waits for no part.
   diffeotopies, which preserve orientation), and
   `Geometry/Manifold/SmoothIsotopy/ClosedBall.lean` (the disc theorem for
   embeddings of the closed unit ball given on an open neighbourhood of it:
-  shrink to a slightly larger open ball, compose with a diffeomorphism of
-  the model space onto that ball that is the identity on $B$, and apply
-  Tau Ceti's `TauCeti.SmoothEmbedding.exists_diffeotopy_eqOn_of_isOrientationPreservingAt`
-  with $A=B$).
+  shrink to a slightly larger open ball, compose with Mathlib's
+  `OpenPartialHomeomorph.univBall` of the model space onto that ball, and
+  apply Tau Ceti's `TauCeti.SmoothEmbedding.exists_diffeotopy_eqOn_of_isOrientationPreservingAt`
+  with $A$ the preimage of $B$).
 - **Builds on:** Tau Ceti only.
 - **Milestones:** *Disc theorem*, both sentences: the first from
   `ClosedBall.lean`, the second from `OrientationPreserving.lean` and, for
