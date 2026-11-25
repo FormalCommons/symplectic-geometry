@@ -279,8 +279,8 @@ open embedding, being a composite of open embeddings for $t>0$ and the inclusion
 $t=0$.
 
 ```lean
-theorem IsLagrangianMap.exists_smoothIsotopy_of_apply_zeroSection_eq
-    [CompactSpace L] {U₀ U₁ : Opens T*L} {V₀ V₁ : Opens M}
+theorem CotangentBundle.exists_smoothIsotopy_of_apply_zeroSection_eq
+    {U₀ U₁ : Opens T*L} {V₀ V₁ : Opens M}
     (ι₀ : U₀ ≃ₘ⟮_, I⟯ V₀) (ι₁ : U₁ ≃ₘ⟮_, I⟯ V₁)
     (h₀ : ι₀^* ω = (symplecticForm J L)|U₀) (h₁ : ι₁^* ω = (symplecticForm J L)|U₁)
     (h : ∀ x, ι₀ ⟨0_x, _⟩ = ι₁ ⟨0_x, _⟩) :
@@ -291,11 +291,12 @@ theorem IsLagrangianMap.exists_smoothIsotopy_of_apply_zeroSection_eq
 ```
 
 This is the uniqueness of Lagrangian neighbourhoods up to isotopy, with
-$G_t=\iota_1\circ\psi_t$ for $\psi=\iota_1^{-1}\circ\iota_0$ on a
+$G_t=\iota_1\circ\psi_{1-t}$ for $\psi=\iota_1^{-1}\circ\iota_0$ on a
 neighbourhood of the zero section that $\iota_0$ maps into $V_1$. The same
-statement holds with `-symplecticForm`, by composing with $N=m_{-1}$.
-That is the form used for the twist (*Decisions*, signs). Expected size: 500
-lines, as two issues: the rescaled family and its smoothness (300), and the
+statement holds with `-symplecticForm`
+(`CotangentBundle.exists_smoothIsotopy_of_apply_zeroSection_eq_neg`), since $\psi$
+then still preserves `symplecticForm`. That is the form used for the twist
+(*Decisions*, signs). Expected size: 500 lines, as two issues: the rescaled family and its smoothness (300), and the
 two isotopy theorems (200).
 
 ### `Geometry/Diffeomorphism/Diffeotopy/Extend.lean`
@@ -545,7 +546,7 @@ exists by `exists_isTwistProfile` and compactness of the zero section.
    the identity off $T(r_0)\subseteq U$, so it restricts to `U`, `ι` conjugates
    it to a diffeotopy of `V`, and Tau Ceti's
    `Diffeotopy.exists_extend_of_isCompact` extends that to `M`. Two embeddings `ι₁ ι₂` that extend `f` are joined by
-   `IsLagrangianMap.exists_smoothIsotopy_of_apply_zeroSection_eq` on a
+   `CotangentBundle.exists_smoothIsotopy_of_apply_zeroSection_eq_neg` on a
    smaller neighbourhood, after shrinking both models. Moving one model
    along that isotopy, `Diffeotopy/Extend.lean` gives the diffeotopy.
 2. *$f\circ A$ for $A\in O(n+1)$.* `ι ∘ (orthogonalToDiffSphere n ∞ A).cotangent`

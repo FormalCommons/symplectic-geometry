@@ -25,6 +25,7 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.SmoothEmbedding.Diffeomorph
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
+import TauCeti.Topology.Compactness.Compact
 
 /-!
 # Rescaling symplectic maps of a cotangent bundle towards the zero section
@@ -64,6 +65,19 @@ and a smooth embedding. On `TauCeti.VectorBundle.radialCore U` itself the rescal
 therefore a smooth isotopy from the inclusion to `ψ`
 (`SymplecticGeometry.CotangentBundle.exists_smoothIsotopy_of_eqOn_zeroSection`).
 
+Two diffeomorphisms `ι₀ : U₀ ≃ V₀`, `ι₁ : U₁ ≃ V₁` from neighbourhoods of the zero section onto
+open sets of a manifold `M` with a two-form `Ω`, each pulling `Ω` back to `c • ω` for one
+`c ≠ 0`, and agreeing on the zero section, differ near the zero section by
+`ψ = ι₁⁻¹ ∘ ι₀`. This map is defined on the open set of points of `U₀` that `ι₀` sends into
+`V₁`, fixes the zero section and pulls `c • ω`, hence `ω`, back to its restriction. Its isotopy
+`ψ_t` to the inclusion, from the previous theorem, starts at `0_x` for every `x`; since
+`[0, 1]` is compact, the points `z` with `ψ_t z ∈ U₁` for all `t` form an open neighbourhood of
+the zero section (`TauCeti.isOpen_forall_prodMk_mem`). There `t ↦ ι₁ ∘ ψ_{1-t}` is a symplectic
+isotopy from `ι₀` to `ι₁`
+(`SymplecticGeometry.CotangentBundle.exists_smoothIsotopy_of_apply_zeroSection_eq_smul`). The
+cases `c = 1` and `c = -1` are the uniqueness of Lagrangian neighbourhoods up to isotopy for `ω`
+and for `-ω`; neither needs `L` to be compact.
+
 ## Main results
 
 * `SymplecticGeometry.CotangentBundle.vectorBundleRescaledFamily_zero_eq_self`: the slice at
@@ -76,6 +90,12 @@ therefore a smooth isotopy from the inclusion to `ψ`
   symplectic embedding `ψ : U → T*L`, `U ⊇ 0_L` open, that is the identity on `0_L` is joined
   to the inclusion of some open `U' ⊆ U` containing `0_L` by a symplectic smooth isotopy that
   is the identity on `0_L`.
+* `SymplecticGeometry.CotangentBundle.exists_smoothIsotopy_of_apply_zeroSection_eq`,
+  `SymplecticGeometry.CotangentBundle.exists_smoothIsotopy_of_apply_zeroSection_eq_neg`: two
+  diffeomorphisms of neighbourhoods of `0_L` onto open sets of `M` that pull `Ω` back to `ω`, or
+  both to `-ω`, and agree on `0_L` are joined near `0_L` by a symplectic isotopy of open
+  embeddings that is constant on `0_L`; `exists_smoothIsotopy_of_apply_zeroSection_eq_smul`
+  is the same for `c • ω`, `c ≠ 0`.
 
 ## References
 
@@ -418,7 +438,14 @@ variable [J.Boundaryless] [T2Space L] [FiniteDimensional ℝ E] [FiniteDimension
   [I.Boundaryless]
 
 /-- **Uniqueness of Lagrangian neighbourhoods up to isotopy, for a multiple of the canonical
-form.** -/
+form.** Let `L` be a finite-dimensional Hausdorff manifold without boundary, `M` a manifold
+without boundary modelled on a finite-dimensional space, `Ω` a two-form on `M` and `c ≠ 0`. Let
+`ι₀ : U₀ ≃ V₀` and `ι₁ : U₁ ≃ V₁` be diffeomorphisms from open sets of `T*L` containing the zero
+section onto open sets of `M`, each pulling the restriction of `Ω` back to the restriction of
+`c • ω`, `ω` the canonical symplectic form, and taking the same value at every zero covector.
+Then there are an open neighbourhood `U ⊆ U₀ ∩ U₁` of the zero section and a smooth isotopy from
+the restriction of `ι₀` to `U` to that of `ι₁`, whose slices pull `Ω` back to the restriction of
+`c • ω` to `U`, send every zero covector `0_x` to `ι₀ 0_x`, and are open embeddings. -/
 theorem exists_smoothIsotopy_of_apply_zeroSection_eq_smul (hc : c ≠ 0)
     (ι₀ : U₀ ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), I⟯ V₀) (ι₁ : U₁ ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), I⟯ V₁)
     (h₀ : SmoothForm.mpullback ι₀ ι₀.contMDiff
@@ -449,11 +476,9 @@ theorem exists_smoothIsotopy_of_apply_zeroSection_eq_smul (hc : c ≠ 0)
   obtain ⟨U', hU'W, hzero', F, hFs, hF0, hFe⟩ :=
     exists_smoothIsotopy_of_eqOn_zeroSection hzW ψ hψe hψ0 hψω
   -- shrink `U'` to the points whose whole track under `F` stays in `U₁`
-  have hS : IsOpen {z : U' | ∀ t, F (t, z) ∈ U₁} := by
-    have hO := (U₁.isOpen.preimage F.contMDiff.continuous).isClosed_compl
-    convert (isClosedMap_snd_of_compactSpace (X := unitInterval) _ hO).isOpen_compl using 1
-    ext z
-    simp
+  have hS : IsOpen {z : U' | ∀ t, F (t, z) ∈ U₁} :=
+    isOpen_forall_prodMk_mem (ι := id) continuous_id
+      (U₁.isOpen.preimage (F.contMDiff.continuous.comp continuous_swap))
   obtain ⟨U, hUdef⟩ : ∃ U : Opens (CotangentBundle J L),
       (U : Set (CotangentBundle J L)) = Subtype.val '' {z : U' | ∀ t, F (t, z) ∈ U₁} :=
     ⟨⟨_, U'.isOpen.isOpenMap_subtypeVal _ hS⟩, rfl⟩
@@ -504,6 +529,8 @@ theorem exists_smoothIsotopy_of_apply_zeroSection_eq_smul (hc : c ≠ 0)
       -- `q` is a map into `U₁`; its value is a value of `F.symm`
       change F.symm (0, _) = _
       rw [SmoothIsotopy.symm_apply, unitInterval.symm_zero, F.apply_one]
+      -- `ψ.comp (Opens.inclusion _)` at a point is `ψ` at its image; `ContMDiffMap.comp_apply`
+      -- does not match the bundled inclusion here, so this is closed by unfolding
       rfl
     -- the value of the bundled isotopy and of the bundled endpoint, as values of `ι₁` and `ι₀`
     change (ι₁ (q (0, z)) : M) = ι₀ (Opens.inclusion (hU.trans inf_le_left) z)
@@ -540,9 +567,11 @@ theorem exists_smoothIsotopy_of_apply_zeroSection_eq_smul (hc : c ≠ 0)
   · -- `F` fixes the zero section, and `ι₁ = ι₀` there
     have hqx : q (t, ⟨_, hzero (mem_range_self x)⟩) = ⟨_, hU₁ (mem_range_self x)⟩ := by
       refine Subtype.ext ?_
+      -- `q` is a map into `U₁`; its value is a value of `F.symm`
       change F.symm (t, _) = _
       rw [SmoothIsotopy.symm_apply]
       exact hF0 _ x
+    -- the value of the bundled isotopy, as a value of `ι₁`
     change (ι₁ (q (t, _)) : M) = _
     rw [hqx]
     exact (h x).symm
@@ -555,6 +584,79 @@ theorem exists_smoothIsotopy_of_apply_zeroSection_eq_smul (hc : c ≠ 0)
         ((funext fun z ↦ SmoothIsotopy.symm_apply _ _ : (Subtype.val ∘ fun z ↦ q (t, z)) =
           fun z ↦ F (unitInterval.symm t, Opens.inclusion hUU' z)) ▸ hFU)
     exact V₁.isOpen.isOpenEmbedding_subtypeVal.comp (ι₁.toHomeomorph.isOpenEmbedding.comp hqe)
+
+/-- **Uniqueness of Lagrangian neighbourhoods up to isotopy.** Let `L` be a finite-dimensional
+Hausdorff manifold without boundary, `M` a manifold without boundary modelled on a
+finite-dimensional space and `Ω` a two-form on `M`. Let `ι₀ : U₀ ≃ V₀` and `ι₁ : U₁ ≃ V₁` be
+diffeomorphisms from open sets of `T*L` containing the zero section onto open sets of `M`, each
+pulling the restriction of `Ω` back to the restriction of the canonical symplectic form `ω`, and
+taking the same value at every zero covector. Then there are an open neighbourhood
+`U ⊆ U₀ ∩ U₁` of the zero section and a smooth isotopy from the restriction of `ι₀` to `U` to
+that of `ι₁`, whose slices pull `Ω` back to the restriction of `ω` to `U`, send every zero
+covector `0_x` to `ι₀ 0_x`, and are open embeddings. -/
+theorem exists_smoothIsotopy_of_apply_zeroSection_eq
+    (ι₀ : U₀ ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), I⟯ V₀) (ι₁ : U₁ ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), I⟯ V₁)
+    (h₀ : SmoothForm.mpullback ι₀ ι₀.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal Ω) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (symplecticForm J L))
+    (h₁ : SmoothForm.mpullback ι₁ ι₁.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal Ω) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (symplecticForm J L))
+    (hU₀ : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U₀)
+    (hU₁ : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U₁)
+    (h : ∀ x, (ι₀ ⟨_, hU₀ (mem_range_self x)⟩ : M) = ι₁ ⟨_, hU₁ (mem_range_self x)⟩) :
+    ∃ (U : Opens (CotangentBundle J L)) (hU : U ≤ U₀ ⊓ U₁)
+      (hzero : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U)
+      (G : SmoothIsotopy
+        (ContMDiffMap.comp ⟨Subtype.val, contMDiff_subtypeVal⟩
+          (ι₀.toContMDiffMap.comp
+            ⟨Opens.inclusion (hU.trans inf_le_left), contMDiff_inclusion _⟩))
+        (ContMDiffMap.comp ⟨Subtype.val, contMDiff_subtypeVal⟩
+          (ι₁.toContMDiffMap.comp
+            ⟨Opens.inclusion (hU.trans inf_le_right), contMDiff_inclusion _⟩))),
+      G.IsSymplectic
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (symplecticForm J L)) Ω ∧
+      (∀ (t : unitInterval) x,
+        G (t, ⟨_, hzero (mem_range_self x)⟩) = ι₀ ⟨_, hU₀ (mem_range_self x)⟩) ∧
+      ∀ t : unitInterval, IsOpenEmbedding fun z : U ↦ G (t, z) := by
+  simpa only [one_smul] using exists_smoothIsotopy_of_apply_zeroSection_eq_smul one_ne_zero
+    ι₀ ι₁ (by rwa [one_smul]) (by rwa [one_smul]) hU₀ hU₁ h
+
+/-- **Uniqueness of Lagrangian neighbourhoods up to isotopy, for the opposite form.** The
+statement of `SymplecticGeometry.CotangentBundle.exists_smoothIsotopy_of_apply_zeroSection_eq`
+with the opposite `-ω` of the canonical symplectic form in place of `ω`: two diffeomorphisms
+`ι₀`, `ι₁` from open neighbourhoods of the zero section of `T*L` onto open sets of `M`, pulling
+the restriction of `Ω` back to that of `-ω` and agreeing on the zero section, are joined on an
+open neighbourhood `U` of the zero section by a smooth isotopy of open embeddings whose slices
+pull `Ω` back to the restriction of `-ω` to `U` and send `0_x` to `ι₀ 0_x`. -/
+theorem exists_smoothIsotopy_of_apply_zeroSection_eq_neg
+    (ι₀ : U₀ ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), I⟯ V₀) (ι₁ : U₁ ≃ₘ⟮J.prod 𝓘(ℝ, E →L[ℝ] ℝ), I⟯ V₁)
+    (h₀ : SmoothForm.mpullback ι₀ ι₀.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal Ω) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (-symplecticForm J L))
+    (h₁ : SmoothForm.mpullback ι₁ ι₁.contMDiff
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal Ω) =
+      SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (-symplecticForm J L))
+    (hU₀ : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U₀)
+    (hU₁ : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U₁)
+    (h : ∀ x, (ι₀ ⟨_, hU₀ (mem_range_self x)⟩ : M) = ι₁ ⟨_, hU₁ (mem_range_self x)⟩) :
+    ∃ (U : Opens (CotangentBundle J L)) (hU : U ≤ U₀ ⊓ U₁)
+      (hzero : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U)
+      (G : SmoothIsotopy
+        (ContMDiffMap.comp ⟨Subtype.val, contMDiff_subtypeVal⟩
+          (ι₀.toContMDiffMap.comp
+            ⟨Opens.inclusion (hU.trans inf_le_left), contMDiff_inclusion _⟩))
+        (ContMDiffMap.comp ⟨Subtype.val, contMDiff_subtypeVal⟩
+          (ι₁.toContMDiffMap.comp
+            ⟨Opens.inclusion (hU.trans inf_le_right), contMDiff_inclusion _⟩))),
+      G.IsSymplectic
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (-symplecticForm J L)) Ω ∧
+      (∀ (t : unitInterval) x,
+        G (t, ⟨_, hzero (mem_range_self x)⟩) = ι₀ ⟨_, hU₀ (mem_range_self x)⟩) ∧
+      ∀ t : unitInterval, IsOpenEmbedding fun z : U ↦ G (t, z) := by
+  rw [← neg_one_smul ℝ (symplecticForm J L)] at h₀ h₁ ⊢
+  exact exists_smoothIsotopy_of_apply_zeroSection_eq_smul (neg_ne_zero.2 one_ne_zero) ι₀ ι₁ h₀ h₁
+    hU₀ hU₁ h
 
 end TwoEmbeddings
 
