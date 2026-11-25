@@ -16,13 +16,18 @@ Let `f : N → M` be a coisotropic immersion with regular characteristic foliati
 `Coisotropic/Lagrangian/Basic.lean`, the map `leafSpaceMk ∘ c` from `C` to the reduced space has
 constant rank, so the kernels of its derivative form a foliation of `C`
 (`TauCeti.Foliation.ofConstantRank`). This file shows that this foliation is regular, so that its
-leaf space is a manifold; the reduced Lagrangian is to be built on it.
+leaf space is a manifold, and that, when every fibre of `leafSpaceMk ∘ c` is preconnected, the map
+that `leafSpaceMk ∘ c` induces from this leaf space to the reduced space is injective. The reduced
+Lagrangian is to be built on it.
 
 ## Main results
 
 * `SymplecticGeometry.IsCleanIntersection.isRegular_ofConstantRank`: the kernel foliation of
   `leafSpaceMk ∘ c` on a boundaryless `C` is regular. It is the case `leafSpaceMk ∘ c` of
   `TauCeti.Foliation.isRegular_ofConstantRank`, which holds for every smooth map of constant rank.
+* `SymplecticGeometry.IsCleanIntersection.injective_leafSpaceLift`: with preconnected fibres, the
+  map of leaf spaces induced by `leafSpaceMk ∘ c` is injective. It is the case `leafSpaceMk ∘ c` of
+  `TauCeti.Foliation.LeafSpace.injective_lift_ofConstantRank`.
 
 ## References
 
@@ -72,6 +77,30 @@ theorem isRegular_ofConstantRank (hc : IsCleanIntersection I J K L f g c)
   haveI := Foliation.isManifold_leafSpace hR
   haveI := hc.isSmoothEmbedding.isImmersion.isManifold
   Foliation.isRegular_ofConstantRank _ _ hn
+
+/-- **The leaf space of a clean intersection maps injectively to the reduced space.** Let `f` be
+a coisotropic immersion with regular characteristic foliation, `g` a Lagrangian immersion, and
+`c` a clean intersection of `f` and `g` from a boundaryless manifold `C`. If every fibre of
+`leafSpaceMk ∘ c` is preconnected, the map induced by `leafSpaceMk ∘ c` from the leaf space of the
+kernel foliation of `leafSpaceMk ∘ c` on `C` to the leaf space of the characteristic foliation of
+`f` is injective. -/
+theorem injective_leafSpaceLift (hc : IsCleanIntersection I J K L f g c)
+    (hR : (h.characteristicFoliation hi hf hσc hn).IsRegular) (hg : hσ.IsLagrangianMap K g)
+    (hgi : IsImmersion K I ∞ g)
+    (hpc : ∀ b,
+      IsPreconnected ((h.characteristicFoliation hi hf hσc hn).leafSpaceMk ∘ c ⁻¹' {b})) :
+    letI := Foliation.leafSpaceChartedSpace hR
+    haveI := Foliation.isManifold_leafSpace hR
+    haveI := hc.isSmoothEmbedding.isImmersion.isManifold
+    Function.Injective (Foliation.LeafSpace.lift
+      ((h.characteristicFoliation hi hf hσc hn).leafSpaceMk ∘ c) fun _ _ ↦
+        Foliation.SameLeaf.apply_eq_of_ofConstantRank
+          (hf := (Foliation.contMDiff_leafSpaceMk hR).comp hc.isSmoothEmbedding.contMDiff)
+          (hr := hc.mfderivRank_leafSpaceMk_comp_eq hR hg hgi) (hn := hn)) :=
+  letI := Foliation.leafSpaceChartedSpace hR
+  haveI := Foliation.isManifold_leafSpace hR
+  haveI := hc.isSmoothEmbedding.isImmersion.isManifold
+  Foliation.LeafSpace.injective_lift_ofConstantRank _ _ hn hpc
 
 end SymplecticGeometry.IsCleanIntersection
 
