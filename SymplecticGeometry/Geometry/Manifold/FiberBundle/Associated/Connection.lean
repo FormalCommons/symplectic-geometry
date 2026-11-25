@@ -188,7 +188,8 @@ theorem isCompl_associatedHorizontal (hA : IsConnectionForm A)
   set C := tangentSpaceCast IB
     ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm ⟪x, v⟫ₐ).proj
     ((ManifoldTotalSpace.homeomorph G P).symm x).proj
-  have hc := hA.isCompl_horizontal x
+  have hc := hA.isCompl_horizontal (n := ∞) x
+  rw [ManifoldTotalSpace.coe_projContMDiffMap] at hc
   have hTL := mfderiv_proj_totalSpaceMk_mk_apply (IB := IB) (IG := IG) (IF := IF) (n := ∞)
     (by simp) x v
   constructor
