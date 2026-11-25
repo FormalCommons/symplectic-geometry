@@ -78,7 +78,7 @@ theorem isZero_compactSupportCohomology_of_starConvex {j : U → F} (hj : IsOpen
   rcases isEmpty_or_nonempty U with hU₀ | ⟨⟨u₀⟩⟩
   · -- the carrier of `of U` is `U`
     have : IsEmpty (of U) := hU₀
-    exact isZero_compactSupportCohomology_of_isEmpty R k N (of U) n
+    exact isZero_compactSupportCohomology_of_isEmpty (X := of U) R k N n
   have hy : y ∈ range j := hU.mem ⟨j u₀, u₀, rfl⟩
   let f : of U ⟶ of F := ofHom ⟨j, hj.continuous⟩
   -- the underlying function of `f` is `j`

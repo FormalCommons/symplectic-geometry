@@ -40,7 +40,6 @@ coordinate of the half-line is one, and local diffeomorphisms at positive depth.
 
 ## Main results
 
-* `TauCeti.EuclideanHalfSpace.contMDiffOn_normalRay`: the normal ray is smooth on `[0, ∞)`.
 * `TauCeti.EuclideanHalfSpace.normalRay_mem_normalIioOpens`: the normal ray at `r` lies in
   `normalIioOpens ε`, for `ε > 0`, exactly when `r < ε`.
 * `SymplecticGeometry.EuclideanHalfSpace.continuous_normalIioRay` and
@@ -61,14 +60,6 @@ open Set
 open scoped Manifold ContDiff
 
 namespace TauCeti.EuclideanHalfSpace
-
-/-- The normal ray of the half-line is `C^n` on `[0, ∞)`, for every `n`. -/
-theorem contMDiffOn_normalRay {n : WithTop ℕ∞} :
-    ContMDiffOn 𝓘(ℝ) (𝓡∂ 1) n normalRay (Ici 0) :=
-  ((𝓡∂ 1).contMDiffOn_symm.comp (s := Ici 0)
-    (PiLp.equivOfUnique 2 ℝ fun _ : Fin 1 ↦ ℝ).symm.contDiff.contMDiff.contMDiffOn
-    fun r (hr : 0 ≤ r) ↦ by simpa [range_modelWithCornersEuclideanHalfSpace] using hr).congr
-    fun r _ ↦ normalRay_eq_symm r
 
 /-- For `ε > 0`, the normal ray at `r` lies in the open segment `[0, ε)` exactly when `r < ε`. -/
 theorem normalRay_mem_normalIioOpens {ε r : ℝ} (hε : 0 < ε) :
