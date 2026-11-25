@@ -13,11 +13,11 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.We
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.LiouvilleMeasure
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import TauCeti.Geometry.Symplectic.Manifold.Volume
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
-import SymplecticGeometry.MeasureTheory.Measure.Haar.InnerProductSpace
-import SymplecticGeometry.MeasureTheory.Measure.Lebesgue.HalfSqRadius
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
 
 /-!
@@ -71,10 +71,10 @@ then the integral of `φ` against the symplectic orientation is `F(0) / (ħⁿ �
 `f` against the Liouville measure
 (`TauCeti.SmoothTwoForm.IsNondegenerate.integralTopForm_smul_volumeForm`), which the chart turns
 into a Lebesgue integral on `StdSpace (Fin n)`
-(`SymplecticGeometry.integral_liouvilleMeasure_of_isSymplecticMapOn_stdForm`). Read on
-`EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n)`
-(`EuclideanSpace.volume_preserving_sumEquivProd`), it is
-`2ⁿ ∏ⱼ kⱼ · F(0) πⁿ / ∏ⱼ (2πħ kⱼ²)` by `MeasureTheory.integral_iteratedDeriv_neg_sum_mul_sq`.
+(`SymplecticGeometry.integral_liouvilleMeasure_of_isSymplecticMapOn_stdForm`), equal to
+`2ⁿ ∏ⱼ kⱼ · F(0) πⁿ / ∏ⱼ (2πħ kⱼ²)` by
+`SymplecticGeometry.integral_stdSpace_iteratedDeriv_neg_sum_mul_sq`. That `f` is continuous is
+`OpenPartialHomeomorph.contMDiff_of_contMDiffOn_source_of_contMDiffOn_compl` for `Φ⁻¹`.
 In dimension `0` all sums and products are empty and the value is `F(0)`.
 
 ## References
@@ -176,18 +176,6 @@ theorem formCalculus_apply_weightChart [FiniteDimensional ℝ E] {σ : SmoothTwo
     -(2 * π * ħ) * ∑ j, k j ^ 2 * (z.x j ^ 2 + z.y j ^ 2) by ring]
   ring
 
-/-- For weights `wⱼ > 0` and `F` of class `C^n` with compact support, the integral over
-`StdSpace (Fin n)` of `F⁽ⁿ⁾(-∑ⱼ wⱼ (xⱼ² + yⱼ²))` is `F 0 * π ^ n / ∏ⱼ wⱼ`. -/
-private theorem integral_stdSpace_iteratedDeriv_neg_sum_mul_sq {F : ℝ → ℝ}
-    (hF : ContDiff ℝ n F) (hFc : HasCompactSupport F) {w : Fin n → ℝ} (hw : ∀ j, 0 < w j) :
-    ∫ z : StdSpace (Fin n), iteratedDeriv n F (-∑ j, w j * (z.x j ^ 2 + z.y j ^ 2)) =
-      F 0 * π ^ n / ∏ j, w j := by
-  have h := integral_iteratedDeriv_neg_sum_mul_sq (ι := Fin n) (by simpa using hF) hFc hw
-  rw [Fintype.card_fin] at h
-  rw [← h, ← (EuclideanSpace.volume_preserving_sumEquivProd _ _).integral_comp
-    EuclideanSpace.sumEquivProd.toHomeomorph.measurableEmbedding]
-  simp only [StdSpace.sumEquivProd_apply_fst, StdSpace.sumEquivProd_apply_snd]
-
 /-- **The contribution of a fixed point.** Let `σ` be nondegenerate on a manifold modelled on a
 space of dimension `2 n`, let `Φ` be a partial diffeomorphism from `StdSpace (Fin n)` to `M`
 that pulls `σ` back to the standard form on its source, let `ball 0 s` lie in its source, let `θ`
@@ -227,10 +215,6 @@ theorem integralTopForm_formCalculus_weightChart [FiniteDimensional ℝ E] [T2Sp
     simp only [G, w, neg_mul, Finset.mul_sum, ← Finset.sum_neg_distrib]
     exact congrArg _ (Finset.sum_congr rfl fun j _ ↦ by ring)
   have hG0 {z : StdSpace (Fin n)} (hz : a < ‖z‖) : G z = 0 := hFa z hz
-  have hx (j : Fin n) : Continuous fun z : StdSpace (Fin n) ↦ z.x j :=
-    (continuous_apply j).comp StdSpace.x.continuous_of_finiteDimensional
-  have hy (j : Fin n) : Continuous fun z : StdSpace (Fin n) ↦ z.y j :=
-    (continuous_apply j).comp StdSpace.y.continuous_of_finiteDimensional
   have hG : Continuous G :=
     Continuous.comp (g := iteratedDeriv n F) (hF.continuous_iteratedDeriv n (by simp))
       (by fun_prop)
@@ -244,25 +228,21 @@ theorem integralTopForm_formCalculus_weightChart [FiniteDimensional ℝ E] [T2Sp
   have hsa : closedBall (0 : StdSpace (Fin n)) a ⊆ ball 0 s := closedBall_subset_ball has
   set K := Φ '' closedBall 0 a
   have hK : IsCompact K :=
-    (isCompact_closedBall _ _).image_of_continuousOn
-      (Φ.contMDiffOn.continuousOn.mono (hsa.trans hs))
+    Φ.isCompact_image_of_subset_source (isCompact_closedBall 0 a) (hsa.trans hs)
   have hfK : ∀ x ∉ K, f x = 0 := fun x hx ↦ by
     by_cases hxt : x ∈ Φ.target
     · exact hft hxt (not_le.1 fun h ↦ hx ⟨_, mem_closedBall_zero_iff.2 h, Φ.right_inv hxt⟩)
     · exact hf0 hxt
-  have hU : IsOpen (Φ '' ball 0 s) :=
-    Φ.toOpenPartialHomeomorph.isOpen_image_of_subset_source isOpen_ball hs
+  -- `f` is continuous on the target of `Φ` and vanishes off the compact set `K` inside it.
   have hf : Continuous f := by
-    refine ContinuousOn.continuous_of_tsupport_subset (s := Φ '' ball 0 s) ?_ hU
-      ((closure_minimal (Function.support_subset_iff'.2 hfK) hK.isClosed).trans
-        (image_mono hsa))
-    have hcont : ContinuousOn (fun x ↦ c * G (Φ.symm x)) (Φ '' ball 0 s) :=
-      continuousOn_const.mul (hG.comp_continuousOn (Φ.symm.contMDiffOn.continuousOn.mono
-        (by rintro _ ⟨z, hz, rfl⟩; exact Φ.map_source (hs hz))))
-    refine hcont.congr fun x ⟨z, hz, hzx⟩ ↦ ?_
-    rw [← hzx, hfΦ (hs hz)]
-    dsimp only
-    rw [Φ.symm_toPartialEquiv, Φ.left_inv (hs hz)]
+    refine (Φ.symm.toOpenPartialHomeomorph.contMDiff_of_contMDiffOn_source_of_contMDiffOn_compl
+      (I := I) (I' := 𝓘(ℝ)) (n := 0) (isCompact_closedBall 0 a) (by simpa using hsa.trans hs) ?_
+      ?_).continuous
+    · refine (((contMDiff_zero_iff (I := 𝓘(ℝ, StdSpace (Fin n))) (I' := 𝓘(ℝ))).2
+        (continuous_const.mul hG : Continuous fun z ↦ c * G z)).comp_contMDiffOn
+        (Φ.symm.contMDiffOn.of_le (by simp))).congr fun x hx ↦ ?_
+      exact indicator_of_mem (by simpa using hx) _
+    · exact contMDiffOn_const.congr fun x hx ↦ hfK x fun h ↦ hx (by simpa [K] using h)
   -- `φ` is `f` times the symplectic volume form.
   have hφf : φ = fun x ↦ f x • (σ.volumeForm n).val x := by
     funext x
@@ -275,13 +255,15 @@ theorem integralTopForm_formCalculus_weightChart [FiniteDimensional ℝ E] [T2Sp
         rw [hft hxt (has.trans_le (by simpa using hz)), zero_smul]
       · rw [hf0 hxt, zero_smul]
   have hw : ∀ j, 0 < w j := fun j ↦ by have := hk j; positivity
+  have hint := integral_stdSpace_iteratedDeriv_neg_sum_mul_sq (ι := Fin n)
+    (hF.of_le (by simp)) hFc hw
+  rw [Fintype.card_fin] at hint
   rw [hφf, hσn.integralTopForm_smul_volumeForm hf (HasCompactSupport.intro hK hfK),
     integral_liouvilleMeasure_of_isSymplecticMapOn_stdForm hσ fun x hx ↦ hf0 hx,
     setIntegral_congr_fun Φ.open_source.measurableSet fun z hz ↦ hfΦ hz,
     setIntegral_eq_integral_of_forall_compl_eq_zero fun z hz ↦ by
       rw [hG0 (has.trans_le (by simpa using fun h ↦ hz (hs h))), mul_zero],
-    integral_const_mul, hGw,
-    integral_stdSpace_iteratedDeriv_neg_sum_mul_sq (hF.of_le (by simp)) hFc hw]
+    integral_const_mul, hGw, hint]
   simp only [c, w, Finset.prod_mul_distrib, Finset.prod_const, Finset.card_univ,
     Fintype.card_fin, Finset.prod_pow]
   have : ∏ j, k j ≠ 0 := Finset.prod_ne_zero_iff.2 fun j _ ↦ hk j
