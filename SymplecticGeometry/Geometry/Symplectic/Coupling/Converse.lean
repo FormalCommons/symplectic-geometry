@@ -80,11 +80,12 @@ projection of `P` are the slices of the coupling form, and the projection has sm
 sections (`TauCeti.ManifoldTotalSpace.exists_contMDiffOn_section`), so
 `SymplecticGeometry.IsSmoothFamily.of_mpullback_prodMk_eq` applies.
 
-For `σ` symplectic, each slice of the band map of a circle action, read on the total space of
-the circle bundle of a level of `H`, is an equivariant map into that level with injective
-differential and tangent images `ker dH`, so it pulls `σ` back to the pull-back of a unique
-symplectic form on the base
-(`SymplecticGeometry.existsUnique_isSymplectic_mpullback_projContMDiffMap_eq`, in
+For `σ` symplectic, the slice at `t` of the band map of a circle action, read on the total space
+of the circle bundle of the level `H = a`, is an equivariant map into the level `H = t` with
+injective differential and tangent images `ker dH`, so it pulls `σ` back to the pull-back of a
+unique symplectic form on the base
+(`SymplecticGeometry.existsUnique_isSymplectic_mpullback_eq_mpullback_bandMap`, which applies
+`SymplecticGeometry.existsUnique_isSymplectic_mpullback_projContMDiffMap_eq` of
 `Hamiltonian/Reduction/Circle.lean`).
 
 The last section puts these together into the converse of minimal coupling

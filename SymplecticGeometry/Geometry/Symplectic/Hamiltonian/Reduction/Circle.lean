@@ -25,7 +25,7 @@ cocycle of `-μ` vanishes and `ker d(-μ) = ker dH`
 `TauCeti.SmoothTwoForm.IsMomentMap.ker_differential_circle`), since the Lie algebra of `Circle`
 is one-dimensional; the vertical vectors of `P` are the multiples of its fundamental field, which
 `dφ` sends to the orbit directions of `M`
-(`SymplecticGeometry.mfderiv_rightFundamentalVectorField_of_map_op_smul_eq_smul`); and the fibres
+(`TauCeti.mfderiv_rightFundamentalVectorField_of_map_op_smul_eq_smul`); and the fibres
 of `P` are orbits. So `φ^* σ` is the pull-back of a unique symplectic form on the base. The
 invariance of `φ^* σ` under the action on the total space is proved as in Tau Ceti's
 `TauCeti.SmoothTwoForm.IsEquivariantMomentMap.existsUnique_isSymplectic_mpullback_eq_mpullback`.
