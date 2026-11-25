@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 public import TauCeti.Geometry.Manifold.Orientation.Pullback
 
 /-!
@@ -35,8 +36,9 @@ The hypothesis `hι` says that `ι` indexes orientations of the model of `N`. It
   and the only one to which `e` does.
 * `TauCeti.Manifold.Orientation.map_neg`: carrying commutes with reversing the orientation.
 * `TauCeti.Manifold.Orientation.map_refl`, `TauCeti.Manifold.Orientation.map_trans`,
-  `TauCeti.Manifold.Orientation.map_symm_map`: carrying along the identity, along a composite, and
-  along `e` and then back.
+  `TauCeti.Manifold.Orientation.map_symm_map`, `TauCeti.Manifold.Orientation.map_map_symm`:
+  carrying along the identity, along a composite, along `e` and then back, and along `e.symm`
+  and then back.
 
 ## References
 
@@ -91,8 +93,8 @@ orientation. -/
 theorem isOrientationPreservingAt_map (o : Orientation I M ι) (e : M ≃ₘ^n⟮I, I'⟯ N) (hn : n ≠ 0)
     (hι : Fintype.card ι = finrank ℝ E') (x : M) :
     IsOrientationPreservingAt o (o.map e hn hι) e x := by
-  -- `e.symm.symm` is `e` up to structure eta.
-  exact (isOrientationPreservingAt_map_symm o e hn hι (e.symm.symm x)).diffeomorph_symm hn
+  simpa only [Diffeomorph.symm_symm] using
+    (isOrientationPreservingAt_map_symm o e hn hι (e.symm.symm x)).diffeomorph_symm hn
 
 /-- The carried orientation is the only orientation of `N` from which the inverse of `e`
 preserves orientation at every point. -/
@@ -138,6 +140,12 @@ theorem map_trans (o : Orientation I M ι) (e : M ≃ₘ^n⟮I, I'⟯ N) (f : N 
 theorem map_symm_map (o : Orientation I M ι) (e : M ≃ₘ^n⟮I, I'⟯ N) (hn : n ≠ 0)
     (hι : Fintype.card ι = finrank ℝ E') : (o.map e hn hι).map e.symm hn o.card_eq = o :=
   ((eq_map_iff' hn o.card_eq).2 (isOrientationPreservingAt_map_symm o e hn hι)).symm
+
+/-- Carrying an orientation of `N` along `e.symm` and then back along `e` gives it back. -/
+@[simp]
+theorem map_map_symm (o : Orientation I' N ι) (e : M ≃ₘ^n⟮I, I'⟯ N) (hn : n ≠ 0)
+    (hι : Fintype.card ι = finrank ℝ E) : (o.map e.symm hn hι).map e hn o.card_eq = o :=
+  ((eq_map_iff hn o.card_eq).2 (isOrientationPreservingAt_map o e.symm hn hι)).symm
 
 end TauCeti.Manifold.Orientation
 
