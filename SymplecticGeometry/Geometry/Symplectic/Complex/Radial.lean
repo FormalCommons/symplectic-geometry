@@ -26,6 +26,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.Plurisubharmonic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Rescale
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import SymplecticGeometry.Analysis.Complex.Euclidean.Space
+import SymplecticGeometry.MeasureTheory.Integral.IntervalIntegral.Primitive
 
 /-!
 # Radial potential forms on `ℂⁿ ∖ 0`
@@ -533,16 +534,10 @@ theorem isKahler_mpullback_radialMap (hs : ContDiffOn ℝ ∞ h (Ioi 0))
   set q : ℝ → ℝ := fun t ↦ h t / t
   have hq : ContDiffOn ℝ ∞ q (Ioi 0) := hs.div contDiffOn_id fun _ ht ↦ ne_of_gt ht
   set g : ℝ → ℝ := fun t ↦ ∫ u in (1 : ℝ)..t, q u
-  have hgd : ∀ t ∈ Ioi (0 : ℝ), HasDerivAt g (q t) t := fun t ht ↦
-    intervalIntegral.integral_hasDerivAt_right
-      (hq.continuousOn.mono
-        (ordConnected_Ioi.uIcc_subset (mem_Ioi.2 one_pos) ht)).intervalIntegrable
-      (hq.continuousOn.stronglyMeasurableAtFilter isOpen_Ioi t ht)
-      (hq.continuousOn.continuousAt (Ioi_mem_nhds ht))
-  have hgq : EqOn (deriv g) q (Ioi 0) := fun t ht ↦ (hgd t ht).deriv
+  have hgq : EqOn (deriv g) q (Ioi 0) :=
+    hq.continuousOn.eqOn_deriv_integral_of_ordConnected isOpen_Ioi ordConnected_Ioi one_pos
   have hg : ContDiffOn ℝ ∞ g (Ioi 0) :=
-    (contDiffOn_infty_iff_deriv_of_isOpen isOpen_Ioi).2
-      ⟨fun t ht ↦ (hgd t ht).differentiableAt.differentiableWithinAt, hq.congr hgq⟩
+    hq.contDiffOn_add_one_integral isOpen_Ioi ordConnected_Ioi one_pos
   rw [mpullback_radialMap_stdForm hs hh hg hgq]
   refine isKahler_radialPotentialForm hg (fun s hs ↦ ?_) (fun s hs ↦ ?_)
   · rw [hgq hs]
