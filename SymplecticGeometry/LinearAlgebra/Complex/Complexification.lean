@@ -64,10 +64,11 @@ def complexificationEquiv : ℂ ⊗[ℝ] W ≃ₗ[ℂ] W × Conjugate W where
 
 variable {W}
 
-/-- On a pure tensor, `complexificationEquiv W` is `z ⊗ w ↦ (z • w, z̄ • w)`. -/
+/-- On a pure tensor, `complexificationEquiv W` is `z ⊗ w ↦ (z • w, z̄ • w)`; in `Conjugate W`,
+the second component is `z • toConj w`. -/
 @[simp]
 theorem complexificationEquiv_tmul (z : ℂ) (w : W) :
-    complexificationEquiv W (z ⊗ₜ[ℝ] w) = (z • w, toConj (conj z • w)) := by
+    complexificationEquiv W (z ⊗ₜ[ℝ] w) = (z • w, z • toConj w) := by
   simp [complexificationEquiv]
 
 /-- The first component of `complexificationEquiv W u` is `x + i y`, for `x` and `y` the real
@@ -104,5 +105,25 @@ theorem imaginaryPart_complexificationEquiv_symm (p : W × Conjugate W) :
   simp [complexificationEquiv_symm_apply, smul_sub]
 
 end TauCeti.Conjugate
+
+namespace LinearEquiv
+
+open TauCeti
+
+variable {W W' : Type*} [AddCommGroup W] [Module ℝ W] [AddCommGroup W'] [Module ℝ W']
+
+/-- The base change of a real-linear isomorphism commutes with `realPart`. -/
+@[simp]
+theorem realPart_baseChange (e : W ≃ₗ[ℝ] W') (u : ℂ ⊗[ℝ] W) :
+    realPart W' (LinearEquiv.baseChange ℝ ℂ W W' e u) = e (realPart W u) :=
+  TauCeti.realPart_baseChange (e : W →ₗ[ℝ] W') u
+
+/-- The base change of a real-linear isomorphism commutes with `imaginaryPart`. -/
+@[simp]
+theorem imaginaryPart_baseChange (e : W ≃ₗ[ℝ] W') (u : ℂ ⊗[ℝ] W) :
+    imaginaryPart W' (LinearEquiv.baseChange ℝ ℂ W W' e u) = e (imaginaryPart W u) :=
+  TauCeti.imaginaryPart_baseChange (e : W →ₗ[ℝ] W') u
+
+end LinearEquiv
 
 end

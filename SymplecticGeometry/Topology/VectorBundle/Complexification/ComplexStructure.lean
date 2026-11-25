@@ -80,11 +80,12 @@ theorem complexificationEquiv_def (b : B) :
         (Conjugate.complexificationEquiv (J.Fiber b)) :=
   (rfl)
 
-/-- On a pure tensor, `J.complexificationEquiv b` is `z ⊗ v ↦ (z v, z̄ v)`. -/
+/-- On a pure tensor, `J.complexificationEquiv b` is `z ⊗ v ↦ (z v, z̄ v)`; in the conjugate
+bundle, the second component is `z • toConj v`. -/
 @[simp]
 theorem complexificationEquiv_tmul (b : B) (z : ℂ) (v : V b) :
     J.complexificationEquiv b (z ⊗ₜ[ℝ] v) =
-      (z • (J.fiberEquiv b).symm v, toConj (conj z • (J.fiberEquiv b).symm v)) := by
+      (z • (J.fiberEquiv b).symm v, z • toConj ((J.fiberEquiv b).symm v)) := by
   simp [complexificationEquiv_def]
 
 /-- The first component of `J.complexificationEquiv b u`, read in `V b`, is `x + J y`, for
@@ -93,10 +94,7 @@ theorem complexificationEquiv_tmul (b : B) (z : ℂ) (v : V b) :
 theorem fiberEquiv_complexificationEquiv_fst (b : B) (u : ℂ ⊗[ℝ] V b) :
     J.fiberEquiv b (J.complexificationEquiv b u).1 =
       realPart (V b) u + J b (imaginaryPart (V b) u) := by
-  have h : LinearEquiv.baseChange ℝ ℂ _ _ (J.fiberEquiv b).toLinearEquiv.symm u =
-      ((J.fiberEquiv b).toLinearEquiv.symm : V b →ₗ[ℝ] J.Fiber b).baseChange ℂ u :=
-    LinearMap.congr_fun (LinearEquiv.coe_baseChange ℝ ℂ _ _ _) u
-  simp [complexificationEquiv_def, h]
+  simp [complexificationEquiv_def]
 
 /-- The second component of `J.complexificationEquiv b u`, read in `V b`, is `x - J y`, for
 `x` and `y` the real and imaginary parts of `u`. -/
@@ -104,10 +102,7 @@ theorem fiberEquiv_complexificationEquiv_fst (b : B) (u : ℂ ⊗[ℝ] V b) :
 theorem fiberEquiv_ofConj_complexificationEquiv_snd (b : B) (u : ℂ ⊗[ℝ] V b) :
     J.fiberEquiv b (ofConj (J.complexificationEquiv b u).2) =
       realPart (V b) u - J b (imaginaryPart (V b) u) := by
-  have h : LinearEquiv.baseChange ℝ ℂ _ _ (J.fiberEquiv b).toLinearEquiv.symm u =
-      ((J.fiberEquiv b).toLinearEquiv.symm : V b →ₗ[ℝ] J.Fiber b).baseChange ℂ u :=
-    LinearMap.congr_fun (LinearEquiv.coe_baseChange ℝ ℂ _ _ _) u
-  simp [complexificationEquiv_def, h]
+  simp [complexificationEquiv_def]
 
 /-! ### The homeomorphism of total spaces -/
 
@@ -179,7 +174,7 @@ theorem proj_complexificationHomeomorph
 /-- On a pure tensor, `J.complexificationHomeomorph G` is `z ⊗ v ↦ (z v, z̄ v)`. -/
 theorem complexificationHomeomorph_tmul (b : B) (z : ℂ) (v : V b) :
     J.complexificationHomeomorph G ⟨b, z ⊗ₜ[ℝ] v⟩ =
-      ⟨b, (z • (J.fiberEquiv b).symm v, toConj (conj z • (J.fiberEquiv b).symm v))⟩ := by
+      ⟨b, (z • (J.fiberEquiv b).symm v, z • toConj ((J.fiberEquiv b).symm v))⟩ := by
   simp
 
 end Homeomorph
