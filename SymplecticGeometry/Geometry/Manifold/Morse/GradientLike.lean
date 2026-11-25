@@ -9,9 +9,11 @@ public import TauCeti.Geometry.Manifold.Riemannian.Gradient.Basic
 public import Mathlib.Geometry.Manifold.IntegralCurve.Basic
 import Mathlib.Analysis.Calculus.ContDiff.Deriv
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
+import TauCeti.Topology.LocallyFinite.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import TauCeti.Geometry.Manifold.Riemannian.Gradient.ChainRule
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
+import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
 import TauCeti.Topology.VectorBundle.Riemannian.Basic
 import SymplecticGeometry.Algebra.Order.Field.Basic
 
@@ -41,6 +43,10 @@ structures are defined. It makes `f` increase strictly along `X` away from the c
 * `TauCeti.IsGradientLike.comp`: `X` is gradient-like for `h ∘ f` when `h` is `C¹` with `h' > 0`.
 * `TauCeti.isGradientLike_mgradient`: the gradient of `f` for any smooth metric is gradient-like
   for `f`, with `δ = 1 / 2`.
+* `TauCeti.isGradientLike_of_forall_exists_nhds`: on a σ-compact Hausdorff manifold the condition
+  is local: a metric and a constant for which the inequality holds near each point suffice.
+* `TauCeti.exists_nhds_mul_le_of_mvfderiv_apply_pos`: near a point where `df(X) > 0`, the
+  inequality holds for every metric and a small constant, when `f` is `C¹` and `X` continuous.
 
 ## Implementation notes
 
@@ -49,6 +55,16 @@ only Tau Ceti's and Mathlib's notions. The metric is a `Bundle.ContMDiffRiemanni
 the norm of the gradient is taken for the `RiemannianBundle` instance that it defines, as in
 Tau Ceti's `TauCeti.IsAdaptedPseudoGradient.exists_contMDiffRiemannianMetric_neg_mgradient_eq`; this
 instance is introduced in the statements only.
+
+The local metrics are glued by Tau Ceti's
+`TauCeti.exists_contMDiffRiemannianMetric_inner_eq_and_inner_mem_of_locallyFinite`, as in
+`TauCeti.IsAdaptedPseudoGradient.exists_contMDiffRiemannianMetric_inner_eq_euclideanForm`. A
+locally finite refinement of the given neighbourhoods first yields, by Tau Ceti's
+`LocallyFinite.exists_continuous_pos_lt`, a continuous `δ > 0` below the local constants.
+The inequality with constant `δ y` at `y` is then convex in the metric: with
+`R = df(X) - δ g(X, X)`, the bound `δ ‖grad f‖ ^ 2 ≤ R` amounts, by Cauchy–Schwarz, to
+`δ (df v) ^ 2 ≤ R g(v, v)` for every `v`, and for `C ≥ 0` the pairs `(p, q)` of nonnegative reals
+with `C ≤ p q` form a convex set.
 
 ## References
 
@@ -59,7 +75,7 @@ instance is introduced in the statements only.
 public section
 
 open Bundle Set
-open scoped ContDiff Manifold
+open scoped ContDiff Manifold Topology
 
 open TauCeti.Manifold SymplecticGeometry
 
@@ -211,6 +227,181 @@ theorem isGradientLike_mgradient
   refine ⟨g, fun _ ↦ 1 / 2, continuous_const, fun _ ↦ by norm_num, fun x ↦ ?_⟩
   rw [← g.norm_sq, mvfderiv_apply_mgradient, real_inner_self_eq_norm_sq]
   exact le_of_eq (by ring)
+
+section Local
+
+/-- The inequality of `TauCeti.IsGradientLike` at `y`, with the constant `δ` and with a bilinear
+form `s` on `T_y M` in place of the metric, put in a form that is convex in `s`: the bound
+`‖grad f y‖ ^ 2 ≤ R` is replaced by `(df_y v) ^ 2 ≤ R * s v v` for all `v`. -/
+private def gradientLikeCondition (f : M → ℝ) (X : (x : M) → TangentSpace 𝓘(ℝ, E) x) (δ : ℝ)
+    (y : M) : Set (TangentSpace 𝓘(ℝ, E) y →L[ℝ] TangentSpace 𝓘(ℝ, E) y →L[ℝ] ℝ) :=
+  {s | (∀ v, 0 ≤ s v v) ∧ δ * s (X y) (X y) ≤ mvfderiv 𝓘(ℝ, E) f y (X y) ∧
+    ∀ v, δ * mvfderiv 𝓘(ℝ, E) f y v ^ 2 ≤
+      (mvfderiv 𝓘(ℝ, E) f y (X y) - δ * s (X y) (X y)) * s v v}
+
+omit [FiniteDimensional ℝ E] [IsManifold 𝓘(ℝ, E) ∞ M] in
+private theorem convex_gradientLikeCondition {δ : ℝ} (hδ : 0 ≤ δ) (y : M) :
+    Convex ℝ (gradientLikeCondition f X δ y) := by
+  rintro s ⟨hs₀, hs₁, hs₂⟩ t ⟨ht₀, ht₁, ht₂⟩ a b ha hb hab
+  simp only [gradientLikeCondition, Set.mem_ofPred_eq, add_apply,
+    FunLike.coe_smul, Pi.smul_apply, smul_eq_mul]
+  set D := mvfderiv 𝓘(ℝ, E) f y (X y)
+  refine ⟨fun v ↦ by have := hs₀ v; have := ht₀ v; positivity, ?_, fun v ↦ ?_⟩
+  · have hD : D = a * D + b * D := by rw [← add_mul, hab, one_mul]
+    nlinarith
+  -- With `pᵢ = D - δ sᵢ (X, X) ≥ 0`, `qᵢ = sᵢ (v, v) ≥ 0` and `C ≤ pᵢ qᵢ`, where `C ≥ 0`, the
+  -- product of the convex combinations is at least `C`.
+  set C := δ * mvfderiv 𝓘(ℝ, E) f y v ^ 2
+  set p₁ := D - δ * s (X y) (X y)
+  set p₂ := D - δ * t (X y) (X y)
+  have hC : 0 ≤ C := by positivity
+  have hp₁ : 0 ≤ p₁ := sub_nonneg.2 hs₁
+  have hp₂ : 0 ≤ p₂ := sub_nonneg.2 ht₁
+  have hq₁ := hs₀ v
+  have hq₂ := ht₀ v
+  have h₁ : C ≤ p₁ * s v v := hs₂ v
+  have h₂ : C ≤ p₂ * t v v := ht₂ v
+  have hp : D - δ * (a * s (X y) (X y) + b * t (X y) (X y)) = a * p₁ + b * p₂ := by
+    simp only [p₁, p₂]; linear_combination (-D) * hab
+  have hprod : C * C ≤ (p₁ * t v v) * (p₂ * s v v) := by
+    have := mul_le_mul h₁ h₂ hC (by positivity)
+    linarith
+  have hcross : 2 * C ≤ p₁ * t v v + p₂ * s v v := by
+    nlinarith [sq_nonneg (p₁ * t v v - p₂ * s v v), mul_nonneg hp₁ hq₂, mul_nonneg hp₂ hq₁]
+  rw [hp]
+  calc C = (a + b) ^ 2 * C := by rw [hab, one_pow, one_mul]
+    _ = a ^ 2 * C + b ^ 2 * C + a * b * (2 * C) := by ring
+    _ ≤ a ^ 2 * (p₁ * s v v) + b ^ 2 * (p₂ * t v v) + a * b * (p₁ * t v v + p₂ * s v v) := by
+      gcongr
+    _ = (a * p₁ + b * p₂) * (a * s v v + b * t v v) := by ring
+
+/-- For a metric `g`, the condition `gradientLikeCondition` on `g` at `y` is the inequality of
+`TauCeti.IsGradientLike` at `y`. -/
+private theorem inner_mem_gradientLikeCondition_iff
+    (g : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x))
+    {δ : ℝ} (hδ : 0 ≤ δ) (y : M) :
+    letI : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
+    g.inner y ∈ gradientLikeCondition f X δ y ↔
+      δ * (g.inner y (X y) (X y) + ‖mgradient 𝓘(ℝ, E) f y‖ ^ 2) ≤
+        mvfderiv 𝓘(ℝ, E) f y (X y) := by
+  let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
+  set G := mgradient 𝓘(ℝ, E) f y
+  have hG : g.inner y G G = ‖G‖ ^ 2 := (g.norm_sq y G).symm
+  have hDG : mvfderiv 𝓘(ℝ, E) f y G = ‖G‖ ^ 2 := by
+    rw [mvfderiv_apply_mgradient, real_inner_self_eq_norm_sq]
+  constructor
+  · rintro ⟨-, h₁, h₂⟩
+    have h := h₂ G
+    rw [hG, hDG] at h
+    rcases (sq_nonneg ‖G‖).eq_or_lt with h0 | h0
+    · rw [← h0]; linarith
+    · have : δ * ‖G‖ ^ 2 ≤ mvfderiv 𝓘(ℝ, E) f y (X y) - δ * g.inner y (X y) (X y) :=
+        le_of_mul_le_mul_right (by nlinarith) h0
+      linarith
+  · intro h
+    refine ⟨fun v ↦ g.toRiemannianMetric.inner_self_nonneg y v,
+      by nlinarith [sq_nonneg ‖G‖], fun v ↦ ?_⟩
+    have hcs : mvfderiv 𝓘(ℝ, E) f y v ^ 2 ≤ ‖G‖ ^ 2 * g.inner y v v := by
+      rw [← inner_mgradient, ← g.inner_eq, ← real_inner_self_eq_norm_sq, sq]
+      exact real_inner_mul_inner_self_le G v
+    have hvv : 0 ≤ g.inner y v v := g.toRiemannianMetric.inner_self_nonneg y v
+    have hR : δ * ‖G‖ ^ 2 ≤ mvfderiv 𝓘(ℝ, E) f y (X y) - δ * g.inner y (X y) (X y) := by
+      linarith
+    calc δ * mvfderiv 𝓘(ℝ, E) f y v ^ 2 ≤ δ * ‖G‖ ^ 2 * g.inner y v v := by
+          rw [mul_assoc]; exact mul_le_mul_of_nonneg_left hcs hδ
+      _ ≤ _ := mul_le_mul_of_nonneg_right hR hvv
+
+/-- **Being gradient-like is a local condition.** On a σ-compact Hausdorff manifold, if each point
+has a neighbourhood `U`, a smooth metric `g` and a constant `c > 0` such that
+`c * (g y (X y) (X y) + ‖grad f y‖ ^ 2) ≤ df_y (X y)` for every `y ∈ U`, the gradient and its norm
+being those of `g`, then `X` is gradient-like for `f`. -/
+theorem isGradientLike_of_forall_exists_nhds [T2Space M] [SigmaCompactSpace M]
+    (h : ∀ x : M, ∃ U ∈ 𝓝 x,
+      ∃ g : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x),
+      ∃ c : ℝ, 0 < c ∧
+        letI : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
+        ∀ y ∈ U, c * (g.inner y (X y) (X y) + ‖mgradient 𝓘(ℝ, E) f y‖ ^ 2) ≤
+          mvfderiv 𝓘(ℝ, E) f y (X y)) :
+    IsGradientLike f X := by
+  choose U hU g c hc hg using h
+  have := Manifold.locallyCompact_of_finiteDimensional (M := M) 𝓘(ℝ, E)
+  -- A locally finite open refinement `V` of the interiors of the sets `U x`.
+  obtain ⟨V, hVo, hVcov, hVlf, hVU⟩ := precise_refinement (fun x ↦ interior (U x))
+    (fun _ ↦ isOpen_interior)
+    (iUnion_eq_univ_iff.2 fun x ↦ ⟨x, mem_interior_iff_mem_nhds.2 (hU x)⟩)
+  -- A continuous `δ > 0` with `δ ≤ c x` on `V x` for every `x`.
+  obtain ⟨δ, hδ₀, hδc⟩ := hVlf.closure.exists_continuous_pos_lt (fun _ ↦ isClosed_closure)
+    (ε := fun x _ ↦ c x) (fun _ ↦ continuousOn_const) fun x _ _ ↦ hc x
+  have hδ (y : M) : 0 < δ y ∧ ∀ x, y ∈ V x → δ y ≤ c x :=
+    ⟨hδ₀ y, fun x hy ↦ (hδc x y (subset_closure hy)).le⟩
+  -- Glue the metrics `g x`, under the fibrewise condition with constant `δ`, which is convex.
+  obtain ⟨G, -, hG⟩ := exists_contMDiffRiemannianMetric_inner_eq_and_inner_mem_of_locallyFinite
+    (IB := 𝓘(ℝ, E)) (n := ⊤) (F := E) (E := fun x : M ↦ TangentSpace 𝓘(ℝ, E) x)
+    (A := (Empty.elim : Empty → Set M)) (U := Empty.elim) (β := Empty.elim)
+    (c := fun y ↦ gradientLikeCondition f X (δ y) y) (fun i ↦ i.elim)
+    (locallyFinite_of_finite _) (fun i ↦ i.elim) (fun i ↦ i.elim) (fun i ↦ i.elim)
+    (fun i ↦ i.elim) (fun i ↦ i.elim) (fun i ↦ i.elim)
+    (fun y ↦ convex_gradientLikeCondition (hδ y).1.le y) (fun i ↦ i.elim) fun y₀ _ ↦ by
+      obtain ⟨x, hx⟩ := mem_iUnion.1 (hVcov ▸ mem_univ y₀)
+      refine ⟨V x, (hVo x).mem_nhds hx, (g x).inner, (g x).contMDiff.contMDiffOn,
+        fun y hy ↦ ⟨⟨(g x).symm y, (g x).pos y⟩, ?_⟩⟩
+      let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨(g x).toRiemannianMetric⟩
+      refine (inner_mem_gradientLikeCondition_iff (g x) (hδ y).1.le y).2 ?_
+      have hQ : 0 ≤ (g x).inner y (X y) (X y) + ‖mgradient 𝓘(ℝ, E) f y‖ ^ 2 :=
+        add_nonneg ((g x).toRiemannianMetric.inner_self_nonneg y (X y)) (sq_nonneg _)
+      exact (mul_le_mul_of_nonneg_right ((hδ y).2 x hy) hQ).trans
+        (hg x y (interior_subset (hVU x hy)))
+  exact ⟨G, δ, δ.continuous, fun y ↦ (hδ y).1,
+    fun y ↦ (inner_mem_gradientLikeCondition_iff G (hδ y).1.le y).1 (hG y)⟩
+
+/-- Near a point `x` with `df_x (X x) > 0`, the inequality of `TauCeti.IsGradientLike` holds for
+every smooth metric `g` with some constant `c > 0`, when `f` is `C¹` at `x` and `X` is continuous
+at `x`. With `TauCeti.isGradientLike_of_forall_exists_nhds`, this leaves only the critical points
+of `f` to check. -/
+theorem exists_nhds_mul_le_of_mvfderiv_apply_pos
+    (g : ContMDiffRiemannianMetric 𝓘(ℝ, E) ∞ E (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x)) {x : M}
+    (hf : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 1 f x)
+    (hX : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent 0 (fun y ↦ (⟨y, X y⟩ : TangentBundle 𝓘(ℝ, E) M)) x)
+    (hx : 0 < mvfderiv 𝓘(ℝ, E) f x (X x)) :
+    ∃ U ∈ 𝓝 x, ∃ c : ℝ, 0 < c ∧
+      letI : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
+      ∀ y ∈ U, c * (g.inner y (X y) (X y) + ‖mgradient 𝓘(ℝ, E) f y‖ ^ 2) ≤
+        mvfderiv 𝓘(ℝ, E) f y (X y) := by
+  let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
+  have : IsManifold 𝓘(ℝ, E) (0 + 1) M := by rw [zero_add]; infer_instance
+  have hgrad : ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ, E).tangent 0
+      (fun y ↦ (⟨y, mgradient 𝓘(ℝ, E) f y⟩ : TangentBundle 𝓘(ℝ, E) M)) x :=
+    contMDiffAt_mgradient (n := 0) (by rwa [zero_add])
+  have hG := hgrad.continuousAt
+  have hX' := hX.continuousAt
+  have hGX : ContinuousAt (fun y ↦ g.inner y (mgradient 𝓘(ℝ, E) f y) (X y)) x :=
+    g.toContinuousRiemannianMetric.continuousAt_inner (b := id) hG hX'
+  have hXX : ContinuousAt (fun y ↦ g.inner y (X y) (X y)) x :=
+    g.toContinuousRiemannianMetric.continuousAt_inner (b := id) hX' hX'
+  have hGG : ContinuousAt
+      (fun y ↦ g.inner y (mgradient 𝓘(ℝ, E) f y) (mgradient 𝓘(ℝ, E) f y)) x :=
+    g.toContinuousRiemannianMetric.continuousAt_inner (b := id) hG hG
+  have hP : ContinuousAt (fun y ↦ mvfderiv 𝓘(ℝ, E) f y (X y)) x :=
+    hGX.congr (Filter.Eventually.of_forall fun y ↦ by
+      dsimp only; rw [← g.inner_eq, inner_mgradient])
+  have hQ : ContinuousAt
+      (fun y ↦ g.inner y (X y) (X y) + ‖mgradient 𝓘(ℝ, E) f y‖ ^ 2) x :=
+    (hXX.add hGG).congr (Filter.Eventually.of_forall fun y ↦ by
+      dsimp only [Pi.add_apply]; rw [g.norm_sq])
+  set P₀ := mvfderiv 𝓘(ℝ, E) f x (X x)
+  set Q₀ := g.inner x (X x) (X x) + ‖mgradient 𝓘(ℝ, E) f x‖ ^ 2
+  have hQ₀ : 0 ≤ Q₀ :=
+    add_nonneg (g.toRiemannianMetric.inner_self_nonneg x (X x)) (sq_nonneg _)
+  refine ⟨_, Filter.inter_mem (hP.eventually (lt_mem_nhds (half_lt_self hx)))
+    (hQ.eventually (gt_mem_nhds (lt_add_one Q₀))), P₀ / (2 * (Q₀ + 1)), by positivity,
+    fun y ⟨hPy, hQy⟩ ↦ ?_⟩
+  calc P₀ / (2 * (Q₀ + 1)) * (g.inner y (X y) (X y) + ‖mgradient 𝓘(ℝ, E) f y‖ ^ 2)
+      ≤ P₀ / (2 * (Q₀ + 1)) * (Q₀ + 1) :=
+        mul_le_mul_of_nonneg_left (le_of_lt hQy) (by positivity)
+    _ = P₀ / 2 := by field_simp
+    _ ≤ mvfderiv 𝓘(ℝ, E) f y (X y) := le_of_lt hPy
+
+end Local
 
 end TauCeti
 
