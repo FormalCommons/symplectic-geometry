@@ -148,8 +148,11 @@ theorem prodIccHomotopyOperator_apply_couplingField
     intervalIntegral.integral_zero
   dsimp only
   generalize projIcc 0 1 zero_le_one r = u
-  rw [mfderiv_prodIccContraction_couplingField, ContinuousAlternatingMap.apply_vecCons_swap, hη,
-    neg_zero]
+  -- the family of the one vector `(X, 0)` is `![(X, 0)]`
+  simp only [Matrix.cons_val_fin_one]
+  rw [mfderiv_prodIccContraction_couplingField]
+  simp only [← Matrix.vec_single_eq_const]
+  rw [ContinuousAlternatingMap.apply_vecCons_swap, hη, neg_zero]
 
 end Homotopy
 
@@ -290,7 +293,11 @@ theorem prodIccHomotopyOperator_apply_couplingField_eq_sub (h : IsCouplingForm �
     rw [zero_smul, one_smul] at h
     -- `0 : TangentSpace _ x` is the pair of zeros, by definition
     exact h
-  rw [mfderiv_prodIccContraction_couplingField, ContinuousAlternatingMap.apply_vecCons_swap,
+  -- the family of the one vector `(X, 0)` is `![(X, 0)]`
+  simp only [Matrix.cons_val_fin_one]
+  rw [mfderiv_prodIccContraction_couplingField]
+  simp only [← Matrix.vec_single_eq_const]
+  rw [ContinuousAlternatingMap.apply_vecCons_swap,
     h.apply_couplingField_eq_neg_mfderiv_snd, h₁]
   -- the values of the forms and of `mfderiv Subtype.val` are real numbers
   exact (congrArg (fun c : ℝ ↦ -(-c)) (mfderiv_subtypeVal_Icc_smul_one _ _)).trans (by ring)
