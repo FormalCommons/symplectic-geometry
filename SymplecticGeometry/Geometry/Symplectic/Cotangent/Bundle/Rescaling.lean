@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.RescaledFamily
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.IsSymplectic
 public import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Restriction
+public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Opens
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Liouville
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import TauCeti.Topology.VectorBundle.Radial
@@ -301,7 +302,7 @@ theorem exists_smoothIsotopy_of_eqOn_zeroSection [IsManifold J ∞ L] [J.Boundar
     ∃ (U' : Opens (CotangentBundle J L)) (hU' : U' ≤ U)
       (hzero : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U')
       (F : SmoothIsotopy (ContMDiffMap.id.restrict U')
-        (ψ.comp ⟨Opens.inclusion hU', contMDiff_inclusion hU'⟩)),
+        (ψ.comp (SmoothEmbedding.inclusion hU').toContMDiffMap)),
       F.IsSymplectic (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (symplecticForm J L))
         (symplecticForm J L) ∧
       (∀ (t : unitInterval) x, F (t, ⟨_, hzero (mem_range_self x)⟩) =
@@ -328,8 +329,10 @@ theorem exists_smoothIsotopy_of_eqOn_zeroSection [IsManifold J ∞ L] [J.Boundar
         rw [ContMDiffMap.restrict_apply, ContMDiffMap.id_apply]
         exact vectorBundleRescaledFamily_zero_eq_self ψ.contMDiff hψ0' hψω
           (hU (mem_range_self _))
-      map_one_left := fun z ↦
-        vectorBundleRescaledFamily_one ψ ⟨z, VectorBundle.radialCore_subset _ z.prop⟩
+      map_one_left := fun z ↦ by
+        rw [ContMDiffMap.comp_apply, SmoothEmbedding.coe_toContMDiffMap,
+          SmoothEmbedding.inclusion_apply (VectorBundle.radialCore_subset _)]
+        exact vectorBundleRescaledFamily_one ψ ⟨z, VectorBundle.radialCore_subset _ z.prop⟩
       -- every slice has injective differential, since it pulls back a nondegenerate form
       isSmoothEmbedding := fun t ↦ ⟨(hf t).isImmersion_of_injective_mfderiv (by simp)
         ((hsymp t).mfderiv_injective
@@ -459,12 +462,12 @@ theorem exists_smoothIsotopy_of_apply_zeroSection_eq_smul (hc : c ≠ 0)
     ∃ (U : Opens (CotangentBundle J L)) (hU : U ≤ U₀ ⊓ U₁)
       (hzero : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U)
       (G : SmoothIsotopy
-        (ContMDiffMap.comp ⟨Subtype.val, contMDiff_subtypeVal⟩
+        ((SmoothEmbedding.ofOpens (I := I) (n := ∞) V₀).toContMDiffMap.comp
           (ι₀.toContMDiffMap.comp
-            ⟨Opens.inclusion (hU.trans inf_le_left), contMDiff_inclusion _⟩))
-        (ContMDiffMap.comp ⟨Subtype.val, contMDiff_subtypeVal⟩
+            (SmoothEmbedding.inclusion (hU.trans inf_le_left)).toContMDiffMap))
+        ((SmoothEmbedding.ofOpens (I := I) (n := ∞) V₁).toContMDiffMap.comp
           (ι₁.toContMDiffMap.comp
-            ⟨Opens.inclusion (hU.trans inf_le_right), contMDiff_inclusion _⟩))),
+            (SmoothEmbedding.inclusion (hU.trans inf_le_right)).toContMDiffMap))),
       G.IsSymplectic
         (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (c • symplecticForm J L)) Ω ∧
       (∀ (t : unitInterval) x,
@@ -519,22 +522,16 @@ theorem exists_smoothIsotopy_of_apply_zeroSection_eq_smul (hc : c ≠ 0)
     obtain ⟨hz, hψz⟩ := hψι (Opens.inclusion hU'W (Opens.inclusion hUU' z))
     have hq0 : q (0, z) = ⟨_, hz⟩ := by
       refine Subtype.ext ?_
-      rw [hqv, unitInterval.symm_zero, F.apply_one]
-      exact ContMDiffMap.comp_apply _ _ _
+      rw [hqv, unitInterval.symm_zero, F.apply_one, ContMDiffMap.comp_apply,
+        SmoothEmbedding.coe_toContMDiffMap, SmoothEmbedding.inclusion_apply]
     rw [← q.apply_zero, hq0, hψz]
-    refine (ContMDiffMap.comp_apply _ _ z).trans (congrArg Subtype.val ?_)
-    refine (ContMDiffMap.comp_apply _ _ z).trans ?_
-    rw [Diffeomorph.coe_coe]
-    exact congrArg _ (congrFun (ContMDiffMap.coeFn_mk _ _) z)
+    simp
   · have hq1 : q (1, z) = Opens.inclusion (hU.trans inf_le_right) z := by
       refine Subtype.ext ?_
       rw [hqv, unitInterval.symm_one, F.apply_zero, ContMDiffMap.restrict_apply,
         ContMDiffMap.id_apply]
     rw [← q.apply_one, hq1]
-    refine (ContMDiffMap.comp_apply _ _ z).trans (congrArg Subtype.val ?_)
-    refine (ContMDiffMap.comp_apply _ _ z).trans ?_
-    rw [Diffeomorph.coe_coe]
-    exact congrArg _ (congrFun (ContMDiffMap.coeFn_mk _ _) z)
+    simp
   · -- the slice is `ι₁ ∘ F_{1 - t}`, and `F_{1 - t}` pulls the canonical form back to its
     -- restriction
     have hqt : ContMDiff (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) (J.prod 𝓘(ℝ, E →L[ℝ] ℝ)) ∞
@@ -592,12 +589,12 @@ theorem exists_smoothIsotopy_of_apply_zeroSection_eq
     ∃ (U : Opens (CotangentBundle J L)) (hU : U ≤ U₀ ⊓ U₁)
       (hzero : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U)
       (G : SmoothIsotopy
-        (ContMDiffMap.comp ⟨Subtype.val, contMDiff_subtypeVal⟩
+        ((SmoothEmbedding.ofOpens (I := I) (n := ∞) V₀).toContMDiffMap.comp
           (ι₀.toContMDiffMap.comp
-            ⟨Opens.inclusion (hU.trans inf_le_left), contMDiff_inclusion _⟩))
-        (ContMDiffMap.comp ⟨Subtype.val, contMDiff_subtypeVal⟩
+            (SmoothEmbedding.inclusion (hU.trans inf_le_left)).toContMDiffMap))
+        ((SmoothEmbedding.ofOpens (I := I) (n := ∞) V₁).toContMDiffMap.comp
           (ι₁.toContMDiffMap.comp
-            ⟨Opens.inclusion (hU.trans inf_le_right), contMDiff_inclusion _⟩))),
+            (SmoothEmbedding.inclusion (hU.trans inf_le_right)).toContMDiffMap))),
       G.IsSymplectic
         (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (symplecticForm J L)) Ω ∧
       (∀ (t : unitInterval) x,
@@ -627,12 +624,12 @@ theorem exists_smoothIsotopy_of_apply_zeroSection_eq_neg
     ∃ (U : Opens (CotangentBundle J L)) (hU : U ≤ U₀ ⊓ U₁)
       (hzero : range (zeroSection (E →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ)) ⊆ U)
       (G : SmoothIsotopy
-        (ContMDiffMap.comp ⟨Subtype.val, contMDiff_subtypeVal⟩
+        ((SmoothEmbedding.ofOpens (I := I) (n := ∞) V₀).toContMDiffMap.comp
           (ι₀.toContMDiffMap.comp
-            ⟨Opens.inclusion (hU.trans inf_le_left), contMDiff_inclusion _⟩))
-        (ContMDiffMap.comp ⟨Subtype.val, contMDiff_subtypeVal⟩
+            (SmoothEmbedding.inclusion (hU.trans inf_le_left)).toContMDiffMap))
+        ((SmoothEmbedding.ofOpens (I := I) (n := ∞) V₁).toContMDiffMap.comp
           (ι₁.toContMDiffMap.comp
-            ⟨Opens.inclusion (hU.trans inf_le_right), contMDiff_inclusion _⟩))),
+            (SmoothEmbedding.inclusion (hU.trans inf_le_right)).toContMDiffMap))),
       G.IsSymplectic
         (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal (-symplecticForm J L)) Ω ∧
       (∀ (t : unitInterval) x,
