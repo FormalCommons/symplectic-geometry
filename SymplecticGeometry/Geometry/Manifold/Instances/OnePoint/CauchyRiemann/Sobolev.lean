@@ -445,16 +445,14 @@ private theorem exists_sum_eLpNorm_iteratedFDeriv_mul_le {W U T K : Set ℂ} (hW
     ring
   have hθs : ContDiffOn ℝ ∞ θ W := (hg.smul contDiffOn_const).congr hθg
   have hθ₁ (z : ℂ) (hz : z ∈ W) : θ z 1 = g z := by simp [hθg z hz]
-  have hL : ‖ContinuousLinearMap.apply ℝ ℂ (1 : ℂ)‖₊ ≤ 1 := by
-    rw [← NNReal.coe_le_coe, coe_nnNorm, NNReal.coe_one]
-    exact ContinuousLinearMap.opNorm_le_bound _ zero_le_one fun L ↦ by simpa using L.le_opNorm 1
   have hθ₁le (l : ℕ) : eLpNorm (iteratedFDeriv ℝ l fun z ↦ θ z 1) 2 ν ≤
       eLpNorm (iteratedFDeriv ℝ l θ) 2 ν := by
-    have h := (ContinuousLinearMap.apply ℝ ℂ (1 : ℂ)).eLpNorm_iteratedFDeriv_comp_left_restrict_le
-      hθs hW (j := l) (by exact_mod_cast le_top) volume 2
-    rw [show (ContinuousLinearMap.apply ℝ ℂ (1 : ℂ) ∘ θ) = fun z ↦ θ z 1 from
-      funext fun z ↦ ContinuousLinearMap.apply_apply _ _, ENNReal.smul_def] at h
-    exact h.trans (mul_le_of_le_one_left zero_le (by exact_mod_cast hL))
+    refine eLpNorm_mono_ae ((ContinuousOn.continuousOn_iteratedFDeriv
+      (hθs.clm_apply contDiffOn_const) hW
+      (by exact_mod_cast le_top)).aestronglyMeasurable hW.measurableSet) ?_
+    filter_upwards [ae_restrict_mem hW.measurableSet] with z hz
+    simpa using norm_iteratedFDeriv_clm_apply_const (c := (1 : ℂ))
+      (hθs.contDiffAt (hW.mem_nhds hz)) (n := l) (by exact_mod_cast le_top)
   -- The smooth function `v` on the plane, equal to `w = χ' u` on `W`.
   set w : ℂ → ℂ := fun z ↦ χ' z • u z
   have hw : ContDiffOn ℝ ∞ w W := (hχ'.mono hWT').smul hu
@@ -472,11 +470,8 @@ private theorem exists_sum_eLpNorm_iteratedFDeriv_mul_le {W U T K : Set ℂ} (hW
       indicator_eq_self.2 ((support_iteratedFDeriv_subset j).trans hf)]
   -- `P v = a θ(1) + b u` on `W`, and `P v` vanishes off `tsupport v`.
   set Pv : ℂ → ℂ := fun z ↦ conjWirtingerDeriv v z 1 + μ z • wirtingerDeriv v z 1
-  have hPvW : tsupport Pv ⊆ W := by
-    refine (closure_minimal (fun z hz ↦ ?_) (isClosed_tsupport v)).trans hvW
-    by_contra h
-    exact hz (by simp [Pv, conjWirtingerDeriv_of_notMem_tsupport h,
-      wirtingerDeriv_of_notMem_tsupport h])
+  have hPvW : tsupport Pv ⊆ W :=
+    (tsupport_conjWirtingerDeriv_add_smul_wirtingerDeriv_subset μ 1).trans hvW
   have hPv : EqOn Pv (fun z ↦ a z • θ z 1 + b z • u z) W := fun z hz ↦
     conjWirtingerDeriv_add_smul_wirtingerDeriv_eq_of_eventuallyEq_smul
       (hvw.eventuallyEq_of_mem (hW.mem_nhds hz))
@@ -488,43 +483,18 @@ private theorem exists_sum_eLpNorm_iteratedFDeriv_mul_le {W U T K : Set ℂ} (hW
   set Y := ∑ l ∈ Finset.range (k + 1), eLpNorm (iteratedFDeriv ℝ l u) 2 ν
   have hPvj (j : ℕ) (hj : j ≤ k) :
       eLpNorm (iteratedFDeriv ℝ j Pv) 2 ν ≤ Ca * T' + Cb * Y := by
-    have h₁ : ContDiffOn ℝ ∞ (fun z ↦ a z • θ z 1) W :=
-      (ha.mono (subset_closure.trans hWt)).smul (hθs.clm_apply contDiffOn_const)
-    have h₂ : ContDiffOn ℝ ∞ (fun z ↦ b z • u z) W := (hb.mono (subset_closure.trans hWt)).smul hu
-    have hadd : EqOn (iteratedFDeriv ℝ j Pv) (iteratedFDeriv ℝ j (fun z ↦ a z • θ z 1) +
-        iteratedFDeriv ℝ j (fun z ↦ b z • u z)) W := fun z hz ↦ by
-      rw [((hPv.eventuallyEq_of_mem (hW.mem_nhds hz)).iteratedFDeriv ℝ j).self_of_nhds]
-      exact iteratedFDeriv_add_apply ((h₁.contDiffAt (hW.mem_nhds hz)).of_le
-        (by exact_mod_cast le_top)) ((h₂.contDiffAt (hW.mem_nhds hz)).of_le
-        (by exact_mod_cast le_top))
-    have h₃ := hCa (fun z ↦ θ z 1) ((hθs.clm_apply contDiffOn_const).of_le hk) j hj
-    have h₄ : ∑ l ∈ Finset.range (k + 1), eLpNorm (iteratedFDeriv ℝ l fun z ↦ θ z 1) 2 ν ≤ T' :=
-      Finset.sum_le_sum fun l _ ↦ hθ₁le l
-    have hjk : (j : WithTop ℕ∞) ≤ ((⊤ : ℕ∞) : WithTop ℕ∞) := by exact_mod_cast le_top
-    have hm₁ := h₁.aestronglyMeasurable_iteratedFDeriv_restrict hW hjk volume
-    have hm₂ := h₂.aestronglyMeasurable_iteratedFDeriv_restrict hW hjk volume
-    calc eLpNorm (iteratedFDeriv ℝ j Pv) 2 ν
-        ≤ eLpNorm (fun z ↦ ‖iteratedFDeriv ℝ j (fun z ↦ a z • θ z 1) z‖ +
-            ‖iteratedFDeriv ℝ j (fun z ↦ b z • u z) z‖) 2 ν := by
-          refine eLpNorm_mono_ae_real (((h₁.add h₂).congr hPv
-            ).aestronglyMeasurable_iteratedFDeriv_restrict hW hjk volume) ?_
-          filter_upwards [ae_restrict_mem hW.measurableSet] with z hz
-          rw [hadd hz, Pi.add_apply]
-          exact norm_add_le _ _
-      _ ≤ eLpNorm (fun z ↦ ‖iteratedFDeriv ℝ j (fun z ↦ a z • θ z 1) z‖) 2 ν +
-            eLpNorm (fun z ↦ ‖iteratedFDeriv ℝ j (fun z ↦ b z • u z) z‖) 2 ν :=
-          eLpNorm_add_le (p := 2) (by norm_num)
-      _ = eLpNorm (iteratedFDeriv ℝ j (fun z ↦ a z • θ z 1)) 2 ν +
-            eLpNorm (iteratedFDeriv ℝ j (fun z ↦ b z • u z)) 2 ν := by
-          rw [eLpNorm_norm _ hm₁, eLpNorm_norm _ hm₂]
-      _ ≤ Ca * T' + Cb * Y := add_le_add (h₃.trans (by gcongr)) (hCb u (hu.of_le hk) j hj)
+    refine (eLpNorm_iteratedFDeriv_restrict_congr_of_eqOn volume 2 hW hPv j).trans_le
+      ((eLpNorm_iteratedFDeriv_add_restrict_le volume one_le_two hW
+        ((ha.mono (subset_closure.trans hWt)).smul (hθs.clm_apply contDiffOn_const))
+        ((hb.mono (subset_closure.trans hWt)).smul hu) (j := j) (by exact_mod_cast le_top)).trans
+      (add_le_add ?_ (hCb u (hu.of_le hk) j hj)))
+    exact (hCa _ ((hθs.clm_apply contDiffOn_const).of_le hk) j hj).trans
+      (by gcongr; exact Finset.sum_le_sum fun l _ ↦ hθ₁le l)
   -- Assemble.
   have hsum {f : ℕ → ℝ≥0∞} {B : ℝ≥0∞} (h : ∀ j ≤ k, f j ≤ B) :
-      ∑ j ∈ Finset.range (k + 1), f j ≤ (k + 1) * B := by
-    refine (Finset.sum_le_sum fun j hj ↦ h j (Finset.mem_range_succ_iff.1 hj)).trans_eq ?_
-    rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul]
-    push_cast
-    ring
+      ∑ j ∈ Finset.range (k + 1), f j ≤ (k + 1) * B :=
+    (Finset.sum_le_card_nsmul _ _ _ fun j hj ↦ h j (Finset.mem_range_succ_iff.1 hj)).trans_eq
+      (by simp [nsmul_eq_mul])
   have hvj (j : ℕ) : eLpNorm (iteratedFDeriv ℝ j v) 2 volume =
       eLpNorm (iteratedFDeriv ℝ j w) 2 ν :=
     (hvol hvW j).trans (eLpNorm_iteratedFDeriv_restrict_congr_of_eqOn volume 2 hW hvw j)
