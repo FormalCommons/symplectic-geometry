@@ -52,7 +52,9 @@ The submersion property is obtained from Tau Ceti's `TauCeti.ManifoldTotalSpace.
 for the fibre bundle of the atlas, along `TauCeti.MapFiber.Atlas.totalSpaceDiffeomorph`, by
 `Manifold.IsSubmersion.of_comp`; this is why it assumes finite dimensions and a boundaryless
 total space. The range of the derivative of a fibre inclusion is computed with Tau Ceti's
-`TauCeti.IsRegularPoint.range_mfderiv_eq_ker_mfderiv`.
+`TauCeti.IsRegularPoint.range_mfderiv_eq_ker_mfderiv`. The proof that a coordinate change is
+smooth, as the fibre coordinate of one trivialization after the inverse of the other, follows that
+of Tau Ceti's `TauCeti.MapFiber.Atlas.contMDiffFiberBundle`.
 
 ## References
 
