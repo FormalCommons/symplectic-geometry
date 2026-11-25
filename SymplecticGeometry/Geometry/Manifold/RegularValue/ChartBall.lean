@@ -10,8 +10,8 @@ public import TauCeti.Geometry.Manifold.RegularValue
 import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 import Mathlib.Analysis.Normed.Module.Connected
 import Mathlib.Geometry.Manifold.Algebra.LieGroup
-import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import SymplecticGeometry.Topology.OpenPartialHomeomorph.Compact
+import TauCeti.Geometry.Manifold.ContMDiff.ChartCutoff
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import TauCeti.Topology.ConnectedComponents
@@ -197,8 +197,8 @@ theorem exists_isRegularValue_image_closedBall [IsManifold 𝓘(ℝ, E) ∞ M]
   have heq : {x | f x = 0} = e.symm '' sphere c ρ := by
     refine hset (· = 0) (fun _ ↦ le_of_eq) _ sphere_subset_closedBall fun y _ ↦ ?_
     rw [mem_sphere, dist_eq_norm, sub_eq_zero, sq_eq_sq₀ (norm_nonneg _) hρ.le]
-  refine ⟨f, contMDiff_const.add (e.contMDiff_indicator_comp he
-    (hφ.sub contDiff_const).contMDiff.contMDiffOn hφc hφs), ?_, hle, hlt, heq⟩
+  refine ⟨f, contMDiff_const.add (e.contMDiff_indicator_comp_extend he (hφ.sub contDiff_const)
+    hφc (by simpa using hφs)), ?_, hle, hlt, heq⟩
   rw [isRegularValue_iff]
   intro x hx
   have hx' : x ∈ e.source ∩ e ⁻¹' sphere c ρ := by
