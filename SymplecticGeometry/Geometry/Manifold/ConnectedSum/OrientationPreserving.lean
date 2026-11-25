@@ -8,13 +8,71 @@ module
 public import TauCeti.Geometry.Manifold.ConnectedSum.Oriented
 public import TauCeti.Geometry.Manifold.ConnectedSum.Orientation
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
+import SymplecticGeometry.Geometry.Manifold.Orientation.Sign
 import TauCeti.Analysis.InnerProductSpace.Reflection
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Orientation
 import TauCeti.Geometry.Euclidean.Inversion
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 
 /-!
-# Test
+# The oriented connected sum up to orientation-preserving diffeomorphism
+
+Tau Ceti shows that the connected sum `TauCeti.ConnectedSum e₁ e₂` of connected oriented
+manifolds `M` and `N`, along balls `e₁ : E → M` and `e₂ : E → N` which preserve and reverse
+orientation from an orientation of `E`, does not depend on the balls up to diffeomorphism
+(`TauCeti.ConnectedSum.nonempty_diffeomorph_of_isOrientationReversingAt`), and it orients such a
+connected sum by `TauCeti.ConnectedSum.orientation`. This file shows that the diffeomorphism can be
+chosen to carry one of these orientations to the other, and orients Tau Ceti's oriented connected
+sum `TauCeti.OrientedConnectedSum oM oN` accordingly.
+
+The proof follows Tau Ceti's proof of
+`TauCeti.ConnectedSum.nonempty_diffeomorph_of_isOrientationPreservingAt` and
+`TauCeti.ConnectedSum.nonempty_diffeomorph_of_isOrientationReversingAt` step by step, and checks
+that every step preserves the orientations.
+
+* The diffeomorphisms of the summands given by the ambient disc theorem are final maps of
+  diffeotopies, so they preserve orientation
+  (`TauCeti.SmoothEmbedding.exists_diffeomorph_comp_eventuallyEq_and_isOrientationPreservingAt`,
+  a variant of `TauCeti.SmoothEmbedding.exists_diffeomorph_comp_eventuallyEq`).
+* A local diffeomorphism out of a connected sum preserves orientation everywhere once it does so
+  on the two punctured summands, away from a compact part of the second ball
+  (`TauCeti.ConnectedSum.isOrientationPreservingAt_of_comp_inl_of_comp_inr`): the pullback of the
+  target orientation then agrees with `TauCeti.ConnectedSum.orientation` on both summands, by
+  `TauCeti.ConnectedSum.isOrientationPreservingAt_inl` and
+  `TauCeti.ConnectedSum.isOrientationPreservingAt_inr`.
+* Hence the exchange of the summands, the rotation of both balls by a linear isometry, and the
+  moving of the first ball by an orientation-preserving diffeomorphism all preserve orientation
+  (`TauCeti.ConnectedSum.isOrientationPreservingAt_commHomeomorph`,
+  `TauCeti.ConnectedSum.isOrientationPreservingAt_compLinearIsometryEquivHomeomorph`,
+  `TauCeti.ConnectedSum.isOrientationPreservingAt_congrLeftHomeomorph`).
+
+Two steps of Tau Ceti's file `TauCeti/Geometry/Manifold/ConnectedSum/Congr.lean` are private
+there, and are proved again here, as there: every point of the connected sum lies in one of
+the two punctured summands away from a closed ball
+(`TauCeti.ConnectedSum.exists_eq_inl_or_exists_eq_inr_of_notMem_image_closedBall`, after Tau
+Ceti's `exists_eq_inl_or_exists_eq_inr`), and `TauCeti.ConnectedSum.congrLeftHomeomorph` is the
+identity far out along the second ball (`TauCeti.ConnectedSum.exists_congrLeftHomeomorph_inr_eq`,
+after Tau Ceti's `exists_congrLeftInr_eq`).
+
+## Main definitions
+
+* `TauCeti.OrientedConnectedSum.orientation oM oN`: the orientation of the oriented connected sum
+  `M # N`, carried from `TauCeti.ConnectedSum.orientation` of the connected sum along its balls.
+
+## Main results
+
+* `TauCeti.ConnectedSum.exists_diffeomorph_isOrientationPreservingAt`: connected sums of connected
+  oriented manifolds along two admissible pairs of balls are diffeomorphic by an
+  orientation-preserving diffeomorphism.
+* `TauCeti.OrientedConnectedSum.exists_diffeomorph_connectedSum_isOrientationPreservingAt`: the
+  oriented connected sum `M # N` is orientation-preservingly diffeomorphic to the connected sum
+  along any admissible pair of balls.
+
+## References
+
+* [A. Kosinski, *Differential Manifolds*][Kosinski1993], Chapter VI, Section 1.
+* [R. Palais, *Extending diffeomorphisms*][Palais1960].
+* [M. Hirsch, *Differential Topology*][Hirsch1976], Chapter 4, §6.
 -/
 
 public section
@@ -23,28 +81,6 @@ noncomputable section
 
 open Set Filter Function Topology TopologicalSpace Metric EuclideanGeometry
 open scoped Manifold ContDiff
-
-namespace TauCeti.Manifold.Orientation
-
-variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-  [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
-  [TopologicalSpace M] [ChartedSpace H M] [FiniteDimensional ℝ E] [IsManifold I 1 M]
-  {E' H' M' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
-  [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
-  [TopologicalSpace M'] [ChartedSpace H' M'] [FiniteDimensional ℝ E'] [IsManifold I' 1 M']
-  {ι : Type*} [Fintype ι]
-
-/-- Preserving orientations at a point depends only on the germ of the map there. -/
-theorem IsOrientationPreservingAt.congr_of_eventuallyEq {o : Manifold.Orientation I M ι}
-    {o' : Manifold.Orientation I' M' ι} {f g : M → M'} {x : M}
-    (h : IsOrientationPreservingAt o o' f x) (hg : g =ᶠ[𝓝 x] f) :
-    IsOrientationPreservingAt o o' g x := by
-  have hx : g x = f x := hg.eq_of_nhds
-  obtain ⟨e, he, ho⟩ := (isOrientationPreservingAt_iff _ _ _ _).1 h
-  exact (isOrientationPreservingAt_iff _ _ _ _).2
-    ⟨e, (hg.mfderiv_eq (I := I) (I' := I')).symm ▸ he, ho.trans (hx ▸ rfl)⟩
-
-end TauCeti.Manifold.Orientation
 
 namespace TauCeti.SmoothEmbedding
 
@@ -85,8 +121,6 @@ variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDim
   {he₁ : ∀ v ≠ 0, IsOrientationPreservingAt oE o₁ e₁ v}
   {he₂ : ∀ v ≠ 0, IsOrientationReversingAt oE o₂ e₂ v}
 
-private local instance : NeZero ((1 : ℕ∞) : WithTop ℕ∞) := ⟨one_ne_zero⟩
-
 omit [FiniteDimensional ℝ E] in
 /-- Every point of the connected sum lies in the first punctured summand, or is a point of the
 second punctured summand outside the image of a given closed ball. -/
@@ -103,10 +137,11 @@ theorem exists_eq_inl_or_exists_eq_inr_of_notMem_image_closedBall (he₁ : Injec
       (inl_inversion_eq_inr _ hy).trans (mk_inr e₁ e₂ _).symm⟩
   · exact .inr ⟨⟨y, hy⟩, hyr, (mk_inr e₁ e₂ _).symm⟩
 
-/-- A local diffeomorphism `f` from the oriented connected sum to an oriented manifold `X`
-preserves orientation everywhere once its composite with the inclusion of the punctured first
-summand does, and its composite with the inclusion of the punctured second summand does outside the
-image of a closed ball under `e₂`. -/
+/-- A local diffeomorphism `f` from the connected sum along `e₁` and `e₂` to a manifold `X` with an
+orientation `o` preserves orientation everywhere, from `TauCeti.ConnectedSum.orientation`,
+once its composite with the inclusion of the punctured first summand does, from the restriction
+of `o₁`, and its composite with the inclusion of the punctured second summand does, from the
+restriction of `o₂`, at the points outside the image of a closed ball under `e₂`. -/
 theorem isOrientationPreservingAt_of_comp_inl_of_comp_inr
     {f : letI := chartedSpace (H := H) h₁ h₂; ConnectedSum e₁ e₂ → X}
     (hf : letI := chartedSpace (H := H) h₁ h₂; IsLocalDiffeomorph I I 1 f)
@@ -291,7 +326,7 @@ theorem isOrientationPreservingAt_congrLeftHomeomorph [T2Space N] (φ : M ≃ₜ
   · refine (isOrientationPreservingAt_inr h₁' h₂ d₁' d₂ he₁' he₂'
       (isOrientationPreservingAt_restrict o₂ _ y)).congr_of_eventuallyEq ?_
     filter_upwards [(hK.isOpen_compl.preimage continuous_subtypeVal).mem_nhds hy] with y' hy'
-    exact hr y' hy'
+    exact (hr y' hy').symm
 
 end CongrLeft
 
