@@ -21,10 +21,9 @@ Hessian degenerates along a totally real subspace.
 
 * `TauCeti.IsTotallyReal.apply_eq_zero_of_mem_of_apply_mem`: if `v` and `J v` both lie in `L`,
   then `J v = 0`.
-* `TauCeti.IsTotallyReal.add_pos_of_forall_notMem_pos`: the positivity statement above. By the
-  previous lemma `B` is nonnegative on `L` too
-  (`ContinuousLinearMap.nonneg_of_forall_notMem_nonneg`), and at most one of `v` and `J v` lies
-  in `L`.
+* `TauCeti.IsTotallyReal.add_pos_of_forall_notMem_pos`: the positivity statement above. The form
+  `B` is nonnegative everywhere by `ContinuousLinearMap.nonneg_of_forall_notMem_nonneg`, and by
+  the previous lemma at most one of `v` and `J v` lies in `L`.
 
 ## References
 
