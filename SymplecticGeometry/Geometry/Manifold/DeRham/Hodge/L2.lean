@@ -230,10 +230,8 @@ variable [IsManifold I ∞ M] [RiemannianBundle (fun x : M ↦ TangentSpace I x)
 
 /-- The pointwise inner product of two smooth forms is a continuous function. -/
 theorem continuous_alternatingFormInner (α β : SmoothForm I M ℝ k) :
-    Continuous fun x ↦ alternatingFormInner (TangentSpace I x) k (α.val x) (β.val x) := by
-  -- `contMDiff_alternatingFormInner` asks for `C^(∞ + 1)` charts.
-  have : IsManifold I (∞ + 1) M := by simpa using (inferInstance : IsManifold I ∞ M)
-  exact (α.isSmoothForm.contMDiff_alternatingFormInner β.isSmoothForm).continuous
+    Continuous fun x ↦ alternatingFormInner (TangentSpace I x) k (α.val x) (β.val x) :=
+  (α.isSmoothForm.contMDiff_alternatingFormInner β.isSmoothForm).continuous
 
 omit [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] in
 /-- The `L²` inner product is homogeneous in its first argument. -/
