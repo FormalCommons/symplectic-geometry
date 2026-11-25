@@ -7,14 +7,21 @@ module
 
 public import Mathlib.Analysis.SpecialFunctions.Complex.CircleMap
 public import Mathlib.Geometry.Euclidean.Inversion.Basic
+public import TauCeti.Geometry.Euclidean.Inversion
 
 /-!
-# Inversion of a circle about its centre
+# Inversion of a circle about its centre, and the regions it exchanges
 
 Inversion in the circle of centre `c` and radius `R` maps the circle `circleMap c r` of the same
 centre to the circle `circleMap c (R ^ 2 / r)`, point by point at the same angle
 (`EuclideanGeometry.inversion_circleMap`). The radius `r` may be zero or negative: a circle of
 negative radius is traversed from the antipodal point, and so is its image.
+
+In a real inner product space, inversion about the origin in the sphere of radius `R` exchanges
+the regions `R ^ 2 / r < ‖x‖` and `‖x‖ < r` of the punctured space, for every `r > 0`
+(`EuclideanGeometry.norm_inversion_zero_lt_iff`, `EuclideanGeometry.lt_norm_inversion_zero_iff`).
+These extend Tau Ceti's `EuclideanGeometry.norm_inversion_lt_inv_iff` and
+`EuclideanGeometry.inv_lt_norm_inversion_iff` from the unit sphere to any radius.
 -/
 
 public section
@@ -33,6 +40,24 @@ theorem inversion_circleMap (c : ℂ) (R r θ : ℝ) :
   push_cast
   field_simp
   ring
+
+section Norm
+
+variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V]
+
+/-- For `r > 0`, inversion about the origin in the sphere of radius `R` maps a point `x ≠ 0` into
+the region `‖w‖ < r` exactly when `R ^ 2 / r < ‖x‖`. -/
+theorem norm_inversion_zero_lt_iff (R : ℝ) {r : ℝ} (hr : 0 < r) {x : V} (hx : x ≠ 0) :
+    ‖inversion (0 : V) R x‖ < r ↔ R ^ 2 / r < ‖x‖ := by
+  rw [norm_inversion_zero, div_lt_iff₀ (norm_pos_iff.2 hx), div_lt_iff₀ hr, mul_comm]
+
+/-- For `r > 0`, inversion about the origin in the sphere of radius `R` maps a point `x ≠ 0` into
+the region `r < ‖w‖` exactly when `‖x‖ < R ^ 2 / r`. -/
+theorem lt_norm_inversion_zero_iff (R : ℝ) {r : ℝ} (hr : 0 < r) {x : V} (hx : x ≠ 0) :
+    r < ‖inversion (0 : V) R x‖ ↔ ‖x‖ < R ^ 2 / r := by
+  rw [norm_inversion_zero, lt_div_iff₀ (norm_pos_iff.2 hx), lt_div_iff₀ hr, mul_comm]
+
+end Norm
 
 end EuclideanGeometry
 

@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Lie.LeftInvariantForm
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # The left Maurer–Cartan form
@@ -34,6 +35,8 @@ extension `TauCeti.leftInvariantSmoothForm` of the identity of `𝔤`.
 * `SymplecticGeometry.mpullback_mul_left_leftMaurerCartanForm`: it is left-invariant.
 * `SymplecticGeometry.mpullback_mul_right_leftMaurerCartanForm`: right translation by `h` pulls
   it back to its image under `Ad(h⁻¹)`.
+* `SymplecticGeometry.differentiable_mfderiv_inv_mul_mfderiv`: the left-trivialized derivative
+  `y ↦ d(L_{(γ y)⁻¹})(dγ_y v)` of a smooth map `γ` from a normed space to `G` is differentiable.
 * `SymplecticGeometry.mextDeriv_leftMaurerCartanForm_apply`: the Maurer–Cartan equation
   `dθ(v, w) = -⁅θ v, θ w⁆`, for `G` finite-dimensional.
 * `SymplecticGeometry.fderiv_leftMaurerCartanForm_mfderiv_sub`: the structure equation for the
@@ -133,6 +136,21 @@ theorem mpullback_mul_right_leftMaurerCartanForm (h : G) :
     RoughForm.mapCoeff_apply, leftMaurerCartanForm_apply, leftMaurerCartanForm_apply, ← hξ,
     mfderiv_mul_right_mulInvariantVectorField, mfderiv_inv_mul_mulInvariantVectorField,
     mfderiv_inv_mul_mulInvariantVectorField]
+
+section LeftTrivialization
+
+variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+
+/-- The left-trivialized derivative of a smooth map `γ : E' → G` from a normed space in a fixed
+direction `v`, `y ↦ d(L_{(γ y)⁻¹})(dγ_y v)`, is differentiable as a map into the Lie algebra. -/
+theorem differentiable_mfderiv_inv_mul_mfderiv {γ : E' → G} (hγ : ContMDiff 𝓘(ℝ, E') I ∞ γ)
+    (v : E') :
+    Differentiable (F := GroupLieAlgebra I G) ℝ fun y ↦
+      mfderiv I I ((γ y)⁻¹ * ·) (γ y) (mfderiv 𝓘(ℝ, E') I γ y v) := by
+  simpa [leftMaurerCartanForm_apply] using
+    SmoothForm.differentiable_apply_one_mfderiv (leftMaurerCartanForm I G) hγ v
+
+end LeftTrivialization
 
 /-! ### The structure equation -/
 
