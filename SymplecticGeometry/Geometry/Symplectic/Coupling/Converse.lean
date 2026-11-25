@@ -17,6 +17,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContM
 public import SymplecticGeometry.GroupTheory.GroupAction.FixedPoints
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.ReducedForm
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import SymplecticGeometry.LinearAlgebra.FiniteDimensional.FinrankOne
 
 /-!
 # The converse of minimal coupling
@@ -536,8 +537,8 @@ theorem existsUnique_isSymplectic_mpullback_projContMDiffMap_eq {σ : SmoothTwoF
     rcases isEmpty_or_nonempty (ManifoldTotalSpace Circle P) with hZ | ⟨⟨p₀⟩⟩
     · exact ⟨0, fun p ↦ isEmptyElim p⟩
     · exact ⟨-μ (φ p₀), fun p ↦ congrArg Neg.neg
-        (linearMap_ext_of_ne_zero_circle circlePeriodOneGenerator_ne_zero
-          ((ht p).trans (ht p₀).symm))⟩
+        (LinearMap.ext_of_finrank_eq_one finrank_groupLieAlgebra_circle
+          circlePeriodOneGenerator_ne_zero ((ht p).trans (ht p₀).symm))⟩
   have hneg : (fun x ↦ (-μ x) circlePeriodOneGenerator) = -fun x ↦ μ x circlePeriodOneGenerator :=
     funext fun _ ↦ LinearMap.neg_apply _ _
   -- `dφ` sends the fundamental fields of the bundle to those of `M`.

@@ -31,7 +31,8 @@ If `f : M → M` preserves a function `ρ`, and the pullback of `φ` along `f` a
 soon as it is so on the support of the cut-off.
 
 Pulling a form back commutes with negation (`TauCeti.mpullback_neg`), as Tau Ceti's
-`TauCeti.mpullback_sub` says for subtraction.
+`TauCeti.mpullback_sub` says for subtraction. So a diffeomorphism preserves `-σ` exactly when it
+preserves `σ` (`TauCeti.SmoothForm.diffeomorphStabilizer_neg`).
 
 Pulling a smooth form of positive degree back along a constant map gives the zero form
 (`TauCeti.SmoothForm.mpullback_const`, the smooth case of Tau Ceti's
@@ -58,6 +59,8 @@ normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactica
 * `TauCeti.mpullback_fun_smul_eq_self`: a form multiplied by a function `ρ` is invariant under a
   map that preserves `ρ`, if the form is so where `ρ` does not vanish.
 * `TauCeti.mpullback_neg`: the pullback of `-φ` is minus the pullback of `φ`.
+* `TauCeti.SmoothForm.diffeomorphStabilizer_neg`: a diffeomorphism preserves `-σ` exactly when
+  it preserves `σ`.
 * `TauCeti.SmoothForm.mpullback_const`: the pullback of a smooth `(k + 1)`-form along a constant
   map is `0`.
 * `TauCeti.SmoothForm.mpullback_prodMk_left_mpullback_snd`: the slice `x ↦ (x, p)` of the
@@ -163,6 +166,13 @@ theorem mpullback_comp_prodMk_apply_modelSpace {E₁ E₂ : Type*} [NormedAddCom
 namespace SmoothForm
 
 variable [IsManifold I 1 M] [IsManifold I' 1 M']
+
+/-- A diffeomorphism preserves `-σ` exactly when it preserves `σ`. -/
+@[simp]
+theorem diffeomorphStabilizer_neg (σ : SmoothForm I M F k) :
+    diffeomorphStabilizer (-σ) = diffeomorphStabilizer σ := by
+  ext φ
+  simp only [mem_diffeomorphStabilizer, map_neg, neg_inj]
 
 /-- The pullback of a smooth form of positive degree along a constant map is zero. -/
 @[simp]
