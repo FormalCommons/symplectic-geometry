@@ -540,9 +540,7 @@ theorem eq_of_apply_eq_of_mem_positiveOrthogonalComplexStructures
   have a1 : inner ℝ (e 1) (J' (e 2)) = 0 := by
     rw [← h0', hi']
     exact ho (by decide)
-  have a2 : inner ℝ (e 2) (J' (e 2)) = 0 := by
-    rw [real_inner_comm]
-    exact J'.inner_apply_self hi' _
+  have a2 : inner ℝ (e 2) (J' (e 2)) = 0 := J'.inner_self_apply hi' _
   have hv : J' (e 2) = inner ℝ (e 3) (J' (e 2)) • e 3 := by
     have := e.sum_repr' (J' (e 2))
     rw [Fin.sum_univ_four, a0, a1, a2] at this
