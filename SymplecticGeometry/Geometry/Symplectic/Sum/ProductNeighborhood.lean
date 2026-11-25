@@ -94,9 +94,9 @@ theorem zeroSlice_apply (q : Q) : zeroSlice J Q q = (q, 0) :=
 theorem coe_zeroSlice : ⇑(zeroSlice J Q) = fun q ↦ (q, 0) :=
   funext zeroSlice_apply
 
-/-- The normal spaces of the zero slice have the dimension of `ℂ`, the model fibre of its normal
-bundle. -/
-theorem finrank_zeroSlice [FiniteDimensional ℝ EQ] :
+/-- The real dimension of `ℂ` is the codimension of `Q` in `Q × ℂ`. This is the hypothesis on the
+model fibre that `TauCeti.SmoothEmbedding.normalSpaceFiberBundle` takes for the zero slice. -/
+theorem finrank_complex_eq_finrank_prod_sub [FiniteDimensional ℝ EQ] :
     finrank ℝ ℂ = finrank ℝ (EQ × ℂ) - finrank ℝ EQ := by
   rw [finrank_prod, Nat.add_sub_cancel_left]
 
@@ -104,9 +104,8 @@ theorem finrank_zeroSlice [FiniteDimensional ℝ EQ] :
 theorem mpullback_zeroSlice_prod (τ : SmoothTwoForm J Q) :
     SmoothForm.mpullback (zeroSlice J Q) (zeroSlice J Q).contMDiff
       (τ.prod stdComplexSymplecticForm.constSmooth) = τ := by
-  convert SmoothTwoForm.mpullback_prodMk_left_prod τ stdComplexSymplecticForm.constSmooth
-    (0 : ℂ) using 3
-  exact coe_zeroSlice (J := J) (Q := Q)
+  rw [SmoothForm.mpullback_congr _ (contMDiff_id.prodMk contMDiff_const) coe_zeroSlice]
+  exact SmoothTwoForm.mpullback_prodMk_left_prod τ stdComplexSymplecticForm.constSmooth 0
 
 /-- For a nondegenerate `τ`, the zero slice has symplectic tangent images for `τ ⊕ ω₀`. -/
 theorem hasSymplecticTangentImages_zeroSlice_prod {τ : SmoothTwoForm J Q}
@@ -156,7 +155,7 @@ structure SymplecticFraming {hσ : σ.IsNondegenerate} {ι : SmoothEmbedding J I
   /-- The framing is smooth as a map of normal bundles. -/
   contMDiff_toFun :
     letI := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_zeroSlice (EQ := EQ))
+      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
     letI := ι.normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero) hP
     ContMDiff (J.prod 𝓘(ℝ, ℂ)) (J.prod 𝓘(ℝ, ℂ)) ∞
       (fun p : TotalSpace ℂ
@@ -172,35 +171,46 @@ structure SymplecticFraming {hσ : σ.IsNondegenerate} {ι : SmoothEmbedding J I
 
 namespace SymplecticFraming
 
-omit [IsManifold J ∞ Q] [FiniteDimensional ℝ EQ] [FiniteDimensional ℝ E] in
-/-- The normal symplectic form depends only on the ambient form, not on the proofs. -/
-private theorem symplecticNormalForm_congr {EN HN N : Type*} [NormedAddCommGroup EN]
-    [NormedSpace ℝ EN] [FiniteDimensional ℝ EN] [TopologicalSpace HN] {K : ModelWithCorners ℝ EN HN}
-    [TopologicalSpace N]
-    [ChartedSpace HN N] [IsManifold K ∞ N] {σ₁ σ₂ : SmoothTwoForm K N} (h : σ₁ = σ₂)
-    {hσ₁ : σ₁.IsNondegenerate} {hσ₂ : σ₂.IsNondegenerate} {f : SmoothEmbedding J K ∞ Q N}
-    (h₁ : hσ₁.HasSymplecticTangentImages J f) (h₂ : hσ₂.HasSymplecticTangentImages J f) (q : Q)
-    (hn : (∞ : ℕ∞ω) ≠ 0) :
-    f.symplecticNormalForm h₁ q hn = f.symplecticNormalForm h₂ q hn := by
-  subst h
-  rfl
+section Basic
+
+variable {hσ : σ.IsNondegenerate} {ι : SmoothEmbedding J I ∞ Q M}
+  {hι : hσ.HasSymplecticTangentImages J ι} {hP : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ}
+
+attribute [coe] toFun
+
+instance : CoeFun (SymplecticFraming hι hP) fun _ ↦ ∀ q,
+    (zeroSlice J Q).NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) ≃L[ℝ]
+      ι.NormalSpace q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) :=
+  ⟨toFun⟩
+
+/-- Two framings are equal if their isomorphisms of normal spaces agree at every point. -/
+@[ext]
+theorem ext {Φ Ψ : SymplecticFraming hι hP} (h : ∀ q, Φ q = Ψ q) : Φ = Ψ := by
+  cases Φ
+  cases Ψ
+  congr
+  exact funext h
+
+end Basic
 
 /-- The **identity framing** of the zero slice of `(Q × ℂ, τ ⊕ ω₀)`, for a nondegenerate `τ`. -/
 def refl {τ : SmoothTwoForm J Q} (hτ : τ.IsNondegenerate) :
-    SymplecticFraming (hasSymplecticTangentImages_zeroSlice_prod hτ) finrank_zeroSlice where
+    SymplecticFraming (hasSymplecticTangentImages_zeroSlice_prod hτ)
+      finrank_complex_eq_finrank_prod_sub where
   toFun _ := .refl ℝ _
   contMDiff_toFun := by
     let := (zeroSlice J Q).normalSpaceFiberBundle (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-      (finrank_zeroSlice (EQ := EQ))
+      (finrank_complex_eq_finrank_prod_sub (EQ := EQ))
     -- The map of total spaces is the identity, up to the eta rule for `TotalSpace`.
     exact contMDiff_id
   symplecticNormalForm_toFun q v w :=
-    congrArg (fun s : SymplecticForm _ ↦ s v w) (symplecticNormalForm_congr
+    congrArg (fun s : SymplecticForm _ ↦ s v w) (SmoothEmbedding.symplecticNormalForm_congr
       (congrArg (SmoothTwoForm.prod · stdComplexSymplecticForm.constSmooth)
         (mpullback_zeroSlice_prod τ).symm) _ _ q _)
 
-theorem refl_toFun {τ : SmoothTwoForm J Q} (hτ : τ.IsNondegenerate) (q : Q) :
-    (refl hτ).toFun q = .refl ℝ _ :=
+@[simp]
+theorem refl_apply {τ : SmoothTwoForm J Q} (hτ : τ.IsNondegenerate) (q : Q) :
+    refl hτ q = .refl ℝ _ :=
   (rfl)
 
 variable {hσ : σ.IsSymplectic} {ι : SmoothEmbedding J I ∞ Q M}
@@ -221,7 +231,7 @@ theorem exists_symplectomorphism_opens [J.Boundaryless] [I.Boundaryless] [T2Spac
               (hasSymplecticTangentImages_zeroSlice hι) q
               (WithTop.coe_ne_zero.2 ENat.top_ne_zero) v) =
           ι.symplecticNormalRepresentative hι q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-            (Φ.toFun q v)) ∧
+            (Φ q v)) ∧
       SmoothForm.mpullback ψ ψ.contMDiff
           (SmoothForm.mpullback (Subtype.val : U₁ → M) contMDiff_subtypeVal σ) =
         SmoothForm.mpullback (Subtype.val : U₀ → Q × ℂ) contMDiff_subtypeVal
@@ -235,12 +245,11 @@ theorem exists_symplectomorphism_opens [J.Boundaryless] [I.Boundaryless] [T2Spac
     SmoothTwoForm.IsNondegenerate.HasSymplecticTangentImages.exists_symplectomorphism_opens
       (hσ₀ := hτ) (hσ₁ := hσ) (hasSymplecticTangentImages_zeroSlice hι) hι
       (Diffeomorph.refl J Q ∞) (by
-        rw [mpullback_zeroSlice_prod]
-        -- The identity diffeomorphism coerces to `id` by definition.
-        -- (`Diffeomorph.coe_refl` cannot be rewritten under the smoothness proof.)
+        rw [mpullback_zeroSlice_prod,
+          SmoothForm.mpullback_congr _ contMDiff_id (Diffeomorph.coe_refl _ _ _)]
         exact LinearMap.congr_fun SmoothForm.mpullback_id _)
-      (WithTop.coe_ne_zero.2 ENat.top_ne_zero) finrank_zeroSlice hP Φ.toFun Φ.contMDiff_toFun
-      Φ.symplecticNormalForm_toFun
+      (WithTop.coe_ne_zero.2 ENat.top_ne_zero) finrank_complex_eq_finrank_prod_sub hP Φ
+      Φ.contMDiff_toFun Φ.symplecticNormalForm_toFun
   exact ⟨U₀, U₁, ψ, fun q ↦ (hψ q).imp fun _ h ↦ ⟨h.1, h.2.2⟩, hψσ⟩
 
 end SymplecticFraming
@@ -253,8 +262,12 @@ def prodBall (ε : ℝ) : Opens (Q × ℂ) :=
   ⟨Set.univ ×ˢ Metric.ball 0 ε, isOpen_univ.prod Metric.isOpen_ball⟩
 
 @[simp]
+theorem coe_prodBall (ε : ℝ) : (prodBall Q ε : Set (Q × ℂ)) = Set.univ ×ˢ Metric.ball 0 ε :=
+  (rfl)
+
+@[simp]
 theorem mem_prodBall {ε : ℝ} {p : Q × ℂ} : p ∈ prodBall Q ε ↔ ‖p.2‖ < ε := by
-  simp [prodBall]
+  simp [← SetLike.mem_coe]
 
 /-- A **product neighbourhood** of radius `ε` of a smooth embedding `ι` with symplectic tangent
 images, adapted to a symplectic framing `Φ`: an open embedding `f` of `Q × B²(ε)` into `M` that is
@@ -278,7 +291,7 @@ structure ProductNeighborhood {hσ : σ.IsNondegenerate} {ι : SmoothEmbedding J
         ((zeroSlice J Q).symplecticNormalRepresentative (hasSymplecticTangentImages_zeroSlice hι)
           q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) v) =
       ι.symplecticNormalRepresentative hι q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-        (Φ.toFun q v)
+        (Φ q v)
 
 namespace ProductNeighborhood
 
@@ -343,7 +356,7 @@ theorem mfderiv_symplecticNormalRepresentative (f : ProductNeighborhood Φ ε) (
         ((zeroSlice J Q).symplecticNormalRepresentative (hasSymplecticTangentImages_zeroSlice hι)
           q (WithTop.coe_ne_zero.2 ENat.top_ne_zero) v) =
       ι.symplecticNormalRepresentative hι q (WithTop.coe_ne_zero.2 ENat.top_ne_zero)
-        (Φ.toFun q v) :=
+        (Φ q v) :=
   f.mfderiv_symplecticNormalRepresentative' q h v
 
 /-- For compact `Q` and Hausdorff `M`, a product neighbourhood of radius `ε` maps the closed tube
