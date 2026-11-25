@@ -8,6 +8,8 @@ module
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.ChangeOfValues
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.LinearCongr
 public import TauCeti.AlgebraicTopology.Cohomology.Relative
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
+public import TauCeti.CategoryTheory.Linear.Int
 
 /-!
 # Change of coefficients in the singular cohomology of a pair
@@ -31,6 +33,15 @@ Each commutes with the maps induced by maps of pairs (the `_naturality` lemmas),
 by the change for spaces (the `_singularCohomologyπ` lemmas). An isomorphism of chain
 coefficients or of values gives an isomorphism of cohomology
 (`TopPair.singularCohomologyChainCoefficientIso`, `TopPair.singularCohomologyValueIso`).
+
+For a pair of spaces in `Type`, the three combine, along `TauCeti.uliftIntIso : ULift ℤ ≅ ℤ`,
+into `TopPair.uliftIntegralCohomologyEquiv`: the `ℤ`-linear equivalence from cohomology with
+chain coefficients and values `ULift ℤ`, the convention of Tau Ceti's integral Thom and Euler
+classes, to cohomology with chain coefficients and values `ℤ` and the linear structure
+`ModuleCat.instLinear`, the convention of Tau Ceti's Thom map `TauCeti.thomMap`. The two linear
+structures of `ModuleCat ℤ` agree by `CategoryTheory.Linear.subsingletonInt`. This is the
+conversion that the proof of the library's `TauCeti.bijective_integralCup_eulerClass`
+(`Topology/VectorBundle/Thom/CupEulerClass.lean`) makes for a Thom class.
 
 The proofs follow those of the same statements for spaces, in the setting of pairs: Tau Ceti's
 `TopCat.singularCohomologyChainCoefficientMap_id`, `_comp` and `_naturality`, and this
@@ -285,6 +296,34 @@ theorem singularCohomologyLinearCongr_singularCohomologyπ {L₁ L₂ : Linear k
     LinearEquiv.refl_apply]
 
 end LinearCongr
+
+section ULiftInt
+
+open TauCeti
+
+/-- The `ℤ`-linear equivalence `Hⁿ(X, A; ULift ℤ) ≃ Hⁿ(X, A; ℤ)` from relative cohomology with
+chain coefficients and cochain values `ULift ℤ`, and the `ℤ`-linear structure that `ModuleCat ℤ`
+has as a preadditive category, to relative cohomology with chain coefficients and cochain values
+`ℤ` and the structure `ModuleCat.instLinear`: the change of values along
+`TauCeti.uliftIntIso : ULift ℤ ≅ ℤ`, then of chain coefficients along its inverse, then of the
+linear structure. -/
+def uliftIntegralCohomologyEquiv (P : TopPair.{0}) (n : ℕ) :
+    P.singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ (ModuleCat.of ℤ (ULift.{0} ℤ)) n ≃ₗ[ℤ]
+      @TopPair.singularCohomology (ModuleCat.{0} ℤ) _ _ _ P (ModuleCat.of ℤ ℤ) ℤ _
+        ModuleCat.instLinear (ModuleCat.of ℤ ℤ) n :=
+  ((P.singularCohomologyValueIso _ ℤ uliftIntIso n) ≪≫
+      (P.singularCohomologyChainCoefficientIso ℤ _ uliftIntIso.symm n)).toLinearEquiv ≪≫ₗ
+    singularCohomologyLinearCongr (Subsingleton.elim _ _) P _ _ _
+
+theorem uliftIntegralCohomologyEquiv_apply (P : TopPair.{0}) (n : ℕ)
+    (u : P.singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ (ModuleCat.of ℤ (ULift.{0} ℤ)) n) :
+    P.uliftIntegralCohomologyEquiv n u =
+      singularCohomologyLinearCongr (Subsingleton.elim _ _) P _ _ _
+        (P.singularCohomologyChainCoefficientMap ℤ _ uliftIntIso.inv n
+          (P.singularCohomologyValueMap _ ℤ uliftIntIso.hom n u)) :=
+  (rfl)
+
+end ULiftInt
 
 end TopPair
 
