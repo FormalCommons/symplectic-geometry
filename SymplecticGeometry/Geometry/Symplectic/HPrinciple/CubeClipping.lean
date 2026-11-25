@@ -14,7 +14,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.HomotopyOper
 import Mathlib.Analysis.Calculus.MeanValue
 import SymplecticGeometry.Analysis.Normed.Group.Pi
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
-import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import TauCeti.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # Clipping a cube onto its attaching faces
@@ -311,7 +311,6 @@ theorem exists_contMDiff_cubeClipping {δ : ℝ} (hδ : 0 < δ) (hδ₂ : δ ≤
     exact max_le_max (pi_clip_sub_clip_norm_le (by norm_num) hfC t.property y.1 x.1)
       (pi_clip_sub_clip_norm_le (by norm_num) hfC t.property y.2 x.2)
 
-
 section HomotopyOperator
 
 variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup F]
@@ -319,8 +318,8 @@ variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddComm
 
 /-- **The homotopy operator of an affine homotopy is small.** Let `Φ : E × [0, 1] → E` be a `C¹`
 homotopy, affine in time, `Φ (x, t) = (1 - t) • Φ (x, 0) + t • x`, whose stages `Φ (·, t)` map a
-set `s` into itself, have derivative of norm at most `L`, and with `Φ (·, 0)` moving no point of
-`s` by more than `d`. If a `(k + 1)`-form `φ` on `E` has norm at most `C` on `s`, then the
+set `s` into itself, have derivative of norm at most `L` on `s`, and with `Φ (·, 0)` moving no
+point of `s` by more than `d`. If a `(k + 1)`-form `φ` on `E` has norm at most `C` on `s`, then the
 homotopy operator of `Φ^* φ` has norm at most `d * L ^ k * C` at every point of `s`.
 
 For the clipping homotopy of `SymplecticGeometry.exists_contMDiff_cubeClipping` and
@@ -329,7 +328,8 @@ theorem norm_homotopyOperator_mpullback_apply_le_of_affine {Φ : E × unitInterv
     (hΦ : ContMDiff (𝓘(ℝ, E).prod (𝓡∂ 1)) 𝓘(ℝ, E) 1 Φ)
     (haff : ∀ x t, Φ (x, t) = (1 - (t : ℝ)) • Φ (x, 0) + (t : ℝ) • x) {s : Set E}
     (hmaps : ∀ t, MapsTo (fun x ↦ Φ (x, t)) s s) {d L C : ℝ}
-    (hd : ∀ x ∈ s, ‖Φ (x, 0) - x‖ ≤ d) (hL : ∀ t x, ‖fderiv ℝ (fun x ↦ Φ (x, t)) x‖ ≤ L)
+    (hd : ∀ x ∈ s, ‖Φ (x, 0) - x‖ ≤ d)
+    (hL : ∀ t, ∀ x ∈ s, ‖fderiv ℝ (fun x ↦ Φ (x, t)) x‖ ≤ L)
     {k : ℕ} (φ : TauCeti.RoughForm 𝓘(ℝ, E) E F (k + 1))
     (hφ : ∀ y ∈ s, @norm (E [⋀^Fin (k + 1)]→L[ℝ] F) _ (φ y) ≤ C) {x : E} (hx : x ∈ s) :
     @norm (E [⋀^Fin k]→L[ℝ] F) _
@@ -346,18 +346,13 @@ theorem norm_homotopyOperator_mpullback_apply_le_of_affine {Φ : E × unitInterv
       abel
   -- The spatial derivative is the derivative of the stage `Φ (·, t)`.
   have hspace : (mfderiv (𝓘(ℝ, E).prod (𝓡∂ 1)) 𝓘(ℝ, E) Φ (x, t)).comp
-      (.inl ℝ E (EuclideanSpace ℝ (Fin 1))) = fderiv ℝ (fun y ↦ Φ (y, t)) x := by
-    ext v
-    refine (hΦt.mfderiv_uncurry_apply_mk_zero (f := Function.curry Φ) v).trans ?_
-    rw [mfderiv_eq_fderiv]
-    -- The two sides differ by `NormedSpace.fromTangentSpace`, which is the identity, and by
-    -- `Function.curry`, whose slice is `fun y ↦ Φ (y, t)`; both by definition.
-    rfl
+      (.inl ℝ E (EuclideanSpace ℝ (Fin 1))) = fderiv ℝ (fun y ↦ Φ (y, t)) x :=
+    (TauCeti.mvfderiv_curry_left x t hΦt).symm.trans mvfderiv_eq_fderiv
   have hC : 0 ≤ C := (norm_nonneg _).trans (hφ x hx)
   have hd₀ : 0 ≤ d := (norm_nonneg _).trans (hd x hx)
   have h₁ := hφ _ (hmaps t hx)
   have h₂ : ‖x - Φ (x, 0)‖ ≤ d := norm_sub_rev x _ ▸ hd x hx
-  have h₃ := pow_le_pow_left₀ (norm_nonneg _) (hL t x) k
+  have h₃ := pow_le_pow_left₀ (norm_nonneg _) (hL t x hx) k
   rw [htime, hspace]
   calc _ ≤ C * d * L ^ k := by gcongr
     _ = d * L ^ k * C := by ring
