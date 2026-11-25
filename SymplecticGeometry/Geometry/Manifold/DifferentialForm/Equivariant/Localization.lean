@@ -86,9 +86,9 @@ theorem smul_interiorProduct_mextDerivₗ_of_mlieDerivForm_eq_zero {θ : SmoothF
     ħ • SmoothForm.interiorProduct ⟨X, hX⟩ (mextDerivₗ I 1 θ) =
       mextDerivₗ I 0 (SmoothForm.ofFunction
         (-ħ • SmoothForm.ofFunctionEquiv.symm (SmoothForm.interiorProduct ⟨X, hX⟩ θ))) := by
-  have hL : SmoothForm.lieDeriv ⟨X, hX⟩ θ = 0 :=
-    Subtype.ext <| by
-      rw [SmoothForm.coe_lieDeriv, ContMDiffSection.coeFn_mk, hθ, Submodule.coe_zero]
+  have hL : SmoothForm.lieDeriv ⟨X, hX⟩ θ = 0 := by
+    rw [SmoothForm.lieDeriv_eq_zero_iff, ContMDiffSection.coeFn_mk]
+    exact hθ
   rw [SmoothForm.lieDeriv_eq_interiorProduct_add, add_eq_zero_iff_eq_neg] at hL
   rw [hL, ← SmoothForm.ofFunctionEquiv_apply, map_smul, LinearEquiv.apply_symm_apply, map_smul,
     smul_neg]

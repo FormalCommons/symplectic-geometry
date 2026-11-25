@@ -181,9 +181,9 @@ theorem cartanDiff_cartanDiff_of_mlieDerivForm_eq_zero {γ : ⨁ k, SmoothForm I
   rw [← DirectSum.sum_support_of γ]
   simp only [map_sum]
   refine Finset.sum_eq_zero fun k _ ↦ ?_
-  have : SmoothForm.lieDeriv ⟨X, hX⟩ (γ k) = 0 :=
-    Subtype.ext <| by
-      rw [SmoothForm.coe_lieDeriv, ContMDiffSection.coeFn_mk, hγ k, Submodule.coe_zero]
+  have : SmoothForm.lieDeriv ⟨X, hX⟩ (γ k) = 0 := by
+    rw [SmoothForm.lieDeriv_eq_zero_iff, ContMDiffSection.coeFn_mk]
+    exact hγ k
   rw [cartanDiff_cartanDiff, this, map_zero, smul_zero]
 
 end

@@ -205,6 +205,11 @@ theorem coe_lieDeriv (X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯) (φ : Smo
     (lieDeriv X φ : RoughForm I M F k) = mlieDerivForm X φ.val :=
   (rfl)
 
+/-- A smooth form has zero Lie derivative along `X` exactly when its rough form does. -/
+theorem lieDeriv_eq_zero_iff (X : Cₛ^∞⟮I; E, TangentSpace I (M := M)⟯) (φ : SmoothForm I M F k) :
+    lieDeriv X φ = 0 ↔ mlieDerivForm X φ.val = 0 := by
+  rw [← Subtype.coe_inj, coe_lieDeriv, Submodule.coe_zero]
+
 /-- The Lie derivative along the zero vector field is zero. -/
 @[simp]
 theorem lieDeriv_zero_field (φ : SmoothForm I M F k) :
