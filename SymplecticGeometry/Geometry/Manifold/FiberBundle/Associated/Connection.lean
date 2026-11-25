@@ -134,13 +134,11 @@ private theorem map_le_map_of_totalSpaceMk_mk_eq (hA : IsConnectionForm A)
   have hfun : (fun x'' : ManifoldTotalSpace G P ↦ ⟪x'', v⟫ₐ) =ᶠ[nhds x]
       (fun x'' : ManifoldTotalSpace G P ↦ ⟪x'', g⁻¹ • v⟫ₐ) ∘ fun x'' ↦ op g • x'' :=
     .of_forall fun x'' ↦ (totalSpaceMk_mk_op_smul_inv_smul g (x'', v)).symm
-  have hq : ContMDiff (IB.prod IG) (IB.prod IF) ∞
-      (fun x'' : ManifoldTotalSpace G P ↦ ⟪x'', g⁻¹ • v⟫ₐ) :=
-    (contMDiff_totalSpaceMk_mk ∞ G F IB IG IF P).comp (contMDiff_id.prodMk contMDiff_const)
   have hxv : ⟪op g • x, g⁻¹ • v⟫ₐ = ⟪x, v⟫ₐ := totalSpaceMk_mk_op_smul_inv_smul g (x, v)
   simp only [hfun.mfderiv_eq, ContinuousLinearMap.coe_coe, ContinuousLinearMap.comp_apply,
     ContinuousLinearEquiv.coe_coe]
-  rw [mfderiv_comp_apply x (hq.mdifferentiableAt (by simp))
+  rw [mfderiv_comp_apply x
+    ((contMDiff_totalSpaceMk_mk_left ∞ IB IF (g⁻¹ • v)).mdifferentiableAt (by simp))
     ((contMDiff_const_smul (I := IB.prod IG) (n := ∞) (op g)).mdifferentiableAt (by simp))]
   simp only [Function.comp_apply]
   rw [tangentSpaceCast_trans hxv h]
@@ -181,33 +179,7 @@ theorem isCompl_associatedHorizontal (hA : IsConnectionForm A)
         ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm y').proj) y).ker := by
   obtain ⟨⟨x, v⟩, rfl⟩ := surjective_totalSpaceMk_mk y
   dsimp only
-  have : ContMDiffFiberBundle ∞ F (AssociatedBundle G P F) IB IF := contMDiffFiberBundle IG
   rw [associatedHorizontal_eq]
-  -- The projection of `P ×_G F` composed with `x' ↦ [x', v]` is the projection of `P`.
-  have hTL (w : TangentSpace (IB.prod IG) x) :
-      mfderiv (IB.prod IG) IB (fun x' : ManifoldTotalSpace G P ↦
-        ((ManifoldTotalSpace.homeomorph G P).symm x').proj) x w =
-      tangentSpaceCast IB
-        ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm ⟪x, v⟫ₐ).proj
-        ((ManifoldTotalSpace.homeomorph G P).symm x).proj
-        (mfderiv (IB.prod IF) IB (fun y' : ManifoldTotalSpace F (AssociatedBundle G P F) ↦
-          ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm y').proj) ⟪x, v⟫ₐ
-          (mfderiv (IB.prod IG) (IB.prod IF) (fun x' : ManifoldTotalSpace G P ↦ ⟪x', v⟫ₐ) x
-            w)) := by
-    have hfun : (fun x' : ManifoldTotalSpace G P ↦
-        ((ManifoldTotalSpace.homeomorph G P).symm x').proj) =ᶠ[nhds x]
-        (fun y' : ManifoldTotalSpace F (AssociatedBundle G P F) ↦
-          ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm y').proj) ∘
-        (fun x' : ManifoldTotalSpace G P ↦ ⟪x', v⟫ₐ) :=
-      .of_forall fun x' ↦ by simp
-    have hq : ContMDiff (IB.prod IG) (IB.prod IF) ∞
-        (fun x' : ManifoldTotalSpace G P ↦ ⟪x', v⟫ₐ) :=
-      (contMDiff_totalSpaceMk_mk ∞ G F IB IG IF P).comp (contMDiff_id.prodMk contMDiff_const)
-    rw [hfun.mfderiv_eq, ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
-      mfderiv_comp_apply x
-        ((ManifoldTotalSpace.contMDiff_proj ∞ F (AssociatedBundle G P F) IB IF).mdifferentiableAt
-          (by simp)) (hq.mdifferentiableAt (by simp))]
-    simp only [Function.comp_apply]
   set L := mfderiv (IB.prod IG) (IB.prod IF) (fun x' : ManifoldTotalSpace G P ↦ ⟪x', v⟫ₐ) x
   set T := mfderiv (IB.prod IF) IB (fun y' : ManifoldTotalSpace F (AssociatedBundle G P F) ↦
     ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm y').proj) ⟪x, v⟫ₐ
@@ -217,6 +189,8 @@ theorem isCompl_associatedHorizontal (hA : IsConnectionForm A)
     ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm ⟪x, v⟫ₐ).proj
     ((ManifoldTotalSpace.homeomorph G P).symm x).proj
   have hc := hA.isCompl_horizontal x
+  have hTL := mfderiv_proj_totalSpaceMk_mk_apply (IB := IB) (IG := IG) (IF := IF) (n := ∞)
+    (by simp) x v
   constructor
   · rw [Submodule.disjoint_def]
     intro u hu hk
