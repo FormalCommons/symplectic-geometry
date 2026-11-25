@@ -69,14 +69,9 @@ theorem dC_mapCoeff_ofReal (f : SmoothForm I M ℝ 0) :
   refine Subtype.ext <| funext fun x ↦ ?_
   refine sub_eq_zero.1 <| (ContinuousAlternatingMap.eq_zero_iff_forall_apply_fin_one _).2
     fun v ↦ ?_
-  rw [ContinuousAlternatingMap.sub_apply, sub_eq_zero, dC_apply, SmoothForm.smul_toRoughForm,
-    Pi.smul_apply, ContinuousAlternatingMap.smul_apply, Submodule.coe_sub, Pi.sub_apply,
-    ContinuousAlternatingMap.sub_apply, delBar_apply_apply, del_apply_apply,
-    ← mextDerivₗ_zero_apply, ← mextDerivₗ_zero_apply, SmoothForm.mextDerivₗ_mapCoeff]
+  rw [ContinuousAlternatingMap.sub_apply, sub_eq_zero, J.dC_apply_apply, ← mextDerivₗ_zero_apply,
+    SmoothForm.mextDerivₗ_mapCoeff]
   simp
-  ring_nf
-  rw [Complex.I_sq]
-  ring
 
 variable {J}
 
