@@ -18,7 +18,8 @@ constant rank, so the kernels of its derivative form a foliation of `C`
 (`TauCeti.Foliation.ofConstantRank`). This file shows that this foliation is regular, so that its
 leaf space is a manifold, and that, when every fibre of `leafSpaceMk ∘ c` is preconnected, the map
 that `leafSpaceMk ∘ c` induces from this leaf space to the reduced space is injective. The reduced
-Lagrangian is to be built on it.
+Lagrangian is to be built on it. For an embedded coisotropic submanifold, the hypothesis on the
+fibres follows from the preconnectedness of the corresponding subsets of `M`.
 
 ## Main results
 
@@ -28,6 +29,10 @@ Lagrangian is to be built on it.
 * `SymplecticGeometry.IsCleanIntersection.injective_leafSpaceLift`: with preconnected fibres, the
   map of leaf spaces induced by `leafSpaceMk ∘ c` is injective. It is the case `leafSpaceMk ∘ c` of
   `TauCeti.Foliation.LeafSpace.injective_lift_ofConstantRank`.
+* `SymplecticGeometry.IsCleanIntersection.isPreconnected_preimage_leafSpaceMk_comp`: when `f` is
+  also a topological embedding, a fibre of `leafSpaceMk ∘ c` is preconnected as soon as the
+  corresponding set `range g ∩ f '' (leafSpaceMk ⁻¹' {b})` of `M` is. It is the case of a fibre
+  of `leafSpaceMk` of `IsCleanIntersection.isPreconnected_preimage`.
 
 ## References
 
@@ -76,7 +81,9 @@ theorem isRegular_ofConstantRank (hc : IsCleanIntersection I J K L f g c)
   letI := Foliation.leafSpaceChartedSpace hR
   haveI := Foliation.isManifold_leafSpace hR
   haveI := hc.isSmoothEmbedding.isImmersion.isManifold
-  Foliation.isRegular_ofConstantRank _ _ hn
+  Foliation.isRegular_ofConstantRank
+    ((Foliation.contMDiff_leafSpaceMk hR).comp hc.isSmoothEmbedding.contMDiff)
+    (hc.mfderivRank_leafSpaceMk_comp_eq hR hg hgi)
 
 /-- **The leaf space of a clean intersection maps injectively to the reduced space.** Let `f` be
 a coisotropic immersion with regular characteristic foliation, `g` a Lagrangian immersion, and
@@ -101,6 +108,19 @@ theorem injective_leafSpaceLift (hc : IsCleanIntersection I J K L f g c)
   haveI := Foliation.isManifold_leafSpace hR
   haveI := hc.isSmoothEmbedding.isImmersion.isManifold
   Foliation.LeafSpace.injective_lift_ofConstantRank _ _ hn hpc
+
+omit [J.Boundaryless] [FiniteDimensional ℝ E₀] [L.Boundaryless] in
+/-- **Preconnected fibres from preconnected subsets of `M`.** Let `f` be a coisotropic immersion
+that is a topological embedding, as for an embedded coisotropic submanifold
+(`IsCoisotropicEmbedding.isEmbedding`), and let `f` and `g` intersect cleanly along `c`. If, for a
+leaf `b` of the characteristic foliation of `f`, the set `range g ∩ f '' (leafSpaceMk ⁻¹' {b})` is
+preconnected in `M`, then the fibre `(leafSpaceMk ∘ c) ⁻¹' {b}` is preconnected in `C`. -/
+theorem isPreconnected_preimage_leafSpaceMk_comp (hc : IsCleanIntersection I J K L f g c)
+    (hfe : Topology.IsEmbedding f) (b : (h.characteristicFoliation hi hf hσc hn).LeafSpace)
+    (hb : IsPreconnected
+      (Set.range g ∩ f '' ((h.characteristicFoliation hi hf hσc hn).leafSpaceMk ⁻¹' {b}))) :
+    IsPreconnected ((h.characteristicFoliation hi hf hσc hn).leafSpaceMk ∘ c ⁻¹' {b}) :=
+  hc.isPreconnected_preimage hfe hb
 
 end SymplecticGeometry.IsCleanIntersection
 

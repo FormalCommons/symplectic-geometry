@@ -183,7 +183,7 @@ $J$ and the symplectic vertical spaces follow from the dominant-part lemma.
 ### The blowup at the base points
 
 The base points are blown up one after another with *Symplectic blowup*'s
-`Weight.lean`, along the ball embeddings $\psi_b$ of radius $\lambda$ of
+`Weight/Basic.lean`, along the ball embeddings $\psi_b$ of radius $\lambda$ of
 the Darboux charts above: these are disjoint for small $\lambda$, and each
 blowup is the identity off its ball, so the remaining embeddings lift to it.
 In the chart, the pencil $[z_1:z_2]$ composed with the blowdown is the
@@ -195,9 +195,9 @@ $\omega_0$: they are symplectic. So the extension is a Lefschetz fibration.
 
 The identification with $M\#mk^2\,\overline{\mathbb CP}{}^2$, as the
 approving review of #3195 asked, uses two facts of other parts: the blowup
-of `Weight.lean` along $\psi$ is diffeomorphic to the complex blowup of
+of `Weight/Basic.lean` along $\psi$ is diffeomorphic to the complex blowup of
 *Complex blowup*'s `Basic.lean` for the chart $\psi$, which *Symplectic
-blowup* compares in `Normalized.lean` (the book's comparison of (7.1.14)
+blowup* compares in `Normalized/Weight.lean` (the book's comparison of (7.1.14)
 with Theorem 7.1.21); and *Complex blowup*'s `ConnectedSum.lean` gives an
 orientation-preserving diffeomorphism from that blowup to
 $M\#\overline{\mathbb CP}{}^2$. Iterating, the blowup at $N$ points is an iterated
@@ -452,8 +452,8 @@ a fibre.
   and compatible structures.
 - *Asymptotically holomorphic sections*: the files listed under *The
   transversality for pairs*.
-- *Symplectic blowup*: `Weight.lean`, and the comparison with the complex
-  blowup in `Normalized.lean`.
+- *Symplectic blowup*: `Weight/Basic.lean`, and the comparison with the complex
+  blowup in `Normalized/Weight.lean`.
 - *Complex blowup*: `Model.lean` (`pr`), `Basic.lean`, `ConnectedSum.lean`.
 - *Poincaré duals of submanifolds*: `DualClass.lean`,
   `Orientation/DualClass.lean`.
@@ -484,7 +484,7 @@ part Lefschetz pencils*.
 | 6 | Transversality of the derivative of the quotient | `Transversality/Derivative.lean` | 5 | 500 |
 | 7 | Holomorphic models near base and critical points | `Perturbation.lean` | 3, 6 | 500 |
 | 8 | The pencil on $M$ | `FiberClosure.lean` | 7; *Asymptotically holomorphic sections* `ZeroSet.lean`, `Connectivity.lean`; *Poincaré duals of submanifolds* `DualClass.lean`, `Orientation/DualClass.lean` | 400 |
-| 9 | The fibration on the blowup and the milestone | `Lefschetz/Pencil.lean` | 2, 4, 8; *Symplectic blowup* `Weight.lean`, `Normalized.lean`; *Complex blowup* `Model.lean`, `ConnectedSum.lean` | 400 |
+| 9 | The fibration on the blowup and the milestone | `Lefschetz/Pencil.lean` | 2, 4, 8; *Symplectic blowup* `Weight/Basic.lean`, `Normalized/Weight.lean`; *Complex blowup* `Model.lean`, `ConnectedSum.lean` | 400 |
 
 Issues 1, 2 and 3 can start once this design is merged; the issue that splits #3295 names, for each issue
 of another part above, the issue of that part's design that builds it, once
