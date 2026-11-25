@@ -19,7 +19,6 @@ public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Lie.MaurerCartan
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 
 /-!
@@ -407,25 +406,14 @@ theorem differentiable_moment_inv_smul_im_mfderiv
     (hγ : ContMDiff 𝓘(ℝ, F) IC ∞ γ) (v : F) :
     Differentiable ℝ fun z ↦ μ ((γ z)⁻¹ • p)
       (C.im (mfderiv IC IC ((γ z)⁻¹ * ·) (γ z) (mfderiv 𝓘(ℝ, F) IC γ z v))) := by
-  -- The function pairs a smooth family of covectors with `C.im` of the left Maurer–Cartan form
-  -- along `γ`.
-  set θ := leftMaurerCartanForm IC Gc
-  have ha (z : F) : mfderiv IC IC ((γ z)⁻¹ * ·) (γ z) (mfderiv 𝓘(ℝ, F) IC γ z v) =
-      θ.val (γ z) ![mfderiv 𝓘(ℝ, F) IC γ z v] := by
-    simp [θ, leftMaurerCartanForm_apply]
+  -- The function pairs a smooth family of covectors with `C.im` of the left-trivialized
+  -- derivative of `γ`.
   have hx : ContMDiff 𝓘(ℝ, F) I' ∞ fun z ↦ (γ z)⁻¹ • p :=
     ((contMDiff_inv IC ∞).comp hγ).smul contMDiff_const
-  have hL := (contMDiff_toContinuousLinearMap_of_contMDiff_apply (E := E) hμ).comp hx
-  have hc := (LinearMap.toContinuousLinearMap C.im).differentiable.comp
-    (SmoothForm.differentiable_apply_one_mfderiv θ hγ v)
-  have h : (fun z ↦ μ ((γ z)⁻¹ • p)
-      (C.im (mfderiv IC IC ((γ z)⁻¹ * ·) (γ z) (mfderiv 𝓘(ℝ, F) IC γ z v)))) =
-      fun z ↦ LinearMap.toContinuousLinearMap (μ ((γ z)⁻¹ • p))
-        (LinearMap.toContinuousLinearMap C.im (θ.val (γ z) ![mfderiv 𝓘(ℝ, F) IC γ z v])) := by
-    funext z
-    simp [ha]
-  rw [h]
-  exact (hL.mdifferentiable (by simp)).differentiable.clm_apply hc
+  refine differentiable_dual_comp_apply (fun ξ ↦ (hμ ξ).mdifferentiable (by simp))
+    (hx.mdifferentiable (by simp))
+    ((LinearMap.toContinuousLinearMap C.im).differentiable.comp
+      (differentiable_mfderiv_inv_mul_mfderiv hγ v))
 
 /-- **The Kempf–Ness one-form is closed along maps into `Gc`.** Let the action of `Gc` be a
 complexified action, let `-μ` be an equivariant moment map for `σ`, and let the metric be
@@ -452,8 +440,8 @@ theorem fderiv_moment_inv_smul_im_comm (h : IsComplexifiedAction C J)
   have hμc := hμ.toIsMomentMap.contMDiff_of_neg
   have hx : ContMDiff 𝓘(ℝ, F) I' ∞ fun z ↦ (γ z)⁻¹ • p :=
     ((contMDiff_inv IC ∞).comp hγ).smul contMDiff_const
-  have hda (u : F) : Differentiable ℝ (a u) :=
-    SmoothForm.differentiable_apply_one_mfderiv θ hγ u
+  have hda (u : F) : Differentiable ℝ (a u) := by
+    simpa only [ha] using differentiable_mfderiv_inv_mul_mfderiv hγ u
   set imL := LinearMap.toContinuousLinearMap C.im
   have hdim (u : F) (r : F) : fderiv ℝ (fun z ↦ C.im (a u z)) y r = C.im (fderiv ℝ (a u) y r) :=
     congr($(imL.fderiv_comp_left (hda u y)) r)
