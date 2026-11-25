@@ -27,6 +27,9 @@ constant along the lines `s ↦ x + s • (g x • e)`, so these lines are its f
 * `SymplecticGeometry.maximalIntegralCurve_eqOn_add_smul`: if a `C¹` vector field equals the
   constant `c` along the line `s ↦ x + s • c` for `s` in an open interval around `0`, then its
   maximal integral curve through `x` is that line on the interval.
+* `SymplecticGeometry.norm_compactlySupportedFlowDiffeotopy_sub_le`: the compactly supported flow
+  diffeotopy of a field of norm at most `M`, run for a duration `a ≥ 0`, moves each point by at
+  most `a * t * M` at time `t`.
 * `SymplecticGeometry.exists_diffeotopy_apply_eq_add_smul`: the diffeotopy described above.
 
 The proofs adapt two proofs of Tau Ceti to a compact set and a profile `g`:
@@ -61,6 +64,29 @@ theorem maximalIntegralCurve_eqOn_add_smul {v : E → E}
     TauCeti.isMIntegralCurveOn_iff_isIntegralCurveOn.2 fun s hs ↦ by
       simpa [hvc s hs] using (((hasDerivAt_id s).smul_const c).const_add x).hasDerivWithinAt
   exact hline.eqOn_maximalIntegralCurve hv h0 (by simp)
+
+/-- **Displacement of a compactly supported flow.** If a compactly supported `C^n` vector field
+`v` on a finite-dimensional real normed space has norm at most `M` everywhere, then its flow
+diffeotopy run for a duration `a ≥ 0` moves each point by at most `a * t * M` at time `t`. -/
+theorem norm_compactlySupportedFlowDiffeotopy_sub_le [FiniteDimensional ℝ E] {v : E → E}
+    {K : Set E} {n : ℕ∞} (hn : 1 ≤ n)
+    (hv : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent (n : WithTop ℕ∞)
+      (fun y ↦ (⟨y, v y⟩ : TangentBundle 𝓘(ℝ, E) E)))
+    (hK : IsCompact K) (hzero : ∀ y ∉ K, v y = 0) {a M : ℝ} (ha : 0 ≤ a)
+    (hM : ∀ y, ‖v y‖ ≤ M) (t : unitInterval) (x : E) :
+    ‖TauCeti.compactlySupportedFlowDiffeotopy hn hv hK hzero a (t, x) - x‖ ≤ a * t * M := by
+  have hv1 := hv.of_le (m := 1) (by exact_mod_cast hn)
+  have hγ := (TauCeti.isMIntegralCurve_maximalIntegralCurve_of_eq_univ hv1
+    ((TauCeti.isCompleteVectorField_of_isCompact_of_eq_zero_off hv1 hK hzero)
+      |>.maximalIntegralCurveInterval_eq_univ x)).isMIntegralCurveOn univ
+  have := (TauCeti.isMIntegralCurveOn_iff_isIntegralCurveOn.1 hγ |>.mono (subset_univ _))
+    |>.norm_sub_le_mul (fun s _ ↦ hM _) (mul_nonneg ha t.property.1)
+  -- `maximalIntegralCurve_zero` is stated for fields valued in tangent spaces, and `rw` does
+  -- not find it for the `E`-valued `v`.
+  have h0 : maximalIntegralCurve (I := 𝓘(ℝ, E)) v x 0 = x := maximalIntegralCurve_zero
+  rw [h0, sub_zero] at this
+  rw [TauCeti.compactlySupportedFlowDiffeotopy_apply hn hv hK hzero a (t, x)]
+  linarith
 
 variable [FiniteDimensional ℝ E]
 
@@ -99,31 +125,17 @@ theorem exists_diffeotopy_apply_eq_add_smul {K : Set E} (hK : IsCompact K) {g : 
       exact fun h ↦ hy (thickening_subset_cthickening _ _ h)
     simp [v, this]
   have hn : (1 : ℕ∞) ≤ ⊤ := le_top
-  have happ : ∀ (t : unitInterval) x,
-      TauCeti.compactlySupportedFlowDiffeotopy hn hv hC hzero 1 (t, x) =
-        maximalIntegralCurve v x t := fun t x ↦
-    (TauCeti.compactlySupportedFlowDiffeotopy_apply hn hv hC hzero 1 (t, x)).trans
-      (by rw [one_mul])
   refine ⟨TauCeti.compactlySupportedFlowDiffeotopy hn hv hC hzero 1, ⟨_, hC,
     cthickening_subset_thickening' (hρ0.trans (hρ'.trans hρ'δ)) hρ'δ K, fun t x hx ↦
       TauCeti.compactlySupportedFlowDiffeotopy_apply_of_eq_zero hn hv hC hzero 1 (hzero x hx) t⟩,
     fun t x ↦ ?_, fun t x hx ↦ ?_⟩
   · -- The field is bounded by `‖e‖`, so points move at speed at most `‖e‖`.
-    have hγ := (TauCeti.isMIntegralCurve_maximalIntegralCurve_of_eq_univ hv1
-      ((TauCeti.isCompleteVectorField_of_isCompact_of_eq_zero_off hv1 hC hzero)
-        |>.maximalIntegralCurveInterval_eq_univ x)).isMIntegralCurveOn univ
     have hbound : ∀ y, ‖v y‖ ≤ ‖e‖ := fun y ↦ by
       have h1 : |φ y| ≤ 1 := abs_le.mpr ⟨by linarith [(hφI ⟨y, rfl⟩).1], (hφI ⟨y, rfl⟩).2⟩
       simp only [v, norm_smul, Real.norm_eq_abs, abs_mul]
       exact mul_le_of_le_one_left (norm_nonneg e)
         (by nlinarith [abs_nonneg (φ y), abs_nonneg (g y), hg1 y])
-    have := (TauCeti.isMIntegralCurveOn_iff_isIntegralCurveOn.1 hγ |>.mono (subset_univ _))
-      |>.norm_sub_le_mul (fun s _ ↦ hbound _) t.property.1
-    -- `maximalIntegralCurve_zero` is stated for fields valued in tangent spaces, and `rw` does
-    -- not find it for the `E`-valued `v`.
-    have h0 : maximalIntegralCurve (I := 𝓘(ℝ, E)) v x 0 = x := maximalIntegralCurve_zero
-    rw [h0, sub_zero, mul_comm] at this
-    rwa [happ]
+    simpa using norm_compactlySupportedFlowDiffeotopy_sub_le hn hv hC hzero zero_le_one hbound t x
   · -- Near `K` the field is the constant `g x • e` along the line through `x`, for times in
     -- `(-ε, 1 + ε)`.
     set ε := (ρ - ‖e‖) / (‖e‖ + 1)
@@ -143,7 +155,8 @@ theorem exists_diffeotopy_apply_eq_add_smul {K : Set E} (hK : IsCompact K) {g : 
           _ ≤ ρ := by linarith
       simp only [v]
       rw [(hφ1 _).1 hmem, one_mul, smul_smul, hge x hx]
-    rw [happ, maximalIntegralCurve_eqOn_add_smul hv1 ⟨by linarith, by linarith⟩ hvc
+    simp only [TauCeti.compactlySupportedFlowDiffeotopy_apply hn hv hC hzero 1 (t, x), one_mul]
+    rw [maximalIntegralCurve_eqOn_add_smul hv1 ⟨by linarith, by linarith⟩ hvc
       ⟨by linarith [t.property.1], by linarith [t.property.2]⟩, mul_smul]
 
 end SymplecticGeometry
