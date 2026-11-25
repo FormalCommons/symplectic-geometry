@@ -451,7 +451,8 @@ theorem isIteratedConnectedSum :
   (closedSurfaceData g).isIteratedConnectedSum
 
 /-- The base point of the closed surface of genus `g`, a point of the sphere onto which the tori
-are summed; for `g = 0` it is the point `(1, 0, 0)` (`ClosedSurface.zeroDiffeomorph_basePoint`). -/
+are summed; for `g = 0` it is the point `(1, 0, 0)`
+(`ClosedSurface.coe_zeroDiffeomorph_basePoint`). -/
 def basePoint : ClosedSurface g := (closedSurfaceData g).basePoint
 
 /-- The `j`-th coordinate ball of the closed surface of genus `g`, along which a further torus can
