@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Topology.Compactness.SigmaCompact
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+import SymplecticGeometry.Data.Set.Function
 import TauCeti.Geometry.Manifold.Immersion.Basic
 
 /-!
@@ -15,8 +16,9 @@ import TauCeti.Geometry.Manifold.Immersion.Basic
 Let `γ j : ℝ → M` be smooth embeddings and `T j` a monotone sequence of reals tending to `+∞`, such
 that `γ (j + 1)` agrees with `γ j` on `(-∞, T j]`. Then the maps stabilise on every half-line
 `(-∞, T j]`, and their limit is again a function `ℝ → M`. If moreover `K` is a compact exhaustion
-of `M` and `γ (j + 1)` maps `[T j, ∞)` outside `K j`, the limit maps `[T j, ∞)` outside `K j` for
-every `j`, tends to infinity as `t → ∞`, and is a smooth embedding.
+of `M` and `γ (j + 1)` maps the new arc `[T j, T (j + 1)]` outside `K j`, the limit maps
+`[T j, ∞)` outside `K j` for every `j`, tends to infinity as `t → ∞`, and is a smooth embedding.
+What each `γ (j + 1)` does beyond `T (j + 1)` does not matter.
 
 Near each parameter the limit agrees with one of the `γ j`, so it is a smooth immersion; that the
 complements of the immersions at different points can be taken to be one is Tau Ceti's
@@ -29,11 +31,8 @@ all of `ℝ`, without matching charts where successive arcs meet.
 
 ## Main results
 
-* `Set.eqOn_Iic_of_eqOn_succ`, `Set.mapsTo_Ici_compl_of_eqOn_succ`: for maps that agree with
-  their successor on increasing half-lines, every later map agrees with an earlier one on its
-  half-line, and keeps its tail outside the sets that each successor's tail avoids.
 * `TauCeti.SmoothEmbedding.exists_eqOn_Iic_tendsto_cocompact`: the limit of smooth embeddings of
-  `ℝ` that agree on increasing initial half-lines, and whose later parts leave a compact
+  `ℝ` that agree on increasing initial half-lines, and whose new arcs leave a compact
   exhaustion, is a smooth embedding tending to infinity.
 
 ## References
@@ -48,36 +47,6 @@ public section
 open Set Filter Topology Manifold
 open scoped ContDiff
 
-namespace Set
-
-variable {α β : Type*} {f : ℕ → α → β}
-
-/-- Maps that agree with their successor on the half-lines `(-∞, T j]`, for `T` monotone, agree
-with every later one there. -/
-theorem eqOn_Iic_of_eqOn_succ [Preorder α] {T : ℕ → α} (hT : Monotone T)
-    (hf : ∀ j, EqOn (f (j + 1)) (f j) (Iic (T j))) {j k : ℕ} (hjk : j ≤ k) :
-    EqOn (f k) (f j) (Iic (T j)) := by
-  induction k, hjk using Nat.le_induction with
-  | base => exact eqOn_refl _ _
-  | succ k hjk ih => exact fun t ht ↦ (hf k (ht.trans (hT hjk))).trans (ih ht)
-
-/-- If each `f (j + 1)` agrees with `f j` on `(-∞, T j]` and maps `[T j, ∞)` outside `K j`, for
-an increasing family of sets `K`, then every later `f k` maps `[T j, ∞)` outside `K j`. -/
-theorem mapsTo_Ici_compl_of_eqOn_succ [LinearOrder α] {T : ℕ → α} {K : ℕ → Set β}
-    (hK : Monotone K) (hf : ∀ j, EqOn (f (j + 1)) (f j) (Iic (T j)))
-    (hfK : ∀ j, MapsTo (f (j + 1)) (Ici (T j)) (K j)ᶜ) {j k : ℕ} (hjk : j < k) :
-    MapsTo (f k) (Ici (T j)) (K j)ᶜ := by
-  induction k, hjk using Nat.le_induction with
-  | base => exact hfK j
-  | succ k hjk ih =>
-    intro t ht
-    rcases le_total t (T k) with htk | htk
-    · rw [mem_compl_iff, hf k htk]
-      exact ih ht
-    · exact fun h ↦ hfK k htk (hK (by omega) h)
-
-end Set
-
 namespace TauCeti.SmoothEmbedding
 
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
@@ -86,27 +55,29 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensi
 
 /-- **A proper smooth ray as a limit.** Let `γ j` be smooth embeddings of `ℝ` in `M` and `T` a
 monotone sequence tending to `+∞`, such that `γ (j + 1)` agrees with `γ j` on `(-∞, T j]` and maps
-`[T j, ∞)` outside `K j`, for a compact exhaustion `K` of `M`. Then there is a smooth embedding
-`δ` of `ℝ` in `M` that agrees with each `γ j` on `(-∞, T j]`, maps `[T j, ∞)` outside `K j`, and
-tends to infinity as `t → ∞`. -/
+`[T j, T (j + 1)]` outside `K j`, for a compact exhaustion `K` of `M`. Then there is a smooth
+embedding `δ` of `ℝ` in `M` that agrees with each `γ j` on `(-∞, T j]`, maps `[T j, ∞)` outside
+`K j`, and tends to infinity as `t → ∞`. -/
 theorem exists_eqOn_Iic_tendsto_cocompact (hT : Monotone T) (hT' : Tendsto T atTop atTop)
     (K : CompactExhaustion M) (hγ : ∀ j, EqOn (γ (j + 1)) (γ j) (Iic (T j)))
-    (hK : ∀ j, MapsTo (γ (j + 1)) (Ici (T j)) (K j)ᶜ) :
+    (hK : ∀ j, MapsTo (γ (j + 1)) (Icc (T j) (T (j + 1))) (K j)ᶜ) :
     ∃ δ : SmoothEmbedding 𝓘(ℝ) I n ℝ M, (∀ j, EqOn δ (γ j) (Iic (T j))) ∧
       (∀ j, MapsTo δ (Ici (T j)) (K j)ᶜ) ∧ Tendsto δ atTop (cocompact M) := by
   have hex (t : ℝ) : ∃ k, t < T k := (hT'.eventually_gt_atTop t).exists
   let N (t : ℝ) : ℕ := (hex t).choose
   let f (t : ℝ) : M := γ (N t) t
+  have hS : Monotone fun j ↦ Iic (T j) := fun _ _ h ↦ Iic_subset_Iic.2 (hT h)
   have hf {k : ℕ} {t : ℝ} (ht : t ≤ T k) : f t = γ k t := by
     have hN : t ≤ T (N t) := (hex t).choose_spec.le
     rcases le_total (N t) k with h | h
-    · exact (eqOn_Iic_of_eqOn_succ (f := (γ ·)) hT hγ h hN).symm
-    · exact eqOn_Iic_of_eqOn_succ (f := (γ ·)) hT hγ h ht
+    · exact (eqOn_of_eqOn_succ (f := (γ ·)) hS hγ h hN).symm
+    · exact eqOn_of_eqOn_succ (f := (γ ·)) hS hγ h ht
   have hfK {j : ℕ} {t : ℝ} (ht : T j ≤ t) : f t ∉ K j := by
     obtain ⟨k, hk⟩ := (hT'.eventually_ge_atTop t).exists_forall_of_atTop
-    rw [hf (hk (max k (j + 1)) (le_max_left _ _))]
-    exact mapsTo_Ici_compl_of_eqOn_succ (f := (γ ·)) K.subset hγ hK
-      (by omega : j < max k (j + 1)) ht
+    have htk := hk (max k (j + 1)) (le_max_left _ _)
+    rw [hf htk]
+    exact mapsTo_Icc_compl_of_eqOn_succ (f := (γ ·)) K.subset hγ hK
+      (by omega : j < max k (j + 1)) ⟨ht, htk⟩
   have hfeq (t : ℝ) {k : ℕ} (hk : t < T k) : f =ᶠ[𝓝 t] γ k :=
     eventually_of_mem (Iio_mem_nhds hk) fun s hs ↦ hf (le_of_lt hs)
   have hcont : Continuous f := continuous_iff_continuousAt.2 fun t ↦
