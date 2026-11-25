@@ -154,18 +154,17 @@ theorem two_mul_mfderivRank_leafSpaceMk_comp_add (hc : IsCleanIntersection I J K
   rw [finrank_tangentSpace] at h₄
   omega
 
-/-- **The rank of the reduced Lagrangian.** If `g` is a Lagrangian map and an immersion, the map
+/-- **The rank of the reduced Lagrangian.** If `g` is a Lagrangian immersion, the map
 `leafSpaceMk ∘ c` has rank `dim P - (dim M - dim N)` at every point. -/
 theorem mfderivRank_leafSpaceMk_comp_eq (hc : IsCleanIntersection I J K L f g c)
-    (hR : (h.characteristicFoliation hi hf hσc hn).IsRegular) (hg : hσ.IsLagrangianMap K g)
-    (hgi : IsImmersion K I ∞ g) (x : C) :
+    (hR : (h.characteristicFoliation hi hf hσc hn).IsRegular)
+    (hg : hσ.IsLagrangianImmersion K g) (x : C) :
     letI := Foliation.leafSpaceChartedSpace hR
     mfderivRank L 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ F - (finrank ℝ E - finrank ℝ F))))
         ((h.characteristicFoliation hi hf hσc hn).leafSpaceMk ∘ c) x =
       finrank ℝ G - (finrank ℝ E - finrank ℝ F) := by
-  obtain ⟨y, -⟩ := hc.range_subset ⟨x, rfl⟩
-  have h₁ := hc.two_mul_mfderivRank_leafSpaceMk_comp_add hR hg x
-  have h₂ := hg.two_mul_finrank (hgi.mfderiv_injective (by simp) y)
+  have h₁ := hc.two_mul_mfderivRank_leafSpaceMk_comp_add hR hg.isLagrangianMap x
+  have h₂ := hg.two_mul_finrank
   have h₃ := LinearMap.finrank_le_finrank_of_injective (hi.mfderiv_injective (by simp) (c x))
   simp only [finrank_tangentSpace] at h₃
   omega

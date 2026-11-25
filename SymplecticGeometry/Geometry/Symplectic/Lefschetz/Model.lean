@@ -35,6 +35,8 @@ about it that the rest of the theory uses.
 * `SymplecticGeometry.LefschetzModel.fderiv_quadric_eq_zero_iff`,
   `SymplecticGeometry.LefschetzModel.fderiv_real_quadric_eq_zero_iff`: the complex, or real,
   derivative of `quadric` vanishes only at `0`.
+* `SymplecticGeometry.LefschetzModel.surjective_fderiv_real_quadric`: away from `0` the real
+  derivative of `quadric` is onto `ℂ`, so `0` is its only critical point.
 * `SymplecticGeometry.LefschetzModel.isInvertible_fderiv_fderiv_quadric`: the complex Hessian
   of `quadric` is nondegenerate (at every point, in particular at `0`).
 * `SymplecticGeometry.LefschetzModel.manifoldMorseIndex_re_mul_quadric`: for `c ≠ 0`, the
@@ -166,6 +168,14 @@ theorem fderiv_real_quadric_eq_zero_iff {z : Fin 2 → ℂ} : fderiv ℝ quadric
   refine ⟨fun h ↦ ?_, fun h ↦ by rw [h, ContinuousLinearMap.restrictScalars_zero]⟩
   ext v
   exact congr($h v)
+
+/-- Away from the origin the real derivative of the quadric is onto `ℂ`: it is a nonzero
+complex-linear functional. -/
+theorem surjective_fderiv_real_quadric {z : Fin 2 → ℂ} (hz : z ≠ 0) :
+    Function.Surjective (fderiv ℝ quadric z) := by
+  rw [(contDiff_quadric (n := 1).differentiable one_ne_zero z).fderiv_restrictScalars ℝ,
+    ContinuousLinearMap.coe_restrictScalars']
+  exact ContinuousLinearMap.surjective_iff_ne_zero.2 (fderiv_quadric_eq_zero_iff.not.2 hz)
 
 /-- The complex Hessian of the quadric is nondegenerate, at every point. -/
 theorem isInvertible_fderiv_fderiv_quadric (z : Fin 2 → ℂ) :

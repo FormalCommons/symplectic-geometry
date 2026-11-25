@@ -8,6 +8,8 @@ module
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.IntervalContraction
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
 import SymplecticGeometry.Geometry.Manifold.VectorField.Prod
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
+import TauCeti.Geometry.Manifold.VectorBundle.Tangent.ProdIcc
 import TauCeti.Topology.Algebra.Module.Alternating.Basic
 
 /-!
@@ -61,6 +63,15 @@ projection to the bottom level fixes the point of `P` and kills the direction of
 (`SymplecticGeometry.IsCouplingForm.mpullback_bot_apply_prodVectorField_eq_zero`), so
 `ι_{(X, 0)} ω̃₀ = -de` (`SymplecticGeometry.IsCouplingForm.prodIccExtension_apply_prodVectorField`),
 and `de = dt` over `[a, b]` (`SymplecticGeometry.mextDerivₗ_timeExtendIcc_prodIccHeight_apply`).
+
+The extended Moser segment is `ω̃₀ + s • dσ̃`. On `P × [a, b]` it restricts to
+`ω₀ + s • (ω₁ - ω₀)`, for every real `s`
+(`SymplecticGeometry.IsCouplingForm.mpullback_prodMap_subtypeVal_prodIccExtension_add_smul`).
+That restriction is a coupling form, so nondegenerate over a family of nondegenerate forms, and
+the differential of the inclusion `P × [a, b] → P × ℝ` is invertible, also at the two boundary
+levels (`TauCeti.Manifold.isInvertible_mfderiv_prodMap_id_subtypeVal_Icc`). Hence the extended
+segment is nondegenerate at every point of `P × ℝ` over `[a, b]`
+(`SymplecticGeometry.IsCouplingForm.nondegenerate_bilinFormAt_prodIccExtension_add_smul`).
 
 ## References
 
@@ -448,6 +459,43 @@ theorem prodIccExtension_apply_prodVectorField (h : IsCouplingForm ω₀ τ)
       mextDerivₗ_zero_apply]
   rw [prodIccExtension_apply, Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
     mpullback_bot_apply_prodVectorField_eq_zero h, h₂, zero_add]
+
+/-- **The extended Moser segment restricts to the segment.** For two coupling forms `ω₀` and `ω₁`
+for the same family and every real `s`, the form `ω̃₀ + s • dσ̃` on `P × ℝ`, where `ω̃₀` is the
+extension of `ω₀` (`SymplecticGeometry.prodIccExtension`) and `σ̃` the time extension of
+`K (ω₁ - ω₀)`, pulls back along the inclusion `P × [a, b] → P × ℝ` to `ω₀ + s • (ω₁ - ω₀)`. -/
+theorem mpullback_prodMap_subtypeVal_prodIccExtension_add_smul (h₀ : IsCouplingForm ω₀ τ)
+    (h₁ : IsCouplingForm ω₁ τ) (s : ℝ) :
+    SmoothForm.mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal_Icc)
+        (prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀ +
+          s • mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 (SmoothForm.timeExtendIcc
+            (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
+              (ω₁ - ω₀)))) =
+      ω₀ + s • (ω₁ - ω₀) := by
+  rw [map_add, map_smul, mpullback_prodMap_subtypeVal_prodIccExtension h₀.isClosed,
+    ← SmoothForm.mextDerivₗ_mpullback,
+    mpullback_prodMap_subtypeVal_timeExtendIcc_prodIccHomotopyOperator,
+    mextDerivₗ_prodIccHomotopyOperator_sub h₀ h₁]
+
+/-- **The extended Moser segment is nondegenerate over `P × [a, b]`.** Let `ω₀` and `ω₁` be
+coupling forms for the same family `τ` of nondegenerate forms. For every real `s`, the form
+`ω̃₀ + s • dσ̃` on `P × ℝ` (as in
+`SymplecticGeometry.IsCouplingForm.mpullback_prodMap_subtypeVal_prodIccExtension_add_smul`) is
+nondegenerate at every point `(x, t)` with `t ∈ [a, b]`, the ends of the interval included. -/
+theorem nondegenerate_bilinFormAt_prodIccExtension_add_smul (h₀ : IsCouplingForm ω₀ τ)
+    (h₁ : IsCouplingForm ω₁ τ) (hτ : ∀ t, (τ t).IsNondegenerate) (s : ℝ)
+    (x : ManifoldTotalSpace Circle P) {t : ℝ} (ht : t ∈ Icc a b) :
+    ((prodIccExtension (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1 ω₀ +
+        s • mextDerivₗ ((IB.prod (𝓡 1)).prod 𝓘(ℝ, ℝ)) 1 (SmoothForm.timeExtendIcc
+          (prodIccHomotopyOperator (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) a b ℝ 1
+            (ω₁ - ω₀)))).bilinFormAt (x, t)).Nondegenerate := by
+  -- the inclusion sends `(x, ⟨t, ht⟩)` to `(x, t)`, by definition of `Prod.map`
+  refine (SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
+    (Manifold.isInvertible_mfderiv_prodMap_id_subtypeVal_Icc (x, ⟨t, ht⟩))
+    (congrFun (SmoothForm.coe_mpullback _ (contMDiff_id.prodMap contMDiff_subtypeVal_Icc) _)
+      (x, ⟨t, ht⟩)).symm).mpr ?_
+  rw [mpullback_prodMap_subtypeVal_prodIccExtension_add_smul h₀ h₁ s]
+  exact ((h₀.lineMap h₁ s).isNondegenerate hτ).nondegenerate_bilinFormAt (x, ⟨t, ht⟩)
 
 end Extension
 
