@@ -189,7 +189,6 @@ private theorem exists_local_rightInverse_normalClass (x₀ : M) :
             TotalSpace.mk' V (E := (f : M → N) *ᵖ (TangentSpace J)) v.proj
               (s v.proj (f.normalClass v.proj hn v.snd))) v := by
   have : CompleteSpace V := FiniteDimensional.completeSpace 𝕜 V
-  have : IsManifold I 0 M := .of_le (n := 1) zero_le_one
   obtain ⟨Q, -, U, hU, hxU, hsub, hInv, hcont⟩ :=
     f.exists_contMDiffOn_inTangentCoordinates_quotientRangeCoordinate (m := 0)
       (by simpa using ENat.one_le_iff_ne_zero_withTop.mpr hn) (by simp) x₀
