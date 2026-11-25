@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Topology.VectorBundle.Constructions
 public import TauCeti.Geometry.Manifold.Riemannian.Sphere.Gradient
+public import TauCeti.Topology.VectorBundle.Hom
 
 /-!
 # The tangent bundle of the sphere plus a trivial line
@@ -22,14 +23,15 @@ bundle of a sphere is stably trivial.
 ## Main definitions
 
 * `SymplecticGeometry.sphereTangentProdEquiv m x`: the isomorphism `T_x S × ℝ ≃L[ℝ] E`,
-  `(v, t) ↦ dι(v) + t • x`, whose inverse is `w ↦ (dι⁻¹(w - ⟪x, w⟫ • x), ⟪x, w⟫)`.
+  `(v, t) ↦ dι(v) + t • x`, whose inverse is `w ↦ (dι⁻¹(P w), ⟪x, w⟫)`, with `P` the
+  orthogonal projection onto `(ℝ ∙ x)ᗮ`, so that `P w = w - ⟪x, w⟫ • x`.
 * `SymplecticGeometry.sphereTangentProdHomeomorph E m`: the homeomorphism from the total space
   of `TangentSpace (𝓡 m) ×ᵇ Bundle.Trivial S ℝ` to that of `Bundle.Trivial S E` that is
   `sphereTangentProdEquiv m x` on the fibre over each `x`.
 
 The forward map is continuous since the tangent map of the inclusion is
-(`TauCeti.contMDiff_coe_sphereTangentEquiv`), and its inverse is continuous by
-`TauCeti.contMDiff_sphereTangentEquiv_symm`, applied on `S × E`.
+(`TauCeti.contMDiff_coe_sphereTangentEquiv`). Tau Ceti's `TauCeti.bundleHomeomorph` then gives
+the homeomorphism: since the fibres are finite-dimensional, the inverse is continuous too.
 
 ## References
 
@@ -48,13 +50,6 @@ namespace SymplecticGeometry
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
-/-- For a unit vector `x`, the vector `w - ⟪x, w⟫ • x` lies in `(ℝ ∙ x)ᗮ`: it is `w` minus its
-orthogonal projection on the line through `x`. -/
-theorem sub_inner_smul_mem_orthogonal_singleton {x : E} (hx : ‖x‖ = 1) (w : E) :
-    w - ⟪x, w⟫_ℝ • x ∈ (ℝ ∙ x)ᗮ := by
-  simpa only [Submodule.starProjection_unit_singleton ℝ hx] using
-    (ℝ ∙ x).sub_starProjection_mem_orthogonal w
-
 variable {m : ℕ} [Fact (finrank ℝ E = m + 1)]
 
 variable (m) in
@@ -65,8 +60,7 @@ def sphereTangentProdEquiv (x : sphere (0 : E) 1) :
     (TangentSpace (𝓡 m) x × ℝ) ≃L[ℝ] E :=
   { toFun p := (TauCeti.sphereTangentEquiv x p.1 : E) + p.2 • (x : E)
     invFun w := ((TauCeti.sphereTangentEquiv x).symm
-      ⟨w - ⟪(x : E), w⟫_ℝ • (x : E),
-        sub_inner_smul_mem_orthogonal_singleton (norm_eq_of_mem_sphere x) w⟩, ⟪(x : E), w⟫_ℝ)
+      ((ℝ ∙ (x : E))ᗮ.orthogonalProjectionOnto w), ⟪(x : E), w⟫_ℝ)
     map_add' p q := by
       simp only [Prod.fst_add, Prod.snd_add, map_add, Submodule.coe_add, add_smul]
       abel
@@ -83,9 +77,14 @@ def sphereTangentProdEquiv (x : sphere (0 : E) 1) :
       have ht : ⟪(x : E), (TauCeti.sphereTangentEquiv x v : E) + t • (x : E)⟫_ℝ = t := by
         rw [inner_add_right, real_inner_smul_right, hv, hx, zero_add, mul_one]
       refine Prod.ext ?_ ht
-      simp only [ht, add_sub_cancel_right, Subtype.coe_eta, LinearIsometryEquiv.symm_apply_apply]
+      simp only [map_add, map_smul,
+        Submodule.orthogonalProjectionOnto_orthogonalComplement_singleton_eq_zero, smul_zero,
+        add_zero, Submodule.orthogonalProjectionOnto_mem_subspace_eq_self,
+        LinearIsometryEquiv.symm_apply_apply]
     right_inv w := by
-      simp only [LinearIsometryEquiv.apply_symm_apply, sub_add_cancel]
+      simp only [LinearIsometryEquiv.apply_symm_apply, Submodule.coe_orthogonalProjectionOnto_apply]
+      rw [← Submodule.starProjection_unit_singleton ℝ (norm_eq_of_mem_sphere x), add_comm,
+        Submodule.starProjection_add_starProjection_orthogonal]
     continuous_toFun := by fun_prop
     continuous_invFun := by fun_prop }
 
@@ -97,8 +96,7 @@ theorem sphereTangentProdEquiv_apply (x : sphere (0 : E) 1) (p : TangentSpace (�
 @[simp]
 theorem sphereTangentProdEquiv_symm_apply (x : sphere (0 : E) 1) (w : E) :
     (sphereTangentProdEquiv m x).symm w = ((TauCeti.sphereTangentEquiv x).symm
-      ⟨w - ⟪(x : E), w⟫_ℝ • (x : E),
-        sub_inner_smul_mem_orthogonal_singleton (norm_eq_of_mem_sphere x) w⟩, ⟪(x : E), w⟫_ℝ) :=
+      ((ℝ ∙ (x : E))ᗮ.orthogonalProjectionOnto w), ⟪(x : E), w⟫_ℝ) :=
   (rfl)
 
 variable (E m) in
@@ -109,12 +107,8 @@ bundle `Trivial S E`, which on the fibre over `x` is the linear isomorphism
 def sphereTangentProdHomeomorph :
     TotalSpace (EuclideanSpace ℝ (Fin m) × ℝ)
         ((TangentSpace (𝓡 m) : sphere (0 : E) 1 → Type) ×ᵇ Trivial (sphere (0 : E) 1) ℝ) ≃ₜ
-      TotalSpace E (Trivial (sphere (0 : E) 1) E) where
-  toFun p := ⟨p.proj, sphereTangentProdEquiv m p.proj p.snd⟩
-  invFun q := ⟨q.proj, (sphereTangentProdEquiv m q.proj).symm q.snd⟩
-  left_inv p := by simp only [ContinuousLinearEquiv.symm_apply_apply]
-  right_inv q := by simp only [ContinuousLinearEquiv.apply_symm_apply]
-  continuous_toFun := by
+      TotalSpace E (Trivial (sphere (0 : E) 1) E) :=
+  TauCeti.bundleHomeomorph (sphereTangentProdEquiv m) <| by
     simp only [sphereTangentProdEquiv_apply]
     have hdiag := (FiberBundle.Prod.isInducing_diag (EuclideanSpace ℝ (Fin m))
       (TangentSpace (𝓡 m) : sphere (0 : E) 1 → Type) ℝ
@@ -129,47 +123,30 @@ def sphereTangentProdHomeomorph :
         (continuous_snd.comp hdiag))
     exact (Trivial.isInducing_toProd (sphere (0 : E) 1) E).continuous_iff.2
       (hproj.prodMk (hv.add (ht.smul (continuous_subtypeVal.comp hproj))))
-  continuous_invFun := by
-    simp only [sphereTangentProdEquiv_symm_apply]
-    have hq := (Trivial.isInducing_toProd (sphere (0 : E) 1) E).continuous
-    -- The tangent component, lifted from `S × E` to the tangent bundle of the sphere.
-    have hu : ContMDiff ((𝓡 m).prod 𝓘(ℝ, E)) 𝓘(ℝ, E) 0
-        (fun z : sphere (0 : E) 1 × E ↦ z.2 - ⟪(z.1 : E), z.2⟫_ℝ • (z.1 : E)) :=
-      contMDiff_zero_iff.2 (by fun_prop)
-    have hv := (TauCeti.contMDiff_sphereTangentEquiv_symm contMDiff_fst hu fun z ↦
-      sub_inner_smul_mem_orthogonal_singleton (norm_eq_of_mem_sphere z.1) z.2).continuous.comp hq
-    have ht : Continuous fun q : TotalSpace E (Trivial (sphere (0 : E) 1) E) ↦
-        (⟨q.proj, ⟪(q.proj : E), q.snd⟫_ℝ⟩ : TotalSpace ℝ (Trivial (sphere (0 : E) 1) ℝ)) := by
-      have hp := continuous_fst.comp hq
-      exact (Trivial.isInducing_toProd (sphere (0 : E) 1) ℝ).continuous_iff.2
-        (hp.prodMk ((continuous_subtypeVal.comp hp).inner (continuous_snd.comp hq)))
-    exact (FiberBundle.Prod.isInducing_diag (EuclideanSpace ℝ (Fin m))
-      (TangentSpace (𝓡 m) : sphere (0 : E) 1 → Type) ℝ
-      (Trivial (sphere (0 : E) 1) ℝ)).continuous_iff.2 (hv.prodMk ht)
 
 @[simp]
 theorem proj_sphereTangentProdHomeomorph
     (p : TotalSpace (EuclideanSpace ℝ (Fin m) × ℝ)
       ((TangentSpace (𝓡 m) : sphere (0 : E) 1 → Type) ×ᵇ Trivial (sphere (0 : E) 1) ℝ)) :
     (sphereTangentProdHomeomorph E m p).proj = p.proj :=
-  (rfl)
+  by rw [sphereTangentProdHomeomorph, TauCeti.bundleHomeomorph_apply]
 
 @[simp]
 theorem snd_sphereTangentProdHomeomorph
     (p : TotalSpace (EuclideanSpace ℝ (Fin m) × ℝ)
       ((TangentSpace (𝓡 m) : sphere (0 : E) 1 → Type) ×ᵇ Trivial (sphere (0 : E) 1) ℝ)) :
     (sphereTangentProdHomeomorph E m p).snd = sphereTangentProdEquiv m p.proj p.snd :=
-  (rfl)
+  by rw [sphereTangentProdHomeomorph, TauCeti.bundleHomeomorph_apply]
 
 @[simp]
 theorem proj_sphereTangentProdHomeomorph_symm (q : TotalSpace E (Trivial (sphere (0 : E) 1) E)) :
     ((sphereTangentProdHomeomorph E m).symm q).proj = q.proj :=
-  (rfl)
+  by rw [sphereTangentProdHomeomorph, TauCeti.bundleHomeomorph_symm_apply]
 
 @[simp]
 theorem snd_sphereTangentProdHomeomorph_symm (q : TotalSpace E (Trivial (sphere (0 : E) 1) E)) :
     ((sphereTangentProdHomeomorph E m).symm q).snd =
       (sphereTangentProdEquiv m q.proj).symm q.snd :=
-  (rfl)
+  by rw [sphereTangentProdHomeomorph, TauCeti.bundleHomeomorph_symm_apply]
 
 end SymplecticGeometry
