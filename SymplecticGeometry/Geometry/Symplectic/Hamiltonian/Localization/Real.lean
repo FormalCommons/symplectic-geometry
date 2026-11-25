@@ -49,9 +49,11 @@ chooses, for charts `Φᵢ` about finitely many distinct centres and a continuou
 vanishes only at the centres (in the application `f = θ(X)`), a level `δ > 0` and radii
 `0 < aᵢ < bᵢ` inside the charts, such that the images `Φᵢ '' ball 0 bᵢ` are pairwise disjoint,
 `ħ f ≤ δ` only on the union of the images `Φᵢ '' ball 0 aᵢ`, and the model integrand of the
-contribution of a fixed point vanishes for `‖z‖ ≥ aᵢ` when `F` is supported in `[-δ, δ]`. The
-centres are separated by disjoint open sets (`Set.Finite.t2_separation`), and `f` has a positive
-minimum on the compact complement of the small images.
+contribution of a fixed point vanishes for `‖z‖ ≥ aᵢ` when `F` is supported in `[-δ, δ]`. Since
+the centres are distinct, the images under the `Φᵢ` of the neighbourhood filters of `0` are
+pairwise disjoint, so `Pairwise.exists_mem_filter_basis_of_disjoint` gives balls with pairwise
+disjoint images; and `IsCompact.exists_forall_le'` gives `f` a positive lower bound on the
+compact complement of the small images.
 
 ## The top component of `F(d_ħ θ)` on a weight chart
 
