@@ -26,9 +26,10 @@ hypothesis. For a finite-dimensional `X`, the family itself, read through any li
 `t ↦ ∑ i, b.coord i (x t) • f (b i)`.
 
 No topology on `X` is involved: smoothness is only asked of the scalar functions
-`t ↦ f (x t)`. The results that follow are the exceptions: for a finite-dimensional normed space
-`E` over a complete field, a family of linear functionals on `E` whose values are `C^n` is `C^n`
-as a family of continuous linear maps `E →L[𝕜] 𝕜`, by Tau Ceti's `TauCeti.contMDiffAt_clm_apply`.
+`t ↦ f (x t)`. The results from `contMDiff_toContinuousLinearMap_of_contMDiff_apply` on are the
+exceptions: for a finite-dimensional normed space `E` over a complete field, a family of linear
+functionals on `E` whose values are `C^n` is `C^n` as a family of continuous linear maps
+`E →L[𝕜] 𝕜`, by Tau Ceti's `TauCeti.contMDiffAt_clm_apply`.
 Evaluated along a `C^n` map between manifolds on a `C^n` family of vectors, such a family then
 gives a `C^n` function, by Mathlib's `ContMDiffAt.clm_apply`.
 A family whose values are differentiable is likewise differentiable as such a family, by Tau
