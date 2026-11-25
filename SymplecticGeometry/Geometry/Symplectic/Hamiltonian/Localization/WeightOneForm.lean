@@ -10,6 +10,8 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 public import TauCeti.Geometry.Symplectic.Hamiltonian.WeightModel.Basic
 public import TauCeti.Geometry.Symplectic.Liouville.Linear
+public import TauCeti.Topology.Algebra.Module.Alternating.Wedge.Pow
+import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Volume
 
 /-!
 # The one-form of a family of weights on the standard model
@@ -45,7 +47,9 @@ with Tau Ceti's model `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι` of `ℂ^�
   and, when no weight is zero, vanishes only at `0`
   (`weightOneForm_apply_weightGenerator_eq_zero_iff`);
 * `mextDerivₗ_weightOneForm_apply`: its exterior derivative is `2 ∑ⱼ kⱼ dxⱼ ∧ dyⱼ`; for the
-  weights `kⱼ = 1/2` this is the standard form `ω₀` (`mextDerivₗ_weightOneForm_half_apply`).
+  weights `kⱼ = 1/2` this is the standard form `ω₀` (`mextDerivₗ_weightOneForm_half_apply`);
+* `wedgePow_mextDerivₗ_weightOneForm_apply`: with `n = Fintype.card ι`, its top wedge power
+  `(dθₖ)ⁿ` is `2ⁿ ∏ⱼ kⱼ · ω₀ⁿ`, by `SymplecticGeometry.wedgePow_card_eq_prod_smul`.
 
 ## References
 
@@ -259,6 +263,22 @@ theorem mextDerivₗ_weightOneForm_half_apply (z : StdSpace ι)
   refine Eq.trans ?_ (stdForm_apply (v 0) (v 1)).symm
   rw [Finset.mul_sum]
   exact Finset.sum_congr rfl fun j _ ↦ by ring
+
+/-- **The top wedge power of `dθₖ`.** With `n = Fintype.card ι`, the `n`-th wedge power of the
+exterior derivative `dθₖ = 2 ∑ⱼ kⱼ dxⱼ ∧ dyⱼ` at any point is `2ⁿ ∏ⱼ kⱼ` times the `n`-th wedge
+power `ω₀ⁿ` of the standard form `ω₀ = ∑ⱼ dxⱼ ∧ dyⱼ`, given as a continuous alternating map. -/
+theorem wedgePow_mextDerivₗ_weightOneForm_apply (k : ι → ℝ) (z : StdSpace ι)
+    {ω₀ : StdSpace ι [⋀^Fin 2]→L[ℝ] ℝ} (hω₀ : ∀ v w, ω₀ ![v, w] = stdForm ι v w) :
+    ((mextDerivₗ 𝓘(ℝ, StdSpace ι) 1 (weightOneForm k)).val z).wedgePow (Fintype.card ι) =
+      (2 ^ Fintype.card ι * ∏ j, k j) • ω₀.wedgePow (Fintype.card ι) := by
+  have hω (v w : StdSpace ι) :
+      (mextDerivₗ 𝓘(ℝ, StdSpace ι) 1 (weightOneForm k)).val z ![v, w] =
+        ∑ j, 2 * k j * (v.x j * w.y j - v.y j * w.x j) :=
+    (mextDerivₗ_weightOneForm_apply k z ![v, w]).trans (by simp [Finset.mul_sum, mul_assoc])
+  have h := wedgePow_card_eq_prod_smul hω₀ hω
+  rw [Finset.prod_mul_distrib, Finset.prod_const, Finset.card_univ] at h
+  -- `h` is stated on `StdSpace ι`, the goal on the tangent space at `z`, which is `StdSpace ι`.
+  exact h
 
 end SymplecticGeometry
 

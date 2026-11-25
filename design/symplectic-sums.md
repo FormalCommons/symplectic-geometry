@@ -227,11 +227,11 @@ is blocked only by #3286, so no blocker of an open issue changes.
 ### `Geometry/Manifold/Gluing/Pair.lean`
 
 For manifolds `M₁`, `M₂` over one model, open sets `U₁`, `U₂` and a
-diffeomorphism `φ : U₁ ≃ₘ⟮I, I⟯ U₂`:
+diffeomorphism `φ : U₁ ≃ₘ^n⟮I, I⟯ U₂`:
 
 - `GluedAlong φ`, the glued space, with `GluedAlong.inl`, `GluedAlong.inr`,
-  `isOpenEmbedding_inl`, `isOpenEmbedding_inr`, `range_inl_union_range_inr`,
-  `inl_eq_inr_iff` and `inl_eq_inr_iff_mem_graph`.
+  `isOpenEmbedding_inl`, `isOpenEmbedding_inr`, `range_inl_union_range_inr`
+  and `inl_eq_inr_iff`.
 - The charted space and `IsManifold` instances, from Tau Ceti's compatible
   gluing; `isLocalDiffeomorph_inl`, `isLocalDiffeomorph_inr`.
 - `GluedAlong.t2Space_of_isClosed_graph`: Hausdorff when both pieces are
