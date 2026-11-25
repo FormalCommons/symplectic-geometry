@@ -240,10 +240,20 @@ theorem exists_weightModelChart_isotropy
   have he (ξ : 𝔤ₓ) :
       K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I (e.symm ξ) = (ξ : GroupLieAlgebra I G) :=
     d.groupLieAlgebraMap_subtype_groupLieAlgebraEquivIsotropy_symm ξ
-  -- The weights `α k`, functionals on the model `F` of `K`, read on its Lie algebra.
-  let β (k : Fin n) : Module.Dual ℝ (GroupLieAlgebra 𝓘(ℝ, F) K) := (α k : F →ₗ[ℝ] ℝ)
-  have hβ (k : Fin n) (η : GroupLieAlgebra 𝓘(ℝ, F) K) : β k η = α k η :=
-    congrFun (ContinuousLinearMap.coe_coe (α k)) η
+  -- The weights `α k`, functionals on the model `F` of `K`, read on its Lie algebra through
+  -- Tau Ceti's identification `groupLieAlgebraEquivModelVectorSpace` of the Lie algebra with
+  -- `F`. Tau Ceti's `exists_weightModelChart` applies `α k` to elements of the Lie algebra
+  -- directly, so `hβ` states `β k η` in that form.
+  let c : GroupLieAlgebra 𝓘(ℝ, F) K ≃ₗ[ℝ] F :=
+    groupLieAlgebraEquivModelVectorSpace (I := 𝓘(ℝ, F)) (G := K)
+  let β (k : Fin n) : Module.Dual ℝ (GroupLieAlgebra 𝓘(ℝ, F) K) :=
+    (α k : F →ₗ[ℝ] ℝ) ∘ₗ c.toLinearMap
+  have hβ (k : Fin n) (η : GroupLieAlgebra 𝓘(ℝ, F) K) : β k η = α k η := by
+    simp only [β, c, LinearMap.coe_comp, Function.comp_apply, LinearEquiv.coe_coe,
+      ContinuousLinearMap.coe_coe]
+    -- Tau Ceti defines `groupLieAlgebraEquivModelVectorSpace` as `LinearEquiv.refl` and gives it
+    -- no evaluation lemma, so this step is by definition.
+    rfl
   let α' : Fin n → StrongDual ℝ 𝔤ₓ := fun k ↦
     LinearMap.toContinuousLinearMap (β k ∘ₗ e.symm.toLinearMap)
   have hα' (k : Fin n) (ξ : 𝔤ₓ) : α' k ξ = α k (e.symm ξ) := by

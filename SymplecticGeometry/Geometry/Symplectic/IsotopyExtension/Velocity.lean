@@ -77,10 +77,9 @@ diffeotopies and the cylinder `[0, 1] × M` of isotopies.
 ## Implementation notes
 
 The form `σ` on `M` is not called `ω`, which is a token once the scope `ContDiff` is open. The
-proof of `hasHamiltonian_iff_velocityForm` reads the derivatives of the motion as that of
-`TauCeti.Diffeotopy.hasHamiltonian_iff_contMDiff_and_isHamiltonianVectorField_velocity` does,
-through `TauCeti.Diffeotopy.mfderiv_cylinderMap_time` and
-`TauCeti.Diffeotopy.mfderiv_cylinderMap_inl`.
+proof of `hasHamiltonian_iff_velocityForm` reads the derivatives of the motion through
+`TauCeti.Diffeotopy.mfderiv_cylinderMap_time` and `TauCeti.Diffeotopy.mfderiv_cylinderMap_inl`,
+much as Tau Ceti's `TauCeti.Diffeotopy.mpullback_cylinderMap_apply_eq_eval₂_velocity` does.
 
 ## References
 
