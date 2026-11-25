@@ -11,9 +11,8 @@ public import TauCeti.Topology.VectorBundle.FiniteRank.Biproduct
 # Whitney sums of finite-rank cores in charts
 
 Tau Ceti's `TauCeti.FiniteRankBundleCore.whitneySum A D` has the concatenated coordinates
-`Fin (A.rank + D.rank) → 𝕜`, split into the two blocks by
-`TauCeti.FiniteRankBundleCore.splitCoords`. This file computes chart expressions in charts of
-Whitney sums.
+`Fin (A.rank + D.rank) → 𝕜`, split into the two blocks by `TauCeti.splitCoords`. This file
+computes chart expressions in charts of Whitney sums.
 
 ## Main results
 
