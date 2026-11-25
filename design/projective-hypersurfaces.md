@@ -302,7 +302,7 @@ The list is in the order of the paths.
 | `LinearAlgebra/Projectivization/BinaryForm.lean` | a binary form with simple zeros has `d` zeros on $\mathbb CP^1$ | 9 |
 | `LinearAlgebra/Projectivization/HermitianProjector.lean` | the Hermitian projector in the standard affine charts | 3 |
 | `LinearAlgebra/Projectivization/VeroneseLinearForm.lean` | the linear form of a nonzero homogeneous polynomial is nonzero | 12 |
-| `Topology/ComplexProjectiveSpace/SimplyConnected.lean` | `ℙ ℂ (Fin (m + 1) → ℂ)` is simply connected | 12 |
+| `Topology/ComplexProjectiveSpace/SimplyConnected.lean` | `ℙ ℂ V` is simply connected | 12 |
 | `Topology/Homotopy/HomotopyGroup/ConnectedMap/PathConnected.lean` | path-connectedness under `n`-connected maps | 12 |
 | `Topology/VectorBundle/Section.lean` | pointwise continuity of fibrewise scalar multiples and finite sums | 4 |
 
@@ -577,7 +577,7 @@ For `d ≠ 0`, with the inclusion `X → ℙ ℂ (Fin (n + 2) → ℂ)`.
   (`AlgebraicTopology/Singular/HomologyMap.lean`),
   `ContinuousMap.IsNConnected.pathConnectedSpace_iff`
   (`Topology/Homotopy/HomotopyGroup/ConnectedMap/PathConnected.lean`), and the
-  instance `Projectivization.instSimplyConnectedSpaceFinComplex`
+  instance `Projectivization.instSimplyConnectedSpaceComplex`
   (`Topology/ComplexProjectiveSpace/SimplyConnected.lean`).
 
 ### `AlgebraicTopology/Cohomology/Cap/RationalCoefficients.lean` (addition)
