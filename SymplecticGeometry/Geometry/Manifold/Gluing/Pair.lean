@@ -344,7 +344,7 @@ theorem roughForm_ext {α β : RoughForm I (GluedAlong φ) F k}
     (h₁ : mpullback I I (inl φ) α = mpullback I I (inl φ) β)
     (h₂ : mpullback I I (inr φ) α = mpullback I I (inr φ) β) : α = β := by
   funext z
-  rcases (range_inl_union_range_inr φ).symm ▸ mem_univ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
+  rcases exists_inl_or_exists_inr φ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
   · exact (mpullback_apply_eq_mpullback_apply_iff
       ((isLocalDiffeomorph_inl φ x).isInvertible_mfderiv (by simp)).surjective).1 (congrFun h₁ x)
   · exact (mpullback_apply_eq_mpullback_apply_iff
@@ -415,7 +415,7 @@ def gluedForm (σ₁ : SmoothForm I M₁ F k) (σ₂ : SmoothForm I M₂ F k)
       RoughForm.isSmoothForm_glue (by simp) isOpen_univ (inl_injective φ).injOn
         (fun x ↦ isLocalDiffeomorph_inl φ x) σ₁.isSmoothForm σ₂.isSmoothForm
         fun z hz ↦ by
-          obtain ⟨y, rfl⟩ := ((range_inl_union_range_inr φ).symm ▸ mem_univ z).resolve_left
+          obtain ⟨y, rfl⟩ := (exists_inl_or_exists_inr φ z).resolve_left
             fun ⟨x, hx⟩ ↦ hz ⟨x, mem_univ x, hx⟩
           refine ⟨y, rfl, isLocalDiffeomorph_inr φ y, Filter.Eventually.of_forall fun r ↦ ?_⟩
           rw [mpullback_inr_glue (by
@@ -489,7 +489,7 @@ theorem isNondegenerate_iff_isNondegenerate_mpullback {α : SmoothTwoForm I (Glu
     h.isNondegenerate_mpullback_of_isLocalDiffeomorph (isLocalDiffeomorph_inr φ)⟩,
     fun ⟨h₁, h₂⟩ ↦ SmoothTwoForm.isNondegenerate_iff_forall_ker_bilinFormAt_eq_bot.2 fun z ↦ ?_⟩
   suffices hz : (α.bilinFormAt z).Nondegenerate from LinearMap.separatingLeft_iff_ker_eq_bot.1 hz.1
-  rcases (range_inl_union_range_inr φ).symm ▸ mem_univ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
+  rcases exists_inl_or_exists_inr φ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
   · exact (SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
       ((isLocalDiffeomorph_inl φ x).isInvertible_mfderiv (by simp))
       (congrFun (SmoothForm.coe_mpullback _ _ _) x).symm).2
