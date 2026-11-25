@@ -253,8 +253,7 @@ theorem mfderiv_linearEquiv_apply_adjointContinuousLinearMap (rep : G →* V ≃
   have hL : ⇑L = rep g := by rw [ContinuousLinearMap.coe_mk', LinearEquiv.coe_coe]
   have h := mfderiv_smul_fundamentalVectorField (I' := 𝓘(ℝ, V)) g ξ (rep g⁻¹ v)
   simp only [fundamentalVectorField_apply, MulAction.compHom_smul_def, LinearEquiv.smul_def] at h
-  have hv : rep g (rep g⁻¹ v) = v := by
-    rw [← mul_apply_eq_comp, ← map_mul, mul_inv_cancel, map_one, one_apply_eq_self]
+  have hv : rep g (rep g⁻¹ v) = v := by simp
   rw [← hL, L.mfderiv_eq, hL, hv] at h
   exact h.symm
 
