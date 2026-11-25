@@ -15,6 +15,8 @@ import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import TauCeti.Geometry.Manifold.Riemannian.Gradient.ChainRule
 import TauCeti.Geometry.Manifold.Riemannian.Gradient.Isometry
 import TauCeti.Geometry.Manifold.Riemannian.Isometry.Pullback
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.Topology.VectorBundle.Riemannian.Basic
@@ -229,31 +231,45 @@ theorem comp (hX : IsGradientLike f X) (hf : MDifferentiable 𝓘(ℝ, E) 𝓘(�
       rw [mul_left_comm, add_comm (_ ^ 2)]
       exact mul_le_mul_of_nonneg_left (H x) hbx.le
 
-/-- **Gradient-like fields pull back along local diffeomorphisms.** If `X` is gradient-like for a
-differentiable `f` on `M`, and `Φ : M' → M` is smooth with invertible differential at every point
-(for instance a diffeomorphism), then the pulled-back field
-`VectorField.mpullback Φ X x = (dΦ_x)⁻¹ (X (Φ x))` is gradient-like for `f ∘ Φ`. -/
+/-- **Gradient-like fields pull back along local diffeomorphisms.** If `X` is gradient-like for
+`f` on `M`, and `Φ : M' → M` is smooth with invertible differential at every point (for instance a
+diffeomorphism), then the pulled-back field `VectorField.mpullback Φ X x = (dΦ_x)⁻¹ (X (Φ x))` is
+gradient-like for `f ∘ Φ`. -/
 theorem mpullback {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
     {M' : Type*} [TopologicalSpace M'] [ChartedSpace E' M'] [IsManifold 𝓘(ℝ, E') ∞ M']
-    (hX : IsGradientLike f X) (hf : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) f) {Φ : M' → M}
-    (hΦ : ContMDiff 𝓘(ℝ, E') 𝓘(ℝ, E) ∞ Φ)
+    (hX : IsGradientLike f X) {Φ : M' → M} (hΦ : ContMDiff 𝓘(ℝ, E') 𝓘(ℝ, E) ∞ Φ)
     (hΦ' : ∀ x, (mfderiv 𝓘(ℝ, E') 𝓘(ℝ, E) Φ x).IsInvertible) :
     IsGradientLike (f ∘ Φ) (VectorField.mpullback 𝓘(ℝ, E') 𝓘(ℝ, E) Φ X) := by
+  have hX0 := fun y ↦ (hX.eq_zero_iff (x := y)).2
   obtain ⟨g, δ, hδc, hδ, h⟩ := hX
-  -- `∞ + 1 = ∞` holds by definition, but the pull-back metric asks for `C^(∞ + 1)`.
-  have hΦ₁ : ContMDiff 𝓘(ℝ, E') 𝓘(ℝ, E) (∞ + 1) Φ := hΦ
+  have hΦ₁ : ContMDiff 𝓘(ℝ, E') 𝓘(ℝ, E) (∞ + 1) Φ := by simpa using hΦ
   refine ⟨g.pullback Φ hΦ₁ fun x ↦ (hΦ' x).injective, δ ∘ Φ, hδc.comp hΦ.continuous,
     fun x ↦ hδ (Φ x), fun x ↦ ?_⟩
   let : RiemannianBundle (fun x : M' ↦ TangentSpace 𝓘(ℝ, E') x) :=
     ⟨(g.pullback Φ hΦ₁ fun x ↦ (hΦ' x).injective).toRiemannianMetric⟩
   let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
   have hiso := g.isLocalRiemannianIsometry_pullback_of_isInvertible hΦ₁ hΦ'
-  have hv : mfderiv 𝓘(ℝ, E') 𝓘(ℝ, E) Φ x (VectorField.mpullback 𝓘(ℝ, E') 𝓘(ℝ, E) Φ X x) =
-      X (Φ x) := by
-    rw [VectorField.mpullback_apply, (hΦ' x).self_apply_inverse]
-  rw [ContMDiffRiemannianMetric.pullback_inner, hv, hiso.norm_mgradient_comp (hf (Φ x)),
-    mvfderiv_comp_apply x (hf (Φ x)) (hiso.mdifferentiableAt x), hv]
-  exact h (Φ x)
+  by_cases hf : MDifferentiableAt 𝓘(ℝ, E) 𝓘(ℝ) f (Φ x)
+  · have hv : mfderiv 𝓘(ℝ, E') 𝓘(ℝ, E) Φ x (VectorField.mpullback 𝓘(ℝ, E') 𝓘(ℝ, E) Φ X x) =
+        X (Φ x) := by
+      rw [VectorField.mpullback_apply, (hΦ' x).self_apply_inverse]
+    rw [ContMDiffRiemannianMetric.pullback_inner, hv, hiso.norm_mgradient_comp hf,
+      mvfderiv_comp_apply x hf (hiso.mdifferentiableAt x), hv]
+    exact h (Φ x)
+  · -- Where `f` is not differentiable, `X` vanishes, and so does the pulled-back field; and
+    -- `f ∘ Φ` is not differentiable either, since `Φ` is a local diffeomorphism.
+    have hloc : IsLocalDiffeomorphAt 𝓘(ℝ, E') 𝓘(ℝ, E) ∞ Φ x :=
+      (isLocalDiffeomorphAt_iff_exists_mfderiv_eq hΦ.contMDiffOn isOpen_univ (mem_univ x)
+        BoundarylessManifold.isInteriorPoint (by simp)).2 (hΦ' x)
+    have hfΦ : ¬MDifferentiableAt 𝓘(ℝ, E') 𝓘(ℝ) (f ∘ Φ) x :=
+      (hloc.mdifferentiableAt_comp_iff (by simp)).not.2 hf
+    have hX0x : X (Φ x) = 0 :=
+      hX0 _ (mvfderiv_eq_zero_iff.2 (mfderiv_zero_of_not_mdifferentiableAt hf))
+    have hD : mvfderiv 𝓘(ℝ, E') (f ∘ Φ) x = 0 :=
+      mvfderiv_eq_zero_iff.2 (mfderiv_zero_of_not_mdifferentiableAt hfΦ)
+    rw [VectorField.mpullback_apply, hX0x, map_zero, map_zero, zero_add, hD, zero_apply,
+      mgradient_eq_zero_iff.2 hD, norm_zero]
+    simp
 
 end IsGradientLike
 
