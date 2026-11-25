@@ -16,15 +16,15 @@ import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 For a finite type `ι`, write `s(z) = |z|² = ‖complexToRealEuclidean ι z‖ ^ 2 = ∑ᵢ ‖zᵢ‖²` on
 `ι → ℂ`. This file gives the first-order and Levi-form data of `s` in the coordinates of `ι → ℂ`:
 
-* `TauCeti.contDiff_norm_sq_complexToRealEuclidean`: `s` is smooth.
+* `TauCeti.contDiff_norm_sq_complexToRealEuclidean`: `s` is `C^n` for every `n`.
 * `TauCeti.leviForm_norm_sq_complexToRealEuclidean`: the Levi form of `s` is the Hermitian
   product `star v ⬝ᵥ w`. It is `TauCeti.leviForm_norm_sq` for `EuclideanSpace ℂ ι`, carried
   along `EuclideanSpace.equiv`.
 * `TauCeti.extendRCLike_fderiv_norm_sq_complexToRealEuclidean`: the complex-linear extension of
   the differential of `s` at `z` is `v ↦ 2 (star z ⬝ᵥ v)`, that is `2 ∂s`.
 * `TauCeti.norm_sq_complexToRealEuclidean_pos`: `s` is positive on `puncturedSpace (ι → ℂ)`.
-* `TauCeti.contDiffAt_comp_norm_sq_complexToRealEuclidean`: for `g` smooth on `(0, ∞)`, `g ∘ s`
-  is smooth at every point of `puncturedSpace (ι → ℂ)`.
+* `TauCeti.contDiffAt_comp_norm_sq_complexToRealEuclidean`: for `g` of class `C^n` on `(0, ∞)`,
+  `g ∘ s` is `C^n` at every point of `puncturedSpace (ι → ℂ)`.
 -/
 
 public section
@@ -36,9 +36,10 @@ namespace TauCeti
 
 variable {ι : Type*} [Fintype ι]
 
-/-- The squared Euclidean norm `s(z) = |z|² = ∑ᵢ ‖zᵢ‖²` on `ι → ℂ` is smooth. -/
-theorem contDiff_norm_sq_complexToRealEuclidean :
-    ContDiff ℝ ∞ fun z : ι → ℂ ↦ ‖complexToRealEuclidean ι z‖ ^ 2 :=
+/-- The squared Euclidean norm `s(z) = |z|² = ∑ᵢ ‖zᵢ‖²` on `ι → ℂ` is `C^n` for every
+`n`. -/
+theorem contDiff_norm_sq_complexToRealEuclidean {n : WithTop ℕ∞} :
+    ContDiff ℝ n fun z : ι → ℂ ↦ ‖complexToRealEuclidean ι z‖ ^ 2 :=
   (contDiff_norm_sq ℝ).comp (complexToRealEuclidean ι).contDiff
 
 /-- The Levi form of `s(z) = |z|² = ∑ᵢ ‖zᵢ‖²` on `ι → ℂ` is the Hermitian product
@@ -73,11 +74,11 @@ theorem norm_sq_complexToRealEuclidean_pos (z : puncturedSpace (ι → ℂ)) :
     0 < ‖complexToRealEuclidean ι z‖ ^ 2 :=
   pow_pos (norm_pos_iff.2 (by simpa using mem_puncturedSpace.1 z.property)) 2
 
-/-- For `g` smooth on `(0, ∞)`, the function `w ↦ g |w|²` on `ι → ℂ` is smooth at
+/-- For `g` of class `C^n` on `(0, ∞)`, the function `w ↦ g |w|²` on `ι → ℂ` is `C^n` at
 every point of `(ι → ℂ) ∖ 0`. -/
-theorem contDiffAt_comp_norm_sq_complexToRealEuclidean {g : ℝ → ℝ}
-    (hg : ContDiffOn ℝ ∞ g (Ioi 0)) (z : puncturedSpace (ι → ℂ)) :
-    ContDiffAt ℝ ∞ (fun w ↦ g (‖complexToRealEuclidean ι w‖ ^ 2))
+theorem contDiffAt_comp_norm_sq_complexToRealEuclidean {n : WithTop ℕ∞} {g : ℝ → ℝ}
+    (hg : ContDiffOn ℝ n g (Ioi 0)) (z : puncturedSpace (ι → ℂ)) :
+    ContDiffAt ℝ n (fun w ↦ g (‖complexToRealEuclidean ι w‖ ^ 2))
       (z : ι → ℂ) :=
   ContDiffAt.comp (g := g) (f := fun w ↦ ‖complexToRealEuclidean ι w‖ ^ 2) _
     (hg.contDiffAt (Ioi_mem_nhds (norm_sq_complexToRealEuclidean_pos z)))
