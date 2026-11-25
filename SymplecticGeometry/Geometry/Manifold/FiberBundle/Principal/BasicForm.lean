@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Descent
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Basic
 import TauCeti.Geometry.Lie.Adjoint.Infinitesimal
 import TauCeti.Geometry.Lie.Exponential.Derivative.Basic
@@ -40,8 +41,9 @@ applies: the points of a fibre are related by the action, through the division m
   action.
 * `TauCeti.PrincipalBundle.mpullback_op_smul_mpullback_proj`: forms pulled back from the base are
   invariant under the action.
-* `TauCeti.PrincipalBundle.isBasic_of_mpullback_op_smul`: an invariant form that vanishes on
-  vertical vectors is basic for the projection. It is Tau Ceti's
+* `TauCeti.PrincipalBundle.isBasic_of_mpullback_op_smul`: an invariant form that is semibasic
+  for the projection (`TauCeti.RoughForm.IsSemibasic`), that is, vanishes on
+  vertical vectors, is basic for the projection. It is Tau Ceti's
   `TauCeti.RoughForm.isBasic_of_mpullback_eq` for the right translations of a principal bundle.
 * `TauCeti.PrincipalBundle.hasDerivAt_mpullback_op_mulInvariantExp_smul`: the Lie derivative of a
   form differentiable at a point along the fundamental vector field of `ξ` is the velocity at `0`
@@ -149,24 +151,22 @@ theorem mpullback_op_smul_mpullback_proj {F : Type*} [NormedAddCommGroup F] [Nor
         (ManifoldTotalSpace.projContMDiffMap ∞ G P IB IG).contMDiff a := by
   simp only [SmoothForm.mpullback_mpullback, proj_comp_op_smul]
 
-/-- **Invariant forms that vanish on vertical vectors are basic.** On a smooth principal bundle, a
-smooth form that is invariant under the right action of `G` and vanishes as soon as one of its
-arguments is vertical, that is, in the kernel of the derivative of the projection, is basic for
-the projection. -/
+/-- **Invariant semibasic forms are basic.** On a smooth principal bundle, a smooth form that is
+invariant under the right action of `G` and semibasic for the projection, that is, vanishes as
+soon as one of its arguments is vertical, is basic for the projection. -/
 theorem isBasic_of_mpullback_op_smul {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
     {k : ℕ} {n : ℕ∞ω} {β : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) F k}
     (hβ : ∀ g : G, SmoothForm.mpullback (fun x : ManifoldTotalSpace G P ↦ op g • x)
       (contMDiff_const_smul (op g)) β = β)
-    (hvert : ∀ x (v : Fin k → TangentSpace (IB.prod IG) x) j,
-      mfderiv (IB.prod IG) IB (ManifoldTotalSpace.projContMDiffMap n G P IB IG) x (v j) = 0 →
-        β.val x v = 0) :
+    (hvert : RoughForm.IsSemibasic (F := F) IB
+      (ManifoldTotalSpace.projContMDiffMap n G P IB IG) β.val) :
     RoughForm.IsBasic (V := F) IB (ManifoldTotalSpace.projContMDiffMap n G P IB IG) β.val := by
   refine RoughForm.isBasic_of_mpullback_eq
     (σ := fun (g : G) (x : ManifoldTotalSpace G P) ↦ op g • x)
     ManifoldTotalSpace.mdifferentiable_projContMDiffMap
     (fun g ↦ (contMDiff_const_smul (I := IB.prod IG) (n := ∞) (op g)).mdifferentiable (by simp))
-    proj_comp_op_smul (fun x y hxy ↦ Or.inr (exists_op_smul_eq_of_proj_eq hxy.symm)) hvert
-    fun g ↦ ?_
+    proj_comp_op_smul (fun x y hxy ↦ Or.inr (exists_op_smul_eq_of_proj_eq hxy.symm))
+    (RoughForm.isSemibasic_iff.mp hvert) fun g ↦ ?_
   rw [← SmoothForm.coe_mpullback _ (contMDiff_const_smul (op g)), hβ]
 
 end Basic
@@ -358,16 +358,17 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inl (ξ : Group
   · rw [hL, SmoothForm.coe_mpullback, ← mpullback_mextDeriv_at (hι.contMDiffAt.of_le (by simp))
       ((A.contMDiff _).of_le (by simp)), mpullback_apply_pair,
       mvfderiv_comp_apply x (mdifferentiable_apply_rightFundamentalVectorField_prod ξ _)
-        (hι.mdifferentiableAt (by simp)), mfderiv_prod_left] at hC
+        (hι.mdifferentiableAt (by simp)), mfderiv_prodMk_left_apply,
+        mfderiv_prodMk_left_apply] at hC
     simp only [Pi.zero_apply, ContinuousAlternatingMap.coe_zero] at hC
     rw [eq_neg_iff_add_eq_zero]
     exact hC.symm
-  · rw [SmoothForm.mpullback_apply, mfderiv_prod_left]
+  · rw [SmoothForm.mpullback_apply]
     simp only [Function.comp_apply]
     congr 1
     ext i
     fin_cases i
-    rfl
+    exact mfderiv_prodMk_left_apply _
 
 omit [IB.Boundaryless] in
 /-- The identity of `mextDeriv_apply_rightFundamentalVectorField_prod` on vectors tangent to `N`:
@@ -420,12 +421,9 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inr (ξ : Group
         (0 : Π y : N, TangentSpace IN y) q⟩ : TangentBundle (𝓘(ℝ).prod IN) (ℝ × N))) (0, n) :=
     Manifold.mdifferentiableAt_prodVectorField hT
       ((contMDiff_zeroSection ℝ (TangentSpace IN)).mdifferentiableAt one_ne_zero)
-  -- The vector `(0, v)` at `(0, n)` is the image of `v` under the differential of
-  -- `m ↦ (0, m)`; written so, it is a tangent vector of `ℝ × N` at `(0, n)`.
-  have hw : mfderiv IN (𝓘(ℝ).prod IN) (Prod.mk (0 : ℝ)) n v = ((0 : ℝ), v) :=
-    (TauCeti.Manifold.tangentSpaceProdEquiv_apply _ _).symm.trans
-      (TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right v)
-  -- Cartan's formula on `ℝ × N` for the pulled-back form, along `∂ₛ`.
+  -- Cartan's formula on `ℝ × N` for the pulled-back form, along `∂ₛ`. The vector `(0, v)` at
+  -- `(0, n)` is written as the image of `v` under the differential of `m ↦ (0, m)`, so that it is
+  -- a tangent vector of `ℝ × N` at `(0, n)`.
   have hC := mlieDerivForm_apply_eq_mextDeriv_add
     (f := (fun q : ManifoldTotalSpace G P × N ↦
         A.val q ![(rightFundamentalVectorField (IB.prod IG) ξ q.1, (0 : EN))]) ∘
@@ -450,7 +448,8 @@ private theorem mextDeriv_apply_rightFundamentalVectorField_prod_inr (ξ : Group
     rw [hC, SmoothForm.coe_mpullback, ← mpullback_mextDeriv_at
       (hφ.contMDiffAt.of_le (by simp)) ((A.contMDiff _).of_le (by simp)), mpullback_apply,
       mvfderiv_comp_apply _ (mdifferentiable_apply_rightFundamentalVectorField_prod ξ _)
-        (hφ.mdifferentiableAt (by simp)), (hφ' _).mfderiv, hw] at hV2
+        (hφ.mdifferentiableAt (by simp)), (hφ' _).mfderiv,
+        mfderiv_prodMk_right_apply (I := 𝓘(ℝ)) (x := (0 : ℝ)) v] at hV2
     have hγ0 : γ 0 = x := by simp [hγdef, mulInvariantExp_zero]
     rw [← hγ0, eq_neg_iff_add_eq_zero, ← hV2]
     congr 2
