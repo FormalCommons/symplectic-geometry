@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.RingTheory.MvPowerSeries.Trunc
 public import SymplecticGeometry.Analysis.Complex.Polydisc.PowerSeries
+public import SymplecticGeometry.RingTheory.MvPowerSeries.Trunc
 public import TauCeti.Analysis.Analytic.MultiIndex.TaylorCoeff
 public import TauCeti.Analysis.Complex.PowerSeries.TaylorRemainder
 
@@ -76,20 +76,7 @@ theorem taylorPolynomial_def (f : (ι → 𝕜) → 𝕜) (c : ι → 𝕜) (d :
 
 @[simp]
 theorem taylorPolynomial_zero (f : (ι → 𝕜) → 𝕜) (c : ι → 𝕜) : taylorPolynomial f c 0 = 0 := by
-  ext s
-  simp [taylorPolynomial_def, MvPowerSeries.coeff_truncTotal_eq_ite]
-
-/-- The Taylor polynomial with the terms of degree less than `d`, as a sum of monomials over
-the exponents of each total degree `k < d`. -/
-private theorem taylorPolynomial_eq_sum [DecidableEq ι] (f : (ι → 𝕜) → 𝕜) (c : ι → 𝕜)
-    (d : ℕ) : taylorPolynomial f c d = ∑ k ∈ range d, ∑ α ∈ univ.piAntidiag k,
-      MvPolynomial.monomial (Finsupp.equivFunOnFinite.symm α) (TauCeti.mvTaylorCoeff f c α) := by
-  ext s
-  conv_rhs => rw [← Finsupp.equivFunOnFinite_symm_coe s]
-  simp only [taylorPolynomial_def, MvPowerSeries.coeff_truncTotal_eq_ite, coeff_mvTaylorSeries,
-    MvPolynomial.coeff_sum, MvPolynomial.coeff_monomial, Equiv.apply_eq_iff_eq,
-    Finset.sum_ite_eq', mem_piAntidiag, mem_univ, implies_true, and_true,
-    Finsupp.degree_eq_sum, eq_comm (a := ∑ i, s i), mem_range]
+  rw [taylorPolynomial_def, MvPowerSeries.truncTotal_zero]
 
 /-- The value of the Taylor polynomial of degree less than `d` at `y` is the partial sum of
 order `d` at `y` of every power series of `f` at `c`. -/
@@ -97,9 +84,9 @@ theorem eval_taylorPolynomial {f : (ι → 𝕜) → 𝕜} {c : ι → 𝕜}
     {p : FormalMultilinearSeries 𝕜 (ι → 𝕜) 𝕜} (hp : HasFPowerSeriesAt f p c) (d : ℕ)
     (y : ι → 𝕜) : MvPolynomial.eval y (taylorPolynomial f c d) = p.partialSum d y := by
   classical
-  simp only [taylorPolynomial_eq_sum, map_sum, MvPolynomial.eval_monomial,
-    p.partialSum_eq_sum_mvCoeff, hp.mvTaylorCoeff_eq, smul_eq_mul, mul_comm,
-    Finsupp.prod_pow, Finsupp.coe_equivFunOnFinite_symm]
+  simp only [taylorPolynomial_def, MvPowerSeries.truncTotal_eq_sum_monomial, coeff_mvTaylorSeries,
+    map_sum, MvPolynomial.eval_monomial, p.partialSum_eq_sum_mvCoeff, hp.mvTaylorCoeff_eq,
+    smul_eq_mul, mul_comm, Finsupp.prod_pow, Finsupp.coe_equivFunOnFinite_symm]
 
 end TaylorPolynomial
 
