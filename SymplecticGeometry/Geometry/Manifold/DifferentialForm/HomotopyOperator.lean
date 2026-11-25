@@ -45,6 +45,13 @@ on a smooth manifold `M` possibly with boundary or corners. Smoothness of `h φ`
 * `TauCeti.SmoothForm.mpullback_homotopyOperator`: naturality, `g^* (h φ) = h ((g × id)^* φ)`;
   it is Tau Ceti's `TauCeti.homotopyOperator_mpullback_prodMap_id_of_isSmoothForm` on smooth
   forms.
+* `TauCeti.norm_homotopyOperator_apply_le`: a pointwise bound for `h φ` from a bound for `φ` on
+  the unit time vector followed by spatial vectors.
+* `TauCeti.norm_homotopyOperator_mpullback_apply_le`: for `Φ : M × [0, 1] → N` and a form `φ` on
+  `N`, the operator norm of `h (Φ^* φ)` at `x` is at most any bound, over all
+  times `t`, of `‖φ (Φ (x, t))‖ ‖DΦ (x, t) ∂ₜ‖ ‖DΦ (x, t) ∘ inl‖ ^ k`. Its proof follows Tau Ceti's
+  `TauCeti.norm_cylinderHomotopy_pullback_le`, the same bound for the flat cylinder homotopy
+  operator on `E × ℝ`.
 
 ## References
 
@@ -154,5 +161,67 @@ theorem mpullback_homotopyOperator {E' H' M' : Type*} [NormedAddCommGroup E'] [N
         (φ.isSmoothForm.of_le (by simp))]
 
 end SmoothForm
+
+section Norm
+
+variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
+
+/-- **A pointwise bound for the homotopy operator.** Let `φ` be a `(k + 1)`-form on `M × [0, 1]`
+and `C ≥ 0`. If, at every time `t`, the value of `φ (x, t)` on the unit time vector `∂ₜ`
+followed by vectors `(vᵢ, 0)` is at most `C ∏ ‖vᵢ‖`, then `h φ` has operator norm at most `C`
+at `x`. Tangent spaces are identified with the model spaces, which carry their norms. -/
+theorem norm_homotopyOperator_apply_le
+    {φ : RoughForm (I.prod (𝓡∂ 1)) (M × Icc (0 : ℝ) 1) F (k + 1)} {x : M} {C : ℝ} (hC : 0 ≤ C)
+    (h : ∀ (t : Icc (0 : ℝ) 1) (v : Fin k → E),
+      ‖φ (x, t) (Matrix.vecCons ((0 : E), (1 : TangentSpace (𝓡∂ 1) t))
+        fun i ↦ ((v i : E), (0 : EuclideanSpace ℝ (Fin 1))))‖ ≤ C * ∏ i, ‖v i‖) :
+    @norm (E [⋀^Fin k]→L[ℝ] F) _ (homotopyOperator φ x) ≤ C := by
+  rw [homotopyOperator_apply]
+  refine (intervalIntegral.norm_integral_le_of_norm_le_const (C := C) fun t _ ↦ ?_).trans
+    (by simp)
+  exact ContinuousAlternatingMap.opNorm_le_bound _ hC fun v ↦ h _ v
+
+/-- **A pointwise bound for the homotopy operator of a pullback.** Let `Φ : M × [0, 1] → N` and
+let `φ` be a `(k + 1)`-form on `N`. If, for every time `t`, the product of `‖φ (Φ (x, t))‖`, of
+the norm of the time derivative `DΦ (x, t) ∂ₜ` and of the `k`-th power of the norm of the
+spatial derivative `DΦ (x, t) ∘ inl` is at most `C`, then `h (Φ^* φ)` has operator norm at most
+`C` at `x`. Only one argument of `Φ^* φ` sees the time direction, which gives this bound rather
+than one in terms of the full derivative of `Φ`. Tangent spaces are identified with the model
+spaces, which carry their norms. -/
+theorem norm_homotopyOperator_mpullback_apply_le {E' H' N : Type*} [NormedAddCommGroup E']
+    [NormedSpace ℝ E'] [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace N]
+    [ChartedSpace H' N] (Φ : M × Icc (0 : ℝ) 1 → N) (φ : RoughForm I' N F (k + 1)) (x : M)
+    {C : ℝ}
+    (h : ∀ t : Icc (0 : ℝ) 1,
+      @norm (E' [⋀^Fin (k + 1)]→L[ℝ] F) _ (φ (Φ (x, t))) *
+          @norm E' _ (mfderiv (I.prod (𝓡∂ 1)) I' Φ (x, t) ((0 : E), (1 : TangentSpace (𝓡∂ 1) t))) *
+          @norm (E →L[ℝ] E') _
+            ((mfderiv (I.prod (𝓡∂ 1)) I' Φ (x, t)).comp (.inl ℝ E (EuclideanSpace ℝ (Fin 1)))) ^ k
+        ≤ C) :
+    @norm (E [⋀^Fin k]→L[ℝ] F) _ (homotopyOperator (mpullback (I.prod (𝓡∂ 1)) I' Φ φ) x) ≤ C := by
+  have hC : 0 ≤ C := (h 0).trans' (mul_nonneg (mul_nonneg (norm_nonneg _) (norm_nonneg _))
+    (pow_nonneg (norm_nonneg _) _))
+  refine norm_homotopyOperator_apply_le hC fun t v ↦ ?_
+  -- The derivative and the form at `Φ (x, t)`, with their model-space types made explicit.
+  let D : E × EuclideanSpace ℝ (Fin 1) →L[ℝ] E' := mfderiv (I.prod (𝓡∂ 1)) I' Φ (x, t)
+  let α : E' [⋀^Fin (k + 1)]→L[ℝ] F := φ (Φ (x, t))
+  let L : E →L[ℝ] E' := D.comp (.inl ℝ E (EuclideanSpace ℝ (Fin 1)))
+  rw [mpullback_apply]
+  refine (α.le_opNorm _).trans ?_
+  rw [Fin.prod_univ_succ]
+  -- The first vector is `DΦ ∂ₜ`, and the others are `L vᵢ`.
+  calc _ ≤ ‖α‖ * (@norm E' _ (mfderiv (I.prod (𝓡∂ 1)) I' Φ (x, t)
+          ((0 : E), (1 : TangentSpace (𝓡∂ 1) t))) * ∏ i, (‖L‖ * ‖v i‖)) :=
+        mul_le_mul_of_nonneg_left (mul_le_mul_of_nonneg_left
+          (Finset.prod_le_prod₀ (fun _ _ ↦ norm_nonneg _) fun i _ ↦ L.le_opNorm (v i))
+          (norm_nonneg _)) (norm_nonneg _)
+    _ ≤ C * ∏ i, ‖v i‖ := by
+        rw [Finset.prod_mul_distrib, Finset.prod_const, Finset.card_univ, Fintype.card_fin,
+          ← mul_assoc, ← mul_assoc]
+        exact mul_le_mul_of_nonneg_right (h t) (by positivity)
+
+end Norm
 
 end TauCeti
