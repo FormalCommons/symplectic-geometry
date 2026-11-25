@@ -8,8 +8,8 @@ module
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import Mathlib.Analysis.Calculus.FDeriv.Defs
 import Mathlib.Analysis.Calculus.ContDiff.Operations
-import SymplecticGeometry.Analysis.Calculus.FDeriv.SmulOfEqZero
 import SymplecticGeometry.Analysis.Calculus.FiberRescale
+import TauCeti.Analysis.Calculus.FDeriv.Smul
 import TauCeti.Analysis.Calculus.ImplicitFunctionTheorem
 
 /-!
@@ -29,7 +29,8 @@ vanishes on `ker df_x × {0}` (the normal variable written last), and the factor
 `fiberRescale` of `g` in the normal variable. It is `C^n` at the zero section by Hadamard's lemma
 with parameters (`contDiffAt_fiberRescale_zero`, in
 `SymplecticGeometry/Analysis/Calculus/FiberRescale.lean`). The value `a x` is read off from the
-derivative of `a * f` at a zero of `f`, `HasFDerivAt.smul_of_continuousAt_of_eq_zero`.
+derivative of `a * f` at a zero of `f`, by Tau Ceti's `HasFDerivAt.smul_of_eq_zero`, which
+needs `a` only continuous at `x`.
 
 ## Main results
 
@@ -117,6 +118,7 @@ theorem ContDiffOn.exists_contDiffAt_eventuallyEq_mul_of_eq_zero {n : ℕ∞} {f
   refine ⟨a, ha, hfact, ?_⟩
   have hfd : HasFDerivAt f L x :=
     ((hf.contDiffAt (hs.mem_nhds hx)).differentiableAt (by simp)).hasFDerivAt
-  exact (hfd.smul_of_continuousAt_of_eq_zero ha.continuousAt hfx).fderiv ▸ hfact.fderiv_eq
+  rw [hfact.fderiv_eq, mul_comm]
+  exact (hfd.smul_of_eq_zero ha.continuousAt hfx).fderiv.trans (by ext; simp [mul_comm])
 
 end
