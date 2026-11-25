@@ -7,6 +7,8 @@ module
 
 public import TauCeti.Topology.VectorBundle.Countable
 public import TauCeti.Topology.VectorBundle.TrivialEmbedding
+public import TauCeti.Topology.VectorBundle.Transfer
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 
 /-!
 # Finite trivializing covers of vector bundles
@@ -30,6 +32,12 @@ what a classifying map to a finite-dimensional projective space needs.
   `PartitionOfUnity.gapTrivialization` of Tau Ceti of sizes `0, …, N`. This is the argument of
   Milnor–Stasheff, Lemma 5.9, where the bound `N` makes the countable family of gap
   trivializations finite.
+* `SymplecticGeometry.Bundle.HasFiniteTrivializingCover.of_continuousLinearEquiv`: a finite
+  trivializing cover passes along a fibrewise continuous linear equivalence of bundles over the
+  same base that is a homeomorphism of total spaces, through Tau Ceti's
+  `Bundle.Trivialization.compContinuousLinearEquiv`, which keeps each base set.
+* `SymplecticGeometry.Bundle.HasFiniteTrivializingCover.of_iso`: the same along an isomorphism
+  of Tau Ceti's point-indexed finite-rank cores `TauCeti.FiniteRankBundleCore`.
 * `SymplecticGeometry.Bundle.HasFiniteTrivializingCover.exists_continuous_injective_fin`: over a
   normal base, a bundle with a finite trivializing cover and finite-dimensional model fibre has a
   continuous fibrewise injective linear map into a trivial bundle `B × (Fin N → 𝕜)`.
@@ -96,7 +104,58 @@ theorem HasFiniteTrivializingCover.of_card_finsupport_le {κ : Type*}
   have hle : S.card ≤ N := (Finset.card_le_card (ρ.subset_finsupport_of_gap_pos hS)).trans (hN x)
   exact mem_iUnion.2 ⟨⟨S.card, Nat.lt_succ_of_le hle⟩, hn⟩
 
+/-- A finite trivializing cover passes along a fibrewise isomorphism of bundles over the same
+base: if `Φ x : E x ≃L[R] E' x` is continuous on total spaces, with continuous inverse, and `E`
+has a finite trivializing cover with model `F`, then so does `E'`. -/
+theorem HasFiniteTrivializingCover.of_continuousLinearEquiv [∀ x, TopologicalSpace (E x)]
+    {E' : B → Type*} [TopologicalSpace (TotalSpace F E')] [∀ x, AddCommMonoid (E' x)]
+    [∀ x, Module R (E' x)] [∀ x, TopologicalSpace (E' x)]
+    (h : HasFiniteTrivializingCover R F E) (Φ : ∀ x, E x ≃L[R] E' x)
+    (hΦ : Continuous fun p : TotalSpace F E ↦ TotalSpace.mk' F p.proj (Φ p.proj p.snd))
+    (hΦ' : Continuous fun p : TotalSpace F E' ↦ TotalSpace.mk' F p.proj ((Φ p.proj).symm p.snd)) :
+    HasFiniteTrivializingCover R F E' := by
+  obtain ⟨s, hlin, hcover⟩ := h
+  let Ψ : TotalSpace F E' ≃ₜ TotalSpace F E :=
+    { toFun := fun p ↦ ⟨p.proj, (Φ p.proj).symm p.snd⟩
+      invFun := fun p ↦ ⟨p.proj, Φ p.proj p.snd⟩
+      left_inv := fun p ↦ by simp
+      right_inv := fun p ↦ by simp
+      continuous_toFun := hΦ'
+      continuous_invFun := hΦ }
+  have := fun e : s ↦ hlin e e.property
+  refine .of_finite (fun e : s ↦ (e : Trivialization F (π F E)).compContinuousLinearEquiv
+    (fun x ↦ (Φ x).symm) Ψ.isInducing) ?_
+  simpa [iUnion_subtype] using hcover
+
 end Definition
+
+section FiniteRankBundleCore
+
+open TauCeti CategoryTheory
+
+variable {𝕜 B : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace B]
+
+/-- A finite trivializing cover of a point-indexed finite-rank core passes along an isomorphism
+of cores. -/
+theorem HasFiniteTrivializingCover.of_iso {A A' : FiniteRankBundleCore 𝕜 B}
+    (h : HasFiniteTrivializingCover 𝕜 (Fin A.rank → 𝕜) A.core.Fiber) (f : A ≅ A') :
+    HasFiniteTrivializingCover 𝕜 (Fin A'.rank → 𝕜) A'.core.Fiber := by
+  rcases isEmpty_or_nonempty B with hB | hB
+  · exact ⟨∅, by simp, Subsingleton.elim _ _⟩
+  have hr := FiniteRankBundleCore.rank_eq_of_iso f
+  have hom := FiniteRankBundleCore.continuous_isoFiberEquiv f
+  have inv := FiniteRankBundleCore.continuous_isoFiberEquiv f.symm
+  simp only [← FiniteRankBundleCore.isoFiberEquiv_symm] at inv
+  generalize FiniteRankBundleCore.isoFiberEquiv f = Φ at hom inv
+  -- Over a nonempty base the two ranks agree; identify them so that both cores have the model
+  -- `Fin A.rank → 𝕜`.
+  obtain ⟨n, c, hc⟩ := A'
+  subst hr
+  -- `exact` identifies the fibres `A.core.Fiber x` and `c.Fiber x` with the coordinates
+  -- `Fin A.rank → 𝕜`, which they are by definition.
+  exact h.of_continuousLinearEquiv (E' := c.Fiber) Φ hom inv
+
+end FiniteRankBundleCore
 
 variable {𝕜 B F : Type*} [NontriviallyNormedField 𝕜] [TopologicalSpace B]
   [NormedAddCommGroup F] [NormedSpace 𝕜 F]
