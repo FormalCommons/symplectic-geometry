@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Calculus.IteratedDeriv.Defs
+public import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Equivariant.Basic
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.Graded
 import Mathlib.Analysis.Calculus.IteratedDeriv.Lemmas
@@ -42,6 +43,12 @@ zero.
 
 * `SymplecticGeometry.formCalculus_apply`: its component of degree `2 k` is `F⁽ᵏ⁾(f) τ ^ k / k!`,
   and `SymplecticGeometry.formCalculus_apply_of_odd`: its components of odd degree vanish.
+* `SymplecticGeometry.formCalculus_apply_val`: the same at a point `x`, and
+  `SymplecticGeometry.formCalculus_val_congr`: the components at `x` depend only on `f x` and
+  `τ x`.
+* `SymplecticGeometry.formCalculus_exp_add_const`: the exponential takes constants out,
+  `exp(f + c + τ) = e ^ c exp(f + τ)`, and `SymplecticGeometry.formCalculus_exp_val_of_eq_add`:
+  its pointwise form.
 * `SymplecticGeometry.formCalculus_zero_component`: its component of degree `0` is `F ∘ f`.
 * `SymplecticGeometry.formCalculus_id`: for `F = id` it is `f + τ`, and
   `SymplecticGeometry.formCalculus_const`: for a constant `F = c` it is `c`.
@@ -142,6 +149,57 @@ theorem formCalculus_apply (k : ℕ) :
     rw [Finset.mem_range, not_lt] at hk
     rw [SmoothForm.eq_zero_of_finrank_lt (by omega) (τ.wedgePow k), map_zero, smul_zero,
       map_zero, DirectSum.zero_apply]
+
+/-- The component of degree `2 k` of `F(f + τ)` at a point `x` is
+`(k!)⁻¹ F⁽ᵏ⁾(f x) (τ x) ^ k`. -/
+theorem formCalculus_apply_val (k : ℕ) (x : M) :
+    (formCalculus F hF f τ (2 * k)).val x =
+      ((k ! : ℝ)⁻¹ * iteratedDeriv k F (f x)) • (τ.val x).wedgePow k := by
+  rw [formCalculus_apply, SmoothForm.smul_toRoughForm, Pi.smul_apply, SmoothForm.coe_funSMulₗ]
+  beta_reduce
+  rw [SmoothForm.wedgePow_apply, formCalculusCoeff_apply, mul_smul]
+
+/-- The functional calculus is computed pointwise: if `f x = f' x` and `τ x = τ' x`, then every
+component of `F(f + τ)` agrees at `x` with that of `F(f' + τ')`. -/
+theorem formCalculus_val_congr {f' : C^∞⟮I, M; ℝ⟯} {τ' : SmoothForm I M ℝ 2} {x : M}
+    (hf : f x = f' x) (hτ : τ.val x = τ'.val x) (k : ℕ) :
+    (formCalculus F hF f τ k).val x = (formCalculus F hF f' τ' k).val x := by
+  obtain hk | hk := Nat.even_or_odd k
+  · obtain ⟨m, rfl⟩ := hk.two_dvd
+    rw [formCalculus_apply_val, formCalculus_apply_val, hf, hτ]
+  · rw [formCalculus_apply_of_odd F hF f τ k hk, formCalculus_apply_of_odd F hF f' τ' k hk]
+
+omit [IsManifold I 1 M] [FiniteDimensional ℝ E] in
+/-- The coefficients of the exponential at `f + c`, for a constant `c`, are `e ^ c` times those
+at `f`: `exp⁽ᵏ⁾ (f + c) = e ^ c exp⁽ᵏ⁾ f`. -/
+theorem formCalculusCoeff_exp_add_const (c : ℝ) (k : ℕ) :
+    formCalculusCoeff Real.exp Real.contDiff_exp (f + ContMDiffMap.const c) k =
+      ContMDiffMap.const (Real.exp c) * formCalculusCoeff Real.exp Real.contDiff_exp f k := by
+  ext x
+  simp [iteratedDeriv_eq_iterate, Real.iter_deriv_exp, Real.exp_add, mul_comm]
+
+omit [FiniteDimensional ℝ E] in
+/-- The exponential takes constants out: `exp(f + c + τ) = e ^ c exp(f + τ)` for a constant
+`c`. -/
+theorem formCalculus_exp_add_const (c : ℝ) :
+    formCalculus Real.exp Real.contDiff_exp (f + ContMDiffMap.const c) τ =
+      Real.exp c • formCalculus Real.exp Real.contDiff_exp f τ := by
+  rw [formCalculus_def, formCalculus_def, Finset.smul_sum]
+  refine Finset.sum_congr rfl fun k _ ↦ ?_
+  rw [formCalculusCoeff_exp_add_const, ← DirectSum.of_smul, smul_comm]
+  congr 2
+  ext1
+  simp [SmoothForm.coe_funSMulₗ, mul_smul]
+
+/-- The pointwise form of `formCalculus_exp_add_const`: if `f x = f' x + c` and `τ x = τ' x`,
+then every component of `exp(f + τ)` at `x` is `e ^ c` times that of `exp(f' + τ')`. -/
+theorem formCalculus_exp_val_of_eq_add {f' : C^∞⟮I, M; ℝ⟯} {τ' : SmoothForm I M ℝ 2} {x : M}
+    {c : ℝ} (hf : f x = f' x + c) (hτ : τ.val x = τ'.val x) (k : ℕ) :
+    (formCalculus Real.exp Real.contDiff_exp f τ k).val x =
+      Real.exp c • (formCalculus Real.exp Real.contDiff_exp f' τ' k).val x := by
+  rw [formCalculus_val_congr Real.exp Real.contDiff_exp f τ (f' := f' + ContMDiffMap.const c)
+    (by simp [hf]) hτ, formCalculus_exp_add_const, DirectSum.smul_apply,
+    SmoothForm.smul_toRoughForm, Pi.smul_apply]
 
 /-- The component of degree `0` of `F(f + τ)` is the function `F ∘ f`. -/
 @[simp]
