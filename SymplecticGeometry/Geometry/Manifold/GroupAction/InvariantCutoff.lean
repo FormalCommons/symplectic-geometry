@@ -15,7 +15,6 @@ import TauCeti.Topology.Algebra.Support
 import SymplecticGeometry.Analysis.Calculus.BumpFunction.Radial
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import SymplecticGeometry.Geometry.Manifold.GroupAction.Average
-import SymplecticGeometry.Topology.OpenPartialHomeomorph.Compact
 
 /-!
 # Invariant cut-offs
@@ -86,23 +85,15 @@ theorem exists_smul_invariant_cutoff (Φ : PartialDiffeomorph 𝓘(ℝ, V) I V M
     rw [Φ.right_inv hx] at hzx
     rw [← hzx, Φ.symm_toPartialEquiv, Φ.left_inv hz']
     exact ⟨Φ.map_source hz', hn⟩
-  have hK : IsCompact (Φ '' closedBall 0 b) :=
-    Φ.toOpenPartialHomeomorph.isCompact_image_of_subset_source (isCompact_closedBall 0 b) hb
-  -- Off `Φ '' closedBall 0 b`, `ρ` vanishes.
-  have hzero {x : M} (hx : x ∉ Φ '' closedBall 0 b) : ρ x = 0 := by
-    by_cases hxt : x ∈ Φ.target
-    · rw [hρ, indicator_of_mem hxt, h0]
-      rw [abs_norm, ← not_le, ← mem_closedBall_zero_iff]
-      exact fun hbx ↦ hx ⟨Φ.symm x, hbx, Φ.right_inv hxt⟩
-    · exact indicator_of_notMem hxt _
-  refine ⟨ρ, ?_, fun x ↦ ?_, fun g x ↦ ?_, ?_,
-    TauCeti.tsupport_subset_of_forall_notMem_eq_zero (fun _ hx ↦ hzero hx) hK.isClosed⟩
-  · refine Φ.symm.toOpenPartialHomeomorph.contMDiff_of_contMDiffOn_source_of_contMDiffOn_compl
-      (isCompact_closedBall 0 b) (by simpa using hb) ?_ ?_
-    · refine (hc.contMDiff.comp_contMDiffOn Φ.symm.contMDiffOn).congr fun x hx ↦ ?_
-      exact indicator_of_mem (by simpa using hx) _
-    · refine contMDiffOn_const.congr fun x hx ↦ hzero ?_
-      simpa using hx
+  -- The radial cut-off of `V` is supported in `closedBall 0 b`.
+  have hcb : tsupport (fun z : V ↦ h ‖z‖) ⊆ closedBall 0 b :=
+    TauCeti.tsupport_subset_of_forall_notMem_eq_zero
+      (fun z hz ↦ h0 _ (by simpa [abs_norm] using hz)) isClosed_closedBall
+  have hcK : IsCompact (tsupport fun z : V ↦ h ‖z‖) :=
+    (isCompact_closedBall 0 b).of_isClosed_subset (isClosed_tsupport _) hcb
+  refine ⟨ρ, Φ.contMDiff_indicator_comp_symm hc.contMDiff hcK (hcb.trans hb), fun x ↦ ?_,
+    fun g x ↦ ?_, ?_,
+    (Φ.tsupport_indicator_comp_symm_subset hcK (hcb.trans hb)).trans (image_mono hcb)⟩
   · by_cases hxt : x ∈ Φ.target
     · rw [hρ, indicator_of_mem hxt]
       exact h01 _

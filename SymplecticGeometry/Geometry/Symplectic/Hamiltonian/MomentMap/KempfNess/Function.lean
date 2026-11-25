@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 import SymplecticGeometry.Analysis.Calculus.ParametricIntervalIntegral
 import SymplecticGeometry.Geometry.Lie.Exponential.Derivative
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Constancy
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 import TauCeti.Analysis.Calculus.IntervalIntegral.ParametricPrimitive
 
@@ -34,7 +35,9 @@ where `exp(iξ)` is `C.expI ξ`. This file defines `Φ_p`, shows that it vanishe
 is invariant under right multiplication by `G`, so that it descends to the space `Gc ⧸ G` of
 cosets `gG`, shows that it is smooth when the action and the components of `μ` are, and computes
 its differential: for a complexified action and an equivariant moment map `-μ`, the differential
-of `Φ_p` at `g` is the one-form `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))`.
+of `Φ_p` at `g` is the one-form `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))`. Since `Gc` is connected, these two
+properties determine `Φ_p`; its critical points are the `g` with `μ (g⁻¹ • p) = 0`, so `Φ_p` has a
+critical point exactly when `p` is polystable.
 
 ## Main definitions
 
@@ -61,6 +64,14 @@ of `Φ_p` at `g` is the one-form `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))`.
   `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))`.
 * `SymplecticGeometry.hasDerivAt_kempfNessFunction_comp`: along a curve `c` differentiable at
   `s₀`, the derivative of `Φ_p ∘ c` at `s₀` is the one-form evaluated on the velocity of `c`.
+* `SymplecticGeometry.eq_kempfNessFunction_of_mfderiv_eq`,
+  `SymplecticGeometry.existsUnique_kempfNessFunction`: `Φ_p` is the only smooth function with this
+  differential that vanishes on `G`; a differentiable one with this differential that vanishes at
+  `1` is already `Φ_p`.
+* `SymplecticGeometry.mfderiv_kempfNessFunction_eq_zero_iff`: `g` is a critical point of `Φ_p`
+  exactly when `μ (g⁻¹ • p) = 0`.
+* `SymplecticGeometry.isPolystable_iff_exists_mfderiv_kempfNessFunction_eq_zero`: `p` is
+  polystable exactly when `Φ_p` has a critical point.
 
 The smoothness reads `Φ_p` through the diffeomorphism `C.polar` as the integral over `[0, 1]` of a
 smooth function on `𝔤 × ℝ`, and applies Tau Ceti's
@@ -377,6 +388,73 @@ theorem hasDerivAt_kempfNessFunction_comp (h : IsComplexifiedAction C J)
       (x := c s₀) (by simp)) (hasMFDerivAt_curveVelocity hc)
   rwa [mvfderiv, ContinuousLinearMap.comp_apply, mfderiv_kempfNessFunction C μ p h hμ hg,
     curveVelocity_apply] at hΦ
+
+/-- **Uniqueness of the Kempf–Ness function.** Let the action of `Gc` be a complexified action,
+let `-μ` be an equivariant moment map for `σ`, and let the metric be `g(u, w) = σ(u, J w)`. A
+differentiable function on `Gc` whose differential at every `g` is the one-form
+`ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))` and which vanishes at `1` is `Φ_p`. -/
+theorem eq_kempfNessFunction_of_mfderiv_eq (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    {f : Gc → ℝ} (hf : MDifferentiable IC 𝓘(ℝ) f)
+    (hdf : ∀ (g : Gc) (ĝ : TangentSpace IC g),
+      mfderiv IC 𝓘(ℝ) f g ĝ = μ (g⁻¹ • p) (C.im (mfderiv IC IC (g⁻¹ * ·) g ĝ)))
+    (hf1 : f 1 = 0) : f = kempfNessFunction C μ p := by
+  have := C.connectedSpace
+  refine hf.eq_of_mfderiv_eq
+    ((contMDiff_kempfNessFunction C μ p hμ.toIsMomentMap.contMDiff_of_neg).mdifferentiable
+      (by simp)) (fun x ↦ ?_) 1 (by rw [hf1, kempfNessFunction_one])
+  ext ĝ
+  exact (hdf x ĝ).trans (mfderiv_kempfNessFunction C μ p h hμ hg x ĝ).symm
+
+/-- **Existence and uniqueness of the Kempf–Ness function.** Let the action of `Gc` be a
+complexified action, let `-μ` be an equivariant moment map for `σ`, and let the metric be
+`g(u, w) = σ(u, J w)`. Then `Φ_p` is the only smooth function on `Gc` whose differential at
+every `g` is the one-form `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))` and which vanishes on `G`. -/
+theorem existsUnique_kempfNessFunction (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) :
+    ∃! f : Gc → ℝ, ContMDiff IC 𝓘(ℝ) ∞ f ∧
+      (∀ (g : Gc) (ĝ : TangentSpace IC g),
+        mfderiv IC 𝓘(ℝ) f g ĝ = μ (g⁻¹ • p) (C.im (mfderiv IC IC (g⁻¹ * ·) g ĝ))) ∧
+      ∀ u : G, f (C.toHom u) = 0 :=
+  ⟨kempfNessFunction C μ p,
+    ⟨contMDiff_kempfNessFunction C μ p hμ.toIsMomentMap.contMDiff_of_neg,
+      mfderiv_kempfNessFunction C μ p h hμ hg, kempfNessFunction_toHom C μ p⟩,
+    fun _ ⟨hf, hdf, hf0⟩ ↦ eq_kempfNessFunction_of_mfderiv_eq C μ p h hμ hg
+      (hf.mdifferentiable (by simp)) hdf (by simpa using hf0 1)⟩
+
+/-- **Critical points of the Kempf–Ness function.** Let the action of `Gc` be a complexified
+action, let `-μ` be an equivariant moment map for `σ`, and let the metric be
+`g(u, w) = σ(u, J w)`. Then the differential of `Φ_p` vanishes at `g` exactly when `μ` vanishes
+at `g⁻¹ • p`. -/
+theorem mfderiv_kempfNessFunction_eq_zero_iff (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) (g : Gc) :
+    mfderiv IC 𝓘(ℝ) (kempfNessFunction C μ p) g = 0 ↔ μ (g⁻¹ • p) = 0 := by
+  refine ⟨fun h0 ↦ ?_, fun h0 ↦ ?_⟩
+  · ext ξ
+    -- The value at `g` of the invariant vector field of `C.cplx (C.lieMap ξ)` translates back to
+    -- `C.cplx (C.lieMap ξ)`, whose imaginary part is `ξ`.
+    have h1 := congrArg (· (mulInvariantVectorField (C.cplx (C.lieMap ξ)) g)) h0
+    simp only [mfderiv_kempfNessFunction C μ p h hμ hg, mfderiv_inv_mul_mulInvariantVectorField,
+      C.im_cplx_lieMap, zero_apply] at h1
+    -- `h1` is stated in `TangentSpace 𝓘(ℝ) _`, which is `ℝ` by definition.
+    exact h1
+  · ext ĝ
+    rw [mfderiv_kempfNessFunction C μ p h hμ hg, h0, LinearMap.zero_apply, zero_apply]
+    -- The zeros of `ℝ` and of `TangentSpace 𝓘(ℝ) _`, which is `ℝ` by definition.
+    rfl
+
+/-- **Polystability and critical points.** Let the action of `Gc` be a complexified action, let
+`-μ` be an equivariant moment map for `σ`, and let the metric be `g(u, w) = σ(u, J w)`. Then `p`
+is polystable exactly when its Kempf–Ness function `Φ_p` has a critical point. -/
+theorem isPolystable_iff_exists_mfderiv_kempfNessFunction_eq_zero (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w)) :
+    IsPolystable C μ p ↔ ∃ g : Gc, mfderiv IC 𝓘(ℝ) (kempfNessFunction C μ p) g = 0 := by
+  simp_rw [mfderiv_kempfNessFunction_eq_zero_iff C μ p h hμ hg, isPolystable_iff_exists_smul]
+  exact ⟨fun ⟨g, hg⟩ ↦ ⟨g⁻¹, by rwa [inv_inv]⟩, fun ⟨g, hg⟩ ↦ ⟨g⁻¹, hg⟩⟩
 
 end Derivative
 
