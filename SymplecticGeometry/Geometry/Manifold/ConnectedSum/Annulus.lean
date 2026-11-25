@@ -10,8 +10,8 @@ public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import Mathlib.Analysis.Normed.Module.FiniteDimension
 
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
-import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 
 /-!
@@ -58,7 +58,9 @@ pieces, which are open embeddings and `C^n` local diffeomorphisms whose ranges c
 * `SymplecticGeometry.ConnectedSum.annulusDiffeomorph`: `ι` restricted to the annulus, as a
   diffeomorphism onto the overlap, from Mathlib's `IsLocalDiffeomorph.diffeomorphOfBijective`.
 * `SymplecticGeometry.ConnectedSum.overlapDiffeomorph`: the gluing map between the overlaps of
-  the two pieces, with `overlapDiffeomorph_annulusDiffeomorph`.
+  the two pieces, with `overlapDiffeomorph_annulusDiffeomorph` and
+  `coe_overlapDiffeomorph_apply`; its inverse is the gluing map for `Φ⁻¹`
+  (`overlapDiffeomorph_symm`).
 * `SymplecticGeometry.ConnectedSum.AnnulusSum`: the connected sum, and
   `SymplecticGeometry.ConnectedSum.AnnulusSum.inl_eq_inr_iff`: a point `x` of the first piece and
   a point `y` of the second are equal in it exactly when `x = ι₁ ξ` and
@@ -296,6 +298,20 @@ theorem overlapDiffeomorph_annulusDiffeomorph (ξ : annulus E ε) :
     overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε (annulusDiffeomorph hι₁ hdι₁ ε ξ) =
       annulusDiffeomorph hι₂ hdι₂ ε (gluingDiffeomorph Φ ε hε (n := n) ξ) := by
   simp [overlapDiffeomorph]
+
+@[simp]
+theorem coe_overlapDiffeomorph_apply (x : overlap ι₁ ε hι₁.continuous hι₁.isOpenMap) :
+    ((overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε x : piece ι₂ ε hι₂.continuous) : M₂) =
+      ι₂ (Φ (inversion 0 ε ((annulusDiffeomorph hι₁ hdι₁ ε).symm x))) := by
+  simp [overlapDiffeomorph]
+
+/-- The inverse of the gluing map for `Φ` is the gluing map for `Φ⁻¹`, from the overlap of the
+second piece onto that of the first. -/
+@[simp]
+theorem overlapDiffeomorph_symm :
+    (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε).symm =
+      overlapDiffeomorph hι₂ hdι₂ hι₁ hdι₁ Φ.symm hε :=
+  Diffeomorph.ext fun _ ↦ by simp [overlapDiffeomorph]
 
 /-- The connected sum of McDuff–Salamon (Exercise 7.1.4): the pieces `M₁ \ ι₁ (closedBall 0 ε²)`
 and `M₂ \ ι₂ (closedBall 0 ε²)`, glued by identifying `ι₁ ξ` with `ι₂ (Φ (inversion 0 ε ξ))`,
