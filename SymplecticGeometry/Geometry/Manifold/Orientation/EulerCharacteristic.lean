@@ -11,6 +11,7 @@ public import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.Manifold
 public import TauCeti.Geometry.Manifold.Morse.Generic.Basic
 public import TauCeti.Geometry.Manifold.Morse.PoincareHopf
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
+import TauCeti.Geometry.Manifold.VectorField.Chart.Linearization
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 
 /-!
@@ -22,8 +23,8 @@ bundle (`o.toVectorBundleOrientation`) and `M` a homologically oriented manifold
 (`o.toHomologicalOrientation`), so a continuous vector field has a local index at each isolated
 zero, Tau Ceti's `TauCeti.VectorBundleOrientation.sectionIndex`.
 
-* `Manifold.Orientation.sectionIndex_eq_sign_det_vectorFieldChartDerivative_of_mdifferentiableAt`:
-  at a zero `z` of a vector field `X` differentiable at `z`, where the chart derivative
+* `TauCeti.Manifold.Orientation.sectionIndex_eq_sign_det_vectorFieldChartDerivative'`:
+  at a zero `z` of a vector field `X` where the chart derivative
   `TauCeti.vectorFieldChartDerivative I X z` is invertible, the local index of `X` is the sign of
   the determinant of the chart derivative.
 * `TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_sum_finrank_singularHomology`:
@@ -32,9 +33,12 @@ zero, Tau Ceti's `TauCeti.VectorBundleOrientation.sectionIndex`.
 * `TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType`: the
   same number is the Euler characteristic `TauCeti.eulerChar M`.
 
-Tau Ceti proves the first and last of these, without the suffixes, for the model `𝓘(ℝ, X)` of an
-inner product space `X`, without the differentiability hypothesis or `TauCeti.FiniteCWType M`;
-the versions here hold for any boundaryless model `I`.
+Tau Ceti proves the first and last of these, without the prime and the suffix
+(`TauCeti.Manifold.Orientation.sectionIndex_eq_sign_det_vectorFieldChartDerivative` and
+`TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar`), only for the model
+`𝓘(ℝ, X)` of a finite-dimensional inner product space `X`; the versions here hold for any
+boundaryless model `I`. Tau Ceti's Euler characteristic statement also takes its finite CW type
+from `TauCeti.FiniteCWType.of_isManifold` instead of an instance argument.
 
 Odd dimensions are included: then both sides vanish, which the statements do not need to say.
 
@@ -91,14 +95,13 @@ section Index
 variable [IsManifold I 1 M]
 
 /-- **The local index of a nondegenerate zero of a vector field.** Let `X` be a continuous vector
-field on `M`, differentiable at a zero `z` whose chart derivative
-`vectorFieldChartDerivative I X z` has nonzero determinant. Then the local index of `X` at `z`, as
-a section of the tangent bundle oriented by `o`, with the homological orientation of `M` given by
-`o`, is the sign of that determinant. -/
-theorem sectionIndex_eq_sign_det_vectorFieldChartDerivative_of_mdifferentiableAt
+field on `M` and `z` a zero of `X` whose chart derivative `vectorFieldChartDerivative I X z` has
+nonzero determinant. Then the local index of `X` at `z`, as a section of the tangent bundle
+oriented by `o`, with the homological orientation of `M` given by `o`, is the sign of that
+determinant. -/
+theorem sectionIndex_eq_sign_det_vectorFieldChartDerivative'
     {X : (x : M) → TangentSpace I x}
-    (hX : Continuous fun x ↦ TotalSpace.mk' E x (X x)) {z : M}
-    (hXz : MDifferentiableAt I I.tangent (fun y ↦ (X y : TangentBundle I M)) z) (hz : X z = 0)
+    (hX : Continuous fun x ↦ TotalSpace.mk' E x (X x)) {z : M} (hz : X z = 0)
     (hdet : LinearMap.det (vectorFieldChartDerivative I X z) ≠ 0) :
     o.toVectorBundleOrientation.sectionIndex hE (o.toHomologicalOrientation hE) hX z =
       SignType.sign (LinearMap.det (vectorFieldChartDerivative I X z)) := by
@@ -124,7 +127,8 @@ theorem sectionIndex_eq_sign_det_vectorFieldChartDerivative_of_mdifferentiableAt
     rw [hφs]
     exact hy
   have hA : HasFDerivAt f A (φ z) := by
-    have hU := hXz.differentiableAt_mpullbackWithin_extChartAt_symm
+    have hU := (mdifferentiableAt_of_det_vectorFieldChartDerivative_ne_zero hdet
+      ).differentiableAt_mpullbackWithin_extChartAt_symm
     rw [I.range_eq_univ, VectorField.mpullbackWithin_univ] at hU
     rw [hφz] at hfeq ⊢
     exact hU.hasFDerivAt.congr_of_eventuallyEq hfeq
@@ -170,8 +174,7 @@ theorem evalFundamentalClass_eulerClass_eq_sum_finrank_singularHomology (k : Typ
   rw [VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex _ hE _ hX hE hZ,
     ← finsum_mem_eq_finite_toFinset_sum _ hZ, ← finsum_set_coe_eq_finsum_mem]
   refine (finsum_congr fun x ↦ ?_).trans hPH
-  exact sectionIndex_eq_sign_det_vectorFieldChartDerivative_of_mdifferentiableAt hE o hX (hXd x)
-    x.property
+  exact sectionIndex_eq_sign_det_vectorFieldChartDerivative' hE o hX x.property
     (hf.det_vectorFieldChartDerivative_mgradient_ne_zero x.property)
 
 /-- **The Euler number of the tangent bundle is the Euler characteristic.** On a compact

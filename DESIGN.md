@@ -2997,8 +2997,8 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   (`Geometry/Manifold/DeRham/Hodge/Basic.lean`).
 - **Milestones:** *Frankel–Ono Hamiltonianity criterion*.
 - **The design file decides:** the route to the nondegeneracy of the
-  pairing in degrees $(1,m-1)$: through the library's singular duality
-  (`AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`)
+  pairing in degrees $(1,m-1)$: through Tau Ceti's singular duality
+  (`TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`)
   and Tau Ceti's comparison of de Rham and singular cohomology
   (`Geometry/Manifold/SmoothSingular/DeRham.lean`), or directly from
   periods of closed one-forms; and how the hypothesis on

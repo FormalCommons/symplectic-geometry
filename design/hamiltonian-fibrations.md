@@ -101,7 +101,7 @@ These settle the points that `DESIGN.md` leaves to this file.
    (`IsSymplecticTrivializationAlong.normalize`).
 3. **Hamiltonian connections are characterized by their flux.** The kernel
    of `endpointFlux` is $\mathrm{Ham}$ (*Flux homomorphism*,
-   `TauCeti.ker_endpointFlux`). So for a closed connection 2-form, $\Gamma_\tau$
+   `TauCeti.ker_endpointFlux'`). So for a closed connection 2-form, $\Gamma_\tau$
    is Hamiltonian exactly when $f_\tau=0$. Loops at other base points are
    conjugate to loops at `b₀` by transport along a path, and
    `hamiltonianGroup` is normal among the symplectomorphisms. The criterion
@@ -334,7 +334,7 @@ The homomorphism $f_\tau$ (Decision 2), and the Hamiltonian criterion. About
   `isotopyStabilizer`, so that it needs no proof as an argument, with
   `holonomyFlux_eq` (the class of the flux of `holonomyDiffeotopy` for a
   normalized trivialization) and `holonomyFlux_eq_zero_iff` (the holonomy
-  is in `hamiltonianGroup`, from `TauCeti.ker_endpointFlux`).
+  is in `hamiltonianGroup`, from `TauCeti.ker_endpointFlux'`).
 - `holonomyFlux_concat` and `holonomyFlux_reparam`: concatenation adds,
   and reparametrization does nothing (from `parallelTransport_comp` and
   `parallelTransport_parallelTransport`).
@@ -441,7 +441,7 @@ The page's form of statement 4. About 400 lines. Waits for the other files.
 - *Coupling forms*: existence of the closed coupling form for a connection
   with Hamiltonian holonomy around contractible loops, and Hamiltonian
   holonomy around contractible loops for a closed connection 2-form.
-- *Flux homomorphism*: `TauCeti.ker_endpointFlux` (`Kernel.lean`) and
+- *Flux homomorphism*: `TauCeti.ker_endpointFlux'` (`Kernel.lean`) and
   `isHamiltonian_of_forall_timeSlice_mem_hamiltonianGroup` (`Family.lean`,
   which waits for `Countable.lean`). The route does not use
   Proposition 10.2.19 (`Loop.lean`).

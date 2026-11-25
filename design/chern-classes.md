@@ -1009,8 +1009,8 @@ Beside Tau Ceti's `FiniteRank/Tensor.lean`, in Tau Ceti's terms only;
 For a compact Hausdorff boundaryless smooth manifold `M` modelled on `E`
 with `finrank ℝ E = m + 1` and `o : TauCeti.Manifold.Orientation I M (Fin (m + 1))`:
 
-- `TauCeti.Manifold.Orientation.sectionIndex_eq_sign_det_vectorFieldChartDerivative_of_mdifferentiableAt`:
-  for a continuous vector field `X`, differentiable at a zero `z` at which
+- `TauCeti.Manifold.Orientation.sectionIndex_eq_sign_det_vectorFieldChartDerivative'`:
+  for a continuous vector field `X` and a zero `z` at which
   `vectorFieldChartDerivative I X z` is invertible, the local index of `X`
   for `o.toVectorBundleOrientation` and `o.toHomologicalOrientation` is the
   sign of its determinant;

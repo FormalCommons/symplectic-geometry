@@ -10,7 +10,13 @@ public import SymplecticGeometry.Order.SupClosed
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 
 /-!
-# Vanishing of cohomology with compact supports over an inf-closed cover
+# Invariance and vanishing of cohomology with compact supports
+
+A homeomorphism `e : X ≃ₜ Y` induces an isomorphism `Hᵐ_c(Y) ≅ Hᵐ_c(X)` by pulling back along the
+proper maps `e` and `e.symm`, for any spaces `X` and `Y`. Tau Ceti's
+`TopCat.compactSupportCohomologyIsoOfHomeomorph` goes the other way, as the extension along `e`,
+and needs both spaces to be Hausdorff; the pullback here does not. So vanishing of `Hᵐ_c` is
+invariant under homeomorphisms of arbitrary spaces.
 
 Tau Ceti shows that `Hᵐ_c` vanishes on `U ∪ V` once it vanishes on `U` and `V` in degree `m` and
 on `U ∩ V` in degree `m + 1` (`TopCat.isZero_compactSupportCohomology_sup`), on the empty space
@@ -22,9 +28,20 @@ covers it. This is the induction of Hatcher's Lemma 3.36, for vanishing alone.
 
 ## Main results
 
+* `TopCat.compactSupportCohomologyMapIsoOfHomeomorph`: the isomorphism `Hᵐ_c(Y) ≅ Hᵐ_c(X)`
+  given by pulling back along a homeomorphism `X ≃ₜ Y`.
+* `TopCat.isZero_compactSupportCohomology_iff_of_homeomorph`: vanishing of `Hᵐ_c` is invariant
+  under homeomorphisms.
+* `TopCat.isZero_compactSupportCohomology_comap_iff`: for open sets `W ≤ Y` of `X`, `Hᵐ_c(W)`
+  vanishes exactly when `Hᵐ_c` of `W`, read as an open set of `Y`, does.
 * `TopCat.isZero_compactSupportCohomology_of_infClosed`: vanishing of `Hᵐ_c` above a degree
   passes from the members of an inf-closed family of open sets that covers the space to the
   whole space.
+
+## Implementation notes
+
+`TopCat.isZero_compactSupportCohomology_comap_iff` compares `W` with `W` read as an open set of `Y`
+through Mathlib's homeomorphism `Topology.IsEmbedding.homeomorphOfSubsetRange`.
 
 ## References
 
@@ -47,7 +64,55 @@ namespace TopCat
 variable {C : Type u} [Category.{v} C] [HasCoproducts.{v} C] [Abelian C] (R : C) (k : Type v)
   [Ring k] [Linear k C] (N : C)
 
+/-- A homeomorphism `e : X ≃ₜ Y` induces an isomorphism `Hᵐ_c(Y) ≅ Hᵐ_c(X)`, the pullback along
+`e`, with inverse the pullback along `e.symm`. Unlike Tau Ceti's
+`TopCat.compactSupportCohomologyIsoOfHomeomorph`, the extension along `e` in the opposite
+direction, it assumes neither space Hausdorff. -/
+def compactSupportCohomologyMapIsoOfHomeomorph {X Y : TopCat.{v}} (e : X ≃ₜ Y) (m : ℕ) :
+    Y.compactSupportCohomology R k N m ≅ X.compactSupportCohomology R k N m where
+  hom := compactSupportCohomologyMap (ofHom (e : C(X, Y))) e.isProperMap m
+  inv := compactSupportCohomologyMap (ofHom (e.symm : C(Y, X))) e.symm.isProperMap m
+  hom_inv_id := by
+    have h : ofHom (e.symm : C(Y, X)) ≫ ofHom (e : C(X, Y)) = 𝟙 Y := by ext; simp
+    rw [← compactSupportCohomologyMap_comp]
+    simp only [h, compactSupportCohomologyMap_id]
+  inv_hom_id := by
+    have h : ofHom (e : C(X, Y)) ≫ ofHom (e.symm : C(Y, X)) = 𝟙 X := by ext; simp
+    rw [← compactSupportCohomologyMap_comp]
+    simp only [h, compactSupportCohomologyMap_id]
+
+@[simp]
+lemma compactSupportCohomologyMapIsoOfHomeomorph_hom {X Y : TopCat.{v}} (e : X ≃ₜ Y) (m : ℕ) :
+    (compactSupportCohomologyMapIsoOfHomeomorph R k N e m).hom =
+      compactSupportCohomologyMap (ofHom (e : C(X, Y))) e.isProperMap m :=
+  (rfl)
+
+@[simp]
+lemma compactSupportCohomologyMapIsoOfHomeomorph_inv {X Y : TopCat.{v}} (e : X ≃ₜ Y) (m : ℕ) :
+    (compactSupportCohomologyMapIsoOfHomeomorph R k N e m).inv =
+      compactSupportCohomologyMap (ofHom (e.symm : C(Y, X))) e.symm.isProperMap m :=
+  (rfl)
+
+/-- Cohomology with compact supports vanishes on a space exactly when it vanishes on a homeomorphic
+one, with no separation axiom on either space. -/
+theorem isZero_compactSupportCohomology_iff_of_homeomorph {X Y : TopCat.{v}} (e : X ≃ₜ Y)
+    (m : ℕ) :
+    IsZero (X.compactSupportCohomology R k N m) ↔ IsZero (Y.compactSupportCohomology R k N m) :=
+  ⟨fun h ↦ h.of_iso (compactSupportCohomologyMapIsoOfHomeomorph R k N e m),
+    fun h ↦ h.of_iso (compactSupportCohomologyMapIsoOfHomeomorph R k N e m).symm⟩
+
 variable {X : Type v} [TopologicalSpace X]
+
+/-- Cohomology with compact supports of an open set `W ≤ Y` of `X` vanishes exactly when that of
+`W`, read as an open set of `Y`, does. -/
+theorem isZero_compactSupportCohomology_comap_iff {Y W : Opens X} (hWY : W ≤ Y) (m : ℕ) :
+    IsZero ((of ↥(Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ W :
+        Opens Y)).compactSupportCohomology R k N m) ↔
+      IsZero ((of W).compactSupportCohomology R k N m) :=
+  isZero_compactSupportCohomology_iff_of_homeomorph R k N
+    (X := of ↥(Opens.comap ⟨Subtype.val, continuous_subtypeVal⟩ W : Opens Y)) (Y := of W)
+    (IsEmbedding.subtypeVal.homeomorphOfSubsetRange
+      (Subtype.range_coe.symm ▸ SetLike.coe_subset_coe.2 hWY)) m
 
 /-- **Vanishing of cohomology with compact supports over an inf-closed family of open sets.** Let
 `S` be a family of open sets of a Hausdorff space `X`, closed under intersection, that covers
