@@ -66,7 +66,8 @@ coordinates, in any basis, that are smooth in `t`
 * `SmoothCohomologySplitting.IsSmooth.contMDiff_repr_mk`: the coordinates of the classes of a
   smooth family of closed forms are smooth.
 * `SmoothCohomologySplitting.IsSmooth.ofDiffeomorph`: transport along a diffeomorphism keeps
-  smoothness.
+  smoothness, and `SmoothCohomologySplitting.isSmooth_eqRec_iff`: so does transport along an
+  equality of open sets.
 
 ## References
 
@@ -301,8 +302,9 @@ theorem contMDiff_repr_mk (hσ : σ.IsSmooth.{uE, uH, uN}) {k : ℕ} {ι : Type*
     [IsManifold J ∞ N] {z : N → closedForms I M k}
     (hz : IsSmoothFamily J (fun t ↦ (z t : SmoothForm I M ℝ k))) (i : ι) :
     ContMDiff J 𝓘(ℝ) ∞ (fun t ↦ b.repr (deRhamCohomology.mk I k (z t)) i) := by
-  simpa using (hσ.preservesSmoothFamilies_subtype_comp_projSpace k).contMDiff_dual_apply hz
-    (b.coord i ∘ₗ (σ.spaceEquiv k).toLinearMap)
+  simpa using smoothAlongFamilies_def.1
+    ((hσ.preservesSmoothFamilies_subtype_comp_projSpace k).smoothAlongFamilies_comp
+      (b.coord i ∘ₗ (σ.spaceEquiv k).toLinearMap)) z hz
 
 /-- **Smooth primitives of a family that is exact at some parameters.** Given a smooth splitting,
 let `τ` be a smooth family of `(k + 1)`-forms over a manifold `N` such that `τ t` is exact for
@@ -416,6 +418,14 @@ theorem IsSmooth.ofDiffeomorph (hτ : τ.IsSmooth.{uE, uH, uN}) :
         (by simpa only [closedForms.coe_mpullback] using hα.mpullback _ Φ.symm.contMDiff)
 
 end Diffeomorph
+
+/-- Transport of a splitting along an equality `W = W'` of open sets keeps and reflects
+smoothness. -/
+theorem isSmooth_eqRec_iff {W W' : TopologicalSpace.Opens M} (h : W = W')
+    (σ : SmoothCohomologySplitting I W) :
+    (h ▸ σ : SmoothCohomologySplitting I W').IsSmooth.{uE, uH, uN} ↔ σ.IsSmooth.{uE, uH, uN} := by
+  subst h
+  rfl
 
 end SmoothCohomologySplitting
 

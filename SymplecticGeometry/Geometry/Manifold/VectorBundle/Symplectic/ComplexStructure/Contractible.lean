@@ -7,10 +7,10 @@ module
 
 public import Mathlib.Analysis.Convex.Contractible
 public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
-public import Mathlib.Topology.Homotopy.Affine
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Cayley
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Topology
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
+public import SymplecticGeometry.Topology.Homotopy.Affine
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Map.Topology
 
 /-!
@@ -605,21 +605,11 @@ theorem homotopic_compatibleForm_polarComplexStructure (g : ContMDiffRiemannianM
   let _ := ContMDiffSection.isTopologicalAddGroup_frameTopology (I := I) (n := n) e' U' hU'
   let _ := ContMDiffSection.continuousSMul_frameTopology (I := I) (n := n) e' U' hU'
   let _ := ContMDiffComplexStructure.frameTopology (I := I) (n := n) e U hU
-  have hb : Continuous fun ω : {ω : ContMDiffTwoForm I n F V // ω.IsNondegenerate} ↦
-      ContMDiffComplexStructure.compatibleForm g (ω.property.polarComplexStructure g) :=
-    (ContMDiffComplexStructure.continuous_compatibleForm e U hU e' U' hU' g hcover).comp
-      (continuous_polarComplexStructure e U hU e' U' hU' g hcover')
-  have hl : Continuous fun p : unitInterval × {ω : ContMDiffTwoForm I n F V // ω.IsNondegenerate} ↦
-      AffineMap.lineMap p.2.val (ContMDiffComplexStructure.compatibleForm g
-        (p.2.property.polarComplexStructure g)) (p.1 : ℝ) :=
-    (ContinuousMap.Homotopy.affine ⟨_, continuous_subtypeVal⟩ ⟨_, hb⟩).continuous
-  exact ContinuousMap.Homotopic.symm ⟨{
-    toFun := fun p ↦ ⟨AffineMap.lineMap p.2.val
-      (ContMDiffComplexStructure.compatibleForm g (p.2.property.polarComplexStructure g)) (p.1 : ℝ),
-      (p.2.property.tames_lineMap_compatibleForm g p.1.property).isNondegenerate⟩
-    continuous_toFun := hl.subtype_mk _
-    map_zero_left := fun ω ↦ Subtype.ext (AffineMap.lineMap_apply_zero _ _)
-    map_one_left := fun ω ↦ Subtype.ext (AffineMap.lineMap_apply_one _ _) }⟩
+  refine ContinuousMap.Homotopic.symm ⟨ContinuousMap.Homotopy.affineOfSegmentSubset
+    (s := {ω : ContMDiffTwoForm I n F V | ω.IsNondegenerate}) _ _ fun ω ↦ ?_⟩
+  rw [segment_eq_image_lineMap]
+  rintro _ ⟨t, ht, rfl⟩
+  exact (ω.property.tames_lineMap_compatibleForm g ht).isNondegenerate
 
 /-- For a bundle metric `g`, the map `ω ↦ J_{g,ω}` from the nondegenerate two-forms to the complex
 structures is a homotopy equivalence, for the frame topologies of covering frame systems of the
