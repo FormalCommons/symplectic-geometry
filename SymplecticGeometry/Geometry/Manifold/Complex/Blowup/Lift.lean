@@ -37,8 +37,11 @@ with `v = update w i 1`; Hadamard's lemma gives `ψ z = G z z` with `G` analytic
 * `SymplecticGeometry.BlowupModel.contMDiffOn_liftMap`: so the lift is holomorphic over a set
   `V` on which `ψ` is analytic and vanishes only at `0`, and
   `SymplecticGeometry.BlowupModel.contMDiffOn_liftMap_of_injOn`: over a set `V ∋ 0` on which
-  `ψ` is analytic and injective. Without such a condition the lift is not continuous at a point
-  over another zero of `ψ`; for instance for `ψ z = (1 - z 0) • z`.
+  `ψ` is analytic and injective. Without such a condition the lift may fail to be continuous at a
+  point over another zero of `ψ`. For `n ≥ 1`, take `ψ z = update z 0 (z 0 * (1 - z 0))`: its
+  derivative at `0` is the identity, and it vanishes at `Pi.single 0 1`, where it is a local
+  diffeomorphism, so near that point the line `[ψ z]` depends on the direction of approach. For
+  `n = 0` the lift is always continuous, since `ℙ ℂ E` is then a point.
 
 ## Implementation notes
 
@@ -136,7 +139,7 @@ theorem contMDiffAt_liftMap_zeroSection (hψ : AnalyticAt ℂ ψ 0) (h0 : ψ 0 =
   obtain ⟨i, hi⟩ := exists_mem_affineOpen ℓ
   have hsrc : zeroSection ℓ ∈ (blowupModelChart i).source := by
     rwa [blowupModelChart_source, Set.mem_preimage, pr_zeroSection]
-  refine contMDiffAt_of_contMDiffAt_comp_blowupModelChart_symm hsrc ?_
+  refine (contMDiffAt_iff_contMDiffAt_comp_blowupModelChart_symm hsrc).2 ?_
   set w₀ := blowupModelChart i (zeroSection ℓ)
   -- In the chart `i`, the blowdown is `z w = w i • v w` with `v w = update w i 1`.
   set v : (Fin (n + 1) → ℂ) → Fin (n + 1) → ℂ := fun w => update w i 1 with hv_def

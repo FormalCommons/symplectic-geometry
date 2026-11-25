@@ -278,7 +278,7 @@ in coordinates.
   $\psi(z)=0$, in particular on $Z$. In the chart `i` it is
   $(w)\mapsto([A(z)v],\psi(z))$ with $z=w_iv$, which is analytic at
   $w_i=0$ as well; so `contMDiffOn_liftMap`, over a set on which $\psi$ is
-  analytic and vanishes only at $0$ (another zero of $\psi$ breaks
+  analytic and vanishes only at $0$ (another zero of $\psi$ can break
   continuity). `blowdown_liftMap`:
   $\pi\circ\tilde\psi=\psi\circ\pi$, and `liftMap_zeroSection`.
 - `liftPartialDiffeomorph ψ`: for $\psi$ an analytic `OpenPartialHomeomorph`

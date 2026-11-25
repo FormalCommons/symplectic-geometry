@@ -61,8 +61,8 @@ blowdown is a biholomorphism onto the nonzero vectors of `E`.
   at `p.pr`. Instance search finds `T2Space` and `SecondCountableTopology` from the subspace.
 * `SymplecticGeometry.BlowupModel.contMDiff_iff_forall_contMDiff_comp_blowupModelChart_symm`: a
   map out of the blowup is `C^r` exactly when it is `C^r` read in each chart, and
-  `SymplecticGeometry.BlowupModel.contMDiffAt_of_contMDiffAt_comp_blowupModelChart_symm`: the same
-  at one point.
+  `SymplecticGeometry.BlowupModel.contMDiffAt_iff_contMDiffAt_comp_blowupModelChart_symm`: the
+  same at one point of the source of a chart.
 * `SymplecticGeometry.BlowupModel.contMDiffAt_iff_contMDiffAt_pr_comp_and_blowdown_comp`: a map
   into the blowup is `C^r` at a point, for `r ≥ 1`, exactly when its two projections are.
 * `SymplecticGeometry.BlowupModel.contMDiff_pr`, `SymplecticGeometry.BlowupModel.contMDiff_blowdown`
@@ -464,19 +464,18 @@ theorem contMDiff_blowupModelChart_symm (i : Fin (n + 1)) (r : ℕ∞ω) :
   rw [← contMDiffOn_univ]
   simpa using contMDiffOn_symm_of_mem_maximalAtlas (blowupModelChart_mem_maximalAtlas r i)
 
-/-- A map out of the blowup is `C^r` at a point `p` of the source of the chart `i` if it is `C^r`
-read in that chart, at the image of `p`. -/
-theorem contMDiffAt_of_contMDiffAt_comp_blowupModelChart_symm {F H M : Type*}
+/-- A map out of the blowup is `C^r` at a point `p` of the source of the chart `i` if and only if
+it is `C^r` read in that chart, at the image of `p`. -/
+theorem contMDiffAt_iff_contMDiffAt_comp_blowupModelChart_symm {F H M : Type*}
     [NormedAddCommGroup F] [NormedSpace ℂ F] [TopologicalSpace H] {I : ModelWithCorners ℂ F H}
     [TopologicalSpace M] [ChartedSpace H M] {f : BlowupModel n → M} {r : ℕ∞ω} {p : BlowupModel n}
-    {i : Fin (n + 1)} (hp : p ∈ (blowupModelChart i).source)
-    (hf : ContMDiffAt 𝓘(ℂ, Fin (n + 1) → ℂ) I r (f ∘ (blowupModelChart i).symm)
-      (blowupModelChart i p)) :
-    ContMDiffAt 𝓘(ℂ, Fin (n + 1) → ℂ) I r f p := by
-  have hsrc : (blowupModelChart i).source ∈ 𝓝 p := (blowupModelChart i).open_source.mem_nhds hp
-  refine (hf.comp p ((contMDiffOn_blowupModelChart i r).contMDiffAt hsrc)).congr_of_eventuallyEq ?_
-  filter_upwards [hsrc] with q hq
-  rw [comp_apply, comp_apply, (blowupModelChart i).left_inv hq]
+    {i : Fin (n + 1)} (hp : p ∈ (blowupModelChart i).source) :
+    ContMDiffAt 𝓘(ℂ, Fin (n + 1) → ℂ) I r f p ↔
+      ContMDiffAt 𝓘(ℂ, Fin (n + 1) → ℂ) I r (f ∘ (blowupModelChart i).symm)
+        (blowupModelChart i p) := by
+  rw [← contMDiffWithinAt_univ, contMDiffWithinAt_iff_source_of_mem_maximalAtlas
+    (blowupModelChart_mem_maximalAtlas r i) hp]
+  simp [contMDiffWithinAt_univ]
 
 /-- A map out of the blowup is `C^r` if and only if it is `C^r` read in each chart
 `blowupModelChart i`, that is, composed with the inverse of each chart, a map defined on all of
@@ -488,8 +487,8 @@ theorem contMDiff_iff_forall_contMDiff_comp_blowupModelChart_symm {F H M : Type*
       ∀ i, ContMDiff 𝓘(ℂ, Fin (n + 1) → ℂ) I r (f ∘ (blowupModelChart i).symm) := by
   refine ⟨fun hf i => hf.comp (contMDiff_blowupModelChart_symm i r), fun hf p => ?_⟩
   obtain ⟨i, hi⟩ := exists_mem_affineOpen p.pr
-  exact contMDiffAt_of_contMDiffAt_comp_blowupModelChart_symm (by rwa [blowupModelChart_source])
-    (hf i _)
+  exact (contMDiffAt_iff_contMDiffAt_comp_blowupModelChart_symm
+    (by rwa [blowupModelChart_source])).2 (hf i _)
 
 /-- The projection of the blowup to `ℙ ℂ E` is `C^r` for every `r`; for `r = ω` it is
 holomorphic. -/
