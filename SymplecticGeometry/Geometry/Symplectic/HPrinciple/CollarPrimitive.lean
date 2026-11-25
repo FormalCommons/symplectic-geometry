@@ -19,7 +19,8 @@ collar `attachingCollar m n ε` is the open set of the `(u, v)` with `|‖u‖ -
 
 So a smooth family `τ` of two-forms on `D` whose restriction to the collar is exact for the
 parameters in a set `K` has a smooth family `β` of primitives near `A`: an open `W ⊇ A` with
-`dβ t = τ t` on `W` for `t ∈ K` (`exists_isSmoothFamily_mextDerivₗ_eq_on_attachingCollar`, by
+`dβ t = τ t` on `W` for `t ∈ K`
+(`exists_isSmoothFamily_mextDerivₗ_eq_near_sphere_prod_closedBall`, by
 `exists_isSmoothFamily_mextDerivₗ_eq_on_of_hasFiniteGoodCover`). These are the primitives near
 the attaching faces that McDuff and Salamon's handle-core lemma, Lemma 7.3.2, starts from.
 
@@ -30,7 +31,7 @@ the attaching faces that McDuff and Salamon's handle-core lemma, Lemma 7.3.2, st
 ## Main results
 
 * `SymplecticGeometry.hasFiniteGoodCover_attachingCollar`
-* `SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_on_attachingCollar`
+* `SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_near_sphere_prod_closedBall`
 
 ## References
 
@@ -61,6 +62,7 @@ def attachingCollar : Opens ((Fin m → ℝ) × (Fin n → ℝ)) :=
 variable {m n ε}
 
 /-- Membership in the product collar. -/
+@[simp]
 theorem mem_attachingCollar_iff {p : (Fin m → ℝ) × (Fin n → ℝ)} :
     p ∈ attachingCollar m n ε ↔ |‖p.1‖ - 1| < ε ∧ ‖p.2‖ < 1 + ε :=
   Iff.rfl
@@ -140,7 +142,8 @@ norms, let `τ` be a smooth family of two-forms over a manifold `N` whose restri
 product collar `attachingCollar m n ε`, `0 < ε ≤ 1`, is exact for every parameter in `K`. Then
 there are a smooth family `β` of one-forms on `D` and an open set `W` containing the attaching
 faces `S^{m-1} × D^n` with `dβ t = τ t` on `W` for every `t ∈ K`. -/
-theorem exists_isSmoothFamily_mextDerivₗ_eq_on_attachingCollar (hε₀ : 0 < ε) (hε₁ : ε ≤ 1)
+theorem exists_isSmoothFamily_mextDerivₗ_eq_near_sphere_prod_closedBall (hε₀ : 0 < ε)
+    (hε₁ : ε ≤ 1)
     {τ : N → SmoothTwoForm 𝓘(ℝ, (Fin m → ℝ) × (Fin n → ℝ)) ((Fin m → ℝ) × (Fin n → ℝ))}
     (hτ : IsSmoothFamily J τ) {K : Set N}
     (hK : ∀ t ∈ K, SmoothForm.mpullback (Subtype.val : attachingCollar m n ε → _)

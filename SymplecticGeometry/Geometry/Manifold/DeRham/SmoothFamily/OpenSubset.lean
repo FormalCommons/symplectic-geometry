@@ -25,7 +25,8 @@ primitives on `U` over `K`
 function that vanishes near the complement of `U` and is `1` near `A` cuts these off to forms on
 `M` (`SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq_on_of_mpullback`), whose exterior
 derivatives near `A` are given by Tau Ceti's
-`TauCeti.mextDeriv_extendByZero_smul_apply_of_eventuallyEq_one`.
+`TauCeti.mextDeriv_extendByZero_smul_apply_of_eventuallyEq_one`. This cut-off step adapts the
+proof of Tau Ceti's `TauCeti.exists_eventuallyEq_mextDerivₗ` to smooth families of forms.
 
 ## Main results
 
