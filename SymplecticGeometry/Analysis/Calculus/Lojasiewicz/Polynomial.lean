@@ -97,7 +97,7 @@ private theorem isSemialgebraic_minSet (P : MvPolynomial ι ℝ) (a : ι → ℝ
   exact ⟨fun ⟨h₁, h₂, h₃⟩ w ↦ ⟨⟨h₁, h₂⟩, h₃ w⟩,
     fun h ↦ ⟨(h 0).1.1, (h 0).1.2, fun w ↦ (h w).2⟩⟩
 
-/-- Every value `t ∈ (0, P y - P a]`, for `y` in the closed unit ball around `a`, is a level
+/-- Every value `t ∈ [0, P y - P a]`, for `y` in the closed unit ball around `a`, is a level
 with a minimizer in `minSet P a`. -/
 private theorem exists_sumElim_mem_minSet (P : MvPolynomial ι ℝ) (a y : ι → ℝ)
     (hy : ∑ i, (y i - a i) ^ 2 ≤ 1) {t : ℝ} (ht : t ∈ Icc 0 (eval y P - eval a P)) :
