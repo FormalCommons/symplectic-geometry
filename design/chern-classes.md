@@ -3,7 +3,9 @@
 This is the detailed design of part 33 of `DESIGN.md`, *Chern classes*. It
 settles what `DESIGN.md` leaves to this file: how the Chern classes are
 constructed, how the Euler characteristic formula is proved, and how the part
-is split into issues. The part proves no milestone itself. It gives *Projective
+is split into issues. Its core proves no milestone; its extension (*The
+extension for `auxiliary/first-chern-class.md`*, below) proves *First Chern
+class of a complex vector bundle*. It gives *Projective
 hypersurfaces* (part 34) what the page's milestone *Chern classes of projective
 hypersurfaces* needs: Chern classes $c_k$ of complex vector bundles in integral
 cohomology, with the Whitney sum formula, $c_1$ equal to *First Chern number*'s
@@ -21,7 +23,13 @@ Whitney sum formula without a splitting); J. W. Milnor, J. D. Stasheff,
 $\mathbb CP^n$, the top Chern class as the Euler class); J. Milnor, *Topology
 from the Differentiable Viewpoint*, §6 (Poincaré–Hopf). Only Bott–Tu has a
 key in the plan's `references.bib`; the module docstrings cite the others in
-full, as Tau Ceti does.
+full, as Tau Ceti does. The extension also follows J. R. Munkres,
+*Topology*, 2nd ed., §50 (the covering dimension of a finite union of closed
+sets, and of a compact subset of Euclidean space), and Milnor–Stasheff,
+Lemma 5.9, whose gluing of charts Tau Ceti already has; its normalization of
+$h$ and its value of $c_1(T\mathbb CP^{n-1})$ follow Bott–Tu, §20 and
+Example 21.13, and the Whitney formula for $c_1$ Hatcher [Hatcher2017],
+Theorem 3.2.
 
 All statements about Tau Ceti and Mathlib below were checked against the
 pinned versions, as for `DESIGN.md`. Tau Ceti paths are relative to
@@ -163,12 +171,168 @@ hypersurfaces* is compact. The definition of `chernClass` needs no
 hypothesis: where Leray–Hirsch fails it has the value `0`, and no theorem
 is stated there.
 
+The extension leaves these hypotheses as they are. It concerns only $c_1$,
+in the form `firstChernClass`, and gets the Whitney formula over bases that
+need not be compact from finite trivializing covers, which it builds over
+every finite-dimensional manifold. The classes $c_k$ over such bases would
+need Leray–Hirsch over the same covers, which the plan does not ask for.
+
 ### `FirstChernClass.lean` stays where it is
 
 *First Chern number*'s `Topology/VectorBundle/Complex/FirstChernClass.lean`
 (#784) does not move into `ChernClass/`. Parts 13, 31 and 32 import it, and
 it needs no projective bundle. The file `ChernClass/FirstChernClass.lean`
 proves that $c_1$ equals it, and so the two stay one notion.
+
+### The extension for `auxiliary/first-chern-class.md`
+
+Most of *First Chern class of a complex vector bundle* is merged. What is
+missing is the Whitney formula over a base that is not compact, the value
+of $c_1(T\mathbb CP^{n-1})$, $c_1$ of the tautological line in the form of
+`firstChernClass`, and the page's normalization of $h$ by its value on a
+projective line. The class is *First Chern number*'s `firstChernClass`,
+with values in `H²(B; ULift ℤ)` as everywhere in the library; statements
+that involve $h$ go through `TopCat.uliftIntegralCohomologyIso`, as
+`chernClass_one_eq_firstChernClass` does.
+
+**The milestone.** Each theorem below carries the line *Milestone: First
+Chern class of a complex vector bundle*; together they are the page's
+statement.
+
+- The class: `SymplecticGeometry.Bundle.firstChernClass G E`, defined for a
+  complex vector bundle over any `B : Type` (merged).
+- Naturality: `firstChernClass_pullback` (merged), for every continuous map,
+  so for smooth maps in particular.
+- The Whitney formula: `firstChernClass_prod_of_chartedSpace`, for `B`
+  Hausdorff and σ-compact with `[ChartedSpace H B]` and a model
+  `I : ModelWithCorners ℝ E H` with `[FiniteDimensional ℝ E]`:
+  `firstChernClass (G₁ × G₂) (E₁ ×ᵇ E₂) = firstChernClass G₁ E₁ +
+  firstChernClass G₂ E₂`. No smoothness and no compactness is assumed, and a
+  boundary is allowed, so every smooth manifold of the page is covered. The
+  merged `firstChernClass_prod`, over a compact normal base, stays.
+- Lines: `firstChernClass_eq_complexEulerClass` (merged), over any base.
+- The tautological line:
+  `Projectivization.firstChernClass_tautological`, for a finite-dimensional
+  complex space `V`, `(uliftIntegralCohomologyIso _ 2).hom
+  (firstChernClass ℂ (Tautological ℂ V)) = -hyperplaneClass V`, from
+  `firstChernClass_eq_complexEulerClass` and `hyperplaneClass_def`.
+- The tangent bundle: `Projectivization.firstChernClass_tangentSpace`, on
+  `ℙ ℂ (Fin (m + 1) → ℂ)`, `(uliftIntegralCohomologyIso _ 2).hom
+  (firstChernClass (Fin m → ℂ) (TangentSpace 𝓘(ℂ, Fin m → ℂ))) =
+  ((m + 1 : ℕ) : ℤ) • hyperplaneClass (Fin (m + 1) → ℂ)`, the degree-one part
+  of `totalChernClass_tangentSpace` through
+  `chernClass_one_eq_firstChernClass`. The page's $n\ge2$ is $m\ge1$; the
+  case $m=0$ holds too and is not excluded.
+- The normalization of $h$:
+  `Projectivization.complexManifoldEvalFundamentalClass_map_hyperplaneClass`,
+  for every injective `ι : (Fin 2 → ℂ) →ₗ[ℂ] (Fin (m + 1) → ℂ)`: the
+  pull-back of `hyperplaneClass` along the induced map
+  `ℙ ℂ (Fin 2 → ℂ) → ℙ ℂ (Fin (m + 1) → ℂ)`, evaluated by
+  `complexManifoldEvalFundamentalClass` (the complex orientation), is `1`.
+  With `bijective_zsmul_hyperplaneClass_pow` for `k = 1`, which makes $h$ a
+  generator of $H^2$, this identifies `hyperplaneClass` with the page's $h$.
+  By `hyperplaneClass_map` it reduces to `ι = id`; there a nonzero linear
+  form is a section of `twistCore 1`, whose Euler class is $h$
+  (`complexEulerClass_twistCore_one`), with one zero, at which its
+  derivative is complex linear and invertible, so of index $1$
+  (`sectionIndex_eq_one_of_complexLinear`), and Tau Ceti's
+  `evalFundamentalClass_eulerClass_eq_sum_sectionIndex` adds the indices.
+  This is the argument of `evalFundamentalClass_hyperplaneClass_pow` of
+  *Projective hypersurfaces* for a single linear form.
+
+**Finite trivializing covers.** The Whitney formula over compact bases
+rests on a classifying map of each line to a finite projective space, from
+a fibrewise injection into a trivial bundle; and Tau Ceti's
+`TauCeti.exists_continuous_injective_pi_of_iUnion_baseSet`
+(`Topology/VectorBundle/TrivialEmbedding.lean`) gives such an injection over
+any normal base from finitely many linear trivializations whose base sets
+cover it. So the extension needs one thing: a finite trivializing cover. It
+is recorded as a predicate on bundles,
+`SymplecticGeometry.Bundle.HasFiniteTrivializingCover 𝕜 F E`, that some
+`s : Finset (Trivialization F (π F E))` consists of `𝕜`-linear
+trivializations whose base sets cover `B`. Its sources are compactness and
+dimension:
+
+- over a compact base, finitely many of the `trivializationAt` suffice;
+- given a partition of unity subordinate to the base sets of linear
+  trivializations in which every point lies in the support of at most `N`
+  functions, Tau Ceti's gap trivializations
+  (`PartitionOfUnity.gapTrivialization`,
+  `Topology/FiberBundle/GapTrivialization.lean`, whose base sets cover by
+  `subset_iUnion_gapTrivialization_baseSet`, linear by
+  `isLinear_gapTrivialization` in `Topology/VectorBundle/Countable.lean`)
+  are linear trivializations, one for
+  each size of a set of indices, and those of size above `N` have empty base
+  set (`PartitionOfUnity.subset_finsupport_of_gap_pos`), so the `N` first
+  cover `B`. This is Milnor–Stasheff's Lemma 5.9, with the bound on the
+  order of the cover making the countable family finite;
+- over a Hausdorff σ-compact manifold of dimension `n`, every open cover has
+  a subordinate partition of unity in which every point lies in at most
+  `3 * (n + 1)` supports, by covering dimension (below).
+
+Tau Ceti's `TauCeti.FiniteBundleAtlas.nonempty` needs a compact manifold,
+and its `TauCeti.exists_countable_locallyFinite_trivialization` gives
+countably many trivializations only. Two other routes were set aside:
+integral Čech cocycles of transition functions, which `DESIGN.md`
+(*Departures*) does not build, and a classifying map to an infinite projective
+space, whose cohomology neither library has; a class on a non-compact base
+is not determined by its restrictions to compact subsets, so finite
+projective spaces on compact pieces would not do either.
+
+**Covering dimension.** `SymplecticGeometry.CoveringDimLE K n`, for a set
+`K` of a topological space `X`, says that every finite set of open sets of
+`X` covering `K` has a refinement by a finite set of open sets covering `K`
+in which every point of `K` lies in at most `n + 1` members. It is relative
+to the ambient space, so that it can be checked in a chart and in a closed
+piece without passing to subspaces. Mathlib has only the small
+inductive dimension (`HasSmallInductiveDimensionLT`, in
+`Topology/InductiveDimension/`), with no link to covers and no result on
+Euclidean space, and Tau Ceti adds none. The
+proof that a compact subset of a manifold of dimension `n` satisfies it
+follows Munkres, §50, for finite unions; the Euclidean case is proved by an
+explicit colouring of cubes.
+
+- **Euclidean compacta.** In `Fin n → ℝ` with the sup norm, take a scale
+  $\delta$ smaller than a Lebesgue number of the cover. A point is sorted by
+  the distances $d_1\le\dots\le d_n$ of its coordinates to $\delta\mathbb Z$.
+  With thresholds $0<b_0<a_1<b_1<\dots<a_n<\delta/2$, the point gets colour
+  $c$ when $d_c<a_c$ and $d_{c+1}>b_c$ (with $d_0=-\infty$, $d_{n+1}=\infty$);
+  every point gets some colour. The points of colour $c$ split into open
+  pieces according to which $c$ coordinates are close to $\delta\mathbb Z$,
+  the nearest multiples there and the cells of the others; distinct pieces
+  of one colour are disjoint, and each piece has diameter at most $\delta$.
+  So each point lies in at most $n+1$ pieces. A linear equivalence carries
+  this to any real normed space of dimension $n$.
+- **Finite unions.** If `K₁` and `K₂` are closed and satisfy the bound, so
+  does `K₁ ∪ K₂` (Munkres, Theorem 50.2): first refine so that the order is
+  bounded at the points of `K₁`, by adding the sets `U \ K₁`, then refine
+  again over `K₂` and merge the new sets along a choice of the old set that
+  contains each, which keeps the bound at the points of `K₁`.
+- **Charts.** The bound passes from `f '' K` to `K` along a topological
+  embedding `f`, and between an open subspace and the whole space. A chart
+  followed by `I` embeds its open source into `E`, and a compact subset of a
+  manifold is a finite union of compact subsets of chart sources.
+- **σ-compact spaces.** Let `X` be Hausdorff, locally compact and σ-compact,
+  with every compact set satisfying the bound for `n`. For a compact
+  exhaustion $K_j$, the shell $A_j=K_{j+1}\setminus\operatorname{int}K_j$ is
+  compact and lies in the open set
+  $O_j=\operatorname{int}K_{j+2}\setminus K_{j-1}$. Refine the cover over
+  each $A_j$ by finitely many open subsets of $O_j$; shrinking them first by
+  closures and removing the closed set where more than $n+1$ closures meet,
+  every point of `X`, not only of $A_j$, lies in at most $n+1$ of them. A
+  point lies in at most three of the $O_j$, so the union of these families
+  is locally finite of order at most $3(n+1)$, and a subordinate partition
+  of unity has the same bound.
+
+**Shared with *Poincaré duals of submanifolds*.** The predicate unfolds to
+the hypotheses of Tau Ceti's `TauCeti.thomEquivOfBiUnionEqUniv`: take the
+index type `Trivialization F (π F E)`, the finite set `s`, and
+`W e := e.baseSet`, with `𝕜 = ℝ`. A closed embedded submanifold of a
+Hausdorff σ-compact manifold is again one, so the normal bundle of every
+submanifold that the page considers has a finite trivializing cover by
+`HasFiniteTrivializingCover.of_chartedSpace`, and its Thom isomorphism needs
+no compactness. That part's design says where it uses this, and builds no
+second answer; an issue of it that does waits for issue 23 only.
 
 ## Conventions
 
@@ -774,8 +938,10 @@ model fibres:
 ### `Topology/VectorBundle/Orientation/Complex/Tensor.lean`
 
 - `TauCeti.complexEulerClass_tensorProduct`: for complex line bundles `L`,
-  `L'` over a compact Hausdorff base, the Euler class of `L ⊗ L'` (Tau
-  Ceti's `Topology/VectorBundle/TensorProduct/Basic.lean`) is the sum of
+  `L'` over a normal base, each with a finite trivializing cover (over a
+  compact Hausdorff base until issue 24 generalizes it), the Euler class of
+  `L ⊗ L'` (Tau Ceti's `Topology/VectorBundle/TensorProduct/Basic.lean`) is
+  the sum of
   their Euler classes. Proof: a fibrewise injection into a trivial bundle
   (`TauCeti.weightedTrivializationMap`) gives classifying maps to
   projective spaces, under which `L ⊗ L'` is pulled back from the external
@@ -862,6 +1028,135 @@ with `finrank ℝ E = m + 1` and `o : TauCeti.Manifold.Orientation I M (Fin (m +
 Dimension zero is excluded, as in Tau Ceti's homological orientations; odd
 dimensions are included (both sides vanish).
 
+### Files of the extension
+
+These serve *The extension for `auxiliary/first-chern-class.md`* above.
+Neither Mathlib nor Tau Ceti has a file or folder at these paths.
+
+#### `Topology/CoveringDimension/Basic.lean`
+
+In the namespace `SymplecticGeometry`, for a topological space `X`:
+
+- `CoveringDimLE (K : Set X) (n : ℕ) : Prop`: for every
+  `𝒰 : Finset (Set X)` of open sets with `K ⊆ ⋃₀ 𝒰` there is a
+  `𝒱 : Finset (Set X)` of open sets with `K ⊆ ⋃₀ 𝒱`, each member inside a
+  member of `𝒰`, and `(𝒱.filter (x ∈ ·)).card ≤ n + 1` for every `x ∈ K`;
+  with `coveringDimLE_def`.
+- `CoveringDimLE.mono` (in `n`), `coveringDimLE_empty`,
+  `CoveringDimLE.subset` (to a closed subset), `CoveringDimLE.of_isEmbedding`
+  (from `f '' K` to `K` for a topological embedding `f`) and
+  `coveringDimLE_image_val_iff` (for `K` in an open subspace `S`, the bound
+  in `S` and in `X` agree).
+- `CoveringDimLE.exists_finset_card_le`: in a normal space, for `K` closed
+  with `CoveringDimLE K n`, a finite cover `𝒰` of `K` by open sets and an
+  open `O ⊇ K`, there is a finite set of open subsets of `O`, each inside a
+  member of `𝒰`, covering `K`, with every point of `X` in at most `n + 1`
+  of them (the shrinking step above, with Mathlib's
+  `exists_subset_iUnion_closure_subset`).
+
+#### `Topology/CoveringDimension/Union.lean`
+
+`CoveringDimLE.union`: for closed `K₁` and `K₂` with the bound for `n`, so
+has `K₁ ∪ K₂`; and `CoveringDimLE.biUnion` for a finite family of closed
+sets. Munkres, Theorem 50.2.
+
+#### `Topology/CoveringDimension/Euclidean.lean`
+
+`IsCompact.coveringDimLE_finrank`: in a finite-dimensional real normed
+space `E`, every compact set satisfies `CoveringDimLE K (finrank ℝ E)`, by
+the colouring of cubes above, in `Fin n → ℝ` with the sup norm and then
+through a linear equivalence. The colouring and its properties (open
+pieces, disjoint within a colour, of diameter at most the scale, every point
+coloured) are public lemmas of the file.
+
+#### `Topology/CoveringDimension/SigmaCompact.lean`
+
+`exists_isSubordinate_card_finsupport_le`: in a Hausdorff, locally compact,
+σ-compact space all of whose compact subsets satisfy the bound for `n`,
+every open cover `U : ι → Set X` of `X` has a refinement `c : κ → ι` with a
+partition of unity `ρ : PartitionOfUnity κ X univ` subordinate to `U ∘ c`
+and `(ρ.finsupport x).card ≤ 3 * (n + 1)` for every `x`. The proof takes
+Mathlib's `CompactExhaustion` and the shells above.
+
+#### `Geometry/Manifold/CoveringDimension.lean`
+
+`IsCompact.coveringDimLE_finrank_of_chartedSpace`: for a charted space
+`[ChartedSpace H M]` with a model `I : ModelWithCorners ℝ E H` and
+`[FiniteDimensional ℝ E]`, in a Hausdorff `M`, every compact set satisfies
+`CoveringDimLE K (finrank ℝ E)`: finitely many compact subsets of chart
+sources cover it, each satisfies the bound through the embedding of the
+source into `E` by `I ∘ chartAt`, and `CoveringDimLE.biUnion` puts them
+together.
+
+#### `Topology/VectorBundle/FiniteTrivializingCover.lean`
+
+In the namespace `SymplecticGeometry.Bundle`, for a vector bundle `E` over
+`B` with model `F` over a nontrivially normed field `𝕜`:
+
+- `HasFiniteTrivializingCover 𝕜 F E : Prop`: some
+  `s : Finset (Trivialization F (π F E))` has `e.IsLinear 𝕜` for every
+  `e ∈ s` and `⋃ e ∈ s, e.baseSet = univ`; with
+  `hasFiniteTrivializingCover_def`.
+- `HasFiniteTrivializingCover.of_compactSpace`, from finitely many of the
+  `trivializationAt`.
+- `HasFiniteTrivializingCover.of_card_finsupport_le`: from a partition of
+  unity `ρ` of `univ` subordinate to the base sets of linear
+  trivializations `e : κ → Trivialization F (π F E)`, with
+  `(ρ.finsupport x).card ≤ N` for all `x`, through Tau Ceti's
+  `PartitionOfUnity.gapTrivialization`, as above.
+- `HasFiniteTrivializingCover.exists_continuous_injective_fin`: over a
+  normal base, a fibrewise injection into some `Fin N → 𝕜`, continuous on
+  the total space, from Tau Ceti's
+  `exists_continuous_injective_pi_of_iUnion_baseSet`, as
+  `TauCeti.exists_continuous_injective_fin_of_compactSpace` does it.
+
+#### `Geometry/Manifold/VectorBundle/FiniteTrivializingCover.lean`
+
+`HasFiniteTrivializingCover.of_chartedSpace`: every vector bundle over a
+Hausdorff σ-compact charted space with a finite-dimensional model `I` has a
+finite trivializing cover, from `exists_isSubordinate_card_finsupport_le`
+(applied to the base sets of the `trivializationAt`), the previous file
+and `IsCompact.coveringDimLE_finrank_of_chartedSpace`. Mathlib's instances
+make such a space locally compact, paracompact and normal.
+
+#### The tensor formula over a finite trivializing cover
+
+The merged statements that assume a compact normal base for a classifying
+map are generalized to a normal base and `HasFiniteTrivializingCover`
+hypotheses, and every use is updated:
+`SymplecticGeometry.Bundle.exists_fiberwise_tautological_fin` and
+`exists_complexEulerClass_eq_singularCohomologyMap_tautological`
+(`Topology/VectorBundle/ProjectiveBundle/ClassifyingMap.lean`), and
+`TauCeti.complexEulerClass_tensorProduct`
+(`Topology/VectorBundle/Orientation/Complex/Tensor.lean`), for lines
+`L` and `L'` each with a finite trivializing cover over `ℂ`. The callers
+over compact bases (`firstChernClass_prod`, `chernClass_one_tensorProduct`)
+pass `HasFiniteTrivializingCover.of_compactSpace`.
+
+#### `Geometry/Manifold/VectorBundle/FirstChernClass.lean`
+
+`SymplecticGeometry.Bundle.firstChernClass_prod_of_chartedSpace`, the
+Whitney formula of the milestone, as stated above: the determinant lines of
+`E₁` and `E₂` have finite trivializing covers by
+`HasFiniteTrivializingCover.of_chartedSpace`, so the proof of
+`firstChernClass_prod` (`detCoreProdFiberEquiv` and the tensor formula)
+applies. The issue of this file also adds the milestone line to the
+docstrings of `firstChernClass_pullback` and
+`firstChernClass_eq_complexEulerClass`.
+
+#### `Geometry/Manifold/Projectivization/HyperplaneClass.lean`
+
+`Projectivization.complexManifoldEvalFundamentalClass_map_hyperplaneClass`,
+the normalization of $h$ as stated above. It imports
+`Topology/VectorBundle/Orientation/SectionIndex/ComplexLinear.lean` and
+`Geometry/Manifold/Complex/HomologicalOrientation.lean`.
+
+#### `Geometry/Manifold/Projectivization/ChernClass.lean` (addition)
+
+`Projectivization.firstChernClass_tautological` and
+`Projectivization.firstChernClass_tangentSpace`, as stated above; the file
+then imports `ChernClass/FirstChernClass.lean`.
+
 ## What the part uses
 
 - From *First Chern number*: `firstChernClass` with `firstChernClass_congr`,
@@ -885,7 +1180,14 @@ dimensions are included (both sides vanish).
   indices, the additive cohomology of $\mathbb CP^n$ and its comparison with
   `ℙ ℂ (Fin (n + 1) → ℂ)`, trivial embeddings and complements of bundles,
   tensor products of bundles, `Projectivization.twistCore`, Morse functions
-  and Poincaré–Hopf for their gradients.
+  and Poincaré–Hopf for their gradients; for the extension, its gap
+  trivializations of a partition of unity
+  (`Topology/FiberBundle/GapTrivialization.lean`,
+  `Topology/VectorBundle/Countable.lean`) and its embedding of a bundle with
+  finitely many trivializations into a trivial bundle.
+- From *Projective hypersurfaces*, merged:
+  `sectionIndex_eq_one_of_complexLinear`, only in
+  `Geometry/Manifold/Projectivization/HyperplaneClass.lean`.
 - From Mathlib: `FiberPrebundle`, `VectorBundle`, `Projectivization`,
   `DirectSum.GCommRing`, `Polynomial`.
 
@@ -900,6 +1202,13 @@ and gets $\chi(M)=\langle c_n(TM),[M]\rangle$ from
 of $TM$ (`TauCeti.VectorBundleOrientation.complex`) with the manifold
 orientation `TauCeti.complexManifoldOrientation` belongs to that part's
 design.
+
+*Poincaré duals of submanifolds* can take the Thom isomorphism of a normal
+bundle over a non-compact submanifold from
+`HasFiniteTrivializingCover.of_chartedSpace` and Tau Ceti's
+`thomEquivOfBiUnionEqUniv`. *Complex blowup* computes $c_1$ of a blowup with
+`firstChernClass_prod_of_chartedSpace`, `firstChernClass_pullback`,
+`firstChernClass_tautological` and `firstChernClass_tangentSpace`.
 
 ## Issues
 
@@ -941,3 +1250,35 @@ come before it. Issues 1, 2, 3, 5, 13 and 16 can start at once.
     off if #784 is not merged).
 16. **Euler characteristic formula.**
     `Geometry/Manifold/Orientation/EulerCharacteristic.lean`.
+
+The issues of the extension for `auxiliary/first-chern-class.md` follow.
+Issues 1–16 are merged, so these wait for no part; 17, 22 and 26 can start
+at once.
+
+17. **Covering dimension.** `Topology/CoveringDimension/Basic.lean`.
+18. **Covering dimension of a finite union.**
+    `Topology/CoveringDimension/Union.lean`. Waits for 17.
+19. **Covering dimension of Euclidean compacta.**
+    `Topology/CoveringDimension/Euclidean.lean`. Waits for 17.
+20. **Partitions of unity of bounded order on σ-compact spaces.**
+    `Topology/CoveringDimension/SigmaCompact.lean`. Waits for 17.
+21. **Covering dimension of compact subsets of manifolds.**
+    `Geometry/Manifold/CoveringDimension.lean`. Waits for 18 and 19.
+22. **Finite trivializing covers.**
+    `Topology/VectorBundle/FiniteTrivializingCover.lean`.
+23. **Finite trivializing covers over manifolds.**
+    `Geometry/Manifold/VectorBundle/FiniteTrivializingCover.lean`. Waits for
+    20, 21 and 22.
+24. **The tensor formula over a finite trivializing cover.** The
+    generalization of `ClassifyingMap.lean` and of
+    `complexEulerClass_tensorProduct`, with their uses. Waits for 22.
+25. **The Whitney formula for $c_1$ over manifolds.**
+    `Geometry/Manifold/VectorBundle/FirstChernClass.lean`. Waits for 23 and
+    24.
+26. **$c_1$ on projective space and the normalization of $h$.**
+    `Geometry/Manifold/Projectivization/HyperplaneClass.lean` and the
+    addition to `Geometry/Manifold/Projectivization/ChernClass.lean`.
+
+With 25 and 26 merged the milestone *First Chern class of a complex vector
+bundle* is proved. *Complex blowup*'s `ChernClass.lean` waits for 25 and 26,
+not for the part as a whole.
