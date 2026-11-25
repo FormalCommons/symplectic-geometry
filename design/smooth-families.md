@@ -462,8 +462,7 @@ Named like Tau Ceti's file; in `TauCeti`.
   slices $\alpha_t$ is pulled back along $((t,x),s)\mapsto(t,(x,s))$ on
   $(N\times M')\times[0,1]$, and the homotopy operator of that cylinder has
   the slices $h\alpha_t$ by
-  `homotopyOperator_mpullback_prodMap_id_of_isSmoothForm` applied to the
-  slice inclusions.
+  `SmoothForm.mpullback_homotopyOperator` applied to the slice inclusions.
 - `SymplecticGeometry.preservesSmoothFamilies_homotopyOperator_mpullback`:
   for a smooth `F : M' × Icc 0 1 → M`, a complete coefficient space and a
   submodule `D` of the forms on `M`, the map

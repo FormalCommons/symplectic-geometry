@@ -25,8 +25,8 @@ The proof applies the homotopy operator on a larger cylinder. If the family `t �
 the slices of a smooth form `Ω` on `N × (M' × [0, 1])`, pull `Ω` back along
 `G ((t, x), s) = (t, (x, s))` on `(N × M') × [0, 1]` and apply the homotopy operator in
 the last variable. The slices of the result are the forms `h (ω t)`, because the homotopy
-operator commutes with pullback along the slice inclusions `x ↦ (t, x)`, by Tau Ceti's
-`TauCeti.homotopyOperator_mpullback_prodMap_id_of_isSmoothForm`.
+operator commutes with pullback along the slice inclusions `x ↦ (t, x)`
+(`TauCeti.SmoothForm.mpullback_homotopyOperator`).
 
 ## Main results
 
@@ -87,11 +87,7 @@ theorem IsSmoothFamily.homotopyOperator {EN HN N : Type*} [NormedAddCommGroup EN
     rw [← hΩ t, SmoothForm.mpullback_mpullback]
     -- Both maps are `(x, s) ↦ (t, (x, s))`, by the definition of `G`.
     rfl
-  refine Subtype.ext ?_
-  rw [SmoothForm.coe_mpullback, SmoothForm.coe_homotopyOperator,
-    ← homotopyOperator_mpullback_prodMap_id_of_isSmoothForm (hι.mdifferentiable (by simp))
-      ((SmoothForm.mpullback G hG Ω).isSmoothForm.of_le (by simp)),
-    ← SmoothForm.coe_mpullback _ hιc, hslice, SmoothForm.coe_homotopyOperator]
+  rw [SmoothForm.mpullback_homotopyOperator, hslice]
 
 /-- **The homotopy operator preserves smooth families.** For a smooth map `Φ : M' × [0, 1] → M`
 and a submodule `D` of the smooth `(k + 1)`-forms on `M` with values in a Banach space, the linear

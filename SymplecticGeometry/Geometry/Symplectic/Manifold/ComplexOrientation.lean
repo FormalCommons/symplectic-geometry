@@ -11,6 +11,7 @@ public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.LineB
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
 public import TauCeti.Topology.VectorBundle.Orientation.FiberwiseEquiv
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Dual
 
 /-!
 # The symplectic orientation of a surface is the orientation of a tamed complex structure
@@ -84,8 +85,8 @@ theorem IsNondegenerate.map_fiberEquiv_complex_eq_orientationAt (h : σ.IsNondeg
   set K := J.toContinuousComplexStructure
   -- A nonzero tangent vector `w`, read in the fibre of `K.Fiber`. The tangent space is `E` by
   -- definition, which carries the instances.
-  have : Nontrivial (TangentSpace I x) :=
-    (Module.nontrivial_of_finrank_pos (R := ℝ) (M := E) (by omega) : Nontrivial E)
+  have : Nontrivial E :=
+    Module.nontrivial_of_finrank_pos (R := ℝ) (M := E) (by omega)
   obtain ⟨w, hw⟩ := exists_ne (0 : TangentSpace I x)
   have hw' : (K.fiberEquiv x).symm w ≠ 0 := by simpa using hw
   set e := VectorBundle.toSpanSingletonEquiv ℂ (finrank_self ℂ) _ hw'

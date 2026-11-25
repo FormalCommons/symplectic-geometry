@@ -9,6 +9,7 @@ public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomology
 public import SymplecticGeometry.Geometry.Manifold.Complex.HomologicalOrientation
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.ChernClass
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.LinearSection
+public import TauCeti.Geometry.Manifold.VectorBundle.Section.Module
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
 
 import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
@@ -131,8 +132,7 @@ theorem exists_surjective_linearSection_regular :
     ext x
     rw [ContMDiffSection.affineFamily_apply]
     simp only [ℓ, map_sum, map_smul, ContMDiffSection.coe_zero, Pi.zero_apply, zero_add]
-    rw [← ContMDiffSection.coeAddHom_apply, map_sum, Finset.sum_apply]
-    simp only [ContMDiffSection.coeAddHom_apply, ContMDiffSection.coe_smul, Pi.smul_apply]
+    simp only [ContMDiffSection.coe_sum, Finset.sum_apply, ContMDiffSection.coe_smul, Pi.smul_apply]
   -- The parameters giving a surjective tuple of forms form a nonempty open set.
   have hU : IsOpen {a | Function.Surjective (ℓ a)} := by
     have hc : Continuous fun a ↦ LinearMap.toMatrix' (ℓ a) :=

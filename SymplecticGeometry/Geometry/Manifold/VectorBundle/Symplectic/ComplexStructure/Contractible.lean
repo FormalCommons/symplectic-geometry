@@ -11,6 +11,7 @@ public import Mathlib.Topology.Homotopy.Affine
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Cayley
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Section.Topology
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.ComplexStructure.Basic
+public import TauCeti.Geometry.Manifold.VectorBundle.Section.Map.Topology
 
 /-!
 # Tame and compatible structures and forms on a vector bundle: contractibility and the polar map
@@ -61,9 +62,10 @@ segment and the path are the two homotopies of the equivalence; with two metrics
 * `SymplecticGeometry.Bundle.ContMDiffTwoForm.continuous_polarComplexStructure`,
   `SymplecticGeometry.Bundle.ContMDiffComplexStructure.continuous_compatibleForm`: for a bundle
   metric `g`, the maps `ω ↦ J_{g,ω}` and `J ↦ ω_{g,J}` are continuous for the frame topologies.
-  Both are `ContMDiffSection.fiberwiseMap`s without parameter, of the polar formula at the flat
-  map `Bundle.flatAt` and of the alternating map `Bundle.alternatingMapOfBilin` of
-  `compatibleBilinAt`.
+  The first is a `ContMDiffSection.fiberwiseMap` without parameter, of the polar formula at the
+  flat map `Bundle.flatAt`; the second is Tau Ceti's `ContMDiffSection.map` of the alternating
+  map `Bundle.alternatingMapOfBilin` of `compatibleBilinAt`, continuous by
+  `ContMDiffSection.continuous_map_frameTopology`.
 * `Bundle.ContMDiffComplexStructure.homotopic_polarComplexStructure_compatibleForm`:
   for metrics `g₀` and `g₁`, the map `J ↦ J_{g₁,ω_{g₀,J}}` is homotopic to the identity, along
   the Cayley paths from `J_{g₁,ω_{g₀,J}}` to `J`.
@@ -496,31 +498,24 @@ theorem ContMDiffComplexStructure.continuous_compatibleForm
   have hα (x : M) (B : V x →L[ℝ] V x) (v : V x) : g.compatibleBilinAt x B v v = 0 := by
     simpa using g.isAlt_compatibleBilinAt x B v
   -- The alternating map of `compatibleBilinAt`, on the whole endomorphism bundle.
-  have hΦ : ContMDiffOn (𝓘(ℝ, Unit).prod (I.prod 𝓘(ℝ, F →L[ℝ] F)))
-      (I.prod 𝓘(ℝ, F [⋀^Fin 2]→L[ℝ] ℝ)) n
-      (fun q : Unit × TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x) ↦
+  have hΦ : ContMDiff (I.prod 𝓘(ℝ, F →L[ℝ] F)) (I.prod 𝓘(ℝ, F [⋀^Fin 2]→L[ℝ] ℝ)) n
+      (fun q : TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x) ↦
         TotalSpace.mk' (F [⋀^Fin 2]→L[ℝ] ℝ) (E := fun x ↦ V x [⋀^Fin 2]→L[ℝ] Trivial M ℝ x)
-          q.2.proj (_root_.Bundle.alternatingMapOfBilin F (g.compatibleBilinAt q.2.proj q.2.snd)
-            (hα q.2.proj q.2.snd)))
-      (univ ×ˢ univ) := fun q _ ↦
-    (contMDiffAt_sectionAlong_continuousAlternatingMap_of_bilinear (F₁ := F) (V₁ := V)
-      (G := ℝ) (W := Trivial M ℝ) (IN := 𝓘(ℝ, Unit).prod (I.prod 𝓘(ℝ, F →L[ℝ] F))) (n := n)
-      (y₀ := q)
-      (b := fun q : Unit × TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x) ↦ q.2.proj)
-      (β := fun q ↦ g.compatibleBilinAt q.2.proj q.2.snd)
-      (g.contMDiff_compatibleBilinAt.comp contMDiff_snd).contMDiffAt
-      fun _ v ↦ _root_.Bundle.alternatingMapOfBilin_apply _ _ v).contMDiffWithinAt
-  have hs : Continuous fun J : ContMDiffComplexStructure I n F V ↦
-      (⟨J.toEndomorphism, fun _ ↦ mem_univ _⟩ :
-        {s : Cₛ^n⟮I; F →L[ℝ] F, fun x ↦ V x →L[ℝ] V x⟯ //
-          ∀ x, (⟨x, s x⟩ : TotalSpace (F →L[ℝ] F) fun x ↦ V x →L[ℝ] V x) ∈ univ}) :=
-    (isEmbedding_toEndomorphism_frameTopology e U hU).continuous.subtype_mk _
-  convert (ContMDiffSection.continuous_fiberwiseMap
-    (fun (_ : Unit) x B ↦ _root_.Bundle.alternatingMapOfBilin F (g.compatibleBilinAt x B) (hα x B))
-    hΦ e U hU e' U' hU' isOpen_univ hcover).comp ((continuous_const (y := ())).prodMk hs) using 1
+          q.proj (_root_.Bundle.alternatingMapOfBilin F (g.compatibleBilinAt q.proj q.snd)
+            (hα q.proj q.snd))) := fun q ↦
+    contMDiffAt_sectionAlong_continuousAlternatingMap_of_bilinear (F₁ := F) (V₁ := V)
+      (G := ℝ) (W := Trivial M ℝ) (IN := I.prod 𝓘(ℝ, F →L[ℝ] F)) (n := n) (y₀ := q)
+      (b := fun q : TotalSpace (F →L[ℝ] F) (fun x ↦ V x →L[ℝ] V x) ↦ q.proj)
+      (β := fun q ↦ g.compatibleBilinAt q.proj q.snd)
+      g.contMDiff_compatibleBilinAt.contMDiffAt
+      fun _ v ↦ _root_.Bundle.alternatingMapOfBilin_apply _ _ v
+  convert (ContMDiffSection.continuous_map_frameTopology
+    (fun x B ↦ _root_.Bundle.alternatingMapOfBilin F (g.compatibleBilinAt x B) (hα x B))
+    hΦ e U hU e' U' hU' hcover).comp
+      (isEmbedding_toEndomorphism_frameTopology e U hU).continuous using 1
   funext J
   refine ContMDiffSection.ext fun x ↦ ?_
-  simp only [Function.comp_apply, ContMDiffSection.fiberwiseMap_apply]
+  simp only [Function.comp_apply, ContMDiffSection.map_apply]
   exact compatibleForm_eq_alternatingMapOfBilin g J x
 
 namespace ContMDiffComplexStructure

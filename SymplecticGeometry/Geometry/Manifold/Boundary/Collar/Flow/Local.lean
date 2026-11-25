@@ -14,7 +14,6 @@ public import SymplecticGeometry.Geometry.Manifold.MFDeriv.Chart
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Local
 public import TauCeti.Geometry.Manifold.Boundary.Derivative
 public import TauCeti.Geometry.Manifold.Boundary.Orientation
-public import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 public import TauCeti.Geometry.Manifold.MFDeriv.Curve
 public import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
@@ -26,7 +25,7 @@ public import TauCeti.Geometry.Manifold.VectorField.Regularity
 Let `W` be a manifold modelled on the half-space `𝓡∂ (n + 1)` and `Y` a smooth vector field on
 `W` that points out of `W` along its boundary (`TauCeti.IsOutwardPointingField`). Integral curves
 of `Y` cannot start at a boundary point and go forward, but they can go backward, into the
-interior. This file constructs them near a boundary point `p` and proves that they are unique.
+interior. This file constructs them near a boundary point `p`.
 
 In the extended chart `φ` at `p`, the field `Y` reads as a smooth map on the chart target, a
 relatively open part of the half-space `{y | 0 ≤ y 0}`. Seeley's extension
@@ -53,8 +52,9 @@ hyperplane in place of an immersion; see also Lee, Theorem 9.20. Near that point
 half-space models (`PartialDiffeomorph.isLocalDiffeomorphAt_symm_comp_comp_model`), and in the
 charts of `∂W × [0, ∞)` and `W` this is the map `(x, t) ↦ γ (-t, x)`.
 
-Uniqueness: Tau Ceti's `IsMIntegralCurveOn.eqOn_of_isPreconnected` holds for curves that may meet
-the boundary, so two integral curves of a smooth field on `(-η, 0]` that agree at time `0` agree.
+These curves need no uniqueness result here: Tau Ceti's
+`IsMIntegralCurveOn.eqOn_of_isPreconnected` holds for curves that may meet the boundary, so two
+integral curves of a smooth field on `(-η, 0]` that agree at time `0` agree.
 An integral curve of an outward field stays in the interior at times from which it is defined for
 a while forward, since its velocity there within `[t, ∞)` would be outward, which Tau Ceti's
 `TauCeti.not_isOutwardPointing_curveVelocityWithin_Ici` rules out
@@ -68,8 +68,6 @@ a while forward, since its velocity there within `[t, ∞)` would be outward, wh
   transverse to the boundary hyperplane, out of that hyperplane, is a local diffeomorphism.
 * `TauCeti.exists_isMIntegralCurveOn_of_isOutwardPointing`: integral curves of an outward field
   entering from the boundary near `p`, forming a local diffeomorphism `∂W × [0, η) → W`.
-* `IsMIntegralCurveOn.eqOn_of_isOutwardPointing`: two integral curves of an outward field on
-  `(-η, 0]` that agree at time `0` agree.
 
 ## References
 
@@ -461,18 +459,6 @@ theorem exists_isMIntegralCurveOn_of_isOutwardPointing (hY : IsOutwardPointingFi
     have hsrc := hBΘ _ hq1 _ hnorm
     refine ⟨hq1.1, hsrc, by rw [hΘG _ hsrc, hι _ (hBsrc _ hq1)], hVt (hmemV _ (hBball _ hq1)
       (hB0 _ hq1) _ ⟨by linarith [lt_of_lt_of_le hq2 (min_le_left _ _)], by linarith⟩)⟩
-
-/-- **Uniqueness of integral curves of an outward field.** Two integral curves on `(-η, 0]` of a
-smooth vector field pointing outward along the boundary agree if they agree at time `0`. -/
-theorem _root_.IsMIntegralCurveOn.eqOn_of_isOutwardPointing [T2Space W]
-    (hY : IsOutwardPointingField Y) {γ δ : ℝ → W} {η : ℝ}
-    (hγ : IsMIntegralCurveOn γ Y (Ioc (-η) 0)) (hδ : IsMIntegralCurveOn δ Y (Ioc (-η) 0))
-    (h0 : γ 0 = δ 0) : EqOn γ δ (Ioc (-η) 0) := by
-  rcases le_or_gt η 0 with hη | hη
-  · intro t ht
-    exact absurd (ht.1.trans_le ht.2) (by linarith)
-  exact IsMIntegralCurveOn.eqOn_of_isPreconnected hγ hδ isPreconnected_Ioc ⟨by linarith, le_rfl⟩
-    (fun _ _ ↦ ((isOutwardPointingField_iff.1 hY).1.of_le (by simp)).contMDiffAt) h0
 
 end TauCeti
 

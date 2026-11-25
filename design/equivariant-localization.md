@@ -304,9 +304,9 @@ it gets no name of its own.
 
 For a one-form `θ` with zero Lie derivative along `X`, put
 `s := θ(X)` and `η := formCalculus · · (-ħ • s) (mextDerivₗ θ)`. Then
-`sub_formCalculus_eq_cartanDiff` (for `F 0 = 1`,
+`sub_formCalculus_eq_cartanDiff` (for smooth `G` with `u * G u = 1 - F u`,
 `1 - formCalculus F hF (-ħ • s) (dθ) = cartanDiff X hX ħ (of _ 1 θ * formCalculus G hG (-ħ • s) (dθ))`
-with `G u = (1 - F u) / u`, smooth since `F 0 = 1`), and the localization
+where such a `G` exists when `F 0 = 1`, by Hadamard's lemma), and the localization
 lemma `integralTopForm_formCalculus_mul`: on a compact boundaryless
 manifold of dimension `m`, for `F 0 = 1` and `cartanDiff X hX ħ β = 0`,
 `integralTopForm o ((formCalculus F hF (-ħ • s) (dθ) * β) m) = integralTopForm o (β m)`.

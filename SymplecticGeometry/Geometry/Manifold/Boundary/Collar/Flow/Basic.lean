@@ -11,6 +11,7 @@ public import SymplecticGeometry.Geometry.Manifold.Boundary.Collar.Opens
 public import SymplecticGeometry.Topology.Compactness.SigmaCompact
 public import TauCeti.Geometry.Manifold.Boundary.Collar.Smooth
 public import TauCeti.Geometry.Manifold.Boundary.OutwardExistence
+public import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 
 /-!
@@ -27,7 +28,8 @@ The proof patches the local construction of `Flow/Local.lean`. Near each boundar
 `TauCeti.exists_isMIntegralCurveOn_of_isOutwardPointing` gives the integral curves from an open
 piece of the boundary for some positive time, and their flow map is a local diffeomorphism there.
 Finitely many pieces cover the compact boundary, which gives a common time; the curves of
-overlapping pieces agree by uniqueness (`IsMIntegralCurveOn.eqOn_of_isOutwardPointing`), so the
+overlapping pieces agree by uniqueness (Tau Ceti's `IsMIntegralCurveOn.eqOn_of_isPreconnected`,
+on the interval `(-η, 0]`, for the smooth field `Y`), so the
 patched flow map is a local diffeomorphism on `∂W × [0, η)`. It is the inclusion on `∂W × {0}`,
 so it is injective on an open neighbourhood of `∂W × {0}`
 (`Set.InjOn.exists_isOpen_superset_isLocalDiffeomorphOn`), which by the tube lemma contains a
@@ -113,8 +115,10 @@ private theorem exists_isLocalDiffeomorphOn_of_isOutwardPointing
     rintro ⟨y, r⟩ ⟨hy, hr⟩
     have hr' : -r.val 0 ∈ Ioc (-η₀) 0 :=
       ⟨neg_lt_neg (mem_normalIio.1 hr), neg_nonpos.2 r.property⟩
-    exact IsMIntegralCurveOn.eqOn_of_isOutwardPointing hY ((hγY _ y hy).mono (hsub x))
-      ((hγY _ y (hxi y)).mono (hsub y)) (by simp only [hγ0 _ y hy, hγ0 _ y (hxi y)]) hr'
+    exact IsMIntegralCurveOn.eqOn_of_isPreconnected ((hγY _ y hy).mono (hsub x))
+      ((hγY _ y (hxi y)).mono (hsub y)) isPreconnected_Ioc ⟨by linarith, le_rfl⟩
+      (fun _ _ ↦ ((isOutwardPointingField_iff.1 hY).1.of_le (by simp)).contMDiffAt)
+      (by simp only [hγ0 _ y hy, hγ0 _ y (hxi y)]) hr'
   have hmem : B (i x) ×ˢ normalIio η₀ ∈ 𝓝 (x, s) :=
     ((hBo _).prod (isOpen_normalIio _)).mem_nhds ⟨hxi x, hs⟩
   exact (hγloc (i x) ⟨(x, s), hxi x,

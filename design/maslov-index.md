@@ -228,7 +228,7 @@ and pairs).
   at `U₀` with `unitaryFrame (δ t) = γ t` for all `t`. The proof is that
   `unitaryFrame` is a fibration with fibre $\mathrm{O}(n)$
   (`ℒ.hasHomotopyLiftingProperty_unitaryFrame`), and the lift is Tau Ceti's
-  `TauCeti.HasHomotopyLiftingProperty.exists_path_lift`. Local sections, and with
+  `TauCeti.HasHomotopyLiftingProperty.exists_path_lift_fiber`. Local sections, and with
   them the trivializations of `ℒ.exists_trivialization_unitaryFrame`, come
   from the graph chart `ℒ.graphYChart`: every point of `ℒ ι` is `W • V₁ ι`
   for some unitary `W` (`MulAction.exists_smul_eq`), and on the open set

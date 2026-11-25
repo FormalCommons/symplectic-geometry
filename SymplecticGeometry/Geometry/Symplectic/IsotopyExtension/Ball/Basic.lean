@@ -12,9 +12,9 @@ import SymplecticGeometry.Analysis.Calculus.DifferentialForm.Poincare
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
-import SymplecticGeometry.Topology.MetricSpace.ProperSpace.Lemmas
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
 import TauCeti.Geometry.Symplectic.Manifold.RelativeMoser
+import TauCeti.Topology.MetricSpace.SeparatedBalls
 
 /-!
 # Symplectic embeddings of closed balls
@@ -240,7 +240,7 @@ theorem exists_lt_isSymplecticBallFamily_of_injOn [FiniteDimensional ℝ E] [I.B
   have hVinj (t : unitInterval) : InjOn (fun z ↦ e (t, z)) V := fun x hx y hy h ↦
     congrArg Subtype.val ((hV t).isEmbedding.injective (a₁ := ⟨x, hx⟩) (a₂ := ⟨y, hy⟩) h)
   -- `V` contains a closed ball larger than `B(r₀)`.
-  obtain ⟨r, hr, hsub⟩ := exists_lt_closedBall_subset_of_closedBall_subset V.isOpen hKV
+  obtain ⟨r, hr, hsub⟩ := V.isOpen.exists_gt_closedBall_subset hKV
   exact ⟨r, hr, ⟨V, V.isOpen, hsub, heW.mono (prod_mono subset_rfl hVW)⟩,
     fun t ↦ ⟨⟨V, V.isOpen, hsub, (hslice t).mono hVW⟩, (hVinj t).mono hsub,
       fun z hz ↦ hpull t z (hVW (hsub (ball_subset_closedBall hz)))⟩⟩
@@ -272,7 +272,8 @@ private theorem IsSymplecticBallEmbedding.exists_smoothForm_add_mextDeriv_eq_mpu
   set ω₀ := (stdForm (Fin n)).constSmooth
   obtain ⟨U, hUo, hKU, hjU⟩ := hj.exists_contMDiffOn
   -- A ball `ball 0 r`, `r > r₀`, on which `j` is smooth.
-  obtain ⟨r, hr, hrU⟩ := exists_lt_ball_subset_of_closedBall_subset hUo hKU
+  obtain ⟨r, hr, hrU⟩ := hUo.exists_gt_closedBall_subset hKU
+  replace hrU := ball_subset_closedBall.trans hrU
   -- The flat closed form `j^* σ - ω₀` on that ball, vanishing on `B(r₀)`.
   set γ : StdSpace (Fin n) → StdSpace (Fin n) [⋀^Fin 2]→L[ℝ] ℝ :=
     mpullback 𝓘(ℝ, StdSpace (Fin n)) I j σ.val
@@ -339,9 +340,7 @@ theorem IsSymplecticBallEmbedding.exists_lt_isSymplecticBallEmbedding_eqOn [Fini
     rw [mpullback_comp_at (Φ.contMDiff.mdifferentiable (by simp) z)
       (((hjO _ hzO).contMDiffAt (hOo.mem_nhds hzO)).mdifferentiableAt (by simp)), ← hN z hzN,
       SmoothForm.coe_mpullback]
-    ext v
-    conv_rhs => rw [mpullback_apply, hO _ hzO]
-    rw [mpullback_apply]
+    exact mpullback_apply_congr (hO _ hzO).symm
   have hKW : K ⊆ Φ ⁻¹' O ∩ N := fun z hz ↦ ⟨by rw [mem_preimage, hΦK z hz]; exact hKO hz, hKN hz⟩
   obtain ⟨r, hr, hjΦ⟩ := exists_lt_isSymplecticBallEmbedding_of_injOn
     ((Φ.continuous.isOpen_preimage _ hOo).inter hNo) hKW

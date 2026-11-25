@@ -66,7 +66,7 @@ built from the zero section and a smooth vector of the other factor, is pushed f
 tangent map of a smooth map.
 
 `mfderiv_cylinderMap_time` reads the derivative of the motion on `(0, ∂ₜ)` as a partial
-derivative, by `MDifferentiableAt.mfderiv_curry_right_apply`, as Tau Ceti's
+derivative, by Tau Ceti's `MDifferentiableAt.mfderiv_uncurry_apply_zero_mk`, as Tau Ceti's
 `TauCeti.Diffeotopy.mfderiv_cylinderMap_globalFlowDiffeotopy_time` does for a flow.
 
 For `apply_eq_of_mfderiv_eq_velocity`, no uniqueness theorem for differential equations is
@@ -103,7 +103,8 @@ theorem mfderiv_cylinderMap_time (hn : 1 ≤ n) (p : M × unitInterval) :
   have h : (fun s ↦ Φ.cylinderMap (p.1, s)) = fun s ↦ Φ (s, p.1) :=
     funext fun s ↦ Φ.cylinderMap_apply (p.1, s)
   have hd := Φ.contMDiff_cylinderMap.mdifferentiableAt (x := p) (zero_lt_one.trans_le hn).ne'
-  exact (hd.mfderiv_curry_right_apply _).trans
+  exact (MDifferentiableAt.mfderiv_uncurry_apply_zero_mk (f := fun x s ↦ Φ.cylinderMap (x, s))
+      (x := p.1) (y := p.2) hd _).trans
     (congrArg (fun f ↦ mfderiv (𝓡∂ 1) J f p.2 (1 : TangentSpace (𝓡∂ 1) p.2)) h)
 
 /-- **The velocity of a reparametrization.** If the derivative of `ρ` at `t` sends the unit
@@ -233,7 +234,8 @@ theorem mfderiv_cylinderMap_curve {c : unitInterval → M} {s : unitInterval}
   -- by definition, and that lemma does not rewrite across the identification.
   congr 1
   · exact (hd.mfderiv_curry_left_apply _).symm.trans (Φ.mfderiv_cylinderMap_inl (by simp) _ _)
-  · exact (hd.mfderiv_curry_right_apply _).symm
+  · exact (MDifferentiableAt.mfderiv_uncurry_apply_zero_mk
+      (f := fun x s ↦ Φ.cylinderMap (x, s)) hd _).symm
 
 /-- **The trajectories of a diffeotopy are the solutions of its equation.** A differentiable
 curve `γ` on `[0, 1]` whose velocity at every time `t`, one-sided at the ends, is the velocity

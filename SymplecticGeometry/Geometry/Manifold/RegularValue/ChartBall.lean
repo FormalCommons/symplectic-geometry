@@ -10,8 +10,9 @@ public import TauCeti.Geometry.Manifold.RegularValue
 import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 import Mathlib.Analysis.Normed.Module.Connected
 import Mathlib.Geometry.Manifold.Algebra.LieGroup
-import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import SymplecticGeometry.Topology.OpenPartialHomeomorph.Compact
+import TauCeti.Geometry.Manifold.ContMDiff.ChartCutoff
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import TauCeti.Topology.ConnectedComponents
 import TauCeti.Topology.OpenPartialHomeomorph.Basic
@@ -196,8 +197,8 @@ theorem exists_isRegularValue_image_closedBall [IsManifold 𝓘(ℝ, E) ∞ M]
   have heq : {x | f x = 0} = e.symm '' sphere c ρ := by
     refine hset (· = 0) (fun _ ↦ le_of_eq) _ sphere_subset_closedBall fun y _ ↦ ?_
     rw [mem_sphere, dist_eq_norm, sub_eq_zero, sq_eq_sq₀ (norm_nonneg _) hρ.le]
-  refine ⟨f, contMDiff_const.add (e.contMDiff_indicator_comp he
-    (hφ.sub contDiff_const).contMDiff.contMDiffOn hφc hφs), ?_, hle, hlt, heq⟩
+  refine ⟨f, contMDiff_const.add (e.contMDiff_indicator_comp_extend he (hφ.sub contDiff_const)
+    hφc (by simpa using hφs)), ?_, hle, hlt, heq⟩
   rw [isRegularValue_iff]
   intro x hx
   have hx' : x ∈ e.source ∩ e ⁻¹' sphere c ρ := by
@@ -216,15 +217,10 @@ theorem exists_isRegularValue_image_closedBall [IsManifold 𝓘(ℝ, E) ∞ M]
     have hz2 := hz.2
     rw [mem_preimage, mem_ball, dist_eq_norm] at hz2
     rw [hfs z hz.1, Function.comp_apply, hφeq _ hz2]
-  have he' : IsRegularPoint 𝓘(ℝ, E) 𝓘(ℝ, E) e x := by
-    have := isInvertible_mfderiv_extend
-      (IsManifold.maximalAtlas_subset_of_le (by simp) he) hx'.1
-    rw [e.extend_coe, modelWithCornersSelf_coe, id_comp] at this
-    exact isRegularPoint_iff.2 this.surjective
-  have hreg := (SymplecticGeometry.isRegularPoint_norm_sub_sq_sub (c := c) (y := e x)
-    (fun h0 ↦ by rw [h0, sub_self, norm_zero] at hxc; exact hρ.ne' hxc.symm) (ρ ^ 2)).comp he'
-  rw [isRegularPoint_iff, hev.mfderiv_eq]
-  exact isRegularPoint_iff.1 hreg
+  exact (((e.isLocalDiffeomorphAt_of_mem_maximalAtlas he hx'.1).isRegularPoint_comp_iff
+    (by simp)).2 (SymplecticGeometry.isRegularPoint_norm_sub_sq_sub (c := c) (fun h0 ↦ by
+      rw [h0, sub_self, norm_zero] at hxc; exact hρ.ne' hxc.symm) (ρ ^ 2))).congr_of_eventuallyEq
+    hev
 
 /-- **The complement of a ball in a chart is a regular sublevel set.** Under the hypotheses of
 `exists_isRegularValue_image_closedBall`, there is a smooth function `g : M → ℝ` with regular

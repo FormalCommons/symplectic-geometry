@@ -87,7 +87,7 @@ follows from them and the results above.
 ## Decisions
 
 `DESIGN.md` leaves two questions to this file: the route to connectedness of
-every fibre, and the form of the induction on the torus.
+every fibre, and whether it needs an induction on the torus.
 
 - **The route: local to global, with no induction.** The book's argument
   ([McDuffSalamon2017], pp. 233–240) proves that the levels of a Morse–Bott

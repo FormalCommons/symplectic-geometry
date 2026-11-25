@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.GroupAction.CompactLinearization
+import TauCeti.Topology.OpenPartialHomeomorph.Continuity
 
 /-!
 # Fixed tangent vectors at fixed points of compact group actions
@@ -18,7 +19,9 @@ The proof reads the action in the linearizing chart `e` of Tau Ceti's
 `TauCeti.exists_contMDiff_chart_fixedPoints`, in which the fixed points near `x` are the points
 sent into the invariant vectors of the tangent representation at `x`
 (`TauCeti.mem_invariants_tangentRepresentation_iff_of_mem_fixedPoints`). The points
-`e⁻¹ (ε • v)`, for small real `ε ≠ 0`, are then fixed points other than `x` that tend to `x`.
+`e⁻¹ (ε • v)`, for small real `ε ≠ 0`, are then fixed points other than `x` that tend to `x`,
+since `e⁻¹` maps punctured neighbourhoods of `e x` into those of `x`
+(`OpenPartialHomeomorph.tendsto_symm_nhdsNE`).
 
 ## Main results
 
@@ -66,18 +69,16 @@ theorem frequently_mem_fixedPoints_of_mfderiv_smul_eq_self [ContMDiffSMul IG I n
   have hv' : v ∈ (tangentRepresentation hd).toRepresentation.invariants :=
     (mem_invariants_tangentRepresentation_iff_of_mem_fixedPoints hd hx).2 hfix
   have h0 : (0 : E) ∈ e.target := hex ▸ e.map_source hxe
-  have hx0 : e.symm 0 = x := hex ▸ e.left_inv hxe
   have hcont : Tendsto (fun ε : ℝ ↦ (ε • v : E)) (𝓝 0) (𝓝 0) :=
     Continuous.tendsto' (f := fun ε : ℝ ↦ (ε • v : E)) (by fun_prop) 0 0 (zero_smul ℝ _)
   have htarget : ∀ᶠ ε : ℝ in 𝓝 0, (ε • v : E) ∈ e.target :=
     hcont (e.open_target.mem_nhds h0)
-  have hc : Tendsto (fun ε : ℝ ↦ e.symm (ε • v)) (𝓝[≠] 0) (𝓝[≠] x) := by
-    refine tendsto_nhdsWithin_iff.2 ⟨?_, ?_⟩
-    · exact (hx0 ▸ (e.continuousAt_symm h0).tendsto.comp hcont).mono_left nhdsWithin_le_nhds
-    · filter_upwards [nhdsWithin_le_nhds htarget, self_mem_nhdsWithin] with ε hε hε0 hεx
-      have h := congrArg e hεx
-      rw [e.right_inv hε, hex] at h
-      exact hε0 ((smul_eq_zero.1 h).resolve_right hv)
+  have hsmul : Tendsto (fun ε : ℝ ↦ (ε • v : E)) (𝓝[≠] 0) (𝓝[≠] (e x)) :=
+    hex ▸ tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within _
+      (hcont.mono_left nhdsWithin_le_nhds)
+      (eventually_nhdsWithin_of_forall fun ε hε ↦ smul_ne_zero hε hv)
+  have hc : Tendsto (fun ε : ℝ ↦ e.symm (ε • v)) (𝓝[≠] 0) (𝓝[≠] x) :=
+    (e.tendsto_symm_nhdsNE hxe).comp hsmul
   have hmem : ∀ᶠ ε : ℝ in 𝓝[≠] 0, e.symm (ε • v) ∈ fixedPoints G M := by
     filter_upwards [nhdsWithin_le_nhds htarget] with ε hε
     refine (hfixed _ (e.map_target hε)).2 ?_

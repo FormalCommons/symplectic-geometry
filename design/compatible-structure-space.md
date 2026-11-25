@@ -286,10 +286,11 @@ diffeomorphism. No Mathlib or Tau Ceti notion is redefined.
 
 The self-adjoint counterpart of Tau Ceti's
 `LinearMap.BilinForm.trace_mul_self_nonpos_of_posDef`, which
-`Compatible.trace_mul_self_pos` below needs:
-`LinearMap.BilinForm.trace_mul_self_nonneg_of_posDef` and
-`LinearMap.BilinForm.trace_mul_self_pos_of_posDef`, for an endomorphism
-self-adjoint for a symmetric positive-definite form `B` over an ordered field.
+`Compatible.trace_mul_self_pos` below needs, is Tau Ceti's
+`LinearMap.BilinForm.trace_mul_nonneg_of_isAdjointPair` and
+`LinearMap.BilinForm.trace_mul_eq_zero_iff_of_isAdjointPair`, applied to the
+adjoint pair `(A, A)` of an endomorphism self-adjoint for a symmetric
+positive-definite form `B` over an ordered field.
 
 ### `LinearAlgebra/Symplectic/CompatibleTangent/Basic.lean`
 

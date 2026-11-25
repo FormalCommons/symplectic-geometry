@@ -384,14 +384,6 @@ theorem tubeMap_mk_one_zero (h0 : (0 : E') ∈ U.carrier) :
   rw [tubeMap_mk, one_smul]
   exact e.symm_zero
 
-/-- On representatives, the tube map is the slice map `(g, v) ↦ g • e.symm v`: its composite with
-the projection `G × U → G ×_H U`. -/
-theorem tubeMap_comp_quotientMk :
-    U.tubeMap ∘ Quotient.mk (orbitRel (stabilizer G x) ((stabilizer G x).RightTranslation × U)) =
-      fun p ↦ (stabilizer G x).toRightTranslation.symm p.1 • e.chart.symm ((p.2 : V) : E') :=
-  funext fun p ↦ by
-    rw [comp_apply, BalancedProduct.quotientMk_eq_mk_toRightTranslation, tubeMap_mk]
-
 /-! ### The differential of the tube map at `[1, 0]` -/
 
 section Differential
@@ -432,7 +424,7 @@ theorem mfderiv_tubeMap_mfderiv_quotientMk (hz : (z : V) = 0) (ξ : GroupLieAlge
   have : ContMDiffSMul I I' 1 G M := ContMDiffSMul.of_le (M := M) ENat.LEInfty.out
   have hσ := U.hasMFDerivAt_sliceMap hz
   refine (mfderiv_comp_apply _ hΦ hπ _).symm.trans ?_
-  rw [U.tubeMap_comp_quotientMk]
+  rw [U.tubeMap_def, BalancedProduct.liftRightTranslation_comp_quotientMk]
   -- `(stabilizer G x).RightTranslation` is `G` with the same charts, and `toRightTranslation` is
   -- the identity, so this is the differential of `(g, v) ↦ g • e.symm v` on `G × U` at `(1, z)`.
   refine (mfderiv_smul_slice_apply (σ := U.sliceMap) hσ.mdifferentiableAt ξ v).trans ?_

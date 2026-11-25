@@ -119,6 +119,15 @@ theorem coe_timeExtendSlice (s : ℝ) :
         (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) Ω).val q.2) (s, x) :=
   (rfl)
 
+/-- The value at `x` of `TauCeti.SmoothForm.timeExtendSlice Ω s`, read in the model fibre
+`E [⋀^Fin k]→L[ℝ] F`, is the time extension, at `(s, x)`, of the values of the slices of `Ω`. -/
+theorem timeExtendSlice_apply (s : ℝ) (x : M) :
+    @Eq (E [⋀^Fin k]→L[ℝ] F) ((timeExtendSlice Ω s).val x)
+      (SymplecticGeometry.timeExtend (fun q : unitInterval × M ↦
+        ((mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) Ω).val q.2 :
+          E [⋀^Fin k]→L[ℝ] F)) (s, x)) :=
+  (rfl)
+
 /-- At a time `t ∈ [0, 1]`, the slice of the time extension of `Ω` is the slice of `Ω`. -/
 @[simp]
 theorem timeExtendSlice_coe (t : unitInterval) :
@@ -132,30 +141,23 @@ theorem timeExtendSlice_coe (t : unitInterval) :
 theorem timeExtendSlice_add (s : ℝ) :
     timeExtendSlice (Ω + Θ) s = timeExtendSlice Ω s + timeExtendSlice Θ s := by
   refine Subtype.ext <| funext fun x ↦ ?_
-  have h : (fun q : unitInterval × M ↦
-      ((mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) (Ω + Θ)).val q.2 :
-        E [⋀^Fin k]→L[ℝ] F)) =
-      (fun q ↦ (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) Ω).val q.2) +
-        fun q ↦ (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) Θ).val q.2 := by
-    funext q
-    simp only [map_add, Submodule.coe_add, Pi.add_apply]
-  rw [Submodule.coe_add, Pi.add_apply, coe_timeExtendSlice, coe_timeExtendSlice,
-    coe_timeExtendSlice, h]
-  exact congrFun (SymplecticGeometry.timeExtend_add (F := E [⋀^Fin k]→L[ℝ] F) _ _) (s, x)
+  rw [Submodule.coe_add, Pi.add_apply, timeExtendSlice_apply, timeExtendSlice_apply,
+    timeExtendSlice_apply]
+  refine (SymplecticGeometry.timeExtend_congr (F := E [⋀^Fin k]→L[ℝ] F) (fun t ↦ ?_) s).trans
+    (congrFun (SymplecticGeometry.timeExtend_add _ _) (s, x))
+  -- The slice at `t` of `Ω + Θ` is the sum of those of `Ω` and `Θ`.
+  exact congrArg (fun γ : SmoothForm I M F k ↦ γ.val x) (map_add _ Ω Θ)
 
 /-- The slices of the time extension commute with multiplication by a scalar. -/
 @[simp]
 theorem timeExtendSlice_smul (c : ℝ) (s : ℝ) :
     timeExtendSlice (c • Ω) s = c • timeExtendSlice Ω s := by
   refine Subtype.ext <| funext fun x ↦ ?_
-  have h : (fun q : unitInterval × M ↦
-      ((mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) (c • Ω)).val q.2 :
-        E [⋀^Fin k]→L[ℝ] F)) =
-      c • fun q ↦ (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) Ω).val q.2 := by
-    funext q
-    simp only [map_smul, Submodule.coe_smul, Pi.smul_apply]
-  rw [Submodule.coe_smul, Pi.smul_apply, coe_timeExtendSlice, coe_timeExtendSlice, h]
-  exact congrFun (SymplecticGeometry.timeExtend_smul (F := E [⋀^Fin k]→L[ℝ] F) _ _) (s, x)
+  rw [Submodule.coe_smul, Pi.smul_apply, timeExtendSlice_apply, timeExtendSlice_apply]
+  refine (SymplecticGeometry.timeExtend_congr (F := E [⋀^Fin k]→L[ℝ] F) (fun t ↦ ?_) s).trans
+    (congrFun (SymplecticGeometry.timeExtend_smul c _) (s, x))
+  -- The slice at `t` of `c • Ω` is `c` times that of `Ω`.
+  exact congrArg (fun γ : SmoothForm I M F k ↦ γ.val x) (map_smul _ c Ω)
 
 /-- The slices `TauCeti.SmoothForm.timeExtendSlice Ω s` have a smooth slice section over
 `ℝ × M`. -/
@@ -235,29 +237,19 @@ theorem timeExtendSlice_mpullback_prodMap (hg : ContMDiff I I' ∞ g)
     timeExtendSlice (mpullback (Prod.map id g) (contMDiff_id.prodMap hg) Ω) s =
       mpullback g hg (timeExtendSlice Ω s) := by
   refine Subtype.ext <| funext fun x ↦ ?_
-  set G : unitInterval × M' → E' [⋀^Fin k]→L[ℝ] F := fun q ↦
-    (mpullback (Prod.mk q.1) (contMDiff_const.prodMk contMDiff_id) Ω).val q.2
-  -- Composing with the differential of `g` at `x`, on the values of the forms at `g x`.
-  obtain ⟨L, hL⟩ : ∃ L : (E' [⋀^Fin k]→L[ℝ] F) →ₗ[ℝ] (E [⋀^Fin k]→L[ℝ] F),
-      ∀ φ, L φ = φ.compContinuousLinearMap (mfderiv I I' g x : E →L[ℝ] E') :=
-    ⟨_, ContinuousAlternatingMap.compContinuousLinearMapₗ_apply _⟩
-  rw [coe_timeExtendSlice, coe_mpullback, TauCeti.mpullback_apply_eq_compContinuousLinearMap,
-    coe_timeExtendSlice]
-  refine (SymplecticGeometry.timeExtend_congr (g := L ∘ G ∘ Prod.map id g) (fun t ↦ ?_) s).trans ?_
-  · -- The slice at `t` of the pullback is the pullback of the slice at `t`.
-    have h : mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
-        (mpullback (Prod.map id g) (contMDiff_id.prodMap hg) Ω) =
-          mpullback g hg (mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) Ω) :=
-      mpullback_mpullback_of_comp_eq (contMDiff_const.prodMk contMDiff_id)
-        (contMDiff_id.prodMap hg) hg (contMDiff_const.prodMk contMDiff_id) (by rfl) Ω
-    dsimp only
-    rw [h, coe_mpullback, TauCeti.mpullback_apply_eq_compContinuousLinearMap, Function.comp_apply,
-      Function.comp_apply, hL]
-    -- The two sides agree after unfolding the local abbreviation `G`.
-    rfl
-  · rw [← L.map_timeExtend, SymplecticGeometry.timeExtend_comp_prodMap_id, hL]
-    -- As above, the two sides agree after unfolding `G`.
-    rfl
+  rw [timeExtendSlice_apply, coe_mpullback, TauCeti.mpullback_apply_eq_compContinuousLinearMapCLM,
+    timeExtendSlice_apply]
+  refine (SymplecticGeometry.timeExtend_congr (F := E [⋀^Fin k]→L[ℝ] F) (fun t ↦ ?_) s).trans
+    ((SymplecticGeometry.timeExtend_comp_prodMap_id _ g (s, x)).trans
+      (LinearMap.map_timeExtend (F := E' [⋀^Fin k]→L[ℝ] F) (G := E [⋀^Fin k]→L[ℝ] F)
+        (ContinuousAlternatingMap.compContinuousLinearMapCLM (ι := Fin k) (F := F)
+          (mfderiv I I' g x : E →L[ℝ] E')).toLinearMap _ _).symm)
+  -- The slice at `t` of the pullback is the pullback of the slice at `t`.
+  rw [mpullback_prodMk_mpullback_prodMap' contMDiff_id g hg, coe_mpullback,
+    TauCeti.mpullback_apply_eq_compContinuousLinearMapCLM]
+  -- `ContinuousLinearMap.coe_coe` up to `Function.comp`; `rw` cannot use it, since the two sides
+  -- type the fibres of the forms differently (`TangentSpace` and the model space).
+  rfl
 
 /-- **Naturality of the time extension.** For a smooth map `g : M → M'` and a smooth form `Ω` on
 `unitInterval × M'`, the time extension of the pullback of `Ω` along `id × g` is the pullback
@@ -266,12 +258,13 @@ theorem timeExtend_mpullback_prodMap (hg : ContMDiff I I' ∞ g)
     (Ω : SmoothForm ((𝓡∂ 1).prod I') (unitInterval × M') F k) :
     timeExtend (mpullback (Prod.map id g) (contMDiff_id.prodMap hg) Ω) =
       mpullback (Prod.map id g) (contMDiff_id.prodMap hg) (timeExtend Ω) := by
-  refine Subtype.ext ?_
-  rw [coe_mpullback, timeExtend_def, timeExtend_def, coe_ofSlices, coe_ofSlices,
-    TauCeti.mpullback_prodMap_verticalForm _ mdifferentiable_id (hg.mdifferentiable (by simp))]
+  have h : timeExtendSlice (mpullback (Prod.map id g) (contMDiff_id.prodMap hg) Ω) =
+      fun t ↦ mpullback g hg (timeExtendSlice Ω (id t)) :=
+    funext (timeExtendSlice_mpullback_prodMap hg Ω)
+  have hα := contMDiff_timeExtendSlice (mpullback (Prod.map id g) (contMDiff_id.prodMap hg) Ω)
+  rw [h] at hα
+  rw [timeExtend_def, timeExtend_def, mpullback_prodMap_ofSlices contMDiff_id hg hα]
   congr 1
-  funext t
-  rw [timeExtendSlice_mpullback_prodMap hg, coe_mpullback, id_eq]
 
 end Naturality
 

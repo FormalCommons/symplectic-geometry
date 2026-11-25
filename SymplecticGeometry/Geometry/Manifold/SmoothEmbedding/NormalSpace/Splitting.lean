@@ -15,6 +15,7 @@ import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.VectorBundle.Basic
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.Exact
 import TauCeti.Topology.VectorBundle.Hom
 import TauCeti.Topology.VectorBundle.Section
+import TauCeti.Topology.PartitionOfUnity.Basic
 import SymplecticGeometry.Topology.FiberBundle.Pullback
 import SymplecticGeometry.Topology.VectorBundle.Section
 
@@ -258,7 +259,7 @@ theorem exists_rightInverse_normalClass :
   · -- A combination of right inverses with coefficients of sum one is a right inverse.
     rw [_root_.sum_apply, map_sum, Finset.sum_congr rfl fun i hi ↦ by
       rw [_root_.smul_apply, map_smul,
-        hs i x (hρ i (subset_closure ((ρ.mem_finsupport x).1 hi))) a], ← Finset.sum_smul,
+        hs i x (hρ.mem_of_mem_finsupport hi) a], ← Finset.sum_smul,
       ← RCLike.ofReal_sum, ρ.sum_finsupport (mem_univ x), RCLike.ofReal_one, one_smul]
   refine continuous_iff_continuousAt.2 fun v ↦ ?_
   have hproj := (FiberBundle.continuous_proj V ((f : M → N) *ᵖ (TangentSpace J))).continuousAt

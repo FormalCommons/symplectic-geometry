@@ -171,9 +171,8 @@ theorem exists_contMDiff_mextDeriv_eq_mpullback_prodMk [CompactSpace Q]
     rw [← hψf q] at hd
     have hcomp := mpullback_comp_at (F := F) (k := 1) hψq hΦq
       (SmoothForm.mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id) γ).val
-    ext v
-    rw [mpullback_apply, hd, SmoothForm.coe_mpullback, ← mpullback_apply, ← hcomp,
-      hid.mpullback_eq, mpullback_id]
+    rw [mpullback_apply_congr hd, SmoothForm.coe_mpullback, ← hcomp, hid.mpullback_eq,
+      mpullback_id]
 
 end SmoothEmbedding
 

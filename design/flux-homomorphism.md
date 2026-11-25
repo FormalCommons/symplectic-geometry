@@ -128,8 +128,8 @@ These settle the questions that `DESIGN.md` leaves to this file.
    replace `Φ` by its reparametrization along a smooth transition function
    that is constant near both ends (`reparam`, `reparam_homotopic`,
    `flux_reparam`); then its velocity vanishes near both ends. Take the
-   period-dual forms $\theta_i$ (`periodDualForm`) and symplectic fields
-   $Y_i$ with $\iota_{Y_i}\sigma=\theta_i$
+   period-dual basis classes $\theta_i$ (`periodDualBasis`) and symplectic fields
+   $Y_i$ with $[\iota_{Y_i}\sigma]=\theta_i$
    (`IsNondegenerate.interiorClass_surjective`), complete since `M` is
    compact. Let $g_i(t)$ be the $i$-th class coordinate of
    $\iota_{X_t}\sigma$ and $A_i(t)=\int_0^tg_i$; these are smooth on
@@ -142,7 +142,7 @@ These settle the questions that `DESIGN.md` leaves to this file.
    zero flux, and $\Psi$ is Hamiltonian by Decision 2. Since every
    $A_i(1)=0$, $\theta$ ends at the identity, so $\Psi$ ends where `Φ`
    does. And $\theta$ is homotopic to the constant diffeotopy relative to
-   both ends (`exists_homotopy_orderedGlobalFlowDiffeotopy_mem_diffeomorphStabilizer`),
+   both ends (`orderedGlobalFlowDiffeotopy_homotopic_refl`),
    so `Φ` is homotopic to $\Psi$ (`Homotopic.trans_congr`).
    The homotopy is stated with Tau Ceti's `Diffeotopy.Homotopic`, which
    does not ask that the intermediate maps preserve `σ`. The construction

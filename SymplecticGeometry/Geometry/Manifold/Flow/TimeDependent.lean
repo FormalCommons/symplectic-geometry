@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.MFDeriv.Curve
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 import TauCeti.Geometry.Manifold.Flow.Diffeomorph
+import TauCeti.Geometry.Manifold.VectorField.ModelChart
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod
 
 /-!
@@ -128,9 +129,6 @@ theorem contMDiff_timeDependentFlowOf_param [FiniteDimensional ℝ E] [T2Space M
     ContMDiff ((J.prod (𝓘(ℝ, ℝ).prod 𝓘(ℝ, ℝ))).prod I) I n
       (fun p : (N × ℝ × ℝ) × M ↦ timeDependentFlowOf (X p.1.1) p.1.2.1 p.1.2.2 p.2) := by
   -- The suspensions `(t, x) ↦ (1, X a t x)` form a jointly `C^n` family over `N`.
-  have hclock : ContMDiff 𝓘(ℝ, ℝ) 𝓘(ℝ, ℝ).tangent n
-      (fun s : ℝ ↦ (⟨s, (1 : ℝ)⟩ : TangentBundle 𝓘(ℝ, ℝ) ℝ)) :=
-    contMDiff_vectorSpace_iff_contDiff.2 contDiff_const
   have hS (z : N × ℝ × M) :
       timeDependentSuspensionField (X z.1) z.2 = ((1 : ℝ), X z.1 z.2.1 z.2.2) :=
     Prod.ext (timeDependentSuspensionField_fst _ _) (timeDependentSuspensionField_snd _ _)
@@ -139,7 +137,7 @@ theorem contMDiff_timeDependentFlowOf_param [FiniteDimensional ℝ E] [T2Space M
         TangentBundle (𝓘(ℝ, ℝ).prod I) (ℝ × M))) := by
     simp only [hS]
     exact (contMDiff_equivTangentBundleProd_symm (I := 𝓘(ℝ, ℝ)) (M := ℝ) (I' := I)
-      (M' := M)).comp ((hclock.comp contMDiff_snd.fst).prodMk
+      (M' := M)).comp (((contMDiff_tangentBundle_mk_const (1 : ℝ)).comp contMDiff_snd.fst).prodMk
         (hX.comp ((contMDiff_fst.prodMk contMDiff_snd.fst).prodMk contMDiff_snd.snd)))
   have hmap : ContMDiff ((J.prod (𝓘(ℝ, ℝ).prod 𝓘(ℝ, ℝ))).prod I)
       (J.prod (𝓘(ℝ, ℝ).prod (𝓘(ℝ, ℝ).prod I))) n
@@ -192,12 +190,10 @@ theorem contMDiffAt_timeDependentSuspensionField [IsManifold I 1 M] {n : ℕ∞�
       fun p ↦ ⟨p, ((1 : ℝ), X p.1 p.2)⟩ :=
     funext fun p ↦ congrArg (Bundle.TotalSpace.mk p)
       (Prod.ext (timeDependentSuspensionField_fst _ _) (timeDependentSuspensionField_snd _ _))
-  have hclock : ContMDiff 𝓘(ℝ, ℝ) 𝓘(ℝ, ℝ).tangent n
-      (fun s : ℝ ↦ (⟨s, (1 : ℝ)⟩ : TangentBundle 𝓘(ℝ, ℝ) ℝ)) :=
-    contMDiff_vectorSpace_iff_contDiff.2 contDiff_const
   rw [hs]
   exact (contMDiff_equivTangentBundleProd_symm (I := 𝓘(ℝ, ℝ)) (M := ℝ) (I' := I)
-    (M' := M)).contMDiffAt.comp p ((hclock.comp contMDiff_fst).contMDiffAt.prodMk hX)
+    (M' := M)).contMDiffAt.comp p
+      (((contMDiff_tangentBundle_mk_const (1 : ℝ)).comp contMDiff_fst).contMDiffAt.prodMk hX)
 
 end Suspension
 

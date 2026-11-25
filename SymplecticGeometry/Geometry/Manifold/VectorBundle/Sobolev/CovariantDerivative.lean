@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.FiniteBundleAtlas.CovariantDerivative.Chart
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.LowerOrder
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.TangentHom
+public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ContMDiffSection
 import TauCeti.Analysis.Calculus.FDeriv.ContinuousLinearMap
 import TauCeti.Analysis.Sobolev.Wkp.SmoothCoefficients
@@ -204,9 +204,9 @@ private theorem chartValueL_dataL_ae (w : A.sectionChartData.SobolevData μ p (k
         (∑ a, Wkp.value k (A.sectionChartData.chartDerivDataL μ p k i w a) y •
           finBasis ℝ (E →L[ℝ] F) a) +
         A.chartZeroOrder cov i y (A.sectionChartData.chartValueL μ p (k + 1) i w y) := by
-  have h₀ := (ae_image_tangentHom_iff' A μ i).1
+  have h₀ := (ae_image_tangentHom_iff A μ i).1
     (A.tangentHom.sectionChartData.chartValueL_apply_ae μ p k i (dataL A hcov hcovs μ p k w))
-  have hres := (ae_image_tangentHom_iff' A μ i).1 <| ae_all_iff.2 fun c ↦
+  have hres := (ae_image_tangentHom_iff A μ i).1 <| ae_all_iff.2 fun c ↦
     Wkp.value_restrictL_ae (sectionChartData_image_tangentHom A i).le k
       (chartL A hcov hcovs μ p k i c w)
   have hadd (c : Fin (finrank ℝ (E →L[ℝ] F))) := Wkp.value_add_ae k
@@ -278,7 +278,7 @@ private theorem compatible_dataL (w : SobolevSection A μ p (k + 1)) (i i' : Fin
   have h₆ := (A.sectionChartData.aeTransition_iff.1 hC) (i := i) (i' := i')
     (A.sectionChartData.sum_value_chartDerivDataL_ae_eq_chartDerivL_toOrderOne μ p k i w).symm
   refine (A.tangentHom.sectionChartData.compatible_iff μ p k).2 ?_
-  refine (ae_overlap_tangentHom_iff' A μ i i').2 ?_
+  refine (ae_overlap_tangentHom_iff A μ i i').2 ?_
   filter_upwards [h₁, h₂, h₃,
     chartDerivL_ae_overlap A μ p (A.sectionChartData.toOrderOne μ p k w) i i', h₅, h₆,
     ae_restrict_mem (A.isOpen_overlap i i').measurableSet] with y h₁ h₂ h₃ h₄ h₅ h₆ hy
@@ -287,8 +287,8 @@ private theorem compatible_dataL (w : SobolevSection A μ p (k + 1)) (i i' : Fin
     A.sectionChartData.chartValueL_toOrderOne μ p k w i,
     A.sectionChartData.chartValueL_toOrderOne μ p k w i'] at h₃
   rw [h₅, h₆, A.sectionChartData.chartValueL_toOrderOne μ p k w i] at h₄
-  rw [sectionChartData_transition_tangentHom' A hy,
-    sectionChartData_coordChange_tangentHom_apply' A hy, h₁, h₂]
+  rw [sectionChartData_transition_tangentHom A hy,
+    sectionChartData_coordChange_tangentHom_apply A hy, h₁, h₂]
   exact chartData_overlap_eq A hcov hy h₄ h₃
 
 include hcov in
@@ -363,7 +363,7 @@ theorem lowerOrderL_sobolevL (w : SobolevSection A μ p (k + 1 + 1)) :
     A.tangentHom.sectionChartData.lowerOrderL μ p k (hcov.sobolevL A hcovs μ p (k + 1) w) =
       hcov.sobolevL A hcovs μ p k (A.sectionChartData.lowerOrderL μ p (k + 1) w) := by
   refine SectionChartData.eq_of_chartValueL_ae_eq fun (i : Fin A.n) ↦
-    (ae_image_tangentHom_iff' A μ i).2 ?_
+    (ae_image_tangentHom_iff A μ i).2 ?_
   have hDu := A.sectionChartData.hasWeakFDerivOn_chartValueL_chartDerivDataL μ p (k + 1) i w
   have hlow := A.sectionChartData.chartValueL_coe_lowerOrderL μ p (k + 1) w i
   have hDu' : HasWeakFDerivOn μ (A.image i) (A.sectionChartData.chartValueL μ p (k + 1) i

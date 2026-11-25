@@ -145,8 +145,7 @@ theorem mpullback_localInverse_apply_eq (hf : IsLocalDiffeomorphAt I I' n f x) (
     eventually_of_mem (hf.localInverse.open_target.mem_nhds (hf.localInverse.map_source hy))
       hf.eqOn_localInverse_symm
   rw [← hf.localInverse.mpullback_mpullback_symm_apply hn ω hy]
-  ext v
-  rw [mpullback_apply, mpullback_apply, ← hfω, hf'.mpullback_eq]
+  exact mpullback_apply_congr (hfω.symm.trans (hf'.mpullback_eq ω))
 
 /-- Let `f` be a `C^n` local diffeomorphism at `x`, `n ≠ 0`, whose differential at `x` sends
 `X x` to `Z (f x)`. Then `ι_Z ω` agrees with `ψ` at `f x` exactly when `ι_X (f^* ω)` agrees with

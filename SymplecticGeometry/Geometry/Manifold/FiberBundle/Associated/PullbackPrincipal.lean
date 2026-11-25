@@ -55,6 +55,9 @@ form on `M`.
 * `TauCeti.AssociatedBundle.surjective_totalSpaceMk_mk` and
   `TauCeti.AssociatedBundle.isSubmersion_totalSpaceMk_mk`: `q` is a surjective submersion.
 * `TauCeti.AssociatedBundle.contMDiff_op_smul_inv_smul`: the diagonal action is `C^n`.
+* `TauCeti.AssociatedBundle.contMDiff_totalSpaceMk_mk_left`: for fixed `v`, `x ↦ [x, v]` is
+  `C^n`, and `TauCeti.AssociatedBundle.mfderiv_proj_totalSpaceMk_mk_apply`: composed with the
+  derivative of the projection of `M`, its derivative is that of the projection of `P`.
 * `TauCeti.AssociatedBundle.totalSpaceMk_mk_op_smul_inv_smul` and
   `TauCeti.AssociatedBundle.totalSpaceMk_mk_eq_totalSpaceMk_mk_iff`: `q` is invariant under the
   diagonal action, and its fibres are the orbits.
@@ -90,9 +93,10 @@ second component `g ↦ g⁻¹ • v` has derivative `ξ ↦ -X_ξ(v)` at `1`, b
 The declarations from `pullbackProjSection` to `mfderiv_pullbackProjDiffeomorph_fundamental` take
 `[∀ b, Nonempty (P b)]`. Their statements need it, not only their proofs: Mathlib's and Tau
 Ceti's fibre bundle structure on the pull-back `Q` asks for it, and so does `pullbackEquiv`. A
-caller supplies it with `have := FiberBundle.nonempty_fiber G P`, since `G` is nonempty.
-`isSubmersion_totalSpaceMk_mk` takes it as well. The statements after it do not mention `Q`, and
-their proofs derive the hypothesis in this way.
+caller supplies it with `have := FiberBundle.nonempty_fiber G P`, since `G` is nonempty. The
+statements after them do not mention `Q`. Of these, `isSubmersion_totalSpaceMk_mk` and
+`mfderiv_totalSpaceMk_mk_eq_zero_iff` derive the hypothesis in their proofs in this way; the
+descent theorems reach `Q` only through those two results and need no such step.
 
 The descent does not transport the descent of basic forms on principal bundles along `Φ`: Tau
 Ceti's `TauCeti.RoughForm.isBasic_of_mpullback_eq` applies to `q` directly, with the diagonal
@@ -196,6 +200,55 @@ theorem contMDiff_op_smul_inv_smul [LieGroup IG n G] [ContMDiffSMul IG IF n G F]
       fun x : ManifoldTotalSpace G P × F ↦ (op g • x.1, g⁻¹ • x.2) :=
   ((contMDiff_const_smul (op g)).comp contMDiff_fst).prodMk
     ((ContMDiffSMul.contMDiff_const_smul (I := IG) g⁻¹).comp contMDiff_snd)
+
+variable (n IB IF) in
+/-- For a fixed `v : F`, the map `x ↦ [x, v]` from the total space of `P` to that of the associated
+bundle is `C^n`. -/
+theorem contMDiff_totalSpaceMk_mk_left [ContMDiffSMul IG IF n G F] (v : F) :
+    ContMDiff (IB.prod IG) (IB.prod IF) n fun x : ManifoldTotalSpace G P ↦
+      ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
+        ⟨((ManifoldTotalSpace.homeomorph G P).symm x).proj,
+          mk G ((ManifoldTotalSpace.homeomorph G P).symm x).snd v⟩ :=
+  (contMDiff_totalSpaceMk_mk n G F IB IG IF P).comp (contMDiff_id.prodMk contMDiff_const)
+
+/-- **The projection of `[x, v]` is the projection of `x`, on tangent vectors.** The derivative
+of the projection of the associated bundle at `[x, v]`, composed with that of `x' ↦ [x', v]` at
+`x`, is the derivative of the projection of `P` at `x`, up to the identification
+`tangentSpaceCast` of the tangent spaces of the base at the two equal base points. -/
+theorem mfderiv_proj_totalSpaceMk_mk_apply [ContMDiffSMul IG IF n G F] (hn : n ≠ 0)
+    (x : ManifoldTotalSpace G P) (v : F) (w : TangentSpace (IB.prod IG) x) :
+    mfderiv (IB.prod IG) IB (fun x' : ManifoldTotalSpace G P ↦
+        ((ManifoldTotalSpace.homeomorph G P).symm x').proj) x w =
+      tangentSpaceCast IB
+        ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm
+          (ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
+            ⟨((ManifoldTotalSpace.homeomorph G P).symm x).proj,
+              mk G ((ManifoldTotalSpace.homeomorph G P).symm x).snd v⟩)).proj
+        ((ManifoldTotalSpace.homeomorph G P).symm x).proj
+        (mfderiv (IB.prod IF) IB (fun y : ManifoldTotalSpace F (AssociatedBundle G P F) ↦
+            ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm y).proj)
+          (ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
+            ⟨((ManifoldTotalSpace.homeomorph G P).symm x).proj,
+              mk G ((ManifoldTotalSpace.homeomorph G P).symm x).snd v⟩)
+          (mfderiv (IB.prod IG) (IB.prod IF) (fun x' : ManifoldTotalSpace G P ↦
+              ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
+                ⟨((ManifoldTotalSpace.homeomorph G P).symm x').proj,
+                  mk G ((ManifoldTotalSpace.homeomorph G P).symm x').snd v⟩) x w)) := by
+  have hfun : (fun x' : ManifoldTotalSpace G P ↦
+      ((ManifoldTotalSpace.homeomorph G P).symm x').proj) =ᶠ[nhds x]
+      (fun y : ManifoldTotalSpace F (AssociatedBundle G P F) ↦
+        ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm y).proj) ∘
+      (fun x' : ManifoldTotalSpace G P ↦
+        ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
+          ⟨((ManifoldTotalSpace.homeomorph G P).symm x').proj,
+            mk G ((ManifoldTotalSpace.homeomorph G P).symm x').snd v⟩) :=
+    .of_forall fun x' ↦ by simp
+  rw [hfun.mfderiv_eq, ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
+    mfderiv_comp_apply x
+      ((ManifoldTotalSpace.contMDiff_proj n F (AssociatedBundle G P F) IB IF).mdifferentiableAt
+        hn)
+      ((contMDiff_totalSpaceMk_mk_left n IB IF v).mdifferentiableAt hn)]
+  simp only [Function.comp_apply]
 
 /-- **The fibres of the quotient map are the orbits of the diagonal action**: `[x, v] = [y, w]`
 exactly when `(y, w) = (x · g, g⁻¹ • v)` for some `g : G`. -/
@@ -448,12 +501,13 @@ local notation "Q" => (πM : ManifoldTotalSpace F (AssociatedBundle G P F) → B
 `P` (`1 ≤ n`) with finite-dimensional base and structure group, and a `C^n` action of `G` on a
 finite-dimensional manifold `F`, all without boundary, the map `(x, v) ↦ [x, v]` from `P × F`
 onto `P ×_G F` is a `C^n` submersion. -/
-theorem isSubmersion_totalSpaceMk_mk [∀ b, Nonempty (P b)] (hn : 1 ≤ n) :
+theorem isSubmersion_totalSpaceMk_mk (hn : 1 ≤ n) :
     Manifold.IsSubmersion ((IB.prod IG).prod IF) (IB.prod IF) n
       fun x : ManifoldTotalSpace G P × F ↦
         ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
           ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
             mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩ := by
+  have := FiberBundle.nonempty_fiber G P
   have hn₀ : n ≠ 0 := (zero_lt_one.trans_le hn).ne'
   have : ContMDiffFiberBundle n F (AssociatedBundle G P F) IB IF := contMDiffFiberBundle IG
   -- The quotient map is the projection of `Q` composed with the diffeomorphism `Φ`.
@@ -592,7 +646,6 @@ theorem existsUnique_mpullback_totalSpaceMk_mk_eq [FiniteDimensional ℝ EB] [IB
             ⟨((ManifoldTotalSpace.homeomorph G P).symm x.1).proj,
               mk G ((ManifoldTotalSpace.homeomorph G P).symm x.1).snd x.2⟩)
         (contMDiff_totalSpaceMk_mk ∞ G F IB IG IF P) γ = β := by
-  have := FiberBundle.nonempty_fiber G P
   have hq := isSubmersion_totalSpaceMk_mk (n := ∞) (IB := IB) (IG := IG) (IF := IF) (G := G)
     (F := F) (P := P) ENat.LEInfty.out
   exact ⟨_, SmoothForm.mpullback_descendedForm (hf := hq) (hsurj := surjective_totalSpaceMk_mk)

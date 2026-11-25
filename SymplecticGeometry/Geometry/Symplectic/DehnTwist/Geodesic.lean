@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Diffeomorphism.Sphere
 public import TauCeti.Geometry.Manifold.Diffeomorph.Cotangent
 public import TauCeti.Geometry.Manifold.Riemannian.Sphere.Basic
+public import TauCeti.Geometry.Manifold.Riemannian.Sphere.Geodesic
 public import TauCeti.Geometry.Manifold.VectorBundle.Cotangent.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Riesz
 public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Liouville
@@ -20,7 +21,7 @@ import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.SmulRight
 import TauCeti.Geometry.Manifold.VectorBundle.Cotangent.ModelSpace
 
 /-!
-# Euclidean coordinates on the cotangent bundle of the sphere
+# Euclidean coordinates and the normalized geodesic flow on the cotangent bundle of the sphere
 
 Let `E = ℝⁿ⁺¹` (`EuclideanSpace ℝ (Fin (n + 1))`) and let `Sⁿ ⊆ E` be its unit sphere, with
 Mathlib's manifold structure modelled on `𝓡 n` and Tau Ceti's round metric. A covector `z` at
@@ -28,7 +29,9 @@ Mathlib's manifold structure modelled on `𝓡 n` and Tau Ceti's round metric. A
 `z v = ⟪p, dι v⟫` for every tangent vector `v`, where `ι : Sⁿ → E` is the inclusion: `p` is the
 image in `E` of the metric dual of `z`. This identifies `T*Sⁿ` with the submanifold
 `{(q, p) | ‖q‖ = 1, ⟪q, p⟫ = 0}` of `E × E`, the description of `T*Sⁿ` in which the model Dehn
-twist is written down.
+twist is written down. In these coordinates the file defines the normalized geodesic flow, which
+moves a covector off the zero section at unit speed along the great circle of its base point and
+direction.
 
 ## Main definitions
 
@@ -37,6 +40,8 @@ twist is written down.
 * `SymplecticGeometry.cotangentCoord z`: the pair `(q, p) ∈ E × E` with `p ⊥ q` representing `z`.
 * `SymplecticGeometry.cotangentNorm z`: the norm `‖p‖` of its second coordinate.
 * `SymplecticGeometry.antipodal`: the cotangent lift of the antipodal map of `Sⁿ`.
+* `SymplecticGeometry.geodesicFlow t`: the normalized geodesic flow, the identity on the zero
+  section.
 
 ## Main results
 
@@ -57,6 +62,14 @@ twist is written down.
   `(q, p) ↦ (e q, e p)`; `SymplecticGeometry.cotangentCoord_cotangent_orthogonal` is its case of
   an orthogonal matrix `A`, and
   `SymplecticGeometry.cotangentCoord_antipodal`: `antipodal` acts by `(q, p) ↦ (-q, -p)`.
+* `SymplecticGeometry.cotangentCoord_geodesicFlow`: off the zero section the flow moves `(q, p)` to
+  `(cos t • q + (sin t / ‖p‖) • p, cos t • p - (sin t * ‖p‖) • q)`.
+* `SymplecticGeometry.geodesicFlow_zero`, `SymplecticGeometry.geodesicFlow_add`,
+  `SymplecticGeometry.geodesicFlow_two_pi`: it is a flow, periodic of period `2π`;
+  `SymplecticGeometry.cotangentNorm_geodesicFlow`: it preserves `‖p‖`; and
+  `SymplecticGeometry.geodesicFlow_pi`: off the zero section, its time-`π` map is `antipodal`.
+* `SymplecticGeometry.not_exists_continuous_eqOn_geodesicFlow`: for `0 < t < π` and `n ≥ 1`, no
+  continuous map of `T*Sⁿ` agrees with the time-`t` map off the zero section.
 
 ## Implementation notes
 
@@ -76,10 +89,18 @@ coordinate is the base point read in `E`, so `mpullback_cotangentCoord` is the c
 to `p ∘ (dh_x)⁻¹`; for a linear isometry `e` this is the covector of `e p` at `e q`, with no
 inverse.
 
+The base point of `geodesicFlow t z` is Tau Ceti's great circle `TauCeti.sphereGreatCircle`
+through `q` and `p / ‖p‖`. Every identity about the flow is checked on coordinates, where it
+reduces to the addition formulas for `cos` and `sin`, and transported back by
+`cotangentCoord_injective`. It
+has no continuous extension across the zero section: along the rays `s • u` and `s • (-u)`,
+`s > 0`, at a point `q` with `u ⊥ q`, the base points of the images are constant and differ, while
+both rays tend to the zero covector at `q`.
+
 ## References
 
 * [P. Seidel, *A long exact sequence for symplectic Floer cohomology*][Seidel2003], §1, where the
-  model Dehn twist is written in these coordinates.
+  model Dehn twist is written in these coordinates with the normalized geodesic flow.
 * [V. I. Arnold, *Some remarks on symplectic monodromy of Milnor fibrations*][Arnold1995], one of
   the early sources on twists of `T*Sⁿ`.
 -/
@@ -378,6 +399,171 @@ theorem cotangentCoord_antipodal (z : CotangentBundle (𝓡 n) (𝕊 n)) :
     cotangentCoord (antipodal z) = -cotangentCoord z := by
   rw [antipodal_def, cotangentCoord_cotangent_orthogonal]
   ext <;> simp [Unitary.coe_neg, Matrix.neg_mulVec]
+
+/-- The normalized geodesic flow of `T*Sⁿ`. Off the zero section it moves a covector with
+coordinates `(q, p)` for time `t` along the great circle through `q` in the direction `p / ‖p‖`,
+to the covector with coordinates `(cos t • q + (sin t / ‖p‖) • p, cos t • p - (sin t * ‖p‖) • q)`
+(`cotangentCoord_geodesicFlow`): the geodesic flow of the round metric, reparametrized to unit
+speed on every sphere bundle `{‖p‖ = r}`. On the zero section it is the identity. -/
+def geodesicFlow (t : ℝ) (z : CotangentBundle (𝓡 n) (𝕊 n)) : CotangentBundle (𝓡 n) (𝕊 n) :=
+  if hz : cotangentNorm z = 0 then z else
+    cotangentMk (sphereGreatCircle z.proj
+      (⟨‖(cotangentCoord z).2‖⁻¹ • (cotangentCoord z).2,
+        mem_sphere_zero_iff_norm.2 (norm_smul_inv_norm (𝕜 := ℝ)
+          (norm_ne_zero_iff.1 ((cotangentNorm_def z).symm.trans_ne hz)))⟩ : 𝕊 n)
+      ((real_inner_smul_right _ _ _).trans
+        (mul_eq_zero_of_right _ (inner_proj_cotangentCoord_snd z))) t)
+      (Real.cos t • (cotangentCoord z).2 - (Real.sin t * cotangentNorm z) • (z.proj : 𝔼 n))
+
+theorem geodesicFlow_def (t : ℝ) (z : CotangentBundle (𝓡 n) (𝕊 n)) :
+    geodesicFlow t z = (if hz : cotangentNorm z = 0 then z else
+      cotangentMk (sphereGreatCircle z.proj
+        (⟨‖(cotangentCoord z).2‖⁻¹ • (cotangentCoord z).2,
+          mem_sphere_zero_iff_norm.2 (norm_smul_inv_norm (𝕜 := ℝ)
+            (norm_ne_zero_iff.1 ((cotangentNorm_def z).symm.trans_ne hz)))⟩ : 𝕊 n)
+        ((real_inner_smul_right _ _ _).trans
+          (mul_eq_zero_of_right _ (inner_proj_cotangentCoord_snd z))) t)
+        (Real.cos t • (cotangentCoord z).2 - (Real.sin t * cotangentNorm z) • (z.proj : 𝔼 n)) :
+          CotangentBundle (𝓡 n) (𝕊 n)) :=
+  (rfl)
+
+/-- The normalized geodesic flow fixes the zero section. -/
+theorem geodesicFlow_of_cotangentNorm_eq_zero {z : CotangentBundle (𝓡 n) (𝕊 n)}
+    (hz : cotangentNorm z = 0) (t : ℝ) : geodesicFlow t z = z := by
+  rw [geodesicFlow_def, dite_eq_left hz]
+
+/-- Off the zero section, the normalized geodesic flow moves `(q, p)` to
+`(cos t • q + (sin t / ‖p‖) • p, cos t • p - (sin t * ‖p‖) • q)`. -/
+theorem cotangentCoord_geodesicFlow {z : CotangentBundle (𝓡 n) (𝕊 n)}
+    (hz : cotangentNorm z ≠ 0) (t : ℝ) :
+    cotangentCoord (geodesicFlow t z) =
+      (Real.cos t • (cotangentCoord z).1 + (Real.sin t / ‖(cotangentCoord z).2‖) •
+          (cotangentCoord z).2,
+        Real.cos t • (cotangentCoord z).2 -
+          (Real.sin t * ‖(cotangentCoord z).2‖) • (cotangentCoord z).1) := by
+  have hN : ‖(cotangentCoord z).2‖ ≠ 0 := (cotangentNorm_def z).symm.trans_ne hz
+  have hqq : ⟪(z.proj : 𝔼 n), (z.proj : 𝔼 n)⟫_ℝ = 1 := by
+    rw [real_inner_self_eq_norm_sq, norm_eq_of_mem_sphere, one_pow]
+  have hpp : ⟪(cotangentCoord z).2, (cotangentCoord z).2⟫_ℝ = ‖(cotangentCoord z).2‖ ^ 2 :=
+    real_inner_self_eq_norm_sq _
+  have hpq : ⟪(cotangentCoord z).2, (z.proj : 𝔼 n)⟫_ℝ = 0 := by
+    rw [real_inner_comm, inner_proj_cotangentCoord_snd]
+  rw [geodesicFlow_def, dite_eq_right hz, cotangentCoord_cotangentMk, coe_sphereGreatCircle,
+    Subtype.coe_mk, smul_smul, cotangentNorm_def, cotangentCoord_fst, ← div_eq_mul_inv]
+  refine Prod.ext rfl ?_
+  have h0 : ⟪Real.cos t • (z.proj : 𝔼 n) +
+        (Real.sin t / ‖(cotangentCoord z).2‖) • (cotangentCoord z).2,
+      Real.cos t • (cotangentCoord z).2 -
+        (Real.sin t * ‖(cotangentCoord z).2‖) • (z.proj : 𝔼 n)⟫_ℝ = 0 := by
+    simp only [inner_add_left, inner_sub_right, real_inner_smul_left, real_inner_smul_right, hqq,
+      hpp, hpq, inner_proj_cotangentCoord_snd]
+    field_simp
+    ring
+  rw [h0, zero_smul, sub_zero]
+
+/-- The normalized geodesic flow preserves the norm `‖p‖`. -/
+@[simp]
+theorem cotangentNorm_geodesicFlow (t : ℝ) (z : CotangentBundle (𝓡 n) (𝕊 n)) :
+    cotangentNorm (geodesicFlow t z) = cotangentNorm z := by
+  by_cases hz : cotangentNorm z = 0
+  · rw [geodesicFlow_of_cotangentNorm_eq_zero hz]
+  have hpq : ⟪(cotangentCoord z).2, (z.proj : 𝔼 n)⟫_ℝ = 0 := by
+    rw [real_inner_comm, inner_proj_cotangentCoord_snd]
+  rw [cotangentNorm_def, cotangentCoord_geodesicFlow hz, cotangentNorm_def, cotangentCoord_fst]
+  refine (sq_eq_sq₀ (norm_nonneg _) (norm_nonneg _)).1 ?_
+  rw [norm_sub_sq_real, norm_smul, norm_smul, real_inner_smul_left, real_inner_smul_right, hpq,
+    norm_eq_of_mem_sphere, Real.norm_eq_abs, Real.norm_eq_abs, mul_pow, mul_pow, sq_abs, sq_abs]
+  linear_combination ‖(cotangentCoord z).2‖ ^ 2 * Real.cos_sq_add_sin_sq t
+
+/-- At time `0` the normalized geodesic flow is the identity. -/
+@[simp]
+theorem geodesicFlow_zero (z : CotangentBundle (𝓡 n) (𝕊 n)) : geodesicFlow 0 z = z := by
+  by_cases hz : cotangentNorm z = 0
+  · exact geodesicFlow_of_cotangentNorm_eq_zero hz 0
+  refine cotangentCoord_injective ?_
+  rw [cotangentCoord_geodesicFlow hz]
+  ext <;> simp
+
+/-- The flow property of the normalized geodesic flow. -/
+theorem geodesicFlow_add (s t : ℝ) (z : CotangentBundle (𝓡 n) (𝕊 n)) :
+    geodesicFlow (s + t) z = geodesicFlow s (geodesicFlow t z) := by
+  by_cases hz : cotangentNorm z = 0
+  · simp only [geodesicFlow_of_cotangentNorm_eq_zero hz]
+  have hz' : cotangentNorm (geodesicFlow t z) ≠ 0 := by rwa [cotangentNorm_geodesicFlow]
+  have hN : ‖(cotangentCoord z).2‖ ≠ 0 := (cotangentNorm_def z).symm.trans_ne hz
+  refine cotangentCoord_injective ?_
+  have hnorm : ‖(cotangentCoord (geodesicFlow t z)).2‖ = ‖(cotangentCoord z).2‖ := by
+    rw [← cotangentNorm_def, ← cotangentNorm_def, cotangentNorm_geodesicFlow]
+  rw [cotangentCoord_geodesicFlow hz', hnorm, cotangentCoord_geodesicFlow hz,
+    cotangentCoord_geodesicFlow hz, Real.cos_add, Real.sin_add]
+  ext1 <;> dsimp only <;> match_scalars <;> field_simp <;> ring
+
+/-- After time `2π` the normalized geodesic flow returns every covector to itself. -/
+@[simp]
+theorem geodesicFlow_two_pi (z : CotangentBundle (𝓡 n) (𝕊 n)) :
+    geodesicFlow (2 * Real.pi) z = z := by
+  by_cases hz : cotangentNorm z = 0
+  · exact geodesicFlow_of_cotangentNorm_eq_zero hz _
+  refine cotangentCoord_injective ?_
+  rw [cotangentCoord_geodesicFlow hz]
+  ext <;> simp
+
+/-- Off the zero section, after time `π` the normalized geodesic flow is the antipodal map. -/
+theorem geodesicFlow_pi {z : CotangentBundle (𝓡 n) (𝕊 n)} (hz : cotangentNorm z ≠ 0) :
+    geodesicFlow Real.pi z = antipodal z := by
+  refine cotangentCoord_injective ?_
+  rw [cotangentCoord_geodesicFlow hz, cotangentCoord_antipodal]
+  ext1 <;> simp
+
+/-- For `0 < t < π` the normalized geodesic flow at time `t` has no continuous extension across
+the zero section of `T*Sⁿ`, `n ≥ 1`: covectors `± s • u` at `q`, with `u ⊥ q` and `s → 0⁺`, all
+tend to the zero covector at `q`, while their images have the distinct base points
+`cos t • q ± (sin t / ‖u‖) • u`. -/
+theorem not_exists_continuous_eqOn_geodesicFlow [NeZero n] {t : ℝ} (ht₀ : 0 < t)
+    (ht : t < Real.pi) :
+    ¬ ∃ g : CotangentBundle (𝓡 n) (𝕊 n) → CotangentBundle (𝓡 n) (𝕊 n), Continuous g ∧
+      ∀ z, cotangentNorm z ≠ 0 → g z = geodesicFlow t z := by
+  rintro ⟨g, hg, hgz⟩
+  -- a point `q` of the sphere and a nonzero `u ⊥ q`, which exists since `n ≥ 1`
+  let q : 𝕊 n := ⟨EuclideanSpace.single 0 1, by simp⟩
+  have hq : (q : 𝔼 n) ≠ 0 := ne_zero_of_mem_unit_sphere q
+  have : Fact (Module.finrank ℝ (𝔼 n) = n + 1) := ⟨finrank_euclideanSpace_fin⟩
+  have hbot : (ℝ ∙ (q : 𝔼 n))ᗮ ≠ ⊥ := by
+    rw [Ne, ← Submodule.finrank_eq_zero (R := ℝ),
+      Submodule.finrank_orthogonal_span_singleton (n := n) hq]
+    exact NeZero.ne n
+  obtain ⟨u, hu_mem, hu⟩ := Submodule.exists_mem_ne_zero_of_ne_bot hbot
+  have hqu : ⟪(q : 𝔼 n), u⟫_ℝ = 0 := Submodule.mem_orthogonal_singleton_iff_inner_right.1 hu_mem
+  -- along the ray `s • v`, `s > 0`, the base point of `g` is constant, hence also at `s = 0`
+  have key (v : 𝔼 n) (hv : v ≠ 0) (hqv : ⟪(q : 𝔼 n), v⟫_ℝ = 0) :
+      ((g (cotangentMk q 0)).proj : 𝔼 n) = Real.cos t • (q : 𝔼 n) + (Real.sin t / ‖v‖) • v := by
+    have hf : Continuous fun s : ℝ ↦ ((g (cotangentMk q (s • v))).proj : 𝔼 n) :=
+      continuous_subtypeVal.comp (FiberBundle.continuous_proj _ _ |>.comp
+        (hg.comp ((contMDiff_cotangentMk.continuous.comp
+          (continuous_const.prodMk (continuous_id.smul continuous_const))))))
+    have hsub : Ioi (0 : ℝ) ⊆ {s | ((g (cotangentMk q (s • v))).proj : 𝔼 n) =
+        Real.cos t • (q : 𝔼 n) + (Real.sin t / ‖v‖) • v} := fun s (hs : 0 < s) ↦ by
+      have hcoord : cotangentCoord (cotangentMk q (s • v)) = ((q : 𝔼 n), s • v) := by
+        rw [cotangentCoord_cotangentMk, real_inner_smul_right, hqv, mul_zero, zero_smul, sub_zero]
+      have hnorm : ‖s • v‖ = s * ‖v‖ := by rw [norm_smul, Real.norm_of_nonneg hs.le]
+      have hz : cotangentNorm (cotangentMk q (s • v)) ≠ 0 := by
+        rw [cotangentNorm_def, hcoord, hnorm]
+        exact mul_ne_zero hs.ne' (norm_ne_zero_iff.2 hv)
+      rw [mem_ofPred_eq, hgz _ hz, ← cotangentCoord_fst, cotangentCoord_geodesicFlow hz, hcoord,
+        hnorm, smul_smul]
+      field_simp
+    have h0 := (isClosed_eq hf continuous_const).closure_subset_iff.2 hsub
+      (by rw [closure_Ioi]; exact self_mem_Ici)
+    simpa using h0
+  have h := (key u hu hqu).symm.trans (key (-u) (neg_ne_zero.2 hu) (by rw [inner_neg_right, hqu,
+    neg_zero]))
+  rw [norm_neg, smul_neg, add_right_inj, ← sub_eq_zero, sub_neg_eq_add, ← two_smul ℝ,
+    smul_smul, smul_eq_zero] at h
+  have hsin := Real.sin_pos_of_pos_of_lt_pi ht₀ ht
+  have hu' := norm_pos_iff.2 hu
+  rcases h with h | h
+  · exact (mul_pos two_pos (div_pos hsin hu')).ne' h
+  · exact hu h
 
 end SymplecticGeometry
 

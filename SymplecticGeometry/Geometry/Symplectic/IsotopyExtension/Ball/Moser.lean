@@ -10,9 +10,9 @@ import SymplecticGeometry.Geometry.Manifold.ContMDiff.Opens
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Poincare
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 import SymplecticGeometry.Geometry.Symplectic.Moser.Family
-import SymplecticGeometry.Topology.MetricSpace.ProperSpace.Lemmas
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Symplectic.Manifold.Opens
+import TauCeti.Topology.MetricSpace.SeparatedBalls
 
 /-!
 # Moser's correction of a family of balls
@@ -215,9 +215,9 @@ theorem exists_isSymplecticBallFamily_eqOn_of_mpullback_eq
       (∀ z, k' (0, z) = k (0, z)) ∧ ∀ z, k' (1, z) = k (1, z) := by
   set ω₀ := (stdForm (Fin n)).constSmooth
   -- An open ball `B ⊇ B(r₀)` inside `U`.
-  obtain ⟨ρ, hρ, hρU⟩ := exists_lt_ball_subset_of_closedBall_subset hU hKU
+  obtain ⟨ρ, hρ, hρU⟩ := hU.exists_gt_closedBall_subset hKU
   set B : Opens (StdSpace (Fin n)) := ⟨ball 0 ρ, isOpen_ball⟩
-  have hBU : (B : Set (StdSpace (Fin n))) ⊆ U := hρU
+  have hBU : (B : Set (StdSpace (Fin n))) ⊆ U := ball_subset_closedBall.trans hρU
   have hKB : closedBall (0 : StdSpace (Fin n)) r₀ ⊆ B := closedBall_subset_ball hρ
   -- The family `k` on `[0, 1] × B`.
   set κ : unitInterval × B → M := fun p ↦ k (p.1, p.2)

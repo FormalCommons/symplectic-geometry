@@ -298,7 +298,9 @@ private theorem exists_partialDiffeomorph_of_uniformInverse (he : ContMDiff I �
     refine isLocalDiffeomorphAt_orthogonalProjectionOnto_sub V (e x) (by simp) he ?_ hdim.symm
     -- Read in the chart, the differential is injective by `hmain`.
     obtain ⟨Lc, hLc⟩ := isInvertible_mfderiv_extChartAt hz.1
-    have hD := mvfderiv_eq_fderiv_comp_mfderiv_extChartAt hz.1 (hgd z hz)
+    -- Tau Ceti's equation is about `mfderiv`; the ascription reads it as one about `mvfderiv`.
+    have hD : mvfderiv I e z = _ :=
+      TauCeti.mfderiv_eq_fderiv_comp_mfderiv_extChartAt hz.1 (hgd z hz)
     intro a b hab
     have hPa : ∀ a', S ((V.orthogonalProjectionOnto ∘L mvfderiv I e z) a' : F) =
         S (Q' (fderiv ℝ (e ∘ c.symm) (c z) (mfderiv I 𝓘(ℝ, E) c z a'))) := fun a' ↦ by

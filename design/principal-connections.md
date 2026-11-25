@@ -166,16 +166,15 @@ diffeomorphism $\Phi$ above).
 
 ### `Geometry/Lie/MaurerCartan.lean`
 
-Tau Ceti has only the Maurer–Cartan form evaluated on a vector field
+Tau Ceti has the Maurer–Cartan form evaluated on a vector field
 (`TauCeti.leftMaurerCartanEval`, `Geometry/Lie/InvariantVectorField/Basic.lean`).
-This file makes it a form.
+This file names it as a form.
 
 - `leftMaurerCartanForm IG G : SmoothForm IG G (GroupLieAlgebra IG G) 1`,
   whose value at $g$ on $v$ is
   `mfderiv IG IG (fun h ↦ g⁻¹ * h) g v` (`leftMaurerCartanForm_apply`).
-  Its smoothness comes from its components in a basis of $\mathfrak g$,
-  which are Tau Ceti's left-invariant one-forms
-  `Module.Dual.leftInvariantForm` of the coordinate functionals.
+  It is Tau Ceti's left-invariant extension `TauCeti.leftInvariantSmoothForm`
+  of the identity of $\mathfrak g$, which gives its smoothness.
 - `leftMaurerCartanForm_apply_mulInvariantVectorField`: the value on the
   left-invariant field of $\xi$ is $\xi$.
 - `mpullback_mul_right_leftMaurerCartanForm`: the pull-back by right
@@ -255,11 +254,11 @@ This file makes it a form.
   formula with $A(\xi^\sharp)=\xi$ constant gives
   $\iota_{\xi^\sharp}dA=-[\xi,A]$, which the bracket term cancels.
   Together with equivariance, `IsConnectionForm.isTensorial_connectionCurvature`.
-- `IsConnectionForm.connectionCurvature_apply_horizontal`: for vector
+- `connectionCurvature_apply_horizontal`: for vector
   fields $X,Y$ horizontal near $x$,
   $F_A(X,Y)(x)=-A_x([X,Y](x))$ with `VectorField.mlieBracket`, from
   `SmoothForm.mextDeriv_apply_one`.
-- `connectionCurvature_add`: for a tensorial $a$, the curvature of $A+a$
+- `connectionCurvature_add`: for any one-form $a$, the curvature of $A+a$
   is $F_A+d a+[A\wedge a]+\tfrac12[a\wedge a]$, written with `wedgeWith`.
 - The circle case: `IsCircleConnectionForm.connectionCurvature_mapCoeff`:
   the curvature of the $\mathfrak g$-valued form of $\alpha$ is
@@ -305,9 +304,9 @@ The connection induced by a connection form on $P\times_GF$
   representative, by equivariance of $A$ and invariance of $q$.
 - `IsConnectionForm.isEhresmannConnection_associatedHorizontal`: Tau
   Ceti's `IsEhresmannConnection` for $\pi_M$. Complementarity with the
-  vertical space follows from that of `horizontal` on $P$ and from
-  $\Phi$; smoothness of the distribution is checked in a local section
-  of $P$, where it is the image of a smooth frame.
+  vertical space follows from that of `horizontal` on $P$, since
+  $\pi_M\circ[\cdot,v]=\pi_P$; smoothness of the distribution is
+  checked in a local section of $P$, where it is the image of a smooth frame.
 - `IsConnectionForm.mfderiv_totalSpaceMk_mk_horizontalLift`: the horizontal
   lift at $[x,v]$ of $w$ is $dq$ of the horizontal lift of $w$ at $x$.
 

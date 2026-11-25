@@ -871,9 +871,10 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
 
 ## Contractibility and the homotopy equivalence
 
-`Symplectic/ComplexStructure/Contractible.lean`. All the maps are
-`fiberwiseMap`s of explicit formulas, so their continuity is
-`continuous_fiberwiseMap`.
+`Symplectic/ComplexStructure/Contractible.lean`. All the maps but
+$J\mapsto\omega_{g,J}$ are `fiberwiseMap`s of explicit formulas, so their
+continuity is `continuous_fiberwiseMap`; that one is Tau Ceti's
+`ContMDiffSection.map`, continuous by `continuous_map_frameTopology`.
 
 - **The domain of the bundle Cayley path.** Both Cayley paths below need an
   open set of the endomorphism bundle on which the path from a reference
@@ -1055,9 +1056,10 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   the path of the Tau Ceti file that holds that lemma.
 - **Continuity of $\omega\mapsto J_{g,\omega}$ and $J\mapsto\omega_{g,J}$.**
   The homotopy equivalence below needs both maps to be continuous for the
-  frame topologies. Each is a `fiberwiseMap` with `P = Unit`, on the model
-  `𝓘(ℝ, Unit)` (see *Remarks* above), so the hypothesis `hΦ` of
-  `continuous_fiberwiseMap` asks for smoothness on a total space: for the
+  frame topologies. The first is a `fiberwiseMap` with `P = Unit`, on the
+  model `𝓘(ℝ, Unit)` (see *Remarks* above), and the second Tau Ceti's
+  `ContMDiffSection.map`, so the hypotheses `hΦ` of `continuous_fiberwiseMap`
+  and `continuous_map_frameTopology` ask for smoothness on a total space: for the
   first, of the flat map out of the bundle of alternating maps of two
   vectors; for the second, of the passage from an alternating bilinear form
   to an alternating map. The library and Tau Ceti have each only along a
@@ -1193,12 +1195,12 @@ $[0,1]$ is never fed to the lemma with `P = ℝ` directly.
   `polarFormulaDomain F V` by `mk_flatAt_mem_polarFormulaDomain`. Its
   `fiberwiseMap` at `()` is $J_{g,\omega}$, by `ext`,
   `polarComplexStructure_eq_polarFormulaAt` and `flat_def`, and
-  `continuous_frameTopology_iff` concludes. For the second, `O` is all of the
-  endomorphism bundle, the formula is
+  `continuous_frameTopology_iff` concludes. For the second, the map is Tau
+  Ceti's `ContMDiffSection.map`, the formula is
   `alternatingMapOfBilin F (g.compatibleBilinAt q.proj q.snd) _`, and `hΦ` is
   `contMDiffAt_sectionAlong_continuousAlternatingMap_of_bilinear` with `β` from
   `contMDiff_compatibleBilinAt` and `hα` from `alternatingMapOfBilin_apply`.
-  Its `fiberwiseMap` at `()` is `compatibleForm g J`
+  Its `ContMDiffSection.map` is `compatibleForm g J`
   (`compatibleForm_eq_alternatingMapOfBilin`), and the source map is
   `isEmbedding_toEndomorphism_frameTopology`. The two `hΦ` are steps of these
   proofs only.

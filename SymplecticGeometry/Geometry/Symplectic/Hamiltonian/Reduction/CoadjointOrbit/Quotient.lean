@@ -93,10 +93,10 @@ variable [I.Boundaryless] [I'.Boundaryless] [T2Space M] {m : ℕ}
 `zeroLevelProdChartedSpace`. -/
 theorem contMDiff_orbitLevelGraph :
     letI := h.orbitLevelChartedSpace hemb hσ hfree hm
-    letI := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+    letI := h.zeroLevelProdChartedSpace hσ hfree hm
     ContMDiff 𝓘(ℝ, Fin m → ℝ) 𝓘(ℝ, Fin m → ℝ) ∞ (h.orbitLevelGraph hemb) := by
   let := h.orbitLevelChartedSpace hemb hσ hfree hm
-  let := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+  let := h.zeroLevelProdChartedSpace hσ hfree hm
   rw [← h.coe_orbitLevelGraphDiffeomorph hemb hσ hfree hm]
   exact (h.orbitLevelGraphDiffeomorph hemb hσ hfree hm).contMDiff
 
@@ -105,11 +105,11 @@ theorem contMDiff_orbitLevelGraph :
 `i^* σ + (orbitLevelProj)^* ω_O`, for the inclusion `i` of the preimage into `M`. -/
 theorem mpullback_orbitLevelGraph_prod :
     letI := h.orbitLevelChartedSpace hemb hσ hfree hm
-    letI := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+    letI := h.zeroLevelProdChartedSpace hσ hfree hm
     haveI := h.isManifold_orbitLevel hemb hσ hfree hm
-    haveI := h.isManifold_zeroLevelProd hemb hσ hfree hm
+    haveI := h.isManifold_zeroLevelProd hσ hfree hm
     SmoothForm.mpullback (Subtype.val ∘ h.orbitLevelGraph hemb)
-        ((h.isSmoothEmbedding_coe_zeroLevelProd hemb hσ hfree hm).contMDiff.comp
+        ((h.isSmoothEmbedding_coe_zeroLevelProd hσ hfree hm).contMDiff.comp
           (h.contMDiff_orbitLevelGraph hemb hσ hfree hm)) (σ.prod η.coadjointOrbitForm) =
       SmoothForm.mpullback Subtype.val
           (h.isSmoothEmbedding_coe_orbitLevel hemb hσ hfree hm).contMDiff
@@ -117,10 +117,9 @@ theorem mpullback_orbitLevelGraph_prod :
         SmoothForm.mpullback (h.orbitLevelProj hemb) (h.contMDiff_orbitLevelProj hemb hσ hfree hm)
           η.coadjointOrbitForm := by
   let := h.orbitLevelChartedSpace hemb hσ hfree hm
-  let := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+  let := h.zeroLevelProdChartedSpace hσ hfree hm
   have := h.isManifold_orbitLevel hemb hσ hfree hm
-  have := h.isManifold_zeroLevelProd hemb hσ hfree hm
-  have : T2Space (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η) := hemb.t2Space
+  have := h.isManifold_zeroLevelProd hσ hfree hm
   refine (congrArg (SmoothForm.mpullback _ _) (prod_def σ η.coadjointOrbitForm)).trans ?_
   rw [map_add, SmoothForm.mpullback_mpullback, SmoothForm.mpullback_mpullback]
   simp only [Function.comp_def, coe_orbitLevelGraph]
@@ -197,7 +196,6 @@ def zeroLevelProdQuotientChartedSpace :
     ChartedSpace (ProperSMul.QuotientModelSpace E (Fin m → ℝ))
       (MulAction.orbitRel.Quotient G
         (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).zeroLevel) :=
-  haveI : T2Space (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η) := hemb.t2Space
   haveI := h.properSMul_zeroLevel_prod hemb
   (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).zeroLevelQuotientChartedSpace
     (hσ.prod η.isSymplectic_coadjointOrbitForm.isNondegenerate)
@@ -207,7 +205,6 @@ def zeroLevelProdQuotientChartedSpace :
 form. -/
 theorem zeroLevelProdQuotientChartedSpace_def :
     h.zeroLevelProdQuotientChartedSpace hemb hσ hfree hm =
-      haveI : T2Space (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η) := hemb.t2Space
       haveI := h.properSMul_zeroLevel_prod hemb
       (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).zeroLevelQuotientChartedSpace
         (hσ.prod η.isSymplectic_coadjointOrbitForm.isNondegenerate)
@@ -221,7 +218,6 @@ theorem isManifold_zeroLevelProdQuotient :
     IsManifold 𝓘(ℝ, ProperSMul.QuotientModelSpace E (Fin m → ℝ)) ∞
       (MulAction.orbitRel.Quotient G
         (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).zeroLevel) :=
-  haveI : T2Space (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η) := hemb.t2Space
   haveI := h.properSMul_zeroLevel_prod hemb
   (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).isManifold_zeroLevelQuotient
     (hσ.prod η.isSymplectic_coadjointOrbitForm.isNondegenerate)
@@ -231,12 +227,11 @@ theorem isManifold_zeroLevelProdQuotient :
 a smooth submersion, for the atlases `zeroLevelProdChartedSpace` and
 `zeroLevelProdQuotientChartedSpace`. -/
 theorem isSubmersion_quotientMk_zeroLevelProd :
-    letI := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+    letI := h.zeroLevelProdChartedSpace hσ hfree hm
     letI := h.zeroLevelProdQuotientChartedSpace hemb hσ hfree hm
     Manifold.IsSubmersion 𝓘(ℝ, Fin m → ℝ) 𝓘(ℝ, ProperSMul.QuotientModelSpace E (Fin m → ℝ)) ∞
       (Quotient.mk (MulAction.orbitRel G
         (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).zeroLevel)) :=
-  haveI : T2Space (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η) := hemb.t2Space
   haveI := h.properSMul_zeroLevel_prod hemb
   (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).isSubmersion_quotientMk_zeroLevel
     (hσ.prod η.isSymplectic_coadjointOrbitForm.isNondegenerate)
@@ -254,13 +249,12 @@ def orbitLevelQuotientDiffeomorph :
       MulAction.orbitRel.Quotient G
         (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).zeroLevel :=
   letI := h.orbitLevelChartedSpace hemb hσ hfree hm
-  letI := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+  letI := h.zeroLevelProdChartedSpace hσ hfree hm
   haveI := (h.quotient_hypotheses hemb hσ hfree hm).1
   haveI := (h.quotient_hypotheses hemb hσ hfree hm).2.1
   haveI := (h.quotient_hypotheses hemb hσ hfree hm).2.2
-  haveI : T2Space (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η) := hemb.t2Space
   haveI := h.properSMul_zeroLevel_prod hemb
-  haveI := h.isManifold_zeroLevelProd hemb hσ hfree hm
+  haveI := h.isManifold_zeroLevelProd hσ hfree hm
   haveI : ContMDiffSMul I 𝓘(ℝ, Fin m → ℝ) ∞ G
       (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).zeroLevel :=
     (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).contMDiffSMul_zeroLevel
@@ -294,11 +288,11 @@ inclusions `i` of `Q` into `M` and `j` of the level into `M × (G ⧸ G_η)`. Th
 theorem mpullback_orbitLevelQuotientDiffeomorph :
     letI := h.orbitLevelChartedSpace hemb hσ hfree hm
     letI := h.orbitLevelQuotientChartedSpace hemb hσ hfree hm
-    letI := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+    letI := h.zeroLevelProdChartedSpace hσ hfree hm
     letI := h.zeroLevelProdQuotientChartedSpace hemb hσ hfree hm
     haveI := h.isManifold_orbitLevel hemb hσ hfree hm
     haveI := h.isManifold_orbitLevelQuotient hemb hσ hfree hm
-    haveI := h.isManifold_zeroLevelProd hemb hσ hfree hm
+    haveI := h.isManifold_zeroLevelProd hσ hfree hm
     haveI := h.isManifold_zeroLevelProdQuotient hemb hσ hfree hm
     ∀ (ωred : SmoothTwoForm 𝓘(ℝ, ProperSMul.QuotientModelSpace E (Fin m → ℝ))
         (MulAction.orbitRel.Quotient G (h.orbitLevel η)))
@@ -314,22 +308,21 @@ theorem mpullback_orbitLevelQuotientDiffeomorph :
       SmoothForm.mpullback _
           (h.isSubmersion_quotientMk_zeroLevelProd hemb hσ hfree hm).contMDiff ωP =
           SmoothForm.mpullback Subtype.val
-            (h.isSmoothEmbedding_coe_zeroLevelProd hemb hσ hfree hm).contMDiff
+            (h.isSmoothEmbedding_coe_zeroLevelProd hσ hfree hm).contMDiff
             (σ.prod η.coadjointOrbitForm) →
       SmoothForm.mpullback _ (h.orbitLevelQuotientDiffeomorph hemb hσ hfree hm).contMDiff ωP =
         ωred := by
   let := h.orbitLevelChartedSpace hemb hσ hfree hm
   let := h.orbitLevelQuotientChartedSpace hemb hσ hfree hm
-  let := h.zeroLevelProdChartedSpace hemb hσ hfree hm
+  let := h.zeroLevelProdChartedSpace hσ hfree hm
   let := h.zeroLevelProdQuotientChartedSpace hemb hσ hfree hm
   have := h.isManifold_orbitLevel hemb hσ hfree hm
   have := h.isManifold_orbitLevelQuotient hemb hσ hfree hm
-  have := h.isManifold_zeroLevelProd hemb hσ hfree hm
+  have := h.isManifold_zeroLevelProd hσ hfree hm
   have := h.isManifold_zeroLevelProdQuotient hemb hσ hfree hm
-  have : T2Space (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η) := hemb.t2Space
   intro ωred ωP hred hω
   have hπ := h.isSubmersion_quotientMk_orbitLevel hemb hσ hfree hm
-  have hj := h.isSmoothEmbedding_coe_zeroLevelProd hemb hσ hfree hm
+  have hj := h.isSmoothEmbedding_coe_zeroLevelProd hσ hfree hm
   have hg := h.contMDiff_orbitLevelGraph hemb hσ hfree hm
   exact SmoothForm.mpullback_eq_of_mpullback_eq (hj.contMDiff.comp hg) hπ.contMDiff hj.contMDiff
     (h.isSubmersion_quotientMk_zeroLevelProd hemb hσ hfree hm).contMDiff
@@ -365,13 +358,12 @@ theorem existsUnique_isSymplectic_mpullback_quotientMk_orbitLevel_eq_mpullback_a
               η.coadjointOrbitForm := by
   let := h.orbitLevelChartedSpace hemb hσ.isNondegenerate hfree hm
   let := h.orbitLevelQuotientChartedSpace hemb hσ.isNondegenerate hfree hm
-  let := h.zeroLevelProdChartedSpace hemb hσ.isNondegenerate hfree hm
+  let := h.zeroLevelProdChartedSpace hσ.isNondegenerate hfree hm
   let := h.zeroLevelProdQuotientChartedSpace hemb hσ.isNondegenerate hfree hm
   have := h.isManifold_orbitLevel hemb hσ.isNondegenerate hfree hm
   have := h.isManifold_orbitLevelQuotient hemb hσ.isNondegenerate hfree hm
-  have := h.isManifold_zeroLevelProd hemb hσ.isNondegenerate hfree hm
+  have := h.isManifold_zeroLevelProd hσ.isNondegenerate hfree hm
   have := h.isManifold_zeroLevelProdQuotient hemb hσ.isNondegenerate hfree hm
-  have : T2Space (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η) := hemb.t2Space
   have := h.properSMul_zeroLevel_prod hemb
   -- The reduced form of the product's zero level, pulled back along the diffeomorphism.
   obtain ⟨ωP, ⟨hωs, hω⟩, -⟩ :=
@@ -402,7 +394,6 @@ theorem finrank_quotientModelSpace_orbitLevel (x : h.orbitLevel η) :
         2 * finrank ℝ (GroupLieAlgebra I G) =
       finrank ℝ E' + finrank ℝ (Subgroup.QuotientModelSpace I
         ((Lie.coadjointRepresentation ℝ I G).stabilizer η)) := by
-  have : T2Space (G ⧸ (Lie.coadjointRepresentation ℝ I G).stabilizer η) := hemb.t2Space
   have := h.properSMul_zeroLevel_prod hemb
   rw [← Module.finrank_prod]
   exact (h.prod η.isEquivariantMomentMap_coadjointOrbitForm).finrank_quotientModelSpace_zeroLevel
@@ -465,11 +456,11 @@ theorem symplecticReduction_coadjointOrbit {σ : SmoothTwoForm I' M}
       fun x hx ↦ hfree x (by simpa using hx)
     letI := h.orbitLevelChartedSpace hemb hσ.isNondegenerate hfree' hm
     letI := h.orbitLevelQuotientChartedSpace hemb hσ.isNondegenerate hfree' hm
-    letI := h.zeroLevelProdChartedSpace hemb hσ.isNondegenerate hfree' hm
+    letI := h.zeroLevelProdChartedSpace hσ.isNondegenerate hfree' hm
     letI := h.zeroLevelProdQuotientChartedSpace hemb hσ.isNondegenerate hfree' hm
     haveI := h.isManifold_orbitLevel hemb hσ.isNondegenerate hfree' hm
     haveI := h.isManifold_orbitLevelQuotient hemb hσ.isNondegenerate hfree' hm
-    haveI := h.isManifold_zeroLevelProd hemb hσ.isNondegenerate hfree' hm
+    haveI := h.isManifold_zeroLevelProd hσ.isNondegenerate hfree' hm
     haveI := h.isManifold_zeroLevelProdQuotient hemb hσ.isNondegenerate hfree' hm
     (∀ x, μ x ∈ Set.range ((Lie.coadjointRepresentation ℝ I G).orbitMap η) →
       Function.Surjective (h.differential x)) ∧
@@ -507,7 +498,7 @@ theorem symplecticReduction_coadjointOrbit {σ : SmoothTwoForm I' M}
       SmoothForm.mpullback _
           (h.isSubmersion_quotientMk_zeroLevelProd hemb hσ.isNondegenerate hfree' hm).contMDiff ωP =
           SmoothForm.mpullback Subtype.val
-            (h.isSmoothEmbedding_coe_zeroLevelProd hemb hσ.isNondegenerate hfree' hm).contMDiff
+            (h.isSmoothEmbedding_coe_zeroLevelProd hσ.isNondegenerate hfree' hm).contMDiff
             (σ.prod η.coadjointOrbitForm) →
       SmoothForm.mpullback _
           (h.orbitLevelQuotientDiffeomorph hemb hσ.isNondegenerate hfree' hm).contMDiff ωP =

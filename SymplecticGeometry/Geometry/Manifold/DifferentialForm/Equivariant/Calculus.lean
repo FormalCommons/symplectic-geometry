@@ -50,6 +50,9 @@ zero.
 * `SymplecticGeometry.formCalculus_mul`: the calculus is multiplicative,
   `(F G)(f + τ) = F(f + τ) G(f + τ)`, by the Leibniz rule
   `SymplecticGeometry.formCalculusCoeff_mul` for its coefficients.
+* `SymplecticGeometry.formCalculus_sub`: the calculus is additive,
+  `(F - G)(f + τ) = F(f + τ) - G(f + τ)`,
+  from `SymplecticGeometry.formCalculusCoeff_sub`.
 * `SymplecticGeometry.tsupport_formCalculus_subset`: each component vanishes outside
   `f ⁻¹' tsupport F`.
 * `SymplecticGeometry.cartanDiff_of_formCalculusCoeff`: the Cartan differential of the
@@ -208,6 +211,16 @@ theorem formCalculusCoeff_mul (G : ℝ → ℝ) (hG : ContDiff ℝ ∞ G) (hFG :
     ContMDiffMap.coeFnRingHom_apply, formCalculusCoeff_apply, formCalculusCoeff_apply, nsmul_eq_mul,
     mul_assoc]
 
+omit [IsManifold I 1 M] [FiniteDimensional ℝ E] in
+/-- The coefficients of the functional calculus are additive in the function:
+`(F - G)⁽ᵏ⁾ ∘ f = F⁽ᵏ⁾ ∘ f - G⁽ᵏ⁾ ∘ f`. -/
+theorem formCalculusCoeff_sub (G : ℝ → ℝ) (hG : ContDiff ℝ ∞ G) (hFG : ContDiff ℝ ∞ (F - G))
+    (k : ℕ) :
+    formCalculusCoeff (F - G) hFG f k =
+      formCalculusCoeff F hF f k - formCalculusCoeff G hG f k := by
+  ext x
+  simp [iteratedDeriv_sub (hF.contDiffAt.of_le (by simp)) (hG.contDiffAt.of_le (by simp))]
+
 omit [FiniteDimensional ℝ E] in
 /-- `F(f + τ)` is the polynomial `∑ k ≤ finrank ℝ E, (k!)⁻¹ τ ^ k (F⁽ᵏ⁾ ∘ f)` in the two-form `τ`,
 computed in the algebra of forms of mixed degree, whose coefficients are the functions
@@ -266,6 +279,16 @@ theorem formCalculus_mul (G : ℝ → ℝ) (hG : ContDiff ℝ ∞ G) (hFG : Cont
   have : (m ! : ℝ) ≠ 0 := by positivity
   field_simp
   exact_mod_cast hm
+
+omit [FiniteDimensional ℝ E] in
+/-- The functional calculus is additive in the function:
+`(F - G)(f + τ) = F(f + τ) - G(f + τ)`. -/
+theorem formCalculus_sub (G : ℝ → ℝ) (hG : ContDiff ℝ ∞ G) (hFG : ContDiff ℝ ∞ (F - G)) :
+    formCalculus (F - G) hFG f τ = formCalculus F hF f τ - formCalculus G hG f τ := by
+  rw [formCalculus_eq_sum_pow, formCalculus_eq_sum_pow F hF, formCalculus_eq_sum_pow G hG,
+    ← Finset.sum_sub_distrib]
+  refine Finset.sum_congr rfl fun k _ ↦ ?_
+  rw [formCalculusCoeff_sub F hF f G hG hFG, map_sub, mul_sub, smul_sub]
 
 /-- Each component of `F(f + τ)` vanishes outside `f ⁻¹' tsupport F`. -/
 theorem tsupport_formCalculus_subset (k : ℕ) :

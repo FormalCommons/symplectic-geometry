@@ -71,6 +71,8 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
   smooth family of vector fields form a smooth family of one-forms.
 * `SymplecticGeometry.isSmoothFamily_iff_mpullback_inclusion_sup`: smoothness of a family on
   `U ⊔ V` is smoothness of its restrictions to `U` and to `V`.
+* `TauCeti.SmoothForm.mpullback_prodMap_ofSlices`: the pullback of `ofSlices α hα` along a
+  product `f × g` of smooth maps is the form with the slices `g^* (α (f t))`.
 * `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodComm`: slices of a form on `M × N` turned
   around by `Diffeomorph.prodComm`.
 
@@ -185,6 +187,26 @@ theorem mpullback_prodMk_ofSlices (t : N) :
   Subtype.ext <| funext fun x ↦ by
     rw [coe_mpullback, coe_ofSlices]
     exact congrFun (mpullback_prodMk_verticalForm (fun t ↦ (α t).val) t) x
+
+/-- The pullback of `TauCeti.SmoothForm.ofSlices α hα` along a product `f × g` of smooth maps
+`f : N' → N` and `g : M' → M` is the form on `N' × M'` with the slices `g^* (α (f t))`. -/
+theorem mpullback_prodMap_ofSlices {EN' HN' N' E' H' M' : Type*} [NormedAddCommGroup EN']
+    [NormedSpace ℝ EN'] [TopologicalSpace HN'] [TopologicalSpace N'] [ChartedSpace HN' N']
+    {J' : ModelWithCorners ℝ EN' HN'} [IsManifold J' 1 N'] [NormedAddCommGroup E']
+    [NormedSpace ℝ E'] [TopologicalSpace H'] [TopologicalSpace M'] [ChartedSpace H' M']
+    {I' : ModelWithCorners ℝ E' H'} [IsManifold I' 1 M'] {f : N' → N} (hf : ContMDiff J' J ∞ f)
+    {g : M' → M} (hg : ContMDiff I' I ∞ g)
+    (hα' : ContMDiff (J'.prod I') (I'.prod 𝓘(ℝ, E' [⋀^Fin k]→L[ℝ] F)) ∞
+      (fun p : N' × M' ↦ TotalSpace.mk' (E' [⋀^Fin k]→L[ℝ] F)
+        (E := fun y : M' ↦ TangentSpace I' y [⋀^Fin k]→L[ℝ] Trivial M' F y) p.2
+        ((mpullback g hg (α (f p.1))).val p.2))) :
+    mpullback (Prod.map f g) (hf.prodMap hg) (ofSlices α hα) =
+      ofSlices (fun t ↦ mpullback g hg (α (f t))) hα' := by
+  refine Subtype.ext ?_
+  rw [coe_mpullback, coe_ofSlices, coe_ofSlices,
+    mpullback_prodMap_verticalForm _ (hf.mdifferentiable (by simp))
+      (hg.mdifferentiable (by simp))]
+  simp only [coe_mpullback]
 
 /-- **The two orders of a cylinder.** The slice at `t` of the pullback of a form `Ω` on `M × N`
 along the swap `N × M → M × N` is the pullback of `Ω` along `x ↦ (x, t)`. -/

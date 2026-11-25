@@ -15,16 +15,14 @@ import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 # Differentials of maps into normed spaces, read in a chart
 
 For a map `f : M → F` into a normed space and a point `y` of the source of the extended chart at
-`x`, which need not be centred at `y`, the differential `mvfderiv I f y` is the Fréchet derivative
-of the coordinate expression `f ∘ (extChartAt I x).symm` at the chart image of `y`, after the
-differential of the chart. These are the `mvfderiv` and off-centre forms of Tau Ceti's
-`TauCeti.mfderiv_eq_fderiv_comp_mfderiv_extChartAt` and
-`TauCeti.range_mvfderiv_eq_range_fderiv_comp_extChartAt_symm`.
+`x`, which need not be centred at `y`, the range of `mvfderiv I f y` is the range of the Fréchet
+derivative of the coordinate expression `f ∘ (extChartAt I x).symm` at the chart image of `y`.
+This is the off-centre form of Tau Ceti's
+`TauCeti.range_mvfderiv_eq_range_fderiv_comp_extChartAt_symm`, and its proof reads `mvfderiv I f y`
+in the chart by Tau Ceti's `TauCeti.mfderiv_eq_fderiv_comp_mfderiv_extChartAt`.
 
 ## Main results
 
-* `SymplecticGeometry.mvfderiv_eq_fderiv_comp_mfderiv_extChartAt`: `mvfderiv I f y` in the chart
-  at `x`.
 * `SymplecticGeometry.range_mvfderiv_eq_range_fderiv_comp_extChartAt_symm_of_mem_source`: the
   range of `mvfderiv I f y` is that of the coordinate derivative at the chart image of `y`.
 * `ContMDiff.contDiffOn_comp_extChartAt_symm`: a `C^n` map into a normed space is `C^n` in every
@@ -51,20 +49,6 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
 
 namespace SymplecticGeometry
 
-/-- At a point `y` of the source of the extended chart at `x`, the differential of a map into a
-normed space is the Fréchet derivative of its coordinate expression `f ∘ (extChartAt I x).symm`
-at the chart image of `y`, composed with the differential of the chart, provided the coordinate
-expression is differentiable there. -/
-theorem mvfderiv_eq_fderiv_comp_mfderiv_extChartAt [IsManifold I 1 M]
-    (hy : y ∈ (extChartAt I x).source)
-    (hf : DifferentiableAt 𝕜 (f ∘ (extChartAt I x).symm) (extChartAt I x y)) :
-    mvfderiv I f y = (fderiv 𝕜 (f ∘ (extChartAt I x).symm) (extChartAt I x y)).comp
-      (mfderiv I 𝓘(𝕜, E) (extChartAt I x) y) := by
-  ext v
-  rw [mvfderiv_apply_eq_mfderiv_apply, TauCeti.mfderiv_eq_fderiv_comp_mfderiv_extChartAt hy hf]
-  -- The two sides differ only in their codomain, `TangentSpace 𝓘(𝕜, F) (f y)` or `F`.
-  rfl
-
 /-- At a point `y` of the source of the extended chart at `x`, the range of the differential of a
 map into a normed space is the range of the Fréchet derivative of its coordinate expression at the
 chart image of `y`, provided the coordinate expression is differentiable there. -/
@@ -73,7 +57,10 @@ theorem range_mvfderiv_eq_range_fderiv_comp_extChartAt_symm_of_mem_source [IsMan
     (hf : DifferentiableAt 𝕜 (f ∘ (extChartAt I x).symm) (extChartAt I x y)) :
     (mvfderiv I f y).range = (fderiv 𝕜 (f ∘ (extChartAt I x).symm) (extChartAt I x y)).range := by
   obtain ⟨L, hL⟩ := isInvertible_mfderiv_extChartAt hy
-  rw [mvfderiv_eq_fderiv_comp_mfderiv_extChartAt hy hf, ← hL]
+  -- `show` reads Tau Ceti's `mfderiv` equation, whose codomain is the tangent space
+  -- `TangentSpace 𝓘(𝕜, F) (f y)`, as one about `mvfderiv`, whose codomain is `F`.
+  rw [show mvfderiv I f y = _ from
+    TauCeti.mfderiv_eq_fderiv_comp_mfderiv_extChartAt hy hf, ← hL]
   exact LinearMap.range_comp_of_range_eq_top _ (LinearMap.range_eq_top.mpr L.surjective)
 
 end SymplecticGeometry

@@ -152,9 +152,12 @@ variable [FiniteDimensional ℝ V]
 `0 < trace (Y * Y)`. -/
 theorem Compatible.trace_mul_self_pos (hJ : ω.Compatible J)
     (hY : Y ∈ ω.compatibleTangentSpace J) (h0 : Y ≠ 0) :
-    0 < LinearMap.trace ℝ V (Y * Y) :=
-  LinearMap.BilinForm.trace_mul_self_pos_of_posDef _ hJ.associatedBilinForm_isSymm hJ.positive
-    (isSelfAdjoint_of_mem_compatibleTangentSpace hY) h0
+    0 < LinearMap.trace ℝ V (Y * Y) := by
+  have hY' := isSelfAdjoint_of_mem_compatibleTangentSpace hY
+  refine (LinearMap.BilinForm.trace_mul_nonneg_of_isAdjointPair _
+    hJ.associatedBilinForm_isSymm hJ.positive hY').lt_of_ne fun h ↦ h0 ?_
+  exact (LinearMap.BilinForm.trace_mul_eq_zero_iff_of_isAdjointPair _
+    hJ.associatedBilinForm_isSymm hJ.positive hY').1 h.symm
 
 /-- For an `ω`-compatible `J` and compatible tangent vectors `Y` and `Z` at `J`, the square of
 the commutator `⁅Y, Z⁆` has nonpositive trace: `⁅Y, Z⁆` is skew-adjoint for the inner product
