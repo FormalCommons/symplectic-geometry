@@ -105,6 +105,50 @@ private def normalOrientationAt (f : SmoothEmbedding I J n Z X) (hn : n ≠ 0)
     (oX.orientationAt (f z)) (by simpa using oZ.finrank_tangentSpace_eq z)
     (finrank_normalSpace_eq f hn hdim z)
 
+/-- In a chart of the normal bundle whose inverse lifts normal coordinates `w` to the tangent
+vectors with coordinates `B w` in the chart at `f z₀`, the map `(u, w) ↦ D f(z) u + B w`, read in
+the tangent charts at `z₀` and `f z₀`, is a linear equivalence `E × P ≃ T_{f z} X`. -/
+private theorem exists_linearEquiv_mfderiv_add (f : SmoothEmbedding I J n Z X) (hn : n ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E) {z₀ z : Z} (B : P →L[ℝ] V)
+    (hz : z ∈ (f.normalSpaceTrivialization hn hdim z₀).baseSet)
+    (hzS : z ∈ (trivializationAt E (TangentSpace I) z₀).baseSet)
+    (hzT : f z ∈ (trivializationAt V (TangentSpace J) (f z₀)).baseSet)
+    (hsymm : ∀ w, (f.normalSpaceTrivialization hn hdim z₀).symm z w =
+      f.normalClass z hn ((trivializationAt V (TangentSpace J) (f z₀)).symm (f z) (B w))) :
+    ∃ D : (E × P) ≃ₗ[ℝ] TangentSpace J (f z), ∀ p : E × P, D p =
+      mfderiv I J (f : Z → X) z
+          (((trivializationAt E (TangentSpace I) z₀).linearEquivAt ℝ z hzS).symm p.1) +
+        ((trivializationAt V (TangentSpace J) (f z₀)).linearEquivAt ℝ (f z) hzT).symm (B p.2) := by
+  set N := f.normalSpaceTrivialization hn hdim z₀
+  set S := trivializationAt E (TangentSpace I) z₀
+  set T := trivializationAt V (TangentSpace J) (f z₀)
+  let D : (E × P) →ₗ[ℝ] TangentSpace J (f z) :=
+    LinearMap.coprod ((mfderiv I J (f : Z → X) z).toLinearMap ∘ₗ
+        (S.linearEquivAt ℝ z hzS).symm.toLinearMap)
+      ((T.linearEquivAt ℝ (f z) hzT).symm.toLinearMap ∘ₗ B.toLinearMap)
+  have hDnormal (p : E × P) : f.normalClass z hn (D p) = (N.linearEquivAt ℝ z hz).symm p.2 := by
+    simp [D, Trivialization.linearEquivAt_symm_apply, hsymm]
+  have hDinj : Function.Injective D := by
+    rw [← LinearMap.ker_eq_bot, LinearMap.ker_eq_bot']
+    rintro ⟨u, w⟩ hp
+    have hw : w = 0 := (LinearEquiv.map_eq_zero_iff _).1
+      ((hDnormal (u, w)).symm.trans (by rw [hp, map_zero]))
+    subst hw
+    have hu : mfderiv I J (f : Z → X) z ((S.linearEquivAt ℝ z hzS).symm u) = 0 := by
+      rw [← hp]
+      simp only [D, LinearMap.coprod_apply, LinearMap.comp_apply, map_zero, add_zero]
+      rfl
+    have := f.isImmersion.mfderiv_injective hn z (hu.trans (map_zero _).symm)
+    simpa only [Prod.mk_eq_zero, and_true] using (LinearEquiv.map_eq_zero_iff _).1 this
+  have : FiniteDimensional ℝ (TangentSpace J (f z)) := inferInstanceAs (FiniteDimensional ℝ V)
+  have hdimV : finrank ℝ (E × P) = finrank ℝ (TangentSpace J (f z)) := by
+    have h := f.finrank_normalSpace_add_finrank z hn
+    rw [finrank_normalSpace_eq f hn hdim z, TauCeti.finrank_tangentSpace,
+      TauCeti.finrank_tangentSpace] at h
+    rw [finrank_prod, TauCeti.finrank_tangentSpace]
+    omega
+  exact ⟨D.linearEquivOfInjective hDinj hdimV, fun p ↦ rfl⟩
+
 /-- **Local constancy of the induced normal orientations.** Read in the chart of the normal bundle
 at `z₀`, the orientations `normalOrientationAt f hn hdim oX oZ z` are constant near `z₀`. -/
 private theorem eventually_mapOrientation_normalOrientationAt (f : SmoothEmbedding I J n Z X)
@@ -130,12 +174,6 @@ private theorem eventually_mapOrientation_normalOrientationAt (f : SmoothEmbeddi
     rw [TangentBundle.trivializationAt_baseSet]
     exact (hsub hz).2
   have hmE : finrank ℝ E = m := by simpa using oZ.card_eq.symm
-  have hdimV (z : Z) : finrank ℝ (E × P) = finrank ℝ (TangentSpace J (f z)) := by
-    have h := f.finrank_normalSpace_add_finrank z hn
-    rw [finrank_normalSpace_eq f hn hdim z, TauCeti.finrank_tangentSpace,
-      TauCeti.finrank_tangentSpace] at h
-    rw [finrank_prod, TauCeti.finrank_tangentSpace]
-    omega
   -- The derivative in the tangent charts at `z₀` and `f z₀` is continuous at `z₀`.
   let c : Z → E →L[ℝ] V :=
     inTangentCoordinates I J (_root_.id : Z → Z) (f : Z → X) (mfderiv I J (f : Z → X)) z₀
@@ -150,31 +188,17 @@ private theorem eventually_mapOrientation_normalOrientationAt (f : SmoothEmbeddi
     simp [Trivialization.linearEquivAt_apply, Trivialization.linearEquivAt_symm_apply]
     rfl
   -- The splitting `(u, w) ↦ D f(z) u + B w` of the tangent sequence at `z`.
-  let D (z : Z) (hz : z ∈ N.baseSet) : (E × P) →ₗ[ℝ] TangentSpace J (f z) :=
-    LinearMap.coprod ((mfderiv I J (f : Z → X) z).toLinearMap ∘ₗ
-        (S.linearEquivAt ℝ z (hS z hz)).symm.toLinearMap)
-      ((T.linearEquivAt ℝ (f z) (hT z hz)).symm.toLinearMap ∘ₗ B.toLinearMap)
-  have hDnormal (z : Z) (hz : z ∈ N.baseSet) (p : E × P) :
-      f.normalClass z hn (D z hz p) = (N.linearEquivAt ℝ z hz).symm p.2 := by
-    simp [D, Trivialization.linearEquivAt_symm_apply, hsymm z hz]
-  have hDinj (z : Z) (hz : z ∈ N.baseSet) : Function.Injective (D z hz) := by
-    rw [← LinearMap.ker_eq_bot, LinearMap.ker_eq_bot']
-    rintro ⟨u, w⟩ hp
-    have hw : w = 0 := (LinearEquiv.map_eq_zero_iff _).1
-      ((hDnormal z hz (u, w)).symm.trans (by rw [hp, map_zero]))
-    subst hw
-    have hu : mfderiv I J (f : Z → X) z ((S.linearEquivAt ℝ z (hS z hz)).symm u) = 0 := by
-      rw [← hp]
-      simp only [D, LinearMap.coprod_apply, LinearMap.comp_apply, map_zero, add_zero]
-      rfl
-    have := f.isImmersion.mfderiv_injective hn z (hu.trans (map_zero _).symm)
-    simpa only [Prod.mk_eq_zero, and_true] using (LinearEquiv.map_eq_zero_iff _).1 this
-  have (z : Z) : FiniteDimensional ℝ (TangentSpace J (f z)) :=
-    inferInstanceAs (FiniteDimensional ℝ V)
+  have hsplit (z : Z) (hz : z ∈ N.baseSet) := exists_linearEquiv_mfderiv_add f hn hdim B hz
+    (hS z hz) (hT z hz) (hsymm z hz)
   let De (z : Z) (hz : z ∈ N.baseSet) : (E × P) ≃ₗ[ℝ] TangentSpace J (f z) :=
-    (D z hz).linearEquivOfInjective (hDinj z hz) (hdimV z)
-  have hDe (z : Z) (hz : z ∈ N.baseSet) (p : E × P) : De z hz p = D z hz p :=
-    LinearMap.linearEquivOfInjective_apply _ _ p
+    (hsplit z hz).choose
+  have hDe (z : Z) (hz : z ∈ N.baseSet) (p : E × P) : De z hz p =
+      mfderiv I J (f : Z → X) z ((S.linearEquivAt ℝ z (hS z hz)).symm p.1) +
+        (T.linearEquivAt ℝ (f z) (hT z hz)).symm (B p.2) :=
+    (hsplit z hz).choose_spec p
+  have hDnormal (z : Z) (hz : z ∈ N.baseSet) (p : E × P) :
+      f.normalClass z hn (De z hz p) = (N.linearEquivAt ℝ z hz).symm p.2 := by
+    simp [hDe z hz, Trivialization.linearEquivAt_symm_apply, hsymm z hz]
   -- The splitting read in the tangent chart at `f z₀`.
   let G (z : Z) (hz : z ∈ N.baseSet) : (E × P) ≃L[ℝ] V :=
     ((De z hz).trans (T.linearEquivAt ℝ (f z) (hT z hz))).toContinuousLinearEquiv
@@ -185,8 +209,7 @@ private theorem eventually_mapOrientation_normalOrientationAt (f : SmoothEmbeddi
     refine ContinuousLinearMap.ext fun p ↦ ?_
     obtain ⟨u, w⟩ := p
     simp only [G, L, ContinuousLinearEquiv.coe_coe, LinearEquiv.coe_toContinuousLinearEquiv',
-      LinearEquiv.trans_apply, hDe z hz, D, LinearMap.coprod_apply, LinearMap.comp_apply,
-      map_add, LinearEquiv.coe_coe, LinearEquiv.apply_symm_apply, ContinuousLinearMap.coe_coe]
+      LinearEquiv.trans_apply, hDe z hz, map_add, LinearEquiv.apply_symm_apply]
     rw [← hcz z hz]
     rfl
   have hP : finrank ℝ P = finrank ℝ P := rfl
@@ -215,10 +238,9 @@ private theorem eventually_mapOrientation_normalOrientationAt (f : SmoothEmbeddi
         (S.linearEquivAt ℝ z (hS z hz)).symm (De z hz) (N.linearEquivAt ℝ z hz).symm
         (fun u ↦ by
           rw [hDe z hz]
-          simp only [D, LinearMap.coprod_apply, LinearMap.comp_apply, LinearMap.inl_apply,
-            map_zero, add_zero]
+          simp only [LinearMap.inl_apply, map_zero, add_zero]
           rfl)
-        (fun p ↦ by rw [hDe z hz, hDnormal z hz]; rfl), ha', hb']
+        (fun p ↦ by rw [hDnormal z hz]; rfl), ha', hb']
     rfl
   -- The three readings are locally constant near `z₀`.
   set a₀ := S.mapOrientation (Fin m) (hS z₀ hN₀) (oZ.orientationAt z₀)

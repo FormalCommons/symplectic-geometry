@@ -343,16 +343,17 @@ With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
 
 ### `Geometry/Manifold/Orientation/NormalOrientation.lean`
 
-- `TauCeti.SmoothEmbedding.normalOrientation f hdim oX oZ`: the normal
+- `TauCeti.SmoothEmbedding.normalOrientation f hn hdim oX oZ`: the normal
   orientation induced by `oX : Manifold.Orientation J X (Fin (m + r))` and
   `oZ : Manifold.Orientation I Z (Fin m)`, normal directions first in local
   homology (see *Decisions*), a `VectorBundleOrientation`; built pointwise
   as `Orientation.cokerOfExact` of $0\to T_zZ\to T_{f(z)}X\to\nu_z\to0$,
   with no sign, and with local constancy in Tau Ceti's trivializations of
   the normal bundle, as in `VectorBundleOrientation.transverse`.
-- `normalOrientation_apply` (the characterization by positive bases: a
-  positive basis of $T_zZ$ followed by lifts of a positive basis of
-  $\nu_z$),
+- `normalOrientation_apply` (each fibre is that cokernel orientation),
+  `ofExact_normalOrientation` and `normalOrientation_eq_iff` (the
+  characterization by positive bases: a positive basis of $T_zZ$ followed
+  by lifts of a positive basis of $\nu_z$),
   `normalOrientation_neg_left`, `normalOrientation_neg_right`.
 
 ### `AlgebraicTopology/Cohomology/Cap/ProdLocal.lean`
@@ -375,7 +376,7 @@ degenerates to the unit and needs no product orientation.
 ### `Geometry/Manifold/Orientation/DualClass.lean`
 
 For closed `X` and `Z` (`[CompactSpace X]`), `hf`, and
-`o = normalOrientation f hdim oX oZ`:
+`o = normalOrientation f hn hdim oX oZ`:
 
 - `TauCeti.SmoothEmbedding.dualClass_cap_fundamentalClass`: for
   `m + 1 = finrank ℝ E`, the cap product of `dualClass f hf o` with the
@@ -389,7 +390,7 @@ For closed `X` and `Z` (`[CompactSpace X]`), `hf`, and
   $Z$, and in a trivialization the local class is `Cap/ProdLocal.lean`'s,
   once the local orientation of $X$ at $f(z)$ is identified with the cross
   product of the local orientations of $\nu_z$ and of $Z$ at $z$, normal
-  first (`normalOrientation_apply` and
+  first (`ofExact_normalOrientation` and
   `coe_cross_localOrientation_eq_neg_one_pow_smul`).
 - `dualClass_cap_fundamentalClass_of_finrank_eq_zero`: the case
   $\dim Z=0$, with `toHomologicalOrientationOfZeroDim` and its fundamental
