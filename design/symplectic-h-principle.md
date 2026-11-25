@@ -923,14 +923,15 @@ theorem Convex.cwType_inter {E : Type u} [AddCommGroup E] [Module ℝ E]
 
 Proof, by the nerve argument of Milnor and of Dugundji (*References*)
 made direct: put `O := C ∩ U` with a metric. Each `y ∈ O` has a convex
-relatively open neighbourhood `C ∩ (y + V) ⊆ O` (local convexity). Let
-`L y` be the supremum of the `r ≤ 1` for which the ball `B(y, r)` of `O`
-lies in one of these convex sets; it is positive and `1`-Lipschitz. Take a
-partition of unity `ρ`, indexed by `O`, subordinate to the cover by the
-balls `B(y, L y / 4)` (`PartitionOfUnity.exists_isSubordinate`, as `O` is
-metrizable, so paracompact and normal). If `x` lies in the supports of
-`ρ y₀, …, ρ yₖ`, then all `yⱼ` lie in a ball `B(x, r)` with `r < L x`, so in
-one convex subset of `O`. Hence the map `ψ` from the realization of
+relatively open neighbourhood `C ∩ (y + V) ⊆ O` (local convexity). Tau
+Ceti's `Topology.IsInducing.exists_continuous_radius_subordinate` gives a
+positive continuous `r` on `O` such that each ball `B(y, 2 r y)` lies in one
+of these convex sets. Take a partition of unity `ρ`, indexed by `O`,
+subordinate to the cover by the balls `B(y, r y)`
+(`PartitionOfUnity.exists_isSubordinate`, as `O` is metrizable, so
+paracompact and normal). If `x` lies in the supports of `ρ y₀, …, ρ yₖ` and
+`r yⱼ` is the largest of the `r yᵢ`, then `x` and all `yᵢ` lie in
+`B(yⱼ, 2 r yⱼ)`, so in one convex subset of `O`. Hence the map `ψ` from the realization of
 `ρ.nerve` to `O`, affine on each simplex with vertex `y` sent to `y`, is
 well defined, continuous by `continuous_iff_faceInclusion`, and the
 straight segment from `x` to `ψ (ρ.toNerve x)` stays in `O`. So `O` is
