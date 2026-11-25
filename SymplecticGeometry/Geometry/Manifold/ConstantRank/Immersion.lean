@@ -14,9 +14,9 @@ import TauCeti.Geometry.Manifold.MFDeriv.Opens
 /-!
 # A map of constant rank as an immersion
 
-A `C^n` map `f : M → N` of constant rank `r`, from a nonempty, second countable, boundaryless,
-finite-dimensional manifold to a boundaryless manifold, has the same range as an immersion
-`ι : S → N` from a Hausdorff, second countable manifold `S` modelled on
+A `C^n` map `f : M → N` of constant rank `r`, from a second countable, boundaryless,
+finite-dimensional manifold to a finite-dimensional boundaryless manifold, has the same range as
+an immersion `ι : S → N` from a Hausdorff, second countable manifold `S` modelled on
 `EuclideanSpace 𝕜 (Fin r)`, whose tangent images are those of `f`. Near each point, `f` is a
 submersion onto an open set `U` of `EuclideanSpace 𝕜 (Fin r)` followed by a map `g` on `U` with
 injective derivatives (`ContMDiffOn.exists_comp_eq_of_mfderivRank_le`); countably many of these
@@ -42,7 +42,7 @@ universe u
 
 variable {𝕜 : Type u} {E F H G M N : Type*} [RCLike 𝕜]
   [NormedAddCommGroup E] [NormedSpace 𝕜 E] [FiniteDimensional 𝕜 E]
-  [NormedAddCommGroup F] [NormedSpace 𝕜 F] [CompleteSpace F]
+  [NormedAddCommGroup F] [NormedSpace 𝕜 F]
   [TopologicalSpace H] [TopologicalSpace G]
   {I : ModelWithCorners 𝕜 E H} [I.Boundaryless]
   {J : ModelWithCorners 𝕜 F G} [J.Boundaryless]
@@ -50,13 +50,13 @@ variable {𝕜 : Type u} {E F H G M N : Type*} [RCLike 𝕜]
   {n : ℕ∞ω} [IsManifold I n M] [IsManifold J n N]
 
 /-- **A map of constant rank as an immersion.** Let `f : M → N` be `C^n`, `1 ≤ n`, of constant
-rank `r`, with `M` nonempty and second countable and `N` finite-dimensional. Then there are a
+rank `r`, with `M` second countable and `N` finite-dimensional. Then there are a
 Hausdorff, second countable `C^n` manifold `S` modelled on `EuclideanSpace 𝕜 (Fin r)` and an
 immersion `ι : S → N` with the same range as `f`, whose tangent images are tangent images of `f`:
 a property of a point of `N` and a subspace of its tangent space that holds for each `f y` and
 the tangent image of `f` at `y` holds for each `ι z` and the tangent image of `ι` at `z`. -/
 theorem ContMDiff.exists_isImmersion_range_eq_of_mfderivRank_eq [FiniteDimensional 𝕜 F]
-    [Nonempty M] [SecondCountableTopology M] {f : M → N} (hf : ContMDiff I J n f) (hn : 1 ≤ n)
+    [SecondCountableTopology M] {f : M → N} (hf : ContMDiff I J n f) (hn : 1 ≤ n)
     {r : ℕ} (hr : ∀ y, mfderivRank I J f y = r) :
     ∃ (S : Type u) (_ : TopologicalSpace S) (_ : ChartedSpace (EuclideanSpace 𝕜 (Fin r)) S),
       IsManifold 𝓘(𝕜, EuclideanSpace 𝕜 (Fin r)) n S ∧ T2Space S ∧ SecondCountableTopology S ∧
@@ -65,6 +65,16 @@ theorem ContMDiff.exists_isImmersion_range_eq_of_mfderivRank_eq [FiniteDimension
           (∀ y, P (f y) (LinearMap.range (mfderiv I J f y).toLinearMap)) →
           ∀ z, P (ι z)
             (LinearMap.range (mfderiv 𝓘(𝕜, EuclideanSpace 𝕜 (Fin r)) J ι z).toLinearMap) := by
+  have := FiniteDimensional.completeSpace 𝕜 F
+  -- For an empty `M`, the source is an empty disjoint union.
+  rcases isEmpty_or_nonempty M with hM | ⟨⟨x₀⟩⟩
+  · have : IsEmpty (Σ _ : ℕ, (⊥ : Opens (EuclideanSpace 𝕜 (Fin r)))) :=
+      ⟨fun ⟨_, _, hx⟩ ↦ Opens.mem_bot.1 hx⟩
+    refine ⟨Σ _ : ℕ, (⊥ : Opens (EuclideanSpace 𝕜 (Fin r))), inferInstance, inferInstance,
+      inferInstance, inferInstance, inferInstance, isEmptyElim,
+      ContMDiff.isImmersion_of_injective_mfderiv isEmptyElim hn isEmptyElim, ?_,
+      fun _ _ ↦ isEmptyElim⟩
+    rw [range_eq_empty, range_eq_empty]
   have hn0 : n ≠ 0 := ne_of_gt (zero_lt_one.trans_le hn)
   -- Near each point, `f` is `g x ∘ q x` on `V x`, with `q x` a submersion onto `U x`.
   have hfac (x : M) := by
@@ -74,7 +84,6 @@ theorem ContMDiff.exists_isImmersion_range_eq_of_mfderivRank_eq [FiniteDimension
     exact h
   choose V U q g hV hxV _ hU hqV hgq hq hqs hg hgi using hfac
   -- Countably many of the `V x` cover `M`.
-  obtain ⟨x₀⟩ := ‹Nonempty M›
   obtain ⟨s, hs, hcover⟩ := TopologicalSpace.countable_cover_nhds fun x ↦ (hV x).mem_nhds (hxV x)
   have hsne : s.Nonempty := by
     obtain ⟨y, hy, -⟩ := mem_iUnion₂.1 (hcover ▸ mem_univ x₀ : x₀ ∈ ⋃ x ∈ s, V x)
