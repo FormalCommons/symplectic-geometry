@@ -33,7 +33,7 @@ plurisubharmonic at every point. Its form `ω_f` is a Kähler form for `J`, and 
 * `SymplecticGeometry.IsSteinFunction E φ`: smooth, proper, bounded below and strictly
   plurisubharmonic everywhere.
 * `SymplecticGeometry.IsSteinFunction.comp`: `h ∘ φ` is a Stein function for a smooth
-  `h : ℝ → ℝ` with `h' > 0`, `h'' ≥ 0` and `h → ∞` at `∞`.
+  `h : ℝ → ℝ` with `h' > 0` and `h'' ≥ 0`.
 * `SymplecticGeometry.IsSteinFunction.exists_isMorse`: a Stein function on a Hausdorff manifold
   is `C⁰`-close to a Stein Morse function, by Tau Ceti's
   `exists_isMorse_isProperMap_bddBelow_isManifoldStrictlyPlurisubharmonicAt`.
@@ -126,8 +126,8 @@ theorem comp (hφ : IsSteinFunction E φ) {h : ℝ → ℝ} (hh : ContDiff ℝ �
     have hconv : ConvexOn ℝ univ h := convexOn_univ_of_deriv2_nonneg hd
       ((hh.iterate_deriv 1).differentiable (by simp))
       fun t ↦ by simpa only [iteratedDeriv_eq_iterate] using hh₂ t
-    have hh_tendsto := ConvexOn.tendsto_atTop_of_hasDerivAt_pos (x := 0)
-      (hconv.subset (subset_univ _) (convex_Ici 0)) (hd 0).hasDerivAt (hh₁ 0)
+    have hh_tendsto := ConvexOn.tendsto_atTop_of_hasDerivWithinAt_Ioi_pos (x := 0)
+      (hconv.subset (subset_univ _) (convex_Ici 0)) (hd 0).hasDerivAt.hasDerivWithinAt (hh₁ 0)
     obtain ⟨c, hc'⟩ := hK.bddAbove
     obtain ⟨b, hb⟩ := (hh_tendsto.eventually_gt_atTop c).exists_forall_of_atTop
     obtain ⟨m, hm⟩ := hφ.bddBelow
