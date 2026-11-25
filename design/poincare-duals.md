@@ -169,12 +169,12 @@ the only `dualClass` is a private helper of local orientations.
   space from a basis closed under nonempty intersections, binary unions
   (given the two sets and their intersection) and countable disjoint
   unions. Here the property of `U` is that the Thom map over `U` is
-  bijective in every degree and the Thom pair over `U` has no cohomology
+  bijective in every degree and the Thom pair over `U` has no homology
   below the rank; the basis is the open sets inside the base set of a
   linear trivialization, where Tau Ceti's local result
   `TauCeti.IsThomClass.bijective_pullbackCupRestrict_of_subset_baseSet`
   applies; the binary step is `TopCat.bijective_pullbackCupRestrict_union`;
-  the disjoint step is additivity of cohomology, the one new lemma. This
+  the disjoint step is additivity of cohomology and homology. This
   works over any commutative ring and any coefficient module, and every
   manifold here is second countable. It is the one route to the Thom
   isomorphism over a non-compact base in this library, and
@@ -246,8 +246,8 @@ In the setting of Tau Ceti's `TopCat.pullbackCupRestrict` (a map
   it is over each `V i`, by `TauCeti.isLimitFanSingularCohomology` and its
   relative form, and the compatibility of the restriction maps with the
   product decompositions;
-- `TopCat.isZero_singularCohomology_ofInclusion_iUnion_of_pairwiseDisjoint`:
-  the same for the vanishing of the relative cohomology of the pair over
+- `TopCat.isZero_singularHomology_ofInclusion_iUnion_of_pairwiseDisjoint`:
+  the same for the vanishing of the relative homology of the pair over
   `⋃ i, V i`, which the Mayer–Vietoris step needs below the rank.
 
 ### `Topology/VectorBundle/Thom/SecondCountable.lean`

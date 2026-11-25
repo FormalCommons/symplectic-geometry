@@ -7,6 +7,7 @@ module
 
 public import TauCeti.AlgebraicTopology.Cohomology.Additivity.Relative
 public import TauCeti.AlgebraicTopology.Cohomology.Cup.Pullback
+public import TauCeti.AlgebraicTopology.Singular.Additivity
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.Additivity.Opens
 
 /-!
@@ -37,6 +38,9 @@ reindexes the family by its range, a type in the universe of the spaces.
 
 * `TopCat.isColimitCofanPreimagePairIUnion`: the pair over a union of pairwise disjoint open sets
   is the coproduct of the pairs over its members.
+* `TopCat.isZero_singularHomology_ofInclusion_iUnion_of_pairwiseDisjoint`: the relative homology of
+  the pair over such a union vanishes if it does over each member, by Tau Ceti's
+  `TopPair.isColimitCofanSingularHomologyOfIsColimit`.
 * `TopCat.bijective_pullbackCupRestrict_iUnion_of_pairwiseDisjoint`: the map over a union of
   pairwise disjoint open sets is bijective if it is over each of them.
 
@@ -77,6 +81,31 @@ def isColimitCofanPreimagePairIUnion {ι : Type w} {V : ι → Set Y} (hV : ∀ 
       (preimage_iUnion (f := π)).subset
   · obtain ⟨i, hi⟩ := mem_iUnion.1 y.property.1
     exact ⟨i, ⟨y.val, hi, y.property.2⟩, TopPair.ofInclusionMap_fst_apply _ _ _⟩
+
+/-- **Vanishing of relative homology over disjoint open sets.** For a map `π : X ⟶ Y`, `Z ⊆ X`
+and pairwise disjoint open subsets `V i` of `Y`, indexed by any type, if the relative homology of
+each pair `(π⁻¹ (V i), π⁻¹ (V i) ∩ Z)` vanishes in degree `n`, then so does that of the pair over
+`⋃ i, V i`, since it is the coproduct of the relative homologies over the `V i`. -/
+theorem isZero_singularHomology_ofInclusion_iUnion_of_pairwiseDisjoint {C : Type*} [Category C]
+    [HasCoproducts.{w} C] [Abelian C] [AB4OfSize.{w} C] (R : C) {ι : Type*} {V : ι → Set Y}
+    (hV : ∀ i, IsOpen (V i)) (hd : Pairwise (Disjoint on V)) {n : ℕ}
+    (hn : ∀ i, IsZero ((TopPair.ofInclusion (inter_subset_left :
+      π ⁻¹' V i ∩ Z ⊆ π ⁻¹' V i)).singularHomology R n)) :
+    IsZero ((TopPair.ofInclusion (inter_subset_left :
+      π ⁻¹' (⋃ i, V i) ∩ Z ⊆ π ⁻¹' (⋃ i, V i))).singularHomology R n) := by
+  -- Reindex by the range of `V`, a type in the universe `w`; its distinct members are disjoint.
+  rw [← sUnion_range, sUnion_eq_iUnion]
+  have hc := TopPair.isColimitCofanSingularHomologyOfIsColimit C R n
+    (isColimitCofanPreimagePairIUnion π Z (V := ((↑) : range V → Set Y))
+      (fun s ↦ by obtain ⟨_, i, rfl⟩ := s; exact hV i)
+      (fun s t hst ↦ by
+        obtain ⟨_, i, rfl⟩ := s
+        obtain ⟨_, j, rfl⟩ := t
+        exact hd fun hij ↦ hst (by subst hij; rfl)))
+  rw [IsZero.iff_id_eq_zero]
+  refine hc.hom_ext ?_
+  rintro ⟨_, i, rfl⟩
+  exact (hn i).eq_of_src _ _
 
 /-- The main result below, for an index type in the universe of the spaces. -/
 private theorem bijective_pullbackCupRestrict_iUnion_aux {ι : Type w} {V : ι → Set Y}
