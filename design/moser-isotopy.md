@@ -174,11 +174,11 @@ The file has the name of Tau Ceti's file that defines
 - `coe_mpullback_prodMk_lineMapFamily` (`@[simp]`): the slices of
   `SmoothForm.lineMapFamily α₀ α₁ hc` for the underlying rough forms, the
   `.val` form of Tau Ceti's `mpullback_prodMk_lineMapFamily`.
-- `mpullback_prodMk_mpullback_prodMap'`: for smooth `c : ℝ → ℝ` and
-  `f : M → N`, the slice at time `t` of the pullback of a form on
-  `ℝ × N` along `Prod.map c f` is the pullback along `f` of its slice at
-  time `c t`; with its case `mpullback_prodMk_mpullback_prodMap_id_right`
-  (`f = id`). The case `c = id`, `mpullback_prodMk_mpullback_prodMap`, is
+- `mpullback_prodMk_mpullback_prodMap'`: for smooth `c : P' → P` between parameter
+  manifolds and `f : M → N`, the slice at `t` of the pullback of a form on
+  `P × N` along `Prod.map c f` is the pullback along `f` of its slice at
+  `c t`; with its case `mpullback_prodMk_mpullback_prodMap_id_right`
+  (`f = id`, over `ℝ`). The case `c = id`, `mpullback_prodMk_mpullback_prodMap`, is
   Tau Ceti's, in `TauCeti/Geometry/Manifold/DifferentialForm/Flow/Family.lean`.
   They use only the functoriality of the pullback. *Contact geometry* uses
   them in `Flow/Family.lean`, `Contact/Family.lean` and `Contact/Gray.lean`.
