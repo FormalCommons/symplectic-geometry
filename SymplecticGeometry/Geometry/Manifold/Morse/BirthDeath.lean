@@ -9,7 +9,7 @@ public import TauCeti.Analysis.Calculus.Morse.BirthDeath
 public import TauCeti.Geometry.Manifold.Morse.Bott.Chart.Basic
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 public import Mathlib.Analysis.SpecialFunctions.Pow.Real
-public import Mathlib.Geometry.Manifold.Diffeomorph
+public import SymplecticGeometry.Geometry.Manifold.Morse.Bott.Chart.Diffeomorph
 import Mathlib.Geometry.Manifold.LocalDiffeomorph
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Pi
 import SymplecticGeometry.Analysis.Calculus.Hadamard
@@ -19,7 +19,6 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.Morse.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.Morse.ScalarComposition
-import TauCeti.Geometry.Manifold.PullbackGroupoid
 
 /-!
 # Birth–death charts and generalized Morse functions
@@ -51,8 +50,8 @@ Weinstein homotopy.
   source of the chart.
 * `TauCeti.BirthDeathChart.comp`: a birth–death chart for `f` gives one for `h ∘ f`, with the same
   coordinates, weights and cubic coordinate, when `h` is smooth with `h' > 0`.
-* `TauCeti.MorseBottChart.pullback` and `TauCeti.BirthDeathChart.pullback`: a chart `φ` for `f`
-  at `σ x'` gives the chart `φ ∘ σ` for `f ∘ σ` at `x'`, along a diffeomorphism `σ : M' ≃ M`.
+* `TauCeti.BirthDeathChart.pullback`: a birth–death chart `φ` for `f` at `σ x'` gives the
+  birth–death chart `φ ∘ σ` for `f ∘ σ` at `x'`, along a diffeomorphism `σ : M' ≃ M`.
 * `TauCeti.IsGeneralizedMorse`: smooth, with nondegenerate or birth–death critical points;
   `TauCeti.IsMorse.isGeneralizedMorse`, `TauCeti.IsGeneralizedMorse.isClosed_criticalPoints`,
   `TauCeti.IsGeneralizedMorse.isDiscrete_criticalPoints`,
@@ -72,9 +71,8 @@ function `a` (Hadamard's lemma, `ContDiff.exists_contDiff_sub_eq_smul`), and the
 diffeomorphism rescales the coordinates of weight `±1` by `√a` and the cubic one by `∛a`
 (`SymplecticGeometry.exists_openPartialHomeomorph_pi_mul_rpow`).
 
-The pull-backs `TauCeti.MorseBottChart.pullback` and `TauCeti.BirthDeathChart.pullback` follow
-Tau Ceti's `TauCeti.MorseChart.pullback`: the chart is composed with the diffeomorphism, and the
-coordinates and weights are kept.
+The chart `TauCeti.BirthDeathChart.pullback` pulls back the Morse–Bott chart of the quadratic
+part along the diffeomorphism (`TauCeti.MorseBottChart.pullback`), and keeps the cubic coordinate.
 
 The finiteness of the critical points of a generalized Morse function in a compact set, or in a
 sublevel set of a proper one bounded below, uses only that its critical points are isolated:
@@ -475,46 +473,6 @@ section Pullback
 variable {M' : Type*} [TopologicalSpace M'] [ChartedSpace E M'] [IsManifold 𝓘(ℝ, E) ∞ M']
   (σ : M' ≃ₘ^∞⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ M) {x' : M'}
 
-namespace MorseBottChart
-
-/-- The pull-back of a Morse–Bott chart `φ` for `f` at `σ x'` along a diffeomorphism
-`σ : M' ≃ M`: the Morse–Bott chart `φ ∘ σ` for `f ∘ σ` at `x'`, with the coordinates and the
-weights of `φ`. -/
-noncomputable def pullback (φ : MorseBottChart E f (σ x')) : MorseBottChart E (f ∘ σ) x' where
-  toChart := σ.toHomeomorph.transOpenPartialHomeomorph φ.toChart
-  mem_maximalAtlas := σ.transOpenPartialHomeomorph_mem_maximalAtlas le_rfl φ.mem_maximalAtlas
-  mem_source := φ.mem_source
-  apply_self := φ.apply_self
-  coord := φ.coord
-  weight := φ.weight
-  weight_eq_neg_one_or_eq_zero_or_eq_one := φ.weight_eq_neg_one_or_eq_zero_or_eq_one
-  eq_quadratic y hy := by
-    simpa using φ.eq_quadratic (σ y) hy
-
-variable (φ : MorseBottChart E f (σ x'))
-
-/-- The chart of the pull-back of a Morse–Bott chart is `φ ∘ σ`. -/
-@[simp]
-theorem coe_pullback_toChart : ⇑(φ.pullback σ).toChart = φ.toChart ∘ σ :=
-  (rfl)
-
-/-- The source of the pull-back of a Morse–Bott chart is the preimage of the source. -/
-@[simp]
-theorem pullback_source : (φ.pullback σ).toChart.source = σ ⁻¹' φ.toChart.source :=
-  (rfl)
-
-/-- The pull-back of a Morse–Bott chart keeps the coordinates. -/
-@[simp]
-theorem pullback_coord : (φ.pullback σ).coord = φ.coord :=
-  (rfl)
-
-/-- The pull-back of a Morse–Bott chart keeps the weights. -/
-@[simp]
-theorem pullback_weight : (φ.pullback σ).weight = φ.weight :=
-  (rfl)
-
-end MorseBottChart
-
 namespace BirthDeathChart
 
 -- The body is exposed so that `pullback_toMorseBottChart` typechecks, as for `restr`.
@@ -557,6 +515,12 @@ theorem pullback_cubicIndex : (φ.pullback σ).cubicIndex = φ.cubicIndex :=
 @[simp]
 theorem index_pullback : (φ.pullback σ).index = φ.index := by
   rw [index_def, index_def, pullback_toMorseBottChart, MorseBottChart.pullback_weight]
+
+/-- Pulling a birth–death chart back does not change its normal form. -/
+@[simp]
+theorem normalForm_pullback : (φ.pullback σ).normalForm = φ.normalForm := by
+  funext z
+  simp [normalForm_apply]
 
 end BirthDeathChart
 
