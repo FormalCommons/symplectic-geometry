@@ -273,7 +273,8 @@ and `TauCeti.eulerChar_complexProjectiveSpace`.
 Namespace `TauCeti.AlmostComplexStructure`, for almost complex structures
 on finite-dimensional real normed spaces `V`, `W` of the same dimension.
 
-- `ContinuousLinearEquiv.addOfNormLt`: for $A$ invertible and
+- `ContinuousLinearEquiv.addOfNormLt`, in
+  `Analysis/Normed/Operator/Perturbation.lean`: for $A$ invertible and
   $\|B\|\,\|A^{-1}\|<1$, the isomorphism $A+B$ (no complex structure is
   needed);
 - `orientation_map_add_of_norm_lt`: for $A$ complex-linear, $A+B$ carries
