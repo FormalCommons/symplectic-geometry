@@ -9,7 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Flow
 import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Interpolation
 import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Moser
-import SymplecticGeometry.Topology.MetricSpace.ProperSpace.Lemmas
+import TauCeti.Topology.MetricSpace.SeparatedBalls
 import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Neighborhood
 
@@ -216,7 +216,7 @@ theorem IsSymplecticBallFamily.exists_hasHamiltonian_extension [FiniteDimensiona
       (fun t ↦ (he.isSymplecticBallEmbedding t).injOn.congr fun z hz ↦ (hke t z hz).symm) hkK
       (hend hj₀ 0 hk₀) (hend hj₁ 1 hk₁)
   -- Choose `ρ` with `B(ρ) ⊆ W` and `r₀ < ρ < min r₁ r`.
-  obtain ⟨ρ', hρ', hρ'W⟩ := exists_lt_closedBall_subset_of_closedBall_subset hWo hKW
+  obtain ⟨ρ', hρ', hρ'W⟩ := hWo.exists_gt_closedBall_subset hKW
   obtain ⟨ρ, hr₀ρ, hρ⟩ := exists_between (lt_min (lt_min hρ' hr₁) hr₀r)
   have hρW : closedBall (0 : StdSpace (Fin n)) ρ ⊆ W :=
     (closedBall_subset_closedBall (hρ.le.trans ((min_le_left _ _).trans (min_le_left _ _)))).trans

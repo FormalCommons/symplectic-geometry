@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Basic
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Pullback
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.RestrictScalars
 import SymplecticGeometry.LinearAlgebra.Pi.LinearForm
 import SymplecticGeometry.LinearAlgebra.Projectivization.VeroneseLinearForm
@@ -314,8 +315,8 @@ theorem contMDiff_coe_veroneseAffine (r : ℕ∞ω) :
 theorem isImmersion_coe_veroneseAffine {r : ℕ∞ω} (hr : 1 ≤ r) :
     IsImmersion 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ, Fin (veroneseDim (n + 2) d - 1) → ℂ) r
       (Subtype.val : X.veroneseAffine → Fin (veroneseDim (n + 2) d - 1) → ℂ) := by
-  rw [coe_veroneseAffine_eq_comp, ← X.coe_veroneseAffineDiffeomorph r]
-  refine isImmersion_comp_diffeomorph _ ?_
+  rw [coe_veroneseAffine_eq_comp]
+  refine X.veroneseAffineHomeomorph.symm.isImmersion_comp_pullbackChartedSpace_iff.2 ?_
   refine isImmersion_isLocalDiffeomorphAt_comp (fun x ↦ ?_) ?_
   · rw [← coe_affineOpenPartialHomeomorph]
     exact (affineOpenPartialHomeomorph 0).isLocalDiffeomorphAt_of_mem_maximalAtlas

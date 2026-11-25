@@ -21,7 +21,7 @@ matrix, so the fibres of `unitaryFrame` are the left cosets of `O(n)`, the subgr
 fibre `O(n)`, hence has the homotopy lifting property and is a Serre fibration. In particular,
 every path of Lagrangians lifts to a path of unitary matrices through any given starting frame
 (`exists_path_lift_unitaryFrame`, from Tau Ceti's
-`TauCeti.HasHomotopyLiftingProperty.exists_path_lift`).
+`TauCeti.HasHomotopyLiftingProperty.exists_path_lift_fiber`).
 
 The local sections come from the basic chart `graphYChart`. A symmetric matrix `S` gives the
 Lagrangian frame `fromRows S 1`, whose unitary matrix `unitaryOfFrame` frames the chart point
@@ -106,9 +106,9 @@ all `t`. -/
 theorem exists_path_lift_unitaryFrame {Λ Λ' : ℒ ι} (γ : Path Λ Λ') {U : unitaryGroup ι ℂ}
     (hU : unitaryFrame U = Λ) :
     ∃ (V : unitaryGroup ι ℂ) (δ : Path U V), ∀ t, unitaryFrame (δ t) = γ t := by
-  obtain ⟨Γ, hΓ₀, hΓ⟩ := (hasHomotopyLiftingProperty_unitaryFrame ι Unit).exists_path_lift
-    (γ.cast hU rfl)
-  exact ⟨Γ 1, ⟨Γ, hΓ₀, rfl⟩, fun t ↦ by simpa using congrFun hΓ t⟩
+  obtain ⟨⟨V, _⟩, Γ, hΓ⟩ :=
+    (hasHomotopyLiftingProperty_unitaryFrame ι Unit).exists_path_lift_fiber γ ⟨U, hU⟩
+  exact ⟨V, Γ, hΓ⟩
 
 variable (ι) in
 /-- The unitary frame map `U(n) → ℒ ι` is a Serre fibration, as a morphism of `TopCat`. -/
