@@ -13,6 +13,7 @@ public import TauCeti.Topology.VectorBundle.Core.Trivial
 public import TauCeti.Geometry.Manifold.VectorBundle.RestrictScalars
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Core.Section
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
+public import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Core.ScalarCocycle
 public import TauCeti.Topology.VectorBundle.Hom
@@ -113,14 +114,6 @@ theorem twistTransition_ne_zero (k : ℤ) {i j : ι} {x : ℙ K (ι → K)} (hi 
   rw [twistTransition_def]
   exact zpow_ne_zero _
     (div_ne_zero ((mem_affineOpen_iff i x).1 hi) ((mem_affineOpen_iff j x).1 hj))
-
-/-- Distinct indices give distinct standard affine opens: the coordinate point `[eᵢ]` lies in
-the standard affine open of `i` and of no other index. -/
-theorem affineOpen_injective : Function.Injective (affineOpen (K := K) (ι := ι)) := by
-  classical
-  intro i j h
-  exact ((mk_single_mem_affineOpen_iff (K := K) i j).1
-    (h ▸ (mk_single_mem_affineOpen_iff i i).2 rfl)).symm
 
 end Transition
 

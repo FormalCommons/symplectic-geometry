@@ -17,7 +17,8 @@ The data `SymplecticGeometry.HypersurfaceData I X ι` are local equations of an 
 `D` on a complex manifold `X`: an open cover `U i` of `X`, with a preferred chart at each
 point, and holomorphic functions `f i` on `U i`, together with holomorphic, nowhere vanishing
 functions `g i j` on `U i ∩ U j` with `f i = g i j * f j` there, satisfying the cocycle identity
-`g i j * g j k = g i k`. The cocycle identity is part of the data because `g i j` is not determined by the `f` where they vanish.
+`g i j * g j k = g i k`. The cocycle identity is part of the data because `g i j` is not
+determined by the `f` where they vanish.
 
 The structure asks nothing more: an `f i` may vanish identically, and its zeros may be singular.
 The common zero set is a smooth hypersurface when moreover no `f i` vanishes identically and
@@ -48,8 +49,8 @@ line bundle and its canonical section need neither condition.
 
 `HypersurfaceData` extends `SymplecticGeometry.ScalarCocycle`: the cover, its preferred charts and
 the transition functions form a scalar cocycle. So `D.lineBundleCore k`, `D.indexAt`,
-`D.mem_U_indexAt`, `D.g_self` and `D.lineBundleCoreTensorEquiv k l` are, by dot notation, the declarations
-`ScalarCocycle.lineBundleCore` and so on of `D.toScalarCocycle`
+`D.mem_U_indexAt`, `D.g_self` and `D.lineBundleCoreTensorEquiv k l` are, by dot notation, the
+declarations `ScalarCocycle.lineBundleCore` and so on of `D.toScalarCocycle`
 (`SymplecticGeometry/Topology/VectorBundle/Core/ScalarCocycle.lean`). Of the line bundle, this
 file adds only the smoothness instance, from `ScalarCocycle.isContMDiff_lineBundleCore`.
 
