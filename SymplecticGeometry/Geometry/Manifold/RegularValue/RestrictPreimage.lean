@@ -10,7 +10,7 @@ public import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 public import TauCeti.Geometry.Manifold.MFDeriv.Opens
 public import TauCeti.Geometry.Manifold.Submersion.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
-public import TauCeti.Geometry.Manifold.Submersion.Split
+public import TauCeti.Geometry.Manifold.Submersion.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 
 /-!
@@ -25,7 +25,8 @@ the local differential notions of `f` pass to this restriction:
   `Manifold.IsSubmersionAt.restrictPreimage`), and being a submersion
   (`Manifold.IsSubmersion.restrictPreimage`). Since `Manifold.IsSubmersion` fixes one complement
   for all points, the step from a submersion at every point of `f⁻¹(V)` to a submersion on
-  `f⁻¹(V)` is proved in finite dimensions, with boundaryless source
+  `f⁻¹(V)` assumes a finite-dimensional source over a complete field, where all the pointwise
+  complements have the same dimension
   (`Manifold.IsSubmersion.restrictPreimage_of_isSubmersionAt`);
 * regular points and regular values (`TauCeti.isRegularPoint_restrictPreimage_iff`,
   `TauCeti.isRegularValue_restrictPreimage_iff`);
@@ -36,10 +37,13 @@ the local differential notions of `f` pass to this restriction:
 Smoothness of the restriction is Tau Ceti's `ContMDiff.restrictPreimage`, and properness is
 Mathlib's `IsProperMap.restrictPreimage`.
 
-The submersion statement composes the submersion normal form with the inclusions of the open
-submanifolds, which are local diffeomorphisms (`TauCeti.isLocalDiffeomorph_subtype_val`), using
-Tau Ceti's `IsLocalDiffeomorphAt.isSubmersionAt_comp_iff` and
-`IsLocalDiffeomorphAt.comp_isSubmersionAt`. The regular-value statements use Tau Ceti's
+The proof of `Manifold.IsSubmersionAtOfComplement.restrictPreimage` adapts Tau Ceti's
+`TauCeti.isImmersionAt_codRestrict_opens_iff` from immersions to submersions. It composes with
+the inclusions of the open submanifolds, which are local diffeomorphisms
+(`TauCeti.isLocalDiffeomorph_subtype_val`), by Tau Ceti's
+`IsLocalDiffeomorphAt.isSubmersionAtOfComplement_comp` and
+`IsLocalDiffeomorphAt.comp_isSubmersionAtOfComplement`, and then with a local inverse of the
+inclusion of `V`. The regular-value statements use Tau Ceti's
 `TauCeti.Manifold.mem_range_mfderiv_restrictPreimage_iff`. The fibre diffeomorphism follows the
 pattern of Tau Ceti's `TauCeti.regularFiberRestrictDiffeomorph`, which restricts the source
 instead of the target: both directions are smooth because the inclusions of the fibres are
@@ -124,25 +128,36 @@ end Submersion
 
 section SubmersionFiniteDimensional
 
-variable {𝕜 : Type*} [RCLike 𝕜]
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜]
   {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] [FiniteDimensional 𝕜 E]
-  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H} [I.Boundaryless]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
   {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] [FiniteDimensional 𝕜 F]
-  {G : Type*} [TopologicalSpace G] {J : ModelWithCorners 𝕜 F G}
-  {N : Type*} [TopologicalSpace N] [ChartedSpace G N]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] {G : Type*} [TopologicalSpace G]
+  {J : ModelWithCorners 𝕜 F G} {N : Type*} [TopologicalSpace N] [ChartedSpace G N]
   {n : ℕ∞ω} [IsManifold I n M] [IsManifold J n N] {f : M → N}
 
-/-- For a `C^n` map `f`, `1 ≤ n`, between finite-dimensional real or complex manifolds with
-boundaryless source, and an open `V` such that `f` is a submersion at every point of `f⁻¹(V)`,
+/-- For a continuous map `f` from a manifold modelled on a finite-dimensional space over a
+complete field, and an open `V` such that `f` is a `C^n` submersion at every point of `f⁻¹(V)`,
 the restriction `f⁻¹(V) → V` is a `C^n` submersion. -/
-theorem Manifold.IsSubmersion.restrictPreimage_of_isSubmersionAt (hf : ContMDiff I J n f)
-    (hn : 1 ≤ n) (V : Opens N) (h : ∀ x ∈ f ⁻¹' V, IsSubmersionAt I J n f x) :
-    IsSubmersion (M := (⟨f ⁻¹' V, V.isOpen.preimage hf.continuous⟩ : Opens M)) (N := V) I J n
-      ((V : Set N).restrictPreimage f) :=
-  ((hf.restrictPreimage V).isSubmersionOfComplement_of_surjective_mfderiv hn fun x ↦
-    ((h x x.property).restrictPreimage hf.continuous V).surjective_mfderiv
-      (zero_lt_one.trans_le hn).ne').isSubmersion
+theorem Manifold.IsSubmersion.restrictPreimage_of_isSubmersionAt (hf : Continuous f)
+    (V : Opens N) (h : ∀ x ∈ f ⁻¹' V, IsSubmersionAt I J n f x) :
+    IsSubmersion (M := (⟨f ⁻¹' V, V.isOpen.preimage hf⟩ : Opens M)) (N := V) I J n
+      ((V : Set N).restrictPreimage f) := by
+  -- Every pointwise complement has dimension `finrank E - finrank F`, so each can be replaced
+  -- by the same model space.
+  refine Manifold.IsSubmersionOfComplement.isSubmersion
+    (F := Fin (finrank 𝕜 E - finrank 𝕜 F) → 𝕜) (isSubmersionOfComplement_iff.2 fun x ↦ ?_)
+  have hx := h x x.property
+  let e := hx.equiv
+  have : FiniteDimensional 𝕜 (F × hx.complement) := Module.Finite.equiv e.toLinearEquiv
+  have : FiniteDimensional 𝕜 F :=
+    Module.Finite.of_surjective (LinearMap.fst 𝕜 F hx.complement) Prod.fst_surjective
+  have : FiniteDimensional 𝕜 hx.complement :=
+    Module.Finite.of_surjective (LinearMap.snd 𝕜 F hx.complement) Prod.snd_surjective
+  have hr : finrank 𝕜 hx.complement = finrank 𝕜 (Fin (finrank 𝕜 E - finrank 𝕜 F) → 𝕜) := by
+    rw [Module.finrank_fin_fun, e.toLinearEquiv.finrank_eq, Module.finrank_prod]; omega
+  exact (hx.isSubmersionAtOfComplement_complement.restrictPreimage hf V).trans_F
+    (ContinuousLinearEquiv.ofFinrankEq hr)
 
 end SubmersionFiniteDimensional
 
