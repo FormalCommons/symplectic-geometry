@@ -63,6 +63,8 @@ identity because `β_0 = 0`, and `TauCeti.Diffeotopy.ofReal` restricts it to a d
 * `TauCeti.SmoothTwoForm.exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`:
   Moser's argument with a parameter in `[0, 1]`, relative to a compact set on which the
   primitives vanish.
+* `TauCeti.SmoothTwoForm.mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply`: Moser's
+  argument at one point along a segment, with a primitive constant in the Moser time.
 
 Both proofs adapt that of Tau Ceti's
 `TauCeti.SmoothTwoForm.exists_diffeomorph_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`
@@ -280,12 +282,13 @@ variable {E H N : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
   [TopologicalSpace N] [ChartedSpace H N] [IsManifold I ∞ N] [T2Space N]
 
-/-- A step of `exists_diffeotopy_fix_eventually_mpullback_eq_of_mextDeriv_eq_sub`: Moser's
-argument at one point for the segment `ω₀ + s (α - ω₀)` from a closed form `ω₀`, with a primitive
-`γ` of `α - ω₀` constant in `s`. If, up to time `1`, the trajectory of `x` under the cut-off Moser
-field stays at points near which the cutoff is `1` and the segment is nondegenerate, the time-one
-map pulls `α` back to `ω₀` at `x`. -/
-private theorem mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply
+/-- **Moser's argument at one point along a segment.** Let `ω₀` be a closed two-form and `α` a
+two-form on `N` with `α - ω₀ = dγ`, and let the cut-off Moser field of the segment
+`s ↦ ω₀ + s (α - ω₀)`, with the primitive `γ` constant in `s` and a cutoff `ρ` on `ℝ × N`, be
+jointly smooth with complete suspension. If, for every `s ∈ [0, 1]`, the point reached at time `s`
+by the trajectory of `x` from time `0` has a neighbourhood on which `ρ (s, ·) = 1` and the flat
+map of `ω₀ + s (α - ω₀)` is invertible, then the time-one map pulls `α` back to `ω₀` at `x`. -/
+theorem mpullback_timeDependentFlowOf_moserField_lineMapFamily_apply
     {ω₀ α : SmoothTwoForm I N} (hω₀ : ω₀.IsClosed) {γ : SmoothForm I N ℝ 1}
     (hγ : α - ω₀ = mextDerivₗ I 1 γ) {ρ : ℝ × N → ℝ}
     (hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent ∞ (fun p : ℝ × N ↦
