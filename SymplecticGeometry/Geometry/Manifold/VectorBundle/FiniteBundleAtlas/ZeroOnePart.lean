@@ -5,7 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Chart
+public import TauCeti.Geometry.Manifold.VectorBundle.Sobolev.ZeroOneForm
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 
 /-!
@@ -19,9 +19,9 @@ chart `i` of `A` at a point of the chart image, is the complex-antilinear part o
 `½ (η' + i • η' ∘ K)`, where `η'` is the reading of `η` and `K = J.inChart (A.center i)` the
 reading of `J` (`TauCeti.FiniteBundleAtlas.coord_tangentHom_zeroOnePart_zeroOnePart`).
 
-The step that turns the `(0,1)`-part for `i` into a complex-antilinear part is Tau Ceti's
-`TauCeti.SmoothAlmostComplexStructure.inCoordinates_zeroOnePart`, as in the proof of
-`TauCeti.FiniteBundleAtlas.coord_tangentHom_eq_complexAntilinearPartL_fderiv_add_chartZeroOrder`.
+The outer `(0,1)`-part, for `i`, is read as a complex-antilinear part by Tau Ceti's
+`TauCeti.FiniteBundleAtlas.coord_tangentHom_zeroOnePart`; this file adds the reading of the
+inner `(0,1)`-part, for `J`.
 
 ## References
 
@@ -58,9 +58,8 @@ theorem coord_tangentHom_zeroOnePart_zeroOnePart {i : Fin A.n} {z : E} (hz : z �
         (A.tangentHom.coord i η z +
           Complex.I • (A.tangentHom.coord i η z).comp (J.inChart (A.center i) z))) := by
   have hxs := A.dom_subset_chart_source i (A.symm_mem_dom hz)
-  rw [coord_tangentHom, SmoothAlmostComplexStructure.inCoordinates_zeroOnePart _
-      (SmoothAlmostComplexStructure.inTangentCoordinates_ofComplexManifold hxs),
-    coord_tangentHom, SmoothAlmostComplexStructure.inChart_def]
+  rw [A.coord_tangentHom_zeroOnePart, coord_tangentHom, coord_tangentHom,
+    SmoothAlmostComplexStructure.inChart_def]
   congr 1
   ext v
   simp only [ContinuousLinearMap.inCoordinates, ContinuousLinearMap.comp_apply,
