@@ -18,7 +18,54 @@ import TauCeti.Geometry.Manifold.Morse.ScalarComposition
 /-!
 # Birth–death charts and generalized Morse functions
 
-TODO
+A critical point `x` of a smooth function `f` is of *birth–death type* when, in some chart of the
+maximal atlas centred at `x` and after a linear change of coordinates `L`, the function reads
+
+`f y = f x + (1/2) Σ_{i ≠ i₀} wᵢ (L (ψ y))ᵢ² + (L (ψ y))_{i₀}³ / 3`, with every `wᵢ = ±1`.
+
+This is Cerf's normal form at the parameter where a pair of nondegenerate critical points of
+adjacent indices is born or dies; its cubic term is Tau Ceti's `TauCeti.birthDeathPotential 0`,
+and its quadratic part has the normalization of `TauCeti.MorseChart`. A
+`TauCeti.BirthDeathChart` records such a chart. Rather than repeating the fields of a centred
+chart, it holds a `TauCeti.MorseBottChart` of the quadratic part of `f`, in which the cubic
+coordinate `i₀` is the only coordinate of weight `0`, so that the chart calculus of Morse–Bott
+charts applies to it.
+
+A *generalized Morse function* (`TauCeti.IsGeneralizedMorse`) is a smooth function each of whose
+critical points is nondegenerate or of birth–death type, as in Cieliebak–Eliashberg. These are the
+functions that appear along a generic one-parameter family of functions, and in particular along a
+Weinstein homotopy.
+
+## Main declarations
+
+* `TauCeti.BirthDeathChart`: a chart centred at a critical point in which the function is in
+  birth–death normal form; `TauCeti.BirthDeathChart.restr` restricts it to an open neighbourhood
+  of the centre.
+* `TauCeti.BirthDeathChart.mfderiv_eq_zero_iff`: the centre is the only critical point in the
+  source of the chart.
+* `TauCeti.BirthDeathChart.nonempty_comp`: a birth–death chart for `f` gives one for `h ∘ f` when
+  `h` is smooth with `h' > 0`.
+* `TauCeti.IsGeneralizedMorse`: smooth, with nondegenerate or birth–death critical points;
+  `TauCeti.IsMorse.isGeneralizedMorse`, `TauCeti.IsGeneralizedMorse.isClosed_criticalPoints`,
+  `TauCeti.IsGeneralizedMorse.isDiscrete_criticalPoints`,
+  `TauCeti.IsGeneralizedMorse.finite_criticalPoints_inter_preimage_Iic` and
+  `TauCeti.IsGeneralizedMorse.comp`.
+* `TauCeti.isGeneralizedMorse_birthDeathPotential` and `TauCeti.not_isMorse_birthDeathPotential`:
+  the cubic on the line is generalized Morse and not Morse.
+
+## Implementation notes
+
+The declarations are in the namespace `TauCeti`, since they concern only Tau Ceti's notions. The
+proof of `TauCeti.BirthDeathChart.nonempty_comp` builds the new chart as Tau Ceti's
+`TauCeti.IsManifoldNondegenerateCriticalPoint.nonempty_morseChart` builds a Morse chart: by
+composing the old chart with a local diffeomorphism of the model given by the inverse function
+theorem (`TauCeti.ContDiffOn.exists_openPartialHomeomorph`).
+
+## References
+
+* [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012]
+* J. Cerf, *La stratification naturelle des espaces de fonctions différentiables réelles et le
+  théorème de la pseudo-isotopie*, Publ. Math. IHÉS 39 (1970), 5–173.
 -/
 
 public section
@@ -115,6 +162,15 @@ theorem quadraticPart_self : φ.quadraticPart x = f x := by
 /-- The **index** of a birth–death chart: the number of negative weights. -/
 noncomputable def index : ℕ :=
   {i | φ.toMorseBottChart.weight i < 0}.ncard
+
+/-- The index of a birth–death chart is less than the dimension, since the cubic coordinate has
+weight `0`. -/
+theorem index_lt_finrank : φ.index < Module.finrank ℝ E := by
+  have hss : {i | φ.toMorseBottChart.weight i < 0} ⊂ univ :=
+    ssubset_univ_iff.2 fun h ↦ by
+      have := h ▸ mem_univ φ.cubicIndex
+      simp [φ.weight_cubicIndex] at this
+  simpa [index] using Set.ncard_lt_ncard hss (toFinite _)
 
 /-- The normal form of `f` in a birth–death chart, as a function on the model space:
 `z ↦ f x + (1/2) Σᵢ wᵢ (L z)ᵢ² + (L z)_{i₀}³ / 3`. -/
@@ -246,8 +302,7 @@ include φ in
 /-- A birth–death chart for `f` at `x` gives one for `h ∘ f`, when `h` is smooth with `h' > 0` at
 `f x`. In the chart, `h (f y) - h (f x)` is the normal form of `f` times a smooth positive function
 `a`; rescaling the coordinates of weight `±1` by `√a` and the cubic one by `∛a` brings it back to
-the normal form, and these new coordinates form a chart near `x` by the inverse function
-theorem. -/
+the normal form. The new chart has the same coordinate change, weights and cubic coordinate. -/
 theorem nonempty_comp {h : ℝ → ℝ} (hh : ContDiff ℝ ∞ h) (hpos : 0 < deriv h (f x)) :
     Nonempty (BirthDeathChart E (h ∘ f) x) := by
   classical
