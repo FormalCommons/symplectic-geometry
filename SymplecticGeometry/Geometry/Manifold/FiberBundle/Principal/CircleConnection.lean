@@ -263,9 +263,9 @@ theorem IsCircleConnectionForm.add_mpullback (hα : IsCircleConnectionForm α)
       ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
       (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) a) where
   mpullback_op_smul z := by
-    rw [map_add, hα.mpullback_op_smul, SmoothForm.mpullback_mpullback,
-      SmoothForm.mpullback_congr _ (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) (by
-        simpa using PrincipalBundle.proj_comp_op_smul (n := ∞) (IB := IB) (IG := 𝓡 1) (P := P) z)]
+    have h := PrincipalBundle.mpullback_op_smul_mpullback_proj (IG := 𝓡 1) (P := P) z a
+    simp only [ManifoldTotalSpace.coe_projContMDiffMap] at h
+    rw [map_add, hα.mpullback_op_smul, h]
   apply_rightFundamentalVectorField x := by
     rw [Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
       hα.apply_rightFundamentalVectorField, SmoothForm.mpullback_apply_one,

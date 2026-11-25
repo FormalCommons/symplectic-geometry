@@ -314,16 +314,19 @@ end IsConnectionForm
 /-- **Tensorial forms for a commutative structure group are the basic forms.** When `G` is
 commutative, its adjoint action is trivial, and a smooth `𝔤`-valued form on the total space is
 tensorial exactly when it is basic for the projection. -/
-theorem isTensorialForm_iff_isBasic [IsMulCommutative G] {k : ℕ}
+theorem isTensorialForm_iff_isBasic [IsMulCommutative G] {n : ℕ∞ω} {k : ℕ}
     {a : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) k} :
     IsTensorialForm a ↔ RoughForm.IsBasic (V := GroupLieAlgebra IG G) IB
-      (ManifoldTotalSpace.projContMDiffMap ∞ G P IB IG) a.val := by
+      (ManifoldTotalSpace.projContMDiffMap n G P IB IG) a.val := by
   -- The adjoint action of a commutative group is trivial.
   have hAd (g : G) : SmoothForm.mapCoeff (adjointContinuousLinearMap g⁻¹) a = a := by
     rw [adjointContinuousLinearMap_eq_id, SmoothForm.mapCoeff_id, LinearMap.id_apply]
   refine ⟨fun h ↦ PrincipalBundle.isBasic_of_mpullback_op_smul
-      (fun g ↦ (h.mpullback_op_smul g).trans (hAd g)) h.apply_eq_zero_of_vertical,
-    fun h ↦ ⟨fun g ↦ ?_, fun x v j hv ↦ h.apply_eq_zero_of_mfderiv_eq_zero hv⟩⟩
+      (fun g ↦ (h.mpullback_op_smul g).trans (hAd g)) fun x v j hv ↦
+        h.apply_eq_zero_of_vertical x v j (by
+          rw [ManifoldTotalSpace.coe_projContMDiffMap] at hv ⊢; exact hv),
+    fun h ↦ ⟨fun g ↦ ?_, fun x v j hv ↦ h.apply_eq_zero_of_mfderiv_eq_zero (by
+      rw [ManifoldTotalSpace.coe_projContMDiffMap] at hv ⊢; exact hv)⟩⟩
   rw [hAd]
   apply Subtype.ext
   rw [SmoothForm.coe_mpullback]
