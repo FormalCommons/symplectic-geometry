@@ -7,10 +7,10 @@ module
 
 public import TauCeti.Analysis.Complex.Wirtinger.IteratedFDeriv
 public import TauCeti.Analysis.Calculus.IteratedFDeriv.Lp
+import TauCeti.Analysis.Calculus.IteratedFDeriv.FDerivApply
 import TauCeti.Analysis.Calculus.SecondDerivative
 import TauCeti.Analysis.RCLike.OperatorNorm
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
-import TauCeti.Analysis.Normed.Operator.ComplexLinearPart
 
 /-!
 # Partial derivatives and the operator `∂̄ + μ ∂`
@@ -30,8 +30,8 @@ to the next by applying it to the partial derivatives of `v`.
 * `TauCeti.eLpNorm_iteratedFDeriv_succ_le` and `TauCeti.eLpNorm_iteratedFDeriv_fderiv_apply_le`:
   on the plane, the `Lᵖ` norm of `D^{n+1} v` is at most the sum of those of `D^n (∂₁v)` and
   `D^n (∂_I v)`, and the `Lᵖ` norm of `D^n (∂ₐv)` is at most `‖a‖` times that of `D^{n+1} v`.
-  Both come from pointwise bounds, `TauCeti.norm_iteratedFDeriv_succ_le` and
-  `TauCeti.norm_iteratedFDeriv_fderiv_apply_le`.
+  The first comes from the pointwise bound `TauCeti.norm_iteratedFDeriv_succ_le`, the second
+  from Tau Ceti's `ContDiff.norm_iteratedFDeriv_fderiv_apply_le`.
 * `TauCeti.exists_eLpNorm_iteratedFDeriv_fderiv_smul_wirtingerDeriv_le`: for `μ` of class
   `C^{k+1}` on an open set containing a compact `K`, the derivatives of order `j ≤ k` of
   `(∂ₐμ) ∂v` are bounded in `Lᵖ` by a constant times the sum of the `Lᵖ` norms of the derivatives
@@ -124,29 +124,15 @@ section Partials
 
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {v : ℂ → F} {n : ℕ}
 
-/-- The derivatives of order `n` of the partial derivative `∂ₐv` are those of order `n` of `Dv`,
-evaluated at `a`. -/
-theorem iteratedFDeriv_fderiv_apply (hv : ContDiff ℝ (n + 1) v) (a x : ℂ) :
-    iteratedFDeriv ℝ n (fun z ↦ fderiv ℝ v z a) x =
-      (apply ℝ F a).compContinuousMultilinearMap (iteratedFDeriv ℝ n (fderiv ℝ v) x) :=
-  (apply ℝ F a).iteratedFDeriv_comp_left
-    (hv.fderiv_right (m := n) le_rfl).contDiffAt le_rfl
-
-/-- Pointwise, the derivative of order `n` of `∂ₐv` is at most `‖a‖` times the derivative of
-order `n + 1` of `v`. -/
-theorem norm_iteratedFDeriv_fderiv_apply_le (hv : ContDiff ℝ (n + 1) v) (a x : ℂ) :
-    ‖iteratedFDeriv ℝ n (fun z ↦ fderiv ℝ v z a) x‖ ≤ ‖a‖ * ‖iteratedFDeriv ℝ (n + 1) v x‖ := by
-  rw [iteratedFDeriv_fderiv_apply hv, ← norm_iteratedFDeriv_fderiv]
-  refine (norm_compContinuousMultilinearMap_le _ _).trans ?_
-  gcongr
-  exact (apply ℝ F a).opNorm_le_bound (norm_nonneg a) fun φ ↦ by
-    rw [apply_apply, mul_comm]; exact φ.le_opNorm a
-
 /-- Pointwise, the derivative of order `n + 1` of `v` is at most the sum of the derivatives of
 order `n` of the partial derivatives `∂₁v` and `∂_I v`. -/
 theorem norm_iteratedFDeriv_succ_le (hv : ContDiff ℝ (n + 1) v) (x : ℂ) :
     ‖iteratedFDeriv ℝ (n + 1) v x‖ ≤ ‖iteratedFDeriv ℝ n (fun z ↦ fderiv ℝ v z 1) x‖ +
       ‖iteratedFDeriv ℝ n (fun z ↦ fderiv ℝ v z I) x‖ := by
+  -- `Dⁿ(∂ₐv)(x)` is `Dⁿ(Dv)(x)` followed by evaluation at `a`.
+  have h (a : ℂ) : iteratedFDeriv ℝ n (fun z ↦ fderiv ℝ v z a) x =
+      (apply ℝ F a).compContinuousMultilinearMap (iteratedFDeriv ℝ n (fderiv ℝ v) x) :=
+    (apply ℝ F a).iteratedFDeriv_comp_left (hv.fderiv_right (m := n) le_rfl).contDiffAt le_rfl
   rw [← norm_iteratedFDeriv_fderiv]
   refine ContinuousMultilinearMap.opNorm_le_bound (by positivity) fun m ↦ ?_
   refine (opNorm_le_bound _ (by positivity) (norm_apply_le_norm_one_add_norm_I (K := ℂ) _)).trans
@@ -154,7 +140,7 @@ theorem norm_iteratedFDeriv_succ_le (hv : ContDiff ℝ (n + 1) v) (x : ℂ) :
   rw [RCLike.I_to_complex, add_mul]
   gcongr
   all_goals
-    rw [iteratedFDeriv_fderiv_apply hv]
+    rw [h]
     refine le_of_eq_of_le ?_ (ContinuousMultilinearMap.le_opNorm _ m)
     rw [compContinuousMultilinearMap_coe, Function.comp_apply, apply_apply]
 
@@ -168,7 +154,8 @@ theorem eLpNorm_iteratedFDeriv_fderiv_apply_le (hv : ContDiff ℝ (n + 1) v) (a 
   eLpNorm_le_mul_eLpNorm_of_ae_le_mul
     ((((hv.fderiv_right (m := n) le_rfl).clm_apply
       contDiff_const).continuous_iteratedFDeriv le_rfl).aestronglyMeasurable)
-    (Eventually.of_forall (norm_iteratedFDeriv_fderiv_apply_le hv a)) p
+    (Eventually.of_forall fun x ↦
+      (hv.norm_iteratedFDeriv_fderiv_apply_le (by simp) a x).trans_eq (mul_comm _ _)) p
 
 /-- For `1 ≤ p`, the `Lᵖ` norm of the derivative of order `n + 1` of `v` is at most the sum of
 the `Lᵖ` norms of the derivatives of order `n` of `∂₁v` and `∂_I v`. -/
