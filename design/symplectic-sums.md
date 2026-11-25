@@ -57,11 +57,8 @@ These settle the points that part 62 of `DESIGN.md` leaves to this file,
 and the note of the review of #3195.
 
 1. **Gluing two manifolds.** The fibre sum glues two manifolds along open
-   subsets by a diffeomorphism. Neither Tau Ceti nor the library has this
-   gluing in general (Tau Ceti's `TauCeti.ConnectedSum` glues only along
-   punctured balls, and the library's
-   `TauCeti.SmoothCollar.WithEnd` of `Geometry/Manifold/Boundary/Collar/End.lean`
-   along its own data). The new file
+   subsets by a diffeomorphism. Tau Ceti does not have this gluing in general
+   (its `TauCeti.ConnectedSum` glues only along punctured balls). The new file
    `Geometry/Manifold/Gluing/Pair.lean` builds it once, as a two-piece
    `TopCat.GlueData` with Tau Ceti's `Geometry/Manifold/Gluing/GlueData.lean`,
    with Hausdorffness from `TopCat.GlueData.t2Space_iff_isClosed_chartRel`
@@ -268,8 +265,8 @@ About 250 lines.
   $f^*\omega=\tau\oplus\omega_0$ and normal derivative given by `Φ`; with
   `ProductNeighborhood.exists` for small $\varepsilon$ and compact $Q$
   (Decision 3) and `isClosed_image_closedBall`.
-- `fibreSum f₁ f₂ δ`, the `GluedAlong` of Decision 2, its `T2Space`, and
-  `fibreSum.symplecticForm` with `isSymplectic_symplecticForm`,
+- `FiberSum f₁ f₂ hδ hδε`, the `GluedAlong` of Decision 2, its `T2Space`, and
+  `FiberSum.symplecticForm` with `isSymplectic_symplecticForm`,
   `inl_mpullback_symplecticForm` and `inr_mpullback_symplecticForm`.
 - `exists_isSymplectic_fibreSum`: the milestone. For $(M_i,\omega_i)$ of
   dimension $2n$, compact $(Q,\tau)$ of dimension $2n-2$, symplectic

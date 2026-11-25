@@ -35,9 +35,14 @@ The segment `σ_t = σ₀ + t (σ₁ - σ₀)` with a primitive `β` constant in
 * `SymplecticGeometry.moserField`: the cut-off Moser field of a family of two-forms.
 * `SymplecticGeometry.interior_moserField`, `SymplecticGeometry.interior_moserField_eq`:
   the identity `ι_{X_t} σ_t = -ρ(t, ·) β_t`.
+* `SymplecticGeometry.exists_isCompact_moserField_eq_zero`: for a cutoff with compact support,
+  the field vanishes at every time outside one compact subset of `M`.
 * `SymplecticGeometry.contMDiffAt_moserField`, `SymplecticGeometry.contMDiff_moserField`: the
   field is jointly smooth on `N × M` where `ρ` is smooth and `σ_t` is nondegenerate at every
   point `(t, x)` of the support of `ρ`.
+* `SymplecticGeometry.contMDiff_moserField_lineMapFamily`: for the segment `s ↦ W + s • D`, the
+  field is jointly smooth where `ρ` is smooth and `W + s • D` is nondegenerate on the support
+  of `ρ`.
 * `SymplecticGeometry.moserField_rate_eq_zero`: Moser's equation at a point `y` near which
   `ρ(t, ·) = 1` and `σ_t` is nondegenerate, where `σ_t` is closed and `∂_t σ_t = dβ_t`.
 
@@ -109,6 +114,13 @@ theorem moserField_eq_zero_of_apply_eq_zero {t : N} {x : M}
 theorem moserField_eq_zero_of_notMem_tsupport {t : N} {x : M} (h : (t, x) ∉ tsupport ρ) :
     moserField σ β ρ t x = 0 := by
   rw [moserField_def, image_eq_zero_of_notMem_tsupport h, zero_smul]
+
+/-- When the cutoff `ρ` has compact support, the cut-off Moser field vanishes, at every time,
+outside a compact subset of `M`: the projection of the support of `ρ`. -/
+theorem exists_isCompact_moserField_eq_zero (hρ : HasCompactSupport ρ) :
+    ∃ K : Set M, IsCompact K ∧ ∀ t, ∀ x ∉ K, moserField σ β ρ t x = 0 :=
+  ⟨Prod.snd '' tsupport ρ, hρ.isCompact.image continuous_snd, fun _ _ hx ↦
+    moserField_eq_zero_of_notMem_tsupport fun h ↦ hx ⟨_, h, rfl⟩⟩
 
 /-- Where the flat map of the slice `σ_t` at `x` is invertible, the Moser field satisfies
 `ι_{X_t} σ_t = -ρ(t, x) β_t` at `x`. -/
@@ -188,6 +200,21 @@ theorem contMDiff_moserField (σ : SmoothForm (J.prod I) (N × M) ℝ 2)
     ContMDiff (J.prod I) I.tangent ∞
       (fun p : N × M ↦ (⟨p.2, moserField σ β ρ p.1 p.2⟩ : TangentBundle I M)) :=
   fun p ↦ contMDiffAt_moserField σ β (hρ p) (hinv p)
+
+/-- The cut-off Moser field of the segment `s ↦ W + s • D` of two-forms on `M`
+(`TauCeti.SmoothForm.lineMapFamily W (W + D) contDiff_id`) is jointly smooth on `ℝ × M` when `ρ`
+is smooth and `W + s • D` is nondegenerate at `x` for every point `(s, x)` of the support of
+`ρ`. -/
+theorem contMDiff_moserField_lineMapFamily (W D : SmoothForm I M ℝ 2)
+    (β : SmoothForm (𝓘(ℝ, ℝ).prod I) (ℝ × M) ℝ 1) {ρ : ℝ × M → ℝ}
+    (hρ : ContMDiff (𝓘(ℝ, ℝ).prod I) 𝓘(ℝ) ∞ ρ)
+    (hnd : ∀ p ∈ tsupport ρ, ((W + p.1 • D).bilinFormAt p.2).Nondegenerate) :
+    ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent ∞ (fun p : ℝ × M ↦ (⟨p.2, moserField
+      (SmoothForm.lineMapFamily W (W + D) (contDiff_id (E := ℝ))) β ρ p.1 p.2⟩ :
+        TangentBundle I M)) :=
+  contMDiff_moserField _ _ hρ fun p hp ↦ by
+    rw [SmoothForm.mpullback_prodMk_lineMapFamily, add_sub_cancel_left, id]
+    exact SmoothTwoForm.isInvertible_flat_iff.mpr (hnd p hp)
 
 /-- **Moser's equation for the cut-off Moser field.** Let `σ` and `β` be forms on `ℝ × M`. At a
 point `y` where the slice `σ_t` is closed and the slice of the time derivative `∂_t σ` is `dβ_t`,
