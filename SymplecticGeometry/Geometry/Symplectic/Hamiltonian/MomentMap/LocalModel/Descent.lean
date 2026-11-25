@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Lie.Subgroup.BalancedProduct
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Action
 
+import SymplecticGeometry.Geometry.Lie.Adjoint.Coadjoint
 import TauCeti.Geometry.Manifold.Algebra.SMul
 
 /-!
@@ -29,8 +30,8 @@ pairs:
 
 * the derivative of `ν` along `X` is the infinitesimal coadjoint action, `dν_p(X) ζ = ν p ⁅ζ, ξ'⁆`,
   which cancels the term `ν p ⁅-ξ', ζ⁆`. This is the derivative at `1` of the equivariance
-  `ν (k • p) = Ad*_k (ν p)` (`SymplecticGeometry.LocalModelData.covector_smul`), computed with Tau
-  Ceti's `TauCeti.Lie.mvfderiv_coadjointRepresentation_apply_one`;
+  `ν (k • p) = Ad*_k (ν p)` (`SymplecticGeometry.LocalModelData.covector_smul`), computed with
+  `TauCeti.Lie.mvfderiv_coadjointRepresentation_subtype_apply_one`;
 * `ι𝔪` vanishes on `ξ' ∈ 𝔥`, and the moment identity `dμ_V(v) b₂ ξ' = σ (ρ ξ' v, b₂)` cancels the
   term `σ (ρ ξ' v, b₂)` of `pr_V^* σ`.
 
@@ -88,24 +89,17 @@ theorem mvfderiv_covector_apply_fundamentalVectorField (p : A × V)
       D.covector p ⁅ζ, K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I ξ⁆ := by
   let := D.fiberDistribMulAction
   have := D.contMDiffSMul_fiberDistribMulAction
-  have hK : MDifferentiableAt 𝓘(ℝ, F) I K.subtype 1 := by
-    rw [Subgroup.coe_subtype]
-    exact (K.contMDiff_subtypeVal_of_contMDiffSMul (I := I) (n := ∞)).mdifferentiableAt (by simp)
   -- Along the orbit map `k ↦ k • p`, the component `y ↦ ν y ζ` becomes the coadjoint matrix
   -- coefficient `k ↦ (Ad*_k (ν p)) ζ`, by `covector_smul`.
   have hcomp : (fun y ↦ D.covector y ζ) ∘ (fun k : K ↦ k • p) =
-      (fun g : G ↦ coadjointRepresentation ℝ I G g (D.covector p) ζ) ∘ K.subtype := by
-    funext k
-    rw [Function.comp_apply, covector_smul, Function.comp_apply, Subgroup.coe_subtype]
+      fun k : K ↦ coadjointRepresentation ℝ I G k (D.covector p) ζ :=
+    funext fun k ↦ by rw [Function.comp_apply, covector_smul]
   have hν : MDifferentiableAt 𝓘(ℝ, A × V) 𝓘(ℝ) (fun y ↦ D.covector y ζ) p :=
     (D.contMDiff_covector_apply ζ).mdifferentiableAt (by simp)
   have horb : MDifferentiableAt 𝓘(ℝ, F) 𝓘(ℝ, A × V) (fun k : K ↦ k • p) 1 :=
     (ContMDiffSMul.contMDiff_smul_const (I := 𝓘(ℝ, F)) (n := ∞) p).mdifferentiableAt (by simp)
   rw [fundamentalVectorField_apply, ← mvfderiv_comp_apply_of_eq 1 hν horb (one_smul K p),
-    hcomp, mvfderiv_comp_apply_of_eq 1
-      ((contMDiff_coadjointRepresentation_apply _ _).mdifferentiableAt (by simp))
-      hK (map_one K.subtype),
-    ← MonoidHom.groupLieAlgebraMap_apply, mvfderiv_coadjointRepresentation_apply_one]
+    hcomp, mvfderiv_coadjointRepresentation_subtype_apply_one]
 
 /-- **The local model's form vanishes on vertical vectors.** At every point of `G × (A × V)`, the
 kernel of the differential of the projection `(g, p) ↦ [g, p]` onto the balanced product
