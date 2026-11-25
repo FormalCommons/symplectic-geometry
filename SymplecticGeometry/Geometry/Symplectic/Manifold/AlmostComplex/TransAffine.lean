@@ -5,10 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Calculus.ContDiff.FTaylorSeries
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.TransAffine
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
-import Mathlib.Analysis.Calculus.ContDiff.Basic
+import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.ArrowCongr
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
@@ -27,14 +26,11 @@ at the corresponding point.
   `φ.transAffine p A`, as a conjugate of the structure read in `φ`.
 * `TauCeti.SmoothAlmostComplexStructure.norm_iteratedFDeriv_chartPushforward_transAffine_le`: the
   bound on its iterated derivatives.
-* `ContinuousLinearEquiv.norm_iteratedFDeriv_arrowCongr_comp_le`: the same bound for any map
-  `f : G → (G →L[ℝ] G)` conjugated by `A` and precomposed with `z ↦ A⁻¹ z + p`, with
-  `ContinuousLinearEquiv.norm_arrowCongr_le`, the norm of conjugation by continuous linear
-  equivalences.
 
 The formula is the change of chart rule of Tau Ceti,
 `ContMDiffAlmostComplexStructure.chartPushforward_symm_trans_comp_fderiv`, for the transition map
-from `φ` to `φ.transAffine p A`.
+from `φ` to `φ.transAffine p A`. The bound is
+`ContinuousLinearEquiv.norm_iteratedFDeriv_arrowCongr_comp_le`, for `e₁ = e₂ = A`.
 
 ## References
 
@@ -45,57 +41,6 @@ from `φ` to `φ.transAffine p A`.
 public section
 
 open scoped Manifold ContDiff
-
-namespace ContinuousLinearEquiv
-
-/-- The map `X ↦ e₂ ∘ X ∘ e₁⁻¹` between spaces of continuous linear maps has operator norm at most
-`‖e₂‖ * ‖e₁⁻¹‖`. -/
-theorem norm_arrowCongr_le {𝕜 E F E' F' : Type*} [NontriviallyNormedField 𝕜]
-    [NormedAddCommGroup E] [NormedSpace 𝕜 E] [NormedAddCommGroup F] [NormedSpace 𝕜 F]
-    [NormedAddCommGroup E'] [NormedSpace 𝕜 E'] [NormedAddCommGroup F'] [NormedSpace 𝕜 F']
-    (e₁ : E ≃L[𝕜] F) (e₂ : E' ≃L[𝕜] F') :
-    ‖((e₁.arrowCongr e₂ : (E →L[𝕜] E') ≃L[𝕜] (F →L[𝕜] F')) : (E →L[𝕜] E') →L[𝕜] (F →L[𝕜] F'))‖ ≤
-      ‖(e₂ : E' →L[𝕜] F')‖ * ‖(e₁.symm : F →L[𝕜] E)‖ := by
-  refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun X ↦ ?_
-  refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) fun w ↦ ?_
-  rw [ContinuousLinearEquiv.coe_coe, arrowCongr_apply]
-  calc ‖e₂ (X (e₁.symm w))‖ ≤ ‖(e₂ : E' →L[𝕜] F')‖ * (‖X‖ * (‖(e₁.symm : F →L[𝕜] E)‖ * ‖w‖)) :=
-        (e₂ : E' →L[𝕜] F').le_opNorm_of_le
-          (X.le_opNorm_of_le ((e₁.symm : F →L[𝕜] E).le_opNorm w))
-    _ = ‖(e₂ : E' →L[𝕜] F')‖ * ‖(e₁.symm : F →L[𝕜] E)‖ * ‖X‖ * ‖w‖ := by ring
-
-variable {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
-
-/-- For any map `f` from `G` to its endomorphisms, the iterated derivatives of order `r` of
-`z ↦ A ∘ f (A⁻¹ z + p) ∘ A⁻¹` at `z` have norm at most `‖A‖ * ‖A⁻¹‖ ^ (r + 1)` times those of `f`
-at `A⁻¹ z + p`. -/
-theorem norm_iteratedFDeriv_arrowCongr_comp_le (A : G ≃L[ℝ] G) (f : G → G →L[ℝ] G) (p : G)
-    (r : ℕ) (z : G) :
-    ‖iteratedFDeriv ℝ r (fun z ↦ A.arrowCongr A (f (A.symm z + p))) z‖ ≤
-      ‖(A : G →L[ℝ] G)‖ * ‖(A.symm : G →L[ℝ] G)‖ ^ (r + 1) *
-        ‖iteratedFDeriv ℝ r f (A.symm z + p)‖ := by
-  have hleft := (A.arrowCongr A).iteratedFDeriv_comp_left (f := fun z ↦ f (A.symm z + p))
-    (x := z) (i := r)
-  have hright : iteratedFDeriv ℝ r ((fun w ↦ f (w + p)) ∘ A.symm) z =
-      (iteratedFDeriv ℝ r (fun w ↦ f (w + p)) (A.symm z)).compContinuousLinearMap
-        fun _ ↦ (A.symm : G →L[ℝ] G) := by
-    simpa [iteratedFDerivWithin_univ] using
-      A.symm.iteratedFDerivWithin_comp_right (fun w ↦ f (w + p)) uniqueDiffOn_univ
-        (Set.mem_univ (A.symm z)) r
-  rw [show (fun z ↦ A.arrowCongr A (f (A.symm z + p))) =
-      ⇑(A.arrowCongr A) ∘ fun z ↦ f (A.symm z + p) from rfl, hleft]
-  refine ((ContinuousLinearMap.norm_compContinuousMultilinearMap_le _ _).trans
-    (mul_le_mul (norm_arrowCongr_le A A) le_rfl (norm_nonneg _) (by positivity))).trans ?_
-  rw [show (fun z ↦ f (A.symm z + p)) = (fun w ↦ f (w + p)) ∘ A.symm from rfl, hright]
-  have hc := ContinuousMultilinearMap.norm_compContinuousLinearMap_le
-    (iteratedFDeriv ℝ r (fun w ↦ f (w + p)) (A.symm z)) fun _ ↦ (A.symm : G →L[ℝ] G)
-  rw [Finset.prod_const, Finset.card_univ, Fintype.card_fin] at hc
-  calc _ ≤ ‖(A : G →L[ℝ] G)‖ * ‖(A.symm : G →L[ℝ] G)‖ *
-        (‖iteratedFDeriv ℝ r (fun w ↦ f (w + p)) (A.symm z)‖ * ‖(A.symm : G →L[ℝ] G)‖ ^ r) := by
-          gcongr
-    _ = _ := by rw [iteratedFDeriv_comp_add_right]; ring
-
-end ContinuousLinearEquiv
 
 namespace TauCeti
 
@@ -160,7 +105,7 @@ theorem norm_iteratedFDeriv_chartPushforward_transAffine_le (r : ℕ) {z : G}
     Filter.eventually_of_mem ((φ.transAffine p A).open_target.mem_nhds hz)
       fun _ hz' ↦ (J.chartPushforward_transAffine φ p A hz').trans (by ext; simp)
   rw [(hev.iteratedFDeriv ℝ r).eq_of_nhds]
-  exact A.norm_iteratedFDeriv_arrowCongr_comp_le _ p r z
+  exact A.norm_iteratedFDeriv_arrowCongr_comp_le A _ p r z
 
 end SmoothAlmostComplexStructure
 

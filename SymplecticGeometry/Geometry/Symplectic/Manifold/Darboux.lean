@@ -105,8 +105,7 @@ theorem transAffine_darbouxChart {F : Type*} [NormedAddCommGroup F] [NormedSpace
       σ.eval₂ y v w = form₀ (mvfderiv I (φ.transSubRight p) y v)
         (mvfderiv I (φ.transSubRight p) y w) := by
     intro y hy v w
-    rw [PartialDiffeomorph.transSubRight_source] at hy
-    rw [φ.mvfderiv_transSubRight p hy, hφ y hy]
+    rw [φ.mvfderiv_transSubRight p y, hφ y (by simpa using hy)]
   rw [PartialDiffeomorph.transAffine_def]
   exact (trans_toDiffeomorph_darbouxChart hτ A hA).2.2.2 x (by simpa using hx) v w
 
