@@ -13,6 +13,10 @@ public import TauCeti.Geometry.Manifold.SmoothEmbedding.NormalSpace.Basic
 public import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import TauCeti.Geometry.Symplectic.Manifold.Kahler
+public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Restriction
+public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
+public import TauCeti.Geometry.Symplectic.Manifold.Opens
+public import TauCeti.Geometry.Symplectic.Lagrangian.Basic
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.Hom
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import SymplecticGeometry.Geometry.Manifold.VectorField.Immersion
@@ -68,6 +72,13 @@ of the model space.
 
 Nothing here assumes `N` nonempty or of positive dimension.
 
+Two related cases end the file. An open subset `U` needs no embedding: Tau Ceti restricts `J` to
+it as `J.restrictOpen U`, and a form taming `J` pulls back along the inclusion to one taming that
+restriction (`TauCeti.SmoothTwoForm.Tames.restrictOpen`). The kernel of the derivative of a
+pseudoholomorphic map is `J`-invariant, so by Tau Ceti's
+`TauCeti.SymplecticForm.Tames.isSymplectic_of_mem_invtSubmodule` a taming form is nondegenerate
+on it (`TauCeti.SmoothTwoForm.Tames.nondegenerate_restrict_ker_mfderiv`).
+
 ## Main definitions
 
 * `TauCeti.SmoothAlmostComplexStructure.restrict`: the almost complex structure that `J` induces
@@ -95,6 +106,10 @@ Nothing here assumes `N` nonempty or of positive dimension.
 * `TauCeti.SmoothTwoForm.Tames.complex_submanifold`: these statements together.
 * `TauCeti.SmoothAlmostComplexStructure.IsIntegrable.restrict`: integrability passes to the
   restriction on a boundaryless submanifold.
+* `TauCeti.SmoothTwoForm.Tames.restrictOpen`: taming passes to open subsets.
+* `TauCeti.IsPseudoholomorphicAt.ker_mfderiv_mem_invtSubmodule`,
+  `TauCeti.SmoothTwoForm.Tames.nondegenerate_restrict_ker_mfderiv`: the kernel of the derivative
+  of a pseudoholomorphic map is invariant, and a taming form is nondegenerate on it.
 
 ## References
 
@@ -376,6 +391,51 @@ theorem Tames.complex_submanifold (hσ : σ.Tames J) :
   ⟨(hσ.restrict hJ).isNondegenerate, hσ.restrict hJ, fun h ↦ h.restrict hJ,
     fun h ↦ ⟨hσ.isSymplecticSubmanifoldEmbedding hJ, hσ.isSymplectic_mpullback hJ
       ⟨h, hσ.isNondegenerate⟩⟩, fun h ↦ h.restrict hJ⟩
+
+end SmoothTwoForm
+
+end TauCeti
+
+/-! ### Open subsets and kernels of pseudoholomorphic maps -/
+
+namespace TauCeti
+
+variable {E H X E' H' Y : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace X] [ChartedSpace H X] [IsManifold I (⊤ : ℕ∞) X]
+  [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace Y] [ChartedSpace H' Y]
+  [IsManifold I' (⊤ : ℕ∞) Y]
+  {σ : SmoothTwoForm I X} {J : SmoothAlmostComplexStructure I X}
+  {L : SmoothAlmostComplexStructure I' Y} {u : X → Y} {x : X}
+
+/-- The kernel of the derivative at `x` of a map pseudoholomorphic at `x` is invariant under the
+almost complex structure at `x`. -/
+theorem IsPseudoholomorphicAt.ker_mfderiv_mem_invtSubmodule (hu : IsPseudoholomorphicAt J L u x) :
+    (mfderiv I I' u x).ker ∈
+      Module.End.invtSubmodule (J.almostComplexStructureAt x).toLinearMap :=
+  (Module.End.mem_invtSubmodule _).2 fun v hv ↦ by simp_all [hu.mfderiv_apply_commute]
+
+namespace SmoothTwoForm
+
+/-- If `σ` tames `J` and `u` is pseudoholomorphic at `x`, the restriction of `σ` at `x` to the
+kernel of the derivative of `u` is nondegenerate. -/
+theorem Tames.nondegenerate_restrict_ker_mfderiv (hσ : σ.Tames J)
+    (hu : IsPseudoholomorphicAt J L u x) :
+    ((σ.bilinFormAt x).restrict ((mfderiv I I' u x).ker)).Nondegenerate := by
+  have hn := hσ.isNondegenerate
+  rw [← hn.toBilinForm_symplecticFormAt x]
+  exact ((hn.tames_iff.1 hσ x).isSymplectic_of_mem_invtSubmodule
+    hu.ker_mfderiv_mem_invtSubmodule).nondegenerate_restrict
+
+/-- A two-form taming `J` restricts, on an open subset `U`, to a two-form taming the restriction
+`J.restrictOpen U` of `J` to `U`. -/
+theorem Tames.restrictOpen (hσ : σ.Tames J) (U : TopologicalSpace.Opens X) :
+    SmoothTwoForm.Tames (SmoothForm.mpullback (Subtype.val : U → X) contMDiff_subtypeVal σ)
+      (J.restrictOpen U) := tames_iff.2 fun x v hv ↦ by
+  rw [← SmoothForm.bilinFormAt_apply, bilinFormAt_mpullback_subtype_val,
+    SmoothAlmostComplexStructure.restrictOpen_apply]
+  simp only [Manifold.tangentSpaceOpenEquiv_apply, Manifold.tangentSpaceOpenEquiv_symm_apply]
+  exact lt_of_lt_of_eq (tames_iff.1 hσ x v hv) (SmoothForm.bilinFormAt_apply σ (x : X) _ _).symm
 
 end SmoothTwoForm
 
