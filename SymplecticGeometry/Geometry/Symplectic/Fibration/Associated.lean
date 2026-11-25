@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Associated.PullbackPrincipal
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Basic
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 public import TauCeti.Geometry.Manifold.ContMDiff.FiniteDimension
 public import TauCeti.Geometry.Manifold.DifferentialForm.Closed
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
@@ -50,11 +51,13 @@ of the descent theorem `TauCeti.AssociatedBundle.existsUnique_mpullback_totalSpa
 
 The definitions take the smoothness of the components of `μ` as the argument `hμs`, which is all
 they need; the theorems take it as an implicit argument, so that it is never asked for beside the
-moment map hypothesis, from which it follows. The pairing turns `μ` into a map to `𝔤 →L[ℝ] ℝ`,
-which is smooth since `𝔤` is finite-dimensional (Tau Ceti's `TauCeti.contMDiffAt_clm_apply`).
-Closedness needs only that `σ` is closed; invariance needs the equivariance of `A` and of `μ`,
-and the invariance of `σ`, which Tau Ceti's moment maps do not include. The norm on `𝔤` is the
-scoped one of `SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed`.
+moment map hypothesis, from which it follows
+(`TauCeti.SmoothTwoForm.IsMomentMap.contMDiff_of_neg`). The pairing turns `μ` into a map to
+`𝔤 →L[ℝ] ℝ`, which is smooth since `𝔤` is finite-dimensional (Tau Ceti's
+`TauCeti.contMDiffAt_clm_apply`). Closedness needs only that `σ` is closed; invariance needs the
+equivariance of `A` and of `μ`, and the invariance of `σ`, which Tau Ceti's moment maps
+do not include. The norm on `𝔤` is the scoped one of
+`SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed`.
 
 ## References
 
@@ -88,14 +91,14 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
 
 /-- A map `μ : F → 𝔤*` with smooth components, as a smooth map to the continuous dual
 `𝔤 →L[ℝ] ℝ`: the Lie algebra is finite-dimensional, so every linear form on it is continuous. -/
-def momentMapCLM [IsManifold IF ∞ F] (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))
+def momentMapCLM (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))
     (hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ) :
     C^∞⟮IF, F; 𝓘(ℝ, GroupLieAlgebra IG G →L[ℝ] ℝ), GroupLieAlgebra IG G →L[ℝ] ℝ⟯ where
   val v := LinearMap.toContinuousLinearMap (μ v)
   property _ := contMDiffAt_clm_apply.2 fun ξ ↦ (hμs ξ).contMDiffAt
 
 @[simp]
-theorem momentMapCLM_apply [IsManifold IF ∞ F] (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))
+theorem momentMapCLM_apply (μ : F → Module.Dual ℝ (GroupLieAlgebra IG G))
     (hμs : ∀ ξ, ContMDiff IF 𝓘(ℝ) ∞ fun v ↦ μ v ξ) (v : F) (ξ : GroupLieAlgebra IG G) :
     momentMapCLM μ hμs v ξ = μ v ξ :=
   (rfl)
