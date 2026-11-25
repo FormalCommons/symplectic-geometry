@@ -95,17 +95,11 @@ theorem isZero_singularHomology_ofInclusion_iUnion_of_pairwiseDisjoint {C : Type
       π ⁻¹' (⋃ i, V i) ∩ Z ⊆ π ⁻¹' (⋃ i, V i))).singularHomology R n) := by
   -- Reindex by the range of `V`, a type in the universe `w`; its distinct members are disjoint.
   rw [← sUnion_range, sUnion_eq_iUnion]
-  have hc := TopPair.isColimitCofanSingularHomologyOfIsColimit C R n
+  exact (TopPair.isColimitCofanSingularHomologyOfIsColimit C R n
     (isColimitCofanPreimagePairIUnion π Z (V := ((↑) : range V → Set Y))
       (fun s ↦ by obtain ⟨_, i, rfl⟩ := s; exact hV i)
-      (fun s t hst ↦ by
-        obtain ⟨_, i, rfl⟩ := s
-        obtain ⟨_, j, rfl⟩ := t
-        exact hd fun hij ↦ hst (by subst hij; rfl)))
-  rw [IsZero.iff_id_eq_zero]
-  refine hc.hom_ext ?_
-  rintro ⟨_, i, rfl⟩
-  exact (hn i).eq_of_src _ _
+      ((pairwise_subtype_iff_pairwise_set _ _).2 hd.range_pairwise))).isZero_pt
+    (Functor.isZero _ fun ⟨⟨_, i, rfl⟩⟩ ↦ hn i)
 
 /-- The main result below, for an index type in the universe of the spaces. -/
 private theorem bijective_pullbackCupRestrict_iUnion_aux {ι : Type w} {V : ι → Set Y}

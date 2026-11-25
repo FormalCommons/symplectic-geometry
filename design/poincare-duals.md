@@ -254,7 +254,7 @@ In the setting of Tau Ceti's `TopCat.pullbackCupRestrict` (a map
 
 - `TauCeti.bijective_thomMap_of_secondCountableTopology`: for `[T2Space B]
   [LocallyCompactSpace B] [SecondCountableTopology B] [VectorBundle ℝ F E]`,
-  `[FiniteDimensional ℝ F]`, a commutative ring `K`, a module `M` and a Thom
+  a commutative ring `K`, a module `M` and a Thom
   class `u` (`IsThomClass F E u`), `thomMap F E M (finrank ℝ F) p m h u` is
   bijective; `TauCeti.thomEquivOfSecondCountableTopology`, the equivalence,
   with `thomEquivOfSecondCountableTopology_apply`, named after Tau Ceti's

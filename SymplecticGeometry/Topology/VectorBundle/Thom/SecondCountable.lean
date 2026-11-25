@@ -38,7 +38,7 @@ Thom pair `(E|_U, E₀|_U)` vanishes below the rank:
   of the homology), and `TauCeti.isZero_singularHomology_thomPairOver_union`;
 * on a union of pairwise disjoint open sets, by
   `TopCat.bijective_pullbackCupRestrict_iUnion_of_pairwiseDisjoint` and
-  `TauCeti.isZero_singularHomology_thomPairOver_iUnion_of_pairwiseDisjoint`.
+  `TopCat.isZero_singularHomology_ofInclusion_iUnion_of_pairwiseDisjoint`.
 
 The step for two open sets is that of Tau Ceti's
 `TauCeti.bijective_pullbackCupRestrict_thomPair_biUnion`,
@@ -47,8 +47,10 @@ and the global statements follow `TauCeti.bijective_thomMap_of_compactSpace` and
 
 ## Main results
 
-* `TauCeti.isZero_singularHomology_thomPairOver_iUnion_of_pairwiseDisjoint`: the relative homology
-  of the Thom pair over a union of pairwise disjoint open sets vanishes if it does over each.
+* `TauCeti.bijective_pullbackCupRestrict_thomPair_of_secondCountableTopology`: over every open set
+  `U` of the base, the map `a ↦ π^*a ⌣ u` over `U` is bijective in every degree.
+* `TauCeti.isZero_singularHomology_thomPairOver_of_secondCountableTopology`: over every open set
+  `U` of the base, the relative homology of the Thom pair over `U` vanishes below the rank.
 * `TauCeti.bijective_thomMap_of_secondCountableTopology`: the Thom map of a Thom class over a
   Hausdorff, locally compact, second-countable base is bijective in every degree.
 * `TauCeti.thomEquivOfSecondCountableTopology`: the Thom isomorphism
@@ -75,47 +77,7 @@ variable {B : Type w} [TopologicalSpace B] {F : Type w} [NormedAddCommGroup F] [
   [∀ b, Module ℝ (E b)] [∀ b, TopologicalSpace (E b)] [FiberBundle F E]
   {K : Type w} [CommRing K] (M : ModuleCat.{w} K)
 
-omit [NormedSpace ℝ F] [∀ b, Module ℝ (E b)] in
-/-- The pair over `W` of `TopCat.pullbackCupRestrict` along `TauCeti.thomPairProj` is the Thom pair
-`TauCeti.thomPairOver F E W`, so the vanishing of the homology of the latter gives that of the
-cohomology of the former. -/
-private theorem isZero_singularCohomology_thomPairProj_of_isZero_singularHomology (W : Set B)
-    {j : ℕ} (hW : ∀ i ≤ j, IsZero ((thomPairOver F E W).singularHomology (ModuleCat.of K K) i)) :
-    IsZero ((TopPair.ofInclusion (inter_subset_left :
-      thomPairProj F E ⁻¹' W ∩ zeroSectionCompl F E ⊆ thomPairProj F E ⁻¹' W)).singularCohomology
-        (ModuleCat.of K K) K M j) := by
-  suffices ∀ π' : TopCat.of (TotalSpace F E) ⟶ TopCat.of B, π' = thomPairProj F E →
-      IsZero ((TopPair.ofInclusion (inter_subset_left :
-        π' ⁻¹' W ∩ zeroSectionCompl F E ⊆ π' ⁻¹' W)).singularCohomology
-          (ModuleCat.of K K) K M j) from
-    this _ rfl
-  intro π' hπ'
-  rw [thomPairProj_def] at hπ'
-  subst hπ'
-  exact TopPair.isZero_singularCohomology_of_isZero_singularHomology _ (ModuleCat.of K K) M j hW
-
-omit [NormedSpace ℝ F] [∀ b, Module ℝ (E b)] in
-/-- **The relative homology of the Thom pair over a disjoint union.** For pairwise disjoint open
-sets `V i` of the base, indexed by any type, if `Hⱼ(E|_{V i}, E₀|_{V i})` vanishes for every `i`,
-then so does `Hⱼ(E|_{⋃ i, V i}, E₀|_{⋃ i, V i})`. -/
-theorem isZero_singularHomology_thomPairOver_iUnion_of_pairwiseDisjoint {C : Type*} [Category C]
-    [HasCoproducts.{w} C] [Abelian C] [AB4OfSize.{w} C] (R : C) {ι : Type*} {V : ι → Set B}
-    (hV : ∀ i, IsOpen (V i)) (hd : Pairwise (Disjoint on V)) {j : ℕ}
-    (hj : ∀ i, IsZero ((thomPairOver F E (V i)).singularHomology R j)) :
-    IsZero ((thomPairOver F E (⋃ i, V i)).singularHomology R j) := by
-  suffices ∀ π' : TopCat.of (TotalSpace F E) ⟶ TopCat.of B, π' = thomPairProj F E →
-      IsZero ((TopPair.ofInclusion (inter_subset_left :
-        π' ⁻¹' (⋃ i, V i) ∩ zeroSectionCompl F E ⊆ π' ⁻¹' (⋃ i, V i))).singularHomology R j) by
-    have h := this _ rfl
-    rw [thomPairProj_def] at h
-    exact h
-  intro π' hπ'
-  refine TopCat.isZero_singularHomology_ofInclusion_iUnion_of_pairwiseDisjoint π'
-    (zeroSectionCompl F E) R hV hd fun i ↦ ?_
-  rw [hπ', thomPairProj_def]
-  exact hj i
-
-variable [VectorBundle ℝ F E] [FiniteDimensional ℝ F]
+variable [VectorBundle ℝ F E]
 
 /-- The property that the Mayer–Vietoris induction carries holds on every open set `U` of the
 base: the map `a ↦ π^*a ⌣ u` over `U` is bijective in every degree, and the relative homology of
@@ -127,6 +89,7 @@ private theorem bijective_pullbackCupRestrict_and_isZero_of_secondCountableTopol
     (∀ q, Function.Bijective (TopCat.pullbackCupRestrict (thomPairProj F E)
       (zeroSectionCompl F E) M U (finrank ℝ F) q (q + finrank ℝ F) rfl u)) ∧
     ∀ j < finrank ℝ F, IsZero ((thomPairOver F E U).singularHomology (ModuleCat.of K K) j) := by
+  have := (isThomClass_iff.1 hu).1
   revert U
   refine mayerVietoris_induction _
     {U | ∃ (e : Trivialization F (π F E)) (_ : e.IsLinear ℝ), (U : Set B) ⊆ e.baseSet}
@@ -149,8 +112,8 @@ private theorem bijective_pullbackCupRestrict_and_isZero_of_secondCountableTopol
     refine ⟨fun q ↦ TopCat.bijective_pullbackCupRestrict_union (thomPairProj F E)
       (zeroSectionCompl F E) M U.isOpen V.isOpen u (fun q _ ↦ hU q) (fun q _ ↦ hV q)
       (fun q _ ↦ hUV q) (fun j hj ↦ ?_) rfl, fun j hj ↦ ?_⟩
-    · exact isZero_singularCohomology_thomPairProj_of_isZero_singularHomology M _ (j := j)
-        fun i hi ↦ hUV₀ i (by omega)
+    · exact TopPair.isZero_singularCohomology_of_isZero_singularHomology _ (ModuleCat.of K K) M j
+        fun i hi ↦ by rw [thomPairProj_def]; exact hUV₀ i (by omega)
     · exact isZero_singularHomology_thomPairOver_union _ U.isOpen V.isOpen (hU₀ j hj) (hV₀ j hj)
         fun i hi ↦ hUV₀ i (by omega)
   · -- Countable unions of pairwise disjoint open sets.
@@ -160,8 +123,36 @@ private theorem bijective_pullbackCupRestrict_and_isZero_of_secondCountableTopol
     rw [Opens.coe_iSup]
     exact ⟨fun q ↦ TopCat.bijective_pullbackCupRestrict_iUnion_of_pairwiseDisjoint _ _ M
         (fun n ↦ (s n).isOpen) hd' rfl u fun n ↦ (hs n).1 q,
-      fun j hj ↦ isZero_singularHomology_thomPairOver_iUnion_of_pairwiseDisjoint _
-        (fun n ↦ (s n).isOpen) hd' fun n ↦ (hs n).2 j hj⟩
+      fun j hj ↦ by
+        have h := TopCat.isZero_singularHomology_ofInclusion_iUnion_of_pairwiseDisjoint
+          (thomPairProj F E) (zeroSectionCompl F E) (ModuleCat.of K K) (fun n ↦ (s n).isOpen) hd'
+          fun n ↦ by rw [thomPairProj_def]; exact (hs n).2 j hj
+        rwa [thomPairProj_def] at h⟩
+
+/-- **The Thom map over an open set of a second-countable base.** For a Thom class `u` of a
+real vector bundle `E → B` of finite rank `r` over a Hausdorff, locally compact, second-countable
+space `B`, and every open set `U` of `B`, the map `Hᵖ(U; M) ⟶ Hᵖ⁺ʳ(E|_U, E₀|_U; M)`,
+`a ↦ π^*a ⌣ u`, is bijective in every degree `p`. -/
+theorem bijective_pullbackCupRestrict_thomPair_of_secondCountableTopology
+    [T2Space B] [LocallyCompactSpace B] [SecondCountableTopology B]
+    {u : (thomPair F E).singularCohomology (ModuleCat.of K K) K (ModuleCat.of K K) (finrank ℝ F)}
+    (hu : IsThomClass F E u) (U : Opens B) (p : ℕ) :
+    Function.Bijective (TopCat.pullbackCupRestrict (thomPairProj F E)
+      (zeroSectionCompl F E) M U (finrank ℝ F) p (p + finrank ℝ F) rfl u) :=
+  (bijective_pullbackCupRestrict_and_isZero_of_secondCountableTopology M hu U).1 p
+
+omit M in
+/-- **The relative homology of the Thom pair over an open set below the rank.** If a real vector
+bundle `E → B` of finite rank `r` over a Hausdorff, locally compact, second-countable space `B`
+has a Thom class `u`, then for every open set `U` of `B` the relative homology
+`Hⱼ(E|_U, E₀|_U; K)` vanishes for `j < r`. -/
+theorem isZero_singularHomology_thomPairOver_of_secondCountableTopology
+    [T2Space B] [LocallyCompactSpace B] [SecondCountableTopology B]
+    {u : (thomPair F E).singularCohomology (ModuleCat.of K K) K (ModuleCat.of K K) (finrank ℝ F)}
+    (hu : IsThomClass F E u) (U : Opens B) {j : ℕ} (hj : j < finrank ℝ F) :
+    IsZero ((thomPairOver F E U).singularHomology (ModuleCat.of K K) j) :=
+  (bijective_pullbackCupRestrict_and_isZero_of_secondCountableTopology
+    (ModuleCat.of K K) hu U).2 j hj
 
 /-- **The Thom isomorphism over a second-countable base** (Milnor–Stasheff, Theorem 10.4): for a
 real vector bundle `E → B` of finite rank `r` over a Hausdorff, locally compact, second-countable
@@ -176,7 +167,7 @@ theorem bijective_thomMap_of_secondCountableTopology [T2Space B] [LocallyCompact
   rw [thomMap_def]
   refine (TopCat.bijective_pullbackCupRestrict_univ_iff _ _ M rfl u).1 ?_
   rw [← Opens.coe_top]
-  exact (bijective_pullbackCupRestrict_and_isZero_of_secondCountableTopology M hu ⊤).1 p
+  exact bijective_pullbackCupRestrict_thomPair_of_secondCountableTopology M hu ⊤ p
 
 variable (F E) in
 /-- **The Thom isomorphism over a second-countable base**, bundled as
