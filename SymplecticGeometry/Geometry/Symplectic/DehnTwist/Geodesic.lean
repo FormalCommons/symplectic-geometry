@@ -76,7 +76,7 @@ direction.
   `SymplecticGeometry.geodesicFlow_two_pi`: it is a flow, periodic of period `2π`;
   `SymplecticGeometry.cotangentNorm_geodesicFlow`: it preserves `‖p‖`; and
   `SymplecticGeometry.geodesicFlow_pi`: off the zero section, its time-`π` map is `antipodal`.
-* `SymplecticGeometry.not_exists_continuous_eqOn_geodesicFlow`: for `0 < t < π` and `n ≥ 1`, no
+* `SymplecticGeometry.not_exists_continuous_eqOn_geodesicFlow`: for `sin t ≠ 0` and `n ≥ 1`, no
   continuous map of `T*Sⁿ` agrees with the time-`t` map off the zero section.
 * `SymplecticGeometry.isMIntegralCurve_geodesicFlow`: off the zero section, the orbits of the flow
   are integral curves of the Hamiltonian vector field of `cotangentNorm` for the canonical
@@ -564,12 +564,11 @@ theorem geodesicFlow_pi {z : CotangentBundle (𝓡 n) (𝕊 n)} (hz : cotangentN
   rw [cotangentCoord_geodesicFlow hz, cotangentCoord_antipodal]
   ext1 <;> simp
 
-/-- For `0 < t < π` the normalized geodesic flow at time `t` has no continuous extension across
-the zero section of `T*Sⁿ`, `n ≥ 1`: covectors `± s • u` at `q`, with `u ⊥ q` and `s → 0⁺`, all
-tend to the zero covector at `q`, while their images have the distinct base points
-`cos t • q ± (sin t / ‖u‖) • u`. -/
-theorem not_exists_continuous_eqOn_geodesicFlow [NeZero n] {t : ℝ} (ht₀ : 0 < t)
-    (ht : t < Real.pi) :
+/-- For `sin t ≠ 0`, that is `t` not a multiple of `π`, the normalized geodesic flow at time `t`
+has no continuous extension across the zero section of `T*Sⁿ`, `n ≥ 1`: covectors `± s • u` at
+`q`, with `u ⊥ q` and `s → 0⁺`, all tend to the zero covector at `q`, while their images have the
+distinct base points `cos t • q ± (sin t / ‖u‖) • u`. -/
+theorem not_exists_continuous_eqOn_geodesicFlow [NeZero n] {t : ℝ} (ht : Real.sin t ≠ 0) :
     ¬ ∃ g : CotangentBundle (𝓡 n) (𝕊 n) → CotangentBundle (𝓡 n) (𝕊 n), Continuous g ∧
       ∀ z, cotangentNorm z ≠ 0 → g z = geodesicFlow t z := by
   rintro ⟨g, hg, hgz⟩
@@ -608,10 +607,8 @@ theorem not_exists_continuous_eqOn_geodesicFlow [NeZero n] {t : ℝ} (ht₀ : 0 
     neg_zero]))
   rw [norm_neg, smul_neg, add_right_inj, ← sub_eq_zero, sub_neg_eq_add, ← two_smul ℝ,
     smul_smul, smul_eq_zero] at h
-  have hsin := Real.sin_pos_of_pos_of_lt_pi ht₀ ht
-  have hu' := norm_pos_iff.2 hu
   rcases h with h | h
-  · exact (mul_pos two_pos (div_pos hsin hu')).ne' h
+  · exact mul_ne_zero two_ne_zero (div_ne_zero ht (norm_ne_zero_iff.2 hu)) h
   · exact hu h
 
 /-- The orbit `t ↦ geodesicFlow t z` of a covector under the normalized geodesic flow is smooth;
