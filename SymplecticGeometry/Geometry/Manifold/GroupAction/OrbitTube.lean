@@ -15,6 +15,7 @@ public import TauCeti.Geometry.Manifold.GroupAction.TransverseSlice
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 public import TauCeti.Geometry.Manifold.Submersion.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+import TauCeti.Geometry.Manifold.MFDeriv.Slice
 
 /-!
 # The tube map of an orbit
@@ -507,9 +508,6 @@ theorem mfderiv_quotientMk_apply_eq_zero_of_mem_isotropy [CompleteSpace E'] [IsM
       ((stabilizer G x).toRightTranslation 1, z) (ξ, 0) = 0 := by
   let _ := BalancedProduct.rightTranslationChartedSpace (stabilizer G x) U I 𝓘(ℝ, V) F
   have : T2Space G := I.t2Space_of_lieGroup ∞
-  have hπ := (BalancedProduct.isSubmersion_quotientMk_rightTranslation (K := stabilizer G x)
-    (Z := U) (I := I) (IZ := 𝓘(ℝ, V)) (F := F)).contMDiff.mdifferentiableAt
-      (x := ((stabilizer G x).toRightTranslation 1, z)) (by simp)
   -- The curve `γ t = (exp (t ξ), z)` in `G × U`, with velocity `(ξ, 0)` at `0`.
   let γ : ℝ → (stabilizer G x).RightTranslation × U :=
     fun t ↦ ((stabilizer G x).toRightTranslation (mulInvariantExp (I := I) (t • ξ)), z)
@@ -534,14 +532,12 @@ theorem mfderiv_quotientMk_apply_eq_zero_of_mem_isotropy [CompleteSpace E'] [IsM
     exact (BalancedProduct.mk_toRightTranslation_mul 1 ⟨_, hk⟩ z).trans (congrArg _ hkz)
   have hγ0 : γ 0 = ((stabilizer G x).toRightTranslation 1, z) := by
     simp only [γ, zero_smul, mulInvariantExp_zero]
-  have hπ' := hπ.hasMFDerivAt
-  rw [← hγ0] at hπ'
-  have h := (hπ'.comp 0 hγ).mfderiv
-  rw [hconst, mfderiv_const] at h
-  have h1 := DFunLike.congr_fun h (1 : ℝ)
-  rw [hγ0] at h1
-  convert h1.symm using 1
-  -- The composite applied to `1` is `dπ (1 • ξ, 0)`.
+  have h := TauCeti.mfderiv_mfderiv_apply_eq_zero_of_comp_eventuallyEq_const (J := 𝓘(ℝ, ℝ))
+    (I := I.prod 𝓘(ℝ, V)) (K := 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × V)))
+    (s := 0) (.of_eq hconst) (1 : ℝ)
+  rw [hγ.mfderiv, hγ0] at h
+  -- The velocity of `γ` applied to `1` is `(ξ, 0)`.
+  convert h using 1
   exact congrArg _ (Prod.ext (one_smul ℝ ξ).symm rfl)
 
 variable (F) in
