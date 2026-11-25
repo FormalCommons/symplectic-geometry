@@ -702,11 +702,13 @@ private theorem isNondegenerate_completionForm : h.completionForm.IsNondegenerat
   suffices hz : (h.completionForm.bilinFormAt z).Nondegenerate from
     LinearMap.separatingLeft_iff_ker_eq_bot.1 hz.1
   rcases h.exists_completionEnd_or_toCompletion z with ⟨q, hq, rfl⟩ | ⟨p, hp, rfl⟩
-  · exact ((h.isLocalDiffeomorphOn_completionEnd ⟨q, hq⟩).nondegenerate_bilinFormAt_iff (by simp)
+  · exact (SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
+      ((h.isLocalDiffeomorphOn_completionEnd ⟨q, hq⟩).isInvertible_mfderiv (by simp))
       (h.mpullback_completionEnd_completionForm q hq)).2
       ((SmoothForm.isContactForm_neg_iff.2 h.isContactForm_fillingContactForm
         ).isSymplectic_mextDerivₗ_symplectization.isNondegenerate.nondegenerate_bilinFormAt q)
-  · exact ((h.isLocalDiffeomorphAt_toCompletion hp).nondegenerate_bilinFormAt_iff (by simp)
+  · exact (SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv
+      ((h.isLocalDiffeomorphAt_toCompletion hp).isInvertible_mfderiv (by simp))
       (h.mpullback_toCompletion_completionForm_apply p)).2
       (h.isSymplectic.isNondegenerate.nondegenerate_bilinFormAt p)
 
