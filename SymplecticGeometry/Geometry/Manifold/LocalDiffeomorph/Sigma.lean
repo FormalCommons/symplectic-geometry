@@ -19,13 +19,15 @@ chart of `Σ i, M i` at `⟨i, x⟩`, since the second is the first read on the 
 
 ## Main results
 
-* `isLocalDiffeomorph_sigmaMk`: the inclusion of a component of a disjoint union is a `C^n` local
-  diffeomorphism.
+* `TauCeti.isLocalDiffeomorph_sigmaMk`: the inclusion of a component of a disjoint union is a
+  `C^n` local diffeomorphism.
 -/
 
 public section
 
 open Set Topology Manifold
+
+namespace TauCeti
 
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : Type*} [NormedAddCommGroup E]
   [NormedSpace 𝕜 E] {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
@@ -52,5 +54,7 @@ theorem isLocalDiffeomorph_sigmaMk (i : ι) :
     exact mem_image_of_mem _ hy
   rw [Function.comp_apply, ← ChartedSpace.sigma_chartAt_mk_apply (x := x),
     (chartAt H _).left_inv hy']
+
+end TauCeti
 
 end

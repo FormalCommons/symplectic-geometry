@@ -41,8 +41,16 @@ The transition from the interior to the `i`-th annulus sends `c (γ i θ, t)` to
 coordinates (`TauCeti.SmoothCollar.interiorModelCoord`, restricted), the inverse of `γ i` on its
 image, and polar coordinates (`AddCircle.isLocalDiffeomorphAt_ofReal_mul_toCircle`), and it
 is bijective, so it is a diffeomorphism (`IsLocalDiffeomorph.diffeomorphOfBijective`); the
-transition in the other direction is its inverse. Tau Ceti's
-`TopCat.GlueData.IsCompatible.isManifold` then makes the glued space a smooth manifold. The
+transition in the other direction is its inverse.
+
+The gluing has two pieces (`TopCat.GlueData.ofHomeomorph`): the interior of `S`, and the
+disjoint union `Σ i : ι, ball` of the discs, charted by Tau Ceti's `ChartedSpace.sigma`. They are
+glued along the diffeomorphism from the union of the parts of the interior covered by the collars
+over the `γ i` onto the union of the annuli, which is the transition to the `i`-th annulus on the
+part covered by the collar over `γ i`; these parts are disjoint because the images of the `γ i`
+are. Tau Ceti's `TopCat.GlueData.IsCompatible.isManifold` then makes the glued space a smooth
+manifold, the inclusion of each disc into the disjoint union being a local diffeomorphism
+(`isLocalDiffeomorph_sigmaMk`). The
 construction follows the gluing of `TauCeti.SmoothCollar.WithEnd`
 (`Geometry/Manifold/Boundary/Collar/End.lean`).
 
