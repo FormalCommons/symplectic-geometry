@@ -9,7 +9,6 @@ public import Mathlib.Analysis.Calculus.ContDiff.FTaylorSeries
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.TransAffine
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import Mathlib.Analysis.Calculus.ContDiff.Basic
-import Mathlib.Analysis.Calculus.ContDiff.Bounds
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
 /-!
