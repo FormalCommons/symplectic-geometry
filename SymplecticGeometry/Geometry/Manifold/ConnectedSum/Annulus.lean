@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Euclidean.Inversion
+public import SymplecticGeometry.Topology.Sets.Annulus
 public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import Mathlib.Analysis.Normed.Module.FiniteDimension
@@ -53,14 +54,14 @@ makes it a diffeomorphism, as Tau Ceti's `TauCeti.ConnectedSum.assocDiffeomorph`
 
 ## Main definitions and results
 
-* `SymplecticGeometry.ConnectedSum.annulus E ε`: the open annulus `{ξ | ε² < ‖ξ‖ < 1}` of `E`,
-  with `mem_annulus`.
+The annulus is `SymplecticGeometry.annulus E (ε ^ 2) 1`, which every linear isometry maps onto
+itself (`SymplecticGeometry.map_mem_annulus_iff`).
+
 * `SymplecticGeometry.ConnectedSum.inversion_mem_annulus_iff`: for `ε ≠ 0` the inversion
   `inversion 0 ε` maps the annulus onto itself; it is an involution (Mathlib's
   `EuclideanGeometry.inversion_inversion`) that exchanges the two ends of the annulus
   (`EuclideanGeometry.norm_inversion_zero_lt_iff` and
   `EuclideanGeometry.lt_norm_inversion_zero_iff` with `r = 1` and `r = ε²`).
-  `SymplecticGeometry.ConnectedSum.map_mem_annulus_iff`: so does every linear isometry.
 * `SymplecticGeometry.ConnectedSum.gluingPartialDiffeomorph Φ ε hε`: the map
   `ξ ↦ Φ (inversion 0 ε ξ)` as a `C^n` partial diffeomorphism of `E` with source and target the
   annulus, and inverse `η ↦ inversion 0 ε (Φ⁻¹ η)`, which is the same map for `Φ⁻¹`
@@ -119,34 +120,12 @@ open scoped Manifold ContDiff
 
 namespace SymplecticGeometry.ConnectedSum
 
-variable (E : Type*) [NormedAddCommGroup E]
-
-/-- The open annulus `{ξ | ε² < ‖ξ‖ < 1}` of `E`, along which the connected sum is glued. -/
-def annulus (ε : ℝ) : Opens E :=
-  ⟨{ξ | ε ^ 2 < ‖ξ‖ ∧ ‖ξ‖ < 1}, (isOpen_lt continuous_const continuous_norm).inter
-    (isOpen_lt continuous_norm continuous_const)⟩
-
-variable {E}
-
-@[simp]
-theorem mem_annulus {ε : ℝ} {ξ : E} : ξ ∈ annulus E ε ↔ ε ^ 2 < ‖ξ‖ ∧ ‖ξ‖ < 1 :=
-  Iff.rfl
-
-/-- The points of the annulus are nonzero. -/
-theorem ne_zero_of_mem_annulus {ε : ℝ} {ξ : E} (hξ : ξ ∈ annulus E ε) : ξ ≠ 0 :=
-  norm_pos_iff.1 ((sq_nonneg ε).trans_lt hξ.1)
-
-/-- A linear isometry `Φ` of `E` maps the annulus onto itself. -/
-theorem map_mem_annulus_iff [NormedSpace ℝ E] (Φ : E ≃ₗᵢ[ℝ] E) {ε : ℝ} {ξ : E} :
-    Φ ξ ∈ annulus E ε ↔ ξ ∈ annulus E ε := by
-  simp
-
-variable [InnerProductSpace ℝ E]
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
 /-- For `ε ≠ 0`, the inversion in the sphere of radius `ε` about the origin maps the annulus
 `ε² < ‖ξ‖ < 1` onto itself. -/
 theorem inversion_mem_annulus_iff {ε : ℝ} (hε : ε ≠ 0) {ξ : E} :
-    inversion (0 : E) ε ξ ∈ annulus E ε ↔ ξ ∈ annulus E ε := by
+    inversion (0 : E) ε ξ ∈ annulus E (ε ^ 2) 1 ↔ ξ ∈ annulus E (ε ^ 2) 1 := by
   rcases eq_or_ne ξ 0 with rfl | hξ
   · simp only [inversion_self]
   have hε₂ : 0 < ε ^ 2 := by positivity
@@ -160,19 +139,20 @@ def gluingPartialDiffeomorph (Φ : E ≃ₗᵢ[ℝ] E) (ε : ℝ) (hε : ε ≠ 
     PartialDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) E E n where
   toFun ξ := Φ (inversion 0 ε ξ)
   invFun η := inversion 0 ε (Φ.symm η)
-  source := annulus E ε
-  target := annulus E ε
+  source := annulus E (ε ^ 2) 1
+  target := annulus E (ε ^ 2) 1
   map_source' _ hξ := (map_mem_annulus_iff Φ).2 ((inversion_mem_annulus_iff hε).2 hξ)
   map_target' _ hη := (inversion_mem_annulus_iff hε).2 ((map_mem_annulus_iff Φ.symm).2 hη)
   left_inv' ξ _ := by simp [inversion_inversion (0 : E) hε]
   right_inv' η _ := by simp [inversion_inversion (0 : E) hε]
-  open_source := (annulus E ε).isOpen
-  open_target := (annulus E ε).isOpen
+  open_source := (annulus E (ε ^ 2) 1).isOpen
+  open_target := (annulus E (ε ^ 2) 1).isOpen
   contMDiffOn_toFun := contMDiffOn_iff_contDiffOn.2 fun ξ hξ ↦
     (Φ.contDiff.contDiffAt.comp ξ
-      (contDiffAt_inversion (ne_zero_of_mem_annulus hξ))).contDiffWithinAt
+      (contDiffAt_inversion (ne_zero_of_mem_annulus (sq_nonneg ε) hξ))).contDiffWithinAt
   contMDiffOn_invFun := contMDiffOn_iff_contDiffOn.2 fun η hη ↦
-    ((contDiffAt_inversion (Φ.symm.map_ne_zero_iff.2 (ne_zero_of_mem_annulus hη))).comp η
+    ((contDiffAt_inversion
+      (Φ.symm.map_ne_zero_iff.2 (ne_zero_of_mem_annulus (sq_nonneg ε) hη))).comp η
       Φ.symm.contDiff.contDiffAt).contDiffWithinAt
 
 variable (Φ : E ≃ₗᵢ[ℝ] E) (ε : ℝ) (hε : ε ≠ 0) {n : ℕ∞ω}
@@ -189,12 +169,12 @@ theorem gluingPartialDiffeomorph_symm_apply (η : E) :
 
 @[simp]
 theorem gluingPartialDiffeomorph_source :
-    (gluingPartialDiffeomorph Φ ε hε (n := n)).source = annulus E ε :=
+    (gluingPartialDiffeomorph Φ ε hε (n := n)).source = annulus E (ε ^ 2) 1 :=
   (rfl)
 
 @[simp]
 theorem gluingPartialDiffeomorph_target :
-    (gluingPartialDiffeomorph Φ ε hε (n := n)).target = annulus E ε :=
+    (gluingPartialDiffeomorph Φ ε hε (n := n)).target = annulus E (ε ^ 2) 1 :=
   (rfl)
 
 /-- The inverse of the gluing map for `Φ` is the gluing map for `Φ⁻¹`. -/
@@ -206,15 +186,15 @@ theorem gluingPartialDiffeomorph_symm :
 
 /-- For `ε ≠ 0`, the gluing map `ξ ↦ Φ (inversion 0 ε ξ)` of the connected sum, as a `C^n`
 diffeomorphism of the annulus `ε² < ‖ξ‖ < 1` onto itself. -/
-def gluingDiffeomorph : annulus E ε ≃ₘ^n⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ annulus E ε :=
+def gluingDiffeomorph : annulus E (ε ^ 2) 1 ≃ₘ^n⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ annulus E (ε ^ 2) 1 :=
   (gluingPartialDiffeomorph Φ ε hε).toDiffeomorphSourceTarget
 
 @[simp]
-theorem coe_gluingDiffeomorph_apply (ξ : annulus E ε) :
+theorem coe_gluingDiffeomorph_apply (ξ : annulus E (ε ^ 2) 1) :
     (gluingDiffeomorph Φ ε hε (n := n) ξ : E) = Φ (inversion 0 ε ξ) :=
   (gluingPartialDiffeomorph Φ ε hε).toDiffeomorphSourceTarget_apply_coe ξ
 
-theorem coe_gluingDiffeomorph_symm_apply (η : annulus E ε) :
+theorem coe_gluingDiffeomorph_symm_apply (η : annulus E (ε ^ 2) 1) :
     ((gluingDiffeomorph Φ ε hε (n := n)).symm η : E) = inversion 0 ε (Φ.symm η) :=
   (gluingPartialDiffeomorph Φ ε hε).toDiffeomorphSourceTarget_symm_apply_coe η
 
@@ -257,11 +237,11 @@ theorem apply_mem_piece_iff (hι' : Function.Injective ι) {ξ : E} :
   rw [mem_piece_iff, hι'.mem_set_image, Metric.mem_closedBall, dist_zero_right, not_le]
 
 /-- For injective `ι`, the image of a point of the annulus lies in the piece. -/
-theorem mem_piece_of_mem_annulus (hι' : Function.Injective ι) {ξ : E} (hξ : ξ ∈ annulus E ε) :
-    ι ξ ∈ piece ι ε hι := by
+theorem mem_piece_of_mem_annulus (hι' : Function.Injective ι) {ξ : E}
+    (hξ : ξ ∈ annulus E (ε ^ 2) 1) : ι ξ ∈ piece ι ε hι := by
   rintro ⟨η, hη, h⟩
   rw [hι' h, Metric.mem_closedBall, dist_zero_right] at hη
-  exact hη.not_gt hξ.1
+  exact hη.not_gt (mem_annulus.1 hξ).1
 
 variable (ε) in
 /-- The piece `M \ ι (closedBall 0 ε²)` lies in the complement of `e 0` for every map `e` with
@@ -277,12 +257,12 @@ variable (ι ε hι) in
 /-- The part of the piece `piece ι ε` along which it is glued: the image under the open map `ι`
 of the annulus `ε² < ‖ξ‖ < 1`, as an open subset of the piece. -/
 def overlap (hι' : IsOpenMap ι) : Opens (piece ι ε hι) :=
-  ⟨Subtype.val ⁻¹' (ι '' annulus E ε),
-    (hι' _ (annulus E ε).isOpen).preimage continuous_subtypeVal⟩
+  ⟨Subtype.val ⁻¹' (ι '' annulus E (ε ^ 2) 1),
+    (hι' _ (annulus E (ε ^ 2) 1).isOpen).preimage continuous_subtypeVal⟩
 
 @[simp]
 theorem mem_overlap_iff {hι' : IsOpenMap ι} {x : piece ι ε hι} :
-    x ∈ overlap ι ε hι hι' ↔ (x : M) ∈ ι '' annulus E ε :=
+    x ∈ overlap ι ε hι hι' ↔ (x : M) ∈ ι '' annulus E (ε ^ 2) 1 :=
   Iff.rfl
 
 end Piece
@@ -300,7 +280,7 @@ variable {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [T2Space M] {ι : E
 /-- For an open embedding `ι` that is a `C^n` local diffeomorphism, `ι` restricted to the annulus
 `ε² < ‖ξ‖ < 1`, as a `C^n` diffeomorphism onto the overlap `overlap ι ε`. -/
 def annulusDiffeomorph :
-    annulus E ε ≃ₘ^n⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ overlap ι ε hι.continuous hι.isOpenMap :=
+    annulus E (ε ^ 2) 1 ≃ₘ^n⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ overlap ι ε hι.continuous hι.isOpenMap :=
   IsLocalDiffeomorph.diffeomorphOfBijective
     (f := fun ξ ↦ ⟨⟨ι ξ, mem_piece_of_mem_annulus hι.injective ξ.property⟩, ξ, ξ.property, rfl⟩)
     (TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.1 <|
@@ -313,7 +293,7 @@ def annulusDiffeomorph :
 variable {hι hdι ε}
 
 @[simp]
-theorem coe_annulusDiffeomorph_apply (ξ : annulus E ε) :
+theorem coe_annulusDiffeomorph_apply (ξ : annulus E (ε ^ 2) 1) :
     ((annulusDiffeomorph hι hdι ε ξ : piece ι ε hι.continuous) : M) = ι ξ := by
   unfold annulusDiffeomorph
   exact congrArg (fun x : overlap ι ε hι.continuous hι.isOpenMap ↦
@@ -342,7 +322,7 @@ def overlapDiffeomorph :
     ((gluingDiffeomorph Φ ε hε).trans (annulusDiffeomorph hι₂ hdι₂ ε))
 
 @[simp]
-theorem overlapDiffeomorph_annulusDiffeomorph (ξ : annulus E ε) :
+theorem overlapDiffeomorph_annulusDiffeomorph (ξ : annulus E (ε ^ 2) 1) :
     overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε (annulusDiffeomorph hι₁ hdι₁ ε ξ) =
       annulusDiffeomorph hι₂ hdι₂ ε (gluingDiffeomorph Φ ε hε (n := n) ξ) := by
   simp [overlapDiffeomorph]
@@ -401,12 +381,13 @@ theorem AnnulusSum.inl_eq_inr_iff {x : piece ι₁ ε hι₁.continuous}
   · rintro ⟨hx, rfl⟩
     obtain ⟨ξ, hξ⟩ : ∃ ξ, annulusDiffeomorph hι₁ hdι₁ ε ξ = ⟨x, hx⟩ :=
       (annulusDiffeomorph hι₁ hdι₁ ε).surjective _
-    refine ⟨ξ, ξ.property, ?_, ?_⟩
+    refine ⟨ξ, mem_annulus.1 ξ.property, ?_, ?_⟩
     · exact (congrArg (fun z : overlap ι₁ ε hι₁.continuous hι₁.isOpenMap ↦
         ((z : piece ι₁ ε hι₁.continuous) : M₁)) hξ).symm.trans (coe_annulusDiffeomorph_apply ξ)
     · rw [← hξ, overlapDiffeomorph_annulusDiffeomorph, coe_annulusDiffeomorph_apply,
         coe_gluingDiffeomorph_apply]
   · rintro ⟨ξ, hξ, hx, hy⟩
+    rw [← mem_annulus] at hξ
     have hx' : x ∈ overlap ι₁ ε hι₁.continuous hι₁.isOpenMap := ⟨ξ, hξ, hx.symm⟩
     have hξx : annulusDiffeomorph hι₁ hdι₁ ε ⟨ξ, hξ⟩ = ⟨x, hx'⟩ :=
       Subtype.ext <| Subtype.ext <| by rw [coe_annulusDiffeomorph_apply, hx]
