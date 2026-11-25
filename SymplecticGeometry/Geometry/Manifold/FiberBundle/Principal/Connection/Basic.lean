@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.Submersion.EhresmannConnection.Basic
+import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Basic
 import SymplecticGeometry.Geometry.Manifold.Distribution.OneFormKernel
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.FiberBundle.Submersion
@@ -207,18 +208,13 @@ space (`IsConnectionForm.isCompl_horizontal`). -/
 def horizontal
     (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1)
     (x : ManifoldTotalSpace G P) : Submodule ℝ (TangentSpace (IB.prod IG) x) :=
-  LinearMap.ker ((ContinuousAlternatingMap.ofSubsingleton ℝ (TangentSpace (IB.prod IG) x)
-    (GroupLieAlgebra IG G) (0 : Fin 1)).symm (A.val x) :
-      TangentSpace (IB.prod IG) x →ₗ[ℝ] GroupLieAlgebra IG G)
+  (SmoothForm.degreeOneEquiv A x).ker
 
 omit [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P] in
 theorem horizontal_def
     (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1)
     (x : ManifoldTotalSpace G P) :
-    horizontal A x =
-      LinearMap.ker ((ContinuousAlternatingMap.ofSubsingleton ℝ (TangentSpace (IB.prod IG) x)
-        (GroupLieAlgebra IG G) (0 : Fin 1)).symm (A.val x) :
-          TangentSpace (IB.prod IG) x →ₗ[ℝ] GroupLieAlgebra IG G) :=
+    horizontal A x = (SmoothForm.degreeOneEquiv A x).ker :=
   (rfl)
 
 omit [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P] in
@@ -229,17 +225,6 @@ theorem mem_horizontal_iff
     {x : ManifoldTotalSpace G P} {v : TangentSpace (IB.prod IG) x} :
     v ∈ horizontal A x ↔ A.val x ![v] = 0 := by
   rw [horizontal_def, LinearMap.mem_ker, ContinuousLinearMap.coe_coe,
-    ContinuousAlternatingMap.ofSubsingleton_symm_apply_apply, Matrix.vec_single_eq_const]
-
-omit [∀ b, MulAction Gᵐᵒᵖ (P b)] [PrincipalBundle G P] in
-/-- The horizontal space of `A` at `x` is the kernel of the linear map that Tau Ceti's
-`TauCeti.SmoothForm.degreeOneEquiv` attaches to `A` at `x`. -/
-theorem horizontal_eq_ker_degreeOneEquiv
-    (A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1)
-    (x : ManifoldTotalSpace G P) :
-    horizontal A x = (SmoothForm.degreeOneEquiv A x).ker := by
-  ext v
-  rw [mem_horizontal_iff, LinearMap.mem_ker, ContinuousLinearMap.coe_coe,
     SmoothForm.degreeOneEquiv_apply_apply_vec]
 
 namespace IsConnectionForm
@@ -266,12 +251,10 @@ theorem isCompl_horizontal {n : ℕ∞ω} (hA : IsConnectionForm A) (x : Manifol
   rw [ManifoldTotalSpace.coe_projContMDiffMap]
   set e := PrincipalBundle.verticalLinearEquiv IB IG (P := P) x
   set f : TangentSpace (IB.prod IG) x →ₗ[ℝ] GroupLieAlgebra IG G :=
-    ((ContinuousAlternatingMap.ofSubsingleton ℝ (TangentSpace (IB.prod IG) x)
-      (GroupLieAlgebra IG G) (0 : Fin 1)).symm (A.val x) :
-        TangentSpace (IB.prod IG) x →ₗ[ℝ] GroupLieAlgebra IG G)
+    (SmoothForm.degreeOneEquiv A x).toLinearMap
   have hf (ξ : GroupLieAlgebra IG G) : f (rightFundamentalVectorField (IB.prod IG) ξ x) = ξ := by
-    rw [ContinuousLinearMap.coe_coe, ContinuousAlternatingMap.ofSubsingleton_symm_apply_apply,
-      ← Matrix.vec_single_eq_const, hA.apply_rightFundamentalVectorField]
+    rw [ContinuousLinearMap.coe_coe, SmoothForm.degreeOneEquiv_apply_apply_vec,
+      hA.apply_rightFundamentalVectorField]
   have h := LinearMap.isCompl_of_proj (f := e.toLinearMap ∘ₗ f) fun v ↦ by
     rw [LinearMap.comp_apply, ← PrincipalBundle.rightFundamentalVectorField_verticalLinearEquiv_symm
       x v, hf, LinearEquiv.coe_coe, LinearEquiv.apply_symm_apply]
@@ -303,11 +286,8 @@ theorem isEhresmannConnection_horizontal [FiniteDimensional ℝ EB] [FiniteDimen
     have h := SmoothForm.isContMDiffDistribution_ker_degreeOneEquiv (n := ∞) A fun x ξ ↦
       ⟨rightFundamentalVectorField (IB.prod IG) ξ x, by
         rw [SmoothForm.degreeOneEquiv_apply_apply_vec, hA.apply_rightFundamentalVectorField]⟩
-    have hrank : finrank ℝ (EB × EG) - finrank ℝ (GroupLieAlgebra IG G) = finrank ℝ EB := by
-      rw [Module.finrank_prod]
-      -- As a real vector space, `GroupLieAlgebra IG G` is the model space `EG`.
-      exact Nat.add_sub_cancel _ _
-    rwa [show horizontal A = _ from funext (horizontal_eq_ker_degreeOneEquiv A), ← hrank]
+    rw [Module.finrank_prod, GroupLieAlgebra.finrank_eq, Nat.add_sub_cancel] at h
+    rwa [show horizontal A = _ from funext (horizontal_def A)]
 
 /-! ### The affine structure of connection forms -/
 
