@@ -7,8 +7,9 @@ module
 
 public import Mathlib.Analysis.Calculus.ContDiff.Defs
 public import Mathlib.Analysis.Normed.Operator.Basic
-import Mathlib.Analysis.Calculus.MeanValue
-import TauCeti.Topology.MetricSpace.Lebesgue
+import Mathlib.Analysis.Calculus.ContDiff.Comp
+import TauCeti.Analysis.Calculus.FDeriv.Remainder
+import TauCeti.Topology.Compactness.Normed
 
 /-!
 # First-order Taylor estimates
@@ -27,9 +28,9 @@ of holonomic approximation in [EliashbergMishachev2002], Chapter 3.
 * `IsCompact.exists_pos_norm_taylor_remainder_le`: over a compact set `K`, for a `C¹` map `f` and
   a continuous `G`, the remainder `f x - f a - G a (x - a)` is at most
   `(‖fderiv ℝ f a - G a‖ + η) * ‖x - a‖`, and `G x` is `η`-close to `G a`, for all `a ∈ K` and
-  `x` in a ball of radius independent of `a`. It combines the mean value inequality
-  `Convex.norm_image_sub_le_of_norm_fderiv_le'` with Tau Ceti's
-  `IsCompact.exists_pos_forall_mem_and_dist_lt`.
+  `x` in a ball of radius independent of `a`. It follows from Tau Ceti's uniform first-order
+  estimate `IsCompact.exists_pos_forall_norm_sub_sub_fderiv_le`, applied to the constant family
+  `fun _ ↦ f`, and its uniform continuity lemma `IsCompact.exists_pos_forall_norm_sub_le`.
 
 ## References
 
@@ -37,8 +38,6 @@ of holonomic approximation in [EliashbergMishachev2002], Chapter 3.
 -/
 
 public section
-
-open Metric
 
 variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup F]
   [NormedSpace ℝ F]
@@ -73,23 +72,19 @@ theorem IsCompact.exists_pos_norm_taylor_remainder_le {f : E → F} {G : E → E
     (hη : 0 < η) :
     ∃ ρ > 0, ∀ a ∈ K, ∀ x, ‖x - a‖ < ρ →
       ‖f x - f a - G a (x - a)‖ ≤ (‖fderiv ℝ f a - G a‖ + η) * ‖x - a‖ ∧ ‖G x - G a‖ ≤ η := by
-  obtain ⟨ρ₁, hρ₁, h₁⟩ := hK.exists_pos_forall_mem_and_dist_lt Filter.univ_mem
-    (fun a _ ↦ (hf.continuous_fderiv one_ne_zero).continuousAt) hη
-  obtain ⟨ρ₂, hρ₂, h₂⟩ := hK.exists_pos_forall_mem_and_dist_lt Filter.univ_mem
-    (fun a _ ↦ hG.continuousAt) hη
-  simp only [dist_eq_norm] at h₁ h₂
+  obtain ⟨ρ₁, hρ₁, h₁⟩ := hK.exists_pos_forall_norm_sub_sub_fderiv_le (F := fun _ ↦ f) (x := id)
+    (fun _ _ ↦ (hf.comp contDiff_snd).contDiffAt) continuousOn_id hη
+  obtain ⟨ρ₂, hρ₂, h₂⟩ := hK.exists_pos_forall_norm_sub_le (Φ := fun q : E × E ↦ G q.2)
+    continuousOn_id (fun _ _ ↦ (hG.comp continuous_snd).continuousAt) hη
   refine ⟨min ρ₁ ρ₂, lt_min hρ₁ hρ₂, fun a ha x hx ↦
-    ⟨?_, (h₂ a ha x (hx.trans_le (min_le_right _ _))).2.le⟩⟩
-  have hmvt : ‖f x - f a - fderiv ℝ f a (x - a)‖ ≤ η * ‖x - a‖ :=
-    (convex_ball a ρ₁).norm_image_sub_le_of_norm_fderiv_le'
-      (fun y _ ↦ (hf.differentiable one_ne_zero).differentiableAt)
-      (fun y hy ↦ (h₁ a ha y (by rwa [mem_ball, dist_eq_norm] at hy)).2.le) (mem_ball_self hρ₁)
-      (by rw [mem_ball, dist_eq_norm]; exact hx.trans_le (min_le_left _ _))
+    ⟨?_, h₂ a ha x (hx.le.trans (min_le_right _ _))⟩⟩
+  have hrem := h₁ a ha (x - a) (hx.le.trans (min_le_left _ _))
+  simp only [id, add_sub_cancel] at hrem
   have heq : f x - f a - G a (x - a) =
       (f x - f a - fderiv ℝ f a (x - a)) + (fderiv ℝ f a - G a) (x - a) := by
     rw [sub_apply]
     abel
   rw [heq, add_mul, add_comm (‖fderiv ℝ f a - G a‖ * _)]
-  exact (norm_add_le _ _).trans (add_le_add hmvt ((fderiv ℝ f a - G a).le_opNorm _))
+  exact (norm_add_le _ _).trans (add_le_add hrem ((fderiv ℝ f a - G a).le_opNorm _))
 
 end
