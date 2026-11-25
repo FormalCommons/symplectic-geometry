@@ -243,11 +243,10 @@ theorem homotopyOperator_mpullback_prodFiberContraction_apply_eq_zero {k : ℕ}
     {σ : RoughForm 𝓘(ℝ, E × F) (E × F) G (k + 1)} {p : E × F}
     (h : ∀ s : unitInterval, σ (p.1, (s : ℝ) • p.2) = 0) :
     homotopyOperator
-      (mpullback (𝓘(ℝ, E × F).prod (𝓡∂ 1)) 𝓘(ℝ, E × F) (prodFiberContraction E F) σ) p = 0 := by
-  refine norm_le_zero_iff.mp ((norm_homotopyOperator_mpullback_prodFiberContraction_apply_le
-    σ p (C := 0) fun s ↦ ?_).trans (mul_zero _).le)
-  rw [h s]
-  exact norm_zero.le
+      (mpullback (𝓘(ℝ, E × F).prod (𝓡∂ 1)) 𝓘(ℝ, E × F) (prodFiberContraction E F) σ) p = 0 :=
+  homotopyOperator_mpullback_apply_eq_zero_of_forall fun s ↦ by
+    rw [prodFiberContraction_apply]
+    exact h s
 
 end SymplecticGeometry
 

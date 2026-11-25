@@ -325,19 +325,20 @@ in a trivialization since the fibres carry no norm, are
 With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
 `W ⊇ range f`:
 
-- `TauCeti.SmoothEmbedding.tubePairIso Φ`: the isomorphism of pairs
+- `TauCeti.SmoothEmbedding.tubePairIso f hn hdim Φ hΦ` (`hΦ`: `Φ` is `f` on the zero
+  section): the isomorphism of pairs
   $(\nu,\nu\setminus Z)\cong(W,W\setminus Z)$, and
-  `relDualClassOf f hf u`, for `u` in $H^n(\nu,\nu\setminus Z;R,k,M)$:
+  `relDualClassOf f hn hdim hf u`, for `u` in $H^n(\nu,\nu\setminus Z;R,k,M)$:
   the class of $H^n(X,X\setminus Z)$ corresponding to `u` under this
   isomorphism and the excision isomorphism
   $H^n(X,X\setminus Z)\cong H^n(W,W\setminus Z)$ of Tau Ceti's
   `TopPair.isIso_singularCohomologyMap_excisionMap_of_isClosed_subset`, through the tube chosen by
-  `exists_isNormalizedTube_subset` with `O = univ`; `dualClassOf f hf u`,
+  `exists_isNormalizedTube_subset` with `O = univ`; `dualClassOf f hn hdim hf u`,
   its image in $H^n(X)$.
-- `relDualClass f hf o` and `dualClass f hf o`, the classes of
-  `o.canonicalThomClass rfl`, with coefficients
+- `relDualClass f hn hdim hf o hr` and `dualClass f hn hdim hf o hr`, the classes of
+  `o.canonicalThomClass hr`, with coefficients
   `ULift ℤ`.
-- `dualClassOf_restrict_compl`: the restriction of `dualClassOf f hf u` to
+- `dualClassOf_restrict_compl`: the restriction of `dualClassOf f hn hdim hf u` to
   $X\setminus\operatorname{range}f$ is zero (exactness of the pair);
   `dualClass_restrict_compl`, its case for `dualClass`.
 - `dualClassOf_restrict`: its pull-back along `f` is
@@ -353,7 +354,7 @@ With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
 - `eq_relDualClassOf_iff_forall_slice`: for a Thom class `u` of the
   normal bundle in degree `r = finrank ℝ P` (in particular
   `o.canonicalThomClass rfl`), a class of
-  $H^r(X,X\setminus Z)$ is `relDualClassOf f hf u` exactly when its
+  $H^r(X,X\setminus Z)$ is `relDualClassOf f hn hdim hf u` exactly when its
   restriction along each normal slice of a normalized tube is the fibre
   restriction of `u`; by excision and Tau Ceti's uniqueness by fibre
   restrictions, `TauCeti.singularCohomology_thomPair_ext`. (A class of another degree
@@ -365,7 +366,7 @@ With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
 - `dualClass_comp_diffeomorph`: for a diffeomorphism `φ : X' ≃ X`, the
   class of `φ⁻¹ ∘ f` with the normal orientation carried by `dφ` (Tau
   Ceti's `normalSpaceEquiv` of `NormalSpace/Map.lean` and
-  `VectorBundleOrientation.comap`) is `φ^* dualClass f hf o`; the same for
+  `VectorBundleOrientation.comap`) is `φ^* dualClass f hn hdim hf o hr`; the same for
   an open embedding of an open set containing the range.
 
 ### `Geometry/Manifold/Orientation/NormalOrientation.lean`
@@ -406,7 +407,7 @@ For closed `X` and `Z` (`[CompactSpace X]`), `hf`, and
 `o = normalOrientation f hn hdim oX oZ`:
 
 - `TauCeti.SmoothEmbedding.dualClass_cap_fundamentalClass`: for
-  `m + 1 = finrank ℝ E`, the cap product of `dualClass f hf o` with the
+  `m + 1 = finrank ℝ E`, the cap product of `dualClass f hn hdim hf o hr` with the
   fundamental class of `oX.toHomologicalOrientation` is
   `mapFundamentalClass f` of `oZ.toHomologicalOrientation`. Proof: by
   naturality of the cap product, the cap with $[X]$ is the image of the
