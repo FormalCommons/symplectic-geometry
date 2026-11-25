@@ -8,16 +8,23 @@ module
 public import Mathlib.Topology.Algebra.Module.FiniteDimension
 
 /-!
-# Continuous linear maps on a space with a finite basis
+# Continuous linear maps on finite-dimensional spaces
 
 For a basis `b` of a finite-dimensional topological vector space `E` over a complete nontrivially
 normed field `𝕜`, the coordinate functionals `b.coord i` are continuous, and every continuous
 linear map `f : E →L[𝕜] F` is the finite sum `∑ i, b.coord i • f (b i)` of rank-one maps. This
 is the continuous form of `Module.Basis.sum_repr`, beside Mathlib's `Module.Basis.constrL`.
 
+A subspace `S` of a finite-dimensional space `E` has a complement that is the image of an
+injective continuous linear map out of any finite-dimensional Hausdorff space `F` with
+`dim F + dim S = dim E`: compose a linear isomorphism of `F` onto a complement of `S`
+(`LinearEquiv.ofFinrankEq`) with the inclusion of that complement.
+
 ## Main results
 
 * `Module.Basis.sum_coord_smulRight`: `f = ∑ i, (b.coord i).smulRight (f (b i))`.
+* `Submodule.exists_continuousLinearMap_injective_isCompl_range`: an injective continuous linear
+  map `F →L[𝕜] E` whose range is a complement of `S`, when `dim F + dim S = dim E`.
 -/
 
 public section
@@ -40,5 +47,33 @@ theorem sum_coord_smulRight (b : Basis ι 𝕜 E) (f : E →L[𝕜] F) :
   simp_rw [← map_smul, ← map_sum, b.sum_repr]
 
 end Module.Basis
+
+open Module
+
+namespace Submodule
+
+variable {𝕜 E F : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜]
+  [AddCommGroup E] [Module 𝕜 E] [TopologicalSpace E] [IsTopologicalAddGroup E]
+  [ContinuousSMul 𝕜 E] [FiniteDimensional 𝕜 E]
+  [AddCommGroup F] [Module 𝕜 F] [TopologicalSpace F] [IsTopologicalAddGroup F]
+  [ContinuousSMul 𝕜 F] [T2Space F] [FiniteDimensional 𝕜 F]
+
+/-- A subspace `S` of a finite-dimensional space `E` has a complement that is the range of an
+injective continuous linear map `L : F →L[𝕜] E`, for any finite-dimensional Hausdorff space `F`
+with `dim F + dim S = dim E`. -/
+theorem exists_continuousLinearMap_injective_isCompl_range (S : Submodule 𝕜 E)
+    (h : finrank 𝕜 F + finrank 𝕜 S = finrank 𝕜 E) :
+    ∃ L : F →L[𝕜] E, Function.Injective L ∧ IsCompl S (LinearMap.range (L : F →ₗ[𝕜] E)) := by
+  obtain ⟨C, hC⟩ := S.exists_isCompl
+  have hd : finrank 𝕜 F = finrank 𝕜 C := by
+    have := finrank_add_eq_of_isCompl hC
+    omega
+  let e := LinearEquiv.ofFinrankEq F C hd
+  refine ⟨LinearMap.toContinuousLinearMap (C.subtype ∘ₗ e.toLinearMap), ?_, ?_⟩
+  · simpa using C.injective_subtype.comp e.injective
+  · rwa [LinearMap.coe_toContinuousLinearMap, LinearMap.range_comp_of_range_eq_top _ e.range,
+      range_subtype]
+
+end Submodule
 
 end
