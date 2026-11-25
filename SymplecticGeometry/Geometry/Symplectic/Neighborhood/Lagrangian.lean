@@ -12,7 +12,10 @@ public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Liouville
 public import TauCeti.Geometry.Symplectic.Lagrangian.Manifold
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import TauCeti.Geometry.Manifold.IsManifold.Basic
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
+import TauCeti.Geometry.Manifold.VectorBundle.Scalar
+import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Fiberwise
 import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Graph
 import TauCeti.Topology.FiberBundle.Countable
 import TauCeti.Topology.FiberBundle.Separation
@@ -25,7 +28,11 @@ neighbourhood of the zero section of the cotangent bundle `T^*L`, with its canon
 form `TauCeti.CotangentBundle.symplecticForm`, which is `-dλ` for the Liouville form `λ`, is
 symplectomorphic to a neighbourhood of `f (L)` by a map `ψ` with `ψ (0_q) = f q`
 (`TauCeti.SmoothTwoForm.IsNondegenerate.IsLagrangianMap.exists_symplectomorphism_cotangent`).
-Neither compactness of `L` nor closedness of its image is needed.
+Neither compactness of `L` nor closedness of its image is needed. Composed with the fibrewise
+negation of `T^*L`, such a `ψ` becomes a diffeomorphism `ι` with `ι (0_q) = f q` that pulls `σ`
+back to `-CotangentBundle.symplecticForm = dλ`, the form that the sources of the Dehn twist
+(Seidel) take as canonical
+(`TauCeti.SmoothTwoForm.IsNondegenerate.IsLagrangianMap.exists_symplectomorphism_cotangent_neg`).
 
 ## Proof
 
@@ -37,10 +44,19 @@ symplectic complement of a Lagrangian tangent space is the tangent space itself,
 comparison theorem `TauCeti.SmoothEmbedding.exists_symplectomorphism_opens_of_mpullback_eq` applies
 to the zero section and `f`, with the zero map as the prescribed linear map.
 
+The fibrewise negation `N` of `T^*L` is Tau Ceti's `vectorBundleScalarDiffeomorph` by `-1`. It
+pulls the canonical form back to its negative
+(`TauCeti.CotangentBundle.mpullback_vectorBundleScalarDiffeomorph_symplecticForm`) and fixes the
+zero section (`TauCeti.vectorBundleScalarDiffeomorph_zeroSection`), so `ψ ∘ N` is the
+diffeomorphism for the form `dλ`.
+
 ## Main results
 
 * `TauCeti.SmoothTwoForm.IsNondegenerate.IsLagrangianMap.exists_symplectomorphism_cotangent`: the
   Lagrangian neighbourhood theorem.
+* `TauCeti.SmoothTwoForm.IsNondegenerate.IsLagrangianMap.exists_symplectomorphism_cotangent_neg`:
+  a diffeomorphism from an open set of `T^*L` onto an open set of `M` that pulls `σ` back to
+  `-CotangentBundle.symplecticForm = dλ` and maps the zero covector at `q` to `f q`.
 
 ## References
 
@@ -137,6 +153,47 @@ theorem IsLagrangianMap.exists_symplectomorphism_cotangent {σ : SmoothTwoForm I
   refine ⟨U, V, ψ, fun q ↦ ?_, hψσ⟩
   obtain ⟨h, hψq, hdψ, -⟩ := hψ q
   exact ⟨h, hψq, hdψ⟩
+
+/-- **The Lagrangian neighbourhood theorem, for the form `dλ`.** Let `f : L → M` be a smooth
+Lagrangian embedding into a second countable Hausdorff manifold without boundary with a symplectic
+form `σ`. Then there are open sets `U` of the cotangent bundle `T^*L` and `V ⊆ M` and a
+diffeomorphism `ι : U ≃ V` pulling the restriction of `σ` back to that of
+`-TauCeti.CotangentBundle.symplecticForm`, which is `dλ` for the Liouville form `λ`, such that for
+every `q`, the zero covector at `q` lies in `U` and `ι` maps it to `f q`. -/
+theorem IsLagrangianMap.exists_symplectomorphism_cotangent_neg {σ : SmoothTwoForm I M}
+    {hσ : σ.IsSymplectic} {f : SmoothEmbedding J I ∞ L M}
+    (hf : hσ.isNondegenerate.IsLagrangianMap J f) :
+    ∃ (U : Opens (CotangentBundle J L)) (V : Opens M)
+      (ι : U ≃ₘ⟮J.prod 𝓘(ℝ, EL →L[ℝ] ℝ), I⟯ V),
+      SmoothForm.mpullback ι ι.contMDiff
+          (SmoothForm.mpullback (Subtype.val : V → M) contMDiff_subtypeVal σ) =
+        SmoothForm.mpullback (Subtype.val : U → CotangentBundle J L) contMDiff_subtypeVal
+          (-CotangentBundle.symplecticForm J L) ∧
+      ∀ q, ∃ h : zeroSection (EL →L[ℝ] ℝ) (fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) q ∈ U,
+        (ι ⟨_, h⟩ : M) = f q := by
+  obtain ⟨U, V, ψ, hψ0, hψσ⟩ := hf.exists_symplectomorphism_cotangent (hσ := hσ)
+  -- The fibrewise negation `N` of `T^*L`, which fixes the zero section.
+  let N := vectorBundleScalarDiffeomorph (I := J) (F := EL →L[ℝ] ℝ)
+    (V := fun x : L ↦ TangentSpace J x →L[ℝ] ℝ) (fun _ ↦ (-1 : ℝ))
+    (contMDiff_const (n := ∞)) fun _ ↦ by norm_num
+  have hN0 (q : L) : N (zeroSection _ _ q) = zeroSection _ _ q :=
+    TauCeti.vectorBundleScalarDiffeomorph_zeroSection _ _ _ q
+  let U' : Opens (CotangentBundle J L) := ⟨N ⁻¹' U, U.isOpen.preimage N.continuous⟩
+  let N' : U' ≃ₘ⟮J.prod 𝓘(ℝ, EL →L[ℝ] ℝ), J.prod 𝓘(ℝ, EL →L[ℝ] ℝ)⟯ U :=
+    N.subtype fun _ ↦ Iff.rfl
+  refine ⟨U', V, N'.trans ψ, ?_, fun q ↦ ?_⟩
+  · rw [SmoothForm.mpullback_trans, hψσ, SmoothForm.mpullback_mpullback_of_comp_eq _ _
+      contMDiff_subtypeVal N.contMDiff (funext fun z ↦ Diffeomorph.subtype_apply_coe _ _ z),
+      CotangentBundle.mpullback_vectorBundleScalarDiffeomorph_symplecticForm]
+    rw [← neg_one_smul ℝ (CotangentBundle.symplecticForm J L)]
+  · obtain ⟨h, hq, -⟩ := hψ0 q
+    have h' : zeroSection _ _ q ∈ U' := by
+      rw [Opens.mem_mk, Set.mem_preimage, hN0]
+      exact h
+    refine ⟨h', ?_⟩
+    rw [Diffeomorph.coe_trans, Function.comp_apply, ← hq]
+    congr 2
+    exact Subtype.ext ((Diffeomorph.subtype_apply_coe _ _ _).trans (hN0 q))
 
 end TauCeti.SmoothTwoForm.IsNondegenerate
 
