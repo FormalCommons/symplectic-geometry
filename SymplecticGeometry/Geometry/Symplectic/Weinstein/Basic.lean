@@ -11,8 +11,10 @@ public import TauCeti.Geometry.Manifold.Flow.Complete
 public import TauCeti.Geometry.Symplectic.Liouville.VectorField
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import Mathlib.Geometry.Manifold.Riemannian.Basic
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import TauCeti.Analysis.Calculus.Gradient
 import TauCeti.Analysis.Calculus.Morse.NormSq
+import TauCeti.Geometry.Manifold.Flow.Diffeomorph
 import TauCeti.Geometry.Manifold.Flow.NormedSpace
 import TauCeti.Geometry.Manifold.Riemannian.Gradient.NormedSpace
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
@@ -36,6 +38,8 @@ it satisfies `dλ = ω` (`SymplecticGeometry.IsWeinsteinStructure.mextDeriv_inte
 * `SymplecticGeometry.IsWeinsteinStructure.comp`: `(ω, X, h ∘ f)` is a Weinstein structure for a
   smooth `h` with `h' > 0` on the values of `f`, as long as `h ∘ f` stays proper and bounded
   below.
+* `SymplecticGeometry.IsWeinsteinStructure.pullback`: a diffeomorphism `Φ : M' → M` pulls a
+  Weinstein structure `(ω, X, f)` back to `(Φ^* ω, Φ^* X, f ∘ Φ)`.
 * `SymplecticGeometry.isWeinsteinStructure_constSmooth_norm_sq`: a linear symplectic form on a real
   inner product space of finite dimension, with the radial field `x ↦ x / 2` and the function
   `x ↦ ‖x‖ ^ 2`, is a Weinstein structure; for instance `ℂⁿ` with its standard form and `|z|²`.
@@ -45,6 +49,15 @@ it satisfies `dλ = ω` (`SymplecticGeometry.IsWeinsteinStructure.mextDeriv_inte
 As in Cieliebak–Eliashberg, the field is part of the data, and not an existential, since the
 gradient-like condition and Weinstein homotopies both mention it. The function is a plain
 `M → ℝ`, the representation that `SymplecticGeometry.IsSteinFunction` uses.
+
+For the pull-back, the form stays symplectic by Tau Ceti's
+`IsLocalDiffeomorph.isSymplectic_mpullback_iff`, and the field stays Liouville by the pointwise
+naturality of the Lie derivative of a closed two-form,
+`IsLocalDiffeomorphAt.mlieDerivForm_apply_eq_iff`. The field stays complete because `Φ⁻¹` carries
+`X` to it (`Diffeomorph.mfderiv_symm_apply_eq_of_mfderiv_apply_eq`,
+`MDifferentiable.isCompleteVectorField_of_surjective`); the function and the field remain
+generalized Morse and gradient-like by `TauCeti.IsGeneralizedMorse.comp_diffeomorph`
+and `TauCeti.IsGradientLike.mpullback`.
 
 The example follows Tau Ceti's `TauCeti.SymplecticForm.isLiouvilleDomain_closedBall` for the
 Liouville part (the field `x / 2` and the primitive `TauCeti.SymplecticForm.radialPrimitive`). The
@@ -131,6 +144,40 @@ theorem comp (hW : IsWeinsteinStructure ω X f) {h : ℝ → ℝ} (hh : ContDiff
   isGeneralizedMorse := hW.isGeneralizedMorse.comp hh hpos
   isGradientLike := hW.isGradientLike.comp (hW.isGeneralizedMorse.contMDiff.mdifferentiable
     (by simp)) (hh.of_le (by simp)) hpos
+
+/-- **Weinstein structures pull back along diffeomorphisms.** If `(ω, X, f)` is a Weinstein
+structure on `M` and `Φ : M' → M` is a diffeomorphism, then the pulled-back form `Φ^* ω`, the
+pulled-back field `VectorField.mpullback Φ X x = (dΦ_x)⁻¹ (X (Φ x))` and the function `f ∘ Φ` form
+a Weinstein structure on `M'`. -/
+theorem pullback (hW : IsWeinsteinStructure ω X f) {M' : Type*} [TopologicalSpace M']
+    [ChartedSpace E M'] [IsManifold 𝓘(ℝ, E) (⊤ : ℕ∞) M']
+    (Φ : Diffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) M' M (⊤ : ℕ∞)) :
+    IsWeinsteinStructure (SmoothForm.mpullback Φ Φ.contMDiff ω)
+      (VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) Φ X) (f ∘ Φ) := by
+  have hsymp : SmoothTwoForm.IsSymplectic (SmoothForm.mpullback Φ Φ.contMDiff ω) :=
+    (Φ.isLocalDiffeomorph.isSymplectic_mpullback_iff Φ.surjective).2 hW.isSymplectic
+  have hX : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent (⊤ : ℕ∞)
+      (T% (VectorField.mpullback 𝓘(ℝ, E) 𝓘(ℝ, E) Φ X)) :=
+    hW.contMDiff_field.mpullback_vectorField Φ.contMDiff
+      (fun _ ↦ Φ.isInvertible_mfderiv (by simp)) le_rfl
+  have hΦX := Φ.mfderiv_apply_mpullback (by simp) X
+  refine ⟨hsymp, hX, ?_, ?_, hW.isProperMap.comp Φ.toHomeomorph.isProperMap, ?_,
+    hW.isGeneralizedMorse.comp_diffeomorph Φ,
+    hW.isGradientLike.mpullback Φ.contMDiff fun _ ↦ Φ.isInvertible_mfderiv (by simp)⟩
+  · -- Pointwise, `L_{Φ^* X} Φ^* ω = Φ^* ω` at `x` is `L_X ω = ω` at `Φ x`.
+    refine isLiouvilleVectorField_iff.2 (funext fun x ↦ ?_)
+    have h := ((Φ.isLocalDiffeomorph x).mlieDerivForm_apply_eq_iff
+      (η := SmoothForm.mpullback Φ Φ.contMDiff ω)
+      (.of_forall fun _ ↦ by rw [SmoothForm.coe_mpullback]) ((hX x).of_le (by simp))
+      ((hW.contMDiff_field (Φ x)).of_le (by simp)) (.of_forall hΦX)
+      (congrFun ((SmoothForm.isClosed_def _).1 hW.isSymplectic.isClosed) (Φ x))).1
+      (congrFun (isLiouvilleVectorField_iff.1 hW.isLiouvilleVectorField) (Φ x))
+    simpa only [SmoothForm.coe_mpullback] using h
+  · -- `Φ⁻¹` carries `X` to the pulled-back field, so it carries integral curves to integral curves.
+    exact MDifferentiable.isCompleteVectorField_of_surjective
+      (Φ.symm.contMDiff.mdifferentiable (by simp)) Φ.symm.surjective
+      (Φ.mfderiv_symm_apply_eq_of_mfderiv_apply_eq (by simp) hΦX) hW.isCompleteVectorField
+  · simpa [range_comp] using hW.bddBelow
 
 end IsWeinsteinStructure
 
