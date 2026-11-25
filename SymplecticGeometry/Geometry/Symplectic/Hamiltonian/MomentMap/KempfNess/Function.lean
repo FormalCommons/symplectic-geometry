@@ -7,8 +7,16 @@ module
 
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 public import SymplecticGeometry.Geometry.Lie.Complexification
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
 public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
+import Mathlib.Analysis.Calculus.ParametricIntervalIntegral
+import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
+import SymplecticGeometry.Geometry.Lie.Exponential.Derivative
+import SymplecticGeometry.Geometry.Lie.MaurerCartan
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
+import TauCeti.Analysis.Calculus.FDeriv.Prod
 import TauCeti.Analysis.Calculus.IntervalIntegral.ParametricPrimitive
 
 /-!
@@ -28,7 +36,9 @@ For `p : M`, the *Kempf–Ness function* `Φ_p : Gc → ℝ` is defined through 
 
 where `exp(iξ)` is `C.expI ξ`. This file defines `Φ_p`, shows that it vanishes on `G` and that it
 is invariant under right multiplication by `G`, so that it descends to the space `Gc ⧸ G` of
-cosets `gG`, and shows that it is smooth when the action and the components of `μ` are.
+cosets `gG`, shows that it is smooth when the action and the components of `μ` are, and computes
+its differential: for a complexified action and an equivariant moment map `-μ`, the differential
+of `Φ_p` at `g` is the one-form `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))`.
 
 ## Main definitions
 
@@ -45,14 +55,32 @@ cosets `gG`, and shows that it is smooth when the action and the components of `
 * `SymplecticGeometry.kempfNessFunction_mul_toHom`: `Φ_p (g * C.toHom u) = Φ_p g`.
 * `SymplecticGeometry.kempfNessFunctionQuotient_mk`: the induced function on cosets agrees with
   `Φ_p` on representatives.
+* `SymplecticGeometry.contDiff_moment_expI_neg_smul_smul_apply`: the integrand
+  `(ξ, t) ↦ μ (C.expI (-(t • ξ)) • p) ξ` is smooth.
 * `SymplecticGeometry.contMDiff_kempfNessFunction`: `Φ_p` is smooth.
 * `SymplecticGeometry.moment_inv_smul_im_mfderiv_polar_smul`: on the velocity of the radial curve
   `τ ↦ C.polar (τ • ξ, u)` at `t`, the one-form `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))` takes the value
   `μ (C.expI (-(t • ξ)) • p) ξ` of the integrand of `Φ_p (C.polar (ξ, u))`.
+* `SymplecticGeometry.hasDerivAt_kempfNessFunction_comp`: along a smooth curve `c`, the derivative
+  of `Φ_p ∘ c` is the one-form evaluated on the velocity of `c`.
+* `SymplecticGeometry.mfderiv_kempfNessFunction`: the differential of `Φ_p` at `g` is
+  `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))`.
 
 The smoothness reads `Φ_p` through the diffeomorphism `C.polar` as the integral over `[0, 1]` of a
 smooth function on `𝔤 × ℝ`, and applies Tau Ceti's
 `intervalIntegral.contDiff_parametric_primitive_of_contDiff` to it.
+
+The derivative follows [GeorgoulasRobbinSalamon2021], §2. Along a smooth curve `c`, write
+`c s = C.polar (ξ s, u s)` and deform the curve `s ↦ C.toHom (u s)` in `G` to `c` through
+`γ (s, t) = C.polar (t • ξ s, u s)`. Along `t` the one-form takes the value of the integrand
+(`moment_inv_smul_im_mfderiv_polar_smul`), so `Φ_p (c s) = ∫ t in 0..1, A (s, t)` with `A` the
+one-form on `∂_t γ`. Differentiating under the integral sign (Mathlib's
+`intervalIntegral.hasFDerivAt_integral_of_contDiffOn`), the closedness of the one-form
+(`fderiv_moment_inv_smul_im_comm`) turns `∂_s A` into `∂_t B`, with `B` the one-form on `∂_s γ`,
+and the fundamental theorem of calculus leaves `B (s, 1) - B (s, 0)`. Here `B (s, 0) = 0` since
+`γ (·, 0)` stays in `G` (`LieComplexification.im_mfderiv_inv_mul_mfderiv_toHom_comp`), and
+`B (s, 1)` is the one-form on the velocity of `c`. The differential at `g` is read along the curve
+`s ↦ g * exp (s • g⁻¹ ĝ)`.
 
 ## References
 
@@ -183,18 +211,24 @@ variable [FiniteDimensional ℝ E]
   {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
   [TopologicalSpace M] [ChartedSpace H' M] [ContMDiffSMul IC I' ∞ Gc M]
 
+/-- The integrand `(ξ, t) ↦ μ (C.expI (-(t • ξ)) • p) ξ` of the Kempf–Ness function, read on the
+model space `E × ℝ`, is smooth when `Gc` acts smoothly on `M` and each component `x ↦ μ x ξ` of
+`μ` is smooth. -/
+theorem contDiff_moment_expI_neg_smul_smul_apply (hμ : ∀ ξ, ContMDiff I' 𝓘(ℝ) ∞ fun x ↦ μ x ξ) :
+    ContDiff ℝ ∞ fun q : E × ℝ ↦ μ (C.expI (-(q.2 • q.1)) • p) q.1 := by
+  have hx : ContMDiff 𝓘(ℝ, E × ℝ) I' ∞ fun q : E × ℝ ↦ C.expI (-(q.2 • q.1)) • p :=
+    (C.contMDiff_expI.comp (contDiff_snd.smul contDiff_fst).neg.contMDiff).smul contMDiff_const
+  exact contMDiff_iff_contDiff.1 <|
+    ((contMDiff_toContinuousLinearMap_of_contMDiff_apply (E := E) hμ).comp hx).clm_apply
+      contDiff_fst.contMDiff
+
 /-- The Kempf–Ness function is smooth on `Gc` when `Gc` acts smoothly on `M` and each component
 `x ↦ μ x ξ` of `μ` is smooth, as for a moment map (Tau Ceti's `IsMomentMap.contMDiff`). -/
 theorem contMDiff_kempfNessFunction (hμ : ∀ ξ, ContMDiff I' 𝓘(ℝ) ∞ fun x ↦ μ x ξ) :
     ContMDiff IC 𝓘(ℝ) ∞ (kempfNessFunction C μ p) := by
-  -- The integrand `(ξ, t) ↦ μ (C.expI (-(t • ξ)) • p) ξ`, on the model space `E × ℝ`.
-  have hx : ContMDiff 𝓘(ℝ, E × ℝ) I' ∞ fun q : E × ℝ ↦ C.expI (-(q.2 • q.1)) • p :=
-    (C.contMDiff_expI.comp (contDiff_snd.smul contDiff_fst).neg.contMDiff).smul contMDiff_const
   have hF : ContDiff ℝ ∞ (Function.uncurry fun (ξ : E) (t : ℝ) ↦
       μ (C.expI (-(t • ξ)) • p) ξ) :=
-    contMDiff_iff_contDiff.1 <|
-      ((contMDiff_toContinuousLinearMap_of_contMDiff_apply (E := E) hμ).comp hx).clm_apply
-        contDiff_fst.contMDiff
+    contDiff_moment_expI_neg_smul_smul_apply C μ p hμ
   -- Its integral over `[0, 1]`, a smooth function of `ξ`, composed with `g ↦ (C.polar.symm g).1`.
   have hΦ := (intervalIntegral.contDiff_parametric_primitive_of_contDiff hF 0).comp
     (contDiff_id.prodMk (contDiff_const (c := (1 : ℝ))))
@@ -205,6 +239,150 @@ theorem contMDiff_kempfNessFunction (hμ : ∀ ξ, ContMDiff I' 𝓘(ℝ) ∞ fu
   rfl
 
 end Smooth
+
+section Derivative
+
+open _root_.Bundle TauCeti TauCeti.Manifold
+open scoped RealInnerProductSpace GroupLieAlgebra
+
+attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
+
+variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC] [ConnectedSpace G]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [CompleteSpace E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners ℝ E' H'}
+  [TopologicalSpace M] [ChartedSpace H' M] [IsManifold I' ∞ M] [MulAction G M]
+  [ContMDiffSMul I I' ∞ G M] [ContMDiffSMul IC I' ∞ Gc M]
+  [RiemannianBundle (fun x : M ↦ TangentSpace I' x)]
+  {σ : SmoothTwoForm I' M} {J : SmoothAlmostComplexStructure I' M}
+
+/-- **The derivative of the Kempf–Ness function along a curve.** Let the action of `Gc` be a
+complexified action, let `-μ` be an equivariant moment map for `σ`, and let the metric be
+`g(u, w) = σ(u, J w)`. Along a smooth curve `c` in `Gc`, the function `s ↦ Φ_p (c s)` has at `s₀`
+the derivative `μ ((c s₀)⁻¹ • p) (C.im ((c s₀)⁻¹ ċ))`, where `(c s₀)⁻¹ ċ` is the velocity of `c`
+at `s₀` translated to the identity. -/
+theorem hasDerivAt_kempfNessFunction_comp (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    {c : ℝ → Gc} (hc : ContMDiff 𝓘(ℝ) IC ∞ c) (s₀ : ℝ) :
+    HasDerivAt (kempfNessFunction C μ p ∘ c)
+      (μ ((c s₀)⁻¹ • p)
+        (C.im (mfderiv IC IC ((c s₀)⁻¹ * ·) (c s₀) (mfderiv 𝓘(ℝ) IC c s₀ (1 : ℝ))))) s₀ := by
+  have hμc : ∀ ξ, ContMDiff I' 𝓘(ℝ) ∞ fun x ↦ μ x ξ := hμ.toIsMomentMap.contMDiff_of_neg
+  -- The polar components of `c`, and the homotopy `γ (s, t) = C.polar (t • ξ s, u s)` from the
+  -- curve `s ↦ C.toHom (u s)` in `G` to `c`.
+  set ξ : ℝ → GroupLieAlgebra I G := fun s ↦ (C.polar.symm (c s)).1
+  set u : ℝ → G := fun s ↦ (C.polar.symm (c s)).2
+  set γ : ℝ × ℝ → Gc := fun z ↦ C.polar (z.2 • ξ z.1, u z.1)
+  have hpc : ContMDiff 𝓘(ℝ) (𝓘(ℝ, E).prod I) ∞ fun s ↦ C.polar.symm (c s) :=
+    C.polar.symm.contMDiff.comp hc
+  have hξ : ContDiff ℝ ∞ fun s ↦ (C.polar.symm (c s)).1 :=
+    contMDiff_iff_contDiff.1 (contMDiff_fst.comp hpc)
+  have hu : ContMDiff 𝓘(ℝ) I ∞ u := contMDiff_snd.comp hpc
+  have hγ : ContMDiff 𝓘(ℝ, ℝ × ℝ) IC ∞ γ :=
+    C.polar.contMDiff.comp ((contDiff_snd.smul (hξ.comp contDiff_fst)).contMDiff.prodMk
+      (hu.comp contDiff_fst.contMDiff))
+  have hγd (z : ℝ × ℝ) : MDifferentiableAt 𝓘(ℝ, ℝ × ℝ) IC γ z := hγ.mdifferentiableAt (by simp)
+  -- The one-form along `γ` in the direction `v`, and the integrand `A` of `Φ_p (c s)`.
+  set α : ℝ × ℝ → ℝ × ℝ → ℝ := fun v z ↦ μ ((γ z)⁻¹ • p)
+    (C.im (mfderiv IC IC ((γ z)⁻¹ * ·) (γ z) (mfderiv 𝓘(ℝ, ℝ × ℝ) IC γ z v)))
+  set A : ℝ × ℝ → ℝ := fun z ↦ μ (C.expI (-(z.2 • ξ z.1)) • p) (ξ z.1)
+  have hAs : ContDiff ℝ ∞ A :=
+    (contDiff_moment_expI_neg_smul_smul_apply C μ p hμc).comp
+      ((hξ.comp contDiff_fst).prodMk contDiff_snd)
+  -- The curve `q ↦ γ (q, t)` has velocity `∂_s γ`.
+  have hfst (s t : ℝ) : mfderiv 𝓘(ℝ, ℝ × ℝ) IC γ (s, t) (1, 0) =
+      mfderiv 𝓘(ℝ) IC (fun q ↦ γ (q, t)) s (1 : ℝ) :=
+    (curveVelocity_eq_mfderiv_fst (f := fun a b ↦ γ (a, b)) (hγd (s, t))).symm.trans
+      curveVelocity_apply
+  -- Along `t`, the one-form is the integrand (`moment_inv_smul_im_mfderiv_polar_smul`).
+  have hA : α (0, 1) = A := by
+    funext ⟨s, t⟩
+    have hv : mfderiv 𝓘(ℝ, ℝ × ℝ) IC γ (s, t) (0, 1) =
+        mfderiv 𝓘(ℝ) IC (fun τ ↦ γ (s, τ)) t (1 : ℝ) :=
+      (curveVelocity_eq_mfderiv_snd (f := fun a b ↦ γ (a, b)) (hγd (s, t))).symm.trans
+        curveVelocity_apply
+    -- `change` unfolds the local definition `α` to expose the velocity that `hv` rewrites.
+    change μ ((γ (s, t))⁻¹ • p) (C.im (mfderiv IC IC ((γ (s, t))⁻¹ * ·) (γ (s, t))
+      (mfderiv 𝓘(ℝ, ℝ × ℝ) IC γ (s, t) (0, 1)))) = A (s, t)
+    rw [hv]
+    exact moment_inv_smul_im_mfderiv_polar_smul C μ p (h.moment_toHom_smul hμ) (ξ s) (u s) t
+  -- The derivative of `s ↦ Φ_p (c s)` at `s₀`, under the integral sign.
+  have hAc : Continuous fun t : ℝ ↦ fderiv ℝ A (s₀, t) :=
+    (hAs.continuous_fderiv (by simp)).comp (by fun_prop)
+  have hD : HasDerivAt (kempfNessFunction C μ p ∘ c)
+      (∫ t in (0 : ℝ)..1, fderiv ℝ A (s₀, t) (1, 0)) s₀ := by
+    have hI := (intervalIntegral.hasFDerivAt_integral_of_contDiffOn
+      (μ := MeasureTheory.volume) (f := fun s t ↦ A (s, t)) (x₀ := s₀) (a := 0) (b := 1)
+      Filter.univ_mem (hAs.of_le (by simp)).contDiffOn).hasDerivAt
+    simp only [fun t ↦ fderiv_slice_left (hAs.differentiable (by simp) (s₀, t))] at hI
+    rw [ContinuousLinearMap.intervalIntegral_apply
+      ((hAc.clm_comp continuous_const).intervalIntegrable 0 1)] at hI
+    simpa [Function.comp_def, kempfNessFunction_def] using hI
+  -- The closedness of the one-form trades `∂_s A` for `∂_t (α (1, 0))`; the fundamental theorem
+  -- of calculus along `t ↦ (s₀, t)` then evaluates the integral.
+  have hFTC : ∫ t in (0 : ℝ)..1, fderiv ℝ A (s₀, t) (1, 0) =
+      α (1, 0) (s₀, 1) - α (1, 0) (s₀, 0) := by
+    refine intervalIntegral.integral_eq_sub_of_hasDerivAt (f := fun t ↦ α (1, 0) (s₀, t))
+      (fun t _ ↦ ?_) ((hAc.clm_apply continuous_const).intervalIntegrable 0 1)
+    rw [← hA, fderiv_moment_inv_smul_im_comm h hμ hg p hγ (s₀, t) (1, 0) (0, 1)]
+    exact ((differentiable_moment_inv_smul_im_mfderiv hμc p hγ (1, 0) (s₀, t)).hasFDerivAt.comp t
+      (hasFDerivAt_prodMk_right s₀ t)).hasDerivAt
+  -- At `t = 0` the homotopy stays in `G`, where `C.im` vanishes on left-trivialized velocities.
+  have hB0 : α (1, 0) (s₀, 0) = 0 := by
+    have hγ0 : (fun q ↦ γ (q, 0)) = C.toHom ∘ u := by
+      funext q
+      simp [γ]
+    have hγ00 : γ (s₀, 0) = C.toHom (u s₀) := congrFun hγ0 s₀
+    -- `change` unfolds the local definition `α` to expose `γ (s₀, 0)` and the velocity.
+    change μ ((γ (s₀, 0))⁻¹ • p) (C.im (mfderiv IC IC ((γ (s₀, 0))⁻¹ * ·) (γ (s₀, 0))
+      (mfderiv 𝓘(ℝ, ℝ × ℝ) IC γ (s₀, 0) (1, 0)))) = 0
+    rw [hfst, hγ0, hγ00,
+      C.im_mfderiv_inv_mul_mfderiv_toHom_comp (hu.mdifferentiableAt (by simp)) (1 : ℝ), map_zero]
+  -- At `t = 1` the homotopy is the curve `c`.
+  have hγ1 : (fun q ↦ γ (q, 1)) = c := by
+    funext q
+    have hq : (((1 : ℝ) • ξ q : E), u q) = C.polar.symm (c q) := Prod.ext (one_smul ℝ _) rfl
+    exact (congrArg C.polar hq).trans (C.polar.apply_symm_apply (c q))
+  have hB1 : α (1, 0) (s₀, 1) = μ ((c s₀)⁻¹ • p)
+      (C.im (mfderiv IC IC ((c s₀)⁻¹ * ·) (c s₀) (mfderiv 𝓘(ℝ) IC c s₀ (1 : ℝ)))) := by
+    -- `change` unfolds the local definition `α` to expose `γ (s₀, 1)` and the velocity.
+    change μ ((γ (s₀, 1))⁻¹ • p) (C.im (mfderiv IC IC ((γ (s₀, 1))⁻¹ * ·) (γ (s₀, 1))
+      (mfderiv 𝓘(ℝ, ℝ × ℝ) IC γ (s₀, 1) (1, 0)))) = _
+    rw [hfst, hγ1, congrFun hγ1 s₀]
+  rwa [hFTC, hB1, hB0, sub_zero] at hD
+
+/-- **The derivative of the Kempf–Ness function.** Let the action of `Gc` be a complexified
+action, let `-μ` be an equivariant moment map for `σ`, and let the metric be
+`g(u, w) = σ(u, J w)`. Then the differential of `Φ_p` at `g` is the one-form
+`ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))`, where `g⁻¹ ĝ` is the left translate
+`mfderiv IC IC (g⁻¹ * ·) g ĝ` of `ĝ` to the identity. -/
+theorem mfderiv_kempfNessFunction (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    (g : Gc) (ĝ : TangentSpace IC g) :
+    mfderiv IC 𝓘(ℝ) (kempfNessFunction C μ p) g ĝ =
+      μ (g⁻¹ • p) (C.im (mfderiv IC IC (g⁻¹ * ·) g ĝ)) := by
+  -- The curve `c s = g * exp (s • g⁻¹ ĝ)` passes through `g` with velocity `ĝ`.
+  set ζ : GroupLieAlgebra IC Gc := mfderiv IC IC (g⁻¹ * ·) g ĝ
+  set c : ℝ → Gc := fun s ↦ g * mulInvariantExp (I := IC) (s • ζ)
+  have hc : ContMDiff 𝓘(ℝ) IC ∞ c := contMDiff_const.mul (contMDiff_mulInvariantExp_smul ζ)
+  have hc0 : c 0 = g := by simp [c]
+  have hcv : curveVelocity IC c 0 = ĝ := by
+    rw [curveVelocity_mul_mulInvariantExp_smul]
+    have h0 : g * mulInvariantExp (I := IC) ((0 : ℝ) • ζ) = g := by simp
+    rw [h0]
+    exact mulInvariantVectorField_mfderiv_inv_mul ĝ
+  -- The chain rule computes the derivative of `Φ_p ∘ c` at `0` from the differential of `Φ_p`.
+  have hΦ := hasDerivAt_comp_curve (w := ĝ)
+    ((contMDiff_kempfNessFunction C μ p hμ.toIsMomentMap.contMDiff_of_neg).mdifferentiableAt
+      (x := c 0) (by simp))
+    (hcv ▸ hasMFDerivAt_curveVelocity (hc.mdifferentiableAt (by simp)))
+  rw [hc0] at hΦ
+  have h' := hΦ.unique (hasDerivAt_kempfNessFunction_comp C μ p h hμ hg hc 0)
+  rw [(curveVelocity_apply (I := IC) (γ := c) (t := 0)).symm.trans hcv, hc0] at h'
+  exact h'
+
+end Derivative
 
 end SymplecticGeometry
 
