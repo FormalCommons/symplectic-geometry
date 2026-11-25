@@ -146,7 +146,7 @@ The proof of integrality:
    $c_1(L)^j$ on a line bundle. If every cup product of two classes of
    positive even degree with sum $2j$ vanishes (as on $S^{2m}$ for $j=m$),
    then $s_j=(-1)^{j-1}j\,c_j$, by Newton's identity
-   (Mathlib's `MvPolynomial.psum_eq_mul_esymm_sub_sum`).
+   (the coefficient of $t^j$ in `X_mul_derivative_chernSeries`).
 2. **K-theory.** $K(X)$ is the split Grothendieck group of the category
    of complex bundle cores over $X$, whose biproduct is the Whitney sum.
    Every additive, iso-invariant invariant factors through it; so $s_j$
@@ -196,10 +196,10 @@ the library's other files on them instead:
   ($0$ for $j\ne0$), `newtonClass_of_finrank_eq_one` ($c_1^j$, as a power
   in `EvenIntegralCohomology`).
 - `newtonClass_prod`: over a compact base,
-  $s_j(E_1\oplus E_2)=s_j(E_1)+s_j(E_2)$, from `totalChernClass_prod` and
+  $s_j(E_1\oplus E_2)=s_j(E_1)+s_j(E_2)$, from `chernClass_prod` and
   `TauCeti.X_mul_derivative_chernSeries`.
-- `newtonClass_eq_of_cup_eq_zero`: if every cup product of classes of
-  degrees $2a,2b>0$ with $a+b=j$ vanishes, then
+- `newtonClass_eq_of_cup_eq_zero`: if $j\ge1$ and every cup product of
+  classes of degrees $2a,2b>0$ with $a+b=j$ vanishes, then
   $s_j(E)=(-1)^{j-1}j\,c_j(E)$.
 
 ### `Topology/VectorBundle/Complexification/Basic.lean`

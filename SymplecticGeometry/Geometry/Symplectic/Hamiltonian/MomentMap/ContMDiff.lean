@@ -20,7 +20,7 @@ takes `μ` to a smooth function, and `SymplecticGeometry.contMDiff_linearMap_com
 concludes.
 
 It also records that the components of `μ` are smooth when `-μ` is a moment map, the sign
-convention of many texts.
+convention of many texts, and that their derivatives are then values of `σ`.
 
 ## Main results
 
@@ -28,6 +28,8 @@ convention of many texts.
 * `TauCeti.SmoothTwoForm.IsMomentMap.continuous_linearMap_comp`: `f ∘ μ` is continuous.
 * `TauCeti.SmoothTwoForm.IsMomentMap.contMDiff_of_neg`: if `-μ` is a moment map, the components
   of `μ` are smooth.
+* `TauCeti.SmoothTwoForm.IsMomentMap.mvfderiv_apply_of_neg`: if `-μ` is a moment map for the
+  infinitesimal action `a`, the derivative of `x ↦ μ x Z` in the direction `v` is `-σ(a Z x, v)`.
 -/
 
 public section
@@ -45,6 +47,17 @@ theorem contMDiff_of_neg {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ
     (h : σ.IsMomentMap a fun x ↦ -μ x) (Z : 𝔤) :
     ContMDiff I 𝓘(ℝ) ∞ fun x ↦ μ x Z := by
   simpa using (h.contMDiff Z).neg
+
+/-- If `-μ` is a moment map for `σ` and the infinitesimal action `a`, the derivative at `x` of
+the component `y ↦ μ y Z` of `μ`, in the direction `v`, is `-σ(a Z x, v)`. -/
+theorem mvfderiv_apply_of_neg {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] {𝔤 : Type*} [LieRing 𝔤] [LieAlgebra ℝ 𝔤] {σ : SmoothTwoForm I M}
+    {a : InfinitesimalAction 𝔤 I M} {μ : M → Module.Dual ℝ 𝔤}
+    (h : σ.IsMomentMap a fun x ↦ -μ x) (Z : 𝔤) (x : M) (v : TangentSpace I x) :
+    mvfderiv I (fun y ↦ μ y Z) x v = -SmoothBundleForm.eval₂ σ x (a Z x) v := by
+  rw [h.eval₂_apply Z x v, show (fun y ↦ μ y Z) = fun y ↦ -(-μ y) Z by ext; simp,
+    mvfderiv_fun_neg, neg_apply]
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
