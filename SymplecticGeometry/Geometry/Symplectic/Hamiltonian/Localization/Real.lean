@@ -40,6 +40,9 @@ it.
   (`SymplecticGeometry.IsTangentWeights`), the top component of `e^{σ - ħH}` has integral
   `∑ᶠ p ∈ fixedPoints, e^{-ħ H(p)} / (ħⁿ ∏ⱼ k p j)` against the symplectic orientation.
 
+* `SymplecticGeometry.cartanDiff_formCalculus_exp_of_isMomentMap`: for a closed two-form `σ`
+  with a moment map, `e^{σ - ħH}` is equivariantly closed for every real `ħ`.
+
 * `SymplecticGeometry.IsWeightChart.integralTopForm_mul_formCalculus_exp`: near a fixed point
   `p`, the form `e^{σ - ħH} = formCalculus Real.exp _ (-ħ • H) σ` contributes only the constant
   `e^{-ħ H(p)}`. If `Φ` is a weight chart at `p` of radius `r` and `γ` is an equivariantly closed
@@ -124,7 +127,8 @@ In dimension `0` all sums and products are empty and the value is `F(0)`.
 
 `SymplecticGeometry.integralTopForm_exp_neg_mul_eq_finsum_of_pos` puts these together, following
 Berline, Getzler and Vergne, §7.2. Since `ι_X σ = -dH`, the form `e^{σ - ħH}` is equivariantly
-closed (`SymplecticGeometry.cartanDiff_formCalculus`). Take the localizing one-form `θ` and the
+closed for every real `ħ` (`SymplecticGeometry.cartanDiff_formCalculus_exp_of_isMomentMap`, by
+`SymplecticGeometry.cartanDiff_formCalculus`). Take the localizing one-form `θ` and the
 weight charts of `SymplecticGeometry.exists_localizingForm`, a level `δ` and radii from
 `SymplecticGeometry.exists_cutoffLevel_radii` for `f = θ(X)`, and a bump function `F` with
 `F(0) = 1` and support in `[-δ, δ]`. By `SymplecticGeometry.integralTopForm_formCalculus_mul` the
@@ -608,6 +612,35 @@ theorem integralTopForm_mul_formCalculus_exp {σ : SmoothTwoForm I M}
 
 end IsWeightChart
 
+omit [I.Boundaryless] [CompactSpace M] [T2Space M] in
+/-- **`e^{σ - ħH}` is equivariantly closed.** Let the circle act smoothly on `M`, let `σ` be a
+closed two-form with a moment map `μ` in the sign `d⟨μ, ξ⟩ = -ι_{ξ_M} σ`, and let `H` be the
+smooth function `⟨μ, ξ₁⟩` for the period-one generator `ξ₁ = circlePeriodOneGenerator`, whose
+fundamental vector field is `X`. Then for every real `ħ` the form
+`e^{σ - ħH} = formCalculus Real.exp _ (-ħ • H) σ` satisfies `d_ħ e^{σ - ħH} = 0`. -/
+theorem cartanDiff_formCalculus_exp_of_isMomentMap {σ : SmoothTwoForm I M}
+    (hσ : SmoothForm.IsClosed σ) {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
+    {H : C^∞⟮I, M; ℝ⟯} (hH : ∀ x, H x = μ x circlePeriodOneGenerator)
+    (hX : ContMDiff I I.tangent ∞ fun x ↦
+      (⟨x, fundamentalVectorField I circlePeriodOneGenerator x⟩ : TangentBundle I M))
+    (ħ : ℝ) :
+    cartanDiff (fundamentalVectorField I circlePeriodOneGenerator) hX ħ
+      (formCalculus Real.exp Real.contDiff_exp (-ħ • H) σ) = 0 := by
+  -- The moment map gives `ι_X σ = -dH`.
+  have hι : σ.interiorₗ ⟨_, hX⟩ = mextDerivₗ I 0 (SmoothForm.ofFunction (-H)) :=
+    SmoothTwoForm.isHamiltonianVectorField_iff_interiorₗ_eq.1 (by
+      rw [SmoothForm.ofFunction_apply_zero]
+      convert hμ.isHamiltonianVectorField circlePeriodOneGenerator using 1
+      · funext x
+        simp [hH]
+      · rw [ContMDiffSection.coeFn_mk, InfinitesimalAction.fundamental_apply])
+  refine cartanDiff_formCalculus _ _ (Subtype.ext (by
+    rw [mextDerivₗ_apply]; exact (SmoothForm.isClosed_def σ).1 hσ)) ?_
+  rw [← SmoothTwoForm.interiorₗ_eq_interiorProduct, hι, ← map_smul, neg_smul, ← smul_neg,
+    ← SmoothForm.ofFunctionEquiv_apply, ← SmoothForm.ofFunctionEquiv_apply]
+  exact congrArg _ (SmoothForm.ofFunctionEquiv.map_smul ħ (-H)).symm
+
 omit [I.Boundaryless] [ContMDiffSMul (𝓡 1) I ∞ Circle M] in
 /-- The integral of one piece of `F(d_ħ θ)` at a fixed point. Let `Φ` be a weight chart at `p` of
 radius `r` with nonzero weights `αⱼ(ξ₁)`, and `θ` the model one-form `weightOneForm` of these
@@ -627,7 +660,7 @@ private theorem integralTopForm_piece_weightChart {n : ℕ} [Fact (Module.finran
       (weightOneForm fun j ↦ α j circlePeriodOneGenerator).val x)
     {hX : ContMDiff I I.tangent ∞ fun x ↦
       (⟨x, fundamentalVectorField I circlePeriodOneGenerator x⟩ : TangentBundle I M)}
-    {F : ℝ → ℝ} (hF : ContDiff ℝ ∞ F) (hFc : HasCompactSupport F) (hF0 : F 0 = 1)
+    {F : ℝ → ℝ} (hF : ContDiff ℝ ∞ F) (hF0 : F 0 = 1)
     {ħ δ : ℝ} (hħ : 0 < ħ) (hFδ : tsupport F ⊆ Icc (-δ) δ) {a c : ℝ} (hab : a < b)
     (hcb : c < b)
     (hδ : ∀ z : StdSpace (Fin m), a ≤ ‖z‖ →
@@ -640,6 +673,7 @@ private theorem integralTopForm_piece_weightChart {n : ℕ} [Fact (Module.finran
     integralTopForm (hσ.volumeOrientation Fact.out) (γ (2 * n)).val =
       1 / (ħ ^ n * ∏ j, α j circlePeriodOneGenerator) := by
   obtain rfl : m = n := hΦ.eq_of_finrank_eq Fact.out
+  have hFc : HasCompactSupport F := isCompact_Icc.of_isClosed_subset (isClosed_tsupport F) hFδ
   borelize M
   have hbs : ball (0 : StdSpace (Fin m)) b ⊆ Φ.source := hΦ.source_eq ▸ ball_subset_ball hbr
   rw [← hF0]
@@ -684,21 +718,9 @@ theorem integralTopForm_exp_neg_mul_eq_finsum_of_pos {n : ℕ}
   set X := fundamentalVectorField I ξ (M := M)
   have hX : ContMDiff I I.tangent ∞ fun x ↦ (⟨x, X x⟩ : TangentBundle I M) :=
     contMDiff_fundamentalVectorField (m := ∞) (n := ∞) (by simp) ξ
-  -- `e^{σ - ħH}` is equivariantly closed, since `ι_X σ = -dH`.
   set e := formCalculus Real.exp Real.contDiff_exp (-ħ • H) σ
-  have hι : σ.interiorₗ ⟨X, hX⟩ = mextDerivₗ I 0 (SmoothForm.ofFunction (-H)) :=
-    SmoothTwoForm.isHamiltonianVectorField_iff_interiorₗ_eq.1 (by
-      rw [SmoothForm.ofFunction_apply_zero]
-      convert hμ.isHamiltonianVectorField ξ using 1
-      · funext x
-        simp [hH]
-      · rw [ContMDiffSection.coeFn_mk, InfinitesimalAction.fundamental_apply])
-  have he : cartanDiff X hX ħ e = 0 := by
-    refine cartanDiff_formCalculus _ _ (Subtype.ext (by
-      rw [mextDerivₗ_apply]; exact (SmoothForm.isClosed_def σ).1 hσ.isClosed)) ?_
-    rw [← SmoothTwoForm.interiorₗ_eq_interiorProduct, hι, ← map_smul, neg_smul, ← smul_neg,
-      ← SmoothForm.ofFunctionEquiv_apply, ← SmoothForm.ofFunctionEquiv_apply]
-    exact congrArg _ (SmoothForm.ofFunctionEquiv.map_smul ħ (-H)).symm
+  have he : cartanDiff X hX ħ e = 0 :=
+    cartanDiff_formCalculus_exp_of_isMomentMap hσ.isClosed hμ hH hX ħ
   -- The localizing one-form `θ` and the weight charts at the finitely many fixed points.
   obtain ⟨θ, hθinv, hθ0, hθz, hloc⟩ := exists_localizingForm hμ hσ hinv hiso
   have hθL : mlieDerivForm X θ.val = 0 := mlieDerivForm_fundamentalVectorField_eq_zero hθinv ξ
@@ -734,7 +756,7 @@ theorem integralTopForm_exp_neg_mul_eq_finsum_of_pos {n : ℕ}
       integralTopForm_piece_weightChart hσ.isNondegenerate (hW p) (hα p)
         ((hab p).2.2.trans (hsr p))
         (fun x hx ↦ hθΦ p x (image_mono (ball_subset_ball (hab p).2.2) hx)) F.contDiff
-        F.hasCompactSupport hF0 hħ hFδ (hab p).2.1 (hcb p) (hδz p) (hγc p) (hγb p),
+        hF0 hħ hFδ (hab p).2.1 (hcb p) (hδz p) (hγc p) (hγb p),
       (hW p).prod_apply_circlePeriodOneGenerator_eq (hk p p.property).choose_spec, mul_one_div]
   -- Each piece is a smooth top form on a compact manifold, so integrable.
   have hint (p : S) : IntegrableTopForm ((γ p * e) (2 * n)).val :=
