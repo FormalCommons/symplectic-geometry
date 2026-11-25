@@ -5,7 +5,9 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 public import TauCeti.AlgebraicTopology.Singular.Relative
+import all TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
 
 /-!
 # Change of coefficients in the singular homology of a pair
@@ -21,6 +23,10 @@ is that of the cohomology statement, without the dual.
 In an abelian category the change of coefficients is a morphism of the short exact sequences of
 singular chains of a pair, so it also commutes with the connecting morphism
 (`TopPair.singularHomologyδ_coefficient_naturality`).
+
+Tau Ceti's isomorphism `TopPair.uliftIntSingularHomologyIso`, from coefficients `ULift ℤ` to `ℤ`,
+is such a change of coefficients, along `TauCeti.uliftIntIso`
+(`TopPair.uliftIntSingularHomologyIso_hom`).
 -/
 
 public section
@@ -83,6 +89,14 @@ theorem singularHomologyδ_coefficient_naturality (P : TopPair.{w}) {R R' : C} (
     (P.shortExact_singularChainComplexShortComplex R') n m (by simpa)
 
 end Abelian
+
+/-- Tau Ceti's change of coefficients `TopPair.uliftIntSingularHomologyIso`, from `ULift ℤ` to `ℤ`,
+is the map in homology induced by `TauCeti.uliftIntIso` on relative singular chains. -/
+lemma uliftIntSingularHomologyIso_hom (P : TopPair.{0}) (k : ℕ) :
+    (uliftIntSingularHomologyIso P k).hom =
+      homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map
+        TauCeti.uliftIntIso.hom).app (toSSetPair.obj P)) k :=
+  (rfl)
 
 end TopPair
 

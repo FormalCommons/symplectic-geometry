@@ -7,7 +7,6 @@ module
 
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.ZeroOneForm
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Topology
-import TauCeti.Geometry.Manifold.VectorBundle.Hom
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Map.Topology
 
 /-!
@@ -15,30 +14,38 @@ import TauCeti.Geometry.Manifold.VectorBundle.Section.Map.Topology
 
 For an almost complex structure `j` on `M` and a complex vector bundle `V → M`, Tau Ceti's
 `TauCeti.SmoothAlmostComplexStructure.zeroOnePart` is, at every point `x`, a real-linear map of
-the `V`-valued one-forms at `x` to themselves, and
-`TauCeti.SmoothAlmostComplexStructure.contMDiff_totalSpace_zeroOnePart` says that it is a smooth
-map of total spaces. This file bundles it at `x` as a continuous real-linear endomorphism
-`TauCeti.SmoothAlmostComplexStructure.zeroOnePartL j x` of the one-forms at `x`, and shows that
-these endomorphisms form a smooth section of the bundle of endomorphisms of the bundle of
-`V`-valued one-forms (`TauCeti.SmoothAlmostComplexStructure.contMDiff_zeroOnePartL`), by Tau
-Ceti's `TauCeti.contMDiff_hom_bundle_iff`. In this form the projection can act on Sobolev
-sections of one-forms as a smooth coefficient.
+the `V`-valued one-forms at `x` to themselves. This file bundles it at `x` as a continuous
+real-linear endomorphism `TauCeti.SmoothAlmostComplexStructure.zeroOnePartL j x` of the one-forms
+at `x`, and shows that these endomorphisms form a smooth section of the bundle of endomorphisms
+of the bundle of `V`-valued one-forms
+(`TauCeti.SmoothAlmostComplexStructure.contMDiff_zeroOnePartL`). In this form the projection
+can act on Sobolev sections of one-forms as a smooth coefficient.
+
+The formula `η ↦ ½ (η + i • η ∘ T)` makes sense for every endomorphism `T` of a tangent space
+(`TauCeti.SmoothAlmostComplexStructure.zeroOnePartOfEnd`), and `zeroOnePartL j x` is defined as
+this formula at `T = j x`. In the preferred trivializations the formula reads as the same
+formula for the coordinate expression of `T`, since the trivializations of `V` are complex
+linear, so it is a smooth map of total spaces from the tangent endomorphism bundle
+(`TauCeti.SmoothAlmostComplexStructure.contMDiff_totalSpace_zeroOnePartOfEnd`). The smoothness of
+`zeroOnePartL j` is its composite with the smooth section `j`, and so needs no finite
+dimension of `E` or `F`.
 
 The bundled section `TauCeti.SmoothAlmostComplexStructure.zeroOnePartSection j` depends
 continuously on `j` (`TauCeti.SmoothAlmostComplexStructure.continuous_zeroOnePartSection`), for
 the `C^∞` topology `TauCeti.SmoothAlmostComplexStructure.frameTopology` on almost complex
-structures and the compact derivative topology `ContMDiffSection.frameTopology` on sections. The
-formula `η ↦ ½ (η + i • η ∘ T)` makes sense for every endomorphism `T` of a tangent space, and in
-the preferred trivializations it reads as the same formula for the coordinate expression of `T`,
-since the trivializations of `V` are complex linear. So it is a smooth map of total spaces from
-the tangent endomorphism bundle, and Tau Ceti's `ContMDiffSection.continuous_map_frameTopology`
-gives the continuity of its action on sections.
+structures and the compact derivative topology `ContMDiffSection.frameTopology` on sections: Tau
+Ceti's `ContMDiffSection.continuous_map_frameTopology` gives the continuity of the action of
+`zeroOnePartOfEnd` on sections. Here the model space `E` of `M` is finite dimensional.
 
 ## Main definitions and results
 
 * `TauCeti.SmoothAlmostComplexStructure.zeroOnePartL`: the `(0,1)`-projection at a point.
-* `TauCeti.SmoothAlmostComplexStructure.contMDiff_zeroOnePartL`: it is a smooth section of the
-  endomorphism bundle of the one-forms.
+* `TauCeti.SmoothAlmostComplexStructure.zeroOnePartOfEnd`: the same formula for any endomorphism
+  of the tangent space.
+* `TauCeti.SmoothAlmostComplexStructure.contMDiff_totalSpace_zeroOnePartOfEnd`: it is a smooth
+  map of total spaces.
+* `TauCeti.SmoothAlmostComplexStructure.contMDiff_zeroOnePartL`: `zeroOnePartL j` is a smooth
+  section of the endomorphism bundle of the one-forms.
 * `TauCeti.SmoothAlmostComplexStructure.zeroOnePartSection`: that smooth section, bundled.
 * `TauCeti.SmoothAlmostComplexStructure.continuous_zeroOnePartSection`: it depends continuously
   on the almost complex structure.
@@ -68,67 +75,47 @@ variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [∀ x, TopologicalSpace (V x)] [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
   [∀ x, ContinuousSMul ℂ (V x)]
 
-/-- The `(0,1)`-projection `η ↦ ½ (η + i • η ∘ j)` of the `V`-valued one-forms at `x`, as a
-continuous real-linear endomorphism. -/
-def zeroOnePartL (x : M) :
-    (TangentSpace I x →L[ℝ] V x) →L[ℝ] TangentSpace I x →L[ℝ] V x where
-  toLinearMap := (j.zeroOnePartLinearMap x).restrictScalars ℝ
-  cont := by
-    refine ((continuous_const_smul (2⁻¹ : ℝ)).comp (continuous_id.add
-      ((continuous_const_smul Complex.I).comp
-        (ContinuousLinearMap.precomp (V x) (j.toEndomorphism x)).continuous))).congr
-          fun η ↦ ?_
-    ext v
-    simp [zeroOnePart_apply]
-
-/-- `zeroOnePartL j x` is the `(0,1)`-projection of one-forms at `x`. -/
-@[simp]
-theorem zeroOnePartL_apply (x : M) (η : TangentSpace I x →L[ℝ] V x) :
-    j.zeroOnePartL x η = j.zeroOnePart η :=
-  j.zeroOnePartLinearMap_apply x η
-
-variable [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℝ F V]
-  [VectorBundle ℂ F V] [FiniteDimensional ℝ E] [FiniteDimensional ℝ F]
-
-/-- The `(0,1)`-projections at the points of `M` form a `C^n` section of the bundle of
-endomorphisms of the bundle of `V`-valued one-forms, for every `n ≤ ∞`. -/
-theorem contMDiff_zeroOnePartL {n : ℕ∞ω} (hn : n ≤ ∞) :
-    ContMDiff I (I.prod 𝓘(ℝ, (E →L[ℝ] F) →L[ℝ] E →L[ℝ] F)) n fun x ↦
-      TotalSpace.mk' ((E →L[ℝ] F) →L[ℝ] E →L[ℝ] F)
-        (E := fun x ↦ (TangentSpace I x →L[ℝ] V x) →L[ℝ] TangentSpace I x →L[ℝ] V x) x
-        (j.zeroOnePartL x) :=
-  (contMDiff_hom_bundle_iff _).2 (by
-    simpa only [zeroOnePartL_apply] using j.contMDiff_totalSpace_zeroOnePart (F := F) (V := V) hn)
-
-/-- The `(0,1)`-projections `x ↦ zeroOnePartL j x` as a smooth section of the bundle of
-endomorphisms of the bundle of `V`-valued one-forms. -/
-def zeroOnePartSection :
-    Cₛ^∞⟮I; (E →L[ℝ] F) →L[ℝ] E →L[ℝ] F,
-      fun x ↦ (TangentSpace I x →L[ℝ] V x) →L[ℝ] TangentSpace I x →L[ℝ] V x⟯ :=
-  ⟨fun x ↦ j.zeroOnePartL x, j.contMDiff_zeroOnePartL le_rfl⟩
-
-/-- The value of `zeroOnePartSection j` at `x` is `zeroOnePartL j x`. -/
-@[simp]
-theorem zeroOnePartSection_apply (x : M) :
-    j.zeroOnePartSection (F := F) (V := V) x = j.zeroOnePartL x :=
-  (rfl)
-
-/-! ### Continuous dependence on the almost complex structure -/
+/-! ### The formula of the `(0,1)`-projection -/
 
 variable (V) in
 /-- The formula `η ↦ ½ (η + i • η ∘ T)` of the `(0,1)`-projection, for an arbitrary
 endomorphism `T` of the tangent space at `x`. -/
-private def zeroOnePartOfEnd (x : M) (T : TangentSpace I x →L[ℝ] TangentSpace I x) :
+def zeroOnePartOfEnd (x : M) (T : TangentSpace I x →L[ℝ] TangentSpace I x) :
     (TangentSpace I x →L[ℝ] V x) →L[ℝ] TangentSpace I x →L[ℝ] V x :=
   (2⁻¹ : ℝ) • (ContinuousLinearMap.id ℝ _ + Complex.I • ContinuousLinearMap.precomp (V x) T)
 
-omit [FiniteDimensional ℝ E] in
-private theorem zeroOnePartOfEnd_toEndomorphism (x : M) :
-    zeroOnePartOfEnd V x (j.toEndomorphism x) = j.zeroOnePartL x := by
-  ext η v
-  simp [zeroOnePartOfEnd, zeroOnePart_apply]
+omit [IsManifold I ∞ M] in
+/-- `zeroOnePartOfEnd V x T` sends a one-form `η` to `½ (η + i • η ∘ T)`. -/
+@[simp]
+theorem zeroOnePartOfEnd_apply (x : M) (T : TangentSpace I x →L[ℝ] TangentSpace I x)
+    (η : TangentSpace I x →L[ℝ] V x) :
+    zeroOnePartOfEnd V x T η = (2⁻¹ : ℝ) • (η + Complex.I • η.comp T) :=
+  (rfl)
 
-omit [FiniteDimensional ℝ E] [FiniteDimensional ℝ F] in
+/-- The `(0,1)`-projection `η ↦ ½ (η + i • η ∘ j)` of the `V`-valued one-forms at `x`, as a
+continuous real-linear endomorphism: the formula `zeroOnePartOfEnd` at `T = j x`. -/
+def zeroOnePartL (x : M) :
+    (TangentSpace I x →L[ℝ] V x) →L[ℝ] TangentSpace I x →L[ℝ] V x :=
+  zeroOnePartOfEnd V x (j.toEndomorphism x)
+
+/-- At `T = j x`, the formula `zeroOnePartOfEnd` is the `(0,1)`-projection `zeroOnePartL j x`. -/
+@[simp]
+theorem zeroOnePartOfEnd_toEndomorphism (x : M) :
+    zeroOnePartOfEnd V x (j.toEndomorphism x) = j.zeroOnePartL x :=
+  (rfl)
+
+/-- `zeroOnePartL j x` is the `(0,1)`-projection of one-forms at `x`. -/
+@[simp]
+theorem zeroOnePartL_apply (x : M) (η : TangentSpace I x →L[ℝ] V x) :
+    j.zeroOnePartL x η = j.zeroOnePart η := by
+  ext v
+  simp [← zeroOnePartOfEnd_toEndomorphism, zeroOnePart_apply]
+
+variable [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℝ F V]
+  [VectorBundle ℂ F V]
+
+/-! ### Smoothness of the formula -/
+
 /-- In the preferred trivializations at `x₀`, the formula of the `(0,1)`-projection for `T`
 reads as the same formula for the coordinate expression of `T`. -/
 private theorem inCoordinates_zeroOnePartOfEnd {x₀ x : M}
@@ -162,17 +149,15 @@ private theorem inCoordinates_zeroOnePartOfEnd {x₀ x : M}
     exact map_smul _ _ _
   ext η v
   simp only [ContinuousLinearMap.inCoordinates, ContinuousLinearMap.comp_apply, h1, h2]
-  simp only [zeroOnePartOfEnd, smul_apply, add_apply,
-    ContinuousLinearMap.id_apply, ContinuousLinearMap.precomp_apply,
+  simp only [zeroOnePartOfEnd_apply, smul_apply, add_apply, ContinuousLinearMap.id_apply,
     ContinuousLinearMap.flip_apply, ContinuousLinearMap.compL_apply,
     ContinuousLinearMap.comp_apply, map_smul, map_add, hI,
     Trivialization.continuousLinearMapAt_symmL _ hT,
     Trivialization.continuousLinearMapAt_symmL _ hV]
 
-omit [FiniteDimensional ℝ E] [FiniteDimensional ℝ F] in
 /-- The formula of the `(0,1)`-projection is a smooth map of total spaces from the tangent
 endomorphism bundle to the endomorphism bundle of the `V`-valued one-forms. -/
-private theorem contMDiff_totalSpace_zeroOnePartOfEnd :
+theorem contMDiff_totalSpace_zeroOnePartOfEnd :
     ContMDiff (I.prod 𝓘(ℝ, E →L[ℝ] E)) (I.prod 𝓘(ℝ, (E →L[ℝ] F) →L[ℝ] E →L[ℝ] F)) ∞
       (fun p : TotalSpace (E →L[ℝ] E) (fun x ↦ TangentSpace I x →L[ℝ] TangentSpace I x) ↦
         TotalSpace.mk' ((E →L[ℝ] F) →L[ℝ] E →L[ℝ] F)
@@ -198,7 +183,34 @@ private theorem contMDiff_totalSpace_zeroOnePartOfEnd :
       (mem_baseSet_trivializationAt F V p₀.proj))] with p hT hV
   exact inCoordinates_zeroOnePartOfEnd hT hV p.snd
 
-variable [ContMDiffVectorBundle ∞ F V I]
+/-! ### The `(0,1)`-projection as a smooth section -/
+
+/-- The `(0,1)`-projections at the points of `M` form a `C^n` section of the bundle of
+endomorphisms of the bundle of `V`-valued one-forms, for every `n ≤ ∞`. -/
+theorem contMDiff_zeroOnePartL {n : ℕ∞ω} (hn : n ≤ ∞) :
+    ContMDiff I (I.prod 𝓘(ℝ, (E →L[ℝ] F) →L[ℝ] E →L[ℝ] F)) n fun x ↦
+      TotalSpace.mk' ((E →L[ℝ] F) →L[ℝ] E →L[ℝ] F)
+        (E := fun x ↦ (TangentSpace I x →L[ℝ] V x) →L[ℝ] TangentSpace I x →L[ℝ] V x) x
+        (j.zeroOnePartL x) :=
+  ((contMDiff_totalSpace_zeroOnePartOfEnd (F := F) (V := V)).comp
+    j.toEndomorphism.contMDiff).of_le hn
+
+/-- The `(0,1)`-projections `x ↦ zeroOnePartL j x` as a smooth section of the bundle of
+endomorphisms of the bundle of `V`-valued one-forms. -/
+def zeroOnePartSection :
+    Cₛ^∞⟮I; (E →L[ℝ] F) →L[ℝ] E →L[ℝ] F,
+      fun x ↦ (TangentSpace I x →L[ℝ] V x) →L[ℝ] TangentSpace I x →L[ℝ] V x⟯ :=
+  ⟨fun x ↦ j.zeroOnePartL x, j.contMDiff_zeroOnePartL le_rfl⟩
+
+/-- The value of `zeroOnePartSection j` at `x` is `zeroOnePartL j x`. -/
+@[simp]
+theorem zeroOnePartSection_apply (x : M) :
+    j.zeroOnePartSection (F := F) (V := V) x = j.zeroOnePartL x :=
+  (rfl)
+
+/-! ### Continuous dependence on the almost complex structure -/
+
+variable [ContMDiffVectorBundle ∞ F V I] [FiniteDimensional ℝ E]
 
 /-- The section of `(0,1)`-projections depends continuously on the almost complex structure:
 `J ↦ zeroOnePartSection J` is continuous from the `C^∞` topology on smooth almost complex
