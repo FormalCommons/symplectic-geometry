@@ -6,7 +6,6 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Convex.Basic
-public import Mathlib.Basic.Real.Basic
 import Mathlib.Algebra.Order.Ring.Unbundled.Basic
 import Mathlib.Tactic.GCongr
 import Mathlib.Tactic.Linarith
@@ -16,8 +15,9 @@ import Mathlib.Tactic.Ring
 /-!
 # Convexity of the region above a hyperbola
 
-For a real number `C ≥ 0`, the pairs `(p, q)` of nonnegative reals with `C ≤ p * q` form a convex
-subset of `ℝ × ℝ`: the closed region of the first quadrant on or above the hyperbola `p q = C`.
+In a linearly ordered field `𝕜`, for any constant `C`, the pairs `(p, q)` of nonnegative elements
+with `C ≤ p * q` form a convex subset of `𝕜 × 𝕜`: the closed region of the first quadrant on or
+above the hyperbola `p q = C`, which is the whole closed first quadrant when `C ≤ 0`.
 
 ## Main results
 
@@ -28,13 +28,16 @@ public section
 
 namespace SymplecticGeometry
 
-/-- For `0 ≤ C`, the set of pairs `(p, q)` of nonnegative reals with `C ≤ p * q` is convex. -/
-theorem convex_setOf_le_mul {C : ℝ} (hC : 0 ≤ C) :
-    Convex ℝ {z : ℝ × ℝ | 0 ≤ z.1 ∧ 0 ≤ z.2 ∧ C ≤ z.1 * z.2} := by
+/-- In a linearly ordered field `𝕜`, for every `C : 𝕜`, the set of pairs `(p, q)` with `0 ≤ p`,
+`0 ≤ q` and `C ≤ p * q` is convex. -/
+theorem convex_setOf_le_mul {𝕜 : Type*} [Field 𝕜] [LinearOrder 𝕜] [IsStrictOrderedRing 𝕜]
+    (C : 𝕜) : Convex 𝕜 {z : 𝕜 × 𝕜 | 0 ≤ z.1 ∧ 0 ≤ z.2 ∧ C ≤ z.1 * z.2} := by
   rintro ⟨p₁, q₁⟩ ⟨hp₁, hq₁, h₁⟩ ⟨p₂, q₂⟩ ⟨hp₂, hq₂, h₂⟩ a b ha hb hab
   simp only [Set.mem_ofPred_eq, Prod.fst_add, Prod.snd_add, Prod.smul_fst, Prod.smul_snd,
     smul_eq_mul] at *
   refine ⟨by positivity, by positivity, ?_⟩
+  rcases lt_or_ge C 0 with hC | hC
+  · exact hC.le.trans (by positivity)
   have hprod : C * C ≤ (p₁ * q₂) * (p₂ * q₁) := by
     nlinarith [mul_le_mul h₁ h₂ hC (by positivity)]
   have hcross : 2 * C ≤ p₁ * q₂ + p₂ * q₁ :=

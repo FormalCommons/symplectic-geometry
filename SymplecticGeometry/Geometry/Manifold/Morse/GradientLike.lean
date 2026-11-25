@@ -66,7 +66,7 @@ locally finite refinement of the given neighbourhoods first yields, by Tau Ceti'
 The inequality with constant `δ y` at `y` is then convex in the metric: with
 `R = df(X) - δ g(X, X)`, the bound `δ ‖grad f‖ ^ 2 ≤ R` amounts, by Cauchy–Schwarz, to
 `δ (df v) ^ 2 ≤ R g(v, v)` for every `v`, and this is convex in `g` by
-`SymplecticGeometry.convex_setOf_le_mul`: for `C ≥ 0` the pairs `(p, q)` of nonnegative reals with
+`SymplecticGeometry.convex_setOf_le_mul`: for any `C` the pairs `(p, q)` of nonnegative reals with
 `C ≤ p q` form a convex set.
 
 ## References
@@ -243,7 +243,7 @@ private def gradientLikeCondition (f : M → ℝ) (X : (x : M) → TangentSpace 
       (mvfderiv 𝓘(ℝ, E) f y (X y) - δ * s (X y) (X y)) * s v v}
 
 omit [FiniteDimensional ℝ E] [IsManifold 𝓘(ℝ, E) ∞ M] in
-private theorem convex_gradientLikeCondition {δ : ℝ} (hδ : 0 ≤ δ) (y : M) :
+private theorem convex_gradientLikeCondition (δ : ℝ) (y : M) :
     Convex ℝ (gradientLikeCondition f X δ y) := by
   rintro s ⟨hs₀, hs₁, hs₂⟩ t ⟨ht₀, ht₁, ht₂⟩ a b ha hb hab
   simp only [gradientLikeCondition, Set.mem_ofPred_eq, add_apply,
@@ -257,7 +257,7 @@ private theorem convex_gradientLikeCondition {δ : ℝ} (hδ : 0 ≤ δ) (y : M)
       a * (D - δ * s (X y) (X y)) + b * (D - δ * t (X y) (X y)) := by
     linear_combination (-D) * hab
   rw [hp]
-  have := convex_setOf_le_mul (C := δ * mvfderiv 𝓘(ℝ, E) f y v ^ 2) (by positivity)
+  have := convex_setOf_le_mul (δ * mvfderiv 𝓘(ℝ, E) f y v ^ 2)
     (x := (D - δ * s (X y) (X y), s v v)) ⟨sub_nonneg.2 hs₁, hs₀ v, hs₂ v⟩
     (y := (D - δ * t (X y) (X y), t v v)) ⟨sub_nonneg.2 ht₁, ht₀ v, ht₂ v⟩ ha hb hab
   simpa only [Set.mem_ofPred_eq, Prod.fst_add, Prod.snd_add, Prod.smul_fst, Prod.smul_snd,
@@ -329,7 +329,7 @@ theorem isGradientLike_of_forall_exists_nhds [T2Space M] [SigmaCompactSpace M]
     (c := fun y ↦ gradientLikeCondition f X (δ y) y) (fun i ↦ i.elim)
     (locallyFinite_of_finite _) (fun i ↦ i.elim) (fun i ↦ i.elim) (fun i ↦ i.elim)
     (fun i ↦ i.elim) (fun i ↦ i.elim) (fun i ↦ i.elim)
-    (fun y ↦ convex_gradientLikeCondition (hδ y).1.le y) (fun i ↦ i.elim) fun y₀ _ ↦ by
+    (fun y ↦ convex_gradientLikeCondition (δ y) y) (fun i ↦ i.elim) fun y₀ _ ↦ by
       obtain ⟨x, hx⟩ := mem_iUnion.1 (hVcov ▸ mem_univ y₀)
       refine ⟨V x, (hVo x).mem_nhds hx, (g x).inner, (g x).contMDiff.contMDiffOn,
         fun y hy ↦ ⟨⟨(g x).symm y, (g x).pos y⟩, ?_⟩⟩
