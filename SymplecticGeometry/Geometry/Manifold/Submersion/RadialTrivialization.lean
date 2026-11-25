@@ -5,12 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 public import Mathlib.Geometry.Manifold.Algebra.LieGroup
 public import Mathlib.Geometry.Manifold.Algebra.SMul
 public import Mathlib.Geometry.Manifold.ContMDiff.Atlas
 public import Mathlib.Geometry.Manifold.ContMDiff.Constructions
 public import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
+public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 
 /-!
 # Local triviality of proper submersions by transport along rays
@@ -22,28 +22,37 @@ smooth family of rays along which the transport runs.
 
 A ray `t ↦ c + t • (y - c)` of a chart, for `t ∈ [0, 1]`, is not a smooth curve on all of `ℝ`
 that stays in the chart, while parallel transport is set up for smooth curves `ℝ → B`. So the
-rays are reparametrized by a fixed smooth bounded function `TauCeti.rayParam : ℝ → ℝ`, equal to
-the identity on `Set.Icc 0 1` and with values in `[-2, 2]`.
+rays are reparametrized by a fixed smooth bounded function `SymplecticGeometry.rayParam : ℝ → ℝ`,
+equal to the identity on `Set.Icc 0 1` and with values in `(-1, 2)`, chosen with
+`SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo`.
 
 For `b₀ : B` with chart point `c = extChartAt J b₀ b₀` and a radius `r` such that the ball of
-radius `2 * r` around `c` lies in the chart target, `TauCeti.chartBall J b₀ r` is the open set of
-points of the chart source whose chart point lies in the ball of radius `r` around `c`, and
-`TauCeti.chartRay J b₀ (b, u)` is `(extChartAt J b₀).symm (c + rayParam u • (extChartAt J b₀ b -
-c))`. On `chartBall J b₀ r × ℝ` this family is smooth (`TauCeti.contMDiff_chartRay_chartBall`),
-its curves start at `b₀` (`TauCeti.chartRay_zero`), end at `b` (`TauCeti.chartRay_one`) and
-follow the ray on `[0, 1]` (`TauCeti.chartRay_of_mem_Icc`).
+radius `2 * r` around `c` lies in the chart target, `chartBall J b₀ r` is the open set of points
+of the chart source whose chart point lies in the ball of radius `r` around `c`, and
+`chartRay J b₀ (b, u)` is `(extChartAt J b₀).symm (c + rayParam u • (extChartAt J b₀ b - c))`.
+On `chartBall J b₀ r × ℝ` this family is smooth (`contMDiff_chartRay_chartBall`), its curves
+stay in the chart source (`chartRay_mem_source`), where they read as affine rays
+(`extChartAt_chartRay`); they start at `b₀` (`chartRay_zero`), end at `b` (`chartRay_one`) and
+follow the ray on `[0, 1]` (`chartRay_of_mem_Icc`).
+
+`chartBall` and `chartRay` adapt Tau Ceti's `OpenPartialHomeomorph.chartBall` and the straight
+lines of `OpenPartialHomeomorph.chartBallHomotopy`, from an open partial homeomorphism and
+continuous maps to the extended chart `extChartAt J b₀` and smooth maps.
 
 ## Main definitions
 
-* `TauCeti.rayParam`: a smooth bounded function `ℝ → ℝ` that is the identity on `[0, 1]`.
-* `TauCeti.chartBall`: the preimage, in the chart source at `b₀`, of a ball around the chart
-  point of `b₀`, as an open set of `B`.
-* `TauCeti.chartRay`: the family of reparametrized rays of the chart at `b₀`.
+* `SymplecticGeometry.rayParam`: a smooth bounded function `ℝ → ℝ` that is the identity on
+  `[0, 1]`.
+* `SymplecticGeometry.chartBall`: the preimage, in the chart source at `b₀`, of a ball around
+  the chart point of `b₀`, as an open set of `B`.
+* `SymplecticGeometry.chartRay`: the family of reparametrized rays of the chart at `b₀`.
 
 ## Main results
 
-* `TauCeti.contMDiff_chartRay_chartBall`: the family of rays is smooth on `chartBall J b₀ r × ℝ`.
-* `TauCeti.exists_pos_ball_two_mul_subset_extChartAt_target`: radii for which it is defined exist.
+* `SymplecticGeometry.contMDiff_chartRay_chartBall`: the family of rays is smooth on
+  `chartBall J b₀ r × ℝ`.
+* `SymplecticGeometry.exists_pos_ball_two_mul_subset_extChartAt_target`: radii for which it is
+  defined exist.
 
 ## References
 
@@ -58,29 +67,26 @@ noncomputable section
 open Set Filter
 open scoped ContDiff Manifold Topology
 
-namespace TauCeti
+namespace SymplecticGeometry
 
 /-! ### The reparametrization of the rays -/
 
-/-- A smooth bounded function `ℝ → ℝ` that is the identity on `[0, 1]`: the product of `t` with
-the smooth cut-off `Real.smoothTransition (t + 1) * Real.smoothTransition (2 - t)`, which is `1`
-on `[0, 1]` and vanishes outside `(-1, 2)`. -/
-def rayParam (t : ℝ) : ℝ :=
-  Real.smoothTransition (t + 1) * Real.smoothTransition (2 - t) * t
+/-- A smooth function `ℝ → ℝ` that is the identity on `[0, 1]` and takes its values in
+`(-1, 2)`, chosen by `SymplecticGeometry.exists_contDiff_eqOn_id_Icc_mem_Ioo`. -/
+def rayParam : ℝ → ℝ :=
+  (exists_contDiff_eqOn_id_Icc_mem_Ioo (zero_le_one' ℝ) one_pos).choose
 
-theorem rayParam_def (t : ℝ) :
-    rayParam t = Real.smoothTransition (t + 1) * Real.smoothTransition (2 - t) * t := (rfl)
+private theorem rayParam_spec :
+    ContDiff ℝ ∞ rayParam ∧ EqOn rayParam id (Icc 0 1) ∧
+      (∀ t, rayParam t ∈ Ioo (0 - 1) (1 + 1)) ∧
+      ∀ t ∉ Ioo (0 - 1 : ℝ) (1 + 1), rayParam t = (0 + 1) / 2 :=
+  (exists_contDiff_eqOn_id_Icc_mem_Ioo (zero_le_one' ℝ) one_pos).choose_spec
 
-theorem contDiff_rayParam {n : ℕ∞} : ContDiff ℝ n rayParam := by
-  have h : rayParam = fun t ↦ Real.smoothTransition (t + 1) * Real.smoothTransition (2 - t) * t :=
-    funext rayParam_def
-  rw [h]
-  exact ((Real.smoothTransition.contDiff.comp (contDiff_id.add contDiff_const)).mul
-    (Real.smoothTransition.contDiff.comp (contDiff_const.sub contDiff_id))).mul contDiff_id
+theorem contDiff_rayParam {n : ℕ∞} : ContDiff ℝ n rayParam :=
+  rayParam_spec.1.of_le (WithTop.coe_le_coe.2 le_top)
 
-theorem rayParam_of_mem_Icc {t : ℝ} (ht : t ∈ Icc (0 : ℝ) 1) : rayParam t = t := by
-  rw [rayParam_def, Real.smoothTransition.one_of_one_le (by linarith [ht.1]),
-    Real.smoothTransition.one_of_one_le (by linarith [ht.2]), one_mul, one_mul]
+theorem rayParam_of_mem_Icc {t : ℝ} (ht : t ∈ Icc (0 : ℝ) 1) : rayParam t = t :=
+  rayParam_spec.2.1 ht
 
 @[simp]
 theorem rayParam_zero : rayParam 0 = 0 := rayParam_of_mem_Icc (left_mem_Icc.2 zero_le_one)
@@ -89,19 +95,8 @@ theorem rayParam_zero : rayParam 0 = 0 := rayParam_of_mem_Icc (left_mem_Icc.2 ze
 theorem rayParam_one : rayParam 1 = 1 := rayParam_of_mem_Icc (right_mem_Icc.2 zero_le_one)
 
 theorem abs_rayParam_le (t : ℝ) : |rayParam t| ≤ 2 := by
-  have h₁ := Real.smoothTransition.nonneg (t + 1)
-  have h₂ := Real.smoothTransition.nonneg (2 - t)
-  rw [rayParam_def, abs_mul, abs_of_nonneg (mul_nonneg h₁ h₂)]
-  rcases le_or_gt t (-1) with h | h
-  · rw [Real.smoothTransition.zero_of_nonpos (by linarith : t + 1 ≤ 0)]; simp
-  rcases le_or_gt 2 t with h' | h'
-  · rw [Real.smoothTransition.zero_of_nonpos (by linarith : 2 - t ≤ 0)]; simp
-  calc Real.smoothTransition (t + 1) * Real.smoothTransition (2 - t) * |t|
-      ≤ 1 * 1 * 2 := by
-        gcongr
-        exacts [Real.smoothTransition.le_one _, Real.smoothTransition.le_one _,
-          abs_le.2 ⟨by linarith, by linarith⟩]
-    _ = 2 := by norm_num
+  obtain ⟨h₁, h₂⟩ := rayParam_spec.2.2.1 t
+  exact abs_le.2 ⟨by linarith, by linarith⟩
 
 /-! ### The rays of a chart -/
 
@@ -126,9 +121,9 @@ theorem mem_chartBall_self (b₀ : B) {r : ℝ} (hr : 0 < r) : b₀ ∈ chartBal
 theorem chartBall_mem_nhds (b₀ : B) {r : ℝ} (hr : 0 < r) : (chartBall J b₀ r : Set B) ∈ 𝓝 b₀ :=
   (chartBall J b₀ r).isOpen.mem_nhds (mem_chartBall_self J b₀ hr)
 
-/-- The family of rays of the chart at `b₀`, reparametrized by `TauCeti.rayParam`: the curve
-`u ↦ chartRay J b₀ (b, u)` is `(extChartAt J b₀).symm (c + rayParam u • (y - c))`, where `c` and
-`y` are the chart points of `b₀` and `b`. -/
+/-- The family of rays of the chart at `b₀`, reparametrized by `SymplecticGeometry.rayParam`:
+the curve `u ↦ chartRay J b₀ (b, u)` is `(extChartAt J b₀).symm (c + rayParam u • (y - c))`,
+where `c` and `y` are the chart points of `b₀` and `b`. -/
 def chartRay (b₀ : B) (p : B × ℝ) : B :=
   (extChartAt J b₀).symm
     (extChartAt J b₀ b₀ + rayParam p.2 • (extChartAt J b₀ p.1 - extChartAt J b₀ b₀))
@@ -146,7 +141,7 @@ theorem chartRay_one {b₀ b : B} (hb : b ∈ (extChartAt J b₀).source) :
     chartRay J b₀ (b, 1) = b := by
   rw [chartRay_def, rayParam_one, one_smul, add_sub_cancel, (extChartAt J b₀).left_inv hb]
 
-/-- On `[0, 1]`, the curves of `TauCeti.chartRay J b₀` are the rays of the chart at `b₀`. -/
+/-- On `[0, 1]`, the curves of `chartRay J b₀` are the rays of the chart at `b₀`. -/
 theorem chartRay_of_mem_Icc (b₀ b : B) {t : ℝ} (ht : t ∈ Icc (0 : ℝ) 1) :
     chartRay J b₀ (b, t) = (extChartAt J b₀).symm
       (extChartAt J b₀ b₀ + t • (extChartAt J b₀ b - extChartAt J b₀ b₀)) := by
@@ -155,12 +150,11 @@ theorem chartRay_of_mem_Icc (b₀ b : B) {t : ℝ} (ht : t ∈ Icc (0 : ℝ) 1) 
 /-- If the ball of radius `2 * r` around the chart point `c` of `b₀` lies in the chart target,
 then for `b ∈ chartBall J b₀ r` and every `u`, the point `c + rayParam u • (y - c)`, where `y` is
 the chart point of `b`, lies in the chart target. -/
-theorem chartRay_mapsTo_target {b₀ : B} {r : ℝ}
-    (hr : Metric.ball (extChartAt J b₀ b₀) (2 * r) ⊆ (extChartAt J b₀).target) :
-    MapsTo (fun p : B × ℝ ↦
-        extChartAt J b₀ b₀ + rayParam p.2 • (extChartAt J b₀ p.1 - extChartAt J b₀ b₀))
-      ((chartBall J b₀ r : Set B) ×ˢ univ) (extChartAt J b₀).target := by
-  rintro ⟨b, u⟩ ⟨hb, -⟩
+theorem add_rayParam_smul_sub_mem_extChartAt_target {b₀ b : B} {r : ℝ}
+    (hr : Metric.ball (extChartAt J b₀ b₀) (2 * r) ⊆ (extChartAt J b₀).target)
+    (hb : b ∈ chartBall J b₀ r) (u : ℝ) :
+    extChartAt J b₀ b₀ + rayParam u • (extChartAt J b₀ b - extChartAt J b₀ b₀) ∈
+      (extChartAt J b₀).target := by
   apply hr
   have hb' := ((mem_chartBall_iff J).1 hb).2
   rw [Metric.mem_ball, dist_eq_norm] at hb' ⊢
@@ -169,6 +163,26 @@ theorem chartRay_mapsTo_target {b₀ : B} {r : ℝ}
       ≤ 2 * ‖extChartAt J b₀ b - extChartAt J b₀ b₀‖ := by
         gcongr; exact abs_rayParam_le u
     _ < 2 * r := by linarith
+
+/-- If the ball of radius `2 * r` around the chart point of `b₀` lies in the chart target, then
+for `b ∈ chartBall J b₀ r` the curve `u ↦ chartRay J b₀ (b, u)` stays in the chart source. -/
+theorem chartRay_mem_source {b₀ b : B} {r : ℝ}
+    (hr : Metric.ball (extChartAt J b₀ b₀) (2 * r) ⊆ (extChartAt J b₀).target)
+    (hb : b ∈ chartBall J b₀ r) (u : ℝ) :
+    chartRay J b₀ (b, u) ∈ (extChartAt J b₀).source := by
+  rw [chartRay_def]
+  exact (extChartAt J b₀).map_target (add_rayParam_smul_sub_mem_extChartAt_target J hr hb u)
+
+/-- If the ball of radius `2 * r` around the chart point `c` of `b₀` lies in the chart target,
+then for `b ∈ chartBall J b₀ r`, with chart point `y`, the chart reading of the curve
+`u ↦ chartRay J b₀ (b, u)` is `u ↦ c + rayParam u • (y - c)`. -/
+theorem extChartAt_chartRay {b₀ b : B} {r : ℝ}
+    (hr : Metric.ball (extChartAt J b₀ b₀) (2 * r) ⊆ (extChartAt J b₀).target)
+    (hb : b ∈ chartBall J b₀ r) (u : ℝ) :
+    extChartAt J b₀ (chartRay J b₀ (b, u)) =
+      extChartAt J b₀ b₀ + rayParam u • (extChartAt J b₀ b - extChartAt J b₀ b₀) := by
+  rw [chartRay_def]
+  exact (extChartAt J b₀).right_inv (add_rayParam_smul_sub_mem_extChartAt_target J hr hb u)
 
 /-- In a boundaryless manifold, there are radii `r > 0` for which the ball of radius `2 * r`
 around the chart point of `b₀` lies in the chart target. -/
@@ -197,7 +211,8 @@ theorem contMDiffOn_chartRay {b₀ : B} {r : ℝ}
       ((chartBall J b₀ r : Set B) ×ˢ univ) :=
     contMDiffOn_const.add ((hφ.comp contMDiff_snd).contMDiffOn.smul
       (hchart.sub contMDiffOn_const))
-  exact (contMDiffOn_extChartAt_symm b₀).comp hin (chartRay_mapsTo_target J hr)
+  exact (contMDiffOn_extChartAt_symm b₀).comp hin
+    fun p hp ↦ add_rayParam_smul_sub_mem_extChartAt_target J hr hp.1 p.2
 
 /-- **The family of rays of a chart is smooth.** If the ball of radius `2 * r` around the chart
 point of `b₀` lies in the chart target, then `(b, u) ↦ chartRay J b₀ (b, u)` is smooth on
@@ -209,6 +224,6 @@ theorem contMDiff_chartRay_chartBall {b₀ : B} {r : ℝ}
     ((contMDiff_subtypeVal.comp contMDiff_fst).prodMk contMDiff_snd)
     fun p ↦ ⟨p.1.property, mem_univ _⟩
 
-end TauCeti
+end SymplecticGeometry
 
 end
