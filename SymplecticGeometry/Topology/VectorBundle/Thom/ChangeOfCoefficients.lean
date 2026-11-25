@@ -7,8 +7,6 @@ module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.PairChangeOfCoefficients
 public import TauCeti.Algebra.Module.Equiv.SpanSingleton
-public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
-public import TauCeti.CategoryTheory.Linear.Int
 public import TauCeti.Topology.VectorBundle.EulerClass
 
 /-!
@@ -25,22 +23,16 @@ So a Thom class in one convention of coefficients gives one in another, with the
 Euler class. This is how Tau Ceti's integral Thom class of an oriented bundle, with chain
 coefficients and values `ULift ℤ`, becomes a Thom class with coefficients `ℤ`, to which the Thom
 isomorphism `TauCeti.bijective_thomMap_of_compactSpace` applies. Over a base in `Type`, the
-three changes combine into `TauCeti.intThomClass`, which carries a class with coefficients
-`ULift ℤ` along `TauCeti.uliftIntIso : ULift ℤ ≅ ℤ` to the coefficients of `TauCeti.thomMap`;
-this is the conversion that the proof of the library's `TauCeti.bijective_integralCup_eulerClass`
-(`Thom/CupEulerClass.lean`) makes.
-
-## Main definitions
-
-* `TauCeti.intThomClass`: a class of the Thom pair with coefficients `ULift ℤ`, carried to
-  coefficients `ℤ` with the linear structure `ModuleCat.instLinear`.
+three changes combine into the linear equivalence `TopPair.uliftIntegralCohomologyEquiv`, which
+carries a class with coefficients `ULift ℤ` along `TauCeti.uliftIntIso : ULift ℤ ≅ ℤ` to the
+coefficients of `TauCeti.thomMap`, and so also carries Thom classes to Thom classes.
 
 ## Main results
 
 * `TauCeti.IsThomClass.singularCohomologyChainCoefficientMap`,
   `TauCeti.IsThomClass.singularCohomologyValueMap`,
   `TauCeti.IsThomClass.singularCohomologyLinearCongr`: the changes of coefficients preserve Thom
-  classes, and `TauCeti.IsThomClass.intThomClass` for their combination.
+  classes, and `TauCeti.IsThomClass.uliftIntegralCohomologyEquiv` for their combination.
 * `TauCeti.eulerClass_comp_singularCohomologyChainCoefficientMap`,
   `TauCeti.eulerClass_comp_singularCohomologyValueMap`,
   `TauCeti.singularCohomologyLinearCongr_eulerClass`: they commute with the Euler class.
@@ -106,58 +98,20 @@ end ThomClass
 
 section Integral
 
-variable {B : Type} {F : Type*} {E : B → Type} [TopologicalSpace (TotalSpace F E)]
-  [∀ b, Zero (E b)] {n : ℕ}
-
-/-- **A class of the Thom pair carried to coefficients `ℤ`.** A class `U ∈ Hⁿ(E, E₀; ULift ℤ)`,
-with chain coefficients and values `ULift ℤ` and the `ℤ`-linear structure of `ModuleCat ℤ` as a
-preadditive category, carried along `ULift ℤ ≅ ℤ` (`TauCeti.uliftIntIso`) by the change of values
-and of chain coefficients to chain coefficients and values `ℤ`, with the structure
-`ModuleCat.instLinear` that the Thom map `TauCeti.thomMap` takes. -/
-noncomputable def intThomClass
-    (U : (thomPair F E).singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
-      (ModuleCat.of ℤ (ULift.{0} ℤ)) n) :
-    @TopPair.singularCohomology (ModuleCat.{0} ℤ) _ _ _ (thomPair F E) (ModuleCat.of ℤ ℤ) ℤ _
-      ModuleCat.instLinear (ModuleCat.of ℤ ℤ) n :=
-  TopPair.singularCohomologyLinearCongr (Subsingleton.elim _ _) (thomPair F E) _ _ _
-    ((thomPair F E).singularCohomologyChainCoefficientMap ℤ _ uliftIntIso.inv _
-      ((thomPair F E).singularCohomologyValueMap _ ℤ uliftIntIso.hom _ U))
-
-/-- `TauCeti.intThomClass`, unfolded. -/
-theorem intThomClass_def
-    (U : (thomPair F E).singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
-      (ModuleCat.of ℤ (ULift.{0} ℤ)) n) :
-    intThomClass U =
-      TopPair.singularCohomologyLinearCongr (Subsingleton.elim _ _) (thomPair F E) _ _ _
-        ((thomPair F E).singularCohomologyChainCoefficientMap ℤ _ uliftIntIso.inv _
-          ((thomPair F E).singularCohomologyValueMap _ ℤ uliftIntIso.hom _ U)) :=
-  (rfl)
-
-/-- `TauCeti.intThomClass` is additive. -/
-@[simp]
-theorem intThomClass_add
-    (U V : (thomPair F E).singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
-      (ModuleCat.of ℤ (ULift.{0} ℤ)) n) :
-    intThomClass (U + V) = intThomClass U + intThomClass V := by
-  simp only [intThomClass_def, map_add]
-
-/-- `TauCeti.intThomClass` commutes with negation. -/
-@[simp]
-theorem intThomClass_neg
-    (U : (thomPair F E).singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
-      (ModuleCat.of ℤ (ULift.{0} ℤ)) n) :
-    intThomClass (-U) = -intThomClass U := by
-  simp only [intThomClass_def, map_neg]
+variable {B : Type} {F : Type*} {E : B → Type} [TopologicalSpace B] [NormedAddCommGroup F]
+  [NormedSpace ℝ F] [TopologicalSpace (TotalSpace F E)] [∀ b, TopologicalSpace (E b)]
+  [FiberBundle F E] [∀ b, Zero (E b)]
 
 /-- **A Thom class with coefficients `ULift ℤ` gives one with coefficients `ℤ`**: if `U` is a
-Thom class, so is `TauCeti.intThomClass U`, for the structure `ModuleCat.instLinear`. -/
-theorem IsThomClass.intThomClass [TopologicalSpace B] [NormedAddCommGroup F] [NormedSpace ℝ F]
-    [∀ b, TopologicalSpace (E b)] [FiberBundle F E]
+Thom class, so is its image under `TopPair.uliftIntegralCohomologyEquiv`, for the structure
+`ModuleCat.instLinear`. -/
+theorem IsThomClass.uliftIntegralCohomologyEquiv
     {U : (thomPair F E).singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
       (ModuleCat.of ℤ (ULift.{0} ℤ)) (finrank ℝ F)} (hU : IsThomClass F E U) :
     @IsThomClass _ _ _ _ (ModuleCat.of ℤ ℤ) ℤ _ ModuleCat.instLinear (ModuleCat.of ℤ ℤ) B _ F _ E
-      _ _ _ _ _ _ (TauCeti.intThomClass U) :=
-  ((hU.singularCohomologyValueMap uliftIntIso).singularCohomologyChainCoefficientMap
+      _ _ _ _ _ _ ((thomPair F E).uliftIntegralCohomologyEquiv (finrank ℝ F) U) := by
+  rw [TopPair.uliftIntegralCohomologyEquiv_apply]
+  exact ((hU.singularCohomologyValueMap uliftIntIso).singularCohomologyChainCoefficientMap
     uliftIntIso.symm).singularCohomologyLinearCongr _
 
 end Integral
