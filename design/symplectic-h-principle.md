@@ -544,11 +544,11 @@ A positive direction of the Hessian at the critical points on a closed set
 survives small perturbations, in the namespace `TauCeti`:
 
 ```lean
-theorem exists_strongCkControl_criticalHessian_pos (f : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯)
+theorem exists_strongCkControl_criticalHessian_pos (hn : 2 ≤ n) (f : C^n⟮I, M; 𝓘(ℝ), ℝ⟯)
     {A : Set M} (hA : IsClosed A)
-    (hfA : ∀ x ∈ A, mfderiv I 𝓘(ℝ) f x = 0 → ∃ v, 0 < criticalHessian I f x v v) :
-    ∃ c : ContMDiffMap.StrongCkControl I M ∞, ∀ g ∈ c.ball f, ∀ x ∈ A,
-      mfderiv I 𝓘(ℝ) g x = 0 → ∃ v, 0 < criticalHessian I g x v v
+    (hfA : ∀ x ∈ A, x ∈ criticalPoints I f → ∃ v, 0 < criticalHessian I f x v v) :
+    ∃ c : ContMDiffMap.StrongCkControl I M n, c.order = 2 ∧ ∀ g ∈ c.ball f, ∀ x ∈ A,
+      x ∈ criticalPoints I g → ∃ v, 0 < criticalHessian I g x v v
 ```
 
 Route: cover `A` by a locally finite family of compact sets in chart
