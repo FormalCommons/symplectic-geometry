@@ -8,7 +8,9 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
 import SymplecticGeometry.Analysis.Calculus.FiberRescale
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.TimeExtension
+import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import TauCeti.Geometry.Manifold.ContMDiff.Prod
+import TauCeti.LinearAlgebra.BilinearForm.Isometry
 
 /-!
 # Rescaling a family of symplectic germs to its linearization
@@ -29,14 +31,8 @@ The smoothness at `s = 0` is that of the library's `fiberRescale`
 
 ## Main results
 
-* `fderiv_inv_smul_comp_smul`: the derivative of `x ↦ s⁻¹ • f (s • x)` at `z` is that of `f` at
-  `s • z`, for `s ≠ 0`.
-* `TauCeti.SymplecticForm.mpullback_constSmooth_apply_eq_iff`: a map pulls a constant symplectic
-  form back to itself at a point iff its derivative there preserves the form.
 * `TauCeti.SymplecticForm.mpullback_constSmooth_inv_smul_comp_smul`: a rescaling of a map that
   pulls a constant symplectic form back to itself at `s • z` does so at `z`.
-* `TauCeti.SymplecticForm.injective_of_apply_apply_eq`: a linear map preserving a symplectic form
-  is injective.
 * `SymplecticGeometry.IsSymplecticBallEmbedding.inv_smul_comp_smul_comp`: the rescaling
   `z ↦ s⁻¹ • j (s • Q z)` of a symplectic embedding `j` of a ball, after a linear map `Q`
   preserving `stdForm`, is a symplectic embedding of a smaller ball.
@@ -56,46 +52,9 @@ noncomputable section
 open Set Function Metric
 open scoped ContDiff Manifold
 
-/-- The derivative of the rescaling `x ↦ s⁻¹ • f (s • x)` of `f` at `z` is the derivative of `f`
-at `s • z`, for `s ≠ 0`. -/
-theorem fderiv_inv_smul_comp_smul {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    [NormedAddCommGroup F] [NormedSpace ℝ F] (f : E → F) {s : ℝ} (hs : s ≠ 0) (z : E) :
-    fderiv ℝ (fun x ↦ s⁻¹ • f (s • x)) z = fderiv ℝ f (s • z) := by
-  let : Invertible s⁻¹ := invertibleOfNonzero (inv_ne_zero hs)
-  have h : (fun x ↦ s⁻¹ • f (s • x)) = s⁻¹ • fun x ↦ f (s • x) :=
-    funext fun x ↦ (Pi.smul_apply s⁻¹ (fun x ↦ f (s • x)) x).symm
-  rw [h, fderiv_const_smul_of_invertible, fderiv_comp_smul, smul_smul, inv_mul_cancel₀ hs,
-    one_smul]
-
 namespace TauCeti.SymplecticForm
 
 variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V] [FiniteDimensional ℝ V]
-
-/-- A map `f` of `V` pulls the constant form `σ.constSmooth` back to itself at `z` if and only if
-its derivative at `z` preserves `σ`. -/
-theorem mpullback_constSmooth_apply_eq_iff (σ : SymplecticForm V) {f : V → V} {z : V} :
-    mpullback 𝓘(ℝ, V) 𝓘(ℝ, V) f σ.constSmooth.val z = σ.constSmooth.val z ↔
-      ∀ v w, σ (fderiv ℝ f z v) (fderiv ℝ f z w) = σ v w := by
-  have hσ (x : V) (a b : TangentSpace 𝓘(ℝ, V) x) : σ.constSmooth.val x ![a, b] =
-      σ (NormedSpace.fromTangentSpace x a) (NormedSpace.fromTangentSpace x b) :=
-    (SmoothBundleForm.eval₂_apply _ _ _ _).symm.trans (fromTangentSpace_constSmooth_apply σ x a b)
-  have hσ' (x a b : V) : σ.constSmooth.val x ![a, b] = σ a b :=
-    (SmoothBundleForm.eval₂_apply _ _ _ _).symm.trans (constSmooth_apply σ x a b)
-  constructor
-  · intro h v w
-    have := (mpullback_apply_pair f σ.constSmooth.val z v w).symm.trans
-      (congrArg (fun α ↦ α ![v, w]) h)
-    rw [mfderiv_eq_fderiv, hσ, hσ' z v w] at this
-    simp only [ContinuousLinearMap.coe_comp, ContinuousLinearEquiv.coe_coe,
-      NormedSpace.fromTangentSpace_apply] at this
-    exact this
-  · intro h
-    ext u
-    have hu : u = ![u 0, u 1] := by
-      funext i
-      fin_cases i <;> rfl
-    rw [hu, mpullback_apply_pair, mfderiv_eq_fderiv, hσ, hσ]
-    simpa using h _ _
 
 /-- If `f` pulls the constant form `σ.constSmooth` back to itself at `s • z`, `s ≠ 0`, then so
 does its rescaling `x ↦ s⁻¹ • f (s • x)` at `z`. -/
@@ -105,17 +64,7 @@ theorem mpullback_constSmooth_inv_smul_comp_smul (σ : SymplecticForm V) {f : V 
     mpullback 𝓘(ℝ, V) 𝓘(ℝ, V) (fun x ↦ s⁻¹ • f (s • x)) σ.constSmooth.val z =
       σ.constSmooth.val z := by
   rw [mpullback_constSmooth_apply_eq_iff, fderiv_inv_smul_comp_smul f hs]
-  exact (mpullback_constSmooth_apply_eq_iff σ).1 hf
-
-omit [FiniteDimensional ℝ V] in
-/-- A linear map that preserves a symplectic form is injective. -/
-theorem injective_of_apply_apply_eq (σ : SymplecticForm V) {f : V →ₗ[ℝ] V}
-    (hf : ∀ v w, σ (f v) (f w) = σ v w) : Injective f := by
-  refine (injective_iff_map_eq_zero f).2 fun v hv ↦ σ.nondegenerate.1 v fun w ↦ ?_
-  -- `σ v w` is notation for `σ.toBilinForm v w`, the form of the goal.
-  change σ v w = 0
-  rw [← hf, hv]
-  exact LinearMap.map_zero₂ _ _
+  exact (mpullback_constSmooth_apply_eq_iff σ σ).1 hf
 
 end TauCeti.SymplecticForm
 
@@ -142,14 +91,15 @@ theorem IsSymplecticBallEmbedding.inv_smul_comp_smul_comp {ρ ρ' s : ℝ}
   refine (isSymplecticBallEmbedding_def _ _ _).2 ⟨⟨(fun z ↦ s • Q z) ⁻¹' ball 0 ρ,
     isOpen_ball.preimage hφ.continuous, hρ', contMDiffOn_iff_contDiffOn.2
       ((hjd.comp hφ.contDiffOn fun _ hz ↦ hz).const_smul _)⟩,
-    fun x hx y hy h ↦ (SymplecticForm.injective_of_apply_apply_eq _ (f := Q.toLinearMap) hQ)
+    fun x hx y hy h ↦ (BilinForm.IsIsometry.injective (stdForm (Fin n)).nondegenerate.1
+      (BilinForm.isIsometry_iff (f := Q.toLinearMap).2 hQ))
       (smul_right_injective _ hs (hj.injOn (ball_subset_closedBall (hρ' x hx))
         (ball_subset_closedBall (hρ' y hy)) (smul_right_injective _ (inv_ne_zero hs) h))),
     fun z hz ↦ ?_⟩
   have hz' := hρ' z (ball_subset_closedBall hz)
-  have hpull := (SymplecticForm.mpullback_constSmooth_apply_eq_iff _).1
+  have hpull := (SymplecticForm.mpullback_constSmooth_apply_eq_iff _ _).1
     ((stdForm (Fin n)).mpullback_constSmooth_inv_smul_comp_smul hs (hj.mpullback_eq hz'))
-  refine (SymplecticForm.mpullback_constSmooth_apply_eq_iff _).2 fun v w ↦ ?_
+  refine (SymplecticForm.mpullback_constSmooth_apply_eq_iff _ _).2 fun v w ↦ ?_
   have hd : DifferentiableAt ℝ (fun y ↦ s⁻¹ • j (s • y)) (Q z) :=
     (((hjd.differentiableOn (by simp)).differentiableAt (isOpen_ball.mem_nhds hz')).comp (Q z)
       (differentiableAt_fun_id.const_smul s)).const_smul s⁻¹
@@ -264,12 +214,10 @@ theorem IsSymplecticBallFamily.exists_rescaling_family {ρ : ℝ} (hρ : 0 < ρ)
   by_cases hs : (s : ℝ) = 0
   · obtain rfl : s = 0 := Subtype.ext hs
     exact hG0 t z
-  have hsz : (s : ℝ) • z ∈ closedBall 0 ρ := by
-    rw [mem_closedBall_zero_iff, norm_smul, Real.norm_eq_abs, abs_of_nonneg (unitInterval.nonneg s)]
-    exact (mul_le_of_le_one_left (norm_nonneg _) (unitInterval.le_one s)).trans
-      ((mem_closedBall_zero_iff.1 hz).trans hρ'ρ)
-  rw [congrFun (hGne t s hs) z, hQid s, one_apply_eq_self, hid _ hsz, smul_smul,
-    inv_mul_cancel₀ hs, one_smul]
+  have hsz : (s : ℝ) • z ∈ closedBall 0 ρ :=
+    (convex_closedBall 0 ρ).smul_mem_of_zero_mem (mem_closedBall_self hρ.le)
+      (closedBall_subset_closedBall hρ'ρ hz) ⟨unitInterval.nonneg s, unitInterval.le_one s⟩
+  rw [congrFun (hGne t s hs) z, hQid s, one_apply_eq_self, hid _ hsz, inv_smul_smul₀ hs]
 
 end SymplecticGeometry
 

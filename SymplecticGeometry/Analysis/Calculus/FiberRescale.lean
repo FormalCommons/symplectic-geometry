@@ -48,6 +48,8 @@ whole space without parameters.
 * `integral_fderiv_slice_right_eq_integral_fderiv`: the fibre derivative under that integral is
   the derivative of `f` in the direction `(0, v)`.
 * `contDiffOn_fiberRescale`, `contDiffOn_fiberRescale_of_starShaped`: its smoothness.
+* `fderiv_inv_smul_comp_smul`: for `t ≠ 0`, the derivative of `x ↦ t⁻¹ • f (t • x)` at `z` is
+  that of `f` at `t • z`.
 
 ## References
 
@@ -61,6 +63,17 @@ noncomputable section
 
 open Set
 open scoped ContDiff unitInterval
+
+/-- The derivative of the rescaling `x ↦ s⁻¹ • f (s • x)` of `f` at `z` is the derivative of `f`
+at `s • z`, for `s ≠ 0`. -/
+theorem fderiv_inv_smul_comp_smul {𝕜 E F : Type*} [NontriviallyNormedField 𝕜]
+    [NormedAddCommGroup E] [NormedSpace 𝕜 E] [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+    (f : E → F) {s : 𝕜} (hs : s ≠ 0) (z : E) :
+    fderiv 𝕜 (fun x ↦ s⁻¹ • f (s • x)) z = fderiv 𝕜 f (s • z) := by
+  let : Invertible s⁻¹ := invertibleOfNonzero (inv_ne_zero hs)
+  have h : (fun x ↦ s⁻¹ • f (s • x)) = s⁻¹ • fun x ↦ f (s • x) :=
+    funext fun x ↦ (Pi.smul_apply s⁻¹ (fun x ↦ f (s • x)) x).symm
+  rw [h, fderiv_const_smul_of_invertible, fderiv_comp_smul, inv_smul_smul₀ hs]
 
 variable {P F G : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedAddCommGroup G]
   [NormedSpace ℝ G]
