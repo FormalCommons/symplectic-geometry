@@ -48,8 +48,8 @@ on a smooth manifold `M` possibly with boundary or corners. Smoothness of `h φ`
 * `TauCeti.norm_homotopyOperator_apply_le`: a pointwise bound for `h φ` from a bound for `φ` on
   the unit time vector followed by spatial vectors.
 * `TauCeti.norm_homotopyOperator_mpullback_apply_le`: for `Φ : M × [0, 1] → N` and a form `φ` on
-  `N`, the operator norm of `h (Φ^* φ)` at `x` is bounded by the supremum over `t` of
-  `‖φ (Φ (x, t))‖ ‖DΦ (x, t) ∂ₜ‖ ‖DΦ (x, t) ∘ inl‖ ^ k`. Its proof follows Tau Ceti's
+  `N`, the operator norm of `h (Φ^* φ)` at `x` is at most any bound, over all
+  times `t`, of `‖φ (Φ (x, t))‖ ‖DΦ (x, t) ∂ₜ‖ ‖DΦ (x, t) ∘ inl‖ ^ k`. Its proof follows Tau Ceti's
   `TauCeti.norm_cylinderHomotopy_pullback_le`, the same bound for the flat cylinder homotopy
   operator on `E × ℝ`.
 
