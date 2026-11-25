@@ -12,10 +12,12 @@ public import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
 
 For a Lie group `G` with Lie algebra `𝔤`, the set `nonzeroPeriods I G` consists of the nonzero
 `ξ ∈ 𝔤` with `exp ξ = 1`: the nonzero generators of one-parameter subgroups `t ↦ exp (t ξ)` that
-have period `1`. It is written `Λ` in [GeorgoulasRobbinSalamon2021]. For a torus, `Λ ∪ {0}` is
-the integer lattice of `𝔤` (Tau Ceti's `periodLattice`, for commutative `G`); for a
-noncommutative `G`, such as `SU(2)`, `Λ ∪ {0}` need not be closed under addition, so it is a set
-and not a lattice. It is invariant under the adjoint action of `G`, under negation and under
+have period `1`. It is written `Λ` in [GeorgoulasRobbinSalamon2021]. For a commutative `G`,
+`Λ ∪ {0}` is the kernel of the exponential, Tau Ceti's `lieExpAddMonoidHom.ker` transported to
+`GroupLieAlgebra I G` by `leftInvariantDerivationEquivGroupLieAlgebra`; it is `2π` times Tau
+Ceti's `periodLattice`, which is normalized by `exp (2π X) = 1`. For a noncommutative `G`, such
+as `SU(2)`, `Λ ∪ {0}` need not be closed under addition, so it is a set and not a lattice.
+It is invariant under the adjoint action of `G`, under negation and under
 multiplication by nonzero integers.
 
 ## Main definitions
@@ -63,6 +65,7 @@ theorem mem_nonzeroPeriods {ξ : GroupLieAlgebra I G} :
     ξ ∈ nonzeroPeriods I G ↔ ξ ≠ 0 ∧ mulInvariantExp ξ = 1 :=
   Iff.rfl
 
+@[simp]
 theorem zero_notMem_nonzeroPeriods : (0 : GroupLieAlgebra I G) ∉ nonzeroPeriods I G :=
   fun h ↦ h.1 rfl
 
