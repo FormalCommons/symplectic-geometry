@@ -8,6 +8,7 @@ module
 public import TauCeti.Geometry.Symplectic.Manifold.Family
 import Mathlib.Topology.Compactness.Compact
 import Mathlib.Topology.Maps.Proper.Basic
+import TauCeti.Topology.Compactness.Compact
 import TauCeti.Topology.VectorBundle.Hom
 
 /-!
@@ -36,6 +37,9 @@ open sets on which the Moser fields of Moser's argument are defined
   points at which a two-form is nondegenerate is open.
 * `TauCeti.SmoothTwoForm.isOpen_setOf_forall_mem_Icc_nondegenerate`: in finite dimensions, the
   set of points at which the whole segment from `σ₀` to `σ₁` is nondegenerate is open.
+* `TauCeti.SmoothTwoForm.isOpen_setOf_forall_nondegenerate_bilinFormAt_add_smul`: in finite
+  dimensions, for two-forms `σ₀`, `σ` on `M × N` with `M` compact, the set of pairs `(s, y)` of
+  `ℝ × N` such that `σ₀ + s σ` is nondegenerate at every point of `M × {y}` is open.
 * `TauCeti.SmoothTwoForm.bilinFormAt_add_smul_sub_of_eq`,
   `TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_add_smul_sub_of_eq`: at a point where `σ₀` and
   `σ₁` agree, every form `σ₀ + s (σ₁ - σ₀)` has the bilinear form of `σ₀`.
@@ -149,6 +153,23 @@ theorem isOpen_setOf_forall_mem_Icc_nondegenerate [FiniteDimensional ℝ E]
     generalized_tube_lemma isCompact_Icc isCompact_singleton hO hsub
   exact ⟨V, fun y hy s hs ↦ isInvertible_flat_iff.1 (huV (mk_mem_prod (hu hs) hy)), hV,
     hxV rfl⟩
+
+/-- **Nondegeneracy on whole slices along a line of two-forms is an open condition.** For
+two-forms `σ₀`, `σ` on `M × N`, with `M` compact and both model spaces finite-dimensional, the set
+of pairs `(s, y)` of `ℝ × N` such that `σ₀ + s σ` is nondegenerate at every point `(x, y)`,
+`x ∈ M`, is open in `ℝ × N`. -/
+theorem isOpen_setOf_forall_nondegenerate_bilinFormAt_add_smul [FiniteDimensional ℝ E]
+    [CompactSpace M] {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN]
+    [FiniteDimensional ℝ EN] [TopologicalSpace HN] {J : ModelWithCorners ℝ EN HN}
+    [TopologicalSpace N] [ChartedSpace HN N] [IsManifold J ∞ N]
+    (σ₀ σ : SmoothTwoForm (I.prod J) (M × N)) :
+    IsOpen {p : ℝ × N | ∀ x : M, ((σ₀ + p.1 • σ).bilinFormAt (x, p.2)).Nondegenerate} := by
+  -- the points `(s, z)` of `ℝ × (M × N)` at which `σ₀ + s σ = σ₀ + s ((σ₀ + σ) - σ₀)` is
+  -- nondegenerate form an open set, and the tube lemma passes to the compact factor `M`
+  have hO := isOpen_setOf_isInvertible_flat_add_smul_sub σ₀ (σ₀ + σ)
+  simp only [add_sub_cancel_left, isInvertible_flat_iff] at hO
+  exact isOpen_forall_prodMk_mem continuous_id
+    (hO.preimage (continuous_fst.fst.prodMk (continuous_snd.prodMk continuous_fst.snd)))
 
 /-- At a point where `σ₀` and `σ₁` agree, every form `σ₀ + s (σ₁ - σ₀)` of the line through them
 has the bilinear form of `σ₀`. -/
