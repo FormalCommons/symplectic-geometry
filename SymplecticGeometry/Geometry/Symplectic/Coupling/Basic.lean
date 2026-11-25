@@ -435,9 +435,7 @@ private theorem primitive_apply_rightFundamentalVectorField (h : IsCouplingForm 
   have hw₀ := h.apply_couplingField_eq_neg_mfderiv_snd (p, Set.Icc.convexComb s t u) w₀
   have hd : mfderiv (𝓡∂ 1) 𝓘(ℝ) (Subtype.val : Set.Icc a b → ℝ) (Set.Icc.convexComb s t u)
       (mfderiv (𝓡∂ 1) (𝓡∂ 1) (Set.Icc.convexComb s t) u 1) = (t : ℝ) - (s : ℝ) := by
-    rw [Set.Icc.mfderiv_convexComb_one, map_smul, mfderiv_subtypeVal_Icc_one]
-    -- the tangent spaces of `ℝ` are `ℝ` itself
-    exact mul_one ((t : ℝ) - s)
+    rw [Set.Icc.mfderiv_convexComb_one, mfderiv_subtypeVal_Icc_smul_one]
   -- the second component of `w₀` is `d(convexComb) 1`, by definition
   rw [show w₀.2 = mfderiv (𝓡∂ 1) (𝓡∂ 1) (Set.Icc.convexComb s t) u 1 from rfl, hd] at hw₀
   convert congrArg (fun c ↦ (2 * Real.pi)⁻¹ * c) (neg_eq_iff_eq_neg.mpr hw₀) using 1

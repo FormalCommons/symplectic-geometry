@@ -9,7 +9,7 @@ on a family of curves, the local triviality of proper submersions by
 transport along rays, and the curvature of a connection. It serves
 `atlas/symplectic-fibrations.md`, §6.3 (connections, holonomy, symplectic
 connections) and §6.4 (curvature), which follow McDuff–Salamon
-[McDuffSalamon2017], §§6.1, 6.3 and 6.4 (Exercise 6.1.1, p. 266, and
+[McDuffSalamon2017], §§6.1, 6.3 and 6.4 (Exercise 6.1.1, p. 253, and
 pp. 275–279) and Guillemin–Lerman–Sternberg [GuilleminLermanSternberg1996],
 §1.3. The general theory of connections on fibred manifolds that it builds is
 that of I. Kolář, P. W. Michor and J. Slovák, *Natural Operations in

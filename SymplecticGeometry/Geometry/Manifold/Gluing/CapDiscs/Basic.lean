@@ -28,10 +28,10 @@ Let `S` be a surface with boundary, modelled on the half-plane `EuclideanHalfSpa
 smooth collar `c` of its boundary, and let `γ i : AddCircle 1 → ∂S`, for `i` in an index type `ι`,
 be smooth local diffeomorphisms whose images are disjoint (the map `(i, θ) ↦ γ i θ` is injective).
 The capped surface `SymplecticGeometry.capDiscs c γ hγ hinj` is glued (`TopCat.GlueData`) from
-the interior of `S`, re-modelled on `ℝ²` as `SymplecticGeometry.InteriorModel`, and one copy
-of the ball `CoordinateDisc.ball` of radius `2` of `ℂ` for each `i`, re-modelled on `ℝ²` along the
-orthonormal basis `1, i` of `ℂ` (`SymplecticGeometry.Remodel`). The point `z` of the annulus
-`1 < ‖z‖ < 2` of the `i`-th disc is identified with the interior point
+the interior of `S`, as Tau Ceti's charted interior `(𝓡∂ 2).interior S` over `ℝ²`, and one
+copy of the ball `CoordinateDisc.ball` of radius `2` of `ℂ` for each `i`, re-modelled on `ℝ²`
+along the orthonormal basis `1, i` of `ℂ` (`SymplecticGeometry.Remodel`). The point `z` of the
+annulus `1 < ‖z‖ < 2` of the `i`-th disc is identified with the interior point
 `c (γ i (arg z / 2π), ‖z‖ - 1)`, and distinct discs are not glued to each other. When the
 `γ i` together parametrize the whole boundary, this closes up the boundary circles of `S` with
 discs.
@@ -139,17 +139,19 @@ variable {ι : Type} (γ : ι → AddCircle (1 : ℝ) → (𝓡∂ 2).boundary S
 /-- The part of the interior piece covered by the collar over the image of `γ i`: the points
 `c (γ i θ, t)` with `t > 0`. -/
 private def interiorOverlap (hγ : ∀ i, IsLocalDiffeomorph 𝓘(ℝ) (𝓡 1) ∞ (γ i)) (i : ι) :
-    Opens (InteriorPiece 1 S) :=
-  ⟨InteriorModel.val ⁻¹' (c '' (range (γ i) ×ˢ univ)),
+    Opens ((𝓡∂ 2).interior S) :=
+  ⟨Subtype.val ⁻¹' (c '' (range (γ i) ×ˢ univ)),
     (c.isOpenEmbedding.isOpenMap _ ((hγ i).isOpen_range.prod isOpen_univ)).preimage
-      InteriorModel.continuous_val⟩
+      continuous_subtypeVal⟩
 
 variable {c γ} (hγ : ∀ i, IsLocalDiffeomorph 𝓘(ℝ) (𝓡 1) ∞ (γ i))
 
-private theorem mem_interiorOverlap {i : ι} {q : InteriorPiece 1 S} :
+omit [IsManifold (𝓡∂ 2) ∞ S] in
+private theorem mem_interiorOverlap {i : ι} {q : (𝓡∂ 2).interior S} :
     q ∈ interiorOverlap c γ hγ i ↔ ∃ θ t, c (γ i θ, t) = q.val := by
   simp [interiorOverlap, ← SetLike.mem_coe]
 
+omit [IsManifold (𝓡∂ 2) ∞ S] in
 private theorem interiorOverlap_le (i : ι) : interiorOverlap c γ hγ i ≤ c.interiorModelRange :=
   fun q hq ↦ by
     obtain ⟨θ, t, h⟩ := (mem_interiorOverlap hγ).1 hq
@@ -161,20 +163,24 @@ private def collarCoord {i : ι} (q : interiorOverlap c γ hγ i) :
     ↥((𝓡∂ 2).boundary S) × normalIioOpens 1 :=
   c.interiorModelCoord (Opens.inclusion (interiorOverlap_le hγ i) q)
 
+omit [IsManifold (𝓡∂ 2) ∞ S] in
 @[simp] private theorem apply_collarCoord {i : ι} (q : interiorOverlap c γ hγ i) :
     c (collarCoord hγ q) = q.val.val := by
   rw [collarCoord, c.apply_interiorModelCoord, Opens.inclusion, Set.coe_inclusion
     (h := interiorOverlap_le hγ i)]
 
+omit [IsManifold (𝓡∂ 2) ∞ S] in
 private theorem collarCoord_eq {i : ι} {q : interiorOverlap c γ hγ i} {θ : AddCircle (1 : ℝ)}
     {t : normalIioOpens 1} (h : c (γ i θ, t) = q.val.val) : collarCoord hγ q = (γ i θ, t) :=
   c.injective (by rw [apply_collarCoord, h])
 
+omit [IsManifold (𝓡∂ 2) ∞ S] in
 private theorem exists_collarCoord_eq {i : ι} (q : interiorOverlap c γ hγ i) :
     ∃ θ, (collarCoord hγ q).1 = γ i θ := by
   obtain ⟨θ, t, h⟩ := (mem_interiorOverlap hγ).1 q.property
   exact ⟨θ, by rw [collarCoord_eq hγ h]⟩
 
+omit [IsManifold (𝓡∂ 2) ∞ S] in
 private theorem depth_collarCoord_pos {i : ι} (q : interiorOverlap c γ hγ i) :
     0 < ((collarCoord hγ q).2 : EuclideanHalfSpace 1).val 0 :=
   c.interiorModelCoord_snd_pos _
@@ -216,6 +222,7 @@ private theorem isLocalDiffeomorphAt_angle (i : ι) (θ : AddCircle (1 : ℝ)) :
 end
 
 include hinj in
+omit [IsManifold (𝓡∂ 2) ∞ S] in
 private theorem apply_angle_collarCoord {i : ι} (q : interiorOverlap c γ hγ i) :
     γ i (angle γ i (collarCoord hγ q).1) = (collarCoord hγ q).1 := by
   obtain ⟨θ, hθ⟩ := exists_collarCoord_eq hγ q
@@ -243,16 +250,19 @@ private def polarPoint {i : ι} (q : interiorOverlap c γ hγ i) : ℂ :=
   ((1 + ((collarCoord hγ q).2 : EuclideanHalfSpace 1).val 0 : ℝ) : ℂ) *
     (toCircle (angle γ i (collarCoord hγ q).1) : ℂ)
 
+omit [IsManifold (𝓡∂ 2) ∞ S] in
 private theorem norm_polarPoint {i : ι} (q : interiorOverlap c γ hγ i) :
     ‖polarPoint hγ q‖ = 1 + ((collarCoord hγ q).2 : EuclideanHalfSpace 1).val 0 := by
   rw [polarPoint]
   exact norm_ofReal_one_add_mul_toCircle _ _
 
+omit [IsManifold (𝓡∂ 2) ∞ S] in
 private theorem one_lt_norm_polarPoint {i : ι} (q : interiorOverlap c γ hγ i) :
     1 < ‖polarPoint hγ q‖ := by
   rw [norm_polarPoint]
   linarith [depth_collarCoord_pos hγ q]
 
+omit [IsManifold (𝓡∂ 2) ∞ S] in
 private theorem polarPoint_mem_ball {i : ι} (q : interiorOverlap c γ hγ i) :
     polarPoint hγ q ∈ ball := by
   rw [polarPoint]
@@ -262,6 +272,7 @@ private theorem polarPoint_mem_ball {i : ι} (q : interiorOverlap c γ hγ i) :
 private def toBall {i : ι} (q : interiorOverlap c γ hγ i) : ball :=
   ⟨polarPoint hγ q, polarPoint_mem_ball hγ q⟩
 
+omit [IsManifold (𝓡∂ 2) ∞ S] in
 private theorem coe_toBall {i : ι} (q : interiorOverlap c γ hγ i) :
     (toBall hγ q : ℂ) = polarPoint hγ q :=
   rfl
@@ -273,10 +284,12 @@ private def toAnnulus {i : ι} (q : interiorOverlap c γ hγ i) : annulus :=
     rw [mem_annulus, DiscPiece.val_remodelDiffeomorph]
     exact one_lt_norm_polarPoint hγ q⟩
 
+omit [IsManifold (𝓡∂ 2) ∞ S] in
 private theorem val_toAnnulus {i : ι} (q : interiorOverlap c γ hγ i) :
     (toAnnulus hγ q).val = remodelDiffeomorph complexDiffeomorph ball (toBall hγ q) :=
   rfl
 
+omit [IsManifold (𝓡∂ 2) ∞ S] in
 private theorem val_toAnnulus_val {i : ι} (q : interiorOverlap c γ hγ i) :
     (toAnnulus hγ q).val.val = polarPoint hγ q :=
   DiscPiece.val_remodelDiffeomorph _
@@ -308,6 +321,7 @@ private theorem isLocalDiffeomorph_toAnnulus (i : ι) :
   exact hball.comp (hg := (remodelDiffeomorph complexDiffeomorph ball).isLocalDiffeomorph _)
 
 include hinj in
+omit [IsManifold (𝓡∂ 2) ∞ S] in
 private theorem injective_toAnnulus (i : ι) :
     Function.Injective (toAnnulus (c := c) (i := i) hγ) := fun q q' h ↦ by
   have hp : polarPoint hγ q = polarPoint hγ q' := by
@@ -329,7 +343,7 @@ private theorem injective_toAnnulus (i : ι) :
       hangle]
     exact ⟨rfl, hdepth⟩
   apply Subtype.ext
-  apply InteriorModel.val_injective
+  apply Subtype.val_injective
   rw [← apply_collarCoord hγ q, ← apply_collarCoord hγ q', hcoord]
 
 section
@@ -379,15 +393,15 @@ theorem apply_gluingCoord_mem_interiorOpens {i : ι} {z : ball} (hz : 1 < ‖(z 
 
 /-- The point of the interior glued to a point `z` of the annulus of the `i`-th disc. -/
 private def gluingPoint (i : ι) {z : ball} (hz : 1 < ‖(z : ℂ)‖) : interiorOverlap c γ hγ i :=
-  ⟨InteriorModel.mk (𝓡∂ 2) (c (gluingCoord γ i z))
-    (ModelWithCorners.mem_interiorOpens_iff_mem_interior.1
-      (apply_gluingCoord_mem_interiorOpens c hz)), by
-    rw [mem_interiorOverlap, InteriorModel.val_mk]
+  ⟨⟨c (gluingCoord γ i z),
+    ModelWithCorners.mem_interiorOpens_iff_mem_interior.1
+      (apply_gluingCoord_mem_interiorOpens c hz)⟩, by
+    rw [mem_interiorOverlap]
     exact ⟨_, _, rfl⟩⟩
 
 private theorem val_gluingPoint (i : ι) {z : ball} (hz : 1 < ‖(z : ℂ)‖) :
     (gluingPoint (c := c) hγ i hz).val.val = c (gluingCoord γ i z) :=
-  InteriorModel.val_mk _ _
+  rfl
 
 include hinj in
 private theorem polarPoint_gluingPoint (i : ι) {z : ball} (hz : 1 < ‖(z : ℂ)‖) :
@@ -429,8 +443,9 @@ private theorem coe_annulusDiffeomorph (i : ι) :
   IsLocalDiffeomorph.coe_diffeomorphOfBijective _ _
 
 include hinj in
+omit [IsManifold (𝓡∂ 2) ∞ S] in
 /-- The interior and the discs overlap in distinct places for distinct discs. -/
-private theorem eq_of_mem_interiorOverlap {i j : ι} {q : InteriorPiece 1 S}
+private theorem eq_of_mem_interiorOverlap {i j : ι} {q : (𝓡∂ 2).interior S}
     (hi : q ∈ interiorOverlap c γ hγ i) (hj : q ∈ interiorOverlap c γ hγ j) : i = j := by
   obtain ⟨θ, t, hθ⟩ := (mem_interiorOverlap hγ).1 hi
   obtain ⟨θ', t', hθ'⟩ := (mem_interiorOverlap hγ).1 hj
@@ -441,13 +456,15 @@ private theorem eq_of_mem_interiorOverlap {i j : ι} {q : InteriorPiece 1 S}
 
 variable (c γ) in
 /-- The part of the interior piece covered by the collar over the image of some `γ i`. -/
-private def interiorOverlaps : Opens (InteriorPiece 1 S) :=
+private def interiorOverlaps : Opens ((𝓡∂ 2).interior S) :=
   ⨆ i, interiorOverlap c γ hγ i
 
-private theorem mem_interiorOverlaps {q : InteriorPiece 1 S} :
+omit [IsManifold (𝓡∂ 2) ∞ S] in
+private theorem mem_interiorOverlaps {q : (𝓡∂ 2).interior S} :
     q ∈ interiorOverlaps c γ hγ ↔ ∃ i, q ∈ interiorOverlap c γ hγ i :=
   Opens.mem_iSup
 
+omit [IsManifold (𝓡∂ 2) ∞ S] in
 private theorem interiorOverlap_le_interiorOverlaps (i : ι) :
     interiorOverlap c γ hγ i ≤ interiorOverlaps c γ hγ :=
   le_iSup (interiorOverlap c γ hγ) i
@@ -468,6 +485,7 @@ private theorem mem_annuli {z : DiscsPiece ι} : z ∈ annuli ι ↔ z.2 ∈ ann
 private def overlapIndex (q : interiorOverlaps c γ hγ) : ι :=
   ((mem_interiorOverlaps hγ).1 q.property).choose
 
+omit [IsManifold (𝓡∂ 2) ∞ S] in
 private theorem mem_interiorOverlap_overlapIndex (q : interiorOverlaps c γ hγ) :
     q.val ∈ interiorOverlap c γ hγ (overlapIndex hγ q) :=
   ((mem_interiorOverlaps hγ).1 q.property).choose_spec
@@ -543,12 +561,12 @@ def glueData : TopCat.GlueData :=
 private instance instChartedSpacePiece :
     ∀ k : (glueData c γ hγ hinj).J,
       ChartedSpace (EuclideanSpace ℝ (Fin 2)) ((glueData c γ hγ hinj).U k)
-  | ⟨false⟩ => inferInstanceAs (ChartedSpace _ (InteriorPiece 1 S))
+  | ⟨false⟩ => inferInstanceAs (ChartedSpace _ ((𝓡∂ 2).interior S))
   | ⟨true⟩ => inferInstanceAs (ChartedSpace _ (DiscsPiece ι))
 
 private instance instIsManifoldPiece :
     ∀ k : (glueData c γ hγ hinj).J, IsManifold (𝓡 2) ∞ ((glueData c γ hγ hinj).U k)
-  | ⟨false⟩ => inferInstanceAs (IsManifold _ ∞ (InteriorPiece 1 S))
+  | ⟨false⟩ => inferInstanceAs (IsManifold _ ∞ ((𝓡∂ 2).interior S))
   | ⟨true⟩ => inferInstanceAs (IsManifold _ ∞ (DiscsPiece ι))
 
 /-- Each overlap is an open subset of its piece, with the induced atlas. -/
@@ -619,7 +637,7 @@ instance : IsManifold (𝓡 2) ∞ (capDiscs c γ hγ hinj) :=
 
 /-- The inclusion of the interior of `S` into the capped surface. -/
 def inl (p : (𝓡∂ 2).interiorOpens S) : capDiscs c γ hγ hinj :=
-  (glueData c γ hγ hinj).toGlueData.ι ⟨false⟩ (interiorPieceDiffeomorph p)
+  (glueData c γ hγ hinj).toGlueData.ι ⟨false⟩ ((𝓡∂ 2).interiorOpensDiffeomorph S ∞ p)
 
 /-- The inclusion of the ball of radius `2` of `ℂ` into the capped surface as the `i`-th disc. -/
 def inr (i : ι) (z : ball) : capDiscs c γ hγ hinj :=
@@ -628,7 +646,7 @@ def inr (i : ι) (z : ball) : capDiscs c γ hγ hinj :=
 
 /-- The inclusion of the interior of `S` is a smooth local diffeomorphism. -/
 theorem isLocalDiffeomorph_inl : IsLocalDiffeomorph (𝓡∂ 2) (𝓡 2) ∞ (inl c γ hγ hinj) := fun p ↦
-  ((interiorPieceDiffeomorph).isLocalDiffeomorph p).comp
+  (((𝓡∂ 2).interiorOpensDiffeomorph S ∞).isLocalDiffeomorph p).comp
     (hg := (isCompatible_glueData (c := c) hγ hinj).isLocalDiffeomorph_ι ⟨false⟩ _)
 
 /-- The inclusion of each disc is a smooth local diffeomorphism. -/
@@ -643,7 +661,7 @@ end capDiscs
 /-- The interior of `S` is an open subset of the capped surface. -/
 theorem isOpenEmbedding_capDiscs_inl : IsOpenEmbedding (capDiscs.inl c γ hγ hinj) :=
   ((capDiscs.glueData c γ hγ hinj).ι_isOpenEmbedding ⟨false⟩).comp
-    (interiorPieceDiffeomorph).toHomeomorph.isOpenEmbedding
+    ((𝓡∂ 2).interiorOpensDiffeomorph S ∞).toHomeomorph.isOpenEmbedding
 
 /-- Each disc is an open subset of the capped surface. -/
 theorem isOpenEmbedding_capDiscs_inr (i : ι) : IsOpenEmbedding (capDiscs.inr c γ hγ hinj i) :=
@@ -665,9 +683,9 @@ theorem inr_eq_inl {i : ι} {z : ball} (hz : 1 < ‖(z : ℂ)‖) :
     rwa [mem_annuli, mem_annulus, DiscPiece.val_remodelDiffeomorph]
   refine (TopCat.GlueData.ofHomeomorph_ι_true_eq_ι_false_iff _).2 ⟨hw, ?_⟩
   rw [Diffeomorph.coe_toHomeomorph_symm, annuliDiffeomorph_symm_apply hγ hinj i hz]
-  apply InteriorModel.val_injective
+  apply Subtype.val_injective
   rw [Set.coe_inclusion (SetLike.coe_subset_coe.2 (interiorOverlap_le_interiorOverlaps hγ i)),
-    val_gluingPoint, InteriorModel.val_interiorModelDiffeomorph]
+    val_gluingPoint, ModelWithCorners.coe_interiorOpensDiffeomorph_apply]
 
 /-- A collar point `c (γ i θ, t)` of the interior of `S` is the point `(1 + t) · toCircle θ` of
 the `i`-th disc. -/
@@ -676,12 +694,12 @@ theorem inr_ofReal_mul_toCircle_eq_inl {i : ι} {θ : AddCircle (1 : ℝ)} {t : 
     inr c γ hγ hinj i ⟨_, ofReal_one_add_mul_toCircle_mem_ball t θ⟩ =
       inl c γ hγ hinj ⟨c (γ i θ, t), h⟩ := by
   let q : interiorOverlap c γ hγ i :=
-    ⟨interiorPieceDiffeomorph ⟨c (γ i θ, t), h⟩,
+    ⟨(𝓡∂ 2).interiorOpensDiffeomorph S ∞ ⟨c (γ i θ, t), h⟩,
       (mem_interiorOverlap hγ).2 ⟨θ, t, by
-        rw [InteriorModel.val_interiorModelDiffeomorph]⟩⟩
+        rw [ModelWithCorners.coe_interiorOpensDiffeomorph_apply]⟩⟩
   have hq : collarCoord hγ q = (γ i θ, t) :=
     collarCoord_eq hγ (by
-      simp only [q, InteriorModel.val_interiorModelDiffeomorph])
+      simp only [q, ModelWithCorners.coe_interiorOpensDiffeomorph_apply])
   have hz : toBall hγ q = ⟨_, ofReal_one_add_mul_toCircle_mem_ball t θ⟩ :=
     Subtype.ext (by rw [coe_toBall, polarPoint, hq, angle_apply hinj])
   refine ((TopCat.GlueData.ofHomeomorph_ι_false_eq_ι_true_iff _).2
@@ -697,7 +715,7 @@ theorem range_inl_union_iUnion_range_inr :
     range (inl c γ hγ hinj) ∪ ⋃ i, range (inr c γ hγ hinj i) = univ := by
   refine eq_univ_of_forall fun x ↦ ?_
   obtain ⟨y, rfl⟩ | ⟨⟨i, w⟩, rfl⟩ := TopCat.GlueData.ofHomeomorph_ι_jointly_surjective _ x
-  · refine Or.inl ⟨interiorPieceDiffeomorph.symm y, ?_⟩
+  · refine Or.inl ⟨((𝓡∂ 2).interiorOpensDiffeomorph S ∞).symm y, ?_⟩
     rw [inl, Diffeomorph.apply_symm_apply]
     rfl
   · refine Or.inr (mem_iUnion.2 ⟨i, (remodelDiffeomorph complexDiffeomorph ball).symm w, ?_⟩)

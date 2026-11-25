@@ -1580,7 +1580,7 @@ does.
     `s = 0` by `inl_coe_eq_inr`. With `bandMap_of_nonpos`,
     `bandMap_of_nonneg`, `injOn_bandMap` and `isOpen_bandMap_image` on
     `Ioo (-1) 1 ×ˢ univ`, whose image is open. The pieces are the
-    interior of `W` (`SymplecticGeometry.InteriorModel`), embedded twice by
+    interior of `W` (Tau Ceti's charted interior `(𝓡∂ (n + 1)).interior W`), embedded twice by
     `Double.inlInterior` and `Double.inrInterior`, `Double.inl` and
     `Double.inr` on the interior (`inlInterior_apply`,
     `inrInterior_apply`), open embeddings by `isOpenEmbedding_inl_compl`
@@ -1613,7 +1613,7 @@ does.
     agreement and open-interior facts are Tau Ceti's. Blocked by 18d.
 18f. **The orientation of the double.**
     `Geometry/Manifold/Boundary/Collar/Double/Orientation.lean`: for an
-    orientation `o` of the interior of `W`, the `InteriorModel` on which
+    orientation `o` of the interior of `W`, the charted interior `(𝓡∂ (n + 1)).interior W` on which
     `inlInterior` and `inrInterior` are defined, `Double.orientation c o`,
     with `isOrientationPreservingAt_inlInterior` (from `o`),
     `isOrientationPreservingAt_inrInterior` (from `-o`) and
@@ -1640,7 +1640,7 @@ does.
     - *Its orientation.* With `g s = 1/2 - s/4`, which maps `(-1, 1)` into
       `(0, 1)`, let `β (s, x) = c (x, g s)` (the depth by `normalIioRay`),
       an interior point (`apply_mem_interior_iff_pos`) read in the
-      `InteriorModel` by `interiorModelDiffeomorph`, as `collarPoint` is in
+      charted interior by `ModelWithCorners.interiorOpensDiffeomorph`, as `collarPoint` is in
       `Gluing/CapDiscs/Orientation.lean`; `β` is smooth with invertible
       derivative since `c` is a diffeomorphism onto its open range
       (`diffeomorphOpensRange`). Orient `bandInterval × ∂W` by
