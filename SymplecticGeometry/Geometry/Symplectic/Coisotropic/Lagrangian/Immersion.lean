@@ -24,7 +24,7 @@ disjoint union of countably many open sets of that space, with the same range as
 ## Main results
 
 * `SymplecticGeometry.IsCleanIntersection.exists_isLagrangianImmersion_range_eq_image`: for a
-  second countable `N`, nonempty `N` and `P`, and a boundaryless `C`, a Hausdorff, second
+  second countable, nonempty `N` and a boundaryless `C`, a Hausdorff, second
   countable manifold, in the universe of `C`, of dimension `dim P - (dim M - dim N)` and a
   Lagrangian immersion from it into the reduced space, for any nondegenerate `τ` there whose
   pullback is `f^* σ`, with image `leafSpaceMk '' range c`.
@@ -62,16 +62,16 @@ variable {E H M F H' N : Type*}
 
 /-- **The reduced Lagrangian immersion.** Let `f` be a coisotropic immersion of a second countable
 manifold `N` with regular characteristic foliation, `g` a Lagrangian immersion, and `c` a clean
-intersection of `f` and `g` from a boundaryless manifold `C` in the universe `u`, with `N` and `P`
+intersection of `f` and `g` from a boundaryless manifold `C` in the universe `u`, with `N`
 nonempty. Let `τ` be a nondegenerate two-form on the leaf space whose pullback to `N` is `f^* σ`.
 Then there is a Hausdorff, second countable manifold `S` in the universe `u`, modelled on
 `EuclideanSpace ℝ (Fin (dim P - (dim M - dim N)))`, with a Lagrangian immersion `S → LeafSpace`
 for `τ` whose range is the image of `range c` in the leaf space. The empty `C` is allowed; the
-nonempty `N` and `P` fix the dimensions, which an empty `N` or `P` leaves free. -/
-theorem exists_isLagrangianImmersion_range_eq_image [L.Boundaryless] [Nonempty P] [Nonempty N]
+nonempty `N` gives `dim N ≤ dim M ≤ 2 dim N`, which an empty `N` leaves free. -/
+theorem exists_isLagrangianImmersion_range_eq_image [L.Boundaryless] [Nonempty N]
     [SecondCountableTopology N] (hc : IsCleanIntersection I J K L f g c)
-    (hR : (h.characteristicFoliation hi hf hσc hn).IsRegular) (hg : hσ.IsLagrangianMap K g)
-    (hgi : IsImmersion K I ∞ g) :
+    (hR : (h.characteristicFoliation hi hf hσc hn).IsRegular)
+    (hg : hσ.IsLagrangianImmersion K g) :
     letI := Foliation.leafSpaceChartedSpace hR
     haveI := Foliation.isManifold_leafSpace hR
     ∀ {τ : SmoothTwoForm
@@ -91,14 +91,13 @@ theorem exists_isLagrangianImmersion_range_eq_image [L.Boundaryless] [Nonempty P
   have := Foliation.isManifold_leafSpace hR
   intro τ hτ hτσ
   have := hc.isSmoothEmbedding.isImmersion.isManifold
-  -- For an empty `C`, the source is empty, of the right dimension since `P` and `N` are nonempty.
+  -- For an empty `C`, the source is empty, of the right dimension since `g` is a Lagrangian
+  -- immersion and `N` is nonempty.
   rcases isEmpty_or_nonempty C with hC | ⟨⟨x₀⟩⟩
-  · obtain ⟨y⟩ := ‹Nonempty P›
-    obtain ⟨x⟩ := ‹Nonempty N›
-    have hG := hg.two_mul_finrank (hgi.mfderiv_injective (by simp) y)
+  · obtain ⟨x⟩ := ‹Nonempty N›
+    have hG := hg.two_mul_finrank
     have hF := h.finrank_ker_bilinFormAt_mpullback_add hf (hi.mfderiv_injective (by simp) x)
-    have hk := (LinearMap.ker ((SmoothForm.mpullback f hf σ).bilinFormAt x)).finrank_le
-    rw [finrank_tangentSpace] at hk
+    have hk := h.finrank_le_two_mul_finrank x
     let := ChartedSpace.empty
       (EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F)))) PEmpty.{u + 1}
     refine ⟨PEmpty, inferInstance, inferInstance, inferInstance, inferInstance, inferInstance,
@@ -115,14 +114,14 @@ theorem exists_isLagrangianImmersion_range_eq_image [L.Boundaryless] [Nonempty P
     (Foliation.contMDiff_leafSpaceMk hR).comp hc.isSmoothEmbedding.contMDiff
   obtain ⟨S, _, _, hS, hT2, hSC, ι, hι, hrange, hιf⟩ :=
     hpc.exists_isImmersion_range_eq_of_mfderivRank_eq (by simp)
-      (hc.mfderivRank_leafSpaceMk_comp_eq hR hg hgi)
+      (hc.mfderivRank_leafSpaceMk_comp_eq hR hg.isLagrangianMap hg.isImmersion)
   have : Nonempty S := by
     rw [← range_nonempty_iff_nonempty, hrange]
     exact ⟨_, mem_range_self x₀⟩
   refine ⟨S, _, _, hS, hT2, hSC, ι, isLagrangianImmersion_iff.2 ⟨hι, ?_⟩, by
     rw [hrange, range_comp]⟩
   exact isLagrangianMap_iff_forall.2 <| hιf (fun X W ↦ (hτ.symplecticFormAt X).IsLagrangian W) <|
-    isLagrangianMap_iff_forall.1 (hc.isLagrangianMap_leafSpaceMk_comp hR hg hτ hτσ)
+    isLagrangianMap_iff_forall.1 (hc.isLagrangianMap_leafSpaceMk_comp hR hg.isLagrangianMap hτ hτσ)
 
 end SymplecticGeometry.IsCleanIntersection
 

@@ -239,17 +239,17 @@ theorem isPreconnected_preimage_leafSpaceMk_comp (hc : IsCleanIntersection I J K
 omit [FiniteDimensional ℝ E₀] in
 /-- **The injective case of the reduced Lagrangian.** Let `f` be a coisotropic immersion of a
 nonempty, second countable manifold `N` whose characteristic foliation is regular with Hausdorff
-leaf space, `g` a Lagrangian immersion from a nonempty manifold `P`, and `c` a clean intersection
+leaf space, `g` a Lagrangian immersion, and `c` a clean intersection
 of `f` and `g` from a boundaryless manifold `C`, such that every fibre of `leafSpaceMk ∘ c` is
 preconnected. Let `τ` be a nondegenerate two-form on the leaf space whose pullback to `N` is
 `f^* σ`. Then there is a Hausdorff, second countable manifold `S`, in the universe of `C`,
 modelled on `EuclideanSpace ℝ (Fin (dim P - (dim M - dim N)))`, with an injective Lagrangian
 immersion `S → LeafSpace` for `τ` whose range is the image of `range c` in the leaf space. -/
-theorem exists_injective_isLagrangianImmersion_range_eq_image [Nonempty P] [Nonempty N]
+theorem exists_injective_isLagrangianImmersion_range_eq_image [Nonempty N]
     [SecondCountableTopology N] [T2Space (h.characteristicFoliation hi hf hσc hn).LeafSpace]
     (hc : IsCleanIntersection I J K L f g c)
-    (hR : (h.characteristicFoliation hi hf hσc hn).IsRegular) (hg : hσ.IsLagrangianMap K g)
-    (hgi : IsImmersion K I ∞ g)
+    (hR : (h.characteristicFoliation hi hf hσc hn).IsRegular)
+    (hg : hσ.IsLagrangianImmersion K g)
     (hpc : ∀ b,
       IsPreconnected ((h.characteristicFoliation hi hf hσc hn).leafSpaceMk ∘ c ⁻¹' {b})) :
     letI := Foliation.leafSpaceChartedSpace hR
@@ -275,10 +275,12 @@ theorem exists_injective_isLagrangianImmersion_range_eq_image [Nonempty P] [None
   -- For an empty `C`, the source of the general case is empty, so its map is injective.
   rcases isEmpty_or_nonempty C with hC | hC
   · obtain ⟨S, _, _, hS, hT2, hSC, ι, hι, hrange⟩ :=
-      hc.exists_isLagrangianImmersion_range_eq_image hR hg hgi hτ hτσ
+      hc.exists_isLagrangianImmersion_range_eq_image hR hg hτ hτσ
     have : IsEmpty S := by
       rw [← Set.range_eq_empty_iff, hrange, Set.range_eq_empty, Set.image_empty]
     exact ⟨S, _, _, hS, hT2, hSC, ι, hι, Function.injective_of_subsingleton ι, hrange⟩
+  have hgi := hg.isImmersion
+  replace hg := hg.isLagrangianMap
   have : SecondCountableTopology C := hc.isSmoothEmbedding.isEmbedding.secondCountableTopology
   have x₀ : C := Classical.arbitrary C
   have : FiniteDimensional ℝ E₀ := FiniteDimensional.of_injective _
@@ -298,7 +300,7 @@ theorem exists_injective_isLagrangianImmersion_range_eq_image [Nonempty P] [None
 omit [FiniteDimensional ℝ E₀] in
 /-- **Clean reduction of a Lagrangian immersion by a coisotropic one.** Let `f` be a coisotropic
 immersion of a nonempty, second countable manifold `N` with regular characteristic foliation,
-`g` a Lagrangian immersion from a nonempty manifold `P`, and `c` a clean intersection of `f` and
+`g` a Lagrangian immersion, and `c` a clean intersection of `f` and
 `g` from a boundaryless manifold `C`. Let `τ` be a nondegenerate two-form on the leaf space whose
 pullback to `N` is `f^* σ`, and write `r = dim P - (dim M - dim N)`. Then:
 
@@ -316,10 +318,10 @@ pullback to `N` is `f^* σ`, and write `r = dim P - (dim M - dim N)`. Then:
   (`exists_injective_isLagrangianImmersion_of_isCoisotropicEmbedding`).
 
 Milestone: *Clean reduction of Lagrangian submanifolds*. -/
-theorem exists_isLagrangianImmersion_range_eq_image_and_transverse_and_injective [Nonempty P]
-    [Nonempty N] [SecondCountableTopology N] (hc : IsCleanIntersection I J K L f g c)
-    (hR : (h.characteristicFoliation hi hf hσc hn).IsRegular) (hg : hσ.IsLagrangianMap K g)
-    (hgi : IsImmersion K I ∞ g) :
+theorem exists_isLagrangianImmersion_range_eq_image_and_transverse_and_injective [Nonempty N]
+    [SecondCountableTopology N] (hc : IsCleanIntersection I J K L f g c)
+    (hR : (h.characteristicFoliation hi hf hσc hn).IsRegular)
+    (hg : hσ.IsLagrangianImmersion K g) :
     letI := Foliation.leafSpaceChartedSpace hR
     haveI := Foliation.isManifold_leafSpace hR
     ∀ {τ : SmoothTwoForm
@@ -350,14 +352,15 @@ theorem exists_isLagrangianImmersion_range_eq_image_and_transverse_and_injective
               𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F)))) ι ∧
             Function.Injective ι ∧
             Set.range ι = (h.characteristicFoliation hi hf hσc hn).leafSpaceMk '' Set.range c) :=
-  fun hτ hτσ ↦ ⟨hc.exists_isLagrangianImmersion_range_eq_image hR hg hgi hτ hτσ,
-    fun _ htr ↦ hc.isLagrangianImmersion_leafSpaceMk_comp_of_transverse hR hg htr hτ hτσ,
-    fun _ hpc ↦ hc.exists_injective_isLagrangianImmersion_range_eq_image hR hg hgi hpc hτ hτσ⟩
+  fun hτ hτσ ↦ ⟨hc.exists_isLagrangianImmersion_range_eq_image hR hg hτ hτσ,
+    fun _ htr ↦ hc.isLagrangianImmersion_leafSpaceMk_comp_of_transverse hR hg.isLagrangianMap htr
+      hτ hτσ,
+    fun _ hpc ↦ hc.exists_injective_isLagrangianImmersion_range_eq_image hR hg hpc hτ hτσ⟩
 
 omit [FiniteDimensional ℝ E₀] in
 /-- **The injective case for an embedded coisotropic submanifold.** Let `f` be a coisotropic
 embedding of a nonempty, second countable manifold `N` whose characteristic foliation is regular
-with Hausdorff leaf space, `g` a Lagrangian immersion from a nonempty manifold `P`, and `c` a
+with Hausdorff leaf space, `g` a Lagrangian immersion, and `c` a
 clean intersection of `f` and `g` from a boundaryless manifold `C`. Suppose that for every leaf
 `b` the set `range g ∩ f '' (leafSpaceMk ⁻¹' {b})`, the part of the image of `g` on the image of
 that leaf, is preconnected in `M`. Let `τ` be a nondegenerate two-form on the leaf space whose
@@ -365,14 +368,14 @@ pullback to `N` is `f^* σ`. Then there is a Hausdorff, second countable manifol
 universe of `C`, modelled on `EuclideanSpace ℝ (Fin (dim P - (dim M - dim N)))`, with an injective
 Lagrangian immersion `S → LeafSpace` for `τ` whose range is the image of `range c` in the leaf
 space. -/
-theorem exists_injective_isLagrangianImmersion_of_isCoisotropicEmbedding [Nonempty P]
-    [Nonempty N] [SecondCountableTopology N] (hQ : hσ.IsCoisotropicEmbedding J f)
+theorem exists_injective_isLagrangianImmersion_of_isCoisotropicEmbedding [Nonempty N]
+    [SecondCountableTopology N] (hQ : hσ.IsCoisotropicEmbedding J f)
     [T2Space (hQ.isCoisotropicMap.characteristicFoliation hQ.isImmersion hQ.isImmersion.contMDiff
       hσc hn).LeafSpace]
     (hc : IsCleanIntersection I J K L f g c)
     (hR : (hQ.isCoisotropicMap.characteristicFoliation hQ.isImmersion hQ.isImmersion.contMDiff
       hσc hn).IsRegular)
-    (hg : hσ.IsLagrangianMap K g) (hgi : IsImmersion K I ∞ g)
+    (hg : hσ.IsLagrangianImmersion K g)
     (hpc : ∀ b, IsPreconnected (Set.range g ∩ f ''
       ((hQ.isCoisotropicMap.characteristicFoliation hQ.isImmersion hQ.isImmersion.contMDiff
         hσc hn).leafSpaceMk ⁻¹' {b}))) :
@@ -398,7 +401,7 @@ theorem exists_injective_isLagrangianImmersion_of_isCoisotropicEmbedding [Nonemp
           Function.Injective ι ∧
           Set.range ι = (hQ.isCoisotropicMap.characteristicFoliation hQ.isImmersion
             hQ.isImmersion.contMDiff hσc hn).leafSpaceMk '' Set.range c :=
-  fun hτ hτσ ↦ hc.exists_injective_isLagrangianImmersion_range_eq_image hR hg hgi
+  fun hτ hτσ ↦ hc.exists_injective_isLagrangianImmersion_range_eq_image hR hg
     (fun b ↦ hc.isPreconnected_preimage_leafSpaceMk_comp hQ.isEmbedding b (hpc b))
     hτ hτσ
 
