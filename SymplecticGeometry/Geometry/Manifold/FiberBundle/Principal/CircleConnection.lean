@@ -15,11 +15,8 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Submersion
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal.FundamentalVectorField
 public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
-public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.DeRham.Circle
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.BasicForm
-import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
 import TauCeti.Geometry.Manifold.MFDeriv.Slice
 
 /-!
@@ -36,10 +33,11 @@ The exterior derivative `d α` is invariant and, by Cartan's formula, vanishes o
 so it is basic and descends along `π`: its curvature `hα.curvature` is the unique `2`-form on `B`
 whose pull-back is `d α`. The connection forms form an affine space over the `1`-forms on `B`: two
 of them differ by the pull-back `π^* a` of a unique `1`-form, and adding `π^* a` adds `d a` to the
-curvature. Every bundle over a Hausdorff, σ-compact, finite-dimensional base has a connection
-form, glued with a partition of unity from the pull-backs `θ^* dθ` of the angular form of the
-circle along the fibre coordinates of local trivializations. In the trivialization of a local
-section `σ`, a connection form is `θ^* dθ + π^* (σ^* α)`.
+curvature. Over the base set of an equivariant trivialization with fibre coordinate `θ`, the
+pull-back `θ^* dθ` of the angular form of the circle satisfies both conditions of a connection
+form, and in the trivialization of a local section `σ`, a connection form is
+`θ^* dθ + π^* (σ^* α)`. The existence of connection forms, `exists_isCircleConnectionForm`, is
+the case `G = Circle` of the general existence theorem, in `Principal/Connection/Circle.lean`.
 
 ## Main definitions
 
@@ -61,7 +59,6 @@ section `σ`, a connection form is `θ^* dθ + π^* (σ^* α)`.
   `SymplecticGeometry.mpullback_trivialization_snd_apply_rightFundamentalVectorField`: over the
   base set of an equivariant trivialization with fibre coordinate `θ`, `θ^* dθ` is invariant and
   takes the value `1` on the fundamental vector field.
-* `SymplecticGeometry.exists_isCircleConnectionForm`: existence of connection forms.
 * `SymplecticGeometry.IsCircleConnectionForm.apply_eq_mpullback_add_mpullback`: the local form in
   the trivialization of a local section.
 * `SymplecticGeometry.IsCircleConnectionForm.mpullback_apply_eq_mpullback_division_add`: a change
@@ -456,94 +453,6 @@ private theorem IsCircleConnectionForm.sub_apply_eq_of_mfderiv_proj_eq
 
 end Local
 
-/-! ### Existence -/
-
-/-- **Existence of connection forms.** Every smooth principal `Circle`-bundle over a Hausdorff,
-σ-compact, finite-dimensional base has a connection form. It is glued, with a smooth partition of
-unity of the base, from the pull-backs of the angular form along the fibre coordinates of the
-trivializations of the atlas. -/
-theorem exists_isCircleConnectionForm [FiniteDimensional ℝ EB] [T2Space B]
-    [SigmaCompactSpace B] :
-    ∃ α : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1,
-      IsCircleConnectionForm α := by
-  obtain ⟨ρ, hρ⟩ := SmoothPartitionOfUnity.exists_isSubordinate IB isClosed_univ
-    (fun b : B ↦ (trivializationAt Circle P b).baseSet)
-    (fun b ↦ (trivializationAt Circle P b).open_baseSet)
-    (fun b _ ↦ Set.mem_iUnion.2 ⟨b, FiberBundle.mem_baseSet_trivializationAt' b⟩)
-  set p := ⇑(ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)) with hp
-  have hpx (x : ManifoldTotalSpace Circle P) :
-      p x = ((ManifoldTotalSpace.homeomorph Circle P).symm x).proj := by
-    rw [hp, ManifoldTotalSpace.coe_projContMDiffMap]
-  have hpc : ContMDiff (IB.prod (𝓡 1)) IB ∞ p :=
-    (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff
-  have hθ (b : B) : ContMDiffOn (IB.prod (𝓡 1)) (𝓡 1) ∞
-      (fun x : ManifoldTotalSpace Circle P ↦
-        (trivializationAt Circle P b ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2)
-      (p ⁻¹' (trivializationAt Circle P b).baseSet) :=
-    ManifoldTotalSpace.contMDiffOn_trivialization_snd_comp _ (f := fun x ↦ x) contMDiffOn_id
-      fun x hx ↦ by rwa [Set.mem_preimage, hpx] at hx
-  have hθd (b : B) (x : ManifoldTotalSpace Circle P)
-      (hx : p x ∈ (trivializationAt Circle P b).baseSet) :
-      ContMDiffAt (IB.prod (𝓡 1)) (𝓡 1) ∞ (fun x : ManifoldTotalSpace Circle P ↦
-        (trivializationAt Circle P b ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2) x :=
-    (hθ b).contMDiffAt (((trivializationAt Circle P b).open_baseSet.preimage
-      hpc.continuous).mem_nhds hx)
-  -- The local connection forms `θ^* dθ`, glued with the partition of unity.
-  set ℓ : B → RoughForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1 := fun b ↦
-    TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) (fun x : ManifoldTotalSpace Circle P ↦
-      (trivializationAt Circle P b ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2)
-      circleAngularForm
-  set t : B → RoughForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1 :=
-    fun b x ↦ ρ b (p x) • ℓ b x with ht
-  have hsupp (b : B) (x : ManifoldTotalSpace Circle P) (hx : t b x ≠ 0) : ρ b (p x) ≠ 0 :=
-    left_ne_zero_of_smul hx
-  let α : SmoothForm (IB.prod (𝓡 1)) (ManifoldTotalSpace Circle P) ℝ 1 :=
-    ⟨fun x ↦ ∑ᶠ b, t b x, IsSmoothForm.mem_smoothBundleForms <|
-      hρ.isSmoothForm_finsum_smul_comp (fun b ↦ (trivializationAt Circle P b).open_baseSet) hpc
-        fun b x hx ↦ ((isSmoothForm_circleAngularForm.contMDiff _).mpullback_form (hθd b x hx)
-          (by simp)).contMDiffWithinAt⟩
-  -- Over a point of the base, `α` is a finite sum.
-  have hfin (x : ManifoldTotalSpace Circle P) : ∃ s : Finset B, (∀ b, ρ b (p x) ≠ 0 → b ∈ s) ∧
-      ∀ y, p y = p x → α.val y = ∑ b ∈ s, t b y := by
-    have h := ρ.locallyFinite.point_finite (p x)
-    have hs (b : B) (hb : ρ b (p x) ≠ 0) : b ∈ h.toFinset := by simpa using hb
-    exact ⟨h.toFinset, hs, fun y hy ↦ finsum_eq_sum_of_support_subset _ fun b hb ↦
-      hs b (hy ▸ hsupp b y hb)⟩
-  refine ⟨α, fun z ↦ ?_, fun x ↦ ?_⟩
-  · refine Subtype.ext (funext fun x ↦ ?_)
-    ext v
-    obtain ⟨s, -, hs⟩ := hfin x
-    have hpz : p (op z • x) = p x := by simp [hp, ManifoldTotalSpace.homeomorph_symm_smul]
-    rw [SmoothForm.coe_mpullback, mpullback_apply, hs _ hpz, hs x rfl,
-      ContinuousAlternatingMap.sum_apply, ContinuousAlternatingMap.sum_apply]
-    refine Finset.sum_congr rfl fun b _ ↦ ?_
-    simp only [ht, hpz, ContinuousAlternatingMap.smul_apply]
-    by_cases hb : ρ b (p x) = 0
-    · simp [hb]
-    · have hxb : ((ManifoldTotalSpace.homeomorph Circle P).symm x).proj ∈
-          (trivializationAt Circle P b).baseSet := by
-        rw [← hpx]
-        exact hρ b (subset_tsupport _ hb)
-      congr 1
-      exact (mpullback_apply _ _ _ _).symm.trans (DFunLike.congr_fun
-        (mpullback_op_smul_mpullback_trivialization_snd
-          (fun x hx ↦ (hθd b x (by rwa [hpx])).mdifferentiableAt (by simp)) hxb z) ![v])
-  · obtain ⟨s, hsmem, hs⟩ := hfin x
-    have hterm (b : B) :
-        t b x ![rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x] =
-          ρ b (p x) := by
-      simp only [ht, ContinuousAlternatingMap.smul_apply, smul_eq_mul]
-      by_cases hb : ρ b (p x) = 0
-      · simp [hb]
-      · have hxb : ((ManifoldTotalSpace.homeomorph Circle P).symm x).proj ∈
-            (trivializationAt Circle P b).baseSet := by
-          rw [← hpx]
-          exact hρ b (subset_tsupport _ hb)
-        rw [mpullback_trivialization_snd_apply_rightFundamentalVectorField
-          (fun x hx ↦ (hθd b x (by rwa [hpx])).mdifferentiableAt (by simp)) hxb, mul_one]
-    rw [hs x rfl, ContinuousAlternatingMap.sum_apply, Finset.sum_congr rfl fun b _ ↦ hterm b,
-      ← finsum_eq_sum_of_support_subset _ fun b hb ↦ hsmem b hb, ρ.sum_eq_one (Set.mem_univ _)]
-
 /-! ### The local form of a connection form -/
 
 /-- **The local form of a connection form.** Let `σ` be a section of `P` that is smooth on an open
@@ -672,47 +581,5 @@ theorem IsCircleConnectionForm.curvature_apply_eq_mextDeriv_mpullback [IB.Bounda
   have h := congrArg Subtype.val hα.mpullback_curvature
   rw [SmoothForm.coe_mpullback, mextDerivₗ_apply] at h
   rw [← h, ManifoldTotalSpace.mpullback_mpullback_proj_apply _ (hσ.mdifferentiableAt (by simp))]
-
-/-! ### The circle bundle of a Hermitian line bundle -/
-
-section CircleBundle
-
-open Module TauCeti.OrthonormalFrameBundle
-
-attribute [local instance] finrank_real_complex_fact'
-
-variable {E' H' M F : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
-  [TopologicalSpace H'] {I : ModelWithCorners ℝ E' H'} [TopologicalSpace M] [ChartedSpace H' M]
-  [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M]
-  [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace ℂ F] [IsScalarTower ℝ ℂ F]
-  [Fact (finrank ℂ F = 1)]
-  {V : M → Type*} [∀ x, AddCommGroup (V x)] [∀ x, Module ℝ (V x)] [∀ x, Module ℂ (V x)]
-  [∀ x, IsScalarTower ℝ ℂ (V x)] [∀ x, TopologicalSpace (V x)]
-  [∀ x, IsTopologicalAddGroup (V x)] [∀ x, ContinuousSMul ℝ (V x)]
-  [TopologicalSpace (TotalSpace F V)] [FiberBundle F V] [VectorBundle ℂ F V]
-
-open scoped VectorBundle.ComplexToReal
-
-/-- The unit circle bundle of a smooth Hermitian line bundle over a Hausdorff, σ-compact,
-finite-dimensional manifold has a connection form. -/
-example [ContMDiffVectorBundle ∞ F V I] (g : ContMDiffRiemannianMetric I ∞ F V)
-    (hI : ∀ x (v w : V x), g.inner x (Complex.I • v) (Complex.I • w) = g.inner x v w) :
-    letI : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-    letI : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-    letI : IsContinuousRiemannianBundle F V :=
-      instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-    haveI : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) I (𝓡 1) :=
-      Bundle.contMDiffFiberBundle_circleFiber g hI
-    ∃ α : SmoothForm (I.prod (𝓡 1)) (ManifoldTotalSpace Circle (Fiber ℂ F V ℂ)) ℝ 1,
-      IsCircleConnectionForm α := by
-  let : RiemannianBundle V := ⟨g.toRiemannianMetric⟩
-  let : ∀ x, InnerProductSpace ℂ (V x) := g.complexInnerProductSpace hI
-  let : IsContinuousRiemannianBundle F V :=
-    instIsContinuousRiemannianBundle g.toContinuousRiemannianMetric
-  have : ContMDiffFiberBundle ∞ Circle (Fiber ℂ F V ℂ) I (𝓡 1) :=
-    Bundle.contMDiffFiberBundle_circleFiber g hI
-  exact exists_isCircleConnectionForm
-
-end CircleBundle
 
 end SymplecticGeometry

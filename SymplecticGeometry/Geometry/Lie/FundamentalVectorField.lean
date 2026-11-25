@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Lie.FundamentalVectorField
+public import TauCeti.Geometry.Lie.FundamentalVectorField.Right
 
 /-!
 # Fundamental vector fields under equivariant maps
@@ -42,6 +43,12 @@ orbit map is differentiable at `1`, it differentiates through inversion (Tau Cet
 `TauCeti.GroupLieAlgebra.mfderiv_inv_one_apply`), with the steps of Tau Ceti's
 `TauCeti.LeftToRightAction.mfderiv_equiv_symm_rightFundamentalVectorField_of_mdifferentiableAt`;
 when it is not, neither is `g ↦ g⁻¹ • x`, and both sides are zero.
+
+`TauCeti.mfderiv_rightFundamentalVectorField_of_map_op_smul_eq_smul` is the mixed case of the
+first statement: a map `f : M → N` with `f (x • g) = g • f x`, from a right action to a left one,
+sends the right fundamental vector field of `ξ` at `x` to the fundamental vector field of `ξ` at
+`f x`. Its proof is that of Tau Ceti's
+`TauCeti.mfderiv_rightFundamentalVectorField_of_map_op_smul`, the case of two right actions.
 -/
 
 public section
@@ -135,6 +142,41 @@ theorem mfderiv_inv_smul_one_apply [LieGroup I 1 G] [MulAction G M] {x : M}
 end TauCeti
 
 end Inverse
+
+section RightToLeft
+
+namespace TauCeti
+
+open MulOpposite
+
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G]
+  {E' : Type*} [NormedAddCommGroup E'] [NormedSpace 𝕜 E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'}
+  {M : Type*} [TopologicalSpace M] [ChartedSpace H' M] [MulAction Gᵐᵒᵖ M]
+  {E'' : Type*} [NormedAddCommGroup E''] [NormedSpace 𝕜 E'']
+  {H'' : Type*} [TopologicalSpace H''] {I'' : ModelWithCorners 𝕜 E'' H''}
+  {N : Type*} [TopologicalSpace N] [ChartedSpace H'' N] [MulAction G N]
+
+/-- **Maps from a right action to a left action relate the fundamental vector fields.** Let `G`
+act on the right on `M` and on the left on `N`. If `f : M → N` satisfies `f (x • g) = g • f x`
+for every `g`, and `f` at `x` and the orbit map of `x` at `1` are differentiable, then `df_x`
+sends `rightFundamentalVectorField I' ξ x` to `fundamentalVectorField I'' ξ (f x)`. -/
+theorem mfderiv_rightFundamentalVectorField_of_map_op_smul_eq_smul {f : M → N} {x : M}
+    (hf : MDifferentiableAt I' I'' f x)
+    (horbit : MDifferentiableAt I I' (fun g : G ↦ op g • x) 1)
+    (hfx : ∀ g : G, f (op g • x) = g • f x) (ξ : GroupLieAlgebra I G) :
+    mfderiv I' I'' f x (rightFundamentalVectorField I' ξ x) =
+      fundamentalVectorField I'' ξ (f x) := by
+  have hcomp : (f ∘ fun g : G ↦ op g • x) = fun g : G ↦ g • f x := funext hfx
+  rw [fundamentalVectorField_apply, rightFundamentalVectorField_apply, ← hcomp]
+  exact (mfderiv_comp_apply_of_eq (1 : G) hf horbit (by simp) ξ).symm
+
+end TauCeti
+
+end RightToLeft
 
 section Commutative
 

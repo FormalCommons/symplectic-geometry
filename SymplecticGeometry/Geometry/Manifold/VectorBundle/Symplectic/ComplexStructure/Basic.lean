@@ -455,11 +455,8 @@ private theorem compatibleMetricBilin_apply (x : M) (u v : V x) :
 /-- For a compatible pair, the bilinear section `-ω(J u, v)` is `ω(u, J v)`. -/
 private theorem Compatible.compatibleMetricBilin_apply (hc : ω.Compatible J) (x : M)
     (u v : V x) : compatibleMetricBilin ω J x u v = ω.bilinFormAt x u (J x v) := by
-  simpa [ContMDiffTwoForm.compatibleMetricBilin_apply] using neg_eq_iff_eq_neg.2
-    ((J.almostComplexStructureAt x).bilinForm_apply_left_eq_neg_apply_right
-      (g := ω.bilinFormAt x) (fun v w ↦ by
-        simpa only [ContMDiffComplexStructure.almostComplexStructureAt_apply] using
-          hc.invariant x v w) u v)
+  simpa [ContMDiffTwoForm.compatibleMetricBilin_apply] using
+    neg_eq_iff_eq_neg.2 ((hc.compatibleAt x).invariant.apply_apply_eq_neg u v)
 
 variable [FiniteDimensional ℝ F]
 

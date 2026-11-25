@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Instances.Icc
-public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.CircleConnection
+public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Circle
 public import SymplecticGeometry.Geometry.Manifold.DeRham.Basic
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.RealChernClass
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle

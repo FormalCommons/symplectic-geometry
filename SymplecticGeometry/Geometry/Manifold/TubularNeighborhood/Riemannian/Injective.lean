@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Neighborhood
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Radial
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.GroupTheory.GroupAction.Hom
 
 /-!
@@ -133,16 +134,18 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
     (Ψ.injOn (hRS p) (hRS p') h), fun x ↦ ?_, r, hr, fun x v ↦ ?_⟩
   · dsimp only
     rw [hzeroR, hΨ, SmoothEmbedding.normalExp_zeroSection]
-  -- The vertical vector of `v` is the velocity at `0` of the line `t ↦ t • v`. The map sends
-  -- this line to the image under `Ψ` of the reparametrized line `t ↦ s t • v`, with `s' 0 = r x`.
-  rw [Bundle.zeroSectionTangentEquiv_symm_inr]
+  -- The vertical vector of `v` is the velocity at `0` of the image of the line `t ↦ t • v`. The
+  -- map sends this line to the image under `Ψ` of the reparametrized line `t ↦ s t • v`, with
+  -- `s' 0 = r x`.
+  have hΨ0 : MDifferentiableAt (I.prod 𝓘(ℝ, P)) J Ψ (zeroSection P ν x) :=
+    (Ψ.contMDiffOn.contMDiffAt (Ψ.open_source.mem_nhds (hzero x))).mdifferentiableAt (by simp)
+  rw [Bundle.mfderiv_zeroSectionTangentEquiv_symm_inr ((hT _).mdifferentiableAt (by simp))]
   let line : ℝ → TotalSpace P ν := fun t ↦ ⟨x, t • v⟩
   have hl : ContMDiff 𝓘(ℝ) (I.prod 𝓘(ℝ, P)) 1 line :=
     contMDiff_id.smul_totalSpace (contMDiff_const (c := (⟨x, v⟩ : TotalSpace P ν)))
-  have hl0 : line 0 = zeroSection P ν x := by simp [line, zeroSection]
   have hΨl : MDifferentiableAt 𝓘(ℝ) J (Ψ ∘ line) 0 :=
-    ((Ψ.contMDiffOn.contMDiffAt (Ψ.open_source.mem_nhds (hl0 ▸ hzero x))).mdifferentiableAt
-      (by simp)).comp 0 (hl.mdifferentiableAt one_ne_zero)
+    MDifferentiableAt.comp_of_eq 0 hΨ0 (hl.mdifferentiableAt one_ne_zero)
+      (by simp [line, zeroSection])
   let s : ℝ → ℝ := fun t ↦ r x * (Real.sqrt (1 + t ^ 2 * ‖(v : ν x)‖ ^ 2))⁻¹ * t
   have hs : HasDerivAt s (r x) 0 := by
     have hφ : DifferentiableAt ℝ (fun t : ℝ ↦ r x * (Real.sqrt (1 + t ^ 2 * ‖(v : ν x)‖ ^ 2))⁻¹)
@@ -150,17 +153,12 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
       ((DifferentiableAt.sqrt (by fun_prop) (by positivity)).inv (by positivity))
     convert hφ.hasDerivAt.mul (hasDerivAt_id' (0 : ℝ)) using 1
     simp
-  have hfun : (fun p ↦ Ψ (R p)) ∘ line = (Ψ ∘ line) ∘ s := by
+  have hfun : (fun t : ℝ ↦ Ψ (R ⟨x, t • v⟩)) = (Ψ ∘ line) ∘ s := by
     funext t
     simp only [Function.comp_apply, line, hRapply, smul_smul, s, norm_smul, mul_pow,
-      Real.norm_eq_abs, sq_abs]
-  have h1 := mfderiv_comp_apply_of_eq (0 : ℝ) ((hT _).mdifferentiableAt (by simp))
-    (hl.mdifferentiableAt one_ne_zero) hl0 (1 : ℝ)
+      Real.norm_eq_abs, sq_abs, mul_assoc]
   have h2 := mfderiv_comp_apply_of_eq (0 : ℝ) hΨl
     hs.hasFDerivAt.hasMFDerivAt.mdifferentiableAt (by simp [s]) (1 : ℝ)
-  have h3 := mfderiv_comp_apply_of_eq (0 : ℝ)
-    ((Ψ.contMDiffOn.contMDiffAt (Ψ.open_source.mem_nhds (hzero x))).mdifferentiableAt
-      (by simp)) (hl.mdifferentiableAt one_ne_zero) hl0 (1 : ℝ)
   -- `hs1` and `hlin` are stated here, not used by `rw` directly: the argument of these
   -- derivatives lives in `TangentSpace 𝓘(ℝ) 0`, which is `ℝ` only up to unfolding, so `rw` does
   -- not find the patterns of `toSpanSingleton_apply_one` and `map_eq_smul_map_one`.
@@ -170,9 +168,13 @@ theorem exists_contMDiff_injective_normalBundle (f : SmoothEmbedding I J ∞ M N
   have hlin : mfderiv 𝓘(ℝ) J (Ψ ∘ line) 0 (r x) = r x • mfderiv 𝓘(ℝ) J (Ψ ∘ line) 0 (1 : ℝ) :=
     SymplecticGeometry.map_eq_smul_map_one _ (r x)
   have key : mfderiv 𝓘(ℝ) J (Ψ ∘ line) 0 (1 : ℝ) = f.normalRepresentative x hn v := by
-    rw [h3, hΨ, ← Bundle.zeroSectionTangentEquiv_symm_inr,
-      f.mfderiv_normalExp_zeroSection_apply hn (by simp) hdim, map_zero, zero_add]
-  rw [← h1, hfun, h2, hs1, hlin, key]
+    refine (Bundle.mfderiv_zeroSectionTangentEquiv_symm_inr hΨ0 v).symm.trans ?_
+    rw [hΨ, f.mfderiv_normalExp_zeroSection_apply hn (by simp) hdim, map_zero, zero_add]
+  have h1 : mfderiv 𝓘(ℝ) J (fun t : ℝ ↦ Ψ (R ⟨x, t • v⟩)) 0 (1 : ℝ) =
+      r x • f.normalRepresentative x hn v := by
+    rw [hfun]
+    exact h2.trans ((congrArg _ hs1).trans (hlin.trans (congrArg _ key)))
+  rw [h1]
   exact (map_smul _ _ _).trans (congrArg _ (normalClass_normalRepresentative ..))
 
 end TauCeti.SmoothEmbedding
