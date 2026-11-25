@@ -15,6 +15,7 @@ import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Extend
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Stabilizer
 public import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Basic
 import SymplecticGeometry.Geometry.Manifold.SmoothIsotopy.Diffeotopy
+import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Submanifold
 import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Rescaling
 import SymplecticGeometry.Geometry.Symplectic.Cotangent.Bundle.Isotropic
@@ -136,8 +137,9 @@ To move `ι` along a diffeotopy `Φ` of `Sⁿ`, the isotopy `t ↦ f ∘ Φ_t`
 Lagrangian), so
 `TauCeti.SmoothIsotopy.exists_isSymplectic_extension_of_mpullback_eq` extends it to a symplectic
 isotopy `F` of an open neighbourhood `U₀` of `f(Sⁿ)`. On the open set `W` of the points of `U`
-that `ι` maps into `U₀`, `ι` is an injective local diffeomorphism into `U₀`, and precomposing `F`
-with it (`TauCeti.SmoothIsotopy.precompLocalDiffeomorph`) gives the isotopy `t ↦ F_t ∘ ι`. Its
+that `ι` maps into `U₀`, `ι` is an injective local diffeomorphism into `U₀`, hence a smooth
+embedding (`IsLocalDiffeomorph.isSmoothEmbedding`), and precomposing `F` with it
+(`TauCeti.SmoothIsotopy.precompSmoothEmbedding`) gives the isotopy `t ↦ F_t ∘ ι`. Its
 slices are injective, as the slices of `F` are smooth embeddings, and local diffeomorphisms
 (`Manifold.IsImmersion.isLocalDiffeomorph` for `F_t`), so the slice at time `1` is a
 diffeomorphism onto its open image (Tau Ceti's `IsLocalDiffeomorph.diffeomorphOfInjective`).
@@ -689,8 +691,9 @@ theorem exists_smoothIsotopy_of_diffeotopy [IsManifold I ∞ M] [I.Boundaryless]
         (ι.toContMDiffMap.comp (SmoothEmbedding.inclusion hW).toContMDiffMap))
       ((SmoothEmbedding.ofOpens (I := I) (n := ∞) (hmd 1).image).toContMDiffMap.comp
         ι'.toContMDiffMap), ∀ p, G p = F (p.1, χ p.2) :=
-    ⟨F.precompLocalDiffeomorph χ hχd hχinj (by simp) _ _ (fun z ↦ by simp [he₀, χ])
-      (fun z ↦ by simp [hι']), fun p ↦ SmoothIsotopy.precompLocalDiffeomorph_apply ..⟩
+    ⟨F.precompSmoothEmbedding χ (hχd.isSmoothEmbedding (by simp) hχinj) (by simp) _ _
+      (fun z ↦ by simp [he₀, χ])
+      (fun z ↦ by simp [hι']), fun p ↦ SmoothIsotopy.precompSmoothEmbedding_apply ..⟩
   -- `G` is symplectic, since `χ` pulls the restriction of `σ` back to that of `-ω_can`.
   have hτ : SmoothForm.mpullback χ hχs (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) =
       SmoothForm.mpullback Subtype.val contMDiff_subtypeVal
