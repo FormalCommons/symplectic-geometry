@@ -5,7 +5,6 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.MeasureTheory.Measure.Lebesgue.Complex
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.CauchyRiemann.ZeroOneForm
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Sobolev.CovariantDerivative
@@ -37,10 +36,11 @@ The operator is the composite `π^{0,1}_i ∘ Φ_J ∘ ∇` of three bounded ope
   (`TauCeti.SmoothAlmostComplexStructure.contMDiff_zeroOnePartL`);
 * Tau Ceti's projection `TauCeti.zeroOnePartSobolevL` onto the `(0,1)`-forms for `i`.
 
-On smooth sections the operator is the `(0,1)`-part for `i` of `D_J`
-(`SymplecticGeometry.twistOneDelBarSobolev_ofContMDiffSection`). The last projection loses nothing
-when a two-form tames both `J` and `i`: then the
-`(0,1)`-projection for `i` is injective on the `(0,1)`-forms for `J` at every point
+On the Sobolev section of a `C^{k+1}` section `s`, the chart data of the operator agree almost
+everywhere, in every chart, with the chart readings of the `(0,1)`-part for `i` of `D_J s`
+(`SymplecticGeometry.chartValueL_twistOneDelBarSobolev_ofContMDiffSection_ae_coord`). The last
+projection loses nothing when a two-form tames both `J` and `i`: then the `(0,1)`-projection
+for `i` is injective on the `(0,1)`-forms for `J` at every point
 (`TauCeti.SmoothAlmostComplexStructure.injOn_zeroOnePart_of_tames`).
 
 Tau Ceti's realization `TauCeti.IsRealCauchyRiemannOperator.sobolevSuccL`
@@ -53,8 +53,9 @@ realizes an operator that is Cauchy–Riemann for the complex structure of the c
 * `SymplecticGeometry.twistCoreAtlas n`: the finite bundle atlas of `𝒪(n)`.
 * `SymplecticGeometry.twistOneDelBarSobolev J k`: the operator `D_J` from `W^{k+1,2}` sections of
   `𝒪(1)` to `W^{k,2}` `(0,1)`-forms with values in `𝒪(1)`.
-* `SymplecticGeometry.twistOneDelBarSobolev_ofContMDiffSection`: on a `C^{k+1}` section `s`, its
-  chart data are the readings of the `(0,1)`-part for `i` of `D_J s`.
+* `SymplecticGeometry.chartValueL_twistOneDelBarSobolev_ofContMDiffSection_ae_coord`: on a
+  `C^{k+1}` section `s`, its chart data agree almost everywhere with the chart readings of the
+  `(0,1)`-part for `i` of `D_J s`.
 
 ## References
 
@@ -116,9 +117,9 @@ theorem twistOneDelBarSobolev_apply (w : SobolevSection (twistCoreAtlas 1) volum
   (rfl)
 
 /-- **Agreement on smooth sections.** On the Sobolev section of a `C^{k+1}` section `s` of `𝒪(1)`,
-the chart data of `twistOneDelBarSobolev J k` are, in every chart, the readings of the `(0,1)`-part
-for `i` of the one-form `twistOneDelBar J s`. -/
-theorem twistOneDelBarSobolev_ofContMDiffSection
+the chart data of `twistOneDelBarSobolev J k` agree almost everywhere on every chart image with the
+chart readings of the `(0,1)`-part for `i` of the one-form `twistOneDelBar J s`. -/
+theorem chartValueL_twistOneDelBarSobolev_ofContMDiffSection_ae_coord
     (s : Cₛ^((k + 1 : ℕ) : WithTop ℕ∞)⟮𝓘(ℝ, ℂ); ℂ, (twistCore (𝕜 := ℂ) 1).Fiber⟯)
     (i : Fin (twistCoreAtlas 1).n) :
     (twistCoreAtlas 1).tangentHom.sectionChartData.chartValueL volume 2 k i
