@@ -1,0 +1,138 @@
+/-
+Copyright (c) 2026 The FormalCommons contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: The FormalCommons contributors
+-/
+module
+
+public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+public import SymplecticGeometry.Geometry.Lie.Complexification
+
+/-!
+# The Kempf–Ness function
+
+Let `C : LieComplexification I G IC Gc` be a complexification of a real Lie group `G`, let `Gc`
+act on `M`, and let `μ : M → 𝔤*` be a map, which in the applications is a moment map for the
+action of `G`. For `p : M`, the *Kempf–Ness function* `Φ_p : Gc → ℝ` is defined through the polar
+decomposition `Gc = exp(i𝔤) G` of `C.polar`: for `ξ ∈ 𝔤` and `u ∈ G`,
+
+  `Φ_p (exp(iξ) u) = ∫ t in 0..1, ⟨μ (exp(-itξ) p), ξ⟩`,
+
+where `exp(iξ)` is `C.expI ξ`. This file defines `Φ_p`, shows that it vanishes on `G` and that it
+is invariant under right multiplication by `G`, so that it descends to the space `Gc ⧸ G` of
+cosets `gG`.
+
+## Main definitions
+
+* `SymplecticGeometry.kempfNessFunction C μ p`: the Kempf–Ness function `Φ_p : Gc → ℝ`.
+* `SymplecticGeometry.kempfNessFunctionQuotient C μ p`: the function that `Φ_p` induces on
+  `Gc ⧸ C.toHom.range`.
+
+## Main results
+
+* `SymplecticGeometry.kempfNessFunction_polar`,
+  `SymplecticGeometry.kempfNessFunction_expI_mul_toHom`: the value of `Φ_p` at
+  `C.polar (ξ, u) = C.expI ξ * C.toHom u`.
+* `SymplecticGeometry.kempfNessFunction_toHom`: `Φ_p` vanishes on `G`.
+* `SymplecticGeometry.kempfNessFunction_mul_toHom`: `Φ_p (g * C.toHom u) = Φ_p g`.
+* `SymplecticGeometry.kempfNessFunctionQuotient_mk`: the induced function on cosets agrees with
+  `Φ_p` on representatives.
+
+## References
+
+* [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017], §5.7.
+* [V. Georgoulas, J. W. Robbin and D. A. Salamon, *The Moment-Weight Inequality and the
+  Hilbert–Mumford Criterion*][GeorgoulasRobbinSalamon2021], §2.
+-/
+
+public section
+
+noncomputable section
+
+open scoped Manifold ContDiff
+
+namespace SymplecticGeometry
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
+  {EC : Type*} [NormedAddCommGroup EC] [NormedSpace ℝ EC] [CompleteSpace EC]
+  {HC : Type*} [TopologicalSpace HC] {IC : ModelWithCorners ℝ EC HC}
+  {Gc : Type*} [TopologicalSpace Gc] [ChartedSpace HC Gc] [Group Gc] [LieGroup IC ∞ Gc]
+  [T2Space Gc] [BoundarylessManifold IC Gc]
+  {M : Type*} [MulAction Gc M]
+
+/-- The *Kempf–Ness function* `Φ_p : Gc → ℝ` of `p : M` for the map `μ : M → 𝔤*`: writing
+`g = C.expI ξ * C.toHom u` through the polar decomposition `C.polar`, its value at `g` is
+`∫ t in 0..1, μ (C.expI (-(t • ξ)) • p) ξ`. -/
+def kempfNessFunction (C : LieComplexification I G IC Gc)
+    (μ : M → Module.Dual ℝ (GroupLieAlgebra I G)) (p : M) (g : Gc) : ℝ :=
+  ∫ t in (0 : ℝ)..1,
+    μ (C.expI (-(t • ((C.polar.symm g).1 : GroupLieAlgebra I G))) • p) (C.polar.symm g).1
+
+variable (C : LieComplexification I G IC Gc) (μ : M → Module.Dual ℝ (GroupLieAlgebra I G))
+  (p : M)
+
+theorem kempfNessFunction_def (g : Gc) :
+    kempfNessFunction C μ p g =
+      ∫ t in (0 : ℝ)..1,
+        μ (C.expI (-(t • ((C.polar.symm g).1 : GroupLieAlgebra I G))) • p) (C.polar.symm g).1 :=
+  (rfl)
+
+/-- The defining property of the Kempf–Ness function, at the point `C.polar (ξ, u)` of the polar
+decomposition. -/
+theorem kempfNessFunction_polar (ξ : GroupLieAlgebra I G) (u : G) :
+    kempfNessFunction C μ p (C.polar (ξ, u)) =
+      ∫ t in (0 : ℝ)..1, μ (C.expI (-(t • ξ)) • p) ξ := by
+  rw [kempfNessFunction_def, Diffeomorph.symm_apply_apply]
+  -- The sides differ only in the type of `ξ`: the first component of a point of `E × G` on the
+  -- left, an element of `GroupLieAlgebra I G` on the right, which is `E` by definition.
+  rfl
+
+/-- `Φ_p (C.expI ξ * C.toHom u) = ∫ t in 0..1, μ (C.expI (-(t • ξ)) • p) ξ`. -/
+theorem kempfNessFunction_expI_mul_toHom (ξ : GroupLieAlgebra I G) (u : G) :
+    kempfNessFunction C μ p (C.expI ξ * C.toHom u) =
+      ∫ t in (0 : ℝ)..1, μ (C.expI (-(t • ξ)) • p) ξ := by
+  rw [← C.polar_apply, kempfNessFunction_polar]
+
+/-- `Φ_p (C.expI ξ) = ∫ t in 0..1, μ (C.expI (-(t • ξ)) • p) ξ`. -/
+theorem kempfNessFunction_expI (ξ : GroupLieAlgebra I G) :
+    kempfNessFunction C μ p (C.expI ξ) = ∫ t in (0 : ℝ)..1, μ (C.expI (-(t • ξ)) • p) ξ := by
+  simpa using kempfNessFunction_expI_mul_toHom C μ p ξ 1
+
+/-- The Kempf–Ness function vanishes on `G`. -/
+@[simp]
+theorem kempfNessFunction_toHom (u : G) : kempfNessFunction C μ p (C.toHom u) = 0 := by
+  simpa [C.expI_zero] using kempfNessFunction_expI_mul_toHom C μ p 0 u
+
+@[simp]
+theorem kempfNessFunction_one : kempfNessFunction C μ p 1 = 0 := by
+  simpa using kempfNessFunction_toHom C μ p 1
+
+/-- The Kempf–Ness function is invariant under right multiplication by `G`:
+`Φ_p (g * C.toHom u) = Φ_p g`. -/
+@[simp]
+theorem kempfNessFunction_mul_toHom (g : Gc) (u : G) :
+    kempfNessFunction C μ p (g * C.toHom u) = kempfNessFunction C μ p g := by
+  obtain ⟨ξ, v, rfl⟩ : ∃ (ξ : GroupLieAlgebra I G) (v : G), C.expI ξ * C.toHom v = g :=
+    ⟨(C.polar.symm g).1, (C.polar.symm g).2,
+      (C.polar_apply _ _).symm.trans (C.polar.apply_symm_apply g)⟩
+  rw [mul_assoc, ← map_mul, kempfNessFunction_expI_mul_toHom,
+    kempfNessFunction_expI_mul_toHom]
+
+/-- The function that the Kempf–Ness function induces on the space `Gc ⧸ C.toHom.range` of cosets
+`g G`, well defined by `kempfNessFunction_mul_toHom`. -/
+def kempfNessFunctionQuotient : Gc ⧸ C.toHom.range → ℝ :=
+  Quotient.lift (kempfNessFunction C μ p) fun g g' h ↦ by
+    obtain ⟨u, hu⟩ := QuotientGroup.leftRel_apply.1 h
+    rw [ContMDiffMonoidMorphism.coe_toMonoidHom] at hu
+    rw [← mul_inv_cancel_left g g', ← hu, kempfNessFunction_mul_toHom]
+
+@[simp]
+theorem kempfNessFunctionQuotient_mk (g : Gc) :
+    kempfNessFunctionQuotient C μ p (g : Gc ⧸ C.toHom.range) = kempfNessFunction C μ p g :=
+  (rfl)
+
+end SymplecticGeometry
+
+end
