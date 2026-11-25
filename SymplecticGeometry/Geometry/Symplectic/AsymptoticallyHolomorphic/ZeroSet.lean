@@ -74,12 +74,13 @@ variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimen
 
 /-- **Sections with dominant holomorphic derivative are transverse.** Let `σ` be compatible with
 `J`, let the fibres of `L` be complex lines, and let `D` be a covariant derivative on `L`. If a
-smooth section `s` has, at each of its zeros `x`, a complex-antilinear part of `D s(x)` of smaller
-operator norm than its complex-linear part, for the metric `σ(·, J ·)` on `T_x M`, then the
-intrinsic linearization of `s` is onto at each zero. -/
+section `s`, differentiable at each of its zeros `x`, has there a complex-antilinear part of
+`D s(x)` of smaller operator norm than its complex-linear part, for the metric `σ(·, J ·)` on
+`T_x M`, then the intrinsic linearization of `s` is onto at each zero. -/
 theorem isTransverse_of_norm_dbar_lt (hc : σ.Compatible J) (hL : ∀ x, finrank ℂ (L x) = 1)
     (D : CovariantDerivative I F L)
-    (hs : ContMDiff I (I.prod 𝓘(ℝ, F)) ∞ fun x ↦ TotalSpace.mk' F x (s x))
+    (hs : ∀ x, s x = 0 →
+      MDifferentiableAt I (I.prod 𝓘(ℝ, F)) (fun x ↦ TotalSpace.mk' F x (s x)) x)
     (hdom : ∀ x, s x = 0 →
       letI : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hc.metric.toRiemannianMetric⟩
       ‖LinearMap.toContinuousLinearMap (complexAntilinearPart
@@ -93,7 +94,7 @@ theorem isTransverse_of_norm_dbar_lt (hc : σ.Compatible J) (hL : ∀ x, finrank
     ∀ x, s x = 0 → Surjective (sectionLinearization (F := F) I _root_.id s x) := by
   intro x hx
   let : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hc.metric.toRiemannianMetric⟩
-  rw [← D.apply_eq_sectionLinearization ((hs x).mdifferentiableAt (by simp)) hx]
+  rw [← D.apply_eq_sectionLinearization (hs x hx) hx]
   exact SymplecticForm.surjective_of_norm_complexAntilinearPart_lt
     («ω» := hc.tames.isNondegenerate.symplecticFormAt x) (J := J.almostComplexStructureAt x)
     (fun v w ↦ by simp [hc.inner_eq_eval₂ x v w]) (hL x) (hdom x hx)
@@ -121,18 +122,22 @@ theorem isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt [I.Boundaryless
           (D s x : TangentSpace I x →ₗ[ℝ] L x))‖)
     (hE : finrank ℝ E' + finrank ℝ F = finrank ℝ E) :
     letI := transverseZeroSetChartedSpace (by simp) hs
-      (isTransverse_of_norm_dbar_lt hc hL D hs hdom) hE
+      (isTransverse_of_norm_dbar_lt hc hL D
+        (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
     hc.tames.isNondegenerate.IsSymplecticSubmanifoldEmbedding 𝓘(ℝ, E')
       (SmoothEmbedding.ofTransverseSection (by simp) hs
-        (isTransverse_of_norm_dbar_lt hc hL D hs hdom) hE) := by
+        (isTransverse_of_norm_dbar_lt hc hL D
+          (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE) := by
   let := transverseZeroSetChartedSpace (by simp) hs
-    (isTransverse_of_norm_dbar_lt hc hL D hs hdom) hE
+    (isTransverse_of_norm_dbar_lt hc hL D
+      (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE
   refine (SmoothTwoForm.IsNondegenerate.isSymplecticSubmanifoldEmbedding_iff_of_isSmoothEmbedding
     (SmoothEmbedding.isSmoothEmbedding _)).2
     (SmoothTwoForm.IsNondegenerate.hasSymplecticTangentImages_iff_forall.2 fun z ↦ ?_)
   let : RiemannianBundle (fun x : M ↦ TangentSpace I x) := ⟨hc.metric.toRiemannianMetric⟩
   have hrange := range_mfderiv_coe_transverseZeroSet (by simp) hs
-    (isTransverse_of_norm_dbar_lt hc hL D hs hdom) hE z
+    (isTransverse_of_norm_dbar_lt hc hL D
+      (fun x _ ↦ (hs x).mdifferentiableAt (by simp)) hdom) hE z
   rw [← D.apply_eq_sectionLinearization ((hs z).mdifferentiableAt (by simp)) z.property] at hrange
   have hk := SymplecticForm.isSymplectic_ker_of_norm_complexAntilinearPart_lt
     («ω» := hc.tames.isNondegenerate.symplecticFormAt z) (J := J.almostComplexStructureAt z)
