@@ -71,6 +71,8 @@ are. The form of the completion of a Liouville domain, in the library's
 * `SymplecticGeometry.GluedAlong.t2Space_iff`: when the glued space is Hausdorff.
 * `SymplecticGeometry.GluedAlong.t2Space_of_isClosed_graph`: the glued space is Hausdorff when
   `M₁` and `M₂` are and the graph of `φ` is closed in `M₁ × M₂`.
+* The instance `SecondCountableTopology (GluedAlong φ)`: the glued space of two second
+  countable spaces is second countable.
 * `SymplecticGeometry.GluedAlong.mpullback_inl_gluedForm`, `mpullback_inr_gluedForm`,
   `eq_gluedForm_iff`: the glued form is the unique form with the given pull-backs.
 * `SymplecticGeometry.GluedAlong.isClosed_gluedForm_iff`, `isNondegenerate_gluedForm_iff`,
@@ -151,6 +153,18 @@ namespace GluedAlong
 
 instance : TopologicalSpace (GluedAlong φ) :=
   inferInstanceAs (TopologicalSpace (glueData φ).toGlueData.glued)
+
+/-- The glued space of two second countable spaces is second countable. -/
+instance [SecondCountableTopology M₁] [SecondCountableTopology M₂] :
+    SecondCountableTopology (GluedAlong φ) :=
+  -- Tau Ceti's `TopCat.GlueData.secondCountableTopology`, once each piece is second countable.
+  have : ∀ i : (glueData φ).J, SecondCountableTopology ((glueData φ).U i)
+    | ⟨false⟩ => inferInstanceAs (SecondCountableTopology M₁)
+    | ⟨true⟩ => inferInstanceAs (SecondCountableTopology M₂)
+  have : Countable (glueData φ).J := by
+    rw [glueData, TopCat.GlueData.ofHomeomorph_J]
+    infer_instance
+  TopCat.GlueData.secondCountableTopology (glueData φ)
 
 /-- The atlas of `GluedAlong φ`, transported from the atlases of `M₁` and `M₂` along the
 canonical maps. -/

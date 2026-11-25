@@ -62,12 +62,12 @@ sum, which is symplectic when `σ₁` and `σ₂` are.
   identifies.
 * `SymplecticGeometry.isClosed_graph_fiberSumGluing` and the instance
   `SymplecticGeometry.FiberSum.instT2Space`: the fiber sum is Hausdorff.
-* `SymplecticGeometry.FiberSum.mpullback_inl_symplecticForm`, `mpullback_inr_symplecticForm`
-  and `isSymplectic_symplecticForm`: the form of the fiber sum restricts to `σ₁` and `σ₂` on the
-  two pieces and is symplectic.
+* `SymplecticGeometry.FiberSum.mpullback_inl_symplecticForm`, `mpullback_inr_symplecticForm`,
+  `eq_symplecticForm_iff` and `isSymplectic_symplecticForm`: the form of the fiber sum is the
+  unique form that restricts to `σ₁` and `σ₂` on the two pieces, and it is symplectic.
 * `SymplecticGeometry.exists_isSymplectic_fiberSum`: for symplectic `σᵢ`, compact `Q` and
   symplectic framings, product neighbourhoods exist for all small radii, and every fiber sum
-  built from them is a Hausdorff manifold with such a symplectic form.
+  built from them is a Hausdorff, second countable manifold with such a symplectic form.
 
 ## References
 
@@ -427,6 +427,13 @@ def symplecticForm : SmoothTwoForm I (FiberSum f₁ f₂ hδ hδε) :=
     (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ₂)
     (mpullback_fiberSumGluing f₁ f₂ hδ hδε h)
 
+theorem symplecticForm_def :
+    symplecticForm f₁ f₂ hδ hδε h =
+      GluedAlong.gluedForm _ (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ₁)
+        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ₂)
+        (mpullback_fiberSumGluing f₁ f₂ hδ hδε h) :=
+  (rfl)
+
 /-- The symplectic form of the fiber sum pulls back by `inl` to the restriction of `σ₁` to the
 complement of the tube in `M₁`. -/
 @[simp]
@@ -445,6 +452,18 @@ theorem mpullback_inr_symplecticForm :
       SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ₂ :=
   GluedAlong.mpullback_inr_gluedForm
 
+/-- A two-form on the fiber sum is its symplectic form exactly when it pulls back by `inl` and
+`inr` to the restrictions of `σ₁` and `σ₂` to the complements of the tubes. -/
+theorem eq_symplecticForm_iff {α : SmoothTwoForm I (FiberSum f₁ f₂ hδ hδε)} :
+    α = symplecticForm f₁ f₂ hδ hδε h ↔
+      SmoothForm.mpullback (GluedAlong.inl (fiberSumGluing f₁ f₂ hδ hδε))
+          (GluedAlong.isLocalDiffeomorph_inl _).contMDiff α =
+        SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ₁ ∧
+      SmoothForm.mpullback (GluedAlong.inr (fiberSumGluing f₁ f₂ hδ hδε))
+          (GluedAlong.isLocalDiffeomorph_inr _).contMDiff α =
+        SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ₂ :=
+  GluedAlong.eq_gluedForm_iff
+
 /-- For symplectic `σ₁` and `σ₂`, the symplectic form of the fiber sum is symplectic. -/
 theorem isSymplectic_symplecticForm (hω₁ : σ₁.IsSymplectic) (hω₂ : σ₂.IsSymplectic) :
     (symplecticForm f₁ f₂ hδ hδε h).IsSymplectic :=
@@ -462,9 +481,9 @@ compact Hausdorff manifold `Q` without boundary, that pull `σ₁` and `σ₂` b
 `τ`, and let `Φ₁` and `Φ₂` be symplectic framings of their normal bundles. Then there is
 `ε₀ > 0` such that for every `0 < ε < ε₀` both framings have product neighbourhoods of radius
 `ε`, and for all product neighbourhoods `f₁`, `f₂` of radius `ε` and every `0 < δ < ε` the fiber
-sum `FiberSum f₁ f₂ hδ hδε` is a Hausdorff smooth manifold with a symplectic form that pulls back
-by `inl` and `inr` to the restrictions of `σ₁` and `σ₂` to the complements of the closed tubes of
-radius `δ`.
+sum `FiberSum f₁ f₂ hδ hδε` is a Hausdorff, second countable smooth manifold with a symplectic
+form that pulls back by `inl` and `inr` to the restrictions of `σ₁` and `σ₂` to the complements
+of the closed tubes of radius `δ`.
 
 Milestone: *Symplectic fibre connected sum with trivial normal bundles*. -/
 theorem exists_isSymplectic_fiberSum [J.Boundaryless] [I.Boundaryless] [T2Space Q]
@@ -483,7 +502,8 @@ theorem exists_isSymplectic_fiberSum [J.Boundaryless] [I.Boundaryless] [T2Space 
       Nonempty (ProductNeighborhood Φ₁ ε) ∧ Nonempty (ProductNeighborhood Φ₂ ε) ∧
       ∀ (f₁ : ProductNeighborhood Φ₁ ε) (f₂ : ProductNeighborhood Φ₂ ε) (δ : ℝ) (hδ : 0 < δ)
         (hδε : δ < ε),
-        T2Space (FiberSum f₁ f₂ hδ.le hδε) ∧ IsManifold I ∞ (FiberSum f₁ f₂ hδ.le hδε) ∧
+        T2Space (FiberSum f₁ f₂ hδ.le hδε) ∧ SecondCountableTopology (FiberSum f₁ f₂ hδ.le hδε) ∧
+        IsManifold I ∞ (FiberSum f₁ f₂ hδ.le hδε) ∧
         ∃ α : SmoothTwoForm I (FiberSum f₁ f₂ hδ.le hδε), α.IsSymplectic ∧
           SmoothForm.mpullback (GluedAlong.inl (fiberSumGluing f₁ f₂ hδ.le hδε))
               (GluedAlong.isLocalDiffeomorph_inl _).contMDiff α =
@@ -494,7 +514,8 @@ theorem exists_isSymplectic_fiberSum [J.Boundaryless] [I.Boundaryless] [T2Space 
   obtain ⟨ε₁, hε₁, hf₁⟩ := ProductNeighborhood.exists hσ₁ Φ₁
   obtain ⟨ε₂, hε₂, hf₂⟩ := ProductNeighborhood.exists hσ₂ Φ₂
   refine ⟨min ε₁ ε₂, lt_min hε₁ hε₂, fun ε _ hε ↦ ⟨hf₁ ε (hε.le.trans (min_le_left _ _)),
-    hf₂ ε (hε.le.trans (min_le_right _ _)), fun f₁ f₂ δ hδ hδε ↦ ⟨inferInstance, inferInstance,
+    hf₂ ε (hε.le.trans (min_le_right _ _)), fun f₁ f₂ δ hδ hδε ↦
+      ⟨inferInstance, inferInstance, inferInstance,
       FiberSum.symplecticForm f₁ f₂ hδ.le hδε (h₁.trans h₂.symm),
       FiberSum.isSymplectic_symplecticForm _ hσ₁ hσ₂, FiberSum.mpullback_inl_symplecticForm _,
       FiberSum.mpullback_inr_symplecticForm _⟩⟩⟩

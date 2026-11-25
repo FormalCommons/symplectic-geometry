@@ -273,7 +273,8 @@ About 250 lines.
   embeddings $\iota_i$ with $\iota_i^*\omega_i=\tau$ and symplectic framings
   `Φᵢ`, there is $\varepsilon_0>0$ such that for $0<\varepsilon<\varepsilon_0$
   product neighbourhoods $f_i$ exist, and for every such $f_i$ and
-  $0<\delta<\varepsilon$ the fibre sum is a Hausdorff manifold with a
+  $0<\delta<\varepsilon$ the fibre sum is a Hausdorff, second countable
+  manifold with a
   symplectic form restricting to $\omega_i$ on the two complements.
   Milestone: *Symplectic fibre connected sum with trivial normal bundles*.
 
