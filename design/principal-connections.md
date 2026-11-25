@@ -139,7 +139,7 @@ This file corrects part 50 of `DESIGN.md` in the same pull request:
   with `Basic.lean` (connection forms, horizontal spaces, the affine
   structure), `Existence.lean` and `Curvature.lean`,
   so that three issues do not write one file. The comparison of curvatures
-  with the circle case is in `Circle.lean`.
+  with the circle case is in `Connection/Circle.lean`.
 - The curvature is `connectionCurvature A`, defined for every
   $\mathfrak g$-valued one-form, rather than a declaration named
   `curvature`: it needs no proof that $A$ is a connection form, and a bare
