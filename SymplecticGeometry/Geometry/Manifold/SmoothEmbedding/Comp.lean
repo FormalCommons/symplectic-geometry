@@ -18,8 +18,9 @@ is an immersion: its differential `dg ∘ df` has a continuous linear left inver
 of those of `dg` and `df` (`Manifold.IsDiffImmersionAt.comp`), so it is an immersion at every
 point by Tau Ceti's `ContMDiffOn.isImmersionAt_of_hasLeftInverse_mfderiv`, hence an immersion
 (`TauCeti.isImmersion_iff_forall_isImmersionAt`). The models of the three manifolds may differ.
-The proof follows that of Tau Ceti's `Diffeomorph.isImmersion_comp`, with the second map an
-immersion instead of a diffeomorphism.
+The proof follows that of Tau Ceti's `ContMDiff.isImmersion_of_isImmersion_comp`, composing the
+left inverses of the differentials (`Manifold.IsDiffImmersionAt.comp`) where that proof cancels
+one (`Manifold.IsDiffImmersionAt.of_comp`).
 
 ## Main results
 

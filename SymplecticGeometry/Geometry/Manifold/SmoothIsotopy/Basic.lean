@@ -121,16 +121,16 @@ variable {E'' H'' : Type*} [NormedAddCommGroup E''] [NormedSpace ℝ E''] [Finit
 smooth embedding `e : M → Q`, `1 ≤ n`, into a boundaryless manifold with a finite-dimensional
 model: the isotopy `(t, x) ↦ e (F (t, x))`. Its endpoints are given as bundled maps `g₀`, `g₁`
 that agree with `e ∘ f₀` and `e ∘ f₁`. -/
-def postcompSmoothEmbedding (F : SmoothIsotopy f₀ f₁) (e : C^n⟮I, M; K, Q⟯)
+def postcompSmoothEmbedding (F : SmoothIsotopy f₀ f₁) (e : M → Q)
     (he : Manifold.IsSmoothEmbedding I K n e) (hn : 1 ≤ n) (g₀ g₁ : C^n⟮J, P; K, Q⟯)
     (hg₀ : ∀ x, g₀ x = e (f₀ x)) (hg₁ : ∀ x, g₁ x = e (f₁ x)) : SmoothIsotopy g₀ g₁ where
-  toContMDiffMap := e.comp F.toContMDiffMap
+  toContMDiffMap := ⟨fun p ↦ e (F p), he.contMDiff.comp F.contMDiff⟩
   map_zero_left x := (congrArg e (F.apply_zero x)).trans (hg₀ x).symm
   map_one_left x := (congrArg e (F.apply_one x)).trans (hg₁ x).symm
   isSmoothEmbedding t := he.comp_of_boundaryless (F.isSmoothEmbedding t) hn
 
 @[simp]
-theorem postcompSmoothEmbedding_apply (F : SmoothIsotopy f₀ f₁) (e : C^n⟮I, M; K, Q⟯)
+theorem postcompSmoothEmbedding_apply (F : SmoothIsotopy f₀ f₁) (e : M → Q)
     (he : Manifold.IsSmoothEmbedding I K n e) (hn : 1 ≤ n) (g₀ g₁ : C^n⟮J, P; K, Q⟯)
     (hg₀ : ∀ x, g₀ x = e (f₀ x)) (hg₁ : ∀ x, g₁ x = e (f₁ x)) (p : unitInterval × P) :
     F.postcompSmoothEmbedding e he hn g₀ g₁ hg₀ hg₁ p = e (F p) :=
