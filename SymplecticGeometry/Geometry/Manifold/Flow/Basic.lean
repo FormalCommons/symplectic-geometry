@@ -6,11 +6,14 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Algebra.LieGroup
+public import Mathlib.Geometry.Manifold.Instances.Icc
+public import TauCeti.Geometry.Manifold.Algebra.SMul
 public import TauCeti.Geometry.Manifold.ContMDiff.Prod
 public import TauCeti.Geometry.Manifold.Flow.Basic
+public import TauCeti.Geometry.Manifold.Flow.Diffeomorph
 
 /-!
-# Maximal flows: differentials of the time maps, and integral curves
+# Maximal flows: time-map differentials, integral curves, equivariance, translation
 
 Let `v` be a `C¹` vector field on a Hausdorff boundaryless manifold modelled on a complete space,
 with maximal flow `φ` (`TauCeti.flowOf`). If time `t` is defined at `x`, the differentials
@@ -39,6 +42,12 @@ Ceti's chain rule for the time maps, `TauCeti.mfderiv_flowOf_add_apply`, and
   are integral curves on `(a, b)`, then near each point of `(a, b) × S` the map `Φ` is the flow
   out of its slice at some `t₀ ∈ (a, b)`, run for time `t - t₀`; so `Φ` is `C^n` there when the
   field and that slice are, by Tau Ceti's `TauCeti.contMDiffAt_flowOf_comp`.
+* `TauCeti.smul_flowOf`: the maximal flow of a `C¹` field invariant under a `C¹` group action
+  commutes with the action; this is Tau Ceti's `Diffeomorph.apply_flowOf` for
+  `Diffeomorph.constSmul`.
+* `TauCeti.apply_flowOf_eq_add`: if `df(v) = 1` on a set `W`, then `f (φ_t x) = f x + t` as long
+  as the trajectory from time `0` to time `t` stays in `W`, by Tau Ceti's
+  `TauCeti.hasDerivAt_comp_flowOf` and the mean value inequality.
 -/
 
 public section
@@ -176,6 +185,52 @@ theorem contMDiffAt_of_isMIntegralCurveOn [CompleteSpace E] [T2Space M] [IsManif
     (eventuallyEq_flowOf_sub_of_isMIntegralCurveOn (hv.of_le (mod_cast hn)) hΦ ht₀ ht s)
 
 end IntegralCurve
+
+section Translation
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [T2Space M]
+  [IsManifold I 1 M] [BoundarylessManifold I M] {v : (x : M) → TangentSpace I x}
+
+/-- **Equivariance of flows.** The maximal flow of a `C¹` vector field `v` that is invariant under
+a `C¹` group action (the differential of each `g • ·` carries `v x` to `v (g • x)`) commutes
+with the action. -/
+theorem smul_flowOf {G : Type*} [Group G] [MulAction G M] [ContMDiffConstSMul I 1 G M]
+    (hv : ContMDiff I I.tangent 1 (fun x ↦ (⟨x, v x⟩ : TangentBundle I M)))
+    (hinv : ∀ (g : G) (x : M), mfderiv I I (g • ·) x (v x) = v (g • x)) (g : G) (t : ℝ)
+    (x : M) :
+    g • flowOf v t x = flowOf v t (g • x) := by
+  simpa [Diffeomorph.coe_constSmul] using (Diffeomorph.constSmul I 1 g).apply_flowOf one_ne_zero
+    hv (by rw [Diffeomorph.coe_constSmul]; exact hinv g) t x
+
+/-- If a `C¹` vector field `v` satisfies `df(v) = 1` on a set `W`, then
+`f (φ_t x) = f x + t` for the maximal flow `φ` of `v`, whenever `(t, x)` is in the flow domain
+and the trajectory from time `0` to time `t` stays in `W`. -/
+theorem apply_flowOf_eq_add
+    (hv : ContMDiff I I.tangent 1 (fun x ↦ (⟨x, v x⟩ : TangentBundle I M)))
+    {f : M → ℝ} {W : Set M} (hfv : ∀ y ∈ W, mfderiv I 𝓘(ℝ) f y (v y) = 1) {t : ℝ} {x : M}
+    (ht : (t, x) ∈ flowDomain v) (htW : ∀ s ∈ uIcc 0 t, flowOf v s x ∈ W) :
+    f (flowOf v t x) = f x + t := by
+  -- `df(v) = 1 ≠ 0` on `W`, so `f` is differentiable there.
+  have hf (y : M) (hy : y ∈ W) : MDifferentiableAt I 𝓘(ℝ) f y :=
+    mdifferentiableAt_of_mvfderiv_apply_ne_zero (v := v y) (by
+      rw [mvfderiv_apply_eq_mfderiv_apply, hfv y hy]
+      exact one_ne_zero)
+  have hderiv : ∀ s ∈ uIcc 0 t,
+      HasDerivWithinAt (fun s ↦ f (flowOf v s x) - s) 0 (uIcc 0 t) s := by
+    intro s hs
+    have hd := hasDerivAt_comp_flowOf hv (uIcc_subset_setOf_mem_flowDomain ht hs)
+      (hf _ (htW s hs))
+    rw [mvfderiv_apply_eq_mfderiv_apply, hfv _ (htW s hs)] at hd
+    have hd' : HasDerivAt (fun s ↦ f (flowOf v s x) - s) (1 - 1) s := hd.sub (hasDerivAt_id' s)
+    rw [sub_self] at hd'
+    exact hd'.hasDerivWithinAt
+  have h := (convex_uIcc 0 t).norm_image_sub_le_of_norm_hasDerivWithin_le hderiv
+    (fun _ _ ↦ by simp : ∀ s ∈ uIcc 0 t, ‖(0 : ℝ)‖ ≤ 0) left_mem_uIcc right_mem_uIcc
+  rw [zero_mul, norm_le_zero_iff, flowOf_zero] at h
+  linarith
+
+end Translation
 
 end TauCeti
 

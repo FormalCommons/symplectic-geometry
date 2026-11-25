@@ -27,9 +27,10 @@ The file has the path of Tau Ceti's `Geometry/Manifold/VectorBundle/ZeroSection.
 splits the tangent spaces along the zero section. The zero section as an embedding is the
 library's own definition, in `SymplecticGeometry.Bundle`. Of the other lemmas,
 `isClosed_range_zeroSection`, about Mathlib's notions alone, and
-`mfderiv_zeroSectionTangentEquiv_symm_inl`, about Tau Ceti's splitting, are in Tau Ceti's
-namespace `TauCeti.Bundle`, and `extChartAt_symm_apply_zero_of_mem_baseSet`, about the charts of
-the total space, in Mathlib's namespace `Bundle`.
+`zeroSectionTangentEquiv_symm_inl` and `mfderiv_zeroSectionTangentEquiv_symm_inl`, about Tau
+Ceti's splitting, are in Tau Ceti's namespace `TauCeti.Bundle`, and
+`extChartAt_symm_apply_zero_of_mem_baseSet`, about the charts of the total space, in Mathlib's
+namespace `Bundle`.
 
 ## Main definitions
 
@@ -42,6 +43,9 @@ the total space, in Mathlib's namespace `Bundle`.
   total space is Hausdorff.
 * `Bundle.extChartAt_symm_apply_zero_of_mem_baseSet`: the inverse of the preferred chart of the
   total space sends `(y, 0)` to the zero vector over the base point with coordinate `y`.
+* `TauCeti.Bundle.zeroSectionTangentEquiv_symm_inl`: the inverse of Tau Ceti's splitting sends
+  the horizontal vector `(u, 0)` at `b` to the image of `u` under the differential of the zero
+  section.
 * `TauCeti.Bundle.mfderiv_zeroSectionTangentEquiv_symm_inl`: a map on the total space that agrees
   with a map `g` on the zero section near `b` has, at `0_b`, a differential that sends the
   horizontal vector `(u, 0)` of Tau Ceti's splitting to `dg u`.
@@ -131,6 +135,13 @@ variable {𝕜 F EB HB EM HM M : Type*} [NontriviallyNormedField 𝕜] {V : B �
   [NormedAddCommGroup EM] [NormedSpace 𝕜 EM] [TopologicalSpace HM]
   {IM : ModelWithCorners 𝕜 EM HM} [TopologicalSpace M] [ChartedSpace HM M]
 
+/-- The splitting `zeroSectionTangentEquiv b` sends the horizontal vector `(u, 0)` back to the
+image of `u` under the differential of the zero section at `b`. -/
+theorem zeroSectionTangentEquiv_symm_inl (b : B) (u : TangentSpace IB b) :
+    (zeroSectionTangentEquiv (I := IB) b).symm (u, 0) =
+      mfderiv IB (IB.prod 𝓘(𝕜, F)) (zeroSection F V) b u := by
+  rw [zeroSectionTangentEquiv_symm_eq, Prod.mk_zero_zero, map_zero, add_zero]
+
 /-- Let `f` be a map on the total space, differentiable at the zero vector `0_b`, which agrees with
 a map `g` on the zero section near `b`. Then the differential of `f` at `0_b` sends the horizontal
 vector `(u, 0)` of the splitting `zeroSectionTangentEquiv b` to `dg u`. -/
@@ -139,7 +150,7 @@ theorem mfderiv_zeroSectionTangentEquiv_symm_inl {f : TotalSpace F V → M} {g :
     (hfg : f ∘ zeroSection F V =ᶠ[𝓝 b] g) (u : TangentSpace IB b) :
     mfderiv (IB.prod 𝓘(𝕜, F)) IM f (zeroSection F V b)
         ((zeroSectionTangentEquiv (I := IB) b).symm (u, 0)) = mfderiv IB IM g b u := by
-  rw [zeroSectionTangentEquiv_symm_eq, Prod.mk_zero_zero, map_zero, add_zero,
+  rw [zeroSectionTangentEquiv_symm_inl,
     ← mfderiv_comp_apply b hf (mdifferentiableAt_zeroSection 𝕜 V), hfg.mfderiv_eq,
     ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe]
   exact eq_of_heq (heq_tangentSpaceCast hfg.eq_of_nhds.symm _)
