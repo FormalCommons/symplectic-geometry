@@ -11,7 +11,7 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connect
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Existence
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
-import SymplecticGeometry.LinearAlgebra.FiniteDimensional.LinearMapExt
+import SymplecticGeometry.LinearAlgebra.FiniteDimensional.FinrankOne
 
 /-!
 # Circle connection forms as Lie-algebra-valued connection forms

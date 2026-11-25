@@ -7,7 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.Circle
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.Critical
-import SymplecticGeometry.LinearAlgebra.FiniteDimensional.LinearMapExt
+import SymplecticGeometry.LinearAlgebra.FiniteDimensional.FinrankOne
 
 /-!
 # Critical points of a circle moment map

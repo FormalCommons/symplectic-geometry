@@ -17,7 +17,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContM
 public import SymplecticGeometry.GroupTheory.GroupAction.FixedPoints
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.ReducedForm
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
-import SymplecticGeometry.LinearAlgebra.FiniteDimensional.LinearMapExt
+import SymplecticGeometry.LinearAlgebra.FiniteDimensional.FinrankOne
 
 /-!
 # The converse of minimal coupling
