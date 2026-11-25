@@ -9,6 +9,8 @@ public import TauCeti.AlgebraicTopology.Cohomology.MayerVietoris.Basic
 public import TauCeti.Geometry.Manifold.DeRham.MayerVietoris
 public import TauCeti.Geometry.Manifold.SmoothSingular.DeRham
 public import TauCeti.Geometry.Manifold.SmoothSingular.MayerVietoris
+public import TauCeti.Geometry.Manifold.SmoothSingular.SingularCohomology
+public import SymplecticGeometry.Geometry.Manifold.SmoothSingular.MayerVietorisCochain
 
 /-!
 # Integration and the Mayer–Vietoris sequences
@@ -35,6 +37,16 @@ Mayer–Vietoris connecting map `TauCeti.deRhamCohomology.mayerVietorisδ` with 
 Mayer–Vietoris connecting map `SSet.mayerVietorisCochainδ`, with sign `+1`
 (`TauCeti.deRhamCohomology.ofHom_mayerVietorisδ_comp_homologyMap_deRhamIntegration`).
 
+When `U ⊔ V = ⊤`, combining this with the comparison of the singular Mayer–Vietoris connecting map
+`TopCat.singularCohomologyMayerVietorisδ` with the cochain one
+(`TauCeti.singularCohomologyMayerVietorisδ_comp_homologyMap_smallSmoothSingularSubcomplex_ι`) and
+with `TauCeti.homologyMap_cochainComplexMap_deRhamHom` (on smooth simplices, the de Rham
+homomorphism `TauCeti.deRhamHom` is integration) shows that `TauCeti.deRhamHom` intertwines the de
+Rham and the singular Mayer–Vietoris connecting maps, with sign `+1`
+(`TauCeti.deRhamHom_mayerVietorisδ`). Both sides are compared after restriction to the smooth
+simplices lying in `U` or in `V`, which is injective on singular cohomology by the smoothing
+theorem and the theorem on small simplices (`TauCeti.smallSmoothSingularCohomologyIso`).
+
 The map `TauCeti.smallSmoothSingularSubcomplexToSup`, the lemma that it lands in the range of
 `U ⊔ V`, `TauCeti.smallSmoothSingularSubcomplexToSup_smoothSingularSubcomplexMap` and
 `TauCeti.toSmallSmoothSingularSubcomplex_smallSmoothSingularSubcomplexToSup` adapt Tau Ceti's
@@ -54,6 +66,8 @@ integration follow Tau Ceti's `TauCeti.smoothMayerVietorisδ_ι` and
   Mayer–Vietoris sequence to the cochain Mayer–Vietoris sequence of small smooth simplices.
 * `TauCeti.deRhamCohomology.ofHom_mayerVietorisδ_comp_homologyMap_deRhamIntegration`: integration
   commutes with the two Mayer–Vietoris connecting maps.
+* `TauCeti.deRhamHom_mayerVietorisδ`: the de Rham homomorphism commutes with the de Rham and the
+  singular Mayer–Vietoris connecting maps.
 
 ## References
 
@@ -70,10 +84,12 @@ open scoped Manifold ContDiff
 
 namespace TauCeti
 
+universe u v w
+
 section Simplices
 
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  (I : ModelWithCorners ℝ E H) {M : Type u} [TopologicalSpace M] [ChartedSpace H M]
 
 open SSet.Subcomplex
 
@@ -163,6 +179,33 @@ theorem toSmallSmoothSingularSubcomplex_smallSmoothSingularSubcomplexToSup_right
       (contMDiff_inclusion (I := I) _) :=
   toSmallSmoothSingularSubcomplex_smallSmoothSingularSubcomplexToSup I U V le_sup_right _
 
+section Cohomology
+
+variable {C : Type v} [Category.{w} C] [HasCoproducts.{u} C] [Abelian C] (R : C)
+  (k : Type*) [Ring k] [Linear k C] (Y : C)
+
+/-- Restricting singular cochains of `M` to `U ⊔ V`, then to its smooth simplices, then to the
+smooth simplices of `M` lying in `U` or in `V`, is restriction to the smooth simplices of `M` lying
+in `U` or in `V`. -/
+@[reassoc]
+theorem singularCohomologyMap_subtypeVal_comp_smallSmoothSingularSubcomplexToSup
+    (U V : Opens M) (n : ℕ) :
+    TopCat.singularCohomologyMap (R := R) (k := k) (M := Y)
+        (TopCat.ofHom (ContinuousMap.subtypeVal ((U ⊔ V : Opens M) : Set M))) n ≫
+      HomologicalComplex.homologyMap (SSet.cochainComplexMap
+        (smoothSingularSubcomplex I (U ⊔ V : Opens M)).ι) n ≫
+      HomologicalComplex.homologyMap
+        (SSet.cochainComplexMap (smallSmoothSingularSubcomplexToSup I U V)) n =
+    HomologicalComplex.homologyMap (SSet.cochainComplexMap
+      (smallSmoothSingularSubcomplex I ![(U : Set M), (V : Set M)]).ι) n := by
+  rw [TopCat.singularCohomologyMap, TopCat.singularCochainComplexMap,
+    ← HomologicalComplex.homologyMap_comp, ← HomologicalComplex.homologyMap_comp,
+    ← SSet.cochainComplexMap_comp, ← SSet.cochainComplexMap_comp,
+    Category.assoc, ← smoothSingularSubcomplexMap_subtypeVal_ι,
+    smallSmoothSingularSubcomplexToSup_smoothSingularSubcomplexMap_assoc, homOfLE_ι]
+
+end Cohomology
+
 end Simplices
 
 variable {E H : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
@@ -245,5 +288,63 @@ theorem ofHom_mayerVietorisδ_comp_homologyMap_deRhamIntegration (U V : Opens M)
     _ _ n (n + 1) rfl
 
 end deRhamCohomology
+
+section Singular
+
+variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M]
+  {U V : Opens M} [SigmaCompactSpace (U ⊓ V : Opens M)]
+  [SigmaCompactSpace (U ⊔ V : Opens M)]
+
+/-- **The de Rham homomorphism commutes with the Mayer–Vietoris connecting maps.** Let `U` and `V`
+be open sets covering `M`. For a de Rham class `c` of `U ⊓ V` in degree `n`, the de Rham
+homomorphism of `U ⊔ V` sends the de Rham connecting map of `c` to the pullback along the
+inclusion `U ⊔ V → M`, a homeomorphism, of the singular Mayer–Vietoris connecting map, with real
+coefficients, of the de Rham homomorphism of `c`. The sign is `+1`.
+
+The instance hypotheses on `U ⊓ V` and `U ⊔ V` always hold, by
+`TauCeti.Manifold.sigmaCompactSpace_opens`. -/
+theorem deRhamHom_mayerVietorisδ (hUV : U ⊔ V = ⊤) (n : ℕ)
+    (c : deRhamCohomology I (U ⊓ V : Opens M) n) :
+    deRhamHom I (U ⊔ V : Opens M) (n + 1) (deRhamCohomology.mayerVietorisδ I U V n c) =
+      TopCat.singularCohomologyMap
+        (TopCat.ofHom (ContinuousMap.subtypeVal ((U ⊔ V : Opens M) : Set M))) (n + 1)
+        (TopCat.singularCohomologyMayerVietorisδ (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ)
+          U.isOpen V.isOpen (by rw [← Opens.coe_sup, hUV, Opens.coe_top]) n (n + 1) rfl
+          (deRhamHom I (U ⊓ V : Opens M) n c)) := by
+  -- Restriction to the smooth simplices of `M` lying in `U` or in `V` is injective on cohomology.
+  have hcov : ⋃ i, ![(U : Set M), (V : Set M)] i = Set.univ := by
+    rw [Set.iUnion_vecCons_pair, ← Opens.coe_sup, hUV, Opens.coe_top]
+  let e := smallSmoothSingularCohomologyIso I (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) _
+    (U.isOpen.vecCons V.isOpen) hcov (n + 1)
+  -- Every class of `U ⊔ V` is pulled back from `M`, along the inverse of the inclusion.
+  let g : TopCat.of M ⟶ TopCat.of (U ⊔ V : Opens M) :=
+    TopCat.ofHom ⟨fun x ↦ ⟨x, by simp [hUV]⟩, by fun_prop⟩
+  have hg : TopCat.ofHom (ContinuousMap.subtypeVal ((U ⊔ V : Opens M) : Set M)) ≫ g = 𝟙 _ := by
+    -- Both sides send a point `x` of `U ⊔ V` to `x`, as points of the subtype.
+    ext; rfl
+  have hsurj (x : (TopCat.of (U ⊔ V : Opens M)).singularCohomology (ModuleCat.of ℝ ℝ) ℝ
+      (ModuleCat.of ℝ ℝ) (n + 1)) : TopCat.singularCohomologyMap
+      (TopCat.ofHom (ContinuousMap.subtypeVal ((U ⊔ V : Opens M) : Set M))) (n + 1)
+      (TopCat.singularCohomologyMap g (n + 1) x) = x := by
+    rw [← ConcreteCategory.comp_apply, ← TopCat.singularCohomologyMap_comp, hg,
+      TopCat.singularCohomologyMap_id]
+    exact ModuleCat.id_apply _ x
+  rw [← hsurj (deRhamHom _ _ _ _)]
+  congr 1
+  apply e.toLinearEquiv.injective
+  simp only [Iso.toLinearEquiv_apply, e, smallSmoothSingularCohomologyIso_hom]
+  have h1 := ConcreteCategory.congr_hom
+    (deRhamCohomology.ofHom_mayerVietorisδ_comp_homologyMap_deRhamIntegration I U V n) c
+  have h2 := ConcreteCategory.congr_hom
+    (singularCohomologyMayerVietorisδ_comp_homologyMap_smallSmoothSingularSubcomplex_ι I
+      (ModuleCat.of ℝ ℝ) ℝ (ModuleCat.of ℝ ℝ) hUV n (n + 1))
+      (deRhamHom I (U ⊓ V : Opens M) n c)
+  simp only [ConcreteCategory.comp_apply, deRhamCohomology.homologyMap_deRhamIntegration,
+    ModuleCat.hom_ofHom, homologyMap_cochainComplexMap_deRhamHom] at h1 h2 ⊢
+  rw [h2, ← h1, ← singularCohomologyMap_subtypeVal_comp_smallSmoothSingularSubcomplexToSup]
+  simp only [ConcreteCategory.comp_apply]
+  rw [hsurj, homologyMap_cochainComplexMap_deRhamHom]
+
+end Singular
 
 end TauCeti
