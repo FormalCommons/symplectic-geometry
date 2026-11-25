@@ -28,6 +28,7 @@ the punctured summands and identifies it with the overlap.
 
 * `TauCeti.ConnectedSum.inl_neckInl_eq_inr_neckInr`: the two maps of the neck agree in the
   connected sum.
+* `TauCeti.ConnectedSum.isEmbedding_neckInl`: the first map of the neck is an embedding.
 
 The homeomorphism `neckHomeomorph` combines the embedding of the neck and the computation of its
 range that Tau Ceti's `TauCeti/Geometry/Manifold/ConnectedSum/FundamentalGroup.lean` makes as
@@ -59,6 +60,11 @@ theorem coe_neckInl_apply (h₁ : IsOpenEmbedding e₁) (v : ({0}ᶜ : Set E)) :
     (neckInl h₁ v : M) = e₁ v :=
   (rfl)
 
+/-- The map `neckInl` from the punctured model space to the first punctured summand is an
+embedding. -/
+theorem isEmbedding_neckInl (h₁ : IsOpenEmbedding e₁) : IsEmbedding (neckInl h₁) :=
+  IsEmbedding.subtypeVal.of_comp_iff.mp (h₁.isEmbedding.comp IsEmbedding.subtypeVal)
+
 variable [InnerProductSpace ℝ E]
 
 /-- The map `v ↦ e₂ (inversion 0 1 v)` from the punctured model space to the second punctured
@@ -84,8 +90,7 @@ punctured model space `{0}ᶜ ⊆ E` is homeomorphic, by `v ↦ inl (neckInl v)`
 noncomputable def neckHomeomorph (h₁ : IsOpenEmbedding e₁) (h₂ : IsOpenEmbedding e₂) :
     ({0}ᶜ : Set E) ≃ₜ (range (inl e₁ e₂) ∩ range (inr e₁ e₂) : Set (ConnectedSum e₁ e₂)) :=
   have he : IsEmbedding (inl e₁ e₂ ∘ neckInl h₁) :=
-    (isOpenEmbedding_inl h₁ h₂).isEmbedding.comp
-      (IsEmbedding.subtypeVal.of_comp_iff.mp (h₁.isEmbedding.comp IsEmbedding.subtypeVal))
+    (isOpenEmbedding_inl h₁ h₂).isEmbedding.comp (isEmbedding_neckInl h₁)
   he.toHomeomorph.trans <| Homeomorph.setCongr <| by
     ext z
     constructor
@@ -100,6 +105,29 @@ theorem coe_neckHomeomorph_apply (h₁ : IsOpenEmbedding e₁) (h₂ : IsOpenEmb
     (v : ({0}ᶜ : Set E)) :
     (neckHomeomorph h₁ h₂ v : ConnectedSum e₁ e₂) = inl e₁ e₂ (neckInl h₁ v) :=
   (rfl)
+
+/-- The homeomorphism `neckHomeomorph` sends `v` to `inr (neckInr v)`. -/
+theorem coe_neckHomeomorph_apply_eq_inr (h₁ : IsOpenEmbedding e₁) (h₂ : IsOpenEmbedding e₂)
+    (v : ({0}ᶜ : Set E)) :
+    (neckHomeomorph h₁ h₂ v : ConnectedSum e₁ e₂) = inr e₁ e₂ (neckInr h₂ v) :=
+  inl_neckInl_eq_inr_neckInr h₁ h₂ v
+
+/-- The inverse of `neckHomeomorph`, followed by `v ↦ inl (neckInl v)`, is the inclusion of the
+overlap. -/
+@[simp]
+theorem inl_neckInl_neckHomeomorph_symm_apply (h₁ : IsOpenEmbedding e₁)
+    (h₂ : IsOpenEmbedding e₂) (z : (range (inl e₁ e₂) ∩ range (inr e₁ e₂) : Set _)) :
+    inl e₁ e₂ (neckInl h₁ ((neckHomeomorph h₁ h₂).symm z)) = z :=
+  (coe_neckHomeomorph_apply h₁ h₂ _).symm.trans
+    (congrArg Subtype.val ((neckHomeomorph h₁ h₂).apply_symm_apply z))
+
+/-- The inverse of `neckHomeomorph`, followed by `v ↦ inr (neckInr v)`, is the inclusion of the
+overlap. -/
+@[simp]
+theorem inr_neckInr_neckHomeomorph_symm_apply (h₁ : IsOpenEmbedding e₁)
+    (h₂ : IsOpenEmbedding e₂) (z : (range (inl e₁ e₂) ∩ range (inr e₁ e₂) : Set _)) :
+    inr e₁ e₂ (neckInr h₂ ((neckHomeomorph h₁ h₂).symm z)) = z :=
+  (inl_neckInl_eq_inr_neckInr h₁ h₂ _).symm.trans (inl_neckInl_neckHomeomorph_symm_apply h₁ h₂ z)
 
 end TauCeti.ConnectedSum
 

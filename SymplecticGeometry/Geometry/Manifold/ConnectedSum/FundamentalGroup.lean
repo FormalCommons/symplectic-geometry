@@ -114,8 +114,7 @@ theorem isPushout_fundamentalGroup (h : 1 < Module.rank ℝ E) (h₁ : IsOpenEmb
     have : PathConnectedSpace ({0}ᶜ : Set E) :=
       isPathConnected_iff_pathConnectedSpace.mp
         (isPathConnected_compl_singleton_of_one_lt_rank h 0)
-    exact isPathConnected_iff_pathConnectedSpace.mpr
-      (σ₀.surjective.pathConnectedSpace σ₀.continuous)
+    exact isPathConnected_iff_pathConnectedSpace.mpr σ₀.pathConnectedSpace
   let σ₁ := (isOpenEmbedding_inl h₁ h₂).isEmbedding.toHomeomorph
   let σ₂ := (isOpenEmbedding_inr h₁ h₂).isEmbedding.toHomeomorph
   have h₀ : σ₀ v = ⟨x, hxA, hxB⟩ := Subtype.ext (coe_neckHomeomorph_apply h₁ h₂ v)
@@ -143,7 +142,7 @@ theorem isPushout_fundamentalGroup (h : 1 < Module.rank ℝ E) (h₁ : IsOpenEmb
     ext w
     first
     | rfl
-    | simp [σ₀, σ₁, σ₂, inl_neckInl_eq_inr_neckInr h₁ h₂ w]
+    | simp [σ₀, σ₁, σ₂, ← coe_neckHomeomorph_apply_eq_inr h₁ h₂ w]
 
 end VanKampen
 
