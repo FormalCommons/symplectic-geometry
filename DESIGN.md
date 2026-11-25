@@ -3758,25 +3758,29 @@ For §7.1 of `atlas/constructing-symplectic-manifolds.md`.
 - **Files:** in `Geometry/Symplectic/Blowup/`: `Model.lean`
   ($\tilde\omega_\lambda=\pi^*\omega_0+\lambda^2\mathrm{pr}^*\omega_{\mathrm{FS}}$
   on $\widetilde{\mathbb C}^n$, Kähler for the complex structure of
-  *Complex blowup*; for a radial profile $f$ with $f'>0$, $F^*\omega_0$ is
+  *Complex blowup*; with `Geometry/Symplectic/Complex/Radial.lean`, for a
+  radial profile $f$ with $f'>0$, $F^*\omega_0$ is
   Kähler on $\mathbb C^n\setminus0$, through the potential of
   `Dolbeault/Potential.lean`; $\pi^*F_\lambda^*\omega_0=\tilde\omega_\lambda$
   off $Z$, so $L(\varepsilon)\setminus Z$ is symplectomorphic to a shell),
   `Profile.lean` (the smooth family of profiles and the forms
-  $\tilde\omega_{\lambda,\varepsilon}$; the area identity for holomorphic
-  curves through their lifts, by Stokes and the limit of the integral of
-  $\alpha_{\mathrm{FS}}$ around a zero of order $m$), `Weight.lean` (the
+  $\tilde\omega_{\lambda,\varepsilon}$), `Area.lean` (the area identity
+  for holomorphic curves through their lifts, by Stokes and the limit of
+  the integral of $\alpha_{\mathrm{FS}}$ around a zero of order $m$),
+  `Weight/Basic.lean` and `Weight/Collapse.lean` (the
   blowup $\widetilde M_\psi$ of (7.1.14) glued with Tau Ceti's
   `Geometry/Manifold/Gluing/`, its form, the divisor
   $(\mathbb CP^{n-1},\lambda^2\omega_{\mathrm{FS}})$ with normal bundle $L$,
   the description as the complement of the open ball with Hopf circles of
   the boundary collapsed, with *Complex projective space*'s
-  `Projectivization/Hopf.lean`, and the drop of volume), `Blowdown.lean`
-  (a neighbourhood of a divisor symplectomorphic to
+  `Projectivization/Hopf.lean`, and the drop of volume),
+  `DivisorNeighborhood.lean` and `Blowdown.lean` (a neighbourhood of a divisor symplectomorphic to
   $(\mathbb CP^{n-1},\lambda^2\omega_{\mathrm{FS}})$ with normal bundle
   $L$ is symplectomorphic to $L(\varepsilon)$, by *Symplectic
   neighbourhoods*' neighbourhood theorem; the blowdown, and that it inverts
-  `Weight.lean`), `Normalized.lean` (normalization at $p_0$ with Tau Ceti's
+  `Weight/Basic.lean`), `Normalized/Basic.lean`, `Normalized/Weight.lean`,
+  `Normalized/Family.lean` and `Normalized/Class.lean` (normalization at
+  $p_0$ with Tau Ceti's
   `TauCeti.SmoothTwoForm.Compatible.exists_compatible_eqOn` and
   `TauCeti.SmoothTwoForm.IsSymplectic.exists_standardDarbouxChart`; the
   almost complex blowup, *Complex blowup*'s `AlmostComplex.lean` for the chart
@@ -3786,8 +3790,9 @@ For §7.1 of `atlas/constructing-symplectic-manifolds.md`.
   the first part by *Isotopy extension*'s Hamiltonian ball extension and a
   Hamiltonian isotopy moving the centre, the second by Tau Ceti's
   `SymplecticGroup.polarUnitary_mem` along the loop of derivatives),
-  `Uniqueness.lean` (Theorem 7.1.23, Lemma 7.1.25 by its first proof,
-  which needs no fibration of embedding spaces, and Corollary 7.1.26) and
+  `Uniqueness.lean` (Theorem 7.1.23 and Corollary 7.1.26, with Lemma 7.1.25
+  by its first proof, which needs no fibration of embedding spaces, in
+  *Isotopy extension*'s folder as `Ball/Based.lean`) and
   `BallEmbedding.lean` (Corollary 7.1.24, with the Chern class from
   *Complex blowup*'s `ChernClass.lean` and *First Chern class of
   nondegenerate forms*' invariance along a path of nondegenerate forms).
@@ -3798,15 +3803,15 @@ For §7.1 of `atlas/constructing-symplectic-manifolds.md`.
   the Hamiltonian group actions of parts 35–44: Exercise 7.1.15 and
   blowing up along submanifolds are not milestones.
 - **Milestones:** *Kähler forms on the blowup of complex space* (`Model.lean`,
-  `Profile.lean`), *Symplectic blowup along a ball* (`Weight.lean`),
+  `Profile.lean`, `Area.lean`), *Symplectic blowup along a ball* (`Weight/`),
   *Symplectic blowdown* (`Blowdown.lean`, with the page's added
   hypothesis on $(Z,\omega|_Z)$), *Symplectic structure on the almost
-  complex blowup* (`Normalized.lean`), *Normalization of symplectic ball
+  complex blowup* (`Normalized/`), *Normalization of symplectic ball
   embeddings* (`BallNormalization.lean`), *Uniqueness of the symplectic
   blowup* (`Uniqueness.lean`), *Ball embeddings give symplectic forms on the
   blowup* (`BallEmbedding.lean`). The design file decides how a smooth
   family of embeddings and of forms is stated (with *Smooth families*),
-  and whether `Weight.lean` is derived from `Normalized.lean`, as the book
+  and whether `Weight/` is derived from `Normalized/`, as the book
   compares them, or the other way.
 
 ### 62. Symplectic sums (needs `design/symplectic-sums.md`)
@@ -3967,8 +3972,8 @@ For §7.4 of `atlas/constructing-symplectic-manifolds.md`.
   genus by *Adjunction*, and the Euler characteristic of the fibration).
 - **Builds on:** *Asymptotically holomorphic sections* (its sections, with
   the transversality for pairs that the design file adds); *Symplectic
-  blowup* (only `Weight.lean`, for the blowup at the base points, and
-  `Normalized.lean`, for its comparison with the complex blowup; this is
+  blowup* (only `Weight/Basic.lean`, for the blowup at the base points, and
+  `Normalized/Weight.lean`, for its comparison with the complex blowup; this is
   the one place where §7.4 needs §7.1); *Complex blowup* (only `Model.lean`
   and `ConnectedSum.lean`, for $M\#mk^2\overline{\mathbb CP}{}^2$);
   *Poincaré duals of submanifolds* (for the genus); *Parallel transport*
@@ -4042,13 +4047,13 @@ behind.
 | 2 | *Compatible symplectic forms* | *Symplectic fibrations* (only `Basic.lean` and `HorizontalDistribution.lean`), *Minimal coupling* (only `RealChernClass.lean`); merged files of *Symplectic vector bundles*, *First Chern number*, *Moser isotopy* and *Smooth families* |
 | 2 | *Integration over the fibre* | *Symplectic fibrations* (only `StructureGroup.lean`) |
 | 2 | *Sphere bundles over surfaces* | *Diffeomorphisms of the 2-sphere* (`ComplexStructure.lean` for `DeRham/SphereBundle.lean`; up to `Trivialization.lean` for `SphereBundle/Basic.lean` and the files after it; `Smale.lean` for `Clutching.lean` and `Classification.lean`), *Symplectic fibrations* (only `Basic.lean`), *Principal connections* (only `Fibration/Associated.lean`, for `RuledSurface.lean`); `Smoothing.lean` can start at once |
-| 2 | *Symplectic blowup* | *Complex blowup* (`Model.lean` for `Model.lean` and `Profile.lean`; `Basic.lean` and `AlmostComplex.lean` for `Normalized.lean`; `ExceptionalClass.lean` and `ChernClass.lean` for the class and the Chern class) |
+| 2 | *Symplectic blowup* | *Complex blowup* (`Model.lean` for `Model.lean` and `Profile.lean`; `Lift.lean` for `Area.lean`; `Tautological.lean` for `Weight/Basic.lean` and `DivisorNeighborhood.lean`; `Basic.lean` and `AlmostComplex.lean` for `Normalized/`; `ExceptionalClass.lean` and `ChernClass.lean` for the class and the Chern class) |
 | 2 | *Symplectic sums* | *Almost complex spheres* (only for `Pointwise.lean`); the other files can start at once |
 | 2 | *Stein and Weinstein structures* | *Asymptotically holomorphic sections* (only for `Complement/`); the other files can start at once |
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); the other files of the part can start at once |
 | 3 | *Coupling forms* | *Symplectic fibrations*, *Parallel transport*, *Integration over the fibre*, *Flux homomorphism* (only `Family.lean`), *Compatible symplectic forms* (only `Thurston.lean`, for `SimplyConnected.lean`); in `Curvature.lean`, the curvature identity and the local curvature formula wait only for *Symplectic fibrations* and *Parallel transport* (`Curvature.lean`), and the equivalence also waits for `Holonomy.lean` and *Flux homomorphism* (`Family.lean`) |
-| 3 | *Lefschetz pencils* | *Asymptotically holomorphic sections*, *Symplectic blowup* (only `Weight.lean` and `Normalized.lean`, for the blowup at the base points), *Complex blowup* (only `Model.lean` and `ConnectedSum.lean`), *Poincaré duals of submanifolds*, *Parallel transport* (only `RadialTrivialization.lean`); `Basic.lean` can start at once |
+| 3 | *Lefschetz pencils* | *Asymptotically holomorphic sections*, *Symplectic blowup* (only `Weight/Basic.lean` and `Normalized/Weight.lean`, for the blowup at the base points), *Complex blowup* (only `Model.lean` and `ConnectedSum.lean`), *Poincaré duals of submanifolds*, *Parallel transport* (only `RadialTrivialization.lean`); `Basic.lean` can start at once |
 | 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles*; `Geometry/Manifold/DifferentialForm/Pullback/Family.lean` of *Moser isotopy*, which is merged |
 | 4 | *Adjunction* | *First Chern number* (only `FirstChernClass.lean`, `ChernNumber/Basic.lean` and `ChernNumber/Axioms.lean`); `NormalSpace/ComplexStructure.lean` and `NormalSplitting.lean` can start at once |
 | 4 | *Chern classes* | *First Chern number* (only `FirstChernClass.lean`, for the comparison of $c_1$); the other issues of its design file can start at once |
@@ -4279,7 +4284,7 @@ blowup* (§7.1), *Symplectic sums* (§7.2), *Symplectic h-principle* (§7.3)
 and *Asymptotically holomorphic sections*, *Stein and Weinstein
 structures* and *Lefschetz pencils* (§7.4), and none of them waits for
 another section's part, except the pencil theorem, which blows up its base
-points with `Weight.lean` of *Symplectic blowup*. The three topological
+points with `Weight/Basic.lean` of *Symplectic blowup*. The three topological
 milestones of §7.1 are proved by *Complex blowup*, a part of the auxiliary
 pages. None is existing at the pinned Tau Ceti or Mathlib; the rows name
 existing inputs.
@@ -4289,10 +4294,10 @@ existing inputs.
 | *Tautological line bundle and the exceptional divisor* | *Complex blowup* (`Tautological.lean`, `SelfIntersection.lean`). Existing input: the merged `complexEulerClass_twistCore_neg_one`, which is $c_1(L)=-h$. |
 | *Complex blowup at a point* | *Complex blowup* (`Basic.lean`, `Curve.lean`). |
 | *Blowup as a connected sum with the reversed projective space* | *Connected sums* (first statement), *Complex blowup* (`ConnectedSum.lean`, `ExceptionalClass.lean`). Existing input: `TauCeti.ConnectedSum.nonempty_diffeomorph_of_isOrientationReversingAt`, which does not state that the orientations are preserved. |
-| *Kähler forms on the blowup of complex space* | *Symplectic blowup* (`Model.lean`, `Profile.lean`). Existing input: the merged `isKahler_fubiniStudyForm`. |
-| *Symplectic blowup along a ball* | *Symplectic blowup* (`Weight.lean`), with *Isotopy extension*'s ball extension for the larger ball. |
-| *Symplectic blowdown* | *Symplectic blowup* (`Blowdown.lean`), with *Symplectic neighbourhoods*. |
-| *Symplectic structure on the almost complex blowup* | *Symplectic blowup* (`Normalized.lean`). Existing inputs: `TauCeti.SmoothTwoForm.Compatible.exists_compatible_eqOn`, `TauCeti.SmoothTwoForm.IsSymplectic.exists_standardDarbouxChart`. |
+| *Kähler forms on the blowup of complex space* | *Symplectic blowup* (`Model.lean`, `Profile.lean`, `Area.lean`). Existing input: the merged `isKahler_fubiniStudyForm`. |
+| *Symplectic blowup along a ball* | *Symplectic blowup* (`Weight/`), with *Isotopy extension*'s ball extension for the larger ball. |
+| *Symplectic blowdown* | *Symplectic blowup* (`DivisorNeighborhood.lean`, `Blowdown.lean`), with *Symplectic neighbourhoods*. |
+| *Symplectic structure on the almost complex blowup* | *Symplectic blowup* (`Normalized/`). Existing inputs: `TauCeti.SmoothTwoForm.Compatible.exists_compatible_eqOn`, `TauCeti.SmoothTwoForm.IsSymplectic.exists_standardDarbouxChart`. |
 | *Normalization of symplectic ball embeddings* | *Symplectic blowup* (`BallNormalization.lean`). Existing input: `SymplecticGroup.polarUnitary_mem`. |
 | *Uniqueness of the symplectic blowup* | *Symplectic blowup* (`Uniqueness.lean`). |
 | *Ball embeddings give symplectic forms on the blowup* | *Symplectic blowup* (`BallEmbedding.lean`), with *First Chern class of a blowup at a point*. |
