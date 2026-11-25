@@ -58,7 +58,7 @@ of `M`. If the critical Hessian of `f` at `x` satisfies `Hess f(v, v) > 0` for e
 then `f` is strictly plurisubharmonic at `x`. -/
 theorem isManifoldStrictlyPlurisubharmonicAt_of_criticalHessian_pos
     {L : Submodule ℝ (TangentSpace 𝓘(ℝ, E) x)}
-    (hL : IsTotallyReal ((ofComplexManifold E M).almostComplexStructureAt x).toLinearMap L)
+    (hL : IsTotallyReal ((ofComplexManifold E M).toEndomorphism x).toLinearMap L)
     (hpos : ∀ v ∉ L, 0 < criticalHessian 𝓘(ℝ, E) f x v v) :
     IsManifoldStrictlyPlurisubharmonicAt E f x := by
   rw [isManifoldStrictlyPlurisubharmonicAt_iff_criticalHessian]
@@ -66,8 +66,8 @@ theorem isManifoldStrictlyPlurisubharmonicAt_of_criticalHessian_pos
   -- No nonzero `v` has both `v` and `i v` in `L`.
   have hI (v : E) (hv : v ∈ L) (hIv : Complex.I • v ∈ L) : v = 0 := by
     have hmap : Complex.I • v ∈
-        L.map ((ofComplexManifold E M).almostComplexStructureAt x).toLinearMap :=
-      ⟨v, hv, (almostComplexStructureAt_apply _ x v).trans (ofComplexManifold_apply x v)⟩
+        L.map ((ofComplexManifold E M).toEndomorphism x).toLinearMap :=
+      ⟨v, hv, ofComplexManifold_apply x v⟩
     have h0 : (Complex.I • v : E) = 0 := Submodule.disjoint_def.1 hL.disjoint _ hIv hmap
     exact (smul_eq_zero.1 h0).resolve_left Complex.I_ne_zero
   -- If some `w` lies off `L`, then `Hess f` is nonnegative everywhere: on `L` as the limit of
@@ -101,7 +101,7 @@ image of `ι`. -/
 theorem setOf_isManifoldStrictlyPlurisubharmonicAt_mem_nhdsSet_range [FiniteDimensional ℂ E]
     {ι : N → M} (hf : ∀ y, ContMDiffAt 𝓘(ℝ, E) 𝓘(ℝ) 2 f (ι y))
     (hι : ∀ y,
-      IsTotallyReal ((ofComplexManifold E M).almostComplexStructureAt (ι y)).toLinearMap
+      IsTotallyReal ((ofComplexManifold E M).toEndomorphism (ι y)).toLinearMap
         (LinearMap.range (mfderiv I' 𝓘(ℝ, E) ι y).toLinearMap))
     (hpos : ∀ y, ∀ v ∉ LinearMap.range (mfderiv I' 𝓘(ℝ, E) ι y).toLinearMap,
       0 < criticalHessian 𝓘(ℝ, E) f (ι y) v v) :
