@@ -55,6 +55,9 @@ form on `M`.
 * `TauCeti.AssociatedBundle.surjective_totalSpaceMk_mk` and
   `TauCeti.AssociatedBundle.isSubmersion_totalSpaceMk_mk`: `q` is a surjective submersion.
 * `TauCeti.AssociatedBundle.contMDiff_op_smul_inv_smul`: the diagonal action is `C^n`.
+* `TauCeti.AssociatedBundle.contMDiff_totalSpaceMk_mk_left`: for fixed `v`, `x ↦ [x, v]` is
+  `C^n`, and `TauCeti.AssociatedBundle.mfderiv_proj_totalSpaceMk_mk_apply`: composed with the
+  derivative of the projection of `M`, its derivative is that of the projection of `P`.
 * `TauCeti.AssociatedBundle.totalSpaceMk_mk_op_smul_inv_smul` and
   `TauCeti.AssociatedBundle.totalSpaceMk_mk_eq_totalSpaceMk_mk_iff`: `q` is invariant under the
   diagonal action, and its fibres are the orbits.
@@ -197,6 +200,55 @@ theorem contMDiff_op_smul_inv_smul [LieGroup IG n G] [ContMDiffSMul IG IF n G F]
       fun x : ManifoldTotalSpace G P × F ↦ (op g • x.1, g⁻¹ • x.2) :=
   ((contMDiff_const_smul (op g)).comp contMDiff_fst).prodMk
     ((ContMDiffSMul.contMDiff_const_smul (I := IG) g⁻¹).comp contMDiff_snd)
+
+variable (n IB IF) in
+/-- For a fixed `v : F`, the map `x ↦ [x, v]` from the total space of `P` to that of the associated
+bundle is `C^n`. -/
+theorem contMDiff_totalSpaceMk_mk_left [ContMDiffSMul IG IF n G F] (v : F) :
+    ContMDiff (IB.prod IG) (IB.prod IF) n fun x : ManifoldTotalSpace G P ↦
+      ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
+        ⟨((ManifoldTotalSpace.homeomorph G P).symm x).proj,
+          mk G ((ManifoldTotalSpace.homeomorph G P).symm x).snd v⟩ :=
+  (contMDiff_totalSpaceMk_mk n G F IB IG IF P).comp (contMDiff_id.prodMk contMDiff_const)
+
+/-- **The projection of `[x, v]` is the projection of `x`, on tangent vectors.** The derivative
+of the projection of the associated bundle at `[x, v]`, composed with that of `x' ↦ [x', v]` at
+`x`, is the derivative of the projection of `P` at `x`, up to the identification
+`tangentSpaceCast` of the tangent spaces of the base at the two equal base points. -/
+theorem mfderiv_proj_totalSpaceMk_mk_apply [ContMDiffSMul IG IF n G F] (hn : n ≠ 0)
+    (x : ManifoldTotalSpace G P) (v : F) (w : TangentSpace (IB.prod IG) x) :
+    mfderiv (IB.prod IG) IB (fun x' : ManifoldTotalSpace G P ↦
+        ((ManifoldTotalSpace.homeomorph G P).symm x').proj) x w =
+      tangentSpaceCast IB
+        ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm
+          (ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
+            ⟨((ManifoldTotalSpace.homeomorph G P).symm x).proj,
+              mk G ((ManifoldTotalSpace.homeomorph G P).symm x).snd v⟩)).proj
+        ((ManifoldTotalSpace.homeomorph G P).symm x).proj
+        (mfderiv (IB.prod IF) IB (fun y : ManifoldTotalSpace F (AssociatedBundle G P F) ↦
+            ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm y).proj)
+          (ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
+            ⟨((ManifoldTotalSpace.homeomorph G P).symm x).proj,
+              mk G ((ManifoldTotalSpace.homeomorph G P).symm x).snd v⟩)
+          (mfderiv (IB.prod IG) (IB.prod IF) (fun x' : ManifoldTotalSpace G P ↦
+              ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
+                ⟨((ManifoldTotalSpace.homeomorph G P).symm x').proj,
+                  mk G ((ManifoldTotalSpace.homeomorph G P).symm x').snd v⟩) x w)) := by
+  have hfun : (fun x' : ManifoldTotalSpace G P ↦
+      ((ManifoldTotalSpace.homeomorph G P).symm x').proj) =ᶠ[nhds x]
+      (fun y : ManifoldTotalSpace F (AssociatedBundle G P F) ↦
+        ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm y).proj) ∘
+      (fun x' : ManifoldTotalSpace G P ↦
+        ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
+          ⟨((ManifoldTotalSpace.homeomorph G P).symm x').proj,
+            mk G ((ManifoldTotalSpace.homeomorph G P).symm x').snd v⟩) :=
+    .of_forall fun x' ↦ by simp
+  rw [hfun.mfderiv_eq, ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
+    mfderiv_comp_apply x
+      ((ManifoldTotalSpace.contMDiff_proj n F (AssociatedBundle G P F) IB IF).mdifferentiableAt
+        hn)
+      ((contMDiff_totalSpaceMk_mk_left n IB IF v).mdifferentiableAt hn)]
+  simp only [Function.comp_apply]
 
 /-- **The fibres of the quotient map are the orbits of the diagonal action**: `[x, v] = [y, w]`
 exactly when `(y, w) = (x · g, g⁻¹ • v)` for some `g : G`. -/
