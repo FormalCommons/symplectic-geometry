@@ -51,8 +51,8 @@ and the moment weights.
 
 * `SymplecticGeometry.IsComplexifiedAction.fundamentalVectorField_lieMap`: the fundamental vector
   field of `C.lieMap ξ` for the action of `Gc` is that of `ξ` for the action of `G`.
-* `SymplecticGeometry.IsComplexifiedAction.fundamentalVectorField_apply`: the fundamental vector
-  field of any `ζ` for the action of `Gc` is `X_{C.re ζ} + J X_{C.im ζ}`.
+* `SymplecticGeometry.IsComplexifiedAction.fundamentalVectorField_eq_re_add_im`: the fundamental
+  vector field of any `ζ` for the action of `Gc` is `X_{C.re ζ} + J X_{C.im ζ}`.
 * `SymplecticGeometry.IsComplexifiedAction.isMIntegralCurve_expI_smul`: the curve
   `t ↦ C.expI (t • ξ) • p` is an integral curve of `x ↦ J x (X_ξ x)`.
 * `SymplecticGeometry.isComplexifiedAction_circle`: the action of `ℂˣ` on `ℂ` by multiplication,
@@ -283,7 +283,7 @@ theorem fundamentalVectorField_lieMap (h : IsComplexifiedAction C J) (ξ : Group
 /-- For a complexified action, the fundamental vector field of any `ζ` in the Lie algebra of `Gc`
 is `X_{C.re ζ} + J X_{C.im ζ}`, where `X_{C.re ζ}` and `X_{C.im ζ}` are fundamental vector fields
 for the action of `G`. -/
-theorem fundamentalVectorField_apply [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC]
+theorem fundamentalVectorField_eq_re_add_im [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC]
     (h : IsComplexifiedAction C J) (ζ : GroupLieAlgebra IC Gc) (x : M) :
     fundamentalVectorField I' ζ x =
       fundamentalVectorField I' (C.re ζ) x + J x (fundamentalVectorField I' (C.im ζ) x) := by
@@ -418,7 +418,7 @@ theorem fderiv_moment_inv_smul_im_comm (h : IsComplexifiedAction C J)
         J ((γ y)⁻¹ • p) (fundamentalVectorField I' (C.im (a u y)) ((γ y)⁻¹ • p))) := by
     rw [mfderiv_inv_smul_comp_apply (hγ.mdifferentiableAt (by simp))
       (((ContMDiffSMul.contMDiff_smul_const (n := ∞) p).comp (contMDiff_inv IC ∞)
-        ).mdifferentiableAt (by simp)) u, ha, h.fundamentalVectorField_apply]
+        ).mdifferentiableAt (by simp)) u, ha, h.fundamentalVectorField_eq_re_add_im]
   set x₀ := (γ y)⁻¹ • p
   have hside (u u' : F) : fderiv ℝ (fun z ↦ μ ((γ z)⁻¹ • p) (C.im (a u' z))) y u =
       μ x₀ (C.im (fderiv ℝ (a u') y u)) +
@@ -428,8 +428,8 @@ theorem fderiv_moment_inv_smul_im_comm (h : IsComplexifiedAction C J)
           fundamentalVectorField I' (C.im (a u y)) x₀⟫ := by
     have hc : DifferentiableAt ℝ (fun z ↦ C.im (a u' z)) y := by
       simpa [imL, Function.comp_def] using imL.differentiableAt.comp y (hda u' y)
-    rw [fderiv_dual_comp_apply (fun ξ ↦ (hμc ξ).contMDiffAt.of_le (by simp))
-        (hx.contMDiffAt.of_le (by simp)) hc u, hdim, hμ.toIsMomentMap.mvfderiv_apply_of_neg,
+    rw [fderiv_dual_comp_apply (fun ξ ↦ (hμc ξ).mdifferentiableAt (by simp))
+        (hx.mdifferentiableAt (by simp)) hc u, hdim, hμ.toIsMomentMap.mvfderiv_apply_of_neg,
       InfinitesimalAction.fundamental_apply, hdx, SmoothBundleForm.eval₂_neg_right,
       SmoothBundleForm.eval₂_add_right, hg]
     ring
