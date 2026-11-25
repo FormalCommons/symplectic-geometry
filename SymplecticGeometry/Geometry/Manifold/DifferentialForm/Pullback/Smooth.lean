@@ -8,6 +8,8 @@ module
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
+import TauCeti.Geometry.Manifold.DifferentialForm.ExtDeriv
+import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 
 /-!
 # Pullback of forms: its value at a point, negation and constant maps
@@ -19,7 +21,9 @@ statement is on the tangent spaces, so that Mathlib's bound
 Riemannian ones. Tau Ceti's `TauCeti.mpullback_apply_eq_compContinuousLinearMapCLM` states the
 same equality on the model spaces.
 So two maps with the same value and the same differential at `x` pull every form back to the
-same value at `x` (`TauCeti.mpullback_apply_eq_of_mfderiv_eq`).
+same value at `x` (`TauCeti.mpullback_apply_eq_of_mfderiv_eq`). With Tau Ceti's locality and
+naturality of the exterior derivative, it gives `dθ` at `x` for a smooth form `θ` that agrees
+near `x` with a pullback (`TauCeti.mextDerivₗ_apply_eq_of_eventuallyEq_mpullback`).
 
 If `f : M → M` preserves a function `ρ`, and the pullback of `φ` along `f` agrees with `φ` where
 `ρ` does not vanish, then `f` pulls `ρ • φ` back to itself
@@ -49,6 +53,8 @@ normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactica
   `(φ (f x)).compContinuousLinearMap (mfderiv I I' f x)`.
 * `TauCeti.mpullback_apply_eq_of_mfderiv_eq`: the pullback at `x` depends only on the value and
   the differential of the map at `x`.
+* `TauCeti.mextDerivₗ_apply_eq_of_eventuallyEq_mpullback`: if a smooth form agrees near `x` with
+  `f^* α`, its exterior derivative at `x` is `dα` at `f x` composed with `mfderiv f x`.
 * `TauCeti.mpullback_fun_smul_eq_self`: a form multiplied by a function `ρ` is invariant under a
   map that preserves `ρ`, if the form is so where `ρ` does not vanish.
 * `TauCeti.mpullback_neg`: the pullback of `-φ` is minus the pullback of `φ`.
@@ -68,7 +74,7 @@ normed spaces with their own models, `𝓘(ℝ, E₁ × E₂)` is not syntactica
 
 public section
 
-open scoped Manifold ContDiff
+open scoped Manifold ContDiff Topology
 
 namespace TauCeti
 
@@ -93,6 +99,18 @@ theorem mpullback_apply_eq_of_mfderiv_eq {f g : M → M'} {x : M} (h : f x = g x
     mpullback I I' f φ x = mpullback I I' g φ x := by
   rw [mpullback_apply_eq_compContinuousLinearMap, mpullback_apply_eq_compContinuousLinearMap, hd,
     h]
+
+/-- If a smooth form `θ` on `M` agrees near `x` with the pullback `f^* α` of a smooth form `α` on
+`M'` along a map `f` that is `C²` at `x`, then the exterior derivative `dθ` at `x` is `dα` at `f x`
+composed with the differential of `f` at `x`. -/
+theorem mextDerivₗ_apply_eq_of_eventuallyEq_mpullback [IsManifold I 2 M] [IsManifold I' 2 M']
+    {f : M → M'} {x : M} (hf : ContMDiffAt I I' 2 f x) {θ : SmoothForm I M F k}
+    {α : SmoothForm I' M' F k} (hθ : ∀ᶠ y in 𝓝 x, θ.val y = mpullback I I' f α.val y) :
+    (mextDerivₗ I k θ).val x =
+      ((mextDerivₗ I' k α).val (f x)).compContinuousLinearMap (mfderiv I I' f x) := by
+  rw [mextDerivₗ_apply, mextDerivₗ_apply, mextDeriv_congr_of_eventuallyEq hθ,
+    ← mpullback_mextDeriv_at hf ((α.contMDiff _).of_le (by simp)),
+    mpullback_apply_eq_compContinuousLinearMap]
 
 /-- Let `f : M → M` preserve `ρ : M → ℝ`, and let the pullback of a form `φ` along `f` agree with
 `φ` wherever `ρ` does not vanish. Then the pullback of `ρ • φ` along `f` is `ρ • φ`. -/
