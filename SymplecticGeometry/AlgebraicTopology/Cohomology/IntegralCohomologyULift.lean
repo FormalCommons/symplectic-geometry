@@ -53,6 +53,8 @@ is why the file imports all of `TauCeti.AlgebraicTopology.Cohomology.IntegralCup
   multiplication of `ULift ℤ` to that of `ℤ`.
 * `TauCeti.integralCoeffComul_eq_uliftTensorSelfIso_inv`: the diagonal of `ULift ℤ` is the
   inverse of its multiplication.
+* `TauCeti.integralCoeffIso_inv_eq_uliftIntIso_inv`: Tau Ceti's isomorphisms
+  `TauCeti.integralCoeffIso` and `TauCeti.uliftIntIso` have the same inverse.
 * `TopCat.uliftIntegralCohomologyIso_naturality`: `TopCat.uliftIntegralCohomologyIso` commutes
   with the maps induced by continuous maps; `TopCat.uliftIntegralCohomologyIso_naturality_apply`
   states it on a class.
@@ -105,6 +107,12 @@ theorem integralCoeffComul_eq_uliftTensorSelfIso_inv :
   congr 1
   ext
   simp
+
+/-- Tau Ceti's two isomorphisms `ULift ℤ ≅ ℤ`, `TauCeti.integralCoeffIso` (the chain coefficients
+of integral cohomology) and `TauCeti.uliftIntIso`, have the same inverse `n ↦ ⟨n⟩`. -/
+theorem integralCoeffIso_inv_eq_uliftIntIso_inv : integralCoeffIso.inv = uliftIntIso.inv :=
+  ModuleCat.hom_ext (LinearMap.ext fun x ↦
+    (integralCoeffIso_inv_apply x).trans (uliftIntIso_inv_apply x).symm)
 
 end TauCeti
 
