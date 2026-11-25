@@ -84,10 +84,12 @@ open scoped Manifold ContDiff
 
 namespace TauCeti
 
+universe u v w
+
 section Simplices
 
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  (I : ModelWithCorners ℝ E H) {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+  (I : ModelWithCorners ℝ E H) {M : Type u} [TopologicalSpace M] [ChartedSpace H M]
 
 open SSet.Subcomplex
 
@@ -177,6 +179,33 @@ theorem toSmallSmoothSingularSubcomplex_smallSmoothSingularSubcomplexToSup_right
       (contMDiff_inclusion (I := I) _) :=
   toSmallSmoothSingularSubcomplex_smallSmoothSingularSubcomplexToSup I U V le_sup_right _
 
+section Cohomology
+
+variable {C : Type v} [Category.{w} C] [HasCoproducts.{u} C] [Abelian C] (R : C)
+  (k : Type*) [Ring k] [Linear k C] (Y : C)
+
+/-- Restricting singular cochains of `M` to `U ⊔ V`, then to its smooth simplices, then to the
+smooth simplices of `M` lying in `U` or in `V`, is restriction to the smooth simplices of `M` lying
+in `U` or in `V`. -/
+@[reassoc]
+theorem singularCohomologyMap_subtypeVal_comp_smallSmoothSingularSubcomplexToSup
+    (U V : Opens M) (n : ℕ) :
+    TopCat.singularCohomologyMap (R := R) (k := k) (M := Y)
+        (TopCat.ofHom (ContinuousMap.subtypeVal ((U ⊔ V : Opens M) : Set M))) n ≫
+      HomologicalComplex.homologyMap (SSet.cochainComplexMap
+        (smoothSingularSubcomplex I (U ⊔ V : Opens M)).ι) n ≫
+      HomologicalComplex.homologyMap
+        (SSet.cochainComplexMap (smallSmoothSingularSubcomplexToSup I U V)) n =
+    HomologicalComplex.homologyMap (SSet.cochainComplexMap
+      (smallSmoothSingularSubcomplex I ![(U : Set M), (V : Set M)]).ι) n := by
+  rw [TopCat.singularCohomologyMap, TopCat.singularCochainComplexMap,
+    ← HomologicalComplex.homologyMap_comp, ← HomologicalComplex.homologyMap_comp,
+    ← SSet.cochainComplexMap_comp, ← SSet.cochainComplexMap_comp,
+    Category.assoc, ← smoothSingularSubcomplexMap_subtypeVal_ι,
+    smallSmoothSingularSubcomplexToSup_smoothSingularSubcomplexMap_assoc, homOfLE_ι]
+
+end Cohomology
+
 end Simplices
 
 variable {E H : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
@@ -261,26 +290,6 @@ theorem ofHom_mayerVietorisδ_comp_homologyMap_deRhamIntegration (U V : Opens M)
 end deRhamCohomology
 
 section Singular
-
-open SSet.Subcomplex in
-/-- Restricting singular cochains of `M` to `U ⊔ V`, then to its smooth simplices, then to the
-smooth simplices of `M` lying in `U` or in `V`, is restriction to the smooth simplices of `M` lying
-in `U` or in `V`. -/
-theorem singularCohomologyMap_subtypeVal_comp_smallSmoothSingularSubcomplexToSup
-    (U V : Opens M) (n : ℕ) :
-    TopCat.singularCohomologyMap (R := ModuleCat.of ℝ ℝ) (k := ℝ) (M := ModuleCat.of ℝ ℝ)
-        (TopCat.ofHom (ContinuousMap.subtypeVal ((U ⊔ V : Opens M) : Set M))) n ≫
-      HomologicalComplex.homologyMap (SSet.cochainComplexMap
-        (smoothSingularSubcomplex I (U ⊔ V : Opens M)).ι) n ≫
-      HomologicalComplex.homologyMap
-        (SSet.cochainComplexMap (smallSmoothSingularSubcomplexToSup I U V)) n =
-    HomologicalComplex.homologyMap (SSet.cochainComplexMap
-      (smallSmoothSingularSubcomplex I ![(U : Set M), (V : Set M)]).ι) n := by
-  rw [TopCat.singularCohomologyMap, TopCat.singularCochainComplexMap,
-    ← HomologicalComplex.homologyMap_comp, ← HomologicalComplex.homologyMap_comp,
-    ← SSet.cochainComplexMap_comp, ← SSet.cochainComplexMap_comp,
-    Category.assoc, ← smoothSingularSubcomplexMap_subtypeVal_ι,
-    smallSmoothSingularSubcomplexToSup_smoothSingularSubcomplexMap_assoc, homOfLE_ι]
 
 variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M]
   {U V : Opens M} [SigmaCompactSpace (U ⊓ V : Opens M)]
