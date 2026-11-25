@@ -265,8 +265,8 @@ About 250 lines.
   $f^*\omega=\tau\oplus\omega_0$ and normal derivative given by `Φ`; with
   `ProductNeighborhood.exists` for small $\varepsilon$ and compact $Q$
   (Decision 3) and `isClosed_image_closedBall`.
-- `fibreSum f₁ f₂ δ`, the `GluedAlong` of Decision 2, its `T2Space`, and
-  `fibreSum.symplecticForm` with `isSymplectic_symplecticForm`,
+- `FiberSum f₁ f₂ hδ hδε`, the `GluedAlong` of Decision 2, its `T2Space`, and
+  `FiberSum.symplecticForm` with `isSymplectic_symplecticForm`,
   `inl_mpullback_symplecticForm` and `inr_mpullback_symplecticForm`.
 - `exists_isSymplectic_fibreSum`: the milestone. For $(M_i,\omega_i)$ of
   dimension $2n$, compact $(Q,\tau)$ of dimension $2n-2$, symplectic
