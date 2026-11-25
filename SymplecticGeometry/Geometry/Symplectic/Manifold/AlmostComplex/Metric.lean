@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Symplectic.Compl
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.CompatibleMetric
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 public import TauCeti.Geometry.Manifold.Riemannian.AlmostComplex
+public import TauCeti.Geometry.Manifold.Riemannian.Gradient.Basic
 
 /-!
 # The metric of a compatible pair on a manifold
@@ -50,6 +51,8 @@ For any `RiemannianBundle` metric on `TM` with `⟪u, v⟫ = σ(u, J v)`, the hy
 `TauCeti.SmoothTwoForm.compatible_of_inner_eq`:
 
 * `TauCeti.SmoothAlmostComplexStructure.inner_apply_left_eq_neg`: `J` is skew-adjoint.
+* `TauCeti.SmoothAlmostComplexStructure.apply_eq_mgradient_of_eval₂_eq`: if `σ(X, ·) = df_x`,
+  then `J X` is the gradient of `f` at `x`.
 * `TauCeti.SmoothTwoForm.val_eq_alternatingFormEquiv_kahlerForm`: at each point, `σ` is the
   Kähler form of `J`.
 
@@ -59,6 +62,9 @@ The skew-adjointness uses `TauCeti.SmoothAlmostComplexStructure.inner_apply_left
 (`⟪J u, w⟫ = σ(u, w)`), which rests on
 `TauCeti.SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq` (`J` is orthogonal), both
 from Tau Ceti's `TauCeti/Geometry/Symplectic/Manifold/AlmostComplex/Metric.lean`.
+The gradient lemma `TauCeti.SmoothAlmostComplexStructure.apply_eq_mgradient_of_eval₂_eq` follows
+Tau Ceti's `TauCeti.SmoothTwoForm.IsNondegenerate.apply_hamiltonianVectorField_eq_mgradient`,
+testing the gradient against `df` through `Manifold.eq_mgradient_iff`.
 
 ## References
 
@@ -207,6 +213,15 @@ theorem inner_apply_left_eq_neg (hJ : ∀ x u v, ⟪u, v⟫ = σ.eval₂ x u (J 
     (u w : TangentSpace I x) : ⟪J x u, w⟫ = -⟪u, J x w⟫ := by
   rw [inner_apply_left_of_inner_eq hJ, hJ, apply_apply, SmoothBundleForm.eval₂_neg_right,
     _root_.neg_neg]
+
+/-- If `⟪u, v⟫ = σ(u, J v)` and the vector `X` at `x` satisfies `σ(X, ·) = df_x`, then `J X` is
+the gradient of `f` at `x`. No nondegeneracy of `σ` is needed. -/
+theorem apply_eq_mgradient_of_eval₂_eq (hJ : ∀ x u v, ⟪u, v⟫ = σ.eval₂ x u (J x v))
+    {f : M → ℝ} {x : M} {X : TangentSpace I x}
+    (hX : ∀ v, SmoothBundleForm.eval₂ σ x X v = mvfderiv I f x v) :
+    J x X = Manifold.mgradient I f x :=
+  Manifold.eq_mgradient_iff.2 fun v ↦ by
+    rw [SmoothAlmostComplexStructure.inner_apply_left_of_inner_eq hJ, hX]
 
 end SmoothAlmostComplexStructure
 

@@ -866,8 +866,8 @@ built the same way; the building issue credits it.
   compact Hausdorff, hence normal and paracompact.
 - `ℒ.exists_path_lift_unitaryFrame (γ : Path Λ Λ') (hU : unitaryFrame U = Λ) :
   ∃ (V : unitaryGroup ι ℂ) (δ : Path U V), ∀ t, unitaryFrame (δ t) = γ t`,
-  Tau Ceti's `TauCeti.HasHomotopyLiftingProperty.exists_path_lift` applied
-  to the previous item, in the form of a path of unitary frames that the
+  Tau Ceti's `TauCeti.HasHomotopyLiftingProperty.exists_path_lift_fiber`
+  applied to the previous item, in the form of a path of unitary frames that the
   Maslov index files use.
 - The same fact in the categorical form that Tau Ceti's fibration results
   use, `ℒ.unitaryFrame_mem_serreFibrations`, by Tau Ceti's
@@ -1061,7 +1061,7 @@ The manifold structure and the milestone.
     `Homeomorph.Quotient.congrRight_mk`,
     `Subgroup.localSectionTrivializationOfCosetFibers`,
     `TauCeti.hasHomotopyLiftingProperty_of_exists_trivialization`,
-    `TauCeti.HasHomotopyLiftingProperty.exists_path_lift`,
+    `TauCeti.HasHomotopyLiftingProperty.exists_path_lift_fiber`,
     `TauCeti.TopCat.mem_serreFibrations_of_exists_trivialization`,
     `TauCeti.TopCat.exists_path_lift_of_mem_serreFibrations`.
   - Models that the building issues credit: Tau Ceti's
@@ -1101,7 +1101,7 @@ map comes with its comparison to Tau Ceti's object.
 |---|---|
 | G1, `V₀ ι`, `V₁ ι` | `ℒ.horizontal ι`, `ℒ.vertical ι` |
 | G2, unitary frames, $\mathrm{U}(n)/\mathrm{O}(n)$ | `ℒ.unitaryFrame`, `unitaryFrame_surjective`, `unitaryFrame_eq_unitaryFrame_iff`, `quotientHomeomorph`; continuity of maps out of `ℒ ι` by `isQuotientMap_unitaryFrame.continuous_iff` |
-| G3, path lifting | `exists_path_lift_unitaryFrame`, from `hasHomotopyLiftingProperty_unitaryFrame` and Tau Ceti's `TauCeti.HasHomotopyLiftingProperty.exists_path_lift` |
+| G3, path lifting | `exists_path_lift_unitaryFrame`, from `hasHomotopyLiftingProperty_unitaryFrame` and Tau Ceti's `TauCeti.HasHomotopyLiftingProperty.exists_path_lift_fiber` |
 | G4, the action | the `MulAction` and `ContinuousSMul` instances, `unitaryFrame_mul` |
 | G5, sum and reindexing | `ℒ.sum`, `ℒ.reindex` and their compatibilities; `continuous_sum`, `ℒ.reindexHomeomorph` |
 | G6, frame criterion and spanned Lagrangian | `isLagrangian_range_fromRows_iff` (stated with `fromRows X Y` for the book's frame `Z`) and `ℒ.ofFrame` with `coe_ofFrame` |
