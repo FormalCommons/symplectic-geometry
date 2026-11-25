@@ -48,7 +48,8 @@ At a single point `x` where `f` is a local diffeomorphism, the same tools transf
 identities between a form `ω` at `f x` and its pullback at `x`: `dφ = ψ`
 (`IsLocalDiffeomorphAt.mextDeriv_apply_eq_iff`), `ι_Z ω = ψ` for fields related by the
 differential (`IsLocalDiffeomorphAt.interior_apply_eq_iff`), nondegeneracy of a two-form
-(`IsLocalDiffeomorphAt.nondegenerate_bilinFormAt_iff`), and, for a two-form closed at `f x`, the
+(`TauCeti.SmoothTwoForm.nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv`, which needs only
+an invertible differential at `x`), and, for a two-form closed at `f x`, the
 identity `L_Z ω = ψ` (`IsLocalDiffeomorphAt.mlieDerivForm_apply_eq_iff`, through the
 pointwise Cartan formula `TauCeti.mlieDerivForm_eq_mextDeriv_interior_apply`). They are the
 pointwise forms, for a map that is a local diffeomorphism only near `x`, of Tau Ceti's
@@ -130,6 +131,30 @@ theorem mpullback_apply_eq_of_apply_eq_pushforwardAt {α : RoughForm I M F k}
     ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe, tangentSpaceCast_self,
     hf.inverse_apply_self]
 
+namespace SmoothTwoForm
+
+/-- Let the differential of `f` at `x` be invertible, and let `f` pull the two-form `ω` back to
+`η` at `x`. Then `ω` is nondegenerate at `f x` exactly when `η` is nondegenerate at `x`. The
+point `x` may lie on the boundary of `M`, where `f` need not be a local diffeomorphism. -/
+theorem nondegenerate_bilinFormAt_iff_of_isInvertible_mfderiv [IsManifold I 1 M]
+    [IsManifold I' 1 M'] (hdf : (mfderiv I I' f x).IsInvertible)
+    {ω : SmoothForm I' M' ℝ 2} {η : SmoothForm I M ℝ 2} (h : mpullback I I' f ω.val x = η.val x) :
+    (ω.bilinFormAt (f x)).Nondegenerate ↔ (η.bilinFormAt x).Nondegenerate := by
+  obtain ⟨e, he⟩ := hdf
+  have hη : η.bilinFormAt x =
+      LinearMap.BilinForm.congr e.symm.toLinearEquiv (ω.bilinFormAt (f x)) := by
+    refine LinearMap.ext₂ fun v w ↦ ?_
+    rw [LinearMap.BilinForm.congr_apply, ContinuousLinearEquiv.coe_symm_toLinearEquiv,
+      ContinuousLinearEquiv.symm_symm, SmoothForm.bilinFormAt_apply,
+      SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply,
+      ← h, mpullback_apply]
+    congr 1
+    ext i
+    fin_cases i <;> simp [← he]
+  rw [hη, LinearMap.BilinForm.nondegenerate_congr_iff]
+
+end SmoothTwoForm
+
 end TauCeti
 
 namespace IsLocalDiffeomorphAt
@@ -158,25 +183,6 @@ theorem interior_apply_eq_iff (hf : IsLocalDiffeomorphAt I I' n f x) (hn : n ≠
       (mpullback I I' f ω).interior X x = mpullback I I' f ψ x := by
   rw [← mpullback_interior_at f X Z ω hXZ,
     mpullback_apply_eq_mpullback_apply_iff (hf.isInvertible_mfderiv hn).surjective]
-
-/-- Let `f` be a `C^n` local diffeomorphism at `x`, `n ≠ 0`, pulling the two-form `ω` back to
-`η` at `x`. Then `ω` is nondegenerate at `f x` exactly when `η` is nondegenerate at `x`. -/
-theorem nondegenerate_bilinFormAt_iff [IsManifold I 1 M] [IsManifold I' 1 M']
-    (hf : IsLocalDiffeomorphAt I I' n f x) (hn : n ≠ 0)
-    {ω : SmoothForm I' M' ℝ 2} {η : SmoothForm I M ℝ 2} (h : mpullback I I' f ω.val x = η.val x) :
-    (ω.bilinFormAt (f x)).Nondegenerate ↔ (η.bilinFormAt x).Nondegenerate := by
-  obtain ⟨e, he⟩ := hf.isInvertible_mfderiv hn
-  have hη : η.bilinFormAt x =
-      LinearMap.BilinForm.congr e.symm.toLinearEquiv (ω.bilinFormAt (f x)) := by
-    refine LinearMap.ext₂ fun v w ↦ ?_
-    rw [LinearMap.BilinForm.congr_apply, ContinuousLinearEquiv.coe_symm_toLinearEquiv,
-      ContinuousLinearEquiv.symm_symm, SmoothForm.bilinFormAt_apply,
-      SmoothForm.bilinFormAt_apply, SmoothBundleForm.eval₂_apply, SmoothBundleForm.eval₂_apply,
-      ← h, mpullback_apply]
-    congr 1
-    ext i
-    fin_cases i <;> simp [← he]
-  rw [hη, LinearMap.BilinForm.nondegenerate_congr_iff]
 
 section
 
