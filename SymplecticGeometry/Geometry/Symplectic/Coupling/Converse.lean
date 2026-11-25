@@ -53,11 +53,14 @@ fundamental vector field of `SymplecticGeometry.circlePeriodOneGenerator` on `M`
   band map is a bijection onto the band.
 * `SymplecticGeometry.bandMap_op_smul`: it is equivariant.
 * `TauCeti.mfderiv_rightFundamentalVectorField_of_map_op_smul_fst`: a map `F : Q × N → M` with
-  `F (q • g, n) = g • F (q, n)` sends `(ξ♯, 0)` to the fundamental vector field of `ξ`; it reads
-  Tau Ceti's `TauCeti.mfderiv_rightFundamentalVectorField_of_map_op_smul` for a left action on
-  the target and a right action on the first factor of the source.
+  `F (q • g, n) = g • F (q, n)` sends `(ξ♯, 0)` to the fundamental vector field of `ξ`. Its
+  proof adapts that of Tau Ceti's `TauCeti.mfderiv_rightFundamentalVectorField_of_map_op_smul` to
+  a left action on the target and a right action on the first factor of the source.
 * `SymplecticGeometry.mfderiv_bandMap_couplingField`: for a principal circle bundle `P`, the band
   map sends `couplingField` to the fundamental vector field of `circlePeriodOneGenerator`.
+* `SymplecticGeometry.bandMap_orbitFiber`: all of these for the circle bundle of a regular level
+  of an invariant function, with `e` the inclusion of the level after
+  `TauCeti.MapFiber.Atlas.totalSpaceDiffeomorph`.
 
 ## References
 
@@ -184,7 +187,7 @@ and `f` a continuous function with `df(v) = 1` on an open set containing the ban
 If `e` takes values in the level `f = a`, then `f (bandMap v e a b (q, s)) = s`. -/
 theorem apply_bandMap (he : ∀ q, f (e q) = a) (x : Q × Icc a b) :
     f (bandMap v e a b x) = x.2 :=
-  apply_flowOf_sub_eq hv hcomplete hf hW hfv hband (he x.1) x.2.2
+  apply_flowOf_sub_eq hv hcomplete hf hW hfv hband (he x.1) x.2.property
 
 /-- **The band map is injective** when `e` is, under the hypotheses of
 `SymplecticGeometry.apply_bandMap`. -/
@@ -203,7 +206,7 @@ theorem range_bandMap (he : range e = {x | f x = a}) :
   have hsurj : Surjective
       (Prod.map (fun q ↦ (⟨e q, he' q⟩ : {x : M // f x = a})) (id : Icc a b → Icc a b)) := by
     refine Surjective.prodMap (fun x ↦ ?_) surjective_id
-    obtain ⟨q, hq⟩ := he.ge x.2
+    obtain ⟨q, hq⟩ := he.ge x.property
     exact ⟨q, Subtype.ext hq⟩
   rw [bandMap_eq_comp he', hsurj.range_comp, range_flowOf_sub_level hv hcomplete hf hW hfv hband]
 
@@ -333,7 +336,7 @@ theorem bandMap_orbitFiber (hf : ContMDiff I 𝓘(ℝ) ∞ f) (hreg : IsRegularV
   have hesmooth : ContMDiff _ I ∞ fun p ↦ (D p : M) :=
     (isSmoothEmbedding_coe_regularLevel (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn).contMDiff
       |>.comp D.contMDiff
-  have hlev (p) : f (D p : M) = a := (D p).2
+  have hlev (p) : f (D p : M) = a := (D p).property
   refine ⟨contMDiff_bandMap hv hcomplete hesmooth,
     bandMap_op_smul (hv.of_le (by simp)) hvinv heq,
     apply_bandMap (hv.of_le (by simp)) hcomplete hf.continuous hW hfv hband hlev,
