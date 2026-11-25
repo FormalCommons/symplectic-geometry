@@ -120,7 +120,11 @@ theorem prodIccHomotopyOperator_apply_couplingField
     rw [couplingField_def, couplingField_def, prodIccContraction_fst]
     -- the zero vectors of the interval's tangent spaces are the zero of the model space
     exact h
-  rw [hX, ContinuousAlternatingMap.apply_vecCons_swap, hη, neg_zero]
+  -- the family of the one vector `(X, 0)` is `![(X, 0)]`
+  simp only [Matrix.cons_val_fin_one]
+  rw [hX]
+  simp only [← Matrix.vec_single_eq_const]
+  rw [ContinuousAlternatingMap.apply_vecCons_swap, hη, neg_zero]
 
 end Homotopy
 
