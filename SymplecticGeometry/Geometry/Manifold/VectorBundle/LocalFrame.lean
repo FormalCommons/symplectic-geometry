@@ -24,6 +24,8 @@ Where `φ` is the identity, they agree with `s`. So, if `φ` is the identity on 
 
 * `IsLocalFrameOn.exists_isLocalFrameOn_union`: two local frames glued along a map `φ` into their
   overlap.
+* `IsLocalFrameOn.exists_isLocalFrameOn_iUnion`: the limit of a sequence of local frames on an
+  increasing sequence of open sets, each agreeing with the previous one.
 
 ## References
 
@@ -107,6 +109,38 @@ theorem exists_isLocalFrameOn_union (hs : IsLocalFrameOn IB F n s U)
       by_cases hxW : x ∈ W
       · simp [hxW, hgs ⟨hxW, hx⟩ i]
       · simp [hxW]
+
+omit [CompleteSpace 𝕜] [FiniteDimensional 𝕜 F] [VectorBundle 𝕜 F V]
+  [ContMDiffVectorBundle n F V IB] [Finite ι] in
+/-- A sequence of `C^n` local frames `t k` on an increasing sequence of open sets `W k`, each
+agreeing with the previous one on its open set, has a limit: a `C^n` local frame on `⋃ k, W k` that
+is `t k` on `W k`. -/
+theorem exists_isLocalFrameOn_iUnion {W : ℕ → Set B} (hW : Monotone W) (hWo : ∀ k, IsOpen (W k))
+    {t : ℕ → ι → Π x, V x} (ht : ∀ k, IsLocalFrameOn IB F n (t k) (W k))
+    (htt : ∀ k i, ∀ x ∈ W k, t (k + 1) i x = t k i x) :
+    ∃ s : ι → Π x, V x, IsLocalFrameOn IB F n s (⋃ k, W k) ∧
+      ∀ k i, ∀ x ∈ W k, s i x = t k i x := by
+  classical
+  -- Once a point lies in `W k`, the frames from `t k` on agree at that point.
+  have hle {k m : ℕ} (hkm : k ≤ m) (i : ι) {x : B} (hx : x ∈ W k) : t m i x = t k i x := by
+    induction m, hkm using Nat.le_induction with
+    | base => rfl
+    | succ m hkm ih => rw [htt m i x (hW hkm hx), ih]
+  let s : ι → Π x, V x := fun i x ↦ if h : ∃ k, x ∈ W k then t (Nat.find h) i x else 0
+  have hs (k : ℕ) (i : ι) {x : B} (hx : x ∈ W k) : s i x = t k i x := by
+    have h : ∃ k, x ∈ W k := ⟨k, hx⟩
+    simp only [s, h, ↓reduceDIte]
+    exact (hle (Nat.find_min' h hx) i (Nat.find_spec h)).symm
+  refine ⟨s, ⟨fun {x} hx ↦ ?_, fun {x} hx ↦ ?_, fun i ↦ ?_⟩, fun k i x hx ↦ hs k i hx⟩
+  · obtain ⟨k, hk⟩ := mem_iUnion.1 hx
+    simpa [hs k _ hk] using (ht k).linearIndependent hk
+  · obtain ⟨k, hk⟩ := mem_iUnion.1 hx
+    simpa [hs k _ hk] using (ht k).generating hk
+  · refine contMDiffOn_of_locally_contMDiffOn fun x hx ↦ ?_
+    obtain ⟨k, hk⟩ := mem_iUnion.1 hx
+    refine ⟨W k, hWo k, hk, (((ht k).contMDiffOn i).mono inter_subset_right).congr ?_⟩
+    intro y hy
+    simp [hs k i hy.2]
 
 end IsLocalFrameOn
 
