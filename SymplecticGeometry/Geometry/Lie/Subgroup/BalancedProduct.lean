@@ -34,6 +34,9 @@ consists of the vectors `(-d(L_g)(ξ'), ξ_Z(z))` for `ξ ∈ Lie(K)`.
   `K.RightTranslation × Z`, the kernel of `dπ` is the orbit tangent space of the diagonal action.
 * `TauCeti.BalancedProduct.mem_ker_mfderiv_mk_toRightTranslation_iff`: on `G × Z`, a tangent
   vector at `(g, z)` is vertical exactly when it is `(-d(L_g)(ξ'), ξ_Z(z))` for some `ξ ∈ Lie(K)`.
+* `TauCeti.BalancedProduct.surjective_mk_toRightTranslation`,
+  `TauCeti.BalancedProduct.isSubmersion_mk_toRightTranslation`: on `G × Z`, the projection is a
+  surjective smooth submersion.
 
 ## References
 
@@ -83,6 +86,12 @@ end Subgroup.RightTranslation
 namespace TauCeti.BalancedProduct
 
 variable {G : Type*} [Group G] {K : Subgroup G} {Z : Type*} [MulAction K Z]
+
+/-- The projection `(g, z) ↦ [g, z]` from `G × Z` onto the balanced product `G ×_K Z` is
+surjective. -/
+theorem surjective_mk_toRightTranslation :
+    Surjective fun p : G × Z ↦ mk K (K.toRightTranslation p.1) p.2 :=
+  fun y ↦ induction_on_toRightTranslation y fun g z ↦ ⟨(g, z), rfl⟩
 
 attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
 
@@ -146,6 +155,16 @@ theorem mem_ker_mfderiv_mk_toRightTranslation_iff (g : G) (z : Z)
   rw [InfinitesimalAction.fundamental_prod, InfinitesimalAction.prod_apply,
     InfinitesimalAction.fundamental_apply, InfinitesimalAction.fundamental_apply]
   exact h ▸ eq_comm
+
+/-- The projection `(g, z) ↦ [g, z]` from `G × Z` onto the balanced product `G ×_K Z` is a smooth
+submersion. -/
+theorem isSubmersion_mk_toRightTranslation :
+    letI := rightTranslationChartedSpace K Z I IZ F
+    IsSubmersion (I.prod IZ) 𝓘(ℝ, ProperSMul.QuotientModelSpace F (E × EZ)) ∞
+      (fun p : G × Z ↦ mk K (K.toRightTranslation p.1) p.2) :=
+  -- `K.RightTranslation` is `G` with the same charts and `K.toRightTranslation` is the identity,
+  -- so the map is Tau Ceti's quotient map of `K.RightTranslation × Z`.
+  isSubmersion_quotientMk_rightTranslation
 
 end TauCeti.BalancedProduct
 
