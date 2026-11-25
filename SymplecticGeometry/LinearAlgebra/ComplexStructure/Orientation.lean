@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Symplectic.Prod.Basic
 public import TauCeti.LinearAlgebra.Complex.Orientation
 public import TauCeti.LinearAlgebra.Exact
 public import TauCeti.LinearAlgebra.Orientation.ShortExact
+import SymplecticGeometry.Algebra.Exact.Basic
 
 /-!
 # The orientation induced by an almost complex structure
@@ -158,10 +159,7 @@ theorem shortExact_orientation {U W : Type*} [AddCommGroup U] [Module ℝ U] [Fi
   rw [Orientation.shortExact_eq_map_prod _ _ _ _ _ _ _ s hs]
   set e := (hfg.splitSurjectiveEquiv hf ⟨s, hs⟩).val.symm
   have he₁ (u : U) (w : W) : e (u, w) = f u + s w := by
-    -- Mathlib has no application lemma for `splitSurjectiveEquiv`: unfold it to the
-    -- `LinearEquiv.ofBijective` it is built from, and use that constructor's `apply` lemma.
-    simp only [e, Function.Exact.splitSurjectiveEquiv, Equiv.coe_fn_mk, LinearEquiv.symm_symm]
-    exact (LinearEquiv.ofBijective_apply _ _).trans (by simp)
+    simp only [e, Function.Exact.splitSurjectiveEquiv_symm_apply]
   have he : IsComplexLinearMap (J₁.prod J₂) J e.toLinearMap := by
     rw [isComplexLinearMap_iff_apply]
     rintro ⟨u, w⟩
