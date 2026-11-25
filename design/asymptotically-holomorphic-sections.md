@@ -386,8 +386,8 @@ and the prerequisites, placed by topic.
   $F=A+B:V\to\mathbb C$ on a Hermitian space $(V,\omega,J)$, with $A$
   complex linear, $B$ antilinear and $\|B\|<\|A\|$, $F$ is surjective, its
   kernel is a symplectic subspace, and the orientation of the kernel that
-  $F$ induces (as for transverse zero sets) agrees with the symplectic one
-  (through the path $A+tB$). Main results:
+  $F$ induces (as for transverse zero sets) agrees with the symplectic one.
+  Main results:
   `surjective_of_norm_lt`, `isSymplectic_ker_of_norm_lt`,
   `orientation_ker_eq_of_norm_lt`.
 - `Combinatorics/SimpleGraph/GreedyColoring.lean`: a locally finite graph

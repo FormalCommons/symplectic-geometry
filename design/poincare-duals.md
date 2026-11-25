@@ -169,12 +169,13 @@ the only `dualClass` is a private helper of local orientations.
   space from a basis closed under nonempty intersections, binary unions
   (given the two sets and their intersection) and countable disjoint
   unions. Here the property of `U` is that the Thom map over `U` is
-  bijective in every degree and the Thom pair over `U` has no cohomology
-  below the rank; the basis is the open sets inside the base set of a
-  linear trivialization, where Tau Ceti's local result
+  bijective in every degree, and an earlier induction over the same basis
+  shows that the Thom pair over `U` has no homology below the rank; the
+  basis is the open sets inside the base set of a linear trivialization,
+  where Tau Ceti's local result
   `TauCeti.IsThomClass.bijective_pullbackCupRestrict_of_subset_baseSet`
   applies; the binary step is `TopCat.bijective_pullbackCupRestrict_union`;
-  the disjoint step is additivity of cohomology, the one new lemma. This
+  the disjoint step is additivity of cohomology and homology. This
   works over any commutative ring and any coefficient module, and every
   manifold here is second countable. It is the one route to the Thom
   isomorphism over a non-compact base in this library, and
@@ -246,15 +247,15 @@ In the setting of Tau Ceti's `TopCat.pullbackCupRestrict` (a map
   it is over each `V i`, by `TauCeti.isLimitFanSingularCohomology` and its
   relative form, and the compatibility of the restriction maps with the
   product decompositions;
-- `TopCat.isZero_singularCohomology_ofInclusion_iUnion_of_pairwiseDisjoint`:
-  the same for the vanishing of the relative cohomology of the pair over
+- `TopCat.isZero_singularHomology_ofInclusion_iUnion_of_pairwiseDisjoint`:
+  the same for the vanishing of the relative homology of the pair over
   `⋃ i, V i`, which the Mayer–Vietoris step needs below the rank.
 
 ### `Topology/VectorBundle/Thom/SecondCountable.lean`
 
 - `TauCeti.bijective_thomMap_of_secondCountableTopology`: for `[T2Space B]
   [LocallyCompactSpace B] [SecondCountableTopology B] [VectorBundle ℝ F E]`,
-  `[FiniteDimensional ℝ F]`, a commutative ring `K`, a module `M` and a Thom
+  a commutative ring `K`, a module `M` and a Thom
   class `u` (`IsThomClass F E u`), `thomMap F E M (finrank ℝ F) p m h u` is
   bijective; `TauCeti.thomEquivOfSecondCountableTopology`, the equivalence,
   with `thomEquivOfSecondCountableTopology_apply`, named after Tau Ceti's
@@ -450,19 +451,19 @@ derivative $D s(x):T_xX\to E'_x$, read in any trivialization, is onto):
 
 ### `Geometry/Manifold/VectorBundle/ZeroSet/NormalSpace.lean`
 
-- `normalSpaceEquivOfTransverseSection`: the isomorphism of the normal
+- `SymplecticGeometry.normalSpaceEquivOfTransverseSection`: the isomorphism of the normal
   bundle of the zero set with the restriction of `E'`, induced by $Ds$
   (whose kernel is the tangent space of the zero set), as a fibrewise
   continuous linear equivalence over the inclusion, in the form that Tau
   Ceti's `thomPairMapOfFiberwise` takes; and
-  `normalOrientationOfSection o'`, the normal orientation it carries from an
+  `SymplecticGeometry.normalOrientationOfSection o'`, the normal orientation it carries from an
   orientation `o'` of `E'`.
 
 ### `Geometry/Manifold/VectorBundle/ZeroSet/DualClass.lean`
 
 - `TauCeti.SmoothEmbedding.relDualClass_ofTransverseSection`: the pull-back
   of the Thom class of `E'` along `s`, in $H^r(X,X\setminus s^{-1}(0))$, is
-  `relDualClass` of the zero set with `normalOrientationOfSection o'`, by
+  `relDualClass` of the zero set with `SymplecticGeometry.normalOrientationOfSection o'`, by
   `eq_relDualClassOf_iff_forall_slice` and the local-degree lemma (the
   normal component of $s$ along a normal slice has derivative $Ds$, the
   isomorphism that orients the normal bundle);
