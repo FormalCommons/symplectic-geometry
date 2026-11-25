@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Moser.Relative
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.TwoForm
 import TauCeti.Geometry.Manifold.DifferentialForm.Opens
@@ -138,7 +139,6 @@ theorem exists_symplectomorphism_opens_mfderiv_eq [SecondCountableTopology M₀]
   have hχχ' : Subtype.val ∘ ⇑χ = ⇑χ' ∘ Subtype.val :=
     funext fun w ↦ by simp [χ']
   have hΘ' : ⇑Θ' = ⇑ψ' ∘ ⇑χ' := by simp [Θ']
-  have hψΘ : Subtype.val ∘ ⇑ψ = ⇑Θ ∘ Subtype.val := funext Θ.toDiffeomorphSourceTarget_apply_coe
   have hχ'source (w : V₀) : (w : U₀) ∈ χ'.source := by
     rw [PartialDiffeomorph.liftOpens_source]
     exact ⟨w, by simp, rfl⟩
@@ -166,8 +166,8 @@ theorem exists_symplectomorphism_opens_mfderiv_eq [SecondCountableTopology M₀]
       exact hχ'source ⟨g q, hgV q⟩
     rw [hg q] at hfix hd
     refine ContinuousLinearMap.ext fun v ↦ ?_
-    have h₁ : mfderiv I₀ I₁ ψ ⟨f₀ q, hgΘ q⟩ v = mfderiv I₀ I₁ Θ (f₀ q) v := by
-      exact Manifold.mfderiv_apply_of_subtype_val_comp_eq hψΘ v
+    have h₁ : mfderiv I₀ I₁ ψ ⟨f₀ q, hgΘ q⟩ v = mfderiv I₀ I₁ Θ (f₀ q) v :=
+      Θ.mfderiv_toDiffeomorphSourceTarget_apply _ v
     have hdu (u : TangentSpace I₀ (⟨f₀ q, hfU q⟩ : U₀)) : mfderiv I₀ I₀ χ' ⟨f₀ q, hfU q⟩ u = u := by
       rw [hd]
       exact ContinuousLinearMap.id_apply u

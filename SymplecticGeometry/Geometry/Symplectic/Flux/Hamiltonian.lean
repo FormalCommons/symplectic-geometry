@@ -6,15 +6,14 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Velocity
-public import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
+public import TauCeti.Geometry.Manifold.DeRham.Basic
 public import TauCeti.Geometry.Symplectic.Flux.Hamiltonian
 public import TauCeti.Geometry.Symplectic.Hamiltonian.Manifold
 import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Basic
 import TauCeti.Geometry.Diffeomorphism.Group
-import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Constancy
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
-import TauCeti.Geometry.Manifold.MFDeriv.Prod
+import TauCeti.Geometry.Symplectic.Flux.Hamiltonian.Velocity
 import TauCeti.Geometry.Symplectic.Hamiltonian.SymplecticVectorField
 
 /-!
@@ -48,11 +47,12 @@ also shows that a diffeotopy has a Hamiltonian as soon as every `ι_{X_t} σ` is
   `TauCeti.Diffeotopy.IsGeneratedBy.exists_sub_eq`: two Hamiltonians of the same diffeotopy, in
   either reading, differ on every connected component of `M` by a smooth function of `t` alone.
 * `TauCeti.Diffeotopy.isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms`: a diffeotopy
-  whose slices preserve `σ` is Hamiltonian exactly when every `ι_{X_t} σ` is exact. The
-  Hamiltonian is built by `TauCeti.Diffeotopy.exists_hasHamiltonian_of_forall_mem_exactForms`
-  from the jointly smooth primitives of
-  `SymplecticGeometry.exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`, applied to the
-  family `t ↦ ι_{X_t} σ`, which is smooth by `SymplecticGeometry.isSmoothFamily_interiorₗ`.
+  whose slices preserve `σ` is Hamiltonian exactly when every `ι_{X_t} σ` is exact. This is
+  Tau Ceti's `TauCeti.Diffeotopy.isHamiltonian_iff_forall_isHamiltonianVectorField_velocity`
+  with exactness in place of a Hamiltonian function at each time; the Hamiltonian is built by
+  `TauCeti.Diffeotopy.exists_hasHamiltonian_of_forall_mem_exactForms`, from a primitive of each
+  `ι_{X_t} σ` (`TauCeti.exists_contMDiff_mextDeriv_eq_of_mem_exactForms`) and Tau Ceti's
+  `TauCeti.Diffeotopy.exists_hasHamiltonian_iff`, which makes the choice jointly smooth.
 * `TauCeti.Diffeotopy.flux_congr`: equal diffeotopies have equal fluxes, whatever proofs that
   their final maps preserve the closed form are given.
 
@@ -62,6 +62,9 @@ In Lean the composite `φ_t ∘ ψ_t` is `Ψ.trans Φ`, and the conjugate `χ⁻
 `Φ.transDiffeomorph χ.symm`. The three rules are Tau Ceti's
 `TauCeti.Diffeotopy.HasHamiltonian.trans`, `TauCeti.Diffeotopy.HasHamiltonian.symm` and
 `TauCeti.Diffeotopy.HasHamiltonian.transDiffeomorph`, translated by `hasHamiltonian_comp_iff`.
+The two readings are compared through Tau Ceti's
+`TauCeti.Diffeotopy.hasHamiltonian_iff_isHamiltonianVectorField_velocity`, which assumes the
+reading on `M` smooth, and `TauCeti.Diffeotopy.HasHamiltonian.isHamiltonianVectorField_velocity`.
 
 ## References
 
@@ -108,36 +111,18 @@ theorem IsGeneratedBy.isHamiltonianVectorField (h : Φ.IsGeneratedBy σ G) (t : 
     σ.IsHamiltonianVectorField (fun y ↦ G (y, t)) (Φ.velocity t) :=
   h.2 t
 
-/-- On a tangent vector `(v, 0)` at `(x, t)`, the pullback of `σ` along the motion, contracted with
-`∂ₜ`, is `σ_{φ_t x}(X_t (φ_t x), dφ_t v)`. -/
-private theorem mpullback_cylinderMap_apply_eq_eval₂ (x : M) (t : unitInterval) (v : E) :
-    mpullback (J.prod (𝓡∂ 1)) J Φ.cylinderMap σ.val (x, t)
-        ![((0 : E), (1 : TangentSpace (𝓡∂ 1) t)), (v, (0 : EuclideanSpace ℝ (Fin 1)))] =
-      SmoothBundleForm.eval₂ σ (Φ.timeSlice t x) (Φ.velocity t (Φ.timeSlice t x))
-        (mfderiv J J (Φ.timeSlice t) x v) := by
-  refine (Φ.mpullback_timeSlice_interior_velocity_apply σ.val t x v).symm.trans ?_
-  simp only [SmoothBundleForm.eval₂_apply, TauCeti.mpullback_apply, RoughForm.interior_apply]
-  congr 1
-  exact (FinVec.etaExpand_eq _).symm
-
-omit [IsManifold J ∞ M] in
-/-- The spatial derivative of a smooth `F` at `(x, t)`, on a vector `v`, is the derivative of
-`F_t ∘ φ_t⁻¹` at `φ_t x` on `dφ_t v`. -/
-private theorem mvfderiv_apply_eq_mvfderiv_comp_symm (hF : ContMDiff (J.prod (𝓡∂ 1)) 𝓘(ℝ) ∞ F)
-    (x : M) (t : unitInterval) (v : E) :
-    mvfderiv (J.prod (𝓡∂ 1)) F (x, t) (v, (0 : EuclideanSpace ℝ (Fin 1))) =
-      mvfderiv J (fun y ↦ F (Φ.symm (t, y), t)) (Φ.timeSlice t x)
-        (mfderiv J J (Φ.timeSlice t) x v) := by
-  have hcomp : (fun y ↦ F (Φ.symm (t, y), t)) ∘ Φ.timeSlice t = F ∘ fun z : M ↦ (z, t) := by
-    funext z
-    rw [Function.comp_apply, Function.comp_apply, timeSlice_apply, symm_apply_mk_apply]
-  have h2 := congrArg (· v)
-    ((Φ.timeSlice t).mvfderiv_comp_diffeomorph (by simp) (fun y ↦ F (Φ.symm (t, y), t)) x)
-  rw [hcomp] at h2
-  refine Eq.trans ?_ h2
-  rw [Function.comp_def, mvfderiv_curry_left x t (hF.mdifferentiableAt (by simp))]
-  -- `inl v` is `(v, 0)` by definition.
-  rfl
+/-- **Hamiltonians on `M` and along the motion.** For `G` on `M × [0, 1]`, the function
+`(x, t) ↦ G (φ_t x, t)` is a Hamiltonian of `φ_t` read along the motion exactly when `G`
+generates `φ_t`. Unlike Tau Ceti's
+`TauCeti.Diffeotopy.hasHamiltonian_iff_isHamiltonianVectorField_velocity`, which it follows from,
+it does not assume that `G` is smooth. -/
+theorem hasHamiltonian_comp_iff :
+    Φ.HasHamiltonian σ (fun p ↦ G (Φ.cylinderMap p, p.2)) ↔ Φ.IsGeneratedBy σ G := by
+  refine ⟨fun h ↦ ?_, fun h ↦ (hasHamiltonian_iff_isHamiltonianVectorField_velocity h.1).2 h.2⟩
+  have hG : ContMDiff (J.prod (𝓡∂ 1)) 𝓘(ℝ) ∞ G := by
+    refine (h.contMDiff.comp Φ.symm.contMDiff_cylinderMap_prodMk_snd).congr fun p ↦ ?_
+    rw [Function.comp_apply, cylinderMap_apply, cylinderMap_apply, apply_mk_symm_apply]
+  exact ⟨hG, (hasHamiltonian_iff_isHamiltonianVectorField_velocity hG).1 h⟩
 
 /-- **The two readings of a Hamiltonian.** A function `F` on `M × [0, 1]` is a Hamiltonian of
 `φ_t` read along the motion exactly when it is smooth and, for every `t`, the velocity `X_t` is a
@@ -145,31 +130,15 @@ Hamiltonian vector field of `H_t = F_t ∘ φ_t⁻¹`. -/
 theorem hasHamiltonian_iff_contMDiff_and_isHamiltonianVectorField_velocity :
     Φ.HasHamiltonian σ F ↔ ContMDiff (J.prod (𝓡∂ 1)) 𝓘(ℝ) ∞ F ∧
       ∀ t, σ.IsHamiltonianVectorField (fun y ↦ F (Φ.symm (t, y), t)) (Φ.velocity t) := by
-  refine ⟨fun h ↦ ⟨h.contMDiff, fun t ↦ SmoothTwoForm.isHamiltonianVectorField_iff.2
-    fun y w ↦ ?_⟩, fun ⟨hF, hX⟩ ↦ hasHamiltonian_iff.2 ⟨hF, fun p v ↦ ?_⟩⟩
-  · obtain ⟨x, rfl⟩ := (Φ.timeSlice t).surjective y
-    have hw := (Φ.timeSlice t).mfderiv_apply_mfderiv_symm_apply (by simp) x w
-    have key := (mpullback_cylinderMap_apply_eq_eval₂ (Φ := Φ) x t _).symm.trans
-      ((h.mpullback_cylinderMap_apply (x, t) (mfderiv J J (Φ.timeSlice t).symm
-        (Φ.timeSlice t x) w)).trans
-          (mvfderiv_apply_eq_mvfderiv_comp_symm (Φ := Φ) h.contMDiff x t _))
-    rwa [hw] at key
-  · exact (mpullback_cylinderMap_apply_eq_eval₂ p.1 p.2 v).trans
-      ((SmoothTwoForm.isHamiltonianVectorField_iff.1 (hX p.2) _ _).trans
-        (mvfderiv_apply_eq_mvfderiv_comp_symm hF p.1 p.2 v).symm)
-
-/-- **Hamiltonians on `M` and along the motion.** For `G` on `M × [0, 1]`, the function
-`(x, t) ↦ G (φ_t x, t)` is a Hamiltonian of `φ_t` read along the motion exactly when `G`
-generates `φ_t`. -/
-theorem hasHamiltonian_comp_iff :
-    Φ.HasHamiltonian σ (fun p ↦ G (Φ.cylinderMap p, p.2)) ↔ Φ.IsGeneratedBy σ G := by
-  have hG : ∀ (t : unitInterval) (y : M), G (Φ.cylinderMap (Φ.symm (t, y), t), t) = G (y, t) :=
-    fun t y ↦ by rw [cylinderMap_apply, apply_mk_symm_apply]
-  rw [hasHamiltonian_iff_contMDiff_and_isHamiltonianVectorField_velocity, isGeneratedBy_iff]
-  simp only [hG]
-  refine and_congr_left' ⟨fun h ↦ ?_, fun h ↦ h.comp Φ.contMDiff_cylinderMap_prodMk_snd⟩
-  refine (h.comp Φ.symm.contMDiff_cylinderMap_prodMk_snd).congr fun p ↦ ?_
-  rw [Function.comp_apply, cylinderMap_apply, cylinderMap_apply, apply_mk_symm_apply]
+  refine ⟨fun h ↦ ⟨h.contMDiff, fun t ↦ ?_⟩, fun ⟨hF, hX⟩ ↦ ?_⟩
+  · simpa only [Function.comp_def, symm_timeSlice_apply] using
+      h.isHamiltonianVectorField_velocity t
+  · have hG : ContMDiff (J.prod (𝓡∂ 1)) 𝓘(ℝ) ∞ fun p : M × unitInterval ↦
+        F (Φ.symm (p.2, p.1), p.2) :=
+      (hF.comp Φ.symm.contMDiff_cylinderMap_prodMk_snd).congr fun p ↦ by
+        rw [Function.comp_apply, cylinderMap_apply]
+    simpa only [cylinderMap_apply, symm_apply_mk_apply] using
+      (hasHamiltonian_comp_iff (G := fun p ↦ F (Φ.symm (p.2, p.1), p.2))).2 ⟨hG, hX⟩
 
 /-- **From a Hamiltonian along the motion to one on `M`.** If `F` is a Hamiltonian of `φ_t` read
 along the motion, then `H_t = F_t ∘ φ_t⁻¹` generates `φ_t`. -/
@@ -264,14 +233,12 @@ contraction `ι_{X_t} σ` of `σ` with the velocity of `φ_t` is exact, then `φ
 Hamiltonian, read along the motion. Neither closedness nor nondegeneracy of `σ` is needed. -/
 theorem exists_hasHamiltonian_of_forall_mem_exactForms
     (h : ∀ t, σ.interiorₗ (Φ.smoothVelocity t) ∈ exactForms J M 1) : ∃ F, Φ.HasHamiltonian σ F := by
-  obtain ⟨f, hf, hdf⟩ := SymplecticGeometry.exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms
-    (SymplecticGeometry.isSmoothFamily_interiorₗ σ Φ.contMDiff_smoothVelocity) h
-  refine ⟨fun p ↦ f (p.2, Φ.cylinderMap p),
-    (hasHamiltonian_comp_iff (G := fun q ↦ f (q.2, q.1))).2
-      ⟨hf.comp (contMDiff_snd.prodMk contMDiff_fst), fun t ↦ ?_⟩⟩
+  refine exists_hasHamiltonian_iff.2 fun t ↦ ?_
+  obtain ⟨f, hf, hdf⟩ := exists_contMDiff_mextDeriv_eq_of_mem_exactForms J (h t)
+  refine ⟨f, hf.mdifferentiable (by simp), ?_⟩
   rw [SmoothTwoForm.isHamiltonianVectorField_iff_interior_eq, ← coe_smoothVelocity,
     ← SmoothTwoForm.coe_interiorₗ]
-  exact (hdf t).symm
+  exact hdf.symm
 
 /-- **Hamiltonian diffeotopies and exactness.** A diffeotopy `φ_t` all of whose slices preserve
 `σ` is Hamiltonian exactly when, for every `t`, the contraction `ι_{X_t} σ` of `σ` with its
