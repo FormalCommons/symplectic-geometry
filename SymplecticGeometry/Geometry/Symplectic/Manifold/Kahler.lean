@@ -49,7 +49,7 @@ In the namespace `TauCeti.SmoothTwoForm`:
 * `Compatible.inner_nijenhuis_and_leviCivita_hom_eq_zero_iff`: the formula and the equivalence
   for a compatible pair and the Levi-Civita connection of `g_J`.
 * `Compatible.leviCivita_hom_toEndomorphism_eq_zero_iff_isKahler`: the Kähler form of it.
-* `IsKahler.smul`: a positive multiple of a Kähler form is Kähler for the same structure.
+* `IsKahler.smul`: scaling by a positive real number keeps the Kähler property for `J`.
 
 ## Implementation notes
 
