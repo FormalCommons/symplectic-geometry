@@ -207,24 +207,16 @@ theorem integralCohomologyEquiv_symm_apply (X : TopCat.{0}) (n : ℕ)
   rw [LinearEquiv.symm_apply_eq, integralCohomologyEquiv.eq_1]
   simp only [Iso.toLinearEquiv_apply, Iso.trans_hom, Iso.symm_hom,
     singularCohomologyChainCoefficientIso_inv, ConcreteCategory.comp_apply, eqToIso.hom]
-  -- The two linear structures are equal but not the same term; for variables in their place the
-  -- round trip is the identity.
-  have key (L₁ L₂ : Linear ℤ (ModuleCat.{0} ℤ)) (e : L₁ = L₂) (e' : L₂ = L₁)
-      (a : @TopCat.singularCohomology _ _ _ _ (𝟙_ (ModuleCat.{0} ℤ)) ℤ _ L₁
-        (𝟙_ (ModuleCat.{0} ℤ)) X n) :
-      a = @TopCat.singularCohomologyChainCoefficientMap _ _ _ _ _ _ X ℤ _ L₁ (ModuleCat.of ℤ ℤ)
-        integralCoeffIso.inv n
-        (eqToHom (congrArg (fun L : Linear ℤ (ModuleCat.{0} ℤ) ↦
-          @TopCat.singularCohomology _ _ _ _ (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ _ L
-            (ModuleCat.of ℤ ℤ) X n) e')
-          (@TopCat.singularCohomologyChainCoefficientMap _ _ _ _ _ _ X ℤ _ L₂ (ModuleCat.of ℤ ℤ)
-            integralCoeffIso.hom n (singularCohomologyLinearCongr e X _ _ n a))) := by
-    subst e
-    rw [singularCohomologyLinearCongr_refl, LinearEquiv.refl_apply, eqToHom_refl,
-      ConcreteCategory.id_apply, ← ConcreteCategory.comp_apply,
-      ← singularCohomologyChainCoefficientMap_comp]
-    simp
-  exact key _ _ (Subsingleton.elim _ _) (Subsingleton.elim _ _) a
+  rw [← singularCohomologyLinearCongr_apply (Subsingleton.elim _ _),
+    singularCohomologyLinearCongr_singularCohomologyChainCoefficientMap]
+  -- Tau Ceti's definition writes the cochain values as `ModuleCat.of ℤ ℤ` in its change of linear
+  -- structure and as `𝟙_ (ModuleCat ℤ)` in its change of chain coefficients. Mathlib defines the
+  -- latter to be the former, but `rw` does not see this, so the step that joins the two changes
+  -- of linear structure, and the closing `exact`, work up to this unfolding.
+  erw [singularCohomologyLinearCongr_apply_apply]
+  rw [singularCohomologyLinearCongr_refl, LinearEquiv.refl_apply,
+    ← singularCohomologyChainCoefficientIso_hom, ← singularCohomologyChainCoefficientIso_inv]
+  exact (Iso.hom_inv_id_apply _ a).symm
 
 /-- Tau Ceti's `TopCat.integralCohomologyEquiv`, from integral cohomology to cohomology with chain
 coefficients and values `ℤ`: the change of chain coefficients
