@@ -32,6 +32,13 @@ namespace), near which Morse–Bott functions satisfy the inequality (theorem
 `exists_tendsto_and_riemannianEDist_le_mul_exp_maximalIntegralCurve_neg_mgradient_of_lojasiewicz`,
 in the namespace `TauCeti`.
 
+Both proofs adapt two theorems of Tau Ceti in the namespace `TauCeti.IsMorseBottFamily`, in
+`TauCeti/Geometry/Manifold/Morse/Bott/ExponentialConvergence.lean`, with the same steps, to the
+components of a moment map: `exists_mul_abs_sub_le_norm_mgradient_sq` and
+`exists_tendsto_and_riemannianEDist_le_mul_exp_maximalIntegralCurve_neg_mgradient`. They are
+adapted rather than applied because the sets `M^{T_ξ}_d` are not known here to form an
+`IsMorseBottFamily`.
+
 ## Main results
 
 * `TauCeti.SmoothTwoForm.IsMomentMap.exists_mul_abs_sub_le_norm_mgradient_sq`: Łojasiewicz's

@@ -9,7 +9,6 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Kempf
 public import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.GradientFlow
-import TauCeti.Geometry.Manifold.Morse.GradientFlow
 import TauCeti.Geometry.Symplectic.Manifold.Rescale
 
 /-!
@@ -266,6 +265,23 @@ variable [FiniteDimensional ℝ E] [T2Space G] [CompactSpace G]
   {σ : SmoothTwoForm 𝓘(ℝ, E') M} {J : SmoothAlmostComplexStructure 𝓘(ℝ, E') M}
   {C : LieComplexification I G IC Gc} {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)}
 
+/-- The curve `t ↦ C.expI (t • ξ) • p` converges to a critical point of `x ↦ μ x ξ`. -/
+private theorem exists_mem_criticalPoints_tendsto_expI_smul (h : IsComplexifiedAction C J)
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G 𝓘(ℝ, E') M) fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace 𝓘(ℝ, E') x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    (p : M) (ξ : GroupLieAlgebra I G) :
+    ∃ q ∈ criticalPoints 𝓘(ℝ, E') (fun x ↦ μ x ξ),
+      Tendsto (fun t : ℝ ↦ C.expI (t • ξ) • p) atTop (𝓝 q) := by
+  have := topologicalGroup_of_lieGroup I ∞ (G := G)
+  -- `μ` is a moment map for `-σ`, which is nondegenerate since `σ` is compatible with `J`.
+  have hμ' : (-σ).IsMomentMap (InfinitesimalAction.fundamental I G 𝓘(ℝ, E') M) μ := by
+    simpa using hμ.neg
+  have hσ' : (-σ).IsNondegenerate :=
+    SmoothTwoForm.isNondegenerate_neg_iff.2
+      (SmoothTwoForm.compatible_of_inner_eq hg).isNondegenerate
+  rw [← maximalIntegralCurve_neg_mgradient_moment h hμ hg]
+  exact hμ'.exists_tendsto_maximalIntegralCurve_neg_mgradient hσ' ξ p
+
 /-- **The limit points exist.** For a complexified action of `Gc` on a compact manifold modelled
 on `𝓘(ℝ, E')`, with `G` compact, `-μ` a moment map for `σ` and the `C¹` metric
 `g(u, w) = σ(u, J w)`, the curve `t ↦ C.expI (t • ξ) • p` converges to `limitPoint C p ξ` as
@@ -275,15 +291,7 @@ theorem tendsto_limitPoint (h : IsComplexifiedAction C J)
     (hg : ∀ x (u w : TangentSpace 𝓘(ℝ, E') x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
     (p : M) (ξ : GroupLieAlgebra I G) :
     Tendsto (fun t : ℝ ↦ C.expI (t • ξ) • p) atTop (𝓝 (limitPoint C p ξ)) := by
-  have := topologicalGroup_of_lieGroup I ∞ (G := G)
-  -- `μ` is a moment map for `-σ`, which is nondegenerate since `σ` is compatible with `J`.
-  have hμ' : (-σ).IsMomentMap (InfinitesimalAction.fundamental I G 𝓘(ℝ, E') M) μ := by
-    simpa using hμ.neg
-  have hσ' : (-σ).IsNondegenerate :=
-    SmoothTwoForm.isNondegenerate_neg_iff.2
-      (SmoothTwoForm.compatible_of_inner_eq hg).isNondegenerate
-  obtain ⟨q, -, hq⟩ := hμ'.exists_tendsto_maximalIntegralCurve_neg_mgradient hσ' ξ p
-  rw [maximalIntegralCurve_neg_mgradient_moment h hμ hg] at hq
+  obtain ⟨q, -, hq⟩ := exists_mem_criticalPoints_tendsto_expI_smul h hμ hg p ξ
   rwa [limitPoint_eq_of_tendsto hq]
 
 /-- The limit point is a critical point of `x ↦ μ x ξ`, under the hypotheses of
@@ -293,12 +301,8 @@ theorem limitPoint_mem_criticalPoints (h : IsComplexifiedAction C J)
     (hg : ∀ x (u w : TangentSpace 𝓘(ℝ, E') x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
     (p : M) (ξ : GroupLieAlgebra I G) :
     limitPoint C p ξ ∈ criticalPoints 𝓘(ℝ, E') fun x ↦ μ x ξ := by
-  have hf : ContMDiff 𝓘(ℝ, E') 𝓘(ℝ) 2 fun y ↦ μ y ξ := by
-    simpa using ((hμ.contMDiff ξ).of_le (by simp)).neg
-  have hlim := tendsto_limitPoint h hμ hg p ξ
-  rw [← maximalIntegralCurve_neg_mgradient_moment h hμ hg] at hlim
-  exact mem_criticalPoints_of_mapClusterPt_maximalIntegralCurve_neg_mgradient isCompact_univ
-    (Set.mapsTo_univ _ _) hf hlim.mapClusterPt
+  obtain ⟨q, hq, hlim⟩ := exists_mem_criticalPoints_tendsto_expI_smul h hμ hg p ξ
+  rwa [limitPoint_eq_of_tendsto hlim]
 
 /-- The moment weight is the value of `x ↦ μ x ξ` at the limit point. -/
 theorem momentWeight_eq_moment_limitPoint (h : IsComplexifiedAction C J)
