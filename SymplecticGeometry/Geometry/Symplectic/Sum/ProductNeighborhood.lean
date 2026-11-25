@@ -220,7 +220,7 @@ theorem refl_apply {τ : SmoothTwoForm J Q} (hτ : τ.IsNondegenerate) (q : Q) :
     refl hτ q = .refl ℝ _ :=
   (rfl)
 
-variable {hσ : σ.IsSymplectic} {ι : SmoothEmbedding J I ∞ Q M}
+variable (hσ : σ.IsSymplectic) {ι : SmoothEmbedding J I ∞ Q M}
   {hι : hσ.isNondegenerate.HasSymplecticTangentImages J ι}
   {hP : finrank ℝ ℂ = finrank ℝ E - finrank ℝ EQ}
 
@@ -441,7 +441,7 @@ theorem «exists» [CompactSpace Q] (Φ : SymplecticFraming hι hP) :
     ∃ ε₀ > 0, ∀ ε ≤ ε₀, Nonempty (ProductNeighborhood Φ ε) := by
   -- A compact manifold over a finite-dimensional model is second countable.
   have := J.secondCountableTopology_of_sigmaCompact Q
-  obtain ⟨U₀, U₁, ψ, hψ, hψσ⟩ := Φ.exists_symplectomorphism_opens (hσ := hσ)
+  obtain ⟨U₀, U₁, ψ, hψ, hψσ⟩ := Φ.exists_symplectomorphism_opens hσ
   have hU₀ : (Set.univ : Set Q) ×ˢ {(0 : ℂ)} ⊆ U₀ := by
     rintro ⟨q, z⟩ ⟨-, rfl : z = 0⟩
     simpa using (hψ q).1
