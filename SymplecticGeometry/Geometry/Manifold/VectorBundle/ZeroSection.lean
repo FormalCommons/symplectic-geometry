@@ -9,6 +9,7 @@ public import Mathlib.Geometry.Manifold.VectorBundle.Basic
 public import Mathlib.Geometry.Manifold.VectorBundle.Pullback
 public import Mathlib.Geometry.Manifold.VectorBundle.Tangent
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+public import TauCeti.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LeftInverse
@@ -26,9 +27,11 @@ embedding: the bundle projection is a smooth left inverse of it. This file bundl
 `SymplecticGeometry.Bundle.zeroSectionEmbedding`, so that results about submanifolds, such as the
 neighbourhood theorems, apply to it, and shows that its image is closed. It also reads the zero
 section in the preferred charts of the total space, and computes the differential of a map along
-the zero section on horizontal and on vertical vectors. Finally, for a map on the total space
-that is smooth along the zero section, the velocities at `0` of the images of the rays
-`t ↦ t • v` in the fibres form a smooth map on the total space.
+the zero section on horizontal and on vertical vectors, and notes that Tau Ceti's fibrewise
+linear diffeomorphisms `TauCeti.bundleDiffeomorph` of total spaces, and their inverses, fix the
+zero section. Finally, for a map on the total space that is smooth along the zero section, the
+velocities at `0` of the images of the rays `t ↦ t • v` in the fibres form a smooth map on the
+total space.
 
 The file has the path of Tau Ceti's `Geometry/Manifold/VectorBundle/ZeroSection.lean`, which
 splits the tangent spaces along the zero section. The zero section as an embedding is the
@@ -36,7 +39,9 @@ library's own definition, in `SymplecticGeometry.Bundle`. Of the other lemmas,
 `isClosed_range_zeroSection`, about Mathlib's notions alone, and
 `zeroSectionTangentEquiv_symm_inl`, `mfderiv_zeroSectionTangentEquiv_symm_inl` and
 `mfderiv_zeroSectionTangentEquiv_symm_inr`, about Tau Ceti's splitting, are in Tau Ceti's
-namespace `TauCeti.Bundle`, and
+namespace `TauCeti.Bundle`, `bundleDiffeomorph_zeroSection` and
+`bundleDiffeomorph_symm_zeroSection`, about Tau Ceti's `bundleDiffeomorph`, are in its namespace
+`TauCeti`, and
 `extChartAt_symm_apply_zero_of_mem_baseSet`, about the charts of the total space,
 `contMDiff_totalSpaceMk_comp`, about linear maps into one fibre, and
 `contMDiff_mfderiv_smul_curve`, about maps on the total space, in Mathlib's namespace `Bundle`.
@@ -50,6 +55,9 @@ namespace `TauCeti.Bundle`, and
 * `SymplecticGeometry.Bundle.coe_zeroSectionEmbedding`: its underlying map is `zeroSection F V`.
 * `TauCeti.Bundle.isClosed_range_zeroSection`: the image of the zero section is closed when the
   total space is Hausdorff.
+* `TauCeti.bundleDiffeomorph_zeroSection`, `TauCeti.bundleDiffeomorph_symm_zeroSection`: the
+  diffeomorphism of total spaces given by a smooth family of fibrewise continuous linear
+  equivalences, and its inverse, send the zero vector over `b` to the zero vector over `b`.
 * `Bundle.extChartAt_symm_apply_zero_of_mem_baseSet`: the inverse of the preferred chart of the
   total space sends `(y, 0)` to the zero vector over the base point with coordinate `y`.
 * `Bundle.contMDiff_totalSpaceMk_comp`: a continuous linear map from a normed space into one
@@ -122,6 +130,39 @@ theorem coe_zeroSectionEmbedding : ⇑(zeroSectionEmbedding IB F V) = zeroSectio
   SmoothEmbedding.coe_ofIsSmoothEmbedding _ _
 
 end SymplecticGeometry.Bundle
+
+namespace TauCeti
+
+variable {𝕜 F₁ F₂ EB HB : Type*} [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜] {n : WithTop ℕ∞}
+  [NormedAddCommGroup EB] [NormedSpace 𝕜 EB] [TopologicalSpace HB]
+  {IB : ModelWithCorners 𝕜 EB HB} [ChartedSpace HB B]
+  [NormedAddCommGroup F₁] [NormedSpace 𝕜 F₁] [FiniteDimensional 𝕜 F₁]
+  [NormedAddCommGroup F₂] [NormedSpace 𝕜 F₂]
+  {E₁ : B → Type*} [∀ x, AddCommGroup (E₁ x)] [∀ x, Module 𝕜 (E₁ x)]
+  [∀ x, TopologicalSpace (E₁ x)] [TopologicalSpace (TotalSpace F₁ E₁)]
+  [FiberBundle F₁ E₁] [VectorBundle 𝕜 F₁ E₁]
+  {E₂ : B → Type*} [∀ x, AddCommGroup (E₂ x)] [∀ x, Module 𝕜 (E₂ x)]
+  [∀ x, TopologicalSpace (E₂ x)] [TopologicalSpace (TotalSpace F₂ E₂)]
+  [FiberBundle F₂ E₂] [VectorBundle 𝕜 F₂ E₂]
+  (e : ∀ x, E₁ x ≃L[𝕜] E₂ x)
+  (he : ContMDiff (IB.prod 𝓘(𝕜, F₁)) (IB.prod 𝓘(𝕜, F₂)) n
+    (fun p : TotalSpace F₁ E₁ ↦ TotalSpace.mk' F₂ p.proj (e p.proj p.snd)))
+
+/-- The diffeomorphism `bundleDiffeomorph e he` of total spaces, being linear on each fibre,
+sends the zero vector over `b` to the zero vector over `b`. -/
+theorem bundleDiffeomorph_zeroSection (b : B) :
+    bundleDiffeomorph e he (zeroSection F₁ E₁ b) = zeroSection F₂ E₂ b := by
+  rw [bundleDiffeomorph_apply]
+  exact congrArg (TotalSpace.mk b) (map_zero (e b))
+
+/-- The inverse of the diffeomorphism `bundleDiffeomorph e he` of total spaces sends the zero
+vector over `b` to the zero vector over `b`. -/
+theorem bundleDiffeomorph_symm_zeroSection (b : B) :
+    (bundleDiffeomorph e he).symm (zeroSection F₂ E₂ b) = zeroSection F₁ E₁ b := by
+  rw [bundleDiffeomorph_symm_apply]
+  exact congrArg (TotalSpace.mk b) (map_zero (e b).symm)
+
+end TauCeti
 
 namespace Bundle
 
