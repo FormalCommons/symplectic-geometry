@@ -31,6 +31,11 @@ and that of `x ↦ (x, y)` sends `v` to `(v, 0)`
 `mfderiv_prod_right` and `mfderiv_prod_left` on vectors, so that proofs need not unfold the tangent
 space of a product to the product of the model spaces. They sit next to Tau Ceti's
 `TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMap_id`, which treats `Prod.map id φ`.
+
+That identification is the identity map, so the same two facts also hold with the tangent vector of
+`M × M'` written directly as a pair (`mfderiv_prodMk_right_apply`, `mfderiv_prodMk_left_apply`).
+These are the forms that `rw` and `simp` can use on the differential of a slice inclusion applied
+to a vector.
 -/
 
 public section
@@ -79,5 +84,21 @@ theorem tangentSpaceProdEquiv_mfderiv_prodMk_left (v : TangentSpace I x) :
   exact ContinuousLinearMap.inl_apply ..
 
 end TauCeti.Manifold
+
+variable {x : M} {y : M'}
+
+/-- The differential at `y` of the slice inclusion `z ↦ (x, z)` sends `w` to the tangent vector
+`(0, w)` of `M × M'` at `(x, y)`. -/
+theorem mfderiv_prodMk_right_apply (w : TangentSpace I' y) :
+    mfderiv I' (I.prod I') (fun z ↦ (x, z)) y w = (0, w) :=
+  (TauCeti.Manifold.tangentSpaceProdEquiv_apply _ _).symm.trans
+    (TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right w)
+
+/-- The differential at `x` of the slice inclusion `z ↦ (z, y)` sends `v` to the tangent vector
+`(v, 0)` of `M × M'` at `(x, y)`. -/
+theorem mfderiv_prodMk_left_apply (v : TangentSpace I x) :
+    mfderiv I (I.prod I') (fun z ↦ (z, y)) x v = (v, 0) :=
+  (TauCeti.Manifold.tangentSpaceProdEquiv_apply _ _).symm.trans
+    (TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_left v)
 
 end

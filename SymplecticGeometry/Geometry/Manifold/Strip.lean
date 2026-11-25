@@ -12,6 +12,7 @@ public import Mathlib.Geometry.Manifold.SmoothEmbedding
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.Basic
 import TauCeti.Geometry.Manifold.SmoothEmbedding.LocalDiffeomorph
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # Symmetric strips as manifolds
@@ -48,8 +49,8 @@ theorem contMDiff_symmStripMk {n : WithTop ℕ∞} {ε r : ℝ} (hr : |r| < ε) 
 /-- The differential of the slice map `x ↦ (r, x)` sends `v` to `(0, v)`. -/
 theorem mfderiv_symmStripMk_apply {ε r : ℝ} (hr : |r| < ε) (x : M) (v : TangentSpace I x) :
     mfderiv I (𝓘(ℝ).prod I) (symmStripMk hr) x v = ((0 : ℝ), v) := by
-  rw [← TauCeti.Manifold.mfderiv_subtype_val_comp_apply, val_comp_symmStripMk, mfderiv_prod_right]
-  exact ContinuousLinearMap.inr_apply ..
+  rw [← TauCeti.Manifold.mfderiv_subtype_val_comp_apply, val_comp_symmStripMk]
+  exact mfderiv_prodMk_right_apply v
 
 /-- The zero slice `x ↦ (0, x)` of a symmetric strip of positive width is a smooth embedding. -/
 theorem isSmoothEmbedding_symmStripMk_zero {n : WithTop ℕ∞} [IsManifold I n M] {ε : ℝ}

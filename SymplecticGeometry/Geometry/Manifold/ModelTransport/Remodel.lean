@@ -59,6 +59,10 @@ instance : TopologicalSpace (Remodel Φ M) := inferInstanceAs (TopologicalSpace 
 
 instance [T2Space M] : T2Space (Remodel Φ M) := inferInstanceAs (T2Space M)
 
+instance [CompactSpace M] : CompactSpace (Remodel Φ M) := inferInstanceAs (CompactSpace M)
+
+instance [Nonempty M] : Nonempty (Remodel Φ M) := inferInstanceAs (Nonempty M)
+
 /-- The charts of `Remodel Φ M` are the charts of `M` followed by `Φ`. -/
 instance [ChartedSpace H M] : ChartedSpace H' (Remodel Φ M) :=
   Φ.toHomeomorph.chartedSpaceComp M

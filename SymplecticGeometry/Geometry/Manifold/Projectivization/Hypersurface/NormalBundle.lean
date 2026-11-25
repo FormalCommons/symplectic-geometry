@@ -199,7 +199,7 @@ theorem continuous_normalSpaceEquiv :
       ((X.embedding : X → ℙ ℂ (Fin (n + 2) → ℂ)) *ᵖ (TangentSpace 𝓘(ℂ, Fin (n + 1) → ℂ))) ↦
         (mfderiv 𝓘(ℂ, Fin (n + 1) → ℂ) 𝓘(ℂ) (fun y ↦ eval (affineChart i y) (dehomogenize i X.poly))
           (X.embedding q.proj) q.snd : ℂ)) q₀ :=
-    (continuous_snd.comp (tangentBundleModelSpaceHomeomorph 𝓘(ℂ)).continuous).continuousAt.comp
+    (contMDiff_snd_tangentBundle_modelSpace ℂ 𝓘(ℂ) (n := 0)).continuous.continuousAt.comp
       (ht.comp (Pullback.continuous_lift _ _ _).continuousAt)
   have hr (b : ℙ ℂ (Fin (n + 2) → ℂ)) (a : ℂ) :
       (trivializationAt ℂ (twistCore (𝕜 := ℂ) (n := n + 1) (d : ℤ)).Fiber (X.embedding q₀.proj)
