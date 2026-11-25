@@ -3870,8 +3870,8 @@ For §7.3 of `atlas/constructing-symplectic-manifolds.md`.
   route as `Parametric.lean`, for a fixed closed representative of $a$)
   and `Parametric.lean` (the parametric statement: the inclusion of the
   symplectic forms of class $a$ into the nondegenerate two-forms is a
-  weak homotopy equivalence, and a homotopy equivalence when $M$
-  compresses into a compact set,
+  weak homotopy equivalence, and a homotopy equivalence when each
+  component of $M$ compresses into a compact set,
   for the compact-open $C^\infty$ topology of the departure *Spaces of forms*, by
   the compression route of Eliashberg–Mishachev, Theorems 10.2.1–10.2.2,
   with their parameter-relative holonomic approximation, Theorem 4.7.4,
@@ -3886,8 +3886,8 @@ For §7.3 of `atlas/constructing-symplectic-manifolds.md`.
 - **Milestones:** *Gromov's h-principle for symplectic forms on open
   manifolds* (existence and the path-component statement in
   `OpenManifold.lean`, the parametric statement in `Parametric.lean`,
-  where the homotopy equivalence for an $M$ that does not compress into a
-  compact set waits for a route),
+  where the homotopy equivalence waits for a route only for an $M$ some
+  component of which does not compress into a compact set),
   *Relative extension of exact symplectic forms over a handle core*. The
   design file takes the compression route of Eliashberg–Mishachev for all
   three statements of the first milestone, not the book's handle

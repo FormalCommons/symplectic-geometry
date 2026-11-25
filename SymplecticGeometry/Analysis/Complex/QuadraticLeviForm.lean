@@ -23,6 +23,8 @@ For a finite type `ι`, write `s(z) = |z|² = ‖complexToRealEuclidean ι z‖ 
 * `TauCeti.extendRCLike_fderiv_norm_sq_complexToRealEuclidean`: the complex-linear extension of
   the differential of `s` at `z` is `v ↦ 2 (star z ⬝ᵥ v)`, that is `2 ∂s`.
 * `TauCeti.norm_sq_complexToRealEuclidean_pos`: `s` is positive on `puncturedSpace (ι → ℂ)`.
+* `TauCeti.contDiffAt_comp_norm_sq_complexToRealEuclidean`: for `g` smooth on `(0, ∞)`, `g ∘ s`
+  is smooth at every point of `puncturedSpace (ι → ℂ)`.
 -/
 
 public section
@@ -70,6 +72,16 @@ theorem extendRCLike_fderiv_norm_sq_complexToRealEuclidean (z v : ι → ℂ) :
 theorem norm_sq_complexToRealEuclidean_pos (z : puncturedSpace (ι → ℂ)) :
     0 < ‖complexToRealEuclidean ι z‖ ^ 2 :=
   pow_pos (norm_pos_iff.2 (by simpa using mem_puncturedSpace.1 z.property)) 2
+
+/-- For `g` smooth on `(0, ∞)`, the function `w ↦ g |w|²` on `ι → ℂ` is smooth at
+every point of `(ι → ℂ) ∖ 0`. -/
+theorem contDiffAt_comp_norm_sq_complexToRealEuclidean {g : ℝ → ℝ}
+    (hg : ContDiffOn ℝ ∞ g (Ioi 0)) (z : puncturedSpace (ι → ℂ)) :
+    ContDiffAt ℝ ∞ (fun w ↦ g (‖complexToRealEuclidean ι w‖ ^ 2))
+      (z : ι → ℂ) :=
+  ContDiffAt.comp (g := g) (f := fun w ↦ ‖complexToRealEuclidean ι w‖ ^ 2) _
+    (hg.contDiffAt (Ioi_mem_nhds (norm_sq_complexToRealEuclidean_pos z)))
+    contDiff_norm_sq_complexToRealEuclidean.contDiffAt
 
 end TauCeti
 

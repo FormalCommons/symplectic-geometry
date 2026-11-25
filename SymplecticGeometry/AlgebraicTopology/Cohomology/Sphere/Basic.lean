@@ -10,7 +10,7 @@ public import TauCeti.AlgebraicTopology.Cohomology.Sphere.Basic
 public import TauCeti.AlgebraicTopology.Disk
 
 /-!
-# Integral cohomology of unit spheres away from the top degree
+# Cohomology of spheres away from and in the top degree
 
 Let `E` be a real normed space of dimension `n + 1`. The unit sphere of `E` has vanishing integral
 cohomology `H^q(S^n; ℤ)` in every degree `q` other than `0` and `n`
@@ -18,6 +18,12 @@ cohomology `H^q(S^n; ℤ)` in every degree `q` other than `0` and `n`
 `TauCeti.isZero_singularCohomology_topCatSphere_of_ne` for `TopCat.sphere n`, carried to the unit
 sphere of `E` by the homeomorphism `TauCeti.sphereHomeomorphTopCatSphere` and to the library's
 integral cohomology by `TopCat.integralCohomologyEquiv`.
+
+It also shows that, over a commutative ring `k` and with values in a `k`-module `M`, a class of
+`Hⁿ⁺¹(Sⁿ⁺¹; M)` vanishes exactly when its Kronecker pairing with Tau Ceti's generator
+`TauCeti.singularHomologyTopCatSphereGenerator` of `Hₙ₊₁(Sⁿ⁺¹; k)` vanishes
+(`TopCat.singularKronecker_singularHomologyTopCatSphereGenerator_eq_zero_iff`), since that pairing
+is the linear equivalence `TauCeti.singularCohomologyTopCatSphereEquiv`.
 
 ## References
 
@@ -47,6 +53,16 @@ theorem isZero_integralCohomology_sphere_of_ne {E : Type} [NormedAddCommGroup E]
     ((TopCat.sphere.{0} n).integralCohomology (q + 1))).of_iso
     ((TauCeti.singularCohomologyFunctor _ ℤ _ (q + 1)).mapIso
       (TopCat.isoOfHomeo (TauCeti.sphereHomeomorphTopCatSphere.{0} hE)).symm.op)
+
+/-- A class `α ∈ Hⁿ⁺¹(Sⁿ⁺¹; M)` is zero if and only if its Kronecker pairing with the generator
+of `Hₙ₊₁(Sⁿ⁺¹; k)` is zero. -/
+theorem singularKronecker_singularHomologyTopCatSphereGenerator_eq_zero_iff
+    {k : Type} [CommRing k] (M : ModuleCat.{0} k) (n : ℕ)
+    (α : (TopCat.sphere.{0} (n + 1)).singularCohomology (ModuleCat.of k k) k M (n + 1)) :
+    (TopCat.sphere (n + 1)).singularKronecker k (n + 1) α
+      (TauCeti.singularHomologyTopCatSphereGenerator k n) = 0 ↔ α = 0 := by
+  rw [← TauCeti.singularCohomologyTopCatSphereEquiv_apply]
+  exact LinearEquiv.map_eq_zero_iff _
 
 end TopCat
 

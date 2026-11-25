@@ -172,17 +172,10 @@ theorem normalFiberDeriv_apply_eq_mfderiv_comp (f : SmoothEmbedding I J ∞ M N)
       f.normalClassL x hn (mfderiv 𝓘(ℝ, Q) J (fun w : Q ↦ Φ ⟨x, L w⟩) 0 u) := by
   let := f.normalSpaceFiberBundle hn hdim
   have := f.normalSpaceVectorBundle hn hdim
-  -- The map `w ↦ ⟨x, L w⟩` into the normal bundle is differentiable: in the preferred
-  -- trivialization at `x` its fibre part is a continuous linear map.
   have hm : MDifferentiableAt 𝓘(ℝ, Q) (I.prod 𝓘(ℝ, P))
-      (fun w : Q ↦ (⟨x, L w⟩ : TotalSpace P (fun x ↦ f.NormalSpace x hn))) 0 := by
-    refine (mdifferentiableAt_totalSpace _ _).2 ⟨mdifferentiableAt_const, ?_⟩
-    have e : (fun w : Q ↦ (trivializationAt P (fun x ↦ f.NormalSpace x hn) x ⟨x, L w⟩).2) =
-        (trivializationAt P (fun x ↦ f.NormalSpace x hn) x).continuousLinearMapAt ℝ x ∘L L := by
-      funext w
-      simp [Trivialization.continuousLinearMapAt_apply]
-    rw [e]
-    exact ContinuousLinearMap.mdifferentiableAt _
+      (fun w : Q ↦ (⟨x, L w⟩ : TotalSpace P (fun x ↦ f.NormalSpace x hn))) 0 :=
+    (Bundle.contMDiff_totalSpaceMk_comp (V := fun x ↦ f.NormalSpace x hn) (n := 1) x L
+      0).mdifferentiableAt one_ne_zero
   have h0 : (⟨x, L 0⟩ : TotalSpace P (fun x ↦ f.NormalSpace x hn)) = zeroSection P _ x := by
     simp [zeroSection]
   have hL : MDifferentiableAt 𝓘(ℝ, Q) J (fun w : Q ↦ Φ ⟨x, L w⟩) (0 + (0 : ℝ) • u) := by

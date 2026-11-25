@@ -284,8 +284,7 @@ private theorem sliceDeriv_mem_kerDistribution_and_injective
     ∀ T : TotalSpace P (fun q ↦ g.NormalSpace q infty_ne_zero) → M,
       ContMDiff (J.prod 𝓘(ℝ, P)) I ∞ T → (∀ q, T (zeroSection P _ q) = g q) →
       ∀ c : L → ℝ, (∀ q, 0 < c q) → (∀ q (v : g.NormalSpace q infty_ne_zero),
-        g.normalClass q infty_ne_zero (mfderiv (J.prod 𝓘(ℝ, P)) I T (zeroSection P _ q)
-          ((Bundle.zeroSectionTangentEquiv (I := J) q).symm (0, v))) = c q • v) →
+        g.normalFiberDeriv infty_ne_zero hdim T q v = c q • v) →
       ∀ q, (∀ X, sliceDeriv hf hdim T q X ∈ α.kerDistribution (g q)) ∧
         Injective (sliceDeriv hf hdim T q) := by
   let := g.normalSpaceFiberBundle infty_ne_zero hdim
@@ -309,7 +308,12 @@ private theorem sliceDeriv_mem_kerDistribution_and_injective
       add_zero, zero_add]
   have hvert (p : TangentSpace J q →L[ℝ] ℝ) :
       g.normalClass q infty_ne_zero (D (e (0, p))) = c q • cotangentToNormal hf q p := by
-    rw [hver, hTd]
+    have h := hTd q (cotangentToNormal hf q p)
+    rw [SmoothEmbedding.normalFiberDeriv_apply] at h
+    rw [hver]
+    -- `exact`, not `rw`: the vector lies in the tangent space at `T 0_q`, which `rw` does not
+    -- identify with the tangent space at `g q` that `normalClassL_apply` expects.
+    exact (SmoothEmbedding.normalClassL_apply ..).symm.trans h
   have hαvert (p : TangentSpace J q →L[ℝ] ℝ) : α.val (g q) ![D (e (0, p))] = 0 := by
     have h := g.normalSpaceEquivOfIsLegendrianImmersion_normalClass hf.toIsLegendrianImmersion
       infty_ne_zero q (D (e (0, p)))
