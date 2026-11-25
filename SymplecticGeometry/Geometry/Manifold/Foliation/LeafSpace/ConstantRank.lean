@@ -56,7 +56,7 @@ variable {E F H G M N : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Finit
   [TopologicalSpace H] [TopologicalSpace G]
   {I : ModelWithCorners ℝ E H} [I.Boundaryless] {J : ModelWithCorners ℝ F G} [J.Boundaryless]
   [TopologicalSpace M] [ChartedSpace H M] [TopologicalSpace N] [ChartedSpace G N]
-  [IsManifold I (∞ + 1) M] [IsManifold J (∞ + 1) N] {f : M → N} {r : ℕ}
+  [IsManifold I ∞ M] [IsManifold J ∞ N] {f : M → N} {r : ℕ}
 
 /-- A criterion for a slice of the kernel foliation of a map `f` of constant rank `r`: a smooth
 map `s` from an open set of `EuclideanSpace ℝ (Fin (dim E - (dim E - r)))` to the source is a slice
