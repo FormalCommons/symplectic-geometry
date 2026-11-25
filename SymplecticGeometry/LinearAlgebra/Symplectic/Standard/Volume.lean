@@ -9,6 +9,8 @@ public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 public import TauCeti.Topology.Algebra.Module.Alternating.Wedge.Pow
 import SymplecticGeometry.Topology.Algebra.Module.Alternating.Wedge.Pow
 import TauCeti.Analysis.Matrix.EuclideanLin
+import TauCeti.Data.Fin.VecNotation
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # Top wedge powers of weighted standard two-forms
@@ -58,14 +60,10 @@ theorem wedgePow_card_eq_prod_smul {c : ι → ℝ} {ω ω₀ : StdSpace ι [⋀
     simp [D, x_apply, mulVec_diagonal]
   have hDy (v : StdSpace ι) (j : ι) : (D v).y j = v.y j := by
     simp [D, y_apply, mulVec_diagonal]
-  have h2 (u : Fin 2 → StdSpace ι) : u = ![u 0, u 1] := by
-    ext i : 1
-    fin_cases i <;> rfl
   have hωD : ω = ω₀.compContinuousLinearMap D := by
-    refine ContinuousAlternatingMap.ext fun v ↦ ?_
-    rw [ContinuousAlternatingMap.compContinuousLinearMap_apply, h2 (D ∘ v), h2 v, hω]
-    simp only [Function.comp_apply, Matrix.cons_val_zero, Matrix.cons_val_one, hω₀,
-      stdForm_apply, hDx, hDy]
+    ext v w
+    rw [ContinuousAlternatingMap.compContinuousLinearMap_apply, Matrix.comp_vec2, hω, hω₀]
+    simp only [stdForm_apply, hDx, hDy]
     exact Finset.sum_congr rfl fun j _ ↦ by ring
   -- `D` scales top-degree forms on `StdSpace ι`, of dimension `2 * card ι`, by `det D = ∏ cⱼ`.
   have hdet : LinearMap.det (D : StdSpace ι →ₗ[ℝ] StdSpace ι) = ∏ j, c j := by

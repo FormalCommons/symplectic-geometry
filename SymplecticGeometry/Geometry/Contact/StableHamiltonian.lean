@@ -26,6 +26,7 @@ import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.Topology.Algebra.Module.BilinearForm
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.ArctanDeriv
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Family
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Symplectic.Manifold.RelativeMoser
@@ -692,9 +693,9 @@ private theorem mpullback_prodMk_zero_timeInterior_apply (hε : 0 < ε)
   rw [mpullback_apply, coe_timeInterior]
   refine (RoughForm.interior_apply _ _ _ _).trans ?_
   rw [mpullback_apply]
-  have hι : mfderiv I (𝓘(ℝ).prod I) (Prod.mk (0 : ℝ)) y w = ((0 : ℝ), w) := by
-    rw [mfderiv_prod_right]
-    exact ContinuousLinearMap.inr_apply ..
+  have hι : mfderiv I (𝓘(ℝ).prod I) (Prod.mk (0 : ℝ)) y w = ((0 : ℝ), w) :=
+    (TauCeti.Manifold.tangentSpaceProdEquiv_apply _ _).symm.trans
+      (TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right w)
   have hv : (fun i ↦ mfderiv (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) (stripChart hε) ((0 : ℝ), y)
       (Matrix.vecCons ((1 : ℝ), (0 : E))
         (fun i ↦ mfderiv I (𝓘(ℝ).prod I) (Prod.mk (0 : ℝ)) y (![w] i)) i)) =
@@ -761,9 +762,7 @@ theorem val_symmStripMk_zero_eq_stableHamiltonianModel (hε : 0 < ε)
         (symmStripMk (abs_zero.trans_lt hε) x) := by
   set z := symmStripMk (abs_zero.trans_lt hε) x
   rw [coe_mpullback_subtype_val_apply]
-  refine ContinuousAlternatingMap.ext fun v ↦ ?_
-  obtain ⟨a, b, rfl⟩ : ∃ a b, v = ![a, b] :=
-    ⟨v 0, v 1, (FinVec.etaExpand_eq _).symm⟩
+  refine ContinuousAlternatingMap.ext_fin_two fun a b ↦ ?_
   set B : LinearMap.BilinForm ℝ (ℝ × E) := σ.bilinFormAt z
   have halt : B.IsAlt := isAlt_bilinFormAt σ z
   have hsplit (c : ℝ × E) : c = c.1 • ((1 : ℝ), (0 : E)) + ((0 : ℝ), c.2) :=
