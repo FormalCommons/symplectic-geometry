@@ -140,9 +140,8 @@ theorem isIntegrable_of_finrank_eq_two (J : SmoothAlmostComplexStructure I M)
     (hE : Module.finrank ℝ E = 2) : J.IsIntegrable := by
   refine J.isIntegrable_of_forall_exists_partialDiffeomorph (G := ℂ) fun x ↦ ?_
   obtain ⟨ψ, hx, hψ⟩ := J.exists_isothermal_partialDiffeomorph hE x
-  refine ⟨ψ, AlmostComplexStructure.ofComplexModule ℂ, hx, fun y hy v ↦ ?_⟩
-  exact ((hψ y hy).mfderiv_apply_commute v).trans ((ofComplexManifold_apply (E := ℂ) _ _).trans
-    (AlmostComplexStructure.ofComplexModule_apply (V := ℂ) _).symm)
+  exact ⟨ψ, AlmostComplexStructure.ofComplexModule ℂ, hx, fun y hy v ↦
+    ((hψ y hy).mfderiv_apply_commute v).trans (ofComplexManifold_apply_eq_ofComplexModule _ _)⟩
 
 end TauCeti.SmoothAlmostComplexStructure
 
