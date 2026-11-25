@@ -44,7 +44,8 @@ with Tau Ceti's model `EuclideanSpace ℝ ι × EuclideanSpace ℝ ι` of `ℂ^�
   `2π ∑ⱼ kⱼ² (xⱼ² + yⱼ²)`, which is nonnegative (`weightOneForm_apply_weightGenerator_nonneg`)
   and, when no weight is zero, vanishes only at `0`
   (`weightOneForm_apply_weightGenerator_eq_zero_iff`);
-* `mextDerivₗ_weightOneForm_apply`: its exterior derivative is `2 ∑ⱼ kⱼ dxⱼ ∧ dyⱼ`.
+* `mextDerivₗ_weightOneForm_apply`: its exterior derivative is `2 ∑ⱼ kⱼ dxⱼ ∧ dyⱼ`; for the
+  weights `kⱼ = 1/2` this is the standard form `ω₀` (`mextDerivₗ_weightOneForm_half_apply`).
 
 ## References
 
@@ -247,6 +248,17 @@ theorem mextDerivₗ_weightOneForm_apply (k : ι → ℝ) (z : StdSpace ι)
         simp only [FunLike.coe_smul, Pi.smul_apply, weightBilin_apply_swap k w' w,
           smul_neg])]
   simp
+
+/-- For the weights `kⱼ = 1/2`, the exterior derivative of the model one-form is the standard
+symplectic form: `d θ_{1/2} = ω₀`. -/
+theorem mextDerivₗ_weightOneForm_half_apply (z : StdSpace ι)
+    (v : Fin 2 → TangentSpace 𝓘(ℝ, StdSpace ι) z) :
+    (mextDerivₗ 𝓘(ℝ, StdSpace ι) 1 (weightOneForm fun _ ↦ 1 / 2)).val z v =
+      stdForm ι (v 0) (v 1) := by
+  rw [mextDerivₗ_weightOneForm_apply]
+  refine Eq.trans ?_ (stdForm_apply (v 0) (v 1)).symm
+  rw [Finset.mul_sum]
+  exact Finset.sum_congr rfl fun j _ ↦ by ring
 
 end SymplecticGeometry
 

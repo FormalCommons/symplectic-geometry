@@ -267,10 +267,10 @@ section ofSubmodule
 
 variable (S : Submodule ℝ E)
 
-/-- The foliation of a finite-dimensional space `E` by the translates of a subspace `S` is
+/-- The smooth foliation of a finite-dimensional space `E` by the translates of a subspace `S` is
 regular: through `x`, the translate by `x` of a complement of `S`, parametrized linearly, is a
 slice. -/
-theorem isRegular_ofSubmodule (hn : (1 : ℕ∞ω) ≤ ∞) : (ofSubmodule S hn).IsRegular := by
+theorem isRegular_ofSubmodule : (ofSubmodule S (n := ∞) ENat.LEInfty.out).IsRegular := by
   refine isRegular_def.2 fun x ↦ ?_
   obtain ⟨L, hL, hSL⟩ :=
     S.exists_continuousLinearMap_injective_isCompl_range

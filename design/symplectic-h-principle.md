@@ -60,8 +60,26 @@ formulation.
   Whitehead's theorem `ContinuousMap.IsWeakHomotopyEquivalence.homotopyEquiv`
   with `homotopyEquiv_toFun` (`AlgebraicTopology/Homotopy/Whitehead.lean`),
   for spaces with `TauCeti.CWType`
-  (`Topology/CWComplex/Classical/CWType.lean`). Neither library shows that a
-  space of smooth sections has CW type.
+  (`Topology/CWComplex/Classical/CWType.lean`), with the two halves of its
+  proof for any source of CW type, `exists_comp_homotopic` and
+  `homotopic_of_comp_homotopic`. CW approximation of any space:
+  `TauCeti.sigmaCWApproximationMap` with
+  `isWeakHomotopyEquivalence_sigmaCWApproximationMap` and
+  `cwType_sigmaCWApproximation`
+  (`AlgebraicTopology/Homotopy/CWApproximation/Sigma.lean`). Simplicial
+  complexes: `AbstractSimplicialComplex.Realization` with the weak topology,
+  `continuous_iff_faceInclusion` and `instT2SpaceRealization`
+  (`AlgebraicTopology/SimplicialComplex/Realization/Basic.lean`), and
+  `realizationCWComplex` (`.../Realization/CWComplex/Basic.lean`). The frame
+  topology is metrizable on a Lindelöf base
+  (`ContMDiffSection.isCompletelyMetrizableSpace_frameTopology`,
+  `Geometry/Manifold/VectorBundle/Section/CompletelyMetrizable.lean`) and
+  locally convex (`Section/Topology.lean`). Mathlib has locally finite
+  partitions of unity subordinate to any open cover of a paracompact normal
+  space (`PartitionOfUnity.exists_isSubordinate`), and metric spaces are
+  paracompact. Neither library has absolute neighbourhood retracts or
+  Milnor's or Dugundji's theorems, and neither shows that a space of smooth
+  sections has CW type.
 - **Holonomic approximation.** Neither library has it. Tau Ceti has jet
   bundles (`Geometry/Manifold/VectorBundle/Jet/Basic.lean`,
   `VectorBundle/FirstJet/`), which this part does not need (see
@@ -123,17 +141,57 @@ formulation.
    is then zero, hence holonomic.
 5. **The homotopy equivalence.** `Parametric.lean` proves that the
    inclusion of the symplectic forms in class $a$ into the nondegenerate
-   forms is a `ContinuousMap.IsWeakHomotopyEquivalence`, from the engine,
-   and then the homotopy equivalence of the inclusion itself by Whitehead's
-   theorem, `hf.homotopyEquiv` with `homotopyEquiv_toFun`, as the review of
-   #3195 asked. That needs `TauCeti.CWType` for both spaces, which neither
-   library has (Milnor's theorem that metrizable ANRs have CW type, and
-   Dugundji's extension theorem for convex sets of metrizable locally convex
-   spaces). It gets a design issue of its own, which the split of the
-   building issue creates; if the nondegenerate forms, which are not open in
-   the compact-open $C^\infty$ topology over a noncompact base, turn out not
-   to have CW type by these means, that issue says so, and the milestone's
-   last statement waits for it.
+   forms is a `ContinuousMap.IsWeakHomotopyEquivalence`, for every open
+   `M`, from the engine. To get the homotopy equivalence of the inclusion
+   itself from Whitehead's theorem, `hf.homotopyEquiv` with
+   `homotopyEquiv_toFun`, as the review of #3195 asked, both spaces need
+   `TauCeti.CWType`. **For some open `M`, neither space has CW type.**
+   - *The evidence.* Let `M` be the disjoint union of countably many copies
+     of $\mathbb R^{2n}$, $n\ge1$. It is boundaryless and σ-compact, has no
+     compact component, and has $H^2(M)=0$, so $a=0$. Taking the sign of
+     $\omega^n$ at the origin of each copy is a continuous map $s$ from the
+     nondegenerate forms onto the Cantor set $\{\pm1\}^{\mathbb N}$, since
+     point evaluation is continuous. Sending $(\varepsilon_k)$ to the form
+     equal to $\varepsilon_k\omega_0$ on the $k$-th copy is a continuous
+     map $c$ back, since each frame jet sees one copy only, and it lands
+     in the symplectic forms of class $0$; and $s\circ c=\mathrm{id}$. If
+     either space were homotopy equivalent to a CW complex $L$, there would
+     be maps $u:\{\pm1\}^{\mathbb N}\to L$ and $v:L\to\{\pm1\}^{\mathbb N}$
+     with $v\circ u$ homotopic to the identity, so $u$ would be injective
+     on path components. But the path components of the Cantor set are
+     its uncountably many points, while the compact image of $u$ lies in a
+     finite subcomplex of $L$, which has finitely many path components. So
+     neither space has CW type, by Milnor's theorem or by any other means.
+   - *The milestone still holds for this `M`*, so this is no error of the
+     plan. On each copy, $\omega\mapsto t^{-2}\,\delta_t^*\omega$ for the
+     dilation $\delta_t(x)=tx$, $t\in(0,1]$, extended by the constant form
+     $\omega(0)$ at $t=0$, deforms both spaces into the constant
+     nondegenerate forms, compatibly with the inclusion, and continuously in
+     the frame topology. Only the route through Whitehead's theorem fails.
+   - *What the library proves.* The obstruction lives at infinity, so the
+     library gets CW type, by domination, when `M` compresses into a
+     compact set: when a `TauCeti.SmoothIsotopy` from the identity of `M`
+     ends at a `j` with `IsCompact (closure (range j))`. The interior of a
+     compact manifold with boundary is such an `M`, and so is
+     $\mathbb R^{2n}$. Then each space `X` is dominated by a set `O`: there
+     are maps `X → O → X` whose composite is homotopic to the identity.
+     `O` is the set of forms that lie in a convex set `C` and are
+     nondegenerate on the compact `closure (range j)`. For the
+     nondegenerate forms `C` is every form; for the symplectic forms of
+     class $a$ it is the forms with `tangentEquiv ω - α` exact. The maps
+     are the inclusion and $\omega\mapsto j^*\omega$, and the homotopy is
+     the pullback along the isotopy. An open subset of a convex subset of a
+     metrizable locally convex space is dominated by the realization of the
+     nerve of a partition of unity, so it has CW type. This is the argument
+     behind Milnor's and Dugundji's theorems, done directly, with no
+     absolute neighbourhood retracts. Last, a space dominated by a space of
+     CW type has CW type, by CW approximation and the two halves of
+     Whitehead's theorem.
+   - *The general statement waits.* When `M` does not compress into a
+     compact set, the milestone's last statement needs another route,
+     which this design does not have. That statement waits for one, with
+     no `ERRATA.md` entry, since nothing shows it false. The weak homotopy
+     equivalence is proved for every open `M`.
 6. **Morse input.** The existence of a proper Morse function bounded below
    without critical points of index $\dim M$ on an open manifold is
    `Geometry/Manifold/Morse/OpenManifold.lean`; the cores and their
@@ -150,6 +208,9 @@ formulation.
   `ContMDiffTwoForm`, its topology and `tangentEquiv`).
 - Holonomic approximation is in coordinates (Decision 3), not on Tau Ceti's
   jet bundles.
+- `Parametric.lean` proves the weak homotopy equivalence for every open
+  `M`, and the homotopy equivalence only for an `M` that compresses into a
+  compact set (Decision 5).
 
 ## Files and their contents
 
@@ -541,7 +602,89 @@ statement for every `a : deRhamCohomology I M 2`. The first theorem's
 docstring ends with the milestone line of *Gromov's h-principle for
 symplectic forms on open manifolds*.
 
-### `Geometry/Symplectic/HPrinciple/Parametric.lean`
+### `AlgebraicTopology/Homotopy/Domination.lean`
+
+CW type by domination (Decision 5), about Tau Ceti's notion, so in its
+namespace:
+
+```lean
+theorem TauCeti.CWType.of_homotopic_comp {X : Type u} {K : Type*} [TopologicalSpace X]
+    [TopologicalSpace K] [TauCeti.CWType K] {i : C(X, K)} {r : C(K, X)}
+    (h : (r.comp i).Homotopic (ContinuousMap.id X)) : TauCeti.CWType X
+```
+
+Proof: `f := sigmaCWApproximationMap (TopCat.of X)` is a weak homotopy
+equivalence from a space of CW type. Lift `r` through it,
+`f ∘ r' ≃ r` (`exists_comp_homotopic`), and put `g := r' ∘ i`. Then
+`f ∘ g ≃ r ∘ i ≃ id`, so `f ∘ (g ∘ f) ≃ f`, and `g ∘ f ≃ id` by
+`homotopic_of_comp_homotopic`. So `f` is a homotopy equivalence, and `X`
+has CW type by `ContinuousMap.HomotopyEquiv.cwType`. `K` may live in any
+universe, since the approximation is in the universe of `X`. This is the
+classical fact that a space dominated by a CW
+complex has CW type, proved here without mapping telescopes.
+
+### `AlgebraicTopology/SimplicialComplex/Realization/PartitionOfUnity.lean`
+
+The nerve of a partition of unity and its canonical map, for
+`ρ : PartitionOfUnity ι X`:
+
+- `PartitionOfUnity.nerve ρ : TauCeti.AbstractSimplicialComplex ι`, whose
+  faces are the nonempty finite `s` with `∃ x, ∀ i ∈ s, ρ i x ≠ 0`, with
+  `mem_nerve_iff`;
+- `PartitionOfUnity.toNerve ρ : C(X, ρ.nerve.Realization)`, sending `x` to
+  the point with barycentric coordinates `ρ i x`, with `toNerve_apply_coe`
+  (its coordinates). Its continuity for the weak topology uses local
+  finiteness: near each point it lands in the realization of finitely many
+  vertices, where the weak topology is the Euclidean one.
+
+### `Analysis/LocallyConvex/CWType.lean`
+
+```lean
+theorem Convex.cwType_inter {E : Type u} [AddCommGroup E] [Module ℝ E]
+    [TopologicalSpace E] [IsTopologicalAddGroup E] [ContinuousSMul ℝ E]
+    [LocallyConvexSpace ℝ E] [MetrizableSpace E] {C U : Set E}
+    (hC : Convex ℝ C) (hU : IsOpen U) : TauCeti.CWType ↥(C ∩ U)
+```
+
+Proof, by the nerve argument of Milnor and of Dugundji (*References*)
+made direct: put `O := C ∩ U` with a metric. Each `y ∈ O` has a convex
+relatively open neighbourhood `C ∩ (y + V) ⊆ O` (local convexity). Let
+`L y` be the supremum of the `r ≤ 1` for which the ball `B(y, r)` of `O`
+lies in one of these convex sets; it is positive and `1`-Lipschitz. Take a
+partition of unity `ρ`, indexed by `O`, subordinate to the cover by the
+balls `B(y, L y / 4)` (`PartitionOfUnity.exists_isSubordinate`, as `O` is
+metrizable, so paracompact and normal). If `x` lies in the supports of
+`ρ y₀, …, ρ yₖ`, then all `yⱼ` lie in a ball `B(x, r)` with `r < L x`, so in
+one convex subset of `O`. Hence the map `ψ` from the realization of
+`ρ.nerve` to `O`, affine on each simplex with vertex `y` sent to `y`, is
+well defined, continuous by `continuous_iff_faceInclusion`, and the
+straight segment from `x` to `ψ (ρ.toNerve x)` stays in `O`. So `O` is
+dominated by a CW complex (`realizationCWComplex`, `instT2SpaceRealization`,
+`TauCeti.CWType.of_cwComplex_univ`), and `TauCeti.CWType.of_homotopic_comp`
+gives the theorem.
+
+### `Geometry/Manifold/VectorBundle/Symplectic/Topology.lean`
+
+Two facts about two-forms in the frame topology of a covering frame system
+(`letI := frameTopology …`, `hcover`), on a finite-dimensional base:
+
+- `Bundle.ContMDiffTwoForm.isOpen_setOf_forall_mem_nondegenerate`: for a
+  compact `K ⊆ M`, the forms `ω` with `(ω.bilinFormAt x).Nondegenerate` for
+  all `x ∈ K` are an open set. Nondegeneracy is open in each fibre, and
+  evaluation is jointly continuous in the form and the point
+  (`Section/Topology.lean`).
+- `Bundle.ContMDiffTwoForm.continuous_tangentEquiv_symm_mpullback`: for a
+  `TauCeti.SmoothIsotopy` `h` of `M`, the map
+  `(ω, t) ↦ tangentEquiv.symm ((tangentEquiv ω).mpullback (h.timeSlice t))`
+  is continuous on `ContMDiffTwoForm … × unitInterval`. Its frame jets are
+  polynomials in the jets of `ω` and of the slices of `h`, so this follows
+  from the continuity of composition and pairing in the weak Whitney
+  topology (`ContMDiffMap.continuous_comp_manifoldWeakWhitney`,
+  `continuous_prodMk_manifoldWeakWhitney`), as for Tau Ceti's
+  `ContMDiffSection.continuous_map_frameTopology`. The issue fixes the
+  exact form of the pullback here.
+
+### `Geometry/Symplectic/HPrinciple/FormSpaces.lean`
 
 The spaces, in the topology of the departure *Spaces of forms*:
 
@@ -552,14 +695,38 @@ The spaces, in the topology of the departure *Spaces of forms*:
   `mem_symplecticFormsInClass`, `symplecticFormsInClass_subset_nondegenerateForms`
   (by `isNondegenerate_tangentEquiv_iff`) and
   `symplecticFormsInClass_congr` (it depends on `α` only through its class).
+- `cwType_nondegenerateForms` and `cwType_symplecticFormsInClass`
+  (`hα : α ∈ closedForms I M 2`): for covering frames, a smooth isotopy
+  `h : TauCeti.SmoothIsotopy (ContMDiffMap.id) j` and
+  `IsCompact (closure (Set.range j))`, the space has `TauCeti.CWType`.
+  Proof as in Decision 5: `Convex.cwType_inter` for the convex set (all
+  forms, or the preimage under `tangentEquiv` of the coset
+  `α + exactForms I M 2`) and the open set of
+  `isOpen_setOf_forall_mem_nondegenerate` for `closure (Set.range j)`; then
+  `TauCeti.CWType.of_homotopic_comp` with the inclusion,
+  $\omega\mapsto j^*\omega$ (nondegenerate since the slices of `h` are
+  embeddings between manifolds of one dimension; in the class by
+  `mpullback_sub_mem_exactForms_of_homotopy`), and the homotopy of
+  `continuous_tangentEquiv_symm_mpullback`. Metrizability is
+  `isCompletelyMetrizableSpace_frameTopology`, as `M` is σ-compact, hence
+  Lindelöf.
+- The docstrings say why the hypothesis on `j` is there: without it the
+  spaces need not have CW type (Decision 5).
+
+### `Geometry/Symplectic/HPrinciple/Parametric.lean`
+
+For the spaces of `FormSpaces.lean`:
+
 - `isWeakHomotopyEquivalence_inclusion_symplecticFormsInClass`: for
   covering frames `e U hU` and open `M`, the inclusion is a
   `ContinuousMap.IsWeakHomotopyEquivalence`, from the continuous engine
   with `P` a disc and `P₀` its boundary sphere, and `P` a point.
-- The milestone: `∃ e : symplecticFormsInClass α ≃ₕ nondegenerateForms I M,
-  ⇑e.toFun = Set.inclusion (symplecticFormsInClass_subset_nondegenerateForms α)`,
-  from Whitehead's theorem once both spaces have `TauCeti.CWType`
-  (Decision 5). Its docstring ends with the milestone line.
+- `exists_homotopyEquiv_symplecticFormsInClass`: with the hypotheses of
+  `cwType_symplecticFormsInClass` as well, `∃ e : symplecticFormsInClass α ≃ₕ
+  nondegenerateForms I M, ⇑e.toFun = Set.inclusion
+  (symplecticFormsInClass_subset_nondegenerateForms α)`, by Whitehead's
+  theorem. Its docstring carries no milestone line: the milestone's last
+  statement, for every open `M`, waits (Decision 5).
 
 ## What the part uses
 
@@ -569,7 +736,9 @@ The spaces, in the topology of the departure *Spaces of forms*:
 `Geometry/Manifold/DifferentialForm/Pullback/Family.lean`), *Symplectic
 vector bundles* (`VectorBundle/Symplectic/Basic.lean`, merged); Tau Ceti's
 de Rham cohomology, Morse theory, diffeotopies and smooth isotopies, homotopy
-groups and Whitehead's theorem; Mathlib's calculus on normed spaces.
+groups, Whitehead's theorem, CW approximation and realizations of
+simplicial complexes; Mathlib's calculus on normed spaces and partitions of
+unity.
 
 ## Issues
 
@@ -617,10 +786,23 @@ Each is a few hundred lines; each issue's blockers come before it.
 10. **Existence and path components.**
     `Geometry/Symplectic/HPrinciple/OpenManifold.lean`. Blocked by 9.
 11. **Design the CW type of spaces of forms** (a design issue, Decision 5).
-    Blocked by nothing.
+    Blocked by nothing. Its building issues are 13 to 17.
 12. **The parametric statement.**
     `Geometry/Symplectic/HPrinciple/Parametric.lean`. Blocked by 9 and by
     the building issues of 11.
+13. **CW type by domination.** `AlgebraicTopology/Homotopy/Domination.lean`.
+    Blocked by nothing.
+14. **The nerve of a partition of unity.**
+    `AlgebraicTopology/SimplicialComplex/Realization/PartitionOfUnity.lean`.
+    Blocked by nothing.
+15. **Open subsets of convex sets have CW type.**
+    `Analysis/LocallyConvex/CWType.lean`. Blocked by 13 and 14.
+16. **Nondegeneracy on compact sets and pullback along isotopies in the
+    frame topology.** `Geometry/Manifold/VectorBundle/Symplectic/Topology.lean`.
+    Blocked by nothing.
+17. **CW type of the spaces of forms.**
+    `Geometry/Symplectic/HPrinciple/FormSpaces.lean`. Blocked by 15 and 16.
+    Issue 12 is then blocked by it, as a building issue of 11.
 
 
 ## References
