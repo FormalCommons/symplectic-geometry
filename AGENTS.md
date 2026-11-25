@@ -216,7 +216,12 @@ line of a comment with `axiom`.
   under any name. So after each move of Tau Ceti (*Leave the setup alone*,
   below), issues "Use Tau Ceti `<commit>`: `<directory>`" go through what
   the move brought, remove the library's versions, and move every use to
-  Tau Ceti's.
+  Tau Ceti's. Modules under Tau Ceti's `TauCeti/Examples/` do not count as
+  what Tau Ceti has: they illustrate its API, and Tau Ceti imports them
+  nowhere outside that folder. Library files do not import them, and an
+  issue "Use Tau Ceti `<commit>`: `Examples`" moves no library code onto
+  them; a fact that only such an example proves is proved here, with its
+  topic.
 - **Definitions come with their API.** A new definition comes with the API
   that the design gives it, and at least what makes it usable: how to
   build and use it (`foo_def`, `mem_foo_iff`, constructors and eliminators),
