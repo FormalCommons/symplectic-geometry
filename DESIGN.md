@@ -439,7 +439,7 @@ bracket is negated.
   cohomology is de Rham cohomology (`TauCeti.deRhamCohomology`), as on the
   page. Integral classes ($H_1(B;\mathbb Z)$, the Euler number of a circle
   bundle) are singular, and are compared with de Rham classes by Tau Ceti's
-  integration map (`Geometry/Manifold/SmoothSingular/DeRham.lean`). The
+  integration map (`Geometry/Manifold/SmoothSingular/DeRham/Basic.lean`). The
   real first Chern class of the vertical bundle is a de Rham class, built
   by Chern–Weil in *Compatible symplectic forms*, and compared with the
   library's integral `SymplecticGeometry.Bundle.firstChernClass` there
@@ -3000,7 +3000,10 @@ Shared with `atlas/symplectic-fibrations.md`, whose parts extend it.
   pairing in degrees $(1,m-1)$: through Tau Ceti's singular duality
   (`TauCeti/AlgebraicTopology/Cohomology/CompactSupport/Duality/Manifold.lean`)
   and Tau Ceti's comparison of de Rham and singular cohomology
-  (`Geometry/Manifold/SmoothSingular/DeRham.lean`), or directly from
+  (`TauCeti.deRhamHom` in
+  `Geometry/Manifold/SmoothSingular/SingularCohomology.lean`, the de Rham
+  theorem in `Geometry/Manifold/SmoothSingular/DeRham/Theorem.lean`), or
+  directly from
   periods of closed one-forms; and how the hypothesis on
   $[\omega]^{n-1}\smile-$ is stated with Tau Ceti's de Rham classes. The
   page's route through the Poincaré dual of an orbit is replaced by the
