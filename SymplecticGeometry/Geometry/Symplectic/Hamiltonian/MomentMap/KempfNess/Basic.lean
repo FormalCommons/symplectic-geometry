@@ -13,8 +13,13 @@ public import TauCeti.Geometry.Manifold.Algebra.ComplexSmoothFunctions
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Manifold.MFDeriv.Curve
 public import TauCeti.Geometry.Manifold.Riemannian.Gradient.Basic
+public import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Basic
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Metric
+import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
+import SymplecticGeometry.Geometry.Lie.MaurerCartan
+import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 
 /-!
 # Complexified actions, stability and the gradient of the moment map
@@ -64,6 +69,11 @@ and the moment weights.
 * `SymplecticGeometry.hasDerivAt_moment_expI`, `SymplecticGeometry.antitone_moment_expI`: for a
   complexified action, `t ↦ μ (C.expI (t • ξ) • p) ξ` has derivative `-‖X_ξ‖²` at the moving
   point, so it is antitone.
+* `SymplecticGeometry.fderiv_moment_inv_smul_im_comm`: for a smooth map `γ` from a normed space
+  to `Gc`, with left-trivialized derivatives `a_u`, the functions
+  `z ↦ μ ((γ z)⁻¹ • p) (C.im (a_u z))` satisfy `∂_v A_w = ∂_w A_v`. This is the closedness of the
+  one-form `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))` on `Gc`, stated along maps so that no form on `Gc`
+  is built.
 
 The integral curve is Tau Ceti's `TauCeti.isMIntegralCurve_mulInvariantExp_smul_smul` for the
 action of `Gc` and the direction `C.cplx (C.lieMap ξ)`. In the example, the orbit maps of `ℂˣ` are
@@ -83,6 +93,14 @@ chain rule along the integral curve `isMIntegralCurve_expI_smul` of `J X_ξ`, an
 orthogonal for `g` (`TauCeti.SmoothAlmostComplexStructure.inner_apply_apply_of_inner_eq`).
 These results take any metric with `g(u, w) = σ(u, J w)`; for a compatible pair, Tau Ceti's
 `TauCeti.SmoothTwoForm.Compatible.inner_eq_eval₂` says that `Compatible.metric` is one.
+
+The closedness follows [GeorgoulasRobbinSalamon2021], Lemma 2.1. The moving point
+`(γ z)⁻¹ • p` has derivative `-(X_{re a} + J X_{im a})`, by `mfderiv_inv_smul_comp_apply` and the
+complexified action; the moment map equation turns the derivatives of `μ` into values of `σ`;
+the terms with `J` are inner products, which are symmetric; infinitesimal equivariance
+(`TauCeti.SmoothTwoForm.IsEquivariantMomentMap.momentCocycle_eq_zero`) turns the other terms into
+values of `μ` on brackets, and these cancel against the structure equation
+`fderiv_leftMaurerCartanForm_mfderiv_sub`, read through `C.im` (`LieComplexification.im_lie`).
 
 ## References
 
@@ -335,6 +353,93 @@ theorem antitone_moment_expI [ContMDiffSMul IC I' ∞ Gc M] {C : LieComplexifica
     fun _ ↦ neg_nonpos.2 (sq_nonneg _)
 
 end Gradient
+
+/-! ### The Kempf–Ness one-form is closed -/
+
+section Closed
+
+open _root_.Bundle
+open scoped RealInnerProductSpace GroupLieAlgebra
+
+variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC] [CompleteSpace E']
+  [ContMDiffSMul I I' ∞ G M] [ContMDiffSMul IC I' ∞ Gc M]
+  [RiemannianBundle (fun x : M ↦ TangentSpace I' x)]
+  {σ : SmoothTwoForm I' M} {J : SmoothAlmostComplexStructure I' M}
+  {μ : M → Module.Dual ℝ (GroupLieAlgebra I G)} {C : LieComplexification I G IC Gc}
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+
+/-- **The Kempf–Ness one-form is closed along maps into `Gc`.** Let the action of `Gc` be a
+complexified action, let `-μ` be an equivariant moment map for `σ`, and let the metric be
+`g(u, w) = σ(u, J w)`. For a smooth map `γ : F → Gc` from a normed space, write
+`a_u z = d(L_{(γ z)⁻¹})(dγ_z u)` for the left-trivialized derivative of `γ` in the direction `u`,
+and `A_u z = μ ((γ z)⁻¹ • p) (C.im (a_u z))`. Then `∂_v A_w = ∂_w A_v`: the one-form
+`ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))` on `Gc` pulls back along `γ` to a closed form. For
+`F = ℝ × ℝ` and the coordinate directions this is `∂_s A = ∂_t B`, with `A` built from the
+derivative in `t` and `B` from that in `s`. -/
+theorem fderiv_moment_inv_smul_im_comm (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    (p : M) {γ : F → Gc} (hγ : ContMDiff 𝓘(ℝ, F) IC ∞ γ) (y v w : F) :
+    fderiv ℝ (fun z ↦ μ ((γ z)⁻¹ • p)
+        (C.im (mfderiv IC IC ((γ z)⁻¹ * ·) (γ z) (mfderiv 𝓘(ℝ, F) IC γ z w)))) y v =
+      fderiv ℝ (fun z ↦ μ ((γ z)⁻¹ • p)
+        (C.im (mfderiv IC IC ((γ z)⁻¹ * ·) (γ z) (mfderiv 𝓘(ℝ, F) IC γ z v)))) y w := by
+  -- The left trivializations of the derivatives of `γ` are the left Maurer–Cartan form along `γ`.
+  set θ := leftMaurerCartanForm IC Gc
+  set a : F → F → GroupLieAlgebra IC Gc := fun u z ↦ θ.val (γ z) ![mfderiv 𝓘(ℝ, F) IC γ z u]
+  have ha (u z : F) : mfderiv IC IC ((γ z)⁻¹ * ·) (γ z) (mfderiv 𝓘(ℝ, F) IC γ z u) = a u z := by
+    simp [a, θ, leftMaurerCartanForm_apply]
+  simp only [ha]
+  have hμc : ∀ ξ, ContMDiff I' 𝓘(ℝ) ∞ fun x ↦ μ x ξ := fun ξ ↦ by
+    simpa using (hμ.contMDiff ξ).neg
+  have hx : ContMDiff 𝓘(ℝ, F) I' ∞ fun z ↦ (γ z)⁻¹ • p :=
+    ((contMDiff_inv IC ∞).comp hγ).smul contMDiff_const
+  have hda (u : F) : Differentiable ℝ (a u) :=
+    SmoothForm.differentiable_apply_one_mfderiv θ hγ u
+  set imL := LinearMap.toContinuousLinearMap C.im
+  have hdim (u : F) (r : F) : fderiv ℝ (fun z ↦ C.im (a u z)) y r = C.im (fderiv ℝ (a u) y r) := by
+    have := (imL.hasFDerivAt.comp y (hda u y).hasFDerivAt).fderiv
+    exact congr($this r)
+  -- The derivative of the moving point is minus the fundamental vector field of `a u`.
+  have hdx (u : F) : mfderiv 𝓘(ℝ, F) I' (fun z ↦ (γ z)⁻¹ • p) y u =
+      -(fundamentalVectorField I' (C.re (a u y)) ((γ y)⁻¹ • p) +
+        J ((γ y)⁻¹ • p) (fundamentalVectorField I' (C.im (a u y)) ((γ y)⁻¹ • p))) := by
+    refine (mfderiv_inv_smul_comp_apply (hγ.mdifferentiableAt (by simp))
+      (((ContMDiffSMul.contMDiff_smul_const (n := ∞) p).comp (contMDiff_inv IC ∞)
+        ).mdifferentiableAt (by simp)) u).trans ?_
+    conv_lhs => rw [ha, ← C.lieMap_re_add_cplx_lieMap_im (a u y)]
+    rw [fundamentalVectorField_add, Pi.add_apply, h.fundamentalVectorField_cplx,
+      h.fundamentalVectorField_lieMap, h.fundamentalVectorField_lieMap]
+  set x₀ := (γ y)⁻¹ • p
+  -- The derivative of a component of `μ`, by the moment map equation for `-μ`.
+  have hdμ (Z : GroupLieAlgebra I G) (u : TangentSpace I' x₀) :
+      mvfderiv I' (fun m ↦ μ m Z) x₀ u = -σ.eval₂ x₀ (fundamentalVectorField I' Z x₀) u := by
+    have h1 := hμ.eval₂_apply Z x₀ u
+    rw [InfinitesimalAction.fundamental_apply] at h1
+    rw [show (fun m ↦ μ m Z) = fun m ↦ -(-μ m) Z by ext; simp, mvfderiv_fun_neg, neg_apply, h1]
+  have hside (u u' : F) : fderiv ℝ (fun z ↦ μ ((γ z)⁻¹ • p) (C.im (a u' z))) y u =
+      μ x₀ (C.im (fderiv ℝ (a u') y u)) +
+        σ.eval₂ x₀ (fundamentalVectorField I' (C.im (a u' y)) x₀)
+          (fundamentalVectorField I' (C.re (a u y)) x₀) +
+        ⟪fundamentalVectorField I' (C.im (a u' y)) x₀,
+          fundamentalVectorField I' (C.im (a u y)) x₀⟫ := by
+    have hc : DifferentiableAt ℝ (fun z ↦ C.im (a u' z)) y := by
+      simpa [imL, Function.comp_def] using imL.differentiableAt.comp y (hda u' y)
+    rw [fderiv_dual_comp_apply hμc hx hc u, hdim, hdμ,
+      hdx, SmoothBundleForm.eval₂_neg_right, SmoothBundleForm.eval₂_add_right, hg]
+    ring
+  have hcoc := SmoothTwoForm.momentCocycle_eq_zero_iff.1 (hμ.momentCocycle_eq_zero x₀)
+  simp only [InfinitesimalAction.fundamental_apply] at hcoc
+  -- The structure equation, read through `C.im` and `μ x₀`.
+  have hs0 : fderiv ℝ (a w) y v - fderiv ℝ (a v) y w = -⁅a v y, a w y⁆ :=
+    fderiv_leftMaurerCartanForm_mfderiv_sub hγ y v w
+  have hs := congrArg (fun ξ ↦ μ x₀ (C.im ξ)) hs0
+  simp only [map_sub, map_neg, LieComplexification.im_lie, map_add] at hs
+  rw [hside, hside, hcoc, hcoc, real_inner_comm, ← lie_skew (C.im (a w y))]
+  simp only [LinearMap.neg_apply, map_neg]
+  linarith
+
+end Closed
 
 /-! ### The example: `ℂˣ` acting on `ℂ` -/
 
