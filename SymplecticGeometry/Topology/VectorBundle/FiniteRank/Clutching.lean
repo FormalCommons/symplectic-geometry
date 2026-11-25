@@ -778,9 +778,8 @@ theorem outerSection_mem_submodule (p : ℙ ℂ (Fin 2 → ℂ)) : outerSection 
 private theorem smul_normalizedRep_ne_zero {i : Fin 2} {p : ℙ ℂ (Fin 2 → ℂ)}
     (hp : p ∈ affineOpen i) :
     (((max 1 ‖affineChart i p 0‖)⁻¹ : ℝ) : ℂ) • normalizedRep (LinearMap.proj i) p ≠ 0 :=
-  smul_ne_zero (by simpa using (lt_max_of_lt_left one_pos).ne') fun h ↦ one_ne_zero (by
-    rw [← apply_normalizedRep ((affineOpen_eq_linearProjectionDomain (K := ℂ) i) ▸ hp), h,
-      map_zero])
+  smul_ne_zero (by simpa using (lt_max_of_lt_left one_pos).ne')
+    (normalizedRep_ne_zero ((affineOpen_eq_linearProjectionDomain (K := ℂ) i) ▸ hp))
 
 theorem innerSection_ne_zero {p : ℙ ℂ (Fin 2 → ℂ)} (hp : p ∈ affineOpen 1) :
     innerSection p ≠ 0 :=
