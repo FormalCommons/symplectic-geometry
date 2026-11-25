@@ -324,15 +324,15 @@ explicit colouring of cubes.
   is locally finite of order at most $3(n+1)$, and a subordinate partition
   of unity has the same bound.
 
-**Shared with *Poincaré duals of submanifolds*.** The predicate unfolds to
-the hypotheses of Tau Ceti's `TauCeti.thomEquivOfBiUnionEqUniv`: take the
-index type `Trivialization F (π F E)`, the finite set `s`, and
-`W e := e.baseSet`, with `𝕜 = ℝ`. A closed embedded submanifold of a
-Hausdorff σ-compact manifold is again one, so the normal bundle of every
-submanifold that the page considers has a finite trivializing cover by
-`HasFiniteTrivializingCover.of_chartedSpace`, and its Thom isomorphism needs
-no compactness. That part's design says where it uses this, and builds no
-second answer; an issue of it that does waits for issue 23 only.
+**Not the route to the Thom isomorphism.** The predicate unfolds to the
+hypotheses of Tau Ceti's `TauCeti.thomEquivOfBiUnionEqUniv` (index type
+`Trivialization F (π F E)`, the finite set `s`, `W e := e.baseSet`,
+`𝕜 = ℝ`), but neither this part nor *Poincaré duals of submanifolds*
+gets a Thom isomorphism from it. That part proves the Thom isomorphism
+over Hausdorff, locally compact, second-countable bases by Tau Ceti's
+Mayer–Vietoris induction (`design/poincare-duals.md`, *Decisions*), and so
+waits for no issue of this extension. Issues 17–23 serve the Whitney
+formula for $c_1$ alone.
 
 ## Conventions
 
@@ -1203,10 +1203,7 @@ of $TM$ (`TauCeti.VectorBundleOrientation.complex`) with the manifold
 orientation `TauCeti.complexManifoldOrientation` belongs to that part's
 design.
 
-*Poincaré duals of submanifolds* can take the Thom isomorphism of a normal
-bundle over a non-compact submanifold from
-`HasFiniteTrivializingCover.of_chartedSpace` and Tau Ceti's
-`thomEquivOfBiUnionEqUniv`. *Complex blowup* computes $c_1$ of a blowup with
+*Complex blowup* computes $c_1$ of a blowup with
 `firstChernClass_prod_of_chartedSpace`, `firstChernClass_pullback`,
 `firstChernClass_tautological` and `firstChernClass_tangentSpace`.
 
