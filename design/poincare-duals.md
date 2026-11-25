@@ -433,11 +433,11 @@ section `s` transverse to the zero section (at each zero, the vertical
 derivative $D s(x):T_xX\to E'_x$, read in any trivialization, is onto):
 
 - `TauCeti.SmoothEmbedding.ofTransverseSection hm hsm hs hE`: the inclusion of
-  the zero set, with the atlas `transverseZeroSetChartedSpace` built from Tau
+  the zero set, with the atlas `SymplecticGeometry.transverseZeroSetChartedSpace` built from Tau
   Ceti's `sectionZeroChartedSpace`
   (modelled on a space of dimension `dim X - r`, through identifications of
   the kernels of the derivative), and the immersion
-  `isImmersionOfComplement_coe_transverseZeroSet`, as a `SmoothEmbedding`, with
+  `SymplecticGeometry.isImmersionOfComplement_coe_transverseZeroSet`, as a `SmoothEmbedding`, with
   `isClosed_range_ofTransverseSection`. Tau Ceti's atlas is stated for a
   base modelled directly on a normed space, with chosen trivializations,
   surjectivity and complemented kernels as data; a base over a general

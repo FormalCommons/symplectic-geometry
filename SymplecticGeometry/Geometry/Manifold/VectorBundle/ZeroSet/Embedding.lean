@@ -28,22 +28,29 @@ The atlas is Tau Ceti's section-zero atlas
 (`TauCeti.exists_isManifold_sectionZero_of_contMDiff_of_closedComplemented`). That construction
 is stated for a source modelled directly on a normed space, so the section is first read on the
 self-modelled copy `TauCeti.BoundarylessModel J X`, and its atlas is then carried to the zero set
-in `X` along the identity of points, as Tau Ceti does for regular levels; the transport of the
-immersion follows the proof of `TauCeti.isImmersionOfComplement_coe_regularLevel`. The model of the
-zero set is any finite-dimensional space `E` with `dim E + dim F' = dim V`; the identifications of
-the kernels of the linearization with `E` are chosen once from transversality.
+in `X` along the identity of points. The model of the zero set is any finite-dimensional space
+`E` with `dim E + dim F' = dim V`; the identifications of the kernels of the linearization with
+`E` are chosen once from transversality.
+
+This transport adapts Tau Ceti's construction for regular levels, in
+`TauCeti/Geometry/Manifold/RegularValue/Level.lean`, from level sets of maps to zero sets of
+sections: the private `TransverseZeroSet.sec`, `TransverseZeroSet.zeroHomeomorph` and
+`TransverseZeroSet.coe_zeroHomeomorph_symm` follow `TauCeti.RegularLevel.sec`,
+`TauCeti.RegularLevel.zeroHomeomorph` and `TauCeti.RegularLevel.coe_zeroHomeomorph_symm`;
+`transverseZeroSetChartedSpace` is the pullback form of `TauCeti.regularLevelChartedSpace`
+(`TauCeti.regularLevelChartedSpace_eq_pullbackChartedSpace`); `isManifold_transverseZeroSet`
+follows `TauCeti.isManifold_regularLevel`; and `isImmersionOfComplement_coe_transverseZeroSet`
+follows `TauCeti.isImmersionOfComplement_coe_regularLevel`.
 
 ## Main declarations
 
-* `TauCeti.finrank_ker_sectionLinearization_add_finrank`: where the linearization of a section
-  is onto, its kernel has the expected dimension.
-* `TauCeti.transverseZeroSetChartedSpace`: the atlas of the zero set of a transverse section,
-  modelled on `E`.
-* `TauCeti.isManifold_transverseZeroSet`: for it, the zero set is a `C^m` manifold.
-* `TauCeti.isImmersionOfComplement_coe_transverseZeroSet`: the inclusion is a `C^m` immersion
-  with complement `F'`.
-* `TauCeti.range_mfderiv_coe_transverseZeroSet`: the tangent space of the zero set at `z` is the
-  kernel of the linearization of `s` at `z`.
+* `SymplecticGeometry.transverseZeroSetChartedSpace`: the atlas of the zero set of a transverse
+  section, modelled on `E`.
+* `SymplecticGeometry.isManifold_transverseZeroSet`: for it, the zero set is a `C^m` manifold.
+* `SymplecticGeometry.isImmersionOfComplement_coe_transverseZeroSet`: the inclusion is a `C^m`
+  immersion with complement `F'`.
+* `SymplecticGeometry.range_mfderiv_coe_transverseZeroSet`: the tangent space of the zero set at
+  `z` is the kernel of the linearization of `s` at `z`.
 * `TauCeti.SmoothEmbedding.ofTransverseSection`: the inclusion of the zero set as a bundled
   smooth embedding, and `TauCeti.SmoothEmbedding.isClosed_range_ofTransverseSection`: its range
   is closed.
@@ -60,33 +67,7 @@ public section
 open Bundle Function Module Set
 open scoped ContDiff Manifold Topology
 
-namespace TauCeti
-
-section Linearization
-
-variable {𝕜 EM HM M B F : Type*} [NontriviallyNormedField 𝕜]
-  [NormedAddCommGroup EM] [NormedSpace 𝕜 EM] [FiniteDimensional 𝕜 EM]
-  [TopologicalSpace HM] {IM : ModelWithCorners 𝕜 EM HM} [TopologicalSpace M] [ChartedSpace HM M]
-  [NormedAddCommGroup F] [NormedSpace 𝕜 F] [FiniteDimensional 𝕜 F] [TopologicalSpace B]
-  {E : B → Type*} [∀ a, TopologicalSpace (E a)] [TopologicalSpace (TotalSpace F E)]
-  [∀ a, AddCommGroup (E a)] [∀ a, Module 𝕜 (E a)] [FiberBundle F E] [VectorBundle 𝕜 F E]
-
-/-- For finite-dimensional models, where the linearization of a section along `b : M → B` is
-onto, the dimensions of its kernel and of the model fibre `F` add up to that of the model `EM`
-of `M`. -/
-theorem finrank_ker_sectionLinearization_add_finrank {b : M → B} {s : ∀ y, E (b y)} {x : M}
-    (hs : Surjective (sectionLinearization (F := F) IM b s x)) :
-    finrank 𝕜 (sectionLinearization (F := F) IM b s x).ker + finrank 𝕜 F = finrank 𝕜 EM := by
-  let := VectorBundle.finiteDimensional 𝕜 F E (b x)
-  -- The tangent space is the model space, whose instances rank-nullity needs.
-  let : FiniteDimensional 𝕜 (TangentSpace IM x) := inferInstanceAs (FiniteDimensional 𝕜 EM)
-  have hrk := LinearMap.finrank_range_add_finrank_ker
-    (sectionLinearization (F := F) IM b s x : TangentSpace IM x →ₗ[𝕜] E (b x))
-  rw [LinearMap.range_eq_top.2 hs, finrank_top, VectorBundle.finrank_eq 𝕜 F E (b x)] at hrk
-  have hdim : finrank 𝕜 (TangentSpace IM x) = finrank 𝕜 EM := rfl
-  omega
-
-end Linearization
+open TauCeti
 
 variable {𝕜 V G X F' E : Type*} [RCLike 𝕜]
   [NormedAddCommGroup V] [NormedSpace 𝕜 V] [FiniteDimensional 𝕜 V]
@@ -102,6 +83,12 @@ variable {𝕜 V G X F' E : Type*} [RCLike 𝕜]
 -- Finite-dimensional completeness is not a global instance over a variable scalar field.
 local instance instCompleteSpaceModel : CompleteSpace V := FiniteDimensional.completeSpace 𝕜 V
 local instance instCompleteSpaceFiber : CompleteSpace F' := FiniteDimensional.completeSpace 𝕜 F'
+
+variable (hm : m ≠ 0) (hsm : ContMDiff J (J.prod 𝓘(𝕜, F')) m fun x ↦ TotalSpace.mk' F' x (s x))
+  (hs : ∀ x, s x = 0 → Surjective (sectionLinearization (F := F') J _root_.id s x))
+  (hE : finrank 𝕜 E + finrank 𝕜 F' = finrank 𝕜 V)
+
+namespace SymplecticGeometry
 
 namespace TransverseZeroSet
 
@@ -162,16 +149,16 @@ private theorem exists_chartedSpace (hm : m ≠ 0)
     let : PolynormableSpace 𝕜 (TangentSpace 𝓘(𝕜, V) y) := inferInstanceAs (PolynormableSpace 𝕜 V)
     exact Submodule.ClosedComplemented.of_finiteDimensional _
   · -- The kernel of a surjection onto a fibre of dimension `dim F'` has dimension `dim E`.
-    have h := finrank_ker_sectionLinearization_add_finrank (hsurj y hy)
+    have h : finrank 𝕜 (sectionLinearization (F := F') 𝓘(𝕜, V) b (sec J s) y).ker +
+        finrank 𝕜 F' = finrank 𝕜 V := by
+      have := (ContinuousLinearMap.index_of_surjective _ (hsurj y hy)).symm.trans
+        ((ContinuousLinearMap.index_def _).trans index_sectionLinearization_of_finiteDimensional)
+      omega
     exact ⟨ContinuousLinearEquiv.ofFinrankEq (Nat.add_right_cancel (h.trans hE.symm))⟩
 
 end TransverseZeroSet
 
 open TransverseZeroSet
-
-variable (hm : m ≠ 0) (hsm : ContMDiff J (J.prod 𝓘(𝕜, F')) m fun x ↦ TotalSpace.mk' F' x (s x))
-  (hs : ∀ x, s x = 0 → Surjective (sectionLinearization (F := F') J _root_.id s x))
-  (hE : finrank 𝕜 E + finrank 𝕜 F' = finrank 𝕜 V)
 
 /-- The atlas of the zero set of a `C^m` section `s` transverse to the zero section, modelled on
 a space `E` of dimension `dim V - dim F'`: Tau Ceti's section-zero atlas of `s`, read on the
@@ -182,7 +169,7 @@ noncomputable def transverseZeroSetChartedSpace : ChartedSpace E ↥{x : X | s x
   (zeroHomeomorph J s).symm.pullbackChartedSpace
 
 /-- The zero set of a transverse section is a `C^m` manifold for its atlas
-`TauCeti.transverseZeroSetChartedSpace`. -/
+`SymplecticGeometry.transverseZeroSetChartedSpace`. -/
 theorem isManifold_transverseZeroSet :
     letI := transverseZeroSetChartedSpace hm hsm hs hE
     IsManifold 𝓘(𝕜, E) m ↥{x : X | s x = 0} :=
@@ -191,7 +178,7 @@ theorem isManifold_transverseZeroSet :
   (zeroHomeomorph J s).symm.pullback_isManifold _ m
 
 /-- The inclusion of the zero set of a transverse section is a `C^m` immersion with complement
-`F'`, for the atlas `TauCeti.transverseZeroSetChartedSpace`. -/
+`F'`, for the atlas `SymplecticGeometry.transverseZeroSetChartedSpace`. -/
 theorem isImmersionOfComplement_coe_transverseZeroSet :
     letI := transverseZeroSetChartedSpace hm hsm hs hE
     Manifold.IsImmersionOfComplement F' 𝓘(𝕜, E) J m (Subtype.val : ↥{x : X | s x = 0} → X) := by
@@ -212,7 +199,8 @@ theorem isImmersionOfComplement_coe_transverseZeroSet :
 
 /-- **The tangent space of the zero set of a transverse section.** At a zero `z` of `s`, the
 range of the differential of the inclusion of the zero set, for the atlas
-`TauCeti.transverseZeroSetChartedSpace`, is the kernel of the linearization of `s` at `z`. -/
+`SymplecticGeometry.transverseZeroSetChartedSpace`, is the kernel of the linearization of `s`
+at `z`. -/
 theorem range_mfderiv_coe_transverseZeroSet (z : ↥{x : X | s x = 0}) :
     letI := transverseZeroSetChartedSpace hm hsm hs hE
     (mfderiv 𝓘(𝕜, E) J (Subtype.val : ↥{x : X | s x = 0} → X) z).range =
@@ -237,16 +225,22 @@ theorem range_mfderiv_coe_transverseZeroSet (z : ↥{x : X | s x = 0}) :
     exact (DFunLike.congr_fun hcomp v).symm
   refine Submodule.eq_of_le_of_finrank_eq hle ?_
   -- Both have dimension `dim E`: the differential of an immersion is injective.
-  have h := finrank_ker_sectionLinearization_add_finrank (hs z z.property)
+  have h := (ContinuousLinearMap.index_of_surjective _ (hs z z.property)).symm.trans
+    ((ContinuousLinearMap.index_def _).trans index_sectionLinearization_of_finiteDimensional)
   rw [LinearMap.finrank_range_of_inj (himm.mfderiv_injective hm)]
   have hdim : finrank 𝕜 (TangentSpace 𝓘(𝕜, E) z) = finrank 𝕜 E := rfl
   omega
 
-namespace SmoothEmbedding
+end SymplecticGeometry
+
+namespace TauCeti.SmoothEmbedding
+
+open SymplecticGeometry
 
 /-- **The zero set of a transverse section is an embedded submanifold.** The inclusion of the
 zero set of a `C^m` section `s` transverse to the zero section, with the atlas
-`TauCeti.transverseZeroSetChartedSpace` modelled on `E`, as a `C^m` smooth embedding into `X`. -/
+`SymplecticGeometry.transverseZeroSetChartedSpace` modelled on `E`, as a `C^m` smooth embedding
+into `X`. -/
 noncomputable def ofTransverseSection :
     letI := transverseZeroSetChartedSpace hm hsm hs hE
     SmoothEmbedding 𝓘(𝕜, E) J m ↥{x : X | s x = 0} X :=
@@ -276,8 +270,6 @@ theorem isClosed_range_ofTransverseSection :
   rw [range_ofTransverseSection]
   exact VectorBundle.isClosed_setOf_eq_zero 𝕜 (b := _root_.id) hsm.continuous
 
-end SmoothEmbedding
-
-end TauCeti
+end TauCeti.SmoothEmbedding
 
 end
