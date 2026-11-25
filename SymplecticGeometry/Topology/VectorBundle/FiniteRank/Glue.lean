@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 public import TauCeti.Topology.VectorBundle.FiniteRank.Pullback
 
 /-!
@@ -39,8 +40,8 @@ cocycle condition from `g.hom ≫ g.inv = 𝟙` and `g.inv ≫ g.hom = 𝟙` (`g
 * `TauCeti.FiniteRankBundleCore.glueRestrictIso`: over `U` (`s = true`) and over `V`
   (`s = false`), the restriction of the glued core is isomorphic to that of `A`, by the
   gluing cocycle from the side of each point to `s`. Over `U` it is the identity in coordinates
-  (`fiberMap_glueRestrictIso_true_hom`); over `V` it is `g.inv` on `U ∩ V`
-  (`fiberMap_glueRestrictIso_false_hom`).
+  (`fiberMap_glueRestrictIso_true_hom`); over `V` it is `g.inv` on `U ∩ V`, with inverse `g.hom`
+  (`fiberMap_glueRestrictIso_false_hom`, `fiberMap_glueRestrictIso_false_inv`).
 * `TauCeti.FiniteRankBundleCore.glueReflIso`: gluing by the identity gives back `A`.
 
 The construction follows the pattern of Tau Ceti's `TauCeti.FiniteRankBundleCore.doubleAlong`, a
@@ -59,16 +60,6 @@ public section
 noncomputable section
 
 open Set CategoryTheory Topology Filter
-
-/-- The chart expression of the identity, between two charts of a core at a point of both, is
-their coordinate change. -/
-theorem VectorBundleCore.inChartCoordinates_id {𝕜 B F ι : Type*} [NontriviallyNormedField 𝕜]
-    [TopologicalSpace B] [NormedAddCommGroup F] [NormedSpace 𝕜 F] (Z : VectorBundleCore 𝕜 B F ι)
-    {i j : ι} {x : B} (hi : x ∈ Z.baseSet i) (hj : x ∈ Z.baseSet j) :
-    Z.inChartCoordinates Z i j x (ContinuousLinearMap.id 𝕜 F) = Z.coordChange i j x := by
-  ext v : 1
-  rw [VectorBundleCore.inChartCoordinates_apply, ContinuousLinearMap.id_apply,
-    Z.coordChange_comp _ _ _ x ⟨⟨hi, Z.mem_baseSet_at x⟩, hj⟩]
 
 namespace TauCeti.FiniteRankBundleCore
 
@@ -89,6 +80,10 @@ side `U`) exactly when `x ∈ U`. -/
 def glueIndex (U : Set B) (x : B) : Bool :=
   decide (x ∈ U)
 
+open Classical in
+theorem glueIndex_def (U : Set B) (x : B) : glueIndex U x = decide (x ∈ U) :=
+  (rfl)
+
 @[simp]
 theorem glueIndex_eq_true_iff {x : B} : glueIndex U x = true ↔ x ∈ U := by
   classical
@@ -99,12 +94,20 @@ theorem glueIndex_eq_false_iff {x : B} : glueIndex U x = false ↔ x ∉ U := by
   classical
   simp [glueIndex]
 
+@[simp]
+theorem glueIndex_of_mem {x : B} (hx : x ∈ U) : glueIndex U x = true :=
+  glueIndex_eq_true_iff.2 hx
+
+@[simp]
+theorem glueIndex_of_notMem {x : B} (hx : x ∉ U) : glueIndex U x = false :=
+  glueIndex_eq_false_iff.2 hx
+
 /-- Each point lies on its own side: in `U` if it is in `U`, and otherwise in `V`. -/
 theorem mem_glueSide_glueIndex (hUV : U ∪ V = univ) (x : B) :
     x ∈ glueSide U V (glueIndex U x) := by
   by_cases hx : x ∈ U
-  · simp [glueIndex_eq_true_iff.2 hx, hx]
-  · simpa [glueIndex_eq_false_iff.2 hx] using
+  · simp [hx]
+  · simpa [hx] using
       (hUV.symm ▸ mem_univ x : x ∈ U ∪ V).resolve_left hx
 
 end Side
@@ -323,7 +326,7 @@ theorem coordChange_glue_of_notMem_of_mem {x y b : B} (hx : x ∉ U) (hy : y ∈
     (A.glue hU hV hUV g).core.coordChange x y b =
       (A.core.coordChange b y b).comp
         ((g.hom.fiberMap ⟨b, hb⟩).comp (A.core.coordChange x b b)) := by
-  rw [coordChange_glue, glueIndex_eq_false_iff.2 hx, glueIndex_eq_true_iff.2 hy,
+  rw [coordChange_glue, glueIndex_of_notMem hx, glueIndex_of_mem hy,
     glueCocycle_false_true g hb, inChartCoordinates_core]
 
 /-- From a chart on the side `U` to a chart on the side `V`, at a point of `U ∩ V`, the
@@ -333,7 +336,7 @@ theorem coordChange_glue_of_mem_of_notMem {x y b : B} (hx : x ∈ U) (hy : y ∉
     (A.glue hU hV hUV g).core.coordChange x y b =
       (A.core.coordChange b y b).comp
         ((g.inv.fiberMap ⟨b, hb⟩).comp (A.core.coordChange x b b)) := by
-  rw [coordChange_glue, glueIndex_eq_true_iff.2 hx, glueIndex_eq_false_iff.2 hy,
+  rw [coordChange_glue, glueIndex_of_mem hx, glueIndex_of_notMem hy,
     glueCocycle_true_false g hb, inChartCoordinates_core]
 
 /-! ### The glued core over each side -/
@@ -440,14 +443,14 @@ theorem fiberMap_glueRestrictIso_inv (s : Bool) (x : glueSide U V s) :
 @[simp]
 theorem fiberMap_glueRestrictIso_true_hom (x : U) :
     (A.glueRestrictIso hU hV hUV g true).hom.fiberMap x = .id 𝕜 _ := by
-  rw [fiberMap_glueRestrictIso_hom, glueIndex_eq_true_iff.2 x.property, glueCocycle_self]
+  rw [fiberMap_glueRestrictIso_hom, glueIndex_of_mem x.property, glueCocycle_self]
   -- Both sides agree once the ranks of the fibre models are unfolded.
   rfl
 
 @[simp]
 theorem fiberMap_glueRestrictIso_true_inv (x : U) :
     (A.glueRestrictIso hU hV hUV g true).inv.fiberMap x = .id 𝕜 _ := by
-  rw [fiberMap_glueRestrictIso_inv, glueIndex_eq_true_iff.2 x.property, glueCocycle_self]
+  rw [fiberMap_glueRestrictIso_inv, glueIndex_of_mem x.property, glueCocycle_self]
   -- Both sides agree once the ranks of the fibre models are unfolded.
   rfl
 
@@ -456,14 +459,30 @@ of `g.inv`. -/
 theorem fiberMap_glueRestrictIso_false_hom {x : V} (hx : (x : B) ∈ U) :
     (A.glueRestrictIso hU hV hUV g false).hom.fiberMap x =
       g.inv.fiberMap ⟨x, hx, x.property⟩ := by
-  rw [fiberMap_glueRestrictIso_hom, glueIndex_eq_true_iff.2 hx,
+  rw [fiberMap_glueRestrictIso_hom, glueIndex_of_mem hx,
     glueCocycle_true_false g (show (x : B) ∈ U ∩ V from ⟨hx, x.property⟩)]
 
 /-- Over `V`, at a point outside `U`, the isomorphism of the glued core with `A` is the identity
 in coordinates. -/
 theorem fiberMap_glueRestrictIso_false_hom_of_notMem {x : V} (hx : (x : B) ∉ U) :
     (A.glueRestrictIso hU hV hUV g false).hom.fiberMap x = .id 𝕜 _ := by
-  rw [fiberMap_glueRestrictIso_hom, glueIndex_eq_false_iff.2 hx, glueCocycle_self]
+  rw [fiberMap_glueRestrictIso_hom, glueIndex_of_notMem hx, glueCocycle_self]
+  -- Both sides agree once the ranks of the fibre models are unfolded.
+  rfl
+
+/-- Over `V`, at a point of `U ∩ V`, the inverse isomorphism, from `A` to the glued core, is the
+fibre map of `g.hom`. -/
+theorem fiberMap_glueRestrictIso_false_inv {x : V} (hx : (x : B) ∈ U) :
+    (A.glueRestrictIso hU hV hUV g false).inv.fiberMap x =
+      g.hom.fiberMap ⟨x, hx, x.property⟩ := by
+  rw [fiberMap_glueRestrictIso_inv, glueIndex_of_mem hx,
+    glueCocycle_false_true g (show (x : B) ∈ U ∩ V from ⟨hx, x.property⟩)]
+
+/-- Over `V`, at a point outside `U`, the inverse isomorphism, from `A` to the glued core, is the
+identity in coordinates. -/
+theorem fiberMap_glueRestrictIso_false_inv_of_notMem {x : V} (hx : (x : B) ∉ U) :
+    (A.glueRestrictIso hU hV hUV g false).inv.fiberMap x = .id 𝕜 _ := by
+  rw [fiberMap_glueRestrictIso_inv, glueIndex_of_notMem hx, glueCocycle_self]
   -- Both sides agree once the ranks of the fibre models are unfolded.
   rfl
 
