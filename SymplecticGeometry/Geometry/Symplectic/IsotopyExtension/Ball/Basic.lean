@@ -240,7 +240,7 @@ theorem exists_lt_isSymplecticBallFamily_of_injOn [FiniteDimensional ℝ E] [I.B
   have hVinj (t : unitInterval) : InjOn (fun z ↦ e (t, z)) V := fun x hx y hy h ↦
     congrArg Subtype.val ((hV t).isEmbedding.injective (a₁ := ⟨x, hx⟩) (a₂ := ⟨y, hy⟩) h)
   -- `V` contains a closed ball larger than `B(r₀)`.
-  obtain ⟨r, hr, hsub⟩ := exists_lt_closedBall_subset_of_closedBall_subset V.isOpen hKV
+  obtain ⟨r, hr, hsub⟩ := V.isOpen.exists_gt_closedBall_subset hKV
   exact ⟨r, hr, ⟨V, V.isOpen, hsub, heW.mono (prod_mono subset_rfl hVW)⟩,
     fun t ↦ ⟨⟨V, V.isOpen, hsub, (hslice t).mono hVW⟩, (hVinj t).mono hsub,
       fun z hz ↦ hpull t z (hVW (hsub (ball_subset_closedBall hz)))⟩⟩
