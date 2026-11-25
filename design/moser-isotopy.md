@@ -595,14 +595,7 @@ following; its design file, from #466, gives their names.
    `exists_isSmoothFamily_mextDerivₗ_eq`: a one-form `β` on
    `unitInterval × M` whose slices satisfy `d β_t = ω_t - ω_0`.
 2. `DifferentialForm/TimeExtension.lean`: an extension `B` of `β` to `ℝ × M`.
-3. A smooth reparametrization `c : ℝ → ℝ` that is the identity on
-   $[0,1]$ and takes values in $(-\varepsilon,1+\varepsilon)$, for a given
-   `ε > 0`. *Manifolds, families and signs* names this step. It is
-   `exists_contDiff_eqOn_id_Icc_mem_Ioo` of
-   `Analysis/SpecialFunctions/SmoothTransition.lean`, with `a = 0` and
-   `b = 1`, through `exists_contDiff_eqOn_id_Icc_mem_of_isOpen` of the same
-   file, which keeps the values in an open set containing $[a,b]$.
-4. `Diffeotopy/Real.lean`: the restriction of an isotopy over `ℝ` to a
+3. `Diffeotopy/Real.lean`: the restriction of an isotopy over `ℝ` to a
    `Diffeotopy`.
 
 Let `τ := Prod.snd^* ω_0 + mextDeriv B` on `ℝ × M`. It is closed, and its
@@ -610,14 +603,16 @@ slices are `ω_0 + d B_s`, which are `ω_s` for `s ∈ [0, 1]`. Nondegeneracy
 is open and `M` is compact, so the parameters `s` at which `τ_s` is
 nondegenerate everywhere form an open set containing $[0,1]$
 (`isOpen_setOf_forall_isInvertible_flat_mpullback_prodMk` of
-`Manifold/Family.lean`, through the closed projection `ℝ × M → ℝ`). Take `c`
-with values in that set, and `σ' := (c × id)^* τ` over `ℝ`: it is closed,
-and every slice is symplectic. The time derivative of a closed form on
-`ℝ × M` is exact, `L_{∂_t} σ' = d (ι_{∂_t} σ')` by Cartan's formula
+`Manifold/Family.lean`, through the closed projection `ℝ × M → ℝ`). Let `P`
+be that open set and `σ'` the restriction of `τ` to `P × M`: every slice of
+`σ'` is symplectic. The time derivative of a closed form on
+`ℝ × M` is exact, `L_{∂_t} τ = d (ι_{∂_t} τ)` by Cartan's formula
 (`SmoothForm.mextDerivₗ_timeInterior`, in
-`DifferentialForm/Flow/Family.lean`), so `α := ι_{∂_t} σ'` satisfies the
-hypothesis of `TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq`, since
-pullbacks commute with `d`. That theorem gives
+`DifferentialForm/Flow/Family.lean`), so the restriction `α` of `ι_{∂_t} τ`
+to `P × M` satisfies the hypothesis of
+`TauCeti.SmoothTwoForm.exists_isotopy_mpullback_eq_of_uIcc_subset` on
+$[0,1] ⊆ P$, since pullbacks commute with `d` and the restriction keeps the
+time derivative. That theorem gives
 `ψ : ℝ → M ≃ₘ⟮I, I⟯ M`, which `Diffeotopy/Real.lean` restricts to `Ψ`.
 
 ## What the part uses
@@ -651,7 +646,7 @@ pullbacks commute with `d`. That theorem gives
 - Mathlib: `generalized_tube_lemma`, `Real.smoothTransition`,
   `Manifold.IsSmoothEmbedding.of_opens`, `PartialDiffeomorph`, `Diffeomorph`.
 - *Smooth families* (#466, #467), for `Stability.lean` only: (★), the time
-  extension, the reparametrization, and the restriction to a `Diffeotopy`.
+  extension, and the restriction to a `Diffeotopy`.
 - Tau Ceti: `Geometry/Manifold/DifferentialForm/Flow/Family.lean`,
   for `SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily` in `Relative.lean`
   and `Isotopy.lean`.
