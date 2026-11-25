@@ -24,6 +24,7 @@ public import TauCeti.Geometry.Manifold.Complex.LeviForm
 public import SymplecticGeometry.Geometry.Manifold.Complex.Plurisubharmonic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.Rescale
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
+import SymplecticGeometry.Analysis.Complex.Euclidean.Space
 
 /-!
 # Radial potential forms on `ℂⁿ ∖ 0`
