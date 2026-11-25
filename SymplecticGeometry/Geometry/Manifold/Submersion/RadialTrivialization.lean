@@ -68,6 +68,17 @@ follow the ray on `[0, 1]` (`chartRay_of_mem_Icc`).
 lines of `OpenPartialHomeomorph.chartBallHomotopy`, from an open partial homeomorphism and
 continuous maps to the extended chart `extChartAt J b₀` and smooth maps.
 
+### Trivializations with a given fibre
+
+Given a trivialization `e` of `f` with fibre `Z` over a neighbourhood of `b₀`, `C^n` with a `C^n`
+inverse, the fibre over `b₀` is identified with `Z` by `e`
+(`Bundle.Trivialization.preimageSingletonHomeomorph`). Changing the fibre of the trivialization by
+transport along the rays `chartRay J b₀` through this identification
+(`Bundle.Trivialization.transFiberHomeomorph`) gives a trivialization with fibre `Z` around `b₀`,
+`C^n` with a `C^n` inverse, whose inverse is transport along the rays of the chart at `b₀`
+(`TauCeti.IsEhresmannConnection.exists_trivialization_parallelTransport`). Its smoothness
+conditions are those of `TauCeti.MapFiber.Atlas.IsContMDiff`.
+
 ## Main definitions
 
 * `SymplecticGeometry.rayParam`: a smooth bounded function `ℝ → ℝ` that is the identity on
@@ -84,6 +95,9 @@ continuous maps to the extended chart `extChartAt J b₀` and smooth maps.
 * `TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransportTrivialization`,
   `TauCeti.IsEhresmannConnection.contMDiffOn_parallelTransportTrivialization_symm`: it is `C^n`,
   with a `C^n` inverse.
+* `TauCeti.IsEhresmannConnection.exists_trivialization_parallelTransport`: around each point of
+  the base set of a `C^n` trivialization with fibre `Z`, a `C^n` trivialization with fibre `Z` by
+  transport along the rays of a chart.
 * `SymplecticGeometry.contMDiff_chartRay_chartBall`: the family of rays is smooth on
   `chartBall J b₀ r × ℝ`.
 * `SymplecticGeometry.exists_pos_ball_two_mul_subset_extChartAt_target`: radii for which it is
@@ -427,6 +441,96 @@ theorem contMDiffOn_parallelTransportTrivialization_symm :
     ⟨hp.1, (hp.2 : f p.2 = b₀).trans (hΓ₀ _ hp.1).symm⟩
 
 end Trivialization
+
+section Radial
+
+variable {EZ : Type*} [NormedAddCommGroup EZ] [NormedSpace ℝ EZ]
+  {HZ : Type*} [TopologicalSpace HZ] {IZ : ModelWithCorners ℝ EZ HZ}
+  {Z : Type*} [TopologicalSpace Z] [ChartedSpace HZ Z]
+
+/-- **Local trivializations by parallel transport along the rays of a chart.** Let `D` be a `C^n`
+Ehresmann connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B` of finite-dimensional
+boundaryless Hausdorff manifolds, and `e` a trivialization of `f` with fibre `Z` that is `C^n`
+on its source, with inverse `C^n` on its target, and `b₀ ∈ e.baseSet`. Then there is a
+trivialization `e'` of `f` with fibre `Z`, `C^n` on its source with inverse `C^n` on its target,
+with `b₀ ∈ e'.baseSet`, such that for each `b ∈ e'.baseSet` there is a smooth curve `γ`, equal on
+`[0, 1]` to the ray `t ↦ (extChartAt J b₀).symm (c + t • (y - c))` of the chart at `b₀` from
+`c = extChartAt J b₀ b₀` to `y = extChartAt J b₀ b`, with
+`e'.symm (b, v) = hD.parallelTransport γ 0 1 (e.symm (b₀, v))` for every `v : Z`.
+
+The smoothness conditions on `e` and on `e'` are the fields of `TauCeti.MapFiber.Atlas.IsContMDiff`
+for a single trivialization. -/
+theorem exists_trivialization_parallelTransport (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
+    (hfp : IsProperMap f) (e : Trivialization Z f)
+    (he : ContMDiffOn I (J.prod IZ) n e e.source)
+    (he' : ContMDiffOn (J.prod IZ) I n e.toOpenPartialHomeomorph.symm e.target)
+    {b₀ : B} (hb₀ : b₀ ∈ e.baseSet) :
+    ∃ e' : Trivialization Z f, ContMDiffOn I (J.prod IZ) n e' e'.source ∧
+      ContMDiffOn (J.prod IZ) I n e'.toOpenPartialHomeomorph.symm e'.target ∧
+      b₀ ∈ e'.baseSet ∧ ∀ b ∈ e'.baseSet, ∃ γ : ℝ → B, ContMDiff 𝓘(ℝ, ℝ) J ∞ γ ∧
+        EqOn γ (fun t ↦ (extChartAt J b₀).symm
+          (extChartAt J b₀ b₀ + t • (extChartAt J b₀ b - extChartAt J b₀ b₀))) (Icc 0 1) ∧
+        ∀ v : Z, e'.toOpenPartialHomeomorph.symm (b, v) =
+          hD.parallelTransport γ 0 1 (e.toOpenPartialHomeomorph.symm (b₀, v)) := by
+  obtain ⟨r, hr, hball⟩ := SymplecticGeometry.exists_pos_ball_two_mul_subset_extChartAt_target J b₀
+  set U : Set B := (SymplecticGeometry.chartBall J b₀ r : Set B)
+  have hU : IsOpen U := (SymplecticGeometry.chartBall J b₀ r).isOpen
+  have hb₀U : b₀ ∈ U := SymplecticGeometry.mem_chartBall_self J b₀ hr
+  have hΓ : ContMDiffOn (J.prod 𝓘(ℝ, ℝ)) J ∞ (SymplecticGeometry.chartRay J b₀) (U ×ˢ univ) :=
+    SymplecticGeometry.contMDiffOn_chartRay J hball
+  -- The curve of the family through `b ∈ U`, smooth and equal to the ray on `[0, 1]`.
+  have hγ : ∀ b ∈ U, ContMDiff 𝓘(ℝ, ℝ) J ∞ (fun u ↦ SymplecticGeometry.chartRay J b₀ (b, u)) ∧
+      EqOn (fun u ↦ SymplecticGeometry.chartRay J b₀ (b, u)) (fun t ↦ (extChartAt J b₀).symm
+        (extChartAt J b₀ b₀ + t • (extChartAt J b₀ b - extChartAt J b₀ b₀))) (Icc 0 1) :=
+    fun b hb ↦ ⟨hΓ.comp_contMDiff (contMDiff_const.prodMk contMDiff_id) fun _ ↦ ⟨hb, mem_univ _⟩,
+      fun _ ht ↦ SymplecticGeometry.chartRay_of_mem_Icc J b₀ b ht⟩
+  rcases isEmpty_or_nonempty Z with hZ | hZ
+  · -- If `Z` is empty, so is `P`, and the restriction of `e` to `U` will do.
+    have : IsEmpty P := ⟨fun x ↦ hZ.false (e x).2⟩
+    refine ⟨e.restrOpen U hU, fun x ↦ isEmptyElim x, fun p ↦ isEmptyElim p.2, ⟨hb₀, hb₀U⟩,
+      fun b hb ↦ ⟨_, (hγ b hb.2).1, (hγ b hb.2).2, fun v ↦ isEmptyElim v⟩⟩
+  have : Nonempty (MapFiber f b₀) :=
+    ⟨⟨e.toOpenPartialHomeomorph.symm (b₀, Classical.arbitrary Z), e.proj_symm_apply' hb₀⟩⟩
+  have hΓn : ContMDiffOn (J.prod 𝓘(ℝ, ℝ)) J (n + 1) (SymplecticGeometry.chartRay J b₀)
+      (U ×ˢ univ) :=
+    hΓ.of_le (WithTop.coe_le_coe.2 le_top)
+  have hΓ₀ : ∀ b ∈ U, SymplecticGeometry.chartRay J b₀ (b, 0) = b₀ :=
+    fun b _ ↦ SymplecticGeometry.chartRay_zero J b₀ b
+  have hΓ₁ : ∀ b ∈ U, SymplecticGeometry.chartRay J b₀ (b, 1) = b :=
+    fun b hb ↦ SymplecticGeometry.chartRay_one J ((SymplecticGeometry.mem_chartBall_iff J).1 hb).1
+  set T := hD.parallelTransportTrivialization hn hf hfp hU hΓn hΓ₀ hΓ₁
+  -- The fibre over `b₀`, read in `Z` through `e`.
+  let φ : MapFiber f b₀ ≃ₜ Z := e.preimageSingletonHomeomorph hb₀
+  have hφ (x : MapFiber f b₀) : φ x = (e x).2 := e.preimageSingletonHomeomorph_apply hb₀ x
+  have hφsymm (v : Z) : (φ.symm v : P) = e.toOpenPartialHomeomorph.symm (b₀, v) :=
+    congrArg Subtype.val (e.preimageSingletonHomeomorph_symm_apply hb₀ v)
+  have hsymm (p : B × Z) : (T.transFiberHomeomorph φ).toOpenPartialHomeomorph.symm p =
+      hD.parallelTransport (fun u ↦ SymplecticGeometry.chartRay J b₀ (p.1, u)) 0 1
+        (e.toOpenPartialHomeomorph.symm (b₀, p.2)) := by
+    rw [← hφsymm]
+    exact hD.parallelTransportTrivialization_symm_apply hn hf hfp hU hΓn hΓ₀ hΓ₁ (p.1, φ.symm p.2)
+  refine ⟨T.transFiberHomeomorph φ, ?_, ?_, hb₀U, fun b hb ↦
+    ⟨_, (hγ b hb).1, (hγ b hb).2, fun v ↦ hsymm (b, v)⟩⟩
+  · -- The trivialization reads `x ↦ (f x, (e (T x).2).2)` on its source.
+    have hT : ContMDiffOn I (J.prod I) n (fun x ↦ ((T x).1, ((T x).2 : P))) T.source :=
+      hD.contMDiffOn_parallelTransportTrivialization hn hf hfp hU hΓn hΓ₀ hΓ₁
+    have h2 : ContMDiffOn I (J.prod IZ) n (fun x ↦ e (T x).2) T.source :=
+      he.comp (contMDiff_snd.comp_contMDiffOn hT) fun x _ ↦ e.mem_source.2 <| by
+        rw [(T x).2.property]; exact hb₀
+    refine ((contMDiff_fst.comp_contMDiffOn hT).prodMk (contMDiff_snd.comp_contMDiffOn h2)).congr
+      fun x _ ↦ ?_
+    simp only [comp_apply, Trivialization.transFiberHomeomorph_apply, hφ]
+  · -- Its inverse is `(b, v) ↦ T.symm (b, e.symm (b₀, v))`, through the inclusion of the fibre.
+    have hT := hD.contMDiffOn_parallelTransportTrivialization_symm hn hf hfp hU hΓn hΓ₀ hΓ₁
+    rw [parallelTransportTrivialization_baseSet] at hT
+    have hin : ContMDiffOn (J.prod IZ) (J.prod I) n
+        (fun p : B × Z ↦ (p.1, e.toOpenPartialHomeomorph.symm (b₀, p.2))) (U ×ˢ univ) :=
+      contMDiffOn_fst.prodMk (he'.comp (contMDiffOn_const.prodMk contMDiffOn_snd)
+        fun _ _ ↦ e.mem_target.2 hb₀)
+    refine ((hT.comp hin fun p hp ↦ ⟨hp.1, e.proj_symm_apply' hb₀⟩).congr fun p _ ↦ hsymm p).mono
+      fun p hp ↦ ⟨(T.transFiberHomeomorph φ).mem_target.1 hp, mem_univ _⟩
+
+end Radial
 
 end IsEhresmannConnection
 
