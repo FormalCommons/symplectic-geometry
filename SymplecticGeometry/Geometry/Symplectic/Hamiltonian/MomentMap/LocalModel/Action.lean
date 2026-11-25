@@ -8,17 +8,28 @@ module
 public import SymplecticGeometry.Geometry.Lie.Adjoint.Splitting
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Data
 
+import TauCeti.Geometry.Manifold.Algebra.SMul
+
 /-!
-# The action of `K` on the splitting and on `𝔪*` in the local model
+# The action of `K` on the splitting and on the fibre `𝔪* × V` of the local model
 
 Let `D : SymplecticGeometry.LocalModelData K V A` be the data of the Marle–Guillemin–Sternberg
 local model `G ×_K (𝔪* × V)`, with its `Ad_K`-invariant splitting `𝔤 = 𝔥 ⊕ 𝔪 ⊕ 𝔮` and the
-identification `A ≃ 𝔪*`. This file gives the linear algebra of the action of `K` on the fibre
-`𝔪* × V` of the local model: the sums `𝔪 ⊕ 𝔮` and `𝔥 ⊕ 𝔮` are invariant under `Ad_K`, so the
+identification `A ≃ 𝔪*`. This file gives the action of `K` on the fibre `𝔪* × V` of the local
+model. First its linear algebra: the sums `𝔪 ⊕ 𝔮` and `𝔥 ⊕ 𝔮` are invariant under `Ad_K`, so the
 extensions by zero `ι𝔥 : 𝔥* → 𝔤*` and `ι𝔪 : 𝔪* → 𝔤*` intertwine the duals of the adjoint
 representations of `K` on `𝔥` and `𝔪` with the coadjoint representation of `K` on `𝔤*`.
 The representation of `K` on `A` is the dual of the adjoint representation on `𝔪`, transported
 to `A` by `D.equivDual𝔪`.
+
+Then the action `k • (η, v) = (repA k η, rep k v)` on `A × V`, and its smoothness, so that the
+balanced product `G ×_K (A × V)` is a manifold (Tau Ceti's
+`TauCeti.BalancedProduct.isManifold_rightTranslation`). The action depends on `D`, so it is a
+definition, `SymplecticGeometry.LocalModelData.fibreDistribMulAction`, to be used with `letI`,
+not an instance; this keeps the carrier `A × V` of `D.covector` and `D.form`, rather than a type
+synonym. The representation on `A` is smooth because its coordinates in the basis of `A` dual to a
+basis of `𝔪` are those of the coadjoint representation, which are smooth on `G` (Tau Ceti's
+`TauCeti.Lie.contMDiff_coadjointRepresentation_apply`).
 
 The invariance of the sums is that of a sup of subrepresentations (Mathlib's lattice of
 `Subrepresentation`). The equivariance of the extensions by zero is the case of the splitting of
@@ -29,6 +40,7 @@ docstring of Tau Ceti's `TauCeti/Geometry/Lie/Adjoint/Splitting.lean`.
 
 * `SymplecticGeometry.LocalModelData.repA`: the representation of `K` on `A ≃ 𝔪*`, the dual of
   `SymplecticGeometry.LocalModelData.adjoint𝔪`.
+* `SymplecticGeometry.LocalModelData.fibreDistribMulAction`: the action of `K` on `A × V`.
 
 ## Main results
 
@@ -38,6 +50,9 @@ docstring of Tau Ceti's `TauCeti/Geometry/Lie/Adjoint/Splitting.lean`.
 * `SymplecticGeometry.LocalModelData.ι𝔥_adjoint𝔥_dual`,
   `SymplecticGeometry.LocalModelData.ι𝔪_symm_adjoint𝔪_dual`: `ι𝔥` and `ι𝔪` are equivariant.
 * `SymplecticGeometry.LocalModelData.ι𝔪_repA`: `ι𝔪 (repA k η) = Ad*_k (ι𝔪 η)`.
+* `SymplecticGeometry.LocalModelData.contMDiff_repA`: the representation on `A` is smooth.
+* `SymplecticGeometry.LocalModelData.contMDiffSMul_fibreDistribMulAction`: the action of `K` on
+  `A × V` is smooth.
 
 ## References
 
@@ -139,6 +154,65 @@ the coadjoint representation: `ι𝔪 (repA k η) = Ad*_k (ι𝔪 η)`. -/
 theorem ι𝔪_repA (k : K) (η : A) :
     D.ι𝔪 (D.repA k η) = coadjointRepresentation ℝ I G k (D.ι𝔪 η) := by
   rw [repA_apply, ι𝔪_symm_adjoint𝔪_dual, LinearEquiv.symm_apply_apply]
+
+/-- The representation of `K` on `A ≃ 𝔪*` is smooth: `(k, η) ↦ repA k η` is smooth on `K × A`. -/
+theorem contMDiff_repA :
+    ContMDiff (𝓘(ℝ, F).prod 𝓘(ℝ, A)) 𝓘(ℝ, A) ∞ fun p : K × A ↦ D.repA p.1 p.2 := by
+  -- The coordinates of `A` in the basis `b` dual to a basis `c` of `𝔪` are `η ↦ ι𝔪 η (c i)`.
+  let c := Module.finBasis ℝ D.𝔪
+  let b := c.dualBasis.map D.equivDual𝔪.symm
+  have hb (η : A) (i) : b.equivFunL η i = D.ι𝔪 η (c i) := by
+    rw [Module.Basis.equivFunL_apply, Module.Basis.map_repr, LinearEquiv.trans_apply,
+      LinearEquiv.symm_symm, Module.Basis.dualBasis_repr, ι𝔪_apply_coe]
+  have h (k : K) (η : A) (i) : b.equivFunL (D.repA k η) i =
+      ∑ j, b.equivFunL η j * coadjointRepresentation ℝ I G k (D.ι𝔪 (b j)) (c i) := by
+    have hη : D.ι𝔪 η = ∑ j, b.equivFunL η j • D.ι𝔪 (b j) := by
+      simp only [Module.Basis.equivFunL_apply]
+      conv_lhs => rw [← b.sum_repr η]
+      simp only [map_sum, map_smul]
+    rw [hb, ι𝔪_repA, hη]
+    simp only [map_sum, map_smul, LinearMap.sum_apply, LinearMap.smul_apply, smul_eq_mul]
+  have hK := K.contMDiff_subtypeVal_of_contMDiffSMul (I := I) (I' := 𝓘(ℝ, F)) (n := ∞)
+  refine (b.equivFunL.symm.contDiff.comp_contMDiff
+    (contMDiff_pi_module_iff.2 fun i ↦ ?_)).congr fun p ↦
+      (b.equivFunL.symm_apply_apply (D.repA p.1 p.2)).symm
+  simp_rw [h]
+  exact ContMDiff.sum fun j _ ↦
+    (contMDiff_pi_module_iff.1 (b.equivFunL.contDiff.comp_contMDiff contMDiff_snd) j).mul
+      ((contMDiff_coadjointRepresentation_apply _ _).comp (hK.comp contMDiff_fst))
+
+/-! ### The action of `K` on the fibre `A × V ≃ 𝔪* × V` -/
+
+/-- The linear action of `K` on the fibre `A × V ≃ 𝔪* × V` of the local model,
+`k • (η, v) = (repA k η, rep k v)`. It depends on `D`, so it is not a global instance: use it with
+`letI := D.fibreDistribMulAction`. -/
+@[instance_reducible]
+def fibreDistribMulAction : DistribMulAction K (A × V) :=
+  DistribMulAction.compHom (A × V) (D.repA.prod D.repV)
+
+/-- The action of `K` on `A × V`. Not a simp lemma: its left side is a scalar multiplication by
+an action that is not an instance. -/
+theorem fibreDistribMulAction_smul (k : K) (p : A × V) :
+    letI := D.fibreDistribMulAction
+    k • p = (D.repA k p.1, D.rep k p.2) :=
+  -- The second component is `D.repV k p.2`, whose body is not exposed.
+  Prod.ext (rfl) (D.repV_apply k p.2)
+
+/-- The action of `K` on the fibre `A × V` is smooth. With it, the balanced product
+`TauCeti.BalancedProduct K (Subgroup.RightTranslation K) (A × V)`, the local model `G ×_K (A × V)`,
+is a smooth manifold (`TauCeti.BalancedProduct.isManifold_rightTranslation`). -/
+theorem contMDiffSMul_fibreDistribMulAction :
+    letI := D.fibreDistribMulAction
+    ContMDiffSMul 𝓘(ℝ, F) 𝓘(ℝ, A × V) ∞ K (A × V) := by
+  let := D.fibreDistribMulAction
+  have hA : ContMDiff (𝓘(ℝ, F).prod 𝓘(ℝ, A × V)) (𝓘(ℝ, F).prod 𝓘(ℝ, A)) ∞
+      fun p : K × (A × V) ↦ (p.1, p.2.1) :=
+    contMDiff_fst.prodMk (contDiff_fst.contMDiff.comp contMDiff_snd)
+  have hV : ContMDiff (𝓘(ℝ, F).prod 𝓘(ℝ, A × V)) (𝓘(ℝ, F).prod 𝓘(ℝ, V)) ∞
+      fun p : K × (A × V) ↦ (p.1, p.2.2) :=
+    contMDiff_fst.prodMk (contDiff_snd.contMDiff.comp contMDiff_snd)
+  exact ⟨((D.contMDiff_repA.comp hA).prodMk_space (D.contMDiff_rep.comp hV)).congr
+    fun p ↦ D.fibreDistribMulAction_smul p.1 p.2⟩
 
 end LocalModelData
 
