@@ -39,8 +39,8 @@ coordinate `x 0` in Lean.
   finite points, which are dense.
 * `SymplecticGeometry.sphereToProjectiveLine`: the analytic diffeomorphism from the unit sphere of
   `ℝ³` onto `ℂP¹`, the inverse of Tau Ceti's `OnePoint.diffeomorphSphere v ι` followed by
-  `OnePoint.equivProjectivization`, for the north pole `v = northPole` and the isometry
-  `ι = equatorIsometry`, `z ↦ (Re z, -Im z, 0)`. It sends `x` to `[x₁ - i x₂ : 1 - x₃]` off the
+  `OnePoint.equivProjectivization`, for the north pole `v = homeomorphSphere ∞` and the isometry
+  `ι = sphereCoordsIsometry`, `z ↦ (Re z, -Im z, 0)`. It sends `x` to `[x₁ - i x₂ : 1 - x₃]` off the
   north pole (`sphereToProjectiveLine_of_ne_northPole`) and to `[1 + x₃ : x₁ + i x₂]` off the
   south pole (`sphereToProjectiveLine_of_ne_southPole`).
 * `SymplecticGeometry.mpullback_sphereToProjectiveLine_fubiniStudyForm`: `ω_FS` pulls back along
@@ -167,41 +167,49 @@ theorem mpullback_equivProjectivization_fubiniStudyForm :
 
 /-! ### The stereographic map onto `ℂP¹` -/
 
+section Stereographic
+
+open OnePoint (diffeomorphSphere homeomorphSphere sphereCoordsIsometry)
+open scoped OnePoint
+
 /-- **Stereographic coordinates on `ℂP¹`.** The analytic diffeomorphism from the unit sphere of
-`ℝ³` onto `ℂP¹ = ℙ ℂ (Fin 2 → ℂ)`: stereographic projection from the north pole, read through
-`equatorIsometry`, followed by the identification of the Riemann sphere with `ℂP¹`. It sends `x`
-to `[x₁ - i x₂ : 1 - x₃]` off the north pole (`sphereToProjectiveLine_of_ne_northPole`) and to
-`[1 + x₃ : x₁ + i x₂]` off the south pole (`sphereToProjectiveLine_of_ne_southPole`), where
-`x = (x₁, x₂, x₃)`. -/
+`ℝ³` onto `ℂP¹ = ℙ ℂ (Fin 2 → ℂ)`: stereographic projection from the north pole
+`homeomorphSphere ∞`, read through `sphereCoordsIsometry`, followed by the identification of the
+Riemann sphere with `ℂP¹`. It sends `x` to `[x₁ - i x₂ : 1 - x₃]` off the north pole
+(`sphereToProjectiveLine_of_ne_northPole`) and to `[1 + x₃ : x₁ + i x₂]` off the south pole
+(`sphereToProjectiveLine_of_ne_southPole`), where `x = (x₁, x₂, x₃)`. -/
 noncomputable def sphereToProjectiveLine :
     sphere (0 : ℝ³) 1 ≃ₘ^ω⟮𝓡 2, 𝓘(ℝ, Fin 1 → ℂ)⟯ ℙ ℂ (Fin 2 → ℂ) where
-  toEquiv := (OnePoint.diffeomorphSphere northPole equatorIsometry).symm.toEquiv.trans
+  toEquiv := (diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry).symm.toEquiv.trans
     (OnePoint.equivProjectivization ℂ)
   contMDiff_toFun := OnePoint.contMDiff_equivProjectivization_real.comp
-    (OnePoint.diffeomorphSphere northPole equatorIsometry).symm.contMDiff
-  contMDiff_invFun := (OnePoint.diffeomorphSphere northPole equatorIsometry).contMDiff.comp
-    OnePoint.contMDiff_equivProjectivization_symm_real
+    (diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry).symm.contMDiff
+  contMDiff_invFun :=
+    (diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry).contMDiff.comp
+      OnePoint.contMDiff_equivProjectivization_symm_real
 
 theorem coe_sphereToProjectiveLine :
     ⇑sphereToProjectiveLine =
       OnePoint.equivProjectivization ℂ ∘
-        (OnePoint.diffeomorphSphere northPole equatorIsometry).symm :=
+        (diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry).symm :=
   (rfl)
 
 /-- Off the north pole, `sphereToProjectiveLine` sends `x = (x₁, x₂, x₃)` to
 `[x₁ - i x₂ : 1 - x₃]`. -/
-theorem sphereToProjectiveLine_of_ne_northPole {p : sphere (0 : ℝ³) 1} (hp : p ≠ northPole) :
+theorem sphereToProjectiveLine_of_ne_northPole {p : sphere (0 : ℝ³) 1}
+    (hp : p ≠ homeomorphSphere ∞) :
     sphereToProjectiveLine p =
       mk ℂ ![((p : ℝ³) 0 : ℂ) - ((p : ℝ³) 1 : ℂ) * Complex.I, ((1 - (p : ℝ³) 2 : ℝ) : ℂ)]
-        (fun h ↦ one_sub_ne_zero_of_ne_northPole hp
+        (fun h ↦ OnePoint.one_sub_ne_zero_of_ne_homeomorphSphere_infty hp
           (Complex.ofReal_eq_zero.1 (congrFun h 1))) := by
   have h₁ : ((1 - (p : ℝ³) 2 : ℝ) : ℂ) ≠ 0 := by
-    exact_mod_cast one_sub_ne_zero_of_ne_northPole hp
+    exact_mod_cast OnePoint.one_sub_ne_zero_of_ne_homeomorphSphere_infty hp
   push_cast at h₁
   rw [coe_sphereToProjectiveLine, Function.comp_apply,
     OnePoint.diffeomorphSphere_symm_apply_of_ne _ _ hp,
     OnePoint.equivProjectivization_apply_coe,
-    equatorIsometry_symm_orthogonalProjectionOnto, inner_northPole, mk_eq_mk_iff']
+    OnePoint.sphereCoordsIsometry_symm_orthogonalProjectionOnto,
+    OnePoint.inner_homeomorphSphere_infty, mk_eq_mk_iff']
   refine ⟨((1 - (p : ℝ³) 2 : ℝ) : ℂ)⁻¹, ?_⟩
   ext k
   fin_cases k
@@ -211,19 +219,20 @@ theorem sphereToProjectiveLine_of_ne_northPole {p : sphere (0 : ℝ³) 1} (hp : 
 
 /-- Off the south pole, `sphereToProjectiveLine` sends `x = (x₁, x₂, x₃)` to
 `[1 + x₃ : x₁ + i x₂]`. -/
-theorem sphereToProjectiveLine_of_ne_southPole {p : sphere (0 : ℝ³) 1} (hp : p ≠ -northPole) :
+theorem sphereToProjectiveLine_of_ne_southPole {p : sphere (0 : ℝ³) 1}
+    (hp : p ≠ -homeomorphSphere ∞) :
     sphereToProjectiveLine p =
       mk ℂ ![((1 + (p : ℝ³) 2 : ℝ) : ℂ), ((p : ℝ³) 0 : ℂ) + ((p : ℝ³) 1 : ℂ) * Complex.I]
-        (fun h ↦ one_add_ne_zero_of_ne_neg_northPole hp
+        (fun h ↦ OnePoint.one_add_ne_zero_of_ne_neg_homeomorphSphere_infty hp
           (Complex.ofReal_eq_zero.1 (congrFun h 0))) := by
   have h₁ : ((1 + (p : ℝ³) 2 : ℝ) : ℂ) ≠ 0 := by
-    exact_mod_cast one_add_ne_zero_of_ne_neg_northPole hp
+    exact_mod_cast OnePoint.one_add_ne_zero_of_ne_neg_homeomorphSphere_infty hp
   push_cast at h₁
-  by_cases hn : p = northPole
+  by_cases hn : p = homeomorphSphere ∞
   · subst hn
     rw [coe_sphereToProjectiveLine, Function.comp_apply, OnePoint.diffeomorphSphere_symm_self,
       OnePoint.equivProjectivization_apply_infinity, mk_eq_mk_iff']
-    refine ⟨((1 + (northPole : ℝ³) 2 : ℝ) : ℂ)⁻¹, ?_⟩
+    refine ⟨((1 + (homeomorphSphere ∞ : ℝ³) 2 : ℝ) : ℂ)⁻¹, ?_⟩
     ext k
     fin_cases k <;> simp
   · rw [sphereToProjectiveLine_of_ne_northPole hn, mk_eq_mk_iff']
@@ -257,6 +266,8 @@ theorem mpullback_sphereToProjectiveLine_fubiniStudyForm :
     ← mpullback_equivProjectivization_fubiniStudyForm]
   exact (SmoothForm.mpullback_mpullback _ _ _
     ((OnePoint.contMDiff_equivProjectivization_real).of_le le_top) _).symm
+
+end Stereographic
 
 /-! ### Orientations -/
 
