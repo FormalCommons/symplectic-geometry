@@ -199,12 +199,15 @@ private theorem IsCircleConnectionForm.mextDeriv_apply_eq_zero_of_vertical
 theorem IsCircleConnectionForm.isBasic_mextDerivₗ (hα : IsCircleConnectionForm α) :
     RoughForm.IsBasic (V := ℝ) IB (fun y : ManifoldTotalSpace Circle P ↦
       ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
-      (mextDerivₗ (IB.prod (𝓡 1)) 1 α).val :=
-  PrincipalBundle.isBasic_of_mpullback_op_smul
+      (mextDerivₗ (IB.prod (𝓡 1)) 1 α).val := by
+  have h := PrincipalBundle.isBasic_of_mpullback_op_smul (n := ∞)
+    (β := mextDerivₗ (IB.prod (𝓡 1)) 1 α)
     (fun z ↦ by rw [← SmoothForm.mextDerivₗ_mpullback, hα.mpullback_op_smul])
     fun x v j hv ↦ by
+      rw [ManifoldTotalSpace.coe_projContMDiffMap] at hv
       rw [mextDerivₗ_apply]
       exact hα.mextDeriv_apply_eq_zero_of_vertical x v j hv
+  rwa [ManifoldTotalSpace.coe_projContMDiffMap] at h
 
 /-- The **curvature** of a connection form `α` on a principal `Circle`-bundle over `B`: the unique
 smooth `2`-form on `B` whose pull-back along the projection is `d α`
@@ -261,7 +264,9 @@ theorem IsCircleConnectionForm.add_mpullback (hα : IsCircleConnectionForm α)
       ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
       (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) a) where
   mpullback_op_smul z := by
-    rw [map_add, hα.mpullback_op_smul, PrincipalBundle.mpullback_op_smul_mpullback_proj]
+    have h := PrincipalBundle.mpullback_op_smul_mpullback_proj (IG := 𝓡 1) (P := P) z a
+    simp only [ManifoldTotalSpace.coe_projContMDiffMap] at h
+    rw [map_add, hα.mpullback_op_smul, h]
   apply_rightFundamentalVectorField x := by
     rw [Submodule.coe_add, Pi.add_apply, ContinuousAlternatingMap.add_apply,
       hα.apply_rightFundamentalVectorField, SmoothForm.mpullback_apply_one,
@@ -283,8 +288,9 @@ theorem IsCircleConnectionForm.existsUnique_eq_add_mpullback (hα : IsCircleConn
     (ManifoldTotalSpace.homeomorph Circle P).symm.surjective
   have hsub := ManifoldTotalSpace.isSubmersion_proj ∞ Circle P IB (𝓡 1)
   -- The difference `β - α` is invariant and vanishes on vertical vectors, so it is basic.
-  have hbasic := PrincipalBundle.isBasic_of_mpullback_op_smul (β := β - α)
+  have hbasic := PrincipalBundle.isBasic_of_mpullback_op_smul (n := ∞) (β := β - α)
     (fun z ↦ by rw [map_sub, hα.mpullback_op_smul, hβ.mpullback_op_smul]) fun x v j hv ↦ by
+      rw [ManifoldTotalSpace.coe_projContMDiffMap] at hv
       set ξ := rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x
       obtain rfl : j = 0 := Subsingleton.elim _ _
       obtain ⟨c, hc⟩ := exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero
@@ -298,6 +304,7 @@ theorem IsCircleConnectionForm.existsUnique_eq_add_mpullback (hα : IsCircleConn
         Submodule.coe_sub, Pi.sub_apply, ContinuousAlternatingMap.sub_apply,
         hα.apply_rightFundamentalVectorField, hβ.apply_rightFundamentalVectorField, sub_self,
         smul_zero, add_zero]
+  rw [ManifoldTotalSpace.coe_projContMDiffMap] at hbasic
   refine ⟨SmoothForm.descendedForm hsub hsurj (β - α) hbasic, ?_,
     fun a' ha' ↦ SmoothForm.eq_descendedForm_iff.mpr ?_⟩
   · beta_reduce
@@ -431,7 +438,9 @@ private theorem IsCircleConnectionForm.sub_apply_eq_of_mfderiv_proj_eq
   have hvert : mfderiv (IB.prod (𝓡 1)) IB p (op g • y) (v - u) = 0 := by
     have h := mfderiv_comp y ((ManifoldTotalSpace.contMDiff_proj 1 Circle P IB (𝓡 1)
       (op g • y)).mdifferentiableAt one_ne_zero) hgd
-    rw [show p ∘ (fun z ↦ op g • z) = p from PrincipalBundle.proj_comp_op_smul g] at h
+    have hp : p = ManifoldTotalSpace.projContMDiffMap 1 Circle P IB (𝓡 1) := by
+      rw [ManifoldTotalSpace.coe_projContMDiffMap]
+    rw [show p ∘ (fun z ↦ op g • z) = p by rw [hp, PrincipalBundle.proj_comp_op_smul]] at h
     rw [map_sub, hvw, h]
     exact sub_eq_zero.mpr rfl
   obtain ⟨c, hc⟩ := exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero
