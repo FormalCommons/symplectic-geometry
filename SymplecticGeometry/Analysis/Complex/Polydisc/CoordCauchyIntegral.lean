@@ -7,10 +7,10 @@ module
 
 public import Mathlib.MeasureTheory.Integral.CircleIntegral
 public import TauCeti.Analysis.Complex.Wirtinger.Basic
-import Mathlib.Analysis.Analytic.ChangeOrigin
+import Mathlib.Analysis.Complex.CauchyIntegral
+import SymplecticGeometry.MeasureTheory.Constructions.UnitInterval
 import TauCeti.Analysis.Calculus.ContDiff.IsOpen
 import TauCeti.Analysis.Calculus.ParametricIntegral.Basic
-import TauCeti.MeasureTheory.Constructions.UnitInterval
 
 /-!
 # The Cauchy integral in one coordinate
@@ -30,15 +30,17 @@ formula on a polydisc, approximates a `C¹` function with small `∂̄` by a hol
 * `SymplecticGeometry.norm_coordCauchyIntegral_le`: if `z i` lies in the disc of radius `ρ / 2`
   about `c i`, then `‖coordCauchyIntegral i c ρ f z‖ ≤ 2 * M` for any bound `M` of `‖f‖` on the
   circle of the `i`-th coordinate through `z`.
-* `SymplecticGeometry.contDiffAt_coordCauchyIntegral`: for `f` that is `C¹` near the closed
-  sup-norm polydisc `closedBall c ρ`, the coordinate Cauchy integral is `C¹` at every `z` with
-  `z i` in the open disc and the other coordinates in the closed discs.
+* `SymplecticGeometry.contDiffAt_coordCauchyIntegral`: if `z i` lies in the open disc and `f` is
+  `C¹` at every point `update z i ζ` with `ζ` on the circle, the coordinate Cauchy integral is
+  `C¹` at `z`.
 * `SymplecticGeometry.differentiableAt_coordCauchyIntegral_update`: it is complex
   differentiable in the `i`-th coordinate.
 * `SymplecticGeometry.fderiv_coordCauchyIntegral_apply`: its derivative in a direction `v` with
   `v i = 0` is the coordinate Cauchy integral of the derivative of `f` in that direction.
-* `SymplecticGeometry.conjWirtingerDeriv_coordCauchyIntegral_single`: for `j ≠ i` it commutes
-  with the conjugate Wirtinger derivative `∂/∂(conj z_j)`.
+* `SymplecticGeometry.conjWirtingerDeriv_coordCauchyIntegral`: it commutes with the conjugate
+  Wirtinger derivative in every direction `e` with `e i = 0`, and in particular
+  (`SymplecticGeometry.conjWirtingerDeriv_coordCauchyIntegral_single`) with `∂/∂(conj z_j)` for
+  `j ≠ i`.
 
 ## Implementation notes
 
@@ -46,7 +48,7 @@ Differentiation under the integral sign uses Tau Ceti's
 `TauCeti.contDiffOn_integral_smul_of_contDiffOn`, for the integrand as a function of `z` and of the
 angle, rescaled to the unit interval, and `TauCeti.hasDerivAt_intervalIntegral_of_contDiffOn` for
 derivatives along real lines. Holomorphy in the `i`-th coordinate is Mathlib's
-`hasFPowerSeriesOn_cauchy_integral`.
+`Complex.hasDerivAt_circleIntegral_sub_inv_smul`.
 
 ## References
 
@@ -107,21 +109,12 @@ theorem norm_coordCauchyIntegral_le {M : ℝ} (hz : ‖z i - c i‖ ≤ ρ / 2)
 
 /-- The coordinate Cauchy integral is complex differentiable in the `i`-th coordinate at every
 point of the open disc, as soon as the restriction of `f` to the circle is integrable. -/
-theorem differentiableAt_coordCauchyIntegral_update [CompleteSpace F]
+theorem differentiableAt_coordCauchyIntegral_update
     (hf : CircleIntegrable (fun ζ ↦ f (update z i ζ)) (c i) ρ) (hzi : z i ∈ ball (c i) ρ) :
     DifferentiableAt ℂ (fun w ↦ coordCauchyIntegral i c ρ f (update z i w)) (z i) := by
-  have hρ : 0 < ρ := pos_of_mem_ball hzi
-  have hR : ((ρ.toNNReal : NNReal) : ℝ) = ρ := Real.coe_toNNReal _ hρ.le
-  have hfun : (fun w ↦ coordCauchyIntegral i c ρ f (update z i w)) =
-      fun w ↦ (2 * π * I : ℂ)⁻¹ • ∮ ζ in C(c i, ρ.toNNReal), (ζ - w)⁻¹ • f (update z i ζ) := by
-    funext w
-    simp only [coordCauchyIntegral_def, update_idem, update_self, hR]
-  rw [hfun]
-  have hps := hasFPowerSeriesOn_cauchy_integral (R := ρ.toNNReal) (by rwa [hR])
-    (Real.toNNReal_pos.2 hρ)
-  refine (hps.analyticAt_of_mem ?_).differentiableAt
-  rw [Metric.eball_coe, hR]
-  exact hzi
+  simp only [coordCauchyIntegral_def, update_idem, update_self]
+  exact (hasDerivAt_circleIntegral_sub_inv_smul hf
+    ((mem_ball.1 hzi).trans_le (le_abs_self ρ)).ne).differentiableAt.const_smul _
 
 section Regularity
 
@@ -178,42 +171,25 @@ private theorem contDiffOn_integrand : ContDiffOn ℝ 1 (integrand i c ρ f) (go
     (hp.2.comp p contDiff_update_circleMap.contDiffAt).contDiffWithinAt
   exact h₁.contDiffOn.smul (h₂.smul h₃)
 
-/-- Moving the `i`-th coordinate of a point of the closed polydisc within the closed disc keeps
-it in the closed polydisc. -/
-private theorem update_mem_closedBall (hρ : 0 ≤ ρ) (hz : ∀ k ≠ i, ‖z k - c k‖ ≤ ρ) {ζ : ℂ}
-    (hζ : ‖ζ - c i‖ ≤ ρ) : update z i ζ ∈ closedBall c ρ := by
-  rw [mem_closedBall, dist_pi_le_iff hρ]
-  intro k
-  by_cases hk : k = i
-  · subst hk
-    rwa [update_self, dist_eq_norm]
-  · rw [update_of_ne hk, dist_eq_norm]
-    exact hz k hk
 
 /-- The points at which the coordinate Cauchy integral is `C¹`: for these, every pair `(z, θ)`
 lies in `goodSet`. -/
-private theorem mem_goodSet (hf : ∀ y ∈ closedBall c ρ, ContDiffAt ℝ 1 f y)
-    (hzi : z i ∈ ball (c i) ρ) (hz : ∀ k ≠ i, ‖z k - c k‖ ≤ ρ) (θ : ℝ) :
+private theorem mem_goodSet (hzi : z i ∈ ball (c i) ρ)
+    (hf : ∀ ζ ∈ sphere (c i) ρ, ContDiffAt ℝ 1 f (update z i ζ)) (θ : ℝ) :
     (z, θ) ∈ goodSet i c ρ f := by
   have hρ : 0 < ρ := pos_of_mem_ball hzi
+  refine ⟨fun h ↦ ?_, hf _ (circleMap_mem_sphere _ hρ.le θ)⟩
   have hcirc : ‖circleMap (c i) ρ θ - c i‖ = ρ := by
     rw [circleMap_sub_center, norm_circleMap_zero, abs_of_pos hρ]
-  refine ⟨fun h ↦ ?_, hf _ ?_⟩
-  · have h' : circleMap (c i) ρ θ = z i := sub_eq_zero.1 h
-    rw [mem_ball, dist_eq_norm, ← h', hcirc] at hzi
-    exact lt_irrefl _ hzi
-  · exact update_mem_closedBall hρ.le hz hcirc.le
+  have h' : circleMap (c i) ρ θ = z i := sub_eq_zero.1 h
+  rw [mem_ball, dist_eq_norm, ← h', hcirc] at hzi
+  exact lt_irrefl _ hzi
 
-private theorem intervalIntegral_eq_integral_unitInterval_two_pi (h : ℝ → F) :
-    ∫ θ in 0..2 * π, h θ = ∫ t : unitInterval, (2 * π) • h (2 * π * t) := by
-  rw [integral_smul, ← TauCeti.intervalIntegral_eq_integral_unitInterval
-    (fun t ↦ h (2 * π * t)), intervalIntegral.smul_integral_comp_mul_left, mul_zero, mul_one]
-
-/-- **Regularity of the coordinate Cauchy integral.** If `f` is `C¹` at every point of the
-closed sup-norm polydisc `closedBall c ρ`, then its Cauchy integral in the `i`-th coordinate is
-`C¹` at every `z` with `z i` in the open disc `ball (c i) ρ` and `‖z k - c k‖ ≤ ρ` for `k ≠ i`. -/
-theorem contDiffAt_coordCauchyIntegral (hf : ∀ y ∈ closedBall c ρ, ContDiffAt ℝ 1 f y)
-    (hzi : z i ∈ ball (c i) ρ) (hz : ∀ k ≠ i, ‖z k - c k‖ ≤ ρ) :
+/-- **Regularity of the coordinate Cauchy integral.** If `z i` lies in the open disc
+`ball (c i) ρ` and `f` is `C¹` at every point `update z i ζ` with `ζ` on the circle
+`sphere (c i) ρ`, then the Cauchy integral of `f` in the `i`-th coordinate is `C¹` at `z`. -/
+theorem contDiffAt_coordCauchyIntegral (hzi : z i ∈ ball (c i) ρ)
+    (hf : ∀ ζ ∈ sphere (c i) ρ, ContDiffAt ℝ 1 f (update z i ζ)) :
     ContDiffAt ℝ 1 (coordCauchyIntegral i c ρ f) z := by
   let ι' : unitInterval → ℝ := fun t ↦ 2 * π * t
   have hι' : Continuous ι' := continuous_const.mul continuous_subtypeVal
@@ -224,24 +200,50 @@ theorem contDiffAt_coordCauchyIntegral (hf : ∀ y ∈ closedBall c ρ, ContDiff
     TauCeti.contDiffOn_integral_smul_of_contDiffOn (μ := (volume : Measure unitInterval))
       (g := fun _ ↦ 2 * π) (F := integrand i c ρ f) (n := 1) (integrable_const _) hι'
       isOpen_goodSet contDiffOn_integrand (U := U) fun x hx t ↦ hx t
-  have hzU : z ∈ U := fun t ↦ mem_goodSet hf hzi hz _
+  have hzU : z ∈ U := fun t ↦ mem_goodSet hzi hf _
   refine ((hI.contDiffAt (hU.mem_nhds hzU)).const_smul (2 * π * I : ℂ)⁻¹).congr_of_eventuallyEq
     (Filter.Eventually.of_forall fun x ↦ ?_)
-  simp only [coordCauchyIntegral_eq_integral, intervalIntegral_eq_integral_unitInterval_two_pi, ι']
+  simp only [coordCauchyIntegral_eq_integral, intervalIntegral_eq_integral_unitInterval_smul, ι']
+
+omit [Fintype ι] in
+/-- Along a real line `s ↦ z + s • v` with `v i = 0`, the derivative at `s = 0` of the integrand
+of the coordinate Cauchy integral of `f` is the integrand for the derivative of `f` in the
+direction `v`. -/
+private theorem hasDerivAt_integrand_line [Finite ι] {v : ι → ℂ} (hv : v i = 0) {θ : ℝ}
+    (hf : DifferentiableAt ℝ f (update z i (circleMap (c i) ρ θ))) :
+    HasDerivAt (fun s : ℝ ↦ integrand i c ρ f (z + s • v, θ))
+      (integrand i c ρ (fun y ↦ fderiv ℝ f y v) (z, θ)) 0 := by
+  have := Fintype.ofFinite ι
+  -- Since `v i = 0`, moving along the line does not change the `i`-th coordinate.
+  have hG : (fun s : ℝ ↦ integrand i c ρ f (z + s • v, θ)) = fun s ↦
+      (circleMap 0 ρ θ * I) • ((circleMap (c i) ρ θ - z i)⁻¹ •
+        f (update z i (circleMap (c i) ρ θ) + s • v)) := by
+    funext s
+    have h := update_add z (s • v) i (circleMap (c i) ρ θ) 0
+    rw [add_zero, (update_eq_self_iff (f := s • v) (a := i) (b := 0)).2 (by simp [hv])] at h
+    simp only [integrand, Pi.add_apply, Pi.smul_apply, hv, smul_zero, add_zero, h]
+  have hline : HasDerivAt (fun s : ℝ ↦ update z i (circleMap (c i) ρ θ) + s • v) v 0 := by
+    simpa using ((hasDerivAt_id (0 : ℝ)).smul_const v).const_add
+      (update z i (circleMap (c i) ρ θ))
+  have hfd : HasDerivAt (fun s : ℝ ↦ f (update z i (circleMap (c i) ρ θ) + s • v))
+      (fderiv ℝ f (update z i (circleMap (c i) ρ θ)) v) 0 :=
+    hf.hasFDerivAt.comp_hasDerivAt_of_eq (0 : ℝ) hline (by simp)
+  rw [hG]
+  exact (hfd.const_smul _).const_smul _
 
 /-- **Derivatives of the coordinate Cauchy integral in the other coordinates.** Under the
 hypotheses of `contDiffAt_coordCauchyIntegral`, the derivative of the Cauchy integral of `f` in
 the `i`-th coordinate, in a direction `v` with `v i = 0`, is the Cauchy integral in the `i`-th
 coordinate of the derivative of `f` in the direction `v`. -/
-theorem fderiv_coordCauchyIntegral_apply (hf : ∀ y ∈ closedBall c ρ, ContDiffAt ℝ 1 f y)
-    (hzi : z i ∈ ball (c i) ρ) (hz : ∀ k ≠ i, ‖z k - c k‖ ≤ ρ) {v : ι → ℂ} (hv : v i = 0) :
+theorem fderiv_coordCauchyIntegral_apply (hzi : z i ∈ ball (c i) ρ)
+    (hf : ∀ ζ ∈ sphere (c i) ρ, ContDiffAt ℝ 1 f (update z i ζ)) {v : ι → ℂ} (hv : v i = 0) :
     fderiv ℝ (coordCauchyIntegral i c ρ f) z v =
       coordCauchyIntegral i c ρ (fun y ↦ fderiv ℝ f y v) z := by
   have hline : HasDerivAt (fun t : ℝ ↦ z + t • v) v 0 := by
     simpa using ((hasDerivAt_id (0 : ℝ)).smul_const v).const_add z
   have h₁ : HasDerivAt (fun t : ℝ ↦ coordCauchyIntegral i c ρ f (z + t • v))
       (fderiv ℝ (coordCauchyIntegral i c ρ f) z v) 0 :=
-    ((contDiffAt_coordCauchyIntegral hf hzi hz).differentiableAt one_ne_zero).hasFDerivAt
+    ((contDiffAt_coordCauchyIntegral hzi hf).differentiableAt one_ne_zero).hasFDerivAt
       |>.comp_hasDerivAt_of_eq (0 : ℝ) hline (by simp)
   refine h₁.unique ?_
   -- Differentiate under the integral sign along the real line `t ↦ z + t • v`.
@@ -255,7 +257,7 @@ theorem fderiv_coordCauchyIntegral_apply (hf : ∀ y ∈ closedBall c ρ, ContDi
       ((contDiff_const.add (contDiff_fst.smul contDiff_const)).prodMk contDiff_snd).contDiffOn
       fun q hq ↦ hq
   have hU₀ (θ : ℝ) : ((0 : ℝ), θ) ∈ U := by
-    simpa [U] using mem_goodSet hf hzi hz θ
+    simpa [U] using mem_goodSet hzi hf θ
   have hsub : {(0 : ℝ)} ×ˢ uIcc 0 (2 * π) ⊆ U := by
     rintro ⟨s, θ⟩ ⟨hs, -⟩
     rw [mem_singleton_iff] at hs
@@ -271,72 +273,33 @@ theorem fderiv_coordCauchyIntegral_apply (hf : ∀ y ∈ closedBall c ρ, ContDi
         |>.comp_hasDerivAt_of_eq (0 : ℝ)
           ((hasDerivAt_id (0 : ℝ)).prodMk (hasDerivAt_const (0 : ℝ) θ) :
             HasDerivAt (fun s : ℝ ↦ (s, θ)) ((1 : ℝ), (0 : ℝ)) 0) rfl
-    set ζ := circleMap (c i) ρ θ
-    have hfy : DifferentiableAt ℝ f (update z i ζ) :=
-      (mem_goodSet hf hzi hz θ).2.differentiableAt one_ne_zero
-    have hGeq : (fun s : ℝ ↦ G (s, θ)) =
-        fun s ↦ (circleMap 0 ρ θ * I) • ((ζ - z i)⁻¹ • f (update z i ζ + s • v)) := by
-      funext s
-      have hupd : update (z + s • v) i ζ = update z i ζ + s • v := by
-        funext k
-        by_cases hk : k = i
-        · subst hk
-          simp [hv]
-        · simp [update_of_ne hk]
-      simp only [G, integrand, Pi.add_apply, Pi.smul_apply, hv, smul_zero, add_zero]
-      exact congrArg (fun y ↦ (circleMap 0 ρ θ * I) • (ζ - z i)⁻¹ • f y) hupd
-    have hfd : HasDerivAt (fun s : ℝ ↦ f (update z i ζ + s • v))
-        (fderiv ℝ f (update z i ζ) v) 0 :=
-      hfy.hasFDerivAt.comp_hasDerivAt_of_eq (0 : ℝ)
-        (by simpa using ((hasDerivAt_id (0 : ℝ)).smul_const v).const_add (update z i ζ))
-        (by simp)
-    rw [hGeq] at hGd
-    exact hGd.unique ((hfd.const_smul _).const_smul _)
+    exact hGd.unique (hasDerivAt_integrand_line hv
+      ((mem_goodSet hzi hf θ).2.differentiableAt one_ne_zero))
   have h₂ : HasDerivAt (fun t : ℝ ↦ coordCauchyIntegral i c ρ f (z + t • v))
       ((2 * π * I : ℂ)⁻¹ • ∫ θ in 0..2 * π, fderiv ℝ G (0, θ) (1, 0)) 0 := by
     simp only [coordCauchyIntegral_eq_integral]
     exact hderiv.const_smul _
   simpa only [hpart, coordCauchyIntegral_eq_integral] using h₂
 
-omit [Fintype ι] in
-/-- Integrability of the integrand of a coordinate Cauchy integral, for a function continuous on
-the circle of the `i`-th coordinate through `z`. -/
-private theorem circleIntegrable_sub_inv_smul {g : (ι → ℂ) → F} (hzi : z i ∈ ball (c i) ρ)
-    (hg : ContinuousOn (fun ζ ↦ g (update z i ζ)) (sphere (c i) ρ)) :
-    CircleIntegrable (fun ζ ↦ (ζ - z i)⁻¹ • g (update z i ζ)) (c i) ρ := by
-  refine ContinuousOn.circleIntegrable (pos_of_mem_ball hzi).le
-    (((continuousOn_id.sub continuousOn_const).inv₀ fun ζ hζ ↦ ?_).smul hg)
-  intro h
-  have h' : ζ = z i := sub_eq_zero.1 h
-  rw [mem_sphere] at hζ
-  rw [mem_ball, ← h', hζ] at hzi
-  exact lt_irrefl _ hzi
-
-/-- **The coordinate Cauchy integral commutes with the other `∂/∂(conj z_j)`.** Under the
-hypotheses of `contDiffAt_coordCauchyIntegral`, for `j ≠ i` the conjugate Wirtinger derivative in
-the `j`-th coordinate of the Cauchy integral of `f` in the `i`-th coordinate is the Cauchy
-integral in the `i`-th coordinate of the conjugate Wirtinger derivative of `f` in the `j`-th
-coordinate. -/
-theorem conjWirtingerDeriv_coordCauchyIntegral_single
-    (hf : ∀ y ∈ closedBall c ρ, ContDiffAt ℝ 1 f y) (hzi : z i ∈ ball (c i) ρ)
-    (hz : ∀ k ≠ i, ‖z k - c k‖ ≤ ρ) {j : ι} (hj : j ≠ i) :
-    TauCeti.conjWirtingerDeriv (coordCauchyIntegral i c ρ f) z (Pi.single j 1) =
-      coordCauchyIntegral i c ρ
-        (fun y ↦ TauCeti.conjWirtingerDeriv f y (Pi.single j 1)) z := by
-  set e : ι → ℂ := Pi.single j 1
-  have he : e i = 0 := Pi.single_eq_of_ne hj.symm _
+/-- **The coordinate Cauchy integral commutes with `∂̄` in the other directions.** Under the
+hypotheses of `contDiffAt_coordCauchyIntegral`, for every direction `e` with `e i = 0`, the
+conjugate Wirtinger derivative in the direction `e` of the Cauchy integral of `f` in the `i`-th
+coordinate is the Cauchy integral in the `i`-th coordinate of the conjugate Wirtinger derivative
+of `f` in the direction `e`. -/
+theorem conjWirtingerDeriv_coordCauchyIntegral (hzi : z i ∈ ball (c i) ρ)
+    (hf : ∀ ζ ∈ sphere (c i) ρ, ContDiffAt ℝ 1 f (update z i ζ)) {e : ι → ℂ} (he : e i = 0) :
+    TauCeti.conjWirtingerDeriv (coordCauchyIntegral i c ρ f) z e =
+      coordCauchyIntegral i c ρ (fun y ↦ TauCeti.conjWirtingerDeriv f y e) z := by
   have hIe : (I • e) i = 0 := by simp [he]
   -- The derivatives of `f` in the directions `e` and `I • e` are integrable on the circle.
   have hint (w : ι → ℂ) :
       CircleIntegrable (fun ζ ↦ (ζ - z i)⁻¹ • fderiv ℝ f (update z i ζ) w) (c i) ρ := by
-    have hfV : ContDiffOn ℝ 1 f {y | ContDiffAt ℝ 1 f y} := fun y hy ↦ hy.contDiffWithinAt
-    have hD : ContinuousOn (fun y ↦ fderiv ℝ f y) {y | ContDiffAt ℝ 1 f y} :=
-      hfV.continuousOn_fderiv_of_isOpen (TauCeti.isOpen_setOf_contDiffAt (by simp)) le_rfl
-    refine circleIntegrable_sub_inv_smul (g := fun y ↦ fderiv ℝ f y w) hzi ?_
-    refine (hD.comp (continuous_const.update i continuous_id).continuousOn fun ζ hζ ↦ ?_).clm_apply
-      continuousOn_const
-    exact hf _ (update_mem_closedBall (pos_of_mem_ball hzi).le hz
-      (mem_sphere_iff_norm.1 hζ).le)
+    have hg : ContinuousOn (fun ζ ↦ fderiv ℝ f (update z i ζ) w) (sphere (c i) ρ) :=
+      fun ζ hζ ↦ ((((hf ζ hζ).continuousAt_fderiv one_ne_zero).comp
+        (continuous_const.update i continuous_id).continuousAt).clm_apply
+          continuousAt_const).continuousWithinAt
+    simpa only [zpow_neg_one] using (hg.circleIntegrable (pos_of_mem_ball hzi).le).sub_zpow_smul
+      (-1) ((mem_ball.1 hzi).trans_le (le_abs_self ρ)).ne
   have hfun : (fun ζ ↦ (ζ - z i)⁻¹ • TauCeti.conjWirtingerDeriv f (update z i ζ) e) =
       fun ζ ↦ (2 : ℂ)⁻¹ • ((ζ - z i)⁻¹ • fderiv ℝ f (update z i ζ) e +
         I • ((ζ - z i)⁻¹ • fderiv ℝ f (update z i ζ) (I • e))) := by
@@ -346,12 +309,24 @@ theorem conjWirtingerDeriv_coordCauchyIntegral_single
   have hB : CircleIntegrable
       (fun ζ ↦ I • ((ζ - z i)⁻¹ • fderiv ℝ f (update z i ζ) (I • e))) (c i) ρ :=
     (hint (I • e)).const_smul
-  rw [TauCeti.conjWirtingerDeriv_apply, fderiv_coordCauchyIntegral_apply hf hzi hz he,
-    fderiv_coordCauchyIntegral_apply hf hzi hz hIe, coordCauchyIntegral_def,
+  rw [TauCeti.conjWirtingerDeriv_apply, fderiv_coordCauchyIntegral_apply hzi hf he,
+    fderiv_coordCauchyIntegral_apply hzi hf hIe, coordCauchyIntegral_def,
     coordCauchyIntegral_def, coordCauchyIntegral_def, hfun, circleIntegral.integral_smul,
     circleIntegral.integral_add (hint e) hB,
     circleIntegral.integral_smul]
   module
+
+/-- **The coordinate Cauchy integral commutes with the other `∂/∂(conj z_j)`.** Under the
+hypotheses of `contDiffAt_coordCauchyIntegral`, for `j ≠ i` the conjugate Wirtinger derivative in
+the `j`-th coordinate of the Cauchy integral of `f` in the `i`-th coordinate is the Cauchy
+integral in the `i`-th coordinate of the conjugate Wirtinger derivative of `f` in the `j`-th
+coordinate. -/
+theorem conjWirtingerDeriv_coordCauchyIntegral_single (hzi : z i ∈ ball (c i) ρ)
+    (hf : ∀ ζ ∈ sphere (c i) ρ, ContDiffAt ℝ 1 f (update z i ζ)) {j : ι} (hj : j ≠ i) :
+    TauCeti.conjWirtingerDeriv (coordCauchyIntegral i c ρ f) z (Pi.single j 1) =
+      coordCauchyIntegral i c ρ
+        (fun y ↦ TauCeti.conjWirtingerDeriv f y (Pi.single j 1)) z :=
+  conjWirtingerDeriv_coordCauchyIntegral hzi hf (Pi.single_eq_of_ne hj.symm _)
 
 end Regularity
 
