@@ -327,8 +327,8 @@ on integral cohomology in degree $a+b$: the pull-back of a class is its
 evaluation times the cross product of the generators, up to one sign;
 from Tau Ceti's Künneth and slant products for $S^{d+1}\times Y$
 (`Cohomology/Sphere/Product.lean`,
-`TopCat.singularCohomologyKunneth_sphere_bijective`) and the long exact
-sequence of the pair $(S^a\times S^b,S^a\vee S^b)$. Its iterate
+`TopCat.singularCohomologyKunneth_sphere_bijective`) and the local degree
+of $\kappa$ at a point off the wedge. Its iterate
 $(\mathbb CP^1)^m\to S^{2m}$, through Tau Ceti's homeomorphism of
 $\mathbb CP^1$ with $S^2$, and that $y_1\cdots y_m$ has infinite order.
 
