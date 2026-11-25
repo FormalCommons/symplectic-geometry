@@ -165,28 +165,22 @@ theorem chartValueL_twistOneDelBarSobolev_ofContMDiffSection_ae_coord
               (SobolevSection.ofContMDiffSection (twistCoreAtlas 1) volume 2 (k + 1) s) :
               SobolevSection (twistCoreAtlas 1).tangentHom volume 2 k) :
             (twistCoreAtlas 1).tangentHom.sectionChartData.SobolevData volume 2 k)
-        =ᵐ[volume.restrict ((twistCoreAtlas 1).image i)]
-          (twistCoreAtlas 1).tangentHom.coord i (twistOneConnection s) :=
-    isCovariantDerivativeOn_twistOneConnection.chartValueL_sobolevL_ofContMDiffSection_ae
+        =ᵐ[volume.restrict ((twistCoreAtlas 1).tangentHom.image i)]
+          (twistCoreAtlas 1).tangentHom.coord i (twistOneConnection s) := by
+    rw [FiniteBundleAtlas.image_tangentHom]
+    exact isCovariantDerivativeOn_twistOneConnection.chartValueL_sobolevL_ofContMDiffSection_ae
       (twistCoreAtlas 1) (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 k s i
-  -- The chart data of `Φ_J ∇s` are the reading of `Φ_J` applied to those of `∇s`.
-  have hΦ := SobolevSection.chartValueL_contMDiffHomMulL_ae_self
+  -- The chart data of `Φ_J ∇s` are the readings of the section `x ↦ Φ_J x (∇s x)`.
+  have hΦ := SobolevSection.chartValueL_contMDiffHomMulL_ae_coord_self
     (A := (twistCoreAtlas 1).tangentHom) (J.contMDiff_zeroOnePartL le_rfl)
-    (isCovariantDerivativeOn_twistOneConnection.sobolevL (twistCoreAtlas 1)
-      (contMDiffCovariantDerivativeOn_twistOneConnection ⊤) volume 2 k
-        (SobolevSection.ofContMDiffSection (twistCoreAtlas 1) volume 2 (k + 1) s)) i
-  rw [FiniteBundleAtlas.image_tangentHom] at hΦ
+    hcov i
+  simp only [FiniteBundleAtlas.image_tangentHom, SmoothAlmostComplexStructure.zeroOnePartL_apply]
+    at hΦ
   rw [twistOneDelBarSobolev_apply]
   simp_rw [twistOneDelBar_def]
-  refine (FiniteBundleAtlas.ae_image_tangentHom_iff _ volume i).1
+  exact (FiniteBundleAtlas.ae_image_tangentHom_iff _ volume i).1
     (chartValueL_zeroOnePartSobolevL_ae_coord ((FiniteBundleAtlas.ae_image_tangentHom_iff _ volume
-      i).2 ?_))
-  filter_upwards [hΦ, hcov i, ae_restrict_mem ((twistCoreAtlas 1).image i).isOpen.measurableSet]
-    with y hy hsy hyi
-  rw [hy, hsy]
-  refine (FiniteBundleAtlas.coord_hom_apply_self (twistCoreAtlas 1).tangentHom i _ _ ?_).trans ?_
-  · rwa [FiniteBundleAtlas.image_tangentHom]
-  · simp only [SmoothAlmostComplexStructure.zeroOnePartL_apply]
+      i).2 hΦ))
 
 /-! ### Continuity in the almost complex structure -/
 
