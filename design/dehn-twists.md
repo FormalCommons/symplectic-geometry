@@ -363,7 +363,7 @@ theorem cotangentCoord_geodesicFlow {z} (hz : cotangentNorm z ≠ 0) (t : ℝ) :
 theorem geodesicFlow_add, geodesicFlow_zero, geodesicFlow_two_pi,
   cotangentNorm_geodesicFlow, geodesicFlow_pi (hz) : geodesicFlow π z = antipodal z
 theorem not_exists_continuous_eqOn_geodesicFlow [NeZero n] {t : ℝ} (ht : sin t ≠ 0) :
-    ¬ ∃ g : T*Sⁿ → T*Sⁿ, Continuous g ∧ ∀ z, cotangentNorm z ≠ 0 → g z = geodesicFlow t z
+    ¬ ∃ g : T*Sⁿ → T*Sⁿ, Continuous g ∧ EqOn g (geodesicFlow t) {z | cotangentNorm z ≠ 0}
 theorem isMIntegralCurve_geodesicFlow {z} (hz : cotangentNorm z ≠ 0) :
     IsMIntegralCurve (geodesicFlow · z)
       fun w ↦ (symplecticForm (𝓡 n) Sⁿ).hamiltonianVectorField cotangentNorm w
