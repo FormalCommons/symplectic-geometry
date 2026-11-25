@@ -18,7 +18,7 @@ All names below are in the namespace given with them. Paths of new files
 are under `SymplecticGeometry/`; Tau Ceti paths are relative to
 `.lake/packages/TauCeti/TauCeti/`. Sources: Bott–Tu [BottTu1982], §6
 (Propositions 6.18, 6.24 and 6.41) for the construction, and Hatcher
-[Hatcher2017], §3.2, for the integral Thom isomorphism and Euler class;
+[Hatcher2017], §3.2, for Thom classes and Euler classes over the integers;
 the Mayer–Vietoris proof of the Thom isomorphism follows Milnor–Stasheff,
 *Characteristic Classes*, Theorem 10.4, as Tau Ceti's does.
 
