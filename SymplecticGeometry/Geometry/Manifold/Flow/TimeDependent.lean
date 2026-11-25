@@ -15,7 +15,7 @@ import TauCeti.Geometry.Manifold.IntegralCurve.Interval
 import TauCeti.Geometry.Manifold.Flow.Diffeomorph
 import TauCeti.Geometry.Manifold.VectorField.ModelChart
 import TauCeti.Geometry.Manifold.ContMDiff.MFDeriv
-import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Prod.Basic
 
 /-!
 # Time-dependent flows: joint smoothness, uniqueness on intervals, naturality
