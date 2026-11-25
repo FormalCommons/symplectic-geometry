@@ -135,6 +135,14 @@ noncomputable def toSmallSingularSubcomplexPair {X : TopCat.{w}} {ι : Type*} (U
   SSetPair.homMk (toSmallSingularSubcomplex U h) (𝟙 _)
     ((toSmallSingularSubcomplex_ι _ _).trans (Category.comp_id _).symm)
 
+/-- On the singular simplices of `A`, the map of singular pairs
+`(X, A) ⟶ (X, X.smallSingularSubcomplex U)` is their inclusion into the small simplices. -/
+@[simp]
+lemma toSmallSingularSubcomplexPair_left {X : TopCat.{w}} {ι : Type*} (U : ι → Set X)
+    {A : Set X} {i : ι} (h : A ⊆ U i) :
+    (toSmallSingularSubcomplexPair U h).left = toSmallSingularSubcomplex U h :=
+  (rfl)
+
 /-- The map of singular pairs `(X, A) ⟶ (X, X.smallSingularSubcomplex U)` is the identity on the
 singular simplicial set of `X`. -/
 @[simp]
