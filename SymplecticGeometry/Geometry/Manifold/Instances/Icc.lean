@@ -8,8 +8,7 @@ module
 public import Mathlib.Geometry.Manifold.Instances.Icc
 public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
 public import TauCeti.Geometry.Manifold.VectorField.Prod
-import Mathlib.Analysis.Calculus.Deriv.Add
-import Mathlib.Analysis.Calculus.Deriv.Mul
+import Mathlib.Analysis.Calculus.Deriv.AffineMap
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 import TauCeti.Geometry.Manifold.Instances.Icc
 import TauCeti.Geometry.Manifold.VectorField.Regularity
@@ -186,10 +185,8 @@ theorem mfderiv_convexComb_one (s t : Icc x y) (u : unitInterval) :
   refine SymplecticGeometry.mfderiv_apply_eq_smul_one_Icc (hc.mdifferentiable one_ne_zero u) ?_
   have hval : Subtype.val ∘ convexComb s t = (fun r : ℝ ↦ (1 - r) * s + r * t) ∘ Subtype.val :=
     funext (coe_convexComb s t)
-  have hd : HasDerivAt (fun r : ℝ ↦ (1 - r) * s + r * t) ((t : ℝ) - s) (u : ℝ) := by
-    convert (((hasDerivAt_id' (u : ℝ)).const_sub 1).mul_const (s : ℝ)).fun_add
-      ((hasDerivAt_id' (u : ℝ)).mul_const (t : ℝ)) using 1
-    ring
+  have hd : HasDerivAt (fun r : ℝ ↦ (1 - r) * s + r * t) ((t : ℝ) - s) (u : ℝ) :=
+    funext (AffineMap.lineMap_apply_ring (s : ℝ) t) ▸ AffineMap.hasDerivAt_lineMap
   rw [hval, mfderiv_comp_apply u hd.differentiableAt.mdifferentiableAt
     (SymplecticGeometry.mdifferentiableAt_subtypeVal_Icc u), mfderiv_subtypeVal_Icc_one,
     mfderiv_eq_fderiv, hd.hasFDerivAt.fderiv]
