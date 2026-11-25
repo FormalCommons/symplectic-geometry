@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.Submersion.Basic
 import TauCeti.Geometry.Manifold.Distribution.Diffeomorph
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Composition
 import TauCeti.Geometry.Manifold.RegularValue
+import SymplecticGeometry.Algebra.Order.Monoid.NatCast
 import SymplecticGeometry.Geometry.Manifold.Foliation.Constancy
 
 /-!
@@ -157,8 +158,8 @@ def ofConstantRank (hf : ContMDiff I J (n + 1) f) (hr : ∀ x, mfderivRank I J f
     exact hf.isContMDiffDistribution_ker_mfderiv le_rfl hr
   isInvolutiveDistribution := by
     have h2 : minSmoothness 𝕜 2 ≤ n + 1 := by
-      rw [minSmoothness_of_isRCLikeNormedField, ← one_add_one_eq_two]
-      exact add_le_add_left hn 1
+      rw [minSmoothness_of_isRCLikeNormedField]
+      exact SymplecticGeometry.two_le_add_one_of_one_le hn
     have : IsManifold I (minSmoothness 𝕜 2) M := .of_le h2
     have : IsManifold J (minSmoothness 𝕜 2) N := .of_le h2
     have : CompleteSpace E := FiniteDimensional.completeSpace 𝕜 E
