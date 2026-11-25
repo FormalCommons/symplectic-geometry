@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Symplectic.AlmostComplex
 public import TauCeti.Geometry.Manifold.Complex.AlmostComplexStructure
 public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Dual
 
 /-!
 # Two almost complex structures tamed by a common form
@@ -65,7 +66,6 @@ spaces are nonzero, then at no point is `J` equal to `-K`. -/
 theorem ne_neg_of_tames [Nontrivial E] (hJ : σ.Tames J) (hK : σ.Tames K) (x : M) :
     J.toEndomorphism x ≠ -K.toEndomorphism x := by
   intro h
-  have : Nontrivial (TangentSpace I x) := inferInstanceAs (Nontrivial E)
   obtain ⟨v, hv⟩ := exists_ne (0 : TangentSpace I x)
   have hv' : J.toEndomorphism x v = -K.toEndomorphism x v := by simp [h]
   exact hv (hJ.injective_add hK x (by simp [hv']))

@@ -10,7 +10,7 @@ public import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Lift
 public import TauCeti.Geometry.Manifold.ContMDiff.FiniteDimension
 public import TauCeti.Geometry.Manifold.VectorField.Prod
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
-public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Cotangent.Basic
+public import TauCeti.Geometry.Manifold.VectorBundle.Cotangent.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Coadjoint.LieGroup
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Linear
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
@@ -160,7 +160,7 @@ theorem contMDiff_leftInvariantCovectorMap (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) 
       simp only [LinearMap.coe_toContinuousLinearMap']
       exact hν v p
   rw [h]
-  exact contMDiff_fst.smul ((CotangentBundle.contMDiff_mk_comp (1 : G) hc).comp contMDiff_snd)
+  exact contMDiff_fst.smul (((CotangentBundle.contMDiff_mk (1 : G)).comp hc).comp contMDiff_snd)
 
 /-! ### The pullback of the canonical symplectic form -/
 
