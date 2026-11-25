@@ -143,11 +143,11 @@ theorem radialPotentialForm_apply (g : ℝ → ℝ) (hg : ContDiffOn ℝ ∞ g (
               stdComplexPiSymplecticForm ι z v) := by
   set s : (ι → ℂ) → ℝ := fun y ↦ ‖complexToRealEuclidean ι y‖ ^ 2
   have hs : ContDiffAt ℝ 2 s (z : ι → ℂ) :=
-    contDiff_norm_sq_complexToRealEuclidean.contDiffAt.of_le (by simp)
+    contDiff_norm_sq_complexToRealEuclidean.contDiffAt
   have hgs : ContDiffAt ℝ 2 g (s z) :=
     (hg.contDiffAt (Ioi_mem_nhds (norm_sq_complexToRealEuclidean_pos z))).of_le (by simp)
   have hu : ContMDiffAt 𝓘(ℝ, ι → ℂ) 𝓘(ℝ) 2 (g ∘ s) (z : ι → ℂ) :=
-    ((contDiffAt_comp_norm_sq_complexToRealEuclidean hg z).of_le (by simp)).contMDiffAt
+    (contDiffAt_comp_norm_sq_complexToRealEuclidean (hg.of_le (by simp)) z).contMDiffAt
   have hval : ContMDiffAt 𝓘(ℂ, ι → ℂ) 𝓘(ℂ, ι → ℂ) 2
       (Subtype.val : puncturedSpace (ι → ℂ) → _) z := contMDiff_subtypeVal z
   have key := congrFun (coe_mextDerivₗ_covectorComplexStructure_eq_two_smul_ddbarForm
@@ -296,7 +296,8 @@ private theorem hasFDerivAt_radialScale (hs : ContDiffOn ℝ ∞ h (Ioi 0))
     (DifferentiableAt.div hhd.differentiableAt differentiableAt_id hw.ne').sqrt
       (div_pos (hh _ hw) hw).ne'
   exact (hψd.hasDerivAt.comp_hasFDerivAt w
-    (contDiff_norm_sq_complexToRealEuclidean.differentiable (by simp) w).hasFDerivAt).smul
+    ((contDiff_norm_sq_complexToRealEuclidean (n := 1)).differentiable one_ne_zero
+      w).hasFDerivAt).smul
       (hasFDerivAt_id w)
 
 /-- The differential of `radialScale h` is injective where `h' > 0`: the differential of
@@ -309,11 +310,11 @@ private theorem injective_fderiv_radialScale (hs : ContDiffOn ℝ ∞ h (Ioi 0))
   have hF := hasFDerivAt_radialScale hs hh hw
   set N : (ι → ℂ) → ℝ := fun w ↦ ‖complexToRealEuclidean ι w‖ ^ 2
   have hNd : ∀ y, HasFDerivAt N (fderiv ℝ N y) y := fun y ↦
-    (contDiff_norm_sq_complexToRealEuclidean.differentiable (by simp) y).hasFDerivAt
+    ((contDiff_norm_sq_complexToRealEuclidean (n := 1)).differentiable one_ne_zero y).hasFDerivAt
   have hhd : HasDerivAt h (deriv h (N w)) (N w) :=
     ((hs.contDiffAt (Ioi_mem_nhds hw)).differentiableAt (by simp)).hasDerivAt
   have heq : N ∘ radialScale h =ᶠ[nhds w] h ∘ N :=
-    (contDiff_norm_sq_complexToRealEuclidean.continuous.continuousAt.eventually
+    ((contDiff_norm_sq_complexToRealEuclidean (n := 0)).continuous.continuousAt.eventually
       (Ioi_mem_nhds hw)).mono fun y hy ↦ norm_sq_radialScale hh hy
   have hchain : (fderiv ℝ N (radialScale h w)).comp (fderiv ℝ (radialScale h) w) =
       deriv h (N w) • fderiv ℝ N w := by
@@ -374,7 +375,7 @@ noncomputable def radialShell (h : ℝ → ℝ) (hs : ContDiffOn ℝ ∞ h (Ioi 
     (hd : ∀ s ∈ Ioi (0 : ℝ), 0 < deriv h s) : Opens (ι → ℂ) :=
   ⟨{w | ‖complexToRealEuclidean ι w‖ ^ 2 ∈ h '' Ioi 0},
     ((hs.of_le (by simp)).isOpen_image_of_deriv_ne_zero isOpen_Ioi fun t ht ↦
-      (hd t ht).ne').preimage contDiff_norm_sq_complexToRealEuclidean.continuous⟩
+      (hd t ht).ne').preimage (contDiff_norm_sq_complexToRealEuclidean (n := 0)).continuous⟩
 
 /-- A point is in the shell of `h` if and only if its squared norm `∑ᵢ ‖wᵢ‖²` is a value of `h`
 on `(0, ∞)`. -/
