@@ -1043,8 +1043,8 @@ In the namespace `SymplecticGeometry`, for a topological space `X`:
   member of `𝒰`, and `(𝒱.filter (x ∈ ·)).card ≤ n + 1` for every `x ∈ K`;
   with `coveringDimLE_def`.
 - `CoveringDimLE.mono` (in `n`), `coveringDimLE_empty`,
-  `CoveringDimLE.subset` (to a closed subset), `CoveringDimLE.of_isEmbedding`
-  (from `f '' K` to `K` for a topological embedding `f`) and
+  `CoveringDimLE.subset` (to a closed subset), `CoveringDimLE.of_isInducing`
+  (from `f '' K` to `K` for an inducing map `f`) and
   `coveringDimLE_image_val_iff` (for `K` in an open subspace `S`, the bound
   in `S` and in `X` agree).
 - `CoveringDimLE.exists_finset_card_le`: in a normal space, for `K` closed
