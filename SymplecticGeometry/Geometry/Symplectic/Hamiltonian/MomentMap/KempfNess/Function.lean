@@ -7,6 +7,7 @@ module
 
 public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 public import SymplecticGeometry.Geometry.Lie.Complexification
+public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 import TauCeti.Analysis.Calculus.IntervalIntegral.ParametricPrimitive
 
@@ -45,6 +46,9 @@ cosets `gG`, and shows that it is smooth when the action and the components of `
 * `SymplecticGeometry.kempfNessFunctionQuotient_mk`: the induced function on cosets agrees with
   `Φ_p` on representatives.
 * `SymplecticGeometry.contMDiff_kempfNessFunction`: `Φ_p` is smooth.
+* `SymplecticGeometry.moment_inv_smul_im_mfderiv_polar_smul`: on the velocity of the radial curve
+  `τ ↦ C.polar (τ • ξ, u)` at `t`, the one-form `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))` takes the value
+  `μ (C.expI (-(t • ξ)) • p) ξ` of the integrand of `Φ_p (C.polar (ξ, u))`.
 
 The smoothness reads `Φ_p` through the diffeomorphism `C.polar` as the integral over `[0, 1]` of a
 smooth function on `𝔤 × ℝ`, and applies Tau Ceti's
@@ -143,6 +147,34 @@ def kempfNessFunctionQuotient : Gc ⧸ C.toHom.range → ℝ :=
 theorem kempfNessFunctionQuotient_mk (g : Gc) :
     kempfNessFunctionQuotient C μ p (g : Gc ⧸ C.toHom.range) = kempfNessFunction C μ p g :=
   (rfl)
+
+section OneForm
+
+open TauCeti
+
+attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
+
+variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC] [ConnectedSpace G]
+
+/-- Along the radial curve `τ ↦ C.polar (τ • ξ, u)` of the polar decomposition, the one-form
+`ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))` on `Gc` takes on the velocity at `t` the value
+`μ (C.expI (-(t • ξ)) • p) ξ`, the integrand that defines `kempfNessFunction` at
+`C.polar (ξ, u)`. Here `g⁻¹ ĝ` is the left translate `mfderiv IC IC (g⁻¹ * ·) g ĝ` of `ĝ` to the
+identity, and `μ` is assumed equivariant along `C.toHom` for the coadjoint action of `G`, as
+`IsComplexifiedAction.moment_toHom_smul` shows for the intended `μ`. -/
+theorem moment_inv_smul_im_mfderiv_polar_smul
+    (hμ : ∀ (u : G) (x : M), μ (C.toHom u • x) = Lie.coadjointRepresentation ℝ I G u (μ x))
+    (ξ : GroupLieAlgebra I G) (u : G) (t : ℝ) :
+    μ ((C.polar (t • ξ, u))⁻¹ • p)
+        (C.im (mfderiv IC IC ((C.polar (t • ξ, u))⁻¹ * ·) (C.polar (t • ξ, u))
+          (mfderiv 𝓘(ℝ) IC (fun τ : ℝ ↦ C.polar (τ • ξ, u)) t (1 : ℝ)))) =
+      μ (C.expI (-(t • ξ)) • p) ξ := by
+  rw [funext fun τ : ℝ ↦ C.polar_apply (τ • ξ) u, C.polar_apply,
+    C.mfderiv_inv_mul_mfderiv_expI_smul_mul_toHom, C.im_cplx_lieMap, mul_inv_rev, ← map_inv,
+    ← C.expI_neg, mul_smul, hμ, Lie.coadjointRepresentation_apply, inv_inv,
+    ← Lie.tangentAd_apply, Lie.tangentAd_inv, LieEquiv.apply_symm_apply]
+
+end OneForm
 
 section Smooth
 
