@@ -1061,7 +1061,7 @@ The manifold structure and the milestone.
     `Homeomorph.Quotient.congrRight_mk`,
     `Subgroup.localSectionTrivializationOfCosetFibers`,
     `TauCeti.hasHomotopyLiftingProperty_of_exists_trivialization`,
-    `TauCeti.HasHomotopyLiftingProperty.exists_path_lift`,
+    `TauCeti.HasHomotopyLiftingProperty.exists_path_lift_fiber`,
     `TauCeti.TopCat.mem_serreFibrations_of_exists_trivialization`,
     `TauCeti.TopCat.exists_path_lift_of_mem_serreFibrations`.
   - Models that the building issues credit: Tau Ceti's
