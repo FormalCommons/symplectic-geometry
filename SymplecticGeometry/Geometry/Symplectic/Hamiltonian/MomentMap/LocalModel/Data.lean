@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.RepresentationTheory.Subrepresentation
 public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Basic
@@ -44,6 +45,8 @@ the case of the linear data of `SymplecticGeometry.localModelCovector` and
   extensions by zero given by the splitting.
 * `SymplecticGeometry.LocalModelData.momentMap`, `SymplecticGeometry.LocalModelData.covector`,
   `SymplecticGeometry.LocalModelData.form`: `μ_V`, `ν` and the two-form.
+* `SymplecticGeometry.LocalModelData.adjoint𝔪`, `SymplecticGeometry.LocalModelData.adjoint𝔮`,
+  `SymplecticGeometry.LocalModelData.repV`: the representations of `K` on `𝔪`, `𝔮` and `V`.
 * `SymplecticGeometry.LocalModelData.ofBot`: the data for the trivial subgroup, with `𝔪 = 𝔤_τ`
   and the trivial representation.
 
@@ -53,6 +56,8 @@ the case of the linear data of `SymplecticGeometry.localModelCovector` and
   representation.
 * `SymplecticGeometry.LocalModelData.isCompl_𝔥_sup`,
   `SymplecticGeometry.LocalModelData.isCompl_𝔪_sup`: `𝔤 = 𝔥 ⊕ (𝔪 ⊕ 𝔮)` and `𝔤 = 𝔪 ⊕ (𝔥 ⊕ 𝔮)`.
+* `SymplecticGeometry.LocalModelData.adjointRepresentation_mem_𝔥`: `𝔥` is invariant under the
+  adjoint action of `K`.
 * `SymplecticGeometry.LocalModelData.contMDiff_covector_apply`: the components of `ν` are smooth.
 * `SymplecticGeometry.LocalModelData.isClosed_form`,
   `SymplecticGeometry.LocalModelData.mpullback_mul_left_form`: the form is closed and invariant
@@ -160,6 +165,45 @@ theorem isCompl_𝔥_sup : IsCompl D.𝔥 (D.𝔪 ⊔ D.𝔮) :=
 theorem isCompl_𝔪_sup : IsCompl D.𝔪 (D.𝔥 ⊔ D.𝔮) :=
   D.disjoint_𝔥_𝔪.symm.isCompl_sup_right_of_isCompl_sup_left
     (sup_comm D.𝔥 D.𝔪 ▸ D.𝔥_sup_𝔪 ▸ D.isCompl_𝔮)
+
+/-! ### The action of `K` on the splitting -/
+
+/-- The Lie algebra `𝔥` of `K` is invariant under the adjoint action of `K`. -/
+theorem adjointRepresentation_mem_𝔥 (k : K) {ξ : GroupLieAlgebra I G} (hξ : ξ ∈ D.𝔥) :
+    adjointRepresentation ℝ I G k ξ ∈ D.𝔥 := by
+  rw [← D.range_groupLieAlgebraMap_subtype] at hξ ⊢
+  obtain ⟨ζ, rfl⟩ := hξ
+  refine ⟨adjointContinuousLinearMap (I := 𝓘(ℝ, F)) k ζ, ?_⟩
+  rw [ContinuousLinearMap.coe_coe, MonoidHom.groupLieAlgebraMap_adjointContinuousLinearMap,
+    adjointRepresentation_apply, Subgroup.coe_subtype]
+
+/-- The adjoint representation of `K` on `𝔪`. -/
+def adjoint𝔪 : Representation ℝ K D.𝔪 :=
+  Subrepresentation.toRepresentation (ρ := (adjointRepresentation ℝ I G).comp K.subtype)
+    ⟨D.𝔪, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔪 k hξ⟩
+
+/-- The adjoint representation of `K` on `𝔮`. -/
+def adjoint𝔮 : Representation ℝ K D.𝔮 :=
+  Subrepresentation.toRepresentation (ρ := (adjointRepresentation ℝ I G).comp K.subtype)
+    ⟨D.𝔮, fun k _ hξ ↦ D.adjointRepresentation_mem_𝔮 k hξ⟩
+
+@[simp]
+theorem coe_adjoint𝔪_apply (k : K) (m : D.𝔪) :
+    (D.adjoint𝔪 k m : GroupLieAlgebra I G) = adjointRepresentation ℝ I G k m :=
+  (rfl)
+
+@[simp]
+theorem coe_adjoint𝔮_apply (k : K) (q : D.𝔮) :
+    (D.adjoint𝔮 k q : GroupLieAlgebra I G) = adjointRepresentation ℝ I G k q :=
+  (rfl)
+
+/-- The representation `rep` of `K` on `V`, as a `Representation`. -/
+def repV : Representation ℝ K V :=
+  LinearEquiv.automorphismGroup.toLinearMapMonoidHom.comp D.rep
+
+@[simp]
+theorem repV_apply (k : K) (v : V) : D.repV k v = D.rep k v :=
+  (rfl)
 
 /-! ### The extensions by zero -/
 
