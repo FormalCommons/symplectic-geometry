@@ -530,8 +530,8 @@ theorem exists_mpullback_dehnTwist_sub_eq_of_two_le (hn : 2 ≤ n) … -- withou
 ```
 
 `dehnTwist` takes the diffeomorphism given by
-`Diffeomorph.exists_extend_of_isCompact` for the conjugate by `ι` of the
-model twist on `V` and the compact image of $T(r_0)$
+`IsLocalDiffeomorph.exists_diffeomorph_extend_of_isCompact` for the open
+embedding `ι` and the compact set $T(r_0)$
 (`isCompact_setOf_cotangentNorm_le`). Its two apply lemmas determine it.
 `exists_symplecticEmbedding` is the Lagrangian neighbourhood theorem
 composed with $N=m_{-1}$. A model twist with $T(r_0)\subseteq U$

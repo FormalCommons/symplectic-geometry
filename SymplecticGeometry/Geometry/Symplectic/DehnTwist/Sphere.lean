@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.DehnTwist.Model
 public import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Lagrangian
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
+import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import TauCeti.Geometry.Manifold.Diffeomorph.Extend
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.VectorBundle.Scalar
@@ -17,15 +18,18 @@ import TauCeti.Geometry.Symplectic.Cotangent.Bundle.Fiberwise
 # The Dehn twist along a Lagrangian sphere
 
 Let `M` be a Hausdorff manifold with a two-form `σ`, and let `Sⁿ ⊆ ℝⁿ⁺¹` be the unit sphere,
-with the canonical symplectic form `ω_can = CotangentBundle.symplecticForm` on `T*Sⁿ`. Given a
-diffeomorphism `ι : U ≃ V` from an open set `U` of `T*Sⁿ` onto an open set `V` of `M`, and a twist
-profile `R` of support radius `r₀` with `{z | μ z ≤ r₀} ⊆ U` (`μ = cotangentNorm`), the Dehn twist
-`dehnTwist ι hR hU` is the diffeomorphism of `M` that is `ι ∘ τ_R ∘ ι⁻¹` on `V`, `τ_R` the model
-twist `modelTwist hR`, and the identity off `V`.
+with Tau Ceti's symplectic form `ω_can = CotangentBundle.symplecticForm` on `T*Sⁿ`. Tau Ceti
+defines it as `-dλ`, for the Liouville form `λ`: it is the negative of the form `dλ` that the
+cited sources take as canonical. Given a diffeomorphism `ι : U ≃ V` from an open set `U` of
+`T*Sⁿ` onto an open set `V` of `M`, and a twist profile `R` of support radius `r₀` with
+`{z | μ z ≤ r₀} ⊆ U` (`μ = cotangentNorm`), the Dehn twist `dehnTwist ι hR hU` is the
+diffeomorphism of `M` that is `ι ∘ τ_R ∘ ι⁻¹` on `V`, `τ_R` the model twist `modelTwist hR`, and
+the identity off `V`.
 
-When `ι` pulls `σ` back to `-ω_can`, the twist preserves `σ`, and when `ι` sends the zero
-covector at `q` to `f q` for a map `f : Sⁿ → M`, it maps `f q` to `f (-q)`. For a Lagrangian
-embedding `f` of the sphere into a symplectic manifold without boundary such a `ι` exists.
+When `ι` pulls `σ` back to `-ω_can = dλ`, that is, when `ι` is symplectic for the sources' form,
+the twist preserves `σ`, and when `ι` sends the zero covector at `q` to `f q` for a map
+`f : Sⁿ → M`, it maps `f q` to `f (-q)`. For a Lagrangian embedding `f` of the sphere into a
+symplectic manifold without boundary such a `ι` exists.
 
 ## Main definitions
 
@@ -50,20 +54,21 @@ embedding `f` of the sphere into a symplectic manifold without boundary such a `
 The model twist is the identity where `μ ≥ r₀` and preserves `μ`, so it maps `U` onto itself
 (`modelTwist_mem_iff`) and restricts to a diffeomorphism of `U` (Tau Ceti's
 `Diffeomorph.subtype`) that is the identity off the compact set `{z | μ z ≤ r₀}`
-(`isCompact_setOf_cotangentNorm_le`). Conjugated by `ι`, it becomes a diffeomorphism of `V` with
-compact support, which Tau Ceti's `Diffeomorph.exists_extend_of_isCompact` extends by the identity
-to `M`. The twist preserves `σ` by `TauCeti.SmoothForm.mem_diffeomorphStabilizer_of_semiconj`,
-applied to the inclusion of `V`: on `V` the conjugate of `τ_R` preserves the restriction of `σ`,
-since `τ_R` preserves `ω_can` (`mpullback_modelTwist_symplecticForm`), and off the compact
-support the twist is the identity.
+(`isCompact_setOf_cotangentNorm_le`). Tau Ceti's
+`IsLocalDiffeomorph.exists_diffeomorph_extend_of_isCompact`, applied to the open embedding `ι` of
+`U` into `M`, turns it into a diffeomorphism of `M` that is the identity off the image of that
+compact set. The twist preserves `σ` by `TauCeti.SmoothForm.mem_diffeomorphStabilizer_of_semiconj`
+for the same embedding: the restriction of `τ_R` to `U` preserves the restriction of `-ω_can`,
+since `τ_R` preserves `ω_can` (`mpullback_modelTwist_symplecticForm`).
 
 The Lagrangian neighbourhood theorem
 `TauCeti.SmoothTwoForm.IsNondegenerate.IsLagrangianMap.exists_symplectomorphism_cotangent` gives a
-diffeomorphism `ψ` that pulls `σ` back to `ω_can` and extends `f`. The sign convention of the
-Dehn twist asks for `-ω_can` instead, so `ι = ψ ∘ N` for the fibrewise negation `N` of `T*Sⁿ`,
-Tau Ceti's `vectorBundleScalarDiffeomorph` by `-1`, which pulls `ω_can` back to `-ω_can`
+diffeomorphism `ψ` that pulls `σ` back to `ω_can = -dλ` and extends `f`. The Dehn twist of the
+sources asks for an `ι` that pulls `σ` back to their form `dλ = -ω_can` instead, so `ι = ψ ∘ N`
+for the fibrewise negation `N` of `T*Sⁿ`, Tau Ceti's `vectorBundleScalarDiffeomorph` by `-1`,
+which pulls `ω_can` back to `-ω_can`
 (`TauCeti.CotangentBundle.mpullback_vectorBundleScalarDiffeomorph_symplecticForm`) and fixes the
-zero section.
+zero section (`TauCeti.vectorBundleScalarDiffeomorph_zeroSection`).
 
 ## References
 
@@ -80,7 +85,7 @@ noncomputable section
 
 namespace SymplecticGeometry
 
-open Bundle Metric Set TauCeti TopologicalSpace
+open _root_.Bundle Metric Set TauCeti TopologicalSpace
 open scoped Manifold ContDiff
 
 variable {n : ℕ}
@@ -110,32 +115,18 @@ private theorem modelTwistOn_apply_coe (hR : IsTwistProfile R r₀)
     (modelTwistOn hR hU z : 𝕋 n) = modelTwist hR z :=
   Diffeomorph.subtype_apply_coe _ _ z
 
-/-- The covectors of `U` with `μ ≤ r₀` form a compact set, when `U ⊇ {z | μ z ≤ r₀}`. -/
-private theorem isCompact_setOf_cotangentNorm_le_of_subset
-    (hU : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U : Set (𝕋 n))) :
-    IsCompact {z : U | cotangentNorm (z : 𝕋 n) ≤ r₀} := by
-  refine Subtype.isCompact_iff.2 ?_
-  convert isCompact_setOf_cotangentNorm_le (n := n) r₀ using 1
-  ext z
-  exact ⟨by rintro ⟨w, hw, rfl⟩; exact hw, fun hz ↦ ⟨⟨z, hU hz⟩, hz, rfl⟩⟩
-
-/-- The conjugate `ι ∘ τ_R ∘ ι⁻¹` of the model twist extends by the identity to a diffeomorphism
-of `M`. -/
+/-- The model twist, carried to `V` by `ι`, extends by the identity to a diffeomorphism of `M`. -/
 private theorem exists_dehnTwist (ι : U ≃ₘ⟮𝓣 n, I⟯ V) (hR : IsTwistProfile R r₀)
     (hU : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U : Set (𝕋 n))) :
-    ∃ Φ : M ≃ₘ⟮I, I⟯ M, (∀ v : V, Φ v = ι (modelTwistOn hR hU (ι.symm v))) ∧
-      ∀ x ∉ (fun z : U ↦ (ι z : M)) '' {z | cotangentNorm (z : 𝕋 n) ≤ r₀}, Φ x = x := by
-  obtain ⟨Φ, hΦ, hΦK⟩ := Diffeomorph.exists_extend_of_isCompact
-    (ι.symm.trans ((modelTwistOn hR hU).trans ι))
-    ((isCompact_setOf_cotangentNorm_le_of_subset hU).image ι.continuous) fun v hv ↦ by
-      have hv' : r₀ < cotangentNorm (ι.symm v : 𝕋 n) :=
-        lt_of_not_ge fun h ↦ hv ⟨_, h, ι.apply_symm_apply v⟩
-      rw [Diffeomorph.coe_trans, Diffeomorph.coe_trans, Function.comp_apply, Function.comp_apply,
-        show modelTwistOn hR hU (ι.symm v) = ι.symm v from Subtype.ext <| by
-          rw [modelTwistOn_apply_coe, modelTwist_apply_of_le hR hv'.le],
-        ι.apply_symm_apply]
-  refine ⟨Φ, hΦ, fun x hx ↦ hΦK x ?_⟩
-  rwa [image_image]
+    ∃ Φ : M ≃ₘ⟮I, I⟯ M, (∀ z : U, Φ (ι z) = ι (modelTwistOn hR hU z)) ∧
+      ∀ x ∉ (fun z : U ↦ (ι z : M)) '' {z | cotangentNorm (z : 𝕋 n) ≤ r₀}, Φ x = x :=
+  IsLocalDiffeomorph.exists_diffeomorph_extend_of_isCompact
+    (fun z ↦ (ι.isLocalDiffeomorph z).comp (hg := isLocalDiffeomorph_subtype_val (ι z)))
+    (V.isOpen.isOpenEmbedding_subtypeVal.comp ι.toHomeomorph.isOpenEmbedding) _
+    (Topology.IsInducing.subtypeVal.isCompact_preimage' (isCompact_setOf_cotangentNorm_le r₀)
+      (by rwa [Subtype.range_coe]))
+    fun z hz ↦ Subtype.ext <| by
+      rw [modelTwistOn_apply_coe, modelTwist_apply_of_le hR (le_of_not_ge hz)]
 
 /-- **The Dehn twist along a Lagrangian sphere**, built from a diffeomorphism `ι` from an open set
 `U` of `T*Sⁿ` onto an open set `V` of `M` and a twist profile `R` of support radius `r₀` with
@@ -147,10 +138,11 @@ def dehnTwist (ι : U ≃ₘ⟮𝓣 n, I⟯ V) (hR : IsTwistProfile R r₀)
   (exists_dehnTwist ι hR hU).choose
 
 /-- On `V`, the Dehn twist is the conjugate `ι ∘ τ_R ∘ ι⁻¹` of the model twist. -/
+@[simp]
 theorem dehnTwist_apply_val (ι : U ≃ₘ⟮𝓣 n, I⟯ V) (hR : IsTwistProfile R r₀)
     (hU : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U : Set (𝕋 n))) (z : U) :
     dehnTwist ι hR hU (ι z) = ι ⟨modelTwist hR z, (modelTwist_mem_iff hR hU z).2 z.property⟩ := by
-  rw [dehnTwist, (exists_dehnTwist ι hR hU).choose_spec.1, ι.symm_apply_apply]
+  rw [dehnTwist, (exists_dehnTwist ι hR hU).choose_spec.1]
   congr 2
   exact Subtype.ext (modelTwistOn_apply_coe hR hU z)
 
@@ -166,11 +158,12 @@ omit [T2Space M] in
 theorem isCompact_image_setOf_cotangentNorm_le (ι : U ≃ₘ⟮𝓣 n, I⟯ V)
     (hU : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U : Set (𝕋 n))) :
     IsCompact ((fun z : U ↦ (ι z : M)) '' {z | cotangentNorm (z : 𝕋 n) ≤ r₀}) :=
-  (isCompact_setOf_cotangentNorm_le_of_subset hU).image
-    (continuous_subtypeVal.comp ι.continuous)
+  (Topology.IsInducing.subtypeVal.isCompact_preimage' (isCompact_setOf_cotangentNorm_le r₀)
+    (by rwa [Subtype.range_coe])).image (continuous_subtypeVal.comp ι.continuous)
 
 /-- **The Dehn twist is symplectic.** If `ι` pulls the restriction of `σ` to `V` back to the
-restriction of `-ω_can` to `U`, the Dehn twist preserves `σ`. -/
+restriction of `-ω_can` to `U`, the Dehn twist preserves `σ`. As `ω_can = -dλ`, the hypothesis
+says that `ι` is symplectic for the form `dλ` of the cited sources. -/
 theorem mpullback_dehnTwist [IsManifold I ∞ M] {σ : SmoothTwoForm I M}
     (ι : U ≃ₘ⟮𝓣 n, I⟯ V) (hR : IsTwistProfile R r₀)
     (hU : {z : 𝕋 n | cotangentNorm z ≤ r₀} ⊆ (U : Set (𝕋 n)))
@@ -186,26 +179,13 @@ theorem mpullback_dehnTwist [IsManifold I ∞ M] {σ : SmoothTwoForm I M}
     SmoothForm.mem_diffeomorphStabilizer_mpullback_of_semiconj contMDiff_subtypeVal
       (modelTwistOn_apply_coe hR hU) (by
         rw [SmoothForm.mem_diffeomorphStabilizer, map_neg, mpullback_modelTwist_symplecticForm])
-  -- Hence its conjugate by `ι` preserves the restriction of `σ` to `V`.
-  have hσ : ι.symm.trans ((modelTwistOn hR hU).trans ι) ∈
-      SmoothForm.diffeomorphStabilizer
-        (SmoothForm.mpullback Subtype.val contMDiff_subtypeVal σ) := by
-    have h := SmoothForm.mem_diffeomorphStabilizer_mpullback_of_semiconj ι.symm.contMDiff
-      (f' := ι.symm.trans ((modelTwistOn hR hU).trans ι)) (fun v ↦ by simp) hτ
-    rw [← hι, ← SmoothForm.mpullback_trans, ι.symm_trans_self] at h
-    simpa only [Diffeomorph.coe_refl, SmoothForm.mpullback_id, LinearMap.id_apply] using h
-  refine SmoothForm.mem_diffeomorphStabilizer.1
-    (SmoothForm.mem_diffeomorphStabilizer_of_semiconj isLocalDiffeomorph_subtype_val rfl hσ
-      (fun v ↦ ?_) (isCompact_image_setOf_cotangentNorm_le ι hU).isClosed ?_
-      fun x hx ↦ dehnTwist_apply_of_notMem ι hR hU hx)
-  · rw [← ι.apply_symm_apply v]
-    generalize ι.symm v = z
-    rw [dehnTwist_apply_val, Diffeomorph.coe_trans, Function.comp_apply, Diffeomorph.coe_trans,
-      Function.comp_apply, ι.symm_apply_apply]
-    congr 2
-    exact Subtype.ext (modelTwistOn_apply_coe hR hU z)
-  · rintro _ ⟨z, -, rfl⟩
-    exact mem_range_self _
+  have hΦ (z : U) : dehnTwist ι hR hU (ι z) = ι (modelTwistOn hR hU z) := by
+    rw [dehnTwist, (exists_dehnTwist ι hR hU).choose_spec.1]
+  exact SmoothForm.mem_diffeomorphStabilizer.1 <| SmoothForm.mem_diffeomorphStabilizer_of_semiconj
+    (fun z ↦ (ι.isLocalDiffeomorph z).comp (hg := isLocalDiffeomorph_subtype_val (ι z)))
+    (by rw [← hι, SmoothForm.mpullback_mpullback]) hτ (fun z ↦ (hΦ z).symm)
+    (isCompact_image_setOf_cotangentNorm_le ι hU).isClosed (image_subset_range _ _)
+    fun x hx ↦ dehnTwist_apply_of_notMem ι hR hU hx
 
 /-- If `ι` sends the zero covector at each `q ∈ Sⁿ` to `f q`, the Dehn twist maps `f q` to
 `f (-q)`. -/
@@ -216,15 +196,15 @@ theorem dehnTwist_apply_embedding (ι : U ≃ₘ⟮𝓣 n, I⟯ V) (hR : IsTwist
     dehnTwist ι hR hU (f q) = f (-q) := by
   obtain ⟨h, hq⟩ := hιf q
   obtain ⟨h', hq'⟩ := hιf (-q)
-  rw [← hq, dehnTwist_apply_val ι hR hU ⟨_, h⟩, ← hq']
-  simp only [modelTwist_zeroSection]
+  simp [← hq, ← hq']
 
 end Twist
 
 /-- **Symplectic embeddings around a Lagrangian sphere.** For a Lagrangian embedding `f` of the
 unit sphere `Sⁿ` into a symplectic manifold `(M, σ)`, there is a diffeomorphism `ι` from an open
 neighbourhood `U` of the zero section of `T*Sⁿ` onto an open set `V` of `M` that pulls the
-restriction of `σ` back to that of `-ω_can` and sends the zero covector at `q` to `f q`. -/
+restriction of `σ` back to that of `-ω_can`, so that `ι` is symplectic for the form `dλ` of the
+cited sources, and sends the zero covector at `q` to `f q`. -/
 theorem exists_symplecticEmbedding [FiniteDimensional ℝ F] [I.Boundaryless] [IsManifold I ∞ M]
     [T2Space M] [SecondCountableTopology M] {σ : SmoothTwoForm I M} {hσ : σ.IsSymplectic}
     {f : SmoothEmbedding (𝓡 n) I ∞ (𝕊 n) M} (hf : hσ.isNondegenerate.IsLagrangianMap (𝓡 n) f) :
@@ -240,10 +220,8 @@ theorem exists_symplecticEmbedding [FiniteDimensional ℝ F] [I.Boundaryless] [I
   let N := vectorBundleScalarDiffeomorph (I := 𝓡 n) (F := EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ)
     (V := fun x : 𝕊 n ↦ TangentSpace (𝓡 n) x →L[ℝ] ℝ) (fun _ ↦ (-1 : ℝ))
     (contMDiff_const (n := ∞)) fun _ ↦ by norm_num
-  have hN0 (q : 𝕊 n) : N (zeroSection _ _ q) = zeroSection _ _ q := by
-    rw [vectorBundleScalarDiffeomorph_apply, zeroSection_snd, smul_zero]
-    -- `zeroSection` is `⟨·, 0⟩` by definition, and Mathlib has no lemma that unfolds it.
-    rfl
+  have hN0 (q : 𝕊 n) : N (zeroSection _ _ q) = zeroSection _ _ q :=
+    vectorBundleScalarDiffeomorph_zeroSection _ _ _ q
   let U' : Opens (𝕋 n) := ⟨N ⁻¹' U, U.isOpen.preimage N.continuous⟩
   let N' : U' ≃ₘ⟮𝓣 n, 𝓣 n⟯ U := N.subtype fun _ ↦ Iff.rfl
   refine ⟨U', V, N'.trans ψ, ?_, fun q ↦ ?_⟩
