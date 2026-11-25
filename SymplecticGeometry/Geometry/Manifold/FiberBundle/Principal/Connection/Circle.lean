@@ -11,6 +11,7 @@ public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connect
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.Principal.Connection.Existence
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.CircleBundle
+import SymplecticGeometry.LinearAlgebra.FiniteDimensional.LinearMapExt
 
 /-!
 # Circle connection forms as Lie-algebra-valued connection forms
@@ -72,7 +73,8 @@ theorem IsConnectionForm.existsUnique_eq_mapCoeff
   have hLf : (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator).comp f =
       ContinuousLinearMap.id ℝ (GroupLieAlgebra (𝓡 1) Circle) := by
     refine ContinuousLinearMap.coe_injective <|
-      linearMap_ext_of_ne_zero_circle circleLieGenerator_ne_zero ?_
+      LinearMap.ext_of_finrank_eq_one finrank_groupLieAlgebra_circle
+        circleLieGenerator_ne_zero ?_
     simp [hf]
   have hfL : f.comp (ContinuousLinearMap.toSpanSingleton ℝ circleLieGenerator) =
       ContinuousLinearMap.id ℝ ℝ := by
