@@ -70,7 +70,11 @@ From Mathlib the part uses `AlternatingMap.map_linearDependent` and
 with smooth inverses), and oriented atlases,
 `A.HasStructureGroup (Diffeomorph.orientationPreservingSubgroup o)`. The
 statements below write these as `e ∈ A` (`e` is some `A.trivAt b'`),
-`b ∈ e.baseSet` and `A.IsOriented o`; the building issues use the names that
+`b ∈ e.baseSet` and `A.IsOriented o`, the last standing for both
+`A.IsContMDiff ∞ I J IM` and
+`A.HasStructureGroup (Diffeomorph.orientationPreservingSubgroup o)`, since
+the structure group constrains only the coordinate changes and not the
+charts themselves; the building issues use the names that
 `design/symplectic-fibrations.md` and those two files give them.
 
 ## Decisions
@@ -261,9 +265,9 @@ About 250 lines.
 - From Tau Ceti: the declarations listed under *What exists*.
 - From other parts: *Symplectic fibrations*, only
   `Geometry/Manifold/FiberBundle/MapFiber.lean` and `StructureGroup.lean`
-  (smooth atlases `TauCeti.MapFiber.Atlas`, their charts `A.trivAt b`, and
-  oriented atlases as `HasStructureGroup`). The three product files use
-  no part of the library.
+  (atlases `TauCeti.MapFiber.Atlas` with `IsContMDiff`, their charts
+  `A.trivAt b`, and oriented atlases as `HasStructureGroup`). The three
+  product files use no part of the library.
 
 ## Issues
 
