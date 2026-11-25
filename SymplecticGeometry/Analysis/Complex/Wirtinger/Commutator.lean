@@ -7,39 +7,35 @@ module
 
 public import TauCeti.Analysis.Complex.Wirtinger.IteratedFDeriv
 public import TauCeti.Analysis.Calculus.IteratedFDeriv.Lp
-import TauCeti.Analysis.Calculus.IteratedFDeriv.FDerivApply
-import TauCeti.Analysis.Calculus.SecondDerivative
-import TauCeti.Analysis.RCLike.OperatorNorm
+import SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.FDerivApply
 import TauCeti.Analysis.Calculus.BumpFunction.Cutoff
 
 /-!
 # Partial derivatives and the operator `∂̄ + μ ∂`
 
 Write `∂ₐv = fun z ↦ fderiv ℝ v z a` for the partial derivative of `v` along `a`. This file
-proves the three facts that let an estimate for `P v = ∂̄v + μ ∂v` in the plane pass from one order
-to the next by applying it to the partial derivatives of `v`.
+proves the facts about `P v = ∂̄v + μ ∂v` that let an estimate for `P` in the plane pass from one
+order to the next by applying it to the partial derivatives of `v`. The comparison of the
+derivatives of `v` with those of its partials `∂₁v` and `∂_I v` is general calculus, in
+`SymplecticGeometry.Analysis.Calculus.IteratedFDeriv.FDerivApply`.
 
 ## Main results
 
 * `TauCeti.conjWirtingerDeriv_fderiv_apply_add_smul_wirtingerDeriv`: the commutator of `P`
   with a partial derivative, `P (∂ₐv) = ∂ₐ (P v) - (∂ₐμ) ∂v`, at every point where `v` is `C²`
-  and `μ` is differentiable. It rests on `ContDiffAt.fderiv_comp_fderiv_apply`, which moves a
-  partial derivative inside a continuous linear image of `Dv` by Tau Ceti's
-  `TauCeti.fderiv_fderiv_apply_comm` (symmetry of the second derivative), and gives
-  `TauCeti.fderiv_conjWirtingerDeriv_apply` and `TauCeti.fderiv_wirtingerDeriv_apply`.
-* `TauCeti.eLpNorm_iteratedFDeriv_succ_le` and `TauCeti.eLpNorm_iteratedFDeriv_fderiv_apply_le`:
-  on the plane, the `Lᵖ` norm of `D^{n+1} v` is at most the sum of those of `D^n (∂₁v)` and
-  `D^n (∂_I v)`, and the `Lᵖ` norm of `D^n (∂ₐv)` is at most `‖a‖` times that of `D^{n+1} v`.
-  The first comes from the pointwise bound `TauCeti.norm_iteratedFDeriv_succ_le`, the second
-  from Tau Ceti's `ContDiff.norm_iteratedFDeriv_fderiv_apply_le`.
+  and `μ` is differentiable. It rests on `TauCeti.fderiv_conjWirtingerDeriv_apply` and
+  `TauCeti.fderiv_wirtingerDeriv_apply` (`∂ₐ` commutes with `∂̄` and `∂`), which follow from
+  `ContDiffAt.fderiv_comp_fderiv_apply`.
+* `TauCeti.eLpNorm_iteratedFDeriv_wirtingerDeriv_one_le`: the `Lᵖ` norm of `Dᵐ(∂v(·) 1)` is at
+  most that of `D^{m+1} v`, from Tau Ceti's `TauCeti.iteratedFDeriv_wirtingerDeriv_one`.
 * `TauCeti.exists_eLpNorm_iteratedFDeriv_fderiv_smul_wirtingerDeriv_le`: for `μ` of class
   `C^{k+1}` on an open set containing a compact `K`, the derivatives of order `j ≤ k` of
   `(∂ₐμ) ∂v` are bounded in `Lᵖ` by a constant times the sum of the `Lᵖ` norms of the derivatives
   of `v` of order at most `k + 1`, uniformly in the `C^{k+1}` maps `v` supported in `K`. The
   coefficient is first replaced by a compactly supported one that agrees with it near `K`, and
   the bound is then Tau Ceti's Leibniz rule
-  `ContinuousLinearMap.eLpNorm_iteratedFDeriv_le_of_bilinear` with Tau Ceti's
-  `TauCeti.iteratedFDeriv_wirtingerDeriv_one`.
+  `ContinuousLinearMap.eLpNorm_iteratedFDeriv_le_of_bilinear` with
+  `TauCeti.eLpNorm_iteratedFDeriv_wirtingerDeriv_one_le`.
 
 ## References
 
@@ -51,21 +47,6 @@ public section
 
 open MeasureTheory Complex Filter Topology ContinuousLinearMap
 open scoped ENNReal NNReal ContDiff
-
-/-- The derivative at `x` of `y ↦ L (Df(y))`, for a continuous linear map `L` and `f` of class
-`C²` at `x`, evaluated at `a`, is `L` applied to the derivative of the partial derivative `∂ₐf`. -/
-theorem ContDiffAt.fderiv_comp_fderiv_apply {E F G : Type*} [NormedAddCommGroup E]
-    [NormedSpace ℝ E] [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedAddCommGroup G]
-    [NormedSpace ℝ G] {f : E → F} {x : E} (hf : ContDiffAt ℝ 2 f x) (L : (E →L[ℝ] F) →L[ℝ] G)
-    (a : E) :
-    fderiv ℝ (fun y ↦ L (fderiv ℝ f y)) x a = L (fderiv ℝ (fun y ↦ fderiv ℝ f y a) x) := by
-  -- By the symmetry of the second derivative, `D²f(x) a = D(∂ₐf)(x)`.
-  have hsymm : fderiv ℝ (fderiv ℝ f) x a = fderiv ℝ (fun y ↦ fderiv ℝ f y a) x := by
-    ext b
-    rw [TauCeti.fderiv_fderiv_apply_comm hf (by simp) a b,
-      (hf.hasFDerivAt_fderiv_apply le_rfl b).fderiv, flip_apply]
-  rw [← hsymm, show (fun y ↦ L (fderiv ℝ f y)) = L ∘ fderiv ℝ f from rfl,
-    (L.hasFDerivAt.comp x (hf.hasFDerivAt_fderiv le_rfl)).fderiv, comp_apply]
 
 namespace TauCeti
 
@@ -103,16 +84,8 @@ theorem conjWirtingerDeriv_fderiv_apply_add_smul_wirtingerDeriv {μ : V → ℂ}
         μ z • wirtingerDeriv (fun w ↦ fderiv ℝ v w a) z b =
       fderiv ℝ (fun w ↦ conjWirtingerDeriv v w b + μ w • wirtingerDeriv v w b) z a -
         fderiv ℝ μ z a • wirtingerDeriv v z b := by
-  have hd : DifferentiableAt ℝ (fderiv ℝ v) z :=
-    (hv.fderiv_right (m := 1) (by norm_num)).differentiableAt one_ne_zero
-  have hc : DifferentiableAt ℝ (fun w ↦ conjWirtingerDeriv v w b) z := by
-    simp only [conjWirtingerDeriv_apply_eq_complexAntilinearPartL]
-    exact (((apply ℝ W b).comp complexAntilinearPartL).differentiableAt).comp z hd
-  have hw : DifferentiableAt ℝ (fun w ↦ wirtingerDeriv v w b) z := by
-    have h (w : V) : wirtingerDeriv v w b = fderiv ℝ v w b - conjWirtingerDeriv v w b := by
-      rw [← wirtingerDeriv_add_conjWirtingerDeriv, add_sub_cancel_right]
-    simp only [h]
-    exact (hd.clm_apply (differentiableAt_const b)).sub hc
+  have hc := (hv.hasFDerivAt_conjWirtingerDeriv_apply b).differentiableAt
+  have hw := (hv.hasFDerivAt_wirtingerDeriv_apply b).differentiableAt
   rw [(hc.hasFDerivAt.fun_add (hμ.hasFDerivAt.fun_smul hw.hasFDerivAt)).fderiv, add_apply,
     add_apply, smul_apply, smulRight_apply, fderiv_conjWirtingerDeriv_apply hv,
     fderiv_wirtingerDeriv_apply hv]
@@ -120,68 +93,22 @@ theorem conjWirtingerDeriv_fderiv_apply_add_smul_wirtingerDeriv {μ : V → ℂ}
 
 end Commutator
 
-section Partials
-
-variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {v : ℂ → F} {n : ℕ}
-
-/-- Pointwise, the derivative of order `n + 1` of `v` is at most the sum of the derivatives of
-order `n` of the partial derivatives `∂₁v` and `∂_I v`. -/
-theorem norm_iteratedFDeriv_succ_le (hv : ContDiff ℝ (n + 1) v) (x : ℂ) :
-    ‖iteratedFDeriv ℝ (n + 1) v x‖ ≤ ‖iteratedFDeriv ℝ n (fun z ↦ fderiv ℝ v z 1) x‖ +
-      ‖iteratedFDeriv ℝ n (fun z ↦ fderiv ℝ v z I) x‖ := by
-  -- `Dⁿ(∂ₐv)(x)` is `Dⁿ(Dv)(x)` followed by evaluation at `a`.
-  have h (a : ℂ) : iteratedFDeriv ℝ n (fun z ↦ fderiv ℝ v z a) x =
-      (apply ℝ F a).compContinuousMultilinearMap (iteratedFDeriv ℝ n (fderiv ℝ v) x) :=
-    (apply ℝ F a).iteratedFDeriv_comp_left (hv.fderiv_right (m := n) le_rfl).contDiffAt le_rfl
-  rw [← norm_iteratedFDeriv_fderiv]
-  refine ContinuousMultilinearMap.opNorm_le_bound (by positivity) fun m ↦ ?_
-  refine (opNorm_le_bound _ (by positivity) (norm_apply_le_norm_one_add_norm_I (K := ℂ) _)).trans
-    ?_
-  rw [RCLike.I_to_complex, add_mul]
-  gcongr
-  all_goals
-    rw [h]
-    refine le_of_eq_of_le ?_ (ContinuousMultilinearMap.le_opNorm _ m)
-    rw [compContinuousMultilinearMap_coe, Function.comp_apply, apply_apply]
-
-variable (ν : Measure ℂ) {p : ℝ≥0∞}
-
-/-- The `Lᵖ` norm of the derivative of order `n` of `∂ₐv` is at most `‖a‖` times that of the
-derivative of order `n + 1` of `v`. -/
-theorem eLpNorm_iteratedFDeriv_fderiv_apply_le (hv : ContDiff ℝ (n + 1) v) (a : ℂ) (p : ℝ≥0∞) :
-    eLpNorm (iteratedFDeriv ℝ n (fun z ↦ fderiv ℝ v z a)) p ν ≤
-      ENNReal.ofReal ‖a‖ * eLpNorm (iteratedFDeriv ℝ (n + 1) v) p ν :=
-  eLpNorm_le_mul_eLpNorm_of_ae_le_mul
-    ((((hv.fderiv_right (m := n) le_rfl).clm_apply
-      contDiff_const).continuous_iteratedFDeriv le_rfl).aestronglyMeasurable)
-    (Eventually.of_forall fun x ↦
-      (hv.norm_iteratedFDeriv_fderiv_apply_le (by simp) a x).trans_eq (mul_comm _ _)) p
-
-/-- For `1 ≤ p`, the `Lᵖ` norm of the derivative of order `n + 1` of `v` is at most the sum of
-the `Lᵖ` norms of the derivatives of order `n` of `∂₁v` and `∂_I v`. -/
-theorem eLpNorm_iteratedFDeriv_succ_le (hv : ContDiff ℝ (n + 1) v) (hp : 1 ≤ p) :
-    eLpNorm (iteratedFDeriv ℝ (n + 1) v) p ν ≤
-      eLpNorm (iteratedFDeriv ℝ n (fun z ↦ fderiv ℝ v z 1)) p ν +
-        eLpNorm (iteratedFDeriv ℝ n (fun z ↦ fderiv ℝ v z I)) p ν := by
-  have hc (a : ℂ) : Continuous (iteratedFDeriv ℝ n (fun z ↦ fderiv ℝ v z a)) :=
-    ((hv.fderiv_right (m := n) le_rfl).clm_apply
-      contDiff_const).continuous_iteratedFDeriv le_rfl
-  calc eLpNorm (iteratedFDeriv ℝ (n + 1) v) p ν
-      ≤ eLpNorm (fun x ↦ ‖iteratedFDeriv ℝ n (fun z ↦ fderiv ℝ v z 1) x‖ +
-          ‖iteratedFDeriv ℝ n (fun z ↦ fderiv ℝ v z I) x‖) p ν :=
-        eLpNorm_mono_real ((hv.continuous_iteratedFDeriv le_rfl).aestronglyMeasurable)
-          (norm_iteratedFDeriv_succ_le hv)
-    _ ≤ _ := by
-        refine (eLpNorm_add_le (f := fun x ↦ ‖iteratedFDeriv ℝ n (fun z ↦ fderiv ℝ v z 1) x‖)
-          (g := fun x ↦ ‖iteratedFDeriv ℝ n (fun z ↦ fderiv ℝ v z I) x‖) hp).trans ?_
-        rw [eLpNorm_norm, eLpNorm_norm]
-        all_goals exact (hc _).aestronglyMeasurable
-
-end Partials
-
 section LowerOrder
 
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F]
+
+/-- The `Lᵖ` norm of the derivative of order `m` of `∂v(·) 1` is at most that of the derivative
+of order `m + 1` of `v`. -/
+theorem eLpNorm_iteratedFDeriv_wirtingerDeriv_one_le {v : ℂ → F} {m : ℕ}
+    (hv : ContDiff ℝ (m + 1 : ℕ) v) (ν : Measure ℂ) (p : ℝ≥0∞) :
+    eLpNorm (iteratedFDeriv ℝ m (fun z ↦ wirtingerDeriv v z 1)) p ν ≤
+      eLpNorm (iteratedFDeriv ℝ (m + 1) v) p ν := by
+  have hw : ContDiff ℝ m (fun z ↦ wirtingerDeriv v z 1) := by
+    rw [wirtingerDeriv_one_eq_comp]
+    exact wirtingerOne.contDiff.comp (hv.fderiv_right (m := m) (by norm_cast))
+  refine eLpNorm_mono ((hw.continuous_iteratedFDeriv le_rfl).aestronglyMeasurable) fun x ↦ ?_
+  rw [iteratedFDeriv_wirtingerDeriv_one hv]
+  exact norm_wirtingerOneCurryRight_apply_le _ _
 
 /-- **The lower-order term of the commutator.** Let `μ` be of class `C^{k+1}` on an open set `U`
 containing a compact set `K`, let `ν` be finite on compact sets, and `1 ≤ p`. There is a constant
@@ -240,12 +167,8 @@ theorem exists_eLpNorm_iteratedFDeriv_fderiv_smul_wirtingerDeriv_le (ν : Measur
         · exact_mod_cast (Nat.choose_le_two_pow j i).trans (Nat.pow_le_pow_right two_pos hj)
         · exact Finset.single_le_sum (f := fun i ↦ eLpNorm (iteratedFDeriv ℝ i g) (∞ : ℝ≥0∞) ν)
             (fun _ _ ↦ bot_le) (Finset.mem_range_succ_iff.2 (hij.trans hj))
-        · refine (eLpNorm_mono (g := iteratedFDeriv ℝ (j - i + 1) v) ((hw.continuous_iteratedFDeriv
-            (by exact_mod_cast (by omega : j - i ≤ k))).aestronglyMeasurable)
-            fun x ↦ ?_).trans ?_
-          · rw [iteratedFDeriv_wirtingerDeriv_one
-              (hv.of_le (by exact_mod_cast (by omega : j - i + 1 ≤ k + 1)))]
-            exact norm_wirtingerOneCurryRight_apply_le _ _
+        · refine (eLpNorm_iteratedFDeriv_wirtingerDeriv_one_le
+            (hv.of_le (by exact_mod_cast (by omega : j - i + 1 ≤ k + 1))) ν p).trans ?_
           exact Finset.single_le_sum (f := fun i ↦ eLpNorm (iteratedFDeriv ℝ i v) p ν)
             (fun _ _ ↦ bot_le) (Finset.mem_range.2 (by omega))
     _ ≤ C * S := by
