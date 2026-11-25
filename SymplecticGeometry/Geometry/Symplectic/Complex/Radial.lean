@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Manifold.Projectivization.FubiniStudy.Basic
 import Mathlib.Analysis.InnerProductSpace.Calculus
 import SymplecticGeometry.Analysis.Complex.QuadraticLeviForm
+import SymplecticGeometry.LinearAlgebra.Matrix.DotProduct
 import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Basic
 import TauCeti.Geometry.Manifold.Complex.DdbarForm.Basic
 public import TauCeti.Geometry.Manifold.Complex.LeviForm
@@ -43,8 +44,9 @@ blowup constructions read the forms they build off `Z` in these terms.
   `g'(s) |v|² + g''(s) |star z ⬝ᵥ v|²`.
 * `SymplecticGeometry.isManifoldStrictlyPlurisubharmonicAt_radialPotential`: if `g' > 0` and
   `(s g')' = g' + s g'' > 0` on `(0, ∞)`, the potential `g ∘ s` is strictly plurisubharmonic on
-  `Z`. When `g'' < 0`, Cauchy–Schwarz `|star z ⬝ᵥ v|² ≤ |z|² |v|²` bounds the value on `(v, i v)`
-  below by `(g' + s g'') |v|²`.
+  `Z`. When `g'' < 0`, Cauchy–Schwarz `|star z ⬝ᵥ v|² ≤ |z|² |v|²`
+  (`Matrix.norm_star_dotProduct_sq_le`) bounds the value on `(v, i v)` below by
+  `(g' + s g'') |v|²`.
 * `SymplecticGeometry.isKahler_radialPotentialForm`: under the same hypotheses the form is Kähler
   for `J`, as a positive multiple of the form of a strictly plurisubharmonic function
   (`SymplecticGeometry.isKahler_mextDerivₗ_covectorComplexStructure`).
@@ -205,13 +207,8 @@ theorem isManifoldStrictlyPlurisubharmonicAt_radialPotential {g : ℝ → ℝ}
       ⟨i, Finset.mem_univ _, pow_pos (norm_pos_iff.2 hi) 2⟩
   -- Cauchy–Schwarz: `|star z ⬝ᵥ v|² ≤ |z|² |v|²`.
   have hCS : Complex.normSq (star (z : ι → ℂ) ⬝ᵥ v) ≤ s * ∑ i, ‖v i‖ ^ 2 := by
-    have h := norm_inner_le_norm (𝕜 := ℂ) (WithLp.toLp 2 (z : ι → ℂ)) (WithLp.toLp 2 v)
-    rw [EuclideanSpace.inner_eq_star_dotProduct, WithLp.ofLp_toLp, WithLp.ofLp_toLp,
-      dotProduct_comm] at h
-    rw [← Complex.sq_norm, show s = ‖WithLp.toLp 2 (z : ι → ℂ)‖ ^ 2 by
-      simp [s, EuclideanSpace.norm_sq_eq], show ∑ i, ‖v i‖ ^ 2 = ‖WithLp.toLp 2 v‖ ^ 2 by
-      simp [EuclideanSpace.norm_sq_eq], ← mul_pow]
-    exact pow_le_pow_left₀ (norm_nonneg _) h 2
+    rw [← Complex.sq_norm]
+    exact Matrix.norm_star_dotProduct_sq_le (z : ι → ℂ) v
   -- `(s g')' = g' + s g''`.
   have hd : DifferentiableAt ℝ (deriv g) s :=
     ((hg.deriv_of_isOpen (m := 1) isOpen_Ioi (by simp)).differentiableOn
