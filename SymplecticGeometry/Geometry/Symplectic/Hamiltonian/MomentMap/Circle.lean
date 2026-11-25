@@ -20,6 +20,11 @@ fundamental vector field of `ξ₁` vanishes at `x`, and by
 `SymplecticGeometry.mem_fixedPoints_circle_iff_fundamentalVectorField_eq_zero` this happens
 exactly at the fixed points of the action.
 
+For a moment map `-μ` of `σ` (the sign convention of the converse of minimal coupling), the
+component `-H` has the critical points of `H`, so a point that the circle does not fix has
+`dH ≠ 0` where `σ` is nondegenerate, and for `σ` nondegenerate a level of `H` without fixed points
+is a regular value of `H`.
+
 Since the Lie algebra of `Circle` is spanned by `ξ₁`, the cocycle of any map `μ` to its dual
 vanishes, and the kernel of the differential of a moment map `μ` is that of `dH`. These are the
 facts that Tau Ceti's reduction of a level of a moment map
@@ -38,6 +43,10 @@ in the circle case.
 * `TauCeti.SmoothTwoForm.IsMomentMap.apply_smul_circle`: a circle moment map is invariant under
   the action, since `⟨μ, ξ₁⟩` is conserved along the curves `t ↦ exp(t ξ₁) • x`, which are
   integral curves of its Hamiltonian vector field and cover the orbits.
+* `SymplecticGeometry.mfderiv_ne_zero_of_notMem_fixedPoints`: for a moment map `-μ`, `dH` does
+  not vanish at a point that the circle does not fix and at which `σ` is nondegenerate.
+* `SymplecticGeometry.isRegularValue_of_notMem_fixedPoints`: for a moment map `-μ` of a
+  nondegenerate `σ`, a level of `H` that contains no fixed point is a regular value of `H`.
 
 ## References
 
@@ -135,5 +144,44 @@ theorem apply_smul_circle
   simpa using h
 
 end TauCeti.SmoothTwoForm.IsMomentMap
+
+/-! ### Points off the fixed set are regular for the Hamiltonian -/
+
+namespace SymplecticGeometry
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  [T2Space M] [IsManifold I ∞ M] [BoundarylessManifold I M] [MulAction Circle M]
+  [ContMDiffSMul (𝓡 1) I ∞ Circle M]
+
+/-- **A point off the fixed set is not critical for the Hamiltonian.** Let a circle act smoothly
+on a Hausdorff boundaryless manifold `M`, with moment map `-μ` for a two-form `σ`, and let
+`H = ⟨μ, circlePeriodOneGenerator⟩`. If `σ` is nondegenerate at `x` and some element of the
+circle moves `x`, then `dH` does not vanish at `x`. -/
+theorem mfderiv_ne_zero_of_notMem_fixedPoints {σ : SmoothTwoForm I M}
+    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
+    {x : M} (hσ : (σ.bilinFormAt x).Nondegenerate) (hx : x ∉ MulAction.fixedPoints Circle M) :
+    mfderiv I 𝓘(ℝ) (fun y ↦ μ y circlePeriodOneGenerator) x ≠ 0 := by
+  have hneg : (fun y ↦ (-μ y) circlePeriodOneGenerator) = -fun y ↦ μ y circlePeriodOneGenerator :=
+    funext fun _ ↦ LinearMap.neg_apply _ _
+  rwa [← hμ.mem_criticalPoints_circlePeriodOneGenerator_iff hσ, hneg, criticalPoints_neg,
+    mem_criticalPoints_iff_mfderiv_eq_zero] at hx
+
+/-- **A level without fixed points is a regular value of the Hamiltonian.** Let a circle act
+smoothly on a Hausdorff boundaryless manifold `M`, with moment map `-μ` for a nondegenerate
+two-form `σ`, and let `H = ⟨μ, circlePeriodOneGenerator⟩`. If no point of the level `H = c` is
+fixed by the whole circle, then `c` is a regular value of `H`. -/
+theorem isRegularValue_of_notMem_fixedPoints {σ : SmoothTwoForm I M}
+    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
+    (hσ : σ.IsNondegenerate) {c : ℝ}
+    (hfix : ∀ x, μ x circlePeriodOneGenerator = c → x ∉ MulAction.fixedPoints Circle M) :
+    IsRegularValue I 𝓘(ℝ) (fun y ↦ μ y circlePeriodOneGenerator) c := by
+  refine isRegularValue_iff.2 fun x hx ↦ ?_
+  rw [isRegularPoint_iff_notMem_criticalPoints, mem_criticalPoints_iff_mfderiv_eq_zero]
+  exact mfderiv_ne_zero_of_notMem_fixedPoints hμ (hσ.nondegenerate_bilinFormAt x) (hfix x hx)
+
+end SymplecticGeometry
 
 end
