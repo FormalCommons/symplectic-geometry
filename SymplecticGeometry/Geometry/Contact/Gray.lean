@@ -58,9 +58,11 @@ in `ξ` (`SymplecticGeometry.IsContactFamily.velocity_grayDiffeotopy_mem`). It t
 `ψ_t^* ξ_t = ξ_0` (`SymplecticGeometry.IsContactFamily.transports_grayDiffeotopy`), by an
 open-and-closed argument in `t`. Near a time `t₀` and the point `ψ_{t₀} x`, a local defining
 family `α` on `ℝ × U` has, at the times of `[0, 1]` near `t₀`, the restriction of the Gray field
-to `U` as its Gray vector field. By Gray's equation and the rescaling theorem along one trajectory
-of `Flow/Family.lean`, the flow of that restriction, which is the flow of the Gray field, rescales
-`α` along the trajectory of `ψ_{t₀} x`, so its differential carries `ξ_{t₀}` onto `ξ_t` there. With
+to `U` as its Gray vector field. By Gray's equation and the rescaling theorem along one
+trajectory of Tau Ceti (in the namespace `TauCeti`,
+`mpullback_timeDependentFlowOf_mpullback_prodMk_apply_eq_exp_integral_smul_of_forall_mem_uIcc`),
+the flow of that restriction, which is the flow of the Gray field, rescales `α` along the
+trajectory of `ψ_{t₀} x`, so its differential carries `ξ_{t₀}` onto `ξ_t` there. With
 the cocycle property of the flow, the pullback of `ξ_t` by `ψ_t` at `x` is a locally constant
 function of `t`, equal to `ξ_0 x` at `t = 0`, and `[0, 1]` is connected.
 

@@ -282,7 +282,7 @@ Tau Ceti unchanged.
 | `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean` | `Diffeotopy.velocity`, its joint smoothness, its value along the motion, its values for `refl` and the flow diffeotopies, and the pullback of $\iota_{X_t}\sigma$ by $\phi_t$ |
 | `Geometry/Symplectic/Hamiltonian/PoissonAlgebra.lean` | the Leibniz rule, the local time-dependent flow, the kernel and the quotient, the milestone *Hamiltonian flows and the Poisson algebra* |
 | `Geometry/Symplectic/Hamiltonian/SymplecticIsotopy.lean` | symplectic fields and their local flows, the book's bracket, the isotopy criterion, the milestone *Symplectic vector fields and isotopy generators* |
-| `Geometry/Manifold/DeRham/FamilyPrimitive.lean` | smooth primitives of a smooth family of one-forms: the parametric Poincaré lemma in degree one on a smoothly contractible manifold, and the gluing for exact forms on any manifold |
+| `Geometry/Manifold/DeRham/FamilyPrimitive.lean` | smooth primitives of a smooth family of one-forms: the parametric Poincaré lemma in degree one on a smoothly contractible manifold, and the smooth primitives of a family of exact forms on any manifold, from Tau Ceti's theorem on all of $M$ |
 | `Geometry/Symplectic/Flux/Hamiltonian.lean` | the page's $H_t$ beside `HasHamiltonian`, the three rules in the page's form, uniqueness, Hamiltonians from exactness |
 | `Geometry/Symplectic/Flux/CompactSupport.lean` | `IsCompactlySupportedHamiltonian`, `compactlySupportedHamiltonianGroup`, the flow of a compactly supported Hamiltonian, the milestone *Hamiltonian isotopies and their composition* |
 
@@ -449,7 +449,8 @@ In `TauCeti.Diffeotopy`, for any two-form `σ` unless said:
   direction builds the Hamiltonian as in Decision 4, with
   `exists_hasHamiltonian_of_forall_mem_exactForms` as the public
   statement.
-- The gluing of Decision 4 is a public lemma, in the namespace
+- The smooth primitives of a family of exact forms of Decision 4, from Tau
+  Ceti's theorem on all of $M$, are given by a public lemma, in the namespace
   `SymplecticGeometry` since its hypothesis is the library's
   `IsSmoothFamily`, in `Geometry/Manifold/DeRham/FamilyPrimitive.lean`,
   for any manifold `M` (no compactness, no form `σ`) and any parameter
@@ -621,7 +622,9 @@ Each is a few hundred lines; each is blocked by the issues it names.
    About 250 lines. Blocked by 1.
 5. **Hamiltonians from exactness.** In `DeRham/FamilyPrimitive.lean` and
    `Flux/Hamiltonian.lean`: the
-   parametric Poincaré lemma in degree one, the gluing (`exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`),
+   parametric Poincaré lemma in degree one, the smooth primitives of a
+   family of exact forms from Tau Ceti's theorem on all of $M$
+   (`exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`),
    `exists_hasHamiltonian_of_forall_mem_exactForms` and
    `isHamiltonian_iff_forall_interiorₗ_velocity_mem_exactForms`. About 350
    lines. Blocked by 4.

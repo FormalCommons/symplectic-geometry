@@ -949,8 +949,8 @@ this design already follows. `Ball/Isotopy.lean` cites
   `TauCeti.mpullback_apply_eq_of_mfderiv_eq`, a lemma this part adds there.
 - *Hamiltonian flows*: in `DeRham/FamilyPrimitive.lean`, the smooth primitive of a
   smooth family of exact one-forms over any parameter manifold `N`, which that part's design
-  (`design/hamiltonian-flows.md`, Decision 4) builds on each connected
-  component with Tau Ceti's theorem. This part needs it on any manifold, so that it
+  (`design/hamiltonian-flows.md`, Decision 4) builds with Tau Ceti's
+  theorem applied on all of the manifold. This part needs it on any manifold, so that it
   applies on an open subset (`Cohomological/Primitive.lean`).
   `design/hamiltonian-flows.md` records it as the public lemma
   `SymplecticGeometry.exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`, part of
