@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Topology.VectorBundle.Core.Basic
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Basic
 public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.Biproduct
+public import SymplecticGeometry.Topology.VectorBundle.FiniteRank.HomotopyInvariance
 public import TauCeti.Topology.VectorBundle.FiniteRank.Monoidal
 
 /-!
@@ -59,6 +60,11 @@ cocycle condition from `g.hom ≫ g.inv = 𝟙` and `g.inv ≫ g.hom = 𝟙` (`g
   gluing of `A ⊗ D` by their tensor product those of the tensor product of the two gluings, since
   the gluing cocycle of a direct sum or tensor product of automorphisms is the block-diagonal or
   Kronecker product of their cocycles (`glueCocycle_whitneyMapIso`, `glueCocycle_tensorIso`).
+* `TauCeti.FiniteRankBundleCore.nonempty_iso_glue_of_homotopic`: over a paracompact R₁
+  base, gluings by two automorphisms joined by an automorphism of the pullback of `A` to the
+  part `(U ∩ V) × I` of `B × I` are isomorphic. The gluing over `B × I` by that automorphism
+  pulls back along `x ↦ (x, t)` to the gluing by its slice at `t`, by the identity in
+  coordinates (`pullbackGlueIso`), and the two ends are pullbacks along homotopic maps.
 
 The construction follows the pattern of Tau Ceti's `TauCeti.FiniteRankBundleCore.doubleAlong`, a
 point-indexed core whose transitions are given piecewise, and of
@@ -67,7 +73,10 @@ point-indexed core whose transitions are given piecewise, and of
 `TauCeti.FiniteRankBundleCore.constIso`. The isomorphism `isoGlue` is built from its fibre maps
 with Tau Ceti's `VectorBundleCore.CoordinateHom.ofContinuous`, as
 `TauCeti.FiniteRankBundleCore.isoOfContinuousEquiv` is, and inverted with Tau Ceti's
-`VectorBundleCore.CoordinateHom.invOfIsInvertible`.
+`VectorBundleCore.CoordinateHom.invOfIsInvertible`. The proof of `nonempty_iso_glue_of_homotopic`
+is that of `TauCeti.FiniteRankBundleCore.nonempty_iso_clutching_of_homotopic`
+(`FiniteRank/Clutching.lean`) for a gluing over any two open sets, with homotopy invariance of
+pullbacks (`TauCeti.FiniteRankBundleCore.nonempty_pullback_iso_of_homotopic`).
 
 ## References
 
@@ -831,6 +840,165 @@ theorem coordChange_glue_tensorIso (i j b : B) :
   exact inChartCoordinates_tensor_kronecker A A D D _ _ i j b
 
 end Operations
+
+/-! ### Gluing by homotopic automorphisms -/
+
+section Homotopic
+
+variable {T : Type*} [TopologicalSpace T] (A : FiniteRankBundleCore 𝕜 B) {U V : Set B}
+  (hU : IsOpen U) (hV : IsOpen V) (hUV : U ∪ V = univ)
+  (g : A.pullback (ContinuousMap.subtypeVal (U ∩ V)) ≅
+    A.pullback (ContinuousMap.subtypeVal (U ∩ V)))
+  (H : (A.pullback (ContinuousMap.fst : C(B × T, B))).pullback
+      (ContinuousMap.subtypeVal (Prod.fst ⁻¹' U ∩ Prod.fst ⁻¹' V)) ≅
+    (A.pullback (ContinuousMap.fst : C(B × T, B))).pullback
+      (ContinuousMap.subtypeVal (Prod.fst ⁻¹' U ∩ Prod.fst ⁻¹' V)))
+  (t : T)
+
+/-- The side of the chart at `(x, t)` of a gluing over `U × T` and `V × T` is that of the chart
+at `x` of a gluing over `U` and `V`. -/
+private theorem glueIndex_prodMk_const (x : B) :
+    glueIndex (Prod.fst ⁻¹' U) (((ContinuousMap.id B).prodMk (.const B t)) x) = glueIndex U x := by
+  simp [glueIndex_def]
+
+/-- The chart at `i` of the pullback of a gluing over `B × T` along `x ↦ (x, t)` lies in the chart
+at `i` of a gluing over `B`. -/
+private theorem baseSet_pullback_glue_subset (i : B) :
+    (((A.pullback ContinuousMap.fst).glue (hU.preimage continuous_fst)
+        (hV.preimage continuous_fst) (by rw [← preimage_union, hUV, preimage_univ]) H).pullback
+        ((ContinuousMap.id B).prodMk (.const B t))).core.baseSet i ⊆
+      (A.glue hU hV hUV g).core.baseSet i := by
+  intro b hb
+  rw [VectorBundleCore.baseSet_at, localTriv_baseSet_pullback, ← VectorBundleCore.baseSet_at,
+    Set.mem_preimage, baseSet_glue, glueIndex_prodMk_const] at hb
+  rw [baseSet_glue]
+  generalize glueIndex U i = s at hb ⊢
+  cases s <;> exact ⟨hb.1, hb.2⟩
+
+variable {A g H t}
+
+/-- If the fibre maps of `H` at `(x, t)` are those of `g` at `x`, so are the fibre maps of their
+inverses. -/
+private theorem fiberMap_inv_prodMk
+    (hg : ∀ x : ↥(U ∩ V), H.hom.fiberMap ⟨(x.val, t), x.property⟩ = g.hom.fiberMap x)
+    (x : ↥(U ∩ V)) :
+    H.inv.fiberMap ⟨(x.val, t), x.property⟩ = g.inv.fiberMap x := by
+  -- A left inverse of `g.hom.fiberMap x` is its right inverse, in the monoid of endomorphisms.
+  refine left_inv_eq_right_inv (M := (Fin A.rank → 𝕜) →L[𝕜] (Fin A.rank → 𝕜))
+    (a := g.hom.fiberMap x) ?_ ?_
+  · rw [← hg, ContinuousLinearMap.mul_def, ← fiberMap_comp, H.hom_inv_id, fiberMap_id]
+    -- The identity is `1` once the rank of the pullback is unfolded to `A.rank`.
+    rfl
+  · rw [ContinuousLinearMap.mul_def, ← fiberMap_comp, g.inv_hom_id, fiberMap_id]
+    -- The identity is `1` once the rank of the pullback is unfolded to `A.rank`.
+    rfl
+
+/-- The transitions of the pullback of a gluing over `B × T` along `x ↦ (x, t)` are those of the
+gluing by the slice of `H` at `t`. -/
+private theorem coordChange_pullback_glue
+    (hg : ∀ x : ↥(U ∩ V), H.hom.fiberMap ⟨(x.val, t), x.property⟩ = g.hom.fiberMap x)
+    (i k b : B)
+    (hi : b ∈ (((A.pullback ContinuousMap.fst).glue (hU.preimage continuous_fst)
+        (hV.preimage continuous_fst) (by rw [← preimage_union, hUV, preimage_univ]) H).pullback
+        ((ContinuousMap.id B).prodMk (.const B t))).core.baseSet i)
+    (hk : b ∈ (((A.pullback ContinuousMap.fst).glue (hU.preimage continuous_fst)
+        (hV.preimage continuous_fst) (by rw [← preimage_union, hUV, preimage_univ]) H).pullback
+        ((ContinuousMap.id B).prodMk (.const B t))).core.baseSet k) :
+    (((A.pullback ContinuousMap.fst).glue (hU.preimage continuous_fst)
+        (hV.preimage continuous_fst) (by rw [← preimage_union, hUV, preimage_univ]) H).pullback
+        ((ContinuousMap.id B).prodMk (.const B t))).core.coordChange i k b =
+      (A.glue hU hV hUV g).core.coordChange i k b := by
+  have hs := ((baseSet_glue A hU hV hUV g i).le
+    (baseSet_pullback_glue_subset A hU hV hUV g H t i hi)).2
+  have hr := ((baseSet_glue A hU hV hUV g k).le
+    (baseSet_pullback_glue_subset A hU hV hUV g H t k hk)).2
+  simp only [coordChange_pullback, coordChange_glue, glueIndex_prodMk_const,
+    inChartCoordinates_pullback]
+  congr 1
+  generalize glueIndex U i = s at hs ⊢
+  generalize glueIndex U k = r at hr ⊢
+  cases s <;> cases r
+  · -- Both sides are the identity of `Fin A.rank → 𝕜`: the rank of a pullback is that of the core.
+    simp only [glueCocycle_self]
+    rfl
+  · have hb : b ∈ U ∩ V := ⟨hr, hs⟩
+    rw [glueCocycle_false_true _ (show ((ContinuousMap.id B).prodMk (.const B t)) b ∈
+        Prod.fst ⁻¹' U ∩ Prod.fst ⁻¹' V from hb),
+      glueCocycle_false_true _ hb]
+    exact hg ⟨b, hb⟩
+  · have hb : b ∈ U ∩ V := ⟨hs, hr⟩
+    rw [glueCocycle_true_false _ (show ((ContinuousMap.id B).prodMk (.const B t)) b ∈
+        Prod.fst ⁻¹' U ∩ Prod.fst ⁻¹' V from hb),
+      glueCocycle_true_false _ hb]
+    exact fiberMap_inv_prodMk hg ⟨b, hb⟩
+  · -- Both sides are the identity of `Fin A.rank → 𝕜`: the rank of a pullback is that of the core.
+    simp only [glueCocycle_self]
+    rfl
+
+variable (A g H t)
+
+/-- **Restricting the parameter of a gluing.** Let `H` be an automorphism of the pullback of `A`
+along `Prod.fst` to the part `(U ∩ V) × T` of `B × T`, and `g` one of the pullback of `A` to
+`U ∩ V` whose fibre map at `x` is that of `H` at `(x, t)`. Then the pullback of the gluing of the
+pullback of `A` to `B × T` over `U × T` and `V × T` by `H`, along `x ↦ (x, t)`, is isomorphic
+to the gluing of `A` by `g`, by the identity in coordinates. -/
+def pullbackGlueIso
+    (hg : ∀ x : ↥(U ∩ V), H.hom.fiberMap ⟨(x.val, t), x.property⟩ = g.hom.fiberMap x) :
+    ((A.pullback ContinuousMap.fst).glue (hU.preimage continuous_fst)
+        (hV.preimage continuous_fst) (by rw [← preimage_union, hUV, preimage_univ]) H).pullback
+        ((ContinuousMap.id B).prodMk (.const B t)) ≅ A.glue hU hV hUV g :=
+  constIso (baseSet_pullback_glue_subset A hU hV hUV g H t) (.refl 𝕜 _) fun i k b hi hk ↦ by
+    rw [ContinuousLinearEquiv.coe_refl, ContinuousLinearMap.id_comp, ContinuousLinearMap.comp_id]
+    exact coordChange_pullback_glue hU hV hUV hg i k b hi hk
+
+/-- The isomorphism `pullbackGlueIso` is the identity in coordinates. -/
+@[simp]
+theorem fiberMap_pullbackGlueIso_hom
+    (hg : ∀ x : ↥(U ∩ V), H.hom.fiberMap ⟨(x.val, t), x.property⟩ = g.hom.fiberMap x) (x : B) :
+    (A.pullbackGlueIso hU hV hUV g H t hg).hom.fiberMap x = .id 𝕜 _ := by
+  rw [pullbackGlueIso, fiberMap_constIso_hom]
+  -- The two sides differ only in the rank they name, both `A.rank` by definition.
+  exact ContinuousLinearEquiv.coe_refl
+
+/-- The inverse of `pullbackGlueIso` is the identity in coordinates. -/
+@[simp]
+theorem fiberMap_pullbackGlueIso_inv
+    (hg : ∀ x : ↥(U ∩ V), H.hom.fiberMap ⟨(x.val, t), x.property⟩ = g.hom.fiberMap x) (x : B) :
+    (A.pullbackGlueIso hU hV hUV g H t hg).inv.fiberMap x = .id 𝕜 _ := by
+  rw [pullbackGlueIso, fiberMap_constIso_inv, ContinuousLinearEquiv.refl_symm]
+  -- The two sides differ only in the rank they name, both `A.rank` by definition.
+  exact ContinuousLinearEquiv.coe_refl
+
+end Homotopic
+
+open scoped unitInterval in
+/-- **Gluings by homotopic automorphisms are isomorphic.** Let `B` be paracompact and R₁, let `U`
+and `V` be open sets covering `B`, and let `g₀` and `g₁` be automorphisms of the pullback of `A`
+to `U ∩ V`. If an automorphism `H` of the pullback of `A` along `Prod.fst` to the part
+`(U ∩ V) × I` of `B × I` has the fibre maps of `g₀` at time `0` and those of `g₁` at time `1`,
+then the gluings of `A` by `g₀` and by `g₁` are isomorphic. -/
+theorem nonempty_iso_glue_of_homotopic [NormedAlgebra ℝ 𝕜] [CompleteSpace 𝕜] [ParacompactSpace B]
+    [R1Space B] (A : FiniteRankBundleCore 𝕜 B) {U V : Set B} (hU : IsOpen U) (hV : IsOpen V)
+    (hUV : U ∪ V = univ)
+    {g₀ g₁ : A.pullback (ContinuousMap.subtypeVal (U ∩ V)) ≅
+      A.pullback (ContinuousMap.subtypeVal (U ∩ V))}
+    (H : (A.pullback (ContinuousMap.fst : C(B × I, B))).pullback
+        (ContinuousMap.subtypeVal (Prod.fst ⁻¹' U ∩ Prod.fst ⁻¹' V)) ≅
+      (A.pullback (ContinuousMap.fst : C(B × I, B))).pullback
+        (ContinuousMap.subtypeVal (Prod.fst ⁻¹' U ∩ Prod.fst ⁻¹' V)))
+    (h₀ : ∀ x : ↥(U ∩ V), H.hom.fiberMap ⟨(x.val, 0), x.property⟩ = g₀.hom.fiberMap x)
+    (h₁ : ∀ x : ↥(U ∩ V), H.hom.fiberMap ⟨(x.val, 1), x.property⟩ = g₁.hom.fiberMap x) :
+    Nonempty (A.glue hU hV hUV g₀ ≅ A.glue hU hV hUV g₁) := by
+  -- The two ends of the gluing over `B × I` are pullbacks along homotopic maps; the homotopy
+  -- `(s, x) ↦ (x, s)` is at its ends the two maps, as they are evaluated.
+  have hJ : ((ContinuousMap.id B).prodMk (.const B (0 : I))).Homotopic
+      ((ContinuousMap.id B).prodMk (.const B (1 : I))) :=
+    ⟨⟨⟨fun p ↦ (p.2, p.1), by fun_prop⟩, fun _ ↦ rfl, fun _ ↦ rfl⟩⟩
+  obtain ⟨e⟩ := ((A.pullback ContinuousMap.fst).glue (hU.preimage continuous_fst)
+    (hV.preimage continuous_fst) (by rw [← preimage_union, hUV, preimage_univ]) H)
+    |>.nonempty_pullback_iso_of_homotopic hJ
+  exact ⟨(A.pullbackGlueIso hU hV hUV g₀ H 0 h₀).symm ≪≫ e ≪≫
+    A.pullbackGlueIso hU hV hUV g₁ H 1 h₁⟩
 
 end TauCeti.FiniteRankBundleCore
 
