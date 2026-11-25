@@ -12,7 +12,7 @@ import SymplecticGeometry.Geometry.Manifold.ContMDiff.LineMap
 import SymplecticGeometry.Geometry.Manifold.Distribution.FlatChart
 import SymplecticGeometry.Geometry.Manifold.Foliation.Constancy
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
-import TauCeti.Geometry.Manifold.MFDeriv.Prod
+import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
 /-!
@@ -214,11 +214,8 @@ theorem exists_transverseCoordinate (𝓕 : Foliation I ∞ M k)
   have e : mfderiv I 𝓘(ℝ, F₂) ψ z v = (mfderiv I 𝓘(ℝ, EuclideanSpace ℝ (Fin k) × F₂) Ψ' ⟨z, hz⟩ v :
       EuclideanSpace ℝ (Fin k) × F₂).2 := by
     refine (mfderiv_comp_subtype_val_apply (U := V) (f := ψ) (x := ⟨z, hz⟩) v).symm.trans ?_
-    have hd := (hΨ ⟨z, hz⟩).mdifferentiableAt (by simp)
-    -- Tau Ceti states the lemma for a product model with product charts.
-    rw [modelWithCornersSelf_prod, ← chartedSpaceSelf_prod] at hd ⊢
     rw [hψV]
-    exact hd.mfderiv_snd_apply (x := (⟨z, hz⟩ : V)) v
+    exact ((hΨ ⟨z, hz⟩).mdifferentiableAt (by simp)).mvfderiv_snd_apply v
   rw [e]
   exact hflat ⟨z, hz⟩ v
 
@@ -294,20 +291,17 @@ private theorem eventually_transportable_curve (h₁ : finrank ℝ F₁ = k)
   -- The second coordinate of `Φ` has derivative `0` along `𝓕`, so it is constant along `γ`
   -- on the convex set `S`.
   have hsnd (y : M) (hy : y ∈ Φ.source) :
-      MDifferentiableAt I 𝓘(ℝ, F₂) (ContinuousLinearMap.snd ℝ F₁ F₂ ∘ Φ) y :=
+      MDifferentiableAt I 𝓘(ℝ, F₂) (fun y ↦ (Φ y).2) y :=
     (ContinuousLinearMap.snd ℝ F₁ F₂).mdifferentiableAt.comp y (Φ.mdifferentiableAt (by simp) hy)
   have hconst (s : ℝ) (hs : s ∈ S) : (Φ (γ s)).2 = (Φ (γ t)).2 := by
     have hker (y : M) (hy : y ∈ Φ.source) :
-        𝓕.distribution y ≤ (mfderiv I 𝓘(ℝ, F₂) (ContinuousLinearMap.snd ℝ F₁ F₂ ∘ Φ) y).ker :=
+        𝓕.distribution y ≤ (mfderiv I 𝓘(ℝ, F₂) (fun y ↦ (Φ y).2) y).ker :=
       fun v hv ↦ by
-        rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe,
-          mfderiv_comp_apply y (ContinuousLinearMap.snd ℝ F₁ F₂).mdifferentiableAt
-            (Φ.mdifferentiableAt (by simp) hy), ContinuousLinearMap.mfderiv_eq]
-        exact (hflat y hy v).2 hv
-    simpa only [comp_apply, ContinuousLinearMap.coe_snd'] using
-      apply_eq_of_contMDiffOn_of_tangent hsnd hker hγ
-        ((convex_ball t δ).inter (convex_Icc 0 1)) inter_subset_right (fun r hr ↦ (hδO hr).1)
-        (fun r hr ↦ htan r hr.2) hs ⟨Metric.mem_ball_self hδ, ht⟩
+        rw [LinearMap.mem_ker, ContinuousLinearMap.coe_coe]
+        exact ((Φ.mdifferentiableAt (by simp) hy).mvfderiv_snd_apply v).trans ((hflat y hy v).2 hv)
+    exact apply_eq_of_contMDiffOn_of_tangent hsnd hker hγ
+      ((convex_ball t δ).inter (convex_Icc 0 1)) inter_subset_right (fun r hr ↦ (hδO hr).1)
+      (fun r hr ↦ htan r hr.2) hs ⟨Metric.mem_ball_self hδ, ht⟩
   filter_upwards [inter_mem_nhdsWithin _ (Metric.ball_mem_nhds t hδ)] with s hs
   have hs' : s ∈ S := ⟨hs.2, hs.1⟩
   have hst := hconst s hs'

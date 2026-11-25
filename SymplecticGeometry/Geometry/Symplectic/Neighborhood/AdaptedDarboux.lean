@@ -20,6 +20,7 @@ import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Extend
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Topology.Maps.Embedding
 import SymplecticGeometry.Geometry.Symplectic.Manifold.CharacteristicFoliation
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # Darboux charts adapted to submanifolds
@@ -123,11 +124,10 @@ private theorem eventually_compContinuousLinearMap_mpullback_eq {G : StdSpace (F
   -- `hGus` says that `G ∘ ι` and `u` agree near `s`, which is `G ∘ ι =ᶠ[𝓝 s] u` by definition.
   rw [← mpullback_comp_at ι.mdifferentiableAt
     ((hGW _ hsW).mdifferentiableAt (by simp)), (show G ∘ ι =ᶠ[𝓝 s] u from hGus).mpullback_eq]
-  ext v
-  have hv : v = ![v 0, v 1] := (FinVec.etaExpand_eq _).symm
-  rw [hv, mpullback_apply_pair, mpullback_apply_pair, ContinuousLinearMap.mfderiv_eq,
+  ext v w
+  rw [mpullback_apply_pair, mpullback_apply_pair, ContinuousLinearMap.mfderiv_eq,
     ← SmoothBundleForm.eval₂_apply, ← SmoothBundleForm.eval₂_apply]
-  exact (hcs (v 0) (v 1)).trans (SymplecticForm.constSmooth_apply _ _ _ _).symm
+  exact (hcs v w).trans (SymplecticForm.constSmooth_apply _ _ _ _).symm
 
 omit [FiniteDimensional ℝ E] [BoundarylessManifold I M] in
 /-- Let `G : StdSpace (Fin n) → M` be a local diffeomorphism at `0` which agrees near `0` with
