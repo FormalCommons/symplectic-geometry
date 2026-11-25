@@ -5,12 +5,12 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import TauCeti.Geometry.Manifold.ModelTransport.Immersion
-public import TauCeti.Geometry.Manifold.PullbackGroupoid
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.SmoothZero
 
 import Mathlib.Geometry.Manifold.LocalDiffeomorph
+import TauCeti.Geometry.Manifold.ModelTransport.Immersion
+import TauCeti.Geometry.Manifold.PullbackGroupoid
 import TauCeti.Geometry.Manifold.Immersion.Basic
 import SymplecticGeometry.Topology.VectorBundle.ZeroSet
 
