@@ -5,7 +5,8 @@ submanifolds*, for the page `auxiliary/first-chern-class.md`. The part proves
 the milestone *Thom class and Poincaré dual of a submanifold*: for a closed
 embedded submanifold $Z\subset X$ of codimension $r$ with oriented normal
 bundle $\nu$, the Thom isomorphism of $\nu$ with integral coefficients, the
-class $d_Z\in H^r(X;\mathbb Z)$ obtained from the Thom class through a
+fibre restrictions of its Thom class (on each fibre, the generator of its
+orientation), the class $d_Z\in H^r(X;\mathbb Z)$ obtained from the Thom class through a
 tubular neighbourhood and excision, its vanishing on $X\setminus Z$, its
 restriction $e(\nu)$ to $Z$, and, for closed oriented $X$ and $Z$,
 $d_Z\frown[X]=i_*[Z]$. It also proves that the zero set of a section
@@ -142,14 +143,25 @@ the only `dualClass` is a private helper of local orientations.
   carried to chain coefficients and values `ℤ` by the isomorphism
   `ULift ℤ ≅ ℤ` through these conversion lemmas, so that the milestone
   speaks of one class $u_\nu$.
-- **The order of the orientations.** The normal orientation induced by
-  orientations of $X$ and $Z$ puts the normal directions first: a positive
-  basis of $\nu_z$, lifted to $T_zX$, followed by a positive basis of
-  $T_zZ$, is a positive basis of $T_zX$. This is the page's convention, and
-  with Hatcher's cap product (front face) it is the one for which
-  $d_Z\frown[X]=i_*[Z]$ holds with no sign. It differs from
-  `Orientation.cokerOfExact`, which puts the subspace first, by the sign
-  $(-1)^{r\dim Z}$.
+- **The order of the orientations.** The normal directions come first, as
+  on the page, in local homology: at each $z$, the local orientation class
+  of $X$ at $f(z)$ is, in a trivialization, the homology cross product of
+  the local orientation of $\nu_z$ followed by that of $Z$ at $z$. This is
+  what Hatcher's cap product (front face), Tau Ceti's
+  `TopCat.singularCap_singularHomologyCrossRel`, needs for
+  $d_Z\frown[X]=i_*[Z]$ with no sign. Under Tau Ceti's identification of
+  linear orientations with local homology generators the cross product is
+  not the product orientation: by the library's
+  `TauCeti.LocalOrientation.coe_cross_localOrientation_eq_neg_one_pow_smul`
+  (and `crossSign_eq`), the cross product of the local orientations of `ω`
+  and `ω'` is $(-1)^{\dim\cdot\dim'}$ times the local orientation of
+  `ω.prod ω'`. Exchanging the two blocks of a basis costs the same sign, so
+  the cross product normal first is the local orientation of the linear
+  orientation *tangent first*: a positive basis of $T_zZ$ followed by lifts
+  of a positive basis of $\nu_z$ is a positive basis of $T_zX$. The normal
+  orientation is therefore plain `Orientation.cokerOfExact` of
+  $0\to T_zZ\to T_{f(z)}X\to\nu_z\to0$, with no sign correction.
+  `design/chern-classes.md` meets the same sign for the Whitney sum.
 - **Thom isomorphism over second-countable bases, by Mayer–Vietoris
   induction.** No finite trivializing cover is needed. Tau Ceti's
   `TauCeti.mayerVietoris_induction` (`Topology/MayerVietoris.lean`) proves a
@@ -246,6 +258,15 @@ In the setting of Tau Ceti's `TopCat.pullbackCupRestrict` (a map
   that it does not depend on `ω₀` (both `ω` and `g` change sign), and
   `normalThomClass_eq_thomClass` that for `r = n + 1` it is
   `o.thomClass`, by `eq_thomClass_iff`.
+- `TauCeti.SmoothEmbedding.singularCohomologyMap_fiberThomPairMap_normalThomClass`:
+  the restriction of `normalThomClass f hdim o (modelThomGenerator ω₀)` to
+  the fibre pair over `x` (`fiberThomPairMap`) is the generator selected by
+  `o x`. As the fibres carry no norm, it is read in a trivialization: for
+  every linear trivialization `e` at `x`, the restriction is the pull-back,
+  by `(e.continuousLinearEquivAt ℝ x hx).complZeroPairIso`, of
+  `modelThomGenerator (e.mapOrientation _ hx (o x))`. From Tau Ceti's
+  `singularCohomologyMap_fiberThomPairMap_thomClassOfModel_of_mapOrientation_eq`,
+  its `_eq_neg` variant and `modelThomGenerator_neg`.
 - `TauCeti.SmoothEmbedding.intNormalThomClass f hdim o`: the class
   `normalThomClass f hdim o (modelThomGenerator ω₀)` carried to chain
   coefficients and values `ℤ` by `ULift ℤ ≅ ℤ`
@@ -324,27 +345,32 @@ With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
 
 - `TauCeti.SmoothEmbedding.normalOrientation f hdim oX oZ`: the normal
   orientation induced by `oX : Manifold.Orientation J X (Fin (m + r))` and
-  `oZ : Manifold.Orientation I Z (Fin m)`, normal directions first, a
-  `VectorBundleOrientation`; built pointwise from `Orientation.cokerOfExact`
-  of $0\to T_zZ\to T_{f(z)}X\to\nu_z\to0$ and the sign $(-1)^{rm}$, with
-  local constancy in Tau Ceti's trivializations of the normal bundle, as in
-  `VectorBundleOrientation.transverse`.
-- `normalOrientation_apply` (the characterization by positive bases),
+  `oZ : Manifold.Orientation I Z (Fin m)`, normal directions first in local
+  homology (see *Decisions*), a `VectorBundleOrientation`; built pointwise
+  as `Orientation.cokerOfExact` of $0\to T_zZ\to T_{f(z)}X\to\nu_z\to0$,
+  with no sign, and with local constancy in Tau Ceti's trivializations of
+  the normal bundle, as in `VectorBundleOrientation.transverse`.
+- `normalOrientation_apply` (the characterization by positive bases: a
+  positive basis of $T_zZ$ followed by lifts of a positive basis of
+  $\nu_z$),
   `normalOrientation_neg_left`, `normalOrientation_neg_right`.
 
 ### `AlgebraicTopology/Cohomology/Cap/ProdLocal.lean`
 
 The local computation, on Tau Ceti types: for the model pair
-$(P,P\setminus0)$ of dimension `r` and a manifold `Y` of dimension
-`m`, at a point `(0, y)`, the cap product of the pull-back of the
-generator `modelThomGenerator ω` along the first projection with the local
-orientation class `TauCeti.LocalOrientation.prod` of the orientations
-`ω` and of `Y` at `y` (`AlgebraicTopology/Singular/LocalHomology/Orientation/Prod.lean`,
-first factor first), pushed forward along the second projection, is the
-local orientation class of `Y` at `y`; from
-`TopCat.singularCap_singularHomologyCrossRel` (`Cap/CrossRel.lean`). This is
-where the order *normal first* enters. For `r = 0` or `m = 0` the
-statement degenerates to the unit and needs no product orientation.
+$(P,P\setminus0)$ of dimension `r` and a vector space `Q` of dimension
+`m`, at the origin, the cap product of the pull-back of the generator
+`modelThomGenerator ω` along the first projection with the cross product
+`TauCeti.LocalOrientation.cross` of the local orientations of `ω` and of an
+orientation `ω'` of `Q`, normal factor first, pushed forward along the
+second projection, is the local orientation of `ω'`; from
+`TopCat.singularCap_singularHomologyCrossRel` (`Cap/CrossRel.lean`). The
+form used below reads the cross product, by
+`TauCeti.LocalOrientation.coe_cross_localOrientation_eq_neg_one_pow_smul`,
+as the local orientation of the linear orientation of $P\times Q$ that
+puts `ω'` first, the order `normalOrientation` produces. This is where the
+order of *Decisions* enters. For `r = 0` or `m = 0` the statement
+degenerates to the unit and needs no product orientation.
 
 ### `Geometry/Manifold/Orientation/DualClass.lean`
 
@@ -361,14 +387,18 @@ For closed `X` and `Z` (`[CompactSpace X]`), `hf`, and
   bundle, where a class of $H_m$ of a neighbourhood that deformation
   retracts onto $Z$ is determined by its local classes at the points of
   $Z$, and in a trivialization the local class is `Cap/ProdLocal.lean`'s,
-  once the local orientation of $X$ at $f(z)$ is identified with the product
-  of the normal orientation and that of $Z$ (`normalOrientation_apply`).
+  once the local orientation of $X$ at $f(z)$ is identified with the cross
+  product of the local orientations of $\nu_z$ and of $Z$ at $z$, normal
+  first (`normalOrientation_apply` and
+  `coe_cross_localOrientation_eq_neg_one_pow_smul`).
 - `dualClass_cap_fundamentalClass_of_finrank_eq_zero`: the case
   $\dim Z=0$, with `toHomologicalOrientationOfZeroDim` and its fundamental
   class.
 - the milestone theorem
   `TauCeti.SmoothEmbedding.bijective_thomMap_and_dualClass_cap_fundamentalClass`,
   the conjunction of `bijective_thomMap_normalThomClass`,
+  `singularCohomologyMap_fiberThomPairMap_normalThomClass` (on each fibre
+  the Thom class is the generator of the fibre's orientation),
   `dualClass_restrict_compl`, `dualClass_restrict` and, for closed oriented
   `X` and `Z` with the induced normal orientation,
   `dualClass_cap_fundamentalClass`, with the milestone line *Thom class and
