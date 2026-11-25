@@ -13,6 +13,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.We
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.LiouvilleMeasure
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import TauCeti.Geometry.Symplectic.Manifold.Volume
+import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
@@ -54,6 +55,23 @@ contribution of a fixed point vanishes for `‖z‖ ≥ aᵢ` when `F` is suppor
 the centres are distinct, `OpenPartialHomeomorph.exists_pairwise_disjoint_image_ball` gives
 balls about `0` with pairwise disjoint images; and `IsCompact.exists_forall_le'` gives `f` a
 positive lower bound on the compact complement of the small images.
+
+## The pieces of `F(d_ħ θ)` near the fixed points
+
+`SymplecticGeometry.exists_eq_sum_of_cartanDiff_eq_zero` splits an equivariantly closed form `β`
+that vanishes outside the union of the images `Φᵢ '' ball 0 aᵢ` into equivariantly closed forms
+`γᵢ`, each supported in `Φᵢ '' closedBall 0 cᵢ` for some `cᵢ < bᵢ` and equal to `β` on
+`Φᵢ '' ball 0 bᵢ`, with `β = ∑ᵢ γᵢ`, provided the images `Φᵢ '' ball 0 bᵢ` are pairwise
+disjoint. The piece `γᵢ` is `ρᵢ β` for a smooth cut-off `ρᵢ` that is `1` near
+`Φᵢ '' closedBall 0 aᵢ` and supported in `Φᵢ '' closedBall 0 cᵢ`
+(`IsClosed.exists_contMDiffMap_tsupport_subset_eventually_eq_one`). At each point either `β`
+vanishes or every `ρⱼ` is locally constant, `1` for the one image of radius `aⱼ` that contains the
+point and `0` for the others, so `d_ħ (ρᵢ β) = dρᵢ ∧ β = 0`
+(`SymplecticGeometry.cartanDiff_ofFunctionRingHom_mul_eq_zero`), and the other properties hold
+pointwise. `SymplecticGeometry.exists_formCalculus_eq_sum` applies this to `β = F(d_ħ θ)` for a
+one-form `θ` with `L_X θ = 0` and `F` supported in `[-δ, δ]`: the components of `F(d_ħ θ)` vanish
+where `ħ θ(X) > δ` (`SymplecticGeometry.tsupport_formCalculus_subset`), and `F(d_ħ θ)` is
+equivariantly closed (`SymplecticGeometry.cartanDiff_formCalculus_of_mlieDerivForm_eq_zero`).
 
 ## The top component of `F(d_ħ θ)` on a weight chart
 
@@ -183,6 +201,138 @@ theorem exists_cutoffLevel_radii {ι : Type*} [Finite ι] {n : ι → ℕ}
     exact (hδ.1 i).2.trans_le h2
 
 end CutoffLevel
+
+section Pieces
+
+variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
+  [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M]
+  {X : (x : M) → TangentSpace I x}
+  {hX : ContMDiff I I.tangent ∞ (fun x ↦ (X x : TangentBundle I M))} {ħ : ℝ}
+  {ι : Type*} [Fintype ι] {n : ι → ℕ}
+
+omit [Fintype ι] in
+/-- Cut-offs for `SymplecticGeometry.exists_eq_sum_of_cartanDiff_eq_zero`: smooth functions
+`ρ i` and radii `c i < b i` such that `ρ i` vanishes outside `Φ i '' closedBall 0 (c i)` and,
+near each point of `Φ j '' ball 0 (a j)`, `ρ j` is `1` and every other `ρ i` is `0`. -/
+private theorem exists_cutoffs_image_ball
+    (Φ : ∀ i, PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin (n i))) I (StdSpace (Fin (n i))) M ∞)
+    {a b : ι → ℝ} (hab : ∀ i, a i < b i) (hb : ∀ i, ball 0 (b i) ⊆ (Φ i).source)
+    (hd : Pairwise fun i j ↦ Disjoint (Φ i '' ball 0 (b i)) (Φ j '' ball 0 (b j))) :
+    ∃ (ρ : ι → C^∞⟮I, M; 𝓘(ℝ), ℝ⟯) (c : ι → ℝ), (∀ i, c i < b i) ∧
+      (∀ i, ∀ x ∉ Φ i '' closedBall 0 (c i), ρ i x = 0) ∧
+      ∀ j, ∀ x ∈ Φ j '' ball 0 (a j),
+        (∀ᶠ y in 𝓝 x, ρ j y = 1) ∧ ∀ i ≠ j, ∀ᶠ y in 𝓝 x, ρ i y = 0 := by
+  set c : ι → ℝ := fun i ↦ (a i + b i) / 2
+  have hac (i : ι) : a i < c i := by simp only [c]; linarith [hab i]
+  have hcb (i : ι) : c i < b i := by simp only [c]; linarith [hab i]
+  have hopen (i : ι) {r : ℝ} (hr : r ≤ b i) : IsOpen (Φ i '' ball 0 r) :=
+    (Φ i).toOpenPartialHomeomorph.isOpen_image_of_subset_source isOpen_ball
+      ((ball_subset_ball hr).trans (hb i))
+  have hclosed (i : ι) {r : ℝ} (hr : r < b i) : IsClosed (Φ i '' closedBall 0 r) :=
+    ((Φ i).isCompact_image_of_subset_source (isCompact_closedBall 0 r)
+      ((closedBall_subset_ball hr).trans (hb i))).isClosed
+  choose ρ hρs hρ1 _ using fun i ↦
+    (hclosed i (hab i)).exists_contMDiffMap_tsupport_subset_eventually_eq_one I
+      (hopen i (hcb i).le) (image_mono (closedBall_subset_ball (hac i)))
+  have hρ0 (i : ι) (x : M) (hx : x ∉ Φ i '' closedBall 0 (c i)) : ρ i x = 0 :=
+    image_eq_zero_of_notMem_tsupport fun h ↦ hx (image_mono ball_subset_closedBall (hρs i h))
+  refine ⟨ρ, c, hcb, hρ0, fun j x hj ↦ ⟨(hρ1 j).filter_mono (nhds_le_nhdsSet
+    (image_mono ball_subset_closedBall hj)), fun i hij ↦ ?_⟩⟩
+  filter_upwards [(hopen j (hab j).le).mem_nhds hj] with y hy
+  exact hρ0 i y fun hyi ↦ disjoint_left.1 (hd hij)
+    (image_mono (closedBall_subset_ball (hcb i)) hyi) (image_mono (ball_subset_ball (hab j).le) hy)
+
+/-- **Cutting an equivariantly closed form into pieces near the centres of charts.** Let `M` be a
+Hausdorff, σ-compact manifold, and for `i` in a finite type let `Φ i` be a partial
+diffeomorphism from `StdSpace (Fin (n i))` to `M` with `ball 0 (b i)` in its source, such that
+the sets `Φ i '' ball 0 (b i)` are pairwise disjoint. Let `a i < b i`, and let `β` be a form of
+mixed degree with `d_ħ β = 0` whose components all vanish outside the union of the sets
+`Φ i '' ball 0 (a i)`. Then there are forms `γ i` of mixed degree and radii `c i < b i` such that
+`d_ħ (γ i) = 0`, the components of `γ i` vanish outside `Φ i '' closedBall 0 (c i)` and agree
+with those of `β` on `Φ i '' ball 0 (b i)`, and `β = ∑ i, γ i`. -/
+theorem exists_eq_sum_of_cartanDiff_eq_zero
+    (Φ : ∀ i, PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin (n i))) I (StdSpace (Fin (n i))) M ∞)
+    {a b : ι → ℝ} (hab : ∀ i, a i < b i) (hb : ∀ i, ball 0 (b i) ⊆ (Φ i).source)
+    (hd : Pairwise fun i j ↦ Disjoint (Φ i '' ball 0 (b i)) (Φ j '' ball 0 (b j)))
+    {β : ⨁ k, SmoothForm I M ℝ k} (hβ : cartanDiff X hX ħ β = 0)
+    (hβa : ∀ x, (∀ i, x ∉ Φ i '' ball 0 (a i)) → ∀ k, (β k).val x = 0) :
+    ∃ (γ : ι → ⨁ k, SmoothForm I M ℝ k) (c : ι → ℝ), (∀ i, c i < b i) ∧
+      (∀ i, cartanDiff X hX ħ (γ i) = 0) ∧
+      (∀ i, ∀ x ∉ Φ i '' closedBall 0 (c i), ∀ k, (γ i k).val x = 0) ∧
+      (∀ i, ∀ x ∈ Φ i '' ball 0 (b i), ∀ k, (γ i k).val x = (β k).val x) ∧
+      β = ∑ i, γ i := by
+  classical
+  obtain ⟨ρ, c, hcb, hρ0, hρ⟩ := exists_cutoffs_image_ball Φ hab hb hd
+  -- At each point, either `β` vanishes or one cut-off is `1` nearby and the others are `0`.
+  have hloc (x : M) : (∀ k, (β k).val x = 0) ∨ ∃ j, x ∈ Φ j '' ball 0 (a j) ∧
+      (∀ᶠ y in 𝓝 x, ρ j y = 1) ∧ ∀ i ≠ j, ∀ᶠ y in 𝓝 x, ρ i y = 0 := by
+    by_cases hx : ∃ j, x ∈ Φ j '' ball 0 (a j)
+    · obtain ⟨j, hj⟩ := hx
+      exact .inr ⟨j, hj, hρ j x hj⟩
+    · exact .inl (hβa x fun i hi ↦ hx ⟨i, hi⟩)
+  have hγ (i : ι) (k : ℕ) (x : M) :
+      ((SmoothForm.ofFunctionRingHom (ρ i) * β) k).val x = ρ i x • (β k).val x := by
+    simp
+  refine ⟨fun i ↦ SmoothForm.ofFunctionRingHom (ρ i) * β, c, hcb, fun i ↦ ?_, fun i x hx k ↦ ?_,
+    fun i x hx k ↦ ?_, ?_⟩
+  · refine cartanDiff_ofFunctionRingHom_mul_eq_zero _ hβ fun x ↦ (hloc x).symm.imp_left ?_
+    rintro ⟨j, -, h1, h0⟩
+    obtain ⟨r, hr⟩ : ∃ r : ℝ, ∀ᶠ y in 𝓝 x, ρ i y = r := by
+      by_cases hij : i = j
+      · exact ⟨1, hij ▸ h1⟩
+      · exact ⟨0, h0 i hij⟩
+    exact ((hasMFDerivAt_const r x).congr_of_eventuallyEq hr).mfderiv
+  · rw [hγ, hρ0 i x hx, zero_smul]
+  · rw [hγ]
+    rcases hloc x with h | ⟨j, hj, h1, -⟩
+    · rw [h k, smul_zero]
+    · obtain rfl : i = j := by
+        by_contra hij
+        exact disjoint_left.1 (hd hij) hx (image_mono (ball_subset_ball (hab j).le) hj)
+      rw [h1.self_of_nhds, one_smul]
+  · ext k : 1
+    refine Subtype.ext (funext fun x ↦ ?_)
+    rw [DirectSum.sum_apply, Submodule.coe_sum, Finset.sum_apply]
+    simp only [hγ]
+    rcases hloc x with h | ⟨j, -, h1, h0⟩
+    · simp [h k]
+    · rw [Finset.sum_eq_single j (fun i _ hij ↦ by rw [(h0 i hij).self_of_nhds, zero_smul])
+        (by simp), h1.self_of_nhds, one_smul]
+
+/-- **The pieces of `F(d_ħ θ)` near the centres of charts.** Let `M`, the charts `Φ i` and the
+radii `a i < b i` be as in `SymplecticGeometry.exists_eq_sum_of_cartanDiff_eq_zero`, let `θ` be
+a one-form with zero Lie derivative along `X`, and let `δ` be such that every `x` with
+`ħ θ(X)(x) ≤ δ` lies in some `Φ i '' ball 0 (a i)`. For a smooth `F : ℝ → ℝ` supported in
+`[-δ, δ]`, the form `F(d_ħ θ) = F(-ħ θ(X) + dθ)` is the sum of forms `γ i` of mixed degree with
+`d_ħ (γ i) = 0`, whose components vanish outside `Φ i '' closedBall 0 (c i)` for some
+`c i < b i` and agree with those of `F(d_ħ θ)` on `Φ i '' ball 0 (b i)`. -/
+theorem exists_formCalculus_eq_sum
+    (Φ : ∀ i, PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin (n i))) I (StdSpace (Fin (n i))) M ∞)
+    {a b : ι → ℝ} (hab : ∀ i, a i < b i) (hb : ∀ i, ball 0 (b i) ⊆ (Φ i).source)
+    (hd : Pairwise fun i j ↦ Disjoint (Φ i '' ball 0 (b i)) (Φ j '' ball 0 (b j)))
+    {θ : SmoothForm I M ℝ 1} (hθ : mlieDerivForm X θ.val = 0) {δ : ℝ}
+    (hδ : ∀ x, ħ * θ.val x ![X x] ≤ δ → ∃ i, x ∈ Φ i '' ball 0 (a i))
+    (F : ℝ → ℝ) (hF : ContDiff ℝ ∞ F) (hFδ : tsupport F ⊆ Icc (-δ) δ) :
+    ∃ (γ : ι → ⨁ k, SmoothForm I M ℝ k) (c : ι → ℝ), (∀ i, c i < b i) ∧
+      (∀ i, cartanDiff X hX ħ (γ i) = 0) ∧
+      (∀ i, ∀ x ∉ Φ i '' closedBall 0 (c i), ∀ k, (γ i k).val x = 0) ∧
+      (∀ i, ∀ x ∈ Φ i '' ball 0 (b i), ∀ k, (γ i k).val x = (formCalculus F hF
+        (-ħ • SmoothForm.ofFunctionEquiv.symm (SmoothForm.interiorProduct ⟨X, hX⟩ θ))
+        (mextDerivₗ I 1 θ) k).val x) ∧
+      formCalculus F hF
+        (-ħ • SmoothForm.ofFunctionEquiv.symm (SmoothForm.interiorProduct ⟨X, hX⟩ θ))
+        (mextDerivₗ I 1 θ) = ∑ i, γ i := by
+  refine exists_eq_sum_of_cartanDiff_eq_zero Φ hab hb hd
+    (cartanDiff_formCalculus_of_mlieDerivForm_eq_zero F hF hθ) fun x hx k ↦ ?_
+  -- Where a component of `F(d_ħ θ)` is nonzero, `-ħ θ(X)` lies in the support of `F`.
+  by_contra hne
+  have hFx : ħ * θ.val x ![X x] ≤ δ := by
+    simpa using (hFδ (tsupport_formCalculus_subset F hF _ _ k (subset_tsupport _ hne))).1
+  obtain ⟨i, hi⟩ := hδ x hFx
+  exact hx i hi
+
+end Pieces
 
 section WeightChart
 

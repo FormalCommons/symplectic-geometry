@@ -46,6 +46,8 @@ its factors does; that pointwise step follows the proof of Tau Ceti's
 
 * `TauCeti.SmoothForm.of_mul_of_eq_of_wedge`: the product of homogeneous forms is their wedge,
   and `TauCeti.SmoothForm.of_zero_ofFunction_mul`: in degree `0` it is the product of functions.
+* `TauCeti.SmoothForm.of_zero_ofFunction_mul_apply`: multiplying a form of mixed degree by a
+  function multiplies each component by it.
 * `TauCeti.SmoothForm.algebraMap_apply_eq_of_ofFunction`: the image of `r : ℝ` is the constant
   function `r`, in degree `0`.
 * `TauCeti.SmoothForm.of_pow_eq_of_wedgePow`: powers of a homogeneous form are its wedge powers,
@@ -249,6 +251,22 @@ theorem of_zero_ofFunction_mul_of (g : C^∞⟮I, M; ℝ⟯) (φ : SmoothForm I 
       DirectSum.of _ l (funSMulₗ g φ) := by
   rw [of_mul_of_eq_of_wedge, ofFunction_wedge]
   exact DirectSum.of_eq_of_gradedMonoid_eq (GradedMonoid.mk_linearEquivCast (R := ℝ) _ _)
+
+/-- The component of degree `k` of the product of the `0`-form of a smooth function `g` with a
+form `β` of mixed degree is `g` times the component of degree `k` of `β`. -/
+@[simp]
+theorem of_zero_ofFunction_mul_apply (g : C^∞⟮I, M; ℝ⟯) (β : ⨁ k, SmoothForm I M ℝ k) (k : ℕ) :
+    (DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 0 (ofFunction g) * β) k = funSMulₗ g (β k) := by
+  induction β using DirectSum.induction_on with
+  | zero => simp
+  | of l φ =>
+    rw [of_zero_ofFunction_mul_of]
+    by_cases h : l = k
+    · subst h
+      simp only [DirectSum.of_eq_same]
+    · rw [DirectSum.of_eq_of_ne _ _ _ (Ne.symm h), DirectSum.of_eq_of_ne _ _ _ (Ne.symm h),
+        map_zero]
+  | add β β' hβ hβ' => rw [mul_add, DirectSum.add_apply, hβ, hβ', DirectSum.add_apply, map_add]
 
 /-- The product of the `0`-forms of two smooth functions is the `0`-form of their product. -/
 theorem of_zero_ofFunction_mul (g g' : C^∞⟮I, M; ℝ⟯) :
