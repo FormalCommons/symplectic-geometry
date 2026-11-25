@@ -22,6 +22,8 @@ meets each leaf at most once.
 
 * `TauCeti.Foliation.isRegular_ofConstantRank`: the kernel foliation of a smooth map of constant
   rank is regular.
+* `TauCeti.Foliation.isSlice_ofConstantRank`: a smooth map `s` from the model space of the slices
+  is a slice of that foliation when `f ∘ s` and its derivatives are injective.
 
 ## Implementation notes
 
@@ -55,6 +57,39 @@ variable {E F H G M N : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Finit
   {I : ModelWithCorners ℝ E H} [I.Boundaryless] {J : ModelWithCorners ℝ F G} [J.Boundaryless]
   [TopologicalSpace M] [ChartedSpace H M] [TopologicalSpace N] [ChartedSpace G N]
   [IsManifold I (∞ + 1) M] [IsManifold J (∞ + 1) N] {f : M → N} {r : ℕ}
+
+/-- A criterion for a slice of the kernel foliation of a map `f` of constant rank `r`: a smooth
+map `s` from an open set of `EuclideanSpace ℝ (Fin (dim E - (dim E - r)))` to the source is a slice
+of the foliation by the kernels of the derivative of `f` when `f ∘ s` is injective and, at every
+point `u`, the composition of the derivatives of `s` at `u` and of `f` at `s u` is injective. -/
+theorem isSlice_ofConstantRank (hf : ContMDiff I J (∞ + 1) f)
+    (hr : ∀ x, mfderivRank I J f x = r) (hn : (1 : ℕ∞ω) ≤ ∞)
+    {U : Opens (EuclideanSpace ℝ (Fin (finrank ℝ E - (finrank ℝ E - r))))} {s : U → M}
+    (hs : ContMDiff (𝓡 (finrank ℝ E - (finrank ℝ E - r))) I ∞ s) (hfs : Injective (f ∘ s))
+    (hd : ∀ u, Injective (mfderiv I J f (s u) ∘L
+      mfderiv (𝓡 (finrank ℝ E - (finrank ℝ E - r))) I s u)) :
+    (ofConstantRank hf hr hn).IsSlice s := by
+  refine ⟨hs, fun u ↦ ?_, fun u v huv ↦ hfs (huv.apply_eq_of_ofConstantRank)⟩
+  rw [ofConstantRank_distribution]
+  have hinj : Injective (mfderiv (𝓡 (finrank ℝ E - (finrank ℝ E - r))) I s u) := by
+    have h := hd u
+    rw [ContinuousLinearMap.coe_comp] at h
+    exact h.of_comp
+  have hr' := finrank_ker_mfderiv_add_mfderivRank (I := I) (J := J) (f := f) (x := s u)
+  rw [hr] at hr'
+  have hrange := LinearMap.finrank_range_of_inj (f := (mfderiv
+    (𝓡 (finrank ℝ E - (finrank ℝ E - r))) I s u).toLinearMap) hinj
+  refine (Submodule.isCompl_iff_disjoint _ _ ?_).2 (Submodule.disjoint_def.2 ?_)
+  · rw [hrange]
+    simp only [finrank_tangentSpace, finrank_euclideanSpace_fin]
+    omega
+  · rintro _ ⟨w, rfl⟩ hw
+    have h0 : (mfderiv I J f (s u) ∘L
+        mfderiv (𝓡 (finrank ℝ E - (finrank ℝ E - r))) I s u) w = 0 := by
+      rw [ContinuousLinearMap.comp_apply]
+      exact hw
+    rw [hd u (h0.trans (map_zero _).symm)]
+    exact map_zero _
 
 /-- **The kernel foliation of a map of constant rank is regular.** For a smooth map `f` of
 constant rank `r` between boundaryless real manifolds, the source modelled on a
@@ -105,10 +140,10 @@ theorem isRegular_ofConstantRank (hf : ContMDiff I J (∞ + 1) f)
     (hφi.contMDiffAt (φ.open_target.mem_nhds u.property)).comp u
       (L.contMDiff.contMDiffAt.comp u contMDiff_subtypeVal.contMDiffAt)
   -- In the coordinate `ψ`, the derivative of `f ∘ s` is `A ∘ L`, which is injective.
-  have hkey (u : U) (w : TangentSpace (𝓡 (finrank ℝ E - (finrank ℝ E - r))) u)
-      (hw : mfderiv I J f (s u)
-        (mfderiv (𝓡 (finrank ℝ E - (finrank ℝ E - r))) I s u w) = 0) :
-      w = 0 := by
+  have hkey (u : U) : Injective (mfderiv I J f (s u) ∘L
+      mfderiv (𝓡 (finrank ℝ E - (finrank ℝ E - r))) I s u) := by
+    refine (injective_iff_map_eq_zero _).2 fun w hw ↦ hAL ?_
+    rw [ContinuousLinearMap.comp_apply] at hw
     have hψu : MDifferentiableAt J 𝓘(ℝ, F) ψ (f (s u)) :=
       (hψ.contMDiffAt (ψ.open_source.mem_nhds (hmap (φ.map_target u.property)))).mdifferentiableAt
         h0
@@ -122,30 +157,15 @@ theorem isRegular_ofConstantRank (hf : ContMDiff I J (∞ + 1) f)
       mfderiv_comp u (hf.mdifferentiableAt h0) hsu, mfderiv_comp_subtype_val_apply,
       (A ∘L L).mfderiv_eq] at h
     simp only [ContinuousLinearMap.comp_apply, hw, map_zero] at h
-    exact hAL h.symm
-  refine ⟨U, s, ⟨hs.of_le le_self_add, fun u ↦ ?_, fun u v huv ↦ ?_⟩,
-    ⟨⟨0, by simpa [U, L, hφx] using φ.map_source hxφ⟩,
-      by simp [s, L, ← hφx, φ.left_inv hxφ]⟩⟩
-  · rw [ofConstantRank_distribution]
-    have hinj : Injective
-        (mfderiv (𝓡 (finrank ℝ E - (finrank ℝ E - r))) I s u) :=
-      (injective_iff_map_eq_zero _).2 fun w hw ↦ hkey u w (by rw [hw, map_zero])
-    have hr' := finrank_ker_mfderiv_add_mfderivRank (I := I) (J := J) (f := f) (x := s u)
-    rw [hr] at hr'
-    have hrange := LinearMap.finrank_range_of_inj (f := (mfderiv
-      (𝓡 (finrank ℝ E - (finrank ℝ E - r))) I s u).toLinearMap) hinj
-    refine (Submodule.isCompl_iff_disjoint _ _ ?_).2 (Submodule.disjoint_def.2 ?_)
-    · rw [hrange]
-      simp only [finrank_tangentSpace, finrank_euclideanSpace_fin]
-      omega
-    · rintro _ ⟨w, rfl⟩ hw
-      rw [hkey u w hw]
-      exact map_zero _
-  · have h := SameLeaf.apply_eq_of_ofConstantRank huv
+    exact h.symm
+  -- In the coordinate `ψ`, `f ∘ s` is `A ∘ L`, which is injective.
+  have hinj : Injective (f ∘ s) := fun u v huv ↦ by
     have h' : A (L (u - v)) = 0 := by
-      rw [map_sub, map_sub, ← hfs, ← hfs, h, sub_self]
+      rw [map_sub, map_sub, ← hfs, ← hfs, ← comp_apply (f := f), ← comp_apply (f := f), huv,
+        sub_self]
     exact Subtype.ext (sub_eq_zero.1 (hAL h'))
-
+  exact ⟨U, s, isSlice_ofConstantRank hf hr hn (hs.of_le le_self_add) hinj hkey,
+    ⟨0, by simpa [U, L, hφx] using φ.map_source hxφ⟩, by simp [s, L, ← hφx, φ.left_inv hxφ]⟩
 
 end TauCeti.Foliation
 

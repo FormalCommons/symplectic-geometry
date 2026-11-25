@@ -21,7 +21,7 @@ leaf space is a manifold; the reduced Lagrangian is to be built on it.
 ## Main results
 
 * `SymplecticGeometry.IsCleanIntersection.isRegular_ofConstantRank`: the kernel foliation of
-  `leafSpaceMk ∘ c` on a boundaryless `C` is regular. It is the case of the reduced Lagrangian of
+  `leafSpaceMk ∘ c` on a boundaryless `C` is regular. It is the case `leafSpaceMk ∘ c` of
   `TauCeti.Foliation.isRegular_ofConstantRank`, which holds for every smooth map of constant rank.
 
 ## References
@@ -54,10 +54,10 @@ variable {E H M F H' N : Type*}
   {h : hσ.IsCoisotropicMap J f} {hi : IsImmersion J I ∞ f} {hf : ContMDiff J I ∞ f}
   {hσc : σ.IsClosed} {hn : (1 : ℕ∞ω) ≤ ∞} {g : P → M} {c : C → N}
 
-/-- **The kernel foliation of the reduced Lagrangian is regular.** Let `f` be a coisotropic
-immersion with regular characteristic foliation, `g` a Lagrangian immersion, and `c` a clean
-intersection of `f` and `g` from a boundaryless manifold `C`. Then the foliation of `C` by the
-kernels of the derivative of `leafSpaceMk ∘ c`, a map of constant rank
+/-- **The kernel foliation of `leafSpaceMk ∘ c` on a clean intersection is regular.** Let `f`
+be a coisotropic immersion with regular characteristic foliation, `g` a Lagrangian immersion, and
+`c` a clean intersection of `f` and `g` from a boundaryless manifold `C`. Then the foliation of
+`C` by the kernels of the derivative of `leafSpaceMk ∘ c`, a map of constant rank
 `dim P - (dim M - dim N)`, is regular. -/
 theorem isRegular_ofConstantRank (hc : IsCleanIntersection I J K L f g c)
     (hR : (h.characteristicFoliation hi hf hσc hn).IsRegular) (hg : hσ.IsLagrangianMap K g)
