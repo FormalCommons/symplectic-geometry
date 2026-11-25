@@ -6,7 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Strong
-public import TauCeti.Geometry.Manifold.Morse.Hessian
+public import SymplecticGeometry.Geometry.Manifold.Morse.Hessian
 import TauCeti.Geometry.Manifold.ExtChartAt
 
 /-!
@@ -22,8 +22,8 @@ sense creates no local maximum in `A`.
 
 The criterion is read in coordinates: in any chart of the maximal atlas, a critical point has a
 positive Hessian direction exactly when the Hessian of the coordinate expression has one
-(`TauCeti.exists_criticalHessian_pos_iff_of_mem_maximalAtlas`, from
-`TauCeti.criticalHessian_apply_eq_of_mem_maximalAtlas`). So on the chart target the first two
+(`TauCeti.exists_criticalHessian_pos_iff_of_mem_maximalAtlas`, proved in
+`SymplecticGeometry.Geometry.Manifold.Morse.Hessian`). So on the chart target the first two
 coordinate derivatives of `f` lie, at the points of `A`, in the open set of pairs whose first
 member is nonzero or whose second member is positive on some vector.
 
@@ -56,21 +56,6 @@ namespace TauCeti
 variable {E H : Type*} {M : Type u} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [I.Boundaryless]
   [TopologicalSpace M] [ChartedSpace H M]
-
-/-- At a critical point `x` of a function `f` which is `C²` at `x`, on a boundaryless manifold,
-the critical Hessian is positive on some tangent vector exactly when, in a chart `e` of the `C²`
-maximal atlas whose source contains `x`, the Hessian of the coordinate expression of `f` at the
-image of `x` is positive on some vector. -/
-theorem exists_criticalHessian_pos_iff_of_mem_maximalAtlas {f : M → ℝ} {x : M}
-    {e : OpenPartialHomeomorph M H} (he : e ∈ IsManifold.maximalAtlas I 2 M) (hx : x ∈ e.source)
-    (hf : ContMDiffAt I 𝓘(ℝ) 2 f x) (hcrit : x ∈ criticalPoints I f) :
-    (∃ v, 0 < criticalHessian I f x v v) ↔
-      ∃ w : E, 0 < fderiv ℝ (fderiv ℝ (f ∘ (e.extend I).symm)) (e.extend I x) w w := by
-  obtain ⟨D, hD⟩ :=
-    isInvertible_mvfderiv_extend (IsManifold.maximalAtlas_subset_of_le (by norm_num) he) hx
-  simp only [criticalHessian_apply_eq_of_mem_maximalAtlas he hx hf (mem_criticalPoints.mp hcrit)]
-  refine ⟨fun ⟨v, hv⟩ ↦ ⟨_, hv⟩, fun ⟨w, hw⟩ ↦ ⟨D.symm w, ?_⟩⟩
-  rwa [← hD, ContinuousLinearEquiv.coe_coe, ContinuousLinearEquiv.apply_symm_apply]
 
 variable {n : WithTop ℕ∞} [IsManifold I n M]
 
