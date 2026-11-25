@@ -13,13 +13,16 @@ public import Mathlib.Analysis.InnerProductSpace.PiL2
 A square matrix `M` indexed by `m` acts on `EuclideanSpace 𝕜 m` by `Matrix.toEuclideanLin`.
 This file shows that moving the coordinates along `e : m ≃ n`, by Mathlib's
 `LinearIsometryEquiv.piLpCongrLeft`, turns this action into that of `Matrix.reindex e e M`.
-It also places the standard basis vectors of `EuclideanSpace 𝕜 ι` on the unit sphere, and shows
+It proves Cauchy–Schwarz for the Hermitian product `star z ⬝ᵥ v` on `ι → 𝕜`. It also places
+the standard basis vectors of `EuclideanSpace 𝕜 ι` on the unit sphere, and shows
 that splitting `EuclideanSpace 𝕜 (ι ⊕ κ)` into two blocks by `EuclideanSpace.sumEquivProd`
 preserves the squared norm.
 
 ## Main results
 
 * `Matrix.piLpCongrLeft_toEuclideanLin_apply`: `e (M z) = (reindex e e M) (e z)`.
+* `Matrix.norm_star_dotProduct_sq_le`: Cauchy–Schwarz for the Hermitian product,
+  `‖star z ⬝ᵥ v‖² ≤ (∑ᵢ ‖zᵢ‖²) (∑ᵢ ‖vᵢ‖²)`, from Mathlib's `norm_inner_le_norm`.
 * `EuclideanSpace.single_one_mem_sphere`: each standard basis vector has norm one.
 * `EuclideanSpace.norm_sq_sumEquivProd`: the squared norms of the two blocks of
   `sumEquivProd x` add up to `‖x‖²`.
@@ -40,6 +43,16 @@ theorem piLpCongrLeft_toEuclideanLin_apply (e : m ≃ n) (M : Matrix m m 𝕜)
   ext k
   simp [LinearIsometryEquiv.piLpCongrLeft_apply, Equiv.piCongrLeft'_apply, Matrix.mulVec,
     dotProduct]
+
+/-- **Cauchy–Schwarz for the Hermitian product** `star z ⬝ᵥ v` on `ι → 𝕜`:
+`‖star z ⬝ᵥ v‖² ≤ (∑ᵢ ‖zᵢ‖²) (∑ᵢ ‖vᵢ‖²)`. -/
+theorem norm_star_dotProduct_sq_le {ι : Type*} [Fintype ι] (z v : ι → 𝕜) :
+    ‖star z ⬝ᵥ v‖ ^ 2 ≤ (∑ i, ‖z i‖ ^ 2) * ∑ i, ‖v i‖ ^ 2 := by
+  have h := norm_inner_le_norm (𝕜 := 𝕜) (WithLp.toLp 2 z) (WithLp.toLp 2 v)
+  rw [EuclideanSpace.inner_eq_star_dotProduct, WithLp.ofLp_toLp, WithLp.ofLp_toLp,
+    dotProduct_comm] at h
+  rw [← EuclideanSpace.norm_sq_eq, ← EuclideanSpace.norm_sq_eq, ← mul_pow]
+  exact pow_le_pow_left₀ (norm_nonneg _) h 2
 
 end Matrix
 

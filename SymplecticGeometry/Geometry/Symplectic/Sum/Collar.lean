@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 public import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -247,10 +248,9 @@ theorem mpullback_annulusMap (δ ε : ℝ) (hδ : 0 ≤ δ) :
       SmoothForm.mpullback (Subtype.val : annulus δ ε → ℂ) contMDiff_subtypeVal
         stdComplexSymplecticForm.constSmooth := by
   refine (SmoothForm.mpullback_toDiffeomorphSourceTarget_eq_iff
-    (annulusPartialDiffeomorph δ ε hδ)).2 fun z hz ↦ ContinuousAlternatingMap.ext fun v ↦ ?_
+    (annulusPartialDiffeomorph δ ε hδ)).2 fun z hz ↦ ?_
+  ext v w
   obtain ⟨hz₀, hzr⟩ := ne_zero_and_sq_lt_of_mem_annulus hδ hz
-  have hv : v = ![v 0, v 1] := (FinVec.etaExpand_eq v).symm
-  rw [hv]
   rw [mpullback_apply_pair, ← SmoothBundleForm.eval₂_apply, ← SmoothBundleForm.eval₂_apply,
     SymplecticForm.fromTangentSpace_constSmooth_apply,
     SymplecticForm.fromTangentSpace_constSmooth_apply, mfderiv_eq_fderiv]
