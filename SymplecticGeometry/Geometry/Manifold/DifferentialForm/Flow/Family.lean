@@ -51,7 +51,10 @@ pullback along `id × f`, and it vanishes on forms pulled back from `M` along th
 Last, the restriction of a form on `ℝ × M` to `J × M`, for an open set `J` of times, has the
 same time derivative at each time of `J`. It is read on `ℝ × M` through a map `ℝ → J` which is
 the identity near that time (Tau Ceti's `TopologicalSpace.Opens.exists_contMDiff_eventuallyEq_id`),
-and Tau Ceti's `TauCeti.hasDerivAt_mpullback_prodMk_comp` computes the derivative there.
+and Tau Ceti's `TauCeti.hasDerivAt_mpullback_prodMk_comp` computes the derivative there. The
+proof adapts that of Tau Ceti's `TauCeti.mpullback_prodMk_mlieDerivForm_mpullback_prodMap`,
+which goes the other way, from a form on `J × M` to its pullback to `ℝ × M` through a map
+`ℝ → J`.
 
 ## Main results
 
@@ -293,7 +296,7 @@ namespace TauCeti
 
 variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
   {I : ModelWithCorners ℝ E H} [I.Boundaryless] [TopologicalSpace M] [ChartedSpace H M]
-  [IsManifold I ∞ M] [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
+  [IsManifold I 2 M] [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
 
 /-- **Time derivatives of a restricted family.** For an open set `J` of times, the restriction
 `(val × id)^* β` of a smooth form `β` on `ℝ × M` to `J × M` has, at each time `t ∈ J`, the time

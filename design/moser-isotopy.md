@@ -646,7 +646,7 @@ time derivative. That theorem gives
 - Mathlib: `generalized_tube_lemma`, `Real.smoothTransition`,
   `Manifold.IsSmoothEmbedding.of_opens`, `PartialDiffeomorph`, `Diffeomorph`.
 - *Smooth families* (#466, #467), for `Stability.lean` only: (★), the time
-  extension, the reparametrization, and the restriction to a `Diffeotopy`.
+  extension, and the restriction to a `Diffeotopy`.
 - Tau Ceti: `Geometry/Manifold/DifferentialForm/Flow/Family.lean`,
   for `SmoothForm.mpullback_prodMk_timeDeriv_lineMapFamily` in `Relative.lean`
   and `Isotopy.lean`.
