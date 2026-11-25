@@ -7,8 +7,8 @@ module
 
 public import Mathlib.MeasureTheory.Integral.CircleIntegral
 public import TauCeti.Analysis.Complex.Wirtinger.Basic
-import Mathlib.Analysis.Calculus.FDeriv.Pi
 import Mathlib.Analysis.Complex.CauchyIntegral
+import SymplecticGeometry.Analysis.Complex.Wirtinger.Pi
 import SymplecticGeometry.MeasureTheory.Constructions.UnitInterval
 import TauCeti.Analysis.Calculus.ContDiff.IsOpen
 import TauCeti.Analysis.Calculus.ParametricIntegral.Basic
@@ -65,28 +65,6 @@ public section
 
 open Complex Function Metric Set MeasureTheory
 open scoped Real
-
-namespace TauCeti
-
-/-- **The conjugate Wirtinger derivative along a coordinate line.** The conjugate Wirtinger
-derivative at `ζ` of the restriction `w ↦ g (update x i w)` of `g` to the complex line through `x`
-along the `i`-th coordinate is the conjugate Wirtinger derivative of `g` at `update x i ζ` in the
-direction `Pi.single i 1`. -/
-theorem conjWirtingerDeriv_update_apply_one {ι : Type*} [Fintype ι] [DecidableEq ι]
-    {F : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F] {g : (ι → ℂ) → F} {x : ι → ℂ} {i : ι}
-    {ζ : ℂ} (hg : DifferentiableAt ℝ g (update x i ζ)) :
-    conjWirtingerDeriv (fun w ↦ g (update x i w)) ζ 1 =
-      conjWirtingerDeriv g (update x i ζ) (Pi.single i 1) := by
-  rw [← comp_def, conjWirtingerDeriv_comp_eq_comp_fderiv hg
-    (hasFDerivAt_update (𝕜 := ℂ) x ζ).differentiableAt, fderiv_update,
-    ContinuousLinearMap.comp_apply]
-  congr 1
-  ext j
-  by_cases hj : j = i
-  · subst hj; simp
-  · simp [hj]
-
-end TauCeti
 
 namespace SymplecticGeometry
 
@@ -380,7 +358,7 @@ theorem conjWirtingerDeriv_coordCauchyIntegral_single_self (hzi : z i ∈ ball (
     (hcont.circleIntegrable (pos_of_mem_ball hzi).le) hzi
   have hC := (contDiffAt_coordCauchyIntegral hzi hf).differentiableAt one_ne_zero
   rw [← update_eq_self i z] at hC
-  have h := TauCeti.conjWirtingerDeriv_update_apply_one hC
+  have h := TauCeti.conjWirtingerDeriv_comp_update hC 1
   rw [update_eq_self] at h
   rw [← h, hd.conjWirtingerDeriv_eq_zero, zero_apply]
 

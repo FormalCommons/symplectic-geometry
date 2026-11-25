@@ -9,6 +9,7 @@ public import TauCeti.Analysis.Complex.Wirtinger.Basic
 import Mathlib.Analysis.Calculus.ContDiff.Operations
 import SymplecticGeometry.Analysis.Complex.CauchyPompeiuDisc
 import SymplecticGeometry.Analysis.Complex.Polydisc.CoordCauchyIntegral
+import SymplecticGeometry.Analysis.Complex.Wirtinger.Pi
 import TauCeti.Analysis.Complex.Wirtinger.Holomorphic
 
 /-!
@@ -202,7 +203,7 @@ private theorem norm_sub_iterCauchy_le
         ‖conjWirtingerDeriv (fun ζ ↦ G (update w a ζ)) ζ 1‖ ≤ 2 ^ l.length * ε := by
       intro ζ hζ
       have hζ' := (mem_ball_iff_norm.1 hζ).le
-      rw [conjWirtingerDeriv_update_apply_one ((hupd ζ hζ').differentiableAt one_ne_zero)]
+      rw [conjWirtingerDeriv_comp_update ((hupd ζ hζ').differentiableAt one_ne_zero) 1]
       rw [conjWirtingerDeriv_iterCauchy_of_notMem hf hl.2 hl.1 (norm_update_sub_le hw hζ')
         (forall_mem_update_of_notMem hl.1 (R := (· < ·))
           (fun k hk ↦ by
