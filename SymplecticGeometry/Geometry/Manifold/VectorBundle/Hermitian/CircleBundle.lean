@@ -17,6 +17,7 @@ public import TauCeti.Geometry.Manifold.FiberBundle.Principal
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Sphere
 public import SymplecticGeometry.Topology.VectorBundle.Complex.RestrictScalars
 public import SymplecticGeometry.LinearAlgebra.Complex.FiniteDimensional
+public import SymplecticGeometry.LinearAlgebra.FiniteDimensional.FinrankOne
 import SymplecticGeometry.GroupTheory.GroupAction.Hom
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Hermitian.Frame
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.Riemannian.Norm
@@ -59,7 +60,8 @@ base:
 
 The rank-one condition is the instance `Fact (Module.finrank ℂ F = 1)`. The instances
 `FiniteDimensional.of_fact_finrank_eq_one` and
-`Module.fact_finrank_self_eq_of_fact_finrank_eq_one` derive from it that `F` is
+`Module.fact_finrank_self_eq_of_fact_finrank_eq_one`, from
+`SymplecticGeometry.LinearAlgebra.FiniteDimensional.FinrankOne`, derive from it that `F` is
 finite-dimensional and has the rank of `ℂ`. The topology on the frames with model fibre `Circle`
 is induced from Tau Ceti's along `Bundle.TotalSpace.modelFiberEquiv`
 (`SymplecticGeometry.Bundle.isInducing_modelFiberEquiv_circleFiber`).
@@ -119,24 +121,6 @@ noncomputable section
 
 open Bundle MulOpposite Module TauCeti TauCeti.OrthonormalFrameBundle
 open scoped Manifold ContDiff InnerProductSpace
-
-/-! ### The rank-one convention
-
-The model fibre `F` of a complex line bundle here comes with `Fact (finrank ℂ F = 1)`. The two
-instances below derive from such a fact, over any division ring, that `F` is finite-dimensional
-and that it has the rank of the model fibre `ℂ` of the unitary frames, which Tau Ceti's frame
-bundle asks for. Mathlib's `FiniteDimensional.of_fact_finrank_eq_succ` is not an instance, since
-its `n` cannot be inferred; for rank one there is no `n`. -/
-
-/-- A module of rank one, the rank given by a `Fact`, is finite-dimensional. -/
-instance FiniteDimensional.of_fact_finrank_eq_one {K V : Type*} [DivisionRing K]
-    [AddCommGroup V] [Module K V] [Fact (finrank K V = 1)] : FiniteDimensional K V :=
-  .of_fact_finrank_eq_succ 0
-
-/-- A module of rank one, the rank given by a `Fact`, has the rank of the ring itself. -/
-instance Module.fact_finrank_self_eq_of_fact_finrank_eq_one {K V : Type*} [DivisionRing K]
-    [AddCommGroup V] [Module K V] [Fact (finrank K V = 1)] : Fact (finrank K K = finrank K V) :=
-  ⟨by rw [finrank_self, Fact.out (p := finrank K V = 1)]⟩
 
 namespace SymplecticGeometry.Bundle
 
