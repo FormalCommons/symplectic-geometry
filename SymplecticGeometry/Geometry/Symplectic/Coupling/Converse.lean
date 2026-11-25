@@ -10,6 +10,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily
 public import SymplecticGeometry.Geometry.Manifold.Flow.Basic
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.RegularLevel
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
+public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Circle
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap
 
 /-!
@@ -35,6 +36,13 @@ file proves that
   field `(ξ♯, 0)` on `Q × [a, b]` to the fundamental vector field of `ξ` on `M`, by
   `TauCeti.mfderiv_rightFundamentalVectorField_of_map_op_smul_eq_smul` applied to its
   restriction `q ↦ bandMap v e a b (q, s)`.
+* each slice `q ↦ bandMap v e a b (q, t)` is `φ_{t - a} ∘ e`, so it has injective differential
+  exactly where `e` does, since the time-`(t - a)` map is a diffeomorphism
+  (`TauCeti.globalFlowDiffeomorph`, `Diffeomorph.mfderiv_diffeomorph_comp_injective_iff`).
+  Under the hypotheses of the second item, `f` is constant on the slice and `df(v) = 1` makes
+  its points regular, so if `e` comes from a model space of dimension `dim M - 1`, the tangent
+  image of the slice is `ker df`
+  (`TauCeti.IsRegularPoint.range_mfderiv_eq_ker_mfderiv`).
 
 In the converse of minimal coupling (McDuff–Salamon, Proposition 5.1.9), `M` carries a free
 circle action on the band `H⁻¹([a, b])` of an invariant function `H`, `v` is the invariant field
@@ -55,6 +63,11 @@ pull-backs), and has `ι_{(X, 0)} ψ^* σ = -dt`: `X_M` is a Hamiltonian vector 
 and pulling back along `ψ` gives one of `-H ∘ ψ` for `ψ^* σ`
 (`TauCeti.SmoothTwoForm.IsHamiltonianVectorField.mpullback`). Its slice at `t` is the
 pull-back of `σ` along `ψ (·, t)`.
+
+A point that the circle does not fix is not critical for `H` where `σ` is nondegenerate: the
+moment map of `σ` is `-μ`, whose component `-H` has the critical points of `H`, and these are the
+fixed points of the action
+(`TauCeti.SmoothTwoForm.IsMomentMap.mem_criticalPoints_circlePeriodOneGenerator_iff`).
 
 The file also proves that the family `τ` of a coupling form is smooth: its pull-backs along the
 projection of `P` are the slices of the coupling form, and the projection has smooth local
@@ -77,9 +90,16 @@ sections (`TauCeti.ManifoldTotalSpace.exists_contMDiffOn_section`), so
 * `SymplecticGeometry.bandMap_orbitFiber`: all of these for the circle bundle of a regular level
   of an invariant function, with `e` the inclusion of the level after
   `TauCeti.MapFiber.Atlas.totalSpaceDiffeomorph`.
+* `SymplecticGeometry.injective_mfderiv_bandMap_slice_iff`,
+  `SymplecticGeometry.range_mfderiv_bandMap_slice`: the slices of the band map have injective
+  differential exactly where `e` does, with tangent images `ker df`.
+* `SymplecticGeometry.bandMap_orbitFiber_slice`: in the setting of `bandMap_orbitFiber`, each
+  slice has injective differential with range `ker df`.
 * `SymplecticGeometry.mpullback_op_smul_mpullback`,
   `SymplecticGeometry.interior_couplingField_mpullback`: for `σ` invariant with moment map
   `-μ` and `ψ` as above, `ψ^* σ` is invariant and `ι_{(X, 0)} ψ^* σ = -dt`.
+* `SymplecticGeometry.mfderiv_ne_zero_of_notMem_fixedPoints`: for `σ` with moment map `-μ`,
+  nondegenerate at a point that the circle does not fix, `dH` does not vanish there.
 * `SymplecticGeometry.isCouplingForm_mpullback`: such a `ψ^* σ` is a coupling form for every
   family `τ` whose pull-backs `π^* (τ t)` are the pull-backs of `σ` along `ψ (·, t)`.
 * `SymplecticGeometry.IsCouplingForm.isSmoothFamily`: the family of a coupling form is smooth.
@@ -155,6 +175,35 @@ theorem bandMap_eq_comp {f : M → ℝ} (he : ∀ q, f (e q) = a) :
       Prod.map (fun q ↦ ⟨e q, he q⟩) id :=
   funext fun x ↦ bandMap_def x
 
+omit [T2Space M] [BoundarylessManifold I M] in
+/-- The slice `q ↦ bandMap v e a b (q, t)` of the band map is the time-`(t - a)` map of the flow
+after `e`. -/
+theorem bandMap_slice (t : Icc a b) :
+    (fun q ↦ bandMap v e a b (q, t)) = flowOf v ((t : ℝ) - a) ∘ e :=
+  funext fun q ↦ bandMap_def (q, t)
+
+section Slice
+
+variable [IsManifold I 1 M] [CompleteSpace E]
+  {EQ HQ : Type*} [NormedAddCommGroup EQ] [NormedSpace ℝ EQ] [TopologicalSpace HQ]
+  {IQ : ModelWithCorners ℝ EQ HQ} [TopologicalSpace Q] [ChartedSpace HQ Q]
+  (hv : ContMDiff I I.tangent 1 (fun x ↦ (⟨x, v x⟩ : TangentBundle I M)))
+  (hcomplete : IsCompleteVectorField v) {q : Q}
+include hv hcomplete
+
+/-- **The slices of the band map have injective differential exactly where `e` does.** For a
+complete `C¹` vector field `v` on a Hausdorff boundaryless manifold modelled on a complete space,
+the slice `q ↦ bandMap v e a b (q, t)` has injective differential at `q` if and only if `e` does,
+since it is `e` followed by a diffeomorphism. -/
+theorem injective_mfderiv_bandMap_slice_iff (t : Icc a b) :
+    Injective (mfderiv IQ I (fun q ↦ bandMap v e a b (q, t)) q) ↔
+      Injective (mfderiv IQ I e q) := by
+  rw [bandMap_slice, flowOf_eq_globalFlow hv hcomplete,
+    ← coe_globalFlowDiffeomorph hcomplete le_rfl hv]
+  exact Diffeomorph.mfderiv_diffeomorph_comp_injective_iff _ one_ne_zero
+
+end Slice
+
 section Band
 
 variable [IsManifold I 1 M]
@@ -191,6 +240,31 @@ theorem range_bandMap (he : range e = {x | f x = a}) :
     obtain ⟨q, hq⟩ := he.ge x.property
     exact ⟨q, Subtype.ext hq⟩
   rw [bandMap_eq_comp he', hsurj.range_comp, range_flowOf_sub_level hv hcomplete hf hW hfv hband]
+
+/-- **The slices of the band map have tangent images `ker df`.** Under the hypotheses of
+`SymplecticGeometry.apply_bandMap`, on a finite-dimensional manifold,
+let `e` have injective differential at `q`, from a model space of dimension one less than
+that of `M`. Then the range of the differential at `q` of the slice
+`q ↦ bandMap v e a b (q, t)` is the kernel of `df` at its image. -/
+theorem range_mfderiv_bandMap_slice [FiniteDimensional ℝ E]
+    {EQ HQ : Type*} [NormedAddCommGroup EQ] [NormedSpace ℝ EQ] [TopologicalSpace HQ]
+    {IQ : ModelWithCorners ℝ EQ HQ} [TopologicalSpace Q] [ChartedSpace HQ Q]
+    (he : ∀ q, f (e q) = a) {q : Q} (he' : Injective (mfderiv IQ I e q))
+    (hdim : Module.finrank ℝ EQ = Module.finrank ℝ E - 1) (t : Icc a b) :
+    LinearMap.range (mfderiv IQ I (fun q ↦ bandMap v e a b (q, t)) q).toLinearMap =
+      LinearMap.ker (mfderiv I 𝓘(ℝ) f (bandMap v e a b (q, t))).toLinearMap := by
+  set y := bandMap v e a b (q, t)
+  have hy : y ∈ W := hband (by simp [y, apply_bandMap hv hcomplete hf hW hfv hband he])
+  -- `df (v y) = 1`, so `y` is a regular point of `f`.
+  have hreg : IsRegularPoint I 𝓘(ℝ) f y := isRegularPoint_iff.mpr fun (r : ℝ) ↦
+    ⟨r • v y, by rw [ContinuousLinearMap.map_smul, hfv y hy]; exact mul_one r⟩
+  have hker := hreg.finrank_ker_mfderiv_add_finrank
+  rw [Module.finrank_self] at hker
+  exact hreg.range_mfderiv_eq_ker_mfderiv
+    (Filter.Eventually.of_forall (p := fun q ↦ f (bandMap v e a b (q, t)) = t)
+      fun q ↦ apply_bandMap hv hcomplete hf hW hfv hband he (q, t))
+    ((injective_mfderiv_bandMap_slice_iff hv hcomplete t).mpr he')
+    (by rw [Module.finrank_self]; omega)
 
 end Band
 
@@ -325,6 +399,28 @@ theorem isCouplingForm_mpullback (hσc : σ.IsClosed)
 
 end Pullback
 
+/-! ### Points off the fixed set are regular for the Hamiltonian -/
+
+section Regular
+
+variable [CompleteSpace E] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
+
+/-- **A point off the fixed set is not critical for the Hamiltonian.** Let a circle act smoothly
+on a Hausdorff boundaryless manifold `M`, with moment map `-μ` for a two-form `σ`, and let
+`H = ⟨μ, circlePeriodOneGenerator⟩`. If `σ` is nondegenerate at `x` and some element of the
+circle moves `x`, then `dH` does not vanish at `x`. -/
+theorem mfderiv_ne_zero_of_notMem_fixedPoints {σ : SmoothTwoForm I M}
+    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
+    {x : M} (hσ : (σ.bilinFormAt x).Nondegenerate) (hx : x ∉ MulAction.fixedPoints Circle M) :
+    mfderiv I 𝓘(ℝ) (fun y ↦ μ y circlePeriodOneGenerator) x ≠ 0 := by
+  have hneg : (fun y ↦ (-μ y) circlePeriodOneGenerator) = -fun y ↦ μ y circlePeriodOneGenerator :=
+    funext fun _ ↦ LinearMap.neg_apply _ _
+  rwa [← hμ.mem_criticalPoints_circlePeriodOneGenerator_iff hσ, hneg, criticalPoints_neg,
+    mem_criticalPoints_iff_mfderiv_eq_zero] at hx
+
+end Regular
+
 /-! ### The band of a circle action -/
 
 section RegularLevel
@@ -422,6 +518,73 @@ theorem bandMap_orbitFiber (hf : ContMDiff I 𝓘(ℝ) ∞ f) (hreg : IsRegularV
     range_bandMap (hv.of_le (by simp)) hcomplete hf.continuous hW hfv hband ?_,
     mfderiv_bandMap_couplingField hv hcomplete hvinv hesmooth heq⟩
   exact (D.surjective.range_comp Subtype.val).trans Subtype.range_coe_subtype
+
+omit [Fact (a < b)] [BoundarylessManifold I M] in
+/-- **The slices of the band of a circle action have tangent images `ker df`.** In the setting of
+`SymplecticGeometry.bandMap_orbitFiber`, for each `t ∈ [a, b]` the slice
+`ψₜ = fun p ↦ bandMap v e a b (p, t)` from the total space of `P` to `M` has, at each point `p`,
+injective differential, and the range of that differential is the kernel of `df` at `ψₜ p`. -/
+theorem bandMap_orbitFiber_slice (hf : ContMDiff I 𝓘(ℝ) ∞ f)
+    (hreg : IsRegularValue I 𝓘(ℝ) f a)
+    (hn : Module.finrank ℝ E - Module.finrank ℝ ℝ = n)
+    (hinv : ∀ (g : Circle) (x : M), f (g • x) = f x)
+    (hfree : ∀ x, f x = a → MulAction.stabilizer Circle x = ⊥)
+    (hv : ContMDiff I I.tangent ∞ (fun x ↦ (⟨x, v x⟩ : TangentBundle I M)))
+    (hcomplete : IsCompleteVectorField v) {W : Set M}
+    (hW : IsOpen W) (hfv : ∀ y ∈ W, mfderiv I 𝓘(ℝ) f y (v y) = 1)
+    (hband : f ⁻¹' Icc a b ⊆ W) :
+    letI := regularLevelChartedSpace (fun x _ ↦ hf.contMDiffAt.of_le (by simp)) hreg hn
+    letI := levelOpMulAction a hinv
+    haveI := isManifold_regularLevel (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn
+    haveI := contMDiffSMul_levelOpMulAction (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn hinv
+      (IG := 𝓡 1)
+    haveI := ContMDiffSMul.continuousSMul (I := 𝓡 1) (I' := I) (G := Circle) (M := M) ∞
+    haveI := properSMul_levelOpMulAction (c := a) hinv
+    haveI := isCancelSMul_levelOpMulAction hinv hfree
+    letI := ProperSMul.orbitRelQuotientChartedSpace (𝓡 1) Circleᵐᵒᵖ 𝓘(ℝ, Fin n → ℝ)
+      {x : M // f x = a}
+    letI := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}).fiberBundle
+    let IB := 𝓘(ℝ, ProperSMul.QuotientModelSpace (EuclideanSpace ℝ (Fin 1)) (Fin n → ℝ))
+    let P := orbitFiber Circleᵐᵒᵖ {x : M // f x = a}
+    let e : ManifoldTotalSpace Circle P → M := fun p ↦
+      ((orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}).totalSpaceDiffeomorph
+        (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}) p : M)
+    ∀ (t : Icc a b) (p : ManifoldTotalSpace Circle P),
+      LinearMap.ker (mfderiv (IB.prod (𝓡 1)) I (fun p ↦ bandMap v e a b (p, t)) p).toLinearMap =
+          ⊥ ∧
+        LinearMap.range
+            (mfderiv (IB.prod (𝓡 1)) I (fun p ↦ bandMap v e a b (p, t)) p).toLinearMap =
+          LinearMap.ker (mfderiv I 𝓘(ℝ) f (bandMap v e a b (p, t))).toLinearMap := by
+  let := regularLevelChartedSpace (fun x _ ↦ hf.contMDiffAt.of_le (by simp)) hreg hn
+  let := levelOpMulAction a hinv
+  have := isManifold_regularLevel (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn
+  have := contMDiffSMul_levelOpMulAction (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn hinv
+    (IG := 𝓡 1)
+  have := ContMDiffSMul.continuousSMul (I := 𝓡 1) (I' := I) (G := Circle) (M := M) ∞
+  have := properSMul_levelOpMulAction (c := a) hinv
+  have := isCancelSMul_levelOpMulAction hinv hfree
+  let := ProperSMul.orbitRelQuotientChartedSpace (𝓡 1) Circleᵐᵒᵖ 𝓘(ℝ, Fin n → ℝ)
+    {x : M // f x = a}
+  let := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}).fiberBundle
+  set D := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
+    |>.totalSpaceDiffeomorph
+    (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
+  intro IB P e t p
+  have hι := isSmoothEmbedding_coe_regularLevel (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn
+  have hd : (∞ : WithTop ℕ∞) ≠ 0 := by simp
+  have hιi := hι.isImmersion.mfderiv_injective hd (D p)
+  -- The slice is that of the band map of the inclusion of the level, after `D`.
+  have hslice : (fun p ↦ bandMap v e a b (p, t)) =
+      (fun x : {x : M // f x = a} ↦ bandMap v Subtype.val a b (x, t)) ∘ D := by
+    -- Both sides are `flowOf v (t - a) ∘ Subtype.val ∘ D`, with `e` unfolded.
+    rw [bandMap_slice, bandMap_slice]
+    rfl
+  rw [hslice, LinearMap.ker_eq_bot]
+  exact ⟨(D.mfderiv_comp_diffeomorph_injective_iff hd).mpr
+      ((injective_mfderiv_bandMap_slice_iff (hv.of_le (by simp)) hcomplete t).mpr hιi),
+    (D.range_mfderiv_comp_diffeomorph hd _ p).trans <|
+      range_mfderiv_bandMap_slice (hv.of_le (by simp)) hcomplete hf.continuous hW hfv hband
+        (fun x ↦ x.property) hιi (by simpa using hn.symm) t⟩
 
 end RegularLevel
 

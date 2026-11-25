@@ -375,7 +375,7 @@ The pointwise statements. With `f`, `hR` and `τ` as above (of `τ`, only
   `leafSpaceMk ∘ c` is injective. Each leaf of `C` in such a fibre is open
   in it, by the rank theorem, so the fibre is a single leaf.
 - `IsCleanIntersection.isPreconnected_preimage_leafSpaceMk_comp`: for an
-  embedded $Q$ (`hσ.IsCoisotropicEmbedding J f`), if
+  embedded $Q$ (`Topology.IsEmbedding f`), if
   `range g ∩ f '' (leafSpaceMk ⁻¹' {b})` is preconnected, so is
   `(leafSpaceMk ∘ c) ⁻¹' {b}`. The embedding `f ∘ c` maps this fibre
   homeomorphically onto the part of that set in `f '' range c`, which is

@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
 public import SymplecticGeometry.Data.Set.Image
+public import SymplecticGeometry.Topology.Connected.Clopen
 
 /-!
 # Clean intersections of maps
@@ -29,6 +30,8 @@ intersection allows components of different dimensions to be treated one dimensi
   gives `range (f ∘ c) = range f ∩ range g`.
 * `SymplecticGeometry.IsCleanIntersection.self_id`: an injective map satisfies the predicate with
   itself along the identity.
+* `SymplecticGeometry.IsCleanIntersection.isPreconnected_preimage`: for a topological embedding
+  `f`, a set `T` of `N` with `range g ∩ f '' T` preconnected has preconnected preimage `c ⁻¹' T`.
 
 ## References
 
@@ -101,6 +104,22 @@ theorem self_id [IsManifold J ∞ N] (hf : Function.Injective f) :
     IsCleanIntersection I J J J f f id :=
   of_range_eq .id (by rw [range_id, preimage_range]) fun x y hxy => by
     rw [hf hxy, Function.comp_id, id_eq, inf_idem]
+
+/-- Let `f` and `g` intersect cleanly along `c`, with `f` a topological embedding. If `T` is a set
+of `N` such that `range g ∩ f '' T` is preconnected in `M`, then `c ⁻¹' T` is preconnected in `C`.
+-/
+theorem isPreconnected_preimage (hc : IsCleanIntersection I J K L f g c)
+    (hf : Topology.IsEmbedding f) {T : Set N} (hT : IsPreconnected (range g ∩ f '' T)) :
+    IsPreconnected (c ⁻¹' T) := by
+  -- `f` identifies `T ∩ f ⁻¹' range g` with `range g ∩ f '' T`. As `range c` is open and closed
+  -- in `f ⁻¹' range g`, it cuts out a preconnected set, which `c` identifies with `c ⁻¹' T`.
+  have hT' : IsPreconnected (T ∩ f ⁻¹' range g) := by
+    rwa [← hf.isInducing.isPreconnected_image, image_inter_preimage, inter_comm]
+  have hcT : c '' (c ⁻¹' T) = T ∩ f ⁻¹' range g ∩ range c := by
+    rw [image_preimage_eq_range_inter, inter_right_comm, inter_assoc,
+      inter_eq_left.2 hc.range_subset, inter_comm]
+  rw [← hc.isSmoothEmbedding.isEmbedding.isInducing.isPreconnected_image, hcT]
+  exact hT'.inter_of_isClopen_preimage_val inter_subset_right hc.isClopen_range
 
 end IsCleanIntersection
 
