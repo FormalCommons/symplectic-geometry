@@ -16,6 +16,7 @@ import Mathlib.Analysis.InnerProductSpace.Calculus
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
+import TauCeti.Geometry.Manifold.MFDeriv.Opens
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 
 /-!
@@ -155,9 +156,9 @@ theorem mextDerivₗ_fubiniStudyPotential_apply (z : puncturedSpace (Fin (n + 1)
       (fun w ↦ Real.log (‖complexToRealEuclidean (Fin (n + 1)) w‖ ^ 2)) ∘ Subtype.val :=
     funext fun y ↦ by
       rw [fubiniStudyPotential_apply, Function.comp_apply, norm_sq_complexToRealEuclidean]
-  rw [mextDerivₗ_zero_apply, hf, mvfderiv_comp_apply_of_differentiableAt hd.differentiableAt
-      ((contMDiff_subtypeVal z).mdifferentiableAt one_ne_zero),
-    Manifold.mvfderiv_subtype_val_apply, hd.fderiv]
+  rw [mextDerivₗ_zero_apply, hf, Manifold.mvfderiv_comp_subtype_val]
+  refine (mvfderiv_eq_fderiv_apply _ (z : Fin (n + 1) → ℂ) v).trans ?_
+  rw [hd.fderiv]
   -- Read `v` as a vector of `Fin (n + 1) → ℂ`, so that the evaluation lemmas of continuous linear
   -- maps apply to it.
   revert v
