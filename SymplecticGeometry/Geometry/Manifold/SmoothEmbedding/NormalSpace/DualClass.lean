@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.NormalSpace.ThomClass
 public import SymplecticGeometry.Geometry.Manifold.TubularNeighborhood.Normalized
+public import SymplecticGeometry.Topology.VectorBundle.Orientation.ThomClass
 public import TauCeti.AlgebraicTopology.Cohomology.Excision
 public import TauCeti.Topology.VectorBundle.Orientation.EulerClass
 
@@ -38,9 +38,9 @@ is the Euler class `o.eulerClass` of the oriented normal bundle
 (`dualClass_restrict_eq_eulerClass`). Reversing the orientation negates the dual class
 (`dualClass_neg`).
 
-That the class does not depend on the tube is proved in `NormalSpace/DualClass/Slice.lean`; here
-`exists_isNormalizedTube_singularCohomologyMap_excisionMap_relDualClassOf` records the tube that
-the definition uses.
+The class is defined through one chosen normalized tube, which
+`exists_isNormalizedTube_singularCohomologyMap_excisionMap_relDualClassOf` records. That it does
+not depend on the choice of tube is not proved here.
 
 ## Main definitions
 
@@ -313,7 +313,6 @@ theorem dualClassOf_restrict (f : SmoothEmbedding I J ∞ Z X) (hn : (∞ : ℕ�
   let := f.normalSpaceVectorBundle hn hdim
   obtain ⟨W, Φ, hΦ, h⟩ := exists_relDualClassHom (R := R) (k := k) (M := M) f hn hdim hf
   set t := f.tubePairIso hn hdim Φ hΦ.apply_zeroSection
-  -- `f` is the zero section, followed by the tube and the inclusion of its image.
   -- `f` is the zero section, followed by the tube and the inclusion of its image.
   have hfac : TopCat.singularCohomologyMap (R := R) (k := k) (M := M)
       (TopCat.ofHom ⟨f, f.isEmbedding.continuous⟩) n =
