@@ -273,8 +273,7 @@ theorem exists_opens_forall_apply_eq_of_forall_isCompact [FiniteDimensional ℝ 
   refine ⟨⟨interior L, isOpen_interior⟩, hQL, fun x hx ↦ hVU (hLV (interior_subset hx)), Ψ, hR,
     fun t x hx ↦ ?_⟩
   have := happly t ⟨x, hLV (interior_subset hx)⟩ (mem_preimage.2 (interior_subset hx))
-  rwa [restrict_apply, ContMDiffMap.comp_apply, SmoothEmbedding.coe_toContMDiffMap,
-    SmoothEmbedding.inclusion_apply, hf₀] at this
+  simpa [hf₀] using this
 
 end Restrict
 
