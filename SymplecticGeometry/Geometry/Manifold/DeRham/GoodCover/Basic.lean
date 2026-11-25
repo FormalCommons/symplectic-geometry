@@ -9,6 +9,7 @@ public import Mathlib.Analysis.Convex.Star
 public import Mathlib.Geometry.Manifold.Diffeomorph
 public import Mathlib.Geometry.Manifold.Instances.Icc
 public import SymplecticGeometry.Geometry.Manifold.ContMDiff.LineMap
+public import SymplecticGeometry.Topology.Sets.Opens.Comap
 
 /-!
 # Smoothly contractible manifolds and finite good covers
@@ -42,6 +43,12 @@ has one.
   contractible manifold is connected.
 * `SymplecticGeometry.IsFiniteGoodCover.hasFiniteGoodCover` and
   `SymplecticGeometry.IsSmoothlyContractible.hasFiniteGoodCover`.
+* `SymplecticGeometry.IsSmoothlyContractible.of_starConvex_image_subtypeVal`: a nonempty open
+  subset of an open set `U` of a normed space, star-convex as a subset of the space, is smoothly
+  contractible.
+* `SymplecticGeometry.isFiniteGoodCover_comap_of_convex` and
+  `SymplecticGeometry.hasFiniteGoodCover_of_convex`: a finite family of convex open sets of a
+  normed space with union `U`, read as open sets of `U`, is a finite good cover of `U`.
 
 The straight-line contraction adapts the proof of Tau Ceti's
 `TauCeti.exists_contMDiff_contraction_of_starConvex_image_extChartAt`, here on `[0, 1]` without a
@@ -268,6 +275,44 @@ theorem Convex.isSmoothlyContractible {E : Type*} [NormedAddCommGroup E] [Normed
     IsSmoothlyContractible 𝓘(ℝ, E) U := by
   obtain ⟨c, hc⟩ := hne
   exact StarConvex.isSmoothlyContractible (by simpa using hU.starConvex hc) ⟨c, hc⟩
+
+namespace SymplecticGeometry
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+
+/-- A nonempty open subset `W` of an open subset `U` of a real normed space is smoothly
+contractible when its image in the space is star-convex. This is
+`IsSmoothlyContractible.of_starConvex_image_extChartAt`, since the extended charts of `U` are the
+inclusion `U → E`. -/
+theorem IsSmoothlyContractible.of_starConvex_image_subtypeVal {U : Opens E} {W : Opens U}
+    {c : E} (hW : StarConvex ℝ c (Subtype.val '' (W : Set U))) (hne : (W : Set U).Nonempty) :
+    IsSmoothlyContractible 𝓘(ℝ, E) W := by
+  obtain ⟨x, hx⟩ := hne
+  exact .of_starConvex_image_extChartAt (x := x) (fun y _ ↦ by simp [Opens.chartAt_eq])
+    (by simpa [Opens.chartAt_eq]) ⟨x, hx⟩
+
+/-- **Finite covers by convex open sets are good covers.** Let `V` be a finite family of convex
+open subsets of a real normed space whose union is the open set `U`. Then the sets `V i`, read as
+open subsets of `U`, form a finite good cover of `U`. -/
+theorem isFiniteGoodCover_comap_of_convex {ι : Type*} [Finite ι] {U : Opens E}
+    {V : ι → Opens E} (hV : ∀ i, Convex ℝ (V i : Set E)) (hU : ⨆ i, V i = U) :
+    IsFiniteGoodCover 𝓘(ℝ, E)
+      fun i ↦ Opens.comap (⟨Subtype.val, continuous_subtypeVal⟩ : C(U, E)) (V i) := by
+  refine ⟨Opens.iSup_comap_val_eq_top hU, fun s hs hne ↦ ?_⟩
+  have himage := Opens.image_val_iInf_comap_val (fun i ↦ hU ▸ le_iSup V i) hs
+  obtain ⟨z, hz⟩ := hne.image Subtype.val
+  rw [himage] at hz
+  refine IsSmoothlyContractible.of_starConvex_image_subtypeVal (c := z) ?_ hne
+  rw [himage]
+  exact (convex_iInter₂ fun i _ ↦ hV i).starConvex hz
+
+/-- An open set `U` of a real normed space that is the union of a finite family of convex open
+sets has a finite good cover. -/
+theorem hasFiniteGoodCover_of_convex {ι : Type*} [Finite ι] {U : Opens E} {V : ι → Opens E}
+    (hV : ∀ i, Convex ℝ (V i : Set E)) (hU : ⨆ i, V i = U) : HasFiniteGoodCover 𝓘(ℝ, E) U :=
+  (isFiniteGoodCover_comap_of_convex hV hU).hasFiniteGoodCover
+
+end SymplecticGeometry
 
 namespace StarConvex
 
