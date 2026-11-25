@@ -60,7 +60,8 @@ pieces, which are open embeddings and `C^n` local diffeomorphisms whose ranges c
 * `SymplecticGeometry.ConnectedSum.overlapDiffeomorph`: the gluing map between the overlaps of
   the two pieces, with `overlapDiffeomorph_annulusDiffeomorph` and
   `coe_overlapDiffeomorph_apply`; its inverse is the gluing map for `Φ⁻¹`
-  (`overlapDiffeomorph_symm`).
+  (`overlapDiffeomorph_symm`), and `simp` cancels the two with
+  `overlapDiffeomorph_symm_apply_apply` and `overlapDiffeomorph_apply_symm_apply`.
 * `SymplecticGeometry.ConnectedSum.AnnulusSum`: the connected sum, and
   `SymplecticGeometry.ConnectedSum.AnnulusSum.inl_eq_inr_iff`: a point `x` of the first piece and
   a point `y` of the second are equal in it exactly when `x = ι₁ ξ` and
@@ -312,6 +313,22 @@ theorem overlapDiffeomorph_symm :
     (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε).symm =
       overlapDiffeomorph hι₂ hdι₂ hι₁ hdι₁ Φ.symm hε :=
   Diffeomorph.ext fun _ ↦ by simp [overlapDiffeomorph]
+
+/-- The gluing map for `Φ⁻¹` undoes the gluing map for `Φ`. Since `simp` rewrites the inverse
+with `overlapDiffeomorph_symm`, this is the form in which it cancels the two maps. -/
+@[simp]
+theorem overlapDiffeomorph_symm_apply_apply (x : overlap ι₁ ε hι₁.continuous hι₁.isOpenMap) :
+    overlapDiffeomorph hι₂ hdι₂ hι₁ hdι₁ Φ.symm hε (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε x) =
+      x := by
+  simpa using (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε).symm_apply_apply x
+
+/-- The gluing map for `Φ` undoes the gluing map for `Φ⁻¹`. Since `simp` rewrites the inverse
+with `overlapDiffeomorph_symm`, this is the form in which it cancels the two maps. -/
+@[simp]
+theorem overlapDiffeomorph_apply_symm_apply (y : overlap ι₂ ε hι₂.continuous hι₂.isOpenMap) :
+    overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε (overlapDiffeomorph hι₂ hdι₂ hι₁ hdι₁ Φ.symm hε y) =
+      y := by
+  simpa using (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε).apply_symm_apply y
 
 /-- The connected sum of McDuff–Salamon (Exercise 7.1.4): the pieces `M₁ \ ι₁ (closedBall 0 ε²)`
 and `M₂ \ ι₂ (closedBall 0 ε²)`, glued by identifying `ι₁ ξ` with `ι₂ (Φ (inversion 0 ε ξ))`,
