@@ -135,7 +135,6 @@ private theorem exists_diffeomorph_eqOn_parallelTransport_of_mapsTo_baseSet (hn 
     (e : Trivialization F (π F (TangentSpace J))) [MemTrivializationAtlas e]
     (hγe : MapsTo γ (Icc a b) e.baseSet) {s t : ℝ} (hs : s ∈ Icc a b) (ht : t ∈ Icc a b) :
     ∃ Ψ : P ≃ₘ^n⟮I, I⟯ P, EqOn Ψ (hD.parallelTransport γ s t) (f ⁻¹' {γ s}) := by
-  have : IsManifold I n P := .of_le (n := ∞) (by exact_mod_cast le_top)
   have h2 : (2 : ℕ∞ω) ≤ n + 1 := SymplecticGeometry.two_le_add_one_of_one_le (mod_cast hn)
   obtain ⟨V, K, hK, hV, hV0, hVγ⟩ := e.exists_timeDependentField_eq_curveVelocity hγ hγe
   refine ⟨timeDependentFlowDiffeomorph
@@ -196,8 +195,6 @@ private theorem exists_contMDiff_parallelTransport_param_of_mapsTo_baseSet (hn :
     ∃ U ∈ 𝓝 a₀, ∀ s ∈ Icc a b, ∀ t ∈ Icc a b, ∃ Ψ : N × P → P, ContMDiff (IN.prod I) I n Ψ ∧
       ∀ c ∈ U, EqOn (fun x ↦ Ψ (c, x)) (hD.parallelTransport (fun u ↦ Γ (c, u)) s t)
         (f ⁻¹' {Γ (c, s)}) := by
-  have : IsManifold I n P := .of_le (n := ∞) (by exact_mod_cast le_top)
-  have : IsManifold IN n N := .of_le (n := ∞) (by exact_mod_cast le_top)
   have h2 : (2 : ℕ∞ω) ≤ n + 1 := by
     simpa [one_add_one_eq_two] using add_le_add_left (mod_cast hn : (1 : ℕ∞ω) ≤ n) 1
   obtain ⟨U, hU, V, K, hK, hV, hV0, hVγ⟩ :=

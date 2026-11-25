@@ -84,7 +84,6 @@ theorem tendsto_maximalIntegralCurve_neg_mgradient_of_lojasiewicz (hf : ContMDif
       ∀ᶠ t in atTop, riemannianEDist I (maximalIntegralCurve (-mgradient I f) x t) p ≤
         ENNReal.ofReal
           ((f (maximalIntegralCurve (-mgradient I f) x t) - f p) ^ (1 - θ) / (c * (1 - θ))) := by
-  have : IsManifold I 1 M := IsManifold.of_le one_le_two
   have : IsContinuousRiemannianBundle E (fun x : M ↦ TangentSpace I x) :=
     IsContMDiffRiemannianBundle.toIsContinuousRiemannianBundle (IB := I) (n := 1)
   set γ := maximalIntegralCurve (-mgradient I f) x

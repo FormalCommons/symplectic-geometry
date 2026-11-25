@@ -406,7 +406,6 @@ theorem isHorizontalMap_timeDependentFlowOf_horizontalLiftField (hn : 1 ≤ n)
         (fun u ↦ timeDependentFlowOf (fun u ↦ hD.horizontalLiftField (V u)) s u x) ∧
       EqOn (f ∘ fun u ↦ timeDependentFlowOf (fun u ↦ hD.horizontalLiftField (V u)) s u x) γ S := by
   have hn' : (1 : ℕ∞ω) ≤ n := by exact_mod_cast hn
-  have : IsManifold I n P := .of_le (n := ∞) (by exact_mod_cast le_top)
   let X : ℝ → Π y : P, TangentSpace I y := fun u ↦ hD.horizontalLiftField (V u)
   have hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent n
       (fun p : ℝ × P ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I P)) :=
