@@ -279,13 +279,10 @@ theorem curvature_eq_zero_of_isInvolutiveDistribution (hn : 1 ≤ n) {x : P}
     {v₁ v₂ : Π b : B, TangentSpace J b} (hv₁ : ContMDiffAt J J.tangent 1 (T% v₁) (f x))
     (hv₂ : ContMDiffAt J J.tangent 1 (T% v₂) (f x)) :
     hD.curvature v₁ v₂ x = 0 := by
-  -- The lifts are those of `D` seen as a `C^1` connection, so they are `C^1` at `x` and
-  -- differentiable near `x`.
+  -- The lifts are `C^1` at `x`, so differentiable near `x`.
   have hnear {v : Π b : B, TangentSpace J b} (hv : ContMDiffAt J J.tangent 1 (T% v) (f x)) :
-      ∀ᶠ y in nhds x, MDifferentiableAt I I.tangent (T% (hD.horizontalLiftField v)) y := by
-    rw [← hD.horizontalLiftField_of_le v hn]
-    exact ((hD.of_le hn).contMDiffAt_horizontalLiftField (by rwa [one_add_one_eq_two]) hv
-      ).eventually_mdifferentiableAt one_ne_zero
+      ∀ᶠ y in nhds x, MDifferentiableAt I I.tangent (T% (hD.horizontalLiftField v)) y :=
+    (hD.contMDiffAt_one_horizontalLiftField hn hf hv).eventually_mdifferentiableAt one_ne_zero
   obtain ⟨U, hU, hUo, hxU⟩ := eventually_nhds_iff.1 ((hnear hv₁).and (hnear hv₂))
   exact (hD.curvature_eq_zero_iff_mem hn hf hv₁ hv₂).2 <| hDi.mlieBracket_mem hUo
     (fun y hy ↦ (hU y hy).1.mdifferentiableWithinAt)
@@ -320,16 +317,16 @@ theorem isInvolutiveDistribution_of_curvature_eq_zero [FiniteDimensional 𝕜 F]
 
 /-- **A connection is flat exactly when it is involutive.** For a `C^n` Ehresmann connection
 `D` on a `C^(n+1)` map `f`, with `1 ≤ n`, the curvature vanishes at every point `x` on all
-fields that are `C^n` at `f x` if and only if `D` is an involutive distribution. -/
+fields that are `C^1` at `f x` if and only if `D` is an involutive distribution. -/
 theorem curvature_eq_zero_iff_isInvolutiveDistribution [FiniteDimensional 𝕜 F]
     [IsManifold J (n + 1) B] (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f) :
     (∀ ⦃x : P⦄ ⦃v₁ v₂ : Π b : B, TangentSpace J b⦄,
-      ContMDiffAt J J.tangent n (T% v₁) (f x) → ContMDiffAt J J.tangent n (T% v₂) (f x) →
+      ContMDiffAt J J.tangent 1 (T% v₁) (f x) → ContMDiffAt J J.tangent 1 (T% v₂) (f x) →
         hD.curvature v₁ v₂ x = 0) ↔ IsInvolutiveDistribution I D :=
-  ⟨hD.isInvolutiveDistribution_of_curvature_eq_zero hn hf,
+  ⟨fun h ↦ hD.isInvolutiveDistribution_of_curvature_eq_zero hn hf
+      fun _ _ _ hv₁ hv₂ ↦ h (hv₁.of_le hn) (hv₂.of_le hn),
     fun hDi _ _ _ hv₁ hv₂ ↦ hD.curvature_eq_zero_of_isInvolutiveDistribution hn
-      ((hf _).of_le (by rw [← one_add_one_eq_two]; exact add_le_add_left hn 1)) hDi
-      (hv₁.of_le hn) (hv₂.of_le hn)⟩
+      ((hf _).of_le (by rw [← one_add_one_eq_two]; exact add_le_add_left hn 1)) hDi hv₁ hv₂⟩
 
 end Smooth
 
