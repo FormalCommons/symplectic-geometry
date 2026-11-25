@@ -137,14 +137,14 @@ that is `C^n` there and is a section of the projection there. It is the inverse 
 trivialization at a constant fibre coordinate. -/
 theorem exists_contMDiffOn_section [ContMDiffFiberBundle n F E IB IF] [Nonempty F] (x : B) :
     ∃ U : Set B, IsOpen U ∧ x ∈ U ∧ ∃ s : B → ManifoldTotalSpace F E,
-      ContMDiffOn IB (IB.prod IF) n s U ∧ ∀ y ∈ U, ((homeomorph F E).symm (s y)).proj = y := by
+      ContMDiffOn IB (IB.prod IF) n s U ∧ ∀ y ∈ U, projContMDiffMap n F E IB IF (s y) = y := by
   set e := trivializationAt F E x
   let v : F := Classical.arbitrary F
   refine ⟨e.baseSet, e.open_baseSet, mem_baseSet_trivializationAt F E x,
     fun b ↦ homeomorph F E (e.toOpenPartialHomeomorph.symm (b, v)), ?_, fun y hy ↦ ?_⟩
   · exact (contMDiffOn_trivialization_symm e).comp (contMDiffOn_id.prodMk contMDiffOn_const)
       fun b hb ↦ e.mem_target.2 hb
-  · rw [Homeomorph.symm_apply_apply]
+  · simp only [coe_projContMDiffMap, Homeomorph.symm_apply_apply]
     exact e.proj_symm_apply' hy
 
 end AnyField

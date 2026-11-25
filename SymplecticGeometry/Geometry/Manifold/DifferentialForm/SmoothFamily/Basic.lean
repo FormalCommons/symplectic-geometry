@@ -70,6 +70,8 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
   `.mextDeriv`, `.extendByZero_smul` and `.comp`.
 * `SymplecticGeometry.IsSmoothFamily.of_mpullback`: a family is smooth when its pullbacks along a
   smooth map with smooth local sections over an open cover of its target form a smooth family.
+* `SymplecticGeometry.IsSmoothFamily.of_mpullback_prodMk_eq`: in particular, a family is smooth
+  when its pullbacks along such a map are the slices of a smooth form.
 * `SymplecticGeometry.isSmoothFamily_interiorₗ`: the contractions of a two-form with a jointly
   smooth family of vector fields form a smooth family of one-forms.
 * `SymplecticGeometry.isSmoothFamily_iff_mpullback_inclusion_sup`: smoothness of a family on
@@ -526,6 +528,21 @@ theorem of_mpullback {f : M' → M} (hf : ContMDiff I' I ∞ f)
     (contMDiff_id.prodMap hf).contMDiffAt (by simp)
   rw [hpull] at key
   simpa only [Prod.map_apply, id_eq, hfs x hxU] using key.mp (h (t, s x))
+
+/-- **A family read off the slices of a smooth form is smooth.** Let `f : M' → M` be smooth with
+smooth local sections over an open neighbourhood of every point of `M`, and `σ` a smooth form on
+`M' × N`. A family `τ` of forms on `M` whose pullback `f^* (τ t)` along `f` is, for every `t`,
+the pullback of `σ` along `x ↦ (x, t)` is smooth. -/
+theorem of_mpullback_prodMk_eq {f : M' → M} (hf : ContMDiff I' I ∞ f)
+    (hsec : ∀ x : M, ∃ U : Set M, IsOpen U ∧ x ∈ U ∧
+      ∃ s : M → M', ContMDiffOn I I' ∞ s U ∧ ∀ y ∈ U, f (s y) = y)
+    {σ : SmoothForm (I'.prod J) (M' × N) F k} {τ : N → SmoothForm I M F k}
+    (h : ∀ t, SmoothForm.mpullback (fun x ↦ (x, t)) (contMDiff_id.prodMk contMDiff_const) σ =
+      SmoothForm.mpullback f hf (τ t)) :
+    IsSmoothFamily J τ := by
+  refine of_mpullback hf hsec ?_
+  simp_rw [← h, ← SmoothForm.mpullback_prodMk_mpullback_prodComm]
+  exact isSmoothFamily_mpullback_prodMk _
 
 end Maps
 
