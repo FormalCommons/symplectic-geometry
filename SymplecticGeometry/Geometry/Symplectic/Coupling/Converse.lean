@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import SymplecticGeometry.Analysis.Complex.Circle
 public import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 public import SymplecticGeometry.Geometry.Manifold.Flow.Basic
@@ -13,6 +14,7 @@ public import SymplecticGeometry.Geometry.Manifold.GroupAction.TranslatingField
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Circle
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
+public import SymplecticGeometry.GroupTheory.GroupAction.FixedPoints
 public import TauCeti.Geometry.Symplectic.Hamiltonian.MomentMap.ReducedForm
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 
@@ -174,12 +176,13 @@ theorem bandMap_def (x : Q × Icc a b) : bandMap v e a b x = flowOf v ((x.2 : �
 theorem bandMap_left (q : Q) (h : a ∈ Icc a b) : bandMap v e a b (q, ⟨a, h⟩) = e q := by
   rw [bandMap_def, sub_self, flowOf_zero]
 
-variable [T2Space M] [BoundarylessManifold I M]
+variable [T2Space M]
 
 /-- **The band map is smooth.** For a complete smooth vector field `v` on a Hausdorff
 boundaryless manifold modelled on a complete space, and a smooth map `e`, the band map is smooth
 for the product of the model of `Q` with the model `𝓡∂ 1` of the interval. -/
-theorem contMDiff_bandMap [Fact (a < b)] [CompleteSpace E] [IsManifold I ∞ M]
+theorem contMDiff_bandMap [Fact (a < b)] [CompleteSpace E] [BoundarylessManifold I M]
+    [IsManifold I ∞ M]
     {EQ HQ : Type*} [NormedAddCommGroup EQ] [NormedSpace ℝ EQ] [TopologicalSpace HQ]
     {IQ : ModelWithCorners ℝ EQ HQ} [TopologicalSpace Q] [ChartedSpace HQ Q]
     (hv : ContMDiff I I.tangent ∞ (fun x ↦ (⟨x, v x⟩ : TangentBundle I M)))
@@ -192,8 +195,8 @@ theorem contMDiff_bandMap [Fact (a < b)] [CompleteSpace E] [IsManifold I ∞ M]
 /-- **Equivariance of the band map.** Let a group `G` act `C¹` on `M`, and on the right on `Q`.
 If the `C¹` field `v` is invariant and `e (q • g) = g • e q`, then the band map satisfies
 `bandMap v e a b (q • g, s) = g • bandMap v e a b (q, s)`. -/
-theorem bandMap_op_smul [IsManifold I 1 M] {G : Type*} [Group G] [MulAction G M]
-    [ContMDiffConstSMul I 1 G M]
+theorem bandMap_op_smul [BoundarylessManifold I M] [IsManifold I 1 M] {G : Type*} [Group G]
+    [MulAction G M] [ContMDiffConstSMul I 1 G M]
     [MulAction Gᵐᵒᵖ Q]
     (hv : ContMDiff I I.tangent 1 (fun x ↦ (⟨x, v x⟩ : TangentBundle I M)))
     (hinv : ∀ (g : G) (x : M), mfderiv I I (g • ·) x (v x) = v (g • x))
@@ -201,7 +204,7 @@ theorem bandMap_op_smul [IsManifold I 1 M] {G : Type*} [Group G] [MulAction G M]
     bandMap v e a b (op g • x.1, x.2) = g • bandMap v e a b x := by
   rw [bandMap_def, bandMap_def, he, smul_flowOf hv hinv]
 
-omit [T2Space M] [BoundarylessManifold I M] in
+omit [T2Space M] in
 /-- If `e` takes values in the level `f = a`, the band map is the map `(x, s) ↦ φ_{s - a} x` on
 `{x // f x = a} × [a, b]`, composed with `e` on the first factor. -/
 theorem bandMap_eq_comp {f : M → ℝ} (he : ∀ q, f (e q) = a) :
@@ -209,7 +212,7 @@ theorem bandMap_eq_comp {f : M → ℝ} (he : ∀ q, f (e q) = a) :
       Prod.map (fun q ↦ ⟨e q, he q⟩) id :=
   funext fun x ↦ bandMap_def x
 
-omit [T2Space M] [BoundarylessManifold I M] in
+omit [T2Space M] in
 /-- The slice `q ↦ bandMap v e a b (q, t)` of the band map is the time-`(t - a)` map of the flow
 after `e`. -/
 theorem bandMap_slice (t : Icc a b) :
@@ -218,7 +221,7 @@ theorem bandMap_slice (t : Icc a b) :
 
 section Slice
 
-variable [IsManifold I 1 M] [CompleteSpace E]
+variable [BoundarylessManifold I M] [IsManifold I 1 M] [CompleteSpace E]
   {EQ HQ : Type*} [NormedAddCommGroup EQ] [NormedSpace ℝ EQ] [TopologicalSpace HQ]
   {IQ : ModelWithCorners ℝ EQ HQ} [TopologicalSpace Q] [ChartedSpace HQ Q]
   (hv : ContMDiff I I.tangent 1 (fun x ↦ (⟨x, v x⟩ : TangentBundle I M)))
@@ -240,7 +243,7 @@ end Slice
 
 section Band
 
-variable [IsManifold I 1 M]
+variable [BoundarylessManifold I M] [IsManifold I 1 M]
   (hv : ContMDiff I I.tangent 1 (fun x ↦ (⟨x, v x⟩ : TangentBundle I M)))
   (hcomplete : IsCompleteVectorField v) {f : M → ℝ} (hf : Continuous f) {W : Set M}
   (hW : IsOpen W) (hfv : ∀ y ∈ W, mfderiv I 𝓘(ℝ) f y (v y) = 1)
@@ -313,6 +316,7 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
   {P : B → Type*} [TopologicalSpace (TotalSpace Circle P)] [∀ b, TopologicalSpace (P b)]
   [FiberBundle Circle P] [∀ b, MulAction Circleᵐᵒᵖ (P b)]
   [PrincipalBundle Circle P] [CompleteSpace E] [ContMDiffConstSMul I 1 Circle M]
+  [BoundarylessManifold I M]
 
 /-- **The band map relates the fundamental fields.** Let a circle act on `M`, and let `P` be a
 principal circle bundle. If the complete smooth field `v` is invariant and the smooth map
@@ -358,7 +362,7 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
   {ψ : ManifoldTotalSpace Circle P × Icc a b → M}
   (hψ : ContMDiff ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) I ∞ ψ) {σ : SmoothTwoForm I M}
 
-omit [T2Space M] [BoundarylessManifold I M] [CompleteSpace E] in
+omit [T2Space M] [CompleteSpace E] in
 /-- **Invariance of the pull-back.** If the two-form `σ` on `M` is invariant under the circle
 action and `ψ : P × [a, b] → M` is equivariant, `ψ (p • z, t) = z • ψ (p, t)`, then `ψ^* σ` is
 invariant under the circle action `(p, t) ↦ (p • z, t)` on the first factor. -/
@@ -374,7 +378,7 @@ theorem mpullback_op_smul_mpullback
   conv_rhs => rw [← hσ z]
   exact SmoothForm.mpullback_mpullback_of_comp_eq _ hψ hψ _ (funext (hψs z)) σ
 
-omit [T2Space M] [BoundarylessManifold I M] [PrincipalBundle Circle P] in
+omit [T2Space M] [PrincipalBundle Circle P] in
 /-- **The Hamiltonian identity of the pull-back.** Let a circle act smoothly on `M`, and let
 `-μ` be a moment map of the action for the two-form `σ`, so that `ι_{X_M} σ = -d H` with
 `H = ⟨μ, circlePeriodOneGenerator⟩` and `X_M` the fundamental vector field of
@@ -398,7 +402,7 @@ theorem interior_couplingField_mpullback
   rwa [hcomp, SmoothTwoForm.isHamiltonianVectorField_iff_interior_eq, RoughForm.ofFunction_smul,
     mextDeriv_smul, neg_one_smul] at h
 
-omit [T2Space M] [BoundarylessManifold I M] in
+omit [T2Space M] in
 /-- **The pull-back of an invariant form with a moment map is a coupling form.** Let a circle act
 smoothly on `M`, preserving the closed two-form `σ`, with moment map `-μ`, and let
 `H = ⟨μ, circlePeriodOneGenerator⟩`. Let `ψ : P × [a, b] → M` be smooth and equivariant,
@@ -435,7 +439,7 @@ end Pullback
 
 section Regular
 
-variable [CompleteSpace E] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
+variable [BoundarylessManifold I M] [CompleteSpace E] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
 
 /-- **A point off the fixed set is not critical for the Hamiltonian.** Let a circle act smoothly
 on a Hausdorff boundaryless manifold `M`, with moment map `-μ` for a two-form `σ`, and let
@@ -479,7 +483,7 @@ variable [FiniteDimensional ℝ E] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
   [FiberBundle Circle P] [∀ b, MulAction Circleᵐᵒᵖ (P b)]
   [PrincipalBundle Circle P] [ContMDiffFiberBundle ∞ Circle P IB (𝓡 1)]
 
-omit [T2Space M] [BoundarylessManifold I M] in
+omit [T2Space M] in
 /-- **The pull-back of a symplectic form to a level descends to the base.** Let a circle act
 smoothly on a finite-dimensional manifold `M`, preserving the symplectic form `σ`, with moment
 map `-μ`, and let `H = ⟨μ, circlePeriodOneGenerator⟩`. Let `P` be a smooth principal circle
@@ -509,7 +513,8 @@ theorem existsUnique_isSymplectic_mpullback_projContMDiffMap_eq {σ : SmoothTwoF
     rcases isEmpty_or_nonempty (ManifoldTotalSpace Circle P) with hZ | ⟨⟨p₀⟩⟩
     · exact ⟨0, fun p ↦ isEmptyElim p⟩
     · exact ⟨-μ (φ p₀), fun p ↦ congrArg Neg.neg
-        (linearMap_ext_circlePeriodOneGenerator ((ht p).trans (ht p₀).symm))⟩
+        (linearMap_ext_of_ne_zero_circle circlePeriodOneGenerator_ne_zero
+          ((ht p).trans (ht p₀).symm))⟩
   have hneg : (fun x ↦ (-μ x) circlePeriodOneGenerator) = -fun x ↦ μ x circlePeriodOneGenerator :=
     funext fun _ ↦ LinearMap.neg_apply _ _
   -- `dφ` sends the fundamental fields of the bundle to those of `M`.
@@ -558,7 +563,6 @@ attribute [local instance] MulOpposite.chartedSpace
 variable [FiniteDimensional ℝ E] [I.Boundaryless] [ContMDiffSMul (𝓡 1) I ∞ Circle M]
   {f : M → ℝ} {n : ℕ}
 
-omit [BoundarylessManifold I M] in
 /-- **The band of a circle action as a product.** Let a circle act smoothly on a Hausdorff
 boundaryless finite-dimensional manifold `M`, let `f : M → ℝ` be smooth and invariant, with
 regular value `a`, and let the action be free on the level `P₀ = f⁻¹(a)`. Let `P` be the circle
@@ -647,7 +651,7 @@ theorem bandMap_orbitFiber (hf : ContMDiff I 𝓘(ℝ) ∞ f) (hreg : IsRegularV
     mfderiv_bandMap_couplingField hv hcomplete hvinv hesmooth heq⟩
   exact (D.surjective.range_comp Subtype.val).trans Subtype.range_coe_subtype
 
-omit [Fact (a < b)] [BoundarylessManifold I M] in
+omit [Fact (a < b)] in
 /-- **The slices of the band of a circle action have tangent images `ker df`.** In the setting of
 `SymplecticGeometry.bandMap_orbitFiber`, for each `t ∈ [a, b]` the slice
 `ψₜ = fun p ↦ bandMap v e a b (p, t)` from the total space of `P` to `M` has, at each point `p`,
@@ -714,7 +718,6 @@ theorem bandMap_orbitFiber_slice (hf : ContMDiff I 𝓘(ℝ) ∞ f)
       range_mfderiv_bandMap_slice (hv.of_le (by simp)) hcomplete hf.continuous hW hfv hband
         (fun x ↦ x.property) hιi (by simpa using hn.symm) t⟩
 
-omit [BoundarylessManifold I M] in
 /-- **The slices of the band of a circle action descend to symplectic forms.** In the setting of
 `SymplecticGeometry.bandMap_orbitFiber`, let the action preserve a symplectic form `σ`, with moment
 map `-μ` such that `f = ⟨μ, circlePeriodOneGenerator⟩`. Then for each `t ∈ [a, b]` there is a
@@ -822,7 +825,6 @@ variable [FiniteDimensional ℝ E] [I.Boundaryless] [ContMDiffSMul (𝓡 1) I �
   [SigmaCompactSpace M] {σ : SmoothTwoForm I M}
   {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
 
-omit [BoundarylessManifold I M] in
 /-- **The converse of minimal coupling.** Let a circle act smoothly on a Hausdorff, σ-compact,
 boundaryless finite-dimensional manifold `M`, preserving a symplectic form `σ`, with moment map
 `-μ`, and let `H = ⟨μ, circlePeriodOneGenerator⟩`, so that `ι_{X_M} σ = -dH`. Let `a < b`, let
@@ -848,19 +850,15 @@ theorem exists_isCouplingForm_comp_eq (hσ : σ.IsSymplectic)
     (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
     (hK : IsCompact ((fun x ↦ μ x circlePeriodOneGenerator) ⁻¹' Icc a b))
     (hfree : ∀ x, μ x circlePeriodOneGenerator ∈ Icc a b → MulAction.stabilizer Circle x = ⊥) :
-    -- `I.Boundaryless` gives the boundaryless instance, so the theorem does not assume it
-    haveI : BoundarylessManifold I M := ModelWithCorners.instBoundarylessManifold
     let H : M → ℝ := fun x ↦ μ x circlePeriodOneGenerator
     haveI hf : ContMDiff I 𝓘(ℝ) ∞ H := hμ.contMDiff_of_neg circlePeriodOneGenerator
+    haveI hlevel : ∀ x, H x = a → H x ∈ Icc a b := fun x hx ↦ by
+      rw [hx]; exact left_mem_Icc.2 (Fact.out : a < b).le
     haveI hfreea : ∀ x, H x = a → MulAction.stabilizer Circle x = ⊥ := fun x hx ↦
-      hfree x (show H x ∈ Icc a b by rw [hx]; exact left_mem_Icc.2 (Fact.out : a < b).le)
-    haveI hfix : ∀ x, H x ∈ Icc a b → x ∉ MulAction.fixedPoints Circle M := fun x hx hx' ↦
-      Circle.exp_pi_ne_one <| Subgroup.mem_bot.1 <|
-        hfree x hx ▸ MulAction.mem_stabilizer_iff.2 (MulAction.mem_fixedPoints.1 hx' _)
+      hfree x (hlevel x hx)
     haveI hreg : IsRegularValue I 𝓘(ℝ) H a :=
       isRegularValue_of_notMem_fixedPoints hμ hσ.isNondegenerate fun x hx ↦
-        hfix x <| show H x ∈ Icc a b by
-          rw [show H x = a from hx]; exact left_mem_Icc.2 (Fact.out : a < b).le
+        MulAction.notMem_fixedPoints_of_stabilizer_eq_bot (hfreea x hx)
     haveI hn : Module.finrank ℝ E - Module.finrank ℝ ℝ = Module.finrank ℝ E - 1 := by
       rw [Module.finrank_self]
     haveI hinv : ∀ (g : Circle) (x : M), H (g • x) = H x := fun g x ↦
@@ -884,8 +882,7 @@ theorem exists_isCouplingForm_comp_eq (hσ : σ.IsSymplectic)
       (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ)
         {x : M // H x = a})
     haveI : CompactSpace {x : M // H x = a} := isCompact_iff_compactSpace.1 <|
-      hK.of_isClosed_subset (isClosed_eq hf.continuous continuous_const) fun x hx ↦
-        show H x ∈ Icc a b by rw [hx]; exact left_mem_Icc.2 (Fact.out : a < b).le
+      hK.of_isClosed_subset (isClosed_eq hf.continuous continuous_const) hlevel
     let IB := 𝓘(ℝ, ProperSMul.QuotientModelSpace (EuclideanSpace ℝ (Fin 1))
       (Fin (Module.finrank ℝ E - 1) → ℝ))
     let B := MulAction.orbitRel.Quotient Circleᵐᵒᵖ {x : M // H x = a}
@@ -902,15 +899,13 @@ theorem exists_isCouplingForm_comp_eq (hσ : σ.IsSymplectic)
           -((t : ℝ) - s) • realFirstChernClass IB P := by
   intro H
   have hf : ContMDiff I 𝓘(ℝ) ∞ H := hμ.contMDiff_of_neg circlePeriodOneGenerator
+  have hlevel : ∀ x, H x = a → H x ∈ Icc a b := fun x hx ↦ by
+    rw [hx]; exact left_mem_Icc.2 (Fact.out : a < b).le
   have hfreea : ∀ x, H x = a → MulAction.stabilizer Circle x = ⊥ := fun x hx ↦
-    hfree x (show H x ∈ Icc a b by rw [hx]; exact left_mem_Icc.2 (Fact.out : a < b).le)
-  have hfix : ∀ x, H x ∈ Icc a b → x ∉ MulAction.fixedPoints Circle M := fun x hx hx' ↦
-    Circle.exp_pi_ne_one <| Subgroup.mem_bot.1 <|
-      hfree x hx ▸ MulAction.mem_stabilizer_iff.2 (MulAction.mem_fixedPoints.1 hx' _)
+    hfree x (hlevel x hx)
   have hreg : IsRegularValue I 𝓘(ℝ) H a :=
     isRegularValue_of_notMem_fixedPoints hμ hσ.isNondegenerate fun x hx ↦
-      hfix x <| show H x ∈ Icc a b by
-        rw [show H x = a from hx]; exact left_mem_Icc.2 (Fact.out : a < b).le
+      MulAction.notMem_fixedPoints_of_stabilizer_eq_bot (hfreea x hx)
   have hn : Module.finrank ℝ E - Module.finrank ℝ ℝ = Module.finrank ℝ E - 1 := by
     rw [Module.finrank_self]
   have hinv : ∀ (g : Circle) (x : M), H (g • x) = H x := fun g x ↦
@@ -934,14 +929,13 @@ theorem exists_isCouplingForm_comp_eq (hσ : σ.IsSymplectic)
     (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ)
       {x : M // H x = a})
   have : CompactSpace {x : M // H x = a} := isCompact_iff_compactSpace.1 <|
-    hK.of_isClosed_subset (isClosed_eq hf.continuous continuous_const) fun x hx ↦
-      show H x ∈ Icc a b by rw [hx]; exact left_mem_Icc.2 (Fact.out : a < b).le
+    hK.of_isClosed_subset (isClosed_eq hf.continuous continuous_const) hlevel
   intro IB B P
   -- An invariant complete field `v` with `dH(v) = 1` near the band, where `dH ≠ 0`.
   obtain ⟨v, W, hv, -, hvc, hvinv, hW, hKW, -, hvf⟩ :=
     exists_invariant_vectorField_mfderiv_eq_one (𝓡 1) (G := Circle) hf hinv hK fun x hx ↦
       mfderiv_ne_zero_of_notMem_fixedPoints hμ (hσ.isNondegenerate.nondegenerate_bilinFormAt x)
-        (hfix x hx)
+        (MulAction.notMem_fixedPoints_of_stabilizer_eq_bot (hfree x hx))
   obtain ⟨hψ, hψs, hψf, hinj, hrange, hX⟩ :=
     bandMap_orbitFiber hf hreg hn hinv hfreea hv hvc hvinv hW hvf hKW (b := b)
   have hτ := existsUnique_isSymplectic_mpullback_eq_mpullback_bandMap hf hreg hn hinv hfreea hv

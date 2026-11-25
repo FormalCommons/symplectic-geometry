@@ -9,9 +9,10 @@ public import Mathlib.Analysis.Normed.Operator.Mul
 public import TauCeti.Analysis.Complex.Circle.Basic
 
 /-!
-# Actions of the unit circle
+# The unit circle: nontriviality and actions
 
-Two ways in which the unit circle acts as the complex numbers it contains.
+The unit circle is a nontrivial group (`Circle.instNontrivial`, from `Circle.exp_pi_ne_one`).
+Two ways in which it acts as the complex numbers it contains:
 
 * `TauCeti.circleEquivUnitary_smul`: on any type with an action of `ℂ`, the unitary
   `circleEquivUnitary z` of Tau Ceti's isomorphism `TauCeti.circleEquivUnitary : Circle ≃ₜ*
@@ -34,6 +35,10 @@ theorem circleEquivUnitary_smul {M : Type*} [MulAction ℂ M] (z : Circle) (x : 
 end TauCeti
 
 namespace Circle
+
+/-- The unit circle has an element other than `1`, namely `Circle.exp π`. -/
+instance instNontrivial : Nontrivial Circle :=
+  ⟨⟨_, _, exp_pi_ne_one⟩⟩
 
 /-- The action of the unit circle on `ℂ` by multiplication: `z` acts as the real linear map
 `w ↦ z * w`. -/

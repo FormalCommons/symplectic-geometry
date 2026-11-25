@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.Morse.Basic
+import TauCeti.Analysis.Normed.Operator.Bilinear
 import TauCeti.Geometry.Manifold.Morse.Hessian
 import TauCeti.Geometry.Manifold.Morse.Submersion
 
@@ -60,15 +61,21 @@ theorem isManifoldNondegenerateCriticalPoint_comp
   have hφ₂ : ContMDiffAt I' I 2 φ y := hφ.contMDiffAt.of_le hn
   have hcrit := hf.mem_criticalPoints
   obtain ⟨L, hL⟩ := hφ.isInvertible_mfderiv hn0
-  obtain ⟨hf₂, -, A, hA⟩ := isManifoldNondegenerateCriticalPoint_iff_criticalHessian.1 hf
+  obtain ⟨hf₂, -, hA⟩ := isManifoldNondegenerateCriticalPoint_iff_criticalHessian.1 hf
   refine isManifoldNondegenerateCriticalPoint_iff_criticalHessian.2
     ⟨hf₂.comp y hφ₂, mem_criticalPoints.1 (((hφ.isRegularPoint hn0).mem_criticalPoints_comp_iff
       (hφ.mdifferentiableAt hn0) (hf₂.mdifferentiableAt two_ne_zero)).2 hcrit), ?_⟩
   -- The critical Hessian of `f ∘ φ` is that of `f` with `dφ` applied to both arguments.
-  refine ⟨(L.trans A).trans (L.arrowCongr (.refl ℝ ℝ)).symm, ?_⟩
+  -- Tau Ceti's `IsInvertible.bilinearComp` sees the tangent spaces through the instances of the
+  -- model spaces, which agree with those of `TangentSpace` only by unfolding: `convert` splits
+  -- off these instance goals, closed by `rfl`, and the last `rfl` is
+  -- `ContinuousLinearMap.bilinearComp_apply`, which `rw` cannot use across that mismatch.
+  convert hA.bilinearComp L L using 1
+  all_goals try rfl
+  refine heq_of_eq ?_
   ext u w
-  rw [criticalHessian_comp_apply rfl hf₂ hφ₂ hcrit, ← hL, ← hA]
-  simp
+  rw [criticalHessian_comp_apply rfl hf₂ hφ₂ hcrit, ← hL]
+  rfl
 
 end IsLocalDiffeomorphAt
 

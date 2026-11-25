@@ -15,6 +15,9 @@ public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 public import SymplecticGeometry.Geometry.Manifold.Complex.Integrable
 public import SymplecticGeometry.Geometry.Manifold.RegularValue.CriticalSet
 public import SymplecticGeometry.Geometry.Symplectic.Lefschetz.Model
+public import TauCeti.Geometry.Manifold.RegularValue.Open
+import TauCeti.Geometry.Manifold.Connected
+import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.Morse.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.Morse.Submersion
 
@@ -57,6 +60,17 @@ the restriction of `J` is integrable (`IsLefschetzChart.isIntegrable_on`), and `
   target of a Lefschetz chart `φ`.
 * `SymplecticGeometry.IsLefschetzFibration.isIntegrable_on`: every critical point of a Lefschetz
   fibration has an open neighbourhood on which `J` is integrable.
+* `SymplecticGeometry.IsLefschetzChart.eqOn_source`: on the source of a Lefschetz chart `φ`,
+  `π` is the inverse affine chart composed with the shifted quadric and with `φ`.
+* `SymplecticGeometry.IsLefschetzChart.isRegularPoint`: in the source of a Lefschetz chart `φ`,
+  every point at which `φ` does not vanish is a regular point of `π`.
+* `SymplecticGeometry.IsLefschetzFibration.isDiscrete_criticalSet` and
+  `SymplecticGeometry.IsLefschetzFibration.finite_criticalPoints`: the critical points of a
+  Lefschetz fibration are isolated, hence finitely many when `X` is compact.
+* `SymplecticGeometry.IsLefschetzFibration.isOpen_regularValue` and
+  `SymplecticGeometry.IsLefschetzFibration.isConnected_regularValue`: for compact `X`, the regular
+  values form an open connected subset of `ℂℙ¹`, the complement of finitely many critical values
+  (Tau Ceti's `TauCeti.isConnected_compl_of_finite_of_one_lt_rank`).
 * `SymplecticGeometry.IsLefschetzFibration.manifoldMorseIndex_comp`: at a critical point `p` of a
   Lefschetz fibration `π`, and for `μ : ℂℙ¹ → ℝ` with nonzero derivative at `π p`, the point `p`
   is a nondegenerate critical point of `μ ∘ π` of Morse index `2`. It is read in a Lefschetz chart
@@ -131,18 +145,6 @@ open scoped ContDiff
 variable {J : SmoothAlmostComplexStructure I X} {π : X → ℙ ℂ (Fin 2 → ℂ)} {p : X}
   {φ : PartialDiffeomorph I 𝓘(ℝ, Fin 2 → ℂ) X (Fin 2 → ℂ) ∞} {i : Fin 2}
 
-/-- On the source of a Lefschetz chart, `π` is the inverse affine chart applied to
-`affineChart i (π p) + quadric ∘ φ`, written in the one coordinate of `Fin 1 → ℂ`. -/
-theorem apply_eq_affineChart_symm (h : IsLefschetzChart J π p φ i) {x : X} (hx : x ∈ φ.source) :
-    π x = (affineChart i).symm fun _ ↦ affineChart i (π p) 0 + LefschetzModel.quadric (φ x) := by
-  have hmem : π x ∈ (affineChart (K := ℂ) i).source := by
-    rw [affineChart_source]
-    exact h.source_subset hx
-  rw [← (affineChart i).left_inv hmem]
-  congr 1
-  funext j
-  rw [Subsingleton.elim j 0, h.affineChart_apply _ hx]
-
 /-- The derivative of a Lefschetz chart carries `J` to multiplication by `i` on `ℂ²`. -/
 theorem mfderiv_apply (h : IsLefschetzChart J π p φ i) {y : X} (hy : y ∈ φ.source)
     (v : TangentSpace I y) :
@@ -157,6 +159,21 @@ theorem isIntegrable_on (h : IsLefschetzChart J π p φ i) :
     (J.restrictOpen ⟨φ.source, φ.open_source⟩).IsIntegrable :=
   J.isIntegrable_restrictOpen_source fun _ hy ↦ h.mfderiv_apply hy
 
+/-- **The local form of `π` in a Lefschetz chart**: on the source of `φ`, `π` is the inverse of
+the affine chart `affineChart i` composed with `w ↦ affineChart i (π p) 0 + quadric w` and
+with `φ`. -/
+theorem eqOn_source (h : IsLefschetzChart J π p φ i) :
+    EqOn π ((affineChart i).symm ∘
+      (fun w _ ↦ affineChart i (π p) 0 + LefschetzModel.quadric w) ∘ φ) φ.source := by
+  intro x hx
+  have hmem : π x ∈ (affineChart (K := ℂ) i).source := by
+    rw [affineChart_source]
+    exact h.source_subset hx
+  rw [Function.comp_apply, Function.comp_apply, ← (affineChart i).left_inv hmem]
+  congr 1
+  funext j
+  rw [Subsingleton.elim j 0, h.affineChart_apply _ hx]
+
 /-- **`π` is holomorphic in a Lefschetz chart**: on the target of `φ`, the map `π ∘ φ⁻¹` from
 `ℂ²` to `ℂℙ¹` is a smooth map of complex manifolds. -/
 theorem contMDiffAt_comp_symm (h : IsLefschetzChart J π p φ i) {z : Fin 2 → ℂ}
@@ -168,9 +185,9 @@ theorem contMDiffAt_comp_symm (h : IsLefschetzChart J π p φ i) {z : Fin 2 → 
   have heq : π ∘ φ.symm =ᶠ[𝓝 z] (affineChart i).symm ∘ g := by
     filter_upwards [φ.open_target.mem_nhds hz] with w hw
     have hx : φ.symm w ∈ φ.source := φ.toPartialEquiv.map_target hw
-    have hφw : φ (φ.symm w) = w := φ.toPartialEquiv.right_inv hw
-    -- `g` is the right-hand side of `apply_eq_affineChart_symm`, as a function of `φ x`.
-    exact (h.apply_eq_affineChart_symm hx).trans (by rw [hφw]; rfl)
+    have hw' : φ (φ.symm w) = w := φ.toPartialEquiv.right_inv hw
+    simp only [Function.comp_apply]
+    rw [h.eqOn_source hx, Function.comp_apply, Function.comp_apply, hw']
   exact ((contMDiff_affineChart_symm i ∞).contMDiffAt.comp z hg.contMDiff.contMDiffAt
     ).congr_of_eventuallyEq heq
 
@@ -180,6 +197,34 @@ theorem mdifferentiableAt_of_mem (h : IsLefschetzChart J π p φ i) {z : Fin 2 �
     (hz : z ∈ φ.target) :
     MDifferentiableAt 𝓘(ℂ, Fin 2 → ℂ) 𝓘(ℂ, Fin 1 → ℂ) (π ∘ φ.symm) z :=
   (h.contMDiffAt_comp_symm hz).mdifferentiableAt (by simp)
+
+/-- **Regular points in a Lefschetz chart.** A point `x` of the source of a Lefschetz
+chart `φ` with `φ x ≠ 0` is a regular point of `π`: there `π` is the quadric read through `φ` and
+the affine chart, and the quadric is regular away from `0`. -/
+theorem isRegularPoint (h : IsLefschetzChart J π p φ i) {x : X} (hx : x ∈ φ.source)
+    (hx0 : φ x ≠ 0) : IsRegularPoint I 𝓘(ℝ, Fin 1 → ℂ) π x := by
+  let q : (Fin 2 → ℂ) → ℂ := fun w ↦ affineChart i (π p) 0 + LefschetzModel.quadric w
+  let e := (ContinuousLinearEquiv.funUnique (Fin 1) ℝ ℂ).symm
+  have heq : π =ᶠ[𝓝 x] ((affineChart i).symm ∘ e ∘ q) ∘ φ := by
+    rw [ContinuousLinearEquiv.coe_funUnique_symm]
+    exact eventually_of_mem (φ.open_source.mem_nhds hx) fun y hy ↦ h.eqOn_source hy
+  refine IsRegularPoint.congr_of_eventuallyEq ?_ heq
+  refine ((PartialDiffeomorph.isLocalDiffeomorphAt _ _ _ φ hx).isRegularPoint_comp_iff
+    (by simp)).2 ((IsRegularPoint.comp ?_ ((e.comp_isRegularPoint_iff).2 ?_)))
+  · -- The inverse of an affine chart is a local diffeomorphism.
+    rw [← coe_affineOpenPartialHomeomorph_symm]
+    exact ((affineOpenPartialHomeomorph i).isLocalDiffeomorphAt_symm_of_mem_maximalAtlas
+      (n := 1) (affineOpenPartialHomeomorph_mem_maximalAtlas i) (by simp)).isRegularPoint
+      one_ne_zero
+  · rw [isRegularPoint_iff_surjective_fderiv, fderiv_const_add]
+    exact LefschetzModel.surjective_fderiv_real_quadric hx0
+
+/-- The only critical point of `π` in the source of a Lefschetz chart at `p` is `p`. -/
+theorem eq_of_mem_criticalSet (h : IsLefschetzChart J π p φ i) {x : X} (hx : x ∈ φ.source)
+    (hxc : x ∈ criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π) : x = p := by
+  by_contra hne
+  refine mem_criticalSet_iff.1 hxc (h.isRegularPoint hx fun h0 ↦ hne ?_)
+  exact φ.injOn hx h.mem_source (h0.trans h.apply_eq_zero.symm)
 
 end IsLefschetzChart
 
@@ -195,6 +240,36 @@ theorem isIntegrable_on (h : IsLefschetzFibration ω J π) {p : X}
     ∃ U : Opens X, p ∈ U ∧ (J.restrictOpen U).IsIntegrable := by
   obtain ⟨φ, i, hφ⟩ := h.exists_model p hp
   exact ⟨⟨φ.source, φ.open_source⟩, hφ.mem_source, hφ.isIntegrable_on⟩
+
+/-- **The critical points of a Lefschetz fibration are isolated**: each has a neighbourhood, the
+source of a Lefschetz chart, that contains no other. -/
+theorem isDiscrete_criticalSet (h : IsLefschetzFibration ω J π) :
+    IsDiscrete (criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π) := by
+  refine isDiscrete_iff_forall_mem_exists_isOpen.2 fun p hp ↦ ?_
+  obtain ⟨φ, i, hφ⟩ := h.exists_model p hp
+  refine ⟨φ.source, φ.open_source,
+    Subset.antisymm (fun x hx ↦ hφ.eq_of_mem_criticalSet hx.1 hx.2) ?_⟩
+  rintro x rfl
+  exact ⟨hφ.mem_source, hp⟩
+
+/-- **A Lefschetz fibration on a compact manifold has finitely many critical points.** -/
+theorem finite_criticalPoints [CompactSpace X] (h : IsLefschetzFibration ω J π) :
+    (criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π).Finite :=
+  (isClosed_criticalSet h.contMDiff (by simp)).isCompact.finite h.isDiscrete_criticalSet
+
+/-- **The regular values of a Lefschetz fibration on a compact manifold form an open set.** -/
+theorem isOpen_regularValue [CompactSpace X] (h : IsLefschetzFibration ω J π) :
+    IsOpen {y | IsRegularValue I 𝓘(ℝ, Fin 1 → ℂ) π y} :=
+  isOpen_setOf_isRegularValue_of_isClosedMap h.contMDiff (by simp)
+    h.contMDiff.continuous.isClosedMap
+
+/-- **The regular values of a Lefschetz fibration on a compact manifold form a connected set**:
+the complement in `ℂℙ¹` of the finitely many critical values. -/
+theorem isConnected_regularValue [CompactSpace X] (h : IsLefschetzFibration ω J π) :
+    IsConnected {y | IsRegularValue I 𝓘(ℝ, Fin 1 → ℂ) π y} := by
+  rw [setOf_isRegularValue_eq_compl_image, ← criticalSet_def]
+  exact isConnected_compl_of_finite_of_one_lt_rank (E := Fin 1 → ℂ) (by simp [rank_pi])
+    (h.finite_criticalPoints.image π)
 
 /-- **The Morse index of `μ ∘ π` at a critical point of a Lefschetz fibration.** If `p` is a
 critical point of a Lefschetz fibration `π` and `μ : ℂℙ¹ → ℝ` is `C²` at `π p` with nonzero
@@ -242,7 +317,7 @@ theorem manifoldMorseIndex_comp [I.Boundaryless]
   -- Near `p`, `μ ∘ π` is `ν ∘ quadric` read through `φ`.
   have heq : μ ∘ π =ᶠ[𝓝 p] (ν ∘ LefschetzModel.quadric) ∘ φ := by
     filter_upwards [φ.open_source.mem_nhds hφ.mem_source] with x hx
-    simp only [Function.comp_apply, ν, hφ.apply_eq_affineChart_symm hx]
+    simp only [Function.comp_apply, ν, hφ.eqOn_source hx]
     congr 2
     funext j
     simp [a, L, Subsingleton.elim j 0]
