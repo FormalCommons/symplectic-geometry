@@ -411,9 +411,9 @@ Proof:
 3. $\psi^*\omega$ is closed and invariant, and $\iota_X\psi^*\omega=-d\lambda$
    because $\psi$ relates the fundamental fields and $H\circ\psi=\lambda$.
    Each slice is then basic and descends along the submersion $\pi$ to a
-   unique form $\tau_\lambda$ (the library's `BasicForm.lean` or Tau Ceti's
-   `existsUnique_isSymplectic_mpullback_eq`), symplectic by Tau Ceti's
-   descent of nondegeneracy (`isNondegenerate_descendedForm_iff`). Smoothness
+   unique symplectic form $\tau_\lambda$, by Tau Ceti's reduced form of a
+   level of a moment map
+   (`IsMomentMap.existsUnique_isSymplectic_mpullback_eq_mpullback`). Smoothness
    of $\lambda\mapsto\tau_\lambda$ is local, read through local sections of
    $P$ (`isSmoothFamily_iff_contMDiff`).
 
