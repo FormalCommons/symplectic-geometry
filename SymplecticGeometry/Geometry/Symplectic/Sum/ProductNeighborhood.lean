@@ -11,6 +11,7 @@ public import TauCeti.Geometry.Symplectic.Complex.Line
 import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Basic
 import TauCeti.Geometry.Symplectic.Lagrangian.Graph
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.IsManifold.SecondCountable
 
 /-!
 # Symplectic framings and product neighbourhoods
@@ -439,8 +440,7 @@ symplectic framing `Φ` of `ι` has product neighbourhoods of every radius `ε �
 theorem «exists» [CompactSpace Q] (Φ : SymplecticFraming hι hP) :
     ∃ ε₀ > 0, ∀ ε ≤ ε₀, Nonempty (ProductNeighborhood Φ ε) := by
   -- A compact manifold over a finite-dimensional model is second countable.
-  have := J.secondCountableTopology
-  have := ChartedSpace.secondCountable_of_sigmaCompact HQ Q
+  have := J.secondCountableTopology_of_sigmaCompact Q
   obtain ⟨U₀, U₁, ψ, hψ, hψσ⟩ := Φ.exists_symplectomorphism_opens (hσ := hσ)
   have hU₀ : (Set.univ : Set Q) ×ˢ {(0 : ℂ)} ⊆ U₀ := by
     rintro ⟨q, z⟩ ⟨-, rfl : z = 0⟩
