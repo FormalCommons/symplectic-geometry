@@ -7,16 +7,17 @@ module
 
 public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
 public import TauCeti.Geometry.Lie.Adjoint.Basic
+public import TauCeti.Geometry.Lie.LeftInvariantForm
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
-public import TauCeti.Geometry.Symplectic.Coadjoint.LieGroup
 
 /-!
 # The left Maurer–Cartan form
 
 For a real Lie group `G` with Lie algebra `𝔤 = GroupLieAlgebra I G`, the left Maurer–Cartan form
 `θ` is the `𝔤`-valued one-form that translates a tangent vector at `g` back to the identity:
-`θ_g v = d(L_{g⁻¹})_g v`. Tau Ceti has it only evaluated on a vector field
-(`TauCeti.leftMaurerCartanEval`); this file makes it a smooth form.
+`θ_g v = d(L_{g⁻¹})_g v`. Tau Ceti has it evaluated on a vector field
+(`TauCeti.leftMaurerCartanEval`); this file names it as a smooth form, Tau Ceti's left-invariant
+extension `TauCeti.leftInvariantSmoothForm` of the identity of `𝔤`.
 
 ## Main definitions
 
@@ -34,11 +35,9 @@ For a real Lie group `G` with Lie algebra `𝔤 = GroupLieAlgebra I G`, the left
 
 ## Implementation notes
 
-Smoothness is not proved in charts: in a basis of `𝔤`, the components of `θ` are Tau Ceti's
-left-invariant one-forms `Module.Dual.leftInvariantForm` of the coordinate functionals, which are
-smooth, so `θ` is a finite sum of smooth forms. The proofs of
-`mpullback_mul_left_leftMaurerCartanForm` and `mpullback_mul_right_leftMaurerCartanForm` follow
-those of Tau Ceti's `Module.Dual.mpullback_mul_left_leftInvariantForm` and
+Smoothness and left-invariance come from Tau Ceti's `TauCeti.leftInvariantSmoothForm` and
+`TauCeti.mpullback_mul_left_leftInvariantSmoothForm`. The proof of
+`mpullback_mul_right_leftMaurerCartanForm` follows that of Tau Ceti's
 `Module.Dual.mpullback_mul_right_leftInvariantForm`.
 
 The norm on `𝔤` that `SmoothForm` needs is the scoped one of
@@ -60,42 +59,35 @@ open scoped Manifold ContDiff GroupLieAlgebra
 
 namespace SymplecticGeometry
 
-variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
   (G : Type*) [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
 
-/-- In a basis `b` of the Lie algebra, the value of the left Maurer–Cartan form is the sum over
-`i` of the values of the left-invariant one-form of the `i`-th coordinate functional of `b`, along
-`b i`. -/
-private theorem mfderiv_inv_mul_eq_sum {ι : Type*} [Fintype ι]
-    (b : Module.Basis ι ℝ (GroupLieAlgebra I G)) :
-    (fun g ↦ ContinuousAlternatingMap.ofSubsingleton ℝ (TangentSpace I g) (GroupLieAlgebra I G) 0
-      (mfderiv I I (g⁻¹ * ·) g)) =
-      ∑ i, RoughForm.mapCoeff (ContinuousLinearMap.toSpanSingleton ℝ (b i))
-        (Module.Dual.leftInvariantForm (b.coord i)).val := by
-  funext g
-  ext v
-  simp only [Finset.sum_apply, ContinuousAlternatingMap.sum_apply, RoughForm.mapCoeff_apply,
-    Module.Dual.leftInvariantForm_apply, ContinuousLinearMap.toSpanSingleton_apply]
-  exact (ContinuousAlternatingMap.ofSubsingleton_apply_apply _ _ _ _ _ _).trans (b.sum_repr _).symm
-
 /-- The **left Maurer–Cartan form** of a Lie group `G`: the smooth one-form with values in the
 Lie algebra `𝔤 = GroupLieAlgebra I G` whose value at `g` on a tangent vector `v` is
-`d(L_{g⁻¹})_g v`. -/
+`d(L_{g⁻¹})_g v`. It is the left-invariant extension of the identity of `𝔤`, read as a
+one-form on `𝔤`. -/
 def leftMaurerCartanForm : SmoothForm I G (GroupLieAlgebra I G) 1 :=
-  ⟨fun g ↦ ContinuousAlternatingMap.ofSubsingleton ℝ (TangentSpace I g) (GroupLieAlgebra I G) 0
-      (mfderiv I I (g⁻¹ * ·) g), by
-    rw [mfderiv_inv_mul_eq_sum I G (Module.finBasis ℝ (GroupLieAlgebra I G))]
-    exact (IsSmoothForm.sum _ _ fun i _ ↦
-      (SmoothForm.isSmoothForm _).mapCoeff _).mem_smoothBundleForms⟩
+  leftInvariantSmoothForm I G (GroupLieAlgebra I G) 1
+    (ContinuousAlternatingMap.ofSubsingleton ℝ (GroupLieAlgebra I G) (GroupLieAlgebra I G) 0
+      (ContinuousLinearMap.id ℝ (GroupLieAlgebra I G)))
+
+theorem leftMaurerCartanForm_def :
+    leftMaurerCartanForm I G = leftInvariantSmoothForm I G (GroupLieAlgebra I G) 1
+      (ContinuousAlternatingMap.ofSubsingleton ℝ (GroupLieAlgebra I G) (GroupLieAlgebra I G) 0
+        (ContinuousLinearMap.id ℝ (GroupLieAlgebra I G))) :=
+  (rfl)
 
 variable {I G}
 
 /-- The left Maurer–Cartan form at `g` translates a tangent vector at `g` to the identity by the
 differential of left multiplication by `g⁻¹`. -/
 theorem leftMaurerCartanForm_apply (g : G) (v : Fin 1 → TangentSpace I g) :
-    (leftMaurerCartanForm I G).val g v = mfderiv I I (g⁻¹ * ·) g (v 0) :=
-  (rfl)
+    (leftMaurerCartanForm I G).val g v = mfderiv I I (g⁻¹ * ·) g (v 0) := by
+  rw [leftMaurerCartanForm_def, leftInvariantSmoothForm_val, leftInvariantForm_apply]
+  -- `ofSubsingleton_apply_apply` does not rewrite here: the form is on `𝔤` with the scoped norm,
+  -- the vectors are in tangent spaces, and the two topologies agree only by unfolding.
+  exact ContinuousAlternatingMap.ofSubsingleton_apply_apply _ _ _ _ _ _
 
 /-- The left Maurer–Cartan form takes the constant value `ξ` on the left-invariant vector field of
 `ξ`. -/
@@ -108,14 +100,8 @@ theorem leftMaurerCartanForm_apply_mulInvariantVectorField (ξ : GroupLieAlgebra
 @[simp]
 theorem mpullback_mul_left_leftMaurerCartanForm (h : G) :
     SmoothForm.mpullback (h * ·) contMDiff_mul_left (leftMaurerCartanForm I G) =
-      leftMaurerCartanForm I G := by
-  apply Subtype.ext
-  funext g
-  ext v
-  obtain ⟨ξ, hξ⟩ := exists_mulInvariantVectorField_eq (v 0)
-  rw [SmoothForm.coe_mpullback, TauCeti.mpullback_apply, leftMaurerCartanForm_apply,
-    leftMaurerCartanForm_apply, ← hξ, mfderiv_mul_left_mulInvariantVectorField,
-    mfderiv_inv_mul_mulInvariantVectorField, mfderiv_inv_mul_mulInvariantVectorField]
+      leftMaurerCartanForm I G :=
+  mpullback_mul_left_leftInvariantSmoothForm _ h
 
 /-- Right translation by `h` pulls the left Maurer–Cartan form back to its image under the
 adjoint action of `h⁻¹`: `R_h^* θ = Ad(h⁻¹) θ`. -/
