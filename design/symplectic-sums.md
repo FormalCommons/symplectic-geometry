@@ -63,18 +63,17 @@ and the note of the review of #3195.
    `Geometry/Manifold/Gluing/Pair.lean` builds it once, as a two-piece
    `TopCat.GlueData` with Tau Ceti's `Geometry/Manifold/Gluing/GlueData.lean`,
    with Hausdorffness from `TopCat.GlueData.t2Space_iff_isClosed_chartRel`
-   (the graph of the gluing map is closed) and forms glued by descent along
-   the quotient map $\pi:M_1\sqcup M_2\to$ `GluedAlong φ`, with
-   `TauCeti.RoughForm.exists_mpullback_eq_iff_isBasic` and
-   `TauCeti.RoughForm.descendedForm` (`Geometry/Manifold/DifferentialForm/Pullback/Descent.lean`).
-   The derivatives of $\pi$ are invertible, since it is a local
-   diffeomorphism, and a form on $M_1\sqcup M_2$ is basic for $\pi$ exactly
-   when $\varphi^*(\sigma_2|_{U_2})=\sigma_1|_{U_1}$, a pointwise condition.
+   (the graph of the gluing map is closed) and forms glued pointwise: at
+   `inl x` the glued form is $\sigma_1$ at $x$ read through the inverse of
+   the differential of `inl` (`TauCeti.RoughForm.pushforwardAt`), and at
+   the other points likewise through `inr`. Its pull-back by `inr` is
+   $\sigma_2$ on $U_2$ exactly because
+   $\varphi^*(\sigma_2|_{U_2})=\sigma_1|_{U_1}$, a pointwise condition.
    `IsLocalDiffeomorph.exists_mpullback_eq_iff` does not apply: it asks for
    self-maps of all of $M_1\sqcup M_2$ relating the points of each fibre,
    and swapping $u$ with $\varphi(u)$ is not continuous at the boundary of
-   $U_1$. Smoothness of the descended form is local, through the inverses of
-   `inl` and `inr` on their images. Part 57's
+   $U_1$. Smoothness of the glued form is local, since `inl` and `inr`
+   are local diffeomorphisms. Part 57's
    `ConnectedSum/Annulus.lean` (#3275) may use it too; this file does not
    wait for it.
 2. **The fibre sum is glued along open collars, not cut at the seam.** The
@@ -236,10 +235,13 @@ diffeomorphism `φ : U₁ ≃ₘ^n⟮I, I⟯ U₂`:
   gluing; `isLocalDiffeomorph_inl`, `isLocalDiffeomorph_inr`.
 - `GluedAlong.t2Space_of_isClosed_graph`: Hausdorff when both pieces are
   and the graph of `φ`, as a subset of `M₁ × M₂`, is closed.
-- `GluedAlong.existsUnique_smoothForm`: forms `σ₁`, `σ₂` with
-  `φ^*(σ₂|U₂) = σ₁|U₁` glue to a unique form whose pull-backs by `inl` and
-  `inr` are `σ₁` and `σ₂`; it is closed, nondegenerate or symplectic when
-  both are.
+- `GluedAlong.gluedForm φ σ₁ σ₂ hσ`: forms `σ₁`, `σ₂` with
+  `φ^*(σ₂|U₂) = σ₁|U₁` glue to the form whose pull-backs by `inl` and
+  `inr` are `σ₁` and `σ₂` (`mpullback_inl_gluedForm`,
+  `mpullback_inr_gluedForm`), the only one (`eq_gluedForm_iff`); it is
+  closed, nondegenerate or symplectic exactly when both are
+  (`isClosed_gluedForm_iff`, `isNondegenerate_gluedForm_iff`,
+  `isSymplectic_gluedForm_iff`).
 
 About 400 lines.
 
