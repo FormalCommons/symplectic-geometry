@@ -450,19 +450,19 @@ derivative $D s(x):T_xX\to E'_x$, read in any trivialization, is onto):
 
 ### `Geometry/Manifold/VectorBundle/ZeroSet/NormalSpace.lean`
 
-- `normalSpaceEquivOfTransverseSection`: the isomorphism of the normal
+- `SymplecticGeometry.normalSpaceEquivOfTransverseSection`: the isomorphism of the normal
   bundle of the zero set with the restriction of `E'`, induced by $Ds$
   (whose kernel is the tangent space of the zero set), as a fibrewise
   continuous linear equivalence over the inclusion, in the form that Tau
   Ceti's `thomPairMapOfFiberwise` takes; and
-  `normalOrientationOfSection o'`, the normal orientation it carries from an
+  `SymplecticGeometry.normalOrientationOfSection o'`, the normal orientation it carries from an
   orientation `o'` of `E'`.
 
 ### `Geometry/Manifold/VectorBundle/ZeroSet/DualClass.lean`
 
 - `TauCeti.SmoothEmbedding.relDualClass_ofTransverseSection`: the pull-back
   of the Thom class of `E'` along `s`, in $H^r(X,X\setminus s^{-1}(0))$, is
-  `relDualClass` of the zero set with `normalOrientationOfSection o'`, by
+  `relDualClass` of the zero set with `SymplecticGeometry.normalOrientationOfSection o'`, by
   `eq_relDualClassOf_iff_forall_slice` and the local-degree lemma (the
   normal component of $s$ along a normal slice has derivative $Ds$, the
   isomorphism that orients the normal bundle);
