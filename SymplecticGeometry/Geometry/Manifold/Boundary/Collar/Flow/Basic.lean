@@ -240,8 +240,7 @@ smooth collar with image in `U`. -/
 theorem exists_range_subset [CompactSpace ↥((𝓡∂ (n + 1)).boundary W)]
     {U : Set W} (hU : IsOpen U) (hbU : (𝓡∂ (n + 1)).boundary W ⊆ U) :
     ∃ c : SmoothCollar n ∞ W, range c ⊆ U := by
-  have : LocallyCompactSpace (EuclideanHalfSpace (n + 1)) := (𝓡∂ (n + 1)).locallyCompactSpace
-  have : LocallyCompactSpace W := ChartedSpace.locallyCompactSpace (EuclideanHalfSpace (n + 1)) W
+  have : LocallyCompactSpace W := Manifold.locallyCompact_of_finiteDimensional (𝓡∂ (n + 1))
   obtain ⟨V, hVo, hbV, hVU, hVσ⟩ :=
     (isCompact_iff_compactSpace.2 ‹_›).exists_isOpen_isSigmaCompact_subset hU hbU
   lift V to TopologicalSpace.Opens W using hVo

@@ -1590,7 +1590,7 @@ does.
     (`SymplecticGeometry.Remodel`), embedded by `bandMap`. They cover
     `c.Double`, and their transition maps are smooth: between an interior
     copy and the band they are `c` and its inverse read in
-    `TauCeti.SmoothCollar.interiorModelCoord`, with the sign of `s` flipped
+    `TauCeti.SmoothCollar.interiorCoord`, with the sign of `s` flipped
     on the first copy. So `chartedSpaceOfIsOpenEmbedding` and
     `isManifold_chartedSpaceOfIsOpenEmbedding` make `c.Double` a smooth
     manifold over `𝓡 (n + 1)`. Then `isLocalDiffeomorph_inlInterior`,
