@@ -5,8 +5,8 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Translate
+import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
 
 /-!
