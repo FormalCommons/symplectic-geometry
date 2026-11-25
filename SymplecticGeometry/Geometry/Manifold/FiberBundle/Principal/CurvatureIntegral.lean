@@ -61,13 +61,10 @@ theorem IsCircleConnectionForm.integralTopForm_curvature_add_mpullback
     integralTopForm o (hα.add_mpullback a).curvature.val = integralTopForm o hα.curvature.val := by
   let : MeasurableSpace EB := borel EB
   have : BorelSpace EB := ⟨rfl⟩
-  have hd : mextDerivₗ IB 1 a ∈ exactCompactlySupportedForms IB B 2 := by
-    rw [exactCompactlySupportedForms_succ, compactlySupportedForms_eq_top]
-    exact Submodule.mem_map_of_mem Submodule.mem_top
   rw [hα.curvature_add_mpullback a, Submodule.coe_add,
     integralTopForm_add_of_compactSpace o (hα.curvature.isSmoothForm.of_le (by simp))
       ((mextDerivₗ IB 1 a).isSmoothForm.of_le (by simp)),
-    integralTopForm_eq_zero_of_mem_exactCompactlySupportedForms o hd, add_zero]
+    integralTopForm_eq_zero_of_mem_exactForms (φ := mextDerivₗ IB 1 a) o (by simp), add_zero]
 
 /-- Over a compact, boundaryless, oriented base, the curvatures of any two connection forms on a
 principal `Circle`-bundle have the same integral. -/

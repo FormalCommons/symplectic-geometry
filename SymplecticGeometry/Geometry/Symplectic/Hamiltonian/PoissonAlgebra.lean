@@ -221,9 +221,9 @@ theorem hamiltonianFlow_and_poissonAlgebra [I.Boundaryless] [T2Space M] (hσ : �
   · exact poissonBracket_mul_left (hmd hf x) (hmd hg x)
   · exact hnd.hamiltonianVectorField_poissonBracket hσ.isClosed (hf.of_le (by simp))
       (hg.of_le (by simp))
-  · rw [SmoothForm.mem_diffeomorphStabilizer] at hχ
-    exact hnd.mfderiv_hamiltonianVectorField_comp hnd χ.contMDiff hχ
-      (hnd.surjective_of_eval₂_map fun u v ↦ by rw [← SmoothForm.eval₂_mpullback χ χ.contMDiff, hχ])
+  · exact hnd.mfderiv_hamiltonianVectorField_comp hnd χ.contMDiff
+      (SmoothForm.mem_diffeomorphStabilizer.1 hχ)
+      (hnd.surjective_of_eval₂_map (SmoothForm.eval₂_mfderiv_of_mem_diffeomorphStabilizer hχ _))
       (hmd hf _)
 
 end IsSymplectic
