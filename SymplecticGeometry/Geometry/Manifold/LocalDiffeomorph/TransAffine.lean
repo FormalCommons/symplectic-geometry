@@ -8,9 +8,8 @@ module
 public import Mathlib.Geometry.Manifold.Diffeomorph
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import Mathlib.Geometry.Manifold.MFDeriv.NormedSpace
-public import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+public import TauCeti.Geometry.Manifold.Diffeomorph.NormedSpace
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
-import TauCeti.Geometry.Manifold.Diffeomorph.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.NormedSpace
 
 /-!
@@ -29,10 +28,9 @@ chart is recentred at a point and normalized by a linear map.
   `PartialDiffeomorph.transAffine_symm_apply`, `PartialDiffeomorph.mem_transAffine_target_iff`
   and `PartialDiffeomorph.transAffine_target`: its source, values, inverse and target.
 * `PartialDiffeomorph.transAffine_apply_symm_apply_self`: the new chart vanishes at `φ.symm p`.
-* `PartialDiffeomorph.transSubRight`: the translation step alone, `φ` followed by
-  `Diffeomorph.subRight`, with `PartialDiffeomorph.mvfderiv_transSubRight`: it has the
-  derivative of `φ`.
-* `PartialDiffeomorph.mvfderiv_transAffine`: its derivative is `A` composed with that of `φ`.
+* `PartialDiffeomorph.transSubRight`: the translation step alone, `φ` followed by Tau Ceti's
+  `Diffeomorph.smulAdd ∞ 1 (-p)`, which is `z ↦ z - p`, with
+  `PartialDiffeomorph.mvfderiv_transSubRight`: it has the derivative of `φ`.
 -/
 
 public section
@@ -49,7 +47,7 @@ variable {E H M G : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [Topologic
 smooth partial diffeomorphism. This is the first step of `transAffine`. -/
 noncomputable def transSubRight (φ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞) (p : G) :
     PartialDiffeomorph I 𝓘(ℝ, G) M G ∞ :=
-  φ.trans (Diffeomorph.subRight ℝ ∞ p).toPartialDiffeomorph
+  φ.trans (Diffeomorph.smulAdd ∞ (1 : ℝ) (-p) one_ne_zero).toPartialDiffeomorph
 
 /-- The smooth partial diffeomorphism `φ` followed by the affine map `z ↦ A (z - p)` of `G`. -/
 noncomputable def transAffine (φ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞) (p : G) (A : G ≃L[ℝ] G) :
@@ -59,7 +57,8 @@ noncomputable def transAffine (φ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞) (
 variable (φ : PartialDiffeomorph I 𝓘(ℝ, G) M G ∞) (p : G) (A : G ≃L[ℝ] G)
 
 theorem transSubRight_def :
-    φ.transSubRight p = φ.trans (Diffeomorph.subRight ℝ ∞ p).toPartialDiffeomorph :=
+    φ.transSubRight p =
+      φ.trans (Diffeomorph.smulAdd ∞ (1 : ℝ) (-p) one_ne_zero).toPartialDiffeomorph :=
   (rfl)
 
 theorem transAffine_def :
@@ -72,22 +71,22 @@ theorem transSubRight_source : (φ.transSubRight p).source = φ.source := by
 
 @[simp]
 theorem transSubRight_apply (y : M) : φ.transSubRight p y = φ y - p := by
-  simp [transSubRight]
+  simp [transSubRight, sub_eq_add_neg]
 
 theorem transSubRight_symm_apply (z : G) : (φ.transSubRight p).symm z = φ.symm (z + p) := by
-  simp [transSubRight]
+  simp [transSubRight, sub_eq_add_neg]
 
 /-- The form of `transSubRight_symm_apply` that `simp` uses, since `simp` writes the inverse of a
 partial diffeomorphism through its underlying partial equivalence. -/
 @[simp]
 theorem transSubRight_toPartialEquiv_symm_apply (z : G) :
     (φ.transSubRight p).toPartialEquiv.symm z = φ.toPartialEquiv.symm (z + p) := by
-  simp [transSubRight]
+  simp [transSubRight, sub_eq_add_neg]
 
 @[simp]
 theorem mem_transSubRight_target_iff {z : G} :
     z ∈ (φ.transSubRight p).target ↔ z + p ∈ φ.target := by
-  simp [transSubRight]
+  simp [transSubRight, sub_eq_add_neg]
 
 @[simp]
 theorem transAffine_source : (φ.transAffine p A).source = φ.source := by
@@ -95,23 +94,23 @@ theorem transAffine_source : (φ.transAffine p A).source = φ.source := by
 
 @[simp]
 theorem transAffine_apply (y : M) : φ.transAffine p A y = A (φ y - p) := by
-  simp [transAffine]
+  simp [transAffine, sub_eq_add_neg]
 
 theorem transAffine_symm_apply (z : G) :
     (φ.transAffine p A).symm z = φ.symm (A.symm z + p) := by
-  simp [transAffine, transSubRight]
+  simp [transAffine, transSubRight, sub_eq_add_neg]
 
 /-- The form of `transAffine_symm_apply` that `simp` uses, since `simp` writes the inverse of a
 partial diffeomorphism through its underlying partial equivalence. -/
 @[simp]
 theorem transAffine_toPartialEquiv_symm_apply (z : G) :
     (φ.transAffine p A).toPartialEquiv.symm z = φ.toPartialEquiv.symm (A.symm z + p) := by
-  simp [transAffine, transSubRight]
+  simp [transAffine, transSubRight, sub_eq_add_neg]
 
 @[simp]
 theorem mem_transAffine_target_iff {z : G} :
     z ∈ (φ.transAffine p A).target ↔ A.symm z + p ∈ φ.target := by
-  simp [transAffine, transSubRight]
+  simp [transAffine, transSubRight, sub_eq_add_neg]
 
 /-- The target of `φ.transAffine p A` is the image of the target of `φ` under
 `z ↦ A (z - p)`. -/

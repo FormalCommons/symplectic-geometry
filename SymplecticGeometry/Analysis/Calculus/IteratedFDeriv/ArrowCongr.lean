@@ -9,6 +9,7 @@ public import Mathlib.Analysis.Calculus.ContDiff.FTaylorSeries
 public import Mathlib.Topology.Algebra.Module.Spaces.ContinuousLinearMap
 import Mathlib.Analysis.Calculus.ContDiff.Basic
 import SymplecticGeometry.Analysis.Normed.Operator.ArrowCongr
+import TauCeti.Analysis.Calculus.IteratedFDeriv.CompContinuousLinearEquiv
 
 /-!
 # Iterated derivatives of a conjugated map precomposed with an affine map
@@ -18,6 +19,8 @@ Let `e₁ : E ≃L[𝕜] F` and `e₂ : E' ≃L[𝕜] F'` be continuous linear e
 continuous linear equivalence `e₁.arrowCongr e₂` and preceded by the affine map
 `z ↦ e₁⁻¹ z + p`. So its iterated derivatives of order `r` are those of `f`, at most
 multiplied by `‖e₂‖ * ‖e₁⁻¹‖ ^ (r + 1)`, with no smoothness of `f` needed.
+The bound for the inner change of variables is Tau Ceti's
+`ContinuousLinearEquiv.norm_iteratedFDeriv_comp_right_le`.
 
 ## Main results
 
@@ -40,27 +43,16 @@ theorem norm_iteratedFDeriv_arrowCongr_comp_le (e₁ : E ≃L[𝕜] F) (e₂ : E
     ‖iteratedFDeriv 𝕜 r (fun z ↦ e₁.arrowCongr e₂ (f (e₁.symm z + p))) z‖ ≤
       ‖(e₂ : E' →L[𝕜] F')‖ * ‖(e₁.symm : F →L[𝕜] E)‖ ^ (r + 1) *
         ‖iteratedFDeriv 𝕜 r f (e₁.symm z + p)‖ := by
-  have hleft := (e₁.arrowCongr e₂).iteratedFDeriv_comp_left (f := fun z ↦ f (e₁.symm z + p))
-    (x := z) (i := r)
-  have hright : iteratedFDeriv 𝕜 r ((fun w ↦ f (w + p)) ∘ e₁.symm) z =
-      (iteratedFDeriv 𝕜 r (fun w ↦ f (w + p)) (e₁.symm z)).compContinuousLinearMap
-        fun _ ↦ (e₁.symm : F →L[𝕜] E) := by
-    simpa [iteratedFDerivWithin_univ] using
-      e₁.symm.iteratedFDerivWithin_comp_right (fun w ↦ f (w + p)) uniqueDiffOn_univ
-        (Set.mem_univ (e₁.symm z)) r
-  rw [← Function.comp_def (⇑(e₁.arrowCongr e₂)), hleft]
-  refine ((ContinuousLinearMap.norm_compContinuousMultilinearMap_le _ _).trans
-    (mul_le_mul (norm_arrowCongr_le e₁ e₂) le_rfl (norm_nonneg _) (by positivity))).trans ?_
-  rw [show (fun z ↦ f (e₁.symm z + p)) = (fun w ↦ f (w + p)) ∘ e₁.symm from
-    (Function.comp_def _ _).symm, hright]
-  have hc := ContinuousMultilinearMap.norm_compContinuousLinearMap_le
-    (iteratedFDeriv 𝕜 r (fun w ↦ f (w + p)) (e₁.symm z)) fun _ ↦ (e₁.symm : F →L[𝕜] E)
-  rw [Finset.prod_const, Finset.card_univ, Fintype.card_fin] at hc
+  rw [← Function.comp_def (⇑(e₁.arrowCongr e₂)), (e₁.arrowCongr e₂).iteratedFDeriv_comp_left]
+  refine (ContinuousLinearMap.norm_compContinuousMultilinearMap_le _ _).trans ?_
+  have h := e₁.symm.norm_iteratedFDeriv_comp_right_le (fun w ↦ f (w + p)) z r
+  rw [iteratedFDeriv_comp_add_right] at h
   calc _ ≤ ‖(e₂ : E' →L[𝕜] F')‖ * ‖(e₁.symm : F →L[𝕜] E)‖ *
-        (‖iteratedFDeriv 𝕜 r (fun w ↦ f (w + p)) (e₁.symm z)‖ *
-          ‖(e₁.symm : F →L[𝕜] E)‖ ^ r) := by
+        (‖(e₁.symm : F →L[𝕜] E)‖ ^ r * ‖iteratedFDeriv 𝕜 r f (e₁.symm z + p)‖) := by
           gcongr
-    _ = _ := by rw [iteratedFDeriv_comp_add_right]; ring
+          · exact norm_arrowCongr_le e₁ e₂
+          · exact h
+    _ = _ := by ring
 
 end ContinuousLinearEquiv
 
