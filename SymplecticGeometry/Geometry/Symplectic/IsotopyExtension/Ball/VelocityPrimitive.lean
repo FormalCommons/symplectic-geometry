@@ -8,8 +8,6 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Basic
 public import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Velocity
 import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.Ball.Isotopy
-import SymplecticGeometry.Geometry.Symplectic.IsotopyExtension.VelocityFamily
-import SymplecticGeometry.Geometry.Manifold.DeRham.FamilyPrimitive
 
 /-!
 # Primitives of the velocity forms of a family of ball isotopies
@@ -25,16 +23,10 @@ primitives `h ((t, s), ·)` on `P` of the velocity forms
 parameters, and zero for each `t` at which `G` stands still
 (`SymplecticGeometry.IsSymplecticBallFamily.exists_contMDiff_velocityForm_eq_mextDeriv`).
 
-The proof is that of the one-parameter case,
-`SymplecticGeometry.IsSymplecticBallFamily.exists_hasHamiltonian_forall_apply_eq`, in which the
-velocity forms of one isotopy are closed
-(`TauCeti.SmoothIsotopy.IsSymplectic.mextDeriv_mpullback_prodMk_velocityForm`) and have smooth
-primitives on the contractible set `P`
-(`IsSmoothlyContractible.exists_contMDiff_mextDeriv_eq_of_forall_mem_closedForms`). With the
-parameter `t`, the forms are a smooth family over `(t, s)`
-(`SymplecticGeometry.isSmoothFamily_velocityForm`). The primitives are then normalized to vanish
-at a point of `P`. Where `G (t, ·, ·)` stands still, the velocity forms vanish, so the normalized
-primitives are locally constant, hence zero on the connected set `P`.
+This is the general statement for families of symplectic isotopies of a convex set,
+`SymplecticGeometry.exists_contMDiff_velocityForm_eq_mextDeriv`, applied to these `k_t`. It
+follows the one-parameter case,
+`SymplecticGeometry.IsSymplecticBallFamily.exists_hasHamiltonian_forall_apply_eq`.
 
 ## Main results
 
@@ -91,52 +83,12 @@ theorem IsSymplecticBallFamily.exists_contMDiff_velocityForm_eq_mextDeriv (hσ :
         mextDeriv (RoughForm.ofFunction 𝓘(ℝ, StdSpace (Fin n)) fun x ↦ h ((t, s), x))) ∧
       ∀ t, (∀ s, ∀ z ∈ P, G (t, s, z) = G (t, 0, z)) → ∀ s x, h ((t, s), x) = 0 := by
   choose f₀ f₁ k hk hks using fun t ↦ (he t).exists_smoothIsotopy_isSymplectic hρ hPρ
-  -- The velocity forms are the slices of one smooth form on `[0, 1]² × P`, and are closed.
-  have hĜ : ContMDiff (((𝓡∂ 1).prod (𝓡∂ 1)).prod 𝓘(ℝ, StdSpace (Fin n))) I ∞
-      fun q : (unitInterval × unitInterval) × P ↦ G (q.1.1, q.1.2, q.2) :=
-    hG.comp_contMDiff ((contMDiff_fst.comp contMDiff_fst).prodMk
+  obtain ⟨h, hh, hdh, hzero⟩ :=
+    SymplecticGeometry.exists_contMDiff_velocityForm_eq_mextDeriv hσ hPc hPne
+    (hG.comp_contMDiff ((contMDiff_fst.comp contMDiff_fst).prodMk
       ((contMDiff_snd.comp contMDiff_fst).prodMk (contMDiff_subtypeVal.comp contMDiff_snd)))
-      fun q ↦ ⟨mem_univ _, mem_univ _, q.2.property⟩
-  have hcl (q : unitInterval × unitInterval) :
-      SmoothForm.mpullback (Prod.mk q.2) (contMDiff_const.prodMk contMDiff_id)
-        ((k q.1).velocityForm σ) ∈ closedForms 𝓘(ℝ, StdSpace (Fin n)) P 1 :=
-    (mem_closedForms_iff_mextDerivₗ_eq_zero _ _).2 <| Subtype.ext <| by
-      rw [mextDerivₗ_apply, ZeroMemClass.coe_zero]
-      exact (hks q.1).mextDeriv_mpullback_prodMk_velocityForm hσ q.2
-  obtain ⟨h, hh, hdh⟩ := (Convex.isSmoothlyContractible hPc hPne
-    ).exists_contMDiff_mextDeriv_eq_of_forall_mem_closedForms
-    (isSmoothFamily_velocityForm σ hĜ k fun t p ↦ hk t p) hcl
-  -- Normalize the primitives to vanish at a point `x₀` of `P`.
-  obtain ⟨x₀, hx₀⟩ := hPne
-  have hd (t s : unitInterval) :
-      mextDeriv (RoughForm.ofFunction 𝓘(ℝ, StdSpace (Fin n))
-        fun x ↦ h ((t, s), x) - h ((t, s), ⟨x₀, hx₀⟩)) =
-      mextDeriv (RoughForm.ofFunction 𝓘(ℝ, StdSpace (Fin n)) fun x ↦ h ((t, s), x)) :=
-    funext fun x ↦ mextDeriv_ofFunction_eq_of_eventuallyEq_add_const
-      (Filter.Eventually.of_forall fun y ↦ sub_eq_add_neg _ _)
-  refine ⟨f₀, f₁, k, fun q ↦ h q - h (q.1, ⟨x₀, hx₀⟩), hk,
-    hh.sub (hh.comp (contMDiff_fst.prodMk contMDiff_const)),
-    fun t s ↦ ((hd t s).trans (hdh (t, s))).symm, fun t ht s x ↦ sub_eq_zero.2 ?_⟩
-  -- Where `G (t, ·, ·)` does not move, the velocity forms vanish, so `h ((t, s), ·)` is constant.
-  have hzero : mextDeriv (RoughForm.ofFunction 𝓘(ℝ, StdSpace (Fin n))
-      fun x ↦ h ((t, s), x)) = 0 := by
-    rw [hdh (t, s)]
-    dsimp only
-    refine funext fun y ↦ ContinuousAlternatingMap.ext fun w ↦ ?_
-    have hw : w = ![w 0] := by
-      ext i
-      fin_cases i
-      rfl
-    have hconst : (fun s₁ ↦ k t (s₁, y)) = fun _ ↦ k t (0, y) :=
-      funext fun s₁ ↦ by rw [hk, hk, ht s₁ y y.property]
-    rw [hw]
-    refine (SmoothIsotopy.mpullback_prodMk_velocityForm σ (k t) s y (w 0)).trans ?_
-    rw [hconst, mfderiv_const, Pi.zero_apply, ContinuousAlternatingMap.coe_zero, Pi.zero_apply]
-    exact ContinuousAlternatingMap.map_coord_zero _ 0 rfl
-  have : PreconnectedSpace P := isPreconnected_iff_preconnectedSpace.1 hPc.isPreconnected
-  exact ((mextDeriv_ofFunction_eq_zero_iff
-    ((hh.comp (contMDiff_const.prodMk contMDiff_id)).mdifferentiable (by simp))).1 hzero
-    ).apply_eq_of_preconnectedSpace _ _
+      fun q ↦ ⟨mem_univ _, mem_univ _, q.2.property⟩) k (fun t p ↦ hk t p) hks
+  exact ⟨f₀, f₁, k, h, hk, hh, hdh, fun t ht ↦ hzero t fun s x ↦ ht s x x.property⟩
 
 end SymplecticGeometry
 
