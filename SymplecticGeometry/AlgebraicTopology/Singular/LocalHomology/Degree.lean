@@ -25,6 +25,10 @@ are `μ` and `ν` again; then the image of `μ` is `deg f • ν`
 
 * `TauCeti.IsFundamentalClass.map_eq_or_eq_neg_of_isLocalHomeomorphOn`: the image of `μ` is `ν`
   or `-ν`.
+* `TauCeti.IsFundamentalClass.map_eq_or_eq_neg_of_isLocalHomeomorphOn_unit`: the same for classes
+  with the coefficients `𝟙_ (ModuleCat ℤ)`, by the change of coefficients to `ULift ℤ`
+  (`TauCeti.isFundamentalClass_singularHomologyFunctor_map_app_iff`), which is injective and
+  natural in the space.
 
 ## References
 
@@ -34,7 +38,7 @@ are `μ` and `ν` again; then the image of `μ` is `deg f • ν`
 
 public section
 
-open CategoryTheory Module AlgebraicTopology
+open CategoryTheory MonoidalCategory Module AlgebraicTopology
 
 namespace TauCeti.IsFundamentalClass
 
@@ -69,6 +73,35 @@ theorem map_eq_or_eq_neg_of_isLocalHomeomorphOn (hE : finrank ℝ E = n) (hF : f
     hfib hs hx with hd | hd
   · exact Or.inl (by rw [hd, one_zsmul])
   · exact Or.inr (by rw [hd, neg_one_zsmul])
+
+/-- **A map with a one-point fibre at which it is a local homeomorphism sends a fundamental class
+to `±` the other**, for classes with the coefficients `𝟙_ (ModuleCat ℤ)`. Let `M`, `N` be compact
+`n`-manifolds, `N` preconnected, with such fundamental classes `μ` and `ν`. If `f : M → N` is a
+local homeomorphism on a set containing `x`, and `x` is the only point sent to `f x`, then
+`f_* μ = ν` or `f_* μ = -ν`. -/
+theorem map_eq_or_eq_neg_of_isLocalHomeomorphOn_unit (hE : finrank ℝ E = n)
+    (hF : finrank ℝ F = n)
+    {μ : ((TopCat.toSSet.obj (TopCat.of M)).homology (𝟙_ (ModuleCat.{0} ℤ)) n : ModuleCat.{0} ℤ)}
+    {ν : ((TopCat.toSSet.obj (TopCat.of N)).homology (𝟙_ (ModuleCat.{0} ℤ)) n : ModuleCat.{0} ℤ)}
+    (hμ : IsFundamentalClass μ) (hν : IsFundamentalClass ν) {f : C(M, N)}
+    {x : M} (hfib : f ⁻¹' {f x} = {x}) {s : Set M} (hs : IsLocalHomeomorphOn f s) (hx : x ∈ s) :
+    (((singularHomologyFunctor (ModuleCat.{0} ℤ) n).obj (𝟙_ (ModuleCat.{0} ℤ))).map
+        (TopCat.ofHom f)).hom μ = ν ∨
+      (((singularHomologyFunctor (ModuleCat.{0} ℤ) n).obj (𝟙_ (ModuleCat.{0} ℤ))).map
+        (TopCat.ofHom f)).hom μ = -ν := by
+  set c : 𝟙_ (ModuleCat.{0} ℤ) ≅ ModuleCat.of ℤ (ULift.{0} ℤ) :=
+    (ULift.moduleEquiv (R := ℤ) (M := ℤ)).symm.toModuleIso
+  have hf := map_eq_or_eq_neg_of_isLocalHomeomorphOn hE hF
+    ((isFundamentalClass_singularHomologyFunctor_map_app_iff c μ).2 hμ)
+    ((isFundamentalClass_singularHomologyFunctor_map_app_iff c ν).2 hν) hfib hs hx
+  have hinj : Function.Injective
+      (((singularHomologyFunctor (ModuleCat.{0} ℤ) n).map c.hom).app (TopCat.of N)).hom :=
+    (ModuleCat.mono_iff_injective _).1 inferInstance
+  have hnat := congrArg (fun φ ↦ φ.hom μ)
+    (((singularHomologyFunctor (ModuleCat.{0} ℤ) n).map c.hom).naturality (TopCat.ofHom f))
+  rcases hf with hf | hf
+  · exact .inl (hinj (hnat.trans hf))
+  · exact .inr (hinj (hnat.trans (hf.trans (map_neg _ _).symm)))
 
 end TauCeti.IsFundamentalClass
 
