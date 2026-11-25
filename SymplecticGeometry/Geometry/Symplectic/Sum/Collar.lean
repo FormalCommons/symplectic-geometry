@@ -5,14 +5,14 @@ Authors: The FormalCommons contributors
 -/
 module
 
-public import Mathlib.Analysis.InnerProductSpace.Calculus
 public import Mathlib.Analysis.SpecialFunctions.Sqrt
-import Mathlib.Analysis.Calculus.Deriv.Inv
+import TauCeti.Analysis.SpecialFunctions.Complex.Arg
 public import TauCeti.Geometry.Manifold.DifferentialForm.Opens.PartialDiffeomorph
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import TauCeti.Geometry.Symplectic.Complex.Line
 public import TauCeti.Geometry.Symplectic.Manifold.Prod
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
+public import TauCeti.Geometry.Toric.WeightedCircle.Transition
 
 /-!
 # The annulus map and product collars
@@ -34,8 +34,12 @@ neighbourhoods of `Q`.
 * `SymplecticGeometry.annulusPartialDiffeomorph δ ε`: `a` as a partial diffeomorphism of `ℂ`
   with source and target the annulus, and `SymplecticGeometry.annulusDiffeomorph δ ε`, the
   diffeomorphism of the annulus that it gives.
-* `SymplecticGeometry.stdComplexSymplecticForm_fderiv_annulusMap`: the derivative of `a`
-  preserves `TauCeti.stdComplexSymplecticForm`, and
+* `SymplecticGeometry.annulusMap_eventuallyEq_weightedSliceTransitionBranch`: near a point
+  `z ≠ 0`, `a` is Tau Ceti's `TauCeti.Toric.weightedSliceTransitionBranch 1 1 ((ε² + δ²) / 2) z`,
+  so that its smoothness (`contDiffAt_annulusMap`) and
+  `SymplecticGeometry.stdComplexSymplecticForm_fderiv_annulusMap`, that its derivative
+  preserves `TauCeti.stdComplexSymplecticForm`, follow from Tau Ceti's lemmas for the branch;
+  and
   `SymplecticGeometry.mpullback_annulusMap`: `annulusDiffeomorph` pulls the restriction of the
   constant form `ω₀` to the annulus back to itself.
 * `SymplecticGeometry.prodAnnulusDiffeomorph Q δ ε`: the identity of `Q` times
@@ -54,7 +58,7 @@ public section
 noncomputable section
 
 open Complex TopologicalSpace TauCeti
-open scoped Manifold ContDiff InnerProductSpace ComplexConjugate
+open scoped Manifold ContDiff ComplexConjugate Topology
 
 namespace SymplecticGeometry
 
@@ -76,11 +80,6 @@ theorem annulusMap_def (δ ε : ℝ) (z : ℂ) :
     annulusMap δ ε z = (√(ε ^ 2 + δ ^ 2 - ‖z‖ ^ 2) / ‖z‖) • conj z :=
   (rfl)
 
-/-- The annulus map as `√((ε² + δ² - ‖z‖²) / ‖z‖²) z̄`, a function of `‖z‖²` times `z̄`. -/
-theorem annulusMap_eq_sqrt_div (δ ε : ℝ) (z : ℂ) :
-    annulusMap δ ε z = √((ε ^ 2 + δ ^ 2 - ‖z‖ ^ 2) / ‖z‖ ^ 2) • conj z := by
-  rw [annulusMap_def, Real.sqrt_div' _ (by positivity), Real.sqrt_sq (norm_nonneg z)]
-
 /-- Away from `0`, the annulus map sends the circle of radius `‖z‖` to that of radius
 `√(ε² + δ² - ‖z‖²)`. -/
 theorem norm_annulusMap (δ ε : ℝ) {z : ℂ} (hz : z ≠ 0) :
@@ -89,9 +88,11 @@ theorem norm_annulusMap (δ ε : ℝ) {z : ℂ} (hz : z ≠ 0) :
   rw [annulusMap_def, norm_smul, Complex.norm_conj, Real.norm_eq_abs,
     abs_of_nonneg (by positivity), div_mul_cancel₀ _ this]
 
-/-- The annulus map is an involution of the punctured disc of radius `√(ε² + δ²)`. -/
-theorem annulusMap_annulusMap (δ ε : ℝ) {z : ℂ} (hz : z ≠ 0)
-    (hzr : ‖z‖ ^ 2 < ε ^ 2 + δ ^ 2) : annulusMap δ ε (annulusMap δ ε z) = z := by
+/-- The annulus map is an involution of the open disc of radius `√(ε² + δ²)`. -/
+theorem annulusMap_annulusMap (δ ε : ℝ) {z : ℂ} (hzr : ‖z‖ ^ 2 < ε ^ 2 + δ ^ 2) :
+    annulusMap δ ε (annulusMap δ ε z) = z := by
+  rcases eq_or_ne z 0 with rfl | hz
+  · simp [annulusMap_def]
   have hr : 0 < ‖z‖ := norm_pos_iff.2 hz
   have hs2 : √(ε ^ 2 + δ ^ 2 - ‖z‖ ^ 2) ^ 2 = ε ^ 2 + δ ^ 2 - ‖z‖ ^ 2 :=
     Real.sq_sqrt (by linarith)
@@ -116,42 +117,44 @@ theorem mapsTo_annulusMap {δ ε : ℝ} (hδ : 0 ≤ δ) :
   · rw [Real.sqrt_lt' (hδ.trans_lt h₁ |>.trans h₂)]
     linarith
 
-/-- The annulus map preserves the norm of `z` exactly on the circle of radius
+/-- Away from `0`, the annulus map preserves the norm of `z` exactly on the circle of radius
 `√((δ² + ε²) / 2)`. -/
-theorem norm_annulusMap_eq_norm_iff (δ ε : ℝ) {z : ℂ} (hz : z ≠ 0)
-    (hzr : ‖z‖ ^ 2 ≤ ε ^ 2 + δ ^ 2) :
+theorem norm_annulusMap_eq_norm_iff (δ ε : ℝ) {z : ℂ} (hz : z ≠ 0) :
     ‖annulusMap δ ε z‖ = ‖z‖ ↔ ‖z‖ = √((δ ^ 2 + ε ^ 2) / 2) := by
-  rw [norm_annulusMap δ ε hz, Real.sqrt_eq_iff_eq_sq (by linarith) (norm_nonneg z),
-    eq_comm (a := ‖z‖), Real.sqrt_eq_iff_eq_sq (by positivity) (norm_nonneg z)]
-  constructor <;> intro h <;> linarith
+  rcases le_or_gt (‖z‖ ^ 2) (ε ^ 2 + δ ^ 2) with hzr | hzr
+  · rw [norm_annulusMap δ ε hz, Real.sqrt_eq_iff_eq_sq (by linarith) (norm_nonneg z),
+      eq_comm (a := ‖z‖), Real.sqrt_eq_iff_eq_sq (by positivity) (norm_nonneg z)]
+    constructor <;> intro h <;> linarith
+  -- Outside the disc of radius `√(ε² + δ²)` the image is `0`, and neither side holds.
+  rw [norm_annulusMap δ ε hz, Real.sqrt_eq_zero'.2 (by linarith)]
+  refine ⟨fun h ↦ absurd h.symm (norm_ne_zero_iff.2 hz), fun h ↦ ?_⟩
+  rw [h, Real.sq_sqrt (by positivity)] at hzr
+  nlinarith [sq_nonneg δ, sq_nonneg ε]
 
-/-- The derivative of the annulus map at a point `z ≠ 0` with `‖z‖² < ε² + δ²`: with
-`g = √((ε² + δ² - ‖z‖²) / ‖z‖²)`, it is `v ↦ g v̄ - (ε² + δ²) ⟪z, v⟫ z̄ / (g ‖z‖⁴)`. -/
-theorem hasFDerivAt_annulusMap (δ ε : ℝ) {z : ℂ} (hz : z ≠ 0)
-    (hzr : ‖z‖ ^ 2 < ε ^ 2 + δ ^ 2) :
-    HasFDerivAt (annulusMap δ ε)
-      (√((ε ^ 2 + δ ^ 2 - ‖z‖ ^ 2) / ‖z‖ ^ 2) • (conjCLE : ℂ →L[ℝ] ℂ) +
-        ((-((ε ^ 2 + δ ^ 2) / (√((ε ^ 2 + δ ^ 2 - ‖z‖ ^ 2) / ‖z‖ ^ 2) * (‖z‖ ^ 2) ^ 2))) •
-          innerSL ℝ z).smulRight (conj z)) z := by
-  have ht : 0 < ‖z‖ ^ 2 := by positivity
-  have hq : 0 < (ε ^ 2 + δ ^ 2 - ‖z‖ ^ 2) / ‖z‖ ^ 2 := div_pos (by linarith) ht
-  have hd : HasDerivAt (fun t : ℝ ↦ √((ε ^ 2 + δ ^ 2 - t) / t))
-      ((((-1) * ‖z‖ ^ 2 - (ε ^ 2 + δ ^ 2 - ‖z‖ ^ 2) * 1) / (‖z‖ ^ 2) ^ 2) /
-        (2 * √((ε ^ 2 + δ ^ 2 - ‖z‖ ^ 2) / ‖z‖ ^ 2))) (‖z‖ ^ 2) :=
-    HasDerivAt.sqrt (HasDerivAt.div (HasDerivAt.const_sub (ε ^ 2 + δ ^ 2)
-      (hasDerivAt_id (‖z‖ ^ 2))) (hasDerivAt_id (‖z‖ ^ 2)) ht.ne') hq.ne'
-  have hf := (HasDerivAt.comp_hasFDerivAt z hd (hasStrictFDerivAt_norm_sq z).hasFDerivAt).smul
-    (conjCLE.hasFDerivAt (x := z))
-  have hfun : annulusMap δ ε =
-      ((fun t : ℝ ↦ √((ε ^ 2 + δ ^ 2 - t) / t)) ∘ fun x : ℂ ↦ ‖x‖ ^ 2) • ⇑conjCLE :=
-    funext (annulusMap_eq_sqrt_div δ ε)
-  rw [hfun]
-  refine hf.congr_fderiv (ContinuousLinearMap.ext fun v ↦ ?_)
-  simp only [add_apply, smul_apply,
-    ContinuousLinearMap.smulRight_apply, Function.comp_apply]
-  congr 2
-  field_simp
+/-- Away from `0`, the annulus map agrees with Tau Ceti's branch near `z` of the change of
+slices, for the weights `a = b = 1` and the level `(ε² + δ²) / 2`. -/
+theorem annulusMap_eq_weightedSliceTransitionBranch (δ ε : ℝ) {z w : ℂ} (hz : z ≠ 0)
+    (hw : w ≠ 0) :
+    annulusMap δ ε w = Toric.weightedSliceTransitionBranch 1 1 ((ε ^ 2 + δ ^ 2) / 2) z w := by
+  have hz' : (‖z‖ : ℂ) ≠ 0 := by exact_mod_cast norm_ne_zero_iff.2 hz
+  set θ := arg (w / z) + arg z
+  have he : exp (θ * I) = w / ‖w‖ := by
+    rw [ofReal_add, add_mul, exp_add, exp_arg_mul_I (div_ne_zero hw hz), exp_arg_mul_I hz,
+      norm_div]
+    push_cast
+    field_simp
+  have he' : exp (-θ * I) = conj w / ‖w‖ := by
+    rw [show -(θ : ℂ) * I = conj ((θ : ℂ) * I) by simp, exp_conj, he, map_div₀, conj_ofReal]
+  rw [Toric.weightedSliceTransitionBranch_apply, annulusMap_def, Circle.coe_exp, Nat.cast_one,
+    one_mul, one_mul, div_one, div_one, ofReal_neg, he', real_smul, ofReal_div,
+    show 2 * ((ε ^ 2 + δ ^ 2) / 2) = ε ^ 2 + δ ^ 2 by ring]
   ring
+
+/-- Near a point `z ≠ 0`, the annulus map is Tau Ceti's branch near `z` of the change of slices,
+for the weights `a = b = 1` and the level `(ε² + δ²) / 2`. -/
+theorem annulusMap_eventuallyEq_weightedSliceTransitionBranch (δ ε : ℝ) {z : ℂ} (hz : z ≠ 0) :
+    annulusMap δ ε =ᶠ[𝓝 z] Toric.weightedSliceTransitionBranch 1 1 ((ε ^ 2 + δ ^ 2) / 2) z :=
+  (eventually_ne_nhds hz).mono fun _ hw ↦ annulusMap_eq_weightedSliceTransitionBranch δ ε hz hw
 
 /-- The derivative of the annulus map preserves the area form of `ℂ`, at every point `z ≠ 0`
 with `‖z‖² < ε² + δ²`. -/
@@ -159,23 +162,9 @@ theorem stdComplexSymplecticForm_fderiv_annulusMap (δ ε : ℝ) {z : ℂ} (hz :
     (hzr : ‖z‖ ^ 2 < ε ^ 2 + δ ^ 2) (v w : ℂ) :
     TauCeti.stdComplexSymplecticForm (fderiv ℝ (annulusMap δ ε) z v)
         (fderiv ℝ (annulusMap δ ε) z w) = TauCeti.stdComplexSymplecticForm v w := by
-  have ht : 0 < ‖z‖ ^ 2 := by positivity
-  have hq : 0 < (ε ^ 2 + δ ^ 2 - ‖z‖ ^ 2) / ‖z‖ ^ 2 := div_pos (by linarith) ht
-  have hg2 := Real.sq_sqrt hq.le
-  rw [(hasFDerivAt_annulusMap δ ε hz hzr).fderiv]
-  have hk : -√((ε ^ 2 + δ ^ 2 - ‖z‖ ^ 2) / ‖z‖ ^ 2) ^ 2 - √((ε ^ 2 + δ ^ 2 - ‖z‖ ^ 2) / ‖z‖ ^ 2) *
-      (-((ε ^ 2 + δ ^ 2) / (√((ε ^ 2 + δ ^ 2 - ‖z‖ ^ 2) / ‖z‖ ^ 2) * (‖z‖ ^ 2) ^ 2))) *
-      ‖z‖ ^ 2 = 1 := by
-    rw [hg2]
-    field_simp
-    ring
-  generalize √((ε ^ 2 + δ ^ 2 - ‖z‖ ^ 2) / ‖z‖ ^ 2) = g at hk ⊢
-  generalize -((ε ^ 2 + δ ^ 2) / (g * (‖z‖ ^ 2) ^ 2)) = k at hk ⊢
-  rw [Complex.sq_norm, Complex.normSq_apply] at hk
-  simp only [add_apply, smul_apply, ContinuousLinearMap.smulRight_apply, innerSL_apply_apply,
-    TauCeti.stdComplexSymplecticForm_apply, Complex.inner]
-  simp
-  linear_combination (v.re * w.im - v.im * w.re) * hk
+  rw [(annulusMap_eventuallyEq_weightedSliceTransitionBranch δ ε hz).fderiv_eq]
+  exact Toric.stdComplexSymplecticForm_fderiv_weightedSliceTransitionBranch one_pos one_pos
+    (div_self hz ▸ one_mem_slitPlane) (by linarith) v w
 
 /-- Points of the annulus with `0 ≤ δ` are nonzero and lie in the disc of radius `√(ε² + δ²)`,
 where the annulus map is smooth and involutive. -/
@@ -187,14 +176,11 @@ theorem ne_zero_and_sq_lt_of_mem_annulus {δ ε : ℝ} (hδ : 0 ≤ δ) {z : ℂ
 
 /-- The annulus map is smooth at every point `z ≠ 0` with `‖z‖² < ε² + δ²`. -/
 theorem contDiffAt_annulusMap (δ ε : ℝ) {z : ℂ} (hz : z ≠ 0)
-    (hzr : ‖z‖ ^ 2 < ε ^ 2 + δ ^ 2) {n : WithTop ℕ∞} : ContDiffAt ℝ n (annulusMap δ ε) z := by
-  have ht : 0 < ‖z‖ ^ 2 := by positivity
-  have hq : 0 < (ε ^ 2 + δ ^ 2 - ‖z‖ ^ 2) / ‖z‖ ^ 2 := div_pos (by linarith) ht
-  have h2 : ContDiffAt ℝ n (fun x : ℂ ↦ ‖x‖ ^ 2) z := (contDiff_norm_sq ℝ).contDiffAt
-  rw [show annulusMap δ ε = _ from funext (annulusMap_eq_sqrt_div δ ε)]
-  exact ContDiffAt.smul (ContDiffAt.sqrt (ContDiffAt.div (contDiffAt_const.sub h2) h2 ht.ne')
-    hq.ne')
-    (conjCLE : ℂ →L[ℝ] ℂ).contDiff.contDiffAt
+    (hzr : ‖z‖ ^ 2 < ε ^ 2 + δ ^ 2) {n : WithTop ℕ∞} : ContDiffAt ℝ n (annulusMap δ ε) z :=
+  (Toric.contDiffAt_weightedSliceTransitionBranch (a := 1) (b := 1)
+    (ε := (ε ^ 2 + δ ^ 2) / 2) (div_self hz ▸ one_mem_slitPlane)
+    (by linarith)).congr_of_eventuallyEq
+    (annulusMap_eventuallyEq_weightedSliceTransitionBranch δ ε hz)
 
 /-- The annulus map is smooth on the annulus, for `0 ≤ δ`. -/
 theorem contDiffOn_annulusMap {δ ε : ℝ} (hδ : 0 ≤ δ) {n : WithTop ℕ∞} :
@@ -212,10 +198,8 @@ def annulusPartialDiffeomorph (δ ε : ℝ) (hδ : 0 ≤ δ) :
   target := annulus δ ε
   map_source' := mapsTo_annulusMap hδ
   map_target' := mapsTo_annulusMap hδ
-  left_inv' _ hz := annulusMap_annulusMap δ ε (ne_zero_and_sq_lt_of_mem_annulus hδ hz).1
-    (ne_zero_and_sq_lt_of_mem_annulus hδ hz).2
-  right_inv' _ hz := annulusMap_annulusMap δ ε (ne_zero_and_sq_lt_of_mem_annulus hδ hz).1
-    (ne_zero_and_sq_lt_of_mem_annulus hδ hz).2
+  left_inv' _ hz := annulusMap_annulusMap δ ε (ne_zero_and_sq_lt_of_mem_annulus hδ hz).2
+  right_inv' _ hz := annulusMap_annulusMap δ ε (ne_zero_and_sq_lt_of_mem_annulus hδ hz).2
   open_source := (annulus δ ε).isOpen
   open_target := (annulus δ ε).isOpen
   contMDiffOn_toFun := contMDiffOn_iff_contDiffOn.2 (contDiffOn_annulusMap hδ)
