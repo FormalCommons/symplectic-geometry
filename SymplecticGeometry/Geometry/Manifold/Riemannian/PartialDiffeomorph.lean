@@ -11,7 +11,6 @@ public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.ChartGram
 import SymplecticGeometry.Analysis.Calculus.ContDiff.Matrix
-import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import Mathlib.Analysis.Calculus.ContDiff.FiniteDimension
 import Mathlib.Analysis.InnerProductSpace.GramMatrix
 import Mathlib.Analysis.SpecialFunctions.Sqrt
