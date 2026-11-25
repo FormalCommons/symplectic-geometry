@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.Kahler
 public import TauCeti.Topology.Maps.Proper.Metric
 public import SymplecticGeometry.Analysis.Convex.Deriv
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Dolbeault.Potential
+public import SymplecticGeometry.Topology.Maps.Proper
 
 /-!
 # Stein functions and their Kähler forms
@@ -155,10 +156,9 @@ theorem comp (hφ : IsSteinFunction E φ) {h : ℝ → ℝ} (hh : ContDiff ℝ �
       (hconv.subset (subset_univ _) (convex_Ici 0)) (hd 0).hasDerivAt.hasDerivWithinAt (hh₁ 0)
     obtain ⟨c, hc'⟩ := hK.bddAbove
     obtain ⟨b, hb⟩ := (hh_tendsto.eventually_gt_atTop c).exists_forall_of_atTop
-    obtain ⟨m, hm⟩ := hφ.bddBelow
-    have hsub : h ∘ φ ⁻¹' K ⊆ φ ⁻¹' Icc m b := fun x hx ↦
-      ⟨hm ⟨x, rfl⟩, (not_le.1 fun hbx ↦ (hb _ hbx).not_ge (hc' hx)).le⟩
-    exact (hφ.isProperMap.isCompact_preimage isCompact_Icc).of_isClosed_subset
+    have hsub : h ∘ φ ⁻¹' K ⊆ φ ⁻¹' Iic b := fun x hx ↦
+      (not_le.1 fun hbx ↦ (hb _ hbx).not_ge (hc' hx)).le
+    exact (hφ.isProperMap.isCompact_preimage_Iic hφ.bddBelow b).of_isClosed_subset
       (hK.isClosed.preimage hc) hsub
   bddBelow := by
     obtain ⟨m, hm⟩ := hφ.bddBelow
