@@ -38,8 +38,8 @@ The operator is the composite `π^{0,1}_i ∘ Φ_J ∘ ∇` of three bounded ope
 * Tau Ceti's projection `TauCeti.zeroOnePartSobolevL` onto the `(0,1)`-forms for `i`.
 
 On smooth sections the operator is the `(0,1)`-part for `i` of `D_J`
-(`SymplecticGeometry.twistOneDelBarSobolev_ofContMDiffSection`). The last projection does not
-change `D_J s` in the ways that matter later: if a two-form tames both `J` and `i`, the
+(`SymplecticGeometry.twistOneDelBarSobolev_ofContMDiffSection`). The last projection loses nothing
+when a two-form tames both `J` and `i`: then the
 `(0,1)`-projection for `i` is injective on the `(0,1)`-forms for `J` at every point
 (`TauCeti.SmoothAlmostComplexStructure.injOn_zeroOnePart_of_tames`).
 
