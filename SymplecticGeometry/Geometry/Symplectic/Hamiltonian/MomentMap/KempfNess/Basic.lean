@@ -19,6 +19,7 @@ public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.Metric
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Lie.MaurerCartan
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Constancy
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 
 /-!
@@ -73,6 +74,8 @@ and the moment weights.
 * `SymplecticGeometry.hasDerivAt_moment_expI`, `SymplecticGeometry.antitone_moment_expI`: for a
   complexified action, `t ↦ μ (C.expI (t • ξ) • p) ξ` has derivative `-‖X_ξ‖²` at the moving
   point, so it is antitone.
+* `SymplecticGeometry.expI_smul_eq_self_of_moment_apply_le`: for a complexified action, if
+  `μ x ξ ≤ μ (C.expI ξ • x) ξ`, then `C.expI ξ` fixes `x`.
 * `SymplecticGeometry.differentiable_moment_inv_smul_im_mfderiv`: along a smooth map `γ` from a
   normed space to `Gc`, the function `z ↦ μ ((γ z)⁻¹ • p) (C.im (a_v z))` is differentiable.
 * `SymplecticGeometry.fderiv_moment_inv_smul_im_comm`: for a smooth map `γ` from a normed space
@@ -378,6 +381,48 @@ theorem antitone_moment_expI [ContMDiffSMul IC I' ∞ Gc M] {C : LieComplexifica
     Antitone fun t : ℝ ↦ μ (C.expI (t • ξ) • p) ξ :=
   antitone_of_hasDerivAt_nonpos (hasDerivAt_moment_expI h hμ hg ξ p)
     fun _ ↦ neg_nonpos.2 (sq_nonneg _)
+
+/-- **`⟨μ, ξ⟩` stays constant along `exp(itξ)` only at a fixed point.** For a complexified
+action, with `-μ` a moment map for `σ` and the metric `g(u, w) = σ(u, J w)`: if
+`μ x ξ ≤ μ (C.expI ξ • x) ξ`, then `C.expI ξ` fixes `x`. -/
+theorem expI_smul_eq_self_of_moment_apply_le [ContMDiffSMul IC I' ∞ Gc M]
+    {C : LieComplexification I G IC Gc} (h : IsComplexifiedAction C J)
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    {ξ : GroupLieAlgebra I G} {x : M} (hle : μ x ξ ≤ μ (C.expI ξ • x) ξ) :
+    C.expI ξ • x = x := by
+  -- `t ↦ μ (C.expI (t • ξ) • x) ξ` is antitone and does not drop from `0` to `1`, so it is
+  -- constant on `[0, 1]` and its derivative `-‖X_ξ‖²` vanishes there; the curve, of velocity
+  -- `J X_ξ`, is then constant.
+  have hanti := antitone_moment_expI h hμ hg ξ x
+  have hf0 : μ (C.expI ((0 : ℝ) • ξ) • x) ξ = μ x ξ := by
+    rw [zero_smul, C.expI_zero, one_smul]
+  have hf1 : μ (C.expI ((1 : ℝ) • ξ) • x) ξ = μ x ξ :=
+    le_antisymm (hf0 ▸ hanti zero_le_one) (by rwa [one_smul])
+  -- The fundamental vector field of `ξ` vanishes along the curve on `[0, 1]`.
+  have hX (t : ℝ) (ht : t ∈ Set.Icc (0 : ℝ) 1) :
+      fundamentalVectorField I' ξ (C.expI (t • ξ) • x) = 0 := by
+    have hD := hasDerivAt_moment_expI h hμ hg ξ x t
+    have hft : μ (C.expI (t • ξ) • x) ξ = μ x ξ :=
+      le_antisymm (hf0 ▸ hanti ht.1) (hf1 ▸ hanti ht.2)
+    have h0 : -‖fundamentalVectorField I' ξ (C.expI (t • ξ) • x)‖ ^ 2 = 0 := by
+      rcases ht.2.lt_or_eq with ht1 | rfl
+      · -- Left of `1` the function stays above its value at `t`.
+        refine IsLocalMin.hasDerivAt_eq_zero ?_ hD
+        filter_upwards [Iio_mem_nhds ht1] with s hs
+        exact (hft.trans hf1.symm).trans_le (hanti (Set.mem_Iio.1 hs).le)
+      · -- Right of `0` the function stays below its value at `1`.
+        refine IsLocalMax.hasDerivAt_eq_zero ?_ hD
+        filter_upwards [Ioi_mem_nhds zero_lt_one] with s hs
+        exact (hanti (Set.mem_Ioi.1 hs).le).trans_eq (hf0.trans hft.symm)
+    simpa using h0
+  have hconst := (convex_Icc (0 : ℝ) 1).apply_eq_of_hasMFDerivWithinAt_zero (J := I')
+    (g := fun t : ℝ ↦ C.expI (t • ξ) • x) (fun t ht ↦ ?_) (Set.left_mem_Icc.2 zero_le_one)
+    (Set.right_mem_Icc.2 zero_le_one)
+  · simpa only [zero_smul, C.expI_zero, one_smul] using hconst.symm
+  · have hγ := (h.isMIntegralCurve_expI_smul ξ x t).hasMFDerivWithinAt (s := Set.Icc 0 1)
+    beta_reduce at hγ
+    rwa [hX t ht, map_zero, ContinuousLinearMap.smulRight_zero] at hγ
 
 end Gradient
 
