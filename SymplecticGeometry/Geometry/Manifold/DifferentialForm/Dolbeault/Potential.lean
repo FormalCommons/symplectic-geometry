@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Symplectic.Manifold.JHolomorphic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
 public import TauCeti.Geometry.Manifold.Complex.DdbarForm.DC
+import SymplecticGeometry.Geometry.Manifold.DifferentialForm.AlmostComplexType
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Smooth
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Wedge.Smooth.FunSMul
 public import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
@@ -43,7 +44,8 @@ In the namespace `TauCeti.SmoothAlmostComplexStructure`:
   `del_delBar_mapCoeff_ofReal_ofComplexManifold`: the same when `N_J = 0`, and on a complex
   manifold.
 * `covectorComplexStructure_funSMulₗ`: `a ↦ -a ∘ J` commutes with multiplication by smooth
-  functions.
+  functions, the degree-one case of the library's
+  `ContMDiffSection.realAlternatingDerivation_funSMulₗ`.
 * `covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt`,
   `mextDerivₗ_covectorComplexStructure_mextDerivₗ_ofFunction_comp_of_hasDerivAt`: `λ_{g ∘ f}`
   and `ω_{g ∘ f}`.
@@ -90,11 +92,8 @@ complexification of `f` to the complexification of the real one-form
 theorem dC_mapCoeff_ofReal (f : SmoothForm I M ℝ 0) :
     J.dC (SmoothForm.mapCoeff Complex.ofRealCLM f) =
       SmoothForm.mapCoeff Complex.ofRealCLM (J.covectorComplexStructure (mextDerivₗ I 0 f)) := by
-  refine Subtype.ext <| funext fun x ↦ ?_
-  refine sub_eq_zero.1 <| (ContinuousAlternatingMap.eq_zero_iff_forall_apply_fin_one _).2
-    fun v ↦ ?_
-  rw [ContinuousAlternatingMap.sub_apply, sub_eq_zero, J.dC_apply_apply, ← mextDerivₗ_zero_apply,
-    SmoothForm.mextDerivₗ_mapCoeff]
+  refine Subtype.ext <| funext fun x ↦ ContinuousAlternatingMap.ext_fin_one fun v ↦ ?_
+  rw [J.dC_apply_apply, ← mextDerivₗ_zero_apply, SmoothForm.mextDerivₗ_mapCoeff]
   simp
 
 variable {J}
@@ -135,8 +134,8 @@ it commutes with multiplication by a smooth function `g`. -/
 theorem covectorComplexStructure_funSMulₗ (g : C^∞⟮I, M; ℝ⟯) (a : SmoothForm I M ℝ 1) :
     J.covectorComplexStructure (SmoothForm.funSMulₗ g a) =
       SmoothForm.funSMulₗ g (J.covectorComplexStructure a) := by
-  refine Subtype.ext <| funext fun x ↦ ContinuousAlternatingMap.ext_fin_one fun v ↦ ?_
-  simp [SmoothForm.coe_funSMulₗ]
+  rw [covectorComplexStructure_apply, covectorComplexStructure_apply,
+    ContMDiffSection.realAlternatingDerivation_funSMulₗ, map_neg]
 
 /-- **The primitive `-dh ∘ J` of a composite.** If `h = g ∘ f` for a smooth real function `f`
 and a function `g : ℝ → ℝ` with derivative `g' x` at `f x` for every `x`, then
@@ -188,10 +187,8 @@ theorem mpullback_covectorComplexStructure {f : M → M'} (hf : ContMDiff I I' �
     (hJ : IsPseudoholomorphic J J' f) (a : SmoothForm I' M' ℝ 1) :
     SmoothForm.mpullback f hf (J'.covectorComplexStructure a) =
       J.covectorComplexStructure (SmoothForm.mpullback f hf a) := by
-  refine Subtype.ext <| funext fun x ↦ ?_
-  refine sub_eq_zero.1 <| (ContinuousAlternatingMap.eq_zero_iff_forall_apply_fin_one _).2
-    fun v ↦ ?_
-  rw [ContinuousAlternatingMap.sub_apply, sub_eq_zero, SmoothForm.mpullback_apply_one,
+  refine Subtype.ext <| funext fun x ↦ ContinuousAlternatingMap.ext_fin_one fun v ↦ ?_
+  rw [SmoothForm.mpullback_apply_one,
     covectorComplexStructure_apply_vec, covectorComplexStructure_apply_vec,
     SmoothForm.mpullback_apply_one, (hJ.isPseudoholomorphicAt x).mfderiv_apply_commute]
 

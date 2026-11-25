@@ -8,6 +8,7 @@ module
 public import SymplecticGeometry.Geometry.Symplectic.Coisotropic.Lagrangian.Basic
 public import SymplecticGeometry.Geometry.Symplectic.Lagrangian.ImmersionRange
 import SymplecticGeometry.Geometry.Manifold.ConstantRank.Immersion
+import SymplecticGeometry.Geometry.Symplectic.Lagrangian.Manifold
 
 /-!
 # The reduced Lagrangian as a Lagrangian immersion
@@ -99,8 +100,7 @@ theorem isLagrangianImmersionRange_leafSpaceMk_image [L.Boundaryless] [Nonempty 
     have hι : hτ.IsLagrangianImmersion
         𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F))))
         (isEmptyElim : PEmpty.{u + 1} → (h.characteristicFoliation hi hf hσc hn).LeafSpace) := by
-      refine ⟨ContMDiff.isImmersion_of_injective_mfderiv (fun x ↦ isEmptyElim x) (by simp)
-        isEmptyElim, isIsotropicMap_iff_forall.2 isEmptyElim, ?_⟩
+      refine isLagrangianImmersion_iff_of_isEmpty.2 ?_
       simp only [finrank_euclideanSpace_fin]
       omega
     convert isLagrangianImmersionRange_range hι

@@ -25,6 +25,8 @@ of complex-valued forms, and describes the range of Tau Ceti's type projections.
 * `ContMDiffSection.coe_realAlternatingDerivation`: the value of `𝒜 φ` at `x` is
   `(φ x).fderivCompContinuousLinearMap (id) (A x)`.
 * `ContMDiffSection.realAlternatingDerivation_fin_zero`: the derivation vanishes on functions.
+* `ContMDiffSection.realAlternatingDerivation_funSMulₗ`: the derivation commutes with
+  multiplication by smooth functions.
 * `ContMDiffSection.alternatingDerivation_mapCoeff_ofRealCLM`: on real forms, the complex
   derivation is the real one.
 * `ContMDiffSection.alternatingDerivation_eq_complexifyₗ`: on complex forms, the derivation is
@@ -72,6 +74,18 @@ theorem realAlternatingDerivation_fin_zero
     (f : SmoothForm I M ℝ 0) : A.realAlternatingDerivation f = 0 := by
   ext x v
   simp
+
+omit [RiemannianBundle (fun x : M ↦ TangentSpace I x)] in
+/-- The real derivation of smooth forms along an endomorphism field is linear over smooth
+functions: it commutes with multiplication by a smooth function `g`. -/
+@[simp]
+theorem realAlternatingDerivation_funSMulₗ
+    (A : ContMDiffSection I (E →L[ℝ] E) ∞ fun x : M ↦ TangentSpace I x →L[ℝ] TangentSpace I x)
+    (g : C^∞⟮I, M; ℝ⟯) (φ : SmoothForm I M ℝ k) :
+    A.realAlternatingDerivation (SmoothForm.funSMulₗ g φ) =
+      SmoothForm.funSMulₗ g (A.realAlternatingDerivation φ) := by
+  ext x v
+  simp [SmoothForm.coe_funSMulₗ, Finset.mul_sum]
 
 omit [RiemannianBundle (fun x : M ↦ TangentSpace I x)] in
 /-- On real forms, the derivation of complex-valued forms along an endomorphism field is the real
