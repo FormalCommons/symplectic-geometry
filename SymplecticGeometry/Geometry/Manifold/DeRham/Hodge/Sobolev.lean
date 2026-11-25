@@ -14,6 +14,7 @@ public import TauCeti.Analysis.Sobolev.BesselPotential.Distribution
 public import TauCeti.MeasureTheory.Function.Lp.Precomposition
 public import TauCeti.Geometry.Manifold.Riemannian.Sobolev.H1
 public import TauCeti.Analysis.InnerProductSpace.LinearPMap.Friedrichs.Basic
+import SymplecticGeometry.Analysis.InnerProductSpace.LinearPMap.Friedrichs
 import SymplecticGeometry.Analysis.Distribution.Support
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.ChartCover
@@ -41,10 +42,10 @@ Tau Ceti supplies the rest of the structure: the injective contraction
 `LinearPMap.friedrichsInclusion` into `L2Form I M k`, and the **Dirichlet form**
 `LinearPMap.friedrichsForm`, a continuous form on `H1Form o hkl` that extends `⟪Δα, β⟫`. This
 file restates on smooth forms what they give: `H1Form.friedrichsForm_ofSmooth_right` says that
-against a smooth form `φ` the Dirichlet form is the weak Laplacian `⟪u, Δφ⟫`, and
-`H1Form.norm_sq_eq_friedrichsForm_add` is Gårding's identity
-`‖u‖ ^ 2 = D(u, u) + ‖u‖_{L²} ^ 2`. The Dirichlet form is nonnegative, so it satisfies the
-Cauchy–Schwarz inequality, which bounds `|⟪u, Δφ⟫|` by `‖u‖` times the `H¹` norm
+against a smooth form `φ` the Dirichlet form is the weak Laplacian `⟪u, Δφ⟫`. Tau Ceti's
+`LinearPMap.re_friedrichsForm_self` is Gårding's identity `‖u‖ ^ 2 = D(u, u) + ‖u‖_{L²} ^ 2`.
+The Dirichlet form is nonnegative, so it satisfies the Cauchy–Schwarz inequality
+`LinearPMap.abs_friedrichsForm_le`, which bounds `|⟪u, Δφ⟫|` by `‖u‖` times the `H¹` norm
 `√(‖φ‖ ^ 2 + ⟪Δφ, φ⟫)` of `φ`.
 
 By `SymplecticGeometry.L2Form.isLocallySobolev_one_of_forall_inner`, that bound makes every
@@ -91,7 +92,8 @@ asks for a model without boundary, `I.Boundaryless`, and so does this equivalenc
 ## Main definitions and results
 
 * `SymplecticGeometry.L2Form.hodgeLaplacian`: the Hodge Laplacian as a partial operator on
-  `L2Form I M k`, with `L2Form.toDomainHodgeLaplacian`, `L2Form.hodgeLaplacian_apply`,
+  `L2Form I M k`, with `L2Form.toDomainHodgeLaplacian`,
+  `L2Form.ofSmooth_toDomainHodgeLaplacian_symm`, `L2Form.hodgeLaplacian_apply`,
   `L2Form.hodgeLaplacian_toDomainHodgeLaplacian` and
   `L2Form.isSymmetricBoundedBelow_hodgeLaplacian`.
 * `SymplecticGeometry.H1Form o hkl`: the Hilbert space, with `H1Form.ofSmooth`,
@@ -99,10 +101,9 @@ asks for a model without boundary, `I.Boundaryless`, and so does this equivalenc
   `H1Form.denseRange_ofSmooth` and `H1Form.induction_on`.
 * `SymplecticGeometry.H1Form.friedrichsInclusion_ofSmooth`,
   `SymplecticGeometry.H1Form.friedrichsForm_ofSmooth`,
-  `SymplecticGeometry.H1Form.friedrichsForm_ofSmooth_right`,
-  `SymplecticGeometry.H1Form.norm_sq_eq_friedrichsForm_add` and
-  `SymplecticGeometry.H1Form.abs_friedrichsForm_le`: the inclusion into `L2Form I M k` and the
-  Dirichlet form on smooth forms, Gårding's identity and the Cauchy–Schwarz inequality.
+  `SymplecticGeometry.H1Form.friedrichsForm_ofSmooth` and
+  `SymplecticGeometry.H1Form.friedrichsForm_ofSmooth_right`: the inclusion into `L2Form I M k`
+  and the Dirichlet form on smooth forms.
 * `SymplecticGeometry.H1Form.abs_inner_friedrichsInclusion_ofSmooth_hodgeLaplacian_le`: the bound
   `|⟪u, Δφ⟫| ≤ ‖u‖ * √(‖φ‖ ^ 2 + ⟪Δφ, φ⟫)` in `L2Form I M k`, the hypothesis of
   `SymplecticGeometry.L2Form.isLocallySobolev_one_of_forall_inner`.
@@ -212,6 +213,13 @@ def toDomainHodgeLaplacian : SmoothForm I M ℝ k ≃ₗ[ℝ] (hodgeLaplacian o 
 theorem coe_toDomainHodgeLaplacian (α : SmoothForm I M ℝ k) :
     (toDomainHodgeLaplacian o hkl α : L2Form I M k) = ofSmooth α :=
   (rfl)
+
+/-- The smooth form of a vector `x` of the domain of the Hodge Laplacian is `x` in
+`L2Form I M k`. -/
+@[simp]
+theorem ofSmooth_toDomainHodgeLaplacian_symm (x : (hodgeLaplacian o hkl).domain) :
+    ofSmooth ((toDomainHodgeLaplacian o hkl).symm x) = x := by
+  rw [← coe_toDomainHodgeLaplacian, LinearEquiv.apply_symm_apply]
 
 /-- The Hodge Laplacian on `L2Form I M k` applies `TauCeti.SmoothForm.hodgeLaplacian` to the smooth
 form of a vector of its domain. -/
@@ -338,33 +346,6 @@ theorem friedrichsForm_ofSmooth_right (u : H1Form o hkl) (φ : SmoothForm I M �
   rw [ofSmooth_apply, friedrichsForm_toFriedrichsSpace_right,
     L2Form.hodgeLaplacian_toDomainHodgeLaplacian]
 
-/-- **Gårding's identity**: the squared `H¹` norm is the Dirichlet energy plus the squared `L²`
-norm. -/
-theorem norm_sq_eq_friedrichsForm_add (u : H1Form o hkl) :
-    ‖u‖ ^ 2 = friedrichsForm hΔ u u + ‖friedrichsInclusion hΔ u‖ ^ 2 := by
-  have h := re_friedrichsForm_self hΔ u
-  rw [RCLike.re_to_real] at h
-  linarith
-
-/-- **Cauchy–Schwarz inequality for the Dirichlet form**: `|D(u, v)| ≤ ‖u‖ * ‖v‖`. -/
-theorem abs_friedrichsForm_le (u v : H1Form o hkl) :
-    |friedrichsForm hΔ u v| ≤ ‖u‖ * ‖v‖ := by
-  let B : H1Form o hkl →L[ℝ] H1Form o hkl →L[ℝ] ℝ := friedrichsForm hΔ
-  have h0 (w : H1Form o hkl) : 0 ≤ B w w := by
-    simpa using mul_norm_sq_le_re_friedrichsForm hΔ w
-  have hD (w : H1Form o hkl) : B w w ≤ ‖w‖ ^ 2 := by
-    rw [norm_sq_eq_friedrichsForm_add w]
-    exact le_add_of_nonneg_right (sq_nonneg _)
-  have hcs : B u v * B v u ≤ B u u * B v v :=
-    LinearMap.BilinForm.apply_mul_apply_le_of_forall_zero_le B.toLinearMap₁₂ h0 u v
-  have hcomm : B v u = B u v := by
-    simpa using (friedrichsForm_eq_star hΔ v u)
-  rw [hcomm] at hcs
-  refine abs_le_of_sq_le_sq ?_ (by positivity)
-  rw [mul_pow]
-  calc B u v ^ 2 ≤ B u u * B v v := by rwa [sq]
-    _ ≤ ‖u‖ ^ 2 * ‖v‖ ^ 2 := mul_le_mul (hD u) (hD v) (h0 v) (sq_nonneg _)
-
 /-- The pairing of an element of `H1Form o hkl` with the Laplacian of a smooth form `φ` is
 bounded by its norm times the Hodge `H¹` norm `√(‖φ‖ ^ 2 + ⟪Δφ, φ⟫)` of `φ`, computed in
 `L2Form I M k`. This is the hypothesis of `L2Form.isLocallySobolev_one_of_forall_inner` for
@@ -376,7 +357,7 @@ theorem abs_inner_friedrichsInclusion_ofSmooth_hodgeLaplacian_le (u : H1Form o h
         ⟪(L2Form.ofSmooth (hodgeLaplacian o hkl φ) : L2Form I M k), L2Form.ofSmooth φ⟫_ℝ) := by
   rw [← friedrichsForm_ofSmooth_right, L2Form.norm_ofSmooth_sq o, L2Form.inner_ofSmooth o,
     ← norm_ofSmooth_sq (hkl := hkl), Real.sqrt_sq (norm_nonneg _)]
-  exact abs_friedrichsForm_le u (ofSmooth φ)
+  exact abs_friedrichsForm_le hΔ le_rfl zero_le_one u (ofSmooth φ)
 
 /-! ### Degree zero: Tau Ceti's Sobolev space of functions -/
 
@@ -644,17 +625,14 @@ private theorem isClosed_graph_localizeSobolevₗ :
 `e : E ≃L[ℝ] CoordinateSpace n`, the continuous linear map to the Bessel-potential space `H^1` of
 `CoordinateSpace n` that sends `u` to the `p`-th coordinate in `bΛ`, complexified, of the
 localization of the image of `u` in `L2Form I M k`, read through `e⁻¹`
-(`H1Form.toDistr_localizeSobolev`). It is
-everywhere defined by `memSobolev_localizeCoord_friedrichsInclusion`, and continuous by the closed
-graph
-theorem. -/
+(`H1Form.toDistr_localizeSobolev`). It is everywhere defined by
+`memSobolev_localizeCoord_friedrichsInclusion`, and continuous by the closed graph theorem. -/
 def localizeSobolev : H1Form o hkl →L[ℝ] H^{1}(CoordinateSpace n) :=
   .ofIsClosedGraph (isClosed_graph_localizeSobolevₗ ψ χ hχ bΛ p e)
 
 /-- The tempered distribution of `localizeSobolev ψ χ hχ bΛ p e u` is that of the `L²` function
 `L2Form.localizeCoord ψ χ hχ bΛ p e (friedrichsInclusion _ u)`, the complexified `p`-th coordinate
-of the
-localization of the image of `u` in `L2Form I M k` read through `e⁻¹`
+of the localization of the image of `u` in `L2Form I M k` read through `e⁻¹`
 (`L2Form.coeFn_localizeCoord`). -/
 @[simp]
 theorem toDistr_localizeSobolev (u : H1Form o hkl) :

@@ -506,9 +506,8 @@ Named like Tau Ceti's file; used by `L2.lean`.
   extending $\langle\Delta\alpha,\beta\rangle$ is
   `LinearPMap.friedrichsForm`. Then `friedrichsForm_ofSmooth_right`: the
   Dirichlet form against `ofSmooth φ` is the $L^2$ pairing of the image of
-  `u` with `ofSmooth (Δ φ)`, and `norm_sq_eq_friedrichsForm_add`:
-  `‖u‖ ^ 2 = friedrichsForm _ u u + ‖friedrichsInclusion _ u‖ ^ 2`, which
-  is Gårding's inequality.
+  `u` with `ofSmooth (Δ φ)`. Gårding's inequality is Tau Ceti's
+  `LinearPMap.one_mul_norm_sq_le_re_friedrichsForm_add`.
 - `H1Form.isCompactOperator_friedrichsInclusion`, by the closed graph argument above, from
   `isLocallySobolev_one_of_forall_inner` and Rellich's theorem with a
   cutoff.

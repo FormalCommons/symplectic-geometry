@@ -18,8 +18,8 @@ analytic half of the Hodge theorem, which Tau Ceti's `Geometry/Manifold/DeRham/H
 leaves open, and its consequences for de Rham cohomology.
 
 The Dirichlet form `LinearPMap.friedrichsForm` on the Hodge `H¹` space satisfies Gårding's
-inequality with constants `1` and `1` (`H1Form.norm_sq_eq_friedrichsForm_add`), and the inclusion
-`LinearPMap.friedrichsInclusion` into the `L²` forms is compact
+inequality with constants `1` and `1` (`LinearPMap.one_mul_norm_sq_le_re_friedrichsForm_add`),
+and the inclusion `LinearPMap.friedrichsInclusion` into the `L²` forms is compact
 (`H1Form.isCompactOperator_friedrichsInclusion`). Tau Ceti's Fredholm alternative for
 Gårding forms then gives:
 
@@ -136,7 +136,7 @@ instance finiteDimensional_harmonicForms (o : Manifold.Orientation I M (Fin m))
   have := (H1Form.isCompactOperator_friedrichsInclusion (o := o)
     (hkl := hkl)).finiteDimensional_ker_of_garding
     (C₀ := 1) (β := 1) one_pos fun w ↦ by
-      rw [one_mul, one_mul, H1Form.norm_sq_eq_friedrichsForm_add]
+      simpa using one_mul_norm_sq_le_re_friedrichsForm_add _ w
   exact Module.Finite.of_injective
     (LinearMap.codRestrict _ (H1Form.ofSmooth ∘ₗ (harmonicForms o hkl).subtype)
       fun α ↦ H1Form.ofSmooth_mem_ker_friedrichsForm o hkl α.property)
@@ -144,7 +144,8 @@ instance finiteDimensional_harmonicForms (o : Manifold.Orientation I M (Fin m))
 
 open _root_.LinearPMap in
 /-- An element of `H¹` in the kernel of the Dirichlet form is a harmonic form. -/
-theorem _root_.SymplecticGeometry.H1Form.exists_mem_harmonicForms_eq_ofSmooth_of_mem_ker
+theorem
+    _root_.SymplecticGeometry.H1Form.exists_mem_harmonicForms_eq_ofSmooth_of_mem_ker_friedrichsForm
     (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) {w : H1Form o hkl}
     (hw : w ∈ (friedrichsForm (L2Form.isSymmetricBoundedBelow_hodgeLaplacian o hkl)).ker) :
     ∃ β ∈ harmonicForms o hkl, w = H1Form.ofSmooth β := by
@@ -165,7 +166,7 @@ theorem _root_.SymplecticGeometry.H1Form.mem_ker_friedrichsForm_iff
     (o : Manifold.Orientation I M (Fin m)) (hkl : k + l = m) {w : H1Form o hkl} :
     w ∈ (friedrichsForm (L2Form.isSymmetricBoundedBelow_hodgeLaplacian o hkl)).ker ↔
       ∃ β ∈ harmonicForms o hkl, w = H1Form.ofSmooth β :=
-  ⟨H1Form.exists_mem_harmonicForms_eq_ofSmooth_of_mem_ker o hkl,
+  ⟨H1Form.exists_mem_harmonicForms_eq_ofSmooth_of_mem_ker_friedrichsForm o hkl,
     fun ⟨_, hβ, hw⟩ ↦ hw ▸ H1Form.ofSmooth_mem_ker_friedrichsForm o hkl hβ⟩
 
 open _root_.LinearPMap in
@@ -185,7 +186,7 @@ theorem exists_mem_harmonicForms_add_hodgeLaplacian (o : Manifold.Orientation I 
   -- The functional `v ↦ ⟪α - h, v⟫` on `H¹` vanishes on the kernel of the Dirichlet form.
   have hgard (w : H1Form o hkl) :
       1 * ‖w‖ ^ 2 ≤ friedrichsForm hS w w + 1 * ‖friedrichsInclusion hS w‖ ^ 2 := by
-    rw [one_mul, one_mul, H1Form.norm_sq_eq_friedrichsForm_add]
+    simpa using one_mul_norm_sq_le_re_friedrichsForm_add _ w
   obtain ⟨u, hu⟩ :=
     (H1Form.isCompactOperator_friedrichsInclusion.exists_forall_apply_eq_iff_of_garding one_pos
       hgard ((innerSL ℝ (L2Form.ofSmooth (α - h))).comp (friedrichsInclusion hS))).2
