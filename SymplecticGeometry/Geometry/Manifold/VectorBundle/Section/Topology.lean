@@ -8,7 +8,10 @@ module
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.FrameCover
 public import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.CodRestrict
 public import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Chart.Restriction
+import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.ManifoldFamily
+import TauCeti.Geometry.Manifold.ContMDiffMap.Chart.Prod
+import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 import TauCeti.Geometry.Manifold.VectorBundle.Submersion
 
 /-!
@@ -32,10 +35,22 @@ viewed as a map into the points of `O` over the frame domain (`ContMDiffMap.codR
 the fibre maps read in the frame; Tau Ceti's continuity of composition and of jointly `C^n`
 families in the weak Whitney topology conclude.
 
+The last result pulls sections back along a `C^n` family of maps `f (p, ·) : M → M'`: for fibre
+maps `Φ p x : V' (f (p, x)) → W x` that are jointly `C^n` on the total space of Mathlib's pull-back
+bundle `f *ᵖ V'` over `P × M`, the section `x ↦ Φ p x (s (f (p, x)))` of `W`
+(`ContMDiffSection.pullbackMap`) is jointly continuous in `p` and `s`
+(`ContMDiffSection.continuous_pullbackMap`). In a frame of `W` over `U'`, these sections are the
+slices `x ↦ (p, x)` of one `C^n` map on `P × U'` that depends on `s` alone. That map is
+continuous in `s` by Tau Ceti's locality of the weak Whitney topology
+(`ContMDiffMap.continuous_of_forall_continuous_restrict`), on the open sets of `P × U'` that `f`
+sends into the base set of one trivialization of `V'`, where it is a fixed map composed with the
+frame coordinates of `s` along `f`.
+
 ## Main definitions and results
 
 * `ContMDiffSection.toContMDiffMap`, `ContMDiffSection.continuous_toContMDiffMap`
 * `ContMDiffSection.fiberwiseMap`, `ContMDiffSection.continuous_fiberwiseMap`
+* `ContMDiffSection.pullbackMap`, `ContMDiffSection.continuous_pullbackMap`
 
 ## References
 
@@ -279,6 +294,175 @@ theorem continuous_fiberwiseMap [IsManifold IP n P] [LocallyCompactSpace F] (hO 
     (by simp : (⟨x, q.2.val x⟩ : TotalSpace F V) = _)
 
 end FiberwiseMap
+
+section PullbackMap
+
+variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace 𝕜 E']
+  {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'}
+  {M' : Type*} [TopologicalSpace M'] [ChartedSpace H' M']
+  {F' : Type*} [NormedAddCommGroup F'] [NormedSpace 𝕜 F']
+  {V' : M' → Type*} [∀ y, TopologicalSpace (V' y)] [TopologicalSpace (TotalSpace F' V')]
+  [∀ y, AddCommGroup (V' y)] [FiberBundle F' V']
+  {G : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G]
+  {W : M → Type*} [∀ x, TopologicalSpace (W x)] [TopologicalSpace (TotalSpace G W)]
+  [FiberBundle G W]
+  {EP : Type*} [NormedAddCommGroup EP] [NormedSpace 𝕜 EP]
+  {HP : Type*} [TopologicalSpace HP] {IP : ModelWithCorners 𝕜 EP HP}
+  {P : Type*} [TopologicalSpace P] [ChartedSpace HP P]
+  (f : C^n⟮IP.prod I, P × M; I', M'⟯) (Φ : ∀ (p : P) (x : M), V' (f (p, x)) → W x)
+  (hΦ : ContMDiff ((IP.prod I).prod 𝓘(𝕜, F')) (I.prod 𝓘(𝕜, G)) n
+    fun q : TotalSpace F' (f *ᵖ V') ↦ TotalSpace.mk' G q.proj.2 (Φ q.proj.1 q.proj.2 q.snd))
+
+/-- A section `s` of `V'`, read at `f a` as a point of the fibre of `f *ᵖ V'` over `a`. -/
+private theorem contMDiff_pullback_mk (s : Cₛ^n⟮I'; F', V'⟯) :
+    ContMDiff (IP.prod I) ((IP.prod I).prod 𝓘(𝕜, F')) n
+      fun a : P × M ↦ (TotalSpace.mk' F' a (s (f a)) : TotalSpace F' (f *ᵖ V')) :=
+  (Bundle.Pullback.contMDiff_iff f f.contMDiff).mpr ⟨contMDiff_id, s.contMDiff.comp f.contMDiff⟩
+
+/-- The section `x ↦ Φ p x (s (f (p, x)))` of `W`, for a section `s` of `V'`, where the fibre maps
+`Φ p x : V' (f (p, x)) → W x` are jointly `C^n`, as a map from the total space of the pull-back
+bundle `f *ᵖ V'` over `P × M` to the total space of `W`. -/
+def pullbackMap (p : P) (s : Cₛ^n⟮I'; F', V'⟯) : Cₛ^n⟮I; G, W⟯ :=
+  ⟨fun x ↦ Φ p x (s (f (p, x))),
+    (hΦ.comp (contMDiff_pullback_mk f s)).comp (contMDiff_const.prodMk contMDiff_id)⟩
+
+/-- The value of `pullbackMap f Φ hΦ p s` at `x` is `Φ p x (s (f (p, x)))`. -/
+@[simp]
+theorem pullbackMap_apply (p : P) (s : Cₛ^n⟮I'; F', V'⟯) (x : M) :
+    pullbackMap f Φ hΦ p s x = Φ p x (s (f (p, x))) :=
+  (rfl)
+
+variable [∀ x, AddCommGroup (W x)] [∀ x, Module 𝕜 (W x)] [VectorBundle 𝕜 G W]
+  [ContMDiffVectorBundle n G W I]
+
+include hΦ in
+/-- Read in a trivialization `e'` of `W` in the atlas, on `P × U'` for an open `U'` inside its base
+set, the fibre maps applied to a section `s` of `V'` give a `C^n` map. -/
+private theorem contMDiff_pullbackMap_coord (s : Cₛ^n⟮I'; F', V'⟯)
+    (e' : Trivialization G (π G W)) [MemTrivializationAtlas e'] (U' : Opens M)
+    (hU' : (U' : Set M) ⊆ e'.baseSet) :
+    ContMDiff (IP.prod I) 𝓘(𝕜, G) n fun a : P × U' ↦
+      (e' ⟨(a.2 : M), Φ a.1 a.2 (s (f (a.1, a.2)))⟩).2 := by
+  have h := (hΦ.comp (contMDiff_pullback_mk f s)).comp
+    (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd) :
+      ContMDiff (IP.prod I) (IP.prod I) n fun a : P × U' ↦ ((a.1, (a.2 : M)) : P × M))
+  exact (contMDiff_snd.comp_contMDiffOn e'.contMDiffOn).comp_contMDiff h
+    fun a ↦ e'.mem_source.mpr (hU' a.2.property)
+
+/-- The frame coordinates in `e'` of the sections `pullbackMap f Φ hΦ p s`, as one `C^n` map on
+`P × U'`. -/
+private def pullbackMapCoord (e' : Trivialization G (π G W)) [MemTrivializationAtlas e']
+    (U' : Opens M) (hU' : (U' : Set M) ⊆ e'.baseSet) (s : Cₛ^n⟮I'; F', V'⟯) :
+    C^n⟮IP.prod I, P × U'; 𝓘(𝕜, G), G⟯ :=
+  ⟨_, contMDiff_pullbackMap_coord f Φ hΦ s e' U' hU'⟩
+
+/-- The value of `pullbackMapCoord f Φ hΦ e' U' hU' s` at `a`. -/
+private theorem pullbackMapCoord_apply (e' : Trivialization G (π G W)) [MemTrivializationAtlas e']
+    (U' : Opens M) (hU' : (U' : Set M) ⊆ e'.baseSet) (s : Cₛ^n⟮I'; F', V'⟯) (a : P × U') :
+    pullbackMapCoord f Φ hΦ e' U' hU' s a = (e' ⟨(a.2 : M), Φ a.1 a.2 (s (f (a.1, a.2)))⟩).2 :=
+  (rfl)
+
+variable [∀ y, Module 𝕜 (V' y)] [VectorBundle 𝕜 F' V'] [ContMDiffVectorBundle n F' V' I']
+
+variable [IsManifold IP n P] [IsManifold I n M] [IsManifold I' n M'] [LocallyCompactSpace EP]
+  [LocallyCompactSpace E] [LocallyCompactSpace E']
+  {ι : Type*} (e : ι → Trivialization F' (π F' V')) [∀ i, MemTrivializationAtlas (e i)]
+  (U : ι → Opens M') (hU : ∀ i, (U i : Set M') ⊆ (e i).baseSet)
+
+/-- For a covering frame system of `V'`, the map `pullbackMapCoord` is continuous from the frame
+topology to the weak Whitney topology on `C^n` maps on `P × U'`. Over the points that `f` sends
+into the base set of a trivialization `t` of `V'`, it is the fixed map
+`(a, v) ↦ (e' ⟨a.2, Φ a.1 a.2 (t.symm (f a) v)⟩).2` composed with `a ↦ (a, σ (f a))`, where `σ`
+is the frame coordinate of the section in `t`. -/
+private theorem continuous_pullbackMapCoord (hcover : ∀ y, ∃ i, y ∈ U i)
+    (e' : Trivialization G (π G W)) [MemTrivializationAtlas e']
+    (U' : Opens M) (hU' : (U' : Set M) ⊆ e'.baseSet) :
+    letI := frameTopology (I := I') (n := n) e U hU
+    Continuous (pullbackMapCoord f Φ hΦ e' U' hU') := by
+  let _ := frameTopology (I := I') (n := n) e U hU
+  -- The family `f` on `P × U'`.
+  let g : C^n⟮IP.prod I, P × U'; I', M'⟯ :=
+    ⟨fun a ↦ f (a.1, a.2),
+      f.contMDiff.comp (contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd))⟩
+  have hg (a : P × U') : g a = f (a.1, a.2) := rfl
+  -- The points of `P × U'` that `f` sends to the base set of the trivialization at `y`.
+  let A (y : M') : Opens (P × U') :=
+    ⟨g ⁻¹' (trivializationAt F' V' y).baseSet,
+      (trivializationAt F' V' y).open_baseSet.preimage g.contMDiff.continuous⟩
+  refine ContMDiffMap.continuous_of_forall_continuous_restrict A
+    (fun a ↦ ⟨g a, mem_baseSet_trivializationAt F' V' (g a)⟩) fun y ↦ ?_
+  set t := trivializationAt F' V' y
+  let Ut : Opens M' := ⟨t.baseSet, t.open_baseSet⟩
+  -- On `A y`, the family `f`, with values in the base set of `t`.
+  let gy : C^n⟮IP.prod I, A y; I', Ut⟯ := (g.restrict (A y)).codRestrict Ut fun a ↦ by
+    rw [ContMDiffMap.restrict_apply]; exact a.property
+  -- The fibre maps read in the trivializations `t` and `e'`.
+  have hv : ContMDiff ((IP.prod I).prod 𝓘(𝕜, F')) (I'.prod 𝓘(𝕜, F')) n
+      fun z : A y × F' ↦ TotalSpace.mk' F' (g z.1) (t.symm (g z.1) z.2) := by
+    refine (t.contMDiffOn_symm.comp_contMDiff
+      ((g.contMDiff.comp (contMDiff_subtypeVal.comp contMDiff_fst)).prodMk contMDiff_snd)
+      fun z ↦ t.mem_target.mpr z.1.property).congr fun z ↦ ?_
+    exact t.mk_symm z.1.property z.2
+  have hΨ := (contMDiff_snd.comp_contMDiffOn e'.contMDiffOn).comp_contMDiff
+    (hΦ.comp ((Bundle.Pullback.contMDiff_iff f f.contMDiff (q := fun z : A y × F' ↦
+        (TotalSpace.mk' F' ((z.1 : P × U').1, ((z.1 : P × U').2 : M)) (t.symm (g z.1) z.2) :
+          TotalSpace F' (f *ᵖ V')))).mpr
+      ⟨contMDiff_fst.prodMk (contMDiff_subtypeVal.comp contMDiff_snd) |>.comp
+        (contMDiff_subtypeVal.comp contMDiff_fst), hv⟩))
+    fun z : A y × F' ↦ e'.mem_source.mpr (hU' (z.1 : P × U').2.property)
+  let Ψ : C^n⟮(IP.prod I).prod 𝓘(𝕜, F'), A y × F'; 𝓘(𝕜, G), G⟯ :=
+    ⟨fun z ↦ (e' ⟨((z.1 : P × U').2 : M), Φ (z.1 : P × U').1 (z.1 : P × U').2
+      (t.symm (f ((z.1 : P × U').1, (z.1 : P × U').2)) z.2)⟩).2, hΨ⟩
+  have hΨ_apply (z : A y × F') : Ψ z = (e' ⟨((z.1 : P × U').2 : M), Φ (z.1 : P × U').1
+      (z.1 : P × U').2 (t.symm (f ((z.1 : P × U').1, (z.1 : P × U').2)) z.2)⟩).2 :=
+    rfl
+  convert (ContMDiffMap.continuous_postcomp_manifoldWeakWhitney Ψ).comp
+    (ContMDiffMap.continuous_prodMk_manifoldWeakWhitney.comp
+      ((continuous_const (y := ContMDiffMap.id)).prodMk
+      (ContMDiffMap.continuous_comp_manifoldWeakWhitney.comp
+        ((continuous_frameCoordinates_of_cover e U hU hcover t Ut subset_rfl).prodMk
+          (continuous_const (y := gy)))))) using 1
+  funext s
+  ext a
+  simp only [Function.comp_apply, ContMDiffMap.comp_apply, hΨ_apply, ContMDiffMap.prodMk_apply,
+    ContMDiffMap.id_apply, Bundle.Trivialization.frameCoordinates_apply, pullbackMapCoord_apply,
+    ContMDiffMap.restrict_apply]
+  have hgy : ((gy a : Ut) : M') = f ((a : P × U').1, (a : P × U').2) := by
+    simp only [gy, ContMDiffMap.coe_codRestrict_apply, ContMDiffMap.restrict_apply, hg]
+  rw [congrArg (fun b ↦ (t ⟨b, s b⟩).2) hgy,
+    t.symm_apply_apply_mk (b := f ((a : P × U').1, (a : P × U').2)) a.property]
+
+/-- Pulling sections back along a `C^n` family `f (p, ·) : M → M'` of maps, followed by fibre maps
+`Φ p x : V' (f (p, x)) → W x` that are jointly `C^n` on the total space of `f *ᵖ V'`, is jointly
+continuous in the parameter and the section for the frame topologies: the map
+`(p, s) ↦ pullbackMap f Φ hΦ p s` is continuous for a covering frame system of `V'` and any frame
+system of `W`, when the models of `P`, `M` and `M'` are locally compact.
+
+For `f = Prod.snd` this is close to `continuous_fiberwiseMap` with `O` the whole total space, but
+it does not contain it: there the fibre maps are `C^n` on `P` times the total space of `V`, here
+on the total space of `Prod.snd *ᵖ V`, and the local compactness asked of the models differs. -/
+theorem continuous_pullbackMap (hcover : ∀ y, ∃ i, y ∈ U i)
+    {κ : Type*} (e' : κ → Trivialization G (π G W)) [∀ j, MemTrivializationAtlas (e' j)]
+    (U' : κ → Opens M) (hU' : ∀ j, (U' j : Set M) ⊆ (e' j).baseSet) :
+    letI := frameTopology (I := I') (n := n) e U hU
+    letI := frameTopology (I := I) (n := n) e' U' hU'
+    Continuous fun q : P × Cₛ^n⟮I'; F', V'⟯ ↦ pullbackMap f Φ hΦ q.1 q.2 := by
+  let _ := frameTopology (I := I') (n := n) e U hU
+  let _ := frameTopology (I := I) (n := n) e' U' hU'
+  refine (continuous_frameTopology_iff_frameCoordinates e' U' hU').mpr fun j ↦ ?_
+  -- The slice `x ↦ (p, x)` of `P × U' j`, continuous in `p`.
+  let slice : C(P, C^n⟮I, U' j; IP.prod I, P × U' j⟯) :=
+    ContMDiffMap.manifoldWeakWhitneyCurry ContMDiffMap.id
+  convert ContMDiffMap.continuous_comp_manifoldWeakWhitney.comp
+    (((continuous_pullbackMapCoord f Φ hΦ e U hU hcover (e' j) (U' j) (hU' j)).comp
+      continuous_snd).prodMk (slice.continuous.comp continuous_fst)) using 1
+  funext q
+  ext x
+  simp only [slice, Function.comp_apply, ContMDiffMap.comp_apply,
+    ContMDiffMap.manifoldWeakWhitneyCurry_apply, ContMDiffMap.id_apply, pullbackMapCoord_apply,
+    Bundle.Trivialization.frameCoordinates_apply, pullbackMap_apply]
+
+end PullbackMap
 
 end ContMDiffSection
 
