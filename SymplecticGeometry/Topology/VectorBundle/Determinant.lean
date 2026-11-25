@@ -280,8 +280,7 @@ theorem HasFiniteTrivializingCover.detCore (h : HasFiniteTrivializingCover 𝕜 
     (FiberBundle.totalSpaceMk_isInducing G E)
   have VB := VectorBundle.ofTrivializationAt (𝕜 := 𝕜) (fun x ↦ (c x : Trivialization G (π G E))) hc
   have hat (x : B) : (letI := FB; trivializationAt G E x) = c x :=
-    (A.trivializationAt_fiberBundleOfHomeomorph _ _ _ x).trans
-      (Trivialization.compTotalSpaceHomeomorph_refl _ _)
+    A.trivializationAt_fiberBundleOfHomeomorph_refl _ x
   have hfin : (letI := FB; range (trivializationAt G E)).Finite :=
     congrArg range (funext hat) ▸
       s.finite_toSet.subset (range_subset_iff.2 fun x ↦ (c x).property)
