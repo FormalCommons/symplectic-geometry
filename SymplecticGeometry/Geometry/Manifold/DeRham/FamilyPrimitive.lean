@@ -105,7 +105,8 @@ theorem exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms {α : N → Smoot
     congr 1
     funext i
     rw [Subsingleton.elim i 0]
-    exact ((hψ.mdifferentiable (by simp) (z, t)).mfderiv_curry_left_apply v).symm
+    exact (MDifferentiableAt.mfderiv_uncurry_apply_mk_zero (f := fun z t ↦ (t, z))
+      (hψ.mdifferentiable (by simp) (z, t)) v).symm
   obtain ⟨F, hF, -, hFd⟩ := exists_contMDiff_mvfderiv_eq_of_forall_exists (r := ⊤)
     (SmoothForm.mpullback _ hψ Ω).isSmoothForm
     (fun t ↦ ⟨_, (hg t).mdifferentiable (by simp), hB t⟩) x₀
