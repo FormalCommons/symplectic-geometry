@@ -152,7 +152,7 @@ theorem contMDiff_timeDependentFlowOf_param [FiniteDimensional ℝ E] [T2Space M
       (hmap p))).congr_of_eventuallyEq (Filter.Eventually.of_forall fun q ↦ ?_)
   simp only [Function.comp_apply]
   rw [flowOf_timeDependentSuspensionField
-    ((timeDependentFlowDomain_eq_univ (hc q.1.1)).symm ▸ Set.mem_univ _)]
+    (mem_timeDependentFlowDomain.2 ((hc q.1.1).mem_flowDomain _ _))]
 
 end Param
 
@@ -225,7 +225,7 @@ theorem timeDependentFlowOf_eq_of_hasMFDerivWithinAt
   have h₂ : IsMIntegralCurveOn (fun r ↦ (r, timeDependentFlowOf X s r (γ s)))
       (timeDependentSuspensionField X) S := fun u _ ↦
     hasMFDerivWithinAt_prodMk_timeDependentSuspensionField (hasMFDerivAt_timeDependentFlowOf hX
-      ((timeDependentFlowDomain_eq_univ hc).symm ▸ mem_univ _)).hasMFDerivWithinAt
+      (mem_timeDependentFlowDomain.2 (hc.mem_flowDomain _ _))).hasMFDerivWithinAt
   have heq := h₂.eqOn_of_isPreconnected h₁ hS hs
     (fun _ _ ↦ (contMDiff_timeDependentSuspensionField hX).contMDiffAt)
     (by simp [timeDependentFlowOf_self]) ht
