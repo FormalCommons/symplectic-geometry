@@ -524,7 +524,7 @@ and the prerequisites, placed by topic.
   `exists_norm_eval_le_add_one_pow_mul`, the growth from radius $r$ to
   $\lambda r$),
   `MeasureTheory/Integral/BallCircleAverage.lean` (step 2,
-  `MeasureTheory.setLIntegral_ball_eq_lintegral_circleAverage`),
+  `MeasureTheory.setLIntegral_ball_eq_mul_setLIntegral_setLAverage_circleMap`),
   `Analysis/Complex/MvPolynomial/LogAverage.lean` (step 3, in the namespace
   `MvPolynomial`: `ae_homogeneousComponent_totalDegree_ne_zero`,
   `log_norm_eval_le_setAverage_ball`,
