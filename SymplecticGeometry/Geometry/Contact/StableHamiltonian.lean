@@ -18,6 +18,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 import TauCeti.Geometry.Manifold.DifferentialForm.Wedge.Leibniz
 import TauCeti.Geometry.Manifold.ContMDiff.Subtype
 import TauCeti.Geometry.Manifold.MFDeriv.Prod
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 import TauCeti.Geometry.Manifold.VectorBundle.Bilinear.SmulRight
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
 import TauCeti.Geometry.Manifold.VectorBundle.Translate
@@ -693,9 +694,6 @@ private theorem mpullback_prodMk_zero_timeInterior_apply (hε : 0 < ε)
   rw [mpullback_apply, coe_timeInterior]
   refine (RoughForm.interior_apply _ _ _ _).trans ?_
   rw [mpullback_apply]
-  have hι : mfderiv I (𝓘(ℝ).prod I) (Prod.mk (0 : ℝ)) y w = ((0 : ℝ), w) :=
-    (TauCeti.Manifold.tangentSpaceProdEquiv_apply _ _).symm.trans
-      (TauCeti.Manifold.tangentSpaceProdEquiv_mfderiv_prodMk_right w)
   have hv : (fun i ↦ mfderiv (𝓘(ℝ).prod I) (𝓘(ℝ).prod I) (stripChart hε) ((0 : ℝ), y)
       (Matrix.vecCons ((1 : ℝ), (0 : E))
         (fun i ↦ mfderiv I (𝓘(ℝ).prod I) (Prod.mk (0 : ℝ)) y (![w] i)) i)) =
@@ -706,7 +704,8 @@ private theorem mpullback_prodMk_zero_timeInterior_apply (hε : 0 < ε)
     · simp only [Fin.zero_eta, Fin.isValue, Matrix.cons_val_zero, Prod.smul_mk, smul_eq_mul,
         smul_zero]
       exact (mfderiv_stripChart_apply hε y 1 0).trans (by rw [mul_one]; rfl)
-    · simp only [Fin.mk_one, Fin.isValue, Matrix.cons_val_one, Matrix.cons_val_fin_one, hι]
+    · simp only [Fin.mk_one, Fin.isValue, Matrix.cons_val_one, Matrix.cons_val_fin_one,
+        mfderiv_prodMk_right_apply]
       exact (mfderiv_stripChart_apply hε y 0 w).trans (by rw [mul_zero]; rfl)
   rw [hv, stripChart_zero]
   have h := (σ.bilinFormAt_apply (symmStripMk (abs_zero.trans_lt hε) y)
