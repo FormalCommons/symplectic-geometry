@@ -52,7 +52,8 @@ reads for the underlying real surface, modelled on `𝓘(ℝ, ℂ)`, and compare
   `SymplecticGeometry.mpullback_diffeomorphSphere_symm_fubiniStudyForm` states the inverse
   relation. This is Tau Ceti's general `OnePoint.mpullback_diffeomorphSphere_sphereVolumeForm`
   for this choice of `v` and `ι`, for which the frame `(v, ι 1, ι i) = (e₃, e₁, -e₂)` has
-  volume `-1`.
+  volume `-1`. As a map, this diffeomorphism is Tau Ceti's Pauli model
+  `OnePoint.homeomorphSphere` (`OnePoint.diffeomorphSphere_sphereCoordsIsometry_apply`).
 
 ## References
 
@@ -177,6 +178,12 @@ theorem coe_homeomorphSphere_infty :
   ext i
   fin_cases i <;> simp
 
+/-- The Pauli model `homeomorphSphere` sends `0` to the south pole, the antipode of the north pole
+`homeomorphSphere ∞`. -/
+@[simp]
+theorem homeomorphSphere_zero : homeomorphSphere (0 : ℂ) = -homeomorphSphere ∞ := by
+  rw [← diffeomorphSphere_sphereCoordsIsometry_apply, diffeomorphSphere_zero]
+
 /-- The inner product with the north pole `homeomorphSphere ∞` is the third coordinate. -/
 theorem inner_homeomorphSphere_infty (p : ℝ³) :
     inner ℝ (homeomorphSphere ∞ : ℝ³) p = p 2 := by
@@ -219,7 +226,9 @@ open scoped OnePoint
 /-- **The round sphere is `4π` times the Fubini–Study sphere, as an area form.** Inverse
 stereographic projection `diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry` from the
 north pole pulls the outward-normal area form `vol(x, ·, ·)` of the unit sphere of `ℝ³` back to
-`4π` times the Fubini–Study form `OnePoint.fubiniStudyForm` of the Riemann sphere. -/
+`4π` times the Fubini–Study form `OnePoint.fubiniStudyForm` of the Riemann sphere. As a map, this
+diffeomorphism is the Pauli model `homeomorphSphere`
+(`OnePoint.diffeomorphSphere_sphereCoordsIsometry_apply`). -/
 theorem mpullback_diffeomorphSphere_sphereVolumeForm :
     SmoothForm.mpullback (diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry)
         ((diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry).contMDiff.of_le le_top)
@@ -238,7 +247,9 @@ theorem mpullback_diffeomorphSphere_sphereVolumeForm :
 
 /-- Stereographic projection from the north pole, the inverse of
 `diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry`, pulls the Fubini–Study form of the
-Riemann sphere back to `(4π)⁻¹` times the area form of the unit sphere of `ℝ³`. -/
+Riemann sphere back to `(4π)⁻¹` times the area form of the unit sphere of `ℝ³`. As a map, this
+inverse is `homeomorphSphere.symm`, the inverse of the Pauli model
+(`OnePoint.diffeomorphSphere_sphereCoordsIsometry_symm_apply`). -/
 theorem mpullback_diffeomorphSphere_symm_fubiniStudyForm :
     SmoothForm.mpullback (diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry).symm
         ((diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry).symm.contMDiff.of_le le_top)
