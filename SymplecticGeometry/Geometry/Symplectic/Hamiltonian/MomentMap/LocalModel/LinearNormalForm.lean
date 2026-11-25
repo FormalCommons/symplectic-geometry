@@ -51,14 +51,15 @@ model: no change of sign is needed.
   `linearModelMap` is a complement of `𝔥 × 0`.
 * `SymplecticGeometry.LocalModelData.forall_eval₂_form_one_zero_eq_zero_iff`: the kernel of the
   form at `(1, 0, 0)` is the space `𝔥 × 0` of the directions `(ξ, 0, 0)` with `ξ ∈ 𝔥`.
-* `SymplecticGeometry.LocalModelData.fst_linearModelMap_linearModelRepresentation`,
-  `SymplecticGeometry.LocalModelData.ι𝔪_snd_fst_linearModelMap_linearModelRepresentation`,
-  `SymplecticGeometry.LocalModelData.snd_snd_linearModelMap_linearModelRepresentation`:
-  `linearModelMap` intertwines the action of `K` on the model with the action
-  `(ξ, a, b) ↦ (Ad_k ξ, Ad*_k a, k • b)` of `K` on `𝔤 × A × V`, the coadjoint action on `A` being
-  read in `𝔤*` through `ι𝔪`. That this is the action on the tangent space at `(1, 0, 0)` by the
-  differentials of the maps `(g, η, v) ↦ (k g k⁻¹, Ad*_k η, k • v)` is expected, but is not
-  proved here.
+* `SymplecticGeometry.LocalModelData.tangentSpaceProdEquiv_mfderiv_conj_smul_one_zero`: for
+  `k ∈ K`, the differential at `(1, 0, 0)` of `(g, p) ↦ (k g k⁻¹, k • p)` is
+  `(ξ, a, b) ↦ (Ad_k ξ, repA k a, rep k b)`. Its `G` component is Tau Ceti's definition of
+  `adjointRepresentation` as the differential of conjugation (`adjointContinuousLinearMap_apply`),
+  and its fibre component is `mfderiv_fiberDistribMulAction_const_smul`, combined by
+  `TauCeti.Manifold.mfderiv_prodMap_apply`.
+* `SymplecticGeometry.LocalModelData.linearModelMap_linearModelRepresentation`: `linearModelMap`
+  intertwines the action of `K` on the model with that differential, the action of `K` on the
+  tangent space at `(1, 0, 0)`.
 
 ## References
 
@@ -253,32 +254,61 @@ theorem linearModelRepresentation_apply (k : K) (m : D.𝔪) (f : Module.Dual �
       ((D.adjoint𝔪 k m, D.adjoint𝔪.dual k f), (D.adjoint𝔮 k q, D.repV k b)) :=
   (rfl)
 
-/-- The action of `k` on the model moves the `𝔤`-component of `linearModelMap` by `Ad_k`. -/
-theorem fst_linearModelMap_linearModelRepresentation (k : K)
-    (x : (D.𝔪 × Module.Dual ℝ D.𝔪) × (D.𝔮 × V)) :
-    (D.linearModelMap (D.linearModelRepresentation k x)).1 =
-      adjointRepresentation ℝ I G k (D.linearModelMap x).1 := by
-  obtain ⟨⟨m, f⟩, q, b⟩ := x
-  simp only [linearModelRepresentation_apply, linearModelMap_apply,
-    coe_adjoint𝔪_apply, coe_adjoint𝔮_apply, map_add]
+/-- **The differential of the action of `K` at `(1, 0, 0)`.** For `k ∈ K`, the differential at
+`(1, 0, 0)` of the map `(g, p) ↦ (k g k⁻¹, k • p)` of `G × (A × V)` sends the tangent vector
+`(ξ, a, b)` to `(Ad_k ξ, repA k a, rep k b)`. -/
+theorem tangentSpaceProdEquiv_mfderiv_conj_smul_one_zero (k : K)
+    {u : TangentSpace (I.prod 𝓘(ℝ, A × V)) ((1 : G), ((0 : A), (0 : V)))}
+    {ξ : GroupLieAlgebra I G} {a : A} {b : V}
+    (hu : tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V))) u = (ξ, (a, b))) :
+    letI := D.fiberDistribMulAction
+    tangentSpaceProdEquiv _
+        (mfderiv (I.prod 𝓘(ℝ, A × V)) (I.prod 𝓘(ℝ, A × V))
+          (fun x : G × (A × V) ↦ ((k : G) * x.1 * (k : G)⁻¹, k • x.2))
+          ((1 : G), ((0 : A), (0 : V))) u) =
+      (adjointRepresentation ℝ I G k ξ, (D.repA k a, D.rep k b)) := by
+  let := D.fiberDistribMulAction
+  -- The map is the product of conjugation by `k`, whose differential at `1` is `Ad_k`, and of
+  -- the linear action of `k` on `A × V`.
+  have hconj :
+      (fun g : G ↦ (k : G) * g * (k : G)⁻¹) = conjDiffeomorph (I := I) (n := 1) (k : G) :=
+    funext fun g ↦ (conjDiffeomorph_apply _ g).symm
+  have hf : MDifferentiableAt I I (fun g : G ↦ (k : G) * g * (k : G)⁻¹) 1 :=
+    hconj ▸ (conjDiffeomorph (I := I) (n := 1) (k : G)).mdifferentiable one_ne_zero 1
+  have hg : MDifferentiableAt 𝓘(ℝ, A × V) 𝓘(ℝ, A × V) (fun q : A × V ↦ k • q) 0 :=
+    D.fiberDistribMulAction_smul_eq_toContinuousLinearMap k ▸
+      ContinuousLinearMap.mdifferentiableAt _
+  have hAd : mfderiv I I (fun g : G ↦ (k : G) * g * (k : G)⁻¹) 1 ξ =
+      adjointRepresentation ℝ I G k ξ := by
+    rw [adjointRepresentation_apply, adjointContinuousLinearMap_apply, ← hconj]
+  rw [← (tangentSpaceProdEquiv _).symm_apply_apply u, hu]
+  refine (congrArg (tangentSpaceProdEquiv _)
+    (mfderiv_prodMap_apply (p := ((1 : G), ((0 : A), (0 : V)))) hf hg (ξ, (a, b)))).trans ?_
+  -- The point of `tangentSpaceProdEquiv_symm_apply` is given, since the image of `(1, 0, 0)` is
+  -- written in two ways that agree only up to unfolding.
+  rw [tangentSpaceProdEquiv_apply,
+    tangentSpaceProdEquiv_symm_apply (p := ((k : G) * 1 * (k : G)⁻¹, k • ((0 : A), (0 : V))))]
+  exact Prod.ext hAd ((D.mfderiv_fiberDistribMulAction_const_smul k 0 (a, b)).trans
+    (D.fiberDistribMulAction_smul k (a, b)))
 
-/-- The action of `k` on the model moves the `V`-component of `linearModelMap` by `rep k`. -/
-theorem snd_snd_linearModelMap_linearModelRepresentation (k : K)
+/-- **`linearModelMap` is equivariant.** The action of `k ∈ K` on the linear normal form model is
+taken by `linearModelMap` to the differential at `(1, 0, 0)` of the map
+`(g, p) ↦ (k g k⁻¹, k • p)` of `G × (A × V)`. -/
+theorem linearModelMap_linearModelRepresentation (k : K)
     (x : (D.𝔪 × Module.Dual ℝ D.𝔪) × (D.𝔮 × V)) :
-    (D.linearModelMap (D.linearModelRepresentation k x)).2.2 =
-      D.rep k (D.linearModelMap x).2.2 := by
+    letI := D.fiberDistribMulAction
+    D.linearModelMap (D.linearModelRepresentation k x) =
+      tangentSpaceProdEquiv _
+        (mfderiv (I.prod 𝓘(ℝ, A × V)) (I.prod 𝓘(ℝ, A × V))
+          (fun x : G × (A × V) ↦ ((k : G) * x.1 * (k : G)⁻¹, k • x.2))
+          ((1 : G), ((0 : A), (0 : V)))
+          ((tangentSpaceProdEquiv ((1 : G), ((0 : A), (0 : V)))).symm (D.linearModelMap x))) := by
+  rw [D.tangentSpaceProdEquiv_mfderiv_conj_smul_one_zero k
+    ((tangentSpaceProdEquiv _).apply_symm_apply _)]
   obtain ⟨⟨m, f⟩, q, b⟩ := x
-  simp
-
-/-- The action of `k` on the model moves the `A`-component of `linearModelMap`, read in `𝔤*`
-through `ι𝔪`, by the coadjoint action `Ad*_k`. -/
-theorem ι𝔪_snd_fst_linearModelMap_linearModelRepresentation (k : K)
-    (x : (D.𝔪 × Module.Dual ℝ D.𝔪) × (D.𝔮 × V)) :
-    D.ι𝔪 (D.linearModelMap (D.linearModelRepresentation k x)).2.1 =
-      coadjointRepresentation ℝ I G k (D.ι𝔪 (D.linearModelMap x).2.1) := by
-  obtain ⟨⟨m, f⟩, q, b⟩ := x
-  rw [linearModelRepresentation_apply, linearModelMap_apply, linearModelMap_apply,
-    ι𝔪_symm_adjoint𝔪_dual]
+  simp only [linearModelRepresentation_apply, linearModelMap_apply, coe_adjoint𝔪_apply,
+    coe_adjoint𝔮_apply, map_add, repA_apply, LinearEquiv.apply_symm_apply,
+    repV_apply]
 
 end LocalModelData
 
