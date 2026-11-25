@@ -175,14 +175,13 @@ Horizontal lifts of curves and parallel transport.
   `IsMIntegralCurveOn.eventuallyEq_of_isPreconnected`) and connectedness of the
   interval conclude.
 - `TauCeti.IsEhresmannConnection.exists_isHorizontalMap_lift` (existence),
-  under `hf`, `hfp` and `hγ`: for `f x = γ s` there is `c : ℝ → P` with
-  `ContMDiff 𝓘(ℝ) I ∞ c`, `TauCeti.IsHorizontalMap 𝓘(ℝ) D c`, `f ∘ c = γ` and
-  `c s = x`. On an interval that `γ` maps into one chart of `B`, `c` is a
+  under `hfp`, `1 ≤ n` and `f`, `γ` of class `C^(n+1)`: for `f x = γ s` there
+  is `c : ℝ → P` with `ContMDiff 𝓘(ℝ) I n c`, `TauCeti.IsHorizontalMap 𝓘(ℝ) D c`,
+  `f ∘ c = γ` and `c s = x`. On an interval that `γ` maps into one chart of `B`, `c` is a
   trajectory of the lift of the chart-constant field above, cut off by a bump
   function to compact support, which is complete since `f` is proper; its
-  projection solves the base equation and so is `γ`. A Lebesgue number of
-  `[−n, n]` for the chart cover, uniqueness and the composition law of flows
-  glue the pieces.
+  projection solves the base equation and so is `γ`. Uniqueness glues the
+  pieces: the times up to which a lift exists form an open and closed set.
 - `TauCeti.IsEhresmannConnection.parallelTransport hD γ s t : P → P`: at `x`,
   the value at `t` of the horizontal lift of `γ` through `x` at time `s`
   (chosen among differentiable horizontal curves `c` with `f ∘ c = γ` and
