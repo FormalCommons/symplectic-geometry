@@ -148,26 +148,17 @@ theorem singularCohomologyMap_excisionMap_eq_iff_forall_normalSlice
   let := f.normalSpaceVectorBundle hn hdim
   set t := f.tubePairIso hn hdim Φ hΦ
   set e := TopPair.excisionMap (X := TopCat.of X) (W : Set X) (range f)ᶜ
-  -- Pulling back along the pair isomorphism of the tube is a bijection with inverse `t.hom`.
-  have hinv (y) : TopPair.singularCohomologyMap (R := R) (k := k) (M := M) t.hom
-      (finrank ℝ P) (TopPair.singularCohomologyMap t.inv _ y) = y := by
-    rw [← TopPair.singularCohomologyMap_comp_apply, Iso.hom_inv_id,
-      TopPair.singularCohomologyMap_id, ConcreteCategory.id_apply]
-  have hinv' (y) : TopPair.singularCohomologyMap (R := R) (k := k) (M := M) t.inv
-      (finrank ℝ P) (TopPair.singularCohomologyMap t.hom _ y) = y := by
-    rw [← TopPair.singularCohomologyMap_comp_apply, Iso.inv_hom_id,
-      TopPair.singularCohomologyMap_id, ConcreteCategory.id_apply]
   have hslice (x : Z) : TopPair.singularCohomologyMap (f.normalSlice hn hdim Φ hΦ x) _ c =
       TopPair.singularCohomologyMap (fiberThomPairMap P (fun x ↦ f.NormalSpace x hn) x) _
         (TopPair.singularCohomologyMap t.hom _ (TopPair.singularCohomologyMap e _ c)) := by
     rw [normalSlice_def, TopPair.singularCohomologyMap_comp_apply,
       TopPair.singularCohomologyMap_comp_apply]
   simp only [hslice]
-  constructor
-  · intro h x
-    rw [h, hinv]
-  · intro h
-    rw [← singularCohomology_thomPair_ext h, hinv']
+  have hu := (TopPair.singularCohomologyMapIso R k M t (finrank ℝ P)).inv_hom_id_apply u
+  have hc := (TopPair.singularCohomologyMapIso R k M t (finrank ℝ P)).hom_inv_id_apply
+  rw [TopPair.singularCohomologyMapIso_hom, TopPair.singularCohomologyMapIso_inv] at hu hc
+  refine ⟨fun h x ↦ by rw [h, hu], fun h ↦ ?_⟩
+  rw [← singularCohomology_thomPair_ext h, hc]
 
 variable [I.Boundaryless] [J.Boundaryless] [T2Space X] [SecondCountableTopology X]
 
