@@ -12,7 +12,7 @@ public import TauCeti.Geometry.Symplectic.Liouville.VectorField
 public import TauCeti.Geometry.Symplectic.Manifold.TwoForm
 import Mathlib.Geometry.Manifold.Riemannian.Basic
 import TauCeti.Analysis.Calculus.Gradient
-import TauCeti.Analysis.Calculus.Morse.ShapeOperator
+import TauCeti.Analysis.Calculus.Morse.NormSq
 import TauCeti.Geometry.Manifold.Flow.NormedSpace
 import TauCeti.Geometry.Manifold.Riemannian.Gradient.NormedSpace
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
@@ -48,6 +48,8 @@ gradient-like condition and Weinstein homotopies both mention it. The function i
 
 The example follows Tau Ceti's `TauCeti.SymplecticForm.isLiouvilleDomain_closedBall` for the
 Liouville part (the field `x / 2` and the primitive `TauCeti.SymplecticForm.radialPrimitive`). The
+origin is the only critical point of `‖x‖ ^ 2`, and it is nondegenerate, by
+`TauCeti.fderiv_norm_sq_eq_zero_iff` and `TauCeti.isNondegenerateCriticalPoint_norm_sq`. The
 field `x / 2` is a quarter of the gradient `2 x` of `‖x‖ ^ 2` for the flat metric
 `riemannianMetricVectorSpace`, so it is gradient-like by `TauCeti.isGradientLike_mgradient` and
 `TauCeti.IsGradientLike.smul`.
@@ -55,7 +57,7 @@ field `x / 2` is a quarter of the gradient `2 x` of `‖x‖ ^ 2` for the flat m
 ## References
 
 * [D. McDuff and D. Salamon, *Introduction to Symplectic Topology*][McDuffSalamon2017],
-  Definitions 7.4.5 and 7.4.7
+  Definition 7.4.5
 * [K. Cieliebak and Y. Eliashberg, *From Stein to Weinstein and Back*][CieliebakEliashberg2012],
   Chapter 11
 -/
@@ -153,21 +155,9 @@ theorem isWeinsteinStructure_constSmooth_norm_sq (ω : SymplecticForm V) :
   isCompleteVectorField := isCompleteVectorField_dilation _
   isProperMap := by simpa using isProperMap_norm_sq_sub (0 : V)
   bddBelow := ⟨0, by rintro _ ⟨x, rfl⟩; positivity⟩
-  isGeneralizedMorse := by
-    refine IsMorse.isGeneralizedMorse (isMorse_modelSpace_iff.2
-      ⟨contDiff_norm_sq ℝ, hasNondegenerateCriticalPointsOn_iff.2 fun x _ hx ↦ ?_⟩)
-    have hid : Function.Injective (fderiv ℝ (id : V → V) x) := by simp [Function.injective_id]
-    have key := isNondegenerateCriticalPoint_norm_sq_sub_comp_iff (a := (0 : V))
-      (contDiffAt_id (𝕜 := ℝ) (x := x)) hid
-    have hx' := (fderiv_norm_sq_sub_comp_eq_zero_iff (a := (0 : V))
-      (differentiableAt_id (𝕜 := ℝ) (x := x))).1 (by simpa using hx)
-    simp only [id_eq, sub_zero] at key hx'
-    refine key.2 ⟨hx', ?_⟩
-    have hx0 : x = 0 := by simpa using hx'
-    subst hx0
-    simp only [sub_self, shapeOperator_zero, Module.End.hasEigenvalue_iff, not_not]
-    ext v
-    simp [eq_comm]
+  isGeneralizedMorse := IsMorse.isGeneralizedMorse (isMorse_modelSpace_iff.2
+    ⟨contDiff_norm_sq ℝ, hasNondegenerateCriticalPointsOn_iff.2 fun _ _ hx ↦
+      fderiv_norm_sq_eq_zero_iff.1 hx ▸ isNondegenerateCriticalPoint_norm_sq⟩)
   isGradientLike := by
     have hg := (isGradientLike_mgradient ((riemannianMetricVectorSpace V).ofLE le_top)
       (fun x : V ↦ ‖x‖ ^ 2)).smul (a := fun _ ↦ (4 : ℝ)⁻¹) continuous_const
