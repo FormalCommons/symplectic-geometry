@@ -557,13 +557,14 @@ and the prerequisites, placed by topic.
   (`powerConnection_apply_frame`) and curvature $ik\,F_\alpha$. The file
   also defines $\partial$ and $\bar\partial$ of a section, with
   `partial_add_dbar`.
-- `ZeroSet.lean`: for any Hermitian line bundle with a complex-linear
-  metric connection $D$ on a closed manifold with compatible $J$:
+- `ZeroSet.lean`: for any covariant derivative $D$ on a bundle of normed
+  complex lines over a manifold with compatible $J$:
   `isTransverse_of_norm_dbar_lt` (surjective
   `TauCeti.sectionLinearization` at the zeros, so the zero set is a
-  submanifold by Tau Ceti's `exists_isManifold_sectionZero_of_contMDiff`),
-  `isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt`, and
-  the milestone `dualClass_zeroSet_eq_complexEulerClass_of_norm_dbar_lt`:
+  submanifold by Tau Ceti's `exists_isManifold_sectionZero_of_contMDiff`)
+  and `isSymplecticSubmanifoldEmbedding_zeroSet_of_norm_dbar_lt`; for any
+  Hermitian line bundle with a complex-linear metric connection $D$ on a
+  closed manifold with compatible $J$, the milestone `dualClass_zeroSet_eq_complexEulerClass_of_norm_dbar_lt`:
   with the symplectic orientations of $M$ and of the zero set $Z$, $Z$ has
   dual class `complexEulerClass L`, so that, for the fundamental classes of
   `toHomologicalOrientation` of these orientations, which *Poincaré duals
