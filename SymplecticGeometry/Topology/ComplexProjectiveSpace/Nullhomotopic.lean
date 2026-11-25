@@ -7,8 +7,8 @@ module
 
 public import SymplecticGeometry.Topology.ComplexProjectiveSpace.SecondHomology
 import SymplecticGeometry.AlgebraicTopology.Cohomology.Sphere.Basic
+import SymplecticGeometry.Topology.ComplexProjectiveSpace.SimplyConnected
 import TauCeti.AlgebraicTopology.Homotopy.Hurewicz.DiskBoundary
-import TauCeti.Topology.ComplexProjectiveSpace.Hopf.Exact
 
 /-!
 # Null-homotopic maps from the two-sphere to complex projective space
@@ -22,8 +22,8 @@ both sides hold, since `ℙ ℂ V` is a point.
 
 ## Proof
 
-For `n ≠ 0`, `ℙ ℂ V` is simply connected, being homeomorphic to Tau Ceti's sphere-quotient model of
-`ℂPⁿ`, so by the Hurewicz theorem `g` is null-homotopic exactly when it sends the generator `[S²]`
+For `n ≠ 0`, `ℙ ℂ V` is simply connected (`Projectivization.instSimplyConnectedSpaceComplex`), so
+by the Hurewicz theorem `g` is null-homotopic exactly when it sends the generator `[S²]`
 of `H₂(S²; ℤ)` to zero (`TopCat.Hom.nullhomotopic_iff_singularHomologyMap_eq_zero`). The pairing
 with `h` is injective on `H₂(ℙ ℂ V; ℤ)`
 (`Projectivization.bijective_singularKronecker_hyperplaneClass`), and
@@ -97,9 +97,8 @@ theorem nullhomotopic_iff_singularCohomologyMap_hyperplaneClass_eq_zero
         (by omega))).elim _ _
     rw [hh, map_zero]
     exact iff_of_true (nullhomotopic_of_indiscrete _) rfl
-  have : SimplyConnectedSpace (ℙ ℂ V) :=
-    (complexProjectiveSpaceHomeomorph hV).toHomotopyEquiv.simplyConnectedSpace_iff.1
-      inferInstance
+  have : FiniteDimensional ℂ V := Module.finite_of_finrank_eq_succ hV
+  have : Nontrivial V := Module.nontrivial_of_finrank_pos (R := ℂ) (by omega)
   have hz : ℙ ℂ V := g (TauCeti.sphereBasePoint 1)
   rw [TopCat.Hom.nullhomotopic_iff_singularHomologyMap_eq_zero (n := 0) (z := hz)
       fun k hk => TauCeti.subsingleton_homotopyGroup_of_lt_two hz hk,
