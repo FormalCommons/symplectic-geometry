@@ -816,10 +816,7 @@ In `TauCeti.Diffeotopy`, for `[CompleteSpace E] [IsManifold I ∞ M]
   `Diffeotopy/Velocity.lean` of *Hamiltonian flows*, which `Diffeotopy/Real.lean`
   imports publicly for the time derivative and the velocity of a diffeotopy;
   that file is merged and imports no file of this part. The part is at level
-  0 of `DESIGN.md`'s build order and stays there. Also `Geometry/Manifold/IsManifold/Basic.lean` of
-  *Symplectic neighbourhoods*, whose instance giving `C^(m + 1)` structures
-  from `C^∞` ones the merged `DifferentialForm/HomotopyOperator.lean` uses; it
-  imports only Mathlib, so the level does not change. And
+  0 of `DESIGN.md`'s build order and stays there. And
   `Geometry/Manifold/Instances/Icc.lean` of *Hamiltonian flows*, which
   `SmoothTransition.lean` and `Diffeotopy/Real.lean` import for
   `mdifferentiableAt_subtypeVal_Icc`; it imports only Mathlib, so the level

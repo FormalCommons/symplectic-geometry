@@ -11,8 +11,8 @@ public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Existence
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Neighborhood
 public import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Radial
 public import TauCeti.Geometry.Manifold.VectorBundle.ZeroSection
-import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.GroupTheory.GroupAction.Hom
+import TauCeti.Geometry.Manifold.IsManifold.Basic
 
 /-!
 # A smooth injective map of the whole normal bundle

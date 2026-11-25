@@ -2120,10 +2120,7 @@ it, its design adds it.
   *Standard model* for the corollary on `Matrix.symplecticGroup`, for
   `stdForm` and `complexToRealEuclidean` in the standard Hermitian case, and
   for `StdSpace.sumEquiv` with its two lemmas, which exist (#232).
-  *Symplectic neighbourhoods* for the instance of
-  `Geometry/Manifold/IsManifold/Basic.lean` giving `C^(m + 1)` structures
-  from `C^∞` ones, in
-  `Geometry/Manifold/VectorBundle/Pullback.lean`. *Liouville structures* for
+  *Liouville structures* for
   `Geometry/Manifold/ModelTransport/InteriorModel.lean` (the interior re-modelled
   over `E`, `SymplecticGeometry.InteriorModel`), in
   `Section/Nonvanishing.lean`. The

@@ -12,7 +12,7 @@ public import Mathlib.Geometry.Manifold.VectorBundle.Hom
 public import TauCeti.Geometry.Manifold.VectorBundle.Pullback
 public import TauCeti.Geometry.Manifold.VectorBundle.Subbundle
 public import SymplecticGeometry.Topology.VectorBundle.Pullback
-import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
+import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
 
 /-!

@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.Instances.Real
 public import SymplecticGeometry.Geometry.Manifold.IsManifold.InteriorBoundary
+public import TauCeti.Geometry.Manifold.Boundary.Interior
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import TauCeti.Geometry.Manifold.Orientation.Pullback
 public import TauCeti.Geometry.Manifold.ModelTransport.Interior
@@ -24,6 +25,15 @@ vector space apply to `M`.
 The construction is Tau Ceti's `TauCeti.BoundarylessModel I M` with its atlas
 `TauCeti.BoundarylessModel.interiorChartedSpace`, which Tau Ceti does not make an instance. The
 type synonym `SymplecticGeometry.InteriorModel I M` carries that atlas as an instance.
+
+Tau Ceti also makes the interior `I.interior M`, as a subtype of `M`, a charted space over `E`
+when `E` is finite-dimensional, and a `C^n` manifold over `𝓘(𝕜, E)` when `M` is a `C^n` manifold
+(`ModelWithCorners.instChartedSpaceInterior`, `ModelWithCorners.instIsManifoldInterior`), with
+charts the extended charts of `M` restricted to the interior. The copy
+`InteriorModel I (I.interiorOpens M)` here is instead a type synonym of the open subset
+`I.interiorOpens M`, needs no finite dimension, and comes with the diffeomorphism
+`interiorModelDiffeomorph` and the local diffeomorphism `InteriorModel.isLocalDiffeomorph_val`
+into `M`; its range is described through Tau Ceti's `ModelWithCorners.range_subtypeVal_interior`.
 
 ## Main definitions
 
@@ -217,7 +227,7 @@ theorem val_notMem_boundary (q : InteriorModel I (I.interiorOpens M)) : q.val �
 theorem range_val_interiorOpens :
     Set.range (val (I := I) (U := I.interiorOpens M)) =
       (Set.range ((↑) : I.boundary M → M))ᶜ := by
-  rw [range_val, I.coe_interiorOpens, Subtype.range_coe, I.compl_boundary]
+  rw [range_val, I.coe_interiorOpens, ← I.range_subtypeVal_interior, Subtype.range_coe]
 
 /-- The complement in `M` of the copy of the interior of `M` is the boundary. -/
 theorem compl_range_val_interiorOpens :

@@ -218,9 +218,8 @@ and two rows of its milestone table.
     theorems and *Moser isotopy*'s `Moser/Relative.lean` use.
   - `Geometry/Manifold/Distribution/FlatChart.lean`: the step of
     `CharacteristicFoliation.lean` that uses nothing symplectic.
-  - `Geometry/Manifold/IsManifold/Basic.lean`: instances for smooth
-    steps, here and in other parts: `C^(m + 1)` structures from `C^∞` ones,
-    and `IsNormableSpace` on tangent spaces, which `Adjoint.lean` needs when
+  - `Geometry/Manifold/IsManifold/Basic.lean`: an instance for smooth
+    steps: `IsNormableSpace` on tangent spaces, which `Adjoint.lean` needs when
     its fibres are tangent spaces.
   - `Geometry/Manifold/SmoothEmbedding/Diffeomorph.lean`: reparametrising a
     smooth embedding by a diffeomorphism from a manifold on another model, which

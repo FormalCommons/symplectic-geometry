@@ -11,10 +11,10 @@ public import SymplecticGeometry.Geometry.Contact.Levi
 public import SymplecticGeometry.Geometry.Contact.Moser
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Flow.Family
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.TimeExtension
-public import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 public import TauCeti.Geometry.Contact.Distribution
 public import TauCeti.Geometry.Contact.Flat
 public import TauCeti.Geometry.Contact.Gray
+public import TauCeti.Geometry.Manifold.IsManifold.Basic
 public import TauCeti.Topology.VectorBundle.Hom
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 
