@@ -68,6 +68,8 @@ direction.
   `SymplecticGeometry.geodesicFlow_two_pi`: it is a flow, periodic of period `2π`;
   `SymplecticGeometry.cotangentNorm_geodesicFlow`: it preserves `‖p‖`; and
   `SymplecticGeometry.geodesicFlow_pi`: off the zero section, its time-`π` map is `antipodal`.
+* `SymplecticGeometry.not_exists_continuous_eqOn_geodesicFlow`: for `0 < t < π` and `n ≥ 1`, no
+  continuous map of `T*Sⁿ` agrees with the time-`t` map off the zero section.
 
 ## Implementation notes
 
@@ -90,7 +92,10 @@ inverse.
 The base point of `geodesicFlow t z` is Tau Ceti's great circle `TauCeti.sphereGreatCircle`
 through `q` and `p / ‖p‖`. Every identity about the flow is checked on coordinates, where it
 reduces to the addition formulas for `cos` and `sin`, and transported back by
-`cotangentCoord_injective`.
+`cotangentCoord_injective`. It
+has no continuous extension across the zero section: along the rays `s • u` and `s • (-u)`,
+`s > 0`, at a point `q` with `u ⊥ q`, the base points of the images are constant and differ, while
+both rays tend to the zero covector at `q`.
 
 ## References
 
@@ -509,6 +514,56 @@ theorem geodesicFlow_pi {z : CotangentBundle (𝓡 n) (𝕊 n)} (hz : cotangentN
   refine cotangentCoord_injective ?_
   rw [cotangentCoord_geodesicFlow hz, cotangentCoord_antipodal]
   ext1 <;> simp
+
+/-- For `0 < t < π` the normalized geodesic flow at time `t` has no continuous extension across
+the zero section of `T*Sⁿ`, `n ≥ 1`: covectors `± s • u` at `q`, with `u ⊥ q` and `s → 0⁺`, all
+tend to the zero covector at `q`, while their images have the distinct base points
+`cos t • q ± (sin t / ‖u‖) • u`. -/
+theorem not_exists_continuous_eqOn_geodesicFlow [NeZero n] {t : ℝ} (ht₀ : 0 < t)
+    (ht : t < Real.pi) :
+    ¬ ∃ g : CotangentBundle (𝓡 n) (𝕊 n) → CotangentBundle (𝓡 n) (𝕊 n), Continuous g ∧
+      ∀ z, cotangentNorm z ≠ 0 → g z = geodesicFlow t z := by
+  rintro ⟨g, hg, hgz⟩
+  -- a point `q` of the sphere and a nonzero `u ⊥ q`, which exists since `n ≥ 1`
+  let q : 𝕊 n := ⟨EuclideanSpace.single 0 1, by simp⟩
+  have hq : (q : 𝔼 n) ≠ 0 := ne_zero_of_mem_unit_sphere q
+  have : Fact (Module.finrank ℝ (𝔼 n) = n + 1) := ⟨finrank_euclideanSpace_fin⟩
+  have hbot : (ℝ ∙ (q : 𝔼 n))ᗮ ≠ ⊥ := by
+    rw [Ne, ← Submodule.finrank_eq_zero (R := ℝ),
+      Submodule.finrank_orthogonal_span_singleton (n := n) hq]
+    exact NeZero.ne n
+  obtain ⟨u, hu_mem, hu⟩ := Submodule.exists_mem_ne_zero_of_ne_bot hbot
+  have hqu : ⟪(q : 𝔼 n), u⟫_ℝ = 0 := Submodule.mem_orthogonal_singleton_iff_inner_right.1 hu_mem
+  -- along the ray `s • v`, `s > 0`, the base point of `g` is constant, hence also at `s = 0`
+  have key (v : 𝔼 n) (hv : v ≠ 0) (hqv : ⟪(q : 𝔼 n), v⟫_ℝ = 0) :
+      ((g (cotangentMk q 0)).proj : 𝔼 n) = Real.cos t • (q : 𝔼 n) + (Real.sin t / ‖v‖) • v := by
+    have hf : Continuous fun s : ℝ ↦ ((g (cotangentMk q (s • v))).proj : 𝔼 n) :=
+      continuous_subtypeVal.comp (FiberBundle.continuous_proj _ _ |>.comp
+        (hg.comp ((contMDiff_cotangentMk.continuous.comp
+          (continuous_const.prodMk (continuous_id.smul continuous_const))))))
+    have hsub : Ioi (0 : ℝ) ⊆ {s | ((g (cotangentMk q (s • v))).proj : 𝔼 n) =
+        Real.cos t • (q : 𝔼 n) + (Real.sin t / ‖v‖) • v} := fun s (hs : 0 < s) ↦ by
+      have hcoord : cotangentCoord (cotangentMk q (s • v)) = ((q : 𝔼 n), s • v) := by
+        rw [cotangentCoord_cotangentMk, real_inner_smul_right, hqv, mul_zero, zero_smul, sub_zero]
+      have hnorm : ‖s • v‖ = s * ‖v‖ := by rw [norm_smul, Real.norm_of_nonneg hs.le]
+      have hz : cotangentNorm (cotangentMk q (s • v)) ≠ 0 := by
+        rw [cotangentNorm_def, hcoord, hnorm]
+        exact mul_ne_zero hs.ne' (norm_ne_zero_iff.2 hv)
+      rw [mem_ofPred_eq, hgz _ hz, ← cotangentCoord_fst, cotangentCoord_geodesicFlow hz, hcoord,
+        hnorm, smul_smul]
+      field_simp
+    have h0 := (isClosed_eq hf continuous_const).closure_subset_iff.2 hsub
+      (by rw [closure_Ioi]; exact self_mem_Ici)
+    simpa using h0
+  have h := (key u hu hqu).symm.trans (key (-u) (neg_ne_zero.2 hu) (by rw [inner_neg_right, hqu,
+    neg_zero]))
+  rw [norm_neg, smul_neg, add_right_inj, ← sub_eq_zero, sub_neg_eq_add, ← two_smul ℝ,
+    smul_smul, smul_eq_zero] at h
+  have hsin := Real.sin_pos_of_pos_of_lt_pi ht₀ ht
+  have hu' := norm_pos_iff.2 hu
+  rcases h with h | h
+  · exact (mul_pos two_pos (div_pos hsin hu')).ne' h
+  · exact hu h
 
 end SymplecticGeometry
 

@@ -405,7 +405,7 @@ bracket is negated.
   stated with this predicate.
 - **Connections.** A connection on a fibration is Tau Ceti's
   `TauCeti.IsEhresmannConnection` on `π`
-  (`Geometry/Manifold/Submersion/EhresmannConnection.lean`) with its
+  (`Geometry/Manifold/Submersion/EhresmannConnection/Basic.lean`) with its
   pointwise `horizontalLift`. Its curvature is the page's
   $\Omega_\Gamma(v_1,v_2)=[v_1^\sharp,v_2^\sharp]^{\mathrm{Ver}}$ with
   Mathlib's `VectorField.mlieBracket`, which is the page's bracket. The

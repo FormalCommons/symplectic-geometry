@@ -6,7 +6,7 @@ on:
 
 # CI runs the build scripts of every pull request's branch, so it gets no
 # secrets and only read access. It restores the dependencies and the build of
-# the library that the cache workflow saved on main, but never saves a cache
+# the library that the cache workflows saved on main, but never saves a cache
 # itself.
 permissions:
   contents: read
@@ -117,17 +117,18 @@ jobs:
           done
           exit $fail
       # elan, then the latest save of the built dependencies, or Mathlib's
-      # build cache and Tau Ceti's without one; see the cache workflow.
+      # build cache and Tau Ceti's without one; see the workflow
+      # cache-dependencies.
       - name: set up Lean and restore the built dependencies
         id: setup
         uses: ./.github/actions/setup-lean
-      # main's latest build of the library, from the cache workflow: the
-      # latest save of the job that follows main (`-inc-`), which is a few
-      # commits behind, or without one the latest save of any kind. Lake
-      # takes a file's build from it only if the file's source, its imports'
-      # builds, the toolchain and the options are as they were for that
-      # build, and builds every other file. Without a save it builds them
-      # all. The cache workflow builds main from its source about once an
+      # main's latest build of the library: the latest save of the workflow
+      # cache-library, which follows main (`-inc-`) and is a few commits
+      # behind, or without one the latest save of any kind. Lake takes a
+      # file's build from it only if the file's source, its imports' builds,
+      # the toolchain and the options are as they were for that build, and
+      # builds every other file. Without a save it builds them all. The
+      # workflow cache-source builds main from its source about once an
       # hour. GitHub looks for saves whose names begin with `key` before it
       # looks at `restore-keys`, so the kind to prefer is in `key`.
       - name: restore main's build of the library
