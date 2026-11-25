@@ -275,11 +275,12 @@ Local triviality by transport along rays, the direction of Exercise 6.1.1 of
   `SymplecticFibres.lean` uses: transport by a connection that preserves the
   fibre forms gives trivializations that preserve them.
 - `Manifold.IsSubmersion.exists_trivialization_of_isProperMap`: a smooth
-  proper submersion `f` from a σ-compact `P` has, at every `b₀`, a
-  trivialization with fibre `{x // f x = b₀}`, carrying the regular-fibre
-  atlas `TauCeti.regularFiberChartedSpace`, smooth with smooth inverse. A
-  connection comes from `Manifold.IsSubmersion.exists_isEhresmannConnection`;
-  the trivialization is the one of the previous item for the fibre itself, the
+  proper submersion `f` from a σ-compact `P` has, at every `b₀` in its range,
+  a trivialization with fibre `TauCeti.MapFiber f b₀`, carrying the
+  regular-fibre atlas `TauCeti.regularFiberChartedSpace`, smooth with smooth
+  inverse. A connection comes from
+  `Manifold.IsSubmersion.exists_isEhresmannConnection`; the trivialization is
+  `parallelTransportTrivialization` along `chartRay`, the
   map `(b, v) ↦ hD.parallelTransport γ_b 0 1 v`, smooth by
   `TauCeti.isSmoothEmbedding_coe_regularFiber`. Every value of a submersion is
   regular, and `J.Boundaryless` makes `b₀` an interior point. The converse,
