@@ -213,12 +213,32 @@ formulation.
      each slice of `h` maps a component into itself, and the closure of
      the image of a component under `j` is a closed subset of the compact
      `closure (range j)`. So this statement replaces the compressed one.
-   - *The general statement waits.* When some component of `M` does not
-     compress into a compact set, which leaves a connected open manifold
-     of infinite type, the milestone's last statement needs another
-     route, which this design does not have. That statement waits for
-     one, with no `ERRATA.md` entry, since nothing shows it false. The
-     weak homotopy equivalence is proved for every open `M`.
+   - *The milestone's parametric statement is the weak equivalence.* The
+     sources with a proof (Eliashberg–Mishachev, arXiv:math/0101196,
+     Theorem 2.1.2; Bertelson, arXiv:math/0011045, Theorem 8.2) give a
+     weak homotopy equivalence, and `ERRATA.md` records that the plan asks
+     for more. So the milestone line goes on
+     `isWeakHomotopyEquivalence_inclusion_symplecticFormsInClass`, for
+     every open `M`, as well as on the existence theorem of
+     `OpenManifold.lean`; the homotopy equivalence is a corollary of the
+     weak one, `exists_homotopyEquiv_symplecticFormsInClass`, under the
+     hypothesis above. That hypothesis holds for an `M` of finite type,
+     the interior of a compact manifold with boundary, whose components
+     are finitely many and each compress into a compact set along a
+     collar of the boundary; the design has no lemma that derives it from
+     a Morse function with finitely many critical points.
+   - *Infinite type stays open.* For a connected open `M` of infinite type
+     the genuine equivalence is not known, and the design does not try to
+     prove it. CW type fails there too: in $\mathbb R^{2n}$, $n\ge2$, minus
+     a sequence of parallel affine planes of codimension $3$, the classes
+     of a form on small spheres linking the planes, in
+     $\pi_2(\mathrm{GL}^+(2n)/\mathrm{Sp}(2n))\cong\mathbb Z$, give a
+     retraction onto a Cantor set as in the example above. With compact
+     sublevels $K_k$ of a proper Morse function, and $A_k$ the forms of
+     class $a$ nondegenerate on $K_k$, the question comes down to whether
+     the forms of class $a$ are homotopy equivalent, through the evident
+     map, to the homotopy limit of the tower of the $A_k$; the comments on
+     issue #3898 give the details.
 6. **Morse input.** The existence of a proper Morse function bounded below
    without critical points of index $\dim M$ on an open manifold is
    `Geometry/Manifold/Morse/OpenManifold.lean`; the cores and their
@@ -237,7 +257,7 @@ formulation.
   jet bundles.
 - `Parametric.lean` proves the weak homotopy equivalence for every open
   `M`, and the homotopy equivalence only for an `M` each of whose
-  components compresses into a compact set (Decision 5).
+  components compresses into a compact set (Decision 5, `ERRATA.md`).
 
 ## Files and their contents
 
@@ -800,7 +820,7 @@ three steps:
 1. The product collar `W₀ ⊇ A` is the set of `(u, v)` with
    `|‖u‖ - 1| < ε` and `‖v‖ < 1 + ε`, for a small `ε > 0`. It has a finite
    good cover by convex slabs, so it has a `SmoothCohomologySplitting`
-   (`HasFiniteGoodCover.exists_smoothCohomologySplitting_isSmooth`) and a linear
+   (`HasFiniteGoodCover.smoothCohomologySplitting`) and a linear
    primitive map on exact three-forms, that splitting's `exactPrimitive`.
 2. Off `K` the forms `τ λ` need not be closed on `W₀`. So subtract from each
    restriction `τ λ|W₀` the primitive given by step 1 of `d (τ λ|W₀)`. The
@@ -1093,7 +1113,8 @@ For the spaces of `FormSpaces.lean`:
 - `isWeakHomotopyEquivalence_inclusion_symplecticFormsInClass`: for
   covering frames `e U hU` and open `M`, the inclusion is a
   `ContinuousMap.IsWeakHomotopyEquivalence`, from the continuous engine
-  with `P` a disc and `P₀` its boundary sphere, and `P` a point.
+  with `P` a disc and `P₀` its boundary sphere, and `P` a point. Its
+  docstring ends with the milestone line (Decision 5, `ERRATA.md`).
 - `exists_homotopyEquiv_symplecticFormsInClass`: for covering frames, open
   `M`, `hα : α ∈ closedForms I M 2`, and, for every
   `c : ConnectedComponents M`, some `j : C^∞⟮I, c.opens; I, c.opens⟯`
@@ -1109,8 +1130,8 @@ For the spaces of `FormSpaces.lean`:
   homeomorphisms of `HPrinciple/Components.lean`
   (`Homeomorph.toHomotopyEquiv`, `ContinuousMap.HomotopyEquiv.trans`).
   The docstring says that an `M` that compresses as a whole satisfies the
-  hypothesis (Decision 5). It carries no milestone line: the milestone's
-  last statement, for every open `M`, waits (Decision 5).
+  hypothesis (Decision 5). It carries no milestone line: for every open
+  `M` the milestone is the weak equivalence above (Decision 5).
 
 ## What the part uses
 
