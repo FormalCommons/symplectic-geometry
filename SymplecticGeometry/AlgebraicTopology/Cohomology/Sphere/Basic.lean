@@ -43,16 +43,10 @@ theorem isZero_integralCohomology_sphere_of_ne {E : Type} [NormedAddCommGroup E]
   have : Subsingleton ((TopCat.sphere.{0} n).integralCohomology (q + 1)) :=
     ((TopCat.sphere.{0} n).integralCohomologyEquiv (q + 1)).toEquiv.subsingleton_congr.2
       (ModuleCat.subsingleton_of_isZero hz)
-  let φ := TopCat.isoOfHomeo (X := TopCat.of (Metric.sphere (0 : E) 1))
-    (TauCeti.sphereHomeomorphTopCatSphere.{0} hE)
-  -- Pull-back along the homeomorphism is surjective, with section the pull-back along its inverse.
-  have hs : Function.Surjective (TopCat.singularCohomologyMap φ.hom (q + 1)
-      (R := ModuleCat.of ℤ (ULift.{0} ℤ)) (k := ℤ) (M := ModuleCat.of ℤ ℤ)) := fun x ↦
-    ⟨TopCat.singularCohomologyMap φ.inv (q + 1) x, by
-      rw [← ConcreteCategory.comp_apply, ← TopCat.singularCohomologyMap_comp, φ.hom_inv_id,
-        TopCat.singularCohomologyMap_id, ConcreteCategory.id_apply]⟩
-  have := hs.subsingleton
-  exact ModuleCat.isZero_of_subsingleton _
+  exact (ModuleCat.isZero_of_subsingleton
+    ((TopCat.sphere.{0} n).integralCohomology (q + 1))).of_iso
+    ((TauCeti.singularCohomologyFunctor _ ℤ _ (q + 1)).mapIso
+      (TopCat.isoOfHomeo (TauCeti.sphereHomeomorphTopCatSphere.{0} hE)).symm.op)
 
 end TopCat
 

@@ -6,10 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Geometry.Manifold.Instances.Sphere
-public import SymplecticGeometry.AlgebraicTopology.Cohomology.Sphere.Basic
 public import SymplecticGeometry.Analysis.Normed.Module.Conjugate
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Tangent.Sphere
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.EulerCharacteristic
+public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.Sphere
 public import SymplecticGeometry.Topology.VectorBundle.Complexification.Basic
 public import SymplecticGeometry.Topology.VectorBundle.Complexification.ComplexStructure
 public import TauCeti.AlgebraicTopology.Cellular.EulerCharacteristic.Sphere
@@ -37,7 +37,7 @@ theorems assume that `n = 2 r + 2` is even and positive; `J` then orients the sp
   conjugate (`TauCeti.Bundle.ContinuousComplexStructure.complexificationEquiv`). In degree `2 j`
   the Whitney formula keeps only `c_j(J.Fiber) + c_j(conj J.Fiber)`, because the cohomology of
   the sphere vanishes in the degrees between `0` and `n`
-  (`TopCat.isZero_integralCohomology_sphere_of_ne`). Both classes are Euler classes, and
+  (`SymplecticGeometry.Bundle.chernClass_prod_sphere`). Both classes are Euler classes, and
   `e(conj J.Fiber) = (-1)^j e(J.Fiber) = e(J.Fiber)` (`TauCeti.complexEulerClass_conjugateBundle`).
 * `SymplecticGeometry.isEmpty_continuousComplexStructure_sphere_four_mul`: for `k ≠ 0`, the
   tangent bundle of `S^{4k}` has no continuous complex structure, since evaluating
@@ -110,44 +110,23 @@ theorem two_nsmul_chernClass_sphere_eq_zero
   have := VectorBundle.isTopologicalAddGroup ℂ (G × Conjugate G)
     (J.Fiber ×ᵇ ConjugateBundle J.Fiber)
   have := VectorBundle.continuousSMul ℂ (G × Conjugate G) (J.Fiber ×ᵇ ConjugateBundle J.Fiber)
-  have h₂ : ∀ k ≠ 0, chernClass (G × Conjugate G) (J.Fiber ×ᵇ ConjugateBundle J.Fiber) k = 0 :=
-    fun k hk ↦ by
-      rw [← chernClass_congr (fun b ↦ (J.complexificationEquiv b).toContinuousLinearEquiv)
-        (J.continuous_complexificationEquiv G) k, ← totalChernClass_apply, h₁,
-        ← TopCat.evenIntegralCohomologyOf_one]
-      exact DirectSum.of_eq_of_ne _ _ _ hk
+  have h₂ : chernClass (G × Conjugate G) (J.Fiber ×ᵇ ConjugateBundle J.Fiber) (r + 1) = 0 := by
+    rw [← chernClass_congr (fun b ↦ (J.complexificationEquiv b).toContinuousLinearEquiv)
+      (J.continuous_complexificationEquiv G)]
+    exact chernClass_eq_zero_of_totalChernClass_eq_one _ _ h₁ hj₀
   -- The Whitney formula in degree `2 (r + 1)`: only the two top classes survive.
-  have h₃ := congrArg (PowerSeries.coeff (r + 1))
-    (mk_evenIntegralCohomologyOf_chernClass_prod (G₁ := G) (E₁ := J.Fiber) (G₂ := Conjugate G)
-      (E₂ := ConjugateBundle J.Fiber))
-  rw [PowerSeries.coeff_mk, h₂ (r + 1) (by omega), map_zero, PowerSeries.coeff_mul,
-    Finset.Nat.sum_antidiagonal_succ,
-    Finset.sum_eq_single (r, 0) (fun p hp hne ↦ ?_) (by simp)] at h₃
-  · simp only [PowerSeries.coeff_mk, chernClass_zero, TopCat.evenIntegralCohomologyOf_one,
-      one_mul, mul_one, ← map_add] at h₃
-    have h₄ := DirectSum.of_injective
-      (β := fun k ↦ (TopCat.of (sphere (0 : E) 1)).integralCohomology (2 * k)) (r + 1)
-      (h₃.symm.trans (map_zero _).symm)
-    -- Both top classes are Euler classes, and they agree since `r + 1` is even.
-    have h₅ := complexEulerClass_conjugateBundle (E := J.Fiber) hG'
-    rw [hj.neg_one_pow, one_smul] at h₅
-    rw [chernClass_finrank_eq_complexEulerClass hG,
-      chernClass_finrank_eq_complexEulerClass hG'] at h₄
-    rw [chernClass_finrank_eq_complexEulerClass hG, two_nsmul]
-    convert h₄ using 3
-    -- `h₅` gives `Conjugate G` Tau Ceti's real structure, and `h₄` Mathlib's `complexToReal`.
-    convert h₅.symm
-    exact Conjugate.complexToReal_eq_instNormedSpaceReal G
-  · -- The middle terms vanish, since so does the cohomology of the sphere in their degrees.
-    rw [Finset.mem_antidiagonal] at hp
-    have hp₁ : p.1 < r := by
-      rcases p with ⟨a, b⟩
-      simp only [ne_eq, Prod.mk.injEq, not_and] at hne hp ⊢
-      omega
-    have := ModuleCat.subsingleton_of_isZero (TopCat.isZero_integralCohomology_sphere_of_ne hE
-      (q := 2 * (p.1 + 1)) (by omega) (by omega))
-    rw [PowerSeries.coeff_mk, Subsingleton.elim (chernClass G J.Fiber (p.1 + 1)) 0, map_zero,
-      zero_mul]
+  have h₃ := (chernClass_prod_sphere (E₁ := J.Fiber) (G₂ := Conjugate G)
+    (E₂ := ConjugateBundle J.Fiber) (hn ▸ hE) hj₀).symm.trans h₂
+  -- Both top classes are Euler classes, and they agree since `r + 1` is even.
+  have h₄ := complexEulerClass_conjugateBundle (E := J.Fiber) hG'
+  rw [hj.neg_one_pow, one_smul] at h₄
+  rw [chernClass_finrank_eq_complexEulerClass hG,
+    chernClass_finrank_eq_complexEulerClass hG'] at h₃
+  rw [chernClass_finrank_eq_complexEulerClass hG, two_nsmul]
+  convert h₃ using 3
+  -- `h₄` gives `Conjugate G` Tau Ceti's real structure, and `h₃` Mathlib's `complexToReal`.
+  convert h₄.symm
+  exact Conjugate.complexToReal_eq_instNormedSpaceReal G
 
 end TauCeti.Bundle.ContinuousComplexStructure
 
