@@ -42,7 +42,9 @@ zero.
 ## Main results
 
 * `SymplecticGeometry.formCalculus_apply`: its component of degree `2 k` is `F⁽ᵏ⁾(f) τ ^ k / k!`,
-  and `SymplecticGeometry.formCalculus_apply_of_odd`: its components of odd degree vanish.
+  and `SymplecticGeometry.formCalculus_apply_of_odd`: its components of odd degree vanish. For
+  `k ≤ finrank ℝ E`, `SymplecticGeometry.formCalculus_apply_of_le` gives the first in every
+  dimension.
 * `SymplecticGeometry.commute_formCalculus`: it commutes with every form of mixed degree.
 * `SymplecticGeometry.formCalculus_apply_val`: the same at a point `x`, and
   `SymplecticGeometry.formCalculus_val_congr`: the components at `x` depend only on `f x` and
@@ -50,7 +52,8 @@ zero.
 * `SymplecticGeometry.formCalculus_exp_add_const`: the exponential takes constants out,
   `exp(f + c + τ) = e ^ c exp(f + τ)`, and `SymplecticGeometry.formCalculus_exp_val_of_eq_add`:
   its pointwise form.
-* `SymplecticGeometry.formCalculus_zero_component`: its component of degree `0` is `F ∘ f`.
+* `SymplecticGeometry.formCalculus_zero_component`: its component of degree `0` is `F ∘ f`, in
+  every dimension, and `SymplecticGeometry.formCalculus_zero_component_val`: the same at a point.
 * `SymplecticGeometry.formCalculus_id`: for `F = id` it is `f + τ`, and
   `SymplecticGeometry.formCalculus_const`: for a constant `F = c` it is `c`.
 * `SymplecticGeometry.formCalculus_eq_sum_pow`: `F(f + τ)` as a polynomial in `τ` with
@@ -135,6 +138,36 @@ theorem formCalculus_apply_of_odd : ∀ k, Odd k → formCalculus F hF f τ k = 
   rintro rfl
   exact Nat.not_odd_iff_even.mpr (even_two_mul m) hk
 
+/-- The component of degree `2 k` of `F(f + τ)` is `F⁽ᵏ⁾(f) τ ^ k / k!`, for `k ≤ finrank ℝ E`,
+in every dimension. -/
+theorem formCalculus_apply_of_le {k : ℕ} (hk : k ≤ finrank ℝ E) :
+    formCalculus F hF f τ (2 * k) =
+      (k ! : ℝ)⁻¹ • SmoothForm.funSMulₗ (formCalculusCoeff F hF f k) (τ.wedgePow k) := by
+  rw [formCalculus_def, DirectSum.sum_apply, Finset.sum_eq_single k]
+  · exact DirectSum.of_eq_same _ _
+  · intro m _ hm
+    exact DirectSum.of_eq_of_ne _ _ _ (by omega)
+  · intro hk'
+    exact absurd (Finset.mem_range.mpr (by omega)) hk'
+
+/-- The component of degree `0` of `F(f + τ)` is the function `F ∘ f`. -/
+@[simp]
+theorem formCalculus_zero_component :
+    formCalculus F hF f τ 0 = SmoothForm.ofFunction ⟨F ∘ f, hF.contMDiff.comp f.contMDiff⟩ := by
+  -- The degree `2 * 0` of `formCalculus_apply_of_le` reduces to `0`.
+  refine (formCalculus_apply_of_le F hF f τ (Nat.zero_le _)).trans ?_
+  rw [Nat.factorial_zero, Nat.cast_one, inv_one, one_smul, SmoothForm.wedgePow_zero,
+    SmoothForm.funSMulₗ_ofFunction, mul_one]
+  exact congrArg _ (ContMDiffMap.ext fun x ↦ by simp)
+
+/-- The component of degree `0` of `F(f + τ)` at a point `x` is the constant `F (f x)`. -/
+theorem formCalculus_zero_component_val (x : M) :
+    (formCalculus F hF f τ 0).val x =
+      ContinuousAlternatingMap.constOfIsEmpty ℝ (TangentSpace I x) (Fin 0) (F (f x)) :=
+  (congrArg (fun ψ : SmoothForm I M ℝ 0 ↦ ψ.val x) (formCalculus_zero_component F hF f τ)).trans
+    ((congrFun (SmoothForm.coe_ofFunction _) x).trans
+      (RoughForm.ofFunction_apply_eq_constOfIsEmpty _ x))
+
 /-- `F(f + τ)` commutes with every smooth form of mixed degree, since all its components have
 even degree. -/
 theorem commute_formCalculus (γ : ⨁ k, SmoothForm I M ℝ k) :
@@ -149,14 +182,14 @@ variable [FiniteDimensional ℝ E]
 theorem formCalculus_apply (k : ℕ) :
     formCalculus F hF f τ (2 * k) =
       (k ! : ℝ)⁻¹ • SmoothForm.funSMulₗ (formCalculusCoeff F hF f k) (τ.wedgePow k) := by
-  rw [formCalculus_def, DirectSum.sum_apply, Finset.sum_eq_single k]
-  · exact DirectSum.of_eq_same _ _
-  · intro m _ hm
-    exact DirectSum.of_eq_of_ne _ _ _ (by omega)
-  · intro hk
-    rw [Finset.mem_range, not_lt] at hk
+  obtain hk | hk := le_or_gt k (finrank ℝ E)
+  · exact formCalculus_apply_of_le F hF f τ hk
+  · -- Beyond `finrank ℝ E` the power `τ ^ k` vanishes, and no term has degree `2 k`.
     rw [SmoothForm.eq_zero_of_finrank_lt (by omega) (τ.wedgePow k), map_zero, smul_zero,
-      map_zero, DirectSum.zero_apply]
+      formCalculus_def, DirectSum.sum_apply]
+    refine Finset.sum_eq_zero fun m hm ↦ DirectSum.of_eq_of_ne _ _ _ ?_
+    rw [Finset.mem_range] at hm
+    omega
 
 /-- The component of degree `2 k` of `F(f + τ)` at a point `x` is
 `(k!)⁻¹ F⁽ᵏ⁾(f x) (τ x) ^ k`. -/
@@ -179,11 +212,10 @@ theorem formCalculus_val_congr {f' : C^∞⟮I, M; ℝ⟯} {τ' : SmoothForm I M
       rw [formCalculus_apply_val, formCalculus_apply_val, hf, hτ]
     · rw [formCalculus_apply_of_odd F hF f τ k hk, formCalculus_apply_of_odd F hF f' τ' k hk]
   · -- In infinite dimension `finrank ℝ E = 0`, so only the term of degree `0` is left.
-    rw [formCalculus_def, formCalculus_def, finrank_of_not_finite hE]
     obtain rfl | hk := eq_or_ne k 0
-    · ext v
-      simp [RoughForm.ofFunction_apply, hf]
-    · simp only [zero_add, Finset.sum_range_one]
+    · rw [formCalculus_zero_component_val, formCalculus_zero_component_val, hf]
+    · rw [formCalculus_def, formCalculus_def, finrank_of_not_finite hE]
+      simp only [zero_add, Finset.sum_range_one]
       rw [DirectSum.of_eq_of_ne _ _ _ (by omega), DirectSum.of_eq_of_ne _ _ _ (by omega)]
 
 omit [IsManifold I 1 M] [FiniteDimensional ℝ E] in
@@ -218,16 +250,6 @@ theorem formCalculus_exp_val_of_eq_add {f' : C^∞⟮I, M; ℝ⟯} {τ' : Smooth
   rw [formCalculus_val_congr Real.exp Real.contDiff_exp f τ (f' := f' + ContMDiffMap.const c)
     (by simp [hf]) hτ, formCalculus_exp_add_const, DirectSum.smul_apply,
     SmoothForm.smul_toRoughForm, Pi.smul_apply]
-
-/-- The component of degree `0` of `F(f + τ)` is the function `F ∘ f`. -/
-@[simp]
-theorem formCalculus_zero_component :
-    formCalculus F hF f τ 0 = SmoothForm.ofFunction ⟨F ∘ f, hF.contMDiff.comp f.contMDiff⟩ := by
-  -- The degree `2 * 0` of `formCalculus_apply` reduces to `0`.
-  refine (formCalculus_apply F hF f τ 0).trans ?_
-  rw [Nat.factorial_zero, Nat.cast_one, inv_one, one_smul, SmoothForm.wedgePow_zero,
-    SmoothForm.funSMulₗ_ofFunction, mul_one]
-  exact congrArg _ (ContMDiffMap.ext fun x ↦ by simp)
 
 /-- The functional calculus of the identity is `f + τ`. -/
 @[simp]
