@@ -40,7 +40,7 @@ of a principal bundle, `A` is usually a connection form.
   `ξ ∈ 𝔤`, the curvature of `α ξ` is `(d α) ξ`.
 * `SymplecticGeometry.IsConnectionForm.mpullback_op_smul_connectionCurvature`: the curvature of a
   connection form is equivariant, `R_g^* F_A = Ad(g⁻¹) ∘ F_A`.
-* `SymplecticGeometry.IsConnectionForm.connectionCurvature_apply_eq_zero_of_vertical`,
+* `SymplecticGeometry.IsConnectionForm.isSemibasic_connectionCurvature`,
   `SymplecticGeometry.IsConnectionForm.isTensorialForm_connectionCurvature`: the curvature of a
   connection form vanishes as soon as one of its arguments is vertical, so it is a tensorial form
   of type `Ad`. On a fundamental vector field `ξ^♯`, Cartan's formula and the Lie derivative
@@ -197,32 +197,35 @@ theorem IsConnectionForm.connectionCurvature_apply_rightFundamentalVectorField
     hA.mpullback_op_smul, mvfderiv_const, zero_apply, add_zero] at h
   rw [connectionCurvature_apply, hA.apply_rightFundamentalVectorField, ← h, neg_add_cancel]
 
-/-- **The curvature of a connection form is horizontal**: it vanishes as soon as one of its
-arguments is vertical, that is, in the kernel of the derivative of the projection. -/
-theorem IsConnectionForm.connectionCurvature_apply_eq_zero_of_vertical
-    {n : ℕ∞ω} (hA : IsConnectionForm A) (x : ManifoldTotalSpace G P)
-    (v : Fin 2 → TangentSpace (IB.prod IG) x) (j : Fin 2)
-    (hv : mfderiv (IB.prod IG) IB (ManifoldTotalSpace.projContMDiffMap n G P IB IG) x (v j) = 0) :
-    (connectionCurvature A).val x v = 0 := by
-  rw [ManifoldTotalSpace.coe_projContMDiffMap] at hv
-  have hv' : v j ∈ LinearMap.range (PrincipalBundle.rightFundamentalLinearMap IB IG x) := by
-    rw [PrincipalBundle.range_rightFundamentalLinearMap_eq_ker_mfderiv_proj]
-    exact hv
-  obtain ⟨ξ, hξ⟩ := hv'
-  rw [PrincipalBundle.rightFundamentalLinearMap_apply] at hξ
-  have hv01 : v = ![v 0, v 1] := (FinVec.etaExpand_eq _).symm
-  obtain rfl | rfl : j = 0 ∨ j = 1 := by fin_cases j <;> simp
-  · rw [hv01, ← hξ]
-    exact hA.connectionCurvature_apply_rightFundamentalVectorField ξ x (v 1)
-  · rw [hv01, ContinuousAlternatingMap.apply_vecCons_swap, ← hξ,
-      hA.connectionCurvature_apply_rightFundamentalVectorField, neg_zero]
+/-- **The curvature of a connection form is horizontal**: it is semibasic for the projection,
+that is, it vanishes as soon as one of its arguments is vertical. -/
+theorem IsConnectionForm.isSemibasic_connectionCurvature {n : ℕ∞ω} (hA : IsConnectionForm A) :
+    RoughForm.IsSemibasic (F := GroupLieAlgebra IG G) IB
+      (ManifoldTotalSpace.projContMDiffMap n G P IB IG) (connectionCurvature A).val := by
+  -- Stated with the instances of `SmoothForm`, which `RoughForm.isSemibasic_iff` unfolds.
+  have h (x : ManifoldTotalSpace G P) (v : Fin 2 → TangentSpace (IB.prod IG) x) (j : Fin 2)
+      (hv : mfderiv (IB.prod IG) IB (ManifoldTotalSpace.projContMDiffMap n G P IB IG) x (v j) =
+        0) : (connectionCurvature A).val x v = 0 := by
+    rw [ManifoldTotalSpace.coe_projContMDiffMap] at hv
+    have hv' : v j ∈ LinearMap.range (PrincipalBundle.rightFundamentalLinearMap IB IG x) := by
+      rw [PrincipalBundle.range_rightFundamentalLinearMap_eq_ker_mfderiv_proj]
+      exact hv
+    obtain ⟨ξ, hξ⟩ := hv'
+    rw [PrincipalBundle.rightFundamentalLinearMap_apply] at hξ
+    have hv01 : v = ![v 0, v 1] := (FinVec.etaExpand_eq _).symm
+    obtain rfl | rfl : j = 0 ∨ j = 1 := by fin_cases j <;> simp
+    · rw [hv01, ← hξ]
+      exact hA.connectionCurvature_apply_rightFundamentalVectorField ξ x (v 1)
+    · rw [hv01, ContinuousAlternatingMap.apply_vecCons_swap, ← hξ,
+        hA.connectionCurvature_apply_rightFundamentalVectorField, neg_zero]
+  exact RoughForm.isSemibasic_iff.mpr h
 
 /-- **The curvature of a connection form is tensorial**: it is an equivariant two-form of type
 `Ad` that vanishes as soon as one of its arguments is vertical. -/
 theorem IsConnectionForm.isTensorialForm_connectionCurvature (hA : IsConnectionForm A) :
     IsTensorialForm (connectionCurvature A) where
   mpullback_op_smul := hA.mpullback_op_smul_connectionCurvature
-  apply_eq_zero_of_vertical := hA.connectionCurvature_apply_eq_zero_of_vertical
+  isSemibasic := hA.isSemibasic_connectionCurvature
 
 end Tensorial
 
