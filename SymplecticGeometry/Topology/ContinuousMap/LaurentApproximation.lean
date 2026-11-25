@@ -29,17 +29,20 @@ general `V`, a map is a finite sum of scalar maps times the vectors of a basis.
 * `ContinuousMap.laurentMonomial k`: the linear map `g ↦ ((x, u) ↦ u ^ k • g x)` from `C(X, V)` to
   `C(X × Circle, V)`.
 * `ContinuousMap.laurentSubmodule X V`: the span of the Laurent monomials.
+* `ContinuousMap.laurentStarSubalgebra X`: the same span for `V = ℂ`, as a star subalgebra.
 
 ## Main results
 
 * `ContinuousMap.mem_laurentSubmodule_iff`: the elements of `laurentSubmodule X V` are the sums
   `∑ i ∈ Finset.Icc (-N) N, laurentMonomial i (c i)`.
-* `ContinuousMap.topologicalClosure_laurentSubmodule`: `laurentSubmodule X V` is dense.
+* `ContinuousMap.laurentStarSubalgebra_topologicalClosure_eq_top`: `laurentStarSubalgebra X` is
+  dense.
+* `ContinuousMap.laurentSubmodule_topologicalClosure_eq_top`: `laurentSubmodule X V` is dense.
 * `ContinuousMap.exists_norm_sub_laurent_lt`: the same density, as a uniform estimate.
 
 ## References
 
-* [A. Hatcher, *Vector Bundles and K-Theory*][Hatcher2017VBKT], §2.1
+* [A. Hatcher, *Vector Bundles and K-Theory*][Hatcher2017], §2.1
 -/
 
 public section
@@ -66,6 +69,7 @@ theorem laurentMonomial_apply (k : ℤ) (g : C(X, V)) (w : X × Circle) :
   (rfl)
 
 /-- The product of two scalar Laurent monomials is a Laurent monomial. -/
+@[simp]
 theorem laurentMonomial_mul_laurentMonomial (i j : ℤ) (g h : C(X, ℂ)) :
     laurentMonomial i g * laurentMonomial j h = laurentMonomial (i + j) (g * h) := by
   ext w
@@ -74,6 +78,7 @@ theorem laurentMonomial_mul_laurentMonomial (i j : ℤ) (g h : C(X, ℂ)) :
 
 /-- The conjugate of a scalar Laurent monomial is the Laurent monomial of the opposite degree with
 the conjugate coefficient. -/
+@[simp]
 theorem star_laurentMonomial (k : ℤ) (g : C(X, ℂ)) :
     star (laurentMonomial k g) = laurentMonomial (-k) (star g) := by
   ext w
@@ -151,32 +156,31 @@ theorem star_mem_laurentSubmodule {f : C(X × Circle, ℂ)} (hf : f ∈ laurentS
   | add _ _ _ _ h₁ h₂ => simpa using Submodule.add_mem _ h₁ h₂
   | smul a _ _ h => simpa using Submodule.smul_mem _ (star a) h
 
+variable (X) in
 /-- The span of the scalar Laurent monomials, as a star subalgebra of `C(X × Circle, ℂ)`. -/
-private noncomputable def laurentStarSubalgebra : StarSubalgebra ℂ C(X × Circle, ℂ) where
+noncomputable def laurentStarSubalgebra : StarSubalgebra ℂ C(X × Circle, ℂ) where
   __ := (laurentSubmodule X ℂ).toSubalgebra one_mem_laurentSubmodule
     fun _ _ => mul_mem_laurentSubmodule
   star_mem' := star_mem_laurentSubmodule
 
-private theorem mem_laurentStarSubalgebra {f : C(X × Circle, ℂ)} :
-    f ∈ laurentStarSubalgebra (X := X) ↔ f ∈ laurentSubmodule X ℂ :=
+/-- As a submodule, `laurentStarSubalgebra X` is `laurentSubmodule X ℂ`. -/
+@[simp]
+theorem toSubmodule_laurentStarSubalgebra :
+    Subalgebra.toSubmodule (laurentStarSubalgebra X).toSubalgebra = laurentSubmodule X ℂ :=
+  Submodule.toSubalgebra_toSubmodule _ _ _
+
+@[simp]
+theorem mem_laurentStarSubalgebra {f : C(X × Circle, ℂ)} :
+    f ∈ laurentStarSubalgebra X ↔ f ∈ laurentSubmodule X ℂ :=
   Iff.rfl
 
 variable [CompactSpace X] [T2Space X]
 
-/-- The scalar Laurent polynomials with continuous coefficients are dense in
-`C(X × Circle, ℂ)`. -/
-private theorem topologicalClosure_laurentSubmodule_complex :
-    (laurentSubmodule X ℂ).topologicalClosure = ⊤ := by
-  have hA := ContinuousMap.starSubalgebra_topologicalClosure_eq_top_of_separatesPoints
-    (laurentStarSubalgebra (X := X)) ?_
-  · rw [eq_top_iff]
-    intro f _
-    rw [← SetLike.mem_coe, Submodule.topologicalClosure_coe]
-    have hf : f ∈ (laurentStarSubalgebra (X := X)).topologicalClosure := by
-      rw [hA]
-      exact StarSubalgebra.mem_top
-    rw [← SetLike.mem_coe, StarSubalgebra.topologicalClosure_coe] at hf
-    exact closure_mono (fun g hg => mem_laurentStarSubalgebra.1 hg) hf
+/-- For `X` compact Hausdorff, the scalar Laurent polynomials with continuous coefficients form a
+dense star subalgebra of `C(X × Circle, ℂ)`. -/
+theorem laurentStarSubalgebra_topologicalClosure_eq_top :
+    (laurentStarSubalgebra X).topologicalClosure = ⊤ := by
+  refine starSubalgebra_topologicalClosure_eq_top_of_separatesPoints _ ?_
   rintro w w' hw
   by_cases h : w.1 = w'.1
   · refine ⟨_, ⟨laurentMonomial 1 1,
@@ -190,8 +194,12 @@ private theorem topologicalClosure_laurentSubmodule_complex :
 
 /-- For `X` compact Hausdorff and `V` finite-dimensional, the Laurent polynomials in the circle
 variable with continuous coefficients on `X` are dense in `C(X × Circle, V)`. -/
-theorem topologicalClosure_laurentSubmodule [FiniteDimensional ℂ V] :
+theorem laurentSubmodule_topologicalClosure_eq_top [FiniteDimensional ℂ V] :
     (laurentSubmodule X V).topologicalClosure = ⊤ := by
+  have hC : (laurentSubmodule X ℂ).topologicalClosure = ⊤ := by
+    rw [← toSubmodule_laurentStarSubalgebra]
+    exact congr_arg (Subalgebra.toSubmodule <| StarSubalgebra.toSubalgebra ·)
+      (laurentStarSubalgebra_topologicalClosure_eq_top (X := X))
   rw [eq_top_iff]
   intro F _
   let b := Module.finBasis ℂ V
@@ -202,32 +210,20 @@ theorem topologicalClosure_laurentSubmodule [FiniteDimensional ℂ V] :
     let T := (ContinuousLinearMap.smulRight (1 : ℂ →L[ℂ] ℂ) v).compLeftContinuous ℂ (X × Circle)
     have hmaps : Set.MapsTo T (laurentSubmodule X ℂ) (laurentSubmodule X V) := by
       intro f hf
-      rw [SetLike.mem_coe, laurentSubmodule_def] at hf
-      induction hf using Submodule.span_induction with
-      | mem _ h =>
-        obtain ⟨⟨k, g⟩, rfl⟩ := h
-        rw [SetLike.mem_coe]
-        convert laurentMonomial_mem_laurentSubmodule k
-          (⟨fun x => g x • v, by fun_prop⟩ : C(X, V)) using 1
-        ext w
-        simp [T, smul_smul]
-      | zero => simp
-      | add _ _ _ _ h₁ h₂ => simpa using Submodule.add_mem _ h₁ h₂
-      | smul a _ _ h => simpa using Submodule.smul_mem _ a h
+      refine (Submodule.map_span_le _ _ _).2 ?_ ⟨f, hf, rfl⟩
+      rintro _ ⟨⟨k, g⟩, rfl⟩
+      convert laurentMonomial_mem_laurentSubmodule k
+        (⟨fun x => g x • v, by fun_prop⟩ : C(X, V)) using 1
+      ext w
+      simp [T, smul_smul]
     rw [← SetLike.mem_coe, Submodule.topologicalClosure_coe]
     refine map_mem_closure T.continuous ?_ hmaps
-    rw [← Submodule.topologicalClosure_coe, topologicalClosure_laurentSubmodule_complex,
-      Submodule.top_coe]
+    rw [← Submodule.topologicalClosure_coe, hC, Submodule.top_coe]
     exact Set.mem_univ f
   have hF : F = ∑ j, (ContinuousLinearMap.smulRight (1 : ℂ →L[ℂ] ℂ) (b j)).compLeftContinuous
-      ℂ (X × Circle) ⟨fun w => b.repr (F w) j,
-        ((b.coord j).continuous_of_finiteDimensional).comp F.continuous⟩ := by
+      ℂ (X × Circle) ((b.coord j).toContinuousLinearMap.compLeftContinuous ℂ (X × Circle) F) := by
     ext w
-    simp only [ContinuousLinearMap.compLeftContinuous_apply, ContinuousLinearMap.coe_smulRight,
-      ContinuousLinearMap.toLinearMap_one, ZeroHom.toFun_eq_coe, AddMonoidHom.toZeroHom_coe,
-      AddMonoidHom.compLeftContinuous_apply, LinearMap.toAddMonoidHom_coe, LinearMap.coe_smulRight,
-      one_apply_eq_self, coe_sum, coe_comp, coe_mk, Finset.sum_apply, Function.comp_apply]
-    exact (b.sum_repr (F w)).symm
+    simp [b.sum_repr]
   rw [hF]
   exact Submodule.sum_mem _ fun j _ => key (b j) _
 
@@ -239,7 +235,7 @@ theorem exists_norm_sub_laurent_lt [FiniteDimensional ℂ V] (F : C(X × Circle,
     (hε : 0 < ε) : ∃ (N : ℕ) (c : ℤ → C(X, V)), ∀ w : X × Circle,
       ‖F w - ∑ i ∈ Icc (-(N : ℤ)) N, (w.2 : ℂ) ^ i • c i w.1‖ < ε := by
   have hF : F ∈ closure (laurentSubmodule X V : Set C(X × Circle, V)) := by
-    rw [← Submodule.topologicalClosure_coe, topologicalClosure_laurentSubmodule]
+    rw [← Submodule.topologicalClosure_coe, laurentSubmodule_topologicalClosure_eq_top]
     exact Submodule.mem_top
   obtain ⟨G, hG, hFG⟩ := Metric.mem_closure_iff.1 hF ε hε
   obtain ⟨N, c, rfl⟩ := mem_laurentSubmodule_iff.1 hG
