@@ -512,7 +512,7 @@ theorem isSmoothEmbedding_blowupModel_val {r : ℕ∞ω} (hr : 1 ≤ r) :
       r (Subtype.val : BlowupModel n → ℙ ℂ (Fin (n + 1) → ℂ) × (Fin (n + 1) → ℂ)) := by
   refine ⟨TauCeti.isImmersion_iff_forall_isImmersionAt.2 fun p => ?_, IsEmbedding.subtypeVal⟩
   obtain ⟨i, hi⟩ := exists_mem_affineOpen (pr p)
-  have hsrc : p ∈ (blowupModelChart i).source := hi
+  have hsrc : p ∈ (blowupModelChart i).source := by rw [blowupModelChart_source]; exact hi
   -- Near `p`, the chart `i` read on `ℙ ℂ E × E`, followed by its inverse, is a `C^r` left inverse
   -- of the inclusion.
   let φ : ℙ ℂ (Fin (n + 1) → ℂ) × (Fin (n + 1) → ℂ) → Fin (n + 1) → ℂ :=
@@ -531,9 +531,12 @@ theorem isSmoothEmbedding_blowupModel_val {r : ℕ∞ω} (hr : 1 ≤ r) :
       p.val :=
     hL.contMDiff.contMDiffAt.comp _
       (hpair.contMDiffAt (((isOpen_affineOpen i).preimage continuous_fst).mem_nhds hi))
+  have hφval : φ ∘ Subtype.val = blowupModelChart i := by
+    funext q
+    rw [comp_apply, blowupModelChart_apply, pr_def, blowdown_def]
   have hleft : (blowupModelChart i).symm ∘ φ ∘ Subtype.val =ᶠ[𝓝 p] id := by
-    filter_upwards [(blowupModelChart i).open_source.mem_nhds hsrc] with q hq
-    exact (blowupModelChart i).left_inv hq
+    rw [hφval]
+    exact (blowupModelChart i).eventually_left_inverse hsrc
   exact (contMDiff_blowupModel_val r).contMDiffOn.isImmersionAt_of_comp_eventuallyEq_id
     isOpen_univ (Set.mem_univ p) hr
     (((contMDiff_blowupModelChart_symm i r).contMDiffAt.comp _ hφ).mdifferentiableAt
