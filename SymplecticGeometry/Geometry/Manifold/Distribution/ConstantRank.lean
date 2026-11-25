@@ -31,6 +31,10 @@ Tau Ceti defines the leaves of a foliation, each leaf lies in a fibre of `f`.
   `TauCeti.Foliation.ofConstantRank_distribution`.
 * `TauCeti.Foliation.SameLeaf.apply_eq_of_ofConstantRank`: a real map of constant rank is
   constant on each leaf of its kernel foliation.
+* `TauCeti.Foliation.eventually_sameLeaf_ofConstantRank`: conversely, the points of the fibre
+  through `x` near `x` lie on the leaf of `x`.
+* `TauCeti.Foliation.sameLeaf_ofConstantRank_of_isPreconnected_preimage_singleton`: two points of
+  a preconnected fibre lie on one leaf.
 * `Manifold.IsSubmersion.mfderivRank_eq`: a submersion has constant rank `dim F`, so the fibres
   of a submersion give an example of the construction.
 
@@ -47,6 +51,15 @@ of Tau Ceti's `Manifold.IsSubmersionAtOfComplement.isDistributionFrameOn_ker_mfd
 the proof of `ContMDiff.isContMDiffDistribution_ker_mfderiv` adapts, with the rank theorem's
 coordinates in place of the normal form of a submersion. Involutivity is Tau Ceti's
 `ContMDiff.isInvolutiveDistribution_ker_mfderiv`.
+
+For the converse, Tau Ceti's `ContMDiffOn.exists_openPartialHomeomorph_apply_eq_iff_mem_ker`
+gives a chart `φ` with `φ x = 0` that maps the points of the fibre through `x` in its source into
+the kernel of the derivative at `x`, and only those. For `y` in that fibre with `φ y` in a ball
+inside the target of `φ`, the preimage under `φ` of the segment `t ↦ t • φ y` is a curve along
+which `f` is constant, so its velocity lies in the kernel
+(`TauCeti.Foliation.sameLeaf_ofConstantRank_of_eqOn`), and Tau Ceti's
+`TauCeti.Foliation.sameLeaf_of_contMDiffOn_of_tangent` puts `x` and `y` on one leaf. Mathlib's
+`IsPreconnected.induction₂` passes from these neighbourhoods to a whole preconnected fibre.
 
 ## References
 
@@ -203,6 +216,71 @@ theorem SameLeaf.apply_eq_of_ofConstantRank [FiniteDimensional ℝ E] [CompleteS
   have : IsManifold J 1 N := .of_le (n := n + 1) le_add_self
   h.apply_eq_of_le_ker (hf.mdifferentiable (one_pos.trans_le le_add_self).ne')
     fun x ↦ (ofConstantRank_distribution hf hr hn x).le
+
+section Fibres
+
+variable [FiniteDimensional ℝ E] [CompleteSpace F] [I.Boundaryless] [J.Boundaryless]
+  [IsManifold J (n + 1) N] {r : ℕ}
+
+/-- A curve, `C¹` on `[a, b]`, along which a map `f` of constant rank is constant stays in one
+leaf of the kernel foliation of `f`. -/
+theorem sameLeaf_ofConstantRank_of_eqOn (hf : ContMDiff I J (n + 1) f)
+    (hr : ∀ x, mfderivRank I J f x = r) (hn : 1 ≤ n) {γ : ℝ → M} {a b s t : ℝ} {y : N}
+    (hγ : ContMDiffOn 𝓘(ℝ, ℝ) I 1 γ (Icc a b)) (hfγ : EqOn (f ∘ γ) (fun _ ↦ y) (Icc a b))
+    (hs : s ∈ Icc a b) (ht : t ∈ Icc a b) :
+    (ofConstantRank hf hr hn).SameLeaf (γ s) (γ t) := by
+  refine sameLeaf_of_contMDiffOn_of_tangent hγ (fun u hu ↦ ?_) hs ht
+  rw [ofConstantRank_distribution, LinearMap.mem_ker, ContinuousLinearMap.coe_coe]
+  by_cases hU : UniqueDiffWithinAt ℝ (Icc a b) u
+  · have : IsManifold J 1 N := .of_le (n := n + 1) le_add_self
+    rw [← curveVelocityWithin_map ((hf.mdifferentiable (one_pos.trans_le le_add_self).ne') _) hU
+      ((hγ u hu).mdifferentiableWithinAt one_ne_zero), curveVelocityWithin_apply,
+      mfderivWithin_congr hfγ (hfγ hu), mfderivWithin_const, ContinuousLinearMap.comp_zero]
+    exact zero_apply _
+  · rw [curveVelocityWithin_eq_zero_of_not_uniqueDiffWithinAt hU, map_zero]
+
+/-- **Leaves are open in the fibres.** For a map `f` of constant rank, every point `y` of the
+fibre of `f` through `x` that is close enough to `x` lies on the leaf of `x` of the kernel
+foliation of `f`. -/
+theorem eventually_sameLeaf_ofConstantRank (hf : ContMDiff I J (n + 1) f)
+    (hr : ∀ x, mfderivRank I J f x = r) (hn : 1 ≤ n) (x : M) :
+    ∀ᶠ y in 𝓝[f ⁻¹' {f x}] x, (ofConstantRank hf hr hn).SameLeaf x y := by
+  have h1 : (1 : ℕ∞ω) ≤ n + 1 := le_add_self
+  obtain ⟨φ, hxφ, -, hφx, -, hφi, hker⟩ :=
+    hf.contMDiffOn.exists_openPartialHomeomorph_apply_eq_iff_mem_ker isOpen_univ (mem_univ x) h1
+      fun y _ ↦ ((hr y).trans (hr x).symm).le
+  obtain ⟨ε, hε, hball⟩ := Metric.isOpen_iff.1 φ.open_target (φ x) (φ.map_source hxφ)
+  have hV : φ.source ∩ φ ⁻¹' Metric.ball (φ x) ε ∈ 𝓝 x :=
+    Filter.inter_mem (φ.open_source.mem_nhds hxφ)
+      ((φ.continuousAt hxφ).preimage_mem_nhds (Metric.ball_mem_nhds _ hε))
+  filter_upwards [mem_nhdsWithin_of_mem_nhds hV, self_mem_nhdsWithin] with y ⟨hyφ, hyb⟩ hfy
+  -- The preimage under `φ` of the segment from `φ x = 0` to `φ y` is a curve in the fibre.
+  let ℓ : ℝ → E := fun t ↦ t • φ y
+  have hℓ : MapsTo ℓ (Icc 0 1) φ.target := fun t ht ↦ hball <| by
+    simpa [ℓ, hφx] using
+      (convex_ball _ _).add_smul_sub_mem (Metric.mem_ball_self hε) hyb ht
+  have hγ : ContMDiffOn 𝓘(ℝ, ℝ) I 1 (φ.symm ∘ ℓ) (Icc 0 1) :=
+    (hφi.comp (contDiff_id.smul contDiff_const).contMDiff.contMDiffOn hℓ).of_le h1
+  have hfγ : EqOn (f ∘ φ.symm ∘ ℓ) (fun _ ↦ f x) (Icc 0 1) := fun t ht ↦ by
+    refine (hker _ (φ.map_target (hℓ ht))).2 ?_
+    rw [φ.right_inv (hℓ ht), map_smul]
+    exact Submodule.smul_mem _ t ((hker y hyφ).1 hfy)
+  simpa [ℓ, ← hφx, φ.left_inv hxφ, φ.left_inv hyφ] using
+    sameLeaf_ofConstantRank_of_eqOn hf hr hn hγ hfγ (left_mem_Icc.2 zero_le_one)
+      (right_mem_Icc.2 zero_le_one)
+
+/-- In a preconnected fibre of a map `f` of constant rank, any two points lie on one leaf of the
+kernel foliation of `f`. -/
+theorem sameLeaf_ofConstantRank_of_isPreconnected_preimage_singleton
+    (hf : ContMDiff I J (n + 1) f) (hr : ∀ x, mfderivRank I J f x = r) (hn : 1 ≤ n) {b : N}
+    (hb : IsPreconnected (f ⁻¹' {b})) (hx : f x = b) (hy : f y = b) :
+    (ofConstantRank hf hr hn).SameLeaf x y :=
+  hb.induction₂ (ofConstantRank hf hr hn).SameLeaf (fun z hz ↦ by
+      rw [← mem_singleton_iff.1 (mem_preimage.1 hz)]
+      exact eventually_sameLeaf_ofConstantRank hf hr hn z)
+    (fun _ _ _ _ _ _ ↦ SameLeaf.trans) (fun _ _ _ _ ↦ SameLeaf.symm) hx hy
+
+end Fibres
 
 end TauCeti.Foliation
 
