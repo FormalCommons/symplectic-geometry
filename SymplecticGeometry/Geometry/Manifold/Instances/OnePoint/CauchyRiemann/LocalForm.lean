@@ -12,9 +12,40 @@ public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Smooth
 public import TauCeti.Geometry.Manifold.VectorField.ModelChart
 
 /-!
-# Local form of `D_J` on `𝒪(1)` in an isothermal chart
+# The local equation of `D_J` on `𝒪(1)` in an isothermal chart
 
-placeholder
+Let `J` be a smooth almost complex structure on the sphere and `D_J` the real Cauchy–Riemann
+operator `SymplecticGeometry.twistOneDelBar J` on `𝒪(1)`. This file reads `D_J s = 0` in a chart
+`ψ : OnePoint ℂ → ℂ` whose derivative carries `J` to multiplication by `i` (such charts come from
+`TauCeti.SmoothAlmostComplexStructure.exists_isothermal_partialDiffeomorph`), with the section
+written in the frame of the trivialization `(twistCore 1).localTriv y` of `𝒪(1)` at any point
+`y` of the sphere. The result is a planar equation `∂v/∂w̄ = a v` with `a` smooth, which is the
+form that Tau Ceti's
+`TauCeti.exists_contDiff_analyticAt_exp_neg_mul_of_conjWirtingerDeriv_apply_one_eq_mul` takes.
+
+The argument has two steps. In the frame of a chart, the local frame formula
+`TauCeti.IsRealCauchyRiemannOperator.eq_frameCauchyRiemannOperator_add_sum` and the complex
+linearity of `D_J` write `D_J s` as `∂bar_J` of the coordinate of `s` plus the coordinate times
+`D_J` of the first frame section. Then, along an isothermal chart, `∂bar_J` evaluated on the
+preimage of `1` is the conjugate Wirtinger derivative `∂/∂w̄` of the function read in the chart.
+
+## Main results
+
+* `TauCeti.SmoothAlmostComplexStructure.dbarFunction_apply_mfderiv_symm_eq_conjWirtingerDeriv`:
+  along a partial diffeomorphism `ψ` to `ℂ` whose derivative carries `J` to `i`, `∂bar_J f` on
+  `dψ⁻¹ 1` is `conjWirtingerDeriv (f ∘ ψ.symm) · 1`.
+* `SymplecticGeometry.twistOneDelBar_eq_symmL_comp_dbarFunction_add_smul`: `D_J` in the frame of
+  the chart at `y`.
+* `SymplecticGeometry.contDiffOn_twistOneDelBar_localFrame_apply_mfderiv_symm`: the zeroth-order
+  coefficient read through `ψ` is smooth.
+* `SymplecticGeometry.exists_conjWirtingerDeriv_apply_one_eq_mul_of_mem_twistOneKernel`: the
+  coordinate of a smooth element of the kernel of `D_J`, read through `ψ`, satisfies
+  `∂v/∂w̄ = a v` near `ψ x`, with `a` smooth.
+
+## References
+
+* [D. McDuff, D. Salamon, *J-holomorphic Curves and Symplectic Topology*][McDuffSalamon2012],
+  Appendix C.1.
 -/
 
 public section
@@ -54,11 +85,13 @@ theorem dbarFunction_apply_mfderiv_symm_eq_conjWirtingerDeriv
     rw [hu, mul_one, mvfderiv_apply_eq_mfderiv_apply] at h
     rw [smul_eq_mul, mul_one, ← h]
     have h2 := ψ.mfderiv_symm_apply_mfderiv_apply hn hx (J (ψ.symm w) u)
-    erw [ψ.right_inv hw] at h2
-    exact h2
+    have hr : ψ (ψ.symm w) = w := ψ.right_inv hw
+    rwa [hr] at h2
   have hd (v : ℂ) : fderiv ℝ (f ∘ ψ.symm) w v =
       mvfderiv I f (ψ.symm w) (mfderiv 𝓘(ℝ, ℂ) I ψ.symm w v) := by
     rw [← mvfderiv_eq_fderiv_apply (𝕜 := ℝ) (f ∘ ψ.symm) w v, mvfderiv_comp w hf hs]
+    -- `ContinuousLinearMap.comp_apply` cannot rewrite here: `v` lives in `ℂ` and not in its type
+    -- synonym `TangentSpace 𝓘(ℝ, ℂ) w`.
     rfl
   rw [conjWirtingerDeriv_apply, hd, hd, hJ, dbarFunction_apply, ← Complex.coe_smul]
   norm_num
@@ -70,6 +103,10 @@ namespace SymplecticGeometry
 
 variable {J : SmoothAlmostComplexStructure 𝓘(ℝ, ℂ) (OnePoint ℂ)}
 
+/-- **`D_J` in the frame of a chart.** Let `e = (twistCore 1).localTriv y` be the trivialization
+of `𝒪(1)` at `y`, `φ p = (e ⟨p, s p⟩).2` the coordinate of a section `s` in it, and `e₀` the frame
+section reading as `1`. At a point `x` of the chart at `y` where `s` is differentiable,
+`D_J s x = ∂bar_J φ x + φ x • D_J e₀ x`, the first term carried to the fibre by `e`. -/
 theorem twistOneDelBar_eq_symmL_comp_dbarFunction_add_smul {y x : OnePoint ℂ}
     (hx : x ∈ (chartAt ℂ y).source) {s : OnePoint ℂ → ℂ}
     (hs : MDifferentiableAt 𝓘(ℝ, ℂ) (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ))
@@ -110,6 +147,10 @@ theorem twistOneDelBar_eq_symmL_comp_dbarFunction_add_smul {y x : OnePoint ℂ}
     conv_rhs => rw [← Complex.re_add_im (twistTransition 1 x y x * s x)]
     rw [add_smul, mul_smul, Complex.coe_smul, Complex.coe_smul]
 
+/-- **The zeroth-order term through a chart is smooth.** Let `e = (twistCore 1).localTriv y` and
+let `e₀` be its frame section reading as `1`. For a smooth partial diffeomorphism `ψ` from the
+sphere to `ℂ`, the coordinate in `e` of `D_J e₀` at `ψ.symm w`, evaluated on `dψ⁻¹ 1`, is a smooth
+function of `w` on the points of the target of `ψ` that `ψ.symm` sends into the chart at `y`. -/
 theorem contDiffOn_twistOneDelBar_localFrame_apply_mfderiv_symm (J) (y : OnePoint ℂ)
     (ψ : PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (OnePoint ℂ) ℂ ∞) :
     ContDiffOn ℝ ∞ (fun w ↦ ((twistCore (𝕜 := ℂ) 1).localTriv y
@@ -141,6 +182,13 @@ theorem contDiffOn_twistOneDelBar_localFrame_apply_mfderiv_symm (J) (y : OnePoin
   rw [← contMDiffOn_iff_contDiffOn]
   exact ((e.contMDiffOn_iff fun w hw ↦ e.mem_source.2 (hsource ▸ hw.2)).1 h).2
 
+/-- **The similarity equation of a smooth kernel element.** Let `ψ` be a smooth partial
+diffeomorphism from the sphere to `ℂ` whose derivative carries `J` to multiplication by `i` on
+its source, let `x` lie in the source of `ψ` and in the chart at `y`, and let `s` be a smooth
+section of `𝒪(1)` with `D_J s = 0`. Then the coordinate
+`v w = ((twistCore 1).localTriv y ⟨ψ.symm w, s (ψ.symm w)⟩).2` of `s` read through `ψ` is
+real differentiable on an open set `U ∋ ψ x` and satisfies `∂v/∂w̄ = a v` there, for a function
+`a` smooth on `U`. -/
 theorem exists_conjWirtingerDeriv_apply_one_eq_mul_of_mem_twistOneKernel
     {ψ : PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (OnePoint ℂ) ℂ ∞}
     (hψ : ∀ p ∈ ψ.source, ∀ v : TangentSpace 𝓘(ℝ, ℂ) p,
