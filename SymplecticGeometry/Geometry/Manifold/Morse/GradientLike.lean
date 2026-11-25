@@ -7,11 +7,14 @@ module
 
 public import TauCeti.Geometry.Manifold.Riemannian.Gradient.Basic
 public import Mathlib.Geometry.Manifold.IntegralCurve.Basic
+public import Mathlib.Geometry.Manifold.VectorField.Pullback
 import Mathlib.Analysis.Calculus.ContDiff.Deriv
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import TauCeti.Topology.LocallyFinite.Basic
 import TauCeti.Geometry.Manifold.MFDeriv.Curve
 import TauCeti.Geometry.Manifold.Riemannian.Gradient.ChainRule
+import TauCeti.Geometry.Manifold.Riemannian.Gradient.Isometry
+import TauCeti.Geometry.Manifold.Riemannian.Isometry.Pullback
 import TauCeti.Geometry.Manifold.VectorBundle.Riemannian.Basic
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.Topology.VectorBundle.Riemannian.Basic
@@ -43,6 +46,9 @@ structures are defined. It makes `f` increase strictly along `X` away from the c
   that meets no critical point.
 * `TauCeti.IsGradientLike.smul`: `a • X` is gradient-like for a continuous positive `a`.
 * `TauCeti.IsGradientLike.comp`: `X` is gradient-like for `h ∘ f` when `h` is `C¹` with `h' > 0`.
+* `TauCeti.IsGradientLike.mpullback`: the pull-back `VectorField.mpullback Φ X` of a gradient-like
+  field along a smooth map `Φ` with invertible differential, such as a diffeomorphism, is
+  gradient-like for `f ∘ Φ`.
 * `TauCeti.isGradientLike_mgradient`: the gradient of `f` for any smooth metric is gradient-like
   for `f`, with `δ = 1 / 2`.
 * `TauCeti.isGradientLike_of_forall_exists_nhds`: on a σ-compact Hausdorff manifold the condition
@@ -57,6 +63,12 @@ only Tau Ceti's and Mathlib's notions. The metric is a `Bundle.ContMDiffRiemanni
 the norm of the gradient is taken for the `RiemannianBundle` instance that it defines, as in
 Tau Ceti's `TauCeti.IsAdaptedPseudoGradient.exists_contMDiffRiemannianMetric_neg_mgradient_eq`; this
 instance is introduced in the statements only.
+
+For `IsGradientLike.mpullback`, the metric is Tau Ceti's pull-back
+`Bundle.ContMDiffRiemannianMetric.pullback` of the metric of `X`, for which `Φ` is a local
+isometry (`Bundle.ContMDiffRiemannianMetric.isLocalRiemannianIsometry_pullback_of_isInvertible`);
+the norm of the gradient is then preserved by
+`TauCeti.IsLocalRiemannianIsometry.norm_mgradient_comp`, and the constant is `δ ∘ Φ`.
 
 The local metrics are glued by `TauCeti.exists_contMDiffRiemannianMetric_inner_mem_of_local`,
 the case without prescribed values of Tau Ceti's
@@ -216,6 +228,32 @@ theorem comp (hX : IsGradientLike f X) (hf : MDifferentiable 𝓘(ℝ, E) 𝓘(�
     _ ≤ b * mvfderiv 𝓘(ℝ, E) f x (X x) := by
       rw [mul_left_comm, add_comm (_ ^ 2)]
       exact mul_le_mul_of_nonneg_left (H x) hbx.le
+
+/-- **Gradient-like fields pull back along local diffeomorphisms.** If `X` is gradient-like for a
+differentiable `f` on `M`, and `Φ : M' → M` is smooth with invertible differential at every point
+(for instance a diffeomorphism), then the pulled-back field
+`VectorField.mpullback Φ X x = (dΦ_x)⁻¹ (X (Φ x))` is gradient-like for `f ∘ Φ`. -/
+theorem mpullback {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [FiniteDimensional ℝ E']
+    {M' : Type*} [TopologicalSpace M'] [ChartedSpace E' M'] [IsManifold 𝓘(ℝ, E') ∞ M']
+    (hX : IsGradientLike f X) (hf : MDifferentiable 𝓘(ℝ, E) 𝓘(ℝ) f) {Φ : M' → M}
+    (hΦ : ContMDiff 𝓘(ℝ, E') 𝓘(ℝ, E) ∞ Φ)
+    (hΦ' : ∀ x, (mfderiv 𝓘(ℝ, E') 𝓘(ℝ, E) Φ x).IsInvertible) :
+    IsGradientLike (f ∘ Φ) (VectorField.mpullback 𝓘(ℝ, E') 𝓘(ℝ, E) Φ X) := by
+  obtain ⟨g, δ, hδc, hδ, h⟩ := hX
+  -- `∞ + 1 = ∞` holds by definition, but the pull-back metric asks for `C^(∞ + 1)`.
+  have hΦ₁ : ContMDiff 𝓘(ℝ, E') 𝓘(ℝ, E) (∞ + 1) Φ := hΦ
+  refine ⟨g.pullback Φ hΦ₁ fun x ↦ (hΦ' x).injective, δ ∘ Φ, hδc.comp hΦ.continuous,
+    fun x ↦ hδ (Φ x), fun x ↦ ?_⟩
+  let : RiemannianBundle (fun x : M' ↦ TangentSpace 𝓘(ℝ, E') x) :=
+    ⟨(g.pullback Φ hΦ₁ fun x ↦ (hΦ' x).injective).toRiemannianMetric⟩
+  let : RiemannianBundle (fun x : M ↦ TangentSpace 𝓘(ℝ, E) x) := ⟨g.toRiemannianMetric⟩
+  have hiso := g.isLocalRiemannianIsometry_pullback_of_isInvertible hΦ₁ hΦ'
+  have hv : mfderiv 𝓘(ℝ, E') 𝓘(ℝ, E) Φ x (VectorField.mpullback 𝓘(ℝ, E') 𝓘(ℝ, E) Φ X x) =
+      X (Φ x) := by
+    rw [VectorField.mpullback_apply, (hΦ' x).self_apply_inverse]
+  rw [ContMDiffRiemannianMetric.pullback_inner, hv, hiso.norm_mgradient_comp (hf (Φ x)),
+    mvfderiv_comp_apply x (hf (Φ x)) (hiso.mdifferentiableAt x), hv]
+  exact h (Φ x)
 
 end IsGradientLike
 
