@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.PairChangeOfCoefficients
+public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 public import TauCeti.Algebra.Module.Equiv.SpanSingleton
 public import TauCeti.Topology.VectorBundle.EulerClass
 
@@ -163,21 +164,23 @@ variable {B : Type} {F : Type*} {E : B → Type} [TopologicalSpace B] [NormedAdd
 
 /-- **The Euler class commutes with `TopPair.uliftIntegralCohomologyEquiv`**: the Euler class, for
 the structure `ModuleCat.instLinear`, of the image of `u ∈ Hⁿ(E, E₀; ULift ℤ)` under
-`TopPair.uliftIntegralCohomologyEquiv` is the image of the Euler class of `u` under the same three
-changes of coefficients of the cohomology of `B`: of values along `TauCeti.uliftIntIso`, of chain
-coefficients along its inverse, and of the linear structure. -/
+`TopPair.uliftIntegralCohomologyEquiv` is the Euler class of `u`, read in integral cohomology
+through `TopCat.uliftIntegralCohomologyIso`, sent by Tau Ceti's `TopCat.integralCohomologyEquiv`
+to cohomology with chain coefficients and values `ℤ`. -/
 theorem eulerClass_uliftIntegralCohomologyEquiv (n : ℕ)
     (u : (thomPair F E).singularCohomology (ModuleCat.of ℤ (ULift.{0} ℤ)) ℤ
       (ModuleCat.of ℤ (ULift.{0} ℤ)) n) :
     @eulerClass _ _ _ _ (ModuleCat.of ℤ ℤ) ℤ _ ModuleCat.instLinear (ModuleCat.of ℤ ℤ) B _ F _ _ E
         _ _ _ _ _ _ n ((thomPair F E).uliftIntegralCohomologyEquiv n u) =
-      TopCat.singularCohomologyLinearCongr (Subsingleton.elim _ _) (TopCat.of B) _ _ n
-        ((TopCat.of B).singularCohomologyChainCoefficientMap ℤ _ uliftIntIso.inv n
-          ((TopCat.of B).singularCohomologyValueMap _ ℤ uliftIntIso.hom n
-            (eulerClass _ ℤ _ F E n u))) := by
+      (TopCat.of B).integralCohomologyEquiv n
+        ((TopCat.uliftIntegralCohomologyIso _ n).hom (eulerClass _ ℤ _ F E n u)) := by
   rw [TopPair.uliftIntegralCohomologyEquiv_apply, ← singularCohomologyLinearCongr_eulerClass,
     ← eulerClass_comp_singularCohomologyChainCoefficientMap_apply,
-    ← eulerClass_comp_singularCohomologyValueMap_apply]
+    ← eulerClass_comp_singularCohomologyValueMap_apply, TopCat.integralCohomologyEquiv_apply,
+    TopCat.uliftIntegralCohomologyIso_hom, Iso.symm_hom, integralCoeffIso_inv_eq_uliftIntIso_inv]
+  -- The two sides differ only in writing the cochain values as `ModuleCat.of ℤ ℤ` or as the unit
+  -- `𝟙_ (ModuleCat ℤ)`, which Mathlib defines to be it.
+  rfl
 
 end IntegralEulerClass
 

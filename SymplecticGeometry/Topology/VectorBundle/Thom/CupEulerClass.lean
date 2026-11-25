@@ -158,15 +158,9 @@ theorem bijective_integralCup_eulerClass [CompactSpace B] {d p l m : ℕ}
     (bijective_thomMap_of_compactSpace _ p m h hU.uliftIntegralCohomologyEquiv) (hzero l hEl)
     (hzero m hEm)
   rw [← unitors_equal] at hbij
-  -- Carry the Euler class of the new Thom class back to that of `U`: Tau Ceti's
-  -- `TopCat.integralCohomologyEquiv` changes chain coefficients along `integralCoeffIso`, the same
-  -- map as `uliftIntIso`, along which `TopPair.uliftIntegralCohomologyEquiv` changes them.
-  have hinv : integralCoeffIso.symm.hom = uliftIntIso.inv :=
-    ModuleCat.hom_ext (LinearMap.ext fun x ↦
-      (integralCoeffIso_inv_apply x).trans (uliftIntIso_inv_apply x).symm)
+  -- Carry the Euler class of the new Thom class back to that of `U`.
   rw [← LinearEquiv.symm_apply_apply ((TopCat.of B).integralCohomologyEquiv _)
-      ((TopCat.uliftIntegralCohomologyIso _ _).hom (eulerClass _ ℤ _ F E _ U)),
-    TopCat.integralCohomologyEquiv_apply, TopCat.uliftIntegralCohomologyIso_hom, hinv]
+      ((TopCat.uliftIntegralCohomologyIso _ _).hom (eulerClass _ ℤ _ F E _ U))]
   -- The values are written `ModuleCat.of ℤ ℤ` in `hbij` and `𝟙_ (ModuleCat ℤ)`, which Mathlib
   -- defines to be it, in the goal, so `rw` cannot carry one to the other; `exact` matches them.
   refine (TopCat.bijective_integralCup_integralCohomologyEquiv_symm_iff _ p _ m h _).2 ?_
