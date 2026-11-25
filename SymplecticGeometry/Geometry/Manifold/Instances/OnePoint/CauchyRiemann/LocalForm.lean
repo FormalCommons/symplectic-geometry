@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Manifold.Complex.DbarFunction
 public import SymplecticGeometry.Geometry.Manifold.Instances.OnePoint.CauchyRiemann.Basic
 public import TauCeti.Geometry.Manifold.VectorBundle.CauchyRiemann.Smooth
 import Mathlib.Topology.DiscreteSubset
+import SymplecticGeometry.Topology.Connected.Clopen
 import SymplecticGeometry.Geometry.Manifold.Complex.Isothermal
 import TauCeti.Analysis.Complex.Wirtinger.Similarity.Basic
 import TauCeti.Geometry.Manifold.VectorField.Regularity
@@ -35,10 +36,9 @@ preimage of `1` is the conjugate Wirtinger derivative `∂/∂w̄` of the functi
 From this equation the zeros of a smooth kernel element are understood. Near each point,
 Tau Ceti's `TauCeti.eventually_ne_zero_of_conjWirtingerDeriv_apply_one_eq_mul` shows that the
 coordinate either vanishes identically or has an isolated zero, and a section vanishes exactly
-where its coordinate does. Since the sphere is connected, the set of points near which `s`
-vanishes is either empty or everything; since it is compact, a nonzero kernel element has
-finitely many zeros. The connectedness argument follows the proof of
-`TauCeti.not_eventually_eq_zero_of_conjWirtingerDeriv_apply_one_eq_mul`.
+where its coordinate does. Since the sphere is connected, this dichotomy gives unique
+continuation (`PreconnectedSpace.eq_zero_of_eventually_eq_zero`); since it is compact, a nonzero
+kernel element has finitely many zeros.
 
 ## Main results
 
@@ -215,12 +215,8 @@ theorem eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel {s : OneP
   set e := (twistCore (𝕜 := ℂ) 1).localTriv z
   -- On the chart at `z`, the coordinate of a vector of `𝒪(1)` vanishes only if the vector does.
   have hcoord (p : OnePoint ℂ) (hp : p ∈ (chartAt ℂ z).source) (v : ℂ) :
-      (e ⟨p, v⟩).2 = 0 ↔ v = 0 := by
-    have htt : twistTransition 1 p z p * twistTransition 1 z p p = 1 := by
-      rw [OnePoint.twistTransition_mul_twistTransition 1 hp (mem_chart_source ℂ p) hp,
-        OnePoint.twistTransition_self]
-    rw [OnePoint.twistCore_localTriv_apply 1 z (fun _ ↦ v) p]
-    simp [left_ne_zero_of_mul_eq_one htt]
+      (e ⟨p, v⟩).2 = 0 ↔ v = 0 :=
+    (e.linearEquivAt ℂ p (by simpa [e] using hp)).map_eq_zero_iff
   set φ := ψ.toOpenPartialHomeomorph
   have hφ : ⇑φ = ψ := PartialDiffeomorph.toFun'_toOpenPartialHomeomorph ψ
   have hW : ∀ᶠ p in 𝓝 z, p ∈ (chartAt ℂ z).source ∧ ψ.symm (ψ p) = p :=
@@ -243,19 +239,9 @@ theorem eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel {s : OneP
 /-- **Unique continuation for `D_J` on `𝒪(1)`.** A smooth section `s` of `𝒪(1)` with
 `D_J s = 0` that vanishes on a neighbourhood of one point of the sphere is zero. -/
 theorem eq_zero_of_eventually_eq_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
-    (hs : s ∈ twistOneKernel J) {z : OnePoint ℂ} (hz : ∀ᶠ y in 𝓝 z, s y = 0) : s = 0 := by
-  set S := {x | ∀ᶠ y in 𝓝 x, s y = 0}
-  have hS : IsClopen S := by
-    refine ⟨isOpen_compl_iff.1 (isOpen_iff_mem_nhds.2 fun x hx ↦ ?_),
-      isOpen_setOfPred_eventually_nhds⟩
-    have hx' := (eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel hs x).resolve_left
-      hx
-    filter_upwards [eventually_nhdsWithin_iff.1 hx'] with y hy hyS
-    obtain rfl | hyx := eq_or_ne y x
-    · exact hx hyS
-    · exact hy hyx hyS.self_of_nhds
-  have hSu := (isClopen_iff.1 hS).resolve_left (Set.nonempty_of_mem (x := z) hz).ne_empty
-  exact funext fun x ↦ (hSu ▸ mem_univ x : x ∈ S).self_of_nhds
+    (hs : s ∈ twistOneKernel J) {z : OnePoint ℂ} (hz : ∀ᶠ y in 𝓝 z, s y = 0) : s = 0 :=
+  PreconnectedSpace.eq_zero_of_eventually_eq_zero
+    (eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel hs) hz
 
 /-- **Zeros of a nonzero smooth kernel element are isolated.** If `s ≠ 0` is a smooth section
 of `𝒪(1)` with `D_J s = 0`, then `s` has no zero on some punctured neighbourhood of any point. -/
@@ -270,8 +256,7 @@ of `𝒪(1)` with `D_J s = 0`, then the zero set of `s` on the sphere is finite.
 theorem finite_setOf_eq_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
     (hs : s ∈ twistOneKernel J) (hs₀ : s ≠ 0) : {y | s y = 0}.Finite := by
   have hc : {y | s y ≠ 0} ∈ codiscrete (OnePoint ℂ) :=
-    mem_codiscreteWithin_iff_forall_mem_nhdsNE.2 fun z _ ↦
-      mem_of_superset (eventually_ne_zero_of_mem_twistOneKernel hs hs₀ z) subset_union_left
+    mem_codiscrete_iff_forall_mem_nhdsNE.2 (eventually_ne_zero_of_mem_twistOneKernel hs hs₀)
   simpa [compl_ofPred] using cofinite_le_codiscrete hc
 
 end SymplecticGeometry
