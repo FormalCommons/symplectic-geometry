@@ -18,13 +18,16 @@ name: cache-library
 # for the current dependencies, as in the first runs after a move of Tau
 # Ceti, a run starts from the latest save of any kind.
 #
-# A run does not compile what the merge queue has just compiled. Every commit
-# of main has passed CI in the merge queue as that very commit, and that run
-# of CI hands over its `.lake/build` as an artifact. The run here for the
-# same commit takes it in place of the latest save, so its own build finds
-# nothing left to compile, and saves it. After a move of Tau Ceti, main so
-# has a build for the new dependencies some minutes after the move merges:
-# the time of the setup, not of a build of the whole library on top of it.
+# A run does not build the whole library when the merge queue has just done
+# so. Every commit of main has passed CI in the merge queue as that very
+# commit. A run of CI there that found no build of main's to start from, as
+# after a move of Tau Ceti, hands over its `.lake/build` as an artifact.
+# While main has no build from source for the current dependencies, the run
+# here looks for the artifact of its own commit and takes it in place of the
+# latest save, so its own build finds nothing left to compile, and saves it.
+# After a move of Tau Ceti, main so has a build for the new dependencies
+# some minutes after the move merges: the time of the setup, not of a build
+# of the whole library on top of it.
 #
 # Why that is sound, and what it gives away. The artifact is taken only from
 # a run of ci.yml that GitHub lists with the event `merge_group`, as passed,
@@ -41,9 +44,7 @@ name: cache-library
 # still runs over the build and fails as it would have. What is new: main's
 # save now trusts that nothing but the merge queue can start a run with the
 # event `merge_group` for a commit of main, where before it trusted only
-# this workflow's own runs on main; and the workflow cache-tidy, which
-# deletes the artifacts, has a token that may also delete saves and cancel
-# runs, though it checks out and runs nothing from the repository. If no
+# this workflow's own runs on main. If no
 # such run or artifact is found, or anything about it is not as expected,
 # the run goes on from the latest save as before.
 #
@@ -58,8 +59,8 @@ on:
   workflow_dispatch:
 
 # `actions: read` is for cache-turn.sh, which asks GitHub for the workflow's
-# runs, and for finding and downloading the merge queue's build. Deleting
-# that build afterwards needs more, and is left to the workflow cache-tidy.
+# runs, and for finding and downloading the merge queue's build. Nothing
+# here deletes that build: GitHub does after a day.
 permissions:
   contents: read
   actions: read
@@ -122,7 +123,7 @@ jobs:
       # restores the latest save instead.
       - name: take the merge queue's build of this commit
         id: queue
-        if: steps.turn.outputs.go == 'true'
+        if: steps.turn.outputs.go == 'true' && steps.name.outputs.from == 'none'
         env:
           GH_TOKEN: ${{ github.token }}
           FROM: ${{ steps.name.outputs.from }}

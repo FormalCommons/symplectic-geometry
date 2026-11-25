@@ -7,9 +7,9 @@ on:
 # CI runs the build scripts of every pull request's branch, so it gets no
 # secrets and only read access. It restores the dependencies and the build of
 # the library that the cache workflows saved on main, but never saves a cache
-# itself. A run of the merge queue hands its build to the workflow
-# cache-library as an artifact, which needs no permission; see the last
-# steps. `actions: read` is for a pull request's run that finds no build of
+# itself. A run of the merge queue that found no build of main's hands its
+# own to the workflow cache-library as an artifact, which needs no
+# permission; see the last steps. `actions: read` is for a pull request's run that finds no build of
 # main's: it looks for the build that an earlier run for the same pull
 # request kept, and downloads it.
 permissions:
@@ -263,11 +263,15 @@ jobs:
         id: build
         run: lake build --wfail
       # A run of the merge queue builds the commit that main gets when the
-      # pull request merges. After a build that passed, it hands `.lake/build`
-      # to the workflow cache-library, whose run for that commit saves it as
-      # main's build without compiling the same files again; see there for
-      # why that is sound. A run for a pull request does not do this, and no
-      # run of CI reads such a build.
+      # pull request merges. When it found no build of main's to start from,
+      # as the run of a move of Tau Ceti does, and the runs after it until
+      # main has a save again, it has built the whole library. After a build
+      # that passed, it hands `.lake/build` to the workflow cache-library,
+      # whose run for that commit saves it as main's build without building
+      # the whole library a second time; see there for why that is sound. A
+      # run that started from a save of main's hands over nothing: what
+      # cache-library compiles after it is little. A run for a pull request
+      # does not do this, and no run of CI reads such a build.
       #
       # The build goes as one tar file, which keeps the files' modes and the
       # names under `.lake`, with a file `from` beside it: the build from
@@ -277,14 +281,13 @@ jobs:
       # its own save would descend from, so that the builds of main from its
       # source still replace what the saves carry along.
       #
-      # GitHub deletes the artifact after a day, the shortest time it allows,
-      # and the workflow cache-tidy deletes it sooner. The two steps add
-      # about a quarter of a minute to a run of the merge queue. If either
+      # GitHub deletes the artifact after a day, the shortest time it allows;
+      # a move leaves a few of them, about 320 MB each. If either step
       # fails, the run still passes: main then gets its build as it did
       # before.
       - name: pack the build for main
         id: pack
-        if: github.event_name == 'merge_group'
+        if: github.event_name == 'merge_group' && steps.library.outputs.cache-matched-key == ''
         continue-on-error: true
         env:
           BUILD: ${{ steps.setup.outputs.build }}
@@ -301,7 +304,7 @@ jobs:
           printf '%s\n' "$from" >"$RUNNER_TEMP/queue-build/from"
           tar --use-compress-program 'zstd -T0' -cf "$RUNNER_TEMP/queue-build/build.tar.zst" -C .lake build
       - name: hand the build to main
-        if: github.event_name == 'merge_group' && steps.pack.outcome == 'success'
+        if: github.event_name == 'merge_group' && steps.library.outputs.cache-matched-key == '' && steps.pack.outcome == 'success'
         continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
