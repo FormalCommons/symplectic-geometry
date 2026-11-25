@@ -48,8 +48,8 @@ whole space without parameters.
 * `integral_fderiv_slice_right_eq_integral_fderiv`: the fibre derivative under that integral is
   the derivative of `f` in the direction `(0, v)`.
 * `contDiffOn_fiberRescale`, `contDiffOn_fiberRescale_of_starShaped`: its smoothness.
-* `fderiv_inv_smul_comp_smul`: for `t ≠ 0`, the derivative of `x ↦ t⁻¹ • f (t • x)` at `z` is
-  that of `f` at `t • z`.
+* `fderiv_inv_smul_comp_smul`: for `s ≠ 0`, the derivative of `x ↦ s⁻¹ • f (s • x)` at `z` is
+  that of `f` at `s • z`.
 
 ## References
 
