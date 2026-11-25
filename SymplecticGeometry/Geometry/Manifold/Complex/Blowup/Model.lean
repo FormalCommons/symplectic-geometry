@@ -10,6 +10,8 @@ public import Mathlib.Topology.OpenPartialHomeomorph.Composition
 public import SymplecticGeometry.Algebra.Notation.Pi.Basic
 public import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
 public import TauCeti.Analysis.Calculus.ContDiff.Pi
+public import TauCeti.Geometry.Manifold.AnalyticSubmanifold.Transport
+public import TauCeti.Geometry.Manifold.Immersion.Differential
 public import TauCeti.Geometry.Manifold.Instances.Projectivization
 public import TauCeti.Topology.Algebra.Projectivization
 
@@ -58,6 +60,11 @@ projections, and the inclusion into `ℙ ℂ E × E`, are holomorphic.
 * `SymplecticGeometry.BlowupModel.contMDiff_pr`, `SymplecticGeometry.BlowupModel.contMDiff_blowdown`
   and `SymplecticGeometry.BlowupModel.contMDiff_blowupModel_val`: the projection to `ℙ ℂ E`, the
   blowdown and the inclusion into `ℙ ℂ E × E` are holomorphic.
+* `SymplecticGeometry.BlowupModel.isSmoothEmbedding_blowupModel_val`: the inclusion into
+  `ℙ ℂ E × E` is a holomorphic embedding (`Manifold.IsSmoothEmbedding`), and
+  `SymplecticGeometry.BlowupModel.isMAnalyticSubmanifold_blowupModel`: so the incidence set is a
+  complex submanifold of `ℙ ℂ E × E` of dimension `n + 1` (Tau Ceti's
+  `TauCeti.IsMAnalyticSubmanifold`).
 
 ## Implementation notes
 
@@ -67,6 +74,11 @@ The atlas, the choice of `chartAt`, the proof of the manifold instance by
 `Projectivization.contMDiffOn_affineChart` and `Projectivization.contMDiff_affineChart_symm`
 (`TauCeti.Geometry.Manifold.Instances.Projectivization`). The projection is shown holomorphic by
 Tau Ceti's `Projectivization.contMDiffAt_of_eventually_eq_mk`.
+
+The inclusion is an immersion by Tau Ceti's `ContMDiffOn.isImmersionAt_of_comp_eventuallyEq_id`:
+near a point whose line lies in `affineOpen i`, reading the chart `i` on `ℙ ℂ E × E` and applying
+its inverse gives a holomorphic left inverse. The submanifold statement then follows from Tau
+Ceti's `Manifold.IsSmoothEmbedding.isMAnalyticSubmanifold_range`.
 
 ## References
 
@@ -487,6 +499,59 @@ theorem contMDiff_blowupModel_val (r : ℕ∞ω) :
     funext fun p => Prod.ext (pr_def p).symm (blowdown_def p).symm
   rw [h]
   exact (contMDiff_pr r).prodMk (contMDiff_blowdown r)
+
+/-- The blowup is nonempty; for instance, it contains the image of `0` under the inverse of the
+chart `0`. -/
+instance instNonempty : Nonempty (BlowupModel n) :=
+  ⟨(blowupModelChart 0).symm 0⟩
+
+/-- The inclusion of the blowup into `ℙ ℂ E × E` is a `C^r` smooth embedding for every `r ≥ 1`;
+for `r = ω` it is a holomorphic embedding. -/
+theorem isSmoothEmbedding_blowupModel_val {r : ℕ∞ω} (hr : 1 ≤ r) :
+    Manifold.IsSmoothEmbedding 𝓘(ℂ, Fin (n + 1) → ℂ) (𝓘(ℂ, Fin n → ℂ).prod 𝓘(ℂ, Fin (n + 1) → ℂ))
+      r (Subtype.val : BlowupModel n → ℙ ℂ (Fin (n + 1) → ℂ) × (Fin (n + 1) → ℂ)) := by
+  refine ⟨TauCeti.isImmersion_iff_forall_isImmersionAt.2 fun p => ?_, IsEmbedding.subtypeVal⟩
+  obtain ⟨i, hi⟩ := exists_mem_affineOpen (pr p)
+  have hsrc : p ∈ (blowupModelChart i).source := by rw [blowupModelChart_source]; exact hi
+  -- Near `p`, the chart `i` read on `ℙ ℂ E × E`, followed by its inverse, is a `C^r` left inverse
+  -- of the inclusion.
+  let φ : ℙ ℂ (Fin (n + 1) → ℂ) × (Fin (n + 1) → ℂ) → Fin (n + 1) → ℂ :=
+    fun q => Fin.insertNth i (q.2 i) (affineChart i q.1)
+  have hL : ContDiff ℂ r fun q : (Fin n → ℂ) × (Fin (n + 1) → ℂ) =>
+      Fin.insertNth (α := fun _ => ℂ) i (q.2 i) q.1 :=
+    ((contDiff_apply ℂ (fun _ => ℂ) i).comp contDiff_snd).finInsertNth (F := fun _ => ℂ) i
+      contDiff_fst
+  have hpair : ContMDiffOn (𝓘(ℂ, Fin n → ℂ).prod 𝓘(ℂ, Fin (n + 1) → ℂ))
+      𝓘(ℂ, (Fin n → ℂ) × (Fin (n + 1) → ℂ)) r
+      (fun q : ℙ ℂ (Fin (n + 1) → ℂ) × (Fin (n + 1) → ℂ) => (affineChart i q.1, q.2))
+      (Prod.fst ⁻¹' affineOpen i) :=
+    ((contMDiffOn_affineChart i r).comp contMDiffOn_fst fun _ hq => hq).prodMk_space
+      contMDiffOn_snd
+  have hφ : ContMDiffAt (𝓘(ℂ, Fin n → ℂ).prod 𝓘(ℂ, Fin (n + 1) → ℂ)) 𝓘(ℂ, Fin (n + 1) → ℂ) r φ
+      p.val :=
+    hL.contMDiff.contMDiffAt.comp _
+      (hpair.contMDiffAt (((isOpen_affineOpen i).preimage continuous_fst).mem_nhds hi))
+  have hφval : φ ∘ Subtype.val = blowupModelChart i := by
+    funext q
+    rw [comp_apply, blowupModelChart_apply, pr_def, blowdown_def]
+  have hleft : (blowupModelChart i).symm ∘ φ ∘ Subtype.val =ᶠ[𝓝 p] id := by
+    rw [hφval]
+    exact (blowupModelChart i).eventually_left_inverse hsrc
+  exact (contMDiff_blowupModel_val r).contMDiffOn.isImmersionAt_of_comp_eventuallyEq_id
+    isOpen_univ (Set.mem_univ p) hr
+    (((contMDiff_blowupModelChart_symm i r).contMDiffAt.comp _ hφ).mdifferentiableAt
+      (by rintro rfl; simp at hr)) hleft
+
+/-- The incidence set `blowupModel n` is a complex submanifold of `ℙ ℂ E × E` of dimension
+`n + 1`: Tau Ceti's `TauCeti.IsMAnalyticSubmanifold` for the product model, with any continuous
+linear identification `e` of the model space `(Fin n → ℂ) × E` with some `Fin m → ℂ`. -/
+theorem isMAnalyticSubmanifold_blowupModel {m : ℕ}
+    (e : ((Fin n → ℂ) × (Fin (n + 1) → ℂ)) ≃L[ℂ] Fin m → ℂ) :
+    TauCeti.IsMAnalyticSubmanifold (𝓘(ℂ, Fin n → ℂ).prod 𝓘(ℂ, Fin (n + 1) → ℂ)) e (n + 1)
+      (blowupModel n) := by
+  have := (isSmoothEmbedding_blowupModel_val (n := n) (r := ω) le_top).isMAnalyticSubmanifold_range
+    (ContinuousLinearEquiv.refl ℂ (Fin (n + 1) → ℂ)) e
+  rwa [Subtype.range_coe] at this
 
 -- Instance search finds the subspace instances of `ℙ ℂ E × E`.
 example : T2Space (BlowupModel n) := inferInstance
