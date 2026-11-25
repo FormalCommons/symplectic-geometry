@@ -19,6 +19,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Symplectic.Manifold.SymplecticMap
 import TauCeti.Geometry.Symplectic.Manifold.NeighborhoodGerm
+import TauCeti.Topology.Algebra.Support
 
 /-!
 # The Duistermaat–Heckman formula for real `ħ`
@@ -229,8 +230,8 @@ theorem integralTopForm_formCalculus_weightChart [FiniteDimensional ℝ E] [T2Sp
   have hsa : closedBall (0 : StdSpace (Fin n)) a ⊆ ball 0 s := closedBall_subset_ball has
   -- `f` is `c G` read through `Φ⁻¹`, and `c G` is supported in `closedBall 0 a`.
   have hGa : tsupport (fun z ↦ c * G z) ⊆ closedBall 0 a :=
-    closure_minimal (Function.support_subset_iff'.2 fun z hz ↦ by
-      rw [hG0 (by simpa using hz), mul_zero]) isClosed_closedBall
+    TauCeti.tsupport_subset_of_forall_notMem_eq_zero
+      (fun z hz ↦ by rw [hG0 (by simpa using hz), mul_zero]) isClosed_closedBall
   have hGK : IsCompact (tsupport fun z ↦ c * G z) :=
     (isCompact_closedBall 0 a).of_isClosed_subset (isClosed_tsupport _) hGa
   have hGs : tsupport (fun z ↦ c * G z) ⊆ Φ.source := hGa.trans (hsa.trans hs)
