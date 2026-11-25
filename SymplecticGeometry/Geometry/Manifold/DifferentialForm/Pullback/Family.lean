@@ -16,8 +16,8 @@ states this for the smooth pullback. This file states the same identity for the 
 forms and the rough pullback `TauCeti.mpullback`, the form in which proofs that work pointwise
 meet the slices.
 
-It then computes the slices of the pullback of a form `α` on `ℝ × N` along `c × f`, for a smooth
-reparametrization `c : ℝ → ℝ` of time and a smooth map `f : M → N`: since
+It then computes the slices of the pullback of a form `α` on `P × N` along `c × f`, for a smooth
+map `c : P' → P` of parameter manifolds and a smooth map `f : M → N`: since
 `(c × f) ∘ ι_t = ι_{c t} ∘ f`, where `ι_t x = (t, x)`, functoriality of the pullback
 (`TauCeti.SmoothForm.mpullback_comp`) gives `ι_t^* (c × f)^* α = f^* ι_{c t}^* α`.
 
@@ -32,7 +32,7 @@ coefficients of the family in place of those of the fixed form.
 * `TauCeti.SmoothForm.coe_mpullback_prodMk_lineMapFamily`: the slices of
   `TauCeti.SmoothForm.lineMapFamily`, stated for the underlying rough forms.
 * `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap'`: `ι_t^* (c × f)^* α = f^* ι_{c t}^* α`
-  for a reparametrization `c` of time, with its case `f = id`,
+  for a smooth map `c` of parameter manifolds, with its case `f = id` over `ℝ`,
   `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap_id_right`; the case `c = id` is Tau
   Ceti's `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodMap`.
 * `ContMDiffAt.mpullback_form_family_of_family`: the pullbacks `(f p)^* (φ p)` of a smooth
@@ -67,11 +67,16 @@ section prodMap
 variable {E' H' N : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   {J : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N] [IsManifold J 1 N]
 
-/-- The slice at time `t` of the pullback of a form `α` on `ℝ × N` along `c × f`, for a smooth
-reparametrization `c : ℝ → ℝ` of time, is the pullback along `f` of the slice of `α` at time
-`c t`: `ι_t^* (c × f)^* α = f^* ι_{c t}^* α`. -/
-theorem mpullback_prodMk_mpullback_prodMap' {c : ℝ → ℝ} (hc : ContMDiff 𝓘(ℝ) 𝓘(ℝ) ∞ c)
-    (f : M → N) (hf : ContMDiff I J ∞ f) (α : SmoothForm (𝓘(ℝ, ℝ).prod J) (ℝ × N) F k) (t : ℝ) :
+/-- The slice at `t` of the pullback of a form `α` on `P × N` along `c × f`, for smooth maps
+`c : P' → P` of parameter manifolds and `f : M → N`, is the pullback along `f` of the slice of `α`
+at `c t`: `ι_t^* (c × f)^* α = f^* ι_{c t}^* α`. -/
+theorem mpullback_prodMk_mpullback_prodMap' {EP HP P EP' HP' P' : Type*}
+    [NormedAddCommGroup EP] [NormedSpace ℝ EP] [TopologicalSpace HP]
+    {K : ModelWithCorners ℝ EP HP} [TopologicalSpace P] [ChartedSpace HP P] [IsManifold K 1 P]
+    [NormedAddCommGroup EP'] [NormedSpace ℝ EP'] [TopologicalSpace HP']
+    {K' : ModelWithCorners ℝ EP' HP'} [TopologicalSpace P'] [ChartedSpace HP' P']
+    [IsManifold K' 1 P'] {c : P' → P} (hc : ContMDiff K' K ∞ c)
+    (f : M → N) (hf : ContMDiff I J ∞ f) (α : SmoothForm (K.prod J) (P × N) F k) (t : P') :
     mpullback (Prod.mk t) (contMDiff_const.prodMk contMDiff_id)
         (mpullback (Prod.map c f) (hc.prodMap hf) α) =
       mpullback f hf (mpullback (Prod.mk (c t)) (contMDiff_const.prodMk contMDiff_id) α) :=
