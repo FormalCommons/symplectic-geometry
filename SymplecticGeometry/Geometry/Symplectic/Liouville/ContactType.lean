@@ -178,8 +178,7 @@ theorem SmoothEmbedding.exists_isContactForm_eq_neg_mpullback_interior [IsManifo
     refine Subtype.ext (funext fun s ↦ ?_)
     rw [mextDerivₗ_apply, SmoothForm.coe_mpullback, ← mpullback_mextDeriv_at
       ((i.contMDiff s).of_le (by simp)) ((hβ s).of_le (by simp))]
-    ext v
-    rw [mpullback_apply, mpullback_apply, hdα _ (hiV (mem_range_self s))]
+    exact mpullback_apply_congr (hdα _ (hiV (mem_range_self s)))
   refine ⟨-α', rfl, SmoothForm.isContactForm_neg_iff.2 ?_, by rw [map_neg, hα'd]⟩
   exact SmoothForm.isContactForm_iff_forall_isContactFormAt.2
     fun s ↦ hct.isContactFormAt_mpullback hσ.isNondegenerate ((i.contMDiff s).of_le (by simp))

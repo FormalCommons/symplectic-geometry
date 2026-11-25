@@ -9,6 +9,7 @@ public import SymplecticGeometry.Analysis.Distribution.LinearEquiv
 public import SymplecticGeometry.Analysis.Distribution.OfFun
 public import TauCeti.Analysis.Distribution.Restriction
 public import TauCeti.Analysis.Distribution.SingularSupport
+import TauCeti.Analysis.Calculus.IteratedFDeriv.Basic
 
 /-!
 # Coordinate distributions of a vector-valued locally integrable function
@@ -217,9 +218,9 @@ theorem iteratedLineDerivOp_coordOfFun [FiniteDimensional ℝ E] [μ.IsAddHaarMe
       lineDerivOp_coordOfFun e hΩ b (hg _)]
     refine coordOfFun_congr_ae e hΩ b ((ae_restrict_iff' U.isOpen.measurableSet).2
       (ae_of_all _ fun x hx ↦ ?_)) i
-    rw [iteratedFDeriv_succ_apply_left, ← fderiv_continuousMultilinear_apply_const_apply
+    rw [TauCeti.fderiv_iteratedFDeriv_apply
       ((hwx x hx).differentiableAt_iteratedFDeriv (by norm_cast; omega))]
-    simp [Fin.tail_def, Function.comp_def]
+    exact congrArg _ (Fin.cons_self_tail fun j ↦ e.symm (m j))
 
 /-- Multiplying the coordinate distributions of `w` by a smooth function `g` on `E'` gives the
 coordinate distributions of `x ↦ g (e x) • w x`. -/

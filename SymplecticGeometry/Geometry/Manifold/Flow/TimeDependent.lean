@@ -7,6 +7,9 @@ module
 
 public import TauCeti.Geometry.Manifold.Flow.TimeDependent
 import TauCeti.Geometry.Manifold.Flow.Parametric
+import TauCeti.Geometry.Manifold.ContMDiffMap.Extension
+import TauCeti.Geometry.Manifold.PartitionOfUnity.Compact
+public import TauCeti.Geometry.Manifold.MFDeriv.Curve
 public import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Tangent.Restriction
 import TauCeti.Geometry.Manifold.IntegralCurve.Interval
@@ -69,6 +72,13 @@ the same file, applied to the diffeomorphism `Diffeomorph.reflProdCongr ℝ ψ` 
 `ℝ × M'`, shows that the flow domains correspond
 (`Diffeomorph.mem_timeDependentFlowDomain_apply_iff`).
 
+A `C^(n+1)` curve `γ` that maps a closed interval into the base set of a trivialization `e` of
+the tangent bundle is a trajectory, on that interval, of a jointly `C^n` time-dependent field that
+vanishes outside a compact set (`Bundle.Trivialization.exists_timeDependentField_eq_curveVelocity`).
+The velocity of `γ`, read in `e`, is multiplied by smooth cutoffs in time and in space from Tau
+Ceti's `IsCompact.exists_contMDiff_one_nhds_tsupport_subset`, equal to `1` on the interval and on
+its image, and is mapped back by `e.symmL`, which vanishes off the base set.
+
 ## Main results
 
 * `TauCeti.contMDiff_timeDependentFlowDiffeomorph`: the map
@@ -90,6 +100,8 @@ the same file, applied to the diffeomorphism `Diffeomorph.reflProdCongr ℝ ψ` 
   conjugates their flows.
 * `Diffeomorph.mem_timeDependentFlowDomain_apply_iff`: it maps the domain of one flow onto that of
   the other.
+* `Bundle.Trivialization.exists_timeDependentField_eq_curveVelocity`: a compactly supported
+  time-dependent field whose value along a curve, on a closed interval, is its velocity.
 -/
 
 public section
@@ -393,5 +405,71 @@ theorem apply_timeDependentFlowOf (ψ : M ≃ₘ^n⟮I, I'⟯ M') (hn : n ≠ 0)
   simpa using congrArg Prod.snd h
 
 end Diffeomorph
+
+namespace Bundle.Trivialization
+
+open Function Set Filter TauCeti TauCeti.Manifold
+open scoped Topology
+
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+  {G : Type*} [TopologicalSpace G] {J : ModelWithCorners ℝ F G}
+  {B : Type*} [TopologicalSpace B] [ChartedSpace G B] [IsManifold J ∞ B] [T2Space B]
+
+/-- **A compactly supported field through the velocities of a curve.** Let `γ` be a `C^(n+1)`
+curve in `B` that maps `Set.Icc a b` into the base set of a trivialization `e` of the tangent
+bundle of `B`. There is a time-dependent vector field `V` on `B`, jointly `C^n` in time and point,
+that vanishes outside a compact set `K` at all times and whose value at `γ u` at time `u` is the
+velocity of `γ` at `u`, for every `u ∈ Set.Icc a b`. -/
+theorem exists_timeDependentField_eq_curveVelocity {n : ℕ∞} {γ : ℝ → B}
+    (e : Trivialization F (π F (TangentSpace J))) [MemTrivializationAtlas e]
+    (hγ : ContMDiff 𝓘(ℝ, ℝ) J (n + 1) γ) {a b : ℝ} (hγe : MapsTo γ (Icc a b) e.baseSet) :
+    ∃ (V : ℝ → Π y : B, TangentSpace J y) (K : Set B), IsCompact K ∧
+      ContMDiff (𝓘(ℝ, ℝ).prod J) J.tangent n
+        (fun p : ℝ × B ↦ (⟨p.2, V p.1 p.2⟩ : TangentBundle J B)) ∧
+      (∀ u, ∀ y ∉ K, V u y = 0) ∧ ∀ u ∈ Icc a b, V u (γ u) = curveVelocity J γ u := by
+  -- Cut-offs in time and in space, equal to `1` on `Set.Icc a b` and on its image.
+  obtain ⟨χ, hχ, hχ1, -, hχO, -⟩ := isCompact_Icc.exists_contMDiff_one_nhds_tsupport_subset
+    𝓘(ℝ, ℝ) (e.open_baseSet.preimage hγ.continuous) hγe
+  obtain ⟨ψ, hψ, hψ1, hψc, hψU, -⟩ := (isCompact_Icc.image hγ.continuous
+    ).exists_contMDiff_one_nhds_tsupport_subset J e.open_baseSet hγe.image_subset
+  -- The velocity of `γ` read in `e`, cut off in time.
+  let v : ℝ → F := fun u ↦ (e ⟨γ u, curveVelocity J γ u⟩).2
+  have hv {u : ℝ} (hu : γ u ∈ e.baseSet) : ContMDiffAt 𝓘(ℝ, ℝ) 𝓘(ℝ, F) n v u := by
+    have hlift := hγ.contMDiffAt.contMDiffAt_curveVelocityLift (m := n) (t := u) le_rfl
+    rw [show curveVelocityLift J γ = fun u ↦ ⟨γ u, curveVelocity J γ u⟩ from
+      funext (curveVelocityLift_apply γ)] at hlift
+    exact ((e.contMDiffAt_iff (e.mem_source.2 hu)).1 hlift).2
+  let w : ℝ → F := fun u ↦ χ u • v u
+  have hw : ContMDiff 𝓘(ℝ, ℝ) 𝓘(ℝ, F) n w :=
+    ContMDiffOn.contMDiff_smul_of_tsupport_subset (fun u hu ↦ (hv hu).contMDiffWithinAt)
+      (e.open_baseSet.preimage hγ.continuous)
+      (hχ.of_le (by exact_mod_cast le_top)).contMDiffOn hχO
+  -- The field read in `e` as `ψ y • w u`, which `ψ` cuts off in space.
+  let V : ℝ → Π y : B, TangentSpace J y := fun u y ↦ e.symmL ℝ y (ψ y • w u)
+  have hV0 {u : ℝ} {y : B} (hy : y ∉ tsupport ψ) : V u y = 0 := by
+    simp only [V, image_eq_zero_of_notMem_tsupport hy, zero_smul, map_zero]
+  refine ⟨V, tsupport ψ, hψc, ?_, fun u y hy ↦ hV0 hy, fun u hu ↦ ?_⟩
+  · rintro ⟨u₀, y₀⟩
+    by_cases hy₀ : y₀ ∈ e.baseSet
+    · have hsm : ContMDiffAt (𝓘(ℝ, ℝ).prod J) 𝓘(ℝ, F) n
+          (fun p : ℝ × B ↦ (e (⟨p.2, V p.1 p.2⟩ : TangentBundle J B)).2) (u₀, y₀) := by
+        refine ((((hψ.of_le (by exact_mod_cast le_top)) y₀).comp (u₀, y₀) contMDiffAt_snd).smul
+          ((hw u₀).comp (u₀, y₀) contMDiffAt_fst)).congr_of_eventuallyEq ?_
+        filter_upwards [continuousAt_snd.preimage_mem_nhds (e.open_baseSet.mem_nhds hy₀)]
+          with p hp
+        simp only [V, e.symmL_apply hp, e.apply_mk_symm hp, Pi.smul_apply', comp_apply]
+      exact (e.contMDiffAt_iff (e.mem_source.2 hy₀)).2 ⟨contMDiffAt_snd, hsm⟩
+    · -- Off the base set, `ψ` vanishes nearby and so does the field.
+      have hy : y₀ ∉ tsupport ψ := fun h ↦ hy₀ (hψU h)
+      refine (((contMDiff_zeroSection _ _).contMDiffAt).comp (u₀, y₀)
+        contMDiffAt_snd).congr_of_eventuallyEq ?_
+      filter_upwards [continuousAt_snd.preimage_mem_nhds
+        ((isClosed_tsupport ψ).isOpen_compl.mem_nhds hy)] with p hp
+      simp [zeroSection, hV0 hp]
+  · simp only [V, w, hψ1.self_of_nhdsSet _ (mem_image_of_mem γ hu), hχ1.self_of_nhdsSet _ hu,
+      one_smul, e.symmL_apply (hγe hu)]
+    exact e.symm_apply_apply_mk (hγe hu) _
+
+end Bundle.Trivialization
 
 end
