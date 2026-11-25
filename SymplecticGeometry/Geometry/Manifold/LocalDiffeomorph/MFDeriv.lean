@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Manifold.MFDeriv.ModelChart
 
 /-!
 # The differential of the inverse of a partial diffeomorphism
@@ -16,6 +17,13 @@ and that of `Φ` at `Φ.symm y` are mutually inverse (Tau Ceti's
 `PartialDiffeomorph.mfderiv_apply_mfderiv_symm_apply`), so together they form one continuous
 linear equivalence.
 
+For a partial diffeomorphism `Φ` into a normed space `E` and a chart of a manifold modelled on
+`E`, the transitions between them, in both directions, are smooth with derivatives of nonzero
+determinant on their sources. Smoothness is Tau Ceti's
+`OpenPartialHomeomorph.contDiffOn_symm_trans_of_contMDiffOn`, and the determinants are Tau
+Ceti's `TauCeti.det_fderiv_symm_trans_ne_zero`, since `Φ` lies in the maximal atlas of the
+manifold.
+
 ## Main definitions
 
 * `PartialDiffeomorph.mfderivSymmEquiv`: the differential of `Φ.symm` at a point `y` of the target,
@@ -25,6 +33,11 @@ linear equivalence.
 
 * `PartialDiffeomorph.mfderiv_symm_apply_mfderiv_apply_of_mem_target`: for `y` in the target of
   `Φ`, `d(Φ⁻¹)_y ∘ dΦ_{Φ⁻¹ y}` is the identity.
+* `PartialDiffeomorph.contDiffOn_symm_trans_chartAt`,
+  `PartialDiffeomorph.contDiffOn_chartAt_symm_trans`,
+  `PartialDiffeomorph.det_fderiv_symm_trans_chartAt_ne_zero` and
+  `PartialDiffeomorph.det_fderiv_chartAt_symm_trans_ne_zero`: the transitions between `Φ` and a
+  chart are smooth, with derivatives of nonzero determinant.
 -/
 
 public section
@@ -87,5 +100,48 @@ theorem toContinuousLinearMap_mfderivSymmEquiv_symm (Φ : PartialDiffeomorph I J
   (rfl)
 
 end MFDerivSymmEquiv
+
+section ChartTransition
+
+variable {M' : Type*} [TopologicalSpace M'] [ChartedSpace E M'] {n : WithTop ℕ∞}
+  [IsManifold 𝓘(𝕜, E) n M']
+
+/-- For a `C^n` partial diffeomorphism `Φ` from `M'` into `E` and `x : M'`, the transition
+`chartAt E x ∘ Φ⁻¹` is `C^n` on its source. -/
+theorem contDiffOn_symm_trans_chartAt (Φ : PartialDiffeomorph 𝓘(𝕜, E) 𝓘(𝕜, E) M' E n) (x : M') :
+    ContDiffOn 𝕜 n (Φ.toOpenPartialHomeomorph.symm ≫ₕ chartAt E x)
+      (Φ.toOpenPartialHomeomorph.symm ≫ₕ chartAt E x).source :=
+  OpenPartialHomeomorph.contDiffOn_symm_trans_of_contMDiffOn contMDiffOn_chart
+    Φ.symm.contMDiffOn
+
+/-- For a `C^n` partial diffeomorphism `Φ` from `M'` into `E` and `x : M'`, the transition
+`Φ ∘ (chartAt E x)⁻¹` is `C^n` on its source. -/
+theorem contDiffOn_chartAt_symm_trans (Φ : PartialDiffeomorph 𝓘(𝕜, E) 𝓘(𝕜, E) M' E n) (x : M') :
+    ContDiffOn 𝕜 n ((chartAt E x).symm ≫ₕ Φ.toOpenPartialHomeomorph)
+      ((chartAt E x).symm ≫ₕ Φ.toOpenPartialHomeomorph).source :=
+  OpenPartialHomeomorph.contDiffOn_symm_trans_of_contMDiffOn
+    Φ.contMDiffOn (contMDiffOn_chart_symm (x := x))
+
+/-- For a `C^n` partial diffeomorphism `Φ` from `M'` into `E`, `n ≠ 0`, and `x : M'`, the
+derivative of the transition `chartAt E x ∘ Φ⁻¹` has nonzero determinant on its source. -/
+theorem det_fderiv_symm_trans_chartAt_ne_zero
+    (Φ : PartialDiffeomorph 𝓘(𝕜, E) 𝓘(𝕜, E) M' E n) (hn : n ≠ 0) (x : M') {z : E}
+    (hz : z ∈ (Φ.toOpenPartialHomeomorph.symm ≫ₕ chartAt E x).source) :
+    (fderiv 𝕜 (Φ.toOpenPartialHomeomorph.symm ≫ₕ chartAt E x) z).det ≠ 0 :=
+  TauCeti.det_fderiv_symm_trans_ne_zero hn
+    (Φ.toOpenPartialHomeomorph.mem_maximalAtlas_of_contMDiffOn Φ.contMDiffOn Φ.symm.contMDiffOn)
+    (IsManifold.chart_mem_maximalAtlas x) hz
+
+/-- For a `C^n` partial diffeomorphism `Φ` from `M'` into `E`, `n ≠ 0`, and `x : M'`, the
+derivative of the transition `Φ ∘ (chartAt E x)⁻¹` has nonzero determinant on its source. -/
+theorem det_fderiv_chartAt_symm_trans_ne_zero
+    (Φ : PartialDiffeomorph 𝓘(𝕜, E) 𝓘(𝕜, E) M' E n) (hn : n ≠ 0) (x : M') {z : E}
+    (hz : z ∈ ((chartAt E x).symm ≫ₕ Φ.toOpenPartialHomeomorph).source) :
+    (fderiv 𝕜 ((chartAt E x).symm ≫ₕ Φ.toOpenPartialHomeomorph) z).det ≠ 0 :=
+  TauCeti.det_fderiv_symm_trans_ne_zero hn (IsManifold.chart_mem_maximalAtlas x)
+    (Φ.toOpenPartialHomeomorph.mem_maximalAtlas_of_contMDiffOn Φ.contMDiffOn Φ.symm.contMDiffOn)
+    hz
+
+end ChartTransition
 
 end PartialDiffeomorph
