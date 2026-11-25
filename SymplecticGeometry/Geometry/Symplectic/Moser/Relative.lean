@@ -298,9 +298,7 @@ theorem exists_smoothForm_relative_primitive_sub_of_eq_along (f : SmoothEmbeddin
     rw [AddSubgroupClass.coe_sub, Pi.sub_apply, heq q, sub_self]
   have hf : SmoothForm.mpullback f f.contMDiff σ₁ = SmoothForm.mpullback f f.contMDiff σ₀ :=
     Subtype.ext (funext fun q ↦ by
-      ext v
-      rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback, mpullback_apply, mpullback_apply,
-        heq q])
+      rw [SmoothForm.coe_mpullback, SmoothForm.coe_mpullback, mpullback_apply_congr (heq q)])
   obtain ⟨W, hWO, hfW, β, hdβ, hβ0, hβ1⟩ := f.exists_smoothForm_relative_primitive_sub h₀ h₁
     hf (isOpen_setOf_forall_mem_Icc_nondegenerate σ₀ σ₁) hfO
   exact ⟨W, hWO, hfW, β, hdβ, hβ0, fun q ↦ hβ1 q (heq q)⟩

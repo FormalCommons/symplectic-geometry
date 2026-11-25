@@ -166,12 +166,12 @@ vectors of `V`, by `(ℓ, v) ↦ v`; the inverse sends `v` to `([v], v)`. -/
 def tautologicalComplZeroHomeomorph :
     zeroSectionCompl 𝕜 (Tautological 𝕜 V) ≃ₜ {v : V // v ≠ 0} where
   toFun v := ⟨v.val.snd, fun h ↦ mem_zeroSectionCompl.1 v.property (Subtype.ext h)⟩
-  invFun v := ⟨⟨mk 𝕜 v.val v.property, ⟨v.val, mem_submodule_mk v.property⟩⟩,
+  invFun v := ⟨⟨mk 𝕜 v.val v.property, ⟨v.val, mem_submodule_iff.2 fun _ ↦ rfl⟩⟩,
     mem_zeroSectionCompl.2 fun h ↦ v.property (congrArg Subtype.val h)⟩
   left_inv := by
     rintro ⟨⟨ℓ, v, hv⟩, h₀⟩
     have hv₀ : v ≠ 0 := fun h ↦ mem_zeroSectionCompl.1 h₀ (Subtype.ext h)
-    obtain rfl := mk_eq_of_mem_submodule hv₀ hv
+    obtain rfl := mem_submodule_iff.1 hv hv₀
     rfl
   right_inv _ := rfl
   continuous_toFun := ((continuous_snd_tautological 𝕜 V).comp continuous_subtypeVal).subtype_mk _
@@ -191,7 +191,7 @@ variable {V} in
 @[simp]
 theorem tautologicalComplZeroHomeomorph_symm_apply (v : {v : V // v ≠ 0}) :
     ((tautologicalComplZeroHomeomorph 𝕜 V).symm v).val =
-      ⟨mk 𝕜 v.val v.property, ⟨v.val, mem_submodule_mk v.property⟩⟩ :=
+      ⟨mk 𝕜 v.val v.property, ⟨v.val, mem_submodule_iff.2 fun _ ↦ rfl⟩⟩ :=
   (rfl)
 
 variable {V} [SeparatingDual 𝕜 V] in

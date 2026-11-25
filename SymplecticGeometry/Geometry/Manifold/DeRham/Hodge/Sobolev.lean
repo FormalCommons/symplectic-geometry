@@ -16,7 +16,7 @@ public import TauCeti.Geometry.Manifold.Riemannian.Sobolev.H1
 import SymplecticGeometry.Analysis.Distribution.Support
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.ChartCover
-import SymplecticGeometry.Analysis.Normed.Operator.Compact
+import TauCeti.Analysis.Normed.Operator.Compact.Domination
 import TauCeti.Analysis.Distribution.SchwartzSpace.Cutoff
 import TauCeti.Analysis.Distribution.TemperedDistribution.Lp
 import TauCeti.Analysis.Sobolev.BesselPotential.Inclusion
@@ -70,7 +70,7 @@ partition of unity, the `L²` norm of a form is bounded by the norms of its loca
 (`L2Form.exists_norm_le_sum_norm_localize`), and each localization by the norms of its
 coordinates (`L2Form.exists_norm_localize_le_mul_sum_norm_localizeCoord`). So `toL2` is
 dominated by finitely many compact operators, and is compact by
-`IsCompactOperator.of_norm_le_sum`.
+Tau Ceti's `IsCompactOperator.of_norm_le_mul_sum`.
 
 In degree zero, `H1Form o hl` for `hl : 0 + l = m` is Tau Ceti's Sobolev space
 `TauCeti.Manifold.SobolevH1 I M`, the completion of the smooth functions for
@@ -740,19 +740,24 @@ theorem H1Form.isCompactOperator_toL2 :
   choose D hD using fun i ↦ L2Form.exists_norm_localize_le_mul_sum_norm_localizeCoord
     (extChartPartialDiffeomorph I ∞ (c i)) (ρ i) (hρ i) bΛ e
   -- `toL2` is dominated by the coordinates of its localizations, which are compact.
-  refine IsCompactOperator.of_norm_le_sum
-    (F := fun _ ↦ Lp ℂ 2 (volume : Measure (CoordinateSpace (Module.finrank ℝ E))))
-    (S := fun ip : Fin N × Fin (Module.finrank ℝ (E [⋀^Fin k]→L[ℝ] ℝ)) ↦
+  refine IsCompactOperator.of_norm_le_mul_sum
+    (toL2 : H1Form o hkl →L[ℝ] L2Form I M k).toLinearMap
+    (fun ip : Fin N × Fin (Module.finrank ℝ (E [⋀^Fin k]→L[ℝ] ℝ)) ↦
       (L2Form.localizeCoord (extChartPartialDiffeomorph I ∞ (c ip.1)) (ρ ip.1) (hρ ip.1) bΛ ip.2
-        e ∘L toL2 : H1Form o hkl →L[ℝ] _).toLinearMap)
-    (fun ip ↦ ?_) (T := (toL2 : H1Form o hkl →L[ℝ] L2Form I M k).toLinearMap)
-    (fun ip ↦ C ip.1 * D ip.1) fun u ↦ ?_
-  · exact isCompactOperator_localizeCoord_comp_toL2 _ _ (hρ ip.1) bΛ ip.2 e
+        e ∘L toL2 : H1Form o hkl →L[ℝ] _))
+    (fun ip ↦ isCompactOperator_localizeCoord_comp_toL2 _ _ (hρ ip.1) bΛ ip.2 e)
+    (C := ∑ i, C i * max (D i) 0) fun u ↦ ?_
   refine (hC (toL2 u)).trans ?_
-  rw [Fintype.sum_prod_type]
+  rw [Fintype.sum_prod_type, Finset.mul_sum]
   refine Finset.sum_le_sum fun i _ ↦ ?_
-  refine (mul_le_mul_of_nonneg_left (hD i (toL2 u)) (hC0 i)).trans_eq ?_
-  simp [Finset.mul_sum, mul_assoc]
+  simp only [ContinuousLinearMap.comp_apply]
+  have hs : 0 ≤ ∑ p, ‖L2Form.localizeCoord (extChartPartialDiffeomorph I ∞ (c i)) (ρ i) (hρ i)
+      bΛ p e (toL2 u)‖ := by positivity
+  refine (mul_le_mul_of_nonneg_left ((hD i (toL2 u)).trans
+    (mul_le_mul_of_nonneg_right (le_max_left _ 0) hs)) (hC0 i)).trans ?_
+  rw [← mul_assoc]
+  exact mul_le_mul_of_nonneg_right (Finset.single_le_sum (f := fun j ↦ C j * max (D j) 0)
+    (fun j _ ↦ mul_nonneg (hC0 j) (le_max_right _ _)) (Finset.mem_univ i)) hs
 
 end SymplecticGeometry
 

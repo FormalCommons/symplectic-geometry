@@ -112,8 +112,7 @@ theorem exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero
     rw [PrincipalBundle.range_rightFundamentalLinearMap_eq_ker_mfderiv_proj]
     exact hv
   obtain ⟨η, rfl⟩ := hv'
-  obtain ⟨c, hc⟩ := (finrank_eq_one_iff_of_ne_zero' _ hξ).mp
-    (finrank_euclideanSpace_fin (𝕜 := ℝ) (n := 1)) η
+  obtain ⟨c, hc⟩ := (finrank_eq_one_iff_of_ne_zero' _ hξ).mp finrank_groupLieAlgebra_circle η
   refine ⟨c, ?_⟩
   rw [PrincipalBundle.rightFundamentalLinearMap_apply, ← hc]
   exact congrFun (rightFundamentalVectorField_smul c _) x
@@ -643,10 +642,8 @@ theorem IsCircleConnectionForm.mpullback_apply_eq_mpullback_division_add
       TauCeti.mpullback IB (IB.prod (𝓡 1)) t
         (TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) θ circleAngularForm +
           TauCeti.mpullback (IB.prod (𝓡 1)) IB p (TauCeti.mpullback IB (IB.prod (𝓡 1))
-            (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) α.val)) x := by
-    ext v
-    rw [mpullback_apply, mpullback_apply, hloc]
-    rfl
+            (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) α.val)) x :=
+    mpullback_apply_congr hloc
   rw [h, mpullback_add, Pi.add_apply, ← mpullback_comp_at hτ hθd, hθt,
     ManifoldTotalSpace.mpullback_mpullback_proj_apply _ hτ]
 

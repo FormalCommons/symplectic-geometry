@@ -9,10 +9,11 @@ public import Mathlib.Algebra.Lie.OfAssociative
 public import Mathlib.LinearAlgebra.Trace
 public import TauCeti.Geometry.Symplectic.AlmostComplex
 public import TauCeti.Geometry.Symplectic.Cayley.Basic
+public import TauCeti.Geometry.Symplectic.Complex.Module.Basic
 public import TauCeti.Geometry.Symplectic.SymplecticTransport
 public import TauCeti.LinearAlgebra.BilinearForm.SkewAdjoint
+public import TauCeti.LinearAlgebra.Trace.Complex
 public import SymplecticGeometry.LinearAlgebra.BilinearForm.SelfAdjoint
-import Mathlib.Tactic.Linarith
 
 /-!
 # Tangent spaces to the space of compatible complex structures, as algebra
@@ -67,11 +68,12 @@ variable {J : AlmostComplexStructure V} {Y : Module.End ℝ V}
 conjugation by `J` changes the sign of `Y` and fixes `Z`. -/
 theorem trace_mul_eq_zero_of_mem_tangentSpace (hY : Y ∈ J.tangentSpace) {Z : Module.End ℝ V}
     (hZ : Commute Z J.toLinearMap) : LinearMap.trace ℝ V (Y * Z) = 0 := by
-  have h : LinearMap.trace ℝ V (Y * Z) = -LinearMap.trace ℝ V (Y * Z) := by
-    conv_lhs => rw [← mul_mul_eq_of_mem_tangentSpace hY]
-    rw [mul_assoc, mul_assoc, LinearMap.trace_mul_comm, mul_assoc, ← hZ.eq, ← mul_assoc,
-      ← mul_assoc, mul_assoc (Y * Z), toLinearMap_mul_self, mul_neg_one, map_neg]
-  linarith
+  let := J.complexModule
+  have := J.complexModule_isScalarTower
+  refine LinearMap.trace_eq_zero_of_map_I_smul_eq_neg _ fun v ↦ ?_
+  have hZv : Z (J v) = J (Z v) := congrArg (· v) hZ.eq
+  simp only [mul_apply_eq_comp, J.complexModule_I_smul, hZv]
+  exact AlmostComplexStructure.mem_tangentSpace_iff_apply.1 hY _
 
 /-- The product of two tangent vectors at `J` commutes with `J`, since each of them anticommutes
 with it. -/
