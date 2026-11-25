@@ -137,6 +137,9 @@ data of the Sobolev operator are the readings of the `(0,1)`-part for `i` of `D_
 makes that projection injective on the `(0,1)`-forms for `J`
 (`TauCeti.SmoothAlmostComplexStructure.injOn_zeroOnePart_of_tames`). So the kernel of the Sobolev
 operator is the space `twistOneKernel J` of smooth solutions.
+The gluing adapts the proof of Tau Ceti's
+`TauCeti.SobolevSection.exists_continuous_contDiffOn_coord_ae_eq_of_forall_zeroAtInfty`, which glues
+chartwise representatives of Sobolev data in the same way.
 
 ## Main results
 
