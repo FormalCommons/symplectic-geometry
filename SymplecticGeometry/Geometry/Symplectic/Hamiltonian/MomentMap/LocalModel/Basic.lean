@@ -36,7 +36,9 @@ linear data.
 * `SymplecticGeometry.leftInvariantCovectorMapForm`: the two-form `-d⟨ν, θ⟩ + pr_N^* β` on
   `G × N`. It is closed when `β` is (`SymplecticGeometry.isClosed_leftInvariantCovectorMapForm`),
   invariant under `(g, p) ↦ (k * g, p)`
-  (`SymplecticGeometry.mpullback_mul_left_leftInvariantCovectorMapForm`), and on the slice
+  (`SymplecticGeometry.mpullback_mul_left_leftInvariantCovectorMapForm`) and under
+  `(g, p) ↦ (g * k⁻¹, f p)` for a smooth `f` that preserves `β` with `ν (f p) = Ad*_k (ν p)`
+  (`SymplecticGeometry.mpullback_prodMap_mul_right_leftInvariantCovectorMapForm`), and on the slice
   `G × {p}` it is the left-invariant Kirillov form of `ν p`
   (`SymplecticGeometry.mpullback_prodMk_leftInvariantCovectorMapForm`).
 * `SymplecticGeometry.eval₂_leftInvariantCovectorMapForm`: at `(g, p)` the form pairs
@@ -67,9 +69,12 @@ linear data.
   `ν ⁅ξ₁, ξ₂⁆ - (ι𝔪 a₁ + ι𝔥 (dμ_V(v) b₁)) ξ₂ + (ι𝔪 a₂ + ι𝔥 (dμ_V(v) b₂)) ξ₁ + σ (b₁, b₂)`.
 
 The values of the form come from Tau Ceti's
-`TauCeti.CotangentBundle.eval₂_mpullback_prodMap_leftTrivialization_symplecticForm`, and the
-invariance from `TauCeti.CotangentBundle.leftTrivialization_mul` and
-`TauCeti.CotangentBundle.mpullback_smul_symplecticForm`.
+`TauCeti.CotangentBundle.eval₂_mpullback_prodMap_leftTrivialization_symplecticForm`, the
+invariance under left translation from `TauCeti.CotangentBundle.leftTrivialization_mul` and
+`TauCeti.CotangentBundle.mpullback_smul_symplecticForm`, and that under right translation from
+`TauCeti.CotangentBundle.cotangentRel_mul_right_leftTrivialization`, which makes
+`(g, a) ↦ (g * k⁻¹, Ad*_k a)` the cotangent lift of `g ↦ g * k⁻¹`, and
+`Diffeomorph.mpullback_cotangent_symplecticForm`.
 
 ## References
 
@@ -153,6 +158,49 @@ theorem mpullback_mul_left_leftInvariantCovectorMapForm
   simp only [SmoothForm.mpullback_mpullback, h]
   rw [← SmoothForm.mpullback_mpullback _ _ hΦ (contMDiff_const_smul k),
     mpullback_smul_symplecticForm]
+
+/-- The form `-d⟨ν, θ⟩ + pr_N^* β` on `G × N` is invariant under `(g, p) ↦ (g * k⁻¹, f p)` for a
+smooth map `f : N → N` that preserves `β` and moves the covectors by the coadjoint action of `k`,
+`ν (f p) = Ad*_k (ν p)`. -/
+theorem mpullback_prodMap_mul_right_leftInvariantCovectorMapForm
+    (hν : ∀ ξ, ContMDiff J 𝓘(ℝ) ∞ fun p ↦ ν p ξ) {β : SmoothForm J N ℝ 2} (k : G) {f : N → N}
+    (hf : ContMDiff J J ∞ f) (hνf : ∀ p, ν (f p) = Lie.coadjointRepresentation ℝ I G k (ν p))
+    (hβ : SmoothForm.mpullback f hf β = β) :
+    SmoothForm.mpullback (Prod.map (· * k⁻¹) f) (contMDiff_mul_right.prodMap hf)
+        (leftInvariantCovectorMapForm hν β) =
+      leftInvariantCovectorMapForm hν β := by
+  have hν' := contMDiff_toContinuousLinearMap_of_contMDiff_apply (E := E) hν
+  have hΦ := (leftTrivialization I G).contMDiff.comp (contMDiff_id.prodMap hν')
+  -- Right translation by `k⁻¹`, as a diffeomorphism of `G`.
+  let R : G ≃ₘ⟮I, I⟯ G :=
+    { Equiv.mulRight k⁻¹ with
+      contMDiff_toFun := contMDiff_mul_right
+      contMDiff_invFun := contMDiff_mul_right }
+  -- In the left trivialization, `(g, a) ↦ (g * k⁻¹, Ad*_k a)` is the cotangent lift of `R`.
+  have h : (leftTrivialization I G ∘ Prod.map id
+      fun p ↦ LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν p)) ∘
+        Prod.map (· * k⁻¹) f = R.cotangent ∘ (leftTrivialization I G ∘
+          Prod.map id fun p ↦ LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν p)) := by
+    funext ⟨g, p⟩
+    have hc : LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν (f p)) =
+        LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν p) ∘L
+          Lie.adjointContinuousLinearMap (I := I) k⁻¹ :=
+      -- Both sides apply `ν (f p) = Ad*_k (ν p)` and `ν p ∘ Ad_{k⁻¹}` to `ξ`; the casts to linear
+      -- forms on `E` keep `LinearMap.coe_toContinuousLinearMap'` from rewriting them.
+      ContinuousLinearMap.ext fun ξ ↦
+        (congrArg (· ξ) (hνf p)).trans (Lie.coadjointRepresentation_apply _ _ _)
+    refine ((cotangentRel_diffeomorph_iff I I R _ _).1 ?_).symm
+    -- The composite at `(g * k⁻¹, f p)` is `Φ (g * k⁻¹, ν (f p))`, and `⇑R` is `(· * k⁻¹)`.
+    change cotangentRel I I (· * k⁻¹) _
+      (leftTrivialization I G
+        (g * k⁻¹, LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν (f p))))
+    rw [hc]
+    exact cotangentRel_mul_right_leftTrivialization g k⁻¹ _
+  rw [leftInvariantCovectorMapForm_def, map_add,
+    SmoothForm.mpullback_prodMap_mpullback_snd contMDiff_mul_right hf, hβ]
+  simp only [SmoothForm.mpullback_mpullback, h]
+  rw [← SmoothForm.mpullback_mpullback _ _ hΦ R.cotangent.contMDiff,
+    Diffeomorph.mpullback_cotangent_symplecticForm]
 
 /-- On the slice `G × {p}`, the form `-d⟨ν, θ⟩ + pr_N^* β` on `G × N` is the left-invariant
 Kirillov form of `ν p`: the term `pr_N^* β` vanishes there, as `pr_N` is constant on the slice. -/

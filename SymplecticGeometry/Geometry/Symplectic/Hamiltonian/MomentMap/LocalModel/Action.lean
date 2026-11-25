@@ -52,7 +52,11 @@ component in `A` is computed through the functionals `η ↦ equivDual𝔪 η ζ
 `k ↦ repA k η` into a coadjoint coefficient; the chain rule along `K → G` and Tau Ceti's
 `TauCeti.Lie.mvfderiv_coadjointRepresentation_apply_one` give its derivative, with that lemma's
 sign. Its component in `V` is `D.mfderiv_rep_apply`, and Tau Ceti's
-`MDifferentiableAt.mvfderiv_prodMk_apply` combines the two.
+`MDifferentiableAt.mvfderiv_prodMk_apply` combines the two. The equivariance of `ν`, with the
+fact that each `rep k` preserves `σ` (Tau Ceti's
+`TauCeti.SymplecticForm.IsSymplectomorphism.mpullback_constSmooth`), makes the form of the local
+model invariant under `(g, p) ↦ (g * k⁻¹, k • p)`, by
+`SymplecticGeometry.mpullback_prodMap_mul_right_leftInvariantCovectorMapForm`.
 
 ## Main definitions
 
@@ -82,6 +86,8 @@ sign. Its component in `V` is `D.mfderiv_rep_apply`, and Tau Ceti's
 * `SymplecticGeometry.LocalModelData.smulCommClass_fiberDistribMulAction`: the action of `K`
   on `A × V` commutes with real scalars.
 * `SymplecticGeometry.LocalModelData.covector_smul`: `ν (k • p) = Ad*_k (ν p)`.
+* `SymplecticGeometry.LocalModelData.mpullback_prodMap_mul_right_smul_form`: the form `D.form`
+  on `G × (A × V)` is invariant under `(g, p) ↦ (g * k⁻¹, k • p)` for `k ∈ K`.
 * `SymplecticGeometry.LocalModelData.equivDual𝔪_mfderiv_repA_apply`,
   `SymplecticGeometry.LocalModelData.mfderiv_repA_apply`,
   `SymplecticGeometry.LocalModelData.mfderiv_fiberDistribMulAction_smul_apply`: the infinitesimal
@@ -310,6 +316,35 @@ theorem covector_smul (k : K) (p : A × V) :
   rw [fiberDistribMulAction_smul, covector_apply, ι𝔪_repA, ι𝔥_momentMap_rep,
     coadjointRepresentation_apply, coadjointRepresentation_apply, coadjointRepresentation_apply,
     covector_apply, hτ]
+
+/-- The two-form of the local model on `G × (A × V)` is invariant under the action
+`(g, p) ↦ (g * k⁻¹, k • p)` of `k ∈ K`: the covectors `ν` are equivariant (`covector_smul`), and
+each `rep k` preserves `σ`. -/
+theorem mpullback_prodMap_mul_right_smul_form (k : K) :
+    letI := D.fiberDistribMulAction
+    SmoothForm.mpullback (Prod.map (· * (k : G)⁻¹) fun p : A × V ↦ k • p)
+        (contMDiff_mul_right.prodMap (haveI := D.contMDiffSMul_fiberDistribMulAction
+          ContMDiffSMul.contMDiff_const_smul (I := 𝓘(ℝ, F)) k)) D.form =
+      D.form := by
+  let := D.fiberDistribMulAction
+  have := D.contMDiffSMul_fiberDistribMulAction
+  have hk := ContMDiffSMul.contMDiff_const_smul (I := 𝓘(ℝ, F)) (I' := 𝓘(ℝ, A × V)) (n := ∞)
+    (M := A × V) k
+  -- The term `pr_V^* σ` is invariant, as `pr_V (k • p) = rep k (pr_V p)` and `rep k` preserves `σ`.
+  have hσ : SmoothForm.mpullback (fun p : A × V ↦ k • p) hk
+      (SmoothForm.mpullback Prod.snd contDiff_snd.contMDiff D.σ.constSmooth) =
+        SmoothForm.mpullback Prod.snd contDiff_snd.contMDiff D.σ.constSmooth := by
+    have he : SymplecticForm.IsSymplectomorphism D.σ D.σ
+        (D.rep k).toContinuousLinearEquiv.toLinearEquiv := by
+      rw [LinearEquiv.toLinearEquiv_toContinuousLinearEquiv]
+      exact D.isSymplectomorphism_rep k
+    rw [SmoothForm.mpullback_mpullback_of_comp_eq _ _ contDiff_snd.contMDiff
+      (D.rep k).toContinuousLinearEquiv.toDiffeomorph.contMDiff
+      (funext fun p ↦ congrArg Prod.snd (D.fiberDistribMulAction_smul k p)),
+      he.mpullback_constSmooth]
+  rw [form_def, localModelForm_def]
+  exact mpullback_prodMap_mul_right_leftInvariantCovectorMapForm _ (k : G) hk
+    (fun p ↦ by rw [← covector_def, ← covector_def]; exact D.covector_smul k p) hσ
 
 /-- The infinitesimal representation of the Lie algebra of `K` on `A ≃ 𝔪*`: the derivative at `1`
 of `k ↦ repA k η` in the direction `ξ`, read in `𝔪*` through `D.equivDual𝔪`, is
