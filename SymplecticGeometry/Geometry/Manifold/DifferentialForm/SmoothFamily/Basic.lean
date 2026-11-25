@@ -105,7 +105,7 @@ that lemma, it needs no boundaryless source, so `N × M'` may have boundary, as 
 `N = Set.Icc a b`.
 
 The value of a form with no component along `N` is computed from its slices by
-`TauCeti.SmoothForm.IsSemibasicAt.apply_eq_of_mfderiv_eq`, for the projection `Prod.fst`
+`TauCeti.RoughForm.IsSemibasicAt.apply_eq_of_mfderiv_eq`, for the projection `Prod.fst`
 (`Geometry/Manifold/DifferentialForm/Semibasic.lean`).
 
 ## References
@@ -248,7 +248,8 @@ theorem mpullback_prodMk_mpullback_prodComm (Ω : SmoothForm (I.prod J) (M × N)
 zero component along `M`. Its value at `p` on `v` is the value at `p.1` of its slice along
 `x ↦ (x, p.2)` on the components along `M` of the `v i`. -/
 theorem val_apply_eq_mpullback_val_apply {η : SmoothForm (I.prod J) (M × N) F k} {p : M × N}
-    (hη : IsSemibasicAt I Prod.fst η p) (v : Fin k → TangentSpace (I.prod J) p) :
+    (hη : RoughForm.IsSemibasicAt (F := F) I Prod.fst η.val p)
+    (v : Fin k → TangentSpace (I.prod J) p) :
     η.val p v = (mpullback (fun x ↦ (x, p.2)) (contMDiff_id.prodMk contMDiff_const) η).val p.1
       (fun i ↦ (Manifold.tangentSpaceProdEquiv p (v i)).1) := by
   rw [mpullback_apply]
@@ -265,13 +266,14 @@ theorem val_apply_eq_mpullback_val_apply {η : SmoothForm (I.prod J) (M × N) F 
 `M × N` semibasic for `Prod.fst`, that is, vanishing whenever one of their arguments has zero
 component along `M`, and whose slices along `x ↦ (x, t)` agree for every `t`, are equal. -/
 theorem eq_of_forall_mpullback_eq {η η' : SmoothForm (I.prod J) (M × N) F k}
-    (hη : IsSemibasic I Prod.fst η) (hη' : IsSemibasic I Prod.fst η')
+    (hη : RoughForm.IsSemibasic (F := F) I Prod.fst η.val)
+    (hη' : RoughForm.IsSemibasic (F := F) I Prod.fst η'.val)
     (h : ∀ t : N, mpullback (fun x ↦ (x, t)) (contMDiff_id.prodMk contMDiff_const) η =
       mpullback (fun x ↦ (x, t)) (contMDiff_id.prodMk contMDiff_const) η') :
     η = η' := by
   ext p v
-  rw [val_apply_eq_mpullback_val_apply (isSemibasic_def.mp hη p),
-    val_apply_eq_mpullback_val_apply (isSemibasic_def.mp hη' p), h]
+  rw [val_apply_eq_mpullback_val_apply (RoughForm.isSemibasic_def.mp hη p),
+    val_apply_eq_mpullback_val_apply (RoughForm.isSemibasic_def.mp hη' p), h]
 
 end TauCeti.SmoothForm
 

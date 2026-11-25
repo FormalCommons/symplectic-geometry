@@ -152,8 +152,9 @@ namespace IsCharacteristicSubmersion
 
 /-- At every point `x`, `σ_x` vanishes as soon as one of its arguments lies in the kernel of the
 derivative of a characteristic submersion `p` at `x`: `σ` is semibasic for `p`. -/
-theorem isSemibasic (hp : IsCharacteristicSubmersion IB σ p) : IsSemibasic IB p σ := by
-  refine isSemibasic_def.mpr fun x ↦ isSemibasicAt_def.mpr
+theorem isSemibasic (hp : IsCharacteristicSubmersion IB σ p) :
+    RoughForm.IsSemibasic IB p σ.val := by
+  refine RoughForm.isSemibasic_def.mpr fun x ↦ RoughForm.isSemibasicAt_def.mpr
     (Submodule.mem_conormalForms.2 fun (m : Fin 2 → TangentSpace I x) j hj ↦ ?_)
   rw [hp.ker_mfderiv x, mem_ker_bilinFormAt_iff] at hj
   refine AlternatingMap.map_eq_zero_of_curryLeft_eq_zero (x := m j) ?_ rfl
@@ -167,7 +168,7 @@ theorem apply_eq_of_mfderiv_eq (hp : IsCharacteristicSubmersion IB σ p) {x : M}
     {v w : Fin 2 → TangentSpace I x}
     (h : ∀ i, mfderiv I IB p x (v i) = mfderiv I IB p x (w i)) :
     σ.val x v = σ.val x w :=
-  (isSemibasic_def.mp hp.isSemibasic x).apply_eq_of_mfderiv_eq h
+  (RoughForm.isSemibasic_def.mp hp.isSemibasic x).apply_eq_of_mfderiv_eq h
 
 /-- The form `σ` read on `T_{p y} B` at a point `y`, through a (non-canonical) right inverse of
 the derivative of `p`. -/

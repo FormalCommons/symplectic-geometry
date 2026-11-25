@@ -241,8 +241,8 @@ theorem prodIccHomotopyOperator_apply_apply [CompleteSpace F]
 
 /-- **`K η` has no component along the interval.** For a `(k + 1)`-form `η` on `M × [a, b]`,
 the `k`-form `K η` vanishes on every family of tangent vectors one of which has zero component
-along `M`. This is the componentwise form (`TauCeti.SmoothForm.isSemibasic_fst_iff`) of
-`TauCeti.SmoothForm.IsSemibasic I Prod.fst (prodIccHomotopyOperator I M a b F k η)`. -/
+along `M`. This is the componentwise form (`TauCeti.RoughForm.isSemibasic_fst_iff`) of
+`TauCeti.RoughForm.IsSemibasic I Prod.fst (prodIccHomotopyOperator I M a b F k η).val`. -/
 theorem prodIccHomotopyOperator_apply_eq_zero [CompleteSpace F]
     (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F (k + 1)) (x : M × Icc a b)
     (v : Fin k → TangentSpace (I.prod (𝓡∂ 1)) x) (i : Fin k)
@@ -384,7 +384,7 @@ theorem mpullback_prodMap_subtypeVal_timeExtendIcc_prodIccHomotopyOperator [Comp
         (SmoothForm.timeExtendIcc (prodIccHomotopyOperator I M a b F k η)) =
       prodIccHomotopyOperator I M a b F k η :=
   SmoothForm.mpullback_prodMap_subtypeVal_timeExtendIcc _
-    (SmoothForm.isSemibasic_fst_iff.mpr (prodIccHomotopyOperator_apply_eq_zero η))
+    (RoughForm.isSemibasic_fst_iff.mpr (prodIccHomotopyOperator_apply_eq_zero η))
 
 /-- **Restriction of the extension.** The extension to `M × ℝ` of a closed form `η` on
 `M × [a, b]` restricts to `η` on `M × [a, b]`. -/
@@ -394,7 +394,7 @@ theorem mpullback_prodMap_subtypeVal_prodIccExtension [CompleteSpace F]
         (prodIccExtension I M a b F k η) = η := by
   rw [prodIccExtension_apply, map_add,
     SmoothForm.mpullback_prodMap_subtypeVal_mextDerivₗ_timeExtendIcc _
-      (SmoothForm.isSemibasic_fst_iff.mpr (prodIccHomotopyOperator_apply_eq_zero η)),
+      (RoughForm.isSemibasic_fst_iff.mpr (prodIccHomotopyOperator_apply_eq_zero η)),
     mextDerivₗ_prodIccHomotopyOperator ((SmoothForm.isClosed_iff_mextDerivₗ_eq_zero _).mp hη),
     SmoothForm.mpullback_mpullback,
     SmoothForm.mpullback_congr
