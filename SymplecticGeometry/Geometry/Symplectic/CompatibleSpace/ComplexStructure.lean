@@ -167,8 +167,7 @@ theorem mvfderiv_compatibleCLM_compatibleSpaceComplexStructure (J : 𝒥)
   -- The identity `R J₀ = (1 + C) R J₀ R`, from `(1 + C) J₀ = J₀ (1 - C)`.
   have hc : (1 + C) * (↑u⁻¹ : V →L[ℝ] V) = ↑u⁻¹ * (1 + C) :=
     (Commute.units_inv_right (by rw [hu, commute_iff_eq]; noncomm_ring)).eq
-  have hJ : (1 + C) * J₀ = J₀ * (u : V →L[ℝ] V) := by
-    rw [hu, add_mul, mul_sub, one_mul, mul_one, hC, sub_eq_add_neg]
+  have hJ : (1 + C) * J₀ = J₀ * (u : V →L[ℝ] V) := hu ▸ one_add_mul_eq_mul_one_sub hC
   have hR : (↑u⁻¹ : V →L[ℝ] V) * J₀ = (1 + C) * ↑u⁻¹ * J₀ * ↑u⁻¹ := by
     rw [hc, mul_assoc (↑u⁻¹ : V →L[ℝ] V) (1 + C) J₀, hJ, mul_assoc, mul_assoc, Units.mul_inv,
       mul_one]
