@@ -8,7 +8,7 @@ module
 public import Mathlib.Topology.Connected.Clopen
 
 /-!
-# Preconnectedness of dense subsets
+# Preconnected sets and clopen sets
 
 A dense subset `s` of a preconnected space is preconnected as soon as every point of the space
 has a neighbourhood `t` such that `t ∩ s` is preconnected. Applied to the interior of a manifold
@@ -17,6 +17,8 @@ with boundary, this shows that the interior of a connected manifold is connected
 ## Main results
 
 * `Dense.isPreconnected_of_forall_exists_mem_nhds`: the criterion above.
+* `IsPreconnected.inter_of_isClopen_preimage_val`: cutting a preconnected set `s` by a set whose
+  trace on some `u ⊇ s` is open and closed in `u` leaves a preconnected set.
 -/
 
 public section
@@ -44,5 +46,19 @@ theorem Dense.isPreconnected_of_forall_exists_mem_nhds [PreconnectedSpace X] {s 
   refine PreconnectedSpace.induction₂' _ (fun x ↦ ?_) ⟨fun _ _ _ ↦ ReflTransGen.trans⟩ x y
   filter_upwards [hmeet x] with y hy
   exact ⟨ReflTransGen.single hy, ReflTransGen.single (by rwa [inter_comm])⟩
+
+/-- If `s ⊆ u` is preconnected and the trace of `t` on `u` is open and closed in `u`, then
+`s ∩ t` is preconnected: it is either empty or all of `s`. -/
+theorem IsPreconnected.inter_of_isClopen_preimage_val {s t u : Set X} (hs : IsPreconnected s)
+    (hsu : s ⊆ u) (ht : IsClopen ((↑) ⁻¹' t : Set u)) : IsPreconnected (s ∩ t) := by
+  rcases (s ∩ t).eq_empty_or_nonempty with h | ⟨x, hxs, hxt⟩
+  · rw [h]
+    exact isPreconnected_empty
+  have hs' : IsPreconnected ((↑) ⁻¹' s : Set u) := by
+    rwa [← IsInducing.subtypeVal.isPreconnected_image, Subtype.image_preimage_coe,
+      inter_eq_right.2 hsu]
+  have hst := hs'.subset_isClopen ht ⟨⟨x, hsu hxs⟩, hxs, hxt⟩
+  have hst' : s ⊆ t := fun y hy ↦ hst (show (⟨y, hsu hy⟩ : u) ∈ (↑) ⁻¹' s from hy)
+  rwa [inter_eq_left.2 hst']
 
 end
