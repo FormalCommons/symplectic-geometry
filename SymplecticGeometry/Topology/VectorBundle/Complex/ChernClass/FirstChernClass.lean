@@ -40,6 +40,9 @@ again compact Hausdorff, and `π^*` is injective on cohomology (`injective_proje
   surface.
 * `chernClass_one_eq_firstChernClass`: `c₁(E)` is `firstChernClass G E`, read in integral
   cohomology, over a compact Hausdorff base.
+* `Projectivization.firstChernClass_tautological`: `firstChernClass` of the tautological line of
+  `ℙ ℂ V` is minus the hyperplane class `Projectivization.hyperplaneClass V`, as both are the
+  Euler class of that line up to sign.
 
 ## References
 
@@ -141,5 +144,22 @@ theorem chernClass_one_eq_firstChernClass :
     exact TopCat.uliftIntegralCohomologyIso_naturality_apply _ _ _
 
 end SymplecticGeometry.Bundle
+
+namespace Projectivization
+
+open SymplecticGeometry.Bundle
+open scoped LinearAlgebra.Projectivization
+
+/-- **The first Chern class of the tautological line.** For a complex normed space `V`, the first
+Chern class of the tautological line of `ℙ ℂ V`, read in integral cohomology, is minus the
+hyperplane class.
+
+Milestone: *First Chern class of a complex vector bundle*. -/
+theorem firstChernClass_tautological (V : Type) [NormedAddCommGroup V] [NormedSpace ℂ V] :
+    ((TopCat.of (ℙ ℂ V)).uliftIntegralCohomologyIso 2).hom
+        (firstChernClass ℂ (Tautological ℂ V)) = -hyperplaneClass V := by
+  rw [hyperplaneClass_def, neg_neg, firstChernClass_eq_complexEulerClass _ (finrank_self ℂ)]
+
+end Projectivization
 
 end

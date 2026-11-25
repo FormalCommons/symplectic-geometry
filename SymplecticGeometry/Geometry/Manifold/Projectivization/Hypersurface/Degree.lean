@@ -12,7 +12,6 @@ public import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface
 public import TauCeti.Geometry.Manifold.VectorBundle.Section.Module
 public import TauCeti.Topology.VectorBundle.Orientation.Complex.EulerClass
 
-import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
 import SymplecticGeometry.Geometry.Manifold.Projectivization.Hypersurface.Line
 import SymplecticGeometry.LinearAlgebra.FiniteDimensional.Submodule
 import SymplecticGeometry.LinearAlgebra.Projectivization.Basic
@@ -20,7 +19,6 @@ import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.EulerClass
 import SymplecticGeometry.Topology.VectorBundle.Orientation.SectionIndex.ComplexLinear
 import TauCeti.Geometry.Manifold.VectorBundle.Section.Generic
 import TauCeti.LinearAlgebra.Matrix.Rank.Closed
-import TauCeti.Topology.VectorBundle.Orientation.SectionIndex
 
 /-!
 # The degree of a smooth projective hypersurface
@@ -34,7 +32,9 @@ The class `(ι^* h) ^ n` is the top Chern class of `ι^* 𝒪(1)^{⊕n}`, by the
 for `𝒪(1)^{⊕n}` (`Projectivization.totalChernClass_twistPiCore`) and naturality, hence its Euler
 class (`SymplecticGeometry.Bundle.chernClass_finrank_eq_complexEulerClass`). Pairing the Euler class
 with `[X]` adds up, over the zeros of a section with finitely many zeros, its index at each
-(`TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`). The
+(`SymplecticGeometry.complexManifoldEvalFundamentalClass_complexEulerClass_eq_sum_sectionIndex`,
+a form of Tau Ceti's
+`TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex`). The
 section is the one given by a tuple `ℓ` of `n` linear forms on `ℂⁿ⁺²`, whose zeros are the points
 of `X` on the line `{ℓ = 0}`; it is chosen by Tau Ceti's theorem on generic sections
 (`ContMDiffSection.mem_residual_setOf_regular_and_finite_zero_affineFamily`), whose residual set
@@ -100,11 +100,7 @@ theorem complexEulerClass_twistPiCore_pullback (r : ℕ) :
   rw [totalChernClass_twistPiCore, one_smul, map_pow, map_add, map_one,
     evenIntegralCohomologyMap_hyperplaneClass]
   -- The component of degree `r + 1` of `(1 + ι^* h) ^ (r + 1)` is that of `(ι^* h) ^ (r + 1)`.
-  have h := TopCat.aeval_evenIntegralCohomologyOf_apply (TopCat.of X) X.hyperplaneClass
-    ((1 + Polynomial.X) ^ (r + 1)) (r + 1)
-  simp only [map_pow, map_add, map_one, Polynomial.aeval_X] at h
-  rw [h, add_comm (1 : Polynomial ℤ), Polynomial.coeff_X_add_one_pow, Nat.choose_self,
-    Nat.cast_one, one_smul]
+  rw [TopCat.one_add_evenIntegralCohomologyOf_pow_apply, Nat.choose_self, Nat.cast_one, one_smul]
 
 open scoped TauCeti.ComplexManifold in
 /-- **A generic tuple of linear forms.** Some surjective `ℓ : ℂⁿ⁺² → ℂⁿ` gives a section of
@@ -203,18 +199,13 @@ Milestone: *Chern classes of projective hypersurfaces*. -/
 theorem evalFundamentalClass_hyperplaneClass_pow (X : SmoothProjectiveHypersurface (n + 1) d) :
     complexManifoldEvalFundamentalClass (Fin (n + 1 + 1 - Fintype.card Unit) → ℂ) X finrank_model
       (((TopCat.of X).evenIntegralCohomologyOf 1 X.hyperplaneClass ^ (n + 1)) (n + 1)) = d := by
-  have hE : finrank ℝ (Fin (n + 1 + 1 - Fintype.card Unit) → ℂ) =
-      2 * n + 1 + 1 :=
-    finrank_real_of_finrank_complex_eq_add_one finrank_model
   obtain ⟨ℓ, hℓ, hreg, hfin⟩ := X.exists_surjective_linearSection_regular
   have hs : Continuous fun x ↦ TotalSpace.mk' (Fin (n + 1) → ℂ) x (X.linearSection ℓ x) :=
     (X.linearSection ℓ).contMDiff.continuous
   -- The pairing is that of the Euler class of `ι^* 𝒪(1)^{⊕(n+1)}`, the sum of the local indices
   -- of the section given by `ℓ`.
-  rw [← X.complexEulerClass_twistPiCore_pullback n, complexManifoldEvalFundamentalClass_def,
-    HomologicalOrientation.evalFundamentalClass_uliftIntegralCohomologyIso_hom,
-    complexEulerClass_def,
-    VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex _ _ _ hs hE hfin]
+  rw [← X.complexEulerClass_twistPiCore_pullback n,
+    complexManifoldEvalFundamentalClass_complexEulerClass_eq_sum_sectionIndex _ _ hs hfin]
   calc _ = ∑ _z ∈ hfin.toFinset, (1 : ℤ) := Finset.sum_congr rfl ?_
     _ = d := by
       rw [Finset.sum_const, nsmul_one, ← Set.ncard_eq_toFinset_card _ hfin, ← Nat.card_coe_set_eq,
