@@ -166,8 +166,9 @@ theorem isEquivariantMomentMap_leftInvariantCovectorMapForm [T2Space G] [I.Bound
   -- The map `Φ ∘ (id × ν)` intertwines the action on `G × N` with the cotangent-lifted action, so
   -- the cotangent moment map pulls back along it.
   have h := (isEquivariantMomentMap_momentMap (IG := I) (G := G) (I := I) (M := G)).mpullback hφ
-    fun g q ↦ (congrArg _ (Prod.ext (congrArg Prod.fst (prodFstMulAction_smul g q)) rfl)).trans
-      (leftTrivialization_mul g q.1 _)
+    fun g q ↦ by
+      rw [Function.comp_apply, Function.comp_apply, prodFstMulAction_smul]
+      exact leftTrivialization_mul g q.1 _
   have hμ : momentMap I G ∘ (leftTrivialization I G ∘ Prod.map id
       fun p ↦ LinearMap.toContinuousLinearMap (show E →ₗ[ℝ] ℝ from ν p)) =
         fun q : G × N ↦ coadjointRepresentation ℝ I G q.1 (ν q.2) :=
