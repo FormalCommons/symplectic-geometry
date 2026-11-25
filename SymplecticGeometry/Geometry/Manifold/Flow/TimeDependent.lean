@@ -51,8 +51,7 @@ The lift of a solution through its clock is
 A time-dependent field on `M × N` that vanishes outside a compact set and has no component along
 `N` on a level `M × {y}` induces a field on `M`; the flow of that field, kept at the level `y`,
 solves the equation of the field on `M × N`, so by uniqueness of solutions the flow keeps the
-level
-(`TauCeti.timeDependentFlowOf_snd_eq_of_forall_snd_eq_zero`).
+level (`TauCeti.timeDependentFlowOf_snd_eq_of_forall_snd_eq_zero`).
 
 A diffeomorphism `ψ` that carries one time-dependent field to another at every time carries the
 suspension of the first to that of the second through `id × ψ`
