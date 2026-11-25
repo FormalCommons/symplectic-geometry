@@ -54,6 +54,9 @@ smooth in `t` (`SmoothCohomologySplitting.contMDiff_repr_mk`).
 * `SmoothCohomologySplitting.finiteDimensional_deRhamCohomology`.
 * `SmoothCohomologySplitting.mextDerivₗ_exactPrimitive` and
   `SmoothCohomologySplitting.preservesSmoothFamilies_exactPrimitive`.
+* `SmoothCohomologySplitting.exists_isSmoothFamily_mextDerivₗ_eq_of_mem_exactForms`: a smooth
+  family of forms that are exact at the parameters of a set `K` has a smooth family of
+  primitives over `K`.
 * `SmoothCohomologySplitting.contMDiff_repr_mk`: the coordinates of the classes of a smooth
   family of closed forms are smooth.
 
@@ -273,6 +276,41 @@ theorem contMDiff_repr_mk {k : ℕ} {ι : Type*} (b : Module.Basis ι ℝ (deRha
     ContMDiff J 𝓘(ℝ) ∞ (fun t ↦ b.repr (deRhamCohomology.mk I k (z t)) i) := by
   simpa using (σ.preservesSmoothFamilies_subtype_comp_projSpace k).contMDiff_dual_apply hz
     (b.coord i ∘ₗ (σ.spaceEquiv k).toLinearMap)
+
+include σ in
+/-- **Smooth primitives of a family that is exact at some parameters.** Let `τ` be a smooth
+family of `(k + 1)`-forms over a manifold `N` such that `τ t` is exact for every `t` in a set `K`.
+The `k`-forms `β t` can be chosen to depend smoothly on `t`, with `d (β t) = τ t` whenever
+`t ∈ K`. -/
+theorem exists_isSmoothFamily_mextDerivₗ_eq_of_mem_exactForms {k : ℕ}
+    {EN : Type uE} [NormedAddCommGroup EN] [NormedSpace ℝ EN] {HN : Type uH} [TopologicalSpace HN]
+    {N : Type uN} [TopologicalSpace N] [ChartedSpace HN N] {J : ModelWithCorners ℝ EN HN}
+    [IsManifold J ∞ N] {τ : N → SmoothForm I M ℝ (k + 1)} (hτ : IsSmoothFamily J τ) {K : Set N}
+    (hK : ∀ t ∈ K, τ t ∈ exactForms I M (k + 1)) :
+    ∃ β : N → SmoothForm I M ℝ k, IsSmoothFamily J β ∧ ∀ t ∈ K, mextDerivₗ I k (β t) = τ t := by
+  -- Off `K` the form `τ t` need not be closed: correct it by `h (d (τ t))`, with `h` the primitive
+  -- on exact forms. On `K` the correction vanishes. First the exterior derivatives of `τ`.
+  let dτ : N → exactForms I M (k + 1 + 1) :=
+    fun t ↦ ⟨mextDerivₗ I (k + 1) (τ t), by
+      rw [exactForms_succ]; exact LinearMap.mem_range_self _ _⟩
+  -- The corrected, closed family.
+  let c : N → closedForms I M (k + 1) := fun t ↦
+    ⟨τ t - σ.exactPrimitive (k + 1) (dτ t), by
+      rw [mem_closedForms_iff_mextDerivₗ_eq_zero, map_sub, σ.mextDerivₗ_exactPrimitive, sub_self]⟩
+  have hc : IsSmoothFamily J (fun t ↦ (c t : SmoothForm I M ℝ (k + 1))) :=
+    hτ.sub (preservesSmoothFamilies_def.mp (σ.preservesSmoothFamilies_exactPrimitive (k + 1)) dτ
+      hτ.mextDeriv)
+  have hcK : ∀ t ∈ K, (c t : SmoothForm I M ℝ (k + 1)) = τ t := by
+    intro t ht
+    have hdτ : dτ t = 0 := Subtype.ext
+      ((mem_closedForms_iff_mextDerivₗ_eq_zero _ _).mp (exactForms_le_closedForms _ _ (hK t ht)))
+    -- The value of `c t` is its defining difference.
+    change τ t - σ.exactPrimitive (k + 1) (dτ t) = τ t
+    rw [hdτ, map_zero, sub_zero]
+  refine ⟨fun t ↦ σ.primitive k (c t),
+    preservesSmoothFamilies_def.mp (σ.preservesSmoothFamilies_primitive k) c hc, fun t ht ↦ ?_⟩
+  rw [σ.mextDerivₗ_primitive, (σ.proj_eq_zero_iff (c t)).mpr (by rw [hcK t ht]; exact hK t ht),
+    sub_zero, hcK t ht]
 
 section Diffeomorph
 
