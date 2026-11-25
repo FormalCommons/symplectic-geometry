@@ -58,9 +58,11 @@ The complex structure `cplx` is not determined by the other fields.
 * `SymplecticGeometry.LieComplexification.contMDiff_expI`: `expI` is smooth.
 * `SymplecticGeometry.LieComplexification.lieMap_re_add_cplx_lieMap_im`: every element `x` is
   `lieMap (re x) + cplx (lieMap (im x))`.
-* `SymplecticGeometry.LieComplexification.lie_lieMap_add_cplx_lieMap`,
+* `SymplecticGeometry.LieComplexification.cplx_lie_cplx`: `⁅cplx x, cplx y⁆ = -⁅x, y⁆`.
+* `SymplecticGeometry.LieComplexification.lie_add_cplx`,
+  `SymplecticGeometry.LieComplexification.lie_lieMap_add_cplx_lieMap`,
   `SymplecticGeometry.LieComplexification.re_lie`, `SymplecticGeometry.LieComplexification.im_lie`:
-  the bracket in that decomposition multiplies like complex numbers,
+  the bracket multiplies like complex numbers,
   `re ⁅x, y⁆ = ⁅re x, re y⁆ - ⁅im x, im y⁆` and `im ⁅x, y⁆ = ⁅re x, im y⁆ + ⁅im x, re y⁆`.
 * `SymplecticGeometry.LieComplexification.connectedSpace`: `Gc` is connected if `G` is.
 * `SymplecticGeometry.LieComplexification.isClosedEmbedding_toHom`: `toHom` is a closed
@@ -171,16 +173,24 @@ theorem isCompl_range_lieMap : IsCompl (LinearMap.range C.lieMap.toLinearMap)
 theorem cplx_lie' (x y : GroupLieAlgebra IC Gc) : C.cplx ⁅x, y⁆ = ⁅C.cplx x, y⁆ := by
   rw [← lie_skew, ← neg_one_smul ℝ ⁅y, x⁆, C.cplx.apply_smul, C.cplx_lie, neg_one_smul, lie_skew]
 
+/-- The bracket of two images under the complex structure: `⁅cplx x, cplx y⁆ = -⁅x, y⁆`. -/
+theorem cplx_lie_cplx (x y : GroupLieAlgebra IC Gc) : ⁅C.cplx x, C.cplx y⁆ = -⁅x, y⁆ := by
+  rw [← C.cplx_lie, ← C.cplx_lie', AlmostComplexStructure.apply_apply]
+
+/-- The bracket multiplies like complex numbers:
+`⁅x + cplx y, z + cplx w⁆ = ⁅x, z⁆ - ⁅y, w⁆ + cplx (⁅x, w⁆ + ⁅y, z⁆)`. -/
+theorem lie_add_cplx (x y z w : GroupLieAlgebra IC Gc) :
+    ⁅x + C.cplx y, z + C.cplx w⁆ = ⁅x, z⁆ - ⁅y, w⁆ + C.cplx (⁅x, w⁆ + ⁅y, z⁆) := by
+  rw [add_lie, lie_add, lie_add, cplx_lie_cplx, ← C.cplx_lie, ← C.cplx_lie', map_add]
+  abel
+
 /-- The bracket in the decomposition `lieMap 𝔤 ⊕ cplx (lieMap 𝔤)`, as for complex numbers:
 `⁅lieMap a + cplx (lieMap b), lieMap c + cplx (lieMap d)⁆` is
 `lieMap (⁅a, c⁆ - ⁅b, d⁆) + cplx (lieMap (⁅a, d⁆ + ⁅b, c⁆))`. -/
 theorem lie_lieMap_add_cplx_lieMap (a b c d : GroupLieAlgebra I G) :
     ⁅C.lieMap a + C.cplx (C.lieMap b), C.lieMap c + C.cplx (C.lieMap d)⁆ =
       C.lieMap (⁅a, c⁆ - ⁅b, d⁆) + C.cplx (C.lieMap (⁅a, d⁆ + ⁅b, c⁆)) := by
-  rw [add_lie, lie_add, lie_add, ← C.cplx_lie, ← C.cplx_lie', ← C.cplx_lie', ← C.cplx_lie,
-    AlmostComplexStructure.apply_apply, ← LieHom.map_lie, ← LieHom.map_lie, ← LieHom.map_lie,
-    ← LieHom.map_lie, map_sub, map_add, AlmostComplexStructure.apply_add]
-  abel
+  simp only [lie_add_cplx, map_sub, map_add, LieHom.map_lie]
 
 section FiniteDimensional
 
@@ -233,6 +243,7 @@ theorem lieMap_re_add_cplx_lieMap_im (x : GroupLieAlgebra IC Gc) :
   simp
 
 /-- The real part of a bracket: `re ⁅x, y⁆ = ⁅re x, re y⁆ - ⁅im x, im y⁆`. -/
+@[simp]
 theorem re_lie (x y : GroupLieAlgebra IC Gc) :
     C.re ⁅x, y⁆ = ⁅C.re x, C.re y⁆ - ⁅C.im x, C.im y⁆ := by
   conv_lhs => rw [← C.lieMap_re_add_cplx_lieMap_im x, ← C.lieMap_re_add_cplx_lieMap_im y,
@@ -240,6 +251,7 @@ theorem re_lie (x y : GroupLieAlgebra IC Gc) :
   rw [map_add, re_lieMap, re_cplx_lieMap, add_zero]
 
 /-- The imaginary part of a bracket: `im ⁅x, y⁆ = ⁅re x, im y⁆ + ⁅im x, re y⁆`. -/
+@[simp]
 theorem im_lie (x y : GroupLieAlgebra IC Gc) :
     C.im ⁅x, y⁆ = ⁅C.re x, C.im y⁆ + ⁅C.im x, C.re y⁆ := by
   conv_lhs => rw [← C.lieMap_re_add_cplx_lieMap_im x, ← C.lieMap_re_add_cplx_lieMap_im y,
