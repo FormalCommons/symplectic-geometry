@@ -259,6 +259,21 @@ def normalFiberDerivEquiv (f : SmoothEmbedding I J ∞ M N) (hn : (∞ : ℕ∞�
     (bijective_normalFiberDeriv f hn hdim (hΦ.mdifferentiableAt hn)
       (hΦ.isInvertible_mfderiv hn).injective hfΦ)).toContinuousLinearEquiv
 
+/-- `normalFiberDerivEquiv` is the normal derivative, which is bijective, made a linear equivalence
+and then, the normal space being finite-dimensional, a continuous linear equivalence. -/
+theorem normalFiberDerivEquiv_def (f : SmoothEmbedding I J ∞ M N) (hn : (∞ : ℕ∞ω) ≠ 0)
+    (hdim : finrank ℝ P = finrank ℝ V - finrank ℝ E)
+    {Φ : TotalSpace P (fun x ↦ f.NormalSpace x hn) → N} {x : M}
+    (hΦ : letI := f.normalSpaceFiberBundle hn hdim
+      IsLocalDiffeomorphAt (I.prod 𝓘(ℝ, P)) J ∞ Φ (zeroSection P _ x))
+    (hfΦ : Φ ∘ zeroSection P _ =ᶠ[𝓝 x] f) :
+    letI := f.normalSpaceFiberBundle hn hdim
+    f.normalFiberDerivEquiv hn hdim hΦ hfΦ =
+      (LinearEquiv.ofBijective (f.normalFiberDeriv hn hdim Φ x : f.NormalSpace x hn →ₗ[ℝ] _)
+        (bijective_normalFiberDeriv f hn hdim (hΦ.mdifferentiableAt hn)
+          (hΦ.isInvertible_mfderiv hn).injective hfΦ)).toContinuousLinearEquiv :=
+  (rfl)
+
 /-- The continuous linear automorphism `normalFiberDerivEquiv` applies the normal derivative. -/
 @[simp]
 theorem normalFiberDerivEquiv_apply (f : SmoothEmbedding I J ∞ M N) (hn : (∞ : ℕ∞ω) ≠ 0)
@@ -268,7 +283,7 @@ theorem normalFiberDerivEquiv_apply (f : SmoothEmbedding I J ∞ M N) (hn : (∞
       IsLocalDiffeomorphAt (I.prod 𝓘(ℝ, P)) J ∞ Φ (zeroSection P _ x))
     (hfΦ : Φ ∘ zeroSection P _ =ᶠ[𝓝 x] f) (v : f.NormalSpace x hn) :
     f.normalFiberDerivEquiv hn hdim hΦ hfΦ v = f.normalFiberDeriv hn hdim Φ x v := by
-  rw [normalFiberDerivEquiv, LinearEquiv.coe_toContinuousLinearEquiv',
+  rw [normalFiberDerivEquiv_def, LinearEquiv.coe_toContinuousLinearEquiv',
     LinearEquiv.ofBijective_apply, ContinuousLinearMap.coe_coe]
 
 /-- The continuous linear map underlying `normalFiberDerivEquiv` is the normal derivative. -/
