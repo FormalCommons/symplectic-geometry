@@ -520,8 +520,8 @@ theorem ker_mfderiv_sphereHopf (x : sphere (0 : StdSpace (Fin (n + 1))) 1) :
     -- The tangent vector is read in the model space, the domain of `D`.
     obtain ⟨w, hw⟩ : ∃ w : EuclideanSpace ℝ (Fin (2 * n + 1)),
         D w = stdComplexStructure (Fin (n + 1)) (x : StdSpace (Fin (n + 1))) :=
-      exists_mvfderiv_coe_sphere_eq x (by
-        rw [real_inner_comm, ← stdForm_apply_eq_inner]; exact (stdForm (Fin (n + 1))).isAlt _)
+      exists_mvfderiv_coe_sphere_eq x (AlmostComplexStructure.inner_self_apply
+        (inner_stdComplexStructure_stdComplexStructure (ι := Fin (n + 1))) _)
     refine ⟨w, ?_, hw⟩
     let w' : TangentSpace (𝓡 (2 * n + 1)) x := w
     have hι : mfderiv (𝓡 (2 * n + 1)) 𝓘(ℝ, Fin (n + 1) → ℂ) (sphereToPuncturedSpace n) x w' =
