@@ -195,9 +195,9 @@ with values in `H²(B; ULift ℤ)` as everywhere in the library; statements
 that involve $h$ go through `TopCat.uliftIntegralCohomologyIso`, as
 `chernClass_one_eq_firstChernClass` does.
 
-**The milestone.** Each theorem below carries the line *Milestone: First
-Chern class of a complex vector bundle*; together they are the page's
-statement.
+**The milestone.** Each theorem below (not the definition) carries the line
+*Milestone: First Chern class of a complex vector bundle*; together they are
+the page's statement.
 
 - The class: `SymplecticGeometry.Bundle.firstChernClass G E`, defined for a
   complex vector bundle over any `B : Type` (merged).
