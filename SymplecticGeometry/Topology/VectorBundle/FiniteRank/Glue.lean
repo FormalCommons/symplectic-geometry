@@ -684,9 +684,9 @@ private theorem fiberMap_isoGlueHom (b : B) :
   rw [isoGlueHom, VectorBundleCore.CoordinateHom.fiberMap_ofContinuous]
 
 private theorem isInvertible_fiberMap_isoGlueHom (b : B) :
-    ((isoGlueHom φ ψ hU hV hUV).fiberMap b).IsInvertible :=
-  ⟨_, (toContinuousLinearMap_isoFiberEquiv (glueSideIso φ ψ (glueIndex U b))
-    ⟨b, mem_glueSide_glueIndex hUV b⟩).trans (fiberMap_isoGlueHom φ ψ hU hV hUV b).symm⟩
+    ((isoGlueHom φ ψ hU hV hUV).fiberMap b).IsInvertible := by
+  rw [fiberMap_isoGlueHom]
+  exact isInvertible_fiberMap_hom _ _
 
 /-- **A core with isomorphic restrictions to two open sets is a gluing.** If `U` and `V` are open
 and cover `B`, and the restrictions of `F` to `U` and to `V` are isomorphic to those of `A` by `φ`
@@ -707,9 +707,7 @@ theorem fiberMap_isoGlue_hom (b : B) :
 theorem fiberMap_isoGlue_inv (b : B) :
     (isoGlue φ ψ hU hV hUV).inv.fiberMap b =
       (glueSideIso φ ψ (glueIndex U b)).inv.fiberMap ⟨b, mem_glueSide_glueIndex hUV b⟩ := by
-  rw [isoGlue, VectorBundleCore.CoordinateHom.fiberMap_invOfIsInvertible, fiberMap_isoGlueHom,
-    ← toContinuousLinearMap_isoFiberEquiv, ContinuousLinearMap.inverse_equiv, isoFiberEquiv_symm,
-    toContinuousLinearMap_isoFiberEquiv, Iso.symm_hom]
+  rw [← inverse_fiberMap_hom (isoGlue φ ψ hU hV hUV), fiberMap_isoGlue_hom, inverse_fiberMap_hom]
 
 /-- On the side `s`, the isomorphism `isoGlue φ ψ hU hV hUV` followed by the gluing cocycle from
 the side of the point to `s` is the given isomorphism on `s`: `φ` over `U` and `ψ` over `V`. -/

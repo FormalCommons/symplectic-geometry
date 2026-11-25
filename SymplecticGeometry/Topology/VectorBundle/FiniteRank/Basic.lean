@@ -20,6 +20,9 @@ total spaces. This file gives the converse construction.
 * `TauCeti.FiniteRankBundleCore.isoFiberEquiv e x`: the continuous linear equivalence between the
   fibres over `x`, in coordinates, given by an isomorphism `e : A ≅ D` of finite-rank cores, with
   the fibre map of `e.hom` as the map and that of `e.inv` as its inverse;
+* `TauCeti.FiniteRankBundleCore.isInvertible_fiberMap_hom` and
+  `TauCeti.FiniteRankBundleCore.inverse_fiberMap_hom`: the fibre map of `e.hom` is invertible, and
+  its inverse is the fibre map of `e.inv`;
 * `TauCeti.FiniteRankBundleCore.continuous_isoFiberEquiv`: this family is continuous on total
   spaces, in the form that `isoOfContinuousEquiv` takes;
 * `TauCeti.FiniteRankBundleCore.isoFiberEquiv_isoOfContinuousEquiv` and
@@ -82,6 +85,18 @@ def isoFiberEquiv (e : A ≅ D) (x : B) : (Fin A.rank → 𝕜) ≃L[𝕜] (Fin 
   rw [toContinuousLinearMap_isoFiberEquiv, Iso.symm_hom, isoFiberEquiv,
     ContinuousLinearEquiv.symm_ofContinuousLinearMap,
     ContinuousLinearEquiv.toContinuousLinearMap_ofContinuousLinearMap]
+
+/-- The fibre map over `x` of the forward half of an isomorphism `e : A ≅ D` of finite-rank cores
+is an invertible continuous linear map. -/
+theorem isInvertible_fiberMap_hom (e : A ≅ D) (x : B) : (e.hom.fiberMap x).IsInvertible :=
+  ⟨isoFiberEquiv e x, toContinuousLinearMap_isoFiberEquiv e x⟩
+
+/-- The inverse of the fibre map over `x` of the forward half of an isomorphism `e : A ≅ D` of
+finite-rank cores is the fibre map over `x` of its backward half. -/
+@[simp] theorem inverse_fiberMap_hom (e : A ≅ D) (x : B) :
+    (e.hom.fiberMap x).inverse = e.inv.fiberMap x := by
+  rw [← toContinuousLinearMap_isoFiberEquiv, ContinuousLinearMap.inverse_equiv,
+    isoFiberEquiv_symm, toContinuousLinearMap_isoFiberEquiv, Iso.symm_hom]
 
 @[simp] theorem isoFiberEquiv_refl (A : FiniteRankBundleCore 𝕜 B) (x : B) :
     isoFiberEquiv (Iso.refl A) x = ContinuousLinearEquiv.refl 𝕜 (Fin A.rank → 𝕜) := by
