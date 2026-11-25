@@ -302,6 +302,7 @@ theorem exists_conjWirtingerDeriv_apply_one_eq_mul_of_mem_twistOneKernel
   beta_reduce
   rw [hD, hcoord (s p)]
   linear_combination (twistTransition 1 p y p) * h0' - d * htt
+
 /-- **Zeros of a smooth kernel element are isolated or interior.** Let `s` be a smooth section
 of `𝒪(1)` with `D_J s = 0`. At each point `z` of the sphere, either `s` vanishes on a
 neighbourhood of `z`, or `s` has no zero on a punctured neighbourhood of `z`. -/

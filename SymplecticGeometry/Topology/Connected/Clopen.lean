@@ -21,9 +21,9 @@ with boundary, this shows that the interior of a connected manifold is connected
   trace on some `u ⊇ s` is open and closed in `u` lies in `t`.
 * `IsPreconnected.inter_of_isClopen_preimage_val`: cutting a preconnected set `s` by a set whose
   trace on some `u ⊇ s` is open and closed in `u` leaves a preconnected set.
-* `PreconnectedSpace.eq_zero_of_eventually_eq_zero`: on a preconnected space, a function each of
-  whose zeros is either interior to its zero set or isolated, and which vanishes near one point,
-  is zero.
+* `PreconnectedSpace.eq_zero_of_eventually_eq_zero`: on a preconnected space, let `f` be a
+  function such that at every point, zero or not, either `f` vanishes on a neighbourhood or `f`
+  has no zero on a punctured neighbourhood. If `f` vanishes near one point, then `f = 0`.
 
 The last result abstracts the open-and-closed argument of Tau Ceti's
 `TauCeti.not_eventually_eq_zero_of_conjWirtingerDeriv_apply_one_eq_mul`.
