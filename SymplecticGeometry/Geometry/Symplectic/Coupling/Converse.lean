@@ -52,11 +52,17 @@ file proves that
 In the converse of minimal coupling (McDuff–Salamon, Proposition 5.1.9), `M` carries a free
 circle action on the band `H⁻¹([a, b])` of an invariant function `H`, `v` is the invariant field
 of `SymplecticGeometry.exists_invariant_vectorField_mfderiv_eq_one`, and `e` is the
-diffeomorphism `TauCeti.MapFiber.Atlas.totalSpaceDiffeomorph` from the total space of the circle
-bundle of the level `H⁻¹(a)` (`GroupAction/RegularLevel.lean`) onto that level, followed by the
-inclusion. The band map then identifies `P × [a, b]` with the band, equivariantly, with `H` as
-the coordinate of the interval, and it sends `SymplecticGeometry.couplingField` to the
-fundamental vector field of `SymplecticGeometry.circlePeriodOneGenerator` on `M`
+diffeomorphism `SymplecticGeometry.FreeRegularLevel.totalSpaceDiffeomorph` from the total space of
+the circle bundle of the level `H⁻¹(a)` onto that level, followed by the inclusion. The level is
+bundled as in `GroupAction/RegularLevel.lean`: a proof `h` of
+`SymplecticGeometry.IsFreeRegularLevel` collects the smoothness, regularity, dimension, invariance
+and freeness hypotheses, and the type `SymplecticGeometry.FreeRegularLevel (𝓡 1) h` carries the
+atlas of the level, the right circle action, the charts of its orbit space and the principal bundle
+structures of `orbitFiber` as instances, so the statements below set up no local instances besides
+`MulOpposite.chartedSpace`. The band map then identifies `P × [a, b]` with the band,
+equivariantly, with `H` as the coordinate of the interval, and it sends
+`SymplecticGeometry.couplingField` to the fundamental vector field of
+`SymplecticGeometry.circlePeriodOneGenerator` on `M`
 (`SymplecticGeometry.mfderiv_bandMap_couplingField`).
 
 The last section turns these properties into those of a coupling form. Let the circle action
@@ -96,9 +102,10 @@ The last section puts these together into the converse of minimal coupling
 `σ` with moment map `-μ`, and let the band `K = H⁻¹([a, b])` be compact with the action free on
 it. Then `H` has no critical point on `K`, so `a` is a regular value of `H` and
 `SymplecticGeometry.exists_invariant_vectorField_mfderiv_eq_one` gives the field `v`; `H` is
-invariant (`TauCeti.SmoothTwoForm.IsMomentMap.apply_smul_circle`). The band map of `v` and of the
-circle bundle of `H⁻¹(a)` is the map `ψ`, the reduced forms of its slices are the family `τ`, and
-`ψ^* σ` is a coupling form for `τ`, whose classes then move as
+invariant (`TauCeti.SmoothTwoForm.IsMomentMap.apply_smul_circle`), so `H⁻¹(a)` is a free invariant
+regular level (`SymplecticGeometry.isFreeRegularLevel_of_stabilizer_eq_bot`). The band map
+of `v` and of the circle bundle of `H⁻¹(a)` is the map `ψ`, the reduced forms of its slices are
+the family `τ`, and `ψ^* σ` is a coupling form for `τ`, whose classes then move as
 `SymplecticGeometry.IsCouplingForm.mk_sub_mk_eq_neg_smul_realFirstChernClass` says.
 
 ## Main definitions
@@ -114,9 +121,9 @@ circle bundle of `H⁻¹(a)` is the map `ψ`, the reduced forms of its slices ar
 * `SymplecticGeometry.bandMap_op_smul`: it is equivariant.
 * `SymplecticGeometry.mfderiv_bandMap_couplingField`: for a principal circle bundle `P`, the band
   map sends `couplingField` to the fundamental vector field of `circlePeriodOneGenerator`.
-* `SymplecticGeometry.bandMap_orbitFiber`: all of these for the circle bundle of a regular level
-  of an invariant function, with `e` the inclusion of the level after
-  `TauCeti.MapFiber.Atlas.totalSpaceDiffeomorph`.
+* `SymplecticGeometry.bandMap_orbitFiber`: all of these for the circle bundle of a free invariant
+  regular level `SymplecticGeometry.FreeRegularLevel (𝓡 1) h`, with `e` the inclusion of the level
+  after `SymplecticGeometry.FreeRegularLevel.totalSpaceDiffeomorph`.
 * `SymplecticGeometry.injective_mfderiv_bandMap_slice_iff`,
   `SymplecticGeometry.range_mfderiv_bandMap_slice`: the slices of the band map have injective
   differential exactly where `e` does, with tangent images `ker df`.
@@ -138,6 +145,8 @@ circle bundle of `H⁻¹(a)` is the map `ψ`, the reduced forms of its slices ar
 * `SymplecticGeometry.IsCouplingForm.isSmoothFamily`: the family of a coupling form is smooth.
 * `SymplecticGeometry.isRegularValue_of_notMem_fixedPoints`: a level that contains no fixed
   point of the action is a regular value of `H`.
+* `SymplecticGeometry.isFreeRegularLevel_of_stabilizer_eq_bot`: a level on which the action is
+  free is a free invariant regular level of `H`.
 * `SymplecticGeometry.exists_isCouplingForm_comp_eq`: the converse of minimal coupling.
 
 ## References
@@ -469,6 +478,25 @@ theorem isRegularValue_of_notMem_fixedPoints {σ : SmoothTwoForm I M}
   rw [isRegularPoint_iff_notMem_criticalPoints, mem_criticalPoints_iff_mfderiv_eq_zero]
   exact mfderiv_ne_zero_of_notMem_fixedPoints hμ (hσ.nondegenerate_bilinFormAt x) (hfix x hx)
 
+/-- **A free level of the Hamiltonian is a free invariant regular level.** Let a circle act
+smoothly on a Hausdorff boundaryless manifold `M`, with moment map `-μ` for a nondegenerate
+two-form `σ`, and let `H = ⟨μ, circlePeriodOneGenerator⟩`. If the circle acts freely at the
+points of the level `H = c`, then that level is a free invariant regular level of `H`, of
+dimension `dim M - 1`. -/
+theorem isFreeRegularLevel_of_stabilizer_eq_bot {σ : SmoothTwoForm I M}
+    {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
+    (hσ : σ.IsNondegenerate) {c : ℝ}
+    (hfree : ∀ x, μ x circlePeriodOneGenerator = c → MulAction.stabilizer Circle x = ⊥) :
+    IsFreeRegularLevel Circle I (fun y ↦ μ y circlePeriodOneGenerator) c
+      (Module.finrank ℝ E - 1) where
+  contMDiffAt x _ := (hμ.contMDiff_of_neg circlePeriodOneGenerator).contMDiffAt
+  isRegularValue := isRegularValue_of_notMem_fixedPoints hμ hσ fun x hx ↦
+    MulAction.notMem_fixedPoints_of_stabilizer_eq_bot (hfree x hx)
+  finrank_sub := by rw [Module.finrank_self]
+  apply_smul g x := congrArg (· circlePeriodOneGenerator) (neg_injective (hμ.apply_smul_circle g x))
+  stabilizer_eq_bot := hfree
+
 end Regular
 
 /-! ### The reduced forms of an equivariant map into a level -/
@@ -564,11 +592,12 @@ variable [FiniteDimensional ℝ E] [I.Boundaryless] [ContMDiffSMul (𝓡 1) I �
   {f : M → ℝ} {n : ℕ}
 
 /-- **The band of a circle action as a product.** Let a circle act smoothly on a Hausdorff
-boundaryless finite-dimensional manifold `M`, let `f : M → ℝ` be smooth and invariant, with
-regular value `a`, and let the action be free on the level `P₀ = f⁻¹(a)`. Let `P` be the circle
-bundle `orbitFiber` of `P₀`, built with the local instances of `GroupAction/RegularLevel.lean`, and
-`e` the diffeomorphism `TauCeti.MapFiber.Atlas.totalSpaceDiffeomorph` from its total space onto
-`P₀`, followed by the inclusion into `M`. Let `v` be a complete, smooth, invariant vector field
+boundaryless finite-dimensional manifold `M`, and let `h` say that the level `P₀ = f⁻¹(a)` of a
+continuous `f : M → ℝ` is a free invariant regular level of dimension `n`
+(`SymplecticGeometry.IsFreeRegularLevel`). Let `P` be the circle bundle `orbitFiber` of
+`P₀`, with the instances of `SymplecticGeometry.FreeRegularLevel`, and `e` the diffeomorphism
+`SymplecticGeometry.FreeRegularLevel.totalSpaceDiffeomorph` from its total space onto `P₀`,
+followed by the inclusion into `M`. Let `v` be a complete, smooth, invariant vector field
 with `df(v) = 1` on an open set containing the band `f⁻¹([a, b])`. Then the band map
 `ψ = bandMap v e a b : P × [a, b] → M`
 * is smooth;
@@ -576,35 +605,16 @@ with `df(v) = 1` on an open set containing the band `f⁻¹([a, b])`. Then the b
 * satisfies `f (ψ (p, s)) = s`;
 * is injective, with the band `f⁻¹([a, b])` as its range;
 * sends `couplingField` to the fundamental vector field of `circlePeriodOneGenerator`. -/
-theorem bandMap_orbitFiber (hf : ContMDiff I 𝓘(ℝ) ∞ f) (hreg : IsRegularValue I 𝓘(ℝ) f a)
-    (hn : Module.finrank ℝ E - Module.finrank ℝ ℝ = n)
-    (hinv : ∀ (g : Circle) (x : M), f (g • x) = f x)
-    (hfree : ∀ x, f x = a → MulAction.stabilizer Circle x = ⊥)
+theorem bandMap_orbitFiber (hf : Continuous f) (h : IsFreeRegularLevel Circle I f a n)
     (hv : ContMDiff I I.tangent ∞ (fun x ↦ (⟨x, v x⟩ : TangentBundle I M)))
     (hcomplete : IsCompleteVectorField v)
     (hvinv : ∀ (g : Circle) (x : M), mfderiv I I (g • ·) x (v x) = v (g • x)) {W : Set M}
     (hW : IsOpen W) (hfv : ∀ y ∈ W, mfderiv I 𝓘(ℝ) f y (v y) = 1)
     (hband : f ⁻¹' Icc a b ⊆ W) :
-    letI := regularLevelChartedSpace (fun x _ ↦ hf.contMDiffAt.of_le (by simp)) hreg hn
-    letI := levelOpMulAction a hinv
-    haveI := isManifold_regularLevel (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn
-    haveI := contMDiffSMul_levelOpMulAction (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn hinv
-      (IG := 𝓡 1)
-    haveI := ContMDiffSMul.continuousSMul (I := 𝓡 1) (I' := I) (G := Circle) (M := M) ∞
-    haveI := properSMul_levelOpMulAction (c := a) hinv
-    haveI := isCancelSMul_levelOpMulAction hinv hfree
-    letI := ProperSMul.orbitRelQuotientChartedSpace (𝓡 1) Circleᵐᵒᵖ 𝓘(ℝ, Fin n → ℝ)
-      {x : M // f x = a}
-    letI := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}).fiberBundle
-    haveI := orbitFiber.principalBundle (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}
-    haveI := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
-      |>.contMDiffFiberBundle
-      (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
     let IB := 𝓘(ℝ, ProperSMul.QuotientModelSpace (EuclideanSpace ℝ (Fin 1)) (Fin n → ℝ))
-    let P := orbitFiber Circleᵐᵒᵖ {x : M // f x = a}
+    let P := orbitFiber Circleᵐᵒᵖ (FreeRegularLevel (𝓡 1) h)
     let e : ManifoldTotalSpace Circle P → M := fun p ↦
-      ((orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}).totalSpaceDiffeomorph
-        (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}) p : M)
+      (FreeRegularLevel.totalSpaceDiffeomorph (𝓡 1) h p).val
     ContMDiff ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) I ∞ (bandMap v e a b) ∧
       (∀ (g : Circle) (x : ManifoldTotalSpace Circle P × Icc a b),
         bandMap v e a b (op g • x.1, x.2) = g • bandMap v e a b x) ∧
@@ -613,110 +623,60 @@ theorem bandMap_orbitFiber (hf : ContMDiff I 𝓘(ℝ) ∞ f) (hreg : IsRegularV
       ∀ x, mfderiv ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) I (bandMap v e a b) x
           (couplingField IB P a b x) =
         fundamentalVectorField I circlePeriodOneGenerator (bandMap v e a b x) := by
-  let := regularLevelChartedSpace (fun x _ ↦ hf.contMDiffAt.of_le (by simp)) hreg hn
-  let := levelOpMulAction a hinv
-  have := isManifold_regularLevel (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn
-  have := contMDiffSMul_levelOpMulAction (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn hinv
-    (IG := 𝓡 1)
-  have := ContMDiffSMul.continuousSMul (I := 𝓡 1) (I' := I) (G := Circle) (M := M) ∞
-  have := properSMul_levelOpMulAction (c := a) hinv
-  have := isCancelSMul_levelOpMulAction hinv hfree
-  let := ProperSMul.orbitRelQuotientChartedSpace (𝓡 1) Circleᵐᵒᵖ 𝓘(ℝ, Fin n → ℝ)
-    {x : M // f x = a}
-  let := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}).fiberBundle
-  have := orbitFiber.principalBundle (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}
-  have := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
-    |>.contMDiffFiberBundle
-    (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
+  intro IB P e
   have : ContMDiffConstSMul I 1 Circle M := ContMDiffSMul.contMDiffConstSMul (𝓡 1) (n := 1)
-  set D := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
-    |>.totalSpaceDiffeomorph
-    (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
-  have heq (g : Circle)
-      (p : ManifoldTotalSpace Circle (orbitFiber Circleᵐᵒᵖ {x : M // f x = a})) :
-      (D (op g • p) : M) = g • (D p : M) := by
-    rw [MapFiber.Atlas.totalSpaceDiffeomorph_smul (a := op g) (x := p)
-      (hproj := fun _ _ ↦ MulAction.orbitRel.Quotient.quotient_smul_eq) _,
-      coe_levelOpMulAction_smul, unop_op]
-  have hesmooth : ContMDiff _ I ∞ fun p ↦ (D p : M) :=
-    (isSmoothEmbedding_coe_regularLevel (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn).contMDiff
-      |>.comp D.contMDiff
-  have hlev (p) : f (D p : M) = a := (D p).property
+  set D := FreeRegularLevel.totalSpaceDiffeomorph (𝓡 1) h
+  have heq (g : Circle) (p : ManifoldTotalSpace Circle P) : (D (op g • p)).val = g • (D p).val := by
+    rw [FreeRegularLevel.totalSpaceDiffeomorph_smul, FreeRegularLevel.val_smul, unop_op]
+  have hesmooth : ContMDiff _ I ∞ fun p ↦ (D p).val :=
+    FreeRegularLevel.isSmoothEmbedding_val.contMDiff.comp D.contMDiff
+  have hlev (p) : f (D p).val = a := FreeRegularLevel.apply_val _
   refine ⟨contMDiff_bandMap hv hcomplete hesmooth,
     bandMap_op_smul (hv.of_le (by simp)) hvinv heq,
-    apply_bandMap (hv.of_le (by simp)) hcomplete hf.continuous hW hfv hband hlev,
-    bandMap_injective (hv.of_le (by simp)) hcomplete hf.continuous hW hfv hband hlev
-      (Subtype.val_injective.comp D.injective),
-    range_bandMap (hv.of_le (by simp)) hcomplete hf.continuous hW hfv hband ?_,
+    apply_bandMap (hv.of_le (by simp)) hcomplete hf hW hfv hband hlev,
+    bandMap_injective (hv.of_le (by simp)) hcomplete hf hW hfv hband hlev
+      (FreeRegularLevel.val_injective.comp D.injective),
+    range_bandMap (hv.of_le (by simp)) hcomplete hf hW hfv hband ?_,
     mfderiv_bandMap_couplingField hv hcomplete hvinv hesmooth heq⟩
-  exact (D.surjective.range_comp Subtype.val).trans Subtype.range_coe_subtype
+  exact (D.surjective.range_comp FreeRegularLevel.val).trans FreeRegularLevel.range_val
 
 omit [Fact (a < b)] in
 /-- **The slices of the band of a circle action have tangent images `ker df`.** In the setting of
 `SymplecticGeometry.bandMap_orbitFiber`, for each `t ∈ [a, b]` the slice
 `ψₜ = fun p ↦ bandMap v e a b (p, t)` from the total space of `P` to `M` has, at each point `p`,
 injective differential, and the range of that differential is the kernel of `df` at `ψₜ p`. -/
-theorem bandMap_orbitFiber_slice (hf : ContMDiff I 𝓘(ℝ) ∞ f)
-    (hreg : IsRegularValue I 𝓘(ℝ) f a)
-    (hn : Module.finrank ℝ E - Module.finrank ℝ ℝ = n)
-    (hinv : ∀ (g : Circle) (x : M), f (g • x) = f x)
-    (hfree : ∀ x, f x = a → MulAction.stabilizer Circle x = ⊥)
+theorem bandMap_orbitFiber_slice (hf : Continuous f) (h : IsFreeRegularLevel Circle I f a n)
     (hv : ContMDiff I I.tangent ∞ (fun x ↦ (⟨x, v x⟩ : TangentBundle I M)))
     (hcomplete : IsCompleteVectorField v) {W : Set M}
     (hW : IsOpen W) (hfv : ∀ y ∈ W, mfderiv I 𝓘(ℝ) f y (v y) = 1)
     (hband : f ⁻¹' Icc a b ⊆ W) :
-    letI := regularLevelChartedSpace (fun x _ ↦ hf.contMDiffAt.of_le (by simp)) hreg hn
-    letI := levelOpMulAction a hinv
-    haveI := isManifold_regularLevel (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn
-    haveI := contMDiffSMul_levelOpMulAction (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn hinv
-      (IG := 𝓡 1)
-    haveI := ContMDiffSMul.continuousSMul (I := 𝓡 1) (I' := I) (G := Circle) (M := M) ∞
-    haveI := properSMul_levelOpMulAction (c := a) hinv
-    haveI := isCancelSMul_levelOpMulAction hinv hfree
-    letI := ProperSMul.orbitRelQuotientChartedSpace (𝓡 1) Circleᵐᵒᵖ 𝓘(ℝ, Fin n → ℝ)
-      {x : M // f x = a}
-    letI := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}).fiberBundle
     let IB := 𝓘(ℝ, ProperSMul.QuotientModelSpace (EuclideanSpace ℝ (Fin 1)) (Fin n → ℝ))
-    let P := orbitFiber Circleᵐᵒᵖ {x : M // f x = a}
+    let P := orbitFiber Circleᵐᵒᵖ (FreeRegularLevel (𝓡 1) h)
     let e : ManifoldTotalSpace Circle P → M := fun p ↦
-      ((orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}).totalSpaceDiffeomorph
-        (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}) p : M)
+      (FreeRegularLevel.totalSpaceDiffeomorph (𝓡 1) h p).val
     ∀ (t : Icc a b) (p : ManifoldTotalSpace Circle P),
       LinearMap.ker (mfderiv (IB.prod (𝓡 1)) I (fun p ↦ bandMap v e a b (p, t)) p).toLinearMap =
           ⊥ ∧
         LinearMap.range
             (mfderiv (IB.prod (𝓡 1)) I (fun p ↦ bandMap v e a b (p, t)) p).toLinearMap =
           LinearMap.ker (mfderiv I 𝓘(ℝ) f (bandMap v e a b (p, t))).toLinearMap := by
-  let := regularLevelChartedSpace (fun x _ ↦ hf.contMDiffAt.of_le (by simp)) hreg hn
-  let := levelOpMulAction a hinv
-  have := isManifold_regularLevel (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn
-  have := contMDiffSMul_levelOpMulAction (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn hinv
-    (IG := 𝓡 1)
-  have := ContMDiffSMul.continuousSMul (I := 𝓡 1) (I' := I) (G := Circle) (M := M) ∞
-  have := properSMul_levelOpMulAction (c := a) hinv
-  have := isCancelSMul_levelOpMulAction hinv hfree
-  let := ProperSMul.orbitRelQuotientChartedSpace (𝓡 1) Circleᵐᵒᵖ 𝓘(ℝ, Fin n → ℝ)
-    {x : M // f x = a}
-  let := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}).fiberBundle
-  set D := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
-    |>.totalSpaceDiffeomorph
-    (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
+  set D := FreeRegularLevel.totalSpaceDiffeomorph (𝓡 1) h
   intro IB P e t p
-  have hι := isSmoothEmbedding_coe_regularLevel (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn
+  have hι := FreeRegularLevel.isSmoothEmbedding_val (IG := 𝓡 1) (h := h)
   have hd : (∞ : WithTop ℕ∞) ≠ 0 := by simp
   have hιi := hι.isImmersion.mfderiv_injective hd (D p)
   -- The slice is that of the band map of the inclusion of the level, after `D`.
   have hslice : (fun p ↦ bandMap v e a b (p, t)) =
-      (fun x : {x : M // f x = a} ↦ bandMap v Subtype.val a b (x, t)) ∘ D := by
-    -- Both sides are `flowOf v (t - a) ∘ Subtype.val ∘ D`, with `e` unfolded.
+      (fun x : FreeRegularLevel (𝓡 1) h ↦ bandMap v FreeRegularLevel.val a b (x, t)) ∘ D := by
+    -- Both sides are `flowOf v (t - a) ∘ FreeRegularLevel.val ∘ D`, with the local `e` unfolded.
     rw [bandMap_slice, bandMap_slice]
     rfl
   rw [hslice, LinearMap.ker_eq_bot]
   exact ⟨(D.mfderiv_comp_diffeomorph_injective_iff hd).mpr
       ((injective_mfderiv_bandMap_slice_iff (hv.of_le (by simp)) hcomplete t).mpr hιi),
     (D.range_mfderiv_comp_diffeomorph hd _ p).trans <|
-      range_mfderiv_bandMap_slice (hv.of_le (by simp)) hcomplete hf.continuous hW hfv hband
-        (fun x ↦ x.property) hιi (by simpa using hn.symm) t⟩
+      range_mfderiv_bandMap_slice (hv.of_le (by simp)) hcomplete hf hW hfv hband
+        FreeRegularLevel.apply_val hιi (by simpa using h.finrank_sub.symm) t⟩
 
 /-- **The slices of the band of a circle action descend to symplectic forms.** In the setting of
 `SymplecticGeometry.bandMap_orbitFiber`, let the action preserve a symplectic form `σ`, with moment
@@ -725,11 +685,8 @@ unique symplectic form `τ` on the base of `P` whose pull-back along the project
 pull-back of `σ` along the slice `ψₜ = fun p ↦ bandMap v e a b (p, t)`. The smoothness of the
 band map, which `SymplecticGeometry.bandMap_orbitFiber` gives, is taken as an argument so that the
 pull-back along `ψₜ` can be written. -/
-theorem existsUnique_isSymplectic_mpullback_eq_mpullback_bandMap (hf : ContMDiff I 𝓘(ℝ) ∞ f)
-    (hreg : IsRegularValue I 𝓘(ℝ) f a)
-    (hn : Module.finrank ℝ E - Module.finrank ℝ ℝ = n)
-    (hinv : ∀ (g : Circle) (x : M), f (g • x) = f x)
-    (hfree : ∀ x, f x = a → MulAction.stabilizer Circle x = ⊥)
+theorem existsUnique_isSymplectic_mpullback_eq_mpullback_bandMap (hf : Continuous f)
+    (h : IsFreeRegularLevel Circle I f a n)
     (hv : ContMDiff I I.tangent ∞ (fun x ↦ (⟨x, v x⟩ : TangentBundle I M)))
     (hcomplete : IsCompleteVectorField v)
     (hvinv : ∀ (g : Circle) (x : M), mfderiv I I (g • ·) x (v x) = v (g • x)) {W : Set M}
@@ -740,52 +697,20 @@ theorem existsUnique_isSymplectic_mpullback_eq_mpullback_bandMap (hf : ContMDiff
     {μ : M → Module.Dual ℝ (GroupLieAlgebra (𝓡 1) Circle)}
     (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) fun x ↦ -μ x)
     (hμf : ∀ x, μ x circlePeriodOneGenerator = f x) :
-    letI := regularLevelChartedSpace (fun x _ ↦ hf.contMDiffAt.of_le (by simp)) hreg hn
-    letI := levelOpMulAction a hinv
-    haveI := isManifold_regularLevel (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn
-    haveI := contMDiffSMul_levelOpMulAction (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn hinv
-      (IG := 𝓡 1)
-    haveI := ContMDiffSMul.continuousSMul (I := 𝓡 1) (I' := I) (G := Circle) (M := M) ∞
-    haveI := properSMul_levelOpMulAction (c := a) hinv
-    haveI := isCancelSMul_levelOpMulAction hinv hfree
-    letI := ProperSMul.orbitRelQuotientChartedSpace (𝓡 1) Circleᵐᵒᵖ 𝓘(ℝ, Fin n → ℝ)
-      {x : M // f x = a}
-    letI := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}).fiberBundle
-    haveI := orbitFiber.principalBundle (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}
-    haveI := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
-      |>.contMDiffFiberBundle
-      (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
     let IB := 𝓘(ℝ, ProperSMul.QuotientModelSpace (EuclideanSpace ℝ (Fin 1)) (Fin n → ℝ))
-    let P := orbitFiber Circleᵐᵒᵖ {x : M // f x = a}
+    let P := orbitFiber Circleᵐᵒᵖ (FreeRegularLevel (𝓡 1) h)
     let e : ManifoldTotalSpace Circle P → M := fun p ↦
-      ((orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}).totalSpaceDiffeomorph
-        (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}) p : M)
+      (FreeRegularLevel.totalSpaceDiffeomorph (𝓡 1) h p).val
     ∀ (hψ : ContMDiff ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) I ∞ (bandMap v e a b)) (t : Icc a b),
-      ∃! τ : SmoothTwoForm IB (MulAction.orbitRel.Quotient Circleᵐᵒᵖ {x : M // f x = a}),
+      ∃! τ : SmoothTwoForm IB (MulAction.orbitRel.Quotient Circleᵐᵒᵖ (FreeRegularLevel (𝓡 1) h)),
         τ.IsSymplectic ∧
         SmoothForm.mpullback (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
             (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1)).contMDiff τ =
           SmoothForm.mpullback (fun p ↦ bandMap v e a b (p, t))
             (hψ.comp (contMDiff_id.prodMk contMDiff_const)) σ := by
-  let := regularLevelChartedSpace (fun x _ ↦ hf.contMDiffAt.of_le (by simp)) hreg hn
-  let := levelOpMulAction a hinv
-  have := isManifold_regularLevel (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn
-  have := contMDiffSMul_levelOpMulAction (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn hinv
-    (IG := 𝓡 1)
-  have := ContMDiffSMul.continuousSMul (I := 𝓡 1) (I' := I) (G := Circle) (M := M) ∞
-  have := properSMul_levelOpMulAction (c := a) hinv
-  have := isCancelSMul_levelOpMulAction hinv hfree
-  let := ProperSMul.orbitRelQuotientChartedSpace (𝓡 1) Circleᵐᵒᵖ 𝓘(ℝ, Fin n → ℝ)
-    {x : M // f x = a}
-  let := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}).fiberBundle
-  have := orbitFiber.principalBundle (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a}
-  have := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
-    |>.contMDiffFiberBundle
-    (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin n → ℝ) {x : M // f x = a})
   intro IB P e hψ t
-  obtain ⟨-, hψs, hψf, -⟩ :=
-    bandMap_orbitFiber hf hreg hn hinv hfree hv hcomplete hvinv hW hfv hband (b := b)
-  have hs := bandMap_orbitFiber_slice hf hreg hn hinv hfree hv hcomplete hW hfv hband (b := b)
+  obtain ⟨-, hψs, hψf, -⟩ := bandMap_orbitFiber hf h hv hcomplete hvinv hW hfv hband (b := b)
+  have hs := bandMap_orbitFiber_slice hf h hv hcomplete hW hfv hband (b := b)
   refine existsUnique_isSymplectic_mpullback_projContMDiffMap_eq hσ hσs hμ _
     (fun g p ↦ hψs g (p, t)) (t := t) (fun p ↦ (hμf _).trans (hψf (p, t)))
     (fun p ↦ LinearMap.ker_eq_bot.mp (hs t p).1) fun p ↦ ?_
@@ -829,8 +754,9 @@ variable [FiniteDimensional ℝ E] [I.Boundaryless] [ContMDiffSMul (𝓡 1) I �
 boundaryless finite-dimensional manifold `M`, preserving a symplectic form `σ`, with moment map
 `-μ`, and let `H = ⟨μ, circlePeriodOneGenerator⟩`, so that `ι_{X_M} σ = -dH`. Let `a < b`, let
 the band `K = H⁻¹([a, b])` be compact, and let the action be free on `K`. Let `P` be the circle
-bundle `orbitFiber` of the level `H⁻¹(a)`, a regular level, over the orbit space `B`, built with
-the local instances of `GroupAction/RegularLevel.lean`. Then there are a map
+bundle `orbitFiber` of the level `H⁻¹(a)` over the orbit space `B`: the level is a free invariant
+regular level (`SymplecticGeometry.isFreeRegularLevel_of_stabilizer_eq_bot`), and `P` and `B`
+carry the instances of `SymplecticGeometry.FreeRegularLevel`. Then there are a map
 `ψ : P × [a, b] → M` and a family `τ` of two-forms on `B` such that
 
 * `ψ` is smooth and equivariant, `ψ (p • z, t) = z • ψ (p, t)`;
@@ -851,42 +777,19 @@ theorem exists_isCouplingForm_comp_eq (hσ : σ.IsSymplectic)
     (hK : IsCompact ((fun x ↦ μ x circlePeriodOneGenerator) ⁻¹' Icc a b))
     (hfree : ∀ x, μ x circlePeriodOneGenerator ∈ Icc a b → MulAction.stabilizer Circle x = ⊥) :
     let H : M → ℝ := fun x ↦ μ x circlePeriodOneGenerator
-    haveI hf : ContMDiff I 𝓘(ℝ) ∞ H := hμ.contMDiff_of_neg circlePeriodOneGenerator
     haveI hlevel : ∀ x, H x = a → H x ∈ Icc a b := fun x hx ↦ by
       rw [hx]; exact left_mem_Icc.2 (Fact.out : a < b).le
-    haveI hfreea : ∀ x, H x = a → MulAction.stabilizer Circle x = ⊥ := fun x hx ↦
-      hfree x (hlevel x hx)
-    haveI hreg : IsRegularValue I 𝓘(ℝ) H a :=
-      isRegularValue_of_notMem_fixedPoints hμ hσ.isNondegenerate fun x hx ↦
-        MulAction.notMem_fixedPoints_of_stabilizer_eq_bot (hfreea x hx)
-    haveI hn : Module.finrank ℝ E - Module.finrank ℝ ℝ = Module.finrank ℝ E - 1 := by
-      rw [Module.finrank_self]
-    haveI hinv : ∀ (g : Circle) (x : M), H (g • x) = H x := fun g x ↦
-      congrArg (· circlePeriodOneGenerator) (neg_injective (hμ.apply_smul_circle g x))
-    letI := regularLevelChartedSpace (fun x _ ↦ hf.contMDiffAt.of_le (by simp)) hreg hn
-    letI := levelOpMulAction a hinv
-    haveI := isManifold_regularLevel (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn
-    haveI := contMDiffSMul_levelOpMulAction (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn hinv
-      (IG := 𝓡 1)
-    haveI := ContMDiffSMul.continuousSMul (I := 𝓡 1) (I' := I) (G := Circle) (M := M) ∞
-    haveI := properSMul_levelOpMulAction (c := a) hinv
-    haveI := isCancelSMul_levelOpMulAction hinv hfreea
-    letI := ProperSMul.orbitRelQuotientChartedSpace (𝓡 1) Circleᵐᵒᵖ
-      𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ) {x : M // H x = a}
-    letI := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ)
-      {x : M // H x = a}).fiberBundle
-    haveI := orbitFiber.principalBundle (𝓡 1) Circle 𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ)
-      {x : M // H x = a}
-    haveI := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ)
-      {x : M // H x = a}).contMDiffFiberBundle
-      (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ)
-        {x : M // H x = a})
-    haveI : CompactSpace {x : M // H x = a} := isCompact_iff_compactSpace.1 <|
-      hK.of_isClosed_subset (isClosed_eq hf.continuous continuous_const) hlevel
+    haveI h : IsFreeRegularLevel Circle I H a (Module.finrank ℝ E - 1) :=
+      isFreeRegularLevel_of_stabilizer_eq_bot hμ hσ.isNondegenerate fun x hx ↦
+        hfree x (hlevel x hx)
+    haveI : CompactSpace (FreeRegularLevel (𝓡 1) h) :=
+      FreeRegularLevel.compactSpace_iff.2 <| hK.of_isClosed_subset
+        (isClosed_eq (hμ.contMDiff_of_neg circlePeriodOneGenerator).continuous continuous_const)
+        hlevel
     let IB := 𝓘(ℝ, ProperSMul.QuotientModelSpace (EuclideanSpace ℝ (Fin 1))
       (Fin (Module.finrank ℝ E - 1) → ℝ))
-    let B := MulAction.orbitRel.Quotient Circleᵐᵒᵖ {x : M // H x = a}
-    let P := orbitFiber Circleᵐᵒᵖ {x : M // H x = a}
+    let B := MulAction.orbitRel.Quotient Circleᵐᵒᵖ (FreeRegularLevel (𝓡 1) h)
+    let P := orbitFiber Circleᵐᵒᵖ (FreeRegularLevel (𝓡 1) h)
     ∃ (ψ : ManifoldTotalSpace Circle P × Icc a b → M)
       (hψ : ContMDiff ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) I ∞ ψ) (τ : Icc a b → SmoothTwoForm IB B)
       (hτ : ∀ t, (τ t).IsSymplectic),
@@ -901,44 +804,20 @@ theorem exists_isCouplingForm_comp_eq (hσ : σ.IsSymplectic)
   have hf : ContMDiff I 𝓘(ℝ) ∞ H := hμ.contMDiff_of_neg circlePeriodOneGenerator
   have hlevel : ∀ x, H x = a → H x ∈ Icc a b := fun x hx ↦ by
     rw [hx]; exact left_mem_Icc.2 (Fact.out : a < b).le
-  have hfreea : ∀ x, H x = a → MulAction.stabilizer Circle x = ⊥ := fun x hx ↦
-    hfree x (hlevel x hx)
-  have hreg : IsRegularValue I 𝓘(ℝ) H a :=
-    isRegularValue_of_notMem_fixedPoints hμ hσ.isNondegenerate fun x hx ↦
-      MulAction.notMem_fixedPoints_of_stabilizer_eq_bot (hfreea x hx)
-  have hn : Module.finrank ℝ E - Module.finrank ℝ ℝ = Module.finrank ℝ E - 1 := by
-    rw [Module.finrank_self]
-  have hinv : ∀ (g : Circle) (x : M), H (g • x) = H x := fun g x ↦
-    congrArg (· circlePeriodOneGenerator) (neg_injective (hμ.apply_smul_circle g x))
-  let := regularLevelChartedSpace (fun x _ ↦ hf.contMDiffAt.of_le (by simp)) hreg hn
-  let := levelOpMulAction a hinv
-  have := isManifold_regularLevel (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn
-  have := contMDiffSMul_levelOpMulAction (by simp) (fun x _ ↦ hf.contMDiffAt) hreg hn hinv
-    (IG := 𝓡 1)
-  have := ContMDiffSMul.continuousSMul (I := 𝓡 1) (I' := I) (G := Circle) (M := M) ∞
-  have := properSMul_levelOpMulAction (c := a) hinv
-  have := isCancelSMul_levelOpMulAction hinv hfreea
-  let := ProperSMul.orbitRelQuotientChartedSpace (𝓡 1) Circleᵐᵒᵖ
-    𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ) {x : M // H x = a}
-  let := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ)
-    {x : M // H x = a}).fiberBundle
-  have := orbitFiber.principalBundle (𝓡 1) Circle 𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ)
-    {x : M // H x = a}
-  have := (orbitFiber.atlas (𝓡 1) Circle 𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ)
-    {x : M // H x = a}).contMDiffFiberBundle
-    (orbitFiber.isContMDiff_atlas (𝓡 1) Circle 𝓘(ℝ, Fin (Module.finrank ℝ E - 1) → ℝ)
-      {x : M // H x = a})
-  have : CompactSpace {x : M // H x = a} := isCompact_iff_compactSpace.1 <|
+  have h : IsFreeRegularLevel Circle I H a (Module.finrank ℝ E - 1) :=
+    isFreeRegularLevel_of_stabilizer_eq_bot hμ hσ.isNondegenerate fun x hx ↦
+      hfree x (hlevel x hx)
+  have : CompactSpace (FreeRegularLevel (𝓡 1) h) := FreeRegularLevel.compactSpace_iff.2 <|
     hK.of_isClosed_subset (isClosed_eq hf.continuous continuous_const) hlevel
   intro IB B P
   -- An invariant complete field `v` with `dH(v) = 1` near the band, where `dH ≠ 0`.
   obtain ⟨v, W, hv, -, hvc, hvinv, hW, hKW, -, hvf⟩ :=
-    exists_invariant_vectorField_mfderiv_eq_one (𝓡 1) (G := Circle) hf hinv hK fun x hx ↦
+    exists_invariant_vectorField_mfderiv_eq_one (𝓡 1) (G := Circle) hf h.apply_smul hK fun x hx ↦
       mfderiv_ne_zero_of_notMem_fixedPoints hμ (hσ.isNondegenerate.nondegenerate_bilinFormAt x)
         (MulAction.notMem_fixedPoints_of_stabilizer_eq_bot (hfree x hx))
   obtain ⟨hψ, hψs, hψf, hinj, hrange, hX⟩ :=
-    bandMap_orbitFiber hf hreg hn hinv hfreea hv hvc hvinv hW hvf hKW (b := b)
-  have hτ := existsUnique_isSymplectic_mpullback_eq_mpullback_bandMap hf hreg hn hinv hfreea hv
+    bandMap_orbitFiber hf.continuous h hv hvc hvinv hW hvf hKW (b := b)
+  have hτ := existsUnique_isSymplectic_mpullback_eq_mpullback_bandMap hf.continuous h hv
     hvc hvinv hW hvf hKW hσ hσs hμ (fun _ ↦ rfl) hψ
   choose τ hτs hτ using fun t ↦ (hτ t).exists
   have hc := isCouplingForm_mpullback hψ hσ.isClosed hσs hμ hψs hψf hX fun t ↦ (hτ t).symm

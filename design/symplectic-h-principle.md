@@ -544,11 +544,11 @@ A positive direction of the Hessian at the critical points on a closed set
 survives small perturbations, in the namespace `TauCeti`:
 
 ```lean
-theorem exists_strongCkControl_criticalHessian_pos (f : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯)
+theorem exists_strongCkControl_criticalHessian_pos (hn : 2 ≤ n) (f : C^n⟮I, M; 𝓘(ℝ), ℝ⟯)
     {A : Set M} (hA : IsClosed A)
-    (hfA : ∀ x ∈ A, mfderiv I 𝓘(ℝ) f x = 0 → ∃ v, 0 < criticalHessian I f x v v) :
-    ∃ c : ContMDiffMap.StrongCkControl I M ∞, ∀ g ∈ c.ball f, ∀ x ∈ A,
-      mfderiv I 𝓘(ℝ) g x = 0 → ∃ v, 0 < criticalHessian I g x v v
+    (hfA : ∀ x ∈ A, x ∈ criticalPoints I f → ∃ v, 0 < criticalHessian I f x v v) :
+    ∃ c : ContMDiffMap.StrongCkControl I M n, c.order = 2 ∧ ∀ g ∈ c.ball f, ∀ x ∈ A,
+      x ∈ criticalPoints I g → ∃ v, 0 < criticalHessian I g x v v
 ```
 
 Route: cover `A` by a locally finite family of compact sets in chart
@@ -910,7 +910,7 @@ CW type by domination (Decision 5), about Tau Ceti's notion, so in its
 namespace:
 
 ```lean
-theorem TauCeti.CWType.of_homotopic_comp {X : Type u} {K : Type*} [TopologicalSpace X]
+theorem TauCeti.CWType.of_comp_homotopic_id {X : Type u} {K : Type*} [TopologicalSpace X]
     [TopologicalSpace K] [TauCeti.CWType K] {i : C(X, K)} {r : C(K, X)}
     (h : (r.comp i).Homotopic (ContinuousMap.id X)) : TauCeti.CWType X
 ```
@@ -963,7 +963,7 @@ paracompact and normal). If `x` lies in the supports of `ρ y₀, …, ρ yₖ` 
 well defined, continuous by `continuous_iff_faceInclusion`, and the
 straight segment from `x` to `ψ (ρ.toNerve x)` stays in `O`. So `O` is
 dominated by a CW complex (`realizationCWComplex`, `instT2SpaceRealization`,
-`TauCeti.CWType.of_cwComplex_univ`), and `TauCeti.CWType.of_homotopic_comp`
+`TauCeti.CWType.of_cwComplex_univ`), and `TauCeti.CWType.of_comp_homotopic_id`
 gives the theorem.
 
 ### `Geometry/Manifold/VectorBundle/Symplectic/Topology.lean`
@@ -1019,7 +1019,7 @@ The spaces, in the topology of the departure *Spaces of forms*:
   forms, or the preimage under `tangentEquiv` of the coset
   `α + exactForms I M 2`) and the open set of
   `isOpen_setOf_forall_mem_nondegenerate` for `closure (Set.range j)`; then
-  `TauCeti.CWType.of_homotopic_comp` with the inclusion,
+  `TauCeti.CWType.of_comp_homotopic_id` with the inclusion,
   $\omega\mapsto j^*\omega$ (nondegenerate since the slices of `h` are
   embeddings between manifolds of one dimension; in the class by
   `mpullback_sub_mem_exactForms_of_homotopy`), and the homotopy of
