@@ -12,6 +12,7 @@ public import TauCeti.Geometry.Manifold.Submersion.LocalDiffeomorph
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 public import TauCeti.Geometry.Manifold.Submersion.Basic
 public import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
+public import SymplecticGeometry.Geometry.Manifold.Submersion.Basic
 
 /-!
 # Restricting a map over an open subset of its target
@@ -25,8 +26,8 @@ the local differential notions of `f` pass to this restriction:
   `Manifold.IsSubmersionAt.restrictPreimage`), and being a submersion
   (`Manifold.IsSubmersion.restrictPreimage`). Since `Manifold.IsSubmersion` fixes one complement
   for all points, the step from a submersion at every point of `f⁻¹(V)` to a submersion on
-  `f⁻¹(V)` assumes a finite-dimensional source over a complete field, where all the pointwise
-  complements have the same dimension
+  `f⁻¹(V)` assumes a finite-dimensional source over a complete field, where
+  `Manifold.isSubmersion_iff_forall_isSubmersionAt` makes the two notions agree
   (`Manifold.IsSubmersion.restrictPreimage_of_isSubmersionAt`);
 * regular points and regular values (`TauCeti.isRegularPoint_restrictPreimage_iff`,
   `TauCeti.isRegularValue_restrictPreimage_iff`);
@@ -142,22 +143,8 @@ the restriction `f⁻¹(V) → V` is a `C^n` submersion. -/
 theorem Manifold.IsSubmersion.restrictPreimage_of_isSubmersionAt (hf : Continuous f)
     (V : Opens N) (h : ∀ x ∈ f ⁻¹' V, IsSubmersionAt I J n f x) :
     IsSubmersion (M := (⟨f ⁻¹' V, V.isOpen.preimage hf⟩ : Opens M)) (N := V) I J n
-      ((V : Set N).restrictPreimage f) := by
-  -- Every pointwise complement has dimension `finrank E - finrank F`, so each can be replaced
-  -- by the same model space.
-  refine Manifold.IsSubmersionOfComplement.isSubmersion
-    (F := Fin (finrank 𝕜 E - finrank 𝕜 F) → 𝕜) (isSubmersionOfComplement_iff.2 fun x ↦ ?_)
-  have hx := h x x.property
-  let e := hx.equiv
-  have : FiniteDimensional 𝕜 (F × hx.complement) := Module.Finite.equiv e.toLinearEquiv
-  have : FiniteDimensional 𝕜 F :=
-    Module.Finite.of_surjective (LinearMap.fst 𝕜 F hx.complement) Prod.fst_surjective
-  have : FiniteDimensional 𝕜 hx.complement :=
-    Module.Finite.of_surjective (LinearMap.snd 𝕜 F hx.complement) Prod.snd_surjective
-  have hr : finrank 𝕜 hx.complement = finrank 𝕜 (Fin (finrank 𝕜 E - finrank 𝕜 F) → 𝕜) := by
-    rw [Module.finrank_fin_fun, e.toLinearEquiv.finrank_eq, Module.finrank_prod]; omega
-  exact (hx.isSubmersionAtOfComplement_complement.restrictPreimage hf V).trans_F
-    (ContinuousLinearEquiv.ofFinrankEq hr)
+      ((V : Set N).restrictPreimage f) :=
+  Manifold.isSubmersion_iff_forall_isSubmersionAt.2 fun x ↦ (h x x.property).restrictPreimage hf V
 
 end SubmersionFiniteDimensional
 
