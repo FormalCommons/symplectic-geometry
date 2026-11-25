@@ -36,6 +36,8 @@ extension `TauCeti.leftInvariantSmoothForm` of the identity of `𝔤`.
   it back to its image under `Ad(h⁻¹)`.
 * `SymplecticGeometry.mextDeriv_leftMaurerCartanForm_apply`: the Maurer–Cartan equation
   `dθ(v, w) = -⁅θ v, θ w⁆`, for `G` finite-dimensional.
+* `SymplecticGeometry.contDiff_leftMaurerCartanForm_mfderiv`: for a smooth map `γ` from a normed
+  space to `G`, its left-trivialized derivative `a_w = θ (dγ w)` in a direction `w` is smooth.
 * `SymplecticGeometry.fderiv_leftMaurerCartanForm_mfderiv_sub`: the structure equation for the
   left-trivialized derivatives `a_v = θ (dγ v)` of a smooth map `γ` from a normed space to `G`,
   `∂_v a_w - ∂_w a_v = -⁅a_v, a_w⁆`; for a two-parameter map `γ : ℝ × ℝ → G` and the coordinate
@@ -44,7 +46,10 @@ extension `TauCeti.leftInvariantSmoothForm` of the identity of `𝔤`.
 ## Implementation notes
 
 Smoothness and left-invariance come from Tau Ceti's `TauCeti.leftInvariantSmoothForm` and
-`TauCeti.mpullback_mul_left_leftInvariantSmoothForm`. The proof of
+`TauCeti.mpullback_mul_left_leftInvariantSmoothForm`. The left-trivialized derivative `a_w` of a map
+`γ` from a normed space is the pulled-back form `γ^* θ` evaluated on the constant vector `w`
+(`TauCeti.SmoothForm.mpullback_apply_one`), whose smoothness on a normed space is
+`TauCeti.isSmoothForm_modelSpace_iff`. The proof of
 `mpullback_mul_right_leftMaurerCartanForm` follows that of Tau Ceti's
 `Module.Dual.mpullback_mul_right_leftInvariantForm`.
 
@@ -133,6 +138,36 @@ theorem mpullback_mul_right_leftMaurerCartanForm (h : G) :
     RoughForm.mapCoeff_apply, leftMaurerCartanForm_apply, leftMaurerCartanForm_apply, ← hξ,
     mfderiv_mul_right_mulInvariantVectorField, mfderiv_inv_mul_mulInvariantVectorField,
     mfderiv_inv_mul_mulInvariantVectorField]
+
+/-! ### Left-trivialized derivatives along a map from a normed space -/
+
+section LeftTrivialized
+
+variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+
+/-- For a smooth map `γ : E' → G` from a normed space and a direction `w`, the left-trivialized
+derivative `y ↦ θ (dγ_y w)` of `γ` in the direction `w` is a smooth map `E' → 𝔤`, `θ` being the
+left Maurer–Cartan form. -/
+theorem contDiff_leftMaurerCartanForm_mfderiv {γ : E' → G} (hγ : ContMDiff 𝓘(ℝ, E') I ∞ γ)
+    (w : E') :
+    ContDiff ℝ ∞ fun y ↦ (leftMaurerCartanForm I G).val (γ y) ![mfderiv 𝓘(ℝ, E') I γ y w] := by
+  have h := isSmoothForm_modelSpace_iff.1
+    (SmoothForm.mpullback γ hγ (leftMaurerCartanForm I G)).isSmoothForm
+  have heq : (fun y ↦ (leftMaurerCartanForm I G).val (γ y) ![mfderiv 𝓘(ℝ, E') I γ y w]) =
+      ⇑(ContinuousAlternatingMap.apply ℝ E' (GroupLieAlgebra I G) ![w]) ∘
+        (SmoothForm.mpullback γ hγ (leftMaurerCartanForm I G)).val :=
+    funext fun y ↦ (SmoothForm.mpullback_apply_one γ hγ _ y w).symm
+  exact heq ▸ (ContinuousAlternatingMap.apply ℝ E' (GroupLieAlgebra I G) ![w]).contDiff.comp h
+
+/-- For a smooth map `γ : E' → G` from a normed space and a direction `w`, the left-trivialized
+derivative `y ↦ θ (dγ_y w)` of `γ` in the direction `w` is differentiable, `θ` being the left
+Maurer–Cartan form. -/
+theorem differentiable_leftMaurerCartanForm_mfderiv {γ : E' → G}
+    (hγ : ContMDiff 𝓘(ℝ, E') I ∞ γ) (w : E') :
+    Differentiable ℝ fun y ↦ (leftMaurerCartanForm I G).val (γ y) ![mfderiv 𝓘(ℝ, E') I γ y w] :=
+  (contDiff_leftMaurerCartanForm_mfderiv hγ w).differentiable (by simp)
+
+end LeftTrivialized
 
 /-! ### The structure equation -/
 
