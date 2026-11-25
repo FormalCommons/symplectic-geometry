@@ -133,8 +133,8 @@ applies Tau Ceti's fixed point
 3. **The operator.** $B h$ is known with bounds only on a closed disc
    (`beurlingCkCLM` takes values in fields on `closedBall c R`). It is made a
    global element of `CkHolderSpace` by a fixed smooth bump `χ`, equal to one
-   on `closedBall c r` and with `tsupport χ ⊆ ball c (r + 1)`, through
-   `CkHolderSpace.cutoff` on `ball c (r + 1)`, and then multiplied by `μ` with
+   on `closedBall c (r + 1)` and vanishing off `ball c (r + 2)`, through
+   `CkHolderSpace.cutoff` on `ball c (r + 3)`, and then multiplied by `μ` with
    `compCkHolder₂` of complex multiplication. Since `μ` vanishes off
    `closedBall c r`, where `χ = 1`, the product is $\mu\,Bh$ everywhere. Tau
    Ceti builds this operator, privately, in its
@@ -172,8 +172,9 @@ applies Tau Ceti's fixed point
    has the class `HasIsothermalCharts`. Neither issue 3 nor issue 4 uses
    that theorem: `IsIntegrable` asks for smooth charts, which come from Tau
    Ceti's smooth planar charts. On the
-   model `𝓘(ℝ, ℂ)`, smooth isothermal charts of the smooth maximal atlas
-   follow from issue 4 through
+   model `𝓘(ℝ, ℂ)`, Tau Ceti's isothermal charts lie in the smooth maximal
+   atlas (`IsIsothermalChart.mem_maximalAtlas_infty`), which gives the
+   forward direction of
    `isIntegrable_iff_forall_exists_isIsothermalChart` (#862). The theorem
    `IsIntegrable.hasIsothermalCharts` that #862 added, which concluded the
    class, was deleted by the move to `c9d170eed5a8` (#2025), with no
@@ -375,8 +376,8 @@ estimates.
 
 | # | Issue | Files | Blocked by | Size |
 |---|---|---|---|---|
-| 1 | Planar charts of class `C^{k+1}` for a small $C^{k,\alpha}$ coefficient | `Analysis/Complex/Beltrami/CkHolder.lean`, and the files under *Files taken from Tau Ceti* | — | 1000 |
-| 2 | Planar isothermal charts of class `C^m`, and smooth ones | `Analysis/Calculus/ContDiff/Holder.lean`, `Analysis/Complex/Beltrami/Regularity.lean` | 1 | 350 |
+| 1 | Planar charts of class `C^{k+1}` for a small $C^{k,\alpha}$ coefficient | `Analysis/Complex/Beltrami/CkHolder.lean`, and the copies under *Files taken from Tau Ceti*, which the move to `c9d170eed5a8` (#2025) deleted | — | 1000 |
+| 2 | Planar isothermal charts of class `C^m`, and smooth ones | `Analysis/Calculus/ContDiff/Holder.lean` | 1 | 350 |
 | 3 | Smooth isothermal charts on surfaces | `Geometry/Manifold/Complex/Isothermal.lean` | 2; #862, #1295 | 250 |
 | 4 | Integrability in dimension two, isothermal coordinates of a metric, and the milestone | `Geometry/Manifold/Complex/Isothermal.lean`, `Analysis/InnerProductSpace/TwoDim.lean` | 3; #862 | 300 |
 

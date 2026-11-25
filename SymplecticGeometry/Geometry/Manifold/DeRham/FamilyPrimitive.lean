@@ -34,18 +34,11 @@ The file has two results.
 
 ## Main results
 
-In the namespace `SymplecticGeometry`:
-
 * `IsSmoothlyContractible.exists_contMDiff_mextDeriv_eq_of_forall_mem_closedForms`: on a smoothly
   contractible manifold, a smooth family of closed one-forms has a jointly smooth family of
   primitives (the parametric Poincaré lemma in degree one).
 * `exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms`: on any manifold, a smooth family of
   exact one-forms has a jointly smooth family of primitives.
-
-In the namespace `TauCeti`:
-
-* `isLocallyConstant_sub_of_mextDeriv_ofFunction_eq`: two differentiable functions whose
-  `0`-forms have the same exterior derivative differ by a locally constant function.
 
 ## References
 
@@ -59,23 +52,6 @@ public section
 
 open Set TopologicalSpace TauCeti
 open scoped Manifold ContDiff Topology
-
-namespace TauCeti
-
-variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
-  {I : ModelWithCorners ℝ E H} {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
-
-/-- Two differentiable functions whose `0`-forms have the same exterior derivative differ by a
-locally constant function. The manifold may have boundary or corners. -/
-theorem isLocallyConstant_sub_of_mextDeriv_ofFunction_eq [IsManifold I 1 M] {f g : M → F}
-    (hf : MDifferentiable I 𝓘(ℝ, F) f) (hg : MDifferentiable I 𝓘(ℝ, F) g)
-    (h : mextDeriv (RoughForm.ofFunction I f) = mextDeriv (RoughForm.ofFunction I g)) :
-    IsLocallyConstant (f - g) :=
-  (mextDeriv_ofFunction_eq_zero_iff (hf.sub hg)).1 <| add_eq_right.1 <| by
-    rw [← mextDeriv_ofFunction_add (hf.sub hg) hg, sub_add_cancel, h]
-
-end TauCeti
 
 namespace SymplecticGeometry
 
@@ -129,7 +105,8 @@ theorem exists_contMDiff_mextDeriv_eq_of_forall_mem_exactForms {α : N → Smoot
     congr 1
     funext i
     rw [Subsingleton.elim i 0]
-    exact ((hψ.mdifferentiable (by simp) (z, t)).mfderiv_curry_left_apply v).symm
+    exact (MDifferentiableAt.mfderiv_uncurry_apply_mk_zero (f := fun z t ↦ (t, z))
+      (hψ.mdifferentiable (by simp) (z, t)) v).symm
   obtain ⟨F, hF, -, hFd⟩ := exists_contMDiff_mvfderiv_eq_of_forall_exists (r := ⊤)
     (SmoothForm.mpullback _ hψ Ω).isSmoothForm
     (fun t ↦ ⟨_, (hg t).mdifferentiable (by simp), hB t⟩) x₀

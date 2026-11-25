@@ -153,7 +153,7 @@ theorem velocityForm_apply (t : unitInterval) (x : P) (v : E') :
   congr 1
   funext i
   fin_cases i
-  · exact hF.mfderiv_curry_left_apply _
+  · exact MDifferentiableAt.mfderiv_uncurry_apply_mk_zero (f := fun s y ↦ F (s, y)) hF _
   · exact MDifferentiableAt.mfderiv_uncurry_apply_zero_mk (f := fun s y ↦ F (s, y)) hF v
 
 /-- The slice of the velocity form at time `t` sends `v` at `x` to `σ (∂ₜ F (t, x), dF_t v)`. -/
@@ -212,7 +212,7 @@ theorem IsSymplectic.mextDeriv_mpullback_prodMk_velocityForm [CompleteSpace E']
     SmoothForm.coe_mpullback, mextDerivₗ_apply, hd]
   funext x
   refine mpullback_prodMk_mlieDerivForm_prodVectorField_zero_eq_zero (β.mdifferentiableAt _)
-    ((SymplecticGeometry.contMDiff_totalSpaceMk_one_Icc (n := 1)).mdifferentiableAt one_ne_zero)
+    ((TauCeti.contMDiff_one_tangentSpace_Icc (n := 1)).mdifferentiableAt one_ne_zero)
     fun s ↦ ?_
   have hs (s : unitInterval) : mpullback J ((𝓡∂ 1).prod J) (Prod.mk s) β.val = τ.val := by
     have hι : MDifferentiable J ((𝓡∂ 1).prod J) (Prod.mk s : P → unitInterval × P) :=
@@ -341,7 +341,8 @@ theorem hasHamiltonian_iff_velocityForm {σ : SmoothTwoForm I M} {Φ : Diffeotop
       mextDeriv (RoughForm.ofFunction I fun y ↦ F (y, t)) x ![v] =
         mvfderiv (I.prod (𝓡∂ 1)) F (x, t) (v, (0 : EuclideanSpace ℝ (Fin 1))) := by
     refine (mextDeriv_ofFunction_apply _ x v).trans ?_
-    exact ((hF.mdifferentiableAt (x := (x, t)) (by simp)).mfderiv_curry_left_apply v).symm.trans
+    exact (MDifferentiableAt.mfderiv_uncurry_apply_mk_zero (f := fun x t ↦ F (x, t))
+      (hF.mdifferentiableAt (x := (x, t)) (by simp)) v).symm.trans
       (mvfderiv_apply_eq_mfderiv_apply F (x, t) _).symm
   rw [hasHamiltonian_iff]
   refine and_congr_right fun hF ↦ ⟨fun h t ↦ ?_, fun h p v ↦ ?_⟩

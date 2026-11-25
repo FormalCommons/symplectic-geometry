@@ -12,6 +12,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
 import SymplecticGeometry.Topology.Sets.Opens.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
+import TauCeti.Geometry.Symplectic.Lagrangian.Embedding.Symplectic.Neighborhood
 import TauCeti.Geometry.Manifold.IsManifold.Basic
 import TauCeti.Geometry.Manifold.VectorBundle.Hom
 import TauCeti.Geometry.Manifold.VectorBundle.Pullback
@@ -42,13 +43,13 @@ applied to `f₀` and `f₁ ∘ φ`, an embedding on the model of `Q₀` by
 `TauCeti.SmoothEmbedding.compDiffeomorphOfBoundaryless`. Their restricted forms agree and are
 nondegenerate, so of constant rank. The comparison theorem is applied with
 `L q = rep₁ ∘ Φ q ∘ [·]` at each `q`: the normal class of a vector, carried by `Φ` and
-represented in the symplectic complement. It is smooth by
-`TauCeti.SmoothEmbedding.contMDiff_symplecticNormalRepresentative` and preserves the forms on the
-symplectic complements since `Φ` does. The comparison theorem gives `dψ v - L q v` tangent to
-`f₁ ∘ φ` for `v` in the symplectic complement of the tangent space of `f₀`. That difference is also
-in the symplectic complement of the tangent space of `f₁`, as `dψ` is a linear symplectomorphism
-carrying the tangent space of `f₀` onto that of `f₁ ∘ φ`. The tangent space of `f₁` being
-symplectic, the difference vanishes.
+represented in the symplectic complement. It is smooth by Tau Ceti's
+`TauCeti.SmoothEmbedding.contMDiff_symplecticNormalRepresentative_comp_normalClass`, and it
+preserves the forms on the symplectic complements since `Φ` does. The comparison theorem gives
+`dψ v - L q v` tangent to `f₁ ∘ φ` for `v` in the symplectic complement of the tangent space of
+`f₀`. That difference is also in the symplectic complement of the tangent space of `f₁`, as `dψ`
+is a linear symplectomorphism carrying the tangent space of `f₀` onto that of `f₁ ∘ φ`. The
+tangent space of `f₁` being symplectic, the difference vanishes.
 
 ## Main results
 
@@ -105,14 +106,13 @@ private theorem contMDiff_symplecticNormalRepresentative_comp_normalClassL
         ((Φ q : _ →L[ℝ] _).comp (f₀.normalClassL q hn)))) := by
   let := f₀.normalSpaceFiberBundle hn hP₀
   let := f₁.normalSpaceFiberBundle hn hP₁
-  have hK := f₀.contMDiff_normalQuotientMap (m := ∞) hn (by simp) hP₀
-  have hG := f₁.contMDiff_symplecticNormalRepresentative h₁ hn (m := ∞) (by simp) (by simp) hP₁
+  have hG := f₀.contMDiff_symplecticNormalRepresentative_comp_normalClass f₁ h₁ (f := φ) hn
+    (fun q ↦ (Φ q : f₀.NormalSpace q hn →L[ℝ] f₁.NormalSpace (φ q) hn)) hP₀ hP₁ hΦ
   refine (contMDiff_hom_bundle_iff (F₁ := E₀) (F₂ := E₁)
     (E₁ := (f₀ : Q₀ → M₀) *ᵖ (TangentSpace I₀))
     (E₂ := (f₁.compDiffeomorphOfBoundaryless φ (by simp) : Q₀ → M₁) *ᵖ (TangentSpace I₁)) _).2 ?_
   rw [Pullback.contMDiff_iff _ (f₁.compDiffeomorphOfBoundaryless φ (by simp)).contMDiff]
-  refine ⟨contMDiff_proj _, (hG.comp (hΦ.comp hK)).congr fun p ↦ ?_⟩
-  rw [Function.comp_apply, Function.comp_apply, SmoothEmbedding.normalQuotientMap_apply]
+  refine ⟨contMDiff_proj _, hG.congr fun p ↦ ?_⟩
   refine TotalSpace.ext (f₁.compDiffeomorphOfBoundaryless_apply φ (by simp) p.proj) (heq_of_eq ?_)
   -- `L` applied to a vector is the composite applied to it, by the definition of composition.
   exact congrArg (f₁.symplecticNormalRepresentative h₁ (φ p.proj) hn)

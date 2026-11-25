@@ -139,7 +139,7 @@ This file corrects part 50 of `DESIGN.md` in the same pull request:
   with `Basic.lean` (connection forms, horizontal spaces, the affine
   structure), `Existence.lean` and `Curvature.lean`,
   so that three issues do not write one file. The comparison of curvatures
-  with the circle case is in `Curvature.lean`.
+  with the circle case is in `Connection/Circle.lean`.
 - The curvature is `connectionCurvature A`, defined for every
   $\mathfrak g$-valued one-form, rather than a declaration named
   `curvature`: it needs no proof that $A$ is a connection form, and a bare
@@ -260,7 +260,8 @@ This file names it as a form.
   `SmoothForm.mextDeriv_apply_one`.
 - `connectionCurvature_add`: for any one-form $a$, the curvature of $A+a$
   is $F_A+d a+[A\wedge a]+\tfrac12[a\wedge a]$, written with `wedgeWith`.
-- The circle case: `IsCircleConnectionForm.connectionCurvature_mapCoeff`:
+- The circle case, in `Principal/Connection/Circle.lean`, which imports
+  this file: `IsCircleConnectionForm.connectionCurvature_mapCoeff`:
   the curvature of the $\mathfrak g$-valued form of $\alpha$ is
   `mapCoeff` of the pull-back of `hα.curvature`; the bracket vanishes
   since $\mathfrak g$ is spanned by `circleLieGenerator`.
@@ -399,7 +400,7 @@ Issues 1, 2 and 5 can start at once.
   the adjoint and coadjoint actions (`Geometry/Lie/Adjoint/`), forms with
   values in a normed space, their pull-back, exterior derivative, wedge
   and descent (`Geometry/Manifold/DifferentialForm/`), Ehresmann
-  connections (`Geometry/Manifold/Submersion/EhresmannConnection.lean`),
+  connections (`Geometry/Manifold/Submersion/EhresmannConnection/Basic.lean`),
   equivariant moment maps
   (`Geometry/Symplectic/Hamiltonian/EquivariantMomentMap/Basic.lean`).
 
