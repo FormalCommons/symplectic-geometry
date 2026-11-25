@@ -12,7 +12,7 @@ public import SymplecticGeometry.Geometry.Symplectic.SymplecticTransport
 public import SymplecticGeometry.LinearAlgebra.Symplectic.Standard.Matrix
 public import TauCeti.Analysis.InnerProductSpace.Adjoint
 public import TauCeti.Geometry.Symplectic.Darboux.Basis
-public import TauCeti.LinearAlgebra.BilinearForm.Isometry
+public import TauCeti.LinearAlgebra.SesquilinearForm.IsometryGroup
 
 /-!
 # Affine symplectic maps, cylinders and the reflection of the standard model
@@ -22,7 +22,7 @@ symplectic width are stated.
 
 * `SymplecticGeometry.affineSymplecticGroup ω`: the group `ASp(V, ω)` of affine automorphisms of
   a real symplectic vector space whose linear part is a symplectomorphism, as the preimage of
-  Tau Ceti's `LinearMap.BilinForm.isometryGroup ω.toBilinForm` under `AffineEquiv.linearHom`. In the
+  Tau Ceti's `LinearMap.isometryGroup ω.toBilinForm` under `AffineEquiv.linearHom`. In the
   standard model these are the maps `z ↦ A z + z₀` with `A` a symplectic matrix
   (`SymplecticGeometry.mem_affineSymplecticGroup_stdForm_iff_matrix`).
 * `SymplecticGeometry.stdCylinder i R`: the closed cylinder `Z(R) = {z | √(xᵢ² + yᵢ²) ≤ R}` over
@@ -62,11 +62,11 @@ variable {V : Type*} [AddCommGroup V] [Module ℝ V] (ω : SymplecticForm V)
 /-- The affine symplectic group `ASp(V, ω)`: the affine automorphisms of `V` whose linear part
 is a symplectomorphism of `ω`. -/
 def affineSymplecticGroup : Subgroup (V ≃ᵃ[ℝ] V) :=
-  (LinearMap.BilinForm.isometryGroup ω.toBilinForm).comap AffineEquiv.linearHom
+  (LinearMap.isometryGroup ω.toBilinForm).comap AffineEquiv.linearHom
 
 theorem affineSymplecticGroup_def :
     affineSymplecticGroup ω =
-      (LinearMap.BilinForm.isometryGroup ω.toBilinForm).comap AffineEquiv.linearHom :=
+      (LinearMap.isometryGroup ω.toBilinForm).comap AffineEquiv.linearHom :=
   (rfl)
 
 variable {ω}
@@ -76,7 +76,7 @@ symplectomorphism. -/
 @[simp]
 theorem mem_affineSymplecticGroup_iff {f : V ≃ᵃ[ℝ] V} :
     f ∈ affineSymplecticGroup ω ↔ ω.IsSymplectomorphism ω f.linear := by
-  rw [affineSymplecticGroup_def, Subgroup.mem_comap, LinearMap.BilinForm.mem_isometryGroup_iff,
+  rw [affineSymplecticGroup_def, Subgroup.mem_comap, LinearMap.mem_isometryGroup_iff,
     SymplecticForm.isSymplectomorphism_iff]
   rfl
 

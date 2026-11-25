@@ -317,7 +317,7 @@ Flat families of fibre classes and one-forms that represent them (Decision
   change), `isLocallyConstant_fiberClass` on the base set, and
   `fiberClass_e₀_b₀` (it is `c` at `b₀` in `e₀`).
 - `IsSymplectic.exists_oneForm_fiberClass`: a smooth one-form `α` on `M`
-  whose pull-back along `e.fiberInclusion hb` is closed and in the class
+  whose pull-back along `e.fiberInclusionMap hb` is closed and in the class
   `fiberClass … e b hb` for every chart and point. As a consequence
   (`IsSymplecticTrivializationAlong.mk_mpullback_eq`), its pull-back along
   each slice of a normalized trivialization along a loop at `b₀` is closed
@@ -383,7 +383,7 @@ lines.
      `g : H₁(B; ℤ) →+ H¹(F)` with
      `(QuotientAddGroup.mk' (fluxGroup σ)).comp g = A.fluxHomomorphism … b₀`;
   4. there is `a : deRhamCohomology IM M 2` that pulls back to `[σ]` along
-     every `(A.trivAt b).fiberInclusion hb'`, such that for every smooth
+     every `(A.trivAt b).fiberInclusionMap hb'`, such that for every smooth
      1-periodic loop `γ` whose class in `H₁(B; ℤ)` is torsion and every
      symplectic trivialization `hΦ` along `γ`,
      `hΦ.loopTransgression a ∈ fluxGroup σ`.
@@ -434,7 +434,7 @@ The page's form of statement 4. About 400 lines. Waits for the other files.
   `parallelTransportIn_coordChange`, `parallelTransport_eq_timeDependentFlowOf`
   and `exists_trivialization_parallelTransport`.
 - *Symplectic fibrations*: `TauCeti.MapFiber.Atlas.IsContMDiff`,
-  `HasStructureGroup`, `CoordChangeMem`, `RestrictsTo`, `fiberInclusion`,
+  `HasStructureGroup`, `CoordChangeMem`, `RestrictsTo`, `fiberInclusionMap`,
   `horizontalDistribution`, `IsVerticallyClosed`,
   `IsEhresmannConnection.IsSymplectic` and its milestone, and the
   partition-of-unity connection form.

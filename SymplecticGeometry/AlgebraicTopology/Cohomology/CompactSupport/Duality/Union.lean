@@ -11,6 +11,7 @@ public import TauCeti.AlgebraicTopology.Cohomology.Cap.MayerVietoris.Basic
 public import TauCeti.AlgebraicTopology.Cohomology.CompactSupport.Duality.MayerVietoris
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.CompactSupport.Manifold
 public import SymplecticGeometry.Topology.Sets.Opens.Comap
+import SymplecticGeometry.Topology.Sets.Opens.Basic
 
 /-!
 # Poincaré duality for unions of open sets

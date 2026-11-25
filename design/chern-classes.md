@@ -494,7 +494,7 @@ homology projective in every degree and finitely generated in degrees
   that point, form a basis of `Hᵖ(F; k)`, then it is bijective in degree
   `n`. Over one trivializing set it is `TopCat.lerayHirsch_fst_bijective_of_fiberwise_basis`
   through the trivialization; the finite cover is handled by induction with
-  the previous file. The fibre inclusion `Bundle.Trivialization.fiberInclusion`
+  the previous file. The fibre inclusion `Bundle.Trivialization.fiberInclusionMap`
   comes from `Topology/FiberBundle/Basic.lean` of *Symplectic vector bundles*.
 - `TopCat.lerayHirschEquiv`, the linear equivalence, with its value on
   summands; and `TopCat.singularCohomologyMap_injective_of_lerayHirsch_injective`,
@@ -1170,7 +1170,7 @@ then imports `ChernClass/FirstChernClass.lean`.
   `AlgebraicTopology/Singular/LocalHomology/OrientedChart.lean`, only in
   `Geometry/Manifold/Orientation/EulerCharacteristic.lean`, for
   `TauCeti.Manifold.Orientation.localHomologyMap_sub_toHomologicalOrientation`.
-- From *Symplectic vector bundles*: `Bundle.Trivialization.fiberInclusion`
+- From *Symplectic vector bundles*: `Bundle.Trivialization.fiberInclusionMap`
   (`Topology/FiberBundle/Basic.lean`), only in `LerayHirsch/Bundle.lean`.
 - From Tau Ceti: integral cohomology and cup products
   (`AlgebraicTopology/Cohomology/IntegralCup.lean`, `Cup/Relative.lean`),
