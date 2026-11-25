@@ -184,17 +184,16 @@ These settle the questions that `DESIGN.md` leaves to this file.
    `DifferentialForm/SmoothFamily/HomotopyOperator.lean`, and
    `DifferentialForm/SmoothFamily/Poincare.lean` built on them, through
    `DeRham/FamilyPrimitive.lean`.
-4. **Hamiltonians from exactness** are built directly, not from the
+4. **Hamiltonians from exactness** come from Tau Ceti, not from the
    smooth-primitive map of `DeRham/SmoothFamily/GoodCover.lean`, which needs a compact
-   manifold. Let $\alpha_t=\iota_{X_t}\omega$, a smooth family; the
-   Hamiltonian read along the motion is then $F_t\circ\phi_t$, by
-   `hasHamiltonian_comp_iff`. A jointly smooth family $F_t$ of primitives of
-   the $\alpha_t$ is Tau Ceti's
-   `TauCeti.exists_contMDiff_mvfderiv_eq_of_forall_exists`, applied on all of
-   $M$, which need not be connected.
-   This is the path integration of the page's proof route, done by Tau
-   Ceti's theorem. It needs neither compactness nor nondegeneracy.
-   The construction of $F$ uses no Poincaré lemma on chart neighbourhoods.
+   manifold. If every $\alpha_t=\iota_{X_t}\omega$ is exact, each has a
+   smooth primitive $H_t$ by Tau Ceti's
+   `TauCeti.exists_contMDiff_mextDeriv_eq_of_mem_exactForms`, with no
+   condition on how $H_t$ depends on $t$; Tau Ceti's
+   `TauCeti.Diffeotopy.exists_hasHamiltonian_iff` then gives a Hamiltonian
+   read along the motion, choosing the primitives jointly smoothly itself.
+   It needs neither compactness nor nondegeneracy, nor a connected $M$.
+   The construction of the Hamiltonian uses no Poincaré lemma on chart neighbourhoods.
    Separately, `DeRham/FamilyPrimitive.lean` has the library's parametric
    Poincaré lemma in degree $1$ as a public lemma,
    `SymplecticGeometry.IsSmoothlyContractible.exists_contMDiff_mextDeriv_eq_of_forall_mem_closedForms`:
@@ -204,7 +203,7 @@ These settle the questions that `DESIGN.md` leaves to this file.
    `IsSmoothlyContractible.exists_isSmoothFamily_mextDerivₗ_eq` of
    `DifferentialForm/SmoothFamily/Poincare.lean` as one function on the
    product. *Isotopy extension* uses it, in `DeRham/HomologyPeriod.lean` and
-   `IsotopyExtension/Ball/Isotopy.lean`; $F$ does not depend on it.
+   `IsotopyExtension/Ball/Isotopy.lean`; the Hamiltonian does not depend on it.
 5. **Uniqueness of the Hamiltonian** is stated in `TauCeti.Diffeotopy`, as
    the review of #420 asks: two Hamiltonians of the same diffeotopy differ
    by `c (ConnectedComponents.mk x) t` for a function `c` smooth in `t`.
@@ -418,7 +417,8 @@ In `TauCeti.Diffeotopy`, for any two-form `σ` unless said:
 - `hasHamiltonian_iff_contMDiff_and_isHamiltonianVectorField_velocity`:
   `Φ.HasHamiltonian σ F ↔ ContMDiff (J.prod (𝓡∂ 1)) 𝓘(ℝ) ∞ F ∧
   ∀ t, σ.IsHamiltonianVectorField (fun y ↦ F (Φ.symm (t, y), t)) (Φ.velocity t)`,
-  from `mpullback_timeSlice_interior_velocity_apply`; and its form with the
+  from Tau Ceti's `HasHamiltonian.isHamiltonianVectorField_velocity` and
+  `hasHamiltonian_iff_isHamiltonianVectorField_velocity`; and its form with the
   page's Hamiltonian, `hasHamiltonian_comp_iff` (for `G : M × I → ℝ`, the
   function `fun p ↦ G (Φ.cylinderMap p, p.2)` is a Hamiltonian of `Φ`
   exactly when `Φ.IsGeneratedBy σ G`). *`G` generates `Φ`* is the predicate
@@ -450,7 +450,7 @@ In `TauCeti.Diffeotopy`, for any two-form `σ` unless said:
   direction builds the Hamiltonian as in Decision 4, with
   `exists_hasHamiltonian_of_forall_mem_exactForms` as the public
   statement.
-- The smooth primitives of a family of exact forms of Decision 4, from Tau
+- The smooth primitives of a family of exact forms, from Tau
   Ceti's theorem on all of $M$, are given by a public lemma, in the namespace
   `SymplecticGeometry` since its hypothesis is the library's
   `IsSmoothFamily`, in `Geometry/Manifold/DeRham/FamilyPrimitive.lean`,
@@ -469,9 +469,7 @@ In `TauCeti.Diffeotopy`, for any two-form `σ` unless said:
   ```
 
   It is the family version of Tau Ceti's
-  `exists_contMDiff_mextDeriv_eq_of_mem_exactForms`, and
-  `exists_hasHamiltonian_of_forall_mem_exactForms` applies it to
-  $\alpha_t=\iota_{X_t}\sigma$ over `unitInterval`. The parameter comes
+  `exists_contMDiff_mextDeriv_eq_of_mem_exactForms`. The parameter comes
   first, as in *Smooth families*.
 
 ### `Geometry/Symplectic/Flux/CompactSupport.lean`
