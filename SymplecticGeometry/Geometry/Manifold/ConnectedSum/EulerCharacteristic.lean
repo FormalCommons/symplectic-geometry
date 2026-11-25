@@ -49,7 +49,7 @@ Euclidean space in the universe of the connected sum.
 
 ## References
 
-* A. Kosinski, *Differential Manifolds*, Academic Press (1993), Chapter VI, Section 1.
+* [A. Kosinski, *Differential Manifolds*][Kosinski1993], Chapter VI, Section 1.
 -/
 
 public section
