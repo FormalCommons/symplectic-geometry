@@ -293,8 +293,8 @@ real differentiable on an open set `U ∋ ψ x` and satisfies `∂v/∂w̄ = a v
 `a` smooth on `U`. -/
 theorem exists_conjWirtingerDeriv_apply_one_eq_mul_of_mem_twistOneKernel
     {ψ : PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (OnePoint ℂ) ℂ ∞}
-    (hψ : ∀ p ∈ ψ.source, ∀ v : TangentSpace 𝓘(ℝ, ℂ) p,
-      mvfderiv 𝓘(ℝ, ℂ) ψ p (J p v) = Complex.I * mvfderiv 𝓘(ℝ, ℂ) ψ p v)
+    (hψ : ∀ p ∈ ψ.source,
+      IsPseudoholomorphicAt J (SmoothAlmostComplexStructure.ofComplexManifold ℂ ℂ) ψ p)
     {x y : OnePoint ℂ} (hx : x ∈ ψ.source) (hxy : x ∈ (chartAt ℂ y).source)
     {s : OnePoint ℂ → ℂ} (hs : s ∈ twistOneKernel J) :
     ∃ U : Set ℂ, IsOpen U ∧ ψ x ∈ U ∧ ∃ a : ℂ → ℂ, ContDiffOn ℝ ∞ a U ∧
@@ -362,8 +362,8 @@ theorem exists_trivialization_analyticAt_of_mem_twistOneKernel {s : OnePoint ℂ
     (hs : s ∈ twistOneKernel J) (z : OnePoint ℂ) :
     ∃ (e : Trivialization ℂ (π ℂ (twistCore (𝕜 := ℂ) 1).Fiber)) (_ : e.IsLinear ℝ)
       (ψ : PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (OnePoint ℂ) ℂ ∞), z ∈ e.baseSet ∧ z ∈ ψ.source ∧
-      (∀ p ∈ ψ.source, ∀ v : TangentSpace 𝓘(ℝ, ℂ) p,
-        mvfderiv 𝓘(ℝ, ℂ) ψ p (J p v) = Complex.I * mvfderiv 𝓘(ℝ, ℂ) ψ p v) ∧
+      (∀ p ∈ ψ.source,
+        IsPseudoholomorphicAt J (SmoothAlmostComplexStructure.ofComplexManifold ℂ ℂ) ψ p) ∧
       AnalyticAt ℂ (fun w ↦ (e (TotalSpace.mk' ℂ (E := (twistCore (𝕜 := ℂ) 1).Fiber)
         (ψ.toOpenPartialHomeomorph.symm w) (s (ψ.toOpenPartialHomeomorph.symm w)))).2)
         (ψ.toOpenPartialHomeomorph z) ∧
@@ -506,8 +506,8 @@ theorem exists_hasWeakConjWirtingerDerivOn_mul_of_twistOneDelBarSobolev_eq_zero
     {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊)
     {w : SobolevSection (twistCoreAtlas 1) volume 2 1} (hw : twistOneDelBarSobolev J 0 w = 0)
     {ψ : PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (OnePoint ℂ) ℂ ∞}
-    (hψ : ∀ p ∈ ψ.source, ∀ v : TangentSpace 𝓘(ℝ, ℂ) p,
-      mvfderiv 𝓘(ℝ, ℂ) ψ p (J p v) = Complex.I * mvfderiv 𝓘(ℝ, ℂ) ψ p v)
+    (hψ : ∀ p ∈ ψ.source,
+      IsPseudoholomorphicAt J (SmoothAlmostComplexStructure.ofComplexManifold ℂ ℂ) ψ p)
     (i : Fin (twistCoreAtlas 1).n) {Ω : TopologicalSpace.Opens ℂ}
     (hΩ : (Ω : Set ℂ) ⊆ ψ.target ∩ ψ.symm ⁻¹' (twistCoreAtlas 1).dom i) :
     ∃ a : ℂ → ℂ, ContDiffOn ℝ ∞ a Ω ∧
@@ -540,7 +540,10 @@ theorem exists_hasWeakConjWirtingerDerivOn_mul_of_twistOneDelBarSobolev_eq_zero
     exact J.fderiv_extChartAt_comp_apply_eq_inChart ((twistCoreAtlas 1).center i)
       (ψ.symm.contMDiffOn.continuousOn.continuousAt (ψ.open_target.mem_nhds (hΩ hz).1))
       (by simpa using (twistCoreAtlas 1).dom_subset_chart_source i (hΩ hz).2)
-      (J.mfderiv_symm_apply_I_smul hψ (hΩ hz).1 v)
+      -- `ψ⁻¹` is pseudoholomorphic from `i` to `J`.
+      ((SmoothAlmostComplexStructure.ofComplexManifold_apply (E := ℂ) z v).symm ▸
+        ((ψ.toOpenPartialHomeomorph_mdifferentiable hn).isPseudoholomorphicAt_symm (hΩ hz).1
+          (hψ _ (ψ.map_target (hΩ hz).1))).mfderiv_apply_commute v :)
   -- The kernel equation in chart `i`, pulled back along `T`, and the weak derivative of `u ∘ T`.
   have hDu :=
     (twistCoreAtlas 1).sectionChartData.hasWeakFDerivOn_chartValueL_chartDerivDataL volume 2 0 i w
@@ -576,8 +579,8 @@ theorem exists_ae_eq_exp_neg_mul_of_twistOneDelBarSobolev_eq_zero
     {σ : SmoothTwoForm 𝓘(ℝ, ℂ) (OnePoint ℂ)} (hJ : σ.Tames J) (hi : σ.Tames 𝒊)
     {w : SobolevSection (twistCoreAtlas 1) volume 2 1} (hw : twistOneDelBarSobolev J 0 w = 0)
     {ψ : PartialDiffeomorph 𝓘(ℝ, ℂ) 𝓘(ℝ, ℂ) (OnePoint ℂ) ℂ ∞}
-    (hψ : ∀ p ∈ ψ.source, ∀ v : TangentSpace 𝓘(ℝ, ℂ) p,
-      mvfderiv 𝓘(ℝ, ℂ) ψ p (J p v) = Complex.I * mvfderiv 𝓘(ℝ, ℂ) ψ p v)
+    (hψ : ∀ p ∈ ψ.source,
+      IsPseudoholomorphicAt J (SmoothAlmostComplexStructure.ofComplexManifold ℂ ℂ) ψ p)
     (i : Fin (twistCoreAtlas 1).n) :
     ∃ g : ℂ → ℂ, ContDiffOn ℝ ∞ g (ψ.target ∩ ψ.symm ⁻¹' (twistCoreAtlas 1).dom i) ∧
       ∃ h : ℂ → ℂ, DifferentiableOn ℂ h (ψ.target ∩ ψ.symm ⁻¹' (twistCoreAtlas 1).dom i) ∧
