@@ -5,6 +5,7 @@ Authors: The FormalCommons contributors
 -/
 module
 
+public import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 public import SymplecticGeometry.Geometry.Diffeomorphism.Diffeotopy.Translate
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
 
@@ -29,10 +30,18 @@ direction by `r sin (N u)`, where `u` is a core coordinate. As `N` grows the ima
 along that core coordinate oscillates more and more often between the heights `± r`, so its
 length in the transverse direction is as large as wanted.
 
+It also proves the existence of a *zig-zag profile* on the segment `[-1, 1]`: a smooth function
+`g` with `|g| ≤ 1`, vanishing near `± 1`, that changes sign at finitely many points
+`c 0 < ⋯ < c n`, as close together as wanted, with `|g| ≥ 1/2` and alternating signs on small
+windows on either side of each `c i`. The curve `u ↦ (u, r g(u) eⱼ)` is the zig-zag along which
+[EliashbergMishachev2002], §3.2, chains Taylor sections, one between consecutive crossings.
+
 ## Main results
 
 * `SymplecticGeometry.exists_wiggling_diffeotopy`: the zig-zag on `D`. It is the case
   `g = sin (N uᵢ)`, `e = (0, r eⱼ)` of `SymplecticGeometry.exists_diffeotopy_apply_eq_add_smul`.
+* `SymplecticGeometry.exists_zigzag_profile`: the profile, a bump function times
+  `sin (π (t - c 0) / d)` for crossings `c i = c 0 + i d` spaced by `d`.
 
 ## References
 
@@ -43,7 +52,7 @@ length in the transverse direction is as large as wanted.
 public section
 
 open Set Metric
-open scoped Manifold ContDiff
+open scoped Manifold ContDiff Real
 
 namespace SymplecticGeometry
 
@@ -79,6 +88,100 @@ theorem exists_wiggling_diffeotopy {m k : ℕ} {K : Set ((Fin m → ℝ) × (Fin
       rcases eq_or_ne l j with rfl | hl
       · simp; ring
       · simp [hl]
+
+/-- **A zig-zag profile on the segment.** Let `0 < b < 1` and `ρ > 0`. There is a smooth
+`g : ℝ → ℝ` with `|g| ≤ 1`, vanishing where `1 - b ≤ |t|`, together with points
+`c 0 < c 1 < ⋯ < c n` and a width `w > 0` such that:
+* the windows `[c 0 - 2 w, c n + 2 w]` lie in the open interval `(-1 + b, 1 - b)`, the first
+  point is at most `-1 + 2 b` and the last at least `1 - 2 b`;
+* consecutive points are less than `ρ` apart and at least `4 w` apart;
+* for `w ≤ |t - c i| ≤ 2 w`, the value `g t` has the sign `(-1) ^ i` to the right of `c i` and
+  the opposite sign to its left, and `|g t| ≥ 1/2`.
+
+So `g` changes sign, alternately upwards and downwards, near each `c i`, and stays away from
+zero at distance between `w` and `2 w` from each `c i`. -/
+theorem exists_zigzag_profile {b ρ : ℝ} (hb : 0 < b) (hb₁ : b < 1) (hρ : 0 < ρ) :
+    ∃ (g : ℝ → ℝ) (n : ℕ) (c : Fin (n + 1) → ℝ) (w : ℝ),
+      ContDiff ℝ ∞ g ∧ (∀ t, |g t| ≤ 1) ∧ (∀ t, 1 - b ≤ |t| → g t = 0) ∧
+      0 < w ∧ StrictMono c ∧
+      -1 + b < c 0 - 2 * w ∧ c 0 ≤ -1 + 2 * b ∧
+      1 - 2 * b ≤ c (Fin.last n) ∧ c (Fin.last n) + 2 * w < 1 - b ∧
+      (∀ i : Fin n, c i.succ - c i.castSucc < ρ ∧ c i.castSucc + 4 * w ≤ c i.succ) ∧
+      ∀ i : Fin (n + 1), ∀ t, w ≤ |t - c i| → |t - c i| ≤ 2 * w →
+        1 / 2 ≤ (-1) ^ (i : ℕ) * SignType.sign (t - c i) * g t := by
+  -- The crossings fill `[-s, s]`, where `1 - 2 b ≤ s < 1 - b`, with a margin `m` up to `1 - b`.
+  set s := (1 - b) * (2 - b) / 2 with hs_def
+  set m := b * (1 - b) / 2 with hm_def
+  have hs : 0 < s := by nlinarith
+  have hm : 0 < m := by nlinarith
+  have : s + m = 1 - b := by rw [hs_def, hm_def]; ring
+  have hsb : 1 - 2 * b ≤ s := by nlinarith
+  have hmin : 0 < min ρ (3 * m) := lt_min hρ (by positivity)
+  obtain ⟨n, hn⟩ := exists_nat_gt (2 * s / min ρ (3 * m))
+  have hn0 : (0 : ℝ) < n := lt_trans (by positivity) hn
+  set d := 2 * s / n with hd_def
+  have hd : 0 < d := by positivity
+  have hdmin : d < min ρ (3 * m) := by
+    rw [div_lt_iff₀ hmin] at hn
+    rw [hd_def, div_lt_iff₀ hn0]
+    linarith [mul_comm (n : ℝ) (min ρ (3 * m))]
+  have hdρ : d < ρ := hdmin.trans_le (min_le_left _ _)
+  have hdm : d < 3 * m := hdmin.trans_le (min_le_right _ _)
+  have hnd : (n : ℝ) * d = 2 * s := by rw [hd_def]; field_simp
+  let θ : ContDiffBump (0 : ℝ) := ⟨s + d / 3, 1 - b, by positivity, by linarith⟩
+  refine ⟨fun t ↦ θ t * Real.sin (π * (t + s) / d), n, fun i ↦ -s + (i : ℕ) * d, d / 6,
+    θ.contDiff.mul (by fun_prop), fun t ↦ ?_, fun t ht ↦ ?_, by positivity, fun i j hij ↦ ?_,
+    by simp; linarith, by simp; linarith, by simp [hnd]; linarith, by simp [hnd]; linarith,
+    fun i ↦ ?_, fun i t h₁ h₂ ↦ ?_⟩
+  · rw [abs_mul, abs_of_nonneg θ.nonneg]
+    exact (mul_le_mul θ.le_one (Real.abs_sin_le_one _) (abs_nonneg _) zero_le_one).trans_eq
+      (one_mul 1)
+  · change θ t * _ = 0
+    rw [θ.zero_of_le_dist (by rw [Real.dist_eq, sub_zero]; exact ht), zero_mul]
+  · have : ((i : ℕ) : ℝ) < (j : ℕ) := by exact_mod_cast hij
+    dsimp only
+    gcongr
+  · simp only [Fin.val_succ, Fin.val_castSucc, Nat.cast_add, Nat.cast_one, add_mul,
+      one_mul]
+    constructor <;> linarith
+  · -- Write `t = c i + u`, with `d / 6 ≤ |u| ≤ d / 3`.
+    dsimp only at h₁ h₂ ⊢
+    set u := t - (-s + (i : ℕ) * d) with hu
+    have hi : ((i : ℕ) : ℝ) ≤ n := by exact_mod_cast Nat.le_of_lt_succ i.isLt
+    have hid : ((i : ℕ) : ℝ) * d ≤ n * d := by gcongr
+    have hi0 : (0 : ℝ) ≤ (i : ℕ) * d := by positivity
+    have hθ : θ t = 1 := by
+      refine θ.one_of_mem_closedBall ?_
+      rw [mem_closedBall, Real.dist_eq, sub_zero, abs_le]
+      -- `θ.rIn` is the field `s + d / 3` of the structure `θ` built above.
+      change -(s + d / 3) ≤ t ∧ t ≤ s + d / 3
+      rw [abs_le] at h₂
+      constructor <;> linarith [h₂.1, h₂.2]
+    have harg : π * (t + s) / d = π * u / d + (i : ℕ) * π := by
+      rw [hu]; field_simp; ring
+    -- On `[π / 6, π / 3]` the sine is at least `1 / 2`.
+    have hsin : ∀ x, d / 6 ≤ x → x ≤ d / 3 → 1 / 2 ≤ Real.sin (π * x / d) := fun x hx₁ hx₂ ↦ by
+      rw [← Real.sin_pi_div_six]
+      have hπ := Real.pi_pos
+      apply Real.sin_le_sin_of_le_of_le_pi_div_two (by linarith)
+      · rw [div_le_iff₀ hd]; nlinarith
+      · rw [le_div_iff₀ hd]; nlinarith
+    rw [hθ, one_mul, harg, Real.sin_add_nat_mul_pi]
+    have hsq : ((-1 : ℝ) ^ (i : ℕ)) * (-1) ^ (i : ℕ) = 1 := by
+      rw [← mul_pow, neg_one_mul, neg_neg, one_pow]
+    have key : (-1 : ℝ) ^ (i : ℕ) * (SignType.sign u : ℝ) * ((-1) ^ (i : ℕ) *
+        Real.sin (π * u / d)) = (SignType.sign u : ℝ) * Real.sin (π * u / d) := by
+      linear_combination ((SignType.sign u : ℝ) * Real.sin (π * u / d)) * hsq
+    rw [key]
+    rcases lt_trichotomy u 0 with hneg | hzero | hpos
+    · rw [abs_of_neg hneg] at h₁ h₂
+      rw [_root_.sign_neg hneg, SignType.coe_neg_one, neg_one_mul, ← Real.sin_neg, ← neg_div,
+        ← mul_neg]
+      exact hsin (-u) h₁ (by linarith)
+    · rw [hzero, abs_zero] at h₁; linarith
+    · rw [abs_of_pos hpos] at h₁ h₂
+      rw [_root_.sign_pos hpos, SignType.coe_one, one_mul]
+      exact hsin u h₁ (by linarith)
 
 end SymplecticGeometry
 
