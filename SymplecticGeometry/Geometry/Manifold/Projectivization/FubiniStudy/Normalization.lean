@@ -40,7 +40,9 @@ coordinate `x 0` in Lean.
 * `SymplecticGeometry.sphereToProjectiveLine`: the analytic diffeomorphism from the unit sphere of
   `ℝ³` onto `ℂP¹`, the inverse of Tau Ceti's `OnePoint.diffeomorphSphere v ι` followed by
   `OnePoint.equivProjectivization`, for the north pole `v = homeomorphSphere ∞` and the isometry
-  `ι = sphereCoordsIsometry`, `z ↦ (Re z, -Im z, 0)`. It sends `x` to `[x₁ - i x₂ : 1 - x₃]` off the
+  `ι = sphereCoordsIsometry`, `z ↦ (Re z, -Im z, 0)`. That inverse is the inverse of Tau Ceti's
+  Pauli model `OnePoint.homeomorphSphere` (`sphereToProjectiveLine_apply`,
+  `sphereToProjectiveLine_symm_apply`). It sends `x` to `[x₁ - i x₂ : 1 - x₃]` off the
   north pole (`sphereToProjectiveLine_of_ne_northPole`) and to `[1 + x₃ : x₁ + i x₂]` off the
   south pole (`sphereToProjectiveLine_of_ne_southPole`).
 * `SymplecticGeometry.mpullback_sphereToProjectiveLine_fubiniStudyForm`: `ω_FS` pulls back along
@@ -194,6 +196,22 @@ theorem coe_sphereToProjectiveLine :
         (diffeomorphSphere (homeomorphSphere ∞) sphereCoordsIsometry).symm :=
   (rfl)
 
+/-- `sphereToProjectiveLine` is the inverse of the Pauli model `homeomorphSphere` of the Riemann
+sphere, followed by its identification with `ℂP¹`. -/
+theorem sphereToProjectiveLine_apply (p : sphere (0 : ℝ³) 1) :
+    sphereToProjectiveLine p = OnePoint.equivProjectivization ℂ (homeomorphSphere.symm p) := by
+  rw [coe_sphereToProjectiveLine, Function.comp_apply,
+    OnePoint.diffeomorphSphere_sphereCoordsIsometry_symm_apply]
+
+/-- The inverse of `sphereToProjectiveLine` reads a point of `ℂP¹` on the Riemann sphere and maps
+it to the unit sphere of `ℝ³` by the Pauli model `homeomorphSphere`. -/
+theorem sphereToProjectiveLine_symm_apply (x : ℙ ℂ (Fin 2 → ℂ)) :
+    sphereToProjectiveLine.symm x =
+      homeomorphSphere ((OnePoint.equivProjectivization ℂ).symm x) := by
+  apply sphereToProjectiveLine.toEquiv.injective
+  rw [Diffeomorph.coe_toEquiv, Diffeomorph.apply_symm_apply, sphereToProjectiveLine_apply,
+    Homeomorph.symm_apply_apply, Equiv.apply_symm_apply]
+
 /-- Off the north pole, `sphereToProjectiveLine` sends `x = (x₁, x₂, x₃)` to
 `[x₁ - i x₂ : 1 - x₃]`. -/
 theorem sphereToProjectiveLine_of_ne_northPole {p : sphere (0 : ℝ³) 1}
@@ -202,20 +220,18 @@ theorem sphereToProjectiveLine_of_ne_northPole {p : sphere (0 : ℝ³) 1}
       mk ℂ ![((p : ℝ³) 0 : ℂ) - ((p : ℝ³) 1 : ℂ) * Complex.I, ((1 - (p : ℝ³) 2 : ℝ) : ℂ)]
         (fun h ↦ OnePoint.one_sub_ne_zero_of_ne_homeomorphSphere_infty hp
           (Complex.ofReal_eq_zero.1 (congrFun h 1))) := by
-  have h₁ : ((1 - (p : ℝ³) 2 : ℝ) : ℂ) ≠ 0 := by
-    exact_mod_cast OnePoint.one_sub_ne_zero_of_ne_homeomorphSphere_infty hp
-  push_cast at h₁
-  rw [coe_sphereToProjectiveLine, Function.comp_apply,
-    OnePoint.diffeomorphSphere_symm_apply_of_ne _ _ hp,
-    OnePoint.equivProjectivization_apply_coe,
-    OnePoint.sphereCoordsIsometry_symm_orthogonalProjectionOnto,
-    OnePoint.inner_homeomorphSphere_infty, mk_eq_mk_iff']
-  refine ⟨((1 - (p : ℝ³) 2 : ℝ) : ℂ)⁻¹, ?_⟩
-  ext k
-  fin_cases k
-  · simp only [Fin.zero_eta, Fin.isValue, Pi.smul_apply, Matrix.cons_val_zero, smul_eq_mul]
-    apply Complex.ext <;> simp
-  · simp [inv_mul_cancel₀ h₁]
+  obtain ⟨x, rfl⟩ := homeomorphSphere.surjective p
+  induction x using OnePoint.rec with
+  | infty => exact absurd rfl hp
+  | coe z =>
+    have h : (1 + Complex.normSq z : ℂ) ≠ 0 := mod_cast (by linarith [Complex.normSq_nonneg z])
+    rw [sphereToProjectiveLine_apply, Homeomorph.symm_apply_apply,
+      OnePoint.equivProjectivization_apply_coe, mk_eq_mk_iff']
+    refine ⟨(1 + Complex.normSq z) / 2, ?_⟩
+    ext k
+    fin_cases k <;> simp [OnePoint.sphereCoords_coe] <;> field_simp
+    · exact Complex.re_add_im z
+    · ring
 
 /-- Off the south pole, `sphereToProjectiveLine` sends `x = (x₁, x₂, x₃)` to
 `[1 + x₃ : x₁ + i x₂]`. -/
@@ -225,33 +241,29 @@ theorem sphereToProjectiveLine_of_ne_southPole {p : sphere (0 : ℝ³) 1}
       mk ℂ ![((1 + (p : ℝ³) 2 : ℝ) : ℂ), ((p : ℝ³) 0 : ℂ) + ((p : ℝ³) 1 : ℂ) * Complex.I]
         (fun h ↦ OnePoint.one_add_ne_zero_of_ne_neg_homeomorphSphere_infty hp
           (Complex.ofReal_eq_zero.1 (congrFun h 0))) := by
-  have h₁ : ((1 + (p : ℝ³) 2 : ℝ) : ℂ) ≠ 0 := by
-    exact_mod_cast OnePoint.one_add_ne_zero_of_ne_neg_homeomorphSphere_infty hp
-  push_cast at h₁
-  by_cases hn : p = homeomorphSphere ∞
-  · subst hn
-    rw [coe_sphereToProjectiveLine, Function.comp_apply, OnePoint.diffeomorphSphere_symm_self,
-      OnePoint.equivProjectivization_apply_infinity, mk_eq_mk_iff']
-    refine ⟨((1 + (homeomorphSphere ∞ : ℝ³) 2 : ℝ) : ℂ)⁻¹, ?_⟩
+  obtain ⟨x, rfl⟩ := homeomorphSphere.surjective p
+  rw [sphereToProjectiveLine_apply, Homeomorph.symm_apply_apply]
+  induction x using OnePoint.rec with
+  | infty =>
+    rw [OnePoint.equivProjectivization_apply_infinity, mk_eq_mk_iff']
+    refine ⟨2⁻¹, ?_⟩
     ext k
-    fin_cases k <;> simp
-  · rw [sphereToProjectiveLine_of_ne_northPole hn, mk_eq_mk_iff']
-    refine ⟨(((p : ℝ³) 0 : ℂ) - ((p : ℝ³) 1 : ℂ) * Complex.I) / ((1 + (p : ℝ³) 2 : ℝ) : ℂ), ?_⟩
-    -- On the unit sphere, `x₁² + x₂² = (1 - x₃) (1 + x₃)`.
-    have h : ((p : ℝ³) 0 : ℂ) ^ 2 + ((p : ℝ³) 1 : ℂ) ^ 2 =
-        (1 - ((p : ℝ³) 2 : ℂ)) * (1 + ((p : ℝ³) 2 : ℂ)) := by
-      have hp : ‖(p : ℝ³)‖ ^ 2 = 1 := by rw [norm_eq_of_mem_sphere p, one_pow]
-      rw [EuclideanSpace.real_norm_sq_eq, Fin.sum_univ_three] at hp
-      exact_mod_cast (by linear_combination hp :
-        (p : ℝ³) 0 ^ 2 + (p : ℝ³) 1 ^ 2 = (1 - (p : ℝ³) 2) * (1 + (p : ℝ³) 2))
+    fin_cases k <;> norm_num
+  | coe z =>
+    have hz : starRingEnd ℂ z ≠ 0 := by
+      rintro h
+      rw [map_eq_zero] at h
+      subst h
+      exact hp (by rw [← OnePoint.diffeomorphSphere_sphereCoordsIsometry_apply,
+        OnePoint.diffeomorphSphere_zero])
+    have h : (1 + Complex.normSq z : ℂ) ≠ 0 := mod_cast (by linarith [Complex.normSq_nonneg z])
+    rw [OnePoint.equivProjectivization_apply_coe, mk_eq_mk_iff']
+    refine ⟨(1 + Complex.normSq z) / (2 * starRingEnd ℂ z), ?_⟩
     ext k
-    fin_cases k
-    · simp [div_mul_cancel₀ _ h₁]
-    · simp only [Fin.mk_one, Fin.isValue, Pi.smul_apply, Matrix.cons_val_one,
-        Matrix.cons_val_fin_one, smul_eq_mul]
-      push_cast
-      rw [div_mul_eq_mul_div, div_eq_iff h₁]
-      linear_combination h - ((p : ℝ³) 1 : ℂ) ^ 2 * Complex.I_sq
+    fin_cases k <;> simp [OnePoint.sphereCoords_coe] <;> field_simp
+    · rw [← Complex.mul_conj]
+      ring
+    · apply Complex.ext <;> simp
 
 /-- **The Fubini–Study form of `ℂP¹` in stereographic coordinates.** Along
 `sphereToProjectiveLine`, the Fubini–Study form of `ℂP¹` pulls back to a quarter of the area
