@@ -169,10 +169,10 @@ Structure groups of atlases and their reductions. About 250 lines.
   orientation-preserving actions and symplectic atlases from symplectic
   actions.
 
-### `Geometry/Symplectic/Fibration/Basic.lean`
+### `Geometry/Manifold/FiberBundle/RestrictsTo.lean`
 
-Forms that restrict to the fibre forms, and compatible symplectic forms.
-About 350 lines.
+Forms that restrict to the fibre forms. Nothing in it needs `σ` to be
+symplectic.
 
 - `TauCeti.MapFiber.Atlas.RestrictsTo A σ τ`, for
   `σ : SmoothForm IF F ℝ k` and `τ : SmoothForm IM M ℝ k`: for every `b`,
@@ -197,6 +197,12 @@ About 350 lines.
   restricts to `σ`, then `τ + β` does exactly when `β` pulls back to zero
   on every fibre), `RestrictsTo.add_mpullback` (Thurston's $\tau+K\pi^*\beta$,
   for part 49), and `convex_setOf_restrictsTo`.
+
+### `Geometry/Symplectic/Fibration/Basic.lean`
+
+Vertically nondegenerate forms and compatible symplectic forms. It imports
+`FiberBundle/RestrictsTo.lean`.
+
 - `TauCeti.SmoothTwoForm.IsVerticallyNondegenerate π τ`: for every `x`,
   `((τ.bilinFormAt x).restrict (mfderiv IM IB π x).ker).Nondegenerate`. It
   says that every fibre is a symplectic submanifold when `τ` is closed.
@@ -439,7 +445,8 @@ lines.
    Waits for nothing.
 2. **Structure groups.** `Geometry/Manifold/FiberBundle/StructureGroup.lean`.
    Waits for 1.
-3. **Forms restricting to the fibre forms.** `Fibration/Basic.lean`. Waits
+3. **Forms restricting to the fibre forms.**
+   `Geometry/Manifold/FiberBundle/RestrictsTo.lean`. Waits
    for 2.
 4. **The connection of a two-form.** The lemma
    `LinearMap.BilinForm.orthogonal_eq_orthogonal_iff` and the first four

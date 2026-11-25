@@ -14,9 +14,10 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 Let `A` be an atlas of a map `proj : M → B` with model fibre a manifold `F`
 (`TauCeti.MapFiber.Atlas`), and let `σ` be a `k`-form on `F`. A `k`-form `τ` on `M`
 *restricts to `σ` along `A`* when, for every chart `e` of `A` and every point `b` of its base set,
-the pull-back of `τ` along the fibre inclusion `v ↦ e⁻¹ (b, v)` is `σ`. For a symplectic
-fibration, whose fibre forms are the forms that the charts carry to `σ`, this says that `τ`
-restricts to the fibre form on every fibre.
+the pull-back of `τ` along the fibre inclusion `v ↦ e⁻¹ (b, v)` is `σ`. Nothing here needs `σ`
+to be symplectic: it may be any form, such as a volume form. For a symplectic fibration, whose
+fibre forms are the forms that the charts carry to `σ`, the predicate says that `τ` restricts to
+the fibre form on every fibre.
 
 When the coordinate changes of `A` preserve `σ`, that is, when `A` has structure group the
 stabilizer `TauCeti.SmoothForm.diffeomorphStabilizer σ`, one chart at each point is enough, and

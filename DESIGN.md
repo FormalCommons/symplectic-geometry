@@ -3311,10 +3311,10 @@ Differential topology and complex analysis only; it waits for no part of
   Tau Ceti's `TauCeti.MapFiber.Atlas` with `IsContMDiff`, with structure
   group $H\le\mathrm{Diff}(F)$ and its reductions; oriented and symplectic
   atlases; the bridge from Tau Ceti's `ContMDiffFiberBundle` and
-  `AssociatedBundle`); in `Geometry/Symplectic/Fibration/`: `Basic.lean`
-  (the predicate that a
-  form restricts to the fibre forms, with its independence of the chart;
-  compatible symplectic forms, for a symplectic atlas and, with an
+  `AssociatedBundle`), and `RestrictsTo.lean` (the predicate that a
+  form restricts to the fibre forms, with its independence of the chart);
+  in `Geometry/Symplectic/Fibration/`: `Basic.lean`
+  (compatible symplectic forms, for a symplectic atlas and, with an
   orientation, for an oriented one), `HorizontalDistribution.lean` (a
   two-form that
   restricts to the fibre forms defines the Ehresmann connection
