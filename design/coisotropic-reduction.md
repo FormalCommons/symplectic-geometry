@@ -352,7 +352,8 @@ The pointwise statements. With `f`, `hR` and `τ` as above (of `τ`, only
 ### `Geometry/Symplectic/Coisotropic/Lagrangian/Immersion.lean`
 
 - `IsCleanIntersection.exists_isLagrangianImmersion_range_eq_image`: for
-  second countable `C`, there are a type `S` with a charted space on
+  second countable `N` (then `C` is too, `c` being an embedding) and
+  nonempty boundaryless `C`, there are a type `S` with a charted space on
   `EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F)))`,
   a smooth manifold, Hausdorff and second countable, and a Lagrangian
   immersion `ι : S → LeafSpace` for `τ` with
@@ -378,7 +379,7 @@ The pointwise statements. With `f`, `hR` and `τ` as above (of `τ`, only
   homeomorphically onto the part of that set in `f '' range c`, which is
   open and closed in it by `isClopen_range`.
 - `IsCleanIntersection.exists_isLagrangianImmersion_range_eq_image_and`,
-  the milestone, for a Lagrangian embedding `g` and second countable `C`:
+  the milestone, for a Lagrangian embedding `g` and second countable `N`:
   the general statement of `Immersion.lean`; under transversality,
   `isLagrangianImmersion_leafSpaceMk_comp_of_transverse`; and, if the leaf
   space of $Q$ is Hausdorff (`T2Space`) and every fibre of
