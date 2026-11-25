@@ -22,10 +22,12 @@ All new files are in Tau Ceti's folder `Geometry/Manifold/Submersion/`, beside
 the folder `EhresmannConnection/` (with `EhresmannConnection/Basic.lean`);
 paths of new files are under `SymplecticGeometry/`, Tau Ceti paths under
 `.lake/packages/TauCeti/TauCeti/`.
-Every new declaration is about Tau Ceti's notions, so it is in the namespace
+Every new declaration about Tau Ceti's notions is in the namespace
 `TauCeti.IsEhresmannConnection` (dot notation on a proof
 `hD : TauCeti.IsEhresmannConnection I J ∞ f D`), `Manifold.IsSubmersion` or
 `TauCeti`, as `AGENTS.md` asks, and could move to Tau Ceti unchanged.
+Auxiliary declarations about Mathlib's notions only are in
+`SymplecticGeometry`.
 
 ## Setting
 
