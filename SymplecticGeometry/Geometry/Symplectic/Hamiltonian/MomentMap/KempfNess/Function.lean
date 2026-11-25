@@ -9,14 +9,10 @@ public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 public import SymplecticGeometry.Geometry.Lie.Complexification
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.KempfNess.Basic
 public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
-import Mathlib.Analysis.Calculus.ParametricIntervalIntegral
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
+import SymplecticGeometry.Analysis.Calculus.ParametricIntervalIntegral
 import SymplecticGeometry.Geometry.Lie.Exponential.Derivative
-import SymplecticGeometry.Geometry.Lie.MaurerCartan
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
-import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
-import TauCeti.Analysis.Calculus.FDeriv.Prod
 import TauCeti.Analysis.Calculus.IntervalIntegral.ParametricPrimitive
 
 /-!
@@ -61,10 +57,10 @@ of `Φ_p` at `g` is the one-form `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))`.
 * `SymplecticGeometry.moment_inv_smul_im_mfderiv_polar_smul`: on the velocity of the radial curve
   `τ ↦ C.polar (τ • ξ, u)` at `t`, the one-form `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))` takes the value
   `μ (C.expI (-(t • ξ)) • p) ξ` of the integrand of `Φ_p (C.polar (ξ, u))`.
-* `SymplecticGeometry.hasDerivAt_kempfNessFunction_comp`: along a smooth curve `c`, the derivative
-  of `Φ_p ∘ c` is the one-form evaluated on the velocity of `c`.
 * `SymplecticGeometry.mfderiv_kempfNessFunction`: the differential of `Φ_p` at `g` is
   `ĝ ↦ μ (g⁻¹ • p) (C.im (g⁻¹ ĝ))`.
+* `SymplecticGeometry.hasDerivAt_kempfNessFunction_comp`: along a curve `c` differentiable at
+  `s₀`, the derivative of `Φ_p ∘ c` at `s₀` is the one-form evaluated on the velocity of `c`.
 
 The smoothness reads `Φ_p` through the diffeomorphism `C.polar` as the integral over `[0, 1]` of a
 smooth function on `𝔤 × ℝ`, and applies Tau Ceti's
@@ -74,13 +70,15 @@ The derivative follows [GeorgoulasRobbinSalamon2021], §2. Along a smooth curve 
 `c s = C.polar (ξ s, u s)` and deform the curve `s ↦ C.toHom (u s)` in `G` to `c` through
 `γ (s, t) = C.polar (t • ξ s, u s)`. Along `t` the one-form takes the value of the integrand
 (`moment_inv_smul_im_mfderiv_polar_smul`), so `Φ_p (c s) = ∫ t in 0..1, A (s, t)` with `A` the
-one-form on `∂_t γ`. Differentiating under the integral sign (Mathlib's
-`intervalIntegral.hasFDerivAt_integral_of_contDiffOn`), the closedness of the one-form
-(`fderiv_moment_inv_smul_im_comm`) turns `∂_s A` into `∂_t B`, with `B` the one-form on `∂_s γ`,
-and the fundamental theorem of calculus leaves `B (s, 1) - B (s, 0)`. Here `B (s, 0) = 0` since
+one-form on `∂_t γ`. The closedness of the one-form (`fderiv_moment_inv_smul_im_comm`) turns
+`∂_s A` into `∂_t B`, with `B` the one-form on `∂_s γ`, so differentiating under the integral sign
+and integrating along `t` (`intervalIntegral.hasDerivAt_integral_of_hasDerivAt_snd`) leaves
+`B (s, 1) - B (s, 0)`. Here `B (s, 0) = 0` since
 `γ (·, 0)` stays in `G` (`LieComplexification.im_mfderiv_inv_mul_mfderiv_toHom_comp`), and
 `B (s, 1)` is the one-form on the velocity of `c`. The differential at `g` is read along the curve
-`s ↦ g * exp (s • g⁻¹ ĝ)`.
+`s ↦ g * exp (s • g⁻¹ ĝ)` with Tau Ceti's
+`HasMFDerivAt.hasDerivAt_comp_mul_mulInvariantExp_smul_zero`, and the derivative along any curve
+differentiable at a point then follows by the chain rule.
 
 ## References
 
@@ -255,12 +253,10 @@ variable [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC] [ConnectedSpace G]
   [RiemannianBundle (fun x : M ↦ TangentSpace I' x)]
   {σ : SmoothTwoForm I' M} {J : SmoothAlmostComplexStructure I' M}
 
-/-- **The derivative of the Kempf–Ness function along a curve.** Let the action of `Gc` be a
-complexified action, let `-μ` be an equivariant moment map for `σ`, and let the metric be
-`g(u, w) = σ(u, J w)`. Along a smooth curve `c` in `Gc`, the function `s ↦ Φ_p (c s)` has at `s₀`
-the derivative `μ ((c s₀)⁻¹ • p) (C.im ((c s₀)⁻¹ ċ))`, where `(c s₀)⁻¹ ċ` is the velocity of `c`
-at `s₀` translated to the identity. -/
-theorem hasDerivAt_kempfNessFunction_comp (h : IsComplexifiedAction C J)
+/-- Along a smooth curve `c` in `Gc`, `s ↦ Φ_p (c s)` has at `s₀` the derivative
+`μ ((c s₀)⁻¹ • p) (C.im ((c s₀)⁻¹ ċ))`. This is the step of `mfderiv_kempfNessFunction` that
+deforms `c` to a curve in `G` through the polar decomposition. -/
+private theorem hasDerivAt_kempfNessFunction_comp_of_contMDiff (h : IsComplexifiedAction C J)
     (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
     (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
     {c : ℝ → Gc} (hc : ContMDiff 𝓘(ℝ) IC ∞ c) (s₀ : ℝ) :
@@ -306,24 +302,13 @@ theorem hasDerivAt_kempfNessFunction_comp (h : IsComplexifiedAction C J)
       (mfderiv 𝓘(ℝ, ℝ × ℝ) IC γ (s, t) (0, 1)))) = A (s, t)
     rw [hv]
     exact moment_inv_smul_im_mfderiv_polar_smul C μ p (h.moment_toHom_smul hμ) (ξ s) (u s) t
-  -- The derivative of `s ↦ Φ_p (c s)` at `s₀`, under the integral sign.
-  have hAc : Continuous fun t : ℝ ↦ fderiv ℝ A (s₀, t) :=
-    (hAs.continuous_fderiv (by simp)).comp (by fun_prop)
+  -- Differentiating under the integral sign, the closedness of the one-form trades `∂_s A` for
+  -- `∂_t (α (1, 0))`, and the fundamental theorem of calculus evaluates the integral.
   have hD : HasDerivAt (kempfNessFunction C μ p ∘ c)
-      (∫ t in (0 : ℝ)..1, fderiv ℝ A (s₀, t) (1, 0)) s₀ := by
-    have hI := (intervalIntegral.hasFDerivAt_integral_of_contDiffOn
-      (μ := MeasureTheory.volume) (f := fun s t ↦ A (s, t)) (x₀ := s₀) (a := 0) (b := 1)
-      Filter.univ_mem (hAs.of_le (by simp)).contDiffOn).hasDerivAt
-    simp only [fun t ↦ fderiv_slice_left (hAs.differentiable (by simp) (s₀, t))] at hI
-    rw [ContinuousLinearMap.intervalIntegral_apply
-      ((hAc.clm_comp continuous_const).intervalIntegrable 0 1)] at hI
-    simpa [Function.comp_def, kempfNessFunction_def] using hI
-  -- The closedness of the one-form trades `∂_s A` for `∂_t (α (1, 0))`; the fundamental theorem
-  -- of calculus along `t ↦ (s₀, t)` then evaluates the integral.
-  have hFTC : ∫ t in (0 : ℝ)..1, fderiv ℝ A (s₀, t) (1, 0) =
-      α (1, 0) (s₀, 1) - α (1, 0) (s₀, 0) := by
-    refine intervalIntegral.integral_eq_sub_of_hasDerivAt (f := fun t ↦ α (1, 0) (s₀, t))
-      (fun t _ ↦ ?_) ((hAc.clm_apply continuous_const).intervalIntegrable 0 1)
+      (α (1, 0) (s₀, 1) - α (1, 0) (s₀, 0)) s₀ := by
+    refine (intervalIntegral.hasDerivAt_integral_of_hasDerivAt_snd (B := α (1, 0))
+      (hAs.of_le (by simp)) fun t _ ↦ ?_).congr_of_eventuallyEq
+        (Filter.Eventually.of_forall fun s ↦ by simp [kempfNessFunction_def, A, ξ])
     rw [← hA, fderiv_moment_inv_smul_im_comm h hμ hg p hγ (s₀, t) (1, 0) (0, 1)]
     exact ((differentiable_moment_inv_smul_im_mfderiv hμc p hγ (1, 0) (s₀, t)).hasFDerivAt.comp t
       (hasFDerivAt_prodMk_right s₀ t)).hasDerivAt
@@ -349,7 +334,7 @@ theorem hasDerivAt_kempfNessFunction_comp (h : IsComplexifiedAction C J)
     change μ ((γ (s₀, 1))⁻¹ • p) (C.im (mfderiv IC IC ((γ (s₀, 1))⁻¹ * ·) (γ (s₀, 1))
       (mfderiv 𝓘(ℝ, ℝ × ℝ) IC γ (s₀, 1) (1, 0)))) = _
     rw [hfst, hγ1, congrFun hγ1 s₀]
-  rwa [hFTC, hB1, hB0, sub_zero] at hD
+  rwa [hB1, hB0, sub_zero] at hD
 
 /-- **The derivative of the Kempf–Ness function.** Let the action of `Gc` be a complexified
 action, let `-μ` be an equivariant moment map for `σ`, and let the metric be
@@ -362,25 +347,35 @@ theorem mfderiv_kempfNessFunction (h : IsComplexifiedAction C J)
     (g : Gc) (ĝ : TangentSpace IC g) :
     mfderiv IC 𝓘(ℝ) (kempfNessFunction C μ p) g ĝ =
       μ (g⁻¹ • p) (C.im (mfderiv IC IC (g⁻¹ * ·) g ĝ)) := by
-  -- The curve `c s = g * exp (s • g⁻¹ ĝ)` passes through `g` with velocity `ĝ`.
+  -- Along the curve `s ↦ g * exp (s • g⁻¹ ĝ)`, which passes through `g` with velocity `ĝ`.
   set ζ : GroupLieAlgebra IC Gc := mfderiv IC IC (g⁻¹ * ·) g ĝ
-  set c : ℝ → Gc := fun s ↦ g * mulInvariantExp (I := IC) (s • ζ)
-  have hc : ContMDiff 𝓘(ℝ) IC ∞ c := contMDiff_const.mul (contMDiff_mulInvariantExp_smul ζ)
-  have hc0 : c 0 = g := by simp [c]
-  have hcv : curveVelocity IC c 0 = ĝ := by
-    rw [curveVelocity_mul_mulInvariantExp_smul]
-    have h0 : g * mulInvariantExp (I := IC) ((0 : ℝ) • ζ) = g := by simp
-    rw [h0]
-    exact mulInvariantVectorField_mfderiv_inv_mul ĝ
-  -- The chain rule computes the derivative of `Φ_p ∘ c` at `0` from the differential of `Φ_p`.
-  have hΦ := hasDerivAt_comp_curve (w := ĝ)
+  have hΦ := ((contMDiff_kempfNessFunction C μ p hμ.toIsMomentMap.contMDiff_of_neg)
+    |>.mdifferentiableAt (x := g) (by simp)).hasMFDerivAt
+    |>.hasDerivAt_comp_mul_mulInvariantExp_smul_zero ζ
+  rw [mulInvariantVectorField_mfderiv_inv_mul] at hΦ
+  have h' := hΦ.unique (hasDerivAt_kempfNessFunction_comp_of_contMDiff C μ p h hμ hg
+    (c := fun s ↦ g * mulInvariantExp (s • ζ))
+    (contMDiff_const.mul (contMDiff_mulInvariantExp_smul ζ)) 0)
+  rwa [mfderiv_inv_mul_mfderiv_mul_mulInvariantExp_smul, zero_smul, mulInvariantExp_zero,
+    mul_one] at h'
+
+/-- **The derivative of the Kempf–Ness function along a curve.** Let the action of `Gc` be a
+complexified action, let `-μ` be an equivariant moment map for `σ`, and let the metric be
+`g(u, w) = σ(u, J w)`. If a curve `c` in `Gc` is differentiable at `s₀`, then `s ↦ Φ_p (c s)` has
+at `s₀` the derivative `μ ((c s₀)⁻¹ • p) (C.im ((c s₀)⁻¹ ċ))`, where `(c s₀)⁻¹ ċ` is the velocity
+of `c` at `s₀` translated to the identity. -/
+theorem hasDerivAt_kempfNessFunction_comp (h : IsComplexifiedAction C J)
+    (hμ : σ.IsEquivariantMomentMap fun x ↦ -μ x)
+    (hg : ∀ x (u w : TangentSpace I' x), ⟪u, w⟫ = σ.eval₂ x u (J x w))
+    {c : ℝ → Gc} {s₀ : ℝ} (hc : MDifferentiableAt 𝓘(ℝ) IC c s₀) :
+    HasDerivAt (kempfNessFunction C μ p ∘ c)
+      (μ ((c s₀)⁻¹ • p)
+        (C.im (mfderiv IC IC ((c s₀)⁻¹ * ·) (c s₀) (mfderiv 𝓘(ℝ) IC c s₀ (1 : ℝ))))) s₀ := by
+  have hΦ := hasDerivAt_comp_curve
     ((contMDiff_kempfNessFunction C μ p hμ.toIsMomentMap.contMDiff_of_neg).mdifferentiableAt
-      (x := c 0) (by simp))
-    (hcv ▸ hasMFDerivAt_curveVelocity (hc.mdifferentiableAt (by simp)))
-  rw [hc0] at hΦ
-  have h' := hΦ.unique (hasDerivAt_kempfNessFunction_comp C μ p h hμ hg hc 0)
-  rw [(curveVelocity_apply (I := IC) (γ := c) (t := 0)).symm.trans hcv, hc0] at h'
-  exact h'
+      (x := c s₀) (by simp)) (hasMFDerivAt_curveVelocity hc)
+  rwa [mvfderiv, ContinuousLinearMap.comp_apply, mfderiv_kempfNessFunction C μ p h hμ hg,
+    curveVelocity_apply] at hΦ
 
 end Derivative
 
