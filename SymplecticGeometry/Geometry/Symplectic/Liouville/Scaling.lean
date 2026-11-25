@@ -11,7 +11,7 @@ import TauCeti.Geometry.Manifold.Flow.Diffeomorph
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph
 import SymplecticGeometry.Geometry.Manifold.Flow.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
-import SymplecticGeometry.Geometry.Manifold.ModelTransport.InteriorModel
+import TauCeti.Geometry.Manifold.ModelTransport.Interior
 import SymplecticGeometry.Geometry.Manifold.VectorField.Pullback
 import SymplecticGeometry.Geometry.Symplectic.Liouville.ContactType
 
@@ -27,11 +27,10 @@ and, by Tau Ceti's `TauCeti.mpullback_flowOf_comp_apply_eq_symplectization`, it 
 the symplectization form `e^(t - t₀) Φ(t₀, ·)^* α`
 (`TauCeti.mpullback_apply_eq_symplectization_of_isMIntegralCurveOn`). Tau Ceti's theorem asks for
 a boundaryless model; a manifold without boundary points over any model is re-modelled over the
-model vector space by `SymplecticGeometry.interiorModelDiffeomorph` (in
-`SymplecticGeometry.Geometry.Manifold.ModelTransport.InteriorModel`, after Tau Ceti's
-`TauCeti.BoundarylessModel`), and a diffeomorphism, being a local diffeomorphism, pulls a
-Liouville pair back to a Liouville pair
-(`IsLocalDiffeomorph.interior_mextDeriv_mpullback_of_interior_mextDeriv`, in
+model vector space by Tau Ceti's `TauCeti.BoundarylessModel.interiorDiffeomorph`, with the atlas
+`TauCeti.BoundarylessModel.interiorChartedSpace` as a local instance, and a diffeomorphism, being
+a local diffeomorphism, pulls a Liouville pair back to a Liouville
+pair (`IsLocalDiffeomorph.interior_mextDeriv_mpullback_of_interior_mextDeriv`, in
 `SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.LocalDiffeomorph`).
 
 The same holds in the interior of a manifold with boundary, for a field that is Liouville only on
@@ -64,6 +63,8 @@ public section
 
 open Set Bundle Filter Function TopologicalSpace
 open scoped Manifold ContDiff Topology
+
+attribute [local instance] TauCeti.BoundarylessModel.interiorChartedSpace
 
 variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
@@ -140,13 +141,13 @@ theorem mpullback_apply_eq_symplectization_of_isMIntegralCurveOn
     mpullback (𝓘(ℝ).prod J) I Φ α.val (t, s) =
       (SmoothForm.mpullback _ hΦ₀ α).symplectization.val (t - t₀, s) := by
   -- Transport `Z`, `α` and `Φ` to the copy `M'` of `M` modelled on `E`.
-  set h := SymplecticGeometry.interiorModelDiffeomorph I M ∞
-  let Z' : (y : SymplecticGeometry.InteriorModel I M) → TangentSpace 𝓘(ℝ, E) y :=
+  set h := BoundarylessModel.interiorDiffeomorph I (M := M) ∞
+  let Z' : (y : BoundarylessModel I M) → TangentSpace 𝓘(ℝ, E) y :=
     VectorField.mpullback 𝓘(ℝ, E) I h.symm Z
   have hZ' : ContMDiff 𝓘(ℝ, E) 𝓘(ℝ, E).tangent ∞ (T% Z') := by
     have := h.symm.isLocalDiffeomorph.contMDiffOn_mpullback (t := univ) hZ.contMDiffOn le_rfl
     rwa [preimage_univ, contMDiffOn_univ] at this
-  let α' : SmoothForm 𝓘(ℝ, E) (SymplecticGeometry.InteriorModel I M) ℝ 1 :=
+  let α' : SmoothForm 𝓘(ℝ, E) (BoundarylessModel I M) ℝ 1 :=
     SmoothForm.mpullback h.symm h.symm.contMDiff α
   have hα' : α'.val = mpullback 𝓘(ℝ, E) I h.symm α.val := SmoothForm.coe_mpullback _ _ _
   have hdα' : (mextDeriv α'.val).interior Z' = α'.val := by
