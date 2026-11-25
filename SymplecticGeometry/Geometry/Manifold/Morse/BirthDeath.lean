@@ -9,9 +9,8 @@ public import TauCeti.Analysis.Calculus.Morse.BirthDeath
 public import TauCeti.Geometry.Manifold.Morse.Bott.Chart.Basic
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 public import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.SpecialFunctions.Pow.Deriv
+import SymplecticGeometry.Analysis.Calculus.FDeriv.Pi
 import SymplecticGeometry.Analysis.Calculus.Hadamard
-import TauCeti.Analysis.Calculus.InverseFunctionTheorem
 import TauCeti.Geometry.Manifold.Morse.ScalarComposition
 
 /-!
@@ -44,8 +43,6 @@ Weinstein homotopy.
   source of the chart.
 * `TauCeti.BirthDeathChart.comp`: a birth–death chart for `f` gives one for `h ∘ f`, with the same
   coordinates, weights and cubic coordinate, when `h` is smooth with `h' > 0`.
-* `TauCeti.hasFDerivAt_pi_mul_zero` and `TauCeti.contDiffOn_pi_mul_rpow`: the rescaling of
-  coordinates `z ↦ (zᵢ bᵢ(z))ᵢ` used to build `TauCeti.BirthDeathChart.comp`.
 * `TauCeti.IsGeneralizedMorse`: smooth, with nondegenerate or birth–death critical points;
   `TauCeti.IsMorse.isGeneralizedMorse`, `TauCeti.IsGeneralizedMorse.isClosed_criticalPoints`,
   `TauCeti.IsGeneralizedMorse.isDiscrete_criticalPoints`,
@@ -60,10 +57,10 @@ The declarations are in the namespace `TauCeti`, since they concern only Tau Cet
 chart `TauCeti.BirthDeathChart.comp` is built as Tau Ceti's
 `TauCeti.IsManifoldNondegenerateCriticalPoint.nonempty_morseChart` builds a Morse chart: by
 composing the old chart with a local diffeomorphism of the model given by the inverse function
-theorem (`TauCeti.ContDiffOn.exists_openPartialHomeomorph`). In the chart, `h ∘ f - h (f x)` is
-the normal form of `f` times a smooth positive function `a` (Hadamard's lemma,
-`ContDiff.exists_contDiff_sub_eq_smul`), and the local diffeomorphism rescales the coordinates of
-weight `±1` by `√a` and the cubic one by `∛a`.
+theorem. In the chart, `h ∘ f - h (f x)` is the normal form of `f` times a smooth positive
+function `a` (Hadamard's lemma, `ContDiff.exists_contDiff_sub_eq_smul`), and the local
+diffeomorphism rescales the coordinates of weight `±1` by `√a` and the cubic one by `∛a`
+(`SymplecticGeometry.exists_openPartialHomeomorph_pi_mul_rpow`).
 
 ## References
 
@@ -82,30 +79,6 @@ namespace TauCeti
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {M : Type*} [TopologicalSpace M] [ChartedSpace E M]
   {f : M → ℝ} {x : M}
-
-/-! ### Rescaling coordinates -/
-
-/-- At the origin, the map `z ↦ (zᵢ bᵢ(z))ᵢ` has as derivative the diagonal map
-`v ↦ (bᵢ(0) vᵢ)ᵢ`, when each `bᵢ` is differentiable at `0`. -/
-theorem hasFDerivAt_pi_mul_zero {ι : Type*} [Finite ι] {b : ι → (ι → ℝ) → ℝ}
-    (hb : ∀ i, DifferentiableAt ℝ (b i) 0) :
-    HasFDerivAt (fun z i ↦ z i * b i z)
-      (ContinuousLinearMap.pi fun i ↦
-        b i 0 • ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : ι ↦ ℝ) i) 0 := by
-  have := Fintype.ofFinite ι
-  refine hasFDerivAt_pi'.2 fun i ↦ ?_
-  refine (((ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : ι ↦ ℝ) i).hasFDerivAt
-    (x := 0)).mul (hb i).hasFDerivAt).congr_fderiv ?_
-  ext v
-  simp [mul_comm]
-
-/-- For `a` of class `C^n`, the map `z ↦ (zᵢ a(z) ^ pᵢ)ᵢ` is of class `C^n` where `a > 0`. -/
-theorem contDiffOn_pi_mul_rpow {ι : Type*} [Fintype ι] {n : WithTop ℕ∞} {a : (ι → ℝ) → ℝ}
-    (ha : ContDiff ℝ n a) (p : ι → ℝ) :
-    ContDiffOn ℝ n (fun z i ↦ z i * a z ^ p i) {z | 0 < a z} :=
-  contDiffOn_pi.2 fun i ↦ (contDiff_apply ℝ (fun _ ↦ ℝ) i).contDiffOn.mul fun z hz ↦
-    ((Real.contDiffAt_rpow_const_of_ne (p := p i) (ne_of_gt hz)).comp z
-      ha.contDiffAt).contDiffWithinAt
 
 variable (E) in
 /-- A **birth–death chart** for `f` at `x`: a chart of the maximal atlas, centred at `x`, with a
@@ -395,45 +368,36 @@ private theorem exists_comp {h : ℝ → ℝ} (hh : ContDiff ℝ ∞ h) (hpos : 
   set W : (Fin (Module.finrank ℝ E) → ℝ) → Fin (Module.finrank ℝ E) → ℝ :=
     fun z i ↦ z i * a z ^ p i with hW
   have hWU : ∀ z, 0 < a z → U (W z) = a z * U z := fun z hz ↦ φ.normalForm_rescale hz z
-  have hWs : ContDiffOn ℝ ∞ W {z | 0 < a z} := contDiffOn_pi_mul_rpow has p
-  have hp0 : ∀ i, a 0 ^ p i ≠ 0 := fun i ↦ (Real.rpow_pos_of_pos ha0 _).ne'
-  set D := ContinuousLinearEquiv.piCongrRight fun i ↦
-    ContinuousLinearEquiv.unitsEquivAut ℝ (Units.mk0 _ (hp0 i)) with hD
-  have hWD : HasFDerivAt W (D : _ →L[ℝ] _) (L 0) := by
-    rw [map_zero]
-    convert hasFDerivAt_pi_mul_zero (b := fun i z ↦ a z ^ p i) fun i ↦
-      (has.differentiable (by simp) 0).rpow_const (.inl ha0.ne') using 1
-    ext v i
-    simp [hD, mul_comm]
-  -- The new chart, by the inverse function theorem.
-  set Φ : E → E := fun v ↦ L.symm (W (L v)) with hΦ
-  set S := ψ.target ∩ L ⁻¹' {z | 0 < a z}
-  have hSo : IsOpen S :=
-    ψ.open_target.inter ((isOpen_lt continuous_const has.continuous).preimage L.continuous)
+  -- The rescaling is a local diffeomorphism at `0`; read it in `E` through `L`.
+  obtain ⟨Θ₀, hΘ₀, h0Θ₀, hΘ₀S, hΘ₀s, hΘ₀symm⟩ :=
+    SymplecticGeometry.exists_openPartialHomeomorph_pi_mul_rpow has (by simp) ha0 p
+  set Θ := L.toHomeomorph.toOpenPartialHomeomorph.trans
+    (Θ₀.trans L.symm.toHomeomorph.toOpenPartialHomeomorph) with hΘ
+  have hΘs : ContDiffOn ℝ ∞ Θ Θ.source := by
+    simp only [hΘ, OpenPartialHomeomorph.coe_trans, OpenPartialHomeomorph.trans_source,
+      Homeomorph.toOpenPartialHomeomorph_source, Homeomorph.toOpenPartialHomeomorph_apply,
+      ContinuousLinearEquiv.coe_toHomeomorph, univ_inter, preimage_univ, inter_univ]
+    exact L.symm.contDiff.comp_contDiffOn (hΘ₀s.comp L.contDiff.contDiffOn fun _ h ↦ h)
+  have hΘsymm : ContDiffOn ℝ ∞ Θ.symm Θ.target := by
+    simp only [hΘ, OpenPartialHomeomorph.trans_symm_eq_symm_trans_symm,
+      OpenPartialHomeomorph.coe_trans, OpenPartialHomeomorph.trans_target,
+      ← Homeomorph.symm_toOpenPartialHomeomorph, Homeomorph.toOpenPartialHomeomorph_target,
+      Homeomorph.toOpenPartialHomeomorph_apply, ← ContinuousLinearEquiv.toHomeomorph_symm,
+      ContinuousLinearEquiv.symm_symm, univ_inter, preimage_univ, inter_univ]
+    exact L.symm.contDiff.comp_contDiffOn (hΘ₀symm.comp L.contDiff.contDiffOn fun _ h ↦ h)
   have hψx : ψ x = 0 := φ.toMorseBottChart.apply_self
-  have h0S : (0 : E) ∈ S :=
-    ⟨hψx ▸ ψ.map_source φ.toMorseBottChart.mem_source, by simpa using ha0⟩
-  have hΦs : ContDiffOn ℝ ∞ Φ S :=
-    L.symm.contDiff.comp_contDiffOn (hWs.comp L.contDiff.contDiffOn fun v hv ↦ hv.2)
-  have hΦD : HasFDerivAt Φ ((L.symm : (Fin (Module.finrank ℝ E) → ℝ) →L[ℝ] E).comp
-      ((D : (Fin (Module.finrank ℝ E) → ℝ) →L[ℝ] _).comp
-        (L : E →L[ℝ] Fin (Module.finrank ℝ E) → ℝ))) 0 :=
-    L.symm.hasFDerivAt.comp 0 (hWD.comp 0 L.hasFDerivAt)
-  obtain ⟨Θ, hΘ, h0Θ, hΘS, hΘsymm⟩ := TauCeti.ContDiffOn.exists_openPartialHomeomorph hΦs hSo h0S
-    (by simp) (e := L.trans (D.trans L.symm)) (by rw [hΦD.fderiv]; ext; simp)
-  have hΘs : ContDiffOn ℝ ∞ Θ Θ.source := hΘ ▸ hΦs.mono hΘS
-  have hΘ0 : Θ 0 = 0 := by simp [hΘ, hΦ, hW, Pi.zero_def]
+  have hΘ0 : Θ 0 = 0 := by simp [hΘ, hΘ₀, Pi.zero_def]
   have hcoord : ∀ y ∈ (ψ.trans Θ).source,
       φ.toMorseBottChart.coord ((ψ.trans Θ) y) = W (L (ψ y)) := fun y _ ↦ by
-    simp [hΘ, hΦ, L]
+    simp [hΘ, hΘ₀, hW, L]
   have hkey : ∀ y ∈ (ψ.trans Θ).source,
       h (f y) = h c + U (φ.toMorseBottChart.coord ((ψ.trans Θ) y)) := fun y hy ↦ by
-    have hay : 0 < a (L (ψ y)) := by simpa using (hΘS hy.2).2
+    have hay : 0 < a (L (ψ y)) := hΘ₀S (by simpa [hΘ] using hy.2)
     rw [hcoord y hy, hWU _ hay, hhG', hfU y hy.1]
     simp only [ha]
     ring
   have hx' : x ∈ (ψ.trans Θ).source :=
-    ⟨φ.toMorseBottChart.mem_source, by simpa [hψx] using h0Θ⟩
+    ⟨φ.toMorseBottChart.mem_source, by simpa [hΘ, hψx] using h0Θ₀⟩
   refine ⟨{
     quadraticPart := fun y ↦ h (f y) -
       birthDeathPotential 0 (φ.toMorseBottChart.coord ((ψ.trans Θ) y) i₀)
