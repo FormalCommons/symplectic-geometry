@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.HomotopyOperator
 public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import TauCeti.Geometry.Manifold.IsManifold.Basic
+import TauCeti.Geometry.Manifold.DifferentialForm.Squared
 
 /-!
 # The homotopy operator on smooth forms
@@ -58,6 +59,14 @@ on a smooth manifold `M` possibly with boundary or corners. Smoothness of `h φ`
 * `TauCeti.eventually_homotopyOperator_mpullback_eq_zero`: for a continuous
   `Φ : M × [0, 1] → N` mapping `S × [0, 1]` into an open set on which `φ` vanishes, with `S`
   compact, `h (Φ^* φ)` vanishes on a neighbourhood of `S`.
+* `TauCeti.SmoothForm.mextDerivₗ_apply_eq_zero_of_eventuallyEq_mextDerivₗ`: a form that is `dβ`
+  near `x` is closed at `x`, since `d` is local and `d² = 0`.
+* `TauCeti.SmoothForm.eventually_homotopyOperator_mpullback_mextDerivₗ_eq_zero`: for a smooth
+  `Φ : M × [0, 1] → N` mapping `S × [0, 1]` into an open set on which `τ = dβ`, with `S`
+  compact, `h (Φ^* dτ)` vanishes on a neighbourhood of `S`.
+* `TauCeti.SmoothForm.exists_mextDerivₗ_eq_sub_homotopyOperator_mpullback_on`: for a smooth
+  homotopy `Φ : M × [0, 1] → M` to the identity, if `τ = dβ` on `W` and `Φ (·, 0)` maps `W₀`
+  into `W`, then `τ - h (Φ^* dτ)` is exact on `W₀`.
 
 ## References
 
@@ -258,7 +267,7 @@ theorem homotopyOperator_mpullback_apply_eq_zero_of_forall {Φ : M × Icc (0 : �
     {φ : RoughForm I' N F (k + 1)} {x : M} (h : ∀ t, φ (Φ (x, t)) = 0) :
     homotopyOperator (mpullback (I.prod (𝓡∂ 1)) I' Φ φ) x = 0 :=
   homotopyOperator_apply_eq_zero fun t v ↦ by
-    rw [mpullback_apply_eq_compContinuousLinearMap, h t]
+    rw [mpullback_apply_congr (η := 0) (h t)]
     simp
 
 /-- Let `Φ : M × [0, 1] → N` be continuous and let `φ` be a form on `N` that vanishes on an open
@@ -276,5 +285,69 @@ theorem eventually_homotopyOperator_mpullback_eq_zero {Φ : M × Icc (0 : ℝ) 1
       hφ _ (huv ⟨hx, hv (mem_univ t)⟩)
 
 end Vanishing
+
+namespace SmoothForm
+
+section Exact
+
+open scoped Topology
+
+variable {E H M F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSpace H]
+  {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+  [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
+  {E' H' N : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
+  {I' : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N] [IsManifold I' ∞ N]
+
+/-- A smooth form that agrees near `x` with the exterior derivative of a smooth form is closed at
+`x`: if `τ = dβ` on a neighbourhood of `x`, then `dτ` vanishes at `x`. -/
+theorem mextDerivₗ_apply_eq_zero_of_eventuallyEq_mextDerivₗ {τ : SmoothForm I M F (k + 1)}
+    {β : SmoothForm I M F k} {x : M} (h : ∀ᶠ y in 𝓝 x, τ.val y = (mextDerivₗ I k β).val y) :
+    (mextDerivₗ I (k + 1) τ).val x = 0 := by
+  rw [mextDerivₗ_apply, mextDeriv_congr_of_eventuallyEq h, mextDerivₗ_apply,
+    SmoothForm.mextDeriv_mextDeriv, Pi.zero_apply]
+
+/-- Let `Φ : M × [0, 1] → N` be smooth, and let a smooth form `τ` on `N` be `dβ` on an open set
+`W`. If `Φ` maps `S × [0, 1]` into `W` for a compact `S ⊆ M`, then `h (Φ^* dτ)` vanishes on a
+neighbourhood of `S`. -/
+theorem eventually_homotopyOperator_mpullback_mextDerivₗ_eq_zero {Φ : M × unitInterval → N}
+    (hΦ : ContMDiff (I.prod (𝓡∂ 1)) I' ∞ Φ) {τ : SmoothForm I' N F (k + 1)}
+    {β : SmoothForm I' N F k} {W : Set N} (hW : IsOpen W)
+    (hβ : ∀ y ∈ W, (mextDerivₗ I' k β).val y = τ.val y) {S : Set M} (hS : IsCompact S)
+    (hΦS : ∀ x ∈ S, ∀ t, Φ (x, t) ∈ W) :
+    ∀ᶠ x in 𝓝ˢ S, (homotopyOperator (mpullback Φ hΦ (mextDerivₗ I' (k + 1) τ))).val x = 0 := by
+  simp only [coe_homotopyOperator, coe_mpullback]
+  exact TauCeti.eventually_homotopyOperator_mpullback_eq_zero hΦ.continuous hW
+    (fun y hy ↦ mextDerivₗ_apply_eq_zero_of_eventuallyEq_mextDerivₗ <|
+      Filter.eventually_of_mem (hW.mem_nhds hy) fun z hz ↦ (hβ z hz).symm) hS hΦS
+
+/-- Let `Φ : M × [0, 1] → M` be a smooth homotopy to the identity, `Φ (x, 1) = x`, and let a
+smooth form `τ` with values in a Banach space be `dβ` on a set `W`. If `Φ (·, 0)` maps a set `W₀`
+into `W`, then `τ - h (Φ^* dτ)` is `dγ` on `W₀` for a smooth form `γ` on `M`. -/
+theorem exists_mextDerivₗ_eq_sub_homotopyOperator_mpullback_on [CompleteSpace F]
+    {Φ : M × unitInterval → M} (hΦ : ContMDiff (I.prod (𝓡∂ 1)) I ∞ Φ) (h₁ : ∀ x, Φ (x, 1) = x)
+    {τ : SmoothForm I M F (k + 1)} {β : SmoothForm I M F k} {W : Set M}
+    (hβ : ∀ x ∈ W, (mextDerivₗ I k β).val x = τ.val x) {W₀ : Set M}
+    (hW₀ : ∀ x ∈ W₀, Φ (x, 0) ∈ W) :
+    ∃ γ : SmoothForm I M F k, ∀ x ∈ W₀, (mextDerivₗ I k γ).val x =
+      (τ - homotopyOperator (mpullback Φ hΦ (mextDerivₗ I (k + 1) τ))).val x := by
+  have hg : ContMDiff I I ∞ fun x : M ↦ Φ (x, 0) := hΦ.comp (contMDiff_id.prodMk contMDiff_const)
+  -- The homotopy formula gives `τ - h (Φ^* dτ) = g^* τ + d (h (Φ^* τ))`, with `g = Φ (·, 0)`.
+  have hη : homotopyOperator (mpullback Φ hΦ (mextDerivₗ I (k + 1) τ)) =
+      τ - mpullback _ hg τ - mextDerivₗ I k (homotopyOperator (mpullback Φ hΦ τ)) := by
+    rw [← mextDerivₗ_homotopyOperator_mpullback_add_homotopyOperator_mpullback_mextDerivₗ hg hΦ
+      (fun _ ↦ rfl) h₁ τ]
+    abel
+  refine ⟨mpullback _ hg β + homotopyOperator (mpullback Φ hΦ τ), fun x hx ↦ ?_⟩
+  -- At a point of `W₀`, the form `g^* dβ = d (g^* β)` agrees with `g^* τ`.
+  have hgx : (mpullback _ hg (mextDerivₗ I k β)).val x = (mpullback _ hg τ).val x := by
+    rw [coe_mpullback, coe_mpullback]
+    exact mpullback_apply_congr (hβ _ (hW₀ x hx))
+  rw [hη, map_add, mextDerivₗ_mpullback]
+  simp only [Submodule.coe_add, Submodule.coe_sub, Pi.add_apply, Pi.sub_apply, hgx]
+  abel
+
+end Exact
+
+end SmoothForm
 
 end TauCeti
