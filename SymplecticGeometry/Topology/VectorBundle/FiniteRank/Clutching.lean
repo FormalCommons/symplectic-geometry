@@ -591,16 +591,12 @@ of their inverses. -/
 private theorem fiberMap_inv_sliceAt
     (hf : ∀ w : X × Circle, H.hom.fiberMap ((w.1, t), w.2) = f.hom.fiberMap w) (w : X × Circle) :
     H.inv.fiberMap ((w.1, t), w.2) = f.inv.fiberMap w := by
-  have h₁ : (f.inv.fiberMap w).comp (f.hom.fiberMap w) = .id 𝕜 _ := by
-    rw [← fiberMap_comp, f.hom_inv_id, fiberMap_id]
-  have h₂ : (H.hom.fiberMap ((w.1, t), w.2)).comp (H.inv.fiberMap ((w.1, t), w.2)) =
-      .id 𝕜 _ := by
-    rw [← fiberMap_comp, H.inv_hom_id, fiberMap_id]
   calc H.inv.fiberMap ((w.1, t), w.2)
       = ((f.inv.fiberMap w).comp (f.hom.fiberMap w)).comp (H.inv.fiberMap ((w.1, t), w.2)) := by
-        rw [h₁, ContinuousLinearMap.id_comp]
+        rw [fiberMap_hom_inv_id, ContinuousLinearMap.id_comp]
     _ = f.inv.fiberMap w := by
-        rw [ContinuousLinearMap.comp_assoc, ← hf, h₂, ContinuousLinearMap.comp_id]
+        rw [ContinuousLinearMap.comp_assoc, ← hf, fiberMap_inv_hom_id,
+          ContinuousLinearMap.comp_id]
 
 /-- The transitions of the pullback of a clutching over `X × T` along `(x, p) ↦ ((x, t), p)` are
 those of the clutching by the slice of `H` at `t`. -/

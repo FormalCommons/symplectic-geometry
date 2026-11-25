@@ -156,7 +156,7 @@ theorem fiberMap_trans_trans_symm_hom {P Q R : FiniteRankBundleCore 𝕜 B} (a :
     simp
   rw [he, Iso.trans_hom, Iso.trans_hom, fiberMap_comp, fiberMap_comp, h,
     ContinuousLinearMap.comp_smul, ContinuousLinearMap.comp_id, ContinuousLinearMap.smul_comp,
-    ← fiberMap_comp, Iso.symm_hom, Iso.hom_inv_id, fiberMap_id]
+    Iso.symm_hom, fiberMap_hom_inv_id]
 
 end FiniteRankBundleCore
 
