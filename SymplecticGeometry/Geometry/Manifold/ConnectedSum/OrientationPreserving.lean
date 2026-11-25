@@ -7,6 +7,7 @@ module
 
 public import TauCeti.Geometry.Manifold.ConnectedSum.Oriented
 public import TauCeti.Geometry.Manifold.ConnectedSum.Orientation
+public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Analysis.InnerProductSpace.Reflection
 import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Orientation
 import TauCeti.Geometry.Euclidean.Inversion
@@ -69,7 +70,7 @@ end TauCeti.SmoothEmbedding
 
 namespace TauCeti.ConnectedSum
 
-open Manifold.Orientation
+open Manifold.Orientation ENat
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
   {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
@@ -293,5 +294,86 @@ theorem isOrientationPreservingAt_congrLeftHomeomorph [T2Space N] (φ : M ≃ₜ
     exact hr y' hy'
 
 end CongrLeft
+
+end TauCeti.ConnectedSum
+
+namespace TauCeti.ConnectedSum
+
+open Manifold.Orientation ENat
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
+  {M : Type*} [TopologicalSpace M] [T2Space M] [PreconnectedSpace M]
+  [ChartedSpace E M] [IsManifold 𝓘(ℝ, E) ∞ M]
+  {N : Type*} [TopologicalSpace N] [T2Space N] [PreconnectedSpace N]
+  [ChartedSpace E N] [IsManifold 𝓘(ℝ, E) ∞ N]
+  {ι : Type*} [Fintype ι]
+
+/-- Oriented connected sums along two pairs of balls which preserve and reverse the orientations
+from the same orientation `o` of `E` are diffeomorphic by an orientation-preserving
+diffeomorphism. -/
+theorem exists_diffeomorph_isOrientationPreservingAt_of_eq {e₁ e₁' : E → M} {e₂ e₂' : E → N}
+    (h₁ : IsOpenEmbedding e₁) (h₂ : IsOpenEmbedding e₂) (h₁' : IsOpenEmbedding e₁')
+    (h₂' : IsOpenEmbedding e₂') (d₁ : IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) ∞ e₁)
+    (d₂ : IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) ∞ e₂)
+    (d₁' : IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) ∞ e₁')
+    (d₂' : IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) ∞ e₂')
+    (o : Manifold.Orientation 𝓘(ℝ, E) E ι) (oM : Manifold.Orientation 𝓘(ℝ, E) M ι)
+    (oN : Manifold.Orientation 𝓘(ℝ, E) N ι) (hf₁ : ∀ v, o.IsOrientationPreservingAt oM e₁ v)
+    (hf₂ : ∀ v, o.IsOrientationReversingAt oN e₂ v)
+    (hf₁' : ∀ v, o.IsOrientationPreservingAt oM e₁' v)
+    (hf₂' : ∀ v, o.IsOrientationReversingAt oN e₂' v) :
+    letI := chartedSpace (H := E) h₁ h₂
+    letI := chartedSpace (H := E) h₁' h₂'
+    haveI := isManifold h₁ h₂ d₁ d₂
+    haveI := isManifold h₁' h₂' d₁' d₂'
+    ∃ Φ : ConnectedSum e₁ e₂ ≃ₘ^∞⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ ConnectedSum e₁' e₂', ∀ p,
+      IsOrientationPreservingAt
+        (orientation h₁ h₂ (IsLocalDiffeomorph.of_le d₁ LEInfty.out)
+          (IsLocalDiffeomorph.of_le d₂ LEInfty.out) oM oN o (fun v _ ↦ hf₁ v) (fun v _ ↦ hf₂ v))
+        (orientation h₁' h₂' (IsLocalDiffeomorph.of_le d₁' LEInfty.out)
+          (IsLocalDiffeomorph.of_le d₂' LEInfty.out) oM oN o (fun v _ ↦ hf₁' v)
+          (fun v _ ↦ hf₂' v)) Φ p := by
+  -- The balls agree near `0` after orientation-preserving diffeomorphisms of the summands.
+  obtain ⟨φ, hφ, hφo⟩ :=
+    SmoothEmbedding.exists_diffeomorph_comp_eventuallyEq_and_isOrientationPreservingAt
+      (SmoothEmbedding.id.compLocalDiffeomorph e₁ d₁ h₁.isEmbedding)
+      (SmoothEmbedding.id.compLocalDiffeomorph e₁' d₁' h₁'.isEmbedding) o oM
+      (by simpa using hf₁ 0) (by simpa using hf₁' 0)
+  obtain ⟨ψ, hψ, hψo⟩ :=
+    SmoothEmbedding.exists_diffeomorph_comp_eventuallyEq_and_isOrientationPreservingAt
+      (SmoothEmbedding.id.compLocalDiffeomorph e₂ d₂ h₂.isEmbedding)
+      (SmoothEmbedding.id.compLocalDiffeomorph e₂' d₂' h₂'.isEmbedding) o (-oN)
+      (by simpa using hf₂ 0) (by simpa using hf₂' 0)
+  replace hφ : φ ∘ e₁ =ᶠ[𝓝 0] e₁' := by simpa using hφ
+  replace hψ : ψ ∘ e₂ =ᶠ[𝓝 0] e₂' := by simpa using hψ
+  replace hψo : ∀ y, oN.IsOrientationPreservingAt oN ψ y := fun y ↦ by simpa using hψo y
+  have k₁ : ∀ v ≠ 0, (-o).IsOrientationReversingAt oM e₁' v := fun v _ ↦ by simpa using hf₁' v
+  have k₂ : ∀ v ≠ 0, (-o).IsOrientationPreservingAt oN e₂ v := fun v _ ↦ by simpa using hf₂ v
+  have k₂' : ∀ v ≠ 0, (-o).IsOrientationPreservingAt oN e₂' v := fun v _ ↦ by simpa using hf₂' v
+  let := chartedSpace (H := E) h₁ h₂
+  let := chartedSpace (H := E) h₁' h₂
+  let := chartedSpace (H := E) h₂ h₁'
+  let := chartedSpace (H := E) h₂' h₁'
+  let := chartedSpace (H := E) h₁' h₂'
+  have := isManifold h₁ h₂ d₁ d₂
+  have := isManifold h₁' h₂ d₁' d₂
+  have := isManifold h₂ h₁' d₂ d₁'
+  have := isManifold h₂' h₁' d₂' d₁'
+  have := isManifold h₁' h₂' d₁' d₂'
+  refine ⟨(congrLeftDiffeomorph h₁ h₁' h₂ d₁ d₁' d₂ φ hφ).trans <|
+    (commDiffeomorph h₁' h₂ d₁' d₂).trans <|
+    (congrLeftDiffeomorph h₂ h₂' h₁' d₂ d₂' d₁' ψ hψ).trans (commDiffeomorph h₂' h₁' d₂' d₁'),
+    fun p ↦ ?_⟩
+  simp only [Diffeomorph.coe_trans, coe_congrLeftDiffeomorph, coe_commDiffeomorph]
+  exact (isOrientationPreservingAt_commHomeomorph (he₁ := k₂') (he₂ := k₁) _).comp <|
+    (isOrientationPreservingAt_congrLeftHomeomorph (he₁ := k₂) (he₂ := k₁) (he₁' := k₂')
+      (he₂' := k₁) ψ.toHomeomorph hψ (ψ.contMDiff.of_le LEInfty.out)
+      (ψ.symm.contMDiff.of_le LEInfty.out) hψo _).comp <|
+    (isOrientationPreservingAt_commHomeomorph (he₁ := fun v _ ↦ hf₁' v)
+      (he₂ := fun v _ ↦ hf₂ v) _).comp <|
+    isOrientationPreservingAt_congrLeftHomeomorph (he₁ := fun v _ ↦ hf₁ v)
+      (he₂ := fun v _ ↦ hf₂ v) (he₁' := fun v _ ↦ hf₁' v) (he₂' := fun v _ ↦ hf₂ v)
+      φ.toHomeomorph hφ (φ.contMDiff.of_le LEInfty.out) (φ.symm.contMDiff.of_le LEInfty.out)
+      hφo p
 
 end TauCeti.ConnectedSum
