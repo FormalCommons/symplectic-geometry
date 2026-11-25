@@ -61,6 +61,9 @@ nondegenerate form along every fibre inclusion.
 * `TauCeti.MapFiber.Atlas.restrictsTo_add_iff`, `TauCeti.MapFiber.Atlas.RestrictsTo.add_mpullback`
   and `TauCeti.MapFiber.Atlas.convex_setOf_restrictsTo`: the affine structure of the forms that
   restrict to `σ`.
+* `Bundle.Trivialization.nondegenerate_restrict_ker_mfderiv_iff_separatingLeft`: at a point of a
+  fibre of a differentiable trivialization, a two-form is nondegenerate on the kernel of the
+  derivative of `proj` exactly when its pull-back to the fibre is nondegenerate there.
 * `TauCeti.MapFiber.Atlas.RestrictsTo.isVerticallyNondegenerate`: along a smooth atlas, a form
   that restricts to a nondegenerate form is vertically nondegenerate.
 * `TauCeti.SmoothTwoForm.IsVerticallyNondegenerate.isNondegenerate_mpullback_fiberInclusion`: a
@@ -157,6 +160,43 @@ theorem mpullback_fiberInclusion_mpullback_eq_zero (e : Trivialization F proj) {
     rw [TauCeti.mpullback_apply, mfderiv_zero_of_not_mdifferentiableAt hι]
     exact (TauCeti.mpullback IM IB proj β _).map_coord_zero ⟨0, Nat.pos_of_ne_zero hk⟩
       (zero_apply _)
+
+/-- **Two-forms on the tangent spaces of a fibre.** Let `e` be a trivialization of `proj` that is
+differentiable with differentiable inverse, `M` being finite-dimensional. A two-form `τ` on `M` is
+nondegenerate on the kernel of the derivative of `proj` at the point `e.fiberInclusion hb v`
+exactly when its pull-back along the fibre inclusion of `e` over `b` is nondegenerate at `v`. -/
+theorem nondegenerate_restrict_ker_mfderiv_iff_separatingLeft [IsManifold IF ∞ F]
+    [IsManifold IM ∞ M] [FiniteDimensional ℝ EM] {e : Trivialization F proj}
+    (he : e.toOpenPartialHomeomorph.MDifferentiable IM (IB.prod IF)) {b : B}
+    (hb : b ∈ e.baseSet) (hι : ContMDiff IF IM ∞ (e.fiberInclusion hb))
+    (τ : TauCeti.SmoothTwoForm IM M) (v : F) :
+    ((τ.bilinFormAt (e.fiberInclusion hb v)).restrict
+        (mfderiv IM IB proj (e.fiberInclusion hb v)).ker).Nondegenerate ↔
+      ((TauCeti.SmoothForm.mpullback (e.fiberInclusion hb) hι τ).bilinFormAt v).SeparatingLeft := by
+  have hrange := e.range_mfderiv_fiberInclusion he hb v
+  have hpull : ∀ u w, (TauCeti.SmoothForm.mpullback (e.fiberInclusion hb) hι τ).bilinFormAt v u w =
+      τ.bilinFormAt _ (mfderiv IF IM (e.fiberInclusion hb) v u)
+        (mfderiv IF IM (e.fiberInclusion hb) v w) := fun u w ↦ by
+    rw [TauCeti.SmoothForm.bilinFormAt_apply, TauCeti.SmoothForm.eval₂_mpullback,
+      TauCeti.SmoothForm.bilinFormAt_apply]
+  have hrefl : ((τ.bilinFormAt (e.fiberInclusion hb v)).restrict
+      (mfderiv IM IB proj (e.fiberInclusion hb v)).ker).IsRefl :=
+    (TauCeti.SmoothForm.isAlt_bilinFormAt τ _).isRefl.domRestrict _
+  refine hrefl.nondegenerate_iff_separatingLeft.trans ⟨fun h u hu ↦ ?_, fun h ⟨u, hu⟩ hw ↦ ?_⟩
+  · refine (injective_iff_map_eq_zero _).1 (e.injective_mfderiv_fiberInclusion he hb v) u <|
+      congrArg Subtype.val (h ⟨_, hrange ▸ LinearMap.mem_range_self _ u⟩ fun ⟨w, hw⟩ ↦ ?_)
+    rw [← hrange] at hw
+    obtain ⟨w, rfl⟩ := LinearMap.mem_range.1 hw
+    rw [LinearMap.BilinForm.restrict_apply, LinearMap.domRestrict_apply,
+      Submodule.coe_mk, Submodule.coe_mk, ContinuousLinearMap.coe_coe, ← hpull]
+    exact hu w
+  · have hu' := hu
+    rw [← hrange] at hu'
+    obtain ⟨u', rfl⟩ := LinearMap.mem_range.1 hu'
+    refine Subtype.ext ?_
+    rw [Submodule.coe_mk, Submodule.coe_zero, h u' fun w ↦ ?_, map_zero]
+    rw [hpull]
+    exact hw ⟨_, hrange ▸ LinearMap.mem_range_self _ w⟩
 
 end Bundle.Trivialization
 
@@ -308,12 +348,9 @@ theorem IsVerticallyNondegenerate.isNondegenerate_mpullback_fiberInclusion
     ⟨he.mdifferentiableOn (by simp), he_symm.mdifferentiableOn (by simp)⟩
   rw [isNondegenerate_iff_separatingLeft]
   intro v u hu
-  have hrange := e.range_mfderiv_fiberInclusion hd hb v
-  refine (injective_iff_map_eq_zero _).1 (e.injective_mfderiv_fiberInclusion hd hb v) u <|
-    isVerticallyNondegenerate_iff_forall.1 hτ _ _ (hrange ▸ LinearMap.mem_range_self _ u)
-      fun w hw ↦ ?_
-  obtain ⟨w, rfl⟩ := LinearMap.mem_range.1 (hrange.symm ▸ hw)
-  rw [SmoothForm.bilinFormAt_apply, ← hu w, SmoothForm.eval₂_mpullback, ContinuousLinearMap.coe_coe]
+  exact (e.nondegenerate_restrict_ker_mfderiv_iff_separatingLeft hd hb _ τ v).1
+    (isVerticallyNondegenerate_iff.1 hτ _) u
+    fun w ↦ by rw [SmoothForm.bilinFormAt_apply]; exact hu w
 
 end TauCeti.SmoothTwoForm
 
@@ -337,25 +374,19 @@ space of the fibre. -/
 theorem RestrictsTo.isVerticallyNondegenerate [FiniteDimensional ℝ EM]
     (hA : A.IsContMDiff ∞ IB IF IM) (hσ : σ.IsNondegenerate) (hτ : A.RestrictsTo σ τ) :
     SmoothTwoForm.IsVerticallyNondegenerate IB proj τ := by
-  -- The statement at the points of the fibre over `b'`, read through the chart at `b`.
-  have key : ∀ b b' (hb' : b' ∈ (A.trivAt b).baseSet) v,
-      ∀ u ∈ (mfderiv IM IB proj ((A.trivAt b).fiberInclusion hb' v)).ker,
-        (∀ w ∈ (mfderiv IM IB proj ((A.trivAt b).fiberInclusion hb' v)).ker,
-          τ.bilinFormAt _ u w = 0) → u = 0 := by
-    intro b b' hb' v u hu hw
-    have hrange := (A.trivAt b).range_mfderiv_fiberInclusion
-      (hA.mdifferentiable_trivAt (by simp) b) hb' v
-    obtain ⟨u, rfl⟩ := LinearMap.mem_range.1 (hrange.symm ▸ hu)
-    rw [SmoothTwoForm.isNondegenerate_iff_separatingLeft.1 hσ v u fun w ↦ ?_, map_zero]
-    rw [SmoothBundleForm.eval₂_apply, ← hτ b b' hb', TauCeti.mpullback_apply_pair,
-      ← SmoothBundleForm.eval₂_apply, ← SmoothForm.bilinFormAt_apply]
-    exact hw _ (hrange ▸ LinearMap.mem_range_self _ w)
-  refine SmoothTwoForm.isVerticallyNondegenerate_iff_forall.2 fun x ↦ ?_
+  refine SmoothTwoForm.isVerticallyNondegenerate_iff.2 fun x ↦ ?_
   have hb := A.mem_baseSet_trivAt (proj x)
   have hx : (A.trivAt (proj x)).fiberInclusion hb (A.trivAt (proj x) x).2 = x := by
     rw [Trivialization.fiberInclusion_apply,
       (A.trivAt (proj x)).symm_apply_mk_proj ((A.trivAt (proj x)).mem_source.2 hb)]
-  exact hx ▸ key _ _ hb _
+  have hι := (A.trivAt (proj x)).contMDiff_fiberInclusion (hA.contMDiffOn_trivAt_symm _) hb
+  have hpull : SmoothForm.mpullback _ hι τ = σ :=
+    Subtype.ext ((SmoothForm.coe_mpullback _ hι τ).trans (hτ _ _ hb))
+  refine hx ▸ ((A.trivAt (proj x)).nondegenerate_restrict_ker_mfderiv_iff_separatingLeft
+    (hA.mdifferentiable_trivAt (by simp) _) hb hι τ _).2 ?_
+  rw [hpull]
+  exact fun u hu ↦ SmoothTwoForm.isNondegenerate_iff_separatingLeft.1 hσ _ u
+    fun w ↦ by rw [← SmoothForm.bilinFormAt_apply]; exact hu w
 
 end TauCeti.MapFiber.Atlas
 
