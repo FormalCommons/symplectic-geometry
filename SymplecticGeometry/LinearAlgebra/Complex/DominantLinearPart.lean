@@ -38,6 +38,12 @@ section whose antiholomorphic derivative is dominated by its holomorphic derivat
   `ω x y > 0` and `F v = ω x v + i ω y v`.
 * `TauCeti.SymplecticForm.ker_eq_orthogonal_span_pair`: the kernel of such a form is the
   symplectic complement of the span of `x` and `y`.
+* `TauCeti.SymplecticForm.surjective_of_apply_eq`,
+  `TauCeti.SymplecticForm.isSymplectic_ker_of_apply_eq` and
+  `TauCeti.SymplecticForm.orientation_ker_eq_of_apply_eq`: the three results below for any form
+  `F v = ω x v + i ω y v` with `ω x y ≠ 0` (with `0 < ω x y` for the orientation).
+* `TauCeti.SymplecticForm.map_orientation_restrict_eq_complex_orientation`: on a symplectic plane
+  containing `x` and `y`, such a form carries the symplectic orientation to that of `ℂ`.
 * `TauCeti.SymplecticForm.surjective_of_norm_lt`: `F` is surjective.
 * `TauCeti.SymplecticForm.isSymplectic_ker_of_norm_lt`: the kernel of `F` is symplectic.
 * `TauCeti.SymplecticForm.orientation_ker_eq_of_norm_lt`: the kernel orientation
@@ -133,16 +139,107 @@ theorem ker_eq_orthogonal_span_pair {F : V →ₗ[ℝ] ℂ} {x y : V}
     (hF : ∀ v, F v = ⟨ω x v, ω y v⟩) :
     LinearMap.ker F = ω.orthogonal (Submodule.span ℝ {x, y}) := by
   ext v
-  simp only [LinearMap.mem_ker, mem_orthogonal_iff, Submodule.mem_span_pair, forall_exists_index]
-  refine ⟨fun hv u c d hu ↦ ?_, fun hv ↦ ?_⟩
-  · have h1 : ω x v = 0 := by simpa using congrArg Complex.re ((hF v).symm.trans hv)
-    have h2 : ω y v = 0 := by simpa using congrArg Complex.im ((hF v).symm.trans hv)
-    rw [← hu]
-    simp [h1, h2]
-  · rw [hF, Complex.ext_iff]
-    exact ⟨by simpa using hv x 1 0 (by simp), by simpa using hv y 0 1 (by simp)⟩
+  rw [mem_orthogonal_span_iff]
+  simp [hF, Complex.ext_iff]
+
+/-- A real-linear form `F : V → ℂ` that reads `F v = ω x v + i ω y v`, with `ω x y ≠ 0`, is
+surjective. -/
+theorem surjective_of_apply_eq {F : V →ₗ[ℝ] ℂ} {x y : V} (hF : ∀ v, F v = ⟨ω x v, ω y v⟩)
+    (hxy : ω x y ≠ 0) : Function.Surjective F := by
+  intro z
+  refine ⟨(z.re / ω x y) • y - (z.im / ω x y) • x, ?_⟩
+  rw [map_sub, map_smul, map_smul, hF, hF, Complex.ext_iff]
+  have hyx : ω y x = -ω x y := (ω.neg_eq x y).symm
+  simp only [self_eq_zero, hyx, Complex.sub_re, Complex.smul_re, Complex.sub_im, Complex.smul_im,
+    smul_eq_mul]
+  constructor <;> field_simp <;> ring
 
 variable [FiniteDimensional ℝ V]
+
+/-- The kernel of a real-linear form `F : V → ℂ` that reads `F v = ω x v + i ω y v`, with
+`ω x y ≠ 0`, is a symplectic subspace. -/
+theorem isSymplectic_ker_of_apply_eq {F : V →ₗ[ℝ] ℂ} {x y : V} (hF : ∀ v, F v = ⟨ω x v, ω y v⟩)
+    (hxy : ω x y ≠ 0) : ω.IsSymplectic (LinearMap.ker F) := by
+  rw [ker_eq_orthogonal_span_pair hF, isSymplectic_orthogonal_iff]
+  exact isSymplectic_iff_disjoint.2 (ω.disjoint_span_pair_orthogonal hxy)
+
+/-- Let `N` be a symplectic plane containing `x` and `y`, with `0 < ω x y`, and let
+`e : N ≃ ℂ` be the real-linear isomorphism `e v = ω x v + i ω y v`. Then `e` carries the
+symplectic orientation of `N` to the orientation of `ℂ`. -/
+theorem map_orientation_restrict_eq_complex_orientation {x y : V} (hxy : 0 < ω x y)
+    {N : Submodule ℝ V} (hNs : ω.IsSymplectic N) (hN2 : finrank ℝ N = 2) (hx : x ∈ N)
+    (hy : y ∈ N) (e : N ≃ₗ[ℝ] ℂ) (he : ∀ v : N, e v = ⟨ω x v, ω y v⟩) :
+    Orientation.map (Fin 2) e ((ω.restrict N hNs.nondegenerate_restrict).orientation hN2) =
+      Complex.orientation := by
+  have hc0 : ω x y ≠ 0 := hxy.ne'
+  have hyx : ω y x = -ω x y := (ω.neg_eq x y).symm
+  have h1 : e.symm 1 = ⟨(ω x y)⁻¹ • y, N.smul_mem _ hy⟩ := by
+    rw [LinearEquiv.symm_apply_eq, he, Complex.ext_iff]
+    simp [hc0]
+  have hI : e.symm I = ⟨-(ω x y)⁻¹ • x, N.smul_mem _ hx⟩ := by
+    rw [LinearEquiv.symm_apply_eq, he, Complex.ext_iff]
+    simp [hc0, hyx]
+  have hb : (Complex.basisOneI.map e.symm).orientation =
+      (ω.restrict N hNs.nondegenerate_restrict).orientation hN2 := by
+    rw [basis_orientation_eq_orientation_iff]
+    simp only [Basis.map_apply, Complex.coe_basisOneI, Matrix.cons_val_zero,
+      Matrix.cons_val_one, h1, hI, restrict_apply, map_smul, LinearMap.smul_apply, smul_eq_mul]
+    have hyx' : ω.toBilinForm y x = -ω.toBilinForm x y := hyx
+    have hxy' : 0 < ω.toBilinForm x y := hxy
+    rw [hyx']
+    have : 0 < (ω.toBilinForm x y)⁻¹ := inv_pos.2 hxy'
+    nlinarith [mul_pos this (mul_pos this hxy')]
+  rw [← hb, ← Basis.orientation_map]
+  congr 1
+  ext i
+  simp
+
+/-- Let `F : V → ℂ` be a real-linear form that reads `F v = ω x v + i ω y v`, with `0 < ω x y`.
+The kernel `K` of `F` is symplectic (`isSymplectic_ker_of_apply_eq`), and the orientation of `K`
+induced by the symplectic orientation of `V` and the orientation of `ℂ` through
+`0 → K → V → ℂ → 0` (`Orientation.kerOfExact`, kernel first) is the symplectic orientation
+of `K`. -/
+theorem orientation_ker_eq_of_apply_eq {F : V →ₗ[ℝ] ℂ} {x y : V}
+    (hF : ∀ v, F v = ⟨ω x v, ω y v⟩) (hxy : 0 < ω x y) {m : ℕ} (hV : finrank ℝ V = m + 2)
+    (hm : finrank ℝ (LinearMap.ker F) = m) :
+    Orientation.kerOfExact (LinearMap.ker F).injective_subtype
+        (LinearMap.exact_subtype_ker_map _) (surjective_of_apply_eq hF hxy.ne')
+        (ω.orientation hV) Complex.orientation hm Complex.finrank_real_complex =
+      (ω.restrict _ (isSymplectic_ker_of_apply_eq hF hxy.ne').nondegenerate_restrict).orientation
+        hm := by
+  have hsurj := surjective_of_apply_eq hF hxy.ne'
+  set K := LinearMap.ker F
+  have hKs : ω.IsSymplectic K := isSymplectic_ker_of_apply_eq hF hxy.ne'
+  have hN : ω.orthogonal K = Submodule.span ℝ {x, y} := by
+    rw [show K = _ from ker_eq_orthogonal_span_pair hF, orthogonal_orthogonal]
+  set N := ω.orthogonal K
+  have hc : IsCompl K N := hKs.isCompl
+  have hNs : ω.IsSymplectic N := isSymplectic_orthogonal_iff.2 hKs
+  have hN2 : finrank ℝ N = 2 := by
+    have := Submodule.finrank_add_eq_of_isCompl hc
+    omega
+  -- `F` restricts to an isomorphism from `N` onto `ℂ`.
+  set eC : N ≃ₗ[ℝ] ℂ := LinearEquiv.ofBijective (F.domRestrict N)
+    ⟨LinearMap.injective_domRestrict_iff.2 hc.disjoint.symm,
+      (LinearMap.surjective_domRestrict_iff hsurj).2 hc.symm.codisjoint⟩
+  have heC (v : N) : eC v = F v := by
+    exact (LinearEquiv.ofBijective_apply _ v).trans (F.domRestrict_apply N v)
+  have hmapC := map_orientation_restrict_eq_complex_orientation hxy hNs hN2
+    (hN ▸ Submodule.subset_span (by simp)) (hN ▸ Submodule.subset_span (by simp)) eC
+    (fun v ↦ (heC v).trans (hF v))
+  set G := Submodule.prodEquivOfIsCompl K N hc
+  have key := Orientation.map_ofExact LinearMap.inl_injective Function.Exact.inl_snd
+    LinearMap.snd_surjective K.injective_subtype (LinearMap.exact_subtype_ker_map F)
+    hsurj (LinearEquiv.refl ℝ K) G eC
+    (fun v ↦ by simp [G]) (fun z ↦ by
+      obtain ⟨⟨k, hk⟩, n⟩ := z
+      simp [G, heC, LinearMap.mem_ker.1 hk])
+    ((ω.restrict K hKs.nondegenerate_restrict).orientation hm)
+    ((ω.restrict N hNs.nondegenerate_restrict).orientation hN2) hm hN2
+  rw [Orientation.ofExact_inl_snd, Orientation.map_refl, Equiv.refl_apply, hmapC] at key
+  rw [Orientation.kerOfExact_eq_iff, ← key, ← orientation_prod _ _ hm hN2 (by simp [hm, hN2])]
+  -- The two sides differ only in the proofs that `ω` restricts nondegenerately to `K` and `N`.
+  exact ((ω.isSymplectomorphism_prodEquivOfIsCompl hc).map_orientation _).trans rfl
 
 /-- **A real-linear form with dominant complex-linear part is surjective.** Let the inner product
 of `V` be the metric `ω(·, J ·)`, and let `A, B : V →L[ℝ] ℂ` be complex linear and complex
@@ -154,13 +251,7 @@ theorem surjective_of_norm_lt (hg : ∀ v w, ω v (J w) = ⟪v, w⟫_ℝ)
       (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (B : V →ₗ[ℝ] ℂ))
     (h : ‖B‖ < ‖A‖) : Function.Surjective (A + B) := by
   obtain ⟨x, y, hxy, hF⟩ := exists_apply_eq_of_norm_lt hg hA hB h
-  intro z
-  refine ⟨(z.re / ω x y) • y - (z.im / ω x y) • x, ?_⟩
-  rw [map_sub, map_smul, map_smul, hF, hF, Complex.ext_iff]
-  have hyx : ω y x = -ω x y := (ω.neg_eq x y).symm
-  simp only [self_eq_zero, hyx, Complex.sub_re, Complex.smul_re, Complex.sub_im, Complex.smul_im,
-    smul_eq_mul]
-  constructor <;> field_simp <;> ring
+  exact surjective_of_apply_eq (F := ((A + B : V →L[ℝ] ℂ) : V →ₗ[ℝ] ℂ)) hF hxy.ne'
 
 /-- **The kernel of a real-linear form with dominant complex-linear part is symplectic.** Let the
 inner product of `V` be the metric `ω(·, J ·)`, and let `A, B : V →L[ℝ] ℂ` be complex linear and
@@ -173,8 +264,7 @@ theorem isSymplectic_ker_of_norm_lt (hg : ∀ v w, ω v (J w) = ⟪v, w⟫_ℝ)
       (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (B : V →ₗ[ℝ] ℂ))
     (h : ‖B‖ < ‖A‖) : ω.IsSymplectic (LinearMap.ker ((A + B : V →L[ℝ] ℂ) : V →ₗ[ℝ] ℂ)) := by
   obtain ⟨x, y, hxy, hF⟩ := exists_apply_eq_of_norm_lt hg hA hB h
-  rw [ker_eq_orthogonal_span_pair hF, isSymplectic_orthogonal_iff]
-  exact isSymplectic_iff_disjoint.2 (ω.disjoint_span_pair_orthogonal hxy.ne')
+  exact isSymplectic_ker_of_apply_eq hF hxy.ne'
 
 /-- **The orientation of the kernel of a real-linear form with dominant complex-linear part.** Let
 the inner product of `V` be the metric `ω(·, J ·)`, and let `A, B : V →L[ℝ] ℂ` be complex linear and
@@ -195,70 +285,7 @@ theorem orientation_ker_eq_of_norm_lt (hg : ∀ v w, ω v (J w) = ⟪v, w⟫_ℝ
       (ω.restrict _ (isSymplectic_ker_of_norm_lt hg hA hB h).nondegenerate_restrict).orientation
         hm := by
   obtain ⟨x, y, hxy, hF⟩ := exists_apply_eq_of_norm_lt hg hA hB h
-  set F : V →ₗ[ℝ] ℂ := ((A + B : V →L[ℝ] ℂ) : V →ₗ[ℝ] ℂ)
-  have hFv (v : V) : F v = ⟨ω x v, ω y v⟩ := by rw [ContinuousLinearMap.coe_coe, hF]
-  set K := LinearMap.ker F
-  have hKs : ω.IsSymplectic K := isSymplectic_ker_of_norm_lt hg hA hB h
-  have hN : ω.orthogonal K = Submodule.span ℝ {x, y} := by
-    rw [show K = _ from ker_eq_orthogonal_span_pair (F := F) hF, orthogonal_orthogonal]
-  set N := ω.orthogonal K
-  have hc : IsCompl K N := hKs.isCompl
-  have hNs : ω.IsSymplectic N := isSymplectic_orthogonal_iff.2 hKs
-  have hxN : x ∈ N := hN ▸ Submodule.subset_span (by simp)
-  have hyN : y ∈ N := hN ▸ Submodule.subset_span (by simp)
-  have hN2 : finrank ℝ N = 2 := by
-    have := Submodule.finrank_add_eq_of_isCompl hc
-    omega
-  -- `F` restricts to an isomorphism from `N` onto `ℂ`.
-  set F' : N →ₗ[ℝ] ℂ := F ∘ₗ N.subtype
-  have hF'inj : Function.Injective F' := by
-    rw [← LinearMap.ker_eq_bot, Submodule.eq_bot_iff]
-    intro v hv
-    have hvK : (v : V) ∈ K := LinearMap.mem_ker.2 (by simpa [F'] using hv)
-    exact Subtype.ext (Submodule.disjoint_def.1 hc.disjoint _ hvK v.property)
-  set eC : N ≃ₗ[ℝ] ℂ := LinearEquiv.ofBijective F' ⟨hF'inj,
-    (LinearMap.injective_iff_surjective_of_finrank_eq_finrank
-      (hN2.trans Complex.finrank_real_complex.symm)).1 hF'inj⟩
-  have heC (v : N) : eC v = F v := by
-    exact LinearEquiv.ofBijective_apply F' v
-  -- The symplectic orientation of `N` is carried to that of `ℂ`.
-  have hmapC : Orientation.map (Fin 2) eC ((ω.restrict N hNs.nondegenerate_restrict).orientation
-      hN2) = Complex.orientation := by
-    have hc0 : ω x y ≠ 0 := hxy.ne'
-    have h1 : eC.symm 1 = ⟨(ω x y)⁻¹ • y, N.smul_mem _ hyN⟩ := by
-      rw [LinearEquiv.symm_apply_eq, heC, Complex.ext_iff]
-      simp [hFv, hc0]
-    have hI : eC.symm I = ⟨-(ω x y)⁻¹ • x, N.smul_mem _ hxN⟩ := by
-      rw [LinearEquiv.symm_apply_eq, heC, Complex.ext_iff]
-      have hyx : ω y x = -ω x y := (ω.neg_eq x y).symm
-      simp [hFv, hc0, hyx]
-    have hb : (Complex.basisOneI.map eC.symm).orientation =
-        (ω.restrict N hNs.nondegenerate_restrict).orientation hN2 := by
-      rw [basis_orientation_eq_orientation_iff]
-      simp only [Basis.map_apply, Complex.coe_basisOneI, Matrix.cons_val_zero,
-        Matrix.cons_val_one, h1, hI, restrict_apply, map_smul, LinearMap.smul_apply, smul_eq_mul]
-      have hyx : ω.toBilinForm y x = -ω.toBilinForm x y := (ω.neg_eq x y).symm
-      have hxy' : 0 < ω.toBilinForm x y := hxy
-      rw [hyx]
-      have : 0 < (ω.toBilinForm x y)⁻¹ := inv_pos.2 hxy'
-      nlinarith [mul_pos this (mul_pos this hxy')]
-    rw [← hb, ← Basis.orientation_map]
-    congr 1
-    ext i
-    simp
-  set G := Submodule.prodEquivOfIsCompl K N hc
-  have key := Orientation.map_ofExact LinearMap.inl_injective Function.Exact.inl_snd
-    LinearMap.snd_surjective K.injective_subtype (LinearMap.exact_subtype_ker_map F)
-    (surjective_of_norm_lt hg hA hB h) (LinearEquiv.refl ℝ K) G eC
-    (fun v ↦ by simp [G]) (fun z ↦ by
-      obtain ⟨⟨k, hk⟩, n⟩ := z
-      simp [G, heC, LinearMap.mem_ker.1 hk])
-    ((ω.restrict K hKs.nondegenerate_restrict).orientation hm)
-    ((ω.restrict N hNs.nondegenerate_restrict).orientation hN2) hm hN2
-  rw [Orientation.ofExact_inl_snd, Orientation.map_refl, Equiv.refl_apply, hmapC] at key
-  rw [Orientation.kerOfExact_eq_iff, ← key, ← orientation_prod _ _ hm hN2 (by simp [hm, hN2])]
-  -- The two sides differ only in the proofs that `ω` restricts nondegenerately to `K` and `N`.
-  exact ((ω.isSymplectomorphism_prodEquivOfIsCompl hc).map_orientation _).trans rfl
+  exact orientation_ker_eq_of_apply_eq hF hxy hV hm
 
 end SymplecticForm
 
