@@ -8,10 +8,9 @@ module
 public import TauCeti.Analysis.Calculus.Morse.BirthDeath
 public import TauCeti.Geometry.Manifold.Morse.Bott.Chart.Basic
 public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Mathlib.Analysis.SpecialFunctions.Pow.Deriv
-import Mathlib.Geometry.Manifold.ContMDiff.Atlas
-import Mathlib.Geometry.Manifold.MFDeriv.Atlas
-import TauCeti.Analysis.Calculus.Hadamard
+import SymplecticGeometry.Analysis.Calculus.Hadamard
 import TauCeti.Analysis.Calculus.InverseFunctionTheorem
 import TauCeti.Geometry.Manifold.Morse.ScalarComposition
 
@@ -43,8 +42,10 @@ Weinstein homotopy.
   of the centre.
 * `TauCeti.BirthDeathChart.mfderiv_eq_zero_iff`: the centre is the only critical point in the
   source of the chart.
-* `TauCeti.BirthDeathChart.nonempty_comp`: a birth–death chart for `f` gives one for `h ∘ f` when
-  `h` is smooth with `h' > 0`.
+* `TauCeti.BirthDeathChart.comp`: a birth–death chart for `f` gives one for `h ∘ f`, with the same
+  coordinates, weights and cubic coordinate, when `h` is smooth with `h' > 0`.
+* `TauCeti.hasFDerivAt_pi_mul_zero` and `TauCeti.contDiffOn_pi_mul_rpow`: the rescaling of
+  coordinates `z ↦ (zᵢ bᵢ(z))ᵢ` used to build `TauCeti.BirthDeathChart.comp`.
 * `TauCeti.IsGeneralizedMorse`: smooth, with nondegenerate or birth–death critical points;
   `TauCeti.IsMorse.isGeneralizedMorse`, `TauCeti.IsGeneralizedMorse.isClosed_criticalPoints`,
   `TauCeti.IsGeneralizedMorse.isDiscrete_criticalPoints`,
@@ -56,10 +57,13 @@ Weinstein homotopy.
 ## Implementation notes
 
 The declarations are in the namespace `TauCeti`, since they concern only Tau Ceti's notions. The
-proof of `TauCeti.BirthDeathChart.nonempty_comp` builds the new chart as Tau Ceti's
+chart `TauCeti.BirthDeathChart.comp` is built as Tau Ceti's
 `TauCeti.IsManifoldNondegenerateCriticalPoint.nonempty_morseChart` builds a Morse chart: by
 composing the old chart with a local diffeomorphism of the model given by the inverse function
-theorem (`TauCeti.ContDiffOn.exists_openPartialHomeomorph`).
+theorem (`TauCeti.ContDiffOn.exists_openPartialHomeomorph`). In the chart, `h ∘ f - h (f x)` is
+the normal form of `f` times a smooth positive function `a` (Hadamard's lemma,
+`ContDiff.exists_contDiff_sub_eq_smul`), and the local diffeomorphism rescales the coordinates of
+weight `±1` by `√a` and the cubic one by `∛a`.
 
 ## References
 
@@ -79,6 +83,30 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {M : Type*} [TopologicalSpace M] [ChartedSpace E M]
   {f : M → ℝ} {x : M}
 
+/-! ### Rescaling coordinates -/
+
+/-- At the origin, the map `z ↦ (zᵢ bᵢ(z))ᵢ` has as derivative the diagonal map
+`v ↦ (bᵢ(0) vᵢ)ᵢ`, when each `bᵢ` is differentiable at `0`. -/
+theorem hasFDerivAt_pi_mul_zero {ι : Type*} [Finite ι] {b : ι → (ι → ℝ) → ℝ}
+    (hb : ∀ i, DifferentiableAt ℝ (b i) 0) :
+    HasFDerivAt (fun z i ↦ z i * b i z)
+      (ContinuousLinearMap.pi fun i ↦
+        b i 0 • ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : ι ↦ ℝ) i) 0 := by
+  have := Fintype.ofFinite ι
+  refine hasFDerivAt_pi'.2 fun i ↦ ?_
+  refine (((ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : ι ↦ ℝ) i).hasFDerivAt
+    (x := 0)).mul (hb i).hasFDerivAt).congr_fderiv ?_
+  ext v
+  simp [mul_comm]
+
+/-- For `a` of class `C^n`, the map `z ↦ (zᵢ a(z) ^ pᵢ)ᵢ` is of class `C^n` where `a > 0`. -/
+theorem contDiffOn_pi_mul_rpow {ι : Type*} [Fintype ι] {n : WithTop ℕ∞} {a : (ι → ℝ) → ℝ}
+    (ha : ContDiff ℝ n a) (p : ι → ℝ) :
+    ContDiffOn ℝ n (fun z i ↦ z i * a z ^ p i) {z | 0 < a z} :=
+  contDiffOn_pi.2 fun i ↦ (contDiff_apply ℝ (fun _ ↦ ℝ) i).contDiffOn.mul fun z hz ↦
+    ((Real.contDiffAt_rpow_const_of_ne (p := p i) (ne_of_gt hz)).comp z
+      ha.contDiffAt).contDiffWithinAt
+
 variable (E) in
 /-- A **birth–death chart** for `f` at `x`: a chart of the maximal atlas, centred at `x`, with a
 linear change of coordinates `L : E ≃ (Fin n → ℝ)`, weights `wᵢ = ±1` off one coordinate `i₀`, and
@@ -88,9 +116,9 @@ linear change of coordinates `L : E ≃ (Fin n → ℝ)`, weights `wᵢ = ±1` o
 
 It is recorded as a Morse–Bott chart (`TauCeti.MorseBottChart`) of the quadratic part
 `quadraticPart`, which is `f` minus the cubic term `birthDeathPotential 0` of the coordinate
-`i₀` on the source, with exactly one weight equal to `0`. -/
+`i₀`, with exactly one weight equal to `0`. -/
 structure BirthDeathChart (f : M → ℝ) (x : M) where
-  /-- The quadratic part of `f`: on the source of the chart, `f` minus the cubic term. -/
+  /-- The quadratic part of `f`: `f` minus the cubic term. -/
   quadraticPart : M → ℝ
   /-- The Morse–Bott chart in which the quadratic part is in normal form. -/
   toMorseBottChart : MorseBottChart E quadraticPart x
@@ -98,25 +126,53 @@ structure BirthDeathChart (f : M → ℝ) (x : M) where
   cubicIndex : Fin (Module.finrank ℝ E)
   weight_cubicIndex : toMorseBottChart.weight cubicIndex = 0
   weight_ne_zero : ∀ i, i ≠ cubicIndex → toMorseBottChart.weight i ≠ 0
-  eq_add : ∀ y ∈ toMorseBottChart.toChart.source, f y = quadraticPart y +
+  eq_add : ∀ y, f y = quadraticPart y +
     birthDeathPotential 0 (toMorseBottChart.coord (toMorseBottChart.toChart y) cubicIndex)
 
 namespace BirthDeathChart
 
 variable (φ : BirthDeathChart E f x)
 
+/-- The quadratic part of a birth–death chart is `f` minus the cubic term. -/
+theorem quadraticPart_apply (y : M) :
+    φ.quadraticPart y = f y - birthDeathPotential 0
+      (φ.toMorseBottChart.coord (φ.toMorseBottChart.toChart y) φ.cubicIndex) := by
+  rw [φ.eq_add y, add_sub_cancel_right]
+
+/-- Two birth–death charts for `f` at `x` with the same chart, coordinates, weights and cubic
+coordinate are equal. -/
+@[ext]
+theorem ext {φ₁ φ₂ : BirthDeathChart E f x}
+    (htoChart : φ₁.toMorseBottChart.toChart = φ₂.toMorseBottChart.toChart)
+    (hcoord : φ₁.toMorseBottChart.coord = φ₂.toMorseBottChart.coord)
+    (hweight : φ₁.toMorseBottChart.weight = φ₂.toMorseBottChart.weight)
+    (hcubicIndex : φ₁.cubicIndex = φ₂.cubicIndex) : φ₁ = φ₂ := by
+  have hq : φ₁.quadraticPart = φ₂.quadraticPart := by
+    funext y
+    rw [quadraticPart_apply, quadraticPart_apply, htoChart, hcoord, hcubicIndex]
+  obtain ⟨q₁, ⟨c₁, _, _, _, l₁, w₁, _, _⟩, i₁, _, _, _⟩ := φ₁
+  obtain ⟨q₂, ⟨c₂, _, _, _, l₂, w₂, _, _⟩, i₂, _, _, _⟩ := φ₂
+  dsimp only at htoChart hcoord hweight hcubicIndex hq
+  subst hq htoChart hcoord hweight hcubicIndex
+  rfl
+
+-- The body is exposed so that `restr_toMorseBottChart` typechecks: its right side is a
+-- Morse–Bott chart of `φ.quadraticPart`, which must be `(φ.restr hs hx).quadraticPart` by
+-- unfolding.
 /-- The restriction of a birth–death chart to an open neighbourhood `s` of its centre: the chart is
 restricted to `s`, and the quadratic part, the coordinates, the weights and the cubic coordinate
 are unchanged. -/
-noncomputable def restr {s : Set M} (hs : IsOpen s) (hx : x ∈ s) : BirthDeathChart E f x where
+@[expose] noncomputable def restr {s : Set M} (hs : IsOpen s) (hx : x ∈ s) :
+    BirthDeathChart E f x where
   quadraticPart := φ.quadraticPart
   toMorseBottChart := φ.toMorseBottChart.restr hs hx
   cubicIndex := φ.cubicIndex
   weight_cubicIndex := by rw [MorseBottChart.restr_weight]; exact φ.weight_cubicIndex
   weight_ne_zero := by rw [MorseBottChart.restr_weight]; exact φ.weight_ne_zero
-  eq_add y hy := by
-    rw [MorseBottChart.restr_source] at hy
-    simpa using φ.eq_add y hy.1
+  eq_add y := by
+    rw [MorseBottChart.restr_coord, MorseBottChart.restr_toChart,
+      OpenPartialHomeomorph.restr_apply]
+    exact φ.eq_add y
 
 section Restr
 
@@ -124,44 +180,37 @@ variable {s : Set M} (hs : IsOpen s) (hx : x ∈ s)
 
 /-- Restricting a birth–death chart does not change its quadratic part. -/
 @[simp]
-theorem restr_quadraticPart : (φ.restr hs hx).quadraticPart = φ.quadraticPart := by
-  simp [restr]
+theorem restr_quadraticPart : (φ.restr hs hx).quadraticPart = φ.quadraticPart :=
+  rfl
 
-/-- The chart of a restricted birth–death chart is the restricted chart. -/
+/-- The Morse–Bott chart of a restricted birth–death chart is the restricted Morse–Bott chart. -/
 @[simp]
-theorem restr_toChart :
-    (φ.restr hs hx).toMorseBottChart.toChart = φ.toMorseBottChart.toChart.restr s := by
-  simp [restr]
-
-/-- Restricting a birth–death chart does not change its coordinates. -/
-@[simp]
-theorem restr_coord : (φ.restr hs hx).toMorseBottChart.coord = φ.toMorseBottChart.coord := by
-  simp [restr]
-
-/-- Restricting a birth–death chart does not change its weights. -/
-@[simp]
-theorem restr_weight : (φ.restr hs hx).toMorseBottChart.weight = φ.toMorseBottChart.weight := by
-  simp [restr]
+theorem restr_toMorseBottChart :
+    (φ.restr hs hx).toMorseBottChart = φ.toMorseBottChart.restr hs hx :=
+  rfl
 
 /-- Restricting a birth–death chart does not change its cubic coordinate. -/
 @[simp]
-theorem restr_cubicIndex : (φ.restr hs hx).cubicIndex = φ.cubicIndex := by
-  simp [restr]
-
-/-- The source of a restricted birth–death chart is the intersection of the source with `s`. -/
-theorem restr_source :
-    (φ.restr hs hx).toMorseBottChart.toChart.source = φ.toMorseBottChart.toChart.source ∩ s := by
-  rw [restr_toChart, φ.toMorseBottChart.toChart.restr_source' s hs]
+theorem restr_cubicIndex : (φ.restr hs hx).cubicIndex = φ.cubicIndex :=
+  rfl
 
 end Restr
 
 /-- The quadratic part of `f` takes the value `f x` at the centre. -/
 theorem quadraticPart_self : φ.quadraticPart x = f x := by
-  simpa [birthDeathPotential_apply] using (φ.eq_add x φ.toMorseBottChart.mem_source).symm
+  simp [quadraticPart_apply, birthDeathPotential_apply]
 
 /-- The **index** of a birth–death chart: the number of negative weights. -/
 noncomputable def index : ℕ :=
   {i | φ.toMorseBottChart.weight i < 0}.ncard
+
+theorem index_def : φ.index = {i | φ.toMorseBottChart.weight i < 0}.ncard := (rfl)
+
+/-- Restricting a birth–death chart does not change its index. -/
+@[simp]
+theorem restr_index {s : Set M} (hs : IsOpen s) (hx : x ∈ s) :
+    (φ.restr hs hx).index = φ.index := by
+  rw [index_def, index_def, restr_toMorseBottChart, MorseBottChart.restr_weight]
 
 /-- The index of a birth–death chart is less than the dimension, since the cubic coordinate has
 weight `0`. -/
@@ -170,7 +219,7 @@ theorem index_lt_finrank : φ.index < Module.finrank ℝ E := by
     ssubset_univ_iff.2 fun h ↦ by
       have := h ▸ mem_univ φ.cubicIndex
       simp [φ.weight_cubicIndex] at this
-  simpa [index] using Set.ncard_lt_ncard hss (toFinite _)
+  simpa [index_def] using Set.ncard_lt_ncard hss (toFinite _)
 
 /-- The normal form of `f` in a birth–death chart, as a function on the model space:
 `z ↦ f x + (1/2) Σᵢ wᵢ (L z)ᵢ² + (L z)_{i₀}³ / 3`. -/
@@ -184,11 +233,18 @@ theorem normalForm_apply (z : E) :
         birthDeathPotential 0 (φ.toMorseBottChart.coord z φ.cubicIndex) := by
   rw [normalForm, MorseBottChart.quadratic_apply, φ.quadraticPart_self]
 
+/-- Restricting a birth–death chart does not change its normal form. -/
+@[simp]
+theorem restr_normalForm {s : Set M} (hs : IsOpen s) (hx : x ∈ s) :
+    (φ.restr hs hx).normalForm = φ.normalForm := by
+  funext z
+  simp [normalForm_apply]
+
 /-- On the source of a birth–death chart, `f` is the normal form read in the chart. -/
 theorem eqOn_normalForm :
     EqOn f (φ.normalForm ∘ φ.toMorseBottChart.toChart) φ.toMorseBottChart.toChart.source :=
   fun y hy ↦ by
-    rw [comp_apply, normalForm, φ.eq_add y hy, φ.toMorseBottChart.eqOn_quadratic hy, comp_apply]
+    rw [comp_apply, normalForm, φ.eq_add y, φ.toMorseBottChart.eqOn_quadratic hy, comp_apply]
 
 /-- The normal form of a birth–death chart is smooth. -/
 theorem contDiff_normalForm : ContDiff ℝ ∞ φ.normalForm := by
@@ -265,110 +321,90 @@ theorem contMDiffOn : ContMDiffOn 𝓘(ℝ, E) 𝓘(ℝ) ∞ f φ.toMorseBottCha
   (φ.contDiff_normalForm.contMDiff.comp_contMDiffOn
     (contMDiffOn_of_mem_maximalAtlas φ.toMorseBottChart.mem_maximalAtlas)).congr φ.eqOn_normalForm
 
+
 section Comp
 
-/-- The cubic normal form in coordinates: `z ↦ (1/2) Σᵢ wᵢ zᵢ² + z_{i₀}³ / 3`. -/
-private noncomputable def coordForm {n : ℕ} (w : Fin n → ℝ) (i₀ : Fin n) (z : Fin n → ℝ) : ℝ :=
-  (2 : ℝ)⁻¹ * ∑ i, w i * z i ^ 2 + birthDeathPotential 0 (z i₀)
-
 /-- Rescaling the coordinates of weight `±1` by `√a` and the cubic one by `∛a` multiplies the
-cubic normal form by `a`. -/
-private theorem coordForm_rescale {n : ℕ} {w : Fin n → ℝ} {i₀ : Fin n} (hw : w i₀ = 0)
-    {a : ℝ} (ha : 0 < a) (z : Fin n → ℝ) :
-    coordForm w i₀ (fun i ↦ z i * a ^ (if i = i₀ then (3 : ℝ)⁻¹ else 2⁻¹)) =
-      a * coordForm w i₀ z := by
+normal form, minus its value at the centre, by `a`. -/
+private theorem normalForm_rescale {a : ℝ} (ha : 0 < a) (z : Fin (Module.finrank ℝ E) → ℝ) :
+    φ.normalForm (φ.toMorseBottChart.coordL.symm
+      fun i ↦ z i * a ^ (if i = φ.cubicIndex then (3 : ℝ)⁻¹ else 2⁻¹)) - f x =
+      a * (φ.normalForm (φ.toMorseBottChart.coordL.symm z) - f x) := by
   have h2 : (a ^ (2⁻¹ : ℝ)) ^ 2 = a := by
     rw [← Real.rpow_natCast, ← Real.rpow_mul ha.le]
     norm_num
   have h3 : (a ^ (3⁻¹ : ℝ)) ^ 3 = a := by
     rw [← Real.rpow_natCast, ← Real.rpow_mul ha.le]
     norm_num
-  have hsum : ∑ i, w i * (z i * a ^ (if i = i₀ then (3 : ℝ)⁻¹ else 2⁻¹)) ^ 2 =
-      a * ∑ i, w i * z i ^ 2 := by
+  have hsum : ∑ i, φ.toMorseBottChart.weight i *
+      (z i * a ^ (if i = φ.cubicIndex then (3 : ℝ)⁻¹ else 2⁻¹)) ^ 2 =
+      a * ∑ i, φ.toMorseBottChart.weight i * z i ^ 2 := by
     rw [Finset.mul_sum]
     refine Finset.sum_congr rfl fun i _ ↦ ?_
-    by_cases hi : i = i₀
-    · simp [hi, hw]
+    by_cases hi : i = φ.cubicIndex
+    · simp [hi, φ.weight_cubicIndex]
     · simp only [hi, ↓reduceIte, mul_pow, h2]
       ring
-  unfold coordForm
+  simp only [normalForm_apply, MorseBottChart.coordL_symm_apply, LinearEquiv.apply_symm_apply]
   rw [hsum]
   simp only [birthDeathPotential_apply, ↓reduceIte, mul_pow, h3]
   ring
 
 variable [IsManifold 𝓘(ℝ, E) ∞ M]
 
-include φ in
-/-- A birth–death chart for `f` at `x` gives one for `h ∘ f`, when `h` is smooth with `h' > 0` at
-`f x`. In the chart, `h (f y) - h (f x)` is the normal form of `f` times a smooth positive function
-`a`; rescaling the coordinates of weight `±1` by `√a` and the cubic one by `∛a` brings it back to
-the normal form. The new chart has the same coordinate change, weights and cubic coordinate. -/
-theorem nonempty_comp {h : ℝ → ℝ} (hh : ContDiff ℝ ∞ h) (hpos : 0 < deriv h (f x)) :
-    Nonempty (BirthDeathChart E (h ∘ f) x) := by
+/-- A birth–death chart for `h ∘ f` with the coordinates, weights and cubic coordinate of `φ`. -/
+private theorem exists_comp {h : ℝ → ℝ} (hh : ContDiff ℝ ∞ h) (hpos : 0 < deriv h (f x)) :
+    ∃ φ' : BirthDeathChart E (h ∘ f) x, φ'.toMorseBottChart.coord = φ.toMorseBottChart.coord ∧
+      φ'.toMorseBottChart.weight = φ.toMorseBottChart.weight ∧ φ'.cubicIndex = φ.cubicIndex := by
   classical
   have := φ.toMorseBottChart.finiteDimensional
   set ψ := φ.toMorseBottChart.toChart
   set L := φ.toMorseBottChart.coordL
-  set w := φ.toMorseBottChart.weight
   set i₀ := φ.cubicIndex
   set c := f x
-  set U := coordForm w i₀ with hU
+  -- `h t = h c + (t - c) G t` with `G` smooth and `G c = h' c > 0`.
+  obtain ⟨G, hGs, hhG⟩ :=
+    ContDiff.exists_contDiff_sub_eq_smul (n := ⊤) (f := h) (by simpa using hh) c
+  have hhG' : h = fun t ↦ h c + (t - c) * G t := funext fun t ↦ by
+    rw [← smul_eq_mul, ← hhG]
+    ring
+  have hGc : deriv h c = G c := by
+    have hd : HasDerivAt (fun t ↦ h c + (t - c) * G t) (G c) c := by
+      simpa using (((hasDerivAt_id' c).sub_const c).mul
+        (hGs.differentiable (by simp) c).hasDerivAt).const_add (h c)
+    rw [hhG']
+    exact hd.deriv
+  -- The normal form in the coordinates `L`, minus `f x`.
+  set U : (Fin (Module.finrank ℝ E) → ℝ) → ℝ := fun z ↦ φ.normalForm (L.symm z) - c with hU
+  have hUs : ContDiff ℝ ∞ U := (φ.contDiff_normalForm.comp L.symm.contDiff).sub contDiff_const
+  have hUc : ∀ z, U z = (2 : ℝ)⁻¹ * ∑ i, φ.toMorseBottChart.weight i * z i ^ 2 +
+      birthDeathPotential 0 (z i₀) := fun z ↦ by
+    simp only [hU, normalForm_apply, L, MorseBottChart.coordL_symm_apply,
+      LinearEquiv.apply_symm_apply]
+    ring
   have hfU : ∀ y ∈ ψ.source, f y = c + U (L (ψ y)) := fun y hy ↦ by
-    rw [φ.eqOn_normalForm hy, comp_apply, normalForm_apply, add_assoc]
-    simp [hU, coordForm, L, w, i₀]
-    rfl
-  -- `h t = h c + G t * (t - c)` with `G` smooth and `G c = h' c > 0`.
-  set G : ℝ → ℝ := fun t ↦ hadamardFactor h c t 1 with hG
-  have hGs : ContDiff ℝ ∞ G :=
-    (ContDiff.contDiff_hadamardFactor h hh c).clm_apply contDiff_const
-  have hhG : ∀ t, h t = h c + G t * (t - c) := fun t ↦ by
-    have := ContDiff.sub_eq_hadamardFactor_apply h (hh.of_le (by simp)) c t
-    rw [show t - c = (t - c) • (1 : ℝ) by simp, map_smul, smul_eq_mul] at this
-    rw [hG]
-    linarith
+    simp only [hU, ContinuousLinearEquiv.symm_apply_apply]
+    rw [φ.eqOn_normalForm hy, comp_apply]
+    ring
   set a : (Fin (Module.finrank ℝ E) → ℝ) → ℝ := fun z ↦ G (c + U z) with ha
-  have hUs : ContDiff ℝ ∞ U := by
-    simp only [hU]
-    unfold coordForm
-    exact (contDiff_const.mul (ContDiff.sum fun i _ ↦ contDiff_const.mul
-      ((contDiff_apply ℝ (fun _ ↦ ℝ) i).pow 2))).add
-        ((contDiff_birthDeathPotential 0).comp (contDiff_apply ℝ (fun _ ↦ ℝ) i₀))
   have has : ContDiff ℝ ∞ a := hGs.comp (contDiff_const.add hUs)
   have ha0 : 0 < a 0 := by
-    simp only [ha, hU, coordForm, Pi.zero_apply, birthDeathPotential_apply, hG]
-    norm_num
-    exact hpos
-  -- The rescaled coordinates.
+    simpa [ha, hUc, birthDeathPotential_apply, ← hGc] using hpos
+  -- The rescaled coordinates `W z = (zᵢ a(z) ^ pᵢ)ᵢ`, a local diffeomorphism at `0`.
   set p : Fin (Module.finrank ℝ E) → ℝ := fun i ↦ if i = i₀ then (3 : ℝ)⁻¹ else 2⁻¹
   set W : (Fin (Module.finrank ℝ E) → ℝ) → Fin (Module.finrank ℝ E) → ℝ :=
     fun z i ↦ z i * a z ^ p i with hW
-  have hWU : ∀ z, 0 < a z → U (W z) = a z * U z := fun z hz ↦
-    coordForm_rescale φ.weight_cubicIndex hz z
-  have hrs : ∀ i, ∀ z, 0 < a z → ContDiffAt ℝ ∞ (fun z ↦ a z ^ p i) z := fun i z hz ↦
-    (Real.contDiffAt_rpow_const_of_ne hz.ne').comp z has.contDiffAt
-  have hWs : ContDiffOn ℝ ∞ W {z | 0 < a z} :=
-    contDiffOn_pi.2 fun i ↦ (contDiff_apply ℝ (fun _ ↦ ℝ) i).contDiffOn.mul fun z hz ↦
-      (hrs i z hz).contDiffWithinAt
-  set D : (Fin (Module.finrank ℝ E) → ℝ) →L[ℝ] Fin (Module.finrank ℝ E) → ℝ :=
-    ContinuousLinearMap.pi fun i ↦ a 0 ^ p i • ContinuousLinearMap.proj i with hD
-  have hWD : HasFDerivAt W D 0 := by
-    refine hasFDerivAt_pi'.2 fun i ↦ ?_
-    have := ((ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : Fin (Module.finrank ℝ E) ↦ ℝ)
-      i).hasFDerivAt (x := 0)).mul ((hrs i 0 ha0).differentiableAt (by simp)).hasFDerivAt
-    have hfun : (fun z ↦ W z i) = ⇑(ContinuousLinearMap.proj (R := ℝ)
-        (φ := fun _ : Fin (Module.finrank ℝ E) ↦ ℝ) i) * fun z ↦ a z ^ p i := by
-      funext z
-      simp [hW]
-    rw [hfun]
-    refine this.congr_fderiv ?_
-    ext v
+  have hWU : ∀ z, 0 < a z → U (W z) = a z * U z := fun z hz ↦ φ.normalForm_rescale hz z
+  have hWs : ContDiffOn ℝ ∞ W {z | 0 < a z} := contDiffOn_pi_mul_rpow has p
+  have hp0 : ∀ i, a 0 ^ p i ≠ 0 := fun i ↦ (Real.rpow_pos_of_pos ha0 _).ne'
+  set D := ContinuousLinearEquiv.piCongrRight fun i ↦
+    ContinuousLinearEquiv.unitsEquivAut ℝ (Units.mk0 _ (hp0 i)) with hD
+  have hWD : HasFDerivAt W (D : _ →L[ℝ] _) (L 0) := by
+    rw [map_zero]
+    convert hasFDerivAt_pi_mul_zero (b := fun i z ↦ a z ^ p i) fun i ↦
+      (has.differentiable (by simp) 0).rpow_const (.inl ha0.ne') using 1
+    ext v i
     simp [hD, mul_comm]
-  have hpos' : ∀ i, 0 < a 0 ^ p i := fun i ↦ Real.rpow_pos_of_pos ha0 _
-  set D' : (Fin (Module.finrank ℝ E) → ℝ) →L[ℝ] Fin (Module.finrank ℝ E) → ℝ :=
-    ContinuousLinearMap.pi fun i ↦ (a 0 ^ p i)⁻¹ • ContinuousLinearMap.proj i with hD'
-  set e := ContinuousLinearEquiv.ofContinuousLinearMap D D'
-    (by ext v i; simp [hD, hD', (hpos' i).ne'])
-    (by ext v i; simp [hD, hD', (hpos' i).ne']) with he
   -- The new chart, by the inverse function theorem.
   set Φ : E → E := fun v ↦ L.symm (W (L v)) with hΦ
   set S := ψ.target ∩ L ⁻¹' {z | 0 < a z}
@@ -379,11 +415,12 @@ theorem nonempty_comp {h : ℝ → ℝ} (hh : ContDiff ℝ ∞ h) (hpos : 0 < de
     ⟨hψx ▸ ψ.map_source φ.toMorseBottChart.mem_source, by simpa using ha0⟩
   have hΦs : ContDiffOn ℝ ∞ Φ S :=
     L.symm.contDiff.comp_contDiffOn (hWs.comp L.contDiff.contDiffOn fun v hv ↦ hv.2)
-  have hΦD : HasFDerivAt Φ ((L.symm : _ →L[ℝ] E).comp (D.comp (L : E →L[ℝ] _))) 0 := by
-    have hW' : HasFDerivAt W D (L 0) := by simpa using hWD
-    exact L.symm.hasFDerivAt.comp 0 (hW'.comp 0 L.hasFDerivAt)
+  have hΦD : HasFDerivAt Φ ((L.symm : (Fin (Module.finrank ℝ E) → ℝ) →L[ℝ] E).comp
+      ((D : (Fin (Module.finrank ℝ E) → ℝ) →L[ℝ] _).comp
+        (L : E →L[ℝ] Fin (Module.finrank ℝ E) → ℝ))) 0 :=
+    L.symm.hasFDerivAt.comp 0 (hWD.comp 0 L.hasFDerivAt)
   obtain ⟨Θ, hΘ, h0Θ, hΘS, hΘsymm⟩ := TauCeti.ContDiffOn.exists_openPartialHomeomorph hΦs hSo h0S
-    (by simp) (e := L.trans (e.trans L.symm)) (by rw [hΦD.fderiv]; ext; simp [he])
+    (by simp) (e := L.trans (D.trans L.symm)) (by rw [hΦD.fderiv]; ext; simp)
   have hΘs : ContDiffOn ℝ ∞ Θ Θ.source := hΘ ▸ hΦs.mono hΘS
   have hΘ0 : Θ 0 = 0 := by simp [hΘ, hΦ, hW, Pi.zero_def]
   have hcoord : ∀ y ∈ (ψ.trans Θ).source,
@@ -392,37 +429,66 @@ theorem nonempty_comp {h : ℝ → ℝ} (hh : ContDiff ℝ ∞ h) (hpos : 0 < de
   have hkey : ∀ y ∈ (ψ.trans Θ).source,
       h (f y) = h c + U (φ.toMorseBottChart.coord ((ψ.trans Θ) y)) := fun y hy ↦ by
     have hay : 0 < a (L (ψ y)) := by simpa using (hΘS hy.2).2
-    rw [hcoord y hy, hWU _ hay, hhG (f y), hfU y hy.1]
-    simp [ha]
+    rw [hcoord y hy, hWU _ hay, hhG', hfU y hy.1]
+    simp only [ha]
+    ring
+  have hx' : x ∈ (ψ.trans Θ).source :=
+    ⟨φ.toMorseBottChart.mem_source, by simpa [hψx] using h0Θ⟩
   refine ⟨{
     quadraticPart := fun y ↦ h (f y) -
       birthDeathPotential 0 (φ.toMorseBottChart.coord ((ψ.trans Θ) y) i₀)
     toMorseBottChart := {
       toChart := ψ.trans Θ
-      mem_maximalAtlas := ?_
-      mem_source := ⟨φ.toMorseBottChart.mem_source, by simpa [hψx] using h0Θ⟩
+      mem_maximalAtlas := trans_mem_maximalAtlas_of_contDiffAt
+        φ.toMorseBottChart.mem_maximalAtlas
+        (fun z hz ↦ (hΘs z hz).contDiffAt (Θ.open_source.mem_nhds hz))
+        (fun z hz ↦ (hΘsymm z hz).contDiffAt (Θ.open_target.mem_nhds hz))
+      mem_source := hx'
       apply_self := by simp [hψx, hΘ0]
       coord := φ.toMorseBottChart.coord
-      weight := w
+      weight := φ.toMorseBottChart.weight
       weight_eq_neg_one_or_eq_zero_or_eq_one :=
         φ.toMorseBottChart.weight_eq_neg_one_or_eq_zero_or_eq_one
-      eq_quadratic := ?_ }
+      eq_quadratic := fun y hy ↦ by
+        rw [hkey y hy, hkey x hx', hUc, hUc]
+        simp [hψx, hΘ0, birthDeathPotential_apply]
+        ring }
     cubicIndex := i₀
     weight_cubicIndex := φ.weight_cubicIndex
     weight_ne_zero := φ.weight_ne_zero
-    eq_add := fun y _ ↦ by simp }⟩
-  · rw [IsManifold.mem_maximalAtlas_iff_contMDiffOn]
-    constructor
-    · exact hΘs.contMDiffOn.comp ((contMDiffOn_of_mem_maximalAtlas
-        φ.toMorseBottChart.mem_maximalAtlas).mono fun y hy ↦ hy.1) fun y hy ↦ hy.2
-    · exact (contMDiffOn_symm_of_mem_maximalAtlas φ.toMorseBottChart.mem_maximalAtlas).comp
-        (hΘsymm.contMDiffOn.mono fun y hy ↦ hy.1) fun y hy ↦ hy.2
-  · intro y hy
-    have hx' : x ∈ (ψ.trans Θ).source :=
-      ⟨φ.toMorseBottChart.mem_source, by simpa [hψx] using h0Θ⟩
-    rw [hkey y hy, hkey x hx']
-    simp [hψx, hΘ0, hU, coordForm, birthDeathPotential_apply]
-    ring
+    eq_add := fun y ↦ by simp }, rfl, rfl, rfl⟩
+
+/-- The birth–death chart for `h ∘ f` at `x` given by `φ`, when `h` is smooth with `h' > 0` at
+`f x`. It has the coordinates, the weights and the cubic coordinate of `φ`. -/
+noncomputable def comp {h : ℝ → ℝ} (hh : ContDiff ℝ ∞ h) (hpos : 0 < deriv h (f x)) :
+    BirthDeathChart E (h ∘ f) x :=
+  (φ.exists_comp hh hpos).choose
+
+section
+
+variable {h : ℝ → ℝ} (hh : ContDiff ℝ ∞ h) (hpos : 0 < deriv h (f x))
+
+/-- The birth–death chart of `h ∘ f` has the coordinates of `φ`. -/
+@[simp]
+theorem comp_coord : (φ.comp hh hpos).toMorseBottChart.coord = φ.toMorseBottChart.coord :=
+  (φ.exists_comp hh hpos).choose_spec.1
+
+/-- The birth–death chart of `h ∘ f` has the weights of `φ`. -/
+@[simp]
+theorem comp_weight : (φ.comp hh hpos).toMorseBottChart.weight = φ.toMorseBottChart.weight :=
+  (φ.exists_comp hh hpos).choose_spec.2.1
+
+/-- The birth–death chart of `h ∘ f` has the cubic coordinate of `φ`. -/
+@[simp]
+theorem comp_cubicIndex : (φ.comp hh hpos).cubicIndex = φ.cubicIndex :=
+  (φ.exists_comp hh hpos).choose_spec.2.2
+
+/-- The birth–death chart of `h ∘ f` has the index of `φ`. -/
+@[simp]
+theorem index_comp : (φ.comp hh hpos).index = φ.index := by
+  rw [index_def, index_def, comp_weight]
+
+end
 
 end Comp
 
@@ -509,7 +575,7 @@ theorem comp [IsManifold 𝓘(ℝ, E) ∞ M] (hf : IsGeneralizedMorse E f) {h : 
   rw [mem_criticalPoints_scalar_comp_iff hfx (hpos x).ne'] at hx
   rcases hf.2 x hx with hnd | hbd
   · exact .inl (hnd.scalar_comp (hh.contDiffAt.of_le (by simp)) (hpos x).ne')
-  · exact .inr (hbd.some.nonempty_comp hh (hpos x))
+  · exact .inr ⟨hbd.some.comp hh (hpos x)⟩
 
 end IsGeneralizedMorse
 
@@ -539,7 +605,7 @@ noncomputable def birthDeathChartBirthDeathPotential :
     cubicIndex := default
     weight_cubicIndex := rfl
     weight_ne_zero := fun i hi ↦ (hi (Subsingleton.elim _ _)).elim
-    eq_add := fun y _ ↦ by simp }
+    eq_add := fun y ↦ by simp }
 
 /-- The cubic `t ↦ t³ / 3` on the line is a generalized Morse function. -/
 theorem isGeneralizedMorse_birthDeathPotential :
