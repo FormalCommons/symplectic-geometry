@@ -37,7 +37,8 @@ The last one combines the openness of nondegenerate alternating maps (Tau Ceti's
 applied to the compact image of `K × S`.
 
 `SymplecticGeometry.IsSmoothFamily.continuous_apply_one` (`SmoothFamily/Basic.lean`) is the
-special case of one-forms on `ℝ`, evaluated on the unit vector.
+special case of one-forms on `ℝ`, evaluated on the unit vector, and the proof of
+`SymplecticGeometry.IsSmoothFamily.continuous_val` follows its proof.
 -/
 
 public section
