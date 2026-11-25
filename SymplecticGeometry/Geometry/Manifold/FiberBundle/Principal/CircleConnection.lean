@@ -112,8 +112,7 @@ theorem exists_eq_smul_rightFundamentalVectorField_of_mfderiv_proj_eq_zero
     rw [PrincipalBundle.range_rightFundamentalLinearMap_eq_ker_mfderiv_proj]
     exact hv
   obtain ⟨η, rfl⟩ := hv'
-  obtain ⟨c, hc⟩ := (finrank_eq_one_iff_of_ne_zero' _ hξ).mp
-    (finrank_euclideanSpace_fin (𝕜 := ℝ) (n := 1)) η
+  obtain ⟨c, hc⟩ := (finrank_eq_one_iff_of_ne_zero' _ hξ).mp finrank_groupLieAlgebra_circle η
   refine ⟨c, ?_⟩
   rw [PrincipalBundle.rightFundamentalLinearMap_apply, ← hc]
   exact congrFun (rightFundamentalVectorField_smul c _) x

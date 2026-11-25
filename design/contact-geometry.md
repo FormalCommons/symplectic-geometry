@@ -747,9 +747,7 @@ Expected size: 650 lines, in two issues (L1 and L2).
   with `TauCeti.eulerianField` $s'(t)X_{s(t)}$, where $X$ is the velocity
   along the motion as read above (for the uniqueness). If that file reads
   velocities differently, the uniqueness issue converts with the lemma
-  relating the two readings, which `Diffeotopy/Real.lean` provides. Also
-  `Geometry/Manifold/Flow/TimeDependent.lean`, for the flow of a field
-  restricted to an open subset (in `Gray.lean`).
+  relating the two readings, which `Diffeotopy/Real.lean` provides.
 - *Hamiltonian flows*: `Geometry/Diffeomorphism/Diffeotopy/Velocity.lean`,
   for the velocity (in `Gray.lean`); Tau Ceti's
   `Diffeotopy.velocity_timeDependentFlowDiffeotopy` and
