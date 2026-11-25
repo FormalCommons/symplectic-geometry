@@ -23,11 +23,11 @@ structure. One radius `ρ > 0` works for all `x ∈ K`: the ball of radius `ρ` 
 target of each of these charts, and for each `r` one constant bounds the `r`-th derivatives of `J`
 read in all of them on that ball.
 
-The uniformity comes from three inputs: the uniform bound on the normal forms,
+The uniformity comes from two inputs: the uniform bound on the normal forms,
 `SymplecticGeometry.exists_forall_isSymplectomorphism_stdForm_norm_le`, applied to the structures
-`J.chartPushforwardAt φ` on the compact set `φ '' K`; a closed thickening of `φ '' K` that is
-still compact and in the target of `φ`, on which the derivatives of `J` read in `φ` are bounded;
-and the bound `norm_iteratedFDeriv_chartPushforward_transAffine_le` for the recentred charts.
+`J.chartPushforwardAt φ` on the compact set `φ '' K`; and the radius and derivative bounds that
+`SmoothAlmostComplexStructure.exists_forall_norm_iteratedFDeriv_chartPushforward_transAffine_le`
+gives for any family of recentred charts whose linear parts are bounded with their inverses.
 
 ## Main results
 
@@ -87,13 +87,11 @@ theorem exists_centeredDarbouxCharts_of_isCompact {σ : SmoothTwoForm I M}
         ‖iteratedFDeriv ℝ r (J.chartPushforward (φ.transAffine (φ x) (A x)).toOpenPartialHomeomorph)
           z‖ ≤ C := by
   classical
-  -- The compact set `φ '' K` and a closed thickening of it inside the target of `φ`.
-  have hLc : IsCompact (φ '' K) := hK.image_of_continuousOn (φ.contMDiffOn.continuousOn.mono hKφ)
-  have hLt : φ '' K ⊆ φ.target := Set.image_subset_iff.2 fun x hx ↦ φ.map_source (hKφ hx)
-  obtain ⟨δ, hδ, hδt⟩ := hLc.exists_cthickening_subset_open φ.open_target hLt
   -- Unitary normal forms of `J` read in `φ`, with norms bounded on `φ '' K`.
+  have hLt : φ '' K ⊆ φ.target := Set.image_subset_iff.2 fun x hx ↦ φ.map_source (hKφ hx)
   have hLX : IsCompact ((↑) ⁻¹' (φ '' K) : Set φ.target) := by
-    rwa [Subtype.isCompact_iff, Subtype.image_preimage_coe, Set.inter_eq_right.2 hLt]
+    rw [Subtype.isCompact_iff, Subtype.image_preimage_coe, Set.inter_eq_right.2 hLt]
+    exact hK.image_of_continuousOn (φ.contMDiffOn.continuousOn.mono hKφ)
   obtain ⟨C₁, hC₁⟩ := exists_forall_isSymplectomorphism_stdForm_norm_le
     (J := fun p : φ.target ↦ J.chartPushforwardAt φ p.property) finrank_stdSpace hLX
     (J.continuous_toContinuousLinearMap_chartPushforwardAt φ).continuousOn
@@ -107,60 +105,26 @@ theorem exists_centeredDarbouxCharts_of_isCompact {σ : SmoothTwoForm I M}
     by_cases hx : x ∈ K
     · obtain ⟨Ψ, h₁, h₂, h₃, h₄⟩ := hC₁ ⟨φ x, φ.map_source (hKφ hx)⟩ (Set.mem_image_of_mem φ hx)
       refine ⟨Ψ, fun _ ↦ ⟨h₁, fun w ↦ ?_, h₃, h₄⟩⟩
-      have h := LinearMap.congr_fun (show _ = _ from h₂) w
-      simpa [SmoothAlmostComplexStructure.chartPushforwardAt_apply] using h
+      simpa [SmoothAlmostComplexStructure.chartPushforwardAt_apply] using LinearMap.congr_fun h₂ w
     · exact ⟨ContinuousLinearEquiv.refl ℝ _, fun h ↦ absurd h hx⟩
   choose Ψ hΨ using hex
-  set C₀ := max C₁ 1
-  have hC₀ : 0 < C₀ := lt_max_of_lt_right one_pos
-  have hρ : 0 < δ / C₀ := div_pos hδ hC₀
-  -- The points `Ψ x z + φ x`, for `z` in the ball, lie in the thickening.
-  have hmem : ∀ x ∈ K, ∀ z ∈ ball (0 : StdSpace ι) (δ / C₀),
-      Ψ x z + φ x ∈ cthickening δ (φ '' K) := fun x hx z hz ↦ by
-    refine closedBall_subset_cthickening (Set.mem_image_of_mem φ hx) δ ?_
-    rw [mem_closedBall, dist_eq_norm, add_sub_cancel_right]
-    rw [mem_ball_zero_iff] at hz
-    calc ‖Ψ x z‖ ≤ ‖(Ψ x : StdSpace ι →L[ℝ] StdSpace ι)‖ * ‖z‖ :=
-          (Ψ x : StdSpace ι →L[ℝ] StdSpace ι).le_opNorm z
-      _ ≤ C₀ * (δ / C₀) := by
-          gcongr
-          · exact ((hΨ x hx).2.2.1).trans (le_max_left _ _)
-      _ = δ := mul_div_cancel₀ δ hC₀.ne'
-  have hball : ∀ x ∈ K, ball 0 (δ / C₀) ⊆ (φ.transAffine (φ x) (Ψ x).symm).target :=
-    fun x hx z hz ↦ by
-      rw [PartialDiffeomorph.mem_transAffine_target_iff, ContinuousLinearEquiv.symm_symm]
-      exact hδt (hmem x hx z hz)
-  refine ⟨fun x ↦ (Ψ x).symm, C₀, δ / C₀, hρ, fun x hx ↦ ?_, fun r ↦ ?_⟩
-  · obtain ⟨h₁, h₂, h₃, h₄⟩ := hΨ x hx
-    have hA : IsSymplectomorphism (stdForm ι) (stdForm ι) (Ψ x).symm.toLinearEquiv := by
-      rw [ContinuousLinearEquiv.toLinearEquiv_symm]
-      exact h₁.symm
-    refine ⟨hA, h₄.trans (le_max_left _ _), ?_, by simpa using hKφ hx, by simp, hball x hx,
-      fun y hy v w ↦
-        SmoothTwoForm.transAffine_darbouxChart hφ (φ x) hA y (by simpa using hy) v w, fun w ↦ ?_⟩
-    · rw [ContinuousLinearEquiv.symm_symm]
-      exact h₃.trans (le_max_left _ _)
-    · rw [J.chartPushforward_transAffine φ _ _ (hball x hx (mem_ball_self hρ))]
-      simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
-        ContinuousLinearEquiv.symm_symm, map_zero, zero_add, ← h₂,
-        ContinuousLinearEquiv.symm_apply_apply]
-  · -- The derivatives of `J` read in `φ` are bounded on the compact thickening.
-    have hcont : ContinuousOn (iteratedFDeriv ℝ r (J.chartPushforward φ.toOpenPartialHomeomorph))
-        φ.toOpenPartialHomeomorph.target :=
-      ((J.contDiffOn_chartPushforward (ψ := φ.toOpenPartialHomeomorph) φ.contMDiffOn
-        φ.symm.contMDiffOn).continuousOn_iteratedFDerivWithin
-        (by exact_mod_cast le_top) φ.open_target.uniqueDiffOn).congr
-        (iteratedFDerivWithin_of_isOpen r φ.open_target).symm
-    obtain ⟨B, hB⟩ := hLc.cthickening.exists_bound_of_continuousOn (hcont.mono hδt)
-    refine ⟨C₀ * C₀ ^ (r + 1) * max B 0, fun x hx z hz ↦ ?_⟩
-    obtain ⟨-, -, h₃, h₄⟩ := hΨ x hx
-    refine (J.norm_iteratedFDeriv_chartPushforward_transAffine_le φ _ _ r
-      (hball x hx hz)).trans ?_
-    rw [ContinuousLinearEquiv.symm_symm]
-    gcongr
-    · exact h₄.trans (le_max_left _ _)
-    · exact h₃.trans (le_max_left _ _)
-    · exact (hB _ (hmem x hx z hz)).trans (le_max_left _ _)
+  -- The radius and the derivative bounds, from the bounds on `Ψ x` and its inverse.
+  obtain ⟨ρ, hρ, hball, hbound⟩ :=
+    J.exists_forall_norm_iteratedFDeriv_chartPushforward_transAffine_le φ hK hKφ
+      (fun x ↦ (Ψ x).symm) (C := C₁) fun x hx ↦ by
+        simpa only [ContinuousLinearEquiv.symm_symm] using ⟨(hΨ x hx).2.2.2, (hΨ x hx).2.2.1⟩
+  refine ⟨fun x ↦ (Ψ x).symm, C₁, ρ, hρ, fun x hx ↦ ?_, hbound⟩
+  obtain ⟨h₁, h₂, h₃, h₄⟩ := hΨ x hx
+  have hA : IsSymplectomorphism (stdForm ι) (stdForm ι) (Ψ x).symm.toLinearEquiv := by
+    rw [ContinuousLinearEquiv.toLinearEquiv_symm]
+    exact h₁.symm
+  refine ⟨hA, h₄, by rwa [ContinuousLinearEquiv.symm_symm], by simpa using hKφ hx, by simp,
+    hball x hx, fun y hy v w ↦
+      SmoothTwoForm.transAffine_darbouxChart hφ (φ x) hA y (by simpa using hy) v w, fun w ↦ ?_⟩
+  rw [J.chartPushforward_transAffine φ _ _ (hball x hx (mem_ball_self hρ))]
+  simp only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
+    ContinuousLinearEquiv.symm_symm, map_zero, zero_add, ← h₂,
+    ContinuousLinearEquiv.symm_apply_apply]
 
 end SymplecticGeometry
 
