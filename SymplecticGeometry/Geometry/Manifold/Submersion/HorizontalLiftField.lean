@@ -59,7 +59,8 @@ general connections apply to it.
   depend smoothly on their base point and on the vector.
 * `TauCeti.IsEhresmannConnection.contMDiff_horizontalLiftField` and
   `TauCeti.IsEhresmannConnection.contMDiff_horizontalLiftField_timeDependent`: the horizontal
-  lift of a smooth vector field, or of a time-dependent one, jointly in time and point, is smooth.
+  lift of a smooth vector field, or of a smooth family of them indexed by a manifold, such as a
+  time-dependent field, jointly in the parameter and the point, is smooth.
 * `TauCeti.IsEhresmannConnection.isDistributionFrameOn_horizontalLiftField`: the lifts of a local
   frame of the tangent bundle of the base form a local frame of the connection.
 * `TauCeti.IsEhresmannConnection.contMDiffAt_one_horizontalLiftField` and
@@ -342,17 +343,17 @@ theorem isDistributionFrameOn_horizontalLiftField {ι : Type*} [Finite ι]
     rw [hw']
     exact Submodule.sum_mem _ fun i _ ↦ Submodule.smul_mem _ _ (Submodule.subset_span ⟨i, rfl⟩)
 
-/-- The horizontal lift of a time-dependent vector field `V` on `B`, jointly `C^n` in time and
-point, for a `C^n` Ehresmann connection on a `C^(n+1)` map `f`, is jointly `C^n` in time and
-point. -/
-theorem contMDiff_horizontalLiftField_timeDependent {V : 𝕜 → Π b : B, TangentSpace J b}
+/-- The horizontal lift of a family `V q` of vector fields on `B`, indexed by the points `q` of a
+manifold `Q`, such as times in `𝕜`, and jointly `C^n` in `q` and the point, for a `C^n` Ehresmann
+connection on a `C^(n+1)` map `f`, is jointly `C^n` in `q` and the point. -/
+theorem contMDiff_horizontalLiftField_timeDependent {V : Q → Π b : B, TangentSpace J b}
     (hf : ContMDiff I J (n + 1) f)
-    (hV : ContMDiff (𝓘(𝕜, 𝕜).prod J) J.tangent n
-      (fun p : 𝕜 × B ↦ (⟨p.2, V p.1 p.2⟩ : TangentBundle J B))) :
-    ContMDiff (𝓘(𝕜, 𝕜).prod I) I.tangent n
-      (fun p : 𝕜 × P ↦ (⟨p.2, hD.horizontalLiftField (V p.1) p.2⟩ : TangentBundle I P)) :=
+    (hV : ContMDiff (IQ.prod J) J.tangent n
+      (fun p : Q × B ↦ (⟨p.2, V p.1 p.2⟩ : TangentBundle J B))) :
+    ContMDiff (IQ.prod I) I.tangent n
+      (fun p : Q × P ↦ (⟨p.2, hD.horizontalLiftField (V p.1) p.2⟩ : TangentBundle I P)) :=
   hD.contMDiff_horizontalLift (g := Prod.snd)
-    (w := fun p : 𝕜 × P ↦ ⟨f p.2, V p.1 (f p.2)⟩) (fun _ ↦ rfl) hf contMDiff_snd
+    (w := fun p : Q × P ↦ ⟨f p.2, V p.1 (f p.2)⟩) (fun _ ↦ rfl) hf contMDiff_snd
     (hV.comp (contMDiff_id.prodMap (hf.of_le le_self_add)))
 
 end Smooth

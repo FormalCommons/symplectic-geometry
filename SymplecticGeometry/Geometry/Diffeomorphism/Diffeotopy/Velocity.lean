@@ -9,7 +9,6 @@ public import Mathlib.Geometry.Manifold.VectorBundle.ContMDiffSection
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Flow
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Reparam
 public import TauCeti.Geometry.Diffeomorphism.Diffeotopy.Velocity
-public import TauCeti.Geometry.Manifold.DifferentialForm.Interior
 import Mathlib.Geometry.Manifold.ContMDiffMFDeriv
 import SymplecticGeometry.Geometry.Manifold.Instances.Icc
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
@@ -52,8 +51,6 @@ the diffeotopy, in the sense of McDuff–Salamon, §3.1, and the time derivative
 * `TauCeti.Diffeotopy.apply_eq_of_mfderiv_eq_velocity`: a differentiable curve `γ` on `[0, 1]` with
   `γ' t = X_t (γ t)` is the trajectory `t ↦ φ_t (γ 0)`.
 * `TauCeti.Diffeotopy.smoothVelocity_refl`: the constant diffeotopy has velocity zero.
-* `TauCeti.Diffeotopy.mpullback_timeSlice_interior_velocity_apply`: `φ_t^* (ι_{X_t} σ)` on a
-  vector `v` is `(Φ^* σ)(∂ₜ, (v, 0))`, the integrand of the flux form and of `HasHamiltonian`.
 
 ## Implementation notes
 
@@ -270,27 +267,6 @@ theorem apply_eq_of_mfderiv_eq_velocity {γ : unitInterval → M}
 theorem smoothVelocity_refl (t : unitInterval) : (refl J ∞ M).smoothVelocity t = 0 := by
   ext y
   rw [coe_smoothVelocity, velocity_refl, ContMDiffSection.coe_zero]
-
-omit [IsManifold J ∞ M] in
-/-- On a spatial vector `v` at `x`, the pullback by `φ_t` of the contraction `ι_{X_t} σ` of a
-two-form `σ` with the velocity is the pullback of `σ` along the motion, evaluated on `∂ₜ` and
-`(v, 0)` at `(x, t)`: both are `σ_{φ_t x}(∂ₜ φ_t x, dφ_t v)`. -/
-theorem mpullback_timeSlice_interior_velocity_apply {F : Type*} [AddCommGroup F] [Module ℝ F]
-    [TopologicalSpace F] (σ : RoughForm J M F 2) (t : unitInterval) (x : M) (v : E) :
-    mpullback J J (Φ.timeSlice t) (σ.interior (Φ.velocity t)) x ![v] =
-      mpullback (J.prod (𝓡∂ 1)) J Φ.cylinderMap σ (x, t)
-        ![((0 : E), (1 : TangentSpace (𝓡∂ 1) t)), (v, (0 : EuclideanSpace ℝ (Fin 1)))] := by
-  have h : ⇑(Φ.timeSlice t) = fun z ↦ Φ.cylinderMap (z, t) :=
-    funext fun z ↦ (Φ.timeSlice_apply t z).trans (Φ.cylinderMap_apply (z, t)).symm
-  rw [h, mpullback_apply, mpullback_apply, RoughForm.interior_apply]
-  congr 1
-  funext i
-  fin_cases i
-  -- `exact` evaluates the vector `![∂ₜ, (v, 0)]` at `0`.
-  · rw [Φ.cylinderMap_apply]
-    exact Φ.velocity_apply t x
-  · exact ((Φ.mfderiv_cylinderMap_inl (by simp) (x, t) v).trans
-      (congrArg (fun f ↦ mfderiv J J f x v) h)).symm
 
 end TauCeti.Diffeotopy
 
