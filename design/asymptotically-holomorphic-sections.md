@@ -485,8 +485,8 @@ and the prerequisites, placed by topic.
   $\log|s_k|^2$, $|s_k|\ge\eta$ for large $k$),
   `hessian_add_hessian_J_neg`, `morseIndex_ge`, and the milestone
   `exists_relCWComplex_homotopyEquiv_zeroSet`: for nonempty $Z_k$ and large
-  $k$, $M$ is obtained up to homotopy from $Z_k$ by attaching cells of
-  dimension at least $n$. In the form of Tau Ceti's
+  $k$, $M$ has the homotopy type of a CW complex relative to $Z_k$ whose
+  cells all have dimension $n$ or more. In the form of Tau Ceti's
   `IsMorse.exists_relCWComplex_homotopyEquiv_sublevel`, there are a
   Hausdorff space `X`, a closed embedding `j : C(Z_k, X)`, a
   `RelCWComplex (univ : Set X) (range j)` with no cell of dimension less
