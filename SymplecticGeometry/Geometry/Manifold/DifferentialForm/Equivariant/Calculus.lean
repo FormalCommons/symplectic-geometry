@@ -159,15 +159,24 @@ theorem formCalculus_apply_val (k : ℕ) (x : M) :
   beta_reduce
   rw [SmoothForm.wedgePow_apply, formCalculusCoeff_apply, mul_smul]
 
+omit [FiniteDimensional ℝ E] in
 /-- The functional calculus is computed pointwise: if `f x = f' x` and `τ x = τ' x`, then every
 component of `F(f + τ)` agrees at `x` with that of `F(f' + τ')`. -/
 theorem formCalculus_val_congr {f' : C^∞⟮I, M; ℝ⟯} {τ' : SmoothForm I M ℝ 2} {x : M}
     (hf : f x = f' x) (hτ : τ.val x = τ'.val x) (k : ℕ) :
     (formCalculus F hF f τ k).val x = (formCalculus F hF f' τ' k).val x := by
-  obtain hk | hk := Nat.even_or_odd k
-  · obtain ⟨m, rfl⟩ := hk.two_dvd
-    rw [formCalculus_apply_val, formCalculus_apply_val, hf, hτ]
-  · rw [formCalculus_apply_of_odd F hF f τ k hk, formCalculus_apply_of_odd F hF f' τ' k hk]
+  by_cases hE : FiniteDimensional ℝ E
+  · obtain hk | hk := Nat.even_or_odd k
+    · obtain ⟨m, rfl⟩ := hk.two_dvd
+      rw [formCalculus_apply_val, formCalculus_apply_val, hf, hτ]
+    · rw [formCalculus_apply_of_odd F hF f τ k hk, formCalculus_apply_of_odd F hF f' τ' k hk]
+  · -- In infinite dimension `finrank ℝ E = 0`, so only the term of degree `0` is left.
+    rw [formCalculus_def, formCalculus_def, finrank_of_not_finite hE]
+    obtain rfl | hk := eq_or_ne k 0
+    · ext v
+      simp [RoughForm.ofFunction_apply, hf]
+    · simp only [zero_add, Finset.sum_range_one]
+      rw [DirectSum.of_eq_of_ne _ _ _ (by omega), DirectSum.of_eq_of_ne _ _ _ (by omega)]
 
 omit [IsManifold I 1 M] [FiniteDimensional ℝ E] in
 /-- The coefficients of the exponential at `f + c`, for a constant `c`, are `e ^ c` times those
@@ -191,6 +200,7 @@ theorem formCalculus_exp_add_const (c : ℝ) :
   ext1
   simp [SmoothForm.coe_funSMulₗ, mul_smul]
 
+omit [FiniteDimensional ℝ E] in
 /-- The pointwise form of `formCalculus_exp_add_const`: if `f x = f' x + c` and `τ x = τ' x`,
 then every component of `exp(f + τ)` at `x` is `e ^ c` times that of `exp(f' + τ')`. -/
 theorem formCalculus_exp_val_of_eq_add {f' : C^∞⟮I, M; ℝ⟯} {τ' : SmoothForm I M ℝ 2} {x : M}
