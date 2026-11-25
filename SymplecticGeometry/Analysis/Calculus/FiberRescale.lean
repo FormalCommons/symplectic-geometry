@@ -47,7 +47,8 @@ whole space without parameters.
 * `fiberRescale_eq_integral`: Hadamard's formula for the rescaling.
 * `integral_fderiv_slice_right_eq_integral_fderiv`: the fibre derivative under that integral is
   the derivative of `f` in the direction `(0, v)`.
-* `contDiffOn_fiberRescale`, `contDiffOn_fiberRescale_of_starShaped`: its smoothness.
+* `contDiffOn_fiberRescale`, `contDiffAt_fiberRescale_zero`,
+  `contDiffOn_fiberRescale_of_starShaped`: its smoothness.
 * `fderiv_inv_smul_comp_smul`: for `s ≠ 0`, the derivative of `x ↦ s⁻¹ • f (s • x)` at `z` is
   that of `f` at `s • z`.
 
@@ -157,6 +158,22 @@ theorem contDiffOn_fiberRescale [CompleteSpace G] {n : ℕ∞} (hU : IsOpen U)
     integral_fderiv_slice_right_eq_integral_fderiv hU (hf.differentiableOn (by simp))
       fun s hs ↦ hq ⟨s, hs⟩]
   simp
+
+/-- **Smoothness of the rescaling at the zero section.** If `f` is `C^(n+1)` on an open set `U`
+and vanishes on `U ∩ (P × {0})`, its rescaling in the fibre variable is `C^n` at `((p, v), 0)`
+for every `(p, 0) ∈ U` and every `v`. -/
+theorem contDiffAt_fiberRescale_zero [CompleteSpace G] {n : ℕ∞} (hU : IsOpen U)
+    (hf : ContDiffOn ℝ (n + 1) f U) (hf0 : ∀ p, (p, (0 : F)) ∈ U → f (p, 0) = 0)
+    {p : P × F} (hp : (p.1, (0 : F)) ∈ U) : ContDiffAt ℝ n (fiberRescale f) (p, 0) := by
+  -- The set of `((p, v), t)` whose segments lie in `U` is open, by Tau Ceti's
+  -- `isOpen_normalSegmentDomain` in the coordinates `(t, (p, v))`.
+  have hS : IsOpen {q : (P × F) × ℝ | ∀ s : I, (q.1.1, (s : ℝ) • q.2 • q.1.2) ∈ U} := by
+    convert (TauCeti.isOpen_normalSegmentDomain hU).preimage
+      (continuous_snd.prodMk continuous_fst : Continuous fun q : (P × F) × ℝ ↦ (q.2, q.1))
+      using 1
+    ext q
+    simp [Subtype.forall]
+  exact (contDiffOn_fiberRescale hU hf hf0).contDiffAt (hS.mem_nhds fun s ↦ by simpa using hp)
 
 /-- **Smoothness of the rescaling on a fibrewise star-shaped set.** If `U` is open and
 star-shaped in the fibre variable, and `f` is `C^(n+1)` on `U` and vanishes on
