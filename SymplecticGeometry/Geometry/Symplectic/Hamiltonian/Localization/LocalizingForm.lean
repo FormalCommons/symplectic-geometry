@@ -450,8 +450,8 @@ theorem exists_localizingForm_of_weightCharts [SigmaCompactSpace M] {ι : Type*}
 `d⟨μ, ξ⟩ = -ι_{ξ_M} σ`, and with isolated fixed points; let `X` be the fundamental vector field
 of the period-one generator `ξ₁ = circlePeriodOneGenerator`. Then there is a smooth one-form `θ`
 on `M`, invariant under the action, with `θ(X) ≥ 0`, with equality exactly at the fixed points,
-and such that at each fixed point `p` there is a weight chart `Φ` at `p`, with all the properties
-that `SymplecticGeometry.exists_weightChart_fundamentalVectorField` gives, whose weights
+and such that at each fixed point `p` there is a weight chart `Φ` at `p` of radius `r`
+(`SymplecticGeometry.IsWeightChart`), whose weights
 `kⱼ = αⱼ(ξ₁)` are nonzero, and a radius `0 < s ≤ r` such that on `Φ '' ball 0 s` the form `θ`
 is the pullback `(Φ⁻¹)^* θₖ` of the model one-form `weightOneForm k`. -/
 theorem exists_localizingForm [CompactSpace M] {σ : SmoothTwoForm I M}
@@ -472,52 +472,32 @@ theorem exists_localizingForm [CompactSpace M] {σ : SmoothTwoForm I M}
         ∃ (n : ℕ) (χ : Fin n → Circle →ₜ* Circle)
           (α : Fin n → StrongDual ℝ (EuclideanSpace ℝ (Fin 1)))
           (Φ : PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin n)) I (StdSpace (Fin n)) M ∞) (r s : ℝ),
-          (∀ j (ξ : GroupLieAlgebra (𝓡 1) Circle),
-            χ j (mulInvariantExp (I := 𝓡 1) ξ) = Circle.exp (2 * π * α j ξ)) ∧
-          (∀ j (ξ : GroupLieAlgebra (𝓡 1) Circle),
-            mulInvariantExp (I := 𝓡 1) ξ = 1 → ∃ m : ℤ, α j ξ = m) ∧
-          0 < r ∧ Φ.source = ball 0 r ∧ Φ 0 = p ∧
-          (∀ g : Circle, ∀ x ∈ Φ.target, g • x ∈ Φ.target) ∧
-          (∀ (g : Circle) (u : Fin n → ℂ), complexToRealEuclidean (Fin n) u ∈ Φ.source →
-            complexToRealEuclidean (Fin n) (fun j ↦ (χ j g : ℂ) * u j) ∈ Φ.source ∧
-            Φ (complexToRealEuclidean (Fin n) fun j ↦ (χ j g : ℂ) * u j) =
-              g • Φ (complexToRealEuclidean (Fin n) u)) ∧
-          (∀ z ∈ Φ.source, ∀ v w : StdSpace (Fin n),
-            σ.eval₂ (Φ z) (mfderiv 𝓘(ℝ, StdSpace (Fin n)) I Φ z v)
-              (mfderiv 𝓘(ℝ, StdSpace (Fin n)) I Φ z w) = stdForm (Fin n) v w) ∧
-          (∀ z ∈ Φ.source, ∀ ξ : GroupLieAlgebra (𝓡 1) Circle,
-            mfderiv 𝓘(ℝ, StdSpace (Fin n)) I Φ z
-                (EuclideanSpace.sumEquivProd.symm
-                  (weightGenerator (fun j ↦ 2 * π * α j ξ) (EuclideanSpace.sumEquivProd z))) =
-              fundamentalVectorField I ξ (Φ z)) ∧
-          (∀ z ∈ Φ.source, ∀ ξ : GroupLieAlgebra (𝓡 1) Circle,
-            μ (Φ z) ξ = μ p ξ + π * ∑ j, α j ξ * (z.x j ^ 2 + z.y j ^ 2)) ∧
+          IsWeightChart σ μ p χ α Φ r ∧
           (∀ j, α j circlePeriodOneGenerator ≠ 0) ∧ 0 < s ∧ s ≤ r ∧
           ∀ x ∈ Φ '' ball 0 s, θ.val x = TauCeti.mpullback I 𝓘(ℝ, StdSpace (Fin n)) Φ.symm
             (weightOneForm fun j ↦ α j circlePeriodOneGenerator).val x := by
   have : ContinuousConstSMul Circle M :=
     ⟨fun g ↦ (ContMDiffSMul.contMDiff_const_smul (I := 𝓡 1) (I' := I) (n := ∞) g).continuous⟩
   have := (finite_fixedPoints hiso).to_subtype
-  choose n χ α Φ r hχ hαℤ hr hsrc hΦ0 htgt hequiv hform hvf hmom using
-    fun p : MulAction.fixedPoints Circle M ↦
-      exists_weightChart_fundamentalVectorField hμ hσ hG (p := p.val) p.property
-  have h0 (p : MulAction.fixedPoints Circle M) : (0 : StdSpace (Fin (n p))) ∈ (Φ p).source := by
-    rw [hsrc]
-    exact mem_ball_self (hr p)
+  choose n χ α Φ r hW using fun p : MulAction.fixedPoints Circle M ↦
+    exists_weightChart_fundamentalVectorField hμ hσ hG (p := p.val) p.property
   have hk (p : MulAction.fixedPoints Circle M) (j : Fin (n p)) :
       α p j circlePeriodOneGenerator ≠ 0 :=
-    apply_circlePeriodOneGenerator_ne_zero_of_isolated (fun j ↦ χ p j) (α p) (hχ p)
-      (Φ p).toOpenPartialHomeomorph (fun g u hu ↦ (hequiv p g u hu).2) (h0 p) (hΦ0 p)
+    apply_circlePeriodOneGenerator_ne_zero_of_isolated (fun j ↦ χ p j) (α p)
+      (hW p).apply_mulInvariantExp (Φ p).toOpenPartialHomeomorph
+      (fun g u hu ↦ ((hW p).equivariant g u hu).2) (hW p).zero_mem_source (hW p).apply_zero
       (hiso p.val p.property) j
   obtain ⟨θ, hinv, hnonneg, hzero, hloc⟩ := exists_localizingForm_of_weightCharts
-    (fun p j ↦ χ p j) Φ (fun p j ↦ α p j circlePeriodOneGenerator) hequiv
+    (fun p j ↦ χ p j) Φ (fun p j ↦ α p j circlePeriodOneGenerator) (fun p ↦ (hW p).equivariant)
     (fun p z hz ↦ by
-      simpa only [Pi.smul_def, smul_eq_mul] using hvf p z hz circlePeriodOneGenerator) h0
-    (fun p q h ↦ Subtype.ext ((hΦ0 p).symm.trans (h.trans (hΦ0 q)))) hk
+      simpa only [Pi.smul_def, smul_eq_mul] using
+        (hW p).mfderiv_weightGenerator z hz circlePeriodOneGenerator)
+    (fun p ↦ (hW p).zero_mem_source)
+    (fun p q h ↦ Subtype.ext ((hW p).apply_zero.symm.trans (h.trans (hW q).apply_zero))) hk
   refine ⟨θ, hinv, hnonneg, hzero, fun p hp ↦ ?_⟩
   obtain ⟨s, hs, -, hθ⟩ := hloc ⟨p, hp⟩
-  refine ⟨n ⟨p, hp⟩, χ _, α _, Φ _, r _, min s (r ⟨p, hp⟩), hχ _, hαℤ _, hr _, hsrc _, hΦ0 _,
-    htgt _, hequiv _, hform _, hvf _, hmom _, hk _, lt_min hs (hr _), min_le_right _ _,
+  refine ⟨n ⟨p, hp⟩, χ _, α _, Φ _, r _, min s (r ⟨p, hp⟩), hW ⟨p, hp⟩, hk _,
+    lt_min hs (hW _).radius_pos, min_le_right _ _,
     fun x hx ↦ hθ x (image_mono (ball_subset_ball (min_le_left _ _)) hx)⟩
 end Gluing
 
