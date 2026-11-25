@@ -9,7 +9,6 @@ public import Mathlib.Analysis.Complex.Basic
 public import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Core.Section
 public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Core.ScalarCocycle
-public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
 
 /-!
 # The line bundle of a divisor given by local equations
@@ -28,11 +27,11 @@ line bundle and its canonical section need neither condition.
 
 * `SymplecticGeometry.HypersurfaceData.support`: the common zero set of the `f i`
   (`HypersurfaceData.mem_support_iff_of_mem`), a closed set.
-* `SymplecticGeometry.HypersurfaceData.lineBundleCore D k`, for `k : ℤ`: the line bundle
-  `𝒪(kD)`, as a Mathlib vector bundle core with model fibre `ℂ`, whose coordinate change from the
-  chart `i` to the chart `j` is multiplication by `(g j i) ^ k`
-  (`HypersurfaceData.lineBundleCore_coordChange`). It is a holomorphic line bundle
-  (`HypersurfaceData.isContMDiff_lineBundleCore`, which gives `ContMDiffVectorBundle ω`).
+* `D.lineBundleCore k`, for `k : ℤ`: the line bundle `𝒪(kD)`, as a Mathlib vector bundle core
+  with model fibre `ℂ`, whose coordinate change from the chart `i` to the chart `j` is
+  multiplication by `(g j i) ^ k` (`ScalarCocycle.lineBundleCore_coordChange`). It is a
+  holomorphic line bundle (`HypersurfaceData.isContMDiff_lineBundleCore`, which gives
+  `ContMDiffVectorBundle ω`).
 * `SymplecticGeometry.HypersurfaceData.canonicalSection`: the section of `𝒪(D)` that is `f i` in
   the chart `i` (`HypersurfaceData.localTriv_canonicalSection`). It is holomorphic
   (`HypersurfaceData.contMDiff_canonicalSection`) and vanishes exactly on the support
@@ -40,19 +39,19 @@ line bundle and its canonical section need neither condition.
   of its local expressions differ by the nonzero factor `g i j`
   (`HypersurfaceData.mfderiv_f_apply_of_mem_support`), so whether it vanishes to first order
   does not depend on the chart.
-* `SymplecticGeometry.HypersurfaceData.lineBundleCoreTensorEquiv D k l x`: the isomorphism
-  `𝒪((k + l)D) ≅ 𝒪(kD) ⊗ 𝒪(lD)` onto Tau Ceti's tensor product bundle, `a ↦ a ⊗ 1` in every chart
-  (`HypersurfaceData.tensorProduct_localTriv_lineBundleCoreTensorEquiv`), continuous on total
+* `D.lineBundleCoreTensorEquiv k l x`: the isomorphism `𝒪((k + l)D) ≅ 𝒪(kD) ⊗ 𝒪(lD)` onto
+  Tau Ceti's tensor product bundle, `a ↦ a ⊗ 1` in every chart
+  (`ScalarCocycle.tensorProduct_localTriv_lineBundleCoreTensorEquiv`), continuous on total
   spaces in both directions.
 
 ## Implementation notes
 
-The cover and the transition functions form a `SymplecticGeometry.ScalarCocycle`
-(`HypersurfaceData.toScalarCocycle`), and `lineBundleCore`, its smoothness instance and
-`lineBundleCoreTensorEquiv` are those of the library's general construction
-`ScalarCocycle.lineBundleCore` and `ScalarCocycle.lineBundleCoreTensorEquiv`
-(`SymplecticGeometry/Geometry/Manifold/VectorBundle/Core/ScalarCocycle.lean`), read through
-`HypersurfaceData`.
+`HypersurfaceData` extends `SymplecticGeometry.ScalarCocycle`: the cover and the transition
+functions form a scalar cocycle. So `D.lineBundleCore k`, `D.indexAt`, `D.mem_U_indexAt`,
+`D.g_self` and `D.lineBundleCoreTensorEquiv k l` are, by dot notation, the declarations
+`ScalarCocycle.lineBundleCore` and so on of `D.toScalarCocycle`
+(`SymplecticGeometry/Topology/VectorBundle/Core/ScalarCocycle.lean`). Of the line bundle, this
+file adds only the smoothness instance, from `ScalarCocycle.isContMDiff_lineBundleCore`.
 
 ## References
 
@@ -63,7 +62,7 @@ The cover and the transition functions form a `SymplecticGeometry.ScalarCocycle`
 public noncomputable section
 
 open Bundle Set Topology
-open scoped Manifold ContDiff TensorProduct TauCeti.ModuleTopology
+open scoped Manifold ContDiff
 
 namespace SymplecticGeometry
 
@@ -77,51 +76,22 @@ The `g` are the transition functions of the line bundle of the divisor. The comm
 differential of each `f i` is nonzero on it, which the structure does not require. -/
 @[ext]
 structure HypersurfaceData (I : ModelWithCorners ℂ F H) (X : Type*) [TopologicalSpace X]
-    [ChartedSpace H X] (ι : Type*) where
-  /-- The open sets of the cover. -/
-  U : ι → Set X
-  isOpen_U (i : ι) : IsOpen (U i)
-  iUnion_U : ⋃ i, U i = univ
+    [ChartedSpace H X] (ι : Type*) extends ScalarCocycle ℂ X ι where
   /-- The local equation on `U i`. -/
   f : ι → X → ℂ
   contMDiffOn_f (i : ι) : ContMDiffOn I 𝓘(ℂ) ω (f i) (U i)
-  /-- The transition functions: `f i = g i j * f j` on `U i ∩ U j`. -/
-  g : ι → ι → X → ℂ
   contMDiffOn_g (i j : ι) : ContMDiffOn I 𝓘(ℂ) ω (g i j) (U i ∩ U j)
-  g_ne_zero {i j : ι} {x : X} : x ∈ U i → x ∈ U j → g i j x ≠ 0
+  continuousOn_g i j := (contMDiffOn_g i j).continuousOn
+  /-- The transition functions `g` relate the local equations: `f i = g i j * f j` on
+  `U i ∩ U j`. -/
   f_eq_g_mul {i j : ι} {x : X} : x ∈ U i → x ∈ U j → f i x = g i j x * f j x
-  g_mul_g {i j k : ι} {x : X} : x ∈ U i → x ∈ U j → x ∈ U k → g i j x * g j k x = g i k x
 
 namespace HypersurfaceData
 
 variable {I : ModelWithCorners ℂ F H} {X : Type*} [TopologicalSpace X] [ChartedSpace H X]
   {ι : Type*} (D : HypersurfaceData I X ι)
 
-/-! ### The cover and the support -/
-
-/-- The open cover and the transition functions of `D`, as a scalar cocycle; the transition
-functions are continuous on the overlaps since they are holomorphic there. -/
-def toScalarCocycle : ScalarCocycle ℂ X ι where
-  U := D.U
-  isOpen_U := D.isOpen_U
-  iUnion_U := D.iUnion_U
-  g := D.g
-  continuousOn_g i j := (D.contMDiffOn_g i j).continuousOn
-  g_ne_zero := D.g_ne_zero
-  g_mul_g := D.g_mul_g
-
-@[simp]
-theorem toScalarCocycle_U : D.toScalarCocycle.U = D.U := (rfl)
-
-@[simp]
-theorem toScalarCocycle_g : D.toScalarCocycle.g = D.g := (rfl)
-
-/-- A chart of the cover containing `x`. -/
-def indexAt (x : X) : ι := D.toScalarCocycle.indexAt x
-
-theorem indexAt_def (x : X) : D.indexAt x = D.toScalarCocycle.indexAt x := (rfl)
-
-theorem mem_U_indexAt (x : X) : x ∈ D.U (D.indexAt x) := D.toScalarCocycle.mem_U_indexAt x
+/-! ### The support -/
 
 /-- The common zero set of the local equations: the points where they vanish. -/
 def support : Set X := {x | ∃ i, x ∈ D.U i ∧ D.f i x = 0}
@@ -148,47 +118,9 @@ theorem isClosed_support : IsClosed D.support := by
 
 /-! ### The line bundle `𝒪(kD)` -/
 
-/-- The line bundle `𝒪(kD)` of the divisor, for `k : ℤ`, as a vector bundle core with model
-fibre `ℂ`. The chart `i` is trivial over `U i`, and the coordinate change from the chart `i` to
-the chart `j` is multiplication by `(g j i) ^ k`, so that the local sections that are `f i ^ k`
-in the chart `i` glue. It is the line bundle `ScalarCocycle.lineBundleCore` of the transition
-functions. -/
-def lineBundleCore (k : ℤ) : VectorBundleCore ℂ X ℂ ι := D.toScalarCocycle.lineBundleCore k
-
-theorem lineBundleCore_def (k : ℤ) :
-    D.lineBundleCore k = D.toScalarCocycle.lineBundleCore k := (rfl)
-
-theorem lineBundleCore_baseSet (k : ℤ) (i : ι) : (D.lineBundleCore k).baseSet i = D.U i :=
-  D.toScalarCocycle.lineBundleCore_baseSet k i
-
-@[simp]
-theorem lineBundleCore_localTriv_baseSet (k : ℤ) (i : ι) :
-    ((D.lineBundleCore k).localTriv i).baseSet = D.U i :=
-  D.toScalarCocycle.lineBundleCore_localTriv_baseSet k i
-
-@[simp]
-theorem lineBundleCore_indexAt (k : ℤ) (x : X) : (D.lineBundleCore k).indexAt x = D.indexAt x :=
-  D.toScalarCocycle.lineBundleCore_indexAt k x
-
-/-- The preferred trivialization of `𝒪(kD)` at `x` is its chart `D.indexAt x`. -/
-theorem lineBundleCore_trivializationAt (k : ℤ) (x : X) :
-    trivializationAt ℂ (D.lineBundleCore k).Fiber x =
-      (D.lineBundleCore k).localTriv (D.indexAt x) :=
-  D.toScalarCocycle.lineBundleCore_trivializationAt k x
-
-/-- The coordinate change of `𝒪(kD)` from the chart `i` to the chart `j` is multiplication by
-`(g j i) ^ k`. -/
-theorem lineBundleCore_coordChange (k : ℤ) (i j : ι) (x : X) :
-    (D.lineBundleCore k).coordChange i j x = ContinuousLinearMap.lsmul ℂ ℂ (D.g j i x ^ k) :=
-  D.toScalarCocycle.lineBundleCore_coordChange k i j x
-
-@[simp]
-theorem lineBundleCore_coordChange_apply (k : ℤ) (i j : ι) (x : X) (v : ℂ) :
-    (D.lineBundleCore k).coordChange i j x v = D.g j i x ^ k * v :=
-  D.toScalarCocycle.lineBundleCore_coordChange_apply k i j x v
-
-/-- **`𝒪(kD)` is a holomorphic line bundle**: its coordinate changes are holomorphic. With
-Mathlib's `VectorBundleCore.instContMDiffVectorBundle` this makes it a `ContMDiffVectorBundle ω`. -/
+/-- **`𝒪(kD)` is a holomorphic line bundle**: the coordinate changes of
+`ScalarCocycle.lineBundleCore D.toScalarCocycle k` are holomorphic. With Mathlib's
+`VectorBundleCore.instContMDiffVectorBundle` this makes it a `ContMDiffVectorBundle ω`. -/
 instance isContMDiff_lineBundleCore (k : ℤ) : (D.lineBundleCore k).IsContMDiff I ω :=
   D.toScalarCocycle.isContMDiff_lineBundleCore D.contMDiffOn_g k
 
@@ -205,14 +137,14 @@ theorem localTriv_canonicalSection {i : ι} {x : X} (hi : x ∈ D.U i) :
     ((D.lineBundleCore 1).localTriv i ⟨x, D.canonicalSection x⟩).2 = D.f i x := by
   rw [VectorBundleCore.localTriv_apply]
   refine (D.lineBundleCore_coordChange_apply 1 _ i x (D.canonicalSection x)).trans ?_
-  rw [zpow_one, canonicalSection_def, lineBundleCore_indexAt,
+  rw [zpow_one, canonicalSection_def, D.lineBundleCore_indexAt,
     ← D.f_eq_g_mul hi (D.mem_U_indexAt x)]
 
 /-- The canonical section of `𝒪(D)` is holomorphic. -/
 theorem contMDiff_canonicalSection :
     ContMDiff I (I.prod 𝓘(ℂ)) ω fun x ↦ TotalSpace.mk' ℂ x (D.canonicalSection x) := by
   refine ((D.lineBundleCore 1).contMDiff_section_iff _).2 fun i ↦ ?_
-  rw [lineBundleCore_baseSet]
+  rw [D.lineBundleCore_baseSet]
   refine (D.contMDiffOn_f i).congr fun x hx ↦ ?_
   rw [← D.localTriv_canonicalSection hx, VectorBundleCore.localTriv_apply]
 
@@ -248,61 +180,6 @@ theorem mfderiv_f_eq_zero_iff {i j : ι} {x : X} (hi : x ∈ D.U i) (hj : x ∈ 
     mfderiv I 𝓘(ℂ) (D.f i) x = 0 ↔ mfderiv I 𝓘(ℂ) (D.f j) x = 0 := by
   simp only [ContinuousLinearMap.ext_iff, D.mfderiv_f_apply_of_mem_support hi hj hx]
   exact forall_congr' fun _ ↦ smul_eq_zero_iff_right (D.g_ne_zero hi hj)
-
-/-! ### Tensor products -/
-
-section Tensor
-
-variable (k l : ℤ)
-
-/-- The fibrewise isomorphism `𝒪((k + l)D) ≅ 𝒪(kD) ⊗ 𝒪(lD)`, `a ↦ a ⊗ 1` in every chart
-(`tensorProduct_localTriv_lineBundleCoreTensorEquiv`): the isomorphism
-`ScalarCocycle.lineBundleCoreTensorEquiv` of the transition functions. It is continuous on total
-spaces in both directions (`continuous_lineBundleCoreTensorEquiv` and
-`continuous_lineBundleCoreTensorEquiv_symm`). -/
-def lineBundleCoreTensorEquiv (x : X) :
-    (D.lineBundleCore (k + l)).Fiber x ≃L[ℂ]
-      (D.lineBundleCore k).Fiber x ⊗[ℂ] (D.lineBundleCore l).Fiber x :=
-  D.toScalarCocycle.lineBundleCoreTensorEquiv k l x
-
-theorem lineBundleCoreTensorEquiv_apply (x : X) (v : ℂ) :
-    D.lineBundleCoreTensorEquiv k l x v =
-      TensorProduct.tmul ℂ (M := (D.lineBundleCore k).Fiber x)
-        (N := (D.lineBundleCore l).Fiber x) v (1 : ℂ) :=
-  D.toScalarCocycle.lineBundleCoreTensorEquiv_apply k l x v
-
-theorem lineBundleCoreTensorEquiv_symm_apply (x : X) (a b : ℂ) :
-    (D.lineBundleCoreTensorEquiv k l x).symm
-        (TensorProduct.tmul ℂ (M := (D.lineBundleCore k).Fiber x)
-          (N := (D.lineBundleCore l).Fiber x) a b) = a * b :=
-  D.toScalarCocycle.lineBundleCoreTensorEquiv_symm_apply k l x a b
-
-/-- **`lineBundleCoreTensorEquiv` in a chart.** Over `U i`, read through the charts `i` of
-`𝒪((k + l)D)`, `𝒪(kD)` and `𝒪(lD)`, `lineBundleCoreTensorEquiv` is `a ↦ a ⊗ 1`. -/
-theorem tensorProduct_localTriv_lineBundleCoreTensorEquiv {i : ι} {x : X} (hi : x ∈ D.U i)
-    (v : ℂ) :
-    (Pretrivialization.tensorProduct ℂ ((D.lineBundleCore k).localTriv i)
-        ((D.lineBundleCore l).localTriv i) ⟨x, D.lineBundleCoreTensorEquiv k l x v⟩).2 =
-      TauCeti.ProjectiveTensor.tmulL ℂ ℂ ℂ ((D.lineBundleCore (k + l)).localTriv i ⟨x, v⟩).2 1 :=
-  D.toScalarCocycle.tensorProduct_localTriv_lineBundleCoreTensorEquiv k l hi v
-
-/-- `lineBundleCoreTensorEquiv` is continuous on total spaces. -/
-theorem continuous_lineBundleCoreTensorEquiv :
-    Continuous fun p : TotalSpace ℂ (D.lineBundleCore (k + l)).Fiber ↦
-      TotalSpace.mk' (TauCeti.ProjectiveTensor ℂ ℂ ℂ)
-        (E := fun x ↦ (D.lineBundleCore k).Fiber x ⊗[ℂ] (D.lineBundleCore l).Fiber x)
-        p.proj (D.lineBundleCoreTensorEquiv k l p.proj p.snd) :=
-  D.toScalarCocycle.continuous_lineBundleCoreTensorEquiv k l
-
-/-- The inverse of `lineBundleCoreTensorEquiv` is continuous on total spaces. -/
-theorem continuous_lineBundleCoreTensorEquiv_symm :
-    Continuous fun q : TotalSpace (TauCeti.ProjectiveTensor ℂ ℂ ℂ)
-        (fun x ↦ (D.lineBundleCore k).Fiber x ⊗[ℂ] (D.lineBundleCore l).Fiber x) ↦
-      TotalSpace.mk' ℂ (E := (D.lineBundleCore (k + l)).Fiber) q.proj
-        ((D.lineBundleCoreTensorEquiv k l q.proj).symm q.snd) :=
-  D.toScalarCocycle.continuous_lineBundleCoreTensorEquiv_symm k l
-
-end Tensor
 
 end HypersurfaceData
 
