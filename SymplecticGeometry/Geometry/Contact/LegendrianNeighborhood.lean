@@ -21,7 +21,6 @@ import SymplecticGeometry.Geometry.Contact.Contactization
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
 import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
 import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
-import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 import SymplecticGeometry.Geometry.Manifold.VectorBundle.ZeroSection
 import SymplecticGeometry.Geometry.Symplectic.Neighborhood.Lagrangian

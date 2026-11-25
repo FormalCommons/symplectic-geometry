@@ -330,7 +330,6 @@ theorem contDiffOn_mpullback_riemannianVolumeForm
     [IsContMDiffRiemannianBundle I ∞ E (fun x : M ↦ TangentSpace I x)] (v : Fin m → E) :
     ContDiffOn ℝ ∞ (fun y ↦ mpullback 𝓘(ℝ, E) I ψ.symm (riemannianVolumeForm o) y v)
       ψ.target := by
-  have : IsManifold I (∞ + 1) M := by simpa using ‹IsManifold I ∞ M›
   exact (ContinuousAlternatingMap.apply ℝ E ℝ v).contDiff.comp_contDiffOn
     (SmoothForm.contDiffOn_mpullback (⟨riemannianVolumeForm o,
       (isSmoothForm_riemannianVolumeForm o).mem_smoothBundleForms⟩ : SmoothForm I M ℝ m)
@@ -626,7 +625,6 @@ theorem contDiffOn_formInnerInChart_apply [T2Space M] [IsManifold I ∞ M]
     (β γ : E [⋀^Fin k]→L[ℝ] ℝ) :
     ContDiffOn ℝ ∞ (fun y ↦ formInnerInChart ψ y β γ) ψ.target := by
   have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
-  have : IsManifold I (∞ + 1) M := by simpa using (inferInstance : IsManifold I ∞ M)
   intro y₀ hy₀
   -- A bump function equal to `1` near `y₀`, supported in `ψ.target`.
   obtain ⟨ε, hε, hεt⟩ := Metric.nhds_basis_closedBall.mem_iff.1 (ψ.open_target.mem_nhds hy₀)
