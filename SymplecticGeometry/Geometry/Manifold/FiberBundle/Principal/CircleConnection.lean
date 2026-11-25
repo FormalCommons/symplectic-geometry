@@ -343,8 +343,7 @@ variable {e : Trivialization Circle (π Circle P)} [e.IsEquivariant]
 
 variable (hθ : ∀ x : ManifoldTotalSpace Circle P,
   ((ManifoldTotalSpace.homeomorph Circle P).symm x).proj ∈ e.baseSet →
-    MDifferentiableAt (IB.prod (𝓡 1)) (𝓡 1) (fun x : ManifoldTotalSpace Circle P ↦
-      (e ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2) x)
+    MDifferentiableAt (IB.prod (𝓡 1)) (𝓡 1) e.manifoldSnd x)
 include hθ
 
 omit [IsManifold IB ∞ B] [ContMDiffFiberBundle ∞ Circle P IB (𝓡 1)] in
@@ -355,10 +354,8 @@ theorem mpullback_op_smul_mpullback_trivialization_snd {x : ManifoldTotalSpace C
     (hx : ((ManifoldTotalSpace.homeomorph Circle P).symm x).proj ∈ e.baseSet) (z : Circle) :
     TauCeti.mpullback (IB.prod (𝓡 1)) (IB.prod (𝓡 1))
       (fun y : ManifoldTotalSpace Circle P ↦ op z • y)
-      (TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) (fun x : ManifoldTotalSpace Circle P ↦
-        (e ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2) circleAngularForm) x =
-      TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) (fun x : ManifoldTotalSpace Circle P ↦
-        (e ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2) circleAngularForm x := by
+      (TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) e.manifoldSnd circleAngularForm) x =
+      TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) e.manifoldSnd circleAngularForm x := by
   rw [e.mpullback_op_smul_mpullback_snd hθ hx, mpullback_mul_right_circleAngularForm]
 
 omit [IsManifold IB ∞ B] [ContMDiffFiberBundle ∞ Circle P IB (𝓡 1)] in
@@ -368,11 +365,9 @@ takes the value `1` on the fundamental vector field of `1`. -/
 theorem mpullback_trivialization_snd_apply_rightFundamentalVectorField
     {x : ManifoldTotalSpace Circle P}
     (hx : ((ManifoldTotalSpace.homeomorph Circle P).symm x).proj ∈ e.baseSet) :
-    TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) (fun x : ManifoldTotalSpace Circle P ↦
-        (e ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2) circleAngularForm x
+    TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) e.manifoldSnd circleAngularForm x
       ![rightFundamentalVectorField (IB.prod (𝓡 1)) circleLieGenerator x] = 1 := by
-  set θ := fun x : ManifoldTotalSpace Circle P ↦
-    (e ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2
+  set θ := e.manifoldSnd
   have hL := DFunLike.congr_fun (congrFun (mpullback_mul_left_circleAngularForm (θ x)) 1)
     ![circleLieGenerator]
   rw [mpullback_apply, mul_one] at hL
@@ -399,12 +394,10 @@ private theorem IsCircleConnectionForm.sub_apply_eq_of_mfderiv_proj_eq
     (hvw : mfderiv (IB.prod (𝓡 1)) IB (ManifoldTotalSpace.projContMDiffMap n Circle P IB (𝓡 1)) x
         v =
       mfderiv (IB.prod (𝓡 1)) IB (ManifoldTotalSpace.projContMDiffMap n Circle P IB (𝓡 1)) y w) :
-    α.val x ![v] - TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) (fun x : ManifoldTotalSpace Circle P ↦
-        (e ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2) circleAngularForm x ![v] =
-      α.val y ![w] - TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) (fun x : ManifoldTotalSpace Circle P ↦
-        (e ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2) circleAngularForm y ![w] := by
-  set ℓ := TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) (fun x : ManifoldTotalSpace Circle P ↦
-    (e ((ManifoldTotalSpace.homeomorph Circle P).symm x)).2) circleAngularForm
+    α.val x ![v] - TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) e.manifoldSnd circleAngularForm x ![v] =
+      α.val y ![w] -
+        TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) e.manifoldSnd circleAngularForm y ![w] := by
+  set ℓ := TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) e.manifoldSnd circleAngularForm
   -- `x = y • g` for some `g`.
   obtain ⟨g, rfl⟩ := PrincipalBundle.exists_op_smul_eq_of_proj_eq hxy
   have hgd : MDifferentiableAt (IB.prod (𝓡 1)) (IB.prod (𝓡 1))
@@ -459,9 +452,8 @@ theorem IsCircleConnectionForm.apply_eq_mpullback_add_mpullback (hα : IsCircleC
       (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) U)
     {x : ManifoldTotalSpace Circle P}
     (hx : ((ManifoldTotalSpace.homeomorph Circle P).symm x).proj ∈ U) :
-    α.val x = TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1) (fun y : ManifoldTotalSpace Circle P ↦
-        (PrincipalBundle.trivializationOfSection σ hU hσ
-          ((ManifoldTotalSpace.homeomorph Circle P).symm y)).2) circleAngularForm x +
+    α.val x = TauCeti.mpullback (IB.prod (𝓡 1)) (𝓡 1)
+        (PrincipalBundle.trivializationOfSection σ hU hσ).manifoldSnd circleAngularForm x +
       TauCeti.mpullback (IB.prod (𝓡 1)) IB (ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
         (TauCeti.mpullback IB (IB.prod (𝓡 1))
           (fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩) α.val) x := by
@@ -470,20 +462,19 @@ theorem IsCircleConnectionForm.apply_eq_mpullback_add_mpullback (hα : IsCircleC
   have hpx (y : ManifoldTotalSpace Circle P) :
       p y = ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj := by
     rw [hp, ManifoldTotalSpace.coe_projContMDiffMap]
-  set θ := fun y : ManifoldTotalSpace Circle P ↦
-    (e ((ManifoldTotalSpace.homeomorph Circle P).symm y)).2 with hθdef
+  set θ := e.manifoldSnd with hθdef
   set s := fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, σ b⟩ with hs
   have hθd (y : ManifoldTotalSpace Circle P)
       (hy : ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj ∈ e.baseSet) :
-      MDifferentiableAt (IB.prod (𝓡 1)) (𝓡 1) θ y :=
-    (PrincipalBundle.contMDiffAt_snd_trivializationOfSection hσ'
+      MDifferentiableAt (IB.prod (𝓡 1)) (𝓡 1) θ y := by
+    exact (PrincipalBundle.contMDiffAt_snd_trivializationOfSection hσ'
       (by rwa [PrincipalBundle.baseSet_trivializationOfSection] at hy)).mdifferentiableAt
         (by simp)
   have hps (b : B) : p (s b) = b := by simp [hp, hs]
   -- The section `s` has fibre coordinate `1`.
   have hθs (b : B) : θ (s b) = 1 := by
-    simp only [hθdef, hs, e, PrincipalBundle.trivializationOfSection_apply]
-    rw [Homeomorph.symm_apply_apply]
+    simp only [hθdef, hs, e, Trivialization.manifoldSnd_homeomorph,
+      PrincipalBundle.trivializationOfSection_apply]
     exact PrincipalBundle.division_self _
   have hx' : p x ∈ U := by rwa [hpx]
   have hsd : MDifferentiableAt IB (IB.prod (𝓡 1)) s (p x) :=
@@ -537,18 +528,17 @@ theorem IsCircleConnectionForm.mpullback_apply_eq_mpullback_division_add
     ManifoldTotalSpace.continuousOn_of_contMDiffOn_homeomorph hσ
   set t := fun b ↦ ManifoldTotalSpace.homeomorph Circle P ⟨b, τ b⟩
   set p := ⇑(ManifoldTotalSpace.projContMDiffMap ∞ Circle P IB (𝓡 1))
-  set θ := fun y : ManifoldTotalSpace Circle P ↦
-    (PrincipalBundle.trivializationOfSection σ hU hσc
-      ((ManifoldTotalSpace.homeomorph Circle P).symm y)).2
+  set θ := (PrincipalBundle.trivializationOfSection σ hU hσc).manifoldSnd with hθdef
   -- Along `τ`, the fibre coordinate of the trivialization of `σ` is the transition `σ⁻¹ τ`.
   have hθt : θ ∘ t = fun b ↦ PrincipalBundle.division Circle (σ b) (τ b) :=
     funext fun b ↦ by
-      simp only [θ, t, Function.comp_apply, PrincipalBundle.trivializationOfSection_apply]
-      rw [Homeomorph.symm_apply_apply]
+      simp only [hθdef, t, Function.comp_apply, Trivialization.manifoldSnd_homeomorph,
+        PrincipalBundle.trivializationOfSection_apply]
   have hxt : ((ManifoldTotalSpace.homeomorph Circle P).symm (t x)).proj ∈ U := by
     simpa [t] using hx
-  have hθd : MDifferentiableAt (IB.prod (𝓡 1)) (𝓡 1) θ (t x) :=
-    (PrincipalBundle.contMDiffAt_snd_trivializationOfSection hσ hxt).mdifferentiableAt (by simp)
+  have hθd : MDifferentiableAt (IB.prod (𝓡 1)) (𝓡 1) θ (t x) := by
+    exact (PrincipalBundle.contMDiffAt_snd_trivializationOfSection hσ hxt).mdifferentiableAt
+      (by simp)
   have hloc := hα.apply_eq_mpullback_add_mpullback hU hσc hσ hxt
   have h : TauCeti.mpullback IB (IB.prod (𝓡 1)) t α.val x =
       TauCeti.mpullback IB (IB.prod (𝓡 1)) t
