@@ -28,9 +28,10 @@ so `-(pr₁^* h + pr₂^* h')` in integral cohomology, `h` and `h'` being the hy
 
 Two consequences follow.
 
-* `TauCeti.complexEulerClass_tensorProduct`: for complex line bundles `L` and `L'` over a compact
-  normal base, such as a compact Hausdorff one, the Euler class of Tau Ceti's tensor product
-  bundle `L ⊗ L'` is `e(L) + e(L')`.
+* `TauCeti.complexEulerClass_tensorProduct`: for complex line bundles `L` and `L'` over a normal
+  base, each with a finite trivializing cover
+  (`SymplecticGeometry.Bundle.HasFiniteTrivializingCover`; over a compact base every bundle has
+  one), the Euler class of Tau Ceti's tensor product bundle `L ⊗ L'` is `e(L) + e(L')`.
 * `Projectivization.complexEulerClass_twistCore_one`: on `ℙ ℂ (Fin (n + 1) → ℂ)`, the Euler class
   of Tau Ceti's `twistCore 1`, the bundle `𝒪(1)`, read in integral cohomology, is the hyperplane
   class.
@@ -55,8 +56,8 @@ isomorphism `v ↦ v ⊗ w₀` from `T` to `T ⊠ T'`, continuous on total space
 `e(T)`; the class `pr₂^* e(T')` pulls back through a point, so to zero. The second axis is the same,
 with `w ↦ v₀ ⊗ w`.
 
-For line bundles `L` and `L'` over a compact normal base `B`, the classifying maps
-`g : B → ℙ ℂ (Fin N → ℂ)` and `g' : B → ℙ ℂ (Fin M → ℂ)` of
+For line bundles `L` and `L'` with finite trivializing covers over a normal base `B`, the
+classifying maps `g : B → ℙ ℂ (Fin N → ℂ)` and `g' : B → ℙ ℂ (Fin M → ℂ)` of
 `SymplecticGeometry.Bundle.exists_fiberwise_tautological_fin` come with fibrewise isomorphisms
 `L b ≃ T (g b)` and `L' b ≃ T' (g' b)`. Their tensor product (Tau Ceti's
 `TauCeti.bundleTensorCongrHomeomorph`), followed by the map of
@@ -236,13 +237,13 @@ theorem uliftIntegralCohomologyIso_complexEulerClass_tensorProduct_tautological
 
 end Projectivization
 
-/-! ### Complex line bundles over a compact base -/
+/-! ### Complex line bundles with finite trivializing covers -/
 
 namespace TauCeti
 
-open Projectivization
+open Projectivization SymplecticGeometry.Bundle
 
-variable {B : Type} [TopologicalSpace B] [CompactSpace B] [NormalSpace B]
+variable {B : Type} [TopologicalSpace B] [NormalSpace B]
   {G : Type} [NormedAddCommGroup G] [NormedSpace ℂ G] [FiniteDimensional ℂ G]
   {L : B → Type} [TopologicalSpace (TotalSpace G L)] [∀ b, AddCommGroup (L b)]
   [∀ b, Module ℝ (L b)] [∀ b, Module ℂ (L b)] [∀ b, IsScalarTower ℝ ℂ (L b)]
@@ -253,16 +254,17 @@ variable {B : Type} [TopologicalSpace B] [CompactSpace B] [NormalSpace B]
   [∀ b, TopologicalSpace (L' b)] [FiberBundle G' L'] [VectorBundle ℂ G' L']
 
 /-- **The Euler class of a tensor product of complex line bundles.** For complex line bundles `L`
-and `L'` over a compact normal base, such as a compact Hausdorff one, the Euler class of Tau
-Ceti's tensor product bundle `L ⊗ L'` is the sum of the Euler classes of `L` and `L'`. -/
+and `L'` over a normal base, each with a finite trivializing cover (as over a compact base, by
+`HasFiniteTrivializingCover.of_compactSpace`), the Euler class of Tau Ceti's tensor product
+bundle `L ⊗ L'` is the sum of the Euler classes of `L` and `L'`. -/
 theorem complexEulerClass_tensorProduct (hG : finrank ℂ G = 1)
-    (hG' : finrank ℂ G' = 1) :
+    (hG' : finrank ℂ G' = 1) (hL : HasFiniteTrivializingCover ℂ G L)
+    (hL' : HasFiniteTrivializingCover ℂ G' L') :
     complexEulerClass (r := 0) (ProjectiveTensor ℂ G G') (fun b ↦ L b ⊗[ℂ] L' b)
         (by simp [hG, hG']) =
       complexEulerClass (r := 0) G L hG + complexEulerClass (r := 0) G' L' hG' := by
-  obtain ⟨N, g, φ, hφ⟩ := SymplecticGeometry.Bundle.exists_fiberwise_tautological_fin (E := L) hG
-  obtain ⟨M, g', φ', hφ'⟩ :=
-    SymplecticGeometry.Bundle.exists_fiberwise_tautological_fin (E := L') hG'
+  obtain ⟨N, g, φ, hφ⟩ := exists_fiberwise_tautological_fin hG hL
+  obtain ⟨M, g', φ', hφ'⟩ := exists_fiberwise_tautological_fin hG' hL'
   set P := ℙ ℂ (Fin N → ℂ) × ℙ ℂ (Fin M → ℂ)
   -- The classifying map of `L ⊗ L'` to the product of the projective spaces.
   let γ : C(B, P) := g.prodMk g'
@@ -334,7 +336,8 @@ theorem complexEulerClass_twistCore_one :
   have h := complexEulerClass_eq_of_fiberwise (by simp) (finrank_self ℂ)
     (φ := twistCoreTensorEquiv (𝕜 := ℂ) (n := n) 1 (-1))
     (continuous_twistCoreTensorEquiv (𝕜 := ℂ) (n := n) 1 (-1))
-  rw [h₀, complexEulerClass_tensorProduct (finrank_self ℂ) (finrank_self ℂ), eq_comm,
+  rw [h₀, complexEulerClass_tensorProduct (finrank_self ℂ) (finrank_self ℂ)
+      .of_compactSpace .of_compactSpace, eq_comm,
     add_eq_zero_iff_eq_neg] at h
   rw [h, map_neg, complexEulerClass_twistCore_neg_one, neg_neg]
 
