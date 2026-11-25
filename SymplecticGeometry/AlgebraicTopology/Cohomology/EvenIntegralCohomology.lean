@@ -24,7 +24,9 @@ the direct sum `⨁ k, H^{2k}(X; ℤ)` is a commutative ring. This file builds i
   is the cup product and whose unit is the class of the constant cocycle `1`.
 * `TopCat.evenIntegralCohomologyOf X k`: the inclusion of `H^{2k}(X; ℤ)`, with
   `evenIntegralCohomologyOf_mul` (and `evenIntegralCohomologyOf_mul_of_add_eq`, with a prescribed
-  target degree) and `evenIntegralCohomologyOf_one`.
+  target degree) and `evenIntegralCohomologyOf_one`; `evenIntegralCohomologyOf_mul_apply` and
+  `evenIntegralCohomologyOf_mul_apply_of_add_eq` give the components of a product with a
+  homogeneous class.
 * `TopCat.evenIntegralCohomologyOf_pow_eq_of`, `TopCat.evenIntegralCohomologyOf_pow_apply_of_ne`
   and `TopCat.evenIntegralCohomologyOf_pow_succ_apply`: the powers of a class of degree two are
   homogeneous, `a ^ (k + 1)` being `a ^ k ⌣ a` in degree `2(k + 1)`.
@@ -191,6 +193,16 @@ theorem evenIntegralCohomologyOf_mul_apply {i : ℕ} (a : X.integralCohomology (
   | add y z hy hz =>
     rw [mul_add (X.evenIntegralCohomologyOf i a), DFinsupp.add_apply, DFinsupp.add_apply, hy, hz,
       map_add]
+
+/-- The component of degree `2k` of the product of a class `a` of degree `2i` with an element `y`
+of the even integral cohomology ring, for `i + j = k`, is the cup product of `a` with the
+component of degree `2j` of `y`. -/
+theorem evenIntegralCohomologyOf_mul_apply_of_add_eq {i j k : ℕ} (h : i + j = k)
+    (a : X.integralCohomology (2 * i)) (y : X.EvenIntegralCohomology) :
+    (X.evenIntegralCohomologyOf i a * y) k =
+      X.integralCup (2 * i) (2 * j) (2 * k) (by omega) a (y j) := by
+  subst h
+  exact X.evenIntegralCohomologyOf_mul_apply a y j
 
 /-- A power of a class `a` of degree two is homogeneous: in the even integral cohomology ring,
 `a ^ k` is the image of its component of degree `2k`. -/
