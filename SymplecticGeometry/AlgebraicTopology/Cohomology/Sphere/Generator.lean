@@ -9,12 +9,14 @@ public import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomology
 public import TauCeti.AlgebraicTopology.Cohomology.Sphere.Product
 
 /-!
-# The integral generator of the top cohomology of a sphere
+# Generators of the top cohomology of spheres and of products of two spheres
 
 Let `θ ∈ Hᵈ⁺¹(Sᵈ⁺¹; ℤ)` be Tau Ceti's class `singularCohomologyTopCatSphereGenerator`, dual to the
 standard generator of `H_{d+1}(Sᵈ⁺¹)`, carried into the library's integral cohomology by
 `TopCat.integralCohomologyEquiv`. This file shows that `θ` generates `Hᵈ⁺¹(Sᵈ⁺¹; ℤ)`, and that
-cup product with its pull-back to `Sᵈ⁺¹ × Y` keeps classes of infinite order.
+cup product with its pull-back to `Sᵈ⁺¹ × Y` keeps classes of infinite order. It also shows
+that, over any commutative ring `k`, the class `pr₁^* θ_a ⌣ pr₂^* θ_b` spans `Hᵃ⁺ᵇ(Sᵃ × Sᵇ; k)`
+and takes the value `1` on the cross product `γ_a × γ_b` of the homology generators.
 
 ## Main results
 
