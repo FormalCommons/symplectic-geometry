@@ -13,6 +13,7 @@ public import TauCeti.Geometry.Manifold.DifferentialForm.Opens
 public import TauCeti.Geometry.Manifold.DifferentialForm.Vertical
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.Prod.Basic
 public import TauCeti.Geometry.Symplectic.Manifold.Flat
+import TauCeti.LinearAlgebra.Alternating.Conormal
 public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Vertical
 public import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.Basic
@@ -75,6 +76,10 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
   product `f × g` of smooth maps is the form with the slices `g^* (α (f t))`.
 * `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodComm`: slices of a form on `M × N` turned
   around by `Diffeomorph.prodComm`.
+* `TauCeti.SmoothForm.val_apply_eq_mpullback_val_apply`: a form on `M × N` that vanishes as soon
+  as one argument has zero component along `M` is, at each point, its slice through that point
+  evaluated on the components along `M`; and `TauCeti.SmoothForm.eq_of_forall_mpullback_eq`: two
+  such forms with the same slices are equal.
 
 ## Implementation notes
 
@@ -85,6 +90,10 @@ computes. Locality in `M` comes from Tau Ceti's
 `IsLocalDiffeomorphAt.contMDiffAt_mpullback_form_iff`, applied to `id × (U ↪ W)`, and the proof
 of `SymplecticGeometry.IsSmoothFamily.extendByZero_smul` follows that of Tau Ceti's
 `TauCeti.IsSmoothForm.extendByZero`.
+
+The value of a form with no component along `N` is computed from its slices by Tau Ceti's
+`Submodule.conormalForms_apply_eq_of_sub_mem`: an alternating map that vanishes when one argument
+lies in a submodule takes the same value on tuples that agree modulo it.
 
 ## References
 
@@ -220,6 +229,48 @@ theorem mpullback_prodMk_mpullback_prodComm (Ω : SmoothForm (I.prod J) (M × N)
     rw [Diffeomorph.coe_prodComm]
     rfl
   simp only [mpullback_mpullback, hcomp]
+/-- **A form with no component along `N` is read off its slices.** Let `η` be a smooth form on
+`M × N` that vanishes at `p` whenever one of its arguments has zero component along `M`. Its
+value at `p` on `v` is the value at `p.1` of its slice along `x ↦ (x, p.2)` on the components
+along `M` of the `v i`. -/
+theorem val_apply_eq_mpullback_val_apply (η : SmoothForm (I.prod J) (M × N) F k) (p : M × N)
+    (hη : ∀ (v : Fin k → TangentSpace (I.prod J) p) (i : Fin k),
+      (Manifold.tangentSpaceProdEquiv p (v i)).1 = 0 → η.val p v = 0)
+    (v : Fin k → TangentSpace (I.prod J) p) :
+    η.val p v = (mpullback (fun x ↦ (x, p.2)) (contMDiff_id.prodMk contMDiff_const) η).val p.1
+      (fun i ↦ (Manifold.tangentSpaceProdEquiv p (v i)).1) := by
+  rw [mpullback_apply]
+  -- The vectors with zero component along `M`, and the differential of the slice inclusion.
+  let K : Submodule ℝ (TangentSpace (I.prod J) p) := LinearMap.ker
+    (((ContinuousLinearMap.fst ℝ (TangentSpace I p.1) (TangentSpace J p.2)).comp
+      (Manifold.tangentSpaceProdEquiv (I := I) (J := J) p).toContinuousLinearMap) :
+        TangentSpace (I.prod J) p →ₗ[ℝ] TangentSpace I p.1)
+  have hd (y : TangentSpace I p.1) : mfderiv I (I.prod J) (fun x ↦ (x, p.2)) p.1 y =
+      (Manifold.tangentSpaceProdEquiv (I := I) (J := J) p).symm (y, 0) := by
+    rw [mfderiv_prod_left, Manifold.tangentSpaceProdEquiv_symm_apply]
+    -- `inl_apply` lands in the product of the tangent spaces, the same type as the left side.
+    exact ContinuousLinearMap.inl_apply y
+  refine Submodule.conormalForms_apply_eq_of_sub_mem (α := (η.val p).toAlternatingMap) (W := K)
+    (Submodule.mem_conormalForms.mpr fun w i hw ↦ hη w i hw) fun i ↦ ?_
+  rw [LinearMap.mem_ker, map_sub, sub_eq_zero, hd]
+  simp only [ContinuousLinearMap.coe_coe, ContinuousLinearMap.comp_apply,
+    ContinuousLinearEquiv.coe_coe, ContinuousLinearEquiv.apply_symm_apply,
+    ContinuousLinearMap.coe_fst']
+
+/-- **Forms with no component along `N` are determined by their slices.** Two smooth forms on
+`M × N` that vanish whenever one of their arguments has zero component along `M`, and whose
+slices along `x ↦ (x, t)` agree for every `t`, are equal. -/
+theorem eq_of_forall_mpullback_eq {η η' : SmoothForm (I.prod J) (M × N) F k}
+    (hη : ∀ (p : M × N) (v : Fin k → TangentSpace (I.prod J) p) (i : Fin k),
+      (Manifold.tangentSpaceProdEquiv p (v i)).1 = 0 → η.val p v = 0)
+    (hη' : ∀ (p : M × N) (v : Fin k → TangentSpace (I.prod J) p) (i : Fin k),
+      (Manifold.tangentSpaceProdEquiv p (v i)).1 = 0 → η'.val p v = 0)
+    (h : ∀ t : N, mpullback (fun x ↦ (x, t)) (contMDiff_id.prodMk contMDiff_const) η =
+      mpullback (fun x ↦ (x, t)) (contMDiff_id.prodMk contMDiff_const) η') :
+    η = η' := by
+  ext p v
+  rw [val_apply_eq_mpullback_val_apply η p (hη p), val_apply_eq_mpullback_val_apply η' p (hη' p),
+    h]
 
 end TauCeti.SmoothForm
 
