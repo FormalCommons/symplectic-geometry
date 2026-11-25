@@ -8,14 +8,16 @@ module
 public import Mathlib.Algebra.Category.ModuleCat.Basic
 
 /-!
-# Multiples of morphisms of modules by units
+# Negatives and multiples of morphisms of modules
 
 Multiplying a morphism of `ModuleCat R` by a unit of `ℤ`, such as a sign `(-1)^k`, does not change
-whether it is bijective. Diagram chases use this when a square commutes only up to a sign.
+whether it is bijective. Diagram chases use this when a square commutes only up to a sign. The
+negative of a linear map is the negative of the morphism it defines (`ModuleCat.ofHom_neg`).
 
 ## Main results
 
 * `ModuleCat.bijective_zsmul_iff`
+* `ModuleCat.ofHom_neg`
 -/
 
 public section
@@ -23,6 +25,8 @@ public section
 open CategoryTheory
 
 namespace ModuleCat
+
+universe v
 
 variable {R : Type*} [Ring R]
 
@@ -34,5 +38,11 @@ theorem bijective_zsmul_iff {M N : ModuleCat R} (f : M ⟶ N) {u : ℤ} (hu : Is
     simp
   rw [h]
   exact Function.Bijective.of_comp_iff' hu.smul_bijective _
+
+/-- `ModuleCat.ofHom` commutes with negation. -/
+@[simp]
+theorem ofHom_neg {M N : Type v} [AddCommGroup M] [Module R M] [AddCommGroup N] [Module R N]
+    (f : M →ₗ[R] N) : ofHom (-f) = -ofHom f :=
+  (rfl)
 
 end ModuleCat
