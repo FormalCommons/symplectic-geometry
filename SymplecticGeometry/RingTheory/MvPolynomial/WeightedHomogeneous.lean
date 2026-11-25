@@ -10,6 +10,7 @@ public import Mathlib.RingTheory.MvPolynomial.WeightedHomogeneous
 public import TauCeti.RingTheory.MvPolynomial.Jacobian.Basic
 import Mathlib.RingTheory.MvPolynomial.EulerIdentity
 import TauCeti.RingTheory.MvPolynomial.WeightedHomogeneous
+import SymplecticGeometry.Data.Matrix.Mul
 
 /-!
 # Weighted homogeneous polynomials in blocks of variables
@@ -46,7 +47,8 @@ these are the weighted versions of Tau Ceti's `TauCeti.jacobiMatrixAt_mulVec_sel
 The second says how the Jacobian matrix changes when each coordinate `v x` of the point is
 multiplied by `c ^ w x`: its rows and columns are scaled by powers of `c`
 (`TauCeti.jacobiMatrixAt_weight_smul_mul`), so for `c ≠ 0` it stays surjective
-(`TauCeti.mulVec_surjective_jacobiMatrixAt_weight_smul_iff`). For a family in two blocks of
+(`TauCeti.mulVec_surjective_jacobiMatrixAt_weight_smul_iff`, by
+`Matrix.mulVec_surjective_iff_of_mul_eq_mul`). For a family in two blocks of
 variables, homogeneous in each block, applying these once for each block scales the two blocks
 separately (`TauCeti.jacobiMatrixAt_sumElim_smul_mul`,
 `TauCeti.mulVec_surjective_jacobiMatrixAt_sumElim_smul_iff`), so surjectivity depends only on
@@ -102,8 +104,8 @@ theorem IsWeightedHomogeneous.eval_pderiv_eq_zero_of_eval_eq_zero {w : σ → �
     (h : ∀ k ≠ i, w k ≠ 0 → eval p (pderiv k f) = 0) :
     eval p (pderiv i f) = 0 := by
   have := Fintype.ofFinite σ
-  have e := congrArg (eval p) hf.sum_weight_X_mul_pderiv
-  simp only [map_sum, map_mul, eval_X, hp, nsmul_eq_mul] at e
+  have e := hf.sum_weight_mul_eval_pderiv p
+  rw [hp, mul_zero] at e
   rw [Fintype.sum_eq_single i fun k hk ↦ by
     rcases eq_or_ne (w k) 0 with hwk | hwk
     · simp [hwk]
@@ -219,19 +221,11 @@ theorem mulVec_surjective_jacobiMatrixAt_weight_smul_iff {p : ι → MvPolynomia
     (jacobiMatrixAt p (fun y ↦ c ^ w y * v y)).mulVec.Surjective ↔
       (jacobiMatrixAt p v).mulVec.Surjective := by
   -- Scaling the point scales row `k` by `c ^ d k` and column `x` by `c ^ w x`, all nonzero.
-  have key (c : K) (hc : c ≠ 0) (v : σ → K) (h : (jacobiMatrixAt p v).mulVec.Surjective) :
-      (jacobiMatrixAt p (fun y ↦ c ^ w y * v y)).mulVec.Surjective := fun y ↦ by
-    obtain ⟨x, hx⟩ := h fun k ↦ (c ^ d k)⁻¹ * y k
-    refine ⟨fun z ↦ c ^ w z * x z, funext fun k ↦ ?_⟩
-    have hk := congr_fun hx k
-    simp only [mulVec, dotProduct] at hk ⊢
-    calc ∑ z, jacobiMatrixAt p (fun y ↦ c ^ w y * v y) k z * (c ^ w z * x z)
-        = ∑ z, c ^ d k * (jacobiMatrixAt p v k z * x z) :=
-          Finset.sum_congr rfl fun z _ ↦ by
-            linear_combination x z * jacobiMatrixAt_weight_smul_mul hp c v k z
-      _ = y k := by rw [← Finset.mul_sum, hk, mul_inv_cancel_left₀ (pow_ne_zero _ hc)]
-  refine ⟨fun h ↦ ?_, key c hc v⟩
-  simpa [inv_pow, hc] using key c⁻¹ (inv_ne_zero hc) _ h
+  have hc := isUnit_iff_ne_zero.mpr hc
+  exact mulVec_surjective_iff_of_mul_eq_mul (Pi.isUnit_iff.mpr fun _ ↦ hc.pow _)
+    (Pi.isUnit_iff.mpr fun _ ↦ hc.pow _) fun k x ↦ by
+    rw [mul_comm]
+    exact jacobiMatrixAt_weight_smul_mul hp c v k x
 
 variable [Fintype τ]
 
