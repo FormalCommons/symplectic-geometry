@@ -293,16 +293,15 @@ follows Munkres, §50, for finite unions; the Euclidean case is proved by an
 explicit colouring of cubes.
 
 - **Euclidean compacta.** In `Fin n → ℝ` with the sup norm, take a scale
-  $\delta$ smaller than a Lebesgue number of the cover. A point is sorted by
-  the distances $d_1\le\dots\le d_n$ of its coordinates to $\delta\mathbb Z$.
-  With thresholds $0<b_0<a_1<b_1<\dots<a_n<\delta/2$, the point gets colour
-  $c$ when $d_c<a_c$ and $d_{c+1}>b_c$ (with $d_0=-\infty$, $d_{n+1}=\infty$);
-  every point gets some colour. The points of colour $c$ split into open
-  pieces according to which $c$ coordinates are close to $\delta\mathbb Z$,
-  the nearest multiples there and the cells of the others; distinct pieces
-  of one colour are disjoint, and each piece has diameter at most $\delta$.
-  So each point lies in at most $n+1$ pieces. A linear equivalence carries
-  this to any real normed space of dimension $n$.
+  $\delta$ smaller than a Lebesgue number of the cover and $u=\delta/(3(n+1))$.
+  For each colour $c\in\{0,\dots,n\}$, the grid of colour $c$ has the open
+  cubes whose $i$-th side is
+  $((3(n+1)k_i+3c+1)u,\,(3(n+1)k_i+3c+3(n+1)-1)u)$ for $k\in\mathbb Z^n$:
+  they are disjoint, of diameter less than $\delta$, and a coordinate is
+  near a side of the cubes of at most one colour, so with $n$ coordinates
+  and $n+1$ colours every point lies in a cube. So each point lies in at
+  most $n+1$ cubes. A linear equivalence carries this to any real normed
+  space of dimension $n$.
 - **Finite unions.** If `K₁` and `K₂` are closed and satisfy the bound, so
   does `K₁ ∪ K₂` (Munkres, Theorem 50.2): first refine so that the order is
   bounded at the points of `K₁`, by adding the sets `U \ K₁`, then refine
