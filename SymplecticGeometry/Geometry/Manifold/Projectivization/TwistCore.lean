@@ -591,7 +591,7 @@ theorem twistCoreTensorEquiv_def (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) :
 theorem twistCoreTensorEquiv_apply (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) (v : 𝕜) :
     twistCoreTensorEquiv k l x v =
       TensorProduct.tmul 𝕜 (M := (twistCore k).Fiber x) (N := (twistCore l).Fiber x) v (1 : 𝕜) := by
-  rw [twistCoreTensorEquiv_def]
+  rw [twistCoreTensorEquiv_def, twistCore_eq_lineBundleCore k, twistCore_eq_lineBundleCore l]
   exact twistScalarCocycle.lineBundleCoreTensorEquiv_apply k l x v
 
 /-- The inverse of `twistCoreTensorEquiv` sends `a ⊗ b` to `a * b`. -/
@@ -599,7 +599,7 @@ theorem twistCoreTensorEquiv_symm_apply (x : ℙ 𝕜 (Fin (n + 1) → 𝕜)) (a
     (twistCoreTensorEquiv k l x).symm
         (TensorProduct.tmul 𝕜 (M := (twistCore k).Fiber x) (N := (twistCore l).Fiber x) a b) =
       a * b := by
-  rw [twistCoreTensorEquiv_def]
+  rw [twistCoreTensorEquiv_def, twistCore_eq_lineBundleCore k, twistCore_eq_lineBundleCore l]
   exact twistScalarCocycle.lineBundleCoreTensorEquiv_symm_apply k l x a b
 
 /-- **`twistCoreTensorEquiv` in a standard chart.** Over the standard affine open `U_i`, read
