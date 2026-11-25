@@ -16,18 +16,20 @@ import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 # Smooth embeddings precomposed with `univBall`
 
 In an inner product space `E` over `ℝ`, Mathlib's `OpenPartialHomeomorph.univBall c ρ` maps `E`
-onto the ball `ball c ρ`, smoothly and with smooth inverse on the ball. So it is a local
-diffeomorphism of `E` (`OpenPartialHomeomorph.isLocalDiffeomorph_univBall`), and a smooth
+onto the ball `ball c ρ` when `0 < ρ`, smoothly and with smooth inverse on the ball, and is a
+translation when `ρ ≤ 0`. So it is a local diffeomorphism of `E`
+(`OpenPartialHomeomorph.isLocalDiffeomorph_univBall`), and a smooth
 embedding of an open set containing the ball, precomposed with it, is a smooth embedding of all
 of `E` (`Manifold.IsSmoothEmbedding.comp_univBall`).
 
 The first proof is that of the local diffeomorphism step inside Tau Ceti's
-`TauCeti.exists_isOpenEmbedding_isLocalDiffeomorph`, stated on its own.
+`TauCeti.exists_isOpenEmbedding_isLocalDiffeomorph`, stated on its own; that step assumes
+`0 < ρ`, and the case `ρ ≤ 0`, where `univBall c ρ` is a translation, is added here.
 
 ## Main results
 
 * `OpenPartialHomeomorph.isLocalDiffeomorph_univBall`: `univBall c ρ` is a `C^n` local
-  diffeomorphism, for `0 < ρ` and `n ≤ ∞`.
+  diffeomorphism, for `n ≤ ∞`.
 * `Manifold.IsSmoothEmbedding.comp_univBall`: a smooth embedding of an open set containing
   `ball c ρ`, precomposed with `univBall c ρ`, is a smooth embedding of `E`.
 -/
@@ -41,14 +43,21 @@ variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {n : ℕ�
 
 namespace OpenPartialHomeomorph
 
-/-- For `0 < ρ` and `n ≤ ∞`, Mathlib's map `univBall c ρ` of `E` onto the ball `ball c ρ` is a
-`C^n` local diffeomorphism of `E`. -/
-theorem isLocalDiffeomorph_univBall (hρ : 0 < ρ) (hn : n ≤ ∞) :
+/-- For `n ≤ ∞`, Mathlib's map `univBall c ρ` is a `C^n` local diffeomorphism of `E`. It maps
+`E` onto the ball `ball c ρ` if `0 < ρ`, and is the translation by `c` otherwise. -/
+theorem isLocalDiffeomorph_univBall (hn : n ≤ ∞) :
     IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) n (univBall c ρ) := by
+  have hsymm : ContDiffOn ℝ n (univBall c ρ).symm (univBall c ρ).target := by
+    by_cases hρ : 0 < ρ
+    · exact univBall_target c hρ ▸ (contDiffOn_univBall_symm (n := ⊤)).of_le hn
+    · have : ⇑(univBall c ρ).symm = fun x ↦ x - c := by
+        ext x
+        simp [univBall, hρ]
+      rw [this]
+      exact (contDiff_id.sub contDiff_const).contDiffOn
   let Φ : PartialDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) E E n :=
     PartialDiffeomorph.ofOpenPartialHomeomorph (univBall c ρ)
-      ((contDiff_univBall (n := ⊤)).of_le hn).contDiffOn
-      (univBall_target c hρ ▸ (contDiffOn_univBall_symm (n := ⊤)).of_le hn)
+      ((contDiff_univBall (n := ⊤)).of_le hn).contDiffOn hsymm
   exact fun x ↦
     isLocalDiffeomorphAt_of_eqOn (Φ := Φ) (by simp [Φ, univBall_source]) fun _ _ ↦ by simp [Φ]
 
@@ -70,7 +79,7 @@ theorem comp_univBall {f : E → N} {V : TopologicalSpace.Opens E}
   -- The same map, with values in `V`.
   let g : E → V := fun x ↦ ⟨univBall c ρ x, hmem x⟩
   have hg : IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) n g := fun x ↦
-    (isLocalDiffeomorph_univBall hρ hn x).of_comp_left (f := Subtype.val) (e := g)
+    (isLocalDiffeomorph_univBall hn x).of_comp_left (f := Subtype.val) (e := g)
       (isLocalDiffeomorph_subtype_val _) ((continuous_univBall c ρ).subtype_mk hmem).continuousAt
   have hge : Topology.IsEmbedding g := Topology.IsEmbedding.subtypeVal.of_comp_iff.1
     ((univBall c ρ).isOpenEmbedding (univBall_source c ρ)).isEmbedding
