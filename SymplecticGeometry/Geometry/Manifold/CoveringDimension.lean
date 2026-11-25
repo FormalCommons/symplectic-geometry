@@ -24,8 +24,8 @@ closed since `M` is Hausdorff.
 
 ## Main declarations
 
-* `IsCompact.coveringDimLE_finrank_of_subset_chartAt_source`: a compact subset of one chart
-  source.
+* `IsCompact.coveringDimLE_finrank_of_subset_source`: a compact subset of the source of an open
+  partial homeomorphism from `M` to `H`.
 * `IsCompact.coveringDimLE_finrank_of_chartedSpace`: any compact subset.
 
 ## References
@@ -40,15 +40,14 @@ open Set Module SymplecticGeometry
 namespace IsCompact
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [TopologicalSpace H] [TopologicalSpace M] [ChartedSpace H M]
+  [TopologicalSpace H] [TopologicalSpace M]
 
-/-- A compact subset `K` of the source of a chart of `M` satisfies
-`CoveringDimLE K (finrank ℝ E)`, for a model with corners `I` on `H` and `E`
+/-- A compact subset `K` of the source of an open partial homeomorphism `e` from `M` to `H`
+satisfies `CoveringDimLE K (finrank ℝ E)`, for a model with corners `I` on `H` and `E`
 finite-dimensional. -/
-theorem coveringDimLE_finrank_of_subset_chartAt_source (I : ModelWithCorners ℝ E H) {x : M}
-    {K : Set M} (hK : IsCompact K) (hKs : K ⊆ (chartAt H x).source) :
+theorem coveringDimLE_finrank_of_subset_source (I : ModelWithCorners ℝ E H)
+    (e : OpenPartialHomeomorph M H) {K : Set M} (hK : IsCompact K) (hKs : K ⊆ e.source) :
     CoveringDimLE K (finrank ℝ E) := by
-  set e := chartAt H x
   let f : e.source → E := I ∘ e.source.domRestrict e
   have hf : Topology.IsInducing f :=
     I.isClosedEmbedding.isInducing.comp e.isOpenEmbedding_restrict.isInducing
@@ -61,15 +60,15 @@ theorem coveringDimLE_finrank_of_subset_chartAt_source (I : ModelWithCorners ℝ
 /-- Every compact subset `K` of a Hausdorff space `M` charted on `H`, with a model with corners
 `I : ModelWithCorners ℝ E H` and `E` finite-dimensional, satisfies
 `CoveringDimLE K (finrank ℝ E)`. -/
-theorem coveringDimLE_finrank_of_chartedSpace (I : ModelWithCorners ℝ E H) [T2Space M]
-    {K : Set M} (hK : IsCompact K) : CoveringDimLE K (finrank ℝ E) := by
+theorem coveringDimLE_finrank_of_chartedSpace (I : ModelWithCorners ℝ E H) [ChartedSpace H M]
+    [T2Space M] {K : Set M} (hK : IsCompact K) : CoveringDimLE K (finrank ℝ E) := by
   obtain ⟨t, ht⟩ := hK.elim_finite_subcover (fun x : M => (chartAt H x).source)
     (fun x => (chartAt H x).open_source)
     (fun y _ => mem_iUnion.2 ⟨y, mem_chart_source H y⟩)
   obtain ⟨L, hLc, hLs, rfl⟩ := hK.finite_compact_cover t (fun x : M => (chartAt H x).source)
     (fun x _ => (chartAt H x).open_source) ht
   exact CoveringDimLE.biUnion (fun x _ => (hLc x).isClosed)
-    fun x _ => (hLc x).coveringDimLE_finrank_of_subset_chartAt_source I (hLs x)
+    fun x _ => (hLc x).coveringDimLE_finrank_of_subset_source I (chartAt H x) (hLs x)
 
 end IsCompact
 
