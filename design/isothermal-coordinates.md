@@ -156,10 +156,12 @@ applies Tau Ceti's fixed point
    (`ContinuousLinearEquiv.ofFinrankEq`). The planar charts need no
    tameness: `exists_centered_smooth_isothermal_chart` asks only that the
    field square to `-1`.
-6. **`IsIntegrable` uses one linear structure**, the transport of
-   multiplication by `i` along `E ≃L[ℝ] ℂ` (`TauCeti.AlmostComplexStructure.transport`),
-   whatever conjugation the chart needed at each point. So the remark in
-   #862 about empty manifolds does not arise here.
+6. **`IsIntegrable` comes from the charts into `ℂ`.** The charts
+   `ψ : M → ℂ` of `exists_isothermal_partialDiffeomorph`, with
+   multiplication by `i` on `ℂ`, go to
+   `isIntegrable_of_forall_exists_partialDiffeomorph`
+   (`Geometry/Manifold/Complex/Integrable.lean`), which brings each chart
+   to the model by the inverse of its derivative at the point.
 7. **Isothermal coordinates for a metric** are stated as conformality of the
    differential of a smooth chart `M → ℂ`: at each point of its source
    `IsConformalMap (mvfderiv I ψ y)`, which Mathlib's `isConformalMap_iff`
@@ -321,8 +323,9 @@ its proofs only, `Analysis/InnerProductSpace/TwoDim.lean` (below) and
 
 - `TauCeti.SmoothAlmostComplexStructure.isIntegrable_of_finrank_eq_two
   (J : SmoothAlmostComplexStructure I M) (hE : Module.finrank ℝ E = 2) :
-  J.IsIntegrable`, with the linear structure of Decision 6: the charts are
-  those of `exists_isothermal_partialDiffeomorph` followed by `ℂ ≃L[ℝ] E`.
+  J.IsIntegrable`, as in Decision 6: the charts of
+  `exists_isothermal_partialDiffeomorph`, with multiplication by `i`, go to
+  `isIntegrable_of_forall_exists_partialDiffeomorph`.
   The docstring ends with the milestone line.
 - `TauCeti.Manifold.Orientation.exists_isothermal_coordinates
   (o : Manifold.Orientation I M (Fin 2)) (x : M) :
