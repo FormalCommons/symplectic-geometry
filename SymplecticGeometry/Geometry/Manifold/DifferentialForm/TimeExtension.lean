@@ -62,7 +62,9 @@ homeomorphism `iccHomeoI a b`, extended, and carried back to `M × ℝ`.
   slices (`TauCeti.SmoothForm.timeExtendIcc_apply`), where Tau Ceti's
   `TauCeti.mpullback_interior_at` carries the contraction to each slice.
 * `TauCeti.SmoothForm.mpullback_prodMap_subtypeVal_timeExtendIcc`: restricted back to
-  `M × Icc a b`, the extension of a form with no component along the interval is that form.
+  `M × Icc a b`, the extension of a form with no component along the interval is that form;
+  `TauCeti.SmoothForm.mpullback_prodMap_subtypeVal_mextDerivₗ_timeExtendIcc`: the exterior
+  derivative of the extension of such a form restricts to that of the form.
 * `SymplecticGeometry.isSmoothFamily_timeExtendSlice`: the slices of the extension form a smooth
   family over `ℝ`.
 * `SymplecticGeometry.IsSmoothFamily.exists_extend`: a smooth family of forms over
@@ -417,6 +419,26 @@ theorem mpullback_prodMap_subtypeVal_timeExtendIcc₀
     mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal_Icc)
       (timeExtendIcc η) = η :=
   mpullback_prodMap_subtypeVal_timeExtendIcc η (isFstSemibasic_of_degree_zero η)
+
+/-- **Restriction of the exterior derivative of a time extension.** Let `η` be a smooth form on
+`M × Icc a b` semibasic for `Prod.fst`: it vanishes whenever one of its arguments has zero
+component along `M`. Then the pullback of `d (TauCeti.SmoothForm.timeExtendIcc η)` along
+`id × Subtype.val : M × Icc a b → M × ℝ` is `dη`. -/
+theorem mpullback_prodMap_subtypeVal_mextDerivₗ_timeExtendIcc
+    (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F k)
+    (hη : IsFstSemibasic η) :
+    mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal_Icc)
+      (mextDerivₗ (I.prod 𝓘(ℝ, ℝ)) k (timeExtendIcc η)) = mextDerivₗ (I.prod (𝓡∂ 1)) k η := by
+  rw [← mextDerivₗ_mpullback, mpullback_prodMap_subtypeVal_timeExtendIcc η hη]
+
+/-- **Restriction of the differential of the time extension of a function.** For a smooth
+`0`-form `η` on `M × Icc a b`, the pullback of `d (TauCeti.SmoothForm.timeExtendIcc η)` along
+`id × Subtype.val : M × Icc a b → M × ℝ` is `dη`. -/
+theorem mpullback_prodMap_subtypeVal_mextDerivₗ_timeExtendIcc₀
+    (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F 0) :
+    mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal_Icc)
+      (mextDerivₗ (I.prod 𝓘(ℝ, ℝ)) 0 (timeExtendIcc η)) = mextDerivₗ (I.prod (𝓡∂ 1)) 0 η :=
+  mpullback_prodMap_subtypeVal_mextDerivₗ_timeExtendIcc η (isFstSemibasic_of_degree_zero η)
 
 section Naturality
 
