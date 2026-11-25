@@ -33,7 +33,9 @@ pullbacks are reached through `TauCeti.SmoothForm.coe_mpullback`.
 * `TauCeti.RoughForm.IsSemibasicAt.apply_eq_of_mfderiv_eq`: at `x`, a form semibasic for `f`
   takes the same value on two tuples whose images under the differential of `f` agree.
 * Closure of both predicates under `0`, `+`, `-` and real multiples, and every `0`-form is
-  semibasic.
+  semibasic. `TauCeti.SmoothForm.isSemibasic_add`, `TauCeti.SmoothForm.isSemibasic_smul`, … and
+  `TauCeti.SmoothForm.isSemibasic_iff` state closure and the vanishing on vertical arguments for
+  the underlying rough forms of smooth forms, with the instances of `TauCeti.SmoothForm`.
 * `TauCeti.RoughForm.IsSemibasicAt.mpullback_of_mfderiv`: the pullback along a map `g` of a form
   semibasic for `f` is semibasic for `f'` when the differential of `g` sends the kernel of that
   of `f'` into the kernel of that of `f`. The linear step is
@@ -50,6 +52,15 @@ pullbacks are reached through `TauCeti.SmoothForm.coe_mpullback`.
   bilinear form `σ.bilinFormAt x`. So the hypothesis `hker` of Tau Ceti's
   `TauCeti.SmoothTwoForm.isBasic_of_mpullback_eq_of_ker_mfderiv_le` says that `σ` is semibasic.
   It is the pointwise case of `Submodule.mem_conormalForms_fin_two_iff_le_ker`.
+
+## Implementation notes
+
+The value of a smooth form `η` is a section of a trivial bundle, so reading `η.val` as a rough
+form makes Lean solve for the instances of the space of values. When that space is normed through
+other instances, as the Lie algebra `GroupLieAlgebra I G` is through those of the tangent space
+at the identity, the solution can be the unfolded structures, on which instance search then finds
+neither `ContinuousAdd` nor `ContinuousConstSMul`. The `TauCeti.SmoothForm` lemmas above are
+stated for any normed space of values, where nothing unfolds, and so apply to such forms.
 -/
 
 public section
@@ -166,6 +177,12 @@ theorem isSemibasic_iff {α : RoughForm I M F k} :
     IsSemibasic IB f α ↔ ∀ (x : M) (v : Fin k → TangentSpace I x) (i : Fin k),
       mfderiv I IB f x (v i) = 0 → α x v = 0 :=
   forall_congr' fun _ ↦ isSemibasicAt_iff
+
+/-- A form semibasic for `f` vanishes at every point `x` on the tuples one of which is sent to
+zero by the differential of `f` at `x`. -/
+theorem IsSemibasic.apply_eq_zero {α : RoughForm I M F k} (hα : IsSemibasic IB f α) (x : M)
+    (v : Fin k → TangentSpace I x) (i : Fin k) (hv : mfderiv I IB f x (v i) = 0) : α x v = 0 :=
+  (hα x).apply_eq_zero v i hv
 
 variable (IB f) in
 /-- Every `0`-form is semibasic for every map. -/
@@ -317,6 +334,50 @@ variable {E H M EB HB B : Type*}
   [TopologicalSpace M] [ChartedSpace H M] {I : ModelWithCorners ℝ E H} [IsManifold I 1 M]
   [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
   [TopologicalSpace B] [ChartedSpace HB B] {IB : ModelWithCorners ℝ EB HB} {f : M → B}
+
+section Linear
+
+/-! The closure properties of `TauCeti.RoughForm.IsSemibasic`, for the underlying rough forms of
+smooth forms: see the implementation notes. -/
+
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] {k : ℕ}
+
+/-- A smooth form is semibasic for `f` exactly when, at every point `x`, it vanishes on every
+tuple one of whose vectors is sent to zero by the differential of `f` at `x`. This is
+`TauCeti.RoughForm.isSemibasic_iff`, with the value of the form read with the instances of
+`TauCeti.SmoothForm`. -/
+theorem isSemibasic_iff {α : SmoothForm I M F k} :
+    RoughForm.IsSemibasic (F := F) IB f α.val ↔ ∀ (x : M) (v : Fin k → TangentSpace I x)
+      (i : Fin k), mfderiv I IB f x (v i) = 0 → α.val x v = 0 :=
+  RoughForm.isSemibasic_iff
+
+/-- The sum of two smooth forms semibasic for `f` is semibasic for `f`. -/
+theorem isSemibasic_add {α β : SmoothForm I M F k} (hα : RoughForm.IsSemibasic (F := F) IB f α.val)
+    (hβ : RoughForm.IsSemibasic (F := F) IB f β.val) :
+    RoughForm.IsSemibasic (F := F) IB f (α + β).val := by
+  rw [Submodule.coe_add]
+  exact hα.add hβ
+
+/-- A real multiple of a smooth form semibasic for `f` is semibasic for `f`. -/
+theorem isSemibasic_smul {α : SmoothForm I M F k} (hα : RoughForm.IsSemibasic (F := F) IB f α.val)
+    (c : ℝ) : RoughForm.IsSemibasic (F := F) IB f (c • α).val := by
+  rw [Submodule.coe_smul]
+  exact hα.smul c
+
+/-- The negative of a smooth form semibasic for `f` is semibasic for `f`. -/
+theorem isSemibasic_neg {α : SmoothForm I M F k} (hα : RoughForm.IsSemibasic (F := F) IB f α.val) :
+    RoughForm.IsSemibasic (F := F) IB f (-α).val := by
+  rw [Submodule.coe_neg]
+  exact hα.neg
+
+/-- The difference of two smooth forms semibasic for `f` is semibasic for `f`. -/
+theorem isSemibasic_sub {α β : SmoothForm I M F k} (hα : RoughForm.IsSemibasic (F := F) IB f α.val)
+    (hβ : RoughForm.IsSemibasic (F := F) IB f β.val) :
+    RoughForm.IsSemibasic (F := F) IB f (α - β).val := by
+  rw [Submodule.coe_sub]
+  exact hα.sub hβ
+
+end Linear
 
 /-- **Semibasic two-forms.** A smooth two-form `σ` is semibasic for `f` at `x` exactly when every
 vector in the kernel of the differential of `f` at `x` lies in the kernel of the bilinear form

@@ -22,6 +22,11 @@ vanishes outside `[0, 1]`. This file shows that the derivative is positive on th
 `(f' x f (1 - x) + f x f' (1 - x)) / (f x + f (1 - x)) ^ 2`, and `f` and `f'` are positive on
 `(0, ∞)`.
 
+For a function `G` of class `C^n`, the product `t ↦ expNegInvGlue (t - t₀) * exp (G t)` is of
+class `C^n` (`expNegInvGlue.contDiff_sub_mul_exp`), and where `G` has derivative `G'` at `t`, its
+derivative there is `expNegInvGlue (t - t₀) * exp (G t) * ((t - t₀)⁻¹ ^ 2 + G')`
+(`expNegInvGlue.hasDerivAt_sub_mul_exp`), from Tau Ceti's `expNegInvGlue.hasDerivAt`.
+
 For `c < c₁ < b` it gives a smooth map `ℝ → ℝ` that is the identity up to `c₁`, sends `(c, ∞)`
 into `(c, b)`, and equals `c₁` from `b` on (`Real.exists_contDiff_eq_self_mapsTo_Ioo`): the map
 `x ↦ c₁ + (x - c₁) (1 - smoothTransition ((x - c₁) / (b - c₁)))`.
@@ -132,6 +137,22 @@ theorem eventually_mul_deriv_le_deriv_deriv (K : ℝ) :
   have := mul_lt_mul_of_pos_left hx.2 hK2
   rw [mul_inv_cancel₀ hK2.ne'] at this
   exact this.le
+
+open Real
+
+/-- If `G` is of class `C^n`, so is `t ↦ expNegInvGlue (t - t₀) * exp (G t)`. -/
+theorem contDiff_sub_mul_exp {n : ℕ∞} {G : ℝ → ℝ} (t₀ : ℝ) (hG : ContDiff ℝ n G) :
+    ContDiff ℝ n fun t ↦ expNegInvGlue (t - t₀) * exp (G t) :=
+  (expNegInvGlue.contDiff.comp (contDiff_id.sub contDiff_const)).mul hG.exp
+
+/-- The derivative of `t ↦ expNegInvGlue (t - t₀) * exp (G t)` at `t` is
+`expNegInvGlue (t - t₀) * exp (G t) * ((t - t₀)⁻¹ ^ 2 + G')`, where `G'` is the derivative of `G`
+at `t`. -/
+theorem hasDerivAt_sub_mul_exp {G : ℝ → ℝ} {G' : ℝ} (t₀ : ℝ) {t : ℝ} (hG : HasDerivAt G G' t) :
+    HasDerivAt (fun u ↦ expNegInvGlue (u - t₀) * exp (G u))
+      (expNegInvGlue (t - t₀) * exp (G t) * ((t - t₀)⁻¹ ^ 2 + G')) t := by
+  convert ((hasDerivAt (t - t₀)).comp_sub_const t t₀).mul hG.exp using 1
+  ring
 
 end expNegInvGlue
 
