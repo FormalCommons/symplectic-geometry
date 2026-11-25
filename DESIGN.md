@@ -3885,9 +3885,9 @@ For §7.3 of `atlas/constructing-symplectic-manifolds.md`.
   (`Geometry/Manifold/Morse/`) and nondegenerate and symplectic two-forms.
 - **Milestones:** *Gromov's h-principle for symplectic forms on open
   manifolds* (existence and the path-component statement in
-  `OpenManifold.lean`, the parametric statement in `Parametric.lean`,
-  where the homotopy equivalence waits for a route only for an $M$ some
-  component of which does not compress into a compact set),
+  `OpenManifold.lean`, the parametric statement in `Parametric.lean` as
+  the weak homotopy equivalence, with the homotopy equivalence only for an
+  $M$ whose components compress into a compact set; see `ERRATA.md`),
   *Relative extension of exact symplectic forms over a handle core*. The
   design file takes the compression route of Eliashberg–Mishachev for all
   three statements of the first milestone, not the book's handle
