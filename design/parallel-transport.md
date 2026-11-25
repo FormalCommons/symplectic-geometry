@@ -239,13 +239,14 @@ part 48's.
   `e₂'` conjugates the reading by Mathlib's `Bundle.Trivialization.coordChange` at
   `γ s` and `γ t`.
 - `TauCeti.IsEhresmannConnection.exists_contMDiff_parallelTransport_param`:
-  for a boundaryless finite-dimensional manifold `N` (model `IN`), a smooth
-  `Γ : N × ℝ → B`, times `s t` and `a₀ : N`, there are a neighbourhood `U` of
-  `a₀` and a smooth `Ψ : N × P → P` with
+  for a boundaryless finite-dimensional Hausdorff manifold `N` (model `IN`), a
+  `C^(n+1)` map `Γ : N × ℝ → B`, times `s t` and `a₀ : N`, there are a
+  neighbourhood `U` of `a₀` and a `C^n` map `Ψ : N × P → P` with
   `Ψ (a, x) = hD.parallelTransport (fun u ↦ Γ (a, u)) s t x` for `a ∈ U` and
   `f x = Γ (a, s)`. The route is that of the previous file with parameters:
-  near `a₀`, one subdivision of `[s, t]` serves for all `a` (compactness), the
-  chart-constant fields depend smoothly on `a`, and
+  near `a₀` and on an interval that the curve at `a₀` maps into one chart, the
+  chart-constant fields depend smoothly on `a` (compactness of the interval),
+  the induction in time also carries the neighbourhood of `a₀`, and
   `TauCeti.contMDiff_timeDependentFlowOf_param` gives the smoothness of each
   piece. The local form avoids gluing smooth maps.
 
