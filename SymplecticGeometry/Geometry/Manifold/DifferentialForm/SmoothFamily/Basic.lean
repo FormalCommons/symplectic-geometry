@@ -50,6 +50,8 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
   on `N × M`.
 * `TauCeti.SmoothForm.ofSlices α hα`: the smooth form on `N × M` with slices `α t`, for a family
   with a smooth slice section.
+* `TauCeti.SmoothForm.IsFstSemibasic η`: the form `η` on `M × N` is semibasic for the projection
+  to `M`, that is, it vanishes as soon as one argument has zero component along `M`.
 
 ## Main results
 
@@ -76,10 +78,12 @@ Families live on `N × M`, the parameter first. A form on `M × N` is turned aro
   product `f × g` of smooth maps is the form with the slices `g^* (α (f t))`.
 * `TauCeti.SmoothForm.mpullback_prodMk_mpullback_prodComm`: slices of a form on `M × N` turned
   around by `Diffeomorph.prodComm`.
-* `TauCeti.SmoothForm.val_apply_eq_mpullback_val_apply`: a form on `M × N` that vanishes as soon
-  as one argument has zero component along `M` is, at each point, its slice through that point
-  evaluated on the components along `M`; and `TauCeti.SmoothForm.eq_of_forall_mpullback_eq`: two
-  such forms with the same slices are equal.
+* `TauCeti.SmoothForm.IsFstSemibasic.mpullback_prodMap`: pullback along a product `g × h` of
+  smooth maps keeps forms semibasic for the projection to the first factor.
+* `TauCeti.SmoothForm.val_apply_eq_mpullback_val_apply`: a form on `M × N` semibasic for the
+  projection to `M` is, at each point, its slice through that point evaluated on the components
+  along `M`; and `TauCeti.SmoothForm.eq_of_forall_mpullback_eq`: two such forms with the same
+  slices are equal.
 
 ## Implementation notes
 
@@ -229,14 +233,72 @@ theorem mpullback_prodMk_mpullback_prodComm (Ω : SmoothForm (I.prod J) (M × N)
     rw [Diffeomorph.coe_prodComm]
     rfl
   simp only [mpullback_mpullback, hcomp]
+
+/-- **Forms semibasic for the first projection.** A smooth form `η` on `M × N` is semibasic for
+`Prod.fst : M × N → M` when it vanishes as soon as one of its arguments has zero component
+along `M`, that is, as soon as one of its arguments is tangent to a fibre of `Prod.fst`. -/
+def IsFstSemibasic (η : SmoothForm (I.prod J) (M × N) F k) : Prop :=
+  ∀ (p : M × N) (v : Fin k → TangentSpace (I.prod J) p) (i : Fin k),
+    (Manifold.tangentSpaceProdEquiv p (v i)).1 = 0 → η.val p v = 0
+
+/-- The defining property of `TauCeti.SmoothForm.IsFstSemibasic`. -/
+theorem isFstSemibasic_def {η : SmoothForm (I.prod J) (M × N) F k} :
+    IsFstSemibasic η ↔ ∀ (p : M × N) (v : Fin k → TangentSpace (I.prod J) p) (i : Fin k),
+      (Manifold.tangentSpaceProdEquiv p (v i)).1 = 0 → η.val p v = 0 :=
+  Iff.rfl
+
+/-- A form semibasic for `Prod.fst` vanishes on tuples one of which has zero component along
+`M`. -/
+theorem IsFstSemibasic.apply_eq_zero {η : SmoothForm (I.prod J) (M × N) F k}
+    (hη : IsFstSemibasic η) {p : M × N} (v : Fin k → TangentSpace (I.prod J) p) (i : Fin k)
+    (hv : (Manifold.tangentSpaceProdEquiv p (v i)).1 = 0) : η.val p v = 0 :=
+  isFstSemibasic_def.mp hη p v i hv
+
+/-- Every `0`-form on `M × N` is semibasic for `Prod.fst`. -/
+theorem isFstSemibasic_of_degree_zero (η : SmoothForm (I.prod J) (M × N) F 0) :
+    IsFstSemibasic η :=
+  isFstSemibasic_def.mpr fun _ _ i ↦ i.elim0
+
+/-- The zero form on `M × N` is semibasic for `Prod.fst`. -/
+theorem isFstSemibasic_zero : IsFstSemibasic (0 : SmoothForm (I.prod J) (M × N) F k) :=
+  isFstSemibasic_def.mpr fun _ _ _ _ ↦ by simp
+
+/-- The sum of two forms semibasic for `Prod.fst` is semibasic for `Prod.fst`. -/
+theorem IsFstSemibasic.add {η η' : SmoothForm (I.prod J) (M × N) F k} (hη : IsFstSemibasic η)
+    (hη' : IsFstSemibasic η') : IsFstSemibasic (η + η') :=
+  isFstSemibasic_def.mpr fun _ v i hv ↦ by
+    simp [hη.apply_eq_zero v i hv, hη'.apply_eq_zero v i hv]
+
+/-- A real multiple of a form semibasic for `Prod.fst` is semibasic for `Prod.fst`. -/
+theorem IsFstSemibasic.smul {η : SmoothForm (I.prod J) (M × N) F k} (hη : IsFstSemibasic η)
+    (c : ℝ) : IsFstSemibasic (c • η) :=
+  isFstSemibasic_def.mpr fun _ v i hv ↦ by simp [hη.apply_eq_zero v i hv]
+
+/-- **Pullback of semibasic forms along products.** For smooth maps `g : M' → M` and
+`h : N' → N`, the pullback along `g × h : M' × N' → M × N` of a form on `M × N` semibasic for
+`Prod.fst` is semibasic for `Prod.fst`. -/
+theorem IsFstSemibasic.mpullback_prodMap {E' H' M' EN' HN' N' : Type*} [NormedAddCommGroup E']
+    [NormedSpace ℝ E'] [TopologicalSpace H'] [TopologicalSpace M'] [ChartedSpace H' M']
+    {I' : ModelWithCorners ℝ E' H'} [IsManifold I' 1 M'] [NormedAddCommGroup EN']
+    [NormedSpace ℝ EN'] [TopologicalSpace HN'] [TopologicalSpace N'] [ChartedSpace HN' N']
+    {J' : ModelWithCorners ℝ EN' HN'} [IsManifold J' 1 N']
+    {η : SmoothForm (I.prod J) (M × N) F k} (hη : IsFstSemibasic η) {g : M' → M}
+    (hg : ContMDiff I' I ∞ g) {h : N' → N} (hh : ContMDiff J' J ∞ h) :
+    IsFstSemibasic (mpullback (Prod.map g h) (hg.prodMap hh) η) := by
+  refine isFstSemibasic_def.mpr fun p v i hv ↦ ?_
+  rw [mpullback_apply]
+  refine hη.apply_eq_zero _ i ?_
+  rw [← (Manifold.tangentSpaceProdEquiv p).symm_apply_apply (v i),
+    Manifold.mfderiv_prodMap_apply (hg.mdifferentiable (by simp) _)
+      (hh.mdifferentiable (by simp) _),
+    hv, map_zero, Manifold.tangentSpaceProdEquiv_apply, Manifold.tangentSpaceProdEquiv_symm_apply]
+
 /-- **A form with no component along `N` is read off its slices.** Let `η` be a smooth form on
-`M × N` that vanishes at `p` whenever one of its arguments has zero component along `M`. Its
-value at `p` on `v` is the value at `p.1` of its slice along `x ↦ (x, p.2)` on the components
-along `M` of the `v i`. -/
-theorem val_apply_eq_mpullback_val_apply (η : SmoothForm (I.prod J) (M × N) F k) (p : M × N)
-    (hη : ∀ (v : Fin k → TangentSpace (I.prod J) p) (i : Fin k),
-      (Manifold.tangentSpaceProdEquiv p (v i)).1 = 0 → η.val p v = 0)
-    (v : Fin k → TangentSpace (I.prod J) p) :
+`M × N` semibasic for `Prod.fst`: it vanishes whenever one of its arguments has zero component
+along `M`. Its value at `p` on `v` is the value at `p.1` of its slice along `x ↦ (x, p.2)` on
+the components along `M` of the `v i`. -/
+theorem val_apply_eq_mpullback_val_apply {η : SmoothForm (I.prod J) (M × N) F k}
+    (hη : IsFstSemibasic η) (p : M × N) (v : Fin k → TangentSpace (I.prod J) p) :
     η.val p v = (mpullback (fun x ↦ (x, p.2)) (contMDiff_id.prodMk contMDiff_const) η).val p.1
       (fun i ↦ (Manifold.tangentSpaceProdEquiv p (v i)).1) := by
   rw [mpullback_apply]
@@ -251,26 +313,22 @@ theorem val_apply_eq_mpullback_val_apply (η : SmoothForm (I.prod J) (M × N) F 
     -- `inl_apply` lands in the product of the tangent spaces, the same type as the left side.
     exact ContinuousLinearMap.inl_apply y
   refine Submodule.conormalForms_apply_eq_of_sub_mem (α := (η.val p).toAlternatingMap) (W := K)
-    (Submodule.mem_conormalForms.mpr fun w i hw ↦ hη w i hw) fun i ↦ ?_
+    (Submodule.mem_conormalForms.mpr fun w i hw ↦ hη.apply_eq_zero w i hw) fun i ↦ ?_
   rw [LinearMap.mem_ker, map_sub, sub_eq_zero, hd]
   simp only [ContinuousLinearMap.coe_coe, ContinuousLinearMap.comp_apply,
     ContinuousLinearEquiv.coe_coe, ContinuousLinearEquiv.apply_symm_apply,
     ContinuousLinearMap.coe_fst']
 
 /-- **Forms with no component along `N` are determined by their slices.** Two smooth forms on
-`M × N` that vanish whenever one of their arguments has zero component along `M`, and whose
-slices along `x ↦ (x, t)` agree for every `t`, are equal. -/
+`M × N` semibasic for `Prod.fst`, that is, vanishing whenever one of their arguments has zero
+component along `M`, and whose slices along `x ↦ (x, t)` agree for every `t`, are equal. -/
 theorem eq_of_forall_mpullback_eq {η η' : SmoothForm (I.prod J) (M × N) F k}
-    (hη : ∀ (p : M × N) (v : Fin k → TangentSpace (I.prod J) p) (i : Fin k),
-      (Manifold.tangentSpaceProdEquiv p (v i)).1 = 0 → η.val p v = 0)
-    (hη' : ∀ (p : M × N) (v : Fin k → TangentSpace (I.prod J) p) (i : Fin k),
-      (Manifold.tangentSpaceProdEquiv p (v i)).1 = 0 → η'.val p v = 0)
+    (hη : IsFstSemibasic η) (hη' : IsFstSemibasic η')
     (h : ∀ t : N, mpullback (fun x ↦ (x, t)) (contMDiff_id.prodMk contMDiff_const) η =
       mpullback (fun x ↦ (x, t)) (contMDiff_id.prodMk contMDiff_const) η') :
     η = η' := by
   ext p v
-  rw [val_apply_eq_mpullback_val_apply η p (hη p), val_apply_eq_mpullback_val_apply η' p (hη' p),
-    h]
+  rw [val_apply_eq_mpullback_val_apply hη p, val_apply_eq_mpullback_val_apply hη' p, h]
 
 end TauCeti.SmoothForm
 

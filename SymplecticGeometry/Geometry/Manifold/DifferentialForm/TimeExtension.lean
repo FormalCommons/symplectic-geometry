@@ -52,7 +52,7 @@ homeomorphism `iccHomeoI a b`, extended, and carried back to `M × ℝ`.
 * `TauCeti.SmoothForm.timeExtendSlice_apply_cons`: if the slices of `Ω` contracted with a
   vector field `V` on `M` are those of `Θ`, the same holds for the slices of their extensions.
 * `TauCeti.SmoothForm.mpullback_prodMk_timeExtendIcc`,
-  `TauCeti.SmoothForm.timeExtendIcc_apply_eq_zero`,
+  `TauCeti.SmoothForm.isFstSemibasic_timeExtendIcc`,
   `TauCeti.SmoothForm.timeExtendIcc_mpullback_prodMap`: the extension of a form on `M × Icc a b`
   keeps its slices at the times of `[a, b]`, vanishes on vectors along `ℝ`, and commutes with
   pullback along `Prod.map g id`.
@@ -382,39 +382,31 @@ theorem mpullback_prodMk_timeExtendIcc (η : SmoothForm (I.prod (𝓡∂ 1)) (M 
     mpullback_mpullback]
   exact mpullback_congr _ _ h₂ η
 
-/-- `TauCeti.SmoothForm.timeExtendIcc η` vanishes on tangent vectors `v` as soon as one of them,
-`v i`, has no component along `M`. -/
-theorem timeExtendIcc_apply_eq_zero (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F k)
-    (p : M × ℝ) (v : Fin k → TangentSpace (I.prod 𝓘(ℝ, ℝ)) p) (i : Fin k)
-    (hv : (Manifold.tangentSpaceProdEquiv p (v i)).1 = 0) :
-    (timeExtendIcc η).val p v = 0 := by
+/-- `TauCeti.SmoothForm.timeExtendIcc η` is semibasic for `Prod.fst : M × ℝ → M`: it vanishes
+on tangent vectors `v` as soon as one of them, `v i`, has no component along `M`. -/
+theorem isFstSemibasic_timeExtendIcc (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F k) :
+    IsFstSemibasic (timeExtendIcc η) := by
+  refine isFstSemibasic_def.mpr fun p v i hv ↦ ?_
   rw [timeExtendIcc_apply]
   rw [Manifold.tangentSpaceProdEquiv_apply] at hv
   exact ContinuousAlternatingMap.map_coord_zero _ i hv
 
 /-- **Restriction of the time extension to `M × [a, b]`.** Let `η` be a smooth form on
-`M × Icc a b` that vanishes whenever one of its arguments has zero component along `M`. Then the
-pullback of `TauCeti.SmoothForm.timeExtendIcc η` along `id × Subtype.val : M × Icc a b → M × ℝ`
-is `η`. -/
+`M × Icc a b` semibasic for `Prod.fst`: it vanishes whenever one of its arguments has zero
+component along `M`. Then the pullback of `TauCeti.SmoothForm.timeExtendIcc η` along
+`id × Subtype.val : M × Icc a b → M × ℝ` is `η`. -/
 theorem mpullback_prodMap_subtypeVal_timeExtendIcc
     (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F k)
-    (hη : ∀ (p : M × Icc a b) (v : Fin k → TangentSpace (I.prod (𝓡∂ 1)) p) (i : Fin k),
-      (Manifold.tangentSpaceProdEquiv p (v i)).1 = 0 → η.val p v = 0) :
+    (hη : IsFstSemibasic η) :
     mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal_Icc)
       (timeExtendIcc η) = η := by
-  refine eq_of_forall_mpullback_eq (fun p v i hv ↦ ?_) hη fun t ↦ ?_
-  · -- The differential of `id × Subtype.val` keeps the component along `M`.
-    rw [mpullback_apply]
-    refine timeExtendIcc_apply_eq_zero η _ _ i ?_
-    rw [mfderiv_prodMap mdifferentiableAt_id
-      ((contMDiff_subtypeVal_Icc (n := 1)).mdifferentiableAt one_ne_zero), mfderiv_id]
-    rw [Manifold.tangentSpaceProdEquiv_apply] at hv ⊢
-    exact hv
-  · rw [mpullback_mpullback,
-      mpullback_congr (f := Prod.map id Subtype.val ∘ fun x : M ↦ (x, t))
-        (g := fun x : M ↦ (x, (t : ℝ))) _ (contMDiff_id.prodMk contMDiff_const)
-        (funext fun _ ↦ rfl)]
-    exact mpullback_prodMk_timeExtendIcc η t
+  refine eq_of_forall_mpullback_eq ((isFstSemibasic_timeExtendIcc η).mpullback_prodMap
+    contMDiff_id contMDiff_subtypeVal_Icc) hη fun t ↦ ?_
+  rw [mpullback_mpullback,
+    mpullback_congr (f := Prod.map id Subtype.val ∘ fun x : M ↦ (x, t))
+      (g := fun x : M ↦ (x, (t : ℝ))) _ (contMDiff_id.prodMk contMDiff_const)
+      (funext fun _ ↦ rfl)]
+  exact mpullback_prodMk_timeExtendIcc η t
 
 /-- **Restriction of the time extension of functions to `M × [a, b]`.** For a smooth `0`-form
 `η` on `M × Icc a b`, the pullback of `TauCeti.SmoothForm.timeExtendIcc η` along
@@ -424,7 +416,7 @@ theorem mpullback_prodMap_subtypeVal_timeExtendIcc₀
     (η : SmoothForm (I.prod (𝓡∂ 1)) (M × Icc a b) F 0) :
     mpullback (Prod.map id Subtype.val) (contMDiff_id.prodMap contMDiff_subtypeVal_Icc)
       (timeExtendIcc η) = η :=
-  mpullback_prodMap_subtypeVal_timeExtendIcc η fun _ _ i ↦ i.elim0
+  mpullback_prodMap_subtypeVal_timeExtendIcc η (isFstSemibasic_of_degree_zero η)
 
 section Naturality
 
