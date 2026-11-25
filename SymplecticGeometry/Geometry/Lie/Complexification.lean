@@ -55,6 +55,7 @@ The complex structure `cplx` is not determined by the other fields.
 * `SymplecticGeometry.LieComplexification.toHom_mulInvariantExp`: `toHom` intertwines the
   exponentials through `lieMap`.
 * `SymplecticGeometry.LieComplexification.lieMap_injective`: `lieMap` is injective.
+* `SymplecticGeometry.LieComplexification.contMDiff_expI`: `expI` is smooth.
 * `SymplecticGeometry.LieComplexification.lieMap_re_add_cplx_lieMap_im`: every element `x` is
   `lieMap (re x) + cplx (lieMap (im x))`.
 * `SymplecticGeometry.LieComplexification.connectedSpace`: `Gc` is connected if `G` is.
@@ -230,6 +231,15 @@ theorem expI_zero : C.expI 0 = 1 := by
 theorem expI_add_smul (ξ : GroupLieAlgebra I G) (s t : ℝ) :
     C.expI ((s + t) • ξ) = C.expI (s • ξ) * C.expI (t • ξ) := by
   simp only [expI_def, map_smul, mulInvariantExp_add_smul (I := IC)]
+
+/-- The exponential of the imaginary directions is smooth, as a map on the model space `E` of the
+Lie algebra of `G`. -/
+theorem contMDiff_expI [FiniteDimensional ℝ E] [FiniteDimensional ℝ EC] :
+    ContMDiff 𝓘(ℝ, E) IC ∞ fun ξ : E ↦ C.expI ξ :=
+  -- `ξ ↦ cplx (lieMap ξ)` is a linear map between the finite-dimensional model spaces; the
+  -- `show` reads it there, since the Lie algebras carry no topology of their own.
+  contMDiff_mulInvariantExp.comp (LinearMap.toContinuousLinearMap
+    (show E →ₗ[ℝ] EC from C.cplx.toLinearMap ∘ₗ C.lieMap.toLinearMap)).contMDiff
 
 /-- The polar decomposition: `polar (ξ, u) = expI ξ * toHom u`. Unlike the field `polar_apply'`,
 it takes `ξ` in the Lie algebra `GroupLieAlgebra I G`, so that it rewrites `C.polar (ξ, u)` for
