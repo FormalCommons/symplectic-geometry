@@ -7,6 +7,9 @@ module
 
 public import TauCeti.Topology.VectorBundle.Orientation.ThomClass
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Basic
+public import TauCeti.AlgebraicTopology.Singular.LocalHomology.FundamentalClass
+public import TauCeti.CategoryTheory.Linear.Int
+public import SymplecticGeometry.Topology.VectorBundle.Thom.ChangeOfCoefficients
 import TauCeti.Algebra.Module.Equiv.SpanSingleton
 
 /-!
@@ -40,6 +43,14 @@ canonical class is therefore glued directly from the fibre generators, by Tau Ce
 `TauCeti.exists_singularCohomology_thomPair_fiber` and
 `TauCeti.singularCohomology_thomPair_ext`, which allow any linear structure.
 
+Tau Ceti's Thom isomorphism `TauCeti.thomMap` takes chain coefficients and values `ℤ` with the
+structure `ModuleCat.instLinear`. Over a base in `Type`, the canonical class carried there by
+`TauCeti.uliftIntIso : ULift ℤ ≅ ℤ` and the changes of coefficients of
+`Topology/VectorBundle/Thom/ChangeOfCoefficients.lean` is
+`TauCeti.VectorBundleOrientation.intCanonicalThomClass`, again a Thom class, in degree
+`finrank ℝ F`, the degree that the Thom isomorphism takes. This follows the conversion in the
+library's `TauCeti.bijective_integralCup_eulerClass` (`Thom/CupEulerClass.lean`).
+
 The construction and the proofs of its properties follow those of Tau Ceti's
 `TauCeti.VectorBundleOrientation.thomClass`, `singularCohomologyMap_fiberThomPairMap_thomClass`,
 `eq_thomClass_iff`, `thomClass_neg` and `isThomClass_thomClass`
@@ -53,6 +64,8 @@ The construction and the proofs of its properties follow those of Tau Ceti's
 * `Orientation.modelThomGenerator`: the generator of the model pair selected by an orientation.
 * `TauCeti.VectorBundleOrientation.canonicalThomClass`: the canonical Thom class of an oriented
   bundle in any rank.
+* `TauCeti.VectorBundleOrientation.intCanonicalThomClass`: the same class with chain coefficients
+  and values `ℤ`, in the convention of `TauCeti.thomMap`.
 
 ## Main results
 
@@ -69,6 +82,9 @@ The construction and the proofs of its properties follow those of Tau Ceti's
 * `TauCeti.VectorBundleOrientation.canonicalThomClass_neg`: reversing the orientation negates it.
 * `TauCeti.VectorBundleOrientation.canonicalThomClass_eq_thomClass`: in rank `n + 1` it is Tau
   Ceti's `thomClass`.
+* `TauCeti.VectorBundleOrientation.isThomClass_intCanonicalThomClass` and
+  `TauCeti.VectorBundleOrientation.intCanonicalThomClass_neg`: the integral class is a Thom class,
+  and reversing the orientation negates it.
 
 ## References
 
@@ -318,6 +334,54 @@ theorem isThomClass_canonicalThomClass :
     (ModuleCat.of ℤ (ULift.{w} ℤ)) r).mapIso
       ((trivializationAt F E b).continuousLinearEquivAt ℝ b hb).complZeroPairIso.op
     ).toLinearEquiv.span_singleton_apply_eq_top_iff.2 (Orientation.span_modelThomGenerator _ _)
+
+section Integral
+
+/-! ### The canonical Thom class with coefficients `ℤ` -/
+
+variable {B : Type} [TopologicalSpace B] {F : Type} [NormedAddCommGroup F] [NormedSpace ℝ F]
+  [FiniteDimensional ℝ F] {E : B → Type} [TopologicalSpace (TotalSpace F E)]
+  [∀ b, AddCommMonoid (E b)] [∀ b, Module ℝ (E b)] [∀ b, TopologicalSpace (E b)] [FiberBundle F E]
+  [VectorBundle ℝ F E] {r : ℕ} (o : VectorBundleOrientation F E (Fin r)) (hr : finrank ℝ F = r)
+
+/-- **The canonical Thom class with integer coefficients.** For an orientation `o` of a real
+vector bundle `E` of rank `r` over a base in `Type`, this is the canonical Thom class
+`o.canonicalThomClass hr`, moved to the degree `finrank ℝ F = r` and carried along
+`ULift ℤ ≅ ℤ` (`TauCeti.uliftIntIso`) to chain coefficients and values `ℤ`, with the structure
+`ModuleCat.instLinear` of `ModuleCat ℤ` that the Thom map `TauCeti.thomMap` takes. -/
+def intCanonicalThomClass :
+    @TopPair.singularCohomology (ModuleCat.{0} ℤ) _ _ _ (thomPair F E) (ModuleCat.of ℤ ℤ) ℤ _
+      ModuleCat.instLinear (ModuleCat.of ℤ ℤ) (finrank ℝ F) :=
+  TopPair.singularCohomologyLinearCongr (Subsingleton.elim _ _) (thomPair F E) _ _ _
+    ((thomPair F E).singularCohomologyChainCoefficientMap ℤ _ uliftIntIso.inv _
+      ((thomPair F E).singularCohomologyValueMap _ ℤ uliftIntIso.hom _
+        (hr ▸ o.canonicalThomClass hr)))
+
+/-- The canonical Thom class with integer coefficients, unfolded. -/
+theorem intCanonicalThomClass_def :
+    o.intCanonicalThomClass hr =
+      TopPair.singularCohomologyLinearCongr (Subsingleton.elim _ _) (thomPair F E) _ _ _
+        ((thomPair F E).singularCohomologyChainCoefficientMap ℤ _ uliftIntIso.inv _
+          ((thomPair F E).singularCohomologyValueMap _ ℤ uliftIntIso.hom _
+            (hr ▸ o.canonicalThomClass hr))) :=
+  (rfl)
+
+/-- **The canonical Thom class with integer coefficients is a Thom class**: it restricts to a
+generator of the cohomology with coefficients `ℤ` of every fibre pair. -/
+theorem isThomClass_intCanonicalThomClass :
+    @IsThomClass _ _ _ _ (ModuleCat.of ℤ ℤ) ℤ _ ModuleCat.instLinear (ModuleCat.of ℤ ℤ) B _ F _ E
+      _ _ _ _ _ _ (o.intCanonicalThomClass hr) :=
+  ((o.isThomClass_canonicalThomClass hr).singularCohomologyValueMap uliftIntIso
+    |>.singularCohomologyChainCoefficientMap uliftIntIso.symm).singularCohomologyLinearCongr _
+
+/-- Reversing the orientation negates the canonical Thom class with integer coefficients. -/
+@[simp]
+theorem intCanonicalThomClass_neg :
+    (-o).intCanonicalThomClass hr = -o.intCanonicalThomClass hr := by
+  subst hr
+  simp only [intCanonicalThomClass_def, canonicalThomClass_neg, map_neg]
+
+end Integral
 
 end TauCeti.VectorBundleOrientation
 
