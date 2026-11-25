@@ -109,7 +109,7 @@ These settle the questions that `DESIGN.md` leaves to this file.
    [FiniteDimensional ℝ E]`. Each statement takes only the hypotheses its
    proof uses: Theorem 10.2.5 needs a symplectic `σ` but not a connected
    `M`, and Proposition 10.2.12 and the countability need only a closed
-   `σ`, on a connected `M`.
+   `σ`, and not a connected `M`.
 
 2. **Initial pieces of a diffeotopy.** For `T : unitInterval`,
    `Φ.truncate T` is the diffeotopy $t\mapsto\phi_{Tt}$, the
@@ -281,15 +281,11 @@ Throughout, `[FiniteDimensional ℝ E] [J.Boundaryless] [T2Space M]
   Set.range (closedFormHomologyPeriod σ)`. The slices of `Φ` need not
   preserve `σ`.
 - `TauCeti.countable_fluxGroup`: `(fluxGroup σ : Set (deRhamCohomology J M 1)).Countable`.
-  If the passage from loop classes to all of $H_1(M;\mathbb Z)$ needs it,
-  the statement may take `[ConnectedSpace M]` and use `period_injective`
-  in place of the period coordinates; the fibres of the page are
-  connected.
 
 `Family.lean`:
 
 - `TauCeti.Diffeotopy.isHamiltonian_of_forall_timeSlice_mem_hamiltonianGroup`
-  (Proposition 10.2.12): for `[ConnectedSpace M]` and
+  (Proposition 10.2.12): for
   `∀ t, Φ.timeSlice t ∈ SmoothForm.hamiltonianGroup σ.val`,
   `Φ.IsHamiltonian σ.val`.
 
