@@ -41,7 +41,9 @@ section whose antiholomorphic derivative is dominated by its holomorphic derivat
 * `TauCeti.SymplecticForm.surjective_of_apply_eq`,
   `TauCeti.SymplecticForm.isSymplectic_ker_of_apply_eq` and
   `TauCeti.SymplecticForm.orientation_ker_eq_of_apply_eq`: the three results below for any form
-  `F v = ω x v + i ω y v` with `ω x y ≠ 0` (with `0 < ω x y` for the orientation).
+  `F v = ω x v + i ω y v` with `ω x y ≠ 0` (with `0 < ω x y` for the orientation),
+  on any real vector space `V` with a symplectic form (finite-dimensional for the last two),
+  with no norm, inner product or `J`.
 * `TauCeti.SymplecticForm.map_orientation_restrict_eq_complex_orientation`: on a symplectic plane
   containing `x` and `y`, such a form carries the symplectic orientation to that of `ℂ`.
 * `TauCeti.SymplecticForm.surjective_of_norm_lt`: `F` is surjective.
@@ -72,66 +74,11 @@ open scoped InnerProductSpace
 
 namespace TauCeti
 
-variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V]
-  {ω : SymplecticForm V} {J : AlmostComplexStructure V} {A B : V →L[ℝ] ℂ}
-
-/-- A real-linear form `A : V → ℂ` whose real and imaginary parts are `⟪a, ·⟫` and `⟪J a, ·⟫`,
-for an orthogonal almost complex structure `J`, has norm at most `‖a‖`. -/
-theorem AlmostComplexStructure.norm_le_of_re_apply_eq_inner
-    (hJ : ∀ v w, ⟪J v, J w⟫_ℝ = ⟪v, w⟫_ℝ) {a : V}
-    (ha : ∀ v, (A v).re = ⟪a, v⟫_ℝ) (him : ∀ v, (A v).im = ⟪J a, v⟫_ℝ) : ‖A‖ ≤ ‖a‖ := by
-  refine A.opNorm_le_bound (norm_nonneg _) fun v ↦ ?_
-  have h := inner_sq_add_inner_sq_le hJ v a
-  refine (pow_le_pow_iff_left₀ (norm_nonneg _) (by positivity) two_ne_zero).1 ?_
-  rw [Complex.sq_norm, Complex.normSq_apply, ha, him, real_inner_comm v a, real_inner_comm v (J a),
-    mul_pow, ← sq, ← sq]
-  linarith
-
 namespace SymplecticForm
 
-/-- **Real-linear forms with dominant complex-linear part, in symplectic terms.** Let the inner
-product of `V` be the metric `ω(·, J ·)`, and let `A, B : V →L[ℝ] ℂ` be complex linear and complex
-antilinear respectively, with `‖B‖ < ‖A‖`. Then there are `x y : V` with `0 < ω x y` such that
-`(A + B) v = ω x v + i ω y v` for every `v`. -/
-theorem exists_apply_eq_of_norm_lt [CompleteSpace V] (hg : ∀ v w, ω v (J w) = ⟪v, w⟫_ℝ)
-    (hA : IsComplexLinear J.toLinearMap (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
-      (A : V →ₗ[ℝ] ℂ))
-    (hB : IsComplexAntilinear J.toLinearMap
-      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (B : V →ₗ[ℝ] ℂ))
-    (h : ‖B‖ < ‖A‖) :
-    ∃ x y : V, 0 < ω x y ∧ ∀ v, (A + B) v = ⟨ω x v, ω y v⟩ := by
-  set a := (InnerProductSpace.toDual ℝ V).symm (reCLM.comp A)
-  set b := (InnerProductSpace.toDual ℝ V).symm (reCLM.comp B)
-  have hare (v : V) : (A v).re = ⟪a, v⟫_ℝ := by simp [a]
-  have hbre (v : V) : (B v).re = ⟪b, v⟫_ℝ := by simp [b]
-  have hJ (u v : V) : ⟪J u, v⟫_ℝ = -⟪u, J v⟫_ℝ :=
-    inner_apply_left_eq_neg_of_apply_apply_eq_inner hg u v
-  have hω (u v : V) : ω u v = ⟪J u, v⟫_ℝ :=
-    (inner_apply_left_eq_of_apply_apply_eq_inner hg u v).symm
-  have haim (v : V) : (A v).im = ⟪J a, v⟫_ℝ := by
-    have h1 := hA.apply v
-    simp only [ContinuousLinearMap.coe_coe, AlmostComplexStructure.ofComplexModule_apply] at h1
-    rw [hJ, ← hare, h1]
-    simp
-  have hbim (v : V) : (B v).im = -⟪J b, v⟫_ℝ := by
-    have h1 := hB.apply v
-    simp only [ContinuousLinearMap.coe_coe, AlmostComplexStructure.ofComplexModule_apply] at h1
-    rw [hJ, neg_neg, ← hbre, h1]
-    simp
-  have hb : ‖b‖ ≤ ‖B‖ := by
-    rw [LinearIsometryEquiv.norm_map]
-    exact (ContinuousLinearMap.opNorm_comp_le _ _).trans (by rw [Complex.reCLM_norm, one_mul])
-  have hJJ (u v : V) : ⟪J u, J v⟫_ℝ = ⟪u, v⟫_ℝ := by
-    have h := (ω.invariant_of_apply_apply_eq_inner hg).associatedBilinForm_invariant u v
-    simpa only [associatedBilinForm_apply, hg] using h
-  have ha : ‖A‖ ≤ ‖a‖ := AlmostComplexStructure.norm_le_of_re_apply_eq_inner hJJ hare haim
-  refine ⟨-J (a + b), a - b, ?_, fun v ↦ ?_⟩
-  · rw [hω, map_neg, J.apply_apply, neg_neg]
-    simp only [inner_add_left, inner_sub_right, real_inner_self_eq_norm_sq, real_inner_comm a b]
-    nlinarith [norm_nonneg b]
-  · apply Complex.ext
-    · simp [hω, J.apply_apply, hare, hbre, add_comm]
-    · simp [hω, haim, hbim, sub_eq_add_neg]
+section ApplyEq
+
+variable {V : Type*} [AddCommGroup V] [Module ℝ V] {ω : SymplecticForm V}
 
 /-- If a real-linear form `F : V → ℂ` reads `F v = ω x v + i ω y v`, its kernel is the symplectic
 complement of the span of `x` and `y`. -/
@@ -208,10 +155,10 @@ theorem orientation_ker_eq_of_apply_eq {F : V →ₗ[ℝ] ℂ} {x y : V}
       (ω.restrict _ (isSymplectic_ker_of_apply_eq hF hxy.ne').nondegenerate_restrict).orientation
         hm := by
   have hsurj := surjective_of_apply_eq hF hxy.ne'
-  set K := LinearMap.ker F
+  set K := LinearMap.ker F with hK
   have hKs : ω.IsSymplectic K := isSymplectic_ker_of_apply_eq hF hxy.ne'
   have hN : ω.orthogonal K = Submodule.span ℝ {x, y} := by
-    rw [show K = _ from ker_eq_orthogonal_span_pair hF, orthogonal_orthogonal]
+    rw [hK, ker_eq_orthogonal_span_pair hF, orthogonal_orthogonal]
   set N := ω.orthogonal K
   have hc : IsCompl K N := hKs.isCompl
   have hNs : ω.IsSymplectic N := isSymplectic_orthogonal_iff.2 hKs
@@ -240,6 +187,75 @@ theorem orientation_ker_eq_of_apply_eq {F : V →ₗ[ℝ] ℂ} {x y : V}
   rw [Orientation.kerOfExact_eq_iff, ← key, ← orientation_prod _ _ hm hN2 (by simp [hm, hN2])]
   -- The two sides differ only in the proofs that `ω` restricts nondegenerately to `K` and `N`.
   exact ((ω.isSymplectomorphism_prodEquivOfIsCompl hc).map_orientation _).trans rfl
+
+end ApplyEq
+
+end SymplecticForm
+
+section NormLt
+
+variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V]
+  {ω : SymplecticForm V} {J : AlmostComplexStructure V} {A B : V →L[ℝ] ℂ}
+
+/-- A real-linear form `A : V → ℂ` whose real and imaginary parts are `⟪a, ·⟫` and `⟪J a, ·⟫`,
+for an orthogonal almost complex structure `J`, has norm at most `‖a‖`. -/
+theorem AlmostComplexStructure.norm_le_of_re_apply_eq_inner
+    (hJ : ∀ v w, ⟪J v, J w⟫_ℝ = ⟪v, w⟫_ℝ) {a : V}
+    (ha : ∀ v, (A v).re = ⟪a, v⟫_ℝ) (him : ∀ v, (A v).im = ⟪J a, v⟫_ℝ) : ‖A‖ ≤ ‖a‖ := by
+  refine A.opNorm_le_bound (norm_nonneg _) fun v ↦ ?_
+  have h := inner_sq_add_inner_sq_le hJ v a
+  refine (pow_le_pow_iff_left₀ (norm_nonneg _) (by positivity) two_ne_zero).1 ?_
+  rw [Complex.sq_norm, Complex.normSq_apply, ha, him, real_inner_comm v a, real_inner_comm v (J a),
+    mul_pow, ← sq, ← sq]
+  linarith
+
+namespace SymplecticForm
+
+/-- **Real-linear forms with dominant complex-linear part, in symplectic terms.** Let the inner
+product of `V` be the metric `ω(·, J ·)`, and let `A, B : V →L[ℝ] ℂ` be complex linear and complex
+antilinear respectively, with `‖B‖ < ‖A‖`. Then there are `x y : V` with `0 < ω x y` such that
+`(A + B) v = ω x v + i ω y v` for every `v`. -/
+theorem exists_apply_eq_of_norm_lt [CompleteSpace V] (hg : ∀ v w, ω v (J w) = ⟪v, w⟫_ℝ)
+    (hA : IsComplexLinear J.toLinearMap (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap
+      (A : V →ₗ[ℝ] ℂ))
+    (hB : IsComplexAntilinear J.toLinearMap
+      (AlmostComplexStructure.ofComplexModule ℂ).toLinearMap (B : V →ₗ[ℝ] ℂ))
+    (h : ‖B‖ < ‖A‖) :
+    ∃ x y : V, 0 < ω x y ∧ ∀ v, (A + B) v = ⟨ω x v, ω y v⟩ := by
+  set a := (InnerProductSpace.toDual ℝ V).symm (reCLM.comp A)
+  set b := (InnerProductSpace.toDual ℝ V).symm (reCLM.comp B)
+  have hare (v : V) : (A v).re = ⟪a, v⟫_ℝ := by simp [a]
+  have hbre (v : V) : (B v).re = ⟪b, v⟫_ℝ := by simp [b]
+  have hJ (u v : V) : ⟪J u, v⟫_ℝ = -⟪u, J v⟫_ℝ :=
+    inner_apply_left_eq_neg_of_apply_apply_eq_inner hg u v
+  have hω (u v : V) : ω u v = ⟪J u, v⟫_ℝ :=
+    (inner_apply_left_eq_of_apply_apply_eq_inner hg u v).symm
+  have haim (v : V) : (A v).im = ⟪J a, v⟫_ℝ := by
+    have h1 := hA.apply v
+    simp only [ContinuousLinearMap.coe_coe, AlmostComplexStructure.ofComplexModule_apply] at h1
+    rw [hJ, ← hare, h1]
+    simp
+  have hbim (v : V) : (B v).im = -⟪J b, v⟫_ℝ := by
+    have h1 := hB.apply v
+    simp only [ContinuousLinearMap.coe_coe, AlmostComplexStructure.ofComplexModule_apply] at h1
+    rw [hJ, neg_neg, ← hbre, h1]
+    simp
+  have hb : ‖b‖ ≤ ‖B‖ := by
+    rw [LinearIsometryEquiv.norm_map]
+    exact (ContinuousLinearMap.opNorm_comp_le _ _).trans (by rw [Complex.reCLM_norm, one_mul])
+  have hJJ (u v : V) : ⟪J u, J v⟫_ℝ = ⟪u, v⟫_ℝ := by
+    have h := (ω.invariant_of_apply_apply_eq_inner hg).associatedBilinForm_invariant u v
+    simpa only [associatedBilinForm_apply, hg] using h
+  have ha : ‖A‖ ≤ ‖a‖ := AlmostComplexStructure.norm_le_of_re_apply_eq_inner hJJ hare haim
+  refine ⟨-J (a + b), a - b, ?_, fun v ↦ ?_⟩
+  · rw [hω, map_neg, J.apply_apply, neg_neg]
+    simp only [inner_add_left, inner_sub_right, real_inner_self_eq_norm_sq, real_inner_comm a b]
+    nlinarith [norm_nonneg b]
+  · apply Complex.ext
+    · simp [hω, J.apply_apply, hare, hbre, add_comm]
+    · simp [hω, haim, hbim, sub_eq_add_neg]
+
+variable [FiniteDimensional ℝ V]
 
 /-- **A real-linear form with dominant complex-linear part is surjective.** Let the inner product
 of `V` be the metric `ω(·, J ·)`, and let `A, B : V →L[ℝ] ℂ` be complex linear and complex
@@ -288,5 +304,7 @@ theorem orientation_ker_eq_of_norm_lt (hg : ∀ v w, ω v (J w) = ⟪v, w⟫_ℝ
   exact orientation_ker_eq_of_apply_eq hF hxy hV hm
 
 end SymplecticForm
+
+end NormLt
 
 end TauCeti
