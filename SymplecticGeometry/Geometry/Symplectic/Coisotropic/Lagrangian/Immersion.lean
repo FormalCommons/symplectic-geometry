@@ -24,10 +24,10 @@ disjoint union of countably many open sets of that space, with the same range as
 ## Main results
 
 * `SymplecticGeometry.IsCleanIntersection.exists_isLagrangianImmersion_range_eq_image`: for a
-  second countable `N` and a nonempty boundaryless `C`, a Hausdorff, second countable manifold of
-  dimension `dim P - (dim M - dim N)` and a Lagrangian immersion from it into the reduced space,
-  for any nondegenerate `τ` there whose pullback is `f^* σ`, with image
-  `leafSpaceMk '' range c`.
+  second countable `N`, nonempty `N` and `P`, and a boundaryless `C`, a Hausdorff, second
+  countable manifold, in the universe of `C`, of dimension `dim P - (dim M - dim N)` and a
+  Lagrangian immersion from it into the reduced space, for any nondegenerate `τ` there whose
+  pullback is `f^* σ`, with image `leafSpaceMk '' range c`.
 
 ## References
 
@@ -38,6 +38,8 @@ disjoint union of countably many open sets of that space, with the same range as
 -/
 
 public section
+
+universe u
 
 open Set Manifold Module TauCeti TauCeti.SmoothTwoForm.IsNondegenerate
 open scoped Manifold ContDiff
@@ -52,7 +54,7 @@ variable {E H M F H' N : Type*}
   [IsManifold J ∞ N]
   {G H'' P : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G] [TopologicalSpace H'']
   {K : ModelWithCorners ℝ G H''} [TopologicalSpace P] [ChartedSpace H'' P]
-  {E₀ H₀ C : Type*} [NormedAddCommGroup E₀] [NormedSpace ℝ E₀] [TopologicalSpace H₀]
+  {E₀ H₀ : Type*} {C : Type u} [NormedAddCommGroup E₀] [NormedSpace ℝ E₀] [TopologicalSpace H₀]
   {L : ModelWithCorners ℝ E₀ H₀} [TopologicalSpace C] [ChartedSpace H₀ C]
   {σ : SmoothTwoForm I M} {hσ : σ.IsNondegenerate} {f : N → M}
   {h : hσ.IsCoisotropicMap J f} {hi : IsImmersion J I ∞ f} {hf : ContMDiff J I ∞ f}
@@ -60,12 +62,13 @@ variable {E H M F H' N : Type*}
 
 /-- **The reduced Lagrangian immersion.** Let `f` be a coisotropic immersion of a second countable
 manifold `N` with regular characteristic foliation, `g` a Lagrangian immersion, and `c` a clean
-intersection of `f` and `g` from a nonempty boundaryless manifold `C`. Let `τ` be a nondegenerate
-two-form on the leaf space whose pullback to `N` is `f^* σ`. Then there is a Hausdorff, second
-countable manifold `S`, modelled on `EuclideanSpace ℝ (Fin (dim P - (dim M - dim N)))`, with a
-Lagrangian immersion `S → LeafSpace` for `τ` whose range is the image of `range c` in the leaf
-space. -/
-theorem exists_isLagrangianImmersion_range_eq_image [L.Boundaryless] [Nonempty C]
+intersection of `f` and `g` from a boundaryless manifold `C` in the universe `u`, with `N` and `P`
+nonempty. Let `τ` be a nondegenerate two-form on the leaf space whose pullback to `N` is `f^* σ`.
+Then there is a Hausdorff, second countable manifold `S` in the universe `u`, modelled on
+`EuclideanSpace ℝ (Fin (dim P - (dim M - dim N)))`, with a Lagrangian immersion `S → LeafSpace`
+for `τ` whose range is the image of `range c` in the leaf space. The empty `C` is allowed; the
+nonempty `N` and `P` fix the dimensions, which an empty `N` or `P` leaves free. -/
+theorem exists_isLagrangianImmersion_range_eq_image [L.Boundaryless] [Nonempty P] [Nonempty N]
     [SecondCountableTopology N] (hc : IsCleanIntersection I J K L f g c)
     (hR : (h.characteristicFoliation hi hf hσc hn).IsRegular) (hg : hσ.IsLagrangianMap K g)
     (hgi : IsImmersion K I ∞ g) :
@@ -76,7 +79,7 @@ theorem exists_isLagrangianImmersion_range_eq_image [L.Boundaryless] [Nonempty C
         (h.characteristicFoliation hi hf hσc hn).LeafSpace} (hτ : τ.IsNondegenerate),
       SmoothForm.mpullback (h.characteristicFoliation hi hf hσc hn).leafSpaceMk
           (Foliation.contMDiff_leafSpaceMk hR) τ = SmoothForm.mpullback f hf σ →
-      ∃ (S : Type) (_ : TopologicalSpace S)
+      ∃ (S : Type u) (_ : TopologicalSpace S)
         (_ : ChartedSpace (EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F)))) S),
         IsManifold 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F)))) ∞ S ∧
         T2Space S ∧ SecondCountableTopology S ∧
@@ -88,7 +91,22 @@ theorem exists_isLagrangianImmersion_range_eq_image [L.Boundaryless] [Nonempty C
   have := Foliation.isManifold_leafSpace hR
   intro τ hτ hτσ
   have := hc.isSmoothEmbedding.isImmersion.isManifold
-  obtain ⟨x₀⟩ := ‹Nonempty C›
+  -- For an empty `C`, the source is empty, of the right dimension since `P` and `N` are nonempty.
+  rcases isEmpty_or_nonempty C with hC | ⟨⟨x₀⟩⟩
+  · obtain ⟨y⟩ := ‹Nonempty P›
+    obtain ⟨x⟩ := ‹Nonempty N›
+    have hG := hg.two_mul_finrank (hgi.mfderiv_injective (by simp) y)
+    have hF := h.finrank_ker_bilinFormAt_mpullback_add hf (hi.mfderiv_injective (by simp) x)
+    have hk := (LinearMap.ker ((SmoothForm.mpullback f hf σ).bilinFormAt x)).finrank_le
+    rw [finrank_tangentSpace] at hk
+    let := ChartedSpace.empty
+      (EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F)))) PEmpty.{u + 1}
+    refine ⟨PEmpty, inferInstance, inferInstance, inferInstance, inferInstance, inferInstance,
+      isEmptyElim, ⟨ContMDiff.isImmersion_of_injective_mfderiv (fun x ↦ isEmptyElim x) (by simp)
+        isEmptyElim, isIsotropicMap_iff_forall.2 isEmptyElim, ?_⟩, ?_⟩
+    · simp only [finrank_euclideanSpace_fin]
+      omega
+    · rw [range_eq_empty, range_eq_empty, image_empty]
   have : FiniteDimensional ℝ E₀ := FiniteDimensional.of_injective _
     (hc.isSmoothEmbedding.isImmersion.mfderiv_injective (by simp) x₀)
   have : SecondCountableTopology C := hc.isSmoothEmbedding.isEmbedding.secondCountableTopology
@@ -98,7 +116,9 @@ theorem exists_isLagrangianImmersion_range_eq_image [L.Boundaryless] [Nonempty C
   obtain ⟨S, _, _, hS, hT2, hSC, ι, hι, hrange, hιf⟩ :=
     hpc.exists_isImmersion_range_eq_of_mfderivRank_eq (by simp)
       (hc.mfderivRank_leafSpaceMk_comp_eq hR hg hgi)
-  have : Nonempty S := range_nonempty_iff_nonempty.1 (hrange ▸ range_nonempty (p ∘ c))
+  have : Nonempty S := by
+    rw [← range_nonempty_iff_nonempty, hrange]
+    exact ⟨_, mem_range_self x₀⟩
   refine ⟨S, _, _, hS, hT2, hSC, ι, isLagrangianImmersion_iff.2 ⟨hι, ?_⟩, by
     rw [hrange, range_comp]⟩
   exact isLagrangianMap_iff_forall.2 <| hιf (fun X W ↦ (hτ.symplecticFormAt X).IsLagrangian W) <|

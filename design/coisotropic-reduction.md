@@ -166,7 +166,7 @@ followed by an immersion. The immersion is Lagrangian, since composing
 with a map whose derivative is surjective leaves the tangent image
 unchanged. Countably many of these charts cover
 `C` when `C` is second countable, and the source is their disjoint union
-`Σ i : ℕ, U i` (`ChartedSpace.sigma`), which is Hausdorff and second
+`Σ i : ULift ℕ, U i` (`ChartedSpace.sigma`), which is Hausdorff and second
 countable; it is the countable union of charts that the page describes.
 In the injective case, the kernels form a foliation of `C`
 (`Foliation.ofConstantRank`), which is regular by the slices on which
@@ -353,12 +353,13 @@ The pointwise statements. With `f`, `hR` and `τ` as above (of `τ`, only
 ### `Geometry/Symplectic/Coisotropic/Lagrangian/Immersion.lean`
 
 - `IsCleanIntersection.exists_isLagrangianImmersion_range_eq_image`: for
-  second countable `N` (then `C` is too, `c` being an embedding) and
-  nonempty boundaryless `C`, there are a type `S` with a charted space on
+  second countable `N` (then `C` is too, `c` being an embedding),
+  nonempty `N` and `P`, and boundaryless `C`, there are a type `S`, in
+  the universe of `C`, with a charted space on
   `EuclideanSpace ℝ (Fin (finrank ℝ G - (finrank ℝ E - finrank ℝ F)))`,
   a smooth manifold, Hausdorff and second countable, and a Lagrangian
   immersion `ι : S → LeafSpace` for `τ` with
-  `range ι = leafSpaceMk '' range c`. The source is `Σ i : ℕ, U i` as in
+  `range ι = leafSpaceMk '' range c`. The source is `Σ i : ULift ℕ, U i` as in
   *Decisions*, by the rank theorem and `mfderivRank_leafSpaceMk_comp_eq`.
 
 ### `Geometry/Symplectic/Coisotropic/Lagrangian/Injective.lean`
@@ -381,8 +382,9 @@ The pointwise statements. With `f`, `hR` and `τ` as above (of `τ`, only
   homeomorphically onto the part of that set in `f '' range c`, which is
   open and closed in it by `isClopen_range`.
 - `IsCleanIntersection.exists_isLagrangianImmersion_range_eq_image_and_transverse_and_injective`,
-  the milestone, for a Lagrangian immersion `g` and second countable `N`:
-  the general statement of `Immersion.lean`; under transversality,
+  the milestone, for a Lagrangian immersion `g`, second countable `N`, and
+  nonempty `N` and `P`: the general statement of `Immersion.lean`; for
+  nonempty `C` under transversality,
   `isLagrangianImmersion_leafSpaceMk_comp_of_transverse`; and, if the leaf
   space of $Q$ is Hausdorff (`T2Space`) and every fibre of
   `leafSpaceMk ∘ c` is preconnected, a Hausdorff second countable manifold
