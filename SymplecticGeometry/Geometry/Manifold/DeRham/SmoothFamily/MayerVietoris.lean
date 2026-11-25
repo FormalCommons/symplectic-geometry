@@ -13,11 +13,13 @@ import SymplecticGeometry.Geometry.Manifold.DeRham.Map
 /-!
 # The Mayer–Vietoris step for smooth cohomology splittings
 
-Let `U` and `V` be open sets of a Hausdorff σ-compact manifold modelled on a finite-dimensional
-space. If `U`, `V` and `U ⊓ V` have smooth cohomology splittings
-(`SymplecticGeometry.SmoothCohomologySplitting` with
-`SymplecticGeometry.SmoothCohomologySplitting.IsSmooth`), then so does `U ⊔ V`
-(`SymplecticGeometry.SmoothCohomologySplitting.exists_isSmooth_sup`). This is the inductive
+Let `U` and `V` be open sets of a manifold with a cut-off function for them (one exists on a
+Hausdorff σ-compact manifold modelled on a finite-dimensional space,
+`SymplecticGeometry.MayerVietorisCutoff.nonempty`). From cohomology splittings
+(`SymplecticGeometry.SmoothCohomologySplitting`) of `U`, `V` and `U ⊓ V`, this file builds one of
+`U ⊔ V` (`SymplecticGeometry.SmoothCohomologySplitting.sup`), which is smooth
+(`SymplecticGeometry.SmoothCohomologySplitting.IsSmooth`) when the three given ones are
+(`SymplecticGeometry.SmoothCohomologySplitting.IsSmooth.sup`). This is the inductive
 step of the induction over a finite good cover that McDuff and Salamon sketch, after Bott and Tu,
 in the proof of their Theorem 3.2.4 [McDuffSalamon2017], [BottTu1982].
 
@@ -70,8 +72,6 @@ surjective linear maps onto finite-dimensional spaces.
 
 * `SymplecticGeometry.SmoothCohomologySplitting.IsSmooth.sup`: `sup` of smooth splittings is
   smooth.
-* `SymplecticGeometry.SmoothCohomologySplitting.exists_isSmooth_sup`: smooth splittings of `U`,
-  `V` and `U ⊓ V` give one of `U ⊔ V`.
 
 ## References
 
@@ -1046,19 +1046,5 @@ theorem IsSmooth.sup (hσU : σU.IsSmooth.{uE, uH, uN}) (hσV : σV.IsSmooth.{uE
 end Sup
 
 end SmoothCohomologySplitting
-
-/-- **The Mayer–Vietoris step for smooth cohomology splittings.** On a Hausdorff σ-compact
-manifold modelled on a finite-dimensional space, if two open sets `U` and `V` and their
-intersection have smooth cohomology splittings, then so does their union. -/
-theorem SmoothCohomologySplitting.exists_isSmooth_sup [FiniteDimensional ℝ E]
-    [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M] (U V : Opens M)
-    (hU : ∃ σ : SmoothCohomologySplitting I U, σ.IsSmooth.{uE, uH, uN})
-    (hV : ∃ σ : SmoothCohomologySplitting I V, σ.IsSmooth.{uE, uH, uN})
-    (hUV : ∃ σ : SmoothCohomologySplitting I (U ⊓ V : Opens M), σ.IsSmooth.{uE, uH, uN}) :
-    ∃ σ : SmoothCohomologySplitting I (U ⊔ V : Opens M), σ.IsSmooth.{uE, uH, uN} :=
-  let ⟨_, hσU⟩ := hU
-  let ⟨_, hσV⟩ := hV
-  let ⟨_, hσUV⟩ := hUV
-  ⟨_, hσU.sup (MayerVietorisCutoff.nonempty U V).some hσV hσUV⟩
 
 end SymplecticGeometry
