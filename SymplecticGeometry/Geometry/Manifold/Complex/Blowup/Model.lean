@@ -587,7 +587,13 @@ theorem mk_blowdown {p : BlowupModel n} (hp : p.blowdown ≠ 0) : mk ℂ p.blowd
 variable (n) in
 /-- The blowdown `π` off the exceptional divisor, as a biholomorphism from the open complement of
 the divisor onto the open set of nonzero vectors of `E`. Its inverse sends `z ≠ 0` to the point
-`(mk z, z)`. -/
+`(mk z, z)`.
+
+Of the milestone below, this states that the blowdown is a biholomorphism off the exceptional
+divisor; `blowupModelTotalSpaceDiffeomorph` (in `Blowup/Tautological.lean`) states that `pr` is
+the tautological line bundle, with the divisor as its zero section.
+
+Milestone: *Tautological line bundle and the exceptional divisor*. -/
 noncomputable def blowdownDiffeomorph :
     (⟨(exceptionalDivisor n)ᶜ, isClosed_exceptionalDivisor.isOpen_compl⟩ : Opens (BlowupModel n))
       ≃ₘ^ω⟮𝓘(ℂ, Fin (n + 1) → ℂ), 𝓘(ℂ, Fin (n + 1) → ℂ)⟯
