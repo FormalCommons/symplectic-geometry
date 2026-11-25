@@ -261,11 +261,33 @@ theorem exists_homotopy_exact_of_exact_near_attaching
 ```
 
 This is the shape, not the final text. The milestone itself assumes only
-that each `τ λ`, `λ ∈ K`, is exact on a neighbourhood of `A`, as the page
-does; the version above, with a smooth family `β` of primitives, is the
-working lemma, and the milestone gets `β` from *Smooth families*'
-`exists_isSmoothFamily_mextDerivₗ_eq` on a neighbourhood of `A` with a
-finite good cover. The proof is the book's: for $m=1$, the primitives
+that each `τ λ`, `λ ∈ K`, is exact on one open `W ⊇ A`, not that the
+primitives depend smoothly on `λ`. One `W` for all of `K` is how a
+parametric statement reads "near `A`": a neighbourhood of the compact
+`K ×ˢ A` in `L × D` contains `K ×ˢ W` for an open `W ⊇ A`, by the tube lemma.
+A separate neighbourhood for each `λ` would not be enough, since those
+neighbourhoods can shrink to `A` as `λ` converges in `K`. The working lemma
+above takes a smooth family `β` of primitives, and the milestone gets one in
+three steps:
+
+1. Inside `W`, fix a product collar `W₀ ⊇ A`, the `(u, v)` with
+   `|‖u‖ - 1| < ε` and `‖v‖ < 1 + ε`, for a small `ε > 0`. It has a finite
+   good cover by convex slabs, so it has a `SmoothCohomologySplitting`
+   (`HasFiniteGoodCover.nonempty_smoothCohomologySplitting`) and a linear
+   primitive map on exact three-forms (`exists_primitiveMap_of_hasFiniteGoodCover`).
+2. Off `K` the forms `τ λ` need not be closed on `W₀`. So subtract from each
+   restriction `τ λ|W₀` the primitive given by step 1 of `d (τ λ|W₀)`. The
+   difference is closed for every `λ`, depends smoothly on `λ`, and is
+   `τ λ|W₀` for `λ ∈ K`, because the primitive map is linear.
+3. Apply the splitting's `primitive` to that difference. By
+   `mextDerivₗ_primitive` and `proj_eq_zero_iff`, its differential is
+   `τ λ` on `W₀` for `λ ∈ K`. A cutoff that is `1` on a smaller collar then
+   makes it a form on `D`.
+
+Steps 2 and 3 need the splitting's maps to take smooth families over `L` to
+smooth families. The merged `PreservesSmoothFamilies` is stated over
+`unitInterval` only, so this waits for issue 6 below, which generalizes it.
+The proof is the book's: for $m=1$, the primitives
 given near the two ends of the core are patched across a narrow band around
 it with cutoff functions, the zig-zag immersion giving the band enough
 length to keep the error small; then induction on $m$, with
@@ -382,20 +404,28 @@ Each is a few hundred lines; each issue's blockers come before it.
 5. **Design the core of an open manifold** (a design issue: the structure of
    `Geometry/Manifold/Morse/Core.lean` and its issues). Blocked by nothing;
    its building issues are blocked by 4.
-6. **The handle-core lemma.** `Geometry/Symplectic/HPrinciple/HandleCore.lean`.
-   Blocked by nothing (it uses only merged files). If it exceeds the size
+6. **Smooth families of primitives over a manifold parameter**
+   (`DifferentialForm/SmoothFamily/Map.lean`, `DeRham/SmoothFamily/`).
+   This is the refactor that `design/compatible-symplectic-forms.md` plans
+   as its issue 9: `PreservesSmoothFamilies` and
+   `exists_isSmoothFamily_mextDerivₗ_eq` over any parameter manifold. It is
+   one issue for both parts. Whichever building issue is split first
+   creates it, and the other part uses that issue. Blocked by nothing.
+7. **The handle-core lemma.** `Geometry/Symplectic/HPrinciple/HandleCore.lean`.
+   Blocked by 6, for the family `β` of primitives. If it exceeds the size
    limit, the case $m=1$ becomes an issue of its own.
-7. **The engine near the core.** The construction of $\sigma_\lambda$ in
+8. **The engine near the core.** The construction of $\sigma_\lambda$ in
    `Geometry/Symplectic/HPrinciple/Engine.lean`. Blocked by 3 and by the
    building issues of 5.
-8. **The engine: compression.** The rest of `Engine.lean`. Blocked by 7.
-9. **Existence and path components.**
-   `Geometry/Symplectic/HPrinciple/OpenManifold.lean`. Blocked by 8.
-10. **Design the CW type of spaces of forms** (a design issue, Decision 5).
+9. **The engine: compression.** The rest of `Engine.lean`. Blocked by 8.
+10. **Existence and path components.**
+    `Geometry/Symplectic/HPrinciple/OpenManifold.lean`. Blocked by 9.
+11. **Design the CW type of spaces of forms** (a design issue, Decision 5).
     Blocked by nothing.
-11. **The parametric statement.**
-    `Geometry/Symplectic/HPrinciple/Parametric.lean`. Blocked by 8 and by
-    the building issues of 10.
+12. **The parametric statement.**
+    `Geometry/Symplectic/HPrinciple/Parametric.lean`. Blocked by 9 and by
+    the building issues of 11.
+
 
 ## References
 
