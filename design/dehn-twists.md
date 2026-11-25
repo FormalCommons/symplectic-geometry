@@ -153,7 +153,7 @@ dependence:
   milestone sees the sign: it pulls `ω` back to
   `-CotangentBundle.symplecticForm`. Tau Ceti's theorem gives $\psi$ with
   $\psi^*\omega=$ `symplecticForm`, and $\iota=\psi\circ N$ for the fibrewise
-  negation $N=m_{-1}$, Tau Ceti's `vectorBundleScalarDiffeomorph` by $-1$,
+  negation $N=m_{-1}$, Tau Ceti's `CotangentBundle.fiberNeg`,
   as the page says.
 - **The isotopy relation of framings.** $f_1\sim f_2$ when
   $f_1=f_2\circ\Phi_1\circ g$ for a smooth isotopy `Φ : TauCeti.Diffeotopy
