@@ -11,20 +11,25 @@ public import SymplecticGeometry.Geometry.Manifold.VectorBundle.Core.Section
 public import TauCeti.Topology.VectorBundle.Hom
 public import TauCeti.Topology.VectorBundle.TensorProduct.Basic
 
-import TauCeti.Analysis.Calculus.ContDiffZPow
+import SymplecticGeometry.Geometry.Manifold.Algebra.ZPow
 
 /-!
-# The line bundle of a hypersurface
+# The line bundle of a divisor given by local equations
 
-A hypersurface `D` of a complex manifold `X` is given here by local defining functions: an open
-cover `U i` of `X` and holomorphic functions `f i` on `U i`, together with holomorphic, nowhere
-vanishing functions `g i j` on `U i ∩ U j` with `f i = g i j * f j` there, satisfying the cocycle
-identity `g i j * g j k = g i k`. This is the data `SymplecticGeometry.HypersurfaceData I X ι`.
-The cocycle identity is part of the data because `g i j` is not determined by the `f` where they
-vanish.
+The data `SymplecticGeometry.HypersurfaceData I X ι` are local equations of an effective divisor
+`D` on a complex manifold `X`: an open cover `U i` of `X` and holomorphic functions `f i` on
+`U i`, together with holomorphic, nowhere vanishing functions `g i j` on `U i ∩ U j` with
+`f i = g i j * f j` there, satisfying the cocycle identity `g i j * g j k = g i k`. The cocycle
+identity is part of the data because `g i j` is not determined by the `f` where they vanish.
 
-* `SymplecticGeometry.HypersurfaceData.support`: the hypersurface itself, the common zero set of
-  the `f i` (`HypersurfaceData.mem_support_iff_of_mem`), a closed set.
+The structure asks nothing more: an `f i` may vanish identically, and its zeros may be singular.
+The common zero set is a smooth hypersurface when moreover no `f i` vanishes identically and
+`mfderiv (f i) x ≠ 0` at each of its points `x` in `U i`. By
+`HypersurfaceData.mfderiv_f_eq_zero_iff`, the second condition does not depend on the chart. The
+line bundle and its canonical section need neither condition.
+
+* `SymplecticGeometry.HypersurfaceData.support`: the common zero set of the `f i`
+  (`HypersurfaceData.mem_support_iff_of_mem`), a closed set.
 * `SymplecticGeometry.HypersurfaceData.lineBundleCore D k`, for `k : ℤ`: the line bundle
   `𝒪(kD)`, as a Mathlib vector bundle core with model fibre `ℂ`, whose coordinate change from the
   chart `i` to the chart `j` is multiplication by `(g j i) ^ k`
@@ -47,9 +52,14 @@ vanish.
 The core follows Tau Ceti's `TauCeti.signedPointTwistCore` and `Projectivization.twistCore`:
 scalar coordinate changes `ContinuousLinearMap.lsmul ℂ ℂ` of a scalar cocycle. The three cores
 `lineBundleCore (k + l)`, `lineBundleCore k` and `lineBundleCore l` share their charts and their
-preferred chart at each point, so the tensor isomorphism needs no scalar factor, unlike the
-library's `Projectivization.twistCoreTensorEquiv`. The proof of
-`continuous_lineBundleCoreTensorEquiv` follows that of
+preferred chart at each point, so the tensor isomorphism needs no scalar factor. Apart from that
+factor, the tensor section adapts the library's file
+`SymplecticGeometry/Geometry/Manifold/Projectivization/TwistCore.lean`:
+`lineBundleCoreTensorEquiv` (with its model equivalence on `ℂ`),
+`tensorProduct_localTriv_lineBundleCoreTensorEquiv`, `trivializationAt_lineBundleCoreTensorEquiv`
+and `continuous_lineBundleCoreTensorEquiv` follow `Projectivization.twistCoreTensorEquiv`,
+`Projectivization.tensorProduct_localTriv_twistCoreTensorEquiv`,
+`Projectivization.trivializationAt_twistCoreTensorEquiv` and
 `Projectivization.continuous_twistCoreTensorEquiv`.
 
 ## References
@@ -67,18 +77,20 @@ namespace SymplecticGeometry
 
 variable {F H : Type*} [NormedAddCommGroup F] [NormedSpace ℂ F] [TopologicalSpace H]
 
-/-- Local defining functions of a hypersurface in a complex manifold `X` with model `I`: an open
+/-- Local equations of an effective divisor on a complex manifold `X` with model `I`: an open
 cover `U` of `X` indexed by `ι`, holomorphic functions `f i` on `U i`, and holomorphic, nowhere
 vanishing functions `g i j` on `U i ∩ U j` with `f i = g i j * f j` there, which form a cocycle.
-The hypersurface is the common zero set `HypersurfaceData.support`, and the `g` are the
-transition functions of its line bundle. -/
+The `g` are the transition functions of the line bundle of the divisor. The common zero set
+`HypersurfaceData.support` is a smooth hypersurface only if no `f i` vanishes identically and the
+differential of each `f i` is nonzero on it, which the structure does not require. -/
+@[ext]
 structure HypersurfaceData (I : ModelWithCorners ℂ F H) (X : Type*) [TopologicalSpace X]
     [ChartedSpace H X] (ι : Type*) where
   /-- The open sets of the cover. -/
   U : ι → Set X
   isOpen_U (i : ι) : IsOpen (U i)
   iUnion_U : ⋃ i, U i = univ
-  /-- The local defining function on `U i`. -/
+  /-- The local equation on `U i`. -/
   f : ι → X → ℂ
   contMDiffOn_f (i : ι) : ContMDiffOn I 𝓘(ℂ) ω (f i) (U i)
   /-- The transition functions: `f i = g i j * f j` on `U i ∩ U j`. -/
@@ -107,13 +119,13 @@ theorem g_self {i : ι} {x : X} (hi : x ∈ D.U i) : D.g i i x = 1 := by
   have h := D.g_mul_g hi hi hi
   exact (mul_eq_right₀ (D.g_ne_zero hi hi)).1 h
 
-/-- The hypersurface: the points where the local defining functions vanish. -/
+/-- The common zero set of the local equations: the points where they vanish. -/
 def support : Set X := {x | ∃ i, x ∈ D.U i ∧ D.f i x = 0}
 
 theorem mem_support_iff {x : X} : x ∈ D.support ↔ ∃ i, x ∈ D.U i ∧ D.f i x = 0 := Iff.rfl
 
-/-- In any chart containing `x`, the point `x` lies on the hypersurface exactly when the local
-defining function of that chart vanishes at `x`. -/
+/-- In any chart containing `x`, the point `x` lies in the support exactly when the local
+equation of that chart vanishes at `x`. -/
 theorem mem_support_iff_of_mem {i : ι} {x : X} (hi : x ∈ D.U i) :
     x ∈ D.support ↔ D.f i x = 0 := by
   refine ⟨fun ⟨j, hj, h⟩ ↦ ?_, fun h ↦ ⟨i, hi, h⟩⟩
@@ -132,15 +144,12 @@ theorem isClosed_support : IsClosed D.support := by
 
 /-- The powers of the transition functions are holomorphic on the overlaps. -/
 theorem contMDiffOn_g_zpow (i j : ι) (k : ℤ) :
-    ContMDiffOn I 𝓘(ℂ) ω (fun x ↦ D.g i j x ^ k) (D.U i ∩ D.U j) := by
-  intro x hx
-  have hpow : ContMDiffAt 𝓘(ℂ) 𝓘(ℂ) ω (fun u : ℂ ↦ u ^ k) (D.g i j x) :=
-    (contDiffAt_id.zpow (Or.inl (D.g_ne_zero hx.1 hx.2))).contMDiffAt
-  exact hpow.comp_contMDiffWithinAt x (D.contMDiffOn_g i j x hx)
+    ContMDiffOn I 𝓘(ℂ) ω (fun x ↦ D.g i j x ^ k) (D.U i ∩ D.U j) :=
+  (D.contMDiffOn_g i j).zpow (Or.inl fun _ hx ↦ D.g_ne_zero hx.1 hx.2)
 
 /-! ### The line bundle `𝒪(kD)` -/
 
-/-- The line bundle `𝒪(kD)` of the hypersurface, for `k : ℤ`, as a vector bundle core with model
+/-- The line bundle `𝒪(kD)` of the divisor, for `k : ℤ`, as a vector bundle core with model
 fibre `ℂ`. The chart `i` is trivial over `U i`, and the coordinate change from the chart `i` to
 the chart `j` is multiplication by `(g j i) ^ k`, so that the local sections that are `f i ^ k`
 in the chart `i` glue. -/
@@ -194,13 +203,13 @@ instance isContMDiff_lineBundleCore (k : ℤ) : (D.lineBundleCore k).IsContMDiff
 
 /-! ### The canonical section of `𝒪(D)` -/
 
-/-- The canonical section of `𝒪(D)`: the local defining function `f i` in the chart `i`
+/-- The canonical section of `𝒪(D)`: the local equation `f i` in the chart `i`
 (`localTriv_canonicalSection`). -/
 def canonicalSection (x : X) : (D.lineBundleCore 1).Fiber x := D.f (D.indexAt x) x
 
 theorem canonicalSection_def (x : X) : D.canonicalSection x = D.f (D.indexAt x) x := (rfl)
 
-/-- In the chart `i`, the canonical section of `𝒪(D)` is the defining function `f i`. -/
+/-- In the chart `i`, the canonical section of `𝒪(D)` is the local equation `f i`. -/
 theorem localTriv_canonicalSection {i : ι} {x : X} (hi : x ∈ D.U i) :
     ((D.lineBundleCore 1).localTriv i ⟨x, D.canonicalSection x⟩).2 = D.f i x := by
   rw [VectorBundleCore.localTriv_apply]
@@ -215,11 +224,11 @@ theorem contMDiff_canonicalSection :
   refine (D.contMDiffOn_f i).congr fun x hx ↦ ?_
   rw [← D.localTriv_canonicalSection hx, VectorBundleCore.localTriv_apply]
 
-/-- The canonical section of `𝒪(D)` vanishes exactly on the hypersurface. -/
+/-- The canonical section of `𝒪(D)` vanishes exactly on the support. -/
 theorem canonicalSection_eq_zero_iff {x : X} : D.canonicalSection x = 0 ↔ x ∈ D.support :=
   (D.mem_support_iff_of_mem (D.mem_U_indexAt x)).symm
 
-/-- At a point of the hypersurface, the differentials of the defining functions of two charts
+/-- At a point of the support, the differentials of the local equations of two charts
 differ by the nonzero factor `g i j`. So the canonical section vanishes to first order there in
 one chart exactly when it does in every chart (`mfderiv_f_eq_zero_iff`). -/
 theorem mfderiv_f_apply_of_mem_support {i j : ι} {x : X} (hi : x ∈ D.U i) (hj : x ∈ D.U j)
@@ -240,7 +249,7 @@ theorem mfderiv_f_apply_of_mem_support {i j : ι} {x : X} (hi : x ∈ D.U i) (hj
   rw [(D.mem_support_iff_of_mem hj).1 hx, zero_mul, add_zero]
   rfl
 
-/-- At a point of the hypersurface, the differential of the defining function of one chart
+/-- At a point of the support, the differential of the local equation of one chart
 vanishes exactly when that of any other chart does. -/
 theorem mfderiv_f_eq_zero_iff {i j : ι} {x : X} (hi : x ∈ D.U i) (hj : x ∈ D.U j)
     (hx : x ∈ D.support) :

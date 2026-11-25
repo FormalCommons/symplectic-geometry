@@ -152,8 +152,9 @@ once, in a general file, `Geometry/Manifold/Complex/Hypersurface/LineBundle.lean
 as a `VectorBundleCore ℂ X ℂ ι` in the pattern of Tau Ceti's
 `signedPointTwistCore` (`Geometry/Manifold/VectorBundle/Holomorphic/PointTwist/Basic.lean`):
 from a family of local defining functions $f_i$ on an open cover, holomorphic,
-with nowhere vanishing quotients on overlaps, the coordinate changes of
-$\mathcal O(kD)$ are $(f_j/f_i)^k$. It is a holomorphic line bundle in
+with holomorphic, nowhere vanishing transition functions $g_{ij}$ on overlaps,
+$f_i = g_{ij} f_j$ and $g_{ij}g_{jk} = g_{ik}$, the coordinate changes of
+$\mathcal O(kD)$ are $g_{ji}^k$. It is a holomorphic line bundle in
 Mathlib's sense, `ContMDiffVectorBundle ω`, which is the model the
 canonical bundle has: Tau Ceti's `TauCeti.CanonicalBundle`
 (`Geometry/Manifold/VectorBundle/Cotangent/Canonical.lean`) is Mathlib's
