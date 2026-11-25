@@ -134,4 +134,34 @@ Each entry has this form:
   *Equivariant normal forms* translates (see `DESIGN.md`).
 - **Issue:** #2247.
 
+## atlas/constructing-symplectic-manifolds.md
+
+### The parametric h-principle on open manifolds is a weak equivalence
+
+- **Where:** `atlas/constructing-symplectic-manifolds.md`, *Gromov's
+  h-principle for symplectic forms on open manifolds*, its parametric
+  statement.
+- **Error:** the page asks for the inclusion of the symplectic forms in a
+  class $a$ into the nondegenerate two-forms, both in the compact-open
+  $C^\infty$ topology, to be a homotopy equivalence. The proofs in the
+  sources give a weak homotopy equivalence: they deform families over a
+  cube, relative to its boundary (Y. Eliashberg and N. Mishachev,
+  *Holonomic approximation and Gromov's h-principle*, arXiv:math/0101196,
+  §2.1 and Theorem 2.1.2; M. Bertelson, *A h-principle for open relations
+  invariant under foliated isotopies*, arXiv:math/0011045, Theorem 8.2,
+  for a prescribed class). A weak equivalence between spaces of CW type is
+  a homotopy equivalence, but when $M$ has infinitely many components, or
+  is connected of infinite type, neither space need have CW type
+  (`design/symplectic-h-principle.md`, Decision 5), and the step from the
+  weak to the genuine equivalence is missing. No counterexample is known;
+  for a connected open $M$ of infinite type the genuine equivalence is an
+  open question.
+- **Fix:** the library proves the weak homotopy equivalence for every open
+  $M$, `isWeakHomotopyEquivalence_inclusion_symplecticFormsInClass`, which
+  carries the milestone line, and, as a corollary, the homotopy equivalence
+  for an $M$ each of whose components compresses into a compact set,
+  `exists_homotopyEquiv_symplecticFormsInClass` (both in
+  `Geometry/Symplectic/HPrinciple/Parametric.lean`).
+- **Issue:** #3898.
+
 ## Other sources
