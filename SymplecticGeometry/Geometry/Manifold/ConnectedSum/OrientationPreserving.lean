@@ -376,4 +376,61 @@ theorem exists_diffeomorph_isOrientationPreservingAt_of_eq {e₁ e₁' : E → M
       φ.toHomeomorph hφ (φ.contMDiff.of_le LEInfty.out) (φ.symm.contMDiff.of_le LEInfty.out)
       hφo p
 
+/-- **The oriented connected sum does not depend on its balls, up to orientation-preserving
+diffeomorphism.** Let `M` and `N` be connected Hausdorff smooth manifolds without boundary,
+modelled on a nontrivial finite-dimensional real inner product space `E`, with orientations `oM`
+and `oN`. Let `e₁ : E → M` and `e₂ : E → N` be balls, open embeddings and smooth local
+diffeomorphisms, which respectively preserve and reverse orientation from an orientation `o` of
+`E`, and let `e₁'` and `e₂'` be another such pair, for an orientation `o'` of `E`. Then some
+diffeomorphism from the connected sum along `e₁` and `e₂` to the connected sum along `e₁'` and
+`e₂'` preserves their orientations `TauCeti.ConnectedSum.orientation`. -/
+theorem exists_diffeomorph_isOrientationPreservingAt [Nontrivial E] {e₁ e₁' : E → M}
+    {e₂ e₂' : E → N} (h₁ : IsOpenEmbedding e₁) (h₂ : IsOpenEmbedding e₂)
+    (h₁' : IsOpenEmbedding e₁') (h₂' : IsOpenEmbedding e₂')
+    (d₁ : IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) ∞ e₁) (d₂ : IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) ∞ e₂)
+    (d₁' : IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) ∞ e₁')
+    (d₂' : IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) ∞ e₂')
+    (o o' : Manifold.Orientation 𝓘(ℝ, E) E ι) (oM : Manifold.Orientation 𝓘(ℝ, E) M ι)
+    (oN : Manifold.Orientation 𝓘(ℝ, E) N ι) (hf₁ : ∀ v, o.IsOrientationPreservingAt oM e₁ v)
+    (hf₂ : ∀ v, o.IsOrientationReversingAt oN e₂ v)
+    (hf₁' : ∀ v, o'.IsOrientationPreservingAt oM e₁' v)
+    (hf₂' : ∀ v, o'.IsOrientationReversingAt oN e₂' v) :
+    letI := chartedSpace (H := E) h₁ h₂
+    letI := chartedSpace (H := E) h₁' h₂'
+    haveI := isManifold h₁ h₂ d₁ d₂
+    haveI := isManifold h₁' h₂' d₁' d₂'
+    ∃ Φ : ConnectedSum e₁ e₂ ≃ₘ^∞⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ ConnectedSum e₁' e₂', ∀ p,
+      IsOrientationPreservingAt
+        (orientation h₁ h₂ (IsLocalDiffeomorph.of_le d₁ LEInfty.out)
+          (IsLocalDiffeomorph.of_le d₂ LEInfty.out) oM oN o (fun v _ ↦ hf₁ v) (fun v _ ↦ hf₂ v))
+        (orientation h₁' h₂' (IsLocalDiffeomorph.of_le d₁' LEInfty.out)
+          (IsLocalDiffeomorph.of_le d₂' LEInfty.out) oM oN o' (fun v _ ↦ hf₁' v)
+          (fun v _ ↦ hf₂' v)) Φ p := by
+  rcases o'.eq_or_eq_neg o with rfl | rfl
+  · exact exists_diffeomorph_isOrientationPreservingAt_of_eq h₁ h₂ h₁' h₂' d₁ d₂ d₁' d₂' o' oM oN
+      hf₁ hf₂ hf₁' hf₂'
+  -- The second pair of balls induces the opposite orientation of `E`: rotate it by a reflection.
+  obtain ⟨R, hR⟩ := exists_det_neg (F := E)
+  have h₁R := h₁'.comp_linearIsometryEquiv R
+  have h₂R := h₂'.comp_linearIsometryEquiv R
+  have hg₁ : ∀ v, o.IsOrientationPreservingAt oM (e₁' ∘ R) v := fun v ↦
+    isOrientationPreservingAt_comp_of_det_neg (by simpa using hf₁' (R v)) hR
+  have hg₂ : ∀ v, o.IsOrientationReversingAt oN (e₂' ∘ R) v := fun v ↦
+    isOrientationReversingAt_comp_of_det_neg (by simpa using hf₂' (R v)) hR
+  let := chartedSpace (H := E) h₁ h₂
+  let := chartedSpace (H := E) h₁' h₂'
+  let := chartedSpace (H := E) h₁R h₂R
+  have := isManifold h₁ h₂ d₁ d₂
+  have := isManifold h₁' h₂' d₁' d₂'
+  have := isManifold h₁R h₂R (d₁'.comp_linearIsometryEquiv R) (d₂'.comp_linearIsometryEquiv R)
+  obtain ⟨Φ, hΦ⟩ := exists_diffeomorph_isOrientationPreservingAt_of_eq h₁ h₂ h₁R h₂R d₁ d₂
+    (d₁'.comp_linearIsometryEquiv R) (d₂'.comp_linearIsometryEquiv R) o oM oN hf₁ hf₂ hg₁ hg₂
+  refine ⟨Φ.trans (compLinearIsometryEquivDiffeomorph R h₁' h₂' d₁' d₂').symm, fun p ↦ ?_⟩
+  rw [Diffeomorph.coe_trans]
+  refine IsOrientationPreservingAt.comp ?_ (hΦ p)
+  refine IsOrientationPreservingAt.diffeomorph_symm ?_ (by simp)
+  rw [coe_compLinearIsometryEquivDiffeomorph]
+  exact isOrientationPreservingAt_compLinearIsometryEquivHomeomorph (he₁ := fun v _ ↦ hf₁' v)
+    (he₂ := fun v _ ↦ hf₂' v) R _
+
 end TauCeti.ConnectedSum
