@@ -32,6 +32,9 @@ of `-(2π)⁻¹ F_α` is the first Chern number of `V`
 * `SymplecticGeometry.realFirstChernClass IB P`: the real first Chern class of `P`.
 * `SymplecticGeometry.IsCircleConnectionForm.realFirstChernClass_eq`: the class is
   `-(2π)⁻¹` times the class of the curvature of any connection form.
+* `SymplecticGeometry.IsCircleConnectionForm.mk_sub_mk_eq_smul_realFirstChernClass_iff`: two
+  closed `2`-forms differ in cohomology by `c` times the class exactly when
+  `ω₁ - ω₂ + c (2π)⁻¹ F_α` is exact.
 
 ## References
 
@@ -102,5 +105,18 @@ theorem IsCircleConnectionForm.realFirstChernClass_eq (hα : IsCircleConnectionF
     realFirstChernClass IB P =
       -(2 * Real.pi)⁻¹ • deRhamCohomology.mk IB 2 ⟨hα.curvature, hα.curvature_mem_closedForms⟩ := by
   rw [realFirstChernClass_def, IsCircleConnectionForm.deRhamCohomology_mk_curvature_eq hα]
+
+/-- The difference of the de Rham classes of two closed `2`-forms `ω₁` and `ω₂` on `B` is `c`
+times the real first Chern class of `P` exactly when `ω₁ - ω₂ + c (2π)⁻¹ F_α` is exact, for the
+curvature `F_α` of any connection form `α` on `P`. -/
+theorem IsCircleConnectionForm.mk_sub_mk_eq_smul_realFirstChernClass_iff
+    (hα : IsCircleConnectionForm α) {ω₁ ω₂ : SmoothForm IB B ℝ 2}
+    (h₁ : ω₁ ∈ closedForms IB B 2) (h₂ : ω₂ ∈ closedForms IB B 2) (c : ℝ) :
+    deRhamCohomology.mk IB 2 ⟨ω₁, h₁⟩ - deRhamCohomology.mk IB 2 ⟨ω₂, h₂⟩ =
+        c • realFirstChernClass IB P ↔
+      ω₁ - ω₂ + (c * (2 * Real.pi)⁻¹) • hα.curvature ∈ exactForms IB B 2 := by
+  rw [← map_sub, hα.realFirstChernClass_eq, smul_smul, ← map_smul,
+    deRhamCohomology.mk_eq_mk_iff, Submodule.coe_sub, Submodule.coe_smul, mul_neg, neg_smul,
+    sub_neg_eq_add]
 
 end SymplecticGeometry
