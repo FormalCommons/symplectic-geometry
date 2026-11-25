@@ -52,8 +52,9 @@ its factors does; that pointwise step follows the proof of Tau Ceti's
   and `TauCeti.SmoothForm.of_pow_eq_zero_of_finrank_lt`: they vanish above the dimension.
 * `TauCeti.SmoothForm.of_mul_of_comm` and `TauCeti.SmoothForm.commute_of_of_of_even`: graded
   commutativity, `TauCeti.SmoothForm.commute_of_of_even`: a form of even degree commutes with
-  every form of mixed degree, and `TauCeti.SmoothForm.commute_ofFunctionRingHom`: functions
-  commute with all forms.
+  every form of mixed degree, `TauCeti.SmoothForm.commute_ofFunctionRingHom`: functions
+  commute with all forms, and `TauCeti.SmoothForm.ofFunctionRingHom_mul_apply`: multiplying by a
+  function multiplies each component by it.
 * `TauCeti.SmoothForm.mul_eq_zero_of_forall_or`, `TauCeti.SmoothForm.mul_eq_mul_left_of_forall_or`
   and `TauCeti.SmoothForm.mul_eq_mul_right_of_forall_or`: the product of forms of mixed degree is
   local, from the pointwise vanishing of a wedge (`TauCeti.SmoothForm.wedge_val_eq_zero_of_left`).
@@ -383,6 +384,21 @@ theorem commute_ofFunctionRingHom (g : C^∞⟮I, M; ℝ⟯) (x : ⨁ k, SmoothF
     Commute (ofFunctionRingHom g) x := by
   rw [ofFunctionRingHom_apply]
   exact commute_of_of_even Even.zero (ofFunction g) x
+
+/-- The component of degree `k` of the product of a smooth function `g`, as a form of degree `0`,
+with a form `β` of mixed degree is `g` times the component of degree `k` of `β`. -/
+theorem ofFunctionRingHom_mul_apply (g : C^∞⟮I, M; ℝ⟯) (β : ⨁ k, SmoothForm I M ℝ k) (k : ℕ) :
+    (ofFunctionRingHom g * β) k = funSMulₗ g (β k) := by
+  induction β using DirectSum.induction_on with
+  | zero => simp
+  | of l φ =>
+    rw [ofFunctionRingHom_apply, of_zero_ofFunction_mul_of]
+    by_cases h : l = k
+    · subst h
+      simp only [DirectSum.of_eq_same]
+    · rw [DirectSum.of_eq_of_ne _ _ _ (Ne.symm h), DirectSum.of_eq_of_ne _ _ _ (Ne.symm h),
+        map_zero]
+  | add β β' hβ hβ' => rw [mul_add, DirectSum.add_apply, hβ, hβ', DirectSum.add_apply, map_add]
 
 end SmoothForm
 
