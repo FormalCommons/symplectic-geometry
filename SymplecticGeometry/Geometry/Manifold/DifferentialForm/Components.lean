@@ -28,10 +28,12 @@ forms, one on each `U i`, and closedness and exactness can be tested on the memb
   component, as an open set, is connected; `ConnectedComponents.connectedSpace_opens` is the
   corresponding instance on the open submanifold.
 * `TauCeti.SmoothForm.ofDisjointCover`: the smooth form on `M` glued from a family of smooth
-  forms on the `U i`. Its restriction to `U i` is the `i`-th form
-  (`TauCeti.SmoothForm.mpullback_subtype_val_ofDisjointCover`).
+  forms on the `U i`, pointwise by Mathlib's `Set.liftCover`. Its restriction to `U i` is the
+  `i`-th form (`TauCeti.SmoothForm.mpullback_subtype_val_ofDisjointCover`).
 * `TauCeti.SmoothForm.ext_of_mpullback_subtype_val`: two forms whose restrictions to the members
-  of an open cover agree are equal.
+  of an open cover agree are equal, and
+  `TauCeti.SmoothForm.eq_zero_iff_forall_mpullback_subtype_val`: a form vanishes exactly when
+  each of these restrictions does.
 * `TauCeti.SmoothForm.disjointCoverEquiv`: restriction to the members of the cover, as a linear
   equivalence from the smooth forms on `M` onto the product of the smooth forms on the `U i`.
 * `TauCeti.SmoothForm.mem_closedForms_iff_forall_mpullback_subtype_val` and
@@ -87,44 +89,35 @@ theorem ext_of_mpullback_subtype_val (hcover : IsOpenCover U) {φ ψ : SmoothFor
   exact (coe_mpullback_subtype_val_apply φ ⟨x, hx⟩).symm.trans
     (this.trans (coe_mpullback_subtype_val_apply ψ ⟨x, hx⟩))
 
-/-- The form glued from a family of smooth forms on the members of a disjoint open cover, as a
-rough form. At each point it is the value of the form on the member that contains it. -/
-private noncomputable def ofDisjointCoverAux (hcover : IsOpenCover U)
-    (σ : ∀ i, SmoothForm I (U i) F k) :
-    RoughForm I M F k := fun x ↦
-  (σ (hcover.exists_mem x).choose).val ⟨x, (hcover.exists_mem x).choose_spec⟩
-
-private theorem ofDisjointCoverAux_apply (hU : Pairwise (Disjoint on U))
-    (hcover : IsOpenCover U)
-    (σ : ∀ i, SmoothForm I (U i) F k) {i : ι} (x : U i) :
-    ofDisjointCoverAux hcover σ x = (σ i).val x := by
-  have key : ∀ j (hj : (x : M) ∈ U j), j = i → (σ j).val ⟨x, hj⟩ = (σ i).val x := by
-    rintro j hj rfl
-    rfl
-  refine key _ _ (hU.eq ?_)
-  exact fun hd ↦ disjoint_left.mp (Opens.coe_disjoint.mpr hd)
-    (hcover.exists_mem x).choose_spec x.property
+/-- A form is zero exactly when its restriction to each member of an open cover is zero. -/
+theorem eq_zero_iff_forall_mpullback_subtype_val (hcover : IsOpenCover U)
+    {φ : SmoothForm I M F k} :
+    φ = 0 ↔ ∀ i, mpullback (Subtype.val : U i → M) contMDiff_subtypeVal φ = 0 := by
+  refine ⟨fun h i ↦ by rw [h, map_zero], fun h ↦ ext_of_mpullback_subtype_val hcover fun i ↦ ?_⟩
+  rw [h i, map_zero]
 
 /-- **Gluing smooth forms over a disjoint open cover.** For pairwise disjoint open subsets `U i`
 covering `M`, the smooth form on `M` whose restriction to each `U i` is the `i`-th form of a
 family `σ` (`mpullback_subtype_val_ofDisjointCover`). -/
 noncomputable def ofDisjointCover (hU : Pairwise (Disjoint on U)) (hcover : IsOpenCover U)
     (σ : ∀ i, SmoothForm I (U i) F k) : SmoothForm I M F k :=
-  ⟨ofDisjointCoverAux hcover σ, IsSmoothForm.mem_smoothBundleForms <|
+  ⟨Set.liftCover (β := E [⋀^Fin k]→L[ℝ] F) (fun i ↦ (U i : Set M)) (fun i x ↦ (σ i).val x)
+      (fun i j x hi hj ↦ by
+        obtain rfl : i = j := hU.eq fun hd ↦ disjoint_left.mp (Opens.coe_disjoint.mpr hd) hi hj
+        rfl)
+      hcover.iSup_set_eq_univ, IsSmoothForm.mem_smoothBundleForms <|
     (isSmoothForm_def ∞ _).mpr fun x ↦ by
       obtain ⟨i, hx⟩ := hcover.exists_mem x
       refine (contMDiffAt_mpullback_subtype_val_iff (U := U i) _ ⟨x, hx⟩).mp ?_
-      have : TauCeti.mpullback I I (Subtype.val : U i → M) (ofDisjointCoverAux hcover σ) =
-          (σ i).val :=
-        funext fun y ↦ by rw [mpullback_subtype_val_apply, ofDisjointCoverAux_apply hU]
-      rw [this]
-      exact (σ i).contMDiff _⟩
+      convert (σ i).contMDiff ⟨x, hx⟩ using 3
+      exact (mpullback_subtype_val_apply _ _).trans (Set.liftCover_coe _)⟩
 
 /-- At a point of `U i`, the glued form is the `i`-th form of the family. -/
 theorem ofDisjointCover_apply (hU : Pairwise (Disjoint on U)) (hcover : IsOpenCover U)
     (σ : ∀ i, SmoothForm I (U i) F k) {i : ι} (x : U i) :
-    (ofDisjointCover hU hcover σ).val x = (σ i).val x :=
-  ofDisjointCoverAux_apply hU hcover σ x
+    (ofDisjointCover hU hcover σ).val x = (σ i).val x := by
+  dsimp only [ofDisjointCover]
+  exact Set.liftCover_coe (S := fun i ↦ (U i : Set M)) x
 
 /-- The restriction of the glued form to `U i` is the `i`-th form of the family. -/
 @[simp]
@@ -181,8 +174,7 @@ theorem mem_closedForms_iff_forall_mpullback_subtype_val (hcover : IsOpenCover U
     φ ∈ closedForms I M k ↔
       ∀ i, mpullback (Subtype.val : U i → M) contMDiff_subtypeVal φ ∈ closedForms I (U i) k := by
   simp only [mem_closedForms_iff_mextDerivₗ_eq_zero, mextDerivₗ_mpullback]
-  refine ⟨fun h i ↦ by rw [h, map_zero], fun h ↦ ext_of_mpullback_subtype_val hcover fun i ↦ ?_⟩
-  rw [h i, map_zero]
+  exact eq_zero_iff_forall_mpullback_subtype_val hcover
 
 /-- A real form is exact exactly when its restriction to each member of a disjoint open cover is
 exact. Primitives on the members glue to a primitive on `M`. -/
@@ -193,8 +185,7 @@ theorem mem_exactForms_iff_forall_mpullback_subtype_val (hU : Pairwise (Disjoint
   cases k with
   | zero =>
     simp only [exactForms_zero, Submodule.mem_bot]
-    refine ⟨fun h i ↦ by rw [h, map_zero], fun h ↦ ext_of_mpullback_subtype_val hcover fun i ↦ ?_⟩
-    rw [h i, map_zero]
+    exact eq_zero_iff_forall_mpullback_subtype_val hcover
   | succ k =>
     simp only [exactForms_succ, LinearMap.mem_range]
     refine ⟨fun ⟨ψ, hψ⟩ i ↦ ⟨mpullback Subtype.val contMDiff_subtypeVal ψ, ?_⟩, fun h ↦ ?_⟩
