@@ -510,17 +510,19 @@ theorem dehnTwist_apply_val (z : U) : dehnTwist ι hR hU (ι z) = ι ⟨modelTwi
 theorem dehnTwist_apply_of_notMem {x} (hx : x ∉ ι '' {z | cotangentNorm z ≤ r₀}) :
     dehnTwist ι hR hU x = x
 theorem isCompact_image_setOf_cotangentNorm_le : IsCompact (ι '' {z | cotangentNorm z ≤ r₀})
-theorem mpullback_dehnTwist (hι : ι^* ω = (-symplecticForm)|U) : (dehnTwist ι hR hU)^* ω = ω
-theorem dehnTwist_apply_embedding (hιf : ∀ q, ∃ h : 0_q ∈ U, ι ⟨0_q, h⟩ = f q) (q : Sⁿ) :
+theorem mpullback_dehnTwist (hι : CotangentBundle.IsAntisymplecticChart ω ι) :
+    (dehnTwist ι hR hU)^* ω = ω
+theorem dehnTwist_apply_embedding (hιf : CotangentBundle.AgreesOnZeroSection f ι) (q : Sⁿ) :
     dehnTwist ι hR hU (f q) = f (-q)
 theorem exists_diffeotopy_dehnTwist_eq (hf₁ : IsLagrangianMap f₁) (hf : FramingRel f₁ f₂)
-    (hι₁ : ι₁^* ω = …) (hι₁f : ∀ q, ι₁ ⟨0_q, _⟩ = f₁ q) (hR₁ : IsTwistProfile R₁ r₁) (hU₁)
-    (hι₂ : ι₂^* ω = …) (hι₂f : ∀ q, ι₂ ⟨0_q, _⟩ = f₂ q) (hR₂ : IsTwistProfile R₂ r₂) (hU₂) :
+    (hι₁ : CotangentBundle.IsWeinsteinChart ω f₁ ι₁) (hR₁ : IsTwistProfile R₁ r₁) (hU₁)
+    (hι₂ : CotangentBundle.IsWeinsteinChart ω f₂ ι₂) (hR₂ : IsTwistProfile R₂ r₂) (hU₂) :
     ∃ (Φ : Diffeotopy I ∞ M) (K : Set M), IsCompact K ∧
       (∀ t, Φ.timeSlice t ∈ SmoothForm.diffeomorphStabilizer ω) ∧ (∀ t x, x ∉ K → Φ (t, x) = x) ∧
       ∀ x, Φ.final (dehnTwist ι₁ hR₁ hU₁ x) = dehnTwist ι₂ hR₂ hU₂ x
 theorem exists_mpullback_dehnTwist_sub_eq (θ : SmoothForm I M ℝ 1) (hθ : mextDeriv θ = ω)
-    (hθL : ∃ h : C^∞⟮𝓡 n, Sⁿ; ℝ⟯, mpullback f θ = mextDerivₗ h) (hιf : …) (hι : …) :
+    (hθL : ∃ h : C^∞⟮𝓡 n, Sⁿ; ℝ⟯, mpullback f θ = mextDerivₗ h)
+    (hι : CotangentBundle.IsWeinsteinChart ω f ι) :
     ∃ K : C^∞⟮I, M; ℝ⟯, (∀ x ∉ ι '' {z | cotangentNorm z ≤ r₀}, K x = 0) ∧
       mpullback (dehnTwist ι hR hU) θ - θ = mextDerivₗ K
 theorem exists_mpullback_dehnTwist_sub_eq_of_two_le (hn : 2 ≤ n) … -- without hθL
