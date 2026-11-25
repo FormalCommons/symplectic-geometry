@@ -17,6 +17,8 @@ near every point agrees with some horizontal map is horizontal
 horizontal map on a set `s` and another off it is horizontal when the two agree near the frontier
 of `s` (`TauCeti.IsHorizontalMap.piecewise`, whose proof follows that of Mathlib's
 `ContMDiff.piecewise`). This is how curves glued from horizontal pieces are seen to be horizontal.
+The file also notes that a constant map is horizontal (`TauCeti.isHorizontalMap_const`), since
+its tangent maps vanish.
 -/
 
 public section
@@ -32,6 +34,12 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
   {E' H' N : Type*} [NormedAddCommGroup E'] [NormedSpace 𝕜 E'] [TopologicalSpace H']
   {J : ModelWithCorners 𝕜 E' H'} [TopologicalSpace N] [ChartedSpace H' N]
   {D : Π x : M, Submodule 𝕜 (TangentSpace I x)} {f : N → M}
+
+/-- A constant map is horizontal for every distribution. -/
+theorem isHorizontalMap_const (x : M) : IsHorizontalMap J D (fun _ : N ↦ x) :=
+  isHorizontalMap_iff.2 fun y v ↦ by
+    rw [mfderiv_const]
+    exact (D x).zero_mem
 
 /-- A map that agrees near each point with some horizontal map is horizontal. -/
 theorem IsHorizontalMap.of_forall_eventuallyEq

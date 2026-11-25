@@ -184,7 +184,7 @@ Horizontal lifts of curves and parallel transport.
   pieces: the times up to which a lift exists form an open and closed set.
 - `TauCeti.IsEhresmannConnection.parallelTransport hD γ s t : P → P`: at `x`,
   the value at `t` of the horizontal lift of `γ` through `x` at time `s`
-  (chosen among differentiable horizontal curves `c` with `f ∘ c = γ` and
+  (chosen among differentiable horizontal curves `c` over `γ` on `Set.uIcc s t` with
   `c s = x`) when one exists, and `x` otherwise. API, with `hx : f x = γ s`
   where needed:
   - `parallelTransport_eq` (`hD.parallelTransport γ s t x = c t` for every

@@ -71,6 +71,17 @@ local: `TauCeti.IsHorizontalMap.of_forall_eventuallyEq`). This last step follows
 Mathlib's `isMIntegralCurve_abs_add_one_of_isMIntegralCurveOn_Ioo`, which glues integral curves
 in the same way.
 
+On these two theorems it builds parallel transport,
+`TauCeti.IsEhresmannConnection.parallelTransport hD γ s t : P → P`. Its value at `x` is `c t` for
+a differentiable horizontal curve `c` through `x` at time `s` that lies over `γ` on
+`Set.uIcc s t`, if there is one, and `x` otherwise. Asking `c` to lie over `γ` only between `s`
+and `t` makes the transport depend on nothing else of `γ`, with no hypothesis
+(`TauCeti.IsEhresmannConnection.parallelTransport_congr`). Uniqueness makes every such curve give
+the same value (`TauCeti.IsEhresmannConnection.parallelTransport_eq`), and this characterization,
+rather than the definition, proves the rest: for a proper map, existence of lifts gives the
+composition law, the inverse from `t` to `s`, the bijection between fibres, and the invariance
+under a reparametrization `γ ∘ φ`, for which a lift of `γ` composed with `φ` is a lift of `γ ∘ φ`.
+
 ## Main results
 
 * `TauCeti.IsEhresmannConnection.curveVelocity_eq_horizontalLift_iff`: a differentiable curve has
@@ -88,6 +99,15 @@ in the same way.
 * `TauCeti.IsEhresmannConnection.exists_isHorizontalMap_lift`: for a proper map, every `C^(n+1)`
   curve of `B` has a `C^n` horizontal lift over all of `ℝ` through any point over one of its
   values.
+* `TauCeti.IsEhresmannConnection.parallelTransport`: parallel transport along a curve of `B` from
+  one time to another.
+* `TauCeti.IsEhresmannConnection.parallelTransport_eq`: it follows every differentiable horizontal
+  lift over the curve between the two times.
+* `TauCeti.IsEhresmannConnection.parallelTransport_parallelTransport`,
+  `TauCeti.IsEhresmannConnection.bijOn_parallelTransport`: for a proper map, transport composes
+  along consecutive time intervals, and is a bijection between fibres.
+* `TauCeti.IsEhresmannConnection.parallelTransport_comp`: for a proper map, transport does not
+  depend on the parametrization of the curve.
 
 ## References
 
@@ -509,6 +529,207 @@ theorem exists_isHorizontalMap_lift (hn : 1 ≤ n)
     funext fun u ↦ hγc (N u) (Ioo_subset_Icc_self (hN u)), hcs (N s)⟩
 
 end Existence
+
+section Definition
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {P : Type*} [TopologicalSpace P] [ChartedSpace H P] [IsManifold I 1 P]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+  {G : Type*} [TopologicalSpace G] {J : ModelWithCorners ℝ F G}
+  {B : Type*} [TopologicalSpace B] [ChartedSpace G B]
+  {n : ℕ∞ω} {f : P → B} {D : Π x : P, Submodule ℝ (TangentSpace I x)}
+
+open Classical in
+/-- **Parallel transport** along a curve `γ : ℝ → B` from time `s` to time `t` for an Ehresmann
+connection `D` on `f : P → B`. At `x`, it is `c t` for a differentiable horizontal curve `c` with
+`c s = x` that lies over `γ` on `Set.uIcc s t`, if there is one, and `x` otherwise.
+
+For a `C¹` connection on a `C²` map and a `C²` curve `γ`, all such curves agree at `t`
+(`TauCeti.IsEhresmannConnection.parallelTransport_eq`), and for a proper map they exist whenever
+`f x = γ s` (`TauCeti.IsEhresmannConnection.exists_isHorizontalMap_lift`). Only the values of `γ`
+on `Set.uIcc s t` matter (`TauCeti.IsEhresmannConnection.parallelTransport_congr`).
+
+The value does not depend on the proof that `D` is a connection; that proof is an argument so
+that the transport is written `hD.parallelTransport γ s t` and is only formed for connections. -/
+def parallelTransport (_hD : IsEhresmannConnection I J n f D) (γ : ℝ → B) (s t : ℝ) (x : P) :
+    P :=
+  if h : ∃ c : ℝ → P, MDifferentiable 𝓘(ℝ, ℝ) I c ∧ IsHorizontalMap 𝓘(ℝ, ℝ) D c ∧
+      EqOn (f ∘ c) γ (uIcc s t) ∧ c s = x then h.choose t else x
+
+variable (hD : IsEhresmannConnection I J n f D)
+
+open Classical in
+theorem parallelTransport_def (γ : ℝ → B) (s t : ℝ) (x : P) :
+    hD.parallelTransport γ s t x =
+      if h : ∃ c : ℝ → P, MDifferentiable 𝓘(ℝ, ℝ) I c ∧ IsHorizontalMap 𝓘(ℝ, ℝ) D c ∧
+        EqOn (f ∘ c) γ (uIcc s t) ∧ c s = x then h.choose t else x :=
+  (rfl)
+
+/-- Parallel transport fixes the points that do not lie over the starting point `γ s`. -/
+theorem parallelTransport_of_ne {γ : ℝ → B} {s : ℝ} {x : P} (hx : f x ≠ γ s) (t : ℝ) :
+    hD.parallelTransport γ s t x = x := by
+  rw [parallelTransport_def, dite_eq_right_of_eq_false (eq_false ?_)]
+  rintro ⟨c, -, -, hγc, rfl⟩
+  exact hx (hγc left_mem_uIcc)
+
+/-- Parallel transport from a time to itself is the identity. -/
+@[simp]
+theorem parallelTransport_self (γ : ℝ → B) (s : ℝ) (x : P) :
+    hD.parallelTransport γ s s x = x := by
+  rw [parallelTransport_def]
+  split_ifs with h
+  · exact h.choose_spec.2.2.2
+  · rfl
+
+/-- Parallel transport from `s` to `t` depends only on the curve on `Set.uIcc s t`. -/
+theorem parallelTransport_congr {γ₁ γ₂ : ℝ → B} {s t : ℝ} (h : EqOn γ₁ γ₂ (uIcc s t)) :
+    hD.parallelTransport γ₁ s t = hD.parallelTransport γ₂ s t := by
+  funext x
+  have hp : (fun c : ℝ → P ↦ MDifferentiable 𝓘(ℝ, ℝ) I c ∧ IsHorizontalMap 𝓘(ℝ, ℝ) D c ∧
+      EqOn (f ∘ c) γ₁ (uIcc s t) ∧ c s = x) = fun c ↦ MDifferentiable 𝓘(ℝ, ℝ) I c ∧
+      IsHorizontalMap 𝓘(ℝ, ℝ) D c ∧ EqOn (f ∘ c) γ₂ (uIcc s t) ∧ c s = x :=
+    funext fun c ↦ propext <| and_congr_right' <| and_congr_right' <| and_congr_left' <|
+      ⟨fun hc _ hu ↦ (hc hu).trans (h hu), fun hc _ hu ↦ (hc hu).trans (h hu).symm⟩
+  rw [parallelTransport_def, parallelTransport_def, hp]
+
+end Definition
+
+section Characterization
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {P : Type*} [TopologicalSpace P] [ChartedSpace H P] [IsManifold I 1 P] [T2Space P]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
+  {G : Type*} [TopologicalSpace G] {J : ModelWithCorners ℝ F G}
+  {B : Type*} [TopologicalSpace B] [ChartedSpace G B] [IsManifold J 1 B]
+  {n : ℕ∞ω} {f : P → B} {D : Π x : P, Submodule ℝ (TangentSpace I x)}
+  (hD : IsEhresmannConnection I J n f D)
+
+/-- **Characterization of parallel transport.** Let `D` be a `C^n` Ehresmann connection,
+`1 ≤ n`, on a `C²` map `f : P → B` from a Hausdorff manifold, and `γ` a `C²` curve in `B`. For
+every differentiable horizontal curve `c` that lies over `γ` on `Set.uIcc s t`, the transport of
+`c s` from `s` to `t` along `γ` is `c t`. -/
+theorem parallelTransport_eq (hn : 1 ≤ n) (hf : ContMDiff I J 2 f) {γ : ℝ → B}
+    (hγ : ContMDiff 𝓘(ℝ, ℝ) J 2 γ) {c : ℝ → P} (hc : MDifferentiable 𝓘(ℝ, ℝ) I c)
+    (hh : IsHorizontalMap 𝓘(ℝ, ℝ) D c) {s t : ℝ} (hγc : EqOn (f ∘ c) γ (uIcc s t)) {x : P}
+    (hcs : c s = x) : hD.parallelTransport γ s t x = c t := by
+  have h : ∃ c : ℝ → P, MDifferentiable 𝓘(ℝ, ℝ) I c ∧ IsHorizontalMap 𝓘(ℝ, ℝ) D c ∧
+      EqOn (f ∘ c) γ (uIcc s t) ∧ c s = x := ⟨c, hc, hh, hγc, hcs⟩
+  rw [parallelTransport_def, dite_eq_left_of_eq_true (eq_true h)]
+  obtain ⟨hc', hh', hγc', hcs'⟩ := h.choose_spec
+  generalize h.choose = c' at hc' hh' hγc' hcs' ⊢
+  rw [← Icc_min_max] at hγc hγc'
+  exact hD.eqOn_of_isHorizontalMap hn hf hγ hc' hc hh' hh hγc' hγc
+    ⟨min_le_left _ _, le_max_left _ _⟩ (hcs'.trans hcs.symm)
+    ⟨min_le_right _ _, le_max_right _ _⟩
+
+/-- Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on a `C²` map `f : P → B` from a Hausdorff
+manifold. Parallel transport along a constant curve is the identity. -/
+theorem parallelTransport_const (hn : 1 ≤ n) (hf : ContMDiff I J 2 f) (b : B) (s t : ℝ)
+    (x : P) : hD.parallelTransport (fun _ ↦ b) s t x = x := by
+  by_cases hx : f x = b
+  · exact hD.parallelTransport_eq hn hf contMDiff_const mdifferentiable_const
+      (isHorizontalMap_const x) (fun _ _ ↦ hx) rfl
+  · exact hD.parallelTransport_of_ne hx t
+
+end Characterization
+
+section Proper
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {P : Type*} [TopologicalSpace P] [ChartedSpace H P] [IsManifold I ∞ P] [I.Boundaryless]
+  [T2Space P]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+  {G : Type*} [TopologicalSpace G] {J : ModelWithCorners ℝ F G}
+  {B : Type*} [TopologicalSpace B] [ChartedSpace G B] [IsManifold J ∞ B] [J.Boundaryless]
+  [T2Space B]
+  {n : ℕ∞} {f : P → B} {D : Π x : P, Submodule ℝ (TangentSpace I x)}
+  (hD : IsEhresmannConnection I J n f D)
+
+omit [FiniteDimensional ℝ E] [I.Boundaryless] [FiniteDimensional ℝ F] [J.Boundaryless]
+  [T2Space B] in
+/-- Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on a `C^(n+1)` map `f : P → B` from a
+Hausdorff manifold, and `γ` a `C^(n+1)` curve in `B`. For every `C^n` horizontal curve `c` over
+`γ`, parallel transport along `γ` from `s` to `t` maps `c s` to `c t`. -/
+theorem parallelTransport_eq_of_comp_eq (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
+    {γ : ℝ → B} (hγ : ContMDiff 𝓘(ℝ, ℝ) J (n + 1) γ) {c : ℝ → P}
+    (hc : ContMDiff 𝓘(ℝ, ℝ) I n c) (hh : IsHorizontalMap 𝓘(ℝ, ℝ) D c) (hγc : f ∘ c = γ)
+    (s t : ℝ) : hD.parallelTransport γ s t (c s) = c t := by
+  have hn' : (1 : ℕ∞ω) ≤ n := by exact_mod_cast hn
+  have h2 : (2 : ℕ∞ω) ≤ n + 1 := by
+    simpa [one_add_one_eq_two] using add_le_add_left hn' 1
+  exact hD.parallelTransport_eq hn' (hf.of_le h2) (hγ.of_le h2)
+    (hc.mdifferentiable (zero_lt_one.trans_le hn').ne') hh (fun u _ ↦ congrFun hγc u) rfl
+
+/-- Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B`, and
+`γ` a `C^(n+1)` curve in `B`. Parallel transport along `γ` from `s` to `t` maps the fibre over
+`γ s` into the fibre over `γ t`. -/
+theorem parallelTransport_mem_preimage (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
+    (hfp : IsProperMap f) {γ : ℝ → B} (hγ : ContMDiff 𝓘(ℝ, ℝ) J (n + 1) γ) {s : ℝ} {x : P}
+    (hx : f x = γ s) (t : ℝ) : hD.parallelTransport γ s t x ∈ f ⁻¹' {γ t} := by
+  obtain ⟨c, hc, hh, hγc, rfl⟩ := hD.exists_isHorizontalMap_lift hn hf hfp hγ hx
+  rw [hD.parallelTransport_eq_of_comp_eq hn hf hγ hc hh hγc, mem_preimage, mem_singleton_iff,
+    ← hγc, comp_apply]
+
+/-- Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B`, and
+`γ` a `C^(n+1)` curve in `B`. On the fibre over `γ s`, parallel transport along `γ` from `s` to
+`t` followed by parallel transport from `t` to `u` is parallel transport from `s` to `u`. -/
+theorem parallelTransport_parallelTransport (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
+    (hfp : IsProperMap f) {γ : ℝ → B} (hγ : ContMDiff 𝓘(ℝ, ℝ) J (n + 1) γ) {s : ℝ} {x : P}
+    (hx : f x = γ s) (t u : ℝ) :
+    hD.parallelTransport γ t u (hD.parallelTransport γ s t x) = hD.parallelTransport γ s u x := by
+  obtain ⟨c, hc, hh, hγc, rfl⟩ := hD.exists_isHorizontalMap_lift hn hf hfp hγ hx
+  simp only [hD.parallelTransport_eq_of_comp_eq hn hf hγ hc hh hγc]
+
+/-- Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B`, and
+`γ` a `C^(n+1)` curve in `B`. Parallel transport along `γ` from `t` to `s` and from `s` to `t` are
+inverse to each other between the fibres over `γ s` and over `γ t`. -/
+theorem invOn_parallelTransport (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
+    (hfp : IsProperMap f) {γ : ℝ → B} (hγ : ContMDiff 𝓘(ℝ, ℝ) J (n + 1) γ) (s t : ℝ) :
+    InvOn (hD.parallelTransport γ t s) (hD.parallelTransport γ s t) (f ⁻¹' {γ s})
+      (f ⁻¹' {γ t}) :=
+  ⟨fun _ hx ↦ by
+      rw [hD.parallelTransport_parallelTransport hn hf hfp hγ hx, parallelTransport_self],
+    fun _ hy ↦ by
+      rw [hD.parallelTransport_parallelTransport hn hf hfp hγ hy, parallelTransport_self]⟩
+
+/-- Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B`, and
+`γ` a `C^(n+1)` curve in `B`. Parallel transport along `γ` from `s` to `t` is a bijection from the
+fibre over `γ s` onto the fibre over `γ t`. -/
+theorem bijOn_parallelTransport (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
+    (hfp : IsProperMap f) {γ : ℝ → B} (hγ : ContMDiff 𝓘(ℝ, ℝ) J (n + 1) γ) (s t : ℝ) :
+    BijOn (hD.parallelTransport γ s t) (f ⁻¹' {γ s}) (f ⁻¹' {γ t}) :=
+  (hD.invOn_parallelTransport hn hf hfp hγ s t).bijOn
+    (fun _ hx ↦ hD.parallelTransport_mem_preimage hn hf hfp hγ hx t)
+    (fun _ hy ↦ hD.parallelTransport_mem_preimage hn hf hfp hγ hy s)
+
+/-- **Independence of the parametrization.** Let `D` be a `C^n` Ehresmann connection, `1 ≤ n`, on
+a proper `C^(n+1)` map `f : P → B`, `γ` a `C^(n+1)` curve in `B` and `φ : ℝ → ℝ` a `C^(n+1)` map.
+Parallel transport along `γ ∘ φ` from `s` to `t` is parallel transport along `γ` from `φ s` to
+`φ t`. No monotonicity of `φ` is assumed. -/
+theorem parallelTransport_comp (hn : 1 ≤ n) (hf : ContMDiff I J (n + 1) f)
+    (hfp : IsProperMap f) {γ : ℝ → B} (hγ : ContMDiff 𝓘(ℝ, ℝ) J (n + 1) γ) {φ : ℝ → ℝ}
+    (hφ : ContDiff ℝ (n + 1) φ) (s t : ℝ) :
+    hD.parallelTransport (γ ∘ φ) s t = hD.parallelTransport γ (φ s) (φ t) := by
+  funext x
+  by_cases hx : f x = γ (φ s)
+  · have hn0 : (n : ℕ∞ω) ≠ 0 := by
+      have : (1 : ℕ∞ω) ≤ n := by exact_mod_cast hn
+      exact (zero_lt_one.trans_le this).ne'
+    have hφ' : ContMDiff 𝓘(ℝ, ℝ) 𝓘(ℝ, ℝ) (n + 1) φ := hφ.contMDiff
+    obtain ⟨c, hc, hh, hγc, rfl⟩ := hD.exists_isHorizontalMap_lift hn hf hfp hγ hx
+    have hcφ : ContMDiff 𝓘(ℝ, ℝ) I n (c ∘ φ) := hc.comp (hφ'.of_le le_self_add)
+    have hhφ : IsHorizontalMap 𝓘(ℝ, ℝ) D (c ∘ φ) :=
+      hh.comp (fun _ ↦ (hφ'.mdifferentiable (by simp)).mdifferentiableAt)
+        (fun _ ↦ (hc.mdifferentiable hn0).mdifferentiableAt)
+    rw [hD.parallelTransport_eq_of_comp_eq hn hf hγ hc hh hγc]
+    exact hD.parallelTransport_eq_of_comp_eq hn hf (hγ.comp hφ') hcφ hhφ
+      (by rw [← comp_assoc, hγc]) s t
+  · rw [hD.parallelTransport_of_ne hx, hD.parallelTransport_of_ne (by simpa using hx)]
+
+end Proper
 
 end IsEhresmannConnection
 
