@@ -122,25 +122,25 @@ private theorem coe_ballDiffeomorph (z : ball) :
 variable (S ι) in
 /-- The pieces of the capped surface: the interior of `S`, and one disc for each `i : ι`. -/
 private def piece : Option ι → Type
-  | none => InteriorPiece 1 S
+  | none => (𝓡∂ 2).interior S
   | some _ => discOpens
 
 private instance instTopologicalSpacePiece : ∀ k : Option ι, TopologicalSpace (piece S ι k)
-  | none => inferInstanceAs (TopologicalSpace (InteriorPiece 1 S))
+  | none => inferInstanceAs (TopologicalSpace ((𝓡∂ 2).interior S))
   | some _ => inferInstanceAs (TopologicalSpace discOpens)
 
 private instance instChartedSpacePiece :
     ∀ k : Option ι, ChartedSpace (EuclideanSpace ℝ (Fin 2)) (piece S ι k)
-  | none => inferInstanceAs (ChartedSpace _ (InteriorPiece 1 S))
+  | none => inferInstanceAs (ChartedSpace _ ((𝓡∂ 2).interior S))
   | some _ => inferInstanceAs (ChartedSpace _ discOpens)
 
 private instance instIsManifoldPiece : ∀ k : Option ι, IsManifold (𝓡 2) ∞ (piece S ι k)
-  | none => inferInstanceAs (IsManifold _ ∞ (InteriorPiece 1 S))
+  | none => inferInstanceAs (IsManifold _ ∞ ((𝓡∂ 2).interior S))
   | some _ => inferInstanceAs (IsManifold _ ∞ discOpens)
 
 /-- The maps of the pieces into the capped surface. -/
 private def pieceMap : ∀ k : Option ι, piece S ι k → capDiscs c γ hγ hinj
-  | none => fun x ↦ inl c γ hγ hinj (interiorPieceDiffeomorph.symm x)
+  | none => fun x ↦ inl c γ hγ hinj (((𝓡∂ 2).interiorOpensDiffeomorph S ∞).symm x)
   | some i => fun v ↦ inr c γ hγ hinj i (ballDiffeomorph.symm v)
 
 private theorem isLocalDiffeomorph_inr_ballDiffeomorph_symm (i : ι) :
@@ -155,7 +155,7 @@ private theorem injective_inr_ballDiffeomorph_symm (i : ι) :
 
 private theorem isLocalDiffeomorph_pieceMap :
     ∀ k : Option ι, IsLocalDiffeomorph (𝓡 2) (𝓡 2) ∞ (pieceMap c γ hγ hinj k)
-  | none => fun x ↦ (interiorPieceDiffeomorph.symm.isLocalDiffeomorph x).comp
+  | none => fun x ↦ (((𝓡∂ 2).interiorOpensDiffeomorph S ∞).symm.isLocalDiffeomorph x).comp
       (hg := isLocalDiffeomorph_inl c γ hγ hinj _)
   | some i => isLocalDiffeomorph_inr_ballDiffeomorph_symm c γ hγ hinj i
 
@@ -163,7 +163,7 @@ private theorem iUnion_range_pieceMap : ⋃ k, range (pieceMap c γ hγ hinj k) 
   refine eq_univ_of_forall fun p ↦ ?_
   rcases (range_inl_union_iUnion_range_inr c γ hγ hinj ▸ mem_univ p :
     p ∈ range (inl c γ hγ hinj) ∪ ⋃ i, range (inr c γ hγ hinj i)) with ⟨q, rfl⟩ | hp
-  · exact mem_iUnion.2 ⟨none, interiorPieceDiffeomorph q, by simp [pieceMap]⟩
+  · exact mem_iUnion.2 ⟨none, ((𝓡∂ 2).interiorOpensDiffeomorph S ∞) q, by simp [pieceMap]⟩
   · obtain ⟨i, z, rfl⟩ := mem_iUnion.1 hp
     exact mem_iUnion.2 ⟨some i, ballDiffeomorph z, by simp [pieceMap]⟩
 
@@ -174,7 +174,7 @@ private def discOrientation : Manifold.Orientation (𝓡 2) discOpens (Fin 2) :=
 /-- The orientations of the pieces: `o` on the interior, and the standard orientation of `ℝ²` on
 the discs. -/
 private def pieceOrientation : ∀ k : Option ι, Manifold.Orientation (𝓡 2) (piece S ι k) (Fin 2)
-  | none => (o.restrict ((𝓡∂ 2).interiorOpens S)).toInteriorModel
+  | none => (o.restrict ((𝓡∂ 2).interiorOpens S)).toInterior
   | some _ => discOrientation
 
 /-- The coordinates `z ↦ (re z, im z)` of the ball of `ℂ` preserve orientation. -/
@@ -297,7 +297,8 @@ include hrev in
 /-- On the annuli, the interior piece and the `i`-th disc carry their orientations to the same
 orientation of the capped surface. -/
 private theorem map_orientationAt_eq (i : ι) {x : piece S ι none} {y : piece S ι (some i)}
-    (u : annulusParam) (hx : interiorPieceDiffeomorph (collarPoint (c := c) (γ := γ) i u) = x)
+    (u : annulusParam)
+    (hx : (𝓡∂ 2).interiorOpensDiffeomorph S ∞ (collarPoint (c := c) (γ := γ) i u) = x)
     (hy : ballDiffeomorph (polarPoint u) = y) :
     _root_.Orientation.map (Fin 2)
         ((isLocalDiffeomorph_pieceMap c γ hγ hinj none x).mfderivToContinuousLinearEquiv
@@ -306,21 +307,23 @@ private theorem map_orientationAt_eq (i : ι) {x : piece S ι none} {y : piece S
         ((isLocalDiffeomorph_pieceMap c γ hγ hinj (some i) y).mfderivToContinuousLinearEquiv
           (NeZero.ne _)).toLinearEquiv ((pieceOrientation o (some i)).orientationAt y) := by
   subst hx hy
-  have hρ := (isOrientationPreservingAt_interiorModelDiffeomorph _ ∞ _).comp
+  have hρ := (isOrientationPreservingAt_interiorOpensDiffeomorph _ ∞ _).comp
     (isOrientationPreservingAt_collarPoint c γ hrev i u)
   have hρ' := (isOrientationPreservingAt_ballDiffeomorph _).comp
     (isOrientationPreservingAt_polarPoint u)
   refine map_orientationAt_eq_of_comp_eventuallyEq (isLocalDiffeomorph_pieceMap c γ hγ hinj none)
     (isLocalDiffeomorph_pieceMap c γ hγ hinj (some i)) (o₁ := pieceOrientation o none)
     (o₂ := pieceOrientation o (some i))
-    (ρ₁ := fun u ↦ (interiorPieceDiffeomorph (collarPoint (c := c) (γ := γ) i u) : piece S ι none))
+    (ρ₁ := fun u ↦
+      ((𝓡∂ 2).interiorOpensDiffeomorph S ∞ (collarPoint (c := c) (γ := γ) i u) : piece S ι none))
     (ρ₂ := fun u ↦ (ballDiffeomorph (polarPoint u) : piece S ι (some i))) hρ hρ'
     (mdifferentiableAt_of_isInvertible_mfderiv hρ.isInvertible_mfderiv)
     (mdifferentiableAt_of_isInvertible_mfderiv hρ'.isInvertible_mfderiv)
     (Filter.Eventually.of_forall fun u ↦ ?_)
-  -- On the two pieces, `pieceMap` is `inl ∘ interiorPieceDiffeomorph.symm` and
+  -- On the two pieces, `pieceMap` is `inl ∘ ((𝓡∂ 2).interiorOpensDiffeomorph S ∞).symm` and
   -- `inr i ∘ ballDiffeomorph.symm`.
-  exact (congrArg (inl c γ hγ hinj) (interiorPieceDiffeomorph.symm_apply_apply _)).trans
+  exact (congrArg (inl c γ hγ hinj) (((𝓡∂ 2).interiorOpensDiffeomorph S ∞).symm_apply_apply _)
+    ).trans
     ((inl_collarPoint c γ hγ hinj i u).trans
       (congrArg (inr c γ hγ hinj i) (ballDiffeomorph.symm_apply_apply _)).symm)
 
@@ -328,10 +331,12 @@ include hγ hinj in
 /-- A point where the interior piece meets the `i`-th disc is given by parameters of the annulus. -/
 private theorem exists_annulusParam (i : ι) {x : piece S ι none} {y : piece S ι (some i)}
     (h : pieceMap c γ hγ hinj none x = pieceMap c γ hγ hinj (some i) y) :
-    ∃ u : annulusParam, interiorPieceDiffeomorph (collarPoint (c := c) (γ := γ) i u) = x ∧
+    ∃ u : annulusParam,
+      (𝓡∂ 2).interiorOpensDiffeomorph S ∞ (collarPoint (c := c) (γ := γ) i u) = x ∧
       ballDiffeomorph (polarPoint u) = y := by
   set z := ballDiffeomorph.symm y with hzy
-  have h' : inl c γ hγ hinj (interiorPieceDiffeomorph.symm x) = inr c γ hγ hinj i z := h
+  have h' : inl c γ hγ hinj (((𝓡∂ 2).interiorOpensDiffeomorph S ∞).symm x) =
+    inr c γ hγ hinj i z := h
   have hz : 1 < ‖(z : ℂ)‖ := (inr_mem_range_inl_iff c γ hγ hinj).1 ⟨_, h'⟩
   let u : annulusParam := ⟨(((arg z / (2 * π) : ℝ) : AddCircle (1 : ℝ)), (gluingCoord γ i z).2), by
     rw [mem_annulusParam, coe_gluingCoord_snd, normalRay_coe_apply]
@@ -342,11 +347,11 @@ private theorem exists_annulusParam (i : ι) {x : piece S ι none} {y : piece S 
     rw [hP, hzy]
     exact ballDiffeomorph.apply_symm_apply y
   refine ⟨u, ?_, hy⟩
-  have hc : collarPoint (c := c) (γ := γ) i u = interiorPieceDiffeomorph.symm x := by
+  have hc : collarPoint (c := c) (γ := γ) i u = ((𝓡∂ 2).interiorOpensDiffeomorph S ∞).symm x := by
     refine (isOpenEmbedding_capDiscs_inl c γ hγ hinj).injective ?_
     rw [inl_collarPoint c γ hγ hinj, hP, h']
   rw [hc]
-  exact interiorPieceDiffeomorph.apply_symm_apply x
+  exact ((𝓡∂ 2).interiorOpensDiffeomorph S ∞).apply_symm_apply x
 
 include hrev in
 /-- The pieces carry their orientations to the same orientation wherever they meet. -/
@@ -359,7 +364,7 @@ private theorem map_orientationAt_pieceMap (k l : Option ι) (x : piece S ι k) 
         ((isLocalDiffeomorph_pieceMap c γ hγ hinj l y).mfderivToContinuousLinearEquiv
           (NeZero.ne _)).toLinearEquiv ((pieceOrientation o l).orientationAt y) := by
   rcases k with _ | i <;> rcases l with _ | j
-  · obtain rfl : x = y := interiorPieceDiffeomorph.symm.injective
+  · obtain rfl : x = y := ((𝓡∂ 2).interiorOpensDiffeomorph S ∞).symm.injective
       ((isOpenEmbedding_capDiscs_inl c γ hγ hinj).injective h)
     rfl
   · obtain ⟨u, hx, hy⟩ := exists_annulusParam c γ hγ hinj j h
@@ -397,11 +402,12 @@ theorem isOrientationPreservingAt_inl (p : (𝓡∂ 2).interiorOpens S) :
       (orientation c γ hγ hinj o hrev) (inl c γ hγ hinj) p := by
   have h := isOrientationPreservingAt_iGlue (isLocalDiffeomorph_pieceMap c γ hγ hinj)
     (iUnion_range_pieceMap c γ hγ hinj) (map_orientationAt_pieceMap c γ hγ hinj hrev) none
-    (interiorPieceDiffeomorph p)
-  have he : inl c γ hγ hinj = pieceMap c γ hγ hinj none ∘ interiorPieceDiffeomorph :=
-    funext fun q ↦ (congrArg (inl c γ hγ hinj) (interiorPieceDiffeomorph.symm_apply_apply q)).symm
+    (((𝓡∂ 2).interiorOpensDiffeomorph S ∞) p)
+  have he : inl c γ hγ hinj = pieceMap c γ hγ hinj none ∘ ((𝓡∂ 2).interiorOpensDiffeomorph S ∞) :=
+    funext fun q ↦ (congrArg (inl c γ hγ hinj)
+      (((𝓡∂ 2).interiorOpensDiffeomorph S ∞).symm_apply_apply q)).symm
   rw [he]
-  exact h.comp (isOrientationPreservingAt_interiorModelDiffeomorph _ ∞ p)
+  exact h.comp (isOrientationPreservingAt_interiorOpensDiffeomorph _ ∞ p)
 
 /-- The inclusion of each disc preserves orientation, from the standard orientation of `ℂ` to the
 orientation of the capped surface. -/
@@ -434,7 +440,7 @@ theorem eq_orientation_iff {o' : Manifold.Orientation (𝓡 2) (capDiscs c γ h�
       isOrientationPreservingAt_inr c γ hγ hinj hrev⟩
   refine (eq_iGlue_iff _ _ _).2 fun k x ↦ ?_
   rcases k with _ | i
-  · exact (hl _).comp (isOrientationPreservingAt_interiorModelDiffeomorph_symm _ ∞ x)
+  · exact (hl _).comp (isOrientationPreservingAt_interiorOpensDiffeomorph_symm _ ∞ x)
   · exact (hr i _).comp (isOrientationPreservingAt_ballDiffeomorph_symm x)
 
 /-! ### The caps as coordinate discs -/

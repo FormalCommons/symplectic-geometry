@@ -35,6 +35,9 @@ in the circle case.
   Lie algebra of `Circle` vanishes.
 * `TauCeti.SmoothTwoForm.IsMomentMap.ker_differential_circle`: the kernel of the differential of
   a circle moment map `μ` at `x` is that of `d⟨μ, ξ₁⟩`.
+* `TauCeti.SmoothTwoForm.IsMomentMap.apply_smul_circle`: a circle moment map is invariant under
+  the action, since `⟨μ, ξ₁⟩` is conserved along the curves `t ↦ exp(t ξ₁) • x`, which are
+  integral curves of its Hamiltonian vector field and cover the orbits.
 
 ## References
 
@@ -114,6 +117,24 @@ theorem mem_criticalPoints_circlePeriodOneGenerator_iff
       x ∈ MulAction.fixedPoints Circle M := by
   rw [hμ.mem_criticalPoints_iff hσ, InfinitesimalAction.fundamental_apply,
     mem_fixedPoints_circle_iff_fundamentalVectorField_eq_zero (I' := I)]
+
+omit [T2Space M] [BoundarylessManifold I M] in
+attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField in
+/-- **A circle moment map is invariant.** For a smooth circle action with moment map `μ` for `σ`,
+`μ (g • x) = μ x` for every `g` in the circle. -/
+theorem apply_smul_circle
+    (hμ : σ.IsMomentMap (InfinitesimalAction.fundamental (𝓡 1) Circle I M) μ) (g : Circle)
+    (x : M) : μ (g • x) = μ x := by
+  refine linearMap_ext_circlePeriodOneGenerator ?_
+  obtain ⟨t, rfl⟩ := mulInvariantExp_smul_circlePeriodOneGenerator_surjective g
+  -- `t ↦ exp(t ξ₁) • x` is an integral curve of the Hamiltonian vector field of `⟨μ, ξ₁⟩`, along
+  -- which `⟨μ, ξ₁⟩` is conserved.
+  have hX := hμ.isHamiltonianVectorField circlePeriodOneGenerator
+  rw [InfinitesimalAction.fundamental_apply] at hX
+  have h := hX.apply_eq_of_isMIntegralCurve
+    (isMIntegralCurve_mulInvariantExp_smul_smul (I' := I) circlePeriodOneGenerator x)
+    (fun _ ↦ hμ.mdifferentiableAt _ _) 0 t
+  simpa using h
 
 end TauCeti.SmoothTwoForm.IsMomentMap
 
