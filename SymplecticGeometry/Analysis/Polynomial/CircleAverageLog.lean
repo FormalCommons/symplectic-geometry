@@ -6,10 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import Mathlib.Analysis.Polynomial.MahlerMeasure
-import Mathlib.Analysis.Calculus.Deriv.Polynomial
-import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.Analysis.Complex.Polynomial.Basic
-import Mathlib.Analysis.SpecialFunctions.Integrability.Log
 
 /-!
 # Circle averages of `log ‖p‖` for complex polynomials
