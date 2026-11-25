@@ -233,9 +233,7 @@ theorem sameLeaf_ofConstantRank_of_eqOn (hf : ContMDiff I J (n + 1) f)
     (ofConstantRank hf hr hn).SameLeaf (γ s) (γ t) := by
   refine sameLeaf_of_contMDiffOn_of_tangent hγ (fun u hu ↦ ?_) hs ht
   rw [ofConstantRank_distribution, LinearMap.mem_ker, ContinuousLinearMap.coe_coe]
-  exact mfderiv_curveVelocityWithin_eq_zero_of_eqOn
-    ((hf.mdifferentiable (one_pos.trans_le le_add_self).ne') _)
-    ((hγ u hu).mdifferentiableWithinAt one_ne_zero) hfγ hu
+  exact mfderiv_curveVelocityWithin_eq_zero_of_eqOn hfγ hu
 
 /-- **Leaves are open in the fibres.** For a map `f` of constant rank, every point `y` of the
 fibre of `f` through `x` that is close enough to `x` lies on the leaf of `x` of the kernel
