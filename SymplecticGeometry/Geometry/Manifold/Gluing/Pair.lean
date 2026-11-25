@@ -53,15 +53,19 @@ are. The form of the completion of a Liouville domain, in the library's
 * `SymplecticGeometry.GluedAlong φ`: the space glued from `M₁` and `M₂` along `φ`.
 * `SymplecticGeometry.GluedAlong.inl`, `SymplecticGeometry.GluedAlong.inr`: the canonical maps
   from `M₁` and `M₂`.
+* `SymplecticGeometry.GluedAlong.desc`: the continuous map on the glued space given by continuous
+  maps on `M₁` and `M₂` that agree on the overlap.
 * `SymplecticGeometry.GluedAlong.gluedForm`: the form glued from forms on `M₁` and `M₂` that
   agree on the overlap.
 
 ## Main results
 
 * `SymplecticGeometry.GluedAlong.isOpenEmbedding_inl`, `isOpenEmbedding_inr`,
-  `range_inl_union_range_inr`, `inl_eq_inr_iff`: the topology of the glued space.
+  `range_inl_union_range_inr`, `exists_inl_or_exists_inr`, `inl_eq_inr_iff`: the topology of
+  the glued space.
 * `SymplecticGeometry.GluedAlong.isLocalDiffeomorph_inl`, `isLocalDiffeomorph_inr`: the
   canonical maps are `C^n` local diffeomorphisms for the glued atlas.
+* `SymplecticGeometry.GluedAlong.t2Space_iff`: when the glued space is Hausdorff.
 * `SymplecticGeometry.GluedAlong.t2Space_of_isClosed_graph`: the glued space is Hausdorff when
   `M₁` and `M₂` are and the graph of `φ` is closed in `M₁ × M₂`.
 * `SymplecticGeometry.GluedAlong.mpullback_inl_gluedForm`, `mpullback_inr_gluedForm`,
@@ -195,6 +199,11 @@ theorem range_inl_union_range_inr : range (inl φ) ∪ range (inr φ) = univ :=
   eq_univ_of_forall fun z ↦
     (TopCat.GlueData.ofHomeomorph_ι_jointly_surjective φ.toHomeomorph z).imp id id
 
+/-- Every point of the glued space is `inl x` for a point `x` of `M₁` or `inr y` for a point `y`
+of `M₂`. -/
+theorem exists_inl_or_exists_inr (z : GluedAlong φ) : (∃ x, inl φ x = z) ∨ ∃ y, inr φ y = z :=
+  (range_inl_union_range_inr φ).ge (mem_univ z)
+
 /-- A point `x` of `M₁` and a point `y` of `M₂` have the same image in the glued space exactly
 when `x ∈ U₁` and `φ x = y`. -/
 @[simp, grind =]
@@ -218,6 +227,65 @@ theorem inr_apply (x : U₁) : inr φ (φ x : M₂) = inl φ (x : M₁) :=
 @[simp]
 theorem inl_symm_apply (y : U₂) : inl φ (φ.symm y : M₁) = inr φ (y : M₂) := by
   rw [← inr_apply, Diffeomorph.apply_symm_apply]
+
+section Desc
+
+variable {X : Type*} {f₁ : M₁ → X} {f₂ : M₂ → X}
+
+open Classical in
+/-- The function on the glued space that is `f₁` on `M₁` and `f₂` on `M₂`. -/
+private def descFun (f₁ : M₁ → X) (f₂ : M₂ → X) (z : GluedAlong φ) : X :=
+  if hz : ∃ x, inl φ x = z then f₁ hz.choose
+  else f₂ ((exists_inl_or_exists_inr φ z).resolve_left hz).choose
+
+private theorem descFun_inl (x : M₁) : descFun φ f₁ f₂ (inl φ x) = f₁ x := by
+  have hx : ∃ x', inl φ x' = inl φ x := ⟨x, rfl⟩
+  rw [descFun, dite_eq_left_of_eq_true (eq_true hx), inl_injective φ hx.choose_spec]
+
+private theorem descFun_inr (h : ∀ x : U₁, f₂ (φ x) = f₁ x) (y : M₂) :
+    descFun φ f₁ f₂ (inr φ y) = f₂ y := by
+  rw [descFun]
+  split_ifs with hz
+  · obtain ⟨hx, hy⟩ := (inl_eq_inr_iff φ).1 hz.choose_spec
+    exact (h ⟨_, hx⟩).symm.trans (congrArg f₂ hy)
+  · rw [inr_injective φ ((exists_inl_or_exists_inr φ _).resolve_left hz).choose_spec]
+
+variable [TopologicalSpace X]
+
+/-- **Maps out of the glued space.** Continuous maps `f₁ : M₁ → X` and `f₂ : M₂ → X` that agree
+on the overlap, `f₂ (φ x) = f₁ x` for `x ∈ U₁`, define the continuous map on `GluedAlong φ` that
+is `f₁` on `M₁` and `f₂` on `M₂` (`desc_inl`, `desc_inr`). -/
+def desc (f₁ : C(M₁, X)) (f₂ : C(M₂, X)) (h : ∀ x : U₁, f₂ (φ x) = f₁ x) :
+    C(GluedAlong φ, X) where
+  toFun := descFun φ f₁ f₂
+  continuous_toFun := by
+    refine continuous_iff_continuousAt.2 fun z ↦ ?_
+    rcases exists_inl_or_exists_inr φ z with ⟨x, rfl⟩ | ⟨y, rfl⟩
+    · refine (isOpenEmbedding_inl φ).continuousAt_iff.1 ?_
+      simpa only [Function.comp_def, descFun_inl] using f₁.continuous.continuousAt
+    · refine (isOpenEmbedding_inr φ).continuousAt_iff.1 ?_
+      simpa only [Function.comp_def, descFun_inr φ h] using f₂.continuous.continuousAt
+
+/-- The map out of the glued space is `f₁` on `M₁`. -/
+@[simp]
+theorem desc_inl {f₁ : C(M₁, X)} {f₂ : C(M₂, X)} (h : ∀ x : U₁, f₂ (φ x) = f₁ x) (x : M₁) :
+    desc φ f₁ f₂ h (inl φ x) = f₁ x :=
+  descFun_inl φ x
+
+/-- The map out of the glued space is `f₂` on `M₂`. -/
+@[simp]
+theorem desc_inr {f₁ : C(M₁, X)} {f₂ : C(M₂, X)} (h : ∀ x : U₁, f₂ (φ x) = f₁ x) (y : M₂) :
+    desc φ f₁ f₂ h (inr φ y) = f₂ y :=
+  descFun_inr φ h y
+
+end Desc
+
+/-- **Hausdorff criterion for the glued space.** The glued space is Hausdorff exactly when `M₁`
+and `M₂` are and any point `x` of `M₁` outside `U₁` and point `y` of `M₂` outside `U₂` have
+neighbourhoods `A` and `B` such that `φ` maps no point of `U₁ ∩ A` into `B`. -/
+theorem t2Space_iff : T2Space (GluedAlong φ) ↔ T2Space M₁ ∧ T2Space M₂ ∧
+    ∀ x ∉ U₁, ∀ y ∉ U₂, ∃ A ∈ 𝓝 x, ∃ B ∈ 𝓝 y, ∀ z : U₁, (z : M₁) ∈ A → (φ z : M₂) ∉ B :=
+  TopCat.GlueData.ofHomeomorph_t2Space_iff φ.toHomeomorph
 
 /-- **Hausdorff criterion for the glued space.** If `M₁` and `M₂` are Hausdorff and the graph
 of `φ`, as a subset of `M₁ × M₂`, is closed, then the glued space is Hausdorff. -/
