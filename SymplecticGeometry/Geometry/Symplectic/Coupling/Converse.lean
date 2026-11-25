@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily.Basic
 public import SymplecticGeometry.Geometry.Manifold.Flow.Basic
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.RegularLevel
 public import SymplecticGeometry.Geometry.Symplectic.Coupling.Basic
@@ -44,6 +45,12 @@ the coordinate of the interval, and it sends `SymplecticGeometry.couplingField` 
 fundamental vector field of `SymplecticGeometry.circlePeriodOneGenerator` on `M`
 (`SymplecticGeometry.mfderiv_bandMap_couplingField`).
 
+The file also proves that the family of forms on the base read off a smooth form on `P × [a, b]`
+is smooth: if the slices of `σ` are the pull-backs `π^* (τ t)` along the projection of `P`, then
+`τ` is a smooth family. Near each point of `B`, `τ t` is the pull-back of the slice of `σ` along a
+smooth local section of `P` (`TauCeti.ManifoldTotalSpace.exists_contMDiffOn_section`), and the
+slices of `σ` are a smooth family; this is `SymplecticGeometry.IsSmoothFamily.of_mpullback`.
+
 ## Main definitions
 
 * `SymplecticGeometry.bandMap v e a b`: the map `(q, s) ↦ φ_{s - a} (e q)`.
@@ -60,6 +67,9 @@ fundamental vector field of `SymplecticGeometry.circlePeriodOneGenerator` on `M`
 * `SymplecticGeometry.bandMap_orbitFiber`: all of these for the circle bundle of a regular level
   of an invariant function, with `e` the inclusion of the level after
   `TauCeti.MapFiber.Atlas.totalSpaceDiffeomorph`.
+* `SymplecticGeometry.isSmoothFamily_of_mpullback_slice_eq`: a family `τ` with `π^* (τ t)` the
+  slices of a smooth form on `P × [a, b]` is smooth; in particular the family of a coupling form
+  is smooth (`SymplecticGeometry.IsCouplingForm.isSmoothFamily`).
 
 ## References
 
@@ -315,6 +325,42 @@ theorem bandMap_orbitFiber (hf : ContMDiff I 𝓘(ℝ) ∞ f) (hreg : IsRegularV
   exact (D.surjective.range_comp Subtype.val).trans Subtype.range_coe_subtype
 
 end RegularLevel
+
+/-! ### Smoothness of the family of reduced forms -/
+
+section SmoothFamily
+
+variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [TopologicalSpace HB]
+  {IB : ModelWithCorners ℝ EB HB} [TopologicalSpace B] [ChartedSpace HB B] [IsManifold IB ∞ B]
+  {P : B → Type*} [TopologicalSpace (TotalSpace Circle P)] [∀ b, TopologicalSpace (P b)]
+  [FiberBundle Circle P] [ContMDiffFiberBundle ∞ Circle P IB (𝓡 1)]
+  {σ : SmoothTwoForm ((IB.prod (𝓡 1)).prod (𝓡∂ 1)) (ManifoldTotalSpace Circle P × Icc a b)}
+  {τ : Icc a b → SmoothTwoForm IB B}
+
+/-- **A family of forms whose pull-backs are the slices of a smooth form is smooth.** Let `σ` be
+a smooth two-form on `P × [a, b]`, for a smooth circle bundle `P` over `B`. If a family `τ` of
+two-forms on `B` pulls back along the projection `π` of `P` to the slices of `σ`, that is
+`π^* (τ t)` is the pull-back of `σ` along `p ↦ (p, t)` for every `t`, then `τ` is a smooth
+family. -/
+theorem isSmoothFamily_of_mpullback_slice_eq
+    (h : ∀ t, SmoothForm.mpullback (fun p : ManifoldTotalSpace Circle P ↦ (p, t))
+        (contMDiff_id.prodMk contMDiff_const) σ =
+      SmoothForm.mpullback (fun y : ManifoldTotalSpace Circle P ↦
+          ((ManifoldTotalSpace.homeomorph Circle P).symm y).proj)
+        (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1)) (τ t)) :
+    IsSmoothFamily (𝓡∂ 1) τ := by
+  refine IsSmoothFamily.of_mpullback (ManifoldTotalSpace.contMDiff_proj ∞ Circle P IB (𝓡 1))
+    (ManifoldTotalSpace.exists_contMDiffOn_section ∞ Circle P IB (𝓡 1)) ?_
+  simp_rw [← h, ← SmoothForm.mpullback_prodMk_mpullback_prodComm]
+  exact isSmoothFamily_mpullback_prodMk _
+
+/-- **The family of a coupling form is smooth.** If `σ` is a coupling form for a family `τ` of
+two-forms on the base, then `τ` is a smooth family. -/
+theorem IsCouplingForm.isSmoothFamily [∀ b, MulAction Circleᵐᵒᵖ (P b)] [PrincipalBundle Circle P]
+    (hσ : IsCouplingForm σ τ) : IsSmoothFamily (𝓡∂ 1) τ :=
+  isSmoothFamily_of_mpullback_slice_eq hσ.mpullback_slice
+
+end SmoothFamily
 
 end SymplecticGeometry
 
