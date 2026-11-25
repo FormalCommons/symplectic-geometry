@@ -36,9 +36,10 @@ complex structure `J` of `ι → ℂ`, `s(z) = |z|² = ∑ᵢ ‖zᵢ‖²`, `�
 blowup constructions read the forms they build off `Z` in these terms.
 
 * `SymplecticGeometry.radialPotentialForm ι g hg` is the form `(1/4) d (J* d (g ∘ s))` of the
-  potential `SymplecticGeometry.radialPotential hg = g ∘ s`, where `J*` is
-  `covectorComplexStructure`, the real form of `dᶜ`. By `Dolbeault/Potential.lean` it is
-  `(i/2) ∂∂bar (g ∘ s)`, and half of Tau Ceti's real (1,1)-form `TauCeti.ddbarForm` of `g ∘ s`
+  potential `SymplecticGeometry.radialPotential hg = g ∘ s`
+  (`Geometry/Manifold/Complex/RadialPotential.lean`), where `J*` is `covectorComplexStructure`,
+  the real form of `dᶜ`. By `Dolbeault/Potential.lean` it is `(i/2) ∂∂bar (g ∘ s)`, and half of
+  Tau Ceti's real (1,1)-form `TauCeti.ddbarForm` of `g ∘ s`
   (`TauCeti.coe_mextDerivₗ_covectorComplexStructure_eq_two_smul_ddbarForm`).
 * `SymplecticGeometry.radialPotentialForm_apply`: at `z`, with `s = |z|²`,
   `ω_g(v, w) = g'(s) ω₀(v, w) + g''(s) (⟨z, v⟩ ω₀(z, w) - ⟨z, w⟩ ω₀(z, v))`, the second term
@@ -107,38 +108,6 @@ open scoped Manifold ContDiff ComplexConjugate
 namespace SymplecticGeometry
 
 variable {ι : Type*} [Fintype ι]
-
-/-- For `g` smooth on `(0, ∞)`, the function `w ↦ g |w|²` on `ι → ℂ` is smooth at
-every point of `(ι → ℂ) ∖ 0`. -/
-theorem contDiffAt_comp_norm_sq_complexToRealEuclidean {g : ℝ → ℝ}
-    (hg : ContDiffOn ℝ ∞ g (Ioi 0)) (z : puncturedSpace (ι → ℂ)) :
-    ContDiffAt ℝ ∞ (fun w ↦ g (‖complexToRealEuclidean ι w‖ ^ 2))
-      (z : ι → ℂ) :=
-  ContDiffAt.comp (g := g) (f := fun w ↦ ‖complexToRealEuclidean ι w‖ ^ 2) _
-    (hg.contDiffAt (Ioi_mem_nhds (norm_sq_complexToRealEuclidean_pos z)))
-    contDiff_norm_sq_complexToRealEuclidean.contDiffAt
-
-/-- The radial potential `z ↦ g |z|²` on `(ι → ℂ) ∖ 0`, for `g` smooth on `(0, ∞)`, as a smooth
-function (`radialPotential_apply`). -/
-noncomputable def radialPotential {g : ℝ → ℝ} (hg : ContDiffOn ℝ ∞ g (Ioi 0)) :
-    C^∞⟮𝓘(ℝ, ι → ℂ), puncturedSpace (ι → ℂ); ℝ⟯ :=
-  ⟨fun z ↦ g (‖complexToRealEuclidean ι z‖ ^ 2), fun z ↦
-    (contDiffAt_comp_norm_sq_complexToRealEuclidean hg z).contMDiffAt.comp z
-      (contMDiff_subtypeVal z)⟩
-
-/-- The radial potential is the function `z ↦ g ‖ẑ‖²`, for `ẑ` the image of `z` in
-`EuclideanSpace ℝ (ι ⊕ ι)`. -/
-theorem coe_radialPotential {g : ℝ → ℝ} (hg : ContDiffOn ℝ ∞ g (Ioi 0)) :
-    ⇑(radialPotential (ι := ι) hg) =
-      fun z : puncturedSpace (ι → ℂ) ↦ g (‖complexToRealEuclidean ι z‖ ^ 2) :=
-  (rfl)
-
-/-- The radial potential takes the value `g |z|²` at `z`. -/
-@[simp]
-theorem radialPotential_apply {g : ℝ → ℝ} (hg : ContDiffOn ℝ ∞ g (Ioi 0))
-    (z : puncturedSpace (ι → ℂ)) :
-    radialPotential hg z = g (∑ i, ‖(z : ι → ℂ) i‖ ^ 2) := by
-  simp only [coe_radialPotential, norm_sq_complexToRealEuclidean]
 
 variable (ι) in
 /-- The form of the radial potential `g |z|²` on `(ι → ℂ) ∖ 0`, for `g` smooth on `(0, ∞)`:
@@ -286,10 +255,8 @@ theorem radialPotentialForm_id (hg : ContDiffOn ℝ ∞ id (Ioi 0)) :
 Fubini–Study form to `ℂⁿ⁺¹ ∖ 0`. -/
 theorem radialPotentialForm_log (n : ℕ) (hg : ContDiffOn ℝ ∞ Real.log (Ioi 0)) :
     radialPotentialForm (Fin (n + 1)) Real.log hg = fubiniStudyLift n := by
-  have h : SmoothForm.ofFunction (radialPotential hg) = fubiniStudyPotential n :=
-    SmoothBundleForm.ext fun z v ↦ by
-      rw [SmoothForm.coe_ofFunction, fubiniStudyPotential_def, coe_radialPotential]
-  rw [radialPotentialForm_def, fubiniStudyLift_def, fubiniStudyPrimitive_eq, map_smul, h]
+  rw [radialPotentialForm_def, fubiniStudyLift_def, fubiniStudyPrimitive_eq, map_smul,
+    fubiniStudyPotential_def]
 
 /-! ### Radial maps -/
 
