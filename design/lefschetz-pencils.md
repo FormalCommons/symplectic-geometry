@@ -323,6 +323,10 @@ of real dimension four, not yet compact.
 - The example: `isLefschetzFibration_snd` and `isLefschetzPencil_empty`
   for the product of a closed surface with $\mathbb CP^1$, with the product
   form of an area form and `fubiniStudyForm` and the product structure.
+- `IsLefschetzFibration.manifoldMorseIndex_comp`: the same as
+  `manifoldMorseIndex_re_mul_quadric` of `Model.lean` for `μ ∘ π` at a
+  critical point `p` of `π`, for any `μ` with nonzero derivative at `π p`,
+  through the chart of `exists_model`.
 
 ### `Geometry/Symplectic/Lefschetz/Model.lean`
 
@@ -332,10 +336,7 @@ Namespace `SymplecticGeometry.LefschetzModel`.
   critical point is `0`, where its complex Hessian is nondegenerate;
 - `manifoldMorseIndex_re_mul_quadric`: for `λ ≠ 0`, `0` is a
   nondegenerate critical point of `fun z ↦ (λ * quadric z).re`, of Morse
-  index `2` (Tau Ceti's `manifoldMorseIndex`); and
-  `IsLefschetzFibration.manifoldMorseIndex_comp`, the same for `μ ∘ π` at a
-  critical point `p` of `π`, for any `μ` with nonzero derivative at `π p`,
-  through the chart of `exists_model`;
+  index `2` (Tau Ceti's `manifoldMorseIndex`);
 - the model $[z_1:z_2]$ on $\mathbb C^2\setminus0$ is `Projectivization.mkNonzero ℂ 1`
   of `Geometry/Manifold/Projectivization/Hopf.lean`, regular at every point
   (`isRegularPoint_mkNonzero`), whose fibres are the punctured complex lines

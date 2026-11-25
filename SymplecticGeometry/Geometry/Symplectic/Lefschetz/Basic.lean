@@ -18,6 +18,8 @@ public import SymplecticGeometry.Geometry.Symplectic.Lefschetz.Model
 public import TauCeti.Geometry.Manifold.RegularValue.Open
 import TauCeti.Geometry.Manifold.Connected
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.Morse.LocalDiffeomorph
+import TauCeti.Geometry.Manifold.Morse.Submersion
 
 /-!
 # Lefschetz fibrations
@@ -69,6 +71,12 @@ the restriction of `J` is integrable (`IsLefschetzChart.isIntegrable_on`), and `
   `SymplecticGeometry.IsLefschetzFibration.isConnected_regularValue`: for compact `X`, the regular
   values form an open connected subset of `ℂℙ¹`, the complement of finitely many critical values
   (Tau Ceti's `TauCeti.isConnected_compl_of_finite_of_one_lt_rank`).
+* `SymplecticGeometry.IsLefschetzFibration.manifoldMorseIndex_comp`: at a critical point `p` of a
+  Lefschetz fibration `π`, and for `μ : ℂℙ¹ → ℝ` with nonzero derivative at `π p`, the point `p`
+  is a nondegenerate critical point of `μ ∘ π` of Morse index `2`. It is read in a Lefschetz chart
+  from `SymplecticGeometry.LefschetzModel.manifoldMorseIndex_comp_quadric`, and moved to `X` by
+  `IsLocalDiffeomorphAt.isManifoldNondegenerateCriticalPoint_comp` and Tau Ceti's
+  `TauCeti.IsRegularPoint.manifoldMorseIndex_comp`.
 
 ## References
 
@@ -262,6 +270,69 @@ theorem isConnected_regularValue [CompactSpace X] (h : IsLefschetzFibration ω J
   rw [setOf_isRegularValue_eq_compl_image, ← criticalSet_def]
   exact isConnected_compl_of_finite_of_one_lt_rank (E := Fin 1 → ℂ) (by simp [rank_pi])
     (h.finite_criticalPoints.image π)
+
+/-- **The Morse index of `μ ∘ π` at a critical point of a Lefschetz fibration.** If `p` is a
+critical point of a Lefschetz fibration `π` and `μ : ℂℙ¹ → ℝ` is `C²` at `π p` with nonzero
+derivative there, then `p` is a nondegenerate critical point of `μ ∘ π`, of Morse index `2`. -/
+theorem manifoldMorseIndex_comp [I.Boundaryless]
+    (h : IsLefschetzFibration ω J π) {p : X} (hp : p ∈ criticalSet I 𝓘(ℝ, Fin 1 → ℂ) π)
+    {μ : ℙ ℂ (Fin 2 → ℂ) → ℝ} (hμ : ContMDiffAt 𝓘(ℝ, Fin 1 → ℂ) 𝓘(ℝ) 2 μ (π p))
+    (hdμ : mfderiv 𝓘(ℝ, Fin 1 → ℂ) 𝓘(ℝ) μ (π p) ≠ 0) :
+    IsManifoldNondegenerateCriticalPoint I (μ ∘ π) p ∧ manifoldMorseIndex I (μ ∘ π) p = 2 := by
+  obtain ⟨φ, i, hφ⟩ := h.exists_model p hp
+  -- `μ` read in the affine chart `i`, centred at `π p`, as a function on `ℂ`.
+  set a := affineChart i (π p)
+  set L := (ContinuousLinearEquiv.funUnique (Fin 1) ℝ ℂ).symm
+  set ν : ℂ → ℝ := fun t ↦ μ ((affineChart i).symm (a + L t))
+  have hpe : π p ∈ (affineOpenPartialHomeomorph (K := ℂ) (n := 1) i).source := by
+    simpa using hφ.source_subset hφ.mem_source
+  have hμe : ContDiffAt ℝ 2 (μ ∘ (affineChart i).symm) a := by
+    simpa [a, affineOpenPartialHomeomorph_extend_apply] using
+      (contMDiffAt_iff_contDiffAt_comp_extend_symm
+        (affineOpenPartialHomeomorph_mem_maximalAtlas i) hpe).1 hμ
+  have hdμe : fderiv ℝ (μ ∘ (affineChart i).symm) a ≠ 0 := by
+    have := mvfderiv_eq_zero_iff_fderiv_comp_extend_symm_eq_zero (I := 𝓘(ℝ, Fin 1 → ℂ))
+      (f := μ) (affineOpenPartialHomeomorph_mem_maximalAtlas i) hpe
+    simp only [OpenPartialHomeomorph.extend_coe_symm, modelWithCornersSelf_coe_symm,
+      CompTriple.comp_eq, coe_affineOpenPartialHomeomorph_symm,
+      affineOpenPartialHomeomorph_extend_apply] at this
+    exact fun h0 ↦ hdμ (mem_criticalPoints_iff_mfderiv_eq_zero.1 (mem_criticalPoints.2 (this.2 h0)))
+  have hκ : HasFDerivAt (fun t ↦ a + L t) (L : ℂ →L[ℝ] Fin 1 → ℂ) 0 :=
+    L.hasFDerivAt.const_add a
+  have hμe' : ContDiffAt ℝ 2 (μ ∘ (affineChart i).symm) (a + L 0) := by simpa using hμe
+  have hν : ContDiffAt ℝ 2 ν 0 :=
+    hμe'.comp (g := μ ∘ (affineChart i).symm) 0 (contDiffAt_const.add L.contDiff.contDiffAt)
+  have hdν : fderiv ℝ ν 0 ≠ 0 := by
+    have hd : fderiv ℝ ν 0 =
+        (fderiv ℝ (μ ∘ (affineChart i).symm) (a + L 0)).comp (L : ℂ →L[ℝ] Fin 1 → ℂ) :=
+      ((hμe'.differentiableAt (by norm_num)).hasFDerivAt.comp
+        (g := μ ∘ (affineChart i).symm) 0 hκ).fderiv
+    rw [hd]
+    intro h0
+    refine hdμe (ContinuousLinearMap.ext fun v ↦ ?_)
+    simpa only [ContinuousLinearMap.comp_apply, ContinuousLinearEquiv.coe_coe,
+      ContinuousLinearEquiv.apply_symm_apply, map_zero, add_zero, zero_apply]
+      using congr($h0 (L.symm v))
+  obtain ⟨hnd, hidx⟩ := LefschetzModel.manifoldMorseIndex_comp_quadric hν hdν
+  -- Near `p`, `μ ∘ π` is `ν ∘ quadric` read through `φ`.
+  have heq : μ ∘ π =ᶠ[𝓝 p] (ν ∘ LefschetzModel.quadric) ∘ φ := by
+    filter_upwards [φ.open_source.mem_nhds hφ.mem_source] with x hx
+    simp only [Function.comp_apply, ν, hφ.eqOn_source hx]
+    congr 2
+    funext j
+    simp [a, L, Subsingleton.elim j 0]
+  have hloc : IsLocalDiffeomorphAt I 𝓘(ℝ, Fin 2 → ℂ) (⊤ : ℕ∞) φ p :=
+    φ.isLocalDiffeomorphAt _ _ _ hφ.mem_source
+  -- `X` is finite-dimensional near `p`, since `dφ` identifies its model with `ℂ²`.
+  have : FiniteDimensional ℝ E :=
+    (hloc.mfderivToContinuousLinearEquiv (by simp)).toLinearEquiv.symm.finiteDimensional
+  have hnd₀ : IsManifoldNondegenerateCriticalPoint 𝓘(ℝ, Fin 2 → ℂ) (ν ∘ LefschetzModel.quadric)
+      (φ p) := hφ.apply_eq_zero ▸ hnd
+  refine ⟨(hloc.isManifoldNondegenerateCriticalPoint_comp (by simp) hnd₀).congr_of_eventuallyEq
+    heq.symm, ?_⟩
+  rw [manifoldMorseIndex_congr_of_eventuallyEq heq,
+    (hloc.isRegularPoint (by simp)).manifoldMorseIndex_comp hnd₀.contMDiffAt
+      (hloc.contMDiffAt.of_le (by simp)) hnd₀.mem_criticalPoints, hφ.apply_eq_zero, hidx]
 
 end IsLefschetzFibration
 
