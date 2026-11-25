@@ -13,6 +13,7 @@ public import TauCeti.Topology.Algebra.Module.BilinearForm
 public import SymplecticGeometry.Analysis.ODE.DysonSeries
 public import SymplecticGeometry.Topology.Algebra.Module.BilinearForm
 public import SymplecticGeometry.Analysis.Calculus.Deriv.ContinuousLinearMap
+import TauCeti.Analysis.Calculus.ContDiff.FDerivApply
 import TauCeti.Analysis.Calculus.FDeriv.Prod
 import TauCeti.Analysis.Calculus.ContinuousLinearMapInverse
 import TauCeti.Analysis.Calculus.FDeriv.Mul
@@ -234,7 +235,7 @@ theorem contDiffOn_parametric_moserGenerator {n : WithTop ℕ∞} (hU : IsOpen U
     (TauCeti.hasDerivAt_slice_right (u := Function.uncurry ω)
       ((hω.contDiffAt (hO.mem_nhds hq)).differentiableAt (by simp))).deriv
   have hD : ContDiffOn ℝ n (fun q => fderiv ℝ (Function.uncurry ω) q (0, 1)) (U ×ˢ Set.univ) :=
-    (hω.fderiv_of_isOpen hO le_rfl).clm_apply contDiffOn_const
+    hω.fderiv_apply_of_isOpen hO le_rfl (0, 1)
   have hI : ContDiffOn ℝ n (fun q : E × ℝ => (ω q.1 q.2).inverse) (U ×ˢ Set.univ) :=
     (hω.of_le le_self_add).clm_inverse fun q hq => hinv q.1 hq.1 q.2
   refine ((hI.clm_comp hD).const_smul (-(2⁻¹ : ℝ))).congr fun q hq => ?_
