@@ -529,8 +529,8 @@ instance and `isClosedEmbedding_inclusion`. This is differential topology, with 
 
 - `WithEnd c : Type`, the manifold $W\cup_{\partial W}([0,\infty)\times\partial W)$,
   the glued space of `c.glueData : TopCat.GlueData`, glued from the interior
-  of `W` (as `SymplecticGeometry.InteriorModel` of `(𝓡∂ (n + 1)).interiorOpens W`,
-  `Geometry/Manifold/ModelTransport/InteriorModel.lean`) and
+  of `W` (as Tau Ceti's charted interior `(𝓡∂ (n + 1)).interior W`,
+  `TauCeti/Geometry/Manifold/Boundary/Interior.lean`) and
   `Ioi (-1) × ∂W`, along `(s, x) ↦ c (x, -s)` on `Ioo (-1) 0 × ∂W`, with
   Tau Ceti's `Geometry/Manifold/Gluing/GlueData.lean`; the second piece is
   re-modelled by a linear equivalence
