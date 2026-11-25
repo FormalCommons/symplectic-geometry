@@ -23,15 +23,19 @@ public import TauCeti.Analysis.Complex.Wirtinger.Weak
 import SymplecticGeometry.Analysis.Complex.Wirtinger.Similarity.Weak
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Analysis.Sobolev.W1p.ChangeOfVariables
+import Mathlib.Topology.DiscreteSubset
+import SymplecticGeometry.Topology.Connected.Clopen
 import TauCeti.Geometry.Manifold.VectorField.Regularity
 import TauCeti.MeasureTheory.Function.Jacobian
 
 /-!
-# Local form of the kernel of `D_J` on `𝒪(1)`
+# Local form of the kernel of `D_J` on `𝒪(1)`, and its zeros
 
 This file reads the Cauchy–Riemann equation on `𝒪(1)` over the sphere `OnePoint ℂ` in charts:
 first for Sobolev sections in the charts of `twistCoreAtlas 1`, then for smooth sections in an
-isothermal chart, and last for Sobolev sections in an isothermal chart.
+isothermal chart, and last for Sobolev sections in an isothermal chart. From the smooth
+equation it also derives unique continuation and the finiteness of the zeros of a smooth
+kernel element.
 
 ## The Sobolev equation in the charts of `twistCoreAtlas 1`
 
@@ -90,9 +94,18 @@ hypotheses of
 `TauCeti.VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_analyticOrderNatAt`
 at a zero of the section, apart from the orientation of the chart.
 
+## Zeros of smooth kernel elements
+
+From this equation the zeros of a smooth kernel element are understood. Near each point,
+Tau Ceti's `TauCeti.eventually_ne_zero_of_conjWirtingerDeriv_apply_one_eq_mul` shows that the
+coordinate either vanishes identically or has an isolated zero, and a section vanishes exactly
+where its coordinate does. Since the sphere is connected, this dichotomy gives unique
+continuation (`PreconnectedSpace.eq_zero_of_eventually_eq_zero`); since it is compact, a nonzero
+kernel element has finitely many zeros.
+
 ## Sobolev kernel elements in an isothermal chart
 
-The third part combines the two readings. Let `w` be a `W^{1,2}` section of `𝒪(1)` with
+The last part combines the two readings. Let `w` be a `W^{1,2}` section of `𝒪(1)` with
 `D_J w = 0`, for `J` tamed together with `i`, let `u` be its chart data in chart `i` with chart map
 `φ`, and let `ψ` be a chart that carries `J` to `i`. Read through the transition `T = φ ∘ ψ⁻¹`,
 the function `v = u ∘ T` has the weak derivative `Du (T z) ∘ dT z`, by Tau Ceti's change of
@@ -121,6 +134,14 @@ chart data near every point.
   smooth element of the kernel of `D_J` is complex analytic in an isothermal chart and a real
   linear trivialization of `𝒪(1)` that reads the canonical orientation of the fibres as that of
   `ℂ`.
+* `SymplecticGeometry.eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel`: near
+  each point, a smooth kernel element vanishes identically or has no zero on a punctured
+  neighbourhood.
+* `SymplecticGeometry.eq_zero_of_eventually_eq_zero_of_mem_twistOneKernel`: unique
+  continuation.
+* `SymplecticGeometry.eventually_ne_zero_of_mem_twistOneKernel` and
+  `SymplecticGeometry.finite_setOf_eq_zero_of_mem_twistOneKernel`: the zeros of a nonzero smooth
+  kernel element are isolated, and finitely many.
 * `SymplecticGeometry.exists_hasWeakConjWirtingerDerivOn_mul_of_twistOneDelBarSobolev_eq_zero`:
   the chart data of a Sobolev element of the kernel of `D_J`, read through an isothermal chart,
   satisfy the weak equation `∂v/∂w̄ = a v` with `a` smooth.
@@ -138,7 +159,7 @@ chart data near every point.
 
 public section
 
-open Bundle MeasureTheory Set TauCeti TauCeti.Manifold
+open Bundle Filter MeasureTheory Set TauCeti TauCeti.Manifold
 open OnePoint (twistCore twistTransition)
 open scoped Manifold ContDiff ENNReal Topology TauCeti.ComplexManifold
   VectorBundle.ComplexToReal
@@ -405,6 +426,63 @@ theorem exists_trivialization_analyticAt_of_mem_twistOneKernel {s : OnePoint ℂ
   · rw [VectorBundleOrientation.reindex_apply, Trivialization.mapOrientation_reindex,
       VectorBundleOrientation.mapOrientation_complex_of_isLinear e hx]
 
+/-- **Zeros of a smooth kernel element are isolated or interior.** Let `s` be a smooth section
+of `𝒪(1)` with `D_J s = 0`. At each point `z` of the sphere, either `s` vanishes on a
+neighbourhood of `z`, or `s` has no zero on a punctured neighbourhood of `z`. -/
+theorem eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
+    (hs : s ∈ twistOneKernel J) (z : OnePoint ℂ) :
+    (∀ᶠ y in 𝓝 z, s y = 0) ∨ ∀ᶠ y in 𝓝[≠] z, s y ≠ 0 := by
+  obtain ⟨ψ, hzψ, hψ⟩ := J.exists_isothermal_partialDiffeomorph Complex.finrank_real_complex z
+  obtain ⟨U, hU, hzU, a, ha, hv, heq⟩ :=
+    exists_conjWirtingerDeriv_apply_one_eq_mul_of_mem_twistOneKernel hψ hzψ
+      (mem_chart_source ℂ z) hs
+  set e := (twistCore (𝕜 := ℂ) 1).localTriv z
+  -- On the chart at `z`, the coordinate of a vector of `𝒪(1)` vanishes only if the vector does.
+  have hcoord (p : OnePoint ℂ) (hp : p ∈ (chartAt ℂ z).source) (v : ℂ) :
+      (e ⟨p, v⟩).2 = 0 ↔ v = 0 :=
+    (e.linearEquivAt ℂ p (by simpa [e] using hp)).map_eq_zero_iff
+  set φ := ψ.toOpenPartialHomeomorph
+  have hφ : ⇑φ = ψ := PartialDiffeomorph.toFun'_toOpenPartialHomeomorph ψ
+  have hW : ∀ᶠ p in 𝓝 z, p ∈ (chartAt ℂ z).source ∧ ψ.symm (ψ p) = p :=
+    ((chartAt ℂ z).open_source.eventually_mem (mem_chart_source ℂ z)).and
+      (hφ ▸ φ.eventually_left_inverse hzψ)
+  have hc : ContinuousAt ψ z := hφ ▸ φ.continuousAt hzψ
+  by_cases h : ∀ᶠ w in 𝓝 (ψ z), (e ⟨ψ.symm w, s (ψ.symm w)⟩).2 = 0
+  · refine .inl ?_
+    filter_upwards [hW, hc.eventually h] with p ⟨hp, hpp⟩ hp0
+    rwa [hpp, hcoord p hp] at hp0
+  · refine .inr ?_
+    have ht : Tendsto ψ (𝓝[≠] z) (𝓝[≠] (ψ z)) :=
+      tendsto_nhdsWithin_iff.2 ⟨hc.tendsto.mono_left nhdsWithin_le_nhds,
+        hφ ▸ φ.eventually_ne_nhdsWithin hzψ⟩
+    filter_upwards [ht.eventually (eventually_ne_zero_of_conjWirtingerDeriv_apply_one_eq_mul
+      (k := 1) le_rfl hU (ha.of_le (by simp)) hv heq hzU h), nhdsWithin_le_nhds hW]
+      with p hp0 ⟨hp, hpp⟩
+    rwa [hpp, Ne, hcoord p hp] at hp0
+
+/-- **Unique continuation for `D_J` on `𝒪(1)`.** A smooth section `s` of `𝒪(1)` with
+`D_J s = 0` that vanishes on a neighbourhood of one point of the sphere is zero. -/
+theorem eq_zero_of_eventually_eq_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
+    (hs : s ∈ twistOneKernel J) {z : OnePoint ℂ} (hz : ∀ᶠ y in 𝓝 z, s y = 0) : s = 0 :=
+  PreconnectedSpace.eq_zero_of_eventually_eq_zero
+    (eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel hs) hz
+
+/-- **Zeros of a nonzero smooth kernel element are isolated.** If `s ≠ 0` is a smooth section
+of `𝒪(1)` with `D_J s = 0`, then `s` has no zero on some punctured neighbourhood of any point. -/
+theorem eventually_ne_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
+    (hs : s ∈ twistOneKernel J) (hs₀ : s ≠ 0) (z : OnePoint ℂ) :
+    ∀ᶠ y in 𝓝[≠] z, s y ≠ 0 :=
+  (eventually_eq_zero_or_eventually_ne_zero_of_mem_twistOneKernel hs z).resolve_left
+    fun h ↦ hs₀ (eq_zero_of_eventually_eq_zero_of_mem_twistOneKernel hs h)
+
+/-- **A nonzero smooth kernel element has finitely many zeros.** If `s ≠ 0` is a smooth section
+of `𝒪(1)` with `D_J s = 0`, then the zero set of `s` on the sphere is finite. -/
+theorem finite_setOf_eq_zero_of_mem_twistOneKernel {s : OnePoint ℂ → ℂ}
+    (hs : s ∈ twistOneKernel J) (hs₀ : s ≠ 0) : {y | s y = 0}.Finite := by
+  have hc : {y | s y ≠ 0} ∈ codiscrete (OnePoint ℂ) :=
+    mem_codiscrete_iff_forall_mem_nhdsNE.2 (eventually_ne_zero_of_mem_twistOneKernel hs hs₀)
+  simpa [compl_ofPred] using cofinite_le_codiscrete hc
+
 /-- The coefficient of the weak equation in an isothermal chart is smooth: for a map `T` smooth on
 an open set `Ω` with values in the image of chart `i`, and the zeroth-order term `Γ` of the
 connection in that chart, `z ↦ -(Γ (T z) 1 (dT z 1) + i Γ (T z) 1 (dT z i)) / 2` is smooth on
@@ -452,9 +530,10 @@ theorem exists_hasWeakConjWirtingerDerivOn_mul_of_twistOneDelBarSobolev_eq_zero
   have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
   have hΩT : (Ω : Set ℂ) ⊆ T.source := fun z hz ↦ by
     simpa [T] using ⟨(hΩ hz).1, (twistCoreAtlas 1).dom_subset_chart_source i (hΩ hz).2⟩
-  have hTs := (ψ.contDiffOn_symm_trans_chartAt hn ((twistCoreAtlas 1).center i)).1
-  have hT : ContDiffOn ℝ ∞ T Ω := hTs.1.mono hΩT
-  have hdet (z : ℂ) (hz : z ∈ (Ω : Set ℂ)) : (fderiv ℝ T z).det ≠ 0 := hTs.2 z (hΩT hz)
+  have hT : ContDiffOn ℝ ∞ T Ω :=
+    (ψ.contDiffOn_symm_trans_chartAt ((twistCoreAtlas 1).center i)).mono hΩT
+  have hdet (z : ℂ) (hz : z ∈ (Ω : Set ℂ)) : (fderiv ℝ T z).det ≠ 0 :=
+    ψ.det_fderiv_symm_trans_chartAt_ne_zero hn ((twistCoreAtlas 1).center i) (hΩT hz)
   have hinj : InjOn T Ω := T.injOn.mono hΩT
   have hmaps : MapsTo T Ω ((twistCoreAtlas 1).image i) := fun z hz ↦ by
     rw [hTcoe]
@@ -512,9 +591,11 @@ theorem exists_ae_eq_exp_neg_mul_of_twistOneDelBarSobolev_eq_zero
             ((twistCoreAtlas 1).chart i (ψ.symm z))) =ᵐ[volume.restrict
               (ψ.target ∩ ψ.symm ⁻¹' (twistCoreAtlas 1).dom i)]
           fun z ↦ Complex.exp (-g z) * h z := by
+  have hO : IsOpen (ψ.target ∩ ψ.symm ⁻¹' (twistCoreAtlas 1).dom i) := by
+    simpa [ψ.toOpenPartialHomeomorph_target] using
+      ψ.toOpenPartialHomeomorph.isOpen_inter_preimage_symm ((twistCoreAtlas 1).isOpen_dom i)
   obtain ⟨a, ha, hv⟩ := exists_hasWeakConjWirtingerDerivOn_mul_of_twistOneDelBarSobolev_eq_zero
-    hJ hi hw hψ i (Ω := ⟨_, ψ.isOpen_inter_preimage_symm ((twistCoreAtlas 1).isOpen_dom i)⟩)
-    subset_rfl
+    hJ hi hw hψ i (Ω := ⟨_, hO⟩) subset_rfl
   obtain ⟨g, hg, -, h, hh, hae⟩ := hv.exists_contDiffOn_differentiableOn_ae_eq_exp_neg_mul ha
   exact ⟨g, hg, h, hh, hae⟩
 
@@ -543,14 +624,16 @@ theorem exists_contDiffOn_ae_eq_chartValueL_of_twistOneDelBarSobolev_eq_zero
     φ.isOpen_inter_preimage_symm (ψ.open_source.inter ((twistCoreAtlas 1).isOpen_dom i))
   have hUS : U ⊆ S.source := fun z hz ↦ by simpa [S] using ⟨hz.1, hz.2.1⟩
   have hn : (∞ : WithTop ℕ∞) ≠ 0 := by simp
-  have hSs := (ψ.contDiffOn_symm_trans_chartAt hn ((twistCoreAtlas 1).center i)).2
-  have hS : ContDiffOn ℝ ∞ S U := hSs.1.mono hUS
+  have hS : ContDiffOn ℝ ∞ S U :=
+    (ψ.contDiffOn_chartAt_symm_trans ((twistCoreAtlas 1).center i)).mono hUS
   have hmaps : MapsTo S U (ψ.target ∩ ψ.symm ⁻¹' (twistCoreAtlas 1).dom i) := fun z hz ↦ by
     simpa [S, ψ.left_inv hz.2.1] using ⟨ψ.map_source hz.2.1, hz.2.2⟩
+  have hO : IsOpen (ψ.target ∩ ψ.symm ⁻¹' (twistCoreAtlas 1).dom i) := by
+    simpa [ψ.toOpenPartialHomeomorph_target] using
+      ψ.toOpenPartialHomeomorph.isOpen_inter_preimage_symm ((twistCoreAtlas 1).isOpen_dom i)
   have hF : ContDiffOn ℝ ∞ (fun z ↦ Complex.exp (-g z) * h z)
       (ψ.target ∩ ψ.symm ⁻¹' (twistCoreAtlas 1).dom i) :=
-    hg.neg.cexp.mul ((hh.contDiffOn
-      (ψ.isOpen_inter_preimage_symm ((twistCoreAtlas 1).isOpen_dom i))).restrict_scalars ℝ)
+    hg.neg.cexp.mul ((hh.contDiffOn hO).restrict_scalars ℝ)
   obtain ⟨p, hp, hpy⟩ := (twistCoreAtlas 1).mem_image.1 hy
   refine ⟨U, hU,
     ⟨hpy ▸ φ.map_source ((twistCoreAtlas 1).dom_subset_chart_source i hp),
@@ -560,7 +643,8 @@ theorem exists_contDiffOn_ae_eq_chartValueL_of_twistOneDelBarSobolev_eq_zero
   -- Pull the local form back along `S`, which has invertible derivative on `U`.
   have hae' := MeasureTheory.ae_restrict_comp_of_differentiableOn (μ := volume) hU
     (hS.differentiableOn hn) (S.injOn.mono hUS)
-    (fun z hz ↦ hSs.2 z (hUS hz)) hmaps hae
+    (fun z hz ↦ ψ.det_fderiv_chartAt_symm_trans_ne_zero hn ((twistCoreAtlas 1).center i) (hUS hz))
+    hmaps hae
   filter_upwards [hae', ae_restrict_mem hU.measurableSet] with z hz hzU
   have hφz : φ (ψ.symm (S z)) = z := by
     simp [S, ψ.left_inv hzU.2.1, φ.right_inv hzU.1]

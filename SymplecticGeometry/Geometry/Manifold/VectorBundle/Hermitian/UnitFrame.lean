@@ -113,7 +113,8 @@ theorem continuous_unitFrame {S : Set B} {σ : ∀ x, Fiber ℂ F E ℂ x}
     Continuous fun q : S × F ↦ TotalSpace.mk' F (q.1 : B) (unitFrame e (σ q.1) q.2) := by
   -- `σ` read in the frame bundle with model fibre `unitary (ℂ →L[ℂ] ℂ)`.
   have hσ' : Continuous fun q : S × F ↦ TotalSpace.mk' (unitary (ℂ →L[ℂ] ℂ)) (q.1 : B) (σ q.1) :=
-    (((TotalSpace.modelFiberHomeomorph ⟨rfl⟩).continuous.comp_continuousOn hσ).comp_continuous
+    (((TotalSpace.modelFiberHomeomorph isInducing_modelFiberEquiv_circleFiber).continuous
+      |>.comp_continuousOn hσ).comp_continuous
       (continuous_subtypeVal.comp continuous_fst) fun q ↦ q.1.property).congr fun q ↦ by
         simp [TotalSpace.coe_modelFiberHomeomorph, TotalSpace.modelFiberEquiv_apply]
   exact continuous_totalSpace_frame_apply.comp (hσ'.prodMk (e.continuous.comp continuous_snd))

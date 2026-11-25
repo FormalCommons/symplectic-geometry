@@ -37,7 +37,8 @@ library's own definition, in `SymplecticGeometry.Bundle`. Of the other lemmas,
 `zeroSectionTangentEquiv_symm_inl`, `mfderiv_zeroSectionTangentEquiv_symm_inl` and
 `mfderiv_zeroSectionTangentEquiv_symm_inr`, about Tau Ceti's splitting, are in Tau Ceti's
 namespace `TauCeti.Bundle`, and
-`extChartAt_symm_apply_zero_of_mem_baseSet`, about the charts of the total space, and
+`extChartAt_symm_apply_zero_of_mem_baseSet`, about the charts of the total space,
+`contMDiff_totalSpaceMk_comp`, about linear maps into one fibre, and
 `contMDiff_mfderiv_smul_curve`, about maps on the total space, in Mathlib's namespace `Bundle`.
 
 ## Main definitions
@@ -51,6 +52,10 @@ namespace `TauCeti.Bundle`, and
   total space is Hausdorff.
 * `Bundle.extChartAt_symm_apply_zero_of_mem_baseSet`: the inverse of the preferred chart of the
   total space sends `(y, 0)` to the zero vector over the base point with coordinate `y`.
+* `Bundle.contMDiff_totalSpaceMk_comp`: a continuous linear map from a normed space into one
+  fibre, followed by the inclusion of that fibre into the total space, is `C^n` for every `n`.
+  Its proof follows that of Tau Ceti's `TauCeti.Manifold.contMDiff_totalSpaceMk`, the case of
+  the identity of a normed fibre.
 * `TauCeti.Bundle.zeroSectionTangentEquiv_symm_inl`: the inverse of Tau Ceti's splitting sends
   the horizontal vector `(u, 0)` at `b` to the image of `u` under the differential of the zero
   section.
@@ -134,6 +139,18 @@ theorem extChartAt_symm_apply_zero_of_mem_baseSet (p : TotalSpace F V) {y : EB}
       zeroSection F V ((extChartAt IB p.proj).symm y) := by
   rw [extChartAt_symm_apply_of_mem_baseSet p hy, ← Trivialization.symmₗ_apply (R := 𝕜) _ hy,
     map_zero, zeroSection]
+
+/-- A continuous linear map `L` from a normed space into the fibre over `b`, followed by the
+inclusion of that fibre into the total space, is `C^n` for every `n`. -/
+theorem contMDiff_totalSpaceMk_comp {Q : Type*} [NormedAddCommGroup Q] [NormedSpace 𝕜 Q]
+    {n : WithTop ℕ∞} (b : B) (L : Q →L[𝕜] V b) :
+    ContMDiff 𝓘(𝕜, Q) (IB.prod 𝓘(𝕜, F)) n (fun w ↦ TotalSpace.mk' F b (L w)) := by
+  have hb := FiberBundle.mem_baseSet_trivializationAt F V b
+  intro w
+  refine contMDiffAt_totalSpace_iff.2 ⟨contMDiffAt_const, ?_⟩
+  exact ((trivializationAt F V b).continuousLinearMapAt 𝕜 b ∘L L).contMDiff.contMDiffAt
+    |>.congr_of_eventuallyEq (Filter.Eventually.of_forall fun w' ↦
+      ((trivializationAt F V b).continuousLinearMapAt_apply_of_mem 𝕜 hb (L w')).symm)
 
 end Bundle
 
