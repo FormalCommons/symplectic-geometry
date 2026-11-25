@@ -362,16 +362,17 @@ With `hf : IsClosed (range f)` and a normalized tube `Φ` with open image
 
 ### `Geometry/Manifold/Orientation/NormalOrientation.lean`
 
-- `TauCeti.SmoothEmbedding.normalOrientation f hdim oX oZ`: the normal
+- `TauCeti.SmoothEmbedding.normalOrientation f hn hdim oX oZ`: the normal
   orientation induced by `oX : Manifold.Orientation J X (Fin (m + r))` and
   `oZ : Manifold.Orientation I Z (Fin m)`, normal directions first in local
   homology (see *Decisions*), a `VectorBundleOrientation`; built pointwise
   as `Orientation.cokerOfExact` of $0\to T_zZ\to T_{f(z)}X\to\nu_z\to0$,
   with no sign, and with local constancy in Tau Ceti's trivializations of
   the normal bundle, as in `VectorBundleOrientation.transverse`.
-- `normalOrientation_apply` (the characterization by positive bases: a
-  positive basis of $T_zZ$ followed by lifts of a positive basis of
-  $\nu_z$),
+- `normalOrientation_apply` (each fibre is that cokernel orientation),
+  `ofExact_normalOrientation` and `normalOrientation_eq_iff` (the
+  characterization by positive bases: a positive basis of $T_zZ$ followed
+  by lifts of a positive basis of $\nu_z$),
   `normalOrientation_neg_left`, `normalOrientation_neg_right`.
 
 ### `AlgebraicTopology/Cohomology/Cap/ProdLocal.lean`
@@ -394,7 +395,7 @@ degenerates to the unit and needs no product orientation.
 ### `Geometry/Manifold/Orientation/DualClass.lean`
 
 For closed `X` and `Z` (`[CompactSpace X]`), `hf`, and
-`o = normalOrientation f hdim oX oZ`:
+`o = normalOrientation f hn hdim oX oZ`:
 
 - `TauCeti.SmoothEmbedding.dualClass_cap_fundamentalClass`: for
   `m + 1 = finrank ℝ E`, the cap product of `dualClass f hf o` with the
@@ -408,7 +409,7 @@ For closed `X` and `Z` (`[CompactSpace X]`), `hf`, and
   $Z$, and in a trivialization the local class is `Cap/ProdLocal.lean`'s,
   once the local orientation of $X$ at $f(z)$ is identified with the cross
   product of the local orientations of $\nu_z$ and of $Z$ at $z$, normal
-  first (`normalOrientation_apply` and
+  first (`ofExact_normalOrientation` and
   `coe_cross_localOrientation_eq_neg_one_pow_smul`).
 - `dualClass_cap_fundamentalClass_of_finrank_eq_zero`: the case
   $\dim Z=0$, with `toHomologicalOrientationOfZeroDim` and its fundamental
@@ -432,18 +433,20 @@ For a smooth vector bundle `E' → X` with model fibre `F'` and a smooth
 section `s` transverse to the zero section (at each zero, the vertical
 derivative $D s(x):T_xX\to E'_x$, read in any trivialization, is onto):
 
-- `TauCeti.SmoothEmbedding.ofTransverseSection s hs`: the inclusion of the
-  zero set, with Tau Ceti's manifold structure `sectionZeroChartedSpace`
+- `TauCeti.SmoothEmbedding.ofTransverseSection hm hsm hs hE`: the inclusion of
+  the zero set, with the atlas `SymplecticGeometry.transverseZeroSetChartedSpace` built from Tau
+  Ceti's `sectionZeroChartedSpace`
   (modelled on a space of dimension `dim X - r`, through identifications of
   the kernels of the derivative), and the immersion
-  `isImmersionOfComplement_coe_sectionZero`, as a `SmoothEmbedding`, with
+  `SymplecticGeometry.isImmersionOfComplement_coe_transverseZeroSet`, as a `SmoothEmbedding`, with
   `isClosed_range_ofTransverseSection`. Tau Ceti's atlas is stated for a
   base modelled directly on a normed space, with chosen trivializations,
   surjectivity and complemented kernels as data; a base over a general
   boundaryless model `J` is first carried to Tau Ceti's
   `BoundarylessModel J X`, as `Geometry/Manifold/RegularValue/Level.lean`
-  does for level sets, and `ofTransverseSection` takes the section, its
-  transversality and these choices, which are made once from `hs`.
+  does for level sets, and `ofTransverseSection` takes the order `hm : m ≠ 0`,
+  the smoothness `hsm` of the section, its transversality `hs` and the
+  dimension `hE` of the model; the choices are made once from `hs`.
 
 ### `Geometry/Manifold/VectorBundle/ZeroSet/NormalSpace.lean`
 
