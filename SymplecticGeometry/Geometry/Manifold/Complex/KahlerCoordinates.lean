@@ -13,6 +13,7 @@ import SymplecticGeometry.Geometry.Manifold.DifferentialForm.PartialDiffeomorph
 import SymplecticGeometry.Geometry.Symplectic.Manifold.AlmostComplex.Chart
 import SymplecticGeometry.LinearAlgebra.ComplexStructure.SymmetricBilinear
 import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.ModelSpace
+import SymplecticGeometry.Topology.Algebra.Module.Alternating.Basic
 
 /-!
 # Osculating holomorphic charts of a Kähler manifold
@@ -116,22 +117,20 @@ theorem fderiv_mpullback_symm_eq_zero_of_fderiv_gramInChart_eq_zero
       (by simp)
   have hG := ((φ.contDiffOn_gramInChart.contDiffAt hT).differentiableAt (by simp)).hasFDerivAt
   rw [h] at hG
-  ext v w
-  have hw : w = ![w 0, w 1] := (FinVec.etaExpand_eq _).symm
+  ext v w₀ w₁
   -- On the target, `ω(u, u') = g(u, -J₀ u')` in the chart, which has derivative zero at `z`.
   have hc : HasFDerivAt (fun p ↦ (mpullback 𝓘(ℝ, E) I φ.symm form.val p : E [⋀^Fin 2]→L[ℝ] ℝ)
-      ![w 0, w 1]) (0 : E →L[ℝ] ℝ) z := by
-    have := (hG.clm_apply (hasFDerivAt_const (w 0) z)).clm_apply (hasFDerivAt_const (-J₀ (w 1)) z)
+      ![w₀, w₁]) (0 : E →L[ℝ] ℝ) z := by
+    have := (hG.clm_apply (hasFDerivAt_const w₀ z)).clm_apply (hasFDerivAt_const (-J₀ w₁) z)
     simp only [zero_apply, ContinuousLinearMap.comp_zero, zero_add,
       ContinuousLinearMap.flip_zero] at this
     refine this.congr_of_eventuallyEq (Filter.eventually_of_mem hT fun p hp ↦ ?_)
-    have hgp := φ.gramInChart_apply_eq_mpullback_symm_apply hg hφ hp (w 0) (-J₀ (w 1))
-    have hJ : J₀ (-J₀ (w 1)) = w 1 := by rw [map_neg, J₀.apply_apply, neg_neg]
+    have hgp := φ.gramInChart_apply_eq_mpullback_symm_apply hg hφ hp w₀ (-J₀ w₁)
+    have hJ : J₀ (-J₀ w₁) = w₁ := by rw [map_neg, J₀.apply_apply, neg_neg]
     simp only [hJ] at hgp
     exact hgp.symm
-  have hd := (ContinuousAlternatingMap.apply ℝ E ℝ ![w 0, w 1]).hasFDerivAt.comp z hΩ.hasFDerivAt
+  have hd := (ContinuousAlternatingMap.apply ℝ E ℝ ![w₀, w₁]).hasFDerivAt.comp z hΩ.hasFDerivAt
   have h0 := congrArg (· v) (hd.unique hc)
-  rw [hw]
   simpa using h0
 
 end PartialDiffeomorph
