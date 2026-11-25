@@ -47,9 +47,9 @@ modelled on `EuclideanSpace ℝ (Fin (2 * n))`, with a symplectic form
 `ω : TauCeti.SmoothTwoForm I M` (`ω.IsSymplectic`) and an almost complex
 structure `J : TauCeti.SmoothAlmostComplexStructure I M` with
 `ω.Compatible J` (one exists by Tau Ceti's
-`TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible`). The metric
-$g_J=\omega(\cdot,J\cdot)$ is Tau Ceti's `TauCeti.SmoothTwoForm.Compatible.metric`.
-An integral lift of $[\omega]$ is a class $a\in H^2(M;\mathbb Z)$ as the
+`TauCeti.SmoothTwoForm.IsNondegenerate.exists_compatible`).
+Its metric $g_J$, with $g_J(u,v)=\omega(u,Jv)$, is Tau Ceti's `TauCeti.SmoothTwoForm.Compatible.metric`.
+An integral lift of $[\omega]$ is an element $a$ of $H^2(M;\mathbb Z)$, as the
 conventions *Blowups, sums and Donaldson hypersurfaces* of `DESIGN.md` say:
 its image in real singular cohomology is `TauCeti.deRhamHom` of $[\omega]$.
 Integral classes are read with `ULift ℤ` values, as Tau Ceti's
@@ -74,8 +74,8 @@ A unitary connection on $L$ is a connection form
 `Principal/CircleConnection.lean`. In the library's normalization the form
 takes the value `1` on the fundamental field of `circleLieGenerator`. So
 McDuff–Salamon's curvature is $i\,F_\alpha$, and the curvature
-$-2\pi i\omega$ of the page is `hα.curvature = -(2 * π) • ω` (pulled back to
-`P`). This agrees with `realFirstChernClass_def`: the real class is then
+$-2\pi i\omega$ of the page is `hα.curvature = -(2 * π) • ω`, a form on the
+base. This agrees with `realFirstChernClass_def`: the real class is then
 $[\omega]$.
 
 The powers are not iterated tensor products. Neither library has a
@@ -178,8 +178,8 @@ prerequisite issues (issues 1–5 below):
    bundle $L$ with `complexEulerClass L = a`. The route goes through
    classifying maps. $M$ has finite CW type (Tau Ceti's
    `TauCeti.FiniteCWType.of_isManifold`). $\mathbb CP^N$ has $\pi_1=0$,
-   $\pi_2=\mathbb Z$ and $\pi_j=0$ for $3\le j\le 2N$, from the Hopf
-   fibration $S^{2N+1}\to\mathbb CP^N$. So for $2N\ge\dim M$ obstruction
+   $\pi_2=\mathbb Z$ and $\pi_j=0$ for $3\le j\le 2N$, by the long exact
+   sequence of the Hopf map, whose total space is $S^{2N+1}$. So for $2N\ge\dim M$ obstruction
    theory over the skeleta gives a map $f:M\to\mathbb CP^N$ with $f^*h=a$.
    It is made smooth up to homotopy by Tau Ceti's
    `ContinuousMap.exists_contMDiff_homotopicRel_of_isCompact_closure_range`
@@ -308,13 +308,13 @@ and the prerequisites, placed by topic.
 ### Prerequisites
 
 - `Geometry/Manifold/SmoothSingular/DeRhamTheorem.lean`:
-  `TauCeti.bijective_deRhamHom` (on a manifold with a finite good cover, or
+  `TauCeti.bijective_deRhamHom` (for manifolds that have a finite good cover, or
   a second-countable one through `mayerVietoris_induction`),
   `TauCeti.injective_deRhamHom`. If Tau Ceti's `deRhamHom` lands in smooth
   singular cohomology, the file also compares it with continuous singular
   cohomology, unless `SmoothSingular/Smoothing.lean` already does.
 - `Geometry/Manifold/Instances/ComplexProjectiveSpace/HomotopyGroups.lean`:
-  the Hopf fibration $S^{2N+1}\to\mathbb CP^N$ as a Serre fibration (Tau
+  the Hopf map from $S^{2N+1}$ onto $\mathbb CP^N$ as a Serre fibration (Tau
   Ceti's `Topology/Homotopy/SerreFibration/`), and
   `ComplexProjectiveSpace.subsingleton_homotopyGroup` for $3\le j\le 2N$,
   with $\pi_1=0$ and $\pi_2\cong\mathbb Z$.
@@ -399,9 +399,9 @@ and the prerequisites, placed by topic.
   cut-off Gaussians $\chi(|z|/k^{1/6})e^{-|z|^2/4}$ and $z_j$ times them in
   the chart at $x$, extended by zero. The milestone
   `exists_peakSection_estimates` gives the lower bound near $x$, and the
-  Gaussian bounds $P_r(d_k(x,y))e^{-c\,d_k(x,y)^2}$ for `jetNorm` of the
-  sections and $k^{-1/2}$ times them for $\bar\partial$, uniformly in $k$,
-  $x$, $y$.
+  Gaussian bounds: `jetNorm` of the sections at $y$ is at most
+  $P_r(d_k(x,y))e^{-c\,d_k(x,y)^2}$, and that of $\bar\partial$ of them at
+  most $k^{-1/2}$ times it, uniformly in $k$, $x$ and $y$.
 - `LocalTransversality.lean`: the milestone
   `exists_norm_le_max_ge_of_dbar_le`, with $B^+$ of radius $11/10$, $B$ the
   unit ball, $\epsilon=\delta(\log(1/\delta))^{-p}$ and
@@ -410,10 +410,11 @@ and the prerequisites, placed by topic.
   $G=(f-\sum_jz_j\partial_jf,\partial_1f,\dots,\partial_nf)$.
 - `GlobalTransversality.lean`: the local correction on one ball, by division
   by `peakSection` (`exists_local_correction`), and the iteration over
-  colours (`exists_isUniformlyTransverse`, the milestone). The constants
-  follow the recurrence $u_j\le u_{j-1}+C_3+p\log(u_{j-1}+\log A)$ for
-  $u_j=\log(1/b_j)$, and the file proves the bound
-  $u_j=O((j+1)\log(j+2))$ as a separate lemma about real sequences.
+  colours (`exists_isUniformlyTransverse`, the milestone). The logarithms
+  $u_j=\log(1/b_j)$ of the lower bounds obey a recurrence
+  $u_j\le u_{j-1}+C_3+p\log(u_{j-1}+\log A)$. The file proves, as a separate
+  lemma about real sequences, that such sequences grow at most like
+  $(j+1)\log(j+2)$.
 - `Connectivity.lean`: `criticalPoint_norm_ge` (at critical points of
   $\log|s_k|^2$, $|s_k|\ge\eta$ for large $k$),
   `hessian_add_hessian_J_neg`, `morseIndex_ge` and the milestone
