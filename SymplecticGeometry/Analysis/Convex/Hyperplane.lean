@@ -39,17 +39,21 @@ section Hyperplane
 variable {V : Type*} [AddCommGroup V] [Module ℝ V] [TopologicalSpace V] [IsTopologicalAddGroup V]
   [ContinuousSMul ℝ V] {T L : Set V} {g : StrongDual ℝ V}
 
+omit [IsTopologicalAddGroup V] in
 /-- The closure of the open half-space `{z | a < g z}` of a nonzero continuous linear
 functional `g` is the closed half-space `{z | a ≤ g z}`. -/
-theorem _root_.ContinuousLinearMap.closure_setOfPred_lt_apply (hg : g ≠ 0) (a : ℝ) :
+theorem _root_.ContinuousLinearMap.closure_setOfPred_lt_apply [ContinuousAdd V] (hg : g ≠ 0)
+    (a : ℝ) :
     closure {z | a < g z} = {z | a ≤ g z} := by
   have h := (g.isOpenMap_of_ne_zero hg).preimage_closure_eq_closure_preimage g.continuous (Ioi a)
   rw [closure_Ioi] at h
   simpa only [preimage, mem_Ici, mem_Ioi] using h.symm
 
+omit [IsTopologicalAddGroup V] in
 /-- In an open set `T`, the points where a nonzero continuous linear functional `g` is
 nonnegative lie in the closure of those where it is positive. -/
-theorem _root_.IsOpen.inter_setOfPred_nonneg_subset_closure (hT : IsOpen T) (hg : g ≠ 0) :
+theorem _root_.IsOpen.inter_setOfPred_nonneg_subset_closure [ContinuousAdd V] (hT : IsOpen T)
+    (hg : g ≠ 0) :
     T ∩ {z | 0 ≤ g z} ⊆ closure (T ∩ {z | 0 < g z}) := by
   rw [← g.closure_setOfPred_lt_apply hg 0]
   exact hT.inter_closure
