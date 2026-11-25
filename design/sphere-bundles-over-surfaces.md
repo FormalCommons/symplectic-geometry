@@ -104,7 +104,7 @@ notes of the reviews of #2280 and #2445.
      `TauCeti.exists_sublevelHomotopyEquiv`), lifted to `M`
      by the horizontal lift of an Ehresmann connection (Tau Ceti's
      `IsSubmersion.exists_isEhresmannConnection`,
-     `Submersion/EhresmannConnection.lean`), carries the bundle over
+     `Submersion/EhresmannConnection/Basic.lean`), carries the bundle over
      `{f ≤ c'} ∩ S'` to the bundle over `{f ≤ c} ∩ S'`; with the discs
      removed, the level of a maximum adds only a collar on the boundary
      circle of `D i`, which this band step covers, and no handle; an

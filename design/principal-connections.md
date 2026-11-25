@@ -304,9 +304,9 @@ The connection induced by a connection form on $P\times_GF$
   representative, by equivariance of $A$ and invariance of $q$.
 - `IsConnectionForm.isEhresmannConnection_associatedHorizontal`: Tau
   Ceti's `IsEhresmannConnection` for $\pi_M$. Complementarity with the
-  vertical space follows from that of `horizontal` on $P$ and from
-  $\Phi$; smoothness of the distribution is checked in a local section
-  of $P$, where it is the image of a smooth frame.
+  vertical space follows from that of `horizontal` on $P$, since
+  $\pi_M\circ[\cdot,v]=\pi_P$; smoothness of the distribution is
+  checked in a local section of $P$, where it is the image of a smooth frame.
 - `IsConnectionForm.mfderiv_totalSpaceMk_mk_horizontalLift`: the horizontal
   lift at $[x,v]$ of $w$ is $dq$ of the horizontal lift of $w$ at $x$.
 
@@ -399,7 +399,7 @@ Issues 1, 2 and 5 can start at once.
   the adjoint and coadjoint actions (`Geometry/Lie/Adjoint/`), forms with
   values in a normed space, their pull-back, exterior derivative, wedge
   and descent (`Geometry/Manifold/DifferentialForm/`), Ehresmann
-  connections (`Geometry/Manifold/Submersion/EhresmannConnection.lean`),
+  connections (`Geometry/Manifold/Submersion/EhresmannConnection/Basic.lean`),
   equivariant moment maps
   (`Geometry/Symplectic/Hamiltonian/EquivariantMomentMap/Basic.lean`).
 

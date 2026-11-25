@@ -16,11 +16,12 @@ that of I. Kolář, P. W. Michor and J. Slovák, *Natural Operations in
 Differential Geometry*, Springer (1993), §9, and the local triviality of a
 proper submersion is C. Ehresmann's theorem (*Les connexions infinitésimales
 dans un espace fibré différentiable*, Colloque de topologie, Bruxelles
-(1950), 29–55), both cited by Tau Ceti's `EhresmannConnection.lean`.
+(1950), 29–55), both cited by Tau Ceti's `EhresmannConnection/Basic.lean`.
 
 All new files are in Tau Ceti's folder `Geometry/Manifold/Submersion/`, beside
-`EhresmannConnection.lean`; paths of new files are under
-`SymplecticGeometry/`, Tau Ceti paths under `.lake/packages/TauCeti/TauCeti/`.
+the folder `EhresmannConnection/` (with `EhresmannConnection/Basic.lean`);
+paths of new files are under `SymplecticGeometry/`, Tau Ceti paths under
+`.lake/packages/TauCeti/TauCeti/`.
 Every new declaration is about Tau Ceti's notions, so it is in the namespace
 `TauCeti.IsEhresmannConnection` (dot notation on a proof
 `hD : TauCeti.IsEhresmannConnection I J ∞ f D`), `Manifold.IsSubmersion` or
@@ -101,7 +102,7 @@ Tau Ceti has the connection and the pointwise lift
 (`TauCeti.IsEhresmannConnection`, `horizontalLift`, `mfderiv_horizontalLift`,
 `eq_horizontalLift_iff`) and the existence of connections on submersions from
 a σ-compact manifold (`Manifold.IsSubmersion.exists_isEhresmannConnection`),
-all in `Submersion/EhresmannConnection.lean`; horizontal maps
+all in `Submersion/EhresmannConnection/Basic.lean`; horizontal maps
 (`TauCeti.IsHorizontalMap`); time-dependent flows with uniqueness, joint
 smoothness, the escape criterion and completeness for compactly supported
 fields (`TauCeti.timeDependentFlowOf`, `timeDependentFlowOf_eq_of_hasMFDerivAt`,
@@ -313,7 +314,7 @@ diffeomorphism groups*).
   depends only on `v₁ (f x)` and `v₂ (f x)`. Part 53's local formula for
   $\Omega_\Gamma(\partial_i,\partial_j)$ applies it to coordinate fields.
 - `curvature_eq_zero_iff_isInvolutiveDistribution`: the curvature at each `x`
-  of all `v₁ v₂` that are `C^n` at `f x` vanishes exactly when
+  of all `v₁ v₂` that are `C^1` at `f x` vanishes exactly when
   `TauCeti.IsInvolutiveDistribution I D`.
   One direction is `IsInvolutiveDistribution.mlieBracket_mem` with
   `curvature_mem_ker` and the complement condition `isCompl_ker`; for the

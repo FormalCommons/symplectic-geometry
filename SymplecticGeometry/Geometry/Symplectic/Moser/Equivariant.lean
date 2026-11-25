@@ -9,7 +9,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Moser.Field
 public import SymplecticGeometry.Geometry.Manifold.Flow.TimeDependent
 public import TauCeti.Geometry.Manifold.Algebra.SMul
 public import SymplecticGeometry.Geometry.Symplectic.Moser.Relative
-import SymplecticGeometry.Geometry.Symplectic.Manifold.Flat
+import TauCeti.Geometry.Symplectic.Hamiltonian.CanonicalTransformation
 import SymplecticGeometry.Geometry.Manifold.GroupAction.Opens
 import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantPrimitive
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Opens
@@ -27,8 +27,8 @@ Let `σ` be a two-form and `β` a one-form on `N × M`, with slices `σ_t` and `
 `ρ : N × M → ℝ` be a cutoff. If a diffeomorphism `g` of `M` preserves every slice `σ_t` and `β_t`
 and every function `ρ(t, ·)`, then the cut-off Moser field `X_t = ρ(t, ·) (σ_t♭)⁻¹(-β_t)` of
 `SymplecticGeometry.moserField` is `g`-related to itself at every time: inverse flat maps are
-natural under maps with invertible differential
-(`TauCeti.SmoothTwoForm.mfderiv_flat_mpullback_inverse_apply`).
+natural under symplectic maps with invertible differential, and `g` is one from `g^* σ_t` to `σ_t`
+(`TauCeti.SmoothTwoForm.IsSymplecticMap.mfderiv_inverse_flat_comp`).
 
 For `N = ℝ`, the time-dependent flow of a `C¹` Moser field then commutes with `g`, by the
 naturality of time-dependent flows (`Diffeomorph.apply_timeDependentFlowOf`, which applies Tau
@@ -136,7 +136,7 @@ theorem mfderiv_moserField (g : M ≃ₘ⟮I, I⟯ M) {t : N}
   have key : mfderiv I I g x ((SmoothTwoForm.flat σt x).inverse (-SmoothForm.degreeOneEquiv βt x)) =
       (SmoothTwoForm.flat σt (g x)).inverse (-SmoothForm.degreeOneEquiv βt (g x)) := by
     conv_lhs => rw [← hσ]
-    rw [hc, SmoothTwoForm.mfderiv_flat_mpullback_inverse_apply g.contMDiff σt
+    rw [hc, (SmoothTwoForm.isSymplecticMap_mpullback σt g.contMDiff).mfderiv_inverse_flat_comp
       (g.isInvertible_mfderiv (by simp))]
   rw [moserField_def, moserField_def, map_smul, hρ]
   exact congrArg _ key
