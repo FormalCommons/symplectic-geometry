@@ -24,14 +24,13 @@ that `leafSpaceMk ∘ c` induces from this leaf space to the reduced space is in
 embedded coisotropic submanifold, the hypothesis on the fibres follows from the preconnectedness of
 the corresponding subsets of `M`.
 
-The induced map is then an injective Lagrangian immersion: the projection of `C` onto its leaf
-space is a surjective submersion whose differential has the same kernel as that of
-`leafSpaceMk ∘ c`, so Tau Ceti's
-`TauCeti.SmoothTwoForm.IsNondegenerate.IsLagrangianMap.isLagrangianImmersion_of_comp_submersion`
-applies. When the reduced space is Hausdorff, so is the leaf space of `C`, since it maps
-injectively and continuously into it. Together with the general case of `Immersion.lean` and the
-transverse case of `Basic.lean`, this gives the reduction of a Lagrangian submanifold by a
-coisotropic one.
+The induced map is then an injective Lagrangian immersion: it is an immersion by
+`TauCeti.Foliation.LeafSpace.isImmersion_lift_ofConstantRank`, and Lagrangian by Tau Ceti's
+`TauCeti.SmoothTwoForm.IsNondegenerate.isLagrangianMap_comp_submersion_iff`, applied to the
+projection of `C` onto its leaf space, a surjective submersion. When the reduced space is
+Hausdorff, so is the leaf space of `C`, since it maps injectively and continuously into it.
+Together with the general case of `Immersion.lean` and the transverse case of `Basic.lean`, this
+gives the reduction of a Lagrangian submanifold by a coisotropic one.
 
 ## Main results
 
@@ -45,6 +44,11 @@ coisotropic one.
   also a topological embedding, a fibre of `leafSpaceMk ∘ c` is preconnected as soon as the
   corresponding set `range g ∩ f '' (leafSpaceMk ⁻¹' {b})` of `M` is. It is the case of a fibre
   of `leafSpaceMk` of `IsCleanIntersection.isPreconnected_preimage`.
+* `SymplecticGeometry.IsCleanIntersection.isLagrangianImmersion_leafSpaceLift`,
+  `SymplecticGeometry.IsCleanIntersection.range_leafSpaceLift` and
+  `SymplecticGeometry.IsCleanIntersection.t2Space_leafSpace_ofConstantRank`: the induced map is a
+  Lagrangian immersion with range `leafSpaceMk '' range c`, and, for a Hausdorff reduced space and
+  preconnected fibres, its source is Hausdorff.
 * `SymplecticGeometry.IsCleanIntersection.exists_injective_isLagrangianImmersion_range_eq_image`:
   for a Hausdorff reduced space and preconnected fibres, some injective Lagrangian immersion has
   range `leafSpaceMk '' range c`; its source has dimension `dim P - (dim M - dim N)` and is
@@ -52,7 +56,7 @@ coisotropic one.
 * `IsCleanIntersection.exists_isLagrangianImmersion_range_eq_image_and_transverse_and_injective`:
   the general, transverse and injective cases together.
 * `IsCleanIntersection.exists_injective_isLagrangianImmersion_of_isCoisotropicEmbedding`:
-  the injective case for a coisotropic embedding `f` and a Lagrangian embedding `g`, with the
+  the injective case for a coisotropic embedding `f` and a Lagrangian immersion `g`, with the
   hypothesis on the fibres stated in `M`.
 
 ## References
@@ -132,6 +136,96 @@ theorem injective_leafSpaceLift (hc : IsCleanIntersection I J K L f g c)
   haveI := hc.isSmoothEmbedding.isImmersion.isManifold
   Foliation.LeafSpace.injective_lift_ofConstantRank _ _ hn hpc
 
+/-- **The leaf space of a clean intersection is Hausdorff.** Let `f` be a coisotropic immersion
+whose characteristic foliation is regular with Hausdorff leaf space, `g` a Lagrangian immersion,
+and `c` a clean intersection of `f` and `g` from a boundaryless manifold `C`. If every fibre of
+`leafSpaceMk ∘ c` is preconnected, the leaf space of the kernel foliation of `leafSpaceMk ∘ c` on
+`C` is Hausdorff. -/
+theorem t2Space_leafSpace_ofConstantRank
+    [T2Space (h.characteristicFoliation hi hf hσc hn).LeafSpace]
+    (hc : IsCleanIntersection I J K L f g c)
+    (hR : (h.characteristicFoliation hi hf hσc hn).IsRegular) (hg : hσ.IsLagrangianMap K g)
+    (hgi : IsImmersion K I ∞ g)
+    (hpc : ∀ b,
+      IsPreconnected ((h.characteristicFoliation hi hf hσc hn).leafSpaceMk ∘ c ⁻¹' {b})) :
+    letI := Foliation.leafSpaceChartedSpace hR
+    haveI := Foliation.isManifold_leafSpace hR
+    haveI := hc.isSmoothEmbedding.isImmersion.isManifold
+    T2Space (Foliation.ofConstantRank
+      ((Foliation.contMDiff_leafSpaceMk hR).comp hc.isSmoothEmbedding.contMDiff)
+      (hc.mfderivRank_leafSpaceMk_comp_eq hR hg hgi) hn).LeafSpace :=
+  letI := Foliation.leafSpaceChartedSpace hR
+  haveI := Foliation.isManifold_leafSpace hR
+  haveI := hc.isSmoothEmbedding.isImmersion.isManifold
+  T2Space.of_injective_continuous (hc.injective_leafSpaceLift hR hg hgi hpc)
+    (Foliation.LeafSpace.continuous_lift
+      ((Foliation.contMDiff_leafSpaceMk hR).comp hc.isSmoothEmbedding.contMDiff).continuous)
+
+/-- The range of the map induced by `leafSpaceMk ∘ c` on the leaf space of the kernel foliation of
+`leafSpaceMk ∘ c` on `C` is the image of `range c` in the leaf space of the characteristic
+foliation of `f`. -/
+theorem range_leafSpaceLift (hc : IsCleanIntersection I J K L f g c)
+    (hR : (h.characteristicFoliation hi hf hσc hn).IsRegular) (hg : hσ.IsLagrangianMap K g)
+    (hgi : IsImmersion K I ∞ g) :
+    letI := Foliation.leafSpaceChartedSpace hR
+    haveI := Foliation.isManifold_leafSpace hR
+    haveI := hc.isSmoothEmbedding.isImmersion.isManifold
+    Set.range (Foliation.LeafSpace.lift
+      ((h.characteristicFoliation hi hf hσc hn).leafSpaceMk ∘ c) fun _ _ ↦
+        Foliation.SameLeaf.apply_eq_of_ofConstantRank
+          (hf := (Foliation.contMDiff_leafSpaceMk hR).comp hc.isSmoothEmbedding.contMDiff)
+          (hr := hc.mfderivRank_leafSpaceMk_comp_eq hR hg hgi) (hn := hn)) =
+      (h.characteristicFoliation hi hf hσc hn).leafSpaceMk '' Set.range c := by
+  let := Foliation.leafSpaceChartedSpace hR
+  have := Foliation.isManifold_leafSpace hR
+  have := hc.isSmoothEmbedding.isImmersion.isManifold
+  rw [← Foliation.leafSpaceMk_surjective.range_comp, Foliation.LeafSpace.lift_comp_leafSpaceMk,
+    Set.range_comp]
+
+/-- **The map induced on the leaf space of a clean intersection is a Lagrangian immersion.**
+Let `f` be a coisotropic immersion with regular characteristic foliation, `g` a Lagrangian
+immersion, and `c` a clean intersection of `f` and `g` from a nonempty boundaryless manifold `C`.
+Let `τ` be a nondegenerate two-form on the leaf space of `f` whose pullback to `N` is `f^* σ`.
+Then the map induced by `leafSpaceMk ∘ c` from the leaf space of the kernel foliation of
+`leafSpaceMk ∘ c` on `C`, with the charts of `isRegular_ofConstantRank`, is a Lagrangian immersion
+for `τ`. -/
+theorem isLagrangianImmersion_leafSpaceLift [Nonempty C] (hc : IsCleanIntersection I J K L f g c)
+    (hR : (h.characteristicFoliation hi hf hσc hn).IsRegular) (hg : hσ.IsLagrangianMap K g)
+    (hgi : IsImmersion K I ∞ g) :
+    letI := Foliation.leafSpaceChartedSpace hR
+    haveI := Foliation.isManifold_leafSpace hR
+    haveI := hc.isSmoothEmbedding.isImmersion.isManifold
+    letI := Foliation.leafSpaceChartedSpace (hc.isRegular_ofConstantRank hR hg hgi)
+    ∀ {τ : SmoothTwoForm
+        𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ F - (finrank ℝ E - finrank ℝ F))))
+        (h.characteristicFoliation hi hf hσc hn).LeafSpace} (hτ : τ.IsNondegenerate),
+      SmoothForm.mpullback (h.characteristicFoliation hi hf hσc hn).leafSpaceMk
+          (Foliation.contMDiff_leafSpaceMk hR) τ = SmoothForm.mpullback f hf σ →
+      hτ.IsLagrangianImmersion 𝓘(ℝ, EuclideanSpace ℝ
+          (Fin (finrank ℝ E₀ - (finrank ℝ E₀ - (finrank ℝ G - (finrank ℝ E - finrank ℝ F))))))
+        (Foliation.LeafSpace.lift
+          ((h.characteristicFoliation hi hf hσc hn).leafSpaceMk ∘ c) fun _ _ ↦
+            Foliation.SameLeaf.apply_eq_of_ofConstantRank
+              (hf := (Foliation.contMDiff_leafSpaceMk hR).comp hc.isSmoothEmbedding.contMDiff)
+              (hr := hc.mfderivRank_leafSpaceMk_comp_eq hR hg hgi) (hn := hn)) := by
+  let := Foliation.leafSpaceChartedSpace hR
+  have := Foliation.isManifold_leafSpace hR
+  have := hc.isSmoothEmbedding.isImmersion.isManifold
+  have hR' := hc.isRegular_ofConstantRank hR hg hgi
+  let := Foliation.leafSpaceChartedSpace hR'
+  have := Foliation.isManifold_leafSpace hR'
+  intro τ hτ hτσ
+  have hfc := (Foliation.contMDiff_leafSpaceMk hR).comp hc.isSmoothEmbedding.contMDiff
+  have : Nonempty (Foliation.ofConstantRank hfc
+      (hc.mfderivRank_leafSpaceMk_comp_eq hR hg hgi) hn).LeafSpace :=
+    ⟨Foliation.leafSpaceMk _ (Classical.arbitrary C)⟩
+  refine isLagrangianImmersion_iff.2 ⟨Foliation.LeafSpace.isImmersion_lift_ofConstantRank hfc
+    (hc.mfderivRank_leafSpaceMk_comp_eq hR hg hgi), (hτ.isLagrangianMap_comp_submersion_iff
+      (Foliation.isSubmersion_leafSpaceMk hR') Foliation.leafSpaceMk_surjective ?_).1 ?_⟩ <;>
+    rw [Foliation.LeafSpace.lift_comp_leafSpaceMk]
+  · exact hfc
+  · exact hc.isLagrangianMap_leafSpaceMk_comp hR hg hτ hτσ
+
 omit [J.Boundaryless] [FiniteDimensional ℝ E₀] [L.Boundaryless] in
 /-- **Preconnected fibres from preconnected subsets of `M`.** Let `f` be a coisotropic immersion
 that is a topological embedding, as for an embedded coisotropic submanifold
@@ -182,34 +276,20 @@ theorem exists_injective_isLagrangianImmersion_range_eq_image [Nonempty C]
   intro τ hτ hτσ
   have := hc.isSmoothEmbedding.isImmersion.isManifold
   have : SecondCountableTopology C := hc.isSmoothEmbedding.isEmbedding.secondCountableTopology
-  have hpc' := (Foliation.contMDiff_leafSpaceMk hR).comp hc.isSmoothEmbedding.contMDiff
-  have hr := hc.mfderivRank_leafSpaceMk_comp_eq hR hg hgi
   obtain ⟨x₀⟩ := ‹Nonempty C›
   have : FiniteDimensional ℝ E₀ := FiniteDimensional.of_injective _
     (hc.isSmoothEmbedding.isImmersion.mfderiv_injective (by simp) x₀)
   -- The leaf space of `C` is modelled on `EuclideanSpace ℝ (Fin (dim C - (dim C - r)))`, where the
   -- rank `r` is at most `dim C`.
-  have hle := (hr x₀).symm.trans_le mfderivRank_le_finrank_source
+  have hle := (hc.mfderivRank_leafSpaceMk_comp_eq hR hg hgi x₀).symm.trans_le
+    mfderivRank_le_finrank_source
   rw [← Nat.sub_sub_self hle]
   have hR' := hc.isRegular_ofConstantRank hR hg hgi
   let := Foliation.leafSpaceChartedSpace hR'
-  have hS := Foliation.isManifold_leafSpace hR'
-  have hinj := hc.injective_leafSpaceLift hR hg hgi hpc
-  have hcomp := Foliation.LeafSpace.lift_comp_leafSpaceMk _
-    fun _ _ ↦ Foliation.SameLeaf.apply_eq_of_ofConstantRank (hf := hpc') (hr := hr) (hn := hn)
-  have : Nonempty (Foliation.ofConstantRank hpc' hr hn).LeafSpace :=
-    ⟨Foliation.leafSpaceMk _ x₀⟩
-  refine ⟨_, _, _, hS, T2Space.of_injective_continuous hinj
-    (Foliation.LeafSpace.continuous_lift hpc'.continuous), inferInstance, _, ?_, hinj, ?_⟩
-  · refine IsLagrangianMap.isLagrangianImmersion_of_comp_submersion (q := Foliation.leafSpaceMk _)
-      ?_ (Foliation.isSubmersion_leafSpaceMk hR') Foliation.leafSpaceMk_surjective ?_ fun x ↦ ?_
-    · rw [hcomp]
-      exact hc.isLagrangianMap_leafSpaceMk_comp hR hg hτ hτσ
-    · rwa [hcomp]
-    · rw [hcomp]
-      exact ((Foliation.ker_mfderiv_leafSpaceMk hR' x).trans
-        (Foliation.ofConstantRank_distribution _ _ _ x)).symm
-  · rw [← Foliation.leafSpaceMk_surjective.range_comp, hcomp, Set.range_comp]
+  exact ⟨_, _, _, Foliation.isManifold_leafSpace hR',
+    hc.t2Space_leafSpace_ofConstantRank hR hg hgi hpc, inferInstance, _,
+    hc.isLagrangianImmersion_leafSpaceLift hR hg hgi hτ hτσ,
+    hc.injective_leafSpaceLift hR hg hgi hpc, hc.range_leafSpaceLift hR hg hgi⟩
 
 omit [FiniteDimensional ℝ E₀] in
 /-- **Clean reduction of a Lagrangian immersion by a coisotropic one.** Let `f` be a coisotropic
@@ -272,7 +352,7 @@ theorem exists_isLagrangianImmersion_range_eq_image_and_transverse_and_injective
 omit [FiniteDimensional ℝ E₀] in
 /-- **The injective case for an embedded coisotropic submanifold.** Let `f` be a coisotropic
 embedding of a second countable manifold `N` whose characteristic foliation is regular with
-Hausdorff leaf space, `g` a Lagrangian embedding, and `c` a clean intersection of `f` and `g`
+Hausdorff leaf space, `g` a Lagrangian immersion, and `c` a clean intersection of `f` and `g`
 from a nonempty boundaryless manifold `C`. Suppose that for every leaf `b` the set
 `range g ∩ f '' (leafSpaceMk ⁻¹' {b})`, the part of the image of `g` on the image of that leaf,
 is preconnected in `M`. Let `τ` be a nondegenerate two-form on the leaf space whose pullback to
@@ -286,7 +366,7 @@ theorem exists_injective_isLagrangianImmersion_of_isCoisotropicEmbedding [Nonemp
     (hc : IsCleanIntersection I J K L f g c)
     (hR : (hQ.isCoisotropicMap.characteristicFoliation hQ.isImmersion hQ.isImmersion.contMDiff
       hσc hn).IsRegular)
-    (hg : hσ.IsLagrangianEmbedding K g)
+    (hg : hσ.IsLagrangianMap K g) (hgi : IsImmersion K I ∞ g)
     (hpc : ∀ b, IsPreconnected (Set.range g ∩ f ''
       ((hQ.isCoisotropicMap.characteristicFoliation hQ.isImmersion hQ.isImmersion.contMDiff
         hσc hn).leafSpaceMk ⁻¹' {b}))) :
@@ -312,8 +392,8 @@ theorem exists_injective_isLagrangianImmersion_of_isCoisotropicEmbedding [Nonemp
           Function.Injective ι ∧
           Set.range ι = (hQ.isCoisotropicMap.characteristicFoliation hQ.isImmersion
             hQ.isImmersion.contMDiff hσc hn).leafSpaceMk '' Set.range c :=
-  fun hτ hτσ ↦ hc.exists_injective_isLagrangianImmersion_range_eq_image hR hg.isLagrangianMap
-    hg.isImmersion (fun b ↦ hc.isPreconnected_preimage_leafSpaceMk_comp hQ.isEmbedding b (hpc b))
+  fun hτ hτσ ↦ hc.exists_injective_isLagrangianImmersion_range_eq_image hR hg hgi
+    (fun b ↦ hc.isPreconnected_preimage_leafSpaceMk_comp hQ.isEmbedding b (hpc b))
     hτ hτσ
 
 end SymplecticGeometry.IsCleanIntersection

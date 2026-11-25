@@ -6,7 +6,8 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Manifold.Distribution.ConstantRank
-public import SymplecticGeometry.Geometry.Manifold.Foliation.LeafSpace.Basic
+public import SymplecticGeometry.Geometry.Manifold.Foliation.LeafSpace.Smooth
+public import TauCeti.Geometry.Manifold.Submersion.Descent
 import Mathlib.Geometry.Manifold.Instances.Real
 
 /-!
@@ -16,7 +17,8 @@ Let `f : M → N` be a smooth map of constant rank `r` between boundaryless real
 source modelled on a finite-dimensional space `E`. The kernels of its derivative form a foliation
 of `M` (`TauCeti.Foliation.ofConstantRank`). This file shows that this foliation is regular in the
 sense of `TauCeti.Foliation.IsRegular`: through every point there is a slice, a transversal that
-meets each leaf at most once.
+meets each leaf at most once. With the charts of `TauCeti.Foliation.leafSpaceChartedSpace`, the
+map that `f` induces on the leaf space is then an immersion.
 
 ## Main results
 
@@ -24,6 +26,10 @@ meets each leaf at most once.
   rank is regular.
 * `TauCeti.Foliation.isSlice_ofConstantRank`: a smooth map `s` from the model space of the slices
   is a slice of that foliation when `f ∘ s` and its derivatives are injective.
+* `TauCeti.Foliation.ker_mfderiv_leafSpaceMk_ofConstantRank`: the projection onto the leaf space
+  of that foliation has the same kernels as the derivative of `f`.
+* `TauCeti.Foliation.LeafSpace.isImmersion_lift_ofConstantRank`: the map induced by `f` on that
+  leaf space is an immersion.
 * `TauCeti.Foliation.LeafSpace.injective_lift_ofConstantRank`: if every fibre is preconnected,
   the map induced by `f` on the leaf space is injective.
 
@@ -171,6 +177,35 @@ theorem isRegular_ofConstantRank (hf : ContMDiff I J ∞ f) (hr : ∀ x, mfderiv
     exact Subtype.ext (sub_eq_zero.1 (hAL h'))
   exact ⟨U, s, isSlice_ofConstantRank hf hr hs hinj hkey,
     ⟨0, by simpa [U, L, hφx] using φ.map_source hxφ⟩, by simp [s, L, ← hφx, φ.left_inv hxφ]⟩
+
+/-- The kernel of the differential at `x` of the projection onto the leaf space of the kernel
+foliation of a smooth map `f` of constant rank is the kernel of the differential of `f` at `x`. -/
+theorem ker_mfderiv_leafSpaceMk_ofConstantRank (hf : ContMDiff I J ∞ f)
+    (hr : ∀ x, mfderivRank I J f x = r) (x : M) :
+    letI := leafSpaceChartedSpace (isRegular_ofConstantRank hf hr)
+    (mfderiv I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - (finrank ℝ E - r))))
+      (ofConstantRank (n := ∞) (hf.of_le ENat.coe_top_add_one.le) hr
+        ENat.LEInfty.out).leafSpaceMk x).ker = (mfderiv I J f x).ker :=
+  (ker_mfderiv_leafSpaceMk (isRegular_ofConstantRank hf hr) x).trans
+    (ofConstantRank_distribution _ hr _ x)
+
+/-- **The map induced on the leaf space of the kernel foliation is an immersion.** For a smooth
+map `f` of constant rank `r` between boundaryless real manifolds modelled on finite-dimensional
+spaces, the map that `f` induces on the leaf space of the foliation of the source by the kernels
+of the derivative of `f` is an immersion. -/
+theorem LeafSpace.isImmersion_lift_ofConstantRank [FiniteDimensional ℝ F]
+    (hf : ContMDiff I J ∞ f) (hr : ∀ x, mfderivRank I J f x = r) :
+    letI := leafSpaceChartedSpace (isRegular_ofConstantRank hf hr)
+    Manifold.IsImmersion 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - (finrank ℝ E - r)))) J ∞
+      (LeafSpace.lift f fun _ _ ↦ SameLeaf.apply_eq_of_ofConstantRank
+        (hf := hf.of_le ENat.coe_top_add_one.le) (hr := hr) (hn := ENat.LEInfty.out)) := by
+  have hR := isRegular_ofConstantRank hf hr
+  let := leafSpaceChartedSpace hR
+  have := isManifold_leafSpace hR
+  refine ((isSubmersion_leafSpaceMk hR).isImmersion_iff_ker_mfderiv_comp leafSpaceMk_surjective
+    (by simp)).2 ⟨?_, fun x ↦ ?_⟩ <;> rw [LeafSpace.lift_comp_leafSpaceMk]
+  · exact hf
+  · exact (ker_mfderiv_leafSpaceMk_ofConstantRank hf hr x).symm
 
 end Regular
 
