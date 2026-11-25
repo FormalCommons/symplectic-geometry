@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Geometry.Manifold.Algebra.SMul
 public import Mathlib.LinearAlgebra.Dual.Lemmas
+public import TauCeti.Geometry.Manifold.ContMDiff.FiniteDimension
 
 /-!
 # Smoothness of the values of linear functionals
@@ -22,7 +23,9 @@ hypothesis. For a finite-dimensional `X`, the family itself, read through any li
 `t ↦ ∑ i, b.coord i (x t) • f (b i)`.
 
 No topology on `X` is involved: smoothness is only asked of the scalar functions
-`t ↦ f (x t)`.
+`t ↦ f (x t)`. The last result is the exception: for a finite-dimensional normed space `E`
+over a complete field, a family of linear functionals on `E` whose values are `C^n` is `C^n` as
+a family of continuous linear maps `E →L[𝕜] 𝕜`, by Tau Ceti's `TauCeti.contMDiffAt_clm_apply`.
 
 ## Main results
 
@@ -33,6 +36,8 @@ No topology on `X` is involved: smoothness is only asked of the scalar functions
 * `contMDiff_linearMap_comp_of_dual`: for a finite-dimensional `X`, if `t ↦ g (x t)` is `C^n`
   for every linear functional `g`, then `f ∘ x` is `C^n` for every linear map `f` from `X` to a
   normed space.
+* `contMDiff_toContinuousLinearMap_of_contMDiff_apply`: for a finite-dimensional normed space `E`,
+  if `t ↦ ν t ξ` is `C^n` for every `ξ : E`, then `ν` is `C^n` as a map into `E →L[𝕜] 𝕜`.
 -/
 
 public section
@@ -90,6 +95,16 @@ theorem contMDiff_linearMap_comp_of_dual {X : Type*} [AddCommGroup X] [Module �
     simp only [map_sum, map_smul, Module.Basis.coord_apply]
   rw [hfx]
   exact contMDiff_finsetSum fun i _ ↦ (hx (b.coord i)).smul contMDiff_const
+
+/-- **Smoothness of a family of covectors.** Let `ν` be a family of linear functionals on a
+finite-dimensional normed space `E` over a complete nontrivially normed field `𝕜`, indexed by a
+manifold `N`. If `t ↦ ν t ξ` is `C^n` for every `ξ : E`, then `ν`, read as a family of continuous
+linear maps `E →L[𝕜] 𝕜`, is `C^n`. -/
+theorem contMDiff_toContinuousLinearMap_of_contMDiff_apply [CompleteSpace 𝕜]
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] [FiniteDimensional 𝕜 E]
+    {ν : N → Module.Dual 𝕜 E} (hν : ∀ ξ, ContMDiff J 𝓘(𝕜) n fun t ↦ ν t ξ) :
+    ContMDiff J 𝓘(𝕜, E →L[𝕜] 𝕜) n fun t ↦ LinearMap.toContinuousLinearMap (ν t) :=
+  fun t ↦ TauCeti.contMDiffAt_clm_apply.2 fun ξ ↦ hν ξ t
 
 end SymplecticGeometry
 
