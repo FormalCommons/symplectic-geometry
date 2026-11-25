@@ -130,14 +130,13 @@ theorem exists_cutoffLevel_radii {ι : Type*} [Finite ι] {n : ι → ℕ}
       (∀ x, ħ * f x ≤ δ → ∃ i, x ∈ Φ i '' ball 0 (a i)) ∧
       ∀ i (z : StdSpace (Fin (n i))), a i ≤ ‖z‖ →
         δ < 2 * π * ħ * ∑ j, k i j ^ 2 * (z.x j ^ 2 + z.y j ^ 2) := by
-  -- Disjoint open neighbourhoods `U` of the centres, and balls about `0` that `Φ i` sends into
-  -- the neighbourhood of its centre.
-  obtain ⟨U, hU, hdisj⟩ := (Set.finite_range fun i ↦ Φ i 0).t2_separation
-  have hc (i : ι) : ∃ c > 0, ball (0 : StdSpace (Fin (n i))) c ⊆
-      (Φ i).source ∩ Φ i ⁻¹' U (Φ i 0) :=
-    Metric.isOpen_iff.1 ((Φ i).isOpen_inter_preimage (hU _).2) 0
-      ⟨hs i (mem_ball_self (hs0 i)), (hU _).1⟩
-  choose c hc0 hc using hc
+  -- Balls about `0` whose images under the `Φ i` are pairwise disjoint.
+  have h0 (i : ι) : (0 : StdSpace (Fin (n i))) ∈ (Φ i).source := hs i (mem_ball_self (hs0 i))
+  have hd : Pairwise (Function.onFun Disjoint fun i ↦
+      Filter.map (Φ i) (𝓝 (0 : StdSpace (Fin (n i))))) :=
+    fun i j hij ↦ (disjoint_nhds_nhds.2 (hinj.ne hij)).mono
+      ((Φ i).continuousAt (h0 i)) ((Φ j).continuousAt (h0 j))
+  obtain ⟨c, hc0, hcd⟩ := hd.exists_mem_filter_basis_of_disjoint fun i ↦ nhds_basis_ball.map _
   set b : ι → ℝ := fun i ↦ min (c i) (s i)
   set a : ι → ℝ := fun i ↦ b i / 2
   have hb0 (i : ι) : 0 < b i := lt_min (hc0 i) (hs0 i)
@@ -149,13 +148,10 @@ theorem exists_cutoffLevel_radii {ι : Type*} [Finite ι] {n : ι → ℕ}
   set K : Set M := (⋃ i, Φ i '' ball 0 (a i))ᶜ
   have hK : IsCompact K := (isOpen_iUnion fun i ↦
     (Φ i).isOpen_image_of_subset_source isOpen_ball (has i)).isClosed_compl.isCompact
-  obtain ⟨m, hm0, hm⟩ : ∃ m > 0, ∀ x ∈ K, m ≤ f x := by
-    rcases K.eq_empty_or_nonempty with hKe | hKn
-    · exact ⟨1, one_pos, by simp [hKe]⟩
-    obtain ⟨x₀, hx₀, hmin⟩ := hK.exists_isMinOn hKn hf.continuousOn
-    refine ⟨f x₀, (hf0 x₀).lt_of_ne fun h ↦ ?_, fun x hx ↦ hmin hx⟩
-    obtain ⟨i, rfl⟩ := hfz x₀ h.symm
-    exact hx₀ (mem_iUnion.2 ⟨i, mem_image_of_mem _ (mem_ball_self (ha0 i))⟩)
+  have hfK : ∀ x ∈ K, 0 < f x := fun x hx ↦ (hf0 x).lt_of_ne fun h ↦ by
+    obtain ⟨i, rfl⟩ := hfz x h.symm
+    exact hx (mem_iUnion.2 ⟨i, mem_image_of_mem _ (mem_ball_self (ha0 i))⟩)
+  obtain ⟨m, hm0, hm⟩ := hK.exists_forall_le' hf.continuousOn hfK
   -- A lower bound `κ i > 0` for the squares of the weights of each chart.
   have hκ (i : ι) : ∃ κ > 0, ∀ j, κ ≤ k i j ^ 2 := by
     obtain ⟨κ, hκ, hκ0⟩ := ((Filter.eventually_all.2 fun j ↦
@@ -171,10 +167,8 @@ theorem exists_cutoffLevel_radii {ι : Type*} [Finite ι] {n : ι → ℕ}
     (self_mem_nhdsWithin (s := Ioi (0 : ℝ)) (a := 0))).exists
   refine ⟨δ, hδ0, a, b, fun i ↦ ⟨ha0 i, hab i, min_le_right _ _⟩, fun i j hij ↦ ?_,
     fun x hx ↦ ?_, fun i z hz ↦ ?_⟩
-  · have hsub (i : ι) : Φ i '' ball 0 (b i) ⊆ U (Φ i 0) := by
-      rintro _ ⟨z, hz, rfl⟩
-      exact (hc i (ball_subset_ball (min_le_left _ _) hz)).2
-    exact (hdisj (mem_range_self i) (mem_range_self j) (hinj.ne hij)).mono (hsub i) (hsub j)
+  · exact (hcd hij).mono (image_mono (ball_subset_ball (min_le_left _ _)))
+      (image_mono (ball_subset_ball (min_le_left _ _)))
   · by_contra hxa
     have hxK : x ∈ K := by simpa [K] using hxa
     have := mul_le_mul_of_nonneg_left (hm x hxK) hħ.le
