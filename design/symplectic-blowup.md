@@ -109,8 +109,8 @@ Neither is derived from the other. Both are built on the model of
 
 - the blowup of weight $\lambda$, $\widetilde M_\psi$, is its own glued
   manifold (`Weight/Basic.lean`), since the milestone *Symplectic blowup
-  along a ball* is about that space, and *Lefschetz pencils* needs only
-  it;
+  along a ball* is about that space, and *Lefschetz pencils* blows up its
+  base points with it;
 - the almost complex blowup is *Complex blowup*'s `Blowup c`, with the
   forms $\tilde\omega_{\psi,\lambda,\varepsilon}$ (`Normalized/Basic.lean`);
 - Theorem 7.1.21 (ii) is a theorem comparing them
@@ -667,8 +667,8 @@ estimates.
 | 16 | *Ball embeddings give symplectic forms on the blowup* | `Blowup/BallEmbedding.lean` | 12, 13; #3395 | 250 |
 
 Issues 1 and 13 can start once this design is merged. Issue 15 waits for 6
-only for the total area of a closed surface. *Lefschetz pencils* needs only
-issue 5.
+only for the total area of a closed surface. *Lefschetz pencils* needs
+issues 5 and 10 (`design/lefschetz-pencils.md`, issue 9).
 
 ## References
 

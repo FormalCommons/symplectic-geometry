@@ -3733,9 +3733,9 @@ auxiliary pages, and the symplectic parts wait for it.
 
 ### 60. Almost complex spheres (needs `design/almost-complex-spheres.md`)
 
-- **Files:** `Geometry/Manifold/Instances/Sphere/AlmostComplex.lean` (the
+- **Files:** `Geometry/Symplectic/Manifold/AlmostComplex/Sphere.lean` (the
   sphere $S^{2n}$ has no almost complex structure for
-  $2n\notin\{2,6\}$). The case $S^{4k}$ comes from Chern classes: the
+  $2n\notin\{0,2,6\}$). The case $S^{4k}$ comes from Chern classes: the
   tangent bundle is stably trivial, so the Chern classes of its
   complexification vanish in positive degree, while for a complex
   structure that complexification is $T\oplus\overline T$, whose class in
@@ -3743,7 +3743,8 @@ auxiliary pages, and the symplectic parts wait for it.
   $k\ge2$, needs Bott's integrality theorem or Borel–Serre's argument with
   Steenrod operations, which neither library has; the design file chooses
   the route and lists its prerequisites as issues.
-- **Builds on:** *Chern classes*; Tau Ceti's Euler classes of spheres.
+- **Builds on:** *Chern classes*; the library's Euler characteristic
+  formula for tangent bundles and Tau Ceti's `TauCeti.eulerChar_sphere`.
 - **Milestones:** none by itself. It is the input of *Pointwise
   connected-sum obstruction for symplectic forms* (McDuff–Salamon,
   Exercise 4.1.9), and the deepest prerequisite of these pages.
@@ -3964,14 +3965,20 @@ For §7.4 of `atlas/constructing-symplectic-manifolds.md`.
 
 - **Files:** in `Geometry/Symplectic/Lefschetz/`: `Basic.lean` (symplectic
   Lefschetz pencils and fibrations over $\mathbb CP^1$, with the local model
-  $z_1^2+z_2^2$) and `Pencil.lean` (Theorem 7.4.12: the pencil as the
-  quotient of two asymptotically holomorphic sections, its $mk^2$ base points,
-  the fibration on the blowup at them, and the genus and number of singular
-  fibres, by *Adjunction* and the Euler characteristic of the fibration).
+  $z_1^2+z_2^2$) and `Pencil.lean` (Theorem 7.4.12: the fibration on the
+  blowup at the $mk^2$ base points and the number of singular fibres, from
+  the files that `design/lefschetz-pencils.md` adds for the pencil as the
+  quotient of two asymptotically holomorphic sections, its base points, the
+  genus by *Adjunction*, and the Euler characteristic of the fibration).
 - **Builds on:** *Asymptotically holomorphic sections* (its sections, with
   the transversality for pairs that the design file adds); *Symplectic
-  blowup* (only `Weight/Basic.lean`, for the blowup at the base points; this is
-  the one place where §7.4 needs §7.1); the merged *Adjunction*.
+  blowup* (only `Weight/Basic.lean`, for the blowup at the base points, and
+  `Normalized/Weight.lean`, for its comparison with the complex blowup; this is
+  the one place where §7.4 needs §7.1); *Complex blowup* (only `Model.lean`
+  and `ConnectedSum.lean`, for $M\#mk^2\overline{\mathbb CP}{}^2$);
+  *Poincaré duals of submanifolds* (for the genus); *Parallel transport*
+  (only `RadialTrivialization.lean`, for the regular fibres); the merged
+  *Adjunction*.
 - **Milestones:** *Donaldson's Lefschetz pencil theorem in dimension four*.
 
 ## Dependencies and build order
@@ -4046,7 +4053,7 @@ behind.
 | 3 | *First Chern number* | *Symplectic vector bundles*, the symplectic-loop issues of *Maslov index* |
 | 3 | *Contact geometry* | *Smooth families* (only `Family.lean` and `Gray.lean`, through `ContMDiff/TimeExtension.lean`, `DifferentialForm/TimeExtension.lean` and `Diffeotopy/Real.lean`); *Symplectic neighbourhoods* (only `LegendrianNeighborhood.lean`, through `Lagrangian.lean`); the other files of the part can start at once |
 | 3 | *Coupling forms* | *Symplectic fibrations*, *Parallel transport*, *Integration over the fibre*, *Flux homomorphism* (only `Family.lean`), *Compatible symplectic forms* (only `Thurston.lean`, for `SimplyConnected.lean`); in `Curvature.lean`, the curvature identity and the local curvature formula wait only for *Symplectic fibrations* and *Parallel transport* (`Curvature.lean`), and the equivalence also waits for `Holonomy.lean` and *Flux homomorphism* (`Family.lean`) |
-| 3 | *Lefschetz pencils* | *Asymptotically holomorphic sections*, *Symplectic blowup* (only `Weight/Basic.lean`, for the blowup at the base points); `Basic.lean` can start at once |
+| 3 | *Lefschetz pencils* | *Asymptotically holomorphic sections*, *Symplectic blowup* (only `Weight/Basic.lean` and `Normalized/Weight.lean`, for the blowup at the base points), *Complex blowup* (only `Model.lean` and `ConnectedSum.lean`), *Poincaré duals of submanifolds*, *Parallel transport* (only `RadialTrivialization.lean`); `Basic.lean` can start at once |
 | 4 | *First Chern class of nondegenerate forms* | *First Chern number* (only `FirstChernClass.lean`, #784); merged files of *Symplectic vector bundles*; `Geometry/Manifold/DifferentialForm/Pullback/Family.lean` of *Moser isotopy*, which is merged |
 | 4 | *Adjunction* | *First Chern number* (only `FirstChernClass.lean`, `ChernNumber/Basic.lean` and `ChernNumber/Axioms.lean`); `NormalSpace/ComplexStructure.lean` and `NormalSplitting.lean` can start at once |
 | 4 | *Chern classes* | *First Chern number* (only `FirstChernClass.lean`, for the comparison of $c_1$); the other issues of its design file can start at once |
