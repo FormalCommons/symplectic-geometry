@@ -51,7 +51,8 @@ pieces, which are open embeddings and `C^n` local diffeomorphisms whose ranges c
   (`gluingPartialDiffeomorph_symm`).
 * `SymplecticGeometry.ConnectedSum.gluingDiffeomorph Φ ε hε`: the diffeomorphism of the annulus
   that it gives, with `coe_gluingDiffeomorph_apply` and `coe_gluingDiffeomorph_symm_apply`; its
-  inverse is the gluing diffeomorphism for `Φ⁻¹` (`gluingDiffeomorph_symm`).
+  inverse is the gluing diffeomorphism for `Φ⁻¹` (`gluingDiffeomorph_symm`), and `simp` cancels
+  the two with `gluingDiffeomorph_symm_apply_apply` and `gluingDiffeomorph_apply_symm_apply`.
 * `SymplecticGeometry.ConnectedSum.piece ι ε hι`: the open set `M \ ι (closedBall 0 ε²)`, and
   `SymplecticGeometry.ConnectedSum.overlap`: the image of the annulus in it, as an open subset
   of the piece.
@@ -195,6 +196,20 @@ theorem gluingDiffeomorph_symm :
     (gluingDiffeomorph Φ ε hε (n := n)).symm = gluingDiffeomorph Φ.symm ε hε :=
   Diffeomorph.ext fun η ↦ Subtype.ext <| by
     simp [coe_gluingDiffeomorph_symm_apply, LinearIsometryEquiv.map_inversion_zero]
+
+/-- The gluing diffeomorphism for `Φ⁻¹` undoes the one for `Φ`. Since `simp` rewrites the inverse
+with `gluingDiffeomorph_symm`, this is the form in which it cancels the two maps. -/
+@[simp]
+theorem gluingDiffeomorph_symm_apply_apply (ξ : annulus E ε) :
+    gluingDiffeomorph Φ.symm ε hε (n := n) (gluingDiffeomorph Φ ε hε (n := n) ξ) = ξ := by
+  simpa using (gluingDiffeomorph Φ ε hε (n := n)).symm_apply_apply ξ
+
+/-- The gluing diffeomorphism for `Φ` undoes the one for `Φ⁻¹`. Since `simp` rewrites the inverse
+with `gluingDiffeomorph_symm`, this is the form in which it cancels the two maps. -/
+@[simp]
+theorem gluingDiffeomorph_apply_symm_apply (η : annulus E ε) :
+    gluingDiffeomorph Φ ε hε (n := n) (gluingDiffeomorph Φ.symm ε hε (n := n) η) = η := by
+  simpa using (gluingDiffeomorph Φ ε hε (n := n)).apply_symm_apply η
 
 end SymplecticGeometry.ConnectedSum
 
