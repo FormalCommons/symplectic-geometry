@@ -220,7 +220,7 @@ theorem flatAt_alternatingMapOfBilin {x : M} (β : V x →L[𝕜] V x →L[𝕜]
 @[simp]
 theorem alternatingMapOfBilin_flatAt {x : M} (α : V x [⋀^Fin 2]→L[𝕜] Trivial M G x)
     (hα : ∀ v, flatAt F α v v = 0) : alternatingMapOfBilin F (flatAt F α) hα = α := by
-  refine ContinuousAlternatingMap.ext_fin_two fun v w ↦ ?_
+  ext v w
   rw [alternatingMapOfBilin_apply, flatAt_apply]
   simp
 
