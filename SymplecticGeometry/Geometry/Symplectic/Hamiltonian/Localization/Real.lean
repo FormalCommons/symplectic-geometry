@@ -13,7 +13,7 @@ public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.Localization.We
 public import SymplecticGeometry.Geometry.Symplectic.Manifold.LiouvilleMeasure
 public import TauCeti.Geometry.Symplectic.Manifold.SymplecticMap
 public import TauCeti.Geometry.Symplectic.Manifold.Volume
-import Mathlib.Geometry.Manifold.PartitionOfUnity
+import SymplecticGeometry.Geometry.Manifold.PartitionOfUnity
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Indicator
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Interior
 import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Pullback.Smooth
@@ -64,9 +64,9 @@ that vanishes outside the union of the images `Φᵢ '' ball 0 aᵢ` into equiva
 `Φᵢ '' ball 0 bᵢ`, with `β = ∑ᵢ γᵢ`, provided the images `Φᵢ '' ball 0 bᵢ` are pairwise
 disjoint. The piece `γᵢ` is `ρᵢ β` for a smooth cut-off `ρᵢ` that is `1` near
 `Φᵢ '' closedBall 0 aᵢ` and supported in `Φᵢ '' closedBall 0 cᵢ`
-(`exists_contMDiffMap_one_nhds_of_subset_interior`). At each point either `β` vanishes or
-every `ρⱼ` is locally constant, `1` for the one image of radius `aⱼ` that contains the point and
-`0` for the others, so `d_ħ (ρᵢ β) = dρᵢ ∧ β = 0`
+(`IsClosed.exists_contMDiffMap_tsupport_subset_eventually_eq_one`). At each point either `β`
+vanishes or every `ρⱼ` is locally constant, `1` for the one image of radius `aⱼ` that contains the
+point and `0` for the others, so `d_ħ (ρᵢ β) = dρᵢ ∧ β = 0`
 (`SymplecticGeometry.cartanDiff_ofFunctionRingHom_mul_eq_zero`), and the other properties hold
 pointwise. `SymplecticGeometry.exists_formCalculus_eq_sum` applies this to `β = F(d_ħ θ)` for a
 one-form `θ` with `L_X θ = 0` and `F` supported in `[-δ, δ]`: the components of `F(d_ħ θ)` vanish
@@ -210,13 +210,45 @@ section Pieces
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M] [ChartedSpace H M]
-  [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M] [NormalSpace M]
+  [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M]
   {X : (x : M) → TangentSpace I x}
   {hX : ContMDiff I I.tangent ∞ (fun x ↦ (X x : TangentBundle I M))} {ħ : ℝ}
   {ι : Type*} [Fintype ι] {n : ι → ℕ}
 
+omit [Fintype ι] in
+/-- Cut-offs for `SymplecticGeometry.exists_eq_sum_of_cartanDiff_eq_zero`: smooth functions
+`ρ i` and radii `c i < b i` such that `ρ i` vanishes outside `Φ i '' closedBall 0 (c i)` and,
+near each point of `Φ j '' ball 0 (a j)`, `ρ j` is `1` and every other `ρ i` is `0`. -/
+private theorem exists_cutoffs_image_ball
+    (Φ : ∀ i, PartialDiffeomorph 𝓘(ℝ, StdSpace (Fin (n i))) I (StdSpace (Fin (n i))) M ∞)
+    {a b : ι → ℝ} (hab : ∀ i, a i < b i) (hb : ∀ i, ball 0 (b i) ⊆ (Φ i).source)
+    (hd : Pairwise fun i j ↦ Disjoint (Φ i '' ball 0 (b i)) (Φ j '' ball 0 (b j))) :
+    ∃ (ρ : ι → C^∞⟮I, M; 𝓘(ℝ), ℝ⟯) (c : ι → ℝ), (∀ i, c i < b i) ∧
+      (∀ i, ∀ x ∉ Φ i '' closedBall 0 (c i), ρ i x = 0) ∧
+      ∀ j, ∀ x ∈ Φ j '' ball 0 (a j),
+        (∀ᶠ y in 𝓝 x, ρ j y = 1) ∧ ∀ i ≠ j, ∀ᶠ y in 𝓝 x, ρ i y = 0 := by
+  set c : ι → ℝ := fun i ↦ (a i + b i) / 2
+  have hac (i : ι) : a i < c i := by simp only [c]; linarith [hab i]
+  have hcb (i : ι) : c i < b i := by simp only [c]; linarith [hab i]
+  have hopen (i : ι) {r : ℝ} (hr : r ≤ b i) : IsOpen (Φ i '' ball 0 r) :=
+    (Φ i).toOpenPartialHomeomorph.isOpen_image_of_subset_source isOpen_ball
+      ((ball_subset_ball hr).trans (hb i))
+  have hclosed (i : ι) {r : ℝ} (hr : r < b i) : IsClosed (Φ i '' closedBall 0 r) :=
+    ((Φ i).isCompact_image_of_subset_source (isCompact_closedBall 0 r)
+      ((closedBall_subset_ball hr).trans (hb i))).isClosed
+  choose ρ hρs hρ1 _ using fun i ↦
+    (hclosed i (hab i)).exists_contMDiffMap_tsupport_subset_eventually_eq_one I
+      (hopen i (hcb i).le) (image_mono (closedBall_subset_ball (hac i)))
+  have hρ0 (i : ι) (x : M) (hx : x ∉ Φ i '' closedBall 0 (c i)) : ρ i x = 0 :=
+    image_eq_zero_of_notMem_tsupport fun h ↦ hx (image_mono ball_subset_closedBall (hρs i h))
+  refine ⟨ρ, c, hcb, hρ0, fun j x hj ↦ ⟨(hρ1 j).filter_mono (nhds_le_nhdsSet
+    (image_mono ball_subset_closedBall hj)), fun i hij ↦ ?_⟩⟩
+  filter_upwards [(hopen j (hab j).le).mem_nhds hj] with y hy
+  exact hρ0 i y fun hyi ↦ disjoint_left.1 (hd hij)
+    (image_mono (closedBall_subset_ball (hcb i)) hyi) (image_mono (ball_subset_ball (hab j).le) hy)
+
 /-- **Cutting an equivariantly closed form into pieces near the centres of charts.** Let `M` be a
-Hausdorff, normal, σ-compact manifold, and for `i` in a finite type let `Φ i` be a partial
+Hausdorff, σ-compact manifold, and for `i` in a finite type let `Φ i` be a partial
 diffeomorphism from `StdSpace (Fin (n i))` to `M` with `ball 0 (b i)` in its source, such that
 the sets `Φ i '' ball 0 (b i)` are pairwise disjoint. Let `a i < b i`, and let `β` be a form of
 mixed degree with `d_ħ β = 0` whose components all vanish outside the union of the sets
@@ -235,37 +267,17 @@ theorem exists_eq_sum_of_cartanDiff_eq_zero
       (∀ i, ∀ x ∈ Φ i '' ball 0 (b i), ∀ k, (γ i k).val x = (β k).val x) ∧
       β = ∑ i, γ i := by
   classical
-  set c : ι → ℝ := fun i ↦ (a i + b i) / 2
-  have hac (i : ι) : a i < c i := by simp only [c]; linarith [hab i]
-  have hcb (i : ι) : c i < b i := by simp only [c]; linarith [hab i]
-  have hopen (i : ι) {r : ℝ} (hr : r ≤ b i) : IsOpen (Φ i '' ball 0 r) :=
-    (Φ i).toOpenPartialHomeomorph.isOpen_image_of_subset_source isOpen_ball
-      ((ball_subset_ball hr).trans (hb i))
-  have hclosed (i : ι) {r : ℝ} (hr : r < b i) : IsClosed (Φ i '' closedBall 0 r) :=
-    ((Φ i).isCompact_image_of_subset_source (isCompact_closedBall 0 r)
-      ((closedBall_subset_ball hr).trans (hb i))).isClosed
-  -- Cut-offs `ρ i`, equal to `1` near `Φ i '' closedBall 0 (a i)` and supported in
-  -- `Φ i '' closedBall 0 (c i)`.
-  have hρ (i : ι) := exists_contMDiffMap_one_nhds_of_subset_interior I (n := ⊤)
-    (hclosed i ((hac i).trans (hcb i))) (t := Φ i '' closedBall 0 (c i))
-    ((image_mono (closedBall_subset_ball (hac i))).trans
-      (interior_maximal (image_mono ball_subset_closedBall) (hopen i (hcb i).le)))
-  choose ρ hρ1 hρ0 _ using hρ
+  obtain ⟨ρ, c, hcb, hρ0, hρ⟩ := exists_cutoffs_image_ball Φ hab hb hd
   -- At each point, either `β` vanishes or one cut-off is `1` nearby and the others are `0`.
   have hloc (x : M) : (∀ k, (β k).val x = 0) ∨ ∃ j, x ∈ Φ j '' ball 0 (a j) ∧
       (∀ᶠ y in 𝓝 x, ρ j y = 1) ∧ ∀ i ≠ j, ∀ᶠ y in 𝓝 x, ρ i y = 0 := by
     by_cases hx : ∃ j, x ∈ Φ j '' ball 0 (a j)
     · obtain ⟨j, hj⟩ := hx
-      refine .inr ⟨j, hj, (hρ1 j).filter_mono (nhds_le_nhdsSet
-        (image_mono ball_subset_closedBall hj)), fun i hij ↦ ?_⟩
-      filter_upwards [(hopen j (hab j).le).mem_nhds hj] with y hy
-      exact hρ0 i y fun hyi ↦ disjoint_left.1 (hd hij)
-        (image_mono (closedBall_subset_ball (hcb i)) hyi)
-        (image_mono (ball_subset_ball (hab j).le) hy)
+      exact .inr ⟨j, hj, hρ j x hj⟩
     · exact .inl (hβa x fun i hi ↦ hx ⟨i, hi⟩)
   have hγ (i : ι) (k : ℕ) (x : M) :
       ((SmoothForm.ofFunctionRingHom (ρ i) * β) k).val x = ρ i x • (β k).val x := by
-    rw [SmoothForm.ofFunctionRingHom_mul_apply, SmoothForm.coe_funSMulₗ]
+    simp
   refine ⟨fun i ↦ SmoothForm.ofFunctionRingHom (ρ i) * β, c, hcb, fun i ↦ ?_, fun i x hx k ↦ ?_,
     fun i x hx k ↦ ?_, ?_⟩
   · refine cartanDiff_ofFunctionRingHom_mul_eq_zero _ hβ fun x ↦ (hloc x).symm.imp_left ?_
@@ -319,10 +331,9 @@ theorem exists_formCalculus_eq_sum
     (cartanDiff_formCalculus_of_mlieDerivForm_eq_zero F hF hθ) fun x hx k ↦ ?_
   -- Where a component of `F(d_ħ θ)` is nonzero, `-ħ θ(X)` lies in the support of `F`.
   by_contra hne
-  have hFx := hFδ (tsupport_formCalculus_subset F hF _ _ k (subset_tsupport _ hne))
-  rw [ContMDiffMap.coe_smul, Pi.smul_apply, SmoothForm.ofFunctionEquiv_symm_apply,
-    SmoothForm.interiorProduct_apply_degree_one, ContMDiffSection.coeFn_mk, smul_eq_mul] at hFx
-  obtain ⟨i, hi⟩ := hδ x (by linarith [hFx.1])
+  have hFx : ħ * θ.val x ![X x] ≤ δ := by
+    simpa using (hFδ (tsupport_formCalculus_subset F hF _ _ k (subset_tsupport _ hne))).1
+  obtain ⟨i, hi⟩ := hδ x hFx
   exact hx i hi
 
 end Pieces

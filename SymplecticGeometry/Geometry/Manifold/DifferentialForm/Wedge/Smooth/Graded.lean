@@ -46,15 +46,16 @@ its factors does; that pointwise step follows the proof of Tau Ceti's
 
 * `TauCeti.SmoothForm.of_mul_of_eq_of_wedge`: the product of homogeneous forms is their wedge,
   and `TauCeti.SmoothForm.of_zero_ofFunction_mul`: in degree `0` it is the product of functions.
+* `TauCeti.SmoothForm.of_zero_ofFunction_mul_apply`: multiplying a form of mixed degree by a
+  function multiplies each component by it.
 * `TauCeti.SmoothForm.algebraMap_apply_eq_of_ofFunction`: the image of `r : ℝ` is the constant
   function `r`, in degree `0`.
 * `TauCeti.SmoothForm.of_pow_eq_of_wedgePow`: powers of a homogeneous form are its wedge powers,
   and `TauCeti.SmoothForm.of_pow_eq_zero_of_finrank_lt`: they vanish above the dimension.
 * `TauCeti.SmoothForm.of_mul_of_comm` and `TauCeti.SmoothForm.commute_of_of_of_even`: graded
   commutativity, `TauCeti.SmoothForm.commute_of_of_even`: a form of even degree commutes with
-  every form of mixed degree, `TauCeti.SmoothForm.commute_ofFunctionRingHom`: functions
-  commute with all forms, and `TauCeti.SmoothForm.ofFunctionRingHom_mul_apply`: multiplying by a
-  function multiplies each component by it.
+  every form of mixed degree, and `TauCeti.SmoothForm.commute_ofFunctionRingHom`: functions
+  commute with all forms.
 * `TauCeti.SmoothForm.mul_eq_zero_of_forall_or`, `TauCeti.SmoothForm.mul_eq_mul_left_of_forall_or`
   and `TauCeti.SmoothForm.mul_eq_mul_right_of_forall_or`: the product of forms of mixed degree is
   local, from the pointwise vanishing of a wedge (`TauCeti.SmoothForm.wedge_val_eq_zero_of_left`).
@@ -251,6 +252,22 @@ theorem of_zero_ofFunction_mul_of (g : C^∞⟮I, M; ℝ⟯) (φ : SmoothForm I 
   rw [of_mul_of_eq_of_wedge, ofFunction_wedge]
   exact DirectSum.of_eq_of_gradedMonoid_eq (GradedMonoid.mk_linearEquivCast (R := ℝ) _ _)
 
+/-- The component of degree `k` of the product of the `0`-form of a smooth function `g` with a
+form `β` of mixed degree is `g` times the component of degree `k` of `β`. -/
+@[simp]
+theorem of_zero_ofFunction_mul_apply (g : C^∞⟮I, M; ℝ⟯) (β : ⨁ k, SmoothForm I M ℝ k) (k : ℕ) :
+    (DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 0 (ofFunction g) * β) k = funSMulₗ g (β k) := by
+  induction β using DirectSum.induction_on with
+  | zero => simp
+  | of l φ =>
+    rw [of_zero_ofFunction_mul_of]
+    by_cases h : l = k
+    · subst h
+      simp only [DirectSum.of_eq_same]
+    · rw [DirectSum.of_eq_of_ne _ _ _ (Ne.symm h), DirectSum.of_eq_of_ne _ _ _ (Ne.symm h),
+        map_zero]
+  | add β β' hβ hβ' => rw [mul_add, DirectSum.add_apply, hβ, hβ', DirectSum.add_apply, map_add]
+
 /-- The product of the `0`-forms of two smooth functions is the `0`-form of their product. -/
 theorem of_zero_ofFunction_mul (g g' : C^∞⟮I, M; ℝ⟯) :
     DirectSum.of (fun k ↦ SmoothForm I M ℝ k) 0 (ofFunction g) * DirectSum.of _ 0 (ofFunction g') =
@@ -384,21 +401,6 @@ theorem commute_ofFunctionRingHom (g : C^∞⟮I, M; ℝ⟯) (x : ⨁ k, SmoothF
     Commute (ofFunctionRingHom g) x := by
   rw [ofFunctionRingHom_apply]
   exact commute_of_of_even Even.zero (ofFunction g) x
-
-/-- The component of degree `k` of the product of a smooth function `g`, as a form of degree `0`,
-with a form `β` of mixed degree is `g` times the component of degree `k` of `β`. -/
-theorem ofFunctionRingHom_mul_apply (g : C^∞⟮I, M; ℝ⟯) (β : ⨁ k, SmoothForm I M ℝ k) (k : ℕ) :
-    (ofFunctionRingHom g * β) k = funSMulₗ g (β k) := by
-  induction β using DirectSum.induction_on with
-  | zero => simp
-  | of l φ =>
-    rw [ofFunctionRingHom_apply, of_zero_ofFunction_mul_of]
-    by_cases h : l = k
-    · subst h
-      simp only [DirectSum.of_eq_same]
-    · rw [DirectSum.of_eq_of_ne _ _ _ (Ne.symm h), DirectSum.of_eq_of_ne _ _ _ (Ne.symm h),
-        map_zero]
-  | add β β' hβ hβ' => rw [mul_add, DirectSum.add_apply, hβ, hβ', DirectSum.add_apply, map_add]
 
 end SmoothForm
 
