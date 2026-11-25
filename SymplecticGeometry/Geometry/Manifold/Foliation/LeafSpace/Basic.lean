@@ -136,6 +136,12 @@ theorem LeafSpace.lift_comp_leafSpaceMk {α : Sort*} (f : M → α)
     (hf : ∀ x y, 𝓕.SameLeaf x y → f x = f y) : LeafSpace.lift f hf ∘ 𝓕.leafSpaceMk = f :=
   funext (LeafSpace.lift_leafSpaceMk f hf)
 
+/-- The map induced on the leaf space has the same range as the original map. -/
+@[simp]
+theorem LeafSpace.range_lift {α : Type*} (f : M → α) (hf : ∀ x y, 𝓕.SameLeaf x y → f x = f y) :
+    Set.range (LeafSpace.lift f hf) = Set.range f := by
+  rw [← 𝓕.leafSpaceMk_surjective.range_comp, LeafSpace.lift_comp_leafSpaceMk]
+
 /-- The map induced on the leaf space by a map `f` constant on each leaf is injective exactly
 when any two points with the same image under `f` lie on one leaf. -/
 theorem LeafSpace.injective_lift_iff {α : Sort*} {f : M → α}

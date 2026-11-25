@@ -40,6 +40,8 @@ with it there.
 * `Function.Odd.exists_contDiff_mul_comp_sq`: a smooth odd `f` is `t * g (t ^ 2)` with `g`
   smooth.
 * `Function.Even.contDiff_comp_norm`: for a smooth even `f`, `v ↦ f ‖v‖` is smooth.
+* `Function.Even.hasFDerivAt_comp_norm_zero`: for an even `f` differentiable at `0`, `v ↦ f ‖v‖`
+  has derivative `0` at `0`.
 
 ## References
 
@@ -135,6 +137,24 @@ theorem Even.contDiff_comp_norm {V : Type*} [NormedAddCommGroup V]
   obtain ⟨g, hg, hfg⟩ := hf.exists_contDiff_comp_sq hc
   rw [show (fun v : V ↦ f ‖v‖) = g ∘ fun v ↦ ‖v‖ ^ 2 from funext fun v ↦ hfg _]
   exact hg.comp (contDiff_norm_sq ℝ)
+
+/-- For an even function `f : ℝ → ℝ` that is differentiable at `0`, the function `v ↦ f ‖v‖` on a
+real normed space has derivative `0` at `0`. -/
+theorem Even.hasFDerivAt_comp_norm_zero {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V]
+    {f : ℝ → ℝ} (hf : f.Even) (hd : DifferentiableAt ℝ f 0) :
+    HasFDerivAt (fun v : V ↦ f ‖v‖) (0 : V →L[ℝ] ℝ) 0 := by
+  -- Evenness gives `f' 0 = -f' 0`, so `f t - f 0 = o(t)`; then compose with the norm.
+  have h0 : deriv f 0 = 0 := by
+    have h := TauCeti.deriv_neg_eq_neg_of_eventually_even (f := f) (x := 0)
+      (Eventually.of_forall hf)
+    rw [neg_zero] at h
+    exact self_eq_neg.1 h
+  have ho := hasDerivAt_iff_isLittleO.1 (h0 ▸ hd.hasDerivAt)
+  have ht : Tendsto (fun v : V ↦ ‖v‖) (𝓝 0) (𝓝 0) := by
+    simpa using (continuous_norm (E := V)).tendsto 0
+  rw [hasFDerivAt_iff_isLittleO_nhds_zero]
+  refine Asymptotics.IsLittleO.of_norm_right (g' := fun v : V ↦ v) ?_
+  simpa [Function.comp_def] using ho.comp_tendsto ht
 
 end Function
 

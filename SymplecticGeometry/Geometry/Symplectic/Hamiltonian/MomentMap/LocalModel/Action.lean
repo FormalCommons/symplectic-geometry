@@ -9,6 +9,7 @@ public import SymplecticGeometry.Geometry.Lie.Adjoint.Splitting
 public import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.LocalModel.Data
 
+import SymplecticGeometry.Geometry.Lie.Adjoint.Coadjoint
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
 import TauCeti.Geometry.Manifold.Algebra.SMul
 import TauCeti.Geometry.Manifold.ContMDiff.FiniteDimension
@@ -49,8 +50,9 @@ of the adjoint action for the inclusion `K → G`. That of `μ_V` follows from i
 Last, the covectors `ν` of the local model are equivariant, which combines the equivariance of
 `τ`, `ι𝔪` and `μ_V`; and the infinitesimal action of the Lie algebra of `K` on `A × V`. Its
 component in `A` is computed through the functionals `η ↦ equivDual𝔪 η ζ`, `ζ ∈ 𝔪`, which turn
-`k ↦ repA k η` into a coadjoint coefficient; the chain rule along `K → G` and Tau Ceti's
-`TauCeti.Lie.mvfderiv_coadjointRepresentation_apply_one` give its derivative, with that lemma's
+`k ↦ repA k η` into a coadjoint coefficient, whose derivative
+`TauCeti.Lie.mvfderiv_coadjointRepresentation_subtype_apply_one` gives: the chain rule along
+`K → G` and Tau Ceti's `TauCeti.Lie.mvfderiv_coadjointRepresentation_apply_one`, with that lemma's
 sign. Its component in `V` is `D.mfderiv_rep_apply`, and Tau Ceti's
 `MDifferentiableAt.mvfderiv_prodMk_apply` combines the two.
 
@@ -81,6 +83,9 @@ sign. Its component in `V` is `D.mfderiv_rep_apply`, and Tau Ceti's
   `A × V` is smooth.
 * `SymplecticGeometry.LocalModelData.smulCommClass_fiberDistribMulAction`: the action of `K`
   on `A × V` commutes with real scalars.
+* `SymplecticGeometry.LocalModelData.fiberDistribMulAction_smul_eq_toContinuousLinearMap`,
+  `SymplecticGeometry.LocalModelData.mfderiv_fiberDistribMulAction_const_smul`: each `k` acts on
+  `A × V` by a continuous linear map, which is its own differential at every point.
 * `SymplecticGeometry.LocalModelData.covector_smul`: `ν (k • p) = Ad*_k (ν p)`.
 * `SymplecticGeometry.LocalModelData.equivDual𝔪_mfderiv_repA_apply`,
   `SymplecticGeometry.LocalModelData.mfderiv_repA_apply`,
@@ -255,6 +260,22 @@ theorem contMDiffSMul_fiberDistribMulAction :
   exact ⟨((D.contMDiff_repA.comp hA).prodMk_space (D.contMDiff_rep.comp hV)).congr
     fun p ↦ D.fiberDistribMulAction_smul p.1 p.2⟩
 
+/-- The action of `k` on the fibre `A × V` is the continuous linear map
+`(η, v) ↦ (repA k η, rep k v)`. -/
+theorem fiberDistribMulAction_smul_eq_toContinuousLinearMap (k : K) :
+    letI := D.fiberDistribMulAction
+    (fun p : A × V ↦ k • p) = LinearMap.toContinuousLinearMap ((D.repA.prod D.repV) k) :=
+  letI := D.fiberDistribMulAction
+  funext fun p ↦ (D.fiberDistribMulAction_smul k p).trans (by simp [repV_apply])
+
+/-- The differential of the action of `k` on the fibre `A × V`, at any point, is the action of
+`k`, since the action is linear. -/
+theorem mfderiv_fiberDistribMulAction_const_smul (k : K) (q p : A × V) :
+    letI := D.fiberDistribMulAction
+    mfderiv 𝓘(ℝ, A × V) 𝓘(ℝ, A × V) (fun y : A × V ↦ k • y) q p = k • p := by
+  rw [fiberDistribMulAction_smul_eq_toContinuousLinearMap, ContinuousLinearMap.mfderiv_eq]
+  exact congrFun (D.fiberDistribMulAction_smul_eq_toContinuousLinearMap k).symm p
+
 /-! ### Equivariance of `ρ` and of `μ_V` -/
 
 /-- The infinitesimal map `ρ : 𝔥 → sp(V, σ)` is equivariant:
@@ -318,26 +339,19 @@ of `k ↦ repA k η` in the direction `ξ`, read in `𝔪*` through `D.equivDual
 theorem equivDual𝔪_mfderiv_repA_apply (η : A) (ξ : GroupLieAlgebra 𝓘(ℝ, F) K) (ζ : D.𝔪) :
     D.equivDual𝔪 (mfderiv 𝓘(ℝ, F) 𝓘(ℝ, A) (fun k : K ↦ D.repA k η) 1 ξ) ζ =
       D.ι𝔪 η ⁅(ζ : GroupLieAlgebra I G), K.subtype.groupLieAlgebraMap 𝓘(ℝ, F) I ξ⁆ := by
-  have hK : MDifferentiableAt 𝓘(ℝ, F) I K.subtype 1 := by
-    rw [Subgroup.coe_subtype]
-    exact (K.contMDiff_subtypeVal_of_contMDiffSMul (I := I) (n := ∞)).mdifferentiableAt (by simp)
   -- The functional `a ↦ equivDual𝔪 a ζ` on `A`, through which `k ↦ repA k η` becomes the
   -- coadjoint matrix coefficient `k ↦ (Ad*_k (ι𝔪 η)) ζ`, by `ι𝔪_repA`.
   let ℓ : A →L[ℝ] ℝ :=
     LinearMap.toContinuousLinearMap ((Module.Dual.eval ℝ _ ζ) ∘ₗ D.equivDual𝔪.toLinearMap)
   have hℓ (a : A) : ℓ a = D.equivDual𝔪 a ζ := by simp [ℓ]
   have hcomp : (ℓ ∘ fun k : K ↦ D.repA k η) =
-      (fun g : G ↦ coadjointRepresentation ℝ I G g (D.ι𝔪 η) ζ) ∘ K.subtype := by
+      fun k : K ↦ coadjointRepresentation ℝ I G k (D.ι𝔪 η) ζ := by
     funext k
-    rw [Function.comp_apply, hℓ, ← ι𝔪_apply_coe, ι𝔪_repA, Function.comp_apply,
-      Subgroup.coe_subtype]
+    rw [Function.comp_apply, hℓ, ← ι𝔪_apply_coe, ι𝔪_repA]
   refine (hℓ _).symm.trans ?_
   rw [← mvfderiv_apply_eq_mfderiv_apply,
     ← ℓ.mvfderiv_comp_apply ((D.contMDiff_repA_apply η).mdifferentiableAt (by simp)),
-    hcomp, mvfderiv_comp_apply_of_eq 1
-      ((contMDiff_coadjointRepresentation_apply _ _).mdifferentiableAt (by simp))
-      hK (map_one K.subtype),
-    ← MonoidHom.groupLieAlgebraMap_apply, mvfderiv_coadjointRepresentation_apply_one]
+    hcomp, mvfderiv_coadjointRepresentation_subtype_apply_one]
 
 /-- The infinitesimal representation of the Lie algebra of `K` on `A ≃ 𝔪*`: the derivative at `1`
 of `k ↦ repA k η` in the direction `ξ` is the element of `A` that corresponds to the covector
