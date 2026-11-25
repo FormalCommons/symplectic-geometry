@@ -56,7 +56,7 @@ holomorphic map `BlowupModel.blowdown`.
 
 public section
 
-open Bundle Function Projectivization Filter Topology
+open Bundle Projectivization Filter Topology
 open scoped LinearAlgebra.Projectivization ContDiff Manifold
 
 namespace SymplecticGeometry
