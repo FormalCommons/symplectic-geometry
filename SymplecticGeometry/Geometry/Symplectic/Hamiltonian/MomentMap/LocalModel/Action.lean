@@ -81,6 +81,9 @@ sign. Its component in `V` is `D.mfderiv_rep_apply`, and Tau Ceti's
   `A × V` is smooth.
 * `SymplecticGeometry.LocalModelData.smulCommClass_fiberDistribMulAction`: the action of `K`
   on `A × V` commutes with real scalars.
+* `SymplecticGeometry.LocalModelData.fiberDistribMulAction_smul_eq_toContinuousLinearMap`,
+  `SymplecticGeometry.LocalModelData.mfderiv_fiberDistribMulAction_const_smul`: each `k` acts on
+  `A × V` by a continuous linear map, which is its own differential at every point.
 * `SymplecticGeometry.LocalModelData.covector_smul`: `ν (k • p) = Ad*_k (ν p)`.
 * `SymplecticGeometry.LocalModelData.equivDual𝔪_mfderiv_repA_apply`,
   `SymplecticGeometry.LocalModelData.mfderiv_repA_apply`,
@@ -254,6 +257,22 @@ theorem contMDiffSMul_fiberDistribMulAction :
     contMDiff_fst.prodMk (contDiff_snd.contMDiff.comp contMDiff_snd)
   exact ⟨((D.contMDiff_repA.comp hA).prodMk_space (D.contMDiff_rep.comp hV)).congr
     fun p ↦ D.fiberDistribMulAction_smul p.1 p.2⟩
+
+/-- The action of `k` on the fibre `A × V` is the continuous linear map
+`(η, v) ↦ (repA k η, rep k v)`. -/
+theorem fiberDistribMulAction_smul_eq_toContinuousLinearMap (k : K) :
+    letI := D.fiberDistribMulAction
+    (fun p : A × V ↦ k • p) = LinearMap.toContinuousLinearMap ((D.repA.prod D.repV) k) :=
+  letI := D.fiberDistribMulAction
+  funext fun p ↦ (D.fiberDistribMulAction_smul k p).trans (by simp [repV_apply])
+
+/-- The differential of the action of `k` on the fibre `A × V`, at any point, is the action of
+`k`, since the action is linear. -/
+theorem mfderiv_fiberDistribMulAction_const_smul (k : K) (q p : A × V) :
+    letI := D.fiberDistribMulAction
+    mfderiv 𝓘(ℝ, A × V) 𝓘(ℝ, A × V) (fun y : A × V ↦ k • y) q p = k • p := by
+  rw [fiberDistribMulAction_smul_eq_toContinuousLinearMap, ContinuousLinearMap.mfderiv_eq]
+  exact congrFun (D.fiberDistribMulAction_smul_eq_toContinuousLinearMap k).symm p
 
 /-! ### Equivariance of `ρ` and of `μ_V` -/
 
