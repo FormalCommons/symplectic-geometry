@@ -1,10 +1,11 @@
 name: set up Lean
 description: >-
-  Names the saves that the cache workflow makes and CI restores, lists the
+  Names the saves that the cache workflows make and CI restores, lists the
   Tau Ceti modules that the library imports, installs elan, and restores the
   built dependencies.
 
-# The steps and the names of the saves that the jobs of ci.yml and cache.yml
+# The steps and the names of the saves that the jobs of ci.yml and of the
+# three cache workflows (cache-dependencies, cache-library, cache-source)
 # share, written once, so that the jobs cannot come to differ. A job that
 # restores under another name than the one the saves have fails nothing: it
 # finds no save and builds everything.
@@ -28,7 +29,7 @@ outputs:
   # A save of `.lake/build` has this name, then its kind (`-src-` for a
   # build from source, `-inc-` for one that follows main), the time at
   # which the build from source began that it is or descends from (`none`
-  # without one), the commit and the run; see the cache workflow.
+  # without one), the commit and the run; see the workflow cache-library.
   # lakefile.toml is in the hash because Lake's record of a build does not
   # cover everything a lakefile can set.
   build:
@@ -53,7 +54,7 @@ runs:
           | sh -s -- -y --no-modify-path --default-toolchain none
         echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
     # The latest save for this lean-toolchain and lake-manifest.json; see the
-    # cache workflow.
+    # workflow cache-dependencies.
     - name: restore the built dependencies
       id: restore
       if: inputs.names-only != 'true'

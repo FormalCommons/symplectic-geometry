@@ -158,13 +158,12 @@ theorem mfderiv_toDiffeomorphSourceTarget_liftOpens_eq_id_iff (Φ : PartialDiffe
     mfderiv I I (Φ.liftOpens hU hU).toDiffeomorphSourceTarget ⟨x, hx⟩ =
         ContinuousLinearMap.id 𝕜 (TangentSpace I (x : M)) ↔
       mfderiv I I Φ x = ContinuousLinearMap.id 𝕜 (TangentSpace I x) := by
-  have hΦ : Subtype.val ∘ ⇑Φ = ⇑(Φ.liftOpens hU hU) ∘ (Subtype.val : U → M) :=
-    (funext (Φ.liftOpens_apply_coe hU hU)).symm
   have hφ : Subtype.val ∘ ⇑(Φ.liftOpens hU hU).toDiffeomorphSourceTarget =
       ⇑(Φ.liftOpens hU hU) ∘ Subtype.val :=
     funext (Φ.liftOpens hU hU).toDiffeomorphSourceTarget_apply_coe
   exact (TauCeti.Manifold.mfderiv_eq_id_iff_of_comp_subtype_val hφ).trans
-    (TauCeti.Manifold.mfderiv_eq_id_iff_of_comp_subtype_val hΦ).symm
+    (TauCeti.Manifold.mfderiv_eq_id_iff_of_comp_subtype_val
+      (Φ.liftOpens_comp_subtypeVal hU hU).symm).symm
 
 /-- If a partial diffeomorphism `Φ` of an open subset `U` of `M` fixes a point `x` of its source,
 with identity differential there, then `x` lies in the source of `Φ.liftOpens`, and the

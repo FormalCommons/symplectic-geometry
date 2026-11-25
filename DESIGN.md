@@ -1999,7 +1999,7 @@ complete target and a function on the whole half-space.
   adds what is missing, in Tau Ceti's namespaces: a diffeotopy of slices in
   the stabilizer is Hamiltonian exactly when each $\iota_{X_t}\omega$ is
   exact, with a smooth Hamiltonian built from Tau Ceti's smooth families of
-  primitives on each connected component (the
+  primitives, applied on all of $M$ (the
   primitive of a smooth family of exact one-forms being a public lemma on
   any manifold, in the namespace `SymplecticGeometry` and the file
   `Geometry/Manifold/DeRham/FamilyPrimitive.lean`, which *Isotopy
@@ -2296,11 +2296,12 @@ complete target and a function on the whole half-space.
   map of the normal bundle from
   `Geometry/Manifold/TubularNeighborhood/Riemannian/Injective.lean`); and
   `Geometry/Manifold/DifferentialForm/Flow/Family.lean`
-  (named like Tau Ceti's file: Moser's principle along one trajectory, in
-  the rescaling case, which `Gray.lean` uses, the preservation of a
-  closed form with closed contractions by a local time-dependent flow, which
-  `PoissonAlgebra.lean` of *Hamiltonian flows* uses, and the slices of
-  pullbacks along `Prod.map id f`), and, named like Tau Ceti's files,
+  (named like Tau Ceti's file: the rescaling of a form by a local
+  time-dependent flow, for the constant family of a form, and the slices of
+  pullbacks along `Prod.map id f`; `Gray.lean` uses Tau Ceti's
+  `…_exp_integral_smul_of_forall_mem_uIcc` along one trajectory, and the
+  preservation of a closed form with closed contractions is Tau Ceti's, in
+  its `Flow/TimeDependent.lean`), and, named like Tau Ceti's files,
   `Geometry/Manifold/DifferentialForm/LieDeriv.lean` (the Lie derivative of
   forms on a manifold is linear in the field, from flat lemmas that this part adds to
   `Analysis/Calculus/DifferentialForm/LieDeriv.lean`) and
