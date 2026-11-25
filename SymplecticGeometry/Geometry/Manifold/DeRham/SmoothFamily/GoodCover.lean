@@ -17,19 +17,19 @@ import SymplecticGeometry.Topology.Sets.Opens.Basic
 # Smooth families of primitives on manifolds with a finite good cover
 
 A manifold `M` with a finite good cover `U` has a smooth cohomology splitting
-(`SymplecticGeometry.IsFiniteGoodCover.nonempty_smoothCohomologySplitting`). The proof is a
+(`SymplecticGeometry.IsFiniteGoodCover.exists_smoothCohomologySplitting_isSmooth`). The proof is a
 Mayer–Vietoris induction over the cover, after Bott and Tu [BottTu1982]. For a finset `s` of
 nonempty finsets of indices, write `V a = ⋂ i ∈ a, U i` and `W s = ⋃ a ∈ s, V a`. By strong
 induction on the number of elements of `s`, every `W s` has a splitting:
 
 * `W ∅` is empty, and an empty manifold has the zero splitting
-  (`SymplecticGeometry.nonempty_smoothCohomologySplitting_of_isEmpty`);
+  (`SymplecticGeometry.SmoothCohomologySplitting.exists_isSmooth_of_isEmpty`);
 * for `a ∈ s` with `s = insert a s'`, `W s = V a ∪ W s'`, and `V a ∩ W s' = W s''` with
   `s'' = {a ∪ b | b ∈ s'}`, which has fewer elements than `s`. The set `V a` is empty or smoothly
   contractible, so it has a splitting by
-  `SymplecticGeometry.nonempty_smoothCohomologySplitting_of_isSmoothlyContractible`, and the
-  Mayer–Vietoris step `SymplecticGeometry.nonempty_smoothCohomologySplitting_sup` gives one on
-  `W s`.
+  `SymplecticGeometry.SmoothCohomologySplitting.exists_isSmooth_of_isSmoothlyContractible`, and
+  the Mayer–Vietoris step `SymplecticGeometry.SmoothCohomologySplitting.exists_isSmooth_sup`
+  gives one on `W s`.
 
 The cover by the singletons gives `W = ⊤`, and the splitting is carried to `M` along
 `Diffeomorph.ofTop`. From the splitting follow the smooth families of primitives of exact forms,
@@ -40,9 +40,9 @@ boundaryless manifold is finite-dimensional.
 
 ## Main results
 
-* `SymplecticGeometry.IsFiniteGoodCover.nonempty_smoothCohomologySplitting` and
-  `SymplecticGeometry.HasFiniteGoodCover.nonempty_smoothCohomologySplitting`: a manifold with a
-  finite good cover has a smooth cohomology splitting.
+* `SymplecticGeometry.IsFiniteGoodCover.exists_smoothCohomologySplitting_isSmooth` and
+  `SymplecticGeometry.HasFiniteGoodCover.exists_smoothCohomologySplitting_isSmooth`: a manifold
+  with a finite good cover has a smooth cohomology splitting.
 * `SymplecticGeometry.exists_primitiveMap_of_hasFiniteGoodCover`: on such a manifold, a linear
   choice of primitives of exact forms, under which smooth families have smooth primitives.
 * `SymplecticGeometry.exists_isSmoothFamily_mextDerivₗ_eq`: a smooth family of exact forms over
@@ -74,11 +74,13 @@ namespace SymplecticGeometry
 
 open TauCeti
 
+universe uE uH uN
+
 variable (I M) in
 /-- **The splitting of an empty manifold.** On an empty manifold every form is zero, and the
 zero spaces with the zero projections and primitives form a smooth cohomology splitting. -/
-theorem nonempty_smoothCohomologySplitting_of_isEmpty [IsManifold I ∞ M] [IsEmpty M] :
-    Nonempty (SmoothCohomologySplitting I M) :=
+theorem SmoothCohomologySplitting.exists_isSmooth_of_isEmpty [IsManifold I ∞ M] [IsEmpty M] :
+    ∃ σ : SmoothCohomologySplitting I M, σ.IsSmooth.{uE, uH, uN} :=
   ⟨{ space := fun _ ↦ ⊥
      space_le_closedForms := fun _ ↦ bot_le
      finiteDimensional_space := fun _ ↦ inferInstance
@@ -87,9 +89,8 @@ theorem nonempty_smoothCohomologySplitting_of_isEmpty [IsManifold I ∞ M] [IsEm
      proj_zero := fun _ ↦ Subsingleton.elim _ _
      primitive := fun _ ↦ 0
      mextDerivₗ_primitive := fun _ _ ↦ Subsingleton.elim _ _
-     eq_zero_of_mem_exactForms := fun _ _ _ _ ↦ Subsingleton.elim _ _
-     preservesSmoothFamilies_proj := fun _ ↦ preservesSmoothFamilies_zero
-     preservesSmoothFamilies_primitive := fun _ ↦ preservesSmoothFamilies_zero }⟩
+     eq_zero_of_mem_exactForms := fun _ _ _ _ ↦ Subsingleton.elim _ _ },
+    ⟨fun _ ↦ preservesSmoothFamilies_zero, fun _ ↦ preservesSmoothFamilies_zero⟩⟩
 
 variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] [T2Space M] [SigmaCompactSpace M]
   {EN HN N : Type*} [NormedAddCommGroup EN] [NormedSpace ℝ EN] [TopologicalSpace HN]
@@ -98,23 +99,25 @@ variable [FiniteDimensional ℝ E] [IsManifold I ∞ M] [T2Space M] [SigmaCompac
 /-- **The induction over a good cover.** Let `U` be a finite good cover of `M`. For every finset
 `s` of nonempty finsets of indices, the union over `a ∈ s` of the intersections
 `⋂ i ∈ a, U i` has a smooth cohomology splitting. -/
-theorem IsFiniteGoodCover.nonempty_smoothCohomologySplitting_iSup {ι : Type*} [Finite ι]
+theorem IsFiniteGoodCover.exists_smoothCohomologySplitting_isSmooth_iSup {ι : Type*} [Finite ι]
     {U : ι → Opens M} (hU : IsFiniteGoodCover I U) (s : Finset (Finset ι))
     (hs : ∀ a ∈ s, a.Nonempty) :
-    Nonempty (SmoothCohomologySplitting I (⨆ a ∈ s, ⨅ i ∈ a, U i : Opens M)) := by
+    ∃ σ : SmoothCohomologySplitting I (⨆ a ∈ s, ⨅ i ∈ a, U i : Opens M),
+      σ.IsSmooth.{uE, uH, uN} := by
   classical
   induction hn : s.card using Nat.strong_induction_on generalizing s with
   | _ n ih =>
     subst hn
     rcases s.eq_empty_or_nonempty with rfl | ⟨a, ha⟩
     · rw [show (⨆ a ∈ (∅ : Finset (Finset ι)), ⨅ i ∈ a, U i : Opens M) = ⊥ by simp]
-      exact nonempty_smoothCohomologySplitting_of_isEmpty I _
+      exact SmoothCohomologySplitting.exists_isSmooth_of_isEmpty I _
     -- The member `V a` of the union: empty, or smoothly contractible.
-    have hV : Nonempty (SmoothCohomologySplitting I (⨅ i ∈ a, U i : Opens M)) := by
+    have hV : ∃ σ : SmoothCohomologySplitting I (⨅ i ∈ a, U i : Opens M),
+        σ.IsSmooth.{uE, uH, uN} := by
       rcases ((⨅ i ∈ a, U i : Opens M) : Set M).eq_empty_or_nonempty with he | hne
       · rw [Opens.coe_eq_empty.1 he]
-        exact nonempty_smoothCohomologySplitting_of_isEmpty I _
-      · exact nonempty_smoothCohomologySplitting_of_isSmoothlyContractible I
+        exact SmoothCohomologySplitting.exists_isSmooth_of_isEmpty I _
+      · exact SmoothCohomologySplitting.exists_isSmooth_of_isSmoothlyContractible I
           (hU.isSmoothlyContractible (hs a ha) hne)
     set s' := s.erase a
     -- The intersection of `V a` with the union over `s'` is the union over `s''`.
@@ -135,31 +138,32 @@ theorem IsFiniteGoodCover.nonempty_smoothCohomologySplitting_iSup {ι : Type*} [
       rintro _ ⟨b, -, rfl⟩
       exact (hs a ha).mono Finset.subset_union_left) rfl
     rw [← hinf] at hW''
-    exact hsup ▸ nonempty_smoothCohomologySplitting_sup _ _ hV hW' hW''
+    exact hsup ▸ SmoothCohomologySplitting.exists_isSmooth_sup _ _ hV hW' hW''
 
 /-- **Smooth cohomology splittings from a finite good cover.** A Hausdorff σ-compact manifold,
 modelled on a finite-dimensional space, with a finite good cover has a smooth cohomology
 splitting. -/
-theorem IsFiniteGoodCover.nonempty_smoothCohomologySplitting {ι : Type*} [Finite ι]
+theorem IsFiniteGoodCover.exists_smoothCohomologySplitting_isSmooth {ι : Type*} [Finite ι]
     {U : ι → Opens M} (hU : IsFiniteGoodCover I U) :
-    Nonempty (SmoothCohomologySplitting I M) := by
+    ∃ σ : SmoothCohomologySplitting I M, σ.IsSmooth.{uE, uH, uN} := by
   classical
   have := Fintype.ofFinite ι
   -- The union over the singletons is the whole manifold.
   have htop : (⨆ a ∈ Finset.univ.image ({·} : ι → Finset ι), ⨅ i ∈ a, U i : Opens M) = ⊤ := by
     simpa only [Finset.iSup_finset_image, Finset.iInf_singleton, Finset.mem_univ, iSup_pos] using
       hU.iSup_eq_top
-  obtain ⟨σ⟩ := hU.nonempty_smoothCohomologySplitting_iSup (Finset.univ.image ({·} : ι → Finset ι))
-    (by simp)
-  exact ⟨σ.ofDiffeomorph (Diffeomorph.ofTop _ htop).symm⟩
+  obtain ⟨σ, hσ⟩ := hU.exists_smoothCohomologySplitting_isSmooth_iSup
+    (Finset.univ.image ({·} : ι → Finset ι)) (by simp)
+  exact ⟨_, hσ.ofDiffeomorph (Diffeomorph.ofTop _ htop).symm⟩
 
 /-- **Smooth cohomology splittings from a finite good cover.** A Hausdorff σ-compact manifold,
 modelled on a finite-dimensional space, that has a finite good cover has a smooth cohomology
 splitting. -/
-theorem HasFiniteGoodCover.nonempty_smoothCohomologySplitting (hM : HasFiniteGoodCover I M) :
-    Nonempty (SmoothCohomologySplitting I M) :=
+theorem HasFiniteGoodCover.exists_smoothCohomologySplitting_isSmooth
+    (hM : HasFiniteGoodCover I M) :
+    ∃ σ : SmoothCohomologySplitting I M, σ.IsSmooth.{uE, uH, uN} :=
   let ⟨_, _, hU⟩ := hasFiniteGoodCover_def.mp hM
-  hU.nonempty_smoothCohomologySplitting
+  hU.exists_smoothCohomologySplitting_isSmooth
 
 /-- **Smooth families of primitives.** On a Hausdorff σ-compact manifold, modelled on a
 finite-dimensional space, that has a finite good cover, there is a linear map `P` from the exact
@@ -172,8 +176,8 @@ Milestone: *Smooth families of primitives*. -/
 theorem exists_primitiveMap_of_hasFiniteGoodCover (hM : HasFiniteGoodCover I M) (k : ℕ) :
     ∃ P : exactForms I M (k + 1) →ₗ[ℝ] SmoothForm I M ℝ k,
       (∀ η, mextDerivₗ I k (P η) = η) ∧ PreservesSmoothFamilies P :=
-  let σ := hM.nonempty_smoothCohomologySplitting.some
-  ⟨σ.exactPrimitive k, σ.mextDerivₗ_exactPrimitive k, σ.preservesSmoothFamilies_exactPrimitive k⟩
+  let ⟨σ, hσ⟩ := hM.exists_smoothCohomologySplitting_isSmooth
+  ⟨σ.exactPrimitive k, σ.mextDerivₗ_exactPrimitive k, hσ.preservesSmoothFamilies_exactPrimitive k⟩
 
 /-- **Smooth families of primitives, for one family.** On a Hausdorff σ-compact manifold,
 modelled on a finite-dimensional space, that has a finite good cover, a smooth family `η` of
@@ -191,7 +195,8 @@ good cover has finite-dimensional de Rham cohomology in every degree. -/
 theorem finiteDimensional_deRhamCohomology_of_hasFiniteGoodCover (hM : HasFiniteGoodCover I M)
     (k : ℕ) : FiniteDimensional ℝ (deRhamCohomology I M k) :=
   -- Any universe levels of the parameter manifolds do: only the spaces of the splitting are used.
-  let σ : SmoothCohomologySplitting.{0, 0, 0} I M := hM.nonempty_smoothCohomologySplitting.some
+  let ⟨σ, _⟩ : ∃ σ : SmoothCohomologySplitting I M, σ.IsSmooth.{0, 0, 0} :=
+    hM.exists_smoothCohomologySplitting_isSmooth
   σ.finiteDimensional_deRhamCohomology k
 
 /-- **The classes of a smooth family of closed forms depend smoothly on the parameter.** On a
@@ -204,7 +209,8 @@ theorem contMDiff_repr_mk_of_hasFiniteGoodCover (hM : HasFiniteGoodCover I M) {k
     {z : N → closedForms I M k}
     (hz : IsSmoothFamily J (fun t ↦ (z t : SmoothForm I M ℝ k))) (i : ι) :
     ContMDiff J 𝓘(ℝ) ∞ (fun t ↦ b.repr (deRhamCohomology.mk I k (z t)) i) :=
-  hM.nonempty_smoothCohomologySplitting.some.contMDiff_repr_mk b hz i
+  let ⟨_, hσ⟩ := hM.exists_smoothCohomologySplitting_isSmooth
+  hσ.contMDiff_repr_mk b hz i
 
 omit [SigmaCompactSpace M] in
 /-- **De Rham cohomology of a compact manifold is finite-dimensional.** On a compact Hausdorff

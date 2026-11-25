@@ -14,7 +14,7 @@ public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.SmoothFamily
 # Smooth cohomology splittings of smoothly contractible manifolds
 
 A smoothly contractible manifold `N` has a smooth cohomology splitting
-(`SymplecticGeometry.nonempty_smoothCohomologySplitting_of_isSmoothlyContractible`). Let
+(`SymplecticGeometry.SmoothCohomologySplitting.exists_isSmooth_of_isSmoothlyContractible`). Let
 `Φ : N × [0, 1] → N` be a smooth contraction, from the constant map at `c` to the identity.
 
 * In degree zero, the space of the splitting is the space of all closed `0`-forms, which is
@@ -35,8 +35,8 @@ dependence on families of the Poincaré lemma in the form Weil gives it [Weil195
 
 ## Main results
 
-* `SymplecticGeometry.nonempty_smoothCohomologySplitting_of_isSmoothlyContractible`: a smoothly
-  contractible manifold has a smooth cohomology splitting.
+* `SymplecticGeometry.SmoothCohomologySplitting.exists_isSmooth_of_isSmoothlyContractible`: a
+  smoothly contractible manifold has a smooth cohomology splitting.
 
 ## References
 
@@ -59,16 +59,19 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [TopologicalSp
   {I : ModelWithCorners ℝ E H} {N : Type*} [TopologicalSpace N] [ChartedSpace H N]
   [IsManifold I ∞ N]
 
+universe uE uH uN
+
 variable (I) in
 /-- **The splitting of a contractible manifold.** A smoothly contractible manifold `N` has a
 smooth cohomology splitting: in degree zero its space is that of all closed `0`-forms, and in
 positive degree it is `0`, with the primitive `z ↦ h (Φ^* z)` given by the homotopy operator
 after pullback along a contraction `Φ`. -/
-theorem nonempty_smoothCohomologySplitting_of_isSmoothlyContractible
-    (h : IsSmoothlyContractible I N) : Nonempty (SmoothCohomologySplitting I N) := by
+theorem SmoothCohomologySplitting.exists_isSmooth_of_isSmoothlyContractible
+    (h : IsSmoothlyContractible I N) :
+    ∃ σ : SmoothCohomologySplitting I N, σ.IsSmooth.{uE, uH, uN} := by
   have := h.connectedSpace
   obtain ⟨c, Φ, hΦ, h₀, h₁⟩ := isSmoothlyContractible_def.mp h
-  exact ⟨{
+  refine ⟨{
     space := fun
       | 0 => closedForms I N 0
       | _ + 1 => ⊥
@@ -95,11 +98,9 @@ theorem nonempty_smoothCohomologySplitting_of_isSmoothlyContractible
     eq_zero_of_mem_exactForms := by
       rintro (_ | k) s hs hex
       · rwa [exactForms_zero, Submodule.mem_bot] at hex
-      · exact (Submodule.mem_bot ℝ).mp hs
-    preservesSmoothFamilies_proj := fun
+      · exact (Submodule.mem_bot ℝ).mp hs }, ⟨fun
       | 0 => preservesSmoothFamilies_subtype
-      | _ + 1 => preservesSmoothFamilies_zero
-    preservesSmoothFamilies_primitive := fun k ↦
-      preservesSmoothFamilies_homotopyOperator_mpullback hΦ (closedForms I N (k + 1)) }⟩
+      | _ + 1 => preservesSmoothFamilies_zero, fun k ↦
+      preservesSmoothFamilies_homotopyOperator_mpullback hΦ (closedForms I N (k + 1))⟩⟩
 
 end SymplecticGeometry
