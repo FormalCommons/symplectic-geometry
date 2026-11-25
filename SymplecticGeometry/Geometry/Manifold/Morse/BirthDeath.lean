@@ -11,6 +11,9 @@ public import TauCeti.Geometry.Manifold.Morse.CriticalPoints
 public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import SymplecticGeometry.Analysis.Calculus.FDeriv.Pi
 import SymplecticGeometry.Analysis.Calculus.Hadamard
+import SymplecticGeometry.Geometry.Manifold.Morse.CriticalPoints
+import SymplecticGeometry.Topology.DiscreteSubset
+import SymplecticGeometry.Topology.Maps.Proper
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 import TauCeti.Geometry.Manifold.Morse.ScalarComposition
@@ -63,6 +66,11 @@ theorem. In the chart, `h ∘ f - h (f x)` is the normal form of `f` times a smo
 function `a` (Hadamard's lemma, `ContDiff.exists_contDiff_sub_eq_smul`), and the local
 diffeomorphism rescales the coordinates of weight `±1` by `√a` and the cubic one by `∛a`
 (`SymplecticGeometry.exists_openPartialHomeomorph_pi_mul_rpow`).
+
+The finiteness of the critical points of a generalized Morse function in a compact set, or in a
+sublevel set of a proper one bounded below, uses only that its critical points are isolated:
+it follows from `TauCeti.finite_criticalPoints_inter_of_forall_eventually_notMem` and
+`IsProperMap.isCompact_preimage_Iic`, which make no Morse assumption.
 
 ## References
 
@@ -496,6 +504,14 @@ theorem eventually_eq_of_mem_criticalPoints [IsManifold 𝓘(ℝ, E) 1 M]
   · exact TauCeti.eventually_eq_of_mem_criticalPoints ((hf.contMDiff x).of_le (by simp))
       fun h ↦ (hx h).elim
 
+/-- Each point has a punctured neighbourhood free of critical points of a generalized Morse
+function. -/
+theorem eventually_notMem_criticalPoints [IsManifold 𝓘(ℝ, E) 1 M]
+    (hf : IsGeneralizedMorse E f) (x : M) :
+    ∀ᶠ y in 𝓝[≠] x, y ∉ criticalPoints 𝓘(ℝ, E) f := by
+  filter_upwards [nhdsWithin_le_nhds (hf.eventually_eq_of_mem_criticalPoints x),
+    self_mem_nhdsWithin] with y hy hyx using fun hyc ↦ hyx (hy hyc)
+
 /-- The critical set of a generalized Morse function is closed. -/
 theorem isClosed_criticalPoints [IsManifold 𝓘(ℝ, E) 1 M] (hf : IsGeneralizedMorse E f) :
     IsClosed (criticalPoints 𝓘(ℝ, E) f) :=
@@ -503,30 +519,22 @@ theorem isClosed_criticalPoints [IsManifold 𝓘(ℝ, E) 1 M] (hf : IsGeneralize
 
 /-- The critical set of a generalized Morse function is discrete. -/
 theorem isDiscrete_criticalPoints [IsManifold 𝓘(ℝ, E) 1 M] (hf : IsGeneralizedMorse E f) :
-    IsDiscrete (criticalPoints 𝓘(ℝ, E) f) := by
-  rw [isDiscrete_iff_nhdsNE]
-  intro x _
-  rw [inf_principal_eq_bot]
-  filter_upwards [nhdsWithin_le_nhds (hf.eventually_eq_of_mem_criticalPoints x),
-    self_mem_nhdsWithin] with y hy hyx using fun hyc ↦ hyx (hy hyc)
+    IsDiscrete (criticalPoints 𝓘(ℝ, E) f) :=
+  isDiscrete_iff_forall_eventually_notMem.2 fun x _ ↦
+    hf.eventually_notMem_criticalPoints x
 
 /-- A generalized Morse function has finitely many critical points in each compact set. -/
 theorem finite_criticalPoints_inter [IsManifold 𝓘(ℝ, E) 1 M] (hf : IsGeneralizedMorse E f)
     {K : Set M} (hK : IsCompact K) : (criticalPoints 𝓘(ℝ, E) f ∩ K).Finite :=
-  (hK.inter_left hf.isClosed_criticalPoints).finite
-    (hf.isDiscrete_criticalPoints.mono inter_subset_left)
+  finite_criticalPoints_inter_of_forall_eventually_notMem (hf.contMDiff.of_le (by simp)) hK
+    fun x _ ↦ hf.eventually_notMem_criticalPoints x
 
 /-- A proper generalized Morse function bounded below has finitely many critical points in each
 sublevel set. -/
 theorem finite_criticalPoints_inter_preimage_Iic [IsManifold 𝓘(ℝ, E) 1 M]
     (hf : IsGeneralizedMorse E f) (hp : IsProperMap f) (hbdd : BddBelow (range f)) (b : ℝ) :
-    (criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Iic b).Finite := by
-  obtain ⟨a, ha⟩ := hbdd
-  have hsub : f ⁻¹' Iic b = f ⁻¹' Icc a b := by
-    ext y
-    simp [ha (mem_range_self y)]
-  rw [hsub]
-  exact hf.finite_criticalPoints_inter (hp.isCompact_preimage isCompact_Icc)
+    (criticalPoints 𝓘(ℝ, E) f ∩ f ⁻¹' Iic b).Finite :=
+  hf.finite_criticalPoints_inter (hp.isCompact_preimage_Iic hbdd b)
 
 /-- Composing a generalized Morse function with a smooth `h : ℝ → ℝ` with `h' > 0` on the values
 of `f` gives a generalized Morse function. -/
