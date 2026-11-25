@@ -481,9 +481,9 @@ the library.
   through the comparison `mpullback_equivProjectivization_fubiniStudyForm`
   of `FubiniStudy/Normalization.lean`, and no statement of these parts
   uses it.
-- **Balls and weights.** A ball $B(\lambda)$ is the closed ball of radius
-  $\lambda$ in `StdSpace (Fin n)`, and a symplectic embedding of it is
-  *Isotopy extension*'s `IsSymplecticBallEmbedding ω λ ψ` (smooth and
+- **Balls and weights.** $B(\lambda)$ is the closed Euclidean ball about
+  $0$ in `StdSpace (Fin n)` whose radius is $\lambda$, and a symplectic
+  embedding of it is *Isotopy extension*'s `IsSymplecticBallEmbedding ω λ ψ` (smooth and
   injective on an open neighbourhood of the ball). A blowup along such a
   $\psi$ has weight $\lambda$, the radius; its exceptional divisor carries
   $\lambda^2\omega_{\mathrm{FS}}$ and its class is
@@ -507,7 +507,7 @@ the library.
 - **Connected sums.** The library's connected sum is Tau Ceti's
   `TauCeti.ConnectedSum` and, with orientations, `TauCeti.OrientedConnectedSum`
   (Kosinski's gluing of punctured balls by $v\mapsto v/\lVert v\rVert^2$).
-  The book's gluing of annuli by $\xi\mapsto\varepsilon^2\Phi\xi/|\xi|^2$
+  McDuff–Salamon's gluing of annuli by $\xi\mapsto\varepsilon^2\Phi\xi/|\xi|^2$
   is compared with it once, in *Connected sums*, and no second connected sum
   is built. $\overline{\mathbb CP}{}^n$ is `ℙ ℂ (Fin (n + 1) → ℂ)` with the
   negative of its complex orientation (`Geometry/Manifold/Complex/Orientation.lean`).
@@ -518,18 +518,18 @@ the library.
   built from a chart near $p_0$, and two holomorphically compatible charts
   give canonically diffeomorphic blowups.
 - **Integral classes and line bundles.** An integral lift of $[\omega]$ is
-  a class $a\in H^2(M;\mathbb Z)$ whose image in real singular cohomology
-  is the image of $[\omega]$ under Tau Ceti's map from de Rham to singular
-  cohomology (`Geometry/Manifold/SmoothSingular/DeRham.lean`); no de Rham
-  theorem is used. The Hermitian line bundle of §7.4 has a unitary
-  connection with curvature $-2\pi i\omega$, as on the page; *Asymptotically
-  holomorphic sections* rescales to Auroux's $\Omega=2\pi\omega$ inside its
+  an element $a$ of $H^2(M;\mathbb Z)$ whose image in real singular cohomology
+  is the image of $[\omega]$ under Tau Ceti's de Rham homomorphism
+  `TauCeti.deRhamHom` (`Geometry/Manifold/SmoothSingular/SingularCohomology.lean`);
+  no de Rham theorem is used. The Hermitian line bundle of §7.4 has a unitary
+  connection whose curvature is $-2\pi i\omega$, as on the page;
+  *Asymptotically holomorphic sections* rescales to Auroux's $\Omega=2\pi\omega$ inside its
   proofs only.
 - **Liouville, Weinstein and Stein.** Liouville fields and contact-type
   boundaries follow *Liouville structures* (outward field, $d\lambda=\omega$,
   collar form $-d(e^s\alpha)$). For a function $f$ and an integrable $J$,
-  $\lambda_f=-df\circ J$ and $\omega_f=d\lambda_f$; strict
-  plurisubharmonicity is $\omega_f(v,Jv)>0$ for $v\ne0$. Tau Ceti's
+  $\lambda_f=-df\circ J$ and $\omega_f=d\lambda_f$, and $f$ is strictly
+  plurisubharmonic when $\omega_f(v,Jv)>0$ for $v\ne0$. Tau Ceti's
   `TauCeti.IsSteinManifold` is defined by holomorphic convexity; the
   library's Stein structures are exhausting strictly plurisubharmonic
   functions, and *Stein and Weinstein structures* relates the two only if
@@ -3588,8 +3588,8 @@ geometry and waits for no part.
   `Geometry/Manifold/ConnectedSum/Annulus.lean` (the book's construction,
   gluing $M_1\setminus\iota_1(\varepsilon B)$ and
   $M_2\setminus\iota_2(\varepsilon B)$ along annuli by
-  $\xi\mapsto\varepsilon^2\Phi\xi/|\xi|^2$ for an orientation-reversing
-  $\Phi\in\mathrm O(n)$, built with Tau Ceti's `Geometry/Manifold/Gluing/`,
+  $\xi\mapsto\varepsilon^2\Phi\xi/|\xi|^2$, where $\Phi\in\mathrm O(n)$
+  reverses orientation, built with Tau Ceti's `Geometry/Manifold/Gluing/`,
   and a diffeomorphism from it to Tau Ceti's `TauCeti.ConnectedSum` of
   suitably rescaled open embeddings, so that every later statement is made
   about `TauCeti.ConnectedSum`) and
@@ -3610,7 +3610,8 @@ geometry and waits for no part.
   `ClosedBall.lean`, the second from `OrientationPreserving.lean` and, for
   the book's choices of $\iota_i$, $\Phi$ and $\varepsilon$, `Annulus.lean`.
   The independence needs connected summands, as Tau Ceti's theorem does
-  (and Hausdorff, σ-compact ones, which every manifold of the plan is).
+  (and Hausdorff, σ-compact ones, which the plan's convention that
+  manifolds are Hausdorff and second countable gives).
   No design file is needed.
 
 ### 58. Poincaré duals of submanifolds (needs `design/poincare-duals.md`)
@@ -3626,7 +3627,7 @@ For `auxiliary/first-chern-class.md`; it waits for no part.
   the Thom isomorphism $H^k(Z)\cong H^{k+r}(\nu,\nu\setminus Z)$ by cup
   product, if the pinned Tau Ceti does not already have it for bundles over
   a general base) and `DualClass.lean` (the class
-  $d_Z\in H^r(X;\mathbb Z)$: the Thom class carried to
+  $d_Z$ of degree $r$ on $X$: the Thom class carried to
   $H^r(X,X\setminus Z)$ by a tubular neighbourhood, Tau Ceti's
   `exists_isTubularNeighborhood_subset`, and excision, then made absolute;
   independence of the tubular neighbourhood; $d_Z$ restricts to $0$ on
@@ -3665,8 +3666,8 @@ auxiliary pages, and the symplectic parts wait for it.
   incidence set $\widetilde{\mathbb C}^n$, a complex submanifold of
   `ℙ ℂ (Fin n → ℂ) × (Fin n → ℂ)` in the charts of the book; its
   projections $\mathrm{pr}$ and $\pi$; the exceptional divisor $Z$, the zero
-  section; the biholomorphism $\widetilde{\mathbb C}^n\setminus Z\to
-  \mathbb C^n\setminus0$; the identification with the total space of
+  section; $\pi$ is biholomorphic from the complement of $Z$ onto
+  $\mathbb C^n\setminus0$; the identification with the total space of
   `Tautological`, under which $\mathrm{pr}$ is the bundle projection, and of
   the normal bundle of $Z$ with $L$, for every $n\ge1$),
   `Lift.lean` (a biholomorphism between neighbourhoods of $0$ fixing $0$
@@ -3869,14 +3870,16 @@ hypersurface theorem.
   Hermitian line bundle with $c_1=a$ and a unitary connection of curvature
   $-2\pi i\omega$; the connection from *Principal connections*'
   circle connection forms and the merged `realFirstChernClass` of
-  *Minimal coupling*, corrected by an imaginary one-form), `ZeroSet.lean`
+  *Minimal coupling*, corrected by an imaginary one-form; that every
+  integral class of degree two is $c_1$ of some line bundle is not in
+  either library, and the design file plans it as prerequisite issues), `ZeroSet.lean`
   (Lemma 7.4.2: the inequality $|\bar\partial_Ds|<|\partial_Ds|$ at the
   zeros gives a transverse, symplectic zero set, of class
   $\mathrm{PD}(c_1(L))$ by *Poincaré duals of submanifolds*' zero-set
   file), `AsymptoticallyHolomorphic.lean` (sequences of sections with the
   rescaled estimates, and the transversality condition
-  $\max(|s_k|,|\partial s_k|)\ge\eta$), `PeakSection.lean` (the sections
-  $p_{k,x}$ and $z_jp_{k,x}$ with Gaussian decay), `LocalTransversality.lean`
+  $\max(|s_k|,|\partial s_k|)\ge\eta$), `PeakSection.lean` (the peak sections
+  $p_{k,x}$, $z_jp_{k,x}$, with Gaussian decay), `LocalTransversality.lean`
   (the quantitative local statement for approximately holomorphic
   functions, from Auroux's avoidance estimate), `GlobalTransversality.lean`
   (the colouring of a separated net and the iteration over colours),
@@ -3902,8 +3905,8 @@ hypersurface theorem.
 For §7.4 of `atlas/constructing-symplectic-manifolds.md`.
 
 - **Files:** in `Geometry/Symplectic/Weinstein/`: `Basic.lean` (Weinstein
-  structures: a complete Liouville field gradient-like for an exhausting
-  generalized Morse function, and Weinstein domains, on *Liouville
+  structures: a complete Liouville field that is a pseudo-gradient of a
+  proper generalized Morse function bounded below, and Weinstein domains, on *Liouville
   structures*' collars and Tau Ceti's `TauCeti.IsLiouvilleDomain`),
   `Geometry/Manifold/Complex/Plurisubharmonic.lean` ($\lambda_f$,
   $\omega_f$, strict plurisubharmonicity, Stein structures; with Tau Ceti's
@@ -3932,8 +3935,8 @@ For §7.4 of `atlas/constructing-symplectic-manifolds.md`.
 
 - **Files:** in `Geometry/Symplectic/Lefschetz/`: `Basic.lean` (symplectic
   Lefschetz pencils and fibrations over $\mathbb CP^1$, with the local model
-  $z_1^2+z_2^2$) and `Pencil.lean` (Theorem 7.4.12: the pencil from the
-  ratio of two asymptotically holomorphic sections, its $mk^2$ base points,
+  $z_1^2+z_2^2$) and `Pencil.lean` (Theorem 7.4.12: the pencil as the
+  quotient of two asymptotically holomorphic sections, its $mk^2$ base points,
   the fibration on the blowup at them, and the genus and number of singular
   fibres, by *Adjunction* and the Euler characteristic of the fibration).
 - **Builds on:** *Asymptotically holomorphic sections* (its sections, with
@@ -4296,7 +4299,7 @@ Both milestones, proved in full. Their parts wait for no part of
 
 | Milestone | Where |
 |---|---|
-| *Disc theorem* | *Connected sums* (`ClosedBall.lean`, `OrientationPreserving.lean`, `Annulus.lean`). Existing input: `TauCeti.SmoothEmbedding.exists_diffeotopy_eqOn_of_isOrientationPreservingAt`, for embeddings of the whole model space. |
+| *Disc theorem* | *Connected sums* (`ClosedBall.lean`, `OrientationPreserving.lean`, `Annulus.lean`). Existing input: `TauCeti.SmoothEmbedding.exists_diffeotopy_eqOn_of_isOrientationPreservingAt`, which takes embeddings of all of the model space. |
 | *First Chern class of a blowup at a point* | *Complex blowup* (`ChernClass.lean`), with *Poincaré duals of submanifolds* and *Chern classes*. |
 
 ## Departures from the plan's advice
@@ -4461,15 +4464,15 @@ Both milestones, proved in full. Their parts wait for no part of
   spaces (`TauCeti.complexEulerClass_tensorProduct`), and extends it to manifolds by a finite trivializing cover, which gives
   a classifying map from the manifold itself, rather than building a
   second, Čech, description of the class.
-- **The rational elliptic surface.** The page reaches $E(1)$ as a blowup
-  of $\mathbb CP^2$ at the nine base points of a cubic pencil. The library
+- **The rational elliptic surface.** The page reaches $E(1)$ by blowing
+  up $\mathbb CP^2$ in the nine points where two cubics of a pencil meet. The library
   takes the total space of the pencil in $\mathbb CP^2\times\mathbb CP^1$,
   a smooth hypersurface and so Kähler, and uses the blowup only
   topologically, for its fundamental group. So *Symplectic sums* does not
   wait for *Symplectic blowup*.
 - **Based ball embeddings.** Of the two proofs of Lemma 7.1.25 the library
-  takes the first, which moves the centre back along a null-homotopy and
-  needs no locally trivial fibration of embedding spaces.
+  takes the first, which pulls the centre back along a contraction of a
+  loop and needs no locally trivial fibration of embedding spaces.
 - **Connectivity of Donaldson hypersurfaces.** The library proves it by the
   page's Morse argument for $\log|s_k|^2$, in *Asymptotically holomorphic
   sections*, and not through Giroux's Weinstein complement, so that the
