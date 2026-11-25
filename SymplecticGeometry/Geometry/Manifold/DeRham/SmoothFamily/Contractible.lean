@@ -39,6 +39,10 @@ dependence on families of the Poincaré lemma in the form Weil gives it [Weil195
 
 * `SymplecticGeometry.SmoothCohomologySplitting.ofIsSmoothlyContractible`: the splitting of a
   smoothly contractible manifold.
+* `SymplecticGeometry.SmoothCohomologySplitting.space_ofIsSmoothlyContractible_zero`,
+  `space_ofIsSmoothlyContractible_succ`, `proj_ofIsSmoothlyContractible_zero`,
+  `proj_ofIsSmoothlyContractible_succ` and `primitive_ofIsSmoothlyContractible`: its spaces,
+  projections and primitives.
 * `SymplecticGeometry.SmoothCohomologySplitting.isSmooth_ofIsSmoothlyContractible`: it is
   smooth.
 
@@ -104,15 +108,57 @@ noncomputable def SmoothCohomologySplitting.ofIsSmoothlyContractible
       · rwa [exactForms_zero, Submodule.mem_bot] at hex
       · exact (Submodule.mem_bot ℝ).mp hs }
 
+namespace SmoothCohomologySplitting
+
+variable (I) (h : IsSmoothlyContractible I N)
+
+/-- In degree zero, the space of `ofIsSmoothlyContractible I h` is that of all closed
+`0`-forms. -/
+theorem space_ofIsSmoothlyContractible_zero :
+    (ofIsSmoothlyContractible I h).space 0 = closedForms I N 0 :=
+  (rfl)
+
+/-- In positive degree, the space of `ofIsSmoothlyContractible I h` is `0`. -/
+theorem space_ofIsSmoothlyContractible_succ (k : ℕ) :
+    (ofIsSmoothlyContractible I h).space (k + 1) = ⊥ :=
+  (rfl)
+
+/-- In degree zero, the projection of `ofIsSmoothlyContractible I h` is the inclusion of the
+closed `0`-forms. -/
+theorem proj_ofIsSmoothlyContractible_zero :
+    (ofIsSmoothlyContractible I h).proj 0 = (closedForms I N 0).subtype :=
+  (rfl)
+
+/-- In positive degree, the projection of `ofIsSmoothlyContractible I h` is `0`. -/
+theorem proj_ofIsSmoothlyContractible_succ (k : ℕ) :
+    (ofIsSmoothlyContractible I h).proj (k + 1) = 0 :=
+  (rfl)
+
+/-- The primitive of `ofIsSmoothlyContractible I h` is `z ↦ h (Φ^* z)`, the homotopy operator
+after pullback along the contraction `Φ` chosen from `h`. -/
+theorem primitive_ofIsSmoothlyContractible (k : ℕ) :
+    (ofIsSmoothlyContractible I h).primitive k =
+      SmoothForm.homotopyOperator ∘ₗ
+        SmoothForm.mpullback _ (isSmoothlyContractible_def.mp h).choose_spec.choose_spec.1 ∘ₗ
+        (closedForms I N (k + 1)).subtype :=
+  (rfl)
+
+variable {I} in
 /-- The splitting of a smoothly contractible manifold is smooth, over parameter manifolds in all
 universes. -/
-theorem SmoothCohomologySplitting.isSmooth_ofIsSmoothlyContractible
-    (h : IsSmoothlyContractible I N) :
+theorem isSmooth_ofIsSmoothlyContractible :
     (ofIsSmoothlyContractible I h).IsSmooth.{uE, uH, uN} where
   preservesSmoothFamilies_proj
-    | 0 => preservesSmoothFamilies_subtype
-    | _ + 1 => preservesSmoothFamilies_zero
-  preservesSmoothFamilies_primitive k :=
-    preservesSmoothFamilies_homotopyOperator_mpullback _ (closedForms I N (k + 1))
+    | 0 => by
+      rw [proj_ofIsSmoothlyContractible_zero]
+      exact preservesSmoothFamilies_subtype
+    | k + 1 => by
+      rw [proj_ofIsSmoothlyContractible_succ]
+      exact preservesSmoothFamilies_zero
+  preservesSmoothFamilies_primitive k := by
+    rw [primitive_ofIsSmoothlyContractible]
+    exact preservesSmoothFamilies_homotopyOperator_mpullback _ (closedForms I N (k + 1))
+
+end SmoothCohomologySplitting
 
 end SymplecticGeometry

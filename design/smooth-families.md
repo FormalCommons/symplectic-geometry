@@ -176,7 +176,7 @@ No statement of this part is one that the authors' errata
   of the plane minus the points $(j,0)$, $j\in\mathbb{Z}$). The induction is on
   a finset `s` of index sets: the splitting of
   `⋃ a ∈ s, ⋂ i ∈ a, U i` is defined by well-founded recursion on `s.card`,
-  and its smoothness proved by strong induction on `s.card`, since the
+  and its smoothness proved by the recursion's induction principle, since the
   intersection with the last member is a union of `s.card - 1` members. A
   definition, rather than an existence theorem, gives one splitting for all
   universes of parameter manifolds.
