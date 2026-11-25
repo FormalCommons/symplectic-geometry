@@ -33,7 +33,7 @@ charts the extended charts of `M` restricted to the interior. The copy
 `InteriorModel I (I.interiorOpens M)` here is instead a type synonym of the open subset
 `I.interiorOpens M`, needs no finite dimension, and comes with the diffeomorphism
 `interiorModelDiffeomorph` and the local diffeomorphism `InteriorModel.isLocalDiffeomorph_val`
-into `M`; its range is described through Tau Ceti's `ModelWithCorners.range_subtypeVal_interior`.
+into `M`, whose range is the complement of the boundary (`InteriorModel.range_val_interiorOpens`).
 
 ## Main definitions
 

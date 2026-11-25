@@ -84,7 +84,7 @@ namespace Foliation
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M]
-  [ChartedSpace H M] [IsManifold I (∞ + 1) M] [BoundarylessManifold I M] {k : ℕ}
+  [ChartedSpace H M] [IsManifold I ∞ M] [BoundarylessManifold I M] {k : ℕ}
   {𝓕 : Foliation I ∞ M k}
 
 /-- **Transitions between slices.** If two slices `s₁`, `s₂` of a smooth foliation of a
@@ -203,7 +203,6 @@ theorem isSubmersion_leafSpaceMk [I.Boundaryless] (h : 𝓕.IsRegular) :
     letI := leafSpaceChartedSpace h
     IsSubmersion I 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k))) ∞ 𝓕.leafSpaceMk := by
   let := leafSpaceChartedSpace h
-  have : IsManifold I ∞ M := .of_le (n := ∞ + 1) le_self_add
   have := isManifold_leafSpace h
   exact ((contMDiff_leafSpaceMk h).isSubmersionOfComplement_of_surjective_mfderiv (by simp)
     (surjective_mfderiv_leafSpaceMk h)).isSubmersion

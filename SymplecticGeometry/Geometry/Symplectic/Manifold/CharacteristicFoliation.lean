@@ -22,7 +22,6 @@ import TauCeti.Geometry.Symplectic.Manifold.Darboux
 import TauCeti.Geometry.Symplectic.Manifold.Opens
 import TauCeti.LinearAlgebra.Alternating.Conormal
 import TauCeti.LinearAlgebra.Alternating.Curry
-import SymplecticGeometry.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.Geometry.Manifold.MFDeriv.Opens
 
 /-!

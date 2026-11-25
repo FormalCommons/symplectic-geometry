@@ -7,6 +7,7 @@ module
 
 public import SymplecticGeometry.Geometry.Manifold.GroupAction.InvariantCutoff
 public import TauCeti.Geometry.Manifold.Flow.Complete
+public import TauCeti.Geometry.Manifold.IsManifold.Basic
 public import TauCeti.Geometry.Manifold.Riemannian.Gradient.Isometry
 public import TauCeti.Geometry.Manifold.Riemannian.Invariant
 
@@ -94,7 +95,6 @@ theorem exists_invariant_vectorField_mfderiv_eq_one {f : M → ℝ} (hf : ContMD
   have hfg (g : G) : f ∘ (g • · : M → M) = f := funext (hfinv g)
   have hfd (x : M) : MDifferentiableAt I 𝓘(ℝ) f x := hf.mdifferentiableAt (by simp)
   set q : M → ℝ := fun x ↦ ‖mgradient I f x‖ ^ 2
-  have : IsManifold I (∞ + 1) M := by simpa using ‹IsManifold I ∞ M›
   have hq : ContMDiff I 𝓘(ℝ) ∞ q := contMDiff_norm_sq_mgradient (n := ∞) (by simpa using hf)
   have hqinv (g : G) (x : M) : q (g • x) = q x := by
     simp only [q, ← (hiso g).norm_mgradient_comp (hfd _), hfg]
