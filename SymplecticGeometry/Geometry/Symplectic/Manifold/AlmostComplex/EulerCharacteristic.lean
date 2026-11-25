@@ -6,11 +6,10 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.AlgebraicTopology.Cohomology.FundamentalClass
+public import SymplecticGeometry.Geometry.Manifold.Orientation.ComplexStructure
 public import SymplecticGeometry.Geometry.Manifold.Orientation.EulerCharacteristic
 public import SymplecticGeometry.Topology.VectorBundle.Complex.ChernClass.EulerClass
 public import SymplecticGeometry.Topology.VectorBundle.Orientation.Complex.Structure
-public import TauCeti.Geometry.Symplectic.Manifold.AlmostComplex.ComplexTangentBundle
-public import TauCeti.Geometry.Symplectic.Manifold.Orientation
 
 /-!
 # The top Chern class of an almost complex manifold and its Euler characteristic
@@ -18,14 +17,9 @@ public import TauCeti.Geometry.Symplectic.Manifold.Orientation
 Let `M` be a compact Hausdorff boundaryless smooth manifold modelled on a real normed space `E`
 of dimension `2 r + 2`, and `J` a continuous complex structure on its tangent bundle (Tau Ceti's
 `TauCeti.Bundle.ContinuousComplexStructure`). The complex orientation `J.orientation` of the
-tangent bundle is an orientation of `M`
-(`TauCeti.Manifold.Orientation.ofVectorBundleOrientation`), which gives `M` a fundamental class.
+tangent bundle orients `M` (`TauCeti.Bundle.ContinuousComplexStructure.tangentOrientation`),
+which gives `M` a fundamental class.
 
-* `TauCeti.Bundle.ContinuousComplexStructure.tangentOrientation`: that orientation of `M`, with
-  `TauCeti.Bundle.ContinuousComplexStructure.toVectorBundleOrientation_tangentOrientation`, which
-  says that its tangent orientations are those of `J.orientation`. For a smooth almost complex
-  structure it is Tau Ceti's `TauCeti.SmoothAlmostComplexStructure.orientation`
-  (`TauCeti.SmoothAlmostComplexStructure.orientation_eq_tangentOrientation`);
 * `TauCeti.Bundle.ContinuousComplexStructure.evalFundamentalClass_chernClass_eq_eulerChar`: the
   top Chern class `c_{r+1}` of the complex tangent bundle `J.Fiber`, evaluated on that
   fundamental class, is the Euler characteristic of `M`.
@@ -44,10 +38,6 @@ that of `SymplecticGeometry.evalFundamentalClass_chernClass_eq_eulerChar`
 (`SymplecticGeometry/Geometry/Manifold/Complex/EulerCharacteristic.lean`) for complex manifolds,
 with the complex structure on the tangent bundle in place of complex charts.
 
-`TauCeti.SmoothAlmostComplexStructure.orientation_eq_tangentOrientation` compares the tangent
-orientations point by point, as Tau Ceti's
-`TauCeti.SmoothAlmostComplexStructure.orientationAt_orientation` does.
-
 ## References
 
 * J. W. Milnor, J. D. Stasheff, *Characteristic Classes*, Annals of Mathematics Studies 76,
@@ -60,66 +50,6 @@ public section
 
 open Bundle Module
 open scoped Manifold ContDiff VectorBundle.ComplexToReal
-
-namespace TauCeti.Bundle.ContinuousComplexStructure
-
-section TangentOrientation
-
-variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
-  [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M]
-  (J : ContinuousComplexStructure E (TangentSpace I : M → Type _)) {k : ℕ}
-
-/-- **The orientation of a manifold given by a complex structure on its tangent bundle.** A
-continuous complex structure `J` on the tangent bundle of `M`, with `finrank ℝ E = k`, orients
-`M`: this is the orientation of `M` whose tangent orientation at each point is the complex
-orientation `J.orientation hk` of the tangent space there. -/
-noncomputable def tangentOrientation (hk : finrank ℝ E = k) : Manifold.Orientation I M (Fin k) :=
-  Manifold.Orientation.ofVectorBundleOrientation (finBasisOfFinrankEq ℝ E hk).orientation
-    ((Fintype.card_fin k).trans hk.symm) (J.orientation hk)
-
-theorem tangentOrientation_def (hk : finrank ℝ E = k) :
-    J.tangentOrientation hk =
-      Manifold.Orientation.ofVectorBundleOrientation (finBasisOfFinrankEq ℝ E hk).orientation
-        ((Fintype.card_fin k).trans hk.symm) (J.orientation hk) :=
-  (rfl)
-
-/-- The tangent bundle orientation of `J.tangentOrientation hk` is the complex orientation
-`J.orientation hk`. -/
-@[simp]
-theorem toVectorBundleOrientation_tangentOrientation (hk : finrank ℝ E = k) :
-    (J.tangentOrientation hk).toVectorBundleOrientation = J.orientation hk := by
-  rw [tangentOrientation_def,
-    Manifold.Orientation.toVectorBundleOrientation_ofVectorBundleOrientation]
-
-end TangentOrientation
-
-end TauCeti.Bundle.ContinuousComplexStructure
-
-namespace TauCeti.SmoothAlmostComplexStructure
-
-variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
-  [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
-  [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
-
-/-- For a smooth almost complex structure `J` on `M`, Tau Ceti's complex orientation
-`J.orientation hk` is `tangentOrientation` of `J` seen as a continuous complex structure on the
-tangent bundle. -/
-theorem orientation_eq_tangentOrientation (J : SmoothAlmostComplexStructure I M) {k : ℕ}
-    (hk : finrank ℝ E = k) :
-    J.orientation hk = (J.toContMDiff 0).toContinuousComplexStructure.tangentOrientation hk := by
-  ext x
-  rw [orientationAt_orientation, ← Manifold.Orientation.toVectorBundleOrientation_apply,
-    Bundle.ContinuousComplexStructure.toVectorBundleOrientation_tangentOrientation,
-    Bundle.ContinuousComplexStructure.orientation_apply,
-    ContMDiffAlmostComplexStructure.toContinuousComplexStructure_almostComplexStructureAt]
-  -- The pointwise structures of `J` do not depend on the regularity it is viewed with.
-  congr 1
-  ext v
-  rw [ContMDiffAlmostComplexStructure.almostComplexStructureAt_apply, toContMDiff_apply,
-    almostComplexStructureAt_apply]
-
-end TauCeti.SmoothAlmostComplexStructure
 
 namespace TauCeti.Bundle.ContinuousComplexStructure
 
