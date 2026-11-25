@@ -320,6 +320,7 @@ theorem covector_smul (k : K) (p : A × V) :
 /-- The two-form of the local model on `G × (A × V)` is invariant under the action
 `(g, p) ↦ (g * k⁻¹, k • p)` of `k ∈ K`: the covectors `ν` are equivariant (`covector_smul`), and
 each `rep k` preserves `σ`. -/
+@[simp]
 theorem mpullback_prodMap_mul_right_smul_form (k : K) :
     letI := D.fiberDistribMulAction
     SmoothForm.mpullback (Prod.map (· * (k : G)⁻¹) fun p : A × V ↦ k • p)
