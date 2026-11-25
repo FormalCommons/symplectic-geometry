@@ -216,6 +216,18 @@ theorem toSubmodule_sub𝔪 : D.sub𝔪.toSubmodule = D.𝔪 :=
 theorem toSubmodule_sub𝔮 : D.sub𝔮.toSubmodule = D.𝔮 :=
   (rfl)
 
+@[simp]
+theorem mem_sub𝔥 {ξ : GroupLieAlgebra I G} : ξ ∈ D.sub𝔥 ↔ ξ ∈ D.𝔥 :=
+  Iff.rfl
+
+@[simp]
+theorem mem_sub𝔪 {ξ : GroupLieAlgebra I G} : ξ ∈ D.sub𝔪 ↔ ξ ∈ D.𝔪 :=
+  Iff.rfl
+
+@[simp]
+theorem mem_sub𝔮 {ξ : GroupLieAlgebra I G} : ξ ∈ D.sub𝔮 ↔ ξ ∈ D.𝔮 :=
+  Iff.rfl
+
 /-- The adjoint representation of `K` on its Lie algebra `𝔥`. -/
 def adjoint𝔥 : Representation ℝ K D.𝔥 :=
   D.sub𝔥.toRepresentation
