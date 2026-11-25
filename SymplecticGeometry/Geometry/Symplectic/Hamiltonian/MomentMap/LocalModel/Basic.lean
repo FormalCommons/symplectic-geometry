@@ -94,6 +94,9 @@ variable {E H : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensi
   {G : Type*} [TopologicalSpace G] [ChartedSpace H G] [Group G] [LieGroup I ∞ G]
   {N : Type*} {E' H' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E'] [TopologicalSpace H']
   {J : ModelWithCorners ℝ E' H'} [TopologicalSpace N] [ChartedSpace H' N]
+  -- `GroupLieAlgebra I G` is `E` by definition but carries no normed instances. So the casts
+  -- `show E →ₗ[ℝ] ℝ from ν p` below read `ν p` as a linear form on the normed space `E`, and the
+  -- uses of `contMDiff_toContinuousLinearMap_of_contMDiff_apply` give `(E := E)` explicitly.
   {ν : N → Module.Dual ℝ (GroupLieAlgebra I G)}
 
 variable [IsManifold J 1 N]
