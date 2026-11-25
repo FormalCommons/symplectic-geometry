@@ -58,6 +58,13 @@ linear data.
   the slice `G × {p}` it is the left-invariant Kirillov form of `ν p`
   (`SymplecticGeometry.mpullback_prodMk_localModelForm`). The factor `A × V` carries the model
   `𝓘(ℝ, A × V)`.
+* `SymplecticGeometry.fderiv_localModelCovector_apply`: the derivative of `p ↦ ν p ξ` at `(η, v)`
+  sends `(a, b)` to `(ι𝔪 a + ι𝔥 (dμ_V(v) b)) ξ`, with `dμ_V(v) b` the covector `ζ ↦ σ (ρ ζ v, b)`
+  (`TauCeti.SymplecticForm.linearMomentMapCompPolar`).
+* `SymplecticGeometry.eval₂_localModelForm_of_tangentSpaceProdEquiv_eq`,
+  `SymplecticGeometry.eval₂_localModelForm_one_of_tangentSpaceProdEquiv_eq`: at `(g, η, v)`, and
+  at `(1, η, v)`, the form pairs `(d(L_g) ξᵢ, aᵢ, bᵢ)` to
+  `ν ⁅ξ₁, ξ₂⁆ - (ι𝔪 a₁ + ι𝔥 (dμ_V(v) b₁)) ξ₂ + (ι𝔪 a₂ + ι𝔥 (dμ_V(v) b₂)) ξ₁ + σ (b₁, b₂)`.
 
 The values of the form come from Tau Ceti's
 `TauCeti.CotangentBundle.eval₂_mpullback_prodMap_leftTrivialization_symplecticForm`, and the
@@ -294,6 +301,29 @@ theorem contMDiff_localModelCovector_apply (ξ : 𝔤) :
     ContMDiff 𝓘(ℝ, A × V) 𝓘(ℝ) ∞ fun p : A × V ↦ localModelCovector σ ρ τ ι𝔪 ι𝔥 p ξ :=
   (contDiff_localModelCovector_apply σ ρ τ ι𝔪 ι𝔥 ξ).contMDiff
 
+/-- The derivative of the component `p ↦ ν p ξ` of `ν = localModelCovector σ ρ τ ι𝔪 ι𝔥` at
+`(η, v)` sends `(a, b)` to `(ι𝔪 a + ι𝔥 (dμ_V(v) b)) ξ`, where
+`dμ_V(v) b = σ.linearMomentMapCompPolar ρ v b` is the covector `ζ ↦ σ (ρ ζ v, b)` on `𝔥`. -/
+theorem fderiv_localModelCovector_apply (ξ : 𝔤) (η a : A) (v b : V) :
+    fderiv ℝ (fun p : A × V ↦ localModelCovector σ ρ τ ι𝔪 ι𝔥 p ξ) (η, v) (a, b) =
+      (ι𝔪 a + ι𝔥 (σ.linearMomentMapCompPolar ρ v b)) ξ := by
+  have hV : DifferentiableAt ℝ
+      (fun x ↦ (Module.Dual.eval ℝ 𝔤 ξ ∘ₗ ι𝔥) (σ.linearMomentMapComp ρ x)) v :=
+    (σ.contDiff_linearMomentMapComp ρ _).differentiable (by simp) v
+  have h := ((hasFDerivAt_const (τ ξ) (η, v)).add
+    ((LinearMap.toContinuousLinearMap (Module.Dual.eval ℝ 𝔤 ξ ∘ₗ ι𝔪)).hasFDerivAt.comp (η, v)
+      hasFDerivAt_fst)).add (hV.hasFDerivAt.comp (η, v) hasFDerivAt_snd)
+  have hfun : (fun p : A × V ↦ localModelCovector σ ρ τ ι𝔪 ι𝔥 p ξ) = (fun _ ↦ τ ξ) +
+      LinearMap.toContinuousLinearMap (Module.Dual.eval ℝ 𝔤 ξ ∘ₗ ι𝔪) ∘ Prod.fst +
+      (fun x ↦ (Module.Dual.eval ℝ 𝔤 ξ ∘ₗ ι𝔥) (σ.linearMomentMapComp ρ x)) ∘ Prod.snd := by
+    funext p
+    simp [localModelCovector_def]
+  rw [hfun, h.fderiv]
+  simp only [FunLike.coe_add, Pi.add_apply, ContinuousLinearMap.coe_comp, Function.comp_apply,
+    ContinuousLinearMap.coe_fst', ContinuousLinearMap.coe_snd',
+    σ.fderiv_apply_linearMomentMapComp ρ]
+  simp
+
 end Covector
 
 section LieGroup
@@ -345,6 +375,49 @@ theorem mpullback_prodMk_localModelForm (p : A × V) :
         (localModelForm σ ρ τ ι𝔪 ι𝔥) =
       (localModelCovector σ ρ τ ι𝔪 ι𝔥 p).leftInvariantKirillovForm := by
   rw [localModelForm_def, mpullback_prodMk_leftInvariantCovectorMapForm]
+
+/-- **The two-form of the local model on left-trivialized tangent vectors.** At `(g, η, v)`, with
+`ν = localModelCovector σ ρ τ ι𝔪 ι𝔥 (η, v)`, the form pairs the tangent vectors
+`(d(L_g) ξᵢ, aᵢ, bᵢ)` to
+`ν ⁅ξ₁, ξ₂⁆ - (ι𝔪 a₁ + ι𝔥 (dμ_V(v) b₁)) ξ₂ + (ι𝔪 a₂ + ι𝔥 (dμ_V(v) b₂)) ξ₁ + σ (b₁, b₂)`, where
+`dμ_V(v) b = σ.linearMomentMapCompPolar ρ v b` is the covector `ζ ↦ σ (ρ ζ v, b)` on `𝔥`. -/
+theorem eval₂_localModelForm_of_tangentSpaceProdEquiv_eq {g : G} {η : A} {v : V}
+    {u₁ u₂ : TangentSpace (I.prod 𝓘(ℝ, A × V)) (g, (η, v))} {ξ₁ ξ₂ : GroupLieAlgebra I G}
+    {a₁ a₂ : A} {b₁ b₂ : V}
+    (hu₁ : tangentSpaceProdEquiv (g, (η, v)) u₁ = (mulInvariantVectorField ξ₁ g, (a₁, b₁)))
+    (hu₂ : tangentSpaceProdEquiv (g, (η, v)) u₂ = (mulInvariantVectorField ξ₂ g, (a₂, b₂))) :
+    (localModelForm σ ρ τ ι𝔪 ι𝔥).eval₂ (g, (η, v)) u₁ u₂ =
+      localModelCovector σ ρ τ ι𝔪 ι𝔥 (η, v) ⁅ξ₁, ξ₂⁆ -
+        (ι𝔪 a₁ + ι𝔥 (σ.linearMomentMapCompPolar ρ v b₁)) ξ₂ +
+        (ι𝔪 a₂ + ι𝔥 (σ.linearMomentMapCompPolar ρ v b₂)) ξ₁ + σ b₁ b₂ := by
+  -- The term `pr_V^* σ` pairs `(a₁, b₁)` and `(a₂, b₂)` to `σ (b₁, b₂)`.
+  have hσ : (SmoothForm.mpullback Prod.snd contDiff_snd.contMDiff σ.constSmooth).eval₂ (η, v)
+      (a₁, b₁) (a₂, b₂) = σ b₁ b₂ := by
+    have hd (w : TangentSpace 𝓘(ℝ, A × V) (η, v)) :
+        mvfderiv 𝓘(ℝ, A × V) Prod.snd (η, v) w = w.2 :=
+      (mvfderiv_eq_fderiv_apply _ _ w).trans (by rw [fderiv_snd, ContinuousLinearMap.coe_snd'])
+    refine (SmoothForm.eval₂_mpullback _ _ _ _ _ _).trans
+      ((σ.eval₂_constSmooth_mfderiv_eq _ _ _ _).trans ?_)
+    exact congrArg₂ (fun x y ↦ σ x y) (hd (a₁, b₁)) (hd (a₂, b₂))
+  rw [localModelForm_def,
+    eval₂_leftInvariantCovectorMapForm_of_tangentSpaceProdEquiv_eq _ _ hu₁ hu₂,
+    fderiv_localModelCovector_apply, fderiv_localModelCovector_apply, hσ]
+
+/-- The two-form of the local model at `(1, η, v)`: with
+`ν = localModelCovector σ ρ τ ι𝔪 ι𝔥 (η, v)`, it pairs the tangent vectors `(ξᵢ, aᵢ, bᵢ)` to
+`ν ⁅ξ₁, ξ₂⁆ - (ι𝔪 a₁ + ι𝔥 (dμ_V(v) b₁)) ξ₂ + (ι𝔪 a₂ + ι𝔥 (dμ_V(v) b₂)) ξ₁ + σ (b₁, b₂)`. -/
+theorem eval₂_localModelForm_one_of_tangentSpaceProdEquiv_eq {η : A} {v : V}
+    {u₁ u₂ : TangentSpace (I.prod 𝓘(ℝ, A × V)) ((1 : G), (η, v))} {ξ₁ ξ₂ : GroupLieAlgebra I G}
+    {a₁ a₂ : A} {b₁ b₂ : V}
+    (hu₁ : tangentSpaceProdEquiv ((1 : G), (η, v)) u₁ = (ξ₁, (a₁, b₁)))
+    (hu₂ : tangentSpaceProdEquiv ((1 : G), (η, v)) u₂ = (ξ₂, (a₂, b₂))) :
+    (localModelForm σ ρ τ ι𝔪 ι𝔥).eval₂ ((1 : G), (η, v)) u₁ u₂ =
+      localModelCovector σ ρ τ ι𝔪 ι𝔥 (η, v) ⁅ξ₁, ξ₂⁆ -
+        (ι𝔪 a₁ + ι𝔥 (σ.linearMomentMapCompPolar ρ v b₁)) ξ₂ +
+        (ι𝔪 a₂ + ι𝔥 (σ.linearMomentMapCompPolar ρ v b₂)) ξ₁ + σ b₁ b₂ :=
+  eval₂_localModelForm_of_tangentSpaceProdEquiv_eq σ ρ τ ι𝔪 ι𝔥
+    (hu₁.trans (by rw [mulInvariantVectorField_one]))
+    (hu₂.trans (by rw [mulInvariantVectorField_one]))
 
 end LieGroup
 
