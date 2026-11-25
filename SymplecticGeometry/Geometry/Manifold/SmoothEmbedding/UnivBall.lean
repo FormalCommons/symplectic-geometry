@@ -8,6 +8,7 @@ module
 public import Mathlib.Analysis.InnerProductSpace.Calculus
 public import Mathlib.Geometry.Manifold.LocalDiffeomorph
 public import Mathlib.Geometry.Manifold.SmoothEmbedding
+import SymplecticGeometry.Analysis.Normed.Module.Ball.Homeomorph
 import TauCeti.Geometry.Manifold.Immersion.LocalDiffeomorph
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Basic
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -28,7 +29,6 @@ The first proof is that of the local diffeomorphism step inside Tau Ceti's
 
 ## Main results
 
-* `OpenPartialHomeomorph.univBall_mem_ball`: for `0 < ρ`, `univBall c ρ` maps into `ball c ρ`.
 * `OpenPartialHomeomorph.isLocalDiffeomorph_univBall`: `univBall c ρ` is a `C^n` local
   diffeomorphism, for `n ≤ ∞`.
 * `Manifold.IsSmoothEmbedding.comp_univBall`: a smooth embedding of an open set containing
@@ -39,16 +39,6 @@ public section
 
 open Set Metric OpenPartialHomeomorph TauCeti
 open scoped Manifold ContDiff
-
-namespace OpenPartialHomeomorph
-
-/-- For `0 < ρ`, Mathlib's map `univBall c ρ` takes its values in the ball `ball c ρ`. -/
-theorem univBall_mem_ball {E P : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    [PseudoMetricSpace P] [NormedAddTorsor E P] {c : P} {ρ : ℝ} (hρ : 0 < ρ) (x : E) :
-    univBall c ρ x ∈ ball c ρ :=
-  univBall_target c hρ ▸ (univBall c ρ).map_source (by simp [univBall_source])
-
-end OpenPartialHomeomorph
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {n : ℕ∞ω} {c : E} {ρ : ℝ}
 

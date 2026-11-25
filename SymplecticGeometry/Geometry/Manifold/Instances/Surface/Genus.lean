@@ -11,6 +11,7 @@ public import Mathlib.Topology.Instances.AddCircle.Real
 public import SymplecticGeometry.Geometry.Manifold.ModelTransport.ModelPi
 public import SymplecticGeometry.Geometry.Manifold.ModelTransport.Remodel
 public import TauCeti.Geometry.Manifold.Instances.AddCircle
+import SymplecticGeometry.Analysis.Normed.Module.Ball.Homeomorph
 import SymplecticGeometry.Geometry.Manifold.SmoothEmbedding.UnivBall
 import TauCeti.Geometry.Manifold.Instances.AddCircle.Torus
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Diffeomorph
@@ -73,7 +74,7 @@ values in `Fin 2 → ℝ`, are followed by `EuclideanSpace.modelPiDiffeomorph`. 
 and topology as Tau Ceti's torus `Fin 2 → AddCircle 1`, and is diffeomorphic to it by the
 identity (`SymplecticGeometry.EuclideanTorus.diffeomorph`). -/
 abbrev EuclideanTorus : Type :=
-  Remodel (EuclideanSpace.modelPiDiffeomorph (Fin 2) ∞) (Fin 2 → AddCircle (1 : ℝ))
+  Remodel (EuclideanSpace.modelPiDiffeomorph ℝ (Fin 2) ∞) (Fin 2 → AddCircle (1 : ℝ))
 
 namespace EuclideanTorus
 
@@ -97,13 +98,9 @@ theorem coe_diffeomorph : ⇑diffeomorph = (remodelHomeomorph _ _).symm := by
 
 /-- Its inverse is the identity of the points of the torus. -/
 @[simp]
-theorem coe_diffeomorph_symm : ⇑diffeomorph.symm = remodelHomeomorph _ _ := by
-  funext x
-  apply EquivLike.injective diffeomorph
-  rw [Diffeomorph.apply_symm_apply, coe_diffeomorph, coe_remodelHomeomorph_symm,
-    coe_remodelHomeomorph]
-  -- `rfl`: `id` here goes from the torus to its type synonym `EuclideanTorus` and back.
-  rfl
+theorem coe_diffeomorph_symm : ⇑diffeomorph.symm = remodelHomeomorph _ _ :=
+  coe_remodelDiffeomorph (EuclideanSpace.modelPiDiffeomorph ℝ (Fin 2) ∞)
+    (Fin 2 → AddCircle (1 : ℝ))
 
 /-- The diffeomorphism keeps the base point `0`. -/
 @[simp]
@@ -129,19 +126,16 @@ theorem cover_eq_comp :
       EuclideanSpace.equiv (Fin 2) ℝ :=
   (rfl)
 
-/-- The covering map is a local homeomorphism. -/
-theorem isLocalHomeomorph_cover : IsLocalHomeomorph cover := by
-  rw [cover_eq_comp]
-  exact diffeomorph.symm.toHomeomorph.isLocalHomeomorph.comp
-    ((AddCircle.isCoveringMap_coe_pi 1).isLocalHomeomorph.comp
-      (EuclideanSpace.equiv (Fin 2) ℝ).toHomeomorph.isLocalHomeomorph)
-
 /-- The covering map is a smooth local diffeomorphism. -/
 theorem isLocalDiffeomorph_cover :
     IsLocalDiffeomorph 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) ∞ cover := by
   rw [cover_eq_comp, Diffeomorph.isLocalDiffeomorph_diffeomorph_comp_iff _ le_rfl]
   exact fun t ↦ ((EuclideanSpace.equiv (Fin 2) ℝ).toDiffeomorph.isLocalDiffeomorph t).comp (hg :=
     AddCircle.isLocalDiffeomorph_coe_pi 1 ∞ _)
+
+/-- The covering map is a local homeomorphism. -/
+theorem isLocalHomeomorph_cover : IsLocalHomeomorph cover :=
+  isLocalDiffeomorph_cover.isLocalHomeomorph
 
 /-- The centre `(1 / 2, 1 / 2)` of the coordinate ball of the torus. -/
 def ballCenter : EuclideanSpace ℝ (Fin 2) := WithLp.toLp 2 fun _ ↦ 1 / 2
@@ -213,13 +207,10 @@ theorem disjoint_closure_range_ball (i : Fin 2) :
   refine disjoint_left.2 fun x hx hx0 ↦ ?_
   obtain ⟨t, ht, rfl⟩ := hK hx
   have h := abs_le.1 (abs_sub_le_of_mem_closedBall ht i)
-  rw [mem_ofPred_eq, diffeomorph_cover, AddCircle.coe_eq_zero_iff] at hx0
-  obtain ⟨n, hn⟩ := hx0
-  rw [zsmul_eq_mul, mul_one] at hn
-  have h0 : (0 : ℝ) < n := by linarith
-  have h1 : (n : ℝ) < 1 := by linarith
-  norm_cast at h0 h1
-  omega
+  rw [mem_ofPred_eq, diffeomorph_cover] at hx0
+  have := (AddCircle.coe_eq_coe_iff_of_mem_Ico (a := 0) (p := (1 : ℝ)) (y := 0)
+    ⟨by linarith, by linarith⟩ ⟨le_rfl, by norm_num⟩).1 (by simpa using hx0)
+  linarith
 
 end EuclideanTorus
 
