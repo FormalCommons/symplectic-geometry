@@ -6,13 +6,16 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.Basic
+public import TauCeti.Analysis.Convex.LocalToGlobal
 public import TauCeti.Geometry.Symplectic.Hamiltonian.WeightModel.NormalForm
 import Mathlib.Analysis.Calculus.ContDiff.FiniteDimension
 import SymplecticGeometry.Analysis.Calculus.Implicit
+import SymplecticGeometry.Analysis.Convex.LocalToGlobal
 import SymplecticGeometry.Geometry.Lie.Exponential.CommutativeGroup.Character
 import SymplecticGeometry.Geometry.Lie.FundamentalVectorField
 import SymplecticGeometry.Geometry.Lie.Subgroup.IdentityComponent
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.Chart
+import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.WeightModel.ConvexChart
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.MFDeriv
 import TauCeti.Geometry.Symplectic.Hamiltonian.EquivariantMomentMap.Restrict
 import TauCeti.Topology.Algebra.ConstMulAction
@@ -85,6 +88,18 @@ Finally, the product form:
   theorem, in the form `HasStrictFDerivAt.exists_openPartialHomeomorph_fst_eq_snd_snd_eq` (in
   `Analysis/Calculus/Implicit.lean`), turns the `𝔮*`-part into coordinates. The factor `W` is
   the kernel of the derivative of `(z₀, z₊) ↦ (u, z₊)`, with `u` the `𝔮*`-part.
+
+And the local convexity itself:
+
+* `TauCeti.SmoothTwoForm.IsMomentMap.exists_isConvexChart`: every point of `M` lies in a
+  convexity chart (`TauCeti.IsConvexChart`) of `e ∘ μ`, for any linear equivalence `e` of `𝔤*`
+  onto a real normed space. With `𝔮` a complement of `𝔤_x`, the identification
+  `𝔤* ≃ 𝔤_x* × 𝔮*` (`LinearMap.ofIsComplProdEquiv`) turns `μ - μ(x)` into the map
+  `(u, w, z) ↦ (Φ_β(z), u)` in the coordinates `Θ` of the product form. On a product of balls
+  inside the target of `Θ`, this map has convexity charts by
+  `TauCeti.exists_isConvexChart_weightMomentMap_prod`, which rests on Tau Ceti's
+  `TauCeti.exists_isConvexChart_inter_preimage_ball`; they are carried back to `M` by
+  `TauCeti.IsConvexChart.image_iff`.
 
 ## References
 
@@ -524,5 +539,75 @@ theorem exists_openPartialHomeomorph_weightMomentMap_prod
   · intro y hy ξ
     rw [hΘ, (hΦ _).1]
     simp [hFq, chart.left_inv (hΘs.1 hy).1]
+
+open scoped IsMulCommutative in
+/-- **Local convexity of a torus moment map.** Let a compact commutative Lie group `G` act smoothly
+on a finite-dimensional Hausdorff symplectic manifold `(M, σ)` without boundary, preserving `σ`,
+with moment map `μ`, and read `μ` in a real normed space `V` through a linear equivalence
+`e : 𝔤* ≃ V`. Then every point `x : M` lies in a convexity chart of `e ∘ μ`: an open set `U ∋ x`
+on which `e ∘ μ` is open onto a convex image, with preconnected fibres. -/
+theorem exists_isConvexChart
+    (h : σ.IsMomentMap (InfinitesimalAction.fundamental I G I' M) μ) (hσ : σ.IsSymplectic)
+    (hG : ∀ g : G, SmoothForm.mpullback (fun x : M ↦ g • x)
+      (ContMDiffSMul.contMDiff_const_smul (I := I) g) σ = σ)
+    {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V]
+    (e : Module.Dual ℝ (GroupLieAlgebra I G) ≃ₗ[ℝ] V) (x : M) :
+    ∃ U, x ∈ U ∧ IsConvexChart (e ∘ μ) U := by
+  set 𝔤ₓ : Submodule ℝ E := ((InfinitesimalAction.fundamental I G I' M).isotropy x).toSubmodule
+  obtain ⟨𝔮, h𝔮⟩ := Submodule.exists_isCompl 𝔤ₓ
+  obtain ⟨ι, _, β, W, _, _, _, Θ, -, hx, h0, hμk, hμq⟩ :=
+    exists_openPartialHomeomorph_weightMomentMap_prod h hσ hG x h𝔮.symm.disjoint
+  -- The product form `f` of `μ` in the coordinates `Θ`, and the identification `L` of its target
+  -- `𝔤ₓ* × 𝔮*` with `V`.
+  set f : StrongDual ℝ 𝔮 × W × (EuclideanSpace ℝ ι × EuclideanSpace ℝ ι) →
+      StrongDual ℝ 𝔤ₓ × StrongDual ℝ 𝔮 := fun q ↦ (weightMomentMap β q.2.2, q.1) with hf
+  let L : (StrongDual ℝ 𝔤ₓ × StrongDual ℝ 𝔮) ≃ₗ[ℝ] V :=
+    ((LinearMap.toContinuousLinearMap.symm.prodCongr LinearMap.toContinuousLinearMap.symm).trans
+      (LinearMap.ofIsComplProdEquiv h𝔮)).trans e
+  have hL {y : M} (hy : y ∈ Θ.source) : e (μ y) = e (μ x) + L (f (Θ y)) := by
+    -- `μ y - μ x` agrees with the product form on `𝔤ₓ` and on `𝔮`. Its values are differences of
+    -- values of `μ` only up to unfolding the linear structure of `GroupLieAlgebra I G`, so the
+    -- two cases are proved by terms rather than by `simp`.
+    have hμ : μ y - μ x = LinearMap.ofIsCompl h𝔮
+        ((weightMomentMap β (Θ y).2.2 : StrongDual ℝ 𝔤ₓ) : 𝔤ₓ →ₗ[ℝ] ℝ)
+        ((Θ y).1 : 𝔮 →ₗ[ℝ] ℝ) :=
+      (LinearMap.ofIsCompl_eq h𝔮 (fun ξ ↦ eq_sub_of_add_eq' (hμk y hy ξ).symm)
+        fun ξ ↦ eq_sub_of_add_eq' (hμq y hy ξ).symm).symm
+    calc e (μ y) = e (μ x + (μ y - μ x)) := by rw [add_sub_cancel]
+      _ = e (μ x) + L (f (Θ y)) := by
+        rw [map_add, hμ]
+        -- `L` passes from `E →ₗ[ℝ] ℝ` to the domain of `e`, the dual of `GroupLieAlgebra I G`,
+        -- whose linear structure is that of `E` only up to unfolding, so
+        -- `LinearEquiv.trans_apply` does not rewrite here and the two sides agree by `rfl`.
+        rfl
+  -- A product of balls inside the target of `Θ`, around `Θ x = 0`.
+  obtain ⟨δ, hδ, hball⟩ := Metric.isOpen_iff.1 Θ.open_target 0 (h0 ▸ Θ.map_source hx)
+  set P : Set (StrongDual ℝ 𝔮 × W × (EuclideanSpace ℝ ι × EuclideanSpace ℝ ι)) :=
+    Metric.ball 0 δ ×ˢ Metric.ball 0 δ ×ˢ {z | ‖z.1‖ ^ 2 + ‖z.2‖ ^ 2 < δ ^ 2}
+  have hP : P ⊆ Θ.target := by
+    rintro ⟨u, w, z⟩ ⟨hu, hw, hz⟩
+    have hz' : ‖z.1‖ ^ 2 + ‖z.2‖ ^ 2 < δ ^ 2 := hz
+    have hz₁ : dist z.1 0 < δ := by
+      rw [dist_zero_right]
+      exact lt_of_pow_lt_pow_left₀ 2 hδ.le (by nlinarith [sq_nonneg ‖z.2‖])
+    have hz₂ : dist z.2 0 < δ := by
+      rw [dist_zero_right]
+      exact lt_of_pow_lt_pow_left₀ 2 hδ.le (by nlinarith [sq_nonneg ‖z.1‖])
+    refine hball ?_
+    simp only [Metric.mem_ball, Prod.dist_eq, Prod.fst_zero, Prod.snd_zero, max_lt_iff]
+    exact ⟨hu, hw, hz₁, hz₂⟩
+  have h0P : (0 : StrongDual ℝ 𝔮 × W × (EuclideanSpace ℝ ι × EuclideanSpace ℝ ι)) ∈ P :=
+    ⟨Metric.mem_ball_self hδ, Metric.mem_ball_self hδ, by simpa using pow_pos hδ 2⟩
+  obtain ⟨ε, hε, hU⟩ := exists_isConvexChart_weightMomentMap_prod (𝔨 := 𝔤ₓ) β
+    (Metric.isOpen_ball (x := (0 : StrongDual ℝ 𝔮)) (ε := δ))
+    (Metric.isOpen_ball (x := (0 : W)) (ε := δ)) (convex_ball (0 : W) δ).isPreconnected (δ ^ 2) h0P
+  set U' := P ∩ f ⁻¹' Metric.ball (f 0) ε
+  have hU' : U' ⊆ Θ.target := Set.inter_subset_left.trans hP
+  refine ⟨Θ.symm '' U', ⟨0, ⟨h0P, Metric.mem_ball_self hε⟩, by rw [← h0, Θ.left_inv hx]⟩, ?_⟩
+  rw [IsConvexChart.image_iff Θ.symm (by rwa [Θ.symm_source])]
+  refine ((hU.continuousLinearEquiv_comp L.toContinuousLinearEquiv).const_add (e (μ x))).congr
+    fun q hq ↦ ?_
+  simp only [Function.comp_apply, hL (Θ.map_target (hU' hq)), Θ.right_inv (hU' hq),
+    LinearEquiv.coe_toContinuousLinearEquiv', hf]
 
 end TauCeti.SmoothTwoForm.IsMomentMap

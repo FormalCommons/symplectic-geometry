@@ -359,14 +359,12 @@ instance : MulAction.IsPretransitive (GLSymplectic ι ℝ) (ℒ ι) :=
 /-- A unitary matrix frames the horizontal Lagrangian iff it is real, that is, orthogonal. -/
 theorem unitaryFrame_eq_horizontal_iff {U : unitaryGroup ι ℂ} :
     unitaryFrame U = horizontal ι ↔ U ∈ UnitaryGroup.realSubgroup ι := by
-  have h1 : ((1 : Matrix ι ι ℝ).map ((↑) : ℝ → ℂ)) = 1 :=
-    Matrix.map_one _ Complex.ofReal_zero Complex.ofReal_one
   rw [← toSubmodule_inj, coe_unitaryFrame_eq_map, coe_horizontal, ← map_realSubspace,
     (Submodule.map_injective_of_injective (complexEuclideanEquiv ι).injective).eq_iff,
     UnitaryGroup.mem_realSubgroup_iff_exists]
   constructor
   · intro h
-    rw [← realImage_map_ofReal (isUnit_one (M := Matrix ι ι ℝ)), h1] at h
+    rw [← realImage_map_ofReal (isUnit_one (M := Matrix ι ι ℝ)), map_ofReal_one] at h
     obtain ⟨O, hO, hUO⟩ := exists_mem_orthogonalGroup_eq_mul_map_ofReal
       (M := 1) (M' := Unitary.toUnits U) h.symm (by simp)
       (UnitaryGroup.map_re_conjTranspose_mul_self U)
