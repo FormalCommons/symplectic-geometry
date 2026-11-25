@@ -197,13 +197,8 @@ theorem IsConnectionForm.connectionCurvature_apply_eq_zero_of_vertical
   obtain rfl | rfl : j = 0 ∨ j = 1 := by fin_cases j <;> simp
   · rw [hv01, ← hξ]
     exact hA.connectionCurvature_apply_rightFundamentalVectorField ξ x (v 1)
-  · have hswap : ![v 0, v 1] = ![v 1, v 0] ∘ Equiv.swap 0 1 := by
-      funext i
-      fin_cases i <;> rfl
-    rw [hv01, hswap, ← ContinuousAlternatingMap.coe_toAlternatingMap,
-      AlternatingMap.map_swap _ _ zero_ne_one, neg_eq_zero,
-      ContinuousAlternatingMap.coe_toAlternatingMap, ← hξ]
-    exact hA.connectionCurvature_apply_rightFundamentalVectorField ξ x (v 0)
+  · rw [hv01, ContinuousAlternatingMap.apply_vecCons_swap, ← hξ,
+      hA.connectionCurvature_apply_rightFundamentalVectorField, neg_zero]
 
 /-- **The curvature of a connection form is tensorial**: it is an equivariant two-form of type
 `Ad` that vanishes as soon as one of its arguments is vertical. -/
