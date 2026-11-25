@@ -15,7 +15,7 @@ import TauCeti.AlgebraicTopology.FundamentalGroup.Homeomorph
 A linear isometry `φ : ℂ ≃ₗᵢ[ℝ] E` identifies `E ∖ {0}` with `ℂ ∖ {0}`, whose fundamental group
 Tau Ceti computes as `ℤ` (`StarConvex.fundamentalGroupMulEquivInt`). This file carries that
 computation over to `E`, with the circle `t ↦ φ (r e^{2πit})` as generator. For
-`E = EuclideanSpace ℝ (Fin 2)`, take `φ = Complex.orthonormalBasisOneI.repr.symm`.
+`E = EuclideanSpace ℝ (Fin 2)`, take `φ = Complex.orthonormalBasisOneI.repr`.
 
 ## Main definitions
 
