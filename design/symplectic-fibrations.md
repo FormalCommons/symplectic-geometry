@@ -129,10 +129,10 @@ of a map, read pointwise. About 300 lines.
   trivializations and `b` in both base sets, the diffeomorphism
   `F ≃ₘ⟮IF, IF⟯ F` with `coe_coordChangeDiffeomorph`
   (`⇑(…) = e.coordChange e' b`) and `coordChangeDiffeomorph_symm`.
-- `TauCeti.MapFiber.Atlas.IsContMDiff.isSubmersion`: `π` is a smooth
-  submersion, `Manifold.IsSubmersion IM IB ∞ π`, transported from Tau Ceti's
-  `TauCeti.ManifoldTotalSpace.isSubmersion_proj` along
-  `totalSpaceDiffeomorph`.
+- `TauCeti.MapFiber.Atlas.IsContMDiff.isSubmersion`: for `1 ≤ n` and a
+  boundaryless `M`, `π` is a submersion, `Manifold.IsSubmersion IM IB n π`,
+  transported from Tau Ceti's `TauCeti.ManifoldTotalSpace.isSubmersion_proj`
+  along `totalSpaceDiffeomorph`.
 - The bridge from Tau Ceti's smooth fibre bundles:
   `TauCeti.ManifoldTotalSpace.mapFiberAtlas F E`, the atlas of the projection
   `fun x : ManifoldTotalSpace F E ↦ ((homeomorph F E).symm x).proj` with
@@ -328,7 +328,8 @@ About 450 lines.
 - The milestone, `IsEhresmannConnection.isSymplectic_iff_isVerticallyClosed`:
   for `[CompactSpace F]`, `hA`, `A.HasStructureGroup (diffeomorphStabilizer σ)`,
   `σ.IsSymplectic` and `hτ : A.RestrictsTo σ τ`, the connection
-  `(hτ.isVerticallyNondegenerate hA _).isEhresmannConnection hA.isSubmersion`
+  `(hτ.isVerticallyNondegenerate hA _).isEhresmannConnection
+  (hA.isSubmersion ENat.LEInfty.out)`
   is symplectic exactly when `τ.IsVerticallyClosed π`. Its docstring ends
   with "Milestone: *Symplectic connections correspond to vertically closed
   2-forms*." One direction is the previous item. For the other, the time
