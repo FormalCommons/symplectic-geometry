@@ -30,7 +30,7 @@ pulls back to zero on every fibre, as the pull-back `proj^* β` of a form of pos
 base does. This gives Thurston's forms `τ + K proj^* β`.
 
 A two-form `τ` is *vertically nondegenerate* for `proj` when it is nondegenerate on the kernel of
-the derivative of `proj` at every point. For a smooth atlas between finite-dimensional manifolds,
+the derivative of `proj` at every point. For a smooth atlas, with `M` finite-dimensional,
 that kernel is the image of the tangent space of the fibre, so a form that restricts to a
 nondegenerate `σ` is vertically nondegenerate, and a vertically nondegenerate form pulls back to a
 nondegenerate form along every fibre inclusion.
@@ -294,7 +294,7 @@ theorem isVerticallyNondegenerate_iff_forall :
     fun h u hu ↦ Subtype.ext (h u u.property fun w hw ↦ hu ⟨w, hw⟩)⟩
 
 /-- **The fibres of a vertically nondegenerate form.** Let `e` be a trivialization of `proj`
-between finite-dimensional manifolds that is smooth with smooth inverse. If `τ` is vertically
+that is smooth with smooth inverse, `M` being finite-dimensional. If `τ` is vertically
 nondegenerate, then its pull-back along each fibre inclusion of `e` is a nondegenerate form on the
 model fibre. -/
 theorem IsVerticallyNondegenerate.isNondegenerate_mpullback_fiberInclusion
@@ -331,7 +331,7 @@ variable {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*}
   {proj : M → B} {A : Atlas F proj} {σ : SmoothTwoForm IF F} {τ : SmoothTwoForm IM M}
 
 /-- **Restricting forms are vertically nondegenerate.** If a two-form `τ` restricts to a
-nondegenerate form `σ` along a smooth atlas of a map between finite-dimensional manifolds, then
+nondegenerate form `σ` along a smooth atlas of `proj`, with `M` finite-dimensional, then
 `τ` is vertically nondegenerate: the vertical space at each point is the image of the tangent
 space of the fibre. -/
 theorem RestrictsTo.isVerticallyNondegenerate [FiniteDimensional ℝ EM]
