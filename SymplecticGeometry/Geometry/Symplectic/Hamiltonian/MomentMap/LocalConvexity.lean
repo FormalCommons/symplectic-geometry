@@ -159,12 +159,8 @@ theorem mfderiv_fundamentalVectorField_apply_eq_zero_of_ne_one {K : Subgroup G}
   set v := mfderiv I' 𝓘(ℝ, EuclideanSpace ℝ ι × EuclideanSpace ℝ ι) f x
     (fundamentalVectorField I' ξ x)
   have hR := mfderiv_fundamentalVectorField_eq_of_eventually_smul_eq hf (hK g) _ (hχ g) ξ
-  have hv := (weightRotation_apply_eq_self_iff_apply _ v k).1
-    ⟨congrArg (fun z ↦ z.1 k) hR, congrArg (fun z ↦ z.2 k) hR⟩
   by_contra hne
-  -- The rotation angle `arg (χₖ g)` lies in `2πℤ`, so `χₖ g = 1`.
-  obtain ⟨m, hm⟩ := hv (by tauto)
-  exact hg (by rw [← Circle.exp_arg (χ k g), ← hm, Circle.exp_int_mul_two_pi])
+  exact hg ((weightRotation_arg_apply_eq_self_iff (fun k ↦ χ k g) v).1 hR k (by tauto))
 
 end WeightCoordinates
 
