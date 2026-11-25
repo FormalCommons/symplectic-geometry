@@ -9,11 +9,11 @@ public import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.RelativePair
 public import SymplecticGeometry.Topology.Category.TopCat.Monoidal
 public import TauCeti.Algebra.Category.ModuleCat.Monoidal.Unit
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Prod
-public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.OpenEmbedding
 public import TauCeti.AlgebraicTopology.Singular.LocalHomology.Orientation.Prod
+import SymplecticGeometry.AlgebraicTopology.Cohomology.IntegralCohomologyULift
 import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.Assoc
-import TauCeti.AlgebraicTopology.Singular.LocalHomology.Sphere
-import TauCeti.Geometry.Manifold.Instances.TopCatSphere
+import SymplecticGeometry.AlgebraicTopology.Singular.Kunneth.CubicalPair
+import TauCeti.Algebra.Category.ModuleCat.SpanSingleton
 
 /-!
 # The cross product of local orientations
@@ -37,18 +37,19 @@ relative to `(X ∖ {x}) × Y ∪ X × (Y ∖ {y})`, with the coefficients split
 
 The main result is that the cross product of two local orientations of real vector spaces at the
 origin is a local orientation of their product
-(`SymplecticGeometry.isLocalOrientation_localHomologyCross`). The proof reduces to compact
-manifolds. On compact connected manifolds `M` and `N` with integral fundamental classes `μ` and `ν`,
-the cross product `μ × ν` is a fundamental class of `M × N` (Tau Ceti's
-`TauCeti.IsFundamentalClass.singularHomologyCross`), and its image in the local homology at `(x, y)`
-is the cross product of the images of `μ` and `ν`, so the cross product of local orientations is a
-local orientation there
-(`SymplecticGeometry.isLocalOrientation_localHomologyCross_of_isFundamentalClass`). Open embeddings
-identify local homology groups compatibly with the cross product
-(`SymplecticGeometry.forall_isLocalOrientation_localHomologyCross_iff`), and a vector space of
-dimension `k + 1` embeds near the origin into the sphere `Sᵏ⁺¹`, whose standard generator is an
-integral fundamental class (Tau Ceti's
-`TauCeti.isFundamentalClass_singularHomologyTopCatSphereGenerator`).
+(`SymplecticGeometry.isLocalOrientation_localHomologyCross`). With the coefficients `ULift ℤ` read
+as `ℤ` through `TauCeti.uliftIntIso`, the cross product of local homology classes is Tau Ceti's
+Künneth map of the pairs `(X, X ∖ {x})` and `(Y, Y ∖ {y})`, `TauCeti.singularHomologyKunnethPair`,
+on the summand of bidegree `(p, q)`
+(`SymplecticGeometry.localHomologyCross_comp_homologyMap_uliftIntIso_hom`). This is the comparison
+of the cubical and the simplicial cross products of pairs,
+`TauCeti.ι_singularHomologyKunnethPair_eq_singularHomologyCrossRelPair`, together with the
+naturality of the cross product of pairs in the coefficients. Tau Ceti's
+`TauCeti.span_singularHomologyKunnethPair_tmul_eq_top` then shows that the cross product of local
+orientations is a local orientation at points of `T₁` spaces where the local homology of the first
+factor is projective in one degree and vanishes in all others
+(`SymplecticGeometry.isLocalOrientation_localHomologyCross_of_isZero`), as it does at the origin
+of a finite-dimensional real vector space.
 
 This gives the cross product of local orientations of vector spaces
 (`TauCeti.LocalOrientation.cross`). It reverses when either factor reverses
@@ -68,8 +69,12 @@ here.
 
 ## Main results
 
-* `SymplecticGeometry.isLocalOrientation_localHomologyCross`: the cross product of local
-  orientations of vector spaces is a local orientation.
+* `SymplecticGeometry.localHomologyCross_comp_homologyMap_uliftIntIso_hom`: the cross product of
+  local homology classes is the Künneth map of the pairs.
+* `SymplecticGeometry.isLocalOrientation_localHomologyCross_of_isZero`,
+  `SymplecticGeometry.isLocalOrientation_localHomologyCross`: the cross product of local
+  orientations is a local orientation, at points with projective local homology concentrated in
+  one degree, and for vector spaces.
 * `TauCeti.LocalOrientation.cross_map_complZeroPairIso`: naturality.
 * `TauCeti.LocalOrientation.coe_cross_eq_crossSign_smul`: the cross product is `crossSign m n`
   times the ordered product, for all spaces of dimensions `m + 1` and `n + 1`.
@@ -81,15 +86,15 @@ here.
 ## References
 
 * A. Hatcher, [*Algebraic Topology*](https://pi.math.cornell.edu/~hatcher/AT/AT.pdf),
-  Sections 3.2 and 3.3 (cross products, local orientations, fundamental classes) and Section 3.B
-  (the relative cross product).
+  Sections 3.2 and 3.3 (cross products, local orientations) and Section 3.B (the relative cross
+  product and the Künneth formula).
 -/
 
 public section
 
 noncomputable section
 
-open CategoryTheory MonoidalCategory Set Topology Module
+open CategoryTheory MonoidalCategory CartesianMonoidalCategory Limits Set Topology Module
 open TopCat (mapsTo_preimage_fst_compl_union_preimage_snd_compl
   mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl)
 
@@ -271,137 +276,94 @@ theorem localHomologyMap_tensorHom_localHomologyMap_localHomologyCross (f : C(X,
   rw [reassoc_of% h1, localHomologyMap_def]
   exact (Category.assoc _ _ _).trans ((congrArg (_ ≫ ·) h2).trans (Category.assoc _ _ _).symm)
 
-/-- **The cross product of local orientations of compact manifolds with fundamental classes.**
-Let `M` and `N` be compact connected manifolds of dimensions `p` and `q` with integral
-fundamental classes. Then the cross product of local orientations at `x ∈ M` and `y ∈ N` is a
-local orientation of `M × N` at `(x, y)`. -/
-theorem isLocalOrientation_localHomologyCross_of_isFundamentalClass
-    {M N E F : Type} [TopologicalSpace M] [T2Space M] [CompactSpace M] [ConnectedSpace M]
-    [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E] [ChartedSpace E M]
-    [TopologicalSpace N] [T2Space N] [CompactSpace N] [ConnectedSpace N]
-    [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F] [ChartedSpace F N]
-    {p q n : ℕ} (hp : finrank ℝ E = p) (hq : finrank ℝ F = q) (h : p + q = n)
-    {μ : ((TopCat.toSSet.obj (TopCat.of M)).homology (ModuleCat.of ℤ (ULift.{0} ℤ)) p :
-      ModuleCat.{0} ℤ)} (hμ : IsFundamentalClass μ)
-    {ν : ((TopCat.toSSet.obj (TopCat.of N)).homology (ModuleCat.of ℤ (ULift.{0} ℤ)) q :
-      ModuleCat.{0} ℤ)} (hν : IsFundamentalClass ν)
-    {x : M} {y : N} (z₁ : LocalOrientation M x p) (z₂ : LocalOrientation N y q) :
-    IsLocalOrientation (x, y) n ((localHomologyCross x y p q n h).hom (z₁.val ⊗ₜ z₂.val)) := by
+/-- **The cross product of local homology classes is the Künneth map.** With the coefficients
+`ULift ℤ` read as `ℤ` through `TauCeti.uliftIntIso`, the cross product of local homology classes at
+`x` and `y` is the inclusion of the summand `Hₚ(X, X ∖ {x}; ℤ) ⊗ H_q(Y, Y ∖ {y}; ℤ)` followed by
+Tau Ceti's Künneth map of the pairs, `TauCeti.singularHomologyKunnethPair`, and by the map of pairs
+given by the identity of `X × Y`. -/
+theorem localHomologyCross_comp_homologyMap_uliftIntIso_hom (x : X) (y : Y) (p q n : ℕ)
+    (h : p + q = n) :
+    localHomologyCross x y p q n h ≫ HomologicalComplex.homologyMap
+        (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map uliftIntIso.hom).app _) n =
+      (HomologicalComplex.homologyMap
+          (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map uliftIntIso.hom).app _) p ⊗ₘ
+        HomologicalComplex.homologyMap
+          (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map uliftIntIso.hom).app _) q) ≫
+        GradedObject.Monoidal.ιTensorObj
+          (fun i ↦ (TopPair.ofSubset ({x}ᶜ : Set (TopCat.of X))).singularHomology
+            (ModuleCat.of ℤ ℤ) i)
+          (fun i ↦ (TopPair.ofSubset ({y}ᶜ : Set (TopCat.of Y))).singularHomology
+            (ModuleCat.of ℤ ℤ) i) p q n h ≫
+          singularHomologyKunnethPair ℤ ({x}ᶜ : Set (TopCat.of X)) ({y}ᶜ : Set (TopCat.of Y)) n ≫
+            TopPair.singularHomologyMap (TopPair.ofSubsetMap _
+              (mapsTo_preimage_fst_compl_union_preimage_snd_compl x y)) (ModuleCat.of ℤ ℤ) n := by
+  -- The multiplication of `ULift ℤ`, read in `ℤ`, is the left unitor of `ℤ`.
+  have e := congrArg (fun φ ↦ HomologicalComplex.homologyMap
+    (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map φ).app
+      (TopPair.toSSetPair.obj (TopPair.ofSubset
+        (fst (TopCat.of X) (TopCat.of Y) ⁻¹' ({x}ᶜ : Set (TopCat.of X)) ∪
+          snd (TopCat.of X) (TopCat.of Y) ⁻¹' ({y}ᶜ : Set (TopCat.of Y)))))) n)
+    (uliftTensorSelfIso_hom_comp_uliftIntIso_hom.trans
+      (congrArg (_ ≫ ·) integralCoeffMul_eq_leftUnitor_hom))
+  simp only [Functor.map_comp, NatTrans.comp_app, HomologicalComplex.homologyMap_comp] at e
+  rw [localHomologyCross_eq, Category.assoc, Category.assoc,
+    ← TopPair.singularHomologyMap_coefficient_naturality, reassoc_of% e,
+    reassoc_of% (ι_singularHomologyKunnethPair_eq_singularHomologyCrossRelPair ℤ
+      ({x}ᶜ : Set (TopCat.of X)) ({y}ᶜ : Set (TopCat.of Y)) p q n h),
+    TopCat.singularHomologyCrossRelPair_coefficient_naturality_assoc]
+
+/-- **The cross product of local orientations is a local orientation** at points `x` of a `T₁`
+space `X` where the integral local homology `H_*(X, X ∖ {x}; ℤ)` vanishes outside degree `p` and
+is projective in degree `p`, for instance points with a chart to a real normed space of dimension
+`p`: for local orientations `z₁` of `X` at `x` and `z₂` of a `T₁` space `Y` at `y`, the cross
+product `z₁ × z₂` generates `Hₙ(X × Y, X × Y ∖ {(x, y)}; ℤ)`. -/
+theorem isLocalOrientation_localHomologyCross_of_isZero [T1Space X] [T1Space Y] {x : X} {y : Y}
+    {p q n : ℕ} (h : p + q = n)
+    (hX : ∀ i ≠ p, IsZero (localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ))
+      ({x} : Set X) i))
+    [Projective (localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ))
+      ({x} : Set X) p)]
+    {z₁ : localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ)) ({x} : Set X) p}
+    {z₂ : localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ)) ({y} : Set Y) q}
+    (hz₁ : IsLocalOrientation x p z₁) (hz₂ : IsLocalOrientation y q z₂) :
+    IsLocalOrientation (x, y) n ((localHomologyCross x y p q n h).hom (z₁ ⊗ₜ z₂)) := by
   subst h
-  -- The cross product `μ × ν` is a fundamental class of `M × N`.
-  let g : ((TopCat.toSSet.obj (TopCat.of (M × N))).homology
-      (ModuleCat.of ℤ (ULift.{0} ℤ) ⊗ ModuleCat.of ℤ (ULift.{0} ℤ)) (p + q) : ModuleCat.{0} ℤ) :=
-    (TopCat.singularHomologyCross (TopCat.of M) (TopCat.of N) (ModuleCat.of ℤ (ULift.{0} ℤ))
-      (ModuleCat.of ℤ (ULift.{0} ℤ)) p q (p + q) rfl).hom (μ ⊗ₜ ν)
-  have hg : IsFundamentalClass g :=
-    hμ.singularHomologyCross ULift.moduleEquiv ULift.moduleEquiv hp hq hν
-  replace hg := (isFundamentalClass_iff g).1 hg (x, y)
-  rw [singularHomologyToLocalHomology_eq_singularHomologyπ] at hg
-  set c := HomologicalComplex.homologyMap (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map
-    (ModuleCat.uliftTensorSelfIso ℤ).hom).app
-      (TopPair.toSSetPair.obj (TopPair.ofSubset ({(x, y)}ᶜ : Set (TopCat.of (M × N)))))) (p + q)
-  have hc : Function.Surjective c := (ConcreteCategory.bijective_of_isIso c).2
-  -- So the cross product of the local classes of `μ` and `ν` generates the local homology.
-  have hG : (localHomologyCross x y p q (p + q) rfl).hom
-      (((TopPair.ofSubset ({x}ᶜ : Set (TopCat.of M))).singularHomologyπ
-        (ModuleCat.of ℤ (ULift.{0} ℤ)) p μ) ⊗ₜ
-      ((TopPair.ofSubset ({y}ᶜ : Set (TopCat.of N))).singularHomologyπ
-        (ModuleCat.of ℤ (ULift.{0} ℤ)) q ν)) =
-      c (((TopPair.ofSubset ({(x, y)}ᶜ : Set (TopCat.of (M × N)))).singularHomologyπ
-        (ModuleCat.of ℤ (ULift.{0} ℤ) ⊗ ModuleCat.of ℤ (ULift.{0} ℤ)) (p + q)).hom g) :=
-    singularHomologyπ_tensorHom_singularHomologyπ_localHomologyCross_apply x y p q (p + q) rfl
-      (μ ⊗ₜ ν)
-  have hspan : Submodule.span ℤ (Set.singleton ((localHomologyCross x y p q (p + q) rfl).hom
-      (((TopPair.ofSubset ({x}ᶜ : Set (TopCat.of M))).singularHomologyπ
-        (ModuleCat.of ℤ (ULift.{0} ℤ)) p μ) ⊗ₜ
-      ((TopPair.ofSubset ({y}ᶜ : Set (TopCat.of N))).singularHomologyπ
-        (ModuleCat.of ℤ (ULift.{0} ℤ)) q ν)))) = ⊤ := by
-    rw [hG]
-    have h1 := Submodule.map_span c.hom {((TopPair.ofSubset ({(x, y)}ᶜ :
-      Set (TopCat.of (M × N)))).singularHomologyπ
-        (ModuleCat.of ℤ (ULift.{0} ℤ) ⊗ ModuleCat.of ℤ (ULift.{0} ℤ)) (p + q)).hom g}
-    rw [Set.image_singleton, hg, Submodule.map_top, LinearMap.range_eq_top.2 hc] at h1
-    exact h1.symm
-  -- The local classes of `μ` and `ν` are multiples of `z₁` and `z₂`.
-  obtain ⟨a, ha⟩ := (isLocalOrientation_iff _ _ _).1 z₁.property
-    ((TopPair.ofSubset ({x}ᶜ : Set (TopCat.of M))).singularHomologyπ
-        (ModuleCat.of ℤ (ULift.{0} ℤ)) p μ)
-  obtain ⟨b, hb⟩ := (isLocalOrientation_iff _ _ _).1 z₂.property
-    ((TopPair.ofSubset ({y}ᶜ : Set (TopCat.of N))).singularHomologyπ
-        (ModuleCat.of ℤ (ULift.{0} ℤ)) q ν)
-  have e : (a • z₁.val) ⊗ₜ[ℤ] (b • z₂.val) = (a * b) • (z₁.val ⊗ₜ[ℤ] z₂.val) :=
-    calc (a • z₁.val) ⊗ₜ[ℤ] (b • z₂.val) = a • (z₁.val ⊗ₜ[ℤ] (b • z₂.val)) :=
-          map_zsmul (AddMonoidHom.mk' (· ⊗ₜ[ℤ] (b • z₂.val))
-            fun _ _ ↦ TensorProduct.add_tmul _ _ _) a z₁.val
-      _ = a • b • (z₁.val ⊗ₜ[ℤ] z₂.val) :=
-          congrArg (a • ·) (map_zsmul (TensorProduct.mk ℤ _ _ z₁.val) b z₂.val)
-      _ = (a * b) • (z₁.val ⊗ₜ[ℤ] z₂.val) := by rw [mul_comm, mul_zsmul']
-  rw [← ha, ← hb, e, map_zsmul] at hspan
-  exact (isLocalOrientation_iff_span_eq_top _ _ _).2 (top_le_iff.1
-    (hspan.symm.le.trans (Submodule.span_singleton_smul_le ℤ (a * b) _)))
-
-/-- Open embeddings `j₁ : X → X'` and `j₂ : Y → Y'` into `T₁` spaces carry the cross product of
-local homology classes at `x` and `y` to the cross product of their images at `j₁ x` and
-`j₂ y`. -/
-theorem localHomologyCross_localHomologyIsoOfIsOpenEmbedding [T1Space X'] [T1Space Y']
-    {j₁ : X → X'} {j₂ : Y → Y'} (hj₁ : IsOpenEmbedding j₁) (hj₂ : IsOpenEmbedding j₂) (x : X)
-    (y : Y) (p q n : ℕ) (h : p + q = n)
-    (a : localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ)) ({x} : Set X) p)
-    (b : localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ)) ({y} : Set Y) q) :
-    (localHomologyCross (j₁ x) (j₂ y) p q n h).hom
-        ((localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ)) hj₁ x p).hom a ⊗ₜ
-          (localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ)) hj₂ y q).hom b) =
-      (localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ)) (hj₁.prodMap hj₂) (x, y)
-        n).hom ((localHomologyCross x y p q n h).hom (a ⊗ₜ b)) := by
-  have hn := localHomologyMap_tensorHom_localHomologyMap_localHomologyCross_apply
-    ⟨j₁, hj₁.continuous⟩ ⟨j₂, hj₂.continuous⟩
-    (by rw [ContinuousMap.coe_mk, ← image_singleton, hj₁.injective.preimage_image])
-    (by rw [ContinuousMap.coe_mk, ← image_singleton, hj₂.injective.preimage_image]) p q n h
-    (a ⊗ₜ b)
-  simp only [ModuleCat.MonoidalCategory.tensorHom_tmul] at hn
-  simp only [localHomologyIsoOfIsOpenEmbedding_hom]
-  exact hn
-
-/-- For open embeddings `j₁ : X → X'` and `j₂ : Y → Y'` into `T₁` spaces, cross products of local
-orientations at `j₁ x` and `j₂ y` are local orientations exactly when cross products of local
-orientations at `x` and `y` are. -/
-theorem forall_isLocalOrientation_localHomologyCross_iff [T1Space X'] [T1Space Y']
-    {j₁ : X → X'} {j₂ : Y → Y'} (hj₁ : IsOpenEmbedding j₁) (hj₂ : IsOpenEmbedding j₂) (x : X)
-    (y : Y) {p q n : ℕ} (h : p + q = n) :
-    (∀ (z₁ : LocalOrientation X' (j₁ x) p) (z₂ : LocalOrientation Y' (j₂ y) q),
-      IsLocalOrientation (j₁ x, j₂ y) n
-        ((localHomologyCross (j₁ x) (j₂ y) p q n h).hom (z₁.val ⊗ₜ z₂.val))) ↔
-    ∀ (z₁ : LocalOrientation X x p) (z₂ : LocalOrientation Y y q),
-      IsLocalOrientation (x, y) n ((localHomologyCross x y p q n h).hom (z₁.val ⊗ₜ z₂.val)) := by
-  set e := localHomologyIsoOfIsOpenEmbedding (ModuleCat.of ℤ (ULift.{0} ℤ)) (hj₁.prodMap hj₂)
-    (x, y) n
-  refine ⟨fun H z₁ z₂ ↦ ?_, fun H z₁ z₂ ↦ ?_⟩
-  · have := (H (hj₁.localOrientationEquiv x p z₁) (hj₂.localOrientationEquiv y q z₂)).map e.symm
-    rwa [IsOpenEmbedding.coe_localOrientationEquiv, IsOpenEmbedding.coe_localOrientationEquiv,
-      localHomologyCross_localHomologyIsoOfIsOpenEmbedding, Iso.symm_hom, e.hom_inv_id_apply]
-      at this
-  · obtain ⟨w₁, rfl⟩ := (hj₁.localOrientationEquiv x p).surjective z₁
-    obtain ⟨w₂, rfl⟩ := (hj₂.localOrientationEquiv y q).surjective z₂
-    rw [IsOpenEmbedding.coe_localOrientationEquiv, IsOpenEmbedding.coe_localOrientationEquiv,
-      localHomologyCross_localHomologyIsoOfIsOpenEmbedding]
-    exact (H w₁ w₂).map e
-
-/-- For partial homeomorphisms `φ : X → X'` and `ψ : Y → Y'` between `T₁` spaces, defined at `x`
-and `y`, cross products of local orientations at `φ x` and `ψ y` are local orientations exactly
-when cross products of local orientations at `x` and `y` are. -/
-theorem forall_isLocalOrientation_localHomologyCross_iff_of_openPartialHomeomorph [T1Space X]
-    [T1Space Y] [T1Space X'] [T1Space Y'] (φ : OpenPartialHomeomorph X X')
-    (ψ : OpenPartialHomeomorph Y Y') {x : X} {y : Y} (hx : x ∈ φ.source) (hy : y ∈ ψ.source)
-    {p q n : ℕ} (h : p + q = n) :
-    (∀ (z₁ : LocalOrientation X' (φ x) p) (z₂ : LocalOrientation Y' (ψ y) q),
-      IsLocalOrientation (φ x, ψ y) n
-        ((localHomologyCross (φ x) (ψ y) p q n h).hom (z₁.val ⊗ₜ z₂.val))) ↔
-    ∀ (z₁ : LocalOrientation X x p) (z₂ : LocalOrientation Y y q),
-      IsLocalOrientation (x, y) n ((localHomologyCross x y p q n h).hom (z₁.val ⊗ₜ z₂.val)) :=
-  (forall_isLocalOrientation_localHomologyCross_iff φ.isOpenEmbedding_restrict
-      ψ.isOpenEmbedding_restrict (⟨x, hx⟩ : φ.source) (⟨y, hy⟩ : ψ.source) h).trans
-    (forall_isLocalOrientation_localHomologyCross_iff φ.open_source.isOpenEmbedding_subtypeVal
-      ψ.open_source.isOpenEmbedding_subtypeVal (⟨x, hx⟩ : φ.source) (⟨y, hy⟩ : ψ.source) h).symm
+  -- Read with coefficients `ℤ`, the hypotheses are those of Tau Ceti's Künneth lemma.
+  let c {Z : Type} [TopologicalSpace Z] (S : Set Z) (k : ℕ) := HomologicalComplex.homologyMap
+    (((SSetPair.chainComplexFunctor (ModuleCat.{0} ℤ)).map uliftIntIso.hom).app
+      (TopPair.toSSetPair.obj (TopPair.ofSubset (Sᶜ : Set (TopCat.of Z))))) k
+  have hX' (i : ℕ) (hi : i ≠ p) : IsZero (localHomology (ModuleCat.of ℤ ℤ) ({x} : Set X) i) :=
+    (hX i hi).of_iso (asIso (c {x} i)).symm
+  have : Projective (localHomology (ModuleCat.of ℤ ℤ) ({x} : Set X) p) :=
+    Projective.of_iso (asIso (c {x} p)) inferInstance
+  have key := span_singularHomologyKunnethPair_tmul_eq_top hX'
+    (((ModuleCat.span_singleton_apply_eq_top_iff (c {x} p)).2
+      ((isLocalOrientation_iff_span_eq_top _ _ _).1 hz₁)))
+    (((ModuleCat.span_singleton_apply_eq_top_iff (c {y} q)).2
+      ((isLocalOrientation_iff_span_eq_top _ _ _).1 hz₂)))
+  -- The map of pairs given by the identity of `X × Y` is onto, since the subspaces
+  -- `(X ∖ {x}) × Y ∪ X × (Y ∖ {y})` and `X × Y ∖ {(x, y)}` are equal.
+  have hid : TopPair.ofSubsetMap _
+        (mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl x y) ≫
+      TopPair.ofSubsetMap _ (mapsTo_preimage_fst_compl_union_preimage_snd_compl x y) = 𝟙 _ :=
+    (TopPair.ofSubsetMap_comp_ofSubsetMap_of_comp_eq _ _ (fun _ hv ↦ hv)
+      (TopCat.tensorObjIsoProd X Y).inv_hom_id).trans (TopPair.ofSubsetMap_id _)
+  have hs : Function.Surjective (TopPair.singularHomologyMap (TopPair.ofSubsetMap _
+      (mapsTo_preimage_fst_compl_union_preimage_snd_compl x y)) (ModuleCat.of ℤ ℤ) (p + q)).hom :=
+    fun w ↦ ⟨(TopPair.singularHomologyMap (TopPair.ofSubsetMap _
+      (mapsTo_compl_singleton_preimage_fst_compl_union_preimage_snd_compl x y))
+        (ModuleCat.of ℤ ℤ) (p + q)).hom w, by
+        rw [← ConcreteCategory.comp_apply, ← TopPair.singularHomologyMap_comp, hid,
+          TopPair.singularHomologyMap_id, ConcreteCategory.id_apply]⟩
+  rw [isLocalOrientation_iff_span_eq_top,
+    ← ModuleCat.span_singleton_apply_eq_top_iff (c {(x, y)} _), ← ConcreteCategory.comp_apply,
+    localHomologyCross_comp_homologyMap_uliftIntIso_hom, ConcreteCategory.comp_apply,
+    ← Category.assoc, ConcreteCategory.comp_apply, Submodule.span_singleton_eq_top_iff]
+  rw [Submodule.span_singleton_eq_top_iff] at key
+  intro u
+  obtain ⟨u', rfl⟩ := hs u
+  obtain ⟨r, hr⟩ := key u'
+  exact ⟨r, (LinearMap.map_smul _ r _).symm.trans (congrArg _ hr)⟩
 
 end Cross
 
@@ -478,43 +440,25 @@ end Assoc
 /-- **The cross product of local orientations of vector spaces is a local orientation.** For
 real normed spaces `F₁` and `F₂` of dimensions `m + 1` and `n + 1` and local orientations `z₁`
 and `z₂` at their origins, the cross product `z₁ × z₂` generates the integral local homology
-`H_{d+1}(F₁ × F₂, F₁ × F₂ ∖ {0}; ℤ)`, where `(m + 1) + (n + 1) = d + 1`. -/
+`H_{d+1}(F₁ × F₂, F₁ × F₂ ∖ {0}; ℤ)`, where `(m + 1) + (n + 1) = d + 1`. Only the dimension of
+`F₁` is needed; that of `F₂` is part of the statement so that it matches
+`TauCeti.LocalOrientation.cross`. -/
 theorem isLocalOrientation_localHomologyCross {F₁ F₂ : Type} [NormedAddCommGroup F₁]
     [NormedSpace ℝ F₁] [NormedAddCommGroup F₂] [NormedSpace ℝ F₂] {m n d : ℕ}
-    (hF₁ : finrank ℝ F₁ = m + 1) (hF₂ : finrank ℝ F₂ = n + 1) (h : m + 1 + (n + 1) = d + 1)
+    (hF₁ : finrank ℝ F₁ = m + 1) (_hF₂ : finrank ℝ F₂ = n + 1) (h : m + 1 + (n + 1) = d + 1)
     (z₁ : LocalOrientation F₁ 0 (m + 1)) (z₂ : LocalOrientation F₂ 0 (n + 1)) :
     IsLocalOrientation (0 : F₁ × F₂) (d + 1)
       ((localHomologyCross (0 : F₁) (0 : F₂) (m + 1) (n + 1) (d + 1) h).hom
         (z₁.val ⊗ₜ z₂.val)) := by
   have := FiniteDimensional.of_finrank_eq_succ hF₁
-  have := FiniteDimensional.of_finrank_eq_succ hF₂
-  -- The spheres `Sᵐ⁺¹` and `Sⁿ⁺¹`, charted on `ULift (Fin (k + 1)) → ℝ`, are compact connected
-  -- manifolds, and the standard generator of `Hₖ₊₁(Sᵏ⁺¹; ℤ)`, with the coefficients `ℤ` read as
-  -- `ULift ℤ`, is a fundamental class.
-  have hE (k : ℕ) : finrank ℝ (ULift.{0} (Fin (k + 1)) → ℝ) = k + 1 := by simp
-  have hμ (k : ℕ) : IsFundamentalClass
-      (((AlgebraicTopology.singularHomologyFunctor (ModuleCat.{0} ℤ) (k + 1)).map
-        (ULift.moduleEquiv.{0, 0, 0} (R := ℤ) (M := ℤ)).symm.toModuleIso.hom).app
-          (TopCat.of (TopCat.sphere.{0} (k + 1))) (singularHomologyTopCatSphereGenerator ℤ k)) :=
-    (isFundamentalClass_singularHomologyFunctor_map_app_iff _ _).2
-      (isFundamentalClass_singularHomologyTopCatSphereGenerator ℤ k)
-  obtain ⟨x₁⟩ : Nonempty (TopCat.sphere.{0} (m + 1)) := ConnectedSpace.toNonempty
-  obtain ⟨x₂⟩ : Nonempty (TopCat.sphere.{0} (n + 1)) := ConnectedSpace.toNonempty
-  -- A partial homeomorphism from `Fᵢ` to the sphere defined at `0`: a linear identification of
-  -- `Fᵢ` with the model, a translation, and the inverse of the chart at `xᵢ`.
-  let φ₁ : OpenPartialHomeomorph F₁ (TopCat.sphere.{0} (m + 1)) :=
-    ((ContinuousLinearEquiv.ofFinrankEq (hF₁.trans (hE m).symm)).toHomeomorph.trans
-      (Homeomorph.addRight (chartAt (ULift.{0} (Fin (m + 1)) → ℝ) x₁ x₁)))
-      |>.toOpenPartialHomeomorph.trans (chartAt (ULift.{0} (Fin (m + 1)) → ℝ) x₁).symm
-  let φ₂ : OpenPartialHomeomorph F₂ (TopCat.sphere.{0} (n + 1)) :=
-    ((ContinuousLinearEquiv.ofFinrankEq (hF₂.trans (hE n).symm)).toHomeomorph.trans
-      (Homeomorph.addRight (chartAt (ULift.{0} (Fin (n + 1)) → ℝ) x₂ x₂)))
-      |>.toOpenPartialHomeomorph.trans (chartAt (ULift.{0} (Fin (n + 1)) → ℝ) x₂).symm
-  have h₁ : (0 : F₁) ∈ φ₁.source := by simp [φ₁]
-  have h₂ : (0 : F₂) ∈ φ₂.source := by simp [φ₂]
-  exact (forall_isLocalOrientation_localHomologyCross_iff_of_openPartialHomeomorph φ₁ φ₂ h₁ h₂
-    h).1 (fun w₁ w₂ ↦ isLocalOrientation_localHomologyCross_of_isFundamentalClass (hE m) (hE n) h
-      (hμ m) (hμ n) w₁ w₂) z₁ z₂
+  -- The local homology of `F₁` at the origin is computed in the identity chart.
+  have : Projective (localHomology (A := ModuleCat.{0} ℤ) (ModuleCat.of ℤ (ULift.{0} ℤ))
+      ({0} : Set F₁) (m + 1)) :=
+    Projective.of_iso (singularHomologyComplZeroIso hF₁).symm inferInstance
+  exact isLocalOrientation_localHomologyCross_of_isZero h
+    (fun i hi ↦ isZero_singularHomology_complSingleton_of_ne (ModuleCat.of ℤ (ULift.{0} ℤ))
+      (OpenPartialHomeomorph.refl F₁)
+      (mem_univ (0 : F₁)) hF₁ hi) z₁.property z₂.property
 
 end SymplecticGeometry
 
