@@ -78,9 +78,9 @@ theorem symplecticNormalForm_congr {EQ HQ Q EN HN N : Type*} [NormedAddCommGroup
     [ChartedSpace HQ Q] [NormedAddCommGroup EN] [NormedSpace ℝ EN] [FiniteDimensional ℝ EN]
     [TopologicalSpace HN] {K : ModelWithCorners ℝ EN HN} [TopologicalSpace N] [ChartedSpace HN N]
     [IsManifold K ∞ N] {σ₁ σ₂ : SmoothTwoForm K N} (h : σ₁ = σ₂) {hσ₁ : σ₁.IsNondegenerate}
-    {hσ₂ : σ₂.IsNondegenerate} {f : SmoothEmbedding J K ∞ Q N}
+    {hσ₂ : σ₂.IsNondegenerate} {n : ℕ∞ω} {f : SmoothEmbedding J K n Q N}
     (h₁ : hσ₁.HasSymplecticTangentImages J f) (h₂ : hσ₂.HasSymplecticTangentImages J f) (q : Q)
-    (hn : (∞ : ℕ∞ω) ≠ 0) :
+    (hn : n ≠ 0) :
     f.symplecticNormalForm h₁ q hn = f.symplecticNormalForm h₂ q hn := by
   subst h
   rfl
