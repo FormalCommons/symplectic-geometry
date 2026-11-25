@@ -30,10 +30,11 @@ other way:
   `PartialDiffeomorph.tsupport_indicator_comp_symm_subset`,
   `PartialDiffeomorph.hasCompactSupport_indicator_comp_symm`,
   `PartialDiffeomorph.continuous_indicator_comp_symm` and
-  `PartialDiffeomorph.contDiff_indicator_comp_symm`: a function `χ` on `M` whose support is
-  compact and lies in the source of a partial diffeomorphism `ψ` onto an open subset of a normed
-  space, read in `ψ` and extended by zero off `ψ.target`, is supported in `ψ '' tsupport χ`, so
-  has compact support, and is continuous, or `C^n`, when `χ` is.
+  `PartialDiffeomorph.contMDiff_indicator_comp_symm`: a function `χ` on `M` whose support is
+  compact and lies in the source of a partial diffeomorphism `ψ` onto an open subset of a
+  Hausdorff manifold `N`, transported to `χ ∘ ψ.symm` and extended by zero off `ψ.target`, is
+  supported in `ψ '' tsupport χ`, so has compact support, and is continuous, or `C^n`, when `χ`
+  is. When `N` is a normed space, the last gives `PartialDiffeomorph.contDiff_indicator_comp_symm`.
 -/
 
 public section
@@ -73,10 +74,12 @@ namespace PartialDiffeomorph
 variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : Type*} [NormedAddCommGroup E]
   [NormedSpace 𝕜 E] {H : Type*} [TopologicalSpace H] {I : ModelWithCorners 𝕜 E H}
   {M : Type*} [TopologicalSpace M] [ChartedSpace H M] {E' : Type*} [NormedAddCommGroup E']
-  [NormedSpace 𝕜 E'] {n : WithTop ℕ∞} (ψ : PartialDiffeomorph I 𝓘(𝕜, E') M E' n)
+  [NormedSpace 𝕜 E'] {H' : Type*} [TopologicalSpace H'] {I' : ModelWithCorners 𝕜 E' H'}
+  {N : Type*} [TopologicalSpace N] [ChartedSpace H' N] {n : WithTop ℕ∞}
+  (ψ : PartialDiffeomorph I I' M N n)
 
-/-- A function `χ` read in the chart `ψ` and extended by `0` off `ψ.target` vanishes off the
-image under `ψ` of the support of `χ`. -/
+/-- The function `χ ∘ ψ.symm`, extended by `0` off `ψ.target`, vanishes off the image under `ψ`
+of the support of `χ`. -/
 theorem support_indicator_comp_symm_subset {F : Type*} [Zero F] (χ : M → F) :
     Function.support (ψ.target.indicator fun y ↦ χ (ψ.symm y)) ⊆ ψ '' tsupport χ := fun y hy ↦ by
   by_cases hyt : y ∈ ψ.target
@@ -88,11 +91,10 @@ variable {ψ}
 
 section Zero
 
-variable {F : Type*} [Zero F] {χ : M → F}
+variable [T2Space N] {F : Type*} [Zero F] {χ : M → F}
 
-/-- If the support of `χ` is compact and lies in the source of `ψ`, the function `χ` read in the
-chart and extended by `0` off `ψ.target` is supported in the image under `ψ` of the support of
-`χ`. -/
+/-- If the support of `χ` is compact and lies in the source of `ψ`, the function `χ ∘ ψ.symm`,
+extended by `0` off `ψ.target`, is supported in the image under `ψ` of the support of `χ`. -/
 theorem tsupport_indicator_comp_symm_subset
     (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
     tsupport (ψ.target.indicator fun y ↦ χ (ψ.symm y)) ⊆ ψ '' tsupport χ :=
@@ -100,8 +102,8 @@ theorem tsupport_indicator_comp_symm_subset
     (ψ.isCompact_image_of_subset_source hK hχ).isClosed
     fun _ hy ↦ image_eq_zero_of_notMem_tsupport fun h ↦ hy.2 ⟨_, h, ψ.right_inv hy.1⟩
 
-/-- If the support of `χ` is compact and lies in the source of `ψ`, the function `χ` read in the
-chart and extended by `0` off `ψ.target` has compact support. -/
+/-- If the support of `χ` is compact and lies in the source of `ψ`, the function `χ ∘ ψ.symm`,
+extended by `0` off `ψ.target`, has compact support. -/
 theorem hasCompactSupport_indicator_comp_symm
     (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
     HasCompactSupport (ψ.target.indicator fun y ↦ χ (ψ.symm y)) :=
@@ -109,7 +111,7 @@ theorem hasCompactSupport_indicator_comp_symm
     (tsupport_indicator_comp_symm_subset hK hχ)
 
 /-- If `χ` is continuous and its support is compact and lies in the source of `ψ`, the function
-`χ` read in the chart and extended by `0` off `ψ.target` is continuous. -/
+`χ ∘ ψ.symm`, extended by `0` off `ψ.target`, is continuous. -/
 theorem continuous_indicator_comp_symm [TopologicalSpace F] (hχc : Continuous χ)
     (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
     Continuous (ψ.target.indicator fun y ↦ χ (ψ.symm y)) :=
@@ -120,17 +122,26 @@ theorem continuous_indicator_comp_symm [TopologicalSpace F] (hχc : Continuous �
 
 end Zero
 
-/-- If `χ` is `C^n` and its support is compact and lies in the source of `ψ`, the function `χ`
-read in the chart and extended by `0` off `ψ.target` is `C^n`. -/
-theorem contDiff_indicator_comp_symm {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
-    {χ : M → F} (hχc : ContMDiff I 𝓘(𝕜, F) n χ)
+/-- If `χ` is `C^n` and its support is compact and lies in the source of `ψ`, the function
+`χ ∘ ψ.symm`, extended by `0` off `ψ.target`, is `C^n`. -/
+theorem contMDiff_indicator_comp_symm [T2Space N] {F : Type*} [NormedAddCommGroup F]
+    [NormedSpace 𝕜 F] {χ : M → F} (hχc : ContMDiff I 𝓘(𝕜, F) n χ)
     (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
-    ContDiff 𝕜 n (ψ.target.indicator fun y ↦ χ (ψ.symm y)) := by
-  refine contMDiff_iff_contDiff.1 (contMDiff_of_tsupport fun y hy ↦ ?_)
+    ContMDiff I' 𝓘(𝕜, F) n (ψ.target.indicator fun y ↦ χ (ψ.symm y)) := by
+  refine contMDiff_of_tsupport fun y hy ↦ ?_
   have hyt : y ∈ ψ.target := (ψ.mapsTo.mono_left hχ).image_subset
     (tsupport_indicator_comp_symm_subset hK hχ hy)
   exact ((hχc.comp_contMDiffOn ψ.symm.contMDiffOn).congr fun y hy ↦ indicator_of_mem hy _)
     |>.contMDiffAt (ψ.open_target.mem_nhds hyt)
+
+/-- If `χ` is `C^n` and its support is compact and lies in the source of a partial
+diffeomorphism `ψ` onto an open subset of a normed space, the function `χ ∘ ψ.symm`, extended
+by `0` off `ψ.target`, is `C^n`. -/
+theorem contDiff_indicator_comp_symm {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+    {ψ : PartialDiffeomorph I 𝓘(𝕜, E') M E' n} {χ : M → F} (hχc : ContMDiff I 𝓘(𝕜, F) n χ)
+    (hK : IsCompact (tsupport χ)) (hχ : tsupport χ ⊆ ψ.source) :
+    ContDiff 𝕜 n (ψ.target.indicator fun y ↦ χ (ψ.symm y)) :=
+  contMDiff_iff_contDiff.1 (contMDiff_indicator_comp_symm hχc hK hχ)
 
 end PartialDiffeomorph
 
