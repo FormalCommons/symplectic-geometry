@@ -50,13 +50,16 @@ and `AddMonoidHom.bijective_of_surjective_of_bijective_of_right_exact` in it.
 
 ## Main results
 
-* `TauCeti.HomologicalOrientation.bijective_dualityMap_of_sup_eq_top`: for open sets `U` and `V`
+* `TauCeti.HomologicalOrientation.bijective_dualityMap_of_sup_eq_top'`: for open sets `U` and `V`
   covering `M`, the step from `U`, `V` and `U ∩ V` to `M`.
-* `TauCeti.HomologicalOrientation.bijective_dualityMap_comap_sup`: for any open sets `U` and `V`
+* `TauCeti.HomologicalOrientation.bijective_dualityMap_comap_sup'`: for any open sets `U` and `V`
   of `M`, the step from `U`, `V` and `U ∩ V` to `U ∪ V`.
 * `TauCeti.HomologicalOrientation.bijective_dualityMap_of_infClosed`: the induction of Hatcher's
   Lemma 3.36, from the members of a family of open sets closed under intersection that covers
   `M`, to `M`.
+
+Tau Ceti has the first two steps under the unprimed names, with the vanishing of
+`Hⁿ⁺¹_c(U ∩ V; L)` as a hypothesis; the primed versions here do not need it.
 
 ## Implementation notes
 
@@ -64,7 +67,7 @@ The theorems are stated for `Opens M` and the embeddings `Opens.isOpenEmbedding'
 disjoint case `TauCeti.HomologicalOrientation.bijective_dualityMap_of_disjoint` is, while the steps
 of the proof use open sets of `TopCat.of M`, as Tau Ceti's Mayer–Vietoris squares do.
 
-The proof of `TauCeti.HomologicalOrientation.bijective_dualityMap_comap_sup` adapts that of Tau
+The proof of `TauCeti.HomologicalOrientation.bijective_dualityMap_comap_sup'` adapts that of Tau
 Ceti's `TauCeti.HomologicalOrientation.bijective_dualityMap_comap_sup_of_disjoint`: it applies the
 form for a cover inside `U ∪ V`, the cover being
 `TopologicalSpace.Opens.comap_val_sup_comap_val_eq_top`. Its passage between an open set of
@@ -232,7 +235,7 @@ end Cover
 /-- **Poincaré duality for a cover by two open sets.** Let `M` be the union of open sets `U` and
 `V`, each with the orientation restricted from `M`. If the duality maps of `U`, `V` and `U ∩ V`
 are bijective in every degree, then the duality map `Hᵖ_c(M; L) ⟶ H_q(M; L)` is bijective. -/
-theorem bijective_dualityMap_of_sup_eq_top {U V : Opens M} (hUV : U ⊔ V = ⊤)
+theorem bijective_dualityMap_of_sup_eq_top' {U V : Opens M} (hUV : U ⊔ V = ⊤)
     (hU : ∀ p q (h : p + q = n),
       Function.Bijective ((o.comap U.isOpenEmbedding').dualityMap hn L p q h))
     (hV : ∀ p q (h : p + q = n),
@@ -257,7 +260,7 @@ theorem bijective_dualityMap_of_sup_eq_top {U V : Opens M} (hUV : U ⊔ V = ⊤)
 /-- **Poincaré duality for the union of two open sets.** For open sets `U` and `V` of `M`, each
 with the orientation restricted from `M`: if the duality maps of `U`, `V` and `U ∩ V` are
 bijective in every degree, then the duality map of `U ∪ V` is bijective. -/
-theorem bijective_dualityMap_comap_sup {U V : Opens M}
+theorem bijective_dualityMap_comap_sup' {U V : Opens M}
     (hU : ∀ p q (h : p + q = n),
       Function.Bijective ((o.comap U.isOpenEmbedding').dualityMap hn L p q h))
     (hV : ∀ p q (h : p + q = n),
@@ -268,7 +271,7 @@ theorem bijective_dualityMap_comap_sup {U V : Opens M}
     Function.Bijective ((o.comap (U ⊔ V).isOpenEmbedding').dualityMap hn L p q h) := by
   let i : C(↥(U ⊔ V), M) := ⟨Subtype.val, continuous_subtypeVal⟩
   have hle : U ⊓ V ≤ U ⊔ V := inf_le_left.trans le_sup_left
-  refine (o.comap (U ⊔ V).isOpenEmbedding').bijective_dualityMap_of_sup_eq_top hn L
+  refine (o.comap (U ⊔ V).isOpenEmbedding').bijective_dualityMap_of_sup_eq_top' hn L
     (U := Opens.comap i U) (V := Opens.comap i V) ?_ (fun p q h ↦ ?_) (fun p q h ↦ ?_) ?_ h
   · exact Opens.comap_val_sup_comap_val_eq_top U V
   · rw [comap_comap]
@@ -297,7 +300,7 @@ theorem bijective_dualityMap_of_infClosed {S : Set (Opens M)} (hS : InfClosed S)
       ((o.comap (s.sup Subtype.val).isOpenEmbedding').dualityMap hn L p q h) := by
     refine hS.finset_sup_induction (fun W : Opens M ↦ ∀ p q (h : p + q = n), Function.Bijective
         ((o.comap W.isOpenEmbedding').dualityMap hn L p q h)) (fun p q h ↦ ?_) hbase
-      (fun V W hV hW hVW _ _ ↦ o.bijective_dualityMap_comap_sup hn L hV hW hVW) s
+      (fun V W hV hW hVW _ _ ↦ o.bijective_dualityMap_comap_sup' hn L hV hW hVW) s
     exact (o.comap _).bijective_dualityMap_of_isEmpty hn L h
   -- They form a directed family covering `M`.
   exact o.bijective_dualityMap_of_iSup_eq_top hn L h (fun _ _ hst ↦ Finset.sup_mono hst)

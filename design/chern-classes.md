@@ -1009,7 +1009,7 @@ Beside Tau Ceti's `FiniteRank/Tensor.lean`, in Tau Ceti's terms only;
 For a compact Hausdorff boundaryless smooth manifold `M` modelled on `E`
 with `finrank ℝ E = m + 1` and `o : TauCeti.Manifold.Orientation I M (Fin (m + 1))`:
 
-- `TauCeti.Manifold.Orientation.sectionIndex_eq_sign_det_vectorFieldChartDerivative`:
+- `TauCeti.Manifold.Orientation.sectionIndex_eq_sign_det_vectorFieldChartDerivative_of_mdifferentiableAt`:
   for a continuous vector field `X`, differentiable at a zero `z` at which
   `vectorFieldChartDerivative I X z` is invertible, the local index of `X`
   for `o.toVectorBundleOrientation` and `o.toHomologicalOrientation` is the
@@ -1018,7 +1018,7 @@ with `finrank ℝ E = m + 1` and `o : TauCeti.Manifold.Orientation I M (Fin (m +
   the Euler class of `o.toVectorBundleOrientation` evaluated on the
   fundamental class of `o.toHomologicalOrientation` is
   $\sum_{i\le m+1}(-1)^i\dim_k H_i(M;k)$ for any division ring `k`; and
-  `TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar`,
+  `TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType`,
   the same with `TauCeti.eulerChar M` under a finite CW type instance
   argument, which `TauCeti.FiniteCWType.of_isManifold` supplies. Both come
   from a Morse function, a Riemannian metric and the three Tau Ceti results
@@ -1201,7 +1201,7 @@ then imports `ChernClass/FirstChernClass.lean`.
 `totalChernClass_prod`, `totalChernClass_pullback` and `chernClass_congr`,
 and gets $\chi(M)=\langle c_n(TM),[M]\rangle$ from
 `chernClass_finrank_eq_complexEulerClass` and
-`evalFundamentalClass_eulerClass_eq_eulerChar`. Comparing the complex orientation
+`evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType`. Comparing the complex orientation
 of $TM$ (`TauCeti.VectorBundleOrientation.complex`) with the manifold
 orientation `TauCeti.complexManifoldOrientation` belongs to that part's
 design.

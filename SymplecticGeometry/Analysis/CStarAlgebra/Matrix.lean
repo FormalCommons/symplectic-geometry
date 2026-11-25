@@ -15,8 +15,8 @@ Mathlib identifies the matrices over `𝕜` with the linear endomorphisms of
 `EuclideanSpace 𝕜 n` by `Matrix.toEuclideanLin`, and with its continuous endomorphisms by
 `Matrix.toEuclideanCLM`. This file shows that the two give the same matrix of a linear
 endomorphism, made continuous by `LinearMap.toContinuousLinearMap`. It also makes
-`Matrix.toEuclideanCLM` a continuous linear equivalence, so that its smoothness and its derivative are those of a
-continuous linear equivalence.
+`Matrix.toEuclideanCLM` a continuous linear equivalence, so that its smoothness and its
+derivative are those of a continuous linear equivalence.
 
 ## Main definitions
 

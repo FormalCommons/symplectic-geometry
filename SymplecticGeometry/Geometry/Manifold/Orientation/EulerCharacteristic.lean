@@ -22,15 +22,19 @@ bundle (`o.toVectorBundleOrientation`) and `M` a homologically oriented manifold
 (`o.toHomologicalOrientation`), so a continuous vector field has a local index at each isolated
 zero, Tau Ceti's `TauCeti.VectorBundleOrientation.sectionIndex`.
 
-* `TauCeti.Manifold.Orientation.sectionIndex_eq_sign_det_vectorFieldChartDerivative`: at a zero `z`
-  of a vector field `X` differentiable at `z`, where the chart derivative
+* `Manifold.Orientation.sectionIndex_eq_sign_det_vectorFieldChartDerivative_of_mdifferentiableAt`:
+  at a zero `z` of a vector field `X` differentiable at `z`, where the chart derivative
   `TauCeti.vectorFieldChartDerivative I X z` is invertible, the local index of `X` is the sign of
   the determinant of the chart derivative.
 * `TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_sum_finrank_singularHomology`:
   for `M` compact and smooth, the Euler class of the tangent bundle evaluated on the fundamental
   class is `∑ᵢ (-1)ⁱ dim Hᵢ(M; k)` over any division ring `k`, the sum running over `i ≤ m + 1`.
-* `TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar`: the same number is
-  the Euler characteristic `TauCeti.eulerChar M`.
+* `TauCeti.Manifold.Orientation.evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType`: the
+  same number is the Euler characteristic `TauCeti.eulerChar M`.
+
+Tau Ceti proves the first and last of these, without the suffixes, for the model `𝓘(ℝ, X)` of an
+inner product space `X`, without the differentiability hypothesis or `TauCeti.FiniteCWType M`;
+the versions here hold for any boundaryless model `I`.
 
 Odd dimensions are included: then both sides vanish, which the statements do not need to say.
 
@@ -91,7 +95,8 @@ field on `M`, differentiable at a zero `z` whose chart derivative
 `vectorFieldChartDerivative I X z` has nonzero determinant. Then the local index of `X` at `z`, as
 a section of the tangent bundle oriented by `o`, with the homological orientation of `M` given by
 `o`, is the sign of that determinant. -/
-theorem sectionIndex_eq_sign_det_vectorFieldChartDerivative {X : (x : M) → TangentSpace I x}
+theorem sectionIndex_eq_sign_det_vectorFieldChartDerivative_of_mdifferentiableAt
+    {X : (x : M) → TangentSpace I x}
     (hX : Continuous fun x ↦ TotalSpace.mk' E x (X x)) {z : M}
     (hXz : MDifferentiableAt I I.tangent (fun y ↦ (X y : TangentBundle I M)) z) (hz : X z = 0)
     (hdet : LinearMap.det (vectorFieldChartDerivative I X z) ≠ 0) :
@@ -165,7 +170,8 @@ theorem evalFundamentalClass_eulerClass_eq_sum_finrank_singularHomology (k : Typ
   rw [VectorBundleOrientation.evalFundamentalClass_eulerClass_eq_sum_sectionIndex _ hE _ hX hE hZ,
     ← finsum_mem_eq_finite_toFinset_sum _ hZ, ← finsum_set_coe_eq_finsum_mem]
   refine (finsum_congr fun x ↦ ?_).trans hPH
-  exact sectionIndex_eq_sign_det_vectorFieldChartDerivative hE o hX (hXd x) x.property
+  exact sectionIndex_eq_sign_det_vectorFieldChartDerivative_of_mdifferentiableAt hE o hX (hXd x)
+    x.property
     (hf.det_vectorFieldChartDerivative_mgradient_ne_zero x.property)
 
 /-- **The Euler number of the tangent bundle is the Euler characteristic.** On a compact
@@ -173,7 +179,7 @@ boundaryless smooth manifold `M` of dimension `m + 1` with an orientation `o`, t
 the tangent bundle, oriented by `o`, evaluated on the fundamental class of `M` given by `o`, is the
 Euler characteristic `TauCeti.eulerChar M`. The finite CW type of `M` that `eulerChar` needs is
 always available, as `TauCeti.FiniteCWType.of_isManifold`. -/
-theorem evalFundamentalClass_eulerClass_eq_eulerChar [FiniteCWType M] :
+theorem evalFundamentalClass_eulerClass_eq_eulerChar_of_finiteCWType [FiniteCWType M] :
     ((o.toHomologicalOrientation hE).evalFundamentalClass hE (ModuleCat.of ℤ (ULift.{0} ℤ))
       (ContinuousMap.id M) (o.toVectorBundleOrientation.eulerClass hE)).down = eulerChar M := by
   rw [evalFundamentalClass_eulerClass_eq_sum_finrank_singularHomology hE o ℚ,

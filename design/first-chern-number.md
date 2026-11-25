@@ -938,8 +938,8 @@ issues, in an order where each issue's blockers come before it.
    `TauCeti/`.
    The Mayer–Vietoris step of duality is the library's own
    `AlgebraicTopology/Cohomology/CompactSupport/Duality/Union.lean`, not a
-   file of Tau Ceti's: `TauCeti.HomologicalOrientation.bijective_dualityMap_of_sup_eq_top`
-   for a cover by two open sets, and `bijective_dualityMap_comap_sup` for two
+   file of Tau Ceti's: `TauCeti.HomologicalOrientation.bijective_dualityMap_of_sup_eq_top'`
+   for a cover by two open sets, and `bijective_dualityMap_comap_sup'` for two
    open sets of `M`. Both assume only duality in every degree for `U`, `V`
    and `U ∩ V`: the vanishing of `Hⁿ⁺¹_c(U ∩ V; L)`, which injectivity
    needs in the top degree, holds for every open set of `M`
