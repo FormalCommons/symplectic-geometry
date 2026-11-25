@@ -6,9 +6,11 @@ Authors: The FormalCommons contributors
 module
 
 public import SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed
+public import TauCeti.Analysis.Calculus.DifferentialForm.Basic
 public import TauCeti.Geometry.Lie.Adjoint.Basic
 public import TauCeti.Geometry.Lie.LeftInvariantForm
 public import TauCeti.Geometry.Manifold.DifferentialForm.MapCoeff
+public import TauCeti.Geometry.Manifold.DifferentialForm.Naturality
 
 /-!
 # The left Maurer–Cartan form
@@ -32,6 +34,12 @@ extension `TauCeti.leftInvariantSmoothForm` of the identity of `𝔤`.
 * `SymplecticGeometry.mpullback_mul_left_leftMaurerCartanForm`: it is left-invariant.
 * `SymplecticGeometry.mpullback_mul_right_leftMaurerCartanForm`: right translation by `h` pulls
   it back to its image under `Ad(h⁻¹)`.
+* `SymplecticGeometry.mextDeriv_leftMaurerCartanForm_apply`: the Maurer–Cartan equation
+  `dθ(v, w) = -⁅θ v, θ w⁆`, for `G` finite-dimensional.
+* `SymplecticGeometry.fderiv_leftMaurerCartanForm_mfderiv_sub`: the structure equation for the
+  left-trivialized derivatives `a_v = θ (dγ v)` of a smooth map `γ` from a normed space to `G`,
+  `∂_v a_w - ∂_w a_v = -⁅a_v, a_w⁆`; for a two-parameter map `γ : ℝ × ℝ → G` and the coordinate
+  directions this reads `∂_s b - ∂_t a = -⁅a, b⁆`.
 
 ## Implementation notes
 
@@ -39,6 +47,14 @@ Smoothness and left-invariance come from Tau Ceti's `TauCeti.leftInvariantSmooth
 `TauCeti.mpullback_mul_left_leftInvariantSmoothForm`. The proof of
 `mpullback_mul_right_leftMaurerCartanForm` follows that of Tau Ceti's
 `Module.Dual.mpullback_mul_right_leftInvariantForm`.
+
+The Maurer–Cartan equation is Tau Ceti's `TauCeti.mextDeriv_leftInvariantForm`, which computes
+the exterior derivative of a left-invariant form by the Chevalley–Eilenberg differential, read
+on `θ`. The structure equation along `γ` pulls `θ` back to the normed space
+(`TauCeti.SmoothForm.mextDeriv_mpullback_apply_two`), identifies the exterior derivative there
+with that of a normed space (`TauCeti.mextDeriv_eq_extDeriv`), and evaluates it on a pair of
+directions as a difference of directional derivatives
+(`TauCeti.extDeriv_apply_pair_of_differentiableAt`).
 
 The norm on `𝔤` that `SmoothForm` needs is the scoped one of
 `SymplecticGeometry.Geometry.Lie.GroupLieAlgebra.Normed`; statements about this form need
@@ -117,6 +133,56 @@ theorem mpullback_mul_right_leftMaurerCartanForm (h : G) :
     RoughForm.mapCoeff_apply, leftMaurerCartanForm_apply, leftMaurerCartanForm_apply, ← hξ,
     mfderiv_mul_right_mulInvariantVectorField, mfderiv_inv_mul_mulInvariantVectorField,
     mfderiv_inv_mul_mulInvariantVectorField]
+
+/-! ### The structure equation -/
+
+section StructureEquation
+
+attribute [local instance] LieGroup.minSmoothness_of_isRCLikeNormedField
+
+variable [FiniteDimensional ℝ E]
+
+/-- **The Maurer–Cartan equation**: the exterior derivative of the left Maurer–Cartan form `θ`
+is `dθ(v, w) = -⁅θ v, θ w⁆`, the bracket being that of `GroupLieAlgebra I G`. -/
+theorem mextDeriv_leftMaurerCartanForm_apply (g : G) (v w : TangentSpace I g) :
+    mextDeriv (leftMaurerCartanForm I G).val g ![v, w] =
+      -⁅(leftMaurerCartanForm I G).val g ![v], (leftMaurerCartanForm I G).val g ![w]⁆ := by
+  obtain ⟨ξ, rfl⟩ := exists_mulInvariantVectorField_eq v
+  obtain ⟨η, rfl⟩ := exists_mulInvariantVectorField_eq w
+  have hvw : ![mulInvariantVectorField ξ g, mulInvariantVectorField η g] =
+      fun i ↦ mulInvariantVectorField (![ξ, η] i) g := by
+    ext i
+    fin_cases i <;> rfl
+  rw [leftMaurerCartanForm_apply_mulInvariantVectorField,
+    leftMaurerCartanForm_apply_mulInvariantVectorField, hvw, leftMaurerCartanForm_def,
+    leftInvariantSmoothForm_val, mextDeriv_leftInvariantForm,
+    leftInvariantForm_apply_mulInvariantVectorField, LieModule.Cohomology.trivialD_succ_apply]
+  simp
+
+variable {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+
+/-- **The structure equation along a map from a normed space.** For a smooth map `γ : E' → G`,
+write `a_v y = θ (dγ_y v)` for the left-trivialized derivative of `γ` in the direction `v`, `θ`
+being the left Maurer–Cartan form. Then `∂_v a_w - ∂_w a_v = -⁅a_v, a_w⁆`. -/
+theorem fderiv_leftMaurerCartanForm_mfderiv_sub {γ : E' → G} (hγ : ContMDiff 𝓘(ℝ, E') I ∞ γ)
+    (x v w : E') :
+    fderiv ℝ (fun y ↦ (leftMaurerCartanForm I G).val (γ y) ![mfderiv 𝓘(ℝ, E') I γ y w]) x v -
+        fderiv ℝ (fun y ↦ (leftMaurerCartanForm I G).val (γ y) ![mfderiv 𝓘(ℝ, E') I γ y v]) x w =
+      -⁅(leftMaurerCartanForm I G).val (γ x) ![mfderiv 𝓘(ℝ, E') I γ x v],
+        (leftMaurerCartanForm I G).val (γ x) ![mfderiv 𝓘(ℝ, E') I γ x w]⁆ := by
+  have hpull := SmoothForm.mextDeriv_mpullback_apply_two γ hγ (leftMaurerCartanForm I G) x v w
+  have hd := ((isSmoothForm_modelSpace_iff.1 (SmoothForm.isSmoothForm
+    (SmoothForm.mpullback γ hγ (leftMaurerCartanForm I G)))).differentiable (by simp)) x
+  rw [mextDeriv_eq_extDeriv, mextDeriv_leftMaurerCartanForm_apply] at hpull
+  have hfun (u : E') : (fun y ↦ (SmoothForm.mpullback γ hγ (leftMaurerCartanForm I G)).val y
+      (fun _ ↦ u)) =
+      fun y ↦ (leftMaurerCartanForm I G).val (γ y) ![mfderiv 𝓘(ℝ, E') I γ y u] :=
+    funext fun y ↦ (congrArg _ (by ext i; fin_cases i; rfl)).trans
+      (SmoothForm.mpullback_apply_one γ hγ _ y u)
+  rw [← hfun, ← hfun]
+  exact (extDeriv_apply_pair_of_differentiableAt hd v w).symm.trans hpull
+
+end StructureEquation
 
 end SymplecticGeometry
 
