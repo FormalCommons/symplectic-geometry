@@ -18,8 +18,9 @@ conjugate-linear involution that fixes the classes of real forms.
 
 ## Main definitions
 
-* `TauCeti.complexDeRhamCohomology.conj`: complex conjugation on `H^k_dR(M; ℂ)`, the transport
-  of Tau Ceti's `TauCeti.Hodge.complexificationConjugation` along `complexificationEquiv`.
+* `TauCeti.complexDeRhamCohomology.conj`: complex conjugation on `H^k_dR(M; ℂ)`, Tau Ceti's
+  `LinearEquiv.conjugationOfComplexification` of `complexificationEquiv`: the transport of the
+  tensor conjugation `TauCeti.tmulConj` along it.
 
 ## Main results
 
@@ -97,13 +98,13 @@ namespace complexDeRhamCohomology
 
 variable {I} in
 /-- Complex conjugation on complex de Rham cohomology: the conjugation of the complexification
-`ℂ ⊗[ℝ] H^k_dR(M; ℝ)`, transported along `complexificationEquiv`. It sends the class of a closed
+`ℂ ⊗[ℝ] H^k_dR(M; ℝ)`, transported along `complexificationEquiv`
+(`LinearEquiv.conjugationOfComplexification`). It sends the class of a closed
 complex form to the class of its complex conjugate (`conj_mk`). -/
 def conj (k : ℕ) : Hodge.Conjugation (complexDeRhamCohomology I M k) where
-  toEquiv := ((complexificationEquiv I k).symm.trans
-    (Hodge.complexificationConjugation (deRhamCohomology I M k)).toEquiv).trans
-      (complexificationEquiv I k)
-  involutive c := by simp
+  toEquiv := .ofInvolutive _
+    (complexificationEquiv I k).conjugationOfComplexification_involutive
+  involutive := (complexificationEquiv I k).conjugationOfComplexification_involutive
 
 /-- Under `complexificationEquiv`, conjugation on complex de Rham cohomology is the conjugation of
 the scalar factor of `ℂ ⊗[ℝ] H^k_dR(M; ℝ)`. -/

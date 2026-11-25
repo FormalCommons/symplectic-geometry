@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.ContMDiffMap.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Pullback.Smooth
 public import SymplecticGeometry.Geometry.Manifold.ContMDiffMap.Basic
 public import TauCeti.Geometry.Manifold.DifferentialForm.Regularity
+import TauCeti.Geometry.Manifold.DifferentialForm.ExtDeriv
 
 /-!
 # Smooth forms: bilinear forms of two-forms, multiplication by smooth functions, `0`-forms
@@ -28,7 +29,10 @@ The file also gives Tau Ceti's multiplication `TauCeti.SmoothForm.funSMulₗ g` 
 a smooth real function `g` its behaviour in `g`: it is additive in `g`, the constant function `c`
 acts as the scalar `c` (so `1` acts as the identity), and it commutes with pullback along a
 smooth map `f`, where `g` becomes `g ∘ f`. The last is the smooth-form version of Tau Ceti's
-`TauCeti.mpullback_fun_smul` for rough forms, from which it follows. These lemmas let proofs
+`TauCeti.mpullback_fun_smul` for rough forms, from which it follows. The chain rule
+`TauCeti.SmoothForm.mextDerivₗ_ofFunction_comp_of_hasDerivAt` writes the differential of
+`g ∘ f` as `g' ∘ f` times the differential of `f`, by Tau Ceti's
+`TauCeti.mextDeriv_ofFunction_comp_of_hasDerivAt`. These lemmas let proofs
 about smooth forms stay with smooth forms instead of passing to the underlying rough forms.
 
 Finally, the smooth `F`-valued `0`-forms are the smooth `F`-valued functions:
@@ -45,6 +49,7 @@ construction follows that of Tau Ceti's `TauCeti.kerDelBarZeroEquiv`, which iden
   `TauCeti.SmoothForm.bilinFormAt_sub`.
 * `TauCeti.SmoothForm.funSMulₗ_add`, `TauCeti.SmoothForm.funSMulₗ_const`,
   `TauCeti.SmoothForm.funSMulₗ_one`, `TauCeti.SmoothForm.mpullback_funSMulₗ`.
+* `TauCeti.SmoothForm.mextDerivₗ_ofFunction_comp_of_hasDerivAt`: `d (g ∘ f) = (g' ∘ f) df`.
 * `TauCeti.SmoothForm.ofFunctionEquiv`, with `ofFunctionEquiv_apply`,
   `coe_ofFunctionEquiv_symm` and `ofFunctionEquiv_symm_apply`.
 -/
@@ -143,6 +148,18 @@ theorem mpullback_funSMulₗ (f : M → M') (hf : ContMDiff I I' ∞ f) (g : C^�
     mpullback f hf (funSMulₗ g φ) = funSMulₗ (g.comp ⟨f, hf⟩) (mpullback f hf φ) := by
   ext1
   simp [TauCeti.mpullback_fun_smul]
+
+/-- **The chain rule for smooth functions read as `0`-forms.** If `h = g ∘ f` for a smooth
+function `f` and a function `g : ℝ → ℝ` with derivative `g' x` at `f x` for every `x`, then
+`d h = g' • d f`. -/
+theorem mextDerivₗ_ofFunction_comp_of_hasDerivAt [IsManifold I 2 M] {g : ℝ → ℝ}
+    {f h g' : C^∞⟮I, M; ℝ⟯} (hh : ∀ x, h x = g (f x)) (hg : ∀ x, HasDerivAt g (g' x) (f x)) :
+    mextDerivₗ I 0 (ofFunction h) = funSMulₗ g' (mextDerivₗ I 0 (ofFunction f)) := by
+  refine Subtype.ext (funext fun x ↦ ?_)
+  have hfun : (h : M → ℝ) = fun y ↦ g (f y) := funext hh
+  rw [coe_funSMulₗ, mextDerivₗ_apply, mextDerivₗ_apply, coe_ofFunction, coe_ofFunction, hfun]
+  exact mextDeriv_ofFunction_comp_of_hasDerivAt
+    (f.contMDiff.mdifferentiableAt (by simp)) (hg x)
 
 end FunSMul
 

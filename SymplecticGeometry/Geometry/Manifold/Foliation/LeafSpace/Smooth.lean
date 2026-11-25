@@ -56,7 +56,8 @@ Since the smooth structure depends on the proof of regularity, it is a definitio
 * `TauCeti.Foliation.contMDiff_leafSpaceMk`, `TauCeti.Foliation.isSubmersion_leafSpaceMk`: the
   projection is a smooth submersion.
 * `TauCeti.Foliation.ker_mfderiv_leafSpaceMk`: the kernel of the differential of the projection
-  is the tangent space of `𝓕`.
+  is the tangent space of `𝓕`; `TauCeti.Foliation.ker_mfderiv_leafSpaceMk_comp`: the kernel of
+  the differential of its composition with a map into `M`.
 * `TauCeti.Foliation.contMDiff_comp_leafSpaceMk_iff`: a map out of the leaf space is smooth
   exactly when its composition with the projection is.
 * `TauCeti.Foliation.isRegular_ofSubmodule`: the foliation of a finite-dimensional space by the
@@ -236,6 +237,21 @@ theorem ker_mfderiv_leafSpaceMk (h : 𝓕.IsRegular) (x : M) :
   rw [finrank_euclideanSpace_fin] at hrk
   rw [𝓕.finrank_distribution]
   omega
+
+/-- The kernel of the differential at `x` of the composition of a map `c : C → M`, differentiable
+at `x`, with the projection onto the leaf space of a regular foliation `𝓕` is the preimage, under
+the differential of `c` at `x`, of the tangent space of `𝓕` at `c x`. -/
+theorem ker_mfderiv_leafSpaceMk_comp (h : 𝓕.IsRegular) {E₀ H₀ C : Type*}
+    [NormedAddCommGroup E₀] [NormedSpace ℝ E₀] [TopologicalSpace H₀]
+    {L : ModelWithCorners ℝ E₀ H₀} [TopologicalSpace C] [ChartedSpace H₀ C] {c : C → M} {x : C}
+    (hc : MDifferentiableAt L I c x) :
+    letI := leafSpaceChartedSpace h
+    LinearMap.ker (mfderiv L 𝓘(ℝ, EuclideanSpace ℝ (Fin (finrank ℝ E - k)))
+        (𝓕.leafSpaceMk ∘ c) x).toLinearMap =
+      (𝓕.distribution (c x)).comap (mfderiv L I c x).toLinearMap := by
+  let := leafSpaceChartedSpace h
+  rw [mfderiv_comp x ((contMDiff_leafSpaceMk h).mdifferentiableAt (by simp)) hc,
+    ContinuousLinearMap.toLinearMap_comp, LinearMap.ker_comp, ker_mfderiv_leafSpaceMk h]
 
 /-- **Smooth maps out of the leaf space.** A map out of the leaf space of a regular foliation is
 `C^m`, for `m ≤ ∞`, exactly when its composition with the projection is. -/

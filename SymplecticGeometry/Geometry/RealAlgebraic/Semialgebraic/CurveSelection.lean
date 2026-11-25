@@ -73,7 +73,6 @@ theorem IsSemialgebraic.exists_curve_of_mem_closure [Finite σ] {A : Set (σ →
     exact ⟨y, by simpa [dist_comm] using ⟨ht, hyA, hy⟩⟩
   have hf_mem {t : ℝ} (ht : 0 < t) : f ![t] ∈ A ∧ dist (f ![t]) x < t := by
     simpa [ht] using hfS _ (hD ht)
-  have hline (s : Fin 1 → ℝ) : ![s 0] = s := by ext i; fin_cases i; rfl
   obtain ⟨δ, hδ, hcont⟩ := hf.exists_pos_forall_Ioo_continuousAt one_pos fun t ht ↦ hD ht.1
   set γ : ℝ → σ → ℝ := Function.update (fun t ↦ f ![t]) 0 x
   have hγ0 : γ 0 = x := Function.update_self ..
@@ -98,8 +97,8 @@ theorem IsSemialgebraic.exists_curve_of_mem_closure [Finite σ] {A : Set (σ →
           {s | eval s (C 0) < eval s (X 0)} ∩ {s | eval s (X 0) < eval s (C δ)} := by
         ext s; simp
       exact h ▸ (isSemialgebraic_eval_lt _ _).inter (isSemialgebraic_eval_lt _ _)
-    refine (hf.mono hI fun s hs ↦ hline s ▸ hD hs.1).congr fun s hs ↦ ?_
-    simp only [hγ hs.1.ne', hline]
+    refine (hf.mono hI fun s hs ↦ FinVec.etaExpand_eq s ▸ hD hs.1).congr fun s hs ↦ ?_
+    rw [hγ hs.1.ne', show ![s 0] = s from FinVec.etaExpand_eq s]
 
 end TauCeti
 

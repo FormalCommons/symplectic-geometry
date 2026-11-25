@@ -45,6 +45,17 @@ Tau Ceti's `TauCeti.IsRiemannianSubmersion.curveVelocity_eq_horizontalLift_iff`.
 The smoothness asked of `γ` is what makes the field `C¹` in time: the velocity of the projection
 of a merely differentiable curve need not even be continuous.
 
+It then proves that lifts exist over a closed interval of times that `γ` maps into the base set
+of one trivialization `e` of the tangent bundle of `B`, for a proper map `f`. A time-dependent
+field `V` on `B`, jointly `C^n` and zero outside a compact set `K`, has the velocity of `γ` as its
+value along `γ` on the interval
+(`Bundle.Trivialization.exists_timeDependentField_eq_curveVelocity`). Its horizontal lift vanishes
+outside the compact set `f ⁻¹' K`, so its suspension is complete
+(`TauCeti.isCompleteVectorField_timeDependentSuspensionField`), and the lift through `x` is the
+trajectory of the time-dependent flow through `x`. The projection of that trajectory and `γ` solve
+the same equation on `B` on the interval, so they agree there
+(`TauCeti.timeDependentFlowOf_eq_of_hasMFDerivWithinAt`).
+
 ## Main results
 
 * `TauCeti.IsEhresmannConnection.curveVelocity_eq_horizontalLift_iff`: a differentiable curve has
@@ -53,6 +64,9 @@ of a merely differentiable curve need not even be continuous.
 * `TauCeti.IsEhresmannConnection.eqOn_of_isHorizontalMap`: two differentiable horizontal curves
   over the same `C²` curve of `B` on `Set.Icc a b` that agree at one time of it agree on it.
 * `TauCeti.IsEhresmannConnection.eq_of_isHorizontalMap`: the same on all of `ℝ`.
+* `TauCeti.IsEhresmannConnection.exists_isHorizontalMap_lift_of_mapsTo_baseSet`: for a proper map,
+  a curve `γ` of `B` has a horizontal lift through any point over `γ s`, on a closed interval
+  containing `s` that `γ` maps into the base set of one trivialization of the tangent bundle.
 
 ## References
 
@@ -237,6 +251,79 @@ theorem eq_of_isHorizontalMap [T2Space P] (hn : 1 ≤ n)
     ⟨min_le_left _ _, le_max_left _ _⟩ h ⟨min_le_right _ _, le_max_right _ _⟩
 
 end Uniqueness
+
+section Existence
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {P : Type*} [TopologicalSpace P] [ChartedSpace H P] [IsManifold I ∞ P] [I.Boundaryless]
+  [T2Space P]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+  {G : Type*} [TopologicalSpace G] {J : ModelWithCorners ℝ F G}
+  {B : Type*} [TopologicalSpace B] [ChartedSpace G B] [IsManifold J ∞ B] [J.Boundaryless]
+  [T2Space B]
+  {n : ℕ∞} {f : P → B} {D : Π x : P, Submodule ℝ (TangentSpace I x)}
+  (hD : IsEhresmannConnection I J n f D)
+
+include hD in
+/-- **Horizontal lifts of a curve over an interval in one trivialization.** Let `D` be a `C^n`
+Ehresmann connection, `1 ≤ n`, on a proper `C^(n+1)` map `f : P → B` of finite-dimensional
+boundaryless Hausdorff manifolds, and `γ` a `C^(n+1)` curve in `B` that maps `Set.Icc a b` into
+the base set of a trivialization `e` of the tangent bundle of `B`. For every `s ∈ Set.Icc a b` and
+every `x` with `f x = γ s`, there is a `C^n` horizontal curve `c` with `c s = x` that lies over `γ`
+on `Set.Icc a b`. -/
+theorem exists_isHorizontalMap_lift_of_mapsTo_baseSet (hn : 1 ≤ n)
+    (hf : ContMDiff I J (n + 1) f) (hfp : IsProperMap f) {γ : ℝ → B}
+    (hγ : ContMDiff 𝓘(ℝ, ℝ) J (n + 1) γ) {a b s : ℝ} (hs : s ∈ Icc a b)
+    (e : Trivialization F (π F (TangentSpace J))) [MemTrivializationAtlas e]
+    (hγe : MapsTo γ (Icc a b) e.baseSet) {x : P} (hx : f x = γ s) :
+    ∃ c : ℝ → P, ContMDiff 𝓘(ℝ, ℝ) I n c ∧ IsHorizontalMap 𝓘(ℝ, ℝ) D c ∧
+      EqOn (f ∘ c) γ (Icc a b) ∧ c s = x := by
+  have hn' : (1 : ℕ∞ω) ≤ n := by exact_mod_cast hn
+  have : IsManifold I n P := .of_le (n := ∞) (by exact_mod_cast le_top)
+  -- A compactly supported field `V` on `B` through the velocities of `γ`, and its lift `X`.
+  obtain ⟨V, K, hK, hV, hV0, hVγ⟩ := e.exists_timeDependentField_eq_curveVelocity hγ hγe
+  let X : ℝ → Π y : P, TangentSpace I y := fun u ↦ hD.horizontalLiftField (V u)
+  have hX : ContMDiff (𝓘(ℝ, ℝ).prod I) I.tangent n
+      (fun p : ℝ × P ↦ (⟨p.2, X p.1 p.2⟩ : TangentBundle I P)) :=
+    hD.contMDiff_horizontalLiftField_timeDependent hf hV
+  have hX1 := hX.of_le hn'
+  -- Both suspensions are complete: `X` vanishes outside `f ⁻¹' K`, compact since `f` is proper.
+  have hXc : IsCompleteVectorField (timeDependentSuspensionField X) :=
+    isCompleteVectorField_timeDependentSuspensionField hX1 (hfp.isCompact_preimage hK)
+      fun u y hy ↦ hD.horizontalLiftField_eq_zero _ (hV0 u (f y) hy)
+  have hVc : IsCompleteVectorField (timeDependentSuspensionField V) :=
+    isCompleteVectorField_timeDependentSuspensionField (hV.of_le hn') hK hV0
+  -- The lift is the trajectory of `X` through `x` at time `s`.
+  let c : ℝ → P := fun u ↦ timeDependentFlowOf X s u x
+  have hcd (u : ℝ) : HasMFDerivAt 𝓘(ℝ, ℝ) I c u ((1 : ℝ →L[ℝ] ℝ).smulRight (X u (c u))) :=
+    hasMFDerivAt_timeDependentFlowOf hX1 ((timeDependentFlowDomain_eq_univ hXc).symm ▸ mem_univ _)
+  -- Its projection is a trajectory of `V`.
+  have hfc (u : ℝ) : HasMFDerivAt 𝓘(ℝ, ℝ) J (f ∘ c) u
+      ((1 : ℝ →L[ℝ] ℝ).smulRight (V u ((f ∘ c) u))) := by
+    refine ((hD.mdifferentiable (c u)).hasMFDerivAt.comp u (hcd u)).congr_mfderiv ?_
+    refine ContinuousLinearMap.ext fun (r : ℝ) ↦ ?_
+    exact ((mfderiv I J f (c u)).map_smul r (X u (c u))).trans
+      (congrArg (r • ·) (hD.mfderiv_horizontalLiftField (V u) (c u)))
+  refine ⟨c, ?_, ?_, fun u hu ↦ ?_, timeDependentFlowOf_self X s x⟩
+  · exact (contMDiff_timeDependentFlowOf hXc hn hX).comp
+      ((contMDiff_const.prodMk contMDiff_id).prodMk contMDiff_const)
+  · refine isHorizontalMap_iff.2 fun u r ↦ ?_
+    rw [(hcd u).mfderiv]
+    exact (D (c u)).smul_mem r (hD.horizontalLiftField_mem (V u) (c u))
+  · -- On `Set.Icc a b`, `γ` is a trajectory of `V` too, through `f x` at time `s`.
+    have hγS (t : ℝ) (ht : t ∈ Icc a b) : HasMFDerivWithinAt 𝓘(ℝ, ℝ) J γ (Icc a b) t
+        ((1 : ℝ →L[ℝ] ℝ).smulRight (V t (γ t))) := by
+      rw [hVγ t ht]
+      exact (hasMFDerivAt_curveVelocity ((hγ.mdifferentiable (by simp)) t)).hasMFDerivWithinAt
+    have h₁ := timeDependentFlowOf_eq_of_hasMFDerivWithinAt (hV.of_le hn') hVc
+      isPreconnected_Icc hγS hs hu
+    have h₂ := timeDependentFlowOf_eq_of_hasMFDerivWithinAt (hV.of_le hn') hVc
+      isPreconnected_Icc (fun t _ ↦ (hfc t).hasMFDerivWithinAt) hs hu
+    rw [← h₁, ← h₂]
+    simp [c, timeDependentFlowOf_self, hx]
+
+end Existence
 
 end IsEhresmannConnection
 
