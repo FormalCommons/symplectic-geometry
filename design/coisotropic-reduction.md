@@ -364,10 +364,11 @@ The pointwise statements. With `f`, `hR` and `τ` as above (of `τ`, only
 ### `Geometry/Symplectic/Coisotropic/Lagrangian/Injective.lean`
 
 - `IsCleanIntersection.isRegular_ofConstantRank`: the foliation
-  `Foliation.ofConstantRank (leafSpaceMk ∘ c)` of `C` is regular. Its
-  slices are small transversals on which `leafSpaceMk ∘ c` is injective
-  (`ContMDiffAt.exists_mem_nhds_injOn` applied to the restriction, an
-  immersion); two points of one slice on one leaf have the same image.
+  `Foliation.ofConstantRank (leafSpaceMk ∘ c)` of `C` is regular: the
+  case of `leafSpaceMk ∘ c` of `TauCeti.Foliation.isRegular_ofConstantRank`
+  (`Foliation/LeafSpace/ConstantRank.lean`), whose slices are linear
+  transversals in the coordinates of the rank theorem, on which the map is
+  injective; two points of one slice on one leaf have the same image.
 - `IsCleanIntersection.injective_leafSpaceLift`: if
   `(leafSpaceMk ∘ c) ⁻¹' {b}` is preconnected for every `b`, the map from
   the leaf space of `C` to the leaf space of `N` induced by
