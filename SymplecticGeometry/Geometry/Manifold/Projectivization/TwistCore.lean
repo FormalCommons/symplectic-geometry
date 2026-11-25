@@ -114,6 +114,12 @@ theorem mem_affineOpen_twistCore_indexAt (k : ℤ) (x : ℙ 𝕜 (Fin (n + 1) �
     x ∈ affineOpen ((twistCore k).indexAt x) :=
   twistCore_baseSet (𝕜 := 𝕜) k _ ▸ (twistCore k).mem_baseSet_at x
 
+/-- The preferred chart of `𝒪(k)` at the coordinate point `[eᵢ]` is the chart `i`, the only
+standard affine open that contains `[eᵢ]`. -/
+theorem twistCore_indexAt_mk_single (k : ℤ) (i : Fin (n + 1)) :
+    (twistCore (𝕜 := 𝕜) k).indexAt (mk 𝕜 (Pi.single i 1) (by simp)) = i :=
+  (mk_single_mem_affineOpen_iff _ _).1 (mem_affineOpen_twistCore_indexAt k _)
+
 /-! ### Dehomogenized polynomials in the standard charts -/
 
 section Dehomogenize
