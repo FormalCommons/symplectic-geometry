@@ -178,7 +178,7 @@ end LeafSpace
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M]
-  [ChartedSpace H M] [IsManifold I (∞ + 1) M] [BoundarylessManifold I M] {k : ℕ}
+  [ChartedSpace H M] [IsManifold I ∞ M] [BoundarylessManifold I M] {k : ℕ}
   {𝓕 : Foliation I ∞ M k}
 
 /-- The projection of a smooth foliation of a boundaryless manifold onto its leaf space is open. -/

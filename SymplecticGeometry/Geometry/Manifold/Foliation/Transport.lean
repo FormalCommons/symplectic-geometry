@@ -6,6 +6,7 @@ Authors: The FormalCommons contributors
 module
 
 public import TauCeti.Geometry.Manifold.Foliation.Leaf
+public import TauCeti.Geometry.Manifold.IsManifold.Basic
 import SymplecticGeometry.Geometry.Manifold.Distribution.FlatChart
 import SymplecticGeometry.Geometry.Manifold.Foliation.Constancy
 import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
@@ -95,7 +96,7 @@ end Rank
 
 variable {E H M : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
   [TopologicalSpace H] {I : ModelWithCorners ℝ E H} [TopologicalSpace M]
-  [ChartedSpace H M] [IsManifold I (∞ + 1) M] [BoundarylessManifold I M] {k : ℕ}
+  [ChartedSpace H M] [IsManifold I ∞ M] [BoundarylessManifold I M] {k : ℕ}
   {F₁ F₂ : Type*} [NormedAddCommGroup F₁] [NormedSpace ℝ F₁] [FiniteDimensional ℝ F₁]
   [NormedAddCommGroup F₂] [NormedSpace ℝ F₂] [FiniteDimensional ℝ F₂]
 
@@ -157,7 +158,6 @@ theorem exists_foliatedChart (𝓕 : Foliation I ∞ M k) (h₁ : finrank ℝ F�
         (mfderiv I 𝓘(ℝ, F₁ × F₂) (fun u ↦ (Ψ u : F₁ × F₂)) u v).2 = 0 ↔
           v ∈ 𝓕.distribution u) ∧
       ∀ u u' : U, (Ψ u : F₁ × F₂).2 = (Ψ u' : F₁ × F₂).2 → 𝓕.SameLeaf u u' := by
-  have : IsManifold I ∞ M := .of_le (n := ∞ + 1) le_self_add
   obtain ⟨Φ, hx, h0, hball, hflat⟩ :=
     𝓕.isInvolutiveDistribution.exists_flatPartialDiffeomorph 𝓕.isContMDiffDistribution h₁ h₂ x
   obtain ⟨U, hxU, Ψ, hΨ0, hUΨ⟩ := Φ.exists_diffeomorph_ball_prod_ball hx h0 hball
@@ -198,7 +198,6 @@ theorem exists_transverseCoordinate (𝓕 : Foliation I ∞ M k)
         mfderiv I 𝓘(ℝ, F₂) ψ z v = 0 ↔ v ∈ 𝓕.distribution z) ∧
       ∀ z ∈ V, ∀ z' ∈ V, ψ z = ψ z' → 𝓕.SameLeaf z z' := by
   classical
-  have : IsManifold I ∞ M := .of_le (n := ∞ + 1) le_self_add
   obtain ⟨V, hxV, Ψ, -, hflat, hleaf⟩ := 𝓕.exists_foliatedChart
     (F₁ := EuclideanSpace ℝ (Fin k)) (F₂ := F₂) finrank_euclideanSpace_fin h₂ x
   let Ψ' : V → EuclideanSpace ℝ (Fin k) × F₂ := fun w ↦ Ψ w
@@ -288,7 +287,6 @@ private theorem eventually_transportable_curve (h₁ : finrank ℝ F₁ = k)
     (htan : ∀ t ∈ Icc (0 : ℝ) 1, curveVelocityWithin I γ (Icc 0 1) t ∈ 𝓕.distribution (γ t))
     {t : ℝ} (ht : t ∈ Icc (0 : ℝ) 1) :
     ∀ᶠ s in 𝓝[Icc 0 1] t, Transportable 𝓕 (γ t) (γ s) ∧ Transportable 𝓕 (γ s) (γ t) := by
-  have : IsManifold I ∞ M := .of_le (n := ∞ + 1) le_self_add
   obtain ⟨Φ, hx, h0, hball, hflat⟩ :=
     𝓕.isInvolutiveDistribution.exists_flatPartialDiffeomorph 𝓕.isContMDiffDistribution h₁ h₂ (γ t)
   have hO : IsOpen (Φ.source ∩ Φ ⁻¹' Metric.ball 0 1) :=
