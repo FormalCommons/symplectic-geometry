@@ -16,7 +16,7 @@ public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
 Let `P` be a smooth principal `G`-bundle over `B` with a connection form `A`, let `G` act smoothly
 on the left on a manifold `F`, and let `M = P ×_G F` be the associated bundle, with charted total
 space `TauCeti.ManifoldTotalSpace F (AssociatedBundle G P F)` and quotient map
-`q (x, v) = [x, v]`.
+`q (x, v) = [x, v]`, which is `TauCeti.AssociatedBundle.chartedMk`.
 
 At a point `y = [x, v]` of `M`, the connection induces the horizontal space
 `dq_{(x, v)} (ker A_x × 0)`, that is, the image of the horizontal space `ker A_x` of `P` under the
@@ -83,14 +83,6 @@ variable {EB HB B : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] [Topolog
   [ContMDiffFiberBundle ∞ G P IB IG]
   {A : SmoothForm (IB.prod IG) (ManifoldTotalSpace G P) (GroupLieAlgebra IG G) 1}
 
-/-- The class `[x, v]`, in the charted total space of `P ×_G F`, of a point `x` of the charted
-total space of `P` and a point `v` of `F`. -/
-local notation "⟪" x ", " v "⟫ₐ" =>
-  ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)
-    (TotalSpace.mk' F (TotalSpace.proj (Homeomorph.symm (ManifoldTotalSpace.homeomorph G P) x))
-      (AssociatedBundle.mk G
-        (TotalSpace.snd (Homeomorph.symm (ManifoldTotalSpace.homeomorph G P) x)) v))
-
 namespace IsConnectionForm
 
 omit [IsManifold IB ∞ B] [LieGroup IG ∞ G] [ContMDiffSMul IG IF ∞ G F]
@@ -105,10 +97,11 @@ def associatedHorizontal (_hA : IsConnectionForm A)
     (y : ManifoldTotalSpace F (AssociatedBundle G P F)) :
     Submodule ℝ (TangentSpace (IB.prod IF) y) :=
   Submodule.map
-    ((tangentSpaceCast (IB.prod IF) ⟪(surjective_totalSpaceMk_mk y).choose.1,
-        (surjective_totalSpaceMk_mk y).choose.2⟫ₐ y).toContinuousLinearMap ∘L
+    ((tangentSpaceCast (IB.prod IF) (chartedMk G F P (surjective_totalSpaceMk_mk y).choose)
+        y).toContinuousLinearMap ∘L
       mfderiv (IB.prod IG) (IB.prod IF)
-        (fun x' : ManifoldTotalSpace G P ↦ ⟪x', (surjective_totalSpaceMk_mk y).choose.2⟫ₐ)
+        (fun x' : ManifoldTotalSpace G P ↦
+          chartedMk G F P (x', (surjective_totalSpaceMk_mk y).choose.2))
         (surjective_totalSpaceMk_mk y).choose.1).toLinearMap
     (horizontal A (surjective_totalSpaceMk_mk y).choose.1)
 
@@ -117,13 +110,17 @@ def associatedHorizontal (_hA : IsConnectionForm A)
 in the image of `ker A_{x'}` under that of `x'' ↦ [x'', v']`. -/
 private theorem map_le_map_of_totalSpaceMk_mk_eq (hA : IsConnectionForm A)
     {x x' : ManifoldTotalSpace G P} {v v' : F} {y : ManifoldTotalSpace F (AssociatedBundle G P F)}
-    (h : ⟪x, v⟫ₐ = y) (h' : ⟪x', v'⟫ₐ = y) :
-    Submodule.map ((tangentSpaceCast (IB.prod IF) ⟪x, v⟫ₐ y).toContinuousLinearMap ∘L
-        mfderiv (IB.prod IG) (IB.prod IF) (fun x'' : ManifoldTotalSpace G P ↦ ⟪x'', v⟫ₐ) x
-          ).toLinearMap (horizontal A x) ≤
-      Submodule.map ((tangentSpaceCast (IB.prod IF) ⟪x', v'⟫ₐ y).toContinuousLinearMap ∘L
-        mfderiv (IB.prod IG) (IB.prod IF) (fun x'' : ManifoldTotalSpace G P ↦ ⟪x'', v'⟫ₐ) x'
-          ).toLinearMap (horizontal A x') := by
+    (h : chartedMk G F P (x, v) = y) (h' : chartedMk G F P (x', v') = y) :
+    Submodule.map
+        ((tangentSpaceCast (IB.prod IF) (chartedMk G F P (x, v)) y).toContinuousLinearMap ∘L
+          mfderiv (IB.prod IG) (IB.prod IF)
+            (fun x'' : ManifoldTotalSpace G P ↦ chartedMk G F P (x'', v)) x).toLinearMap
+        (horizontal A x) ≤
+      Submodule.map
+        ((tangentSpaceCast (IB.prod IF) (chartedMk G F P (x', v')) y).toContinuousLinearMap ∘L
+          mfderiv (IB.prod IG) (IB.prod IF)
+            (fun x'' : ManifoldTotalSpace G P ↦ chartedMk G F P (x'', v')) x').toLinearMap
+        (horizontal A x') := by
   obtain ⟨g, hg⟩ := (totalSpaceMk_mk_eq_totalSpaceMk_mk_iff (x := (x, v)) (y := (x', v'))).1
     (h.trans h'.symm)
   simp only [Prod.mk.injEq] at hg
@@ -131,10 +128,11 @@ private theorem map_le_map_of_totalSpaceMk_mk_eq (hA : IsConnectionForm A)
   rintro _ ⟨w, hw, rfl⟩
   refine ⟨_, hA.mfderiv_op_smul_mem_horizontal g hw, ?_⟩
   -- The map `x'' ↦ [x'', v]` is `x'' ↦ [x'' · g, g⁻¹ • v]`.
-  have hfun : (fun x'' : ManifoldTotalSpace G P ↦ ⟪x'', v⟫ₐ) =ᶠ[nhds x]
-      (fun x'' : ManifoldTotalSpace G P ↦ ⟪x'', g⁻¹ • v⟫ₐ) ∘ fun x'' ↦ op g • x'' :=
+  have hfun : (fun x'' : ManifoldTotalSpace G P ↦ chartedMk G F P (x'', v)) =ᶠ[nhds x]
+      (fun x'' : ManifoldTotalSpace G P ↦ chartedMk G F P (x'', g⁻¹ • v)) ∘ fun x'' ↦ op g • x'' :=
     .of_forall fun x'' ↦ (totalSpaceMk_mk_op_smul_inv_smul g (x'', v)).symm
-  have hxv : ⟪op g • x, g⁻¹ • v⟫ₐ = ⟪x, v⟫ₐ := totalSpaceMk_mk_op_smul_inv_smul g (x, v)
+  have hxv : chartedMk G F P (op g • x, g⁻¹ • v) = chartedMk G F P (x, v) :=
+    totalSpaceMk_mk_op_smul_inv_smul g (x, v)
   simp only [hfun.mfderiv_eq, ContinuousLinearMap.coe_coe, ContinuousLinearMap.comp_apply,
     ContinuousLinearEquiv.coe_coe]
   rw [mfderiv_comp_apply x
@@ -147,13 +145,17 @@ private theorem map_le_map_of_totalSpaceMk_mk_eq (hA : IsConnectionForm A)
 horizontal space induced by a connection form `A` is the image of `ker A_x` under the derivative
 at `x` of `x' ↦ [x', v]`, for every representative `(x, v)`. -/
 theorem associatedHorizontal_eq (hA : IsConnectionForm A) (x : ManifoldTotalSpace G P) (v : F) :
-    hA.associatedHorizontal ⟪x, v⟫ₐ =
+    hA.associatedHorizontal (chartedMk G F P (x, v)) =
       Submodule.map (mfderiv (IB.prod IG) (IB.prod IF)
-        (fun x' : ManifoldTotalSpace G P ↦ ⟪x', v⟫ₐ) x).toLinearMap (horizontal A x) := by
-  have h := (surjective_totalSpaceMk_mk ⟪x, v⟫ₐ).choose_spec
-  have hcast : ((tangentSpaceCast (IB.prod IF) ⟪x, v⟫ₐ ⟪x, v⟫ₐ).toContinuousLinearMap ∘L
-      mfderiv (IB.prod IG) (IB.prod IF) (fun x' : ManifoldTotalSpace G P ↦ ⟪x', v⟫ₐ) x) =
-      mfderiv (IB.prod IG) (IB.prod IF) (fun x' : ManifoldTotalSpace G P ↦ ⟪x', v⟫ₐ) x :=
+        (fun x' : ManifoldTotalSpace G P ↦ chartedMk G F P (x', v)) x).toLinearMap
+        (horizontal A x) := by
+  have h := (surjective_totalSpaceMk_mk (chartedMk G F P (x, v))).choose_spec
+  have hcast : ((tangentSpaceCast (IB.prod IF) (chartedMk G F P (x, v))
+      (chartedMk G F P (x, v))).toContinuousLinearMap ∘L
+      mfderiv (IB.prod IG) (IB.prod IF)
+        (fun x' : ManifoldTotalSpace G P ↦ chartedMk G F P (x', v)) x) =
+      mfderiv (IB.prod IG) (IB.prod IF)
+        (fun x' : ManifoldTotalSpace G P ↦ chartedMk G F P (x', v)) x :=
     ContinuousLinearMap.ext fun w ↦ by simp
   rw [← hcast]
   exact le_antisymm (hA.map_le_map_of_totalSpaceMk_mk_eq h rfl)
@@ -163,10 +165,10 @@ theorem associatedHorizontal_eq (hA : IsConnectionForm A) (x : ManifoldTotalSpac
 exactly when it is the image of a horizontal vector of `P` at `x` under the derivative of
 `x' ↦ [x', v]`. -/
 theorem mem_associatedHorizontal_iff (hA : IsConnectionForm A) {x : ManifoldTotalSpace G P}
-    {v : F} {u : TangentSpace (IB.prod IF) ⟪x, v⟫ₐ} :
-    u ∈ hA.associatedHorizontal ⟪x, v⟫ₐ ↔
+    {v : F} {u : TangentSpace (IB.prod IF) (chartedMk G F P (x, v))} :
+    u ∈ hA.associatedHorizontal (chartedMk G F P (x, v)) ↔
       ∃ w ∈ horizontal A x, mfderiv (IB.prod IG) (IB.prod IF)
-        (fun x' : ManifoldTotalSpace G P ↦ ⟪x', v⟫ₐ) x w = u := by
+        (fun x' : ManifoldTotalSpace G P ↦ chartedMk G F P (x', v)) x w = u := by
   rw [associatedHorizontal_eq, Submodule.mem_map, ContinuousLinearMap.coe_coe]
 
 /-- **The induced horizontal space is a complement of the vertical space.** At every point of
@@ -178,15 +180,17 @@ theorem isCompl_associatedHorizontal (hA : IsConnectionForm A)
       (mfderiv (IB.prod IF) IB (fun y' : ManifoldTotalSpace F (AssociatedBundle G P F) ↦
         ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm y').proj) y).ker := by
   obtain ⟨⟨x, v⟩, rfl⟩ := surjective_totalSpaceMk_mk y
-  dsimp only
   rw [associatedHorizontal_eq]
-  set L := mfderiv (IB.prod IG) (IB.prod IF) (fun x' : ManifoldTotalSpace G P ↦ ⟪x', v⟫ₐ) x
+  set L := mfderiv (IB.prod IG) (IB.prod IF)
+    (fun x' : ManifoldTotalSpace G P ↦ chartedMk G F P (x', v)) x
   set T := mfderiv (IB.prod IF) IB (fun y' : ManifoldTotalSpace F (AssociatedBundle G P F) ↦
-    ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm y').proj) ⟪x, v⟫ₐ
+    ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm y').proj)
+    (chartedMk G F P (x, v))
   set S := mfderiv (IB.prod IG) IB (fun x' : ManifoldTotalSpace G P ↦
     ((ManifoldTotalSpace.homeomorph G P).symm x').proj) x
   set C := tangentSpaceCast IB
-    ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm ⟪x, v⟫ₐ).proj
+    ((ManifoldTotalSpace.homeomorph F (AssociatedBundle G P F)).symm
+      (chartedMk G F P (x, v))).proj
     ((ManifoldTotalSpace.homeomorph G P).symm x).proj
   have hc := hA.isCompl_horizontal x
   have hTL := mfderiv_proj_totalSpaceMk_mk_apply (IB := IB) (IG := IG) (IF := IF) (n := ∞)
