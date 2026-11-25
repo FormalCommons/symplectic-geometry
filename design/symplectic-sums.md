@@ -42,11 +42,13 @@ design file once it exists.
   $\sigma_0$, $\sigma_1$ at $t=0,1$. No new predicate is introduced: the
   milestone writes these conditions out.
 - **Framings.** A symplectic framing of the normal bundle of a symplectic
-  embedding $\iota:Q\to M$ is a family of continuous linear isomorphisms
-  `Φ q : ℂ ≃L[ℝ] ι.NormalSpace q` that is smooth as a map of total spaces and
-  carries $\omega_0$ to Tau Ceti's `TauCeti.SmoothEmbedding.symplecticNormalForm`.
-  Composed with the identification of the normal spaces of
-  $q\mapsto(q,0)$ in $Q\times\mathbb C$ with `ℂ`, it gives the hypotheses
+  embedding $\iota:Q\to M$, `SymplecticFraming` in
+  `Geometry/Symplectic/Sum/ProductNeighborhood.lean`, is a family of
+  continuous linear isomorphisms from the normal spaces of
+  $q\mapsto(q,0)$ in $Q\times\mathbb C$ (`zeroSlice`) to `ι.NormalSpace q`
+  that is smooth as a map of total spaces and carries the
+  `TauCeti.SmoothEmbedding.symplecticNormalForm` of `zeroSlice` (that is,
+  $\omega_0$) to that of $\iota$. These are the hypotheses
   `Φ`, `hΦ`, `hΦσ` of the merged neighbourhood theorem.
 
 ## Decisions
@@ -261,7 +263,7 @@ About 250 lines.
 
 ### `Geometry/Symplectic/Sum/Fibre.lean`
 
-- `ProductNeighborhood ι Φ ε`: an open embedding $f$ of
+- `ProductNeighborhood Φ ε`, in `Sum/ProductNeighborhood.lean`: an open embedding $f$ of
   $Q\times B^2(\varepsilon)$ with $f(q,0)=\iota(q)$,
   $f^*\omega=\tau\oplus\omega_0$ and normal derivative given by `Φ`; with
   `ProductNeighborhood.exists` for small $\varepsilon$ and compact $Q$
