@@ -12,9 +12,9 @@ public import TauCeti.Geometry.Lie.Adjoint.Representation.Coadjoint.Basic
 import SymplecticGeometry.Analysis.Calculus.ParametricIntervalIntegral
 import SymplecticGeometry.Geometry.Lie.Exponential.Derivative
 import SymplecticGeometry.Geometry.Manifold.ContMDiff.Dual
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Constancy
 import SymplecticGeometry.Geometry.Symplectic.Hamiltonian.MomentMap.ContMDiff
 import TauCeti.Analysis.Calculus.IntervalIntegral.ParametricPrimitive
-import TauCeti.Geometry.Manifold.MFDeriv.Constancy
 
 /-!
 # The Kempf–Ness function
@@ -400,18 +400,12 @@ theorem eq_kempfNessFunction_of_mfderiv_eq (h : IsComplexifiedAction C J)
     (hdf : ∀ (g : Gc) (ĝ : TangentSpace IC g),
       mfderiv IC 𝓘(ℝ) f g ĝ = μ (g⁻¹ • p) (C.im (mfderiv IC IC (g⁻¹ * ·) g ĝ)))
     (hf1 : f 1 = 0) : f = kempfNessFunction C μ p := by
-  have hΦ : MDifferentiable IC 𝓘(ℝ) (kempfNessFunction C μ p) :=
-    (contMDiff_kempfNessFunction C μ p hμ.toIsMomentMap.contMDiff_of_neg).mdifferentiable
-      (by simp)
   have := C.connectedSpace
-  -- `f - Φ_p` has zero differential on the connected group `Gc`, so it is constant.
-  funext g
-  have hconst := (hf.sub hΦ).apply_eq_of_mfderiv_eq_zero (fun x ↦ by
-    have heq : mfderiv IC 𝓘(ℝ) f x = mfderiv IC 𝓘(ℝ) (kempfNessFunction C μ p) x := by
-      ext ĝ
-      exact (hdf x ĝ).trans (mfderiv_kempfNessFunction C μ p h hμ hg x ĝ).symm
-    exact ((hf x).hasMFDerivAt.sub (hΦ x).hasMFDerivAt).mfderiv.trans (sub_eq_zero.2 heq)) g 1
-  simpa [hf1, sub_eq_zero] using hconst
+  refine hf.eq_of_mfderiv_eq
+    ((contMDiff_kempfNessFunction C μ p hμ.toIsMomentMap.contMDiff_of_neg).mdifferentiable
+      (by simp)) (fun x ↦ ?_) 1 (by rw [hf1, kempfNessFunction_one])
+  ext ĝ
+  exact (hdf x ĝ).trans (mfderiv_kempfNessFunction C μ p h hμ hg x ĝ).symm
 
 /-- **Existence and uniqueness of the Kempf–Ness function.** Let the action of `Gc` be a
 complexified action, let `-μ` be an equivariant moment map for `σ`, and let the metric be
