@@ -13,6 +13,9 @@ public import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
 public import SymplecticGeometry.Analysis.SpecialFunctions.SmoothTransition
 public import SymplecticGeometry.Geometry.Manifold.FiberBundle.ChangeModelFiber
 public import SymplecticGeometry.Geometry.Manifold.Submersion.ParallelTransport.Smooth
+public import TauCeti.Geometry.Manifold.RegularValue.ManifoldLevel
+public import TauCeti.Geometry.Manifold.Submersion.Basic
+import TauCeti.Geometry.Manifold.SmoothEmbedding.Basic
 public import TauCeti.Topology.FiberBundle.MapFiber
 
 /-!
@@ -83,6 +86,22 @@ is transport along the rays of the chart at `b₀`
 (`TauCeti.IsEhresmannConnection.exists_trivialization_parallelTransport`). Its smoothness
 conditions are those of `TauCeti.MapFiber.Atlas.IsContMDiff`.
 
+### Proper submersions are locally trivial
+
+A smooth proper submersion `f` from a σ-compact manifold has an Ehresmann connection
+(`Manifold.IsSubmersion.exists_isEhresmannConnection`), and every value of `f` is a regular value.
+Transport along the rays of the chart at a value `b₀` then trivializes `f` over `chartBall J b₀ r`,
+with fibre `TauCeti.MapFiber f b₀`. With the regular-fibre atlas
+`TauCeti.regularFiberChartedSpace` on that fibre, its inclusion into `P` is a smooth embedding
+(`TauCeti.isSmoothEmbedding_coe_regularFiber`), so the trivialization is smooth with a smooth
+inverse (`Manifold.IsSubmersion.exists_trivialization_of_isProperMap`). The value `b₀` must be
+taken in the range of `f`: over a point outside it the fibre is empty, and no map from a nonempty
+`P` to `B × ∅` exists.
+
+The converse, that a smooth fibration with compact fibre is proper, is Tau Ceti's
+`TauCeti.isProperMap_of_forall_exists_trivialization`. For compact `P`, every continuous map to
+the Hausdorff `B` is proper (`Continuous.isProperMap`).
+
 ## Main definitions
 
 * `SymplecticGeometry.rayParam`: a smooth bounded function `ℝ → ℝ` that is the identity on
@@ -106,6 +125,8 @@ conditions are those of `TauCeti.MapFiber.Atlas.IsContMDiff`.
   `chartBall J b₀ r × ℝ`.
 * `SymplecticGeometry.exists_pos_ball_two_mul_subset_extChartAt_target`: radii for which it is
   defined exist.
+* `Manifold.IsSubmersion.exists_trivialization_of_isProperMap`: a smooth proper submersion from
+  a σ-compact manifold is smoothly locally trivial, with the regular-fibre atlas on its fibres.
 
 ## References
 
@@ -519,5 +540,66 @@ end Radial
 end IsEhresmannConnection
 
 end TauCeti
+namespace Manifold.IsSubmersion
+
+open TauCeti SymplecticGeometry Module
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+  {H : Type*} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
+  {P : Type*} [TopologicalSpace P] [ChartedSpace H P] [IsManifold I ∞ P] [I.Boundaryless]
+  [T2Space P] [SigmaCompactSpace P]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+  {G : Type*} [TopologicalSpace G] {J : ModelWithCorners ℝ F G}
+  {B : Type*} [TopologicalSpace B] [ChartedSpace G B] [IsManifold J ∞ B] [J.Boundaryless]
+  [T2Space B] {f : P → B}
+
+/-- **Local triviality of proper submersions.** Let `f : P → B` be a smooth proper submersion
+from a σ-compact Hausdorff manifold to a Hausdorff manifold, both finite-dimensional and
+boundaryless, and let `b₀` be a value of `f`. Give the fibre `TauCeti.MapFiber f b₀` its
+regular-fibre atlas `TauCeti.regularFiberChartedSpace`. Then `f` has a trivialization with
+fibre `TauCeti.MapFiber f b₀` whose base set contains `b₀`, smooth on its source with a smooth
+inverse on its target: these are the fields of `TauCeti.MapFiber.Atlas.IsContMDiff`.
+
+The trivialization is by parallel transport, for an Ehresmann connection of `f`, along the rays
+of the chart of `B` at `b₀`. -/
+theorem exists_trivialization_of_isProperMap (hf : IsSubmersion I J ∞ f) (hfp : IsProperMap f)
+    {b₀ : B} (hb₀ : b₀ ∈ range f) :
+    let := regularFiberChartedSpace (m := ∞) (c := b₀) (by simp) hf.contMDiff
+      BoundarylessManifold.isInteriorPoint
+        (isRegularValue_iff.2 fun x _ ↦ isRegularPoint_iff.2 (hf.surjective_mfderiv (by simp) x))
+    ∃ e : Trivialization (MapFiber f b₀) f, b₀ ∈ e.baseSet ∧
+      ContMDiffOn I (J.prod 𝓘(ℝ, Fin (finrank ℝ E - finrank ℝ F) → ℝ)) ∞ e e.source ∧
+      ContMDiffOn (J.prod 𝓘(ℝ, Fin (finrank ℝ E - finrank ℝ F) → ℝ)) I ∞
+        e.toOpenPartialHomeomorph.symm e.target := by
+  intro
+  have hι := isSmoothEmbedding_coe_regularFiber (m := ∞) (c := b₀) (by simp) hf.contMDiff
+    BoundarylessManifold.isInteriorPoint
+      (isRegularValue_iff.2 fun x _ ↦ isRegularPoint_iff.2 (hf.surjective_mfderiv (by simp) x))
+  obtain ⟨x₀, rfl⟩ := hb₀
+  have : Nonempty (MapFiber f (f x₀)) := ⟨⟨x₀, rfl⟩⟩
+  obtain ⟨D, hD⟩ := hf.exists_isEhresmannConnection (m := ⊤) (by simp)
+  obtain ⟨r, hr, hball⟩ := exists_pos_ball_two_mul_subset_extChartAt_target J (f x₀)
+  have hf' : ContMDiff I J ((⊤ : ℕ∞) + 1) f := hf.contMDiff.of_le (by simp)
+  have hΓ : ContMDiffOn (J.prod 𝓘(ℝ, ℝ)) J ((⊤ : ℕ∞) + 1) (chartRay J (f x₀))
+      ((chartBall J (f x₀) r : Set B) ×ˢ univ) :=
+    (contMDiffOn_chartRay J hball).of_le (by simp)
+  have hΓ₀ : ∀ b ∈ (chartBall J (f x₀) r : Set B), chartRay J (f x₀) (b, 0) = f x₀ :=
+    fun b _ ↦ chartRay_zero J (f x₀) b
+  have hΓ₁ : ∀ b ∈ (chartBall J (f x₀) r : Set B), chartRay J (f x₀) (b, 1) = b :=
+    fun b hb ↦ chartRay_one J ((mem_chartBall_iff J).1 hb).1
+  have hU := (chartBall J (f x₀) r).isOpen
+  refine ⟨hD.parallelTransportTrivialization (by simp) hf' hfp hU hΓ hΓ₀ hΓ₁,
+    mem_chartBall_self J _ hr, ?_, ?_⟩
+  · have h := hD.contMDiffOn_parallelTransportTrivialization (by simp) hf' hfp hU hΓ hΓ₀ hΓ₁
+    exact (contMDiff_fst.comp_contMDiffOn h).prodMk
+      (hι.contMDiffOn_iff_comp.2 (contMDiff_snd.comp_contMDiffOn h))
+  · have h := hD.contMDiffOn_parallelTransportTrivialization_symm (by simp) hf' hfp hU hΓ hΓ₀ hΓ₁
+    refine (h.comp (contMDiff_fst.prodMk (hι.contMDiff.comp contMDiff_snd)).contMDiffOn
+      fun p hp ↦ ⟨?_, p.2.property⟩).congr fun p _ ↦ ?_
+    · rw [Trivialization.target_eq] at hp
+      exact hp.1
+    · exact hD.parallelTransportTrivialization_symm_apply (by simp) hf' hfp hU hΓ hΓ₀ hΓ₁ p
+
+end Manifold.IsSubmersion
 
 end
