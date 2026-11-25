@@ -7,19 +7,34 @@ module
 
 public import SymplecticGeometry.Geometry.Euclidean.Inversion
 public import SymplecticGeometry.Topology.Sets.Annulus
+public import SymplecticGeometry.Geometry.Manifold.Gluing.Pair
 public import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+public import Mathlib.Analysis.Normed.Module.FiniteDimension
 
+import SymplecticGeometry.Geometry.Manifold.Diffeomorph.Basic
+import SymplecticGeometry.Geometry.Manifold.LocalDiffeomorph.OpenSubset
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.Constructions
 
 /-!
-# The gluing map of the connected sum by annuli
+# The connected sum by annuli
 
 The connected sum of McDuff–Salamon glues `M₁` and `M₂`, from each of which a small ball has been
 removed, along an annulus of the model space `E`, by the map `ξ ↦ ε² Φ ξ / ‖ξ‖²` for a linear
 isometry `Φ` of `E`. This map is `Φ` after the inversion `EuclideanGeometry.inversion 0 ε` in the
 sphere of radius `ε` about the origin, which sends `‖ξ‖` to `ε² / ‖ξ‖`. So it preserves the open
 annulus `ε² < ‖ξ‖ < 1`, whose middle sphere `‖ξ‖ = ε` the inversion fixes, and exchanges its two
-ends. This file builds the map, on the model space alone, as a diffeomorphism of that annulus.
+ends. This file builds the map, on the model space alone, as a diffeomorphism of that annulus,
+and then the connected sum itself.
+
+For the connected sum, `ι₁ : E → M₁` and `ι₂ : E → M₂` are open embeddings that are `C^n` local
+diffeomorphisms (on all of `E`, as for Tau Ceti's `TauCeti.ConnectedSum`; only the open unit ball
+matters), and `M₁`, `M₂` are Hausdorff. The balls removed have radius `ε²`, the inner radius of
+the annulus that the gluing map preserves. Each piece `M_i \ ι_i (closedBall 0 ε²)` is open,
+since the image of a compact ball is closed, and contains the image under `ι_i` of the annulus,
+along which it is glued. The connected sum is the library's `SymplecticGeometry.GluedAlong` of
+the two pieces along `ι₂ ∘ Φ ∘ inversion 0 ε ∘ ι₁⁻¹`; it inherits from `GluedAlong` its atlas,
+its structure of `C^n` manifold, and the inclusions `GluedAlong.inl`, `GluedAlong.inr` of the
+pieces, which are open embeddings and `C^n` local diffeomorphisms whose ranges cover it.
 
 ## Main definitions and results
 
@@ -38,6 +53,20 @@ itself (`SymplecticGeometry.map_mem_annulus_iff`).
 * `SymplecticGeometry.ConnectedSum.gluingDiffeomorph Φ ε hε`: the diffeomorphism of the annulus
   that it gives, with `coe_gluingDiffeomorph_apply` and `coe_gluingDiffeomorph_symm_apply`; its
   inverse is the gluing diffeomorphism for `Φ⁻¹` (`gluingDiffeomorph_symm`).
+* `SymplecticGeometry.ConnectedSum.piece ι ε hι`: the open set `M \ ι (closedBall 0 ε²)`, and
+  `SymplecticGeometry.ConnectedSum.overlap`: the image of the annulus in it, as an open subset
+  of the piece.
+* `SymplecticGeometry.ConnectedSum.annulusDiffeomorph`: `ι` restricted to the annulus, as a
+  diffeomorphism onto the overlap, from Mathlib's `IsLocalDiffeomorph.diffeomorphOfBijective`.
+* `SymplecticGeometry.ConnectedSum.overlapDiffeomorph`: the gluing map between the overlaps of
+  the two pieces, with `overlapDiffeomorph_annulusDiffeomorph` and
+  `coe_overlapDiffeomorph_apply`; its inverse is the gluing map for `Φ⁻¹`
+  (`overlapDiffeomorph_symm`), and `simp` cancels the two with
+  `overlapDiffeomorph_symm_apply_apply` and `overlapDiffeomorph_apply_symm_apply`.
+* `SymplecticGeometry.ConnectedSum.AnnulusSum`: the connected sum, and
+  `SymplecticGeometry.ConnectedSum.AnnulusSum.inl_eq_inr_iff`: a point `x` of the first piece and
+  a point `y` of the second are equal in it exactly when `x = ι₁ ξ` and
+  `y = ι₂ (Φ (inversion 0 ε ξ))` for some `ξ` of the annulus.
 
 The smoothness of the inversion away from its centre is Tau Ceti's
 `EuclideanGeometry.contDiffAt_inversion`, and the diffeomorphism is Tau Ceti's
@@ -54,7 +83,7 @@ public section
 
 noncomputable section
 
-open TopologicalSpace EuclideanGeometry
+open TopologicalSpace EuclideanGeometry Topology
 open scoped Manifold ContDiff
 
 namespace SymplecticGeometry.ConnectedSum
@@ -143,6 +172,183 @@ theorem gluingDiffeomorph_symm :
     (gluingDiffeomorph Φ ε hε (n := n)).symm = gluingDiffeomorph Φ.symm ε hε :=
   Diffeomorph.ext fun η ↦ Subtype.ext <| by
     simp [coe_gluingDiffeomorph_symm_apply, LinearIsometryEquiv.map_inversion_zero]
+
+end SymplecticGeometry.ConnectedSum
+
+/-! ### The connected sum glued from two pieces -/
+
+namespace SymplecticGeometry.ConnectedSum
+
+universe u
+
+section Piece
+
+variable {E : Type*} [NormedAddCommGroup E] [ProperSpace E] {M : Type*} [TopologicalSpace M]
+  [T2Space M] (ι : E → M) (ε : ℝ)
+
+/-- The piece `M \ ι (closedBall 0 ε²)` of the connected sum: the complement of the image of the
+closed ball of radius `ε²` under a continuous map `ι`. It is open, as that image is compact and
+`M` is Hausdorff. -/
+def piece (hι : Continuous ι) : Opens M :=
+  ⟨(ι '' Metric.closedBall 0 (ε ^ 2))ᶜ,
+    ((isCompact_closedBall 0 _).image hι).isClosed.isOpen_compl⟩
+
+variable {ι ε} {hι : Continuous ι}
+
+@[simp]
+theorem mem_piece_iff {x : M} : x ∈ piece ι ε hι ↔ x ∉ ι '' Metric.closedBall 0 (ε ^ 2) :=
+  Iff.rfl
+
+/-- For injective `ι`, the image of a point of the annulus lies in the piece. -/
+theorem mem_piece_of_mem_annulus (hι' : Function.Injective ι) {ξ : E}
+    (hξ : ξ ∈ annulus E (ε ^ 2) 1) : ι ξ ∈ piece ι ε hι := by
+  rintro ⟨η, hη, h⟩
+  rw [hι' h, Metric.mem_closedBall, dist_zero_right] at hη
+  exact hη.not_gt (mem_annulus.1 hξ).1
+
+variable (ι ε hι) in
+/-- The part of the piece `piece ι ε` along which it is glued: the image under the open map `ι`
+of the annulus `ε² < ‖ξ‖ < 1`, as an open subset of the piece. -/
+def overlap (hι' : IsOpenMap ι) : Opens (piece ι ε hι) :=
+  ⟨Subtype.val ⁻¹' (ι '' annulus E (ε ^ 2) 1),
+    (hι' _ (annulus E (ε ^ 2) 1).isOpen).preimage continuous_subtypeVal⟩
+
+@[simp]
+theorem mem_overlap_iff {hι' : IsOpenMap ι} {x : piece ι ε hι} :
+    x ∈ overlap ι ε hι hι' ↔ (x : M) ∈ ι '' annulus E (ε ^ 2) 1 :=
+  Iff.rfl
+
+end Piece
+
+section Diffeomorph
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
+  {n : ℕ∞ω}
+
+section One
+
+variable {M : Type*} [TopologicalSpace M] [ChartedSpace E M] [T2Space M] {ι : E → M}
+  (hι : IsOpenEmbedding ι) (hdι : IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) n ι) (ε : ℝ)
+
+/-- For an open embedding `ι` that is a `C^n` local diffeomorphism, `ι` restricted to the annulus
+`ε² < ‖ξ‖ < 1`, as a `C^n` diffeomorphism onto the overlap `overlap ι ε`. -/
+def annulusDiffeomorph :
+    annulus E (ε ^ 2) 1 ≃ₘ^n⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯ overlap ι ε hι.continuous hι.isOpenMap :=
+  IsLocalDiffeomorph.diffeomorphOfBijective
+    (f := fun ξ ↦ ⟨⟨ι ξ, mem_piece_of_mem_annulus hι.injective ξ.property⟩, ξ, ξ.property, rfl⟩)
+    (TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.1 <|
+      TauCeti.isLocalDiffeomorph_subtypeVal_comp_iff.1 <|
+        fun ξ ↦ (TauCeti.isLocalDiffeomorph_subtype_val ξ).comp (hg := hdι ξ))
+    ⟨fun _ _ h ↦ Subtype.ext <| hι.injective <| congrArg
+        (fun x : overlap ι ε hι.continuous hι.isOpenMap ↦ ((x : piece ι ε hι.continuous) : M)) h,
+      fun ⟨_, ξ, hξ, h⟩ ↦ ⟨⟨ξ, hξ⟩, Subtype.ext (Subtype.ext h)⟩⟩
+
+variable {hι hdι ε}
+
+@[simp]
+theorem coe_annulusDiffeomorph_apply (ξ : annulus E (ε ^ 2) 1) :
+    ((annulusDiffeomorph hι hdι ε ξ : piece ι ε hι.continuous) : M) = ι ξ := by
+  unfold annulusDiffeomorph
+  exact congrArg (fun x : overlap ι ε hι.continuous hι.isOpenMap ↦
+    ((x : piece ι ε hι.continuous) : M)) (congrFun (IsLocalDiffeomorph.coe_diffeomorphOfBijective
+      _ _) ξ)
+
+theorem apply_coe_annulusDiffeomorph_symm (x : overlap ι ε hι.continuous hι.isOpenMap) :
+    ι ((annulusDiffeomorph hι hdι ε).symm x) = ((x : piece ι ε hι.continuous) : M) := by
+  conv_rhs => rw [← (annulusDiffeomorph hι hdι ε).apply_symm_apply x]
+  rw [coe_annulusDiffeomorph_apply]
+
+end One
+
+variable {M₁ M₂ : Type u} [TopologicalSpace M₁] [ChartedSpace E M₁] [T2Space M₁]
+  [TopologicalSpace M₂] [ChartedSpace E M₂] [T2Space M₂] {ι₁ : E → M₁} {ι₂ : E → M₂}
+  (hι₁ : IsOpenEmbedding ι₁) (hdι₁ : IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) n ι₁)
+  (hι₂ : IsOpenEmbedding ι₂) (hdι₂ : IsLocalDiffeomorph 𝓘(ℝ, E) 𝓘(ℝ, E) n ι₂)
+  (Φ : E ≃ₗᵢ[ℝ] E) {ε : ℝ} (hε : ε ≠ 0)
+
+/-- The gluing map of the connected sum, `ι₂ ∘ Φ ∘ inversion 0 ε ∘ ι₁⁻¹`, as a `C^n`
+diffeomorphism from the overlap of the first piece onto that of the second. -/
+def overlapDiffeomorph :
+    overlap ι₁ ε hι₁.continuous hι₁.isOpenMap ≃ₘ^n⟮𝓘(ℝ, E), 𝓘(ℝ, E)⟯
+      overlap ι₂ ε hι₂.continuous hι₂.isOpenMap :=
+  (annulusDiffeomorph hι₁ hdι₁ ε).symm.trans
+    ((gluingDiffeomorph Φ ε hε).trans (annulusDiffeomorph hι₂ hdι₂ ε))
+
+@[simp]
+theorem overlapDiffeomorph_annulusDiffeomorph (ξ : annulus E (ε ^ 2) 1) :
+    overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε (annulusDiffeomorph hι₁ hdι₁ ε ξ) =
+      annulusDiffeomorph hι₂ hdι₂ ε (gluingDiffeomorph Φ ε hε (n := n) ξ) := by
+  simp [overlapDiffeomorph]
+
+@[simp]
+theorem coe_overlapDiffeomorph_apply (x : overlap ι₁ ε hι₁.continuous hι₁.isOpenMap) :
+    ((overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε x : piece ι₂ ε hι₂.continuous) : M₂) =
+      ι₂ (Φ (inversion 0 ε ((annulusDiffeomorph hι₁ hdι₁ ε).symm x))) := by
+  simp [overlapDiffeomorph]
+
+/-- The inverse of the gluing map for `Φ` is the gluing map for `Φ⁻¹`, from the overlap of the
+second piece onto that of the first. -/
+@[simp]
+theorem overlapDiffeomorph_symm :
+    (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε).symm =
+      overlapDiffeomorph hι₂ hdι₂ hι₁ hdι₁ Φ.symm hε :=
+  Diffeomorph.ext fun _ ↦ by simp [overlapDiffeomorph]
+
+/-- The gluing map for `Φ⁻¹` undoes the gluing map for `Φ`. Since `simp` rewrites the inverse
+with `overlapDiffeomorph_symm`, this is the form in which it cancels the two maps. -/
+@[simp]
+theorem overlapDiffeomorph_symm_apply_apply (x : overlap ι₁ ε hι₁.continuous hι₁.isOpenMap) :
+    overlapDiffeomorph hι₂ hdι₂ hι₁ hdι₁ Φ.symm hε (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε x) =
+      x := by
+  simpa using (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε).symm_apply_apply x
+
+/-- The gluing map for `Φ` undoes the gluing map for `Φ⁻¹`. Since `simp` rewrites the inverse
+with `overlapDiffeomorph_symm`, this is the form in which it cancels the two maps. -/
+@[simp]
+theorem overlapDiffeomorph_apply_symm_apply (y : overlap ι₂ ε hι₂.continuous hι₂.isOpenMap) :
+    overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε (overlapDiffeomorph hι₂ hdι₂ hι₁ hdι₁ Φ.symm hε y) =
+      y := by
+  simpa using (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε).apply_symm_apply y
+
+/-- The connected sum of McDuff–Salamon (Exercise 7.1.4): the pieces `M₁ \ ι₁ (closedBall 0 ε²)`
+and `M₂ \ ι₂ (closedBall 0 ε²)`, glued by identifying `ι₁ ξ` with `ι₂ (Φ (inversion 0 ε ξ))`,
+that is `ι₂ (ε² Φ ξ / ‖ξ‖²)`, for `ξ` in the annulus `ε² < ‖ξ‖ < 1`. Here `ι₁` and `ι₂` are open
+embeddings of `E` that are `C^n` local diffeomorphisms, `Φ` is a linear isometry and `ε ≠ 0`
+(the book takes `0 < ε < 1`). It is `GluedAlong` of `overlapDiffeomorph`, from which it has its
+atlas, its structure of `C^n` manifold, and the inclusions `GluedAlong.inl` and `GluedAlong.inr`
+of the two pieces, open embeddings and `C^n` local diffeomorphisms whose ranges cover it. -/
+abbrev AnnulusSum : Type u :=
+  GluedAlong (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε)
+
+/-- A point `x` of the first piece and a point `y` of the second have the same image in the
+connected sum exactly when `x = ι₁ ξ` and `y = ι₂ (Φ (inversion 0 ε ξ))` for some `ξ` with
+`ε² < ‖ξ‖ < 1`. -/
+theorem AnnulusSum.inl_eq_inr_iff {x : piece ι₁ ε hι₁.continuous}
+    {y : piece ι₂ ε hι₂.continuous} :
+    GluedAlong.inl (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε) x =
+        GluedAlong.inr (overlapDiffeomorph hι₁ hdι₁ hι₂ hdι₂ Φ hε) y ↔
+      ∃ ξ : E, (ε ^ 2 < ‖ξ‖ ∧ ‖ξ‖ < 1) ∧ (x : M₁) = ι₁ ξ ∧
+        (y : M₂) = ι₂ (Φ (inversion 0 ε ξ)) := by
+  rw [GluedAlong.inl_eq_inr_iff]
+  constructor
+  · rintro ⟨hx, rfl⟩
+    obtain ⟨ξ, hξ⟩ : ∃ ξ, annulusDiffeomorph hι₁ hdι₁ ε ξ = ⟨x, hx⟩ :=
+      (annulusDiffeomorph hι₁ hdι₁ ε).surjective _
+    refine ⟨ξ, mem_annulus.1 ξ.property, ?_, ?_⟩
+    · exact (congrArg (fun z : overlap ι₁ ε hι₁.continuous hι₁.isOpenMap ↦
+        ((z : piece ι₁ ε hι₁.continuous) : M₁)) hξ).symm.trans (coe_annulusDiffeomorph_apply ξ)
+    · rw [← hξ, overlapDiffeomorph_annulusDiffeomorph, coe_annulusDiffeomorph_apply,
+        coe_gluingDiffeomorph_apply]
+  · rintro ⟨ξ, hξ, hx, hy⟩
+    rw [← mem_annulus] at hξ
+    have hx' : x ∈ overlap ι₁ ε hι₁.continuous hι₁.isOpenMap := ⟨ξ, hξ, hx.symm⟩
+    have hξx : annulusDiffeomorph hι₁ hdι₁ ε ⟨ξ, hξ⟩ = ⟨x, hx'⟩ :=
+      Subtype.ext <| Subtype.ext <| by rw [coe_annulusDiffeomorph_apply, hx]
+    refine ⟨hx', Subtype.ext ?_⟩
+    rw [← hξx, overlapDiffeomorph_annulusDiffeomorph, coe_annulusDiffeomorph_apply,
+      coe_gluingDiffeomorph_apply, hy]
+
+end Diffeomorph
 
 end SymplecticGeometry.ConnectedSum
 

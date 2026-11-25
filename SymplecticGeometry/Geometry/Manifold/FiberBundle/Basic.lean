@@ -10,6 +10,7 @@ public import TauCeti.Geometry.Manifold.FiberBundle.Basic
 public import TauCeti.Geometry.Manifold.FiberBundle.Principal
 public import TauCeti.Geometry.Manifold.FiberBundle.Submersion
 public import TauCeti.Topology.FiberBundle.Proper
+public import SymplecticGeometry.Geometry.Manifold.DifferentialForm.Semibasic
 
 /-!
 # Smooth maps into the charted total space of a fibre bundle
@@ -33,6 +34,8 @@ of a principal bundle given by a local section.
   states its lemmas about the projection. Lemmas whose content does not depend on the smoothness
   index, such as those about derivatives, hold for `projContMDiffMap n` with any `n`.
 * `TauCeti.ManifoldTotalSpace.mdifferentiable_projContMDiffMap`: the projection is differentiable.
+* `TauCeti.ManifoldTotalSpace.isSemibasic_projContMDiffMap_iff`: whether a form is semibasic for
+  `projContMDiffMap n` (`TauCeti.RoughForm.IsSemibasic`) does not depend on `n`.
 * `TauCeti.ManifoldTotalSpace.surjective_projContMDiffMap`,
   `TauCeti.ManifoldTotalSpace.isSubmersion_projContMDiffMap`: the projection is a surjective
   submersion.
@@ -156,6 +159,28 @@ theorem exists_contMDiffOn_section [ContMDiffFiberBundle n F E IB IF] [Nonempty 
     exact e.proj_symm_apply' hy
 
 end AnyField
+
+/-! ### Forms semibasic for the projection -/
+
+section Semibasic
+
+variable {B F : Type*} {E : B → Type*}
+  {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB] {HB : Type*} [TopologicalSpace HB]
+  {IB : ModelWithCorners ℝ EB HB} [TopologicalSpace B] [ChartedSpace HB B]
+  [TopologicalSpace (TotalSpace F E)] [∀ b, TopologicalSpace (E b)]
+  {EF : Type*} [NormedAddCommGroup EF] [NormedSpace ℝ EF] {HF : Type*}
+  [TopologicalSpace HF] {IF : ModelWithCorners ℝ EF HF} [TopologicalSpace F] [ChartedSpace HF F]
+  [FiberBundle F E] {V : Type*} [AddCommGroup V] [Module ℝ V] [TopologicalSpace V] {k : ℕ}
+
+/-- Whether a form on the charted total space is semibasic for the projection
+`projContMDiffMap n` does not depend on the smoothness index `n`. -/
+theorem isSemibasic_projContMDiffMap_iff {n m : ℕ∞ω}
+    {α : RoughForm (IB.prod IF) (ManifoldTotalSpace F E) V k} :
+    RoughForm.IsSemibasic IB (projContMDiffMap n F E IB IF) α ↔
+      RoughForm.IsSemibasic IB (projContMDiffMap m F E IB IF) α := by
+  rw [coe_projContMDiffMap, coe_projContMDiffMap]
+
+end Semibasic
 
 /-! ### Pulling back forms along sections -/
 
