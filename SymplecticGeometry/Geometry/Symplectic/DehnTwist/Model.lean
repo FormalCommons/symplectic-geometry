@@ -33,6 +33,9 @@ time `π` is the antipodal map; and since `R' = 0` on `[r₀, ∞)`, the twist i
 * `SymplecticGeometry.IsTwistProfile R r₀`: `R` is a twist profile with support radius `r₀`.
 * `SymplecticGeometry.geodesicTwist θ`: the map that moves `z` along the normalized geodesic flow
   for the time `θ (μ z)` off the zero section, and is the antipodal map on it.
+* `SymplecticGeometry.twistCoord C S`: the map
+  `(q, p) ↦ (C ‖p‖² • q + S ‖p‖² • p, C ‖p‖² • p - (‖p‖² * S ‖p‖²) • q)` of `E × E`, the geodesic
+  twist in the coordinates `(q, p)`.
 * `SymplecticGeometry.modelTwistFun R`: the model twist as a function of `T*Sⁿ`, the geodesic
   twist of `2π R'`.
 * `SymplecticGeometry.modelTwist hR`: the model twist of a twist profile, as a diffeomorphism.
@@ -71,7 +74,7 @@ Write `θ = 2π R'`. From `R (-t) = R t - t` one gets `R'(-t) = 1 - R'(t)`, so `
 and `sin ∘ θ` is odd. By Whitney's theorem (`Function.Even.exists_contDiff_comp_sq`,
 `Function.Odd.exists_contDiff_mul_comp_sq`) they are `C (t ^ 2)` and `t * S (t ^ 2)` with `C`
 and `S` smooth. By `cotangentCoord_geodesicFlow`, the twist then reads, in the coordinates
-`(q, p)` of `cotangentCoord`,
+`(q, p)` of `cotangentCoord`, as `twistCoord C S`:
 `(q, p) ↦ (C ‖p‖² • q + S ‖p‖² • p, C ‖p‖² • p - (‖p‖² * S ‖p‖²) • q)`,
 also on the zero section, where `C 0 = cos π = -1`. This is a smooth map of `(q, p)`, so the twist
 is smooth (`contMDiff_of_contMDiff_cotangentCoord_comp`). The inverse is the same construction
@@ -85,10 +88,12 @@ included, so no density argument is needed. With `s = ‖p‖²`, the twist read
 `(q, p) ↦ (C q + S p, C p - s S q)`, and the Liouville form reads `⟪p, δq⟫`
 (`liouvilleForm_apply_eq_inner_cotangentCoord`). On the image of `T*Sⁿ`, where `‖q‖ = 1`,
 `q ⊥ p`, `q ⊥ δq` and `⟪δq, p⟫ + ⟪q, δp⟫ = 0`, the pulled back form is
-`(C² + s S²) ⟪p, δq⟫ + (2 s (C S' - S C') + C S) ⟪p, δp⟫`. Write `K = k (‖p‖²)` by Whitney's
-theorem; then `dK = 2 k' ⟪p, δp⟫`. So exactness comes down to `C² + s S² = 1`, which is
-`cos² + sin² = 1`, and `2 s (C S' - S C') + C S = 2 k'`
-(`two_mul_mul_sub_add_mul_eq_two_mul_deriv`). The second identity follows for `s > 0` from
+`(C² + s S²) ⟪p, δq⟫ + (2 s (C S' - S C') + C S) ⟪p, δp⟫`
+(`inner_twistCoord_snd_fderiv_twistCoord_fst`). Write `K = k (‖p‖²)` by Whitney's theorem; then
+`dK = 2 k' ⟪p, δp⟫` (`mvfderiv_comp_cotangentNorm_sq`). So exactness comes down to
+`C² + s S² = 1`, which is `cos² + sin² = 1`, and `2 s (C S' - S C') + C S = 2 k'`
+(`two_mul_mul_sub_add_mul_eq_two_mul_deriv`); `IsTwistProfile.exists_contDiff_comp_sq` gives
+`C`, `S` and `k` with both identities. The second identity follows for `s > 0` from
 differentiating the relations between `C`, `S`, `k` and `R`, and at `s = 0` by continuity.
 The symplecticity follows by applying `d`, since `d (dK) = 0`.
 
