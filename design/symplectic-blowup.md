@@ -524,18 +524,15 @@ Namespace `SymplecticGeometry`, for `M` as in *Setting*, `ω`, `J`, `p₀`,
 
 For `M` connected, without boundary, Hausdorff and σ-compact, `0 < r`.
 
-- `exists_hamiltonian_comp_eqOn`: for ball embeddings `ψ₀ ψ₁` of radius
+- `exists_hamiltonian_comp_eqOn`, in
+  `Geometry/Symplectic/IsotopyExtension/Ball/Homogeneity.lean`: for ball
+  embeddings `ψ₀ ψ₁` of radius
   `r`, a Hamiltonian diffeotopy `Φ` with `Φ.final ∘ ψ₀ = ψ₁` on a ball
   about $0$, fixing `p₀` at all times when `ψ₀ 0 = ψ₁ 0 = p₀`. Proof: a
   smooth path of centres is a radius-zero `IsSymplecticBallFamily`
-  (`IsSymplecticBallFamily.of_path`), which `exists_hasHamiltonian_extension`
-  (`IsSymplecticBallFamily.exists_hasHamiltonian_extension`) follows by a
-  Hamiltonian diffeotopy; then, with a common centre, a
-  family of based embeddings of a small ball from $\psi_0$ to $\psi_1$
-  (the rescalings $t^{-1}\psi(tz)$ in a Darboux chart, and *Isotopy
-  extension*'s smooth paths in the symplectic group,
-  `exists_contDiff_path_symplecticGroup`, between the derivatives), and
-  `exists_ballEmbedding_extension_and_hasHamiltonian_extension` for it.
+  (`IsSymplecticBallFamily.of_path`), and
+  `IsSymplecticBallFamily.exists_hasHamiltonian_extension` with `r₀ = 0`
+  gives `Φ` and the ball.
 - `exists_family_comp_eqOn`: for an `IsSymplecticBallFamily ω r ψ` with
   `ψ t 0 = p₀` and $\psi_1=\psi_0$ near $0$, a jointly smooth family `χ` of
   symplectomorphisms of $B(r)$ with `χ 0 = χ 1 = id` and

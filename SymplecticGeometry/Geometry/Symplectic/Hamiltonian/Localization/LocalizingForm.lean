@@ -61,7 +61,7 @@ the fixed points:
   (`SymplecticGeometry.cutoffWeightOneForm_apply_weightChart_eq_zero_iff`);
 * `SymplecticGeometry.mextDerivₗ_cutoffWeightOneForm_apply_of_eventuallyEq_one`: near a point
   where `ρ = 1`, the form is `(Φ⁻¹)^* θₖ`, so its exterior derivative there is `(Φ⁻¹)^* dθₖ`, by
-  naturality of `d` (`TauCeti.mpullback_mextDeriv_at`);
+  naturality of `d` (`TauCeti.mextDerivₗ_apply_eq_of_eventuallyEq_mpullback`);
 * `SymplecticGeometry.mextDerivₗ_cutoffWeightOneForm_half_apply_of_eventuallyEq_one`: if `Φ`
   pulls a two-form `σ` back to the standard form `ω₀`, then for `kⱼ = 1/2`, where `dθₖ = ω₀`,
   the exterior derivative is `σ` at such a point.
@@ -200,18 +200,7 @@ theorem cutoffWeightOneForm_apply_weightChart (k' : ι → ℝ) {X : (x : M) →
     (cutoffWeightOneForm Φ hρ hs k).val (Φ z) ![X (Φ z)] =
       ρ (Φ z) * (2 * π * ∑ j, k j * k' j * (z.x j ^ 2 + z.y j ^ 2)) := by
   rw [cutoffWeightOneForm_val, ContinuousAlternatingMap.smul_apply, smul_eq_mul,
-    TauCeti.mpullback_apply]
-  congr 1
-  have hv : (fun i ↦ mfderiv I 𝓘(ℝ, StdSpace ι) Φ.symm (Φ z) (![X (Φ z)] i)) =
-      ![EuclideanSpace.sumEquivProd.symm
-        (weightGenerator ((2 * π) • k') (EuclideanSpace.sumEquivProd z))] := by
-    funext i
-    rw [Fin.fin_one_eq_zero i, Matrix.cons_val_zero, Matrix.cons_val_zero, ← hX]
-    exact Φ.mfderiv_symm_apply_mfderiv_apply (by simp) hz _
-  rw [hv, Φ.symm_toPartialEquiv, Φ.left_inv hz]
-  -- `hv` lists the vectors as points of `StdSpace ι`, the lemmas as tangent vectors at `z`.
-  exact (weightOneForm_apply_weightGenerator_smul k k' (2 * π) z).trans
-    (congrArg _ (weightOneForm_apply_weightGenerator k k' z))
+    mpullback_symm_weightOneForm_apply_weightChart k k' hz hX]
 
 variable {Φ} in
 /-- On a vector field `X` that the differential of `Φ` relates, at `z`, to the generator
@@ -322,10 +311,9 @@ theorem mextDerivₗ_cutoffWeightOneForm_apply_of_eventuallyEq_one {x : M}
       TauCeti.mpullback I 𝓘(ℝ, StdSpace ι) Φ.symm
         (mextDerivₗ 𝓘(ℝ, StdSpace ι) 1 (weightOneForm k)).val x := by
   have hxt : x ∈ Φ.target := hs (subset_tsupport ρ (by simp [hx.self_of_nhds]))
-  rw [mextDerivₗ_apply, mextDerivₗ_apply, mpullback_mextDeriv_at
-    ((Φ.symm.contMDiffOn.contMDiffAt (Φ.open_target.mem_nhds hxt)).of_le (by simp))
-    (((weightOneForm k).contMDiff _).of_le (by simp))]
-  refine mextDeriv_congr_of_eventuallyEq ?_
+  rw [mpullback_apply_eq_compContinuousLinearMap]
+  refine mextDerivₗ_apply_eq_of_eventuallyEq_mpullback
+    ((Φ.symm.contMDiffOn.contMDiffAt (Φ.open_target.mem_nhds hxt)).of_le (by simp)) ?_
   filter_upwards [hx] with y hy
   simp only [cutoffWeightOneForm_val, hy, Pi.one_apply, one_smul]
 

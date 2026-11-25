@@ -17,6 +17,7 @@ public import TauCeti.Geometry.Contact.Gray
 public import TauCeti.Geometry.Manifold.IsManifold.Basic
 public import TauCeti.Topology.VectorBundle.Hom
 import TauCeti.Geometry.Manifold.LocalDiffeomorph.OpenSubset
+import SymplecticGeometry.Geometry.Manifold.MFDeriv.Prod
 
 /-!
 # Smooth families of contact structures
@@ -153,13 +154,12 @@ theorem isContactFamily_iff : IsContactFamily ξ ↔
     eventually_congr (.of_forall fun q ↦ and_congr_right' ?_)
   rw [SetLike.ext_iff]
   refine forall_congr' fun v ↦ ?_
-  rw [TauCeti.SmoothForm.mem_kerDistribution, TauCeti.SmoothForm.mpullback_apply,
-    mfderiv_prod_right]
+  rw [TauCeti.SmoothForm.mem_kerDistribution, TauCeti.SmoothForm.mpullback_apply]
   -- The slice inclusion `Prod.mk t` sends `v` to the vertical vector `(0, v)`.
   congr! 3
   ext i : 1
   fin_cases i
-  exact ContinuousLinearMap.inr_apply v
+  exact mfderiv_prodMk_right_apply v
 
 namespace IsContactFamily
 
