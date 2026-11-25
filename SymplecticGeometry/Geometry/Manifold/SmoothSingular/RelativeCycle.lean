@@ -100,7 +100,6 @@ theorem exists_smoothSingular_eq_d_add (U : Opens M) {n p m : ℕ}
   let Ps := smoothSingularPair I U
   let Pc := TopPair.toSSetPair.obj (TopPair.ofSubset (U : Set (TopCat.of M)))
   let f : Ps ⟶ Pc := smoothSingularPairι I U
-  have : QuasiIso (SSetPair.chainComplexMap f R) := inferInstance
   -- Restate the claim through the pairs. The chain complexes of `Ps.right` and of the smooth
   -- simplices of `M` (and so on) agree only by unfolding `smoothSingularPair` and the pairs'
   -- constructions, so `rw` cannot pass from one to the other.
