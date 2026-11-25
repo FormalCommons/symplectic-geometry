@@ -13,10 +13,10 @@ public import TauCeti.Geometry.Lie.Adjoint.Exponential.Basic
 
 For a Lie group `G` with Lie algebra `𝔤`, the set `nonzeroPeriods I G` consists of the nonzero
 `ξ ∈ 𝔤` with `exp ξ = 1`: the nonzero generators of one-parameter subgroups `t ↦ exp (t ξ)` that
-have period `1`. It is written `Λ` in [GeorgoulasRobbinSalamon2021]. For a torus it is the integer
-lattice of `𝔤` with `0` removed, but for a noncommutative `G` it is not closed under addition, so
-it is a set and not a lattice. It is invariant under the adjoint action of `G` and under
-multiplication by positive integers.
+have period `1`. It is written `Λ` in [GeorgoulasRobbinSalamon2021]. For a torus, `Λ ∪ {0}` is
+the integer lattice of `𝔤`; for a noncommutative `G`, such as `SU(2)`, `Λ ∪ {0}` need not be
+closed under addition, so it is a set and not a lattice. It is invariant under the adjoint action
+of `G` and under multiplication by positive integers.
 
 For a complexified action of `Gc` on a compact manifold `M`, with `-μ` a moment map for `σ` and
 the metric `g(u, w) = σ(u, J w)`, the function `t ↦ ⟨μ (exp (i t ξ) p), ξ⟩` is antitone
@@ -123,11 +123,11 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E
 `μ (C.expI (t • ξ) • p) ξ`, as `t → ∞`. It is a junk value where the limit does not exist; for a
 complexified action on a compact manifold the limit exists for every `ξ`
 (`tendsto_momentWeight`). -/
-def momentWeight [TopologicalSpace M] (C : LieComplexification I G IC Gc)
+def momentWeight (C : LieComplexification I G IC Gc)
     (μ : M → Module.Dual ℝ (GroupLieAlgebra I G)) (p : M) (ξ : GroupLieAlgebra I G) : ℝ :=
   limUnder atTop fun t : ℝ ↦ μ (C.expI (t • ξ) • p) ξ
 
-theorem momentWeight_def [TopologicalSpace M] (C : LieComplexification I G IC Gc)
+theorem momentWeight_def (C : LieComplexification I G IC Gc)
     (μ : M → Module.Dual ℝ (GroupLieAlgebra I G)) (p : M) (ξ : GroupLieAlgebra I G) :
     momentWeight C μ p ξ = limUnder atTop fun t : ℝ ↦ μ (C.expI (t • ξ) • p) ξ :=
   (rfl)
